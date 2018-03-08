@@ -43,6 +43,12 @@
 #include <stdlib.h>
 #include <ndctl/libndctl.h>
 #include <ndctl/libdaxctl.h>
+#include <linux/ndctl.h>
+
+#include "out.h"
+#include "os.h"
+#include "os_dimm.h"
+#include "os_badblock.h"
 
 /* XXX: workaround for missing PAGE_SIZE - should be fixed in linux/ndctl.h */
 #include <sys/user.h>
@@ -121,8 +127,8 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 
 		char path[PATH_MAX];
 		os_stat_t stat;
-		if (sprintf(path, "/dev/%s", devname) == -1) {
-			ERR("sprintf() failed");
+		if (snprintf(path, PATH_MAX, "/dev/%s", devname) == -1) {
+			ERR("!snprintf");
 			return -1;
 		}
 
@@ -274,7 +280,7 @@ out:
  *                                 (offset and size) of the given namespace
  *                                 relative to the beginning of its region
  */
-static int
+static void
 os_dimm_get_namespace_bounds(struct ndctl_region *region,
 				struct ndctl_namespace *ndns,
 				unsigned long long *ns_offset,
@@ -301,8 +307,6 @@ os_dimm_get_namespace_bounds(struct ndctl_region *region,
 	}
 
 	*ns_offset -= ndctl_region_get_resource(region);
-
-	return 0;
 }
 
 /*
@@ -330,10 +334,7 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 	bbs->bb_cnt = 0;
 	bbs->bbv = NULL;
 
-	if (os_dimm_get_namespace_bounds(region, ndns, &ns_beg, &ns_size)) {
-		ERR("getting namespace bounds failed");
-		return -1;
-	}
+	os_dimm_get_namespace_bounds(region, ndns, &ns_beg, &ns_size);
 
 	ns_end = ns_beg + ns_size - 1;
 
@@ -358,9 +359,8 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 		newbbvp = Realloc(bbvp, (++bb_count) *
 					sizeof(struct bad_block));
 		if (newbbvp == NULL) {
-			ERR("out of memory");
-			if (bbvp)
-				Free(bbvp);
+			ERR("!realloc");
+			Free(bbvp);
 			return -1;
 		}
 
@@ -552,7 +552,7 @@ os_dimm_devdax_clear_badblocks(const char *path)
 
 	bbs = Zalloc(sizeof(struct badblocks));
 	if (bbs == NULL) {
-		ERR("out of memory");
+		ERR("!malloc");
 		return -1;
 	}
 
@@ -585,11 +585,10 @@ os_dimm_devdax_clear_badblocks(const char *path)
 	}
 
 exit_free_all:
-	if (bbs && bbs->bbv)
+	if (bbs) {
 		Free(bbs->bbv);
-
-	if (bbs)
 		Free(bbs);
+	}
 
 	ndctl_unref(ctx);
 
