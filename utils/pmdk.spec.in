@@ -28,11 +28,14 @@
 # ndctl v59.2 is available on:
 #   openSUSE Tumbleweed, Leap >=42.3; SLE >=12 SP3
 #   Fedora >=26; RHEL >=7.6
-%if (0%{?suse_version} > 1500) || (0%{?sle_version} >= 120300) || (0%{?fedora} >= 26) || (0%{?rhel} >= 7)
-%bcond_without ndctl
-%else
+#%if (0%{?suse_version} > 1500) || (0%{?sle_version} >= 120300) || (0%{?fedora} >= 26) || (0%{?rhel} >= 7)
+#%bcond_without ndctl
+#%else
+#%bcond_with ndctl
+#%endif
+
+# XXX: by default build w/o ndctl, unless explicitly enabled
 %bcond_with ndctl
-%endif
 
 %define min_libfabric_ver __LIBFABRIC_MIN_VER__
 %define min_ndctl_ver __NDCTL_MIN_VER__
