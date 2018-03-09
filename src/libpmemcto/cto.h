@@ -76,8 +76,7 @@ struct pmemcto {
 	uint64_t size;		/* size of mapped region */
 	uint64_t root;		/* root pointer */
 
-	/* XXX: to be replaced with shutdown state in the pool header */
-	uint8_t consistent;		/* successfully flushed before exit */
+	uint8_t consistent;	/* successfully flushed before exit */
 	unsigned char unused[CTO_DSC_P_UNUSED]; /* must be zero */
 
 	/* some run-time state, allocated out of memory pool... */
