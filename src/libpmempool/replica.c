@@ -112,8 +112,9 @@ uint64_t
 replica_get_part_data_offset(struct pool_set *set, unsigned repn,
 		unsigned partn)
 {
+	size_t hdrsize = (set->options & OPTION_SINGLEHDR) ? 0 : Mmap_align;
 	return replica_get_part_range_data_len(set, repn, 0, partn) +
-			POOL_HDR_SIZE;
+			((partn == 0) ? POOL_HDR_SIZE : hdrsize);
 }
 
 /*
