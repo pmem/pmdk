@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemobj.h"
 
 /* an internal libpmemobj code */
@@ -105,7 +106,12 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 	pmembench_set_priv(bench, ob);
 
 	ob->pa = (struct prog_args *)args->opts;
-	size_t psize = args->is_poolset ? 0 : PMEMOBJ_MIN_POOL;
+	size_t psize;
+
+	if (args->is_poolset || util_file_is_device_dax(args->fname))
+		psize = 0;
+	else
+		psize = PMEMOBJ_MIN_POOL;
 
 	/* create pmemobj pool */
 	ob->pop = pmemobj_create(args->fname, "obj_lanes", psize, args->fmode);

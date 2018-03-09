@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,6 +35,7 @@
  */
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemobj.h"
 #include "queue.h"
 #include <cassert>
@@ -906,17 +907,15 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		size_t psize =
 			(args->n_ops_per_thread + obj_bench.min_len + 1) *
 			obj_size * args->n_threads * FACTOR;
-		if (args->is_poolset) {
+		if (args->is_poolset || util_file_is_device_dax(args->fname)) {
 			if (args->fsize < psize) {
-				fprintf(stderr, "insufficient size "
-						"of poolset\n");
+				fprintf(stderr, "file size too large\n");
 				goto free_all;
 			}
 
 			psize = 0;
-		} else {
-			if (psize < PMEMOBJ_MIN_POOL)
-				psize = PMEMOBJ_MIN_POOL;
+		} else if (psize < PMEMOBJ_MIN_POOL) {
+			psize = PMEMOBJ_MIN_POOL;
 		}
 
 		/* Create pmemobj pool. */

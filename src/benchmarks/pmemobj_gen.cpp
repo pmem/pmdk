@@ -408,10 +408,9 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 			}
 		}
 	} else {
-		if (args->is_poolset) {
+		if (args->is_poolset || util_file_is_device_dax(args->fname)) {
 			if (args->fsize < psize) {
-				fprintf(stderr, "insufficient size of "
-						"poolset\n");
+				fprintf(stderr, "file size too large\n");
 				goto free_pools;
 			}
 			psize = 0;
