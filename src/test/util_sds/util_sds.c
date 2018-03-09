@@ -64,7 +64,7 @@ static size_t usc_it;
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_sds");
+	START(argc, argv, "util_sds");
 	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 		MAJOR_VERSION, MINOR_VERSION);
 	size_t mapped_len = PMEM_LEN;

@@ -268,6 +268,9 @@ LIBUTIL=
 LIBUUID=
 LIBCXXABI=-lc++abi
 
+# XXX: disable building with ndctl, unless explicitly enabled
+NDCTL_ENABLE ?= n
+
 # Detect libndctl if not disabled.
 ifneq ($(NDCTL_ENABLE),n)
 HAS_NDCTL :=  $(shell echo "int main() {struct ndctl_cmd *cmd; ndctl_cmd_smart_get_shutdown_count(cmd);return 0;}" | \
