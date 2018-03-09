@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -83,7 +83,7 @@ typedef struct pmemlog PMEMlogpool;
  * these defines to pmemlog_check_version().
  */
 #define PMEMLOG_MAJOR_VERSION 1
-#define PMEMLOG_MINOR_VERSION 0
+#define PMEMLOG_MINOR_VERSION 1
 
 #ifndef _WIN32
 const char *pmemlog_check_version(unsigned major_required,

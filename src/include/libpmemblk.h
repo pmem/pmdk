@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -80,7 +80,7 @@ typedef struct pmemblk PMEMblkpool;
  * used at compile-time by passing these defines to pmemblk_check_version().
  */
 #define PMEMBLK_MAJOR_VERSION 1
-#define PMEMBLK_MINOR_VERSION 0
+#define PMEMBLK_MINOR_VERSION 1
 
 #ifndef _WIN32
 const char *pmemblk_check_version(unsigned major_required,
