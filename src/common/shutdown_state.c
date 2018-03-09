@@ -131,6 +131,11 @@ void
 shutdown_state_set_flag(struct shutdown_state *sds, struct pool_set_part *part)
 {
 	LOG(3, "sds %p", sds);
+
+	/* set dirty flag only if uid is non-zero */
+	if (sds->uuid == 0)
+		return;
+
 	sds->dirty = 1;
 	FLUSH_SDS(sds, part);
 
