@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -167,7 +167,7 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
  * used at compile-time by passing these defines to pmempool_check_version().
  */
 #define PMEMPOOL_MAJOR_VERSION 1
-#define PMEMPOOL_MINOR_VERSION 2
+#define PMEMPOOL_MINOR_VERSION 3
 
 /*
  * check status

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -99,7 +99,7 @@ int rpmem_remove(const char *target, const char *pool_set, int flags);
  * at compile-time by passing these defines to rpmem_check_version().
  */
 #define RPMEM_MAJOR_VERSION 1
-#define RPMEM_MINOR_VERSION 1
+#define RPMEM_MINOR_VERSION 2
 const char *rpmem_check_version(unsigned major_required,
 		unsigned minor_required);
 

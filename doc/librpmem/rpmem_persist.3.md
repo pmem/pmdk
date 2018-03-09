@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: _MP(RPMEM_PERSIST, 3)
 collection: librpmem
 header: PMDK
-date: rpmem API version 1.1
+date: rpmem API version 1.2
 ...
 
 [comment]: <> (Copyright 2017, Intel Corporation)

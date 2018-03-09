@@ -113,7 +113,7 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
  * compile-time by passing these defines to pmem_check_version().
  */
 #define PMEM_MAJOR_VERSION 1
-#define PMEM_MINOR_VERSION 0
+#define PMEM_MINOR_VERSION 1
 
 #ifndef _WIN32
 const char *pmem_check_version(unsigned major_required,

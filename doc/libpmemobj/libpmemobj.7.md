@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: _MP(LIBPMEMOBJ, 7)
 collection: libpmemobj
 header: PMDK
-date: pmemobj API version 2.2
+date: pmemobj API version 2.3
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)

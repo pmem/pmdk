@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: _MP(PMEMLOG_APPEND, 3)
 collection: libpmemlog
 header: PMDK
-date: pmemlog API version 1.0
+date: pmemlog API version 1.1
 ...
 
 [comment]: <> (Copyright 2017, Intel Corporation)
