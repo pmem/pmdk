@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: _MP(PMEM_FLUSH, 3)
 collection: libpmem
 header: PMDK
-date: pmem API version 1.0
+date: pmem API version 1.1
 ...
 
 [comment]: <> (Copyright 2017, Intel Corporation)

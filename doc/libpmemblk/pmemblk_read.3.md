@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: _MP(PMEMBLK_READ, 3)
 collection: libpmemblk
 header: PMDK
-date: pmemblk API version 1.0
+date: pmemblk API version 1.1
 ...
 
 [comment]: <> (Copyright 2017, Intel Corporation)
