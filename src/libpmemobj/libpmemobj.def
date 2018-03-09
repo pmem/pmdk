@@ -123,6 +123,7 @@ EXPORTS
 	pmemobj_oid
 	pmemobj_reserve
 	pmemobj_xreserve
+	pmemobj_defer_free
 	pmemobj_set_value
 	pmemobj_publish
 	pmemobj_tx_publish
