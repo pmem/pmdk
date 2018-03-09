@@ -61,6 +61,7 @@ PMEMoid pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num);
 PMEMoid pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num, uint64_t flags);
+void pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act);
 void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 	uint64_t *ptr, uint64_t value);
 void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
@@ -85,7 +86,7 @@ in time of the execution of a program.
 
 The publication is fail-safe atomic in the scope of the entire collection of
 actions, but the number of said actions is limited by *POBJ_MAX_ACTIONS*
-constant. If a program exists without publishing the actions, or the actions are
+constant. If a program exits without publishing the actions, or the actions are
 canceled, any resources reserved by those actions are released and placed back in
 the pool.
 
@@ -111,6 +112,9 @@ additional *flags* argument that is a bitmask of the following values:
 
 + **POBJ_CLASS_ID(class_id)** - allocate the object from allocation class
 *class_id*. The class id cannot be 0.
+
+**pmemobj_defer_free**() function creates a deferred free action, meaning that
+the provided object will be freed when the action is published.
 
 The **pmemobj_set_value** function prepares an action that, once published, will
 modify the memory location pointed to by *ptr* to *value*.

@@ -18,6 +18,7 @@ pmemobj_create
 pmemobj_ctl_exec
 pmemobj_ctl_get
 pmemobj_ctl_set
+pmemobj_defer_free
 pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg
@@ -104,6 +105,7 @@ pmemobj_create
 pmemobj_ctl_exec
 pmemobj_ctl_get
 pmemobj_ctl_set
+pmemobj_defer_free
 pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg
@@ -190,6 +192,7 @@ pmemobj_create
 pmemobj_ctl_exec
 pmemobj_ctl_get
 pmemobj_ctl_set
+pmemobj_defer_free
 pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg
@@ -276,6 +279,7 @@ pmemobj_create
 pmemobj_ctl_exec
 pmemobj_ctl_get
 pmemobj_ctl_set
+pmemobj_defer_free
 pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg

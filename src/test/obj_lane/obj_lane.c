@@ -70,7 +70,7 @@ struct mock_pop {
 static int construct_fail;
 
 static void *
-lane_noop_construct_rt(PMEMobjpool *pop)
+lane_noop_construct_rt(PMEMobjpool *pop, void *data)
 {
 	UT_OUT("lane_noop_construct");
 	if (construct_fail) {

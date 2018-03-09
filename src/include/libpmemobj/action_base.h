@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -81,6 +81,7 @@ PMEMoid pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num, uint64_t flags);
 void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 	uint64_t *ptr, uint64_t value);
+void pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act);
 
 void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
 int pmemobj_tx_publish(struct pobj_action *actv, int actvcnt);
