@@ -3087,6 +3087,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	struct pool_set *set = *setp;
 
+	ASSERT(set->nreplicas > 0);
+
 	if (!remote && (set->options & OPTION_NOHDRS)) {
 		ERR(
 		"the NOHDRS poolset option is not supported for local poolsets");
@@ -3103,14 +3105,20 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		return -1;
 	}
 
-	if (set->directory_based &&
+	if (set->resvsize < minsize) {
+		ERR("reservation pool size %zu smaller than %zu", set->resvsize,
+			minsize);
+		util_poolset_free(set);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (set->directory_based && set->poolsize == 0 &&
 			util_poolset_append_new_part(set, minsize) != 0) {
 		ERR("cannot create a new part in provided directories");
 		util_poolset_free(set);
 		return -1;
 	}
-
-	ASSERT(set->nreplicas > 0);
 
 	if (set->poolsize < minsize) {
 		ERR("net pool size %zu smaller than %zu", set->poolsize,
