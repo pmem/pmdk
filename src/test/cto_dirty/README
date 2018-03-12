@@ -1,0 +1,15 @@
+Persistent Memory Development Kit
+
+This is src/test/cto_dirty/README.
+
+This directory contains a unit test for the libpmemcto library.
+It verifies that the inconsistent pool cannot be open. I.e. if it
+wasn't gracefully closed and flushed to persistence entirely.
+
+The program in cto_dirty.c takes a filename and optionally the number
+indicating when to simulate the failure. For example:
+
+	./cto_dirty testfile 1
+
+will create (or open) a pmemcto pool on testfile, and then call exit()
+to simulate application crash.
