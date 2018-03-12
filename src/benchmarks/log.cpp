@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -487,9 +487,10 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* align pool size to ensure that we have enough usable space */
 	lb->psize =
-		MMAP_ALIGN_UP(POOL_HDR_SIZE +
-			      args->n_ops_per_thread * args->n_threads *
-				      lb->args->vec_size * lb->args->el_size);
+		ALIGN_UP(POOL_HDR_SIZE +
+				 args->n_ops_per_thread * args->n_threads *
+					 lb->args->vec_size * lb->args->el_size,
+			 Mmap_align);
 
 	/* calculate a required pool size */
 	if (lb->psize < PMEMLOG_MIN_POOL)
