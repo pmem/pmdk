@@ -46,7 +46,8 @@ RESVSIZE=$((4 * 1024 * 1024 * 1024)) # 4GiB
 
 create_poolset $DIR/testset1\
 	$RESVSIZE:$DIR/testdir11:d $RESVSIZE:$DIR/testdir12:d\
-	R $RESVSIZE:$DIR/testdir13:d $RESVSIZE:$DIR/testdir14:d
+	R $RESVSIZE:$DIR/testdir13:d $RESVSIZE:$DIR/testdir14:d\
+	O SINGLEHDR
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX\
 	$DIR/testset1

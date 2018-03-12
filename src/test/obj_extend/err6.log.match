@@ -1,0 +1,1 @@
+$(*) pmemobj_create: directory based pools are not supported for poolsets with headers (without SINGLEHDR option)

@@ -50,27 +50,17 @@ export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
 # prepare pool sets
 create_poolset $DIR/testset1\
-	$RESVSIZE:$DIR/testdir11:d # pass
+	$RESVSIZE:$DIR/testdir11:d\
+	O SINGLEHDR # pass
 create_poolset $DIR/testset2\
-	$RESVSIZE:$DIR/testdir21:d $RESVSIZE:$DIR/testdir22:d # pass
+	$RESVSIZE:$DIR/testdir21:d $RESVSIZE:$DIR/testdir22:d\
+	O SINGLEHDR # pass
 create_poolset $DIR/testset3\
-	$RESVSIZE:$DIR/testdir31:d R $RESVSIZE:$DIR/testdir32:d # pass
+	$RESVSIZE:$DIR/testdir31:d R $RESVSIZE:$DIR/testdir32:d\
+	O SINGLEHDR # pass
 create_poolset $DIR/testset4\
 	$RESVSIZE:$DIR/testdir41:d $RESVSIZE:$DIR/testdir42:d\
-	R $RESVSIZE:$DIR/testdir43:d $RESVSIZE:$DIR/testdir44:d # pass
-
-create_poolset $DIR/testset5\
-	$RESVSIZE:$DIR/testdir51:d\
-	O SINGLEHDR # pass
-create_poolset $DIR/testset6\
-	$RESVSIZE:$DIR/testdir61:d $RESVSIZE:$DIR/testdir62:d\
-	O SINGLEHDR # pass
-create_poolset $DIR/testset7\
-	$RESVSIZE:$DIR/testdir71:d R $RESVSIZE:$DIR/testdir72:d\
-	O SINGLEHDR # pass
-create_poolset $DIR/testset8\
-	$RESVSIZE:$DIR/testdir81:d $RESVSIZE:$DIR/testdir82:d\
-	R $RESVSIZE:$DIR/testdir83:d $RESVSIZE:$DIR/testdir84:d\
+	R $RESVSIZE:$DIR/testdir43:d $RESVSIZE:$DIR/testdir44:d\
 	O SINGLEHDR # pass
 create_poolset $DIR/testset9\
 	$RESVSIZE:$DIR/testdir91:d R $RESVSIZE:$DIR/testdir91/testdir92:d\
@@ -82,10 +72,7 @@ expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
 	$DIR/testset2\
 	$DIR/testset3\
 	$DIR/testset4\
-	$DIR/testset5\
-	$DIR/testset6\
-	$DIR/testset7\
-	$DIR/testset8\
+	$DIR/testset4\
 	$DIR/testset9
 
 # now check if pool sets may be opened
@@ -94,10 +81,6 @@ expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 	$DIR/testset2\
 	$DIR/testset3\
 	$DIR/testset4\
-	$DIR/testset5\
-	$DIR/testset6\
-	$DIR/testset7\
-	$DIR/testset8\
 	$DIR/testset9
 
 expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
@@ -105,10 +88,6 @@ expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
 	$DIR/testset2\
 	$DIR/testset3\
 	$DIR/testset4\
-	$DIR/testset5\
-	$DIR/testset6\
-	$DIR/testset7\
-	$DIR/testset8\
 	$DIR/testset9
 
 # this should fail in poolsets with only one directory because this would exceed
@@ -118,10 +97,6 @@ expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
 	$DIR/testset2\
 	$DIR/testset3\
 	$DIR/testset4\
-	$DIR/testset5\
-	$DIR/testset6\
-	$DIR/testset7\
-	$DIR/testset8\
 	$DIR/testset9
 
 expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
@@ -129,10 +104,6 @@ expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 	$DIR/testset2\
 	$DIR/testset3\
 	$DIR/testset4\
-	$DIR/testset5\
-	$DIR/testset6\
-	$DIR/testset7\
-	$DIR/testset8\
 	$DIR/testset9
 
 $GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log

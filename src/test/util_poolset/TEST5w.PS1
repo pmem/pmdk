@@ -56,27 +56,17 @@ $RESVSIZE=(128 + 4) * 1024 * 1024 # initial part + extension
 $RESVSIZE_STR = ${RESVSIZE}.toString() + "B" # initial part + extension
 
 create_poolset $DIR\testset1 `
-	${RESVSIZE_STR}:$DIR\testdir11:d
+	${RESVSIZE_STR}:$DIR\testdir11:d `
+	O SINGLEHDR
 create_poolset $DIR\testset2 `
-	${RESVSIZE_STR}:$DIR\testdir21:d ${RESVSIZE_STR}:$DIR\testdir22:d
+	${RESVSIZE_STR}:$DIR\testdir21:d ${RESVSIZE_STR}:$DIR\testdir22:d `
+	O SINGLEHDR
 create_poolset $DIR\testset3 `
-	${RESVSIZE_STR}:$DIR\testdir31:d R ${RESVSIZE_STR}:$DIR\testdir32:d
+	${RESVSIZE_STR}:$DIR\testdir31:d R ${RESVSIZE_STR}:$DIR\testdir32:d `
+	O SINGLEHDR
 create_poolset $DIR\testset4 `
 	${RESVSIZE_STR}:$DIR\testdir41:d ${RESVSIZE_STR}:$DIR\testdir42:d `
-	R ${RESVSIZE_STR}:$DIR\testdir43:d ${RESVSIZE_STR}:$DIR\testdir44:d
-
-create_poolset $DIR\testset5 `
-	${RESVSIZE_STR}:$DIR\testdir51:d `
-	O SINGLEHDR
-create_poolset $DIR\testset6 `
-	${RESVSIZE_STR}:$DIR\testdir61:d ${RESVSIZE_STR}:$DIR\testdir62:d `
-	O SINGLEHDR
-create_poolset $DIR\testset7 `
-	${RESVSIZE_STR}:$DIR\testdir71:d R ${RESVSIZE_STR}:$DIR\testdir72:d `
-	O SINGLEHDR
-create_poolset $DIR\testset8 `
-	${RESVSIZE_STR}:$DIR\testdir81:d ${RESVSIZE_STR}:$DIR\testdir82:d `
-	R ${RESVSIZE_STR}:$DIR\testdir83:d ${RESVSIZE_STR}:$DIR\testdir84:d `
+	R ${RESVSIZE_STR}:$DIR\testdir43:d ${RESVSIZE_STR}:$DIR\testdir44:d `
 	O SINGLEHDR
 
 # create pool sets
@@ -84,31 +74,19 @@ expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX c $MIN_POOL `
     $DIR\testset1 `
     $DIR\testset2 `
     $DIR\testset3 `
-    $DIR\testset4 `
-    $DIR\testset5 `
-    $DIR\testset6 `
-    $DIR\testset7 `
-    $DIR\testset8
+    $DIR\testset4
 
 expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX o $MIN_POOL `
     $DIR\testset1 `
     $DIR\testset2 `
     $DIR\testset3 `
-    $DIR\testset4 `
-    $DIR\testset5 `
-    $DIR\testset6 `
-    $DIR\testset7 `
-    $DIR\testset8
+    $DIR\testset4
 
 expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX e $MIN_POOL `
     $DIR\testset1 `
     $DIR\testset2 `
     $DIR\testset3 `
-    $DIR\testset4 `
-    $DIR\testset5 `
-    $DIR\testset6 `
-    $DIR\testset7 `
-    $DIR\testset8
+    $DIR\testset4
 
 # this should fail in poolsets with only one directory because this would exceed
 # the reservation size
@@ -116,21 +94,13 @@ expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX e $MIN_POOL `
     $DIR\testset1 `
     $DIR\testset2 `
     $DIR\testset3 `
-    $DIR\testset4 `
-    $DIR\testset5 `
-    $DIR\testset6 `
-    $DIR\testset7 `
-    $DIR\testset8
+    $DIR\testset4
 
 expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX o $MIN_POOL `
     $DIR\testset1 `
     $DIR\testset2 `
     $DIR\testset3 `
-    $DIR\testset4 `
-    $DIR\testset5 `
-    $DIR\testset6 `
-    $DIR\testset7 `
-    $DIR\testset8
+    $DIR\testset4
 
 sls -Path $Env:TEST_LOG_FILE -Pattern "<1>" | `
     %{[string]$_ -replace '^.* len ',"" -replace '^.*][ ]*',''} `

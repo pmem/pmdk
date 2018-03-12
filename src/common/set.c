@@ -3105,6 +3105,14 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		return -1;
 	}
 
+	if (set->directory_based && ((set->options & OPTION_SINGLEHDR) == 0)) {
+		ERR(
+		"directory based pools are not supported for poolsets with headers (without SINGLEHDR option)");
+		util_poolset_free(set);
+		errno = EINVAL;
+		return -1;
+	}
+
 	if (set->resvsize < minsize) {
 		ERR("reservation pool size %zu smaller than %zu", set->resvsize,
 			minsize);

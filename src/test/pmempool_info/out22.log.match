@@ -9,6 +9,9 @@ size                     : $(nW)
 Directory $(nW)testdir11:
 reservation size         : $(nW)
 
+Poolset options:
+SINGLEHDR
+
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(*)

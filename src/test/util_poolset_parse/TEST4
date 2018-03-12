@@ -56,9 +56,11 @@ export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
 # prepare pool sets
 create_poolset $DIR/testset1\
-	$RESVSIZE:$DIR/testset11:d $RESVSIZE:$DIR/testset11:d # fail
+	$RESVSIZE:$DIR/testset11:d $RESVSIZE:$DIR/testset11:d\
+	O SINGLEHDR # fail
 create_poolset $DIR/testset2\
-	$RESVSIZE:$DIR/testset21:d R $RESVSIZE:$DIR/testset21:d # fail
+	$RESVSIZE:$DIR/testset21:d R $RESVSIZE:$DIR/testset21:d\
+	O SINGLEHDR # fail
 
 POOLSETS="$DIR/testset1 $DIR/testset2"
 
