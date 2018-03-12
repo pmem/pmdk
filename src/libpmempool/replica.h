@@ -86,8 +86,6 @@ struct poolset_health_status {
 
 size_t replica_get_part_data_len(struct pool_set *set_in, unsigned repn,
 		unsigned partn);
-size_t replica_get_part_range_data_len(struct pool_set *set_in, unsigned repn,
-		unsigned pstart, unsigned pend);
 uint64_t replica_get_part_data_offset(struct pool_set *set_in, unsigned repn,
 		unsigned part);
 

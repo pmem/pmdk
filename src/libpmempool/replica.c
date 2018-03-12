@@ -85,24 +85,10 @@ size_t
 replica_get_part_data_len(struct pool_set *set_in, unsigned repn,
 		unsigned partn)
 {
-	size_t hdrsize = (set_in->options & OPTION_SINGLEHDR) ? 0 : Mmap_align;
-	return MMAP_ALIGN_DOWN(set_in->replica[repn]->part[partn].filesize) -
-			((partn == 0) ? POOL_HDR_SIZE : hdrsize);
-}
-
-/*
- * replica_get_part_range_data_len -- get data length in given range
- */
-size_t
-replica_get_part_range_data_len(struct pool_set *set, unsigned repn,
-		unsigned pstart, unsigned pend)
-{
-	LOG(3, "set %p, repn %u, pstart %u, pend %u", set, repn, pstart, pend);
-	size_t len = 0;
-	for (unsigned p = pstart; p < pend; ++p)
-		len += replica_get_part_data_len(set, repn, p);
-
-	return len;
+	size_t alignment = set_in->replica[repn]->part[partn].alignment;
+	size_t hdrsize = (set_in->options & OPTION_SINGLEHDR) ? 0 : alignment;
+	return ALIGN_DOWN(set_in->replica[repn]->part[partn].filesize,
+		alignment) - ((partn == 0) ? POOL_HDR_SIZE : hdrsize);
 }
 
 /*
@@ -112,8 +98,11 @@ uint64_t
 replica_get_part_data_offset(struct pool_set *set, unsigned repn,
 		unsigned partn)
 {
-	return replica_get_part_range_data_len(set, repn, 0, partn) +
-			POOL_HDR_SIZE;
+	if (partn == 0)
+		return POOL_HDR_SIZE;
+
+	return (uint64_t)set->replica[repn]->part[partn].addr -
+		(uint64_t)set->replica[repn]->part[0].addr;
 }
 
 /*
@@ -345,7 +334,8 @@ replica_check_store_size(struct pool_set *set,
 	} else {
 		/* round up map size to Mmap align size */
 		if (util_map_part(&rep->part[0], NULL,
-				MMAP_ALIGN_UP(sizeof(pop)), 0, MAP_SHARED, 1)) {
+		    ALIGN_UP(sizeof(pop), rep->part[0].alignment),
+		    0, MAP_SHARED, 1)) {
 			return -1;
 		}
 
@@ -1107,8 +1097,8 @@ replica_get_pool_size(struct pool_set *set, unsigned repn)
 
 	if (part->addr == NULL) {
 		if (util_map_part(part, NULL,
-				MMAP_ALIGN_UP(sizeof(PMEMobjpool)), 0,
-				MAP_SHARED, 1)) {
+		    ALIGN_UP(sizeof(PMEMobjpool), part->alignment), 0,
+		    MAP_SHARED, 1)) {
 			util_part_fdclose(part);
 			return -1;
 		}
