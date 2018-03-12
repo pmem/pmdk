@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,8 +56,10 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, "obj_extend",
-			0, S_IWUSR | S_IRUSR)) == NULL)
-		UT_FATAL("!pmemobj_create: %s", path);
+			0, S_IWUSR | S_IRUSR)) == NULL) {
+		UT_ERR("pmemobj_create: %s", pmemobj_errormsg());
+		exit(0);
+	}
 
 	size_t allocated = 0;
 	PMEMoid oid;

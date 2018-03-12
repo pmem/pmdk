@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,6 +31,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
+# src/test/obj_extend/TEST2 -- unit test for extending the pool
+# negative scenario - reservation size smaller than pool header size
+# (pmem/issues#818)
+#
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -40,7 +45,7 @@ require_fs_type any
 
 setup
 
-RESVSIZE=$(((512 + 8) * 1024 * 1024)) # 512MiB + 8MiB
+RESVSIZE=20
 
 # prepare pool sets
 create_poolset $DIR/testset1\

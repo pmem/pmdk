@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,6 +31,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
+# src/test/obj_extend/TEST4 -- unit test for extending the pool
+# negative scenario - mixed directories and files
+# (pmem/issues#820)
+#
 
 # standard unit test setup
 . ../unittest/unittest.sh
@@ -40,11 +45,13 @@ require_fs_type any
 
 setup
 
-RESVSIZE=$(((512 + 8) * 1024 * 1024)) # 512MiB + 8MiB
+RESVSIZE=10M
 
-# prepare pool sets
+# prepare pool sets (master: dir; replica: file)
 create_poolset $DIR/testset1\
 	$RESVSIZE:$DIR/testdir11:d\
+	R\
+	$RESVSIZE:$DIR/testfile21\
 	O SINGLEHDR
 
 expect_normal_exit ./obj_extend$EXESUFFIX $DIR/testset1
