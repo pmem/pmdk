@@ -345,6 +345,7 @@ CTO_TESTS = \
 	cto_aligned_alloc\
 	cto_basic\
 	cto_check_allocations\
+	cto_dirty\
 	cto_include\
 	cto_multiple_pools\
 	cto_pool\
