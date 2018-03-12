@@ -1001,7 +1001,7 @@ util_parse_add_directory(struct pool_set *set, const char *path,
 	ASSERTne(rep, NULL);
 
 	if (set->directory_based == 0) {
-		if (rep->nparts != 0) {
+		if (rep->nparts > 0 || set->nreplicas > 1) {
 			ERR("cannot mix directories and files in a set");
 			errno = EINVAL;
 			return -1;
