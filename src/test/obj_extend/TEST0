@@ -36,6 +36,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+require_fs_type any
 
 setup
 
@@ -47,5 +48,7 @@ create_poolset $DIR/testset1\
 	O SINGLEHDR
 
 expect_normal_exit ./obj_extend$EXESUFFIX $DIR/testset1
+
+check
 
 pass

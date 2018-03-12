@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,9 @@
 #
 
 #
-# src/test/util_poolset/TEST4 -- unit test for util_pool_open()
+# src/test/obj_extend/TEST4 -- unit test for extending the pool
+# negative scenario - mixed directories and files
+# (pmem/issues#820)
 #
 
 # standard unit test setup
@@ -43,65 +45,16 @@ require_fs_type any
 
 setup
 
-RESVSIZE=$((4 * 1024 * 1024 * 1024)) # 4GiB
-MIN_POOL=$((128 * 1024 * 1024)) # 128MiB
-export TEST_LOG_LEVEL=4
-export TEST_LOG_FILE=./test$UNITTEST_NUM.log
+RESVSIZE=10M
 
-# prepare pool sets
+# prepare pool sets (master: dir; replica: file)
 create_poolset $DIR/testset1\
 	$RESVSIZE:$DIR/testdir11:d\
-	O SINGLEHDR # pass
-create_poolset $DIR/testset2\
-	$RESVSIZE:$DIR/testdir21:d $RESVSIZE:$DIR/testdir22:d\
-	O SINGLEHDR # pass
-create_poolset $DIR/testset3\
-	$RESVSIZE:$DIR/testdir31:d R $RESVSIZE:$DIR/testdir32:d\
-	O SINGLEHDR # pass
-create_poolset $DIR/testset4\
-	$RESVSIZE:$DIR/testdir41:d $RESVSIZE:$DIR/testdir42:d\
-	R $RESVSIZE:$DIR/testdir43:d $RESVSIZE:$DIR/testdir44:d\
-	O SINGLEHDR # pass
+	R\
+	$RESVSIZE:$DIR/testfile21\
+	O SINGLEHDR
 
-# create pool sets
-expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
-
-# now check if pool sets may be opened
-expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
-
-expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
-
-expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
-
-expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
-
-expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
-
-$GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
+expect_normal_exit ./obj_extend$EXESUFFIX $DIR/testset1
 
 check
 

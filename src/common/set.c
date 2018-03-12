@@ -1001,7 +1001,7 @@ util_parse_add_directory(struct pool_set *set, const char *path,
 	ASSERTne(rep, NULL);
 
 	if (set->directory_based == 0) {
-		if (rep->nparts != 0) {
+		if (rep->nparts > 0 || set->nreplicas > 1) {
 			ERR("cannot mix directories and files in a set");
 			errno = EINVAL;
 			return -1;
@@ -3087,6 +3087,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	struct pool_set *set = *setp;
 
+	ASSERT(set->nreplicas > 0);
+
 	if (!remote && (set->options & OPTION_NOHDRS)) {
 		ERR(
 		"the NOHDRS poolset option is not supported for local poolsets");
@@ -3103,14 +3105,28 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		return -1;
 	}
 
-	if (set->directory_based &&
+	if (set->directory_based && ((set->options & OPTION_SINGLEHDR) == 0)) {
+		ERR(
+		"directory based pools are not supported for poolsets with headers (without SINGLEHDR option)");
+		util_poolset_free(set);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (set->resvsize < minsize) {
+		ERR("reservation pool size %zu smaller than %zu", set->resvsize,
+			minsize);
+		util_poolset_free(set);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (set->directory_based && set->poolsize == 0 &&
 			util_poolset_append_new_part(set, minsize) != 0) {
 		ERR("cannot create a new part in provided directories");
 		util_poolset_free(set);
 		return -1;
 	}
-
-	ASSERT(set->nreplicas > 0);
 
 	if (set->poolsize < minsize) {
 		ERR("net pool size %zu smaller than %zu", set->poolsize,

@@ -52,4 +52,6 @@ create_poolset $DIR/testset2\
 PMEMOBJ_CONF="heap.size.granularity=$GRANULARITY"\
 	expect_normal_exit ./obj_extend$EXESUFFIX $DIR/testset2
 
+check
+
 pass
