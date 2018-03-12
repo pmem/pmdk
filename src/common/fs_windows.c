@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -133,6 +133,7 @@ fs_read(struct fs *f)
 	path[f->dirlen] = '\\';
 	strcpy(path + f->dirlen + 1, f->entry.name);
 	f->entry.path = path;
+	f->entry.level = 1;
 
 	return &f->entry;
 }

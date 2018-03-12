@@ -1357,6 +1357,8 @@ util_poolset_directory_load(struct pool_replica **repp, const char *directory)
 
 	struct fs_entry *entry;
 	while ((entry = fs_read(f)) != NULL) {
+		if (entry->level != 1)
+			continue;
 		if (entry->type != FS_ENTRY_FILE)
 			continue;
 		if (entry->namelen < PMEM_EXT_LEN)

@@ -72,6 +72,9 @@ create_poolset $DIR/testset8\
 	$RESVSIZE:$DIR/testdir81:d $RESVSIZE:$DIR/testdir82:d\
 	R $RESVSIZE:$DIR/testdir83:d $RESVSIZE:$DIR/testdir84:d\
 	O SINGLEHDR # pass
+create_poolset $DIR/testset9\
+	$RESVSIZE:$DIR/testdir91:d R $RESVSIZE:$DIR/testdir91/testdir92:d\
+	O SINGLEHDR # pass
 
 # create pool sets
 expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
@@ -82,7 +85,8 @@ expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
 	$DIR/testset5\
 	$DIR/testset6\
 	$DIR/testset7\
-	$DIR/testset8
+	$DIR/testset8\
+	$DIR/testset9
 
 # now check if pool sets may be opened
 expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
@@ -93,7 +97,8 @@ expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 	$DIR/testset5\
 	$DIR/testset6\
 	$DIR/testset7\
-	$DIR/testset8
+	$DIR/testset8\
+	$DIR/testset9
 
 expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
 	$DIR/testset1\
@@ -103,7 +108,8 @@ expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
 	$DIR/testset5\
 	$DIR/testset6\
 	$DIR/testset7\
-	$DIR/testset8
+	$DIR/testset8\
+	$DIR/testset9
 
 # this should fail in poolsets with only one directory because this would exceed
 # the reservation size
@@ -115,7 +121,8 @@ expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
 	$DIR/testset5\
 	$DIR/testset6\
 	$DIR/testset7\
-	$DIR/testset8
+	$DIR/testset8\
+	$DIR/testset9
 
 expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 	$DIR/testset1\
@@ -125,9 +132,12 @@ expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 	$DIR/testset5\
 	$DIR/testset6\
 	$DIR/testset7\
-	$DIR/testset8
+	$DIR/testset8\
+	$DIR/testset9
 
 $GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/testset9
 
 check
 

@@ -41,4 +41,11 @@ $(nW)testset8: opened: nreps 2 poolsize $(nW) rdonly 0
     part[0] path $(nW)testdir83$(nW)000000.pmem filesize $(nW) size $(nW)
     part[1] path $(nW)testdir84$(nW)000001.pmem filesize $(nW) size $(nW)
     part[2] path $(nW)testdir83$(nW)000002.pmem filesize $(nW) size $(nW)
+$(nW)testset9: opened: nreps 2 poolsize $(nW) rdonly 0
+  replica[0]: nparts 2 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir91$(nW)000000.pmem filesize $(nW) size $(nW)
+    part[1] path $(nW)testdir91$(nW)000001.pmem filesize $(nW) size $(nW)
+  replica[1]: nparts 2 nhdrs 1 repsize $(nW) is_pmem $(nW)
+    part[0] path $(nW)testdir91$(nW)testdir92$(nW)000000.pmem filesize $(nW) size $(nW)
+    part[1] path $(nW)testdir91$(nW)testdir92$(nW)000001.pmem filesize $(nW) size $(nW)
 util_poolset$(nW)TEST5w: DONE

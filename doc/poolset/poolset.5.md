@@ -284,6 +284,8 @@ address space reservation is equal to the sum of the sizes.
 The order in which the files are created is unspecified, but the library will
 try to maintain equal usage of the directories.
 
+By default pools grow in 128 megabyte increments.
+
 Only poolsets with the *SINGLEHDR* option can safely use directories.
 
 # NOTES #
