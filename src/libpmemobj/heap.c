@@ -1208,7 +1208,7 @@ error_bucket_create:
 int
 heap_extend(struct palloc_heap *heap, struct bucket *b, size_t size)
 {
-	void *nptr = util_pool_extend(heap->set, size);
+	void *nptr = util_pool_extend(heap->set, &size, PMEMOBJ_MIN_PART);
 	if (nptr == NULL)
 		return -1;
 

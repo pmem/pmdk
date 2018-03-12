@@ -48,8 +48,8 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_extend");
 
-	if (argc != 2)
-		UT_FATAL("usage: %s file-name", argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: %s file-name [alloc-size]", argv[0]);
 
 	const char *path = argv[1];
 
@@ -61,9 +61,15 @@ main(int argc, char *argv[])
 		exit(0);
 	}
 
+	size_t alloc_size;
+	if (argc > 2)
+		alloc_size = atoi(argv[2]);
+	else
+		alloc_size = ALLOC_SIZE;
+
 	size_t allocated = 0;
 	PMEMoid oid;
-	while (pmemobj_alloc(pop, &oid, ALLOC_SIZE, 0, NULL, NULL) == 0) {
+	while (pmemobj_alloc(pop, &oid, alloc_size, 0, NULL, NULL) == 0) {
 		allocated += pmemobj_alloc_usable_size(oid);
 	}
 

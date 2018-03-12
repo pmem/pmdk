@@ -208,7 +208,8 @@ main(int argc, char *argv[])
 			ret = util_pool_open(&set, fname, 0 /* rdonly */,
 				MIN_PART, &attr, NULL, false, NULL);
 			UT_ASSERTeq(ret, 0);
-			void *nptr = util_pool_extend(set, Extend_size);
+			size_t esize = Extend_size;
+			void *nptr = util_pool_extend(set, &esize, MIN_PART);
 			if (nptr == NULL)
 				UT_OUT("!%s: util_pool_extend", fname);
 			else {
