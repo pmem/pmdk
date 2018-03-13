@@ -2790,14 +2790,15 @@ pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
  * pmemobj_publish -- publishes a collection of actions
  */
 void
-pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt)
+pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt)
 {
 	struct redo_log *redo = pmalloc_redo_hold(pop);
 
 	struct operation_context ctx;
 	operation_init(&ctx, pop, pop->redo, redo);
 
-	palloc_publish(&pop->heap, actv, actvcnt, &ctx);
+	ASSERT(actvcnt <= POBJ_MAX_ACTIONS);
+	palloc_publish(&pop->heap, actv, (int)actvcnt, &ctx);
 
 	pmalloc_redo_release(pop);
 }
@@ -2806,9 +2807,10 @@ pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt)
  * pmemobj_cancel -- cancels collection of actions
  */
 void
-pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt)
+pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt)
 {
-	palloc_cancel(&pop->heap, actv, actvcnt);
+	ASSERT(actvcnt <= POBJ_MAX_ACTIONS);
+	palloc_cancel(&pop->heap, actv, (int)actvcnt);
 }
 
 /*
