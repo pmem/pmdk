@@ -2956,11 +2956,11 @@ err_part_init:
  * util_pool_extend -- extends the poolset by the provided size
  */
 void *
-util_pool_extend(struct pool_set *set, size_t size)
+util_pool_extend(struct pool_set *set, size_t *size, size_t minpartsize)
 {
-	LOG(3, "set %p size %zu", set, size);
+	LOG(3, "set %p size %zu minpartsize %zu", set, *size, minpartsize);
 
-	if (size == 0) {
+	if (*size == 0) {
 		ERR("cannot extend pool by 0 bytes");
 		return NULL;
 	}
@@ -2971,14 +2971,18 @@ util_pool_extend(struct pool_set *set, size_t size)
 		return NULL;
 	}
 
-	if (set->poolsize + size > set->resvsize) {
-		ERR("exceeded reservation size");
-		return NULL;
+	if (set->poolsize + *size > set->resvsize) {
+		*size = set->resvsize - set->poolsize;
+		if (*size < minpartsize) {
+			ERR("exceeded reservation size");
+			return NULL;
+		}
+		LOG(4, "extend size adjusted to not exceed reservation size");
 	}
 
 	size_t old_poolsize = set->poolsize;
 
-	if (util_poolset_append_new_part(set, size) != 0) {
+	if (util_poolset_append_new_part(set, *size) != 0) {
 		ERR("unable to append a new part to the pool");
 		return NULL;
 	}

@@ -282,7 +282,7 @@ int util_pool_open(struct pool_set **setp, const char *path, int cow,
 int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	size_t minpartsize, struct rpmem_pool_attr *rattr);
 
-void *util_pool_extend(struct pool_set *set, size_t size);
+void *util_pool_extend(struct pool_set *set, size_t *size, size_t minpartsize);
 
 void util_remote_init(void);
 void util_remote_fini(void);
