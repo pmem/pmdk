@@ -18,3 +18,21 @@
     fun:out_common
     fun:out_log
 }
+{
+    <ut_log_suppress>
+    Helgrind:Race
+    fun:*mempcpy
+    fun:_IO_file_xsputn@@GLIBC*
+    fun:fputs
+    ...
+    fun:ut_out
+}
+{
+    <ut_log_suppress2>
+    Helgrind:Race
+    fun:*memmove
+    fun:_IO_file_xsputn@@GLIBC*
+    fun:fputs
+    ...
+    fun:ut_out
+}
