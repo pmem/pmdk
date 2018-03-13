@@ -61,6 +61,20 @@ LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET_IN=$DIR/poolset.in
 POOLSET_OUT=$DIR/poolset.out
 
+# Make sure the total size of devices 2/3 is not smaller than devices 0/1.
+# If this is the case, swap devices.
+SIZE1=$(($(get_devdax_size 0) + $(get_devdax_size 1)))
+SIZE2=$(($(get_devdax_size 2) + $(get_devdax_size 3)))
+
+if [ $SIZE1 -gt $SIZE2 ]; then
+	TMP=${DEVICE_DAX_PATH[0]}
+	DEVICE_DAX_PATH[0]=${DEVICE_DAX_PATH[2]}
+	DEVICE_DAX_PATH[2]=$TMP
+	TMP=${DEVICE_DAX_PATH[1]}
+	DEVICE_DAX_PATH[1]=${DEVICE_DAX_PATH[3]}
+	DEVICE_DAX_PATH[3]=$TMP
+fi
+
 # Create poolset files
 create_poolset $POOLSET_IN \
 	O SINGLEHDR \
@@ -76,7 +90,6 @@ create_poolset $POOLSET_OUT \
 	AUTO:${DEVICE_DAX_PATH[1]}:x
 
 DAX_SIZE[0]=$(get_devdax_size 0)
-
 OFFSET=${DAX_SIZE[0]}
 ROOT_SIZE=$[OFFSET + 1024]
 
