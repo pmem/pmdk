@@ -22,12 +22,13 @@ This tree contains a collection of libraries for using Non-Volatile Memory
 * **libpmemblk**, **libpmemlog**, **libpmemobj** -- pmem transactions
 * **libvmem**, **libvmmalloc**<sup>1</sup> -- volatile use of pmem
 * **libpmempool** -- persistent memory pool management
-* **librpmem**<sup>1</sup> -- remote access to persistent memory
+* **librpmem**<sup>1</sup> -- remote access to persistent memory (EXPERIMENTAL)
 * **libpmemcto** -- close-to-open persistence (EXPERIMENTAL)
 
-and one command-line utility:
+and two command-line utilities:
 
 * **pmempool** -- standalone tool for off-line pool management
+* **daxio** -- perform I/O on Device-DAX devices or zero a Device-DAX device
 
 These libraries and utilities are described in more detail on the
 [pmem web site](http://pmem.io).  There you'll find man pages, examples,
@@ -79,6 +80,13 @@ required packages on the build system:
 * **autoconf**
 * **pkg-config**
 
+The following packages are required only by selected PMDK components
+or features.  If not present, those components or features may not be
+available:
+
+* **libfabric** (v1.4.2 or later) -- required by **librpmem**
+* **ndctl** and **daxctl** (v59.2 or later) -- required by **daxio** and RAS features
+
 
 On Windows, to build PMDK and run the tests you need:
 * **MS Visual Studio 2015**
@@ -107,8 +115,8 @@ in the appropriate README file.
 
 
 See our [Dockerfiles](https://github.com/pmem/pmdk/blob/master/utils/docker/images/)
-to get an idea what packages are required to build on the _Travis-CI_
-system.
+to get an idea what packages are required to build the entire PMDK,
+with all the tests and examples on the _Travis-CI_ system.
 
 ><sup>4</sup> The pkg version of ncurses is required for proper operation; the base version included in FreeBSD is not sufficient.
 
