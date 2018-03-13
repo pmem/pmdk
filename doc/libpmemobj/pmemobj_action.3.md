@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.3
 ...
 
-[comment]: <> (Copyright 2017, Intel Corporation)
+[comment]: <> (Copyright 2017-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -63,9 +63,9 @@ PMEMoid pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num, uint64_t flags);
 void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 	uint64_t *ptr, uint64_t value);
-void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
-int pmemobj_tx_publish(struct pobj_action *actv, int actvcnt);
-pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, int actvcnt);
+void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt);
+int pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt);
+pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt);
 
 POBJ_RESERVE_NEW(pop, t, act)
 POBJ_RESERVE_ALLOC(pop, t, size, act)

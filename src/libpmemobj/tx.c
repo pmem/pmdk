@@ -2228,20 +2228,20 @@ pmemobj_tx_free(PMEMoid oid)
  * pmemobj_tx_publish -- publishes actions inside of a transaction
  */
 int
-pmemobj_tx_publish(struct pobj_action *actv, int actvcnt)
+pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 {
 	struct tx *tx = get_tx();
 	ASSERT_TX_STAGE_WORK(tx);
 
 	tx_fulfill_reservations(tx);
-	ASSERT((unsigned)actvcnt <= MAX_TX_ALLOC_RESERVATIONS);
+	ASSERT(actvcnt <= MAX_TX_ALLOC_RESERVATIONS);
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx->section->runtime;
 
 	struct pvector_context *ctx = lane->undo.ctx[UNDO_ALLOC];
 
 	int nentries = 0;
-	int i;
+	size_t i;
 	for (i = 0; i < actvcnt; ++i) {
 		if (actv[i].type != POBJ_ACTION_TYPE_HEAP) {
 			ERR("only heap actions can be "
@@ -2273,10 +2273,10 @@ pmemobj_tx_publish(struct pobj_action *actv, int actvcnt)
 	}
 
 	memcpy(lane->alloc_actv, actv,
-		sizeof(struct pobj_action) * (unsigned)actvcnt);
+		sizeof(struct pobj_action) * actvcnt);
 
-	lane->actvcnt = actvcnt;
-	lane->actvundo = actvcnt;
+	lane->actvcnt = (int)actvcnt;
+	lane->actvundo = (int)actvcnt;
 
 	return 0;
 }
