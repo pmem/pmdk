@@ -29,7 +29,7 @@
     <ProjectGuid>{537F759B-B617-48D9-A2F3-7FB769A8F9B7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>vmem_mix_allocations</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

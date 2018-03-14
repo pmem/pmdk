@@ -14,7 +14,7 @@
     <ProjectGuid>{9935E8A1-F3F9-41D4-BD81-AD3FD04642E9}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>obj_redo_log</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

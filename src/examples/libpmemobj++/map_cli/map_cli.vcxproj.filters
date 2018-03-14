@@ -17,8 +17,5 @@
     <ClInclude Include="ctree_map_persistent.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ctree_map_transient.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

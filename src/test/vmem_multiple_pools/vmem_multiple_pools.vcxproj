@@ -37,7 +37,7 @@
     <ProjectGuid>{CD7A18D5-55D9-4922-A000-FFAA08ABB006}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>vmem_multiple_pools</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
