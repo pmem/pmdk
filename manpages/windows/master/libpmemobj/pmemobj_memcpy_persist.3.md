@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: PMEMOBJ_MEMCPY_PERSIST
 collection: libpmemobj
 header: PMDK
-date: pmemobj API version 2.2
+date: pmemobj API version 2.3
 ...
 
 [comment]: <> (Copyright 2017, Intel Corporation)

@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: PMEMLOG_NBYTE
 collection: libpmemlog
 header: PMDK
-date: pmemlog API version 1.0
+date: pmemlog API version 1.1
 ...
 
 [comment]: <> (Copyright 2017, Intel Corporation)
