@@ -919,8 +919,10 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 
 	int ret = 0;
 	/* validate user arguments */
-	if (validate_args(set_in, set_out))
+	if (validate_args(set_in, set_out)) {
+		errno = EINVAL;
 		return -1;
+	}
 
 	/* check if the source poolset is healthy */
 	struct poolset_health_status *set_in_hs = NULL;
