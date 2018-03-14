@@ -25,7 +25,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FEA09B48-34C2-4963-8A5A-F97BDA136D72}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>win_mmap_fixed</ProjectName>
     <RootNamespace>win_mmap_fixed</RootNamespace>
   </PropertyGroup>
