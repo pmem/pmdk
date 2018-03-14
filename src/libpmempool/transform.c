@@ -243,8 +243,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	return 0;
 
 err:
-	if (errno == 0)
-		errno = EINVAL;
+	errno = EINVAL;
 	return -1;
 }
 
