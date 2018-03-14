@@ -212,6 +212,7 @@ util_map_sync(void *addr, size_t len, int proto, int flags, int fd,
 
 	if (errno == EINVAL || errno == ENOTSUP) {
 		LOG(4, "mmap with MAP_SYNC not supported");
+		errno = 0;
 		return mmap(addr, len, proto, flags, fd, offset);
 	}
 
