@@ -36,6 +36,7 @@
 
 #define _GNU_SOURCE
 #include <fcntl.h>
+#include <linux/falloc.h>
 
 #include "file.h"
 #include "os.h"
