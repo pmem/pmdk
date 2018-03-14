@@ -29,7 +29,7 @@
     <ProjectGuid>{C00B4A26-6C57-4968-AED5-B45FD31A22E7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>vmem_malloc_usable_size</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

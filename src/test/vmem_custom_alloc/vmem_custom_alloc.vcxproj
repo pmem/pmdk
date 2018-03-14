@@ -39,7 +39,7 @@
     <ProjectGuid>{4ED1E400-CF16-48C2-B176-2BF186E73531}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>vmem_custom_alloc</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
