@@ -98,6 +98,10 @@ If the file already exist the permissions are not changed.
 
 Create a new pool of the same size and other properties as *\<file\>*.
 
+`-b, --clearbadblocks`
+
+Clear bad blocks in existing files.
+
 `-f, --force`
 
 Remove the pool before creating.
