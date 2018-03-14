@@ -209,6 +209,8 @@ OTHER_TESTS = \
 	traces_pmem\
 	unicode_api\
 	unicode_match_script\
+	util_badblock\
+	util_extent\
 	util_file_create\
 	util_file_open\
 	util_is_absolute\

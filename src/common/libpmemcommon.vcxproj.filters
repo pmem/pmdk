@@ -11,6 +11,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="badblock_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="badblock_poolset.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -113,6 +119,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os_auto_flush.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="os_badblock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="badblock_poolset.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

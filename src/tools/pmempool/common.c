@@ -498,7 +498,9 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 			outv_err("cannot open pool set -- '%s'", fname);
 			return -1;
 		}
-		return util_pool_open_nocheck(*poolset, rdonly);
+		unsigned flags = (rdonly ? POOL_OPEN_COW : 0) |
+					POOL_OPEN_IGNORE_BAD_BLOCKS;
+		return util_pool_open_nocheck(*poolset, flags);
 	}
 
 	/* open poolset file */
@@ -550,8 +552,10 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	 */
 	struct pool_attr attr;
 	util_pool_hdr2attr(&attr, &hdr);
-	if (util_pool_open(poolset, fname, rdonly, 0 /* minpartsize */,
-			&attr, &nlanes, true, NULL)) {
+	unsigned flags = (rdonly ? POOL_OPEN_COW : 0) | POOL_OPEN_IGNORE_SDS |
+				POOL_OPEN_IGNORE_BAD_BLOCKS;
+	if (util_pool_open(poolset, fname, 0 /* minpartsize */,
+			&attr, &nlanes, NULL, flags)) {
 		outv_err("opening poolset failed\n");
 		return -1;
 	}
@@ -610,7 +614,8 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 				ret = -1;
 				goto out_close;
 			}
-			if (util_pool_open_nocheck(set, 0)) {
+			if (util_pool_open_nocheck(set,
+						POOL_OPEN_IGNORE_BAD_BLOCKS)) {
 				ret = -1;
 				goto out_close;
 			}
@@ -1250,7 +1255,9 @@ pool_set_file_open(const char *fname,
 					file->fname);
 				goto err_free_fname;
 			}
-			if (util_pool_open_nocheck(file->poolset, rdonly))
+			unsigned flags = (rdonly ? POOL_OPEN_COW : 0) |
+						POOL_OPEN_IGNORE_BAD_BLOCKS;
+			if (util_pool_open_nocheck(file->poolset, flags))
 				goto err_free_fname;
 		}
 

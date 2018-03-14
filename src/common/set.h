@@ -80,6 +80,11 @@ struct pool_set_option {
 #define REPLICAS_DISABLED 0
 #define REPLICAS_ENABLED 1
 
+/*  util_pool_open flags */
+#define POOL_OPEN_COW			1	/* copy-on-write mode */
+#define POOL_OPEN_IGNORE_SDS		2	/* ignore shutdown state */
+#define POOL_OPEN_IGNORE_BAD_BLOCKS	4	/* ignore bad blocks */
+
 enum del_parts_mode {
 	DO_NOT_DELETE_PARTS,	/* do not delete part files */
 	DELETE_CREATED_PARTS,	/* delete only newly created parts files */
@@ -143,6 +148,7 @@ struct pool_set {
 	int rdonly;
 	int zeroed;		/* true if all the parts are new files */
 	size_t poolsize;	/* the smallest replica size */
+	int has_bad_blocks;	/* pool set contains bad blocks */
 	int remote;		/* true if contains a remote replica */
 	unsigned options;	/* enabled pool set options */
 
@@ -159,6 +165,7 @@ struct pool_set {
 struct part_file {
 	int is_remote;
 	const char *path;	/* not-NULL only for a local part file */
+	int has_bad_blocks;	/* pool set file contains bad blocks */
 	const char *node_addr;	/* address of a remote node */
 	/* poolset descriptor is a pool set file name on a remote node */
 	const char *pool_desc;	/* descriptor of a poolset */
@@ -236,6 +243,8 @@ int util_poolset_chmod(struct pool_set *set, mode_t mode);
 void util_poolset_fdclose(struct pool_set *set);
 void util_poolset_fdclose_always(struct pool_set *set);
 int util_is_poolset_file(const char *path);
+int util_poolset_foreach_part_struct(struct pool_set *set,
+	int (*cb)(struct part_file *pf, void *arg), void *arg);
 int util_poolset_foreach_part(const char *path,
 	int (*cb)(struct part_file *pf, void *arg), void *arg);
 size_t util_poolset_size(const char *path);
@@ -275,10 +284,10 @@ int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 int util_map_hdr(struct pool_set_part *part, int flags, int rdonly);
 int util_unmap_hdr(struct pool_set_part *part);
 
-int util_pool_open_nocheck(struct pool_set *set, int cow);
-int util_pool_open(struct pool_set **setp, const char *path, int cow,
-	size_t minpartsize, const struct pool_attr *attr, unsigned *nlanes,
-	int ignore_sds, void *addr);
+int util_pool_open_nocheck(struct pool_set *set, unsigned flags);
+int util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
+	const struct pool_attr *attr, unsigned *nlanes, void *addr,
+	unsigned flags);
 int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	size_t minpartsize, struct rpmem_pool_attr *rattr);
 

@@ -194,8 +194,8 @@ main(int argc, char *argv[])
 			break;
 		case 'o':
 			attr.incompat_features = TEST_FORMAT_INCOMPAT_CHECK;
-			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				MIN_PART, &attr, NULL, false, NULL);
+			ret = util_pool_open(&set, fname, MIN_PART, &attr,
+						NULL, NULL, 0 /* flags */);
 			if (ret == -1)
 				UT_OUT("!%s: util_pool_open", fname);
 			else {
@@ -205,8 +205,8 @@ main(int argc, char *argv[])
 			break;
 		case 'e':
 			attr.incompat_features = TEST_FORMAT_INCOMPAT_CHECK;
-			ret = util_pool_open(&set, fname, 0 /* rdonly */,
-				MIN_PART, &attr, NULL, false, NULL);
+			ret = util_pool_open(&set, fname, MIN_PART, &attr,
+						NULL, NULL, 0 /* flags */);
 			UT_ASSERTeq(ret, 0);
 			size_t esize = Extend_size;
 			void *nptr = util_pool_extend(set, &esize, MIN_PART);

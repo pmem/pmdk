@@ -14,12 +14,14 @@
     <ClCompile Include="..\..\src\libpmemblk\blk.c" />
     <ClCompile Include="..\..\src\libpmemblk\btt.c" />
     <ClCompile Include="..\..\src\libpmemblk\libpmemblk.c" />
+    <ClCompile Include="..\common\badblock_poolset.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\mmap.c" />
     <ClCompile Include="..\common\mmap_windows.c" />
     <ClCompile Include="..\common\fs_windows.c" />
     <ClCompile Include="..\common\os_auto_flush_windows.c" />
+    <ClCompile Include="..\common\badblock_windows.c" />
     <ClCompile Include="..\common\os_deep_windows.c" />
     <ClCompile Include="..\common\os_dimm_none.c" />
     <ClCompile Include="..\common\os_thread_windows.c" />

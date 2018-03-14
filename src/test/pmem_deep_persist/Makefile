@@ -63,8 +63,11 @@ OBJS = pmem_deep_persist.o\
 	os_deep_linux.o\
 	os_auto_flush_linux.o\
 	shutdown_state.o\
-	os_dimm_none.o \
-	init.o
+	os_dimm_none.o\
+	init.o\
+	extent_linux.o\
+	badblock_linux.o\
+	badblock_poolset.o
 # this test does not require ndctl
 # to enable builds we use os_dimm_none
 
