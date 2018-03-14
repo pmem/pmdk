@@ -44,6 +44,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 
 #define FLUSH_ALIGN 64
 
@@ -386,6 +387,8 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != NULL);
 	assert(args != NULL);
 	int ret = 0;
+	size_t file_size = 0;
+	int flags = 0;
 
 	struct pmem_bench *pmb =
 		(struct pmem_bench *)malloc(sizeof(struct pmem_bench));
@@ -427,10 +430,15 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	for (size_t i = 0; i < pmb->n_rand_offsets; ++i)
 		pmb->rand_offsets[i] = rand() % args->n_ops_per_thread;
 
+	if (!util_file_is_device_dax(args->fname)) {
+		file_size = pmb->fsize;
+		flags = PMEM_FILE_CREATE | PMEM_FILE_EXCL;
+	}
+
 	/* create a pmem file and memory map it */
-	if ((pmb->pmem_addr = (unsigned char *)pmem_map_file(
-		     args->fname, pmb->fsize, PMEM_FILE_CREATE | PMEM_FILE_EXCL,
-		     args->fmode, NULL, NULL)) == NULL) {
+	pmb->pmem_addr = (unsigned char *)pmem_map_file(
+		args->fname, file_size, flags, args->fmode, NULL, NULL);
+	if (pmb->pmem_addr == NULL) {
 		perror(args->fname);
 		ret = -1;
 		goto err_free_buf;

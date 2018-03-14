@@ -313,9 +313,11 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	bench_priv->pool = bench_priv->n_pools > 1 ? diff_num : one_num;
 	bench_priv->obj = !bench_priv->args_priv->one_obj ? diff_num : one_num;
 
-	if (args->is_poolset && bench_priv->n_pools > 1) {
-		fprintf(stderr, "cannot use poolset for multiple pools,"
-				" please use -P|--one-pool option instead");
+	if ((args->is_poolset || util_file_is_device_dax(args->fname)) &&
+	    bench_priv->n_pools > 1) {
+		fprintf(stderr,
+			"cannot use poolset nor device dax for multiple pools,"
+			" please use -P|--one-pool option instead");
 		goto free_bench_priv;
 	}
 	/*

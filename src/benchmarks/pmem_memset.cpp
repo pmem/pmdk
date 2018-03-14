@@ -43,6 +43,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "os.h"
 
 #define MAX_OFFSET 63
@@ -284,6 +285,9 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	size_t size;
 	size_t large;
 	size_t little;
+	size_t file_size = 0;
+	int flags = 0;
+
 	int (*warmup_func)(struct memset_bench *) = warmup_persist;
 	struct memset_bench *mb =
 		(struct memset_bench *)malloc(sizeof(struct memset_bench));
@@ -318,9 +322,13 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	/* initialize memset() value */
 	mb->const_b = CONST_B;
 
+	if (!util_file_is_device_dax(args->fname)) {
+		file_size = mb->fsize;
+		flags = PMEM_FILE_CREATE | PMEM_FILE_EXCL;
+	}
+
 	/* create a pmem file and memory map it */
-	if ((mb->pmem_addr = pmem_map_file(args->fname, mb->fsize,
-					   PMEM_FILE_CREATE | PMEM_FILE_EXCL,
+	if ((mb->pmem_addr = pmem_map_file(args->fname, file_size, flags,
 					   args->fmode, NULL, NULL)) == NULL) {
 		perror(args->fname);
 		ret = -1;
@@ -349,7 +357,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 						   : libpmem_memset_nodrain;
 	}
 
-	if (!mb->pargs->no_warmup) {
+	if (!mb->pargs->no_warmup && !util_file_is_device_dax(args->fname)) {
 		ret = warmup_func(mb);
 		if (ret) {
 			perror("Pool warmup failed");

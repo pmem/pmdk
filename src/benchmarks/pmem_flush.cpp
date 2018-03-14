@@ -45,6 +45,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 
 #define PAGE_4K ((uintptr_t)1 << 12)
 #define PAGE_2M ((uintptr_t)1 << 21)
@@ -373,6 +374,8 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 {
 	assert(bench != NULL);
 	assert(args != NULL);
+	size_t file_size = 0;
+	int flags = 0;
 
 	uint64_t (*func_mode)(struct pmem_bench * pmb, uint64_t index);
 
@@ -412,9 +415,13 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 	for (size_t i = 0; i < pmb->n_offsets; ++i)
 		pmb->offsets[i] = func_mode(pmb, i);
 
+	if (!util_file_is_device_dax(args->fname)) {
+		file_size = pmb->fsize;
+		flags = PMEM_FILE_CREATE | PMEM_FILE_EXCL;
+	}
+
 	/* create a pmem file and memory map it */
-	pmb->pmem_addr = pmem_map_file(args->fname, pmb->fsize,
-				       PMEM_FILE_CREATE | PMEM_FILE_EXCL,
+	pmb->pmem_addr = pmem_map_file(args->fname, file_size, flags,
 				       args->fmode, &pmb->pmem_len, NULL);
 
 	if (pmb->pmem_addr == NULL) {
@@ -480,8 +487,8 @@ static int
 pmem_flush_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
-	pmem_unmap(pmb->pmem_addr, pmb->pmem_len);
-	munmap(pmb->nondirty_addr, pmb->pmem_len);
+	pmem_unmap(pmb->pmem_addr, pmb->fsize);
+	munmap(pmb->nondirty_addr, pmb->fsize);
 	free(pmb);
 	return 0;
 }

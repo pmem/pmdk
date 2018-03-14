@@ -511,6 +511,12 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 		lb->psize = 0;
 	}
 
+	if (lb->args->fileio && util_file_is_device_dax(args->fname)) {
+		fprintf(stderr, "fileio not supported on device dax\n");
+		ret = -1;
+		goto err_free_lb;
+	}
+
 	bench_info = pmembench_get_info(bench);
 
 	if (!lb->args->fileio) {
@@ -544,7 +550,7 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 			: fileio_append;
 	}
 
-	if (!lb->args->no_warmup) {
+	if (!lb->args->no_warmup && !util_file_is_device_dax(args->fname)) {
 		size_t warmup_nops = args->n_threads * args->n_ops_per_thread;
 		if (do_warmup(lb, warmup_nops)) {
 			fprintf(stderr, "warmup failed\n");
