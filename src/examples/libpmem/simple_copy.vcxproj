@@ -13,10 +13,10 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D062166F-0EC7-4C13-A772-0C7157EEFE41}</ProjectGuid>
     <RootNamespace>pmem</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-    <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
@@ -41,7 +41,7 @@
       <AdditionalManifestFiles>..\..\LongPath.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
-    <ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\libpmem\libpmem.vcxproj" Condition="'$(SolutionName)'=='PMDK'">
       <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
     </ProjectReference>

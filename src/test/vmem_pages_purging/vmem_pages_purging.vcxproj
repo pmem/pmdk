@@ -32,7 +32,7 @@
     <ProjectGuid>{3D9A580B-5F0F-434F-B4D6-228B8E7ADAA5}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>vmem_pages_purging</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

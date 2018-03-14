@@ -32,7 +32,7 @@
     <ProjectGuid>{B36EE2A8-1487-47BB-B3B9-ABCB732B35F3}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>cto_multiple_pools</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
