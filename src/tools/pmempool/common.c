@@ -66,6 +66,7 @@
 #include "out.h"
 #include "mmap.h"
 #include "util_pmem.h"
+#include "badblock_poolset.h"
 
 #define REQ_BUFF_SIZE	2048U
 #define Q_BUFF_SIZE	8192
@@ -1414,4 +1415,31 @@ pool_set_file_persist(struct pool_set_file *file, const void *addr, size_t len)
 	}
 	struct pool_replica *rep = file->poolset->replica[0];
 	util_persist(rep->is_pmem, (void *)addr, len);
+}
+
+/*
+ * util_pool_clear_badblocks -- clear badblocks in a pool (set or a single file)
+ */
+int
+util_pool_clear_badblocks(const char *path, int create)
+{
+	LOG(3, "path %s create %i", path, create);
+
+	struct pool_set *setp;
+
+	/* do not check minsize */
+	int ret = util_poolset_create_set(&setp, path, 0, 0,
+						POOL_OPEN_IGNORE_SDS);
+	if (ret < 0) {
+		LOG(2, "cannot open pool set -- '%s'", path);
+		return -1;
+	}
+
+	if (os_badblocks_clear_poolset(setp, create)) {
+		ERR("clearing bad blocks in the pool set failed -- '%s'", path);
+		errno = EIO;
+		return -1;
+	}
+
+	return 0;
 }
