@@ -40,7 +40,7 @@ date: daxio version 1.3
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [OPTIONS](#options)<br />
-[EXAMPLE](#commands)<br />
+[EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
 
