@@ -12,7 +12,7 @@ var pmdk_types = [
         "PMEMpoolcheck",
         /* librpmem.h */
         "RPMEMpool",
-        /* librpmemcto.h */
+        /* libpmemcto.h */
         "PMEMctopool",
         /* other headers */
         "mode_t", "timespec"
