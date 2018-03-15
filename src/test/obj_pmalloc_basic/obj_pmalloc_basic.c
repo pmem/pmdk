@@ -142,7 +142,6 @@ test_oom_allocs(size_t size)
 		if (pmalloc(mock_pop, &addr->ptr, size, 0, 0)) {
 			break;
 		}
-		UT_ASSERT(palloc_is_allocated(&mock_pop->heap, addr->ptr));
 		UT_ASSERT(addr->ptr != 0);
 		allocs[count++] = addr->ptr;
 	}
@@ -150,13 +149,9 @@ test_oom_allocs(size_t size)
 	for (int i = 0; i < count; ++i) {
 		addr->ptr = allocs[i];
 		pfree(mock_pop, &addr->ptr);
-		UT_ASSERT(!palloc_is_allocated(&mock_pop->heap, allocs[i]));
 		UT_ASSERT(addr->ptr == 0);
 	}
 
-	for (int i = 0; i < count; ++i) {
-		UT_ASSERT(!palloc_is_allocated(&mock_pop->heap, allocs[i]));
-	}
 	UT_ASSERT(count != 0);
 	FREE(allocs);
 
@@ -178,29 +173,25 @@ test_oom_resrv(size_t size)
 			break;
 
 		allocs[count] = resvs[count].heap.offset;
-		UT_ASSERT(!palloc_is_allocated(&mock_pop->heap, allocs[count]));
 		UT_ASSERT(allocs[count] != 0);
 		count++;
 	}
 
 	for (size_t i = 0; i < count; ) {
 		size_t nresv = MIN(count - i, 10);
-		struct redo_log *redo = pmalloc_redo_hold(mock_pop);
-		struct operation_context ctx;
-		operation_init(&ctx, mock_pop, mock_pop->redo, redo);
-		palloc_publish(&mock_pop->heap, &resvs[i], (int)nresv, &ctx);
+		struct operation_context *ctx =
+			pmalloc_operation_hold(mock_pop);
+		palloc_publish(&mock_pop->heap, &resvs[i], (int)nresv, ctx);
 
-		pmalloc_redo_release(mock_pop);
+		pmalloc_operation_release(mock_pop);
 
 		i += nresv;
 	}
 
 	for (int i = 0; i < count; ++i) {
-		UT_ASSERT(palloc_is_allocated(&mock_pop->heap, allocs[i]));
 		addr->ptr = allocs[i];
 		pfree(mock_pop, &addr->ptr);
 		UT_ASSERT(addr->ptr == 0);
-		UT_ASSERT(!palloc_is_allocated(&mock_pop->heap, allocs[i]));
 	}
 
 	UT_ASSERT(count != 0);
@@ -319,7 +310,7 @@ test_mock_pool_allocs(void)
 	mock_pop->set->directory_based = 0;
 
 	mock_pop->redo = redo_log_config_new(addr, &mock_pop->p_ops,
-			redo_log_check_offset, mock_pop, REDO_NUM_ENTRIES);
+			redo_log_check_offset, mock_pop);
 
 	void *heap_start = (char *)mock_pop + mock_pop->heap_offset;
 	uint64_t heap_size = MOCK_POOL_SIZE - mock_pop->heap_offset;
