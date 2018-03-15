@@ -44,9 +44,6 @@
 
 #define LANE_SECTION_LEN 1024
 
-#define REDO_NUM_ENTRIES \
-	((LANE_SECTION_LEN - 2 * sizeof(uint64_t)) / sizeof(struct redo_log))
-
 /*
  * Distance between lanes used by threads required to prevent threads from
  * false sharing part of lanes array. Used if properly spread lanes are
@@ -106,7 +103,7 @@ struct lane_descriptor {
 };
 
 typedef int (*section_layout_op)(PMEMobjpool *pop, void *data, unsigned length);
-typedef void *(*section_constr)(PMEMobjpool *pop);
+typedef void *(*section_constr)(PMEMobjpool *pop, void *data);
 typedef void (*section_destr)(PMEMobjpool *pop, void *rt);
 typedef int (*section_global_op)(PMEMobjpool *pop);
 

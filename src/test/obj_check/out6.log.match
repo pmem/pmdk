@@ -1,4 +1,0 @@
-obj_check$(nW)TEST6: START: obj_check
- $(nW)obj_check$(nW) $(nW)testfile -l Invalid_layout
-error: wrong layout ("Invalid_layout"), pool created with layout "Valid_layout"
-obj_check$(nW)TEST6: DONE

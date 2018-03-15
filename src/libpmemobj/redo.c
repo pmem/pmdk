@@ -45,8 +45,12 @@
 /*
  * Finish flag at the least significant bit
  */
-#define REDO_FINISH_FLAG	((uint64_t)1<<0)
-#define REDO_FLAG_MASK		(~REDO_FINISH_FLAG)
+#define REDO_FINISH_FLAG		((uint64_t)1<<0)
+#define REDO_OPERATION(op)		(((uint64_t)(op)) << 1)
+#define REDO_OPERATION_MASK		((((uint64_t)1 << 2) - 1) << 1)
+#define REDO_OPERATION_FROM_FLAG(flag)	((flag) >> 1 & (((1ULL) << 2) - 1))
+#define REDO_FLAG_MASK			(~(REDO_FINISH_FLAG |\
+					REDO_OPERATION_MASK))
 
 struct redo_ctx {
 	void *base;
@@ -55,9 +59,10 @@ struct redo_ctx {
 
 	redo_check_offset_fn check_offset;
 	void *check_offset_ctx;
-
-	unsigned redo_num_entries;
 };
+
+typedef int (*redo_entry_cb)(const struct redo_ctx *ctx,
+	struct redo_log_entry *e, void *arg);
 
 /*
  * redo_log_config_new -- allocates redo context
@@ -66,8 +71,7 @@ struct redo_ctx *
 redo_log_config_new(void *base,
 		const struct pmem_ops *p_ops,
 		redo_check_offset_fn check_offset,
-		void *check_offset_ctx,
-		unsigned redo_num_entries)
+		void *check_offset_ctx)
 {
 	struct redo_ctx *cfg = Malloc(sizeof(*cfg));
 	if (!cfg) {
@@ -79,7 +83,6 @@ redo_log_config_new(void *base,
 	cfg->p_ops = *p_ops;
 	cfg->check_offset = check_offset;
 	cfg->check_offset_ctx = check_offset_ctx;
-	cfg->redo_num_entries = redo_num_entries;
 
 	return cfg;
 }
@@ -94,139 +97,266 @@ redo_log_config_delete(struct redo_ctx *ctx)
 }
 
 /*
- * redo_log_nflags -- (internal) get number of finish flags set
+ * redo_log_next -- retrieves the pointer to the next redo log
  */
-size_t
-redo_log_nflags(const struct redo_log *redo, size_t nentries)
+static struct redo_log *
+redo_log_next(const struct redo_ctx *ctx, struct redo_log *redo)
 {
-	size_t ret = 0;
-	size_t i;
+	return redo->next == 0 ? NULL :
+		(struct redo_log *)((char *)ctx->base + redo->next);
+}
 
-	for (i = 0; i < nentries; i++) {
-		if (redo[i].offset & REDO_FINISH_FLAG)
-			ret++;
+/*
+ * redo_log_foreach_entry -- iterates over every existing entry in the redo log
+ */
+static int
+redo_log_foreach_entry(const struct redo_ctx *ctx, struct redo_log *redo,
+	redo_entry_cb cb, void *arg)
+{
+	struct redo_log_entry *e;
+	int ret = 0;
+
+	for (struct redo_log *r = redo; r != NULL; r = redo_log_next(ctx, r)) {
+		for (size_t i = 0; i < r->capacity; ++i) {
+			e = &r->entries[i];
+			if ((ret = cb(ctx, e, arg)) != 0)
+				return ret;
+		}
 	}
-
-	LOG(15, "redo %p nentries %zu nflags %zu", redo, nentries, ret);
 
 	return ret;
 }
 
 /*
- * redo_log_store -- (internal) store redo log entry at specified index
+ * redo_log_collect_info -- gathers information about redo entries and flags
  */
-void
-redo_log_store(const struct redo_ctx *ctx, struct redo_log *redo, size_t index,
-		uint64_t offset, uint64_t value)
+static int
+redo_log_collect_info(const struct redo_ctx *ctx, struct redo_log_entry *e,
+	void *arg)
 {
-	LOG(15, "redo %p index %zu offset %" PRIu64 " value %" PRIu64,
-			redo, index, offset, value);
+	struct redo_log_info *info = arg;
 
-	ASSERTeq(offset & REDO_FINISH_FLAG, 0);
-	ASSERT(index < ctx->redo_num_entries);
+	if (info->nflags == 0)
+		info->nentries++;
 
-	redo[index].offset = offset;
-	redo[index].value = value;
+	if (redo_log_is_last(e))
+		info->nflags++;
+
+	return 0;
 }
 
 /*
- * redo_log_store_last -- (internal) store last entry at specified index
+ * redo_log_info -- (internal) returns the info about redo log
  */
-void
-redo_log_store_last(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t index, uint64_t offset, uint64_t value)
+struct redo_log_info
+redo_log_info(const struct redo_ctx *ctx, struct redo_log *redo)
 {
-	LOG(15, "redo %p index %zu offset %" PRIu64 " value %" PRIu64,
-			redo, index, offset, value);
+	struct redo_log_info info = {0, 0};
 
-	ASSERTeq(offset & REDO_FINISH_FLAG, 0);
-	ASSERT(index < ctx->redo_num_entries);
-	const struct pmem_ops *p_ops = &ctx->p_ops;
+	redo_log_foreach_entry(ctx, redo, redo_log_collect_info, &info);
 
-	/* store value of last entry */
-	redo[index].value = value;
+	LOG(15, "redo %p nentries %zu nflags %zu", redo,
+		info.nentries, info.nflags);
 
-	/*
-	 * persist all redo log entries
-	 *
-	 * It's safe to use PMEMOBJ_F_RELAXED flag because setting finish flag
-	 * determines whether all redo log entires are meaningfull or not.
-	 *
-	 * The finish flag _must_ be persisted without PMEMOBJ_F_RELAXED flag.
-	 */
-	pmemops_xpersist(p_ops, redo, (index + 1) * sizeof(struct redo_log),
-			PMEMOBJ_F_RELAXED);
-
-	/* store and persist offset of last entry */
-	redo[index].offset = offset | REDO_FINISH_FLAG;
-	pmemops_persist(p_ops, &redo[index].offset, sizeof(redo[index].offset));
+	return info;
 }
 
 /*
- * redo_log_set_last -- (internal) set finish flag in specified entry
+ * redo_log_capacity -- (internal) returns the total capacity of the redo log
+ */
+size_t
+redo_log_capacity(const struct redo_ctx *ctx,
+	struct redo_log *redo, size_t redo_capacity)
+{
+	size_t capacity = redo_capacity;
+
+	/* skip the first one, we count it in 'redo_capacity' */
+	while ((redo = redo_log_next(ctx, redo)) != NULL) {
+		capacity += redo->capacity;
+	}
+
+	return capacity;
+}
+
+/*
+ * redo_log_reserve -- (internal) reserves new capacity in the redo log
+ */
+int
+redo_log_reserve(const struct redo_ctx *ctx, struct redo_log *redo,
+	size_t redo_capacity, size_t *new_capacity, redo_extend_fn extend)
+{
+	size_t capacity = redo_capacity;
+
+	while (capacity < *new_capacity) {
+		if (redo->next == 0) {
+			if (extend(ctx->base, &redo->next) != 0)
+				return -1;
+		}
+		redo = redo_log_next(ctx, redo);
+		capacity += redo->capacity;
+	}
+	*new_capacity = capacity;
+
+	return 0;
+}
+
+/*
+ * redo_log_checksum -- (internal) calculates redo log checksum
+ */
+static int
+redo_log_checksum(struct redo_log *redo, size_t nentries, int insert)
+{
+	return util_checksum(redo, SIZEOF_REDO_LOG(nentries),
+		&redo->checksum, insert, 0);
+}
+
+/*
+ * redo_log_store -- (internal) stores the transient src redo log in the
+ *	persistent dest redo log
+ *
  */
 void
-redo_log_set_last(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t index)
+redo_log_store(const struct redo_ctx *ctx, struct redo_log *dest,
+	struct redo_log *src, size_t nentries, size_t redo_capacity)
 {
-	LOG(15, "redo %p index %zu", redo, index);
-
-	ASSERT(index < ctx->redo_num_entries);
-	const struct pmem_ops *p_ops = &ctx->p_ops;
+	src->entries[nentries - 1].offset |= REDO_FINISH_FLAG;
 
 	/*
-	 * persist all redo log entries
-	 *
-	 * It's safe to use PMEMOBJ_F_RELAXED flag because setting finish flag
-	 * determines whether all redo log entires are meaningfull or not.
-	 *
-	 * The finish flag _must_ be persisted without PMEMOBJ_F_RELAXED flag.
+	 * First, store all entries over the base capacity of the redo log in
+	 * the next logs.
+	 * Because the checksum is only in the first part, we don't have to
+	 * worry about failsafety here.
 	 */
-	pmemops_xpersist(p_ops, redo, (index + 1) * sizeof(struct redo_log),
-			PMEMOBJ_F_RELAXED);
+	struct redo_log *redo = dest;
+	size_t offset = redo_capacity;
+	size_t dest_ncopy = MIN(nentries, redo_capacity);
+	size_t next_entries = nentries - dest_ncopy;
+	while (next_entries > 0) {
+		redo = redo_log_next(ctx, redo);
+		ASSERTne(redo, NULL);
 
-	/* set finish flag of last entry and persist */
-	redo[index].offset |= REDO_FINISH_FLAG;
-	pmemops_persist(p_ops, &redo[index].offset, sizeof(redo[index].offset));
+		size_t ncopy = MIN(next_entries, redo->capacity);
+		next_entries -= ncopy;
+
+		pmemops_memcpy(&ctx->p_ops,
+			redo->entries,
+			src->entries + offset,
+			sizeof(struct redo_log_entry) * ncopy,
+			0);
+		offset += ncopy;
+	}
+
+	/*
+	 * Then, calculate the checksum and store the first part of the
+	 * redo log.
+	 */
+	src->next = dest->next;
+	redo_log_checksum(src, nentries, 1);
+
+	pmemops_memcpy(&ctx->p_ops, dest, src,
+		SIZEOF_REDO_LOG(dest_ncopy), 0);
+}
+
+/*
+ * redo_log_entry_create -- creates a new transient redo log entry
+ */
+void
+redo_log_entry_create(const void *base,
+	struct redo_log_entry *entry, uint64_t *ptr, uint64_t value,
+	enum redo_operation_type type)
+{
+	entry->offset = ((uint64_t)(ptr) - (uint64_t)base);
+	entry->offset |= REDO_OPERATION(type);
+	entry->value = value;
+}
+
+/*
+ * redo_log_operation -- returns the type of entry operation
+ */
+enum redo_operation_type
+redo_log_operation(const struct redo_log_entry *entry)
+{
+	return REDO_OPERATION_FROM_FLAG(entry->offset);
+}
+
+/*
+ * redo_log_offset -- returns offset
+ */
+uint64_t
+redo_log_offset(const struct redo_log_entry *entry)
+{
+	return entry->offset & REDO_FLAG_MASK;
+}
+
+/*
+ * redo_log_is_last -- returns 1/0
+ */
+int
+redo_log_is_last(const struct redo_log_entry *entry)
+{
+	return entry->offset & REDO_FINISH_FLAG;
+}
+
+/*
+ * redo_log_entry_apply -- applies modifications of a single redo log entry
+ */
+void
+redo_log_entry_apply(void *base, const struct redo_log_entry *e,
+	flush_fn flush)
+{
+	enum redo_operation_type t = redo_log_operation(e);
+	uint64_t offset = redo_log_offset(e);
+
+	uint64_t *val = (uint64_t *)((uintptr_t)base + offset);
+	VALGRIND_ADD_TO_TX(val, sizeof(*val));
+	switch (t) {
+		case REDO_OPERATION_AND:
+			*val &= e->value;
+		break;
+		case REDO_OPERATION_OR:
+			*val |= e->value;
+		break;
+		case REDO_OPERATION_SET:
+			*val = e->value;
+		break;
+		default:
+			ASSERT(0);
+	}
+	VALGRIND_REMOVE_FROM_TX(val, sizeof(*val));
+
+	flush(base, val, sizeof(uint64_t), PMEMOBJ_F_RELAXED);
+}
+
+/*
+ * redo_log_process_entry -- processes a single redo log entry
+ */
+static int
+redo_log_process_entry(const struct redo_ctx *ctx,
+	struct redo_log_entry *e, void *arg)
+{
+	if (redo_log_is_last(e)) {
+		redo_log_entry_apply(ctx->base, e, ctx->p_ops.persist);
+		e->offset = 0;
+		pmemops_persist(&ctx->p_ops, &e->offset, sizeof(e->offset));
+		return 1;
+	}
+	redo_log_entry_apply(ctx->base, e, ctx->p_ops.flush);
+
+	return 0;
 }
 
 /*
  * redo_log_process -- (internal) process redo log entries
  */
 void
-redo_log_process(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t nentries)
+redo_log_process(const struct redo_ctx *ctx, struct redo_log *redo)
 {
-	LOG(15, "redo %p nentries %zu", redo, nentries);
+	LOG(15, "redo %p", redo);
 
 #ifdef DEBUG
-	ASSERTeq(redo_log_check(ctx, redo, nentries), 0);
+	ASSERTeq(redo_log_check(ctx, redo), 0);
 #endif
-	const struct pmem_ops *p_ops = &ctx->p_ops;
-
-	uint64_t *val;
-	while ((redo->offset & REDO_FINISH_FLAG) == 0) {
-		val = (uint64_t *)((uintptr_t)ctx->base + redo->offset);
-		VALGRIND_ADD_TO_TX(val, sizeof(*val));
-		*val = redo->value;
-		VALGRIND_REMOVE_FROM_TX(val, sizeof(*val));
-
-		pmemops_flush(p_ops, val, sizeof(uint64_t));
-
-		redo++;
-	}
-
-	uint64_t offset = redo->offset & REDO_FLAG_MASK;
-	val = (uint64_t *)((uintptr_t)ctx->base + offset);
-	VALGRIND_ADD_TO_TX(val, sizeof(*val));
-	*val = redo->value;
-	VALGRIND_REMOVE_FROM_TX(val, sizeof(*val));
-
-	pmemops_persist(p_ops, val, sizeof(uint64_t));
-
-	redo->offset = 0;
-
-	pmemops_persist(p_ops, &redo->offset, sizeof(redo->offset));
+	redo_log_foreach_entry(ctx, redo, redo_log_process_entry, NULL);
 }
 
 /*
@@ -235,75 +365,56 @@ redo_log_process(const struct redo_ctx *ctx, struct redo_log *redo,
  * The redo_log_recover shall be preceded by redo_log_check call.
  */
 void
-redo_log_recover(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t nentries)
+redo_log_recover(const struct redo_ctx *ctx, struct redo_log *redo)
 {
-	LOG(15, "redo %p nentries %zu", redo, nentries);
+	LOG(15, "redo %p", redo);
 	ASSERTne(ctx, NULL);
 
-	size_t nflags = redo_log_nflags(redo, nentries);
-	ASSERT(nflags < 2);
+	struct redo_log_info info = redo_log_info(ctx, redo);
+	ASSERT(info.nflags < 2);
+	size_t nentries = MIN(info.nentries, redo->capacity);
+	if (info.nflags == 1 && redo_log_checksum(redo, nentries, 0))
+		redo_log_process(ctx, redo);
+}
 
-	if (nflags == 1)
-		redo_log_process(ctx, redo, nentries);
+/*
+ * redo_log_check_entry -- checks consistency of a single redo log entry
+ */
+static int
+redo_log_check_entry(const struct redo_ctx *ctx, struct redo_log_entry *e,
+	void *arg)
+{
+	uint64_t offset = redo_log_offset(e);
+	if (!ctx->check_offset(ctx->check_offset_ctx, offset)) {
+		LOG(15, "redo %p invalid offset %" PRIu64,
+				e, e->offset);
+		return -1;
+	}
+	return 0;
 }
 
 /*
  * redo_log_check -- (internal) check consistency of redo log entries
  */
 int
-redo_log_check(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t nentries)
+redo_log_check(const struct redo_ctx *ctx, struct redo_log *redo)
 {
-	LOG(15, "redo %p nentries %zu", redo, nentries);
+	LOG(15, "redo %p", redo);
 	ASSERTne(ctx, NULL);
+	return 0;
 
-	size_t nflags = redo_log_nflags(redo, nentries);
+	struct redo_log_info info = redo_log_info(ctx, redo);
 
-	if (nflags > 1) {
+	if (info.nflags > 1) {
 		LOG(15, "redo %p too many finish flags", redo);
 		return -1;
 	}
 
-	if (nflags == 1) {
-		void *cctx = ctx->check_offset_ctx;
-
-		while ((redo->offset & REDO_FINISH_FLAG) == 0) {
-			if (!ctx->check_offset(cctx, redo->offset)) {
-				LOG(15, "redo %p invalid offset %" PRIu64,
-						redo, redo->offset);
-				return -1;
-			}
-			redo++;
-		}
-
-		uint64_t offset = redo->offset & REDO_FLAG_MASK;
-		if (!ctx->check_offset(cctx, offset)) {
-			LOG(15, "redo %p invalid offset %" PRIu64,
-			    redo, offset);
-			return -1;
-		}
-	}
+	if (info.nflags == 1)
+		return redo_log_foreach_entry(ctx, redo,
+			redo_log_check_entry, NULL);
 
 	return 0;
-}
-
-/*
- * redo_log_offset -- returns offset
- */
-uint64_t
-redo_log_offset(const struct redo_log *redo)
-{
-	return redo->offset & REDO_FLAG_MASK;
-}
-
-/*
- * redo_log_is_last -- returns 1/0
- */
-int
-redo_log_is_last(const struct redo_log *redo)
-{
-	return redo->offset & REDO_FINISH_FLAG;
 }
 
 /*

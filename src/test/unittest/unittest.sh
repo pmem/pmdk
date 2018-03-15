@@ -662,6 +662,7 @@ function valgrind_ignore_warnings() {
 		-e "brk segment overflow" \
 		-e "see section Limitations in user manual" \
 		-e "Warning: set address range perms: large range"\
+		-e "further instances of this message will not be shown"\
 		>  $1.tmp
 	mv $1.tmp $1
 }

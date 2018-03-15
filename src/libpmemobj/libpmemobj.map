@@ -118,6 +118,7 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_volatile;
 		pmemobj_reserve;
 		pmemobj_xreserve;
+		pmemobj_defer_free;
 		pmemobj_set_value;
 		pmemobj_publish;
 		pmemobj_tx_publish;

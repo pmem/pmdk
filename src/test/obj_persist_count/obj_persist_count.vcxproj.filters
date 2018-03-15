@@ -126,9 +126,6 @@
     <ClCompile Include="..\..\libpmemobj\ctl_global.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ringbuf.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\common\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>

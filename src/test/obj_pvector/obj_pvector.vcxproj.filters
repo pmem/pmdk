@@ -82,9 +82,6 @@
     <ClCompile Include="..\..\libpmemobj\ctl_global.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ringbuf.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\stats.c">
       <Filter>Source Files</Filter>
     </ClCompile>

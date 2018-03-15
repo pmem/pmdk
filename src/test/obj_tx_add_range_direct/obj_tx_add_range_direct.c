@@ -569,8 +569,6 @@ do_tx_add_range_lots_of_small_snapshots(PMEMobjpool *pop)
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
-
-	UT_ASSERTeq(errno, 0);
 }
 
 static void
