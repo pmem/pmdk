@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -386,9 +386,9 @@ memset_exit(struct benchmark *bench, struct benchmark_args *args)
 static struct benchmark_clo memset_clo[7];
 /* Stores information about benchmark. */
 static struct benchmark_info memset_info;
-CONSTRUCTOR(pmem_memset_costructor)
+CONSTRUCTOR(pmem_memset_constructor)
 void
-pmem_memset_costructor(void)
+pmem_memset_constructor(void)
 {
 	memset_clo[0].opt_short = 'M';
 	memset_clo[0].opt_long = "mem-mode";

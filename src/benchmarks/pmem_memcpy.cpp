@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -523,9 +523,9 @@ static struct benchmark_clo pmem_memcpy_clo[7];
 
 /* Stores information about benchmark. */
 static struct benchmark_info pmem_memcpy;
-CONSTRUCTOR(pmem_memcpy_costructor)
+CONSTRUCTOR(pmem_memcpy_constructor)
 void
-pmem_memcpy_costructor(void)
+pmem_memcpy_constructor(void)
 {
 	pmem_memcpy_clo[0].opt_short = 'o';
 	pmem_memcpy_clo[0].opt_long = "operation";

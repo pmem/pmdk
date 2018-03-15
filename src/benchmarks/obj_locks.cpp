@@ -788,9 +788,9 @@ locks_op(struct benchmark *bench, struct operation_info *info)
 /* structure to define command line arguments */
 static struct benchmark_clo locks_clo[7];
 static struct benchmark_info locks_info;
-CONSTRUCTOR(pmem_locks_costructor)
+CONSTRUCTOR(pmem_locks_constructor)
 void
-pmem_locks_costructor(void)
+pmem_locks_constructor(void)
 {
 	locks_clo[0].opt_short = 'p';
 	locks_clo[0].opt_long = "use_system_threads";

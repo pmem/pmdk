@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -616,9 +616,9 @@ static struct benchmark_info vmem_free_bench;
 static struct benchmark_info vmem_realloc_bench;
 static struct benchmark_clo vmem_clo[7];
 
-CONSTRUCTOR(vmem_persist_costructor)
+CONSTRUCTOR(vmem_persist_constructor)
 void
-vmem_persist_costructor(void)
+vmem_persist_constructor(void)
 {
 	vmem_clo[0].opt_short = 'a';
 	vmem_clo[0].opt_long = "stdlib-alloc";

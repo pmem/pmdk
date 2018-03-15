@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -264,9 +264,9 @@ static struct benchmark_clo obj_persist_clo[1];
 
 /* Stores information about benchmark. */
 static struct benchmark_info obj_persist_info;
-CONSTRUCTOR(pmemobj_persist_costructor)
+CONSTRUCTOR(pmemobj_persist_constructor)
 void
-pmemobj_persist_costructor(void)
+pmemobj_persist_constructor(void)
 {
 	obj_persist_clo[0].opt_short = 'w';
 	obj_persist_clo[0].opt_long = "no-warmup";

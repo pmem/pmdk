@@ -429,9 +429,9 @@ static struct benchmark_info pfree_info;
  */
 static struct benchmark_info pmix_info;
 
-CONSTRUCTOR(obj_pmalloc_costructor)
+CONSTRUCTOR(obj_pmalloc_constructor)
 void
-obj_pmalloc_costructor(void)
+obj_pmalloc_constructor(void)
 {
 	pmalloc_clo[0].opt_short = 'r';
 	pmalloc_clo[0].opt_long = "random";

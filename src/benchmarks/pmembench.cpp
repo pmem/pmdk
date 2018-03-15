@@ -178,9 +178,9 @@ static struct benchmark_clo pmembench_clos[12];
 
 /* list of arguments for pmembench */
 static struct benchmark_clo pmembench_opts[2];
-CONSTRUCTOR(pmembench_costructor)
+CONSTRUCTOR(pmembench_constructor)
 void
-pmembench_costructor(void)
+pmembench_constructor(void)
 {
 	pmembench_opts[0].opt_short = 'h';
 	pmembench_opts[0].opt_long = "help";

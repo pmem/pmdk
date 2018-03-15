@@ -1083,9 +1083,9 @@ static struct benchmark_info obj_tx_free;
 static struct benchmark_info obj_tx_realloc;
 static struct benchmark_info obj_tx_add_range;
 
-CONSTRUCTOR(pmemobj_tx_costructor)
+CONSTRUCTOR(pmemobj_tx_constructor)
 void
-pmemobj_tx_costructor(void)
+pmemobj_tx_constructor(void)
 {
 	obj_tx_clo[0].opt_short = 'T';
 	obj_tx_clo[0].opt_long = "type-number";

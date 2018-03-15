@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -605,9 +605,9 @@ static struct benchmark_clo blk_clo[5];
 static struct benchmark_info blk_read_info;
 static struct benchmark_info blk_write_info;
 
-CONSTRUCTOR(blk_costructor)
+CONSTRUCTOR(blk_constructor)
 void
-blk_costructor(void)
+blk_constructor(void)
 {
 	blk_clo[0].opt_short = 'o';
 	blk_clo[0].opt_long = "operation";
