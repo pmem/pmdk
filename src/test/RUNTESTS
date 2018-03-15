@@ -760,7 +760,9 @@ fi
 [ "$non_pmem_skip" ] && echo "SKIPPED fs-type \"non-pmem\" runs: testconfig.sh doesn't set NON_PMEM_FS_DIR"
 
 if [ "$fail_count" != "0" ]; then
-	echo "$(tput setaf 1)$fail_count tests failed:$(tput sgr0) $fail_list"
+	echo "$(tput setaf 1)$fail_count tests failed:$(tput sgr0)"
+	# remove duplicates and print each test name in a new line
+	echo $fail_list | xargs -n1 | uniq
 	exit $keep_going_exit_code
 else
 	exit 0
