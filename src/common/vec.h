@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,7 +37,9 @@
 #ifndef PMDK_VEC_H
 #define PMDK_VEC_H 1
 
-#define VEC_GROW_SIZE (64)
+#include "valgrind_internal.h"
+
+#define VEC_INIT_SIZE (64)
 
 #define VEC(name, type)\
 struct name {\
@@ -54,14 +56,22 @@ struct name {\
 	(vec)->capacity = 0;\
 } while (0)
 
+#define VEC_REINIT(vec) do {\
+	VALGRIND_ANNOTATE_NEW_MEMORY((vec), sizeof(*vec));\
+	VALGRIND_ANNOTATE_NEW_MEMORY((vec)->buffer,\
+		(sizeof(*(vec)->buffer) * ((vec)->capacity)));\
+	(vec)->size = 0;\
+} while (0)
+
 #define VEC_RESERVE(vec, ncapacity) do {\
-	if ((ncapacity) > (vec)->size) {\
+	size_t ncap = (ncapacity) == 0 ? VEC_INIT_SIZE : (ncapacity);\
+	if (ncap > (vec)->size) {\
 		void *tbuf = Realloc((vec)->buffer,\
-			sizeof(*(vec)->buffer) * (ncapacity));\
+			sizeof(*(vec)->buffer) * ncap);\
 		ASSERTne(tbuf, NULL);\
 		/* there's no way to return a value from a macro in MSVC... */\
 		(vec)->buffer = tbuf;\
-		(vec)->capacity = ncapacity;\
+		(vec)->capacity = ncap;\
 	}\
 } while (0)
 
@@ -76,27 +86,26 @@ struct name {\
 (vec)->buffer[(vec)->size - 1]
 
 #define VEC_ERASE_BY_POS(vec, pos) do {\
-	(vec)->buffer[(pos)] = VEC_BACK(vec);\
+	if ((pos) != ((vec)->size - 1))\
+		(vec)->buffer[(pos)] = VEC_BACK(vec);\
 	VEC_POP_BACK(vec);\
 } while (0)
 
 #define VEC_ERASE_BY_PTR(vec, element) do {\
-	ptrdiff_t elpos = (uintptr_t)(element) - (uintptr_t)((vec)->buffer);\
-	elpos /= sizeof(*element);\
-	VEC_ERASE_BY_POS(vec, elpos);\
+	if ((element) != &VEC_BACK(vec))\
+		*(element) = VEC_BACK(vec);\
+	VEC_POP_BACK(vec);\
+} while (0)
+
+#define VEC_INC_BACK(vec) do {\
+	if ((vec)->capacity == (vec)->size)\
+		VEC_RESERVE((vec), ((vec)->capacity * 2));\
+	(vec)->size++;\
 } while (0)
 
 #define VEC_PUSH_BACK(vec, element) do {\
-	if ((vec)->capacity == (vec)->size)\
-		VEC_RESERVE((vec), ((vec)->capacity + VEC_GROW_SIZE));\
-	(vec)->buffer[(vec)->size++] = (element);\
-} while (0)
-
-/* doesn't work on MSVC */
-#define VEC_EMPLACE_BACK(vec, ...) do {\
-	if ((vec)->capacity == (vec)->size)\
-		VEC_RESERVE((vec), (vec)->capacity + VEC_GROW_SIZE);\
-	(vec)->buffer[(vec)->size++] = (typeof(*(vec)->buffer)) {__VA_ARGS__};\
+	VEC_INC_BACK(vec);\
+	(vec)->buffer[(vec)->size - 1] = (element);\
 } while (0)
 
 #define VEC_FOREACH(el, vec)\

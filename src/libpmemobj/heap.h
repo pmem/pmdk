@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -93,7 +93,7 @@ os_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 
 void
 heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m);
-void
+int
 heap_free_chunk_reuse(struct palloc_heap *heap,
 	struct bucket *bucket, struct memory_block *m);
 

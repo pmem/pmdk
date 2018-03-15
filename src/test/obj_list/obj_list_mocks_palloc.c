@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,6 +59,8 @@ FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr,
 			(struct oob_item *)((uintptr_t)Pop + *ptr);
 
 		*ptr += OOB_OFF;
+		pmemops_persist(p_ops, ptr, sizeof(*ptr));
+
 		item->item.id = *Id;
 		pmemops_persist(p_ops, &item->item.id, sizeof(item->item.id));
 
