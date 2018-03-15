@@ -99,7 +99,7 @@ See the [libpmempool page](libpmempool) for documentation and examples.
 #### pmempool
 
 **pmempool** is a management tool for persistent memory pool files created
-by the NVM libraries. It may be useful for system administrators as well
+by the PMDK libraries. It may be useful for system administrators as well
 as for software developers for troubleshooting and debugging.
 
 See the [pmempool page](pmempool) for available commands and documentation.
@@ -116,6 +116,13 @@ This is still an **experimental API** and should not be used in production
 environments.
 
 See the [librpmem page](librpmem) for documentation and examples.
+
+#### daxio
+
+The **daxio** is a utility that performs I/O on Device DAX devices or zero
+a Device DAX device.
+
+See the [daxio page](daxio) for available commands and documentation.
 
 #### C++ bindings
 
