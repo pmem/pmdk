@@ -192,7 +192,8 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 	for (i = 0; i < MAX_LANE_SECTION; ++i) {
 		lane->sections[i].layout = &layout->sections[i];
 		errno = 0;
-		lane->sections[i].runtime = Section_ops[i]->construct_rt(pop);
+		lane->sections[i].runtime = Section_ops[i]->construct_rt(pop,
+			&layout->sections[i]);
 		if (lane->sections[i].runtime == NULL && errno) {
 			ERR("!lane_construct_ops %d", i);
 			goto error_section_construct;

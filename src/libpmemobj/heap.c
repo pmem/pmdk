@@ -549,28 +549,23 @@ heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
 /*
  * heap_free_chunk_reuse -- reuses existing free chunk
  */
-void
+int
 heap_free_chunk_reuse(struct palloc_heap *heap,
 	struct bucket *bucket,
 	struct memory_block *m)
 {
-	struct operation_context ctx;
-	operation_init(&ctx, heap->base, NULL, NULL);
-	ctx.p_ops = &heap->p_ops;
-
 	/*
 	 * Perform coalescing just in case there
 	 * are any neighboring free chunks.
 	 */
 	struct memory_block nm = heap_coalesce_huge(heap, bucket, m);
 	if (nm.size_idx != m->size_idx) {
-		m->m_ops->prep_hdr(&nm, MEMBLOCK_FREE, &ctx);
-		operation_process(&ctx);
+		m->m_ops->prep_hdr(&nm, MEMBLOCK_FREE, NULL);
 	}
 
 	*m = nm;
 
-	bucket_insert_block(bucket, m);
+	return bucket_insert_block(bucket, m);
 }
 
 /*

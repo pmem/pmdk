@@ -36,6 +36,7 @@
 
 TARGET = util_vec
 OBJS = util_vec.o
+LIBPMEMCOMMON=y
 
 LIBPMEMCOMMON=y
 

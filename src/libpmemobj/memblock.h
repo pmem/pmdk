@@ -269,8 +269,6 @@ struct memory_block_reserved {
 	int nresv;
 };
 
-enum memblock_state memblock_validate_offset(struct palloc_heap *heap,
-	uint64_t off);
 struct memory_block memblock_from_offset(struct palloc_heap *heap,
 	uint64_t off);
 struct memory_block memblock_from_offset_opt(struct palloc_heap *heap,

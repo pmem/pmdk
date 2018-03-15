@@ -93,7 +93,7 @@ os_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 
 void
 heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m);
-void
+int
 heap_free_chunk_reuse(struct palloc_heap *heap,
 	struct bucket *bucket, struct memory_block *m);
 

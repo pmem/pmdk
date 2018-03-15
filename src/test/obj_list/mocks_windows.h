@@ -65,8 +65,7 @@ extern "C" {
 #endif
 
 #ifndef WRAP_REAL_REDO
-#define redo_log_store_last __wrap_redo_log_store_last
-#define redo_log_set_last __wrap_redo_log_set_last
+#define redo_log_store __wrap_redo_log_store
 #define redo_log_process __wrap_redo_log_process
 #endif
 

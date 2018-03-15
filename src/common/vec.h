@@ -40,8 +40,9 @@
 #include <stddef.h>
 #include "util.h"
 #include "out.h"
+#include "valgrind_internal.h"
 
-#define VEC_GROW_SIZE (64)
+#define VEC_INIT_SIZE (64)
 
 #define VEC(name, type)\
 struct name {\
@@ -58,22 +59,30 @@ struct name {\
 	(vec)->capacity = 0;\
 } while (0)
 
+#define VEC_REINIT(vec) do {\
+	VALGRIND_ANNOTATE_NEW_MEMORY((vec), sizeof(*vec));\
+	VALGRIND_ANNOTATE_NEW_MEMORY((vec)->buffer,\
+		(sizeof(*(vec)->buffer) * ((vec)->capacity)));\
+	(vec)->size = 0;\
+} while (0)
+
 static inline int
 vec_reserve(void *vec, size_t ncapacity, size_t s)
 {
+	size_t ncap = ncapacity == 0 ? VEC_INIT_SIZE : ncapacity;
 	VEC(vvec, void) *vecp = (struct vvec *)vec;
-	void *tbuf = Realloc(vecp->buffer, s * ncapacity);
+	void *tbuf = Realloc(vecp->buffer, s * ncap);
 	if (tbuf == NULL) {
 		ERR("!Realloc");
 		return -1;
 	}
 	vecp->buffer = tbuf;
-	vecp->capacity = ncapacity;
+	vecp->capacity = ncap;
 	return 0;
 }
 
 #define VEC_RESERVE(vec, ncapacity)\
-((ncapacity) > (vec)->size ?\
+(((vec)->size == 0 || (ncapacity) > (vec)->size) ?\
 	vec_reserve((void *)vec, ncapacity, sizeof(*(vec)->buffer)) :\
 	0)
 
@@ -88,24 +97,31 @@ vec_reserve(void *vec, size_t ncapacity, size_t s)
 (vec)->buffer[(vec)->size - 1]
 
 #define VEC_ERASE_BY_POS(vec, pos) do {\
-	(vec)->buffer[(pos)] = VEC_BACK(vec);\
+	if ((pos) != ((vec)->size - 1))\
+		(vec)->buffer[(pos)] = VEC_BACK(vec);\
 	VEC_POP_BACK(vec);\
 } while (0)
 
 #define VEC_ERASE_BY_PTR(vec, element) do {\
-	ptrdiff_t elpos = (uintptr_t)(element) - (uintptr_t)((vec)->buffer);\
-	elpos /= sizeof(*(element));\
-	VEC_ERASE_BY_POS(vec, elpos);\
+	if ((element) != &VEC_BACK(vec))\
+		*(element) = VEC_BACK(vec);\
+	VEC_POP_BACK(vec);\
 } while (0)
 
 #define VEC_INSERT(vec, element)\
-((vec)->buffer[(vec)->size++] = (element), 0)
+((vec)->buffer[(vec)->size - 1] = (element), 0)
+
+#define VEC_INC_SIZE(vec)\
+(((vec)->size++), 0)
+
+#define VEC_INC_BACK(vec)\
+((vec)->capacity == (vec)->size ?\
+	(VEC_RESERVE((vec), ((vec)->capacity * 2)) == 0 ?\
+		VEC_INC_SIZE(vec) : -1) :\
+	VEC_INC_SIZE(vec))
 
 #define VEC_PUSH_BACK(vec, element)\
-((vec)->capacity == (vec)->size ?\
-	(VEC_RESERVE((vec), ((vec)->capacity + VEC_GROW_SIZE)) == 0 ?\
-		VEC_INSERT(vec, element) : -1) :\
-	VEC_INSERT(vec, element))
+(VEC_INC_BACK(vec) == 0? VEC_INSERT(vec, element) : -1)
 
 #define VEC_FOREACH(el, vec)\
 for (size_t _vec_i = 0;\

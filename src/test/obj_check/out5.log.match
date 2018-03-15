@@ -1,5 +1,0 @@
-obj_check$(nW)TEST5: START: obj_check
- $(nW)obj_check$(nW) $(nW)testfile -l Valid_layout -o
-$(nW)testfile: pmemobj_open: Success
-error: flock $(nW)testfile": ${Resource temporarily unavailable|Unknown error}
-obj_check$(nW)TEST5: DONE
