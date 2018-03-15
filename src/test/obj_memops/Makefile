@@ -1,6 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,53 +31,12 @@
 #
 
 #
-# src/test/obj_redo_log/TEST5 -- unit test for redo_log_set_last function
+# src/test/obj_memops/Makefile -- build obj_memops test
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
+TARGET = obj_memops
+OBJS = obj_memops.o
 
+LIBPMEM=y
+LIBPMEMOBJ=internal-debug
 
-# standard unit test setup
-. ..\unittest\unittest.ps1
-
-require_test_type medium
-
-require_build_type debug
-
-setup
-
-$FILE=$DIR+"\pool"
-$AREASIZE=4096
-$FSIZE=$AREASIZE + 16384
-$RSIZE=$AREASIZE / 16
-
-create_holey_file ($FSIZE.ToString() + "b") $FILE
-
-expect_normal_exit $Env:EXE_DIR\obj_redo_log$Env:EXESUFFIX $FILE $RSIZE `
-	s:0:0x10000000:0x11111111 `
-	s:1:0x20000000:0x22222222 `
-	s:2:0x30000000:0x33333333 `
-	s:3:0x40000000:0x44444444 `
-	F:0 `
-	F:1 `
-	e:0 `
-	e:1 `
-	e:2 `
-	e:3 `
-	s:3:0x50000000:0x55555555 `
-	s:2:0x60000000:0x66666666 `
-	s:1:0x70000000:0x77777777 `
-	s:0:0x80000000:0x88888888 `
-	F:3 `
-	F:2 `
-	e:0 `
-	e:1 `
-	e:2 `
-	e:3
-
-check
-
-pass
+include ../Makefile.inc

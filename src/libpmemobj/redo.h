@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,37 +47,70 @@ struct redo_ctx;
 /*
  * redo_log -- redo log entry
  */
-struct redo_log {
+struct redo_log_entry {
 	uint64_t offset;	/* offset with finish flag */
 	uint64_t value;
 };
 
+#define REDO_LOG(nentries) {\
+	uint64_t checksum;\
+	uint64_t next;\
+	uint64_t capacity;\
+	uint64_t unused[5];\
+	struct redo_log_entry entries[nentries];\
+}\
+
+#define SIZEOF_REDO_LOG(nentries)\
+(sizeof(struct redo_log) + sizeof(struct redo_log_entry) * (nentries))
+
+struct redo_log REDO_LOG(0);
+
+enum redo_operation_type {
+	REDO_OPERATION_SET	=	0b00,
+	REDO_OPERATION_AND	=	0b01,
+	REDO_OPERATION_OR	=	0b10,
+};
+
 typedef int (*redo_check_offset_fn)(void *ctx, uint64_t offset);
+typedef int (*redo_extend_fn)(void *, uint64_t *);
 
 struct redo_ctx *redo_log_config_new(void *base,
 		const struct pmem_ops *p_ops,
 		redo_check_offset_fn check_offset,
-		void *check_offset_ctx,
-		unsigned redo_num_entries);
+		void *check_offset_ctx);
 
 void redo_log_config_delete(struct redo_ctx *ctx);
 
-void redo_log_store(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t index, uint64_t offset, uint64_t value);
-void redo_log_store_last(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t index, uint64_t offset, uint64_t value);
-void redo_log_set_last(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t index);
-void redo_log_process(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t nentries);
-void redo_log_recover(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t nentries);
-int redo_log_check(const struct redo_ctx *ctx, struct redo_log *redo,
-		size_t nentries);
+size_t redo_log_capacity(const struct redo_ctx *ctx,
+	struct redo_log *redo, size_t redo_capacity);
 
-size_t redo_log_nflags(const struct redo_log *redo, size_t nentries);
-uint64_t redo_log_offset(const struct redo_log *redo);
-int redo_log_is_last(const struct redo_log *redo);
+int redo_log_reserve(const struct redo_ctx *ctx, struct redo_log *redo,
+	size_t redo_capacity, size_t *new_capacity, redo_extend_fn extend);
+void redo_log_store(const struct redo_ctx *ctx, struct redo_log *dest,
+	struct redo_log *src, size_t nentries, size_t redo_capacity);
+int redo_log_is_last(const struct redo_log_entry *entry);
+
+struct redo_log_info {
+	size_t nentries;
+	size_t nflags;
+};
+
+struct redo_log_info redo_log_info(const struct redo_ctx *ctx,
+	struct redo_log *redo);
+
+uint64_t redo_log_offset(const struct redo_log_entry *entry);
+enum redo_operation_type redo_log_operation(const struct redo_log_entry *entry);
+
+void redo_log_entry_create(const void *base,
+	struct redo_log_entry *entry, uint64_t *ptr, uint64_t value,
+	enum redo_operation_type type);
+
+void redo_log_entry_apply(void *base, const struct redo_log_entry *e,
+	flush_fn flush);
+
+void redo_log_process(const struct redo_ctx *ctx, struct redo_log *redo);
+void redo_log_recover(const struct redo_ctx *ctx, struct redo_log *redo);
+int redo_log_check(const struct redo_ctx *ctx, struct redo_log *redo);
 
 const struct pmem_ops *redo_get_pmem_ops(const struct redo_ctx *ctx);
 
