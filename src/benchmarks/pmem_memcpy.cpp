@@ -511,7 +511,7 @@ static int
 pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
-	munmap(pmb->pmem_addr, pmb->fsize);
+	pmem_unmap(pmb->pmem_addr, pmb->fsize);
 	util_aligned_free(pmb->buf);
 	free(pmb->rand_offsets);
 	free(pmb);
