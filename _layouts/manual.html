@@ -58,10 +58,10 @@
 				{% if dc_title == "librpmem" or dc_title == "rpmemd" or dc_title == "libvmmalloc" or dc_title == "daxio" %}
 					<!-- skip Linux-only components -->
 				{% else %}
-					<li class="sys_header">{{ system | upcase }}</li>
+					<li class="sys_header"><a href="#">{{ system | upcase }}</a></li>
 				{% endif %}
 			{% else %}
-				<li class="sys_header">{{ system | upcase }}</li>
+				<li class="sys_header"><a href="#">{{ system | upcase }}</a></li>
 			{% endif %}
 			{% assign system_rel = system | prepend:'releases_' %}
 			{% for release in site.data.[system_rel] %}
