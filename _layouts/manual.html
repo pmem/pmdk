@@ -26,20 +26,20 @@
 	</div>
 	<div id="nav">
 		<ul>
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/glossary/" title="Glossary of Terms Used on This Site">Glossary</a></li>
-                        <li><a href="/documents/" title="Introductory Materials">Documents</a></li>
-                        <li><a href="/pmdk/" title="Persistent Memory Development Kit" class="sel">PMDK</a></li>
-                        <li><a href="/ndctl/" title="Documentation for ndctl">ndctl</a></li>
-                        <li><a href="/blog/" title="Persistent Memory Programming Blog">Blog</a></li>
-                        <li><a href="/about/" title="About This Project">About</a></li>
+			<li><a href="/">Home</a></li>
+			<li><a href="/glossary/" title="Glossary of Terms Used on This Site">Glossary</a></li>
+			<li><a href="/documents/" title="Introductory Materials">Documents</a></li>
+			<li><a href="/pmdk/" title="Persistent Memory Development Kit" class="sel">PMDK</a></li>
+			<li><a href="/ndctl/" title="Documentation for ndctl">ndctl</a></li>
+			<li><a href="/blog/" title="Persistent Memory Programming Blog">Blog</a></li>
+			<li><a href="/about/" title="About This Project">About</a></li>
 		</ul>
 	</div>
 	<br>
 	{% assign page_title =  page.title | downcase %}
 	{% assign dc_title =  page.collection %}
 	{% assign man_name =  dc_title | append:'3.html' %}
-	{% if dc_title == 'rpmemd' or dc_title == 'pmempool' or dc_title contains 'pmempool-' %}
+	{% if dc_title == 'rpmemd' or dc_title == 'daxio' or dc_title == 'pmempool' or dc_title contains 'pmempool-' %}
 		{% assign dc_title_ext =  dc_title | append:'.1.html' %}
 		{% assign dc_title_ext_old =  dc_title | append:'.1.html' %}
 	{% else %}
@@ -47,19 +47,21 @@
 		{% assign dc_title_ext_old =  dc_title | append:'.3.html' %}
 	{% endif %}
 
-	{% if dc_title == 'pmempool' or dc_title == 'poolset' %}
+	{% if dc_title == 'pmempool' or dc_title == 'poolset' or dc_title == 'rpmemd' or dc_title == 'daxio' %}
+		<!-- no libraries -->
 	{% else %}
 	<div id="shortcut">
 		{% assign sys_array = "linux,windows" | split: "," %}
 		{% for system in sys_array %}
 		<ul id="menu">
 			{% if system == "windows" %}
-				{% if dc_title == "librpmem" or dc_title == "rpmemd" or dc_title == "libvmmalloc" %}
+				{% if dc_title == "librpmem" or dc_title == "rpmemd" or dc_title == "libvmmalloc" or dc_title == "daxio" %}
+					<!-- skip Linux-only components -->
 				{% else %}
-					<li class="sys_header"><a href="#">{{ system | upcase }}</a></li>
+					<li class="sys_header">{{ system | upcase }}</li>
 				{% endif %}
 			{% else %}
-				<li class="sys_header"><a href="#">{{ system | upcase }}</a></li>
+				<li class="sys_header">{{ system | upcase }}</li>
 			{% endif %}
 			{% assign system_rel = system | prepend:'releases_' %}
 			{% for release in site.data.[system_rel] %}

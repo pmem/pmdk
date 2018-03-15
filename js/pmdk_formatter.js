@@ -1,7 +1,7 @@
-var nvml_types = [
+var pmdk_types = [
         /* libpmemobj.h */
         "PMEMobjpool",  "PMEMmutex", "PMEMrwlock", "PMEMcond", "PMEMoid",
-        "pmemobj_constr", "tx_lock", "pmemobj_constr",
+        "pmemobj_constr", "tx_lock",
         /* libpmemblk.h */
         "PMEMblkpool",
         /* libpmemlog.h */
@@ -12,20 +12,22 @@ var nvml_types = [
         "PMEMpoolcheck",
         /* librpmem.h */
         "RPMEMpool",
+        /* librpmemcto.h */
+        "PMEMctopool",
         /* other headers */
         "mode_t", "timespec"
 ];
 
 /* ambiguous types can also be e.g. define names */
-var nvml_ambiguous_types = [
+var pmdk_ambiguous_types = [
         /* libpmemobj.h */
         "POBJ_LIST_ENTRY", "POBJ_LIST_HEAD", "TOID"
 ];
 
 /*
- * nvml_format_type -- format an element
+ * pmdk_format_type -- format an element
  */
-function nvml_format_type(obj) {
+function pmdk_format_type(obj) {
         /* inject span into inline code tag */
         var tag = $(obj).prop("tagName");
         if (tag == "CODE") {
@@ -38,13 +40,13 @@ function nvml_format_type(obj) {
 }
 
 /*
- * nvml_format -- filter elements requiring formatting
+ * pmdk_format -- filter elements requiring formatting
  */
-function nvml_format() {
+function pmdk_format() {
         var word = $(this).text();
-        if (nvml_types.indexOf(word) != -1)
-                nvml_format_type(this);
-        else if (nvml_ambiguous_types.indexOf(word) != -1) {
+        if (pmdk_types.indexOf(word) != -1)
+                pmdk_format_type(this);
+        else if (pmdk_ambiguous_types.indexOf(word) != -1) {
                 /*
                  * if succeeding tag is a span with "(" it is a name of a
                  * function / define but not a type
@@ -56,12 +58,12 @@ function nvml_format() {
                                 return;
                 }
 
-                nvml_format_type(this);
+                pmdk_format_type(this);
         }
 }
 
-/* trigger NVML types formatting */
+/* trigger PMDK types formatting */
 $(document).ready(function() {
-        $("code span.n").each(nvml_format);
-        $("code.highlighter-rouge").each(nvml_format);
+        $("code span.n").each(pmdk_format);
+        $("code.highlighter-rouge").each(pmdk_format);
 });
