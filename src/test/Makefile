@@ -67,7 +67,6 @@ OBJ_DEPS = \
 
 # long tests first
 OBJ_TESTS = \
-	obj_async_postcommit\
 	obj_basic_integration\
 	obj_many_size_allocs\
 	obj_realloc\
@@ -77,7 +76,6 @@ OBJ_TESTS = \
 	obj_bucket\
 	obj_check\
 	obj_constructor\
-	obj_convert\
 	obj_ctl\
 	obj_ctl_alloc_class\
 	obj_ctl_alloc_class_config\
@@ -108,6 +106,7 @@ OBJ_TESTS = \
 	obj_mem\
 	obj_memblock\
 	obj_memcheck\
+	obj_memops\
 	obj_oid\
 	obj_out_of_memory\
 	obj_persist_count\
@@ -122,8 +121,6 @@ OBJ_TESTS = \
 	obj_ravl\
 	obj_recovery\
 	obj_recreate\
-	obj_redo_log\
-	obj_ringbuf\
 	obj_strdup\
 	obj_sds\
 	obj_toid\

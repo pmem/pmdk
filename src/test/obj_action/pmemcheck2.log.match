@@ -5,33 +5,17 @@
 ==$(N)== Parent PID: $(N)
 ==$(N)== 
 ==$(N)== 
-==$(N)== Number of stores not made persistent: 7
+==$(N)== Number of stores not made persistent: 4
 ==$(N)== Stores not made persistent properly:
-==$(N)== [0]    at 0x$(X): memblock_header_compact_write $(*)
-==$(N)==    by 0x$(X): block_write_header $(*)
-==$(N)==    by 0x$(X): alloc_prep_block $(*)
-==$(N)==    by 0x$(X): palloc_reservation_create $(*)
-==$(N)==    by 0x$(X): palloc_reserve $(*)
-==$(N)==    by 0x$(X): pmemobj_reserve $(*)
+==$(N)== [0]    at 0x$(X): test_defer_free (obj_action.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_action.c:$(N))
-==$(N)== 	Address: 0x$(X)	size: 8	state: DIRTY
-==$(N)== [1]    at 0x$(X): memblock_header_compact_write $(*)
-==$(N)==    by 0x$(X): block_write_header $(*)
-==$(N)==    by 0x$(X): alloc_prep_block $(*)
-==$(N)==    by 0x$(X): palloc_reservation_create $(*)
-==$(N)==    by 0x$(X): palloc_reserve $(*)
-==$(N)==    by 0x$(X): pmemobj_reserve $(*)
+==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
+==$(N)== [1]    at 0x$(X): main (obj_action.c:$(N))
+==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
+==$(N)== [2]    at 0x$(X): test_defer_free (obj_action.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_action.c:$(N))
-==$(N)== 	Address: 0x$(X)	size: 8	state: DIRTY
-==$(N)== [2]    at 0x$(X): main (obj_action.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
 ==$(N)== [3]    at 0x$(X): main (obj_action.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
-==$(N)== [4]    at 0x$(X): main (obj_action.c:$(N))
-==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
-==$(N)== [5]    at 0x$(X): main (obj_action.c:$(N))
-==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
-==$(N)== [6]    at 0x$(X): main (obj_action.c:$(N))
-==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
-==$(N)== Total memory not made persistent: 36
-==$(N)== ERROR SUMMARY: 7 errors
+==$(N)== Total memory not made persistent: 16
+==$(N)== ERROR SUMMARY: 4 errors

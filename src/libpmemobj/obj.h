@@ -45,7 +45,6 @@
 #include "pmalloc.h"
 #include "redo.h"
 #include "ctl.h"
-#include "ringbuf.h"
 #include "sync.h"
 #include "stats.h"
 
@@ -158,7 +157,6 @@ struct pmemobjpool {
 
 	struct ctl *ctl;
 	struct stats *stats;
-	struct ringbuf *tx_postcommit_tasks;
 
 	struct pool_set *set;		/* pool set info */
 	struct pmemobjpool *replica;	/* next replica */
@@ -202,7 +200,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[984];
+	char unused2[992];
 };
 
 /*
