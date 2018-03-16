@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -130,7 +130,7 @@ pmemobj_direct(PMEMoid oid)
 
 	struct _pobj_pcache *pcache = os_tls_get(Cached_pool_key);
 	if (pcache == NULL) {
-		pcache = Zalloc(sizeof(struct _pobj_pcache));
+		pcache = calloc(sizeof(struct _pobj_pcache), 1);
 		if (pcache == NULL)
 			FATAL("!pcache malloc");
 		int ret = os_tls_set(Cached_pool_key, pcache);

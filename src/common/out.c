@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -107,7 +107,7 @@ Last_errormsg_fini(void)
 {
 	void *p = os_tls_get(Last_errormsg_key);
 	if (p) {
-		Free(p);
+		free(p);
 		(void) os_tls_set(Last_errormsg_key, NULL);
 	}
 }
@@ -119,7 +119,7 @@ Last_errormsg_get(void)
 
 	struct errormsg *errormsg = os_tls_get(Last_errormsg_key);
 	if (errormsg == NULL) {
-		errormsg = Malloc(sizeof(struct errormsg));
+		errormsg = malloc(sizeof(struct errormsg));
 		if (errormsg == NULL)
 			FATAL("!malloc");
 		/* make sure it contains empty string initially */
