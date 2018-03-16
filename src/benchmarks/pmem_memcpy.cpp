@@ -106,6 +106,9 @@ struct pmem_args {
 	 * function is used, otherwise pmem_flush() is performed.
 	 */
 	bool persist;
+
+	/* do not do warmup */
+	bool no_warmup;
 };
 
 /*
@@ -463,6 +466,11 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 						   : libpmem_memcpy_nodrain;
 	}
 
+	if (!pmb->pargs->no_warmup) {
+		memset(pmb->buf, 0, pmb->bsize);
+		pmem_memset_persist(pmb->pmem_addr, 0, pmb->fsize);
+	}
+
 	pmembench_set_priv(bench, pmb);
 
 	return 0;
@@ -519,7 +527,7 @@ pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 }
 
 /* structure to define command line arguments */
-static struct benchmark_clo pmem_memcpy_clo[7];
+static struct benchmark_clo pmem_memcpy_clo[8];
 
 /* Stores information about benchmark. */
 static struct benchmark_info pmem_memcpy;
@@ -587,6 +595,13 @@ pmem_memcpy_constructor(void)
 	pmem_memcpy_clo[6].type = CLO_TYPE_FLAG;
 	pmem_memcpy_clo[6].off = clo_field_offset(struct pmem_args, persist);
 	pmem_memcpy_clo[6].def = "true";
+
+	pmem_memcpy_clo[7].opt_short = 'w';
+	pmem_memcpy_clo[7].opt_long = "no-warmup";
+	pmem_memcpy_clo[7].descr = "Don't do warmup";
+	pmem_memcpy_clo[7].def = "false";
+	pmem_memcpy_clo[7].type = CLO_TYPE_FLAG;
+	pmem_memcpy_clo[7].off = clo_field_offset(struct pmem_args, no_warmup);
 
 	pmem_memcpy.name = "pmem_memcpy";
 	pmem_memcpy.brief = "Benchmark for"
