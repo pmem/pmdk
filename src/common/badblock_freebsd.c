@@ -31,74 +31,59 @@
  */
 
 /*
- * cto_dirty -- unit test for detecting inconsistent pool
- *
- * usage: cto_dirty filename [phase]
+ * badblock_freebsd.c - implementation of the FreeBSD bad block API
  */
 
-#include <libpmemobj.h>
-
-#include "unittest.h"
-#include "set.h"
-#include "cto.h"
-
-#define POOL_SIZE (2 * PMEMCTO_MIN_POOL)
+#include "out.h"
+#include "os_badblock.h"
 
 /*
- * XXX On FreeBSD, mmap()ing a file does not increment the flock()
- *	reference count, so the pool set files are held open until
- *	pmemobj_close(). In the simulated failure case we still need
- *	to close the files for check_open_files() to succeed.
+ * os_badblocks_check_file -- check if the file contains bad blocks
+ *
+ * Return value:
+ * -1 : an error
+ *  0 : no bad blocks
+ *  1 : bad blocks detected
  */
-#ifdef __FreeBSD__
-#define CLOSE_ON_FREEBSD util_poolset_fdclose_always(pcp->set)
-#else
-#define CLOSE_ON_FREEBSD
-#endif
-
-#define EXIT_ON(x, y) do {\
-	if ((x) == (y)) {\
-		CLOSE_ON_FREEBSD;\
-		DONE(NULL);\
-	}\
-} while (0)
-
 int
-main(int argc, char *argv[])
+os_badblocks_check_file(const char *file)
 {
-	START(argc, argv, "cto_dirty");
+	LOG(3, "file %s", file);
 
-	if (argc < 2)
-		UT_FATAL("usage: %s filename [phase]", argv[0]);
+	return 0;
+}
 
-	PMEMctopool *pcp;
-	int phase = 0;
+/*
+ * os_badblocks_count -- returns number of bad blocks in the file
+ *                       or -1 in case of an error
+ */
+long
+os_badblocks_count(const char *file)
+{
+	LOG(3, "file %s", file);
 
-	if (argc > 2) {
-		phase = atoi(argv[2]);
-		pcp = pmemcto_create(argv[1], "test", POOL_SIZE, 0666);
-		UT_ASSERTne(pcp, NULL);
-	} else {
-		pcp = pmemcto_open(argv[1], "test");
-		if (pcp == NULL) {
-			UT_ERR("pmemcto_open: %s", pmemcto_errormsg());
-			exit(1);
-		}
-	}
+	return 0;
+}
 
-	EXIT_ON(phase, 1);
+/*
+ * os_badblocks_get -- returns list of bad blocks in the file
+ */
+int
+os_badblocks_get(const char *file, struct badblocks *bbs)
+{
+	LOG(3, "file %s", file);
 
-	void *ptr = pmemcto_malloc(pcp, 16);
-	UT_ASSERTne(ptr, NULL);
+	return 0;
+}
 
-	pmemcto_set_root_pointer(pcp, ptr);
+/*
+ * os_badblocks_clear -- clears bad blocks in a file
+ *                      (regular file or dax device)
+ */
+int
+os_badblocks_clear(const char *file)
+{
+	LOG(3, "file %s", file);
 
-	EXIT_ON(phase, 2);
-
-	pmemcto_free(pcp, ptr);
-	pmemcto_set_root_pointer(pcp, NULL);
-
-	pmemcto_close(pcp);
-
-	DONE(NULL);
+	return 0;
 }

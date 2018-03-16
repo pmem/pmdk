@@ -65,8 +65,8 @@ OBJS = pmem_deep_persist.o\
 	shutdown_state.o\
 	os_dimm_none.o\
 	init.o\
-	extent_linux.o\
-	badblock_linux.o\
+	$(call osdep, extent,.o)\
+	$(call osdep, badblock,.o)\
 	badblock_poolset.o
 # this test does not require ndctl
 # to enable builds we use os_dimm_none

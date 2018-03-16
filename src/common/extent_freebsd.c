@@ -31,74 +31,38 @@
  */
 
 /*
- * cto_dirty -- unit test for detecting inconsistent pool
- *
- * usage: cto_dirty filename [phase]
+ * extent_freebsd.c - implementation of the FreeBSD fs extent query API
+ * XXX THIS IS CURRENTLY A DUMMY MODULE.
  */
 
-#include <libpmemobj.h>
+#include <string.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 
-#include "unittest.h"
-#include "set.h"
-#include "cto.h"
-
-#define POOL_SIZE (2 * PMEMCTO_MIN_POOL)
+#include "file.h"
+#include "out.h"
+#include "extent.h"
 
 /*
- * XXX On FreeBSD, mmap()ing a file does not increment the flock()
- *	reference count, so the pool set files are held open until
- *	pmemobj_close(). In the simulated failure case we still need
- *	to close the files for check_open_files() to succeed.
+ * os_extents_count -- get number of extents of the given file
+ *                     (and optionally read its block size)
  */
-#ifdef __FreeBSD__
-#define CLOSE_ON_FREEBSD util_poolset_fdclose_always(pcp->set)
-#else
-#define CLOSE_ON_FREEBSD
-#endif
-
-#define EXIT_ON(x, y) do {\
-	if ((x) == (y)) {\
-		CLOSE_ON_FREEBSD;\
-		DONE(NULL);\
-	}\
-} while (0)
-
-int
-main(int argc, char *argv[])
+long
+os_extents_count(const char *path, struct extents *exts)
 {
-	START(argc, argv, "cto_dirty");
+	LOG(3, "path %s extents %p", path, exts);
 
-	if (argc < 2)
-		UT_FATAL("usage: %s filename [phase]", argv[0]);
+	return -1;
+}
 
-	PMEMctopool *pcp;
-	int phase = 0;
+/*
+ * os_extents_get -- get extents of the given file
+ *                   (and optionally read its block size)
+ */
+int
+os_extents_get(const char *path, struct extents *exts)
+{
+	LOG(3, "path %s extents %p", path, exts);
 
-	if (argc > 2) {
-		phase = atoi(argv[2]);
-		pcp = pmemcto_create(argv[1], "test", POOL_SIZE, 0666);
-		UT_ASSERTne(pcp, NULL);
-	} else {
-		pcp = pmemcto_open(argv[1], "test");
-		if (pcp == NULL) {
-			UT_ERR("pmemcto_open: %s", pmemcto_errormsg());
-			exit(1);
-		}
-	}
-
-	EXIT_ON(phase, 1);
-
-	void *ptr = pmemcto_malloc(pcp, 16);
-	UT_ASSERTne(ptr, NULL);
-
-	pmemcto_set_root_pointer(pcp, ptr);
-
-	EXIT_ON(phase, 2);
-
-	pmemcto_free(pcp, ptr);
-	pmemcto_set_root_pointer(pcp, NULL);
-
-	pmemcto_close(pcp);
-
-	DONE(NULL);
+	return -1;
 }

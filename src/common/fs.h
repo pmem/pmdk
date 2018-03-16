@@ -59,7 +59,8 @@ struct fs_entry {
 	const char *path;
 	size_t pathlen;
 	/* the depth of the traversal */
-	short level;
+	/* XXX long on FreeBSD. Linux uses short. No harm in it being bigger */
+	long level;
 };
 
 struct fs *fs_new(const char *path);

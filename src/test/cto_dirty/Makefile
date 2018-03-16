@@ -38,5 +38,8 @@ OBJS = cto_dirty.o
 
 LIBPMEM=y
 LIBPMEMCTO=y
+LIBPMEMCOMMON=internal-debug
 
 include ../Makefile.inc
+
+INCS += -I$(TOP)/src/libpmemcto
