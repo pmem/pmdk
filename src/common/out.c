@@ -82,7 +82,7 @@ static os_tls_key_t Last_errormsg_key;
 static void
 _Last_errormsg_key_alloc(void)
 {
-	int pth_ret = os_tls_key_create(&Last_errormsg_key, free);
+	int pth_ret = os_tls_key_create(&Last_errormsg_key, Free);
 	if (pth_ret)
 		FATAL("!os_thread_key_create");
 
