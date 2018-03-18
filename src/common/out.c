@@ -105,7 +105,7 @@ Last_errormsg_fini(void)
 {
 	void *p = os_tls_get(Last_errormsg_key);
 	if (p) {
-		Free(p);
+		free(p);
 		(void) os_tls_set(Last_errormsg_key, NULL);
 	}
 	(void) os_tls_key_delete(Last_errormsg_key);
@@ -118,7 +118,7 @@ Last_errormsg_get(void)
 
 	struct errormsg *errormsg = os_tls_get(Last_errormsg_key);
 	if (errormsg == NULL) {
-		errormsg = Malloc(sizeof(struct errormsg));
+		errormsg = malloc(sizeof(struct errormsg));
 		if (errormsg == NULL)
 			FATAL("!malloc");
 		/* make sure it contains empty string initially */
