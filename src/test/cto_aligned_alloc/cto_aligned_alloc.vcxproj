@@ -31,7 +31,7 @@
     <ProjectGuid>{B2DC2F89-0724-4110-8934-D1173BD73D44}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>cto_aligned_alloc</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

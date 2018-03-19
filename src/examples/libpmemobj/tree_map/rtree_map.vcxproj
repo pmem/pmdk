@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3ED56E55-84A6-422C-A8D4-A8439FB8F245}</ProjectGuid>
     <RootNamespace>pmemobj</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <ItemGroup Condition="'$(SolutionName)'=='PMDK'">
     <ProjectReference Include="..\..\..\libpmemobj\libpmemobj.vcxproj">
@@ -36,7 +36,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
- <PropertyGroup>
+  <PropertyGroup>
     <IncludePath>.;$(ProjectDir)..\..\;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
