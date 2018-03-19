@@ -2870,7 +2870,10 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 
 	if (rep->remote == NULL) {
 		struct pool_set_part *part = &PART(rep, 0);
-		if (!set->ignore_sds && part->addr != NULL &&
+		if (!set->ignore_sds &&
+				part->hdr != NULL &&
+				part->hdrsize != 0 &&
+				part->addr != NULL &&
 				part->size != 0) {
 			/* XXX: DEEP DRAIN */
 			struct pool_hdr *hdr = part->addr;

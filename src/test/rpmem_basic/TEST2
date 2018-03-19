@@ -86,5 +86,8 @@ expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M init noattr\
 	test_read 0 1234\
 	test_close 0
+expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
+	check_pool ${NODE_DIR[0]}$POOLS_DIR/pool1.set 1234 8M
+
 
 pass
