@@ -73,6 +73,7 @@ struct daxio_device {
 	char *path;
 	int fd;
 	size_t size;		/* actual file/device size */
+	int is_devdax;
 
 	/* Device DAX only */
 	size_t align;		/* internal device alignment */
@@ -80,7 +81,6 @@ struct daxio_device {
 	size_t maplen;		/* mapping length */
 	size_t offset;		/* seek or skip */
 
-	struct ndctl_dax *dax;	/* NULL if not DAX */
 	unsigned major;
 	unsigned minor;
 	struct ndctl_ctx *ndctl_ctx;
@@ -103,8 +103,8 @@ struct daxio_context {
 static struct daxio_context Ctx = {
 	SIZE_MAX,	/* len */
 	0,		/* zero */
-	{ NULL, -1, SIZE_MAX, 0, NULL, 0, 0, NULL, 0, 0, NULL, NULL },
-	{ NULL, -1, SIZE_MAX, 0, NULL, 0, 0, NULL, 0, 0, NULL, NULL },
+	{ NULL, -1, SIZE_MAX, 0, 0, NULL, 0, 0, 0, 0, NULL, NULL },
+	{ NULL, -1, SIZE_MAX, 0, 0, NULL, 0, 0, 0, 0, NULL, NULL },
 };
 
 /*
@@ -285,7 +285,7 @@ find_dev_dax(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev)
 			ndctl_dax_foreach(region, dax) {
 				dax_region = ndctl_dax_get_daxctl_region(dax);
 				if (match_dev_dax(dev, dax_region)) {
-					dev->dax = dax;
+					dev->is_devdax = 1;
 					dev->align = ndctl_dax_get_align(dax);
 					dev->region = region;
 					return 1;
@@ -302,7 +302,7 @@ find_dev_dax(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev)
 	int ret = 0;
 	daxctl_region_foreach(daxctl_ctx, dax_region) {
 		if (match_dev_dax(dev, dax_region)) {
-			dev->dax = dax;
+			dev->is_devdax = 1;
 			dev->align = ndctl_dax_get_align(dax);
 			dev->region = region;
 			ret = 1;
@@ -377,7 +377,7 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst)
 		return -1;
 	}
 
-	if (!dev->dax)
+	if (!dev->is_devdax)
 		return 0;
 
 	if (is_dst) {
@@ -441,14 +441,14 @@ adjust_io_len(struct daxio_context *ctx)
 	if (ctx->zero) {
 		/* adjust len to device size */
 		ctx->len = ctx->dst.maplen - ctx->dst.offset;
-	} else if (ctx->src.dax && ctx->dst.dax) {
+	} else if (ctx->src.is_devdax && ctx->dst.is_devdax) {
 		size_t src_len = ctx->src.maplen - ctx->src.offset;
 		size_t dst_len = ctx->dst.maplen - ctx->dst.offset;
 
 		ctx->len = src_len < dst_len ? src_len : dst_len;
-	} else if (ctx->src.dax) {
+	} else if (ctx->src.is_devdax) {
 		ctx->len = ctx->src.maplen - ctx->src.offset;
-	} else if (ctx->dst.dax) {
+	} else if (ctx->dst.is_devdax) {
 		ctx->len = ctx->dst.maplen - ctx->dst.offset;
 	} else {
 		/* should never get here */
@@ -499,13 +499,13 @@ do_io(struct ndctl_ctx *ndctl_ctx, struct daxio_context *ctx)
 		char *dst_addr = ctx->dst.addr + ctx->dst.offset;
 		pmem_memset_persist(dst_addr, 0, ctx->len);
 		cnt = (ssize_t)ctx->len;
-	} else if (ctx->src.dax && ctx->dst.dax) {
+	} else if (ctx->src.is_devdax && ctx->dst.is_devdax) {
 		/* memcpy between src and dst */
 		char *src_addr = ctx->src.addr + ctx->src.offset;
 		char *dst_addr = ctx->dst.addr + ctx->dst.offset;
 		pmem_memcpy_persist(dst_addr, src_addr, ctx->len);
 		cnt = (ssize_t)ctx->len;
-	} else if (ctx->src.dax) {
+	} else if (ctx->src.is_devdax) {
 		/* write to file directly from mmap'ed src */
 		char *src_addr = ctx->src.addr + ctx->src.offset;
 		if (ctx->dst.offset) {
@@ -524,7 +524,7 @@ do_io(struct ndctl_ctx *ndctl_ctx, struct daxio_context *ctx)
 			}
 			cnt += wcnt;
 		} while ((size_t)cnt < ctx->len);
-	} else if (ctx->dst.dax) {
+	} else if (ctx->dst.is_devdax) {
 		/* read from file directly to mmap'ed dst */
 		char *dst_addr = ctx->dst.addr + ctx->dst.offset;
 		if (ctx->src.offset) {
