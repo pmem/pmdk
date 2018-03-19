@@ -35,13 +35,6 @@
 #                         - bad blocks in the dax device
 #
 
-function ndctl_inject_error() {
-	local NAMESPACE=$1
-	local BLOCK=$2
-	local COUNT=$3
-	sudo ndctl inject-error --block=$BLOCK --count=$COUNT $NAMESPACE &>/dev/null
-}
-
 # standard unit test setup
 . ../unittest/unittest.sh
 
