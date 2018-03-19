@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,42 +31,38 @@
  */
 
 /*
- * fs.h -- file system traversal abstraction layer
+ * extent_freebsd.c - implementation of the FreeBSD fs extent query API
+ * XXX THIS IS CURRENTLY A DUMMY MODULE.
  */
 
-#ifndef PMDK_FS_H
-#define PMDK_FS_H 1
+#include <string.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
 
-#include <unistd.h>
+#include "file.h"
+#include "out.h"
+#include "extent.h"
 
-struct fs;
+/*
+ * os_extents_count -- get number of extents of the given file
+ *                     (and optionally read its block size)
+ */
+long
+os_extents_count(const char *path, struct extents *exts)
+{
+	LOG(3, "path %s extents %p", path, exts);
 
-enum fs_entry_type {
-	FS_ENTRY_FILE,
-	FS_ENTRY_DIRECTORY,
-	FS_ENTRY_SYMLINK,
-	FS_ENTRY_OTHER,
+	return -1;
+}
 
-	MAX_FS_ENTRY_TYPES
-};
+/*
+ * os_extents_get -- get extents of the given file
+ *                   (and optionally read its block size)
+ */
+int
+os_extents_get(const char *path, struct extents *exts)
+{
+	LOG(3, "path %s extents %p", path, exts);
 
-struct fs_entry {
-	enum fs_entry_type type;
-
-	const char *name;
-	size_t namelen;
-
-	const char *path;
-	size_t pathlen;
-	/* the depth of the traversal */
-	/* XXX long on FreeBSD. Linux uses short. No harm in it being bigger */
-	long level;
-};
-
-struct fs *fs_new(const char *path);
-void fs_delete(struct fs *f);
-
-/* this call invalidates the previous entry */
-struct fs_entry *fs_read(struct fs *f);
-
-#endif /* PMDK_FS_H */
+	return -1;
+}

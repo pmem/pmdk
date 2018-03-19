@@ -115,6 +115,7 @@ VALGRIND_SUPP="--suppressions=../ld.supp --suppressions=../memcheck-libunwind.su
 if [ "$(uname -s)" = "FreeBSD" ]; then
 	DATE="gdate"
 	DD="gdd"
+	FALLOCATE="mkfile"
 	VM_OVERCOMMIT="[ $(sysctl vm.overcommit | awk '{print $2}') == 0 ]"
 	RM_ONEFS="-x"
 	STAT_MODE="-f%Lp"
@@ -125,6 +126,7 @@ if [ "$(uname -s)" = "FreeBSD" ]; then
 else
 	DATE="date"
 	DD="dd"
+	FALLOCATE="fallocate -l"
 	VM_OVERCOMMIT="[ $(cat /proc/sys/vm/overcommit_memory) != 2 ]"
 	RM_ONEFS="--one-file-system"
 	STAT_MODE="-c%a"

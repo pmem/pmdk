@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,42 +31,59 @@
  */
 
 /*
- * fs.h -- file system traversal abstraction layer
+ * badblock_freebsd.c - implementation of the FreeBSD bad block API
  */
 
-#ifndef PMDK_FS_H
-#define PMDK_FS_H 1
+#include "out.h"
+#include "os_badblock.h"
 
-#include <unistd.h>
+/*
+ * os_badblocks_check_file -- check if the file contains bad blocks
+ *
+ * Return value:
+ * -1 : an error
+ *  0 : no bad blocks
+ *  1 : bad blocks detected
+ */
+int
+os_badblocks_check_file(const char *file)
+{
+	LOG(3, "file %s", file);
 
-struct fs;
+	return 0;
+}
 
-enum fs_entry_type {
-	FS_ENTRY_FILE,
-	FS_ENTRY_DIRECTORY,
-	FS_ENTRY_SYMLINK,
-	FS_ENTRY_OTHER,
+/*
+ * os_badblocks_count -- returns number of bad blocks in the file
+ *                       or -1 in case of an error
+ */
+long
+os_badblocks_count(const char *file)
+{
+	LOG(3, "file %s", file);
 
-	MAX_FS_ENTRY_TYPES
-};
+	return 0;
+}
 
-struct fs_entry {
-	enum fs_entry_type type;
+/*
+ * os_badblocks_get -- returns list of bad blocks in the file
+ */
+int
+os_badblocks_get(const char *file, struct badblocks *bbs)
+{
+	LOG(3, "file %s", file);
 
-	const char *name;
-	size_t namelen;
+	return 0;
+}
 
-	const char *path;
-	size_t pathlen;
-	/* the depth of the traversal */
-	/* XXX long on FreeBSD. Linux uses short. No harm in it being bigger */
-	long level;
-};
+/*
+ * os_badblocks_clear -- clears bad blocks in a file
+ *                      (regular file or dax device)
+ */
+int
+os_badblocks_clear(const char *file)
+{
+	LOG(3, "file %s", file);
 
-struct fs *fs_new(const char *path);
-void fs_delete(struct fs *f);
-
-/* this call invalidates the previous entry */
-struct fs_entry *fs_read(struct fs *f);
-
-#endif /* PMDK_FS_H */
+	return 0;
+}
