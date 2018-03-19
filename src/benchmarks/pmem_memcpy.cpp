@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -518,6 +518,26 @@ pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
+/*
+ * pmem_memcpy_print_extra_headers -- print extra columns
+ */
+static void
+pmem_memcpy_print_extra_headers()
+{
+	printf(";bandwidth[MiB/s]");
+}
+
+/*
+ * pmem_memcpy_print_extra_values -- print extra values
+ */
+static void
+pmem_memcpy_print_extra_values(struct benchmark *bench,
+			       struct benchmark_args *args,
+			       struct total_results *res)
+{
+	printf(";%f", res->nopsps * args->dsize / 1024 / 1024);
+}
+
 /* structure to define command line arguments */
 static struct benchmark_clo pmem_memcpy_clo[7];
 
@@ -604,5 +624,7 @@ pmem_memcpy_costructor(void)
 	pmem_memcpy.opts_size = sizeof(struct pmem_args);
 	pmem_memcpy.rm_file = true;
 	pmem_memcpy.allow_poolset = false;
+	pmem_memcpy.print_extra_headers = pmem_memcpy_print_extra_headers;
+	pmem_memcpy.print_extra_values = pmem_memcpy_print_extra_values;
 	REGISTER_BENCHMARK(pmem_memcpy);
 };
