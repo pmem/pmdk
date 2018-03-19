@@ -4,10 +4,10 @@ Content-Style: 'text/css'
 title: PMEMPOOL_SYNC
 collection: libpmempool
 header: PMDK
-date: pmempool API version 1.1
+date: pmempool API version 1.3
 ...
 
-[comment]: <> (Copyright 2017, Intel Corporation)
+[comment]: <> (Copyright 2017-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -40,6 +40,7 @@ date: pmempool API version 1.1
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
@@ -78,6 +79,13 @@ is performed.
 >NOTE: Only the pool set file used to create the pool should be used
 for syncing the pool.
 
+>NOTE: The **pmempool_sync**() cannot do anything useful if there
+are no replicas in the pool set.  In such case, it fails with an error.
+
+>NOTE: At the moment, replication is only supported for **libpmemobj**(7)
+pools, so **pmempool_sync**() cannot be used with other pool types
+(**libpmemlog**(7), **libpmemblk**(7), **libpmemcto**(7)).
+
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
@@ -94,14 +102,15 @@ part in the replica. If the option *NOHDRS* is used, replicas contain no
 internal metadata. In both cases, only the missing parts or the ones which
 cannot be opened are recreated with the **pmempool_sync**() function.
 
+
 **pmempool_transform**() modifies the internal structure of a pool set.
 It supports the following operations:
 
 * adding one or more replicas,
 
-* removing one or more replicas_WINUX(.,,
+* removing one or more replicas ,
 
-* adding or removing pool set options.)
+* adding or removing pool set options.
 
 Only one of the above operations can be performed at a time.
 
@@ -145,6 +154,10 @@ If the option *NOHDRS* is used, the effective size of a replica is the sum of
 sizes of all its part files. In this case none of the parts contains internal
 metadata.
 
+>NOTE: At the moment, *transform* operation is only supported for
+**libpmemobj**(7) pools, so **pmempool_transform**() cannot be used with other
+pool types (**libpmemlog**(7), **libpmemblk**(7), **libpmemcto**(7)).
+
 
 # RETURN VALUE #
 
@@ -152,14 +165,35 @@ metadata.
 Otherwise, they return -1 and set *errno* appropriately.
 
 
-# NOTES #
+# ERRORS #
 
+**EINVAL** Invalid format of the input/output pool set file.
+
+**EINVAL** Unsupported *flags* value.
+
+**EINVAL** There is only master replica defined in the input pool set passed
+  to **pmempool_sync**().
+
+**EINVAL** The source pool set passed to **pmempool_transform**() is not a
+  **libpmemobj** pool.
+
+**EINVAL** The input and output pool sets passed to **pmempool_transform**()
+  are identical.
+
+**EINVAL** Attempt to perform more than one transform operation at a time.
+
+**ENOTSUP** The pool set contains a remote replica, but remote replication
+  is not supported (**librpmem**(7) is not available).
+
+
+# NOTES #
 
 The **pmempool_sync**() API is experimental and it may change in future
 versions of the library.
 
 The **pmempool_transform**() API is experimental and it may change in future
 versions of the library.
+
 
 # SEE ALSO #
 
