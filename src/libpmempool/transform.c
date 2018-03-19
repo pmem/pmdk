@@ -437,9 +437,11 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 		struct poolset_health_status *set_out_hs)
 {
 	LOG(3, "set_in_s %p, set_out_s %p", set_in_s, set_out_s);
+
 	int has_replica_to_keep = 0;
 	int is_removing_replicas = 0;
 	int is_adding_replicas = 0;
+
 	/* check if there are replicas to be removed */
 	for (unsigned r = 0; r < set_in_s->nreplicas; ++r) {
 		unsigned c = replica_counterpart(r, set_in_s);
@@ -456,8 +458,10 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	}
 
 	/* make sure we have at least one replica to keep */
-	if (!has_replica_to_keep)
+	if (!has_replica_to_keep) {
+		ERR("there must be at least one replica left");
 		return NOT_TRANSFORMABLE;
+	}
 
 	/* check if there are replicas to be added */
 	for (unsigned r = 0; r < set_out_s->nreplicas; ++r) {
@@ -465,8 +469,8 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 			LOG(2, "Replica %u from output set has no counterpart",
 					r);
 			if (is_removing_replicas) {
-				LOG(2, "adding and removing replicas at the"
-						"same time is not allowed");
+				ERR(
+				"adding and removing replicas at the same time is not allowed");
 				return NOT_TRANSFORMABLE;
 			}
 
@@ -479,7 +483,7 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	if (!is_removing_replicas && !is_adding_replicas &&
 			(set_in_s->flags & OPTION_SINGLEHDR) ==
 				(set_out_s->flags & OPTION_SINGLEHDR)) {
-		LOG(2, "both poolsets are equal");
+		ERR("both poolsets are equal");
 		return NOT_TRANSFORMABLE;
 	}
 
@@ -487,7 +491,7 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	if ((is_removing_replicas || is_adding_replicas) &&
 			(set_in_s->flags & OPTION_SINGLEHDR) !=
 				(set_out_s->flags & OPTION_SINGLEHDR)) {
-		LOG(2,
+		ERR(
 		"cannot add/remove replicas and change the SINGLEHDR option at the same time");
 		return NOT_TRANSFORMABLE;
 	}
@@ -956,7 +960,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 			set_out_cs, set_in_hs, set_out_hs);
 
 	if (operation == NOT_TRANSFORMABLE) {
-		ERR("poolsets are not transformable");
+		LOG(1, "poolsets are not transformable");
 		ret = -1;
 		errno = EINVAL;
 		goto free_cs;
