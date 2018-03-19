@@ -230,10 +230,25 @@ main(int argc, char *argv[])
 		pop = pool<root>::open(path, LAYOUT);
 	}
 
-	auto q = pop.get_root();
+	persistent_ptr<root> q;
+	try {
+		q = pop.get_root();
+	} catch (pmem::pool_error &e) {
+		std::cerr << e.what() << std::endl;
+		pop.close();
+		return 1;
+	}
+
 	if (!q->ptree) {
-		transaction::exec_tx(
-			pop, [&] { q->ptree = make_persistent<pmap>(); });
+		try {
+			transaction::exec_tx(pop, [&] {
+				q->ptree = make_persistent<pmap>();
+			});
+		} catch (pmem::transaction_error &e) {
+			std::cerr << e.what() << std::endl;
+			pop.close();
+			return 1;
+		}
 	}
 
 	auto vtree = std::make_shared<vmap>();
