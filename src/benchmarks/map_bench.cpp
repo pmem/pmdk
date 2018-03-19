@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -760,9 +760,9 @@ static struct benchmark_info map_insert_info;
 static struct benchmark_info map_remove_info;
 static struct benchmark_info map_get_info;
 
-CONSTRUCTOR(map_bench_costructor)
+CONSTRUCTOR(map_bench_constructor)
 void
-map_bench_costructor(void)
+map_bench_constructor(void)
 {
 	map_bench_clos[0].opt_short = 'T';
 	map_bench_clos[0].opt_long = "type";

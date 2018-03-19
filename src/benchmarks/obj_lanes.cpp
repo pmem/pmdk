@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -161,9 +161,9 @@ lanes_op(struct benchmark *bench, struct operation_info *info)
 static struct benchmark_clo lanes_clo[1];
 static struct benchmark_info lanes_info;
 
-CONSTRUCTOR(obj_lines_costructor)
+CONSTRUCTOR(obj_lines_constructor)
 void
-obj_lines_costructor(void)
+obj_lines_constructor(void)
 {
 	lanes_clo[0].opt_short = 's';
 	lanes_clo[0].opt_long = "lane_section";

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -962,9 +962,9 @@ static struct benchmark_info obj_insert_new;
 static struct benchmark_info obj_remove_free;
 static struct benchmark_info obj_move;
 
-CONSTRUCTOR(pmem_atomic_list_costructor)
+CONSTRUCTOR(pmem_atomic_list_constructor)
 void
-pmem_atomic_list_costructor(void)
+pmem_atomic_list_constructor(void)
 {
 	obj_list_clo[0].opt_short = 'T';
 	obj_list_clo[0].opt_long = "type-number";

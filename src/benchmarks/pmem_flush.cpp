@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -511,9 +511,9 @@ pmem_flush_operation(struct benchmark *bench, struct operation_info *info)
 static struct benchmark_clo pmem_flush_clo[3];
 /* Stores information about benchmark. */
 static struct benchmark_info pmem_flush_bench;
-CONSTRUCTOR(pmem_flush_costructor)
+CONSTRUCTOR(pmem_flush_constructor)
 void
-pmem_flush_costructor(void)
+pmem_flush_constructor(void)
 {
 	pmem_flush_clo[0].opt_short = 'o';
 	pmem_flush_clo[0].opt_long = "operation";

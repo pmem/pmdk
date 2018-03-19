@@ -590,9 +590,9 @@ static struct benchmark_info log_append_info;
 /* log_read benchmark info */
 static struct benchmark_info log_read_info;
 
-CONSTRUCTOR(log_costructor)
+CONSTRUCTOR(log_constructor)
 void
-log_costructor(void)
+log_constructor(void)
 {
 	log_clo[0].opt_short = 'r';
 	log_clo[0].opt_long = "random";

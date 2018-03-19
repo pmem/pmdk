@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,7 +51,8 @@
 
 struct pmem_bench;
 
-typedef size_t (*offset_fn)(struct pmem_bench *pmb, uint64_t index);
+typedef size_t (*offset_fn)(struct pmem_bench *pmb,
+			    struct operation_info *info);
 
 /*
  * pmem_args -- benchmark specific arguments
@@ -106,6 +107,9 @@ struct pmem_args {
 	 * function is used, otherwise pmem_flush() is performed.
 	 */
 	bool persist;
+
+	/* do not do warmup */
+	bool no_warmup;
 };
 
 /*
@@ -220,9 +224,9 @@ parse_op_mode(const char *arg)
  * index of a chunk.
  */
 static uint64_t
-mode_seq(struct pmem_bench *pmb, uint64_t index)
+mode_seq(struct pmem_bench *pmb, struct operation_info *info)
 {
-	return index;
+	return info->args->n_ops_per_thread * info->worker->index + info->index;
 }
 
 /*
@@ -230,7 +234,7 @@ mode_seq(struct pmem_bench *pmb, uint64_t index)
  * as only one block is used.
  */
 static uint64_t
-mode_stat(struct pmem_bench *pmb, uint64_t index)
+mode_stat(struct pmem_bench *pmb, struct operation_info *info)
 {
 	return 0;
 }
@@ -239,10 +243,11 @@ mode_stat(struct pmem_bench *pmb, uint64_t index)
  * mode_rand -- if mode is random returns index of a random chunk
  */
 static uint64_t
-mode_rand(struct pmem_bench *pmb, uint64_t index)
+mode_rand(struct pmem_bench *pmb, struct operation_info *info)
 {
-	assert(index < pmb->n_rand_offsets);
-	return pmb->rand_offsets[index];
+	assert(info->index < pmb->n_rand_offsets);
+	return info->args->n_ops_per_thread * info->worker->index +
+		pmb->rand_offsets[info->index];
 }
 
 /*
@@ -463,6 +468,11 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 						   : libpmem_memcpy_nodrain;
 	}
 
+	if (!pmb->pargs->no_warmup) {
+		memset(pmb->buf, 0, pmb->bsize);
+		pmem_memset_persist(pmb->pmem_addr, 0, pmb->fsize);
+	}
+
 	pmembench_set_priv(bench, pmb);
 
 	return 0;
@@ -488,11 +498,9 @@ pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
 {
 	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 
-	size_t src_index = info->args->n_ops_per_thread * info->worker->index +
-		pmb->func_src(pmb, info->index);
+	size_t src_index = pmb->func_src(pmb, info);
 
-	size_t dest_index = info->args->n_ops_per_thread * info->worker->index +
-		pmb->func_dest(pmb, info->index);
+	size_t dest_index = pmb->func_dest(pmb, info);
 
 	void *source = pmb->src_addr + src_index * pmb->pargs->chunk_size +
 		pmb->pargs->src_off;
@@ -511,7 +519,7 @@ static int
 pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
-	munmap(pmb->pmem_addr, pmb->fsize);
+	pmem_unmap(pmb->pmem_addr, pmb->fsize);
 	util_aligned_free(pmb->buf);
 	free(pmb->rand_offsets);
 	free(pmb);
@@ -519,13 +527,13 @@ pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 }
 
 /* structure to define command line arguments */
-static struct benchmark_clo pmem_memcpy_clo[7];
+static struct benchmark_clo pmem_memcpy_clo[8];
 
 /* Stores information about benchmark. */
 static struct benchmark_info pmem_memcpy;
-CONSTRUCTOR(pmem_memcpy_costructor)
+CONSTRUCTOR(pmem_memcpy_constructor)
 void
-pmem_memcpy_costructor(void)
+pmem_memcpy_constructor(void)
 {
 	pmem_memcpy_clo[0].opt_short = 'o';
 	pmem_memcpy_clo[0].opt_long = "operation";
@@ -587,6 +595,13 @@ pmem_memcpy_costructor(void)
 	pmem_memcpy_clo[6].type = CLO_TYPE_FLAG;
 	pmem_memcpy_clo[6].off = clo_field_offset(struct pmem_args, persist);
 	pmem_memcpy_clo[6].def = "true";
+
+	pmem_memcpy_clo[7].opt_short = 'w';
+	pmem_memcpy_clo[7].opt_long = "no-warmup";
+	pmem_memcpy_clo[7].descr = "Don't do warmup";
+	pmem_memcpy_clo[7].def = "false";
+	pmem_memcpy_clo[7].type = CLO_TYPE_FLAG;
+	pmem_memcpy_clo[7].off = clo_field_offset(struct pmem_args, no_warmup);
 
 	pmem_memcpy.name = "pmem_memcpy";
 	pmem_memcpy.brief = "Benchmark for"

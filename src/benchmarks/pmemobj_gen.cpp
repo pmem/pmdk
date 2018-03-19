@@ -584,9 +584,9 @@ static struct benchmark_clo pobj_direct_clo[4];
 
 static struct benchmark_clo pobj_open_clo[3];
 
-CONSTRUCTOR(pmemobj_gen_costructor)
+CONSTRUCTOR(pmemobj_gen_constructor)
 void
-pmemobj_gen_costructor(void)
+pmemobj_gen_constructor(void)
 {
 	pobj_direct_clo[0].opt_short = 'T';
 	pobj_direct_clo[0].opt_long = "type-number";

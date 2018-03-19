@@ -521,7 +521,7 @@ rpmem_exit(struct benchmark *bench, struct benchmark_args *args)
 static struct benchmark_clo rpmem_clo[4];
 /* Stores information about benchmark. */
 static struct benchmark_info rpmem_info;
-CONSTRUCTOR(rpmem_persist_costructor)
+CONSTRUCTOR(rpmem_persist_constructor)
 void
 pmem_rpmem_persist(void)
 {
