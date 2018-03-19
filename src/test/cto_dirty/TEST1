@@ -44,8 +44,8 @@ require_fs_type any
 
 setup
 
-expect_normal_exit ./cto_dirty$EXESUFFIX $DIR/testfile 2
-expect_abnormal_exit ./cto_dirty$EXESUFFIX $DIR/testfile
+expect_abnormal_exit ./cto_dirty$EXESUFFIX $DIR/testfile 2
+expect_normal_exit ./cto_dirty$EXESUFFIX $DIR/testfile
 
 check
 
