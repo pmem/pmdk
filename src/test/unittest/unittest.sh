@@ -933,12 +933,24 @@ function require_unlimited_vm() {
 }
 
 #
+# require_linked_with_ndctl -- require an executable linked with libndctl
+#
+function require_linked_with_ndctl() {
+	[ "$1" == "" -o ! -x "$1" ] && \
+		fatal "$UNITTEST_NAME: ERROR: require_linked_with_ndctl() requires one argument - an executable file"
+	local lddndctl=$(ldd $1 | $GREP -ce "libndctl")
+	[ "$lddndctl" == "1" ] && return
+	msg "$UNITTEST_NAME: SKIP required: executable $1 linked with libndctl"
+	exit 0
+}
+
+#
 # require_superuser -- require user with superuser rights
 #
 function require_superuser() {
 	local user_id=$(id -u)
 	[ "$user_id" == "0" ] && return
-	echo "$UNITTEST_NAME: SKIP required: run with superuser rights"
+	msg "$UNITTEST_NAME: SKIP required: run with superuser rights"
 	exit 0
 }
 
@@ -1379,7 +1391,7 @@ function require_command() {
 # require_kernel_module -- only allow script to continue if specified kernel module exists
 #
 function require_kernel_module() {
-	local MODULE=$(depmod -n | grep -cw -e "$1.ko")
+	local MODULE=$(depmod -n | $GREP -cw -e "$1.ko")
 	if [ $MODULE == "0" ]; then
 		echo "$UNITTEST_NAME: SKIP: '$1' kernel module required"
 		exit 0
