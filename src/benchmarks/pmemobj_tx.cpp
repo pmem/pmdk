@@ -43,6 +43,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemobj.h"
 
 #define LAYOUT_NAME "benchmark"
@@ -1020,14 +1021,15 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 		return 0;
 
 	/* Create pmemobj pool. */
-	if (args->is_poolset) {
+	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
 		if (args->fsize < psize) {
-			fprintf(stderr, "insufficient size of poolset\n");
+			fprintf(stderr, "file size too large\n");
 			goto free_all;
 		}
 
 		psize = 0;
 	}
+
 	obj_bench.pop =
 		pmemobj_create(args->fname, LAYOUT_NAME, psize, args->fmode);
 	if (obj_bench.pop == NULL) {

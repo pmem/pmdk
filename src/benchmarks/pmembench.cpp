@@ -55,6 +55,7 @@
 #include "clo_vec.hpp"
 #include "config_reader.hpp"
 #include "file.h"
+#include "libpmempool.h"
 #include "mmap.h"
 #include "os.h"
 #include "os_thread.h"
@@ -1059,25 +1060,6 @@ out:
 }
 
 /*
- * remove_part_cb -- callback function for removing all pool set part files
- */
-static int
-remove_part_cb(struct part_file *pf, void *arg)
-{
-#ifdef RPMEM_AVAILABLE
-	if (pf->is_remote)
-		return rpmem_remove(pf->node_addr, pf->pool_desc,
-				    RPMEM_REMOVE_FORCE);
-#endif
-	const char *part_file = pf->path;
-
-	if (os_access(part_file, F_OK) == 0)
-		return util_unlink(part_file);
-
-	return 0;
-}
-
-/*
  * pmembench_remove_file -- remove file or directory if exists
  */
 static int
@@ -1093,17 +1075,8 @@ pmembench_remove_file(const char *path)
 	if (os_stat(path, &status) != 0)
 		return 0;
 
-	if (!(status.st_mode & S_IFDIR)) {
-		ret = util_is_poolset_file(path);
-		if (ret == 0) {
-			return util_unlink(path);
-		} else if (ret == 1) {
-			return util_poolset_foreach_part(path, remove_part_cb,
-							 NULL);
-		}
-
-		return ret;
-	}
+	if (!(status.st_mode & S_IFDIR))
+		return pmempool_rm(path, 0);
 
 	struct dir_handle it;
 	struct file_info info;
@@ -1368,6 +1341,13 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			args->fsize = util_poolset_size(args->fname);
 			if (!args->fsize) {
 				fprintf(stderr, "invalid size of poolset\n");
+				goto out;
+			}
+		} else if (util_file_is_device_dax(args->fname)) {
+			args->fsize = util_file_get_size(args->fname);
+
+			if (!args->fsize) {
+				fprintf(stderr, "invalid size of device dax\n");
 				goto out;
 			}
 		}

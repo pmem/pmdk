@@ -35,6 +35,7 @@
  */
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmem.h"
 #include "libpmemblk.h"
 #include "os.h"
@@ -412,9 +413,9 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 		return -1;
 	}
 
-	if (args->is_poolset) {
+	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
 		if (args->fsize < ba->fsize) {
-			fprintf(stderr, "insufficient size of poolset\n");
+			fprintf(stderr, "file size too large\n");
 			return -1;
 		}
 

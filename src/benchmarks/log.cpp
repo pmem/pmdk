@@ -42,6 +42,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemlog.h"
 #include "os.h"
 
@@ -500,9 +501,9 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	if (lb->psize < PMEMLOG_MIN_POOL)
 		lb->psize = PMEMLOG_MIN_POOL;
 
-	if (args->is_poolset) {
-		if (lb->psize > args->fsize) {
-			fprintf(stderr, "insufficient size of poolset\n");
+	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+		if (args->fsize < lb->psize) {
+			fprintf(stderr, "file size too large\n");
 			ret = -1;
 			goto err_free_lb;
 		}

@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/librpmem
 vpath %.c $(TOP)/src/rpmem_common
-
+vpath %.c $(TOP)/src/libpmempool
 
 BENCHMARK = pmembench
 
@@ -109,7 +109,7 @@ LIBS += ../nondebug/libpmemcommon.a
 else
 LIBS += ../debug/libpmemcommon.a
 endif
-LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm \
+LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmempool -lpmem -lvmem -pthread -lm \
 	$(LIBDL) $(LIBUUID) $(LIBNDCTL)
 ifeq ($(call check_librt), n)
 LIBS += -lrt

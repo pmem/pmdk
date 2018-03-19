@@ -44,6 +44,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemobj.h"
 #include "os.h"
 #include "valgrind_internal.h"
@@ -144,15 +145,14 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	/* multiply by FACTOR for metadata, fragmentation, etc. */
 	poolsize = (size_t)(poolsize * FACTOR);
 
-	if (args->is_poolset) {
+	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
 		if (args->fsize < poolsize) {
-			fprintf(stderr, "insufficient size of poolset\n");
+			fprintf(stderr, "file size too large\n");
 			goto free_ob;
 		}
 		poolsize = 0;
-	} else {
-		if (poolsize < PMEMOBJ_MIN_POOL)
-			poolsize = PMEMOBJ_MIN_POOL;
+	} else if (poolsize < PMEMOBJ_MIN_POOL) {
+		poolsize = PMEMOBJ_MIN_POOL;
 	}
 
 	ob->pop = pmemobj_create(args->fname, POBJ_LAYOUT_NAME(pmalloc_layout),

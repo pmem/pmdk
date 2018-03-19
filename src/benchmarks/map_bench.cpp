@@ -36,6 +36,7 @@
 #include <cassert>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "os.h"
 #include "os_thread.h"
 
@@ -546,16 +547,15 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 
 	map_bench->pool_size = map_bench->nkeys * size_per_key * FACTOR;
 
-	if (args->is_poolset) {
+	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
 		if (args->fsize < map_bench->pool_size) {
-			fprintf(stderr, "insufficient poolset size\n");
+			fprintf(stderr, "file size too large\n");
 			goto err_free_bench;
 		}
 
 		map_bench->pool_size = 0;
-	} else {
-		if (map_bench->pool_size < 2 * PMEMOBJ_MIN_POOL)
-			map_bench->pool_size = 2 * PMEMOBJ_MIN_POOL;
+	} else if (map_bench->pool_size < 2 * PMEMOBJ_MIN_POOL) {
+		map_bench->pool_size = 2 * PMEMOBJ_MIN_POOL;
 	}
 
 	map_bench->pop = pmemobj_create(args->fname, "map_bench",

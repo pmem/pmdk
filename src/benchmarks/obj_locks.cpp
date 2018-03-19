@@ -40,6 +40,7 @@
 #include "benchmark.hpp"
 #include "libpmemobj.h"
 
+#include "file.h"
 #include "lane.h"
 #include "list.h"
 #include "memops.h"
@@ -705,9 +706,9 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 	/* reserve some space for metadata */
 	poolsize = mb->pa->n_locks * sizeof(lock_t) + PMEMOBJ_MIN_POOL;
 
-	if (args->is_poolset) {
+	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
 		if (args->fsize < poolsize) {
-			fprintf(stderr, "insufficient size of poolset\n");
+			fprintf(stderr, "file size too large\n");
 			goto err_free_mb;
 		}
 
