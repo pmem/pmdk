@@ -18,7 +18,7 @@ $(OPT)==$(N)==    by 0x$(X): fputs $(*)
 ==$(N)==    by 0x$(X): ut_out (ut.c:$(N))
 ==$(N)==    by 0x$(X): do_iterate (vmem_valgrind_region.c:$(N))
 ==$(N)==    by 0x$(X): main (vmem_valgrind_region.c:$(N))
-$(OPT)==$(N)==  Address 0x$(X) is 54 bytes inside data symbol "Buff_trace"
+$(OPT)==$(N)==  Address 0x$(X) is $(N) bytes inside data symbol "Buff_trace"
 ==$(N)== 
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
