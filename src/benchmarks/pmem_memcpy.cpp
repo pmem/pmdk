@@ -51,7 +51,8 @@
 
 struct pmem_bench;
 
-typedef size_t (*offset_fn)(struct pmem_bench *pmb, uint64_t index);
+typedef size_t (*offset_fn)(struct pmem_bench *pmb,
+			    struct operation_info *info);
 
 /*
  * pmem_args -- benchmark specific arguments
@@ -223,9 +224,9 @@ parse_op_mode(const char *arg)
  * index of a chunk.
  */
 static uint64_t
-mode_seq(struct pmem_bench *pmb, uint64_t index)
+mode_seq(struct pmem_bench *pmb, struct operation_info *info)
 {
-	return index;
+	return info->args->n_ops_per_thread * info->worker->index + info->index;
 }
 
 /*
@@ -233,7 +234,7 @@ mode_seq(struct pmem_bench *pmb, uint64_t index)
  * as only one block is used.
  */
 static uint64_t
-mode_stat(struct pmem_bench *pmb, uint64_t index)
+mode_stat(struct pmem_bench *pmb, struct operation_info *info)
 {
 	return 0;
 }
@@ -242,10 +243,11 @@ mode_stat(struct pmem_bench *pmb, uint64_t index)
  * mode_rand -- if mode is random returns index of a random chunk
  */
 static uint64_t
-mode_rand(struct pmem_bench *pmb, uint64_t index)
+mode_rand(struct pmem_bench *pmb, struct operation_info *info)
 {
-	assert(index < pmb->n_rand_offsets);
-	return pmb->rand_offsets[index];
+	assert(info->index < pmb->n_rand_offsets);
+	return info->args->n_ops_per_thread * info->worker->index +
+		pmb->rand_offsets[info->index];
 }
 
 /*
@@ -496,11 +498,9 @@ pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
 {
 	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 
-	size_t src_index = info->args->n_ops_per_thread * info->worker->index +
-		pmb->func_src(pmb, info->index);
+	size_t src_index = pmb->func_src(pmb, info);
 
-	size_t dest_index = info->args->n_ops_per_thread * info->worker->index +
-		pmb->func_dest(pmb, info->index);
+	size_t dest_index = pmb->func_dest(pmb, info);
 
 	void *source = pmb->src_addr + src_index * pmb->pargs->chunk_size +
 		pmb->pargs->src_off;
