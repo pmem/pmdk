@@ -62,7 +62,7 @@ expect_normal_exit ./obj_sds 1 0 $POOLSET\
 				   5 0 7 0 9 0 11 0 12 0
 
 # the pool closed and ADR failure
-expect_normal_exit ./obj_sds 0 1 $POOLSET\
+expect_abnormal_exit ./obj_sds 0 1 $POOLSET\
 				   5 1 7 1 9 1 11 0 12 0
 
 PMEMOBJ_LOG_LEVEL=4
