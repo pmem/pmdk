@@ -330,12 +330,12 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst)
 		return 0;	/* stdin/stdout */
 	}
 
-	/* check if file/device exists */
-	struct stat stbuf;
-	ret = stat(dev->path, &stbuf);
-	if (ret == -1) {
+	/* try to open file/device (if exists) */
+	dev->fd = open(dev->path, flags, S_IRUSR|S_IWUSR);
+	if (dev->fd == -1) {
 		ret = errno;
 		if (ret == ENOENT && is_dst) {
+			/* file does not exist - create it */
 			flags = O_CREAT|O_WRONLY|O_TRUNC;
 			dev->size = SIZE_MAX;
 			dev->fd = open(dev->path, flags, S_IRUSR|S_IWUSR);
@@ -344,7 +344,15 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst)
 				return -1;
 			}
 			return 0;
+		} else {
+			return -1;
+			FAIL("open");
 		}
+	}
+
+	struct stat stbuf;
+	ret = fstat(dev->fd, &stbuf);
+	if (ret == -1) {
 		FAIL("stat");
 		return -1;
 	}
@@ -370,12 +378,6 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst)
 	/* check if this is Device DAX */
 	if (S_ISCHR(stbuf.st_mode))
 		find_dev_dax(ndctl_ctx, dev);
-
-	dev->fd = open(dev->path, flags, S_IRUSR|S_IWUSR);
-	if (dev->fd == -1) {
-		FAIL("open");
-		return -1;
-	}
 
 	if (!dev->is_devdax)
 		return 0;
