@@ -42,8 +42,7 @@
 
 #define EXIT_ON(x, y) do {\
 	if ((x) == (y)) {\
-		DONE(NULL);\
-		exit(0);\
+		exit(1);\
 	}\
 } while (0)
 
@@ -66,7 +65,7 @@ main(int argc, char *argv[])
 		pcp = pmemcto_open(argv[1], "test");
 		if (pcp == NULL) {
 			UT_ERR("pmemcto_open: %s", pmemcto_errormsg());
-			exit(1);
+			goto end;
 		}
 	}
 
@@ -84,7 +83,6 @@ main(int argc, char *argv[])
 
 	pmemcto_close(pcp);
 
-	EXIT_ON(phase, 3);
-
+end:
 	DONE(NULL);
 }
