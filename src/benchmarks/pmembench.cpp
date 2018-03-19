@@ -115,6 +115,7 @@ struct latency {
 	uint64_t min;
 	uint64_t avg;
 	double std_dev;
+	uint64_t pctl50_0p;
 	uint64_t pctl99_0p;
 	uint64_t pctl99_9p;
 };
@@ -474,6 +475,7 @@ pmembench_print_header(struct pmembench *pb, struct benchmark *bench,
 	       "latency-min[nsec];"
 	       "latency-max[nsec];"
 	       "latency-std-dev[nsec];"
+	       "latency-pctl-50.0%%[nsec];"
 	       "latency-pctl-99.0%%[nsec];"
 	       "latency-pctl-99.9%%[nsec]");
 	size_t i;
@@ -493,11 +495,12 @@ pmembench_print_results(struct benchmark *bench, struct benchmark_args *args,
 			struct total_results *res)
 {
 	printf("%f;%f;%f;%f;%f;%f;%" PRIu64 ";%" PRIu64 ";%" PRIu64
-	       ";%f;%" PRIu64 ";%" PRIu64,
+	       ";%f;%" PRIu64 ";%" PRIu64 ";%" PRIu64,
 	       res->total.avg, res->nopsps, res->total.max, res->total.min,
 	       res->total.med, res->total.std_dev, res->latency.avg,
 	       res->latency.min, res->latency.max, res->latency.std_dev,
-	       res->latency.pctl99_0p, res->latency.pctl99_9p);
+	       res->latency.pctl50_0p, res->latency.pctl99_0p,
+	       res->latency.pctl99_9p);
 
 	size_t i;
 	for (i = 0; i < bench->nclos; i++) {
@@ -920,10 +923,12 @@ get_total_results(struct total_results *tres)
 
 	tres->latency.std_dev = sqrt(tres->latency.std_dev / count);
 
-	/* find 99.0% and 99.9% percentiles */
+	/* find 50%, 99.0% and 99.9% percentiles */
 	qsort(ntotals, count, sizeof(uint64_t), compare_uint64t);
+	uint64_t p50_0 = count * 50 / 100;
 	uint64_t p99_0 = count * 99 / 100;
 	uint64_t p99_9 = count * 999 / 1000;
+	tres->latency.pctl50_0p = ntotals[p50_0];
 	tres->latency.pctl99_0p = ntotals[p99_0];
 	tres->latency.pctl99_9p = ntotals[p99_9];
 	free(ntotals);
