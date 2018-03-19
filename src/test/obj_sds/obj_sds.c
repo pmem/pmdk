@@ -36,8 +36,6 @@
 
 #include "unittest.h"
 #include "shutdown_state.h"
-#include "set.h"
-#include "obj.h"
 #include <stdlib.h>
 #include <libpmemobj.h>
 
@@ -87,19 +85,12 @@ main(int argc, char *argv[])
 
 	if (!fail)
 		pmemobj_close(pop);
-#ifdef __FreeBSD__
-	/*
-	 * XXX On FreeBSD, mmap()ing a file does not increment the flock()
-	 *	reference count, so the pool set files are held open until
-	 *	pmemobj_close(). In the simulated failure case we still need
-	 *	to close the files for check_open_files() to succeed.
-	 */
-	else
-		util_poolset_fdclose_always(pop->set);
-#endif
 
 	FREE(uids);
 	FREE(uscs);
+
+	if (fail)
+		exit(1);
 
 	DONE(NULL);
 }
