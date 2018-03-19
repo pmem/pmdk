@@ -97,59 +97,6 @@ struct benchmark {
 };
 
 /*
- * struct results -- statistics for total measurements
- */
-struct results {
-	double min;
-	double max;
-	double avg;
-	double std_dev;
-	double med;
-};
-
-/*
- * struct latency -- statistics for latency measurements
- */
-struct latency {
-	uint64_t max;
-	uint64_t min;
-	uint64_t avg;
-	double std_dev;
-	uint64_t pctl50_0p;
-	uint64_t pctl99_0p;
-	uint64_t pctl99_9p;
-};
-
-/*
- * struct thread_results -- results of a single thread
- */
-struct thread_results {
-	benchmark_time_t beg;
-	benchmark_time_t end;
-	benchmark_time_t end_op[];
-};
-
-/*
- * struct bench_results -- results of the whole benchmark
- */
-struct bench_results {
-	struct thread_results **thres;
-};
-
-/*
- * struct total_results -- results and statistics of the whole benchmark
- */
-struct total_results {
-	size_t nrepeats;
-	size_t nthreads;
-	size_t nops;
-	double nopsps;
-	struct results total;
-	struct latency latency;
-	struct bench_results *res;
-};
-
-/*
  * struct bench_list -- list of available benchmarks
  */
 struct bench_list {
@@ -484,6 +431,8 @@ pmembench_print_header(struct pmembench *pb, struct benchmark *bench,
 			printf(";%s", bench->clos[i].opt_long);
 		}
 	}
+	if (bench->info->print_extra_headers)
+		bench->info->print_extra_headers();
 	printf("\n");
 }
 
@@ -508,6 +457,8 @@ pmembench_print_results(struct benchmark *bench, struct benchmark_args *args,
 			printf(";%s", benchmark_clo_str(&bench->clos[i], args,
 							bench->args_size));
 	}
+	if (bench->info->print_extra_values)
+		bench->info->print_extra_values(bench, args, res);
 	printf("\n");
 }
 

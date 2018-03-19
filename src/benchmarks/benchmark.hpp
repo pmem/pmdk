@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -106,6 +106,59 @@ struct benchmark_results {
 	uint64_t nbytes;       /* number of bytes processed */
 	uint64_t nops;	 /* number of operations executed */
 	benchmark_time_t time; /* total execution time */
+};
+
+/*
+ * struct results -- statistics for total measurements
+ */
+struct results {
+	double min;
+	double max;
+	double avg;
+	double std_dev;
+	double med;
+};
+
+/*
+ * struct latency -- statistics for latency measurements
+ */
+struct latency {
+	uint64_t max;
+	uint64_t min;
+	uint64_t avg;
+	double std_dev;
+	uint64_t pctl50_0p;
+	uint64_t pctl99_0p;
+	uint64_t pctl99_9p;
+};
+
+/*
+ * struct thread_results -- results of a single thread
+ */
+struct thread_results {
+	benchmark_time_t beg;
+	benchmark_time_t end;
+	benchmark_time_t end_op[];
+};
+
+/*
+ * struct bench_results -- results of the whole benchmark
+ */
+struct bench_results {
+	struct thread_results **thres;
+};
+
+/*
+ * struct total_results -- results and statistics of the whole benchmark
+ */
+struct total_results {
+	size_t nrepeats;
+	size_t nthreads;
+	size_t nops;
+	double nopsps;
+	struct results total;
+	struct latency latency;
+	struct bench_results *res;
 };
 
 /*
@@ -272,6 +325,10 @@ struct benchmark_info {
 			    struct benchmark_args *args,
 			    struct worker_info *worker);
 	int (*operation)(struct benchmark *bench, struct operation_info *info);
+	void (*print_extra_headers)();
+	void (*print_extra_values)(struct benchmark *bench,
+				   struct benchmark_args *args,
+				   struct total_results *res);
 	bool multithread;
 	bool multiops;
 	bool measure_time;
