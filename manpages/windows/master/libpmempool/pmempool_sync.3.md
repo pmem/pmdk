@@ -7,7 +7,7 @@ header: PMDK
 date: pmempool API version 1.3
 ...
 
-[comment]: <> (Copyright 2017, Intel Corporation)
+[comment]: <> (Copyright 2017-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -40,6 +40,7 @@ date: pmempool API version 1.3
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
@@ -85,6 +86,13 @@ is performed.
 >NOTE: Only the pool set file used to create the pool should be used
 for syncing the pool.
 
+>NOTE: The **pmempool_syncU**()/**pmempool_syncW**() cannot do anything useful if there
+are no replicas in the pool set.  In such case, it fails with an error.
+
+>NOTE: At the moment, replication is only supported for **libpmemobj**(7)
+pools, so **pmempool_syncU**()/**pmempool_syncW**() cannot be used with other pool types
+(**libpmemlog**(7), **libpmemblk**(7), **libpmemcto**(7)).
+
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
@@ -97,14 +105,13 @@ one of the healthy replicas.
 
 
 
+
 **pmempool_transformU**()/**pmempool_transformW**() modifies the internal structure of a pool set.
 It supports the following operations:
 
 * adding one or more replicas,
 
-* removing one or more replicas_WINUX(.,,
-
-* adding or removing pool set options.)
+* removing one or more replicas .
 
 Only one of the above operations can be performed at a time.
 
@@ -136,6 +143,10 @@ file is utilized for storing internal metadata of the pool part files.
 
 
 
+>NOTE: At the moment, *transform* operation is only supported for
+**libpmemobj**(7) pools, so **pmempool_transformU**()/**pmempool_transformW**() cannot be used with other
+pool types (**libpmemlog**(7), **libpmemblk**(7), **libpmemcto**(7)).
+
 
 # RETURN VALUE #
 
@@ -143,14 +154,35 @@ file is utilized for storing internal metadata of the pool part files.
 Otherwise, they return -1 and set *errno* appropriately.
 
 
-# NOTES #
+# ERRORS #
 
+**EINVAL** Invalid format of the input/output pool set file.
+
+**EINVAL** Unsupported *flags* value.
+
+**EINVAL** There is only master replica defined in the input pool set passed
+  to **pmempool_syncU**()/**pmempool_syncW**().
+
+**EINVAL** The source pool set passed to **pmempool_transformU**()/**pmempool_transformW**() is not a
+  **libpmemobj** pool.
+
+**EINVAL** The input and output pool sets passed to **pmempool_transformU**()/**pmempool_transformW**()
+  are identical.
+
+**EINVAL** Attempt to perform more than one transform operation at a time.
+
+**ENOTSUP** The pool set contains a remote replica, but remote replication
+  is not supported (**librpmem**(7) is not available).
+
+
+# NOTES #
 
 The **pmempool_syncU**()/**pmempool_syncW**() API is experimental and it may change in future
 versions of the library.
 
 The **pmempool_transformU**()/**pmempool_transformW**() API is experimental and it may change in future
 versions of the library.
+
 
 # SEE ALSO #
 
