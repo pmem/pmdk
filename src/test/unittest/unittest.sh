@@ -933,12 +933,21 @@ function require_unlimited_vm() {
 }
 
 #
+# require_ndctl_enabled -- require binaries built with ndctl enabled
+#
+function require_ndctl_enabled() {
+	[ "$NDCTL_ENABLE" == "y" ] && return
+	msg "$UNITTEST_NAME: SKIP required: built with ndctl enabled"
+	exit 0
+}
+
+#
 # require_superuser -- require user with superuser rights
 #
 function require_superuser() {
 	local user_id=$(id -u)
 	[ "$user_id" == "0" ] && return
-	echo "$UNITTEST_NAME: SKIP required: run with superuser rights"
+	msg "$UNITTEST_NAME: SKIP required: run with superuser rights"
 	exit 0
 }
 
