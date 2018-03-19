@@ -933,12 +933,25 @@ function require_unlimited_vm() {
 }
 
 #
+# require_linked_with_ndctl -- require an executable linked with libndctl
+#
+function require_linked_with_ndctl() {
+	[ "$1" == "" -o ! -x "$1" ] && \
+		msg "$UNITTEST_NAME: ERROR: require_linked_with_ndctl() requires one argument - an executable file" && \
+		exit 1
+	local lddndctl=$(ldd $1 | grep -e "libndctl" | wc -l)
+	[ "$lddndctl" == "1" ] && return
+	msg "$UNITTEST_NAME: SKIP required: executable $1 linked with libndctl"
+	exit 0
+}
+
+#
 # require_superuser -- require user with superuser rights
 #
 function require_superuser() {
 	local user_id=$(id -u)
 	[ "$user_id" == "0" ] && return
-	echo "$UNITTEST_NAME: SKIP required: run with superuser rights"
+	msg "$UNITTEST_NAME: SKIP required: run with superuser rights"
 	exit 0
 }
 
