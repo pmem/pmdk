@@ -1852,7 +1852,13 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 	while (r.size != 0) {
 		search.offset = r.offset + r.size;
 		struct ravl_node *n = ravl_find(runtime->ranges, &search, p);
-		p = RAVL_PREDICATE_LESS_EQUAL;
+		/*
+		 * We have to skip searching for LESS_EQUAL because
+		 * the snapshot we would find is the one that was just
+		 * created.
+		 */
+		p = RAVL_PREDICATE_LESS;
+
 		struct tx_range_def *f = n ? ravl_data(n) : NULL;
 
 		size_t fend = f == NULL ? 0: f->offset + f->size;
@@ -1923,13 +1929,6 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 			}
 
 			/*
-			 * We have to skip searching for LESS_EQUAL because
-			 * the snapshot we would just find the snapshot we just
-			 * created, which would be a waste of time.
-			 */
-			p = RAVL_PREDICATE_LESS;
-
-			/*
 			 * If there's a snapshot adjacent on right side, merge
 			 * the two ranges together.
 			 */
@@ -1960,8 +1959,6 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 			 */
 			size_t overlap = rend - MAX(f->offset, r.offset);
 			r.size -= overlap;
-
-			p = RAVL_PREDICATE_LESS;
 		} else {
 			ASSERT(0);
 		}
