@@ -38,8 +38,12 @@
 #include "unittest.h"
 #include "util.h"
 #include "out.h"
+#include "set.h"
 #include "os_dimm.h"
 #include "os_badblock.h"
+
+#define MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MiB */
+#define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
 /*
  * do_list -- (internal) list bad blocks in the file
@@ -89,6 +93,42 @@ do_clear(const char *path)
 	return os_badblocks_clear(path);
 }
 
+/*
+ * do_create -- (internal) create a pool
+ */
+static void
+do_create(const char *path)
+{
+	struct pool_set *set;
+	const struct pool_attr attr;
+	unsigned nlanes = 1;
+
+	if (util_pool_create(&set, path, 0, MIN_POOL, MIN_PART,
+				&attr, &nlanes, REPLICAS_ENABLED) != 0) {
+		UT_FATAL("!util_pool_create: %s", path);
+	}
+
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
+}
+
+/*
+ * do_open -- (internal) open a pool
+ */
+static void
+do_open(const char *path)
+{
+	struct pool_set *set;
+	const struct pool_attr attr;
+	unsigned nlanes = 1;
+
+	if (util_pool_open(&set, path, MIN_PART,
+				&attr, &nlanes, NULL, 0) != 0) {
+		UT_FATAL("!util_pool_open: %s", path);
+	}
+
+	util_poolset_close(set, DO_NOT_DELETE_PARTS);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -97,14 +137,15 @@ main(int argc, char *argv[])
 	out_init("UTIL_BADBLOCK", "UTIL_BADBLOCK", "", 1, 0);
 
 	if (argc < 3)
-		UT_FATAL("usage: %s file op:l|c", argv[0]);
+		UT_FATAL("usage: %s file op:l|c|r|o", argv[0]);
 
 	const char *path = argv[1];
 
 	/* go through all arguments one by one */
 	for (int arg = 2; arg < argc; arg++) {
 		if (argv[arg][1] != '\0')
-			UT_FATAL("op must be l or c (l=list, c=clear)");
+			UT_FATAL(
+				"op must be l, c, r or o (l=list, c=clear, r=create, o=open)");
 
 		switch (argv[arg][0]) {
 		case 'l':
@@ -115,8 +156,17 @@ main(int argc, char *argv[])
 			do_clear(path);
 			break;
 
+		case 'r':
+			do_create(path);
+			break;
+
+		case 'o':
+			do_open(path);
+			break;
+
 		default:
-			UT_FATAL("op must be l or c (l=list, c=clear)");
+			UT_FATAL(
+				"op must be l, c, r or o (l=list, c=clear, r=create, o=open)");
 			break;
 		}
 	}
