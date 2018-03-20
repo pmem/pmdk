@@ -3159,6 +3159,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		ERR(
 			"pool set contains bad blocks and cannot be created, run 'pmempool' utility to clear bad blocks first");
 
+		errno = EIO;
 		return -1;
 	}
 
@@ -3720,6 +3721,7 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 		} else {
 			ERR(
 				"pool set contains bad blocks and cannot be opened, run 'pmempool' utility to try to recover the pool");
+			errno = EIO;
 			return -1;
 		}
 	}
@@ -3824,6 +3826,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 			ERR(
 				"pool set contains bad blocks and cannot be opened, run 'pmempool' utility to try to recover the pool -- '%s'",
 				path);
+			errno = EIO;
 			return -1;
 		}
 	}
