@@ -38,9 +38,61 @@
 #include "out.h"
 #include "os.h"
 
+#define ACPI_SIGNATURE 'ACPI'
+#define NFIT_NAME "NFIT"
+#define NFIT_SIGNATURE_LEN 4
+
+ /*
+ * os_auto_flush -- check if platform supports auto flush
+ */
+int
+is_nfit_available()
+{
+	LOG(3, "is_nfit_available");
+
+	DWORD signatures_size;
+	char *signatures;
+	int isNFIT = 0;
+	DWORD offset = 0;
+
+	signatures_size = EnumSystemFirmwareTables(ACPI_SIGNATURE, NULL, 0);
+	if (signatures_size == 0) {
+		ERR("!EnumSystemFirmwareTables");
+		goto err;
+	}
+	signatures = (char *)malloc(signatures_size);
+	if (signatures == NULL) {
+		ERR("!malloc");
+		goto err;
+	}
+	int ret = EnumSystemFirmwareTables(ACPI_SIGNATURE,
+										signatures, signatures_size);
+	if (ret != signatures_size || ret == 0) {
+		ERR("!EnumSystemFirmwareTables");
+		goto err;
+	}
+
+	while (offset <= signatures_size) {
+		int cmp = strncmp(signatures + offset, NFIT_NAME, NFIT_SIGNATURE_LEN);
+		if (cmp == 0) {
+			isNFIT = 1;
+			goto end;
+		}
+		offset += NFIT_SIGNATURE_LEN;
+	}
+
+end:
+	free(signatures);
+	return isNFIT;
+
+err:
+	if (signatures)
+		free(signatures);
+	return -1;
+}
+
 /*
  * os_auto_flush -- check if platform supports auto flush
- * XXX - for now Windows implementation always returns 0
  */
 int
 os_auto_flush(void)
