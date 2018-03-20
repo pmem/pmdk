@@ -526,26 +526,6 @@ pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
-/*
- * pmem_memcpy_print_extra_headers -- print extra columns
- */
-static void
-pmem_memcpy_print_extra_headers()
-{
-	printf(";bandwidth[MiB/s]");
-}
-
-/*
- * pmem_memcpy_print_extra_values -- print extra values
- */
-static void
-pmem_memcpy_print_extra_values(struct benchmark *bench,
-			       struct benchmark_args *args,
-			       struct total_results *res)
-{
-	printf(";%f", res->nopsps * args->dsize / 1024 / 1024);
-}
-
 /* structure to define command line arguments */
 static struct benchmark_clo pmem_memcpy_clo[8];
 
@@ -639,7 +619,6 @@ pmem_memcpy_constructor(void)
 	pmem_memcpy.opts_size = sizeof(struct pmem_args);
 	pmem_memcpy.rm_file = true;
 	pmem_memcpy.allow_poolset = false;
-	pmem_memcpy.print_extra_headers = pmem_memcpy_print_extra_headers;
-	pmem_memcpy.print_extra_values = pmem_memcpy_print_extra_values;
+	pmem_memcpy.print_bandwidth = true;
 	REGISTER_BENCHMARK(pmem_memcpy);
 };

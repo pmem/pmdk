@@ -383,26 +383,6 @@ memset_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
-/*
- * pmem_memcpy_print_extra_headers -- print extra columns
- */
-static void
-pmem_memset_print_extra_headers()
-{
-	printf(";bandwidth[MiB/s]");
-}
-
-/*
- * pmem_memcpy_print_extra_values -- print extra values
- */
-static void
-pmem_memset_print_extra_values(struct benchmark *bench,
-			       struct benchmark_args *args,
-			       struct total_results *res)
-{
-	printf(";%f", res->nopsps * args->dsize / 1024 / 1024);
-}
-
 static struct benchmark_clo memset_clo[7];
 /* Stores information about benchmark. */
 static struct benchmark_info memset_info;
@@ -484,7 +464,6 @@ pmem_memset_constructor(void)
 	memset_info.opts_size = sizeof(struct memset_args);
 	memset_info.rm_file = true;
 	memset_info.allow_poolset = false;
-	memset_info.print_extra_headers = pmem_memset_print_extra_headers;
-	memset_info.print_extra_values = pmem_memset_print_extra_values;
+	memset_info.print_bandwidth = true;
 	REGISTER_BENCHMARK(memset_info);
 };
