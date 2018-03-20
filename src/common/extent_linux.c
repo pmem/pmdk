@@ -179,6 +179,9 @@ os_extents_get(const char *path, struct extents *exts)
 	fmap = newfmap;
 	fmap->fm_extent_count = fmap->fm_mapped_extents;
 
+	memset(fmap->fm_extents, 0, fmap->fm_mapped_extents *
+					sizeof(struct fiemap_extent));
+
 	if (ioctl(fd, FS_IOC_FIEMAP, fmap) != 0) {
 		ERR("!ioctl %d", fd);
 		goto error_free;
