@@ -303,7 +303,7 @@ find_dev_dax(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev)
 	daxctl_region_foreach(daxctl_ctx, dax_region) {
 		if (match_dev_dax(dev, dax_region)) {
 			dev->is_devdax = 1;
-			dev->align = ndctl_dax_get_align(dax);
+			dev->align = daxctl_region_get_align(dax_region);
 			dev->region = region;
 			ret = 1;
 			goto end;
