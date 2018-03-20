@@ -334,6 +334,7 @@ struct benchmark_info {
 	bool measure_time;
 	bool rm_file;
 	bool allow_poolset;
+	bool print_bandwidth;
 };
 
 void *pmembench_get_priv(struct benchmark *bench);

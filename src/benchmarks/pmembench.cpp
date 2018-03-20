@@ -432,6 +432,10 @@ pmembench_print_header(struct pmembench *pb, struct benchmark *bench,
 			printf(";%s", bench->clos[i].opt_long);
 		}
 	}
+
+	if (bench->info->print_bandwidth)
+		printf(";bandwidth[MiB/s]");
+
 	if (bench->info->print_extra_headers)
 		bench->info->print_extra_headers();
 	printf("\n");
@@ -458,6 +462,10 @@ pmembench_print_results(struct benchmark *bench, struct benchmark_args *args,
 			printf(";%s", benchmark_clo_str(&bench->clos[i], args,
 							bench->args_size));
 	}
+
+	if (bench->info->print_bandwidth)
+		printf(";%f", res->nopsps * args->dsize / 1024 / 1024);
+
 	if (bench->info->print_extra_values)
 		bench->info->print_extra_values(bench, args, res);
 	printf("\n");
