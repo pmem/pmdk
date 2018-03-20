@@ -55,7 +55,7 @@
     <ClCompile Include="..\common\shutdown_state.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_dimm_none.c">
+    <ClCompile Include="..\common\os_dimm_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\os_deep_windows.c">
