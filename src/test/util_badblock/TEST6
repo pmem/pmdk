@@ -42,9 +42,10 @@
 
 require_test_type medium
 require_fs_type any
+require_linked_with_ndctl ./util_badblock$EXESUFFIX
+require_command ndctl
 require_superuser
 require_kernel_module nfit_test
-require_command ndctl
 
 setup
 
