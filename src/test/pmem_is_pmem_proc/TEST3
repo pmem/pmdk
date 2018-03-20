@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,57 +32,32 @@
 #
 
 #
-# src/test/pmem_deep_persist/Makefile -- build pmem_deep_persist test
+# src/test/pmem_is_pmem_proc/TEST3 -- unit test for pmem_is_pmem
 #
-include ../../common.inc
-ARCH := $(call get_arch)
 
-TOP = ../../..
-vpath %.c $(TOP)/src/common
-vpath %.c $(TOP)/src/libpmem
-vpath %.c $(TOP)/src/libpmem/$(ARCH)
+# standard unit test setup
+. ../unittest/unittest.sh
 
-TARGET = pmem_deep_persist
+require_test_type medium
+require_fs_type none
 
-OBJS = pmem_deep_persist.o\
-	mmap.o\
-	mmap_posix.o\
-	util.o\
-	util_posix.o\
-	file.o\
-	file_posix.o\
-	os_posix.o\
-	out.o\
-	fs_posix.o\
-	libpmem.o\
-	pmem.o\
-	uuid.o\
-	$(call osdep, uuid,.o)\
-	pool_hdr.o\
-	set.o\
-	os_deep_linux.o\
-	os_auto_flush_linux.o\
-	shutdown_state.o\
-	os_dimm_none.o\
-	memops_generic.o\
-	init.o\
-	$(call osdep, extent,.o)\
-	$(call osdep, badblock,.o)\
-	badblock_poolset.o
-# this test does not require ndctl
-# to enable builds we use os_dimm_none
+setup
 
-ifeq ($(ARCH), x86_64)
-OBJS += cpu.o
-endif
+# empty list - all queries should produce 0
 
-LIBPMEMOBJ=y
-LIBPMEM=y
+expect_normal_exit ./pmem_is_pmem_proc$EXESUFFIX\
+	t 0x7fff77430000 0x7FFF0000 \
+	t 0x7fff77430000 0x80000000 \
+	t 0x7fff77430000 0x20000 \
+	t 0x7fff77430000 0x10000 \
+	t 0x7fff77440000 0x7FFF0000 \
+	t 0x7fff77440000 0x80000000 \
+	t 0x7fff77440000 8192 \
+	t 0x7fff77480000 10240 \
+	t 0x7fff77440000 0xffffffffffffffff \
+	t 0x7fff77430008 1 \
+	t 0x7fff7743FFF0 32
 
-include ../Makefile.inc
+check
 
-CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
-CFLAGS += -I$(TOP)/src/libpmem
-CFLAGS += -I$(TOP)/src/common
-CFLAGS += -I$(TOP)/src/libpmemobj/
-LDFLAGS += $(call extract_funcs, pmem_deep_persist.c)
+pass

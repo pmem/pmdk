@@ -188,16 +188,16 @@ util_map_hint(size_t len, size_t req_align)
  */
 void *
 util_map_sync(void *addr, size_t len, int proto, int flags, int fd,
-	os_off_t offset, int *map_sync)
+	os_off_t offset, enum pmem_map_type *mtype)
 {
 	LOG(15, "addr %p len %zu proto %x flags %x fd %d offset %ld "
-		"map_sync %p", addr, len, proto, flags, fd, offset, map_sync);
+		"mtype %p", addr, len, proto, flags, fd, offset, mtype);
 
-	if (map_sync)
-		*map_sync = 0;
+	if (mtype)
+		*mtype = PMEM_NO_DAX;
 
 	/* if map_sync is NULL do not even try to mmap with MAP_SYNC flag */
-	if (!map_sync || flags & MAP_PRIVATE)
+	if (!mtype || flags & MAP_PRIVATE)
 		return mmap(addr, len, proto, flags, fd, offset);
 
 	/* MAP_SHARED */
@@ -206,7 +206,7 @@ util_map_sync(void *addr, size_t len, int proto, int flags, int fd,
 			fd, offset);
 	if (ret != MAP_FAILED) {
 		LOG(4, "mmap with MAP_SYNC succeeded");
-		*map_sync = 1;
+		*mtype = PMEM_MAP_DAX;
 		return ret;
 	}
 

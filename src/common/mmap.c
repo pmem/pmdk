@@ -50,10 +50,13 @@
 
 int Mmap_no_random;
 void *Mmap_hint;
-static os_rwlock_t Mmap_list_lock;
+os_rwlock_t Mmap_list_lock;
 
-static SORTEDQ_HEAD(map_list_head, map_tracker) Mmap_list =
-		SORTEDQ_HEAD_INITIALIZER(Mmap_list);
+struct map_list_head Mmap_list = SORTEDQ_HEAD_INITIALIZER(Mmap_list);
+
+#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
+PQVM Func_qvmi = NULL;
+#endif
 
 /*
  * util_mmap_init -- initialize the mmap utils
@@ -87,6 +90,13 @@ util_mmap_init(void)
 			LOG(3, "PMEM_MMAP_HINT set to %p", Mmap_hint);
 		}
 	}
+
+#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
+	Func_qvmi = (PQVM)GetProcAddress(
+			GetModuleHandle(TEXT("KernelBase.dll")),
+			"QueryVirtualMemoryInformation");
+#endif
+
 }
 
 /*
@@ -110,10 +120,10 @@ util_mmap_fini(void)
  */
 void *
 util_map(int fd, size_t len, int flags, int rdonly, size_t req_align,
-	int *map_sync)
+	enum pmem_map_type *mtype)
 {
-	LOG(3, "fd %d len %zu flags %d rdonly %d req_align %zu map_sync %p",
-			fd, len, flags, rdonly, req_align, map_sync);
+	LOG(3, "fd %d len %zu flags %d rdonly %d req_align %zu mtype %p",
+			fd, len, flags, rdonly, req_align, mtype);
 
 	void *base;
 	void *addr = util_map_hint(len, req_align);
@@ -126,7 +136,7 @@ util_map(int fd, size_t len, int flags, int rdonly, size_t req_align,
 		ASSERTeq((uintptr_t)addr % req_align, 0);
 
 	int proto = rdonly ? PROT_READ : PROT_READ|PROT_WRITE;
-	base = util_map_sync(addr, len, proto, flags, fd, 0, map_sync);
+	base = util_map_sync(addr, len, proto, flags, fd, 0, mtype);
 	if (base == MAP_FAILED) {
 		ERR("!mmap %zu bytes", len);
 		return NULL;
@@ -358,9 +368,9 @@ util_range_register(const void *addr, size_t len, const char *path,
 	ASSERTeq(util_range_find((uintptr_t)addr, len), NULL);
 
 	struct map_tracker *mt;
-	mt  = Malloc(sizeof(struct map_tracker));
+	mt  = Zalloc(sizeof(struct map_tracker));
 	if (mt == NULL) {
-		ERR("!Malloc");
+		ERR("!Zalloc");
 		return -1;
 	}
 
@@ -461,8 +471,7 @@ err:
 }
 
 /*
- * util_range_unregister -- remove a memory range
- * from map tracking list
+ * util_range_unregister -- remove a memory range from map tracking list
  *
  * Remove the region between [begin,end].  If it's in a middle of the existing
  * mapping, it results in two new map trackers.
@@ -492,47 +501,100 @@ util_range_unregister(const void *addr, size_t len)
 }
 
 /*
- * util_range_is_pmem -- return true if entire range
- * is persistent memory
+ * util_range_is_pmem -- return true if entire range is persistent memory
  */
 int
-util_range_is_pmem(const void *addrp, size_t len)
+util_range_is_pmem(const void *addr, size_t len)
 {
-	LOG(10, "addr %p len %zu", addrp, len);
+	LOG(10, "addr %p len %zu", addr, len);
 
-	uintptr_t addr = (uintptr_t)addrp;
-	int retval = 1;
+	if (len > UINTPTR_MAX - (uintptr_t)addr) {
+		len = UINTPTR_MAX - (uintptr_t)addr;
+		LOG(4, "limit len to %zu to not get beyond address space", len);
+	}
+
+	uintptr_t begin = (uintptr_t)addr;
+	uintptr_t end = (uintptr_t)addr + len;
+
+	LOG(4, "begin 0x%016" PRIxPTR " end 0x%016" PRIxPTR, begin, end);
+
+	int retval = -1;
 
 	util_rwlock_rdlock(&Mmap_list_lock);
 
-	do {
-		struct map_tracker *mt = util_range_find(addr, len);
-		if (mt == NULL) {
-			LOG(4, "address not found 0x%016" PRIxPTR, addr);
+	struct map_tracker *mt;
+	SORTEDQ_FOREACH(mt, &Mmap_list, entry) {
+		if (mt->end_addr <= begin) {
+			LOG(4, "skipping all mapped ranges before given range");
+			continue;
+		}
+		if (mt->base_addr >= end) {
+			LOG(4, "ignoring all mapped ranges beyond given range");
+			break;
+		}
+
+		if (begin < mt->base_addr) {
+			LOG(4, "untracked address");
 			retval = 0;
 			break;
 		}
 
-		LOG(10, "range found - begin 0x%016" PRIxPTR
-				" end 0x%016" PRIxPTR,
+#ifdef _WIN32
+		/*
+		 * This is only needed for Windows, where all the mappings
+		 * are tracked. On Linux, only DAX mappings are on the list.
+		 */
+		if (mt->type != PMEM_MAP_DAX) {
+			LOG(4, "tracked range [%p, %p) is not direct mapped",
 				mt->base_addr, mt->end_addr);
-
-		if (mt->base_addr > addr) {
-			LOG(10, "base address doesn't match: "
-				"0x%" PRIxPTR " > 0x%" PRIxPTR,
-					mt->base_addr, addr);
 			retval = 0;
 			break;
 		}
 
-		uintptr_t map_len = mt->end_addr - addr;
-		if (map_len > len)
-			map_len = len;
-		len -= map_len;
-		addr += map_len;
-	} while (len > 0);
+		/*
+		 * If there is a gap between the given region that we process
+		 * currently and the mapped region in our tracking list, we
+		 * need to process the gap by taking the long route of asking
+		 * MM for each page in that range.
+		 */
+		if (begin < mt->base_addr &&
+		    !util_is_direct_mapped(begin, mt->base_addr)) {
+			LOG(4, "untracked range [%p, %p) is not direct mapped",
+				begin, mt->base_addr);
+			retval = 0;
+			break;
+		}
+#endif
+
+		retval = 1;
+
+		/* push our begin to reflect what we have already processed */
+		begin = mt->end_addr;
+	}
+
+#ifdef _WIN32
+	/*
+	 * If we still have a range to verify, check with MM if the entire
+	 * region is direct mapped.
+	 */
+	if (begin < end && !util_is_direct_mapped(begin, end)) {
+		LOG(4, "untracked end range [%p, %p) is not direct mapped",
+			begin, end);
+		retval = 0;
+	}
+#else
+	/*
+	 * If there is something left, treat it as non-PMEM.
+	 */
+	if (begin < end)
+		retval = 0;
+#endif
 
 	util_rwlock_unlock(&Mmap_list_lock);
+
+	/* if range was not found on the mapping list, assume it's not pmem */
+	if (retval == -1)
+		return 0;
 
 	return retval;
 }

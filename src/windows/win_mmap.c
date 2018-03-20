@@ -58,34 +58,27 @@
  */
 
 #include <sys/mman.h>
+
 #include "mmap.h"
 #include "util.h"
 #include "out.h"
-#include "win_mmap.h"
+#include "sys_util.h"
 
 /* uncomment for more debug information on mmap trackers */
 /* #define MMAP_DEBUG_INFO */
 
 NTSTATUS
-NtFreeVirtualMemory(_In_ HANDLE ProcessHandle, _Inout_ PVOID *BaseAddress,
+NtFreeVirtualMemory(_In_ HANDLE ProcessHandle, _Inout_ PVOID *BaseAddr,
 	_Inout_ PSIZE_T RegionSize, _In_ ULONG FreeType);
-
-/*
- * XXX Unify the Linux and Windows code and replace this structure with
- * the map tracking list defined in mmap.h.
- */
-SRWLOCK FileMappingQLock = SRWLOCK_INIT;
-struct FMLHead FileMappingQHead =
-	SORTEDQ_HEAD_INITIALIZER(FileMappingQHead);
 
 /*
  * mmap_file_mapping_comparer -- (internal) compares the two file mapping
  * trackers
  */
 static LONG_PTR
-mmap_file_mapping_comparer(PFILE_MAPPING_TRACKER a, PFILE_MAPPING_TRACKER b)
+mmap_file_mapping_comparer(struct map_tracker *a, struct map_tracker *b)
 {
-	return ((LONG_PTR)a->BaseAddress - (LONG_PTR)b->BaseAddress);
+	return (a->base_addr - b->base_addr);
 }
 
 #ifdef MMAP_DEBUG_INFO
@@ -97,27 +90,27 @@ mmap_info(void)
 {
 	LOG(4, NULL);
 
-	AcquireSRWLockShared(&FileMappingQLock);
+	util_rwlock_rdlock(&Mmap_list_lock);
 
-	PFILE_MAPPING_TRACKER mt;
-	for (mt = SORTEDQ_FIRST(&FileMappingQHead);
-		mt != (void *)&FileMappingQHead;
-		mt = SORTEDQ_NEXT(mt, ListEntry)) {
+	struct map_tracker *mt;
+	for (mt = SORTEDQ_FIRST(&Mmap_list);
+		mt != (void *)&Mmap_list;
+		mt = SORTEDQ_NEXT(mt, entry)) {
 
 		LOG(4, "FH %08x FMH %08x AD %p-%p (%zu) "
 			"OF %08x FL %zu AC %d F %d",
 			mt->FileHandle,
 			mt->FileMappingHandle,
-			mt->BaseAddress,
-			mt->EndAddress,
-			(char *)mt->EndAddress - (char *)mt->BaseAddress,
+			mt->base_addr,
+			mt->end_addr,
+			(size_t)(mt->end_addr - mt->base_addr),
 			mt->Offset,
 			mt->FileLen,
 			mt->Access,
-			mt->Flags);
+			mt->type);
 	}
 
-	ReleaseSRWLockShared(&FileMappingQLock);
+	util_rwlock_unlock(&Mmap_list_lock);
 }
 #endif
 
@@ -200,9 +193,9 @@ mmap_unreserve(void *addr, size_t len)
 static void
 mmap_init(void)
 {
-	AcquireSRWLockExclusive(&FileMappingQLock);
-	SORTEDQ_INIT(&FileMappingQHead);
-	ReleaseSRWLockExclusive(&FileMappingQLock);
+	util_rwlock_wrlock(&Mmap_list_lock);
+	SORTEDQ_INIT(&Mmap_list);
+	util_rwlock_unlock(&Mmap_list_lock);
 }
 
 /*
@@ -217,20 +210,20 @@ mmap_fini(void)
 	 * Let's make sure that no one is in the middle of updating the
 	 * list by grabbing the lock.
 	 */
-	AcquireSRWLockExclusive(&FileMappingQLock);
+	util_rwlock_wrlock(&Mmap_list_lock);
 
-	while (!SORTEDQ_EMPTY(&FileMappingQHead)) {
-		PFILE_MAPPING_TRACKER mt;
-		mt = (PFILE_MAPPING_TRACKER)SORTEDQ_FIRST(&FileMappingQHead);
+	while (!SORTEDQ_EMPTY(&Mmap_list)) {
+		struct map_tracker *mt;
+		mt = (struct map_tracker *)SORTEDQ_FIRST(&Mmap_list);
 
-		SORTEDQ_REMOVE(&FileMappingQHead, mt, ListEntry);
+		SORTEDQ_REMOVE(&Mmap_list, mt, entry);
 
-		if (mt->BaseAddress != NULL)
-			UnmapViewOfFile(mt->BaseAddress);
+		if (mt->base_addr != 0)
+			UnmapViewOfFile((void *)mt->base_addr);
 
 		size_t release_size =
-			(char *)mt->EndAddress - (char *)mt->BaseAddress;
-		void *release_addr = (char *)mt->BaseAddress + release_size;
+			(char *)mt->end_addr - (char *)mt->base_addr;
+		void *release_addr = (char *)mt->base_addr + release_size;
 		mmap_unreserve(release_addr, release_size);
 
 		if (mt->FileMappingHandle != NULL)
@@ -241,7 +234,7 @@ mmap_fini(void)
 
 		free(mt);
 	}
-	ReleaseSRWLockExclusive(&FileMappingQLock);
+	util_rwlock_unlock(&Mmap_list_lock);
 }
 
 #define PROT_ALL (PROT_READ|PROT_WRITE|PROT_EXEC)
@@ -514,8 +507,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, os_off_t offset)
 	 * address rather than a more elaborate structure.
 	 */
 
-	PFILE_MAPPING_TRACKER mt =
-		malloc(sizeof(struct FILE_MAPPING_TRACKER));
+	struct map_tracker *mt = malloc(sizeof(struct map_tracker));
 
 	if (mt == NULL) {
 		ERR("!malloc");
@@ -524,11 +516,11 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, os_off_t offset)
 		return MAP_FAILED;
 	}
 
-	mt->Flags = 0;
+	mt->type = PMEM_NO_DAX;
 	mt->FileHandle = fh;
 	mt->FileMappingHandle = fmh;
-	mt->BaseAddress = base;
-	mt->EndAddress = (void *)((char *)base + len_align);
+	mt->base_addr = (uintptr_t)base;
+	mt->end_addr = (uintptr_t)base + len_align;
 	mt->Access = access;
 	mt->Offset = offset;
 	mt->FileLen = filelen_align;
@@ -544,7 +536,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, os_off_t offset)
 	} else if (GetVolumeInformationByHandleW(fh, NULL, 0, NULL, NULL,
 				&filesystemFlags, NULL, 0)) {
 		if (filesystemFlags & FILE_DAX_VOLUME) {
-			mt->Flags |= FILE_MAPPING_TRACKER_FLAG_DIRECT_MAPPED;
+			mt->type = PMEM_MAP_DAX;
 		} else {
 			LOG(4, "file is not DAX mapped - handle: %p", fh);
 		}
@@ -553,12 +545,12 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, os_off_t offset)
 			GetLastError());
 	}
 
-	AcquireSRWLockExclusive(&FileMappingQLock);
+	util_rwlock_wrlock(&Mmap_list_lock);
 
-	SORTEDQ_INSERT(&FileMappingQHead, mt, ListEntry,
-			FILE_MAPPING_TRACKER, mmap_file_mapping_comparer);
+	SORTEDQ_INSERT(&Mmap_list, mt, entry,
+			struct map_tracker, mmap_file_mapping_comparer);
 
-	ReleaseSRWLockExclusive(&FileMappingQLock);
+	util_rwlock_unlock(&Mmap_list_lock);
 
 #ifdef MMAP_DEBUG_INFO
 	mmap_info();
@@ -574,26 +566,18 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, os_off_t offset)
  * mapping, it results in two new mappings and duplicated file/mapping handles.
  */
 static int
-mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
+mmap_split(struct map_tracker *mt, uintptr_t begin,  uintptr_t end)
 {
 	LOG(4, "begin %p end %p", begin, end);
 
-	ASSERTeq((uintptr_t)begin % Mmap_align, 0);
-	ASSERTeq((uintptr_t)end % Mmap_align, 0);
+	ASSERTeq(begin % Mmap_align, 0);
+	ASSERTeq(end % Mmap_align, 0);
 
-	PFILE_MAPPING_TRACKER mtb = NULL;
-	PFILE_MAPPING_TRACKER mte = NULL;
+	struct map_tracker *mtb = NULL;
+	struct map_tracker *mte = NULL;
 	HANDLE fh = mt->FileHandle;
 	HANDLE fmh = mt->FileMappingHandle;
 	size_t len;
-
-	/*
-	 * In this routine we copy flags from mt to the two subsets that we
-	 * create.  All flags may not be appropriate to propagate so let's
-	 * assert about the flags we know, if some one adds a new flag in the
-	 * future they would know about this copy and take appropricate action.
-	 */
-	C_ASSERT(FILE_MAPPING_TRACKER_FLAGS_MASK == 1);
 
 	/*
 	 * 1)    b    e           b     e
@@ -606,31 +590,31 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 	 *    xxxxxxxxxxxxx => ..............  -  <none>
 	 */
 
-	if (begin > mt->BaseAddress) {
+	if (begin > mt->base_addr) {
 		/* case #1/2 */
 		/* new mapping at the beginning */
-		mtb = malloc(sizeof(struct FILE_MAPPING_TRACKER));
+		mtb = malloc(sizeof(struct map_tracker));
 		if (mtb == NULL) {
 			ERR("!malloc");
 			goto err;
 		}
 
-		mtb->Flags = mt->Flags;
+		mtb->type = mt->type;
 		mtb->FileHandle = fh;
 		mtb->FileMappingHandle = fmh;
-		mtb->BaseAddress = mt->BaseAddress;
-		mtb->EndAddress = begin;
+		mtb->base_addr = mt->base_addr;
+		mtb->end_addr = begin;
 		mtb->Access = mt->Access;
 		mtb->Offset = mt->Offset;
 
-		len = (char *)begin - (char *)mt->BaseAddress;
+		len = (char *)begin - (char *)mt->base_addr;
 		mtb->FileLen = len >= mt->FileLen ? mt->FileLen : len;
 	}
 
-	if (end < mt->EndAddress) {
+	if (end < mt->end_addr) {
 		/* case #1/3 */
 		/* new mapping at the end */
-		mte = malloc(sizeof(struct FILE_MAPPING_TRACKER));
+		mte = malloc(sizeof(struct map_tracker));
 		if (mte == NULL) {
 			ERR("!malloc");
 			goto err;
@@ -664,25 +648,26 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 			}
 		}
 
-		mte->Flags = mt->Flags;
-		mte->BaseAddress = end;
-		mte->EndAddress = mt->EndAddress;
+		mte->type = mt->type;
+		mte->base_addr = end;
+		mte->end_addr = mt->end_addr;
 		mte->Access = mt->Access;
 		mte->Offset = mt->Offset +
-			((char *)mte->BaseAddress - (char *)mt->BaseAddress);
+			((char *)mte->base_addr - (char *)mt->base_addr);
 
-		len = (char *)end - (char *)mt->BaseAddress;
+		len = (char *)end - (char *)mt->base_addr;
 		mte->FileLen = len >= mt->FileLen ? 0 : mt->FileLen - len;
 	}
 
-	if (mt->FileLen > 0 && UnmapViewOfFile(mt->BaseAddress) == FALSE) {
+	if (mt->FileLen > 0 &&
+	    UnmapViewOfFile((void *)mt->base_addr) == FALSE) {
 		ERR("UnmapViewOfFile, gle: 0x%08x", GetLastError());
 		goto err;
 	}
 
-	len = (char *)mt->EndAddress - (char *)mt->BaseAddress;
+	len = (char *)mt->end_addr - (char *)mt->base_addr;
 	if (len > mt->FileLen) {
-		void *addr = (char *)mt->BaseAddress + mt->FileLen;
+		void *addr = (char *)mt->base_addr + mt->FileLen;
 		mmap_unreserve(addr, len - mt->FileLen);
 	}
 
@@ -695,13 +680,13 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 	/*
 	 * free entry for the original mapping
 	 */
-	SORTEDQ_REMOVE(&FileMappingQHead, mt, ListEntry);
+	SORTEDQ_REMOVE(&Mmap_list, mt, entry);
 	free(mt);
 
 	if (mtb) {
-		len = (char *)mtb->EndAddress - (char *)mtb->BaseAddress;
+		len = (char *)mtb->end_addr - (char *)mtb->base_addr;
 		if (len > mtb->FileLen) {
-			void *addr = (char *)mtb->BaseAddress + mtb->FileLen;
+			void *addr = (char *)mtb->base_addr + mtb->FileLen;
 			void *raddr = mmap_reserve(addr, len - mtb->FileLen);
 			if (raddr == MAP_FAILED) {
 				ERR("cannot find a contiguous region - "
@@ -717,7 +702,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 				(DWORD) (mtb->Offset >> 32),
 				(DWORD) (mtb->Offset & 0xFFFFFFFF),
 				mtb->FileLen,
-				mtb->BaseAddress); /* hint address */
+				(void *)mtb->base_addr); /* hint address */
 
 			if (base == NULL) {
 				ERR("MapViewOfFileEx, gle: 0x%08x",
@@ -726,14 +711,14 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 			}
 		}
 
-		SORTEDQ_INSERT(&FileMappingQHead, mtb, ListEntry,
-			FILE_MAPPING_TRACKER, mmap_file_mapping_comparer);
+		SORTEDQ_INSERT(&Mmap_list, mtb, entry,
+			struct map_tracker, mmap_file_mapping_comparer);
 	}
 
 	if (mte) {
-		len = (char *)mte->EndAddress - (char *)mte->BaseAddress;
+		len = (char *)mte->end_addr - (char *)mte->base_addr;
 		if (len > mte->FileLen) {
-			void *addr = (char *)mte->BaseAddress + mte->FileLen;
+			void *addr = (char *)mte->base_addr + mte->FileLen;
 			void *raddr = mmap_reserve(addr, len - mte->FileLen);
 			if (raddr == MAP_FAILED) {
 				ERR("cannot find a contiguous region - "
@@ -749,7 +734,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 				(DWORD) (mte->Offset >> 32),
 				(DWORD) (mte->Offset & 0xFFFFFFFF),
 				mte->FileLen,
-				mte->BaseAddress); /* hint address */
+				(void *)mte->base_addr); /* hint address */
 
 			if (base == NULL) {
 				ERR("MapViewOfFileEx, gle: 0x%08x",
@@ -758,8 +743,8 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 			}
 		}
 
-		SORTEDQ_INSERT(&FileMappingQHead, mte, ListEntry,
-			FILE_MAPPING_TRACKER, mmap_file_mapping_comparer);
+		SORTEDQ_INSERT(&Mmap_list, mte, entry,
+			struct map_tracker, mmap_file_mapping_comparer);
 	}
 
 	return 0;
@@ -771,9 +756,9 @@ err:
 		CloseHandle(mtb->FileMappingHandle);
 		CloseHandle(mtb->FileHandle);
 
-		len = (char *)mtb->EndAddress - (char *)mtb->BaseAddress;
+		len = (char *)mtb->end_addr - (char *)mtb->base_addr;
 		if (len > mtb->FileLen) {
-			void *addr = (char *)mtb->BaseAddress + mtb->FileLen;
+			void *addr = (char *)mtb->base_addr + mtb->FileLen;
 			mmap_unreserve(addr, len - mtb->FileLen);
 		}
 	}
@@ -785,9 +770,9 @@ err_mte:
 		if (mte->FileHandle)
 			CloseHandle(mte->FileHandle);
 
-		len = (char *)mte->EndAddress - (char *)mte->BaseAddress;
+		len = (char *)mte->end_addr - (char *)mte->base_addr;
 		if (len > mte->FileLen) {
-			void *addr = (char *)mte->BaseAddress + mte->FileLen;
+			void *addr = (char *)mte->base_addr + mte->FileLen;
 			mmap_unreserve(addr, len - mte->FileLen);
 		}
 	}
@@ -824,41 +809,41 @@ munmap(void *addr, size_t len)
 		len = UINTPTR_MAX - (uintptr_t)addr;
 	}
 
-	void *begin = addr;
-	void *end = (void *)((char *)addr + len);
+	uintptr_t begin = (uintptr_t)addr;
+	uintptr_t end = (uintptr_t)addr + len;
 
-	AcquireSRWLockExclusive(&FileMappingQLock);
+	util_rwlock_wrlock(&Mmap_list_lock);
 
-	PFILE_MAPPING_TRACKER mt;
-	PFILE_MAPPING_TRACKER next;
-	for (mt = SORTEDQ_FIRST(&FileMappingQHead);
-		mt != (void *)&FileMappingQHead;
+	struct map_tracker *mt;
+	struct map_tracker *next;
+	for (mt = SORTEDQ_FIRST(&Mmap_list);
+		mt != (void *)&Mmap_list;
 		mt = next) {
 
 		/*
 		 * Pick the next entry before we split there by delete the
 		 * this one (NOTE: mmap_spilt could delete this entry).
 		 */
-		next = SORTEDQ_NEXT(mt, ListEntry);
+		next = SORTEDQ_NEXT(mt, entry);
 
-		if (mt->BaseAddress >= end) {
+		if (mt->base_addr >= end) {
 			LOG(4, "ignoring all mapped ranges beyond given range");
 			break;
 		}
 
-		if (mt->EndAddress <= begin) {
+		if (mt->end_addr <= begin) {
 			LOG(4, "skipping a mapped range before given range");
 			continue;
 		}
 
-		void *begin2 = begin > mt->BaseAddress ?
-				begin : mt->BaseAddress;
-		void *end2 = end < mt->EndAddress ?
-				end : mt->EndAddress;
+		uintptr_t begin2 = begin > mt->base_addr ?
+				begin : mt->base_addr;
+		uintptr_t end2 = end < mt->end_addr ?
+				end : mt->end_addr;
 
-		size_t len2 = (char *)end2 - (char *)begin2;
+		size_t len2 = end2 - begin2;
 
-		void *align_end = (void *)roundup((uintptr_t)end2, Mmap_align);
+		uintptr_t align_end = roundup(end2, Mmap_align);
 		if (mmap_split(mt, begin2, align_end) != 0) {
 			LOG(2, "mapping split failed");
 			goto err;
@@ -885,7 +870,7 @@ munmap(void *addr, size_t len)
 	retval = 0;
 
 err:
-	ReleaseSRWLockExclusive(&FileMappingQLock);
+	util_rwlock_unlock(&Mmap_list_lock);
 
 	if (retval == -1)
 		errno = EINVAL;
@@ -943,32 +928,32 @@ msync(void *addr, size_t len, int flags)
 
 	int retval = -1;
 
-	void *begin = addr;
-	void *end = (void *)((char *)addr + len);
+	uintptr_t begin = (uintptr_t)addr;
+	uintptr_t end = (uintptr_t)addr + len;
 
-	AcquireSRWLockShared(&FileMappingQLock);
+	util_rwlock_rdlock(&Mmap_list_lock);
 
-	PFILE_MAPPING_TRACKER mt;
-	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
-		if (mt->BaseAddress >= end) {
+	struct map_tracker *mt;
+	SORTEDQ_FOREACH(mt, &Mmap_list, entry) {
+		if (mt->base_addr >= end) {
 			LOG(4, "ignoring all mapped ranges beyond given range");
 			break;
 		}
-		if (mt->EndAddress <= begin) {
+		if (mt->end_addr <= begin) {
 			LOG(4, "skipping a mapped range before given range");
 			continue;
 		}
 
-		void *begin2 = begin > mt->BaseAddress ?
-			begin : mt->BaseAddress;
-		void *end2 = end < mt->EndAddress ?
-			end : mt->EndAddress;
+		uintptr_t begin2 = begin > mt->base_addr ?
+			begin : mt->base_addr;
+		uintptr_t end2 = end < mt->end_addr ?
+			end : mt->end_addr;
 
-		size_t len2 = (char *)end2 - (char *)begin2;
+		size_t len2 = end2 - begin2;
 
 		/* do nothing for anonymous mappings */
 		if (mt->FileHandle != INVALID_HANDLE_VALUE) {
-			if (FlushViewOfFile(begin2, len2) == FALSE) {
+			if (FlushViewOfFile((void *)begin2, len2) == FALSE) {
 				ERR("FlushViewOfFile, gle: 0x%08x",
 					GetLastError());
 				errno = ENOMEM;
@@ -999,7 +984,7 @@ msync(void *addr, size_t len, int flags)
 	}
 
 err:
-	ReleaseSRWLockShared(&FileMappingQLock);
+	util_rwlock_unlock(&Mmap_list_lock);
 	return retval;
 }
 
@@ -1051,26 +1036,26 @@ mprotect(void *addr, size_t len, int prot)
 
 	int retval = -1;
 
-	void *begin = addr;
-	void *end = (void *)((char *)addr + len);
+	uintptr_t begin = (uintptr_t)addr;
+	uintptr_t end = (uintptr_t)addr + len;
 
-	AcquireSRWLockShared(&FileMappingQLock);
+	util_rwlock_rdlock(&Mmap_list_lock);
 
-	PFILE_MAPPING_TRACKER mt;
-	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
-		if (mt->BaseAddress >= end) {
+	struct map_tracker *mt;
+	SORTEDQ_FOREACH(mt, &Mmap_list, entry) {
+		if (mt->base_addr >= end) {
 			LOG(4, "ignoring all mapped ranges beyond given range");
 			break;
 		}
-		if (mt->EndAddress <= begin) {
+		if (mt->end_addr <= begin) {
 			LOG(4, "skipping a mapped range before given range");
 			continue;
 		}
 
-		void *begin2 = begin > mt->BaseAddress ?
-				begin : mt->BaseAddress;
-		void *end2 = end < mt->EndAddress ?
-				end : mt->EndAddress;
+		uintptr_t begin2 = begin > mt->base_addr ?
+				begin : mt->base_addr;
+		uintptr_t end2 = end < mt->end_addr ?
+				end : mt->end_addr;
 
 		/*
 		 * protect of region to VirtualProtection must be compatible
@@ -1087,11 +1072,11 @@ mprotect(void *addr, size_t len, int prot)
 			}
 		}
 
-		size_t len2 = (char *)end2 - (char *)begin2;
+		size_t len2 = end2 - begin2;
 
 		DWORD oldprot = 0;
 		BOOL ret;
-		ret = VirtualProtect(begin2, len2, protect, &oldprot);
+		ret = VirtualProtect((void *)begin2, len2, protect, &oldprot);
 		if (ret == FALSE) {
 			DWORD gle = GetLastError();
 			ERR("VirtualProtect, gle: 0x%08x", gle);
@@ -1126,7 +1111,7 @@ mprotect(void *addr, size_t len, int prot)
 	}
 
 err:
-	ReleaseSRWLockShared(&FileMappingQLock);
+	util_rwlock_unlock(&Mmap_list_lock);
 	return retval;
 }
 

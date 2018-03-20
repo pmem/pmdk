@@ -19,35 +19,38 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\mmap.c" />
+    <ClCompile Include="..\..\common\mmap_windows.c" />
+    <ClCompile Include="..\..\common\util.c" />
+    <ClCompile Include="..\..\common\util_windows.c" />
+    <ClCompile Include="..\..\libpmem\libpmem.c" />
+    <ClCompile Include="..\..\libpmem\memops_generic.c" />
+    <ClCompile Include="..\..\libpmem\pmem.c" />
     <ClCompile Include="..\..\libpmem\x86_64\cpu.c" />
     <ClCompile Include="..\..\libpmem\x86_64\init.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem\libpmem.c" />
-    <ClCompile Include="..\..\libpmem\memops_generic.c" />
-    <ClCompile Include="..\..\libpmem\pmem.c" />
     <ClCompile Include="..\..\windows\win_mmap.c" />
-    <ClCompile Include="mocks_windows.c">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
-    </ClCompile>
-    <ClCompile Include="pmem_map_file_win.c" />
+    <ClCompile Include="pmem_is_pmem_proc.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="out0.log.match" />
     <None Include="out1.log.match" />
+    <None Include="out2.log.match" />
+    <None Include="out3.log.match" />
+    <None Include="out4.log.match" />
     <None Include="README" />
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="mocks_windows.h" />
+    <None Include="TEST2.PS1" />
+    <None Include="TEST3.PS1" />
+    <None Include="TEST4.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5AD07646-5E16-4CEF-B80A-BE5EE4D54FEF}</ProjectGuid>
+    <ProjectGuid>{0087BB97-E9EA-48F4-8984-6BA2949F0439}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>pmem_map_file_win</RootNamespace>
+    <RootNamespace>pmem_map_file</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -81,7 +84,6 @@
     <ClCompile>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
-      <ForcedIncludeFiles>mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
@@ -89,8 +91,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile />
     <Link />
+    <ClCompile />
     <ClCompile>
-      <ForcedIncludeFiles>mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
