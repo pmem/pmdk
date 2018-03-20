@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -234,13 +234,13 @@ timed_check_worker(void *arg)
 		PMEMmutex *mtx = mutex_id == LOCKED_MUTEX ?
 				&Test_obj->mutex_locked : &Test_obj->mutex;
 
-		struct timespec t1, t2, t_diff, abs_time;
+		struct timespec t1, t2, abs_time;
 		os_clock_gettime(CLOCK_REALTIME, &t1);
 		abs_time = t1;
 		abs_time.tv_nsec += TIMEOUT;
 		if (abs_time.tv_nsec >= NANO_PER_ONE) {
-			abs_time.tv_sec += abs_time.tv_nsec / NANO_PER_ONE;
-			abs_time.tv_nsec %= NANO_PER_ONE;
+			abs_time.tv_sec++;
+			abs_time.tv_nsec -= NANO_PER_ONE;
 		}
 
 		int ret = pmemobj_mutex_timedlock(&Mock_pop, mtx, &abs_time);
@@ -249,15 +249,11 @@ timed_check_worker(void *arg)
 
 		if (mutex_id == LOCKED_MUTEX) {
 			UT_ASSERTeq(ret, ETIMEDOUT);
-			t_diff.tv_sec = t2.tv_sec - t1.tv_sec;
-			t_diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
 
-			if (t_diff.tv_nsec < 0) {
-				--t_diff.tv_sec;
-				t_diff.tv_nsec += NANO_PER_ONE;
-			}
-			UT_ASSERT(t_diff.tv_sec * NANO_PER_ONE +
-					t_diff.tv_nsec >= TIMEOUT);
+			uint64_t diff = (t2.tv_sec - t1.tv_sec) * NANO_PER_ONE +
+					t2.tv_nsec - t1.tv_nsec;
+
+			UT_ASSERT(diff >= TIMEOUT);
 
 			return NULL;
 		}
@@ -266,15 +262,10 @@ timed_check_worker(void *arg)
 			UT_ASSERTne(mutex_id, LOCKED_MUTEX);
 			pmemobj_mutex_unlock(&Mock_pop, mtx);
 		} else if (ret == ETIMEDOUT) {
-			t_diff.tv_sec = t2.tv_sec - t1.tv_sec;
-			t_diff.tv_nsec = t2.tv_nsec - t1.tv_nsec;
+			uint64_t diff = (t2.tv_sec - t1.tv_sec) * NANO_PER_ONE +
+					t2.tv_nsec - t1.tv_nsec;
 
-			if (t_diff.tv_nsec < 0) {
-				--t_diff.tv_sec;
-				t_diff.tv_nsec += NANO_PER_ONE;
-			}
-			UT_ASSERT(t_diff.tv_sec * NANO_PER_ONE +
-					t_diff.tv_nsec >= TIMEOUT);
+			UT_ASSERT(diff >= TIMEOUT);
 		} else {
 			errno = ret;
 			UT_ERR("!pmemobj_mutex_timedlock");
