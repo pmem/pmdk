@@ -575,5 +575,6 @@ pmem_rpmem_persist(void)
 	rpmem_info.opts_size = sizeof(struct rpmem_args);
 	rpmem_info.rm_file = true;
 	rpmem_info.allow_poolset = true;
+	rpmem_info.print_bandwidth = true;
 	REGISTER_BENCHMARK(rpmem_info);
 };
