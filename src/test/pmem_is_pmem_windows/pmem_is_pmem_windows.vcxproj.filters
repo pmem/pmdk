@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpmem\pmem_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pmem_is_pmem_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>

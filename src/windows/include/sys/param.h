@@ -38,6 +38,8 @@
 #define SYS_PARAM_H 1
 
 #define roundup(x, y)	((((x) + ((y) - 1)) / (y)) * (y))
+#define rounddown(x, y)	(((x) / (y)) * (y))
+
 #define howmany(x, y)	(((x) + ((y) - 1)) / (y))
 
 #define BPB 8	/* bits per byte */

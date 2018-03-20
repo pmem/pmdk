@@ -33,9 +33,6 @@
     <ClCompile Include="..\..\libpmem\x86_64\init.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem\pmem_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\windows\win_mmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>

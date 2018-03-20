@@ -341,14 +341,16 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			goto out_close;
 		}
 		params->size = (size_t)s;
-		int map_sync;
-		addr = util_map(fd, params->size, MAP_SHARED, 1, 0, &map_sync);
+		enum pmem_map_type mtype;
+		addr = util_map(fd, params->size, MAP_SHARED, 1, 0, &mtype);
 		if (addr == NULL) {
 			ret = -1;
 			goto out_close;
 		}
 		params->is_dev_dax = util_file_is_device_dax(ppc->path);
-		params->is_pmem = params->is_dev_dax || map_sync ||
+		params->is_pmem = params->is_dev_dax ||
+			mtype == PMEM_DEV_DAX || /* XXX: is_dev_dax */
+			mtype == PMEM_MAP_DAX ||
 			pmem_is_pmem(addr, params->size);
 	}
 

@@ -38,7 +38,7 @@
 #define PMDK_SYS_UTIL_H 1
 
 #include <errno.h>
-
+#include "out.h"
 #include "os_thread.h"
 
 /*

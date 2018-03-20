@@ -1,0 +1,14 @@
+pmem_is_pmem_proc/TEST0: START: pmem_is_pmem_proc$(nW)
+ $(nW)pmem_is_pmem_proc$(nW) $(*)
+addr 0x7fff77430000 len 2147418112 is_pmem 1
+addr 0x7fff77430000 len 2147483648 is_pmem 1
+addr 0x7fff77430000 len 131072 is_pmem 1
+addr 0x7fff77430000 len 65536 is_pmem 1
+addr 0x7fff77440000 len 2147418112 is_pmem 1
+addr 0x7fff77440000 len 2147483648 is_pmem 0
+addr 0x7fff77440000 len 8192 is_pmem 1
+addr 0x7fff77480000 len 10240 is_pmem 1
+addr 0x7fff77440000 len 18446744073709551615 is_pmem 0
+addr 0x7fff77430008 len 1 is_pmem 1
+addr 0x7fff7743fff0 len 32 is_pmem 1
+pmem_is_pmem_proc/TEST0: DONE

@@ -61,7 +61,6 @@ struct pmem_funcs {
 };
 
 void pmem_init(void);
-void pmem_os_init(void);
 void pmem_init_funcs(struct pmem_funcs *funcs);
 
 int is_pmem_detect(const void *addr, size_t len);

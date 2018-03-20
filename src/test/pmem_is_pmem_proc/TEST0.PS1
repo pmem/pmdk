@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,62 +32,62 @@
 #
 
 #
-# src/test/pmem_is_pmem_posix/TEST1 -- unit test for pmem_is_pmem
+# src/test/pmem_is_pmem_proc/TEST0 -- unit test for pmem_is_pmem
 #
+[CmdletBinding(PositionalBinding=$false)]
+Param(
+    [alias("d")]
+    $DIR = ""
+    )
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type none
 
 setup
 
-# single mm entry - 0x7fff77423000 4096
+# two mm entries
 #
-# 7fff77423000 2147479552
-#	extends past mm entry, should produce: 0
-# 7fff77423000 2147483648
-#	extends past mm entry, should produce: 0
-# 7fff77423000 8192
-#	extends past mm entry, should produce: 0
-# 7fff77423000 4096
-#	entirely encompassed by mm entry: should produce: 1
-# 7fff77424000 2147479552
-#	extends past mm entry, should produce: 0
-# 7fff77424000 2147483648
-#	extends past mm entry, should produce: 0
-# 7fff77424000 8192
-#	extends past mm entry, should produce: 0
-# 7fff77428000 10240
-#	extends past mm entry, should produce: 0
-# 7fff77423000 0
-#	starts at mm entry: should produce: 1
-# 7fff77424000 0
-#	starts behind mm entry, should produce: 0
-# 7fff77424000 0xffffffffffffffff
-#	starts behind mm entry, should produce: 0
-# 7fff77423008 1
-#	entirely encompassed by first mm entry: should produce: 0
-# 7fff77423ff0 32
-#	start at first mm entry, extends into second: should produce: 0
+# 7fff77430000 0x00010000
+#	start at first mm entry, extends into second: should produce: 1
+# 7fff77430000 0x80000000
+#	exactly matches sum of both mm entries: should produce: 1
+# 7fff77430000 0x20000
+#	start at first mm entry, extends into second: should produce: 1
+# 7fff77430000 0x10000
+#	entirely encompassed by first mm entry: should produce: 1
+# 7fff77440000 0x00010000
+#	exactly matches second mm entry, should produce: 1
+# 7fff77440000 0x80000000
+#	extends past second mm entry, should produce: 0
+# 7fff77440000 8192
+#	entirely encompassed by second mm entry: should produce: 1
+# 7fff77480000 10240
+#	subset of second mm entry: should produce: 1
+# 7fff77440000 0xffffffffffffffff
+#	extends past second mm entry, should produce: 0
+# 7fff77430008 1
+#	entirely encompassed by first mm entry: should produce: 1
+# 7fff7743fff0 32
+#	start at first mm entry, extends into second: should produce: 1
 
-expect_normal_exit ./pmem_is_pmem_posix$EXESUFFIX\
-	a 0x7fff77423000 4096 DEV_DAX\
-	\
-	t 0x7fff77423000 2147479552\
-	t 0x7fff77423000 2147483648\
-	t 0x7fff77423000 8192\
-	t 0x7fff77423000 4096\
-	t 0x7fff77424000 2147479552\
-	t 0x7fff77424000 2147483648\
-	t 0x7fff77424000 8192\
-	t 0x7fff77428000 10240\
-	t 0x7fff77423000 0\
-	t 0x7fff77424000 0\
-	t 0x7fff77424000 0xffffffffffffffff\
-	t 0x7fff77423008 1\
-	t 0x7fff77423FF0 32
+expect_normal_exit $Env:EXE_DIR\pmem_is_pmem_proc$Env:EXESUFFIX `
+	a 0x7fff77430000 0x00010000 MAP_SYNC `
+	a 0x7fff77440000 0x7FFF0000 MAP_SYNC `
+	`
+	t 0x7fff77430000 0x7FFF0000 `
+	t 0x7fff77430000 0x80000000 `
+	t 0x7fff77430000 0x20000 `
+	t 0x7fff77430000 0x10000 `
+	t 0x7fff77440000 0x7FFF0000 `
+	t 0x7fff77440000 0x80000000 `
+	t 0x7fff77440000 8192 `
+	t 0x7fff77480000 10240 `
+	t 0x7fff77440000 0xffffffffffffffff `
+	t 0x7fff77430008 1 `
+	t 0x7fff7743FFF0 32
 
 check
 

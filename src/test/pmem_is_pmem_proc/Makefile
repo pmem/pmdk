@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
 #
 
 #
-# src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
+# src/test/pmem_is_pmem_proc/Makefile -- build pmem_is_pmem_proc unit test
 #
 include ../../common.inc
 ARCH := $(call get_arch)
@@ -40,8 +40,8 @@ vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/libpmem
 vpath %.c $(TOP)/src/libpmem/$(ARCH)
 
-TARGET = pmem_is_pmem_posix
-OBJS = pmem_is_pmem_posix.o\
+TARGET = pmem_is_pmem_proc
+OBJS = pmem_is_pmem_proc.o\
 	mmap.o\
 	mmap_posix.o\
 	util.o\
@@ -53,7 +53,6 @@ OBJS = pmem_is_pmem_posix.o\
 	out.o\
 	libpmem.o\
 	pmem.o\
-	pmem_posix.o\
 	memops_generic.o\
 	init.o\
 	os_deep_linux.o\

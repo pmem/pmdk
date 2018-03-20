@@ -102,7 +102,7 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 			return -1;
 		}
 		return 0;
-	case PMEM_MAP_SYNC:
+	case PMEM_MAP_DAX:
 		return pmem_msync((void *)addr, len);
 	default:
 		ASSERT(0);

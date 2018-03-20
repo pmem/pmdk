@@ -35,9 +35,12 @@
  * mmap_windows.c -- memory-mapped files for Windows
  */
 
+#include <memoryapi.h>
 #include <sys/mman.h>
+
 #include "mmap.h"
 #include "out.h"
+#include "sys_util.h"
 
 /*
  * util_map_hint_unused -- use VirtualQuery to determine hint address
@@ -133,17 +136,80 @@ util_map_hint(size_t len, size_t req_align)
 }
 
 /*
+ * util_is_direct_mapped -- (internal) for each page in the given region
+ * checks with MM, if it's direct mapped.
+ */
+int
+util_is_direct_mapped(uintptr_t begin, uintptr_t end)
+{
+	LOG(3, "begin %p end %p", begin, end);
+
+#if (NTDDI_VERSION >= NTDDI_WIN10_RS1)
+	int retval = 1;
+	WIN32_MEMORY_REGION_INFORMATION region_info;
+	SIZE_T bytes_returned;
+
+	if (Func_qvmi == NULL) {
+		LOG(4,
+		"QueryVirtualMemoryInformation not supported, assuming non-DAX.");
+		return 0;
+	}
+
+	const void *begin_aligned = (const void *)rounddown(begin, Pagesize);
+	const void *end_aligned = (const void *)rounddown(end, Pagesize);
+
+	for (const void *page = begin_aligned;
+			page <= end_aligned;
+			page = (const void *)((char *)page + Pagesize)) {
+		if (Func_qvmi(GetCurrentProcess(), page,
+				MemoryRegionInfo, &region_info,
+				sizeof(region_info), &bytes_returned)) {
+			retval = region_info.DirectMapped;
+		} else {
+			LOG(4,
+			"QueryVirtualMemoryInformation failed, assuming non-DAX. Last error: %08x",
+				GetLastError());
+			retval = 0;
+		}
+
+		if (retval == 0) {
+			LOG(4, "page %p is not direct mapped", page);
+			break;
+		}
+	}
+
+	return retval;
+#else
+	/* if the MM API is not available the safest answer is NO */
+	return 0;
+#endif /* NTDDI_VERSION >= NTDDI_WIN10_RS1 */
+
+}
+
+/*
  * util_map_sync -- memory map given file into memory
  */
 void *
 util_map_sync(void *addr, size_t len, int proto, int flags, int fd,
-	os_off_t offset, int *map_sync)
+	os_off_t offset, enum pmem_map_type *mtype)
 {
-	LOG(15, "addr %p len %zu proto %x flags %x fd %d offset %ld",
-		addr, len, proto, flags, fd, offset);
+	LOG(15, "addr %p len %zu proto %x flags %x fd %d offset %ld mtype %p",
+		addr, len, proto, flags, fd, offset, mtype);
 
-	if (map_sync)
-		*map_sync = 0;
+	if (mtype)
+		*mtype = PMEM_NO_DAX;
 
-	return mmap(addr, len, proto, flags, fd, offset);
+	void *ret = mmap(addr, len, proto, flags, fd, offset);
+
+	/*
+	 * mmap() registers memory region, so we should be able to find it
+	 * on the mapping list.
+	 * XXX: This is a subject for further refactoring.
+	 */
+	if (ret != MAP_FAILED) {
+		if (util_range_is_pmem(addr, len))
+			*mtype = PMEM_MAP_DAX;
+	}
+
+	return ret;
 }
