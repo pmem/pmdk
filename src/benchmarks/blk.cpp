@@ -391,6 +391,12 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 			ba->type_str);
 		return -1;
 	}
+
+	if (bb->type == OP_TYPE_FILE && util_file_is_device_dax(args->fname)) {
+		fprintf(stderr, "fileio not supported on device dax\n");
+		return -1;
+	}
+
 	bb->mode = parse_op_mode(ba->mode_str);
 	if (bb->mode == OP_MODE_UNKNOWN) {
 		fprintf(stderr, "Invalid mode argument '%s'", ba->mode_str);

@@ -36,6 +36,7 @@
  */
 
 #include "benchmark.hpp"
+#include "file.h"
 #include <cassert>
 #include <libvmem.h>
 #include <sys/stat.h>
@@ -463,7 +464,13 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	vb->alloc_sizes = NULL;
 	vb->lib_mode = va->stdlib_alloc ? STDLIB_MODE : VMEM_MODE;
 
-	if (!va->stdlib_alloc && mkdir(args->fname, DIR_MODE) != 0)
+	if (util_file_is_device_dax(args->fname) && va->pool_per_thread) {
+		fprintf(stderr, "cannot use device dax for multiple pools\n");
+		goto err;
+	}
+
+	if (!util_file_is_device_dax(args->fname) && !va->stdlib_alloc &&
+	    mkdir(args->fname, DIR_MODE) != 0)
 		goto err;
 
 	vb->npools = va->pool_per_thread ? args->n_threads : 1;
