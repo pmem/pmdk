@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,7 @@ typedef struct {
 #define TIMED_LOCK(action, ts) {\
 	if ((action) == TRUE)\
 		return 0;\
-	unsigned long long et = (ts)->tv_sec * 1000000 + (ts)->tv_nsec / 1000;\
+	unsigned long long et = (ts)->tv_sec * 1000000000 + (ts)->tv_nsec;\
 	while (1) {\
 		FILETIME _t;\
 		GetSystemTimeAsFileTime(&_t);\
@@ -92,7 +92,7 @@ typedef struct {
 			.HighPart = _t.dwHighDateTime,\
 			.LowPart = _t.dwLowDateTime,\
 		};\
-		if (_UI.QuadPart / 10 - DELTA_WIN2UNIX >= et)\
+		if (100 * _UI.QuadPart - 1000 * DELTA_WIN2UNIX >= et)\
 			return ETIMEDOUT;\
 		if ((action) == TRUE)\
 			return 0;\
