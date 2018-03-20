@@ -50,7 +50,7 @@ function ndctl_inject_error() {
 	local NAMESPACE=$1
 	local BLOCK=$2
 	local COUNT=$3
-	ndctl inject-error --block=$BLOCK --count=$COUNT $NAMESPACE &>/dev/null
+	ndctl inject-error --block=$BLOCK --count=$COUNT $NAMESPACE &>> $PREP_LOG_FILE
 }
 
 #
