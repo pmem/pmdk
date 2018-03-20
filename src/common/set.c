@@ -1767,7 +1767,7 @@ util_poolset_single(const char *path, size_t filesize, int create,
 	set->resvsize = rep->resvsize;
 
 	set->nreplicas = 1;
-	set->ignore_sds = ignore_sds;
+	set->ignore_sds = ignore_sds || (set->options & OPTION_NOHDRS);
 	return set;
 }
 
@@ -2165,7 +2165,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 	if (ret)
 		goto err;
 
-	(*setp)->ignore_sds = ignore_sds;
+	(*setp)->ignore_sds = ignore_sds || ((*setp)->options & OPTION_NOHDRS);
 #ifdef _WIN32
 	/* remote replication is not supported on Windows */
 	if ((*setp)->remote) {
