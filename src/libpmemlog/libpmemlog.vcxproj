@@ -22,7 +22,7 @@
     <ClCompile Include="..\common\os_auto_flush_windows.c" />
     <ClCompile Include="..\common\badblock_windows.c" />
     <ClCompile Include="..\common\os_deep_windows.c" />
-    <ClCompile Include="..\common\os_dimm_none.c" />
+    <ClCompile Include="..\common\os_dimm_windows.c" />
     <ClCompile Include="..\common\os_thread_windows.c" />
     <ClCompile Include="..\common\os_windows.c" />
     <ClCompile Include="..\common\out.c" />
