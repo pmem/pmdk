@@ -223,17 +223,22 @@ main(int argc, char *argv[])
 
 	pool<root> pop;
 
-	if (file_exists(path.c_str()) != 0) {
-		pop = pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-					 CREATE_MODE_RW);
-	} else {
-		pop = pool<root>::open(path, LAYOUT);
+	try {
+		if (file_exists(path.c_str()) != 0) {
+			pop = pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+						 CREATE_MODE_RW);
+		} else {
+			pop = pool<root>::open(path, LAYOUT);
+		}
+	} catch (pmem::pool_error &e) {
+		std::cerr << e.what() << std::endl;
+		return 1;
 	}
 
 	persistent_ptr<root> q;
 	try {
 		q = pop.get_root();
-	} catch (pmem::pool_error &e) {
+	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
 		pop.close();
 		return 1;
