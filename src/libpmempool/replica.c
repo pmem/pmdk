@@ -56,6 +56,7 @@
 #include "util.h"
 #include "uuid.h"
 #include "shutdown_state.h"
+#include "os_dimm.h"
 
 /*
  * check_flags_sync -- (internal) check if flags are supported for sync
@@ -119,6 +120,16 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 	}
 
 	int olderrno = errno;
+
+	/* if the part is a device dax, clear its bad blocks */
+	if (util_file_is_device_dax(part->path) &&
+	    os_dimm_devdax_clear_badblocks(part->path)) {
+		ERR("clearing bad blocks in device dax failed -- '%s'",
+			part->path);
+		errno = EIO;
+		return -1;
+	}
+
 	if (util_unlink(part->path)) {
 		if (errno != ENOENT) {
 			ERR("!removing part %u from replica %u failed",
@@ -523,6 +534,48 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
 	}
 	return 0;
 }
+
+/*
+ * check_badblocks -- (internal) check if replica contains bad blocks
+ */
+static int
+check_badblocks(struct pool_set *set, struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {\
+		struct pool_replica *rep = set->replica[r];
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+
+		/* XXX: not supported yet */
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			const char *path = PART(rep, p).path;
+
+			int exists = os_access(path, F_OK) == 0;
+			if (!exists)
+				continue;
+
+			int ret = os_badblocks_check_file(path);
+			if (ret < 0) {
+				ERR(
+					"checking replica for bad blocks failed -- '%s'",
+					path);
+				return -1;
+			}
+
+			if (ret > 0) {
+				/* bad blocks were found */
+				rep_hs->flags |= IS_BROKEN;
+			}
+		}
+	}
+
+	return 0;
+}
+
 
 /*
  * check_shutdown_state -- (internal) check if replica has
@@ -1022,6 +1075,11 @@ replica_check_poolset_health(struct pool_set *set,
 	/* check if option flags are consistent */
 	if (check_options(set, set_hs)) {
 		LOG(1, "flags check failed");
+		goto err;
+	}
+
+	if (check_badblocks(set, set_hs)) {
+		LOG(1, "replica bad_blocks check failed");
 		goto err;
 	}
 
