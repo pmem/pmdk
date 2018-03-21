@@ -81,6 +81,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">WRAP_REAL_PMEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\libpmem\pmem_windows.c" />
+    <ClCompile Include="..\..\libpmem\memops_generic.c" />
     <ClCompile Include="..\..\libpmem\x86_64\cpu.c" />
     <ClCompile Include="..\..\libpmem\x86_64\init.c" />
     <ClCompile Include="..\..\windows\win_mmap.c" />

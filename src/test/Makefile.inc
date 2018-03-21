@@ -180,6 +180,7 @@ endif
 ifeq ($(LIBPMEM), internal-nondebug)
 OBJS +=\
 	$(TOP)/src/nondebug/libpmem/libpmem.o\
+	$(TOP)/src/nondebug/libpmem/memops_generic.o\
 	$(TOP)/src/nondebug/libpmem/pmem.o\
 	$(TOP)/src/nondebug/libpmem/pmem_posix.o
 
@@ -193,6 +194,7 @@ endif
 ifeq ($(LIBPMEM), internal-debug)
 OBJS +=\
 	$(TOP)/src/debug/libpmem/libpmem.o\
+	$(TOP)/src/debug/libpmem/memops_generic.o\
 	$(TOP)/src/debug/libpmem/pmem.o\
 	$(TOP)/src/debug/libpmem/pmem_posix.o
 

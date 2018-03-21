@@ -538,7 +538,7 @@ pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 static struct benchmark_clo pmem_memcpy_clo[8];
 
 /* Stores information about benchmark. */
-static struct benchmark_info pmem_memcpy;
+static struct benchmark_info pmem_memcpy_bench;
 CONSTRUCTOR(pmem_memcpy_constructor)
 void
 pmem_memcpy_constructor(void)
@@ -611,22 +611,22 @@ pmem_memcpy_constructor(void)
 	pmem_memcpy_clo[7].type = CLO_TYPE_FLAG;
 	pmem_memcpy_clo[7].off = clo_field_offset(struct pmem_args, no_warmup);
 
-	pmem_memcpy.name = "pmem_memcpy";
-	pmem_memcpy.brief = "Benchmark for"
-			    "pmem_memcpy_persist() and "
-			    "pmem_memcpy_nodrain()"
-			    "operations";
-	pmem_memcpy.init = pmem_memcpy_init;
-	pmem_memcpy.exit = pmem_memcpy_exit;
-	pmem_memcpy.multithread = true;
-	pmem_memcpy.multiops = true;
-	pmem_memcpy.operation = pmem_memcpy_operation;
-	pmem_memcpy.measure_time = true;
-	pmem_memcpy.clos = pmem_memcpy_clo;
-	pmem_memcpy.nclos = ARRAY_SIZE(pmem_memcpy_clo);
-	pmem_memcpy.opts_size = sizeof(struct pmem_args);
-	pmem_memcpy.rm_file = true;
-	pmem_memcpy.allow_poolset = false;
-	pmem_memcpy.print_bandwidth = true;
-	REGISTER_BENCHMARK(pmem_memcpy);
+	pmem_memcpy_bench.name = "pmem_memcpy";
+	pmem_memcpy_bench.brief = "Benchmark for"
+				  "pmem_memcpy_persist() and "
+				  "pmem_memcpy_nodrain()"
+				  "operations";
+	pmem_memcpy_bench.init = pmem_memcpy_init;
+	pmem_memcpy_bench.exit = pmem_memcpy_exit;
+	pmem_memcpy_bench.multithread = true;
+	pmem_memcpy_bench.multiops = true;
+	pmem_memcpy_bench.operation = pmem_memcpy_operation;
+	pmem_memcpy_bench.measure_time = true;
+	pmem_memcpy_bench.clos = pmem_memcpy_clo;
+	pmem_memcpy_bench.nclos = ARRAY_SIZE(pmem_memcpy_clo);
+	pmem_memcpy_bench.opts_size = sizeof(struct pmem_args);
+	pmem_memcpy_bench.rm_file = true;
+	pmem_memcpy_bench.allow_poolset = false;
+	pmem_memcpy_bench.print_bandwidth = true;
+	REGISTER_BENCHMARK(pmem_memcpy_bench);
 };

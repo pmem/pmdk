@@ -115,12 +115,17 @@ flush_empty(const void *addr, size_t len)
 #if SSE2_AVAILABLE || AVX_AVAILABLE || AVX512F_AVAILABLE
 #define MEMCPY_TEMPLATE(postfix) \
 static void *\
-memmove_nodrain_##postfix(void *dest, const void *src, size_t len)\
+memmove_nodrain_##postfix(void *dest, const void *src, size_t len, \
+		unsigned flags)\
 {\
 	if (len == 0 || src == dest)\
 		return dest;\
 \
-	if (len < Movnt_threshold)\
+	if (flags & (PMEM_MEM_WC | PMEM_MEM_NONTEMPORAL))\
+		memmove_movnt_##postfix(dest, src, len);\
+	else if (flags & (PMEM_MEM_WB | PMEM_MEM_TEMPORAL))\
+		memmove_mov_##postfix(dest, src, len);\
+	else if (len < Movnt_threshold)\
 		memmove_mov_##postfix(dest, src, len);\
 	else\
 		memmove_movnt_##postfix(dest, src, len);\
@@ -130,12 +135,16 @@ memmove_nodrain_##postfix(void *dest, const void *src, size_t len)\
 
 #define MEMSET_TEMPLATE(postfix)\
 static void *\
-memset_nodrain_##postfix(void *dest, int c, size_t len)\
+memset_nodrain_##postfix(void *dest, int c, size_t len, unsigned flags)\
 {\
 	if (len == 0)\
 		return dest;\
 \
-	if (len < Movnt_threshold)\
+	if (flags & (PMEM_MEM_WC | PMEM_MEM_NONTEMPORAL))\
+		memset_movnt_##postfix(dest, c, len);\
+	else if (flags & (PMEM_MEM_WB | PMEM_MEM_TEMPORAL))\
+		memset_mov_##postfix(dest, c, len);\
+	else if (len < Movnt_threshold)\
 		memset_mov_##postfix(dest, c, len);\
 	else\
 		memset_movnt_##postfix(dest, c, len);\
@@ -181,12 +190,15 @@ MEMSET_TEMPLATE(avx512f_empty)
 #endif
 
 /*
- * memmove_nodrain_libc -- (internal) memmove to pmem without hw drain
+ * memmove_nodrain_libc -- (internal) memmove to pmem using libc
  */
 static void *
-memmove_nodrain_libc(void *pmemdest, const void *src, size_t len)
+memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
 {
-	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
+			flags);
+	(void) flags;
 
 	memmove(pmemdest, src, len);
 	pmem_flush(pmemdest, len);
@@ -194,12 +206,14 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len)
 }
 
 /*
- * memset_nodrain_libc -- (internal) memset to pmem without hw drain, normal
+ * memset_nodrain_libc -- (internal) memset to pmem using libc
  */
 static void *
-memset_nodrain_libc(void *pmemdest, int c, size_t len)
+memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags)
 {
-	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
+	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
+			flags);
+	(void) flags;
 
 	memset(pmemdest, c, len);
 	pmem_flush(pmemdest, len);
@@ -209,6 +223,7 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len)
 enum memcpy_impl {
 	MEMCPY_INVALID,
 	MEMCPY_LIBC,
+	MEMCPY_GENERIC,
 	MEMCPY_SSE2,
 	MEMCPY_AVX,
 	MEMCPY_AVX512F
@@ -399,9 +414,20 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	funcs->predrain_fence = predrain_fence_empty;
 	funcs->deep_flush = flush_clflush;
 	funcs->is_pmem = NULL;
-	funcs->memmove_nodrain = memmove_nodrain_libc;
-	funcs->memset_nodrain = memset_nodrain_libc;
-	enum memcpy_impl impl = MEMCPY_LIBC;
+	funcs->memmove_nodrain = memmove_nodrain_generic;
+	funcs->memset_nodrain = memset_nodrain_generic;
+	enum memcpy_impl impl = MEMCPY_GENERIC;
+
+	char *ptr = os_getenv("PMEM_NO_GENERIC_MEMCPY");
+	if (ptr) {
+		long long val = atoll(ptr);
+
+		if (val) {
+			funcs->memmove_nodrain = memmove_nodrain_libc;
+			funcs->memset_nodrain = memset_nodrain_libc;
+			impl = MEMCPY_LIBC;
+		}
+	}
 
 	pmem_cpuinfo_to_funcs(funcs, &impl);
 
@@ -411,7 +437,7 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	 * and pmem_memset_*().
 	 * It has no effect if movnt is not supported or disabled.
 	 */
-	char *ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
+	ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	if (ptr) {
 		long long val = atoll(ptr);
 
@@ -468,6 +494,8 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 		LOG(3, "using movnt SSE2");
 	else if (impl == MEMCPY_LIBC)
 		LOG(3, "using libc memmove");
+	else if (impl == MEMCPY_GENERIC)
+		LOG(3, "using generic memmove");
 	else
 		FATAL("invalid memcpy impl");
 }

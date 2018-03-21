@@ -64,6 +64,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\libpmem\libpmem.c" />
+    <ClCompile Include="..\..\libpmem\memops_generic.c" />
     <ClCompile Include="..\..\libpmem\pmem.c" />
     <ClCompile Include="..\..\libpmem\pmem_windows.c" />
     <ClCompile Include="..\..\windows\win_mmap.c" />

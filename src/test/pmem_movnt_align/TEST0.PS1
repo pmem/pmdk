@@ -54,27 +54,21 @@ setup
 $Env:PMEM_LOG_LEVEL=15
 
 function test {
-	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX $args[0]
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX C 1
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX F 1
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX B 1
+	expect_normal_exit $Env:EXE_DIR\pmem_movnt_align$Env:EXESUFFIX S 1
 }
 
 function test_all {
 	$Env:PMEM_MOVNT_THRESHOLD=$null
-	test C
-	test F
-	test B
-	test S
+	test
 
 	$Env:PMEM_MOVNT_THRESHOLD=0
-	test C
-	test F
-	test B
-	test S
+	test
 
 	$Env:PMEM_MOVNT_THRESHOLD=99999
-	test C
-	test F
-	test B
-	test S
+	test
 }
 
 test_all
@@ -86,5 +80,10 @@ test_all
 $Env:PMEM_AVX = 1
 
 test_all
+
+$Env:PMEM_NO_MOVNT = 1
+$Env:PMEM_NO_GENERIC_MEMCPY = 1
+
+test
 
 pass

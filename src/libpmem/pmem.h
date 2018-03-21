@@ -47,8 +47,9 @@ typedef void (*predrain_fence_func)(void);
 typedef void (*flush_func)(const void *, size_t);
 typedef int (*is_pmem_func)(const void *addr, size_t len);
 typedef void *(*memmove_nodrain_func)(void *pmemdest, const void *src,
-		size_t len);
-typedef void *(*memset_nodrain_func)(void *pmemdest, int c, size_t len);
+		size_t len, unsigned flags);
+typedef void *(*memset_nodrain_func)(void *pmemdest, int c, size_t len,
+		unsigned flags);
 
 struct pmem_funcs {
 	predrain_fence_func predrain_fence;
@@ -82,5 +83,9 @@ static force_inline void
 flush64b_empty(const char *addr)
 {
 }
+
+void *memmove_nodrain_generic(void *pmemdest, const void *src, size_t len,
+		unsigned flags);
+void *memset_nodrain_generic(void *pmemdest, int c, size_t len, unsigned flags);
 
 #endif
