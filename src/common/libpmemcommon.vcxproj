@@ -20,7 +20,7 @@
     <ClCompile Include="fs_windows.c" />
     <ClCompile Include="os_auto_flush_windows.c" />
     <ClCompile Include="os_deep_windows.c" />
-    <ClCompile Include="os_dimm_none.c" />
+    <ClCompile Include="os_dimm_windows.c" />
     <ClCompile Include="os_thread_windows.c" />
     <ClCompile Include="os_windows.c" />
     <ClCompile Include="out.c" />
