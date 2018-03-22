@@ -10,7 +10,7 @@ Tue Mar 06 2018 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	- pool: fix set convert of v3 -> v4
 	- common: generate pkg-config files on make install (#610)
 	- common: fix dependencies for Debian's dev packages
-	- test: add missing include in unittest.sh
+	- test: add missing include in unittest.h
 
 Wed Dec 20 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
