@@ -172,6 +172,68 @@ FUNC_MOCK(prealloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 FUNC_MOCK_END
 
 /*
+ * palloc_reserve -- palloc_reserve mock
+ */
+FUNC_MOCK(palloc_reserve, int, struct palloc_heap *heap, size_t size,
+	palloc_constr constructor, void *arg,
+	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
+	struct pobj_action *act)
+	FUNC_MOCK_RUN_DEFAULT {
+		struct pmem_ops *p_ops = &Pop->p_ops;
+		size = size + OOB_OFF + sizeof(uint64_t) * 2;
+		uint64_t *alloc_size = (uint64_t *)((uintptr_t)Pop
+			+ *Heap_offset);
+		*alloc_size = size;
+		pmemops_persist(p_ops, alloc_size, sizeof(*alloc_size));
+
+		act->heap.offset = *Heap_offset + sizeof(uint64_t);
+
+		struct oob_item *item =
+			(struct oob_item *)((uintptr_t)Pop + act->heap.offset);
+
+		act->heap.offset += OOB_OFF;
+		item->item.id = *Id;
+		pmemops_persist(p_ops, &item->item.id, sizeof(item->item.id));
+
+		(*Id)++;
+		pmemops_persist(p_ops, Id, sizeof(*Id));
+
+		*Heap_offset += sizeof(uint64_t) + size + OOB_OFF;
+		pmemops_persist(p_ops, Heap_offset, sizeof(*Heap_offset));
+
+		UT_OUT("pmalloc(id = %d)", item->item.id);
+		return 0;
+	}
+FUNC_MOCK_END
+
+/*
+ * palloc_publish -- mock publish, must process operation
+ */
+FUNC_MOCK(palloc_publish, void, struct palloc_heap *heap,
+	struct pobj_action *actv, size_t actvcnt,
+	struct operation_context *ctx)
+	FUNC_MOCK_RUN_DEFAULT {
+		operation_process(ctx);
+	}
+FUNC_MOCK_END
+
+/*
+ * palloc_defer_free -- pfree mock
+ *
+ * Just prints freeing struct oob_item id. Doesn't free the memory.
+ */
+FUNC_MOCK(palloc_defer_free, void, struct palloc_heap *heap, uint64_t off,
+	struct pobj_action *act)
+	FUNC_MOCK_RUN_DEFAULT {
+		struct oob_item *item =
+			(struct oob_item *)((uintptr_t)Pop + off - OOB_OFF);
+		UT_OUT("pfree(id = %d)", item->item.id);
+		act->heap.offset = off;
+		return;
+	}
+FUNC_MOCK_END
+
+/*
  * pmalloc_usable_size -- pmalloc_usable_size mock
  */
 FUNC_MOCK(palloc_usable_size, size_t, struct palloc_heap *heap, uint64_t off)
