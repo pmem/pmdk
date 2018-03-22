@@ -362,7 +362,7 @@ pocli_args_list_elm(struct pocli_ctx *ctx, struct pocli_args *args,
 static const char *
 parse_stage(void)
 {
-	int st = pmemobj_tx_stage();
+	int st = (int)pmemobj_tx_stage();
 	const char *stage = "";
 	switch (st) {
 		case TX_STAGE_NONE:
@@ -2188,7 +2188,7 @@ pocli_process(struct pocli *pcli)
 		enum pocli_ret ret = cmd->func(&pcli->ctx, args);
 		free(args);
 		if (ret != POCLI_RET_OK)
-			return ret;
+			return (int)ret;
 
 	}
 }

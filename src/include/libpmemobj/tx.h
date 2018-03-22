@@ -69,7 +69,7 @@ extern "C" {
 		if (_pobj_errno)\
 			errno = _pobj_errno;\
 	}\
-	while ((_stage = pmemobj_tx_stage()) != TX_STAGE_NONE) {\
+	while ((_stage = (int)pmemobj_tx_stage()) != TX_STAGE_NONE) {\
 		switch (_stage) {\
 			case TX_STAGE_WORK:
 

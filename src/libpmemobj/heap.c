@@ -421,7 +421,7 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	struct chunk_header run_hdr;
 	run_hdr.size_idx = hdr->size_idx;
 	run_hdr.type = CHUNK_TYPE_RUN;
-	run_hdr.flags = header_type_to_flag[c->header_type];
+	run_hdr.flags = (uint16_t)header_type_to_flag[c->header_type];
 	*hdr = run_hdr;
 	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
 
