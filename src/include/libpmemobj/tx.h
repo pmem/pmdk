@@ -59,7 +59,7 @@ extern "C" {
 #define _POBJ_TX_BEGIN(pop, ...)\
 {\
 	jmp_buf _tx_env;\
-	int _stage;\
+	enum pobj_tx_stage _stage;\
 	int _pobj_errno;\
 	if (setjmp(_tx_env)) {\
 		errno = pmemobj_tx_errno();\
