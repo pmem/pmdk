@@ -4029,6 +4029,7 @@ util_poolset_foreach_part_struct(struct pool_set *set,
 			part.is_remote = 1;
 			part.node_addr = set->replica[r]->remote->node_addr;
 			part.pool_desc = set->replica[r]->remote->pool_desc;
+			part.path = NULL;
 			ret = (*callback)(&part, arg);
 			if (ret)
 				return ret;

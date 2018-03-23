@@ -58,6 +58,7 @@
     <ClCompile Include="..\libpmemblk\btt.c" />
     <ClCompile Include="..\libpmemlog\libpmemlog.c" />
     <ClCompile Include="check.c" />
+    <ClCompile Include="check_bad_blocks.c" />
     <ClCompile Include="check_backup.c" />
     <ClCompile Include="check_blk.c" />
     <ClCompile Include="check_btt_info.c" />
