@@ -87,6 +87,19 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dllview", "test\tools\dllvi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rbtree_map", "examples\libpmemobj\tree_map\rbtree_map.vcxproj", "{17A4B817-68B1-4719-A9EF-BD8FAB747DE6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pmempool", "pmempool", "{181A4234-282C-41F0-85C2-2B7697B3CB1A}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\pmempool\pmempool-check.1.md = ..\doc\pmempool\pmempool-check.1.md
+		..\doc\pmempool\pmempool-convert.1.md = ..\doc\pmempool\pmempool-convert.1.md
+		..\doc\pmempool\pmempool-create.1.md = ..\doc\pmempool\pmempool-create.1.md
+		..\doc\pmempool\pmempool-dump.1.md = ..\doc\pmempool\pmempool-dump.1.md
+		..\doc\pmempool\pmempool-info.1.md = ..\doc\pmempool\pmempool-info.1.md
+		..\doc\pmempool\pmempool-rm.1.md = ..\doc\pmempool\pmempool-rm.1.md
+		..\doc\pmempool\pmempool-sync.1.md = ..\doc\pmempool\pmempool-sync.1.md
+		..\doc\pmempool\pmempool-transform.1.md = ..\doc\pmempool\pmempool-transform.1.md
+		..\doc\pmempool\pmempool.1.md = ..\doc\pmempool\pmempool.1.md
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_non_zero", "test\blk_non_zero\blk_non_zero.vcxproj", "{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
@@ -149,6 +162,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "out_err_mt_win", "test\out_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_include", "test\pmem_include\pmem_include.vcxproj", "{2B7772E6-9DAA-4F38-B0BC-7B2399366325}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "poolset", "poolset", "{2C24CC4F-B340-467D-908F-1BF2C69BC79F}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\poolset\poolset.5.md = ..\doc\poolset\poolset.5.md
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lists", "examples\libpmemobj\lists.vcxproj", "{2CD7408E-2F60-43C3-ACEB-C7D58CDD8462}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_locks", "test\obj_locks\obj_locks.vcxproj", "{2DE6B085-3C19-49B1-894A-AD9376000E09}"
@@ -170,6 +188,13 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bttcreate", "test\tools\bttcreate\bttcreate.vcxproj", "{3142CB13-CADA-48D3-9A25-E6ACB243760A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "list_map", "examples\libpmemobj\list_map\list_map.vcxproj", "{3799BA67-3C4F-4AE0-85DC-5BAAEA01A180}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libvmem", "libvmem", "{3AB2F5A9-5C1E-4077-811A-2F96BCF9EE89}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libvmem\libvmem.7.md = ..\doc\libvmem\libvmem.7.md
+		..\doc\libvmem\vmem_create.3.md = ..\doc\libvmem\vmem_create.3.md
+		..\doc\libvmem\vmem_malloc.3.md = ..\doc\libvmem\vmem_malloc.3.md
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces_pmem", "test\traces_pmem\traces_pmem.vcxproj", "{3B23831B-E5DE-4A62-9D0B-27D0D9F293F4}"
 EndProject
@@ -387,6 +412,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "linux", "linux", "{774627B7
 		windows\include\linux\limits.h = windows\include\linux\limits.h
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemblk", "libpmemblk", "{7783BC49-A25B-468B-A6F8-AB6B39A91C65}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmemblk\libpmemblk.7.md = ..\doc\libpmemblk\libpmemblk.7.md
+		..\doc\libpmemblk\pmemblk_bsize.3.md = ..\doc\libpmemblk\pmemblk_bsize.3.md
+		..\doc\libpmemblk\pmemblk_create.3.md = ..\doc\libpmemblk\pmemblk_create.3.md
+		..\doc\libpmemblk\pmemblk_read.3.md = ..\doc\libpmemblk\pmemblk_read.3.md
+		..\doc\libpmemblk\pmemblk_set_zero.3.md = ..\doc\libpmemblk\pmemblk_set_zero.3.md
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_pool_lock", "test\blk_pool_lock\blk_pool_lock.vcxproj", "{779425B1-2211-499B-A7CC-4F9EC6CB0D25}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
@@ -437,6 +471,27 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_heap_state", "test\obj_
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{877E7D1D-8150-4FE5-A139-B6FBCEAEC393}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemobj", "libpmemobj", "{87A32959-E477-4CD5-8A1C-C85646D806B2}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmemobj\libpmemobj.7.md = ..\doc\libpmemobj\libpmemobj.7.md
+		..\doc\libpmemobj\oid_is_null.3.md = ..\doc\libpmemobj\oid_is_null.3.md
+		..\doc\libpmemobj\pmemobj_action.3.md = ..\doc\libpmemobj\pmemobj_action.3.md
+		..\doc\libpmemobj\pmemobj_alloc.3.md = ..\doc\libpmemobj\pmemobj_alloc.3.md
+		..\doc\libpmemobj\pmemobj_ctl_get.3.md = ..\doc\libpmemobj\pmemobj_ctl_get.3.md
+		..\doc\libpmemobj\pmemobj_first.3.md = ..\doc\libpmemobj\pmemobj_first.3.md
+		..\doc\libpmemobj\pmemobj_list_insert.3.md = ..\doc\libpmemobj\pmemobj_list_insert.3.md
+		..\doc\libpmemobj\pmemobj_memcpy_persist.3.md = ..\doc\libpmemobj\pmemobj_memcpy_persist.3.md
+		..\doc\libpmemobj\pmemobj_mutex_zero.3.md = ..\doc\libpmemobj\pmemobj_mutex_zero.3.md
+		..\doc\libpmemobj\pmemobj_open.3.md = ..\doc\libpmemobj\pmemobj_open.3.md
+		..\doc\libpmemobj\pmemobj_root.3.md = ..\doc\libpmemobj\pmemobj_root.3.md
+		..\doc\libpmemobj\pmemobj_tx_add_range.3.md = ..\doc\libpmemobj\pmemobj_tx_add_range.3.md
+		..\doc\libpmemobj\pmemobj_tx_alloc.3.md = ..\doc\libpmemobj\pmemobj_tx_alloc.3.md
+		..\doc\libpmemobj\pmemobj_tx_begin.3.md = ..\doc\libpmemobj\pmemobj_tx_begin.3.md
+		..\doc\libpmemobj\pobj_layout_begin.3.md = ..\doc\libpmemobj\pobj_layout_begin.3.md
+		..\doc\libpmemobj\pobj_list_head.3.md = ..\doc\libpmemobj\pobj_list_head.3.md
+		..\doc\libpmemobj\toid_declare.3.md = ..\doc\libpmemobj\toid_declare.3.md
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmalloc_oom_mt", "test\obj_pmalloc_oom_mt\obj_pmalloc_oom_mt.vcxproj", "{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}"
 EndProject
@@ -612,6 +667,19 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_aligned_alloc", "test\c
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_transform_win", "test\libpmempool_transform_win\libpmempool_transform_win.vcxproj", "{B30C6212-A160-405A-8FE7-340E721738A2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemcto", "libpmemcto", "{B339D149-205D-446C-9C7E-7FB33FFAAFA0}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmemcto\libpmemcto.7.md = ..\doc\libpmemcto\libpmemcto.7.md
+		..\doc\libpmemcto\pmemcto_aligned_alloc.3.md = ..\doc\libpmemcto\pmemcto_aligned_alloc.3.md
+		..\doc\libpmemcto\pmemcto_malloc.3.md = ..\doc\libpmemcto\pmemcto_malloc.3.md
+		..\doc\libpmemcto\pmemcto_malloc_usable_size.3.md = ..\doc\libpmemcto\pmemcto_malloc_usable_size.3.md
+		..\doc\libpmemcto\pmemcto_open.3.md = ..\doc\libpmemcto\pmemcto_open.3.md
+		..\doc\libpmemcto\pmemcto_set_root_pointer.3.md = ..\doc\libpmemcto\pmemcto_set_root_pointer.3.md
+		..\doc\libpmemcto\pmemcto_stats_print.3.md = ..\doc\libpmemcto\pmemcto_stats_print.3.md
+		..\doc\libpmemcto\pmemcto_strdup.3.md = ..\doc\libpmemcto\pmemcto_strdup.3.md
+		..\doc\libpmemcto\pmemcto_wcsdup.3.md = ..\doc\libpmemcto\pmemcto_wcsdup.3.md
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemwrite", "test\tools\pmemwrite\pmemwrite.vcxproj", "{B35BFA09-DE68-483B-AB61-8790E8F060A8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
@@ -634,6 +702,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows", "windows", "{B870D8A6-12CD-4DD0-B843-833695C2310A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_recovery", "test\obj_list_recovery\obj_list_recovery.vcxproj", "{B887EA26-846C-4D6A-B0E4-432487506BC7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemlog", "libpmemlog", "{B8A4320D-E9A3-4F89-A8AA-B16D746C158A}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmemlog\libpmemlog.7.md = ..\doc\libpmemlog\libpmemlog.7.md
+		..\doc\libpmemlog\pmemlog_append.3.md = ..\doc\libpmemlog\pmemlog_append.3.md
+		..\doc\libpmemlog\pmemlog_create.3.md = ..\doc\libpmemlog\pmemlog_create.3.md
+		..\doc\libpmemlog\pmemlog_nbyte.3.md = ..\doc\libpmemlog\pmemlog_nbyte.3.md
+		..\doc\libpmemlog\pmemlog_tell.3.md = ..\doc\libpmemlog\pmemlog_tell.3.md
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_first_next", "test\obj_first_next\obj_first_next.vcxproj", "{BABC6427-E533-4DCF-91E3-B5B2ED253F46}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -757,6 +834,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_ptr", "test\obj_cpp
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmem", "libpmem", "{E1A205C5-FD08-4356-B69C-B5689F2D6053}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmem\libpmem.7.md = ..\doc\libpmem\libpmem.7.md
+		..\doc\libpmem\pmem_flush.3.md = ..\doc\libpmem\pmem_flush.3.md
+		..\doc\libpmem\pmem_is_pmem.3.md = ..\doc\libpmem\pmem_is_pmem.3.md
+		..\doc\libpmem\pmem_memmove_persist.3.md = ..\doc\libpmem\pmem_memmove_persist.3.md
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E23BB160-006E-44F2-8FB4-3A2240BBC20C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "string_store_tx_type", "string_store_tx_type", "{E3229AF7-1FA2-4632-BB0B-B74F709F1A33}"
@@ -790,6 +875,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_is_poolset", "test\util_is_poolset\util_is_poolset.vcxproj", "{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_signal", "test\win_signal\win_signal.vcxproj", "{F13108C4-4C86-4D56-A317-A4E5892A8AF7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{F18C84B3-7898-4324-9D75-99A6048F442D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_pool_win", "test\obj_cpp_pool_win\obj_cpp_pool_win.vcxproj", "{F322ED35-A389-4B65-AC8A-E25F1337DBCC}"
 EndProject
