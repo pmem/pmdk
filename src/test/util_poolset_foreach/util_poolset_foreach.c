@@ -52,8 +52,8 @@ cb(struct part_file *pf, void *arg)
 {
 	if (pf->is_remote) {
 		/* remote replica */
-		const char *node_addr = pf->node_addr;
-		const char *pool_desc = pf->pool_desc;
+		const char *node_addr = pf->remote->node_addr;
+		const char *pool_desc = pf->remote->pool_desc;
 		char *set_name = (char *)arg;
 		UT_OUT("%s: %s %s", set_name, node_addr, pool_desc);
 	} else {

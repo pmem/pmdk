@@ -4029,14 +4029,14 @@ util_poolset_foreach_part_struct(struct pool_set *set,
 		struct part_file cbdata;
 		if (set->replica[r]->remote) {
 			cbdata.is_remote = 1;
-			cbdata.node_addr = set->replica[r]->remote->node_addr;
-			cbdata.pool_desc = set->replica[r]->remote->pool_desc;
+			cbdata.remote = set->replica[r]->remote;
 			cbdata.part = NULL;
 			ret = (*callback)(&cbdata, arg);
 			if (ret)
 				return ret;
 		} else {
 			cbdata.is_remote = 0;
+			cbdata.remote = NULL;
 			for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
 				cbdata.part = &set->replica[r]->part[p];
 				ret = (*callback)(&cbdata, arg);
