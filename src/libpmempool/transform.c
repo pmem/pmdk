@@ -163,6 +163,7 @@ check_if_remote_replica_used_once(struct pool_set *set, unsigned repn)
 		if (strcmp(rep->node_addr, repr->node_addr) == 0 &&
 				strcmp(rep->pool_desc, repr->pool_desc) == 0) {
 			ERR("remote replica %u is used multiple times", repn);
+			errno = EINVAL;
 			return -1;
 		}
 	}
@@ -205,7 +206,8 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 
 	if (set_in->directory_based) {
 		ERR("transform of directory poolsets is not supported");
-		goto err;
+		errno = EINVAL;
+		return -1;
 	}
 
 	/*
@@ -214,7 +216,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 */
 	if (replica_check_part_sizes(set_out, PMEMOBJ_MIN_POOL)) {
 		ERR("part sizes check failed");
-		goto err;
+		return -1;
 	}
 
 	/*
@@ -222,7 +224,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 * do not reoccur in the poolset
 	 */
 	if (check_paths(set_out))
-		goto err;
+		return -1;
 
 	/*
 	 * check if set_out has enough size, i.e. if the target poolset
@@ -232,20 +234,16 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	ssize_t master_pool_size = replica_get_pool_size(set_in, 0);
 	if (master_pool_size < 0) {
 		ERR("getting pool size from master replica failed");
-		goto err;
+		return -1;
 	}
 
 	if (set_out->poolsize < (size_t)master_pool_size) {
 		ERR("target poolset is too small");
-		goto err;
+		errno = EINVAL;
+		return -1;
 	}
 
 	return 0;
-
-err:
-	if (errno == 0)
-		errno = EINVAL;
-	return -1;
 }
 
 /*
