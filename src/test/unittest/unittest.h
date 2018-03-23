@@ -110,12 +110,13 @@ extern "C" {
 #include <sys/mman.h>
 #include <sys/file.h>
 #include <sys/mount.h>
-#include <sys/select.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <errno.h>
 #include <dirent.h>
-
+#ifndef _WIN32
+#include <sys/select.h>
+#endif
 /* XXX: move OS abstraction layer out of common */
 #include "os.h"
 #include "os_thread.h"
