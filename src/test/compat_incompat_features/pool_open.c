@@ -50,7 +50,6 @@ main(int argc, char *argv[])
 	if (strcmp(type, "obj") == 0) {
 		PMEMobjpool *pop = pmemobj_open(path, "");
 		if (pop == NULL) {
-			ut_suppress_errmsg();
 			UT_FATAL("!%s: pmemobj_open failed", path);
 		} else {
 			UT_OUT("%s: pmemobj_open succeeded", path);
@@ -59,7 +58,6 @@ main(int argc, char *argv[])
 	} else if (strcmp(type, "blk") == 0) {
 		PMEMblkpool *pop = pmemblk_open(path, 0);
 		if (pop == NULL) {
-			ut_suppress_errmsg();
 			UT_FATAL("!%s: pmemblk_open failed", path);
 		} else {
 			UT_OUT("%s: pmemblk_open succeeded", path);
@@ -68,7 +66,6 @@ main(int argc, char *argv[])
 	} else if (strcmp(type, "log") == 0) {
 		PMEMlogpool *pop = pmemlog_open(path);
 		if (pop == NULL) {
-			ut_suppress_errmsg();
 			UT_FATAL("!%s: pmemlog_open failed", path);
 		} else {
 			UT_OUT("%s: pmemlog_open succeeded", path);
@@ -77,7 +74,6 @@ main(int argc, char *argv[])
 	} else if (strcmp(type, "cto") == 0) {
 		PMEMctopool *pop = pmemcto_open(path, "");
 		if (pop == NULL) {
-			ut_suppress_errmsg();
 			UT_FATAL("!%s: pmemcto_open failed", path);
 		} else {
 			UT_OUT("%s: pmemcto_open succeeded", path);
