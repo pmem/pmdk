@@ -1477,7 +1477,7 @@ function configure_valgrind() {
 
 	if [ "$CHECK_TYPE" == "none" ]; then
 		if [ "$1" == "force-disable" ]; then
-			msg "all valgrind tests disabled"
+			msg "$UNITTEST_NAME: all valgrind tests disabled"
 		elif [ "$2" = "force-enable" ]; then
 			CHECK_TYPE="$1"
 			require_valgrind_tool $1 $3
