@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,12 +52,12 @@ cb(struct part_file *pf, void *arg)
 {
 	if (pf->is_remote) {
 		/* remote replica */
-		const char *node_addr = pf->node_addr;
-		const char *pool_desc = pf->pool_desc;
+		const char *node_addr = pf->remote->node_addr;
+		const char *pool_desc = pf->remote->pool_desc;
 		char *set_name = (char *)arg;
 		UT_OUT("%s: %s %s", set_name, node_addr, pool_desc);
 	} else {
-		const char *name = pf->path;
+		const char *name = pf->part->path;
 		char *set_name = (char *)arg;
 		UT_OUT("%s: %s", set_name, name);
 	}

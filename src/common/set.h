@@ -113,6 +113,7 @@ struct pool_set_part {
 	int rdonly;		/* is set based on compat features, affects */
 				/* the whole poolset */
 	uuid_t uuid;
+	int has_bad_blocks;	/* part file contains bad blocks */
 };
 
 struct pool_set_directory {
@@ -164,11 +165,16 @@ struct pool_set {
 
 struct part_file {
 	int is_remote;
-	const char *path;	/* not-NULL only for a local part file */
-	int has_bad_blocks;	/* pool set file contains bad blocks */
-	const char *node_addr;	/* address of a remote node */
-	/* poolset descriptor is a pool set file name on a remote node */
-	const char *pool_desc;	/* descriptor of a poolset */
+	/*
+	 * Pointer to the part file structure -
+	 * - not-NULL only for a local part file
+	 */
+	struct pool_set_part *part;
+	/*
+	 * Pointer to the replica structure -
+	 * - not-NULL only for a remote replica
+	 */
+	struct remote_replica *remote;
 };
 
 struct pool_attr {

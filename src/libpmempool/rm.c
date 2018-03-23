@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -141,9 +141,10 @@ rm_cb(struct part_file *pf, void *arg)
 	struct cb_args *args = (struct cb_args *)arg;
 	int ret;
 	if (pf->is_remote) {
-		ret = rm_remote(pf->node_addr, pf->pool_desc, args->flags);
+		ret = rm_remote(pf->remote->node_addr, pf->remote->pool_desc,
+				args->flags);
 	} else {
-		ret = rm_local(pf->path, args->flags, 1);
+		ret = rm_local(pf->part->path, args->flags, 1);
 	}
 
 	if (ret)

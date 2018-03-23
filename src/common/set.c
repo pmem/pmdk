@@ -940,6 +940,7 @@ util_replica_add_part_by_idx(struct pool_replica **repp,
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
 	rep->part[p].remote_hdr = NULL;
+	rep->part[p].has_bad_blocks = 0;
 
 	if (is_dev_dax)
 		rep->part[p].alignment = util_file_device_dax_alignment(path);
@@ -1743,6 +1744,7 @@ util_poolset_single(const char *path, size_t filesize, int create,
 	rep->part[0].created = create;
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;
+	rep->part[0].has_bad_blocks = 0;
 
 	if (rep->part[0].is_dev_dax)
 		rep->part[0].alignment = util_file_device_dax_alignment(path);
@@ -3060,8 +3062,8 @@ err:
 static int
 util_print_bad_files_cb(struct part_file *pf, void *arg)
 {
-	if (pf->has_bad_blocks)
-		ERR("file contains bad blocks -- '%s'", pf->path);
+	if (!pf->is_remote && pf->part && pf->part->has_bad_blocks)
+		ERR("file contains bad blocks -- '%s'", pf->part->path);
 
 	return 0;
 }
@@ -4024,19 +4026,20 @@ util_poolset_foreach_part_struct(struct pool_set *set,
 	int ret;
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
-		struct part_file part;
+		struct part_file cbdata;
 		if (set->replica[r]->remote) {
-			part.is_remote = 1;
-			part.node_addr = set->replica[r]->remote->node_addr;
-			part.pool_desc = set->replica[r]->remote->pool_desc;
-			ret = (*callback)(&part, arg);
+			cbdata.is_remote = 1;
+			cbdata.remote = set->replica[r]->remote;
+			cbdata.part = NULL;
+			ret = (*callback)(&cbdata, arg);
 			if (ret)
 				return ret;
 		} else {
-			part.is_remote = 0;
+			cbdata.is_remote = 0;
+			cbdata.remote = NULL;
 			for (unsigned p = 0; p < set->replica[r]->nparts; p++) {
-				part.path = set->replica[r]->part[p].path;
-				ret = (*callback)(&part, arg);
+				cbdata.part = &set->replica[r]->part[p];
+				ret = (*callback)(&cbdata, arg);
 				if (ret)
 					return ret;
 			}

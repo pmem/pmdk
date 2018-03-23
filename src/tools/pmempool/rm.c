@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -241,9 +241,10 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 	int *error = (int *)arg;
 	int ret;
 	if (pf->is_remote) {
-		ret = remove_remote(pf->node_addr, pf->pool_desc);
+		ret = remove_remote(pf->remote->node_addr,
+					pf->remote->pool_desc);
 	} else {
-		const char *part_file = pf->path;
+		const char *part_file = pf->part->path;
 
 		outv(2, "part file   : %s\n", part_file);
 
