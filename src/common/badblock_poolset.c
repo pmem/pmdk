@@ -66,7 +66,7 @@ os_badblocks_check_file_cb(struct part_file *pf, void *arg)
 	if (pf->is_remote) { /* XXX not supported yet */
 		LOG(1,
 			"WARNING: checking remote replicas for bad blocks is not supported yet -- '%s:%s'",
-			pf->node_addr, pf->pool_desc);
+			pf->remote->node_addr, pf->remote->pool_desc);
 		return 0;
 	}
 
@@ -142,7 +142,7 @@ os_badblocks_clear_poolset_cb(struct part_file *pf, void *arg)
 	if (pf->is_remote) { /* XXX not supported yet */
 		LOG(1,
 			"WARNING: clearing bad blocks in remote replicas is not supported yet -- '%s:%s'",
-			pf->node_addr, pf->pool_desc);
+			pf->remote->node_addr, pf->remote->pool_desc);
 		return 0;
 	}
 
