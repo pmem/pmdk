@@ -75,7 +75,8 @@ responsibility for flushing stores to persistence will find the
 functions described in this section to be the most commonly used.
 
 The **pmem_is_pmem**() function detects if the entire range
-\[*addr*, *addr*+*len*) consists of persistent memory.
+\[*addr*, *addr*+*len*) consists of persistent memory.  If *len* is zero,
+the result is undefined.
 The implementation of **pmem_is_pmem**() requires a non-trivial amount
 of work to determine if the given range is entirely persistent memory.
 For this reason, it is better to call **pmem_is_pmem**() once when a
