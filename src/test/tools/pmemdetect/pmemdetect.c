@@ -121,7 +121,7 @@ parse_args(int argc, char *argv[])
 				err("'%s' -- invalid alignment", optarg);
 				return -1;
 			}
-			Align = (size_t)align;
+			Align = align;
 			break;
 		case 's':
 			Opts |= MAP_SYNC_SUPP;
