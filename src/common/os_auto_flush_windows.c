@@ -39,49 +39,7 @@
 #include "out.h"
 #include "os.h"
 #include "endian.h"
-
-#define ACPI_SIGNATURE  "ACPI"
-#define NFIT_SIGNATURE "NFIT"
-#define NFIT_SIGNATURE_LEN 4
-
-#define NFIT_SIGNATURE_LEN 4
-#define NFIT_OEM_ID_LEN 6
-#define NFIT_OEM_TABLE_ID_LEN 8
-#define NFIT_MAX_STRUCTURES 8
-
-#define PCS_RESERVED 3
-#define PCS_RESERVED_2 4
-#define PCS_TYPE_NUMBER 7
-
-#define CHECK_BIT(num, bit) (((num) >> (bit)) & 1)
-#define PACK_STRUCT(_structure_) \
-			__pragma(pack(push, 1)) _structure_; __pragma(pack(pop))
-
-PACK_STRUCT(
-struct platform_capabilities
-{
-	uint16_t type;
-	uint16_t length;
-	uint8_t highest_valid;
-	uint8_t reserved[PCS_RESERVED];
-	uint32_t capabilities;
-	uint8_t reserved2[PCS_RESERVED_2];
-})
-
-PACK_STRUCT(
-struct nfit_header
-{
-	char signature[NFIT_SIGNATURE_LEN];
-	unsigned length;
-	unsigned char revision;
-	unsigned char checksum;
-	unsigned char oem_id[NFIT_OEM_ID_LEN];
-	unsigned char oem_table_id[NFIT_OEM_TABLE_ID_LEN];
-	unsigned oem_revision;
-	unsigned char creator_id[4];
-	unsigned creator_revision;
-	unsigned reserved;
-})
+#include "os_auto_flush_windows.h"
 
 /*
  * check_nfit_signature -- (internal) check if string is NFIT signature.
@@ -89,7 +47,7 @@ struct nfit_header
 static int
 check_nfit_signature(const char *str)
 {
-	LOG(3, "check_nfit_signature str %s", str);
+	LOG(15, "check_nfit_signature str %s", str);
 
 	int cmp = strncmp(str, NFIT_SIGNATURE, NFIT_SIGNATURE_LEN);
 	if (cmp == 0)
@@ -101,13 +59,13 @@ check_nfit_signature(const char *str)
 /*
  * is_nfit_available -- (internal) check if platform supports NFIT table.
  */
-static int
+int
 is_nfit_available()
 {
 	LOG(3, "is_nfit_available()");
 
 	DWORD signatures_size;
-	char *signatures;
+	char *signatures = NULL;
 	int is_nfit = 0;
 	DWORD offset = 0;
 
@@ -117,13 +75,14 @@ is_nfit_available()
 		ERR("!EnumSystemFirmwareTables");
 		goto err;
 	}
-	signatures = (char *)malloc(signatures_size);
+	signatures = (char *)malloc(signatures_size + 1);
 	if (signatures == NULL) {
 		ERR("!malloc");
 		goto err;
 	}
 	int ret = EnumSystemFirmwareTables(acpi_dword_be,
 					signatures, signatures_size);
+	signatures[signatures_size] = '\0';
 	if (ret != signatures_size || ret == 0) {
 		ERR("!EnumSystemFirmwareTables");
 		goto err;
@@ -197,16 +156,13 @@ parse_nfit_buffer(unsigned char *nfit_buffer, unsigned long buffer_size,
 	while (offset < buffer_size) {
 		type = *(nfit_buffer + offset);
 		length = *(nfit_buffer + offset + 2);
-		if (type == PCS_TYPE_NUMBER) {
-
+		if (type == PCS_TYPE_NUMBER)
 			if (length == sizeof(struct platform_capabilities)) {
 				memmove(pc, nfit_buffer + offset, length);
 				return;
 			}
-		}
 		offset += length;
 	}
-	pc = NULL;
 }
 
 /*
@@ -216,6 +172,12 @@ int
 os_auto_flush(void)
 {
 	LOG(3, NULL);
+
+	DWORD nfit_buffer_size = 0;
+	DWORD nfit_written = 0;
+	PVOID nfit_buffer = NULL;
+	struct nfit_header nfit_data;
+	struct platform_capabilities *pc = NULL;
 
 	int eADR = 0;
 	int is_nfit = is_nfit_available();
@@ -229,11 +191,6 @@ os_auto_flush(void)
 	DWORD acpi_dword = util_string_to_dword(ACPI_SIGNATURE);
 	DWORD nfit_dword = util_string_to_dword(NFIT_SIGNATURE);
 	DWORD acpi_dword_be = htobe32(acpi_dword);
-	DWORD nfit_buffer_size = 0;
-	DWORD nfit_written = 0;
-	unsigned char *nfit_buffer;
-	struct nfit_header nfit_data;
-	struct platform_capabilities *pc = NULL;
 
 	/* get the entire nfit size */
 	nfit_buffer_size = GetSystemFirmwareTable(acpi_dword_be, nfit_dword,
@@ -270,11 +227,13 @@ os_auto_flush(void)
 	}
 
 	/* read  platform capabilities structure */
-	pc = malloc(sizeof(struct platform_capabilities));
+	pc = calloc(1, sizeof(struct platform_capabilities));
+	if (pc == NULL) {
+		ERR("!calloc");
+		goto err;
+	}
 	parse_nfit_buffer(nfit_buffer, nfit_buffer_size, pc);
-
-	if (pc)
-		eADR = check_capabilities(pc->capabilities);
+	eADR = check_capabilities(pc->capabilities);
 
 	free(pc);
 	free(nfit_buffer);
@@ -283,7 +242,7 @@ not_supported:
 	return eADR;
 
 err:
-	if (nfit_buffer)
+	if (nfit_buffer != NULL)
 		free(nfit_buffer);
 	return -1;
 }
