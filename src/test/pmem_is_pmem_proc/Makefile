@@ -1,6 +1,5 @@
 #
 # Copyright 2014-2018, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,27 +31,40 @@
 #
 
 #
-# src\test\pmem_is_pmem_windows\TEST0 -- unit test for pmem_is_pmem
+# src/test/pmem_is_pmem_proc/Makefile -- build pmem_is_pmem_proc unit test
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
+include ../../common.inc
+ARCH := $(call get_arch)
+TOP = ../../..
+vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/libpmem
+vpath %.c $(TOP)/src/libpmem/$(ARCH)
 
-# standard unit test setup
-. ..\unittest\unittest.ps1
+TARGET = pmem_is_pmem_proc
+OBJS = pmem_is_pmem_proc.o\
+	mmap.o\
+	mmap_posix.o\
+	util.o\
+	util_posix.o\
+	file.o\
+	fs_posix.o\
+	file_posix.o\
+	os_posix.o\
+	out.o\
+	libpmem.o\
+	pmem.o\
+	memops_generic.o\
+	init.o\
+	os_deep_linux.o\
+	os_auto_flush_linux.o
 
-require_fs_type non-pmem
-require_test_type medium
+ifeq ($(ARCH), x86_64)
+OBJS += cpu.o
+endif
 
-setup
+include ../Makefile.inc
 
-create_holey_file 4M $DIR\testfile1
-
-expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem_windows$Env:EXESUFFIX `
-	$DIR\testfile1 nothing
-
-check
-
-pass
+CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
+CFLAGS += -I$(TOP)/src/common
+CFLAGS += -I$(TOP)/src/libpmem
+CFLAGS += -I$(TOP)/src/libpmem/$(ARCH)

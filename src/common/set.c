@@ -394,7 +394,7 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 
 	int prot = rdonly ? PROT_READ : PROT_READ|PROT_WRITE;
 	void *hdrp = util_map_sync(addr, hdrsize, prot, flags,
-			part->fd, 0, &part->hdr_map_sync);
+			part->fd, 0, &part->hdr_mtype);
 	if (hdrp == MAP_FAILED) {
 		ERR("!mmap: %s", part->path);
 		return -1;
@@ -452,7 +452,7 @@ util_map_part(struct pool_set_part *part, void *addr, size_t size,
 
 	int prot = rdonly ? PROT_READ : PROT_READ | PROT_WRITE;
 	void *addrp = util_map_sync(addr, size, prot, flags, part->fd,
-			(os_off_t)offset, &part->map_sync);
+			(os_off_t)offset, &part->mtype);
 	if (addrp == MAP_FAILED) {
 		ERR("!mmap: %s", part->path);
 		return -1;
@@ -1116,24 +1116,25 @@ util_replica_check_map_sync(struct pool_set *set, unsigned repidx,
 
 	struct pool_replica *rep = set->replica[repidx];
 
-	int map_sync = rep->part[0].map_sync;
-
+	enum pmem_map_type mtype = rep->part[0].mtype;
 
 	for (unsigned p = 1; p < rep->nparts; p++) {
-		if (map_sync != rep->part[p].map_sync) {
+		if (mtype != rep->part[p].mtype) {
 			ERR("replica #%u part %u %smapped with MAP_SYNC",
-				repidx, p, rep->part[p].map_sync ? "" : "not");
+				repidx, p,
+				rep->part[p].mtype == PMEM_MAP_DAX
+					? "" : "not");
 			return -1;
 		}
 	}
 
 	if (check_hdr) {
 		for (unsigned p = 0; p < rep->nhdrs; p++) {
-			if (map_sync != rep->part[p].hdr_map_sync) {
+			if (mtype != rep->part[p].hdr_mtype) {
 				ERR("replica #%u part %u header %smapped "
 					"with MAP_SYNC", repidx, p,
-					rep->part[p].hdr_map_sync ?
-					"" : "not");
+					rep->part[p].hdr_mtype == PMEM_MAP_DAX
+						? "" : "not");
 				return -1;
 			}
 		}
@@ -2591,7 +2592,9 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 static inline void
 util_replica_set_is_pmem(struct pool_replica *rep)
 {
-	rep->is_pmem = rep->part[0].is_dev_dax || rep->part[0].map_sync ||
+	rep->is_pmem = rep->part[0].is_dev_dax ||
+		rep->part[0].mtype == PMEM_DEV_DAX || /* XXX: is_dev_dax */
+		rep->part[0].mtype == PMEM_MAP_DAX ||
 		pmem_is_pmem(rep->part[0].addr, rep->resvsize);
 }
 
@@ -3019,8 +3022,8 @@ util_pool_extend(struct pool_set *set, size_t *size, size_t minpartsize)
 		 * new part must be mapped the same way as all the rest
 		 * within a replica
 		 */
-		if (p->map_sync != rep->part[0].map_sync) {
-			if (p->map_sync)
+		if (p->mtype != rep->part[0].mtype) {
+			if (p->mtype == PMEM_MAP_DAX)
 				ERR("new part cannot be mapped with MAP_SYNC");
 			else
 				ERR("new part mapped with MAP_SYNC");

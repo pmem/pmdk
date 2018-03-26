@@ -36,7 +36,6 @@
     <ClCompile Include="..\windows\win_mmap.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\cpu.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\init.c" />
-    <ClCompile Include="pmem_windows.c" />
     <ClCompile Include="..\libpmem\memops_generic.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clflush.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clflushopt.c" />
@@ -137,7 +136,6 @@
     <ClInclude Include="..\common\set.h" />
     <ClInclude Include="..\common\sys_util.h" />
     <ClInclude Include="..\common\uuid.h" />
-    <ClInclude Include="..\windows\include\win_mmap.h" />
     <ClInclude Include="..\..\src\libpmem\x86_64\cpu.h" />
     <ClInclude Include="x86_64\avx.h" />
     <ClInclude Include="x86_64\flush.h" />

@@ -55,7 +55,6 @@ OBJS = pmem_deep_persist.o\
 	fs_posix.o\
 	libpmem.o\
 	pmem.o\
-	pmem_posix.o\
 	uuid.o\
 	$(call osdep, uuid,.o)\
 	pool_hdr.o\

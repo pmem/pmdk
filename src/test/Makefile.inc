@@ -181,8 +181,7 @@ ifeq ($(LIBPMEM), internal-nondebug)
 OBJS +=\
 	$(TOP)/src/nondebug/libpmem/libpmem.o\
 	$(TOP)/src/nondebug/libpmem/memops_generic.o\
-	$(TOP)/src/nondebug/libpmem/pmem.o\
-	$(TOP)/src/nondebug/libpmem/pmem_posix.o
+	$(TOP)/src/nondebug/libpmem/pmem.o
 
 OBJS_MEM = $(SOURCE:.c=.o)
 OBJS += $(addprefix $(TOP)/src/nondebug/libpmem/, ${OBJS_MEM})
@@ -195,8 +194,7 @@ ifeq ($(LIBPMEM), internal-debug)
 OBJS +=\
 	$(TOP)/src/debug/libpmem/libpmem.o\
 	$(TOP)/src/debug/libpmem/memops_generic.o\
-	$(TOP)/src/debug/libpmem/pmem.o\
-	$(TOP)/src/debug/libpmem/pmem_posix.o
+	$(TOP)/src/debug/libpmem/pmem.o
 
 OBJS_MEM = $(SOURCE:.c=.o)
 OBJS += $(addprefix $(TOP)/src/debug/libpmem/, ${OBJS_MEM})

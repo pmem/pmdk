@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,41 +32,32 @@
 #
 
 #
-# src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
+# src/test/pmem_is_pmem_proc/TEST3 -- unit test for pmem_is_pmem
 #
-include ../../common.inc
-ARCH := $(call get_arch)
-TOP = ../../..
-vpath %.c $(TOP)/src/common
-vpath %.c $(TOP)/src/libpmem
-vpath %.c $(TOP)/src/libpmem/$(ARCH)
 
-TARGET = pmem_is_pmem_posix
-OBJS = pmem_is_pmem_posix.o\
-	mmap.o\
-	mmap_posix.o\
-	util.o\
-	util_posix.o\
-	file.o\
-	fs_posix.o\
-	file_posix.o\
-	os_posix.o\
-	out.o\
-	libpmem.o\
-	pmem.o\
-	pmem_posix.o\
-	memops_generic.o\
-	init.o\
-	os_deep_linux.o\
-	os_auto_flush_linux.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-ifeq ($(ARCH), x86_64)
-OBJS += cpu.o
-endif
+require_test_type medium
+require_fs_type none
 
-include ../Makefile.inc
+setup
 
-CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
-CFLAGS += -I$(TOP)/src/common
-CFLAGS += -I$(TOP)/src/libpmem
-CFLAGS += -I$(TOP)/src/libpmem/$(ARCH)
+# empty list - all queries should produce 0
+
+expect_normal_exit ./pmem_is_pmem_proc$EXESUFFIX\
+	t 0x7fff77430000 0x7FFF0000 \
+	t 0x7fff77430000 0x80000000 \
+	t 0x7fff77430000 0x20000 \
+	t 0x7fff77430000 0x10000 \
+	t 0x7fff77440000 0x7FFF0000 \
+	t 0x7fff77440000 0x80000000 \
+	t 0x7fff77440000 8192 \
+	t 0x7fff77480000 10240 \
+	t 0x7fff77440000 0xffffffffffffffff \
+	t 0x7fff77430008 1 \
+	t 0x7fff7743FFF0 32
+
+check
+
+pass

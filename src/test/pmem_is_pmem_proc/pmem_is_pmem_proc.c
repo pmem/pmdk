@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,13 +31,14 @@
  */
 
 /*
- * pmem_is_pmem_posix.c -- Posix specific unit test for pmem_is_pmem()
+ * pmem_is_pmem_proc.c -- unit test for pmem_is_pmem()
  *
- * usage: pmem_is_pmem_posix op addr len [op addr len ...]
+ * usage: pmem_is_pmem_proc op addr len [op addr len ...]
  * where op can be: 'a' (add), 'r' (remove), 't' (test)
  */
 
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include "unittest.h"
 #include "mmap.h"
@@ -48,7 +49,7 @@ str2type(char *str)
 	if (strcmp(str, "DEV_DAX") == 0)
 		return PMEM_DEV_DAX;
 	if (strcmp(str, "MAP_SYNC") == 0)
-		return PMEM_MAP_SYNC;
+		return PMEM_MAP_DAX;
 
 	FATAL("unknown type '%s'", str);
 	return MAX_PMEM_TYPE;
@@ -57,7 +58,7 @@ str2type(char *str)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_is_pmem_posix");
+	START(argc, argv, "pmem_is_pmem_proc");
 
 	if (argc < 4)
 		UT_FATAL("usage: %s op addr len type [op addr len type ...]",
@@ -90,8 +91,9 @@ main(int argc, char *argv[])
 			i += 3;
 			break;
 		case 't':
-			UT_OUT("addr %p len %zu is_pmem %d",
-					addr, len, pmem_is_pmem(addr, len));
+			UT_OUT("addr 0x%" PRIxPTR " len %zu is_pmem %d",
+					(uintptr_t)addr, len,
+					pmem_is_pmem(addr, len));
 			i += 3;
 			break;
 		default:
@@ -101,3 +103,11 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
+
+#ifdef _WIN32
+/*
+ * Since libpmem is linked statically, we need to invoke its ctor/dtor.
+ */
+MSVC_CONSTR(libpmem_init)
+MSVC_DESTR(libpmem_fini)
+#endif

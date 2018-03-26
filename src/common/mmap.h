@@ -50,18 +50,40 @@ extern "C" {
 #include "out.h"
 #include "queue.h"
 #include "os.h"
+#include "os_thread.h"
+
+/* pmem mapping type */
+enum pmem_map_type {
+	PMEM_NO_DAX,	/* not DAX-mapped */
+	PMEM_DEV_DAX,	/* device dax */
+	PMEM_MAP_DAX,	/* mapping with MAP_SYNC flag on Linux */
+			/* or mapping on Windows on DAX filesystem */
+
+	MAX_PMEM_TYPE
+};
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;
 extern char *Mmap_mapfile;
 
 void *util_map_sync(void *addr, size_t len, int proto, int flags, int fd,
-	os_off_t offset, int *map_sync);
+	os_off_t offset, enum pmem_map_type *mtype);
 void *util_map(int fd, size_t len, int flags, int rdonly,
-		size_t req_align, int *map_sync);
+		size_t req_align, enum pmem_map_type *mtype);
 int util_unmap(void *addr, size_t len);
 
 void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
+
+#ifdef _WIN32
+#if (NTDDI_VERSION >= NTDDI_WIN10_RS1)
+typedef BOOL (WINAPI *PQVM)(
+		HANDLE, const void *,
+		enum WIN32_MEMORY_INFORMATION_CLASS, PVOID,
+		SIZE_T, PSIZE_T);
+
+extern PQVM Func_qvmi;
+#endif
+#endif
 
 #ifdef __FreeBSD__
 #define MAP_NORESERVE 0
@@ -97,14 +119,6 @@ void *util_map_tmpfile(const char *dir, size_t size, size_t req_align);
 #define RANGE_RW(addr, len, is_dev_dax) RANGE(addr, len, is_dev_dax, rw)
 #define RANGE_NONE(addr, len, is_dev_dax) RANGE(addr, len, is_dev_dax, none)
 
-/* pmem mapping type */
-enum pmem_map_type {
-	PMEM_DEV_DAX,	/* device dax */
-	PMEM_MAP_SYNC,	/* mapping with MAP_SYNC flag on dax fs */
-
-	MAX_PMEM_TYPE
-};
-
 /*
  * this structure tracks the file mappings outstanding per file handle
  */
@@ -114,6 +128,7 @@ struct map_tracker {
 	uintptr_t end_addr;
 	int region_id;
 	enum pmem_map_type type;
+
 #ifdef _WIN32
 	/* Windows-specific data */
 	HANDLE FileHandle;
@@ -123,6 +138,9 @@ struct map_tracker {
 	size_t FileLen;
 #endif
 };
+
+extern os_rwlock_t Mmap_list_lock;
+extern SORTEDQ_HEAD(map_list_head, map_tracker) Mmap_list;
 
 void util_mmap_init(void);
 void util_mmap_fini(void);
@@ -161,6 +179,8 @@ int util_range_register(const void *addr, size_t len, const char *path,
 int util_range_unregister(const void *addr, size_t len);
 struct map_tracker *util_range_find(uintptr_t addr, size_t len);
 int util_range_is_pmem(const void *addr, size_t len);
+
+int util_is_direct_mapped(uintptr_t begin, uintptr_t end);
 
 #ifdef __cplusplus
 }

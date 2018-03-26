@@ -27,9 +27,6 @@
     <ClCompile Include="..\..\libpmem\libpmem.c" />
     <ClCompile Include="..\..\libpmem\memops_generic.c" />
     <ClCompile Include="..\..\libpmem\pmem.c" />
-    <ClCompile Include="..\..\libpmem\pmem_windows.c">
-      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NTDDI_VERSION=NTDDI_WIN10_RS1;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
     <ClCompile Include="..\..\windows\win_mmap.c" />
     <ClCompile Include="mocks_windows.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>

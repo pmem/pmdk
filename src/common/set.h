@@ -49,12 +49,13 @@ extern "C" {
 #include "vec.h"
 #include "pool_hdr.h"
 #include "librpmem.h"
+#include "mmap.h"
 
 /*
  * pool sets & replicas
  */
 #define POOLSET_HDR_SIG "PMEMPOOLSET"
-#define POOLSET_HDR_SIG_LEN 11	/* does NOT include '\0' */
+#define POOLSET_HDR_SIG_LEN 11		/* does NOT include '\0' */
 
 #define POOLSET_REPLICA_SIG "REPLICA"
 #define POOLSET_REPLICA_SIG_LEN 7	/* does NOT include '\0' */
@@ -106,10 +107,10 @@ struct pool_set_part {
 	void *remote_hdr;	/* allocated header for remote replica */
 	void *hdr;		/* base address of header */
 	size_t hdrsize;		/* size of the header mapping */
-	int hdr_map_sync;	/* header mapped with MAP_SYNC */
+	enum pmem_map_type hdr_mtype;	/* header mapping type */
 	void *addr;		/* base address of the mapping */
 	size_t size;		/* size of the mapping - page aligned */
-	int map_sync;		/* part has been mapped with MAP_SYNC flag */
+	enum pmem_map_type mtype;	/* part mapping type */
 	int rdonly;		/* is set based on compat features, affects */
 				/* the whole poolset */
 	uuid_t uuid;

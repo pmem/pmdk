@@ -1,6 +1,6 @@
+#!/usr/bin/env bash
 #
 # Copyright 2014-2018, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 #
 
 #
-# src\test\pmem_is_pmem_windows\TEST3 -- unit test for pmem_is_pmem
+# src/test/pmem_is_pmem_proc/TEST3 -- unit test for pmem_is_pmem
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -43,15 +43,25 @@ Param(
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_fs_type non-pmem
 require_test_type medium
+require_fs_type none
 
 setup
 
-create_holey_file 4M $DIR\testfile1
+# empty list - all queries should produce 0
 
-expect_normal_exit $ENV:EXE_DIR\pmem_is_pmem_windows$Env:EXESUFFIX `
-	$DIR\testfile1 end
+expect_normal_exit $Env:EXE_DIR\pmem_is_pmem_proc$Env:EXESUFFIX `
+	t 0x7fff77430000 0x7FFF0000 `
+	t 0x7fff77430000 0x80000000 `
+	t 0x7fff77430000 0x20000 `
+	t 0x7fff77430000 0x10000 `
+	t 0x7fff77440000 0x7FFF0000 `
+	t 0x7fff77440000 0x80000000 `
+	t 0x7fff77440000 8192 `
+	t 0x7fff77480000 10240 `
+	t 0x7fff77440000 0xffffffffffffffff `
+	t 0x7fff77430008 1 `
+	t 0x7fff7743FFF0 32
 
 check
 
