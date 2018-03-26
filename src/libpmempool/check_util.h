@@ -124,6 +124,7 @@ typedef struct {
 } location;
 
 /* check steps */
+void check_bad_blocks(PMEMpoolcheck *ppc);
 void check_backup(PMEMpoolcheck *ppc);
 void check_pool_hdr(PMEMpoolcheck *ppc);
 void check_pool_hdr_uuids(PMEMpoolcheck *ppc);
