@@ -127,5 +127,8 @@
     <ClInclude Include="badblock_poolset.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="os_auto_flush_windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
