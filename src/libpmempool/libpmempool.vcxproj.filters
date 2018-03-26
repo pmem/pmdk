@@ -7,6 +7,9 @@
     <ClCompile Include="check.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="check_bad_blocks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="check_backup.c">
       <Filter>Source Files</Filter>
     </ClCompile>
