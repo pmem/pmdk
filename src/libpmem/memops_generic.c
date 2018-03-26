@@ -123,8 +123,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 			for (size_t i = 0; i < cnt; ++i)
 				cdst[i] = csrc[i];
 
-			if (!(flags & PMEM_MEM_NOFLUSH))
-				pmem_flush(cdst, cnt);
+			pmem_flush_flags(cdst, cnt, flags);
 
 			cdst += cnt;
 			csrc += cnt;
@@ -136,8 +135,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 
 		while (len >= 64) {
 			cpy64(dst8, src8);
-			if (!(flags & PMEM_MEM_NOFLUSH))
-				pmem_flush(dst8, 64);
+			pmem_flush_flags(dst8, 64, flags);
 			len -= 64;
 			dst8 += 8;
 			src8 += 8;
@@ -157,8 +155,8 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 		for (size_t i = 0; i < len; ++i)
 			*cdst++ = *csrc++;
 
-		if (remaining && !(flags & PMEM_MEM_NOFLUSH))
-			pmem_flush(cdst - remaining, remaining);
+		if (remaining)
+			pmem_flush_flags(cdst - remaining, remaining, flags);
 	} else {
 		cdst += len;
 		csrc += len;
@@ -174,8 +172,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 
 			for (size_t i = cnt; i > 0; --i)
 				cdst[i - 1] = csrc[i - 1];
-			if (!(flags & PMEM_MEM_NOFLUSH))
-				pmem_flush(cdst, cnt);
+			pmem_flush_flags(cdst, cnt, flags);
 		}
 
 		uint64_t *dst8 = (uint64_t *)cdst;
@@ -183,8 +180,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 
 		while (len >= 64) {
 			cpy64(dst8, src8);
-			if (!(flags & PMEM_MEM_NOFLUSH))
-				pmem_flush(dst8, 64);
+			pmem_flush_flags(dst8, 64, flags);
 			len -= 64;
 			dst8 -= 8;
 			src8 -= 8;
@@ -204,8 +200,8 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 		for (size_t i = len; i > 0; --i)
 			*--cdst = *--csrc;
 
-		if (remaining && !(flags & PMEM_MEM_NOFLUSH))
-			pmem_flush(cdst, remaining);
+		if (remaining)
+			pmem_flush_flags(cdst, remaining, flags);
 	}
 
 	return dst;
@@ -231,8 +227,7 @@ memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags)
 
 		for (size_t i = 0; i < cnt; ++i)
 			cdst[i] = (char)c;
-		if (!(flags & PMEM_MEM_NOFLUSH))
-			pmem_flush(cdst, cnt);
+		pmem_flush_flags(cdst, cnt, flags);
 
 		cdst += cnt;
 		len -= cnt;
@@ -253,8 +248,7 @@ memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags)
 		store8(&dst8[5], tmp);
 		store8(&dst8[6], tmp);
 		store8(&dst8[7], tmp);
-		if (!(flags & PMEM_MEM_NOFLUSH))
-			pmem_flush(dst8, 64);
+		pmem_flush_flags(dst8, 64, flags);
 		len -= 64;
 		dst8 += 8;
 	}
@@ -271,7 +265,7 @@ memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags)
 	for (size_t i = 0; i < len; ++i)
 		*cdst++ = (char)c;
 
-	if (remaining && !(flags & PMEM_MEM_NOFLUSH))
-		pmem_flush(cdst - remaining, remaining);
+	if (remaining)
+		pmem_flush_flags(cdst - remaining, remaining, flags);
 	return dst;
 }

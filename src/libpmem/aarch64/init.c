@@ -50,8 +50,7 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
 			flags);
 
 	memmove(pmemdest, src, len);
-	if (!(flags & PMEM_MEM_NOFLUSH))
-		pmem_flush(pmemdest, len);
+	pmem_flush_flags(pmemdest, len, flags);
 	return pmemdest;
 }
 
@@ -65,8 +64,7 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags)
 			flags);
 
 	memset(pmemdest, c, len);
-	if (!(flags & PMEM_MEM_NOFLUSH))
-		pmem_flush(pmemdest, len);
+	pmem_flush_flags(pmemdest, len, flags);
 	return pmemdest;
 }
 
