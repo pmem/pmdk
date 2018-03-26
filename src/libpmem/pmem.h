@@ -37,6 +37,7 @@
 #define PMEM_H
 
 #include <stddef.h>
+#include "libpmem.h"
 #include "util.h"
 
 #define PMEM_LOG_PREFIX "libpmem"
@@ -82,6 +83,16 @@ flush_empty_nolog(const void *addr, size_t len)
 static force_inline void
 flush64b_empty(const char *addr)
 {
+}
+
+/*
+ * pmem_flush_flags -- internal wrapper around pmem_flush
+ */
+static inline void
+pmem_flush_flags(const void *addr, size_t len, unsigned flags)
+{
+	if (!(flags & PMEM_MEM_NOFLUSH))
+		pmem_flush(addr, len);
 }
 
 void *memmove_nodrain_generic(void *pmemdest, const void *src, size_t len,
