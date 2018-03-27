@@ -76,6 +76,10 @@ palloc_reserve(struct palloc_heap *heap, size_t size,
 	struct pobj_action *act);
 
 void
+palloc_defer_free(struct palloc_heap *heap, uint64_t off,
+	struct pobj_action *act);
+
+void
 palloc_cancel(struct palloc_heap *heap,
 	struct pobj_action *actv, int actvcnt);
 
