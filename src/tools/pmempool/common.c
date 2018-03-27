@@ -521,7 +521,7 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	os_close(fd);
 
 	/* read the pool header from first pool set file */
-	const char *part0_path = PART(REP(set, 0), 0).path;
+	const char *part0_path = PART(REP(set, 0), 0)->path;
 	struct pool_hdr hdr;
 	if (util_file_pread(part0_path, &hdr, sizeof(hdr), 0) !=
 			sizeof(hdr)) {

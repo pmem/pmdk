@@ -113,7 +113,7 @@ int
 replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 {
 	LOG(3, "set %p, repn %u, partn %u", set, repn, partn);
-	struct pool_set_part *part = &PART(REP(set, repn), partn);
+	struct pool_set_part *part = PART(REP(set, repn), partn);
 	if (part->fd != -1) {
 		os_close(part->fd);
 		part->fd = -1;
@@ -218,8 +218,9 @@ int
 replica_is_part_broken(unsigned repn, unsigned partn,
 		struct poolset_health_status *set_hs)
 {
-	return (REP(set_hs, repn)->flags & IS_BROKEN) ||
-			(PART(REP(set_hs, repn), partn) & IS_BROKEN);
+	struct replica_health_status *rhs = REP_HEALTH(set_hs, repn);
+	return (rhs->flags & IS_BROKEN) ||
+		(PART_HEALTH(rhs, partn) & IS_BROKEN);
 }
 
 /*
@@ -229,7 +230,7 @@ int
 replica_is_replica_broken(unsigned repn, struct poolset_health_status *set_hs)
 {
 	LOG(3, "repn %u, set_hs %p", repn, set_hs);
-	struct replica_health_status *r_hs = REP(set_hs, repn);
+	struct replica_health_status *r_hs = REP_HEALTH(set_hs, repn);
 	if (r_hs->flags & IS_BROKEN)
 		return 1;
 
@@ -248,7 +249,7 @@ int
 replica_is_replica_consistent(unsigned repn,
 		struct poolset_health_status *set_hs)
 {
-	return !(REP(set_hs, repn)->flags & IS_INCONSISTENT);
+	return !(REP_HEALTH(set_hs, repn)->flags & IS_INCONSISTENT);
 }
 
 /*
@@ -297,7 +298,7 @@ unsigned
 replica_find_unbroken_part(unsigned repn, struct poolset_health_status *set_hs)
 {
 	LOG(3, "repn %u, set_hs %p", repn, set_hs);
-	for (unsigned p = 0; p < REP(set_hs, repn)->nhdrs; ++p) {
+	for (unsigned p = 0; p < REP_HEALTH(set_hs, repn)->nhdrs; ++p) {
 		if (!replica_is_part_broken(repn, p, set_hs))
 			return p;
 	}
@@ -503,7 +504,7 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = REP(set, r);
-		struct replica_health_status *rep_hs = REP(set_hs, r);
+		struct replica_health_status *rep_hs = REP_HEALTH(set_hs, r);
 
 		if (rep->remote)
 			continue;
@@ -552,7 +553,7 @@ check_badblocks(struct pool_set *set, struct poolset_health_status *set_hs)
 			continue;
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			const char *path = PART(rep, p).path;
+			const char *path = PART(rep, p)->path;
 
 			int exists = os_access(path, F_OK) == 0;
 			if (!exists)
@@ -603,7 +604,7 @@ check_shutdown_state(struct pool_set *set,
 		struct shutdown_state curr_sds;
 		shutdown_state_init(&curr_sds, NULL);
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			shutdown_state_add_part(&curr_sds, PART(rep, p).path,
+			shutdown_state_add_part(&curr_sds, PART(rep, p)->path,
 				NULL);
 		}
 		/* make a copy of sds as we shouldn't modify a pool */
@@ -739,7 +740,7 @@ check_replica_options(struct pool_set *set, unsigned repn,
 {
 	LOG(3, "set %p, repn %u, set_hs %p", set, repn, set_hs);
 	struct pool_replica *rep = REP(set, repn);
-	struct replica_health_status *rep_hs = REP(set_hs, repn);
+	struct replica_health_status *rep_hs = REP_HEALTH(set_hs, repn);
 	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		/* skip broken parts */
 		if (replica_is_part_broken(repn, p, set_hs))
@@ -886,7 +887,7 @@ check_uuids_between_replicas(struct pool_set *set,
 		/* get uuids of the two adjacent replicas */
 		uuid_t *rep_uuidp = NULL;
 		uuid_t *rep_n_uuidp = NULL;
-		unsigned r_n = REPNidx(set_hs, r);
+		unsigned r_n = REPN_HEALTHidx(set_hs, r);
 		if (get_replica_uuid(rep, r, set_hs, &rep_uuidp))
 			LOG(2, "cannot get replica uuid, replica %u", r);
 		if (get_replica_uuid(rep_n, r_n, set_hs, &rep_n_uuidp))
@@ -919,7 +920,7 @@ check_uuids_between_replicas(struct pool_set *set,
 		 * check if replica uuids on borders of a broken replica are
 		 * consistent
 		 */
-		unsigned r_nn = REPNidx(set_hs, r_n);
+		unsigned r_nn = REPN_HEALTHidx(set_hs, r_n);
 		if (set->nreplicas > 1 && p != UNDEF_PART &&
 				replica_is_replica_broken(r_n, set_hs) &&
 				replica_is_replica_consistent(r_nn, set_hs)) {
@@ -968,8 +969,8 @@ check_replica_cycles(struct pool_set *set,
 
 		++count_healthy;
 		struct pool_hdr *hdrh =
-			PART(REP(set, first_healthy), 0).hdr;
-		struct pool_hdr *hdr = PART(REP(set, r), 0).hdr;
+			PART(REP(set, first_healthy), 0)->hdr;
+		struct pool_hdr *hdr = PART(REP(set, r), 0)->hdr;
 		if (uuidcmp(hdrh->uuid, hdr->next_repl_uuid) == 0 &&
 			count_healthy < set->nreplicas) {
 			/*
@@ -1143,7 +1144,7 @@ ssize_t
 replica_get_pool_size(struct pool_set *set, unsigned repn)
 {
 	LOG(3, "set %p, repn %u", set, repn);
-	struct pool_set_part *part = &PART(REP(set, repn), 0);
+	struct pool_set_part *part = PART(REP(set, repn), 0);
 	int should_close_part = 0;
 	int should_unmap_part = 0;
 	if (part->fd == -1) {
@@ -1188,7 +1189,7 @@ replica_check_part_sizes(struct pool_set *set, size_t min_size)
 			continue;
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (PART(rep, p).filesize < min_size) {
+			if (PART(rep, p)->filesize < min_size) {
 				ERR("replica %u, part %u: file is too small",
 						r, p);
 				errno = EINVAL;
@@ -1208,7 +1209,7 @@ replica_check_local_part_dir(struct pool_set *set, unsigned repn,
 		unsigned partn)
 {
 	LOG(3, "set %p, repn %u, partn %u", set, repn, partn);
-	char *path = Strdup(PART(REP(set, repn), partn).path);
+	char *path = Strdup(PART(REP(set, repn), partn)->path);
 	const char *dir = dirname(path);
 	os_stat_t sb;
 	if (os_stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {

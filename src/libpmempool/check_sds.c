@@ -84,7 +84,7 @@ check_shutdown_state(struct pool_set *set)
 		struct shutdown_state curr_sds;
 		shutdown_state_init(&curr_sds, NULL);
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			shutdown_state_add_part(&curr_sds, PART(rep, p).path,
+			shutdown_state_add_part(&curr_sds, PART(rep, p)->path,
 				NULL);
 		}
 		/* make a copy of sds as we shouldn't modify a pool */
