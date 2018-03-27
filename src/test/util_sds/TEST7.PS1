@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2017-2018, Intel Corporation
 #
@@ -32,11 +31,11 @@
 #
 
 #
-# src/test/util_sds/TEST6 -- unittest for shutdown state
+# src/test/util_sds/TEST7 -- unittest for shutdown state
 #
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.PS1
 
 require_test_type medium
 
@@ -46,22 +45,23 @@ require_build_type debug
 
 setup
 
-export TEST_LOG_LEVEL=2
-export TEST_LOG_FILE=./test$UNITTEST_NUM.log
+$Env:TEST_LOG_LEVEL=2
+$Env:TEST_LOG_FILE=".\test$Env:UNITTEST_NUM.log"
 
 # fail after an open flag is set
-expect_normal_exit ./util_sds 1 5 \
-				   $DIR/testfile1 5 0 \
-				   $DIR/testfile2 7 0 \
-				   $DIR/testfile3 9 0
+expect_normal_exit $Env:EXE_DIR\util_sds 1 5 `
+				   $DIR\testfile1 5 0 `
+				   $DIR\testfile2 7 0 `
+				   $DIR\testfile3 9 0
 
-# files was moved to another dimm
-expect_abnormal_exit ./util_sds 0 0 \
-				   $DIR/testfile1 15 0 \
-				   $DIR/testfile2 73 0 \
-				   $DIR/testfile3 49 0
+# ADR failure - USC was incremented
+expect_abnormal_exit $Env:EXE_DIR\util_sds 0 0 `
+				   $DIR\testfile1 3 0 `
+				   $DIR\testfile2 7 1 `
+				   $DIR\testfile3 9 0
 
-grep "shutdown_state_check" test$UNITTEST_NUM.log > grep$UNITTEST_NUM.log || true
+Get-Content test$Env:UNITTEST_NUM.log | Where-Object {$_ -match 'shutdown_state_check'} > grep$Env:UNITTEST_NUM.log
+
 
 check
 
