@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,30 +31,64 @@
  */
 
 /*
- * mocks_windows.h -- redefinitions of pmem functions
- *
- * This file is Windows-specific.
- *
- * This file should be included (i.e. using Forced Include) by libpmemobj
- * files, when compiled for the purpose of obj_persist_count test.
- * It would replace default implementation with mocked functions defined
- * in obj_persist_count.c.
- *
- * These defines could be also passed as preprocessor definitions.
+ * obj_mem.c -- simple test for pmemobj_memcpy, pmemobj_memmove and
+ * pmemobj_memset that verifies nothing blows up on pmemobj side.
+ * Real consistency tests are for libpmem.
  */
+#include "unittest.h"
 
-#ifndef WRAP_REAL
-#define pmem_persist __wrap_pmem_persist
-#define pmem_flush __wrap_pmem_flush
-#define pmem_drain __wrap_pmem_drain
-#define pmem_msync __wrap_pmem_msync
-#define pmem_memcpy_persist __wrap_pmem_memcpy_persist
-#define pmem_memcpy_nodrain __wrap_pmem_memcpy_nodrain
-#define pmem_memcpy __wrap_pmem_memcpy
-#define pmem_memmove_persist __wrap_pmem_memmove_persist
-#define pmem_memmove_nodrain __wrap_pmem_memmove_nodrain
-#define pmem_memmove __wrap_pmem_memmove
-#define pmem_memset_persist __wrap_pmem_memset_persist
-#define pmem_memset_nodrain __wrap_pmem_memset_nodrain
-#define pmem_memset __wrap_pmem_memset
-#endif
+static unsigned Flags[] = {
+		0,
+		PMEM_MEM_NODRAIN,
+		PMEM_MEM_NONTEMPORAL,
+		PMEM_MEM_TEMPORAL,
+		PMEM_MEM_NONTEMPORAL | PMEM_MEM_TEMPORAL,
+		PMEM_MEM_NONTEMPORAL | PMEM_MEM_NODRAIN,
+		PMEM_MEM_WC,
+		PMEM_MEM_WB,
+		PMEM_MEM_NOFLUSH,
+		/* all possible flags */
+		PMEM_MEM_NODRAIN | PMEM_MEM_NOFLUSH |
+			PMEM_MEM_NONTEMPORAL | PMEM_MEM_TEMPORAL |
+			PMEM_MEM_WC | PMEM_MEM_WB,
+};
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "obj_mem");
+
+	if (argc != 2)
+		UT_FATAL("usage: %s [directory]", argv[0]);
+
+	PMEMobjpool *pop = pmemobj_create(argv[1], "obj_mem", 0,
+			S_IWUSR | S_IRUSR);
+	if (!pop)
+		UT_FATAL("!pmemobj_create");
+
+	struct root {
+		char c[4096];
+	};
+
+	struct root *r = pmemobj_direct(pmemobj_root(pop, sizeof(struct root)));
+
+	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
+		unsigned f = Flags[i];
+
+		pmemobj_memset(pop, &r->c[0], 0x77, 2048, f);
+
+		pmemobj_memset(pop, &r->c[2048], 0xff, 2048, f);
+
+		pmemobj_memcpy(pop, &r->c[2048 + 7], &r->c[0], 100, f);
+
+		pmemobj_memcpy(pop, &r->c[2048 + 1024], &r->c[0] + 17, 128, f);
+
+		pmemobj_memmove(pop, &r->c[125], &r->c[150], 100, f);
+
+		pmemobj_memmove(pop, &r->c[350], &r->c[325], 100, f);
+	}
+
+	pmemobj_close(pop);
+
+	DONE(NULL);
+}

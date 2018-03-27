@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ;
-; Copyright 2015-2017, Intel Corporation
+; Copyright 2015-2018, Intel Corporation
 ;
 ; Redistribution and use in source and binary forms, with or without
 ; modification, are permitted provided that the following conditions
@@ -114,7 +114,10 @@ EXPORTS
 	pmemobj_tx_free
 	pmemobj_tx_errno
 	pmemobj_tx_lock
+	pmemobj_memcpy
 	pmemobj_memcpy_persist
+	pmemobj_memmove
+	pmemobj_memset
 	pmemobj_memset_persist
 	pmemobj_persist
 	pmemobj_flush
