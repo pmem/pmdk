@@ -73,7 +73,7 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
 **pmem_memmove**(), **pmem_memcpy**() and **pmem_memset**() functions provide
 the same memory copying as their namesakes **memmove**(3), **memcpy**(3) and
 **memset**(3), and ensure that the result has been flushed to persistence before
-returning.
+returning (unless **PMEM_MEM_NOFLUSH** flag was used).
 
 For example, the following code is functionally equivalent to **pmem_memmove**() (with flags equal to 0):
 
@@ -118,10 +118,15 @@ pmem_memcpy(pmemdest2, src2, len2, PMEM_MEM_NODRAIN);
 pmem_drain();
 ```
 
++ **PMEM_MEM_NOFLUSH** - Don't flush anything. This implies **PMEM_MEM_NODRAIN**.
+  Using this flag only makes sense when it's followed by any function that
+  flushes data.
+
 The remaining flags say *how* the operation should be done, and are merely hints.
 
 + **PMEM_MEM_NONTEMPORAL** - Use non-temporal instructions.
   This flag is mutually exclusive with **PMEM_MEM_TEMPORAL**.
+  On x86\_64 this flag is mutually exclusive with **PMEM_MEM_NOFLUSH**.
 
 + **PMEM_MEM_TEMPORAL** - Use temporal instructions.
   This flag is mutually exclusive with **PMEM_MEM_NONTEMPORAL**.
@@ -129,6 +134,7 @@ The remaining flags say *how* the operation should be done, and are merely hints
 + **PMEM_MEM_WC** - Use write combining mode.
   This flag is mutually exclusive with **PMEM_MEM_WB**.
   On x86\_64 this is an alias for **PMEM_MEM_NONTEMPORAL**.
+  On x86\_64 this flag is mutually exclusive with **PMEM_MEM_NOFLUSH**.
 
 + **PMEM_MEM_WB** - Use write back mode.
   This flag is mutually exclusive with **PMEM_MEM_WC**.
