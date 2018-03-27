@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: _MP(RPMEMD, 1)
 collection: rpmemd
 header: PMDK
-date: rpmemd version 1.3
+date: rpmemd version 1.4
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)
