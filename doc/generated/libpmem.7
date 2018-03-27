@@ -212,7 +212,8 @@ The only exceptions are \f[B]pmem_deep_flush\f[](3) and
 Setting this environment variable to 0 forces to always flush CPU caches
 using one of \f[B]CLFLUSH\f[], \f[B]CLFLUSHOPT\f[] or \f[B]CLWB\f[]
 instructions even if \f[B]pmem_has_auto_flush\f[](3) function returns
-true and eADR is supported.
+true and the platform supports flushing the processor caches on power
+loss or system crash.
 .IP \[bu] 2
 \f[B]PMEM_NO_MOVNT\f[]=1
 .PP
