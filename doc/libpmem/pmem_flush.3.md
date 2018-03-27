@@ -60,11 +60,11 @@ date: pmem API version 1.1
 void pmem_persist(const void *addr, size_t len);
 int pmem_msync(const void *addr, size_t len);
 void pmem_flush(const void *addr, size_t len);
-void pmem_deep_flush(const void *addr, size_t len);
-int pmem_deep_drain(const void *addr, size_t len);
-int pmem_deep_persist(const void *addr, size_t len);
+void pmem_deep_flush(const void *addr, size_t len); (EXPERIMENTAL)
+int pmem_deep_drain(const void *addr, size_t len); (EXPERIMENTAL)
+int pmem_deep_persist(const void *addr, size_t len); (EXPERIMENTAL)
 void pmem_drain(void);
-int pmem_has_auto_flush(void);
+int pmem_has_auto_flush(void); (EXPERIMENTAL)
 int pmem_has_hw_drain(void);
 ```
 
