@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: PMEM_FLUSH
 collection: libpmem
 header: PMDK
-date: pmem API version 1.0
+date: pmem API version 1.1
 ...
 
 [comment]: <> (Copyright 2017, Intel Corporation)
@@ -60,11 +60,11 @@ date: pmem API version 1.0
 void pmem_persist(const void *addr, size_t len);
 int pmem_msync(const void *addr, size_t len);
 void pmem_flush(const void *addr, size_t len);
-void pmem_deep_flush(const void *addr, size_t len);
-int pmem_deep_drain(const void *addr, size_t len);
-int pmem_deep_persist(const void *addr, size_t len);
+void pmem_deep_flush(const void *addr, size_t len); (EXPERIMENTAL)
+int pmem_deep_drain(const void *addr, size_t len); (EXPERIMENTAL)
+int pmem_deep_persist(const void *addr, size_t len); (EXPERIMENTAL)
 void pmem_drain(void);
-int pmem_has_auto_flush(void);
+int pmem_has_auto_flush(void); (EXPERIMENTAL)
 int pmem_has_hw_drain(void);
 ```
 
@@ -183,8 +183,9 @@ only to flush the most critical data, which are required to recover after
 the power failure.
 
 The **pmem_has_auto_flush**() function checks if the machine supports automatic
-CPU cache flush on power failure.
-Function returns true only when each NVDIMM supports eADR.
+CPU cache flush on power failure or system crash.
+Function returns true only when each NVDIMM in the system is covered by this
+mechanism.
 
 The **pmem_has_hw_drain**() function checks if the machine
 supports an explicit *hardware drain*
@@ -205,8 +206,8 @@ The **pmem_deep_persist**() and **pmem_deep_drain**() return 0 on success.
 Otherwise it returns -1 and sets *errno* appropriately. If *len* is equal zero
 **pmem_deep_persist**() and **pmem_deep_drain**() return 0 but no flushing take place.
 
-The **pmem_has_auto_flush**() function returns 1 if eADR is supported
-and 0 if eADR is not supported.
+The **pmem_has_auto_flush**() function returns 1 if given platform supports
+processor cache flushing on a power loss event.  Otherwise it returns 0.
 On error it returns -1 and sets *errno* appropriately.
 
 The **pmem_has_hw_drain**() function returns true if the machine
