@@ -63,7 +63,7 @@ int pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num, pmemobj_constr constructor, void *arg);
 int pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num, uint64_t flags, pmemobj_constr constructor,
-	void *arg);
+	void *arg); (EXPERIMENTAL)
 int pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	uint64_t type_num);
 void pmemobj_free(PMEMoid *oidp);
