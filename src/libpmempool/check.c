@@ -58,6 +58,11 @@ struct step {
 static const struct step steps[] = {
 	{
 		.type		= POOL_TYPE_ANY,
+		.func		= check_bad_blocks,
+		.part		= true,
+	},
+	{
+		.type		= POOL_TYPE_ANY,
 		.func		= check_backup,
 		.part		= true,
 	},
