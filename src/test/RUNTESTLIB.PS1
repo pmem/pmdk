@@ -241,6 +241,10 @@ function runtest {
     [Config] $config
     )
 
+    # reset environment variables which can affect test execution
+    $Env:UNITTEST_NAME=$null
+    $Env:PMEM_IS_PMEM_FORCE=$null
+
     if (-Not $Env:UNITTEST_LOG_LEVEL) {
         $Env:UNITTEST_LOG_LEVEL = 1
     }
