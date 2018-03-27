@@ -190,13 +190,6 @@ struct pool_attr {
 	unsigned char arch_flags[POOL_HDR_ARCH_LEN];		/* arch flags */
 };
 
-/* get index of the (r)th replica */
-static inline unsigned
-REPidx(const struct pool_set *set, unsigned r)
-{
-	return (set->nreplicas + r) % set->nreplicas;
-}
-
 /* get index of the (r + 1)th replica */
 static inline unsigned
 REPNidx(const struct pool_set *set, unsigned r)
@@ -211,13 +204,6 @@ REPPidx(const struct pool_set *set, unsigned r)
 	return (set->nreplicas + r - 1) % set->nreplicas;
 }
 
-/* get index of the (r)th part */
-static inline unsigned
-PARTidx(const struct pool_replica *rep, unsigned p)
-{
-	return (rep->nparts + p) % rep->nparts;
-}
-
 /* get index of the (r + 1)th part */
 static inline unsigned
 PARTNidx(const struct pool_replica *rep, unsigned p)
@@ -230,13 +216,6 @@ static inline unsigned
 PARTPidx(const struct pool_replica *rep, unsigned p)
 {
 	return (rep->nparts + p - 1) % rep->nparts;
-}
-
-/* get index of the (r)th part */
-static inline unsigned
-HDRidx(const struct pool_replica *rep, unsigned p)
-{
-	return (rep->nhdrs + p) % rep->nhdrs;
 }
 
 /* get index of the (r + 1)th part */
@@ -257,7 +236,7 @@ HDRPidx(const struct pool_replica *rep, unsigned p)
 static inline struct pool_replica *
 REP(const struct pool_set *set, unsigned r)
 {
-	return set->replica[REPidx(set, r)];
+	return set->replica[r];
 }
 
 /* get (r + 1)th replica */
@@ -278,7 +257,7 @@ REPP(const struct pool_set *set, unsigned r)
 static inline struct pool_set_part *
 PART(struct pool_replica *rep, unsigned p)
 {
-	return &rep->part[PARTidx(rep, p)];
+	return &rep->part[p];
 }
 
 /* get (p + 1)th part */
@@ -299,7 +278,7 @@ PARTP(struct pool_replica *rep, unsigned p)
 static inline struct pool_hdr *
 HDR(struct pool_replica *rep, unsigned p)
 {
-	return (struct pool_hdr *)(rep->part[HDRidx(rep, p)].hdr);
+	return (struct pool_hdr *)(rep->part[p].hdr);
 }
 
 /* get (p + 1)th header */
