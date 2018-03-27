@@ -47,11 +47,11 @@ persistency, store persistent data and delete mappings
 void\ pmem_persist(const\ void\ *addr,\ size_t\ len);
 int\ pmem_msync(const\ void\ *addr,\ size_t\ len);
 void\ pmem_flush(const\ void\ *addr,\ size_t\ len);
-void\ pmem_deep_flush(const\ void\ *addr,\ size_t\ len);
-int\ pmem_deep_drain(const\ void\ *addr,\ size_t\ len);
-int\ pmem_deep_persist(const\ void\ *addr,\ size_t\ len);
+void\ pmem_deep_flush(const\ void\ *addr,\ size_t\ len);\ (EXPERIMENTAL)
+int\ pmem_deep_drain(const\ void\ *addr,\ size_t\ len);\ (EXPERIMENTAL)
+int\ pmem_deep_persist(const\ void\ *addr,\ size_t\ len);\ (EXPERIMENTAL)
 void\ pmem_drain(void);
-int\ pmem_has_auto_flush(void);
+int\ pmem_has_auto_flush(void);\ (EXPERIMENTAL)
 int\ pmem_has_hw_drain(void);
 \f[]
 .fi
@@ -187,8 +187,9 @@ most critical data, which are required to recover after the power
 failure.
 .PP
 The \f[B]pmem_has_auto_flush\f[]() function checks if the machine
-supports automatic CPU cache flush on power failure.
-Function returns true only when each NVDIMM supports eADR.
+supports automatic CPU cache flush on power failure or system crash.
+Function returns true only when each NVDIMM in the system is covered by
+this mechanism.
 .PP
 The \f[B]pmem_has_hw_drain\f[]() function checks if the machine supports
 an explicit \f[I]hardware drain\f[] instruction for persistent memory.
@@ -209,8 +210,9 @@ Otherwise it returns \-1 and sets \f[I]errno\f[] appropriately.
 If \f[I]len\f[] is equal zero \f[B]pmem_deep_persist\f[]() and
 \f[B]pmem_deep_drain\f[]() return 0 but no flushing take place.
 .PP
-The \f[B]pmem_has_auto_flush\f[]() function returns 1 if eADR is
-supported and 0 if eADR is not supported.
+The \f[B]pmem_has_auto_flush\f[]() function returns 1 if given platform
+supports processor cache flushing on a power loss event.
+Otherwise it returns 0.
 On error it returns \-1 and sets \f[I]errno\f[] appropriately.
 .PP
 The \f[B]pmem_has_hw_drain\f[]() function returns true if the machine
