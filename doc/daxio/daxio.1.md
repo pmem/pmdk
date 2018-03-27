@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: _MP(DAXIO, 1)
 collection: daxio
 header: PMDK
-date: daxio version 1.3
+date: daxio version 1.4
 ...
 
 [comment]: <> (Copyright 2018, Intel Corporation)
