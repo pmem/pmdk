@@ -49,7 +49,7 @@ date: pmemobj API version 2.3
 **pmemobj_reserve**(), **pmemobj_xreserve**(), **pmemobj_set_value**(),
 **pmemobj_publish**(), **pmemobj_tx_publish**(), **pmemobj_cancel**(),
 **POBJ_RESERVE_NEW**(), **POBJ_RESERVE_ALLOC**()
--- Delayed atomicity actions
+-- Delayed atomicity actions (EXPERIMENTAL)
 
 
 # SYNOPSIS #
@@ -58,17 +58,19 @@ date: pmemobj API version 2.3
 #include <libpmemobj.h>
 
 PMEMoid pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
-	size_t size, uint64_t type_num);
+	size_t size, uint64_t type_num); (EXPERIMENTAL)
 PMEMoid pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
-	size_t size, uint64_t type_num, uint64_t flags);
+	size_t size, uint64_t type_num, uint64_t flags); (EXPERIMENTAL)
 void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
-	uint64_t *ptr, uint64_t value);
-void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt);
-int pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt);
-pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt);
+	uint64_t *ptr, uint64_t value); (EXPERIMENTAL)
+void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
+	size_t actvcnt); (EXPERIMENTAL)
+int pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt); (EXPERIMENTAL)
+pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv,
+	size_t actvcnt); (EXPERIMENTAL)
 
-POBJ_RESERVE_NEW(pop, t, act)
-POBJ_RESERVE_ALLOC(pop, t, size, act)
+POBJ_RESERVE_NEW(pop, t, act) (EXPERIMENTAL)
+POBJ_RESERVE_ALLOC(pop, t, size, act) (EXPERIMENTAL)
 ```
 
 # DESCRIPTION #

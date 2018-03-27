@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: PMEMOBJ_CTL_GET
 collection: libpmemobj
 header: PMDK
-date: pmemobj API version 2.2
+date: pmemobj API version 2.3
 ...
 
 [comment]: <> (Copyright 2017-2018, Intel Corporation)
@@ -49,7 +49,7 @@ date: pmemobj API version 2.2
 **pmemobj_ctl_get**(),
 **pmemobj_ctl_set**(),
 **pmemobj_ctl_exec**()
--- Query and modify libpmemobj internal behavior
+-- Query and modify libpmemobj internal behavior (EXPERIMENTAL)
 
 
 # SYNOPSIS #

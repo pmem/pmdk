@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: LIBPMEM
 collection: libpmem
 header: PMDK
-date: pmem API version 1.0
+date: pmem API version 1.1
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)
@@ -220,7 +220,8 @@ on Intel hardware. The only exceptions are **pmem_deep_flush**(3) and
 
 Setting this environment variable to 0 forces to always flush CPU caches
 using one of **CLFLUSH**, **CLFLUSHOPT** or **CLWB** instructions
-even if **pmem_has_auto_flush**(3) function returns true and eADR is supported.
+even if **pmem_has_auto_flush**(3) function returns true and the platform
+supports flushing the processor caches on power loss or system crash.
 
 + **PMEM_NO_MOVNT**=1
 

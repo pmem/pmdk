@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: LIBPMEMOBJ
 collection: libpmemobj
 header: PMDK
-date: pmemobj API version 2.2
+date: pmemobj API version 2.3
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)
@@ -115,7 +115,7 @@ manual pages:
 
 + control and statistics: **pmemobj_ctl_get**(3)
 
-+ delayed atomicity actions: **pmemobj_action**(3)
++ delayed atomicity actions: **pmemobj_action**(3) (EXPERIMENTAL)
 
 # DESCRIPTION #
 
