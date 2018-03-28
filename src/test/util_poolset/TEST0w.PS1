@@ -108,10 +108,10 @@ create_poolset $DIR\testset24 ${MIN_POOL_STR}:$DIR\testfile241:x ${MIN_POOL_STR}
 create_poolset $DIR\testset25 ${MIN_POOL_STR}:$DIR\testfile251:z ${MIN_POOL_STR}:$DIR\testfile252:x `
     r 3M:$DIR\testfile253:z # fail - replica too small
 create_poolset $DIR\testset26 ${MIN_POOL_STR}:$DIR\testfile261:z 2M:$DIR\testfile262:z `
-    r 7M:$DIR\testfile263 r 5M:$DIR\testfile264 # pass - pmem\non-pmem
+    r 8M:$DIR\testfile263 r 6M:$DIR\testfile264 # pass - pmem\non-pmem
 
-$_1GB = 1024*1024*1024
-$_5MB = 5 * 1024 * 1024
+$_1GB = 1024 * 1024 * 1024
+$_6MB = 6 * 1024 * 1024
 
 expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX c $MIN_POOL `
     $DIR\testset0 $DIR\testset1 `
@@ -129,7 +129,7 @@ expect_normal_exit $Env:EXE_DIR\util_poolset$Env:EXESUFFIX c $MIN_POOL `
     $DIR\testset22 `
     "-mo:$DIR\testset23" $DIR\testset23 `
     $DIR\testset24 $DIR\testset25 `
-    "-mp:$_5MB" $DIR\testset26
+    "-mp:$_6MB" $DIR\testset26
 
 check_files $DIR\testfile11 `
     $DIR\testfile21 $DIR\testfile22 `

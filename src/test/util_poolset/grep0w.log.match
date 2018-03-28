@@ -20,4 +20,4 @@ file size does not match config: $(nW)testfile152, 4194303 != 4194304
 Non-empty file detected
 Non-empty file detected
 open "$(nW)testset23": Permission denied
-net pool size 3145728 smaller than 4194304
+reservation pool size 3145728 smaller than 4194304
