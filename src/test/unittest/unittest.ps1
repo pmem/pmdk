@@ -636,11 +636,9 @@ function check {
         fail ""
     }
 
-    [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
+    [string]$listing = Get-ChildItem -File | Where-Object {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
-        if (Test-Path $listing) {
-            match $listing
-        }
+		match $listing
     }
 }
 
