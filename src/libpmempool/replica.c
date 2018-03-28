@@ -543,7 +543,7 @@ check_badblocks(struct pool_set *set, struct poolset_health_status *set_hs)
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 
-	for (unsigned r = 0; r < set->nreplicas; ++r) {\
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 
@@ -568,6 +568,7 @@ check_badblocks(struct pool_set *set, struct poolset_health_status *set_hs)
 
 			if (ret > 0) {
 				/* bad blocks were found */
+				rep_hs->part[p] |= IS_BROKEN;
 				rep_hs->flags |= IS_BROKEN;
 			}
 		}
