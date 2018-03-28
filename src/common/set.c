@@ -2237,20 +2237,20 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		hdrp->incompat_features |= POOL_FEAT_SINGLEHDR;
 
 	memcpy(hdrp->poolset_uuid, set->uuid, POOL_HDR_UUID_LEN);
-	memcpy(hdrp->uuid, PART(rep, partidx).uuid, POOL_HDR_UUID_LEN);
+	memcpy(hdrp->uuid, PART(rep, partidx)->uuid, POOL_HDR_UUID_LEN);
 
 	/* link parts */
 	if (set->options & OPTION_SINGLEHDR) {
 		/* next/prev part point to part #0 */
 		ASSERTeq(partidx, 0);
-		memcpy(hdrp->prev_part_uuid, PART(rep, 0).uuid,
+		memcpy(hdrp->prev_part_uuid, PART(rep, 0)->uuid,
 							POOL_HDR_UUID_LEN);
-		memcpy(hdrp->next_part_uuid, PART(rep, 0).uuid,
+		memcpy(hdrp->next_part_uuid, PART(rep, 0)->uuid,
 							POOL_HDR_UUID_LEN);
 	} else {
-		memcpy(hdrp->prev_part_uuid, PARTP(rep, partidx).uuid,
+		memcpy(hdrp->prev_part_uuid, PARTP(rep, partidx)->uuid,
 							POOL_HDR_UUID_LEN);
-		memcpy(hdrp->next_part_uuid, PARTN(rep, partidx).uuid,
+		memcpy(hdrp->next_part_uuid, PARTN(rep, partidx)->uuid,
 							POOL_HDR_UUID_LEN);
 	}
 
@@ -2259,14 +2259,14 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		memcpy(hdrp->prev_repl_uuid, attr->prev_repl_uuid,
 				POOL_HDR_UUID_LEN);
 	} else {
-		memcpy(hdrp->prev_repl_uuid, PART(REPP(set, repidx), 0).uuid,
+		memcpy(hdrp->prev_repl_uuid, PART(REPP(set, repidx), 0)->uuid,
 			POOL_HDR_UUID_LEN);
 	}
 	if (!util_is_zeroed(attr->next_repl_uuid, POOL_HDR_UUID_LEN)) {
 		memcpy(hdrp->next_repl_uuid, attr->next_repl_uuid,
 				POOL_HDR_UUID_LEN);
 	} else {
-		memcpy(hdrp->next_repl_uuid, PART(REPN(set, repidx), 0).uuid,
+		memcpy(hdrp->next_repl_uuid, PART(REPN(set, repidx), 0)->uuid,
 			POOL_HDR_UUID_LEN);
 	}
 
@@ -2293,13 +2293,13 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	if (!set->ignore_sds && partidx == 0 && !rep->remote) {
-		shutdown_state_init(&hdrp->sds, &PART(rep, 0));
+		shutdown_state_init(&hdrp->sds, PART(rep, 0));
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			if (shutdown_state_add_part(&hdrp->sds,
-					PART(rep, p).path, &PART(rep, 0)))
+					PART(rep, p)->path, PART(rep, 0)))
 				return -1;
 		}
-		shutdown_state_set_flag(&hdrp->sds, &PART(rep, 0));
+		shutdown_state_set_flag(&hdrp->sds, PART(rep, 0));
 	}
 
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
@@ -2559,17 +2559,17 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 		shutdown_state_init(&sds, NULL);
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			if (shutdown_state_add_part(&sds,
-					PART(rep, p).path, NULL))
+					PART(rep, p)->path, NULL))
 				return -1;
 		}
 
 		if (shutdown_state_check(&sds, &hdrp->sds,
-				&PART(rep, 0))) {
+				PART(rep, 0))) {
 			errno = EINVAL;
 			return -1;
 		}
 
-		shutdown_state_set_flag(&hdrp->sds, &PART(rep, 0));
+		shutdown_state_set_flag(&hdrp->sds, PART(rep, 0));
 	}
 
 
@@ -2794,7 +2794,7 @@ util_replica_create_local(struct pool_set *set, unsigned repidx, int flags,
 	 * the first replica has to be mapped prior to remote ones so if
 	 * a replica is already mapped skip mapping creation
 	 */
-	if (PART(REP(set, repidx), 0).addr == NULL) {
+	if (PART(REP(set, repidx), 0)->addr == NULL) {
 		if (util_replica_map_local(set, repidx, flags) != 0) {
 			LOG(2, "replica #%u map failed", repidx);
 			return -1;
@@ -2871,7 +2871,7 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 	struct pool_replica *rep = set->replica[repidx];
 
 	if (rep->remote == NULL) {
-		struct pool_set_part *part = &PART(rep, 0);
+		struct pool_set_part *part = PART(rep, 0);
 		if (!set->ignore_sds && part->addr != NULL &&
 				part->size != 0) {
 			/* XXX: DEEP DRAIN */
@@ -3668,20 +3668,20 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 			shutdown_state_init(&sds, NULL);
 			for (unsigned p = 0; p < rep->nparts; p++) {
 				if (shutdown_state_add_part(&sds,
-						PART(rep, p).path, NULL))
+						PART(rep, p)->path, NULL))
 					return -1;
 			}
 
 			ASSERTne(rep->nhdrs, 0);
 			ASSERTne(rep->nparts, 0);
 			if (shutdown_state_check(&sds, &HDR(rep, 0)->sds,
-					&PART(rep, 0))) {
+					PART(rep, 0))) {
 				LOG(2, "ADR failure detected");
 				errno = EINVAL;
 				return -1;
 			}
 			shutdown_state_set_flag(&HDR(rep, 0)->sds,
-				&PART(rep, 0));
+				PART(rep, 0));
 		}
 	}
 	return 0;
