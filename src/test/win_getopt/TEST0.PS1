@@ -39,15 +39,14 @@ Param(
     $DIR = ""
     )
 
-$ERR="stderr$Env:UNITTEST_NUM.log"
-
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-
 require_fs_type none
 
 setup
+
+$ERR="stderr${Env:UNITTEST_NUM}.log"
 
 expect_normal_exit $Env:EXE_DIR\win_getopt$Env:EXESUFFIX nonOption -f -3arg `
 -Barg -b --arg_4=a --arg_G -5 -a -A arg --arg_g -d -1 -e nonOption2 --arg_8 `
