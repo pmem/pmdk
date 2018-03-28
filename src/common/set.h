@@ -46,6 +46,7 @@ extern "C" {
 
 #include <sys/types.h>
 
+#include "out.h"
 #include "vec.h"
 #include "pool_hdr.h"
 #include "librpmem.h"
@@ -194,6 +195,7 @@ struct pool_attr {
 static inline unsigned
 REPidx(const struct pool_set *set, unsigned r)
 {
+	ASSERTne(set->nreplicas, 0);
 	return (set->nreplicas + r) % set->nreplicas;
 }
 
@@ -201,6 +203,7 @@ REPidx(const struct pool_set *set, unsigned r)
 static inline unsigned
 REPNidx(const struct pool_set *set, unsigned r)
 {
+	ASSERTne(set->nreplicas, 0);
 	return (set->nreplicas + r + 1) % set->nreplicas;
 }
 
@@ -208,6 +211,7 @@ REPNidx(const struct pool_set *set, unsigned r)
 static inline unsigned
 REPPidx(const struct pool_set *set, unsigned r)
 {
+	ASSERTne(set->nreplicas, 0);
 	return (set->nreplicas + r - 1) % set->nreplicas;
 }
 
@@ -215,6 +219,7 @@ REPPidx(const struct pool_set *set, unsigned r)
 static inline unsigned
 PARTidx(const struct pool_replica *rep, unsigned p)
 {
+	ASSERTne(rep->nparts, 0);
 	return (rep->nparts + p) % rep->nparts;
 }
 
@@ -222,6 +227,7 @@ PARTidx(const struct pool_replica *rep, unsigned p)
 static inline unsigned
 PARTNidx(const struct pool_replica *rep, unsigned p)
 {
+	ASSERTne(rep->nparts, 0);
 	return (rep->nparts + p + 1) % rep->nparts;
 }
 
@@ -229,6 +235,7 @@ PARTNidx(const struct pool_replica *rep, unsigned p)
 static inline unsigned
 PARTPidx(const struct pool_replica *rep, unsigned p)
 {
+	ASSERTne(rep->nparts, 0);
 	return (rep->nparts + p - 1) % rep->nparts;
 }
 
@@ -236,6 +243,7 @@ PARTPidx(const struct pool_replica *rep, unsigned p)
 static inline unsigned
 HDRidx(const struct pool_replica *rep, unsigned p)
 {
+	ASSERTne(rep->nhdrs, 0);
 	return (rep->nhdrs + p) % rep->nhdrs;
 }
 
@@ -243,6 +251,7 @@ HDRidx(const struct pool_replica *rep, unsigned p)
 static inline unsigned
 HDRNidx(const struct pool_replica *rep, unsigned p)
 {
+	ASSERTne(rep->nhdrs, 0);
 	return (rep->nhdrs + p + 1) % rep->nhdrs;
 }
 
@@ -250,6 +259,7 @@ HDRNidx(const struct pool_replica *rep, unsigned p)
 static inline unsigned
 HDRPidx(const struct pool_replica *rep, unsigned p)
 {
+	ASSERTne(rep->nhdrs, 0);
 	return (rep->nhdrs + p - 1) % rep->nhdrs;
 }
 

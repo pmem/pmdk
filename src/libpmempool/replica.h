@@ -88,6 +88,7 @@ struct poolset_health_status {
 static inline unsigned
 REP_HEALTHidx(struct poolset_health_status *set, unsigned r)
 {
+	ASSERTne(set->nreplicas, 0);
 	return (set->nreplicas + r) % set->nreplicas;
 }
 
@@ -95,6 +96,7 @@ REP_HEALTHidx(struct poolset_health_status *set, unsigned r)
 static inline unsigned
 REPN_HEALTHidx(struct poolset_health_status *set, unsigned r)
 {
+	ASSERTne(set->nreplicas, 0);
 	return (set->nreplicas + r + 1) % set->nreplicas;
 }
 
@@ -102,6 +104,7 @@ REPN_HEALTHidx(struct poolset_health_status *set, unsigned r)
 static inline unsigned
 PART_HEALTHidx(struct replica_health_status *rep, unsigned p)
 {
+	ASSERTne(rep->nparts, 0);
 	return (rep->nparts + p) % rep->nparts;
 }
 
