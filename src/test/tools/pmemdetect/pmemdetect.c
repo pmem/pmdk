@@ -278,12 +278,14 @@ supports_map_sync(const char *path)
 	void *addr = mmap(NULL, size, PROT_READ|PROT_WRITE,
 		MAP_SHARED|MAP_SYNC|MAP_SHARED_VALIDATE, fd, 0);
 
-	if (addr == MAP_FAILED &&
-		!(errno == EOPNOTSUPP || errno == EINVAL)) {
+	if (addr != MAP_FAILED) {
+		ret = 1;
+	} else if (addr == MAP_FAILED &&
+		(errno == EOPNOTSUPP || errno == EINVAL)) {
+		ret = 0;
+	} else {
 		err("mmap: %s\n", strerror(errno));
 		ret = -1;
-	} else {
-		ret = 0;
 	}
 
 	os_close(fd);
