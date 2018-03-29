@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,15 +32,22 @@
 #
 
 #
-# src/test/blk_include/TEST0 - if it compiles it's perfect
+# src/test/obj_mem/TEST1 -- test for pmemobj_memcpy, pmemobj_memmove
+# and pmemobj_memset
 #
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_test_type short
-require_fs_type none
+require_test_type medium
+configure_valgrind memcheck force-enable
 
 setup
+
+create_poolset $DIR/poolset1 16M:$DIR/testfile1:z
+expect_normal_exit ./obj_mem$EXESUFFIX $DIR/poolset1
+
+create_poolset $DIR/poolset2 16M:$DIR/testfile2:z r 16M:$DIR/testfile3:z
+expect_normal_exit ./obj_mem$EXESUFFIX $DIR/poolset2
 
 pass

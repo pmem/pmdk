@@ -46,6 +46,7 @@ extern "C" {
 
 #include <sys/types.h>
 
+#include "out.h"
 #include "vec.h"
 #include "pool_hdr.h"
 #include "librpmem.h"
@@ -191,49 +192,139 @@ struct pool_attr {
 };
 
 /* get index of the (r)th replica */
-#define REPidx(set, r) (((set)->nreplicas + (r)) % (set)->nreplicas)
+static inline unsigned
+REPidx(const struct pool_set *set, unsigned r)
+{
+	ASSERTne(set->nreplicas, 0);
+	return (set->nreplicas + r) % set->nreplicas;
+}
+
 /* get index of the (r + 1)th replica */
-#define REPNidx(set, r) (((set)->nreplicas + (r) + 1) % (set)->nreplicas)
+static inline unsigned
+REPNidx(const struct pool_set *set, unsigned r)
+{
+	ASSERTne(set->nreplicas, 0);
+	return (set->nreplicas + r + 1) % set->nreplicas;
+}
+
 /* get index of the (r - 1)th replica */
-#define REPPidx(set, r) (((set)->nreplicas + (r) - 1) % (set)->nreplicas)
+static inline unsigned
+REPPidx(const struct pool_set *set, unsigned r)
+{
+	ASSERTne(set->nreplicas, 0);
+	return (set->nreplicas + r - 1) % set->nreplicas;
+}
 
 /* get index of the (r)th part */
-#define PARTidx(rep, p) (((rep)->nparts + (p)) % (rep)->nparts)
+static inline unsigned
+PARTidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nparts, 0);
+	return (rep->nparts + p) % rep->nparts;
+}
+
 /* get index of the (r + 1)th part */
-#define PARTNidx(rep, p) (((rep)->nparts + (p) + 1) % (rep)->nparts)
+static inline unsigned
+PARTNidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nparts, 0);
+	return (rep->nparts + p + 1) % rep->nparts;
+}
+
 /* get index of the (r - 1)th part */
-#define PARTPidx(rep, p) (((rep)->nparts + (p) - 1) % (rep)->nparts)
+static inline unsigned
+PARTPidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nparts, 0);
+	return (rep->nparts + p - 1) % rep->nparts;
+}
 
 /* get index of the (r)th part */
-#define HDRidx(rep, p) (((rep)->nhdrs + (p)) % (rep)->nhdrs)
+static inline unsigned
+HDRidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nhdrs, 0);
+	return (rep->nhdrs + p) % rep->nhdrs;
+}
+
 /* get index of the (r + 1)th part */
-#define HDRNidx(rep, p) (((rep)->nhdrs + (p) + 1) % (rep)->nhdrs)
+static inline unsigned
+HDRNidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nhdrs, 0);
+	return (rep->nhdrs + p + 1) % rep->nhdrs;
+}
+
 /* get index of the (r - 1)th part */
-#define HDRPidx(rep, p) (((rep)->nhdrs + (p) - 1) % (rep)->nhdrs)
+static inline unsigned
+HDRPidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nhdrs, 0);
+	return (rep->nhdrs + p - 1) % rep->nhdrs;
+}
 
 /* get (r)th replica */
-#define REP(set, r)\
-	((set)->replica[REPidx(set, r)])
+static inline struct pool_replica *
+REP(const struct pool_set *set, unsigned r)
+{
+	return set->replica[REPidx(set, r)];
+}
+
 /* get (r + 1)th replica */
-#define REPN(set, r)\
-	((set)->replica[REPNidx(set, r)])
+static inline struct pool_replica *
+REPN(const struct pool_set *set, unsigned r)
+{
+	return set->replica[REPNidx(set, r)];
+}
+
 /* get (r - 1)th replica */
-#define REPP(set, r)\
-	((set)->replica[REPPidx(set, r)])
+static inline struct pool_replica *
+REPP(const struct pool_set *set, unsigned r)
+{
+	return set->replica[REPPidx(set, r)];
+}
 
-#define PART(rep, p)\
-	((rep)->part[PARTidx(rep, p)])
-#define PARTN(rep, p)\
-	((rep)->part[PARTNidx(rep, p)])
-#define PARTP(rep, p)\
-	((rep)->part[PARTPidx(rep, p)])
+/* get (p)th part */
+static inline struct pool_set_part *
+PART(struct pool_replica *rep, unsigned p)
+{
+	return &rep->part[PARTidx(rep, p)];
+}
 
-#define HDR(rep, p)\
-	((struct pool_hdr *)(((rep)->part[HDRidx(rep, p)]).hdr))
-#define HDRN(rep, p)\
-	((struct pool_hdr *)(((rep)->part[HDRNidx(rep, p)]).hdr))
-#define HDRP(rep, p)\
-	((struct pool_hdr *)(((rep)->part[HDRPidx(rep, p)]).hdr))
+/* get (p + 1)th part */
+static inline struct pool_set_part *
+PARTN(struct pool_replica *rep, unsigned p)
+{
+	return &rep->part[PARTNidx(rep, p)];
+}
+
+/* get (p - 1)th part */
+static inline struct pool_set_part *
+PARTP(struct pool_replica *rep, unsigned p)
+{
+	return &rep->part[PARTPidx(rep, p)];
+}
+
+/* get (p)th header */
+static inline struct pool_hdr *
+HDR(struct pool_replica *rep, unsigned p)
+{
+	return (struct pool_hdr *)(rep->part[HDRidx(rep, p)].hdr);
+}
+
+/* get (p + 1)th header */
+static inline struct pool_hdr *
+HDRN(struct pool_replica *rep, unsigned p)
+{
+	return (struct pool_hdr *)(rep->part[HDRNidx(rep, p)].hdr);
+}
+
+/* get (p - 1)th header */
+static inline struct pool_hdr *
+HDRP(struct pool_replica *rep, unsigned p)
+{
+	return (struct pool_hdr *)(rep->part[HDRPidx(rep, p)].hdr);
+}
 
 extern int Prefault_at_open;
 extern int Prefault_at_create;

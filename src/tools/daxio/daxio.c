@@ -559,7 +559,7 @@ do_io(struct ndctl_ctx *ndctl_ctx, struct daxio_context *ctx)
 		return -1;
 	}
 
-	ERR("copied %zu bytes to device \"%s\"\n", cnt, ctx->dst.path);
+	ERR("copied %zd bytes to device \"%s\"\n", cnt, ctx->dst.path);
 	return 0;
 
 err:

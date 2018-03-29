@@ -84,6 +84,44 @@ struct poolset_health_status {
 	struct replica_health_status *replica[];
 };
 
+/* get index of the (r)th replica health status */
+static inline unsigned
+REP_HEALTHidx(struct poolset_health_status *set, unsigned r)
+{
+	ASSERTne(set->nreplicas, 0);
+	return (set->nreplicas + r) % set->nreplicas;
+}
+
+/* get index of the (r + 1)th replica health status */
+static inline unsigned
+REPN_HEALTHidx(struct poolset_health_status *set, unsigned r)
+{
+	ASSERTne(set->nreplicas, 0);
+	return (set->nreplicas + r + 1) % set->nreplicas;
+}
+
+/* get (p)th part health status */
+static inline unsigned
+PART_HEALTHidx(struct replica_health_status *rep, unsigned p)
+{
+	ASSERTne(rep->nparts, 0);
+	return (rep->nparts + p) % rep->nparts;
+}
+
+/* get (r)th replica health status */
+static inline struct replica_health_status *
+REP_HEALTH(struct poolset_health_status *set, unsigned r)
+{
+	return set->replica[REP_HEALTHidx(set, r)];
+}
+
+/* get (p)th part health status */
+static inline unsigned
+PART_HEALTH(struct replica_health_status *rep, unsigned p)
+{
+	return rep->part[PART_HEALTHidx(rep, p)];
+}
+
 size_t replica_get_part_data_len(struct pool_set *set_in, unsigned repn,
 		unsigned partn);
 uint64_t replica_get_part_data_offset(struct pool_set *set_in, unsigned repn,
