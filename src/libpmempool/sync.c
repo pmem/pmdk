@@ -370,9 +370,6 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 					return -1;
 				}
 			} else {
-				if (off + len > poolsize)
-					len = poolsize - off;
-
 				void *src_addr =
 					ADDR_SUM(rep_h->part[0].addr, off);
 
