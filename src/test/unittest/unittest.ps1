@@ -472,6 +472,10 @@ function expect_abnormal_exit {
         }
     }
 
+    # Suppress abort window
+    $prev_abort = $Env:UNITTEST_NO_ABORT_MSG
+    $Env:UNITTEST_NO_ABORT_MSG = 1
+
     # Set $LASTEXITCODE to the value indicating success. It should be
     # overwritten with the exit status of the invoked command.
     # It is to catch the case when the command is not executed (i.e. because
@@ -479,6 +483,7 @@ function expect_abnormal_exit {
     # status of some other command executed before.
     $Global:LASTEXITCODE = 0
     Invoke-Expression "$command $params"
+    $Env:UNITTEST_NO_ABORT_MSG = $prev_abort
     if ($Global:LASTEXITCODE -eq 0) {
         fail "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
     }
@@ -631,11 +636,9 @@ function check {
         fail ""
     }
 
-    [string]$listing = Get-ChildItem -File | Where-Object  {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
+    [string]$listing = Get-ChildItem -File | Where-Object {$_.Name -match "[^0-9]${Env:UNITTEST_NUM}.log.match"}
     if ($listing) {
-        if (Test-Path $listing) {
-            match $listing
-        }
+		match $listing
     }
 }
 

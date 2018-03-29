@@ -39,6 +39,11 @@ VERSION = $(TOP)/.version
 
 export SRCVERSION = $(shell git describe 2>/dev/null ||\
 			cat $(VERSION) 2>/dev/null ||\
-			git log -1 --format=%h 2>/dev/null)
+			git log -1 --format=%h 2>/dev/null ||\
+			(basename `realpath $(TOP)` | sed 's/pmdk[-]*\([0-9a-z.+-]*\).*/\1/'))
+
+ifeq ($(SRCVERSION),)
+$(error Can't evaluate version)
+endif
 
 export OLD_SRCVERSION = $(shell cat $(VERSION) 2>/dev/null)

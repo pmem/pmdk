@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <libgen.h>
 #include <string.h>
+#include <inttypes.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -250,7 +251,8 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 	}
 
 	if (i != m) /* at least one step has been performed */
-		printf("The pool has been converted to version %d\n", i);
+		printf("The pool has been converted to version %" PRIu32 "\n",
+				i);
 
 	util_persist_auto(psf->poolset->replica[0]->part[0].is_dev_dax, pop,
 			psf->size);

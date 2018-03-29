@@ -1776,7 +1776,7 @@ static int
 pmemobjfs_fuse_write(const char *path, const char *buff, size_t size,
 		off_t offset, struct fuse_file_info *fi)
 {
-	log("%s size = %lu off = %lu", path, size, offset);
+	log("%s size = %zu off = %lu", path, size, offset);
 	struct pmemobjfs *objfs = PMEMOBJFS;
 
 	if (!fi->fh)
@@ -1799,7 +1799,7 @@ static int
 pmemobjfs_fuse_read(const char *path, char *buff, size_t size, off_t off,
 		struct fuse_file_info *fi)
 {
-	log("%s size = %lu off = %lu", path, size, off);
+	log("%s size = %zu off = %lu", path, size, off);
 	struct pmemobjfs *objfs = PMEMOBJFS;
 
 	if (!fi->fh)
@@ -2345,7 +2345,7 @@ pmemobjfs_mkfs_main(int argc, char *argv[])
 	}
 
 	if (bsize < PMEMOBJFS_MIN_BLOCK_SIZE) {
-		fprintf(stderr, "error: minimum block size is %lu\n",
+		fprintf(stderr, "error: minimum block size is %zu\n",
 				PMEMOBJFS_MIN_BLOCK_SIZE);
 		return -1;
 	}

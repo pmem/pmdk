@@ -418,7 +418,7 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 		}
 
 		mtb->base_addr = mt->base_addr;
-		mtb->end_addr = (uintptr_t)addr;
+		mtb->end_addr = addr;
 		mtb->region_id = mt->region_id;
 		mtb->type = mt->type;
 	}
