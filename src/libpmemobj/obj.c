@@ -350,27 +350,48 @@ obj_drain_empty(void)
 }
 
 /*
- * obj_nopmem_memcpy_persist -- (internal) memcpy followed by an msync
+ * obj_nopmem_memcpy -- (internal) memcpy followed by an msync
  */
 static void *
-obj_nopmem_memcpy_persist(void *dest, const void *src, size_t len)
+obj_nopmem_memcpy(void *dest, const void *src, size_t len, unsigned flags)
 {
-	LOG(15, "dest %p src %p len %zu", dest, src, len);
+	LOG(15, "dest %p src %p len %zu flags 0x%x", dest, src, len, flags);
 
-	memcpy(dest, src, len);
+	/*
+	 * Use pmem_memcpy instead of memcpy, because pmemobj_memcpy is supposed
+	 * to guarantee that multiple of 8 byte stores to 8 byte aligned
+	 * addresses are fail safe atomic. pmem_memcpy guarantees that, while
+	 * libc memcpy does not.
+	 */
+	pmem_memcpy(dest, src, len, PMEM_MEM_NOFLUSH);
 	pmem_msync(dest, len);
 	return dest;
 }
 
 /*
- * obj_nopmem_memset_persist -- (internal) memset followed by an msync
+ * obj_nopmem_memmove -- (internal) memmove followed by an msync
  */
 static void *
-obj_nopmem_memset_persist(void *dest, int c, size_t len)
+obj_nopmem_memmove(void *dest, const void *src, size_t len, unsigned flags)
 {
-	LOG(15, "dest %p c 0x%02x len %zu", dest, c, len);
+	LOG(15, "dest %p src %p len %zu flags 0x%x", dest, src, len, flags);
 
-	memset(dest, c, len);
+	/* see comment in obj_nopmem_memcpy */
+	pmem_memmove(dest, src, len, PMEM_MEM_NOFLUSH);
+	pmem_msync(dest, len);
+	return dest;
+}
+
+/*
+ * obj_nopmem_memset -- (internal) memset followed by an msync
+ */
+static void *
+obj_nopmem_memset(void *dest, int c, size_t len, unsigned flags)
+{
+	LOG(15, "dest %p c 0x%02x len %zu flags 0x%x", dest, c, len, flags);
+
+	/* see comment in obj_nopmem_memcpy */
+	pmem_memset(dest, c, len, PMEM_MEM_NOFLUSH);
 	pmem_msync(dest, len);
 	return dest;
 }
@@ -405,28 +426,44 @@ obj_remote_persist(PMEMobjpool *pop, const void *addr, size_t len,
  */
 
 /*
- * obj_norep_memcpy_persist -- (internal) memcpy w/o replication
+ * obj_norep_memcpy -- (internal) memcpy w/o replication
  */
 static void *
-obj_norep_memcpy_persist(void *ctx, void *dest, const void *src,
-	size_t len)
+obj_norep_memcpy(void *ctx, void *dest, const void *src, size_t len,
+		unsigned flags)
 {
 	PMEMobjpool *pop = ctx;
-	LOG(15, "pop %p dest %p src %p len %zu", pop, dest, src, len);
+	LOG(15, "pop %p dest %p src %p len %zu flags 0x%x", pop, dest, src, len,
+			flags);
 
-	return pop->memcpy_persist_local(dest, src, len);
+	return pop->memcpy_local(dest, src, len, flags);
 }
 
 /*
- * obj_norep_memset_persist -- (internal) memset w/o replication
+ * obj_norep_memmove -- (internal) memmove w/o replication
  */
 static void *
-obj_norep_memset_persist(void *ctx, void *dest, int c, size_t len)
+obj_norep_memmove(void *ctx, void *dest, const void *src, size_t len,
+		unsigned flags)
 {
 	PMEMobjpool *pop = ctx;
-	LOG(15, "pop %p dest %p c 0x%02x len %zu", pop, dest, c, len);
+	LOG(15, "pop %p dest %p src %p len %zu flags 0x%x", pop, dest, src, len,
+			flags);
 
-	return pop->memset_persist_local(dest, c, len);
+	return pop->memmove_local(dest, src, len, flags);
+}
+
+/*
+ * obj_norep_memset -- (internal) memset w/o replication
+ */
+static void *
+obj_norep_memset(void *ctx, void *dest, int c, size_t len, unsigned flags)
+{
+	PMEMobjpool *pop = ctx;
+	LOG(15, "pop %p dest %p c 0x%02x len %zu flags 0x%x", pop, dest, c, len,
+			flags);
+
+	return pop->memset_local(dest, c, len, flags);
 }
 
 /*
@@ -483,27 +520,28 @@ obj_handle_remote_persist_error(PMEMobjpool *pop)
 }
 
 /*
- * obj_rep_memcpy_persist -- (internal) memcpy with replication
+ * obj_rep_memcpy -- (internal) memcpy with replication
  */
 static void *
-obj_rep_memcpy_persist(void *ctx, void *dest, const void *src,
-	size_t len)
+obj_rep_memcpy(void *ctx, void *dest, const void *src, size_t len,
+		unsigned flags)
 {
 	PMEMobjpool *pop = ctx;
-	LOG(15, "pop %p dest %p src %p len %zu", pop, dest, src, len);
+	LOG(15, "pop %p dest %p src %p len %zu flags 0x%x", pop, dest, src, len,
+			flags);
 
 	unsigned lane = UINT_MAX;
 
 	if (pop->has_remote_replicas)
 		lane = lane_hold(pop, NULL, LANE_ID);
 
-	void *ret = pop->memcpy_persist_local(dest, src, len);
+	void *ret = pop->memcpy_local(dest, src, len, flags);
 
 	PMEMobjpool *rep = pop->replica;
 	while (rep) {
 		void *rdest = (char *)rep + (uintptr_t)dest - (uintptr_t)pop;
 		if (rep->rpp == NULL) {
-			rep->memcpy_persist_local(rdest, src, len);
+			rep->memcpy_local(rdest, src, len, flags);
 		} else {
 			if (rep->persist_remote(rep, rdest, len, lane) == NULL)
 				obj_handle_remote_persist_error(pop);
@@ -518,26 +556,63 @@ obj_rep_memcpy_persist(void *ctx, void *dest, const void *src,
 }
 
 /*
- * obj_rep_memset_persist -- (internal) memset with replication
+ * obj_rep_memmove -- (internal) memmove with replication
  */
 static void *
-obj_rep_memset_persist(void *ctx, void *dest, int c, size_t len)
+obj_rep_memmove(void *ctx, void *dest, const void *src, size_t len,
+		unsigned flags)
 {
 	PMEMobjpool *pop = ctx;
-	LOG(15, "pop %p dest %p c 0x%02x len %zu", pop, dest, c, len);
+	LOG(15, "pop %p dest %p src %p len %zu flags 0x%x", pop, dest, src, len,
+			flags);
 
 	unsigned lane = UINT_MAX;
 
 	if (pop->has_remote_replicas)
 		lane = lane_hold(pop, NULL, LANE_ID);
 
-	void *ret = pop->memset_persist_local(dest, c, len);
+	void *ret = pop->memmove_local(dest, src, len, flags);
 
 	PMEMobjpool *rep = pop->replica;
 	while (rep) {
 		void *rdest = (char *)rep + (uintptr_t)dest - (uintptr_t)pop;
 		if (rep->rpp == NULL) {
-			rep->memset_persist_local(rdest, c, len);
+			rep->memmove_local(rdest, src, len, flags);
+		} else {
+			if (rep->persist_remote(rep, rdest, len, lane) == NULL)
+				obj_handle_remote_persist_error(pop);
+		}
+		rep = rep->replica;
+	}
+
+	if (pop->has_remote_replicas)
+		lane_release(pop);
+
+	return ret;
+}
+
+/*
+ * obj_rep_memset -- (internal) memset with replication
+ */
+static void *
+obj_rep_memset(void *ctx, void *dest, int c, size_t len, unsigned flags)
+{
+	PMEMobjpool *pop = ctx;
+	LOG(15, "pop %p dest %p c 0x%02x len %zu flags 0x%x", pop, dest, c, len,
+			flags);
+
+	unsigned lane = UINT_MAX;
+
+	if (pop->has_remote_replicas)
+		lane = lane_hold(pop, NULL, LANE_ID);
+
+	void *ret = pop->memset_local(dest, c, len, flags);
+
+	PMEMobjpool *rep = pop->replica;
+	while (rep) {
+		void *rdest = (char *)rep + (uintptr_t)dest - (uintptr_t)pop;
+		if (rep->rpp == NULL) {
+			rep->memset_local(rdest, c, len, flags);
 		} else {
 			if (rep->persist_remote(rep, rdest, len, lane) == NULL)
 				obj_handle_remote_persist_error(pop);
@@ -571,7 +646,7 @@ obj_rep_persist(void *ctx, const void *addr, size_t len)
 	while (rep) {
 		void *raddr = (char *)rep + (uintptr_t)addr - (uintptr_t)pop;
 		if (rep->rpp == NULL) {
-			rep->memcpy_persist_local(raddr, addr, len);
+			rep->memcpy_local(raddr, addr, len, 0);
 		} else {
 			if (rep->persist_remote(rep, raddr, len, lane) == NULL)
 				obj_handle_remote_persist_error(pop);
@@ -603,8 +678,7 @@ obj_rep_flush(void *ctx, const void *addr, size_t len)
 	while (rep) {
 		void *raddr = (char *)rep + (uintptr_t)addr - (uintptr_t)pop;
 		if (rep->rpp == NULL) {
-			memcpy(raddr, addr, len);
-			rep->flush_local(raddr, len);
+			rep->memcpy_local(raddr, addr, len, PMEM_MEM_NODRAIN);
 		} else {
 			if (rep->persist_remote(rep, raddr, len, lane) == NULL)
 				obj_handle_remote_persist_error(pop);
@@ -813,8 +887,8 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 
 	/* zero all lanes */
 	void *lanes_layout = (void *)((uintptr_t)pop + pop->lanes_offset);
-	pmemops_memset_persist(p_ops, lanes_layout, 0,
-				pop->nlanes * sizeof(struct lane_layout));
+	pmemops_memset(p_ops, lanes_layout, 0,
+				pop->nlanes * sizeof(struct lane_layout), 0);
 
 	pop->heap_offset = pop->lanes_offset +
 		pop->nlanes * sizeof(struct lane_layout);
@@ -848,8 +922,8 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	pmemops_persist(p_ops, &pop->conversion_flags,
 		sizeof(pop->conversion_flags));
 
-	pmemops_memset_persist(p_ops, pop->pmem_reserved, 0,
-		sizeof(pop->pmem_reserved));
+	pmemops_memset(p_ops, pop->pmem_reserved, 0,
+		sizeof(pop->pmem_reserved), 0);
 
 	return 0;
 }
@@ -928,14 +1002,16 @@ obj_replica_init_local(PMEMobjpool *rep, int is_pmem, size_t resvsize)
 		rep->persist_local = pmem_persist;
 		rep->flush_local = pmem_flush;
 		rep->drain_local = pmem_drain;
-		rep->memcpy_persist_local = pmem_memcpy_persist;
-		rep->memset_persist_local = pmem_memset_persist;
+		rep->memcpy_local = pmem_memcpy;
+		rep->memmove_local = pmem_memmove;
+		rep->memset_local = pmem_memset;
 	} else {
 		rep->persist_local = (persist_local_fn)pmem_msync;
 		rep->flush_local = (flush_local_fn)pmem_msync;
 		rep->drain_local = obj_drain_empty;
-		rep->memcpy_persist_local = obj_nopmem_memcpy_persist;
-		rep->memset_persist_local = obj_nopmem_memset_persist;
+		rep->memcpy_local = obj_nopmem_memcpy;
+		rep->memmove_local = obj_nopmem_memmove;
+		rep->memset_local = obj_nopmem_memset;
 	}
 
 	return 0;
@@ -976,8 +1052,9 @@ obj_replica_init_remote(PMEMobjpool *rep, struct pool_set *set,
 	rep->persist_local = NULL;
 	rep->flush_local = NULL;
 	rep->drain_local = NULL;
-	rep->memcpy_persist_local = NULL;
-	rep->memset_persist_local = NULL;
+	rep->memcpy_local = NULL;
+	rep->memmove_local = NULL;
+	rep->memset_local = NULL;
 
 	rep->p_ops.remote.read = obj_read_remote;
 	rep->p_ops.remote.ctx = rep->rpp;
@@ -1031,14 +1108,16 @@ obj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 			rep->p_ops.persist = obj_rep_persist;
 			rep->p_ops.flush = obj_rep_flush;
 			rep->p_ops.drain = obj_rep_drain;
-			rep->p_ops.memcpy_persist = obj_rep_memcpy_persist;
-			rep->p_ops.memset_persist = obj_rep_memset_persist;
+			rep->p_ops.memcpy = obj_rep_memcpy;
+			rep->p_ops.memmove = obj_rep_memmove;
+			rep->p_ops.memset = obj_rep_memset;
 		} else {
 			rep->p_ops.persist = obj_norep_persist;
 			rep->p_ops.flush = obj_norep_flush;
 			rep->p_ops.drain = obj_norep_drain;
-			rep->p_ops.memcpy_persist = obj_norep_memcpy_persist;
-			rep->p_ops.memset_persist = obj_norep_memset_persist;
+			rep->p_ops.memcpy = obj_norep_memcpy;
+			rep->p_ops.memmove = obj_norep_memmove;
+			rep->p_ops.memset = obj_norep_memset;
 		}
 		rep->p_ops.base = rep;
 	} else {
@@ -1049,8 +1128,9 @@ obj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 		rep->p_ops.persist = NULL;
 		rep->p_ops.flush = NULL;
 		rep->p_ops.drain = NULL;
-		rep->p_ops.memcpy_persist = NULL;
-		rep->p_ops.memset_persist = NULL;
+		rep->p_ops.memcpy = NULL;
+		rep->p_ops.memmove = NULL;
+		rep->p_ops.memset = NULL;
 
 		rep->p_ops.base = NULL;
 	}
@@ -1590,7 +1670,7 @@ obj_replicas_check_basic(PMEMobjpool *pop)
 		rep = pop->set->replica[r]->part[0].addr;
 		void *dst = (void *)((uintptr_t)rep + pop->lanes_offset);
 		if (rep->rpp == NULL) {
-			rep->memcpy_persist_local(dst, src, len);
+			rep->memcpy_local(dst, src, len, 0);
 		} else {
 			if (rep->persist_remote(rep, dst, len,
 					RLANE_DEFAULT) == NULL)
@@ -2034,7 +2114,7 @@ constructor_alloc_bytype(void *ctx, void *ptr, size_t usable_size, void *arg)
 	struct carg_bytype *carg = arg;
 
 	if (carg->zero_init)
-		pmemops_memset_persist(p_ops, ptr, 0, usable_size);
+		pmemops_memset(p_ops, ptr, 0, usable_size, 0);
 
 	int ret = 0;
 	if (carg->constructor)
@@ -2219,7 +2299,7 @@ constructor_realloc(void *ctx, void *ptr, size_t usable_size, void *arg)
 		size_t grow_len = usable_size - carg->old_size;
 		void *new_data_ptr = (void *)((uintptr_t)ptr + carg->old_size);
 
-		pmemops_memset_persist(p_ops, new_data_ptr, 0, grow_len);
+		pmemops_memset(p_ops, new_data_ptr, 0, grow_len, 0);
 	}
 
 	return 0;
@@ -2361,7 +2441,7 @@ constructor_strdup(PMEMobjpool *pop, void *ptr, void *arg)
 	struct carg_strdup *carg = arg;
 
 	/* copy string */
-	pmemops_memcpy_persist(&pop->p_ops, ptr, carg->s, carg->size);
+	pmemops_memcpy(&pop->p_ops, ptr, carg->s, carg->size, 0);
 
 	return 0;
 }
@@ -2412,7 +2492,7 @@ constructor_wcsdup(PMEMobjpool *pop, void *ptr, void *arg)
 	struct carg_wcsdup *carg = arg;
 
 	/* copy string */
-	pmemops_memcpy_persist(&pop->p_ops, ptr, carg->s, carg->size);
+	pmemops_memcpy(&pop->p_ops, ptr, carg->s, carg->size, 0);
 
 	return 0;
 }
@@ -2496,7 +2576,7 @@ pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 {
 	LOG(15, "pop %p dest %p src %p len %zu", pop, dest, src, len);
 
-	return pmemops_memcpy_persist(&pop->p_ops, dest, src, len);
+	return pmemops_memcpy(&pop->p_ops, dest, src, len, 0);
 }
 
 /*
@@ -2507,7 +2587,45 @@ pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
 {
 	LOG(15, "pop %p dest %p c 0x%02x len %zu", pop, dest, c, len);
 
-	return pmemops_memset_persist(&pop->p_ops, dest, c, len);
+	return pmemops_memset(&pop->p_ops, dest, c, len, 0);
+}
+
+/*
+ * pmemobj_memcpy -- pmemobj version of memcpy
+ */
+void *
+pmemobj_memcpy(PMEMobjpool *pop, void *dest, const void *src, size_t len,
+		unsigned flags)
+{
+	LOG(15, "pop %p dest %p src %p len %zu flags 0x%x", pop, dest, src, len,
+			flags);
+
+	return pmemops_memcpy(&pop->p_ops, dest, src, len, flags);
+}
+
+/*
+ * pmemobj_memmove -- pmemobj version of memmove
+ */
+void *
+pmemobj_memmove(PMEMobjpool *pop, void *dest, const void *src, size_t len,
+		unsigned flags)
+{
+	LOG(15, "pop %p dest %p src %p len %zu flags 0x%x", pop, dest, src, len,
+			flags);
+
+	return pmemops_memmove(&pop->p_ops, dest, src, len, flags);
+}
+
+/*
+ * pmemobj_memset -- pmemobj version of memset
+ */
+void *
+pmemobj_memset(PMEMobjpool *pop, void *dest, int c, size_t len, unsigned flags)
+{
+	LOG(15, "pop %p dest %p c 0x%02x len %zu flags 0x%x", pop, dest, c, len,
+			flags);
+
+	return pmemops_memset(&pop->p_ops, dest, c, len, flags);
 }
 
 /*

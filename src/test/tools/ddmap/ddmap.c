@@ -268,7 +268,7 @@ ddmap_write_from_file(const char *path_in, const char *path_out,
 	data_left = (size_t)file_in_size;
 	tmp_src = src;
 	do {
-		len = MIN(data_left, (size_t)bytes);
+		len = MIN(data_left, bytes);
 		ddmap_write_data(path_out, tmp_src, offset, len);
 		tmp_src += len;
 		data_left -= len;

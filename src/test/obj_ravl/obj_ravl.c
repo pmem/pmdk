@@ -197,7 +197,7 @@ cmpfoo(const void *lhs, const void *rhs)
 	const struct foo *l = lhs;
 	const struct foo *r = rhs;
 
-	return (int)((l->a + l->b + l->c) - (r->a + r->b + r->c));
+	return ((l->a + l->b + l->c) - (r->a + r->b + r->c));
 }
 
 static void

@@ -39,8 +39,9 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+require_build_type debug static-debug
+require_fs_type any
 
-require_build_type debug
 # test causes 5 pmemcheck errors by design
 configure_valgrind pmemcheck force-disable
 setup

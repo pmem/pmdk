@@ -31,6 +31,7 @@ libpmempool -- persistent memory pool management library
 pmempool -- Persistent Memory Pool Management Tool
 librpmem -- remote access to persistent memory (EXPERIMENTAL)
 rpmemd -- remote persistent memory daemon (EXPERIMENTAL)
+daxio -- perform I/O on Device DAX device
 
 These man pages provide the API specification for the corresponding libraries
 and commands in this source tree, so any updates to one should be tested,

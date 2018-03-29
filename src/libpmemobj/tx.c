@@ -277,7 +277,7 @@ constructor_tx_add_range(void *ctx, void *ptr, size_t usable_size, void *arg)
 	/* flush offset and size */
 	pmemops_flush(p_ops, range, sizeof(struct tx_range));
 	/* memcpy data and persist */
-	pmemops_memcpy_persist(p_ops, range->data, src, args->size);
+	pmemops_memcpy(p_ops, range->data, src, args->size, 0);
 
 	VALGRIND_REMOVE_FROM_TX(range, sizeof(struct tx_range) + args->size);
 
@@ -542,7 +542,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct tx_range *range)
 				(char *)txr->begin - (char *)dst_ptr];
 		ASSERT((char *)txr->end >= (char *)txr->begin);
 		size_t size = (size_t)((char *)txr->end - (char *)txr->begin);
-		pmemops_memcpy_persist(&pop->p_ops, txr->begin, src, size);
+		pmemops_memcpy(&pop->p_ops, txr->begin, src, size, 0);
 		Free(txr);
 	}
 }
@@ -607,7 +607,7 @@ tx_abort_recover_range(PMEMobjpool *pop, struct tx *tx, struct tx_range *range)
 {
 	ASSERTeq(tx, NULL);
 	void *ptr = OBJ_OFF_TO_PTR(pop, range->offset);
-	pmemops_memcpy_persist(&pop->p_ops, ptr, range->data, range->size);
+	pmemops_memcpy(&pop->p_ops, ptr, range->data, range->size, 0);
 }
 
 /*
@@ -653,7 +653,7 @@ tx_clear_set_cache_but_first(PMEMobjpool *pop, struct tx_undo_runtime *tx_rt,
 
 	if (sz) {
 		VALGRIND_ADD_TO_TX(cache, sz);
-		pmemops_memset_persist(&pop->p_ops, cache, 0, sz);
+		pmemops_memset(&pop->p_ops, cache, 0, sz, 0);
 		VALGRIND_REMOVE_FROM_TX(cache, sz);
 	}
 
@@ -1643,7 +1643,7 @@ constructor_tx_range_cache(void *ctx, void *ptr, size_t usable_size, void *arg)
 
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
-	pmemops_memset_persist(p_ops, ptr, 0, usable_size);
+	pmemops_memset(p_ops, ptr, 0, usable_size, 0);
 
 	VALGRIND_REMOVE_FROM_TX(ptr, usable_size);
 
@@ -1748,7 +1748,7 @@ pmemobj_tx_add_small(struct tx *tx, struct tx_range_def *args)
 	void *src = OBJ_OFF_TO_PTR(pop, data_offset);
 	VALGRIND_ADD_TO_TX(src, data_size);
 
-	pmemops_memcpy_persist(p_ops, range->data, src, data_size);
+	pmemops_memcpy(p_ops, range->data, src, data_size, 0);
 
 	/* the range is only valid if both size and offset are != 0 */
 	range->size = data_size;

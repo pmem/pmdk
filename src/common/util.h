@@ -461,7 +461,7 @@ char *util_concat_str(const char *s1, const char *s2);
 #elif defined(_MSC_VER)
 #define COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
 /* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
-#define ASSERT_COMPILE_ERROR_ON(cond)
+#define ASSERT_COMPILE_ERROR_ON(cond) do {} while (0)
 #else
 #define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
 #define ASSERT_COMPILE_ERROR_ON(cond) COMPILE_ERROR_ON(cond)
