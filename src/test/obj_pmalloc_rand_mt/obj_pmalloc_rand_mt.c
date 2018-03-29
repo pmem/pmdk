@@ -85,7 +85,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_pmalloc_rand_mt");
 
-	if (argc < 5 && argc > 7)
+	if (argc < 5 || argc > 7)
 		UT_FATAL("usage: %s [file] "
 			"[threads #] [objects #] [object size] "
 			"[iterations (def: 1000000)] [seed (def: time)]",

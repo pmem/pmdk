@@ -145,7 +145,7 @@ pool_set_read_header(const char *fname, struct pool_hdr *hdr)
 		return -1;
 	}
 	/* open the first part set file to read the pool header values */
-	const struct pool_set_part *part = &PART(REP(set, 0), 0);
+	const struct pool_set_part *part = PART(REP(set, 0), 0);
 	int fdp = util_file_open(part->path, NULL, 0, O_RDONLY);
 	if (fdp < 0) {
 		ERR("cannot open poolset part file");
@@ -1018,7 +1018,7 @@ pool_set_type(struct pool_set *set)
 	struct pool_hdr hdr;
 
 	/* open the first part file to read the pool header values */
-	const struct pool_set_part *part = &PART(REP(set, 0), 0);
+	const struct pool_set_part *part = PART(REP(set, 0), 0);
 
 	if (util_file_pread(part->path, &hdr, sizeof(hdr), 0) !=
 			sizeof(hdr)) {

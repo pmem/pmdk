@@ -417,7 +417,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 			}
 			psize = 0;
 		}
-		bench_priv->sets[0] = (const char *)args->fname;
+		bench_priv->sets[0] = args->fname;
 		bench_priv->pop[0] = pmemobj_create(
 			bench_priv->sets[0], LAYOUT_NAME, psize, FILE_MODE);
 		if (bench_priv->pop[0] == NULL) {

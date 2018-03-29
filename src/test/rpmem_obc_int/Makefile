@@ -45,6 +45,9 @@ OBJS = rpmem_obc_int.o\
        rpmem_obc.o rpmem_util.o rpmem_common.o\
        rpmemd_obc.o rpmemd_log.o
 
+BUILD_STATIC_DEBUG=n
+BUILD_STATIC_NONDEBUG=n
+
 LIBPMEMCOMMON=y
 include ../Makefile.inc
 

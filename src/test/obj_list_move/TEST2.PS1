@@ -43,6 +43,7 @@ Param(
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+require_build_type debug
 
 setup
 

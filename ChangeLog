@@ -1,4 +1,67 @@
 
+Thu Mar 29 2018 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
+	* Version 1.4
+	This is the first release of PMDK under a new name.
+	The NVML project has been renamed to PMDK (Persistent Memory
+	Development Kit).  This is only the project/repo name change
+	and it does not affect the names of the PMDK packages.
+	See this blog article for more details on the reasons and
+	impact of the name change:
+	http://pmem.io/2017/12/11/NVML-is-now-PMDK.html
+
+	New features:
+	- common: support for concatenated Device-DAX devices
+	  with 2M/1G alignment
+	- common: add support for MAP_SYNC flag
+	- common: always enable Valgrind instrumentation (#292)
+	- common: pool set options / headerless pools
+	- pmem: add support for "deep flush" operation
+	- rpmem: add rpmem_deep_persist
+	- doc: split man pages and add per-function aliases (#385)
+
+	Optimizations:
+	- pmem: skip CPU cache flushing when eADR is available
+	  (no Windows support yet)
+	- pmem: add AVX512F support in pmem_memcpy/memset (#656)
+
+	Bug fixes:
+	- common: fix library dependencies (#767, RHBZ #1539564)
+	- common: use rpm-config CFLAGS/LDFLAGS when building packages
+	  (#768, RHBZ #1539564)
+	- common: do not unload librpmem on close (#776)
+	- common: fix NULL check in os_fopen (#813)
+	- common: fix missing version in .pc files
+	- obj: fix cancel of huge allocations (#726)
+	- obj: fix error handling in pmemobj_open (#750)
+	- obj: validate pe_offset in pmemobj_list_* APIs (#772)
+	- obj: fix add_range with size == 0 (#781)
+	- log: add check for negative iovcnt (#690)
+	- rpmem: limit maximum number of lanes (#609)
+	- rpmem: change order of memory registration (#655)
+	- rpmem: fix removing remote pools (#721)
+	- pool: fix error handling (#643)
+	- pool: fix sync with switched parts (#730)
+	- pool: fix sync with missing replica (#731)
+	- pool: fix detection of Device DAX size (#805)
+	- pool: fail pmempool_sync if there are no replicas (#816)
+	- benchmark: fix calculating standard deviation (#318)
+	- doc: clarify pmem_is_pmem behavior (#719)
+	- doc: clarify pmemobj_root behavior (#733)
+
+	Experimental features:
+	- common: port PMDK to FreeBSD
+	- common: add experimental suport for aarch64
+	- obj: introduce allocation classes
+	- obj: introduce two-phase heap ops (reserve/publish) (#380, #415)
+	- obj: provide basic heap statistics (#676)
+	- obj: implement run-time pool extending (#382)
+	- cto: add close-to-open persistence library (#192)
+
+	The following features are disabled by default, until
+	ndctl v60.0 is available:
+	- daxio: add utility to perform I/O on Device-DAX
+	- RAS: unsafe shutdown detection/handling
+
 Wed Dec 20 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	* Version 1.3.1

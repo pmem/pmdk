@@ -141,3 +141,10 @@ function ndctl_nfit_test_mount_pmem() {
 	mkdir -p $MOUNT_DIR
 	mount $FULLDEV $MOUNT_DIR
 }
+
+#
+# print_bad_blocks -- print all bad blocks
+#
+function print_bad_blocks {
+	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || echo "No bad blocks found" >> $LOG
+}
