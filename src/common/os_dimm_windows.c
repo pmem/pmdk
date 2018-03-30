@@ -40,6 +40,10 @@
 #include "util.h"
 
 #define GUID_SIZE sizeof("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
+#define UNC_PREFIX "\\\\?\\"
+#define UNC_PREFIX_LEN (sizeof(UNC_PREFIX) - 1 /* \0 */)
+#define VOLUME_PREFIX "\\\\.\\"
+#define VOLUME_PREFIX_LEN (sizeof(VOLUME_PREFIX) - 1 /* \0 */)
 
 /*
  * os_dimm_volume -- returns volume handle
@@ -47,10 +51,18 @@
 static HANDLE
 os_dimm_volume_handle(const char *path)
 {
-	char drive[3]; /* Drive letter + ':' + '\0' */
-	_splitpath(path, drive, NULL, NULL, NULL);
-	char vol[7]; /* "\\\\.\\X:\0" */
-	snprintf(vol, 7, "\\\\.\\%s", drive);
+	LOG(3, "path %s", path);
+	char vol[MAX_PATH] = VOLUME_PREFIX;
+	char *v = vol + VOLUME_PREFIX_LEN;
+
+	if (strncmp(path, UNC_PREFIX, UNC_PREFIX_LEN) == 0) {
+		path += UNC_PREFIX_LEN;
+	}
+	if (!GetVolumePathName(path, v, MAX_PATH - VOLUME_PREFIX_LEN)) {
+		return INVALID_HANDLE_VALUE;
+	}
+
+	vol[strlen(vol) - 1] = '\0'; /* remove trailing \\ */
 	return CreateFileA(vol, 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
 		NULL, OPEN_EXISTING, 0,  NULL);
 }
