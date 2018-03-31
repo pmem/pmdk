@@ -279,7 +279,8 @@ compare_parts(struct pool_set_part *p1, struct pool_set_part *p2)
 	LOG(3, "p1 %p, p2 %p", p1, p2);
 	LOG(4, "p1->path: %s, p1->filesize: %lu", p1->path, p1->filesize);
 	LOG(4, "p2->path: %s, p2->filesize: %lu", p2->path, p2->filesize);
-	return strcmp(p1->path, p2->path) || (p1->filesize != p2->filesize);
+	return ((strcmp(p1->path, p2->path) != 0) ||
+			(p1->filesize != p2->filesize));
 }
 
 /*
@@ -303,8 +304,10 @@ compare_replicas(struct pool_replica *r1, struct pool_replica *r2)
 	}
 	/* both replicas are remote */
 	if (r1->remote != NULL && r2->remote != NULL) {
-		return strcmp(r1->remote->node_addr, r2->remote->node_addr) ||
-			strcmp(r1->remote->pool_desc, r2->remote->pool_desc);
+		return ((strcmp(r1->remote->node_addr,
+				r2->remote->node_addr) != 0) ||
+				(strcmp(r1->remote->pool_desc,
+				r2->remote->pool_desc) != 0));
 	}
 	/* a remote and a local replicas */
 	return 1;

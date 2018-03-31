@@ -954,7 +954,7 @@ obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	}
 
 	if (layout &&
-	    strncmp(pop->layout, layout, PMEMOBJ_MAX_LAYOUT)) {
+	    strncmp(pop->layout, layout, PMEMOBJ_MAX_LAYOUT) != 0) {
 		ERR("wrong layout (\"%s\"), "
 			"pool created with layout \"%s\"",
 			layout, pop->layout);

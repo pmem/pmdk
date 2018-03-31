@@ -177,7 +177,7 @@ cto_descr_check(PMEMctopool *pcp, const char *layout, size_t poolsize)
 {
 	LOG(3, "pcp %p layout \"%s\" poolsize %zu", pcp, layout, poolsize);
 
-	if (layout && strncmp(pcp->layout, layout, PMEMCTO_MAX_LAYOUT)) {
+	if (layout && strncmp(pcp->layout, layout, PMEMCTO_MAX_LAYOUT) != 0) {
 		ERR("wrong layout (\"%s\") pool created with layout \"%s\"",
 			layout, pcp->layout);
 		errno = EINVAL;

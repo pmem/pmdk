@@ -190,7 +190,8 @@ pool_hdr_default_check(PMEMpoolcheck *ppc, location *loc)
 	struct pool_hdr def_hdr;
 	pool_hdr_default(ppc->pool->params.type, &def_hdr);
 
-	if (memcmp(loc->hdr.signature, def_hdr.signature, POOL_HDR_SIG_LEN)) {
+	if (memcmp(loc->hdr.signature, def_hdr.signature,
+		POOL_HDR_SIG_LEN) != 0) {
 		CHECK_ASK(ppc, Q_DEFAULT_SIGNATURE,
 			"%spool_hdr.signature is not valid.|Do you want to set "
 			"it to %.8s?", loc->prefix, def_hdr.signature);

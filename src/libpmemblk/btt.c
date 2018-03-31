@@ -325,12 +325,13 @@ read_info(struct btt *bttp, struct btt_info *infop)
 {
 	LOG(3, "infop %p", infop);
 
-	if (memcmp(infop->sig, Sig, BTTINFO_SIG_LEN)) {
+	if (memcmp(infop->sig, Sig, BTTINFO_SIG_LEN) != 0) {
 		LOG(3, "signature invalid");
 		return 0;
 	}
 
-	if (memcmp(infop->parent_uuid, bttp->parent_uuid, BTTINFO_UUID_LEN)) {
+	if (memcmp(infop->parent_uuid, bttp->parent_uuid,
+						BTTINFO_UUID_LEN) != 0) {
 		LOG(3, "parent UUID mismatch");
 		return 0;
 	}
