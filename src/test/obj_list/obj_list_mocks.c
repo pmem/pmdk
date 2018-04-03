@@ -345,13 +345,15 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(redo_log_store, void, const struct redo_ctx *ctx,
 	struct redo_log *dest,
-	struct redo_log *src, size_t nentries, size_t n)
+	struct redo_log *src, size_t nentries, size_t n,
+	struct redo_next *next)
 	FUNC_MOCK_RUN_DEFAULT {
 		switch (Redo_fail) {
 		case FAIL_AFTER_FINISH:
 			_FUNC_REAL(redo_log_store)(ctx,
 					dest, src,
-					nentries, n);
+					nentries, n,
+					next);
 			DONEW(NULL);
 			break;
 		case FAIL_BEFORE_FINISH:
@@ -360,7 +362,8 @@ FUNC_MOCK(redo_log_store, void, const struct redo_ctx *ctx,
 		default:
 			_FUNC_REAL(redo_log_store)(ctx,
 					dest, src,
-					nentries, n);
+					nentries, n,
+					next);
 			break;
 		}
 

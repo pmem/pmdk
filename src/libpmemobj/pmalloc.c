@@ -50,7 +50,7 @@
 #include "alloc_class.h"
 #include "set.h"
 
-#define PMALLOC_REDO_LOG_EXTEND_SIZE 251 /* 4096 - 16 */
+#define PMALLOC_REDO_LOG_EXTEND_SIZE 256 /* rounded up to a cacheline */
 
 enum pmalloc_operation_type {
 	OPERATION_INTERNAL,

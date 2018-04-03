@@ -587,6 +587,8 @@ tx_flush_range(void *data, void *ctx)
 		pmemops_flush(&pop->p_ops, OBJ_OFF_TO_PTR(pop, range->offset),
 				range->size);
 	}
+	VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, range->offset),
+		range->size);
 }
 
 /*

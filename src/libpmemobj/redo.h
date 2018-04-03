@@ -40,6 +40,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "vec.h"
 #include "pmemops.h"
 
 struct redo_ctx;
@@ -52,18 +53,21 @@ struct redo_log_entry {
 	uint64_t value;
 };
 
-#define REDO_LOG(nentries) {\
+#define REDO_LOG(base_capacity) {\
 	uint64_t checksum;\
+	uint64_t nentries;\
 	uint64_t next;\
 	uint64_t capacity;\
-	uint64_t unused[5];\
-	struct redo_log_entry entries[nentries];\
+	uint64_t unused[4];\
+	struct redo_log_entry entries[base_capacity];\
 }\
 
-#define SIZEOF_REDO_LOG(nentries)\
-(sizeof(struct redo_log) + sizeof(struct redo_log_entry) * (nentries))
+#define SIZEOF_REDO_LOG(base_capacity)\
+(sizeof(struct redo_log) + sizeof(struct redo_log_entry) * (base_capacity))
 
 struct redo_log REDO_LOG(0);
+
+VEC(redo_next, uint64_t);
 
 enum redo_operation_type {
 	REDO_OPERATION_SET	=	0b00,
@@ -83,20 +87,20 @@ void redo_log_config_delete(struct redo_ctx *ctx);
 
 size_t redo_log_capacity(const struct redo_ctx *ctx,
 	struct redo_log *redo, size_t redo_capacity);
+void redo_log_rebuild_next_vec(const struct redo_ctx *ctx,
+	struct redo_log *redo, struct redo_next *next);
 
 int redo_log_reserve(const struct redo_ctx *ctx, struct redo_log *redo,
-	size_t redo_capacity, size_t *new_capacity, redo_extend_fn extend);
+	size_t redo_capacity, size_t *new_capacity, redo_extend_fn extend,
+	struct redo_next *next);
 void redo_log_store(const struct redo_ctx *ctx, struct redo_log *dest,
-	struct redo_log *src, size_t nentries, size_t redo_capacity);
-int redo_log_is_last(const struct redo_log_entry *entry);
+	struct redo_log *src, size_t nentries, size_t redo_capacity,
+	struct redo_next *next);
+void redo_log_clobber(const struct redo_ctx *ctx, struct redo_log *dest,
+	struct redo_next *next);
+void redo_log_process(const struct redo_ctx *ctx, struct redo_log *redo);
 
-struct redo_log_info {
-	size_t nentries;
-	size_t nflags;
-};
-
-struct redo_log_info redo_log_info(const struct redo_ctx *ctx,
-	struct redo_log *redo);
+size_t redo_log_nentries(struct redo_log *redo);
 
 uint64_t redo_log_offset(const struct redo_log_entry *entry);
 enum redo_operation_type redo_log_operation(const struct redo_log_entry *entry);
@@ -108,7 +112,6 @@ void redo_log_entry_create(const void *base,
 void redo_log_entry_apply(void *base, const struct redo_log_entry *e,
 	flush_fn flush);
 
-void redo_log_process(const struct redo_ctx *ctx, struct redo_log *redo);
 void redo_log_recover(const struct redo_ctx *ctx, struct redo_log *redo);
 int redo_log_check(const struct redo_ctx *ctx, struct redo_log *redo);
 
