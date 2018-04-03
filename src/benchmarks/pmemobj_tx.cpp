@@ -45,6 +45,7 @@
 #include "benchmark.hpp"
 #include "file.h"
 #include "libpmemobj.h"
+#include "poolset_util.hpp"
 
 #define LAYOUT_NAME "benchmark"
 #define FACTOR 1.2f
@@ -947,6 +948,9 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 	assert(args->opts != NULL);
 
+	char path[PATH_MAX];
+	strncpy(path, args->fname, PATH_MAX - 1);
+
 	pmembench_set_priv(bench, &obj_bench);
 
 	obj_bench.obj_args = (struct obj_tx_args *)args->opts;
@@ -1028,10 +1032,17 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 		}
 
 		psize = 0;
+	} else if (args->is_dynamic_poolset) {
+		int ret = dynamic_poolset_create(args->fname, psize);
+		if (ret == -1)
+			goto free_all;
+
+		strncpy(path, POOLSET_PATH, PATH_MAX - 1);
+
+		psize = 0;
 	}
 
-	obj_bench.pop =
-		pmemobj_create(args->fname, LAYOUT_NAME, psize, args->fmode);
+	obj_bench.pop = pmemobj_create(path, LAYOUT_NAME, psize, args->fmode);
 	if (obj_bench.pop == NULL) {
 		perror("pmemobj_create");
 		goto free_all;

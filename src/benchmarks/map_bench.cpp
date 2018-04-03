@@ -39,6 +39,7 @@
 #include "file.h"
 #include "os.h"
 #include "os_thread.h"
+#include "poolset_util.hpp"
 
 /* XXX: maps are build as C++ on windows and as C on linux */
 #ifndef _WIN32
@@ -504,6 +505,9 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args);
 	assert(args->opts);
 
+	char path[PATH_MAX];
+	strncpy(path, args->fname, PATH_MAX - 1);
+
 	size_t size_per_key;
 	struct map_bench *map_bench =
 		(struct map_bench *)calloc(1, sizeof(*map_bench));
@@ -558,8 +562,19 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 		map_bench->pool_size = 2 * PMEMOBJ_MIN_POOL;
 	}
 
-	map_bench->pop = pmemobj_create(args->fname, "map_bench",
-					map_bench->pool_size, args->fmode);
+	if (args->is_dynamic_poolset) {
+		int ret = dynamic_poolset_create(args->fname,
+						 map_bench->pool_size);
+		if (ret == -1)
+			goto err_free_bench;
+
+		strncpy(path, POOLSET_PATH, PATH_MAX - 1);
+
+		map_bench->pool_size = 0;
+	}
+
+	map_bench->pop = pmemobj_create(path, "map_bench", map_bench->pool_size,
+					args->fmode);
 	if (!map_bench->pop) {
 		fprintf(stderr, "pmemobj_create: %s\n", pmemobj_errormsg());
 		goto err_free_bench;

@@ -45,6 +45,7 @@
 #include "file.h"
 #include "libpmemlog.h"
 #include "os.h"
+#include "poolset_util.hpp"
 
 /*
  * Size of pool header, pool descriptor
@@ -467,6 +468,10 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != NULL);
 	assert(args->opts != NULL);
 	struct benchmark_info *bench_info;
+
+	char path[PATH_MAX];
+	strncpy(path, args->fname, PATH_MAX - 1);
+
 	struct log_bench *lb =
 		(struct log_bench *)malloc(sizeof(struct log_bench));
 
@@ -502,6 +507,13 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 		lb->psize = PMEMLOG_MIN_POOL;
 
 	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+		if (lb->args->fileio) {
+			fprintf(stderr, "fileio not supported on device dax "
+					"nor poolset\n");
+			ret = -1;
+			goto err_free_lb;
+		}
+
 		if (args->fsize < lb->psize) {
 			fprintf(stderr, "file size too large\n");
 			ret = -1;
@@ -509,19 +521,28 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 		}
 
 		lb->psize = 0;
-	}
+	} else if (args->is_dynamic_poolset) {
+		if (lb->args->fileio) {
+			fprintf(stderr,
+				"fileio not supported with dynamic poolset\n");
+			ret = -1;
+			goto err_free_lb;
+		}
 
-	if (lb->args->fileio && util_file_is_device_dax(args->fname)) {
-		fprintf(stderr, "fileio not supported on device dax\n");
-		ret = -1;
-		goto err_free_lb;
+		ret = dynamic_poolset_create(args->fname, lb->psize);
+		if (ret == -1)
+			goto err_free_lb;
+
+		strncpy(path, POOLSET_PATH, PATH_MAX - 1);
+
+		lb->psize = 0;
 	}
 
 	bench_info = pmembench_get_info(bench);
 
 	if (!lb->args->fileio) {
-		if ((lb->plp = pmemlog_create(args->fname, lb->psize,
-					      args->fmode)) == NULL) {
+		if ((lb->plp = pmemlog_create(path, lb->psize, args->fmode)) ==
+		    NULL) {
 			perror("pmemlog_create");
 			ret = -1;
 			goto err_free_lb;
