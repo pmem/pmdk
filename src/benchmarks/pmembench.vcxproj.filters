@@ -151,6 +151,9 @@
     <ClCompile Include="..\libpmemobj\stats.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="poolset_util.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="clo.hpp">
@@ -172,6 +175,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="benchmark_worker.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="poolset_util.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
