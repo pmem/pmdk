@@ -140,10 +140,10 @@ pvector_reinit(struct pvector_context *ctx)
 }
 
 /*
- * pvector_reset -- resets the runtime state of the vector
+ * pvector_resize -- forcefully changes the runtime state of the vector
  */
 void
-pvector_reset(struct pvector_context *ctx, size_t size)
+pvector_resize(struct pvector_context *ctx, size_t size)
 {
 	ctx->nvalues = size;
 }

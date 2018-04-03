@@ -306,8 +306,8 @@ list_fill_entry_redo_log(PMEMobjpool *pop,
 	uint64_t prev_off_off = args->obj_doffset + PREV_OFF;
 	u64_add_offset(&next_off_off, args->pe_offset);
 	u64_add_offset(&prev_off_off, args->pe_offset);
-	void *next_ptr = (char *)ctx->base + next_off_off;
-	void *prev_ptr = (char *)ctx->base + prev_off_off;
+	void *next_ptr = (char *)pop + next_off_off;
+	void *prev_ptr = (char *)pop + prev_off_off;
 
 	operation_add_entry(ctx, next_ptr, next_offset, REDO_OPERATION_SET);
 	operation_add_entry(ctx, prev_ptr, prev_offset, REDO_OPERATION_SET);
@@ -340,8 +340,8 @@ list_remove_single(PMEMobjpool *pop,
 		uint64_t prev_next_off = prev_off + NEXT_OFF;
 		u64_add_offset(&prev_next_off, args->pe_offset);
 
-		void *prev_ptr = (char *)ctx->base + next_prev_off;
-		void *next_ptr = (char *)ctx->base + prev_next_off;
+		void *prev_ptr = (char *)pop + next_prev_off;
+		void *next_ptr = (char *)pop + prev_next_off;
 
 		operation_add_entry(ctx, prev_ptr, prev_off,
 			REDO_OPERATION_SET);
@@ -380,8 +380,8 @@ list_insert_before(PMEMobjpool *pop,
 					NEXT_OFF;
 	u64_add_offset(&dest_prev_next_off, args_common->pe_offset);
 
-	void *dest_prev_ptr = (char *)ctx->base + dest_prev_off;
-	void *dest_prev_next_ptr = (char *)ctx->base + dest_prev_next_off;
+	void *dest_prev_ptr = (char *)pop + dest_prev_off;
+	void *dest_prev_next_ptr = (char *)pop + dest_prev_next_off;
 	operation_add_entry(ctx, dest_prev_ptr, args_common->obj_doffset,
 		REDO_OPERATION_SET);
 	operation_add_entry(ctx, dest_prev_next_ptr, args_common->obj_doffset,
@@ -413,8 +413,8 @@ list_insert_after(PMEMobjpool *pop,
 	u64_add_offset(&dest_next_prev_off, args_common->pe_offset);
 
 
-	void *dest_next_ptr = (char *)ctx->base + dest_next_off;
-	void *dest_next_prev_ptr = (char *)ctx->base + dest_next_prev_off;
+	void *dest_next_ptr = (char *)pop + dest_next_off;
+	void *dest_next_prev_ptr = (char *)pop + dest_next_prev_off;
 	operation_add_entry(ctx, dest_next_ptr, args_common->obj_doffset,
 		REDO_OPERATION_SET);
 	operation_add_entry(ctx, dest_next_prev_ptr, args_common->obj_doffset,

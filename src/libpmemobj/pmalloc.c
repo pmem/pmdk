@@ -51,11 +51,11 @@
 #include "set.h"
 #include "mmap.h"
 
-#define PMALLOC_REDO_LOG_EXTEND_SIZE 251 /* 4096 - 16 */
+#define PMALLOC_REDO_LOG_EXTEND_SIZE 256 /* rounded up to a cacheline */
 
 enum pmalloc_operation_type {
-	OPERATION_INTERNAL,
-	OPERATION_EXTERNAL,
+	OPERATION_INTERNAL, /* used only for single, one-off operations */
+	OPERATION_EXTERNAL, /* used for everything else, incl. large redos */
 
 	MAX_OPERATION_TYPE,
 };
@@ -86,7 +86,7 @@ pmalloc_operation_hold_type(PMEMobjpool *pop, enum pmalloc_operation_type type,
 
 /*
  * pmalloc_operation_hold_type -- acquires allocator lane section and returns a
- *	pointer to it's operation context without starting
+ *	pointer to its operation context without starting
  */
 struct operation_context *
 pmalloc_operation_hold_no_start(PMEMobjpool *pop)
@@ -96,7 +96,7 @@ pmalloc_operation_hold_no_start(PMEMobjpool *pop)
 
 /*
  * pmalloc_operation_hold -- acquires allocator lane section and returns a
- *	pointer to it's redo log
+ *	pointer to its redo log
  */
 struct operation_context *
 pmalloc_operation_hold(PMEMobjpool *pop)
@@ -114,31 +114,6 @@ pmalloc_operation_release(PMEMobjpool *pop)
 }
 
 /*
- * pmalloc_operation -- higher level wrapper for basic allocator API
- *
- * If successful function returns zero. Otherwise an error number is returned.
- */
-int
-pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
-	size_t size, palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
-	struct operation_context *ctx)
-{
-#if VG_MEMCHECK_ENABLED
-	uint64_t tmp;
-	if (size && On_valgrind && dest_off == NULL)
-		dest_off = &tmp;
-#endif
-
-	int ret = palloc_operation(heap, off, dest_off, size, constructor, arg,
-			extra_field, object_flags, class_id, ctx);
-	if (ret)
-		return ret;
-
-	return 0;
-}
-
-/*
  * pmalloc -- allocates a new block of memory
  *
  * The pool offset is written persistently into the off variable.
@@ -152,7 +127,7 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 	struct operation_context *ctx =
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
-	int ret = pmalloc_operation(&pop->heap, 0, off, size, NULL, NULL,
+	int ret = palloc_operation(&pop->heap, 0, off, size, NULL, NULL,
 		extra_field, object_flags, 0, ctx);
 
 	pmalloc_operation_release(pop);
@@ -176,7 +151,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	struct operation_context *ctx =
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
-	int ret = pmalloc_operation(&pop->heap, 0, off, size, constructor, arg,
+	int ret = palloc_operation(&pop->heap, 0, off, size, constructor, arg,
 			extra_field, object_flags, class_id, ctx);
 
 	pmalloc_operation_release(pop);
@@ -198,7 +173,7 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 	struct operation_context *ctx =
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
-	int ret = pmalloc_operation(&pop->heap, *off, off, size, NULL, NULL,
+	int ret = palloc_operation(&pop->heap, *off, off, size, NULL, NULL,
 		extra_field, object_flags, 0, ctx);
 
 	pmalloc_operation_release(pop);
@@ -219,7 +194,7 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 	struct operation_context *ctx =
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
-	int ret = pmalloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
+	int ret = palloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
 		0, 0, 0, ctx);
 	ASSERTeq(ret, 0);
 
@@ -254,6 +229,9 @@ alloc_redo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 
 /*
  * alloc_redo_external_extend -- redo log extend callback
+ *
+ * Uses the secondary 'internal' redo log, so that the pmalloc() can finish
+ * during an ongoing operation.
  */
 static int
 alloc_redo_external_extend(void *base, uint64_t *redo)
@@ -337,12 +315,11 @@ pmalloc_check(PMEMobjpool *pop, void *data, unsigned length)
 	if (ret != 0)
 		ERR("allocator lane: internal redo log check failed");
 
-	ret = redo_log_check(pop->redo, (struct redo_log *)&sec->external);
-	if (ret != 0)
+	int ret2 = redo_log_check(pop->redo, (struct redo_log *)&sec->external);
+	if (ret2 != 0)
 		ERR("allocator lane: external redo log check failed");
 
-
-	return ret;
+	return ret == 0 && ret2 == 0 ? 0 : -1;
 }
 
 /*

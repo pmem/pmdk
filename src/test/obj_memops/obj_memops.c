@@ -40,9 +40,9 @@
 #include "memops.h"
 #include "unittest.h"
 
-#define TEST_ENTRIES 10
+#define TEST_ENTRIES 16
 
-#define TEST_VALUES 100
+#define TEST_VALUES 128
 
 enum fail_types {
 	FAIL_NONE,
@@ -92,14 +92,15 @@ pmalloc_redo_extend(void *base, uint64_t *redo)
 }
 
 static void
-test_set_entries(struct operation_context *ctx, struct test_object *object,
+test_set_entries(PMEMobjpool *pop,
+	struct operation_context *ctx, struct test_object *object,
 	size_t nentries, enum fail_types fail)
 {
 	operation_start(ctx);
 
 	for (size_t i = 0; i < nentries; ++i) {
 		operation_add_typed_entry(ctx,
-			&object->values[i], i,
+			&object->values[i], i + 1,
 			REDO_OPERATION_SET, LOG_PERSISTENT);
 	}
 
@@ -110,23 +111,20 @@ test_set_entries(struct operation_context *ctx, struct test_object *object,
 
 		switch (fail) {
 			case FAIL_CHECKSUM:
-				ctx->redo->checksum += 1;
+				object->redo.checksum += 1;
 			break;
 			case FAIL_MODIFY_NEXT:
-				pmalloc_redo_extend(ctx->base,
-					&ctx->redo->next);
+				pmalloc_redo_extend(pop,
+					&object->redo.next);
 			break;
 			case FAIL_MODIFY_VALUE:
-				ctx->redo->entries[1].offset += 8;
+				object->redo.entries[1].offset += 8;
 			break;
 			default:
 				UT_ASSERT(0);
 		}
 
-		redo_log_recover(ctx->redo_ctx, ctx->redo);
-
-		UT_ASSERTeq(object->values[0], 0);
-		UT_ASSERTeq(object->values[1], 0);
+		redo_log_recover(pop->redo, (struct redo_log *)&object->redo);
 
 		for (size_t i = 0; i < nentries; ++i)
 			UT_ASSERTeq(object->values[i], 0);
@@ -134,7 +132,7 @@ test_set_entries(struct operation_context *ctx, struct test_object *object,
 		operation_process(ctx);
 
 		for (size_t i = 0; i < nentries; ++i)
-			UT_ASSERTeq(object->values[i], i);
+			UT_ASSERTeq(object->values[i], i + 1);
 	}
 }
 
@@ -162,16 +160,24 @@ test_merge_op(struct operation_context *ctx, struct test_object *object)
 	operation_start(ctx);
 
 	operation_add_typed_entry(ctx,
+		&object->values[0], 0b10,
+		REDO_OPERATION_OR, LOG_PERSISTENT);
+
+	operation_add_typed_entry(ctx,
 		&object->values[0], 0b01,
 		REDO_OPERATION_OR, LOG_PERSISTENT);
 
 	operation_add_typed_entry(ctx,
-		&object->values[0], 0b10,
+		&object->values[0], 0b00,
+		REDO_OPERATION_AND, LOG_PERSISTENT);
+
+	operation_add_typed_entry(ctx,
+		&object->values[0], 0b01,
 		REDO_OPERATION_OR, LOG_PERSISTENT);
 
 	operation_process(ctx);
 
-	UT_ASSERTeq(object->values[0], 0b11);
+	UT_ASSERTeq(object->values[0], 0b01);
 }
 
 int
@@ -198,26 +204,38 @@ main(int argc, char *argv[])
 		(struct redo_log *)&object->redo, TEST_ENTRIES,
 		pmalloc_redo_extend);
 
-	test_set_entries(ctx, object, 10, 0);
+	test_set_entries(pop, ctx, object, 10, FAIL_NONE);
 	clear_test_values(object);
 	test_same_twice(ctx, object);
 	clear_test_values(object);
 	test_merge_op(ctx, object);
 	clear_test_values(object);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 100, 0);
+	test_set_entries(pop, ctx, object, 100, FAIL_NONE);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 100, FAIL_CHECKSUM);
+	test_set_entries(pop, ctx, object, 100, FAIL_CHECKSUM);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 10, FAIL_CHECKSUM);
+	test_set_entries(pop, ctx, object, 10, FAIL_CHECKSUM);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 100, FAIL_MODIFY_NEXT);
+	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_VALUE);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 10, FAIL_MODIFY_NEXT);
+	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_VALUE);
+
+	operation_delete(ctx);
+
+	/* verify that rebuilding redo_next works */
+	ctx = operation_new(pop, pop->redo,
+		(struct redo_log *)&object->redo, TEST_ENTRIES,
+		NULL);
+
+	test_set_entries(pop, ctx, object, 100, 0);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 100, FAIL_MODIFY_VALUE);
+
+	/* FAIL_MODIFY_NEXT tests can only happen after redo_next test */
+	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_NEXT);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 10, FAIL_MODIFY_VALUE);
+	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_NEXT);
+	clear_test_values(object);
 
 	operation_delete(ctx);
 

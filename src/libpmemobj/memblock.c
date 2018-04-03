@@ -508,7 +508,8 @@ huge_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 		m->size_idx);
 
 	if (ctx == NULL) {
-		*(uint64_t *)hdr = val;
+		util_atomic_store_explicit64((uint64_t *)hdr, val,
+			memory_order_relaxed);
 		pmemops_persist(&m->heap->p_ops, hdr, sizeof(*hdr));
 	} else {
 		operation_add_entry(ctx, hdr, val, REDO_OPERATION_SET);
@@ -539,7 +540,8 @@ huge_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	 * operations.
 	 */
 	if (ctx == NULL) {
-		*(uint64_t *)footer = val;
+		util_atomic_store_explicit64((uint64_t *)footer, val,
+			memory_order_relaxed);
 		VALGRIND_SET_CLEAN(footer, sizeof(*footer));
 	} else {
 		operation_add_typed_entry(ctx,

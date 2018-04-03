@@ -58,11 +58,7 @@ struct lane_alloc_layout {
 	struct REDO_LOG(ALLOC_REDO_INTERNAL_SIZE) internal;
 };
 
-int pmalloc_operation(struct palloc_heap *heap,
-	uint64_t off, uint64_t *dest_off, size_t size,
-	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
-	struct operation_context *ctx);
+/* single operations done in the internal context of the allocator's lane */
 
 int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 	uint64_t extra_field, uint16_t object_flags);
@@ -74,6 +70,8 @@ int prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 	uint64_t extra_field, uint16_t object_flags);
 
 void pfree(PMEMobjpool *pop, uint64_t *off);
+
+/* external operation to be used together with context-aware palloc funcs */
 
 struct operation_context *pmalloc_operation_hold(PMEMobjpool *pop);
 struct operation_context *pmalloc_operation_hold_no_start(PMEMobjpool *pop);

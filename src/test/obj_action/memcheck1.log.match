@@ -30,7 +30,6 @@
 ==$(N)==    at 0x$(X): alloc_prep_block (palloc.c:$(N))
 ==$(N)==    by 0x$(X): palloc_reservation_create (palloc.c:$(N))
 ==$(N)==    by 0x$(X): palloc_operation (palloc.c:$(N))
-==$(N)==    by 0x$(X): pmalloc_operation (pmalloc.c:$(N))
 ==$(N)==    by 0x$(X): obj_alloc_construct (obj.c:$(N))
 ==$(N)==    by 0x$(X): pmemobj_alloc (obj.c:$(N))
 ==$(N)==    by 0x$(X): test_defer_free (obj_action.c:$(N))

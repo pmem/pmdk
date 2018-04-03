@@ -42,6 +42,10 @@
 #include "libpmemobj.h"
 #include "redo.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define LANE_SECTION_LEN 1024
 
 /*
@@ -163,6 +167,10 @@ static void _section_parm_##n(void)\
 { Section_ops[n] = ops; }\
 MSVC_CONSTR(_section_parm_##n)
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

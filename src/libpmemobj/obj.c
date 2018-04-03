@@ -2197,7 +2197,7 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		operation_add_entry(ctx, &oidp->pool_uuid_lo, pop->uuid_lo,
 				REDO_OPERATION_SET);
 
-	int ret = pmalloc_operation(&pop->heap, 0,
+	int ret = palloc_operation(&pop->heap, 0,
 			oidp != NULL ? &oidp->off : NULL, size,
 			constructor_alloc_bytype, &carg, type_num, 0,
 			CLASS_ID_FROM_FLAG(flags),
@@ -2312,7 +2312,7 @@ obj_free(PMEMobjpool *pop, PMEMoid *oidp)
 
 	operation_add_entry(ctx, &oidp->pool_uuid_lo, 0, REDO_OPERATION_SET);
 
-	pmalloc_operation(&pop->heap, oidp->off, &oidp->off, 0, NULL, NULL,
+	palloc_operation(&pop->heap, oidp->off, &oidp->off, 0, NULL, NULL,
 			0, 0, 0, ctx);
 
 	pmalloc_operation_release(pop);
@@ -2387,7 +2387,7 @@ obj_realloc_common(PMEMobjpool *pop,
 
 	struct operation_context *ctx = pmalloc_operation_hold(pop);
 
-	int ret = pmalloc_operation(&pop->heap, oidp->off, &oidp->off,
+	int ret = palloc_operation(&pop->heap, oidp->off, &oidp->off,
 			size, constructor_realloc, &carg, type_num, 0, 0, ctx);
 
 	pmalloc_operation_release(pop);
@@ -2783,7 +2783,7 @@ obj_alloc_root(PMEMobjpool *pop, size_t size,
 
 	operation_add_entry(ctx, &pop->root_size, size, REDO_OPERATION_SET);
 
-	int ret = pmalloc_operation(&pop->heap, pop->root_offset,
+	int ret = palloc_operation(&pop->heap, pop->root_offset,
 			&pop->root_offset, size,
 			constructor_zrealloc_root, &carg,
 			POBJ_ROOT_TYPE_NUM, OBJ_INTERNAL_OBJECT_MASK, 0, ctx);

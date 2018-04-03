@@ -66,10 +66,8 @@ static int
 lane_need_recovery_redo(PMEMobjpool *pop,
 	struct redo_log *redo, size_t nentries)
 {
-	struct redo_log_info info = redo_log_info(pop->redo, redo);
-
 	/* Needs recovery if any of redo log entries has finish flag set */
-	return info.nflags > 0;
+	return redo_log_nentries(redo) != 0;
 }
 
 /*
@@ -241,12 +239,10 @@ info_obj_redo(int v, struct redo_log *redo, size_t nentries)
 	for (size_t i = 0; i < nentries; i++) {
 		outv(v, "%010zu: "
 			"Offset: 0x%016jx "
-			"Value: 0x%016jx "
-			"Finish flag: %d\n",
+			"Value: 0x%016jx ",
 			i,
 			redo_log_offset(&redo->entries[i]),
-			redo->entries[i].value,
-			redo_log_is_last(&redo->entries[i]));
+			redo->entries[i].value);
 	}
 }
 

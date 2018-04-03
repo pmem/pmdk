@@ -155,6 +155,7 @@ main(int argc, char *argv[])
 
 	ASSERT_ALIGNED_BEGIN(struct redo_log);
 	ASSERT_ALIGNED_FIELD(struct redo_log, checksum);
+	ASSERT_ALIGNED_FIELD(struct redo_log, nentries);
 	ASSERT_ALIGNED_FIELD(struct redo_log, next);
 	ASSERT_ALIGNED_FIELD(struct redo_log, capacity);
 	ASSERT_ALIGNED_FIELD(struct redo_log, unused);

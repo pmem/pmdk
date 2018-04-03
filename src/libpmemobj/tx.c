@@ -208,10 +208,8 @@ tx_action_add(struct tx *tx)
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx->section->runtime;
 
-	if (operation_reserve(tx->ctx, VEC_SIZE(&lane->actions) + 1) != 0) {
-		ERR("cannot add a new entry to transaction log");
+	if (operation_reserve(tx->ctx, VEC_SIZE(&lane->actions) + 1) != 0)
 		return NULL;
-	}
 
 	VEC_INC_BACK(&lane->actions);
 
@@ -587,6 +585,8 @@ tx_flush_range(void *data, void *ctx)
 		pmemops_flush(&pop->p_ops, OBJ_OFF_TO_PTR(pop, range->offset),
 				range->size);
 	}
+	VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, range->offset),
+		range->size);
 }
 
 /*
@@ -1134,7 +1134,7 @@ tx_post_commit(struct tx *tx, struct lane_tx_runtime *lane)
 	if (pvector_size(cache) > 0)
 		tx_clear_set_cache_but_first(tx->pop, &lane->undo, tx, NULL);
 
-	pvector_reset(lane->undo.ctx[UNDO_SET], 0);
+	pvector_resize(lane->undo.ctx[UNDO_SET], 0);
 
 	VEC_CLEAR(&lane->actions);
 }
@@ -2034,7 +2034,7 @@ pmemobj_tx_free(PMEMoid oid)
 
 	action = tx_action_add(tx);
 	if (action == NULL)
-		return obj_tx_abort_err(ENOMEM);
+		return obj_tx_abort_err(errno);
 
 	palloc_defer_free(&pop->heap, oid.off, action);
 
@@ -2053,12 +2053,8 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx->section->runtime;
 
-	if (operation_reserve(tx->ctx,
-	    VEC_SIZE(&lane->actions) + (size_t)actvcnt) != 0) {
-		ERR("cannot add a new entry to transaction log");
-		errno = ENOMEM;
+	if (operation_reserve(tx->ctx, VEC_SIZE(&lane->actions) + actvcnt) != 0)
 		return -1;
-	}
 
 	for (size_t i = 0; i < actvcnt; ++i) {
 		VEC_PUSH_BACK(&lane->actions, actv[i]);
