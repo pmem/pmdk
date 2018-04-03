@@ -123,7 +123,7 @@ static struct version_s {
 static struct bench_list benchmarks;
 
 /* common arguments for benchmarks */
-static struct benchmark_clo pmembench_clos[12];
+static struct benchmark_clo pmembench_clos[13];
 
 /* list of arguments for pmembench */
 static struct benchmark_clo pmembench_opts[2];
@@ -285,6 +285,15 @@ pmembench_constructor(void)
 	pmembench_clos[11].type_uint.base = CLO_INT_BASE_DEC;
 	pmembench_clos[11].type_uint.min = 0;
 	pmembench_clos[11].type_uint.max = ULONG_MAX;
+
+	pmembench_clos[12].opt_short = 'p';
+	pmembench_clos[12].opt_long = "dynamic-poolset";
+	pmembench_clos[12].type = CLO_TYPE_FLAG;
+	pmembench_clos[12].descr =
+		"Allow benchmark to create poolset and reuse files";
+	pmembench_clos[12].off =
+		clo_field_offset(struct benchmark_args, is_dynamic_poolset);
+	pmembench_clos[12].ignore_in_res = true;
 }
 
 /*
@@ -1102,7 +1111,7 @@ pmembench_remove_file(const char *path)
 		tmp = (char *)malloc(strlen(path) + strlen(info.filename) + 2);
 		if (tmp == nullptr)
 			return -1;
-		sprintf(tmp, "%s/%s", path, info.filename);
+		sprintf(tmp, "%s" OS_DIR_SEP_STR "%s", path, info.filename);
 		ret = info.is_dir ? pmembench_remove_file(tmp)
 				  : util_unlink(tmp);
 		free(tmp);
@@ -1113,6 +1122,7 @@ pmembench_remove_file(const char *path)
 	}
 
 	util_file_dir_close(&it);
+
 	return util_file_dir_remove(path);
 }
 
@@ -1141,7 +1151,7 @@ pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
 		sched_yield();
 	}
 
-	if (bench->info->rm_file) {
+	if (bench->info->rm_file && !args->is_dynamic_poolset) {
 		ret = pmembench_remove_file(args->fname);
 		if (ret != 0) {
 			perror("removing file failed");
@@ -1245,6 +1255,19 @@ scale_up_min_exe_time(struct benchmark *bench, struct benchmark_args *args,
 }
 
 /*
+ * is_absolute_path_to_directory -- checks if passed argument is absolute
+ * path to directory
+ */
+static bool
+is_absolute_path_to_directory(const char *path)
+{
+	os_stat_t sb;
+
+	return util_is_absolute_path(path) && os_stat(path, &sb) == 0 &&
+		S_ISDIR(sb.st_mode);
+}
+
+/*
  * pmembench_run -- runs one benchmark. Parses arguments and performs
  * specific functions.
  */
@@ -1325,6 +1348,12 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		goto out;
 	}
 
+	if (strlen(args->fname) > PATH_MAX) {
+		warn("Filename too long");
+		ret = -1;
+		goto out;
+	}
+
 	pmembench_print_header(pb, bench, clovec);
 
 	size_t args_i;
@@ -1341,24 +1370,42 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 
 		args->opts = (void *)((uintptr_t)args +
 				      sizeof(struct benchmark_args));
-		args->is_poolset = util_is_poolset_file(args->fname) == 1;
-		if (args->is_poolset) {
-			if (!bench->info->allow_poolset) {
-				fprintf(stderr, "poolset files "
-						"not supported\n");
-				goto out;
-			}
-			args->fsize = util_poolset_size(args->fname);
-			if (!args->fsize) {
-				fprintf(stderr, "invalid size of poolset\n");
-				goto out;
-			}
-		} else if (util_file_is_device_dax(args->fname)) {
-			args->fsize = util_file_get_size(args->fname);
 
-			if (!args->fsize) {
-				fprintf(stderr, "invalid size of device dax\n");
+		if (args->is_dynamic_poolset) {
+			if (!bench->info->allow_poolset) {
+				fprintf(stderr,
+					"dynamic poolset not supported\n");
 				goto out;
+			}
+
+			if (!is_absolute_path_to_directory(args->fname)) {
+				fprintf(stderr, "path must be absolute and "
+						"point to a directory\n");
+				goto out;
+			}
+		} else {
+			args->is_poolset =
+				util_is_poolset_file(args->fname) == 1;
+			if (args->is_poolset) {
+				if (!bench->info->allow_poolset) {
+					fprintf(stderr, "poolset files not "
+							"supported\n");
+					goto out;
+				}
+				args->fsize = util_poolset_size(args->fname);
+				if (!args->fsize) {
+					fprintf(stderr,
+						"invalid size of poolset\n");
+					goto out;
+				}
+			} else if (util_file_is_device_dax(args->fname)) {
+				args->fsize = util_file_get_size(args->fname);
+
+				if (!args->fsize) {
+					fprintf(stderr,
+						"invalid size of device dax\n");
+					goto out;
+				}
 			}
 		}
 

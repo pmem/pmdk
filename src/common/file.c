@@ -609,3 +609,27 @@ util_unlink_flock(const char *path)
 	return ret;
 #endif
 }
+
+/*
+ * util_write_all -- a wrapper for util_write
+ *
+ * writes exactly count bytes from buf to file reffered to by fd
+ * returns -1 on error, 0 otherwise
+ */
+int
+util_write_all(int fd, const void *buf, size_t count)
+{
+	ssize_t n_wrote = 0;
+	size_t total = 0;
+
+	while (count > total &&
+			(n_wrote = util_write(fd, buf, count - total))) {
+		if (n_wrote == -1)
+			return -1;
+
+		buf = (void *)((ssize_t)buf + n_wrote);
+		total += (size_t)n_wrote;
+	}
+
+	return 0;
+}
