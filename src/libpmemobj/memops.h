@@ -71,6 +71,7 @@ struct operation_context {
 	struct redo_log *redo;
 	size_t redo_base_capacity;
 	size_t redo_capacity;
+	struct redo_next next;
 
 	int in_progress;
 

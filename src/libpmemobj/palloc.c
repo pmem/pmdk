@@ -542,7 +542,7 @@ palloc_defer_free_create(struct palloc_heap *heap, uint64_t off,
 	out->m = memblock_from_offset(heap, off);
 
 	/*
-	 * For the duration of free we may need to protect surrounding 
+	 * For the duration of free we may need to protect surrounding
 	 * metadata from being modified.
 	 */
 	out->lock = out->m.m_ops->get_lock(&out->m);

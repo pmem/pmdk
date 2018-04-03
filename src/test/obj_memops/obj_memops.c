@@ -211,13 +211,25 @@ main(int argc, char *argv[])
 	clear_test_values(object);
 	test_set_entries(ctx, object, 10, FAIL_CHECKSUM);
 	clear_test_values(object);
+	test_set_entries(ctx, object, 100, FAIL_MODIFY_VALUE);
+	clear_test_values(object);
+	test_set_entries(ctx, object, 10, FAIL_MODIFY_VALUE);
+
+	operation_delete(ctx);
+
+	/* verify that rebuilding redo_next works */
+	ctx = operation_new(pop, pop->redo,
+		(struct redo_log *)&object->redo, TEST_ENTRIES,
+		NULL);
+
+	test_set_entries(ctx, object, 100, 0);
+	clear_test_values(object);
+
+	/* FAIL_MODIFY_NEXT tests can only happen after redo_next test */
 	test_set_entries(ctx, object, 100, FAIL_MODIFY_NEXT);
 	clear_test_values(object);
 	test_set_entries(ctx, object, 10, FAIL_MODIFY_NEXT);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 100, FAIL_MODIFY_VALUE);
-	clear_test_values(object);
-	test_set_entries(ctx, object, 10, FAIL_MODIFY_VALUE);
 
 	operation_delete(ctx);
 
