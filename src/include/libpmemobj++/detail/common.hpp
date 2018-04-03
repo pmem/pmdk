@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -93,6 +93,10 @@ inline void
 conditional_add_to_tx(const obj::persistent_ptr<T> &that)
 {
 	if (pmemobj_tx_stage() != TX_STAGE_WORK)
+		return;
+
+	/* 'that' is not in any open pool */
+	if (!pmemobj_pool_by_ptr(that.raw()))
 		return;
 
 	if (pmemobj_tx_add_range(that.raw(), 0, sizeof(T)))
