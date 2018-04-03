@@ -150,8 +150,6 @@ main(int argc, char *argv[])
 		pmemobj_reserve(pop, &reserved[0], sizeof(struct foo), 0);
 	pmemobj_set_value(pop, &reserved[1], &rootp->reserved.value, 1);
 
-	pmemobj_cancel(pop, reserved, 2);
-
 	rootp->published.oid =
 		pmemobj_reserve(pop, &published[0], sizeof(struct foo), 0);
 	pmemobj_set_value(pop, &published[1], &rootp->published.value, 1);

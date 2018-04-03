@@ -529,4 +529,43 @@ enum {
 
 };
 
+
+/**
+ * @addtogroup RaceDetectionAnnotations
+ */
+/*@{*/
+
+#ifdef __cplusplus
+/* ANNOTATE_UNPROTECTED_READ is the preferred way to annotate racy reads.
+
+   Instead of doing
+   ANNOTATE_IGNORE_READS_BEGIN();
+   ... = x;
+   ANNOTATE_IGNORE_READS_END();
+   one can use
+   ... = ANNOTATE_UNPROTECTED_READ(x); */
+template <typename T>
+inline T ANNOTATE_UNPROTECTED_READ(const volatile T& x) {
+   ANNOTATE_IGNORE_READS_BEGIN();
+   const T result = x;
+   ANNOTATE_IGNORE_READS_END();
+   return result;
+}
+/* Apply ANNOTATE_BENIGN_RACE_SIZED to a static variable. */
+#define ANNOTATE_BENIGN_RACE_STATIC(static_var, description)		\
+   namespace {								\
+      static class static_var##_annotator				\
+      {									\
+      public:								\
+	 static_var##_annotator()					\
+	 {								\
+	    ANNOTATE_BENIGN_RACE_SIZED(&static_var, sizeof(static_var),	\
+				       #static_var ": " description);	\
+	 }								\
+      } the_##static_var##_annotator;					\
+   }
+#endif
+
+/*@}*/
+
 #endif /* __VALGRIND_DRD_H */

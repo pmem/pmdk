@@ -92,7 +92,8 @@ pmalloc_redo_extend(void *base, uint64_t *redo)
 }
 
 static void
-test_set_entries(struct operation_context *ctx, struct test_object *object,
+test_set_entries(PMEMobjpool *pop,
+	struct operation_context *ctx, struct test_object *object,
 	size_t nentries, enum fail_types fail)
 {
 	operation_start(ctx);
@@ -110,20 +111,20 @@ test_set_entries(struct operation_context *ctx, struct test_object *object,
 
 		switch (fail) {
 			case FAIL_CHECKSUM:
-				ctx->redo->checksum += 1;
+				object->redo.checksum += 1;
 			break;
 			case FAIL_MODIFY_NEXT:
-				pmalloc_redo_extend(ctx->base,
-					&ctx->redo->next);
+				pmalloc_redo_extend(pop,
+					&object->redo.next);
 			break;
 			case FAIL_MODIFY_VALUE:
-				ctx->redo->entries[1].offset += 8;
+				object->redo.entries[1].offset += 8;
 			break;
 			default:
 				UT_ASSERT(0);
 		}
 
-		redo_log_recover(ctx->redo_ctx, ctx->redo);
+		redo_log_recover(pop->redo, (struct redo_log *)&object->redo);
 
 		UT_ASSERTeq(object->values[0], 0);
 		UT_ASSERTeq(object->values[1], 0);
@@ -198,26 +199,38 @@ main(int argc, char *argv[])
 		(struct redo_log *)&object->redo, TEST_ENTRIES,
 		pmalloc_redo_extend);
 
-	test_set_entries(ctx, object, 10, 0);
+	test_set_entries(pop, ctx, object, 10, 0);
 	clear_test_values(object);
 	test_same_twice(ctx, object);
 	clear_test_values(object);
 	test_merge_op(ctx, object);
 	clear_test_values(object);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 100, 0);
+	test_set_entries(pop, ctx, object, 100, 0);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 100, FAIL_CHECKSUM);
+	test_set_entries(pop, ctx, object, 100, FAIL_CHECKSUM);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 10, FAIL_CHECKSUM);
+	test_set_entries(pop, ctx, object, 10, FAIL_CHECKSUM);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 100, FAIL_MODIFY_NEXT);
+	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_VALUE);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 10, FAIL_MODIFY_NEXT);
+	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_VALUE);
+
+	operation_delete(ctx);
+
+	/* verify that rebuilding redo_next works */
+	ctx = operation_new(pop, pop->redo,
+		(struct redo_log *)&object->redo, TEST_ENTRIES,
+		NULL);
+
+	test_set_entries(pop, ctx, object, 100, 0);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 100, FAIL_MODIFY_VALUE);
+
+	/* FAIL_MODIFY_NEXT tests can only happen after redo_next test */
+	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_NEXT);
 	clear_test_values(object);
-	test_set_entries(ctx, object, 10, FAIL_MODIFY_VALUE);
+	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_NEXT);
+	clear_test_values(object);
 
 	operation_delete(ctx);
 
