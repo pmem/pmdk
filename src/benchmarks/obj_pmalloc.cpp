@@ -47,6 +47,7 @@
 #include "file.h"
 #include "libpmemobj.h"
 #include "os.h"
+#include "poolset_util.hpp"
 #include "valgrind_internal.h"
 #ifdef __cplusplus
 extern "C" {
@@ -113,6 +114,10 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != nullptr);
 	assert(args->opts != nullptr);
 
+	char path[PATH_MAX];
+	if (util_safe_strcpy(path, args->fname, sizeof(path)) != 0)
+		return -1;
+
 	if (((struct prog_args *)(args->opts))->minsize >= args->dsize) {
 		fprintf(stderr, "Wrong params - allocation size\n");
 		return -1;
@@ -154,7 +159,18 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		poolsize = PMEMOBJ_MIN_POOL;
 	}
 
-	ob->pop = pmemobj_create(args->fname, POBJ_LAYOUT_NAME(pmalloc_layout),
+	if (args->is_dynamic_poolset) {
+		int ret = dynamic_poolset_create(args->fname, poolsize);
+		if (ret == -1)
+			goto free_ob;
+
+		if (util_safe_strcpy(path, POOLSET_PATH, sizeof(path)) != 0)
+			goto free_ob;
+
+		poolsize = 0;
+	}
+
+	ob->pop = pmemobj_create(path, POBJ_LAYOUT_NAME(pmalloc_layout),
 				 poolsize, args->fmode);
 	if (ob->pop == nullptr) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
