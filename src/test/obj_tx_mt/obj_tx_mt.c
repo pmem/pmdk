@@ -65,13 +65,10 @@ tx_alloc_free(void *arg)
 			locked = 1;
 			pmemobj_tx_free(tab);
 			tab = OID_NULL;
-		} TX_ONCOMMIT {
-			if (locked)
-				os_mutex_unlock(&mtx);
-		} TX_ONABORT {
-			if (locked)
-				os_mutex_unlock(&mtx);
 		} TX_END
+
+		if (locked)
+			os_mutex_unlock(&mtx);
 	}
 	return NULL;
 }

@@ -69,6 +69,9 @@ operation_new(void *base, const struct redo_ctx *redo_ctx,
 		redo_base_capacity);
 	ctx->extend = extend;
 	ctx->in_progress = 0;
+	VEC_INIT(&ctx->next);
+	redo_log_rebuild_next_vec(redo_ctx, redo, &ctx->next);
+
 	if (redo_ctx)
 		ctx->p_ops = redo_get_pmem_ops(redo_ctx);
 	else
@@ -207,9 +210,11 @@ operation_process_persistent_redo(struct operation_context *ctx)
 	struct operation_log *oplog = &ctx->logs[LOG_PERSISTENT];
 
 	redo_log_store(ctx->redo_ctx, ctx->redo,
-		oplog->redo, oplog->size, ctx->redo_base_capacity);
+		oplog->redo, oplog->size, ctx->redo_base_capacity, &ctx->next);
 
-	redo_log_process(redo, ctx->redo);
+	redo_log_process(redo, oplog->redo);
+
+	redo_log_clobber(ctx->redo_ctx, ctx->redo, &ctx->next);
 }
 
 /*
@@ -223,7 +228,8 @@ operation_reserve(struct operation_context *ctx, size_t new_capacity)
 			return -1;
 
 		if (redo_log_reserve(ctx->redo_ctx, ctx->redo,
-		    ctx->redo_base_capacity, &new_capacity, ctx->extend) != 0)
+		    ctx->redo_base_capacity, &new_capacity, ctx->extend,
+		    &ctx->next) != 0)
 			return -1;
 		ctx->redo_capacity = new_capacity;
 	}
