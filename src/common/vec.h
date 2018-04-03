@@ -38,9 +38,9 @@
 #define PMDK_VEC_H 1
 
 #include <stddef.h>
+#include "valgrind_internal.h"
 #include "util.h"
 #include "out.h"
-#include "valgrind_internal.h"
 
 #define VEC_INIT_SIZE (64)
 

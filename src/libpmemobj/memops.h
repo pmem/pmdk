@@ -46,33 +46,35 @@
 #include "lane.h"
 
 enum operation_log_type {
-	LOG_PERSISTENT,
-	LOG_TRANSIENT,
+	LOG_PERSISTENT, /* log of persistent modifications */
+	LOG_TRANSIENT, /* log of transient memory modifications */
 
 	MAX_OPERATION_LOG_TYPE
 };
 
 struct operation_log {
-	size_t capacity;
-	size_t size;
-	struct redo_log *redo;
+	size_t capacity; /* capacity of the redo log */
+	size_t size; /* number of entries currently in the redo log */
+	struct redo_log *redo; /* DRAM allocated log of modifications */
 };
 
 /*
  * operation_context -- context of an ongoing palloc operation
  */
 struct operation_context {
-	void *base;
-	redo_extend_fn extend;
+	void *base; /* pool address */
+	redo_extend_fn extend; /* function to allocate next redo logs */
 
 	const struct redo_ctx *redo_ctx;
 	const struct pmem_ops *p_ops;
 
-	struct redo_log *redo;
-	size_t redo_base_capacity;
-	size_t redo_capacity;
+	struct redo_log *redo; /* pointer to the persistent redo log */
+	size_t redo_base_capacity; /* number of entries in initial redo log */
+	size_t redo_capacity; /* sum of capacity, incl all next redo logs */
 
-	int in_progress;
+	struct redo_next next; /* vector of 'next' fields of persistent redo */
+
+	int in_progress; /* operation sanity check */
 
 	struct operation_log logs[MAX_OPERATION_LOG_TYPE];
 };

@@ -51,11 +51,11 @@
 #include "set.h"
 #include "mmap.h"
 
-#define PMALLOC_REDO_LOG_EXTEND_SIZE 251 /* 4096 - 16 */
+#define PMALLOC_REDO_LOG_EXTEND_SIZE 256 /* rounded up to a cacheline */
 
 enum pmalloc_operation_type {
-	OPERATION_INTERNAL,
-	OPERATION_EXTERNAL,
+	OPERATION_INTERNAL, /* used only for redo bookkeeping, can't extend */
+	OPERATION_EXTERNAL, /* used for everything else, incl. large redos */
 
 	MAX_OPERATION_TYPE,
 };
@@ -86,7 +86,7 @@ pmalloc_operation_hold_type(PMEMobjpool *pop, enum pmalloc_operation_type type,
 
 /*
  * pmalloc_operation_hold_type -- acquires allocator lane section and returns a
- *	pointer to it's operation context without starting
+ *	pointer to its operation context without starting
  */
 struct operation_context *
 pmalloc_operation_hold_no_start(PMEMobjpool *pop)
@@ -96,7 +96,7 @@ pmalloc_operation_hold_no_start(PMEMobjpool *pop)
 
 /*
  * pmalloc_operation_hold -- acquires allocator lane section and returns a
- *	pointer to it's redo log
+ *	pointer to its redo log
  */
 struct operation_context *
 pmalloc_operation_hold(PMEMobjpool *pop)
@@ -254,6 +254,9 @@ alloc_redo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 
 /*
  * alloc_redo_external_extend -- redo log extend callback
+ *
+ * Uses the secondary 'internal' redo log, so that the pmalloc() can finish
+ * during an ongoing operation.
  */
 static int
 alloc_redo_external_extend(void *base, uint64_t *redo)
@@ -337,12 +340,11 @@ pmalloc_check(PMEMobjpool *pop, void *data, unsigned length)
 	if (ret != 0)
 		ERR("allocator lane: internal redo log check failed");
 
-	ret = redo_log_check(pop->redo, (struct redo_log *)&sec->external);
-	if (ret != 0)
+	int ret2 = redo_log_check(pop->redo, (struct redo_log *)&sec->external);
+	if (ret2 != 0)
 		ERR("allocator lane: external redo log check failed");
 
-
-	return ret;
+	return ret == 0 && ret2 == 0 ? 0 : -1;
 }
 
 /*

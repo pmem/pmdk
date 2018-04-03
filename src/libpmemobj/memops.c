@@ -51,6 +51,54 @@
 #define REDO_LOG_BASE_ENTRIES 128
 
 /*
+ * operation_log_transient_init -- (internal) initialize operation log
+ *	containing transient memory resident changes
+ */
+static int
+operation_log_transient_init(struct operation_log *log)
+{
+	log->capacity = REDO_LOG_BASE_ENTRIES;
+	log->size = 0;
+
+	struct redo_log *src = Zalloc(sizeof(struct redo_log) +
+	(sizeof(struct redo_log_entry) * REDO_LOG_BASE_ENTRIES));
+	if (src == NULL)
+		return -1;
+
+	/* initialize underlying redo log structure */
+	src->capacity = REDO_LOG_BASE_ENTRIES;
+
+	log->redo = src;
+
+	return 0;
+}
+
+/*
+ * operation_log_persistent_init -- (internal) initialize operation log
+ *	containing persistent memory resident changes
+ */
+static int
+operation_log_persistent_init(struct operation_log *log,
+	size_t redo_base_capacity)
+{
+	log->capacity = REDO_LOG_BASE_ENTRIES;
+	log->size = 0;
+
+	struct redo_log *src = Zalloc(sizeof(struct redo_log) +
+	(sizeof(struct redo_log_entry) * REDO_LOG_BASE_ENTRIES));
+	if (src == NULL)
+		return -1;
+
+	/* initialize underlying redo log structure */
+	src->capacity = redo_base_capacity;
+	memset(src->unused, 0, sizeof(src->unused));
+
+	log->redo = src;
+
+	return 0;
+}
+
+/*
  * operation_new -- creates new operation context
  */
 struct operation_context *
@@ -69,25 +117,20 @@ operation_new(void *base, const struct redo_ctx *redo_ctx,
 		redo_base_capacity);
 	ctx->extend = extend;
 	ctx->in_progress = 0;
+	VEC_INIT(&ctx->next);
+	redo_log_rebuild_next_vec(redo_ctx, redo, &ctx->next);
+
 	if (redo_ctx)
 		ctx->p_ops = redo_get_pmem_ops(redo_ctx);
 	else
 		ctx->p_ops = NULL;
 
-	for (int i = 0; i < MAX_OPERATION_LOG_TYPE; ++i) {
-		ctx->logs[i].capacity = REDO_LOG_BASE_ENTRIES;
-		ctx->logs[i].size = 0;
+	if (operation_log_transient_init(&ctx->logs[LOG_TRANSIENT]) != 0)
+		goto error_redo_alloc;
 
-		struct redo_log *src = Zalloc(sizeof(struct redo_log) +
-		(sizeof(struct redo_log_entry) * REDO_LOG_BASE_ENTRIES));
-		if (src == NULL)
-			goto error_redo_alloc;
-
-		src->capacity = redo_base_capacity;
-		memset(src->unused, 0, sizeof(src->unused));
-
-		ctx->logs[i].redo = src;
-	}
+	if (operation_log_persistent_init(&ctx->logs[LOG_PERSISTENT],
+	    redo_base_capacity) != 0)
+		goto error_redo_alloc;
 
 	return ctx;
 
@@ -164,11 +207,11 @@ operation_add_typed_entry(struct operation_context *ctx,
 	}
 
 	if (oplog->size == oplog->capacity) {
-		oplog->capacity += REDO_LOG_BASE_ENTRIES;
 		struct redo_log *redo = Realloc(oplog->redo,
 			SIZEOF_REDO_LOG(oplog->capacity));
 		if (redo == NULL)
 			return -1;
+		oplog->capacity += REDO_LOG_BASE_ENTRIES;
 		oplog->redo = redo;
 	}
 
@@ -207,9 +250,11 @@ operation_process_persistent_redo(struct operation_context *ctx)
 	struct operation_log *oplog = &ctx->logs[LOG_PERSISTENT];
 
 	redo_log_store(ctx->redo_ctx, ctx->redo,
-		oplog->redo, oplog->size, ctx->redo_base_capacity);
+		oplog->redo, oplog->size, ctx->redo_base_capacity, &ctx->next);
 
-	redo_log_process(redo, ctx->redo);
+	redo_log_process(redo, oplog->redo);
+
+	redo_log_clobber(ctx->redo_ctx, ctx->redo, &ctx->next);
 }
 
 /*
@@ -219,11 +264,14 @@ int
 operation_reserve(struct operation_context *ctx, size_t new_capacity)
 {
 	if (new_capacity > ctx->redo_capacity) {
-		if (ctx->extend == NULL)
+		if (ctx->extend == NULL) {
+			ERR("no extend function present");
 			return -1;
+		}
 
 		if (redo_log_reserve(ctx->redo_ctx, ctx->redo,
-		    ctx->redo_base_capacity, &new_capacity, ctx->extend) != 0)
+		    ctx->redo_base_capacity, &new_capacity, ctx->extend,
+		    &ctx->next) != 0)
 			return -1;
 		ctx->redo_capacity = new_capacity;
 	}

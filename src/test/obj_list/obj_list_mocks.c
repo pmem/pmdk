@@ -111,15 +111,13 @@ static void *
 obj_memcpy(void *ctx, void *dest, const void *src, size_t len,
 	unsigned flags)
 {
-	pmem_memcpy_persist(dest, src, len);
-	return dest;
+	return pmem_memcpy_persist(dest, src, len);
 }
 
 static void *
 obj_memset(void *ctx, void *ptr, int c, size_t sz, unsigned flags)
 {
-	pmem_memset_persist(ptr, c, sz);
-	return ptr;
+	return pmem_memset_persist(ptr, c, sz);
 }
 
 /*
@@ -380,13 +378,15 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(redo_log_store, void, const struct redo_ctx *ctx,
 	struct redo_log *dest,
-	struct redo_log *src, size_t nentries, size_t n)
+	struct redo_log *src, size_t nentries, size_t n,
+	struct redo_next *next)
 	FUNC_MOCK_RUN_DEFAULT {
 		switch (Redo_fail) {
 		case FAIL_AFTER_FINISH:
 			_FUNC_REAL(redo_log_store)(ctx,
 					dest, src,
-					nentries, n);
+					nentries, n,
+					next);
 			DONEW(NULL);
 			break;
 		case FAIL_BEFORE_FINISH:
@@ -395,7 +395,8 @@ FUNC_MOCK(redo_log_store, void, const struct redo_ctx *ctx,
 		default:
 			_FUNC_REAL(redo_log_store)(ctx,
 					dest, src,
-					nentries, n);
+					nentries, n,
+					next);
 			break;
 		}
 

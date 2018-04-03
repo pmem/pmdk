@@ -43,9 +43,7 @@
 #include "libpmemobj.h"
 
 /* an internal libpmemobj code */
-extern "C" {
 #include "lane.h"
-}
 
 /*
  * The number of times to repeat the operation, used to get more accurate

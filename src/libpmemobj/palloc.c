@@ -301,9 +301,8 @@ palloc_restore_free_chunk_state(struct palloc_heap *heap,
 			DEFAULT_ALLOC_CLASS_ID);
 		if (heap_free_chunk_reuse(heap, b, m) != 0) {
 			if (errno == EEXIST) {
-				ERR(
+				FATAL(
 					"duplicate runtime chunk state, possible double free");
-				ASSERT(0);
 			} else {
 				LOG(2, "unable to track runtime chunk state");
 			}
@@ -542,7 +541,7 @@ palloc_defer_free_create(struct palloc_heap *heap, uint64_t off,
 	out->m = memblock_from_offset(heap, off);
 
 	/*
-	 * For the duration of free we may need to protect surrounding 
+	 * For the duration of free we may need to protect surrounding
 	 * metadata from being modified.
 	 */
 	out->lock = out->m.m_ops->get_lock(&out->m);
