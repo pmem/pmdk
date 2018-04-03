@@ -38,7 +38,9 @@
 #include "file.h"
 #include "libpmem.h"
 #include "libpmemblk.h"
+#include "libpmempool.h"
 #include "os.h"
+#include "poolset_util.hpp"
 #include <cassert>
 #include <cerrno>
 #include <cstdint>
@@ -385,6 +387,10 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 	struct blk_args *ba = (struct blk_args *)args->opts;
 	assert(ba != NULL);
 
+	char path[4096];
+	if (strcpy(path, args->fname) == NULL)
+		return -1;
+
 	bb->type = parse_op_type(ba->type_str);
 	if (bb->type == OP_TYPE_UNKNOWN) {
 		fprintf(stderr, "Invalid operation argument '%s'",
@@ -426,6 +432,14 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 		}
 
 		ba->fsize = 0;
+	} else if (args->is_dynamic_poolset) {
+		int ret = dynamic_poolset_create(args->fname, ba->fsize);
+		if (ret == -1)
+			return -1;
+
+		strcpy(path, POOLSET_PATH);
+
+		ba->fsize = 0;
 	}
 
 	bb->fd = -1;
@@ -434,8 +448,8 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 	 * Create pmemblk in order to get the number of blocks
 	 * even for file-io mode.
 	 */
-	bb->pbp = pmemblk_create(args->fname, args->dsize, ba->fsize,
-				 args->fmode);
+	bb->pbp = pmemblk_create(path, args->dsize, ba->fsize, args->fmode);
+
 	if (bb->pbp == NULL) {
 		perror("pmemblk_create");
 		return -1;
@@ -579,6 +593,12 @@ static int
 blk_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	char path[4096];
+	if (strcpy(path, args->fname) == NULL)
+		return -1;
+
+	if (args->is_dynamic_poolset)
+		strcpy(path, POOLSET_PATH);
 
 	int result;
 	switch (bb->type) {
@@ -587,7 +607,7 @@ blk_exit(struct benchmark *bench, struct benchmark_args *args)
 			break;
 		case OP_TYPE_BLK:
 			pmemblk_close(bb->pbp);
-			result = pmemblk_check(args->fname, args->dsize);
+			result = pmemblk_check(path, args->dsize);
 			if (result < 0) {
 				perror("pmemblk_check error");
 				return -1;

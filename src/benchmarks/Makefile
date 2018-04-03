@@ -79,7 +79,8 @@ SRC=pmembench.cpp\
     obj_lanes.cpp\
     map_bench.cpp\
     pmemobj_tx.cpp\
-    pmemobj_atomic_lists.cpp
+    pmemobj_atomic_lists.cpp\
+    poolset_util.cpp
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
