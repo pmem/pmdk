@@ -187,9 +187,10 @@ test_prep_hdr(void)
 	UT_ASSERTeq(run->bitmap[2], ~0ULL);
 }
 
-static void
-fake_persist(void *base, const void *addr, size_t size)
+static int
+fake_persist(void *base, const void *addr, size_t size, unsigned flags)
 {
+	return 0;
 }
 
 int

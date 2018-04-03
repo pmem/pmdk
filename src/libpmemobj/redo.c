@@ -35,6 +35,7 @@
  */
 
 #include <inttypes.h>
+#include <string.h>
 
 #include "libpmem.h"
 #include "redo.h"
@@ -43,14 +44,14 @@
 #include "valgrind_internal.h"
 
 /*
- * Finish flag at the least significant bit
+ * Operation flag at the two least significant bits
  */
-#define REDO_FINISH_FLAG		((uint64_t)1<<0)
 #define REDO_OPERATION(op)		(((uint64_t)(op)) << 1)
 #define REDO_OPERATION_MASK		((((uint64_t)1 << 2) - 1) << 1)
 #define REDO_OPERATION_FROM_FLAG(flag)	((flag) >> 1 & (((1ULL) << 2) - 1))
-#define REDO_FLAG_MASK			(~(REDO_FINISH_FLAG |\
-					REDO_OPERATION_MASK))
+#define REDO_FLAG_MASK			(~(REDO_OPERATION_MASK))
+
+#define CACHELINE_ALIGN(size) ALIGN_UP(size, 64U)
 
 struct redo_ctx {
 	void *base;
@@ -97,13 +98,22 @@ redo_log_config_delete(struct redo_ctx *ctx)
 }
 
 /*
+ * redo_log_next_by_offset -- calculates the next pointer
+ */
+static struct redo_log *
+redo_log_next_by_offset(const struct redo_ctx *ctx, size_t offset)
+{
+	return offset == 0 ? NULL :
+		(struct redo_log *)((char *)ctx->base + offset);
+}
+
+/*
  * redo_log_next -- retrieves the pointer to the next redo log
  */
 static struct redo_log *
 redo_log_next(const struct redo_ctx *ctx, struct redo_log *redo)
 {
-	return redo->next == 0 ? NULL :
-		(struct redo_log *)((char *)ctx->base + redo->next);
+	return redo_log_next_by_offset(ctx, redo->next);
 }
 
 /*
@@ -115,9 +125,15 @@ redo_log_foreach_entry(const struct redo_ctx *ctx, struct redo_log *redo,
 {
 	struct redo_log_entry *e;
 	int ret = 0;
+	size_t nentries = 0;
 
 	for (struct redo_log *r = redo; r != NULL; r = redo_log_next(ctx, r)) {
 		for (size_t i = 0; i < r->capacity; ++i) {
+			if (nentries == redo->nentries)
+				return ret;
+
+			nentries++;
+
 			e = &r->entries[i];
 			if ((ret = cb(ctx, e, arg)) != 0)
 				return ret;
@@ -128,37 +144,12 @@ redo_log_foreach_entry(const struct redo_ctx *ctx, struct redo_log *redo,
 }
 
 /*
- * redo_log_collect_info -- gathers information about redo entries and flags
+ * redo_log_nentries -- gathers information about redo entries and flags
  */
-static int
-redo_log_collect_info(const struct redo_ctx *ctx, struct redo_log_entry *e,
-	void *arg)
+size_t
+redo_log_nentries(struct redo_log *redo)
 {
-	struct redo_log_info *info = arg;
-
-	if (info->nflags == 0)
-		info->nentries++;
-
-	if (redo_log_is_last(e))
-		info->nflags++;
-
-	return 0;
-}
-
-/*
- * redo_log_info -- (internal) returns the info about redo log
- */
-struct redo_log_info
-redo_log_info(const struct redo_ctx *ctx, struct redo_log *redo)
-{
-	struct redo_log_info info = {0, 0};
-
-	redo_log_foreach_entry(ctx, redo, redo_log_collect_info, &info);
-
-	LOG(15, "redo %p nentries %zu nflags %zu", redo,
-		info.nentries, info.nflags);
-
-	return info;
+	return redo->nentries;
 }
 
 /*
@@ -179,19 +170,38 @@ redo_log_capacity(const struct redo_ctx *ctx,
 }
 
 /*
+ * redo_log_rebuild_next_vec -- rebuilds the vector of next entries
+ */
+void
+redo_log_rebuild_next_vec(const struct redo_ctx *ctx,
+	struct redo_log *redo, struct redo_next *next)
+{
+	do {
+		if (redo->next != 0)
+			VEC_PUSH_BACK(next, redo->next);
+	} while ((redo = redo_log_next(ctx, redo)) != NULL);
+}
+
+/*
  * redo_log_reserve -- (internal) reserves new capacity in the redo log
  */
 int
 redo_log_reserve(const struct redo_ctx *ctx, struct redo_log *redo,
-	size_t redo_capacity, size_t *new_capacity, redo_extend_fn extend)
+	size_t redo_capacity, size_t *new_capacity, redo_extend_fn extend,
+	struct redo_next *next)
 {
 	size_t capacity = redo_capacity;
 
+	uint64_t offset;
+	VEC_FOREACH(offset, next) {
+		redo = redo_log_next_by_offset(ctx, offset);
+		capacity += redo->capacity;
+	}
+
 	while (capacity < *new_capacity) {
-		if (redo->next == 0) {
-			if (extend(ctx->base, &redo->next) != 0)
-				return -1;
-		}
+		if (extend(ctx->base, &redo->next) != 0)
+			return -1;
+		VEC_PUSH_BACK(next, redo->next);
 		redo = redo_log_next(ctx, redo);
 		capacity += redo->capacity;
 	}
@@ -217,10 +227,9 @@ redo_log_checksum(struct redo_log *redo, size_t nentries, int insert)
  */
 void
 redo_log_store(const struct redo_ctx *ctx, struct redo_log *dest,
-	struct redo_log *src, size_t nentries, size_t redo_capacity)
+	struct redo_log *src, size_t nentries, size_t redo_capacity,
+	struct redo_next *next)
 {
-	src->entries[nentries - 1].offset |= REDO_FINISH_FLAG;
-
 	/*
 	 * First, store all entries over the base capacity of the redo log in
 	 * the next logs.
@@ -231,8 +240,10 @@ redo_log_store(const struct redo_ctx *ctx, struct redo_log *dest,
 	size_t offset = redo_capacity;
 	size_t dest_ncopy = MIN(nentries, redo_capacity);
 	size_t next_entries = nentries - dest_ncopy;
+	size_t nlog = 0;
+
 	while (next_entries > 0) {
-		redo = redo_log_next(ctx, redo);
+		redo = redo_log_next_by_offset(ctx, VEC_ARR(next)[nlog++]);
 		ASSERTne(redo, NULL);
 
 		size_t ncopy = MIN(next_entries, redo->capacity);
@@ -241,20 +252,24 @@ redo_log_store(const struct redo_ctx *ctx, struct redo_log *dest,
 		pmemops_memcpy(&ctx->p_ops,
 			redo->entries,
 			src->entries + offset,
-			sizeof(struct redo_log_entry) * ncopy,
-			0);
+			CACHELINE_ALIGN(sizeof(struct redo_log_entry) * ncopy),
+			PMEM_F_MEM_WC | PMEM_F_MEM_NODRAIN | PMEM_F_RELAXED);
 		offset += ncopy;
 	}
+
+	if (nlog != 0)
+		pmemops_drain(&ctx->p_ops);
 
 	/*
 	 * Then, calculate the checksum and store the first part of the
 	 * redo log.
 	 */
-	src->next = dest->next;
-	redo_log_checksum(src, nentries, 1);
+	src->next = VEC_SIZE(next) == 0 ? 0 : VEC_FRONT(next);
+	src->nentries = nentries;
+	redo_log_checksum(src, dest_ncopy, 1);
 
 	pmemops_memcpy(&ctx->p_ops, dest, src,
-		SIZEOF_REDO_LOG(dest_ncopy), 0);
+		CACHELINE_ALIGN(SIZEOF_REDO_LOG(dest_ncopy)), PMEM_F_MEM_WC);
 }
 
 /*
@@ -286,15 +301,6 @@ uint64_t
 redo_log_offset(const struct redo_log_entry *entry)
 {
 	return entry->offset & REDO_FLAG_MASK;
-}
-
-/*
- * redo_log_is_last -- returns 1/0
- */
-int
-redo_log_is_last(const struct redo_log_entry *entry)
-{
-	return entry->offset & REDO_FINISH_FLAG;
 }
 
 /*
@@ -334,15 +340,27 @@ static int
 redo_log_process_entry(const struct redo_ctx *ctx,
 	struct redo_log_entry *e, void *arg)
 {
-	if (redo_log_is_last(e)) {
-		redo_log_entry_apply(ctx->base, e, ctx->p_ops.persist);
-		e->offset = 0;
-		pmemops_persist(&ctx->p_ops, &e->offset, sizeof(e->offset));
-		return 1;
-	}
 	redo_log_entry_apply(ctx->base, e, ctx->p_ops.flush);
 
 	return 0;
+}
+
+/*
+ * redo_log_clobber -- zeroes the metadata of the redo log
+ */
+void
+redo_log_clobber(const struct redo_ctx *ctx, struct redo_log *dest,
+	struct redo_next *next)
+{
+	struct redo_log empty;
+	memset(&empty, 0, sizeof(empty));
+
+	if (next != NULL)
+		empty.next = VEC_SIZE(next) == 0 ? 0 : VEC_FRONT(next);
+	else
+		empty.next = dest->next;
+
+	pmemops_memcpy(&ctx->p_ops, dest, &empty, sizeof(empty), PMEM_F_MEM_WC);
 }
 
 /*
@@ -370,11 +388,12 @@ redo_log_recover(const struct redo_ctx *ctx, struct redo_log *redo)
 	LOG(15, "redo %p", redo);
 	ASSERTne(ctx, NULL);
 
-	struct redo_log_info info = redo_log_info(ctx, redo);
-	ASSERT(info.nflags < 2);
-	size_t nentries = MIN(info.nentries, redo->capacity);
-	if (info.nflags == 1 && redo_log_checksum(redo, nentries, 0))
+	size_t nentries = redo->nentries;
+	size_t nentries_base = MIN(nentries, redo->capacity);
+	if (nentries != 0 && redo_log_checksum(redo, nentries_base, 0)) {
 		redo_log_process(ctx, redo);
+		redo_log_clobber(ctx, redo, NULL);
+	}
 }
 
 /*
@@ -401,16 +420,8 @@ redo_log_check(const struct redo_ctx *ctx, struct redo_log *redo)
 {
 	LOG(15, "redo %p", redo);
 	ASSERTne(ctx, NULL);
-	return 0;
 
-	struct redo_log_info info = redo_log_info(ctx, redo);
-
-	if (info.nflags > 1) {
-		LOG(15, "redo %p too many finish flags", redo);
-		return -1;
-	}
-
-	if (info.nflags == 1)
+	if (redo->nentries != 0)
 		return redo_log_foreach_entry(ctx, redo,
 			redo_log_check_entry, NULL);
 
