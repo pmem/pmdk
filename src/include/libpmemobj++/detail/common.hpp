@@ -95,6 +95,10 @@ conditional_add_to_tx(const obj::persistent_ptr<T> &that)
 	if (pmemobj_tx_stage() != TX_STAGE_WORK)
 		return;
 
+	/* 'that' is not in any open pool */
+	if (!pmemobj_pool_by_ptr(that))
+		return;
+
 	if (pmemobj_tx_add_range(that.raw(), 0, sizeof(T)))
 		throw transaction_error("Could not add an object to the"
 					" transaction.");
