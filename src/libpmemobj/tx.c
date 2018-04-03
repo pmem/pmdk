@@ -587,6 +587,8 @@ tx_flush_range(void *data, void *ctx)
 		pmemops_flush(&pop->p_ops, OBJ_OFF_TO_PTR(pop, range->offset),
 				range->size);
 	}
+	VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, range->offset),
+		range->size);
 }
 
 /*
@@ -1156,7 +1158,7 @@ tx_post_commit(struct tx *tx, struct lane_tx_runtime *lane)
 	if (pvector_size(cache) > 0)
 		tx_clear_set_cache_but_first(tx->pop, &lane->undo, tx, NULL);
 
-	pvector_reset(lane->undo.ctx[UNDO_SET], 0);
+	pvector_resize(lane->undo.ctx[UNDO_SET], 0);
 
 	VEC_CLEAR(&lane->actions);
 }
