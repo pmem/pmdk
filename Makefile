@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -87,12 +87,14 @@ clean:
 	$(MAKE) -C doc $@
 	$(MAKE) -C utils $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR)
+	$(RM) -f $(GIT_VERSION)
 
 clobber:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
 	$(MAKE) -C utils $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
+	$(RM) -f $(GIT_VERSION)
 
 test check pcheck check-remote: all
 	$(MAKE) -C src $@

@@ -49,6 +49,7 @@
 
 $scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition
 $file_path = $scriptPath + "\..\src\windows\include\srcversion.h"
+$git_version_file = $scriptPath + "\..\GIT_VERSION"
 $git = Get-Command -Name git -ErrorAction SilentlyContinue
 
 if (Test-Path $file_path) {
@@ -56,6 +57,23 @@ if (Test-Path $file_path) {
         Where-Object { $_ -like '#define SRCVERSION*' }
 } else {
     $old_src_version = ""
+}
+
+$git_version = ""
+$git_version_tag = ""
+$git_version_hash = ""
+
+if (Test-Path $git_version_file) {
+    $git_version = Get-Content $git_version_file
+    if ($git_version -eq "`$Format:%h %d`$") {
+        $git_version = ""
+    } elseif ($git_version -match "tag: ") {
+       if ($git_version -match "tag: (?<tag>[0-9a-z.+-]*)") {
+           $git_version_tag = $matches["tag"];
+       }
+    } else {
+        $git_version_hash = ($git_version -split " ")[0]
+    }
 }
 
 $PRERELEASE = $false
@@ -69,6 +87,18 @@ if ($null -ne $args[0]) {
 } elseif ($null -ne $git) {
     $version = $(git describe)
     $ver_array = $(git describe --long).split("-+")
+} elseif ($git_version_tag -ne "") {
+    $version = $git_version_tag
+    $ver_array = $git_version_tag.split("-+")
+} elseif ($git_version_hash -ne "") {
+    $MAJOR = 0
+    $MINOR = 0
+    $REVISION = 0
+    $BUILD = 0
+
+    $version = $git_version_hash
+    $CUSTOM = $true
+    $version_custom_msg = "#define VERSION_CUSTOM_MSG `"$git_version_hash`""
 } else {
     $MAJOR = 0
     $MINOR = 0
@@ -77,7 +107,7 @@ if ($null -ne $args[0]) {
 
     $version = "UNKNOWN_VERSION"
     $CUSTOM = $true
-    $version_custom_msg = "#define VERSION_CUSTOM_MSG `"UNKNOWN_VERSION`" "
+    $version_custom_msg = "#define VERSION_CUSTOM_MSG `"UNKNOWN_VERSION`""
 }
 
 if ($null -ne $ver_array) {

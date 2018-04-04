@@ -36,14 +36,27 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 
 VERSION = $(TOP)/.version
+GIT_VERSION = $(TOP)/.git_version
+
+GIT_VERSION_TAG=$(shell cat $(TOP)/GIT_VERSION | grep tag: | sed 's/.*tag: \([0-9a-z.+-]*\).*/\1/')
+GIT_VERSION_HASH=$(shell cat $(TOP)/GIT_VERSION | sed -e 's/.Format:%h %d.//g' -e 's/ .*//')
+
+ifneq ($(GIT_VERSION_TAG),)
+$(shell echo "$(GIT_VERSION_TAG)" > $(GIT_VERSION))
+else
+ifneq ($(GIT_VERSION_HASH),)
+$(shell echo "$(GIT_VERSION_HASH)" > $(GIT_VERSION))
+else
+$(shell rm -f $(GIT_VERSION))
+endif
+endif
 
 export SRCVERSION = $(shell git describe 2>/dev/null ||\
 			cat $(VERSION) 2>/dev/null ||\
 			git log -1 --format=%h 2>/dev/null ||\
+			cat $(GIT_VERSION) 2>/dev/null ||\
 			(basename `realpath $(TOP)` | sed 's/pmdk[-]*\([0-9a-z.+-]*\).*/\1/'))
 
 ifeq ($(SRCVERSION),)
-$(error Can't evaluate version)
+$(error Cannot evaluate version)
 endif
-
-export OLD_SRCVERSION = $(shell cat $(VERSION) 2>/dev/null)
