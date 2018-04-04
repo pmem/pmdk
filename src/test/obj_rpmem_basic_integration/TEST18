@@ -44,8 +44,11 @@ require_test_type medium
 
 require_nodes 2
 
-require_node_libfabric 0 $RPMEM_PROVIDER
-require_node_libfabric 1 $RPMEM_PROVIDER
+# Require ofiwg/libfabric#2725 fix:
+# prov/verbs: Remove unpaired lock from EQ destroy
+# https://github.com/ofiwg/libfabric/pull/2725
+require_node_libfabric 0 $RPMEM_PROVIDER 1.5.0
+require_node_libfabric 1 $RPMEM_PROVIDER 1.5.0
 
 configure_valgrind helgrind force-enable "../$EXE"
 
