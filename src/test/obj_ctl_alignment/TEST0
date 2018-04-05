@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,24 +31,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_action/TEST1 -- unit test (memcheck) for obj_action
-#
-
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_build_type debug
-require_test_type medium
-configure_valgrind memcheck force-enable
+require_test_type short
+require_fs_type any
 
 setup
 
-export PMEM_IS_PMEM_FORCE=1
-export PMEMOBJ_LOG_LEVEL=1
-
-expect_normal_exit ./obj_action$EXESUFFIX $DIR/testfile
-
-check
+expect_normal_exit ./obj_ctl_alignment$EXESUFFIX $DIR/testfile
 
 pass

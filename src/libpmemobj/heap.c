@@ -374,8 +374,7 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	/* add/remove chunk_run and chunk_header to valgrind transaction */
 	VALGRIND_ADD_TO_TX(run, runsize);
 	run->block_size = c->unit_size;
-	pmemops_persist(&heap->p_ops, &run->block_size,
-			sizeof(run->block_size));
+	run->alignment = c->run.alignment;
 
 	/* set all the bits */
 	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
@@ -386,13 +385,12 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	memset(run->bitmap, 0, sizeof(uint64_t) * (nval - 1));
 	run->bitmap[nval - 1] = c->run.bitmap_lastval;
 
-	run->incarnation_claim = 1; /* claimed by the bucket */
-	VALGRIND_SET_CLEAN(&run->incarnation_claim,
-		sizeof(run->incarnation_claim));
-
 	VALGRIND_REMOVE_FROM_TX(run, runsize);
 
-	pmemops_persist(&heap->p_ops, run->bitmap, sizeof(run->bitmap));
+	pmemops_flush(&heap->p_ops, run,
+		sizeof(run->block_size) +
+		sizeof(run->alignment) +
+		sizeof(run->bitmap));
 
 	struct chunk_header run_data_hdr;
 	run_data_hdr.type = CHUNK_TYPE_RUN_DATA;
@@ -421,7 +419,7 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	struct chunk_header run_hdr;
 	run_hdr.size_idx = hdr->size_idx;
 	run_hdr.type = CHUNK_TYPE_RUN;
-	run_hdr.flags = (uint16_t)header_type_to_flag[c->header_type];
+	run_hdr.flags = c->flags;
 	*hdr = run_hdr;
 	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
 
@@ -617,16 +615,17 @@ static int
 heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 {
 	struct chunk_run *run = heap_get_chunk_run(heap, m);
+	struct chunk_header *hdr = heap_get_chunk_hdr(heap, m);
 
 	struct alloc_class *c = alloc_class_by_run(
 		heap->rt->alloc_classes,
-		run->block_size, m->header_type, m->size_idx);
+		run->block_size, hdr->flags, m->size_idx);
 
 	uint64_t free_space;
 	if (c == NULL) {
 		struct alloc_class_run_proto run_proto;
 		alloc_class_generate_run_proto(&run_proto,
-			run->block_size, m->size_idx);
+			run->block_size, m->size_idx, run->alignment);
 
 		recycler_calc_score(heap, m, &free_space);
 
@@ -912,16 +911,14 @@ heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
 	if (m->type != MEMORY_BLOCK_RUN)
 		return;
 
-	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
-	struct chunk_run *run = (struct chunk_run *)
-		&z->chunks[m->chunk_id];
+	struct chunk_header *hdr = heap_get_chunk_hdr(heap, m);
+	struct chunk_run *run = heap_get_chunk_run(heap, m);
 
 	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
 
 	struct alloc_class *c = alloc_class_by_run(
 		heap->rt->alloc_classes,
-		run->block_size, m->header_type, hdr->size_idx);
+		run->block_size, hdr->flags, hdr->size_idx);
 
 	if (c == NULL)
 		return;
@@ -1633,7 +1630,7 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 
 	struct alloc_class_run_proto run_proto;
 	alloc_class_generate_run_proto(&run_proto,
-		run->block_size, m->size_idx);
+		run->block_size, m->size_idx, run->alignment);
 
 	for (; i < run_proto.bitmap_nval; ++i) {
 		uint64_t v = run->bitmap[i];
