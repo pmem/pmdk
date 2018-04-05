@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,7 +43,6 @@
 #include "util.h"
 #include "mmap.h"
 
-#define MEGABYTE ((uintptr_t)1 << 20)
 #define GIGABYTE ((uintptr_t)1 << 30)
 #define TERABYTE ((uintptr_t)1 << 40)
 
@@ -64,11 +63,9 @@ main(int argc, char *argv[])
 	for (int arg = 2; arg < argc; arg++) {
 		size_t len = (size_t)strtoull(argv[arg], NULL, 0);
 
-		size_t align = Ut_pagesize;
+		size_t align = 2 * MEGABYTE;
 		if (len >= 2 * GIGABYTE)
 			align = GIGABYTE;
-		else if (len >= 4 * MEGABYTE)
-			align = 2 * MEGABYTE;
 
 		void *h1 =
 			util_map_hint_unused((void *)TERABYTE, len, GIGABYTE);

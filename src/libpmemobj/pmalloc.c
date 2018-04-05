@@ -49,6 +49,7 @@
 #include "pmalloc.h"
 #include "alloc_class.h"
 #include "set.h"
+#include "mmap.h"
 
 #ifdef DEBUG
 /*
@@ -327,14 +328,20 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 
 	struct pobj_alloc_class_desc *p = arg;
 
-	if (p->alignment != 0) {
-		ERR("Allocation class alignment is not supported yet");
-		errno = ENOTSUP;
+	if (p->unit_size <= 0 || p->unit_size > PMEMOBJ_MAX_ALLOC_SIZE ||
+		p->units_per_block <= 0) {
+		errno = EINVAL;
 		return -1;
 	}
 
-	if (p->unit_size <= 0 || p->unit_size > PMEMOBJ_MAX_ALLOC_SIZE ||
-		p->units_per_block <= 0) {
+	if (p->alignment != 0 && p->unit_size % p->alignment != 0) {
+		ERR("unit size must be evenly divisible by alignment");
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (p->alignment > (MEGABYTE * 2)) {
+		ERR("alignment cannot be larger than 2 megabytes");
 		errno = EINVAL;
 		return -1;
 	}
@@ -382,33 +389,32 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 		}
 	}
 
-	p->class_id = id;
-
-	struct alloc_class c;
-	c.id = id;
-	c.header_type = lib_htype;
-	c.type = CLASS_RUN;
-	c.unit_size = p->unit_size;
 	size_t runsize_bytes =
 		CHUNK_ALIGN_UP((p->units_per_block * p->unit_size) +
 		RUN_METASIZE);
-	c.run.size_idx = (uint32_t)(runsize_bytes / CHUNKSIZE);
-	if (c.run.size_idx > UINT16_MAX)
-		c.run.size_idx = UINT16_MAX;
 
-	alloc_class_generate_run_proto(&c.run, c.unit_size, c.run.size_idx);
+	/* aligning the buffer might require up-to to 'alignment' bytes */
+	if (p->alignment != 0)
+		runsize_bytes += p->alignment;
 
-	struct alloc_class *realc = alloc_class_register(
-		heap_alloc_classes(&pop->heap), &c);
-	if (realc == NULL) {
+	uint32_t size_idx = (uint32_t)(runsize_bytes / CHUNKSIZE);
+	if (size_idx > UINT16_MAX)
+		size_idx = UINT16_MAX;
+
+	struct alloc_class *c = alloc_class_new(id,
+		heap_alloc_classes(&pop->heap), CLASS_RUN,
+		lib_htype, p->unit_size, p->alignment, size_idx);
+	if (c == NULL) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	if (heap_create_alloc_class_buckets(&pop->heap, realc) != 0) {
-		alloc_class_delete(ac, realc);
+	if (heap_create_alloc_class_buckets(&pop->heap, c) != 0) {
+		alloc_class_delete(ac, c);
 		return -1;
 	}
+
+	p->class_id = c->id;
 
 	return 0;
 }
@@ -439,7 +445,7 @@ pmalloc_header_type_parser(const void *arg, void *dest, size_t dest_size)
 }
 
 /*
- * CTL_READ_HANDLER(proto) -- reads the information about allocation class
+ * CTL_READ_HANDLER(desc) -- reads the information about allocation class
  */
 static int
 CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
@@ -488,7 +494,7 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 	p->header_type = user_htype;
 	p->unit_size = c->unit_size;
 	p->class_id = c->id;
-	p->alignment = 0;
+	p->alignment = c->flags & CHUNK_FLAG_ALIGNED;
 
 	return 0;
 }

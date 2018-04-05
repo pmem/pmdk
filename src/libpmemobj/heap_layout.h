@@ -44,6 +44,7 @@
 #define HEAP_MINOR 0
 
 #define MAX_CHUNK (UINT16_MAX - 7) /* has to be multiple of 8 */
+#define CHUNK_BASE_ALIGNMENT 1024
 #define CHUNKSIZE ((size_t)1024 * 256)	/* 256 kilobytes */
 #define MAX_MEMORY_BLOCK_SIZE (MAX_CHUNK * CHUNKSIZE)
 #define HEAP_SIGNATURE_LEN 16
@@ -60,6 +61,7 @@
 #define RUN_BITMAP_SIZE (BITS_PER_VALUE * MAX_BITMAP_VALUES)
 #define RUNSIZE (CHUNKSIZE - RUN_METASIZE)
 #define MIN_RUN_SIZE 128
+#define RUN_BASE_ALIGNMENT 64
 
 #define CHUNK_MASK ((CHUNKSIZE) - 1)
 #define CHUNK_ALIGN_UP(value) ((((value) + CHUNK_MASK) & ~CHUNK_MASK))
@@ -67,10 +69,14 @@
 enum chunk_flags {
 	CHUNK_FLAG_COMPACT_HEADER	=	0x0001,
 	CHUNK_FLAG_HEADER_NONE		=	0x0002,
+	CHUNK_FLAG_ALIGNED		=	0x0004,
 };
 
-#define CHUNK_FLAGS_ALL_VALID (CHUNK_FLAG_COMPACT_HEADER |\
-	CHUNK_FLAG_HEADER_NONE)
+#define CHUNK_FLAGS_ALL_VALID (\
+	CHUNK_FLAG_COMPACT_HEADER |\
+	CHUNK_FLAG_HEADER_NONE |\
+	CHUNK_FLAG_ALIGNED\
+)
 
 enum chunk_type {
 	CHUNK_TYPE_UNKNOWN,
@@ -89,7 +95,7 @@ struct chunk {
 
 struct chunk_run {
 	uint64_t block_size;
-	uint64_t incarnation_claim; /* run_id of the last claimant */
+	uint64_t alignment; /* valid only /w CHUNK_FLAG_ALIGNED */
 	uint64_t bitmap[MAX_BITMAP_VALUES];
 	uint8_t data[RUNSIZE];
 };

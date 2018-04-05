@@ -657,6 +657,7 @@ function valgrind_ignore_warnings() {
 		-e "parse_CU_Header: is neither DWARF2 nor DWARF3 nor DWARF4" \
 		-e "brk segment overflow" \
 		-e "see section Limitations in user manual" \
+		-e "Warning: set address range perms: large range"\
 		>  $1.tmp
 	mv $1.tmp $1
 }

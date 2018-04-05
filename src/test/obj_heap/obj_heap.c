@@ -64,6 +64,19 @@ obj_heap_persist(void *ctx, const void *ptr, size_t sz, unsigned flags)
 	return 0;
 }
 
+static int
+obj_heap_flush(void *ctx, const void *ptr, size_t sz, unsigned flags)
+{
+	UT_ASSERTeq(pmem_msync(ptr, sz), 0);
+
+	return 0;
+}
+
+static void
+obj_heap_drain(void *ctx)
+{
+}
+
 static void *
 obj_heap_memset(void *ctx, void *ptr, int c, size_t sz, unsigned flags)
 {
@@ -116,7 +129,7 @@ static void
 test_alloc_class_bitmap_correctness(void)
 {
 	struct alloc_class_run_proto proto;
-	alloc_class_generate_run_proto(&proto, RUNSIZE / 10, 1);
+	alloc_class_generate_run_proto(&proto, RUNSIZE / 10, 1, 0);
 	/* 54 set (not available for allocations), and 10 clear (available) */
 	uint64_t bitmap_lastval =
 	0b1111111111111111111111111111111111111111111111111111110000000000;
@@ -210,6 +223,8 @@ test_heap(void)
 	memset(pop, 0, MOCK_POOL_SIZE);
 	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
 	pop->p_ops.persist = obj_heap_persist;
+	pop->p_ops.flush = obj_heap_flush;
+	pop->p_ops.drain = obj_heap_drain;
 	pop->p_ops.memset = obj_heap_memset;
 	pop->p_ops.base = pop;
 	pop->set = MALLOC(sizeof(*(pop->set)));
@@ -306,6 +321,8 @@ test_recycler(void)
 	memset(pop, 0, MOCK_POOL_SIZE);
 	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
 	pop->p_ops.persist = obj_heap_persist;
+	pop->p_ops.flush = obj_heap_flush;
+	pop->p_ops.drain = obj_heap_drain;
 	pop->p_ops.memset = obj_heap_memset;
 	pop->p_ops.base = pop;
 	pop->set = MALLOC(sizeof(*(pop->set)));

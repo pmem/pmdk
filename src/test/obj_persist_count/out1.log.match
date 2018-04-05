@@ -10,7 +10,7 @@ tx_alloc       7       5          4            0          2          1          
 tx_alloc_next  6       4          3            0          2          1          0               0                 0               0                 6                      
 tx_free        7       7          6            0          1          1          0               0                 0               0                 7                      
 tx_free_next   6       6          5            0          1          1          0               0                 0               0                 6                      
-tx_add         538     17         13           0          3          1          1               1                 516             2                 24                     
+tx_add         537     15         11           0          4          1          1               1                 516             2                 23                     
 tx_add_next    4       3          1            0          1          0          1               1                 1               1                 4                      
 pmalloc        6       5          4            0          2          1          0               0                 0               0                 6                      
 pfree          5       5          4            0          1          1          0               0                 0               0                 5                      
