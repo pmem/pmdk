@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,23 +31,12 @@
 #
 
 #
-# src/test/obj_action/TEST1 -- unit test (memcheck) for obj_action
+# src/test/obj_ctl_alignment/Makefile -- build obj_ctl_alignment test
 #
+TARGET = obj_ctl_alignment
+OBJS = obj_ctl_alignment.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEM=y
+LIBPMEMOBJ=y
 
-require_build_type debug
-require_test_type medium
-configure_valgrind memcheck force-enable
-
-setup
-
-export PMEM_IS_PMEM_FORCE=1
-export PMEMOBJ_LOG_LEVEL=1
-
-expect_normal_exit ./obj_action$EXESUFFIX $DIR/testfile
-
-check
-
-pass
+include ../Makefile.inc
