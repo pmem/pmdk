@@ -155,7 +155,7 @@ util_map_hint(size_t len, size_t req_align)
 	char *hint_addr = MAP_FAILED;
 
 	/* choose the desired alignment based on the requested length */
-	size_t align = util_map_hint_align(len, req_align);
+	size_t align = util_map_hint_align();
 
 	if (Mmap_no_random) {
 		LOG(4, "user-defined hint %p", Mmap_hint);
