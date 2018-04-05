@@ -413,6 +413,8 @@ os_dimm_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
 		return -1;
 	}
 
+	memset(bbs, 0, sizeof(*bbs));
+
 	if (region == NULL || ndns == NULL)
 		return 0;
 
