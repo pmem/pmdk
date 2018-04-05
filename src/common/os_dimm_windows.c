@@ -173,6 +173,18 @@ os_dimm_files_namespace_badblocks(const char *path, struct badblocks *bbs)
 }
 
 /*
+ * os_dimm_devdax_get_clear_badblocks -- fake bad block getting
+ *                                       and clearing routine
+ */
+int
+os_dimm_devdax_get_clear_badblocks(const char *path, struct badblocks *bbs)
+{
+	LOG(3, "path %s badblocks %p", path, bbs);
+
+	return 0;
+}
+
+/*
  * os_dimm_devdax_clear_badblocks -- fake bad block clearing routine
  */
 int

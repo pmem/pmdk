@@ -535,27 +535,34 @@ out_ars_cap:
 }
 
 /*
- * os_dimm_devdax_clear_badblocks -- clear all bad blocks in the dax device
+ * os_dimm_devdax_get_clear_badblocks -- get and clear all bad blocks
+ *                                       in the dax device
  */
 int
-os_dimm_devdax_clear_badblocks(const char *path)
+os_dimm_devdax_get_clear_badblocks(const char *path, struct badblocks *bbs)
 {
-	LOG(3, "path %s", path);
+	LOG(3, "path %s badblocks %p", path, bbs);
 
 	struct ndctl_ctx *ctx;
 	struct ndctl_bus *bus;
-	struct badblocks *bbs;
-	int ret;
+	int allocated_bbs;
+	int ret = -1;
 
 	if (ndctl_new(&ctx)) {
 		ERR("!ndctl_new");
 		return -1;
 	}
 
-	bbs = Zalloc(sizeof(struct badblocks));
-	if (bbs == NULL) {
-		ERR("!malloc");
-		return -1;
+	allocated_bbs = 0;
+	if (bbs) {
+		memset(bbs, 0, sizeof(*bbs));
+	} else {
+		bbs = Zalloc(sizeof(struct badblocks));
+		if (bbs == NULL) {
+			ERR("!malloc");
+			goto exit_free_all;
+		}
+		allocated_bbs = 1;
 	}
 
 	ret = os_dimm_files_namespace_badblocks_bus(ctx, path, &bus, bbs);
@@ -587,12 +594,34 @@ os_dimm_devdax_clear_badblocks(const char *path)
 	}
 
 exit_free_all:
-	if (bbs) {
+	if (allocated_bbs) {
 		Free(bbs->bbv);
 		Free(bbs);
 	}
 
 	ndctl_unref(ctx);
+
+	return ret;
+}
+
+/*
+ * os_dimm_devdax_clear_badblocks -- clear all bad blocks in the dax device
+ */
+int
+os_dimm_devdax_clear_badblocks(const char *path)
+{
+	LOG(3, "path %s", path);
+
+	struct badblocks *bbs = Malloc(sizeof(struct badblocks));
+	if (bbs == NULL) {
+		ERR("!malloc");
+		return -1;
+	}
+
+	int ret = os_dimm_devdax_get_clear_badblocks(path, bbs);
+
+	Free(bbs->bbv);
+	Free(bbs);
 
 	return ret;
 }
