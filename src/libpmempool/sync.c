@@ -95,9 +95,10 @@ err:
  */
 static int
 recreate_broken_parts(struct pool_set *set,
-	struct poolset_health_status *set_hs, unsigned flags)
+			struct poolset_health_status *set_hs)
 {
-	LOG(3, "set %p, set_hs %p, flags %u", set, set_hs, flags);
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		if (set->replica[r]->remote)
 			continue;
@@ -110,16 +111,14 @@ recreate_broken_parts(struct pool_set *set,
 				continue;
 
 			/* remove parts from broken replica */
-			if (!is_dry_run(flags)) {
-				if (replica_remove_part(set, r, p)) {
-					LOG(2, "cannot remove part");
-					return -1;
-				}
+			if (replica_remove_part(set, r, p)) {
+				LOG(2, "cannot remove part");
+				return -1;
 			}
 
 			/* create removed part and open it */
 			if (util_part_open(&broken_r->part[p], 0,
-					!is_dry_run(flags))) {
+						1 /* create */)) {
 				LOG(2, "cannot open/create parts");
 				return -1;
 			}
@@ -757,7 +756,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	}
 
 	/* recreate broken parts */
-	if (recreate_broken_parts(set, set_hs, flags)) {
+	if (recreate_broken_parts(set, set_hs)) {
 		ERR("recreating broken parts failed");
 		ret = -1;
 		goto out;

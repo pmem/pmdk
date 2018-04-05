@@ -133,7 +133,7 @@ uint64_t replica_get_part_data_offset(struct pool_set *set_in, unsigned repn,
 static inline bool
 is_dry_run(unsigned flags)
 {
-	return PMEMPOOL_DRY_RUN & flags;
+	return flags & PMEMPOOL_DRY_RUN;
 }
 
 int replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn);
