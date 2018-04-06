@@ -55,7 +55,7 @@ date: rpmem API version 1.2
 #include <librpmem.h>
 
 int rpmem_persist(RPMEMpool *rpp, size_t offset,
-	size_t length, unsigned lane);
+	size_t length, unsigned lane, unsigned flags);
 int rpmem_deep_persist(RPMEMpool *rpp, size_t offset,
 	size_t length, unsigned lane);
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
@@ -82,7 +82,9 @@ The *offset* and *length* combined must not exceed the
 The **rpmem_persist**() operation is performed using the given *lane* number.
 The lane must be less than the value returned by **rpmem_open**(3) or
 **rpmem_create**(3) through the *nlanes* argument (so it can take a value
-from 0 to *nlanes* - 1).
+from 0 to *nlanes* - 1). The *flags* argument can be 0 or RPMEM_PERSIST_RELAXED
+which means the persist operation will be done without any guarantees regarding
+atomicity of memory transfer.
 
 The **rpmem_deep_persist**() function works in the same way as
 **rpmem_persist**(3) function, but additionaly it flushes the data to the

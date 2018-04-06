@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,7 @@
 #define RKEY		0xabababababababab
 #define RADDR		0x0101010101010101
 #define PORT		1234
+#define BUFF_SIZE	8192
 
 #define POOL_ATTR_INIT {\
 	.signature		= "<RPMEM>",\

@@ -200,11 +200,14 @@ rpmemd_common_fip_init(struct rpmemd *rpmemd, const struct rpmem_req_attr *req,
 		.provider	= req->provider,
 		.persist_method = rpmemd->persist_method,
 		.deep_persist	= rpmemd_deep_persist,
-		.ctx		= rpmemd
+		.ctx		= rpmemd,
+		.buff_size	= req->buff_size,
 	};
 
 	const int is_pmem = rpmemd_db_pool_is_pmem(rpmemd->pool);
-	if (rpmemd_apply_pm_policy(&fip_attr.persist_method, &fip_attr.persist,
+	if (rpmemd_apply_pm_policy(&fip_attr.persist_method,
+			&fip_attr.persist,
+			&fip_attr.memcpy_persist,
 			is_pmem)) {
 		*status = RPMEM_ERR_FATAL;
 		goto err_fip_init;
@@ -236,6 +239,7 @@ rpmemd_print_req_attr(const struct rpmem_req_attr *req)
 	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "nlanes: %u", req->nlanes);
 	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "provider: %s",
 			rpmem_provider_to_str(req->provider));
+	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "buff_size: %lu", req->buff_size);
 }
 
 /*
