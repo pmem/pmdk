@@ -132,8 +132,8 @@ for node in 1 2; do
 	#
 	ARGS="$ARGS test_open 3 pool5.set ${REP_ADDR[${node}]} pool 8M init none"
 	ARGS="$ARGS test_read 3 1234"
-	ARGS="$ARGS test_persist 3 4321 1 1"
-	ARGS="$ARGS test_persist 3 4321 8 8"
+	ARGS="$ARGS test_persist 3 4321 1 1 0"
+	ARGS="$ARGS test_persist 3 4321 8 8 1"
 	ARGS="$ARGS test_close 3"
 
 	ARGS_NODE[${node}]=$ARGS

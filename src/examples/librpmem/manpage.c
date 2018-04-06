@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 	memset(pool, 0, POOL_SIZE);
 
 	/* make local data persistent on remote node */
-	ret = rpmem_persist(rpp, 0, POOL_SIZE, 0);
+	ret = rpmem_persist(rpp, 0, POOL_SIZE, 0, 0);
 	if (ret) {
 		fprintf(stderr, "rpmem_persist: %s\n", rpmem_errormsg());
 		return 1;

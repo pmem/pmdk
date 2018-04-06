@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/rpmem_basic/TEST12 -- unit test for handling rpmemd termination
+# src/test/rpmem_basic/TEST17 -- unit test for rpmem_persist with relaxed flag
 #
 
 # standard unit test setup
@@ -40,39 +40,28 @@
 
 require_test_type medium
 
-SETUP_MANUAL_INIT_RPMEM=1
 . setup.sh
-
-PID_FILE=rpmemd.pid
-init_rpmem_on_node 1 0:$PID_FILE
 
 setup
 
 create_poolset $DIR/pool0.set  8M:$PART_DIR/pool0.part0 8M:$PART_DIR/pool0.part1
 
-run_on_node 0 "rm -rf ${RPMEM_POOLSET_DIR[0]} $PART_DIR && mkdir -p ${RPMEM_POOLSET_DIR[0]} && mkdir -p $PART_DIR"
+run_on_node 0 "rm -rf ${NODE_DIR[0]}$POOLS_DIR ${NODE_DIR[0]}$POOLS_PART && mkdir -p ${NODE_DIR[0]}$POOLS_DIR && mkdir -p ${NODE_DIR[0]}$POOLS_PART"
 
-copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/pool0.set
+copy_files_to_node 0 ${NODE_DIR[0]}$POOLS_DIR $DIR/pool0.set
 
-SEED=4321
-CREATE="test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M none"
-OPEN="test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init none"
-PERSIST="test_persist 0 $SEED 1 1 0"
-READ="test_read 0 $SEED"
-TERMINATE="rpmemd_terminate 0 ${NODE_TEST_DIR[0]}/$PID_FILE"
-CLOSE="test_close 0"
-
-ARGS="$ARGS $CREATE $PERSIST $CLOSE"
-ARGS="$ARGS $OPEN $TERMINATE wait $CLOSE"
-ARGS="$ARGS $OPEN $TERMINATE nowait $CLOSE"
-ARGS="$ARGS $OPEN $TERMINATE wait $PERSIST $CLOSE"
-ARGS="$ARGS $OPEN $TERMINATE nowait $PERSIST $CLOSE"
-ARGS="$ARGS $OPEN $TERMINATE wait $READ $CLOSE"
-ARGS="$ARGS $OPEN $TERMINATE nowait $READ $CLOSE"
-
-expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX $ARGS
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
+	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M none test_close 0
 
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
-	check_pool ${RPMEM_POOLSET_DIR[0]}/pool0.set $SEED 8M
+	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool0.set 1234
+
+expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
+	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init none\
+	test_persist 0 4321 8 8 1\
+	test_close 0
+
+expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
+	check_pool ${NODE_DIR[0]}$POOLS_DIR/pool0.set 4321 8M
 
 pass

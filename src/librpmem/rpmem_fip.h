@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,7 @@ struct rpmem_fip_attr {
 	enum rpmem_persist_method persist_method;
 	void *laddr;
 	size_t size;
+	size_t buff_size;
 	unsigned nlanes;
 	void *raddr;
 	uint64_t rkey;
