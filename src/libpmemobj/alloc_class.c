@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -445,11 +445,12 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 		if (units > RUN_UNIT_MAX_ALLOC)
 			continue;
 
-		float frag = (float)(c->unit_size * units) / (float)real_size;
-		if (frag == 1.f)
+		if (c->unit_size * units == real_size)
 			return c;
 
-		ASSERT(frag >= 1.f);
+		ASSERT(c->unit_size * units > real_size);
+
+		float frag = (float)(c->unit_size * units) / (float)real_size;
 		if (frag < best_frag || best_c == NULL) {
 			best_c = c;
 			best_frag = frag;
