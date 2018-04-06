@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -94,14 +94,27 @@ rpmem_print_pm_policy(enum rpmem_persist_method persist_method,
 }
 
 /*
+ * rpmem_memcpy_msync -- memcpy and msync
+ */
+static void *
+rpmem_memcpy_msync(void *pmemdest, const void *src, size_t len)
+{
+	void *ret = pmem_memcpy(pmemdest, src, len, PMEM_MEM_NOFLUSH);
+	pmem_msync(pmemdest, len);
+
+	return ret;
+}
+
+/*
  * rpmemd_apply_pm_policy -- choose the persistency method and the flush
  * function according to the pool type and the persistency method read from the
  * config
  */
 int
 rpmemd_apply_pm_policy(enum rpmem_persist_method *persist_method,
-		int (**persist)(const void *addr, size_t len),
-		const int is_pmem)
+	int (**persist)(const void *addr, size_t len),
+	void *(**memcpy_persist)(void *pmemdest, const void *src, size_t len),
+	const int is_pmem)
 {
 	switch (*persist_method) {
 	case RPMEM_PM_APM:
@@ -121,6 +134,12 @@ rpmemd_apply_pm_policy(enum rpmem_persist_method *persist_method,
 		RPMEMD_FATAL("invalid persist method: %d", *persist_method);
 		return -1;
 	}
+
+	/* this is for RPMEM_PERSIST_INLINE */
+	if (is_pmem)
+		*memcpy_persist = pmem_memcpy_persist;
+	else
+		*memcpy_persist = rpmem_memcpy_msync;
 
 	RPMEMD_LOG(NOTICE, "persistency policy:");
 	rpmem_print_pm_policy(*persist_method, *persist);

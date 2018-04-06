@@ -32,7 +32,8 @@
 #
 
 #
-# src/test/rpmem_basic/TEST4 -- unit test for rpmem_persist
+# src/test/rpmem_basic/TEST4 -- unit test for rpmem_persist without relaxed flag
+# test case for rpmem_persist with relaxed flag is in TEST17
 #
 
 # standard unit test setup
@@ -58,7 +59,7 @@ expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init none\
-	test_persist 0 4321 8 8\
+	test_persist 0 4321 8 8 0\
 	test_close 0
 
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\

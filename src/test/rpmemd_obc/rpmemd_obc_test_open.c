@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -61,10 +61,10 @@ client_bad_msg_open(const char *ctarget)
 
 		switch (i) {
 		case 0:
-			msg->provider = 0;
+			msg->c.provider = 0;
 			break;
 		case 1:
-			msg->provider = MAX_RPMEM_PROV;
+			msg->c.provider = MAX_RPMEM_PROV;
 			break;
 		case 2:
 			msg->pool_desc.size -= 1;
@@ -92,10 +92,10 @@ client_bad_msg_open(const char *ctarget)
 			msg->pool_desc.desc[POOL_DESC_SIZE - 1] = 'E';
 			break;
 		case 9:
-			msg->major = RPMEM_PROTO_MAJOR + 1;
+			msg->c.major = RPMEM_PROTO_MAJOR + 1;
 			break;
 		case 10:
-			msg->minor = RPMEM_PROTO_MINOR + 1;
+			msg->c.minor = RPMEM_PROTO_MINOR + 1;
 			break;
 		default:
 			UT_ASSERT(0);

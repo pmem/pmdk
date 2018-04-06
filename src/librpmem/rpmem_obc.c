@@ -187,11 +187,12 @@ rpmem_obc_alloc_create_msg(const struct rpmem_req_attr *req,
 
 	rpmem_obc_set_msg_hdr(&msg->hdr, RPMEM_MSG_TYPE_CREATE, msg_size);
 
-	msg->major = RPMEM_PROTO_MAJOR;
-	msg->minor = RPMEM_PROTO_MINOR;
-	msg->pool_size = req->pool_size;
-	msg->nlanes = req->nlanes;
-	msg->provider = req->provider;
+	msg->c.major = RPMEM_PROTO_MAJOR;
+	msg->c.minor = RPMEM_PROTO_MINOR;
+	msg->c.pool_size = req->pool_size;
+	msg->c.nlanes = req->nlanes;
+	msg->c.provider = req->provider;
+	msg->c.buff_size = req->buff_size;
 
 	rpmem_obc_set_pool_desc(&msg->pool_desc,
 			req->pool_desc, pool_desc_size);
@@ -305,11 +306,12 @@ rpmem_obc_alloc_open_msg(const struct rpmem_req_attr *req,
 
 	rpmem_obc_set_msg_hdr(&msg->hdr, RPMEM_MSG_TYPE_OPEN, msg_size);
 
-	msg->major = RPMEM_PROTO_MAJOR;
-	msg->minor = RPMEM_PROTO_MINOR;
-	msg->pool_size = req->pool_size;
-	msg->nlanes = req->nlanes;
-	msg->provider = req->provider;
+	msg->c.major = RPMEM_PROTO_MAJOR;
+	msg->c.minor = RPMEM_PROTO_MINOR;
+	msg->c.pool_size = req->pool_size;
+	msg->c.nlanes = req->nlanes;
+	msg->c.provider = req->provider;
+	msg->c.buff_size = req->buff_size;
 
 	rpmem_obc_set_pool_desc(&msg->pool_desc,
 			req->pool_desc, pool_desc_size);

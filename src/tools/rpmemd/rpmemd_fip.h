@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,9 +43,11 @@ struct rpmemd_fip_attr {
 	size_t size;
 	unsigned nlanes;
 	size_t nthreads;
+	size_t buff_size;
 	enum rpmem_provider provider;
 	enum rpmem_persist_method persist_method;
 	int (*persist)(const void *addr, size_t len);
+	void *(*memcpy_persist)(void *pmemdest, const void *src, size_t len);
 	int (*deep_persist)(const void *addr, size_t len, void *ctx);
 	void *ctx;
 };

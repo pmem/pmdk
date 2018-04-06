@@ -57,7 +57,7 @@ copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/pool0.set
 SEED=4321
 CREATE="test_create 0 pool0.set ${NODE_ADDR[0]} pool 8M none"
 OPEN="test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init none"
-PERSIST="test_persist 0 $SEED 1 1"
+PERSIST="test_persist 0 $SEED 1 1 0"
 READ="test_read 0 $SEED"
 TERMINATE="rpmemd_terminate 0 ${NODE_TEST_DIR[0]}/$PID_FILE"
 CLOSE="test_close 0"

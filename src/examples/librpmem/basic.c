@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 			goto end;
 		}
 
-		ret = rpmem_persist(rpp, 0, POOL_SIZE, 0);
+		ret = rpmem_persist(rpp, 0, POOL_SIZE, 0, 0);
 		if (ret)
 			fprintf(stderr, "rpmem_persist: %s\n",
 					rpmem_errormsg());
@@ -132,7 +132,7 @@ main(int argc, char *argv[])
 			fprintf(stderr, "remote pool not consistent\n");
 		}
 
-		ret = rpmem_persist(rpp, 0, POOL_SIZE, 0);
+		ret = rpmem_persist(rpp, 0, POOL_SIZE, 0, 0);
 		if (ret)
 			fprintf(stderr, "rpmem_persist: %s\n",
 					rpmem_errormsg());

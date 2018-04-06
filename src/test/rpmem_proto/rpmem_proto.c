@@ -92,17 +92,22 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_ibc_attr, nlanes);
 	ASSERT_ALIGNED_CHECK(struct rpmem_msg_ibc_attr);
 
+	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_common);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_common, major);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_common, minor);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_common, pool_size);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_common, nlanes);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_common, provider);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_common, buff_size);
+	ASSERT_ALIGNED_CHECK(struct rpmem_msg_common);
+
 	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_pool_desc);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_pool_desc, size);
 	ASSERT_ALIGNED_CHECK(struct rpmem_msg_pool_desc);
 
 	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_create);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_create, hdr);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_create, major);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_create, minor);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_create, pool_size);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_create, nlanes);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_create, provider);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_create, c);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_create, pool_attr);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_create, pool_desc);
 	ASSERT_ALIGNED_CHECK(struct rpmem_msg_create);
@@ -114,11 +119,7 @@ main(int argc, char *argv[])
 
 	ASSERT_ALIGNED_BEGIN(struct rpmem_msg_open);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_open, hdr);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_open, major);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_open, minor);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_open, pool_size);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_open, nlanes);
-	ASSERT_ALIGNED_FIELD(struct rpmem_msg_open, provider);
+	ASSERT_ALIGNED_FIELD(struct rpmem_msg_open, c);
 	ASSERT_ALIGNED_FIELD(struct rpmem_msg_open, pool_desc);
 	ASSERT_ALIGNED_CHECK(struct rpmem_msg_open);
 
