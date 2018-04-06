@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -114,6 +114,7 @@ struct rpmemd_fip {
 	struct fid_mr *mr;		/* memory region for pool */
 
 	int (*persist)(const void *addr, size_t len);	/* persist function */
+	void *(*memcpy_persist)(void *pmemdest, const void *src, size_t len);
 	int (*deep_persist)(const void *addr, size_t len, void *ctx);
 	void *ctx;
 	void *addr;			/* pool's address */
@@ -125,11 +126,13 @@ struct rpmemd_fip {
 	size_t nthreads;	/* number of threads for processing */
 	size_t cq_size;	/* size of completion queue */
 	size_t lanes_per_thread; /* numer of lanes per thread */
+	size_t buff_size;	/* size of buffer for inlined data */
 
 	struct rpmemd_fip_lane *lanes;
-	struct rpmem_fip_lane rd_lane;
+	struct rpmem_fip_lane rd_lane; /* lane for read operation */
 
-	struct rpmem_msg_persist *pmsg;	/* persist message buffer */
+	void *pmsg;			/* persist message buffer */
+	size_t pmsg_size; /* persist message buffer size including alignment */
 	struct fid_mr *pmsg_mr;		/* persist message memory region */
 	void *pmsg_mr_desc;		/* persist message local descriptor */
 
@@ -139,6 +142,16 @@ struct rpmemd_fip {
 
 	struct rpmemd_fip_thread *threads;
 };
+
+/*
+ * rpmemd_fip_get_pmsg -- return persist message buffer
+ */
+static inline struct rpmem_msg_persist *
+rpmemd_fip_get_pmsg(struct rpmemd_fip *fip, size_t idx)
+{
+	return (struct rpmem_msg_persist *)
+		((uintptr_t)fip->pmsg + idx * fip->pmsg_size);
+}
 
 /*
  * rpmemd_fip_getinfo -- obtain fabric interface information
@@ -421,7 +434,8 @@ rpmemd_fip_post_msg(struct rpmemd_fip_lane *lanep)
 static inline int
 rpmemd_fip_post_resp(struct rpmemd_fip_lane *lanep)
 {
-	int ret = rpmem_fip_sendmsg(lanep->base.ep, &lanep->send);
+	int ret = rpmem_fip_sendmsg(lanep->base.ep, &lanep->send,
+			sizeof(struct rpmem_msg_persist_resp));
 	if (ret) {
 		RPMEMD_FI_ERR(ret, "posting send buffer");
 		return ret;
@@ -485,7 +499,7 @@ rpmemd_fip_init_common(struct rpmemd_fip *fip)
 	int ret;
 
 	/* allocate persist message buffer */
-	size_t msg_size = fip->nlanes * sizeof(struct rpmem_msg_persist);
+	size_t msg_size = fip->nlanes * fip->pmsg_size;
 	fip->pmsg = malloc(msg_size);
 	if (!fip->pmsg) {
 		RPMEMD_LOG(ERR, "!allocating messages buffer");
@@ -533,8 +547,8 @@ rpmemd_fip_init_common(struct rpmemd_fip *fip)
 		rpmem_fip_msg_init(&lanep->recv,
 				fip->pmsg_mr_desc, 0,
 				lanep,
-				&fip->pmsg[i],
-				sizeof(fip->pmsg[i]),
+				rpmemd_fip_get_pmsg(fip, i),
+				fip->pmsg_size,
 				FI_COMPLETION);
 
 		/* initialize SEND message */
@@ -660,10 +674,13 @@ rpmemd_fip_process_recv(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
 	if (unlikely(ret))
 		goto err;
 
-	if (pmsg->flags & RPMEM_DEEP_PERSIST)
+	if (pmsg->flags & RPMEM_DEEP_PERSIST) {
 		fip->deep_persist((void *)pmsg->addr, pmsg->size, fip->ctx);
-	else
+	} else if (pmsg->flags & RPMEM_PERSIST_SEND) {
+		fip->memcpy_persist((void *)pmsg->addr, pmsg->data, pmsg->size);
+	} else {
 		fip->persist((void *)pmsg->addr, pmsg->size);
+	}
 
 	struct rpmem_msg_persist_resp *pres = lanep->send_posted ?
 		&lanep->resp : rpmem_fip_msg_get_pres(&lanep->send);
@@ -813,8 +830,12 @@ rpmemd_fip_set_attr(struct rpmemd_fip *fip, struct rpmemd_fip_attr *attr)
 	fip->size = attr->size;
 	fip->persist_method = attr->persist_method;
 	fip->persist = attr->persist;
+	fip->memcpy_persist = attr->memcpy_persist;
 	fip->deep_persist = attr->deep_persist;
 	fip->ctx = attr->ctx;
+	fip->buff_size = attr->buff_size;
+	fip->pmsg_size = roundup(sizeof(struct rpmem_msg_persist) +
+			fip->buff_size, (size_t)64);
 
 	size_t max_nlanes = rpmem_fip_max_nlanes(fip->fi);
 	RPMEMD_ASSERT(max_nlanes < UINT_MAX);

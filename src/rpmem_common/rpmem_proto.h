@@ -128,6 +128,18 @@ struct rpmem_msg_hdr_resp {
 } PACKED;
 
 /*
+ * rpmem_msg_common -- common fields for open/create messages
+ */
+struct rpmem_msg_common {
+	uint16_t major;			/* protocol version major number */
+	uint16_t minor;			/* protocol version minor number */
+	uint64_t pool_size;		/* minimum required size of a pool */
+	uint32_t nlanes;		/* number of lanes used by initiator */
+	uint32_t provider;		/* provider */
+	uint64_t buff_size;		/* buffer size for inline persist */
+} PACKED;
+
+/*
  * rpmem_msg_create -- create request message
  *
  * The type of message must be set to RPMEM_MSG_TYPE_CREATE.
@@ -136,11 +148,7 @@ struct rpmem_msg_hdr_resp {
  */
 struct rpmem_msg_create {
 	struct rpmem_msg_hdr hdr;	/* message header */
-	uint16_t major;			/* protocol version major number */
-	uint16_t minor;			/* protocol version minor number */
-	uint64_t pool_size;		/* minimum required size of a pool */
-	uint32_t nlanes;		/* number of lanes used by initiator */
-	uint32_t provider;		/* provider */
+	struct rpmem_msg_common c;
 	struct rpmem_pool_attr_packed pool_attr;	/* pool attributes */
 	struct rpmem_msg_pool_desc pool_desc;	/* pool descriptor */
 } PACKED;
@@ -165,11 +173,7 @@ struct rpmem_msg_create_resp {
  */
 struct rpmem_msg_open {
 	struct rpmem_msg_hdr hdr;	/* message header */
-	uint16_t major;			/* protocol version major number */
-	uint16_t minor;			/* protocol version minor number */
-	uint64_t pool_size;		/* minimum required size of a pool */
-	uint32_t nlanes;		/* number of lanes used by initiator */
-	uint32_t provider;		/* provider */
+	struct rpmem_msg_common c;
 	struct rpmem_msg_pool_desc pool_desc;	/* pool descriptor */
 } PACKED;
 
@@ -207,10 +211,18 @@ struct rpmem_msg_close_resp {
 	/* no more fields */
 } PACKED;
 
-#define RPMEM_PERSIST		0x0
-#define RPMEM_DEEP_PERSIST 0x1
-#define RPMEM_FLAGS_ALL		RPMEM_DEEP_PERSIST
-#define RPMEM_FLAGS_MASK	((uint32_t)(~RPMEM_FLAGS_ALL))
+#define RPMEM_PERSIST_WRITE	0	/* persist using RDMA WRITE */
+#define RPMEM_DEEP_PERSIST	1	/* deep persist operation */
+#define RPMEM_PERSIST_SEND	2	/* persist using RDMA SEND */
+
+#define RPMEM_PERSIST_MAX	2	/* maximum valid value */
+
+/*
+ * the two least significant bits
+ * are reserved for mode of persist
+ */
+#define RPMEM_PERSIST_MASK	0x3
+
 /*
  * rpmem_msg_persist -- remote persist message
  */
@@ -219,6 +231,7 @@ struct rpmem_msg_persist {
 	uint32_t lane;	/* lane identifier */
 	uint64_t addr;	/* remote memory address */
 	uint64_t size;	/* remote memory size */
+	uint8_t data[];
 };
 
 /*
@@ -328,17 +341,36 @@ rpmem_hton_msg_hdr_resp(struct rpmem_msg_hdr_resp *hdrp)
 }
 
 /*
+ * rpmem_ntoh_msg_common -- convert rpmem_msg_common to host byte order
+ */
+static inline void
+rpmem_ntoh_msg_common(struct rpmem_msg_common *msg)
+{
+	msg->major = be16toh(msg->major);
+	msg->minor = be16toh(msg->minor);
+	msg->pool_size = be64toh(msg->pool_size);
+	msg->nlanes = be32toh(msg->nlanes);
+	msg->provider = be32toh(msg->provider);
+	msg->buff_size = be64toh(msg->buff_size);
+}
+
+/*
+ * rpmem_hton_msg_common -- convert rpmem_msg_common to network byte order
+ */
+static inline void
+rpmem_hton_msg_common(struct rpmem_msg_common *msg)
+{
+	rpmem_ntoh_msg_common(msg);
+}
+
+/*
  * rpmem_ntoh_msg_create -- convert rpmem_msg_create to host byte order
  */
 static inline void
 rpmem_ntoh_msg_create(struct rpmem_msg_create *msg)
 {
 	rpmem_ntoh_msg_hdr(&msg->hdr);
-	msg->major = be16toh(msg->major);
-	msg->minor = be16toh(msg->minor);
-	msg->pool_size = be64toh(msg->pool_size);
-	msg->nlanes = be32toh(msg->nlanes);
-	msg->provider = be32toh(msg->provider);
+	rpmem_ntoh_msg_common(&msg->c);
 	rpmem_ntoh_pool_attr(&msg->pool_attr);
 	rpmem_ntoh_msg_pool_desc(&msg->pool_desc);
 }
@@ -380,11 +412,7 @@ static inline void
 rpmem_ntoh_msg_open(struct rpmem_msg_open *msg)
 {
 	rpmem_ntoh_msg_hdr(&msg->hdr);
-	msg->major = be16toh(msg->major);
-	msg->minor = be16toh(msg->minor);
-	msg->pool_size = be64toh(msg->pool_size);
-	msg->nlanes = be32toh(msg->nlanes);
-	msg->provider = be32toh(msg->provider);
+	rpmem_ntoh_msg_common(&msg->c);
 	rpmem_ntoh_msg_pool_desc(&msg->pool_desc);
 }
 /*

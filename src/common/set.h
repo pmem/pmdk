@@ -412,7 +412,7 @@ int util_replica_close_remote(struct pool_replica *rep, unsigned repn,
 		enum del_parts_mode del);
 
 extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
-								unsigned lane);
+						unsigned lane, unsigned flags);
 extern int (*Rpmem_deep_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 								unsigned lane);
 extern int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
