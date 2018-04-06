@@ -107,6 +107,7 @@ const char *rpmem_provider_to_str(enum rpmem_provider provider);
 struct rpmem_req_attr {
 	size_t pool_size;
 	unsigned nlanes;
+	size_t buff_size;
 	enum rpmem_provider provider;
 	const char *pool_desc;
 };
@@ -130,6 +131,7 @@ struct rpmem_resp_attr {
 #define RPMEM_MAX_SERVICE	(NI_MAXSERV + 1)  /* + 1 for '\0' */
 #define RPMEM_HDR_SIZE		4096
 #define RPMEM_CLOSE_FLAGS_REMOVE 0x1
+#define RPMEM_DEF_BUFF_SIZE	8192
 
 struct rpmem_target_info {
 	char user[RPMEM_MAX_USER];
