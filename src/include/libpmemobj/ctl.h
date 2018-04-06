@@ -62,7 +62,7 @@ extern "C" {
  * bucket, the thread reaches out to the global, shared, heap which manages
  * memory in 256 kilobyte chunks and gives it out in a best-fit fashion. This
  * operation must be performed under an exclusive lock.
- * Once the thread is in the possesion of a chunk, the lock is dropped, and the
+ * Once the thread is in the possession of a chunk, the lock is dropped, and the
  * memory is split into units that repopulate the bucket.
  *
  * These are the CTL entry points that control allocation classes:
