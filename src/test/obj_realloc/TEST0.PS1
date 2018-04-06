@@ -35,11 +35,6 @@
 # src/test/obj_realloc/TEST0 -- unit test for pmemobj_realloc and
 # pmemobj_zrealloc
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 # standard unit test setup

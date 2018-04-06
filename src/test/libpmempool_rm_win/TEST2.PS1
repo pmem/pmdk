@@ -32,11 +32,6 @@
 #
 # libpmempool_rm_win/TEST2 -- test pmempool_rm with non-pool files
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 . ..\unittest\unittest.ps1

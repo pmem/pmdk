@@ -33,11 +33,6 @@
 #
 # src/test/obj_memblock/TEST0 -- unit test for memblock interface
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

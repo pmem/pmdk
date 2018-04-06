@@ -34,11 +34,6 @@
 #                        a case with no replica in the pool set;
 #                        pmem/issues#817
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

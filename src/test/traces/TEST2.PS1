@@ -34,11 +34,6 @@
 #
 # src\test\traces\TEST2 -- unit test for traces
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 # standard unit test setup

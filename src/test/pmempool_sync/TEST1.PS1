@@ -32,11 +32,6 @@
 #
 # pmempool_sync/TEST1 -- test for checking pmempool sync
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

@@ -32,11 +32,6 @@
 #
 # pmempool_check/TEST16 -- test for checking and fixing pool files arch_flags
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

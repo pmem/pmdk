@@ -32,11 +32,6 @@
 #
 # pmemobjcli/TEST1 -- test for pmemobjcli with transactions
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

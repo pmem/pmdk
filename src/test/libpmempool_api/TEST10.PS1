@@ -32,11 +32,6 @@
 #
 # libpmempool_api/TEST10 -- test for checking API
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

@@ -34,11 +34,6 @@
 #
 # src\test\util_poolset_parse\TEST0 -- unit test for parsing a pool set file
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

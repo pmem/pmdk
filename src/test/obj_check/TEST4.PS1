@@ -31,11 +31,6 @@
 #
 # src/test/obj_check/TEST4 -- unit test for pmemobj_check
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

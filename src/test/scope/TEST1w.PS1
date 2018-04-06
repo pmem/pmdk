@@ -33,11 +33,6 @@
 #
 # src/test/scope/TEST1 -- scope test to check libpmem symbols
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

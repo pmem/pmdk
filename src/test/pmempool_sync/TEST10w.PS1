@@ -33,11 +33,6 @@
 # pmempool_sync/TEST10 -- test for checking pmempool sync;
 #                         check for healthy replicas cycles
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

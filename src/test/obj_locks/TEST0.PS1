@@ -33,11 +33,6 @@
 #
 # src/test/obj_locks/TEST0 -- unit test for pmemobj_mutex and pmemobj_rwlock
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 # standard unit test setup

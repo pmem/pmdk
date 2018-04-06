@@ -34,11 +34,6 @@
 #
 # src\test\obj_tx_alloc\TEST0 -- unit test for pmemobj_tx_alloc
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 
