@@ -32,11 +32,6 @@
 #
 # libpmempool_transform_win/TEST0.PS1 -- test for checking replica transform
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 # standard unit test setup

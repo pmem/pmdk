@@ -34,11 +34,6 @@
 #
 # src\test\blk_recovery\TEST0 -- unit test for pmemblk recovery
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 # standard unit test setup

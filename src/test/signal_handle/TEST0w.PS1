@@ -32,11 +32,6 @@
 #
 # src/test/signal_handle/TEST0w.PS1 -- unit test for signal_handle
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

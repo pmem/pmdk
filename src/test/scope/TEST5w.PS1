@@ -33,11 +33,6 @@
 #
 # src/test/scope/TEST5 -- scope test to check libvmmalloc symbols
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

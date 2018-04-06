@@ -34,11 +34,6 @@
 #
 # src/test/obj_sync/TEST0 -- unit test for PMEM-resident locks
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 # standard unit test setup

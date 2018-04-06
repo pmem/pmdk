@@ -33,11 +33,6 @@
 #
 # src/test/obj_async_postcommit/TEST0 -- unit test for async post-commit
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

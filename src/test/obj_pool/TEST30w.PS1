@@ -31,11 +31,6 @@
 #
 # src/test/obj_pool/TEST30w -- create a pool with the smallest parts possible
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

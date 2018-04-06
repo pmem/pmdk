@@ -33,11 +33,6 @@
 # src/test/obj_basic_integration/TEST4 -- unit test for
 # pmemobj APIs
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 # standard unit test setup

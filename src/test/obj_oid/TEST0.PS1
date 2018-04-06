@@ -33,11 +33,6 @@
 #
 # src/test/obj_oid/TEST0 -- unit test for pmemobj_oid
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 # standard unit test setup

@@ -34,11 +34,6 @@
 #
 # src\test\obj_tx_realloc\TEST0 -- unit test for pmemobj_tx_realloc
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 

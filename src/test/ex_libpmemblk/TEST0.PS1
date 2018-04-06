@@ -34,11 +34,6 @@
 #
 # src/test/ex_libpmemblk/TEST0 -- unit test for libpmemblk examples
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.PS1

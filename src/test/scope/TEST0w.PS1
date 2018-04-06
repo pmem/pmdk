@@ -33,11 +33,6 @@
 #
 # src/test/scope/TEST0 -- scope test to check libvmem symbols
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

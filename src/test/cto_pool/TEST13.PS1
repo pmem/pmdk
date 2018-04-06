@@ -35,11 +35,6 @@
 # src/test/cto_pool/TEST13 -- unit test for pmemcto_create
 #
 
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 

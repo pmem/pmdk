@@ -34,11 +34,6 @@
 #
 # src/test/obj_redo_log/TEST0 -- unit test for redo_log_store function
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 # standard unit test setup
