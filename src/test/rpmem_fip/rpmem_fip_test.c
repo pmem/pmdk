@@ -274,6 +274,7 @@ server_init(const struct test_case *tc, int argc, char *argv[])
 	};
 
 	ret = rpmemd_apply_pm_policy(&attr.persist_method, &attr.persist,
+			&attr.memcpy_persist,
 			1 /* is pmem */);
 	UT_ASSERTeq(ret, 0);
 
@@ -391,6 +392,7 @@ server_connect(const struct test_case *tc, int argc, char *argv[])
 	enum rpmem_err err;
 
 	ret = rpmemd_apply_pm_policy(&attr.persist_method, &attr.persist,
+			&attr.memcpy_persist,
 			1 /* is pmem */);
 	UT_ASSERTeq(ret, 0);
 
@@ -452,6 +454,7 @@ server_process(const struct test_case *tc, int argc, char *argv[])
 	enum rpmem_err err;
 
 	ret = rpmemd_apply_pm_policy(&attr.persist_method, &attr.persist,
+			&attr.memcpy_persist,
 			1 /* is pmem */);
 	UT_ASSERTeq(ret, 0);
 

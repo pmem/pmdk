@@ -408,7 +408,7 @@ obj_remote_persist(PMEMobjpool *pop, const void *addr, size_t len,
 	ASSERTne(pop->rpp, NULL);
 
 	uintptr_t offset = (uintptr_t)addr - pop->remote_base;
-	int rv = Rpmem_persist(pop->rpp, offset, len, lane);
+	int rv = Rpmem_persist(pop->rpp, offset, len, lane, 0);
 	if (rv) {
 		ERR("!rpmem_persist(rpp %p offset %zu length %zu lane %u)"
 			" FATAL ERROR (returned value %i)",

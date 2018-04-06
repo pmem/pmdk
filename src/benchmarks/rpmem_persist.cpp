@@ -190,7 +190,8 @@ do_warmup(struct rpmem_bench *mb)
 
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
 		int ret = rpmem_persist(mb->rpp[r], POOL_HDR_SIZE,
-					mb->pool_size - POOL_HDR_SIZE, 0);
+					mb->pool_size - POOL_HDR_SIZE, 0,
+					0 /* XXX */);
 		if (ret)
 			return ret;
 	}
@@ -232,7 +233,7 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 		assert(info->worker->index < mb->nlanes[r]);
 
 		ret = rpmem_persist(mb->rpp[r], offset, len,
-				    info->worker->index);
+				    info->worker->index, 0 /* XXX */);
 		if (ret) {
 			fprintf(stderr, "rpmem_persist replica #%u: %s\n", r,
 				rpmem_errormsg());
