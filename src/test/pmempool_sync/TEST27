@@ -83,6 +83,10 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX sync -v $POOLSET >> $LOG
 
 print_bad_blocks
 
+expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
+
+print_bad_blocks
+
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -k $POOLSET >> $LOG
 
 print_bad_blocks
