@@ -59,6 +59,22 @@ $(nW)/testset1: synchronized
     "badblock_count":1,
         "offset":$(N),
         "length":1,
+replica 0: checking shutdown state
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
+replica 0 part 0: checking pool header
+replica 0 part 0: pool header correct
+replica 0 part 1: checking pool header
+replica 0 part 1: pool header correct
+replica 0 part 2: checking pool header
+replica 0 part 2: pool header correct
+replica 1 part 0: checking pool header
+replica 1 part 0: pool header correct
+$(nW)/testset1: consistent
+    "badblock_count":1,
+        "offset":$(N),
+        "length":1,
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 3 part(s):
