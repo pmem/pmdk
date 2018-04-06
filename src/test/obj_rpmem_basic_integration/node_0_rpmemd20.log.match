@@ -10,6 +10,7 @@ create request:
     pool size: 18841600
     nlanes: $(nW)
     provider: $(nW)
+    buff_size: $(nW)
 pool attributes:
     signature: 'PMEMOBJ'
     major: 4

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,9 @@ enum {
 #define RPMEM_DBG(fmt, args...) LOG(_LDBG, fmt, ## args)
 #define RPMEM_FATAL(fmt, args...) FATAL(fmt, ## args)
 #define RPMEM_ASSERT(cond)	ASSERT(cond)
+
+#define RPMEM_FLAGS_ALL		RPMEM_PERSIST_RELAXED
+#define RPMEM_FLAGS_MASK	((unsigned)(~RPMEM_FLAGS_ALL))
 
 const char *rpmem_util_proto_errstr(enum rpmem_err err);
 int rpmem_util_proto_errno(enum rpmem_err err);
