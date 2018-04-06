@@ -143,7 +143,7 @@ ddmap_print_runlen(char *addr, size_t len)
 	ssize_t cnt = 0;
 	for (size_t i = 0; i < len; i++) {
 		if (i > 0 && c != addr[i] && cnt != 0) {
-			printf("%zu ", cnt);
+			printf("%zd ", cnt);
 			ddmap_print_char(c);
 			printf("\n");
 			cnt = 0;
@@ -152,7 +152,7 @@ ddmap_print_runlen(char *addr, size_t len)
 		cnt++;
 	}
 	if (cnt) {
-		printf("%zu ", cnt);
+		printf("%zd ", cnt);
 		ddmap_print_char(c);
 		printf("\n");
 	}

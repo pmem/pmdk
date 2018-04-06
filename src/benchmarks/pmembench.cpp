@@ -917,14 +917,16 @@ pmembench_print_args(struct benchmark_clo *clos, size_t nclos)
 
 		if (clo.type == CLO_TYPE_INT) {
 			if (clo.type_int.min != LONG_MIN)
-				printf(" [min: %jd]", clo.type_int.min);
+				printf(" [min: %" PRId64 "]", clo.type_int.min);
 			if (clo.type_int.max != LONG_MAX)
-				printf(" [max: %jd]", clo.type_int.max);
+				printf(" [max: %" PRId64 "]", clo.type_int.max);
 		} else if (clo.type == CLO_TYPE_UINT) {
 			if (clo.type_uint.min != 0)
-				printf(" [min: %ju]", clo.type_uint.min);
+				printf(" [min: %" PRIu64 "]",
+				       clo.type_uint.min);
 			if (clo.type_uint.max != ULONG_MAX)
-				printf(" [max: %ju]", clo.type_uint.max);
+				printf(" [max: %" PRIu64 "]",
+				       clo.type_uint.max);
 		}
 		printf("\n");
 	}
@@ -964,7 +966,7 @@ pmembench_print_usage()
 static void
 pmembench_print_version()
 {
-	printf("Benchmark framework - version %d.%d\n", version.major,
+	printf("Benchmark framework - version %u.%u\n", version.major,
 	       version.minor);
 }
 
@@ -1176,7 +1178,7 @@ pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
 		benchmark_worker_join(workers[j]);
 		if (workers[j]->ret != 0) {
 			ret = workers[j]->ret;
-			fprintf(stderr, "thread number %d failed\n", j);
+			fprintf(stderr, "thread number %u failed\n", j);
 		}
 	}
 

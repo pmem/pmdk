@@ -144,7 +144,7 @@ int main(int argc, const char *argv[]) {
 		nops = atoi(argv[3]);
 		if (nops <= 0 || nops > MAX_INSERTS) {
 			fprintf(stderr, "number of operations must be "
-				"in range 1..%u\n", MAX_INSERTS);
+				"in range 1..%d\n", MAX_INSERTS);
 			return 1;
 		}
 	}

@@ -455,7 +455,7 @@ examine_art_node(art_node *an)
 {
 	printf("art_node {\n");
 	printf("     num_children  %d\n", an->num_children);
-	printf("     partial_len   %d\n", an->partial_len);
+	printf("     partial_len   %" PRIu32 "\n", an->partial_len);
 	printf("     partial [");
 	for (int i = 0; i < 10; i++) {
 		printf("%c ", an->partial[i]);
@@ -484,7 +484,7 @@ examine_var_string(char *appname, struct examine_ctx *ctx, off_t off)
 {
 	var_string *vs = (var_string *)(ctx->pmem_ctx->addr + off);
 	printf("at offset 0x%llx, var_string {\n", (long long)off);
-	printf("    len %ld s [%s]", vs->len, vs->s);
+	printf("    len %zu s [%s]", vs->len, vs->s);
 	printf("\n};\n");
 
 	return 0;

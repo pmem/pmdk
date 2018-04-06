@@ -1113,9 +1113,9 @@ dump_art_leaf_callback(void *data,
 	const unsigned char *key, uint32_t key_len,
 	const unsigned char *val, uint32_t val_len)
 {
-	fprintf(my_context.output, "key len %d = [%s], ",
+	fprintf(my_context.output, "key len %" PRIu32 " = [%s], ",
 		key_len, asciidump((unsigned char *)key, key_len));
-	fprintf(my_context.output, "value len %d = [%s]\n",
+	fprintf(my_context.output, "value len %" PRIu32 " = [%s]\n",
 		val_len, asciidump((unsigned char *)val, val_len));
 	fflush(my_context.output);
 	return 0;
