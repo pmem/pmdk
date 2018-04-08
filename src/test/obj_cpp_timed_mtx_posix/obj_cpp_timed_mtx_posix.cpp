@@ -179,7 +179,7 @@ mutex_zero_test(nvobj::pool<struct root> &pop)
 			      pmemobj_memset_persist(pop, mtx, 1, sizeof(*mtx));
 			      return 0;
 		      },
-		      NULL);
+		      nullptr);
 
 	nvobj::timed_mutex *placed_mtx =
 		new (pmemobj_direct(raw_mutex)) nvobj::timed_mutex;
