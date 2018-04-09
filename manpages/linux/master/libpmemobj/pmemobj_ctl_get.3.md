@@ -410,7 +410,7 @@ a sequence of ctl queries. The parsing rules are all the same, but the file
 can also contain white-spaces and comments.
 
 To create a comment, simply use '#' anywhere in a line and everything
-afterwards, until a new line '\n', will be ignored.
+afterwards, until a new line, will be ignored.
 
 An example configuration file:
 
