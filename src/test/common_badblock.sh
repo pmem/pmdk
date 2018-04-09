@@ -143,8 +143,15 @@ function ndctl_nfit_test_mount_pmem() {
 }
 
 #
-# print_bad_blocks -- print all bad blocks
+# check_bad_blocks -- check if there are any bad blocks and print them all
 #
-function print_bad_blocks {
+function check_bad_blocks {
 	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || echo "No bad blocks found" >> $LOG
+}
+
+#
+# verify_bad_blocks -- verify if there are required bad blocks and fail if they are not there
+#
+function verify_bad_blocks {
+	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || fatal "Error: ndctl failed to inject or retain bad blocks"
 }
