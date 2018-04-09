@@ -197,7 +197,7 @@ exec_op(pool_base pop, T &map, queue_op op, char *argv[], int &argn)
 			map->clear();
 			break;
 		case MAP_PRINT:
-			map->foreach (printer<typename K::value_type>, 0);
+			map->foreach (printer<typename K::value_type>, nullptr);
 			break;
 		default:
 			throw std::invalid_argument("invalid queue operation");
