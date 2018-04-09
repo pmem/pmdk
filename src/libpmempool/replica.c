@@ -313,15 +313,13 @@ unsigned
 replica_find_healthy_replica(struct poolset_health_status *set_hs)
 {
 	LOG(3, "set_hs %p", set_hs);
-	if (set_hs->nreplicas == 1) {
-		return replica_is_replica_broken(0, set_hs) ? UNDEF_REPLICA : 0;
-	} else {
-		for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-			if (replica_is_replica_healthy(r, set_hs))
-				return r;
-		}
-		return UNDEF_REPLICA;
+
+	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
+		if (replica_is_replica_healthy(r, set_hs))
+			return r;
 	}
+
+	return UNDEF_REPLICA;
 }
 
 /*
