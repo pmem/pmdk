@@ -1,10 +1,9 @@
 
 # rpmbuild options:
-#   --with | --without rpmem
+#   --with | --without fabric
 #   --with | --without ndctl
-#   --define "_testconfig <path to custom testconfig.sh or 'default'>"
-#   --define "_check <1|0>" - run make check or not
-#
+#   --define _testconfig <path to custom testconfig.sh>
+#   --define _skip_check 1
 
 # do not terminate build if files in the $RPM_BUILD_ROOT
 # directory are not found in the %files (without rpmem case)
@@ -12,7 +11,7 @@
 
 # disable 'make check' on suse
 %if %{defined suse_version}
-	%define _check 0
+	%define _skip_check 1
 	%define dist .suse%{suse_version}
 %endif
 
@@ -20,9 +19,9 @@
 #   openSUSE Tumbleweed, Leap 15.0, Leap 42.3; SLE 12 SP3, 15
 #   Fedora >=27; RHEL >=7.5
 %if (0%{?suse_version} > 1315) || (0%{?fedora} >= 27) || (0%{?rhel} >= 7)
-%bcond_without rpmem
+%bcond_without fabric
 %else
-%bcond_with rpmem
+%bcond_with fabric
 %endif
 
 # ndctl v59.2 is available on:
@@ -66,7 +65,7 @@ BuildRequires:	ndctl-devel >= %{min_ndctl_ver}
 BuildRequires:	daxctl-devel >= %{min_ndctl_ver}
 %endif
 
-%if %{with rpmem}
+%if %{with fabric}
 BuildRequires:	libfabric-devel >= %{min_libfabric_ver}
 %endif
 
@@ -571,7 +570,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
-%if %{with rpmem}
+%if %{with fabric}
 
 %package -n librpmem__PKG_NAME_SUFFIX__
 Summary: Remote Access to Persistent Memory library
@@ -648,7 +647,7 @@ and facilitates access to persistent memory over RDMA.
 %{_bindir}/rpmemd
 %{_mandir}/man1/rpmemd.1.gz
 
-%endif # _with_rpmem
+%endif # _with_fabric
 
 
 %package -n libpmemcto__PKG_NAME_SUFFIX__
@@ -718,7 +717,7 @@ Requires: libpmemblk__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmemobj__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmempool__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmemcto__PKG_NAME_SUFFIX__ >= %{version}-%{release}
-Obsoletes: nvml-tools
+Obsoletes: nvml-tools < %{version}-%{release}
 %description -n pmempool
 The pmempool is a standalone utility for management and off-line analysis
 of Persistent Memory pools created by PMDK libraries. It provides a set
@@ -788,16 +787,16 @@ __MAKE_INSTALL_FDUPES__
 
 
 %check
-%if "%{_check}" == "1"
-	%if "%{_testconfig}" != "default"
+%if 0%{?_skip_check} == 1
+	echo "Check skipped"
+%else
+	%if %{defined _testconfig}
 		cp %{_testconfig} src/test/testconfig.sh
 	%else
 		echo "PMEM_FS_DIR=/tmp" > src/test/testconfig.sh
 		echo "PMEM_FS_DIR_FORCE_PMEM=1" >> src/test/testconfig.sh
 	%endif
 	make check
-%else
-	echo "Check skipped"
 %endif
 
 %post   -n libpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
@@ -817,7 +816,7 @@ __MAKE_INSTALL_FDUPES__
 %post   -n libpmemcto__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n libpmemcto__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 
-%if %{with rpmem}
+%if %{with fabric}
 %post   -n librpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n librpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %endif
