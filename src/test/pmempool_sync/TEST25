@@ -42,7 +42,7 @@
 
 require_test_type medium
 require_fs_type any
-require_dax_devices 1
+require_dax_devices 2
 
 setup
 
