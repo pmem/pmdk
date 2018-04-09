@@ -495,11 +495,13 @@ unmap_all_headers(struct pool_set *set)
 }
 
 /*
- * check_checksums -- (internal) check if checksums are correct for parts in
- *                    a given replica
+ * check_checksums_and_signatures -- (internal) check if checksums
+ *                                   and signatures are correct for parts
+ *                                   in a given replica
  */
 static int
-check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
+check_checksums_and_signatures(struct pool_set *set,
+				struct poolset_health_status *set_hs)
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
@@ -524,12 +526,19 @@ check_checksums(struct pool_set *set, struct poolset_health_status *set_hs)
 			} else {
 				hdr = HDR(rep, p);
 			}
+
 			if (!util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 0,
 					POOL_HDR_CSUM_END_OFF)) {
 				ERR("invalid checksum of pool header");
 				rep_hs->part[p] |= IS_BROKEN;
 			} else if (util_is_zeroed(hdr, sizeof(*hdr))) {
 					rep_hs->part[p] |= IS_BROKEN;
+			}
+
+			enum pool_type type = pool_hdr_get_type(hdr);
+			if (type == POOL_TYPE_UNKNOWN) {
+				ERR("invalid signature");
+				rep_hs->part[p] |= IS_BROKEN;
 			}
 		}
 	}
@@ -1071,8 +1080,11 @@ replica_check_poolset_health(struct pool_set *set,
 	/* map all headers */
 	map_all_unbroken_headers(set, set_hs);
 
-	/* check if checksums are correct for parts in all replicas */
-	check_checksums(set, set_hs);
+	/*
+	 * Check if checksums and signatures are correct for all parts
+	 * in all replicas.
+	 */
+	check_checksums_and_signatures(set, set_hs);
 
 	/* check if option flags are consistent */
 	if (check_options(set, set_hs)) {
