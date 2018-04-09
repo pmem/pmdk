@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: LIBVMMALLOC
 collection: libvmmalloc
 header: PMDK
-date: vmmalloc API version 1.0
+date: vmmalloc API version 1.1
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)

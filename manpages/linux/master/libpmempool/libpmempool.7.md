@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: LIBPMEMPOOL
 collection: libpmempool
 header: PMDK
-date: pmempool API version 1.1
+date: pmempool API version 1.3
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)

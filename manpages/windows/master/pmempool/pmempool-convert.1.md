@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: PMEMPOOL-CONVERT
 collection: pmempool
 header: PMDK
-date: pmem Tools version 1.3
+date: pmem Tools version 1.4
 ...
 
 [comment]: <> (Copyright 2016-2017, Intel Corporation)
