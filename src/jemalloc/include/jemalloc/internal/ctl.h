@@ -16,13 +16,13 @@ struct ctl_node_s {
 };
 
 struct ctl_named_node_s {
-	struct ctl_node_s	node;
 	const char		*name;
-	/* If (nchildren == 0), this is a terminal node. */
-	unsigned		nchildren;
 	const			ctl_node_t *children;
 	int			(*ctl)(const size_t *, size_t, void *, size_t *,
 	    void *, size_t);
+	/* If (nchildren == 0), this is a terminal node. */
+	unsigned		nchildren;
+	struct ctl_node_s	node;
 };
 
 struct ctl_indexed_node_s {
