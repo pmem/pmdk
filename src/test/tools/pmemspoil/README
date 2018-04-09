@@ -4,8 +4,8 @@ This is src/test/tools/pmemspoil/README.
 
 This directory contains a simple application for corrupting pool files.
 
-This application may be used for testing purposes. One allows to modify every
-single field in all structures used by Persistent Memory Development Kit.
+This application may be used for testing purposes. It allows one to modify
+every single field in all structures used by Persistent Memory Development Kit.
 
 Usage:
 	$ pmemspoil <file> <field>=<value>...

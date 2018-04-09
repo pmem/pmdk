@@ -238,7 +238,7 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 	 */
 	if (util_flag_isset(args->flags, PMEMPOOL_CHECK_DRY_RUN) &&
 			args->backup_path != NULL) {
-		ERR("dry run does not allow to perform backup");
+		ERR("dry run does not allow one to perform backup");
 		errno = EINVAL;
 		return NULL;
 	}
