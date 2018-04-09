@@ -794,17 +794,11 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	}
 
 	/* create headers for broken parts */
-	if (!is_dry_run(flags)) {
-		if (create_headers_for_broken_parts(set, healthy_replica,
-				set_hs)) {
-			ERR("creating headers for broken parts failed");
-			ret = -1;
-			goto out;
-		}
-	}
-
-	if (is_dry_run(flags))
+	if (create_headers_for_broken_parts(set, healthy_replica, set_hs)) {
+		ERR("creating headers for broken parts failed");
+		ret = -1;
 		goto out;
+	}
 
 	/* create all remote replicas */
 	if (create_remote_replicas(set, set_hs, flags)) {
