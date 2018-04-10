@@ -381,7 +381,7 @@ os_badblocks_get_and_clear(const char *file, struct badblocks *bbs)
 	LOG(3, "file %s badblocks %p", file, bbs);
 
 	if (util_file_is_device_dax(file))
-		return os_dimm_devdax_get_clear_badblocks(file, bbs);
+		return os_dimm_devdax_clear_get_badblocks(file, bbs);
 
 	return os_badblocks_get_clear_file(file, bbs);
 }

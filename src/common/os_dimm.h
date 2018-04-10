@@ -42,5 +42,5 @@
 int os_dimm_uid(const char *path, char *uid, size_t *len);
 int os_dimm_usc(const char *path, uint64_t *usc);
 int os_dimm_files_namespace_badblocks(const char *path, struct badblocks *bbs);
-int os_dimm_devdax_get_clear_badblocks(const char *path, struct badblocks *bbs);
+int os_dimm_devdax_clear_get_badblocks(const char *path, struct badblocks *bbs);
 int os_dimm_devdax_clear_badblocks(const char *path);
