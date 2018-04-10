@@ -37,8 +37,8 @@
 #include <stdint.h>
 #include "util.h"
 
-typedef void (*persist_fn)(void *base, const void *, size_t);
-typedef void (*flush_fn)(void *base, const void *, size_t);
+typedef int (*persist_fn)(void *base, const void *, size_t, unsigned);
+typedef int (*flush_fn)(void *base, const void *, size_t, unsigned);
 typedef void (*drain_fn)(void *base);
 
 typedef void *(*memcpy_fn)(void *base, void *dest, const void *src, size_t len,
@@ -69,16 +69,30 @@ struct pmem_ops {
 	} remote;
 };
 
+static force_inline int
+pmemops_xpersist(const struct pmem_ops *p_ops, const void *d, size_t s,
+		unsigned flags)
+{
+	return p_ops->persist(p_ops->base, d, s, flags);
+}
+
 static force_inline void
 pmemops_persist(const struct pmem_ops *p_ops, const void *d, size_t s)
 {
-	p_ops->persist(p_ops->base, d, s);
+	(void) pmemops_xpersist(p_ops, d, s, 0);
+}
+
+static force_inline int
+pmemops_xflush(const struct pmem_ops *p_ops, const void *d, size_t s,
+		unsigned flags)
+{
+	return p_ops->flush(p_ops->base, d, s, flags);
 }
 
 static force_inline void
 pmemops_flush(const struct pmem_ops *p_ops, const void *d, size_t s)
 {
-	p_ops->flush(p_ops->base, d, s);
+	(void) pmemops_xflush(p_ops, d, s, 0);
 }
 
 static force_inline void
