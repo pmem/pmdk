@@ -73,7 +73,7 @@ void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
 **pmem_memmove**(), **pmem_memcpy**() and **pmem_memset**() functions provide
 the same memory copying as their namesakes **memmove**(3), **memcpy**(3) and
 **memset**(3), and ensure that the result has been flushed to persistence before
-returning (unless **PMEM_MEM_NOFLUSH** flag was used).
+returning (unless **PMEM_F_MEM_NOFLUSH** flag was used).
 
 For example, the following code is functionally equivalent to **pmem_memmove**() (with flags equal to 0):
 
@@ -100,7 +100,7 @@ to one of the above functions.
 The *flags* argument of all of the above functions has the same meaning.
 It can be 0 or a bitwise OR of one or more of the following flags:
 
-+ **PMEM_MEM_NODRAIN** - modifies the behavior to skip the final
++ **PMEM_F_MEM_NODRAIN** - modifies the behavior to skip the final
   **pmem_drain**() step. This allows applications to optimize cases where
   several ranges are being copied to persistent memory, followed by a single
   call to **pmem_drain**(). The following example illustrates how this flag
@@ -109,8 +109,8 @@ It can be 0 or a bitwise OR of one or more of the following flags:
 
 ```c
 /* ... write several ranges to pmem ... */
-pmem_memcpy(pmemdest1, src1, len1, PMEM_MEM_NODRAIN);
-pmem_memcpy(pmemdest2, src2, len2, PMEM_MEM_NODRAIN);
+pmem_memcpy(pmemdest1, src1, len1, PMEM_F_MEM_NODRAIN);
+pmem_memcpy(pmemdest2, src2, len2, PMEM_F_MEM_NODRAIN);
 
 /* ... */
 
@@ -118,27 +118,27 @@ pmem_memcpy(pmemdest2, src2, len2, PMEM_MEM_NODRAIN);
 pmem_drain();
 ```
 
-+ **PMEM_MEM_NOFLUSH** - Don't flush anything. This implies **PMEM_MEM_NODRAIN**.
++ **PMEM_F_MEM_NOFLUSH** - Don't flush anything. This implies **PMEM_F_MEM_NODRAIN**.
   Using this flag only makes sense when it's followed by any function that
   flushes data.
 
 The remaining flags say *how* the operation should be done, and are merely hints.
 
-+ **PMEM_MEM_NONTEMPORAL** - Use non-temporal instructions.
-  This flag is mutually exclusive with **PMEM_MEM_TEMPORAL**.
-  On x86\_64 this flag is mutually exclusive with **PMEM_MEM_NOFLUSH**.
++ **PMEM_F_MEM_NONTEMPORAL** - Use non-temporal instructions.
+  This flag is mutually exclusive with **PMEM_F_MEM_TEMPORAL**.
+  On x86\_64 this flag is mutually exclusive with **PMEM_F_MEM_NOFLUSH**.
 
-+ **PMEM_MEM_TEMPORAL** - Use temporal instructions.
-  This flag is mutually exclusive with **PMEM_MEM_NONTEMPORAL**.
++ **PMEM_F_MEM_TEMPORAL** - Use temporal instructions.
+  This flag is mutually exclusive with **PMEM_F_MEM_NONTEMPORAL**.
 
-+ **PMEM_MEM_WC** - Use write combining mode.
-  This flag is mutually exclusive with **PMEM_MEM_WB**.
-  On x86\_64 this is an alias for **PMEM_MEM_NONTEMPORAL**.
-  On x86\_64 this flag is mutually exclusive with **PMEM_MEM_NOFLUSH**.
++ **PMEM_F_MEM_WC** - Use write combining mode.
+  This flag is mutually exclusive with **PMEM_F_MEM_WB**.
+  On x86\_64 this is an alias for **PMEM_F_MEM_NONTEMPORAL**.
+  On x86\_64 this flag is mutually exclusive with **PMEM_F_MEM_NOFLUSH**.
 
-+ **PMEM_MEM_WB** - Use write back mode.
-  This flag is mutually exclusive with **PMEM_MEM_WC**.
-  On x86\_64 this is an alias for **PMEM_MEM_TEMPORAL**.
++ **PMEM_F_MEM_WB** - Use write back mode.
+  This flag is mutually exclusive with **PMEM_F_MEM_WC**.
+  On x86\_64 this is an alias for **PMEM_F_MEM_TEMPORAL**.
 
 Using an invalid combination of flags has undefined behavior.
 
@@ -152,11 +152,11 @@ details.
 
 **pmem_memset_persist**() is an alias for **pmem_memset**() with flags equal to 0.
 
-**pmem_memmove_nodrain**() is an alias for **pmem_memmove**() with flags equal to **PMEM_MEM_NODRAIN**.
+**pmem_memmove_nodrain**() is an alias for **pmem_memmove**() with flags equal to **PMEM_F_MEM_NODRAIN**.
 
-**pmem_memcpy_nodrain**() is an alias for **pmem_memcpy**() with flags equal to **PMEM_MEM_NODRAIN**.
+**pmem_memcpy_nodrain**() is an alias for **pmem_memcpy**() with flags equal to **PMEM_F_MEM_NODRAIN**.
 
-**pmem_memset_nodrain**() is an alias for **pmem_memset**() with flags equal to **PMEM_MEM_NODRAIN**.
+**pmem_memset_nodrain**() is an alias for **pmem_memset**() with flags equal to **PMEM_F_MEM_NODRAIN**.
 
 # RETURN VALUE #
 
@@ -164,7 +164,7 @@ All of the above functions return address of the destination buffer.
 
 
 # CAVEATS #
-After calling any of the functions with **PMEM_MEM_NODRAIN** flag you
+After calling any of the functions with **PMEM_F_MEM_NODRAIN** flag you
 should not expect memory to be visible to other threads before calling
 **pmem_drain**(3) or any of the *\_persist* functions.  This is because on
 x86\_64 those functions may use non-temporal store instructions, which are

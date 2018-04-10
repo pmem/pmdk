@@ -99,7 +99,7 @@ rpmem_print_pm_policy(enum rpmem_persist_method persist_method,
 static void *
 rpmem_memcpy_msync(void *pmemdest, const void *src, size_t len)
 {
-	void *ret = pmem_memcpy(pmemdest, src, len, PMEM_MEM_NOFLUSH);
+	void *ret = pmem_memcpy(pmemdest, src, len, PMEM_F_MEM_NOFLUSH);
 	pmem_msync(pmemdest, len);
 
 	return ret;
