@@ -289,7 +289,7 @@ out_get_percentage(double perc)
 			return "";
 	} else {
 		int decimal = 0;
-		if (perc >= 100.0 || perc == 0.0)
+		if (perc >= 100.0 || perc <= 0.0)
 			decimal = 0;
 		else
 			decimal = 6;
