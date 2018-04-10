@@ -519,7 +519,8 @@ alloc_class_collection_new()
 
 			float stepf = (float)n * categories[c].step;
 			size_t stepi = (size_t)stepf;
-			stepi = stepf == stepi ? stepi : stepi + 1;
+			stepi = (stepf - (float)stepi < FLT_EPSILON) ?
+				stepi : stepi + 1;
 
 			n += (stepi + (granularity_mask)) & ~granularity_mask;
 		} while (n <= categories[c].size);
