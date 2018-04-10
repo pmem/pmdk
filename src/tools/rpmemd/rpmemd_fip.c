@@ -810,8 +810,6 @@ rpmemd_fip_get_def_nthreads(struct rpmemd_fip *fip)
 	RPMEMD_ASSERT(fip->nlanes > 0);
 	switch (fip->persist_method) {
 	case RPMEM_PM_APM:
-		/* In APM, the threads process only deep_flush operations */
-		return 1;
 	case RPMEM_PM_GPSPM:
 		return fip->nlanes;
 	default:
