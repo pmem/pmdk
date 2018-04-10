@@ -1268,7 +1268,6 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 		return 0;
 	}
 
-
 	int ret = 0;
 	while (len > 0) {
 		size_t tmp_len = len < fip->fi->ep_attr->max_msg_size ?
@@ -1305,6 +1304,10 @@ rpmem_fip_read(struct rpmem_fip *fip, void *buff, size_t len,
 	RPMEM_ASSERT(lane < fip->nlanes);
 	if (unlikely(lane >= fip->nlanes))
 		return EINVAL; /* it will be passed to errno */
+
+	if (unlikely(len == 0)) {
+		return 0;
+	}
 
 	size_t rd_buff_len = len < fip->fi->ep_attr->max_msg_size ?
 		len : fip->fi->ep_attr->max_msg_size;
