@@ -258,7 +258,7 @@ rpmem_map_file(const char *path, struct rpmem_bench *mb, size_t size)
 #endif
 
 	mb->addrp = pmem_map_file(path, size, PMEM_FILE_CREATE, mode,
-				  &mb->mapped_len, NULL);
+				  &mb->mapped_len, nullptr);
 
 	if (!mb->addrp)
 		return -1;
@@ -319,7 +319,7 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 	rep = set->replica[0];
 
 	assert(rep);
-	assert(rep->remote == NULL);
+	assert(rep->remote == nullptr);
 	if (rep->nparts != 1) {
 		fprintf(stderr, "Multipart master replicas "
 				"are not supported\n");
@@ -344,13 +344,13 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 	/* prepare remote replicas */
 	mb->nreplicas = set->nreplicas - 1;
 	mb->nlanes = (unsigned *)malloc(mb->nreplicas * sizeof(unsigned));
-	if (mb->nlanes == NULL) {
+	if (mb->nlanes == nullptr) {
 		perror("malloc");
 		goto err_unmap_file;
 	}
 
 	mb->rpp = (RPMEMpool **)malloc(mb->nreplicas * sizeof(RPMEMpool *));
-	if (mb->rpp == NULL) {
+	if (mb->rpp == nullptr) {
 		perror("malloc");
 		goto err_free_lanes;
 	}
@@ -452,9 +452,9 @@ rpmem_set_min_size(struct rpmem_bench *mb, enum operation_mode op_mode,
 static int
 rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
 	struct rpmem_bench *mb =
 		(struct rpmem_bench *)malloc(sizeof(struct rpmem_bench));

@@ -60,7 +60,7 @@ struct config_reader *
 config_reader_alloc(void)
 {
 	struct config_reader *cr = (struct config_reader *)malloc(sizeof(*cr));
-	assert(cr != NULL);
+	assert(cr != nullptr);
 
 	cr->key_file = g_key_file_new();
 	if (!cr->key_file)
@@ -70,7 +70,7 @@ config_reader_alloc(void)
 
 err:
 	free(cr);
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -80,7 +80,7 @@ int
 config_reader_read(struct config_reader *cr, const char *fname)
 {
 	if (g_key_file_load_from_file(cr->key_file, fname, G_KEY_FILE_NONE,
-				      NULL) != TRUE)
+				      nullptr) != TRUE)
 		return -1;
 
 	return 0;
@@ -137,7 +137,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 	gsize ngroups;
 	gsize g;
 	gchar **groups = g_key_file_get_groups(cr->key_file, &ngroups);
-	assert(NULL != groups);
+	assert(nullptr != groups);
 	if (!groups)
 		return -1;
 
@@ -148,12 +148,12 @@ config_reader_get_scenarios(struct config_reader *cr,
 	int has_global =
 		g_key_file_has_group(cr->key_file, SECTION_GLOBAL) == TRUE;
 	gsize ngkeys;
-	gchar **gkeys = NULL;
+	gchar **gkeys = nullptr;
 	struct scenarios *s;
 	if (has_global) {
 		gkeys = g_key_file_get_keys(cr->key_file, SECTION_GLOBAL,
-					    &ngkeys, NULL);
-		assert(NULL != gkeys);
+					    &ngkeys, nullptr);
+		assert(nullptr != gkeys);
 		if (!gkeys) {
 			ret = -1;
 			goto err_groups;
@@ -161,7 +161,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 	}
 
 	s = scenarios_alloc();
-	assert(NULL != s);
+	assert(nullptr != s);
 	if (!s) {
 		ret = -1;
 		goto err_gkeys;
@@ -180,21 +180,22 @@ config_reader_get_scenarios(struct config_reader *cr,
 		 * If not present the benchmark name is the same as the
 		 * name of the section.
 		 */
-		struct scenario *scenario = NULL;
+		struct scenario *scenario = nullptr;
 		if (g_key_file_has_key(cr->key_file, groups[g], KEY_BENCHMARK,
-				       NULL) == FALSE) {
+				       nullptr) == FALSE) {
 			scenario = scenario_alloc(groups[g], groups[g]);
-			assert(scenario != NULL);
+			assert(scenario != nullptr);
 		} else {
-			gchar *benchmark = g_key_file_get_value(
-				cr->key_file, groups[g], KEY_BENCHMARK, NULL);
-			assert(benchmark != NULL);
+			gchar *benchmark =
+				g_key_file_get_value(cr->key_file, groups[g],
+						     KEY_BENCHMARK, nullptr);
+			assert(benchmark != nullptr);
 			if (!benchmark) {
 				ret = -1;
 				goto err_scenarios;
 			}
 			scenario = scenario_alloc(groups[g], benchmark);
-			assert(scenario != NULL);
+			assert(scenario != nullptr);
 			free(benchmark);
 		}
 
@@ -205,7 +206,8 @@ config_reader_get_scenarios(struct config_reader *cr,
 			 */
 			for (k = 0; k < ngkeys; k++) {
 				if (g_key_file_has_key(cr->key_file, groups[g],
-						       gkeys[k], NULL) == TRUE)
+						       gkeys[k],
+						       nullptr) == TRUE)
 					continue;
 
 				if (!is_argument(gkeys[k]))
@@ -213,15 +215,15 @@ config_reader_get_scenarios(struct config_reader *cr,
 
 				char *value = g_key_file_get_value(
 					cr->key_file, SECTION_GLOBAL, gkeys[k],
-					NULL);
-				assert(NULL != value);
+					nullptr);
+				assert(nullptr != value);
 				if (!value) {
 					ret = -1;
 					goto err_scenarios;
 				}
 
 				struct kv *kv = kv_alloc(gkeys[k], value);
-				assert(NULL != kv);
+				assert(nullptr != kv);
 
 				free(value);
 				if (!kv) {
@@ -235,22 +237,23 @@ config_reader_get_scenarios(struct config_reader *cr,
 
 		/* check for group name */
 		if (g_key_file_has_key(cr->key_file, groups[g], KEY_GROUP,
-				       NULL) != FALSE) {
+				       nullptr) != FALSE) {
 			gchar *group = g_key_file_get_value(
-				cr->key_file, groups[g], KEY_GROUP, NULL);
-			assert(group != NULL);
+				cr->key_file, groups[g], KEY_GROUP, nullptr);
+			assert(group != nullptr);
 			scenario_set_group(scenario, group);
 		} else if (g_key_file_has_key(cr->key_file, SECTION_GLOBAL,
-					      KEY_GROUP, NULL) != FALSE) {
-			gchar *group = g_key_file_get_value(
-				cr->key_file, SECTION_GLOBAL, KEY_GROUP, NULL);
+					      KEY_GROUP, nullptr) != FALSE) {
+			gchar *group = g_key_file_get_value(cr->key_file,
+							    SECTION_GLOBAL,
+							    KEY_GROUP, nullptr);
 			scenario_set_group(scenario, group);
 		}
 
 		gsize nkeys;
 		gchar **keys = g_key_file_get_keys(cr->key_file, groups[g],
-						   &nkeys, NULL);
-		assert(NULL != keys);
+						   &nkeys, nullptr);
+		assert(nullptr != keys);
 		if (!keys) {
 			ret = -1;
 			goto err_scenarios;
@@ -263,8 +266,8 @@ config_reader_get_scenarios(struct config_reader *cr,
 			if (!is_argument(keys[k]))
 				continue;
 			char *value = g_key_file_get_value(
-				cr->key_file, groups[g], keys[k], NULL);
-			assert(NULL != value);
+				cr->key_file, groups[g], keys[k], nullptr);
+			assert(nullptr != value);
 			if (!value) {
 				ret = -1;
 				g_strfreev(keys);
@@ -272,7 +275,7 @@ config_reader_get_scenarios(struct config_reader *cr,
 			}
 
 			struct kv *kv = kv_alloc(keys[k], value);
-			assert(NULL != kv);
+			assert(nullptr != kv);
 
 			free(value);
 			if (!kv) {

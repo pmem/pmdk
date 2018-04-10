@@ -46,13 +46,13 @@ struct kv *
 kv_alloc(const char *key, const char *value)
 {
 	struct kv *kv = (struct kv *)malloc(sizeof(*kv));
-	assert(kv != NULL);
+	assert(kv != nullptr);
 
 	kv->key = strdup(key);
-	assert(kv->key != NULL);
+	assert(kv->key != nullptr);
 
 	kv->value = strdup(value);
-	assert(kv->value != NULL);
+	assert(kv->value != nullptr);
 
 	return kv;
 }
@@ -63,7 +63,7 @@ kv_alloc(const char *key, const char *value)
 void
 kv_free(struct kv *kv)
 {
-	assert(kv != NULL);
+	assert(kv != nullptr);
 	free(kv->key);
 	free(kv->value);
 	free(kv);
@@ -76,16 +76,16 @@ struct scenario *
 scenario_alloc(const char *name, const char *bench)
 {
 	struct scenario *s = (struct scenario *)malloc(sizeof(*s));
-	assert(s != NULL);
+	assert(s != nullptr);
 
 	TAILQ_INIT(&s->head);
 	s->name = strdup(name);
-	assert(s->name != NULL);
+	assert(s->name != nullptr);
 
 	s->benchmark = strdup(bench);
-	assert(s->benchmark != NULL);
+	assert(s->benchmark != nullptr);
 
-	s->group = NULL;
+	s->group = nullptr;
 
 	return s;
 }
@@ -96,7 +96,7 @@ scenario_alloc(const char *name, const char *bench)
 void
 scenario_free(struct scenario *s)
 {
-	assert(s != NULL);
+	assert(s != nullptr);
 
 	while (!TAILQ_EMPTY(&s->head)) {
 		struct kv *kv = TAILQ_FIRST(&s->head);
@@ -116,7 +116,7 @@ scenario_free(struct scenario *s)
 void
 scenario_set_group(struct scenario *s, const char *group)
 {
-	assert(s != NULL);
+	assert(s != nullptr);
 	s->group = strdup(group);
 }
 
@@ -128,7 +128,7 @@ scenarios_alloc(void)
 {
 	struct scenarios *scenarios =
 		(struct scenarios *)malloc(sizeof(*scenarios));
-	assert(NULL != scenarios);
+	assert(nullptr != scenarios);
 
 	TAILQ_INIT(&scenarios->head);
 
@@ -141,7 +141,7 @@ scenarios_alloc(void)
 void
 scenarios_free(struct scenarios *scenarios)
 {
-	assert(scenarios != NULL);
+	assert(scenarios != nullptr);
 	while (!TAILQ_EMPTY(&scenarios->head)) {
 		struct scenario *sce = TAILQ_FIRST(&scenarios->head);
 		TAILQ_REMOVE(&scenarios->head, sce, next);
@@ -163,7 +163,7 @@ scenarios_get_scenario(struct scenarios *ss, const char *name)
 		if (strcmp(scenario->name, name) == 0)
 			return scenario;
 	}
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -172,9 +172,9 @@ scenarios_get_scenario(struct scenarios *ss, const char *name)
 bool
 contains_scenarios(int argc, char **argv, struct scenarios *ss)
 {
-	assert(argv != NULL);
+	assert(argv != nullptr);
 	assert(argc > 0);
-	assert(ss != NULL);
+	assert(ss != nullptr);
 
 	for (int i = 0; i < argc; i++) {
 		if (scenarios_get_scenario(ss, argv[i]))
@@ -189,18 +189,18 @@ contains_scenarios(int argc, char **argv, struct scenarios *ss)
 struct scenario *
 clone_scenario(struct scenario *src_scenario)
 {
-	assert(src_scenario != NULL);
+	assert(src_scenario != nullptr);
 
 	struct scenario *new_scenario =
 		scenario_alloc(src_scenario->name, src_scenario->benchmark);
-	assert(new_scenario != NULL);
+	assert(new_scenario != nullptr);
 
 	struct kv *src_kv;
 
 	FOREACH_KV(src_kv, src_scenario)
 	{
 		struct kv *new_kv = kv_alloc(src_kv->key, src_kv->value);
-		assert(new_kv != NULL);
+		assert(new_kv != nullptr);
 
 		TAILQ_INSERT_TAIL(&new_scenario->head, new_kv, next);
 	}
@@ -210,7 +210,7 @@ clone_scenario(struct scenario *src_scenario)
 /*
  * find_kv_in_scenario - find a kv in the given scenario with the given key
  * value. Function returns the pointer to the kv structure containing the key or
- * NULL if it is not found
+ * nullptr if it is not found
  */
 struct kv *
 find_kv_in_scenario(const char *key, const struct scenario *scenario)
@@ -222,5 +222,5 @@ find_kv_in_scenario(const char *key, const struct scenario *scenario)
 		if (strcmp(kv->key, key) == 0)
 			return kv;
 	}
-	return NULL;
+	return nullptr;
 }

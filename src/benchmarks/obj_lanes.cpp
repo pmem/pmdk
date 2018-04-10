@@ -93,13 +93,13 @@ parse_lane_section(const char *arg)
 static int
 lanes_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
 	struct obj_bench *ob =
 		(struct obj_bench *)malloc(sizeof(struct obj_bench));
-	if (ob == NULL) {
+	if (ob == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -115,7 +115,7 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* create pmemobj pool */
 	ob->pop = pmemobj_create(args->fname, "obj_lanes", psize, args->fmode);
-	if (ob->pop == NULL) {
+	if (ob->pop == nullptr) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto err;
 	}

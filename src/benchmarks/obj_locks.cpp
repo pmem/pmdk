@@ -184,15 +184,15 @@ get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 		if ((tmp_runid != (pop_runid - 1))) {
 			if (util_bool_compare_and_swap64(runid, tmp_runid,
 							 (pop_runid - 1))) {
-				if (init_lock(&lock, NULL)) {
+				if (init_lock(&lock, nullptr)) {
 					util_fetch_and_and64(runid, 0);
-					return NULL;
+					return nullptr;
 				}
 
 				if (util_bool_compare_and_swap64(
 					    runid, (pop_runid - 1),
 					    pop_runid) == 0) {
-					return NULL;
+					return nullptr;
 				}
 			}
 		}
@@ -209,9 +209,9 @@ get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 static int
 volatile_mutex_init(os_mutex_t **mutexp, void *attr)
 {
-	if (*mutexp == NULL) {
+	if (*mutexp == nullptr) {
 		*mutexp = (os_mutex_t *)malloc(sizeof(os_mutex_t));
-		if (*mutexp == NULL) {
+		if (*mutexp == nullptr) {
 			perror("volatile_mutex_init alloc");
 			return ENOMEM;
 		}
@@ -227,7 +227,7 @@ static int
 volatile_mutex_lock(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 {
 	os_mutex_t *mutex = GET_VOLATILE_MUTEX(pop, mutexp);
-	if (mutex == NULL)
+	if (mutex == nullptr)
 		return EINVAL;
 
 	return os_mutex_lock(mutex);
@@ -240,7 +240,7 @@ static int
 volatile_mutex_unlock(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 {
 	os_mutex_t *mutex = (os_mutex_t *)GET_VOLATILE_MUTEX(pop, mutexp);
-	if (mutex == NULL)
+	if (mutex == nullptr)
 		return EINVAL;
 
 	return os_mutex_unlock(mutex);
@@ -253,7 +253,7 @@ static int
 volatile_mutex_destroy(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 {
 	os_mutex_t *mutex = (os_mutex_t *)GET_VOLATILE_MUTEX(pop, mutexp);
-	if (mutex == NULL)
+	if (mutex == nullptr)
 		return EINVAL;
 
 	int ret = os_mutex_destroy(mutex);
@@ -387,9 +387,9 @@ init_bench_mutex(struct mutex_bench *mb)
 	}
 
 	struct my_root *root = D_RW(mb->root);
-	assert(root != NULL);
+	assert(root != nullptr);
 	mb->locks = D_RW(root->locks);
-	assert(mb->locks != NULL);
+	assert(mb->locks != nullptr);
 
 	if (!mb->pa->use_system_threads) {
 		/* initialize PMEM mutexes */
@@ -453,11 +453,12 @@ op_bench_mutex(struct mutex_bench *mb)
 	} else {
 		if (mb->lock_mode == OP_MODE_1BY1) {
 			bench_operation_1by1(os_mutex_lock_wrapper,
-					     os_mutex_unlock_wrapper, mb, NULL);
+					     os_mutex_unlock_wrapper, mb,
+					     nullptr);
 		} else {
 			bench_operation_all_lock(os_mutex_lock_wrapper,
 						 os_mutex_unlock_wrapper, mb,
-						 NULL);
+						 nullptr);
 		}
 	}
 
@@ -471,7 +472,7 @@ static int
 init_bench_rwlock(struct mutex_bench *mb)
 {
 	struct my_root *root = D_RW(mb->root);
-	assert(root != NULL);
+	assert(root != nullptr);
 
 	POBJ_ZALLOC(mb->pop, &root->locks, lock_t,
 		    mb->pa->n_locks * sizeof(lock_t));
@@ -481,7 +482,7 @@ init_bench_rwlock(struct mutex_bench *mb)
 	}
 
 	mb->locks = D_RW(root->locks);
-	assert(mb->locks != NULL);
+	assert(mb->locks != nullptr);
 
 	if (!mb->pa->use_system_threads) {
 		/* initialize PMEM rwlocks */
@@ -551,12 +552,12 @@ op_bench_rwlock(struct mutex_bench *mb)
 			bench_operation_1by1(
 				!mb->pa->use_rdlock ? os_rwlock_wrlock_wrapper
 						    : os_rwlock_rdlock_wrapper,
-				os_rwlock_unlock_wrapper, mb, NULL);
+				os_rwlock_unlock_wrapper, mb, nullptr);
 		} else {
 			bench_operation_all_lock(
 				!mb->pa->use_rdlock ? os_rwlock_wrlock_wrapper
 						    : os_rwlock_rdlock_wrapper,
-				os_rwlock_unlock_wrapper, mb, NULL);
+				os_rwlock_unlock_wrapper, mb, nullptr);
 		}
 	}
 	return 0;
@@ -569,7 +570,7 @@ static int
 init_bench_vmutex(struct mutex_bench *mb)
 {
 	struct my_root *root = D_RW(mb->root);
-	assert(root != NULL);
+	assert(root != nullptr);
 
 	POBJ_ZALLOC(mb->pop, &root->locks, lock_t,
 		    mb->pa->n_locks * sizeof(lock_t));
@@ -579,13 +580,13 @@ init_bench_vmutex(struct mutex_bench *mb)
 	}
 
 	mb->locks = D_RW(root->locks);
-	assert(mb->locks != NULL);
+	assert(mb->locks != nullptr);
 
 	/* initialize PMEM volatile mutexes */
 	for (unsigned i = 0; i < mb->pa->n_locks; i++) {
 		PMEM_volatile_mutex *p = (PMEM_volatile_mutex *)&mb->locks[i];
 		p->volatile_pmemmutex.runid = mb->pa->runid_initial_value;
-		volatile_mutex_init(&p->volatile_pmemmutex.mutexp, NULL);
+		volatile_mutex_init(&p->volatile_pmemmutex.mutexp, nullptr);
 	}
 
 	return 0;
@@ -664,7 +665,7 @@ parse_benchmark_mode(const char *arg)
 	else if (strcmp(arg, "volatile-mutex") == 0)
 		return &benchmark_ops[BENCH_MODE_VOLATILE_MUTEX];
 	else
-		return NULL;
+		return nullptr;
 }
 
 /*
@@ -674,14 +675,14 @@ parse_benchmark_mode(const char *arg)
 static int
 locks_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
 
 	int ret = 0;
 	size_t poolsize;
 
 	struct mutex_bench *mb = (struct mutex_bench *)malloc(sizeof(*mb));
-	if (mb == NULL) {
+	if (mb == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -696,7 +697,7 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	mb->ops = parse_benchmark_mode(mb->pa->lock_type);
-	if (mb->ops == NULL) {
+	if (mb->ops == nullptr) {
 		fprintf(stderr, "Invalid benchmark type: %s\n",
 			mb->pa->lock_type);
 		errno = EINVAL;
@@ -719,7 +720,7 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 				 POBJ_LAYOUT_NAME(pmembench_lock_layout),
 				 poolsize, args->fmode);
 
-	if (mb->pop == NULL) {
+	if (mb->pop == nullptr) {
 		ret = -1;
 		perror("pmemobj_create");
 		goto err_free_mb;
@@ -750,12 +751,12 @@ err_free_mb:
 static int
 locks_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
 
 	struct mutex_bench *mb =
 		(struct mutex_bench *)pmembench_get_priv(bench);
-	assert(mb != NULL);
+	assert(mb != nullptr);
 
 	mb->ops->bench_exit(mb);
 
@@ -775,10 +776,10 @@ locks_op(struct benchmark *bench, struct operation_info *info)
 {
 	struct mutex_bench *mb =
 		(struct mutex_bench *)pmembench_get_priv(bench);
-	assert(mb != NULL);
-	assert(mb->pop != NULL);
+	assert(mb != nullptr);
+	assert(mb->pop != nullptr);
 	assert(!TOID_IS_NULL(mb->root));
-	assert(mb->locks != NULL);
+	assert(mb->locks != nullptr);
 	assert(mb->lock_mode < OP_MODE_MAX);
 
 	mb->ops->bench_op(mb);

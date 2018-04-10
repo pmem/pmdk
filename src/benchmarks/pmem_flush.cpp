@@ -372,8 +372,8 @@ parse_op_type(const char *arg)
 static int
 pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
 	size_t file_size = 0;
 	int flags = 0;
 
@@ -381,10 +381,10 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 
 	struct pmem_bench *pmb =
 		(struct pmem_bench *)malloc(sizeof(struct pmem_bench));
-	assert(pmb != NULL);
+	assert(pmb != nullptr);
 
 	pmb->pargs = (struct pmem_args *)args->opts;
-	assert(pmb->pargs != NULL);
+	assert(pmb->pargs != nullptr);
 
 	int i = parse_op_type(pmb->pargs->operation);
 	if (i == -1) {
@@ -410,7 +410,7 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 	/* populate offsets array */
 	assert(pmb->n_offsets != 0);
 	pmb->offsets = (size_t *)malloc(pmb->n_offsets * sizeof(*pmb->offsets));
-	assert(pmb->offsets != NULL);
+	assert(pmb->offsets != nullptr);
 
 	for (size_t i = 0; i < pmb->n_offsets; ++i)
 		pmb->offsets[i] = func_mode(pmb, i);
@@ -422,14 +422,14 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* create a pmem file and memory map it */
 	pmb->pmem_addr = pmem_map_file(args->fname, file_size, flags,
-				       args->fmode, &pmb->pmem_len, NULL);
+				       args->fmode, &pmb->pmem_len, nullptr);
 
-	if (pmb->pmem_addr == NULL) {
+	if (pmb->pmem_addr == nullptr) {
 		perror("pmem_map_file");
 		goto err_free_pmb;
 	}
 
-	pmb->nondirty_addr = mmap(NULL, pmb->fsize, PROT_READ | PROT_WRITE,
+	pmb->nondirty_addr = mmap(nullptr, pmb->fsize, PROT_READ | PROT_WRITE,
 				  MAP_PRIVATE | MAP_ANON, -1, 0);
 
 	if (pmb->nondirty_addr == MAP_FAILED) {
@@ -437,7 +437,7 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err_unmap1;
 	}
 
-	pmb->invalid_addr = mmap(NULL, pmb->fsize, PROT_READ | PROT_WRITE,
+	pmb->invalid_addr = mmap(nullptr, pmb->fsize, PROT_READ | PROT_WRITE,
 				 MAP_PRIVATE | MAP_ANON, -1, 0);
 
 	if (pmb->invalid_addr == MAP_FAILED) {

@@ -109,7 +109,8 @@ init_objects(struct obj_bench *ob)
 	for (uint64_t i = 0; i < ob->nobjs; i++) {
 		PMEMoid oid;
 		void *ptr;
-		if (pmemobj_alloc(ob->pop, &oid, ob->obj_size, 0, NULL, NULL)) {
+		if (pmemobj_alloc(ob->pop, &oid, ob->obj_size, 0, nullptr,
+				  nullptr)) {
 			perror("pmemobj_alloc");
 			goto err_palloc;
 		}
@@ -168,9 +169,9 @@ obj_persist_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
 	struct prog_args *pa = (struct prog_args *)args->opts;
 	size_t poolsize;
@@ -181,7 +182,7 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 
 	struct obj_bench *ob =
 		(struct obj_bench *)malloc(sizeof(struct obj_bench));
-	if (ob == NULL) {
+	if (ob == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -217,8 +218,8 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 
 	poolsize = PAGE_ALIGNED_UP_SIZE(poolsize);
 
-	ob->pop = pmemobj_create(args->fname, NULL, poolsize, args->fmode);
-	if (ob->pop == NULL) {
+	ob->pop = pmemobj_create(args->fname, nullptr, poolsize, args->fmode);
+	if (ob->pop == nullptr) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto free_ob;
 	}

@@ -108,10 +108,10 @@ struct obj_bench {
 static int
 obj_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct my_root *root = NULL;
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	struct my_root *root = nullptr;
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
 	if (((struct prog_args *)(args->opts))->minsize >= args->dsize) {
 		fprintf(stderr, "Wrong params - allocation size\n");
@@ -120,7 +120,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 
 	struct obj_bench *ob =
 		(struct obj_bench *)malloc(sizeof(struct obj_bench));
-	if (ob == NULL) {
+	if (ob == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -157,7 +157,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 
 	ob->pop = pmemobj_create(args->fname, POBJ_LAYOUT_NAME(pmalloc_layout),
 				 poolsize, args->fmode);
-	if (ob->pop == NULL) {
+	if (ob->pop == nullptr) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto free_ob;
 	}
@@ -169,7 +169,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	root = D_RW(ob->root);
-	assert(root != NULL);
+	assert(root != nullptr);
 	POBJ_ZALLOC(ob->pop, &root->offs, uint64_t,
 		    n_ops_total * sizeof(PMEMoid));
 	if (TOID_IS_NULL(root->offs)) {
@@ -181,7 +181,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	ob->offs = D_RW(root->offs);
 
 	ob->sizes = (size_t *)malloc(n_ops_total * sizeof(size_t));
-	if (ob->sizes == NULL) {
+	if (ob->sizes == nullptr) {
 		fprintf(stderr, "malloc rand size vect err\n");
 		goto free_pop;
 	}
@@ -271,7 +271,7 @@ pmix_worker_init(struct benchmark *bench, struct benchmark_args *args,
 {
 	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 	struct pmix_worker *w = (struct pmix_worker *)calloc(1, sizeof(*w));
-	if (w == NULL)
+	if (w == nullptr)
 		return -1;
 
 	w->seed = ob->pa->seed;

@@ -45,7 +45,7 @@ struct clo_vec *
 clo_vec_alloc(size_t size)
 {
 	struct clo_vec *clovec = (struct clo_vec *)malloc(sizeof(*clovec));
-	assert(clovec != NULL);
+	assert(clovec != nullptr);
 
 	/* init list of arguments and allocations */
 	TAILQ_INIT(&clovec->allocs);
@@ -60,10 +60,10 @@ clo_vec_alloc(size_t size)
 	struct clo_vec_args *args =
 		(struct clo_vec_args *)malloc(sizeof(*args));
 
-	assert(args != NULL);
+	assert(args != nullptr);
 
 	args->args = calloc(1, size);
-	assert(args->args != NULL);
+	assert(args->args != nullptr);
 
 	TAILQ_INSERT_TAIL(&clovec->args, args, next);
 
@@ -78,7 +78,7 @@ clo_vec_alloc(size_t size)
 void
 clo_vec_free(struct clo_vec *clovec)
 {
-	assert(clovec != NULL);
+	assert(clovec != nullptr);
 
 	/* free all allocations */
 	while (!TAILQ_EMPTY(&clovec->allocs)) {
@@ -106,7 +106,7 @@ void *
 clo_vec_get_args(struct clo_vec *clovec, size_t i)
 {
 	if (i >= clovec->nargs)
-		return NULL;
+		return nullptr;
 	size_t c = 0;
 	struct clo_vec_args *args;
 	TAILQ_FOREACH(args, &clovec->args, next)
@@ -116,7 +116,7 @@ clo_vec_get_args(struct clo_vec *clovec, size_t i)
 		c++;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -128,7 +128,7 @@ clo_vec_add_alloc(struct clo_vec *clovec, void *ptr)
 	struct clo_vec_alloc *alloc =
 		(struct clo_vec_alloc *)malloc(sizeof(*alloc));
 
-	assert(alloc != NULL);
+	assert(alloc != nullptr);
 
 	alloc->ptr = ptr;
 	TAILQ_INSERT_TAIL(&clovec->allocs, alloc, next);
@@ -149,15 +149,15 @@ clo_vec_grow(struct clo_vec *clovec, size_t new_len)
 		struct clo_vec_args *args =
 			(struct clo_vec_args *)calloc(1, sizeof(*args));
 
-		assert(args != NULL);
+		assert(args != nullptr);
 
 		TAILQ_INSERT_TAIL(&clovec->args, args, next);
 
 		args->args = malloc(clovec->size);
-		assert(args->args != NULL);
+		assert(args->args != nullptr);
 
 		void *argscpy = clo_vec_get_args(clovec, i % clovec->nargs);
-		assert(argscpy != NULL);
+		assert(argscpy != nullptr);
 
 		memcpy(args->args, argscpy, clovec->size);
 	}
@@ -174,7 +174,7 @@ clo_vec_vlist_alloc(void)
 	struct clo_vec_vlist *list =
 		(struct clo_vec_vlist *)malloc(sizeof(*list));
 
-	assert(list != NULL);
+	assert(list != nullptr);
 
 	list->nvalues = 0;
 	TAILQ_INIT(&list->head);
@@ -188,7 +188,7 @@ clo_vec_vlist_alloc(void)
 void
 clo_vec_vlist_free(struct clo_vec_vlist *list)
 {
-	assert(list != NULL);
+	assert(list != nullptr);
 
 	while (!TAILQ_EMPTY(&list->head)) {
 		struct clo_vec_value *val = TAILQ_FIRST(&list->head);
@@ -208,10 +208,10 @@ clo_vec_vlist_add(struct clo_vec_vlist *list, void *ptr, size_t size)
 {
 	struct clo_vec_value *val =
 		(struct clo_vec_value *)malloc(sizeof(*val));
-	assert(val != NULL);
+	assert(val != nullptr);
 
 	val->ptr = malloc(size);
-	assert(val->ptr != NULL);
+	assert(val->ptr != nullptr);
 
 	memcpy(val->ptr, ptr, size);
 	TAILQ_INSERT_TAIL(&list->head, val, next);
