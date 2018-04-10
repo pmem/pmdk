@@ -56,10 +56,12 @@ struct mock_pop {
 	void *heap;
 };
 
-static void
-obj_heap_persist(void *ctx, const void *ptr, size_t sz)
+static int
+obj_heap_persist(void *ctx, const void *ptr, size_t sz, unsigned flags)
 {
 	UT_ASSERTeq(pmem_msync(ptr, sz), 0);
+
+	return 0;
 }
 
 static void *

@@ -72,6 +72,8 @@
  */
 #define OBJ_NLANES_ENV_VARIABLE "PMEMOBJ_NLANES"
 
+#define OBJ_X_VALID_FLAGS PMEM_F_RELAXED
+
 static const struct pool_attr Obj_create_attr = {
 		OBJ_HDR_SIG,
 		OBJ_FORMAT_MAJOR,
@@ -399,24 +401,29 @@ obj_nopmem_memset(void *dest, int c, size_t len, unsigned flags)
 /*
  * obj_remote_persist -- (internal) remote persist function
  */
-static void *
+static int
 obj_remote_persist(PMEMobjpool *pop, const void *addr, size_t len,
-			unsigned lane)
+			unsigned lane, unsigned flags)
 {
 	LOG(15, "pop %p addr %p len %zu lane %u", pop, addr, len, lane);
 
 	ASSERTne(pop->rpp, NULL);
 
 	uintptr_t offset = (uintptr_t)addr - pop->remote_base;
-	int rv = Rpmem_persist(pop->rpp, offset, len, lane, 0);
+
+	unsigned rpmem_flags = 0;
+	if (flags & PMEM_F_RELAXED)
+		rpmem_flags |= RPMEM_PERSIST_RELAXED;
+
+	int rv = Rpmem_persist(pop->rpp, offset, len, lane, rpmem_flags);
 	if (rv) {
 		ERR("!rpmem_persist(rpp %p offset %zu length %zu lane %u)"
 			" FATAL ERROR (returned value %i)",
 			pop->rpp, offset, len, lane, rv);
-		return NULL;
+		return -1;
 	}
 
-	return (void *)addr;
+	return 0;
 }
 
 /*
@@ -469,25 +476,29 @@ obj_norep_memset(void *ctx, void *dest, int c, size_t len, unsigned flags)
 /*
  * obj_norep_persist -- (internal) persist w/o replication
  */
-static void
-obj_norep_persist(void *ctx, const void *addr, size_t len)
+static int
+obj_norep_persist(void *ctx, const void *addr, size_t len, unsigned flags)
 {
 	PMEMobjpool *pop = ctx;
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
 	pop->persist_local(addr, len);
+
+	return 0;
 }
 
 /*
  * obj_norep_flush -- (internal) flush w/o replication
  */
-static void
-obj_norep_flush(void *ctx, const void *addr, size_t len)
+static int
+obj_norep_flush(void *ctx, const void *addr, size_t len, unsigned flags)
 {
 	PMEMobjpool *pop = ctx;
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
 	pop->flush_local(addr, len);
+
+	return 0;
 }
 
 /*
@@ -543,7 +554,7 @@ obj_rep_memcpy(void *ctx, void *dest, const void *src, size_t len,
 		if (rep->rpp == NULL) {
 			rep->memcpy_local(rdest, src, len, flags);
 		} else {
-			if (rep->persist_remote(rep, rdest, len, lane) == NULL)
+			if (rep->persist_remote(rep, rdest, len, lane, flags))
 				obj_handle_remote_persist_error(pop);
 		}
 		rep = rep->replica;
@@ -579,7 +590,7 @@ obj_rep_memmove(void *ctx, void *dest, const void *src, size_t len,
 		if (rep->rpp == NULL) {
 			rep->memmove_local(rdest, src, len, flags);
 		} else {
-			if (rep->persist_remote(rep, rdest, len, lane) == NULL)
+			if (rep->persist_remote(rep, rdest, len, lane, flags))
 				obj_handle_remote_persist_error(pop);
 		}
 		rep = rep->replica;
@@ -614,7 +625,7 @@ obj_rep_memset(void *ctx, void *dest, int c, size_t len, unsigned flags)
 		if (rep->rpp == NULL) {
 			rep->memset_local(rdest, c, len, flags);
 		} else {
-			if (rep->persist_remote(rep, rdest, len, lane) == NULL)
+			if (rep->persist_remote(rep, rdest, len, lane, flags))
 				obj_handle_remote_persist_error(pop);
 		}
 		rep = rep->replica;
@@ -629,8 +640,8 @@ obj_rep_memset(void *ctx, void *dest, int c, size_t len, unsigned flags)
 /*
  * obj_rep_persist -- (internal) persist with replication
  */
-static void
-obj_rep_persist(void *ctx, const void *addr, size_t len)
+static int
+obj_rep_persist(void *ctx, const void *addr, size_t len, unsigned flags)
 {
 	PMEMobjpool *pop = ctx;
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
@@ -648,7 +659,7 @@ obj_rep_persist(void *ctx, const void *addr, size_t len)
 		if (rep->rpp == NULL) {
 			rep->memcpy_local(raddr, addr, len, 0);
 		} else {
-			if (rep->persist_remote(rep, raddr, len, lane) == NULL)
+			if (rep->persist_remote(rep, raddr, len, lane, flags))
 				obj_handle_remote_persist_error(pop);
 		}
 		rep = rep->replica;
@@ -656,13 +667,15 @@ obj_rep_persist(void *ctx, const void *addr, size_t len)
 
 	if (pop->has_remote_replicas)
 		lane_release(pop);
+
+	return 0;
 }
 
 /*
  * obj_rep_flush -- (internal) flush with replication
  */
-static void
-obj_rep_flush(void *ctx, const void *addr, size_t len)
+static int
+obj_rep_flush(void *ctx, const void *addr, size_t len, unsigned flags)
 {
 	PMEMobjpool *pop = ctx;
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
@@ -680,7 +693,7 @@ obj_rep_flush(void *ctx, const void *addr, size_t len)
 		if (rep->rpp == NULL) {
 			rep->memcpy_local(raddr, addr, len, PMEM_F_MEM_NODRAIN);
 		} else {
-			if (rep->persist_remote(rep, raddr, len, lane) == NULL)
+			if (rep->persist_remote(rep, raddr, len, lane, flags))
 				obj_handle_remote_persist_error(pop);
 		}
 		rep = rep->replica;
@@ -688,6 +701,8 @@ obj_rep_flush(void *ctx, const void *addr, size_t len)
 
 	if (pop->has_remote_replicas)
 		lane_release(pop);
+
+	return 0;
 }
 
 /*
@@ -1673,7 +1688,7 @@ obj_replicas_check_basic(PMEMobjpool *pop)
 			rep->memcpy_local(dst, src, len, 0);
 		} else {
 			if (rep->persist_remote(rep, dst, len,
-					RLANE_DEFAULT) == NULL)
+					RLANE_DEFAULT, 0))
 				obj_handle_remote_persist_error(pop);
 		}
 	}
@@ -2648,6 +2663,42 @@ pmemobj_flush(PMEMobjpool *pop, const void *addr, size_t len)
 	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
 
 	pmemops_flush(&pop->p_ops, addr, len);
+}
+
+/*
+ * pmemobj_xpersist -- pmemobj version of pmem_persist with additional flags
+ * argument
+ */
+int
+pmemobj_xpersist(PMEMobjpool *pop, const void *addr, size_t len, unsigned flags)
+{
+	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
+
+	if (flags & ~OBJ_X_VALID_FLAGS) {
+		errno = EINVAL;
+		ERR("invalid flags 0x%x", flags);
+		return -1;
+	}
+
+	return pmemops_xpersist(&pop->p_ops, addr, len, flags);
+}
+
+/*
+ * pmemobj_xflush -- pmemobj version of pmem_flush with additional flags
+ * argument
+ */
+int
+pmemobj_xflush(PMEMobjpool *pop, const void *addr, size_t len, unsigned flags)
+{
+	LOG(15, "pop %p addr %p len %zu", pop, addr, len);
+
+	if (flags & ~OBJ_X_VALID_FLAGS) {
+		errno = EINVAL;
+		ERR("invalid flags 0x%x", flags);
+		return -1;
+	}
+
+	return pmemops_xflush(&pop->p_ops, addr, len, flags);
 }
 
 /*

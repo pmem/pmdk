@@ -109,8 +109,8 @@ typedef void *(*memmove_local_fn)(void *dest, const void *src, size_t len,
 		unsigned flags);
 typedef void *(*memset_local_fn)(void *dest, int c, size_t len, unsigned flags);
 
-typedef void *(*persist_remote_fn)(PMEMobjpool *pop, const void *addr,
-					size_t len, unsigned lane);
+typedef int (*persist_remote_fn)(PMEMobjpool *pop, const void *addr,
+				size_t len, unsigned lane, unsigned flags);
 
 typedef uint64_t type_num_t;
 
