@@ -170,7 +170,7 @@ do_memmove(int ddax, char *dst, char *src, const char *file_name,
 	/* TEST 3, len == bytes / 2 */
 	ret = fn(dst + dest_off, src + src_off, bytes / 2, flags);
 	UT_ASSERTeq(ret, dst + dest_off);
-	if (flags & PMEM_MEM_NOFLUSH)
+	if (flags & PMEM_F_MEM_NOFLUSH)
 		/* for pmemcheck */
 		util_persist_auto(ddax, dst + dest_off, bytes / 2);
 
@@ -189,18 +189,18 @@ do_memmove(int ddax, char *dst, char *src, const char *file_name,
 
 static unsigned Flags[] = {
 		0,
-		PMEM_MEM_NODRAIN,
-		PMEM_MEM_NONTEMPORAL,
-		PMEM_MEM_TEMPORAL,
-		PMEM_MEM_NONTEMPORAL | PMEM_MEM_TEMPORAL,
-		PMEM_MEM_NONTEMPORAL | PMEM_MEM_NODRAIN,
-		PMEM_MEM_WC,
-		PMEM_MEM_WB,
-		PMEM_MEM_NOFLUSH,
+		PMEM_F_MEM_NODRAIN,
+		PMEM_F_MEM_NONTEMPORAL,
+		PMEM_F_MEM_TEMPORAL,
+		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL,
+		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_NODRAIN,
+		PMEM_F_MEM_WC,
+		PMEM_F_MEM_WB,
+		PMEM_F_MEM_NOFLUSH,
 		/* all possible flags */
-		PMEM_MEM_NODRAIN | PMEM_MEM_NOFLUSH |
-			PMEM_MEM_NONTEMPORAL | PMEM_MEM_TEMPORAL |
-			PMEM_MEM_WC | PMEM_MEM_WB,
+		PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH |
+			PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL |
+			PMEM_F_MEM_WC | PMEM_F_MEM_WB,
 };
 
 static void
