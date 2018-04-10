@@ -90,12 +90,14 @@ clean:
 	$(MAKE) -C doc $@
 	$(MAKE) -C utils $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR)
+	$(RM) -f $(GIT_VERSION)
 
 clobber:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
 	$(MAKE) -C utils $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
+	$(RM) -f $(GIT_VERSION)
 
 test check pcheck check-remote: all
 	$(MAKE) -C src $@
