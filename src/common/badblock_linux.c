@@ -372,11 +372,11 @@ exit_close:
 }
 
 /*
- * os_badblocks_get_and_clear -- get and clear bad blocks in a file
+ * os_badblocks_clear_and_get -- clear and get bad blocks in a file
  *                               (regular file or dax device)
  */
 int
-os_badblocks_get_and_clear(const char *file, struct badblocks *bbs)
+os_badblocks_clear_and_get(const char *file, struct badblocks *bbs)
 {
 	LOG(3, "file %s badblocks %p", file, bbs);
 
@@ -395,5 +395,5 @@ os_badblocks_clear(const char *file)
 {
 	LOG(3, "file %s", file);
 
-	return os_badblocks_get_and_clear(file, NULL);
+	return os_badblocks_clear_and_get(file, NULL);
 }
