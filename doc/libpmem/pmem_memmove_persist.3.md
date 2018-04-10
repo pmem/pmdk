@@ -140,6 +140,9 @@ The remaining flags say *how* the operation should be done, and are merely hints
   This flag is mutually exclusive with **PMEM_F_MEM_WC**.
   On x86\_64 this is an alias for **PMEM_F_MEM_TEMPORAL**.
 
++ **PMEM_F_RELAXED** - This flag indicates that memory transfer operation does
+  not require 8-byte atomicity guarantees.
+
 Using an invalid combination of flags has undefined behavior.
 
 Without any of the above flags **libpmem** will try to guess the best strategy
