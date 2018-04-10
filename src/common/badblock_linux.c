@@ -329,11 +329,11 @@ os_badblocks_clear_file_cb(struct cb_data_s *p, void *arg)
 }
 
 /*
- * os_badblocks_get_clear_file -- get and clear bad blocks in the regular file
+ * os_badblocks_clear_get_file -- clear and get bad blocks in the regular file
  *                                (not in a dax device)
  */
 static int
-os_badblocks_get_clear_file(const char *file, struct badblocks *bbs)
+os_badblocks_clear_get_file(const char *file, struct badblocks *bbs)
 {
 	LOG(3, "file %s badblocks %p", file, bbs);
 
@@ -383,7 +383,7 @@ os_badblocks_clear_and_get(const char *file, struct badblocks *bbs)
 	if (util_file_is_device_dax(file))
 		return os_dimm_devdax_clear_get_badblocks(file, bbs);
 
-	return os_badblocks_get_clear_file(file, bbs);
+	return os_badblocks_clear_get_file(file, bbs);
 }
 
 /*
