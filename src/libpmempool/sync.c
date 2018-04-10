@@ -352,8 +352,8 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 				int ret = Rpmem_persist(rep->remote->rpp, off,
 						len, 0);
 				if (ret) {
-					LOG(1, "Copying data to remote node "
-						"failed -- '%s' on '%s'",
+					LOG(1,
+						"Copying data to remote node failed -- '%s' on '%s'",
 						rep->remote->pool_desc,
 						rep->remote->node_addr);
 					return -1;
@@ -362,8 +362,8 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 				int ret = Rpmem_read(rep_h->remote->rpp,
 						dst_addr, off, len, 0);
 				if (ret) {
-					LOG(1, "Reading data from remote node "
-						"failed -- '%s' on '%s'",
+					LOG(1,
+						"Reading data from remote node failed -- '%s' on '%s'",
 						rep_h->remote->pool_desc,
 						rep_h->remote->node_addr);
 					return -1;
