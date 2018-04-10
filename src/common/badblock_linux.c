@@ -329,61 +329,38 @@ os_badblocks_clear_file_cb(struct cb_data_s *p, void *arg)
 }
 
 /*
- * os_badblocks_get_clear_file -- get and clear bad blocks in the regular file
- *                                (not in a dax device)
+ * os_badblocks_clear_file -- clear bad blocks in the regular file
+ *                            (not in a dax device)
  */
 static int
-os_badblocks_get_clear_file(const char *file, struct badblocks *bbs)
+os_badblocks_clear_file(const char *file)
 {
-	LOG(3, "file %s badblocks %p", file, bbs);
+	LOG(3, "file %s", file);
 
-	int allocated_bbs = 0;
 	int bb_found = -1;
-	int fd = -1;
+	int fd;
 
 	if ((fd = open(file, O_RDWR)) < 0) {
 		ERR("!open: %s", file);
 		return -1;
 	}
 
-	if (bbs) {
-		memset(bbs, 0, sizeof(*bbs));
-	} else {
-		bbs = Zalloc(sizeof(struct badblocks));
-		if (bbs == NULL) {
-			ERR("!malloc");
-			goto exit_close;
-		}
-		allocated_bbs = 1;
+	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
+	if (bbs == NULL) {
+		ERR("!malloc");
+		goto exit_close;
 	}
 
 	bb_found = os_badblocks_common(file, bbs,
 					os_badblocks_clear_file_cb, &fd);
 
-	if (allocated_bbs) {
-		Free(bbs->bbv);
-		Free(bbs);
-	}
+	Free(bbs->bbv);
+	Free(bbs);
 
 exit_close:
 	close(fd);
 
 	return bb_found;
-}
-
-/*
- * os_badblocks_get_and_clear -- get and clear bad blocks in a file
- *                               (regular file or dax device)
- */
-int
-os_badblocks_get_and_clear(const char *file, struct badblocks *bbs)
-{
-	LOG(3, "file %s badblocks %p", file, bbs);
-
-	if (util_file_is_device_dax(file))
-		return os_dimm_devdax_get_clear_badblocks(file, bbs);
-
-	return os_badblocks_get_clear_file(file, bbs);
 }
 
 /*
@@ -395,5 +372,8 @@ os_badblocks_clear(const char *file)
 {
 	LOG(3, "file %s", file);
 
-	return os_badblocks_get_and_clear(file, NULL);
+	if (util_file_is_device_dax(file))
+		return os_dimm_devdax_clear_badblocks(file);
+
+	return os_badblocks_clear_file(file);
 }
