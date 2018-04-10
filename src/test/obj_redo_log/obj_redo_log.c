@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,21 +76,25 @@ pmem_drain_nop(void)
 /*
  * obj_persist -- pmemobj version of pmem_persist w/o replication
  */
-static void
-obj_persist(void *ctx, const void *addr, size_t len)
+static int
+obj_persist(void *ctx, const void *addr, size_t len, unsigned flags)
 {
 	PMEMobjpool *pop = ctx;
 	pop->persist_local(addr, len);
+
+	return 0;
 }
 
 /*
  * obj_flush -- pmemobj version of pmem_flush w/o replication
  */
-static void
-obj_flush(void *ctx, const void *addr, size_t len)
+static int
+obj_flush(void *ctx, const void *addr, size_t len, unsigned flags)
 {
 	PMEMobjpool *pop = ctx;
 	pop->flush_local(addr, len);
+
+	return 0;
 }
 
 /*
