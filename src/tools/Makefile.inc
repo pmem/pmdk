@@ -63,6 +63,9 @@ endif
 ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
 CFLAGS += -Wmissing-variable-declarations
 endif
+ifeq ($(call check_flag, -Wfloat-equal), y)
+CFLAGS += -Wfloat-equal
+endif
 endif
 
 ifeq ($(DEBUG),1)
