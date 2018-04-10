@@ -363,7 +363,7 @@ obj_nopmem_memcpy(void *dest, const void *src, size_t len, unsigned flags)
 	 * addresses are fail safe atomic. pmem_memcpy guarantees that, while
 	 * libc memcpy does not.
 	 */
-	pmem_memcpy(dest, src, len, PMEM_MEM_NOFLUSH);
+	pmem_memcpy(dest, src, len, PMEM_F_MEM_NOFLUSH);
 	pmem_msync(dest, len);
 	return dest;
 }
@@ -377,7 +377,7 @@ obj_nopmem_memmove(void *dest, const void *src, size_t len, unsigned flags)
 	LOG(15, "dest %p src %p len %zu flags 0x%x", dest, src, len, flags);
 
 	/* see comment in obj_nopmem_memcpy */
-	pmem_memmove(dest, src, len, PMEM_MEM_NOFLUSH);
+	pmem_memmove(dest, src, len, PMEM_F_MEM_NOFLUSH);
 	pmem_msync(dest, len);
 	return dest;
 }
@@ -391,7 +391,7 @@ obj_nopmem_memset(void *dest, int c, size_t len, unsigned flags)
 	LOG(15, "dest %p c 0x%02x len %zu flags 0x%x", dest, c, len, flags);
 
 	/* see comment in obj_nopmem_memcpy */
-	pmem_memset(dest, c, len, PMEM_MEM_NOFLUSH);
+	pmem_memset(dest, c, len, PMEM_F_MEM_NOFLUSH);
 	pmem_msync(dest, len);
 	return dest;
 }
@@ -678,7 +678,7 @@ obj_rep_flush(void *ctx, const void *addr, size_t len)
 	while (rep) {
 		void *raddr = (char *)rep + (uintptr_t)addr - (uintptr_t)pop;
 		if (rep->rpp == NULL) {
-			rep->memcpy_local(raddr, addr, len, PMEM_MEM_NODRAIN);
+			rep->memcpy_local(raddr, addr, len, PMEM_F_MEM_NODRAIN);
 		} else {
 			if (rep->persist_remote(rep, raddr, len, lane) == NULL)
 				obj_handle_remote_persist_error(pop);

@@ -91,7 +91,7 @@ flush64b_empty(const char *addr)
 static inline void
 pmem_flush_flags(const void *addr, size_t len, unsigned flags)
 {
-	if (!(flags & PMEM_MEM_NOFLUSH))
+	if (!(flags & PMEM_F_MEM_NOFLUSH))
 		pmem_flush(addr, len);
 }
 
