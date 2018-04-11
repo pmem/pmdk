@@ -1120,6 +1120,32 @@ rpmem_fip_persist_send(struct rpmem_fip *fip, size_t offset,
 }
 
 /*
+ * rpmem_fip_persist_gpspm_sockets -- (internal) perform persist operation
+ * for GPSPM - sockets provider implementation which doesn't use the
+ * inline persist operation
+ */
+static int
+rpmem_fip_persist_gpspm_sockets(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane, unsigned flags)
+{
+	flags &= (unsigned)(~RPMEM_PERSIST_SEND);
+
+	return rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+}
+
+/*
+ * rpmem_fip_persist_apm_sockets -- (internal) perform persist operation
+ * for APM - sockets provider implementation which doesn't use the
+ * inline persist operation
+ */
+static int
+rpmem_fip_persist_apm_sockets(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane, unsigned flags)
+{
+	return rpmem_fip_persist_raw(fip, offset, len, lane);
+}
+
+/*
  * rpmem_fip_persist_gpspm -- (internal) perform persist operation for GPSPM
  */
 static int
@@ -1168,21 +1194,39 @@ rpmem_fip_post_lanes_common(struct rpmem_fip *fip)
 /*
  * rpmem_fip_ops -- some operations specific for persistency method used
  */
-static struct rpmem_fip_ops rpmem_fip_ops[MAX_RPMEM_PM] = {
-	[RPMEM_PM_GPSPM] = {
-		.persist = rpmem_fip_persist_gpspm,
-		.lanes_init = rpmem_fip_init_lanes_common,
-		.lanes_init_mem = rpmem_fip_init_mem_lanes_gpspm,
-		.lanes_fini = rpmem_fip_fini_lanes_common,
-		.lanes_post = rpmem_fip_post_lanes_common,
+static struct rpmem_fip_ops rpmem_fip_ops[MAX_RPMEM_PROV][MAX_RPMEM_PM] = {
+	[RPMEM_PROV_LIBFABRIC_VERBS] = {
+		[RPMEM_PM_GPSPM] = {
+			.persist = rpmem_fip_persist_gpspm,
+			.lanes_init = rpmem_fip_init_lanes_common,
+			.lanes_init_mem = rpmem_fip_init_mem_lanes_gpspm,
+			.lanes_fini = rpmem_fip_fini_lanes_common,
+			.lanes_post = rpmem_fip_post_lanes_common,
+		},
+		[RPMEM_PM_APM] = {
+			.persist = rpmem_fip_persist_apm,
+			.lanes_init = rpmem_fip_init_lanes_apm,
+			.lanes_init_mem = rpmem_fip_init_mem_lanes_apm,
+			.lanes_fini = rpmem_fip_fini_lanes_apm,
+			.lanes_post = rpmem_fip_post_lanes_common,
+		},
 	},
-	[RPMEM_PM_APM] = {
-		.persist = rpmem_fip_persist_apm,
-		.lanes_init = rpmem_fip_init_lanes_apm,
-		.lanes_init_mem = rpmem_fip_init_mem_lanes_apm,
-		.lanes_fini = rpmem_fip_fini_lanes_apm,
-		.lanes_post = rpmem_fip_post_lanes_common,
-	},
+	[RPMEM_PROV_LIBFABRIC_SOCKETS] = {
+		[RPMEM_PM_GPSPM] = {
+			.persist = rpmem_fip_persist_gpspm_sockets,
+			.lanes_init = rpmem_fip_init_lanes_common,
+			.lanes_init_mem = rpmem_fip_init_mem_lanes_gpspm,
+			.lanes_fini = rpmem_fip_fini_lanes_common,
+			.lanes_post = rpmem_fip_post_lanes_common,
+		},
+		[RPMEM_PM_APM] = {
+			.persist = rpmem_fip_persist_apm_sockets,
+			.lanes_init = rpmem_fip_init_lanes_apm,
+			.lanes_init_mem = rpmem_fip_init_mem_lanes_apm,
+			.lanes_fini = rpmem_fip_fini_lanes_apm,
+			.lanes_post = rpmem_fip_post_lanes_common,
+		},
+	}
 };
 
 /*
@@ -1204,7 +1248,7 @@ rpmem_fip_set_attr(struct rpmem_fip *fip, struct rpmem_fip_attr *attr)
 	fip->cq_size = rpmem_fip_cq_size(fip->persist_method,
 			RPMEM_FIP_NODE_CLIENT);
 
-	fip->ops = &rpmem_fip_ops[fip->persist_method];
+	fip->ops = &rpmem_fip_ops[attr->provider][fip->persist_method];
 }
 
 /*
