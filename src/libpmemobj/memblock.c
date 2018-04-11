@@ -47,6 +47,7 @@
 
 #include <string.h>
 
+#include "libpmem.h"
 #include "heap.h"
 #include "memblock.h"
 #include "out.h"
@@ -242,7 +243,7 @@ static void
 memblock_header_legacy_flush(const struct memory_block *m)
 {
 	struct allocation_header_legacy *hdr = m->m_ops->get_real_data(m);
-	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr), 0);
+	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr), PMEM_F_RELAXED);
 }
 
 /*
@@ -253,7 +254,7 @@ static void
 memblock_header_compact_flush(const struct memory_block *m)
 {
 	struct allocation_header_compact *hdr = m->m_ops->get_real_data(m);
-	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr), 0);
+	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr), PMEM_F_RELAXED);
 }
 
 /*
