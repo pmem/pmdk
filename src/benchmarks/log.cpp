@@ -226,7 +226,7 @@ static int
 fileio_appendv(struct benchmark *bench, struct operation_info *info)
 {
 	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
-	assert(lb != NULL);
+	assert(lb != nullptr);
 
 	struct log_worker_info *worker_info =
 		(struct log_worker_info *)info->worker->priv;
@@ -391,7 +391,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 				r64 % width + lb->args->min_size;
 		}
 	} else {
-		worker_info->rand_sizes = NULL;
+		worker_info->rand_sizes = nullptr;
 	}
 
 	worker_info->vec_sizes = (size_t *)calloc(
@@ -464,8 +464,8 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 {
 	int ret = 0;
 	assert(bench);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 	struct benchmark_info *bench_info;
 	struct log_bench *lb =
 		(struct log_bench *)malloc(sizeof(struct log_bench));
@@ -521,7 +521,7 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 
 	if (!lb->args->fileio) {
 		if ((lb->plp = pmemlog_create(args->fname, lb->psize,
-					      args->fmode)) == NULL) {
+					      args->fmode)) == nullptr) {
 			perror("pmemlog_create");
 			ret = -1;
 			goto err_free_lb;
@@ -667,7 +667,7 @@ log_constructor(void)
 	log_append_info.init_worker = log_init_worker;
 	log_append_info.free_worker = log_free_worker;
 	/* this will be assigned in log_init */
-	log_append_info.operation = NULL;
+	log_append_info.operation = nullptr;
 	log_append_info.measure_time = true;
 	log_append_info.clos = log_clo;
 	log_append_info.nclos = ARRAY_SIZE(log_clo);

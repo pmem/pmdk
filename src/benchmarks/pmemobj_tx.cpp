@@ -258,7 +258,7 @@ alloc_dram(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 {
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	obj_worker->items[idx] = (char *)malloc(obj_bench->sizes[idx]);
-	if (obj_worker->items[idx] == NULL) {
+	if (obj_worker->items[idx] == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -275,7 +275,8 @@ alloc_pmem(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	size_t type_num = obj_bench->fn_type_num(obj_bench, worker->index, idx);
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	if (pmemobj_alloc(obj_bench->pop, &obj_worker->oids[idx].oid,
-			  obj_bench->sizes[idx], type_num, NULL, NULL) != 0) {
+			  obj_bench->sizes[idx], type_num, nullptr,
+			  nullptr) != 0) {
 		perror("pmemobj_alloc");
 		return -1;
 	}
@@ -354,7 +355,7 @@ realloc_dram(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	struct obj_tx_worker *obj_worker = (struct obj_tx_worker *)worker->priv;
 	char *tmp = (char *)realloc(obj_worker->items[idx],
 				    obj_bench->resizes[idx]);
-	if (tmp == NULL) {
+	if (tmp == nullptr) {
 		perror("realloc");
 		return -1;
 	}
@@ -631,7 +632,7 @@ parse_lib_mode(const char *arg)
 }
 
 static fn_type_num_t type_num_fn[] = {type_mode_one, type_mode_per_thread,
-				      type_mode_rand, NULL};
+				      type_mode_rand, nullptr};
 
 /*
  * one_num -- returns always the same number.
@@ -685,9 +686,9 @@ rand_values(size_t min, size_t max, size_t n_ops)
 {
 	size_t size = max - min;
 	size_t *sizes = (size_t *)calloc(n_ops, sizeof(size_t));
-	if (sizes == NULL) {
+	if (sizes == nullptr) {
 		perror("calloc");
-		return NULL;
+		return nullptr;
 	}
 	for (size_t i = 0; i < n_ops; i++)
 		sizes[i] = max;
@@ -695,7 +696,7 @@ rand_values(size_t min, size_t max, size_t n_ops)
 		if (min > max) {
 			fprintf(stderr, "Invalid size\n");
 			free(sizes);
-			return NULL;
+			return nullptr;
 		}
 		for (size_t i = 0; i < n_ops; i++)
 			sizes[i] = (rand() % size) + min;
@@ -749,7 +750,7 @@ obj_tx_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		(struct obj_tx_bench *)pmembench_get_priv(bench);
 	struct obj_tx_worker *obj_worker =
 		(struct obj_tx_worker *)calloc(1, sizeof(struct obj_tx_worker));
-	if (obj_worker == NULL) {
+	if (obj_worker == nullptr) {
 		perror("calloc");
 		return -1;
 	}
@@ -762,7 +763,7 @@ obj_tx_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	else
 		obj_worker->items =
 			(char **)calloc(obj_bench->n_objs, sizeof(char *));
-	if (obj_worker->oids == NULL && obj_worker->items == NULL) {
+	if (obj_worker->oids == nullptr && obj_worker->items == nullptr) {
 		free(obj_worker);
 		perror("calloc");
 		return -1;
@@ -927,7 +928,7 @@ obj_tx_realloc_init(struct benchmark *bench, struct benchmark_args *args)
 	obj_bench->resizes =
 		rand_values(obj_bench->obj_args->min_rsize,
 			    obj_bench->obj_args->rsize, args->n_ops_per_thread);
-	if (obj_bench->resizes == NULL) {
+	if (obj_bench->resizes == nullptr) {
 		obj_tx_exit(bench, args);
 		return -1;
 	}
@@ -943,9 +944,9 @@ obj_tx_realloc_init(struct benchmark *bench, struct benchmark_args *args)
 int
 obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
 	pmembench_set_priv(bench, &obj_bench);
 
@@ -954,7 +955,7 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	obj_bench.obj_args->n_ops = args->n_ops_per_thread;
 	obj_bench.n_objs = args->n_ops_per_thread;
 
-	obj_bench.lib_op = obj_bench.obj_args->lib != NULL
+	obj_bench.lib_op = obj_bench.obj_args->lib != nullptr
 		? parse_lib_mode(obj_bench.obj_args->lib)
 		: LIB_MODE_OBJ_ATOMIC;
 
@@ -1008,13 +1009,13 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	if (obj_bench.type_mode == NUM_MODE_RAND) {
 		obj_bench.random_types =
 			rand_values(1, UINT32_MAX, args->n_ops_per_thread);
-		if (obj_bench.random_types == NULL)
+		if (obj_bench.random_types == nullptr)
 			return -1;
 	}
 	obj_bench.sizes = rand_values(obj_bench.obj_args->min_size,
 				      obj_bench.obj_args->obj_size,
 				      args->n_ops_per_thread);
-	if (obj_bench.sizes == NULL)
+	if (obj_bench.sizes == nullptr)
 		goto free_random_types;
 
 	if (obj_bench.lib_mode == LIB_MODE_DRAM)
@@ -1032,7 +1033,7 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 
 	obj_bench.pop =
 		pmemobj_create(args->fname, LAYOUT_NAME, psize, args->fmode);
-	if (obj_bench.pop == NULL) {
+	if (obj_bench.pop == nullptr) {
 		perror("pmemobj_create");
 		goto free_all;
 	}

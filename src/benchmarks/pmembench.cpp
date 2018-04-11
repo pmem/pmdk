@@ -312,7 +312,7 @@ int
 pmembench_register(struct benchmark_info *bench_info)
 {
 	struct benchmark *bench = (struct benchmark *)calloc(1, sizeof(*bench));
-	assert(bench != NULL);
+	assert(bench != nullptr);
 
 	bench->info = bench_info;
 
@@ -362,7 +362,7 @@ pmembench_merge_clos(struct benchmark *bench)
 
 	struct benchmark_clo *clos = (struct benchmark_clo *)calloc(
 		nclos, sizeof(struct benchmark_clo));
-	assert(clos != NULL);
+	assert(clos != nullptr);
 
 	memcpy(clos, pmembench_clos, pb_nclos * sizeof(struct benchmark_clo));
 
@@ -508,32 +508,32 @@ pmembench_parse_clo(struct pmembench *pb, struct benchmark *bench,
 static int
 pmembench_parse_affinity(const char *list, char **saveptr)
 {
-	char *str = NULL;
+	char *str = nullptr;
 	char *end;
 	int cpu = 0;
 
 	if (*saveptr) {
-		str = strtok(NULL, ";");
-		if (str == NULL) {
+		str = strtok(nullptr, ";");
+		if (str == nullptr) {
 			/* end of list - we have to start over */
 			free(*saveptr);
-			*saveptr = NULL;
+			*saveptr = nullptr;
 		}
 	}
 
 	if (!*saveptr) {
 		*saveptr = strdup(list);
-		if (*saveptr == NULL) {
+		if (*saveptr == nullptr) {
 			perror("strdup");
 			return -1;
 		}
 
 		str = strtok(*saveptr, ";");
-		if (str == NULL)
+		if (str == nullptr)
 			goto err;
 	}
 
-	if ((str == NULL) || (*str == '\0'))
+	if ((str == nullptr) || (*str == '\0'))
 		goto err;
 
 	cpu = strtol(str, &end, 10);
@@ -546,7 +546,7 @@ err:
 	errno = EINVAL;
 	perror("pmembench_parse_affinity");
 	free(*saveptr);
-	*saveptr = NULL;
+	*saveptr = nullptr;
 	return -1;
 }
 
@@ -560,7 +560,7 @@ pmembench_init_workers(struct benchmark_worker **workers, size_t nworkers,
 {
 	size_t i;
 	int ncpus = 0;
-	char *saveptr = NULL;
+	char *saveptr = nullptr;
 	int ret = 0;
 
 	if (args->thread_affinity) {
@@ -683,25 +683,25 @@ results_alloc(size_t nrepeats, size_t nthreads, size_t nops)
 {
 	struct total_results *total =
 		(struct total_results *)malloc(sizeof(*total));
-	assert(total != NULL);
+	assert(total != nullptr);
 	total->nrepeats = nrepeats;
 	total->nthreads = nthreads;
 	total->nops = nops;
 	total->res =
 		(struct bench_results *)malloc(nrepeats * sizeof(*total->res));
-	assert(total->res != NULL);
+	assert(total->res != nullptr);
 
 	for (size_t i = 0; i < nrepeats; i++) {
 		struct bench_results *res = &total->res[i];
 		assert(nthreads != 0);
 		res->thres = (struct thread_results **)malloc(
 			nthreads * sizeof(*res->thres));
-		assert(res->thres != NULL);
+		assert(res->thres != nullptr);
 		for (size_t j = 0; j < nthreads; j++) {
 			res->thres[j] = (struct thread_results *)malloc(
 				sizeof(*res->thres[j]) +
 				nops * sizeof(benchmark_time_t));
-			assert(res->thres[j] != NULL);
+			assert(res->thres[j] != nullptr);
 		}
 	}
 
@@ -745,12 +745,12 @@ get_total_results(struct total_results *tres)
 	/* allocate helper arrays */
 	benchmark_time_t *tbeg =
 		(benchmark_time_t *)malloc(tres->nthreads * sizeof(*tbeg));
-	assert(tbeg != NULL);
+	assert(tbeg != nullptr);
 	benchmark_time_t *tend =
 		(benchmark_time_t *)malloc(tres->nthreads * sizeof(*tend));
-	assert(tend != NULL);
+	assert(tend != nullptr);
 	double *totals = (double *)malloc(tres->nrepeats * sizeof(double));
-	assert(totals != NULL);
+	assert(totals != nullptr);
 
 	/* estimate total penalty of getting time from the system */
 	benchmark_time_t Tget;
@@ -853,7 +853,7 @@ get_total_results(struct total_results *tres)
 	tres->latency.avg /= count;
 
 	uint64_t *ntotals = (uint64_t *)calloc(count, sizeof(uint64_t));
-	assert(ntotals != NULL);
+	assert(ntotals != nullptr);
 	count = 0;
 
 	/* std deviation of latency and percentiles */
@@ -943,7 +943,7 @@ pmembench_print_help_single(struct benchmark *bench)
 	printf("\nArguments:\n");
 	size_t nclos = sizeof(pmembench_clos) / sizeof(struct benchmark_clo);
 	pmembench_print_args(pmembench_clos, nclos);
-	if (info->clos == NULL)
+	if (info->clos == nullptr)
 		return;
 	pmembench_print_args(info->clos, info->nclos);
 }
@@ -1007,7 +1007,7 @@ pmembench_print_help()
 	pmembench_print_args(pmembench_opts, nclos);
 
 	printf("\nAvaliable benchmarks:\n");
-	struct benchmark *bench = NULL;
+	struct benchmark *bench = nullptr;
 	LIST_FOREACH(bench, &benchmarks.head, next)
 	printf("\t%-20s\t\t%s\n", bench->info->name, bench->info->brief);
 	printf("\n$ pmembench <benchmark> --help to print detailed information"
@@ -1028,7 +1028,7 @@ pmembench_get_bench(const char *name)
 			return bench;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -1040,13 +1040,13 @@ pmembench_parse_opts(struct pmembench *pb)
 	int ret = 0;
 	int argc = ++pb->argc;
 	char **argv = --pb->argv;
-	struct benchmark_opts *opts = NULL;
+	struct benchmark_opts *opts = nullptr;
 	struct clo_vec *clovec;
 	size_t size, n_clos;
 	size = sizeof(struct benchmark_opts);
 	n_clos = ARRAY_SIZE(pmembench_opts);
 	clovec = clo_vec_alloc(size);
-	assert(clovec != NULL);
+	assert(clovec != nullptr);
 
 	if (benchmark_clo_parse(argc, argv, pmembench_opts, n_clos, clovec)) {
 		ret = -1;
@@ -1054,7 +1054,7 @@ pmembench_parse_opts(struct pmembench *pb)
 	}
 
 	opts = (struct benchmark_opts *)clo_vec_get_args(clovec, 0);
-	if (opts == NULL) {
+	if (opts == nullptr) {
 		ret = -1;
 		goto out;
 	}
@@ -1100,7 +1100,7 @@ pmembench_remove_file(const char *path)
 		    strcmp(info.filename, "..") == 0)
 			continue;
 		tmp = (char *)malloc(strlen(path) + strlen(info.filename) + 2);
-		if (tmp == NULL)
+		if (tmp == nullptr)
 			return -1;
 		sprintf(tmp, "%s/%s", path, info.filename);
 		ret = info.is_dir ? pmembench_remove_file(tmp)
@@ -1156,13 +1156,13 @@ pmembench_single_repeat(struct benchmark *bench, struct benchmark_args *args,
 		}
 	}
 
-	assert(bench->info->operation != NULL);
+	assert(bench->info->operation != nullptr);
 	assert(args->n_threads != 0);
 
 	struct benchmark_worker **workers;
 	workers = (struct benchmark_worker **)malloc(
 		args->n_threads * sizeof(struct benchmark_worker *));
-	assert(workers != NULL);
+	assert(workers != nullptr);
 
 	if ((ret = pmembench_init_workers(workers, n_threads, n_ops, bench,
 					  args)) != 0) {
@@ -1236,7 +1236,7 @@ scale_up_min_exe_time(struct benchmark *bench, struct benchmark_args *args,
 		results_free(total_res);
 		*total_results = results_alloc(args->repeats, args->n_threads,
 					       args->n_ops_per_thread);
-		assert(*total_results != NULL);
+		assert(*total_results != nullptr);
 		total_res = *total_results;
 		total_res->nrepeats = 1;
 	} while (1);
@@ -1254,14 +1254,14 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	char old_wd[PATH_MAX];
 	int ret = 0;
 
-	struct benchmark_args *args = NULL;
-	struct total_results *total_res = NULL;
-	struct latency *stats = NULL;
-	double *workers_times = NULL;
+	struct benchmark_args *args = nullptr;
+	struct total_results *total_res = nullptr;
+	struct latency *stats = nullptr;
+	double *workers_times = nullptr;
 
-	struct clo_vec *clovec = NULL;
+	struct clo_vec *clovec = nullptr;
 
-	assert(bench->info != NULL);
+	assert(bench->info != nullptr);
 	pmembench_merge_clos(bench);
 
 	/*
@@ -1269,9 +1269,9 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	 * the working directory accordingly.
 	 */
 	char *wd = os_getenv("PMEMBENCH_DIR");
-	if (wd != NULL) {
+	if (wd != nullptr) {
 		/* get current dir name */
-		if (getcwd(old_wd, PATH_MAX) == NULL) {
+		if (getcwd(old_wd, PATH_MAX) == nullptr) {
 			perror("getcwd");
 			ret = -1;
 			goto out_release_clos;
@@ -1303,7 +1303,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	}
 
 	clovec = clo_vec_alloc(bench->args_size);
-	assert(clovec != NULL);
+	assert(clovec != nullptr);
 
 	if (pmembench_parse_clo(pb, bench, clovec)) {
 		warn("%s: parsing command line arguments failed",
@@ -1313,7 +1313,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 	}
 
 	args = (struct benchmark_args *)clo_vec_get_args(clovec, 0);
-	if (args == NULL) {
+	if (args == nullptr) {
 		warn("%s: parsing command line arguments failed",
 		     bench->info->name);
 		ret = -1;
@@ -1332,7 +1332,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 
 		args = (struct benchmark_args *)clo_vec_get_args(clovec,
 								 args_i);
-		if (args == NULL) {
+		if (args == nullptr) {
 			warn("%s: parsing command line arguments failed",
 			     bench->info->name);
 			ret = -1;
@@ -1370,13 +1370,13 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 
 		stats = (struct latency *)calloc(args->repeats,
 						 sizeof(struct latency));
-		assert(stats != NULL);
+		assert(stats != nullptr);
 		workers_times = (double *)calloc(n_threads * args->repeats,
 						 sizeof(double));
-		assert(workers_times != NULL);
+		assert(workers_times != nullptr);
 		total_res = results_alloc(args->repeats, args->n_threads,
 					  args->n_ops_per_thread);
-		assert(total_res != NULL);
+		assert(total_res != nullptr);
 
 		unsigned i = 0;
 		if (args->min_exe_time != 0 && bench->info->multiops) {
@@ -1404,9 +1404,9 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		results_free(total_res);
 		free(stats);
 		free(workers_times);
-		total_res = NULL;
-		stats = NULL;
-		workers_times = NULL;
+		total_res = nullptr;
+		stats = nullptr;
+		workers_times = nullptr;
 	}
 out:
 	if (total_res)
@@ -1420,7 +1420,7 @@ out_release_args:
 
 out_old_wd:
 	/* restore the original working directory */
-	if (wd != NULL) { /* Only if PMEMBENCH_DIR env var was defined */
+	if (wd != nullptr) { /* Only if PMEMBENCH_DIR env var was defined */
 		if (chdir(old_wd)) {
 			perror("chdir(old_wd)");
 			ret = -1;
@@ -1451,7 +1451,7 @@ static int
 pmembench_run_scenario(struct pmembench *pb, struct scenario *scenario)
 {
 	struct benchmark *bench = pmembench_get_bench(scenario->benchmark);
-	if (NULL == bench) {
+	if (nullptr == bench) {
 		fprintf(stderr, "unknown benchmark: %s\n", scenario->benchmark);
 		return -1;
 	}
@@ -1480,9 +1480,9 @@ pmembench_run_scenarios(struct pmembench *pb, struct scenarios *ss)
 static int
 pmembench_run_config(struct pmembench *pb, const char *config)
 {
-	struct scenarios *ss = NULL;
+	struct scenarios *ss = nullptr;
 	struct config_reader *cr = config_reader_alloc();
-	assert(cr != NULL);
+	assert(cr != nullptr);
 
 	int ret = 0;
 
@@ -1492,7 +1492,7 @@ pmembench_run_config(struct pmembench *pb, const char *config)
 	if ((ret = config_reader_get_scenarios(cr, &ss)))
 		goto out;
 
-	assert(ss != NULL);
+	assert(ss != nullptr);
 
 	if (pb->argc == 1) {
 		if ((ret = pmembench_run_scenarios(pb, ss)) != 0)
@@ -1509,7 +1509,7 @@ pmembench_run_config(struct pmembench *pb, const char *config)
 				goto out_scenarios;
 		} else { /* scenarios in cmd line */
 			struct scenarios *cmd_ss = scenarios_alloc();
-			assert(cmd_ss != NULL);
+			assert(cmd_ss != nullptr);
 
 			int parsed_scenarios = clo_get_scenarios(
 				tmp_argc, tmp_argv, ss, cmd_ss);
@@ -1563,21 +1563,21 @@ main(int argc, char *argv[])
 	int fexists;
 	struct benchmark *bench;
 	struct pmembench *pb = (struct pmembench *)calloc(1, sizeof(*pb));
-	assert(pb != NULL);
+	assert(pb != nullptr);
 	Get_time_avg = benchmark_get_avg_get_time();
 
 	pb->argc = --argc;
 	pb->argv = ++argv;
 
 	char *bench_name = pb->argv[0];
-	if (NULL == bench_name) {
+	if (nullptr == bench_name) {
 		ret = -1;
 		goto out;
 	}
 
 	fexists = os_access(bench_name, R_OK) == 0;
 	bench = pmembench_get_bench(bench_name);
-	if (NULL != bench)
+	if (nullptr != bench)
 		ret = pmembench_run(pb, bench);
 	else if (fexists)
 		ret = pmembench_run_config(pb, bench_name);

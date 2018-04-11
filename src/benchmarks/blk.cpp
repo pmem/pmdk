@@ -383,7 +383,7 @@ static int
 blk_init(struct blk_bench *bb, struct benchmark_args *args)
 {
 	struct blk_args *ba = (struct blk_args *)args->opts;
-	assert(ba != NULL);
+	assert(ba != nullptr);
 
 	bb->type = parse_op_type(ba->type_str);
 	if (bb->type == OP_TYPE_UNKNOWN) {
@@ -436,7 +436,7 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 	 */
 	bb->pbp = pmemblk_create(args->fname, args->dsize, ba->fsize,
 				 args->fmode);
-	if (bb->pbp == NULL) {
+	if (bb->pbp == nullptr) {
 		perror("pmemblk_create");
 		return -1;
 	}
@@ -454,7 +454,7 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 
 	if (bb->type == OP_TYPE_FILE) {
 		pmemblk_close(bb->pbp);
-		bb->pbp = NULL;
+		bb->pbp = nullptr;
 
 		int flags = O_RDWR | O_CREAT | O_SYNC;
 #ifdef _WIN32
@@ -492,13 +492,13 @@ out_close:
 static int
 blk_read_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
 
 	int ret;
 	struct blk_bench *bb =
 		(struct blk_bench *)malloc(sizeof(struct blk_bench));
-	if (bb == NULL) {
+	if (bb == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -535,13 +535,13 @@ blk_read_init(struct benchmark *bench, struct benchmark_args *args)
 static int
 blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
 
 	int ret;
 	struct blk_bench *bb =
 		(struct blk_bench *)malloc(sizeof(struct blk_bench));
-	if (bb == NULL) {
+	if (bb == nullptr) {
 		perror("malloc");
 		return -1;
 	}

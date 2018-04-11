@@ -114,7 +114,7 @@ vmem_malloc_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = vmem_malloc(vb->pools[item->pool_num],
 				vb->alloc_sizes[info_idx]);
-	if (item->buf == NULL) {
+	if (item->buf == nullptr) {
 		perror("vmem_malloc");
 		return -1;
 	}
@@ -129,7 +129,7 @@ stdlib_malloc_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = malloc(vb->alloc_sizes[info_idx]);
-	if (item->buf == NULL) {
+	if (item->buf == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -143,9 +143,9 @@ static int
 vmem_free_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
-	if (item->buf != NULL)
+	if (item->buf != nullptr)
 		vmem_free(vb->pools[item->pool_num], item->buf);
-	item->buf = NULL;
+	item->buf = nullptr;
 	return 0;
 }
 
@@ -156,9 +156,9 @@ static int
 stdlib_free_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
-	if (item->buf != NULL)
+	if (item->buf != nullptr)
 		free(item->buf);
-	item->buf = NULL;
+	item->buf = nullptr;
 	return 0;
 }
 
@@ -171,7 +171,7 @@ vmem_realloc_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = vmem_realloc(vb->pools[item->pool_num], item->buf,
 				 vb->realloc_sizes[info_idx]);
-	if (vb->realloc_sizes[info_idx] != 0 && item->buf == NULL) {
+	if (vb->realloc_sizes[info_idx] != 0 && item->buf == nullptr) {
 		perror("vmem_realloc");
 		return -1;
 	}
@@ -186,7 +186,7 @@ stdlib_realloc_op(struct vmem_bench *vb, unsigned worker_idx, size_t info_idx)
 {
 	struct item *item = &vb->workers[worker_idx].objs[info_idx];
 	item->buf = realloc(item->buf, vb->realloc_sizes[info_idx]);
-	if (vb->realloc_sizes[info_idx] != 0 && item->buf == NULL) {
+	if (vb->realloc_sizes[info_idx] != 0 && item->buf == nullptr) {
 		perror("realloc");
 		return -1;
 	}
@@ -209,7 +209,7 @@ vmem_create_pools(struct vmem_bench *vb, struct benchmark_args *args)
 	vb->pool_size =
 		dsize * args->n_ops_per_thread * args->n_threads / vb->npools;
 	vb->pools = (VMEM **)calloc(vb->npools, sizeof(VMEM *));
-	if (vb->pools == NULL) {
+	if (vb->pools == nullptr) {
 		perror("calloc");
 		return -1;
 	}
@@ -220,7 +220,7 @@ vmem_create_pools(struct vmem_bench *vb, struct benchmark_args *args)
 	vb->pool_size *= FACTOR;
 	for (i = 0; i < vb->npools; i++) {
 		vb->pools[i] = vmem_create(args->fname, vb->pool_size);
-		if (vb->pools[i] == NULL) {
+		if (vb->pools[i] == nullptr) {
 			perror("vmem_create");
 			goto err;
 		}
@@ -418,9 +418,9 @@ vmem_exit(struct benchmark *bench, struct benchmark_args *args)
 		free(vb->workers[i].objs);
 	free(vb->workers);
 	free(vb->alloc_sizes);
-	if (vb->realloc_sizes != NULL)
+	if (vb->realloc_sizes != nullptr)
 		free(vb->realloc_sizes);
-	if (vb->mix_ops != NULL)
+	if (vb->mix_ops != nullptr)
 		free(vb->mix_ops);
 	free(vb);
 	return 0;
@@ -449,19 +449,19 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 {
 	unsigned i;
 	size_t j;
-	assert(bench != NULL);
-	assert(args != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
 
 	struct vmem_bench *vb =
 		(struct vmem_bench *)calloc(1, sizeof(struct vmem_bench));
-	if (vb == NULL) {
+	if (vb == nullptr) {
 		perror("malloc");
 		return -1;
 	}
 	pmembench_set_priv(bench, vb);
 	struct vmem_worker *vw;
 	struct vmem_args *va = (struct vmem_args *)args->opts;
-	vb->alloc_sizes = NULL;
+	vb->alloc_sizes = nullptr;
 	vb->lib_mode = va->stdlib_alloc ? STDLIB_MODE : VMEM_MODE;
 
 	if (util_file_is_device_dax(args->fname) && va->pool_per_thread) {
@@ -492,7 +492,7 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	/* initializes buffers for operations for every thread */
 	vb->workers = (struct vmem_worker *)calloc(args->n_threads,
 						   sizeof(struct vmem_worker));
-	if (vb->workers == NULL) {
+	if (vb->workers == nullptr) {
 		perror("calloc");
 		goto err;
 	}
@@ -500,7 +500,7 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 		vw = &vb->workers[i];
 		vw->objs = (struct item *)calloc(args->n_ops_per_thread,
 						 sizeof(struct item));
-		if (vw->objs == NULL) {
+		if (vw->objs == nullptr) {
 			perror("calloc");
 			goto err_free_workers;
 		}
@@ -511,7 +511,7 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	if ((vb->alloc_sizes = (size_t *)malloc(
-		     sizeof(size_t) * args->n_ops_per_thread)) == NULL) {
+		     sizeof(size_t) * args->n_ops_per_thread)) == nullptr) {
 		perror("malloc");
 		goto err_free_buf;
 	}
@@ -566,7 +566,7 @@ vmem_realloc_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err;
 	}
 	if ((vb->realloc_sizes = (size_t *)calloc(args->n_ops_per_thread,
-						  sizeof(size_t))) == NULL) {
+						  sizeof(size_t))) == nullptr) {
 		perror("calloc");
 		goto err;
 	}
@@ -595,7 +595,7 @@ vmem_mix_init(struct benchmark *bench, struct benchmark_args *args)
 	unsigned idx, tmp;
 	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	if ((vb->mix_ops = (unsigned *)calloc(args->n_ops_per_thread,
-					      sizeof(unsigned))) == NULL) {
+					      sizeof(unsigned))) == nullptr) {
 		perror("calloc");
 		goto err;
 	}
@@ -700,8 +700,8 @@ vmem_persist_constructor(void)
 	vmem_malloc_bench.exit = vmem_exit_free;
 	vmem_malloc_bench.multithread = true;
 	vmem_malloc_bench.multiops = true;
-	vmem_malloc_bench.init_worker = NULL;
-	vmem_malloc_bench.free_worker = NULL;
+	vmem_malloc_bench.init_worker = nullptr;
+	vmem_malloc_bench.free_worker = nullptr;
 	vmem_malloc_bench.operation = malloc_main_op;
 	vmem_malloc_bench.clos = vmem_clo;
 	vmem_malloc_bench.nclos = ARRAY_SIZE(vmem_clo) - 3;
@@ -718,7 +718,7 @@ vmem_persist_constructor(void)
 	vmem_mix_bench.multithread = true;
 	vmem_mix_bench.multiops = true;
 	vmem_mix_bench.init_worker = vmem_init_worker;
-	vmem_mix_bench.free_worker = NULL;
+	vmem_mix_bench.free_worker = nullptr;
 	vmem_mix_bench.operation = vmem_mix_op;
 	vmem_mix_bench.clos = vmem_clo;
 	vmem_mix_bench.nclos = ARRAY_SIZE(vmem_clo) - 3;
@@ -734,7 +734,7 @@ vmem_persist_constructor(void)
 	vmem_free_bench.multithread = true;
 	vmem_free_bench.multiops = true;
 	vmem_free_bench.init_worker = vmem_init_worker;
-	vmem_free_bench.free_worker = NULL;
+	vmem_free_bench.free_worker = nullptr;
 	vmem_free_bench.operation = free_main_op;
 	vmem_free_bench.clos = vmem_clo;
 	vmem_free_bench.nclos = ARRAY_SIZE(vmem_clo) - 2;
@@ -751,7 +751,7 @@ vmem_persist_constructor(void)
 	vmem_realloc_bench.multithread = true;
 	vmem_realloc_bench.multiops = true;
 	vmem_realloc_bench.init_worker = vmem_init_worker;
-	vmem_realloc_bench.free_worker = NULL;
+	vmem_realloc_bench.free_worker = nullptr;
 	vmem_realloc_bench.operation = realloc_main_op;
 	vmem_realloc_bench.clos = vmem_clo;
 	vmem_realloc_bench.nclos = ARRAY_SIZE(vmem_clo);

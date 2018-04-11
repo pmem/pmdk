@@ -277,9 +277,9 @@ memset_op(struct benchmark *bench, struct operation_info *info)
 static int
 memset_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
 	int ret = 0;
 	size_t size;
@@ -329,7 +329,8 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* create a pmem file and memory map it */
 	if ((mb->pmem_addr = pmem_map_file(args->fname, file_size, flags,
-					   args->fmode, NULL, NULL)) == NULL) {
+					   args->fmode, nullptr, nullptr)) ==
+	    nullptr) {
 		perror(args->fname);
 		ret = -1;
 		goto err_free_offsets;

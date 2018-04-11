@@ -175,7 +175,7 @@ parse_map_type(const char *str)
 			return map_types[i].ops;
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -362,7 +362,7 @@ map_common_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	tree = (struct map_bench *)pmembench_get_priv(bench);
 	targs = (struct map_bench_args *)args->opts;
 	if (targs->ext_tx) {
-		int ret = pmemobj_tx_begin(tree->pop, NULL);
+		int ret = pmemobj_tx_begin(tree->pop, nullptr);
 		if (ret) {
 			(void)pmemobj_tx_end();
 			goto err_free_keys;
@@ -585,7 +585,7 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 
 	map_bench->root_oid = map_bench->root.oid;
 
-	if (map_create(map_bench->mapc, &D_RW(map_bench->root)->map, NULL)) {
+	if (map_create(map_bench->mapc, &D_RW(map_bench->root)->map, nullptr)) {
 		perror("map_new");
 		goto err_free_map;
 	}

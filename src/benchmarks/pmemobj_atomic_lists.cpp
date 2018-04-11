@@ -213,7 +213,7 @@ enum type_mode {
 static struct element
 position_head(struct obj_worker *obj_worker, size_t op_idx)
 {
-	struct element head = {0, OID_NULL, false};
+	struct element head = {nullptr, OID_NULL, false};
 	head.before = true;
 	if (!obj_bench.args->queue)
 		head.itemp = POBJ_LIST_FIRST(&obj_worker->head);
@@ -228,7 +228,7 @@ position_head(struct obj_worker *obj_worker, size_t op_idx)
 static struct element
 position_tail(struct obj_worker *obj_worker, size_t op_idx)
 {
-	struct element tail = {0, OID_NULL, false};
+	struct element tail = {nullptr, OID_NULL, false};
 	tail.before = false;
 	if (!obj_bench.args->queue)
 		tail.itemp = POBJ_LIST_LAST(&obj_worker->head, field);
@@ -363,7 +363,7 @@ obj_init_list(struct worker_info *worker, size_t n_oids, size_t list_len)
 	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
 	obj_worker->oids =
 		(TOID(struct item) *)calloc(n_oids, sizeof(TOID(struct item)));
-	if (obj_worker->oids == NULL) {
+	if (obj_worker->oids == nullptr) {
 		perror("calloc");
 		return -1;
 	}
@@ -371,8 +371,8 @@ obj_init_list(struct worker_info *worker, size_t n_oids, size_t list_len)
 		size_t type_num = obj_bench.fn_type_num(worker->index, i);
 		size_t size = obj_bench.alloc_sizes[i];
 		PMEMoid *tmp = (PMEMoid *)&obj_worker->oids[i];
-		if (pmemobj_alloc(obj_bench.pop, tmp, size, type_num, NULL,
-				  NULL) != 0)
+		if (pmemobj_alloc(obj_bench.pop, tmp, size, type_num, nullptr,
+				  nullptr) != 0)
 			goto err_oids;
 	}
 	for (i = 0; i < list_len; i++)
@@ -399,7 +399,7 @@ queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 	CIRCLEQ_INIT(&obj_worker->headq);
 	obj_worker->items =
 		(struct item **)malloc(n_items * sizeof(struct item *));
-	if (obj_worker->items == NULL) {
+	if (obj_worker->items == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -407,7 +407,7 @@ queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 	for (i = 0; i < n_items; i++) {
 		size_t size = obj_bench.alloc_sizes[i];
 		obj_worker->items[i] = (struct item *)calloc(1, size);
-		if (obj_worker->items[i] == NULL) {
+		if (obj_worker->items[i] == nullptr) {
 			perror("calloc");
 			goto err;
 		}
@@ -489,9 +489,9 @@ random_positions(void)
 {
 	fn_position_t *positions = (fn_position_t *)calloc(
 		obj_bench.max_len, sizeof(fn_position_t));
-	if (positions == NULL) {
+	if (positions == nullptr) {
 		perror("calloc");
-		return NULL;
+		return nullptr;
 	}
 
 	if (obj_bench.args->seed != 0)
@@ -515,9 +515,9 @@ static size_t *
 random_values(size_t min, size_t max, size_t n_ops, size_t min_range)
 {
 	size_t *randoms = (size_t *)calloc(n_ops, sizeof(size_t));
-	if (randoms == NULL) {
+	if (randoms == nullptr) {
 		perror("calloc");
-		return NULL;
+		return nullptr;
 	}
 	for (size_t i = 0; i < n_ops; i++)
 		randoms[i] = max;
@@ -525,7 +525,7 @@ random_values(size_t min, size_t max, size_t n_ops, size_t min_range)
 		if (min > max) {
 			fprintf(stderr, "Invalid size\n");
 			free(randoms);
-			return NULL;
+			return nullptr;
 		}
 		for (size_t i = 0; i < n_ops; i++)
 			randoms[i] = RRAND(max, min);
@@ -613,7 +613,7 @@ obj_insert_new_op(struct benchmark *bench, struct operation_info *info)
 	tmp = pmemobj_list_insert_new(
 		obj_bench.pop, offsetof(struct item, field), &obj_worker->head,
 		obj_worker->elm.itemp.oid, obj_worker->elm.before, size,
-		type_num, NULL, NULL);
+		type_num, nullptr, nullptr);
 
 	if (OID_IS_NULL(tmp)) {
 		perror("pmemobj_list_insert_new");
@@ -737,17 +737,17 @@ obj_init_worker(struct worker_info *worker, size_t n_elm, size_t list_len)
 {
 	struct obj_worker *obj_worker =
 		(struct obj_worker *)calloc(1, sizeof(struct obj_worker));
-	if (obj_worker == NULL) {
+	if (obj_worker == nullptr) {
 		perror("calloc");
 		return -1;
 	}
 
 	worker->priv = obj_worker;
 	obj_worker->n_elm = obj_bench.max_len;
-	obj_worker->list_move = NULL;
+	obj_worker->list_move = nullptr;
 	if (obj_bench.position_mode == POSITION_MODE_RAND) {
 		obj_worker->fn_positions = random_positions();
-		if (obj_worker->fn_positions == NULL)
+		if (obj_worker->fn_positions == nullptr)
 			goto err;
 	}
 	if (obj_bench.fn_init(worker, n_elm, list_len) != 0)
@@ -808,21 +808,21 @@ obj_move_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
 	obj_worker->list_move =
 		(struct obj_worker *)calloc(1, sizeof(struct obj_worker));
-	if (obj_worker->list_move == NULL) {
+	if (obj_worker->list_move == nullptr) {
 		perror("calloc");
 		goto free;
 	}
 	size_t i;
 	if (obj_bench.position_mode == POSITION_MODE_RAND) {
 		obj_worker->list_move->fn_positions = random_positions();
-		if (obj_worker->list_move->fn_positions == NULL)
+		if (obj_worker->list_move->fn_positions == nullptr)
 			goto free_list_move;
 	}
 	for (i = 0; i < obj_bench.min_len; i++) {
 		size_t size = obj_bench.alloc_sizes[i];
 		POBJ_LIST_INSERT_NEW_TAIL(obj_bench.pop,
 					  &obj_worker->list_move->head, field,
-					  size, NULL, NULL);
+					  size, nullptr, nullptr);
 		if (TOID_IS_NULL(POBJ_LIST_LAST(&obj_worker->list_move->head,
 						field))) {
 			perror("pmemobj_list_insert_new");
@@ -854,9 +854,9 @@ free:
 static int
 obj_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
 	obj_bench.args = (struct obj_list_args *)args->opts;
 	obj_bench.min_len = obj_bench.args->list_len + 1;
@@ -873,7 +873,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		: obj_bench.args->min_size;
 	obj_bench.alloc_sizes = random_values(
 		min_size, obj_size, obj_bench.max_len, sizeof(struct item));
-	if (obj_bench.alloc_sizes == NULL)
+	if (obj_bench.alloc_sizes == nullptr)
 		goto free_random_types;
 
 	/* Decide where operations will be performed */
@@ -896,7 +896,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		if (obj_bench.type_mode == TYPE_MODE_RAND) {
 			obj_bench.random_types = random_values(
 				1, UINT32_MAX, obj_bench.max_len, 0);
-			if (obj_bench.random_types == NULL)
+			if (obj_bench.random_types == nullptr)
 				return -1;
 		}
 		/*
@@ -921,7 +921,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		/* Create pmemobj pool. */
 		if ((obj_bench.pop = pmemobj_create(args->fname, LAYOUT_NAME,
 						    psize, args->fmode)) ==
-		    NULL) {
+		    nullptr) {
 			perror(pmemobj_errormsg());
 			goto free_all;
 		}

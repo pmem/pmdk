@@ -76,7 +76,7 @@ clo_parse_flag(struct benchmark_clo *clo, const char *arg,
 	       struct clo_vec *clovec)
 {
 	bool flag = true;
-	if (arg != NULL) {
+	if (arg != nullptr) {
 		if (strcmp(arg, "true") == 0)
 			flag = true;
 		else if (strcmp(arg, "false") == 0)
@@ -96,16 +96,16 @@ clo_parse_str(struct benchmark_clo *clo, const char *arg,
 	      struct clo_vec *clovec)
 {
 	struct clo_vec_vlist *vlist = clo_vec_vlist_alloc();
-	assert(vlist != NULL);
+	assert(vlist != nullptr);
 
 	char *str = strdup(arg);
-	assert(str != NULL);
+	assert(str != nullptr);
 	clo_vec_add_alloc(clovec, str);
 
 	char *next = strtok(str, ",");
 	while (next) {
 		clo_vec_vlist_add(vlist, &next, sizeof(next));
-		next = strtok(NULL, ",");
+		next = strtok(nullptr, ",");
 	}
 
 	int ret = clo_vec_memcpy_list(clovec, clo->off, sizeof(str), vlist);
@@ -380,12 +380,12 @@ clo_parse_range(struct benchmark_clo *clo, const char *arg,
 		struct clo_vec_vlist *vlist)
 {
 	char *str_first = (char *)malloc(strlen(arg) + 1);
-	assert(str_first != NULL);
+	assert(str_first != nullptr);
 	char *str_step = (char *)malloc(strlen(arg) + 1);
-	assert(str_step != NULL);
+	assert(str_step != nullptr);
 	char step_type = '\0';
 	char *str_last = (char *)malloc(strlen(arg) + 1);
-	assert(str_last != NULL);
+	assert(str_last != nullptr);
 
 	int ret = sscanf(arg, "%[^:]:%c%[^:]:%[^:]", str_first, &step_type,
 			 str_step, str_last);
@@ -462,17 +462,17 @@ clo_parse_ranges(struct benchmark_clo *clo, const char *arg,
 		 clo_eval_range_fn eval_range)
 {
 	struct clo_vec_vlist *vlist = clo_vec_vlist_alloc();
-	assert(vlist != NULL);
+	assert(vlist != nullptr);
 
 	int ret = 0;
 	char *args = strdup(arg);
-	assert(args != NULL);
+	assert(args != nullptr);
 
 	char *curr = args;
 	char *next;
 
 	/* iterate through all values separated by comma */
-	while ((next = strchr(curr, ',')) != NULL) {
+	while ((next = strchr(curr, ',')) != nullptr) {
 		*next = '\0';
 		next++;
 
@@ -532,7 +532,7 @@ static const char *
 clo_str_flag(struct benchmark_clo *clo, void *addr, size_t size)
 {
 	if (clo->off + sizeof(bool) > size)
-		return NULL;
+		return nullptr;
 
 	bool flag = *(bool *)((char *)addr + clo->off);
 
@@ -546,7 +546,7 @@ static const char *
 clo_str_str(struct benchmark_clo *clo, void *addr, size_t size)
 {
 	if (clo->off + sizeof(char *) > size)
-		return NULL;
+		return nullptr;
 
 	return *(char **)((char *)addr + clo->off);
 }
@@ -558,7 +558,7 @@ static const char *
 clo_str_int(struct benchmark_clo *clo, void *addr, size_t size)
 {
 	if (clo->off + clo->type_int.size > size)
-		return NULL;
+		return nullptr;
 
 	void *val = (char *)addr + clo->off;
 
@@ -581,10 +581,10 @@ clo_str_int(struct benchmark_clo *clo, void *addr, size_t size)
 				       *(int64_t *)val);
 			break;
 		default:
-			return NULL;
+			return nullptr;
 	}
 	if (ret < 0)
-		return NULL;
+		return nullptr;
 
 	return str_buff;
 }
@@ -596,7 +596,7 @@ static const char *
 clo_str_uint(struct benchmark_clo *clo, void *addr, size_t size)
 {
 	if (clo->off + clo->type_uint.size > size)
-		return NULL;
+		return nullptr;
 
 	void *val = (char *)addr + clo->off;
 
@@ -619,10 +619,10 @@ clo_str_uint(struct benchmark_clo *clo, void *addr, size_t size)
 				       *(uint64_t *)val);
 			break;
 		default:
-			return NULL;
+			return nullptr;
 	}
 	if (ret < 0)
-		return NULL;
+		return nullptr;
 
 	return str_buff;
 }
@@ -660,7 +660,7 @@ clo_get_by_short(struct benchmark_clo *clos, size_t nclo, char opt_short)
 			return &clos[i];
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -676,7 +676,7 @@ clo_get_by_long(struct benchmark_clo *clos, size_t nclo, const char *opt_long)
 			return &clos[i];
 	}
 
-	return NULL;
+	return nullptr;
 }
 
 /*
@@ -700,7 +700,7 @@ clo_get_optstr(struct benchmark_clo *clos, size_t nclo)
 	size_t optstrlen = nclo * 2 + 1;
 
 	optstr = (char *)calloc(1, optstrlen);
-	assert(optstr != NULL);
+	assert(optstr != nullptr);
 
 	ptr = optstr;
 	for (i = 0; i < nclo; i++) {
@@ -729,7 +729,7 @@ clo_get_long_options(struct benchmark_clo *clos, size_t nclo)
 	struct option *options;
 
 	options = (struct option *)calloc(nclo + 1, sizeof(struct option));
-	assert(options != NULL);
+	assert(options != nullptr);
 
 	for (i = 0; i < nclo; i++) {
 		options[i].name = clos[i].opt_long;
@@ -820,7 +820,7 @@ benchmark_clo_parse(int argc, char *argv[], struct benchmark_clo *clos,
 	/* parse CLOs as long and/or short options */
 	while ((opt = getopt_long(argc, argv, optstr, options, &optindex)) !=
 	       -1) {
-		struct benchmark_clo *clo = NULL;
+		struct benchmark_clo *clo = nullptr;
 		if (opt) {
 			clo = clo_get_by_short(clos, nclos, opt);
 		} else {
@@ -839,7 +839,7 @@ benchmark_clo_parse(int argc, char *argv[], struct benchmark_clo *clos,
 			goto out;
 
 		/* mark CLO as used */
-		clo->used = optarg != NULL || clo->type == CLO_TYPE_FLAG;
+		clo->used = optarg != nullptr || clo->type == CLO_TYPE_FLAG;
 	}
 
 	if (optind < argc) {
@@ -935,7 +935,7 @@ benchmark_override_clos_in_scenario(struct scenario *scenario, int argc,
 	/* parse CLOs as long and/or short options */
 	while ((opt = getopt_long(argc, argv, optstr, options, &optindex)) !=
 	       -1) {
-		struct benchmark_clo *clo = NULL;
+		struct benchmark_clo *clo = nullptr;
 		if (opt) {
 			clo = clo_get_by_short(clos, nclos, opt);
 		} else {
@@ -950,10 +950,10 @@ benchmark_override_clos_in_scenario(struct scenario *scenario, int argc,
 		/* Check if the given clo is defined in the scenario */
 		struct kv *kv = find_kv_in_scenario(clo->opt_long, scenario);
 		if (kv) { /* replace the value in the scenario */
-			if (optarg != NULL && clo->type != CLO_TYPE_FLAG) {
+			if (optarg != nullptr && clo->type != CLO_TYPE_FLAG) {
 				free(kv->value);
 				kv->value = strdup(optarg);
-			} else if (optarg == NULL &&
+			} else if (optarg == nullptr &&
 				   clo->type == CLO_TYPE_FLAG) {
 				free(kv->value);
 				kv->value = strdup(true_str);
@@ -962,10 +962,10 @@ benchmark_override_clos_in_scenario(struct scenario *scenario, int argc,
 				goto out;
 			}
 		} else { /* add a new param to the scenario */
-			if (optarg != NULL && clo->type != CLO_TYPE_FLAG) {
+			if (optarg != nullptr && clo->type != CLO_TYPE_FLAG) {
 				kv = kv_alloc(clo->opt_long, optarg);
 				TAILQ_INSERT_TAIL(&scenario->head, kv, next);
-			} else if (optarg == NULL &&
+			} else if (optarg == nullptr &&
 				   clo->type == CLO_TYPE_FLAG) {
 				kv = kv_alloc(clo->opt_long, true_str);
 				TAILQ_INSERT_TAIL(&scenario->head, kv, next);
@@ -1016,9 +1016,9 @@ int
 clo_get_scenarios(int argc, char *argv[], struct scenarios *available_scenarios,
 		  struct scenarios *found_scenarios)
 {
-	assert(argv != NULL);
-	assert(available_scenarios != NULL);
-	assert(found_scenarios != NULL);
+	assert(argv != nullptr);
+	assert(available_scenarios != nullptr);
+	assert(found_scenarios != nullptr);
 
 	if (argc <= 0) {
 		fprintf(stderr, "clo get scenarios, argc invalid value: %d\n",
@@ -1038,7 +1038,7 @@ clo_get_scenarios(int argc, char *argv[], struct scenarios *available_scenarios,
 		}
 
 		struct scenario *new_scenario = clone_scenario(scenario);
-		assert(new_scenario != NULL);
+		assert(new_scenario != nullptr);
 
 		TAILQ_INSERT_TAIL(&found_scenarios->head, new_scenario, next);
 		tmp_argc--;
