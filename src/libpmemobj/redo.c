@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 
 #include <inttypes.h>
 
+#include "libpmem.h"
 #include "redo.h"
 #include "out.h"
 #include "util.h"
@@ -145,8 +146,16 @@ redo_log_store_last(const struct redo_ctx *ctx, struct redo_log *redo,
 	/* store value of last entry */
 	redo[index].value = value;
 
-	/* persist all redo log entries */
-	pmemops_persist(p_ops, redo, (index + 1) * sizeof(struct redo_log));
+	/*
+	 * persist all redo log entries
+	 *
+	 * It's safe to use PMEM_F_RELAXED flag because setting finish flag
+	 * determines whether all redo log entires are meaningfull or not.
+	 *
+	 * The finish flag _must_ be persisted without PMEM_F_RELAXED flag.
+	 */
+	pmemops_xpersist(p_ops, redo, (index + 1) * sizeof(struct redo_log),
+			PMEM_F_RELAXED);
 
 	/* store and persist offset of last entry */
 	redo[index].offset = offset | REDO_FINISH_FLAG;
@@ -165,8 +174,16 @@ redo_log_set_last(const struct redo_ctx *ctx, struct redo_log *redo,
 	ASSERT(index < ctx->redo_num_entries);
 	const struct pmem_ops *p_ops = &ctx->p_ops;
 
-	/* persist all redo log entries */
-	pmemops_persist(p_ops, redo, (index + 1) * sizeof(struct redo_log));
+	/*
+	 * persist all redo log entries
+	 *
+	 * It's safe to use PMEM_F_RELAXED flag because setting finish flag
+	 * determines whether all redo log entires are meaningfull or not.
+	 *
+	 * The finish flag _must_ be persisted without PMEM_F_RELAXED flag.
+	 */
+	pmemops_xpersist(p_ops, redo, (index + 1) * sizeof(struct redo_log),
+			PMEM_F_RELAXED);
 
 	/* set finish flag of last entry and persist */
 	redo[index].offset |= REDO_FINISH_FLAG;
