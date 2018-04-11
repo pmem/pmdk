@@ -815,6 +815,10 @@ pocli_pmemobj_next(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		return ret;
 
+	if (oidp == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
+
 	oidp_next = pmemobj_next(*oidp);
 
 	pocli_printf(ctx, "%s(%p): off = 0x%llx uuid = 0x%llx\n",
@@ -922,6 +926,11 @@ pocli_pmemobj_do_persist(struct pocli_ctx *ctx, struct pocli_args *args,
 		return ret;
 	if ((ret = pocli_args_number(args, 2, &offset)))
 		return ret;
+
+	if (oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
+
 	char *dest_p = (char *)pmemobj_direct(*oid);
 	dest_p += offset;
 
@@ -988,6 +997,11 @@ pocli_pmemobj_pool_by_ptr(struct pocli_ctx *ctx, struct pocli_args *args)
 		return ret;
 	if ((ret = pocli_args_number(args, 2, &offset)))
 		return ret;
+
+	if (oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
+
 	char *dest_p = (char *)pmemobj_direct(*oid);
 	dest_p += offset;
 
@@ -1013,6 +1027,11 @@ pocli_pmemobj_pool_by_oid(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
 		return ret;
+
+	if (oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
+
 	PMEMobjpool *pop = pmemobj_pool_by_oid(*oid);
 
 	pocli_printf(ctx, "%s(%p): uuid = 0x%llx\n",
@@ -1042,6 +1061,10 @@ pocli_pmemobj_list_insert(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (pocli_args_obj(ctx, args, 2, &head_oid))
 		return ret;
 
+	if (head_oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[2]);
+
 	struct plist *head = (struct plist *)pmemobj_direct(*head_oid);
 
 	if ((ret = pocli_args_list_elm(ctx, args, 3, &dest, head)))
@@ -1054,6 +1077,10 @@ pocli_pmemobj_list_insert(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (before > 1)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 				"Before flag different than 0 or 1\n");
+
+	if (oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
 
 	int r = pmemobj_list_insert(ctx->pop, offsetof(struct item, field),
 						head, *dest, (int)before, *oid);
@@ -1093,6 +1120,10 @@ pocli_pmemobj_list_insert_new(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
 		return ret;
+
+	if (head_oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[2]);
 
 	struct plist *head = (struct plist *)pmemobj_direct(*head_oid);
 
@@ -1145,6 +1176,10 @@ pocli_pmemobj_list_remove(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
 		return ret;
 
+	if (head_oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[2]);
+
 	struct plist *head = (struct plist *)pmemobj_direct(*head_oid);
 
 	if ((ret = pocli_args_list_elm(ctx, args, 1, &oid, head)))
@@ -1155,6 +1190,10 @@ pocli_pmemobj_list_remove(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (if_free > 1)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 					"Free flag different than 0 or 1\n");
+
+	if (oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
 
 	void *oidp =  pmemobj_direct(*oid);
 	int r = pmemobj_list_remove(ctx->pop, offsetof(struct item, field),
@@ -1190,10 +1229,18 @@ pocli_pmemobj_list_move(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_obj(ctx, args, 2, &head_oid)))
 		return ret;
 
+	if (head_oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[2]);
+
 	struct plist *head_src = (struct plist *)pmemobj_direct(*head_oid);
 
 	if ((ret = pocli_args_obj(ctx, args, 3, &head_oid)))
 		return ret;
+
+	if (head_oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[3]);
 
 	struct plist *head_dest = (struct plist *)pmemobj_direct(*head_oid);
 
@@ -1210,6 +1257,10 @@ pocli_pmemobj_list_move(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (before > 1)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 				"Before flag different than 0 or 1\n");
+
+	if (oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
 
 	int r = pmemobj_list_move(ctx->pop, offset, head_src, offset, head_dest,
 						*dest, (int)before, *oid);
@@ -1568,6 +1619,10 @@ pocli_pmemobj_tx_free(struct pocli_ctx *ctx, struct pocli_args *args)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 					"cannot free root object\n");
 
+	if (oidp == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
+
 	int r = pmemobj_tx_free(*oidp);
 	if (r != POCLI_RET_OK)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
@@ -1604,6 +1659,10 @@ pocli_pmemobj_tx_strdup(struct pocli_ctx *ctx, struct pocli_args *args)
 	ret = pocli_args_number(args, 3, &type_num);
 	if (ret)
 		return ret;
+
+	if (oidp == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
 
 	*oidp = pmemobj_tx_strdup(args->argv[2], type_num);
 
