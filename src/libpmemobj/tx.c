@@ -37,6 +37,7 @@
 #include <inttypes.h>
 #include <wchar.h>
 
+#include "libpmem.h"
 #include "queue.h"
 #include "ravl.h"
 #include "obj.h"
@@ -1120,7 +1121,8 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	 * whether it should be freed or not.
 	 */
 	*entry_offset = retoid.off;
-	pmemops_persist(&pop->p_ops, entry_offset, sizeof(*entry_offset));
+	pmemops_xpersist(&pop->p_ops, entry_offset,
+			sizeof(*entry_offset), 0);
 
 	lane->actvundo++;
 

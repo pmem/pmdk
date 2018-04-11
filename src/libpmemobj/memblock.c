@@ -47,6 +47,7 @@
 
 #include <string.h>
 
+#include "libpmem.h"
 #include "heap.h"
 #include "memblock.h"
 #include "out.h"
@@ -241,8 +242,12 @@ memblock_header_none_write(const struct memory_block *m,
 static void
 memblock_header_legacy_flush(const struct memory_block *m)
 {
+	/*
+	 * It is safe to use PMEM_F_RELAXED here becase the allocation
+	 * header is valid after processing the redo log.
+	 */
 	struct allocation_header_legacy *hdr = m->m_ops->get_real_data(m);
-	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr), 0);
+	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr), PMEM_F_RELAXED);
 }
 
 /*
@@ -252,8 +257,12 @@ memblock_header_legacy_flush(const struct memory_block *m)
 static void
 memblock_header_compact_flush(const struct memory_block *m)
 {
+	/*
+	 * It is safe to use PMEM_F_RELAXED here becase the allocation
+	 * header is valid after processing the redo log.
+	 */
 	struct allocation_header_compact *hdr = m->m_ops->get_real_data(m);
-	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr), 0);
+	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr), PMEM_F_RELAXED);
 }
 
 /*
