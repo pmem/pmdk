@@ -921,8 +921,13 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 
 	util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1, 0);
 
-	/* store the persistent part of pool's descriptor (2kB) */
-	pmemops_persist(p_ops, dscp, OBJ_DSC_P_SIZE);
+	/*
+	 * store the persistent part of pool's descriptor (2kB)
+	 *
+	 * It's safe to use PMEM_F_RELAXED flag because the entire
+	 * structure is protected by checksum.
+	 */
+	pmemops_xpersist(p_ops, dscp, OBJ_DSC_P_SIZE, PMEM_F_RELAXED);
 
 	/* initialize run_id, it will be incremented later */
 	pop->run_id = 0;
@@ -937,8 +942,12 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	pmemops_persist(p_ops, &pop->conversion_flags,
 		sizeof(pop->conversion_flags));
 
+	/*
+	 * It's safe to use PMEM_F_RELAXED flag because the reserved
+	 * area must be entirely zeroed.
+	 */
 	pmemops_memset(p_ops, pop->pmem_reserved, 0,
-		sizeof(pop->pmem_reserved), 0);
+		sizeof(pop->pmem_reserved), PMEM_F_RELAXED);
 
 	return 0;
 }
