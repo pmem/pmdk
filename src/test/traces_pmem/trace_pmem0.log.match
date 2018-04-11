@@ -10,21 +10,21 @@ $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
-<libpmem>: <$(N)> [cpu.c:$(N) $(*)] CLFLUSH $(*)supported
+$(OPT)<libpmem>: <$(N)> [cpu.c:$(N) $(*)] CLFLUSH $(*)supported
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
-<libpmem>: <$(N)> [cpu.c:$(N) $(*)] CLFLUSHOPT $(*)supported
+$(OPT)<libpmem>: <$(N)> [cpu.c:$(N) $(*)] CLFLUSHOPT $(*)supported
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
-<libpmem>: <$(N)> [cpu.c:$(N) $(*)] CPU vendor: $(*)
-<libpmem>: <$(N)> [cpu.c:$(N) $(*)] CLWB $(*)supported
+$(OPT)<libpmem>: <$(N)> [cpu.c:$(N) $(*)] CPU vendor: $(*)
+$(OPT)<libpmem>: <$(N)> [cpu.c:$(N) $(*)] CLWB $(*)supported
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
-<libpmem>: <$(N)> [cpu.c:$(N) $(*)] AVX $(*)supported
+$(OPT)<libpmem>: <$(N)> [cpu.c:$(N) $(*)] AVX $(*)supported
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [init.c:$(N) $(*)] PMEM_AVX $(*)
-<libpmem>: <$(N)> [cpu.c:$(N) $(*)] AVX512f $(*)supported
+$(OPT)<libpmem>: <$(N)> [cpu.c:$(N) $(*)] AVX512f $(*)supported
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [init.c:$(N) $(*)] PMEM_AVX512F $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
-<libpmem>: <$(N)> [$(*)] eADR $(*)supported
+$(OPT)<libpmem>: <$(N)> [$(*)] eADR $(*)supported
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
