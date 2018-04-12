@@ -1,0 +1,18 @@
+Persistent Memory Development Kit
+
+This is src/test/tools/obj_verify/README.
+
+This directory contains a simple tool 'obj_verify' for verifying pmemobj pools.
+
+'obj_verify' has two modes of operation:
+  1) 'c' - create a pmemobj pool
+  2) 'v' - verify a pmemobj pool
+
+The 'create' operation creates or opens a pmemobj pool and fills it up
+with records consisting of the following fields:
+1) signature ("OBJ_VERIFY")
+2) sequence number saved as string
+3) buffer filled with random integers
+4) checksum of all the above fields
+
+The 'verify' operation verifies that checksums of all saved records are correct.

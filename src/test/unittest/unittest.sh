@@ -91,6 +91,7 @@ TOOLS=../tools
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
 [ "$EXTENTS" ] || EXTENTS=$TOOLS/extents/extents
+[ "$OBJ_VERIFY" ] || OBJ_VERIFY=$TOOLS/obj_verify/obj_verify
 
 # force globs to fail if they don't match
 shopt -s failglob
