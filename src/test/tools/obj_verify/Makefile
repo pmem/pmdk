@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,51 +31,16 @@
 #
 
 #
-# src/test/tools/Makefile -- build unit test helpers
+# src/test/tools/obj_verify -- build obj_verify tool
 #
 
-TOP = ../../..
+TOP = ../../../..
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+TARGET = obj_verify
+OBJS = obj_verify.o
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip\
-       ddmap\
-       cmpmap\
-       extents\
-       obj_verify
+LIBPMEM=y
+LIBPMEMOBJ=y
+LIBPMEMCOMMON=y
 
-REMOTE_TOOLS = \
-	ctrld\
-	fip\
-	pmemobjcli\
-	pmemspoil\
-	pmemdetect
-
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
-sparse  : TARGET = sparse
-
-all test cstyle clean clobber format sparse: $(DIRS)
-
-$(TESTCONFIG):
-
-sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-check pcheck:
-
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+include $(TOP)/src/tools/Makefile.inc
