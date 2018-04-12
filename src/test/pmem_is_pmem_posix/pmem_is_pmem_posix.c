@@ -81,7 +81,8 @@ main(int argc, char *argv[])
 		case 'a':
 			ret = util_range_register(addr, len, "",
 					str2type(argv[i + 3]));
-			UT_ASSERTeq(ret, 0);
+			if (ret != 0)
+				UT_OUT("%s", pmem_errormsg());
 			i += 4;
 			break;
 		case 'r':

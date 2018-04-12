@@ -355,7 +355,13 @@ util_range_register(const void *addr, size_t len, const char *path,
 	LOG(3, "addr %p len %zu path %s type %d", addr, len, path, type);
 
 	/* check if not tracked already */
-	ASSERTeq(util_range_find((uintptr_t)addr, len), NULL);
+	if (util_range_find((uintptr_t)addr, len) != NULL) {
+		ERR(
+		"duplicated persistent memory range; presumably unmapped with munmap() instead of pmem_unmap(): addr %p len %zu",
+			addr, len);
+		errno = ENOMEM;
+		return -1;
+	}
 
 	struct map_tracker *mt;
 	mt  = Malloc(sizeof(struct map_tracker));
