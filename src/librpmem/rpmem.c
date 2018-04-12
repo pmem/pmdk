@@ -641,7 +641,7 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 }
 
 /*
- * rpmem_deep_persit -- deep flush operation on target node
+ * rpmem_deep_persist -- deep flush operation on target node
  *
  * rpp           -- remote pool handle
  * offset        -- offset in pool
