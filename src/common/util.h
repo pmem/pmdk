@@ -42,6 +42,7 @@
 extern "C" {
 #endif
 
+#include <string.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -144,6 +145,19 @@ static inline void
 util_clrbit(uint8_t *b, uint32_t i)
 {
 	b[i / 8] = (uint8_t)(b[i / 8] & (uint8_t)(~(1 << (i % 8))));
+}
+
+/*
+ * util_safe_strcpy -- copies string from src to dst, returns error
+ * when length of source string (including null-terminator)
+ * is greater than max_length
+ */
+static inline int
+util_safe_strcpy(char *dst, const char *src, size_t max_length)
+{
+	strncpy(dst, src, max_length);
+
+	return dst[max_length - 1] == '\0' ? 0 : -1;
 }
 
 #define util_isset(a, i) isset(a, i)
