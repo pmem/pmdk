@@ -31,11 +31,10 @@
 #
 
 #
-# src/test/pmem_has_auto_flush_win/TEST2 -- unit test for
+# src/test/pmem_has_auto_flush_win/TEST5 -- unit test for
 #	pmem_has_auto_flush_win()
 #
-# case if nfit table exists but platform capabilities
-# structure with type 7 not exists.
+# case if capabilities value has improper bits
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -47,12 +46,13 @@ Param(
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+require_fs_type any
 
 setup
 
 $NFIT_AVAILABLE="y"
 $PLATFORM_CAPABILITIES=7
-$CAPABILITIES=3
+$CAPABILITIES=0
 
 expect_normal_exit $Env:EXE_DIR\pmem_has_auto_flush_win$Env:EXESUFFIX `
 	$NFIT_AVAILABLE $PLATFORM_CAPABILITIES $CAPABILITIES

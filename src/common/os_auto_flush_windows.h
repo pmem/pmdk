@@ -33,9 +33,10 @@
 #ifndef PMDK_OS_AUTO_FLUSH_WINDOWS_H
 #define PMDK_OS_AUTO_FLUSH_WINDOWS_H 1
 
-#define ACPI_SIGNATURE  "ACPI"
-#define NFIT_SIGNATURE "NFIT"
-#define NFIT_SIGNATURE_LEN 4
+
+#define ACPI_SIGNATURE 0x41435049 /* hex value of ACPI signature */
+#define NFIT_REV_SIGNATURE 0x5449464e /* hex value of htonl(NFIT) signature */
+#define NFIT_STR_SIGNATURE "NFIT"
 
 #define NFIT_SIGNATURE_LEN 4
 #define NFIT_OEM_ID_LEN 6
@@ -49,14 +50,10 @@
 /* check if bit on 'bit' position in number 'num' is set */
 #define CHECK_BIT(num, bit) (((num) >> (bit)) & 1)
 /*
- * sets alignment of members of structure,
- * pushes and pop alignment setting on an internal stack
+ * sets alignment of members of structure
  */
-#define PACK_STRUCT(_structure_) \
-			__pragma(pack(push, 1)) _structure_; __pragma(pack(pop))
-
-PACK_STRUCT(
-	struct platform_capabilities
+#pragma pack(1)
+struct platform_capabilities
 {
 	uint16_t type;
 	uint16_t length;
@@ -64,20 +61,20 @@ PACK_STRUCT(
 	uint8_t reserved[PCS_RESERVED];
 	uint32_t capabilities;
 	uint8_t reserved2[PCS_RESERVED_2];
-})
+};
 
-PACK_STRUCT(
-	struct nfit_header
+struct nfit_header
 {
-	char signature[NFIT_SIGNATURE_LEN];
-	unsigned length;
-	unsigned char revision;
-	unsigned char checksum;
-	unsigned char oem_id[NFIT_OEM_ID_LEN];
-	unsigned char oem_table_id[NFIT_OEM_TABLE_ID_LEN];
-	unsigned oem_revision;
-	unsigned char creator_id[4];
-	unsigned creator_revision;
-	unsigned reserved;
-})
+	uint8_t signature[NFIT_SIGNATURE_LEN];
+	uint32_t length;
+	uint8_t revision;
+	uint8_t checksum;
+	uint8_t oem_id[NFIT_OEM_ID_LEN];
+	uint8_t oem_table_id[NFIT_OEM_TABLE_ID_LEN];
+	uint32_t oem_revision;
+	uint8_t creator_id[4];
+	uint32_t creator_revision;
+	uint32_t reserved;
+};
+#pragma pack()
 #endif

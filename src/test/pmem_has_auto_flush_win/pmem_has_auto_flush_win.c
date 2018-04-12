@@ -35,7 +35,7 @@
  *
  * usage: pmem_has_auto_flush_win <option>
  * options:
- *		n - is nfit available or not (y or n)
+ *     n - is nfit available or not (y or n)
  * type: number of platform capabilities structure
  * capabilities: platform capabilities bits
  */
@@ -48,6 +48,12 @@
 #include "mocks_windows.h"
 #include "pmem_has_auto_flush_win.h"
 #include "util.h"
+
+#define LOG_PREFIX "ut"
+#define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
+#define LOG_FILE_VAR "TEST_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
 
 size_t Is_nfit = 0;
 size_t Pc_type = 0;
@@ -67,19 +73,7 @@ main(int argc, char *argv[])
 
 	Pc_type = (size_t)atoi(argv[2]);
 	Pc_capabilities = (size_t)atoi(argv[3]);
-
-	switch (*argv[1]) {
-		case 'y':
-		{
-			Is_nfit = 1;
-			break;
-		}
-		case 'n':
-		{
-			Is_nfit = 0;
-			break;
-		}
-	}
+	Is_nfit = argv[1][0] == 'y';
 
 	int eADR = pmem_has_auto_flush();
 	UT_OUT("pmem_has_auto_flush ret: %d", eADR);

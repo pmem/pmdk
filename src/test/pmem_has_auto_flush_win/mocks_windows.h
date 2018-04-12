@@ -37,11 +37,11 @@
  * This file is Windows-specific.
  *
  * This file should be included (i.e. using Forced Include) by libpmem
- * files, when compiled for the purpose of util_poolset test.
+ * files, when compiled for the purpose of pmem_has_auto_flush_win test.
  * It would replace default implementation with mocked functions defined
- * in util_poolset.c.
+ * in mocks_windows.c
  *
- * These defines could be also passed as preprocessor definitions.
+ * This WRAP_REAL define could be also passed as preprocessor definition.
  */
 #include <windows.h>
 
@@ -50,7 +50,7 @@
 #define GetSystemFirmwareTable __wrap_GetSystemFirmwareTable
 UINT
 __wrap_EnumSystemFirmwareTables(DWORD FirmwareTableProviderSignature,
-	PVOID pFirmwareTableEnumBuffer,	DWORD BufferSize);
+	PVOID pFirmwareTableEnumBuffer, DWORD BufferSize);
 UINT
 __wrap_GetSystemFirmwareTable(DWORD FirmwareTableProviderSignature,
 	DWORD FirmwareTableID, PVOID pFirmwareTableBuffer, DWORD BufferSize);

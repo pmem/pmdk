@@ -31,7 +31,7 @@
  */
 
 /*
- * mocks_windows.c -- mocked functions used in util_poolset.c
+ * mocks_windows.c -- mocked functions used in os_auto_flush_windows.c
  */
 
 #include "pmem.h"
@@ -53,10 +53,14 @@ FUNC_MOCK_DLLIMPORT(EnumSystemFirmwareTables, UINT,
 				PVOID pFirmwareTableBuffer,
 				DWORD BufferSize)
 FUNC_MOCK_RUN_DEFAULT {
-	if ((Is_nfit == 1) && (pFirmwareTableBuffer != NULL) &&
-			(BufferSize != 0)) {
+	if (FirmwareTableProviderSignature != ACPI_SIGNATURE)
+		return _FUNC_REAL(EnumSystemFirmwareTables)
+			(FirmwareTableProviderSignature,
+				pFirmwareTableBuffer, BufferSize);
+	if (Is_nfit == 1 && pFirmwareTableBuffer != NULL &&
+			BufferSize != 0) {
 		UT_OUT("Mock NFIT available");
-		strncpy(pFirmwareTableBuffer, NFIT_SIGNATURE, BufferSize);
+		strncpy(pFirmwareTableBuffer, NFIT_STR_SIGNATURE, BufferSize);
 	}
 	return NFIT_SIGNATURE_LEN + sizeof(struct nfit_header);
 }
@@ -68,6 +72,11 @@ FUNC_MOCK_DLLIMPORT(GetSystemFirmwareTable, UINT,
 	PVOID pFirmwareTableBuffer,
 	DWORD BufferSize)
 FUNC_MOCK_RUN_DEFAULT {
+	if (FirmwareTableProviderSignature != ACPI_SIGNATURE ||
+		FirmwareTableID != NFIT_REV_SIGNATURE)
+		return _FUNC_REAL(GetSystemFirmwareTable)
+			(FirmwareTableProviderSignature, FirmwareTableID,
+				pFirmwareTableBuffer, BufferSize);
 	if (pFirmwareTableBuffer == NULL && BufferSize == 0) {
 		UT_OUT("GetSystemFirmwareTable mock");
 		return sizeof(struct platform_capabilities) +
@@ -77,7 +86,7 @@ FUNC_MOCK_RUN_DEFAULT {
 	struct platform_capabilities pc;
 
 	/* fill nfit */
-	char sig[NFIT_SIGNATURE_LEN] = NFIT_SIGNATURE;
+	char sig[NFIT_SIGNATURE_LEN] = NFIT_STR_SIGNATURE;
 	strncpy(nfit.signature, sig, NFIT_SIGNATURE_LEN);
 	nfit.length = sizeof(nfit);
 	memcpy(pFirmwareTableBuffer, &nfit, nfit.length);

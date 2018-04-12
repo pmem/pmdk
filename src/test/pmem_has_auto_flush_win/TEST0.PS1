@@ -33,6 +33,8 @@
 #
 # src/test/pmem_has_auto_flush_win/TEST0 -- unit test for pmem_has_auto_flush_win()
 #
+# case if capabilities value has proper bits
+#
 [CmdletBinding(PositionalBinding=$false)]
 Param(
     [alias("d")]
@@ -43,6 +45,7 @@ Param(
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+require_fs_type any
 
 setup
 

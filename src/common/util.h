@@ -461,7 +461,6 @@ util_get_printable_ascii(char c)
 }
 
 char *util_concat_str(const char *s1, const char *s2);
-unsigned long util_string_to_dword(const char *str);
 
 #if !defined(likely)
 #if defined(__GNUC__)

@@ -34,12 +34,11 @@
  * pmem_has_auto_flush_win.h -- header file for windows mocks
  * for pmem_has_auto_flush_win
  */
-#define LOG_PREFIX "ut"
-#define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
-#define LOG_FILE_VAR "TEST_LOG_FILE"
-#define MAJOR_VERSION 1
-#define MINOR_VERSION 0
+#ifndef PMDK_HAS_AUTO_FLUSH_WIN_H
+#define PMDK_HAS_AUTO_FLUSH_WIN_H 1
 
 extern size_t Is_nfit;
 extern size_t Pc_type;
 extern size_t Pc_capabilities;
+
+#endif
