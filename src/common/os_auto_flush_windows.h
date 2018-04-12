@@ -35,7 +35,6 @@
 
 #define ACPI_SIGNATURE  "ACPI"
 #define NFIT_SIGNATURE "NFIT"
-#define NFIT_SIGNATURE_LEN 4
 
 #define NFIT_SIGNATURE_LEN 4
 #define NFIT_OEM_ID_LEN 6
@@ -49,14 +48,10 @@
 /* check if bit on 'bit' position in number 'num' is set */
 #define CHECK_BIT(num, bit) (((num) >> (bit)) & 1)
 /*
- * sets alignment of members of structure,
- * pushes and pop alignment setting on an internal stack
+ * sets alignment of members of structure
  */
-#define PACK_STRUCT(_structure_) \
-			__pragma(pack(push, 1)) _structure_; __pragma(pack(pop))
-
-PACK_STRUCT(
-	struct platform_capabilities
+#pragma pack(1)
+struct platform_capabilities
 {
 	uint16_t type;
 	uint16_t length;
@@ -64,10 +59,9 @@ PACK_STRUCT(
 	uint8_t reserved[PCS_RESERVED];
 	uint32_t capabilities;
 	uint8_t reserved2[PCS_RESERVED_2];
-})
+};
 
-PACK_STRUCT(
-	struct nfit_header
+struct nfit_header
 {
 	char signature[NFIT_SIGNATURE_LEN];
 	unsigned length;
@@ -79,5 +73,6 @@ PACK_STRUCT(
 	unsigned char creator_id[4];
 	unsigned creator_revision;
 	unsigned reserved;
-})
+};
+#pragma pack()
 #endif
