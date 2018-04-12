@@ -31,7 +31,7 @@
  */
 
 /*
- * mocks_windows.c -- mocked functions used in util_poolset.c
+ * mocks_windows.c -- mocked functions used in os_auto_flush_windows.c
  */
 
 #include "pmem.h"

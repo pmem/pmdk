@@ -29,6 +29,7 @@ $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
+$(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 <libpmem>: <$(N)> [libpmem.c:$(N) $(*)] major_required $(N) minor_required $(N)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 <libpmem>: <$(N)> [mmap.c:$(N) util_mmap_fini] 

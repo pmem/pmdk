@@ -35,7 +35,7 @@
 #	pmem_has_auto_flush_win()
 #
 # case if nfit table exists but platform capabilities
-# structure with type 7 not exists.
+# structure with type 7 not exist
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -47,6 +47,7 @@ Param(
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+require_fs_type any
 
 setup
 

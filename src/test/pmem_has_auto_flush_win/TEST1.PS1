@@ -33,7 +33,7 @@
 #
 # src/test/pmem_has_auto_flush_win/TEST1 -- unit test for pmem_has_auto_flush_win()
 #
-# case if nfit table does not exists
+# case if nfit table does not exist
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -45,6 +45,7 @@ Param(
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+require_fs_type any
 
 setup
 

@@ -279,10 +279,10 @@ util_concat_str(const char *s1, const char *s2)
 }
 
 /*
- * util_string_to_dword -- convert string to unsigned long number
+ * util_string_to_unsigned_long -- cast string to unsigned long number
  */
 unsigned long
-util_string_to_dword(const char *str)
+util_string_to_unsigned_long(const char *str)
 {
 	unsigned long dword;
 	memcpy(&dword, str, sizeof(unsigned long));

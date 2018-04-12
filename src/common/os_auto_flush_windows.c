@@ -42,21 +42,6 @@
 #include "os_auto_flush_windows.h"
 
 /*
- * check_nfit_signature -- (internal) check if string is NFIT signature.
- */
-static int
-check_nfit_signature(const char *str)
-{
-	LOG(15, "check_nfit_signature str %s", str);
-
-	int cmp = strncmp(str, NFIT_SIGNATURE, NFIT_SIGNATURE_LEN);
-	if (cmp == 0)
-		return 1;
-
-	return 0;
-}
-
-/*
  * is_nfit_available -- (internal) check if platform supports NFIT table.
  */
 int
@@ -69,13 +54,14 @@ is_nfit_available()
 	int is_nfit = 0;
 	DWORD offset = 0;
 
-	DWORD acpi_dword_be = htobe32(util_string_to_dword(ACPI_SIGNATURE));
+	DWORD acpi_dword_be = htobe32(
+			util_string_to_unsigned_long(ACPI_SIGNATURE));
 	signatures_size = EnumSystemFirmwareTables(acpi_dword_be, NULL, 0);
 	if (signatures_size == 0) {
 		ERR("!EnumSystemFirmwareTables");
 		goto err;
 	}
-	signatures = (char *)malloc(signatures_size + 1);
+	signatures = (char *)Malloc(signatures_size + 1);
 	if (signatures == NULL) {
 		ERR("!malloc");
 		goto err;
@@ -89,8 +75,9 @@ is_nfit_available()
 	}
 
 	while (offset <= signatures_size) {
-		int nfit_sig = check_nfit_signature(signatures + offset);
-		if (nfit_sig) {
+		int nfit_sig  = strncmp(signatures + offset,
+				NFIT_SIGNATURE, NFIT_SIGNATURE_LEN);
+		if (nfit_sig == 0) {
 			is_nfit = 1;
 			goto end;
 		}
@@ -98,12 +85,12 @@ is_nfit_available()
 	}
 
 end:
-	free(signatures);
+	Free(signatures);
 	return is_nfit;
 
 err:
 	if (signatures)
-		free(signatures);
+		Free(signatures);
 	return -1;
 }
 
@@ -124,18 +111,17 @@ err:
 static int
 check_capabilities(uint32_t capabilities)
 {
-	LOG(3, "check_capabilities capabilities %" PRIu32, capabilities);
+	LOG(3, "check_capabilities capabilities 0x%" PRIx32, capabilities);
 
 	int CPU_cache_flush = CHECK_BIT(capabilities, 0);
 	int memory_controller_flush = CHECK_BIT(capabilities, 1);
-	int supported = 0;
 
 	LOG(15, "CPU_cache_flush %d, memory_controller_flush %d",
 			CPU_cache_flush, memory_controller_flush);
 	if (memory_controller_flush == 1 && CPU_cache_flush == 1)
-		supported = 1;
+		return 1;
 
-	return supported;
+	return 0;
 }
 
 /*
@@ -176,20 +162,21 @@ os_auto_flush(void)
 	DWORD nfit_buffer_size = 0;
 	DWORD nfit_written = 0;
 	PVOID nfit_buffer = NULL;
-	struct nfit_header nfit_data;
+	struct nfit_header *nfit_data;
 	struct platform_capabilities *pc = NULL;
 
 	int eADR = 0;
 	int is_nfit = is_nfit_available();
 	if (is_nfit == 0) {
 		LOG(15, "ACPI NFIT table not available");
-		goto not_supported;
+		return 0;
 	} else if (is_nfit < 0 || is_nfit != 1) {
-		goto err;
+		LOG(1, "!is_nfit_available");
+		return -1;
 	}
 
-	DWORD acpi_dword = util_string_to_dword(ACPI_SIGNATURE);
-	DWORD nfit_dword = util_string_to_dword(NFIT_SIGNATURE);
+	DWORD acpi_dword = util_string_to_unsigned_long(ACPI_SIGNATURE);
+	DWORD nfit_dword = util_string_to_unsigned_long(NFIT_SIGNATURE);
 	DWORD acpi_dword_be = htobe32(acpi_dword);
 
 	/* get the entire nfit size */
@@ -197,10 +184,10 @@ os_auto_flush(void)
 							NULL, 0);
 	if (nfit_buffer_size == 0) {
 		ERR("!GetSystemFirmwareTable");
-		goto err;
+		return -1;
 	}
 	/* reserve buffer */
-	nfit_buffer = (unsigned char *)malloc(nfit_buffer_size);
+	nfit_buffer = (unsigned char *)Malloc(nfit_buffer_size);
 	if (nfit_buffer == NULL) {
 		ERR("!malloc");
 		goto err;
@@ -219,15 +206,16 @@ os_auto_flush(void)
 		goto err;
 	}
 
-	memcpy(&nfit_data, nfit_buffer, sizeof(struct nfit_header));
-	int nfit_sig = check_nfit_signature(nfit_data.signature);
-	if (nfit_sig == 0) {
+	nfit_data = (struct nfit_header *)nfit_buffer;
+	int nfit_sig = strncmp(nfit_data->signature,
+			NFIT_SIGNATURE, NFIT_SIGNATURE_LEN);
+	if (nfit_sig != 0) {
 		ERR("!NFIT buffer has invalid data");
 		goto err;
 	}
 
 	/* read  platform capabilities structure */
-	pc = calloc(1, sizeof(struct platform_capabilities));
+	pc = Zalloc(sizeof(struct platform_capabilities));
 	if (pc == NULL) {
 		ERR("!calloc");
 		goto err;
@@ -235,14 +223,13 @@ os_auto_flush(void)
 	parse_nfit_buffer(nfit_buffer, nfit_buffer_size, pc);
 	eADR = check_capabilities(pc->capabilities);
 
-	free(pc);
-	free(nfit_buffer);
+	Free(pc);
+	Free(nfit_buffer);
 
-not_supported:
 	return eADR;
 
 err:
 	if (nfit_buffer != NULL)
-		free(nfit_buffer);
+		Free(nfit_buffer);
 	return -1;
 }

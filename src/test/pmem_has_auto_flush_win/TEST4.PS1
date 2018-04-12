@@ -31,11 +31,10 @@
 #
 
 #
-# src/test/pmem_has_auto_flush_win/TEST2 -- unit test for
+# src/test/pmem_has_auto_flush_win/TEST4 -- unit test for
 #	pmem_has_auto_flush_win()
 #
-# case if nfit table exists but platform capabilities
-# structure with type 7 not exists.
+# case if capabilities value has improper bits
 #
 [CmdletBinding(PositionalBinding=$false)]
 Param(
@@ -47,6 +46,7 @@ Param(
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+require_fs_type any
 
 setup
 
