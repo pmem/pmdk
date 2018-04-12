@@ -848,6 +848,10 @@ pocli_pmemobj_memcpy_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_number(args, 2, &offset)))
 		return ret;
 
+	if (dest == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
+
 	char *dest_p = (char *)pmemobj_direct(*dest);
 	dest_p += offset;
 
@@ -855,6 +859,10 @@ pocli_pmemobj_memcpy_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 		return ret;
 	if ((ret = pocli_args_number(args, 4, &offset)))
 		return ret;
+
+	if (src == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[3]);
 
 	char *src_p = (char *)pmemobj_direct(*src);
 	src_p += offset;
@@ -890,6 +898,10 @@ pocli_pmemobj_memset_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_number(args, 2, &offset)))
 		return ret;
 
+	if (oid == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[1]);
+
 	char *dest_p = (char *)pmemobj_direct(*oid);
 	dest_p += offset;
 
@@ -897,6 +909,10 @@ pocli_pmemobj_memset_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 		return ret;
 	if ((ret = pocli_args_number(args, 4, &len)))
 		return ret;
+
+	if (len == -1)
+		return pocli_err(ctx, POCLI_ERR_ARGS,
+			"invalid object -- '%s'\n", args->argv[4]);
 
 	void *result = pmemobj_memset_persist(ctx->pop, dest_p, (int)c, len);
 
@@ -1379,7 +1395,6 @@ pocli_pmemobj_tx_abort(struct pocli_ctx *ctx, struct pocli_args *args)
 		return POCLI_ERR_PARS;
 
 	ctx->tx_aborted = true;
-	free(args);
 	pmemobj_tx_abort(err);
 	pocli_printf(ctx, "pmemobj_tx_abort: %d", err);
 
