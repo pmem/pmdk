@@ -31,7 +31,7 @@
  */
 
 /*
- * mocks_windows.c -- mocked functions used in util_poolset.c
+ * mocks_windows.c -- mocked functions used in os_auto_flush_windows.c
  */
 
 #include "pmem.h"
@@ -56,7 +56,7 @@ FUNC_MOCK_RUN_DEFAULT {
 	if ((Is_nfit == 1) && (pFirmwareTableBuffer != NULL) &&
 			(BufferSize != 0)) {
 		UT_OUT("Mock NFIT available");
-		strncpy(pFirmwareTableBuffer, NFIT_SIGNATURE, BufferSize);
+		strncpy(pFirmwareTableBuffer, NFIT_STR_SIGNATURE, BufferSize);
 	}
 	return NFIT_SIGNATURE_LEN + sizeof(struct nfit_header);
 }
@@ -77,7 +77,7 @@ FUNC_MOCK_RUN_DEFAULT {
 	struct platform_capabilities pc;
 
 	/* fill nfit */
-	char sig[NFIT_SIGNATURE_LEN] = NFIT_SIGNATURE;
+	char sig[NFIT_SIGNATURE_LEN] = NFIT_STR_SIGNATURE;
 	strncpy(nfit.signature, sig, NFIT_SIGNATURE_LEN);
 	nfit.length = sizeof(nfit);
 	memcpy(pFirmwareTableBuffer, &nfit, nfit.length);
