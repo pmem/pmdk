@@ -1,10 +1,25 @@
 {
    <false_positive_recursive_write_lock>
    Helgrind:Misc
+   ...
    fun:pthread_spin_lock
    fun:c4iw_flush_qps
    fun:c4iw_poll_cq
    fun:ibv_poll_cq
    fun:fi_ibv_poll_cq
+   ...
+}
+{
+   <false_positive_lock_order_violation>
+   Helgrind:LockOrder
+   ...
+   fun:pthread_spin_lock
+   fun:c4iw_flush_qps
+   fun:c4iw_poll_cq
+   fun:ibv_poll_cq
+   fun:fi_ibv_poll_outstanding_cq
+   fun:fi_ibv_cleanup_cq
+   fun:fi_ibv_msg_ep_close
+   fun:fi_close
    ...
 }
