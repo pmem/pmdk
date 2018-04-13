@@ -910,7 +910,7 @@ pocli_pmemobj_memset_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 	if ((ret = pocli_args_number(args, 4, &len)))
 		return ret;
 
-	if (len == -1)
+	if (len == UINT64_MAX)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 			"invalid object -- '%s'\n", args->argv[4]);
 
