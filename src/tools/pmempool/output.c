@@ -44,6 +44,7 @@
 #include <err.h>
 #include <endian.h>
 #include <inttypes.h>
+#include <float.h>
 #include "common.h"
 #include "output.h"
 
@@ -289,7 +290,7 @@ out_get_percentage(double perc)
 			return "";
 	} else {
 		int decimal = 0;
-		if (perc >= 100.0 || perc == 0.0)
+		if (perc >= 100.0 || perc < DBL_EPSILON)
 			decimal = 0;
 		else
 			decimal = 6;
