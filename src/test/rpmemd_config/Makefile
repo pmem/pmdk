@@ -33,10 +33,12 @@
 #
 # src/test/rpmemd_log/Makefile -- build rpmemd_log test
 #
-vpath %.c ../../tools/rpmemd
+TOP = ../../..
+vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/tools/rpmemd
 
 TARGET = rpmemd_config
-OBJS = rpmemd_config_test.o rpmemd_config.o rpmemd_log.o
+OBJS = rpmemd_config_test.o rpmemd_config.o rpmemd_log.o util.o
 
 BUILD_STATIC_DEBUG=n
 BUILD_STATIC_NONDEBUG=n
