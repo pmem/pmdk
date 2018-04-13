@@ -684,6 +684,19 @@ function get_trace() {
 	if [ "$node" -ne -1 ]; then
 		exe=${NODE_VALGRINDEXE[$node]}
 		opts="$opts"
+
+		case "$check_type" in
+		memcheck)
+			opts="$opts --suppressions=../memcheck-libibverbs.supp"
+			;;
+		helgrind)
+			opts="$opts --suppressions=../helgrind-cxgb4.supp"
+			opts="$opts --suppressions=../helgrind-libfabric.supp"
+			;;
+		drd)
+			opts="$opts --suppressions=../drd-libfabric.supp"
+			;;
+		esac
 	fi
 
 	echo "$exe --tool=$check_type --log-file=$log_file $opts $TRACE"
