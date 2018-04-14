@@ -66,6 +66,9 @@ endif
 ifeq ($(call check_flag, -Wfloat-equal), y)
 CFLAGS += -Wfloat-equal
 endif
+ifeq ($(call check_flag, -Wswitch-default), y)
+CFLAGS += -Wswitch-default
+endif
 endif
 
 ifeq ($(DEBUG),1)

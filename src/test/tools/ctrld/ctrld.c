@@ -649,6 +649,8 @@ convert_timeout(char *str)
 	case 'd':
 		ftimeout *= S_DAY;
 		break;
+	default:
+		break;
 	}
 	return (unsigned)ftimeout;
 }

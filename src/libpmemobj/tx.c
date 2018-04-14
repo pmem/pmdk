@@ -1597,7 +1597,7 @@ pmemobj_tx_process(void)
 	case TX_STAGE_FINALLY:
 		tx->stage = TX_STAGE_NONE;
 		break;
-	case MAX_TX_STAGE:
+	default:
 		ASSERT(0);
 	}
 }
