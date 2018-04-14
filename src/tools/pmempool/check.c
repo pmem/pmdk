@@ -326,6 +326,10 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 			outv_err("checking consistency failed\n");
 		ret = -1;
 		break;
+	default:
+		outv_err("status unknown\n");
+		ret = -1;
+		break;
 	}
 
 	return ret;
