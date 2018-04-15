@@ -73,7 +73,7 @@ static void *
 thread_func(void *arg)
 {
 	assert(arg != nullptr);
-	struct benchmark_worker *worker = (struct benchmark_worker *)arg;
+	auto *worker = (struct benchmark_worker *)arg;
 
 	os_mutex_lock(&worker->lock);
 

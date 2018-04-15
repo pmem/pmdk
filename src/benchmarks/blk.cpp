@@ -155,7 +155,7 @@ blk_do_warmup(struct blk_bench *bb, struct benchmark_args *args)
 {
 	size_t lba;
 	int ret = 0;
-	char *buff = (char *)calloc(1, args->dsize);
+	auto *buff = (char *)calloc(1, args->dsize);
 	if (!buff) {
 		perror("calloc");
 		return -1;
@@ -287,8 +287,8 @@ fileio_write(struct blk_bench *bb, struct benchmark_args *ba,
 static int
 blk_operation(struct benchmark *bench, struct operation_info *info)
 {
-	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
-	struct blk_worker *bworker = (struct blk_worker *)info->worker->priv;
+	auto *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	auto *bworker = (struct blk_worker *)info->worker->priv;
 
 	os_off_t off = bworker->blocks[info->index];
 	return bb->worker(bb, info->args, bworker, off);
@@ -309,8 +309,8 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		return -1;
 	}
 
-	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
-	struct blk_args *bargs = (struct blk_args *)args->opts;
+	auto *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	auto *bargs = (struct blk_args *)args->opts;
 
 	bworker->seed = os_rand_r(&bargs->seed);
 
@@ -370,7 +370,7 @@ static void
 blk_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
-	struct blk_worker *bworker = (struct blk_worker *)worker->priv;
+	auto *bworker = (struct blk_worker *)worker->priv;
 	free(bworker->blocks);
 	free(bworker->buff);
 	free(bworker);
@@ -382,7 +382,7 @@ blk_free_worker(struct benchmark *bench, struct benchmark_args *args,
 static int
 blk_init(struct blk_bench *bb, struct benchmark_args *args)
 {
-	struct blk_args *ba = (struct blk_args *)args->opts;
+	auto *ba = (struct blk_args *)args->opts;
 	assert(ba != nullptr);
 
 	bb->type = parse_op_type(ba->type_str);
@@ -496,8 +496,7 @@ blk_read_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != nullptr);
 
 	int ret;
-	struct blk_bench *bb =
-		(struct blk_bench *)malloc(sizeof(struct blk_bench));
+	auto *bb = (struct blk_bench *)malloc(sizeof(struct blk_bench));
 	if (bb == nullptr) {
 		perror("malloc");
 		return -1;
@@ -539,8 +538,7 @@ blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != nullptr);
 
 	int ret;
-	struct blk_bench *bb =
-		(struct blk_bench *)malloc(sizeof(struct blk_bench));
+	auto *bb = (struct blk_bench *)malloc(sizeof(struct blk_bench));
 	if (bb == nullptr) {
 		perror("malloc");
 		return -1;
@@ -578,7 +576,7 @@ blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 static int
 blk_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	auto *bb = (struct blk_bench *)pmembench_get_priv(bench);
 
 	int result;
 	switch (bb->type) {

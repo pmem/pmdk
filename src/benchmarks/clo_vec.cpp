@@ -234,7 +234,7 @@ clo_vec_memcpy(struct clo_vec *clovec, size_t off, size_t size, void *ptr)
 
 	size_t i;
 	for (i = 0; i < clovec->nargs; i++) {
-		char *args = (char *)clo_vec_get_args(clovec, i);
+		auto *args = (char *)clo_vec_get_args(clovec, i);
 		char *dptr = args + off;
 		memcpy(dptr, ptr, size);
 	}
@@ -268,7 +268,7 @@ clo_vec_memcpy_list(struct clo_vec *clovec, size_t off, size_t size,
 	TAILQ_FOREACH(value, &list->head, next)
 	{
 		for (i = value_i * len; i < (value_i + 1) * len; i++) {
-			char *args = (char *)clo_vec_get_args(clovec, i);
+			auto *args = (char *)clo_vec_get_args(clovec, i);
 			char *dptr = args + off;
 			memcpy(dptr, value->ptr, size);
 		}

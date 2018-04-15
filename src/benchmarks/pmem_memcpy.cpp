@@ -390,8 +390,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	size_t file_size = 0;
 	int flags = 0;
 
-	struct pmem_bench *pmb =
-		(struct pmem_bench *)malloc(sizeof(struct pmem_bench));
+	auto *pmb = (struct pmem_bench *)malloc(sizeof(struct pmem_bench));
 	assert(pmb != nullptr);
 
 	pmb->pargs = (struct pmem_args *)args->opts;
@@ -505,7 +504,7 @@ err_free_pmb:
 static int
 pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
 {
-	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
+	auto *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 
 	size_t src_index = pmb->func_src(pmb, info);
 
@@ -527,7 +526,7 @@ pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
 static int
 pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
+	auto *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 	pmem_unmap(pmb->pmem_addr, pmb->fsize);
 	util_aligned_free(pmb->buf);
 	free(pmb->rand_offsets);

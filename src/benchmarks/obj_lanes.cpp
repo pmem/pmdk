@@ -97,8 +97,7 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != nullptr);
 	assert(args->opts != nullptr);
 
-	struct obj_bench *ob =
-		(struct obj_bench *)malloc(sizeof(struct obj_bench));
+	auto *ob = (struct obj_bench *)malloc(sizeof(struct obj_bench));
 	if (ob == nullptr) {
 		perror("malloc");
 		return -1;
@@ -139,7 +138,7 @@ err:
 static int
 lanes_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	pmemobj_close(ob->pop);
 	free(ob);
@@ -153,7 +152,7 @@ lanes_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 lanes_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 	struct lane_section *section;
 
 	for (int i = 0; i < OPERATION_REPEAT_COUNT; i++) {

@@ -219,10 +219,8 @@ map_remove_root_op(struct map_bench *map_bench, uint64_t key)
 static int
 map_remove_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct map_bench *map_bench =
-		(struct map_bench *)pmembench_get_priv(bench);
-	struct map_bench_worker *tworker =
-		(struct map_bench_worker *)info->worker->priv;
+	auto *map_bench = (struct map_bench *)pmembench_get_priv(bench);
+	auto *tworker = (struct map_bench_worker *)info->worker->priv;
 
 	uint64_t key = tworker->keys[info->index];
 
@@ -274,10 +272,8 @@ map_insert_root_op(struct map_bench *map_bench, uint64_t key)
 static int
 map_insert_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct map_bench *map_bench =
-		(struct map_bench *)pmembench_get_priv(bench);
-	struct map_bench_worker *tworker =
-		(struct map_bench_worker *)info->worker->priv;
+	auto *map_bench = (struct map_bench *)pmembench_get_priv(bench);
+	auto *tworker = (struct map_bench_worker *)info->worker->priv;
 	uint64_t key = tworker->keys[info->index];
 
 	mutex_lock_nofail(&map_bench->lock);
@@ -317,10 +313,8 @@ map_get_root_op(struct map_bench *map_bench, uint64_t key)
 static int
 map_get_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct map_bench *map_bench =
-		(struct map_bench *)pmembench_get_priv(bench);
-	struct map_bench_worker *tworker =
-		(struct map_bench_worker *)info->worker->priv;
+	auto *map_bench = (struct map_bench *)pmembench_get_priv(bench);
+	auto *tworker = (struct map_bench_worker *)info->worker->priv;
 
 	uint64_t key = tworker->keys[info->index];
 
@@ -387,9 +381,8 @@ static void
 map_common_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		       struct worker_info *worker)
 {
-	struct map_bench_worker *tworker =
-		(struct map_bench_worker *)worker->priv;
-	struct map_bench_args *targs = (struct map_bench_args *)args->opts;
+	auto *tworker = (struct map_bench_worker *)worker->priv;
+	auto *targs = (struct map_bench_args *)args->opts;
 
 	if (targs->ext_tx) {
 		pmemobj_tx_commit();
@@ -410,10 +403,9 @@ map_insert_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	if (ret)
 		return ret;
 
-	struct map_bench_args *targs = (struct map_bench_args *)args->opts;
+	auto *targs = (struct map_bench_args *)args->opts;
 	assert(targs);
-	struct map_bench_worker *tworker =
-		(struct map_bench_worker *)worker->priv;
+	auto *tworker = (struct map_bench_worker *)worker->priv;
 
 	assert(tworker);
 
@@ -431,12 +423,11 @@ map_global_rand_keys_init(struct benchmark *bench, struct benchmark_args *args,
 			  struct worker_info *worker)
 {
 
-	struct map_bench *tree = (struct map_bench *)pmembench_get_priv(bench);
+	auto *tree = (struct map_bench *)pmembench_get_priv(bench);
 	assert(tree);
-	struct map_bench_args *targs = (struct map_bench_args *)args->opts;
+	auto *targs = (struct map_bench_args *)args->opts;
 	assert(targs);
-	struct map_bench_worker *tworker =
-		(struct map_bench_worker *)worker->priv;
+	auto *tworker = (struct map_bench_worker *)worker->priv;
 
 	assert(tworker);
 	assert(tree->init_nkeys);
@@ -611,7 +602,7 @@ err_free_bench:
 static int
 map_common_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct map_bench *tree = (struct map_bench *)pmembench_get_priv(bench);
+	auto *tree = (struct map_bench *)pmembench_get_priv(bench);
 
 	os_mutex_destroy(&tree->lock);
 	map_ctx_free(tree->mapc);
@@ -626,10 +617,9 @@ map_common_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 map_keys_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct map_bench *map_bench =
-		(struct map_bench *)pmembench_get_priv(bench);
+	auto *map_bench = (struct map_bench *)pmembench_get_priv(bench);
 	assert(map_bench);
-	struct map_bench_args *targs = (struct map_bench_args *)args->opts;
+	auto *targs = (struct map_bench_args *)args->opts;
 	assert(targs);
 
 	assert(map_bench->nkeys != 0);
@@ -691,7 +681,7 @@ map_keys_init(struct benchmark *bench, struct benchmark_args *args)
 static int
 map_keys_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct map_bench *tree = (struct map_bench *)pmembench_get_priv(bench);
+	auto *tree = (struct map_bench *)pmembench_get_priv(bench);
 	free(tree->keys);
 	return 0;
 }

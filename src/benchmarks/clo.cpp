@@ -147,10 +147,10 @@ parse_number_base(const char *arg, void *value, int s, int base)
 	char *end;
 	errno = 0;
 	if (s) {
-		int64_t *v = (int64_t *)value;
+		auto *v = (int64_t *)value;
 		*v = strtoll(arg, &end, base);
 	} else {
-		uint64_t *v = (uint64_t *)value;
+		auto *v = (uint64_t *)value;
 		*v = strtoull(arg, &end, base);
 	}
 
@@ -379,12 +379,12 @@ clo_parse_range(struct benchmark_clo *clo, const char *arg,
 		clo_parse_single_fn parse_single, clo_eval_range_fn eval_range,
 		struct clo_vec_vlist *vlist)
 {
-	char *str_first = (char *)malloc(strlen(arg) + 1);
+	auto *str_first = (char *)malloc(strlen(arg) + 1);
 	assert(str_first != nullptr);
-	char *str_step = (char *)malloc(strlen(arg) + 1);
+	auto *str_step = (char *)malloc(strlen(arg) + 1);
 	assert(str_step != nullptr);
 	char step_type = '\0';
-	char *str_last = (char *)malloc(strlen(arg) + 1);
+	auto *str_last = (char *)malloc(strlen(arg) + 1);
 	assert(str_last != nullptr);
 
 	int ret = sscanf(arg, "%[^:]:%c%[^:]:%[^:]", str_first, &step_type,

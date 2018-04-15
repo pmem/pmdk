@@ -149,7 +149,7 @@ bench_operation_1by1(lock_fun_wrapper flock, lock_fun_wrapper funlock,
 		     struct mutex_bench *mb, PMEMobjpool *pop)
 {
 	for (unsigned i = 0; i < (mb)->pa->n_locks; (i)++) {
-		void *o = (void *)(&(mb)->locks[i]);
+		auto *o = (void *)(&(mb)->locks[i]);
 		flock(pop, o);
 		funlock(pop, o);
 	}
@@ -163,11 +163,11 @@ bench_operation_all_lock(lock_fun_wrapper flock, lock_fun_wrapper funlock,
 			 struct mutex_bench *mb, PMEMobjpool *pop)
 {
 	for (unsigned i = 0; i < (mb)->pa->n_locks; (i)++) {
-		void *o = (void *)(&(mb)->locks[i]);
+		auto *o = (void *)(&(mb)->locks[i]);
 		flock(pop, o);
 	}
 	for (unsigned i = 0; i < (mb)->pa->n_locks; i++) {
-		void *o = (void *)(&(mb)->locks[i]);
+		auto *o = (void *)(&(mb)->locks[i]);
 		funlock(pop, o);
 	}
 }
@@ -226,7 +226,7 @@ volatile_mutex_init(os_mutex_t **mutexp, void *attr)
 static int
 volatile_mutex_lock(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 {
-	os_mutex_t *mutex = GET_VOLATILE_MUTEX(pop, mutexp);
+	auto *mutex = GET_VOLATILE_MUTEX(pop, mutexp);
 	if (mutex == nullptr)
 		return EINVAL;
 
@@ -239,7 +239,7 @@ volatile_mutex_lock(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 static int
 volatile_mutex_unlock(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 {
-	os_mutex_t *mutex = (os_mutex_t *)GET_VOLATILE_MUTEX(pop, mutexp);
+	auto *mutex = (os_mutex_t *)GET_VOLATILE_MUTEX(pop, mutexp);
 	if (mutex == nullptr)
 		return EINVAL;
 
@@ -252,7 +252,7 @@ volatile_mutex_unlock(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 static int
 volatile_mutex_destroy(PMEMobjpool *pop, PMEM_volatile_mutex *mutexp)
 {
-	os_mutex_t *mutex = (os_mutex_t *)GET_VOLATILE_MUTEX(pop, mutexp);
+	auto *mutex = (os_mutex_t *)GET_VOLATILE_MUTEX(pop, mutexp);
 	if (mutex == nullptr)
 		return EINVAL;
 
@@ -394,15 +394,14 @@ init_bench_mutex(struct mutex_bench *mb)
 	if (!mb->pa->use_system_threads) {
 		/* initialize PMEM mutexes */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
-			PMEMmutex_internal *p =
-				(PMEMmutex_internal *)&mb->locks[i];
+			auto *p = (PMEMmutex_internal *)&mb->locks[i];
 			p->pmemmutex.runid = mb->pa->runid_initial_value;
 			os_mutex_init(&p->PMEMmutex_lock);
 		}
 	} else {
 		/* initialize os_thread mutexes */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
-			os_mutex_t *p = (os_mutex_t *)&mb->locks[i];
+			auto *p = (os_mutex_t *)&mb->locks[i];
 			os_mutex_init(p);
 		}
 	}
@@ -419,7 +418,7 @@ exit_bench_mutex(struct mutex_bench *mb)
 	if (mb->pa->use_system_threads) {
 		/* deinitialize os_thread mutex objects */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
-			os_mutex_t *p = (os_mutex_t *)&mb->locks[i];
+			auto *p = (os_mutex_t *)&mb->locks[i];
 			os_mutex_destroy(p);
 		}
 	}
@@ -487,15 +486,14 @@ init_bench_rwlock(struct mutex_bench *mb)
 	if (!mb->pa->use_system_threads) {
 		/* initialize PMEM rwlocks */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
-			PMEMrwlock_internal *p =
-				(PMEMrwlock_internal *)&mb->locks[i];
+			auto *p = (PMEMrwlock_internal *)&mb->locks[i];
 			p->pmemrwlock.runid = mb->pa->runid_initial_value;
 			os_rwlock_init(&p->PMEMrwlock_lock);
 		}
 	} else {
 		/* initialize os_thread rwlocks */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
-			os_rwlock_t *p = (os_rwlock_t *)&mb->locks[i];
+			auto *p = (os_rwlock_t *)&mb->locks[i];
 			os_rwlock_init(p);
 		}
 	}
@@ -512,7 +510,7 @@ exit_bench_rwlock(struct mutex_bench *mb)
 	if (mb->pa->use_system_threads) {
 		/* deinitialize os_thread mutex objects */
 		for (unsigned i = 0; i < mb->pa->n_locks; i++) {
-			os_rwlock_t *p = (os_rwlock_t *)&mb->locks[i];
+			auto *p = (os_rwlock_t *)&mb->locks[i];
 			os_rwlock_destroy(p);
 		}
 	}
@@ -584,7 +582,7 @@ init_bench_vmutex(struct mutex_bench *mb)
 
 	/* initialize PMEM volatile mutexes */
 	for (unsigned i = 0; i < mb->pa->n_locks; i++) {
-		PMEM_volatile_mutex *p = (PMEM_volatile_mutex *)&mb->locks[i];
+		auto *p = (PMEM_volatile_mutex *)&mb->locks[i];
 		p->volatile_pmemmutex.runid = mb->pa->runid_initial_value;
 		volatile_mutex_init(&p->volatile_pmemmutex.mutexp, nullptr);
 	}
@@ -600,7 +598,7 @@ static int
 exit_bench_vmutex(struct mutex_bench *mb)
 {
 	for (unsigned i = 0; i < mb->pa->n_locks; i++) {
-		PMEM_volatile_mutex *p = (PMEM_volatile_mutex *)&mb->locks[i];
+		auto *p = (PMEM_volatile_mutex *)&mb->locks[i];
 		volatile_mutex_destroy(mb->pop, p);
 	}
 
@@ -754,8 +752,7 @@ locks_exit(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != nullptr);
 	assert(args != nullptr);
 
-	struct mutex_bench *mb =
-		(struct mutex_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct mutex_bench *)pmembench_get_priv(bench);
 	assert(mb != nullptr);
 
 	mb->ops->bench_exit(mb);
@@ -774,8 +771,7 @@ locks_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 locks_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct mutex_bench *mb =
-		(struct mutex_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct mutex_bench *)pmembench_get_priv(bench);
 	assert(mb != nullptr);
 	assert(mb->pop != nullptr);
 	assert(!TOID_IS_NULL(mb->root));
