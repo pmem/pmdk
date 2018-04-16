@@ -19,19 +19,19 @@ matrix:
 before_build:
 - ps: >-
     if ($Env:CONFIGURATION -eq "Debug") {
-        utils/CSTYLE.ps1
+        utils\CSTYLE.ps1
         if ($LASTEXITCODE -ne 0) {
                 exit 1
         }
-        utils/CHECK_WHITESPACE.ps1
+        utils\CHECK_WHITESPACE.ps1
         if ($LASTEXITCODE -ne 0) {
                 exit 1
         }
-        utils/ps_analyze.ps1
+        utils\ps_analyze.ps1
         if ($LASTEXITCODE -ne 0) {
                 exit 1
         }
-        perl utils/sort_solution check
+        perl utils\sort_solution check
         if ($LASTEXITCODE -ne 0) {
                 exit 1
         }
@@ -41,23 +41,26 @@ build_script:
 - ps: msbuild src\$Env:solutionname /property:Configuration=$Env:CONFIGURATION /m /v:m
 
 after_build:
-- ps: utils/CREATE-ZIP.ps1 -b $Env:CONFIGURATION
+- ps: utils\CREATE-ZIP.ps1 -b $Env:CONFIGURATION
 
 test_script:
 - ps: >-
     if ($true) {
         cd src\test
         md C:\temp
+        echo "`$Local:LONGDIR = `"LoremipsumdolorsitametconsecteturadipiscingelitVivamuslacinianibhattortordictumsollicitudinNullamvariusvestibulumligulaetegestaselitsemperidMaurisultriciesligulaeuipsumtinciduntluctusMorbimaximusvariusdolorid`"" >> testconfig.ps1
+        echo "`$Env:DIRSUFFIX = `"`$LONGDIR\`$LONGDIR\`$LONGDIR\`$LONGDIR`"" >> testconfig.ps1
         echo "`$Env:NON_PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1
         echo "`$Env:UNITTEST_NO_ABORT_MSG = `"1`"" >> testconfig.ps1
         echo "`$Env:TM = `"1`"" >> testconfig.ps1
+        Get-Content testconfig.ps1
         if ($Env:CONFIGURATION -eq "Debug") {
-            ./RUNTESTS.ps1 -b debug -o 4m
+            .\RUNTESTS.ps1 -b debug -o 4m
         }
         if ($Env:CONFIGURATION -eq "Release") {
-            ./RUNTESTS.ps1 -b nondebug -o 4m
+            .\RUNTESTS.ps1 -b nondebug -o 4m
         }
     }
 
