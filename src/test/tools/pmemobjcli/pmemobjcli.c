@@ -380,7 +380,7 @@ parse_stage(void)
 		case TX_STAGE_FINALLY:
 			stage = "TX_STAGE_FINALLY";
 		break;
-		case MAX_TX_STAGE:
+		default:
 			assert(0); /* unreachable */
 		break;
 	}

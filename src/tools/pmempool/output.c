@@ -806,6 +806,8 @@ out_get_arch_machine_str(uint16_t machine)
 		return "AMD X86-64";
 	case PMDK_MACHINE_AARCH64:
 		return "Aarch64";
+	default:
+		break;
 	}
 
 	int ret = snprintf(str_buff, STR_MAX, "unknown %u", machine);

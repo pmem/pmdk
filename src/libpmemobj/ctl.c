@@ -695,6 +695,10 @@ ctl_arg_integer(const void *arg, void *dest, size_t dest_size)
 				return -1;
 			*(uint8_t *)dest = (uint8_t)val;
 			break;
+		default:
+			ERR("invalid destination size %zu", dest_size);
+			errno = EINVAL;
+			return -1;
 	}
 
 	return 0;

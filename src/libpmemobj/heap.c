@@ -670,6 +670,10 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 				heap_chunk_write_footer(hdr,
 					hdr->size_idx);
 				break;
+			case CHUNK_TYPE_RUN:
+				break;
+			default:
+				ASSERT(0);
 		}
 
 		i += hdr->size_idx;

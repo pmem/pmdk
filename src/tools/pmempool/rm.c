@@ -142,6 +142,9 @@ rm_file(const char *file)
 	case ASK_SOMETIMES:
 		cask = write_protected ? '?' : 'y';
 		break;
+	default:
+		outv_err("unknown state");
+		return 1;
 	}
 
 	const char *pre_msg = write_protected ? "write-protected " : "";
@@ -177,6 +180,9 @@ remove_remote(const char *target, const char *pool_set)
 	case ASK_SOMETIMES:
 		cask = 'y';
 		break;
+	default:
+		outv_err("unknown state");
+		return 1;
 	}
 
 	char ans = ask_Yn(cask, "remove remote pool '%s' on '%s'?",
