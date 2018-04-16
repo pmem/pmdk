@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,10 @@
 
 #include "unittest.h"
 
+#ifdef LAZY_LOADING
+#include "vmem_lazy_loading.h"
+#endif
+
 #define MAX_ALLOCS (100)
 
 static int custom_allocs;
@@ -53,8 +57,12 @@ static void *
 malloc_custom(size_t size)
 {
 	++custom_alloc_calls;
-	++custom_allocs;
-	return malloc(size);
+
+	void *ptr = malloc(size);
+	if (ptr != NULL)
+		++custom_allocs;
+
+	return ptr;
 }
 
 /*
@@ -67,8 +75,10 @@ static void
 free_custom(void *ptr)
 {
 	++custom_alloc_calls;
-	--custom_allocs;
-	free(ptr);
+	if (ptr != NULL) {
+		--custom_allocs;
+		free(ptr);
+	}
 }
 
 /*
@@ -93,9 +103,12 @@ realloc_custom(void *ptr, size_t size)
 static char *
 strdup_custom(const char *s)
 {
+	void *ptr;
 	++custom_alloc_calls;
-	++custom_allocs;
-	return strdup(s);
+	ptr = strdup(s);
+	if (ptr != NULL)
+		++custom_allocs;
+	return ptr;
 }
 
 int
@@ -120,6 +133,10 @@ main(int argc, char *argv[])
 	/* allocate memory for function vmem_create_in_region() */
 	void *mem_pool = MMAP_ANON_ALIGNED(VMEM_MIN_POOL, 4 << 20);
 
+#ifdef LAZY_LOADING
+	LIBHANDLE vmem_handle = vmem_load();
+#endif
+
 	/* use custom alloc functions to check for memory leaks */
 	vmem_set_funcs(malloc_custom, free_custom,
 		realloc_custom, strdup_custom, NULL);
@@ -128,8 +145,7 @@ main(int argc, char *argv[])
 	for (alignment = 2; alignment <= 4 * 1024 * 1024; alignment *= 2) {
 
 		if (dir == NULL) {
-			vmp = vmem_create_in_region(mem_pool,
-				VMEM_MIN_POOL);
+			vmp = vmem_create_in_region(mem_pool, VMEM_MIN_POOL);
 			if (vmp == NULL)
 				UT_FATAL("!vmem_create_in_region");
 		} else {
@@ -171,9 +187,19 @@ main(int argc, char *argv[])
 		vmem_delete(vmp);
 	}
 
+#ifdef LAZY_LOADING
+	vmem_unload(vmem_handle);
+
+	/*
+	 * Note that the assert below is correct only if the libvmem is
+	 * dynamically loaded.  If it is statically loaded then any global
+	 * structures have not yet been freed by the *fini routines.
+	 */
+	UT_ASSERTeq(custom_allocs, 0);
+#endif
+
 	/* check memory leaks */
 	UT_ASSERTne(custom_alloc_calls, 0);
-	UT_ASSERTeq(custom_allocs, 0);
 
 	DONE(NULL);
 }

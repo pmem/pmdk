@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -725,6 +725,22 @@ void __asan_unpoison_memory_region(void const volatile *addr, size_t size);
 	((void)(addr), (void)(size))
 #endif
 
+/*
+ * lazy loading of libraries
+ */
+#ifndef _WIN32
+
+void *ut_libopen(const char *filename);
+void ut_libclose(void *handle);
+void *ut_libsym(void *handle, const char *symbol);
+
+#else
+
+HMODULE ut_libopen(const char *filename);
+void ut_libclose(HMODULE handle);
+void *ut_libsym(HMODULE handle, const char *symbol);
+
+#endif /* _WIN32 */
 
 #ifdef __cplusplus
 }
