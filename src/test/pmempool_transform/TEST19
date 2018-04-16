@@ -126,15 +126,15 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET_1 \
 	>> $LOG_TEMP
 
 # Transform poolset - add a second, larger, replica
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform $POOLSET_1 $POOLSET_2 >> \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q $POOLSET_1 $POOLSET_2 >> \
 	$LOG_TEMP
 
 # Transform poolset - remove the first replica
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform $POOLSET_2 $POOLSET_3 >> \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q $POOLSET_2 $POOLSET_3 >> \
 	$LOG_TEMP
 
 # Transform poolset - add a second larger replica
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform $POOLSET_3 $POOLSET_4 >> \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q $POOLSET_3 $POOLSET_4 >> \
 	$LOG_TEMP
 
 # Write some data into the pool, hitting all the part files
@@ -146,7 +146,7 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_4 >> \
 	$LOG_TEMP
 
 # Transform poolset
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform $POOLSET_4 $POOLSET_5 >> \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q $POOLSET_4 $POOLSET_5 >> \
 	$LOG_TEMP
 
 # Check if correctly transformed

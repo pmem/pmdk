@@ -99,7 +99,7 @@ expect_normal_exit $PMEMOBJCLI -s $WRITE_SCRIPT $POOLSET_IN >> $LOG_TEMP
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET_IN >> $LOG_TEMP
 
 # Transform poolset
-expect_abnormal_exit $PMEMPOOL transform `
+expect_abnormal_exit $PMEMPOOL transform -q `
     $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP 2>$null
 
 # Check if correctly read

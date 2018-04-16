@@ -81,7 +81,7 @@ rm -f $DIR/part10
 rm -f $DIR/part11
 
 # Synchronize replicas using the second poolset
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET2 >> $LOG_TEMP 2>&1
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync -q $POOLSET2 >> $LOG_TEMP 2>&1
 
 mv $LOG_TEMP $LOG
 check

@@ -54,6 +54,7 @@
 #include "pool_hdr.h"
 #include "set.h"
 #include "util.h"
+#include "util_pmem.h"
 #include "uuid.h"
 #include "shutdown_state.h"
 #include "os_dimm.h"
@@ -65,6 +66,7 @@ static int
 check_flags_sync(unsigned flags)
 {
 	flags &= ~(unsigned)PMEMPOOL_DRY_RUN;
+	flags &= ~(unsigned)PMEMPOOL_PROGRESS;
 	return flags > 0;
 }
 
@@ -76,6 +78,7 @@ static int
 check_flags_transform(unsigned flags)
 {
 	flags &= ~(unsigned)PMEMPOOL_DRY_RUN;
+	flags &= ~(unsigned)PMEMPOOL_PROGRESS;
 	return flags > 0;
 }
 
@@ -303,6 +306,32 @@ replica_find_unbroken_part(unsigned repn, struct poolset_health_status *set_hs)
 			return p;
 	}
 	return UNDEF_PART;
+}
+
+/*
+ * poolset_count_broken_parts -- get the number of all broken parts in a poolset
+ *
+ * localization values:
+ * ALL		- count local and remote parts,
+ * LOCAL	- count local parts only,
+ * REMOTE	- count remote parts (i.e. remote replicas) only.
+ */
+unsigned
+poolset_count_broken_parts(struct pool_set *set,
+		struct poolset_health_status *set_hs, int whence)
+{
+	unsigned n = 0;
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		if (set->replica[r]->remote && !(whence & REMOTE))
+			continue;
+		if (!set->replica[r]->remote && !(whence & LOCAL))
+			continue;
+		for (unsigned p = 0; p < set->replica[r]->nparts; ++p) {
+			if (replica_is_part_broken(r, p, set_hs))
+				++n;
+		}
+	}
+	return n;
 }
 
 /*
@@ -1059,13 +1088,24 @@ check_replica_sizes(struct pool_set *set, struct poolset_health_status *set_hs)
  */
 int
 replica_check_poolset_health(struct pool_set *set,
-		struct poolset_health_status **set_hsp, unsigned flags)
+		struct poolset_health_status **set_hsp, unsigned flags,
+		PMEM_progress_cb progress_cb)
 {
 	LOG(3, "set %p, set_hsp %p, flags %u", set, set_hsp, flags);
+
+	char *msg = "Checking poolset health";
+	size_t progress_max = 11;
+	if (progress_cb)
+		progress_cb(msg, 0, progress_max);
+
 	if (replica_create_poolset_health_status(set, set_hsp)) {
 		LOG(1, "creating poolset health status failed");
+		util_break_progress(progress_cb);
 		return -1;
 	}
+	if (progress_cb)
+		progress_cb(msg, 1, progress_max);
+
 
 	struct poolset_health_status *set_hs = *set_hsp;
 
@@ -1074,15 +1114,21 @@ replica_check_poolset_health(struct pool_set *set,
 		LOG(1, "poolset part files check failed");
 		goto err;
 	}
+	if (progress_cb)
+		progress_cb(msg, 2, progress_max);
 
 	/* map all headers */
 	map_all_unbroken_headers(set, set_hs);
+	if (progress_cb)
+		progress_cb(msg, 3, progress_max);
 
 	/*
 	 * Check if checksums and signatures are correct for all parts
 	 * in all replicas.
 	 */
 	check_checksums_and_signatures(set, set_hs);
+	if (progress_cb)
+		progress_cb(msg, 4, progress_max);
 
 	/* check if option flags are consistent */
 	if (check_options(set, set_hs)) {
@@ -1105,38 +1151,55 @@ replica_check_poolset_health(struct pool_set *set,
 		LOG(1, "replica consistency check failed");
 		goto err;
 	}
+	if (progress_cb)
+		progress_cb(msg, 5, progress_max);
+
 
 	/* check poolset_uuid values between replicas */
 	if (check_poolset_uuids(set, set_hs)) {
 		LOG(1, "poolset uuids check failed");
 		goto err;
 	}
+	if (progress_cb)
+		progress_cb(msg, 6, progress_max);
 
 	/* check if uuids for adjacent replicas are consistent */
 	if (check_uuids_between_replicas(set, set_hs)) {
 		LOG(1, "replica uuids check failed");
 		goto err;
 	}
+	if (progress_cb)
+		progress_cb(msg, 7, progress_max);
 
 	/* check if healthy replicas make up another poolset */
 	if (check_replica_cycles(set, set_hs)) {
 		LOG(1, "replica cycles check failed");
 		goto err;
 	}
+	if (progress_cb)
+		progress_cb(msg, 8, progress_max);
 
 	/* check if replicas are large enough */
 	if (check_replica_sizes(set, set_hs)) {
 		LOG(1, "replica sizes check failed");
 		goto err;
 	}
+	if (progress_cb)
+		progress_cb(msg, 9, progress_max);
+
 
 	if (check_store_all_sizes(set, set_hs)) {
 		LOG(1, "reading pool sizes failed");
 		goto err;
 	}
+	if (progress_cb)
+		progress_cb(msg, 10, progress_max);
 
 	unmap_all_headers(set);
 	util_poolset_fdclose_always(set);
+	if (progress_cb)
+		progress_cb(msg, 11, progress_max);
+
 	return 0;
 
 err:
@@ -1144,6 +1207,7 @@ err:
 	unmap_all_headers(set);
 	util_poolset_fdclose_always(set);
 	replica_free_poolset_health_status(set_hs);
+	util_break_progress(progress_cb);
 	return -1;
 }
 
@@ -1307,15 +1371,127 @@ err:
 }
 
 /*
+ * util_memcpy_persist -- copy and persist data and report progress of the
+ *                        operation
+ */
+void
+util_memcpy_persist(int is_pmem, void *to, const void *from, size_t size,
+		const char *msg, PMEM_progress_cb progress_cb)
+{
+	LOG(3, "to %p, from %p, size %zu, msg %s, progress_cb %p", to, from,
+			size, msg, progress_cb);
+
+	if (progress_cb == NULL) {
+		memcpy(to, from, size);
+		util_persist(is_pmem, to, size);
+	} else {
+		if (msg == NULL || *msg == '\0')
+			msg = "Copying data";
+
+		size_t off = 0;
+		size_t next_off = 0;
+		progress_cb(msg, 0, size);
+		for (unsigned i = 0; i < 100; ++i) {
+			next_off = (size * (i + 1) + 99) / 100;
+			memcpy(ADDR_SUM(to, off), ADDR_SUM(from, off),
+					next_off - off);
+			util_persist(is_pmem, ADDR_SUM(to, off),
+					next_off - off);
+			progress_cb(msg, next_off, size);
+			off = next_off;
+		}
+	}
+}
+
+int
+util_rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
+		unsigned lane, const char *msg, PMEM_progress_cb progress_cb)
+{
+	if (progress_cb == NULL) {
+		return Rpmem_read(rpp, buff, offset, length, lane);
+	} else {
+		if (msg == NULL || *msg == '\0')
+			msg = "Reading remote data";
+
+		size_t off = 0;
+		size_t next_off = 0;
+		int ret = 0;
+		progress_cb(msg, 0, length);
+		for (unsigned i = 0; i < 100; ++i) {
+			next_off = (length * (i + 1) + 99) / 100;
+			ret = Rpmem_read(rpp, ADDR_SUM(buff, off),
+					offset + off, next_off - off, lane);
+			if (unlikely(ret)) {
+				progress_cb(NULL, 0, 0);
+				break;
+			} else {
+				progress_cb(msg, next_off, length);
+			}
+			off = next_off;
+		}
+		return ret;
+	}
+}
+
+int
+util_rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
+		unsigned lane, const char *msg, PMEM_progress_cb progress_cb)
+{
+	if (progress_cb == NULL) {
+		return Rpmem_persist(rpp, offset, length, lane);
+	} else {
+		if (msg == NULL || *msg == '\0')
+			msg = "Persisting data";
+
+		size_t off = 0;
+		size_t next_off = 0;
+		int ret = 0;
+		progress_cb(msg, 0, length);
+		for (unsigned i = 0; i < 100; ++i) {
+			next_off = (length * (i + 1) + 99) / 100;
+			ret = Rpmem_persist(rpp, offset + off,
+					next_off - off, lane);
+			if (unlikely(ret)) {
+				progress_cb(NULL, 0, 0);
+				break;
+			} else {
+				progress_cb(msg, next_off, length);
+			}
+			off = next_off;
+		}
+		return ret;
+	}
+}
+
+/*
+ * util_break_progress -- break reporting progress of the current operation
+ */
+void
+util_break_progress(PMEM_progress_cb progress_cb)
+{
+	if (progress_cb)
+		progress_cb(NULL, 0, 0);
+}
+
+/*
  * pmempool_syncU -- synchronize replicas within a poolset
  */
 #ifndef _WIN32
 static inline
 #endif
 int
-pmempool_syncU(const char *poolset, unsigned flags)
+pmempool_syncU(const char *poolset, unsigned flags, ...)
 {
-	LOG(3, "poolset %s, flags %u", poolset, flags);
+	PMEM_progress_cb progress_cb = NULL;
+	if (flags & PMEMPOOL_PROGRESS) {
+		va_list arg;
+		va_start(arg, flags);
+		progress_cb = va_arg(arg, PMEM_progress_cb);
+		va_end(arg);
+	}
+
+	LOG(3, "poolset %s, flags %u, progress_cb %p", poolset, flags,
+			progress_cb);
 	ASSERTne(poolset, NULL);
 
 	/* check if poolset has correct signature */
@@ -1358,7 +1534,7 @@ pmempool_syncU(const char *poolset, unsigned flags)
 	}
 
 	/* sync all replicas */
-	if (replica_sync(set, NULL, flags)) {
+	if (replica_sync(set, NULL, flags, progress_cb)) {
 		LOG(1, "synchronization failed");
 		goto err_close_all;
 	}
@@ -1378,23 +1554,40 @@ err:
 		errno = EINVAL;
 
 	return -1;
+
 }
 
 #ifndef _WIN32
 /*
  * pmempool_sync -- synchronize replicas within a poolset
+ *
+ * if flag PMEMPOOL_PROGRESS is set and an additional argument is a function of
+ * PMEM_progress_cb type, the progress of the operation will be reported using
+ * this function
  */
 int
-pmempool_sync(const char *poolset, unsigned flags)
+pmempool_sync(const char *poolset, unsigned flags, ...)
 {
-	return pmempool_syncU(poolset, flags);
+	if (flags & PMEMPOOL_PROGRESS) {
+		va_list arg;
+		va_start(arg, flags);
+		PMEM_progress_cb progress_cb = va_arg(arg, PMEM_progress_cb);
+		va_end(arg);
+		return pmempool_syncU(poolset, flags, progress_cb);
+	} else {
+		return pmempool_syncU(poolset, flags);
+	}
 }
 #else
 /*
  * pmempool_syncW -- synchronize replicas within a poolset in widechar
+ *
+ * if flag PMEMPOOL_PROGRESS is set and an additional argument is a function of
+ * PMEM_progress_cb type, the progress of the operation will be reported using
+ * this function
  */
 int
-pmempool_syncW(const wchar_t *poolset, unsigned flags)
+pmempool_syncW(const wchar_t *poolset, unsigned flags, ...)
 {
 	char *path = util_toUTF8(poolset);
 	if (path == NULL) {
@@ -1402,7 +1595,16 @@ pmempool_syncW(const wchar_t *poolset, unsigned flags)
 		return -1;
 	}
 
-	int ret = pmempool_syncU(path, flags);
+	int ret;
+	if (flags & PMEMPOOL_PROGRESS) {
+		va_list arg;
+		va_start(arg, flags);
+		PMEM_progress_cb progress_cb = va_arg(arg, PMEM_progress_cb);
+		va_end(arg);
+		ret = pmempool_syncU(path, flags, progress_cb);
+	} else {
+		ret = pmempool_syncU(path, flags);
+	}
 
 	util_free_UTF8(path);
 	return ret;
@@ -1416,11 +1618,20 @@ pmempool_syncW(const wchar_t *poolset, unsigned flags)
 static inline
 #endif
 int
-pmempool_transformU(const char *poolset_src,
-		const char *poolset_dst, unsigned flags)
+pmempool_transformU(const char *poolset_src, const char *poolset_dst,
+		unsigned flags, ...)
 {
-	LOG(3, "poolset_src %s, poolset_dst %s, flags %u", poolset_src,
-			poolset_dst, flags);
+	PMEM_progress_cb progress_cb = NULL;
+	if (flags & PMEMPOOL_PROGRESS) {
+		va_list arg;
+		va_start(arg, flags);
+		progress_cb = va_arg(arg, PMEM_progress_cb);
+		va_end(arg);
+	}
+
+	LOG(3, "poolset_src %s, poolset_dst %s, flags %u, progress_cb %p",
+			poolset_src, poolset_dst, flags, progress_cb);
+
 	ASSERTne(poolset_src, NULL);
 	ASSERTne(poolset_dst, NULL);
 
@@ -1498,7 +1709,7 @@ pmempool_transformU(const char *poolset_src,
 	del = is_dry_run(flags) ? DO_NOT_DELETE_PARTS : DELETE_CREATED_PARTS;
 
 	/* transform poolset */
-	if (replica_transform(set_in, set_out, flags)) {
+	if (replica_transform(set_in, set_out, flags, progress_cb)) {
 		LOG(1, "transformation failed");
 		goto err_free_poolout;
 	}
@@ -1523,20 +1734,37 @@ err:
 #ifndef _WIN32
 /*
  * pmempool_transform -- alter poolset structure
+ *
+ * if flag PMEMPOOL_PROGRESS is set and an additional argument is a function of
+ * PMEM_progress_cb type, the progress of the operation will be reported using
+ * this function
  */
 int
 pmempool_transform(const char *poolset_src,
-	const char *poolset_dst, unsigned flags)
+	const char *poolset_dst, unsigned flags, ...)
 {
-	return pmempool_transformU(poolset_src, poolset_dst, flags);
+	if (flags & PMEMPOOL_PROGRESS) {
+		va_list arg;
+		va_start(arg, flags);
+		PMEM_progress_cb progress_cb = va_arg(arg, PMEM_progress_cb);
+		va_end(arg);
+		return pmempool_transformU(poolset_src, poolset_dst, flags,
+				progress_cb);
+	} else {
+		return pmempool_transformU(poolset_src, poolset_dst, flags);
+	}
 }
 #else
 /*
  * pmempool_transformW -- alter poolset structure in widechar
+ *
+ * if flag PMEMPOOL_PROGRESS is set and an additional argument is a function of
+ * PMEM_progress_cb type, the progress of the operation will be reported using
+ * this function
  */
 int
 pmempool_transformW(const wchar_t *poolset_src,
-	const wchar_t *poolset_dst, unsigned flags)
+	const wchar_t *poolset_dst, unsigned flags, ...)
 {
 	char *path_src = util_toUTF8(poolset_src);
 	if (path_src == NULL) {
@@ -1551,7 +1779,17 @@ pmempool_transformW(const wchar_t *poolset_src,
 		return -1;
 	}
 
-	int ret = pmempool_transformU(path_src, path_dst, flags);
+	int ret;
+	if (flags & PMEMPOOL_PROGRESS) {
+		va_list arg;
+		va_start(arg, flags);
+		PMEM_progress_cb progress_cb = va_arg(arg, PMEM_progress_cb);
+		va_end(arg);
+		ret = pmempool_transformU(path_src, path_dst, flags,
+				progress_cb);
+	} else {
+		ret = pmempool_transformU(path_src, path_dst, flags);
+	}
 
 	util_free_UTF8(path_src);
 	util_free_UTF8(path_dst);

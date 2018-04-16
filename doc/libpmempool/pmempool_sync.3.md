@@ -55,10 +55,14 @@ _UW(pmempool_sync), _UW(pmempool_transform) -- pool set synchronization and tran
 ```c
 #include <libpmempool.h>
 
-_UWFUNCR1(int, pmempool_sync, *poolset_file,=q=
-	unsigned flags=e=, =q= (EXPERIMENTAL)=e=)
+_UWFUNCR1(int, pmempool_sync, *poolset_file,
+	unsigned flags, =q= (EXPERIMENTAL)=e=)
+_UWFUNCR1(int, pmempool_sync, *poolset_file, =q=
+	unsigned flags, PMEM_progress_cb cb =e=, =q= (EXPERIMENTAL)=e=)
 _UWFUNCR12(int, pmempool_transform, *poolset_file_src,
 	*poolset_file_dst, unsigned flags, =q= (EXPERIMENTAL)=e=)
+_UWFUNCR12(int, pmempool_transform, *poolset_file_src,
+	*poolset_file_dst, =q= unsigned flags, PMEM_progress_cb cb =e=, =q= (EXPERIMENTAL)=e=)
 ```
 
 _UNICODE()
@@ -69,7 +73,7 @@ _UNICODE()
 The _UW(pmempool_sync) function synchronizes data between replicas within
 a pool set.
 
-_UW(pmempool_sync) accepts two arguments:
+_UW(pmempool_sync) accepts two mandatory arguments:
 
 * *poolset_file* - a path to a pool set file,
 
@@ -89,7 +93,31 @@ pools, so _UW(pmempool_sync) cannot be used with other pool types
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
-synchronization.
+synchronization;
+
+* **PMEMPOOL_PROGRESS** - report progress of the operation via callback
+function.
+
+The *cb* argument is a pointer to a callback function for reporting
+progress of the operation.  This argument must be supplied when
+**PMEMPOOL_PROGRESS** is specified in *flags*.  Otherwise, it is ignored.
+
+The callback has to have the type *PMEM_progress_cb* of the form:
+
+```c
+typedef int (*PMEM_progress_cb)(const char* msg, size_t curr, size_t total);
+```
+
+where:
+
+* *msg* - a message or a title for the progress report,
+
+* *curr* - the current progress value,
+
+* *total* - the maximum progress value.
+
+It is assumed that NULL value of the *msg* breaks the current progress report
+(e.g. in case of an error).
 
 _UW(pmempool_sync) checks that the metadata of all replicas in
 a pool set is consistent, i.e. all parts are healthy, and if any of them is
@@ -128,7 +156,31 @@ is performed.
 The following flags are available:
 
 * **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
-transformation.
+transformation;
+
+* **PMEMPOOL_PROGRESS** - report progress of the operation via callback
+function.
+
+The *cb* argument is a pointer to a callback function for reporting
+progress of the operation.  This argument must be supplied when
+**PMEMPOOL_PROGRESS** is specified in *flags*.  Otherwise, it is ignored.
+
+The callback has to have the type *PMEM_progress_cb* of the form:
+
+```c
+typedef int (*PMEM_progress_cb)(const char* msg, size_t curr, size_t total);
+```
+
+where:
+
+* *msg* - a message or a title for the progress report,
+
+* *curr* - the current progress value,
+
+* *total* - the maximum progress value.
+
+It is assumed that NULL value of the *msg* breaks the current progress report
+(e.g. in case of an error).
 
 _WINUX(=q=When adding or deleting replicas, the two pool set files can differ only in the
 definitions of replicas which are to be added or deleted. One cannot add and

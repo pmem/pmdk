@@ -105,7 +105,7 @@ exec_pmemobjcli_script 1 ${NODE_DIR[1]}$WRITE_SCRIPT ${NODE_DIR[1]}$POOLSET_LOCA
 exec_pmemobjcli_script 1 ${NODE_DIR[1]}$READ_SCRIPT ${NODE_DIR[1]}$POOLSET_LOCAL_IN before.data.log
 
 # Transform poolset
-expect_normal_exit run_on_node 1 ../pmempool transform \
+expect_normal_exit run_on_node 1 ../pmempool transform -q \
 	${NODE_DIR[1]}$POOLSET_LOCAL_IN ${NODE_DIR[1]}$POOLSET_LOCAL_OUT
 
 # Check if data is still correctly written

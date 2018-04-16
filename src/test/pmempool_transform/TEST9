@@ -99,7 +99,7 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
 	$LOG_TEMP
 
 # Transform poolset
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform \
+expect_normal_exit $PMEMPOOL$EXESUFFIX transform -q \
 	$POOLSET_IN $POOLSET_OUT >> $LOG_TEMP
 
 # Check if correctly read

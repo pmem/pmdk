@@ -124,7 +124,7 @@ expect_normal_exit $PMEMSPOIL $DIR\testfile1 "pool_hdr.uuid=0000000000000000" `
     >> $LOG_TEMP
 
 # Synchronize replicas
-expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL sync -q $POOLSET >> $LOG_TEMP
 
 # Check if correctly copied
 expect_normal_exit $PMEMOBJCLI -s $READ_SCRIPT $POOLSET | out-file -encoding ASCII -Append -literalpath $LOG_TEMP

@@ -87,7 +87,7 @@ rm $DIR\part10 -Force -ea si
 rm $DIR\part11 -Force -ea si
 
 # Synchronize replicas using the second poolset
-expect_abnormal_exit $PMEMPOOL sync $POOLSET2 >> $LOG_TEMP 2>$null
+expect_abnormal_exit $PMEMPOOL sync -q $POOLSET2 >> $LOG_TEMP 2>$null
 
 mv -Force $LOG_TEMP $LOG
 check

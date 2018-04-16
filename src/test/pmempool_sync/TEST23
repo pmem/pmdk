@@ -83,10 +83,10 @@ cat $LOG >> $LOG_TEMP
 rm -f $DIR/part0*
 
 # Try to synchronize replicas using the second poolset
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET2 >> $LOG_TEMP 2>&1
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync -q $POOLSET2 >> $LOG_TEMP 2>&1
 
 # Synchronize replicas using the first poolset
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET1 >> $LOG_TEMP
+expect_normal_exit $PMEMPOOL$EXESUFFIX sync -q $POOLSET1 >> $LOG_TEMP
 
 # Check metadata using pmempool info
 dump_pool_info $POOLSET1 >> $LOG_TEMP

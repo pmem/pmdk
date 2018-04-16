@@ -74,7 +74,7 @@ setup
 #rm $DIR\testfile01 -Force -ea si
 
 ## Synchronize replicas
-#expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP
+#expect_normal_exit $PMEMPOOL sync -q $POOLSET >> $LOG_TEMP
 
 ## Check if restored part file have the same permissions as other parts
 #(Get-Item $DIR\testfile00).mode >> $LOG_TEMP
@@ -89,7 +89,7 @@ setup
 #chmod 600 $DIR\testfile*
 
 ## Synchronize replicas
-#expect_normal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP
+#expect_normal_exit $PMEMPOOL sync -q $POOLSET >> $LOG_TEMP
 
 ## Check if restored part file have the same permissions as other parts
 #(Get-Item $DIR\testfile10).mode >> $LOG_TEMP
