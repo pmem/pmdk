@@ -103,7 +103,7 @@ do_warmup(struct log_bench *lb, size_t nops)
 {
 	int ret = 0;
 	size_t bsize = lb->args->vec_size * lb->args->el_size;
-	char *buf = (char *)calloc(1, bsize);
+	auto *buf = (char *)calloc(1, bsize);
 	if (!buf) {
 		perror("calloc");
 		return -1;
@@ -151,11 +151,10 @@ out:
 static int
 log_append(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)info->worker->priv;
+	auto *worker_info = (struct log_worker_info *)info->worker->priv;
 
 	assert(worker_info);
 
@@ -176,11 +175,10 @@ log_append(struct benchmark *bench, struct operation_info *info)
 static int
 log_appendv(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)info->worker->priv;
+	auto *worker_info = (struct log_worker_info *)info->worker->priv;
 
 	assert(worker_info);
 
@@ -200,11 +198,10 @@ log_appendv(struct benchmark *bench, struct operation_info *info)
 static int
 fileio_append(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)info->worker->priv;
+	auto *worker_info = (struct log_worker_info *)info->worker->priv;
 
 	assert(worker_info);
 
@@ -225,11 +222,10 @@ fileio_append(struct benchmark *bench, struct operation_info *info)
 static int
 fileio_appendv(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb != nullptr);
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)info->worker->priv;
+	auto *worker_info = (struct log_worker_info *)info->worker->priv;
 
 	assert(worker_info);
 
@@ -250,7 +246,7 @@ fileio_appendv(struct benchmark *bench, struct operation_info *info)
 static int
 log_process_data(const void *buf, size_t len, void *arg)
 {
-	struct log_worker_info *worker_info = (struct log_worker_info *)arg;
+	auto *worker_info = (struct log_worker_info *)arg;
 	size_t left = worker_info->buf_size - worker_info->buf_ptr;
 	if (len > left) {
 		worker_info->buf_ptr = 0;
@@ -298,11 +294,10 @@ fileio_read(int fd, ssize_t len, struct log_worker_info *worker_info)
 static int
 log_read_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)info->worker->priv;
+	auto *worker_info = (struct log_worker_info *)info->worker->priv;
 
 	assert(worker_info);
 
@@ -333,11 +328,11 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
 	int ret = 0;
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	size_t i_size, n_vectors;
 	assert(lb);
 
-	struct log_worker_info *worker_info = (struct log_worker_info *)malloc(
+	auto *worker_info = (struct log_worker_info *)malloc(
 		sizeof(struct log_worker_info));
 	if (!worker_info) {
 		perror("malloc");
@@ -383,8 +378,8 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 		/* generate append sizes */
 		for (size_t i = 0; i < n_sizes; i++) {
-			uint32_t hr = (uint32_t)os_rand_r(&worker_info->seed);
-			uint32_t lr = (uint32_t)os_rand_r(&worker_info->seed);
+			auto hr = (uint32_t)os_rand_r(&worker_info->seed);
+			auto lr = (uint32_t)os_rand_r(&worker_info->seed);
 			uint64_t r64 = (uint64_t)hr << 32 | lr;
 			size_t width = lb->args->el_size - lb->args->min_size;
 			worker_info->rand_sizes[i] =
@@ -445,8 +440,7 @@ log_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)worker->priv;
+	auto *worker_info = (struct log_worker_info *)worker->priv;
 	assert(worker_info);
 
 	free(worker_info->buf);
@@ -467,8 +461,7 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != nullptr);
 	assert(args->opts != nullptr);
 	struct benchmark_info *bench_info;
-	struct log_bench *lb =
-		(struct log_bench *)malloc(sizeof(struct log_bench));
+	auto *lb = (struct log_bench *)malloc(sizeof(struct log_bench));
 
 	if (!lb) {
 		perror("malloc");
@@ -580,7 +573,7 @@ err_free_lb:
 static int
 log_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 
 	if (!lb->args->fileio)
 		pmemlog_close(lb->plp);

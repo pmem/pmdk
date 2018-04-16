@@ -204,7 +204,7 @@ static int
 vmem_create_pools(struct vmem_bench *vb, struct benchmark_args *args)
 {
 	unsigned i;
-	struct vmem_args *va = (struct vmem_args *)args->opts;
+	auto *va = (struct vmem_args *)args->opts;
 	size_t dsize = args->dsize + va->rsize;
 	vb->pool_size =
 		dsize * args->n_ops_per_thread * args->n_threads / vb->npools;
@@ -287,7 +287,7 @@ vmem_do_warmup(struct vmem_bench *vb, struct benchmark_args *args)
 static int
 malloc_main_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	auto *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	return malloc_op[vb->lib_mode](vb, info->worker->index, info->index);
 }
 
@@ -297,7 +297,7 @@ malloc_main_op(struct benchmark *bench, struct operation_info *info)
 static int
 free_main_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	auto *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	return free_op[vb->lib_mode](vb, info->worker->index, info->index);
 }
 
@@ -307,7 +307,7 @@ free_main_op(struct benchmark *bench, struct operation_info *info)
 static int
 realloc_main_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	auto *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	return realloc_op[vb->lib_mode](vb, info->worker->index, info->index);
 }
 
@@ -317,7 +317,7 @@ realloc_main_op(struct benchmark *bench, struct operation_info *info)
 static int
 vmem_mix_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	auto *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	unsigned idx = vb->mix_ops[info->index];
 	free_op[vb->lib_mode](vb, info->worker->index, idx);
 	return malloc_op[vb->lib_mode](vb, info->worker->index, idx);
@@ -392,8 +392,8 @@ static int
 vmem_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		 struct worker_info *worker)
 {
-	struct vmem_args *va = (struct vmem_args *)args->opts;
-	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	auto *va = (struct vmem_args *)args->opts;
+	auto *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	int ret = va->mix ? vmem_init_worker_alloc_mix(vb, args, worker)
 			  : vmem_init_worker_alloc(vb, args, worker);
 	return ret;
@@ -406,8 +406,8 @@ static int
 vmem_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	unsigned i;
-	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
-	struct vmem_args *va = (struct vmem_args *)args->opts;
+	auto *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	auto *va = (struct vmem_args *)args->opts;
 	if (!va->stdlib_alloc) {
 		for (i = 0; i < vb->npools; i++) {
 			vmem_delete(vb->pools[i]);
@@ -432,7 +432,7 @@ vmem_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 vmem_exit_free(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	auto *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	for (unsigned i = 0; i < args->n_threads; i++) {
 		for (size_t j = 0; j < args->n_ops_per_thread; j++) {
 			free_op[vb->lib_mode](vb, i, j);
@@ -452,15 +452,14 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != nullptr);
 	assert(args != nullptr);
 
-	struct vmem_bench *vb =
-		(struct vmem_bench *)calloc(1, sizeof(struct vmem_bench));
+	auto *vb = (struct vmem_bench *)calloc(1, sizeof(struct vmem_bench));
 	if (vb == nullptr) {
 		perror("malloc");
 		return -1;
 	}
 	pmembench_set_priv(bench, vb);
 	struct vmem_worker *vw;
-	struct vmem_args *va = (struct vmem_args *)args->opts;
+	auto *va = (struct vmem_args *)args->opts;
 	vb->alloc_sizes = nullptr;
 	vb->lib_mode = va->stdlib_alloc ? STDLIB_MODE : VMEM_MODE;
 
@@ -557,8 +556,8 @@ vmem_realloc_init(struct benchmark *bench, struct benchmark_args *args)
 	if (vmem_init(bench, args) != 0)
 		return -1;
 
-	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
-	struct vmem_args *va = (struct vmem_args *)args->opts;
+	auto *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	auto *va = (struct vmem_args *)args->opts;
 	vb->rand_realloc = va->min_rsize != -1;
 
 	if (vb->rand_realloc && va->min_rsize > va->rsize) {
@@ -593,7 +592,7 @@ vmem_mix_init(struct benchmark *bench, struct benchmark_args *args)
 
 	size_t i;
 	unsigned idx, tmp;
-	struct vmem_bench *vb = (struct vmem_bench *)pmembench_get_priv(bench);
+	auto *vb = (struct vmem_bench *)pmembench_get_priv(bench);
 	if ((vb->mix_ops = (unsigned *)calloc(args->n_ops_per_thread,
 					      sizeof(unsigned))) == nullptr) {
 		perror("calloc");

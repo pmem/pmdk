@@ -360,7 +360,7 @@ pmembench_merge_clos(struct benchmark *bench)
 		nclos += bench->info->nclos;
 	}
 
-	struct benchmark_clo *clos = (struct benchmark_clo *)calloc(
+	auto *clos = (struct benchmark_clo *)calloc(
 		nclos, sizeof(struct benchmark_clo));
 	assert(clos != nullptr);
 
@@ -647,8 +647,8 @@ results_store(struct bench_results *res, struct benchmark_worker **workers,
 static int
 compare_time(const void *p1, const void *p2)
 {
-	const benchmark_time_t *t1 = (const benchmark_time_t *)p1;
-	const benchmark_time_t *t2 = (const benchmark_time_t *)p2;
+	const auto *t1 = (const benchmark_time_t *)p1;
+	const auto *t2 = (const benchmark_time_t *)p2;
 
 	return benchmark_time_compare(t1, t2);
 }
@@ -659,8 +659,8 @@ compare_time(const void *p1, const void *p2)
 static int
 compare_doubles(const void *a1, const void *b1)
 {
-	const double *a = (const double *)a1;
-	const double *b = (const double *)b1;
+	const auto *a = (const double *)a1;
+	const auto *b = (const double *)b1;
 	return (*a > *b) - (*a < *b);
 }
 
@@ -670,8 +670,8 @@ compare_doubles(const void *a1, const void *b1)
 static int
 compare_uint64t(const void *a1, const void *b1)
 {
-	const uint64_t *a = (const uint64_t *)a1;
-	const uint64_t *b = (const uint64_t *)b1;
+	const auto *a = (const uint64_t *)a1;
+	const auto *b = (const uint64_t *)b1;
 	return (*a > *b) - (*a < *b);
 }
 
@@ -749,7 +749,7 @@ get_total_results(struct total_results *tres)
 	benchmark_time_t *tend =
 		(benchmark_time_t *)malloc(tres->nthreads * sizeof(*tend));
 	assert(tend != nullptr);
-	double *totals = (double *)malloc(tres->nrepeats * sizeof(double));
+	auto *totals = (double *)malloc(tres->nrepeats * sizeof(double));
 	assert(totals != nullptr);
 
 	/* estimate total penalty of getting time from the system */
@@ -852,7 +852,7 @@ get_total_results(struct total_results *tres)
 	assert(count > 0);
 	tres->latency.avg /= count;
 
-	uint64_t *ntotals = (uint64_t *)calloc(count, sizeof(uint64_t));
+	auto *ntotals = (uint64_t *)calloc(count, sizeof(uint64_t));
 	assert(ntotals != nullptr);
 	count = 0;
 

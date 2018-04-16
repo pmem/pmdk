@@ -379,8 +379,7 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 
 	uint64_t (*func_mode)(struct pmem_bench * pmb, uint64_t index);
 
-	struct pmem_bench *pmb =
-		(struct pmem_bench *)malloc(sizeof(struct pmem_bench));
+	auto *pmb = (struct pmem_bench *)malloc(sizeof(struct pmem_bench));
 	assert(pmb != nullptr);
 
 	pmb->pargs = (struct pmem_args *)args->opts;
@@ -486,7 +485,7 @@ err_free_pmb:
 static int
 pmem_flush_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
+	auto *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 	pmem_unmap(pmb->pmem_addr, pmb->fsize);
 	munmap(pmb->nondirty_addr, pmb->fsize);
 	free(pmb);
@@ -499,7 +498,7 @@ pmem_flush_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 pmem_flush_operation(struct benchmark *bench, struct operation_info *info)
 {
-	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
+	auto *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 
 	size_t op_idx = info->index;
 	assert(op_idx < pmb->n_offsets);

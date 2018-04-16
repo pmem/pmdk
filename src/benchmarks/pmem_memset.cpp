@@ -254,8 +254,7 @@ warmup_msync(struct memset_bench *mb)
 static int
 memset_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct memset_bench *mb =
-		(struct memset_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct memset_bench *)pmembench_get_priv(bench);
 
 	assert(info->index < mb->n_offsets);
 
@@ -289,8 +288,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	int flags = 0;
 
 	int (*warmup_func)(struct memset_bench *) = warmup_persist;
-	struct memset_bench *mb =
-		(struct memset_bench *)malloc(sizeof(struct memset_bench));
+	auto *mb = (struct memset_bench *)malloc(sizeof(struct memset_bench));
 	if (!mb) {
 		perror("malloc");
 		return -1;
@@ -384,8 +382,7 @@ err_free_mb:
 static int
 memset_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct memset_bench *mb =
-		(struct memset_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct memset_bench *)pmembench_get_priv(bench);
 	pmem_unmap(mb->pmem_addr, mb->fsize);
 	free(mb->offsets);
 	free(mb);

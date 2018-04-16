@@ -118,8 +118,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		return -1;
 	}
 
-	struct obj_bench *ob =
-		(struct obj_bench *)malloc(sizeof(struct obj_bench));
+	auto *ob = (struct obj_bench *)malloc(sizeof(struct obj_bench));
 	if (ob == nullptr) {
 		perror("malloc");
 		return -1;
@@ -189,8 +188,8 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	if (ob->pa->use_random_size) {
 		size_t width = args->dsize - ob->pa->minsize;
 		for (size_t i = 0; i < n_ops_total; i++) {
-			uint32_t hr = (uint32_t)os_rand_r(&ob->pa->seed);
-			uint32_t lr = (uint32_t)os_rand_r(&ob->pa->seed);
+			auto hr = (uint32_t)os_rand_r(&ob->pa->seed);
+			auto lr = (uint32_t)os_rand_r(&ob->pa->seed);
 			uint64_t r64 = (uint64_t)hr << 32 | lr;
 			ob->sizes[i] = r64 % width + ob->pa->minsize;
 		}
@@ -216,7 +215,7 @@ free_ob:
 static int
 obj_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	free(ob->sizes);
 
@@ -242,7 +241,7 @@ pmalloc_init(struct benchmark *bench, struct benchmark_args *args)
 static int
 pmalloc_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	uint64_t i = info->index +
 		info->worker->index * info->args->n_ops_per_thread;
@@ -269,8 +268,8 @@ static int
 pmix_worker_init(struct benchmark *bench, struct benchmark_args *args,
 		 struct worker_info *worker)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
 	struct pmix_worker *w = (struct pmix_worker *)calloc(1, sizeof(*w));
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 	if (w == nullptr)
 		return -1;
 
@@ -288,7 +287,7 @@ static void
 pmix_worker_fini(struct benchmark *bench, struct benchmark_args *args,
 		 struct worker_info *worker)
 {
-	struct pmix_worker *w = (struct pmix_worker *)worker->priv;
+	auto *w = (struct pmix_worker *)worker->priv;
 	free(w);
 }
 
@@ -322,8 +321,8 @@ shuffle_objects(uint64_t *objects, size_t start, size_t nobjects,
 static int
 pmix_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
-	struct pmix_worker *w = (struct pmix_worker *)info->worker->priv;
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *w = (struct pmix_worker *)info->worker->priv;
 
 	uint64_t idx = info->worker->index * info->args->n_ops_per_thread;
 
@@ -357,7 +356,7 @@ pmix_op(struct benchmark *bench, struct operation_info *info)
 static int
 pmalloc_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	for (size_t i = 0; i < args->n_ops_per_thread * args->n_threads; i++) {
 		if (ob->offs[i])
@@ -378,7 +377,7 @@ pfree_init(struct benchmark *bench, struct benchmark_args *args)
 	if (ret)
 		return ret;
 
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	for (size_t i = 0; i < args->n_ops_per_thread * args->n_threads; i++) {
 		ret = pmalloc(ob->pop, &ob->offs[i], ob->sizes[i], 0, 0);
@@ -404,7 +403,7 @@ pfree_init(struct benchmark *bench, struct benchmark_args *args)
 static int
 pfree_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	uint64_t i = info->index +
 		info->worker->index * info->args->n_ops_per_thread;

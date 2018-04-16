@@ -316,7 +316,7 @@ static fn_position_t rand_positions[] = {position_head, position_tail,
 static void
 get_item(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	obj_worker->elm = obj_bench.fn_position(obj_worker, info->index);
 }
 
@@ -328,7 +328,7 @@ get_item(struct benchmark *bench, struct operation_info *info)
 static int
 get_move_item(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	obj_worker->list_move->elm =
 		obj_bench.fn_position(obj_worker->list_move, info->index);
 
@@ -360,7 +360,7 @@ static int
 obj_init_list(struct worker_info *worker, size_t n_oids, size_t list_len)
 {
 	size_t i;
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
 	obj_worker->oids =
 		(TOID(struct item) *)calloc(n_oids, sizeof(TOID(struct item)));
 	if (obj_worker->oids == nullptr) {
@@ -370,7 +370,7 @@ obj_init_list(struct worker_info *worker, size_t n_oids, size_t list_len)
 	for (i = 0; i < n_oids; i++) {
 		size_t type_num = obj_bench.fn_type_num(worker->index, i);
 		size_t size = obj_bench.alloc_sizes[i];
-		PMEMoid *tmp = (PMEMoid *)&obj_worker->oids[i];
+		auto *tmp = (PMEMoid *)&obj_worker->oids[i];
 		if (pmemobj_alloc(obj_bench.pop, tmp, size, type_num, nullptr,
 				  nullptr) != 0)
 			goto err_oids;
@@ -395,7 +395,7 @@ static int
 queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 {
 	size_t i;
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
 	CIRCLEQ_INIT(&obj_worker->headq);
 	obj_worker->items =
 		(struct item **)malloc(n_items * sizeof(struct item *));
@@ -487,8 +487,8 @@ queue_free_worker_items(struct obj_worker *obj_worker)
 static fn_position_t *
 random_positions(void)
 {
-	fn_position_t *positions = (fn_position_t *)calloc(
-		obj_bench.max_len, sizeof(fn_position_t));
+	auto *positions = (fn_position_t *)calloc(obj_bench.max_len,
+						  sizeof(fn_position_t));
 	if (positions == nullptr) {
 		perror("calloc");
 		return nullptr;
@@ -514,7 +514,7 @@ random_positions(void)
 static size_t *
 random_values(size_t min, size_t max, size_t n_ops, size_t min_range)
 {
-	size_t *randoms = (size_t *)calloc(n_ops, sizeof(size_t));
+	auto *randoms = (size_t *)calloc(n_ops, sizeof(size_t));
 	if (randoms == nullptr) {
 		perror("calloc");
 		return nullptr;
@@ -539,7 +539,7 @@ random_values(size_t min, size_t max, size_t n_ops, size_t min_range)
 static int
 queue_insert_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	CIRCLEQ_INSERT_AFTER(&obj_worker->headq, obj_worker->elm.itemq,
 			     obj_worker->items[info->index + obj_bench.min_len],
 			     fieldq);
@@ -553,7 +553,7 @@ queue_insert_op(struct operation_info *info)
 static int
 obj_insert_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_INSERT_AFTER(
 		obj_bench.pop, &obj_worker->head, obj_worker->elm.itemp,
 		obj_worker->oids[info->index + obj_bench.min_len], field);
@@ -567,7 +567,7 @@ obj_insert_op(struct operation_info *info)
 static int
 queue_remove_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	CIRCLEQ_REMOVE(&obj_worker->headq, obj_worker->elm.itemq, fieldq);
 	return 0;
 }
@@ -579,7 +579,7 @@ queue_remove_op(struct operation_info *info)
 static int
 obj_remove_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_REMOVE(obj_bench.pop, &obj_worker->head,
 			 obj_worker->elm.itemp, field);
 	return 0;
@@ -605,7 +605,7 @@ obj_insert_new_op(struct benchmark *bench, struct operation_info *info)
 {
 	get_item(bench, info);
 
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	PMEMoid tmp;
 	size_t size = obj_bench.alloc_sizes[info->index];
 	size_t type_num =
@@ -643,7 +643,7 @@ obj_remove_free_op(struct benchmark *bench, struct operation_info *info)
 {
 	get_item(bench, info);
 
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_REMOVE_FREE(obj_bench.pop, &obj_worker->head,
 			      obj_worker->elm.itemp, field);
 	return 0;
@@ -658,7 +658,7 @@ obj_move_op(struct benchmark *bench, struct operation_info *info)
 	if (get_move_item(bench, info))
 		return -1;
 
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_MOVE_ELEMENT_BEFORE(obj_bench.pop, &obj_worker->head,
 				      &obj_worker->list_move->head,
 				      obj_worker->list_move->elm.itemp,
@@ -685,7 +685,7 @@ static void
 free_worker_list(struct benchmark *bench, struct benchmark_args *args,
 		 struct worker_info *worker)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
 	obj_bench.args->queue ? queue_free_worker_list(obj_worker)
 			      : obj_free_worker_list(obj_worker);
 	free_worker(obj_worker);
@@ -700,8 +700,8 @@ static void
 free_worker_items(struct benchmark *bench, struct benchmark_args *args,
 		  struct worker_info *worker)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
-	struct obj_list_args *obj_args = (struct obj_list_args *)args->opts;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_args = (struct obj_list_args *)args->opts;
 	obj_args->queue ? queue_free_worker_items(obj_worker)
 			: obj_free_worker_items(obj_worker);
 	free_worker(obj_worker);
@@ -715,7 +715,7 @@ static void
 obj_move_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		     struct worker_info *worker)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
 	while (!POBJ_LIST_EMPTY(&obj_worker->list_move->head))
 		POBJ_LIST_REMOVE_FREE(
 			obj_bench.pop, &obj_worker->list_move->head,
@@ -735,7 +735,7 @@ obj_move_free_worker(struct benchmark *bench, struct benchmark_args *args,
 static int
 obj_init_worker(struct worker_info *worker, size_t n_elm, size_t list_len)
 {
-	struct obj_worker *obj_worker =
+	auto *obj_worker =
 		(struct obj_worker *)calloc(1, sizeof(struct obj_worker));
 	if (obj_worker == nullptr) {
 		perror("calloc");
@@ -805,7 +805,7 @@ obj_move_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	if (obj_init_worker(worker, obj_bench.max_len, obj_bench.max_len) != 0)
 		return -1;
 
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
 	obj_worker->list_move =
 		(struct obj_worker *)calloc(1, sizeof(struct obj_worker));
 	if (obj_worker->list_move == nullptr) {

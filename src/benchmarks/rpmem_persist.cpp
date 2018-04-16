@@ -210,8 +210,7 @@ do_warmup(struct rpmem_bench *mb)
 static int
 rpmem_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct rpmem_bench *mb =
-		(struct rpmem_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct rpmem_bench *)pmembench_get_priv(bench);
 
 	assert(info->index < mb->n_offsets);
 
@@ -456,8 +455,7 @@ rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != nullptr);
 	assert(args->opts != nullptr);
 
-	struct rpmem_bench *mb =
-		(struct rpmem_bench *)malloc(sizeof(struct rpmem_bench));
+	auto *mb = (struct rpmem_bench *)malloc(sizeof(struct rpmem_bench));
 	if (!mb) {
 		perror("malloc");
 		return -1;
@@ -510,8 +508,7 @@ err_parse_mode:
 static int
 rpmem_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct rpmem_bench *mb =
-		(struct rpmem_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct rpmem_bench *)pmembench_get_priv(bench);
 	rpmem_poolset_fini(mb);
 	free(mb->offsets);
 	free(mb);
