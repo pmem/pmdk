@@ -34,6 +34,7 @@
  * recycler.c -- implementation of run recycler
  */
 
+#include "heap.h"
 #include "recycler.h"
 #include "vec.h"
 #include "out.h"
@@ -166,9 +167,7 @@ recycler_calc_score(struct palloc_heap *heap, const struct memory_block *m,
 	os_mutex_t *lock = m->m_ops->get_lock(m);
 	os_mutex_lock(lock);
 
-	struct chunk_run *run =
-			GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
-
+	struct chunk_run *run = heap_get_chunk_run(heap, m);
 
 	uint16_t free_space = 0;
 	uint16_t max_block = 0;
@@ -285,8 +284,7 @@ recycler_get(struct recycler *r, struct memory_block *m)
 	m->chunk_id = RUN_KEY_GET_CHUNK_ID(key);
 	m->zone_id = RUN_KEY_GET_ZONE_ID(key);
 
-	struct zone *z = ZID_TO_ZONE(r->heap->layout, m->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr = heap_get_chunk_hdr(r->heap, m);
 	m->size_idx = hdr->size_idx;
 
 	memblock_rebuild_state(r->heap, m);

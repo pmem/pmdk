@@ -70,8 +70,7 @@ const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES] = {
 static enum header_type
 memblock_header_type(const struct memory_block *m)
 {
-	struct chunk_header *hdr =
-			GET_CHUNK_HDR(m->heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
 
 	if (hdr->flags & CHUNK_FLAG_COMPACT_HEADER)
 		return HEADER_COMPACT;
@@ -392,8 +391,7 @@ huge_block_size(const struct memory_block *m)
 static size_t
 run_block_size(const struct memory_block *m)
 {
-	struct chunk_run *run =
-			GET_CHUNK_RUN(m->heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
 
 	return run->block_size;
 }
@@ -404,7 +402,7 @@ run_block_size(const struct memory_block *m)
 static void *
 huge_get_real_data(const struct memory_block *m)
 {
-	return GET_CHUNK(m->heap->layout, m->zone_id, m->chunk_id)->data;
+	return heap_get_chunk(m->heap, m)->data;
 }
 
 /*
@@ -413,8 +411,7 @@ huge_get_real_data(const struct memory_block *m)
 static void *
 run_get_real_data(const struct memory_block *m)
 {
-	struct chunk_run *run =
-			GET_CHUNK_RUN(m->heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
 	ASSERT(run->block_size != 0);
 
 	return (char *)&run->data + (run->block_size * m->block_off);
@@ -456,8 +453,7 @@ static void
 huge_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	struct operation_context *ctx)
 {
-	struct chunk_header *hdr =
-			GET_CHUNK_HDR(m->heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
 
 	/*
 	 * Depending on the operation that needs to be performed a new chunk
@@ -510,8 +506,7 @@ static void
 run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	struct operation_context *ctx)
 {
-	struct chunk_run *r =
-			GET_CHUNK_RUN(m->heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_run *r = heap_get_chunk_run(m->heap, m);
 
 	ASSERT(m->size_idx <= BITS_PER_VALUE);
 
@@ -577,8 +572,7 @@ run_get_lock(const struct memory_block *m)
 static enum memblock_state
 huge_get_state(const struct memory_block *m)
 {
-	struct chunk_header *hdr =
-			GET_CHUNK_HDR(m->heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
 
 	if (hdr->type == CHUNK_TYPE_USED)
 		return MEMBLOCK_ALLOCATED;
@@ -625,8 +619,7 @@ static void
 huge_ensure_header_type(const struct memory_block *m,
 	enum header_type t)
 {
-	struct chunk_header *hdr =
-			GET_CHUNK_HDR(m->heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
 	ASSERTeq(hdr->type, CHUNK_TYPE_FREE);
 
 	if ((hdr->flags & header_type_to_flag[t]) == 0) {
@@ -646,8 +639,7 @@ run_ensure_header_type(const struct memory_block *m,
 	enum header_type t)
 {
 #ifdef DEBUG
-	struct chunk_header *hdr =
-			GET_CHUNK_HDR(m->heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
 	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
 	ASSERT((hdr->flags & header_type_to_flag[t]) == header_type_to_flag[t]);
 #endif
@@ -785,11 +777,11 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
  *	depending on the chunks type returns the right memory block type
  */
 static enum memory_block_type
-memblock_detect_type(const struct memory_block *m, struct heap_layout *h)
+memblock_detect_type(struct palloc_heap *heap, const struct memory_block *m)
 {
 	enum memory_block_type ret;
 
-	switch (GET_CHUNK_HDR(h, m->zone_id, m->chunk_id)->type) {
+	switch (heap_get_chunk_hdr(heap, m)->type) {
 		case CHUNK_TYPE_RUN:
 		case CHUNK_TYPE_RUN_DATA:
 			ret = MEMORY_BLOCK_RUN;
@@ -822,8 +814,7 @@ memblock_from_offset_opt(struct palloc_heap *heap, uint64_t off, int size)
 	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof(struct zone);
 	m.chunk_id = (uint32_t)(off / CHUNKSIZE);
 
-	struct chunk_header *hdr =
-			GET_CHUNK_HDR(heap->layout, m.zone_id, m.chunk_id);
+	struct chunk_header *hdr = heap_get_chunk_hdr(heap, &m);
 
 	if (hdr->type == CHUNK_TYPE_RUN_DATA)
 		m.chunk_id -= hdr->size_idx;
@@ -836,7 +827,7 @@ memblock_from_offset_opt(struct palloc_heap *heap, uint64_t off, int size)
 
 	m.type = off != 0 ? MEMORY_BLOCK_RUN : MEMORY_BLOCK_HUGE;
 #ifdef DEBUG
-	enum memory_block_type t = memblock_detect_type(&m, heap->layout);
+	enum memory_block_type t = memblock_detect_type(heap, &m);
 	ASSERTeq(t, m.type);
 #endif
 	m.m_ops = &mb_ops[m.type];
@@ -923,7 +914,7 @@ memblock_validate_offset(struct palloc_heap *heap, uint64_t off)
 
 	m.type = off != 0 ? MEMORY_BLOCK_RUN : MEMORY_BLOCK_HUGE;
 #ifdef DEBUG
-	enum memory_block_type t = memblock_detect_type(&m, heap->layout);
+	enum memory_block_type t = memblock_detect_type(heap, &m);
 	ASSERTeq(t, m.type);
 #endif
 	m.m_ops = &mb_ops[m.type];
@@ -956,6 +947,6 @@ memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m)
 {
 	m->heap = heap;
 	m->header_type = memblock_header_type(m);
-	m->type = memblock_detect_type(m, heap->layout);
+	m->type = memblock_detect_type(heap, m);
 	m->m_ops = &mb_ops[m->type];
 }

@@ -474,8 +474,7 @@ heap_run_process_metadata(struct palloc_heap *heap, struct bucket *b,
 	uint16_t block_size_idx = 0;
 	uint32_t inserted_blocks = 0;
 
-	struct chunk_run *run =
-			GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_run *run = heap_get_chunk_run(heap, m);
 
 	ASSERTeq(run->block_size, c->unit_size);
 
@@ -585,8 +584,7 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
 	struct bucket *bucket,
 	struct memory_block *m)
 {
-	struct chunk_header *hdr =
-			GET_CHUNK_HDR(heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_header *hdr = heap_get_chunk_hdr(heap, m);
 
 	m->block_off = 0;
 	m->size_idx = hdr->size_idx;
@@ -618,8 +616,7 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
 static int
 heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 {
-	struct chunk_run *run =
-			GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_run *run = heap_get_chunk_run(heap, m);
 
 	struct alloc_class *c = alloc_class_by_run(
 		heap->rt->alloc_classes,
@@ -1628,8 +1625,7 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 	uint16_t block_start = m->block_off % BITS_PER_VALUE;
 	uint16_t block_off;
 
-	struct chunk_run *run =
-			GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_run *run = heap_get_chunk_run(heap, m);
 
 	struct alloc_class_run_proto run_proto;
 	alloc_class_generate_run_proto(&run_proto,
@@ -1677,8 +1673,7 @@ static int
 heap_chunk_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block *m)
 {
-	struct chunk_header *hdr =
-			GET_CHUNK_HDR(heap->layout, m->zone_id, m->chunk_id);
+	struct chunk_header *hdr = heap_get_chunk_hdr(heap, m);
 	memblock_rebuild_state(heap, m);
 	m->size_idx = hdr->size_idx;
 
@@ -1746,7 +1741,7 @@ heap_vg_open_chunk(struct palloc_heap *heap,
 	object_callback cb, void *arg, int objects,
 	struct memory_block *m)
 {
-	void *chunk = GET_CHUNK(heap->layout, m->zone_id, m->chunk_id);
+	void *chunk = heap_get_chunk(heap, m);
 	memblock_rebuild_state(heap, m);
 
 	if (m->type == MEMORY_BLOCK_RUN) {
