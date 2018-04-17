@@ -151,4 +151,22 @@ ZID_TO_ZONE(struct heap_layout *layout, size_t zone_id)
 		((uintptr_t)&layout->zone0 + ZONE_MAX_SIZE * zone_id);
 }
 
+static inline struct chunk_header *
+GET_CHUNK_HDR(struct heap_layout *layout, size_t zone_id, unsigned chunk_id)
+{
+	return &ZID_TO_ZONE(layout, zone_id)->chunk_headers[chunk_id];
+}
+
+static inline struct chunk *
+GET_CHUNK(struct heap_layout *layout, size_t zone_id, unsigned chunk_id)
+{
+	return &ZID_TO_ZONE(layout, zone_id)->chunks[chunk_id];
+}
+
+static inline struct chunk_run *
+GET_CHUNK_RUN(struct heap_layout *layout, size_t zone_id, unsigned chunk_id)
+{
+	return (struct chunk_run *)GET_CHUNK(layout, zone_id, chunk_id);
+}
+
 #endif

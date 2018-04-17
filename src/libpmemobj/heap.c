@@ -474,8 +474,8 @@ heap_run_process_metadata(struct palloc_heap *heap, struct bucket *b,
 	uint16_t block_size_idx = 0;
 	uint32_t inserted_blocks = 0;
 
-	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
+	struct chunk_run *run =
+			GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
 
 	ASSERTeq(run->block_size, c->unit_size);
 
@@ -585,8 +585,8 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
 	struct bucket *bucket,
 	struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr =
+			GET_CHUNK_HDR(heap->layout, m->zone_id, m->chunk_id);
 
 	m->block_off = 0;
 	m->size_idx = hdr->size_idx;
@@ -618,8 +618,8 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
 static int
 heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 {
-	struct chunk_run *run = (struct chunk_run *)
-		&ZID_TO_ZONE(heap->layout, m->zone_id)->chunks[m->chunk_id];
+	struct chunk_run *run =
+			GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
 
 	struct alloc_class *c = alloc_class_by_run(
 		heap->rt->alloc_classes,
@@ -1629,8 +1629,8 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 	uint16_t block_start = m->block_off % BITS_PER_VALUE;
 	uint16_t block_off;
 
-	struct chunk_run *run = (struct chunk_run *)
-		&ZID_TO_ZONE(heap->layout, m->zone_id)->chunks[m->chunk_id];
+	struct chunk_run *run =
+			GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
 
 	struct alloc_class_run_proto run_proto;
 	alloc_class_generate_run_proto(&run_proto,
@@ -1678,8 +1678,8 @@ static int
 heap_chunk_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block *m)
 {
-	struct zone *zone = ZID_TO_ZONE(heap->layout, m->zone_id);
-	struct chunk_header *hdr = &zone->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr =
+			GET_CHUNK_HDR(heap->layout, m->zone_id, m->chunk_id);
 	memblock_rebuild_state(heap, m);
 	m->size_idx = hdr->size_idx;
 
@@ -1747,8 +1747,7 @@ heap_vg_open_chunk(struct palloc_heap *heap,
 	object_callback cb, void *arg, int objects,
 	struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	void *chunk = &z->chunks[m->chunk_id];
+	void *chunk = GET_CHUNK(heap->layout, m->zone_id, m->chunk_id);
 	memblock_rebuild_state(heap, m);
 
 	if (m->type == MEMORY_BLOCK_RUN) {

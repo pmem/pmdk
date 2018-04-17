@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -166,8 +166,8 @@ recycler_calc_score(struct palloc_heap *heap, const struct memory_block *m,
 	os_mutex_t *lock = m->m_ops->get_lock(m);
 	os_mutex_lock(lock);
 
-	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
+	struct chunk_run *run =
+			GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
 
 
 	uint16_t free_space = 0;

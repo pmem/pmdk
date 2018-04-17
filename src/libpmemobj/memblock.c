@@ -70,8 +70,8 @@ const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES] = {
 static enum header_type
 memblock_header_type(const struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr =
+			GET_CHUNK_HDR(m->heap->layout, m->zone_id, m->chunk_id);
 
 	if (hdr->flags & CHUNK_FLAG_COMPACT_HEADER)
 		return HEADER_COMPACT;
@@ -392,8 +392,8 @@ huge_block_size(const struct memory_block *m)
 static size_t
 run_block_size(const struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
+	struct chunk_run *run =
+			GET_CHUNK_RUN(m->heap->layout, m->zone_id, m->chunk_id);
 
 	return run->block_size;
 }
@@ -404,10 +404,7 @@ run_block_size(const struct memory_block *m)
 static void *
 huge_get_real_data(const struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	void *data = &z->chunks[m->chunk_id].data;
-
-	return (char *)data;
+	return GET_CHUNK(m->heap->layout, m->zone_id, m->chunk_id)->data;
 }
 
 /*
@@ -416,10 +413,8 @@ huge_get_real_data(const struct memory_block *m)
 static void *
 run_get_real_data(const struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-
 	struct chunk_run *run =
-		(struct chunk_run *)&z->chunks[m->chunk_id].data;
+			GET_CHUNK_RUN(m->heap->layout, m->zone_id, m->chunk_id);
 	ASSERT(run->block_size != 0);
 
 	return (char *)&run->data + (run->block_size * m->block_off);
@@ -461,8 +456,8 @@ static void
 huge_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	struct operation_context *ctx)
 {
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr =
+			GET_CHUNK_HDR(m->heap->layout, m->zone_id, m->chunk_id);
 
 	/*
 	 * Depending on the operation that needs to be performed a new chunk
@@ -515,9 +510,8 @@ static void
 run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	struct operation_context *ctx)
 {
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-
-	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
+	struct chunk_run *r =
+			GET_CHUNK_RUN(m->heap->layout, m->zone_id, m->chunk_id);
 
 	ASSERT(m->size_idx <= BITS_PER_VALUE);
 
@@ -583,8 +577,8 @@ run_get_lock(const struct memory_block *m)
 static enum memblock_state
 huge_get_state(const struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr =
+			GET_CHUNK_HDR(m->heap->layout, m->zone_id, m->chunk_id);
 
 	if (hdr->type == CHUNK_TYPE_USED)
 		return MEMBLOCK_ALLOCATED;
@@ -631,8 +625,8 @@ static void
 huge_ensure_header_type(const struct memory_block *m,
 	enum header_type t)
 {
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr =
+			GET_CHUNK_HDR(m->heap->layout, m->zone_id, m->chunk_id);
 	ASSERTeq(hdr->type, CHUNK_TYPE_FREE);
 
 	if ((hdr->flags & header_type_to_flag[t]) == 0) {
@@ -652,8 +646,8 @@ run_ensure_header_type(const struct memory_block *m,
 	enum header_type t)
 {
 #ifdef DEBUG
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr =
+			GET_CHUNK_HDR(m->heap->layout, m->zone_id, m->chunk_id);
 	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
 	ASSERT((hdr->flags & header_type_to_flag[t]) == header_type_to_flag[t]);
 #endif
@@ -795,7 +789,7 @@ memblock_detect_type(const struct memory_block *m, struct heap_layout *h)
 {
 	enum memory_block_type ret;
 
-	switch (ZID_TO_ZONE(h, m->zone_id)->chunk_headers[m->chunk_id].type) {
+	switch (GET_CHUNK_HDR(h, m->zone_id, m->chunk_id)->type) {
 		case CHUNK_TYPE_RUN:
 		case CHUNK_TYPE_RUN_DATA:
 			ret = MEMORY_BLOCK_RUN;
@@ -828,8 +822,8 @@ memblock_from_offset_opt(struct palloc_heap *heap, uint64_t off, int size)
 	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof(struct zone);
 	m.chunk_id = (uint32_t)(off / CHUNKSIZE);
 
-	struct chunk_header *hdr = &ZID_TO_ZONE(heap->layout, m.zone_id)
-						->chunk_headers[m.chunk_id];
+	struct chunk_header *hdr =
+			GET_CHUNK_HDR(heap->layout, m.zone_id, m.chunk_id);
 
 	if (hdr->type == CHUNK_TYPE_RUN_DATA)
 		m.chunk_id -= hdr->size_idx;
