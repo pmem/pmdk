@@ -912,8 +912,7 @@ heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
 		return;
 
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	struct chunk_header *hdr = (struct chunk_header *)
-		&z->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
 	struct chunk_run *run = (struct chunk_run *)
 		&z->chunks[m->chunk_id];
 
@@ -1393,14 +1392,14 @@ heap_init(void *heap_start, uint64_t heap_size, uint64_t *sizep,
 
 	unsigned zones = heap_max_zone(heap_size);
 	for (unsigned i = 0; i < zones; ++i) {
-		pmemops_memset(p_ops, &ZID_TO_ZONE(layout, i)->header,
-				0, sizeof(struct zone_header), 0);
-		pmemops_memset(p_ops, &ZID_TO_ZONE(layout, i)->chunk_headers,
-				0, sizeof(struct chunk_header), 0);
+		struct zone *zone = ZID_TO_ZONE(layout, i);
+		pmemops_memset(p_ops, &zone->header, 0,
+				sizeof(struct zone_header), 0);
+		pmemops_memset(p_ops, &zone->chunk_headers, 0,
+				sizeof(struct chunk_header), 0);
 
 		/* only explicitly allocated chunks should be accessible */
-		VALGRIND_DO_MAKE_MEM_NOACCESS(
-			&ZID_TO_ZONE(layout, i)->chunk_headers,
+		VALGRIND_DO_MAKE_MEM_NOACCESS(&zone->chunk_headers,
 			sizeof(struct chunk_header));
 	}
 
