@@ -325,7 +325,7 @@ get_item(struct benchmark *bench, struct operation_info *info)
  * benchmarks. It gets pointer to element on the list where object will be
  * inserted/removed/moved to/from.
  */
-static int
+static void
 get_move_item(struct benchmark *bench, struct operation_info *info)
 {
 	auto *obj_worker = (struct obj_worker *)info->worker->priv;
@@ -333,8 +333,6 @@ get_move_item(struct benchmark *bench, struct operation_info *info)
 		obj_bench.fn_position(obj_worker->list_move, info->index);
 
 	get_item(bench, info);
-
-	return 0;
 }
 
 /*
@@ -655,8 +653,7 @@ obj_remove_free_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_move_op(struct benchmark *bench, struct operation_info *info)
 {
-	if (get_move_item(bench, info))
-		return -1;
+	get_move_item(bench, info);
 
 	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_MOVE_ELEMENT_BEFORE(obj_bench.pop, &obj_worker->head,
