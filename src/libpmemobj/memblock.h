@@ -247,4 +247,22 @@ struct memory_block memblock_from_offset_opt(struct palloc_heap *heap,
 	uint64_t off, int size);
 void memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m);
 
+static inline struct chunk_header *
+heap_get_chunk_hdr(struct palloc_heap *heap, const struct memory_block *m)
+{
+	return GET_CHUNK_HDR(heap->layout, m->zone_id, m->chunk_id);
+}
+
+static inline struct chunk *
+heap_get_chunk(struct palloc_heap *heap, const struct memory_block *m)
+{
+	return GET_CHUNK(heap->layout, m->zone_id, m->chunk_id);
+}
+
+static inline struct chunk_run *
+heap_get_chunk_run(struct palloc_heap *heap, const struct memory_block *m)
+{
+	return GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
+}
+
 #endif
