@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,10 +60,6 @@
 #define RUN_BITMAP_SIZE (BITS_PER_VALUE * MAX_BITMAP_VALUES)
 #define RUNSIZE (CHUNKSIZE - RUN_METASIZE)
 #define MIN_RUN_SIZE 128
-
-#define ZID_TO_ZONE(layoutp, zone_id)\
-	((struct zone *)((uintptr_t)&(((struct heap_layout *)(layoutp))->zone0)\
-					+ ZONE_MAX_SIZE * (zone_id)))
 
 #define CHUNK_MASK ((CHUNKSIZE) - 1)
 #define CHUNK_ALIGN_UP(value) ((((value) + CHUNK_MASK) & ~CHUNK_MASK))
@@ -147,5 +143,12 @@ struct allocation_header_compact {
 	uint64_t size;
 	uint64_t extra;
 };
+
+static inline struct zone *
+ZID_TO_ZONE(struct heap_layout *layout, size_t zone_id)
+{
+	return (struct zone *)
+		((uintptr_t)&layout->zone0 + ZONE_MAX_SIZE * zone_id);
+}
 
 #endif
