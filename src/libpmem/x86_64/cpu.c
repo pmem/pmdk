@@ -85,7 +85,7 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 #endif
 
 #ifndef bit_CLFLUSH
-#define bit_CLFLUSH	(1 << 23)
+#define bit_CLFLUSH	(1 << 19)
 #endif
 
 #ifndef bit_CLFLUSHOPT
