@@ -31,8 +31,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# obj_rpmem_basic_integration/TEST15 --
+# obj_rpmem_basic_integration/TEST15 -- rpmem replication to single remote
+#       replica with valgrind drd on target side
 #
+
+# initiator side is covered by TEST13
 
 EXE=obj_basic_integration
 
@@ -56,9 +59,6 @@ setup
 init_valgrind_on_node 0
 
 init_rpmem_on_node 1 0
-
-# upload test
-copy_files_to_node 1 ${NODE_DIR[1]} ../$EXE/$EXE$EXESUFFIX
 
 # define files and directories
 TEST_SET_LOCAL="testset_local"
