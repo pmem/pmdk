@@ -32,8 +32,10 @@
 #
 #
 # obj_rpmem_basic_integration/TEST10 -- rpmem replication from two local parts
-#       to single remote replica with valgrind memcheck
+#       to single remote replica with valgrind memcheck on initiator side
 #
+
+# target side result should be exactly the same as for TEST11
 
 EXE=obj_basic_integration
 
@@ -54,9 +56,6 @@ setup
 init_valgrind_on_node 1
 
 init_rpmem_on_node 1 0
-
-# upload test
-copy_files_to_node 1 . ../$EXE/$EXE$EXESUFFIX
 
 # define files and directories
 TEST_SET_LOCAL="testset_local"
