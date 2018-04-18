@@ -32,8 +32,10 @@
 #
 #
 # obj_rpmem_basic_integration/TEST17 -- rpmem replication from two local parts
-#       to single remote replica with valgrind helgrind
+#       to single remote replica with valgrind helgrind on initiator side
 #
+
+# target side result should be exactly the same as for TEST18
 
 EXE=obj_basic_integration
 
