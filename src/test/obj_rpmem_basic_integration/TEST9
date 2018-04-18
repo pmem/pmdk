@@ -32,8 +32,10 @@
 #
 #
 # obj_rpmem_basic_integration/TEST9 -- rpmem replication to single remote
-#       replica with valgrind memcheck
+#       replica with valgrind memcheck on initiator side
 #
+
+# target side is covered by TEST11
 
 EXE=obj_basic_integration
 
@@ -63,15 +65,19 @@ TEST_FILE_LOCAL="testfile_local"
 TEST_FILE_REMOTE="testfile_remote"
 
 # create and upload poolset files
-create_poolset $DIR/$TEST_SET_LOCAL 16M:${NODE_DIR[1]}$TEST_FILE_LOCAL:x \
+create_poolset $DIR/$TEST_SET_LOCAL 16M:${NODE_DIR[1]}/$TEST_FILE_LOCAL:x \
 	m ${NODE_ADDR[0]}:$TEST_SET_REMOTE
-create_poolset $DIR/$TEST_SET_REMOTE 17M:${NODE_DIR[0]}$TEST_FILE_REMOTE:x
+create_poolset $DIR/$TEST_SET_REMOTE 17M:${NODE_DIR[0]}/$TEST_FILE_REMOTE:x
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$TEST_SET_REMOTE
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$TEST_SET_LOCAL
 
 rm_files_from_node 0 ${NODE_DIR[0]}$TEST_FILE_REMOTE
 rm_files_from_node 1 ${NODE_DIR[1]}$TEST_FILE_LOCAL
+
+# limited number of lanes speed up test execution
+PMEMOBJ_NLANES=50
+export_vars_node 1 PMEMOBJ_NLANES
 
 # execute test
 expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX ${NODE_DIR[1]}$TEST_SET_LOCAL
