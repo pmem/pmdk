@@ -166,12 +166,13 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 			if (cnt > len)
 				cnt = len;
 
+            for (size_t i = 0; i < cnt; ++i)
+                cdst[i - 1] = csrc[i - 1];
+
 			cdst -= cnt;
 			csrc -= cnt;
 			len -= cnt;
 
-			for (size_t i = cnt; i > 0; --i)
-				cdst[i - 1] = csrc[i - 1];
 			pmem_flush_flags(cdst, cnt, flags);
 		}
 
@@ -179,19 +180,19 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 		const uint64_t *src8 = (const uint64_t *)csrc;
 
 		while (len >= 64) {
+			dst8 -= 8;
+			src8 -= 8;
 			cpy64(dst8, src8);
 			pmem_flush_flags(dst8, 64, flags);
 			len -= 64;
-			dst8 -= 8;
-			src8 -= 8;
 		}
 
 		remaining = len;
 		while (len >= 8) {
-			cpy8(dst8, src8);
-			len -= 8;
 			dst8--;
 			src8--;
+			cpy8(dst8, src8);
+			len -= 8;
 		}
 
 		cdst = (char *)dst8;
