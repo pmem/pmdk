@@ -152,12 +152,22 @@ NODE_PID_FILES[0]=""
 	case "$BUILD"
 	in
 	debug)
-		TEST_LD_LIBRARY_PATH=../../debug
-		REMOTE_LD_LIBRARY_PATH=../debug
+		if [ -z "$PMDK_LIB_PATH_DEBUG" ]; then
+			TEST_LD_LIBRARY_PATH=../../debug
+			REMOTE_LD_LIBRARY_PATH=../debug
+		else
+			TEST_LD_LIBRARY_PATH=$PMDK_LIB_PATH_DEBUG
+			REMOTE_LD_LIBRARY_PATH=$PMDK_LIB_PATH_DEBUG
+		fi
 		;;
 	nondebug)
-		TEST_LD_LIBRARY_PATH=../../nondebug
-		REMOTE_LD_LIBRARY_PATH=../nondebug
+		if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
+			TEST_LD_LIBRARY_PATH=../../nondebug
+			REMOTE_LD_LIBRARY_PATH=../nondebug
+		else
+			TEST_LD_LIBRARY_PATH=$PMDK_LIB_PATH_NONDEBUG
+			REMOTE_LD_LIBRARY_PATH=$PMDK_LIB_PATH_NONDEBUG
+		fi
 		;;
 	esac
 }
