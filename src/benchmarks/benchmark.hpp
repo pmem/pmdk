@@ -343,9 +343,9 @@ struct benchmark_info *pmembench_get_info(struct benchmark *bench);
 int pmembench_register(struct benchmark_info *bench_info);
 
 #define REGISTER_BENCHMARK(bench)                                              \
-	if (pmembench_register(&bench)) {                                      \
+	if (pmembench_register(&(bench))) {                                    \
 		fprintf(stderr, "Unable to register benchmark '%s'\n",         \
-			bench.name);                                           \
+			(bench).name);                                         \
 	}
 
 #endif /* _BENCHMARK_H */
