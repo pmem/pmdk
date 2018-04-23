@@ -183,13 +183,13 @@ typedef struct _cb_data {
 /*
  * Macros to manipulate art_node tags
  */
-#define IS_LEAF(x) ((x->art_node_type == art_leaf_t))
-#define SET_LEAF(x) ((x->art_node_tag = art_leaf_t))
+#define IS_LEAF(x) (((x)->art_node_type == art_leaf_t))
+#define SET_LEAF(x) (((x)->art_node_tag = art_leaf_t))
 
 #define COPY_BLOB(_obj, _blob, _len) \
     D_RW(_obj)->len = _len; \
     TX_MEMCPY(D_RW(_obj)->s, _blob, _len); \
-    D_RW(_obj)->s[_len - 1] = '\0';
+    D_RW(_obj)->s[(_len) - 1] = '\0';
 
 
 typedef int(*art_callback)(void *data,
