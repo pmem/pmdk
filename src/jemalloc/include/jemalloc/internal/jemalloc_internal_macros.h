@@ -35,10 +35,10 @@
 #  define UNUSED
 #endif
 
-#define	ZU(z)	((size_t)z)
-#define	ZI(z)	((ssize_t)z)
-#define	QU(q)	((uint64_t)q)
-#define	QI(q)	((int64_t)q)
+#define	ZU(z)	((size_t)(z))
+#define	ZI(z)	((ssize_t)(z))
+#define	QU(q)	((uint64_t)(q))
+#define	QI(q)	((int64_t)(q))
 
 #define	KZU(z)	ZU(z##ULL)
 #define	KZI(z)	ZI(z##LL)
