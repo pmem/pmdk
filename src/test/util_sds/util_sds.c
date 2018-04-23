@@ -49,7 +49,7 @@ static size_t uscs_size;
 static size_t usc_it;
 
 #define FAIL(X, Y) \
-	if (X == Y) {\
+	if ((X) == (Y)) {\
 		common_fini();\
 		DONE(NULL);\
 		exit(0);\

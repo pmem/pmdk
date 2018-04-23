@@ -49,7 +49,7 @@
 #define GIGABYTE (1UL << 30)
 
 #define RRAND(seed, max, min)\
-((min) == (max) ? (min) : (os_rand_r(&seed) % ((max) - (min)) + (min)))
+((min) == (max) ? (min) : (os_rand_r(&(seed)) % ((max) - (min)) + (min)))
 
 uint64_t *objects;
 size_t nobjects;

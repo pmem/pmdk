@@ -37,7 +37,7 @@
 
 #include "unittest.h"
 
-#define RRAND(seed, max, min) (os_rand_r(&seed) % ((max) - (min)) + (min))
+#define RRAND(seed, max, min) (os_rand_r(&(seed)) % ((max) - (min)) + (min))
 
 static ssize_t object_size;
 static int nobjects;
