@@ -41,7 +41,7 @@ OS=$1
 echo "==== clone ndctl repo ===="
 git clone https://github.com/pmem/ndctl.git
 cd ndctl
-git checkout tags/v60
+git checkout tags/v60.1
 
 if [ "$OS" = "fedora" ]; then
 
