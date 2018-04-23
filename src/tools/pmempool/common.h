@@ -100,7 +100,7 @@
 ((void *)((uintptr_t)(entry) - sizeof(struct allocation_header)))
 
 #define OBJH_FROM_PTR(ptr)\
-((void *)((uintptr_t)ptr - sizeof(struct legacy_object_header)))
+((void *)((uintptr_t)(ptr) - sizeof(struct legacy_object_header)))
 
 #define DEFAULT_HDR_SIZE	4096UL /* 4 KB */
 #define DEFAULT_DESC_SIZE	4096UL /* 4 KB */
@@ -111,7 +111,7 @@
 	sizeof(struct legacy_object_header)))
 
 #define OBJH_TO_PTR(objh)\
-((void *)((uintptr_t)objh + sizeof(struct legacy_object_header)))
+((void *)((uintptr_t)(objh) + sizeof(struct legacy_object_header)))
 
 /* invalid answer for ask_* functions */
 #define INV_ANS	'\0'
