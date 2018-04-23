@@ -48,14 +48,14 @@ require_no_freebsd
 
 # Valgrind does not call vmmalloc's malloc implementation from library
 # loaded with RTLD_DEEPBIND.
-configure_valgrind memcheck force-disable $TEST_LD_LIBRARY_PATH/libvmmalloc.so
-configure_valgrind helgrind force-disable $TEST_LD_LIBRARY_PATH/libvmmalloc.so
-configure_valgrind drd force-disable $TEST_LD_LIBRARY_PATH/libvmmalloc.so
+configure_valgrind memcheck force-disable $TEST_LD_LIBRARY_PATH/$VMMALLOC
+configure_valgrind helgrind force-disable $TEST_LD_LIBRARY_PATH/$VMMALLOC
+configure_valgrind drd force-disable $TEST_LD_LIBRARY_PATH/$VMMALLOC
 
 setup
 
 export VMMALLOC_LOG_LEVEL=4
-export TEST_LD_PRELOAD=libvmmalloc.so
+export TEST_LD_PRELOAD=$VMMALLOC
 
 expect_normal_exit ./vmmalloc_init$EXESUFFIX d  2> stderr$UNITTEST_NUM.log
 

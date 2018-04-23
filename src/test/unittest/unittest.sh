@@ -76,6 +76,7 @@ fi
 
 export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
 
+VMMALLOC=libvmmalloc.so.1
 TOOLS=../tools
 # Paths to some useful tools
 [ "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
@@ -732,12 +733,12 @@ function expect_normal_exit() {
 		export VALGRIND_OPTS="--suppressions=../helgrind-log.supp"
 	fi
 
-	# in case of preloading libvmmalloc.so force valgrind to not override malloc
+	# in case of preloading libvmmalloc.so.1 force valgrind to not override malloc
 	if [ -n "$VALGRINDEXE" -a -n "$TEST_LD_PRELOAD" ]; then
 		if [ $(valgrind_version) -ge 312 ]; then
 			preload=`basename $TEST_LD_PRELOAD`
 		fi
-		if [ "$preload" == "libvmmalloc.so" ]; then
+		if [ "$preload" == "$VMMALLOC" ]; then
 			export VALGRIND_OPTS="$VALGRIND_OPTS --soname-synonyms=somalloc=nouserintercepts"
 		fi
 	fi
@@ -862,12 +863,12 @@ function expect_abnormal_exit() {
 		esac
 	fi
 
-	# in case of preloading libvmmalloc.so force valgrind to not override malloc
+	# in case of preloading libvmmalloc.so.1 force valgrind to not override malloc
 	if [ -n "$VALGRINDEXE" -a -n "$TEST_LD_PRELOAD" ]; then
 		if [ $(valgrind_version) -ge 312 ]; then
 			preload=`basename $TEST_LD_PRELOAD`
 		fi
-		if [ "$preload" == "libvmmalloc.so" ]; then
+		if [ "$preload" == "$VMMALLOC" ]; then
 			export VALGRIND_OPTS="$VALGRIND_OPTS --soname-synonyms=somalloc=nouserintercepts"
 		fi
 	fi
