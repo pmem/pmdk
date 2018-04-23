@@ -826,10 +826,8 @@ memblock_from_offset_opt(struct palloc_heap *heap, uint64_t off, int size)
 	off -= header_type_to_size[m.header_type];
 
 	m.type = off != 0 ? MEMORY_BLOCK_RUN : MEMORY_BLOCK_HUGE;
-#ifdef DEBUG
-	enum memory_block_type t = memblock_detect_type(heap, &m);
-	ASSERTeq(t, m.type);
-#endif
+	ASSERTeq(memblock_detect_type(heap, &m), m.type);
+
 	m.m_ops = &mb_ops[m.type];
 
 	uint64_t unit_size = m.m_ops->block_size(&m);
@@ -913,10 +911,8 @@ memblock_validate_offset(struct palloc_heap *heap, uint64_t off)
 	off -= header_type_to_size[m.header_type];
 
 	m.type = off != 0 ? MEMORY_BLOCK_RUN : MEMORY_BLOCK_HUGE;
-#ifdef DEBUG
-	enum memory_block_type t = memblock_detect_type(heap, &m);
-	ASSERTeq(t, m.type);
-#endif
+	ASSERTeq(memblock_detect_type(heap, &m), m.type);
+
 	m.m_ops = &mb_ops[m.type];
 
 	uint64_t unit_size = m.m_ops->block_size(&m);
