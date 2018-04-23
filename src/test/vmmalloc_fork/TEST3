@@ -55,7 +55,7 @@ setup
 export VMMALLOC_POOL_SIZE=$((64 * 1024 * 1024))
 export VMMALLOC_LOG_LEVEL=3
 export VMMALLOC_FORK=1
-export TEST_LD_PRELOAD=libvmmalloc.so
+export TEST_LD_PRELOAD=$VMMALLOC
 
 # this test is leaky by design
 export MEMCHECK_DONT_CHECK_LEAKS=1

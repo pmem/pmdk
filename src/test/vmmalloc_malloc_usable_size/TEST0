@@ -50,7 +50,7 @@ setup
 
 # override default pool size to test all the allocation size classes
 export VMMALLOC_POOL_SIZE=$((32 * 1024 * 1024))
-export TEST_LD_PRELOAD=libvmmalloc.so
+export TEST_LD_PRELOAD=$VMMALLOC
 
 expect_normal_exit ./vmmalloc_malloc_usable_size$EXESUFFIX
 
