@@ -54,18 +54,18 @@ struct stats {
 };
 
 #define STATS_INC(stats, type, name, value) do {\
-	if (stats->enabled)\
-		util_fetch_and_add64((&stats->type->name), (value));\
+	if ((stats)->enabled)\
+		util_fetch_and_add64((&(stats)->type->name), (value));\
 } while (0)
 
 #define STATS_SUB(stats, type, name, value) do {\
-	if (stats->enabled)\
-		util_fetch_and_sub64((&stats->type->name), (value));\
+	if ((stats)->enabled)\
+		util_fetch_and_sub64((&(stats)->type->name), (value));\
 } while (0)
 
 #define STATS_SET(stats, type, name, value) do {\
-	if (stats->enabled)\
-		util_atomic_store_explicit64((&stats->type->name), (value),\
+	if ((stats)->enabled)\
+		util_atomic_store_explicit64((&(stats)->type->name), (value),\
 		memory_order_release);\
 } while (0)
 
