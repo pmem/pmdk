@@ -547,7 +547,7 @@ palloc_publish(struct palloc_heap *heap,
  * return the memory block to the transient container. That is done once no more
  * memory is available.
  *
- * Reallocation is a combination of the above, which one additional step
+ * Reallocation is a combination of the above, with one additional step
  * of copying the old content.
  */
 int
