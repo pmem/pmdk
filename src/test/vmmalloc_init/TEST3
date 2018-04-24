@@ -49,7 +49,7 @@ setup
 
 export VMMALLOC_LOG_LEVEL=4
 export VMMALLOC_POOL_DIR="$DIR/nonexistingsubdir"
-export TEST_LD_PRELOAD=libvmmalloc.so
+export TEST_LD_PRELOAD=$VMMALLOC
 
 expect_abnormal_exit ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
 

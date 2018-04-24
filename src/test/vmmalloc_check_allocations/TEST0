@@ -48,7 +48,7 @@ require_no_asan
 
 setup
 
-export TEST_LD_PRELOAD=libvmmalloc.so
+export TEST_LD_PRELOAD=$VMMALLOC
 
 expect_normal_exit ./vmmalloc_check_allocations$EXESUFFIX
 
