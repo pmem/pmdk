@@ -816,7 +816,7 @@ cat << EOF > debian/pmempool.install
 usr/bin/pmempool
 $MAN1_DIR/pmempool.1.gz
 $MAN1_DIR/pmempool-*.1.gz
-etc/bash_completion.d/pmempool.sh
+etc/bash_completion.d/pmempool
 EOF
 
 cat << EOF > debian/pmempool.triggers

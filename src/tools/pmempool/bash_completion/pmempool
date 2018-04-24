@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2014-2017, Intel Corporation
 #
@@ -31,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# pmempool.sh -- bash completion script for pmempool
+# pmempool -- bash completion script for pmempool
 #
 
 #
