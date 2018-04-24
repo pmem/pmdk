@@ -149,6 +149,7 @@
     <ClCompile Include="pmem_flush.cpp" />
     <ClCompile Include="pmem_memcpy.cpp" />
     <ClCompile Include="pmem_memset.cpp" />
+    <ClCompile Include="poolset_util.cpp" />
     <ClCompile Include="rpmem_persist.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -166,6 +167,7 @@
     <ClInclude Include="clo.hpp" />
     <ClInclude Include="clo_vec.hpp" />
     <ClInclude Include="config_reader.hpp" />
+    <ClInclude Include="poolset_util.hpp" />
     <ClInclude Include="scenario.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

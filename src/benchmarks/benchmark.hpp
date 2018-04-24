@@ -85,6 +85,8 @@ struct benchmark_args {
 	const char *fname;       /* path to test file */
 	size_t fsize;		 /* size of test file */
 	bool is_poolset;	 /* test file is a poolset */
+	bool is_dynamic_poolset; /* test file is directory in which
+				    benchmark creates reusable files */
 	mode_t fmode;		 /* test file's permissions */
 	unsigned n_threads;      /* number of working threads */
 	size_t n_ops_per_thread; /* number of operations per thread */
