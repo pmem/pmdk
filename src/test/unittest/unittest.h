@@ -673,7 +673,7 @@ _name(const struct test_case *tc, int argc, char *argv[])
 #define TEST_CASE(_name)\
 {\
 	.name = #_name,\
-	.func = _name,\
+	.func = (_name),\
 }
 
 #define STR(x) #x

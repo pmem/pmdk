@@ -1135,9 +1135,9 @@ dump_art_leaf_callback(void *data,
 /*
  * Macros to manipulate pointer tags
  */
-#define IS_LEAF(x) (((uintptr_t)x & 1))
-#define SET_LEAF(x) ((void *)((uintptr_t)x | 1))
-#define LEAF_RAW(x) ((void *)((uintptr_t)x & ~1))
+#define IS_LEAF(x) (((uintptr_t)(x) & 1))
+#define SET_LEAF(x) ((void *)((uintptr_t)(x) | 1))
+#define LEAF_RAW(x) ((void *)((uintptr_t)(x) & ~1))
 
 unsigned char hexvals[] = {
 	0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,

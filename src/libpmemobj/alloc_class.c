@@ -118,7 +118,7 @@ static struct {
  * Calculates the size in bytes of a single run instance
  */
 #define RUN_SIZE_BYTES(size_idx)\
-(RUNSIZE + ((size_idx - 1) * CHUNKSIZE))
+(RUNSIZE + (((size_idx) - 1) * CHUNKSIZE))
 
 /*
  * Target number of allocations per run instance.

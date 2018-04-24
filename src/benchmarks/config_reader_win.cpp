@@ -57,7 +57,7 @@
 #define KV_LIST_EMPTY(x) (_tcslen(x) == 0)
 #define KV_FIRST(x)
 #define KV_LIST_NEXT(x)                                                        \
-	((x) += (_tcslen(x) + 1), x += (_tcslen(x) + 1),                       \
+	((x) += (_tcslen(x) + 1), (x) += (_tcslen(x) + 1),                     \
 	 (x) = kv_list_skip_comment(x))
 
 #define KV_LIST_KEY(x) (x)

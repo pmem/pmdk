@@ -58,7 +58,7 @@
 #define GAME_DELAY 40000
 #define SLEEP(t)                                                               \
 	do {                                                                   \
-		struct timespec req = {0, t * 1000};                           \
+		struct timespec req = {0, (t)*1000};                           \
 		while (nanosleep(&req, &req) == -1 && errno == EINTR)          \
 			;                                                      \
 	} while (0)

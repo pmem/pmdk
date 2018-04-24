@@ -495,10 +495,10 @@ btree_map_remove_from_node(TOID(struct btree_map) map,
 }
 
 #define NODE_CONTAINS_ITEM(_n, _i, _k)\
-(_i != D_RO(_n)->n && D_RO(_n)->items[_i].key == _k)
+((_i) != D_RO(_n)->n && D_RO(_n)->items[_i].key == (_k))
 
 #define NODE_CHILD_CAN_CONTAIN_ITEM(_n, _i, _k)\
-(_i == D_RO(_n)->n || D_RO(_n)->items[_i].key > _k) &&\
+((_i) == D_RO(_n)->n || D_RO(_n)->items[_i].key > (_k)) &&\
 !TOID_IS_NULL(D_RO(_n)->slots[_i])
 
 /*

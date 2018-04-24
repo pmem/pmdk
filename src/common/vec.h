@@ -82,7 +82,7 @@ struct name {\
 
 #define VEC_ERASE_BY_PTR(vec, element) do {\
 	ptrdiff_t elpos = (uintptr_t)(element) - (uintptr_t)((vec)->buffer);\
-	elpos /= sizeof(*element);\
+	elpos /= sizeof(*(element));\
 	VEC_ERASE_BY_POS(vec, elpos);\
 } while (0)
 
@@ -101,15 +101,15 @@ struct name {\
 
 #define VEC_FOREACH(el, vec)\
 for (size_t _vec_i = 0;\
-	_vec_i < (vec)->size && ((el = (vec)->buffer[_vec_i]), 1);\
+	_vec_i < (vec)->size && (((el) = (vec)->buffer[_vec_i]), 1);\
 	++_vec_i)
 
 #define VEC_FOREACH_BY_POS(elpos, vec)\
-for (elpos = 0; elpos < (vec)->size; ++elpos)
+for ((elpos) = 0; (elpos) < (vec)->size; ++(elpos))
 
 #define VEC_FOREACH_BY_PTR(el, vec)\
 for (size_t _vec_i = 0;\
-	_vec_i < (vec)->size && ((el = &(vec)->buffer[_vec_i]), 1);\
+	_vec_i < (vec)->size && (((el) = &(vec)->buffer[_vec_i]), 1);\
 	++_vec_i)
 
 #define VEC_SIZE(vec)\

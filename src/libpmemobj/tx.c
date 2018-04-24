@@ -214,14 +214,14 @@ obj_tx_abort_null(int errnum)
 
 /* ASSERT_IN_TX -- checks whether there's open transaction */
 #define ASSERT_IN_TX(tx) do {\
-	if (tx->stage == TX_STAGE_NONE)\
+	if ((tx)->stage == TX_STAGE_NONE)\
 		FATAL("%s called outside of transaction", __func__);\
 } while (0)
 
 /* ASSERT_TX_STAGE_WORK -- checks whether current transaction stage is WORK */
 #define ASSERT_TX_STAGE_WORK(tx) do {\
-	if (tx->stage != TX_STAGE_WORK)\
-		FATAL("%s called in invalid stage %d", __func__, tx->stage);\
+	if ((tx)->stage != TX_STAGE_WORK)\
+		FATAL("%s called in invalid stage %d", __func__, (tx)->stage);\
 } while (0)
 
 /*

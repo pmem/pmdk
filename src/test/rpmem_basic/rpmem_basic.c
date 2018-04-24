@@ -255,12 +255,12 @@ cmp_pool_attr(const struct rpmem_pool_attr *attr1,
  * check_return_and_errno - validate return value and errno
  */
 #define check_return_and_errno(ret, error_must_occur, exp_errno) \
-	if (exp_errno != 0) { \
+	if ((exp_errno) != 0) { \
 		if (error_must_occur) { \
 			UT_ASSERTne(ret, 0); \
 			UT_ASSERTeq(errno, exp_errno); \
 		} else { \
-			if (ret != 0) { \
+			if ((ret) != 0) { \
 				UT_ASSERTeq(errno, exp_errno); \
 			} \
 		} \

@@ -45,7 +45,7 @@
 #include "os_thread.h"
 
 #define CALC_SIZE_IDX(_unit_size, _size)\
-(_size == 0 ? 0 : (uint32_t)(((_size - 1) / _unit_size) + 1))
+((_size) == 0 ? 0 : (uint32_t)((((_size) - 1) / (_unit_size)) + 1))
 
 struct bucket {
 	os_mutex_t lock;
