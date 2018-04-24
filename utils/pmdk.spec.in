@@ -729,7 +729,7 @@ and users of the applications based on PMDK libraries.
 %{_bindir}/pmempool
 %{_mandir}/man1/pmempool.1.gz
 %{_mandir}/man1/pmempool-*.1.gz
-%config(noreplace) %{_sysconfdir}/bash_completion.d/pmempool.sh
+%config(noreplace) %{_sysconfdir}/bash_completion.d/pmempool
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
