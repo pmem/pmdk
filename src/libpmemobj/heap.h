@@ -47,7 +47,6 @@
 #include "palloc.h"
 #include "os_thread.h"
 
-#define MAX_RUN_LOCKS 1024
 
 #define HEAP_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
 #define HEAP_PTR_TO_OFF(heap, ptr)\
