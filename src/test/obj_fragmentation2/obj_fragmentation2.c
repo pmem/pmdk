@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -192,7 +192,7 @@ static workload *workloads[] = {
 };
 
 static float workloads_target[] = {
-	0.01f, 0.01f, 0.01f, 0.9f, 0.8f, 0.7f, 0.2f, 0.7f
+	0.01f, 0.01f, 0.01f, 0.9f, 0.8f, 0.7f, 0.2f, 0.8f
 };
 
 int
