@@ -82,8 +82,24 @@ util_mutex_lock(os_mutex_t *m)
 	int tmp = os_mutex_lock(m);
 	if (tmp) {
 		errno = tmp;
-		FATAL("!os_mutex_lock");
+		FATAL("!util_mutex_lock");
 	}
+}
+
+/*
+ * util_mutex_trylock -- os_mutex_lock variant that never fails from
+ * caller perspective. If os_mutex_lock failed, this function aborts
+ * the program.
+ */
+static inline int
+util_mutex_trylock(os_mutex_t *m)
+{
+	int tmp = os_mutex_trylock(m);
+	if (tmp && tmp != EBUSY) {
+		errno = tmp;
+		FATAL("!util_mutex_trylock");
+	}
+	return tmp == EBUSY;
 }
 
 /*
