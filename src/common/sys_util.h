@@ -87,6 +87,22 @@ util_mutex_lock(os_mutex_t *m)
 }
 
 /*
+ * util_mutex_trylock -- os_mutex_trylock variant that never fails from
+ * caller perspective (other than EBUSY). If util_mutex_trylock failed, this
+ * function aborts the program.
+ */
+static inline int
+util_mutex_trylock(os_mutex_t *m)
+{
+	int tmp = os_mutex_trylock(m);
+	if (tmp && tmp != EBUSY) {
+		errno = tmp;
+		FATAL("!os_mutex_trylock");
+	}
+	return tmp == EBUSY;
+}
+
+/*
  * util_mutex_unlock -- os_mutex_unlock variant that never fails from
  * caller perspective. If os_mutex_unlock failed, this function aborts
  * the program.
