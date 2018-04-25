@@ -44,7 +44,7 @@ setup
 
 POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
-rm -rf $LOG && touch $LOG
+rm -f $LOG && touch $LOG
 
 echo "Create btt device - uuid defined by the user" >> $LOG
 expect_normal_exit $BTTCREATE -s 20M -b 1K -l 256 \

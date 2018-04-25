@@ -46,7 +46,7 @@ POOLSET=$DIR/pool.set
 POOL_P1=$DIR/pool.p1
 POOL_P2=$DIR/pool.p2
 LOG=out${UNITTEST_NUM}.log
-rm -rf $LOG && touch $LOG
+rm -f $LOG && touch $LOG
 
 create_poolset $POOLSET 20M:$POOL_P1:z 20M:$POOL_P2:z
 expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET

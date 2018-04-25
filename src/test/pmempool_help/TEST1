@@ -43,7 +43,7 @@ require_fs_type pmem non-pmem
 setup
 
 LOG=out${UNITTEST_NUM}.log
-rm -rf $LOG && touch $LOG
+rm -f $LOG && touch $LOG
 
 for cmd in info dump create check
 do
