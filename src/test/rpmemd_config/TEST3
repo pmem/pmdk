@@ -46,7 +46,7 @@ RPMEMD=./rpmemd_config$EXESUFFIX
 
 LOG=out${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_temp.log
-rm -rf $LOG $LOG_TEMP
+rm -f $LOG $LOG_TEMP
 
 CONFIG=in${UNITTEST_NUM}.conf
 

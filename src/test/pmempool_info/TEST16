@@ -46,8 +46,8 @@ LOG=out${UNITTEST_NUM}.log
 LOG_REP0=rep${UNITTEST_NUM}.0.log
 LOG_REP1=rep${UNITTEST_NUM}.1.log
 
-rm -rf $LOG_REP0 $LOG_REP1
-rm -rf $LOG && touch $LOG
+rm -f $LOG_REP0 $LOG_REP1
+rm -f $LOG && touch $LOG
 
 POOLSET=$DIR/pool.set
 POOL1=$DIR/pool.part1

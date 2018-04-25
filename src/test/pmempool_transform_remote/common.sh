@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,8 +48,8 @@ require_node_log_files 1 pmempool$UNITTEST_NUM.log
 
 LOG=out${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
-rm -rf $LOG && touch $LOG
-rm -rf $LOG_TEMP && touch $LOG_TEMP
+rm -f $LOG && touch $LOG
+rm -f $LOG_TEMP && touch $LOG_TEMP
 rm_files_from_node 0 ${NODE_TEST_DIR[0]}/$LOG
 rm_files_from_node 1 ${NODE_TEST_DIR[1]}/$LOG
 

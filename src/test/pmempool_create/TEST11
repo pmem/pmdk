@@ -65,7 +65,7 @@ fallocate -l 10M $DIR/testfile1
 fallocate -l 10M $DIR/testfile2
 
 LOG=out${UNITTEST_NUM}.log
-rm -rf $LOG && touch $LOG
+rm -f $LOG && touch $LOG
 
 POOLSET=$DIR/testset1
 create_poolset $POOLSET 10M:$DIR/testfile1:x 10M:$FILE:x 10M:$DIR/testfile2:x
