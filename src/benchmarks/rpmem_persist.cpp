@@ -66,6 +66,7 @@ struct rpmem_args {
 	bool no_memset;    /* do not call memset before each persist */
 	size_t chunk_size; /* elementary chunk size */
 	size_t dest_off;   /* destination address offset */
+	bool relaxed;      /* use RPMEM_PERSIST_RELAXED flag */
 };
 
 /*
@@ -85,6 +86,7 @@ struct rpmem_bench {
 	unsigned *nlanes;	 /* number of lanes for each remote replica */
 	unsigned nreplicas;       /* number of remote replicas */
 	size_t csize_align;       /* aligned elementary chunk size */
+	unsigned flags;		  /* flags for rpmem_persist */
 };
 
 /*
@@ -191,7 +193,7 @@ do_warmup(struct rpmem_bench *mb)
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
 		int ret = rpmem_persist(mb->rpp[r], POOL_HDR_SIZE,
 					mb->pool_size - POOL_HDR_SIZE, 0,
-					0 /* XXX */);
+					mb->flags);
 		if (ret)
 			return ret;
 	}
@@ -233,7 +235,7 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 		assert(info->worker->index < mb->nlanes[r]);
 
 		ret = rpmem_persist(mb->rpp[r], offset, len,
-				    info->worker->index, 0 /* XXX */);
+				    info->worker->index, mb->flags);
 		if (ret) {
 			fprintf(stderr, "rpmem_persist replica #%u: %s\n", r,
 				rpmem_errormsg());
@@ -462,8 +464,12 @@ rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 		return -1;
 	}
 
+	mb->flags = 0;
 	mb->pargs = (struct rpmem_args *)args->opts;
 	mb->pargs->chunk_size = args->dsize;
+
+	if (mb->pargs->relaxed)
+		mb->flags |= RPMEM_PERSIST_RELAXED;
 
 	enum operation_mode op_mode = parse_op_mode(mb->pargs->mode);
 	if (op_mode == OP_MODE_UNKNOWN) {
@@ -516,7 +522,7 @@ rpmem_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
-static struct benchmark_clo rpmem_clo[4];
+static struct benchmark_clo rpmem_clo[5];
 /* Stores information about benchmark. */
 static struct benchmark_info rpmem_info;
 CONSTRUCTOR(rpmem_persist_constructor)
@@ -558,6 +564,13 @@ pmem_rpmem_persist(void)
 	rpmem_clo[3].def = "false";
 	rpmem_clo[3].off = clo_field_offset(struct rpmem_args, no_memset);
 	rpmem_clo[3].type = CLO_TYPE_FLAG;
+
+	rpmem_clo[4].opt_short = 0;
+	rpmem_clo[4].opt_long = "persist-relaxed";
+	rpmem_clo[4].descr = "Use RPMEM_PERSIST_RELAXED flag";
+	rpmem_clo[4].def = "false";
+	rpmem_clo[4].off = clo_field_offset(struct rpmem_args, relaxed);
+	rpmem_clo[4].type = CLO_TYPE_FLAG;
 
 	rpmem_info.name = "rpmem_persist";
 	rpmem_info.brief = "Benchmark for rpmem_persist() "
