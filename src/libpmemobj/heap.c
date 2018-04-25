@@ -428,33 +428,65 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 }
 
 /*
- * heap_run_insert -- (internal) inserts and splits a block of memory into a run
+ * heap_run_process_bitmap_value -- (internal) looks for unset bits in the
+ * value, creates a valid memory block out of them and inserts that
+ * block into the given bucket.
  */
-static void
-heap_run_insert(struct palloc_heap *heap, struct bucket *b,
-	const struct memory_block *m, uint32_t size_idx, uint16_t block_off)
+static uint32_t
+heap_run_process_bitmap_value(struct bucket *b, struct memory_block *m,
+	uint64_t value, uint16_t base_offset)
 {
-	struct alloc_class *c = b->aclass;
-	ASSERTeq(c->type, CLASS_RUN);
-
-	ASSERT(size_idx <= BITS_PER_VALUE);
-	ASSERT(block_off + size_idx <= c->run.bitmap_nallocs);
-
-	uint32_t unit_max = RUN_UNIT_MAX;
-	struct memory_block nm = *m;
-	nm.size_idx = unit_max - (block_off % unit_max);
-	nm.block_off = block_off;
-	if (nm.size_idx > size_idx)
-		nm.size_idx = size_idx;
+	uint64_t shift = 0; /* already processed bits */
+	uint32_t inserted = 0;
 
 	do {
-		bucket_insert_block(b, &nm);
-		ASSERT(nm.size_idx <= UINT16_MAX);
-		ASSERT(nm.block_off + nm.size_idx <= UINT16_MAX);
-		nm.block_off = (uint16_t)(nm.block_off + (uint16_t)nm.size_idx);
-		size_idx -= nm.size_idx;
-		nm.size_idx = size_idx > unit_max ? unit_max : size_idx;
-	} while (size_idx != 0);
+		/*
+		 * Shift the value so that the next memory block starts on the
+		 * least significant position:
+		 *	..............0 (free block)
+		 * or	..............1 (used block)
+		 */
+		uint64_t shifted = value >> shift;
+
+		/* all clear or set bits indicate the end of traversal */
+		if (shifted == 0) {
+			/*
+			 * Insert the remaining blocks as free. Remember that
+			 * unsigned values are always zero-filled, so we must
+			 * take the current shift into account.
+			 */
+
+			inserted += (uint32_t)(BITS_PER_VALUE - shift);
+
+			m->block_off = (uint16_t)(base_offset + shift);
+			m->size_idx = (uint32_t)(BITS_PER_VALUE - shift);
+			bucket_insert_block(b, m);
+
+			break;
+		} else if (shifted == UINT64_MAX) {
+			break;
+		}
+
+		/*
+		 * Offset and size of the next free block, either of these
+		 * can be zero depending on where the free block is located
+		 * in the value.
+		 */
+		unsigned off = (unsigned)util_lssb_index64(~shifted);
+		unsigned size = (unsigned)util_lssb_index64(shifted);
+
+		shift += off + size;
+
+		if (size != 0) { /* zero size means skip to the next value */
+			inserted += (uint32_t)(size);
+
+			m->block_off = (uint16_t)(base_offset + (shift - size));
+			m->size_idx = (uint32_t)(size);
+			bucket_insert_block(b, m);
+		}
+	} while (shift != BITS_PER_VALUE);
+
+	return inserted;
 }
 
 /*
@@ -469,54 +501,20 @@ heap_run_process_metadata(struct palloc_heap *heap, struct bucket *b,
 	ASSERTeq(m->size_idx, c->run.size_idx);
 
 	uint16_t block_off = 0;
-	uint16_t block_size_idx = 0;
 	uint32_t inserted_blocks = 0;
 
 	struct chunk_run *run = heap_get_chunk_run(heap, m);
 
 	ASSERTeq(run->block_size, c->unit_size);
 
+	struct memory_block nm = *m;
 	for (unsigned i = 0; i < c->run.bitmap_nval; ++i) {
 		ASSERT(i < MAX_BITMAP_VALUES);
 		uint64_t v = run->bitmap[i];
 		ASSERT(BITS_PER_VALUE * i <= UINT16_MAX);
 		block_off = (uint16_t)(BITS_PER_VALUE * i);
-		if (v == 0) {
-			heap_run_insert(heap, b, m, BITS_PER_VALUE, block_off);
-			inserted_blocks += BITS_PER_VALUE;
-			continue;
-		} else if (v == UINT64_MAX) {
-			continue;
-		}
-
-		for (unsigned j = 0; j < BITS_PER_VALUE; ++j) {
-			if (BIT_IS_CLR(v, j)) {
-				block_size_idx++;
-			} else if (block_size_idx != 0) {
-				ASSERT(block_off >= block_size_idx);
-
-				heap_run_insert(heap, b, m,
-					block_size_idx,
-					(uint16_t)(block_off - block_size_idx));
-				inserted_blocks += block_size_idx;
-				block_size_idx = 0;
-			}
-
-			if ((block_off++) == c->run.bitmap_nallocs) {
-				i = MAX_BITMAP_VALUES;
-				break;
-			}
-		}
-
-		if (block_size_idx != 0) {
-			ASSERT(block_off >= block_size_idx);
-
-			heap_run_insert(heap, b, m,
-					block_size_idx,
-					(uint16_t)(block_off - block_size_idx));
-			inserted_blocks += block_size_idx;
-			block_size_idx = 0;
-		}
+		inserted_blocks += heap_run_process_bitmap_value(b, &nm, v,
+			block_off);
 	}
 
 	return inserted_blocks;
