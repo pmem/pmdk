@@ -736,16 +736,20 @@ static int
 heap_recycle_unused(struct palloc_heap *heap, struct recycler *recycler,
 	struct bucket *defb, int force)
 {
-	ASSERTeq(defb->aclass->type, CLASS_HUGE);
-
 	struct empty_runs r = recycler_recalc(recycler, force);
 	if (VEC_SIZE(&r) == 0)
 		return ENOMEM;
 
+	struct bucket *nb = defb == NULL ? heap_bucket_acquire_by_id(heap,
+		DEFAULT_ALLOC_CLASS_ID) : NULL;
+
 	struct memory_block *nm;
 	VEC_FOREACH_BY_PTR(nm, &r) {
-		heap_run_into_free_chunk(heap, defb, nm);
+		heap_run_into_free_chunk(heap, nb ? nb : defb, nm);
 	}
+
+	if (nb != NULL)
+		heap_bucket_release(heap, nb);
 
 	VEC_DELETE(&r);
 
@@ -808,15 +812,13 @@ heap_ensure_huge_bucket_filled(struct palloc_heap *heap, struct bucket *bucket)
  */
 static int
 heap_reuse_from_recycler(struct palloc_heap *heap,
-	struct bucket *b, struct bucket *defb, uint32_t units, int force)
+	struct bucket *b, uint32_t units, int force)
 {
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.size_idx = units;
 
-	ASSERTeq(defb->aclass->type, CLASS_HUGE);
-
 	struct recycler *r = heap->rt->recyclers[b->aclass->id];
-	heap_recycle_unused(heap, r, defb, force);
+	heap_recycle_unused(heap, r, NULL, force);
 
 	if (recycler_get(r, &m) == 0) {
 		os_mutex_t *lock = m.m_ops->get_lock(&m);
@@ -844,9 +846,6 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	ASSERTeq(b->aclass->type, CLASS_RUN);
 	int ret = 0;
 
-	struct bucket *defb = heap_bucket_acquire_by_id(heap,
-		DEFAULT_ALLOC_CLASS_ID);
-
 	/* get rid of the active block in the bucket */
 	if (b->is_active) {
 		b->c_ops->rm_all(b->container);
@@ -858,35 +857,46 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		} else {
 			struct memory_block *m = &b->active_memory_block->m;
 			if (heap_reclaim_run(heap, m)) {
+				struct bucket *defb =
+					heap_bucket_acquire_by_id(heap,
+					DEFAULT_ALLOC_CLASS_ID);
+
 				heap_run_into_free_chunk(heap, defb, m);
+
+				heap_bucket_release(heap, defb);
 			}
 		}
 		b->is_active = 0;
 	}
 
-	if (heap_reuse_from_recycler(heap, b, defb, units, 0) == 0)
+	if (heap_reuse_from_recycler(heap, b, units, 0) == 0)
 		goto out;
 
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.size_idx = b->aclass->run.size_idx;
 
+	struct bucket *defb = heap_bucket_acquire_by_id(heap,
+		DEFAULT_ALLOC_CLASS_ID);
 	/* cannot reuse an existing run, create a new one */
 	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
+
 		ASSERTeq(m.block_off, 0);
 		heap_run_create(heap, b, &m);
 
 		b->active_memory_block->m = m;
 		b->is_active = 1;
 
+		heap_bucket_release(heap, defb);
+
 		goto out;
 	}
+	heap_bucket_release(heap, defb);
 
-	if (heap_reuse_from_recycler(heap, b, defb, units, 0) == 0)
+	if (heap_reuse_from_recycler(heap, b, units, 0) == 0)
 		goto out;
 
 	ret = ENOMEM;
 out:
-	heap_bucket_release(heap, defb);
 
 	return ret;
 }
