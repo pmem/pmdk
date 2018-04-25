@@ -56,7 +56,7 @@
 #define SIZEOF_RUN(runp, size_idx)\
 	(sizeof(*(runp)) + (((size_idx) - 1) * CHUNKSIZE))
 
-#define MAX_RUN_LOCKS 1024
+#define MAX_RUN_LOCKS MAX_CHUNK
 
 /*
  * This is the value by which the heap might grow once we hit an OOM.
