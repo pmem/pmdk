@@ -82,6 +82,9 @@ struct recycler {
 	 * blocks stored in the recycler.
 	 * The value is not meant to be accurate, but rather a rough measure on
 	 * how often should the memory block scores be recalculated.
+	 *
+	 * Per-chunk unaccounted units are shared for all zones, which might
+	 * lead to some unnecessary recalculations.
 	 */
 	size_t unaccounted_units[MAX_CHUNK];
 	size_t unaccounted_total;
