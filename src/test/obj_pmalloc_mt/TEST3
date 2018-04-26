@@ -41,7 +41,7 @@
 
 require_valgrind 3.10
 require_fs_type pmem non-pmem
-require_test_type medium
+require_test_type long
 configure_valgrind drd force-enable
 setup
 
