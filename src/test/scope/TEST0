@@ -41,7 +41,6 @@
 require_test_type medium
 
 require_fs_type none
-require_build_type debug
 
 setup
 
@@ -53,11 +52,11 @@ parse_lib() {
 		sort >> out$UNITTEST_NUM.log) 2>&1
 }
 
-echo "$UNITTEST_NAME:" > out$UNITTEST_NUM.log
-parse_lib "../../debug/libvmem.so"
-parse_lib "../../nondebug/libvmem.so"
-parse_lib "../../debug/libvmem.a"
-parse_lib "../../nondebug/libvmem.a"
+if [ "$BUILD" = "debug" -o "$BUILD" = "nondebug" ]; then
+	parse_lib $TEST_LD_LIBRARY_PATH/libvmem.so.1
+else
+	parse_lib $TEST_LD_LIBRARY_PATH/libvmem.a
+fi
 
 check
 

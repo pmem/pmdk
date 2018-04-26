@@ -41,7 +41,6 @@
 require_test_type medium
 
 require_fs_type none
-require_build_type debug
 
 setup
 
@@ -54,11 +53,11 @@ parse_lib() {
 
 }
 
-echo "$UNITTEST_NAME:" > out$UNITTEST_NUM.log
-parse_lib "../../debug/libpmemobj.so"
-parse_lib "../../nondebug/libpmemobj.so"
-parse_lib "../../debug/libpmemobj.a"
-parse_lib "../../nondebug/libpmemobj.a"
+if [ "$BUILD" = "debug" -o "$BUILD" = "nondebug" ]; then
+	parse_lib $TEST_LD_LIBRARY_PATH/libpmemobj.so.1
+else
+	parse_lib $TEST_LD_LIBRARY_PATH/libpmemobj.a
+fi
 
 check
 
