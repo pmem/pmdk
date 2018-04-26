@@ -46,15 +46,15 @@ require_build_type debug nondebug
 setup
 
 parse_lib() {
-	local lib_path=$1
+	local lib_path=$2
 	echo "$lib_path:" >> out$UNITTEST_NUM.log
-	(nm -g $lib_path |\
+	(nm $1 $lib_path |\
 		perl -ne 'print if s/^[0-9a-z]+ T (\w+)/$1/' |\
 		sort >> out$UNITTEST_NUM.log) 2>&1
 
 }
 
-parse_lib $TEST_LD_LIBRARY_PATH/$VMMALLOC
+parse_lib -D $TEST_LD_LIBRARY_PATH/$VMMALLOC
 
 check
 
