@@ -350,7 +350,7 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 
 			if (rep->remote) {
 				int ret = Rpmem_persist(rep->remote->rpp, off,
-						len, 0);
+						len, 0, 0);
 				if (ret) {
 					LOG(1,
 						"Copying data to remote node failed -- '%s' on '%s'",

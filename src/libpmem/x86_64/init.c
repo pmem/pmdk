@@ -113,8 +113,8 @@ flush_empty(const void *addr, size_t len)
 }
 
 #if SSE2_AVAILABLE || AVX_AVAILABLE || AVX512F_AVAILABLE
-#define PMEM_MEM_MOVNT (PMEM_MEM_WC | PMEM_MEM_NONTEMPORAL)
-#define PMEM_MEM_MOV   (PMEM_MEM_WB | PMEM_MEM_TEMPORAL)
+#define PMEM_F_MEM_MOVNT (PMEM_F_MEM_WC | PMEM_F_MEM_NONTEMPORAL)
+#define PMEM_F_MEM_MOV   (PMEM_F_MEM_WB | PMEM_F_MEM_TEMPORAL)
 
 #define MEMCPY_TEMPLATE(isa, flush) \
 static void *\
@@ -124,11 +124,11 @@ memmove_nodrain_##isa##_##flush(void *dest, const void *src, size_t len, \
 	if (len == 0 || src == dest)\
 		return dest;\
 \
-	if (flags & PMEM_MEM_NOFLUSH) \
+	if (flags & PMEM_F_MEM_NOFLUSH) \
 		memmove_mov_##isa##_empty(dest, src, len); \
-	else if (flags & PMEM_MEM_MOVNT)\
+	else if (flags & PMEM_F_MEM_MOVNT)\
 		memmove_movnt_##isa ##_##flush(dest, src, len);\
-	else if (flags & PMEM_MEM_MOV)\
+	else if (flags & PMEM_F_MEM_MOV)\
 		memmove_mov_##isa##_##flush(dest, src, len);\
 	else if (len < Movnt_threshold)\
 		memmove_mov_##isa##_##flush(dest, src, len);\
@@ -145,11 +145,11 @@ memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags)\
 	if (len == 0)\
 		return dest;\
 \
-	if (flags & PMEM_MEM_NOFLUSH) \
+	if (flags & PMEM_F_MEM_NOFLUSH) \
 		memset_mov_##isa##_empty(dest, c, len); \
-	else if (flags & PMEM_MEM_MOVNT)\
+	else if (flags & PMEM_F_MEM_MOVNT)\
 		memset_movnt_##isa##_##flush(dest, c, len);\
-	else if (flags & PMEM_MEM_MOV)\
+	else if (flags & PMEM_F_MEM_MOV)\
 		memset_mov_##isa##_##flush(dest, c, len);\
 	else if (len < Movnt_threshold)\
 		memset_mov_##isa##_##flush(dest, c, len);\

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -77,17 +77,7 @@
 struct rpmem_fip_lane {
 	struct fid_ep *ep;
 	struct fid_cq *cq;
-	uint64_t event;
 };
-
-/*
- * rpmem_fip_lane_begin -- initialize lane events
- */
-static inline void
-rpmem_fip_lane_begin(struct rpmem_fip_lane *lanep, uint64_t event)
-{
-	lanep->event = event;
-}
 
 /*
  * rpmemd_fip_lane -- daemon's lane
@@ -96,13 +86,20 @@ struct rpmemd_fip_lane {
 	struct rpmem_fip_lane base;	/* lane base structure */
 	struct rpmem_fip_msg recv;	/* RECV message */
 	struct rpmem_fip_msg send;	/* SEND message */
-	struct rpmemd_fip_worker *worker; /* lane's worker */
+	struct rpmem_msg_persist_resp resp; /* persist response msg buffer */
+	int send_posted;		/* send buffer has been posted */
+	int recv_posted;		/* recv buffer has been posted */
 };
 
-struct rpmemd_fip_worker {
-	struct rpmemd_fip *fip;
-	os_thread_t thread;
-	struct rpmemd_fip_lane *lanep;
+/*
+ * rpmemd_fip_thread -- thread context
+ */
+struct rpmemd_fip_thread {
+	struct rpmemd_fip *fip;		/* main context */
+	os_thread_t thread;		/* thread structure */
+	struct fid_cq *cq;		/* per-thread completion queue */
+	struct rpmemd_fip_lane **lanes; /* lanes processed by this thread */
+	size_t nlanes;	/* number of lanes processed by this thread */
 };
 
 /*
@@ -117,6 +114,7 @@ struct rpmemd_fip {
 	struct fid_mr *mr;		/* memory region for pool */
 
 	int (*persist)(const void *addr, size_t len);	/* persist function */
+	void *(*memcpy_persist)(void *pmemdest, const void *src, size_t len);
 	int (*deep_persist)(const void *addr, size_t len, void *ctx);
 	void *ctx;
 	void *addr;			/* pool's address */
@@ -126,12 +124,15 @@ struct rpmemd_fip {
 	volatile int closing;	/* flag for closing background threads */
 	unsigned nlanes;	/* number of lanes */
 	size_t nthreads;	/* number of threads for processing */
-	size_t cq_size;		/* size of completion queue */
+	size_t cq_size;	/* size of completion queue */
+	size_t lanes_per_thread; /* numer of lanes per thread */
+	size_t buff_size;	/* size of buffer for inlined data */
 
 	struct rpmemd_fip_lane *lanes;
-	struct rpmem_fip_lane rd_lane;
+	struct rpmem_fip_lane rd_lane; /* lane for read operation */
 
-	struct rpmem_msg_persist *pmsg;	/* persist message buffer */
+	void *pmsg;			/* persist message buffer */
+	size_t pmsg_size; /* persist message buffer size including alignment */
 	struct fid_mr *pmsg_mr;		/* persist message memory region */
 	void *pmsg_mr_desc;		/* persist message local descriptor */
 
@@ -139,20 +140,17 @@ struct rpmemd_fip {
 	struct fid_mr *pres_mr;		/* persist response memory region */
 	void *pres_mr_desc;		/* persist response local descriptor */
 
-	struct rpmemd_fip_worker *workers;	/* process workers */
+	struct rpmemd_fip_thread *threads;
 };
 
 /*
- * rpmemd_fip_set_nlanes -- set required number of lanes based on fabric
- * interface information and persistency method
+ * rpmemd_fip_get_pmsg -- return persist message buffer
  */
-static void
-rpmemd_fip_set_nlanes(struct rpmemd_fip *fip, unsigned nlanes)
+static inline struct rpmem_msg_persist *
+rpmemd_fip_get_pmsg(struct rpmemd_fip *fip, size_t idx)
 {
-	size_t max_nlanes = rpmem_fip_max_nlanes(fip->fi);
-	RPMEMD_ASSERT(max_nlanes < UINT_MAX);
-
-	fip->nlanes = min((unsigned)max_nlanes, nlanes);
+	return (struct rpmem_msg_persist *)
+		((uintptr_t)fip->pmsg + idx * fip->pmsg_size);
 }
 
 /*
@@ -425,6 +423,8 @@ rpmemd_fip_post_msg(struct rpmemd_fip_lane *lanep)
 		return ret;
 	}
 
+	lanep->recv_posted = 1;
+
 	return 0;
 }
 
@@ -434,11 +434,14 @@ rpmemd_fip_post_msg(struct rpmemd_fip_lane *lanep)
 static inline int
 rpmemd_fip_post_resp(struct rpmemd_fip_lane *lanep)
 {
-	int ret = rpmem_fip_sendmsg(lanep->base.ep, &lanep->send);
+	int ret = rpmem_fip_sendmsg(lanep->base.ep, &lanep->send,
+			sizeof(struct rpmem_msg_persist_resp));
 	if (ret) {
 		RPMEMD_FI_ERR(ret, "posting send buffer");
 		return ret;
 	}
+
+	lanep->send_posted = 1;
 
 	return 0;
 }
@@ -455,43 +458,9 @@ rpmemd_fip_post_common(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
 		return ret;
 	}
 
-	return 0;
-}
-
-/*
- * rpmemd_fip_lane_init -- initialize single lane
- */
-static int
-rpmemd_fip_lane_init(struct rpmemd_fip *fip, struct rpmem_fip_lane *lanep)
-{
-	struct fi_cq_attr cq_attr = {
-		.size = fip->cq_size,
-		.flags = 0,
-		.format = FI_CQ_FORMAT_MSG, /* need context and flags */
-		.wait_obj = FI_WAIT_UNSPEC,
-		.signaling_vector = 0,
-		.wait_cond = FI_CQ_COND_NONE,
-		.wait_set = NULL,
-	};
-
-	int ret = fi_cq_open(fip->domain, &cq_attr, &lanep->cq, NULL);
-	if (ret) {
-		RPMEMD_FI_ERR(ret, "opening completion queue");
-		goto err_cq_open;
-	}
+	lanep->recv_posted = 1;
 
 	return 0;
-err_cq_open:
-	return -1;
-}
-
-/*
- * rpmemd_fip_lane_fini -- deinitialize single lane
- */
-static void
-rpmemd_fip_lane_fini(struct rpmemd_fip *fip, struct rpmem_fip_lane *lanep)
-{
-	RPMEMD_FI_CLOSE(lanep->cq, "closing completion queue");
 }
 
 /*
@@ -507,20 +476,7 @@ rpmemd_fip_lanes_init(struct rpmemd_fip *fip)
 		goto err_alloc;
 	}
 
-	int ret = 0;
-
-	unsigned i;
-	for (i = 0; i < fip->nlanes; i++) {
-		ret = rpmemd_fip_lane_init(fip, &fip->lanes[i].base);
-		if (ret)
-			goto err_lane_init;
-	}
-
 	return 0;
-err_lane_init:
-	for (unsigned j = 0; j < i; j++)
-		rpmemd_fip_lane_fini(fip, &fip->lanes[j].base);
-	free(fip->lanes);
 err_alloc:
 	return -1;
 }
@@ -531,9 +487,6 @@ err_alloc:
 static void
 rpmemd_fip_fini_lanes(struct rpmemd_fip *fip)
 {
-	for (unsigned i = 0; i < fip->nlanes; i++)
-		rpmemd_fip_lane_fini(fip, &fip->lanes[i].base);
-
 	free(fip->lanes);
 }
 
@@ -546,7 +499,7 @@ rpmemd_fip_init_common(struct rpmemd_fip *fip)
 	int ret;
 
 	/* allocate persist message buffer */
-	size_t msg_size = fip->nlanes * sizeof(struct rpmem_msg_persist);
+	size_t msg_size = fip->nlanes * fip->pmsg_size;
 	fip->pmsg = malloc(msg_size);
 	if (!fip->pmsg) {
 		RPMEMD_LOG(ERR, "!allocating messages buffer");
@@ -594,8 +547,8 @@ rpmemd_fip_init_common(struct rpmemd_fip *fip)
 		rpmem_fip_msg_init(&lanep->recv,
 				fip->pmsg_mr_desc, 0,
 				lanep,
-				&fip->pmsg[i],
-				sizeof(fip->pmsg[i]),
+				rpmemd_fip_get_pmsg(fip, i),
+				fip->pmsg_size,
 				FI_COMPLETION);
 
 		/* initialize SEND message */
@@ -670,35 +623,22 @@ rpmemd_fip_check_pmsg(struct rpmemd_fip *fip, struct rpmem_msg_persist *pmsg)
 }
 
 /*
- * rpmemd_fip_process_one -- process single persist operation
+ * rpmemd_fip_process_send -- process FI_SEND completion
  */
 static int
-rpmemd_fip_process_one(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
+rpmemd_fip_process_send(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
 {
-	int ret = 0;
+	lanep->send_posted = 0;
 
-	/*
-	 * Get persist message and persist message response from appropriate
-	 * buffers. The persist message is in lane's RECV buffer and the
-	 * persist response message in lane's SEND buffer.
-	 */
-	struct rpmem_msg_persist *pmsg = rpmem_fip_msg_get_pmsg(&lanep->recv);
+	if (lanep->recv_posted)
+		return 0;
+
 	struct rpmem_msg_persist_resp *pres =
 		rpmem_fip_msg_get_pres(&lanep->send);
-	VALGRIND_DO_MAKE_MEM_DEFINED(pmsg, sizeof(*pmsg));
 
-	/* verify persist message */
-	ret = rpmemd_fip_check_pmsg(fip, pmsg);
-	if (unlikely(ret))
-		goto err;
+	*pres = lanep->resp;
 
-	/* return back the lane id */
-	pres->lane = pmsg->lane;
-
-	if (pmsg->flags & RPMEM_DEEP_PERSIST)
-		fip->deep_persist((void *)pmsg->addr, pmsg->size, fip->ctx);
-	else
-		fip->persist((void *)pmsg->addr, pmsg->size);
+	int ret;
 
 	/* post lane's RECV buffer */
 	ret = rpmemd_fip_post_msg(lanep);
@@ -707,17 +647,67 @@ rpmemd_fip_process_one(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
 
 	/* post lane's SEND buffer */
 	ret = rpmemd_fip_post_resp(lanep);
+err:
+	return ret;
+}
+
+/*
+ * rpmemd_fip_process_recv -- process FI_RECV completion
+ */
+static int
+rpmemd_fip_process_recv(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
+{
+	int ret = 0;
+
+	lanep->recv_posted = 0;
+
+	/*
+	 * Get persist message and persist message response from appropriate
+	 * buffers. The persist message is in lane's RECV buffer and the
+	 * persist response message in lane's SEND buffer.
+	 */
+	struct rpmem_msg_persist *pmsg = rpmem_fip_msg_get_pmsg(&lanep->recv);
+	VALGRIND_DO_MAKE_MEM_DEFINED(pmsg, sizeof(*pmsg));
+
+	/* verify persist message */
+	ret = rpmemd_fip_check_pmsg(fip, pmsg);
+	if (unlikely(ret))
+		goto err;
+
+	if (pmsg->flags & RPMEM_DEEP_PERSIST) {
+		fip->deep_persist((void *)pmsg->addr, pmsg->size, fip->ctx);
+	} else if (pmsg->flags & RPMEM_PERSIST_SEND) {
+		fip->memcpy_persist((void *)pmsg->addr, pmsg->data, pmsg->size);
+	} else {
+		fip->persist((void *)pmsg->addr, pmsg->size);
+	}
+
+	struct rpmem_msg_persist_resp *pres = lanep->send_posted ?
+		&lanep->resp : rpmem_fip_msg_get_pres(&lanep->send);
+
+	/* return back the lane id */
+	pres->lane = pmsg->lane;
+
+	if (!lanep->send_posted) {
+		/* post lane's RECV buffer */
+		ret = rpmemd_fip_post_msg(lanep);
+		if (unlikely(ret))
+			goto err;
+
+		/* post lane's SEND buffer */
+		ret = rpmemd_fip_post_resp(lanep);
+	}
 
 err:
 	return ret;
 }
 
 /*
- * rpmemd_fip_lane_wait -- wait for specific events on completion queue
+ * rpmemd_fip_cq_read -- wait for specific events on completion queue
  */
 static int
-rpmemd_fip_lane_wait(struct rpmemd_fip *fip,
-	struct rpmemd_fip_lane *lanep, uint64_t e)
+rpmemd_fip_cq_read(struct rpmemd_fip *fip, struct fid_cq *cq,
+	struct rpmemd_fip_lane **lanep, uint64_t *event, uint64_t event_mask)
 {
 	struct fi_cq_err_entry err;
 	struct fi_cq_msg_entry cq_entry;
@@ -725,9 +715,8 @@ rpmemd_fip_lane_wait(struct rpmemd_fip *fip,
 	ssize_t sret;
 	int ret;
 
-	while (!fip->closing && (lanep->base.event & e)) {
-		sret = fi_cq_sread(lanep->base.cq,
-				&cq_entry, 1, NULL,
+	while (!fip->closing) {
+		sret = fi_cq_sread(cq, &cq_entry, 1, NULL,
 				RPMEM_FIP_CQ_WAIT_MS);
 
 		if (unlikely(fip->closing))
@@ -741,56 +730,92 @@ rpmemd_fip_lane_wait(struct rpmemd_fip *fip,
 			goto err_cq_read;
 		}
 
-		lanep->base.event &= ~cq_entry.flags;
+		if (!(cq_entry.flags & event_mask)) {
+			RPMEMD_LOG(ERR, "unexpected event received %lx",
+					cq_entry.flags);
+			ret = -1;
+			goto err;
+		}
+
+		if (!cq_entry.op_context) {
+			RPMEMD_LOG(ERR, "null context received");
+			ret = -1;
+			goto err;
+		}
+
+		*event = cq_entry.flags & event_mask;
+		*lanep = cq_entry.op_context;
+
+		return 0;
 	}
 
 	return 0;
 err_cq_read:
-	sret = fi_cq_readerr(lanep->base.cq, &err, 0);
+	sret = fi_cq_readerr(cq, &err, 0);
 	if (sret < 0) {
 		RPMEMD_FI_ERR((int)sret, "error reading from completion queue: "
 			"cannot read error from completion queue");
 		goto err;
 	}
 
-	str_err = fi_cq_strerror(lanep->base.cq, err.prov_errno, NULL, NULL, 0);
+	str_err = fi_cq_strerror(cq, err.prov_errno, NULL, NULL, 0);
 	RPMEMD_LOG(ERR, "error reading from completion queue: %s", str_err);
 err:
 	return ret;
 }
 
 /*
- * rpmemd_fip_worker -- worker callback which processes persist
+ * rpmemd_fip_thread -- thread callback which processes persist
  * operation
  */
 static void *
-rpmemd_fip_worker(void *arg)
+rpmemd_fip_thread(void *arg)
 {
-	struct rpmemd_fip_worker *worker = arg;
-	struct rpmemd_fip *fip = worker->fip;
-	struct rpmemd_fip_lane *lanep = worker->lanep;
+	struct rpmemd_fip_thread *thread = arg;
+	struct rpmemd_fip *fip = thread->fip;
+	struct rpmemd_fip_lane *lanep = NULL;
+	uint64_t event = 0;
 	int ret = 0;
 
-	rpmem_fip_lane_begin(&lanep->base, FI_RECV);
-
 	while (!fip->closing) {
-		ret = rpmemd_fip_lane_wait(fip, lanep, FI_SEND|FI_RECV);
+		ret = rpmemd_fip_cq_read(fip, thread->cq, &lanep, &event,
+			FI_SEND|FI_RECV);
 		if (ret)
 			goto err;
 
 		if (unlikely(fip->closing))
 			break;
 
-		ret = rpmemd_fip_process_one(fip, lanep);
+		RPMEMD_ASSERT(lanep != NULL);
+		if (event & FI_RECV)
+			ret = rpmemd_fip_process_recv(fip, lanep);
+		else if (event & FI_SEND)
+			ret = rpmemd_fip_process_send(fip, lanep);
 		if (ret)
 			goto err;
-
-		rpmem_fip_lane_begin(&lanep->base, FI_SEND|FI_RECV);
 	}
 
 	return 0;
 err:
 	return (void *)(uintptr_t)ret;
+}
+
+/*
+ * rpmemd_fip_get_def_nthreads -- get default number of threads for given
+ * persistency method
+ */
+static size_t
+rpmemd_fip_get_def_nthreads(struct rpmemd_fip *fip)
+{
+	RPMEMD_ASSERT(fip->nlanes > 0);
+	switch (fip->persist_method) {
+	case RPMEM_PM_APM:
+	case RPMEM_PM_GPSPM:
+		return fip->nlanes;
+	default:
+		RPMEMD_ASSERT(0);
+		return 0;
+	}
 }
 
 /*
@@ -801,18 +826,131 @@ rpmemd_fip_set_attr(struct rpmemd_fip *fip, struct rpmemd_fip_attr *attr)
 {
 	fip->addr = attr->addr;
 	fip->size = attr->size;
-	fip->nthreads = attr->nthreads;
 	fip->persist_method = attr->persist_method;
 	fip->persist = attr->persist;
+	fip->memcpy_persist = attr->memcpy_persist;
 	fip->deep_persist = attr->deep_persist;
 	fip->ctx = attr->ctx;
+	fip->buff_size = attr->buff_size;
+	fip->pmsg_size = roundup(sizeof(struct rpmem_msg_persist) +
+			fip->buff_size, (size_t)64);
 
-	rpmemd_fip_set_nlanes(fip, attr->nlanes);
+	size_t max_nlanes = rpmem_fip_max_nlanes(fip->fi);
+	RPMEMD_ASSERT(max_nlanes < UINT_MAX);
+	fip->nlanes = min((unsigned)max_nlanes, attr->nlanes);
 
-	fip->cq_size = rpmem_fip_cq_size(fip->persist_method,
+	if (attr->nthreads) {
+		fip->nthreads = attr->nthreads;
+	} else {
+		/* use default */
+		fip->nthreads = rpmemd_fip_get_def_nthreads(fip);
+	}
+
+	fip->lanes_per_thread = (fip->nlanes - 1) / fip->nthreads + 1;
+	size_t cq_size_per_lane = rpmem_fip_cq_size(fip->persist_method,
 			RPMEM_FIP_NODE_SERVER);
 
+	fip->cq_size = fip->lanes_per_thread * cq_size_per_lane;
+
 	RPMEMD_ASSERT(fip->persist_method < MAX_RPMEM_PM);
+}
+
+/*
+ * rpmemd_fip_init_thread -- init worker thread
+ */
+static int
+rpmemd_fip_init_thread(struct rpmemd_fip *fip, struct rpmemd_fip_thread *thread)
+{
+	thread->fip = fip;
+	thread->lanes = malloc(fip->lanes_per_thread * sizeof(*thread->lanes));
+	if (!thread->lanes) {
+		RPMEMD_LOG(ERR, "!allocating thread lanes");
+		goto err_alloc_lanes;
+	}
+
+	struct fi_cq_attr cq_attr = {
+		.size = fip->cq_size,
+		.flags = 0,
+		.format = FI_CQ_FORMAT_MSG, /* need context and flags */
+		.wait_obj = FI_WAIT_UNSPEC,
+		.signaling_vector = 0,
+		.wait_cond = FI_CQ_COND_NONE,
+		.wait_set = NULL,
+	};
+
+	int ret = fi_cq_open(fip->domain, &cq_attr, &thread->cq, NULL);
+	if (ret) {
+		RPMEMD_FI_ERR(ret, "opening completion queue");
+		goto err_cq_open;
+	}
+
+	return 0;
+err_cq_open:
+	free(thread->lanes);
+err_alloc_lanes:
+	return -1;
+}
+
+/*
+ * rpmemd_fip_fini_thread -- deinitialize worker thread
+ */
+static void
+rpmemd_fip_fini_thread(struct rpmemd_fip *fip, struct rpmemd_fip_thread *thread)
+{
+	RPMEMD_FI_CLOSE(thread->cq, "closing completion queue");
+	free(thread->lanes);
+}
+
+/*
+ * rpmemd_fip_init_threads -- initialize worker threads
+ */
+static int
+rpmemd_fip_init_threads(struct rpmemd_fip *fip)
+{
+	RPMEMD_ASSERT(fip->lanes != NULL);
+	RPMEMD_ASSERT(fip->nthreads > 0);
+
+	fip->threads = calloc(fip->nthreads, sizeof(*fip->threads));
+	if (!fip->threads) {
+		RPMEMD_LOG(ERR, "!allocating threads");
+		goto err_alloc_threads;
+	}
+
+	int ret;
+	size_t i;
+	for (i = 0; i < fip->nthreads; i++) {
+		ret = rpmemd_fip_init_thread(fip, &fip->threads[i]);
+		if (ret) {
+			RPMEMD_LOG(ERR, "!initializing thread %zu", i);
+			goto err_init_thread;
+		}
+	}
+
+	for (size_t i = 0; i < fip->nlanes; i++) {
+		size_t w = i % fip->nthreads;
+		struct rpmemd_fip_thread *thread = &fip->threads[w];
+		fip->lanes[i].base.cq = thread->cq;
+		thread->lanes[thread->nlanes++] = &fip->lanes[i];
+	}
+
+	return 0;
+err_init_thread:
+	for (size_t j = 0; j < i; j++)
+		rpmemd_fip_fini_thread(fip, &fip->threads[j]);
+	free(fip->threads);
+err_alloc_threads:
+	return -1;
+}
+
+/*
+ * rpmemd_fip_fini_threads -- deinitialize worker threads
+ */
+static void
+rpmemd_fip_fini_threads(struct rpmemd_fip *fip)
+{
+	for (size_t i = 0; i < fip->nthreads; i++)
+		rpmemd_fip_fini_thread(fip, &fip->threads[i]);
+	free(fip->threads);
 }
 
 /*
@@ -829,7 +967,6 @@ rpmemd_fip_init(const char *node, const char *service,
 	RPMEMD_ASSERT(err);
 	RPMEMD_ASSERT(attr);
 	RPMEMD_ASSERT(attr->persist);
-	RPMEMD_ASSERT(attr->nthreads);
 
 	struct rpmemd_fip *fip = calloc(1, sizeof(*fip));
 	if (!fip) {
@@ -864,6 +1001,12 @@ rpmemd_fip_init(const char *node, const char *service,
 		goto err_init_lanes;
 	}
 
+	ret = rpmemd_fip_init_threads(fip);
+	if (ret) {
+		*err = RPMEM_ERR_FATAL;
+		goto err_init_threads;
+	}
+
 	ret = rpmemd_fip_init_common(fip);
 	if (ret) {
 		*err = RPMEM_ERR_FATAL;
@@ -888,6 +1031,8 @@ err_set_resp:
 err_fi_listen:
 	rpmemd_fip_fini_common(fip);
 err_init:
+	rpmemd_fip_fini_threads(fip);
+err_init_threads:
 	rpmemd_fip_fini_lanes(fip);
 err_init_lanes:
 	rpmemd_fip_fini_memory(fip);
@@ -907,6 +1052,7 @@ void
 rpmemd_fip_fini(struct rpmemd_fip *fip)
 {
 	rpmemd_fip_fini_common(fip);
+	rpmemd_fip_fini_threads(fip);
 	rpmemd_fip_fini_lanes(fip);
 	rpmemd_fip_fini_memory(fip);
 	rpmemd_fip_fini_fabric_res(fip);
@@ -1045,28 +1191,18 @@ rpmemd_fip_close(struct rpmemd_fip *fip)
 int
 rpmemd_fip_process_start(struct rpmemd_fip *fip)
 {
-	fip->workers = malloc(fip->nlanes * sizeof(*fip->workers));
-	if (!fip->workers) {
-		RPMEMD_LOG(ERR, "!allocating workers");
-		goto err_alloc_workers;
-	}
-
 	unsigned i;
-	for (i = 0; i < fip->nlanes; i++) {
-		fip->workers[i].fip = fip;
-		fip->workers[i].lanep = &fip->lanes[i];
-		errno = os_thread_create(&fip->workers[i].thread, NULL,
-				rpmemd_fip_worker, &fip->workers[i]);
+	for (i = 0; i < fip->nthreads; i++) {
+		errno = os_thread_create(&fip->threads[i].thread, NULL,
+				rpmemd_fip_thread, &fip->threads[i]);
 		if (errno) {
-			RPMEMD_ERR("!running worker thread");
+			RPMEMD_ERR("!running thread thread");
 			goto err_thread_create;
 		}
 	}
 
 	return 0;
 err_thread_create:
-	free(fip->workers);
-err_alloc_workers:
 	return -1;
 }
 
@@ -1076,20 +1212,20 @@ err_alloc_workers:
 int
 rpmemd_fip_process_stop(struct rpmemd_fip *fip)
 {
-	/* this stops all worker threads */
+	/* this stops all threads */
 	util_fetch_and_or32(&fip->closing, 1);
 	int ret;
 	int lret = 0;
 
-	for (unsigned i = 0; i < fip->nlanes; i++) {
-		struct rpmemd_fip_worker *worker = &fip->workers[i];
-		ret = fi_cq_signal(worker->lanep->base.cq);
+	for (size_t i = 0; i < fip->nthreads; i++) {
+		struct rpmemd_fip_thread *thread = &fip->threads[i];
+		ret = fi_cq_signal(thread->cq);
 		if (ret) {
 			RPMEMD_FI_ERR(ret, "sending signal to CQ");
 			lret = ret;
 		}
 		void *tret;
-		errno = os_thread_join(&worker->thread, &tret);
+		errno = os_thread_join(&thread->thread, &tret);
 		if (errno) {
 			RPMEMD_LOG(ERR, "!joining cq thread");
 			lret = -1;
@@ -1103,8 +1239,6 @@ rpmemd_fip_process_stop(struct rpmemd_fip *fip)
 			}
 		}
 	}
-
-	free(fip->workers);
 
 	return lret;
 }

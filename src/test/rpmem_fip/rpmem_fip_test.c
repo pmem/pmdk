@@ -169,7 +169,7 @@ client_persist_thread(void *arg)
 
 	/* presist with len == 0 should always succeed */
 	ret = rpmem_fip_persist(args->fip, args->lane * TOTAL_PER_LANE,
-			0, args->lane, RPMEM_PERSIST);
+			0, args->lane, RPMEM_PERSIST_WRITE);
 	UT_ASSERTeq(ret, 0);
 
 	for (unsigned i = 0; i < COUNT_PER_LANE; i++) {
@@ -178,7 +178,7 @@ client_persist_thread(void *arg)
 		memset(&lpool[offset], val, SIZE_PER_LANE);
 
 		ret = rpmem_fip_persist(args->fip, offset,
-				SIZE_PER_LANE, args->lane, RPMEM_PERSIST);
+				SIZE_PER_LANE, args->lane, RPMEM_PERSIST_WRITE);
 		UT_ASSERTeq(ret, 0);
 	}
 
@@ -274,6 +274,7 @@ server_init(const struct test_case *tc, int argc, char *argv[])
 	};
 
 	ret = rpmemd_apply_pm_policy(&attr.persist_method, &attr.persist,
+			&attr.memcpy_persist,
 			1 /* is pmem */);
 	UT_ASSERTeq(ret, 0);
 
@@ -391,6 +392,7 @@ server_connect(const struct test_case *tc, int argc, char *argv[])
 	enum rpmem_err err;
 
 	ret = rpmemd_apply_pm_policy(&attr.persist_method, &attr.persist,
+			&attr.memcpy_persist,
 			1 /* is pmem */);
 	UT_ASSERTeq(ret, 0);
 
@@ -452,6 +454,7 @@ server_process(const struct test_case *tc, int argc, char *argv[])
 	enum rpmem_err err;
 
 	ret = rpmemd_apply_pm_policy(&attr.persist_method, &attr.persist,
+			&attr.memcpy_persist,
 			1 /* is pmem */);
 	UT_ASSERTeq(ret, 0);
 

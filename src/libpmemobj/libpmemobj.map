@@ -112,6 +112,8 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_persist;
 		pmemobj_flush;
 		pmemobj_drain;
+		pmemobj_xpersist;
+		pmemobj_xflush;
 		pmemobj_direct;
 		pmemobj_reserve;
 		pmemobj_xreserve;

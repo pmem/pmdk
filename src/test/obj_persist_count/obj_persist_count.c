@@ -69,8 +69,8 @@ cl_flushed(const void *addr, size_t len, uintptr_t alignment)
 	return (int)(end - start) / FLUSH_ALIGN;
 }
 
-#define PMEM_MEM_MOVNT (PMEM_MEM_WC | PMEM_MEM_NONTEMPORAL)
-#define PMEM_MEM_MOV   (PMEM_MEM_WB | PMEM_MEM_TEMPORAL)
+#define PMEM_F_MEM_MOVNT (PMEM_F_MEM_WC | PMEM_F_MEM_NONTEMPORAL)
+#define PMEM_F_MEM_MOV   (PMEM_F_MEM_WB | PMEM_F_MEM_TEMPORAL)
 
 static int
 bulk_cl_changed(const void *addr, size_t len, unsigned flags)
@@ -82,11 +82,11 @@ bulk_cl_changed(const void *addr, size_t len, unsigned flags)
 	int cl_changed = (int)(end - start) / FLUSH_ALIGN;
 
 	int wc; /* write combining */
-	if (flags & PMEM_MEM_NOFLUSH)
+	if (flags & PMEM_F_MEM_NOFLUSH)
 		wc = 0; /* NOFLUSH always uses temporal instructions */
-	else if (flags & PMEM_MEM_MOVNT)
+	else if (flags & PMEM_F_MEM_MOVNT)
 		wc = 1;
-	else if (flags & PMEM_MEM_MOV)
+	else if (flags & PMEM_F_MEM_MOV)
 		wc = 0;
 	else if (len < MOVNT_THRESHOLD)
 		wc = 0;
@@ -171,7 +171,7 @@ static void
 memcpy_nodrain_count(void *dest, const void *src, size_t len, unsigned flags)
 {
 	int cl_stores = bulk_cl_changed(dest, len, flags);
-	if (!(flags & PMEM_MEM_NOFLUSH))
+	if (!(flags & PMEM_F_MEM_NOFLUSH))
 		ops_counter.n_flush_from_pmem_memcpy += cl_stores;
 	ops_counter.n_cl_stores += cl_stores;
 }
@@ -204,9 +204,9 @@ FUNC_MOCK_END
 static unsigned
 sanitize_flags(unsigned flags)
 {
-	if (flags & PMEM_MEM_NOFLUSH) {
+	if (flags & PMEM_F_MEM_NOFLUSH) {
 		/* NOFLUSH implies NODRAIN */
-		flags |= PMEM_MEM_NODRAIN;
+		flags |= PMEM_F_MEM_NODRAIN;
 	}
 
 	return flags;
@@ -217,7 +217,7 @@ FUNC_MOCK(pmem_memcpy, void *, void *dest, const void *src, size_t len,
 	FUNC_MOCK_RUN_DEFAULT {
 		flags = sanitize_flags(flags);
 
-		if (flags & PMEM_MEM_NODRAIN)
+		if (flags & PMEM_F_MEM_NODRAIN)
 			memcpy_nodrain_count(dest, src, len, flags);
 		else
 			memcpy_persist_count(dest, src, len, flags);
@@ -247,7 +247,7 @@ FUNC_MOCK(pmem_memmove, void *, void *dest, const void *src, size_t len,
 	FUNC_MOCK_RUN_DEFAULT {
 		flags = sanitize_flags(flags);
 
-		if (flags & PMEM_MEM_NODRAIN)
+		if (flags & PMEM_F_MEM_NODRAIN)
 			memcpy_nodrain_count(dest, src, len, flags);
 		else
 			memcpy_persist_count(dest, src, len, flags);
@@ -260,7 +260,7 @@ static void
 memset_nodrain_count(void *dest, size_t len, unsigned flags)
 {
 	int cl_set = bulk_cl_changed(dest, len, flags);
-	if (!(flags & PMEM_MEM_NOFLUSH))
+	if (!(flags & PMEM_F_MEM_NOFLUSH))
 		ops_counter.n_flush_from_pmem_memset += cl_set;
 	ops_counter.n_cl_stores += cl_set;
 }
@@ -294,7 +294,7 @@ FUNC_MOCK(pmem_memset, void *, void *dest, int c, size_t len, unsigned flags)
 	FUNC_MOCK_RUN_DEFAULT {
 		flags = sanitize_flags(flags);
 
-		if (flags & PMEM_MEM_NODRAIN)
+		if (flags & PMEM_F_MEM_NODRAIN)
 			memset_nodrain_count(dest, len, flags);
 		else
 			memset_persist_count(dest, len, flags);

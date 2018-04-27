@@ -107,15 +107,17 @@ void *pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len);
 void *pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len);
 void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
 
-#define PMEM_MEM_NODRAIN	(1U << 0)
+#define PMEM_F_MEM_NODRAIN	(1U << 0)
 
-#define PMEM_MEM_NONTEMPORAL	(1U << 1)
-#define PMEM_MEM_TEMPORAL	(1U << 2)
+#define PMEM_F_MEM_NONTEMPORAL	(1U << 1)
+#define PMEM_F_MEM_TEMPORAL	(1U << 2)
 
-#define PMEM_MEM_WC		(1U << 3)
-#define PMEM_MEM_WB		(1U << 4)
+#define PMEM_F_MEM_WC		(1U << 3)
+#define PMEM_F_MEM_WB		(1U << 4)
 
-#define PMEM_MEM_NOFLUSH	(1U << 7)
+#define PMEM_F_MEM_NOFLUSH	(1U << 7)
+
+#define PMEM_F_RELAXED		(1U << 8)
 
 void *pmem_memmove(void *pmemdest, const void *src, size_t len, unsigned flags);
 void *pmem_memcpy(void *pmemdest, const void *src, size_t len, unsigned flags);

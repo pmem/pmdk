@@ -308,10 +308,11 @@ cleanup(char test_type)
 
 }
 
-static void
-obj_sync_persist(void *ctx, const void *ptr, size_t sz)
+static int
+obj_sync_persist(void *ctx, const void *ptr, size_t sz, unsigned flags)
 {
 	/* no-op */
+	return 0;
 }
 
 int

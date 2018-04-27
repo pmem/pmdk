@@ -159,11 +159,13 @@ struct rpmem_fip {
 	struct rpmem_fip_ops *ops;
 
 	unsigned nlanes;
+	size_t buff_size;
 	struct rpmem_fip_plane *lanes;
 
 	os_thread_t monitor;
 
-	struct rpmem_msg_persist *pmsg;	/* persist message buffer */
+	void *pmsg;	/* persist message buffer */
+	size_t pmsg_size;
 	struct fid_mr *pmsg_mr;		/* persist message memory region */
 	void *pmsg_mr_desc;		/* persist message memory descriptor */
 
@@ -701,7 +703,9 @@ rpmem_fip_init_lanes_common(struct rpmem_fip *fip)
 	int ret = 0;
 
 	/* allocate persist messages buffer */
-	size_t msg_size = fip->nlanes * sizeof(struct rpmem_msg_persist);
+	fip->pmsg_size = roundup(sizeof(struct rpmem_msg_persist) +
+			fip->buff_size, (size_t)64);
+	size_t msg_size = fip->nlanes * fip->pmsg_size;
 	msg_size = PAGE_ALIGNED_UP_SIZE(msg_size);
 	errno = posix_memalign((void **)&fip->pmsg, Pagesize, msg_size);
 	if (errno) {
@@ -761,6 +765,16 @@ err_malloc_pmsg:
 }
 
 /*
+ * rpmem_fip_get_pmsg -- return persist message buffer
+ */
+static inline struct rpmem_msg_persist *
+rpmem_fip_get_pmsg(struct rpmem_fip *fip, size_t idx)
+{
+	return (struct rpmem_msg_persist *)
+		((uintptr_t)fip->pmsg + idx * fip->pmsg_size);
+}
+
+/*
  * rpmem_fip_init_mem_lanes_gpspm -- initialize lanes rma structures
  */
 static int
@@ -797,8 +811,8 @@ rpmem_fip_init_mem_lanes_gpspm(struct rpmem_fip *fip)
 		rpmem_fip_msg_init(&fip->lanes[i].send,
 				fip->pmsg_mr_desc, 0,
 				&fip->lanes[i],
-				&fip->pmsg[i],
-				sizeof(fip->pmsg[i]),
+				rpmem_fip_get_pmsg(fip, i),
+				0 /* size must be provided when sending msg */,
 				FI_COMPLETION);
 
 		/* RECV */
@@ -904,8 +918,8 @@ rpmem_fip_init_mem_lanes_apm(struct rpmem_fip *fip)
 		rpmem_fip_msg_init(&fip->lanes[i].send,
 				fip->pmsg_mr_desc, 0,
 				&fip->lanes[i],
-				&fip->pmsg[i],
-				sizeof(fip->pmsg[i]),
+				rpmem_fip_get_pmsg(fip, i),
+				fip->pmsg_size,
 				FI_COMPLETION);
 
 		/* RECV */
@@ -1027,7 +1041,7 @@ rpmem_fip_persist_saw(struct rpmem_fip *fip, size_t offset,
 	msg->addr = raddr;
 	msg->size = len;
 
-	ret = rpmem_fip_sendmsg(lanep->base.ep, &lanep->send);
+	ret = rpmem_fip_sendmsg(lanep->base.ep, &lanep->send, sizeof(*msg));
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR(ret, "MSG send");
 		return ret;
@@ -1050,6 +1064,101 @@ rpmem_fip_persist_saw(struct rpmem_fip *fip, size_t offset,
 }
 
 /*
+ * rpmem_fip_persist_send -- (internal) perform persist operation using
+ * RDMA SEND operation with data inlined in the message buffer.
+ */
+static int
+rpmem_fip_persist_send(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane, unsigned flags)
+{
+	RPMEM_ASSERT(len <= fip->buff_size);
+
+	struct rpmem_fip_plane *lanep = &fip->lanes[lane];
+	void *laddr = (void *)((uintptr_t)fip->laddr + offset);
+	uint64_t raddr = fip->raddr + offset;
+	struct rpmem_msg_persist *msg;
+	int ret;
+
+	ret = rpmem_fip_lane_wait(fip, &lanep->base, FI_SEND);
+	if (unlikely(ret)) {
+		ERR("waiting for SEND completion failed");
+		return ret;
+	}
+
+	rpmem_fip_lane_begin(&lanep->base, FI_RECV | FI_SEND);
+
+	/* SEND persist message */
+	msg = rpmem_fip_msg_get_pmsg(&lanep->send);
+	msg->flags = flags;
+	msg->lane = lane;
+	msg->addr = raddr;
+	msg->size = len;
+
+	memcpy(msg->data, laddr, len);
+
+	ret = rpmem_fip_sendmsg(lanep->base.ep, &lanep->send,
+			sizeof(*msg) + len);
+	if (unlikely(ret)) {
+		RPMEM_FI_ERR(ret, "MSG send");
+		return ret;
+	}
+
+	/* wait for persist operation completion */
+	ret = rpmem_fip_lane_wait(fip, &lanep->base, FI_RECV);
+	if (unlikely(ret)) {
+		ERR("waiting for RECV completion failed");
+		return ret;
+	}
+
+	ret = rpmem_fip_post_resp(fip, lanep);
+	if (unlikely(ret)) {
+		ERR("posting RECV buffer failed");
+		return ret;
+	}
+
+	return 0;
+}
+
+/*
+ * rpmem_fip_persist_gpspm_sockets -- (internal) perform persist operation
+ * for GPSPM - sockets provider implementation which doesn't use the
+ * inline persist operation
+ */
+static int
+rpmem_fip_persist_gpspm_sockets(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane, unsigned flags)
+{
+	flags &= (unsigned)(~RPMEM_PERSIST_SEND);
+
+	return rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+}
+
+/*
+ * rpmem_fip_persist_apm_sockets -- (internal) perform persist operation
+ * for APM - sockets provider implementation which doesn't use the
+ * inline persist operation
+ */
+static int
+rpmem_fip_persist_apm_sockets(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane, unsigned flags)
+{
+	return rpmem_fip_persist_raw(fip, offset, len, lane);
+}
+
+/*
+ * rpmem_fip_persist_gpspm -- (internal) perform persist operation for GPSPM
+ */
+static int
+rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane, unsigned flags)
+{
+	if ((flags & RPMEM_PERSIST_MASK) == RPMEM_PERSIST_SEND)
+		return rpmem_fip_persist_send(fip, offset, len, lane, flags);
+
+	return rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+}
+
+/*
  * rpmem_fip_persist_apm -- (internal) perform persist operation for APM
  */
 static int
@@ -1058,6 +1167,9 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 {
 	if (unlikely(flags & RPMEM_DEEP_PERSIST))
 		return rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+
+	if ((flags & RPMEM_PERSIST_MASK) == RPMEM_PERSIST_SEND)
+		return rpmem_fip_persist_send(fip, offset, len, lane, flags);
 
 	return rpmem_fip_persist_raw(fip, offset, len, lane);
 }
@@ -1082,21 +1194,39 @@ rpmem_fip_post_lanes_common(struct rpmem_fip *fip)
 /*
  * rpmem_fip_ops -- some operations specific for persistency method used
  */
-static struct rpmem_fip_ops rpmem_fip_ops[MAX_RPMEM_PM] = {
-	[RPMEM_PM_GPSPM] = {
-		.persist = rpmem_fip_persist_saw,
-		.lanes_init = rpmem_fip_init_lanes_common,
-		.lanes_init_mem = rpmem_fip_init_mem_lanes_gpspm,
-		.lanes_fini = rpmem_fip_fini_lanes_common,
-		.lanes_post = rpmem_fip_post_lanes_common,
+static struct rpmem_fip_ops rpmem_fip_ops[MAX_RPMEM_PROV][MAX_RPMEM_PM] = {
+	[RPMEM_PROV_LIBFABRIC_VERBS] = {
+		[RPMEM_PM_GPSPM] = {
+			.persist = rpmem_fip_persist_gpspm,
+			.lanes_init = rpmem_fip_init_lanes_common,
+			.lanes_init_mem = rpmem_fip_init_mem_lanes_gpspm,
+			.lanes_fini = rpmem_fip_fini_lanes_common,
+			.lanes_post = rpmem_fip_post_lanes_common,
+		},
+		[RPMEM_PM_APM] = {
+			.persist = rpmem_fip_persist_apm,
+			.lanes_init = rpmem_fip_init_lanes_apm,
+			.lanes_init_mem = rpmem_fip_init_mem_lanes_apm,
+			.lanes_fini = rpmem_fip_fini_lanes_apm,
+			.lanes_post = rpmem_fip_post_lanes_common,
+		},
 	},
-	[RPMEM_PM_APM] = {
-		.persist = rpmem_fip_persist_apm,
-		.lanes_init = rpmem_fip_init_lanes_apm,
-		.lanes_init_mem = rpmem_fip_init_mem_lanes_apm,
-		.lanes_fini = rpmem_fip_fini_lanes_apm,
-		.lanes_post = rpmem_fip_post_lanes_common,
-	},
+	[RPMEM_PROV_LIBFABRIC_SOCKETS] = {
+		[RPMEM_PM_GPSPM] = {
+			.persist = rpmem_fip_persist_gpspm_sockets,
+			.lanes_init = rpmem_fip_init_lanes_common,
+			.lanes_init_mem = rpmem_fip_init_mem_lanes_gpspm,
+			.lanes_fini = rpmem_fip_fini_lanes_common,
+			.lanes_post = rpmem_fip_post_lanes_common,
+		},
+		[RPMEM_PM_APM] = {
+			.persist = rpmem_fip_persist_apm_sockets,
+			.lanes_init = rpmem_fip_init_lanes_apm,
+			.lanes_init_mem = rpmem_fip_init_mem_lanes_apm,
+			.lanes_fini = rpmem_fip_fini_lanes_apm,
+			.lanes_post = rpmem_fip_post_lanes_common,
+		},
+	}
 };
 
 /*
@@ -1109,6 +1239,7 @@ rpmem_fip_set_attr(struct rpmem_fip *fip, struct rpmem_fip_attr *attr)
 	fip->rkey = attr->rkey;
 	fip->laddr = attr->laddr;
 	fip->size = attr->size;
+	fip->buff_size = attr->buff_size;
 	fip->persist_method = attr->persist_method;
 
 	rpmem_fip_set_nlanes(fip, attr->nlanes);
@@ -1117,7 +1248,7 @@ rpmem_fip_set_attr(struct rpmem_fip *fip, struct rpmem_fip_attr *attr)
 	fip->cq_size = rpmem_fip_cq_size(fip->persist_method,
 			RPMEM_FIP_NODE_CLIENT);
 
-	fip->ops = &rpmem_fip_ops[fip->persist_method];
+	fip->ops = &rpmem_fip_ops[attr->provider][fip->persist_method];
 }
 
 /*
@@ -1246,13 +1377,28 @@ close_monitor:
 }
 
 /*
+ * rpmem_msg_size -- return maximum message size supported by hw and
+ * persistency mechanism used for the operation
+ */
+static inline size_t
+rpmem_msg_size(struct rpmem_fip *fip, size_t len, unsigned flags)
+{
+	size_t ret = min(len, fip->fi->ep_attr->max_msg_size);
+
+	if ((flags & RPMEM_PERSIST_MASK) == RPMEM_PERSIST_SEND)
+		ret = min(ret, fip->buff_size);
+
+	return ret;
+}
+
+/*
  * rpmem_fip_persist -- perform remote persist operation
  */
 int
 rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 	unsigned lane, unsigned flags)
 {
-	RPMEM_ASSERT((flags & RPMEM_FLAGS_MASK) == 0);
+	RPMEM_ASSERT((flags & RPMEM_PERSIST_MASK) <= RPMEM_PERSIST_MAX);
 
 	if (unlikely(rpmem_fip_is_closing(fip)))
 		return ECONNRESET; /* it will be passed to errno */
@@ -1270,8 +1416,7 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 
 	int ret = 0;
 	while (len > 0) {
-		size_t tmp_len = len < fip->fi->ep_attr->max_msg_size ?
-			len : fip->fi->ep_attr->max_msg_size;
+		size_t tmp_len = rpmem_msg_size(fip, len, flags);
 
 		ret = fip->ops->persist(fip, offset, tmp_len, lane, flags);
 		if (ret) {

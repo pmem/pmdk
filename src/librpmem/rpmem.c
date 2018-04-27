@@ -276,7 +276,7 @@ rpmem_common_fini(RPMEMpool *rpp, int join)
 static int
 rpmem_common_fip_init(RPMEMpool *rpp, struct rpmem_req_attr *req,
 	struct rpmem_resp_attr *resp, void *pool_addr, size_t pool_size,
-	unsigned *nlanes)
+	unsigned *nlanes, size_t buff_size)
 {
 	LOG(3, "rpp %p, req %p, resp %p, pool_addr %p, pool_size %zu, nlanes "
 			"%p", rpp, req, resp, pool_addr, pool_size, nlanes);
@@ -288,6 +288,7 @@ rpmem_common_fip_init(RPMEMpool *rpp, struct rpmem_req_attr *req,
 		.persist_method	= resp->persist_method,
 		.laddr		= pool_addr,
 		.size		= pool_size,
+		.buff_size	= buff_size,
 		.nlanes		= min(*nlanes, resp->nlanes),
 		.raddr		= (void *)resp->raddr,
 		.rkey		= resp->rkey,
@@ -459,11 +460,13 @@ rpmem_create(const char *target, const char *pool_set_name,
 	if (!rpp)
 		goto err_common_init;
 
+	size_t buff_size = RPMEM_DEF_BUFF_SIZE;
 	struct rpmem_req_attr req = {
 		.pool_size	= pool_size,
 		.nlanes		= min(*nlanes, Rpmem_max_nlanes),
 		.provider	= rpp->provider,
 		.pool_desc	= pool_set_name,
+		.buff_size	= buff_size,
 	};
 
 	struct rpmem_resp_attr resp;
@@ -480,7 +483,7 @@ rpmem_create(const char *target, const char *pool_set_name,
 	rpmem_log_resp("create", &resp);
 
 	ret = rpmem_common_fip_init(rpp, &req, &resp,
-			pool_addr, pool_size, nlanes);
+			pool_addr, pool_size, nlanes, buff_size);
 	if (ret)
 		goto err_fip_init;
 
@@ -533,11 +536,13 @@ rpmem_open(const char *target, const char *pool_set_name,
 	if (!rpp)
 		goto err_common_init;
 
+	size_t buff_size = RPMEM_DEF_BUFF_SIZE;
 	struct rpmem_req_attr req = {
 		.pool_size	= pool_size,
 		.nlanes		= min(*nlanes, Rpmem_max_nlanes),
 		.provider	= rpp->provider,
 		.pool_desc	= pool_set_name,
+		.buff_size	= buff_size,
 	};
 
 	struct rpmem_resp_attr resp;
@@ -554,7 +559,7 @@ rpmem_open(const char *target, const char *pool_set_name,
 	rpmem_log_resp("open", &resp);
 
 	ret = rpmem_common_fip_init(rpp, &req, &resp,
-			pool_addr, pool_size, nlanes);
+			pool_addr, pool_size, nlanes, buff_size);
 	if (ret)
 		goto err_fip_init;
 
@@ -611,13 +616,20 @@ rpmem_close(RPMEMpool *rpp)
  * lane          -- lane number
  */
 int
-rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
+rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
+	unsigned lane, unsigned flags)
 {
-	LOG(3, "rpp %p, offset %zu, length %zu, lane %d", rpp, offset, length,
-			lane);
+	LOG(3, "rpp %p, offset %zu, length %zu, lane %d, flags 0x%x",
+			rpp, offset, length, lane, flags);
 
 	if (unlikely(rpp->error)) {
 		errno = rpp->error;
+		return -1;
+	}
+
+	if (flags & RPMEM_FLAGS_MASK) {
+		ERR("invalid flags (0x%x)", flags);
+		errno = EINVAL;
 		return -1;
 	}
 
@@ -628,8 +640,16 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 		return -1;
 	}
 
+	/*
+	 * By default use RDMA SEND persist mode which has atomicity
+	 * guarantees. For relaxed persist use RDMA WRITE.
+	 */
+	unsigned mode = RPMEM_PERSIST_SEND;
+	if (flags & RPMEM_PERSIST_RELAXED)
+		mode = RPMEM_PERSIST_WRITE;
+
 	int ret = rpmem_fip_persist(rpp->fip, offset, length,
-			lane, RPMEM_PERSIST);
+			lane, mode);
 	if (unlikely(ret)) {
 		ERR("persist operation failed");
 		rpp->error = ret;

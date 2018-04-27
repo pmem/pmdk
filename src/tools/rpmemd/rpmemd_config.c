@@ -74,7 +74,7 @@ enum rpmemd_option {
 	RPD_OPT_INVALID			= UINT64_MAX,
 };
 
-static const char *optstr = "c:hVr:fs";
+static const char *optstr = "c:hVr:fst:";
 
 /*
  * options -- cl and config file options
@@ -92,6 +92,7 @@ static const struct option options[] = {
 {"remove",		required_argument,	NULL, 'r'},
 {"force",		no_argument,		NULL, 'f'},
 {"pool-set",		no_argument,		NULL, 's'},
+{"nthreads",		required_argument,	NULL, 't'},
 {NULL,			0,			NULL,  0},
 };
 
@@ -103,6 +104,7 @@ static const char *help_str =
 "  -c, --config <path>           configuration file location\n"
 "  -r, --remove <poolset>        remove pool described by given poolset file\n"
 "  -f, --force                   ignore errors when removing a pool\n"
+"  -t, --nthreads <num>          number of processing threads\n"
 "  -h, --help                    display help message and exit\n"
 "  -V, --version                 display target daemon version and exit\n"
 "      --log-file <path>         log file location\n"
@@ -478,6 +480,17 @@ parse_cl_args(int argc, char *argv[], struct rpmemd_config *config,
 		case 's':
 			config->pool_set = true;
 			break;
+		case 't':
+			errno = 0;
+			char *endptr;
+			config->nthreads = strtoul(optarg, &endptr, 10);
+			if (errno || *endptr != '\0') {
+				RPMEMD_LOG(ERR,
+					"invalid number of threads -- '%s'",
+					optarg);
+				exit(-1);
+			}
+			break;
 		case 'h':
 			print_help(argv[0]);
 			exit(0);
@@ -595,6 +608,7 @@ config_set_default(struct rpmemd_config *config, const char *poolset_dir)
 	config->log_level	= RPD_LOG_ERR;
 	config->rm_poolset	= NULL;
 	config->force		= false;
+	config->nthreads	= RPMEM_DEFAULT_NTHREADS;
 }
 
 /*
