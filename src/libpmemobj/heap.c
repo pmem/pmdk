@@ -540,8 +540,18 @@ heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
 	const struct memory_block *m)
 {
 	ASSERTeq(m->type, MEMORY_BLOCK_RUN);
+	os_mutex_t *lock = m->m_ops->get_lock(m);
 
-	return heap_run_process_metadata(heap, b, m);
+	util_mutex_lock(lock);
+
+	uint32_t ret = heap_run_process_metadata(heap, b, m);
+
+	util_mutex_unlock(lock);
+
+	b->active_memory_block->m = *m;
+	b->is_active = 1;
+
+	return ret;
 }
 
 /*
@@ -818,17 +828,16 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 	m.size_idx = units;
 
 	struct recycler *r = heap->rt->recyclers[b->aclass->id];
+	if (!force && recycler_get(r, &m) == 0) {
+		heap_run_reuse(heap, b, &m);
+
+		return 0;
+	}
+
 	heap_recycle_unused(heap, r, NULL, force);
 
 	if (recycler_get(r, &m) == 0) {
-		os_mutex_t *lock = m.m_ops->get_lock(&m);
-
-		util_mutex_lock(lock);
 		heap_run_reuse(heap, b, &m);
-		util_mutex_unlock(lock);
-
-		b->active_memory_block->m = m;
-		b->is_active = 1;
 
 		return 0;
 	}
