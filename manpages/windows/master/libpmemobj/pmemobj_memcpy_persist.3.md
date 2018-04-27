@@ -63,6 +63,11 @@ void pmemobj_flush(PMEMobjpool *pop, const void *addr,
 	size_t len);
 void pmemobj_drain(PMEMobjpool *pop);
 
+int pmemobj_xpersist(PMEMobjpool *pop, const void *addr,
+	size_t len, unsigned flags);
+int pmemobj_xflush(PMEMobjpool *pop, const void *addr,
+	size_t len, unsigned flags);
+
 void *pmemobj_memcpy(PMEMobjpool *pop, void *dest,
 	const void *src, size_t len, unsigned flags);
 void *pmemobj_memmove(PMEMobjpool *pop, void *dest,
@@ -110,6 +115,14 @@ call **pmemobj_flush**() for each range and then follow up by calling
 **pmemobj_drain**() once. For more information on partial flushing operations,
 see **pmem_flush**(3).
 
+**pmemobj_xpersist**() is a version of **pmemobj_persist**() function with
+additional *flags* argument.
+It supports only the **PMEM_F_RELAXED** flag (see **pmem_memcpy**(3)).
+
+**pmemobj_xflush**() is a version of **pmemobj_flush**() function with
+additional *flags* argument.
+It supports only the **PMEM_F_RELAXED** flag (see **pmem_memcpy**(3)).
+
 The **pmemobj_memmove**(), **pmemobj_memcpy**() and **pmemobj_memset**() functions
 provide the same memory copying as their namesakes **memmove**(3), **memcpy**(3),
 and **memset**(3), and ensure that the result has been flushed to persistence
@@ -127,6 +140,10 @@ the same meaning as in **pmem_memmove**(3), **pmem_memcpy**(3) and **pmem_memset
 buffer.
 
 **pmemobj_persist**(), **pmemobj_flush**() and **pmemobj_drain**()
+
+**pmemobj_xpersist**() and **pmemobj_xflush**() returns non-zero value and
+sets errno to EINVAL only if not supported flags has been provided.
+
 do not return any value.
 
 # EXAMPLES #
