@@ -11,7 +11,7 @@ Options:
   -c, --config <path>           configuration file location
   -r, --remove <poolset>        remove pool described by given poolset file
   -f, --force                   ignore errors when removing a pool
-  -t, --nthreads <num>          number of processing threads in GPSPM mode
+  -t, --nthreads <num>          number of processing threads
   -h, --help                    display help message and exit
   -V, --version                 display target daemon version and exit
       --log-file <path>         log file location
@@ -35,7 +35,7 @@ Options:
   -c, --config <path>           configuration file location
   -r, --remove <poolset>        remove pool described by given poolset file
   -f, --force                   ignore errors when removing a pool
-  -t, --nthreads <num>          number of processing threads in GPSPM mode
+  -t, --nthreads <num>          number of processing threads
   -h, --help                    display help message and exit
   -V, --version                 display target daemon version and exit
       --log-file <path>         log file location
