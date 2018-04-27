@@ -58,11 +58,16 @@ os_dimm_volume_handle(const char *path)
 	if (strncmp(path, UNC_PREFIX, UNC_PREFIX_LEN) == 0) {
 		path += UNC_PREFIX_LEN;
 	}
-	if (!GetVolumePathName(path, v, MAX_PATH - VOLUME_PREFIX_LEN)) {
+
+	if ((path[0] < 'a' || path[0] > 'z') &&
+			(path[0] < 'A' || path[0] > 'Z') &&
+			path[1] != ':') {
+		ERR("%s doesn't start from drive letter", path);
 		return INVALID_HANDLE_VALUE;
 	}
 
-	vol[strlen(vol) - 1] = '\0'; /* remove trailing \\ */
+	strncpy(v, path, 2);
+
 	return CreateFileA(vol, 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
 		NULL, OPEN_EXISTING, 0,  NULL);
 }
