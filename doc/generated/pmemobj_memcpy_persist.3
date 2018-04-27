@@ -50,6 +50,11 @@ void\ pmemobj_flush(PMEMobjpool\ *pop,\ const\ void\ *addr,
 \ \ \ \ size_t\ len);
 void\ pmemobj_drain(PMEMobjpool\ *pop);
 
+int\ pmemobj_xpersist(PMEMobjpool\ *pop,\ const\ void\ *addr,
+\ \ \ \ size_t\ len,\ unsigned\ flags);
+int\ pmemobj_xflush(PMEMobjpool\ *pop,\ const\ void\ *addr,
+\ \ \ \ size_t\ len,\ unsigned\ flags);
+
 void\ *pmemobj_memcpy(PMEMobjpool\ *pop,\ void\ *dest,
 \ \ \ \ const\ void\ *src,\ size_t\ len,\ unsigned\ flags);
 void\ *pmemobj_memmove(PMEMobjpool\ *pop,\ void\ *dest,
@@ -107,6 +112,16 @@ calling \f[B]pmemobj_drain\f[]() once.
 For more information on partial flushing operations, see
 \f[B]pmem_flush\f[](3).
 .PP
+\f[B]pmemobj_xpersist\f[]() is a version of \f[B]pmemobj_persist\f[]()
+function with additional \f[I]flags\f[] argument.
+It supports only the \f[B]PMEM_F_RELAXED\f[] flag (see
+\f[B]pmem_memcpy\f[](3)).
+.PP
+\f[B]pmemobj_xflush\f[]() is a version of \f[B]pmemobj_flush\f[]()
+function with additional \f[I]flags\f[] argument.
+It supports only the \f[B]PMEM_F_RELAXED\f[] flag (see
+\f[B]pmem_memcpy\f[](3)).
+.PP
 The \f[B]pmemobj_memmove\f[](), \f[B]pmemobj_memcpy\f[]() and
 \f[B]pmemobj_memset\f[]() functions provide the same memory copying as
 their namesakes \f[B]memmove\f[](3), \f[B]memcpy\f[](3), and
@@ -128,7 +143,13 @@ Flags have the same meaning as in \f[B]pmem_memmove\f[](3),
 \f[B]pmemobj_memset_persist\f[]() return destination buffer.
 .PP
 \f[B]pmemobj_persist\f[](), \f[B]pmemobj_flush\f[]() and
-\f[B]pmemobj_drain\f[]() do not return any value.
+\f[B]pmemobj_drain\f[]()
+.PP
+\f[B]pmemobj_xpersist\f[]() and \f[B]pmemobj_xflush\f[]() returns
+non\-zero value and sets errno to EINVAL only if not supported flags has
+been provided.
+.PP
+do not return any value.
 .SH EXAMPLES
 .PP
 The following code is functionally equivalent to

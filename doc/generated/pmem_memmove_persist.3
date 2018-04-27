@@ -61,8 +61,8 @@ void\ *pmem_memset_nodrain(void\ *pmemdest,\ int\ c,\ size_t\ len);
 \f[B]pmem_memset\f[]() functions provide the same memory copying as
 their namesakes \f[B]memmove\f[](3), \f[B]memcpy\f[](3) and
 \f[B]memset\f[](3), and ensure that the result has been flushed to
-persistence before returning (unless \f[B]PMEM_MEM_NOFLUSH\f[] flag was
-used).
+persistence before returning (unless \f[B]PMEM_F_MEM_NOFLUSH\f[] flag
+was used).
 .PP
 For example, the following code is functionally equivalent to
 \f[B]pmem_memmove\f[]() (with flags equal to 0):
@@ -97,7 +97,7 @@ The \f[I]flags\f[] argument of all of the above functions has the same
 meaning.
 It can be 0 or a bitwise OR of one or more of the following flags:
 .IP \[bu] 2
-\f[B]PMEM_MEM_NODRAIN\f[] \- modifies the behavior to skip the final
+\f[B]PMEM_F_MEM_NODRAIN\f[] \- modifies the behavior to skip the final
 \f[B]pmem_drain\f[]() step.
 This allows applications to optimize cases where several ranges are
 being copied to persistent memory, followed by a single call to
@@ -109,8 +109,8 @@ memory to pmem:
 .nf
 \f[C]
 /*\ ...\ write\ several\ ranges\ to\ pmem\ ...\ */
-pmem_memcpy(pmemdest1,\ src1,\ len1,\ PMEM_MEM_NODRAIN);
-pmem_memcpy(pmemdest2,\ src2,\ len2,\ PMEM_MEM_NODRAIN);
+pmem_memcpy(pmemdest1,\ src1,\ len1,\ PMEM_F_MEM_NODRAIN);
+pmem_memcpy(pmemdest2,\ src2,\ len2,\ PMEM_F_MEM_NODRAIN);
 
 /*\ ...\ */
 
@@ -119,31 +119,34 @@ pmem_drain();
 \f[]
 .fi
 .IP \[bu] 2
-\f[B]PMEM_MEM_NOFLUSH\f[] \- Don't flush anything.
-This implies \f[B]PMEM_MEM_NODRAIN\f[].
+\f[B]PMEM_F_MEM_NOFLUSH\f[] \- Don't flush anything.
+This implies \f[B]PMEM_F_MEM_NODRAIN\f[].
 Using this flag only makes sense when it's followed by any function that
 flushes data.
 .PP
 The remaining flags say \f[I]how\f[] the operation should be done, and
 are merely hints.
 .IP \[bu] 2
-\f[B]PMEM_MEM_NONTEMPORAL\f[] \- Use non\-temporal instructions.
-This flag is mutually exclusive with \f[B]PMEM_MEM_TEMPORAL\f[].
+\f[B]PMEM_F_MEM_NONTEMPORAL\f[] \- Use non\-temporal instructions.
+This flag is mutually exclusive with \f[B]PMEM_F_MEM_TEMPORAL\f[].
 On x86_64 this flag is mutually exclusive with
-\f[B]PMEM_MEM_NOFLUSH\f[].
+\f[B]PMEM_F_MEM_NOFLUSH\f[].
 .IP \[bu] 2
-\f[B]PMEM_MEM_TEMPORAL\f[] \- Use temporal instructions.
-This flag is mutually exclusive with \f[B]PMEM_MEM_NONTEMPORAL\f[].
+\f[B]PMEM_F_MEM_TEMPORAL\f[] \- Use temporal instructions.
+This flag is mutually exclusive with \f[B]PMEM_F_MEM_NONTEMPORAL\f[].
 .IP \[bu] 2
-\f[B]PMEM_MEM_WC\f[] \- Use write combining mode.
-This flag is mutually exclusive with \f[B]PMEM_MEM_WB\f[].
-On x86_64 this is an alias for \f[B]PMEM_MEM_NONTEMPORAL\f[].
+\f[B]PMEM_F_MEM_WC\f[] \- Use write combining mode.
+This flag is mutually exclusive with \f[B]PMEM_F_MEM_WB\f[].
+On x86_64 this is an alias for \f[B]PMEM_F_MEM_NONTEMPORAL\f[].
 On x86_64 this flag is mutually exclusive with
-\f[B]PMEM_MEM_NOFLUSH\f[].
+\f[B]PMEM_F_MEM_NOFLUSH\f[].
 .IP \[bu] 2
-\f[B]PMEM_MEM_WB\f[] \- Use write back mode.
-This flag is mutually exclusive with \f[B]PMEM_MEM_WC\f[].
-On x86_64 this is an alias for \f[B]PMEM_MEM_TEMPORAL\f[].
+\f[B]PMEM_F_MEM_WB\f[] \- Use write back mode.
+This flag is mutually exclusive with \f[B]PMEM_F_MEM_WC\f[].
+On x86_64 this is an alias for \f[B]PMEM_F_MEM_TEMPORAL\f[].
+.IP \[bu] 2
+\f[B]PMEM_F_RELAXED\f[] \- This flag indicates that memory transfer
+operation does not require 8\-byte atomicity guarantees.
 .PP
 Using an invalid combination of flags has undefined behavior.
 .PP
@@ -162,19 +165,19 @@ with flags equal to 0.
 with flags equal to 0.
 .PP
 \f[B]pmem_memmove_nodrain\f[]() is an alias for \f[B]pmem_memmove\f[]()
-with flags equal to \f[B]PMEM_MEM_NODRAIN\f[].
+with flags equal to \f[B]PMEM_F_MEM_NODRAIN\f[].
 .PP
 \f[B]pmem_memcpy_nodrain\f[]() is an alias for \f[B]pmem_memcpy\f[]()
-with flags equal to \f[B]PMEM_MEM_NODRAIN\f[].
+with flags equal to \f[B]PMEM_F_MEM_NODRAIN\f[].
 .PP
 \f[B]pmem_memset_nodrain\f[]() is an alias for \f[B]pmem_memset\f[]()
-with flags equal to \f[B]PMEM_MEM_NODRAIN\f[].
+with flags equal to \f[B]PMEM_F_MEM_NODRAIN\f[].
 .SH RETURN VALUE
 .PP
 All of the above functions return address of the destination buffer.
 .SH CAVEATS
 .PP
-After calling any of the functions with \f[B]PMEM_MEM_NODRAIN\f[] flag
+After calling any of the functions with \f[B]PMEM_F_MEM_NODRAIN\f[] flag
 you should not expect memory to be visible to other threads before
 calling \f[B]pmem_drain\f[](3) or any of the \f[I]_persist\f[]
 functions.
