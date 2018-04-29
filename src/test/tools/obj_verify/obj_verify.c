@@ -36,6 +36,7 @@
 
 #include <stddef.h>
 #include <fcntl.h>
+#include <sys/stat.h>
 
 #include "libpmemobj.h"
 #include "set.h"
