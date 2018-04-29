@@ -141,11 +141,10 @@ fi
 NODE_PID_FILES[0]=""
 
 #
-# For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
-# constructed so the test pulls in the appropriate library from this
-# source tree.  To override this behavior (i.e. to force the test to
-# use the libraries installed elsewhere on the system), set
-# TEST_LD_LIBRARY_PATH and this script will not override it.
+# The variable TEST_LD_LIBRARY_PATH is constructed so the test pulls in
+# the appropriate library from this source tree.  To override this behavior
+# (i.e. to force the test to use the libraries installed elsewhere on
+# the system), set TEST_LD_LIBRARY_PATH and this script will not override it.
 #
 # For example, in a test directory, run:
 #	TEST_LD_LIBRARY_PATH=/usr/lib ./TEST0
@@ -153,7 +152,7 @@ NODE_PID_FILES[0]=""
 [ "$TEST_LD_LIBRARY_PATH" ] || {
 	case "$BUILD"
 	in
-	debug)
+	debug|static-debug)
 		if [ -z "$PMDK_LIB_PATH_DEBUG" ]; then
 			TEST_LD_LIBRARY_PATH=../../debug
 			REMOTE_LD_LIBRARY_PATH=../debug
@@ -162,7 +161,7 @@ NODE_PID_FILES[0]=""
 			REMOTE_LD_LIBRARY_PATH=$PMDK_LIB_PATH_DEBUG
 		fi
 		;;
-	nondebug)
+	nondebug|static-nondebug)
 		if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
 			TEST_LD_LIBRARY_PATH=../../nondebug
 			REMOTE_LD_LIBRARY_PATH=../nondebug
