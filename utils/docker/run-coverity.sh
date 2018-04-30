@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -56,4 +56,10 @@ export COVERITY_SCAN_BUILD_COMMAND="make -j all"
 cd $WORKDIR
 
 # Run the Coverity scan
-curl -s https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh | bash
+
+# XXX: Modify the script to print the full response string.
+# Recently, this script regularly exits with an error, even though
+# the build is successfully submitted.  Probably because the status code
+# is missing in response, or it's not 201.
+curl -s https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh | \
+	sed 's/\$TEXT/\$response/' | bash
