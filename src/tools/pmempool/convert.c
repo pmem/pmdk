@@ -50,7 +50,11 @@
 #include "convert.h"
 #include "util_pmem.h"
 
-static const char * const help_str = "";
+static const char * const help_str =
+"Upgrade pool files layout version.\n"
+"\n"
+"For complete documentation see %s-convert(1) manual page.\n"
+;
 
 /*
  * print_usage -- print application usage short description
