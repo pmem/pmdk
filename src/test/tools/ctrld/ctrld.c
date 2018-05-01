@@ -390,8 +390,8 @@ has_port_inode(unsigned short port, struct inodes *inodes)
 		"%*d: "
 		"%*64[0-9A-Fa-f]:%X "
 		"%*64[0-9A-Fa-f]:%*X "
-		"%*X %*lX:%*lX %*X:%*lX "
-		"%*lX %*d %*d %lu %*s\n";
+		"%*X %*X:%*X %*X:%*X "
+		"%*X %*d %*d %lu %*s\n";
 
 	char buff[BUFF_SIZE];
 
