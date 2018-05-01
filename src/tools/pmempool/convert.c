@@ -50,7 +50,7 @@
 #include "convert.h"
 #include "util_pmem.h"
 
-static const char *help_str = "";
+static const char * const help_str = "";
 
 /*
  * print_usage -- print application usage short description

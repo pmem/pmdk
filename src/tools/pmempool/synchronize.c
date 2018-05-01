@@ -68,7 +68,7 @@ static const struct pmempool_sync_context pmempool_sync_default = {
 /*
  * help_str -- string for help message
  */
-static const char *help_str =
+static const char * const help_str =
 "Check consistency of a pool\n"
 "\n"
 "Common options:\n"

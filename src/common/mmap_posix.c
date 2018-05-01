@@ -46,9 +46,9 @@
 char *Mmap_mapfile = OS_MAPFILE; /* Should be modified only for testing */
 
 #ifdef __FreeBSD__
-static const char *sscanf_os = "%p %p";
+static const char * const sscanf_os = "%p %p";
 #else
-static const char *sscanf_os = "%p-%p";
+static const char * const sscanf_os = "%p-%p";
 #endif
 
 /*

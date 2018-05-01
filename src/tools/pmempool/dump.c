@@ -95,7 +95,7 @@ static const struct option long_options[] = {
 /*
  * help_str -- string for help message
  */
-static const char *help_str =
+static const char * const help_str =
 "Dump user data from pool\n"
 "\n"
 "Available options:\n"

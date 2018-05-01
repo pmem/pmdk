@@ -290,7 +290,7 @@ static const struct pmemspoil pmemspoil_default = {
 /*
  * help_str -- string for help message
  */
-static const char *help_str =
+static const char * const  help_str =
 "Common options:\n"
 "  -v, --verbose        Increase verbose level\n"
 "  -?, --help           Display this help and exit\n"
