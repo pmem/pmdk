@@ -78,6 +78,7 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_root;
 		pmemobj_root_construct;
 		pmemobj_root_size;
+		pmemobj_root_offset;
 		pmemobj_first;
 		pmemobj_next;
 		pmemobj_list_insert;
