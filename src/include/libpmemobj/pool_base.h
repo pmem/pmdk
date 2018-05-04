@@ -118,6 +118,12 @@ PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
  */
 size_t pmemobj_root_size(PMEMobjpool *pop);
 
+/*
+ * Returns the offset to the root after the header 
+ */
+size_t pmemobj_root_offset(PMEMobjpool *pop);
+
+
 #ifdef __cplusplus
 }
 #endif
