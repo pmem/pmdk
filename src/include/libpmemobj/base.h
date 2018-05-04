@@ -147,6 +147,19 @@ void *pmemobj_direct(PMEMoid oid);
 #define pmemobj_direct pmemobj_direct_inline
 #endif
 
+struct pmemvlt {
+	uint64_t runid;
+};
+
+#define PMEMvlt(T)\
+struct {\
+	struct pmemvlt vlt;\
+	T value;\
+}
+
+void *pmemobj_direct_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
+	int (*constr)(void *ptr, void *arg), void *arg);
+
 /*
  * Returns the OID of the object pointed to by addr.
  */
