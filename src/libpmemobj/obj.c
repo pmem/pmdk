@@ -2802,7 +2802,7 @@ pmemobj_root_size(PMEMobjpool *pop)
 size_t
 pmemobj_root_offset(PMEMobjpool *pop)
 {
-  return pop->root_offset;
+	return pop->root_offset;
 }
 
 /*
