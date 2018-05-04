@@ -2797,6 +2797,15 @@ pmemobj_root_size(PMEMobjpool *pop)
 }
 
 /*
+ * pmemobj_root_offset -- returns offset from pool header to root object
+ */
+size_t
+pmemobj_root_offset(PMEMobjpool *pop)
+{
+  return pop->root_offset;
+}
+
+/*
  * pmemobj_root_construct -- returns root object
  */
 PMEMoid
@@ -3132,3 +3141,4 @@ _pobj_debug_notice(const char *api_name, const char *file, int line)
 	}
 #endif /* DEBUG */
 }
+
