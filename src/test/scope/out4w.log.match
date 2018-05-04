@@ -24,6 +24,7 @@ pmemobj_ctl_getW
 pmemobj_ctl_setU
 pmemobj_ctl_setW
 pmemobj_direct
+pmemobj_direct_volatile
 pmemobj_drain
 pmemobj_errormsgU
 pmemobj_errormsgW

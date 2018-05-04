@@ -18,6 +18,7 @@ pmemobj_ctl_exec
 pmemobj_ctl_get
 pmemobj_ctl_set
 pmemobj_direct
+pmemobj_direct_volatile
 pmemobj_drain
 pmemobj_errormsg
 pmemobj_first
