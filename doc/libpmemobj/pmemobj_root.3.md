@@ -47,6 +47,7 @@ date: pmemobj API version 2.3
 
 **pmemobj_root**(), **pmemobj_root_construct**()
 **POBJ_ROOT**(), **pmemobj_root_size**() -- root object management
+**POBJ_ROOT**(), **pmemobj_root_offset**() -- root object management
 
 
 # SYNOPSIS #
@@ -59,6 +60,7 @@ PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 	pmemobj_constr constructor, void *arg);
 POBJ_ROOT(PMEMobjpool *pop, TYPE)
 size_t pmemobj_root_size(PMEMobjpool *pop);
+size_t pmemobj_root_offset(PMEMobjpool *pop);
 ```
 
 
@@ -94,6 +96,10 @@ except it returns a typed *OID* value.
 The **pmemobj_root_size**() function returns the current size of the root object
 associated with the persistent memory pool *pop*.
 
+The **pmemobj_root_offset**() function returns the address of the start of
+the pool memory after the pool header.
+
+
 
 # RETURN VALUE #
 
@@ -118,6 +124,9 @@ The **pmemobj_root_size**() function returns the current size of the root object
 associated with the persistent memory pool *pop*. The returned size is the
 largest value requested by any of the earlier **pmemobj_root**() calls. If the
 root object has not been allocated yet, **pmemobj_root_size**() returns 0.
+
+The **pmemobj_root_offset**() function returns the address of the data after
+the pool header.
 
 
 # SEE ALSO #
