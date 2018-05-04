@@ -123,7 +123,6 @@ size_t pmemobj_root_size(PMEMobjpool *pop);
  */
 size_t pmemobj_root_offset(PMEMobjpool *pop);
 
-
 #ifdef __cplusplus
 }
 #endif
