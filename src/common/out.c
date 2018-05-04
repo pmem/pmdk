@@ -291,6 +291,7 @@ static void
 out_print_func(const char *s)
 {
 	/* to suppress drd false-positive */
+	/* XXX: confirm real nature of this issue: pmem/issues#863 */
 #ifdef SUPPRESS_FPUTS_DRD_ERROR
 	VALGRIND_ANNOTATE_IGNORE_READS_BEGIN();
 	VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN();
