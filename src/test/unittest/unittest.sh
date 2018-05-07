@@ -57,7 +57,9 @@ function fatal() {
 
 if [ -z "${UNITTEST_NAME}" ]; then
 	CURDIR=$(basename $(pwd))
-	SCRIPTNAME=$(basename $0)
+	if [ -z "$SCRIPTNAME" ]; then
+		SCRIPTNAME=$(basename $0)
+	fi
 
 	export UNITTEST_NAME=$CURDIR/$SCRIPTNAME
 	export UNITTEST_NUM=$(echo $SCRIPTNAME | sed "s/TEST//")

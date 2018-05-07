@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,32 +30,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# utils/check-shebang.sh -- interpreter directive check script
-#
-set -e
 
-err_count=0
+export SCRIPTNAME=$(basename $1)
 
-for file in $@ ; do
-        [ ! -f $file ] && continue
-	SHEBANG=`head -n1 $file | cut -d" " -f1`
-	[ "${SHEBANG:0:2}" != "#!" ] && continue
-	if [ "$SHEBANG" != "#!/usr/bin/env" -a $SHEBANG != "#!/bin/sh" -a $SHEBANG != "#!../test.sh" ]; then
-		INTERP=`echo $SHEBANG | rev | cut -d"/" -f1 | rev`
-		echo "$file:1: error: invalid interpreter directive:" >&2
-		echo "	(is: \"$SHEBANG\", should be: \"#!/usr/bin/env $INTERP\")" >&2
-		((err_count+=1))
-	fi
-done
+source ../unittest/unittest.sh
 
-if [ "$err_count" == "0" ]; then
-	echo "Interpreter directives are OK."
-else
-	echo "Found $err_count errors in interpreter directives!" >&2
-	err_count=1
-fi
+source $1
 
-exit $err_count
-
-
-
+pass
