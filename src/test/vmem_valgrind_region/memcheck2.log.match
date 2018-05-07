@@ -26,7 +26,7 @@ $(OPT)==$(N)==  Address 0x$(X) is $(N) bytes inside data symbol "Buff_trace"
 ==$(N)==   total heap usage: $(N) allocs, $(N) frees, $(NC) bytes allocated
 ==$(N)== 
 ==$(N)== 9,807,424 bytes in 8 blocks are definitely lost in loss record $(N) of $(N)
-==$(N)==    at 0x$(X): je_vmem_pool_malloc $(*)
+==$(N)==    at 0x$(X): ${je_vmem_pool_malloc|???} $(*)
 $(OPT)==$(N)==    by 0x$(X): vmem_malloc $(*)
 ==$(N)==    by 0x$(X): do_alloc (vmem_valgrind_region.c:$(N))
 ==$(N)==    by 0x$(X): main (vmem_valgrind_region.c:$(N))
