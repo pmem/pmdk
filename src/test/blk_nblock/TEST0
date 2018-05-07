@@ -35,14 +35,11 @@
 # src/test/blk_nblock/TEST0 -- unit test for pmemblk_nblock
 #
 
-require_test_type medium
-
-require_fs_type any
 require_unlimited_vm
 
-# this test creates huge files
-configure_valgrind force-disable
-setup
+# Valgrind disabled because this test creates huge files
+
+setup -t medium -f any -v force-disable
 
 #
 # Create a gajillion files, each file size created
@@ -173,5 +170,3 @@ check_pools $DIR/testfile2.512\
 	$DIR/testfile7.4096\
 	$DIR/testfile7.4160\
 	$DIR/testfile7.4224
-
-check

@@ -35,13 +35,7 @@
 # src/test/obj_sds/TEST4 -- unittest for shutdown state
 #
 
-require_test_type medium
-
-require_fs_type any
-
-require_build_type debug
-
-setup
+setup -t medium -f any -b debug -c
 
 POOLSET=$DIR/pool.set
 # Create poolset file

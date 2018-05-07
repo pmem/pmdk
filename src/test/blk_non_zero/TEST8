@@ -36,12 +36,7 @@
 # pmemblk_read/write/set_zero/set_error
 #
 
-require_test_type medium
-
-# doesn't make sense to run in local directory
-require_fs_type pmem non-pmem
-
-setup
+setup -t medium -f "pmem non-pmem"
 
 # mix writes with set_zero and set_error and check results
 FILE_SIZE=$((1024*1024*1024))
@@ -53,5 +48,3 @@ expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c $FILE_SIZE\
 		e:4 z:4 r:4\
 		w:5 e:5 z:5 r:5\
 		w:6 z:6 e:6 r:6
-
-check

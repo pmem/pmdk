@@ -39,10 +39,9 @@
 # if SINGLEHDR option is not specified.
 #
 
-require_test_type medium
 require_dax_device_alignments 2097152 2097152 # 2MiB
 
-setup
+setup -t medium -c
 
 dax_device_zero
 

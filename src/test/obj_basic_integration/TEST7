@@ -31,13 +31,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-require_test_type medium
 require_dax_devices 1
 
-# covered by TEST5
-configure_valgrind memcheck force-disable
+# memcheck is covered by TEST5
 
-setup
+setup -t medium -v memcheck=force-disable -c
 
 dax_device_zero
 

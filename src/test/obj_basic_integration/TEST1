@@ -32,15 +32,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
-require_test_type medium
-
-configure_valgrind pmemcheck force-enable
-setup
+setup -t medium -v pmemcheck=force-enable
 
 create_holey_file 16M $DIR/testfile1
 
 expect_normal_exit\
 	./obj_basic_integration$EXESUFFIX $DIR/testfile1
-
-check

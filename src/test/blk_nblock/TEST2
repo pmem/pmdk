@@ -35,11 +35,7 @@
 # src/test/blk_nblock/TEST2 -- unit test for pmemblk_nblock
 #
 
-require_test_type medium
-
-require_fs_type any
-
-setup
+setup -t medium -f any
 
 create_poolset $DIR/testset1 64M:$DIR/testfile11:x
 create_poolset $DIR/testset2 64M:$DIR/testfile21:x 64M:$DIR/testfile22:x
@@ -50,4 +46,3 @@ expect_normal_exit ./blk_nblock$EXESUFFIX\
 
 check_pools $DIR/testset1\
 	$DIR/testset2
-check

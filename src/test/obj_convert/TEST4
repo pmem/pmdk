@@ -39,11 +39,8 @@ LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
 require_command gdb
-require_test_type medium
-require_build_type debug
-require_fs_type non-pmem
 
-setup
+setup -t medium -f non-pmem -b debug -c
 
 # set this to enable runtime creation of pools based on the old version of
 # the library.

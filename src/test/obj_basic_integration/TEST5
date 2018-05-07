@@ -32,12 +32,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-require_test_type medium
-
-configure_valgrind memcheck force-enable
 export PMEMOBJ_VG_CHECK_UNDEF=1
 
-setup
+setup -t medium -v memcheck=force-enable -c
 
 create_holey_file 16M $DIR/testfile1
 

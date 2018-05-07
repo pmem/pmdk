@@ -31,12 +31,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-require_test_type medium
-
-configure_valgrind memcheck force-enable
 export PMEMOBJ_VG_CHECK_UNDEF=1
 
-setup
+setup -t medium -v memcheck=force-enable -c
 
 create_poolset $DIR/testset1 8M:$DIR/testfile1:x 8M:$DIR/testfile2:x \
 	r 16M:$DIR/testfile3:x

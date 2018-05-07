@@ -32,16 +32,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+# memcheck is covered by TEST5
 
-require_test_type medium
-
-# covered by TEST5
-configure_valgrind memcheck force-disable
-
-setup
+setup -t medium -v memcheck=force-disable
 
 create_holey_file 16M $DIR/testfile1
 
 expect_normal_exit ./obj_basic_integration$EXESUFFIX $DIR/testfile1
-
-check

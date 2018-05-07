@@ -31,9 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-require_test_type medium
-
-setup
+setup -t medium
 
 create_poolset $DIR/testset1 16M:$DIR/testfile1 \
 	r 18M:$DIR/testfile2 \
@@ -47,5 +45,3 @@ compare_replicas "-soOaAb -l -Z -H -C" \
 
 compare_replicas "-soOaAb -l -Z -H -C" \
 	$DIR/testfile1 $DIR/testfile3 >> diff$UNITTEST_NUM.log
-
-check

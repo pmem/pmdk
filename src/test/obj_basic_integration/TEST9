@@ -31,10 +31,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-require_test_type medium
 require_dax_devices 2
 
-setup
+setup -t medium -c
 
 dax_device_zero
 

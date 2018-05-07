@@ -38,10 +38,9 @@
 # with 4K alignment.
 #
 
-require_test_type medium
 require_dax_device_alignments 4096 4096
 
-setup
+setup -t medium -c
 
 dax_device_zero
 
