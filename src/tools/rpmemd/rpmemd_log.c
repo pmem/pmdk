@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,6 +49,7 @@
 
 #include "rpmemd_log.h"
 #include "os.h"
+#include "valgrind_internal.h"
 
 #define RPMEMD_SYSLOG_OPTS	(LOG_NDELAY | LOG_PID)
 #define RPMEMD_SYSLOG_FACILITY	(LOG_USER)
@@ -240,8 +241,18 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 		int prio = rpmemd_level2prio[level];
 		syslog(prio, "%s", buff);
 	} else {
+		/* to suppress drd false-positive */
+		/* XXX: confirm real nature of this issue: pmem/issues#863 */
+#ifdef SUPPRESS_FPUTS_DRD_ERROR
+		VALGRIND_ANNOTATE_IGNORE_READS_BEGIN();
+		VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN();
+#endif
 		fprintf(rpmemd_log_file, "%s", buff);
 		fflush(rpmemd_log_file);
+#ifdef SUPPRESS_FPUTS_DRD_ERROR
+		VALGRIND_ANNOTATE_IGNORE_READS_END();
+		VALGRIND_ANNOTATE_IGNORE_WRITES_END();
+#endif
 	}
 
 }

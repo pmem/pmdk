@@ -1,0 +1,9 @@
+{
+   <libfabric_1.4.2_fixed_by_ofiwg/libfabric#2725_destroy_locked_mutex>
+   Helgrind:Misc
+   ...
+   fun:pthread_spin_destroy
+   fun:fastlock_destroy
+   fun:fi_ibv_eq_close
+   ...
+}
