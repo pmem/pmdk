@@ -114,6 +114,9 @@ $DIR_SRC/tools/pmempool/pmempool \
 $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
+# by default run "check" from "pass"
+TEST_run_check=1
+
 # Portability
 VALGRIND_SUPP="--suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp"
 if [ "$(uname -s)" = "FreeBSD" ]; then
@@ -2289,7 +2292,57 @@ function create_holey_file_on_node() {
 #
 # setup -- print message that test setup is commencing
 #
+# arguments:
+#  -t test-type
+#  -f fs-type
+#  -b build-type
+#  -v tool=req - configures Valgrind
+#  -c - disables execution of "check" function at the end
+#
 function setup() {
+	local OPTIND
+
+	while getopts "t:f:b:v:c" opt; do
+		case "$opt" in
+			t)
+				TEST_req_test_type="$OPTARG"
+				;;
+			f)
+				TEST_req_fs_type="$OPTARG"
+				;;
+			b)
+				TEST_req_build_type="$OPTARG"
+				;;
+			v)
+				TEST_valgrind_tool=`echo $OPTARG | cut -d= -f 1`
+				TEST_valgrind_req=`echo $OPTARG | cut -d= -f 2`
+				;;
+			c)
+				TEST_run_check=0
+				;;
+			?)
+				fatal "getopts error"
+				;;
+		esac
+	done
+	shift $((OPTIND-1))
+
+	if [ -n "${TEST_req_test_type}" ]; then
+		require_test_type ${TEST_req_test_type}
+	fi
+
+	if [ -n "${TEST_req_fs_type}" ]; then
+		require_fs_type ${TEST_req_fs_type}
+	fi
+
+	if [ -n "${TEST_req_build_type}" ]; then
+		require_build_type ${TEST_req_build_type}
+	fi
+
+	if [ -n "${TEST_valgrind_tool}" ]; then
+		configure_valgrind ${TEST_valgrind_tool} ${TEST_valgrind_req}
+	fi
+
 	# test type must be explicitly specified
 	if [ "$req_test_type" != "1" ]; then
 		fatal "error: required test type is not specified"
@@ -2420,6 +2473,10 @@ function check() {
 # pass -- print message that the test has passed
 #
 function pass() {
+	if [ "${TEST_run_check}" == 1 ]; then
+		check
+	fi
+
 	if [ "$DEVDAX_TO_LOCK" == 1 ]; then
 		unlock_devdax
 	fi
