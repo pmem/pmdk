@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2017-2018, Intel Corporation
 #
@@ -35,9 +35,6 @@
 # src/test/obj_sync/TEST9 -- unit test for PMEM-resident locks
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
 require_test_type medium
 
 require_fs_type none
@@ -48,5 +45,3 @@ configure_valgrind helgrind force-enable
 setup
 
 expect_normal_exit ./obj_sync$EXESUFFIX t 10 5
-
-pass

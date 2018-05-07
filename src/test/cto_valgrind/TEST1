@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2014-2018, Intel Corporation
 #
@@ -39,9 +39,6 @@ export VALGRIND_OPTS="--suppressions=excluded-errors.supp\
 	--leak-check=full\
 	--show-reachable=yes"
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
 require_test_type medium
 require_fs_type any
 require_build_type debug nondebug
@@ -52,5 +49,3 @@ configure_valgrind memcheck force-enable
 setup
 
 expect_abnormal_exit ./cto_valgrind$EXESUFFIX $DIR/testfile 1
-
-pass

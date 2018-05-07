@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2015-2018, Intel Corporation
 #
@@ -35,9 +35,6 @@
 # src/test/obj_convert/TEST4 -- unit test for pool conversion
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
 LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
@@ -71,5 +68,3 @@ then
 
 	check
 fi
-
-pass

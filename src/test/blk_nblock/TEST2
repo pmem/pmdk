@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2014-2018, Intel Corporation
 #
@@ -35,9 +35,6 @@
 # src/test/blk_nblock/TEST2 -- unit test for pmemblk_nblock
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
 require_test_type medium
 
 require_fs_type any
@@ -54,5 +51,3 @@ expect_normal_exit ./blk_nblock$EXESUFFIX\
 check_pools $DIR/testset1\
 	$DIR/testset2
 check
-
-pass

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2016-2018, Intel Corporation
 #
@@ -31,10 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
-# standard unit test setup
-. ../unittest/unittest.sh
-
 require_test_type medium
 require_dax_devices 2
 
@@ -48,5 +44,3 @@ create_poolset $DIR/testset1 \
 	AUTO:${DEVICE_DAX_PATH[1]}:x
 
 expect_normal_exit ./obj_basic_integration$EXESUFFIX $DIR/testset1
-
-pass

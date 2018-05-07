@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2015-2018, Intel Corporation
 #
@@ -32,9 +32,6 @@
 #
 
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
 require_test_type medium
 
 setup
@@ -46,5 +43,3 @@ expect_normal_exit\
     ./obj_basic_integration$EXESUFFIX $DIR/testset1
 
 check
-
-pass

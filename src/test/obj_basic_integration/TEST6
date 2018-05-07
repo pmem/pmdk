@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2015-2018, Intel Corporation
 #
@@ -31,10 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
-# standard unit test setup
-. ../unittest/unittest.sh
-
 require_test_type medium
 
 configure_valgrind memcheck force-enable
@@ -47,5 +43,3 @@ create_poolset $DIR/testset1 8M:$DIR/testfile1:x 8M:$DIR/testfile2:x \
 
 expect_normal_exit\
     ./obj_basic_integration$EXESUFFIX $DIR/testset1
-
-pass
