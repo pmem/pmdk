@@ -37,4 +37,8 @@ source ../unittest/unittest.sh
 
 source $1
 
+if [ -n "${TEST_run_check}" ]; then
+	check
+fi
+
 pass
