@@ -762,7 +762,7 @@ game::game(struct parameters *par)
 
 	init_colors();
 
-	srand(time(0));
+	srand(time(nullptr));
 }
 
 game::~game()
@@ -918,13 +918,13 @@ int
 game::parse_conf_create_dynamic_layout(void)
 {
 	FILE *cfg_file;
-	char *line = NULL;
+	char *line = nullptr;
 	size_t len = 0;
 	unsigned i = 0;
 	ssize_t col_no = 0;
 
 	cfg_file = fopen(params->maze_path.c_str(), "r");
-	if (cfg_file == NULL)
+	if (cfg_file == nullptr)
 		return -1;
 
 	persistent_ptr<game_state> r = state.get_root();

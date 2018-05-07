@@ -32,7 +32,9 @@
 #
 
 #
-# src/test/rpmem_basic/TEST13 -- unit test for rpmem_persist
+# src/test/rpmem_basic/TEST13 -- unit test for rpmem_persist without relaxed
+# flag
+# test case for rpmem_persist with relaxed flag is in TEST16
 #
 # case: invalid offset provided to rpmem_persist()
 #
@@ -61,7 +63,7 @@ expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_create 0 pool0.set ${NODE_ADDR[0]} mem 8M none\
 	test_close 0\
 	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init none\
-	test_persist_header 0 hdr\
+	test_persist_header 0 hdr 0\
 	test_close 0
 run_on_node 1 "cat $LOG >> $LOG_TEMP"
 
@@ -70,7 +72,7 @@ expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_create 0 pool1.set ${NODE_ADDR[0]} mem 8M singlehdr\
 	test_close 0\
 	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init singlehdr\
-	test_persist_header 0 hdr\
+	test_persist_header 0 hdr 0\
 	test_close 0
 run_on_node 1 "cat $LOG >> $LOG_TEMP"
 
@@ -79,7 +81,7 @@ expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_create 0 pool2.set ${NODE_ADDR[0]} mem 8M noattr\
 	test_close 0\
 	test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M init noattr\
-	test_persist_header 0 nohdr\
+	test_persist_header 0 nohdr 0\
 	test_close 0
 run_on_node 1 "cat $LOG >> $LOG_TEMP"
 

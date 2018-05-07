@@ -35,14 +35,16 @@
     <ClInclude Include="replica.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\badblock_poolset.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\mmap.c" />
     <ClCompile Include="..\common\mmap_windows.c" />
     <ClCompile Include="..\common\fs_windows.c" />
     <ClCompile Include="..\common\os_auto_flush_windows.c" />
+    <ClCompile Include="..\common\badblock_windows.c" />
     <ClCompile Include="..\common\os_deep_windows.c" />
-    <ClCompile Include="..\common\os_dimm_none.c" />
+    <ClCompile Include="..\common\os_dimm_windows.c" />
     <ClCompile Include="..\common\os_thread_windows.c" />
     <ClCompile Include="..\common\os_windows.c" />
     <ClCompile Include="..\common\out.c" />
@@ -56,6 +58,7 @@
     <ClCompile Include="..\libpmemblk\btt.c" />
     <ClCompile Include="..\libpmemlog\libpmemlog.c" />
     <ClCompile Include="check.c" />
+    <ClCompile Include="check_bad_blocks.c" />
     <ClCompile Include="check_backup.c" />
     <ClCompile Include="check_blk.c" />
     <ClCompile Include="check_btt_info.c" />
@@ -107,7 +110,7 @@
     <RootNamespace>libpmempool</RootNamespace>
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

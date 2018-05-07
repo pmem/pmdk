@@ -565,13 +565,13 @@ err:
 static int
 exists_cb(struct part_file *pf, void *arg)
 {
-	return os_access(pf->path, F_OK);
+	return os_access(pf->part->path, F_OK);
 }
 
 static int
 noexists_cb(struct part_file *pf, void *arg)
 {
-	return !os_access(pf->path, F_OK);
+	return !os_access(pf->part->path, F_OK);
 }
 
 /*

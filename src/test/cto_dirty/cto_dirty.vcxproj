@@ -37,7 +37,7 @@
     <ProjectGuid>{22DCCD3E-79FF-4F66-A9AA-D033A7671B94}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>cto_check_allocations</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

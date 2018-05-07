@@ -66,6 +66,7 @@
 #include "out.h"
 #include "mmap.h"
 #include "util_pmem.h"
+#include "badblock_poolset.h"
 
 #define REQ_BUFF_SIZE	2048U
 #define Q_BUFF_SIZE	8192
@@ -498,7 +499,9 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 			outv_err("cannot open pool set -- '%s'", fname);
 			return -1;
 		}
-		return util_pool_open_nocheck(*poolset, rdonly);
+		unsigned flags = (rdonly ? POOL_OPEN_COW : 0) |
+					POOL_OPEN_IGNORE_BAD_BLOCKS;
+		return util_pool_open_nocheck(*poolset, flags);
 	}
 
 	/* open poolset file */
@@ -518,7 +521,7 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	os_close(fd);
 
 	/* read the pool header from first pool set file */
-	const char *part0_path = PART(REP(set, 0), 0).path;
+	const char *part0_path = PART(REP(set, 0), 0)->path;
 	struct pool_hdr hdr;
 	if (util_file_pread(part0_path, &hdr, sizeof(hdr), 0) !=
 			sizeof(hdr)) {
@@ -550,8 +553,10 @@ util_poolset_map(const char *fname, struct pool_set **poolset, int rdonly)
 	 */
 	struct pool_attr attr;
 	util_pool_hdr2attr(&attr, &hdr);
-	if (util_pool_open(poolset, fname, rdonly, 0 /* minpartsize */,
-			&attr, &nlanes, true, NULL)) {
+	unsigned flags = (rdonly ? POOL_OPEN_COW : 0) | POOL_OPEN_IGNORE_SDS |
+				POOL_OPEN_IGNORE_BAD_BLOCKS;
+	if (util_pool_open(poolset, fname, 0 /* minpartsize */,
+			&attr, &nlanes, NULL, flags)) {
 		outv_err("opening poolset failed\n");
 		return -1;
 	}
@@ -610,7 +615,8 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 				ret = -1;
 				goto out_close;
 			}
-			if (util_pool_open_nocheck(set, 0)) {
+			if (util_pool_open_nocheck(set,
+						POOL_OPEN_IGNORE_BAD_BLOCKS)) {
 				ret = -1;
 				goto out_close;
 			}
@@ -1250,7 +1256,9 @@ pool_set_file_open(const char *fname,
 					file->fname);
 				goto err_free_fname;
 			}
-			if (util_pool_open_nocheck(file->poolset, rdonly))
+			unsigned flags = (rdonly ? POOL_OPEN_COW : 0) |
+						POOL_OPEN_IGNORE_BAD_BLOCKS;
+			if (util_pool_open_nocheck(file->poolset, flags))
 				goto err_free_fname;
 		}
 
@@ -1407,4 +1415,31 @@ pool_set_file_persist(struct pool_set_file *file, const void *addr, size_t len)
 	}
 	struct pool_replica *rep = file->poolset->replica[0];
 	util_persist(rep->is_pmem, (void *)addr, len);
+}
+
+/*
+ * util_pool_clear_badblocks -- clear badblocks in a pool (set or a single file)
+ */
+int
+util_pool_clear_badblocks(const char *path, int create)
+{
+	LOG(3, "path %s create %i", path, create);
+
+	struct pool_set *setp;
+
+	/* do not check minsize */
+	int ret = util_poolset_create_set(&setp, path, 0, 0,
+						POOL_OPEN_IGNORE_SDS);
+	if (ret < 0) {
+		LOG(2, "cannot open pool set -- '%s'", path);
+		return -1;
+	}
+
+	if (os_badblocks_clear_poolset(setp, create)) {
+		ERR("clearing bad blocks in the pool set failed -- '%s'", path);
+		errno = EIO;
+		return -1;
+	}
+
+	return 0;
 }

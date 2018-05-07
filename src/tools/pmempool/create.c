@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -79,6 +79,7 @@ struct pmempool_create {
 	int force;
 	char *layout;
 	struct options *opts;
+	int clearbadblocks;
 };
 
 /*
@@ -96,6 +97,7 @@ static const struct pmempool_create pmempool_create_default = {
 	.write_btt_layout = 0,
 	.force		= 0,
 	.layout		= NULL,
+	.clearbadblocks	= 0,
 	.params		= {
 		.type	= PMEM_POOL_TYPE_UNKNOWN,
 		.size	= 0,
@@ -114,6 +116,7 @@ static const char *help_str =
 "  -M, --max-size       use maximum available space on file system\n"
 "  -m, --mode <octal>   set permissions to <octal> (the default is 0664)\n"
 "  -i, --inherit <file> take required parameters from specified pool file\n"
+"  -b, --clearbadblocks clear bad blocks in existing files\n"
 "  -f, --force          remove the pool first\n"
 "  -v, --verbose        increase verbosity level\n"
 "  -h, --help           display this help and exit\n"
@@ -141,6 +144,7 @@ static const struct option long_options[] = {
 	{"layout",	required_argument,	NULL,	'l' | OPT_OBJ |
 								OPT_CTO},
 	{"force",	no_argument,		NULL,	'f' | OPT_ALL},
+	{"clearbadblocks", no_argument,		NULL,	'b' | OPT_ALL},
 	{NULL,		0,			NULL,	 0 },
 };
 
@@ -385,7 +389,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 		int argc, char *argv[], struct options *opts)
 {
 	int opt, ret;
-	while ((opt = util_options_getopt(argc, argv, "vhi:s:Mm:l:wf",
+	while ((opt = util_options_getopt(argc, argv, "vhi:s:Mm:l:wfb",
 			opts)) != -1) {
 		switch (opt) {
 		case 'v':
@@ -426,6 +430,9 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
 			break;
 		case 'f':
 			pcp->force = 1;
+			break;
+		case 'b':
+			pcp->clearbadblocks = 1;
 			break;
 		default:
 			print_usage(appname);
@@ -639,6 +646,16 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 
 	outv(1, "Creating pool: %s\n", pc.fname);
 	print_pool_params(&pc.params);
+
+	if (pc.clearbadblocks) {
+		int ret = util_pool_clear_badblocks(pc.fname,
+						1 /* ignore non-existing */);
+		if (ret) {
+			outv_err("'%s' -- clearing bad blocks failed\n",
+					pc.fname);
+			return -1;
+		}
+	}
 
 	switch (pc.params.type) {
 	case PMEM_POOL_TYPE_BLK:

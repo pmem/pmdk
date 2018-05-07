@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,25 @@
 #include "util_pmem.h"
 #include "file.h"
 
+typedef void *pmem_memmove_fn(void *pmemdest, const void *src, size_t len,
+		unsigned flags);
+
+static void *
+pmem_memmove_persist_wrapper(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
+{
+	(void) flags;
+	return pmem_memmove_persist(pmemdest, src, len);
+}
+
+static void *
+pmem_memmove_nodrain_wrapper(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
+{
+	(void) flags;
+	return pmem_memmove_nodrain(pmemdest, src, len);
+}
+
 /*
  * swap_mappings - given to mmapped regions swap them.
  *
@@ -74,6 +93,26 @@ swap_mappings(char **dest, char **src, size_t size, int fd)
 }
 
 /*
+ * verify_contents -- verify that buffers match, if they don't - print contents
+ * of both and abort the test
+ */
+static void
+verify_contents(const char *file_name, int test,
+		const char *buf1, const char *buf2,
+		size_t len)
+{
+	if (memcmp(buf1, buf2, len) == 0)
+		return;
+
+	for (size_t i = 0; i < len; ++i)
+		UT_ERR("%04zu 0x%02x 0x%02x %s", i, (uint8_t)buf1[i],
+				(uint8_t)buf2[i],
+				buf1[i] != buf2[i] ? "!!!" : "");
+	UT_FATAL("%s %d: %zu bytes do not match with memcmp",
+		file_name, test, len);
+}
+
+/*
  * do_memmove: Worker function for memmove.
  *
  * Always work within the boundary of bytes. Fill in 1/2 of the src
@@ -83,98 +122,112 @@ swap_mappings(char **dest, char **src, size_t size, int fd)
  * so as not to introduce any possible side affects.
  */
 static void
-do_memmove(int fd, char *dest, char *src, char *file_name, os_off_t dest_off,
-	os_off_t src_off, os_off_t off, os_off_t bytes)
+do_memmove(int ddax, char *dst, char *src, const char *file_name,
+		os_off_t dest_off, os_off_t src_off, os_off_t bytes,
+		pmem_memmove_fn fn, unsigned flags)
 {
 	void *ret;
-	char *src1 = MALLOC(bytes);
-	char *buf = MALLOC(bytes);
+	char *srcshadow = MALLOC(dest_off + src_off + bytes);
+	char *dstshadow = srcshadow;
+	if (src != dst)
+		dstshadow = MALLOC(dest_off + src_off + bytes);
 	char old;
 
-	memset(buf, 0, bytes);
-	memset(src1, 0, bytes);
-	memset(src, 0x5A, bytes / 4);
-	util_persist_auto(util_fd_is_device_dax(fd), src, bytes / 4);
-	memset(src + bytes / 4, 0x54, bytes / 4);
-	util_persist_auto(util_fd_is_device_dax(fd), src + bytes / 4,
-			bytes / 4);
+	memset(src, 0x11, bytes);
+	memset(dst, 0x22, bytes);
 
-	/* dest == src */
-	old = *(char *)(dest + dest_off);
-	ret = pmem_memmove_persist(dest + dest_off, dest + dest_off, bytes / 2);
-	UT_ASSERTeq(ret, dest + dest_off);
-	UT_ASSERTeq(*(char *)(dest + dest_off), old);
+	memset(src, 0x33, bytes / 4);
+	memset(src + bytes / 4, 0x44, bytes / 4);
 
-	/* len == 0 */
-	old = *(char *)(dest + dest_off);
-	ret = pmem_memmove_persist(dest + dest_off, src + src_off, 0);
-	UT_ASSERTeq(ret, dest + dest_off);
-	UT_ASSERTeq(*(char *)(dest + dest_off), old);
+	util_persist_auto(ddax, src, bytes);
+	util_persist_auto(ddax, dst, bytes);
 
-	/*
-	 * A side affect of the memmove call is that
-	 * src contents will be changed in the case of overlapping
-	 * addresses.
-	 */
-	memcpy(src1, src, bytes / 2);
-	ret = pmem_memmove_persist(dest + dest_off, src + src_off, bytes / 2);
-	UT_ASSERTeq(ret, dest + dest_off);
+	memcpy(srcshadow, src, bytes);
+	memcpy(dstshadow, dst, bytes);
 
-	/* memcmp will validate that what I expect in memory. */
-	if (memcmp(src1 + src_off, dest + dest_off, bytes / 2)) {
-		for (int i = 0; i < bytes / 2; ++i)
-			UT_ERR("%d 0x%02x 0x%02x %s", i, *(src1 + src_off + i),
-					*(dest + dest_off + i),
-					*(src1 + src_off + i) !=
-					*(dest + dest_off + i) ? "!!!" : "");
-		UT_FATAL("%s: %zu bytes do not match with memcmp",
-			file_name, bytes / 2);
-	}
+	/* TEST 1, dest == src */
+	old = *(char *)(dst + dest_off);
+	ret = fn(dst + dest_off, dst + dest_off, bytes / 2, flags);
+	UT_ASSERTeq(ret, dst + dest_off);
+	UT_ASSERTeq(*(char *)(dst + dest_off), old);
 
-	/*
-	 * This is a special case. An overlapping dest means that
-	 * src is a pointer to the file, and destination is src + dest_off +
-	 * overlap. This is the basis for the comparison. The use of ERR
-	 * here is deliberate. This will force a failure of the test but allow
-	 * it to continue until its done. The idea is that allowing some
-	 * to succeed and others to fail gives more information about what
-	 * went wrong.
-	 */
-	if (dest > src && off != 0) {
-		LSEEK(fd, (os_off_t)dest_off + off, SEEK_SET);
-		if (READ(fd, buf, bytes / 2) == bytes / 2) {
-			if (memcmp(src1 + src_off, buf, bytes / 2))
-				UT_FATAL("%s: first %zu bytes do not match",
-					file_name, bytes / 2);
-		}
-	} else {
-		LSEEK(fd, (os_off_t)dest_off, SEEK_SET);
-		if (READ(fd, buf, bytes / 2) == bytes / 2) {
-			if (memcmp(src1 + src_off, buf, bytes / 2))
-				UT_FATAL("%s: first %zu bytes do not match",
-					file_name, bytes / 2);
-		}
-	}
-	FREE(src1);
-	FREE(buf);
+	/* do the same using regular memmove and verify that buffers match */
+	memmove(dstshadow + dest_off, dstshadow + dest_off, bytes / 2);
+	verify_contents(file_name, 0, dstshadow, dst, bytes);
+	verify_contents(file_name, 1, srcshadow, src, bytes);
+
+	/* TEST 2, len == 0 */
+	old = *(char *)(dst + dest_off);
+	ret = fn(dst + dest_off, src + src_off, 0, flags);
+	UT_ASSERTeq(ret, dst + dest_off);
+	UT_ASSERTeq(*(char *)(dst + dest_off), old);
+
+	/* do the same using regular memmove and verify that buffers match */
+	memmove(dstshadow + dest_off, srcshadow + src_off, 0);
+	verify_contents(file_name, 2, dstshadow, dst, bytes);
+	verify_contents(file_name, 3, srcshadow, src, bytes);
+
+	/* TEST 3, len == bytes / 2 */
+	ret = fn(dst + dest_off, src + src_off, bytes / 2, flags);
+	UT_ASSERTeq(ret, dst + dest_off);
+	if (flags & PMEM_F_MEM_NOFLUSH)
+		/* for pmemcheck */
+		util_persist_auto(ddax, dst + dest_off, bytes / 2);
+
+	/* do the same using regular memmove and verify that buffers match */
+	memmove(dstshadow + dest_off, srcshadow + src_off, bytes / 2);
+	verify_contents(file_name, 4, dstshadow, dst, bytes);
+	verify_contents(file_name, 5, srcshadow, src, bytes);
+
+	FREE(srcshadow);
+	if (dstshadow != srcshadow)
+		FREE(dstshadow);
 }
 
 #define USAGE() do { UT_FATAL("usage: %s file  b:length [d:{offset}] "\
-	"[s:{offset}] [o:{1|2} S:{overlap}]", argv[0]); } while (0)
+	"[s:{offset}] [o:{0|1}]", argv[0]); } while (0)
+
+static unsigned Flags[] = {
+		0,
+		PMEM_F_MEM_NODRAIN,
+		PMEM_F_MEM_NONTEMPORAL,
+		PMEM_F_MEM_TEMPORAL,
+		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL,
+		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_NODRAIN,
+		PMEM_F_MEM_WC,
+		PMEM_F_MEM_WB,
+		PMEM_F_MEM_NOFLUSH,
+		/* all possible flags */
+		PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH |
+			PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL |
+			PMEM_F_MEM_WC | PMEM_F_MEM_WB,
+};
+
+static void
+do_memmove_variants(int ddax, char *dst, char *src, const char *file_name,
+	os_off_t dest_off, os_off_t src_off, os_off_t bytes)
+{
+	do_memmove(ddax, dst, src, file_name, dest_off, src_off,
+			bytes, pmem_memmove_persist_wrapper, 0);
+	do_memmove(ddax, dst, src, file_name, dest_off, src_off,
+			bytes, pmem_memmove_nodrain_wrapper, 0);
+
+	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
+		do_memmove(ddax, dst, src, file_name, dest_off, src_off,
+				bytes, pmem_memmove, Flags[i]);
+	}
+}
 
 int
 main(int argc, char *argv[])
 {
 	int fd;
-	char *dest;
+	char *dst;
 	char *src;
-	char *dest_orig;
-	char *src_orig;
-	os_off_t dest_off = 0;
+	os_off_t dst_off = 0;
 	os_off_t src_off = 0;
 	uint64_t bytes = 0;
 	int who = 0;
-	os_off_t overlap = 0;
 	size_t mapped_len;
 
 	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
@@ -190,14 +243,15 @@ main(int argc, char *argv[])
 			avx512f ? "" : "!");
 
 	fd = OPEN(argv[1], O_RDWR);
+	int ddax = util_fd_is_device_dax(fd);
 
 	if (argc < 3)
 		USAGE();
 
 	for (int arg = 2; arg < argc; arg++) {
-		if (strchr("dsboS",
+		if (strchr("dsbo",
 		    argv[arg][0]) == NULL || argv[arg][1] != ':')
-			UT_FATAL("op must be d: or s: or b: or o: or S:");
+			UT_FATAL("op must be d: or s: or b: or o:");
 
 		os_off_t val = strtoul(&argv[arg][2], NULL, 0);
 
@@ -206,7 +260,7 @@ main(int argc, char *argv[])
 			if (val <= 0)
 				UT_FATAL("bad offset (%lu) with d: option",
 						val);
-			dest_off = val;
+			dst_off = val;
 			break;
 
 		case 's':
@@ -224,30 +278,21 @@ main(int argc, char *argv[])
 			break;
 
 		case 'o':
-			if (val != 1 && val != 2)
+			if (val != 1 && val != 0)
 				UT_FATAL("bad val (%lu) with o: option",
 						val);
 			who = (int)val;
 			break;
-
-		case 'S':
-			overlap = val;
-			break;
 		}
 	}
 
-	if (who == 0 && overlap != 0)
-		USAGE();
-
-	/* for overlap the src and dest must be created differently */
 	if (who == 0) {
 		/* src > dest */
-		dest_orig = dest = pmem_map_file(argv[1], 0, 0, 0,
-			&mapped_len, NULL);
-		if (dest == NULL)
+		dst = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
+		if (dst == NULL)
 			UT_FATAL("!could not mmap dest file %s", argv[1]);
 
-		src_orig = src = MMAP(dest + mapped_len, mapped_len,
+		src = MMAP(dst + mapped_len, mapped_len,
 			PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS,
 			-1, 0);
 		/*
@@ -257,58 +302,40 @@ main(int argc, char *argv[])
 		 * the error if the mapped addresses cannot be swapped
 		 * but allow the test to continue.
 		 */
-		if (src <= dest) {
-			swap_mappings(&dest, &src, mapped_len, fd);
-			if (src <= dest)
+		if (src <= dst) {
+			swap_mappings(&dst, &src, mapped_len, fd);
+			if (src <= dst)
 				UT_FATAL("cannot map files in memory order");
 		}
 
-		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
-			0, bytes);
+		do_memmove_variants(ddax, dst, src, argv[1], dst_off, src_off,
+				bytes);
 
 		/* dest > src */
-		swap_mappings(&dest, &src, mapped_len, fd);
+		swap_mappings(&dst, &src, mapped_len, fd);
 
-		if (dest <= src)
+		if (dst <= src)
 			UT_FATAL("cannot map files in memory order");
 
-		do_memmove(fd, dest, src, argv[1], dest_off, src_off, 0,
-			bytes);
+		do_memmove_variants(ddax, dst, src, argv[1], dst_off, src_off,
+				bytes);
 
-		int ret = pmem_unmap(dest_orig, mapped_len);
+		int ret = pmem_unmap(dst, mapped_len);
 		UT_ASSERTeq(ret, 0);
 
-		MUNMAP(src_orig, mapped_len);
-	} else if (who == 1) {
-		/* src overlap with dest */
-		dest_orig = dest = pmem_map_file(argv[1], 0, 0, 0,
-			&mapped_len, NULL);
-		if (dest == NULL)
-			UT_FATAL("!Could not mmap %s: \n", argv[1]);
-
-		src = dest + overlap;
-		memset(dest, 0, bytes);
-		util_persist_auto(util_fd_is_device_dax(fd), dest, bytes);
-		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
-			overlap, bytes);
-
-		int ret = pmem_unmap(dest_orig, mapped_len);
-		UT_ASSERTeq(ret, 0);
+		MUNMAP(src, mapped_len);
 	} else {
-		/* dest overlap with src */
-		dest_orig = dest = pmem_map_file(argv[1], 0, 0, 0,
-			&mapped_len, NULL);
-		if (dest == NULL)
+		/* use the same buffer for source and destination */
+		dst = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
+		if (dst == NULL)
 			UT_FATAL("!Could not mmap %s: \n", argv[1]);
 
-		src = dest;
-		dest = src + overlap;
-		memset(src, 0, bytes);
-		util_persist_auto(util_fd_is_device_dax(fd), src, bytes);
-		do_memmove(fd, dest, src, argv[1], dest_off, src_off,
-			overlap, bytes);
+		memset(dst, 0, bytes);
+		util_persist_auto(ddax, dst, bytes);
+		do_memmove_variants(ddax, dst, dst, argv[1], dst_off,
+				src_off, bytes);
 
-		int ret = pmem_unmap(dest_orig, mapped_len);
+		int ret = pmem_unmap(dst, mapped_len);
 		UT_ASSERTeq(ret, 0);
 	}
 

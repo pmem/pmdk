@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -167,13 +167,18 @@ client_persist_thread(void *arg)
 	struct persist_arg *args = arg;
 	int ret;
 
+	/* presist with len == 0 should always succeed */
+	ret = rpmem_fip_persist(args->fip, args->lane * TOTAL_PER_LANE,
+			0, args->lane, RPMEM_PERSIST_WRITE);
+	UT_ASSERTeq(ret, 0);
+
 	for (unsigned i = 0; i < COUNT_PER_LANE; i++) {
 		size_t offset = args->lane * TOTAL_PER_LANE + i * SIZE_PER_LANE;
 		unsigned val = args->lane + i;
 		memset(&lpool[offset], val, SIZE_PER_LANE);
 
 		ret = rpmem_fip_persist(args->fip, offset,
-				SIZE_PER_LANE, args->lane, RPMEM_PERSIST);
+				SIZE_PER_LANE, args->lane, RPMEM_PERSIST_WRITE);
 		UT_ASSERTeq(ret, 0);
 	}
 
@@ -269,6 +274,7 @@ server_init(const struct test_case *tc, int argc, char *argv[])
 	};
 
 	ret = rpmemd_apply_pm_policy(&attr.persist_method, &attr.persist,
+			&attr.memcpy_persist,
 			1 /* is pmem */);
 	UT_ASSERTeq(ret, 0);
 
@@ -386,6 +392,7 @@ server_connect(const struct test_case *tc, int argc, char *argv[])
 	enum rpmem_err err;
 
 	ret = rpmemd_apply_pm_policy(&attr.persist_method, &attr.persist,
+			&attr.memcpy_persist,
 			1 /* is pmem */);
 	UT_ASSERTeq(ret, 0);
 
@@ -447,6 +454,7 @@ server_process(const struct test_case *tc, int argc, char *argv[])
 	enum rpmem_err err;
 
 	ret = rpmemd_apply_pm_policy(&attr.persist_method, &attr.persist,
+			&attr.memcpy_persist,
 			1 /* is pmem */);
 	UT_ASSERTeq(ret, 0);
 
@@ -705,6 +713,10 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTne(fip, NULL);
 
 	ret = rpmem_fip_connect(fip);
+	UT_ASSERTeq(ret, 0);
+
+	/* read with len == 0 should always succeed */
+	ret = rpmem_fip_read(fip, lpool, 0, 0, 0);
 	UT_ASSERTeq(ret, 0);
 
 	ret = rpmem_fip_read(fip, lpool, POOL_SIZE, 0, 0);

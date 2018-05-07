@@ -370,7 +370,7 @@ cond_zero_test(nvobj::pool<struct root> &pop)
 			      pmemobj_memset_persist(pop, mtx, 1, sizeof(*mtx));
 			      return 0;
 		      },
-		      NULL);
+		      nullptr);
 
 	nvobj::condition_variable *placed_mtx =
 		new (pmemobj_direct(raw_cnd)) nvobj::condition_variable;

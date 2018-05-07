@@ -105,6 +105,7 @@ OBJ_TESTS = \
 	obj_list_valgrind\
 	obj_list_macro\
 	obj_locks\
+	obj_mem\
 	obj_memblock\
 	obj_memcheck\
 	obj_oid\
@@ -209,6 +210,8 @@ OTHER_TESTS = \
 	traces_pmem\
 	unicode_api\
 	unicode_match_script\
+	util_badblock\
+	util_extent\
 	util_file_create\
 	util_file_open\
 	util_is_absolute\
@@ -255,6 +258,7 @@ PMEMPOOL_TESTS = \
 
 RPMEM_TESTS = \
 	rpmem_addr\
+	rpmem_addr_ext\
 	rpmem_basic\
 	rpmem_fip\
 	rpmem_obc\
@@ -266,10 +270,6 @@ RPMEM_TESTS = \
 	rpmemd_log\
 	rpmemd_obc\
 	rpmemd_util
-
-# XXX: temporarily skip this test, as it fails with libfabric 1.6.0
-#	rpmem_addr_ext
-
 
 VMEM_TESTS = \
 	vmem_aligned_alloc\

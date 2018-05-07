@@ -55,27 +55,111 @@ typedef void *(*mem_fn)(void *, const void *, size_t);
 static char *Src;
 static char *Dst;
 static char *Scratch;
+static int Heavy;
+
+static unsigned Flags[] = {
+		0,
+		PMEM_F_MEM_NODRAIN,
+		PMEM_F_MEM_NONTEMPORAL,
+		PMEM_F_MEM_TEMPORAL,
+		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL,
+		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_NODRAIN,
+		PMEM_F_MEM_WC,
+		PMEM_F_MEM_WB,
+		PMEM_F_MEM_NOFLUSH,
+		/* all possible flags */
+		PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH |
+			PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL |
+			PMEM_F_MEM_WC | PMEM_F_MEM_WB,
+};
+
+typedef void *pmem_memcpy_fn(void *pmemdest, const void *src, size_t len,
+		unsigned flags);
+typedef void *pmem_memmove_fn(void *pmemdest, const void *src, size_t len,
+		unsigned flags);
+typedef void *pmem_memset_fn(void *pmemdest, int c, size_t len, unsigned flags);
+
+static void *
+pmem_memcpy_persist_wrapper(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
+{
+	(void) flags;
+	return pmem_memcpy_persist(pmemdest, src, len);
+}
+
+static void *
+pmem_memcpy_nodrain_wrapper(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
+{
+	(void) flags;
+	return pmem_memcpy_nodrain(pmemdest, src, len);
+}
+
+static void *
+pmem_memmove_persist_wrapper(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
+{
+	(void) flags;
+	return pmem_memmove_persist(pmemdest, src, len);
+}
+
+static void *
+pmem_memmove_nodrain_wrapper(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
+{
+	(void) flags;
+	return pmem_memmove_nodrain(pmemdest, src, len);
+}
+
+static void *
+pmem_memset_persist_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
+{
+	(void) flags;
+	return pmem_memset_persist(pmemdest, c, len);
+}
+
+static void *
+pmem_memset_nodrain_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
+{
+	(void) flags;
+	return pmem_memset_nodrain(pmemdest, c, len);
+}
 
 /*
  * check_memmove -- invoke check function with pmem_memmove_persist
  */
 static void
-check_memmove(size_t doff, size_t soff, size_t len)
+check_memmove(size_t doff, size_t soff, size_t len, pmem_memmove_fn fn,
+		unsigned flags)
 {
 	memset(Dst + doff, 1, len);
 	memset(Src + soff, 0, len);
 
-	pmem_memmove_persist(Dst + doff, Src + soff, len);
+	fn(Dst + doff, Src + soff, len, flags);
 
 	if (memcmp(Dst + doff, Src + soff, len))
 		UT_FATAL("memcpy/memmove failed");
+}
+
+static void
+check_memmove_variants(size_t doff, size_t soff, size_t len)
+{
+	check_memmove(doff, soff, len, pmem_memmove_persist_wrapper, 0);
+	if (!Heavy)
+		return;
+
+	check_memmove(doff, soff, len, pmem_memmove_nodrain_wrapper, 0);
+
+	for (int i = 0; i < ARRAY_SIZE(Flags); ++i)
+		check_memmove(doff, soff, len, pmem_memmove, Flags[i]);
 }
 
 /*
  * check_memmove -- invoke check function with pmem_memcpy_persist
  */
 static void
-check_memcpy(size_t doff, size_t soff, size_t len)
+check_memcpy(size_t doff, size_t soff, size_t len, pmem_memcpy_fn fn,
+		unsigned flags)
 {
 	memset(Dst, 2, N_BYTES);
 	memset(Src, 3, N_BYTES);
@@ -85,35 +169,62 @@ check_memcpy(size_t doff, size_t soff, size_t len)
 	memset(Src + soff, 0, len);
 	memcpy(Scratch + doff, Src + soff, len);
 
-	pmem_memcpy_persist(Dst + doff, Src + soff, len);
+	fn(Dst + doff, Src + soff, len, flags);
 
 	if (memcmp(Dst, Scratch, N_BYTES))
 		UT_FATAL("memcpy/memmove failed");
+}
+
+static void
+check_memcpy_variants(size_t doff, size_t soff, size_t len)
+{
+	check_memcpy(doff, soff, len, pmem_memcpy_persist_wrapper, 0);
+	if (!Heavy)
+		return;
+
+	check_memcpy(doff, soff, len, pmem_memcpy_nodrain_wrapper, 0);
+
+	for (int i = 0; i < ARRAY_SIZE(Flags); ++i)
+		check_memcpy(doff, soff, len, pmem_memcpy, Flags[i]);
 }
 
 /*
  * check_memset -- check pmem_memset_no_drain function
  */
 static void
-check_memset(size_t off, size_t len)
+check_memset(size_t off, size_t len, pmem_memset_fn fn, unsigned flags)
 {
 	memset(Scratch, 2, N_BYTES);
 	memset(Scratch + off, 1, len);
 
 	memset(Dst, 2, N_BYTES);
-	pmem_memset_persist(Dst + off, 1, len);
+	fn(Dst + off, 1, len, flags);
 
 	if (memcmp(Dst, Scratch, N_BYTES))
 		UT_FATAL("memset failed");
 }
 
+static void
+check_memset_variants(size_t off, size_t len)
+{
+	check_memset(off, len, pmem_memset_persist_wrapper, 0);
+	if (!Heavy)
+		return;
+
+	check_memset(off, len, pmem_memset_nodrain_wrapper, 0);
+
+	for (int i = 0; i < ARRAY_SIZE(Flags); ++i)
+		check_memset(off, len, pmem_memset, Flags[i]);
+}
+
 int
 main(int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s type", argv[0]);
+	if (argc != 3)
+		UT_FATAL("usage: %s type heavy=[0|1]", argv[0]);
 
 	char type = argv[1][0];
+	Heavy = argv[2][0] == '1';
 	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
 	const char *avx = getenv("PMEM_AVX");
 	const char *avx512f = getenv("PMEM_AVX512F");
@@ -135,19 +246,19 @@ main(int argc, char *argv[])
 		Scratch = MALLOC(N_BYTES);
 
 		/* check memcpy with 0 size */
-		check_memcpy(0, 0, 0);
+		check_memcpy_variants(0, 0, 0);
 
 		/* check memcpy with unaligned size */
 		for (s = 0; s < CACHELINE; s++)
-			check_memcpy(0, 0, N_BYTES - s);
+			check_memcpy_variants(0, 0, N_BYTES - s);
 
 		/* check memcpy with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memcpy(s, 0, N_BYTES - s);
+			check_memcpy_variants(s, 0, N_BYTES - s);
 
 		/* check memcpy with unaligned begin and end */
 		for (s = 0; s < CACHELINE; s++)
-			check_memcpy(s, s, N_BYTES - 2 * s);
+			check_memcpy_variants(s, s, N_BYTES - 2 * s);
 
 		MUNMAP_ANON_ALIGNED(Src, N_BYTES);
 		MUNMAP_ANON_ALIGNED(Dst, N_BYTES);
@@ -162,22 +273,22 @@ main(int argc, char *argv[])
 			UT_FATAL("!mmap");
 
 		/* check memmove in backward direction with 0 size */
-		check_memmove(0, 0, 0);
+		check_memmove_variants(0, 0, 0);
 
 		/* check memmove in backward direction with unaligned size */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(0, 0, N_BYTES - s);
+			check_memmove_variants(0, 0, N_BYTES - s);
 
 		/* check memmove in backward direction with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(s, 0, N_BYTES - s);
+			check_memmove_variants(s, 0, N_BYTES - s);
 
 		/*
 		 * check memmove in backward direction with unaligned begin
 		 * and end
 		 */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(s, s, N_BYTES - 2 * s);
+			check_memmove_variants(s, s, N_BYTES - 2 * s);
 
 		MUNMAP_ANON_ALIGNED(Src, 2 * N_BYTES - 4096);
 		break;
@@ -189,22 +300,22 @@ main(int argc, char *argv[])
 			UT_FATAL("!mmap");
 
 		/* check memmove in forward direction with 0 size */
-		check_memmove(0, 0, 0);
+		check_memmove_variants(0, 0, 0);
 
 		/* check memmove in forward direction with unaligned size */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(0, 0, N_BYTES - s);
+			check_memmove_variants(0, 0, N_BYTES - s);
 
 		/* check memmove in forward direction with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(s, 0, N_BYTES - s);
+			check_memmove_variants(s, 0, N_BYTES - s);
 
 		/*
 		 * check memmove in forward direction with unaligned begin
 		 * and end
 		 */
 		for (s = 0; s < CACHELINE; s++)
-			check_memmove(s, s, N_BYTES - 2 * s);
+			check_memmove_variants(s, s, N_BYTES - 2 * s);
 
 		MUNMAP_ANON_ALIGNED(Dst, 2 * N_BYTES - 4096);
 
@@ -218,19 +329,19 @@ main(int argc, char *argv[])
 		Scratch = MALLOC(N_BYTES);
 
 		/* check memset with 0 size */
-		check_memset(0, 0);
+		check_memset_variants(0, 0);
 
 		/* check memset with unaligned size */
 		for (s = 0; s < CACHELINE; s++)
-			check_memset(0, N_BYTES - s);
+			check_memset_variants(0, N_BYTES - s);
 
 		/* check memset with unaligned begin */
 		for (s = 0; s < CACHELINE; s++)
-			check_memset(s, N_BYTES - s);
+			check_memset_variants(s, N_BYTES - s);
 
 		/* check memset with unaligned begin and end */
 		for (s = 0; s < CACHELINE; s++)
-			check_memset(s, N_BYTES - 2 * s);
+			check_memset_variants(s, N_BYTES - 2 * s);
 
 		MUNMAP_ANON_ALIGNED(Dst, N_BYTES);
 		FREE(Scratch);

@@ -46,6 +46,7 @@ extern "C" {
 
 #include <sys/types.h>
 
+#include "out.h"
 #include "vec.h"
 #include "pool_hdr.h"
 #include "librpmem.h"
@@ -80,6 +81,11 @@ struct pool_set_option {
 #define REPLICAS_DISABLED 0
 #define REPLICAS_ENABLED 1
 
+/*  util_pool_open flags */
+#define POOL_OPEN_COW			1	/* copy-on-write mode */
+#define POOL_OPEN_IGNORE_SDS		2	/* ignore shutdown state */
+#define POOL_OPEN_IGNORE_BAD_BLOCKS	4	/* ignore bad blocks */
+
 enum del_parts_mode {
 	DO_NOT_DELETE_PARTS,	/* do not delete part files */
 	DELETE_CREATED_PARTS,	/* delete only newly created parts files */
@@ -108,6 +114,7 @@ struct pool_set_part {
 	int rdonly;		/* is set based on compat features, affects */
 				/* the whole poolset */
 	uuid_t uuid;
+	int has_bad_blocks;	/* part file contains bad blocks */
 };
 
 struct pool_set_directory {
@@ -143,6 +150,7 @@ struct pool_set {
 	int rdonly;
 	int zeroed;		/* true if all the parts are new files */
 	size_t poolsize;	/* the smallest replica size */
+	int has_bad_blocks;	/* pool set contains bad blocks */
 	int remote;		/* true if contains a remote replica */
 	unsigned options;	/* enabled pool set options */
 
@@ -158,10 +166,16 @@ struct pool_set {
 
 struct part_file {
 	int is_remote;
-	const char *path;	/* not-NULL only for a local part file */
-	const char *node_addr;	/* address of a remote node */
-	/* poolset descriptor is a pool set file name on a remote node */
-	const char *pool_desc;	/* descriptor of a poolset */
+	/*
+	 * Pointer to the part file structure -
+	 * - not-NULL only for a local part file
+	 */
+	struct pool_set_part *part;
+	/*
+	 * Pointer to the replica structure -
+	 * - not-NULL only for a remote replica
+	 */
+	struct remote_replica *remote;
 };
 
 struct pool_attr {
@@ -178,49 +192,139 @@ struct pool_attr {
 };
 
 /* get index of the (r)th replica */
-#define REPidx(set, r) (((set)->nreplicas + (r)) % (set)->nreplicas)
+static inline unsigned
+REPidx(const struct pool_set *set, unsigned r)
+{
+	ASSERTne(set->nreplicas, 0);
+	return (set->nreplicas + r) % set->nreplicas;
+}
+
 /* get index of the (r + 1)th replica */
-#define REPNidx(set, r) (((set)->nreplicas + (r) + 1) % (set)->nreplicas)
+static inline unsigned
+REPNidx(const struct pool_set *set, unsigned r)
+{
+	ASSERTne(set->nreplicas, 0);
+	return (set->nreplicas + r + 1) % set->nreplicas;
+}
+
 /* get index of the (r - 1)th replica */
-#define REPPidx(set, r) (((set)->nreplicas + (r) - 1) % (set)->nreplicas)
+static inline unsigned
+REPPidx(const struct pool_set *set, unsigned r)
+{
+	ASSERTne(set->nreplicas, 0);
+	return (set->nreplicas + r - 1) % set->nreplicas;
+}
 
 /* get index of the (r)th part */
-#define PARTidx(rep, p) (((rep)->nparts + (p)) % (rep)->nparts)
+static inline unsigned
+PARTidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nparts, 0);
+	return (rep->nparts + p) % rep->nparts;
+}
+
 /* get index of the (r + 1)th part */
-#define PARTNidx(rep, p) (((rep)->nparts + (p) + 1) % (rep)->nparts)
+static inline unsigned
+PARTNidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nparts, 0);
+	return (rep->nparts + p + 1) % rep->nparts;
+}
+
 /* get index of the (r - 1)th part */
-#define PARTPidx(rep, p) (((rep)->nparts + (p) - 1) % (rep)->nparts)
+static inline unsigned
+PARTPidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nparts, 0);
+	return (rep->nparts + p - 1) % rep->nparts;
+}
 
 /* get index of the (r)th part */
-#define HDRidx(rep, p) (((rep)->nhdrs + (p)) % (rep)->nhdrs)
+static inline unsigned
+HDRidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nhdrs, 0);
+	return (rep->nhdrs + p) % rep->nhdrs;
+}
+
 /* get index of the (r + 1)th part */
-#define HDRNidx(rep, p) (((rep)->nhdrs + (p) + 1) % (rep)->nhdrs)
+static inline unsigned
+HDRNidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nhdrs, 0);
+	return (rep->nhdrs + p + 1) % rep->nhdrs;
+}
+
 /* get index of the (r - 1)th part */
-#define HDRPidx(rep, p) (((rep)->nhdrs + (p) - 1) % (rep)->nhdrs)
+static inline unsigned
+HDRPidx(const struct pool_replica *rep, unsigned p)
+{
+	ASSERTne(rep->nhdrs, 0);
+	return (rep->nhdrs + p - 1) % rep->nhdrs;
+}
 
 /* get (r)th replica */
-#define REP(set, r)\
-	((set)->replica[REPidx(set, r)])
+static inline struct pool_replica *
+REP(const struct pool_set *set, unsigned r)
+{
+	return set->replica[REPidx(set, r)];
+}
+
 /* get (r + 1)th replica */
-#define REPN(set, r)\
-	((set)->replica[REPNidx(set, r)])
+static inline struct pool_replica *
+REPN(const struct pool_set *set, unsigned r)
+{
+	return set->replica[REPNidx(set, r)];
+}
+
 /* get (r - 1)th replica */
-#define REPP(set, r)\
-	((set)->replica[REPPidx(set, r)])
+static inline struct pool_replica *
+REPP(const struct pool_set *set, unsigned r)
+{
+	return set->replica[REPPidx(set, r)];
+}
 
-#define PART(rep, p)\
-	((rep)->part[PARTidx(rep, p)])
-#define PARTN(rep, p)\
-	((rep)->part[PARTNidx(rep, p)])
-#define PARTP(rep, p)\
-	((rep)->part[PARTPidx(rep, p)])
+/* get (p)th part */
+static inline struct pool_set_part *
+PART(struct pool_replica *rep, unsigned p)
+{
+	return &rep->part[PARTidx(rep, p)];
+}
 
-#define HDR(rep, p)\
-	((struct pool_hdr *)(((rep)->part[HDRidx(rep, p)]).hdr))
-#define HDRN(rep, p)\
-	((struct pool_hdr *)(((rep)->part[HDRNidx(rep, p)]).hdr))
-#define HDRP(rep, p)\
-	((struct pool_hdr *)(((rep)->part[HDRPidx(rep, p)]).hdr))
+/* get (p + 1)th part */
+static inline struct pool_set_part *
+PARTN(struct pool_replica *rep, unsigned p)
+{
+	return &rep->part[PARTNidx(rep, p)];
+}
+
+/* get (p - 1)th part */
+static inline struct pool_set_part *
+PARTP(struct pool_replica *rep, unsigned p)
+{
+	return &rep->part[PARTPidx(rep, p)];
+}
+
+/* get (p)th header */
+static inline struct pool_hdr *
+HDR(struct pool_replica *rep, unsigned p)
+{
+	return (struct pool_hdr *)(rep->part[HDRidx(rep, p)].hdr);
+}
+
+/* get (p + 1)th header */
+static inline struct pool_hdr *
+HDRN(struct pool_replica *rep, unsigned p)
+{
+	return (struct pool_hdr *)(rep->part[HDRNidx(rep, p)].hdr);
+}
+
+/* get (p - 1)th header */
+static inline struct pool_hdr *
+HDRP(struct pool_replica *rep, unsigned p)
+{
+	return (struct pool_hdr *)(rep->part[HDRPidx(rep, p)].hdr);
+}
 
 extern int Prefault_at_open;
 extern int Prefault_at_create;
@@ -236,6 +340,8 @@ int util_poolset_chmod(struct pool_set *set, mode_t mode);
 void util_poolset_fdclose(struct pool_set *set);
 void util_poolset_fdclose_always(struct pool_set *set);
 int util_is_poolset_file(const char *path);
+int util_poolset_foreach_part_struct(struct pool_set *set,
+	int (*cb)(struct part_file *pf, void *arg), void *arg);
 int util_poolset_foreach_part(const char *path,
 	int (*cb)(struct part_file *pf, void *arg), void *arg);
 size_t util_poolset_size(const char *path);
@@ -275,10 +381,10 @@ int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 int util_map_hdr(struct pool_set_part *part, int flags, int rdonly);
 int util_unmap_hdr(struct pool_set_part *part);
 
-int util_pool_open_nocheck(struct pool_set *set, int cow);
-int util_pool_open(struct pool_set **setp, const char *path, int cow,
-	size_t minpartsize, const struct pool_attr *attr, unsigned *nlanes,
-	int ignore_sds, void *addr);
+int util_pool_open_nocheck(struct pool_set *set, unsigned flags);
+int util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
+	const struct pool_attr *attr, unsigned *nlanes, void *addr,
+	unsigned flags);
 int util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 	size_t minpartsize, struct rpmem_pool_attr *rattr);
 
@@ -306,7 +412,7 @@ int util_replica_close_remote(struct pool_replica *rep, unsigned repn,
 		enum del_parts_mode del);
 
 extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
-								unsigned lane);
+						unsigned lane, unsigned flags);
 extern int (*Rpmem_deep_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 								unsigned lane);
 extern int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,

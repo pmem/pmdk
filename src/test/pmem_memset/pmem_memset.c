@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,14 +40,110 @@
 #include "util_pmem.h"
 #include "file.h"
 
+typedef void *pmem_memset_fn(void *pmemdest, int c, size_t len, unsigned flags);
+
+static void *
+pmem_memset_persist_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
+{
+	(void) flags;
+	return pmem_memset_persist(pmemdest, c, len);
+}
+
+static void *
+pmem_memset_nodrain_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
+{
+	(void) flags;
+	return pmem_memset_nodrain(pmemdest, c, len);
+}
+
+static void
+do_memset(int fd, char *dest, const char *file_name, os_off_t dest_off,
+		os_off_t bytes, pmem_memset_fn fn, unsigned flags)
+{
+	char *buf = MALLOC(bytes);
+	char *dest1;
+	char *ret;
+
+	memset(dest, 0, bytes);
+	util_persist_auto(util_fd_is_device_dax(fd), dest, bytes);
+	dest1 = MALLOC(bytes);
+	memset(dest1, 0, bytes);
+
+	/*
+	 * This is used to verify that the value of what a non persistent
+	 * memset matches the outcome of the persistent memset. The
+	 * persistent memset will match the file but may not be the
+	 * correct or expected value.
+	 */
+	memset(dest1 + dest_off, 0x5A, bytes / 4);
+	memset(dest1 + dest_off  + (bytes / 4), 0x46, bytes / 4);
+
+	/* Test the corner cases */
+	ret = fn(dest + dest_off, 0x5A, 0, flags);
+	UT_ASSERTeq(ret, dest + dest_off);
+	UT_ASSERTeq(*(char *)(dest + dest_off), 0);
+
+	/*
+	 * Do the actual memset with persistence.
+	 */
+	ret = fn(dest + dest_off, 0x5A, bytes / 4, flags);
+	UT_ASSERTeq(ret, dest + dest_off);
+	ret = fn(dest + dest_off  + (bytes / 4), 0x46, bytes / 4, flags);
+	UT_ASSERTeq(ret, dest + dest_off + (bytes / 4));
+
+	if (memcmp(dest, dest1, bytes / 2))
+		UT_FATAL("%s: first %zu bytes do not match",
+				file_name, bytes / 2);
+
+	LSEEK(fd, (os_off_t)0, SEEK_SET);
+	if (READ(fd, buf, bytes / 2) == bytes / 2) {
+		if (memcmp(buf, dest, bytes / 2))
+			UT_FATAL("%s: first %zu bytes do not match",
+					file_name, bytes / 2);
+	}
+
+	FREE(dest1);
+	FREE(buf);
+}
+
+static unsigned Flags[] = {
+		0,
+		PMEM_F_MEM_NODRAIN,
+		PMEM_F_MEM_NONTEMPORAL,
+		PMEM_F_MEM_TEMPORAL,
+		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL,
+		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_NODRAIN,
+		PMEM_F_MEM_WC,
+		PMEM_F_MEM_WB,
+		PMEM_F_MEM_NOFLUSH,
+		/* all possible flags */
+		PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH |
+			PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL |
+			PMEM_F_MEM_WC | PMEM_F_MEM_WB,
+};
+
+static void
+do_memset_variants(int fd, char *dest, const char *file_name, os_off_t dest_off,
+		os_off_t bytes)
+{
+	do_memset(fd, dest, file_name, dest_off, bytes,
+			pmem_memset_persist_wrapper, 0);
+
+	do_memset(fd, dest, file_name, dest_off, bytes,
+			pmem_memset_nodrain_wrapper, 0);
+
+	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
+		do_memset(fd, dest, file_name, dest_off, bytes,
+				pmem_memset, Flags[i]);
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
 	int fd;
 	size_t mapped_len;
 	char *dest;
-	char *dest1;
-	char *ret;
 
 	if (argc != 4)
 		UT_FATAL("usage: %s file offset length", argv[0]);
@@ -71,51 +167,10 @@ main(int argc, char *argv[])
 	int dest_off = atoi(argv[2]);
 	size_t bytes = strtoul(argv[3], NULL, 0);
 
-	char *buf = MALLOC(bytes);
-
-	memset(dest, 0, bytes);
-	util_persist_auto(util_fd_is_device_dax(fd), dest, bytes);
-	dest1 = MALLOC(bytes);
-	memset(dest1, 0, bytes);
-
-	/*
-	 * This is used to verify that the value of what a non persistent
-	 * memset matches the outcome of the persistent memset. The
-	 * persistent memset will match the file but may not be the
-	 * correct or expected value.
-	 */
-	memset(dest1 + dest_off, 0x5A, bytes / 4);
-	memset(dest1 + dest_off  + (bytes / 4), 0x46, bytes / 4);
-
-	/* Test the corner cases */
-	ret = pmem_memset_persist(dest + dest_off, 0x5A, 0);
-	UT_ASSERTeq(ret, dest + dest_off);
-	UT_ASSERTeq(*(char *)(dest + dest_off), 0);
-
-	/*
-	 * Do the actual memset with persistence.
-	 */
-	ret = pmem_memset_persist(dest + dest_off, 0x5A, bytes / 4);
-	UT_ASSERTeq(ret, dest + dest_off);
-	ret = pmem_memset_persist(dest + dest_off  + (bytes / 4),
-					0x46, bytes / 4);
-	UT_ASSERTeq(ret, dest + dest_off + (bytes / 4));
-
-	if (memcmp(dest, dest1, bytes / 2))
-		UT_FATAL("%s: first %zu bytes do not match",
-			argv[1], bytes / 2);
-
-	LSEEK(fd, (os_off_t)0, SEEK_SET);
-	if (READ(fd, buf, bytes / 2) == bytes / 2) {
-		if (memcmp(buf, dest, bytes / 2))
-			UT_FATAL("%s: first %zu bytes do not match",
-				argv[1], bytes / 2);
-	}
+	do_memset_variants(fd, dest, argv[1], dest_off, bytes);
 
 	UT_ASSERTeq(pmem_unmap(dest, mapped_len), 0);
 
-	FREE(dest1);
-	FREE(buf);
 	CLOSE(fd);
 
 	DONE(NULL);

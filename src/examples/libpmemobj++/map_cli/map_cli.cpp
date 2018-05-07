@@ -197,7 +197,7 @@ exec_op(pool_base pop, T &map, queue_op op, char *argv[], int &argn)
 			map->clear();
 			break;
 		case MAP_PRINT:
-			map->foreach (printer<typename K::value_type>, 0);
+			map->foreach (printer<typename K::value_type>, nullptr);
 			break;
 		default:
 			throw std::invalid_argument("invalid queue operation");
@@ -223,17 +223,37 @@ main(int argc, char *argv[])
 
 	pool<root> pop;
 
-	if (file_exists(path.c_str()) != 0) {
-		pop = pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
-					 CREATE_MODE_RW);
-	} else {
-		pop = pool<root>::open(path, LAYOUT);
+	try {
+		if (file_exists(path.c_str()) != 0) {
+			pop = pool<root>::create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+						 CREATE_MODE_RW);
+		} else {
+			pop = pool<root>::open(path, LAYOUT);
+		}
+	} catch (pmem::pool_error &e) {
+		std::cerr << e.what() << std::endl;
+		return 1;
 	}
 
-	auto q = pop.get_root();
+	persistent_ptr<root> q;
+	try {
+		q = pop.get_root();
+	} catch (std::exception &e) {
+		std::cerr << e.what() << std::endl;
+		pop.close();
+		return 1;
+	}
+
 	if (!q->ptree) {
-		transaction::exec_tx(
-			pop, [&] { q->ptree = make_persistent<pmap>(); });
+		try {
+			transaction::exec_tx(pop, [&] {
+				q->ptree = make_persistent<pmap>();
+			});
+		} catch (pmem::transaction_error &e) {
+			std::cerr << e.what() << std::endl;
+			pop.close();
+			return 1;
+		}
 	}
 
 	auto vtree = std::make_shared<vmap>();

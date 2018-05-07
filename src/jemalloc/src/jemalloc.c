@@ -660,15 +660,15 @@ malloc_conf_init(void)
 					    "Invalid conf value",	\
 					    k, klen, v, vlen);		\
 				} else if (clip) {			\
-					if (min != 0 && um < min)	\
+					if ((min) != 0 && um < (min))	\
 						o = min;		\
-					else if (um > max)		\
+					else if (um > (max))		\
 						o = max;		\
 					else				\
 						o = um;			\
 				} else {				\
-					if ((min != 0 && um < min) ||	\
-					    um > max) {			\
+					if (((min) != 0 && um < (min)) ||	\
+					    um > (max)) {			\
 						malloc_conf_error(	\
 						    "Out-of-range "	\
 						    "conf value",	\
@@ -690,8 +690,8 @@ malloc_conf_init(void)
 					malloc_conf_error(		\
 					    "Invalid conf value",	\
 					    k, klen, v, vlen);		\
-				} else if (l < (ssize_t)min || l >	\
-				    (ssize_t)max) {			\
+				} else if (l < (ssize_t)(min) || l >	\
+				    (ssize_t)(max)) {			\
 					malloc_conf_error(		\
 					    "Out-of-range conf value",	\
 					    k, klen, v, vlen);		\

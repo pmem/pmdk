@@ -48,8 +48,8 @@ require_fs_type any
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\cto_dirty$Env:EXESUFFIX $DIR\testfile 2
-expect_abnormal_exit $Env:EXE_DIR\cto_dirty$Env:EXESUFFIX $DIR\testfile
+expect_abnormal_exit $Env:EXE_DIR\cto_dirty$Env:EXESUFFIX $DIR\testfile 2
+expect_normal_exit $Env:EXE_DIR\cto_dirty$Env:EXESUFFIX $DIR\testfile
 
 check
 

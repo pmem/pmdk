@@ -57,7 +57,7 @@ create_poolset $POOLSET \
 			   20M:$DIR/testfile15:x
 
 # the pool not closed and ADR failure
-expect_normal_exit ./obj_sds 1 1 $POOLSET\
+expect_abnormal_exit ./obj_sds 1 1 $POOLSET\
 				   5 0 7 0 9 0 11 0 12 0
 
 expect_abnormal_exit ./obj_sds 0 0 $POOLSET\

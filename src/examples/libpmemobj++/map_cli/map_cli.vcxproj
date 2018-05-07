@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{9D1C3F29-1268-4241-BEFB-89D2859C62D3}</ProjectGuid>
     <RootNamespace>pmemobj_cpp</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <ItemGroup Condition="'$(SolutionName)'=='PMDK'">
     <ProjectReference Include="..\..\..\libpmemobj\libpmemobj.vcxproj">

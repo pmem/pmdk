@@ -355,7 +355,7 @@
  * be reported.
  */
 #define ANNOTATE_BENIGN_RACE(addr, descr) \
-   ANNOTATE_BENIGN_RACE_SIZED(addr, sizeof(*addr), descr)
+   ANNOTATE_BENIGN_RACE_SIZED(addr, sizeof(*(addr)), descr)
 
 /* Same as ANNOTATE_BENIGN_RACE(addr, descr), but applies to
    the memory range [addr, addr + size). */

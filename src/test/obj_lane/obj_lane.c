@@ -60,7 +60,7 @@
 #define MINOR_VERSION 0
 
 static void *base_ptr;
-#define RPTR(p) (uintptr_t)((char *)p - (char *)base_ptr)
+#define RPTR(p) (uintptr_t)((char *)(p) - (char *)base_ptr)
 
 struct mock_pop {
 	PMEMobjpool p;

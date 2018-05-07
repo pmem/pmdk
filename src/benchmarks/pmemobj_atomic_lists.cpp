@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,6 +35,7 @@
  */
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemobj.h"
 #include "queue.h"
 #include <cassert>
@@ -212,7 +213,7 @@ enum type_mode {
 static struct element
 position_head(struct obj_worker *obj_worker, size_t op_idx)
 {
-	struct element head = {0, OID_NULL, false};
+	struct element head = {nullptr, OID_NULL, false};
 	head.before = true;
 	if (!obj_bench.args->queue)
 		head.itemp = POBJ_LIST_FIRST(&obj_worker->head);
@@ -227,7 +228,7 @@ position_head(struct obj_worker *obj_worker, size_t op_idx)
 static struct element
 position_tail(struct obj_worker *obj_worker, size_t op_idx)
 {
-	struct element tail = {0, OID_NULL, false};
+	struct element tail = {nullptr, OID_NULL, false};
 	tail.before = false;
 	if (!obj_bench.args->queue)
 		tail.itemp = POBJ_LIST_LAST(&obj_worker->head, field);
@@ -315,7 +316,7 @@ static fn_position_t rand_positions[] = {position_head, position_tail,
 static void
 get_item(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	obj_worker->elm = obj_bench.fn_position(obj_worker, info->index);
 }
 
@@ -324,16 +325,14 @@ get_item(struct benchmark *bench, struct operation_info *info)
  * benchmarks. It gets pointer to element on the list where object will be
  * inserted/removed/moved to/from.
  */
-static int
+static void
 get_move_item(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	obj_worker->list_move->elm =
 		obj_bench.fn_position(obj_worker->list_move, info->index);
 
 	get_item(bench, info);
-
-	return 0;
 }
 
 /*
@@ -359,19 +358,19 @@ static int
 obj_init_list(struct worker_info *worker, size_t n_oids, size_t list_len)
 {
 	size_t i;
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
 	obj_worker->oids =
 		(TOID(struct item) *)calloc(n_oids, sizeof(TOID(struct item)));
-	if (obj_worker->oids == NULL) {
+	if (obj_worker->oids == nullptr) {
 		perror("calloc");
 		return -1;
 	}
 	for (i = 0; i < n_oids; i++) {
 		size_t type_num = obj_bench.fn_type_num(worker->index, i);
 		size_t size = obj_bench.alloc_sizes[i];
-		PMEMoid *tmp = (PMEMoid *)&obj_worker->oids[i];
-		if (pmemobj_alloc(obj_bench.pop, tmp, size, type_num, NULL,
-				  NULL) != 0)
+		auto *tmp = (PMEMoid *)&obj_worker->oids[i];
+		if (pmemobj_alloc(obj_bench.pop, tmp, size, type_num, nullptr,
+				  nullptr) != 0)
 			goto err_oids;
 	}
 	for (i = 0; i < list_len; i++)
@@ -394,11 +393,11 @@ static int
 queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 {
 	size_t i;
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
 	CIRCLEQ_INIT(&obj_worker->headq);
 	obj_worker->items =
 		(struct item **)malloc(n_items * sizeof(struct item *));
-	if (obj_worker->items == NULL) {
+	if (obj_worker->items == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -406,7 +405,7 @@ queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 	for (i = 0; i < n_items; i++) {
 		size_t size = obj_bench.alloc_sizes[i];
 		obj_worker->items[i] = (struct item *)calloc(1, size);
-		if (obj_worker->items[i] == NULL) {
+		if (obj_worker->items[i] == nullptr) {
 			perror("calloc");
 			goto err;
 		}
@@ -486,11 +485,11 @@ queue_free_worker_items(struct obj_worker *obj_worker)
 static fn_position_t *
 random_positions(void)
 {
-	fn_position_t *positions = (fn_position_t *)calloc(
-		obj_bench.max_len, sizeof(fn_position_t));
-	if (positions == NULL) {
+	auto *positions = (fn_position_t *)calloc(obj_bench.max_len,
+						  sizeof(fn_position_t));
+	if (positions == nullptr) {
 		perror("calloc");
-		return NULL;
+		return nullptr;
 	}
 
 	if (obj_bench.args->seed != 0)
@@ -513,10 +512,10 @@ random_positions(void)
 static size_t *
 random_values(size_t min, size_t max, size_t n_ops, size_t min_range)
 {
-	size_t *randoms = (size_t *)calloc(n_ops, sizeof(size_t));
-	if (randoms == NULL) {
+	auto *randoms = (size_t *)calloc(n_ops, sizeof(size_t));
+	if (randoms == nullptr) {
 		perror("calloc");
-		return NULL;
+		return nullptr;
 	}
 	for (size_t i = 0; i < n_ops; i++)
 		randoms[i] = max;
@@ -524,7 +523,7 @@ random_values(size_t min, size_t max, size_t n_ops, size_t min_range)
 		if (min > max) {
 			fprintf(stderr, "Invalid size\n");
 			free(randoms);
-			return NULL;
+			return nullptr;
 		}
 		for (size_t i = 0; i < n_ops; i++)
 			randoms[i] = RRAND(max, min);
@@ -538,7 +537,7 @@ random_values(size_t min, size_t max, size_t n_ops, size_t min_range)
 static int
 queue_insert_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	CIRCLEQ_INSERT_AFTER(&obj_worker->headq, obj_worker->elm.itemq,
 			     obj_worker->items[info->index + obj_bench.min_len],
 			     fieldq);
@@ -552,7 +551,7 @@ queue_insert_op(struct operation_info *info)
 static int
 obj_insert_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_INSERT_AFTER(
 		obj_bench.pop, &obj_worker->head, obj_worker->elm.itemp,
 		obj_worker->oids[info->index + obj_bench.min_len], field);
@@ -566,7 +565,7 @@ obj_insert_op(struct operation_info *info)
 static int
 queue_remove_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	CIRCLEQ_REMOVE(&obj_worker->headq, obj_worker->elm.itemq, fieldq);
 	return 0;
 }
@@ -578,7 +577,7 @@ queue_remove_op(struct operation_info *info)
 static int
 obj_remove_op(struct operation_info *info)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_REMOVE(obj_bench.pop, &obj_worker->head,
 			 obj_worker->elm.itemp, field);
 	return 0;
@@ -604,7 +603,7 @@ obj_insert_new_op(struct benchmark *bench, struct operation_info *info)
 {
 	get_item(bench, info);
 
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	PMEMoid tmp;
 	size_t size = obj_bench.alloc_sizes[info->index];
 	size_t type_num =
@@ -612,7 +611,7 @@ obj_insert_new_op(struct benchmark *bench, struct operation_info *info)
 	tmp = pmemobj_list_insert_new(
 		obj_bench.pop, offsetof(struct item, field), &obj_worker->head,
 		obj_worker->elm.itemp.oid, obj_worker->elm.before, size,
-		type_num, NULL, NULL);
+		type_num, nullptr, nullptr);
 
 	if (OID_IS_NULL(tmp)) {
 		perror("pmemobj_list_insert_new");
@@ -642,7 +641,7 @@ obj_remove_free_op(struct benchmark *bench, struct operation_info *info)
 {
 	get_item(bench, info);
 
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_REMOVE_FREE(obj_bench.pop, &obj_worker->head,
 			      obj_worker->elm.itemp, field);
 	return 0;
@@ -654,10 +653,9 @@ obj_remove_free_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_move_op(struct benchmark *bench, struct operation_info *info)
 {
-	if (get_move_item(bench, info))
-		return -1;
+	get_move_item(bench, info);
 
-	struct obj_worker *obj_worker = (struct obj_worker *)info->worker->priv;
+	auto *obj_worker = (struct obj_worker *)info->worker->priv;
 	POBJ_LIST_MOVE_ELEMENT_BEFORE(obj_bench.pop, &obj_worker->head,
 				      &obj_worker->list_move->head,
 				      obj_worker->list_move->elm.itemp,
@@ -684,7 +682,7 @@ static void
 free_worker_list(struct benchmark *bench, struct benchmark_args *args,
 		 struct worker_info *worker)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
 	obj_bench.args->queue ? queue_free_worker_list(obj_worker)
 			      : obj_free_worker_list(obj_worker);
 	free_worker(obj_worker);
@@ -699,8 +697,8 @@ static void
 free_worker_items(struct benchmark *bench, struct benchmark_args *args,
 		  struct worker_info *worker)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
-	struct obj_list_args *obj_args = (struct obj_list_args *)args->opts;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_args = (struct obj_list_args *)args->opts;
 	obj_args->queue ? queue_free_worker_items(obj_worker)
 			: obj_free_worker_items(obj_worker);
 	free_worker(obj_worker);
@@ -714,7 +712,7 @@ static void
 obj_move_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		     struct worker_info *worker)
 {
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
 	while (!POBJ_LIST_EMPTY(&obj_worker->list_move->head))
 		POBJ_LIST_REMOVE_FREE(
 			obj_bench.pop, &obj_worker->list_move->head,
@@ -734,19 +732,19 @@ obj_move_free_worker(struct benchmark *bench, struct benchmark_args *args,
 static int
 obj_init_worker(struct worker_info *worker, size_t n_elm, size_t list_len)
 {
-	struct obj_worker *obj_worker =
+	auto *obj_worker =
 		(struct obj_worker *)calloc(1, sizeof(struct obj_worker));
-	if (obj_worker == NULL) {
+	if (obj_worker == nullptr) {
 		perror("calloc");
 		return -1;
 	}
 
 	worker->priv = obj_worker;
 	obj_worker->n_elm = obj_bench.max_len;
-	obj_worker->list_move = NULL;
+	obj_worker->list_move = nullptr;
 	if (obj_bench.position_mode == POSITION_MODE_RAND) {
 		obj_worker->fn_positions = random_positions();
-		if (obj_worker->fn_positions == NULL)
+		if (obj_worker->fn_positions == nullptr)
 			goto err;
 	}
 	if (obj_bench.fn_init(worker, n_elm, list_len) != 0)
@@ -804,24 +802,24 @@ obj_move_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	if (obj_init_worker(worker, obj_bench.max_len, obj_bench.max_len) != 0)
 		return -1;
 
-	struct obj_worker *obj_worker = (struct obj_worker *)worker->priv;
+	auto *obj_worker = (struct obj_worker *)worker->priv;
 	obj_worker->list_move =
 		(struct obj_worker *)calloc(1, sizeof(struct obj_worker));
-	if (obj_worker->list_move == NULL) {
+	if (obj_worker->list_move == nullptr) {
 		perror("calloc");
 		goto free;
 	}
 	size_t i;
 	if (obj_bench.position_mode == POSITION_MODE_RAND) {
 		obj_worker->list_move->fn_positions = random_positions();
-		if (obj_worker->list_move->fn_positions == NULL)
+		if (obj_worker->list_move->fn_positions == nullptr)
 			goto free_list_move;
 	}
 	for (i = 0; i < obj_bench.min_len; i++) {
 		size_t size = obj_bench.alloc_sizes[i];
 		POBJ_LIST_INSERT_NEW_TAIL(obj_bench.pop,
 					  &obj_worker->list_move->head, field,
-					  size, NULL, NULL);
+					  size, nullptr, nullptr);
 		if (TOID_IS_NULL(POBJ_LIST_LAST(&obj_worker->list_move->head,
 						field))) {
 			perror("pmemobj_list_insert_new");
@@ -853,9 +851,9 @@ free:
 static int
 obj_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
 	obj_bench.args = (struct obj_list_args *)args->opts;
 	obj_bench.min_len = obj_bench.args->list_len + 1;
@@ -872,7 +870,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		: obj_bench.args->min_size;
 	obj_bench.alloc_sizes = random_values(
 		min_size, obj_size, obj_bench.max_len, sizeof(struct item));
-	if (obj_bench.alloc_sizes == NULL)
+	if (obj_bench.alloc_sizes == nullptr)
 		goto free_random_types;
 
 	/* Decide where operations will be performed */
@@ -895,7 +893,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		if (obj_bench.type_mode == TYPE_MODE_RAND) {
 			obj_bench.random_types = random_values(
 				1, UINT32_MAX, obj_bench.max_len, 0);
-			if (obj_bench.random_types == NULL)
+			if (obj_bench.random_types == nullptr)
 				return -1;
 		}
 		/*
@@ -906,23 +904,21 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		size_t psize =
 			(args->n_ops_per_thread + obj_bench.min_len + 1) *
 			obj_size * args->n_threads * FACTOR;
-		if (args->is_poolset) {
+		if (args->is_poolset || util_file_is_device_dax(args->fname)) {
 			if (args->fsize < psize) {
-				fprintf(stderr, "insufficient size "
-						"of poolset\n");
+				fprintf(stderr, "file size too large\n");
 				goto free_all;
 			}
 
 			psize = 0;
-		} else {
-			if (psize < PMEMOBJ_MIN_POOL)
-				psize = PMEMOBJ_MIN_POOL;
+		} else if (psize < PMEMOBJ_MIN_POOL) {
+			psize = PMEMOBJ_MIN_POOL;
 		}
 
 		/* Create pmemobj pool. */
 		if ((obj_bench.pop = pmemobj_create(args->fname, LAYOUT_NAME,
 						    psize, args->fmode)) ==
-		    NULL) {
+		    nullptr) {
 			perror(pmemobj_errormsg());
 			goto free_all;
 		}
@@ -962,9 +958,9 @@ static struct benchmark_info obj_insert_new;
 static struct benchmark_info obj_remove_free;
 static struct benchmark_info obj_move;
 
-CONSTRUCTOR(pmem_atomic_list_costructor)
+CONSTRUCTOR(pmem_atomic_list_constructor)
 void
-pmem_atomic_list_costructor(void)
+pmem_atomic_list_constructor(void)
 {
 	obj_list_clo[0].opt_short = 'T';
 	obj_list_clo[0].opt_long = "type-number";

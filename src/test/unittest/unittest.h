@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -587,6 +587,13 @@ intptr_t ut_spawnv(int argc, const char **argv, ...);
 	ret_type __wrap_##name(__VA_ARGS__) {\
 		switch (util_fetch_and_add32(&RCOUNTER(name), 1)) {
 
+#define FUNC_MOCK_DLLIMPORT(name, ret_type, ...)\
+	__declspec(dllimport) _FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__)\
+	static unsigned RCOUNTER(name);\
+	ret_type __wrap_##name(__VA_ARGS__);\
+	ret_type __wrap_##name(__VA_ARGS__) {\
+		switch (util_fetch_and_add32(&RCOUNTER(name), 1)) {
+
 #define FUNC_MOCK_END\
 	}}
 
@@ -673,7 +680,7 @@ _name(const struct test_case *tc, int argc, char *argv[])
 #define TEST_CASE(_name)\
 {\
 	.name = #_name,\
-	.func = _name,\
+	.func = (_name),\
 }
 
 #define STR(x) #x

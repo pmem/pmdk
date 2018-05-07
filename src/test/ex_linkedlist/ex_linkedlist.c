@@ -44,7 +44,7 @@
 
 #define ELEMENT_NO	10
 #define PRINT_RES(res, struct_name) do {\
-	if (res == 0) {\
+	if ((res) == 0) {\
 		UT_OUT("Outcome for " #struct_name " is correct!");\
 	} else {\
 		UT_ERR("Outcome for " #struct_name\

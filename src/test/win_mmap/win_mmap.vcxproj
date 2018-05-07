@@ -24,7 +24,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5580D11C-FDA6-4CF2-A0E8-1C2D3FBC11F1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>win_mmap</ProjectName>
     <RootNamespace>win_mmap</RootNamespace>
   </PropertyGroup>

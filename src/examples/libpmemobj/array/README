@@ -3,7 +3,7 @@ Persistent Memory Development Kit
 This is examples/libpmemobj/array/README.
 
 This directory contains an example application implemented using libpmemobj.
-The array example allows to perform basic operations like allocation,
+The array example allows one to perform basic operations like allocation,
 reallocation and de-allocation on persistent array. User can choose
 size of new or reallocated array. There are also 3 types of elements which
 are supported: int, PMEMoid and TOID with structure containing int variable.

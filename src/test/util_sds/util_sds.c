@@ -49,7 +49,7 @@ static size_t uscs_size;
 static size_t usc_it;
 
 #define FAIL(X, Y) \
-	if (X == Y) {\
+	if ((X) == (Y)) {\
 		common_fini();\
 		DONE(NULL);\
 		exit(0);\
@@ -65,6 +65,7 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "util_sds");
+
 	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
 		MAJOR_VERSION, MINOR_VERSION);
 	size_t mapped_len = PMEM_LEN;
@@ -83,16 +84,16 @@ main(int argc, char *argv[])
 
 	int init = atoi(argv[1]);
 	int fail_on = atoi(argv[2]);
-	argv = argv + 3;
+	char **args = argv + 3;
 	for (int i = 0; i < files; i++) {
-		if ((pmemaddr[i] = pmem_map_file(argv[i * 3], PMEM_LEN,
+		if ((pmemaddr[i] = pmem_map_file(args[i * 3], PMEM_LEN,
 				PMEM_FILE_CREATE, 0666, &mapped_len,
 					&is_pmem)) == NULL) {
 			UT_FATAL("pmem_map_file");
 		}
 
-		uids[i] = argv[i * 3 + 1];
-		uscs[i] = strtoull(argv[i * 3 + 2], NULL, 0);
+		uids[i] = args[i * 3 + 1];
+		uscs[i] = strtoull(args[i * 3 + 2], NULL, 0);
 	}
 	FAIL(fail_on, 1);
 
@@ -102,7 +103,7 @@ main(int argc, char *argv[])
 		shutdown_state_init(pool_sds, NULL);
 		FAIL(fail_on, 2);
 		for (int i = 0; i < files; i++) {
-			shutdown_state_add_part(pool_sds, argv[2 + i], NULL);
+			shutdown_state_add_part(pool_sds, args[2 + i], NULL);
 			FAIL(fail_on, 3);
 		}
 	} else {
@@ -112,7 +113,7 @@ main(int argc, char *argv[])
 		FAIL(fail_on, 2);
 		for (int i = 0; i < files; i++) {
 			shutdown_state_add_part(&current_sds,
-				argv[2 + i], NULL);
+				args[2 + i], NULL);
 			FAIL(fail_on, 3);
 		}
 

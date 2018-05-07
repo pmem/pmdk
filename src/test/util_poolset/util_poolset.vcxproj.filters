@@ -28,6 +28,9 @@
     <ClInclude Include="..\..\libpmem\x86_64\cpu.h">
       <Filter>libpmem</Filter>
     </ClInclude>
+    <ClInclude Include="mocks.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util_poolset.c">
@@ -42,6 +45,9 @@
     <ClCompile Include="..\..\libpmem\pmem_windows.c">
       <Filter>libpmem</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem\memops_generic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmem\x86_64\cpu.c">
       <Filter>libpmem</Filter>
     </ClCompile>
@@ -53,6 +59,12 @@
     </ClCompile>
     <ClCompile Include="..\..\common\file.c">
       <Filter>libpmem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmem\pmem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\set.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

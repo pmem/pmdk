@@ -160,7 +160,7 @@ rpmemd_obc_ntoh_check_msg_create(struct rpmem_msg_hdr *hdrp)
 
 	rpmem_ntoh_msg_create(msg);
 
-	ret = rpmemd_obc_check_proto_ver(msg->major, msg->minor);
+	ret = rpmemd_obc_check_proto_ver(msg->c.major, msg->c.minor);
 	if (ret)
 		return ret;
 
@@ -168,7 +168,7 @@ rpmemd_obc_ntoh_check_msg_create(struct rpmem_msg_hdr *hdrp)
 	if (ret)
 		return ret;
 
-	ret = rpmemd_obc_check_provider(msg->provider);
+	ret = rpmemd_obc_check_provider(msg->c.provider);
 	if (ret)
 		return ret;
 
@@ -186,7 +186,7 @@ rpmemd_obc_ntoh_check_msg_open(struct rpmem_msg_hdr *hdrp)
 
 	rpmem_ntoh_msg_open(msg);
 
-	ret = rpmemd_obc_check_proto_ver(msg->major, msg->minor);
+	ret = rpmemd_obc_check_proto_ver(msg->c.major, msg->c.minor);
 	if (ret)
 		return ret;
 
@@ -194,7 +194,7 @@ rpmemd_obc_ntoh_check_msg_open(struct rpmem_msg_hdr *hdrp)
 	if (ret)
 		return ret;
 
-	ret = rpmemd_obc_check_provider(msg->provider);
+	ret = rpmemd_obc_check_provider(msg->c.provider);
 	if (ret)
 		return ret;
 
@@ -249,10 +249,11 @@ rpmemd_obc_process_create(struct rpmemd_obc *obc,
 {
 	struct rpmem_msg_create *msg = (struct rpmem_msg_create *)hdrp;
 	struct rpmem_req_attr req = {
-		.pool_size = msg->pool_size,
-		.nlanes = (unsigned)msg->nlanes,
+		.pool_size = msg->c.pool_size,
+		.nlanes = (unsigned)msg->c.nlanes,
 		.pool_desc = (char *)msg->pool_desc.desc,
-		.provider = (enum rpmem_provider)msg->provider,
+		.provider = (enum rpmem_provider)msg->c.provider,
+		.buff_size = msg->c.buff_size,
 	};
 
 	struct rpmem_pool_attr *rattr = NULL;
@@ -274,10 +275,11 @@ rpmemd_obc_process_open(struct rpmemd_obc *obc,
 {
 	struct rpmem_msg_open *msg = (struct rpmem_msg_open *)hdrp;
 	struct rpmem_req_attr req = {
-		.pool_size = msg->pool_size,
-		.nlanes = (unsigned)msg->nlanes,
+		.pool_size = msg->c.pool_size,
+		.nlanes = (unsigned)msg->c.nlanes,
 		.pool_desc = (const char *)msg->pool_desc.desc,
-		.provider = (enum rpmem_provider)msg->provider,
+		.provider = (enum rpmem_provider)msg->c.provider,
+		.buff_size = msg->c.buff_size,
 	};
 
 	return req_cb->open(obc, arg, &req);

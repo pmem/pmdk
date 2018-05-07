@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,6 +43,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "os.h"
 
 #define MAX_OFFSET 63
@@ -253,8 +254,7 @@ warmup_msync(struct memset_bench *mb)
 static int
 memset_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct memset_bench *mb =
-		(struct memset_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct memset_bench *)pmembench_get_priv(bench);
 
 	assert(info->index < mb->n_offsets);
 
@@ -276,17 +276,19 @@ memset_op(struct benchmark *bench, struct operation_info *info)
 static int
 memset_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
 	int ret = 0;
 	size_t size;
 	size_t large;
 	size_t little;
+	size_t file_size = 0;
+	int flags = 0;
+
 	int (*warmup_func)(struct memset_bench *) = warmup_persist;
-	struct memset_bench *mb =
-		(struct memset_bench *)malloc(sizeof(struct memset_bench));
+	auto *mb = (struct memset_bench *)malloc(sizeof(struct memset_bench));
 	if (!mb) {
 		perror("malloc");
 		return -1;
@@ -318,10 +320,15 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	/* initialize memset() value */
 	mb->const_b = CONST_B;
 
+	if (!util_file_is_device_dax(args->fname)) {
+		file_size = mb->fsize;
+		flags = PMEM_FILE_CREATE | PMEM_FILE_EXCL;
+	}
+
 	/* create a pmem file and memory map it */
-	if ((mb->pmem_addr = pmem_map_file(args->fname, mb->fsize,
-					   PMEM_FILE_CREATE | PMEM_FILE_EXCL,
-					   args->fmode, NULL, NULL)) == NULL) {
+	if ((mb->pmem_addr = pmem_map_file(args->fname, file_size, flags,
+					   args->fmode, nullptr, nullptr)) ==
+	    nullptr) {
 		perror(args->fname);
 		ret = -1;
 		goto err_free_offsets;
@@ -349,7 +356,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 						   : libpmem_memset_nodrain;
 	}
 
-	if (!mb->pargs->no_warmup) {
+	if (!mb->pargs->no_warmup && !util_file_is_device_dax(args->fname)) {
 		ret = warmup_func(mb);
 		if (ret) {
 			perror("Pool warmup failed");
@@ -375,8 +382,7 @@ err_free_mb:
 static int
 memset_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct memset_bench *mb =
-		(struct memset_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct memset_bench *)pmembench_get_priv(bench);
 	pmem_unmap(mb->pmem_addr, mb->fsize);
 	free(mb->offsets);
 	free(mb);
@@ -386,9 +392,9 @@ memset_exit(struct benchmark *bench, struct benchmark_args *args)
 static struct benchmark_clo memset_clo[7];
 /* Stores information about benchmark. */
 static struct benchmark_info memset_info;
-CONSTRUCTOR(pmem_memset_costructor)
+CONSTRUCTOR(pmem_memset_constructor)
 void
-pmem_memset_costructor(void)
+pmem_memset_constructor(void)
 {
 	memset_clo[0].opt_short = 'M';
 	memset_clo[0].opt_long = "mem-mode";
@@ -464,5 +470,6 @@ pmem_memset_costructor(void)
 	memset_info.opts_size = sizeof(struct memset_args);
 	memset_info.rm_file = true;
 	memset_info.allow_poolset = false;
+	memset_info.print_bandwidth = true;
 	REGISTER_BENCHMARK(memset_info);
 };

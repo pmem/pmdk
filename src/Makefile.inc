@@ -66,6 +66,12 @@ endif
 ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
 DEFAULT_CFLAGS += -Wmissing-variable-declarations
 endif
+ifeq ($(call check_flag, -Wfloat-equal), y)
+DEFAULT_CFLAGS += -Wfloat-equal
+endif
+ifeq ($(call check_flag, -Wswitch-default), y)
+DEFAULT_CFLAGS += -Wswitch-default
+endif
 endif
 
 ifeq ($(DEBUG),1)

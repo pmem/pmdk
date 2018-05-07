@@ -1,5 +1,5 @@
-version: 1.3.{build}
-os: Visual Studio 2015
+version: 1.4.{build}
+os: Visual Studio 2017
 platform: x64
 
 install:
@@ -9,7 +9,6 @@ install:
 configuration:
 - Debug
 - Release
-- Setup
 
 environment:
   solutionname: PMDK.sln
@@ -39,48 +38,30 @@ before_build:
     }
 
 build_script:
-- ps: >-
-    if ($Env:CONFIGURATION -ne "Setup") {
-        msbuild src\$Env:solutionname /property:Configuration=$Env:CONFIGURATION /m /v:m
-    } else {
-        msbuild src\$Env:solutionname /property:Configuration=Debug /m /v:m
-        msbuild src\$Env:solutionname /property:Configuration=Release /m /v:m
-        $Env:DEVENV="$Env:VS140COMNTOOLS\..\IDE\devenv.com"
-        &$Env:DEVENV src\$Env:solutionname /build Release /project src\windows\setup\setup.vdproj
-    }
+- ps: msbuild src\$Env:solutionname /property:Configuration=$Env:CONFIGURATION /m /v:m
 
 after_build:
-- ps: >-
-    if ($Env:CONFIGURATION -eq "Setup") {
-        PowerShell -File "src\windows\setup\OUTPUT_MSI.PS1" `
-        -projectdir ((Get-Location).Path+"\src\windows\setup")`
-        -configuration $Env:CONFIGURATION
-    } else {
-        utils/CREATE-ZIP.ps1 -b $Env:CONFIGURATION
-    }
+- ps: utils/CREATE-ZIP.ps1 -b $Env:CONFIGURATION
 
 test_script:
 - ps: >-
-    if ($Env:CONFIGURATION -ne "Setup") {
-        cd src/test
+    if ($true) {
+        cd src\test
         md C:\temp
         echo "`$Env:NON_PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1
         echo "`$Env:UNITTEST_NO_ABORT_MSG = `"1`"" >> testconfig.ps1
         echo "`$Env:TM = `"1`"" >> testconfig.ps1
-    }
-    if ($Env:CONFIGURATION -eq "Debug") {
-        ./RUNTESTS.ps1 -b debug -o 4m
-    }
-    if ($Env:CONFIGURATION -eq "Release") {
-        ./RUNTESTS.ps1 -b nondebug -o 4m
+        if ($Env:CONFIGURATION -eq "Debug") {
+            ./RUNTESTS.ps1 -b debug -o 4m
+        }
+        if ($Env:CONFIGURATION -eq "Release") {
+            ./RUNTESTS.ps1 -b nondebug -o 4m
+        }
     }
 
 artifacts:
-- path: 'src\windows\setup\*.msi'
-  name: PMDK_msi
-
 - path: 'src\x64\*.zip'
   name: PMDK
 

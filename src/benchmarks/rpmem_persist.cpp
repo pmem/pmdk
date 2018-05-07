@@ -66,6 +66,7 @@ struct rpmem_args {
 	bool no_memset;    /* do not call memset before each persist */
 	size_t chunk_size; /* elementary chunk size */
 	size_t dest_off;   /* destination address offset */
+	bool relaxed;      /* use RPMEM_PERSIST_RELAXED flag */
 };
 
 /*
@@ -85,6 +86,7 @@ struct rpmem_bench {
 	unsigned *nlanes;	 /* number of lanes for each remote replica */
 	unsigned nreplicas;       /* number of remote replicas */
 	size_t csize_align;       /* aligned elementary chunk size */
+	unsigned flags;		  /* flags for rpmem_persist */
 };
 
 /*
@@ -190,7 +192,8 @@ do_warmup(struct rpmem_bench *mb)
 
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
 		int ret = rpmem_persist(mb->rpp[r], POOL_HDR_SIZE,
-					mb->pool_size - POOL_HDR_SIZE, 0);
+					mb->pool_size - POOL_HDR_SIZE, 0,
+					mb->flags);
 		if (ret)
 			return ret;
 	}
@@ -210,8 +213,7 @@ do_warmup(struct rpmem_bench *mb)
 static int
 rpmem_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct rpmem_bench *mb =
-		(struct rpmem_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct rpmem_bench *)pmembench_get_priv(bench);
 
 	assert(info->index < mb->n_offsets);
 
@@ -233,7 +235,7 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 		assert(info->worker->index < mb->nlanes[r]);
 
 		ret = rpmem_persist(mb->rpp[r], offset, len,
-				    info->worker->index);
+				    info->worker->index, mb->flags);
 		if (ret) {
 			fprintf(stderr, "rpmem_persist replica #%u: %s\n", r,
 				rpmem_errormsg());
@@ -258,7 +260,7 @@ rpmem_map_file(const char *path, struct rpmem_bench *mb, size_t size)
 #endif
 
 	mb->addrp = pmem_map_file(path, size, PMEM_FILE_CREATE, mode,
-				  &mb->mapped_len, NULL);
+				  &mb->mapped_len, nullptr);
 
 	if (!mb->addrp)
 		return -1;
@@ -319,7 +321,7 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 	rep = set->replica[0];
 
 	assert(rep);
-	assert(rep->remote == NULL);
+	assert(rep->remote == nullptr);
 	if (rep->nparts != 1) {
 		fprintf(stderr, "Multipart master replicas "
 				"are not supported\n");
@@ -344,13 +346,13 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 	/* prepare remote replicas */
 	mb->nreplicas = set->nreplicas - 1;
 	mb->nlanes = (unsigned *)malloc(mb->nreplicas * sizeof(unsigned));
-	if (mb->nlanes == NULL) {
+	if (mb->nlanes == nullptr) {
 		perror("malloc");
 		goto err_unmap_file;
 	}
 
 	mb->rpp = (RPMEMpool **)malloc(mb->nreplicas * sizeof(RPMEMpool *));
-	if (mb->rpp == NULL) {
+	if (mb->rpp == nullptr) {
 		perror("malloc");
 		goto err_free_lanes;
 	}
@@ -452,19 +454,22 @@ rpmem_set_min_size(struct rpmem_bench *mb, enum operation_mode op_mode,
 static int
 rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
-	struct rpmem_bench *mb =
-		(struct rpmem_bench *)malloc(sizeof(struct rpmem_bench));
+	auto *mb = (struct rpmem_bench *)malloc(sizeof(struct rpmem_bench));
 	if (!mb) {
 		perror("malloc");
 		return -1;
 	}
 
+	mb->flags = 0;
 	mb->pargs = (struct rpmem_args *)args->opts;
 	mb->pargs->chunk_size = args->dsize;
+
+	if (mb->pargs->relaxed)
+		mb->flags |= RPMEM_PERSIST_RELAXED;
 
 	enum operation_mode op_mode = parse_op_mode(mb->pargs->mode);
 	if (op_mode == OP_MODE_UNKNOWN) {
@@ -510,18 +515,17 @@ err_parse_mode:
 static int
 rpmem_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct rpmem_bench *mb =
-		(struct rpmem_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct rpmem_bench *)pmembench_get_priv(bench);
 	rpmem_poolset_fini(mb);
 	free(mb->offsets);
 	free(mb);
 	return 0;
 }
 
-static struct benchmark_clo rpmem_clo[4];
+static struct benchmark_clo rpmem_clo[5];
 /* Stores information about benchmark. */
 static struct benchmark_info rpmem_info;
-CONSTRUCTOR(rpmem_persist_costructor)
+CONSTRUCTOR(rpmem_persist_constructor)
 void
 pmem_rpmem_persist(void)
 {
@@ -561,6 +565,13 @@ pmem_rpmem_persist(void)
 	rpmem_clo[3].off = clo_field_offset(struct rpmem_args, no_memset);
 	rpmem_clo[3].type = CLO_TYPE_FLAG;
 
+	rpmem_clo[4].opt_short = 0;
+	rpmem_clo[4].opt_long = "persist-relaxed";
+	rpmem_clo[4].descr = "Use RPMEM_PERSIST_RELAXED flag";
+	rpmem_clo[4].def = "false";
+	rpmem_clo[4].off = clo_field_offset(struct rpmem_args, relaxed);
+	rpmem_clo[4].type = CLO_TYPE_FLAG;
+
 	rpmem_info.name = "rpmem_persist";
 	rpmem_info.brief = "Benchmark for rpmem_persist() "
 			   "operation";
@@ -575,5 +586,6 @@ pmem_rpmem_persist(void)
 	rpmem_info.opts_size = sizeof(struct rpmem_args);
 	rpmem_info.rm_file = true;
 	rpmem_info.allow_poolset = true;
+	rpmem_info.print_bandwidth = true;
 	REGISTER_BENCHMARK(rpmem_info);
 };

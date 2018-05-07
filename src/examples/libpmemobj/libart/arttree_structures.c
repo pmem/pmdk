@@ -363,7 +363,7 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    " uint64_t pool_uuid_lo;\n"
 	    " uint64_t off;\n"
 	    "} PMEMoid;\n");
-	printf("sizeof(PMEMoid) = %ld\n\n\n", sizeof(PMEMoid));
+	printf("sizeof(PMEMoid) = %zu\n\n\n", sizeof(PMEMoid));
 
 	printf(
 	    "struct _art_node_u; typedef struct _art_node_u art_node_u;\n"
@@ -371,7 +371,7 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    "    uint8_t art_node_type; \n"
 	    "    uint8_t art_node_tag; \n"
 	    "};\n");
-	printf("sizeof(art_node_u) = %ld\n\n\n", sizeof(art_node_u));
+	printf("sizeof(art_node_u) = %zu\n\n\n", sizeof(art_node_u));
 
 	printf(
 	    "struct _art_node; typedef struct _art_node art_node;\n"
@@ -381,11 +381,11 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    "    uint32_t partial_len;\n"
 	    "    unsigned char partial[10];\n"
 	    "};\n");
-	printf("sizeof(art_node) = %ld\n\n\n", sizeof(art_node));
+	printf("sizeof(art_node) = %zu\n\n\n", sizeof(art_node));
 
 	printf(
 	    "typedef uint8_t _toid_art_node_toid_type_num[8];\n");
-	printf("sizeof(_toid_art_node_toid_type_num[8]) = %ld\n\n\n",
+	printf("sizeof(_toid_art_node_toid_type_num[8]) = %zu\n\n\n",
 	    sizeof(_toid_art_node_toid_type_num[8]));
 
 	printf(
@@ -394,12 +394,12 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    "    art_node_u *_type;\n"
 	    "    _toid_art_node_u_toid_type_num *_type_num;\n"
 	    "};\n");
-	printf("sizeof(union _toid_art_node_u_toid) = %ld\n\n\n",
+	printf("sizeof(union _toid_art_node_u_toid) = %zu\n\n\n",
 	    sizeof(union _toid_art_node_u_toid));
 
 	printf(
 	    "typedef uint8_t _toid_art_node_toid_type_num[8];\n");
-	printf("sizeof(_toid_art_node_toid_type_num[8]) = %ld\n\n\n",
+	printf("sizeof(_toid_art_node_toid_type_num[8]) = %zu\n\n\n",
 	    sizeof(_toid_art_node_toid_type_num[8]));
 
 	printf(
@@ -408,7 +408,7 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    "    art_node *_type; \n"
 	    "    _toid_art_node_toid_type_num *_type_num;\n"
 	    "};\n");
-	printf("sizeof(union _toid_art_node_toid) = %ld\n\n\n",
+	printf("sizeof(union _toid_art_node_toid) = %zu\n\n\n",
 	    sizeof(union _toid_art_node_toid));
 
 	printf(
@@ -418,7 +418,7 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    "    unsigned char keys[4];\n"
 	    "    union _toid_art_node_u_toid children[4];\n"
 	    "};\n");
-	printf("sizeof(art_node4) = %ld\n\n\n", sizeof(art_node4));
+	printf("sizeof(art_node4) = %zu\n\n\n", sizeof(art_node4));
 
 	printf(
 	    "struct _art_node16; typedef struct _art_node16 art_node16;\n"
@@ -427,7 +427,7 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    "    unsigned char keys[16];\n"
 	    "    union _toid_art_node_u_toid children[16];\n"
 	    "};\n");
-	printf("sizeof(art_node16) = %ld\n\n\n", sizeof(art_node16));
+	printf("sizeof(art_node16) = %zu\n\n\n", sizeof(art_node16));
 
 	printf(
 	    "struct _art_node48; typedef struct _art_node48 art_node48;\n"
@@ -436,7 +436,7 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    "    unsigned char keys[256];\n"
 	    "    union _toid_art_node_u_toid children[48];\n"
 	    "};\n");
-	printf("sizeof(art_node48) = %ld\n\n\n", sizeof(art_node48));
+	printf("sizeof(art_node48) = %zu\n\n\n", sizeof(art_node48));
 
 	printf(
 	    "struct _art_node256; typedef struct _art_node256 art_node256;\n"
@@ -444,7 +444,7 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    "    art_ndoe n;\n"
 	    "    union _toid_art_node_u_toid children[256];\n"
 	    "};\n");
-	printf("sizeof(art_node256) = %ld\n\n\n", sizeof(art_node256));
+	printf("sizeof(art_node256) = %zu\n\n\n", sizeof(art_node256));
 
 	printf(
 	    "struct _art_leaf; typedef struct _art_leaf art_leaf;\n"
@@ -452,7 +452,7 @@ arttree_structures_func(char *appname, struct pmem_context *ctx,
 	    "    union _toid_var_string_toid value;\n"
 	    "    union _toid_var_string_toid key;\n"
 	    "};\n");
-	printf("sizeof(art_leaf) = %ld\n\n\n", sizeof(art_leaf));
+	printf("sizeof(art_leaf) = %zu\n\n\n", sizeof(art_leaf));
 
 	return 0;
 }

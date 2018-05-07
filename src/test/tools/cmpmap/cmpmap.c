@@ -49,7 +49,7 @@
 
 #define CMPMAP_ZERO (1<<0)
 
-#define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
+#define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + (lp)))
 
 /* arguments */
 static char *File1 = NULL;	/* file1 name */

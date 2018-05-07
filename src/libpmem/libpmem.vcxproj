@@ -13,14 +13,16 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\libpmem\libpmem.c" />
     <ClCompile Include="..\..\src\libpmem\pmem.c" />
+    <ClCompile Include="..\common\badblock_poolset.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\mmap.c" />
     <ClCompile Include="..\common\mmap_windows.c" />
     <ClCompile Include="..\common\fs_windows.c" />
     <ClCompile Include="..\common\os_auto_flush_windows.c" />
+    <ClCompile Include="..\common\badblock_windows.c" />
     <ClCompile Include="..\common\os_deep_windows.c" />
-    <ClCompile Include="..\common\os_dimm_none.c" />
+    <ClCompile Include="..\common\os_dimm_windows.c" />
     <ClCompile Include="..\common\os_thread_windows.c" />
     <ClCompile Include="..\common\os_windows.c" />
     <ClCompile Include="..\common\out.c" />
@@ -35,6 +37,7 @@
     <ClCompile Include="..\..\src\libpmem\x86_64\cpu.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\init.c" />
     <ClCompile Include="pmem_windows.c" />
+    <ClCompile Include="..\libpmem\memops_generic.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clflush.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clflushopt.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clwb.c" />
@@ -177,7 +180,7 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <WindowsTargetPlatformMinVersion>10.0.10240.0</WindowsTargetPlatformMinVersion>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

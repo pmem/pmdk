@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 
 #define FLUSH_ALIGN 64
 
@@ -51,7 +52,8 @@
 
 struct pmem_bench;
 
-typedef size_t (*offset_fn)(struct pmem_bench *pmb, uint64_t index);
+typedef size_t (*offset_fn)(struct pmem_bench *pmb,
+			    struct operation_info *info);
 
 /*
  * pmem_args -- benchmark specific arguments
@@ -106,6 +108,9 @@ struct pmem_args {
 	 * function is used, otherwise pmem_flush() is performed.
 	 */
 	bool persist;
+
+	/* do not do warmup */
+	bool no_warmup;
 };
 
 /*
@@ -220,9 +225,9 @@ parse_op_mode(const char *arg)
  * index of a chunk.
  */
 static uint64_t
-mode_seq(struct pmem_bench *pmb, uint64_t index)
+mode_seq(struct pmem_bench *pmb, struct operation_info *info)
 {
-	return index;
+	return info->args->n_ops_per_thread * info->worker->index + info->index;
 }
 
 /*
@@ -230,7 +235,7 @@ mode_seq(struct pmem_bench *pmb, uint64_t index)
  * as only one block is used.
  */
 static uint64_t
-mode_stat(struct pmem_bench *pmb, uint64_t index)
+mode_stat(struct pmem_bench *pmb, struct operation_info *info)
 {
 	return 0;
 }
@@ -239,10 +244,11 @@ mode_stat(struct pmem_bench *pmb, uint64_t index)
  * mode_rand -- if mode is random returns index of a random chunk
  */
 static uint64_t
-mode_rand(struct pmem_bench *pmb, uint64_t index)
+mode_rand(struct pmem_bench *pmb, struct operation_info *info)
 {
-	assert(index < pmb->n_rand_offsets);
-	return pmb->rand_offsets[index];
+	assert(info->index < pmb->n_rand_offsets);
+	return info->args->n_ops_per_thread * info->worker->index +
+		pmb->rand_offsets[info->index];
 }
 
 /*
@@ -262,7 +268,7 @@ assign_mode_func(char *option)
 		case OP_MODE_RAND:
 			return mode_rand;
 		default:
-			return NULL;
+			return nullptr;
 	}
 }
 
@@ -378,16 +384,17 @@ assign_size(struct pmem_bench *pmb, struct benchmark_args *args,
 static int
 pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
 	int ret = 0;
+	size_t file_size = 0;
+	int flags = 0;
 
-	struct pmem_bench *pmb =
-		(struct pmem_bench *)malloc(sizeof(struct pmem_bench));
-	assert(pmb != NULL);
+	auto *pmb = (struct pmem_bench *)malloc(sizeof(struct pmem_bench));
+	assert(pmb != nullptr);
 
 	pmb->pargs = (struct pmem_args *)args->opts;
-	assert(pmb->pargs != NULL);
+	assert(pmb->pargs != nullptr);
 
 	pmb->pargs->chunk_size = args->dsize;
 
@@ -402,7 +409,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 	pmb->buf =
 		(unsigned char *)util_aligned_malloc(FLUSH_ALIGN, pmb->bsize);
-	if (pmb->buf == NULL) {
+	if (pmb->buf == nullptr) {
 		perror("posix_memalign");
 		ret = -1;
 		goto err_free_pmb;
@@ -413,7 +420,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	pmb->rand_offsets = (unsigned *)malloc(pmb->n_rand_offsets *
 					       sizeof(*pmb->rand_offsets));
 
-	if (pmb->rand_offsets == NULL) {
+	if (pmb->rand_offsets == nullptr) {
 		perror("malloc");
 		ret = -1;
 		goto err_free_pmb;
@@ -422,10 +429,15 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	for (size_t i = 0; i < pmb->n_rand_offsets; ++i)
 		pmb->rand_offsets[i] = rand() % args->n_ops_per_thread;
 
+	if (!util_file_is_device_dax(args->fname)) {
+		file_size = pmb->fsize;
+		flags = PMEM_FILE_CREATE | PMEM_FILE_EXCL;
+	}
+
 	/* create a pmem file and memory map it */
-	if ((pmb->pmem_addr = (unsigned char *)pmem_map_file(
-		     args->fname, pmb->fsize, PMEM_FILE_CREATE | PMEM_FILE_EXCL,
-		     args->fmode, NULL, NULL)) == NULL) {
+	pmb->pmem_addr = (unsigned char *)pmem_map_file(
+		args->fname, file_size, flags, args->fmode, nullptr, nullptr);
+	if (pmb->pmem_addr == nullptr) {
 		perror(args->fname);
 		ret = -1;
 		goto err_free_buf;
@@ -440,7 +452,8 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	/* set proper func_src() and func_dest() depending on benchmark args */
-	if ((pmb->func_src = assign_mode_func(pmb->pargs->src_mode)) == NULL) {
+	if ((pmb->func_src = assign_mode_func(pmb->pargs->src_mode)) ==
+	    nullptr) {
 		fprintf(stderr, "wrong src_mode parameter -- '%s'",
 			pmb->pargs->src_mode);
 		ret = -1;
@@ -448,7 +461,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	if ((pmb->func_dest = assign_mode_func(pmb->pargs->dest_mode)) ==
-	    NULL) {
+	    nullptr) {
 		fprintf(stderr, "wrong dest_mode parameter -- '%s'",
 			pmb->pargs->dest_mode);
 		ret = -1;
@@ -461,6 +474,11 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	} else {
 		pmb->func_op = pmb->pargs->persist ? libpmem_memcpy_persist
 						   : libpmem_memcpy_nodrain;
+	}
+
+	if (!pmb->pargs->no_warmup) {
+		memset(pmb->buf, 0, pmb->bsize);
+		pmem_memset_persist(pmb->pmem_addr, 0, pmb->fsize);
 	}
 
 	pmembench_set_priv(bench, pmb);
@@ -486,13 +504,11 @@ err_free_pmb:
 static int
 pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
 {
-	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
+	auto *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 
-	size_t src_index = info->args->n_ops_per_thread * info->worker->index +
-		pmb->func_src(pmb, info->index);
+	size_t src_index = pmb->func_src(pmb, info);
 
-	size_t dest_index = info->args->n_ops_per_thread * info->worker->index +
-		pmb->func_dest(pmb, info->index);
+	size_t dest_index = pmb->func_dest(pmb, info);
 
 	void *source = pmb->src_addr + src_index * pmb->pargs->chunk_size +
 		pmb->pargs->src_off;
@@ -510,8 +526,8 @@ pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
 static int
 pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
-	munmap(pmb->pmem_addr, pmb->fsize);
+	auto *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
+	pmem_unmap(pmb->pmem_addr, pmb->fsize);
 	util_aligned_free(pmb->buf);
 	free(pmb->rand_offsets);
 	free(pmb);
@@ -519,13 +535,13 @@ pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 }
 
 /* structure to define command line arguments */
-static struct benchmark_clo pmem_memcpy_clo[7];
+static struct benchmark_clo pmem_memcpy_clo[8];
 
 /* Stores information about benchmark. */
-static struct benchmark_info pmem_memcpy;
-CONSTRUCTOR(pmem_memcpy_costructor)
+static struct benchmark_info pmem_memcpy_bench;
+CONSTRUCTOR(pmem_memcpy_constructor)
 void
-pmem_memcpy_costructor(void)
+pmem_memcpy_constructor(void)
 {
 	pmem_memcpy_clo[0].opt_short = 'o';
 	pmem_memcpy_clo[0].opt_long = "operation";
@@ -588,21 +604,29 @@ pmem_memcpy_costructor(void)
 	pmem_memcpy_clo[6].off = clo_field_offset(struct pmem_args, persist);
 	pmem_memcpy_clo[6].def = "true";
 
-	pmem_memcpy.name = "pmem_memcpy";
-	pmem_memcpy.brief = "Benchmark for"
-			    "pmem_memcpy_persist() and "
-			    "pmem_memcpy_nodrain()"
-			    "operations";
-	pmem_memcpy.init = pmem_memcpy_init;
-	pmem_memcpy.exit = pmem_memcpy_exit;
-	pmem_memcpy.multithread = true;
-	pmem_memcpy.multiops = true;
-	pmem_memcpy.operation = pmem_memcpy_operation;
-	pmem_memcpy.measure_time = true;
-	pmem_memcpy.clos = pmem_memcpy_clo;
-	pmem_memcpy.nclos = ARRAY_SIZE(pmem_memcpy_clo);
-	pmem_memcpy.opts_size = sizeof(struct pmem_args);
-	pmem_memcpy.rm_file = true;
-	pmem_memcpy.allow_poolset = false;
-	REGISTER_BENCHMARK(pmem_memcpy);
+	pmem_memcpy_clo[7].opt_short = 'w';
+	pmem_memcpy_clo[7].opt_long = "no-warmup";
+	pmem_memcpy_clo[7].descr = "Don't do warmup";
+	pmem_memcpy_clo[7].def = "false";
+	pmem_memcpy_clo[7].type = CLO_TYPE_FLAG;
+	pmem_memcpy_clo[7].off = clo_field_offset(struct pmem_args, no_warmup);
+
+	pmem_memcpy_bench.name = "pmem_memcpy";
+	pmem_memcpy_bench.brief = "Benchmark for"
+				  "pmem_memcpy_persist() and "
+				  "pmem_memcpy_nodrain()"
+				  "operations";
+	pmem_memcpy_bench.init = pmem_memcpy_init;
+	pmem_memcpy_bench.exit = pmem_memcpy_exit;
+	pmem_memcpy_bench.multithread = true;
+	pmem_memcpy_bench.multiops = true;
+	pmem_memcpy_bench.operation = pmem_memcpy_operation;
+	pmem_memcpy_bench.measure_time = true;
+	pmem_memcpy_bench.clos = pmem_memcpy_clo;
+	pmem_memcpy_bench.nclos = ARRAY_SIZE(pmem_memcpy_clo);
+	pmem_memcpy_bench.opts_size = sizeof(struct pmem_args);
+	pmem_memcpy_bench.rm_file = true;
+	pmem_memcpy_bench.allow_poolset = false;
+	pmem_memcpy_bench.print_bandwidth = true;
+	REGISTER_BENCHMARK(pmem_memcpy_bench);
 };

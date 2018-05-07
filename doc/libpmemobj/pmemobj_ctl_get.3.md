@@ -208,7 +208,7 @@ executed.
 Always returns 0.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
-`struct pobj_alloc_class_desc` | - | integer, integer, string
+`struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 
 Describes an allocation class. Allows one to create or view the internal
 data structures of the allocator.
@@ -310,7 +310,7 @@ not exist it sets the errno to **ENOENT** and returns -1;
 For writing, function returns 0 if the allocation class has been successfully
 created, -1 otherwise.
 
-heap.alloc_class.new.desc | -w | - | - | `struct pobj_alloc_class_desc` | - | integer, integer, string
+heap.alloc_class.new.desc | -w | - | - | `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 
 Same as `heap.alloc_class.[class_id].desc`, but instead of requiring the user
 to provide the class_id, it automatically creates the allocation class with the
@@ -413,7 +413,7 @@ a sequence of ctl queries. The parsing rules are all the same, but the file
 can also contain white-spaces and comments.
 
 To create a comment, simply use '#' anywhere in a line and everything
-afterwards, until a new line '\n', will be ignored.
+afterwards, until a new line, will be ignored.
 
 An example configuration file:
 

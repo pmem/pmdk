@@ -548,7 +548,8 @@ dump_art_leaf_callback(void *data,
 		cbd = (cb_data *)data;
 		printf("node type %d ", D_RO(cbd->node)->art_node_type);
 		if (D_RO(cbd->node)->art_node_type == art_leaf_t) {
-			printf("key len %d = [%s], value len %d = [%s]",
+			printf("key len %" PRIu32 " = [%s], value len %" PRIu32
+			    " = [%s]",
 			    key_len,
 			    key != NULL ? (char *)key : (char *)"NULL",
 			    val_len,
@@ -556,7 +557,8 @@ dump_art_leaf_callback(void *data,
 		}
 		printf("\n");
 	} else {
-		printf("key len %d = [%s], value len %d = [%s]\n",
+		printf("key len %" PRIu32 " = [%s], value len %" PRIu32
+		    " = [%s]\n",
 		    key_len,
 		    key != NULL ? (char *)key : (char *)"NULL",
 		    val_len,
@@ -682,7 +684,8 @@ dump_art_node_callback(void *data,
 			break;
 		}
 	} else {
-		printf("leaf: key len %d = [%s], value len %d = [%s]\n",
+		printf("leaf: key len %" PRIu32
+		    " = [%s], value len %" PRIu32 " = [%s]\n",
 		    key_len, key, val_len, val);
 	}
 	return 0;

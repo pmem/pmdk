@@ -67,6 +67,7 @@ MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmem
 MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmem_persist.3 pmem_msync.3 pmem_map_file.3 pmem_deep_persist.3 pmem_deep_flush.3 pmem_deep_drain.3 pmem_unmap.3 \
 		   pmem_memcpy_persist.3 pmem_memset_persist.3 pmem_memmove_nodrain.3 pmem_memcpy_nodrain.3 pmem_memset_nodrain.3 \
+		   pmem_memcpy.3 pmem_memset.3 pmem_memmove.3 \
 		   pmem_check_version.3 pmem_errormsg.3 \
 		   pmemblk_nblock.3 \
 		   pmemblk_open.3 pmemblk_close.3 \
@@ -91,6 +92,7 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmemobj_create.3 pmemobj_close.3 \
 		   pmemobj_list_insert_new.3 pmemobj_list_remove.3 pmemobj_list_move.3 \
 		   toid_declare_root.3 toid.3 toid_type_num.3 toid_type_num_of.3 toid_valid.3 oid_instanceof.3 toid_assign.3 toid_is_null.3 toid_equals.3 toid_typeof.3 toid_offsetof.3 direct_rw.3 d_rw.3 direct_ro.3 d_ro.3 \
+		   pmemobj_memcpy.3 pmemobj_memmove.3 pmemobj_memset.3 \
 		   pmemobj_memset_persist.3 pmemobj_persist.3 pmemobj_flush.3 pmemobj_drain.3 \
 		   pmemobj_tx_stage.3 pmemobj_tx_lock.3 pmemobj_tx_abort.3 pmemobj_tx_commit.3 pmemobj_tx_end.3 pmemobj_tx_errno.3 \
 		   pmemobj_tx_process.3 pmemobj_tx_add_range_direct.3 pmemobj_tx_xadd_range.3 pmemobj_tx_xadd_range_direct.3 \

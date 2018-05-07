@@ -113,102 +113,124 @@ flush_empty(const void *addr, size_t len)
 }
 
 #if SSE2_AVAILABLE || AVX_AVAILABLE || AVX512F_AVAILABLE
-#define MEMCPY_TEMPLATE(postfix) \
+#define PMEM_F_MEM_MOVNT (PMEM_F_MEM_WC | PMEM_F_MEM_NONTEMPORAL)
+#define PMEM_F_MEM_MOV   (PMEM_F_MEM_WB | PMEM_F_MEM_TEMPORAL)
+
+#define MEMCPY_TEMPLATE(isa, flush) \
 static void *\
-memmove_nodrain_##postfix(void *dest, const void *src, size_t len)\
+memmove_nodrain_##isa##_##flush(void *dest, const void *src, size_t len, \
+		unsigned flags)\
 {\
 	if (len == 0 || src == dest)\
 		return dest;\
 \
-	if (len < Movnt_threshold)\
-		memmove_mov_##postfix(dest, src, len);\
+	if (flags & PMEM_F_MEM_NOFLUSH) \
+		memmove_mov_##isa##_empty(dest, src, len); \
+	else if (flags & PMEM_F_MEM_MOVNT)\
+		memmove_movnt_##isa ##_##flush(dest, src, len);\
+	else if (flags & PMEM_F_MEM_MOV)\
+		memmove_mov_##isa##_##flush(dest, src, len);\
+	else if (len < Movnt_threshold)\
+		memmove_mov_##isa##_##flush(dest, src, len);\
 	else\
-		memmove_movnt_##postfix(dest, src, len);\
+		memmove_movnt_##isa##_##flush(dest, src, len);\
 \
 	return dest;\
 }
 
-#define MEMSET_TEMPLATE(postfix)\
+#define MEMSET_TEMPLATE(isa, flush)\
 static void *\
-memset_nodrain_##postfix(void *dest, int c, size_t len)\
+memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags)\
 {\
 	if (len == 0)\
 		return dest;\
 \
-	if (len < Movnt_threshold)\
-		memset_mov_##postfix(dest, c, len);\
+	if (flags & PMEM_F_MEM_NOFLUSH) \
+		memset_mov_##isa##_empty(dest, c, len); \
+	else if (flags & PMEM_F_MEM_MOVNT)\
+		memset_movnt_##isa##_##flush(dest, c, len);\
+	else if (flags & PMEM_F_MEM_MOV)\
+		memset_mov_##isa##_##flush(dest, c, len);\
+	else if (len < Movnt_threshold)\
+		memset_mov_##isa##_##flush(dest, c, len);\
 	else\
-		memset_movnt_##postfix(dest, c, len);\
+		memset_movnt_##isa##_##flush(dest, c, len);\
 \
 	return dest;\
 }
 #endif
 
 #if SSE2_AVAILABLE
-MEMCPY_TEMPLATE(sse2_clflush)
-MEMCPY_TEMPLATE(sse2_clflushopt)
-MEMCPY_TEMPLATE(sse2_clwb)
-MEMCPY_TEMPLATE(sse2_empty)
+MEMCPY_TEMPLATE(sse2, clflush)
+MEMCPY_TEMPLATE(sse2, clflushopt)
+MEMCPY_TEMPLATE(sse2, clwb)
+MEMCPY_TEMPLATE(sse2, empty)
 
-MEMSET_TEMPLATE(sse2_clflush)
-MEMSET_TEMPLATE(sse2_clflushopt)
-MEMSET_TEMPLATE(sse2_clwb)
-MEMSET_TEMPLATE(sse2_empty)
+MEMSET_TEMPLATE(sse2, clflush)
+MEMSET_TEMPLATE(sse2, clflushopt)
+MEMSET_TEMPLATE(sse2, clwb)
+MEMSET_TEMPLATE(sse2, empty)
 #endif
 
 #if AVX_AVAILABLE
-MEMCPY_TEMPLATE(avx_clflush)
-MEMCPY_TEMPLATE(avx_clflushopt)
-MEMCPY_TEMPLATE(avx_clwb)
-MEMCPY_TEMPLATE(avx_empty)
+MEMCPY_TEMPLATE(avx, clflush)
+MEMCPY_TEMPLATE(avx, clflushopt)
+MEMCPY_TEMPLATE(avx, clwb)
+MEMCPY_TEMPLATE(avx, empty)
 
-MEMSET_TEMPLATE(avx_clflush)
-MEMSET_TEMPLATE(avx_clflushopt)
-MEMSET_TEMPLATE(avx_clwb)
-MEMSET_TEMPLATE(avx_empty)
+MEMSET_TEMPLATE(avx, clflush)
+MEMSET_TEMPLATE(avx, clflushopt)
+MEMSET_TEMPLATE(avx, clwb)
+MEMSET_TEMPLATE(avx, empty)
 #endif
 
 #if AVX512F_AVAILABLE
-MEMCPY_TEMPLATE(avx512f_clflush)
-MEMCPY_TEMPLATE(avx512f_clflushopt)
-MEMCPY_TEMPLATE(avx512f_clwb)
-MEMCPY_TEMPLATE(avx512f_empty)
+MEMCPY_TEMPLATE(avx512f, clflush)
+MEMCPY_TEMPLATE(avx512f, clflushopt)
+MEMCPY_TEMPLATE(avx512f, clwb)
+MEMCPY_TEMPLATE(avx512f, empty)
 
-MEMSET_TEMPLATE(avx512f_clflush)
-MEMSET_TEMPLATE(avx512f_clflushopt)
-MEMSET_TEMPLATE(avx512f_clwb)
-MEMSET_TEMPLATE(avx512f_empty)
+MEMSET_TEMPLATE(avx512f, clflush)
+MEMSET_TEMPLATE(avx512f, clflushopt)
+MEMSET_TEMPLATE(avx512f, clwb)
+MEMSET_TEMPLATE(avx512f, empty)
 #endif
 
 /*
- * memmove_nodrain_libc -- (internal) memmove to pmem without hw drain
+ * memmove_nodrain_libc -- (internal) memmove to pmem using libc
  */
 static void *
-memmove_nodrain_libc(void *pmemdest, const void *src, size_t len)
+memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
+		unsigned flags)
 {
-	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
+			flags);
+	(void) flags;
 
 	memmove(pmemdest, src, len);
-	pmem_flush(pmemdest, len);
+	pmem_flush_flags(pmemdest, len, flags);
 	return pmemdest;
 }
 
 /*
- * memset_nodrain_libc -- (internal) memset to pmem without hw drain, normal
+ * memset_nodrain_libc -- (internal) memset to pmem using libc
  */
 static void *
-memset_nodrain_libc(void *pmemdest, int c, size_t len)
+memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags)
 {
-	LOG(15, "pmemdest %p c 0x%x len %zu", pmemdest, c, len);
+	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
+			flags);
+	(void) flags;
 
 	memset(pmemdest, c, len);
-	pmem_flush(pmemdest, len);
+	pmem_flush_flags(pmemdest, len, flags);
 	return pmemdest;
 }
 
 enum memcpy_impl {
 	MEMCPY_INVALID,
 	MEMCPY_LIBC,
+	MEMCPY_GENERIC,
 	MEMCPY_SSE2,
 	MEMCPY_AVX,
 	MEMCPY_AVX512F
@@ -399,9 +421,20 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	funcs->predrain_fence = predrain_fence_empty;
 	funcs->deep_flush = flush_clflush;
 	funcs->is_pmem = NULL;
-	funcs->memmove_nodrain = memmove_nodrain_libc;
-	funcs->memset_nodrain = memset_nodrain_libc;
-	enum memcpy_impl impl = MEMCPY_LIBC;
+	funcs->memmove_nodrain = memmove_nodrain_generic;
+	funcs->memset_nodrain = memset_nodrain_generic;
+	enum memcpy_impl impl = MEMCPY_GENERIC;
+
+	char *ptr = os_getenv("PMEM_NO_GENERIC_MEMCPY");
+	if (ptr) {
+		long long val = atoll(ptr);
+
+		if (val) {
+			funcs->memmove_nodrain = memmove_nodrain_libc;
+			funcs->memset_nodrain = memset_nodrain_libc;
+			impl = MEMCPY_LIBC;
+		}
+	}
 
 	pmem_cpuinfo_to_funcs(funcs, &impl);
 
@@ -411,7 +444,7 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	 * and pmem_memset_*().
 	 * It has no effect if movnt is not supported or disabled.
 	 */
-	char *ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
+	ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	if (ptr) {
 		long long val = atoll(ptr);
 
@@ -468,6 +501,8 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 		LOG(3, "using movnt SSE2");
 	else if (impl == MEMCPY_LIBC)
 		LOG(3, "using libc memmove");
+	else if (impl == MEMCPY_GENERIC)
+		LOG(3, "using generic memmove");
 	else
 		FATAL("invalid memcpy impl");
 }

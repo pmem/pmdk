@@ -45,7 +45,7 @@ setup
 
 LOG=out${UNITTEST_NUM}.log
 
-rm -rf $LOG && touch $LOG
+rm -f $LOG && touch $LOG
 
 POOLSET=$DIR/testset1
 create_poolset $POOLSET AUTO:$DEVICE_DAX_PATH

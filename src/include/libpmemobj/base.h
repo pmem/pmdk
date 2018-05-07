@@ -186,14 +186,47 @@ void *pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 void *pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len);
 
 /*
+ * Pmemobj version of memcpy. Data copied is made persistent (unless opted-out
+ * using flags).
+ */
+void *pmemobj_memcpy(PMEMobjpool *pop, void *dest, const void *src, size_t len,
+		unsigned flags);
+
+/*
+ * Pmemobj version of memmove. Data copied is made persistent (unless opted-out
+ * using flags).
+ */
+void *pmemobj_memmove(PMEMobjpool *pop, void *dest, const void *src, size_t len,
+		unsigned flags);
+
+/*
+ * Pmemobj version of memset. Data range set is made persistent (unless
+ * opted-out using flags).
+ */
+void *pmemobj_memset(PMEMobjpool *pop, void *dest, int c, size_t len,
+		unsigned flags);
+
+/*
  * Pmemobj version of pmem_persist.
  */
 void pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len);
 
 /*
+ * Pmemobj version of pmem_persist with additional flags argument.
+ */
+int pmemobj_xpersist(PMEMobjpool *pop, const void *addr, size_t len,
+		unsigned flags);
+
+/*
  * Pmemobj version of pmem_flush.
  */
 void pmemobj_flush(PMEMobjpool *pop, const void *addr, size_t len);
+
+/*
+ * Pmemobj version of pmem_flush with additional flags argument.
+ */
+int pmemobj_xflush(PMEMobjpool *pop, const void *addr, size_t len,
+		unsigned flags);
 
 /*
  * Pmemobj version of pmem_drain.
@@ -211,7 +244,7 @@ void pmemobj_drain(PMEMobjpool *pop);
  * used at compile-time by passing these defines to pmemobj_check_version().
  */
 #define PMEMOBJ_MAJOR_VERSION 2
-#define PMEMOBJ_MINOR_VERSION 3
+#define PMEMOBJ_MINOR_VERSION 4
 
 #ifndef _WIN32
 const char *pmemobj_check_version(unsigned major_required,

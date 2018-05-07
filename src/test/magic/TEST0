@@ -49,7 +49,7 @@ setup
 POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
 MAGIC=../../../utils/pmdk.magic
-rm -rf $LOG && touch $LOG
+rm -f $LOG && touch $LOG
 
 rm -rf $POOL
 expect_normal_exit $PMEMPOOL create blk 512 $POOL

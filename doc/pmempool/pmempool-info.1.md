@@ -138,11 +138,15 @@ Print sizes in human-readable format with appropriate units (e.g. 4k, 8M, 16G)
 
 Print pool's internal data in mixed format which consists of hexadecimal dump of
 header's data and parsed format displayed in human-readable format. This
-allows to see how data is stored in file.
+allows one to see how data is stored in file.
 
 `-s, --stats`
 
 Print pool's statistics. See **STATISTICS** section for details.
+
+`-k, --badblocks`
+
+Print bad blocks found in the pool.
 
 `-h, --help`
 

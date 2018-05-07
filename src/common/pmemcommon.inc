@@ -32,6 +32,9 @@
 #
 
 SOURCE =\
+	$(call osdep, $(COMMON)/badblock,.c)\
+	$(COMMON)/badblock_poolset.c\
+	$(call osdep, $(COMMON)/extent,.c)\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
 	$(COMMON)/fs_posix.c\

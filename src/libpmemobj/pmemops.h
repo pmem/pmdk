@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,11 +37,16 @@
 #include <stdint.h>
 #include "util.h"
 
-typedef void (*persist_fn)(void *base, const void *, size_t);
-typedef void (*flush_fn)(void *base, const void *, size_t);
+typedef int (*persist_fn)(void *base, const void *, size_t, unsigned);
+typedef int (*flush_fn)(void *base, const void *, size_t, unsigned);
 typedef void (*drain_fn)(void *base);
-typedef void *(*memcpy_fn)(void *base, void *dest, const void *src, size_t len);
-typedef void *(*memset_fn)(void *base, void *dest, int c, size_t len);
+
+typedef void *(*memcpy_fn)(void *base, void *dest, const void *src, size_t len,
+		unsigned flags);
+typedef void *(*memmove_fn)(void *base, void *dest, const void *src, size_t len,
+		unsigned flags);
+typedef void *(*memset_fn)(void *base, void *dest, int c, size_t len,
+		unsigned flags);
 
 typedef int (*remote_read_fn)(void *ctx, uintptr_t base, void *dest, void *addr,
 		size_t length);
@@ -51,8 +56,9 @@ struct pmem_ops {
 	persist_fn persist;	/* persist function */
 	flush_fn flush;		/* flush function */
 	drain_fn drain;		/* drain function */
-	memcpy_fn memcpy_persist; /* persistent memcpy function */
-	memset_fn memset_persist; /* persistent memset function */
+	memcpy_fn memcpy; /* persistent memcpy function */
+	memmove_fn memmove; /* persistent memmove function */
+	memset_fn memset; /* persistent memset function */
 	void *base;
 
 	struct remote_ops {
@@ -63,16 +69,30 @@ struct pmem_ops {
 	} remote;
 };
 
+static force_inline int
+pmemops_xpersist(const struct pmem_ops *p_ops, const void *d, size_t s,
+		unsigned flags)
+{
+	return p_ops->persist(p_ops->base, d, s, flags);
+}
+
 static force_inline void
 pmemops_persist(const struct pmem_ops *p_ops, const void *d, size_t s)
 {
-	p_ops->persist(p_ops->base, d, s);
+	(void) pmemops_xpersist(p_ops, d, s, 0);
+}
+
+static force_inline int
+pmemops_xflush(const struct pmem_ops *p_ops, const void *d, size_t s,
+		unsigned flags)
+{
+	return p_ops->flush(p_ops->base, d, s, flags);
 }
 
 static force_inline void
 pmemops_flush(const struct pmem_ops *p_ops, const void *d, size_t s)
 {
-	p_ops->flush(p_ops->base, d, s);
+	(void) pmemops_xflush(p_ops, d, s, 0);
 }
 
 static force_inline void
@@ -82,17 +102,24 @@ pmemops_drain(const struct pmem_ops *p_ops)
 }
 
 static force_inline void *
-pmemops_memcpy_persist(const struct pmem_ops *p_ops, void *dest,
-		const void *src, size_t len)
+pmemops_memcpy(const struct pmem_ops *p_ops, void *dest,
+		const void *src, size_t len, unsigned flags)
 {
-	return p_ops->memcpy_persist(p_ops->base, dest, src, len);
+	return p_ops->memcpy(p_ops->base, dest, src, len, flags);
 }
 
 static force_inline void *
-pmemops_memset_persist(const struct pmem_ops *p_ops, void *dest, int c,
-		size_t len)
+pmemops_memmove(const struct pmem_ops *p_ops, void *dest,
+		const void *src, size_t len, unsigned flags)
 {
-	return p_ops->memset_persist(p_ops->base, dest, c, len);
+	return p_ops->memmove(p_ops->base, dest, src, len, flags);
+}
+
+static force_inline void *
+pmemops_memset(const struct pmem_ops *p_ops, void *dest, int c,
+		size_t len, unsigned flags)
+{
+	return p_ops->memset(p_ops->base, dest, c, len, flags);
 }
 
 #endif

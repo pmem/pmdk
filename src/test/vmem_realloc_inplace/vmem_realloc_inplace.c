@@ -38,7 +38,7 @@
 
 #include "unittest.h"
 
-#define POOL_SIZE 16 * 1024 * 1024
+#define POOL_SIZE (16 * 1024 * 1024)
 
 int
 main(int argc, char *argv[])

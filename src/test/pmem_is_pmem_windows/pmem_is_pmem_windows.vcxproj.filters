@@ -33,6 +33,9 @@
     <ClCompile Include="..\..\libpmem\libpmem.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem\memops_generic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmem\pmem.c">
       <Filter>Source Files</Filter>
     </ClCompile>

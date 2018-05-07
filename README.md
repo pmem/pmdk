@@ -85,12 +85,12 @@ or features.  If not present, those components or features may not be
 available:
 
 * **libfabric** (v1.4.2 or later) -- required by **librpmem**
-* **ndctl** and **daxctl** (v59.2 or later) -- required by **daxio** and RAS features
+* **ndctl** and **daxctl** (v60.1 or later) -- required by **daxio** and RAS features
 
 
 On Windows, to build PMDK and run the tests you need:
 * **MS Visual Studio 2015**
-* [Windows SDK 10.0.14393](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk) (or later)
+* [Windows SDK 10.0.16299.15](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 * **perl** (i.e. [ActivePerl](http://www.activestate.com/activeperl/downloads))
 * **PowerShell 5**
 

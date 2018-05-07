@@ -421,7 +421,7 @@ heap_run_init(struct palloc_heap *heap, struct bucket *b,
 	struct chunk_header run_hdr;
 	run_hdr.size_idx = hdr->size_idx;
 	run_hdr.type = CHUNK_TYPE_RUN;
-	run_hdr.flags = header_type_to_flag[c->header_type];
+	run_hdr.flags = (uint16_t)header_type_to_flag[c->header_type];
 	*hdr = run_hdr;
 	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
 
@@ -474,8 +474,7 @@ heap_run_process_metadata(struct palloc_heap *heap, struct bucket *b,
 	uint16_t block_size_idx = 0;
 	uint32_t inserted_blocks = 0;
 
-	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
+	struct chunk_run *run = heap_get_chunk_run(heap, m);
 
 	ASSERTeq(run->block_size, c->unit_size);
 
@@ -585,8 +584,7 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
 	struct bucket *bucket,
 	struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr = heap_get_chunk_hdr(heap, m);
 
 	m->block_off = 0;
 	m->size_idx = hdr->size_idx;
@@ -618,8 +616,7 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
 static int
 heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 {
-	struct chunk_run *run = (struct chunk_run *)
-		&ZID_TO_ZONE(heap->layout, m->zone_id)->chunks[m->chunk_id];
+	struct chunk_run *run = heap_get_chunk_run(heap, m);
 
 	struct alloc_class *c = alloc_class_by_run(
 		heap->rt->alloc_classes,
@@ -670,6 +667,10 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 				heap_chunk_write_footer(hdr,
 					hdr->size_idx);
 				break;
+			case CHUNK_TYPE_RUN:
+				break;
+			default:
+				ASSERT(0);
 		}
 
 		i += hdr->size_idx;
@@ -912,8 +913,7 @@ heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
 		return;
 
 	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	struct chunk_header *hdr = (struct chunk_header *)
-		&z->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
 	struct chunk_run *run = (struct chunk_run *)
 		&z->chunks[m->chunk_id];
 
@@ -1393,16 +1393,14 @@ heap_init(void *heap_start, uint64_t heap_size, uint64_t *sizep,
 
 	unsigned zones = heap_max_zone(heap_size);
 	for (unsigned i = 0; i < zones; ++i) {
-		pmemops_memset_persist(p_ops,
-				&ZID_TO_ZONE(layout, i)->header,
-				0, sizeof(struct zone_header));
-		pmemops_memset_persist(p_ops,
-				&ZID_TO_ZONE(layout, i)->chunk_headers,
-				0, sizeof(struct chunk_header));
+		struct zone *zone = ZID_TO_ZONE(layout, i);
+		pmemops_memset(p_ops, &zone->header, 0,
+				sizeof(struct zone_header), 0);
+		pmemops_memset(p_ops, &zone->chunk_headers, 0,
+				sizeof(struct chunk_header), 0);
 
 		/* only explicitly allocated chunks should be accessible */
-		VALGRIND_DO_MAKE_MEM_NOACCESS(
-			&ZID_TO_ZONE(layout, i)->chunk_headers,
+		VALGRIND_DO_MAKE_MEM_NOACCESS(&zone->chunk_headers,
 			sizeof(struct chunk_header));
 	}
 
@@ -1631,8 +1629,7 @@ heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
 	uint16_t block_start = m->block_off % BITS_PER_VALUE;
 	uint16_t block_off;
 
-	struct chunk_run *run = (struct chunk_run *)
-		&ZID_TO_ZONE(heap->layout, m->zone_id)->chunks[m->chunk_id];
+	struct chunk_run *run = heap_get_chunk_run(heap, m);
 
 	struct alloc_class_run_proto run_proto;
 	alloc_class_generate_run_proto(&run_proto,
@@ -1680,8 +1677,7 @@ static int
 heap_chunk_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block *m)
 {
-	struct zone *zone = ZID_TO_ZONE(heap->layout, m->zone_id);
-	struct chunk_header *hdr = &zone->chunk_headers[m->chunk_id];
+	struct chunk_header *hdr = heap_get_chunk_hdr(heap, m);
 	memblock_rebuild_state(heap, m);
 	m->size_idx = hdr->size_idx;
 
@@ -1749,8 +1745,7 @@ heap_vg_open_chunk(struct palloc_heap *heap,
 	object_callback cb, void *arg, int objects,
 	struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-	void *chunk = &z->chunks[m->chunk_id];
+	void *chunk = heap_get_chunk(heap, m);
 	memblock_rebuild_state(heap, m);
 
 	if (m->type == MEMORY_BLOCK_RUN) {

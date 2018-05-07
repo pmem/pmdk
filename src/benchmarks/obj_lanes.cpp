@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemobj.h"
 
 /* an internal libpmemobj code */
@@ -92,24 +93,28 @@ parse_lane_section(const char *arg)
 static int
 lanes_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
-	struct obj_bench *ob =
-		(struct obj_bench *)malloc(sizeof(struct obj_bench));
-	if (ob == NULL) {
+	auto *ob = (struct obj_bench *)malloc(sizeof(struct obj_bench));
+	if (ob == nullptr) {
 		perror("malloc");
 		return -1;
 	}
 	pmembench_set_priv(bench, ob);
 
 	ob->pa = (struct prog_args *)args->opts;
-	size_t psize = args->is_poolset ? 0 : PMEMOBJ_MIN_POOL;
+	size_t psize;
+
+	if (args->is_poolset || util_file_is_device_dax(args->fname))
+		psize = 0;
+	else
+		psize = PMEMOBJ_MIN_POOL;
 
 	/* create pmemobj pool */
 	ob->pop = pmemobj_create(args->fname, "obj_lanes", psize, args->fmode);
-	if (ob->pop == NULL) {
+	if (ob->pop == nullptr) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto err;
 	}
@@ -133,7 +138,7 @@ err:
 static int
 lanes_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	pmemobj_close(ob->pop);
 	free(ob);
@@ -147,7 +152,7 @@ lanes_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 lanes_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 	struct lane_section *section;
 
 	for (int i = 0; i < OPERATION_REPEAT_COUNT; i++) {
@@ -161,9 +166,9 @@ lanes_op(struct benchmark *bench, struct operation_info *info)
 static struct benchmark_clo lanes_clo[1];
 static struct benchmark_info lanes_info;
 
-CONSTRUCTOR(obj_lines_costructor)
+CONSTRUCTOR(obj_lines_constructor)
 void
-obj_lines_costructor(void)
+obj_lines_constructor(void)
 {
 	lanes_clo[0].opt_short = 's';
 	lanes_clo[0].opt_long = "lane_section";

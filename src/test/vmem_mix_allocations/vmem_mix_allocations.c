@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,9 +38,9 @@
 
 #include "unittest.h"
 
-#define COUNT 21
+#define COUNT 24
 #define POOL_SIZE VMEM_MIN_POOL
-#define MAX_SIZE (4 << COUNT)
+#define MAX_SIZE (1 << (COUNT - 1))	/* 8MB */
 
 int
 main(int argc, char *argv[])
@@ -49,7 +49,7 @@ main(int argc, char *argv[])
 	void *mem_pool = NULL;
 	VMEM *vmp;
 	size_t obj_size;
-	int *ptr[COUNT];
+	int *ptr[COUNT + 1];
 	int i = 0;
 	size_t sum_alloc = 0;
 
@@ -75,7 +75,7 @@ main(int argc, char *argv[])
 	}
 
 	obj_size = MAX_SIZE;
-	/* test with multiple size of allocations from 4MB to 2B */
+	/* test with multiple size of allocations from 8MB to 1B */
 	for (i = 0; i < COUNT; ++i, obj_size /= 2) {
 		ptr[i] = vmem_malloc(vmp, obj_size);
 

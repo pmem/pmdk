@@ -62,9 +62,9 @@
 /*
  * Macros to manipulate pointer tags
  */
-#define IS_LEAF(x) (((uintptr_t)x & 1))
-#define SET_LEAF(x) ((void *)((uintptr_t)x | 1))
-#define LEAF_RAW(x) ((void *)((uintptr_t)x & ~1))
+#define IS_LEAF(x) (((uintptr_t)(x) & 1))
+#define SET_LEAF(x) ((void *)((uintptr_t)(x) | 1))
+#define LEAF_RAW(x) ((void *)((uintptr_t)(x) & ~1))
 
 /*
  * Allocates a node of the given type,
@@ -403,7 +403,7 @@ maximum(const art_node *n)
 art_leaf *
 art_minimum(art_tree *t)
 {
-	return minimum((art_node *)t->root);
+	return minimum(t->root);
 }
 
 /*
@@ -412,7 +412,7 @@ art_minimum(art_tree *t)
 art_leaf *
 art_maximum(art_tree *t)
 {
-	return maximum((art_node *) t->root);
+	return maximum(t->root);
 }
 
 static art_leaf *

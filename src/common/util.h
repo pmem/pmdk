@@ -42,6 +42,7 @@
 extern "C" {
 #endif
 
+#include <string.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -65,7 +66,7 @@ extern unsigned long long Mmap_align;
 #define ALIGN_UP(size, align) (((size) + (align) - 1) & ~((align) - 1))
 #define ALIGN_DOWN(size, align) ((size) & ~((align) - 1))
 
-#define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
+#define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + (lp)))
 
 #define util_alignof(t) offsetof(struct {char _util_c; t _util_m; }, _util_m)
 #define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
@@ -144,6 +145,22 @@ static inline void
 util_clrbit(uint8_t *b, uint32_t i)
 {
 	b[i / 8] = (uint8_t)(b[i / 8] & (uint8_t)(~(1 << (i % 8))));
+}
+
+/*
+ * util_safe_strcpy -- copies string from src to dst, returns -1
+ * when length of source string (including null-terminator)
+ * is greater than max_length, 0 otherwise
+ */
+static inline int
+util_safe_strcpy(char *dst, const char *src, size_t max_length)
+{
+	if (max_length == 0)
+		return -1;
+
+	strncpy(dst, src, max_length);
+
+	return dst[max_length - 1] == '\0' ? 0 : -1;
 }
 
 #define util_isset(a, i) isset(a, i)
@@ -461,7 +478,7 @@ char *util_concat_str(const char *s1, const char *s2);
 #elif defined(_MSC_VER)
 #define COMPILE_ERROR_ON(cond) C_ASSERT(!(cond))
 /* XXX - can't be done with C_ASSERT() unless we have __builtin_constant_p() */
-#define ASSERT_COMPILE_ERROR_ON(cond)
+#define ASSERT_COMPILE_ERROR_ON(cond) do {} while (0)
 #else
 #define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
 #define ASSERT_COMPILE_ERROR_ON(cond) COMPILE_ERROR_ON(cond)

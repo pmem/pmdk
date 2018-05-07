@@ -36,6 +36,9 @@
 TARGET = out_err
 OBJS = out_err.o
 
+BUILD_STATIC_DEBUG=n
+BUILD_STATIC_NONDEBUG=n
+
 LIBPMEMCOMMON=y
 include ../Makefile.inc
 

@@ -383,9 +383,9 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 		return -1;
 	}
 
-	int ret = util_unlink(pf->path);
+	int ret = util_unlink(pf->part->path);
 	if (!args->force && ret) {
-		RPMEMD_LOG(ERR, "!unlink -- '%s'", pf->path);
+		RPMEMD_LOG(ERR, "!unlink -- '%s'", pf->part->path);
 		args->ret = ret;
 	}
 

@@ -106,7 +106,7 @@ public:
 		template <typename... L>
 		manual(obj::pool_base &pop, L &... locks)
 		{
-			if (pmemobj_tx_begin(pop.get_handle(), NULL,
+			if (pmemobj_tx_begin(pop.get_handle(), nullptr,
 					     TX_PARAM_NONE) != 0)
 				throw transaction_error(
 					"failed to start transaction");
@@ -392,8 +392,8 @@ public:
 	static void
 	exec_tx(pool_base &pool, std::function<void()> tx, Locks &... locks)
 	{
-		if (pmemobj_tx_begin(pool.get_handle(), NULL, TX_PARAM_NONE) !=
-		    0)
+		if (pmemobj_tx_begin(pool.get_handle(), nullptr,
+				     TX_PARAM_NONE) != 0)
 			throw transaction_error("failed to start transaction");
 
 		auto err = add_lock(locks...);

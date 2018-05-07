@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="badblock_windows.c" />
+    <ClCompile Include="badblock_poolset.c" />
     <ClCompile Include="file.c" />
     <ClCompile Include="file_windows.c" />
     <ClCompile Include="mmap.c" />
@@ -18,7 +20,7 @@
     <ClCompile Include="fs_windows.c" />
     <ClCompile Include="os_auto_flush_windows.c" />
     <ClCompile Include="os_deep_windows.c" />
-    <ClCompile Include="os_dimm_none.c" />
+    <ClCompile Include="os_dimm_windows.c" />
     <ClCompile Include="os_thread_windows.c" />
     <ClCompile Include="os_windows.c" />
     <ClCompile Include="out.c" />
@@ -31,6 +33,9 @@
     <ClCompile Include="uuid_windows.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="os_auto_flush_windows.h" />
+    <ClInclude Include="os_badblock.h" />
+    <ClInclude Include="badblock_poolset.h" />
     <ClInclude Include="dlsym.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="mmap.h" />
@@ -52,7 +57,7 @@
     <ProjectGuid>{492BAA3D-0D5D-478E-9765-500463AE69AA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>libpmemcommon</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -81,13 +86,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <GenerateManifest>false</GenerateManifest>
     <TargetExt>.lib</TargetExt>
     <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <GenerateManifest>false</GenerateManifest>
     <TargetExt>.lib</TargetExt>
     <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>

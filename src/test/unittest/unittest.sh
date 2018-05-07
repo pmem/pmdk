@@ -76,6 +76,7 @@ fi
 
 export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
 
+VMMALLOC=libvmmalloc.so.1
 TOOLS=../tools
 # Paths to some useful tools
 [ "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
@@ -89,6 +90,8 @@ TOOLS=../tools
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
+[ "$EXTENTS" ] || EXTENTS=$TOOLS/extents/extents
+[ "$OBJ_VERIFY" ] || OBJ_VERIFY=$TOOLS/obj_verify/obj_verify
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -110,10 +113,11 @@ $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
 # Portability
-VALGRIND_SUPP="--suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp --suppressions=../ndctl.supp"
+VALGRIND_SUPP="--suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp"
 if [ "$(uname -s)" = "FreeBSD" ]; then
 	DATE="gdate"
 	DD="gdd"
+	FALLOCATE="mkfile"
 	VM_OVERCOMMIT="[ $(sysctl vm.overcommit | awk '{print $2}') == 0 ]"
 	RM_ONEFS="-x"
 	STAT_MODE="-f%Lp"
@@ -124,6 +128,7 @@ if [ "$(uname -s)" = "FreeBSD" ]; then
 else
 	DATE="date"
 	DD="dd"
+	FALLOCATE="fallocate -l"
 	VM_OVERCOMMIT="[ $(cat /proc/sys/vm/overcommit_memory) != 2 ]"
 	RM_ONEFS="--one-file-system"
 	STAT_MODE="-c%a"
@@ -136,11 +141,10 @@ fi
 NODE_PID_FILES[0]=""
 
 #
-# For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
-# constructed so the test pulls in the appropriate library from this
-# source tree.  To override this behavior (i.e. to force the test to
-# use the libraries installed elsewhere on the system), set
-# TEST_LD_LIBRARY_PATH and this script will not override it.
+# The variable TEST_LD_LIBRARY_PATH is constructed so the test pulls in
+# the appropriate library from this source tree.  To override this behavior
+# (i.e. to force the test to use the libraries installed elsewhere on
+# the system), set TEST_LD_LIBRARY_PATH and this script will not override it.
 #
 # For example, in a test directory, run:
 #	TEST_LD_LIBRARY_PATH=/usr/lib ./TEST0
@@ -148,13 +152,23 @@ NODE_PID_FILES[0]=""
 [ "$TEST_LD_LIBRARY_PATH" ] || {
 	case "$BUILD"
 	in
-	debug)
-		TEST_LD_LIBRARY_PATH=../../debug
-		REMOTE_LD_LIBRARY_PATH=../debug
+	debug|static-debug)
+		if [ -z "$PMDK_LIB_PATH_DEBUG" ]; then
+			TEST_LD_LIBRARY_PATH=../../debug
+			REMOTE_LD_LIBRARY_PATH=../debug
+		else
+			TEST_LD_LIBRARY_PATH=$PMDK_LIB_PATH_DEBUG
+			REMOTE_LD_LIBRARY_PATH=$PMDK_LIB_PATH_DEBUG
+		fi
 		;;
-	nondebug)
-		TEST_LD_LIBRARY_PATH=../../nondebug
-		REMOTE_LD_LIBRARY_PATH=../nondebug
+	nondebug|static-nondebug)
+		if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
+			TEST_LD_LIBRARY_PATH=../../nondebug
+			REMOTE_LD_LIBRARY_PATH=../nondebug
+		else
+			TEST_LD_LIBRARY_PATH=$PMDK_LIB_PATH_NONDEBUG
+			REMOTE_LD_LIBRARY_PATH=$PMDK_LIB_PATH_NONDEBUG
+		fi
 		;;
 	esac
 }
@@ -729,12 +743,12 @@ function expect_normal_exit() {
 		export VALGRIND_OPTS="--suppressions=../helgrind-log.supp"
 	fi
 
-	# in case of preloading libvmmalloc.so force valgrind to not override malloc
+	# in case of preloading libvmmalloc.so.1 force valgrind to not override malloc
 	if [ -n "$VALGRINDEXE" -a -n "$TEST_LD_PRELOAD" ]; then
 		if [ $(valgrind_version) -ge 312 ]; then
 			preload=`basename $TEST_LD_PRELOAD`
 		fi
-		if [ "$preload" == "libvmmalloc.so" ]; then
+		if [ "$preload" == "$VMMALLOC" ]; then
 			export VALGRIND_OPTS="$VALGRIND_OPTS --soname-synonyms=somalloc=nouserintercepts"
 		fi
 	fi
@@ -859,12 +873,12 @@ function expect_abnormal_exit() {
 		esac
 	fi
 
-	# in case of preloading libvmmalloc.so force valgrind to not override malloc
+	# in case of preloading libvmmalloc.so.1 force valgrind to not override malloc
 	if [ -n "$VALGRINDEXE" -a -n "$TEST_LD_PRELOAD" ]; then
 		if [ $(valgrind_version) -ge 312 ]; then
 			preload=`basename $TEST_LD_PRELOAD`
 		fi
-		if [ "$preload" == "libvmmalloc.so" ]; then
+		if [ "$preload" == "$VMMALLOC" ]; then
 			export VALGRIND_OPTS="$VALGRIND_OPTS --soname-synonyms=somalloc=nouserintercepts"
 		fi
 	fi
@@ -928,6 +942,28 @@ function check_pools() {
 function require_unlimited_vm() {
 	$VM_OVERCOMMIT && [ $(ulimit -v) = "unlimited" ] && return
 	msg "$UNITTEST_NAME: SKIP required: overcommit_memory enabled and unlimited virtual memory"
+	exit 0
+}
+
+#
+# require_linked_with_ndctl -- require an executable linked with libndctl
+#
+function require_linked_with_ndctl() {
+	[ "$1" == "" -o ! -x "$1" ] && \
+		fatal "$UNITTEST_NAME: ERROR: require_linked_with_ndctl() requires one argument - an executable file"
+	local lddndctl=$(ldd $1 | $GREP -ce "libndctl")
+	[ "$lddndctl" == "1" ] && return
+	msg "$UNITTEST_NAME: SKIP required: executable $1 linked with libndctl"
+	exit 0
+}
+
+#
+# require_superuser -- require user with superuser rights
+#
+function require_superuser() {
+	local user_id=$(id -u)
+	[ "$user_id" == "0" ] && return
+	msg "$UNITTEST_NAME: SKIP required: run with superuser rights"
 	exit 0
 }
 
@@ -1323,6 +1359,25 @@ function require_fs_type() {
 }
 
 #
+# require_fs_name -- verify if the $DIR is on the required file system
+#
+# Must be AFTER setup() because $DIR must exist
+#
+function require_fs_name() {
+	fsname=`df $DIR -PT | awk '{if (NR == 2) print $2}'`
+
+	for name in $*
+	do
+		if [ "$name" == "$fsname" ]; then
+			return
+		fi
+	done
+
+	echo "$UNITTEST_NAME: SKIP file system $fsname ($* required)"
+	exit 0
+}
+
+#
 # require_build_type -- only allow script to continue for a certain build type
 #
 function require_build_type() {
@@ -1341,6 +1396,17 @@ function require_command() {
 	if ! command -pv $1 1>/dev/null
 	then
 		msg "$UNITTEST_NAME: SKIP: '$1' command required"
+		exit 0
+	fi
+}
+
+#
+# require_kernel_module -- only allow script to continue if specified kernel module exists
+#
+function require_kernel_module() {
+	local MODULE=$(depmod -n | $GREP -cw -e "$1.ko")
+	if [ $MODULE == "0" ]; then
+		echo "$UNITTEST_NAME: SKIP: '$1' kernel module required"
 		exit 0
 	fi
 }
@@ -1422,7 +1488,7 @@ function configure_valgrind() {
 
 	if [ "$CHECK_TYPE" == "none" ]; then
 		if [ "$1" == "force-disable" ]; then
-			msg "all valgrind tests disabled"
+			msg "$UNITTEST_NAME: all valgrind tests disabled"
 		elif [ "$2" = "force-enable" ]; then
 			CHECK_TYPE="$1"
 			require_valgrind_tool $1 $3

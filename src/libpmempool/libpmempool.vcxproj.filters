@@ -7,6 +7,9 @@
     <ClCompile Include="check.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="check_bad_blocks.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="check_backup.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -106,13 +109,19 @@
     <ClCompile Include="..\common\shutdown_state.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_dimm_none.c">
+    <ClCompile Include="..\common\os_dimm_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\os_deep_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\os_auto_flush_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\badblock_poolset.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\badblock_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

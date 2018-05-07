@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ vpath %.c $(TOP)/src/libpmemobj
 vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/librpmem
 vpath %.c $(TOP)/src/rpmem_common
-
+vpath %.c $(TOP)/src/libpmempool
 
 BENCHMARK = pmembench
 
@@ -79,7 +79,8 @@ SRC=pmembench.cpp\
     obj_lanes.cpp\
     map_bench.cpp\
     pmemobj_tx.cpp\
-    pmemobj_atomic_lists.cpp
+    pmemobj_atomic_lists.cpp\
+    poolset_util.cpp
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
@@ -109,7 +110,7 @@ LIBS += ../nondebug/libpmemcommon.a
 else
 LIBS += ../debug/libpmemcommon.a
 endif
-LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm \
+LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmempool -lpmem -lvmem -pthread -lm \
 	$(LIBDL) $(LIBUUID) $(LIBNDCTL)
 ifeq ($(call check_librt), n)
 LIBS += -lrt
@@ -117,7 +118,7 @@ endif
 
 CXXFLAGS = -Wall
 CXXFLAGS += -Werror
-CXXFLAGS += -std=c++0x
+CXXFLAGS += -std=c++11
 CXXFLAGS += -Wno-invalid-offsetof
 CXXFLAGS += -Wpointer-arith
 CXXFLAGS += -Wunused-macros

@@ -70,7 +70,7 @@ function test_all {
 	test d:7 s:13 b:4096
 
 	# all aligned, src overlaps dest
-	test b:4096 S:23 o:1
+	test b:4096 s:23 o:1
 
 	# unaligned destination
 	test b:4096 d:21
@@ -79,16 +79,16 @@ function test_all {
 	test b:4096 d:21 s:7
 
 	# overlap of src, aligned src and dest
-	test b:4096 o:1 S:20
+	test b:4096 o:1 s:20
 
 	# overlap of src, aligned src, unaligned dest
-	test b:4096 d:13 o:1 S:20
+	test b:4096 d:13 o:1 s:20
 
 	# dest overlaps src, unaligned dest, aligned src
-	test b:2048 d:13 o:2 S:20
+	test b:2048 d:33 o:1
 
 	# dest overlaps src, aligned dest and src
-	test b:4096 o:2 S:20
+	test b:4096 o:1 d:20
 
 	# aligned dest, no overlap, small length
 	test b:8
@@ -96,9 +96,9 @@ function test_all {
 	# small length, offset 1 byte from 64 byte boundary
 	test b:4 d:63
 
-	# overlap, src < dest, small length(ensures a copy backwards, with number of bytes to
-	# align < length)
-	test o:2 S:2 b:8
+	# overlap, src < dest, small length (ensures a copy backwards,
+	# with number of bytes to align < length)
+	test o:1 d:2 b:8
 }
 
 test_all
@@ -112,6 +112,10 @@ $Env:PMEM_AVX = 1
 test_all
 
 $Env:PMEM_NO_MOVNT = 1
+
+test_all
+
+$Env:PMEM_NO_GENERIC_MEMCPY = 1
 
 test_all
 

@@ -14,7 +14,7 @@
     <ProjectGuid>{6F06A19B-0921-4B71-A3A5-B350B5FFEADB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>util_poolset</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -62,9 +62,6 @@
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
-      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
@@ -72,15 +69,18 @@
   <ItemGroup>
     <ClInclude Include="..\..\libpmem\pmem.h" />
     <ClInclude Include="..\..\libpmem\x86_64\cpu.h" />
+    <ClInclude Include="mocks.h" />
     <ClInclude Include="mocks_windows.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\file.c" />
+    <ClCompile Include="..\..\common\set.c" />
     <ClCompile Include="..\..\libpmem\pmem.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">WRAP_REAL_PMEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">WRAP_REAL_PMEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\libpmem\pmem_windows.c" />
+    <ClCompile Include="..\..\libpmem\memops_generic.c" />
     <ClCompile Include="..\..\libpmem\x86_64\cpu.c" />
     <ClCompile Include="..\..\libpmem\x86_64\init.c" />
     <ClCompile Include="..\..\windows\win_mmap.c" />
@@ -88,7 +88,10 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_OPEN;WRAP_REAL_PMEM;WRAP_REAL_FALLOCATE</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_OPEN;WRAP_REAL_PMEM;WRAP_REAL_FALLOCATE</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="util_poolset.c" />
+    <ClCompile Include="util_poolset.c">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">WRAP_REAL_PMEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">WRAP_REAL_PMEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="grep0w.log.match" />

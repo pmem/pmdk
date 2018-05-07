@@ -14,7 +14,7 @@
     <ProjectGuid>{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>pmem_is_pmem_windows</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -64,6 +64,7 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\libpmem\libpmem.c" />
+    <ClCompile Include="..\..\libpmem\memops_generic.c" />
     <ClCompile Include="..\..\libpmem\pmem.c" />
     <ClCompile Include="..\..\libpmem\pmem_windows.c" />
     <ClCompile Include="..\..\windows\win_mmap.c" />

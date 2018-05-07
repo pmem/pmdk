@@ -547,7 +547,7 @@ palloc_publish(struct palloc_heap *heap,
  * return the memory block to the transient container. That is done once no more
  * memory is available.
  *
- * Reallocation is a combination of the above, which one additional step
+ * Reallocation is a combination of the above, with one additional step
  * of copying the old content.
  */
 int
@@ -596,10 +596,11 @@ palloc_operation(struct palloc_heap *heap,
 			VALGRIND_ADD_TO_TX(
 				HEAP_OFF_TO_PTR(heap, alloc.offset),
 				to_cpy);
-			pmemops_memcpy_persist(&heap->p_ops,
+			pmemops_memcpy(&heap->p_ops,
 				HEAP_OFF_TO_PTR(heap, alloc.offset),
 				HEAP_OFF_TO_PTR(heap, off),
-				to_cpy);
+				to_cpy,
+				0);
 			VALGRIND_REMOVE_FROM_TX(
 				HEAP_OFF_TO_PTR(heap, alloc.offset),
 				to_cpy);

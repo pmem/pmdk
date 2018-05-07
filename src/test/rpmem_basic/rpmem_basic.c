@@ -255,12 +255,12 @@ cmp_pool_attr(const struct rpmem_pool_attr *attr1,
  * check_return_and_errno - validate return value and errno
  */
 #define check_return_and_errno(ret, error_must_occur, exp_errno) \
-	if (exp_errno != 0) { \
+	if ((exp_errno) != 0) { \
 		if (error_must_occur) { \
 			UT_ASSERTne(ret, 0); \
 			UT_ASSERTeq(errno, exp_errno); \
 		} else { \
-			if (ret != 0) { \
+			if ((ret) != 0) { \
 				UT_ASSERTeq(errno, exp_errno); \
 			} \
 		} \
@@ -408,6 +408,20 @@ test_close(const struct test_case *tc, int argc, char *argv[])
 typedef int (*flush_func)(RPMEMpool *rpp, size_t off,
 		size_t size, unsigned lane);
 
+static int
+persist_relaxed(RPMEMpool *rpp, size_t off,
+		size_t size, unsigned lane)
+{
+	return rpmem_persist(rpp, off, size, lane, RPMEM_PERSIST_RELAXED);
+}
+
+static int
+persist_normal(RPMEMpool *rpp, size_t off,
+		size_t size, unsigned lane)
+{
+	return rpmem_persist(rpp, off, size, lane, 0);
+}
+
 /*
  * thread_arg -- persist worker thread arguments
  */
@@ -498,17 +512,22 @@ static int
 test_persist(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 4)
-		UT_FATAL("usage: test_persist <id> <seed> <nthreads> <nops>");
+		UT_FATAL("usage: test_persist <id> <seed> <nthreads> "
+				"<nops> <relaxed>");
 
 	int id = atoi(argv[0]);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	int seed = atoi(argv[1]);
 	int nthreads = atoi(argv[2]);
 	int nops = atoi(argv[3]);
+	int relaxed = atoi(argv[4]);
 
-	test_flush(id, seed, nthreads, nops, rpmem_persist);
+	if (relaxed)
+		test_flush(id, seed, nthreads, nops, persist_relaxed);
+	else
+		test_flush(id, seed, nthreads, nops, persist_normal);
 
-	return 4;
+	return 5;
 }
 
 /*
@@ -836,10 +855,16 @@ static int
 test_persist_header(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 2)
-		UT_FATAL("usage: test_persist_header <id> <hdr|nohdr>");
+		UT_FATAL("usage: test_persist_header <id> "
+				"<hdr|nohdr> <relaxed>");
 
 	int id = atoi(argv[0]);
 	const char *hdr_str = argv[1];
+	int relaxed = atoi(argv[2]);
+	unsigned flags = 0;
+	if (relaxed)
+		flags |= RPMEM_PERSIST_RELAXED;
+
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	struct pool_entry *pool = &pools[id];
 
@@ -852,11 +877,11 @@ test_persist_header(const struct test_case *tc, int argc, char *argv[])
 		UT_ASSERT(0);
 
 	for (size_t off = 0; off < POOL_HDR_SIZE; off += 8) {
-		int ret = rpmem_persist(pool->rpp, off, 8, 0);
+		int ret = rpmem_persist(pool->rpp, off, 8, 0, flags);
 		UT_ASSERTeq(ret, with_hdr ? -1 : 0);
 	}
 
-	return 2;
+	return 3;
 }
 
 /*

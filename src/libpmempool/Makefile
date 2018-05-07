@@ -50,6 +50,7 @@ include ../common/pmemcommon.inc
 SOURCE +=\
 	libpmempool.c\
 	check.c\
+	check_bad_blocks.c\
 	check_backup.c\
 	check_btt_info.c\
 	check_btt_map_flog.c\

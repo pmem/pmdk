@@ -136,7 +136,7 @@ if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 fi
 
 LIBFABRIC_MIN_VERSION=1.4.2
-NDCTL_MIN_VERSION=58.2.37
+NDCTL_MIN_VERSION=60.1
 
 function convert_changelog() {
 	while read line
@@ -816,7 +816,7 @@ cat << EOF > debian/pmempool.install
 usr/bin/pmempool
 $MAN1_DIR/pmempool.1.gz
 $MAN1_DIR/pmempool-*.1.gz
-etc/bash_completion.d/pmempool.sh
+etc/bash_completion.d/pmempool
 EOF
 
 cat << EOF > debian/pmempool.triggers

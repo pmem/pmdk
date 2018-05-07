@@ -82,12 +82,12 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 {
 	LOG(3, "set %p, repn %u, partn %u", set, repn, partn);
 	struct pool_replica *rep = REP(set, repn);
-	char *path = util_part_realpath(PART(rep, partn).path);
+	char *path = util_part_realpath(PART(rep, partn)->path);
 	if (path == NULL) {
 		LOG(1, "cannot get absolute path for %s, replica %u, part %u",
-				PART(rep, partn).path, repn, partn);
+				PART(rep, partn)->path, repn, partn);
 		errno = 0;
-		path = strdup(PART(rep, partn).path);
+		path = strdup(PART(rep, partn)->path);
 		if (path == NULL) {
 			ERR("!strdup");
 			return -1;
@@ -103,19 +103,19 @@ check_if_part_used_once(struct pool_set *set, unsigned repn, unsigned partn)
 		/* avoid superfluous comparisons */
 		unsigned i = (r == repn) ? partn + 1 : 0;
 		for (unsigned p = i; p < repr->nparts; ++p) {
-			char *pathp = util_part_realpath(PART(repr, p).path);
+			char *pathp = util_part_realpath(PART(repr, p)->path);
 			if (pathp == NULL) {
 				if (errno != ENOENT) {
 					ERR("realpath failed for %s, errno %d",
-						PART(repr, p).path, errno);
+						PART(repr, p)->path, errno);
 					ret = -1;
 					goto out;
 				}
 				LOG(1, "cannot get absolute path for %s,"
 						" replica %u, part %u",
-						PART(rep, partn).path, repn,
+						PART(rep, partn)->path, repn,
 						partn);
-				pathp = strdup(PART(repr, p).path);
+				pathp = strdup(PART(repr, p)->path);
 				errno = 0;
 			}
 			int result = util_compare_file_inodes(path, pathp);
@@ -163,6 +163,7 @@ check_if_remote_replica_used_once(struct pool_set *set, unsigned repn)
 		if (strcmp(rep->node_addr, repr->node_addr) == 0 &&
 				strcmp(rep->pool_desc, repr->pool_desc) == 0) {
 			ERR("remote replica %u is used multiple times", repn);
+			errno = EINVAL;
 			return -1;
 		}
 	}
@@ -205,7 +206,8 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 
 	if (set_in->directory_based) {
 		ERR("transform of directory poolsets is not supported");
-		goto err;
+		errno = EINVAL;
+		return -1;
 	}
 
 	/*
@@ -214,7 +216,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 */
 	if (replica_check_part_sizes(set_out, PMEMOBJ_MIN_POOL)) {
 		ERR("part sizes check failed");
-		goto err;
+		return -1;
 	}
 
 	/*
@@ -222,7 +224,7 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	 * do not reoccur in the poolset
 	 */
 	if (check_paths(set_out))
-		goto err;
+		return -1;
 
 	/*
 	 * check if set_out has enough size, i.e. if the target poolset
@@ -232,20 +234,16 @@ validate_args(struct pool_set *set_in, struct pool_set *set_out)
 	ssize_t master_pool_size = replica_get_pool_size(set_in, 0);
 	if (master_pool_size < 0) {
 		ERR("getting pool size from master replica failed");
-		goto err;
+		return -1;
 	}
 
 	if (set_out->poolsize < (size_t)master_pool_size) {
 		ERR("target poolset is too small");
-		goto err;
+		errno = EINVAL;
+		return -1;
 	}
 
 	return 0;
-
-err:
-	if (errno == 0)
-		errno = EINVAL;
-	return -1;
 }
 
 /*
@@ -437,9 +435,11 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 		struct poolset_health_status *set_out_hs)
 {
 	LOG(3, "set_in_s %p, set_out_s %p", set_in_s, set_out_s);
+
 	int has_replica_to_keep = 0;
 	int is_removing_replicas = 0;
 	int is_adding_replicas = 0;
+
 	/* check if there are replicas to be removed */
 	for (unsigned r = 0; r < set_in_s->nreplicas; ++r) {
 		unsigned c = replica_counterpart(r, set_in_s);
@@ -447,8 +447,8 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 			LOG(2, "replica %u has a counterpart %u", r,
 					set_in_s->replica[r]);
 			has_replica_to_keep = 1;
-			REP(set_out_hs, c)->pool_size =
-					REP(set_in_hs, r)->pool_size;
+			REP_HEALTH(set_out_hs, c)->pool_size =
+					REP_HEALTH(set_in_hs, r)->pool_size;
 		} else {
 			LOG(2, "replica %u has no counterpart", r);
 			is_removing_replicas = 1;
@@ -456,8 +456,10 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	}
 
 	/* make sure we have at least one replica to keep */
-	if (!has_replica_to_keep)
+	if (!has_replica_to_keep) {
+		ERR("there must be at least one replica left");
 		return NOT_TRANSFORMABLE;
+	}
 
 	/* check if there are replicas to be added */
 	for (unsigned r = 0; r < set_out_s->nreplicas; ++r) {
@@ -465,12 +467,12 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 			LOG(2, "Replica %u from output set has no counterpart",
 					r);
 			if (is_removing_replicas) {
-				LOG(2, "adding and removing replicas at the"
-						"same time is not allowed");
+				ERR(
+				"adding and removing replicas at the same time is not allowed");
 				return NOT_TRANSFORMABLE;
 			}
 
-			REP(set_out_hs, r)->flags |= IS_BROKEN;
+			REP_HEALTH(set_out_hs, r)->flags |= IS_BROKEN;
 			is_adding_replicas = 1;
 		}
 	}
@@ -479,7 +481,7 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	if (!is_removing_replicas && !is_adding_replicas &&
 			(set_in_s->flags & OPTION_SINGLEHDR) ==
 				(set_out_s->flags & OPTION_SINGLEHDR)) {
-		LOG(2, "both poolsets are equal");
+		ERR("both poolsets are equal");
 		return NOT_TRANSFORMABLE;
 	}
 
@@ -487,7 +489,7 @@ identify_transform_operation(struct poolset_compare_status *set_in_s,
 	if ((is_removing_replicas || is_adding_replicas) &&
 			(set_in_s->flags & OPTION_SINGLEHDR) !=
 				(set_out_s->flags & OPTION_SINGLEHDR)) {
-		LOG(2,
+		ERR(
 		"cannot add/remove replicas and change the SINGLEHDR option at the same time");
 		return NOT_TRANSFORMABLE;
 	}
@@ -585,8 +587,8 @@ copy_replica_data_fw(struct pool_set *set_dst, struct pool_set *set_src,
 
 	size_t len = (size_t)pool_size - POOL_HDR_SIZE -
 			replica_get_part_data_len(set_src, repn, 0);
-	void *src = PART(REP(set_src, repn), 1).addr;
-	void *dst = PART(REP(set_dst, repn), 1).addr;
+	void *src = PART(REP(set_src, repn), 1)->addr;
+	void *dst = PART(REP(set_dst, repn), 1)->addr;
 	size_t count = len / POOL_HDR_SIZE;
 	while (count-- > 0) {
 		pmem_memcpy_persist(dst, src, POOL_HDR_SIZE);
@@ -613,8 +615,8 @@ copy_replica_data_bw(struct pool_set *set_dst, struct pool_set *set_src,
 	size_t len = (size_t)pool_size - POOL_HDR_SIZE -
 			replica_get_part_data_len(set_src, repn, 0);
 	size_t count = len / POOL_HDR_SIZE;
-	void *src = ADDR_SUM(PART(REP(set_src, repn), 1).addr, len);
-	void *dst = ADDR_SUM(PART(REP(set_dst, repn), 1).addr, len);
+	void *src = ADDR_SUM(PART(REP(set_src, repn), 1)->addr, len);
+	void *dst = ADDR_SUM(PART(REP(set_dst, repn), 1)->addr, len);
 	while (count-- > 0) {
 		src = ADDR_SUM(src, -(ssize_t)POOL_HDR_SIZE);
 		dst = ADDR_SUM(dst, -(ssize_t)POOL_HDR_SIZE);
@@ -654,8 +656,8 @@ update_replica_header(struct pool_set *set, unsigned repn)
 {
 	LOG(3, "set %p, repn %u", set, repn);
 	struct pool_replica *rep = REP(set, repn);
-	struct pool_set_part part = PART(REP(set, repn), 0);
-	struct pool_hdr *hdr = (struct pool_hdr *)part.hdr;
+	struct pool_set_part *part = PART(REP(set, repn), 0);
+	struct pool_hdr *hdr = (struct pool_hdr *)part->hdr;
 	if (set->options & OPTION_SINGLEHDR) {
 		hdr->incompat_features |= POOL_FEAT_SINGLEHDR;
 		memcpy(hdr->next_part_uuid, hdr->uuid, POOL_HDR_UUID_LEN);
@@ -678,7 +680,7 @@ fill_replica_struct_uuids(struct pool_set *set, unsigned repn)
 {
 	LOG(3, "set %p, repn %u", set, repn);
 	struct pool_replica *rep = REP(set, repn);
-	memcpy(PART(rep, 0).uuid, HDR(rep, 0)->uuid, POOL_HDR_UUID_LEN);
+	memcpy(PART(rep, 0)->uuid, HDR(rep, 0)->uuid, POOL_HDR_UUID_LEN);
 	for (unsigned p = 1; p < rep->nhdrs; ++p) {
 		if (util_uuid_generate(rep->part[p].uuid) < 0) {
 			ERR("cannot generate part UUID");
@@ -700,9 +702,9 @@ update_uuids(struct pool_set *set, unsigned repn)
 	struct pool_hdr *hdr0 = HDR(rep, 0);
 	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		struct pool_hdr *hdrp = HDR(rep, p);
-		memcpy(hdrp->next_part_uuid, PARTN(rep, p).uuid,
+		memcpy(hdrp->next_part_uuid, PARTN(rep, p)->uuid,
 				POOL_HDR_UUID_LEN);
-		memcpy(hdrp->prev_part_uuid, PARTP(rep, p).uuid,
+		memcpy(hdrp->prev_part_uuid, PARTP(rep, p)->uuid,
 				POOL_HDR_UUID_LEN);
 		memcpy(hdrp->next_repl_uuid, hdr0->next_repl_uuid,
 				POOL_HDR_UUID_LEN);
@@ -712,7 +714,7 @@ update_uuids(struct pool_set *set, unsigned repn)
 				POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1,
 			POOL_HDR_CSUM_END_OFF);
-		util_persist(PART(rep, p).is_dev_dax, hdrp, sizeof(*hdrp));
+		util_persist(PART(rep, p)->is_dev_dax, hdrp, sizeof(*hdrp));
 	}
 }
 
@@ -727,8 +729,8 @@ copy_part_fds(struct pool_set *set_dst, struct pool_set *set_src)
 	for (unsigned r = 0; r < set_dst->nreplicas; ++r) {
 		ASSERTeq(REP(set_src, r)->nparts, REP(set_dst, r)->nparts);
 		for (unsigned p = 0; p < REP(set_dst, r)->nparts; ++p) {
-			PART(REP(set_dst, r), p).fd =
-					PART(REP(set_src, r), p).fd;
+			PART(REP(set_dst, r), p)->fd =
+					PART(REP(set_src, r), p)->fd;
 		}
 	}
 
@@ -877,7 +879,7 @@ remove_hdrs(struct pool_set *set_in, struct pool_set *set_out,
 			LOG(1, "removing headers from replica %u failed", r);
 			/* mark all previous replicas as damaged */
 			while (--r < set_in->nreplicas)
-				REP(set_in_hs, r)->flags |= IS_BROKEN;
+				REP_HEALTH(set_in_hs, r)->flags |= IS_BROKEN;
 			return -1;
 		}
 	}
@@ -901,7 +903,7 @@ add_hdrs(struct pool_set *set_in, struct pool_set *set_out,
 			LOG(1, "adding headers to replica %u failed", r);
 			/* mark all previous replicas as damaged */
 			while (--r < set_in->nreplicas)
-				REP(set_in_hs, r)->flags |= IS_BROKEN;
+				REP_HEALTH(set_in_hs, r)->flags |= IS_BROKEN;
 			return -1;
 		}
 	}
@@ -956,7 +958,7 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 			set_out_cs, set_in_hs, set_out_hs);
 
 	if (operation == NOT_TRANSFORMABLE) {
-		ERR("poolsets are not transformable");
+		LOG(1, "poolsets are not transformable");
 		ret = -1;
 		errno = EINVAL;
 		goto free_cs;

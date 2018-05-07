@@ -44,7 +44,7 @@
 #include "os_deep.h"
 
 #define FLUSH_SDS(sds, part) \
-	if (part != NULL) os_part_deep_common(part, sds, sizeof(*sds), 1)
+	if ((part) != NULL) os_part_deep_common(part, sds, sizeof(*(sds)), 1)
 
 /*
  * shutdown_state_checksum -- (internal) counts SDS checksum and flush it
@@ -163,7 +163,7 @@ shutdown_state_reinit(struct shutdown_state *curr_sds,
 	struct shutdown_state *pool_sds, struct pool_set_part *part)
 {
 	LOG(3, "curr_sds %p, pool_sds %p", curr_sds, pool_sds);
-	shutdown_state_init((struct shutdown_state *)pool_sds, part);
+	shutdown_state_init(pool_sds, part);
 	pool_sds->uuid = htole64(curr_sds->uuid);
 	pool_sds->usc = htole64(curr_sds->usc);
 	pool_sds->dirty = 0;

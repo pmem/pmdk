@@ -84,7 +84,7 @@ check_shutdown_state(struct pool_set *set)
 		struct shutdown_state curr_sds;
 		shutdown_state_init(&curr_sds, NULL);
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			shutdown_state_add_part(&curr_sds, PART(rep, p).path,
+			shutdown_state_add_part(&curr_sds, PART(rep, p)->path,
 				NULL);
 		}
 		/* make a copy of sds as we shouldn't modify a pool */
@@ -114,7 +114,7 @@ shutdown_state_preliminary_check(PMEMpoolcheck *ppc, location *loc)
 			check_end(ppc->data);
 			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
 			return CHECK_ERR(ppc,
-				"%san ADR failure was detected - your pool might be corrputed",
+				"%san ADR failure was detected - your pool might be corrupted",
 				loc->prefix);
 		}
 	} else {
@@ -140,7 +140,7 @@ shutdown_state_sds_check(PMEMpoolcheck *ppc, location *loc)
 
 	if (loc->part == 0 && check_shutdown_state(loc->set)) {
 		CHECK_ASK(ppc, Q_RESET_SDS,
-			"An ADR failure was detected - your pool might be corrputed.|"
+			"An ADR failure was detected - your pool might be corrupted.|"
 			"Do you want to reset shutdown state for replica: %u to be able to open pool on your own risk? "
 			"If you have more then one replica you will have to synchronize your pool after this operation",
 			loc->replica);
@@ -160,7 +160,7 @@ shutdown_state_sds_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 
 	switch (question) {
 	case Q_RESET_SDS:
-		CHECK_INFO(ppc, "%sreseting pool_hdr.sds", loc->prefix);
+		CHECK_INFO(ppc, "%sresetting pool_hdr.sds", loc->prefix);
 		memset(&loc->hdr.sds, 0, sizeof(loc->hdr.sds));
 		break;
 	default:
@@ -280,7 +280,7 @@ check_sds(PMEMpoolcheck *ppc)
 
 	if (check_shutdown_state(ppc->pool->set_file->poolset)) {
 		ppc->result = CHECK_RESULT_NOT_CONSISTENT;
-		CHECK_ERR(ppc, "scannot complete repair, reverting changes");
+		CHECK_ERR(ppc, "cannot complete repair, reverting changes");
 		return;
 	}
 

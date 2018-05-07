@@ -100,7 +100,7 @@
 ((void *)((uintptr_t)(entry) - sizeof(struct allocation_header)))
 
 #define OBJH_FROM_PTR(ptr)\
-((void *)((uintptr_t)ptr - sizeof(struct legacy_object_header)))
+((void *)((uintptr_t)(ptr) - sizeof(struct legacy_object_header)))
 
 #define DEFAULT_HDR_SIZE	4096UL /* 4 KB */
 #define DEFAULT_DESC_SIZE	4096UL /* 4 KB */
@@ -111,7 +111,7 @@
 	sizeof(struct legacy_object_header)))
 
 #define OBJH_TO_PTR(objh)\
-((void *)((uintptr_t)objh + sizeof(struct legacy_object_header)))
+((void *)((uintptr_t)(objh) + sizeof(struct legacy_object_header)))
 
 /* invalid answer for ask_* functions */
 #define INV_ANS	'\0'
@@ -234,6 +234,8 @@ char ask_yN(char op, const char *fmt, ...) FORMAT_PRINTF(2, 3);
 unsigned util_heap_max_zone(size_t size);
 int util_heap_get_bitmap_params(uint64_t block_size, uint64_t *nallocsp,
 		uint64_t *nvalsp, uint64_t *last_valp);
+
+int util_pool_clear_badblocks(const char *path, int create);
 
 static const struct range ENTIRE_UINT64 = {
 	{ NULL, NULL },	/* range */

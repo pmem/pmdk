@@ -277,14 +277,14 @@ pmemlog_createW(const wchar_t *path, size_t poolsize, mode_t mode)
  * calls can map a read-only pool if required.
  */
 static PMEMlogpool *
-log_open_common(const char *path, int cow)
+log_open_common(const char *path, unsigned flags)
 {
-	LOG(3, "path %s cow %d", path, cow);
+	LOG(3, "path %s flags 0x%x", path, flags);
 
 	struct pool_set *set;
 
-	if (util_pool_open(&set, path, cow, PMEMLOG_MIN_PART, &Log_open_attr,
-			NULL, false, NULL) != 0) {
+	if (util_pool_open(&set, path, PMEMLOG_MIN_PART, &Log_open_attr,
+			NULL, NULL, flags) != 0) {
 		LOG(2, "cannot open pool or pool set");
 		return NULL;
 	}
@@ -734,7 +734,7 @@ pmemlog_checkU(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
-	PMEMlogpool *plp = log_open_common(path, 1);
+	PMEMlogpool *plp = log_open_common(path, POOL_OPEN_COW);
 	if (plp == NULL)
 		return -1;	/* errno set by log_open_common() */
 

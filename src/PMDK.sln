@@ -87,6 +87,19 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dllview", "test\tools\dllvi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rbtree_map", "examples\libpmemobj\tree_map\rbtree_map.vcxproj", "{17A4B817-68B1-4719-A9EF-BD8FAB747DE6}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pmempool", "pmempool", "{181A4234-282C-41F0-85C2-2B7697B3CB1A}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\pmempool\pmempool-check.1.md = ..\doc\pmempool\pmempool-check.1.md
+		..\doc\pmempool\pmempool-convert.1.md = ..\doc\pmempool\pmempool-convert.1.md
+		..\doc\pmempool\pmempool-create.1.md = ..\doc\pmempool\pmempool-create.1.md
+		..\doc\pmempool\pmempool-dump.1.md = ..\doc\pmempool\pmempool-dump.1.md
+		..\doc\pmempool\pmempool-info.1.md = ..\doc\pmempool\pmempool-info.1.md
+		..\doc\pmempool\pmempool-rm.1.md = ..\doc\pmempool\pmempool-rm.1.md
+		..\doc\pmempool\pmempool-sync.1.md = ..\doc\pmempool\pmempool-sync.1.md
+		..\doc\pmempool\pmempool-transform.1.md = ..\doc\pmempool\pmempool-transform.1.md
+		..\doc\pmempool\pmempool.1.md = ..\doc\pmempool\pmempool.1.md
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_non_zero", "test\blk_non_zero\blk_non_zero.vcxproj", "{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
@@ -149,6 +162,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "out_err_mt_win", "test\out_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_include", "test\pmem_include\pmem_include.vcxproj", "{2B7772E6-9DAA-4F38-B0BC-7B2399366325}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "poolset", "poolset", "{2C24CC4F-B340-467D-908F-1BF2C69BC79F}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\poolset\poolset.5.md = ..\doc\poolset\poolset.5.md
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lists", "examples\libpmemobj\lists.vcxproj", "{2CD7408E-2F60-43C3-ACEB-C7D58CDD8462}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_locks", "test\obj_locks\obj_locks.vcxproj", "{2DE6B085-3C19-49B1-894A-AD9376000E09}"
@@ -170,6 +188,13 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bttcreate", "test\tools\bttcreate\bttcreate.vcxproj", "{3142CB13-CADA-48D3-9A25-E6ACB243760A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "list_map", "examples\libpmemobj\list_map\list_map.vcxproj", "{3799BA67-3C4F-4AE0-85DC-5BAAEA01A180}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libvmem", "libvmem", "{3AB2F5A9-5C1E-4077-811A-2F96BCF9EE89}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libvmem\libvmem.7.md = ..\doc\libvmem\libvmem.7.md
+		..\doc\libvmem\vmem_create.3.md = ..\doc\libvmem\vmem_create.3.md
+		..\doc\libvmem\vmem_malloc.3.md = ..\doc\libvmem\vmem_malloc.3.md
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces_pmem", "test\traces_pmem\traces_pmem.vcxproj", "{3B23831B-E5DE-4A62-9D0B-27D0D9F293F4}"
 EndProject
@@ -253,8 +278,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asset_checkout", "examples\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemobj_cpp", "libpmemobj_cpp", "{52157F12-CDE8-4092-A8F9-F9ECC5CBE0D1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Setup", "Setup", "{52B4C136-F527-4FE0-9781-5B2259A0FF27}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_mix_allocations", "test\vmem_mix_allocations\vmem_mix_allocations.vcxproj", "{537F759B-B617-48D9-A2F3-7FB769A8F9B7}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_delete", "test\vmem_delete\vmem_delete.vcxproj", "{54E6F8F5-418E-44BE-8DF2-5A60D9EE971B}"
@@ -286,6 +309,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_many_size_allocs", "tes
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemlog_simple", "examples\libpmemobj\pmemlog\obj_pmemlog_simple.vcxproj", "{5DB2E259-0D19-4A89-B8EC-B2912F39924D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_sds", "test\util_sds\util_sds.vcxproj", "{5EC35099-9777-45E8-9520-EB2EE75BDF88}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_rm", "test\libpmempool_rm\libpmempool_rm.vcxproj", "{5F2B687A-1B42-439C-AEEC-135DD22FB851}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -387,6 +412,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "linux", "linux", "{774627B7
 		windows\include\linux\limits.h = windows\include\linux\limits.h
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemblk", "libpmemblk", "{7783BC49-A25B-468B-A6F8-AB6B39A91C65}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmemblk\libpmemblk.7.md = ..\doc\libpmemblk\libpmemblk.7.md
+		..\doc\libpmemblk\pmemblk_bsize.3.md = ..\doc\libpmemblk\pmemblk_bsize.3.md
+		..\doc\libpmemblk\pmemblk_create.3.md = ..\doc\libpmemblk\pmemblk_create.3.md
+		..\doc\libpmemblk\pmemblk_read.3.md = ..\doc\libpmemblk\pmemblk_read.3.md
+		..\doc\libpmemblk\pmemblk_set_zero.3.md = ..\doc\libpmemblk\pmemblk_set_zero.3.md
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_pool_lock", "test\blk_pool_lock\blk_pool_lock.vcxproj", "{779425B1-2211-499B-A7CC-4F9EC6CB0D25}"
 	ProjectSection(ProjectDependencies) = postProject
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
@@ -437,6 +471,27 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_heap_state", "test\obj_
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{877E7D1D-8150-4FE5-A139-B6FBCEAEC393}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemobj", "libpmemobj", "{87A32959-E477-4CD5-8A1C-C85646D806B2}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmemobj\libpmemobj.7.md = ..\doc\libpmemobj\libpmemobj.7.md
+		..\doc\libpmemobj\oid_is_null.3.md = ..\doc\libpmemobj\oid_is_null.3.md
+		..\doc\libpmemobj\pmemobj_action.3.md = ..\doc\libpmemobj\pmemobj_action.3.md
+		..\doc\libpmemobj\pmemobj_alloc.3.md = ..\doc\libpmemobj\pmemobj_alloc.3.md
+		..\doc\libpmemobj\pmemobj_ctl_get.3.md = ..\doc\libpmemobj\pmemobj_ctl_get.3.md
+		..\doc\libpmemobj\pmemobj_first.3.md = ..\doc\libpmemobj\pmemobj_first.3.md
+		..\doc\libpmemobj\pmemobj_list_insert.3.md = ..\doc\libpmemobj\pmemobj_list_insert.3.md
+		..\doc\libpmemobj\pmemobj_memcpy_persist.3.md = ..\doc\libpmemobj\pmemobj_memcpy_persist.3.md
+		..\doc\libpmemobj\pmemobj_mutex_zero.3.md = ..\doc\libpmemobj\pmemobj_mutex_zero.3.md
+		..\doc\libpmemobj\pmemobj_open.3.md = ..\doc\libpmemobj\pmemobj_open.3.md
+		..\doc\libpmemobj\pmemobj_root.3.md = ..\doc\libpmemobj\pmemobj_root.3.md
+		..\doc\libpmemobj\pmemobj_tx_add_range.3.md = ..\doc\libpmemobj\pmemobj_tx_add_range.3.md
+		..\doc\libpmemobj\pmemobj_tx_alloc.3.md = ..\doc\libpmemobj\pmemobj_tx_alloc.3.md
+		..\doc\libpmemobj\pmemobj_tx_begin.3.md = ..\doc\libpmemobj\pmemobj_tx_begin.3.md
+		..\doc\libpmemobj\pobj_layout_begin.3.md = ..\doc\libpmemobj\pobj_layout_begin.3.md
+		..\doc\libpmemobj\pobj_list_head.3.md = ..\doc\libpmemobj\pobj_list_head.3.md
+		..\doc\libpmemobj\toid_declare.3.md = ..\doc\libpmemobj\toid_declare.3.md
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmalloc_oom_mt", "test\obj_pmalloc_oom_mt\obj_pmalloc_oom_mt.vcxproj", "{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC}"
 EndProject
@@ -612,6 +667,19 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_aligned_alloc", "test\c
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_transform_win", "test\libpmempool_transform_win\libpmempool_transform_win.vcxproj", "{B30C6212-A160-405A-8FE7-340E721738A2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemcto", "libpmemcto", "{B339D149-205D-446C-9C7E-7FB33FFAAFA0}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmemcto\libpmemcto.7.md = ..\doc\libpmemcto\libpmemcto.7.md
+		..\doc\libpmemcto\pmemcto_aligned_alloc.3.md = ..\doc\libpmemcto\pmemcto_aligned_alloc.3.md
+		..\doc\libpmemcto\pmemcto_malloc.3.md = ..\doc\libpmemcto\pmemcto_malloc.3.md
+		..\doc\libpmemcto\pmemcto_malloc_usable_size.3.md = ..\doc\libpmemcto\pmemcto_malloc_usable_size.3.md
+		..\doc\libpmemcto\pmemcto_open.3.md = ..\doc\libpmemcto\pmemcto_open.3.md
+		..\doc\libpmemcto\pmemcto_set_root_pointer.3.md = ..\doc\libpmemcto\pmemcto_set_root_pointer.3.md
+		..\doc\libpmemcto\pmemcto_stats_print.3.md = ..\doc\libpmemcto\pmemcto_stats_print.3.md
+		..\doc\libpmemcto\pmemcto_strdup.3.md = ..\doc\libpmemcto\pmemcto_strdup.3.md
+		..\doc\libpmemcto\pmemcto_wcsdup.3.md = ..\doc\libpmemcto\pmemcto_wcsdup.3.md
+	EndProjectSection
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemwrite", "test\tools\pmemwrite\pmemwrite.vcxproj", "{B35BFA09-DE68-483B-AB61-8790E8F060A8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{901F04DB-E1A5-4A41-8B81-9D31C19ACD59} = {901F04DB-E1A5-4A41-8B81-9D31C19ACD59}
@@ -622,6 +690,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memset", "test\pmem_memset\pmem_memset.vcxproj", "{B36F115C-8139-4C35-A3E7-E6BF9F3DA793}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl_heap_size", "test\obj_ctl_heap_size\obj_ctl_heap_size.vcxproj", "{B379539C-E130-460D-AE82-4EBDD1A97845}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_mem", "test\obj_mem\obj_mem.vcxproj", "{B3AF8A19-5802-4A34-9157-27BBE4E53C0A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_linkedlist", "test\ex_linkedlist\ex_linkedlist.vcxproj", "{B440BB05-37A8-42EA-98D3-D83EB113E497}"
 EndProject
@@ -634,6 +704,15 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "windows", "windows", "{B870D8A6-12CD-4DD0-B843-833695C2310A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_recovery", "test\obj_list_recovery\obj_list_recovery.vcxproj", "{B887EA26-846C-4D6A-B0E4-432487506BC7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemlog", "libpmemlog", "{B8A4320D-E9A3-4F89-A8AA-B16D746C158A}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmemlog\libpmemlog.7.md = ..\doc\libpmemlog\libpmemlog.7.md
+		..\doc\libpmemlog\pmemlog_append.3.md = ..\doc\libpmemlog\pmemlog_append.3.md
+		..\doc\libpmemlog\pmemlog_create.3.md = ..\doc\libpmemlog\pmemlog_create.3.md
+		..\doc\libpmemlog\pmemlog_nbyte.3.md = ..\doc\libpmemlog\pmemlog_nbyte.3.md
+		..\doc\libpmemlog\pmemlog_tell.3.md = ..\doc\libpmemlog\pmemlog_tell.3.md
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_first_next", "test\obj_first_next\obj_first_next.vcxproj", "{BABC6427-E533-4DCF-91E3-B5B2ED253F46}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -699,6 +778,13 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces", "test\traces\traces.vcxproj", "{CA4BBB24-D33E-42E2-A495-F10D80DE8C1D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmembench", "benchmarks\pmembench.vcxproj", "{CB906E89-1313-4929-AFF7-86FBF1CC301F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{99F7F00F-1DE5-45EA-992B-64BA282FAC76} = {99F7F00F-1DE5-45EA-992B-64BA282FAC76}
+		{67AC1343-98FD-4143-92C0-559C55F749F5} = {67AC1343-98FD-4143-92C0-559C55F749F5}
+		{5F2B687A-1B42-439C-AEEC-135DD22FB851} = {5F2B687A-1B42-439C-AEEC-135DD22FB851}
+		{CF9A0883-6334-44C7-AC29-349468C78E27} = {CF9A0883-6334-44C7-AC29-349468C78E27}
+		{7DC3B3DD-73ED-4602-9AF3-8D7053620DEA} = {7DC3B3DD-73ED-4602-9AF3-8D7053620DEA}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_lane", "test\obj_lane\obj_lane.vcxproj", "{CCA9B681-D10B-45E4-98CC-531503D2EDE8}"
 EndProject
@@ -729,8 +815,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fifo", "examples\libpmemobj
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmempool_help", "test\pmempool_help\pmempool_help.vcxproj", "{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}"
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "PMDK_setup", "windows\setup\setup.vdproj", "{D5093EC2-5B5A-4D79-842C-6A1481E9C989}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_file_create", "test\util_file_create\util_file_create.vcxproj", "{D829DB63-E046-474D-8EA3-43A6659294D8}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ex_libpmemlog", "test\ex_libpmemlog\ex_libpmemlog.vcxproj", "{D8317F1D-7A70-4A39-977A-EAB05A04A87B}"
@@ -743,11 +827,21 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cto_pool", "test\cto_pool\c
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_recovery", "test\blk_recovery\blk_recovery.vcxproj", "{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_has_auto_flush_win", "test\pmem_has_auto_flush_win\pmem_has_auto_flush_win.vcxproj", "{DEA3CD0A-8781-4ABE-9A7D-00B91132FED0}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_ptr", "test\obj_cpp_ptr\obj_cpp_ptr.vcxproj", "{DFEBEBAA-9624-445C-82A0-93363E22D806}"
 	ProjectSection(ProjectDependencies) = postProject
 		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmem", "libpmem", "{E1A205C5-FD08-4356-B69C-B5689F2D6053}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmem\libpmem.7.md = ..\doc\libpmem\libpmem.7.md
+		..\doc\libpmem\pmem_flush.3.md = ..\doc\libpmem\pmem_flush.3.md
+		..\doc\libpmem\pmem_is_pmem.3.md = ..\doc\libpmem\pmem_is_pmem.3.md
+		..\doc\libpmem\pmem_memmove_persist.3.md = ..\doc\libpmem\pmem_memmove_persist.3.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E23BB160-006E-44F2-8FB4-3A2240BBC20C}"
@@ -778,11 +872,15 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmempool_map_flog", "tes
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "manpage", "examples\libpmemobj\manpage.vcxproj", "{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_sds", "test\obj_sds\obj_sds.vcxproj", "{EDD5FA29-69AF-445F-842A-132E65D3C92B}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tools", "Tools", "{F09A0864-9221-47AD-872F-D4538104D747}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_is_poolset", "test\util_is_poolset\util_is_poolset.vcxproj", "{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_signal", "test\win_signal\win_signal.vcxproj", "{F13108C4-4C86-4D56-A317-A4E5892A8AF7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{F18C84B3-7898-4324-9D75-99A6048F442D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_pool_win", "test\obj_cpp_pool_win\obj_cpp_pool_win.vcxproj", "{F322ED35-A389-4B65-AC8A-E25F1337DBCC}"
 EndProject
@@ -1208,6 +1306,10 @@ Global
 		{5DB2E259-0D19-4A89-B8EC-B2912F39924D}.Debug|x64.Build.0 = Debug|x64
 		{5DB2E259-0D19-4A89-B8EC-B2912F39924D}.Release|x64.ActiveCfg = Release|x64
 		{5DB2E259-0D19-4A89-B8EC-B2912F39924D}.Release|x64.Build.0 = Release|x64
+		{5EC35099-9777-45E8-9520-EB2EE75BDF88}.Debug|x64.ActiveCfg = Debug|x64
+		{5EC35099-9777-45E8-9520-EB2EE75BDF88}.Debug|x64.Build.0 = Debug|x64
+		{5EC35099-9777-45E8-9520-EB2EE75BDF88}.Release|x64.ActiveCfg = Release|x64
+		{5EC35099-9777-45E8-9520-EB2EE75BDF88}.Release|x64.Build.0 = Release|x64
 		{5F2B687A-1B42-439C-AEEC-135DD22FB851}.Debug|x64.ActiveCfg = Debug|x64
 		{5F2B687A-1B42-439C-AEEC-135DD22FB851}.Debug|x64.Build.0 = Debug|x64
 		{5F2B687A-1B42-439C-AEEC-135DD22FB851}.Release|x64.ActiveCfg = Release|x64
@@ -1603,6 +1705,10 @@ Global
 		{B379539C-E130-460D-AE82-4EBDD1A97845}.Debug|x64.Build.0 = Debug|x64
 		{B379539C-E130-460D-AE82-4EBDD1A97845}.Release|x64.ActiveCfg = Release|x64
 		{B379539C-E130-460D-AE82-4EBDD1A97845}.Release|x64.Build.0 = Release|x64
+		{B3AF8A19-5802-4A34-9157-27BBE4E53C0A}.Debug|x64.ActiveCfg = Debug|x64
+		{B3AF8A19-5802-4A34-9157-27BBE4E53C0A}.Debug|x64.Build.0 = Debug|x64
+		{B3AF8A19-5802-4A34-9157-27BBE4E53C0A}.Release|x64.ActiveCfg = Release|x64
+		{B3AF8A19-5802-4A34-9157-27BBE4E53C0A}.Release|x64.Build.0 = Release|x64
 		{B440BB05-37A8-42EA-98D3-D83EB113E497}.Debug|x64.ActiveCfg = Debug|x64
 		{B440BB05-37A8-42EA-98D3-D83EB113E497}.Debug|x64.Build.0 = Debug|x64
 		{B440BB05-37A8-42EA-98D3-D83EB113E497}.Release|x64.ActiveCfg = Release|x64
@@ -1752,10 +1858,6 @@ Global
 		{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}.Debug|x64.Build.0 = Debug|x64
 		{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}.Release|x64.ActiveCfg = Release|x64
 		{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7}.Release|x64.Build.0 = Release|x64
-		{D5093EC2-5B5A-4D79-842C-6A1481E9C989}.Debug|x64.ActiveCfg = Debug
-		{D5093EC2-5B5A-4D79-842C-6A1481E9C989}.Debug|x64.Build.0 = Debug
-		{D5093EC2-5B5A-4D79-842C-6A1481E9C989}.Release|x64.ActiveCfg = Release
-		{D5093EC2-5B5A-4D79-842C-6A1481E9C989}.Release|x64.Build.0 = Release
 		{D829DB63-E046-474D-8EA3-43A6659294D8}.Debug|x64.ActiveCfg = Debug|x64
 		{D829DB63-E046-474D-8EA3-43A6659294D8}.Debug|x64.Build.0 = Debug|x64
 		{D829DB63-E046-474D-8EA3-43A6659294D8}.Release|x64.ActiveCfg = Release|x64
@@ -1780,6 +1882,10 @@ Global
 		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Debug|x64.Build.0 = Debug|x64
 		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Release|x64.ActiveCfg = Release|x64
 		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}.Release|x64.Build.0 = Release|x64
+		{DEA3CD0A-8781-4ABE-9A7D-00B91132FED0}.Debug|x64.ActiveCfg = Debug|x64
+		{DEA3CD0A-8781-4ABE-9A7D-00B91132FED0}.Debug|x64.Build.0 = Debug|x64
+		{DEA3CD0A-8781-4ABE-9A7D-00B91132FED0}.Release|x64.ActiveCfg = Release|x64
+		{DEA3CD0A-8781-4ABE-9A7D-00B91132FED0}.Release|x64.Build.0 = Release|x64
 		{DFEBEBAA-9624-445C-82A0-93363E22D806}.Debug|x64.ActiveCfg = Debug|x64
 		{DFEBEBAA-9624-445C-82A0-93363E22D806}.Debug|x64.Build.0 = Debug|x64
 		{DFEBEBAA-9624-445C-82A0-93363E22D806}.Release|x64.ActiveCfg = Release|x64
@@ -1820,6 +1926,10 @@ Global
 		{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB}.Debug|x64.Build.0 = Debug|x64
 		{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB}.Release|x64.ActiveCfg = Release|x64
 		{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB}.Release|x64.Build.0 = Release|x64
+		{EDD5FA29-69AF-445F-842A-132E65D3C92B}.Debug|x64.ActiveCfg = Debug|x64
+		{EDD5FA29-69AF-445F-842A-132E65D3C92B}.Debug|x64.Build.0 = Debug|x64
+		{EDD5FA29-69AF-445F-842A-132E65D3C92B}.Release|x64.ActiveCfg = Release|x64
+		{EDD5FA29-69AF-445F-842A-132E65D3C92B}.Release|x64.Build.0 = Release|x64
 		{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0}.Debug|x64.ActiveCfg = Debug|x64
 		{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0}.Debug|x64.Build.0 = Debug|x64
 		{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0}.Release|x64.ActiveCfg = Release|x64
@@ -1923,6 +2033,7 @@ Global
 		{16721958-ECE3-4674-9913-9AF8E32F0CD8} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{179BEB5A-2C90-44F5-A734-FA756A5E668C} = {F09A0864-9221-47AD-872F-D4538104D747}
 		{17A4B817-68B1-4719-A9EF-BD8FAB747DE6} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{181A4234-282C-41F0-85C2-2B7697B3CB1A} = {F18C84B3-7898-4324-9D75-99A6048F442D}
 		{18E90E1A-F2E0-40DF-9900-A14E560C9EB4} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
 		{1A36B57B-2E88-4D81-89C0-F575C9895E36} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{1B871BA2-3F70-4BC9-9DF4-725EB07F6628} = {F09A0864-9221-47AD-872F-D4538104D747}
@@ -1945,6 +2056,7 @@ Global
 		{2A1D6AF2-7336-4966-A4B3-0BE9A24BAE00} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
 		{2B1A5104-A324-4D02-B5C7-D021FB8F880C} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
 		{2B7772E6-9DAA-4F38-B0BC-7B2399366325} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
+		{2C24CC4F-B340-467D-908F-1BF2C69BC79F} = {F18C84B3-7898-4324-9D75-99A6048F442D}
 		{2CD7408E-2F60-43C3-ACEB-C7D58CDD8462} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
 		{2DE6B085-3C19-49B1-894A-AD9376000E09} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{2E7E8487-0BB0-4E8A-8672-ED8ABD80D468} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
@@ -1953,6 +2065,7 @@ Global
 		{2F543422-4B8A-4898-BE6B-590F52B4E9D1} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{3142CB13-CADA-48D3-9A25-E6ACB243760A} = {F09A0864-9221-47AD-872F-D4538104D747}
 		{3799BA67-3C4F-4AE0-85DC-5BAAEA01A180} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
+		{3AB2F5A9-5C1E-4077-811A-2F96BCF9EE89} = {F18C84B3-7898-4324-9D75-99A6048F442D}
 		{3B23831B-E5DE-4A62-9D0B-27D0D9F293F4} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
 		{3BAB8FDF-42F7-4D46-AA10-E282FD41B9F2} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
 		{3CF270CD-0F56-48E3-AD84-82F369C568BF} = {1A36B57B-2E88-4D81-89C0-F575C9895E36}
@@ -1994,6 +2107,7 @@ Global
 		{5B2B9C0D-1B6D-4357-8307-6DE1EE0A41A3} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
 		{5D362DB7-D2BD-4907-AAD8-4B8627E72282} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{5DB2E259-0D19-4A89-B8EC-B2912F39924D} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{5EC35099-9777-45E8-9520-EB2EE75BDF88} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
 		{5F2B687A-1B42-439C-AEEC-135DD22FB851} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
 		{5F8A56F8-2C5B-48B6-9654-DD642D3E5F5C} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
 		{60206D22-E132-4695-8486-10BECA32C5CC} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
@@ -2028,6 +2142,7 @@ Global
 		{746BA101-5C93-42A5-AC7A-64DCEB186572} = {853D45D8-980C-4991-B62A-DAC6FD245402}
 		{74D655D5-F661-4887-A1EB-5A6222AF5FCA} = {E3229AF7-1FA2-4632-BB0B-B74F709F1A33}
 		{774627B7-6532-4464-AEE4-02F72CA44F95} = {9A8482A7-BF0C-423D-8266-189456ED41F6}
+		{7783BC49-A25B-468B-A6F8-AB6B39A91C65} = {F18C84B3-7898-4324-9D75-99A6048F442D}
 		{779425B1-2211-499B-A7CC-4F9EC6CB0D25} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
 		{79D37FFE-FF76-44B3-BB27-3DCAEFF2EBE9} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
 		{7D71EE07-6CE2-49FA-8AB8-976800A050A0} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
@@ -2043,6 +2158,7 @@ Global
 		{85DBDA9B-AEF6-43E7-B8B5-05FF2BEC61A3} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{86EE22CC-6D3C-4F81-ADC8-394946F0DA81} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{877E7D1D-8150-4FE5-A139-B6FBCEAEC393} = {853D45D8-980C-4991-B62A-DAC6FD245402}
+		{87A32959-E477-4CD5-8A1C-C85646D806B2} = {F18C84B3-7898-4324-9D75-99A6048F442D}
 		{88D239E4-EB7D-4E0A-BE3A-AD78B9F408FC} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{89B6AF14-08A0-437A-B31D-A8A3492FA965} = {45E74E38-35CA-4CB6-8965-BC20D39659AF}
 		{89F947CA-DDEF-4131-8AFB-584ABA4A1302} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
@@ -2098,16 +2214,19 @@ Global
 		{AF0B7480-EBE3-486B-B0C8-134910BC9324} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
 		{B2DC2F89-0724-4110-8934-D1173BD73D44} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
 		{B30C6212-A160-405A-8FE7-340E721738A2} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
+		{B339D149-205D-446C-9C7E-7FB33FFAAFA0} = {F18C84B3-7898-4324-9D75-99A6048F442D}
 		{B35BFA09-DE68-483B-AB61-8790E8F060A8} = {F09A0864-9221-47AD-872F-D4538104D747}
 		{B36EE2A8-1487-47BB-B3B9-ABCB732B35F3} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
 		{B36F115C-8139-4C35-A3E7-E6BF9F3DA793} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
 		{B379539C-E130-460D-AE82-4EBDD1A97845} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{B3AF8A19-5802-4A34-9157-27BBE4E53C0A} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{B440BB05-37A8-42EA-98D3-D83EB113E497} = {E23BB160-006E-44F2-8FB4-3A2240BBC20C}
 		{B6DA6617-D98F-4A4D-A7C4-A317212924BF} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
 		{B6F4B85D-FE55-4A1B-AE97-D4A9ECFE195F} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
 		{B775480C-5B32-4F64-B026-47367280EC56} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{B870D8A6-12CD-4DD0-B843-833695C2310A} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{B887EA26-846C-4D6A-B0E4-432487506BC7} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{B8A4320D-E9A3-4F89-A8AA-B16D746C158A} = {F18C84B3-7898-4324-9D75-99A6048F442D}
 		{BABC6427-E533-4DCF-91E3-B5B2ED253F46} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{BAE107BA-7618-4972-8188-2D3CDAAE0453} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{BB248BAC-6E1B-433C-A254-75140A273AB5} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
@@ -2145,14 +2264,15 @@ Global
 		{D2C30C7E-A7D3-487A-956E-418CECAFFE8E} = {F09A0864-9221-47AD-872F-D4538104D747}
 		{D3A99F36-4B72-4766-ABCD-CCEDC26DD139} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
 		{D4035736-1AD6-4100-9FA9-A8A0C1DAE0C7} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
-		{D5093EC2-5B5A-4D79-842C-6A1481E9C989} = {52B4C136-F527-4FE0-9781-5B2259A0FF27}
 		{D829DB63-E046-474D-8EA3-43A6659294D8} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
 		{D8317F1D-7A70-4A39-977A-EAB05A04A87B} = {E23BB160-006E-44F2-8FB4-3A2240BBC20C}
 		{D88187D2-1977-4C5F-B0CD-83C69BD6C1BC} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{D93A2683-6D99-4F18-B378-91195D23E007} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}
 		{DB12B063-B09B-4D74-B293-F00A72D07BB2} = {16721958-ECE3-4674-9913-9AF8E32F0CD8}
 		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
+		{DEA3CD0A-8781-4ABE-9A7D-00B91132FED0} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
 		{DFEBEBAA-9624-445C-82A0-93363E22D806} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{E1A205C5-FD08-4356-B69C-B5689F2D6053} = {F18C84B3-7898-4324-9D75-99A6048F442D}
 		{E23BB160-006E-44F2-8FB4-3A2240BBC20C} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{E3229AF7-1FA2-4632-BB0B-B74F709F1A33} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
 		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
@@ -2165,6 +2285,7 @@ Global
 		{EA0D2458-5FCD-4DAB-B07D-229327B98BEB} = {0CC6D525-806E-433F-AB4A-6CFD546418B1}
 		{ED2A831F-4AAF-4CF7-A953-3C45B0EC1BE6} = {2F543422-4B8A-4898-BE6B-590F52B4E9D1}
 		{EDA88BAB-9FA7-4A2D-8974-EFCFA24B3FEB} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
+		{EDD5FA29-69AF-445F-842A-132E65D3C92B} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{F09A0864-9221-47AD-872F-D4538104D747} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{F0B613C4-1D9A-4259-BD0E-C1B9FF2AA3A0} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
 		{F13108C4-4C86-4D56-A317-A4E5892A8AF7} = {B870D8A6-12CD-4DD0-B843-833695C2310A}

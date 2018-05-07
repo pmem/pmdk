@@ -43,7 +43,7 @@ usage()
 	[ "$1" ] && echo Error: $1
 	cat >&2 <<EOF
 Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
-		[ -o timeout ] [ -s test-file ] [-k skip-dir ]
+		[ -o timeout ] [ -s test-file | -u test-sequence ] [-k skip-dir ]
 		[ -m memcheck ] [-p pmemcheck ] [ -e helgrind ] [ -d drd ] [ -c ]
 		[ -q provider ] [ -r persistency-method ]
 		[tests...]
@@ -64,6 +64,8 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 			Default value is 3 minutes.
 -s test-file		run only specified test file
 			test-file: all (default), TEST0, TEST1, ...
+-u test-sequence	run only tests from specified test sequence
+			e.g.: 0-2,5 will execute TEST0, TEST1, TEST2 and TEST5
 -m memcheck		run tests with memcheck
 			memcheck: auto (default, enable/disable based on test requirements),
 			force-enable (enable when test does not require memcheck, but
@@ -302,7 +304,30 @@ runtest() {
 	read_global_test_configuration
 
 	runscripts=$testfile
-	[ "$runscripts" = all ] && runscripts=`ls -1 TEST* | grep -v -i -e "\.ps1" | sort -V`
+	if [ "$runscripts" = all ]; then
+		if [ "$testseq" = all ]; then
+			runscripts=`ls -1 TEST* | grep -v -i -e "\.ps1" | sort -V`
+		else
+			# generate test sequence
+			seqs=(${testseq//,/ })
+			runscripts=
+			for seq in ${seqs[@]}; do
+				limits=(${seq//-/ })
+				if [ "${#limits[@]}" -eq "2" ]; then
+					if [ ${limits[0]} -lt ${limits[1]} ]; then
+						nos="$(seq ${limits[0]} ${limits[1]})"
+					else
+						nos="$(seq ${limits[1]} ${limits[0]})"
+					fi
+				else
+					nos=${limits[0]}
+				fi
+				for no in $nos; do
+					runscripts="$runscripts TEST$no"
+				done
+			done
+		fi
+	fi
 
 	# for each TEST script found...
 	for runscript in $runscripts
@@ -420,6 +445,7 @@ killopt="-k 10s"
 runtest_timeout="3m"
 use_timeout="ok"
 testfile=all
+testseq=all
 check_pool=0
 checktype="none"
 skip_dir=""
@@ -491,7 +517,7 @@ fi
 #
 # command-line argument processing...
 #
-args=`getopt k:nvb:t:f:o:s:m:e:p:d:cq:r:g:x: $*`
+args=`getopt k:nvb:t:f:o:s:u:m:e:p:d:cq:r:g:x: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -637,6 +663,13 @@ do
 		;;
 	-s)
 		testfile="$2"
+		testseq=all
+		shift 2
+		;;
+
+	-u)
+		testseq="$2"
+		testfile=all
 		shift 2
 		;;
 	-c)
@@ -760,7 +793,9 @@ fi
 [ "$non_pmem_skip" ] && echo "SKIPPED fs-type \"non-pmem\" runs: testconfig.sh doesn't set NON_PMEM_FS_DIR"
 
 if [ "$fail_count" != "0" ]; then
-	echo "$(tput setaf 1)$fail_count tests failed:$(tput sgr0) $fail_list"
+	echo "$(tput setaf 1)$fail_count tests failed:$(tput sgr0)"
+	# remove duplicates and print each test name in a new line
+	echo $fail_list | xargs -n1 | uniq
 	exit $keep_going_exit_code
 else
 	exit 0

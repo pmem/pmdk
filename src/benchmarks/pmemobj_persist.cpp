@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,7 @@
 #include <unistd.h>
 
 #include "benchmark.hpp"
+#include "file.h"
 #include "libpmemobj.h"
 #include "util.h"
 
@@ -108,7 +109,8 @@ init_objects(struct obj_bench *ob)
 	for (uint64_t i = 0; i < ob->nobjs; i++) {
 		PMEMoid oid;
 		void *ptr;
-		if (pmemobj_alloc(ob->pop, &oid, ob->obj_size, 0, NULL, NULL)) {
+		if (pmemobj_alloc(ob->pop, &oid, ob->obj_size, 0, nullptr,
+				  nullptr)) {
 			perror("pmemobj_alloc");
 			goto err_palloc;
 		}
@@ -148,7 +150,7 @@ do_warmup(struct obj_bench *ob)
 static int
 obj_persist_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 	uint64_t idx = info->worker->index * info->args->n_ops_per_thread +
 		info->index;
 
@@ -167,20 +169,19 @@ obj_persist_op(struct benchmark *bench, struct operation_info *info)
 static int
 obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
-	struct prog_args *pa = (struct prog_args *)args->opts;
+	auto *pa = (struct prog_args *)args->opts;
 	size_t poolsize;
 	if (pa->minsize >= args->dsize) {
 		fprintf(stderr, "Wrong params - allocation size\n");
 		return -1;
 	}
 
-	struct obj_bench *ob =
-		(struct obj_bench *)malloc(sizeof(struct obj_bench));
-	if (ob == NULL) {
+	auto *ob = (struct obj_bench *)malloc(sizeof(struct obj_bench));
+	if (ob == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -204,21 +205,20 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 	/* multiply by FACTOR for metadata, fragmentation, etc. */
 	poolsize = poolsize * FACTOR;
 
-	if (args->is_poolset) {
+	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
 		if (args->fsize < poolsize) {
-			fprintf(stderr, "insufficient size of poolset\n");
+			fprintf(stderr, "file size too large\n");
 			goto free_ob;
 		}
 		poolsize = 0;
-	} else {
-		if (poolsize < PMEMOBJ_MIN_POOL)
-			poolsize = PMEMOBJ_MIN_POOL;
+	} else if (poolsize < PMEMOBJ_MIN_POOL) {
+		poolsize = PMEMOBJ_MIN_POOL;
 	}
 
 	poolsize = PAGE_ALIGNED_UP_SIZE(poolsize);
 
-	ob->pop = pmemobj_create(args->fname, NULL, poolsize, args->fmode);
-	if (ob->pop == NULL) {
+	ob->pop = pmemobj_create(args->fname, nullptr, poolsize, args->fmode);
+	if (ob->pop == nullptr) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto free_ob;
 	}
@@ -246,7 +246,7 @@ free_ob:
 static int
 obj_persist_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	for (uint64_t i = 0; i < ob->nobjs; ++i) {
 		pmemobj_free(&ob->oids[i]);
@@ -264,9 +264,9 @@ static struct benchmark_clo obj_persist_clo[1];
 
 /* Stores information about benchmark. */
 static struct benchmark_info obj_persist_info;
-CONSTRUCTOR(pmemobj_persist_costructor)
+CONSTRUCTOR(pmemobj_persist_constructor)
 void
-pmemobj_persist_costructor(void)
+pmemobj_persist_constructor(void)
 {
 	obj_persist_clo[0].opt_short = 'w';
 	obj_persist_clo[0].opt_long = "no-warmup";

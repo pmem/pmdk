@@ -11,6 +11,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="badblock_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="badblock_poolset.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -56,13 +62,13 @@
     <ClCompile Include="shutdown_state.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="os_dimm_none.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="os_deep_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="os_auto_flush_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="os_dimm_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -113,6 +119,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os_auto_flush.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="os_badblock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="badblock_poolset.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="os_auto_flush_windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

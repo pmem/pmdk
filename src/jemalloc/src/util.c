@@ -320,16 +320,16 @@ malloc_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 } while (0)
 #define	APPEND_S(s, slen) do {						\
 	if (i < size) {							\
-		size_t cpylen = (slen <= size - i) ? slen : size - i;	\
+		size_t cpylen = ((slen) <= size - i) ? (slen) : size - i;	\
 		memcpy(&str[i], s, cpylen);				\
 	}								\
-	i += slen;							\
+	i += (slen);							\
 } while (0)
 #define	APPEND_PADDED_S(s, slen, width, left_justify) do {		\
 	/* Left padding. */						\
-	size_t pad_len = (width == -1) ? 0 : ((slen < (size_t)width) ?	\
-	    (size_t)width - slen : 0);					\
-	if (left_justify == false && pad_len != 0) {			\
+	size_t pad_len = ((width) == -1) ? 0 : (((slen) < (size_t)(width)) ?	\
+	    (size_t)(width) - (slen) : 0);					\
+	if ((left_justify) == false && pad_len != 0) {			\
 		size_t j;						\
 		for (j = 0; j < pad_len; j++)				\
 			APPEND_C(' ');					\
@@ -337,7 +337,7 @@ malloc_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 	/* Value. */							\
 	APPEND_S(s, slen);						\
 	/* Right padding. */						\
-	if (left_justify && pad_len != 0) {				\
+	if ((left_justify) && pad_len != 0) {				\
 		size_t j;						\
 		for (j = 0; j < pad_len; j++)				\
 			APPEND_C(' ');					\

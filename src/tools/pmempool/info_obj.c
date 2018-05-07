@@ -54,7 +54,7 @@
 
 #define OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
 
-#define PTR_TO_OFF(pop, ptr) ((uintptr_t)ptr - (uintptr_t)pop)
+#define PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
 
 typedef void (*pvector_callback_fn)(struct pmem_info *pip, int v, int vnum,
 		const struct memory_block *m, uint64_t i);

@@ -95,9 +95,10 @@ err:
  */
 static int
 recreate_broken_parts(struct pool_set *set,
-	struct poolset_health_status *set_hs, unsigned flags)
+			struct poolset_health_status *set_hs)
 {
-	LOG(3, "set %p, set_hs %p, flags %u", set, set_hs, flags);
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		if (set->replica[r]->remote)
 			continue;
@@ -110,16 +111,14 @@ recreate_broken_parts(struct pool_set *set,
 				continue;
 
 			/* remove parts from broken replica */
-			if (!is_dry_run(flags)) {
-				if (replica_remove_part(set, r, p)) {
-					LOG(2, "cannot remove part");
-					return -1;
-				}
+			if (replica_remove_part(set, r, p)) {
+				LOG(2, "cannot remove part");
+				return -1;
 			}
 
 			/* create removed part and open it */
 			if (util_part_open(&broken_r->part[p], 0,
-					!is_dry_run(flags))) {
+						1 /* create */)) {
 				LOG(2, "cannot open/create parts");
 				return -1;
 			}
@@ -157,7 +156,7 @@ static int
 is_uuid_already_used(uuid_t uuid, struct pool_set *set, unsigned repn)
 {
 	for (unsigned r = 0; r < repn; ++r) {
-		if (uuidcmp(uuid, PART(REP(set, r), 0).uuid) == 0)
+		if (uuidcmp(uuid, PART(REP(set, r), 0)->uuid) == 0)
 			return 1;
 	}
 	return 0;
@@ -351,10 +350,10 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 
 			if (rep->remote) {
 				int ret = Rpmem_persist(rep->remote->rpp, off,
-						len, 0);
+						len, 0, 0);
 				if (ret) {
-					LOG(1, "Copying data to remote node "
-						"failed -- '%s' on '%s'",
+					LOG(1,
+						"Copying data to remote node failed -- '%s' on '%s'",
 						rep->remote->pool_desc,
 						rep->remote->node_addr);
 					return -1;
@@ -363,16 +362,13 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 				int ret = Rpmem_read(rep_h->remote->rpp,
 						dst_addr, off, len, 0);
 				if (ret) {
-					LOG(1, "Reading data from remote node "
-						"failed -- '%s' on '%s'",
+					LOG(1,
+						"Reading data from remote node failed -- '%s' on '%s'",
 						rep_h->remote->pool_desc,
 						rep_h->remote->node_addr);
 					return -1;
 				}
 			} else {
-				if (off + len > poolsize)
-					len = poolsize - off;
-
 				void *src_addr =
 					ADDR_SUM(rep_h->part[0].addr, off);
 
@@ -401,9 +397,9 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 	/* get permissions of the first part of the source replica */
 	mode_t src_mode;
 	os_stat_t sb;
-	if (os_stat(PART(REP(set, src_repn), 0).path, &sb) != 0) {
+	if (os_stat(PART(REP(set, src_repn), 0)->path, &sb) != 0) {
 		ERR("cannot check file permissions of %s (replica %u, part %u)",
-				PART(REP(set, src_repn), 0).path, src_repn, 0);
+				PART(REP(set, src_repn), 0)->path, src_repn, 0);
 		src_mode = def_mode;
 	} else {
 		src_mode = sb.st_mode;
@@ -420,14 +416,14 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 
 		for (unsigned p = 0; p < set_hs->replica[r]->nparts; p++) {
 			/* skip parts which were not created */
-			if (!PART(REP(set, r), p).created)
+			if (!PART(REP(set, r), p)->created)
 				continue;
 
 			LOG(4, "setting permissions for part %u, replica %u",
 					p, r);
 
 			/* set rights to those of existing part files */
-			if (os_chmod(PART(REP(set, r), p).path, src_mode)) {
+			if (os_chmod(PART(REP(set, r), p)->path, src_mode)) {
 				ERR("cannot set permission rights for created"
 					" parts: replica %u, part %u", r, p);
 				errno = EPERM;
@@ -454,30 +450,30 @@ update_parts_linkage(struct pool_set *set, unsigned repn,
 		struct pool_hdr *next_hdrp = HDRN(rep, p);
 
 		/* set uuids in the current part */
-		memcpy(hdrp->prev_part_uuid, PARTP(rep, p).uuid,
+		memcpy(hdrp->prev_part_uuid, PARTP(rep, p)->uuid,
 				POOL_HDR_UUID_LEN);
-		memcpy(hdrp->next_part_uuid, PARTN(rep, p).uuid,
+		memcpy(hdrp->next_part_uuid, PARTN(rep, p)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
 			1, POOL_HDR_CSUM_END_OFF);
 
 		/* set uuids in the previous part */
-		memcpy(prev_hdrp->next_part_uuid, PART(rep, p).uuid,
+		memcpy(prev_hdrp->next_part_uuid, PART(rep, p)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(prev_hdrp, sizeof(*prev_hdrp),
 			&prev_hdrp->checksum, 1, POOL_HDR_CSUM_END_OFF);
 
 		/* set uuids in the next part */
-		memcpy(next_hdrp->prev_part_uuid, PART(rep, p).uuid,
+		memcpy(next_hdrp->prev_part_uuid, PART(rep, p)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(next_hdrp, sizeof(*next_hdrp),
 			&next_hdrp->checksum, 1, POOL_HDR_CSUM_END_OFF);
 
 		/* store pool's header */
-		util_persist(PART(rep, p).is_dev_dax, hdrp, sizeof(*hdrp));
-		util_persist(PARTP(rep, p).is_dev_dax, prev_hdrp,
+		util_persist(PART(rep, p)->is_dev_dax, hdrp, sizeof(*hdrp));
+		util_persist(PARTP(rep, p)->is_dev_dax, prev_hdrp,
 				sizeof(*prev_hdrp));
-		util_persist(PARTN(rep, p).is_dev_dax, next_hdrp,
+		util_persist(PARTN(rep, p)->is_dev_dax, next_hdrp,
 				sizeof(*next_hdrp));
 
 	}
@@ -502,27 +498,27 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 	/* set uuids in the current replica */
 	for (unsigned p = 0; p < rep->nhdrs; ++p) {
 		struct pool_hdr *hdrp = HDR(rep, p);
-		memcpy(hdrp->prev_repl_uuid, PART(prev_r, 0).uuid,
+		memcpy(hdrp->prev_repl_uuid, PART(prev_r, 0)->uuid,
 				POOL_HDR_UUID_LEN);
-		memcpy(hdrp->next_repl_uuid, PART(next_r, 0).uuid,
+		memcpy(hdrp->next_repl_uuid, PART(next_r, 0)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
 			1, POOL_HDR_CSUM_END_OFF);
 
 		/* store pool's header */
-		util_persist(PART(rep, p).is_dev_dax, hdrp, sizeof(*hdrp));
+		util_persist(PART(rep, p)->is_dev_dax, hdrp, sizeof(*hdrp));
 	}
 
 	/* set uuids in the previous replica */
 	for (unsigned p = 0; p < prev_r->nhdrs; ++p) {
 		struct pool_hdr *prev_hdrp = HDR(prev_r, p);
-		memcpy(prev_hdrp->next_repl_uuid, PART(rep, 0).uuid,
+		memcpy(prev_hdrp->next_repl_uuid, PART(rep, 0)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(prev_hdrp, sizeof(*prev_hdrp),
 			&prev_hdrp->checksum, 1, POOL_HDR_CSUM_END_OFF);
 
 		/* store pool's header */
-		util_persist(PART(prev_r, p).is_dev_dax, prev_hdrp,
+		util_persist(PART(prev_r, p)->is_dev_dax, prev_hdrp,
 				sizeof(*prev_hdrp));
 	}
 
@@ -530,13 +526,13 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 	for (unsigned p = 0; p < next_r->nhdrs; ++p) {
 		struct pool_hdr *next_hdrp = HDR(next_r, p);
 
-		memcpy(next_hdrp->prev_repl_uuid, PART(rep, 0).uuid,
+		memcpy(next_hdrp->prev_repl_uuid, PART(rep, 0)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(next_hdrp, sizeof(*next_hdrp),
 			&next_hdrp->checksum, 1, POOL_HDR_CSUM_END_OFF);
 
 		/* store pool's header */
-		util_persist(PART(next_r, p).is_dev_dax, next_hdrp,
+		util_persist(PART(next_r, p)->is_dev_dax, next_hdrp,
 				sizeof(*next_hdrp));
 	}
 
@@ -559,7 +555,7 @@ update_poolset_uuids(struct pool_set *set, unsigned repn,
 			1, POOL_HDR_CSUM_END_OFF);
 
 		/* store pool's header */
-		util_persist(PART(rep, p).is_dev_dax, hdrp, sizeof(*hdrp));
+		util_persist(PART(rep, p)->is_dev_dax, hdrp, sizeof(*hdrp));
 	}
 	return 0;
 }
@@ -575,7 +571,7 @@ update_remote_headers(struct pool_set *set)
 	for (unsigned r = 0; r < set->nreplicas; ++ r) {
 		/* skip local or just created replicas */
 		if (REP(set, r)->remote == NULL ||
-				PART(REP(set, r), 0).created == 1)
+				PART(REP(set, r), 0)->created == 1)
 			continue;
 
 		if (util_update_remote_header(set, r)) {
@@ -760,7 +756,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	}
 
 	/* recreate broken parts */
-	if (recreate_broken_parts(set, set_hs, flags)) {
+	if (recreate_broken_parts(set, set_hs)) {
 		ERR("recreating broken parts failed");
 		ret = -1;
 		goto out;
@@ -798,17 +794,11 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	}
 
 	/* create headers for broken parts */
-	if (!is_dry_run(flags)) {
-		if (create_headers_for_broken_parts(set, healthy_replica,
-				set_hs)) {
-			ERR("creating headers for broken parts failed");
-			ret = -1;
-			goto out;
-		}
-	}
-
-	if (is_dry_run(flags))
+	if (create_headers_for_broken_parts(set, healthy_replica, set_hs)) {
+		ERR("creating headers for broken parts failed");
+		ret = -1;
 		goto out;
+	}
 
 	/* create all remote replicas */
 	if (create_remote_replicas(set, set_hs, flags)) {
