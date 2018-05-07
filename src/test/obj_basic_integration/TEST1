@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2015-2018, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
@@ -33,9 +33,6 @@
 #
 
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
 require_test_type medium
 
 configure_valgrind pmemcheck force-enable
@@ -47,5 +44,3 @@ expect_normal_exit\
 	./obj_basic_integration$EXESUFFIX $DIR/testfile1
 
 check
-
-pass

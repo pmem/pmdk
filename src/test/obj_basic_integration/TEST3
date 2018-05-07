@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2015-2018, Intel Corporation
 #
@@ -31,10 +31,6 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
-# standard unit test setup
-. ../unittest/unittest.sh
-
 require_test_type medium
 
 setup
@@ -48,5 +44,3 @@ compare_replicas "-soOaAb -l -Z -H -C" \
 	$DIR/testfile1 $DIR/testfile2 > diff$UNITTEST_NUM.log
 
 check
-
-pass

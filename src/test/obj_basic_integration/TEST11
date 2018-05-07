@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2017-2018, Intel Corporation
 #
@@ -38,9 +38,6 @@
 # with 4K alignment.
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
 require_test_type medium
 require_dax_device_alignments 4096 4096
 
@@ -51,5 +48,3 @@ dax_device_zero
 create_poolset $DIR/testset1 AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]}
 
 expect_normal_exit ./obj_basic_integration$EXESUFFIX $DIR/testset1
-
-pass

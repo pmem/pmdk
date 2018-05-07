@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2015-2018, Intel Corporation
 #
@@ -36,9 +36,6 @@
 # pmemblk_read/write/set_zero/set_error
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
 require_test_type medium
 
 # doesn't make sense to run in local directory
@@ -58,5 +55,3 @@ expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c $FILE_SIZE\
 	r:100 r:200 r:300 r:400
 
 check
-
-pass
