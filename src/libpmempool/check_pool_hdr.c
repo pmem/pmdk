@@ -306,7 +306,7 @@ pool_hdr_nondefault(PMEMpoolcheck *ppc, location *loc)
 	LOG(3, NULL);
 
 	if (loc->hdr.crtime > (uint64_t)ppc->pool->set_file->mtime) {
-		const char *error = "%spool_hdr.crtime is not valid";
+		const char * const error = "%spool_hdr.crtime is not valid";
 		if (CHECK_IS_NOT(ppc, REPAIR)) {
 			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
 			return CHECK_ERR(ppc, error, loc->prefix);
@@ -326,7 +326,7 @@ pool_hdr_nondefault(PMEMpoolcheck *ppc, location *loc)
 			memcmp(&loc->valid_part_hdrp->arch_flags,
 				&loc->hdr.arch_flags,
 				sizeof(struct arch_flags)) != 0) {
-		const char *error = "%spool_hdr.arch_flags is not valid";
+		const char * const error = "%spool_hdr.arch_flags is not valid";
 		if (CHECK_IS_NOT(ppc, REPAIR)) {
 			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
 			return CHECK_ERR(ppc, error, loc->prefix);

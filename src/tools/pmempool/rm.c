@@ -75,7 +75,7 @@ static enum ask_type ask_mode;
 static int rpmem_avail;
 
 /* help message */
-static const char *help_str =
+static const char * const help_str =
 "Remove pool file or all files from poolset\n"
 "\n"
 "Available options:\n"

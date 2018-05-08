@@ -386,12 +386,12 @@ static int
 has_port_inode(unsigned short port, struct inodes *inodes)
 {
 	/* format of /proc/net/tcp entries */
-	const char *tcp_fmt =
+	const char * const tcp_fmt =
 		"%*d: "
 		"%*64[0-9A-Fa-f]:%X "
 		"%*64[0-9A-Fa-f]:%*X "
-		"%*X %*lX:%*lX %*X:%*lX "
-		"%*lX %*d %*d %lu %*s\n";
+		"%*X %*X:%*X %*X:%*X "
+		"%*X %*d %*d %lu %*s\n";
 
 	char buff[BUFF_SIZE];
 

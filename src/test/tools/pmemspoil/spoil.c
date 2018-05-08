@@ -290,8 +290,8 @@ static const struct pmemspoil pmemspoil_default = {
 /*
  * help_str -- string for help message
  */
-static const char *help_str =
-"Common options:\n"
+static const char * const  help_str =
+"%s common options:\n"
 "  -v, --verbose        Increase verbose level\n"
 "  -?, --help           Display this help and exit\n"
 "  -r, --replica <num>  Replica index\n"
@@ -339,7 +339,7 @@ print_version(char *appname)
 }
 
 /*
- * pmempool_check_help -- print help message for check command
+ * pmemspoil_help -- print help message for spoil command
  */
 static void
 pmemspoil_help(char *appname)

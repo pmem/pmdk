@@ -98,7 +98,7 @@ static const struct option options[] = {
 
 #define VALUE_INDENT	"                                        "
 
-static const char *help_str =
+static const char * const help_str =
 "\n"
 "Options:\n"
 "  -c, --config <path>           configuration file location\n"

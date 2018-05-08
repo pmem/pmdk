@@ -259,7 +259,7 @@ static const struct option_requirement option_requirements[] = {
 /*
  * help_str -- string for help message
  */
-static const char *help_str =
+static const char * const help_str =
 "Show information about pmem pool from specified file.\n"
 "\n"
 "Common options:\n"

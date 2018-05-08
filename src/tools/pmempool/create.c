@@ -108,7 +108,7 @@ static const struct pmempool_create pmempool_create_default = {
 /*
  * help_str -- string for help message
  */
-static const char *help_str =
+static const char * const help_str =
 "Create pmem pool of specified size, type and name\n"
 "\n"
 "Common options:\n"
