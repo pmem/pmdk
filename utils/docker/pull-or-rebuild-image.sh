@@ -121,7 +121,8 @@ for file in $files; do
 		# file.
 		if [[ $TRAVIS_REPO_SLUG == "pmem/pmdk" \
 			&& $TRAVIS_BRANCH == "master" \
-			&& $TRAVIS_EVENT_TYPE != "pull_request" ]]
+			&& $TRAVIS_EVENT_TYPE != "pull_request"
+			&& $PUSH_IMAGE == "1" ]]
 		then
 			echo "The image will be pushed to Docker Hub"
 			touch push_image_to_repo_flag
