@@ -7,21 +7,21 @@
 ==$(N)== Invalid write of size 4
 ==$(N)==    at 0x$(X): main (cto_valgrind.c:$(N))
 ==$(N)==  Address 0x$(X) is 0 bytes inside a block of size 3,145,728 free'd
-==$(N)==    at 0x$(X): je_cto_je_valgrind_freelike_block ($(*))
-$(OPT)==$(N)==    by 0x$(X): pool_ifree (jemalloc.c:$(N))
-$(OPT)==$(N)==    by 0x$(X): je_cto_pool_free (jemalloc.c:$(N))
-$(OPT)==$(N)==    by 0x$(X): pmemcto_free (cto.c:$(N))
+==$(N)==    at 0x$(X): ${je_cto_je_valgrind_freelike_block|???} $(*)
+$(OPT)==$(N)==    by 0x$(X): ${pool_ifree|???} $(*)
+$(OPT)==$(N)==    by 0x$(X): ${je_cto_pool_free|???} $(*)
+$(OPT)==$(N)==    by 0x$(X): ${pmemcto_free|???} $(*)
 ==$(N)==    by 0x$(X): main (cto_valgrind.c:$(N))
 $(OPT)==$(N)==  Block was alloc'd at
-$(OPT)==$(N)==    at 0x$(X): je_cto_pool_malloc ($(*))
-$(OPT)==$(N)==    by 0x$(X): pmemcto_malloc (cto.c:$(N))
+==$(N)==    at 0x$(X): ${je_cto_pool_malloc|???} $(*)
+$(OPT)==$(N)==    by 0x$(X): ${pmemcto_malloc|???} $(*)
 $(OPT)==$(N)==    by 0x$(X): main (cto_valgrind.c:$(N))
 ==$(N)== 
 ==$(N)== Invalid write of size 4
 ==$(N)==    at 0x$(X): main (cto_valgrind.c:$(N))
 ==$(N)==  Address 0x$(X) is 0 bytes inside a recently re-allocated block of size 8,388,608 alloc'd
-==$(N)==    at 0x$(X): je_cto_pool_malloc ($(*))
-$(OPT)==$(N)==    by 0x$(X): pmemcto_malloc (cto.c:$(N))
+==$(N)==    at 0x$(X): ${je_cto_pool_malloc|???} $(*)
+$(OPT)==$(N)==    by 0x$(X): ${pmemcto_malloc|???} $(*)
 ==$(N)==    by 0x$(X): main (cto_valgrind.c:$(N))
 ==$(N)== 
 ==$(N)== 
@@ -30,7 +30,7 @@ $(OPT)==$(N)==    by 0x$(X): pmemcto_malloc (cto.c:$(N))
 ==$(N)==   total heap usage: $(NC) allocs, $(NC) frees, $(*) bytes allocated
 ==$(N)== 
 ==$(N)== 8,388,608 bytes in 1 blocks are definitely lost in loss record $(N) of $(N)
-==$(N)==    at 0x$(X): je_cto_pool_malloc ($(*))
+==$(N)==    at 0x$(X): ${je_cto_pool_malloc|???} $(*)
 $(OPT)==$(N)==    by 0x$(X): pmemcto_malloc (cto.c:$(N))
 ==$(N)==    by 0x$(X): main (cto_valgrind.c:$(N))
 ==$(N)== 

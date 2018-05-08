@@ -7,19 +7,19 @@
 ==$(N)== 
 ==$(N)== Number of stores not made persistent: 7
 ==$(N)== Stores not made persistent properly:
-==$(N)== [0]    at 0x$(X): memblock_header_compact_write $(*)
-==$(N)==    by 0x$(X): block_write_header $(*)
-==$(N)==    by 0x$(X): alloc_prep_block $(*)
-==$(N)==    by 0x$(X): palloc_reservation_create $(*)
-==$(N)==    by 0x$(X): palloc_reserve $(*)
+==$(N)== [0]    at 0x$(X): ${memblock_header_compact_write|???} $(*)
+==$(N)==    by 0x$(X): ${block_write_header|???} $(*)
+==$(N)==    by 0x$(X): ${alloc_prep_block|???} $(*)
+==$(N)==    by 0x$(X): ${palloc_reservation_create|???} $(*)
+==$(N)==    by 0x$(X): ${palloc_reserve|???} $(*)
 ==$(N)==    by 0x$(X): pmemobj_reserve $(*)
 ==$(N)==    by 0x$(X): main (obj_action.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 8	state: DIRTY
-==$(N)== [1]    at 0x$(X): memblock_header_compact_write $(*)
-==$(N)==    by 0x$(X): block_write_header $(*)
-==$(N)==    by 0x$(X): alloc_prep_block $(*)
-==$(N)==    by 0x$(X): palloc_reservation_create $(*)
-==$(N)==    by 0x$(X): palloc_reserve $(*)
+==$(N)== [1]    at 0x$(X): ${memblock_header_compact_write|???} $(*)
+==$(N)==    by 0x$(X): ${block_write_header|???} $(*)
+==$(N)==    by 0x$(X): ${alloc_prep_block|???} $(*)
+==$(N)==    by 0x$(X): ${palloc_reservation_create|???} $(*)
+==$(N)==    by 0x$(X): ${palloc_reserve|???} $(*)
 ==$(N)==    by 0x$(X): pmemobj_reserve $(*)
 ==$(N)==    by 0x$(X): main (obj_action.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 8	state: DIRTY
