@@ -205,7 +205,7 @@ executed.
 Always returns 0.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
-`struct pobj_alloc_class_desc` | - | integer, integer, string
+`struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 
 Describes an allocation class. Allows one to create or view the internal
 data structures of the allocator.
@@ -244,9 +244,11 @@ allocation class size. While theoretically limited only by
 **PMEMOBJ_MAX_ALLOC_SIZE**, for most workloads this value should be between
 8 bytes and 2 megabytes.
 
-The `alignment` field is currently unsupported and must be set to 0. All objects
-have default alignment of 64 bytes, but the user data alignment is affected
-by the size of the chosen header.
+The `alignment` field specifies the user data alignment of objects allocated
+using the class. If set, must be a power of two and an even divisor of unit
+size. Alignment is limited to maximum of 2 megabytes.
+All objects have default alignment of 64 bytes, but the user data alignment
+is affected by the size of the chosen header.
 
 The `units_per_block` field defines how many units a single block of memory
 contains. This value will be rounded up to match the internal size of the
@@ -307,7 +309,7 @@ not exist it sets the errno to **ENOENT** and returns -1;
 For writing, function returns 0 if the allocation class has been successfully
 created, -1 otherwise.
 
-heap.alloc_class.new.desc | -w | - | - | `struct pobj_alloc_class_desc` | - | integer, integer, string
+heap.alloc_class.new.desc | -w | - | - | `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 
 Same as `heap.alloc_class.[class_id].desc`, but instead of requiring the user
 to provide the class_id, it automatically creates the allocation class with the
