@@ -32,12 +32,6 @@
 #
 # pmempool_create/TEST0 -- test for pmempool create command with default pool size
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

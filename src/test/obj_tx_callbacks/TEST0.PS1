@@ -33,11 +33,6 @@
 #
 # src/test/obj_tx_callbacks/TEST0 -- unit test for transaction stage callbacks
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

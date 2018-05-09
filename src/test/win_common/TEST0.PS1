@@ -32,11 +32,6 @@
 #
 # src/test/win_common/TEST0 -- unit test for windows list macros
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 $DIR = ""
 
 # standard unit test setup

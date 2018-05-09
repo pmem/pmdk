@@ -31,14 +31,6 @@
 #
 # src/test/log_pool/TEST8 -- unit test for pmemlog_create
 #
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

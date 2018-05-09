@@ -32,11 +32,6 @@
 #
 # libpmempool_api/TEST13 -- test for checking API
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 
@@ -52,7 +47,6 @@ $LOG_TEMP="out${Env:UNITTEST_NUM}_part.log"
 
 rm $LOG -Force -ea si
 rm $LOG_TEMP -Force -ea si
-
 
 expect_normal_exit $PMEMPOOL create log $POOL
 

@@ -31,16 +31,6 @@
 #
 # src/test/obj_cpp_ptr/TEST0 -- unit test for persistent_ptr
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

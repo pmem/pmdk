@@ -33,11 +33,6 @@
 #
 # src/test/ex_libpmem/TEST0 -- unit test for libpmem examples
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 

@@ -33,11 +33,6 @@
 #
 # src/test/obj_bucket/TEST0 -- unit test for obj_bucket interface
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

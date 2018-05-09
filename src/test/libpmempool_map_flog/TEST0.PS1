@@ -32,12 +32,6 @@
 #
 # libpmempool_map_flog/TEST0 -- test for checking map and flog
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

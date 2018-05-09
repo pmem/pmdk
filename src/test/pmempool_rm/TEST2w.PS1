@@ -32,11 +32,6 @@
 #
 # pmempool_rm/TEST2.PS1 -- test for pmempool rm
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 
@@ -85,7 +80,6 @@ check_no_files `
 Get-Content $LOG | Where-Object { $_ -match 'remov' } > tmp$LOG
 Get-Content tmp$LOG | Where-Object { $_ -notmatch 'CategoryInfo' }  > $LOG
 remove_files tmp$LOG
-
 
 check
 

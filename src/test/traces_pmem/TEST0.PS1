@@ -34,15 +34,6 @@
 # src/test/traces_pmem/TEST0 -- unit test traces for libraries pmem
 #
 
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

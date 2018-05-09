@@ -33,11 +33,6 @@
 # libpmempool_transform/TEST1.PS1 -- test for checking pmempool transform;
 #                                    pmem/issues#320
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

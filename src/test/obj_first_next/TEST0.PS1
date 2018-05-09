@@ -33,12 +33,6 @@
 #
 # src/test/obj_first_next/TEST0 -- unit test for POBJ_NEXT macro
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 

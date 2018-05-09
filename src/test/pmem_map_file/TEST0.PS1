@@ -33,11 +33,6 @@
 #
 # src/test/pmem_map_file/TEST0 -- unit test for pmem_map_file
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

@@ -34,11 +34,6 @@
 #
 # src/test/out_err_mt_win/TEST0 -- unit test for error messages
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

@@ -31,16 +31,6 @@
 #
 # src/test/obj_cpp_make_persistent/TEST0 -- unit test for make_persistent
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

@@ -31,15 +31,6 @@
 #
 # src/test/obj_pool_lookup/TEST0 -- unit test for pmemobj_pool
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

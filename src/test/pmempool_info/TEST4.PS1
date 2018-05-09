@@ -32,12 +32,6 @@
 #
 # pmempool_info/TEST4 -- test for info command with statistics
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

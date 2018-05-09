@@ -33,11 +33,6 @@
 # pmempool_transform/TEST2 -- test for checking pmempool transform in dry-run
 #                             mode; pmem/issues#250
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

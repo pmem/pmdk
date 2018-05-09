@@ -33,12 +33,6 @@
 #
 # src/test/obj_ctl_config/TEST0 -- unit test for ctl configuration
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 

@@ -33,11 +33,6 @@
 #
 # src/test/win_signal/TEST0 -- unit test for windows signal implementation
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

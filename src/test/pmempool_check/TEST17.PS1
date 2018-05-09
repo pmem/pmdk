@@ -33,11 +33,6 @@
 # pmempool_check/TEST17 -- test for limit checksum generation to check run with
 #  advanced repair flag
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

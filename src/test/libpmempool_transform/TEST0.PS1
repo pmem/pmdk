@@ -32,12 +32,6 @@
 #
 # libpmempool_transform/TEST0.PS1 -- test for checking replica transform
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -77,7 +71,6 @@ create_poolset $POOLSET_OUT `
     10M:$DIR\testfile2:x `
     10M:$DIR\testfile3:x `
     10M:$DIR\testfile4:x
-
 
 # CLI script for writing some data hitting all the parts
 $WRITE_SCRIPT = "$DIR\write_data"

@@ -32,12 +32,6 @@
 #
 # libpmempool_backup/TEST3 -- test backup poolset with replica (invalid)
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

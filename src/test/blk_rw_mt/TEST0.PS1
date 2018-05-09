@@ -32,12 +32,6 @@
 #
 # src/test/blk_rw_mt/TEST0 -- unit test for MT I/O on blk pool
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

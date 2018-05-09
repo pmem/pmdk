@@ -62,7 +62,6 @@ expect_abnormal_exit $Env:EXE_DIR\util_sds 0 0 `
 
 Get-Content test$Env:UNITTEST_NUM.log | Where-Object {$_ -match 'shutdown_state_check'} > grep$Env:UNITTEST_NUM.log
 
-
 check
 
 pass

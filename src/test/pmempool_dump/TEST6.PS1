@@ -32,12 +32,6 @@
 #
 # pmempool_dump/TEST6.PS1 -- test for dump command
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

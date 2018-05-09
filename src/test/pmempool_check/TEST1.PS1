@@ -32,12 +32,6 @@
 #
 # pmempool_check/TEST1 -- test for checking pools
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 
@@ -49,7 +43,6 @@ setup
 
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
-
 
 echo "PMEMLOG: pool_hdr" > $LOG
 expect_normal_exit $PMEMPOOL create log $POOL

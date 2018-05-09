@@ -33,11 +33,6 @@
 # pmempool_transform/TEST1 -- test for checking pmempool transform;
 #                             adding a replica
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

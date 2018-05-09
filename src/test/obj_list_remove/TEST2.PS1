@@ -35,11 +35,6 @@
 #
 # Add 3 elements to single list and remove one element from the middle.
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

@@ -54,14 +54,12 @@ expect_normal_exit $Env:EXE_DIR\util_sds 1 6 `
 				   $DIR\testfile2 7 0 `
 				   $DIR\testfile3 9 0
 
-
 expect_normal_exit $Env:EXE_DIR\util_sds 0 0 `
 				   $DIR\testfile1 5 0 `
 				   $DIR\testfile2 7 0 `
 				   $DIR\testfile3 9 0
 
 Get-Content test$Env:UNITTEST_NUM.log | Where-Object {$_ -match 'shutdown_state_check'} > grep$Env:UNITTEST_NUM.log
-
 
 check
 

@@ -32,12 +32,6 @@
 #
 # pmempool_create/TEST2 -- test for creating pools of specified size
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

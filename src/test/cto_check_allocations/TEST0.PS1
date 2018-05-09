@@ -33,11 +33,6 @@
 #
 # src/test/cto_check_allocations/TEST0.PS1 -- unit test for cto_check_allocations
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

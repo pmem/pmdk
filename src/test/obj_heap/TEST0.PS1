@@ -33,12 +33,6 @@
 #
 # src/test/obj_heap/TEST0 -- unit test for obj_heap interface
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 

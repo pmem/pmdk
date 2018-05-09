@@ -32,12 +32,6 @@
 #
 # libpmempool_rm_win/TEST0 -- test pmempool_rm with pool set files
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 
@@ -92,7 +86,6 @@ check_no_files $DIR\pool1p1.obj $DIR\pool2p1.obj `
 	$DIR\pool2p2.obj $DIR\pool2p3.obj `
 	$DIR\pool3p1.obj $DIR\pool3p2.obj $DIR\pool3p3.obj `
 	$DIR\pool1p1r.set $DIR\pool3p2r.set
-
 
 # this should report errors for all files
 expect_normal_exit $Env:EXE_DIR\libpmempool_rm_win$Env:EXESUFFIX $DIR\pool1p1r.set $DIR\pool3p2r.set

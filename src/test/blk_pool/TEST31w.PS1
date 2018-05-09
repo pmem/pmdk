@@ -33,16 +33,6 @@
 # src/test/blk_pool/TEST31 -- create a pool with the smallest parts
 # possible
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

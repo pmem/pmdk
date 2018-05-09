@@ -1153,52 +1153,48 @@ if (-Not $Env:UNITTEST_NAME) {
 
 $Global:REAL_FS = $Env:FS
 
-if ($DIR) {
-    # if user passed it in...
-    sv -Name DIR ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
-} else {
-    $tail = "\" + $Env:DIRSUFFIX + "\" + $curtestdir + $Env:UNITTEST_NUM
-    # choose based on FS env variable
-    switch ($Env:FS) {
-        'pmem' {
-            # if a variable is set - it must point to a valid directory
-            if (-Not $Env:PMEM_FS_DIR) {
-                fatal "${Env:UNITTEST_NAME}: PMEM_FS_DIR not set"
-            }
+$tail = "\" + $Env:DIRSUFFIX + "\" + $curtestdir + $Env:UNITTEST_NUM
+# choose based on FS env variable
+switch ($Env:FS) {
+    'pmem' {
+        # if a variable is set - it must point to a valid directory
+        if (-Not $Env:PMEM_FS_DIR) {
+            fatal "${Env:UNITTEST_NAME}: PMEM_FS_DIR not set"
+        }
+        sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
+        if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+            $Env:PMEM_IS_PMEM_FORCE = "1"
+        }
+    }
+    'non-pmem' {
+        # if a variable is set - it must point to a valid directory
+        if (-Not $Env:NON_PMEM_FS_DIR) {
+            fatal "${Env:UNITTEST_NAME}: NON_PMEM_FS_DIR not set"
+        }
+        sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
+    }
+    'any' {
+         if ($Env:PMEM_FS_DIR) {
             sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
+            $Global:REAL_FS='pmem'
             if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
                 $Env:PMEM_IS_PMEM_FORCE = "1"
             }
-        }
-        'non-pmem' {
-            # if a variable is set - it must point to a valid directory
-            if (-Not $Env:NON_PMEM_FS_DIR) {
-                fatal "${Env:UNITTEST_NAME}: NON_PMEM_FS_DIR not set"
-            }
+        } ElseIf ($Env:NON_PMEM_FS_DIR) {
             sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
+            $Global:REAL_FS='non-pmem'
+        } Else {
+            fatal "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
         }
-        'any' {
-             if ($Env:PMEM_FS_DIR) {
-                sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
-                $Global:REAL_FS='pmem'
-                if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
-                    $Env:PMEM_IS_PMEM_FORCE = "1"
-                }
-            } ElseIf ($Env:NON_PMEM_FS_DIR) {
-                sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
-                $Global:REAL_FS='non-pmem'
-            } Else {
-                fatal "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
-            }
-        }
-        'none' {
-            sv -Name DIR "\nul\not_existing_dir\${curtestdir}${Env:UNITTEST_NUM}"
-        }
-        default {
-            fatal "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
-        }
-    } # switch
-}
+    }
+    'none' {
+        sv -Name DIR "\nul\not_existing_dir\${curtestdir}${Env:UNITTEST_NUM}"
+    }
+    default {
+        fatal "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
+    }
+} # switch
+
 
 # Length of pool file's signature
 sv -Name SIG_LEN 8

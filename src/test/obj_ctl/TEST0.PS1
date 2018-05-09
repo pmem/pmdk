@@ -34,12 +34,6 @@
 # src/test/obj_ctl/TEST0 -- unit test for obj_ctl interface
 #
 
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

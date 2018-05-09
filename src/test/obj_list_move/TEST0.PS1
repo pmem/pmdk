@@ -33,11 +33,6 @@
 #
 # src/test/obj_list_move/TEST0 -- unit test for list_move
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

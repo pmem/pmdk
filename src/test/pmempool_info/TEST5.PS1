@@ -32,12 +32,6 @@
 #
 # pmempool_info/TEST5 -- test for info command with hexadecimal dumps of headers
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

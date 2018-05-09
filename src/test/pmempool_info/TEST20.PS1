@@ -34,12 +34,6 @@
 #
 # check if poolset file with SINGLEHDR option is handled properly
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 
