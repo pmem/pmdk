@@ -34,11 +34,6 @@
 #
 # src\test\obj_tx_free\TEST0 -- unit test for pmemobj_tx_free
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 

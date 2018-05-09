@@ -34,15 +34,6 @@
 # src/test/pmem_memmove/TEST0 -- unit test for pmem_memmove
 
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

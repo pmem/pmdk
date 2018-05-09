@@ -32,12 +32,6 @@
 #
 # libpmempool_backup/TEST1 -- test non-existing backup poolset
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

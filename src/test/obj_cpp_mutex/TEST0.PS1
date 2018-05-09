@@ -31,16 +31,6 @@
 #
 # src/test/obj_cpp_mutex/TEST0 -- unit test for pmem::obj::mutex
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

@@ -34,16 +34,6 @@
 # src/test/obj_recreate/TEST0
 #
 
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

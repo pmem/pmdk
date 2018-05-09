@@ -34,11 +34,6 @@
 #                               check if flags are supported
 #                               pmem/issues#367
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

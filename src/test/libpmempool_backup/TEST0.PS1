@@ -32,12 +32,6 @@
 #
 # libpmempool_backup/TEST0 -- test simple backup scenario
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

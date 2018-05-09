@@ -33,11 +33,6 @@
 # pmempool_check/TEST15 -- test for checking poolset with valid parts but with
 #	invalid links
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

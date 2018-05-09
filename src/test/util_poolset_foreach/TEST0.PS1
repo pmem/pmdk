@@ -34,16 +34,6 @@
 # src\test\util_poolset_foreach\TEST0 -- unit test for util_poolset_foreach
 #
 
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

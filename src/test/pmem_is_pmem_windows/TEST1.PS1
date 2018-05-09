@@ -34,11 +34,6 @@
 #
 # src\test\pmem_is_pmem_windows\TEST1 -- unit test for pmem_is_pmem
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

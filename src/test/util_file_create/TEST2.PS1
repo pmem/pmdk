@@ -34,11 +34,6 @@
 # src/test/util_file_create/TEST2 -- unit test for util_file_create()
 #
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

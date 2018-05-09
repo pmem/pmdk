@@ -34,11 +34,6 @@
 #
 # src\test\obj_tx_locks_abort\TEST0 -- unit test for transaction locks
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 
 # standard unit test setup

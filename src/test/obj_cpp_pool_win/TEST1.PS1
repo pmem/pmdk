@@ -31,16 +31,6 @@
 #
 # src/test/obj_cpp_pool_win/TEST1 -- unit test for pmem::obj::pool
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

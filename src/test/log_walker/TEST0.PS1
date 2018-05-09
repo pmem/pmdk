@@ -34,12 +34,6 @@
 # src/test/log_walker/TEST0 -- unit test to verify pool's write-protection
 #                              in debug mode
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
