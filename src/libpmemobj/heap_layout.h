@@ -145,6 +145,8 @@ struct allocation_header_legacy {
 	uint64_t type_num;
 };
 
+#define ALLOC_HDR_COMPACT_SIZE sizeof(struct allocation_header_compact)
+
 struct allocation_header_compact {
 	uint64_t size;
 	uint64_t extra;

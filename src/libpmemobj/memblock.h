@@ -198,11 +198,6 @@ struct memory_block_ops {
 	/* writes a header of an allocation */
 	void (*write_header)(const struct memory_block *m,
 		uint64_t extra_field, uint16_t flags);
-
-	/* flushes allocation header */
-	void (*flush_header)(const struct memory_block *m);
-
-	/* invalidates allocation data and header */
 	void (*invalidate)(const struct memory_block *m);
 
 	/*
