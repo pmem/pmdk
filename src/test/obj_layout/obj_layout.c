@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -93,7 +93,7 @@ main(int argc, char *argv[])
 
 	ASSERT_ALIGNED_BEGIN(struct chunk_run);
 	ASSERT_ALIGNED_FIELD(struct chunk_run, block_size);
-	ASSERT_ALIGNED_FIELD(struct chunk_run, incarnation_claim);
+	ASSERT_ALIGNED_FIELD(struct chunk_run, alignment);
 	ASSERT_ALIGNED_FIELD(struct chunk_run, bitmap);
 	ASSERT_ALIGNED_FIELD(struct chunk_run, data);
 	ASSERT_ALIGNED_CHECK(struct chunk_run);
