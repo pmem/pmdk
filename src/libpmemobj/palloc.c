@@ -126,6 +126,8 @@ alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(uptr, usize);
 	VALGRIND_ANNOTATE_NEW_MEMORY(uptr, usize);
 
+	m->m_ops->write_header(m, extra_field, object_flags);
+
 	int ret;
 	if (constructor != NULL &&
 		(ret = constructor(heap->base, uptr, usize, arg)) != 0) {
@@ -138,8 +140,6 @@ alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 
 		return ret;
 	}
-
-	m->m_ops->write_header(m, extra_field, object_flags);
 
 	/*
 	 * To avoid determining the user data pointer twice this method is also
@@ -263,10 +263,6 @@ palloc_heap_action_exec(struct palloc_heap *heap,
 		ASSERT(0);
 	}
 #endif /* DEBUG */
-
-	/* drain is called before the operation processing */
-	if (act->new_state == MEMBLOCK_ALLOCATED)
-		act->m.m_ops->flush_header(&act->m);
 
 	/*
 	 * The actual required metadata modifications are chunk-type
