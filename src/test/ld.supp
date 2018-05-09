@@ -31,17 +31,11 @@
    obj:*
 }
 {
+   <Leak in dlopen, pmem/issues#858>
    Memcheck:Leak
-   fun:malloc
-   fun:strdup
-   fun:*
+   ...
    fun:_dl_init
    fun:dl_open_worker
    fun:_dl_catch_error
-   fun:_dl_open
-   fun:dlopen_doit
-   fun:_dl_catch_error
-   fun:_dlerror_run
-   fun:*
-   obj:*
+   ...
 }
