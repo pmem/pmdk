@@ -57,6 +57,8 @@ extern "C" {
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;
 
+#define CACHELINE_SIZE 64U
+
 #define PAGE_ALIGNED_DOWN_SIZE(size) ((size) & ~(Pagesize - 1))
 #define PAGE_ALIGNED_UP_SIZE(size)\
 	PAGE_ALIGNED_DOWN_SIZE((size) + (Pagesize - 1))

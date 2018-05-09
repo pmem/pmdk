@@ -192,18 +192,23 @@ static void
 memblock_header_legacy_write(const struct memory_block *m,
 	size_t size, uint64_t extra, uint16_t flags)
 {
-	struct allocation_header_legacy *hdr = m->m_ops->get_real_data(m);
+	struct allocation_header_legacy hdr;
+	hdr.size = size;
+	hdr.type_num = extra;
+	hdr.root_size = ((uint64_t)flags << ALLOC_HDR_SIZE_SHIFT);
 
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr, sizeof(*hdr));
+	struct allocation_header_legacy *hdrp = m->m_ops->get_real_data(m);
 
-	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
-	hdr->size = size;
-	hdr->type_num = extra;
-	hdr->root_size = ((uint64_t)flags << ALLOC_HDR_SIZE_SHIFT);
-	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdrp, sizeof(*hdrp));
+
+	VALGRIND_ADD_TO_TX(hdrp, sizeof(*hdrp));
+	pmemops_memcpy(&m->heap->p_ops, hdrp, &hdr,
+		sizeof(hdr), /* legacy header is 64 bytes in size */
+		PMEM_F_MEM_WC | PMEM_F_MEM_NODRAIN | PMEM_F_RELAXED);
+	VALGRIND_REMOVE_FROM_TX(hdrp, sizeof(*hdrp));
 
 	/* unused fields of the legacy headers are used as a red zone */
-	VALGRIND_DO_MAKE_MEM_NOACCESS(hdr->unused, sizeof(hdr->unused));
+	VALGRIND_DO_MAKE_MEM_NOACCESS(hdrp->unused, sizeof(hdrp->unused));
 }
 
 /*
@@ -214,14 +219,37 @@ static void
 memblock_header_compact_write(const struct memory_block *m,
 	size_t size, uint64_t extra, uint16_t flags)
 {
-	struct allocation_header_compact *hdr = m->m_ops->get_real_data(m);
+	COMPILE_ERROR_ON(ALLOC_HDR_COMPACT_SIZE > CACHELINE_SIZE);
 
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr, sizeof(*hdr));
+	struct {
+		struct allocation_header_compact hdr;
+		uint8_t padding[CACHELINE_SIZE - ALLOC_HDR_COMPACT_SIZE];
+	} padded;
 
-	VALGRIND_ADD_TO_TX(hdr, sizeof(*hdr));
-	hdr->size = size | ((uint64_t)flags << ALLOC_HDR_SIZE_SHIFT);
-	hdr->extra = extra;
-	VALGRIND_REMOVE_FROM_TX(hdr, sizeof(*hdr));
+	padded.hdr.size = size | ((uint64_t)flags << ALLOC_HDR_SIZE_SHIFT);
+	padded.hdr.extra = extra;
+
+	struct allocation_header_compact *hdrp = m->m_ops->get_real_data(m);
+
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdrp, sizeof(*hdrp));
+
+	/*
+	 * If possible write the entire header with a single memcpy, this allows
+	 * the copy implementation to avoid a cache miss on a partial cache line
+	 * write.
+	 */
+	size_t hdr_size = ALLOC_HDR_COMPACT_SIZE;
+	if ((uintptr_t)hdrp % CACHELINE_SIZE == 0 && size >= sizeof(padded))
+		hdr_size = sizeof(padded);
+
+	VALGRIND_ADD_TO_TX(hdrp, hdr_size);
+
+	pmemops_memcpy(&m->heap->p_ops, hdrp, &padded,
+		hdr_size, PMEM_F_MEM_WC | PMEM_F_MEM_NODRAIN | PMEM_F_RELAXED);
+	VALGRIND_DO_MAKE_MEM_UNDEFINED((char *)hdrp + ALLOC_HDR_COMPACT_SIZE,
+		hdr_size - ALLOC_HDR_COMPACT_SIZE);
+
+	VALGRIND_REMOVE_FROM_TX(hdrp, hdr_size);
 }
 
 /*
@@ -231,46 +259,6 @@ memblock_header_compact_write(const struct memory_block *m,
 static void
 memblock_header_none_write(const struct memory_block *m,
 	size_t size, uint64_t extra, uint16_t flags)
-{
-	/* NOP */
-}
-
-/*
- * memblock_header_legacy_flush --
- *	(internal) flushes a legacy header
- */
-static void
-memblock_header_legacy_flush(const struct memory_block *m)
-{
-	/*
-	 * It is safe to use PMEM_F_RELAXED here because the allocation
-	 * header is valid after processing the redo log.
-	 */
-	struct allocation_header_legacy *hdr = m->m_ops->get_real_data(m);
-	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr), PMEM_F_RELAXED);
-}
-
-/*
- * memblock_header_compact_flush --
- *	(internal) flushes a compact header
- */
-static void
-memblock_header_compact_flush(const struct memory_block *m)
-{
-	/*
-	 * It is safe to use PMEM_F_RELAXED here because the allocation
-	 * header is valid after processing the redo log.
-	 */
-	struct allocation_header_compact *hdr = m->m_ops->get_real_data(m);
-	m->heap->p_ops.flush(m->heap->base, hdr, sizeof(*hdr), PMEM_F_RELAXED);
-}
-
-/*
- * memblock_no_header_flush --
- *	(internal) nothing to flush
- */
-static void
-memblock_header_none_flush(const struct memory_block *m)
 {
 	/* NOP */
 }
@@ -348,7 +336,7 @@ static struct {
 	/* determines the sizes of an object */
 	size_t (*get_size)(const struct memory_block *m);
 
-	/*  returns the extra field (if available, 0 if not) */
+	/* returns the extra field (if available, 0 if not) */
 	uint64_t (*get_extra)(const struct memory_block *m);
 
 	/* returns the flags stored in a header (if available, 0 if not) */
@@ -360,11 +348,6 @@ static struct {
 	 */
 	void (*write)(const struct memory_block *m,
 		size_t size, uint64_t extra, uint16_t flags);
-
-	/* flushes a header (if available, does nothing otherwise) */
-	void (*flush)(const struct memory_block *m);
-
-	/* invalidates a header (if available, does nothing otherwise) (VG) */
 	void (*invalidate)(const struct memory_block *m);
 
 	/*
@@ -378,7 +361,6 @@ static struct {
 		memblock_header_legacy_get_extra,
 		memblock_header_legacy_get_flags,
 		memblock_header_legacy_write,
-		memblock_header_legacy_flush,
 		memblock_header_legacy_invalidate,
 		memblock_header_legacy_reinit,
 	},
@@ -387,7 +369,6 @@ static struct {
 		memblock_header_compact_get_extra,
 		memblock_header_compact_get_flags,
 		memblock_header_compact_write,
-		memblock_header_compact_flush,
 		memblock_header_compact_invalidate,
 		memblock_header_compact_reinit,
 	},
@@ -396,7 +377,6 @@ static struct {
 		memblock_header_none_get_extra,
 		memblock_header_none_get_flags,
 		memblock_header_none_write,
-		memblock_header_none_flush,
 		memblock_header_none_invalidate,
 		memblock_header_none_reinit,
 	}
@@ -750,15 +730,6 @@ block_write_header(const struct memory_block *m,
 }
 
 /*
- * block_flush_header -- flushes allocation header
- */
-static void
-block_flush_header(const struct memory_block *m)
-{
-	memblock_header_ops[m->header_type].flush(m);
-}
-
-/*
  * block_invalidate -- invalidates allocation data and header
  */
 static void
@@ -809,7 +780,6 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
-		.flush_header = block_flush_header,
 		.invalidate = block_invalidate,
 		.ensure_header_type = huge_ensure_header_type,
 		.reinit_header = block_reinit_header,
@@ -826,7 +796,6 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.get_user_size = block_get_user_size,
 		.get_real_size = block_get_real_size,
 		.write_header = block_write_header,
-		.flush_header = block_flush_header,
 		.invalidate = block_invalidate,
 		.ensure_header_type = run_ensure_header_type,
 		.reinit_header = block_reinit_header,
