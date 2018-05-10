@@ -8,5 +8,5 @@ The program in vmmalloc_malloc_hooks.c modifies the behavior of the system
 memory allocation routines by specifying its custom hook functions.
 
 The libvmmalloc library is expected to override malloc hooks, so when the test
-program is run with libvmmalloc.so pre-loaded, the user-defined hooks should
+program is run with libvmmalloc.so.1 pre-loaded, the user-defined hooks should
 never be called.

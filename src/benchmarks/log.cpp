@@ -131,7 +131,11 @@ do_warmup(struct log_bench *lb, size_t nops)
 			}
 		}
 
-		os_lseek(lb->fd, 0, SEEK_SET);
+		if (os_lseek(lb->fd, 0, SEEK_SET) < 0) {
+			ret = -1;
+			perror("lseek");
+			os_close(lb->fd);
+		}
 	}
 
 out:

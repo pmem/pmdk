@@ -80,7 +80,6 @@ check_cpu_cache(const char *domain_path)
 		cpu_cache = -1;
 		goto end;
 	}
-	os_close(domain_fd);
 
 	LOG(15, "detected persistent_domain: %s", domain_value);
 	if (strncmp(domain_value, "cpu_cache", strlen("cpu_cache")) == 0) {

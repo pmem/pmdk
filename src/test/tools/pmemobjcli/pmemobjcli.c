@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -362,7 +362,7 @@ pocli_args_list_elm(struct pocli_ctx *ctx, struct pocli_args *args,
 static const char *
 parse_stage(void)
 {
-	int st = pmemobj_tx_stage();
+	enum pobj_tx_stage st = pmemobj_tx_stage();
 	const char *stage = "";
 	switch (st) {
 		case TX_STAGE_NONE:
@@ -379,6 +379,9 @@ parse_stage(void)
 		break;
 		case TX_STAGE_FINALLY:
 			stage = "TX_STAGE_FINALLY";
+		break;
+		case MAX_TX_STAGE:
+			assert(0); /* unreachable */
 		break;
 	}
 	return stage;
@@ -2188,7 +2191,7 @@ pocli_process(struct pocli *pcli)
 		enum pocli_ret ret = cmd->func(&pcli->ctx, args);
 		free(args);
 		if (ret != POCLI_RET_OK)
-			return ret;
+			return (int)ret;
 
 	}
 }
