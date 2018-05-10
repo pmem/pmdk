@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,14 +43,22 @@
 struct recycler;
 VEC(empty_runs, struct memory_block);
 
+struct recycler_element {
+	uint32_t max_free_block;
+	uint32_t free_space;
+
+	uint32_t chunk_id;
+	uint32_t zone_id;
+};
+
 struct recycler *recycler_new(struct palloc_heap *layout,
 	size_t nallocs);
 void recycler_delete(struct recycler *r);
-uint64_t recycler_calc_score(struct palloc_heap *heap,
-	const struct memory_block *m, uint64_t *out_free_space);
+struct recycler_element recycler_element_new(struct palloc_heap *heap,
+	const struct memory_block *m);
 
 int recycler_put(struct recycler *r, const struct memory_block *m,
-	uint64_t score);
+	struct recycler_element element);
 
 int recycler_get(struct recycler *r, struct memory_block *m);
 

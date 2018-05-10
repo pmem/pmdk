@@ -371,10 +371,10 @@ test_recycler(void)
 	memblock_rebuild_state(&pop->heap, &mrun2);
 
 	ret = recycler_put(r, &mrun,
-		recycler_calc_score(&pop->heap, &mrun, NULL));
+		recycler_element_new(&pop->heap, &mrun));
 	UT_ASSERTeq(ret, 0);
 	ret = recycler_put(r, &mrun2,
-		recycler_calc_score(&pop->heap, &mrun2, NULL));
+		recycler_element_new(&pop->heap, &mrun2));
 	UT_ASSERTeq(ret, 0);
 
 	struct memory_block mrun_ret = MEMORY_BLOCK_NONE;
@@ -409,16 +409,16 @@ test_recycler(void)
 	mrun4_ret.size_idx = 1;
 
 	ret = recycler_put(r, &mrun,
-		recycler_calc_score(&pop->heap, &mrun, NULL));
+		recycler_element_new(&pop->heap, &mrun));
 	UT_ASSERTeq(ret, 0);
 	ret = recycler_put(r, &mrun2,
-		recycler_calc_score(&pop->heap, &mrun2, NULL));
+		recycler_element_new(&pop->heap, &mrun2));
 	UT_ASSERTeq(ret, 0);
 	ret = recycler_put(r, &mrun3,
-		recycler_calc_score(&pop->heap, &mrun3, NULL));
+		recycler_element_new(&pop->heap, &mrun3));
 	UT_ASSERTeq(ret, 0);
 	ret = recycler_put(r, &mrun4,
-		recycler_calc_score(&pop->heap, &mrun4, NULL));
+		recycler_element_new(&pop->heap, &mrun4));
 	UT_ASSERTeq(ret, 0);
 
 	ret = recycler_get(r, &mrun2_ret);
@@ -439,7 +439,7 @@ test_recycler(void)
 	memblock_rebuild_state(&pop->heap, &mrun5);
 
 	ret = recycler_put(r, &mrun5,
-		recycler_calc_score(&pop->heap, &mrun5, NULL));
+		recycler_element_new(&pop->heap, &mrun5));
 	UT_ASSERTeq(ret, 0);
 
 	struct memory_block mrun5_ret = MEMORY_BLOCK_NONE;
