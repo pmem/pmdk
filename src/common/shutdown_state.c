@@ -42,6 +42,7 @@
 #include "out.h"
 #include "util.h"
 #include "os_deep.h"
+#include "set.h"
 
 #define FLUSH_SDS(sds, part) \
 	if ((part) != NULL) os_part_deep_common(part, sds, sizeof(*(sds)), 1)
@@ -133,8 +134,11 @@ shutdown_state_set_flag(struct shutdown_state *sds, struct pool_set_part *part)
 	LOG(3, "sds %p", sds);
 
 	/* set dirty flag only if uid is non-zero */
-	if (sds->uuid != 0)
+	if (sds->uuid != 0) {
 		sds->dirty = 1;
+		if (part)
+			part->is_dirty = 1;
+	}
 
 	FLUSH_SDS(sds, part);
 
@@ -142,14 +146,19 @@ shutdown_state_set_flag(struct shutdown_state *sds, struct pool_set_part *part)
 }
 
 /*
- * pmem_shutdown_clear_flag -- clears dirty pool flag
+ * shutdown_state_clear_flag -- clears dirty pool flag
  */
 void
 shutdown_state_clear_flag(struct shutdown_state *sds,
 	struct pool_set_part *part)
 {
 	LOG(3, "sds %p", sds);
-	sds->dirty = 0;
+
+	if (!part || part->is_dirty == 1)
+		sds->dirty = 0;
+
+	if (part)
+		part->is_dirty = 0;
 	FLUSH_SDS(sds, part);
 
 	shutdown_state_checksum(sds, part);
