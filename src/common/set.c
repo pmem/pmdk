@@ -2299,7 +2299,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 					PART(rep, p)->path, PART(rep, 0)))
 				return -1;
 		}
-		shutdown_state_set_flag(&hdrp->sds, PART(rep, 0));
+		shutdown_state_set_dirty(&hdrp->sds, PART(rep, 0));
 	}
 
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
@@ -2569,7 +2569,7 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 			return -1;
 		}
 
-		shutdown_state_set_flag(&hdrp->sds, PART(rep, 0));
+		shutdown_state_set_dirty(&hdrp->sds, PART(rep, 0));
 	}
 
 
@@ -2877,7 +2877,7 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 			/* XXX: DEEP DRAIN */
 			struct pool_hdr *hdr = part->addr;
 			RANGE_RW(hdr, sizeof(*hdr), part->is_dev_dax);
-			shutdown_state_clear_flag(&hdr->sds, part);
+			shutdown_state_clear_dirty(&hdr->sds, part);
 		}
 		for (unsigned p = 0; p < rep->nhdrs; p++)
 			util_unmap_hdr(&rep->part[p]);
@@ -3680,7 +3680,7 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 				errno = EINVAL;
 				return -1;
 			}
-			shutdown_state_set_flag(&HDR(rep, 0)->sds,
+			shutdown_state_set_dirty(&HDR(rep, 0)->sds,
 				PART(rep, 0));
 		}
 	}

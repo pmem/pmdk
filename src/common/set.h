@@ -115,6 +115,7 @@ struct pool_set_part {
 				/* the whole poolset */
 	uuid_t uuid;
 	int has_bad_blocks;	/* part file contains bad blocks */
+	int sds_dirty_modified;	/* sds dirty flag was set */
 };
 
 struct pool_set_directory {

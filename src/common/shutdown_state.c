@@ -42,6 +42,7 @@
 #include "out.h"
 #include "util.h"
 #include "os_deep.h"
+#include "set.h"
 
 #define FLUSH_SDS(sds, part) \
 	if ((part) != NULL) os_part_deep_common(part, sds, sizeof(*(sds)), 1)
@@ -125,16 +126,15 @@ shutdown_state_add_part(struct shutdown_state *sds, const char *path,
 }
 
 /*
- * shutdown_state_set_flag -- sets dirty pool flag
+ * shutdown_state_set_dirty -- sets dirty pool flag
  */
 void
-shutdown_state_set_flag(struct shutdown_state *sds, struct pool_set_part *part)
+shutdown_state_set_dirty(struct shutdown_state *sds, struct pool_set_part *part)
 {
 	LOG(3, "sds %p", sds);
 
-	/* set dirty flag only if uid is non-zero */
-	if (sds->uuid != 0)
-		sds->dirty = 1;
+	sds->dirty = 1;
+	part->sds_dirty_modified = 1;
 
 	FLUSH_SDS(sds, part);
 
@@ -142,14 +142,24 @@ shutdown_state_set_flag(struct shutdown_state *sds, struct pool_set_part *part)
 }
 
 /*
- * pmem_shutdown_clear_flag -- clears dirty pool flag
+ * shutdown_state_clear_dirty -- clears dirty pool flag
  */
 void
-shutdown_state_clear_flag(struct shutdown_state *sds,
+shutdown_state_clear_dirty(struct shutdown_state *sds,
 	struct pool_set_part *part)
 {
 	LOG(3, "sds %p", sds);
+
+	/*
+	 * If a dirty flag was set in previous program execution it should be
+	 * preserved as it stores information about potential ADR failure.
+	 */
+	if (part->sds_dirty_modified != 1)
+		return;
+
 	sds->dirty = 0;
+	part->sds_dirty_modified = 0;
+
 	FLUSH_SDS(sds, part);
 
 	shutdown_state_checksum(sds, part);
