@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 
 	switch (argv[1][0]) {
 	case 'c':
-		poolsize = strtoul(argv[4], NULL, 0) * MB; /* in megabytes */
+		poolsize = strtoull(argv[4], NULL, 0) * MB; /* in megabytes */
 		mode = strtoul(argv[5], NULL, 8);
 
 		pool_create(argv[2], layout, poolsize, mode);
