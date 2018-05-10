@@ -63,6 +63,8 @@ expect_normal_exit ./util_badblock$EXESUFFIX $FULLDEV r
 # inject bad block: OFF=11 LEN=12
 ndctl_inject_error $NAMESPACE 11 12
 
+expect_bad_blocks
+
 # open a pool with bad blocks
 expect_abnormal_exit ./util_badblock$EXESUFFIX $FULLDEV o
 

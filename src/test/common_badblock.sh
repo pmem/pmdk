@@ -38,6 +38,8 @@
 #                                - pmempool_info
 #
 
+LOG=out${UNITTEST_NUM}.log
+
 #
 # ndctl_inject_error -- inject error (bad blocks) to the namespace
 #
