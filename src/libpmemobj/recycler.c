@@ -43,37 +43,32 @@
 #include "ravl.h"
 #include "valgrind_internal.h"
 
-#define RUN_KEY_PACK(z, c, free_space, max_block)\
-((uint64_t)(max_block) << 48 |\
-(uint64_t)(free_space) << 32 |\
-(uint64_t)(c) << 16 | (z))
-
-#define RUN_KEY_GET_ZONE_ID(k)\
-((uint16_t)((int16_t)(k)))
-
-#define RUN_KEY_GET_CHUNK_ID(k)\
-((uint16_t)((k) >> 16))
-
-#define RUN_KEY_GET_FREE_SPACE(k)\
-((uint16_t)((k) >> 32))
-
 #define THRESHOLD_MUL 2
 
-struct recycler_element {
-	uint32_t chunk_id;
-	uint32_t zone_id;
-};
-
 /*
- * recycler_run_key_cmp -- compares two keys by pointer value
+ * recycler_element_cmp -- compares two recycler elements
  */
 static int
-recycler_run_key_cmp(const void *lhs, const void *rhs)
+recycler_element_cmp(const void *lhs, const void *rhs)
 {
-	if (lhs > rhs)
-		return 1;
-	else if (lhs < rhs)
-		return -1;
+	const struct recycler_element *l = lhs;
+	const struct recycler_element *r = rhs;
+
+	int64_t diff = (int64_t)l->max_free_block - (int64_t)r->max_free_block;
+	if (diff != 0)
+		return diff > 0 ? 1 : -1;
+
+	diff = (int64_t)l->free_space - (int64_t)r->free_space;
+	if (diff != 0)
+		return diff > 0 ? 1 : -1;
+
+	diff = (int64_t)l->zone_id - (int64_t)r->zone_id;
+	if (diff != 0)
+		return diff > 0 ? 1 : -1;
+
+	diff = (int64_t)l->chunk_id - (int64_t)r->chunk_id;
+	if (diff != 0)
+		return diff > 0 ? 1 : -1;
 
 	return 0;
 }
@@ -93,7 +88,7 @@ struct recycler {
 	size_t recalc_threshold;
 	int recalc_inprogress;
 
-	VEC(, uint64_t) recalc;
+	VEC(, struct recycler_element) recalc;
 	VEC(, struct memory_block_reserved *) pending;
 
 	os_mutex_t lock;
@@ -109,7 +104,8 @@ recycler_new(struct palloc_heap *heap, size_t nallocs)
 	if (r == NULL)
 		goto error_alloc_recycler;
 
-	r->runs = ravl_new(recycler_run_key_cmp);
+	r->runs = ravl_new_sized(recycler_element_cmp,
+		sizeof(struct recycler_element));
 	if (r->runs == NULL)
 		goto error_alloc_tree;
 
@@ -150,12 +146,12 @@ recycler_delete(struct recycler *r)
 }
 
 /*
- * recycler_calc_score -- calculates how many free bytes does a run have and
- *	what's the largest request that the run can handle
+ * recycler_element_new -- calculates how many free bytes does a run have and
+ *	what's the largest request that the run can handle, returns that as
+ *	recycler element struct
  */
-uint64_t
-recycler_calc_score(struct palloc_heap *heap, const struct memory_block *m,
-	uint64_t *out_free_space)
+struct recycler_element
+recycler_element_new(struct palloc_heap *heap, const struct memory_block *m)
 {
 	/*
 	 * Counting of the clear bits can race with a concurrent deallocation
@@ -208,25 +204,28 @@ recycler_calc_score(struct palloc_heap *heap, const struct memory_block *m,
 			max_block = n;
 	}
 
-	if (out_free_space != NULL)
-		*out_free_space = free_space;
-
 	os_mutex_unlock(lock);
 
-	return RUN_KEY_PACK(m->zone_id, m->chunk_id, free_space, max_block);
+	return (struct recycler_element){
+		.free_space = free_space,
+		.max_free_block = max_block,
+		.chunk_id = m->chunk_id,
+		.zone_id = m->zone_id,
+	};
 }
 
 /*
  * recycler_put -- inserts new run into the recycler
  */
 int
-recycler_put(struct recycler *r, const struct memory_block *m, uint64_t score)
+recycler_put(struct recycler *r, const struct memory_block *m,
+	struct recycler_element element)
 {
 	int ret = 0;
 
 	util_mutex_lock(&r->lock);
 
-	ret = ravl_insert(r->runs, (void *)score);
+	ret = ravl_emplace_copy(r->runs, &element);
 
 	util_mutex_unlock(&r->lock);
 
@@ -246,9 +245,9 @@ recycler_pending_check(struct recycler *r)
 	VEC_FOREACH_BY_POS(pos, &r->pending) {
 		mr = VEC_ARR(&r->pending)[pos];
 		if (mr->nresv == 0) {
-			uint64_t score = recycler_calc_score(r->heap,
-				&mr->m, NULL);
-			if (ravl_insert(r->runs, (void *)score) != 0) {
+			struct recycler_element e = recycler_element_new(
+				r->heap, &mr->m);
+			if (ravl_emplace_copy(r->runs, &e) != 0) {
 				ERR("unable to track run %u due to OOM",
 					mr->m.chunk_id);
 			}
@@ -270,19 +269,19 @@ recycler_get(struct recycler *r, struct memory_block *m)
 
 	recycler_pending_check(r);
 
-	uint64_t key = RUN_KEY_PACK(0, 0, 0, m->size_idx);
-	struct ravl_node *n = ravl_find(r->runs, (void *)key,
+	struct recycler_element e = { .max_free_block = m->size_idx, 0, 0, 0};
+	struct ravl_node *n = ravl_find(r->runs, &e,
 		RAVL_PREDICATE_GREATER_EQUAL);
 	if (n == NULL) {
 		ret = ENOMEM;
 		goto out;
 	}
 
-	key = (uint64_t)ravl_data(n);
-	ravl_remove(r->runs, n);
+	struct recycler_element *ne = ravl_data(n);
+	m->chunk_id = ne->chunk_id;
+	m->zone_id = ne->zone_id;
 
-	m->chunk_id = RUN_KEY_GET_CHUNK_ID(key);
-	m->zone_id = RUN_KEY_GET_ZONE_ID(key);
+	ravl_remove(r->runs, n);
 
 	struct chunk_header *hdr = heap_get_chunk_hdr(r->heap, m);
 	m->size_idx = hdr->size_idx;
@@ -330,40 +329,42 @@ recycler_recalc(struct recycler *r, int force)
 	uint64_t search_limit = force ? UINT64_MAX : units;
 
 	uint64_t found_units = 0;
-	uint64_t free_space = 0;
 	struct memory_block nm = MEMORY_BLOCK_NONE;
-	uint64_t key;
 	struct ravl_node *n;
+	struct recycler_element empty = {0, 0, 0, 0};
 	do {
-		if ((n = ravl_find(r->runs, (void *)0,
+		if ((n = ravl_find(r->runs, &empty,
 			RAVL_PREDICATE_GREATER_EQUAL)) == NULL)
 			break;
-		key = (uint64_t)ravl_data(n);
+
+		struct recycler_element *ne = ravl_data(n);
+		nm.chunk_id = ne->chunk_id;
+		nm.zone_id = ne->zone_id;
+
+		uint32_t existing_free_space = ne->free_space;
+
 		ravl_remove(r->runs, n);
 
-		nm.chunk_id = RUN_KEY_GET_CHUNK_ID(key);
-		nm.zone_id = RUN_KEY_GET_ZONE_ID(key);
-		uint64_t key_free_space = RUN_KEY_GET_FREE_SPACE(key);
 		memblock_rebuild_state(r->heap, &nm);
 
-		uint64_t score = recycler_calc_score(r->heap, &nm, &free_space);
+		struct recycler_element e = recycler_element_new(r->heap, &nm);
 
-		ASSERT(free_space >= key_free_space);
-		uint64_t free_space_diff = free_space - key_free_space;
+		ASSERT(e.free_space >= existing_free_space);
+		uint64_t free_space_diff = e.free_space - existing_free_space;
 		found_units += free_space_diff;
 
-		if (free_space == r->nallocs) {
+		if (e.free_space == r->nallocs) {
 			memblock_rebuild_state(r->heap, &nm);
 			if (VEC_PUSH_BACK(&runs, nm) != 0)
 				ASSERT(0); /* XXX: fix after refactoring */
 		} else {
-			if (VEC_PUSH_BACK(&r->recalc, score) != 0)
-				ASSERT(0); /* XXX: fix after refactoring */
+			VEC_PUSH_BACK(&r->recalc, e);
 		}
 	} while (found_units < search_limit);
 
-	VEC_FOREACH(key, &r->recalc) {
-		ravl_insert(r->runs, (void *)key);
+	struct recycler_element *e;
+	VEC_FOREACH_BY_PTR(e, &r->recalc) {
+		ravl_emplace_copy(r->runs, e);
 	}
 
 	VEC_CLEAR(&r->recalc);
