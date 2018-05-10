@@ -45,8 +45,15 @@
 #include "os_dimm.h"
 #include "os_badblock.h"
 
-/* callback's data structure */
-struct cb_data_s {
+/* bad blocks operation modes */
+enum op_mode {
+	OP_COUNT = 0,	/* count bad blocks */
+	OP_GET = 1,	/* get bad blocks */
+	OP_CLEAR = 2,	/* clear bad blocks */
+};
+
+/* operation's bad block structure */
+struct op_bb_s {
 	int bb_found;
 	unsigned long long beg;
 	unsigned long long end;
@@ -56,26 +63,103 @@ struct cb_data_s {
 };
 
 /*
+ * os_badblocks_clear_file_op -- 'clear badblocks in a file' operation
+ */
+static int
+os_badblocks_clear_file_op(struct op_bb_s *bs, int fd)
+{
+	LOG(3, "op_bb_s %p fd %i", bs, fd);
+
+	unsigned long long not_block_aligned;
+
+	/* check if off is block-aligned */
+	not_block_aligned = bs->off & (bs->blksize - 1);
+	if (not_block_aligned) {
+		bs->beg -= not_block_aligned;
+		bs->off -= not_block_aligned;
+		bs->len += not_block_aligned;
+	}
+
+	/* check if len is block-aligned */
+	not_block_aligned = bs->len & (bs->blksize - 1);
+	if (not_block_aligned) {
+		bs->len += bs->blksize - not_block_aligned;
+	}
+
+	LOG(10,
+		"clearing bad block: physical offset %llu logical offset %llu length %llu (in 512B sectors)",
+		B2SEC(bs->beg), B2SEC(bs->off), B2SEC(bs->len));
+
+	/* deallocate bad blocks */
+	if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+					(off_t)bs->off, (off_t)bs->len)) {
+		ERR("!fallocate");
+		return -1;
+	}
+
+	/* allocate new blocks */
+	if (fallocate(fd, FALLOC_FL_KEEP_SIZE,
+					(off_t)bs->off, (off_t)bs->len)) {
+		ERR("!fallocate");
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * os_badblocks_get_op -- 'get badblocks' operation
+ */
+static int
+os_badblocks_get_op(struct op_bb_s *bs, struct bad_block **bbvp)
+{
+	LOG(3, "op_bb_s %p bbvp %p", bs, bbvp);
+
+	ASSERTne(bbvp, NULL);
+	ASSERT(bs->bb_found > 0);
+
+	struct bad_block *bbv = *bbvp;
+
+	struct bad_block *newbbv = Realloc(bbv,
+			(size_t)(bs->bb_found) * sizeof(struct bad_block));
+	if (newbbv == NULL) {
+		ERR("!realloc");
+		Free(bbv);
+		return -1;
+	}
+
+	bbv = newbbv;
+	bbv[bs->bb_found - 1].length = (unsigned)(bs->len);
+	bbv[bs->bb_found - 1].offset = bs->off;
+
+	LOG(10, "getting bad block: offset %llu length %llu", bs->off, bs->len);
+
+	*bbvp = bbv;
+
+	return 0;
+}
+
+/*
  * os_badblocks_common -- returns number of bad blocks in the file
  *                        or -1 in case of an error
  */
 static int
-os_badblocks_common(const char *file, struct badblocks *bbs,
-			int (*cb)(struct cb_data_s *, void *),
-			void *data)
+os_badblocks_common(enum op_mode op, const char *file, struct badblocks *bbs,
+			int fd)
 {
-	LOG(3, "file %s", file);
+	LOG(3, "op 0x%x file %s badblocks %p fd %i", op, file, bbs, fd);
 
 	unsigned long long bb_beg;
 	unsigned long long bb_end;
 	unsigned long long off_beg;
 	unsigned long long off_end;
-	struct cb_data_s cbd;
 	struct extents *exts = NULL;
+	struct bad_block *bbv = NULL;
+	struct op_bb_s bs;
 
 	ASSERTne(bbs, NULL);
 
-	cbd.bb_found = -1;
+	bs.bb_found = -1;
 
 	if (os_dimm_files_namespace_badblocks(file, bbs)) {
 		ERR("checking the file for bad blocks failed -- '%s'", file);
@@ -98,7 +182,7 @@ os_badblocks_common(const char *file, struct badblocks *bbs,
 	}
 
 	if (count == 0) {
-		cbd.bb_found = (int)bbs->bb_cnt;
+		bs.bb_found = (int)bbs->bb_cnt;
 		goto exit_free_all;
 	}
 
@@ -113,7 +197,7 @@ os_badblocks_common(const char *file, struct badblocks *bbs,
 		goto error_free_all;
 	}
 
-	cbd.bb_found = 0;
+	bs.bb_found = 0;
 
 	unsigned b, e;
 	for (b = 0; b < bbs->bb_cnt; b++) {
@@ -128,29 +212,39 @@ os_badblocks_common(const char *file, struct badblocks *bbs,
 			if (bb_beg > off_end || off_beg > bb_end)
 				continue;
 
-			cbd.bb_found++;
+			bs.bb_found++;
 
-			cbd.beg = (bb_beg > off_beg) ? bb_beg : off_beg;
-			cbd.end = (bb_end < off_end) ? bb_end : off_end;
+			bs.beg = (bb_beg > off_beg) ? bb_beg : off_beg;
+			bs.end = (bb_end < off_end) ? bb_end : off_end;
 
-			cbd.len = cbd.end - cbd.beg + 1;
-			cbd.off = cbd.beg + exts->extents[e].offset_logical
+			bs.len = bs.end - bs.beg + 1;
+			bs.off = bs.beg + exts->extents[e].offset_logical
 					- exts->extents[e].offset_physical;
 
-			cbd.blksize = exts->blksize;
+			bs.blksize = exts->blksize;
 
 			LOG(4, "bad block found: offset: %llu, length: %llu",
-				cbd.off, cbd.len);
+				bs.off, bs.len);
 
-			if (cb && (*cb)(&cbd, data))
-				goto error_free_all;
+			if (op & OP_CLEAR)
+				if (os_badblocks_clear_file_op(&bs, fd))
+					goto error_free_all;
+
+			if (op & OP_GET)
+				if (os_badblocks_get_op(&bs, &bbv))
+					goto error_free_all;
 		}
 	}
 
-error_free_all:
 	Free(bbs->bbv);
-	bbs->bbv = NULL;
-	bbs->bb_cnt = 0;
+
+	if (op & OP_GET) {
+		bbs->bb_cnt = (unsigned)bs.bb_found;
+		bbs->bbv = bbv;
+	} else {
+		bbs->bb_cnt = 0;
+		bbs->bbv = NULL;
+	}
 
 exit_free_all:
 	if (exts) {
@@ -158,7 +252,20 @@ exit_free_all:
 		Free(exts);
 	}
 
-	return cbd.bb_found;
+	return bs.bb_found;
+
+error_free_all:
+	Free(bbv);
+	Free(bbs->bbv);
+	bbs->bbv = NULL;
+	bbs->bb_cnt = 0;
+
+	if (exts) {
+		Free(exts->extents);
+		Free(exts);
+	}
+
+	return -1;
 }
 
 /*
@@ -176,7 +283,7 @@ os_badblocks_count(const char *file)
 		return -1;
 	}
 
-	long bb_found = os_badblocks_common(file, bbs, NULL, NULL);
+	long bb_found = os_badblocks_common(OP_COUNT, file, bbs, 0);
 
 	Free(bbs->bbv);
 	Free(bbs);
@@ -212,36 +319,6 @@ os_badblocks_check_file(const char *file)
 }
 
 /*
- * os_badblocks_get_cb -- callback for os_badblocks_get
- */
-static int
-os_badblocks_get_cb(struct cb_data_s *p, void *arg)
-{
-	LOG(3, "cb_data_s %p arg %p", p, arg);
-
-	struct bad_block **bbvp = arg;
-	struct bad_block *bbv = *bbvp;
-
-	ASSERT(p->bb_found > 0);
-
-	struct bad_block *newbbv = Realloc(bbv,
-			(size_t)(p->bb_found) * sizeof(struct bad_block));
-	if (newbbv == NULL) {
-		ERR("!realloc");
-		Free(bbv);
-		return -1;
-	}
-
-	bbv = newbbv;
-	bbv[p->bb_found - 1].length = (unsigned)(p->len);
-	bbv[p->bb_found - 1].offset = p->off;
-
-	*bbvp = bbv;
-
-	return 0;
-}
-
-/*
  * os_badblocks_get -- returns list of bad blocks in the file
  */
 int
@@ -251,20 +328,12 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 
 	ASSERTne(bbs, NULL);
 
-	struct bad_block *bbvp = NULL;
-	int bb_found = os_badblocks_common(file, bbs,
-						os_badblocks_get_cb, &bbvp);
+	int bb_found = os_badblocks_common(OP_GET, file, bbs, 0);
 	if (bb_found < 0)
 		goto error_free_all;
 
 	if (bb_found) {
 		LOG(10, "bad blocks detected: %u", bb_found);
-	}
-
-	bbs->bb_cnt = (unsigned)bb_found;
-	if (bbvp != NULL) {
-		Free(bbs->bbv);
-		bbs->bbv = bbvp;
 	}
 
 	return 0;
@@ -278,89 +347,36 @@ error_free_all:
 }
 
 /*
- * os_badblocks_clear_file_cb -- callback for os_badblocks_clear_file
- */
-static int
-os_badblocks_clear_file_cb(struct cb_data_s *p, void *arg)
-{
-	LOG(3, "cb_data_s %p arg %p", p, arg);
-
-	unsigned long long beg;
-	unsigned long long off;
-	unsigned long long len;
-	unsigned long long not_block_aligned;
-	int fd = *(int *)arg;
-
-	/* check if off is block-aligned */
-	not_block_aligned = p->off & (p->blksize - 1);
-	if (not_block_aligned) {
-		beg = p->beg - not_block_aligned;
-		off = p->off - not_block_aligned;
-		len = p->len + not_block_aligned;
-	} else {
-		beg = p->beg;
-		off = p->off;
-		len = p->len;
-	}
-
-	/* check if len is block-aligned */
-	not_block_aligned = len & (p->blksize - 1);
-	if (not_block_aligned) {
-		len += p->blksize - not_block_aligned;
-	}
-
-	LOG(10,
-		"clearing bad block: physical offset %llu logical offset %llu length %llu (in 512B sectors)",
-		B2SEC(beg), B2SEC(off), B2SEC(len));
-
-	/* deallocate bad blocks */
-	if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-						(off_t)off, (off_t)len)) {
-		ERR("!fallocate");
-
-	}
-
-	/* allocate new blocks */
-	if (fallocate(fd, FALLOC_FL_KEEP_SIZE, (off_t)off, (off_t)len)) {
-		ERR("!fallocate");
-	}
-
-	return 0;
-}
-
-/*
- * os_badblocks_get_clear_file -- get and clear bad blocks in the regular file
+ * os_badblocks_clear_get_file -- clear and get bad blocks in the regular file
  *                                (not in a dax device)
  */
 static int
-os_badblocks_get_clear_file(const char *file, struct badblocks *bbs)
+os_badblocks_clear_get_file(const char *file, struct badblocks *bbs)
 {
 	LOG(3, "file %s badblocks %p", file, bbs);
 
-	int allocated_bbs = 0;
 	int bb_found = -1;
-	int fd = -1;
+	int fd;
 
 	if ((fd = open(file, O_RDWR)) < 0) {
 		ERR("!open: %s", file);
 		return -1;
 	}
 
-	if (bbs) {
+	if (bbs) { /* clear and get */
 		memset(bbs, 0, sizeof(*bbs));
-	} else {
+		bb_found = os_badblocks_common(OP_CLEAR | OP_GET,
+						file, bbs, fd);
+
+	} else { /* clear only */
 		bbs = Zalloc(sizeof(struct badblocks));
 		if (bbs == NULL) {
 			ERR("!malloc");
 			goto exit_close;
 		}
-		allocated_bbs = 1;
-	}
 
-	bb_found = os_badblocks_common(file, bbs,
-					os_badblocks_clear_file_cb, &fd);
+		bb_found = os_badblocks_common(OP_CLEAR, file, bbs, fd);
 
-	if (allocated_bbs) {
 		Free(bbs->bbv);
 		Free(bbs);
 	}
@@ -372,18 +388,18 @@ exit_close:
 }
 
 /*
- * os_badblocks_get_and_clear -- get and clear bad blocks in a file
+ * os_badblocks_clear_and_get -- clear and get bad blocks in a file
  *                               (regular file or dax device)
  */
 int
-os_badblocks_get_and_clear(const char *file, struct badblocks *bbs)
+os_badblocks_clear_and_get(const char *file, struct badblocks *bbs)
 {
 	LOG(3, "file %s badblocks %p", file, bbs);
 
 	if (util_file_is_device_dax(file))
-		return os_dimm_devdax_get_clear_badblocks(file, bbs);
+		return os_dimm_devdax_clear_get_badblocks(file, bbs);
 
-	return os_badblocks_get_clear_file(file, bbs);
+	return os_badblocks_clear_get_file(file, bbs);
 }
 
 /*
@@ -395,5 +411,5 @@ os_badblocks_clear(const char *file)
 {
 	LOG(3, "file %s", file);
 
-	return os_badblocks_get_and_clear(file, NULL);
+	return os_badblocks_clear_and_get(file, NULL);
 }

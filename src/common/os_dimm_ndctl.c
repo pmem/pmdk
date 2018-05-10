@@ -535,11 +535,11 @@ out_ars_cap:
 }
 
 /*
- * os_dimm_devdax_get_clear_badblocks -- get and clear all bad blocks
+ * os_dimm_devdax_clear_get_badblocks -- clear and get all bad blocks
  *                                       in the dax device
  */
 int
-os_dimm_devdax_get_clear_badblocks(const char *path, struct badblocks *bbs)
+os_dimm_devdax_clear_get_badblocks(const char *path, struct badblocks *bbs)
 {
 	LOG(3, "path %s badblocks %p", path, bbs);
 
@@ -618,7 +618,7 @@ os_dimm_devdax_clear_badblocks(const char *path)
 		return -1;
 	}
 
-	int ret = os_dimm_devdax_get_clear_badblocks(path, bbs);
+	int ret = os_dimm_devdax_clear_get_badblocks(path, bbs);
 
 	Free(bbs->bbv);
 	Free(bbs);
