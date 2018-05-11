@@ -494,7 +494,7 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 	p->header_type = user_htype;
 	p->unit_size = c->unit_size;
 	p->class_id = c->id;
-	p->alignment = c->flags & CHUNK_FLAG_ALIGNED;
+	p->alignment = c->flags & CHUNK_FLAG_ALIGNED ? c->run.alignment : 0;
 
 	return 0;
 }
