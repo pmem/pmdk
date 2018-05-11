@@ -1128,7 +1128,10 @@ static ssize_t
 rpmem_fip_persist_gpspm_sockets(struct rpmem_fip *fip, size_t offset,
 	size_t len, unsigned lane, unsigned flags)
 {
-	flags &= (unsigned)(~RPMEM_PERSIST_SEND);
+	unsigned mode = flags & RPMEM_PERSIST_MASK;
+	if (mode == RPMEM_PERSIST_SEND)
+		flags = (flags & (~RPMEM_PERSIST_MASK)) | RPMEM_PERSIST_WRITE;
+
 	len = min(len, SSIZE_MAX);
 
 	int ret = rpmem_fip_persist_saw(fip, offset, len, lane, flags);
@@ -1163,8 +1166,9 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 {
 	int ret;
 	len = min(len, SSIZE_MAX);
+	unsigned mode = flags & RPMEM_PERSIST_MASK;
 
-	if ((flags & RPMEM_PERSIST_MASK) == RPMEM_PERSIST_SEND) {
+	if (mode == RPMEM_PERSIST_SEND) {
 		len = min(len, fip->buff_size);
 		ret = rpmem_fip_persist_send(fip, offset, len, lane, flags);
 	} else {
@@ -1185,10 +1189,11 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 {
 	int ret;
 	len = min(len, SSIZE_MAX);
+	unsigned mode = flags & RPMEM_PERSIST_MASK;
 
-	if (unlikely(flags & RPMEM_DEEP_PERSIST))
+	if (unlikely(mode == RPMEM_DEEP_PERSIST))
 		ret = rpmem_fip_persist_saw(fip, offset, len, lane, flags);
-	else if ((flags & RPMEM_PERSIST_MASK) == RPMEM_PERSIST_SEND) {
+	else if (mode == RPMEM_PERSIST_SEND) {
 		len = min(len, fip->buff_size);
 		ret = rpmem_fip_persist_send(fip, offset, len, lane, flags);
 	} else {

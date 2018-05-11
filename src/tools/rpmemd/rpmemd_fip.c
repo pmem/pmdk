@@ -673,10 +673,11 @@ rpmemd_fip_process_recv(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
 	ret = rpmemd_fip_check_pmsg(fip, pmsg);
 	if (unlikely(ret))
 		goto err;
+	unsigned mode = pmsg->flags & RPMEM_PERSIST_MASK;
 
-	if (pmsg->flags & RPMEM_DEEP_PERSIST) {
+	if (mode == RPMEM_DEEP_PERSIST) {
 		fip->deep_persist((void *)pmsg->addr, pmsg->size, fip->ctx);
-	} else if (pmsg->flags & RPMEM_PERSIST_SEND) {
+	} else if (mode == RPMEM_PERSIST_SEND) {
 		fip->memcpy_persist((void *)pmsg->addr, pmsg->data, pmsg->size);
 	} else {
 		fip->persist((void *)pmsg->addr, pmsg->size);
