@@ -32,11 +32,6 @@
 #
 # libpmempool_sync/TEST0.PS1 -- test for checking replica sync
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

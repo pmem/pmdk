@@ -33,12 +33,6 @@
 # libpmempool_backup/TEST4 -- test backup to poolset with different number of
 #    parts than source poolset
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

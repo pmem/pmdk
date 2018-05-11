@@ -32,16 +32,6 @@
 #
 # src/test/blk_pool/TEST21 -- unit test for pmemblk_create
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

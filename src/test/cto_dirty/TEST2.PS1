@@ -34,11 +34,6 @@
 # src/test/cto_dirty/TEST0.PS1 -- unit test for detecting inconsistent pool
 #                                 simulate crash after closing the pool
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

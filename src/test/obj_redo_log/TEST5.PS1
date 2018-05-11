@@ -34,12 +34,6 @@
 #
 # src/test/obj_redo_log/TEST5 -- unit test for redo_log_set_last function
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

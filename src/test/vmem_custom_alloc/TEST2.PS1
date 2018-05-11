@@ -32,11 +32,6 @@
 #
 # src/test/vmem_custom_alloc/TEST2.PS1 -- unit test for vmem_custom_alloc
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

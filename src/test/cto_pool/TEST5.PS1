@@ -35,14 +35,6 @@
 # src/test/cto_pool/TEST5 -- unit test for pmemcto_create
 #
 
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

@@ -33,16 +33,6 @@
 # src\test\blk_nblock\TEST1 -- unit test for pmemblk_nblock
 #
 
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

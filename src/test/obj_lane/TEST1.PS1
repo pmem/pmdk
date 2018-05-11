@@ -33,12 +33,6 @@
 #
 # src/test/obj_lane/TEST1 -- multithreaded unit test for lanes
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 

@@ -31,11 +31,6 @@
 #
 # pmempool_check/TEST9 -- test for checking pmemobj pool
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

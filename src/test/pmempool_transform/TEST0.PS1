@@ -33,11 +33,6 @@
 # pmempool_transform/TEST0 -- test for checking pmempool transform;
 #                             removing replica
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

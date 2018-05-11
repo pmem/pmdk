@@ -33,11 +33,6 @@
 #
 # src/test/obj_persist_count/TEST1 -- unit test for persist count
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

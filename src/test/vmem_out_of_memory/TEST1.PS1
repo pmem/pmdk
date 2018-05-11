@@ -32,11 +32,6 @@
 #
 # src/test/vmem_out_of_memory/TEST1.PS1 -- unit test for vmem_out_of_memory
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

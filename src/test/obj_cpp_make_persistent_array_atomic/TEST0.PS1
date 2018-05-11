@@ -32,16 +32,6 @@
 # src/test/obj_cpp_make_persistent_array_atomic/TEST0 -- unit test for
 #	make_persistent_atomic
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

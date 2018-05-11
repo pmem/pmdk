@@ -32,12 +32,6 @@
 #
 # pmempool_info/TEST3 -- test for info command with BTT Info backup
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

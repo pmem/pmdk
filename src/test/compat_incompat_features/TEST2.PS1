@@ -35,11 +35,6 @@
 # check if pool fails to open when incompat flags are equal, nonzero and other
 # than poolset options
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

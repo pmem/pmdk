@@ -33,11 +33,6 @@
 #
 # src/test/win_getopt/TEST1 -- unit test for windows getopt implementation
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 #$ERR="stderr$Env:UNITTEST_NUM.log"
 . ../unittest/unittest.ps1

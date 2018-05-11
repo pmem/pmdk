@@ -34,11 +34,6 @@
 #
 # src/test/obj_tx_add_range/TEST0 -- unit test for pmemobj_tx_add_range
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

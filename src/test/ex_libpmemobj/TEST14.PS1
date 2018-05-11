@@ -33,11 +33,6 @@
 #
 # src/test/ex_libpmemobj/TEST14 -- unit test for libpmemobj examples
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.PS1

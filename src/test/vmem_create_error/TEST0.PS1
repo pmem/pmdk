@@ -33,12 +33,6 @@
 # src/test/vmem_create_error/TEST0.PS1 -- unit test for vmem_create_error
 #
 
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

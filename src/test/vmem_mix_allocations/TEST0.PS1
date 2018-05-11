@@ -32,11 +32,6 @@
 #
 # src/test/vmem_mix_allocations/TEST0.PS1 -- unit test for vmem_mix_allocations
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

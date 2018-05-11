@@ -34,12 +34,6 @@
 #
 # src/test/obj_redo_log/TEST4 -- unit test for redo_log_recover function
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

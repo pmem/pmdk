@@ -33,11 +33,6 @@
 # pmempool_check/TEST16 -- test for checking and fixing pool files crtime
 #	invalid links
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

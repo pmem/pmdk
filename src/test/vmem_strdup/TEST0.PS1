@@ -32,11 +32,6 @@
 #
 # src/test/vmem_strdup/TEST0.PS1 -- unit test for vmem_strdup
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

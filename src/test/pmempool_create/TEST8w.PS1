@@ -32,11 +32,6 @@
 #
 # pmempool_create/TEST8w.PS1 -- test for pmempool create command with poolset
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

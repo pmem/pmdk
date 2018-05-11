@@ -33,11 +33,6 @@
 #
 # src/test/obj_pvector/TEST0 -- unit test for pvector interface
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

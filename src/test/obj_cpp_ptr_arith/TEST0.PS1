@@ -31,16 +31,6 @@
 #
 # src/test/obj_cpp_ptr_arith/TEST0 -- unit test for pmem::obj::persistent_ptr
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

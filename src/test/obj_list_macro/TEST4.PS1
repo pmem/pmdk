@@ -33,11 +33,6 @@
 #
 # src/test/obj_list_macro/TEST4 -- unit test for list API
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

@@ -35,12 +35,6 @@
 #
 # Returns first object on the proper list
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 

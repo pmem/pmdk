@@ -32,11 +32,6 @@
 #
 # src/test/cto_stats/TEST1.PS1 -- unit test for cto_stats
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
