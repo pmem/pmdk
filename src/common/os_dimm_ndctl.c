@@ -359,7 +359,7 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 		newbbvp = Realloc(bbvp, (++bb_count) *
 					sizeof(struct bad_block));
 		if (newbbvp == NULL) {
-			ERR("!realloc");
+			ERR("!Realloc");
 			Free(bbvp);
 			return -1;
 		}
@@ -593,7 +593,7 @@ os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 
 	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
 	if (bbs == NULL) {
-		ERR("!malloc");
+		ERR("!Zalloc");
 		goto exit_free_all;
 	}
 

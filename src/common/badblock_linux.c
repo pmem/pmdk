@@ -77,7 +77,7 @@ os_badblocks_common(const char *file, struct badblocks *pbbs)
 		/* only count bad blocks */
 		bbs = Zalloc(sizeof(struct badblocks));
 		if (bbs == NULL) {
-			ERR("!malloc");
+			ERR("!Zalloc");
 			return -1;
 		}
 	}
@@ -94,7 +94,7 @@ os_badblocks_common(const char *file, struct badblocks *pbbs)
 
 	exts = Zalloc(sizeof(struct extents));
 	if (exts == NULL) {
-		ERR("!malloc");
+		ERR("!Zalloc");
 		goto error_free_all;
 	}
 
@@ -112,7 +112,7 @@ os_badblocks_common(const char *file, struct badblocks *pbbs)
 
 	exts->extents = Zalloc(exts->extents_count * sizeof(struct extent));
 	if (exts->extents == NULL) {
-		ERR("!malloc");
+		ERR("!Zalloc");
 		goto error_free_all;
 	}
 
@@ -122,13 +122,10 @@ os_badblocks_common(const char *file, struct badblocks *pbbs)
 	}
 
 	bb_found = 0;
-
 	for (unsigned b = 0; b < bbs->bb_cnt; b++) {
-
-		bb_beg = bbs->bbv[b].offset;
-		bb_end = bb_beg + bbs->bbv[b].length - 1;
-
 		for (unsigned e = 0; e < exts->extents_count; e++) {
+			bb_beg = bbs->bbv[b].offset;
+			bb_end = bb_beg + bbs->bbv[b].length - 1;
 
 			ext_beg = exts->extents[e].offset_physical;
 			ext_end = ext_beg + exts->extents[e].length - 1;
@@ -169,7 +166,7 @@ os_badblocks_common(const char *file, struct badblocks *pbbs)
 						sizeof(struct bad_block);
 			struct bad_block *newbbv = Realloc(bbv, new_size);
 			if (newbbv == NULL) {
-				ERR("!realloc");
+				ERR("!Realloc");
 				bb_found = -1;
 				goto error_free_all;
 			}
@@ -349,7 +346,7 @@ os_badblocks_clear_all(const char *file)
 
 	bbs = Zalloc(sizeof(struct badblocks));
 	if (bbs == NULL) {
-		ERR("!malloc");
+		ERR("!Zalloc");
 		return -1;
 	}
 
