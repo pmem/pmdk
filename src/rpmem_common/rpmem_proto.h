@@ -211,17 +211,17 @@ struct rpmem_msg_close_resp {
 	/* no more fields */
 } PACKED;
 
-#define RPMEM_PERSIST_WRITE	0	/* persist using RDMA WRITE */
-#define RPMEM_DEEP_PERSIST	1	/* deep persist operation */
-#define RPMEM_PERSIST_SEND	2	/* persist using RDMA SEND */
+#define RPMEM_PERSIST_WRITE	0U	/* persist using RDMA WRITE */
+#define RPMEM_DEEP_PERSIST	1U	/* deep persist operation */
+#define RPMEM_PERSIST_SEND	2U	/* persist using RDMA SEND */
 
-#define RPMEM_PERSIST_MAX	2	/* maximum valid value */
+#define RPMEM_PERSIST_MAX	2U	/* maximum valid value */
 
 /*
  * the two least significant bits
  * are reserved for mode of persist
  */
-#define RPMEM_PERSIST_MASK	0x3
+#define RPMEM_PERSIST_MASK	0x3U
 
 /*
  * rpmem_msg_persist -- remote persist message

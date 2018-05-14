@@ -81,7 +81,7 @@
 #define RPMEM_RAW_BUFF_SIZE 4096
 #define RPMEM_RAW_SIZE 8
 
-typedef int (*rpmem_fip_persist_fn)(struct rpmem_fip *fip, size_t offset,
+typedef ssize_t (*rpmem_fip_persist_fn)(struct rpmem_fip *fip, size_t offset,
 		size_t len, unsigned lane, unsigned flags);
 
 typedef int (*rpmem_fip_process_fn)(struct rpmem_fip *fip,
@@ -1124,13 +1124,21 @@ rpmem_fip_persist_send(struct rpmem_fip *fip, size_t offset,
  * for GPSPM - sockets provider implementation which doesn't use the
  * inline persist operation
  */
-static int
+static ssize_t
 rpmem_fip_persist_gpspm_sockets(struct rpmem_fip *fip, size_t offset,
 	size_t len, unsigned lane, unsigned flags)
 {
-	flags &= (unsigned)(~RPMEM_PERSIST_SEND);
+	unsigned mode = flags & RPMEM_PERSIST_MASK;
+	if (mode == RPMEM_PERSIST_SEND)
+		flags = (flags & ~RPMEM_PERSIST_MASK) | RPMEM_PERSIST_WRITE;
 
-	return rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+	/* Limit len to the max value of the return type. */
+	len = min(len, SSIZE_MAX);
+
+	int ret = rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+	if (ret)
+		return -abs(ret);
+	return (ssize_t)len;
 }
 
 /*
@@ -1138,40 +1146,67 @@ rpmem_fip_persist_gpspm_sockets(struct rpmem_fip *fip, size_t offset,
  * for APM - sockets provider implementation which doesn't use the
  * inline persist operation
  */
-static int
+static ssize_t
 rpmem_fip_persist_apm_sockets(struct rpmem_fip *fip, size_t offset,
 	size_t len, unsigned lane, unsigned flags)
 {
-	return rpmem_fip_persist_raw(fip, offset, len, lane);
+	/* Limit len to the max value of the return type. */
+	len = min(len, SSIZE_MAX);
+
+	int ret = rpmem_fip_persist_raw(fip, offset, len, lane);
+	if (ret)
+		return -abs(ret);
+	return (ssize_t)len;
 }
 
 /*
  * rpmem_fip_persist_gpspm -- (internal) perform persist operation for GPSPM
  */
-static int
+static ssize_t
 rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 	size_t len, unsigned lane, unsigned flags)
 {
-	if ((flags & RPMEM_PERSIST_MASK) == RPMEM_PERSIST_SEND)
-		return rpmem_fip_persist_send(fip, offset, len, lane, flags);
+	int ret;
+	/* Limit len to the max value of the return type. */
+	len = min(len, SSIZE_MAX);
+	unsigned mode = flags & RPMEM_PERSIST_MASK;
 
-	return rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+	if (mode == RPMEM_PERSIST_SEND) {
+		len = min(len, fip->buff_size);
+		ret = rpmem_fip_persist_send(fip, offset, len, lane, flags);
+	} else {
+		ret = rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+	}
+
+	if (ret)
+		return -abs(ret);
+	return (ssize_t)len;
 }
 
 /*
  * rpmem_fip_persist_apm -- (internal) perform persist operation for APM
  */
-static int
+static ssize_t
 rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 	size_t len, unsigned lane, unsigned flags)
 {
-	if (unlikely(flags & RPMEM_DEEP_PERSIST))
-		return rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+	int ret;
+	/* Limit len to the max value of the return type. */
+	len = min(len, SSIZE_MAX);
+	unsigned mode = flags & RPMEM_PERSIST_MASK;
 
-	if ((flags & RPMEM_PERSIST_MASK) == RPMEM_PERSIST_SEND)
-		return rpmem_fip_persist_send(fip, offset, len, lane, flags);
+	if (unlikely(mode == RPMEM_DEEP_PERSIST))
+		ret = rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+	else if (mode == RPMEM_PERSIST_SEND) {
+		len = min(len, fip->buff_size);
+		ret = rpmem_fip_persist_send(fip, offset, len, lane, flags);
+	} else {
+		ret = rpmem_fip_persist_raw(fip, offset, len, lane);
+	}
 
-	return rpmem_fip_persist_raw(fip, offset, len, lane);
+	if (ret)
+		return -abs(ret);
+	return (ssize_t)len;
 }
 
 /*
@@ -1377,21 +1412,6 @@ close_monitor:
 }
 
 /*
- * rpmem_msg_size -- return maximum message size supported by hw and
- * persistency mechanism used for the operation
- */
-static inline size_t
-rpmem_msg_size(struct rpmem_fip *fip, size_t len, unsigned flags)
-{
-	size_t ret = min(len, fip->fi->ep_attr->max_msg_size);
-
-	if ((flags & RPMEM_PERSIST_MASK) == RPMEM_PERSIST_SEND)
-		ret = min(ret, fip->buff_size);
-
-	return ret;
-}
-
-/*
  * rpmem_fip_persist -- perform remote persist operation
  */
 int
@@ -1416,16 +1436,18 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 
 	int ret = 0;
 	while (len > 0) {
-		size_t tmp_len = rpmem_msg_size(fip, len, flags);
+		size_t tmplen = min(len, fip->fi->ep_attr->max_msg_size);
 
-		ret = fip->ops->persist(fip, offset, tmp_len, lane, flags);
-		if (ret) {
+		ssize_t r = fip->ops->persist(fip, offset, tmplen, lane, flags);
+		if (r < 0) {
 			RPMEM_LOG(ERR, "persist operation failed");
+			ret = (int)r;
 			goto err;
 		}
+		tmplen = (size_t)r;
 
-		offset += tmp_len;
-		len -= tmp_len;
+		offset += tmplen;
+		len -= tmplen;
 	}
 err:
 	if (unlikely(rpmem_fip_is_closing(fip)))
