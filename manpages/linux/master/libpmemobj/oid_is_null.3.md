@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.3
 ...
 
-[comment]: <> (Copyright 2017, Intel Corporation)
+[comment]: <> (Copyright 2017-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -66,6 +66,8 @@ PMEMoid pmemobj_oid(const void *addr);
 uint64_t pmemobj_type_num(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
+void *pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt, void *ptr,
+	int (*constr)(void *ptr, void *arg), void *arg);
 ```
 
 
@@ -116,6 +118,21 @@ The **OID_IS_NULL**() macro checks if *PMEMoid* represents a NULL object.
 
 The **OID_EQUALS**() macro compares two *PMEMoid* objects.
 
+For special cases where volatile (transient) variables need to be stored on
+persistent memory, there's a mechanism composed of *struct pmemvlt* type and
+**pmemobj_volatile()** function. To use it, the *struct pmemvlt* needs to
+be placed in the neighborhood of transient data region. The *PMEMvlt* macro
+can be used to construct such a region.
+When the **pmemobj_volatile()** function is called on a *struct pmemvlt*,
+it will return the pointer to the data and it will ensure that the provided
+constructor function is called exactly once in the current instance of the
+pmemobj pool.
+The constructor is called with the *ptr* pointer to the data, and this function
+will return the same pointer if the constructor returns *0*, otherwise NULL is
+returned.
+For this mechanism to be effective, all accesses to transient variables must
+go through it, otherwise there's a risk of the constructor not being called
+on the first load.
 
 # RETURN VALUE #
 
@@ -154,6 +171,34 @@ function is inlined by default. To use the non-inlined variant of
 to the *\#include* of **\<libpmemobj.h\>**, either with *\#define* or with
 the *\-D* option to the compiler.
 
+# EXAMPLES #
+
+The following code shows how to store transient variables on persistent memory.
+
+```c
+struct my_data {
+	PMEMvlt(uint64_t) foo;
+	uint64_t bar;
+};
+
+int
+my_data_constructor(void *ptr, void *arg)
+{
+	uint64_t *foo = ptr;
+	*foo = 0;
+
+	return 0;
+}
+
+PMEMobjpool *pop = ...;
+
+struct my_data *data = D_RW(...);
+
+uint64_t *foo = pmemobj_volatile(pop, &data->foo.vlt, &data->foo.value,
+	my_data_constructor, NULL);
+
+assert(*foo == 0);
+```
 
 # SEE ALSO #
 
