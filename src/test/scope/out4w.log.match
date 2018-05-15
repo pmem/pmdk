@@ -90,6 +90,7 @@ pmemobj_tx_xalloc
 pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num
+pmemobj_volatile
 pmemobj_wcsdup
 pmemobj_xalloc
 pmemobj_xreserve

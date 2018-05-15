@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,13 +59,13 @@
 #endif
 
 /*
- * _get_lock -- (internal) atomically initialize and return a lock.
- *	Returns -1 on error, 0 if the caller is not the lock
- *	initializer, 1 if the caller is the lock initializer.
+ * _get_value -- (internal) atomically initialize and return a value.
+ *	Returns -1 on error, 0 if the caller is not the value
+ *	initializer, 1 if the caller is the value initializer.
  */
 static int
-_get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
-	int (*init_lock)(void *lock, void *arg))
+_get_value(uint64_t pop_runid, volatile uint64_t *runid, void *value, void *arg,
+	int (*init_value)(void *value, void *arg))
 {
 	uint64_t tmp_runid;
 	int initializer = 0;
@@ -80,7 +80,7 @@ _get_lock(uint64_t pop_runid, volatile uint64_t *runid, void *lock,
 
 		initializer = 1;
 
-		if (init_lock(lock, NULL)) {
+		if (init_value(value, arg)) {
 			ERR("error initializing lock");
 			util_fetch_and_and64(runid, 0);
 			return -1;
@@ -117,8 +117,8 @@ get_mutex(PMEMobjpool *pop, PMEMmutex_internal *imp)
 
 	VALGRIND_REMOVE_PMEM_MAPPING(imp, _POBJ_CL_SIZE);
 
-	int initializer = _get_lock(pop->run_id, runid, &imp->PMEMmutex_lock,
-		(void *)os_mutex_init);
+	int initializer = _get_value(pop->run_id, runid, &imp->PMEMmutex_lock,
+		NULL, (void *)os_mutex_init);
 	if (initializer == -1) {
 		return NULL;
 	}
@@ -151,8 +151,8 @@ get_rwlock(PMEMobjpool *pop, PMEMrwlock_internal *irp)
 
 	VALGRIND_REMOVE_PMEM_MAPPING(irp, _POBJ_CL_SIZE);
 
-	int initializer = _get_lock(pop->run_id, runid, &irp->PMEMrwlock_lock,
-		(void *)os_rwlock_init);
+	int initializer = _get_value(pop->run_id, runid, &irp->PMEMrwlock_lock,
+		NULL, (void *)os_rwlock_init);
 	if (initializer == -1) {
 		return NULL;
 	}
@@ -184,8 +184,8 @@ get_cond(PMEMobjpool *pop, PMEMcond_internal *icp)
 
 	VALGRIND_REMOVE_PMEM_MAPPING(icp, _POBJ_CL_SIZE);
 
-	int initializer = _get_lock(pop->run_id, runid, &icp->PMEMcond_cond,
-		(void *)os_cond_init);
+	int initializer = _get_value(pop->run_id, runid, &icp->PMEMcond_cond,
+		NULL, (void *)os_cond_init);
 	if (initializer == -1) {
 		return NULL;
 	}
@@ -639,4 +639,21 @@ pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
 	ASSERTeq((uintptr_t)cond % util_alignof(os_cond_t), 0);
 
 	return os_cond_wait(cond, mutex);
+}
+
+/*
+ * pmemobj_volatile -- atomically initialize, record and return a
+ *	generic value
+ */
+void *
+pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt, void *ptr,
+	int (*constr)(void *ptr, void *arg), void *arg)
+{
+	LOG(3, "pop %p vlt %p ptr %p constr %p arg %p", pop, vlt, ptr,
+		constr, arg);
+
+	if (_get_value(pop->run_id, &vlt->runid, ptr, arg, constr) < 0)
+		return NULL;
+
+	return ptr;
 }
