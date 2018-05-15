@@ -1,0 +1,36 @@
+Persistent Memory Development Kit
+
+This is examples/libpmemobj/queue/README.
+
+This directory contains an array-based implementation of a persistent queue.
+
+Usage:
+	./queue <pool file> <operation ...>
+
+The file must exist and must be a libpmemobj pool with a layout name "queue".
+This file can be created using pmempool:
+
+$ pmempool create obj <file> --layout queue
+
+The queue supports 4 operations:
+	* new <capacity> - create a new queue with the given capacity. The
+	capacity must be a power of two.
+	* push <data> - inserts a new entry into the queue with the given data
+	string
+	* pop - removes the entry at the front of the queue
+	* show - lists all entries in the queue
+
+For example, the following series commands will create a new queue in the pool,
+and then will push and pop two entries.
+
+$ ./queue /mnt/pmem/queue.pool new 16
+$ ./queue /mnt/pmem/queue.pool push hello
+$ ./queue /mnt/pmem/queue.pool push world
+$ ./queue /mnt/pmem/queue.pool show
+Entries 2/16
+0: hello
+1: world
+$ ./queue /mnt/pmem/queue.pool pop
+$ ./queue /mnt/pmem/queue.pool pop
+$ ./queue /mnt/pmem/queue.pool show
+Entries 0/16
