@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -81,10 +81,11 @@ if [ "$WEB" == 1 ]; then
 	mkdir -p "$(dirname $outfile)"
 	m4 $OPTS macros.man $filename | sed -n -e '/---/,$p' > $outfile
 else
+	dt=$(date +"%F")
 	m4 $OPTS macros.man $filename | sed -n -e '/# NAME #/,$p' |\
-		pandoc -s -t man -o $outfile --template=$template \
+		pandoc -s -t man -o $outfile.tmp --template=$template \
 		-V title=$title -V section=$section \
-		-V date=$(date +"%F") -V version="$version" \
+		-V date="$dt" -V version="$version" \
 		-V year=$(date +"%Y") |
 sed '/^\.IP/{
 N
@@ -92,5 +93,16 @@ N
 	s/IP/PP/
     }
 }'
+
+	# don't overwrite the output file if the only thing that changed
+	# is modification date (diff output has exactly 4 lines in this case)
+	difflines=`diff $outfile $outfile.tmp | wc -l || true`
+	onlydates=`diff $outfile $outfile.tmp | grep "$dt" | wc -l || true`
+	if [ $difflines -eq 4 -a $onlydates -eq 1 ]; then
+		rm $outfile.tmp
+	else
+		mv $outfile.tmp $outfile
+	fi
+
 fi
 fi
