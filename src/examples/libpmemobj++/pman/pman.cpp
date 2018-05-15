@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -882,7 +882,7 @@ bool
 state::intro_loop()
 {
 	int in;
-	while ((in = getch()) != 's') {
+	while ((in = getch()) != 'q') {
 		print_start();
 		unsigned i = 0;
 		persistent_ptr<intro> p;
@@ -893,7 +893,7 @@ state::intro_loop()
 			transaction::commit();
 		}
 		SLEEP(GAME_DELAY);
-		if (in == 'q')
+		if (in == 's')
 			return true;
 	}
 	return false;
