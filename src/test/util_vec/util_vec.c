@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,25 +39,26 @@
 
 #define Realloc REALLOC
 #define Free FREE
-#define ASSERTne UT_ASSERTne
 
 struct test {
 	int foo;
 	int bar;
 };
 
+VEC(testvec, struct test)
+
 static void
 vec_test()
 {
-	VEC(testvec, struct test) v = VEC_INITIALIZER;
+	struct testvec v = VEC_INITIALIZER;
 
 	UT_ASSERTeq(VEC_SIZE(&v), 0);
 
 	struct test t = {1, 2};
 	struct test t2 = {3, 4};
 
-	VEC_PUSH_BACK(&v, t);
-	VEC_PUSH_BACK(&v, t2);
+	UT_ASSERTeq(VEC_PUSH_BACK(testvec, &v, t), 0);
+	UT_ASSERTeq(VEC_PUSH_BACK(testvec, &v, t2), 0);
 
 	UT_ASSERTeq(VEC_ARR(&v)[0].foo, 1);
 	UT_ASSERTeq(VEC_GET(&v, 1)->foo, 3);
