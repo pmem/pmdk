@@ -51,9 +51,9 @@ struct shutdown_state {
 int shutdown_state_init(struct shutdown_state *sds, struct pool_set_part *part);
 int shutdown_state_add_part(struct shutdown_state *sds, const char *path,
 	struct pool_set_part *part);
-void shutdown_state_set_flag(struct shutdown_state *sds,
+void shutdown_state_set_dirty(struct shutdown_state *sds,
 	struct pool_set_part *part);
-void shutdown_state_clear_flag(struct shutdown_state *sds,
+void shutdown_state_clear_dirty(struct shutdown_state *sds,
 	struct pool_set_part *part);
 
 int shutdown_state_check(struct shutdown_state *curr_sds,

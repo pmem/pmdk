@@ -34,10 +34,11 @@
  * util_sds.c -- unit test for shutdown state functions
  */
 
+#include <stdlib.h>
 #include "unittest.h"
 #include "shutdown_state.h"
-#include <stdlib.h>
 #include "pmemcommon.h"
+#include "set.h"
 
 #define PMEM_LEN 4096
 
@@ -96,14 +97,15 @@ main(int argc, char *argv[])
 		uscs[i] = strtoull(args[i * 3 + 2], NULL, 0);
 	}
 	FAIL(fail_on, 1);
-
+	struct pool_set_part part;
+	memset(&part, 0, sizeof(part));
 	struct shutdown_state *pool_sds = (struct shutdown_state *)pmemaddr[0];
 	if (init) {
 		/* initialize pool shutdown state */
-		shutdown_state_init(pool_sds, NULL);
+		shutdown_state_init(pool_sds, &part);
 		FAIL(fail_on, 2);
 		for (int i = 0; i < files; i++) {
-			shutdown_state_add_part(pool_sds, args[2 + i], NULL);
+			shutdown_state_add_part(pool_sds, args[2 + i], &part);
 			FAIL(fail_on, 3);
 		}
 	} else {
@@ -117,19 +119,19 @@ main(int argc, char *argv[])
 			FAIL(fail_on, 3);
 		}
 
-		if (shutdown_state_check(&current_sds, pool_sds, NULL)) {
+		if (shutdown_state_check(&current_sds, pool_sds, &part)) {
 			UT_FATAL(
 				"An ADR failure is detected, the pool might be corrupted");
 		}
 	}
 	FAIL(fail_on, 4);
-	shutdown_state_set_flag(pool_sds, NULL);
+	shutdown_state_set_dirty(pool_sds, &part);
 
 	/* pool is open */
 	FAIL(fail_on, 5);
 
 	/* close pool */
-	shutdown_state_clear_flag(pool_sds, NULL);
+	shutdown_state_clear_dirty(pool_sds, &part);
 	FAIL(fail_on, 6);
 
 	for (int i = 0; i < files; i++)
