@@ -72,7 +72,7 @@ for commit in $commits; do
 	if [ "$prefix" = "" ]; then
 		echo "FAIL: subject line in commit message does not contain valid area name"
 		echo
-		git log -n 1 $commit
+		./utils/check-area.sh $commit
 		exit 1
 	fi
 	if [ $subject_len -gt 51 ]; then
