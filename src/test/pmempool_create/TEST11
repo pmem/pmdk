@@ -71,8 +71,7 @@ POOLSET=$DIR/testset1
 create_poolset $POOLSET 10M:$DIR/testfile1:x 10M:$FILE:x 10M:$DIR/testfile2:x
 
 # inject bad block:
-FIRST_SECTOR=$($EXTENTS $FILE | awk '{if (NR==1) print $1}')
-SECTOR=$(($FIRST_SECTOR + 100))
+SECTOR=$($EXTENTS $FILE 100)
 ndctl_inject_error $NAMESPACE $SECTOR 1
 
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET &> $LOG
