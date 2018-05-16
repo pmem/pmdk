@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,7 +53,8 @@ FUNC_MOCK(pmalloc, int, PMEMobjpool *pop, uint64_t *ptr,
 		pmemops_persist(p_ops, alloc_size, sizeof(*alloc_size));
 
 		*ptr = *Heap_offset + sizeof(uint64_t);
-		pmemops_persist(p_ops, ptr, sizeof(*ptr));
+		if (OBJ_PTR_FROM_POOL(pop, ptr))
+			pmemops_persist(p_ops, ptr, sizeof(*ptr));
 
 		struct oob_item *item =
 			(struct oob_item *)((uintptr_t)Pop + *ptr);
@@ -85,7 +86,8 @@ FUNC_MOCK(pfree, void, PMEMobjpool *pop, uint64_t *ptr)
 			(struct oob_item *)((uintptr_t)Pop + *ptr - OOB_OFF);
 		UT_OUT("pfree(id = %d)", item->item.id);
 		*ptr = 0;
-		pmemops_persist(&Pop->p_ops, ptr, sizeof(*ptr));
+		if (OBJ_PTR_FROM_POOL(pop, ptr))
+			pmemops_persist(&Pop->p_ops, ptr, sizeof(*ptr));
 
 		return;
 	}
@@ -109,7 +111,8 @@ FUNC_MOCK(pmalloc_construct, int, PMEMobjpool *pop, uint64_t *off,
 		pmemops_persist(p_ops, alloc_size, sizeof(*alloc_size));
 
 		*off = *Heap_offset + sizeof(uint64_t) + OOB_OFF;
-		pmemops_persist(p_ops, off, sizeof(*off));
+		if (OBJ_PTR_FROM_POOL(pop, off))
+			pmemops_persist(p_ops, off, sizeof(*off));
 
 		*Heap_offset = *Heap_offset + sizeof(uint64_t) + size;
 		pmemops_persist(p_ops, Heap_offset, sizeof(*Heap_offset));
