@@ -46,8 +46,8 @@ main(int argc, char *argv[])
 {
 	int ret = -1;
 
-	if (argc != 2) {
-		fprintf(stderr, "usage: %s file", argv[0]);
+	if (argc < 2 || argc > 3) {
+		fprintf(stderr, "usage: %s file [logical-offset]\n", argv[0]);
 		return -1;
 	}
 
@@ -72,12 +72,53 @@ main(int argc, char *argv[])
 	if (ret)
 		goto exit_free;
 
-	unsigned e;
-	for (e = 0; e < exts->extents_count; e++)
-		printf("%lu %lu\n",
+	if (argc == 2) {
+		/* print out all extents */
+		for (unsigned e = 0; e < exts->extents_count; e++) {
 			/* extents are in bytes, convert them to sectors */
-			B2SEC(exts->extents[e].offset_physical),
-			B2SEC(exts->extents[e].length));
+			printf("%lu %lu\n",
+				B2SEC(exts->extents[e].offset_physical),
+				B2SEC(exts->extents[e].length));
+		}
+	} else {
+		/* print the physical offset of the given logical one */
+		char *error;
+
+		long unsigned offset = strtoul(argv[2], &error, 10 /* base */);
+		if (*error != '\0') {
+			printf(
+				"error: invalid character(s) in the given logical offset: %s\n",
+				error);
+			ret = -1;
+			goto exit_free;
+		}
+
+		unsigned extent = 0;
+		for (unsigned e = 0; e < exts->extents_count; e++) {
+			if (B2SEC(exts->extents[e].offset_logical) > offset)
+				break;
+			extent = e;
+		}
+
+		if (extent == exts->extents_count - 1) {
+			long unsigned max_log;
+
+			max_log = B2SEC(exts->extents[extent].offset_logical) +
+					B2SEC(exts->extents[extent].length);
+
+			if (offset > max_log) {
+				printf("error: maximum logical offset is %lu\n",
+					max_log);
+				ret = -1;
+				goto exit_free;
+			}
+		}
+
+		offset += B2SEC(exts->extents[extent].offset_physical) -
+				B2SEC(exts->extents[extent].offset_logical);
+
+		printf("%lu\n", offset);
+	}
 
 exit_free:
 	if (exts->extents)
