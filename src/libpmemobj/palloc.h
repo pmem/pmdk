@@ -117,7 +117,6 @@ size_t palloc_heap(void *heap_start);
 typedef int (*object_callback)(const struct memory_block *m, void *arg);
 
 #if VG_MEMCHECK_ENABLED
-void palloc_vg_register_off(struct palloc_heap *heap, uint64_t off);
 void palloc_heap_vg_open(struct palloc_heap *heap, int objects);
 #endif
 
