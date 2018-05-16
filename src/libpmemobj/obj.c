@@ -996,6 +996,17 @@ obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 }
 
 /*
+ * obj_msync_nofail -- (internal) pmem_msync wrapper that never fails from
+ * caller's perspective
+ */
+static void
+obj_msync_nofail(const void *addr, size_t size)
+{
+	if (pmem_msync(addr, size))
+		FATAL("!pmem_msync");
+}
+
+/*
  * obj_replica_init_local -- (internal) initialize runtime part
  *                               of the local replicas
  */
@@ -1030,8 +1041,8 @@ obj_replica_init_local(PMEMobjpool *rep, int is_pmem, size_t resvsize)
 		rep->memmove_local = pmem_memmove;
 		rep->memset_local = pmem_memset;
 	} else {
-		rep->persist_local = (persist_local_fn)pmem_msync;
-		rep->flush_local = (flush_local_fn)pmem_msync;
+		rep->persist_local = obj_msync_nofail;
+		rep->flush_local = obj_msync_nofail;
 		rep->drain_local = obj_drain_empty;
 		rep->memcpy_local = obj_nopmem_memcpy;
 		rep->memmove_local = obj_nopmem_memmove;

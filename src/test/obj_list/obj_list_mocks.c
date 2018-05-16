@@ -71,6 +71,13 @@ obj_flush(void *ctx, const void *addr, size_t len, unsigned flags)
 	return 0;
 }
 
+static void
+obj_msync_nofail(const void *addr, size_t size)
+{
+	if (pmem_msync(addr, size))
+		UT_FATAL("!pmem_msync");
+}
+
 /*
  * obj_drain -- pmemobj version of pmem_drain w/o replication
  */
@@ -144,8 +151,8 @@ FUNC_MOCK_RUN_DEFAULT
 		Pop->flush_local = pmem_flush;
 		Pop->drain_local = pmem_drain;
 	} else {
-		Pop->persist_local = (persist_local_fn)pmem_msync;
-		Pop->flush_local = (persist_local_fn)pmem_msync;
+		Pop->persist_local = obj_msync_nofail;
+		Pop->flush_local = obj_msync_nofail;
 		Pop->drain_local = pmem_drain_nop;
 	}
 
