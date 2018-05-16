@@ -46,8 +46,9 @@ main(int argc, char *argv[])
 {
 	int ret = -1;
 
-	if (argc != 2) {
-		fprintf(stderr, "usage: %s file", argv[0]);
+	if (argc < 2 || argc > 3) {
+		fprintf(stderr, "usage: %s file [logical-block-number]\n",
+				argv[0]);
 		return -1;
 	}
 
@@ -72,12 +73,33 @@ main(int argc, char *argv[])
 	if (ret)
 		goto exit_free;
 
-	unsigned e;
-	for (e = 0; e < exts->extents_count; e++)
-		printf("%lu %lu\n",
+	if (argc == 2) {
+		/* print out all extents */
+		for (unsigned e = 0; e < exts->extents_count; e++) {
 			/* extents are in bytes, convert them to sectors */
-			B2SEC(exts->extents[e].offset_physical),
-			B2SEC(exts->extents[e].length));
+			printf("%lu %lu\n",
+				B2SEC(exts->extents[e].offset_physical),
+				B2SEC(exts->extents[e].length));
+		}
+	} else {
+		/* print the physical block of a given logical one */
+		long unsigned block = (long unsigned)atol(argv[2]);
+
+		long unsigned last_phy =
+					B2SEC(exts->extents[0].offset_physical);
+		long unsigned last_log = B2SEC(exts->extents[0].offset_logical);
+
+		for (unsigned e = 0; e < exts->extents_count; e++) {
+			if (B2SEC(exts->extents[e].offset_logical) > block)
+				break;
+			last_log = B2SEC(exts->extents[e].offset_logical);
+			last_phy = B2SEC(exts->extents[e].offset_physical);
+		}
+
+		block += last_phy - last_log;
+
+		printf("%lu\n", block);
+	}
 
 exit_free:
 	if (exts->extents)
