@@ -75,6 +75,9 @@ endif
 ifeq ($(call check_flag, -Wswitch-default), y)
 CFLAGS += -Wswitch-default
 endif
+ifeq ($(call check_flag, -Wcast-function-type), y)
+CFLAGS += -Wcast-function-type
+endif
 endif
 
 ifeq ($(USE_LIBUNWIND),1)
