@@ -130,6 +130,8 @@ struct remote_replica {
 	char *pool_desc;	/* descriptor of a poolset */
 };
 
+VEC(pool_set_dir_vec, struct pool_set_directory)
+
 struct pool_replica {
 	unsigned nparts;
 	unsigned nallocated;
@@ -140,7 +142,7 @@ struct pool_replica {
 	void *mapaddr;		/* base address (libpmemcto only) */
 	struct remote_replica *remote;	/* not NULL if the replica */
 					/* is a remote one */
-	VEC(, struct pool_set_directory) directory;
+	struct pool_set_dir_vec directory;
 	struct pool_set_part part[];
 };
 

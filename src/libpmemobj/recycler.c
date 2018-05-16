@@ -78,6 +78,9 @@ recycler_run_key_cmp(const void *lhs, const void *rhs)
 	return 0;
 }
 
+VEC(uint64_t_vec, uint64_t)
+VEC(memory_block_res_vec, struct memory_block_reserved *)
+
 struct recycler {
 	struct ravl *runs;
 	struct palloc_heap *heap;
@@ -93,8 +96,8 @@ struct recycler {
 	size_t recalc_threshold;
 	int recalc_inprogress;
 
-	VEC(, uint64_t) recalc;
-	VEC(, struct memory_block_reserved *) pending;
+	struct uint64_t_vec recalc;
+	struct memory_block_res_vec pending;
 
 	os_mutex_t lock;
 };
@@ -302,7 +305,8 @@ void
 recycler_pending_put(struct recycler *r,
 	struct memory_block_reserved *m)
 {
-	VEC_PUSH_BACK(&r->pending, m);
+	if (VEC_PUSH_BACK(memory_block_res_vec, &r->pending, m))
+		ASSERT(0); /* XXX */
 }
 
 /*
@@ -353,9 +357,11 @@ recycler_recalc(struct recycler *r, int force)
 
 		if (free_space == r->nallocs) {
 			memblock_rebuild_state(r->heap, &nm);
-			VEC_PUSH_BACK(&runs, nm);
+			if (VEC_PUSH_BACK(empty_runs, &runs, nm))
+				ASSERT(0); /* XXX */
 		} else {
-			VEC_PUSH_BACK(&r->recalc, score);
+			if (VEC_PUSH_BACK(uint64_t_vec, &r->recalc, score))
+				ASSERT(0); /* XXX */
 		}
 	} while (found_units < search_limit);
 

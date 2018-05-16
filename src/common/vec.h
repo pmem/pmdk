@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,6 +44,26 @@ struct name {\
 	type *buffer;\
 	size_t size;\
 	size_t capacity;\
+}; \
+static inline int vec_##name##_reserve(struct name *vec, size_t ncapacity) \
+{ \
+	if (ncapacity > vec->size) { \
+		void *tbuf = Realloc(vec->buffer, \
+			sizeof(*vec->buffer) * ncapacity); \
+		if (tbuf == NULL) \
+			return -1; \
+		vec->buffer = (type *)tbuf; \
+		vec->capacity = ncapacity; \
+	} \
+	return 0; \
+} \
+static inline int vec_##name##_push_back(struct name *vec, type element) \
+{ \
+	if (vec->capacity == vec->size) \
+		if (VEC_RESERVE(name, vec, vec->capacity + VEC_GROW_SIZE)) \
+			return -1; \
+	vec->buffer[vec->size++] = element; \
+	return 0; \
 }
 
 #define VEC_INITIALIZER {NULL, 0, 0}
@@ -54,16 +74,7 @@ struct name {\
 	(vec)->capacity = 0;\
 } while (0)
 
-#define VEC_RESERVE(vec, ncapacity) do {\
-	if ((ncapacity) > (vec)->size) {\
-		void *tbuf = Realloc((vec)->buffer,\
-			sizeof(*(vec)->buffer) * (ncapacity));\
-		ASSERTne(tbuf, NULL);\
-		/* there's no way to return a value from a macro in MSVC... */\
-		(vec)->buffer = tbuf;\
-		(vec)->capacity = ncapacity;\
-	}\
-} while (0)
+#define VEC_RESERVE(name, vec, ncapacity) vec_##name##_reserve(vec, ncapacity)
 
 #define VEC_POP_BACK(vec) do {\
 	(vec)->size -= 1;\
@@ -86,18 +97,7 @@ struct name {\
 	VEC_ERASE_BY_POS(vec, elpos);\
 } while (0)
 
-#define VEC_PUSH_BACK(vec, element) do {\
-	if ((vec)->capacity == (vec)->size)\
-		VEC_RESERVE((vec), ((vec)->capacity + VEC_GROW_SIZE));\
-	(vec)->buffer[(vec)->size++] = (element);\
-} while (0)
-
-/* doesn't work on MSVC */
-#define VEC_EMPLACE_BACK(vec, ...) do {\
-	if ((vec)->capacity == (vec)->size)\
-		VEC_RESERVE((vec), (vec)->capacity + VEC_GROW_SIZE);\
-	(vec)->buffer[(vec)->size++] = (typeof(*(vec)->buffer)) {__VA_ARGS__};\
-} while (0)
+#define VEC_PUSH_BACK(name, vec, element) vec_##name##_push_back(vec, element)
 
 #define VEC_FOREACH(el, vec)\
 for (size_t _vec_i = 0;\
