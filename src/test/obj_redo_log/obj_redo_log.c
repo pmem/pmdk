@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -110,6 +110,13 @@ redo_log_check_offset(void *ctx, uint64_t offset)
 	return OBJ_OFF_IS_VALID(pop, offset);
 }
 
+static void
+obj_msync_nofail(const void *addr, size_t size)
+{
+	if (pmem_msync(addr, size))
+		UT_FATAL("!pmem_msync");
+}
+
 static PMEMobjpool *
 pmemobj_open_mock(const char *fname, size_t redo_size)
 {
@@ -137,8 +144,8 @@ pmemobj_open_mock(const char *fname, size_t redo_size)
 		pop->flush_local = pmem_flush;
 		pop->drain_local = pmem_drain;
 	} else {
-		pop->persist_local = (persist_local_fn)pmem_msync;
-		pop->flush_local = (persist_local_fn)pmem_msync;
+		pop->persist_local = obj_msync_nofail;
+		pop->flush_local = obj_msync_nofail;
 		pop->drain_local = pmem_drain_nop;
 	}
 
