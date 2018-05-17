@@ -304,7 +304,8 @@ void
 recycler_pending_put(struct recycler *r,
 	struct memory_block_reserved *m)
 {
-	VEC_PUSH_BACK(&r->pending, m);
+	if (VEC_PUSH_BACK(&r->pending, m) != 0)
+		ASSERT(0); /* XXX: fix after refactoring */
 }
 
 /*
@@ -355,9 +356,11 @@ recycler_recalc(struct recycler *r, int force)
 
 		if (free_space == r->nallocs) {
 			memblock_rebuild_state(r->heap, &nm);
-			VEC_PUSH_BACK(&runs, nm);
+			if (VEC_PUSH_BACK(&runs, nm) != 0)
+				ASSERT(0); /* XXX: fix after refactoring */
 		} else {
-			VEC_PUSH_BACK(&r->recalc, score);
+			if (VEC_PUSH_BACK(&r->recalc, score) != 0)
+				ASSERT(0); /* XXX: fix after refactoring */
 		}
 	} while (found_units < search_limit);
 

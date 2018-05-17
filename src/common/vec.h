@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,9 @@
 #ifndef PMDK_VEC_H
 #define PMDK_VEC_H 1
 
+#include <stddef.h>
+#include "util.h"
+
 #define VEC_GROW_SIZE (64)
 
 #define VEC(name, type)\
@@ -54,16 +57,22 @@ struct name {\
 	(vec)->capacity = 0;\
 } while (0)
 
-#define VEC_RESERVE(vec, ncapacity) do {\
-	if ((ncapacity) > (vec)->size) {\
-		void *tbuf = Realloc((vec)->buffer,\
-			sizeof(*(vec)->buffer) * (ncapacity));\
-		ASSERTne(tbuf, NULL);\
-		/* there's no way to return a value from a macro in MSVC... */\
-		(vec)->buffer = tbuf;\
-		(vec)->capacity = ncapacity;\
-	}\
-} while (0)
+static inline int
+vec_reserve(void *vec, size_t ncapacity, size_t s)
+{
+	VEC(vvec, void) *vecp = (struct vvec *)vec;
+	void *tbuf = Realloc(vecp->buffer, s * ncapacity);
+	if (tbuf == NULL)
+		return -1;
+	vecp->buffer = tbuf;
+	vecp->capacity = ncapacity;
+	return 0;
+}
+
+#define VEC_RESERVE(vec, ncapacity)\
+((ncapacity) > (vec)->size ?\
+	vec_reserve((void *)vec, ncapacity, sizeof(*(vec)->buffer)) :\
+	0)
 
 #define VEC_POP_BACK(vec) do {\
 	(vec)->size -= 1;\
@@ -86,18 +95,14 @@ struct name {\
 	VEC_ERASE_BY_POS(vec, elpos);\
 } while (0)
 
-#define VEC_PUSH_BACK(vec, element) do {\
-	if ((vec)->capacity == (vec)->size)\
-		VEC_RESERVE((vec), ((vec)->capacity + VEC_GROW_SIZE));\
-	(vec)->buffer[(vec)->size++] = (element);\
-} while (0)
+#define VEC_INSERT(vec, element)\
+((vec)->buffer[(vec)->size++] = (element), 0)
 
-/* doesn't work on MSVC */
-#define VEC_EMPLACE_BACK(vec, ...) do {\
-	if ((vec)->capacity == (vec)->size)\
-		VEC_RESERVE((vec), (vec)->capacity + VEC_GROW_SIZE);\
-	(vec)->buffer[(vec)->size++] = (typeof(*(vec)->buffer)) {__VA_ARGS__};\
-} while (0)
+#define VEC_PUSH_BACK(vec, element)\
+((vec)->capacity == (vec)->size ?\
+	(VEC_RESERVE((vec), ((vec)->capacity + VEC_GROW_SIZE)) == 0 ?\
+		VEC_INSERT(vec, element) : -1) :\
+	VEC_INSERT(vec, element))
 
 #define VEC_FOREACH(el, vec)\
 for (size_t _vec_i = 0;\

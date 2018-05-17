@@ -1038,7 +1038,8 @@ util_parse_add_directory(struct pool_set *set, const char *path,
 	d.path = path;
 	d.resvsize = filesize;
 
-	VEC_PUSH_BACK(&rep->directory, d);
+	if (VEC_PUSH_BACK(&rep->directory, d) != 0)
+		return -1;
 
 	rep->resvsize += filesize;
 
