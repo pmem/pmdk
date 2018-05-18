@@ -55,7 +55,7 @@ struct queue { /* array-based queue container */
 	size_t front; /* position of the first entry */
 	size_t back; /* position of the last entry */
 
-	size_t capacity; /* size of the entries array, must be power of two */
+	size_t capacity; /* size of the entries array */
 	TOID(struct entry) entries[];
 };
 
