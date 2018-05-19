@@ -242,9 +242,10 @@ main(int argc, char *argv[])
 			if (argc != 4)
 				fail("missing size of the queue");
 
+			char *end;
 			errno = 0;
-			capacity = strtoull(argv[3], NULL, 0);
-			if (errno == ERANGE)
+			capacity = strtoull(argv[3], &end, 0);
+			if (errno == ERANGE || *end != '\0')
 				fail("invalid size of the queue");
 
 			if (queue_new(pop, &rootp->queue, capacity) != 0)
