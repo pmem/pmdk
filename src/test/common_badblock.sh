@@ -89,7 +89,7 @@ function ndctl_nfit_test_fini() {
 #
 function ndctl_nfit_test_fini_node() {
 	MOUNT_DIR=$2
-	[ $MOUNT_DIR ] && expect_normal_exit run_on_node $1 sudo umount $MOUNT_DIR &>> $PREP_LOG_FILE
+	[ $MOUNT_DIR ] && expect_normal_exit run_on_node $1 "sudo umount $MOUNT_DIR &>> $PREP_LOG_FILE"
 	expect_normal_exit run_on_node $1 "$COMMAND_NDCTL_NFIT_TEST_FINI"
 }
 
