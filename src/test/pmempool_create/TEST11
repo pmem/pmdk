@@ -78,7 +78,7 @@ ndctl_inject_error $NAMESPACE $SECTOR 1
 
 expect_bad_blocks
 
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET &>> $LOG
+expect_abnormal_exit "$PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET &>> $LOG"
 
 ndctl_nfit_test_fini $MOUNT_DIR
 
