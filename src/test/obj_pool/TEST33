@@ -30,44 +30,41 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_sync/TEST29 -- test for sync using the 'obj_verify' tool
+# src/test/obj_pool/TEST32 -- unit test for pmemobj_open
+#                             with a poolset and bad block recovery files
 #
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type any
-require_build_type debug nondebug
 
 setup
-
-LOG=out${UNITTEST_NUM}.log
-rm -f $LOG && touch $LOG
+umask 0
 
 POOLSET=$DIR/testset1
-create_poolset $POOLSET 10M:$DIR/testfile0:z \
-			10M:$DIR/testfile1:z \
-			10M:$DIR/testfile2:z \
-			R \
-			15M:$DIR/testfile3:z \
-			15M:$DIR/testfile4:z
+create_poolset $POOLSET 10M:$DIR/testfile0:z 10M:$DIR/testfile1:z 10M:$DIR/testfile2:z \
+			R 30M:$DIR/testfile3:z
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
+# expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
+# expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 
-expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG
+#
+# TEST28 existing file, file size >= min required size
+#        layout matches the value from pool header
+#
+expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testset1 "test" 20 0640
 
-# inject errors
-dd if=/dev/urandom of=$DIR/testfile1 bs=512 count=100 seek=0 conv=notrunc status=none
+# create recovery files - no bad blocks
+echo "0 0" > $DIR/testfile0_badblocks.txt
+echo "0 0" > $DIR/testfile1_badblocks.txt
+echo "0 0" > $DIR/testfile2_badblocks.txt
+echo "0 0" > $DIR/testfile3_badblocks.txt
 
-expect_abnormal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET &>> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync -b -v $POOLSET &>> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET &>> $LOG
-
-expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG
+# pmemobj_open() should fail, because the bad block recovery files exist
+expect_normal_exit ./obj_pool$EXESUFFIX o $DIR/testset1 "test"
 
 check
 

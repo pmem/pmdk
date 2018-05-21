@@ -14,7 +14,7 @@ size                     : $(N)
 alignment                : 4096
 bad blocks:
 	offset		length
-	0		$(N)
+	1000		$(N)
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1
