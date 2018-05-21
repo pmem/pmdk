@@ -79,6 +79,15 @@ os_open(const char *pathname, int flags, ...)
 }
 
 /*
+ * os_fsync -- fsync abstraction layer
+ */
+int
+os_fsync(int fd)
+{
+	return fsync(fd);
+}
+
+/*
  * os_stat -- stat abstraction layer
  */
 int

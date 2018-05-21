@@ -84,6 +84,27 @@ os_open(const char *pathname, int flags, ...)
 }
 
 /*
+ * os_fsync -- fsync abstraction layer
+ */
+int
+os_fsync(int fd)
+{
+	HANDLE handle = (HANDLE) _get_osfhandle(fd);
+
+	if (handle == INVALID_HANDLE_VALUE) {
+		errno = EBADF;
+		return -1;
+	}
+
+	if (!FlushFileBuffers(handle)) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
  * os_stat -- stat abstraction layer
  */
 int
