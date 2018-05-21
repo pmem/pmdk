@@ -60,6 +60,7 @@ AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmall
 
 # Check commit message
 for commit in $commits; do
+	subject=$(git log --format="%s" -n 1 $commit)
 	commit_len=$(git log --format="%s%n%b" -n 1 $commit | wc -L)
 	prefix=$(echo $subject | sed -n "s/^\($AREAS\)\:.*/\1/p")
 
