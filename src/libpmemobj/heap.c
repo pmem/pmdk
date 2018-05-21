@@ -160,7 +160,7 @@ heap_thread_arena_destructor(void *arg)
 static struct arena *
 heap_thread_arena_assign(struct heap_rt *heap)
 {
-	os_mutex_lock(&heap->arenas_lock);
+	util_mutex_lock(&heap->arenas_lock);
 
 	struct arena *least_used = NULL;
 
@@ -175,7 +175,7 @@ heap_thread_arena_assign(struct heap_rt *heap)
 
 	util_fetch_and_add64(&least_used->nthreads, 1);
 
-	os_mutex_unlock(&heap->arenas_lock);
+	util_mutex_unlock(&heap->arenas_lock);
 
 	os_tls_set(heap->thread_arena, least_used);
 

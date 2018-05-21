@@ -161,7 +161,7 @@ recycler_element_new(struct palloc_heap *heap, const struct memory_block *m)
 	 * try to disable reporting for this function.
 	 */
 	os_mutex_t *lock = m->m_ops->get_lock(m);
-	os_mutex_lock(lock);
+	util_mutex_lock(lock);
 
 	struct chunk_run *run = heap_get_chunk_run(heap, m);
 
@@ -204,7 +204,7 @@ recycler_element_new(struct palloc_heap *heap, const struct memory_block *m)
 			max_block = n;
 	}
 
-	os_mutex_unlock(lock);
+	util_mutex_unlock(lock);
 
 	return (struct recycler_element){
 		.free_space = free_space,
