@@ -295,3 +295,24 @@ util_localtime(const time_t *timep)
 
 	return tm;
 }
+
+/*
+ * util_safe_strcpy -- copies string from src to dst, returns -1
+ * when length of source string (including null-terminator)
+ * is greater than max_length, 0 otherwise
+ * if max_length is greater than 0 dst is always null-terminated
+ */
+int
+util_safe_strcpy(char *dst, const char *src, size_t max_length)
+{
+	for (size_t n = 0; n < max_length; n++) {
+		*(dst + n) = *(src + n);
+		if (*(dst + n) == '\0')
+			return 0;
+	}
+
+	if (max_length > 0)
+		dst[max_length - 1] = '\0';
+
+	return -1;
+}
