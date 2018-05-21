@@ -102,11 +102,10 @@ our test framework and the guidelines on how to write and run unit tests.
 ### Commit messages
 All commit lines (entered when you run `git commit`) must follow the common
 conventions for git commit messages:
-- The first line is a short summary, no longer than **50 characters,** starting
-  with an area name and then a colon.  There should be no period after
-  the short summary.
+- The first line is a short summary starting with an area name and then a colon.
+  There should be no period after the short summary.
 - Valid area names are: **pmem, obj, blk, log, cto, vmem, vmmalloc, jemalloc,
-  cpp** (for C++ bindings), **test, doc, pool** (for *libpmempool* and
+  cpp** (for C++ bindings), **test, doc, daxio, pool** (for *libpmempool* and
   *pmempool*), **rpmem** (for *librpmem* and *rpmemd*), **benchmark, examples**
   and **common** (for everything else).
 - It is acceptable for the short summary to be the only thing in the commit
