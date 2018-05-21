@@ -101,5 +101,7 @@ main(int argc, char *argv[])
 		UT_ASSERTeq(tests[i]->count.value, 1);
 	}
 
+	pmemobj_close(pop);
+
 	DONE(NULL);
 }
