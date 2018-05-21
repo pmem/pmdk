@@ -58,13 +58,13 @@ create_poolset $POOLSET 10M:$DIR/testfile0:z 10M:$DIR/testfile1:z 10M:$DIR/testf
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 
-expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG
+expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
 # inject errors: zero blocks: offset: 8000 length: 2000 in the 2nd part
 dd if=/dev/zero of=$DIR/testfile1 bs=512 seek=8000 count=2000 conv=notrunc status=none
 
 # fail because of bad blocks
-expect_abnormal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG
+expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
 # create recovery file - one bad block: offset: 8000 length: 2000
 echo "4096000 1024000" > $DIR/testset1_r0_p1_badblocks.txt
@@ -76,12 +76,12 @@ echo "0 0" > $DIR/testset1_r0_p2_badblocks.txt
 echo "0 0" > $DIR/testset1_r1_p0_badblocks.txt
 
 # fail because of recovery files
-expect_abnormal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG
+expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
 # repair
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync -b -v $POOLSET &>> $LOG
+expect_normal_exit "$PMEMPOOL$EXESUFFIX sync -b -v $POOLSET >> $LOG"
 
-expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG
+expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
 check
 
