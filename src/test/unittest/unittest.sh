@@ -1002,6 +1002,17 @@ function require_superuser() {
 }
 
 #
+# require_sudo_allowed_node -- require sudo command on a remote node
+#
+function require_sudo_allowed_node() {
+	if ! run_on_node $1 sudo date 1>/dev/null
+	then
+		msg "$UNITTEST_NAME: SKIP required: sudo allowed on node $1"
+		exit 0
+	fi
+}
+
+#
 # require_no_superuser -- require user without superuser rights
 #
 function require_no_superuser() {
@@ -1442,6 +1453,17 @@ function require_command() {
 }
 
 #
+# require_command_node -- only allow script to continue if specified command exists on a remote node
+#
+function require_command_node() {
+	if ! run_on_node $1 command -pv $2 1>/dev/null
+	then
+		msg "$UNITTEST_NAME: SKIP: node $1: '$2' command required"
+		exit 0
+	fi
+}
+
+#
 # require_kernel_module -- only allow script to continue if specified kernel module exists
 #
 function require_kernel_module() {
@@ -1449,6 +1471,17 @@ function require_kernel_module() {
 	local MODULE=$(depmod -n | $GREP -cw -e "$1.ko")
 	if [ $MODULE == "0" ]; then
 		msg "$UNITTEST_NAME: SKIP: '$1' kernel module required"
+		exit 0
+	fi
+}
+
+#
+# require_kernel_module_node -- only allow script to continue if specified kernel module exists on a remote node
+#
+function require_kernel_module_node() {
+	local MODULE=$(run_on_node $1 "sudo depmod -n | $GREP -cw -e \"$2.ko\"")
+	if [ "$MODULE" == "0" ]; then
+		msg "$UNITTEST_NAME: SKIP: node $1: '$2' kernel module required"
 		exit 0
 	fi
 }
