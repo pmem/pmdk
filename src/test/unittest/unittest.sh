@@ -1008,6 +1008,17 @@ function require_superuser() {
 }
 
 #
+# require_sudo_allowed_node -- require sudo command on a remote node
+#
+function require_sudo_allowed_node() {
+	if ! run_on_node $1 "timeout --signal=SIGKILL --kill-after=3s 3s sudo date" 1>/dev/null
+	then
+		msg "$UNITTEST_NAME: SKIP required: sudo allowed on node $1"
+		exit 0
+	fi
+}
+
+#
 # require_no_superuser -- require user without superuser rights
 #
 function require_no_superuser() {
@@ -1461,9 +1472,18 @@ function require_build_type() {
 # require_command -- only allow script to continue if specified command exists
 #
 function require_command() {
-	if ! command -pv $1 1>/dev/null
-	then
+	if ! which $1 &>/dev/null; then
 		msg "$UNITTEST_NAME: SKIP: '$1' command required"
+		exit 0
+	fi
+}
+
+#
+# require_command_node -- only allow script to continue if specified command exists on a remote node
+#
+function require_command_node() {
+	if ! run_on_node $1 "which $1 &>/dev/null"; then
+		msg "$UNITTEST_NAME: SKIP: node $1: '$2' command required"
 		exit 0
 	fi
 }
@@ -1471,11 +1491,74 @@ function require_command() {
 #
 # require_kernel_module -- only allow script to continue if specified kernel module exists
 #
+# Syntax:
+# require_kernel_module <module_name> [path_to_modinfo]
+#
 function require_kernel_module() {
 	[ "$user_id" == "" ] && require_superuser
-	local MODULE=$(depmod -n | $GREP -cw -e "$1.ko")
-	if [ $MODULE == "0" ]; then
-		msg "$UNITTEST_NAME: SKIP: '$1' kernel module required"
+
+	MODULE=$1
+	MODINFO=$2
+
+	if [ "$MODINFO" == "" ]; then
+		set +e
+		[ "$MODINFO" == "" ] && \
+			MODINFO=$(which modinfo 2>/dev/null)
+		set -e
+
+		[ "$MODINFO" == "" ] && \
+			[ -x /usr/sbin/modinfo ] && MODINFO=/usr/sbin/modinfo
+		[ "$MODINFO" == "" ] && \
+			[ -x /sbin/modinfo ] && MODINFO=/sbin/modinfo
+		[ "$MODINFO" == "" ] && \
+			msg "$UNITTEST_NAME: SKIP: modinfo command required" && \
+			exit 0
+	else
+		[ ! -x $MODINFO ] && \
+			msg "$UNITTEST_NAME: SKIP: modinfo command required" && \
+			exit 0
+	fi
+
+	$MODINFO -F name $MODULE &>/dev/null && true
+	if [ $? -ne 0 ]; then
+		msg "$UNITTEST_NAME: SKIP: '$MODULE' kernel module required"
+		exit 0
+	fi
+}
+
+#
+# require_kernel_module_node -- only allow script to continue if specified kernel module exists on a remote node
+#
+# Syntax:
+# require_kernel_module_node <node> <module_name> [path_to_modinfo]
+#
+function require_kernel_module_node() {
+	NODE_N=$1
+	MODULE=$2
+	MODINFO=$3
+
+	if [ "$MODINFO" == "" ]; then
+		set +e
+		[ "$MODINFO" == "" ] && \
+			MODINFO=$(run_on_node $NODE_N which modinfo 2>/dev/null)
+		set -e
+
+		[ "$MODINFO" == "" ] && \
+			run_on_node $NODE_N "test -x /usr/sbin/modinfo" && MODINFO=/usr/sbin/modinfo
+		[ "$MODINFO" == "" ] && \
+			run_on_node $NODE_N "test -x /sbin/modinfo" && MODINFO=/sbin/modinfo
+		[ "$MODINFO" == "" ] && \
+			msg "$UNITTEST_NAME: SKIP: node $NODE_N: modinfo command required" && \
+			exit 0
+	else
+		run_on_node $NODE_N "test ! -x $MODINFO" && \
+			msg "$UNITTEST_NAME: SKIP: node $NODE_N: modinfo command required" && \
+			exit 0
+	fi
+
+	run_on_node $NODE_N "$MODINFO -F name $MODULE &>/dev/null" && true
+	if [ $? -ne 0 ]; then
+		msg "$UNITTEST_NAME: SKIP: node $NODE_N: '$MODULE' kernel module required"
 		exit 0
 	fi
 }
