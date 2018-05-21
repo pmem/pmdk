@@ -83,6 +83,10 @@ extern "C" {
  * do not apply changes, only check if operation is viable
  */
 #define PMEMPOOL_DRY_RUN (1 << 1)
+/*
+ * fix bad blocks - it requires creating or reading special recovery files
+ */
+#define PMEMPOOL_FIX_BAD_BLOCKS (1 << 2)
 
 
 /* PMEMPOOL CHECK */

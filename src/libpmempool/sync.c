@@ -91,6 +91,186 @@ err:
 }
 
 /*
+ * sync_copy_data -- (internal) copy data from the healthy replica
+ *                   to the broken one
+ */
+static int
+sync_copy_data(void *src_addr, void *dst_addr, size_t off, size_t len,
+		struct pool_replica *rep_h,
+		struct pool_replica *rep, const struct pool_set_part *part)
+{
+	LOG(3, "src_addr %p, dst_addr %p, off %zu, len %zu, "
+		"rep_h %p, rep %p, part %p",
+		src_addr, dst_addr, off, len, rep_h, rep, part);
+
+	int ret;
+
+	if (rep->remote) {
+		LOG(10,
+			"copying data (offset %zu length %zu) to remote node -- '%s' on '%s'",
+			off, len,
+			rep->remote->pool_desc,
+			rep->remote->node_addr);
+
+		ret = Rpmem_persist(rep->remote->rpp, off, len, 0, 0);
+		if (ret) {
+			LOG(1,
+				"copying data to remote node failed -- '%s' on '%s'",
+				rep->remote->pool_desc,
+				rep->remote->node_addr);
+			return -1;
+		}
+	} else if (rep_h->remote) {
+		LOG(10,
+			"reading data (offset %zu length %zu) from remote node -- '%s' on '%s'",
+			off, len,
+			rep_h->remote->pool_desc,
+			rep_h->remote->node_addr);
+
+		ret = Rpmem_read(rep_h->remote->rpp, dst_addr, off, len, 0);
+		if (ret) {
+			LOG(1,
+				"reading data from remote node failed -- '%s' on '%s'",
+				rep_h->remote->pool_desc,
+				rep_h->remote->node_addr);
+			return -1;
+		}
+	} else {
+		LOG(10,
+			"copying data (offset %zu length %zu) from local replica -- '%s'",
+			off, len, rep_h->part[0].path);
+
+		/* copy all data */
+		memcpy(dst_addr, src_addr, len);
+		util_persist(part->is_dev_dax, dst_addr, len);
+	}
+
+	return 0;
+}
+
+/*
+ * sync_recreate_header -- (internal) recreate the header
+ */
+static int
+sync_recreate_header(struct pool_set *set, unsigned r, unsigned p,
+			struct pool_hdr *src_hdr)
+{
+	LOG(3, "set %p replica %u part %u src_hdr %p", set, r, p, src_hdr);
+
+	struct pool_attr attr;
+	util_pool_hdr2attr(&attr, src_hdr);
+
+	if (util_header_create(set, r, p, &attr, 1) != 0) {
+		LOG(1, "part headers create failed for replica %u part %u",
+			r, p);
+		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * sync_badblocks_data -- (internal) clear bad blocks in replica
+ */
+static int
+sync_badblocks_data(struct pool_set *set, unsigned healthy_replica,
+			struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
+	struct pool_replica *rep_h = REP(set, healthy_replica);
+	struct pool_hdr *src_hdr = HDR(REP(set, healthy_replica), 0);
+
+	/* header size for all headers but the first one */
+	size_t hdrsize = (set->options & (OPTION_SINGLEHDR | OPTION_NOHDRS)) ?
+				0 : Mmap_align;
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = REP(set, r);
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+
+			struct part_health_status *phs = &rep_hs->part[p];
+
+			if (!(phs->flags & HAS_BAD_BLOCKS)) {
+				/* skip parts with no bad blocks */
+				replica_part_remove_recovery_file(phs);
+				continue;
+			}
+
+			if (phs->bbs.bb_cnt == 0 || phs->bbs.bbv == NULL) {
+				replica_part_remove_recovery_file(phs);
+
+				/* mark part as having no bad blocks */
+				replica_mark_part_no_badblocks(r, p, set_hs);
+				continue;
+			}
+
+			LOG(10, "Replica %u part %u HAS %u bad blocks",
+				r, p, phs->bbs.bb_cnt);
+
+			const struct pool_set_part *part = &rep->part[p];
+			size_t part_off = replica_get_part_offset(set, r, p);
+
+			for (unsigned i = 0; i < phs->bbs.bb_cnt; i++) {
+				LOG(10,
+					"fixing bad block #%i: offset %llu, length %u",
+					i,
+					phs->bbs.bbv[i].offset,
+					phs->bbs.bbv[i].length);
+
+				size_t off = phs->bbs.bbv[i].offset;
+				size_t len = phs->bbs.bbv[i].length;
+
+				if (off < POOL_HDR_SIZE &&
+				    sync_recreate_header(set, r, p, src_hdr))
+					return -1;
+
+				if (len + off <= hdrsize)
+					continue;
+
+				/* parts #>0 are mapped without the header */
+				if (p > 0 && hdrsize > 0) {
+					if (off >= hdrsize) {
+						off -= hdrsize;
+					} else {
+						len -= hdrsize - off;
+						off = 0;
+					}
+				}
+
+				replica_align_offset_length(&off, &len,
+								set, r, p);
+
+				void *src_addr = ADDR_SUM(rep_h->part[0].addr,
+								part_off + off);
+				void *dst_addr = ADDR_SUM(part->addr, off);
+
+				if (sync_copy_data(src_addr, dst_addr,
+							part_off + off, len,
+							rep_h, rep, part))
+					return -1;
+			}
+
+			/* free array of bad blocks */
+			Free(phs->bbs.bbv);
+			phs->bbs.bbv = NULL;
+
+			replica_part_remove_recovery_file(phs);
+
+			/* mark part as having no bad blocks */
+			replica_mark_part_no_badblocks(r, p, set_hs);
+		}
+
+		replica_mark_no_badblocks(r, set_hs);
+	}
+
+	return 0;
+}
+
+/*
  * recreate_broken_parts -- (internal) create parts in place of the broken ones
  */
 static int
@@ -122,6 +302,8 @@ recreate_broken_parts(struct pool_set *set,
 				LOG(2, "cannot open/create parts");
 				return -1;
 			}
+
+			replica_mark_part_no_badblocks(r, p, set_hs);
 		}
 	}
 
@@ -277,7 +459,9 @@ create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
 		struct poolset_health_status *set_hs)
 {
 	LOG(3, "set %p, src_replica %u, set_hs %p", set, src_replica, set_hs);
+
 	struct pool_hdr *src_hdr = HDR(REP(set, src_replica), 0);
+
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		/* skip unbroken replicas */
 		if (!replica_is_replica_broken(r, set_hs))
@@ -288,14 +472,8 @@ create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
 			if (!replica_is_part_broken(r, p, set_hs))
 				continue;
 
-			struct pool_attr attr;
-			util_pool_hdr2attr(&attr, src_hdr);
-			if (util_header_create(set, r, p, &attr, 0) != 0) {
-				LOG(1, "part headers create failed for"
-						" replica %u part %u", r, p);
-				errno = EINVAL;
+			if (sync_recreate_header(set, r, p, src_hdr))
 				return -1;
-			}
 		}
 	}
 	return 0;
@@ -346,36 +524,12 @@ copy_data_to_broken_parts(struct pool_set *set, unsigned healthy_replica,
 			 * with header
 			 */
 			size_t fpoff = (p == 0) ? POOL_HDR_SIZE : 0;
+			void *src_addr = ADDR_SUM(rep_h->part[0].addr, off);
 			void *dst_addr = ADDR_SUM(part->addr, fpoff);
 
-			if (rep->remote) {
-				int ret = Rpmem_persist(rep->remote->rpp, off,
-						len, 0, 0);
-				if (ret) {
-					LOG(1,
-						"Copying data to remote node failed -- '%s' on '%s'",
-						rep->remote->pool_desc,
-						rep->remote->node_addr);
-					return -1;
-				}
-			} else if (rep_h->remote) {
-				int ret = Rpmem_read(rep_h->remote->rpp,
-						dst_addr, off, len, 0);
-				if (ret) {
-					LOG(1,
-						"Reading data from remote node failed -- '%s' on '%s'",
-						rep_h->remote->pool_desc,
-						rep_h->remote->node_addr);
-					return -1;
-				}
-			} else {
-				void *src_addr =
-					ADDR_SUM(rep_h->part[0].addr, off);
-
-				/* copy all data */
-				memcpy(dst_addr, src_addr, len);
-				util_persist(part->is_dev_dax, dst_addr, len);
-			}
+			if (sync_copy_data(src_addr, dst_addr, off, len,
+						rep_h, rep, part))
+				return -1;
 		}
 	}
 	return 0;
@@ -782,6 +936,13 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	/* open all remote replicas */
 	if (open_remote_replicas(set, set_hs)) {
 		ERR("opening remote replicas failed");
+		ret = -1;
+		goto out;
+	}
+
+	/* sync data in bad blocks */
+	if (sync_badblocks_data(set, healthy_replica, set_hs)) {
+		ERR("syncing bad blocks data failed");
 		ret = -1;
 		goto out;
 	}

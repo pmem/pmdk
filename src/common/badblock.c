@@ -217,3 +217,90 @@ badblocks_clear_poolset(struct pool_set *set, int create)
 
 	return 0;
 }
+
+/*
+ * badblocks_recovery_file_alloc -- allocate name of bad blocks recovery file,
+ *                                  the allocated name has to be freed
+ *                                  using Free()
+ */
+char *
+badblocks_recovery_file_alloc(const char *file)
+{
+	LOG(3, "file %s", file);
+
+	static const char *bbs_suffix = "_badblocks.txt";
+	char *path;
+
+	size_t len_path = strlen(file) + strlen(bbs_suffix);
+	path = Zalloc(len_path + 1);
+	if (path == NULL) {
+		ERR("!Zalloc");
+		return NULL;
+	}
+
+	if (strncpy(path, file, strlen(file)) == NULL) {
+		ERR("!strncpy");
+		goto error_free_all;
+	}
+
+	if (strncat(path, bbs_suffix, strlen(bbs_suffix)) == NULL) {
+		ERR("!strncat");
+		goto error_free_all;
+	}
+
+	return path;
+
+error_free_all:
+	Free(path);
+
+	return NULL;
+}
+
+/*
+ * badblocks_recovery_file_exist -- check if any bad block recovery file exists
+ */
+int
+badblocks_recovery_file_exist(struct pool_set *set)
+{
+	LOG(3, "set %p", set);
+
+	int recovery_file_exists = 0;
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+
+		/* XXX: not supported yet */
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			const char *path = PART(rep, p)->path;
+
+			if (os_access(path, F_OK) != 0) {
+				/* part file does not exist - skip it */
+				continue;
+			}
+
+			char *rec_file = badblocks_recovery_file_alloc(path);
+			if (rec_file == NULL) {
+				LOG(1,
+					"allocating name of bad blocks recovery file failed");
+				return -1;
+			}
+
+			if (os_access(rec_file, F_OK) == 0) {
+				LOG(3, "bad blocks recovery file exists: %s",
+					rec_file);
+
+				recovery_file_exists = 1;
+			}
+
+			Free(rec_file);
+
+			if (recovery_file_exists)
+				return 1;
+		}
+	}
+
+	return 0;
+}
