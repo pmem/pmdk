@@ -123,7 +123,7 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 
 	/* if the part is a device dax, clear its bad blocks */
 	if (util_file_is_device_dax(part->path) &&
-	    os_dimm_devdax_clear_badblocks(part->path)) {
+	    os_dimm_devdax_clear_badblocks_all(part->path)) {
 		ERR("clearing bad blocks in device dax failed -- '%s'",
 			part->path);
 		errno = EIO;
