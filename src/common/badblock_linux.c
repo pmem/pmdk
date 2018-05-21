@@ -287,11 +287,28 @@ os_badblocks_clear_file(const char *file, struct badblocks *bbs)
 }
 
 /*
- * os_badblocks_clear -- clears all bad blocks in a file
+ * os_badblocks_clear -- clears the given bad blocks in a file
+ *                       (regular file or dax device)
+ */
+int
+os_badblocks_clear(const char *file, struct badblocks *bbs)
+{
+	LOG(3, "file %s badblocks %p", file, bbs);
+
+	ASSERTne(bbs, NULL);
+
+	if (util_file_is_device_dax(file))
+		return os_dimm_devdax_clear_badblocks(file, bbs);
+
+	return os_badblocks_clear_file(file, bbs);
+}
+
+/*
+ * os_badblocks_clear_all -- clears all bad blocks in a file
  *                           (regular file or dax device)
  */
 int
-os_badblocks_clear(const char *file)
+os_badblocks_clear_all(const char *file)
 {
 	LOG(3, "file %s", file);
 
@@ -299,7 +316,7 @@ os_badblocks_clear(const char *file)
 	int ret;
 
 	if (util_file_is_device_dax(file))
-		return os_dimm_devdax_clear_badblocks(file);
+		return os_dimm_devdax_clear_badblocks_all(file);
 
 	bbs = Zalloc(sizeof(struct badblocks));
 	if (bbs == NULL) {
