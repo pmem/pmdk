@@ -54,7 +54,7 @@ enum ravl_predicate {
 
 typedef int ravl_compare(const void *lhs, const void *rhs);
 typedef void ravl_cb(void *data, void *arg);
-typedef void ravl_constr(void *data, size_t data_size, void *arg);
+typedef void ravl_constr(void *data, size_t data_size, const void *arg);
 
 struct ravl *ravl_new(ravl_compare *compare);
 struct ravl *ravl_new_sized(ravl_compare *compare, size_t data_size);
@@ -63,7 +63,7 @@ void ravl_delete_cb(struct ravl *ravl, ravl_cb cb, void *arg);
 int ravl_empty(struct ravl *ravl);
 void ravl_clear(struct ravl *ravl);
 int ravl_insert(struct ravl *ravl, const void *data);
-int ravl_emplace(struct ravl *ravl, ravl_constr constr, void *arg);
+int ravl_emplace(struct ravl *ravl, ravl_constr constr, const void *arg);
 int ravl_emplace_copy(struct ravl *ravl, const void *data);
 
 struct ravl_node *ravl_find(struct ravl *ravl, const void *data,
