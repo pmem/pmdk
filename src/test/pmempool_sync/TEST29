@@ -57,17 +57,17 @@ create_poolset $POOLSET 10M:$DIR/testfile0:z \
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 
-expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG
+expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
 # inject errors
 dd if=/dev/urandom of=$DIR/testfile1 bs=512 count=100 seek=0 conv=notrunc status=none
 
-expect_abnormal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET &>> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync -b -v $POOLSET &>> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET &>> $LOG
+expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null"
+expect_abnormal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"
+expect_normal_exit "$PMEMPOOL$EXESUFFIX sync -b -v $POOLSET >> $LOG"
+expect_normal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"
 
-expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG
+expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
 check
 

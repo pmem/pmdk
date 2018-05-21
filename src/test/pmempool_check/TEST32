@@ -73,15 +73,15 @@ ndctl_inject_error $NAMESPACE 11 1
 
 expect_bad_blocks
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -k $POOLSET &>> $LOG
+expect_normal_exit "$PMEMPOOL$EXESUFFIX info -k $POOLSET >> $LOG"
 
 expect_bad_blocks
 
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET &>> $LOG
+expect_abnormal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"
 
 expect_bad_blocks
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -k $POOLSET &>> $LOG
+expect_normal_exit "$PMEMPOOL$EXESUFFIX info -k $POOLSET >> $LOG"
 
 expect_bad_blocks
 

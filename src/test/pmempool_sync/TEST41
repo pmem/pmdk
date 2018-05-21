@@ -82,7 +82,7 @@ create_poolset $POOLSET 10M:$DIR/testfile0:z 10M:$MOUNT_DIR/testfile1:z 10M:$DIR
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 
-expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG
+expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
 # inject bad block:
 FIRST_SECTOR=$(expect_normal_exit $EXTENTS $MOUNT_DIR/testfile1 -l 1000)
@@ -90,8 +90,8 @@ ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1
 
 expect_bad_blocks
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -k $POOLSET &>> $LOG
-expect_abnormal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null
+expect_normal_exit "$PMEMPOOL$EXESUFFIX info -k $POOLSET >> $LOG"
+expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null"
 
 expect_bad_blocks
 
@@ -101,15 +101,15 @@ expect_normal_exit gdb --batch \
 	--args $PMEMPOOL$EXESUFFIX sync -b -v $POOLSET &> /dev/null
 
 # obj_verify should fail, because the recovery files exist
-expect_abnormal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG
+expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
 # run sync again and it should recover data using bad block recovery files
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync -b -v $POOLSET &>> $LOG
+expect_normal_exit "$PMEMPOOL$EXESUFFIX sync -b -v $POOLSET >> $LOG"
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET &>> $LOG
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -k $POOLSET &>> $LOG
+expect_normal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"
+expect_normal_exit "$PMEMPOOL$EXESUFFIX info -k $POOLSET >> $LOG"
 
-expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG
+expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
 ndctl_nfit_test_fini $MOUNT_DIR
 

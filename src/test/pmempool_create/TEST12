@@ -72,7 +72,7 @@ ndctl_inject_error $NAMESPACE 11 1
 
 expect_bad_blocks
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj -b --layout pmempool$SUFFIX $POOLSET &>> $LOG
+expect_normal_exit "$PMEMPOOL$EXESUFFIX create obj -b --layout pmempool$SUFFIX $POOLSET >> $LOG"
 
 ndctl_nfit_test_fini
 

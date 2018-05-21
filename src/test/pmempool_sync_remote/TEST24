@@ -93,22 +93,22 @@ copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$POOLSET_LOCAL
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$POOLSET_REMOTE
 
 expect_normal_exit run_on_node 0 ../pmempool rm -sf ${NODE_DIR[0]}$POOLSET_LOCAL
-expect_normal_exit run_on_node 0 ../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT c v &>> $LOG
+expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT c v &>> $LOG"
 
 # inject bad block:
 FILE=${MOUNT_DIR}/pool.local.part.1
 FIRST_SECTOR=$(expect_normal_exit run_on_node 0 ../extents $FILE -l 0)
 
-expect_normal_exit run_on_node 0 sudo ndctl inject-error --block=$FIRST_SECTOR --count=1 $NAMESPACE &>> $PREP_LOG_FILE
-expect_normal_exit run_on_node 0 sudo ndctl start-scrub &>> $PREP_LOG_FILE
-expect_normal_exit run_on_node 0 sudo ndctl wait-scrub &>> $PREP_LOG_FILE
+expect_normal_exit run_on_node 0 "sudo ndctl inject-error --block=$FIRST_SECTOR --count=1 $NAMESPACE &>> $PREP_LOG_FILE"
+expect_normal_exit run_on_node 0 "sudo ndctl start-scrub &>> $PREP_LOG_FILE"
+expect_normal_exit run_on_node 0 "sudo ndctl wait-scrub &>> $PREP_LOG_FILE"
 
 expect_bad_blocks_node 0
 
-expect_abnormal_exit run_on_node 0 ../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG
-expect_abnormal_exit run_on_node 0 ../pmempool sync -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG
-expect_normal_exit run_on_node 0 ../pmempool sync -b -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG
-expect_normal_exit run_on_node 0 ../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG
+expect_abnormal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
+expect_abnormal_exit run_on_node 0 "../pmempool sync -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
+expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
+expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
 
 ndctl_nfit_test_fini_node 0 $MOUNT_DIR
 
