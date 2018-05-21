@@ -126,13 +126,15 @@ queue_enqueue(PMEMobjpool *pop, struct queue *queue,
 		TX_ADD_DIRECT(&queue->back);
 		queue->back += 1;
 
-		/* and then snapshot the queue entry that we will allocate to */
-		TX_ADD_DIRECT(&queue->entries[pos]);
-
 		/* now we can safely allocate and initialize the new entry */
-		queue->entries[pos] = TX_ALLOC(struct entry,
+		TOID(struct entry) entry = TX_ALLOC(struct entry,
 			sizeof(struct entry) + len);
-		memcpy(D_RW(queue->entries[pos])->data, data, len);
+		D_RW(entry)->len = len;
+		memcpy(D_RW(entry)->data, data, len);
+
+		/* and then snapshot the queue entry that we will modify */
+		TX_ADD_DIRECT(&queue->entries[pos]);
+		queue->entries[pos] = entry;
 	} TX_ONABORT { /* don't forget about error handling! ;) */
 		ret = -1;
 	} TX_END
