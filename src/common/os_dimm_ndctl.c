@@ -592,7 +592,7 @@ os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 
 	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
 	if (bbs == NULL) {
-		ERR("!malloc");
+		ERR("!Zalloc");
 		goto exit_free_all;
 	}
 
