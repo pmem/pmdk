@@ -135,6 +135,7 @@ for (size_t _vec_i = 0;\
 
 #define VEC_DELETE(vec) do {\
 	Free((vec)->buffer);\
+	(vec)->buffer = NULL;\
 } while (0)
 
 #endif /* PMDK_VEC_H */
