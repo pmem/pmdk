@@ -39,6 +39,9 @@
 
 #include "set.h"
 
+struct badblocks *badblocks_new(void);
+void badblocks_delete(struct badblocks *bbs);
+
 int badblocks_check_poolset(struct pool_set *set, int create);
 int badblocks_clear_poolset(struct pool_set *set, int create);
 
