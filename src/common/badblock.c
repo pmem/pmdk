@@ -46,6 +46,37 @@
 #include "os_badblock.h"
 #include "badblock.h"
 
+/*
+ * badblocks_new -- zalloc bad blocks structure
+ */
+struct badblocks *
+badblocks_new(void)
+{
+	LOG(3, " ");
+
+	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
+	if (bbs == NULL) {
+		ERR("!Zalloc");
+	}
+
+	return bbs;
+}
+
+/*
+ * badblocks_delete -- free bad blocks structure
+ */
+void
+badblocks_delete(struct badblocks *bbs)
+{
+	LOG(3, "badblocks %p", bbs);
+
+	if (bbs == NULL)
+		return;
+
+	Free(bbs->bbv);
+	Free(bbs);
+}
+
 /* helper structure for badblocks_check_file_cb() */
 struct check_file_cb {
 	int n_files_bbs;	/* number of files with bad blocks */
