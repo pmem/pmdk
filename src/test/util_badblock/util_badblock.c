@@ -90,7 +90,7 @@ exit_free:
 static int
 do_clear(const char *path)
 {
-	return os_badblocks_clear(path);
+	return os_badblocks_clear_all(path);
 }
 
 /*
