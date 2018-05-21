@@ -85,7 +85,7 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 
 	exts = Zalloc(sizeof(struct extents));
 	if (exts == NULL) {
-		ERR("!malloc");
+		ERR("!Zalloc");
 		goto error_free_all;
 	}
 
@@ -103,7 +103,7 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 
 	exts->extents = Zalloc(exts->extents_count * sizeof(struct extent));
 	if (exts->extents == NULL) {
-		ERR("!malloc");
+		ERR("!Zalloc");
 		goto error_free_all;
 	}
 
@@ -320,7 +320,7 @@ os_badblocks_clear_all(const char *file)
 
 	bbs = Zalloc(sizeof(struct badblocks));
 	if (bbs == NULL) {
-		ERR("!malloc");
+		ERR("!Zalloc");
 		return -1;
 	}
 

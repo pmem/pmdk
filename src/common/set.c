@@ -1093,7 +1093,7 @@ util_parse_add_replica(struct pool_set **setp)
 	struct pool_replica *rep;
 	rep = Zalloc(sizeof(struct pool_replica));
 	if (rep == NULL) {
-		ERR("!Malloc");
+		ERR("!Zalloc");
 		return -1;
 	}
 
