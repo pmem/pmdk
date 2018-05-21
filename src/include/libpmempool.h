@@ -83,6 +83,10 @@ extern "C" {
  * do not apply changes, only check if operation is viable
  */
 #define PMEMPOOL_DRY_RUN (1 << 1)
+/*
+ * read bad blocks from redo logs instead of checking them
+ */
+#define PMEMPOOL_REDO_LOGS (1 << 2)
 
 
 /* PMEMPOOL CHECK */

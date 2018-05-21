@@ -75,6 +75,10 @@ be opened are recreated.=e=)
 
 ##### Available options: #####
 
+`-r, --redo-logs`
+
+: Read bad blocks from redo logs instead of checking them.
+
 `-d, --dry-run`
 
 : Enable dry run mode. In this mode no changes are applied, only check for
