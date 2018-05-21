@@ -383,6 +383,45 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 }
 
 /*
+ * os_dimm_files_namespace_bus -- (internal) returns bus where the given
+ *                                file is located
+ */
+static int
+os_dimm_files_namespace_bus(struct ndctl_ctx *ctx,
+				const char *path,
+				struct ndctl_bus **pbus)
+{
+	LOG(3, "ctx %p path %s pbus %p", ctx, path, pbus);
+
+	ASSERTne(pbus, NULL);
+
+	struct ndctl_region *region;
+	struct ndctl_namespace *ndns;
+
+	os_stat_t st;
+
+	if (os_stat(path, &st)) {
+		ERR("!stat %s", path);
+		return -1;
+	}
+
+	int rv = os_dimm_region_namespace(ctx, &st, &region, &ndns);
+	if (rv) {
+		ERR("getting region and namespace failed");
+		return -1;
+	}
+
+	if (!region) {
+		ERR("region unknown");
+		return -1;
+	}
+
+	*pbus = ndctl_region_get_bus(region);
+
+	return 0;
+}
+
+/*
  * os_dimm_files_namespace_badblocks_bus -- (internal) returns badblocks
  *                                          in the namespace where the given
  *                                          file is located
@@ -394,7 +433,7 @@ os_dimm_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
 					struct ndctl_bus **pbus,
 					struct badblocks *bbs)
 {
-	LOG(3, "ctx %p path %s pbus %p", ctx, path, pbus);
+	LOG(3, "ctx %p path %s pbus %p badblocks %p", ctx, path, pbus, bbs);
 
 	struct ndctl_region *region;
 	struct ndctl_namespace *ndns;
@@ -534,12 +573,13 @@ out_ars_cap:
 }
 
 /*
- * os_dimm_devdax_clear_badblocks -- clear all bad blocks in the dax device
+ * os_dimm_devdax_clear_badblocks -- clear the given bad blocks in the dax
+ *                                  device (or all of them if 'pbbs' is not set)
  */
 int
-os_dimm_devdax_clear_badblocks(const char *path)
+os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 {
-	LOG(3, "path %s", path);
+	LOG(3, "path %s badblocks %p", path, pbbs);
 
 	struct ndctl_ctx *ctx;
 	struct ndctl_bus *bus;
@@ -556,10 +596,23 @@ os_dimm_devdax_clear_badblocks(const char *path)
 		goto exit_free_all;
 	}
 
-	ret = os_dimm_files_namespace_badblocks_bus(ctx, path, &bus, bbs);
-	if (ret) {
-		ERR("getting bad blocks for the file failed -- %s", path);
-		goto exit_free_all;
+	if (pbbs) {
+		ret = os_dimm_files_namespace_bus(ctx, path, &bus);
+		if (ret) {
+			ERR("getting bad blocks' bus failed -- %s", path);
+			goto exit_free_all;
+		}
+		Free(bbs->bbv);
+		Free(bbs);
+		bbs = pbbs;
+	} else {
+		ret = os_dimm_files_namespace_badblocks_bus(ctx, path, &bus,
+									bbs);
+		if (ret) {
+			ERR("getting bad blocks for the file failed -- %s",
+				path);
+			goto exit_free_all;
+		}
 	}
 
 	if (bbs->bb_cnt == 0 || bbs->bbv == NULL) /* OK - no bad blocks found */
@@ -585,10 +638,23 @@ os_dimm_devdax_clear_badblocks(const char *path)
 	}
 
 exit_free_all:
-	Free(bbs->bbv);
-	Free(bbs);
+	if (!pbbs) {
+		Free(bbs->bbv);
+		Free(bbs);
+	}
 
 	ndctl_unref(ctx);
 
 	return ret;
+}
+
+/*
+ * os_dimm_devdax_clear_badblocks_all -- clear all bad blocks in the dax device
+ */
+int
+os_dimm_devdax_clear_badblocks_all(const char *path)
+{
+	LOG(3, "path %s", path);
+
+	return os_dimm_devdax_clear_badblocks(path, NULL);
 }
