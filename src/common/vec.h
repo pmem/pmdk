@@ -39,6 +39,7 @@
 
 #include <stddef.h>
 #include "util.h"
+#include "out.h"
 
 #define VEC_GROW_SIZE (64)
 
@@ -62,8 +63,10 @@ vec_reserve(void *vec, size_t ncapacity, size_t s)
 {
 	VEC(vvec, void) *vecp = (struct vvec *)vec;
 	void *tbuf = Realloc(vecp->buffer, s * ncapacity);
-	if (tbuf == NULL)
+	if (tbuf == NULL) {
+		ERR("!Realloc");
 		return -1;
+	}
 	vecp->buffer = tbuf;
 	vecp->capacity = ncapacity;
 	return 0;
@@ -135,6 +138,7 @@ for (size_t _vec_i = 0;\
 
 #define VEC_DELETE(vec) do {\
 	Free((vec)->buffer);\
+	(vec)->buffer = NULL;\
 } while (0)
 
 #endif /* PMDK_VEC_H */
