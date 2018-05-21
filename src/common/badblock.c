@@ -187,7 +187,7 @@ badblocks_clear_poolset_cb(struct part_file *pf, void *arg)
 			return 0;
 	}
 
-	int ret = os_badblocks_clear(pf->part->path);
+	int ret = os_badblocks_clear_all(pf->part->path);
 	if (ret < 0) {
 		ERR("clearing bad blocks in the pool file failed -- '%s'",
 			pf->part->path);

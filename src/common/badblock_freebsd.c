@@ -77,11 +77,23 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 }
 
 /*
- * os_badblocks_clear -- clears bad blocks in a file
- *                      (regular file or dax device)
+ * os_badblocks_clear -- clears the given bad blocks in a file
+ *                       (regular file or dax device)
  */
 int
-os_badblocks_clear(const char *file)
+os_badblocks_clear(const char *file, struct badblocks *bbs)
+{
+	LOG(3, "file %s badblocks %p", file, bbs);
+
+	return 0;
+}
+
+/*
+ * os_badblocks_clear_all -- clears all bad blocks in a file
+ *                           (regular file or dax device)
+ */
+int
+os_badblocks_clear_all(const char *file)
 {
 	LOG(3, "file %s", file);
 
