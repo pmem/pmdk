@@ -58,6 +58,7 @@
 #include "os.h"
 #include "os_dimm.h"
 #include "os_badblock.h"
+#include "vec.h"
 
 /*
  * http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
@@ -326,9 +327,7 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 	unsigned long long bb_beg, bb_end;
 	unsigned long long beg, end;
 
-	struct bad_block *bbvp = NULL;
-	struct bad_block *newbbvp;
-	unsigned bb_count = 0;
+	VEC(bbsvec, struct bad_block) bbv = VEC_INITIALIZER;
 
 	bbs->ns_resource = 0;
 	bbs->bb_cnt = 0;
@@ -356,17 +355,16 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 		beg = (bb_beg > ns_beg) ? bb_beg : ns_beg;
 		end = (bb_end < ns_end) ? bb_end : ns_end;
 
-		newbbvp = Realloc(bbvp, (++bb_count) *
-					sizeof(struct bad_block));
-		if (newbbvp == NULL) {
-			ERR("!realloc");
-			Free(bbvp);
+		/* form a new bad block */
+		struct bad_block bb;
+		bb.offset = beg - ns_beg;
+		bb.length = (unsigned)(end - beg + 1);
+
+		/* add the new bad block to the vector */
+		if (VEC_PUSH_BACK(&bbv, bb)) {
+			VEC_DELETE(&bbv);
 			return -1;
 		}
-
-		bbvp = newbbvp;
-		bbvp[bb_count - 1].offset = beg - ns_beg;
-		bbvp[bb_count - 1].length = (unsigned)(end - beg + 1);
 
 		LOG(4,
 			"namespace bad block: begin %llu end %llu length %llu (in 512B sectors)",
@@ -374,11 +372,11 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 			B2SEC(end - beg) + 1);
 	}
 
-	LOG(4, "number of bad blocks detected: %u", bb_count);
-
-	bbs->bb_cnt = bb_count;
-	bbs->bbv = bbvp;
+	bbs->bb_cnt = (unsigned)VEC_SIZE(&bbv);
+	bbs->bbv = VEC_ARR(&bbv);
 	bbs->ns_resource = ns_beg + ndctl_region_get_resource(region);
+
+	LOG(4, "number of bad blocks detected: %u", bbs->bb_cnt);
 
 	return 0;
 }
