@@ -43,8 +43,8 @@ require_test_type medium
 setup
 
 # non-existing file, poolsize == RANGE_OF_SIZE_T_AS_MB
-RANGE_OF_SIZE_T=$(getconf ULONG_MAX)
-RANGE_OF_SIZE_T_AS_MB=$(echo "$RANGE_OF_SIZE_T/1024/1024" | bc)
+# Use 2^64-1 as an arbitrarily huge number (fixed size for match file)
+RANGE_OF_SIZE_T_AS_MB=$(echo "2^64/1024/1024-1" | bc)
 expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile "test" \
     $RANGE_OF_SIZE_T_AS_MB 0640
 
