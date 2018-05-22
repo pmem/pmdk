@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,5 +38,8 @@
 	$(MAKE) -C ../libpmempool_api all
 
 all: ../libpmempool_api/libpmempool_test
+
+USE_PMEMSPOIL=y
+USE_BTTCREATE=y
 
 include ../Makefile.inc
