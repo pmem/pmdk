@@ -106,6 +106,13 @@ obj_drain(void *ctx)
 	pop->drain_local();
 }
 
+static void
+obj_msync_nofail(const void *addr, size_t size)
+{
+	if (pmem_msync(addr, size))
+		UT_FATAL("!pmem_msync");
+}
+
 /*
  * obj_memcpy -- pmemobj version of memcpy w/o replication
  */
@@ -297,8 +304,8 @@ test_mock_pool_allocs(void)
 	mock_pop->lanes_offset = sizeof(PMEMobjpool);
 	mock_pop->is_master_replica = 1;
 
-	mock_pop->persist_local = (persist_local_fn)pmem_msync;
-	mock_pop->flush_local = (flush_local_fn)pmem_msync;
+	mock_pop->persist_local = obj_msync_nofail;
+	mock_pop->flush_local = obj_msync_nofail;
 	mock_pop->drain_local = drain_empty;
 
 	mock_pop->p_ops.persist = obj_persist;
