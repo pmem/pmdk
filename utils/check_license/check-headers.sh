@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -130,7 +130,7 @@ FILES=$($GIT $GIT_COMMAND | ${SOURCE_ROOT}/utils/check_license/file-exceptions.s
 	grep    -E -e '*\.[chs]$' -e '*\.[ch]pp$' -e '*\.sh$' \
 		   -e '*\.py$' -e '*\.map$' -e 'Makefile*' -e 'TEST*' \
 		   -e '/common.inc$' -e '/match$' -e '/check_whitespace$' \
-		   -e 'LICENSE$' | \
+		   -e 'LICENSE$' -e 'CMakeLists.txt$' -e '*\.cmake$' | \
 	xargs)
 
 # jemalloc.mk has to be checked always, because of the grep rules above
@@ -142,7 +142,8 @@ $CHECK_LICENSE create $LICENSE $PATTERN
 
 RV=0
 for file in $FILES ; do
-	[ ! -f $file ] && continue
+	file="${SOURCE_ROOT}/$file"
+	[ ! -f $file ] &&  continue
 	# ensure that file is UTF-8 encoded
 	ENCODING=`file -b --mime-encoding $file`
 	iconv -f $ENCODING -t "UTF-8" $file > $TEMPFILE
