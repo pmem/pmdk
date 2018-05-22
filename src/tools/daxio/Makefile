@@ -30,27 +30,19 @@
 #
 # Makefile -- top Makefile for daxio
 #
-vpath %.c ../../common
 
 TOP = ../../..
-include $(TOP)/src/common.inc
 
 ifeq ($(NDCTL_ENABLE),y)
 
 #SCP_TO_REMOTE_NODES = y
 
 TARGET = daxio
-OBJS = daxio.o \
-	util.o \
-	out.o \
-	os_dimm_ndctl.o \
-	os_posix.o \
-	os_thread_posix.o \
-	util_posix.o
+OBJS = daxio.o
 
 LIBPMEM=y
+LIBPMEMCOMMON=y
 
-INCS += -I$(TOP)/src/common
 LIBS += $(LIBNDCTL)
 LIBS += $(LIBDAXCTL)
 
