@@ -510,6 +510,20 @@ ifeq ($(USE_PMEMALLOC), y)
 all: $(TOOLS)/pmemalloc/pmemalloc
 endif
 
+$(TOOLS)/pmemobjcli/pmemobjcli:
+	$(MAKE) -C $(TOOLS)/pmemobjcli all
+
+ifeq ($(USE_PMEMOBJCLI), y)
+all: $(TOOLS)/pmemobjcli/pmemobjcli
+endif
+
+$(TOOLS)/ddmap/ddmap:
+	$(MAKE) -C $(TOOLS)/ddmap all
+
+ifeq ($(USE_DDMAP), y)
+all: $(TOOLS)/ddmap/ddmap
+endif
+
 $(TOOLS)/pmemdetect/pmemdetect.static-nondebug:
 	$(MAKE) -C $(TOOLS)/pmemdetect all
 

@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,5 +42,6 @@ LIBPMEMOBJ=y
 LIBPMEMBLK=y
 LIBPMEMLOG=y
 LIBPMEMCTO=y
+USE_PMEMSPOIL=y
 
 include ../Makefile.inc
