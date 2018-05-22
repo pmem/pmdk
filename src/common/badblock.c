@@ -31,7 +31,7 @@
  */
 
 /*
- * badblock_poolset.c - implementation of bad block API for poolsets
+ * badblock.c - common part of implementation of bad blocks API
  */
 #define _GNU_SOURCE
 
@@ -44,20 +44,20 @@
 #include "out.h"
 #include "extent.h"
 #include "os_badblock.h"
-#include "badblock_poolset.h"
+#include "badblock.h"
 
-/* helper structure for os_badblocks_check_file_cb() */
+/* helper structure for badblocks_check_file_cb() */
 struct check_file_cb {
 	int n_files_bbs;	/* number of files with bad blocks */
 	int create;		/* poolset is just being created */
 };
 
 /*
- * os_badblocks_check_file_cb -- (internal) callback checking bad blocks
+ * badblocks_check_file_cb -- (internal) callback checking bad blocks
  *                               in the given file
  */
 static int
-os_badblocks_check_file_cb(struct part_file *pf, void *arg)
+badblocks_check_file_cb(struct part_file *pf, void *arg)
 {
 	LOG(3, "part_file %p arg %p", pf, arg);
 
@@ -98,7 +98,7 @@ os_badblocks_check_file_cb(struct part_file *pf, void *arg)
 }
 
 /*
- * os_badblocks_check_poolset -- checks if the pool set contains bad blocks
+ * badblocks_check_poolset -- checks if the pool set contains bad blocks
  *
  * Return value:
  * -1 error
@@ -106,7 +106,7 @@ os_badblocks_check_file_cb(struct part_file *pf, void *arg)
  *  1 pool set contains bad blocks
  */
 int
-os_badblocks_check_poolset(struct pool_set *set, int create)
+badblocks_check_poolset(struct pool_set *set, int create)
 {
 	LOG(3, "set %p create %i", set, create);
 
@@ -115,7 +115,7 @@ os_badblocks_check_poolset(struct pool_set *set, int create)
 	cfcb.n_files_bbs = 0;
 	cfcb.create = create;
 
-	if (util_poolset_foreach_part_struct(set, os_badblocks_check_file_cb,
+	if (util_poolset_foreach_part_struct(set, badblocks_check_file_cb,
 						&cfcb)) {
 		return -1;
 	}
@@ -129,11 +129,11 @@ os_badblocks_check_poolset(struct pool_set *set, int create)
 }
 
 /*
- * os_badblocks_clear_poolset_cb -- (internal) callback clearing bad blocks
+ * badblocks_clear_poolset_cb -- (internal) callback clearing bad blocks
  *                                  in the given file
  */
 static int
-os_badblocks_clear_poolset_cb(struct part_file *pf, void *arg)
+badblocks_clear_poolset_cb(struct part_file *pf, void *arg)
 {
 	LOG(3, "part_file %p arg %p", pf, arg);
 
@@ -170,14 +170,14 @@ os_badblocks_clear_poolset_cb(struct part_file *pf, void *arg)
 }
 
 /*
- * os_badblocks_clear_poolset -- clears bad blocks in the pool set
+ * badblocks_clear_poolset -- clears bad blocks in the pool set
  */
 int
-os_badblocks_clear_poolset(struct pool_set *set, int create)
+badblocks_clear_poolset(struct pool_set *set, int create)
 {
 	LOG(3, "set %p create %i", set, create);
 
-	if (util_poolset_foreach_part_struct(set, os_badblocks_clear_poolset_cb,
+	if (util_poolset_foreach_part_struct(set, badblocks_clear_poolset_cb,
 						&create)) {
 		return -1;
 	}

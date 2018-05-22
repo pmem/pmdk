@@ -118,7 +118,7 @@
     <ClCompile Include="..\common\os_auto_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\badblock_poolset.c">
+    <ClCompile Include="..\common\badblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\badblock_windows.c">

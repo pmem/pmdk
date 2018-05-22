@@ -14,7 +14,7 @@
     <ClCompile Include="badblock_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="badblock_poolset.c">
+    <ClCompile Include="badblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="file.c">
@@ -124,7 +124,7 @@
     <ClInclude Include="os_badblock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="badblock_poolset.h">
+    <ClInclude Include="badblock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os_auto_flush_windows.h">

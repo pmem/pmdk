@@ -44,7 +44,7 @@
 #include "pool.h"
 #include "check_util.h"
 #include "os_badblock.h"
-#include "badblock_poolset.h"
+#include "badblock.h"
 
 /*
  * check_bad_blocks -- check poolset for bad_blocks
@@ -57,8 +57,7 @@ check_bad_blocks(PMEMpoolcheck *ppc)
 	int ret;
 
 	if (ppc->pool->set_file->poolset) {
-		ret = os_badblocks_check_poolset(ppc->pool->set_file->poolset,
-							0);
+		ret = badblocks_check_poolset(ppc->pool->set_file->poolset, 0);
 	} else {
 		ret = os_badblocks_check_file(ppc->pool->set_file->fname);
 	}

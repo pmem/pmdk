@@ -63,7 +63,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\badblock_poolset.c" />
+    <ClCompile Include="..\..\common\badblock.c" />
     <ClCompile Include="..\..\common\badblock_windows.c" />
     <ClCompile Include="..\..\common\file.c" />
     <ClCompile Include="..\..\common\file_windows.c" />

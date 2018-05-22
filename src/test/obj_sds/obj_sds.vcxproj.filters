@@ -19,7 +19,7 @@
     <ClCompile Include="..\..\libpmemobj\alloc_class.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\badblock_poolset.c">
+    <ClCompile Include="..\..\common\badblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\badblock_windows.c">
