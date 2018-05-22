@@ -2874,7 +2874,8 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 		struct pool_set_part *part = PART(rep, 0);
 		if (!set->ignore_sds && part->addr != NULL &&
 				part->size != 0) {
-			/* XXX: DEEP DRAIN */
+			util_replica_deep_drain(part->addr, rep->repsize,
+				set, repidx);
 			struct pool_hdr *hdr = part->addr;
 			RANGE_RW(hdr, sizeof(*hdr), part->is_dev_dax);
 			shutdown_state_clear_dirty(&hdr->sds, part);
