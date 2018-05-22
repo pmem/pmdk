@@ -13,8 +13,7 @@ This file can be created using pmempool:
 $ pmempool create obj <file> --layout queue
 
 The queue supports 4 operations:
-	* new <capacity> - create a new queue with the given capacity. The
-	capacity must be a power of two.
+	* new <capacity> - create a new queue with the given capacity.
 	* enqueue <data> - inserts a new entry into the queue with the given
 	data string
 	* dequeue - removes the entry at the front of the queue

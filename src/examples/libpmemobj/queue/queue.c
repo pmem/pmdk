@@ -55,7 +55,7 @@ struct queue { /* array-based queue container */
 	size_t front; /* position of the first entry */
 	size_t back; /* position of the last entry */
 
-	size_t capacity; /* size of the entries array, must be power of two */
+	size_t capacity; /* size of the entries array */
 	TOID(struct entry) entries[];
 };
 
@@ -244,9 +244,10 @@ main(int argc, char *argv[])
 			if (argc != 4)
 				fail("missing size of the queue");
 
+			char *end;
 			errno = 0;
-			capacity = strtoull(argv[3], NULL, 0);
-			if (errno == ERANGE)
+			capacity = strtoull(argv[3], &end, 0);
+			if (errno == ERANGE || *end != '\0')
 				fail("invalid size of the queue");
 
 			if (queue_new(pop, &rootp->queue, capacity) != 0)
