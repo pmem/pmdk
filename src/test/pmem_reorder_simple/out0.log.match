@@ -1,0 +1,2 @@
+pmem_reorder_simple/TEST0: START: pmem_reorder_simple
+ ./pmem_reorder_simple c $(nW)/testfile1 $(nW)/testfile1
