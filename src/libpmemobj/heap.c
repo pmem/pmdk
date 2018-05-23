@@ -621,23 +621,19 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 		heap->rt->alloc_classes,
 		run->block_size, hdr->flags, m->size_idx);
 
-	uint64_t free_space;
+	struct recycler_element e = recycler_element_new(heap, m);
 	if (c == NULL) {
 		struct alloc_class_run_proto run_proto;
 		alloc_class_generate_run_proto(&run_proto,
 			run->block_size, m->size_idx, run->alignment);
 
-		recycler_calc_score(heap, m, &free_space);
-
-		return free_space == run_proto.bitmap_nallocs;
+		return e.free_space == run_proto.bitmap_nallocs;
 	}
 
-	uint64_t score = recycler_calc_score(heap, m, &free_space);
-	if (free_space == c->run.bitmap_nallocs) {
+	if (e.free_space == c->run.bitmap_nallocs)
 		return 1;
-	}
 
-	if (recycler_put(heap->rt->recyclers[c->id], m, score) < 0)
+	if (recycler_put(heap->rt->recyclers[c->id], m, e) < 0)
 		ERR("lost runtime tracking info of %u run due to OOM", c->id);
 
 	return 0;
