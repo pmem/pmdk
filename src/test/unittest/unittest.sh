@@ -215,7 +215,7 @@ fi
 
 REAL_FS=$FS
 if [ "$DIR" ]; then
-	DIR=$DIR/$curtestdir$UNITTEST_NUM$SUFFIX
+	DIR=$DIR/$curtestdir$UNITTEST_NUM
 else
 	case "$FS"
 	in
@@ -224,7 +224,7 @@ else
 		if [ "$PMEM_FS_DIR" == "" ]; then
 			fatal "$UNITTEST_NAME: PMEM_FS_DIR is not set"
 		fi
-		DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
+		DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 		if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ] || [ "$PMEM_FS_DIR_FORCE_PMEM" = "2" ]; then
 			export PMEM_IS_PMEM_FORCE=1
 		fi
@@ -234,24 +234,24 @@ else
 		if [ "$NON_PMEM_FS_DIR" == "" ]; then
 			fatal "$UNITTEST_NAME: NON_PMEM_FS_DIR is not set"
 		fi
-		DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
+		DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 		;;
 	any)
 		if [ "$PMEM_FS_DIR" != "" ]; then
-			DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
+			DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 			REAL_FS=pmem
 			if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ] || [ "$PMEM_FS_DIR_FORCE_PMEM" = "2" ]; then
 				export PMEM_IS_PMEM_FORCE=1
 			fi
 		elif [ "$NON_PMEM_FS_DIR" != "" ]; then
-			DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
+			DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 			REAL_FS=non-pmem
 		else
 			fatal "$UNITTEST_NAME: fs-type=any and both env vars are empty"
 		fi
 		;;
 	none)
-		DIR=/dev/null/not_existing_dir/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
+		DIR=/dev/null/not_existing_dir/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 		;;
 	*)
 		verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
@@ -259,13 +259,6 @@ else
 		;;
 	esac
 fi
-
-# writes test working directory to temporary file
-# that allows read location of data after test failure
-if [ -f "$TEMP_LOC" ]; then
-	echo "$DIR" > $TEMP_LOC
-fi
-
 
 #
 # The default is to turn on library logging to level 3 and save it to local files.
@@ -286,7 +279,6 @@ export PMEMCTO_LOG_FILE=pmemcto$UNITTEST_NUM.log
 export PMEMPOOL_LOG_LEVEL=3
 export PMEMPOOL_LOG_FILE=pmempool$UNITTEST_NUM.log
 
-export VMMALLOC_POOL_DIR="$DIR"
 export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
 export VMMALLOC_LOG_LEVEL=3
 export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
@@ -1179,6 +1171,13 @@ function require_dax_devices() {
 function require_node_dax_device() {
 	validate_node_number $1
 	require_dev_dax_node $2 $1
+}
+
+#
+# require_no_unicode -- overwrite unicode suffix to empty string
+#
+function require_no_unicode() {
+	export SUFFIX=""
 }
 
 #
@@ -2334,6 +2333,16 @@ function create_holey_file_on_node() {
 # setup -- print message that test setup is commencing
 #
 function setup() {
+
+	DIR=$DIR$SUFFIX
+	export VMMALLOC_POOL_DIR="$DIR"
+
+	# writes test working directory to temporary file
+	# that allows read location of data after test failure
+	if [ -f "$TEMP_LOC" ]; then
+		echo "$DIR" > $TEMP_LOC
+	fi
+
 	# test type must be explicitly specified
 	if [ "$req_test_type" != "1" ]; then
 		fatal "error: required test type is not specified"
