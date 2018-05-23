@@ -78,6 +78,7 @@ export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFI
 
 VMMALLOC=libvmmalloc.so.1
 TOOLS=../tools
+LIB_TOOLS="../../tools"
 # Paths to some useful tools
 [ "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
 [ "$DAXIO" ] || DAXIO=../../tools/daxio/daxio
@@ -87,6 +88,7 @@ TOOLS=../tools
 [ "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
 [ "$PMEMOBJCLI" ] || PMEMOBJCLI=$TOOLS/pmemobjcli/pmemobjcli
 [ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
+[ "$PMREORDER" ] || PMREORDER=$LIB_TOOLS/pmreorder/pmreorder.py
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
@@ -3012,3 +3014,61 @@ function count_lines() {
 	$GREP -ce "$1" $2
 	restore_exit_on_error
 }
+
+#
+# require_python_3 -- check if python3 is available
+#
+function require_python3()
+{
+	if hash python3 &>/dev/null;
+	then
+		PYTHON_EXE=python3
+	else
+		PYTHON_EXE=python
+	fi
+
+	case "$($PYTHON_EXE --version 2>&1)" in
+	    *" 3."*)
+		return
+		;;
+	    *)
+		echo "$UNITTEST_NAME: SKIP: required python version 3"
+		exit 0
+		;;
+	esac
+}
+
+#
+# do_reorder_test -- perform a reordering test
+#
+# This function expects 5 additional parameters. They are in order:
+# 1 - the pool file to be tested
+# 2 - the application and necessary parameters to run pmemcheck logging
+# 3 - the log output file
+# 4 - the checker type - for a list of supported types run `./pmreorder.py -h`
+# 5 - the path to the checker binary/library
+# 6 - the remaining parameters which will be passed to the consistency checker
+#     binary. If you are using a library checker, prepend '-n funcname'
+#
+function do_reorder_test()
+{
+	# python3 is necessary
+	require_python3
+	require_valgrind
+
+	#copy original file and perform store logging
+	cp $1 "$1.pmr"
+	rm -f store_log$UNITTEST_NUM.log
+
+	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $VALGRINDEXE --tool=pmemcheck -q \
+	--log-stores=yes --print-summary=no \
+	--log-file=store_log$UNITTEST_NUM.log --log-stores-stacktraces=yes \
+	--log-stores-stacktraces-depth=2 $2
+
+	# shuffle files and do the reorder/check testing
+	mv $1 "$1.bak"
+	mv "$1.pmr" $1
+	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PYTHON_EXE $PMREORDER \
+	-l store_log$UNITTEST_NUM.log -t file -o $3 -c $4 -p $5 $6
+}
+
