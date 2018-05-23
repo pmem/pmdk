@@ -72,6 +72,9 @@ endif
 ifeq ($(call check_flag, -Wswitch-default), y)
 DEFAULT_CFLAGS += -Wswitch-default
 endif
+ifeq ($(call check_flag, -Wcast-function-type), y)
+DEFAULT_CFLAGS += -Wcast-function-type
+endif
 endif
 
 ifeq ($(DEBUG),1)

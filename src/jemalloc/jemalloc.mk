@@ -82,6 +82,7 @@ CFLAGS_FILTER += -Wdisabled-macro-expansion
 CFLAGS_FILTER += -Wlanguage-extension-token
 CFLAGS_FILTER += -Wfloat-equal
 CFLAGS_FILTER += -Wswitch-default
+CFLAGS_FILTER += -Wcast-function-type
 JEMALLOC_CFLAGS=$(filter-out $(CFLAGS_FILTER), $(CFLAGS))
 ifeq ($(shell uname -s),FreeBSD)
 JEMALLOC_CFLAGS += -I/usr/local/include
