@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -74,6 +74,6 @@ sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
 
-check pcheck:
+check pcheck: all
 
 .PHONY: all clean clobber cstyle format check pcheck $(DIRS)
