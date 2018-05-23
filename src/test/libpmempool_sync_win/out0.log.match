@@ -7,7 +7,7 @@ Wrong5678
 Wrong9ABC
 libpmempool_sync_win$(nW)TEST0: START: libpmempool_sync_win$(nW)
  $(nW)libpmempool_sync_win$(nW) $(nW)pool0.set 0
-result: 0, errno: 0
+result: 0
 libpmempool_sync_win$(nW)TEST0: DONE
 TestOK111
 Wrong5678
