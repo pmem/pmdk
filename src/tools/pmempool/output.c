@@ -817,6 +817,19 @@ out_get_arch_machine_str(uint16_t machine)
 }
 
 /*
+ * out_get_closure_state_str -- get a string representation of the closure state
+ */
+const char *
+out_get_closure_state_str(uint8_t dirty)
+{
+	if (!dirty) {
+		return "clean";
+	} else {
+		return "dirty";
+	}
+}
+
+/*
  * out_get_alignment_descr_str -- get alignment descriptor string
  */
 const char *

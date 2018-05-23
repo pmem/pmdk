@@ -25,6 +25,7 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
+Closure State            : clean
 Checksum                 : $(*) [OK]
 
 PMEM BLK Header:
