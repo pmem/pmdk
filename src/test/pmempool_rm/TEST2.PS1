@@ -66,13 +66,14 @@ check_no_files `
 	$DIR\rep.part2
 
 # Try to remove files without force flag
-expect_abnormal_exit $PMEMPOOL rm -v $DIR\pool.obj 2>&1 | out-file -width 1024 -literalpath $LOG
-expect_abnormal_exit $PMEMPOOL rm -sv $DIR\pool.set 2>&1 | out-file -append -width 1024 -literalpath $LOG
+# all commands are called through cmd shell to avoid powershell stderror parsing
+expect_abnormal_exit cmd /c $PMEMPOOL rm -v $DIR\pool.obj 2`>`&1  | out-file -literalpath $LOG
+expect_abnormal_exit cmd /c $PMEMPOOL rm -sv $DIR\pool.set 2`>`&1 | out-file -append -literalpath $LOG
 
 # Try to remove files with force flag
-expect_normal_exit $PMEMPOOL rm -flv `
+expect_normal_exit cmd /c $PMEMPOOL rm -flv `
 	$DIR\pool.obj `
-	$DIR\pool.set >> $LOG 2>&1
+	$DIR\pool.set 2`>`&1 | out-file -append -literalpath $LOG
 
 check_no_files `
 	$DIR\pool.set `
@@ -81,11 +82,6 @@ check_no_files `
 	$DIR\pool.part2 `
 	$DIR\rep.part1 `
 	$DIR\rep.part2
-
-Get-Content $LOG | Where-Object { $_ -match 'remov' } > tmp$LOG
-Get-Content tmp$LOG | Where-Object { $_ -notmatch 'CategoryInfo' }  > $LOG
-remove_files tmp$LOG
-
 
 check
 

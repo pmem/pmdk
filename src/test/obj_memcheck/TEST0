@@ -42,6 +42,12 @@ require_test_type medium
 
 require_fs_type non-pmem
 
+# Valgrind merges errors which have the same last 4 stack frames. With non-debug
+# builds the depth of the stack trace depends on how much compiler optimized it.
+# So always use debug build to take a compiler out of the picture and get
+# deterministic stack traces.
+require_build_type debug
+
 require_valgrind 3.10
 configure_valgrind memcheck force-enable
 

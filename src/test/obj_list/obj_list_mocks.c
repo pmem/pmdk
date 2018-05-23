@@ -34,6 +34,7 @@
  * obj_list_mocks.c -- mocks for redo/lane/heap/obj modules
  */
 
+#include <inttypes.h>
 #include "valgrind_internal.h"
 #include "obj_list.h"
 #include "set.h"
@@ -65,6 +66,30 @@ obj_flush(void *ctx, const void *addr, size_t len)
 {
 	PMEMobjpool *pop = (PMEMobjpool *)ctx;
 	pop->flush_local(addr, len);
+}
+
+static uintptr_t Pool_addr;
+static size_t Pool_size;
+
+static void
+obj_msync_nofail(const void *addr, size_t size)
+{
+	uintptr_t addr_ptrt = (uintptr_t)addr;
+
+	/*
+	 * Verify msynced range is in the last mapped file range. Useful for
+	 * catching errors which normally would be caught only on Windows by
+	 * win_mmap.c.
+	 */
+	if (addr_ptrt < Pool_addr || addr_ptrt >= Pool_addr + Pool_size ||
+			addr_ptrt + size >= Pool_addr + Pool_size)
+		UT_FATAL("<0x%" PRIxPTR ",0x%" PRIxPTR "> "
+				"not in <0x%" PRIxPTR ",0x%" PRIxPTR "> range",
+				addr_ptrt, addr_ptrt + size, Pool_addr,
+				Pool_addr + Pool_size);
+
+	if (pmem_msync(addr, size))
+		UT_FATAL("!pmem_msync");
 }
 
 /*
@@ -118,6 +143,8 @@ FUNC_MOCK_RUN_DEFAULT
 		UT_OUT("!%s: pmem_map_file", fname);
 		return NULL;
 	}
+	Pool_addr = (uintptr_t)addr;
+	Pool_size = size;
 
 	Pop = (PMEMobjpool *)addr;
 	Pop->addr = Pop;
@@ -140,8 +167,8 @@ FUNC_MOCK_RUN_DEFAULT
 		Pop->flush_local = pmem_flush;
 		Pop->drain_local = pmem_drain;
 	} else {
-		Pop->persist_local = (persist_local_fn)pmem_msync;
-		Pop->flush_local = (persist_local_fn)pmem_msync;
+		Pop->persist_local = obj_msync_nofail;
+		Pop->flush_local = obj_msync_nofail;
 		Pop->drain_local = pmem_drain_nop;
 	}
 
@@ -214,6 +241,8 @@ FUNC_MOCK(pmemobj_close, void, PMEMobjpool *pop)
 		UT_ASSERTeq(pmem_unmap(Pop,
 			Pop->heap_size + Pop->heap_offset), 0);
 		Pop = NULL;
+		Pool_addr = 0;
+		Pool_size = 0;
 	}
 FUNC_MOCK_END
 
@@ -257,10 +286,12 @@ FUNC_MOCK(pmemobj_alloc, int, PMEMobjpool *pop, PMEMoid *oidp,
 	FUNC_MOCK_RUN_DEFAULT {
 		PMEMoid oid = {0, 0};
 		oid.pool_uuid_lo = 0;
-		pmalloc(NULL, &oid.off, size, 0, 0);
+		pmalloc(pop, &oid.off, size, 0, 0);
 		if (oidp) {
 			*oidp = oid;
-			pmemops_persist(&Pop->p_ops, oidp, sizeof(*oidp));
+			if (OBJ_PTR_FROM_POOL(pop, oidp))
+				pmemops_persist(&Pop->p_ops, oidp,
+						sizeof(*oidp));
 		}
 		return 0;
 	}
