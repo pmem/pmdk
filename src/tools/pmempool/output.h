@@ -73,5 +73,6 @@ const char *out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo);
 const char *out_get_arch_machine_class_str(uint8_t machine_class);
 const char *out_get_arch_data_str(uint8_t data);
 const char *out_get_arch_machine_str(uint16_t machine);
+const char *out_get_last_shutdown_str(uint8_t dirty);
 const char *out_get_alignment_desc_str(uint64_t ad, uint64_t cur_ad);
 const char *out_get_incompat_features_str(uint32_t incompat);

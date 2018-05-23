@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,34 +30,25 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_info/TEST14 -- test for info command
+# pmempool_info/TEST26 -- test for info command
 #
 
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 
-require_fs_type pmem non-pmem
+require_fs_type any
 
 setup
 
-POOL=$DIR/file.pool
-LOG=out${UNITTEST_NUM}.log
-rm -f $LOG && touch $LOG
+$POOL="$DIR\file.pool"
+$LOG="out$Env:UNITTEST_NUM.log"
+rm $LOG -Force -Recurse -ea si
 
-rm -rf $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout "pmempool$SUFFIX" obj $POOL
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1 -t 1 -ea $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -a $POOL >> $LOG
-echo >> $LOG
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1 -t 1 -s -es $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -Stx $POOL >> $LOG
-echo >> $LOG
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1024 -t 1 -s -es $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -Stx $POOL >> $LOG
-echo >> $LOG
-expect_abnormal_exit $PMEMALLOC$EXESUFFIX -o 1 -t 1 -s -f -ef $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -l -R -a -Stx $POOL >> $LOG
+expect_normal_exit $PMEMPOOL create --layout pmempool$Env:SUFFIX obj $POOL
+&$PMEMSPOIL $POOL pool_hdr.shutdown_state.dirty=1 `
+					"pool_hdr.shutdown_state.checksum_gen()"
+expect_normal_exit $PMEMPOOL info $POOL >> $LOG
 
 check
 
