@@ -41,6 +41,7 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
+Finish State             : clean
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:

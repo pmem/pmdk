@@ -50,7 +50,7 @@ cd $libfabric_dir
 ./autogen.sh
 ./configure --prefix=/usr --enable-sockets
 make -j2
-make install
+sudo make install
 
 cd ..
 rm -f ${libfabric_tarball}

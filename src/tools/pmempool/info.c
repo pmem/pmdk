@@ -820,7 +820,8 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 			out_get_arch_data_str(hdr->arch_flags.data));
 	outv_field(v, "Machine", "%s",
 			out_get_arch_machine_str(hdr->arch_flags.machine));
-
+	outv_field(v, "Finish State", "%s",
+			out_get_finish_state_str(hdr->sds.dirty));
 	outv_field(v, "Checksum", "%s", out_get_checksum(hdr, sizeof(*hdr),
 			&hdr->checksum, POOL_HDR_CSUM_END_OFF));
 
