@@ -10,6 +10,8 @@ pmdk: Persistent Memory Development Kit
 This is the top-level README.md of the Persistent Memory Development Kit.
 For more information, see http://pmem.io.
 
+Bugs and feature requests are tracked in our [GitHub Issues Database](https://github.com/pmem/issues/issues).
+
 ### The Libraries ###
 
 Please see the file [LICENSE](https://github.com/pmem/pmdk/blob/master/LICENSE)
