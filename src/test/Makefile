@@ -110,6 +110,7 @@ OBJ_TESTS = \
 	obj_mem\
 	obj_memblock\
 	obj_memcheck\
+	obj_memcheck_register\
 	obj_oid\
 	obj_out_of_memory\
 	obj_persist_count\
