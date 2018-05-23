@@ -20,6 +20,7 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
+Last shutdown            : clean
 Checksum                 : $(nW) [OK]
 Part file:
 path                     : $(nW)pool.rep.part1
@@ -43,4 +44,5 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
+Last shutdown            : clean
 Checksum                 : $(nW) [OK]
