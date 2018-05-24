@@ -55,7 +55,9 @@ DIRS = \
 
 REMOTE_TOOLS = \
 	ctrld\
+	extents\
 	fip\
+	obj_verify\
 	pmemobjcli\
 	pmemspoil\
 	pmemdetect

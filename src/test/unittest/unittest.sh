@@ -116,6 +116,8 @@ FILES_COMMON_DIR="\
 $DIR_SRC/test/*.supp \
 $DIR_SRC/tools/rpmemd/rpmemd \
 $DIR_SRC/tools/pmempool/pmempool \
+$DIR_SRC/test/tools/extents/extents \
+$DIR_SRC/test/tools/obj_verify/obj_verify \
 $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
