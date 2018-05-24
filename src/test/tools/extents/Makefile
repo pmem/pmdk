@@ -31,6 +31,8 @@
 # Makefile -- Makefile for extents tool
 #
 
+SCP_TO_REMOTE_NODES = y
+
 TOP = ../../../..
 
 TARGET = extents
