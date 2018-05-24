@@ -2873,10 +2873,21 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 		struct pool_set_part *part = PART(rep, 0);
 		if (!set->ignore_sds && part->addr != NULL &&
 				part->size != 0) {
-			/* XXX: DEEP DRAIN */
 			struct pool_hdr *hdr = part->addr;
 			RANGE_RW(hdr, sizeof(*hdr), part->is_dev_dax);
-			shutdown_state_clear_dirty(&hdr->sds, part);
+			/*
+			 * deep drain will call msync on one page in each
+			 * part in replica to trigger WPQ flush.
+			 * This pages may have been marked as
+			 * undefined/inaccessible, but msyncing such memory
+			 * is not a bug, so as a workaround temporarily
+			 * disable error reporting.
+			 */
+			VALGRIND_DO_DISABLE_ERROR_REPORTING;
+			util_replica_deep_drain(part->addr, rep->repsize,
+				set, repidx);
+			VALGRIND_DO_ENABLE_ERROR_REPORTING;
+			shutdown_state_clear_dirty(&hdr->sds, rep);
 		}
 		for (unsigned p = 0; p < rep->nhdrs; p++)
 			util_unmap_hdr(&rep->part[p]);
