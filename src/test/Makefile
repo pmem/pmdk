@@ -123,6 +123,7 @@ OBJ_TESTS = \
 	obj_recovery\
 	obj_recreate\
 	obj_root\
+	obj_reorder_basic\
 	obj_strdup\
 	obj_sds\
 	obj_toid\
