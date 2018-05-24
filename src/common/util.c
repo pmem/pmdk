@@ -82,12 +82,15 @@ unsigned _On_valgrind;
 int
 util_is_zeroed(const void *addr, size_t len)
 {
-	/* XXX optimize */
 	const char *a = addr;
-	while (len-- > 0)
-		if (*a++)
-			return 0;
-	return 1;
+
+	if (len == 0)
+		return 1;
+
+	if (a[0] == 0 && memcmp(a, a + 1, len - 1) == 0)
+		return 1;
+
+	return 0;
 }
 
 /*
