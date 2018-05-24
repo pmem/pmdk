@@ -129,6 +129,12 @@ for file in $files; do
 		else
 			echo "Skip pushing the image to Docker Hub"
 		fi
+
+		if [[ $PUSH_IMAGE == "1" ]]
+		then
+			echo "Skip build package check if image has to be pushed"
+			touch skip_build_package_check
+		fi
 		exit 0
 	fi
 done
