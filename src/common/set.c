@@ -2293,13 +2293,13 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	if (!set->ignore_sds && partidx == 0 && !rep->remote) {
-		shutdown_state_init(&hdrp->sds, PART(rep, 0));
+		shutdown_state_init(&hdrp->sds, rep);
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			if (shutdown_state_add_part(&hdrp->sds,
-					PART(rep, p)->path, PART(rep, 0)))
+					PART(rep, p)->path, rep))
 				return -1;
 		}
-		shutdown_state_set_dirty(&hdrp->sds, PART(rep, 0));
+		shutdown_state_set_dirty(&hdrp->sds, rep);
 	}
 
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
@@ -2563,13 +2563,12 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 				return -1;
 		}
 
-		if (shutdown_state_check(&sds, &hdrp->sds,
-				PART(rep, 0))) {
+		if (shutdown_state_check(&sds, &hdrp->sds, rep)) {
 			errno = EINVAL;
 			return -1;
 		}
 
-		shutdown_state_set_dirty(&hdrp->sds, PART(rep, 0));
+		shutdown_state_set_dirty(&hdrp->sds, rep);
 	}
 
 
@@ -3675,13 +3674,13 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 			ASSERTne(rep->nhdrs, 0);
 			ASSERTne(rep->nparts, 0);
 			if (shutdown_state_check(&sds, &HDR(rep, 0)->sds,
-					PART(rep, 0))) {
+					rep)) {
 				LOG(2, "ADR failure detected");
 				errno = EINVAL;
 				return -1;
 			}
 			shutdown_state_set_dirty(&HDR(rep, 0)->sds,
-				PART(rep, 0));
+				rep);
 		}
 	}
 	return 0;
@@ -4173,7 +4172,7 @@ util_replica_deep_common(const void *addr, size_t len, struct pool_set *set,
 		LOG(15, "perform deep flushing for replica %u "
 			"part %p, addr %p, len %lu",
 			replica_id, part, (void *)range_start, range_len);
-		if (os_part_deep_common(part, (void *)range_start,
+		if (os_part_deep_common(rep, p, (void *)range_start,
 				range_len, flush)) {
 			LOG(1, "os_part_deep_common(%p, %p, %lu)",
 				part, (void *)range_start, range_len);

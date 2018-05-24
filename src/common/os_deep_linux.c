@@ -159,27 +159,51 @@ os_range_deep_common(uintptr_t addr, size_t len)
 }
 
 /*
- * os_part_deep_common -- common function to handle both;
+ * os_part_deep_common -- common function to handle both
  * deep_persist and deep_drain part flush cases.
- *
- * During deep_persist for part on device DAX it search
- * device region id, then flushes CPU cache, does SFENCE
- * and performs WPQ flush on found device DAX region.
- *
- * During deep_drain for part on device DAX it search
- * device region id, then does SFENCE
- * and performs WPQ flush on found device DAX region.
- *
- * In case of parts not on device DAX it calls msync on the range.
  */
 int
-os_part_deep_common(struct pool_set_part *part, void *addr,
+os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
 			size_t len, int flush)
 {
-	LOG(3, "part %p addr %p len %lu flush %d", part, addr, len, flush);
+	LOG(3, "part %p part %d addr %p len %lu flush %d",
+		rep, partidx, addr, len, flush);
 
-	if (part->is_dev_dax) {
-		int region_id = util_ddax_region_find(part->path);
+	if (!rep->is_pmem) {
+		/*
+		 * In case of part on non-pmem call msync on the range
+		 * to deep flush the data. Deep drain is empty as all
+		 * data is msynced to persistence.
+		 */
+
+		if (!flush)
+			return 0;
+
+		if (pmem_msync(addr, len)) {
+			LOG(1, "pmem_msync(%p, %lu)", addr, len);
+			return -1;
+		}
+		return 0;
+	}
+	struct pool_set_part part = rep->part[partidx];
+	/* Call deep flush if it was requested */
+	if (flush) {
+		LOG(15, "pmem_deep_flush addr %p, len %lu", addr, len);
+		pmem_deep_flush(addr, len);
+	}
+	/*
+	 * Before deep drain call normal drain to ensure that data
+	 * is at least in WPQ.
+	 */
+	pmem_drain();
+
+	if (part.is_dev_dax) {
+		/*
+		 * During deep_drain for part on device DAX search for
+		 * device region id, and perform WPQ flush on found
+		 * device DAX region.
+		 */
+		int region_id = util_ddax_region_find(part.path);
 
 		if (region_id < 0) {
 			if (errno == ENOENT) {
@@ -190,18 +214,18 @@ os_part_deep_common(struct pool_set_part *part, void *addr,
 			}
 			return -1;
 		}
-		if (flush) {
-			LOG(15, "pmem_deep_flush addr %p, len %lu", addr, len);
-			pmem_deep_flush(addr, len);
-		}
-		pmem_drain();
+
 		if (os_deep_flush_write(region_id)) {
 			LOG(1, "ddax_deep_flush_write(%d)",
 				region_id);
 			return -1;
 		}
 	} else {
-		if (pmem_msync(addr, len)) {
+		/*
+		 * For deep_drain on normal pmem it is enough to
+		 * call msync on one page.
+		 */
+		if (pmem_msync(addr, MIN(Pagesize, len))) {
 			LOG(1, "pmem_msync(%p, %lu)", addr, len);
 			return -1;
 		}

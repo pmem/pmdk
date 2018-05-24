@@ -60,5 +60,5 @@ os_part_deep_common(struct pool_set_part *part, void *addr,
 	LOG(3, "part %p addr %p len %lu flush %d",
 		part, addr, len, flush);
 
-	return pmem_msync(addr, len);
+	return pmem_msync(addr, Pagesize);
 }

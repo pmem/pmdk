@@ -97,15 +97,18 @@ main(int argc, char *argv[])
 		uscs[i] = strtoull(args[i * 3 + 2], NULL, 0);
 	}
 	FAIL(fail_on, 1);
-	struct pool_set_part part;
-	memset(&part, 0, sizeof(part));
+	struct pool_replica *rep = MALLOC(
+		sizeof(*rep) + sizeof(struct pool_set_part));
+
+	memset(rep, 0, sizeof(*rep) + sizeof(struct pool_set_part));
+
 	struct shutdown_state *pool_sds = (struct shutdown_state *)pmemaddr[0];
 	if (init) {
 		/* initialize pool shutdown state */
-		shutdown_state_init(pool_sds, &part);
+		shutdown_state_init(pool_sds, rep);
 		FAIL(fail_on, 2);
 		for (int i = 0; i < files; i++) {
-			shutdown_state_add_part(pool_sds, args[2 + i], &part);
+			shutdown_state_add_part(pool_sds, args[2 + i], rep);
 			FAIL(fail_on, 3);
 		}
 	} else {
@@ -119,19 +122,19 @@ main(int argc, char *argv[])
 			FAIL(fail_on, 3);
 		}
 
-		if (shutdown_state_check(&current_sds, pool_sds, &part)) {
+		if (shutdown_state_check(&current_sds, pool_sds, rep)) {
 			UT_FATAL(
 				"An ADR failure is detected, the pool might be corrupted");
 		}
 	}
 	FAIL(fail_on, 4);
-	shutdown_state_set_dirty(pool_sds, &part);
+	shutdown_state_set_dirty(pool_sds, rep);
 
 	/* pool is open */
 	FAIL(fail_on, 5);
 
 	/* close pool */
-	shutdown_state_clear_dirty(pool_sds, &part);
+	shutdown_state_clear_dirty(pool_sds, rep);
 	FAIL(fail_on, 6);
 
 	for (int i = 0; i < files; i++)

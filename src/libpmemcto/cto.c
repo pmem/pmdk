@@ -236,7 +236,7 @@ cto_runtime_init(PMEMctopool *pcp, int rdonly, int is_pmem)
 
 	/* reset consistency flag */
 	pcp->consistent = 0;
-	os_part_deep_common(PART(REP(pcp->set, 0), 0),
+	os_part_deep_common(REP(pcp->set, 0), 0,
 			&pcp->consistent, sizeof(pcp->consistent), 1);
 
 	/*
@@ -625,12 +625,12 @@ pmemcto_close(PMEMctopool *pcp)
 	struct pool_replica *rep = REP(pcp->set, 0);
 	for (unsigned p = 0; p < rep->nparts; p++) {
 		struct pool_set_part *part = PART(rep, p);
-		os_part_deep_common(part, part->addr, part->size, 1);
+		os_part_deep_common(rep, p, part->addr, part->size, 1);
 	}
 
 	/* set consistency flag */
 	pcp->consistent = 1;
-	os_part_deep_common(PART(REP(pcp->set, 0), 0),
+	os_part_deep_common(REP(pcp->set, 0), 0,
 			&pcp->consistent, sizeof(pcp->consistent), 1);
 
 
