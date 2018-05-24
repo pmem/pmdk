@@ -114,7 +114,7 @@ fi
 
 if [ $CHECK_ALL -eq 1 ]; then
 	echo "Checking copyright headers of all files..."
-	GIT_COMMAND="ls-tree -r --name-only HEAD $SOURCE_ROOT"
+	GIT_COMMAND="ls-tree -r --name-only HEAD"
 else
 	echo
 	echo "Warning: will check copyright headers of modified files only,"
@@ -123,18 +123,18 @@ else
 	echo "         (e.g.: $ $SELF $SOURCE_ROOT $CHECK_LICENSE $LICENSE -a)"
 	echo
 	echo "Checking copyright headers of modified files only..."
-	GIT_COMMAND="diff --name-only $MERGE_BASE $CURRENT_COMMIT $SOURCE_ROOT"
+	GIT_COMMAND="diff --name-only $MERGE_BASE $CURRENT_COMMIT"
 fi
 
 FILES=$($GIT $GIT_COMMAND | ${SOURCE_ROOT}/utils/check_license/file-exceptions.sh | \
 	grep    -E -e '*\.[chs]$' -e '*\.[ch]pp$' -e '*\.sh$' \
 		   -e '*\.py$' -e '*\.map$' -e 'Makefile*' -e 'TEST*' \
 		   -e '/common.inc$' -e '/match$' -e '/check_whitespace$' \
-		   -e 'LICENSE$' | \
+		   -e 'LICENSE$' -e 'CMakeLists.txt$' -e '*\.cmake$' | \
 	xargs)
 
 # jemalloc.mk has to be checked always, because of the grep rules above
-FILES="$FILES $SOURCE_ROOT/src/jemalloc/jemalloc.mk"
+FILES="$FILES src/jemalloc/jemalloc.mk"
 
 # create a license pattern file
 $CHECK_LICENSE create $LICENSE $PATTERN
@@ -142,12 +142,15 @@ $CHECK_LICENSE create $LICENSE $PATTERN
 
 RV=0
 for file in $FILES ; do
-	[ ! -f $file ] && continue
+	# The src_path is a path which should be used in every command except git.
+	# git is called with -C flag so filepaths should be relative to SOURCE_ROOT
+	src_path="${SOURCE_ROOT}/$file"
+	[ ! -f $src_path ] && continue
 	# ensure that file is UTF-8 encoded
-	ENCODING=`file -b --mime-encoding $file`
-	iconv -f $ENCODING -t "UTF-8" $file > $TEMPFILE
+	ENCODING=`file -b --mime-encoding $src_path`
+	iconv -f $ENCODING -t "UTF-8" $src_path > $TEMPFILE
 
-	YEARS=`$CHECK_LICENSE check-pattern $PATTERN $TEMPFILE $file`
+	YEARS=`$CHECK_LICENSE check-pattern $PATTERN $TEMPFILE $src_path`
 	if [ $? -ne 0 ]; then
 		echo -n $YEARS
 		RV=1
