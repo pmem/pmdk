@@ -1,0 +1,2 @@
+obj_reorder_basic/TEST0: START: obj_reorder_basic
+ ./obj_reorder_basic c$(nW) $(nW)/testfile1

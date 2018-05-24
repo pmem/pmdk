@@ -964,6 +964,20 @@ function check_pools() {
 }
 
 #
+# create_obj_pool -- create an obj pool using pmempool
+#
+# This function expects 3 additional parameters. They are in order:
+# 1 - the pool file to be created
+# 2 - the size of the pool
+# 3 - the layout name
+#
+function create_obj_pool()
+{
+	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PMEMPOOL create --layout $3\
+	--size $2 obj $1
+}
+
+#
 # require_unlimited_vm -- require unlimited virtual memory
 #
 # This implies requirements for:
