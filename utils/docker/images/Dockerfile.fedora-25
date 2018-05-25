@@ -36,15 +36,50 @@
 
 # Pull base image
 FROM fedora:25
-MAINTAINER wojciech.uss@intel.com
+MAINTAINER marcin.slusarz@intel.com
 
 # Install basic tools
-RUN dnf install -y git gcc clang openssh-server autoconf automake make \
-	wget tar lbzip2 passwd sudo pkgconfig findutils man libunwind-devel \
-	file rpm-build rpm-build-libs which fuse fuse-devel ncurses-devel \
-	libuv-devel glib2-devel libtool pandoc doxygen cmake gdb asciidoc \
-	kmod-devel xmlto libudev-devel libuuid-devel json-c-devel bc \
-	rpmdevtools
+RUN dnf update -y \
+ && dnf install -y \
+	asciidoc \
+	autoconf \
+	automake \
+	bc \
+	clang \
+	cmake \
+	doxygen \
+	file \
+	findutils \
+	fuse \
+	fuse-devel \
+	gcc \
+	gdb \
+	git \
+	glib2-devel \
+	json-c-devel \
+	kmod-devel \
+	lbzip2 \
+	libtool \
+	libudev-devel \
+	libunwind-devel \
+	libuuid-devel \
+	libuv-devel \
+	make \
+	man \
+	ncurses-devel \
+	openssh-server \
+	pandoc \
+	passwd \
+	pkgconfig \
+	rpm-build \
+	rpm-build-libs \
+	rpmdevtools \
+	sudo \
+	tar \
+	wget \
+	which \
+	xmlto \
+ && dnf clean all
 
 # Install libndctl
 COPY install-libndctl.sh install-libndctl.sh
