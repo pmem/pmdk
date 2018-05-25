@@ -172,7 +172,7 @@ os_extents_get(const char *path, struct extents *exts)
 						fmap->fm_mapped_extents *
 						sizeof(struct fiemap_extent));
 	if (newfmap == NULL) {
-		ERR("!realloc");
+		ERR("!Realloc");
 		goto error_free;
 	}
 

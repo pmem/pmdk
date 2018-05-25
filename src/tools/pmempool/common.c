@@ -66,7 +66,7 @@
 #include "out.h"
 #include "mmap.h"
 #include "util_pmem.h"
-#include "badblock_poolset.h"
+#include "badblock.h"
 
 #define REQ_BUFF_SIZE	2048U
 #define Q_BUFF_SIZE	8192
@@ -1435,7 +1435,7 @@ util_pool_clear_badblocks(const char *path, int create)
 		return -1;
 	}
 
-	if (os_badblocks_clear_poolset(setp, create)) {
+	if (badblocks_clear_poolset(setp, create)) {
 		ERR("clearing bad blocks in the pool set failed -- '%s'", path);
 		errno = EIO;
 		return -1;

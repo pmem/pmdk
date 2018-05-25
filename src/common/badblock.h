@@ -31,7 +31,7 @@
  */
 
 /*
- * badblock_poolset.h - bad block API for poolsets
+ * badblock.h - common part of bad blocks API
  */
 
 #ifndef PMDK_BADBLOCK_POOLSET_H
@@ -39,7 +39,10 @@
 
 #include "set.h"
 
-int os_badblocks_check_poolset(struct pool_set *set, int create);
-int os_badblocks_clear_poolset(struct pool_set *set, int create);
+struct badblocks *badblocks_new(void);
+void badblocks_delete(struct badblocks *bbs);
+
+int badblocks_check_poolset(struct pool_set *set, int create);
+int badblocks_clear_poolset(struct pool_set *set, int create);
 
 #endif /* PMDK_BADBLOCK_POOLSET_H */

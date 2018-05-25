@@ -69,7 +69,7 @@
 #include "util_pmem.h"
 #include "fs.h"
 #include "os_deep.h"
-#include "badblock_poolset.h"
+#include "badblock.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
@@ -1093,7 +1093,7 @@ util_parse_add_replica(struct pool_set **setp)
 	struct pool_replica *rep;
 	rep = Zalloc(sizeof(struct pool_replica));
 	if (rep == NULL) {
-		ERR("!Malloc");
+		ERR("!Zalloc");
 		return -1;
 	}
 
@@ -3149,7 +3149,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		return -1;
 	}
 
-	int bbs = os_badblocks_check_poolset(set, 1 /* create */);
+	int bbs = badblocks_check_poolset(set, 1 /* create */);
 	if (bbs < 0) {
 		LOG(1,
 			"WARNING: failed to check pool set for bad blocks -- '%s'",
@@ -3712,7 +3712,7 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 	ASSERTne(set, NULL);
 	ASSERT(set->nreplicas > 0);
 
-	int bbs = os_badblocks_check_poolset(set, 0 /* not create */);
+	int bbs = badblocks_check_poolset(set, 0 /* not create */);
 	if (bbs < 0) {
 		LOG(1, "WARNING: failed to check pool set for bad blocks");
 	}
@@ -3813,7 +3813,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	ASSERT(set->nreplicas > 0);
 
-	int bbs = os_badblocks_check_poolset(set, 0 /* not create */);
+	int bbs = badblocks_check_poolset(set, 0 /* not create */);
 	if (bbs < 0) {
 		LOG(1,
 			"WARNING: failed to check pool set for bad blocks -- '%s'",

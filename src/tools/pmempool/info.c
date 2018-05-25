@@ -58,6 +58,7 @@
 #include "set.h"
 #include "file.h"
 #include "os_badblock.h"
+#include "badblock.h"
 
 #define DEFAULT_CHUNK_TYPES\
 	((1<<CHUNK_TYPE_FREE)|\
@@ -569,11 +570,9 @@ pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
 	if (!outv_check(pip->args.vbadblocks))
 		return 0;
 
-	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
-	if (bbs == NULL) {
-		outv_err("!malloc");
+	struct badblocks *bbs = badblocks_new();
+	if (bbs == NULL)
 		return -1;
-	}
 
 	ret = os_badblocks_get(file_name, bbs);
 	if (ret) {
@@ -595,8 +594,7 @@ pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
 	}
 
 exit_free:
-	Free(bbs->bbv);
-	Free(bbs);
+	badblocks_delete(bbs);
 
 	return ret;
 }

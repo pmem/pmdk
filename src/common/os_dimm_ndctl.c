@@ -49,6 +49,7 @@
 #include "os.h"
 #include "os_dimm.h"
 #include "os_badblock.h"
+#include "badblock.h"
 
 /* XXX: workaround for missing PAGE_SIZE - should be fixed in linux/ndctl.h */
 #include <sys/user.h>
@@ -58,6 +59,7 @@
 #include "os.h"
 #include "os_dimm.h"
 #include "os_badblock.h"
+#include "vec.h"
 
 /*
  * http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
@@ -326,9 +328,7 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 	unsigned long long bb_beg, bb_end;
 	unsigned long long beg, end;
 
-	struct bad_block *bbvp = NULL;
-	struct bad_block *newbbvp;
-	unsigned bb_count = 0;
+	VEC(bbsvec, struct bad_block) bbv = VEC_INITIALIZER;
 
 	bbs->ns_resource = 0;
 	bbs->bb_cnt = 0;
@@ -356,17 +356,16 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 		beg = (bb_beg > ns_beg) ? bb_beg : ns_beg;
 		end = (bb_end < ns_end) ? bb_end : ns_end;
 
-		newbbvp = Realloc(bbvp, (++bb_count) *
-					sizeof(struct bad_block));
-		if (newbbvp == NULL) {
-			ERR("!realloc");
-			Free(bbvp);
+		/* form a new bad block */
+		struct bad_block bb;
+		bb.offset = beg - ns_beg;
+		bb.length = (unsigned)(end - beg + 1);
+
+		/* add the new bad block to the vector */
+		if (VEC_PUSH_BACK(&bbv, bb)) {
+			VEC_DELETE(&bbv);
 			return -1;
 		}
-
-		bbvp = newbbvp;
-		bbvp[bb_count - 1].offset = beg - ns_beg;
-		bbvp[bb_count - 1].length = (unsigned)(end - beg + 1);
 
 		LOG(4,
 			"namespace bad block: begin %llu end %llu length %llu (in 512B sectors)",
@@ -374,11 +373,50 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 			B2SEC(end - beg) + 1);
 	}
 
-	LOG(4, "number of bad blocks detected: %u", bb_count);
-
-	bbs->bb_cnt = bb_count;
-	bbs->bbv = bbvp;
+	bbs->bb_cnt = (unsigned)VEC_SIZE(&bbv);
+	bbs->bbv = VEC_ARR(&bbv);
 	bbs->ns_resource = ns_beg + ndctl_region_get_resource(region);
+
+	LOG(4, "number of bad blocks detected: %u", bbs->bb_cnt);
+
+	return 0;
+}
+
+/*
+ * os_dimm_files_namespace_bus -- (internal) returns bus where the given
+ *                                file is located
+ */
+static int
+os_dimm_files_namespace_bus(struct ndctl_ctx *ctx,
+				const char *path,
+				struct ndctl_bus **pbus)
+{
+	LOG(3, "ctx %p path %s pbus %p", ctx, path, pbus);
+
+	ASSERTne(pbus, NULL);
+
+	struct ndctl_region *region;
+	struct ndctl_namespace *ndns;
+
+	os_stat_t st;
+
+	if (os_stat(path, &st)) {
+		ERR("!stat %s", path);
+		return -1;
+	}
+
+	int rv = os_dimm_region_namespace(ctx, &st, &region, &ndns);
+	if (rv) {
+		LOG(1, "getting region and namespace failed");
+		return -1;
+	}
+
+	if (!region) {
+		ERR("region unknown");
+		return -1;
+	}
+
+	*pbus = ndctl_region_get_bus(region);
 
 	return 0;
 }
@@ -395,7 +433,7 @@ os_dimm_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
 					struct ndctl_bus **pbus,
 					struct badblocks *bbs)
 {
-	LOG(3, "ctx %p path %s pbus %p", ctx, path, pbus);
+	LOG(3, "ctx %p path %s pbus %p badblocks %p", ctx, path, pbus, bbs);
 
 	struct ndctl_region *region;
 	struct ndctl_namespace *ndns;
@@ -409,7 +447,7 @@ os_dimm_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
 
 	int rv = os_dimm_region_namespace(ctx, &st, &region, &ndns);
 	if (rv) {
-		ERR("getting region and namespace failed");
+		LOG(1, "getting region and namespace failed");
 		return -1;
 	}
 
@@ -535,17 +573,16 @@ out_ars_cap:
 }
 
 /*
- * os_dimm_devdax_get_clear_badblocks -- get and clear all bad blocks
- *                                       in the dax device
+ * os_dimm_devdax_clear_badblocks -- clear the given bad blocks in the dax
+ *                                  device (or all of them if 'pbbs' is not set)
  */
 int
-os_dimm_devdax_get_clear_badblocks(const char *path, struct badblocks *bbs)
+os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 {
-	LOG(3, "path %s badblocks %p", path, bbs);
+	LOG(3, "path %s badblocks %p", path, pbbs);
 
 	struct ndctl_ctx *ctx;
 	struct ndctl_bus *bus;
-	int allocated_bbs;
 	int ret = -1;
 
 	if (ndctl_new(&ctx)) {
@@ -553,22 +590,26 @@ os_dimm_devdax_get_clear_badblocks(const char *path, struct badblocks *bbs)
 		return -1;
 	}
 
-	allocated_bbs = 0;
-	if (bbs) {
-		memset(bbs, 0, sizeof(*bbs));
-	} else {
-		bbs = Zalloc(sizeof(struct badblocks));
-		if (bbs == NULL) {
-			ERR("!malloc");
+	struct badblocks *bbs = badblocks_new();
+	if (bbs == NULL)
+		goto exit_free_all;
+
+	if (pbbs) {
+		ret = os_dimm_files_namespace_bus(ctx, path, &bus);
+		if (ret) {
+			LOG(1, "getting bad blocks' bus failed -- %s", path);
 			goto exit_free_all;
 		}
-		allocated_bbs = 1;
-	}
-
-	ret = os_dimm_files_namespace_badblocks_bus(ctx, path, &bus, bbs);
-	if (ret) {
-		ERR("getting bad blocks for the file failed -- %s", path);
-		goto exit_free_all;
+		badblocks_delete(bbs);
+		bbs = pbbs;
+	} else {
+		ret = os_dimm_files_namespace_badblocks_bus(ctx, path, &bus,
+									bbs);
+		if (ret) {
+			LOG(1, "getting bad blocks for the file failed -- %s",
+				path);
+			goto exit_free_all;
+		}
 	}
 
 	if (bbs->bb_cnt == 0 || bbs->bbv == NULL) /* OK - no bad blocks found */
@@ -594,10 +635,8 @@ os_dimm_devdax_get_clear_badblocks(const char *path, struct badblocks *bbs)
 	}
 
 exit_free_all:
-	if (allocated_bbs) {
-		Free(bbs->bbv);
-		Free(bbs);
-	}
+	if (!pbbs)
+		badblocks_delete(bbs);
 
 	ndctl_unref(ctx);
 
@@ -605,23 +644,12 @@ exit_free_all:
 }
 
 /*
- * os_dimm_devdax_clear_badblocks -- clear all bad blocks in the dax device
+ * os_dimm_devdax_clear_badblocks_all -- clear all bad blocks in the dax device
  */
 int
-os_dimm_devdax_clear_badblocks(const char *path)
+os_dimm_devdax_clear_badblocks_all(const char *path)
 {
 	LOG(3, "path %s", path);
 
-	struct badblocks *bbs = Malloc(sizeof(struct badblocks));
-	if (bbs == NULL) {
-		ERR("!malloc");
-		return -1;
-	}
-
-	int ret = os_dimm_devdax_get_clear_badblocks(path, bbs);
-
-	Free(bbs->bbv);
-	Free(bbs);
-
-	return ret;
+	return os_dimm_devdax_clear_badblocks(path, NULL);
 }

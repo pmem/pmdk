@@ -33,7 +33,7 @@
 
 SOURCE =\
 	$(call osdep, $(COMMON)/badblock,.c)\
-	$(COMMON)/badblock_poolset.c\
+	$(COMMON)/badblock.c\
 	$(call osdep, $(COMMON)/extent,.c)\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\

@@ -41,6 +41,7 @@
 #include "set.h"
 #include "os_dimm.h"
 #include "os_badblock.h"
+#include "badblock.h"
 
 #define MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MiB */
 #define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
@@ -53,7 +54,7 @@ do_list(const char *path)
 {
 	int ret;
 
-	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
+	struct badblocks *bbs = badblocks_new();
 	if (bbs == NULL)
 		return -1;
 
@@ -78,8 +79,7 @@ do_list(const char *path)
 	}
 
 exit_free:
-	Free(bbs->bbv);
-	Free(bbs);
+	badblocks_delete(bbs);
 
 	return 0;
 }
@@ -90,7 +90,7 @@ exit_free:
 static int
 do_clear(const char *path)
 {
-	return os_badblocks_clear(path);
+	return os_badblocks_clear_all(path);
 }
 
 /*
