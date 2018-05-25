@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,5 +39,8 @@ OBJS = libpmempool_test.o
 
 LIBPMEM=y
 LIBPMEMPOOL=y
+USE_PMEMSPOIL=y
+USE_PMEMWRITE=y
+USE_BTTCREATE=y
 
 include ../Makefile.inc
