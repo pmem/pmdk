@@ -97,6 +97,7 @@ int util_compare_file_inodes(const char *path1, const char *path2);
 void *util_aligned_malloc(size_t alignment, size_t size);
 void util_aligned_free(void *ptr);
 struct tm *util_localtime(const time_t *timep);
+int util_safe_strcpy(char *dst, const char *src, size_t max_length);
 
 #ifdef _WIN32
 char *util_toUTF8(const wchar_t *wstr);
@@ -145,22 +146,6 @@ static inline void
 util_clrbit(uint8_t *b, uint32_t i)
 {
 	b[i / 8] = (uint8_t)(b[i / 8] & (uint8_t)(~(1 << (i % 8))));
-}
-
-/*
- * util_safe_strcpy -- copies string from src to dst, returns -1
- * when length of source string (including null-terminator)
- * is greater than max_length, 0 otherwise
- */
-static inline int
-util_safe_strcpy(char *dst, const char *src, size_t max_length)
-{
-	if (max_length == 0)
-		return -1;
-
-	strncpy(dst, src, max_length);
-
-	return dst[max_length - 1] == '\0' ? 0 : -1;
 }
 
 #define util_isset(a, i) isset(a, i)
