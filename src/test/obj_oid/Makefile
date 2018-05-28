@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,4 +41,4 @@ LIBPMEMOBJ=y
 
 include ../Makefile.inc
 
-INCS += -I../../libpmemobj/ -I../../common/
+INCS += -I../../libpmemobj/

@@ -36,36 +36,25 @@
 include ../../common.inc
 ARCH := $(call get_arch)
 TOP = ../../..
-vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/libpmem
 vpath %.c $(TOP)/src/libpmem/$(ARCH)
 
 TARGET = pmem_is_pmem_posix
 OBJS = pmem_is_pmem_posix.o\
-	mmap.o\
-	mmap_posix.o\
-	util.o\
-	util_posix.o\
-	file.o\
-	fs_posix.o\
-	file_posix.o\
-	os_posix.o\
-	out.o\
 	libpmem.o\
 	pmem.o\
 	pmem_posix.o\
 	memops_generic.o\
-	init.o\
-	os_deep_linux.o\
-	os_auto_flush_linux.o
+	init.o
 
 ifeq ($(ARCH), x86_64)
 OBJS += cpu.o
 endif
 
+LIBPMEMCOMMON=y
+
 include ../Makefile.inc
 
 CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
-CFLAGS += -I$(TOP)/src/common
 CFLAGS += -I$(TOP)/src/libpmem
 CFLAGS += -I$(TOP)/src/libpmem/$(ARCH)

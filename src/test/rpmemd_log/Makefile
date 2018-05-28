@@ -34,14 +34,14 @@
 # src/test/rpmemd_log/Makefile -- build rpmemd_log test
 #
 TOP = ../../..
-vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/tools/rpmemd
 
 TARGET = rpmemd_log
-OBJS = rpmemd_log_test.o rpmemd_log.o util.o
+OBJS = rpmemd_log_test.o rpmemd_log.o
 
 BUILD_STATIC_DEBUG=n
 BUILD_STATIC_NONDEBUG=n
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
 

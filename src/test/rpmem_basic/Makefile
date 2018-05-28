@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 
 include ../../common.inc
 
-vpath %.c ../../common
 vpath %.c ../../rpmem_common
 
 ifeq ($(BUILD_RPMEM), y)
@@ -56,6 +55,5 @@ include ../Makefile.inc
 ifeq ($(BUILD_RPMEM), y)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
-INCS += -I../../common
 INCS += -I../../rpmem_common
 endif
