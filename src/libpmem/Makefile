@@ -59,6 +59,8 @@ SOURCE =\
 
 include $(ARCH)/sources.inc
 
+SOURCE += $(LIBPMEM_ARCH_SOURCE)
+
 include ../Makefile.inc
 
 include $(ARCH)/flags.inc
