@@ -139,10 +139,7 @@ ifneq ($(NORPATH),1)
 LDFLAGS += -Wl,-rpath=$(libdir)$(LIB_SUBDIR)
 endif
 
-# XXX: required by clock_gettime(), if glibc version < 2.17
-# The os_clock_gettime() function is now in OS abstraction layer,
-# linked to all the librariess, unit tests and benchmarks.
-ifeq ($(call check_librt), n)
+ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
 endif
 

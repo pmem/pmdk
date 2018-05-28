@@ -103,7 +103,16 @@ check_Wconversion = $(shell echo "long random(void); char test(void); char test(
 	$(CC) -c $(CFLAGS) -Wconversion -x c -o /dev/null - 2>/dev/null && echo y || echo n)
 
 check_librt = $(shell echo "int main() { struct timespec t; return clock_gettime(CLOCK_MONOTONIC, &t); }" |\
-	$(CC) $(CFLAGS) -x c -include time.h -o /dev/null - 2>/dev/null && echo y || echo n)
+	$(CC) $(CFLAGS) -x c -include time.h -o /dev/null - 2>/dev/null && echo n || echo y)
+
+# XXX: required by clock_gettime(), if glibc version < 2.17
+# The os_clock_gettime() function is now in OS abstraction layer,
+# linked to all the librariess, unit tests and benchmarks.
+ifeq ($(LIBRT_NEEDED),)
+export LIBRT_NEEDED := $(call check_librt)
+else
+export LIBRT_NEEDED
+endif
 
 install_recursive = $(shell cd $(1) && find . -type f -exec install -m $(2) -D {} $(3)/{} \;)
 
