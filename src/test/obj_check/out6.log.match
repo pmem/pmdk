@@ -1,12 +1,4 @@
-obj_check/TEST6: START: obj_check
- ./obj_check$(nW) $(nW)testfile
-not consistent: heap: invalid header's checksum
-obj_check/TEST6: DONE
-obj_check/TEST6: START: obj_check
- ./obj_check$(nW) $(nW)testfile
-not consistent: heap: invalid zone size
-obj_check/TEST6: DONE
-obj_check/TEST6: START: obj_check
- ./obj_check$(nW) $(nW)testfile
-not consistent: heap: invalid chunk type
-obj_check/TEST6: DONE
+obj_check$(nW)TEST6: START: obj_check
+ $(nW)obj_check$(nW) $(nW)testfile -l Invalid_layout
+error: wrong layout ("Invalid_layout"), pool created with layout "Valid_layout"
+obj_check$(nW)TEST6: DONE
