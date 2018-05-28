@@ -67,9 +67,12 @@ GCOV_LIBS=-lgcov
 osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)
 get_arch = $(shell $(CC) -dumpmachine | awk -F'[/-]' '{print $$1}')
 
+ifeq ($(PKG_CONFIG_CHECKED),)
 ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)
 $(error $(PKG_CONFIG) not found)
 endif
+endif
+export PKG_CONFIG_CHECKED := y
 
 check_package = $(shell $(PKG_CONFIG) $(1) && echo y || echo n)
 
