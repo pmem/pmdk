@@ -34,8 +34,6 @@
 
 include ../common.inc
 
-ARCH := $(call get_arch)
-
 LIBRARY_NAME = pmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0

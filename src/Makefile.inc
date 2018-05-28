@@ -158,7 +158,6 @@ ifneq ($(TESTBUILD), 1)
 $(error "$(TESTCMD)" failed)
 endif
 
-ARCH := $(call get_arch)
 ifneq ($(ARCH), x86_64)
 ifneq ($(ARCH), aarch64)
 $(error unsupported architecture: $(ARCH))

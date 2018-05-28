@@ -34,7 +34,6 @@
 # src/test/pmem_is_pmem_posix/Makefile -- build pmem_is_pmem_posix unit test
 #
 include ../../common.inc
-ARCH := $(call get_arch)
 TOP = ../../..
 vpath %.c $(TOP)/src/common
 vpath %.c $(TOP)/src/libpmem
