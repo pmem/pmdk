@@ -40,8 +40,6 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
 
 include $(TOP)/src/common.inc
-ARCH := $(call get_arch)
-include $(TOP)/src/libpmem/$(ARCH)/sources.inc
 
 INCS += $(OS_INCS)
 LDFLAGS += $(OS_LIBS)
@@ -184,6 +182,8 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem/pmem.o\
 	$(TOP)/src/nondebug/libpmem/pmem_posix.o
 
+ARCH := $(call get_arch)
+include $(TOP)/src/libpmem/$(ARCH)/sources.inc
 OBJS_MEM = $(LIBPMEM_ARCH_SOURCE:.c=.o)
 OBJS += $(addprefix $(TOP)/src/nondebug/libpmem/, ${OBJS_MEM})
 
@@ -198,6 +198,8 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem/pmem.o\
 	$(TOP)/src/debug/libpmem/pmem_posix.o
 
+ARCH := $(call get_arch)
+include $(TOP)/src/libpmem/$(ARCH)/sources.inc
 OBJS_MEM = $(LIBPMEM_ARCH_SOURCE:.c=.o)
 OBJS += $(addprefix $(TOP)/src/debug/libpmem/, ${OBJS_MEM})
 
