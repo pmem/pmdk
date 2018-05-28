@@ -54,10 +54,12 @@ COVERAGE = 0
 PKG_CONFIG ?= pkg-config
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)
 
+ifeq ($(CLANG_FORMAT),)
 ifeq ($(shell command -v clang-format-3.8 > /dev/null && echo y || echo n), y)
-CLANG_FORMAT ?= clang-format-3.8
+export CLANG_FORMAT ?= clang-format-3.8
 else
-CLANG_FORMAT ?= clang-format
+export CLANG_FORMAT ?= clang-format
+endif
 endif
 
 GCOV_CFLAGS=-fprofile-arcs -ftest-coverage --coverage
