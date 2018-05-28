@@ -64,7 +64,12 @@ GCOV_CFLAGS=-fprofile-arcs -ftest-coverage --coverage
 GCOV_LDFLAGS=-fprofile-arcs -ftest-coverage
 GCOV_LIBS=-lgcov
 
-osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)
+ifeq ($(OS_KERNEL_NAME),)
+export OS_KERNEL_NAME := $(shell uname -s)
+endif
+
+osdep = $(1)_$(shell echo $(OS_KERNEL_NAME) | tr "[:upper:]" "[:lower:]")$(2)
+
 get_arch = $(shell $(CC) -dumpmachine | awk -F'[/-]' '{print $$1}')
 
 ifeq ($(PKG_CONFIG_CHECKED),)
@@ -258,7 +263,7 @@ NDCTL_MIN_VERSION := 60.1
 
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
-ifeq ($(shell uname -s),FreeBSD)
+ifeq ($(OS_KERNEL_NAME),FreeBSD)
 
 GLIBC_CXXFLAGS=-D_GLIBCXX_USE_C99
 UNIX98_CFLAGS=

@@ -111,7 +111,7 @@ endif
 
 # On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
 tsanitize := $(SANITIZE)
-ifeq ($(shell uname -s),FreeBSD)
+ifeq ($(OS_KERNEL_NAME),FreeBSD)
 ifeq ($(JEMALLOC_PMDKDIR),libvmmalloc)
 hasaddrcomma := address,
 tsanitize := $(subst address,,$(subst $(hasaddrcomma),,$(SANITIZE)))
