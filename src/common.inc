@@ -310,4 +310,14 @@ OS_DIMM=none
 LIBNDCTL=
 endif
 
+ifeq ($(USE_LIBUNWIND),)
+export USE_LIBUNWIND := $(call check_package, libunwind)
+ifeq ($(USE_LIBUNWIND),y)
+export LIBUNWIND_LIBS := $(shell $(PKG_CONFIG) --libs libunwind)
+endif
+else
+export USE_LIBUNWIND
+export LIBUNWIND_LIBS
+endif
+
 endif

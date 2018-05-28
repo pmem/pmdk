@@ -56,15 +56,8 @@ EX_LIBPMEMCTO=$(EXAMPLES_DIR)/libpmemcto
 UT = ../unittest/libut.a
 LIBS += $(UT) $(LIBUUID)
 
-ifeq ($(USE_LIBUNWIND),1)
-LIBS += $(LIBDL) -lunwind
-else
-ifneq ($(USE_LIBUNWIND),0)
-UNWIND := $(call check_package, libunwind)
-ifeq ($(UNWIND),y)
-LIBS += $(LIBDL) $(shell $(PKG_CONFIG) --libs libunwind)
-endif
-endif
+ifeq ($(USE_LIBUNWIND),y)
+LIBS += $(LIBDL) $(LIBUNWIND_LIBS)
 endif
 
 LIBS += -L$(LIBS_DIR)/debug

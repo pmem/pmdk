@@ -80,15 +80,8 @@ CFLAGS += -Wcast-function-type
 endif
 endif
 
-ifeq ($(USE_LIBUNWIND),1)
-CFLAGS += -DUSE_LIBUNWIND
-else
-ifneq ($(USE_LIBUNWIND),0)
-UNWIND := $(call check_package, libunwind)
-ifeq ($(UNWIND),y)
+ifeq ($(USE_LIBUNWIND),y)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libunwind) -DUSE_LIBUNWIND
-endif
-endif
 endif
 
 ifeq ($(COVERAGE),1)
