@@ -129,6 +129,16 @@ void util_set_alloc_funcs(
 #define force_inline __attribute__((always_inline)) inline
 #endif
 
+
+#if (defined(__GNUC__) && !defined(__clang__))
+#define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 \
+					+ __GNUC_PATCHLEVEL__)
+
+#if GCC_VERSION >= 80101 /* >= 8.1.1 */
+#define SUPPRESS_STRINGOP_TRUNCATION
+#endif
+#endif
+
 /*
  * util_setbit -- setbit macro substitution which properly deals with types
  */
@@ -151,7 +161,16 @@ util_clrbit(uint8_t *b, uint32_t i)
  * util_safe_strcpy -- copies string from src to dst, returns -1
  * when length of source string (including null-terminator)
  * is greater than max_length, 0 otherwise
+ *
+ * For gcc (version - 8.1.1) calling this function with
+ * max_length equal to dst size produces -Wstringop-truncation warning
+ *
+ * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85902
  */
+#ifdef SUPPRESS_STRINGOP_TRUNCATION
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif
 static inline int
 util_safe_strcpy(char *dst, const char *src, size_t max_length)
 {
@@ -162,6 +181,9 @@ util_safe_strcpy(char *dst, const char *src, size_t max_length)
 
 	return dst[max_length - 1] == '\0' ? 0 : -1;
 }
+#ifdef SUPPRESS_STRINGOP_TRUNCATION
+#pragma GCC diagnostic pop
+#endif
 
 #define util_isset(a, i) isset(a, i)
 #define util_isclr(a, i) isclr(a, i)
