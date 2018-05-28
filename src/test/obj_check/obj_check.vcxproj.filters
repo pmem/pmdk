@@ -56,5 +56,23 @@
     <None Include="out6.log.match">
       <Filter>Match Files</Filter>
     </None>
+    <None Include="out7.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out8.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="TEST5.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST6.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST7.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST8.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
