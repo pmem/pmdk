@@ -246,10 +246,12 @@ LIBFABRIC_MIN_VERSION := 1.4.2
 
 # Keep in sync with requirements in src/test/unittest/unittest.sh and
 # utils/docker/images/install-libfabric.sh.
+ifeq ($(BUILD_RPMEM),)
 export BUILD_RPMEM := $(call check_package, libfabric --atleast-version=$(LIBFABRIC_MIN_VERSION))
 ifneq ($(BUILD_RPMEM),y)
 export BUILD_RPMEM_INFO := libfabric (version >= $(LIBFABRIC_MIN_VERSION)) is missing -- \
 see src/librpmem/README for details.
+endif
 endif
 
 NDCTL_MIN_VERSION := 60.1
