@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,7 +33,6 @@
 #
 # src/test/log_recovery/Makefile -- build log_recovery unit test
 #
-vpath %.h ../..
 TARGET = log_recovery
 OBJS = log_recovery.o
 
@@ -41,4 +40,4 @@ LIBPMEM=y
 LIBPMEMLOG=y
 
 include ../Makefile.inc
-CFLAGS += -I../../common -I../../libpmemlog
+CFLAGS += -I../../libpmemlog

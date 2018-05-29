@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,8 +33,6 @@
 #
 # src/test/obj_recovery/Makefile -- build obj_recovery unit test
 #
-vpath %.c ../../libpmemobj
-vpath %.c ../../common
 
 TARGET = obj_recovery
 OBJS = obj_recovery.o
@@ -43,5 +41,3 @@ LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
-
-INCS += -I../../libpmemobj/ -I../../common/

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,6 @@
 # src/test/obj_direct/Makefile -- build obj_direct unit test
 #
 vpath %.c ../../libpmemobj
-vpath %.c ../../common
 
 TARGET = obj_direct
 OBJS = obj_direct.o obj_direct_inline.o obj_direct_non_inline.o
@@ -44,4 +43,4 @@ LIBPMEMOBJ=y
 
 include ../Makefile.inc
 
-INCS += -I../../libpmemobj/ -I../../common/
+INCS += -I../../libpmemobj/
