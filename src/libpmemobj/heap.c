@@ -650,13 +650,11 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 /*
  * heap_reclaim_zone_garbage -- (internal) creates volatile state of unused runs
  */
-static int
+static void
 heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 	uint32_t zone_id)
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
-
-	int rchunks = 0;
 
 	/*
 	 * Recreate all footers BEFORE any other operation takes place.
@@ -677,7 +675,6 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 
 	for (uint32_t i = 0; i < z->header.size_idx; ) {
 		struct chunk_header *hdr = &z->chunk_headers[i];
-		int rret = 0;
 		ASSERT(hdr->size_idx != 0);
 
 		struct memory_block m = MEMORY_BLOCK_NONE;
@@ -689,14 +686,12 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 
 		switch (hdr->type) {
 			case CHUNK_TYPE_RUN:
-				if ((rret = heap_reclaim_run(heap, &m)) != 0) {
-					rchunks += rret;
+				if (heap_reclaim_run(heap, &m) != 0) {
 					heap_run_into_free_chunk(heap, bucket,
 						&m);
 				}
 				break;
 			case CHUNK_TYPE_FREE:
-				rchunks += (int)m.size_idx;
 				heap_free_chunk_reuse(heap, bucket, &m);
 				break;
 			case CHUNK_TYPE_USED:
@@ -707,8 +702,6 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 
 		i = m.chunk_id + m.size_idx; /* hdr might have changed */
 	}
-
-	return rchunks == 0 ? ENOMEM : 0;
 }
 
 /*
@@ -719,6 +712,7 @@ heap_populate_bucket(struct palloc_heap *heap, struct bucket *bucket)
 {
 	struct heap_rt *h = heap->rt;
 
+	/* at this point we are sure that there's no more memory in the heap */
 	if (h->zones_exhausted == h->nzones)
 		return ENOMEM;
 
@@ -732,7 +726,14 @@ heap_populate_bucket(struct palloc_heap *heap, struct bucket *bucket)
 	if (z->header.magic != ZONE_HEADER_MAGIC)
 		heap_zone_init(heap, zone_id, 0);
 
-	return heap_reclaim_zone_garbage(heap, bucket, zone_id);
+	heap_reclaim_zone_garbage(heap, bucket, zone_id);
+
+	/*
+	 * It doesn't matter that this function might not have found any
+	 * free blocks because there is still potential that subsequent calls
+	 * will find something in later zones.
+	 */
+	return 0;
 }
 
 /*
