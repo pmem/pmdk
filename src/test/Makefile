@@ -38,8 +38,6 @@
 
 include ../common.inc
 
-ARCH := $(call get_arch)
-
 TEST_DEPS = \
 	unittest\
 	tools

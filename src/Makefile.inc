@@ -111,7 +111,7 @@ endif
 
 # On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
 tsanitize := $(SANITIZE)
-ifeq ($(shell uname -s),FreeBSD)
+ifeq ($(OS_KERNEL_NAME),FreeBSD)
 ifeq ($(JEMALLOC_PMDKDIR),libvmmalloc)
 hasaddrcomma := address,
 tsanitize := $(subst address,,$(subst $(hasaddrcomma),,$(SANITIZE)))
@@ -139,10 +139,7 @@ ifneq ($(NORPATH),1)
 LDFLAGS += -Wl,-rpath=$(libdir)$(LIB_SUBDIR)
 endif
 
-# XXX: required by clock_gettime(), if glibc version < 2.17
-# The os_clock_gettime() function is now in OS abstraction layer,
-# linked to all the librariess, unit tests and benchmarks.
-ifeq ($(call check_librt), n)
+ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
 endif
 
@@ -161,7 +158,6 @@ ifneq ($(TESTBUILD), 1)
 $(error "$(TESTCMD)" failed)
 endif
 
-ARCH := $(call get_arch)
 ifneq ($(ARCH), x86_64)
 ifneq ($(ARCH), aarch64)
 $(error unsupported architecture: $(ARCH))

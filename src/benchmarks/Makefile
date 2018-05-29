@@ -112,7 +112,7 @@ LIBS += ../debug/libpmemcommon.a
 endif
 LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmempool -lpmem -lvmem -pthread -lm \
 	$(LIBDL) $(LIBUUID) $(LIBNDCTL)
-ifeq ($(call check_librt), n)
+ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
 endif
 

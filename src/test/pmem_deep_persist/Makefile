@@ -34,7 +34,6 @@
 # src/test/pmem_deep_persist/Makefile -- build pmem_deep_persist test
 #
 include ../../common.inc
-ARCH := $(call get_arch)
 
 TOP = ../../..
 vpath %.c $(TOP)/src/libpmem

@@ -40,8 +40,6 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))../..
 
 include $(TOP)/src/common.inc
-ARCH := $(call get_arch)
-include $(TOP)/src/libpmem/$(ARCH)/sources.inc
 
 INCS += $(OS_INCS)
 LDFLAGS += $(OS_LIBS)
@@ -58,24 +56,14 @@ EX_LIBPMEMCTO=$(EXAMPLES_DIR)/libpmemcto
 UT = ../unittest/libut.a
 LIBS += $(UT) $(LIBUUID)
 
-ifeq ($(USE_LIBUNWIND),1)
-LIBS += $(LIBDL) -lunwind
-else
-ifneq ($(USE_LIBUNWIND),0)
-UNWIND := $(call check_package, libunwind)
-ifeq ($(UNWIND),y)
-LIBS += $(LIBDL) $(shell $(PKG_CONFIG) --libs libunwind)
-endif
-endif
+ifeq ($(USE_LIBUNWIND),y)
+LIBS += $(LIBDL) $(LIBUNWIND_LIBS)
 endif
 
 LIBS += -L$(LIBS_DIR)/debug
 LIBS += -pthread $(LIBUTIL)
 
-# XXX: required by clock_gettime(), if glibc version < 2.17
-# The os_clock_gettime() function is now in OS abstraction layer,
-# linked to all the librariess, unit tests and benchmarks.
-ifeq ($(call check_librt), n)
+ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
 endif
 
@@ -184,7 +172,8 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem/pmem.o\
 	$(TOP)/src/nondebug/libpmem/pmem_posix.o
 
-OBJS_MEM = $(SOURCE:.c=.o)
+include $(TOP)/src/libpmem/$(ARCH)/sources.inc
+OBJS_MEM = $(LIBPMEM_ARCH_SOURCE:.c=.o)
 OBJS += $(addprefix $(TOP)/src/nondebug/libpmem/, ${OBJS_MEM})
 
 INCS += -I$(TOP)/src/libpmem
@@ -198,7 +187,8 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem/pmem.o\
 	$(TOP)/src/debug/libpmem/pmem_posix.o
 
-OBJS_MEM = $(SOURCE:.c=.o)
+include $(TOP)/src/libpmem/$(ARCH)/sources.inc
+OBJS_MEM = $(LIBPMEM_ARCH_SOURCE:.c=.o)
 OBJS += $(addprefix $(TOP)/src/debug/libpmem/, ${OBJS_MEM})
 
 INCS += -I$(TOP)/src/libpmem

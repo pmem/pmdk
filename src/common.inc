@@ -54,22 +54,35 @@ COVERAGE = 0
 PKG_CONFIG ?= pkg-config
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)
 
+ifeq ($(CLANG_FORMAT),)
 ifeq ($(shell command -v clang-format-3.8 > /dev/null && echo y || echo n), y)
-CLANG_FORMAT ?= clang-format-3.8
+export CLANG_FORMAT ?= clang-format-3.8
 else
-CLANG_FORMAT ?= clang-format
+export CLANG_FORMAT ?= clang-format
+endif
 endif
 
 GCOV_CFLAGS=-fprofile-arcs -ftest-coverage --coverage
 GCOV_LDFLAGS=-fprofile-arcs -ftest-coverage
 GCOV_LIBS=-lgcov
 
-osdep = $(1)_$(shell uname -s | tr "[:upper:]" "[:lower:]")$(2)
-get_arch = $(shell $(CC) -dumpmachine | awk -F'[/-]' '{print $$1}')
+ifeq ($(OS_KERNEL_NAME),)
+export OS_KERNEL_NAME := $(shell uname -s)
+endif
 
+osdep = $(1)_$(shell echo $(OS_KERNEL_NAME) | tr "[:upper:]" "[:lower:]")$(2)
+
+get_arch = $(shell $(CC) -dumpmachine | awk -F'[/-]' '{print $$1}')
+ifeq ($(ARCH),)
+export ARCH := $(call get_arch)
+endif
+
+ifeq ($(PKG_CONFIG_CHECKED),)
 ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)
 $(error $(PKG_CONFIG) not found)
 endif
+endif
+export PKG_CONFIG_CHECKED := y
 
 check_package = $(shell $(PKG_CONFIG) $(1) && echo y || echo n)
 
@@ -103,7 +116,16 @@ check_Wconversion = $(shell echo "long random(void); char test(void); char test(
 	$(CC) -c $(CFLAGS) -Wconversion -x c -o /dev/null - 2>/dev/null && echo y || echo n)
 
 check_librt = $(shell echo "int main() { struct timespec t; return clock_gettime(CLOCK_MONOTONIC, &t); }" |\
-	$(CC) $(CFLAGS) -x c -include time.h -o /dev/null - 2>/dev/null && echo y || echo n)
+	$(CC) $(CFLAGS) -x c -include time.h -o /dev/null - 2>/dev/null && echo n || echo y)
+
+# XXX: required by clock_gettime(), if glibc version < 2.17
+# The os_clock_gettime() function is now in OS abstraction layer,
+# linked to all the librariess, unit tests and benchmarks.
+ifeq ($(LIBRT_NEEDED),)
+export LIBRT_NEEDED := $(call check_librt)
+else
+export LIBRT_NEEDED
+endif
 
 install_recursive = $(shell cd $(1) && find . -type f -exec install -m $(2) -D {} $(3)/{} \;)
 
@@ -234,17 +256,19 @@ LIBFABRIC_MIN_VERSION := 1.4.2
 
 # Keep in sync with requirements in src/test/unittest/unittest.sh and
 # utils/docker/images/install-libfabric.sh.
+ifeq ($(BUILD_RPMEM),)
 export BUILD_RPMEM := $(call check_package, libfabric --atleast-version=$(LIBFABRIC_MIN_VERSION))
 ifneq ($(BUILD_RPMEM),y)
 export BUILD_RPMEM_INFO := libfabric (version >= $(LIBFABRIC_MIN_VERSION)) is missing -- \
 see src/librpmem/README for details.
+endif
 endif
 
 NDCTL_MIN_VERSION := 60.1
 
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
-ifeq ($(shell uname -s),FreeBSD)
+ifeq ($(OS_KERNEL_NAME),FreeBSD)
 
 GLIBC_CXXFLAGS=-D_GLIBCXX_USE_C99
 UNIX98_CFLAGS=
@@ -299,6 +323,16 @@ OS_DIMM=ndctl
 else
 OS_DIMM=none
 LIBNDCTL=
+endif
+
+ifeq ($(USE_LIBUNWIND),)
+export USE_LIBUNWIND := $(call check_package, libunwind)
+ifeq ($(USE_LIBUNWIND),y)
+export LIBUNWIND_LIBS := $(shell $(PKG_CONFIG) --libs libunwind)
+endif
+else
+export USE_LIBUNWIND
+export LIBUNWIND_LIBS
 endif
 
 endif

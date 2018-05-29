@@ -32,4 +32,4 @@
 # src/libpmem/aarch64/sources.inc -- list of files for libpmem/arm64
 #
 
-SOURCE += init.c
+LIBPMEM_ARCH_SOURCE = init.c
