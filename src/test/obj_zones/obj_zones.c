@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,35 +41,73 @@
 
 #define LAYOUT_NAME "obj_zones"
 
-#define ALLOC_SIZE (1 << 27) /* 128 megabytes */
+#define ALLOC_SIZE ((8191 * (256 * 1024)) - 16) /* must evenly divide a zone */
 
-int
-main(int argc, char *argv[])
+/*
+ * test_create -- allocate all possible objects and log the number. It should
+ * exceed what would be possible on a single zone.
+ * Additionally, free one object so that we can later check that it can be
+ * allocated after the next open.
+ */
+static void
+test_create(const char *path)
 {
-	START(argc, argv, "obj_zones");
-
-	if (argc != 2)
-		UT_FATAL("usage: %s file-name", argv[0]);
-
-	const char *path = argv[1];
-
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, LAYOUT_NAME,
 			0, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
+	PMEMoid oid;
 	int n = 0;
 	while (1) {
-		PMEMoid oid;
 		if (pmemobj_alloc(pop, &oid, ALLOC_SIZE, 0, NULL, NULL) != 0)
 			break;
 		n++;
 	}
 
 	UT_OUT("allocated: %d", n);
+	pmemobj_free(&oid);
 
 	pmemobj_close(pop);
+}
+
+/*
+ * test_open -- in the open test we should be able to allocate exactly
+ * one object.
+ */
+static void
+test_open(const char *path)
+{
+	PMEMobjpool *pop;
+	if ((pop = pmemobj_open(path, LAYOUT_NAME)) == NULL)
+		UT_FATAL("!pmemobj_open: %s", path);
+
+	int ret = pmemobj_alloc(pop, NULL, ALLOC_SIZE, 0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmemobj_alloc(pop, NULL, ALLOC_SIZE, 0, NULL, NULL);
+	UT_ASSERTne(ret, 0);
+
+	pmemobj_close(pop);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "obj_zones");
+
+	if (argc != 3)
+		UT_FATAL("usage: %s file-name [open|create]", argv[0]);
+
+	const char *path = argv[1];
+	char op = argv[2][0];
+	if (op == 'c')
+		test_create(path);
+	else if (op == 'o')
+		test_open(path);
+	else
+		UT_FATAL("invalid operation");
 
 	DONE(NULL);
 }
