@@ -77,6 +77,10 @@ DEFAULT_CFLAGS += -Wcast-function-type
 endif
 endif
 
+ifeq ($(call check_flag, -Wstringop-truncation), y)
+DEFAULT_CFLAGS += -DSTRINGOP_TRUNCATION_SUPPORTED
+endif
+
 ifeq ($(DEBUG),1)
 # Undefine _FORTIFY_SOURCE in case it's set in system-default or
 # user-defined CFLAGS as it conflicts with -O0.
