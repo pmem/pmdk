@@ -79,6 +79,9 @@
     <None Include="out12.log.match" />
     <None Include="out13.log.match" />
     <None Include="out14.log.match" />
+    <None Include="out15.log.match" />
+    <None Include="out16.log.match" />
+    <None Include="out17.log.match" />
     <None Include="out2.log.match" />
     <None Include="out20.log.match" />
     <None Include="out21.log.match" />
@@ -104,6 +107,9 @@
     <None Include="TEST12.PS1" />
     <None Include="TEST13.PS1" />
     <None Include="TEST14.PS1" />
+    <None Include="TEST15.PS1" />
+    <None Include="TEST16.PS1" />
+    <None Include="TEST17.PS1" />
     <None Include="TEST2.PS1" />
     <None Include="TEST20.PS1" />
     <None Include="TEST21.PS1" />
