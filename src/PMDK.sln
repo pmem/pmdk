@@ -12,6 +12,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traces_custom_function", "t
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_memblock", "test\obj_memblock\obj_memblock.vcxproj", "{0388E945-A655-41A7-AF27-8981CEE0E49A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_direct_volatile", "test\obj_direct_volatile\obj_direct_volatile.vcxproj", "{03B54A12-7793-4827-B820-C07491F7F45E}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_check_version", "test\vmem_check_version\vmem_check_version.vcxproj", "{04345B7D-B0A1-405B-8BB2-5B98A3400FEF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_tx_callbacks", "test\obj_tx_callbacks\obj_tx_callbacks.vcxproj", "{0529575C-F6E8-44FD-BB82-82A29948D0F2}"
@@ -67,8 +69,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "btree", "examples\libpmemob
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_direct", "test\obj_direct\obj_direct.vcxproj", "{10469175-EEF7-44A0-9961-AC4E45EFD800}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_direct_volatile", "test\obj_direct_volatile\obj_direct_volatile.vcxproj", "{10469175-EEF7-44A0-9961-AC4E45EFD800}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pi", "examples\libpmemobj\pi.vcxproj", "{11D76FBC-DFAA-4B31-9DB0-206E171E3F94}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemspoil", "test\tools\pmemspoil\pmemspoil.vcxproj", "{11E158AE-C85A-4A6E-B66A-ED2994709276}"
@@ -106,6 +106,13 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_non_zero", "test\blk_no
 	ProjectSection(ProjectDependencies) = postProject
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
 		{F7C6C6B6-4142-4C82-8699-4A9D8183181B} = {F7C6C6B6-4142-4C82-8699-4A9D8183181B}
+		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_v", "test\obj_cpp_v\obj_cpp_v.vcxproj", "{19C73803-F399-4E02-A8BF-ED0699758B5F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
+		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
@@ -838,13 +845,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_ptr", "test\obj_cpp
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_v", "test\obj_cpp_v\obj_cpp_v.vcxproj", "{DFEBEBAA-9624-445C-82A0-93363E22D806}"
-	ProjectSection(ProjectDependencies) = postProject
-		{1BAA1617-93AE-4196-8A1A-BD492FB18AEF} = {1BAA1617-93AE-4196-8A1A-BD492FB18AEF}
-		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
-		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
-	EndProjectSection
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E23BB160-006E-44F2-8FB4-3A2240BBC20C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "string_store_tx_type", "string_store_tx_type", "{E3229AF7-1FA2-4632-BB0B-B74F709F1A33}"
@@ -971,6 +971,10 @@ Global
 		{0388E945-A655-41A7-AF27-8981CEE0E49A}.Debug|x64.Build.0 = Debug|x64
 		{0388E945-A655-41A7-AF27-8981CEE0E49A}.Release|x64.ActiveCfg = Release|x64
 		{0388E945-A655-41A7-AF27-8981CEE0E49A}.Release|x64.Build.0 = Release|x64
+		{03B54A12-7793-4827-B820-C07491F7F45E}.Debug|x64.ActiveCfg = Debug|x64
+		{03B54A12-7793-4827-B820-C07491F7F45E}.Debug|x64.Build.0 = Debug|x64
+		{03B54A12-7793-4827-B820-C07491F7F45E}.Release|x64.ActiveCfg = Release|x64
+		{03B54A12-7793-4827-B820-C07491F7F45E}.Release|x64.Build.0 = Release|x64
 		{04345B7D-B0A1-405B-8BB2-5B98A3400FEF}.Debug|x64.ActiveCfg = Debug|x64
 		{04345B7D-B0A1-405B-8BB2-5B98A3400FEF}.Debug|x64.Build.0 = Debug|x64
 		{04345B7D-B0A1-405B-8BB2-5B98A3400FEF}.Release|x64.ActiveCfg = Release|x64
@@ -1063,6 +1067,10 @@ Global
 		{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}.Debug|x64.Build.0 = Debug|x64
 		{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}.Release|x64.ActiveCfg = Release|x64
 		{18E90E1A-F2E0-40DF-9900-A14E560C9EB4}.Release|x64.Build.0 = Release|x64
+		{19C73803-F399-4E02-A8BF-ED0699758B5F}.Debug|x64.ActiveCfg = Debug|x64
+		{19C73803-F399-4E02-A8BF-ED0699758B5F}.Debug|x64.Build.0 = Debug|x64
+		{19C73803-F399-4E02-A8BF-ED0699758B5F}.Release|x64.ActiveCfg = Release|x64
+		{19C73803-F399-4E02-A8BF-ED0699758B5F}.Release|x64.Build.0 = Release|x64
 		{1B871BA2-3F70-4BC9-9DF4-725EB07F6628}.Debug|x64.ActiveCfg = Debug|x64
 		{1B871BA2-3F70-4BC9-9DF4-725EB07F6628}.Debug|x64.Build.0 = Debug|x64
 		{1B871BA2-3F70-4BC9-9DF4-725EB07F6628}.Release|x64.ActiveCfg = Release|x64

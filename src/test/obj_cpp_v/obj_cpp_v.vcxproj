@@ -28,7 +28,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DFEBEBAA-9624-445C-82A0-93363E22D806}</ProjectGuid>
+    <ProjectGuid>{19C73803-F399-4E02-A8BF-ED0699758B5F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>obj_cpp_ptr</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
