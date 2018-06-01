@@ -66,20 +66,35 @@
 #include "palloc.h"
 
 struct pobj_action_internal {
+	/* type of operation (alloc/free vs set) */
 	enum pobj_action_type type;
+
+	/* not used */
 	uint32_t padding;
+
+	/*
+	 * Action-specific lock that needs to be taken for the duration of
+	 * an action.
+	 */
 	os_mutex_t *lock;
+
+	/* action-specific data */
 	union {
+		/* valid only when type == POBJ_ACTION_TYPE_HEAP */
 		struct {
 			uint64_t offset;
 			enum memblock_state new_state;
 			struct memory_block m;
 			int *resvp;
 		};
+
+		/* valid only when type == POBJ_ACTION_TYPE_MEM */
 		struct {
 			uint64_t *ptr;
 			uint64_t value;
 		};
+
+		/* padding, not used */
 		uint64_t data2[14];
 	};
 };
@@ -371,13 +386,31 @@ palloc_mem_action_exec(struct palloc_heap *heap,
 }
 
 static struct {
+	/*
+	 * Translate action into some number of operation_entry'ies.
+	 */
 	void (*exec)(struct palloc_heap *heap,
 		const struct pobj_action_internal *act,
 		struct operation_context *ctx);
+
+	/*
+	 * Cancel any runtime state changes. Can be called only when action has
+	 * not been translated to persistent operation yet.
+	 */
 	void (*on_cancel)(struct palloc_heap *heap,
 		struct pobj_action_internal *act);
+
+	/*
+	 * Final steps after persistent state has been modified. Performed
+	 * under action-specific lock.
+	 */
 	void (*on_process)(struct palloc_heap *heap,
 		struct pobj_action_internal *act);
+
+	/*
+	 * Final steps after persistent state has been modified. Performed
+	 * after action-specific lock has been dropped.
+	 */
 	void (*on_unlock)(struct palloc_heap *heap,
 		struct pobj_action_internal *act);
 } action_funcs[POBJ_MAX_ACTION_TYPE] = {
@@ -446,14 +479,17 @@ palloc_exec_actions(struct palloc_heap *heap,
 				util_mutex_lock(act->lock);
 		}
 
+		/* translate action to some number of operation_entry'ies */
 		action_funcs[act->type].exec(heap, act, ctx);
 	}
 
-	/* wait for all the headers to be persistent */
+	/* wait for all allocated object headers to be persistent */
 	pmemops_drain(&heap->p_ops);
 
+	/* perform all persistent memory operations */
 	operation_process(ctx);
 
+	/* finish runtime state modifications */
 	for (int i = 0; i < actvcnt; ++i) {
 		act = &actv[i];
 
@@ -567,6 +603,7 @@ palloc_operation(struct palloc_heap *heap,
 	int nops = 0;
 	struct pobj_action_internal ops[2];
 
+	/* free or realloc */
 	if (dealloc.offset != 0) {
 		dealloc.m = memblock_from_offset(heap, dealloc.offset);
 		user_size = dealloc.m.m_ops->get_user_size(&dealloc.m);
@@ -574,6 +611,7 @@ palloc_operation(struct palloc_heap *heap,
 			return 0;
 	}
 
+	/* alloc or realloc */
 	if (size != 0) {
 		if (palloc_reservation_create(heap, size, constructor, arg,
 			extra_field, object_flags, class_id, &alloc) != 0)
@@ -591,6 +629,7 @@ palloc_operation(struct palloc_heap *heap,
 	if (dealloc.offset != 0) {
 		/* realloc */
 		if (!MEMORY_BLOCK_IS_NONE(alloc.m)) {
+			/* copy data to newly allocated memory */
 			size_t old_size = user_size;
 			size_t to_cpy = old_size > size ? size : old_size;
 			VALGRIND_ADD_TO_TX(
@@ -606,6 +645,10 @@ palloc_operation(struct palloc_heap *heap,
 				to_cpy);
 		}
 
+		/*
+		 * For the duration of free we may need to protect surrounding
+		 * metadata from being modified.
+		 */
 		dealloc.lock = dealloc.m.m_ops->get_lock(&dealloc.m);
 
 		ops[nops++] = dealloc;
@@ -622,6 +665,7 @@ palloc_operation(struct palloc_heap *heap,
 	if (dest_off)
 		operation_add_entry(ctx, dest_off, alloc.offset, OPERATION_SET);
 
+	/* and now actually perform the requested operation! */
 	palloc_exec_actions(heap, ctx, ops, nops);
 
 	return 0;

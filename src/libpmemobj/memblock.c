@@ -118,7 +118,7 @@ memblock_header_none_get_size(const struct memory_block *m)
 
 /*
  * memblock_header_legacy_get_extra --
- *	(internal) returns the extra filed stored in a legacy header
+ *	(internal) returns the extra field stored in a legacy header
  */
 static uint64_t
 memblock_header_legacy_get_extra(const struct memory_block *m)
@@ -130,7 +130,7 @@ memblock_header_legacy_get_extra(const struct memory_block *m)
 
 /*
  * memblock_header_compact_get_extra --
- *	(internal) returns the extra filed stored in a compact header
+ *	(internal) returns the extra field stored in a compact header
  */
 static uint64_t
 memblock_header_compact_get_extra(const struct memory_block *m)
@@ -142,7 +142,7 @@ memblock_header_compact_get_extra(const struct memory_block *m)
 
 /*
  * memblock_header_none_get_extra --
- *	(internal) objects without a header do have an extra field
+ *	(internal) objects without a header don't have an extra field
  */
 static uint64_t
 memblock_header_none_get_extra(const struct memory_block *m)
@@ -243,7 +243,7 @@ static void
 memblock_header_legacy_flush(const struct memory_block *m)
 {
 	/*
-	 * It is safe to use PMEM_F_RELAXED here becase the allocation
+	 * It is safe to use PMEM_F_RELAXED here because the allocation
 	 * header is valid after processing the redo log.
 	 */
 	struct allocation_header_legacy *hdr = m->m_ops->get_real_data(m);
@@ -258,7 +258,7 @@ static void
 memblock_header_compact_flush(const struct memory_block *m)
 {
 	/*
-	 * It is safe to use PMEM_F_RELAXED here becase the allocation
+	 * It is safe to use PMEM_F_RELAXED here because the allocation
 	 * header is valid after processing the redo log.
 	 */
 	struct allocation_header_compact *hdr = m->m_ops->get_real_data(m);
@@ -345,13 +345,32 @@ memblock_header_none_reinit(const struct memory_block *m)
 }
 
 static struct {
+	/* determines the sizes of an object */
 	size_t (*get_size)(const struct memory_block *m);
+
+	/*  returns the extra field (if available, 0 if not) */
 	uint64_t (*get_extra)(const struct memory_block *m);
+
+	/* returns the flags stored in a header (if available, 0 if not) */
 	uint16_t (*get_flags)(const struct memory_block *m);
+
+	/*
+	 * Stores size, extra info and flags in header of an object
+	 * (if available, does nothing otherwise).
+	 */
 	void (*write)(const struct memory_block *m,
 		size_t size, uint64_t extra, uint16_t flags);
+
+	/* flushes a header (if available, does nothing otherwise) */
 	void (*flush)(const struct memory_block *m);
+
+	/* invalidates a header (if available, does nothing otherwise) (VG) */
 	void (*invalidate)(const struct memory_block *m);
+
+	/*
+	 * Reinitializes a header after a heap restart (if available, does
+	 * nothing otherwise) (VG).
+	 */
 	void (*reinit)(const struct memory_block *m);
 } memblock_header_ops[MAX_HEADER_TYPES] = {
 	[HEADER_LEGACY] = {
@@ -657,7 +676,7 @@ run_get_state(const struct memory_block *m)
 
 /*
  * huge_ensure_header_type -- checks the header type of a chunk and modifies
- *	it if necessery. This is fail-safe atomic.
+ *	it if necessary. This is fail-safe atomic.
  */
 static void
 huge_ensure_header_type(const struct memory_block *m,

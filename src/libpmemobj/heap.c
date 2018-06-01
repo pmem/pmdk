@@ -560,7 +560,7 @@ heap_free_chunk_reuse(struct palloc_heap *heap,
 
 	/*
 	 * Perform coalescing just in case there
-	 * are any neighbouring free chunks.
+	 * are any neighboring free chunks.
 	 */
 	struct memory_block nm = heap_coalesce_huge(heap, bucket, m);
 	if (nm.size_idx != m->size_idx) {

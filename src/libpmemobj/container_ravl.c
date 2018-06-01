@@ -150,7 +150,7 @@ container_ravl_get_block_exact(struct block_container *bc,
 }
 
 /*
- * container_ravl_is_empty -- (internal) checks whether the bucket is empty
+ * container_ravl_is_empty -- (internal) checks whether the container is empty
  */
 static int
 container_ravl_is_empty(struct block_container *bc)
