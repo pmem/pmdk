@@ -481,8 +481,6 @@ alloc_class_collection_new()
 	if (ac == NULL)
 		return NULL;
 
-	memset(ac->aclasses, 0, sizeof(ac->aclasses));
-
 	ac->granularity = ALLOC_BLOCK_SIZE;
 	ac->last_run_max_size = MAX_RUN_SIZE;
 	ac->fail_on_missing_class = 0;
