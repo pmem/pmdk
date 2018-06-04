@@ -152,7 +152,7 @@ ravl_empty(struct ravl *ravl)
  * ravl_node_insert_constructor -- node data constructor for ravl_insert
  */
 static void
-ravl_node_insert_constructor(void *data, size_t data_size, void *arg)
+ravl_node_insert_constructor(void *data, size_t data_size, const void *arg)
 {
 	/* copy only the 'arg' pointer */
 	memcpy(data, &arg, sizeof(arg));
@@ -162,7 +162,7 @@ ravl_node_insert_constructor(void *data, size_t data_size, void *arg)
  * ravl_node_copy_constructor -- node data constructor for ravl_emplace_copy
  */
 static void
-ravl_node_copy_constructor(void *data, size_t data_size, void *arg)
+ravl_node_copy_constructor(void *data, size_t data_size, const void *arg)
 {
 	memcpy(data, arg, data_size);
 }
@@ -171,7 +171,7 @@ ravl_node_copy_constructor(void *data, size_t data_size, void *arg)
  * ravl_new_node -- (internal) allocates and initializes a new node
  */
 static struct ravl_node *
-ravl_new_node(struct ravl *ravl, ravl_constr constr, void *arg)
+ravl_new_node(struct ravl *ravl, ravl_constr constr, const void *arg)
 {
 	struct ravl_node *n = Malloc(sizeof(*n) + ravl->data_size);
 	if (n == NULL)
@@ -385,7 +385,7 @@ ravl_balance(struct ravl *ravl, struct ravl_node *n)
 int
 ravl_insert(struct ravl *ravl, const void *data)
 {
-	return ravl_emplace(ravl, ravl_node_insert_constructor, (void *)data);
+	return ravl_emplace(ravl, ravl_node_insert_constructor, data);
 }
 
 /*
@@ -394,14 +394,14 @@ ravl_insert(struct ravl *ravl, const void *data)
 int
 ravl_emplace_copy(struct ravl *ravl, const void *data)
 {
-	return ravl_emplace(ravl, ravl_node_copy_constructor, (void *)data);
+	return ravl_emplace(ravl, ravl_node_copy_constructor, data);
 }
 
 /*
  * ravl_emplace -- construct data inside of a new tree node
  */
 int
-ravl_emplace(struct ravl *ravl, ravl_constr constr, void *arg)
+ravl_emplace(struct ravl *ravl, ravl_constr constr, const void *arg)
 {
 	LOG(6, NULL);
 

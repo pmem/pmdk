@@ -148,7 +148,8 @@ container_seglists_get_rm_block_bestfit(struct block_container *bc,
 }
 
 /*
- * container_seglists_is_empty -- (internal) checks whether the bucket is empty
+ * container_seglists_is_empty -- (internal) checks whether the container is
+ * empty
  */
 static int
 container_seglists_is_empty(struct block_container *bc)

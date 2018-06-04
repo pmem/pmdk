@@ -37,6 +37,9 @@
  * the buckets.
  */
 
+#ifndef LIBPMEMOBJ_RECYCLER_H
+#define LIBPMEMOBJ_RECYCLER_H 1
+
 #include "memblock.h"
 #include "vec.h"
 
@@ -70,3 +73,5 @@ struct empty_runs recycler_recalc(struct recycler *r, int force);
 
 void recycler_inc_unaccounted(struct recycler *r,
 	const struct memory_block *m);
+
+#endif

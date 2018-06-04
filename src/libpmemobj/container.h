@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,15 +45,28 @@ struct block_container {
 };
 
 struct block_container_ops {
+	/* inserts a new memory block into the container */
 	int (*insert)(struct block_container *c, const struct memory_block *m);
+
+	/* removes exact match memory block */
 	int (*get_rm_exact)(struct block_container *c,
 		const struct memory_block *m);
+
+	/* removes and returns the best-fit memory block for size */
 	int (*get_rm_bestfit)(struct block_container *c,
 		struct memory_block *m);
+
+	/* finds exact match memory block */
 	int (*get_exact)(struct block_container *c,
 		const struct memory_block *m);
+
+	/* checks whether the container is empty */
 	int (*is_empty)(struct block_container *c);
+
+	/* removes all elements from the container */
 	void (*rm_all)(struct block_container *c);
+
+	/* deletes the container */
 	void (*destroy)(struct block_container *c);
 };
 

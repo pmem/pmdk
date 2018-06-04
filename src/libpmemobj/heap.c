@@ -160,7 +160,7 @@ heap_thread_arena_destructor(void *arg)
 static struct arena *
 heap_thread_arena_assign(struct heap_rt *heap)
 {
-	os_mutex_lock(&heap->arenas_lock);
+	util_mutex_lock(&heap->arenas_lock);
 
 	struct arena *least_used = NULL;
 
@@ -175,7 +175,7 @@ heap_thread_arena_assign(struct heap_rt *heap)
 
 	util_fetch_and_add64(&least_used->nthreads, 1);
 
-	os_mutex_unlock(&heap->arenas_lock);
+	util_mutex_unlock(&heap->arenas_lock);
 
 	os_tls_set(heap->thread_arena, least_used);
 
@@ -560,7 +560,7 @@ heap_free_chunk_reuse(struct palloc_heap *heap,
 
 	/*
 	 * Perform coalescing just in case there
-	 * are any neighbouring free chunks.
+	 * are any neighboring free chunks.
 	 */
 	struct memory_block nm = heap_coalesce_huge(heap, bucket, m);
 	if (nm.size_idx != m->size_idx) {
