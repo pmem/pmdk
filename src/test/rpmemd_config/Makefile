@@ -48,4 +48,3 @@ include ../Makefile.inc
 
 CFLAGS += -I../../tools/rpmemd
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
-LDFLAGS += $(call extract_funcs, rpmemd_config_test.c)
