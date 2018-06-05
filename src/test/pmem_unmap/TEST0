@@ -45,7 +45,6 @@ require_fs_type any
 setup
 
 create_holey_file 20M $DIR/testfile
-chmod 0640 $DIR/testfile
 
 expect_normal_exit ./pmem_unmap$EXESUFFIX $DIR/testfile
 

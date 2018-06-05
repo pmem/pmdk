@@ -45,21 +45,28 @@
 int
 main(int argc, char *argv[])
 {
+	START(argc, argv, "pmem_unmap");
 	const char *path;
 	unsigned long long len;
 	int flags;
 	mode_t mode;
 	size_t mlenp;
+	size_t size;
 	int is_pmem;
 	char *ret;
-
-	if (argc < 2)
+	os_stat_t stbuf;
+	if (argc != 2)
 		UT_FATAL("usage: %s path", argv[0]);
 
 	path = argv[1];
 	len = 0;
 	flags = 0;
 	mode = S_IWUSR | S_IRUSR;
+
+	STAT(path, &stbuf);
+	size = stbuf.st_size;
+
+	UT_ASSERTeq(size, 20 * MEGABYTE);
 
 	ret = pmem_map_file(path, len, flags, mode, &mlenp, &is_pmem);
 	UT_ASSERTeq(pmem_unmap(ret, PAGE_4K), 0);
@@ -73,5 +80,5 @@ main(int argc, char *argv[])
 	ret = ret + PAGE_2M - 1;
 	UT_ASSERTne(pmem_unmap(ret, PAGE_4K), 0);
 
-	return 0;
+	DONE(NULL);
 }
