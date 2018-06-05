@@ -80,8 +80,8 @@ VMMALLOC=libvmmalloc.so.1
 TOOLS=../tools
 LIB_TOOLS="../../tools"
 # Paths to some useful tools
-[ "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
-[ "$DAXIO" ] || DAXIO=../../tools/daxio/daxio
+[ "$PMEMPOOL" ] || PMEMPOOL=$LIB_TOOLS/pmempool/pmempool
+[ "$DAXIO" ] || DAXIO=$LIB_TOOLS/daxio/daxio
 [ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
 [ "$BTTCREATE" ] || BTTCREATE=$TOOLS/bttcreate/bttcreate.static-nondebug
 [ "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
