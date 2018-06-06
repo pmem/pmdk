@@ -44,8 +44,10 @@ setup
 
 create_holey_file 64G $DIR/testfile1
 
-expect_normal_exit ./obj_zones$EXESUFFIX $DIR/testfile1
+expect_normal_exit ./obj_zones$EXESUFFIX $DIR/testfile1 c
 
 check
+
+expect_normal_exit ./obj_zones$EXESUFFIX $DIR/testfile1 o
 
 pass
