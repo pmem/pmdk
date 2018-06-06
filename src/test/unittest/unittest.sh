@@ -3063,7 +3063,7 @@ function do_reorder_test()
 	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $VALGRINDEXE --tool=pmemcheck -q \
 	--log-stores=yes --print-summary=no \
 	--log-file=store_log$UNITTEST_NUM.log --log-stores-stacktraces=yes \
-	--log-stores-stacktraces-depth=2 $2
+	--log-stores-stacktraces-depth=2 --expect-fence-after-clflush=yes $2
 
 	# shuffle files and do the reorder/check testing
 	mv $1 "$1.bak"

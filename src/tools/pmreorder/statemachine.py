@@ -140,7 +140,7 @@ class CollectingState(State):
         :return: The next state.
         :rtype: subclass of :class:`State`
         """
-        if isinstance(in_op, memoryoperations.Fence) and self._inner_state is "commit":
+        if isinstance(in_op, memoryoperations.Fence) and self._inner_state is "flush":
             return ReplayingState(self._ops_list, self._context)
         else:
             return self
@@ -225,7 +225,7 @@ class CollectingState(State):
         Tracks the internal state of the collection.
 
         The collected stores need to be processed only at specific moments -
-        after full persistent memory barriers (flush-fence-pcommit-fence).
+        after full persistent memory barriers (flush-fence).
 
         :param in_op: The performed operation.
         :type in_op: subclass of :class:`memoryoperations.BaseOperation`
@@ -237,8 +237,6 @@ class CollectingState(State):
             self._inner_state = "flush"
         elif isinstance(in_op, memoryoperations.Fence) and self._inner_state is "flush":
             self._inner_state = "fence"
-        elif isinstance(in_op, memoryoperations.Commit) and self._inner_state is "fence":
-            self._inner_state = "commit"
 
 
 class ReplayingState(State):
