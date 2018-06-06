@@ -54,7 +54,7 @@ endif
 
 LIBPMEMOBJ=y
 LIBPMEM=y
-LIBPMEMCOMMON=y
+LIBPMEMCOMMON=internal-debug
 
 include ../Makefile.inc
 
