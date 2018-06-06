@@ -238,7 +238,7 @@ os_dimm_usc(const char *path, uint64_t *usc)
 
 	os_stat_t st;
 	struct ndctl_ctx *ctx;
-
+	int ret = 0;
 	*usc = 0;
 
 	if (os_stat(path, &st)) {
@@ -262,17 +262,25 @@ os_dimm_usc(const char *path, uint64_t *usc)
 	ndctl_dimm_foreach_in_interleave_set(iset, dimm) {
 		struct ndctl_cmd *cmd = ndctl_dimm_cmd_new_smart(dimm);
 
-		if (ndctl_cmd_submit(cmd))
+		if (cmd == NULL) {
+			ret = -1;
 			goto out;
+		}
+		if (ndctl_cmd_submit(cmd)) {
+			ret = -1;
+			goto out;
+		}
 
-		if (!(ndctl_cmd_smart_get_flags(cmd) & USC_VALID_FLAG))
+		if (!(ndctl_cmd_smart_get_flags(cmd) & USC_VALID_FLAG)) {
+			ret = -1;
 			goto out;
+		}
 
 		*usc += ndctl_cmd_smart_get_shutdown_count(cmd);
 	}
 out:
 	ndctl_unref(ctx);
-	return 0;
+	return ret;
 }
 
 /*
