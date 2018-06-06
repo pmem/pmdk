@@ -41,26 +41,6 @@ class BaseOperation:
     pass
 
 
-class Commit(BaseOperation):
-    """
-    Describes the PCOMMIT operation.
-    """
-    class Factory:
-        """
-        Internal factory class to be used in dynamic object creation.
-        """
-        def create(self, values):
-            """
-            Factory object creation method.
-
-            :param values: Ignored.
-            :type values: str
-            :return: New Commit object.
-            :rtype: Commit
-            """
-            return Commit()
-
-
 class Fence(BaseOperation):
     """
     Describes a fence operation.
@@ -86,10 +66,7 @@ class Fence(BaseOperation):
 
 class Store(BaseOperation, Rangeable):
     """
-    Describes a fence operation.
-
-    The exact type of the memory barrier is not important,
-    it is interpreted as an SFENCE or MFENCE.
+    Describes a store operation.
 
     :ivar address: The virtual address at which to store the new value.
     :type address: int
