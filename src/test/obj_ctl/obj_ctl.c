@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@ static char *testconfig_path;
 static int test_config_written;
 
 static int
-CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(test_rw)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
@@ -54,9 +54,10 @@ CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_source source,
 }
 
 static int
-CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_WRITE_HANDLER(test_rw)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+
 	int *arg_rw = arg;
 	*arg_rw = 1;
 	test_config_written++;
@@ -67,7 +68,7 @@ CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_source source,
 struct ctl_argument CTL_ARG(test_rw) = CTL_ARG_INT;
 
 static int
-CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_WRITE_HANDLER(test_wo)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	int *arg_wo = arg;
@@ -82,9 +83,10 @@ struct ctl_argument CTL_ARG(test_wo) = CTL_ARG_INT;
 #define TEST_CONFIG_VALUE "abcd"
 
 static int
-CTL_WRITE_HANDLER(test_config)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_WRITE_HANDLER(test_config)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+
 	UT_ASSERTeq(source, CTL_QUERY_CONFIG_INPUT);
 
 	char *config_value = arg;
@@ -109,10 +111,11 @@ struct complex_arg {
 #define COMPLEX_ARG_TEST_D 1
 
 static int
-CTL_WRITE_HANDLER(test_config_complex_arg)(PMEMobjpool *pop,
+CTL_WRITE_HANDLER(test_config_complex_arg)(void *pool,
 	enum ctl_query_source source, void *arg,
 	struct ctl_indexes *indexes)
 {
+
 	UT_ASSERTeq(source, CTL_QUERY_CONFIG_INPUT);
 
 	struct complex_arg *c = arg;
@@ -137,9 +140,10 @@ struct ctl_argument CTL_ARG(test_config_complex_arg) = {
 };
 
 static int
-CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(test_ro)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+
 	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
 
 	int *arg_ro = arg;
@@ -149,9 +153,10 @@ CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, enum ctl_query_source source,
 }
 
 static int
-CTL_READ_HANDLER(index_value)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(index_value)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+
 	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
 
 	long *index_value = arg;
@@ -163,7 +168,7 @@ CTL_READ_HANDLER(index_value)(PMEMobjpool *pop, enum ctl_query_source source,
 }
 
 static int
-CTL_RUNNABLE_HANDLER(test_runnable)(PMEMobjpool *pop,
+CTL_RUNNABLE_HANDLER(test_runnable)(void *pool,
 	enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
@@ -193,7 +198,7 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 };
 
 static int
-CTL_WRITE_HANDLER(gtest_config)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_WRITE_HANDLER(gtest_config)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	UT_ASSERTeq(source, CTL_QUERY_CONFIG_INPUT);
@@ -208,9 +213,10 @@ CTL_WRITE_HANDLER(gtest_config)(PMEMobjpool *pop, enum ctl_query_source source,
 struct ctl_argument CTL_ARG(gtest_config) = CTL_ARG_STRING(8);
 
 static int
-CTL_READ_HANDLER(gtest_ro)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(gtest_ro)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+
 	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
 
 	int *arg_ro = arg;
@@ -352,50 +358,50 @@ test_string_config(PMEMobjpool *pop)
 	int ret;
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, "");
+	ret = ctl_load_config_from_string(pop, "", pop->ctl);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, ";;");
+	ret = ctl_load_config_from_string(pop, ";;", pop->ctl);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, ";=;");
+	ret = ctl_load_config_from_string(pop, ";=;", pop->ctl);
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, "=");
+	ret = ctl_load_config_from_string(pop, "=", pop->ctl);
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, "debug.test_wo=");
+	ret = ctl_load_config_from_string(pop, "debug.test_wo=", pop->ctl);
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, "=b");
+	ret = ctl_load_config_from_string(pop, "=b", pop->ctl);
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
 	ret = ctl_load_config_from_string(pop,
-			"debug.test_wo=111=222");
+			"debug.test_wo=111=222", pop->ctl);
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
 	ret = ctl_load_config_from_string(pop,
-			"debug.test_wo=333;debug.test_rw=444;");
+			"debug.test_wo=333;debug.test_rw=444;", pop->ctl);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 2);
 
 	test_config_written = 0;
 	ret = ctl_load_config_from_string(pop,
-			"debug.test_config="TEST_CONFIG_VALUE";");
+			"debug.test_config="TEST_CONFIG_VALUE";", pop->ctl);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 1);
 }
@@ -416,7 +422,8 @@ create_and_test_file_config(PMEMobjpool *pop, const char *buf, int ret,
 	config_file_create(buf);
 
 	test_config_written = 0;
-	int r = ctl_load_config_from_file(pop, testconfig_path);
+	int r = ctl_load_config_from_file(pop, testconfig_path,
+			pop == NULL ? NULL: pop->ctl);
 	UT_ASSERTeq(r, ret);
 	UT_ASSERTeq(test_config_written, result);
 }
@@ -430,7 +437,8 @@ test_too_large_file(PMEMobjpool *pop)
 
 	config_file_create(too_large_buf);
 
-	int ret = ctl_load_config_from_file(pop, testconfig_path);
+	int ret = ctl_load_config_from_file(pop, testconfig_path,
+			pop == NULL ? NULL: pop->ctl);
 	UT_ASSERTne(ret, 0);
 
 	free(too_large_buf);
@@ -484,7 +492,7 @@ test_file_config(PMEMobjpool *pop)
 
 	test_too_large_file(pop);
 
-	int ret = ctl_load_config_from_file(pop, "does_not_exist");
+	int ret = ctl_load_config_from_file(pop, "does_not_exist", pop->ctl);
 	UT_ASSERTne(ret, 0);
 }
 

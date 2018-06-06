@@ -2435,9 +2435,11 @@ SECTION_PARM(LANE_SECTION_TRANSACTION, &transaction_ops);
  * CTL_READ_HANDLER(size) -- gets the cache size transaction parameter
  */
 static int
-CTL_READ_HANDLER(size)(PMEMobjpool *pop,
+CTL_READ_HANDLER(size)(void *pool,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = pool;
+
 	ssize_t *arg_out = arg;
 
 	*arg_out = (ssize_t)pop->tx_params->cache_size;
@@ -2449,9 +2451,11 @@ CTL_READ_HANDLER(size)(PMEMobjpool *pop,
  * CTL_WRITE_HANDLER(size) -- sets the cache size transaction parameter
  */
 static int
-CTL_WRITE_HANDLER(size)(PMEMobjpool *pop,
+CTL_WRITE_HANDLER(size)(void *pool,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = pool;
+
 	ssize_t arg_in = *(int *)arg;
 
 	if (arg_in < 0 || arg_in > (ssize_t)PMEMOBJ_MAX_ALLOC_SIZE) {
@@ -2475,9 +2479,11 @@ static struct ctl_argument CTL_ARG(size) = CTL_ARG_LONG_LONG;
  * CTL_READ_HANDLER(threshold) -- gets the cache threshold transaction parameter
  */
 static int
-CTL_READ_HANDLER(threshold)(PMEMobjpool *pop,
+CTL_READ_HANDLER(threshold)(void *pool,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = pool;
+
 	ssize_t *arg_out = arg;
 
 	*arg_out = (ssize_t)pop->tx_params->cache_threshold;
@@ -2490,9 +2496,11 @@ CTL_READ_HANDLER(threshold)(PMEMobjpool *pop,
  *	sets the cache threshold transaction parameter
  */
 static int
-CTL_WRITE_HANDLER(threshold)(PMEMobjpool *pop,
+CTL_WRITE_HANDLER(threshold)(void *pool,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = pool;
+
 	ssize_t arg_in = *(int *)arg;
 
 	if (arg_in < 0 || arg_in > (ssize_t)pop->tx_params->cache_size) {
@@ -2520,9 +2528,11 @@ static const struct ctl_node CTL_NODE(cache)[] = {
  * var from pool ctl
  */
 static int
-CTL_READ_HANDLER(skip_expensive_checks)(PMEMobjpool *pop,
+CTL_READ_HANDLER(skip_expensive_checks)(void *pool,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = pool;
+
 	int *arg_out = arg;
 
 	*arg_out = pop->tx_debug_skip_expensive_checks;
@@ -2535,9 +2545,11 @@ CTL_READ_HANDLER(skip_expensive_checks)(PMEMobjpool *pop,
  * var in pool ctl
  */
 static int
-CTL_WRITE_HANDLER(skip_expensive_checks)(PMEMobjpool *pop,
+CTL_WRITE_HANDLER(skip_expensive_checks)(void *pool,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = pool;
+
 	int arg_in = *(int *)arg;
 
 	pop->tx_debug_skip_expensive_checks = arg_in;
@@ -2556,9 +2568,11 @@ static const struct ctl_node CTL_NODE(debug)[] = {
  * CTL_WRITE_HANDLER(queue_depth) -- returns the depth of the post commit queue
  */
 static int
-CTL_READ_HANDLER(queue_depth)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(queue_depth)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = pool;
+
 	int *arg_out = arg;
 
 	*arg_out = (int)ringbuf_length(pop->tx_postcommit_tasks);
@@ -2570,9 +2584,11 @@ CTL_READ_HANDLER(queue_depth)(PMEMobjpool *pop, enum ctl_query_source source,
  * CTL_WRITE_HANDLER(queue_depth) -- sets the depth of the post commit queue
  */
 static int
-CTL_WRITE_HANDLER(queue_depth)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_WRITE_HANDLER(queue_depth)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = pool;
+
 	int arg_in = *(int *)arg;
 
 	struct ringbuf *ntasks = ringbuf_new((unsigned)arg_in);
@@ -2594,9 +2610,10 @@ static struct ctl_argument CTL_ARG(queue_depth) = CTL_ARG_INT;
  * CTL_READ_HANDLER(worker) -- launches the post commit worker thread function
  */
 static int
-CTL_READ_HANDLER(worker)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(worker)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = pool;
 
 	struct lane_section *section;
 	while ((section = ringbuf_dequeue_s(pop->tx_postcommit_tasks,
@@ -2611,9 +2628,11 @@ CTL_READ_HANDLER(worker)(PMEMobjpool *pop, enum ctl_query_source source,
  * CTL_READ_HANDLER(stop) -- stops all post commit workers
  */
 static int
-CTL_READ_HANDLER(stop)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(stop)(void *pool, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = pool;
+
 	ringbuf_stop(pop->tx_postcommit_tasks);
 
 	return 0;
