@@ -95,8 +95,7 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_BEGIN(struct chunk_run);
 	ASSERT_ALIGNED_FIELD(struct chunk_run, block_size);
 	ASSERT_ALIGNED_FIELD(struct chunk_run, alignment);
-	ASSERT_ALIGNED_FIELD(struct chunk_run, bitmap);
-	ASSERT_ALIGNED_FIELD(struct chunk_run, data);
+	ASSERT_ALIGNED_FIELD(struct chunk_run, content);
 	ASSERT_ALIGNED_CHECK(struct chunk_run);
 	UT_COMPILE_ERROR_ON(sizeof(struct chunk_run) != SIZEOF_CHUNK_V3);
 

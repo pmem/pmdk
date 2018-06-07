@@ -41,7 +41,6 @@
 #include <stdint.h>
 
 #include "bucket.h"
-#include "heap_layout.h"
 #include "memblock.h"
 #include "memops.h"
 #include "palloc.h"
@@ -96,9 +95,6 @@ int
 heap_free_chunk_reuse(struct palloc_heap *heap,
 	struct bucket *bucket, struct memory_block *m);
 
-int
-heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
-	void *arg, struct memory_block *m);
 void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);
 
