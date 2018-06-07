@@ -1246,7 +1246,7 @@ function get_node_devdax_size() {
 	ret=$?
 	restore_exit_on_error
 	if [ "$ret" != "0" ]; then
-		fatal "UNITTEST_NAME: stat on node $node: $out"
+		fatal "$UNITTEST_NAME: stat on node $node: $out"
 	fi
 	local major=$((16#$out))
 
@@ -1938,6 +1938,9 @@ function check_if_node_is_reachable() {
 #   NODE_WORKING_DIR[]   - (required) array of nodes' working directories
 #
 function require_nodes() {
+
+	# make sure this function is called only once
+	[ $require_nodes_called ] && return || require_nodes_called=1
 
 	local N_NODES=${#NODE[@]}
 	local N=$1
