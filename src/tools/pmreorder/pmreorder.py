@@ -36,6 +36,7 @@ import statemachine
 import opscontext
 import consistencycheckwrap
 import loggingfacility
+import reorderengines
 
 def main():
     # TODO unicode support
@@ -50,14 +51,16 @@ def main():
                         help='choose logger type default="print"')
     parser.add_argument("-o", "--output", help="set the logger output")
     parser.add_argument("-e", "--output_level", choices=loggingfacility.log_levels, help="set the output log level")
+    parser.add_argument("-r", "--reorder_type", help="set reorder engine type", choices=reorderengines.engines, default="full")
     parser.add_argument("args", nargs=argparse.REMAINDER, help="remaining args passed to the checker")
     args = parser.parse_args()
 
     logger = loggingfacility.get_logger(args.output_type, args.output, args.output_level)
     checker = consistencycheckwrap.get_checker(args.checker, args.path, args.name, args.args)
+    engine = reorderengines.get_engine(args.reorder_type)
 
     # create the script context
-    context = opscontext.OpsContext(args.logfile, checker, logger)
+    context = opscontext.OpsContext(args.logfile, checker, logger, engine)
 
     # init and run the state machine
     a = statemachine.StateMachine(statemachine.InitState(context))
