@@ -45,10 +45,11 @@
 require_test_type	medium
 require_fs_type		any
 
-. common.sh
-
+require_nodes 2
 require_node_dax_device_alignments 1 $SIZE_4KB $SIZE_4KB
 require_node_dax_device_alignments 0 $SIZE_2MB $SIZE_2MB
+
+. common.sh
 
 setup
 
