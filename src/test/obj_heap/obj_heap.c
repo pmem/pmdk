@@ -97,12 +97,13 @@ init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
 
 	run->block_size = 1024;
-	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
+	memset(run->content, 0xFF, DEFAULT_BITMAP_SIZE);
 	UT_ASSERTeq(score % 64, 0);
 	score /= 64;
 
+	uint64_t *bitmap = (uint64_t *)run->content;
 	for (; score > 0; --score) {
-		run->bitmap[score] = 0;
+		bitmap[score] = 0;
 	}
 }
 
@@ -117,24 +118,13 @@ init_run_with_max_block(struct heap_layout *l, uint32_t chunk_id)
 		&l->zone0.chunks[chunk_id];
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
 
+	uint64_t *bitmap = (uint64_t *)run->content;
 	run->block_size = 1024;
-	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
+	memset(bitmap, 0xFF, DEFAULT_BITMAP_SIZE);
 
 	/* the biggest block is 10 bits */
-	run->bitmap[3] =
+	bitmap[3] =
 	0b1000001110111000111111110000111111000000000011111111110000000011;
-}
-
-static void
-test_alloc_class_bitmap_correctness(void)
-{
-	struct alloc_class_run_proto proto;
-	alloc_class_generate_run_proto(&proto, RUNSIZE / 10, 1, 0);
-	/* 54 set (not available for allocations), and 10 clear (available) */
-	uint64_t bitmap_lastval =
-	0b1111111111111111111111111111111111111111111111111111110000000000;
-
-	UT_ASSERTeq(proto.bitmap_lastval, bitmap_lastval);
 }
 
 static void
@@ -247,8 +237,6 @@ test_heap(void)
 		pop, p_ops, s, pop->set) == 0);
 	UT_ASSERT(heap_buckets_init(heap) == 0);
 	UT_ASSERT(pop->heap.rt != NULL);
-
-	test_alloc_class_bitmap_correctness();
 
 	test_container((struct block_container *)container_new_ravl(heap),
 		heap);

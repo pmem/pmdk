@@ -149,7 +149,7 @@ test_bucket_insert_get(void)
 
 	UT_ASSERT(b->c_ops->get_rm_bestfit(b->container, &m) != 0);
 
-	UT_ASSERT(bucket_insert_block(b, &m) == 0);
+	UT_ASSERT(bucket_insert_block(&m, b) == 0);
 
 	UT_ASSERT(b->c_ops->get_rm_bestfit(b->container, &m) == 0);
 
@@ -171,7 +171,7 @@ test_bucket_remove(void)
 		TEST_SIZE_IDX, TEST_BLOCK_OFF};
 	m.m_ops = &mock_ops;
 
-	UT_ASSERT(bucket_insert_block(b, &m) == 0);
+	UT_ASSERT(bucket_insert_block(&m, b) == 0);
 
 	UT_ASSERT(b->c_ops->get_rm_exact(b->container, &m) == 0);
 

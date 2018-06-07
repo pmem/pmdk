@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -64,7 +64,7 @@ struct bucket *bucket_new(struct block_container *c,
 
 int *bucket_current_resvp(struct bucket *b);
 
-int bucket_insert_block(struct bucket *b, const struct memory_block *m);
+int bucket_insert_block(const struct memory_block *m, struct bucket *b);
 
 void bucket_delete(struct bucket *b);
 
