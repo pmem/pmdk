@@ -57,7 +57,7 @@ typedef
        VG_USERREQ__PMC_PRINT_PMEM_MAPPINGS,
        VG_USERREQ__PMC_DO_FLUSH,
        VG_USERREQ__PMC_DO_FENCE,
-       VG_USERREQ__PMC_DO_COMMIT,
+       VG_USERREQ__PMC_DEPRECATED,
        VG_USERREQ__PMC_WRITE_STATS,
        VG_USERREQ__PMC_LOG_STORES,
        VG_USERREQ__PMC_NO_LOG_STORES,
@@ -126,11 +126,6 @@ typedef
 /** Register an SFENCE */
 #define VALGRIND_PMC_DO_FENCE                                               \
     VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DO_FENCE,               \
-                                    0, 0, 0, 0, 0)
-
-/** Register a PCOMMIT */
-#define VALGRIND_PMC_DO_COMMIT                                              \
-    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DO_COMMIT,              \
                                     0, 0, 0, 0, 0)
 
 /** Write tool stats */

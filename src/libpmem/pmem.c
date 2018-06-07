@@ -205,9 +205,6 @@ pmem_drain(void)
 	LOG(15, NULL);
 
 	Funcs.predrain_fence();
-
-	VALGRIND_DO_COMMIT;
-	VALGRIND_DO_FENCE;
 }
 
 /*
