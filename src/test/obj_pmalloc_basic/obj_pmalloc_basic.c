@@ -385,8 +385,6 @@ test_spec_compliance(void)
 		sizeof(struct allocation_header_legacy);
 
 	UT_ASSERTeq(max_alloc, PMEMOBJ_MAX_ALLOC_SIZE);
-	UT_COMPILE_ERROR_ON(offsetof(struct chunk_run, data) <
-		MAX_CACHELINE_ALIGNMENT);
 }
 
 int

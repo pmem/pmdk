@@ -444,7 +444,7 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 
 	size_t runsize_bytes =
 		CHUNK_ALIGN_UP((p->units_per_block * p->unit_size) +
-		RUN_METASIZE);
+		RUN_BASE_METADATA_SIZE);
 
 	/* aligning the buffer might require up-to to 'alignment' bytes */
 	if (p->alignment != 0)
@@ -544,7 +544,7 @@ CTL_READ_HANDLER(desc)(void *ctx,
 	}
 
 	struct pobj_alloc_class_desc *p = arg;
-	p->units_per_block = c->type == CLASS_HUGE ? 0 : c->run.bitmap_nallocs;
+	p->units_per_block = c->type == CLASS_HUGE ? 0 : c->run.nallocs;
 	p->header_type = user_htype;
 	p->unit_size = c->unit_size;
 	p->class_id = c->id;
