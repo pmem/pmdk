@@ -3044,11 +3044,12 @@ function require_python3()
 # This function expects 5 additional parameters. They are in order:
 # 1 - the pool file to be tested
 # 2 - the application and necessary parameters to run pmemcheck logging
-# 3 - the log output file
-# 4 - the checker type - for a list of supported types run `./pmreorder.py -h`
-# 5 - the path to the checker binary/library
-# 6 - the remaining parameters which will be passed to the consistency checker
-#     binary. If you are using a library checker, prepend '-n funcname'
+# -o - the log output file
+# -c - the checker type - for a list of supported types run `./pmreorder.py -h`
+# -e - reorder engine type
+# -p - the path to the checker binary/library
+# -z - the remaining parameters which will be passed to the consistency checker
+#      binary. If you are using a library checker, prepend '-n funcname'
 #
 function do_reorder_test()
 {
@@ -3056,20 +3057,70 @@ function do_reorder_test()
 	require_python3
 	require_valgrind
 
+	POOL_FILE="$1"
+	PMEMCHECK_PARAMS="$2"
+	shift 2
+	ENGINE="full"
+
+	ARGS="$*"
+	while getopts ":h:o:c:e:z:p:" opt $ARGS; do
+		case $opt in
+			o)
+				LOG_OUTPUT_FILE=${OPTARG}
+				;;
+			c)
+				CHECKER_TYPE=${OPTARG}
+				;;
+			e)
+				ENGINE=${OPTARG}
+				;;
+			p)
+				CHECKER_PATH=${OPTARG}
+				;;
+			z)
+				array+="$OPTARG "
+				REM_BIN_PARAMS=$array
+				;;
+			*)
+				echo "Argument not supported"
+				;;
+		esac
+	done
+
+	verbose_msg "POOL_FILE -> $POOL_FILE"
+	verbose_msg "PMEMCHECK_PARAMS -> $PMEMCHECK_PARAMS"
+	verbose_msg "LOG_OUTPUT FILE -> $LOG_OUTPUT_FILE"
+	verbose_msg "CHECKER_TYPE -> $CHECKER_TYPE"
+	verbose_msg "ENGINE -> $ENGINE"
+	verbose_msg "CHECKER_PATH -> $CHECKER_PATH"
+	verbose_msg "REM_BIN_PARAMS -> $REM_BIN_PARAMS"
+
 	#copy original file and perform store logging
-	cp $1 "$1.pmr"
+	cp $POOL_FILE "$POOL_FILE.pmr"
 	rm -f store_log$UNITTEST_NUM.log
 
-	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $VALGRINDEXE --tool=pmemcheck -q \
-	--log-stores=yes --print-summary=no \
-	--log-file=store_log$UNITTEST_NUM.log --log-stores-stacktraces=yes \
-	--log-stores-stacktraces-depth=2 --expect-fence-after-clflush=yes $2
+	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $VALGRINDEXE \
+			--tool=pmemcheck -q \
+			--log-stores=yes \
+			--print-summary=no \
+			--log-file=store_log$UNITTEST_NUM.log \
+			--log-stores-stacktraces=yes \
+			--log-stores-stacktraces-depth=2 \
+			--expect-fence-after-clflush=yes \
+			$PMEMCHECK_PARAMS
 
 	# shuffle files and do the reorder/check testing
-	mv $1 "$1.bak"
-	mv "$1.pmr" $1
+	mv $POOL_FILE "$POOL_FILE.bak"
+	mv "$POOL_FILE.pmr" $POOL_FILE
+
 	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PYTHON_EXE $PMREORDER \
-	-l store_log$UNITTEST_NUM.log -t file -o $3 -c $4 -p $5 $6
+			-l store_log$UNITTEST_NUM.log \
+			-t file \
+			-o $LOG_OUTPUT_FILE \
+			-c $CHECKER_TYPE \
+			-r $ENGINE \
+			-p $CHECKER_PATH \
+			$REM_BIN_PARAMS
 }
 
 #
