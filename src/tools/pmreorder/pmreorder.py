@@ -37,6 +37,7 @@ import opscontext
 import consistencycheckwrap
 import loggingfacility
 import sys
+import reorderengines
 
 
 def main():
@@ -64,6 +65,8 @@ def main():
     parser.add_argument("-e", "--output_level",
                         choices=loggingfacility.log_levels,
                         help="set the output log level")
+    parser.add_argument("-r", "--reorder_type", help="set reorder engine type",
+                        choices=reorderengines.engines, default="full")
     parser.add_argument("args", nargs=argparse.REMAINDER,
                         help="remaining args passed to the checker")
     args = parser.parse_args()
@@ -77,9 +80,10 @@ def main():
                                                args.path,
                                                args.name,
                                                args.args)
+    engine = reorderengines.get_engine(args.reorder_type)
 
     # create the script context
-    context = opscontext.OpsContext(args.logfile, checker, logger)
+    context = opscontext.OpsContext(args.logfile, checker, logger, engine)
 
     # init and run the state machine
     a = statemachine.StateMachine(statemachine.InitState(context))

@@ -3125,9 +3125,8 @@ function pmreorder_expect_failure()
 #
 function pmreorder_create_store_log()
 {
-
 	#copy original file and perform store logging
-	cp $1 "$1.pmr"
+	cp $POOL_FILE "$POOL_FILE.pmr"
 	rm -f store_log$UNITTEST_NUM.log
 
 	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $VALGRINDEXE \
