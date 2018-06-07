@@ -1,12 +1,5 @@
-obj_check/TEST5: START: obj_check
- ./obj_check$(nW) $(nW)testfile
-not consistent: tx lane: invalid transaction state
-obj_check/TEST5: DONE
-obj_check/TEST5: START: obj_check
- ./obj_check$(nW) $(nW)testfile
-not consistent: tx_lane: invalid offset in tx range object
-obj_check/TEST5: DONE
-obj_check/TEST5: START: obj_check
- ./obj_check$(nW) $(nW)testfile
-not consistent: tx_lane: invalid offset in tx range object
-obj_check/TEST5: DONE
+obj_check$(nW)TEST5: START: obj_check
+ $(nW)obj_check$(nW) $(nW)testfile -l Valid_layout -o
+$(nW)testfile: pmemobj_open: Success
+error: flock $(nW)testfile": ${Resource temporarily unavailable|Unknown error}
+obj_check$(nW)TEST5: DONE
