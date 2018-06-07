@@ -485,6 +485,18 @@ util_range_unregister(const void *addr, size_t len)
 
 	util_rwlock_wrlock(&Mmap_list_lock);
 
+	/*
+	 * Changes in the map tracker list must match the underlying behavior.
+	 *
+	 * $ man 2 mmap:
+	 *	The address addr must be a multiple of the page size (but length
+	 *	need not be). All pages containing a part of the indicated range
+	 *	are unmapped.
+	 *
+	 * This means that we must align the length to the page size.
+	 */
+	len = PAGE_ALIGNED_UP_SIZE(len);
+
 	void *end = (char *)addr + len;
 
 	/* XXX optimize the loop */
