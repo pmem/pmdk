@@ -55,8 +55,11 @@ truncate -s 4M $DIR/testfile1
 PROGR="./pmem_reorder_simple$EXESUFFIX"
 CMD="$PROGR b $DIR/testfile1"
 
-do_reorder_test $DIR/testfile1 "$CMD" "outfile$UNITTEST_NUM.log" prog $PROGR \
-	"c"
+do_reorder_test $DIR/testfile1 "$CMD" \
+		-o outfile$UNITTEST_NUM.log \
+		-c prog \
+		-p $PROGR \
+		-z c -z $DIR/testfile1
 
 check
 

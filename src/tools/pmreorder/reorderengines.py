@@ -36,6 +36,8 @@ from itertools import chain
 from random import sample
 from functools import partial
 
+engines = ["full", "noreorder", "accumulative"]
+
 
 class FullReorderEngine:
     """
@@ -277,3 +279,15 @@ class NoReorderEngine:
         :rtype: iterable
         """
         return [store_list]
+
+
+def get_engine(engine):
+    reorder_engine = None
+    if engine == "noreorder":
+        reorder_engine = NoReorderEngine()
+    elif engine == "accumulative":
+        reorder_engine = AccumulativeReorderEngine()
+    else:
+        reorder_engine = FullReorderEngine()
+
+    return reorder_engine
