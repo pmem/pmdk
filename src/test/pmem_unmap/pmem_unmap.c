@@ -71,13 +71,16 @@ main(int argc, char *argv[])
 	ret = pmem_map_file(path, len, flags, mode, &mlenp, &is_pmem);
 	UT_ASSERTeq(pmem_unmap(ret, PAGE_4K), 0);
 
-	ret = ret + PAGE_2M;
+	ret += PAGE_2M;
 	UT_ASSERTeq(pmem_unmap(ret, PAGE_2M), 0);
 
-	ret = ret + 8 * PAGE_2M;
+	ret += PAGE_2M;
+	UT_ASSERTeq(pmem_unmap(ret, PAGE_2M - 1), 0);
+
+	ret += PAGE_2M;
 	UT_ASSERTne(pmem_unmap(ret, 0), 0);
 
-	ret = ret + PAGE_2M - 1;
+	ret += PAGE_2M - 1;
 	UT_ASSERTne(pmem_unmap(ret, PAGE_4K), 0);
 
 	DONE(NULL);
