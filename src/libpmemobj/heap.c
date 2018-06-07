@@ -52,10 +52,6 @@
 #include "os_thread.h"
 #include "set.h"
 
-/* calculates the size of the entire run, including any additional chunks */
-#define SIZEOF_RUN(runp, size_idx)\
-	(sizeof(*(runp)) + (((size_idx) - 1) * CHUNKSIZE))
-
 #define MAX_RUN_LOCKS MAX_CHUNK
 #define MAX_RUN_LOCKS_VG 1024 /* avoid perf issues /w drd */
 
@@ -292,47 +288,6 @@ zone_calc_size_idx(uint32_t zone_id, unsigned max_zone, size_t heap_size)
 }
 
 /*
- * heap_chunk_write_footer -- writes a chunk footer
- */
-static void
-heap_chunk_write_footer(struct chunk_header *hdr, uint32_t size_idx)
-{
-	if (size_idx == 1) /* that would overwrite the header */
-		return;
-
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr + size_idx - 1, sizeof(*hdr));
-
-	struct chunk_header f = *hdr;
-	f.type = CHUNK_TYPE_FOOTER;
-	f.size_idx = size_idx;
-	*(hdr + size_idx - 1) = f;
-	/* no need to persist, footers are recreated in heap_populate_buckets */
-	VALGRIND_SET_CLEAN(hdr + size_idx - 1, sizeof(f));
-}
-
-/*
- * heap_chunk_init -- (internal) writes chunk header
- */
-static void
-heap_chunk_init(struct palloc_heap *heap, struct chunk_header *hdr,
-	uint16_t type, uint32_t size_idx)
-{
-	struct chunk_header nhdr = {
-		.type = type,
-		.flags = 0,
-		.size_idx = size_idx
-	};
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr, sizeof(*hdr));
-	VALGRIND_ANNOTATE_NEW_MEMORY(hdr, sizeof(*hdr));
-
-	*hdr = nhdr; /* write the entire header (8 bytes) at once */
-
-	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
-
-	heap_chunk_write_footer(hdr, size_idx);
-}
-
-/*
  * heap_zone_init -- (internal) writes zone's first chunk and header
  */
 static void
@@ -345,182 +300,15 @@ heap_zone_init(struct palloc_heap *heap, uint32_t zone_id,
 
 	ASSERT(size_idx - first_chunk_id > 0);
 
-	heap_chunk_init(heap, &z->chunk_headers[first_chunk_id],
-		CHUNK_TYPE_FREE, size_idx - first_chunk_id);
+	memblock_huge_init(heap, first_chunk_id, zone_id,
+		size_idx - first_chunk_id);
 
 	struct zone_header nhdr = {
 		.size_idx = size_idx,
 		.magic = ZONE_HEADER_MAGIC,
 	};
-	z->header = nhdr;  /* write the entire header (8 bytes) at once */
+	z->header = nhdr; /* write the entire header (8 bytes) at once */
 	pmemops_persist(&heap->p_ops, &z->header, sizeof(z->header));
-}
-
-/*
- * heap_run_init -- (internal) creates a run based on a chunk
- */
-static void
-heap_run_init(struct palloc_heap *heap, struct bucket *b,
-	const struct memory_block *m)
-{
-	struct alloc_class *c = b->aclass;
-	ASSERTeq(c->type, CLASS_RUN);
-
-	struct zone *z = ZID_TO_ZONE(heap->layout, m->zone_id);
-
-	struct chunk_run *run = (struct chunk_run *)&z->chunks[m->chunk_id];
-	ASSERTne(m->size_idx, 0);
-	size_t runsize = SIZEOF_RUN(run, m->size_idx);
-
-	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, runsize);
-
-	/* add/remove chunk_run and chunk_header to valgrind transaction */
-	VALGRIND_ADD_TO_TX(run, runsize);
-	run->block_size = c->unit_size;
-	run->alignment = c->run.alignment;
-
-	/* set all the bits */
-	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
-
-	unsigned nval = c->run.bitmap_nval;
-	ASSERT(nval > 0);
-	/* clear only the bits available for allocations from this bucket */
-	memset(run->bitmap, 0, sizeof(uint64_t) * (nval - 1));
-	run->bitmap[nval - 1] = c->run.bitmap_lastval;
-
-	VALGRIND_REMOVE_FROM_TX(run, runsize);
-
-	pmemops_flush(&heap->p_ops, run,
-		sizeof(run->block_size) +
-		sizeof(run->alignment) +
-		sizeof(run->bitmap));
-
-	struct chunk_header run_data_hdr;
-	run_data_hdr.type = CHUNK_TYPE_RUN_DATA;
-	run_data_hdr.flags = 0;
-
-	VALGRIND_ADD_TO_TX(&z->chunk_headers[m->chunk_id],
-		sizeof(struct chunk_header) * m->size_idx);
-
-	struct chunk_header *data_hdr;
-	for (unsigned i = 1; i < m->size_idx; ++i) {
-		data_hdr = &z->chunk_headers[m->chunk_id + i];
-		VALGRIND_DO_MAKE_MEM_UNDEFINED(data_hdr, sizeof(*data_hdr));
-		VALGRIND_ANNOTATE_NEW_MEMORY(data_hdr, sizeof(*data_hdr));
-		run_data_hdr.size_idx = i;
-		*data_hdr = run_data_hdr;
-	}
-	pmemops_persist(&heap->p_ops,
-		&z->chunk_headers[m->chunk_id + 1],
-		sizeof(struct chunk_header) * (m->size_idx - 1));
-
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
-	ASSERT(hdr->type == CHUNK_TYPE_FREE);
-
-	VALGRIND_ANNOTATE_NEW_MEMORY(hdr, sizeof(*hdr));
-
-	struct chunk_header run_hdr;
-	run_hdr.size_idx = hdr->size_idx;
-	run_hdr.type = CHUNK_TYPE_RUN;
-	run_hdr.flags = c->flags;
-	*hdr = run_hdr;
-	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
-
-	VALGRIND_REMOVE_FROM_TX(&z->chunk_headers[m->chunk_id],
-		sizeof(struct chunk_header) * m->size_idx);
-}
-
-/*
- * heap_run_process_bitmap_value -- (internal) looks for unset bits in the
- * value, creates a valid memory block out of them and inserts that
- * block into the given bucket.
- */
-static uint32_t
-heap_run_process_bitmap_value(struct bucket *b, struct memory_block *m,
-	uint64_t value, uint16_t base_offset)
-{
-	uint64_t shift = 0; /* already processed bits */
-	uint32_t inserted = 0;
-
-	do {
-		/*
-		 * Shift the value so that the next memory block starts on the
-		 * least significant position:
-		 *	..............0 (free block)
-		 * or	..............1 (used block)
-		 */
-		uint64_t shifted = value >> shift;
-
-		/* all clear or set bits indicate the end of traversal */
-		if (shifted == 0) {
-			/*
-			 * Insert the remaining blocks as free. Remember that
-			 * unsigned values are always zero-filled, so we must
-			 * take the current shift into account.
-			 */
-
-			inserted += (uint32_t)(BITS_PER_VALUE - shift);
-
-			m->block_off = (uint16_t)(base_offset + shift);
-			m->size_idx = (uint32_t)(BITS_PER_VALUE - shift);
-			bucket_insert_block(b, m);
-
-			break;
-		} else if (shifted == UINT64_MAX) {
-			break;
-		}
-
-		/*
-		 * Offset and size of the next free block, either of these
-		 * can be zero depending on where the free block is located
-		 * in the value.
-		 */
-		unsigned off = (unsigned)util_lssb_index64(~shifted);
-		unsigned size = (unsigned)util_lssb_index64(shifted);
-
-		shift += off + size;
-
-		if (size != 0) { /* zero size means skip to the next value */
-			inserted += (uint32_t)(size);
-
-			m->block_off = (uint16_t)(base_offset + (shift - size));
-			m->size_idx = (uint32_t)(size);
-			bucket_insert_block(b, m);
-		}
-	} while (shift != BITS_PER_VALUE);
-
-	return inserted;
-}
-
-/*
- * heap_run_process_metadata -- (internal) parses the run bitmap
- */
-static uint32_t
-heap_run_process_metadata(struct palloc_heap *heap, struct bucket *b,
-	const struct memory_block *m)
-{
-	struct alloc_class *c = b->aclass;
-	ASSERTeq(c->type, CLASS_RUN);
-	ASSERTeq(m->size_idx, c->run.size_idx);
-
-	uint16_t block_off = 0;
-	uint32_t inserted_blocks = 0;
-
-	struct chunk_run *run = heap_get_chunk_run(heap, m);
-
-	ASSERTeq(run->block_size, c->unit_size);
-
-	struct memory_block nm = *m;
-	for (unsigned i = 0; i < c->run.bitmap_nval; ++i) {
-		ASSERT(i < MAX_BITMAP_VALUES);
-		uint64_t v = run->bitmap[i];
-		ASSERT(BITS_PER_VALUE * i <= UINT16_MAX);
-		block_off = (uint16_t)(BITS_PER_VALUE * i);
-		inserted_blocks += heap_run_process_bitmap_value(b, &nm, v,
-			block_off);
-	}
-
-	return inserted_blocks;
 }
 
 /*
@@ -530,15 +318,18 @@ static void
 heap_run_create(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m)
 {
-	heap_run_init(heap, b, m);
-	memblock_rebuild_state(heap, m);
-	heap_run_process_metadata(heap, b, m);
+	*m = memblock_run_init(heap,
+		m->chunk_id, m->zone_id, m->size_idx,
+		b->aclass->flags, b->aclass->unit_size,
+		b->aclass->run.alignment);
+
+	m->m_ops->iterate_free(m, (object_callback)bucket_insert_block, b);
 }
 
 /*
  * heap_run_reuse -- (internal) reuses existing run
  */
-static uint32_t
+static void
 heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
 	const struct memory_block *m)
 {
@@ -547,14 +338,13 @@ heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
 
 	util_mutex_lock(lock);
 
-	uint32_t ret = heap_run_process_metadata(heap, b, m);
+	m->m_ops->iterate_free(m, (object_callback)bucket_insert_block, b);
 
 	util_mutex_unlock(lock);
 
 	b->active_memory_block->m = *m;
 	b->is_active = 1;
 
-	return ret;
 }
 
 /*
@@ -576,7 +366,7 @@ heap_free_chunk_reuse(struct palloc_heap *heap,
 
 	*m = nm;
 
-	return bucket_insert_block(bucket, m);
+	return bucket_insert_block(m, bucket);
 }
 
 /*
@@ -604,8 +394,7 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
 	os_mutex_t *lock = m->m_ops->get_lock(m);
 	util_mutex_lock(lock);
 
-	heap_chunk_init(heap, hdr, CHUNK_TYPE_FREE, m->size_idx);
-	memblock_rebuild_state(heap, m);
+	*m = memblock_huge_init(heap, m->chunk_id, m->zone_id, m->size_idx);
 
 	heap_free_chunk_reuse(heap, bucket, m);
 
@@ -629,14 +418,15 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 
 	struct recycler_element e = recycler_element_new(heap, m);
 	if (c == NULL) {
-		struct alloc_class_run_proto run_proto;
-		alloc_class_generate_run_proto(&run_proto,
-			run->block_size, m->size_idx, run->alignment);
+		uint32_t size_idx = m->size_idx;
+		unsigned nallocs = memblock_run_nallocs(&size_idx,
+			hdr->flags, run->block_size, run->alignment);
+		ASSERTeq(size_idx, m->size_idx);
 
-		return e.free_space == run_proto.bitmap_nallocs;
+		return e.free_space == nallocs;
 	}
 
-	if (e.free_space == c->run.bitmap_nallocs)
+	if (e.free_space == c->run.nallocs)
 		return 1;
 
 	if (recycler_put(heap->rt->recyclers[c->id], m, e) < 0)
@@ -654,27 +444,6 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 {
 	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
 
-	/*
-	 * Recreate all footers BEFORE any other operation takes place.
-	 * The heap_init_free_chunk call expects the footers to be created.
-	 */
-	for (uint32_t i = 0; i < z->header.size_idx; ) {
-		struct chunk_header *hdr = &z->chunk_headers[i];
-		switch (hdr->type) {
-			case CHUNK_TYPE_FREE:
-			case CHUNK_TYPE_USED:
-				heap_chunk_write_footer(hdr,
-					hdr->size_idx);
-				break;
-			case CHUNK_TYPE_RUN:
-				break;
-			default:
-				ASSERT(0);
-		}
-
-		i += hdr->size_idx;
-	}
-
 	for (uint32_t i = 0; i < z->header.size_idx; ) {
 		struct chunk_header *hdr = &z->chunk_headers[i];
 		ASSERT(hdr->size_idx != 0);
@@ -685,6 +454,7 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 		m.size_idx = hdr->size_idx;
 
 		memblock_rebuild_state(heap, &m);
+		m.m_ops->reinit_chunk(&m);
 
 		switch (hdr->type) {
 			case CHUNK_TYPE_RUN:
@@ -941,46 +711,32 @@ heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
 }
 
 /*
- * heap_resize_chunk -- (internal) splits the chunk into two smaller ones
+ * heap_split_block -- (internal) splits unused part of the memory block
  */
 static void
-heap_resize_chunk(struct palloc_heap *heap, struct bucket *bucket,
-	uint32_t chunk_id, uint32_t zone_id, uint32_t new_size_idx)
-{
-	uint32_t new_chunk_id = chunk_id + new_size_idx;
-	ASSERTne(new_chunk_id, chunk_id);
-
-	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
-	struct chunk_header *old_hdr = &z->chunk_headers[chunk_id];
-	struct chunk_header *new_hdr = &z->chunk_headers[new_chunk_id];
-
-	uint32_t rem_size_idx = old_hdr->size_idx - new_size_idx;
-	heap_chunk_init(heap, new_hdr, CHUNK_TYPE_FREE, rem_size_idx);
-	heap_chunk_init(heap, old_hdr, CHUNK_TYPE_FREE, new_size_idx);
-
-	struct memory_block m = {new_chunk_id, zone_id, rem_size_idx, 0,
-		0, NULL, NULL, 0, 0};
-	memblock_rebuild_state(heap, &m);
-	bucket_insert_block(bucket, &m);
-}
-
-/*
- * heap_recycle_block -- (internal) recycles unused part of the memory block
- */
-static void
-heap_recycle_block(struct palloc_heap *heap, struct bucket *b,
+heap_split_block(struct palloc_heap *heap, struct bucket *b,
 		struct memory_block *m, uint32_t units)
 {
+	ASSERT(units <= UINT16_MAX);
+	ASSERT(units > 0);
+
 	if (b->aclass->type == CLASS_RUN) {
-		ASSERT(units <= UINT16_MAX);
 		ASSERT(m->block_off + units <= UINT16_MAX);
 		struct memory_block r = {m->chunk_id, m->zone_id,
 			m->size_idx - units, (uint16_t)(m->block_off + units),
 			0, NULL, NULL, 0, 0};
 		memblock_rebuild_state(heap, &r);
-		bucket_insert_block(b, &r);
+		bucket_insert_block(&r, b);
 	} else {
-		heap_resize_chunk(heap, b, m->chunk_id, m->zone_id, units);
+		uint32_t new_chunk_id = m->chunk_id + units;
+		uint32_t new_size_idx = m->size_idx - units;
+
+		*m = memblock_huge_init(heap, m->chunk_id, m->zone_id, units);
+
+		struct memory_block n = memblock_huge_init(heap,
+			new_chunk_id, m->zone_id, new_size_idx);
+
+		bucket_insert_block(&n, b);
 	}
 
 	m->size_idx = units;
@@ -1009,7 +765,7 @@ heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	ASSERT(m->size_idx >= units);
 
 	if (units != m->size_idx)
-		heap_recycle_block(heap, b, m, units);
+		heap_split_block(heap, b, m, units);
 
 	m->m_ops->ensure_header_type(m, b->aclass->header_type);
 	m->header_type = b->aclass->header_type;
@@ -1149,8 +905,7 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 	struct heap_rt *h = heap->rt;
 
 	if (c->type == CLASS_RUN) {
-		h->recyclers[c->id] = recycler_new(heap,
-			c->run.bitmap_nallocs);
+		h->recyclers[c->id] = recycler_new(heap, c->run.nallocs);
 		if (h->recyclers[c->id] == NULL)
 			goto error_recycler_new;
 	}
@@ -1583,7 +1338,7 @@ heap_check(void *heap_start, uint64_t heap_size)
 
 /*
  * heap_check_remote -- verifies if the heap of a remote pool is consistent
- *                      and can be opened properly
+ *	and can be opened properly
  *
  * If successful function returns zero. Otherwise an error number is returned.
  */
@@ -1632,83 +1387,6 @@ out:
 }
 
 /*
- * heap_run_foreach_object -- (internal) iterates through objects in a run
- */
-int
-heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
-		void *arg, struct memory_block *m)
-{
-	uint16_t i = m->block_off / BITS_PER_VALUE;
-	uint16_t block_start = m->block_off % BITS_PER_VALUE;
-	uint16_t block_off;
-
-	struct chunk_run *run = heap_get_chunk_run(heap, m);
-
-	struct alloc_class_run_proto run_proto;
-	alloc_class_generate_run_proto(&run_proto,
-		run->block_size, m->size_idx, run->alignment);
-
-	for (; i < run_proto.bitmap_nval; ++i) {
-		uint64_t v = run->bitmap[i];
-		block_off = (uint16_t)(BITS_PER_VALUE * i);
-
-		for (uint16_t j = block_start; j < BITS_PER_VALUE; ) {
-			if (block_off + j >= (uint16_t)run_proto.bitmap_nallocs)
-				break;
-
-			if (!BIT_IS_CLR(v, j)) {
-				m->block_off = (uint16_t)(block_off + j);
-
-				/*
-				 * The size index of this memory block cannot be
-				 * retrieved at this time because the header
-				 * might not be initialized in valgrind yet.
-				 */
-				m->size_idx = 0;
-
-				if (cb(m, arg)
-						!= 0)
-					return 1;
-
-				m->size_idx = CALC_SIZE_IDX(run->block_size,
-					m->m_ops->get_real_size(m));
-				j = (uint16_t)(j + m->size_idx);
-			} else {
-				++j;
-			}
-		}
-		block_start = 0;
-	}
-
-	return 0;
-}
-
-/*
- * heap_chunk_foreach_object -- (internal) iterates through objects in a chunk
- */
-static int
-heap_chunk_foreach_object(struct palloc_heap *heap, object_callback cb,
-	void *arg, struct memory_block *m)
-{
-	struct chunk_header *hdr = heap_get_chunk_hdr(heap, m);
-	memblock_rebuild_state(heap, m);
-	m->size_idx = hdr->size_idx;
-
-	switch (hdr->type) {
-		case CHUNK_TYPE_FREE:
-			return 0;
-		case CHUNK_TYPE_USED:
-			return cb(m, arg);
-		case CHUNK_TYPE_RUN:
-			return heap_run_foreach_object(heap, cb, arg, m);
-		default:
-			ASSERT(0);
-	}
-
-	return 0;
-}
-
-/*
  * heap_zone_foreach_object -- (internal) iterates through objects in a zone
  */
 static int
@@ -1720,14 +1398,15 @@ heap_zone_foreach_object(struct palloc_heap *heap, object_callback cb,
 		return 0;
 
 	for (; m->chunk_id < zone->header.size_idx; ) {
-		if (heap_chunk_foreach_object(heap, cb, arg, m) != 0)
+		struct chunk_header *hdr = heap_get_chunk_hdr(heap, m);
+		memblock_rebuild_state(heap, m);
+		m->size_idx = hdr->size_idx;
+
+		if (m->m_ops->iterate_used(m, cb, arg) != 0)
 			return 1;
 
-		m->chunk_id += zone->chunk_headers[m->chunk_id].size_idx;
-
-		/* reset the starting position of memblock */
+		m->chunk_id += m->size_idx;
 		m->block_off = 0;
-		m->size_idx = 0;
 	}
 
 	return 0;
@@ -1749,43 +1428,6 @@ heap_foreach_object(struct palloc_heap *heap, object_callback cb, void *arg,
 }
 
 #if VG_MEMCHECK_ENABLED
-
-/*
- * heap_vg_open_chunk -- (internal) notifies Valgrind about chunk layout
- */
-static void
-heap_vg_open_chunk(struct palloc_heap *heap,
-	object_callback cb, void *arg, int objects,
-	struct memory_block *m)
-{
-	void *chunk = heap_get_chunk(heap, m);
-	memblock_rebuild_state(heap, m);
-
-	if (m->type == MEMORY_BLOCK_RUN) {
-		struct chunk_run *run = chunk;
-
-		ASSERTne(m->size_idx, 0);
-		VALGRIND_DO_MAKE_MEM_NOACCESS(run,
-			SIZEOF_RUN(run, m->size_idx));
-
-		/* set the run metadata as defined */
-		VALGRIND_DO_MAKE_MEM_DEFINED(run,
-			sizeof(*run) - sizeof(run->data));
-
-		if (objects) {
-			int ret = heap_run_foreach_object(heap, cb, arg, m);
-			ASSERTeq(ret, 0);
-		}
-	} else {
-		size_t size = m->m_ops->get_real_size(m);
-		VALGRIND_DO_MAKE_MEM_NOACCESS(chunk, size);
-
-		if (objects && m->m_ops->get_state(m) == MEMBLOCK_ALLOCATED) {
-			int ret = cb(m, arg);
-			ASSERTeq(ret, 0);
-		}
-	}
-}
 
 /*
  * heap_vg_open -- notifies Valgrind about heap layout
@@ -1819,37 +1461,19 @@ heap_vg_open(struct palloc_heap *heap, object_callback cb,
 
 		for (uint32_t c = 0; c < chunks; ) {
 			struct chunk_header *hdr = &z->chunk_headers[c];
-			m.chunk_id = c;
 
+			/* define the header before rebuilding state */
 			VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
 
+			m.chunk_id = c;
 			m.size_idx = hdr->size_idx;
-			heap_vg_open_chunk(heap, cb, arg, objects, &m);
+
+			memblock_rebuild_state(heap, &m);
+
+			m.m_ops->vg_init(&m, objects, cb, arg);
 			m.block_off = 0;
 
 			ASSERT(hdr->size_idx > 0);
-
-			if (hdr->type == CHUNK_TYPE_RUN) {
-				/*
-				 * Mark run data headers as defined.
-				 */
-				for (unsigned j = 1; j < hdr->size_idx; ++j) {
-					struct chunk_header *data_hdr =
-						&z->chunk_headers[c + j];
-					VALGRIND_DO_MAKE_MEM_DEFINED(data_hdr,
-						sizeof(struct chunk_header));
-					ASSERTeq(data_hdr->type,
-						CHUNK_TYPE_RUN_DATA);
-				}
-			} else {
-				/*
-				 * Mark unused chunk headers as not accessible.
-				 */
-				VALGRIND_DO_MAKE_MEM_NOACCESS(
-					&z->chunk_headers[c + 1],
-					(hdr->size_idx - 1) *
-					sizeof(struct chunk_header));
-			}
 
 			c += hdr->size_idx;
 		}

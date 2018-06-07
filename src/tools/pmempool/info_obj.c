@@ -153,28 +153,6 @@ lane_need_recovery(struct pmem_info *pip, struct lane_layout *lane)
 	return alloc || list || tx;
 }
 
-/*
- * get_bitmap_reserved -- get number of reserved blocks in chunk run
- */
-static int
-get_bitmap_reserved(struct chunk_run *run, uint32_t *reserved)
-{
-	uint64_t nvals = 0;
-	uint64_t last_val = 0;
-	if (util_heap_get_bitmap_params(run->block_size, NULL, &nvals,
-			&last_val))
-		return -1;
-
-	uint32_t ret = 0;
-	for (uint64_t i = 0; i < nvals - 1; i++)
-		ret += util_popcount64(run->bitmap[i]);
-	ret += util_popcount64(run->bitmap[nvals - 1] & ~last_val);
-
-	*reserved = ret;
-
-	return 0;
-}
-
 #define RUN_BITMAP_SEPARATOR_DISTANCE 8
 
 /*
@@ -568,26 +546,20 @@ info_obj_object(struct pmem_info *pip, const struct memory_block *m,
  * info_obj_run_bitmap -- print chunk run's bitmap
  */
 static void
-info_obj_run_bitmap(int v, struct chunk_run *run, uint32_t bsize)
+info_obj_run_bitmap(int v, const struct memory_block *m)
 {
-	if (outv_check(v) && outv_check(VERBOSE_MAX)) {
-		/* print all values from bitmap for higher verbosity */
-		for (int i = 0; i < MAX_BITMAP_VALUES; i++) {
-			outv(VERBOSE_MAX, "%s\n",
-					get_bitmap_str(run->bitmap[i],
-						BITS_PER_VALUE));
-		}
-	} else {
-		/* print only used values for lower verbosity */
-		uint32_t i;
-		for (i = 0; i < bsize / BITS_PER_VALUE; i++)
-			outv(v, "%s\n", get_bitmap_str(run->bitmap[i],
-						BITS_PER_VALUE));
+	struct run_bitmap b;
+	m->m_ops->get_bitmap(m, &b);
 
-		unsigned mod = bsize % BITS_PER_VALUE;
-		if (mod != 0) {
-			outv(v, "%s\n", get_bitmap_str(run->bitmap[i], mod));
-		}
+	/* print only used values for lower verbosity */
+	uint32_t i;
+	for (i = 0; i < b.nbits / BITS_PER_VALUE; i++)
+		outv(v, "%s\n", get_bitmap_str(b.values[i],
+					BITS_PER_VALUE));
+
+	unsigned mod = b.nbits % BITS_PER_VALUE;
+	if (mod != 0) {
+		outv(v, "%s\n", get_bitmap_str(b.values[i], mod));
 	}
 }
 
@@ -668,7 +640,8 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 		struct chunk_run *run = (struct chunk_run *)chunk;
 
 		outv_hexdump(v && pip->args.vhdrdump, run,
-				sizeof(run->block_size) + sizeof(run->bitmap),
+				sizeof(run->block_size) +
+				sizeof(run->alignment),
 				PTR_TO_OFF(pop, run), 1);
 
 		struct alloc_class *aclass = alloc_class_by_run(
@@ -679,22 +652,20 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 					out_get_size_str(run->block_size,
 						pip->args.human));
 
-			uint32_t units = aclass->run.bitmap_nallocs;
+			uint32_t units = aclass->run.nallocs;
+			uint32_t free_space;
+			uint32_t max_free_block;
+			m.m_ops->calc_free(&m, &free_space, &max_free_block);
 			uint32_t used = 0;
-			if (get_bitmap_reserved(run,  &used)) {
-				outv_field(v, "Bitmap", "[error]");
-			} else {
-				stats->class_stats[aclass->id].n_units += units;
-				stats->class_stats[aclass->id].n_used += used;
 
-				outv_field(v, "Bitmap", "%u / %u", used, units);
-			}
+			stats->class_stats[aclass->id].n_units += units;
+			stats->class_stats[aclass->id].n_used += used;
 
-			info_obj_run_bitmap(v && pip->args.obj.vbitmap,
-				run, units);
+			outv_field(v, "Bitmap", "%u / %u", used, units);
 
-			heap_run_foreach_object(pip->obj.heap, info_obj_run_cb,
-				pip, &m);
+			info_obj_run_bitmap(v && pip->args.obj.vbitmap, &m);
+
+			m.m_ops->iterate_used(&m, info_obj_run_cb, pip);
 		} else {
 			outv_field(v, "Block size", "%s [invalid!]",
 					out_get_size_str(run->block_size,

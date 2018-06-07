@@ -56,15 +56,25 @@
 
 #define BITS_PER_VALUE 64U
 #define MAX_CACHELINE_ALIGNMENT 40 /* run alignment, 5 cachelines */
-#define RUN_METASIZE (MAX_CACHELINE_ALIGNMENT * 8)
-#define MAX_BITMAP_VALUES (MAX_CACHELINE_ALIGNMENT - 2)
-#define RUN_BITMAP_SIZE (BITS_PER_VALUE * MAX_BITMAP_VALUES)
-#define RUNSIZE (CHUNKSIZE - RUN_METASIZE)
+#define RUN_BASE_METADATA_SIZE (sizeof(uint64_t) * 2)
+
+#define DEFAULT_BITMAP_SIZE (sizeof(uint64_t) * DEFAULT_BITMAP_VALUES)
+#define DEFAULT_BITMAP_VALUES (MAX_CACHELINE_ALIGNMENT - 2)
+#define DEFAULT_RUN_BITMAP_NBITS (BITS_PER_VALUE * DEFAULT_BITMAP_VALUES)
+
+#define RUNSIZE (CHUNKSIZE - RUN_BASE_METADATA_SIZE - DEFAULT_BITMAP_SIZE)
+#define RUN_CONTENT_SIZE (CHUNKSIZE - (sizeof(uint64_t) * 2))
 #define MIN_RUN_SIZE 128
 #define RUN_BASE_ALIGNMENT 64
 
 #define CHUNK_MASK ((CHUNKSIZE) - 1)
 #define CHUNK_ALIGN_UP(value) ((((value) + CHUNK_MASK) & ~CHUNK_MASK))
+
+/*
+ * Calculates the size in bytes of a single run instance
+ */
+#define RUN_SIZE_BYTES(size_idx)\
+(RUNSIZE + (((size_idx) - 1) * CHUNKSIZE))
 
 enum chunk_flags {
 	CHUNK_FLAG_COMPACT_HEADER	=	0x0001,
@@ -96,8 +106,7 @@ struct chunk {
 struct chunk_run {
 	uint64_t block_size;
 	uint64_t alignment; /* valid only /w CHUNK_FLAG_ALIGNED */
-	uint64_t bitmap[MAX_BITMAP_VALUES];
-	uint8_t data[RUNSIZE];
+	uint8_t content[RUN_CONTENT_SIZE]; /* bitmap + data */
 };
 
 struct chunk_header {
@@ -150,6 +159,26 @@ struct allocation_header_legacy {
 struct allocation_header_compact {
 	uint64_t size;
 	uint64_t extra;
+};
+
+enum header_type {
+	HEADER_LEGACY,
+	HEADER_COMPACT,
+	HEADER_NONE,
+
+	MAX_HEADER_TYPES
+};
+
+static const size_t header_type_to_size[MAX_HEADER_TYPES] = {
+	sizeof(struct allocation_header_legacy),
+	sizeof(struct allocation_header_compact),
+	0
+};
+
+static const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES] = {
+	(enum chunk_flags)0,
+	CHUNK_FLAG_COMPACT_HEADER,
+	CHUNK_FLAG_HEADER_NONE
 };
 
 static inline struct zone *
