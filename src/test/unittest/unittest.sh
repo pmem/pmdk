@@ -1247,7 +1247,7 @@ function get_node_devdax_size() {
 	ret=$?
 	restore_exit_on_error
 	if [ "$ret" != "0" ]; then
-		fatal "UNITTEST_NAME: stat on node $node: $out"
+		fatal "$UNITTEST_NAME: stat on node $node: $out"
 	fi
 	local major=$((16#$out))
 
@@ -1943,6 +1943,13 @@ function require_nodes() {
 
 	local N_NODES=${#NODE[@]}
 	local N=$1
+
+	[ -z "$N" ] \
+		&& fatal "require_nodes: missing reguired parameter: number of nodes"
+
+	# if it has already been called, check if number of required nodes is bigger than previously
+	[ -n "$NODES_MAX" ] \
+		&& [ $(($N - 1)) -le $NODES_MAX ] && return
 
 	[ $N -gt $N_NODES ] \
 		&& msg "$UNITTEST_NAME: SKIP: requires $N node(s), but $N_NODES node(s) provided" \
