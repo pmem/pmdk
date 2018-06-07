@@ -612,6 +612,25 @@ pmemspoil_process_char(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 }
 
 /*
+ * pmemspoil_process_uint8_t -- process value as uint8
+ */
+static int
+pmemspoil_process_uint8_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
+		uint8_t *valp, size_t size, int le)
+{
+	uint8_t v;
+	if (sscanf(pfp->value, "0x%" SCNx8, &v) != 1 &&
+	    sscanf(pfp->value, "%" SCNu8, &v) != 1)
+		return -1;
+
+	*valp = v;
+
+	pmemspoil_persist(valp, sizeof(*valp));
+
+	return 0;
+}
+
+/*
  * pmemspoil_process_uint16_t -- process value as uint16
  */
 static int
@@ -1093,7 +1112,7 @@ pmemspoil_process_run(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD(run, block_size, uint64_t);
-		PROCESS_FIELD_ARRAY(run, bitmap, uint64_t, MAX_BITMAP_VALUES);
+		PROCESS_FIELD_ARRAY(run, content, uint8_t, RUN_CONTENT_SIZE);
 	} PROCESS_END
 
 	return PROCESS_RET;
