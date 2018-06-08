@@ -1424,6 +1424,10 @@ function require_command() {
 # require_kernel_module -- only allow script to continue if specified kernel module exists
 #
 function require_kernel_module() {
+	if ! which depmod 1>/dev/null; then
+		msg "$UNITTEST_NAME: SKIP: 'depmod' command required"
+		exit 0
+	fi
 	local MODULE=$(depmod -n | $GREP -cw -e "$1.ko")
 	if [ $MODULE == "0" ]; then
 		echo "$UNITTEST_NAME: SKIP: '$1' kernel module required"
