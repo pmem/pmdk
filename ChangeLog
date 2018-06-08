@@ -1,3 +1,28 @@
+??? Jun ?? 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+    * Version 1.4.1
+    Bug fixes:
+    - pmem: fix clflush bit position
+    - obj: fix invalid OOMs when zones are fully packed
+    - obj: don't register undo logs twice in memcheck
+    - pool: fix bash completion script
+    - obj: fix clang-7 compilation
+    - obj: test for msync failures in non-pmem path
+    - doc: add missing field to alloc class entry point
+    - common: (win) fix timed locks
+    - common: provide src version in GitHub tarballs
+    - common: fix free function in tls
+    - common: fix double close
+    - test: allow testing installed libraries
+    - test: fix Valgrind vs stripped libraries issue
+    - test: fix dependencies between tests and tools
+    - test: fix races on make pcheck -jN
+    - test: use libvmmalloc.so.1
+    - test: fix incorrect number of required dax devices
+    - test: add suppression for leak in ld.so
+    - test: fail if memcheck detects overlapping chunks
+    - test: simplify time measurements in obj_sync
+    - benchmark: check lseek() return value
+    - examples: catch exceptions in map_cli
 
 Thu Mar 29 2018 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	* Version 1.4
