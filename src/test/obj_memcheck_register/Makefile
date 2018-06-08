@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +31,13 @@
 #
 
 #
-# src/test/libpmempool_api/Makefile -- build libpmempool_api unittest
+# src/test/obj_memcheck_register/Makefile -- build obj_memcheck_register test
 #
-
-TARGET = libpmempool_test
-OBJS = libpmempool_test.o
+TARGET = obj_memcheck_register
+OBJS = obj_memcheck_register.o
 
 LIBPMEM=y
-LIBPMEMPOOL=y
-USE_PMEMSPOIL=y
-USE_PMEMWRITE=y
-USE_BTTCREATE=y
+LIBPMEMOBJ=y
 
 include ../Makefile.inc
+

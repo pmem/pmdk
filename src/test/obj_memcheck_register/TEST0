@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +32,24 @@
 #
 
 #
-# src/test/libpmempool_api/Makefile -- build libpmempool_api unittest
+# src/test/obj_memcheck_register/TEST0 -- unit test for obj_memcheck_register
 #
 
-TARGET = libpmempool_test
-OBJS = libpmempool_test.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBPMEM=y
-LIBPMEMPOOL=y
-USE_PMEMSPOIL=y
-USE_PMEMWRITE=y
-USE_BTTCREATE=y
+require_test_type medium
 
-include ../Makefile.inc
+require_fs_type any
+
+require_valgrind 3.12
+configure_valgrind memcheck force-enable
+
+setup
+
+expect_normal_exit ./obj_memcheck_register$EXESUFFIX c $DIR/testfile
+expect_normal_exit ./obj_memcheck_register$EXESUFFIX o $DIR/testfile
+
+check
+
+pass

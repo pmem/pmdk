@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,5 +34,7 @@
 # src/test/pmempool_check/Makefile -- build pmempool check unittest
 #
 USE_PMEMSPOIL=y
+USE_PMEMWRITE=y
+USE_DDMAP=y
 
 include ../Makefile.inc

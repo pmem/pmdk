@@ -896,21 +896,6 @@ tx_post_commit(PMEMobjpool *pop, struct tx *tx, struct lane_tx_layout *layout,
 		tx_destroy_undo_runtime(tx_rt);
 }
 
-#if VG_MEMCHECK_ENABLED
-/*
- * tx_abort_register_valgrind -- tells Valgrind about objects from specified
- *				 undo log
- */
-static void
-tx_abort_register_valgrind(PMEMobjpool *pop, struct pvector_context *ctx)
-{
-	uint64_t off;
-	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
-		palloc_vg_register_off(&pop->heap, off);
-	}
-}
-#endif
-
 /*
  * tx_abort -- (internal) abort all allocated objects
  */
@@ -930,14 +915,6 @@ tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
 	} else {
 		tx_rt = &lane->undo;
 	}
-
-#if VG_MEMCHECK_ENABLED
-	if (recovery && On_valgrind) {
-		tx_abort_register_valgrind(pop, tx_rt->ctx[UNDO_SET]);
-		tx_abort_register_valgrind(pop, tx_rt->ctx[UNDO_ALLOC]);
-		tx_abort_register_valgrind(pop, tx_rt->ctx[UNDO_SET_CACHE]);
-	}
-#endif
 
 	tx_abort_set(pop, tx_rt, recovery);
 	tx_abort_alloc(pop, tx_rt, lane);

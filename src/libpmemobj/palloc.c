@@ -818,16 +818,6 @@ palloc_vg_register_alloc(const struct memory_block *m, void *arg)
 }
 
 /*
- * palloc_vg_register_off -- registers an object in valgrind
- */
-void
-palloc_vg_register_off(struct palloc_heap *heap, uint64_t off)
-{
-	struct memory_block m = memblock_from_offset_opt(heap, off, 0);
-	palloc_vg_register_alloc(&m, heap);
-}
-
-/*
  * palloc_heap_vg_open -- notifies Valgrind about heap layout
  */
 void

@@ -693,7 +693,13 @@ function get_trace() {
 #
 function validate_valgrind_log() {
 	[ "$VALIDATE_VALGRIND_LOG" != "1" ] && return
-	if [ ! -e "$1.match" ] && grep "ERROR SUMMARY: [^0]" $1 >/dev/null; then
+	# fail if there are valgrind errors found or
+	# if it detects overlapping chunks
+	if [ ! -e "$1.match" ] && grep \
+		-e "ERROR SUMMARY: [^0]" \
+		-e "Bad mempool" \
+		$1 >/dev/null ;
+	then
 		msg="failed"
 		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
 		echo -e "$UNITTEST_NAME $msg with Valgrind. See $1. First 20 lines below." >&2
