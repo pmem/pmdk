@@ -45,7 +45,7 @@ and tutorials.
 >
 ><sup>3</sup> DAX and **libfabric** are not yet supported in FreeBSD, so at this time PMDK is available as a technical preview release for development purposes.
 
-### Pre-Built Packages ###
+### Pre-Built Packages Linux ###
 
 If you want to install these libraries to try them out of your system, you can
 either install pre-built packages, which we build for every stable release, or
@@ -58,6 +58,33 @@ are the simpler *major.minor* tags like `0.2`.  To find
 pre-build packages, check the Downloads associated with
 the stable releases on the
 [github release page](https://github.com/pmem/pmdk/releases).
+
+### Pre-build Packages Windows ###
+
+The recommended and easiest way to install PMDK on Windows is
+to use a Microsoft vcpkg. Vcpkg is an open source tool and ecosystem
+created for libraries management.
+
+To install the latest PMDK release and link it to your Visual Studio solution
+at first you need to clone and set up vcpkg on your machine as described
+on the [vcpkg github page](https://github.com/Microsoft/vcpkg) in **Quick Start** section.
+
+In brief:
+
+```
+	> git clone https://github.com/Microsoft/vcpkg
+	> cd vcpkg
+	> .\bootstrap-vcpkg.bat
+	> .\vcpkg integrate install
+	> .\vcpkg install pmdk:x64-windows
+```
+
+Last command can take a while - it is PMDK building and installation time.
+
+After successful completion of all of the above steps, libraries are ready
+to be used in Visual Studio, no additional configuration is required.
+Just open VS with your already existing project or create new one
+(remember to use platform **x64**) and then include headers to project as you always do.
 
 ### Building The Source ###
 
