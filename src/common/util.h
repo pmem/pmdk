@@ -288,7 +288,7 @@ typedef enum {
 #error MSVC ports of util_atomic_ only work on X86_64
 #endif
 
-#if _MSC_VER > 1911
+#if _MSC_VER > 2000
 #error util_atomic_ utility functions not tested with this version of VC++
 #error These utility functions are not future proof, as they are not
 #error based on publicly available documentation.
