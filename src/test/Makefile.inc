@@ -283,11 +283,6 @@ ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMOBJ),)
 LIBS += $(LIBDL)
 endif
 
-ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBPMEMCTO),)
-LIBS += $(LIBNDCTL)
-endif
-
-
 #
 # This is a helper function to be combined with usage of macros available
 # in the unittest framework. It scans the code for functions that should be
