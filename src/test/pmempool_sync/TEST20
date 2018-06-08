@@ -39,9 +39,6 @@
 
 . ../unittest/unittest.sh
 
-SIZE_4KB=4096
-SIZE_2MB=2097152
-
 require_test_type medium
 require_fs_type any
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,9 +49,6 @@ PMEMOBJCLI_SCRIPT="pmemobjcli.script"
 copy_files_to_node 1 ${NODE_TEST_DIR[1]} $PMEMOBJCLI_SCRIPT
 
 POOLSET_LOCAL="local_pool.set"
-
-SIZE_4KB=4096
-SIZE_2MB=2097152
 
 #
 # configure_poolsets -- configure pool set files for test

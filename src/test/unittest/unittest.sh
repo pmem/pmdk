@@ -99,6 +99,10 @@ shopt -s failglob
 # number of remote nodes required in the current unit test
 NODES_MAX=-1
 
+# sizes of aligments
+SIZE_4KB=4096
+SIZE_2MB=2097152
+
 # SSH and SCP options
 SSH_OPTS="-o BatchMode=yes"
 SCP_OPTS="-o BatchMode=yes -r -p"

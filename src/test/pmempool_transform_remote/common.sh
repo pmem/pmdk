@@ -60,9 +60,6 @@ POOLSET_REMOTE=poolset.remote
 POOLSET_REMOTE1=poolset.remote1
 POOLSET_REMOTE2=poolset.remote2
 
-SIZE_4KB=4096
-SIZE_2MB=2097152
-
 # CLI scripts for writing and reading some data hitting all the parts
 WRITE_SCRIPT="pmemobjcli.write.script"
 READ_SCRIPT="pmemobjcli.read.script"
