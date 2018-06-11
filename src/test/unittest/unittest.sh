@@ -985,7 +985,8 @@ function require_linked_with_ndctl() {
 # require_superuser -- require user with superuser rights
 #
 function require_superuser() {
-	local user_id=$(id -u)
+	# user_id can be used later to check if we have superuser rights
+	user_id=$(id -u)
 	[ "$user_id" == "0" ] && return
 	msg "$UNITTEST_NAME: SKIP required: run with superuser rights"
 	exit 0
@@ -1428,9 +1429,10 @@ function require_command() {
 # require_kernel_module -- only allow script to continue if specified kernel module exists
 #
 function require_kernel_module() {
+	[ "$user_id" == "" ] && require_superuser
 	local MODULE=$(depmod -n | $GREP -cw -e "$1.ko")
 	if [ $MODULE == "0" ]; then
-		echo "$UNITTEST_NAME: SKIP: '$1' kernel module required"
+		msg "$UNITTEST_NAME: SKIP: '$1' kernel module required"
 		exit 0
 	fi
 }
