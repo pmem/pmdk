@@ -817,6 +817,18 @@ out_get_arch_machine_str(uint16_t machine)
 }
 
 /*
+ * out_get_last_shutdown_str -- get a string representation of the finish state
+ */
+const char *
+out_get_last_shutdown_str(uint8_t dirty)
+{
+	if (dirty)
+		return "dirty";
+	else
+		return "clean";
+}
+
+/*
  * out_get_alignment_descr_str -- get alignment descriptor string
  */
 const char *

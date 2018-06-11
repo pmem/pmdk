@@ -20,6 +20,7 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
+Last shutdown            : clean
 Checksum                 : $(*) [OK]
 
 PMEM LOG Header:

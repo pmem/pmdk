@@ -29,6 +29,7 @@ Alignment Descriptor     : $(nW)
 Class                    : 64
 Data                     : 2's complement, little endian
 Machine                  : AMD X86-64
+Last shutdown            : clean
 Checksum                 : $(*)
 
 PMEM OBJ Header:
@@ -62,6 +63,7 @@ Alignment Descriptor     : $(nW)
 Class                    : $(nW)
 Data                     : 2's complement, little endian
 Machine                  : AMD X86-64
+Last shutdown            : clean
 Checksum                 : $(*)
 Part file:
 path                     : $(nW)
@@ -86,4 +88,5 @@ Alignment Descriptor     : $(nW)
 Class                    : $(nW)
 Data                     : 2's complement, little endian
 Machine                  : AMD X86-64
+Last shutdown            : clean
 Checksum                 : $(*)

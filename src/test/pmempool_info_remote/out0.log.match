@@ -27,6 +27,7 @@ Alignment Descriptor     : $(*)[OK]
 Class                    : 64
 Data                     : $(*)
 Machine                  : $(*)
+Last shutdown            : clean
 Checksum                 : $(nW) [OK]
 
 PMEM OBJ Header:
