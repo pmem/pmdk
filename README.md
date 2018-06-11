@@ -85,7 +85,7 @@ or features.  If not present, those components or features may not be
 available:
 
 * **libfabric** (v1.4.2 or later) -- required by **librpmem**
-* **ndctl** and **daxctl** (v59.2 or later) -- required by **daxio** and RAS features
+* **ndctl** and **daxctl** (v60.1 or later) -- required by **daxio**
 
 
 On Windows, to build PMDK and run the tests you need:
