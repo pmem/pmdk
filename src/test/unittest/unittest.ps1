@@ -1008,7 +1008,18 @@ function require_short_path {
 # setup -- print message that test setup is commencing
 #
 function setup {
-    $Script:DIR = $DIR + $Env:SUFFIX
+
+    $curtestdir = (Get-Item -Path ".\").BaseName
+
+    # just in case
+    if (-Not $curtestdir) {
+        fatal "curtestdir does not exist"
+    }
+
+    $curtestdir = "test_" + $curtestdir
+
+    $Script:DIR = $DIR + "\" + $Env:DIRSUFFIX + "\" + $curtestdir + $Env:UNITTEST_NUM + $Env:SUFFIX
+
 
     # test type must be explicitly specified
     if ($req_test_type -ne "1") {
@@ -1129,19 +1140,6 @@ if (-Not $Env:TEST_TYPE_LD_LIBRARY_PATH) {
 # constructing test files.  DIR is chosen based on the fs-type for
 # this test, and if the appropriate fs-type doesn't have a directory
 # defined in testconfig.sh, the test is skipped.
-#
-# This behavior can be overridden by passin in DIR with -d.  Example:
-#	.\TEST0 -d \force\test\dir
-#
-
-sv -Name curtestdir (Get-Item -Path ".\").BaseName
-
-# just in case
-if (-Not $curtestdir) {
-    fatal "$curtestdir does not exist"
-}
-
-sv -Name curtestdir ("test_" + $curtestdir)
 
 if (-Not $Env:UNITTEST_NUM) {
     fatal "UNITTEST_NUM does not have a value"
@@ -1153,7 +1151,7 @@ if (-Not $Env:UNITTEST_NAME) {
 
 $Global:REAL_FS = $Env:FS
 
-$tail = "\" + $Env:DIRSUFFIX + "\" + $curtestdir + $Env:UNITTEST_NUM
+
 # choose based on FS env variable
 switch ($Env:FS) {
     'pmem' {
@@ -1161,7 +1159,7 @@ switch ($Env:FS) {
         if (-Not $Env:PMEM_FS_DIR) {
             fatal "${Env:UNITTEST_NAME}: PMEM_FS_DIR not set"
         }
-        sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
+        sv -Name DIR $Env:PMEM_FS_DIR
         if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
             $Env:PMEM_IS_PMEM_FORCE = "1"
         }
@@ -1171,7 +1169,7 @@ switch ($Env:FS) {
         if (-Not $Env:NON_PMEM_FS_DIR) {
             fatal "${Env:UNITTEST_NAME}: NON_PMEM_FS_DIR not set"
         }
-        sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
+        sv -Name DIR $Env:NON_PMEM_FS_DIR
     }
     'any' {
          if ($Env:PMEM_FS_DIR) {
@@ -1181,14 +1179,17 @@ switch ($Env:FS) {
                 $Env:PMEM_IS_PMEM_FORCE = "1"
             }
         } ElseIf ($Env:NON_PMEM_FS_DIR) {
-            sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
+            sv -Name DIR $Env:NON_PMEM_FS_DIR
             $Global:REAL_FS='non-pmem'
         } Else {
             fatal "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
         }
     }
     'none' {
-        sv -Name DIR "\nul\not_existing_dir\${curtestdir}${Env:UNITTEST_NUM}"
+        # dont add long path nor unicode sufix to DIR
+        require_no_unicode
+        require_short_path
+        sv -Name DIR "\nul\not_existing_dir\"
     }
     default {
         fatal "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
