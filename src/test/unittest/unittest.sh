@@ -685,6 +685,10 @@ function get_trace() {
 	if [ "$check_type" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
 		opts="$opts --leak-check=full"
 	fi
+	if [ "$check_type" = "pmemcheck" ]; then
+		opts="$opts --expect-fence-after-clflush=yes"
+	fi
+
 	opts="$opts $VALGRIND_SUPP"
 	if [ "$node" -ne -1 ]; then
 		exe=${NODE_VALGRINDEXE[$node]}
@@ -1623,11 +1627,24 @@ function require_valgrind_tool() {
 		exit 0
 	fi
 
-	if [ "$tool" == "pmemcheck" -o "$tool" == "helgrind" ]; then
+	if [ "$tool" == "helgrind" ]; then
 		valgrind --tool=$tool --help 2>&1 | \
 		grep -qi "$tool is Copyright (c)" && true
 		if [ $? -ne 0 ]; then
-			msg "$UNITTEST_NAME: SKIP valgrind with $tool required"
+			msg "$UNITTEST_NAME: SKIP Valgrind with $tool required"
+			exit 0;
+		fi
+	fi
+	if [ "$tool" == "pmemcheck" ]; then
+		out=`valgrind --tool=$tool --help 2>&1`
+		echo "$out" | grep -qi "$tool is Copyright (c)" && true
+		if [ $? -ne 0 ]; then
+			msg "$UNITTEST_NAME: SKIP Valgrind with $tool required"
+			exit 0;
+		fi
+		echo "$out" | grep -qi "expect-fence-after-clflush" && true
+		if [ $? -ne 0 ]; then
+			msg "$UNITTEST_NAME: SKIP pmemcheck does not support --expect-fence-after-clflush option. Please update it."
 			exit 0;
 		fi
 	fi
