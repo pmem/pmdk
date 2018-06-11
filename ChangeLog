@@ -4,6 +4,7 @@
     - pmem: fix clflush bit position
     - obj: fix invalid OOMs when zones are fully packed
     - obj: don't register undo logs twice in memcheck
+    - common: reenable daxio
     - pool: fix bash completion script
     - obj: fix clang-7 compilation
     - obj: test for msync failures in non-pmem path
