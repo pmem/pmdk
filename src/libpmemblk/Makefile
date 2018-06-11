@@ -45,4 +45,4 @@ SOURCE +=\
 
 include ../Makefile.inc
 
-LIBS += -pthread -lpmem $(LIBNDCTL)
+LIBS += -pthread -lpmem

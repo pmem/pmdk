@@ -52,6 +52,6 @@ INCS += -I../../libpmemcto
 INCS += -I$(JEMALLOC_DIR)/include/jemalloc
 INCS += -I$(JEMALLOC_OBJDIR)/include/jemalloc
 EXTRA_OBJS += $(JEMALLOC_LIB)
-LIBS += -pthread -lpmem $(LIBNDCTL)
+LIBS += -pthread -lpmem
 
 include ../Makefile.inc

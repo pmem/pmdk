@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -110,7 +110,7 @@ else
 LIBS += ../debug/libpmemcommon.a
 endif
 LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmem -lvmem -pthread -lm \
-	$(LIBDL) $(LIBUUID) $(LIBNDCTL)
+	$(LIBDL) $(LIBUUID)
 ifeq ($(call check_librt), n)
 LIBS += -lrt
 endif
