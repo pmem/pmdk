@@ -76,6 +76,7 @@ categorize cpp       -e "^src/include/libpmemobj++/"
 categorize benchmark -e "^src/benchmarks/"
 categorize examples  -e "^src/examples/"
 categorize daxio     -e "^src/tools/daxio/"
+categorize pmreorder -e "^src/tools/pmreorder/"
 categorize test      -e "^src/test/"
 categorize doc       -e "^doc/" -e ".md\$" -e "^ChangeLog" -e "README"
 categorize common    -e "^src/common/" \
