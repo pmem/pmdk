@@ -46,6 +46,8 @@ Param(
 require_test_type medium
 
 require_fs_type "any"
+# icacls does have problems with handling long paths in the correct way.
+require_short_path
 
 setup
 
