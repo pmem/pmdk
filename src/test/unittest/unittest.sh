@@ -685,6 +685,18 @@ function get_trace() {
 	if [ "$check_type" = "memcheck" -a "$MEMCHECK_DONT_CHECK_LEAKS" != "1" ]; then
 		opts="$opts --leak-check=full"
 	fi
+	if [ "$check_type" = "pmemcheck" ]; then
+		# Before Skylake, Intel CPUs did not have clflushopt instruction, so
+		# pmem_flush and pmem_persist both translated to clflush.
+		# This means that missing pmem_drain after pmem_flush could only be
+		# detected on Skylake+ CPUs.
+		# This option tells pmemcheck to expect fence (sfence or
+		# VALGRIND_PMC_DO_FENCE client request, used by pmem_drain) after
+		# clflush and makes pmemcheck output the same on pre-Skylake and
+		# post-Skylake CPUs.
+		opts="$opts --expect-fence-after-clflush=yes"
+	fi
+
 	opts="$opts $VALGRIND_SUPP"
 	if [ "$node" -ne -1 ]; then
 		exe=${NODE_VALGRINDEXE[$node]}
@@ -1623,11 +1635,24 @@ function require_valgrind_tool() {
 		exit 0
 	fi
 
-	if [ "$tool" == "pmemcheck" -o "$tool" == "helgrind" ]; then
+	if [ "$tool" == "helgrind" ]; then
 		valgrind --tool=$tool --help 2>&1 | \
 		grep -qi "$tool is Copyright (c)" && true
 		if [ $? -ne 0 ]; then
-			msg "$UNITTEST_NAME: SKIP valgrind with $tool required"
+			msg "$UNITTEST_NAME: SKIP Valgrind with $tool required"
+			exit 0;
+		fi
+	fi
+	if [ "$tool" == "pmemcheck" ]; then
+		out=`valgrind --tool=$tool --help 2>&1`
+		echo "$out" | grep -qi "$tool is Copyright (c)" && true
+		if [ $? -ne 0 ]; then
+			msg "$UNITTEST_NAME: SKIP Valgrind with $tool required"
+			exit 0;
+		fi
+		echo "$out" | grep -qi "expect-fence-after-clflush" && true
+		if [ $? -ne 0 ]; then
+			msg "$UNITTEST_NAME: SKIP pmemcheck does not support --expect-fence-after-clflush option. Please update it to the latest version."
 			exit 0;
 		fi
 	fi
