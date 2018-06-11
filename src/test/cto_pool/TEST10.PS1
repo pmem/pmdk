@@ -46,6 +46,8 @@ Param(
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+# icacls does have problems with handling long paths in the correct way.
+require_short_path
 
 setup
 
