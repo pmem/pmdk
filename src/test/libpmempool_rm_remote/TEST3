@@ -42,10 +42,9 @@
 require_test_type medium
 
 require_nodes 2
-
+require_node_dax_device 0 1
 require_node_libfabric 0 $RPMEM_PROVIDER
 require_node_libfabric 1 $RPMEM_PROVIDER
-require_node_dax_device 0 1
 
 setup
 

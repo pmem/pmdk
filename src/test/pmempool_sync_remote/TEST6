@@ -40,10 +40,11 @@
 
 require_test_type medium
 
-. ./common.sh
-
+require_nodes 2
 require_node_dax_device 0 1
 require_node_dax_device 1 1
+
+. ./common.sh
 
 setup
 
