@@ -1186,7 +1186,10 @@ switch ($Env:FS) {
         }
     }
     'none' {
-        sv -Name DIR "\nul\not_existing_dir\${curtestdir}${Env:UNITTEST_NUM}"
+        # dont add long path nor unicode sufix to DIR
+        require_no_unicode
+        require_short_path
+        sv -Name DIR "\nul\not_existing_dir\"
     }
     default {
         fatal "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
