@@ -426,8 +426,7 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 	LOG(10, NULL);
 
 	struct alloc_class *best_c = NULL;
-	size_t best_frag_d = SIZE_MAX;
-	size_t best_frag_r = SIZE_MAX;
+	size_t lowest_waste = SIZE_MAX;
 
 	ASSERTne(n, 0);
 
@@ -447,21 +446,32 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 		size_t units = CALC_SIZE_IDX(c->unit_size, real_size);
 
 		/* can't exceed the maximum allowed run unit max */
-		if (units > RUN_UNIT_MAX_ALLOC)
+		if (c->type == CLASS_RUN && units > RUN_UNIT_MAX_ALLOC)
 			continue;
 
 		if (c->unit_size * units == real_size)
 			return c;
 
-		ASSERT(c->unit_size * units > real_size);
+		size_t waste = (c->unit_size * units) - real_size;
 
-		size_t frag_d = (c->unit_size * units) / real_size;
-		size_t frag_r = (c->unit_size * units) % real_size;
-		if (best_c == NULL || frag_d < best_frag_d ||
-			(frag_d == best_frag_d && frag_r < best_frag_r)) {
+		/*
+		 * If we assume that the allocation class is only ever going to
+		 * be used with exactly one size, the effective internal
+		 * fragmentation would be increased by the leftover
+		 * memory at the end of the run.
+		 */
+		if (c->type == CLASS_RUN) {
+			size_t wasted_units = c->run.bitmap_nallocs % units;
+			size_t wasted_bytes = wasted_units * c->unit_size;
+			size_t waste_avg_per_unit = wasted_bytes /
+				c->run.bitmap_nallocs;
+
+			waste += waste_avg_per_unit;
+		}
+
+		if (best_c == NULL || lowest_waste > waste) {
 			best_c = c;
-			best_frag_d = frag_d;
-			best_frag_r = frag_r;
+			lowest_waste = waste;
 		}
 	}
 
