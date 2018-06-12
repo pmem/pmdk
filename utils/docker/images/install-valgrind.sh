@@ -36,9 +36,9 @@
 
 set -e
 
-git clone --recursive https://github.com/pmem/valgrind.git
+git clone --recursive https://github.com/marcinslusarz/valgrind.git
 cd valgrind
-git checkout pmem-3.13
+git checkout pcommit
 git submodule init
 git submodule update
 ./autogen.sh
