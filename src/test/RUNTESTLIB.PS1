@@ -243,7 +243,6 @@ function runtest {
 
     # reset environment variables which can affect test execution
     $Env:UNITTEST_NAME=$null
-    $Env:PMEM_IS_PMEM_FORCE=$null
 
     if (-Not $Env:UNITTEST_LOG_LEVEL) {
         $Env:UNITTEST_LOG_LEVEL = 1
@@ -333,6 +332,7 @@ and edit testconfig.ps1 to describe the local machine configuration.
 # from testconfig RUNTEST would use previously exported value
 $Env:PMEM_FS_DIR=""
 $Env:NON_PMEM_FS_DIR=""
+$Env:PMEM_IS_PMEM_FORCE=$null
 
 . .\testconfig.ps1
 
