@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2015-2018, Intel Corporation
 #
@@ -32,17 +31,14 @@
 #
 
 #
-# src/test/obj_oid/TEST0 -- unit test for pmemobj_oid
+# src/test/obj_oid_thread/Makefile -- build obj_oid_thread unit test
 #
+TARGET = obj_oid_thread
+OBJS = obj_oid_thread.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEM=y
+LIBPMEMOBJ=y
 
-require_fs_type any
-require_test_type medium
+include ../Makefile.inc
 
-setup
-
-expect_normal_exit ./obj_oid$EXESUFFIX $DIR 9
-
-pass
+INCS += -I../../libpmemobj/

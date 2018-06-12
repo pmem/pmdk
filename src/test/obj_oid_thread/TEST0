@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright 2015-2018, Intel Corporation
 #
@@ -31,17 +32,17 @@
 #
 
 #
-# src/test/obj_oid/TEST0 -- unit test for pmemobj_oid
+# src/test/obj_oid_thread/TEST0 -- unit test for pmemobj_oid
 #
 
 # standard unit test setup
-. ..\unittest\unittest.ps1
+. ../unittest/unittest.sh
 
 require_fs_type any
 require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_oid$Env:EXESUFFIX $DIR 9
+expect_normal_exit ./obj_oid_thread$EXESUFFIX $DIR 9
 
 pass
