@@ -514,7 +514,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_bucket", "test\obj_buck
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmemblk", "examples\libpmemobj\pmemblk\obj_pmemblk.vcxproj", "{8C42CA7C-1543-4F1B-A55F-28CD419C7D35}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_oid", "test\obj_oid\obj_oid.vcxproj", "{8C6D73E0-0A6F-4487-A040-0EC78D7D6D9A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_oid_thread", "test\obj_oid_thread\obj_oid_thread.vcxproj", "{8C6D73E0-0A6F-4487-A040-0EC78D7D6D9A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_shared_mutex", "test\obj_cpp_shared_mutex\obj_cpp_shared_mutex.vcxproj", "{8CD79300-941F-4FDD-A371-92BF0EFBA0FC}"
 	ProjectSection(ProjectDependencies) = postProject

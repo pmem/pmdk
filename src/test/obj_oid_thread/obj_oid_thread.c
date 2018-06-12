@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_oid.c -- unit test for the reverse direct operation
+ * obj_oid_thread.c -- unit test for the reverse direct operation
  */
 #include "unittest.h"
 #include "lane.h"

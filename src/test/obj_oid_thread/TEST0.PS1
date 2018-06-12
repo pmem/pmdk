@@ -31,14 +31,17 @@
 #
 
 #
-# src/test/obj_oid/Makefile -- build obj_oid unit test
+# src/test/obj_oid_thread/TEST0 -- unit test for pmemobj_oid
 #
-TARGET = obj_oid
-OBJS = obj_oid.o
 
-LIBPMEM=y
-LIBPMEMOBJ=y
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-include ../Makefile.inc
+require_fs_type any
+require_test_type medium
 
-INCS += -I../../libpmemobj/
+setup
+
+expect_normal_exit $Env:EXE_DIR\obj_oid_thread$Env:EXESUFFIX $DIR 9
+
+pass
