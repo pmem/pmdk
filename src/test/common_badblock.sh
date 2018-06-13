@@ -38,6 +38,11 @@
 #                                - pmempool_info
 #
 
+# We are using the nfit_test module to test bad blocks.
+# Do not error out because of the SMART feature,
+# because it does not work in the nfit_test module.
+export TEST_USE_NFIT_TEST=1
+
 LOG=out${UNITTEST_NUM}.log
 
 #
