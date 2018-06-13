@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -143,56 +143,60 @@ delete_objects(PMEMobjpool *pop, float pct)
 
 typedef void workload(PMEMobjpool *pop);
 
+static void w0(PMEMobjpool *pop) {
+	allocate_objects(pop, 100, 100);
+}
+
 static void w1(PMEMobjpool *pop) {
 	allocate_objects(pop, 100, 100);
+	allocate_objects(pop, 130, 130);
 }
 
 static void w2(PMEMobjpool *pop) {
 	allocate_objects(pop, 100, 100);
+	delete_objects(pop, 0.9);
 	allocate_objects(pop, 130, 130);
 }
 
 static void w3(PMEMobjpool *pop) {
-	allocate_objects(pop, 100, 100);
-	delete_objects(pop, 0.9);
-	allocate_objects(pop, 130, 130);
+	allocate_objects(pop, 100, 150);
+	allocate_objects(pop, 200, 250);
 }
 
 static void w4(PMEMobjpool *pop) {
 	allocate_objects(pop, 100, 150);
-	allocate_objects(pop, 200, 250);
-}
-
-static void w5(PMEMobjpool *pop) {
-	allocate_objects(pop, 100, 150);
 	delete_objects(pop, 0.9);
 	allocate_objects(pop, 200, 250);
 }
 
-static void w6(PMEMobjpool *pop) {
+static void w5(PMEMobjpool *pop) {
 	allocate_objects(pop, 100, 200);
 	delete_objects(pop, 0.5);
 	allocate_objects(pop, 1000, 2000);
 }
 
-static void w7(PMEMobjpool *pop) {
+static void w6(PMEMobjpool *pop) {
 	allocate_objects(pop, 1000, 2000);
 	delete_objects(pop, 0.9);
 	allocate_objects(pop, 1500, 2500);
 }
 
-static void w8(PMEMobjpool *pop) {
+static void w7(PMEMobjpool *pop) {
 	allocate_objects(pop, 50, 150);
 	delete_objects(pop, 0.9);
 	allocate_objects(pop, 5000, 15000);
 }
 
+static void w8(PMEMobjpool *pop) {
+	allocate_objects(pop, 2 * MEGABYTE, 2 * MEGABYTE);
+}
+
 static workload *workloads[] = {
-	w1, w2, w3, w4, w5, w6, w7, w8
+	w0, w1, w2, w3, w4, w5, w6, w7, w8
 };
 
 static float workloads_target[] = {
-	0.01f, 0.01f, 0.01f, 0.9f, 0.8f, 0.7f, 0.2f, 0.7f
+	0.01f, 0.01f, 0.01f, 0.9f, 0.8f, 0.7f, 0.2f, 0.7f, 0.73f
 };
 
 int
@@ -220,7 +224,7 @@ main(int argc, char *argv[])
 	objects = ZALLOC(sizeof(uint64_t) * MAX_OBJECTS);
 	UT_ASSERTne(objects, NULL);
 
-	workloads[w - 1](pop);
+	workloads[w](pop);
 
 	PMEMoid oid;
 	size_t remaining = 0;
@@ -236,11 +240,10 @@ main(int argc, char *argv[])
 		oid.off = objects[n];
 		allocated_sum += pmemobj_alloc_usable_size(oid) + 16;
 	}
-
 	size_t used = DEFAULT_FILE_SIZE - remaining;
 	float frag = ((float)used / allocated_sum) - 1.f;
 
-	UT_ASSERT(frag <= workloads_target[w - 1]);
+	UT_ASSERT(frag <= workloads_target[w]);
 
 	pmemobj_close(pop);
 

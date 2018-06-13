@@ -44,6 +44,6 @@ setup
 
 # this test is extremely long otherwise
 PMEM_IS_PMEM_FORCE=1 PMEM_NO_FLUSH=1 expect_normal_exit\
-	./obj_fragmentation2$EXESUFFIX $DIR/testfile1 1 12345
+	./obj_fragmentation2$EXESUFFIX $DIR/testfile1 0 12345
 
 pass
