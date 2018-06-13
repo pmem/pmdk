@@ -3033,14 +3033,14 @@ function require_python3()
 		return
 		;;
 	    *)
-		echo "$UNITTEST_NAME: SKIP: required python version 3"
+		msg "$UNITTEST_NAME: SKIP: required python version 3"
 		exit 0
 		;;
 	esac
 }
 
 #
-# pmreorder_configure -- check all necessarily conditions to run pmreorder
+# require_pmreorder -- check all necessarily conditions to run pmreorder
 #
 function require_pmreorder()
 {

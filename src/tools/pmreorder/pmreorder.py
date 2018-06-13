@@ -65,7 +65,8 @@ def main():
     parser.add_argument("-e", "--output_level",
                         choices=loggingfacility.log_levels,
                         help="set the output log level")
-    parser.add_argument("-r", "--reorder_type", help="set reorder engine type",
+    parser.add_argument("-r", "--default_engine",
+                        help="set default reorder engine",
                         choices=reorderengines.engines, default="full")
     parser.add_argument("args", nargs=argparse.REMAINDER,
                         help="remaining args passed to the checker")
@@ -80,7 +81,7 @@ def main():
                                                args.path,
                                                args.name,
                                                args.args)
-    engine = reorderengines.get_engine(args.reorder_type)
+    engine = reorderengines.get_engine(args.default_engine)
 
     # create the script context
     context = opscontext.OpsContext(args.logfile, checker, logger, engine)

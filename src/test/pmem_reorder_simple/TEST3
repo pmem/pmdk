@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/pmem_reorder_simple/TEST1 -- unit test for the reordering script
+# src/test/pmem_reorder_simple/TEST3 -- unit test for the reordering script
 #
 
 # standard unit test setup
@@ -42,19 +42,25 @@
 require_fs_type pmem non-pmem
 require_build_type debug
 require_test_type medium
-require_pmreorder
+# pmreorder tool does not support unicode yet
+require_no_unicode
+configure_valgrind pmemcheck force-enable
 
 setup
 
+rm -f outfile$UNITTEST_NUM.log
 # create holey file
 truncate -s 4M $DIR/testfile1
 
-
 PROGR="./pmem_reorder_simple$EXESUFFIX"
-CMD="$PROGR g $DIR/testfile1"
+CMD="$PROGR b $DIR/testfile1"
 
-pmreorder_create_store_log $DIR/testfile1 "$CMD"
-pmreorder_expect_success prog $PROGR "c"
+do_reorder_test $DIR/testfile1 "$CMD" \
+		-o outfile$UNITTEST_NUM.log \
+		-c prog \
+		-p $PROGR \
+		-e "accumulative" \
+		-z c
 
 check
 
