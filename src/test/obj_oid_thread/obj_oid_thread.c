@@ -75,7 +75,7 @@ test_worker(void *arg)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_oid");
+	START(argc, argv, "obj_oid_thread");
 
 	if (argc != 3)
 		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
