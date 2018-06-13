@@ -37,15 +37,15 @@
 #ifndef PMDK_OS_H
 #define PMDK_OS_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <sys/stat.h>
 #include <stdio.h>
 #include <unistd.h>
 
 #include "errno_freebsd.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef _WIN32
 #define OS_DIR_SEPARATOR '/'

@@ -38,10 +38,6 @@
 #ifndef PMDK_UTIL_H
 #define PMDK_UTIL_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <string.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -53,6 +49,10 @@ extern "C" {
 #endif
 
 #include <sys/param.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;

@@ -36,9 +36,6 @@
 
 #ifndef PMDK_MMAP_H
 #define PMDK_MMAP_H 1
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <stddef.h>
 #include <stdint.h>
@@ -50,6 +47,10 @@ extern "C" {
 #include "out.h"
 #include "queue.h"
 #include "os.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;

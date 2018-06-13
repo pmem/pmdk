@@ -38,12 +38,12 @@
 #ifndef OS_THREAD_H
 #define OS_THREAD_H 1
 
+#include <stdint.h>
+#include <time.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
-#include <time.h>
 
 typedef union {
 	long long align;

@@ -36,15 +36,18 @@
 
 #ifndef PMDK_FILE_H
 #define PMDK_FILE_H 1
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 #include <stddef.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
 #include <limits.h>
 #include "os.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #ifdef _WIN32
 #define NAME_MAX _MAX_FNAME
 #endif

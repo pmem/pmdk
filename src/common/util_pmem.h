@@ -37,12 +37,12 @@
 #ifndef PMDK_UTIL_PMEM_H
 #define PMDK_UTIL_PMEM_H 1
 
+#include "libpmem.h"
+#include "out.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "libpmem.h"
-#include "out.h"
 
 /*
  * util_persist -- flush to persistence

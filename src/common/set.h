@@ -37,9 +37,7 @@
 
 #ifndef PMDK_SET_H
 #define PMDK_SET_H 1
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -50,6 +48,10 @@ extern "C" {
 #include "vec.h"
 #include "pool_hdr.h"
 #include "librpmem.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  * pool sets & replicas
