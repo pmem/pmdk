@@ -3,7 +3,7 @@ This is src/test/pmem_reorder_simple/README.
 This directory contains a unit test for pmemreorder script.
 
 SYNOPSIS:
-pmem_reorder_simple g|b|c file
+pmem_reorder_simple g|b|c|d file
 
 DESCRIPTION:
 pmem_reorder_simple is the unit test for verifying the functionality of
@@ -14,9 +14,12 @@ OPTIONS:
 	b: write data to the pool in an inconsistent way
 	g: write data to the pool in a consistent way
 	c: check pool consistency
+	d: check pool consistency (simpy check - without flag)
 
 The pool contains three int fields and a "written" flag. If the flag is set, all
 three fields have to have the same value to be consistent. When ran with 'b' all
 fields are written at the same time, with respect to the persistence barrier.
 When run with 'g' the three ints are written first and the flag is written last.
 The consistency check returns non-zero if the flag is set and the ints differ.
+The checker triggered by 'd' options does not take into accout flag field - it
+case is useful for some engine type tests.

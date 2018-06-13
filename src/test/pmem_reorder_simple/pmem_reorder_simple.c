@@ -95,6 +95,19 @@ check_consistency(struct three_field *structp)
 	return consistent;
 }
 
+/*
+ * check_consistency2 -- (internal) check struct three_field consistency
+ */
+static int
+check_consistency2(struct three_field *structp)
+{
+	int consistent = 0;
+	consistent = (structp->first_field != structp->second_field) ||
+		(structp->first_field != structp->third_field);
+
+	return consistent;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -102,9 +115,9 @@ main(int argc, char *argv[])
 
 	util_init();
 
-	if ((argc != 3) || (strchr("gbc", argv[1][0]) == NULL) ||
+	if ((argc != 3) || (strchr("gbcd", argv[1][0]) == NULL) ||
 			argv[1][1] != '\0')
-		UT_FATAL("usage: %s g|b|c file", argv[0]);
+		UT_FATAL("usage: %s g|b|c|d file", argv[0]);
 
 	int fd = OPEN(argv[2], O_RDWR);
 	size_t size;
@@ -129,6 +142,8 @@ main(int argc, char *argv[])
 			break;
 		case 'c':
 			return check_consistency(structp);
+		case 'd':
+			return check_consistency2(structp);
 		default:
 			UT_FATAL("Unrecognized option %c", opt);
 	}
