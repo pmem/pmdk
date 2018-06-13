@@ -3063,7 +3063,7 @@ function do_reorder_test()
 	ENGINE="full"
 
 	ARGS="$*"
-	while getopts ":h:o:c:e:z:p:" opt $ARGS; do
+	while getopts ":o:c:e:z:p:" opt $ARGS; do
 		case $opt in
 			o)
 				LOG_OUTPUT_FILE=${OPTARG}
