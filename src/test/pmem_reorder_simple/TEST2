@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/pmem_reorder_simple/TEST0 -- unit test for the reordering script
+# src/test/pmem_reorder_simple/TEST1 -- unit test for the reordering script
 #
 
 # standard unit test setup
@@ -54,11 +54,13 @@ truncate -s 4M $DIR/testfile1
 
 PROGR="./pmem_reorder_simple$EXESUFFIX"
 CMD="$PROGR b $DIR/testfile1"
+ENGINE="noreorder"
 
 do_reorder_test $DIR/testfile1 "$CMD" \
 		-o outfile$UNITTEST_NUM.log \
 		-c prog \
 		-p $PROGR \
+		-e $ENGINE \
 		-z c
 
 check
