@@ -3032,7 +3032,7 @@ function require_python3()
 		return
 		;;
 	    *)
-		echo "$UNITTEST_NAME: SKIP: required python version 3"
+		msg "$UNITTEST_NAME: SKIP: required python version 3"
 		exit 0
 		;;
 	esac
@@ -3041,12 +3041,12 @@ function require_python3()
 #
 # do_reorder_test -- perform a reordering test
 #
-# This function expects 5 additional parameters. They are in order:
+# This function expects parameters in order:
 # 1 - the pool file to be tested
 # 2 - the application and necessary parameters to run pmemcheck logging
 # -o - the log output file
 # -c - the checker type - for a list of supported types run `./pmreorder.py -h`
-# -e - reorder engine type
+# -e - reorder engine type (optional)
 # -p - the path to the checker binary/library
 # -z - the remaining parameters which will be passed to the consistency checker
 #      binary. If you are using a library checker, prepend '-n funcname'
@@ -3063,7 +3063,7 @@ function do_reorder_test()
 	ENGINE="full"
 
 	ARGS="$*"
-	while getopts ":h:o:c:e:z:p:" opt $ARGS; do
+	while getopts ":o:c:e:z:p:" opt $ARGS; do
 		case $opt in
 			o)
 				LOG_OUTPUT_FILE=${OPTARG}
@@ -3082,7 +3082,8 @@ function do_reorder_test()
 				REM_BIN_PARAMS=$array
 				;;
 			*)
-				echo "Argument not supported"
+				msg "Argument not supported"
+				exit 0
 				;;
 		esac
 	done
