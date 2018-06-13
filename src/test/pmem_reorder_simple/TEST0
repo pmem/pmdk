@@ -58,8 +58,8 @@ CMD="$PROGR b $DIR/testfile1"
 do_reorder_test $DIR/testfile1 "$CMD" \
 		-o outfile$UNITTEST_NUM.log \
 		-c prog \
-		-p $PROGR \
-		-z c -z $DIR/testfile1
+		-p  $PROGR \
+		-z c
 
 check
 

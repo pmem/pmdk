@@ -75,10 +75,10 @@ write_consistent(struct three_field *structp)
 static void
 write_inconsistent(struct three_field *structp)
 {
+	structp->flag = 1;
 	structp->first_field = 1;
 	structp->second_field = 1;
 	structp->third_field = 1;
-	structp->flag = 1;
 	pmem_persist(structp, sizeof(*structp));
 }
 
