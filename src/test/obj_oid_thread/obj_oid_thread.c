@@ -103,6 +103,10 @@ main(int argc, char *argv[])
 			UT_FATAL("!pmemobj_create");
 	}
 
+	/* Address outside the pmemobj pool */
+	void *allocated_memory = MALLOC(sizeof(int));
+	UT_ASSERT(OID_IS_NULL(pmemobj_oid(allocated_memory)));
+
 	PMEMoid *oids = MALLOC(npools * sizeof(PMEMoid));
 	PMEMoid *tmpoids = MALLOC(npools * sizeof(PMEMoid));
 
@@ -155,6 +159,7 @@ main(int argc, char *argv[])
 	FREE(tmpoids);
 	FREE(oids);
 	FREE(pops);
+	FREE(allocated_memory);
 
 	os_mutex_destroy(&lock);
 	os_cond_destroy(&cond);
