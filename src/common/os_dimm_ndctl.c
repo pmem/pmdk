@@ -268,11 +268,9 @@ os_dimm_usc(const char *path, uint64_t *usc)
 		}
 
 		if (!(ndctl_cmd_smart_get_flags(cmd) & USC_VALID_FLAG)) {
-			errno = EINVAL;
-			ERR("Invalid unsafe shutdown count flag");
-			goto err;
+			/* dimm doesn't support unsafe shutdown count */
+			continue;
 		}
-
 		*usc += ndctl_cmd_smart_get_shutdown_count(cmd);
 	}
 out:
