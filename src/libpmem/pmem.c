@@ -605,7 +605,8 @@ pmem_unmap(void *addr, size_t len)
 				PMEM_F_MEM_TEMPORAL | \
 				PMEM_F_MEM_WC | \
 				PMEM_F_MEM_WB | \
-				PMEM_F_MEM_NOFLUSH)
+				PMEM_F_MEM_NOFLUSH | \
+				PMEM_F_RELAXED)
 #endif
 
 /*
