@@ -268,6 +268,16 @@ NDCTL_MIN_VERSION := 60.1
 
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
+ifeq ($(USE_LIBUNWIND),)
+export USE_LIBUNWIND := $(call check_package, libunwind)
+ifeq ($(USE_LIBUNWIND),y)
+export LIBUNWIND_LIBS := $(shell $(PKG_CONFIG) --libs libunwind)
+endif
+else
+export USE_LIBUNWIND
+export LIBUNWIND_LIBS
+endif
+
 ifeq ($(OS_KERNEL_NAME),FreeBSD)
 
 GLIBC_CXXFLAGS=-D_GLIBCXX_USE_C99
@@ -323,16 +333,6 @@ OS_DIMM=ndctl
 else
 OS_DIMM=none
 LIBNDCTL=
-endif
-
-ifeq ($(USE_LIBUNWIND),)
-export USE_LIBUNWIND := $(call check_package, libunwind)
-ifeq ($(USE_LIBUNWIND),y)
-export LIBUNWIND_LIBS := $(shell $(PKG_CONFIG) --libs libunwind)
-endif
-else
-export USE_LIBUNWIND
-export LIBUNWIND_LIBS
 endif
 
 endif
