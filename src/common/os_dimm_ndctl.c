@@ -233,7 +233,6 @@ os_dimm_usc(const char *path, uint64_t *usc)
 
 	os_stat_t st;
 	struct ndctl_ctx *ctx;
-	int ret = -1;
 	*usc = 0;
 
 	if (os_stat(path, &st)) {
@@ -273,11 +272,22 @@ os_dimm_usc(const char *path, uint64_t *usc)
 		}
 		*usc += ndctl_cmd_smart_get_shutdown_count(cmd);
 	}
+
 out:
-	ret = 0;
+	ndctl_unref(ctx);
+	return 0;
+
 err:
 	ndctl_unref(ctx);
-	return ret;
+
+	char *e = os_getenv("TEST_USE_NFIT_TEST");
+	if (e && strcmp(e, "1") == 0) {
+		/* SMART does not work in the nfit_test module */
+		errno = 0;
+		return 0;
+	}
+
+	return -1;
 }
 
 /*
