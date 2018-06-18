@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2017-2018, Intel Corporation
 #
@@ -35,16 +35,7 @@
 # src/test/obj_sds/TEST6 -- unittest for shutdown state
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-require_fs_type any
-
-require_build_type debug
-
-setup
+setup -t medium -f any -b debug -c
 
 POOLSET=$DIR/pool.set
 
@@ -70,4 +61,3 @@ PMEMOBJ_LOG_LEVEL=4
 # the pool not closed and pool moved
 expect_abnormal_exit ./obj_sds 0 0 $POOLSET\
 				   43 0 11 0 23 0 11 0 12 0
-pass

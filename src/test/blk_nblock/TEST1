@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2014-2018, Intel Corporation
 #
@@ -35,14 +35,7 @@
 # src/test/blk_nblock/TEST1 -- unit test for pmemblk_nblock
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-require_fs_type any
-
-setup
+setup -t medium -f any
 
 #
 # Create many files with different block sizes - most of
@@ -109,7 +102,3 @@ check_pools $DIR/testfile1.2096896\
 	$DIR/testfile2.536870912\
 	$DIR/testfile2.1073741824\
 	$DIR/testfile2.2147483648\
-
-check
-
-pass

@@ -1,6 +1,6 @@
-#!../test.sh
+#!/usr/bin/env bash
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,17 +31,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-setup -t medium
+export SCRIPTNAME=$(basename $1)
 
-create_poolset $DIR/testset1 16M:$DIR/testfile1 \
-	r 18M:$DIR/testfile2 \
-	r 20M:$DIR/testfile3
+source ../unittest/unittest.sh
 
-expect_normal_exit\
-    ./obj_basic_integration$EXESUFFIX $DIR/testset1
+source $1
 
-compare_replicas "-soOaAb -l -Z -H -C" \
-	$DIR/testfile1 $DIR/testfile2 > diff$UNITTEST_NUM.log
-
-compare_replicas "-soOaAb -l -Z -H -C" \
-	$DIR/testfile1 $DIR/testfile3 >> diff$UNITTEST_NUM.log
+pass

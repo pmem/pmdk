@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2015-2018, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
@@ -37,14 +37,7 @@
 # pmemblk_read/write/set_zero/set_error
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-# long test, run only on pmem
-require_fs_type pmem
-require_test_type long
-configure_valgrind pmemcheck force-enable
-setup
+setup -t long -f pmem -v pmemcheck=force-enable
 
 # mix writes with set_zero and set_error and check results
 create_nonzeroed_file 128M 8K $DIR/testfile1
@@ -56,7 +49,3 @@ expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c 0\
 		e:4 z:4 r:4\
 		w:5 e:5 z:5 r:5\
 		w:6 z:6 e:6 r:6
-
-check
-
-pass

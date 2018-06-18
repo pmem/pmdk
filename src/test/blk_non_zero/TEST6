@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2015-2018, Intel Corporation
 #
@@ -36,22 +36,10 @@
 # pmemblk_read/write/set_zero/set_error
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-# doesn't make sense to run in local directory
-require_fs_type pmem non-pmem
-
-setup
+setup -t medium -f "pmem non-pmem"
 
 # single arena write case
 FILE_SIZE=$((1024*1024*1024))
 
 expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c $FILE_SIZE\
 	w:0 r:1 r:0 w:1 r:0 r:1 r:2
-
-check
-
-pass

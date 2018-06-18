@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2015-2018, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
@@ -37,14 +37,7 @@
 # pmemblk_read/write/set_zero/set_error
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-# doesn't make sense to run in local directory
-require_fs_type pmem non-pmem
-require_test_type long
-
-setup
+setup -t long -f "pmem non-pmem"
 
 # write re-use test case
 create_nonzeroed_file 1G 824M $DIR/testfile1
@@ -54,7 +47,3 @@ expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c 0\
 
 expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 o\
 	w:0 r:4 r:3 r:2 r:1 r:0 w:0 r:0
-
-check
-
-pass

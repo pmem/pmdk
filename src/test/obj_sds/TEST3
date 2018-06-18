@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2017-2018, Intel Corporation
 #
@@ -35,16 +35,7 @@
 # src/test/obj_sds/TEST3 -- unittest for shutdown state
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-require_fs_type any
-
-require_build_type debug
-
-setup
+setup -t medium -f any -b debug -c
 
 POOLSET=$DIR/pool.set
 # Create poolset file
@@ -62,5 +53,3 @@ expect_abnormal_exit ./obj_sds 1 1 $POOLSET\
 
 expect_abnormal_exit ./obj_sds 0 0 $POOLSET\
 				   5 0 7 0 9 0 11 0 12 1
-
-pass

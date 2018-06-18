@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2016-2018, Intel Corporation
 #
@@ -31,25 +31,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
 require_command $STRACE
 require_dax_devices 1
 require_no_asan
 
-# covered by TEST5
-configure_valgrind memcheck force-disable
+# memcheck is covered by TEST5
 
-setup
+setup -t medium -v memcheck=force-disable
 
 dax_device_zero
 
 expect_normal_exit $STRACE -emsync -ostrace$UNITTEST_NUM.log \
 	./obj_basic_integration$EXESUFFIX $DEVICE_DAX_PATH
-
-check
-
-pass

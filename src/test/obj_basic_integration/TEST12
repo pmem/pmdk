@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../test.sh
 #
 # Copyright 2017-2018, Intel Corporation
 #
@@ -39,18 +39,12 @@
 # if SINGLEHDR option is not specified.
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
 require_dax_device_alignments 2097152 2097152 # 2MiB
 
-setup
+setup -t medium -c
 
 dax_device_zero
 
 create_poolset $DIR/testset1 AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]}
 
 expect_abnormal_exit ./obj_basic_integration$EXESUFFIX $DIR/testset1
-
-pass
