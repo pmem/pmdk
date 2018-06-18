@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -81,7 +81,8 @@ operation_perform(uint64_t *field, uint64_t value,
 		case OPERATION_OR:
 			*field |= value;
 		break;
-		case OPERATION_SET: /* do nothing, duplicate entry */
+		case OPERATION_SET:
+			*field = value;
 		break;
 		default:
 			ASSERT(0); /* unreachable */
@@ -89,9 +90,7 @@ operation_perform(uint64_t *field, uint64_t value,
 }
 
 /*
- * operation_add_typed_entry -- adds new entry to the current operation, if the
- *	same ptr address already exists and the operation type is set,
- *	the new value is not added and the function has no effect.
+ * operation_add_typed_entry -- adds new entry to the current operation
  */
 void
 operation_add_typed_entry(struct operation_context *ctx,
@@ -105,8 +104,6 @@ operation_add_typed_entry(struct operation_context *ctx,
 	 * New entry to be added to the operations, all operations eventually
 	 * come down to a set operation regardless.
 	 */
-	struct operation_entry en = {ptr, value, OPERATION_SET};
-
 	struct operation_entry *e; /* existing entry */
 	for (size_t i = 0; i < ctx->nentries[en_type]; ++i) {
 		e = &ctx->entries[en_type][i];
@@ -118,11 +115,12 @@ operation_add_typed_entry(struct operation_context *ctx,
 		}
 	}
 
+	struct operation_entry en = {ptr, value, OPERATION_SET};
 	if (type == OPERATION_AND || type == OPERATION_OR) {
-		/* change the new entry to current value and apply logic op */
+		/* change the new entry to current value */
 		en.value = *(uint64_t *)ptr;
-		operation_perform(&en.value, value, type);
 	}
+	operation_perform(&en.value, value, type);
 
 	ctx->entries[en_type][ctx->nentries[en_type]] = en;
 
