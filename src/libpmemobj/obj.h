@@ -99,6 +99,15 @@
 #define OBJ_PTR_IS_VALID(pop, ptr)\
 	OBJ_OFF_IS_VALID(pop, OBJ_PTR_TO_OFF(pop, ptr))
 
+#ifdef DEBUG
+#define PMEMOBJ_F_MEM_VALID_FLAGS	(PMEMOBJ_F_MEM_NODRAIN | \
+					PMEMOBJ_F_MEM_NONTEMPORAL | \
+					PMEMOBJ_F_MEM_TEMPORAL | \
+					PMEMOBJ_F_MEM_WC | \
+					PMEMOBJ_F_MEM_WB | \
+					PMEMOBJ_F_MEM_NOFLUSH | \
+					PMEMOBJ_F_RELAXED)
+#endif
 typedef void (*persist_local_fn)(const void *, size_t);
 typedef void (*flush_local_fn)(const void *, size_t);
 typedef void (*drain_local_fn)(void);
