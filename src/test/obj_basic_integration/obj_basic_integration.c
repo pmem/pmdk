@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -617,6 +617,17 @@ test_offsetof(void)
 				offsetof(struct dummy_node, plist_m));
 }
 
+static void
+test_layout(void)
+{
+	/* get number of declared types when there are no types declared */
+	POBJ_LAYOUT_BEGIN(mylayout);
+	POBJ_LAYOUT_END(mylayout);
+
+	size_t number_of_declared_types = POBJ_LAYOUT_TYPES_NUM(mylayout);
+	UT_ASSERTeq(number_of_declared_types, 0);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -642,6 +653,7 @@ main(int argc, char *argv[])
 	test_tx_api(pop);
 	test_action_api(pop);
 	test_offsetof();
+	test_layout();
 
 	pmemobj_close(pop);
 
