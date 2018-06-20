@@ -628,6 +628,16 @@ test_layout(void)
 	UT_ASSERTeq(number_of_declared_types, 0);
 }
 
+static void
+test_root_size(PMEMobjpool *pop)
+{
+	UT_ASSERTeq(pmemobj_root_size(pop), 0);
+
+	size_t alloc_size = sizeof(struct dummy_root);
+	pmemobj_root(pop, alloc_size);
+	UT_ASSERTeq(pmemobj_root_size(pop), sizeof(struct dummy_root));
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -647,6 +657,7 @@ main(int argc, char *argv[])
 			0, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
+	test_root_size(pop);
 	test_alloc_api(pop);
 	test_realloc_api(pop);
 	test_list_api(pop);
