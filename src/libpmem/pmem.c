@@ -596,15 +596,6 @@ pmem_unmap(void *addr, size_t len)
 	return util_unmap(addr, len);
 }
 
-#ifdef DEBUG
-#define PMEM_F_MEM_VALID_FLAGS (PMEM_F_MEM_NODRAIN | \
-				PMEM_F_MEM_NONTEMPORAL | \
-				PMEM_F_MEM_TEMPORAL | \
-				PMEM_F_MEM_WC | \
-				PMEM_F_MEM_WB | \
-				PMEM_F_MEM_NOFLUSH)
-#endif
-
 /*
  * pmem_memmove --  memmove to pmem
  */

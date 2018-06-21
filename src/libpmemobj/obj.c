@@ -40,6 +40,7 @@
 
 #include "valgrind_internal.h"
 #include "libpmem.h"
+#include "memblock.h"
 #include "ravl.h"
 #include "cuckoo.h"
 #include "list.h"
@@ -72,7 +73,7 @@
  */
 #define OBJ_NLANES_ENV_VARIABLE "PMEMOBJ_NLANES"
 
-#define OBJ_X_VALID_FLAGS PMEM_F_RELAXED
+#define OBJ_X_VALID_FLAGS PMEMOBJ_F_RELAXED
 
 static const struct pool_attr Obj_create_attr = {
 		OBJ_HDR_SIG,
@@ -297,6 +298,16 @@ obj_init(void)
 	COMPILE_ERROR_ON(sizeof(struct pmemobjpool) !=
 		POOL_HDR_SIZE + POOL_DESC_SIZE);
 
+	COMPILE_ERROR_ON(PMEMOBJ_F_MEM_NODRAIN != PMEM_F_MEM_NODRAIN);
+
+	COMPILE_ERROR_ON(PMEMOBJ_F_MEM_NONTEMPORAL != PMEM_F_MEM_NONTEMPORAL);
+	COMPILE_ERROR_ON(PMEMOBJ_F_MEM_TEMPORAL != PMEM_F_MEM_TEMPORAL);
+
+	COMPILE_ERROR_ON(PMEMOBJ_F_MEM_WC != PMEM_F_MEM_WC);
+	COMPILE_ERROR_ON(PMEMOBJ_F_MEM_WB != PMEM_F_MEM_WB);
+
+	COMPILE_ERROR_ON(PMEMOBJ_F_MEM_NOFLUSH != PMEM_F_MEM_NOFLUSH);
+
 #ifdef USE_COW_ENV
 	char *env = os_getenv("PMEMOBJ_COW");
 	if (env)
@@ -405,14 +416,15 @@ static int
 obj_remote_persist(PMEMobjpool *pop, const void *addr, size_t len,
 			unsigned lane, unsigned flags)
 {
-	LOG(15, "pop %p addr %p len %zu lane %u", pop, addr, len, lane);
+	LOG(15, "pop %p addr %p len %zu lane %u flags %u",
+		pop, addr, len, lane, flags);
 
 	ASSERTne(pop->rpp, NULL);
 
 	uintptr_t offset = (uintptr_t)addr - pop->remote_base;
 
 	unsigned rpmem_flags = 0;
-	if (flags & PMEM_F_RELAXED)
+	if (flags & PMEMOBJ_F_RELAXED)
 		rpmem_flags |= RPMEM_PERSIST_RELAXED;
 
 	int rv = Rpmem_persist(pop->rpp, offset, len, lane, rpmem_flags);
@@ -443,7 +455,8 @@ obj_norep_memcpy(void *ctx, void *dest, const void *src, size_t len,
 	LOG(15, "pop %p dest %p src %p len %zu flags 0x%x", pop, dest, src, len,
 			flags);
 
-	return pop->memcpy_local(dest, src, len, flags);
+	return pop->memcpy_local(dest, src, len,
+					flags & PMEM_F_MEM_VALID_FLAGS);
 }
 
 /*
@@ -457,7 +470,8 @@ obj_norep_memmove(void *ctx, void *dest, const void *src, size_t len,
 	LOG(15, "pop %p dest %p src %p len %zu flags 0x%x", pop, dest, src, len,
 			flags);
 
-	return pop->memmove_local(dest, src, len, flags);
+	return pop->memmove_local(dest, src, len,
+					flags & PMEM_F_MEM_VALID_FLAGS);
 }
 
 /*
@@ -470,7 +484,7 @@ obj_norep_memset(void *ctx, void *dest, int c, size_t len, unsigned flags)
 	LOG(15, "pop %p dest %p c 0x%02x len %zu flags 0x%x", pop, dest, c, len,
 			flags);
 
-	return pop->memset_local(dest, c, len, flags);
+	return pop->memset_local(dest, c, len, flags & PMEM_F_MEM_VALID_FLAGS);
 }
 
 /*
@@ -552,7 +566,8 @@ obj_rep_memcpy(void *ctx, void *dest, const void *src, size_t len,
 	while (rep) {
 		void *rdest = (char *)rep + (uintptr_t)dest - (uintptr_t)pop;
 		if (rep->rpp == NULL) {
-			rep->memcpy_local(rdest, src, len, flags);
+			rep->memcpy_local(rdest, src, len,
+						flags & PMEM_F_MEM_VALID_FLAGS);
 		} else {
 			if (rep->persist_remote(rep, rdest, len, lane, flags))
 				obj_handle_remote_persist_error(pop);
@@ -588,7 +603,8 @@ obj_rep_memmove(void *ctx, void *dest, const void *src, size_t len,
 	while (rep) {
 		void *rdest = (char *)rep + (uintptr_t)dest - (uintptr_t)pop;
 		if (rep->rpp == NULL) {
-			rep->memmove_local(rdest, src, len, flags);
+			rep->memmove_local(rdest, src, len,
+						flags & PMEM_F_MEM_VALID_FLAGS);
 		} else {
 			if (rep->persist_remote(rep, rdest, len, lane, flags))
 				obj_handle_remote_persist_error(pop);
@@ -623,7 +639,8 @@ obj_rep_memset(void *ctx, void *dest, int c, size_t len, unsigned flags)
 	while (rep) {
 		void *rdest = (char *)rep + (uintptr_t)dest - (uintptr_t)pop;
 		if (rep->rpp == NULL) {
-			rep->memset_local(rdest, c, len, flags);
+			rep->memset_local(rdest, c, len,
+						flags & PMEM_F_MEM_VALID_FLAGS);
 		} else {
 			if (rep->persist_remote(rep, rdest, len, lane, flags))
 				obj_handle_remote_persist_error(pop);
@@ -691,7 +708,8 @@ obj_rep_flush(void *ctx, const void *addr, size_t len, unsigned flags)
 	while (rep) {
 		void *raddr = (char *)rep + (uintptr_t)addr - (uintptr_t)pop;
 		if (rep->rpp == NULL) {
-			rep->memcpy_local(raddr, addr, len, PMEM_F_MEM_NODRAIN);
+			rep->memcpy_local(raddr, addr, len,
+				PMEM_F_MEM_NODRAIN);
 		} else {
 			if (rep->persist_remote(rep, raddr, len, lane, flags))
 				obj_handle_remote_persist_error(pop);
@@ -924,10 +942,10 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	/*
 	 * store the persistent part of pool's descriptor (2kB)
 	 *
-	 * It's safe to use PMEM_F_RELAXED flag because the entire
+	 * It's safe to use PMEMOBJ_F_RELAXED flag because the entire
 	 * structure is protected by checksum.
 	 */
-	pmemops_xpersist(p_ops, dscp, OBJ_DSC_P_SIZE, PMEM_F_RELAXED);
+	pmemops_xpersist(p_ops, dscp, OBJ_DSC_P_SIZE, PMEMOBJ_F_RELAXED);
 
 	/* initialize run_id, it will be incremented later */
 	pop->run_id = 0;
@@ -943,11 +961,11 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 		sizeof(pop->conversion_flags));
 
 	/*
-	 * It's safe to use PMEM_F_RELAXED flag because the reserved
+	 * It's safe to use PMEMOBJ_F_RELAXED flag because the reserved
 	 * area must be entirely zeroed.
 	 */
 	pmemops_memset(p_ops, pop->pmem_reserved, 0,
-		sizeof(pop->pmem_reserved), PMEM_F_RELAXED);
+		sizeof(pop->pmem_reserved), PMEMOBJ_F_RELAXED);
 
 	return 0;
 }
