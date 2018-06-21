@@ -33,7 +33,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8C6D73E0-0A6F-4487-A040-0EC78D7D6D9A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>obj_oid</RootNamespace>
+    <RootNamespace>obj_oid_thread</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>obj_oid_thread</ProjectName>
   </PropertyGroup>
