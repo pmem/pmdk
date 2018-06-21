@@ -117,17 +117,45 @@ see **pmem_flush**(3).
 
 **pmemobj_xpersist**() is a version of **pmemobj_persist**() function with
 additional *flags* argument.
-It supports only the **PMEM_F_RELAXED** flag (see **pmem_memcpy**(3)).
+It supports only the **PMEMOBJ_F_RELAXED** flag.
+This flag indicates that memory transfer operation does
+not require 8-byte atomicity guarantees.
 
 **pmemobj_xflush**() is a version of **pmemobj_flush**() function with
 additional *flags* argument.
-It supports only the **PMEM_F_RELAXED** flag (see **pmem_memcpy**(3)).
+It supports only the **PMEMOBJ_F_RELAXED** flag.
 
 The **pmemobj_memmove**(), **pmemobj_memcpy**() and **pmemobj_memset**() functions
 provide the same memory copying as their namesakes **memmove**(3), **memcpy**(3),
 and **memset**(3), and ensure that the result has been flushed to persistence
-before returning (unless **PMEM_MEM_NOFLUSH** flag was used). Flags have
-the same meaning as in **pmem_memmove**(3), **pmem_memcpy**(3) and **pmem_memset**(3).
+before returning (unless **PMEMOBJ_MEM_NOFLUSH** flag was used).
+Valid flags for those functions:
+
++ **PMEMOBJ_F_RELAXED** - This flag indicates that memory transfer operation
+  does not require 8-byte atomicity guarantees.
+
++ **PMEMOBJ_F_MEM_NOFLUSH** - Don't flush anything.
+  This implies **PMEMOBJ_F_MEM_NODRAIN**.
+  Using this flag only makes sense when it's followed by any function that
+  flushes data.
+
+The remaining flags say *how* the operation should be done, and are merely hints.
+
++ **PMEMOBJ_F_MEM_NONTEMPORAL** - Use non-temporal instructions.
+  This flag is mutually exclusive with **PMEMOBJ_F_MEM_TEMPORAL**.
+  On x86\_64 this flag is mutually exclusive with **PMEMOBJ_F_MEM_NOFLUSH**.
+
++ **PMEMOBJ_F_MEM_TEMPORAL** - Use temporal instructions.
+  This flag is mutually exclusive with **PMEMOBJ_F_MEM_NONTEMPORAL**.
+
++ **PMEMOBJ_F_MEM_WC** - Use write combining mode.
+  This flag is mutually exclusive with **PMEMOBJ_F_MEM_WB**.
+  On x86\_64 this is an alias for **PMEMOBJ_F_MEM_NONTEMPORAL**.
+  On x86\_64 this flag is mutually exclusive with **PMEMOBJ_F_MEM_NOFLUSH**.
+
++ **PMEMOBJ_F_MEM_WB** - Use write back mode.
+  This flag is mutually exclusive with **PMEMOBJ_F_MEM_WC**.
+  On x86\_64 this is an alias for **PMEMOBJ_F_MEM_TEMPORAL**.
 
 **pmemobj_memcpy_persist**() is an alias for **pmemobj_memcpy**() with flags equal to 0.
 
