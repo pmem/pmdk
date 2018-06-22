@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -137,7 +137,6 @@ test_load_factor(void)
 	srand(INITIAL_SEED);
 
 	float avg_load = 0.f;
-	rand64();
 	int inserted = 0;
 	for (int i = 0; ; ++i) {
 		if (cuckoo_insert(c, rand64() % NVALUES, TEST_VALUE) == 0) {
