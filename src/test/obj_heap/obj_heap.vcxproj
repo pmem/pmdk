@@ -22,7 +22,7 @@
     <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
     <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
-    <ClCompile Include="..\..\libpmemobj\ctl.c" />
+    <ClCompile Include="..\..\common\ctl.c" />
     <ClCompile Include="..\..\libpmemobj\stats.c" />
     <ClCompile Include="obj_heap.c" />
   </ItemGroup>

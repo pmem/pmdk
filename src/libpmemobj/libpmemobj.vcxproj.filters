@@ -103,12 +103,6 @@
     <ClCompile Include="..\common\os_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ctl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ctl_global.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stats.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -131,6 +125,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\os_dimm_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ctl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ctl_global.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -285,15 +285,6 @@
     <ClInclude Include="stats.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ctl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ctl_global.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\ctl.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\fs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -310,6 +301,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\os_auto_flush.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\common\ctl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ctl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ctl_global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -14,7 +14,7 @@
     <ClCompile Include="obj_ctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ctl.c">
+    <ClCompile Include="..\..\common\ctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

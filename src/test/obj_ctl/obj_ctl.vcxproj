@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpmemobj\ctl.c" />
+    <ClCompile Include="..\..\common\ctl.c" />
     <ClCompile Include="obj_ctl.c" />
   </ItemGroup>
   <ItemGroup>
