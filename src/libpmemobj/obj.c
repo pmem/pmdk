@@ -200,7 +200,8 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 
 	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);
 	if (env_config != NULL) {
-		if (ctl_load_config_from_string(pop, env_config) != 0) {
+		if (ctl_load_config_from_string(pop ? pop->ctl : NULL,
+				pop, env_config) != 0) {
 			ERR("unable to parse config stored in %s "
 				"environment variable",
 				OBJ_CONFIG_ENV_VARIABLE);
@@ -210,7 +211,8 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 
 	char *env_config_file = os_getenv(OBJ_CONFIG_FILE_ENV_VARIABLE);
 	if (env_config_file != NULL && env_config_file[0] != '\0') {
-		if (ctl_load_config_from_file(pop, env_config_file) != 0) {
+		if (ctl_load_config_from_file(pop ? pop->ctl : NULL,
+				pop, env_config_file) != 0) {
 			ERR("unable to parse config stored in %s "
 				"file (from %s environment variable)",
 				env_config_file,
@@ -3128,6 +3130,125 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 				pe_new_offset, head_new,
 				dest, before, oid);
 }
+
+/*
+ * pmemobj_ctl_getU -- programmatically executes a read ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg)
+{
+	LOG(3, "pop %p name %s arg %p", pop, name, arg);
+	return ctl_query(pop == NULL ? NULL : pop->ctl, pop,
+			CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_READ, arg);
+}
+
+/*
+ * pmemobj_ctl_setU -- programmatically executes a write ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg)
+{
+	LOG(3, "pop %p name %s arg %p", pop, name, arg);
+	return ctl_query(pop == NULL ? NULL : pop->ctl, pop,
+		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_WRITE, arg);
+}
+
+/*
+ * pmemobj_ctl_execU -- programmatically executes a runnable ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemobj_ctl_execU(PMEMobjpool *pop, const char *name, void *arg)
+{
+	LOG(3, "pop %p name %s arg %p", pop, name, arg);
+	return ctl_query(pop == NULL ? NULL : pop->ctl, pop,
+		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_RUNNABLE, arg);
+}
+
+#ifndef _WIN32
+/*
+ * pmemobj_ctl_get -- programmatically executes a read ctl query
+ */
+int
+pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg)
+{
+	return pmemobj_ctl_getU(pop, name, arg);
+}
+
+/*
+ * pmemobj_ctl_set -- programmatically executes a write ctl query
+ */
+int
+pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg)
+{
+	return pmemobj_ctl_setU(pop, name, arg);
+}
+
+/*
+ * pmemobj_ctl_exec -- programmatically executes a runnable ctl query
+ */
+int
+pmemobj_ctl_exec(PMEMobjpool *pop, const char *name, void *arg)
+{
+	return pmemobj_ctl_execU(pop, name, arg);
+}
+#else
+/*
+ * pmemobj_ctl_getW -- programmatically executes a read ctl query
+ */
+int
+pmemobj_ctl_getW(PMEMobjpool *pop, const wchar_t *name, void *arg)
+{
+	char *uname = util_toUTF8(name);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemobj_ctl_getU(pop, uname, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+
+/*
+ * pmemobj_ctl_setW -- programmatically executes a write ctl query
+ */
+int
+pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg)
+{
+	char *uname = util_toUTF8(name);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemobj_ctl_setU(pop, uname, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+
+/*
+ * pmemobj_ctl_execW -- programmatically executes a runnable ctl query
+ */
+int
+pmemobj_ctl_execW(PMEMobjpool *pop, const wchar_t *name, void *arg)
+{
+	char *uname = util_toUTF8(name);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemobj_ctl_execU(pop, uname, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+#endif
 
 /*
  * _pobj_debug_notice -- logs notice message if used inside a transaction
