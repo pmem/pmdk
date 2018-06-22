@@ -62,6 +62,12 @@
     <ClCompile Include="transform.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\ctl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\ctl_global.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\alloc_class.c">
       <Filter>libs</Filter>
     </ClCompile>
@@ -136,12 +142,6 @@
     </ClCompile>
     <ClCompile Include="..\..\libpmemlog\log.c">
       <Filter>libs</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ctl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ctl_global.c">
-      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

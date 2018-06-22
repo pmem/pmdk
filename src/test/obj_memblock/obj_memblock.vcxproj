@@ -46,8 +46,8 @@
     <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
     <ClCompile Include="..\..\libpmemobj\stats.c" />
-    <ClCompile Include="..\..\libpmemobj\ctl.c" />
-    <ClCompile Include="..\..\libpmemobj\ctl_global.c" />
+    <ClCompile Include="..\..\common\ctl.c" />
+    <ClCompile Include="..\..\common\ctl_global.c" />
     <ClCompile Include="obj_memblock.c" />
   </ItemGroup>
   <ItemGroup>

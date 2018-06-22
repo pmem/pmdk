@@ -71,6 +71,12 @@
     <ClCompile Include="os_dimm_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ctl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ctl_global.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dlsym.h">
@@ -128,6 +134,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os_auto_flush_windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctl_global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
