@@ -4,9 +4,6 @@
     <ClCompile Include="..\..\src\libpmemobj\bucket.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmemobj\ravl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\libpmemobj\cuckoo.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -19,16 +16,22 @@
     <ClCompile Include="..\..\src\libpmemobj\libpmemobj.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="libpmemobj_main.c">
+    <ClCompile Include="..\..\src\libpmemobj\list.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmemobj\list.c">
+    <ClCompile Include="..\..\src\libpmemobj\memops.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\libpmemobj\obj.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\libpmemobj\palloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\src\libpmemobj\pmalloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\libpmemobj\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\libpmemobj\redo.c">
@@ -40,16 +43,16 @@
     <ClCompile Include="..\..\src\libpmemobj\tx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmemobj\memops.c">
+    <ClCompile Include="..\common\badblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="memblock.c">
+    <ClCompile Include="..\common\badblock_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pvector.c">
+    <ClCompile Include="..\common\ctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmemobj\palloc.c">
+    <ClCompile Include="..\common\ctl_global.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\file.c">
@@ -58,13 +61,28 @@
     <ClCompile Include="..\common\file_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\fs_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\common\mmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\mmap_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\fs_windows.c">
+    <ClCompile Include="..\common\os_auto_flush_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\os_deep_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\os_dimm_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\os_thread_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\os_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\out.c">
@@ -76,7 +94,13 @@
     <ClCompile Include="..\common\set.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\shutdown_state.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\common\util.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\util_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\uuid.c">
@@ -85,10 +109,7 @@
     <ClCompile Include="..\common\uuid_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\util_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="recycler.c">
+    <ClCompile Include="alloc_class.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="container_ravl.c">
@@ -97,75 +118,24 @@
     <ClCompile Include="container_seglists.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="alloc_class.c">
+    <ClCompile Include="libpmemobj_main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_windows.c">
+    <ClCompile Include="memblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ctl.c">
+    <ClCompile Include="pvector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ctl_global.c">
+    <ClCompile Include="recycler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stats.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_thread_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\shutdown_state.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\os_deep_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\os_auto_flush_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\badblock.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\badblock_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\os_dimm_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\cuckoo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\bucket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\ravl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\heap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\lane.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\list.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\obj.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\common\out.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\pmalloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\redo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\common\util.h">
@@ -177,13 +147,49 @@
     <ClInclude Include="..\..\src\include\libpmemobj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\bucket.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\cuckoo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\heap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\lane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\list.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\libpmemobj\memops.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="memblock.h">
+    <ClInclude Include="..\..\src\libpmemobj\obj.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pvector.h">
+    <ClInclude Include="..\..\src\libpmemobj\palloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\pmalloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\pmemops.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\ravl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmemobj\redo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ctl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ctl_global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\dlsym.h">
@@ -192,13 +198,31 @@
     <ClInclude Include="..\common\file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\common\fs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\common\mmap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os_auto_flush.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os_deep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os_thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\pmemcommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\pool_hdr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\set.h">
@@ -208,12 +232,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\uuid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\palloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\pmemops.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\libpmemobj\action.h">
@@ -261,13 +279,7 @@
     <ClInclude Include="..\include\libpmemobj\types.h">
       <Filter>Header Files\libpmemobj</Filter>
     </ClInclude>
-    <ClInclude Include="sync.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="recycler.h">
+    <ClInclude Include="alloc_class.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="container.h">
@@ -279,37 +291,22 @@
     <ClInclude Include="container_seglists.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="alloc_class.h">
+    <ClInclude Include="memblock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pvector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="recycler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stats.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ctl.h">
+    <ClInclude Include="sync.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ctl_global.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\ctl.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\fs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\os.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\os_thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\queue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\os_deep.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\os_auto_flush.h">
+    <ClInclude Include="tx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

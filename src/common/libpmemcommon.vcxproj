@@ -13,6 +13,8 @@
   <ItemGroup>
     <ClCompile Include="badblock_windows.c" />
     <ClCompile Include="badblock.c" />
+    <ClCompile Include="ctl.c" />
+    <ClCompile Include="ctl_global.c" />
     <ClCompile Include="file.c" />
     <ClCompile Include="file_windows.c" />
     <ClCompile Include="mmap.c" />
@@ -33,6 +35,8 @@
     <ClCompile Include="uuid_windows.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ctl.h" />
+    <ClInclude Include="ctl_global.h" />
     <ClInclude Include="os_auto_flush_windows.h" />
     <ClInclude Include="os_badblock.h" />
     <ClInclude Include="badblock.h" />

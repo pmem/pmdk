@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,18 +31,29 @@
  */
 
 /*
- * obj_ctl.c -- tests for the libpmemobj control module
+ * util_ctl.c -- tests for the control module
  */
 
 #include "unittest.h"
-#include "obj.h"
 #include "ctl.h"
+#include "out.h"
+#include "pmemcommon.h"
+
+#define LOG_PREFIX "ut"
+#define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
+#define LOG_FILE_VAR "TEST_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
+
+struct pool {
+	struct ctl *ctl;
+};
 
 static char *testconfig_path;
 static int test_config_written;
 
 static int
-CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(test_rw)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
@@ -54,7 +65,7 @@ CTL_READ_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_source source,
 }
 
 static int
-CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_WRITE_HANDLER(test_rw)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	int *arg_rw = arg;
@@ -67,7 +78,7 @@ CTL_WRITE_HANDLER(test_rw)(PMEMobjpool *pop, enum ctl_query_source source,
 struct ctl_argument CTL_ARG(test_rw) = CTL_ARG_INT;
 
 static int
-CTL_WRITE_HANDLER(test_wo)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_WRITE_HANDLER(test_wo)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	int *arg_wo = arg;
@@ -82,7 +93,7 @@ struct ctl_argument CTL_ARG(test_wo) = CTL_ARG_INT;
 #define TEST_CONFIG_VALUE "abcd"
 
 static int
-CTL_WRITE_HANDLER(test_config)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_WRITE_HANDLER(test_config)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	UT_ASSERTeq(source, CTL_QUERY_CONFIG_INPUT);
@@ -109,7 +120,7 @@ struct complex_arg {
 #define COMPLEX_ARG_TEST_D 1
 
 static int
-CTL_WRITE_HANDLER(test_config_complex_arg)(PMEMobjpool *pop,
+CTL_WRITE_HANDLER(test_config_complex_arg)(void *ctx,
 	enum ctl_query_source source, void *arg,
 	struct ctl_indexes *indexes)
 {
@@ -137,7 +148,7 @@ struct ctl_argument CTL_ARG(test_config_complex_arg) = {
 };
 
 static int
-CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(test_ro)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
@@ -149,7 +160,7 @@ CTL_READ_HANDLER(test_ro)(PMEMobjpool *pop, enum ctl_query_source source,
 }
 
 static int
-CTL_READ_HANDLER(index_value)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(index_value)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
@@ -163,7 +174,7 @@ CTL_READ_HANDLER(index_value)(PMEMobjpool *pop, enum ctl_query_source source,
 }
 
 static int
-CTL_RUNNABLE_HANDLER(test_runnable)(PMEMobjpool *pop,
+CTL_RUNNABLE_HANDLER(test_runnable)(void *ctx,
 	enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
@@ -193,7 +204,7 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 };
 
 static int
-CTL_WRITE_HANDLER(gtest_config)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_WRITE_HANDLER(gtest_config)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	UT_ASSERTeq(source, CTL_QUERY_CONFIG_INPUT);
@@ -208,7 +219,7 @@ CTL_WRITE_HANDLER(gtest_config)(PMEMobjpool *pop, enum ctl_query_source source,
 struct ctl_argument CTL_ARG(gtest_config) = CTL_ARG_STRING(8);
 
 static int
-CTL_READ_HANDLER(gtest_ro)(PMEMobjpool *pop, enum ctl_query_source source,
+CTL_READ_HANDLER(gtest_ro)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
@@ -226,86 +237,115 @@ static const struct ctl_node CTL_NODE(global_debug)[] = {
 	CTL_NODE_END
 };
 
+static int
+util_ctl_get(struct pool *pop, const char *name, void *arg)
+{
+	LOG(3, "pop %p name %s arg %p", pop, name, arg);
+	return ctl_query(pop ? pop->ctl : NULL, pop,
+			CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_READ, arg);
+}
+
+static int
+util_ctl_set(struct pool *pop, const char *name, void *arg)
+{
+	LOG(3, "pop %p name %s arg %p", pop, name, arg);
+	return ctl_query(pop ? pop->ctl : NULL, pop,
+		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_WRITE, arg);
+}
+
+static int
+util_ctl_exec(struct pool *pop, const char *name, void *arg)
+{
+	LOG(3, "pop %p name %s arg %p", pop, name, arg);
+	return ctl_query(pop ? pop->ctl : NULL, pop,
+		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_RUNNABLE, arg);
+}
+
 static void
-test_ctl_parser(PMEMobjpool *pop)
+test_ctl_parser(struct pool *pop)
 {
 	errno = 0;
 	int ret;
-	ret = pmemobj_ctl_get(pop, NULL, NULL);
+	ret = util_ctl_get(pop, NULL, NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "a.b.c.d", NULL);
+	ret = util_ctl_get(pop, "a.b.c.d", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "", NULL);
+	ret = util_ctl_get(pop, "", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "debug.", NULL);
+	ret = util_ctl_get(pop, "debug.", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, ".", NULL);
+	ret = util_ctl_get(pop, ".", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "..", NULL);
+	ret = util_ctl_get(pop, "..", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "1.2.3.4", NULL);
+	ret = util_ctl_get(pop, "1.2.3.4", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "debug.1.", NULL);
+	ret = util_ctl_get(pop, "debug.1.", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "debug.1.invalid", NULL);
+	ret = util_ctl_get(pop, "debug.1.invalid", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 
 	/* test methods set read to 0 and write to 1 if successful */
+
+
 	int arg_read = 1;
 	int arg_write = 0;
 
 	errno = 0;
 
+
 	/* correct name, wrong args */
-	ret = pmemobj_ctl_get(pop, "debug.test_rw", NULL);
+
+
+	ret = util_ctl_get(pop, "debug.test_rw", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_set(pop, "debug.test_rw", NULL);
+	ret = util_ctl_set(pop, "debug.test_rw", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "debug.test_wo", &arg_read);
+	ret = util_ctl_get(pop, "debug.test_wo", &arg_read);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "debug.test_wo", NULL);
+	ret = util_ctl_get(pop, "debug.test_wo", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_set(pop, "debug.test_ro", &arg_write);
+	ret = util_ctl_set(pop, "debug.test_ro", &arg_write);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_set(pop, "debug.test_ro", NULL);
+	ret = util_ctl_set(pop, "debug.test_ro", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
 
-	ret = pmemobj_ctl_get(pop, "debug.test_rw", &arg_read);
+	ret = util_ctl_get(pop, "debug.test_rw", &arg_read);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 	UT_ASSERTeq(arg_write, 0);
 	UT_ASSERTeq(errno, 0);
 
-	ret = pmemobj_ctl_set(pop, "debug.test_rw", &arg_write);
+	ret = util_ctl_set(pop, "debug.test_rw", &arg_write);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 	UT_ASSERTeq(arg_write, 1);
@@ -313,7 +353,7 @@ test_ctl_parser(PMEMobjpool *pop)
 	arg_read = 1;
 	arg_write = 0;
 
-	ret = pmemobj_ctl_get(pop, "debug.test_ro", &arg_read);
+	ret = util_ctl_get(pop, "debug.test_ro", &arg_read);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 	UT_ASSERTeq(arg_write, 0);
@@ -321,17 +361,17 @@ test_ctl_parser(PMEMobjpool *pop)
 	arg_read = 1;
 	arg_write = 0;
 
-	ret = pmemobj_ctl_set(pop, "debug.test_wo", &arg_write);
+	ret = util_ctl_set(pop, "debug.test_wo", &arg_write);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 1);
 	UT_ASSERTeq(arg_write, 1);
 
 	long index_value = 0;
-	ret = pmemobj_ctl_get(pop, "debug.5.index_value", &index_value);
+	ret = util_ctl_get(pop, "debug.5.index_value", &index_value);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(index_value, 5);
 
-	ret = pmemobj_ctl_get(pop, "debug.10.index_value", &index_value);
+	ret = util_ctl_get(pop, "debug.10.index_value", &index_value);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(index_value, 10);
 
@@ -339,7 +379,7 @@ test_ctl_parser(PMEMobjpool *pop)
 	arg_write = 1;
 	int arg_runnable = 1;
 
-	ret = pmemobj_ctl_exec(pop, "debug.test_runnable", &arg_runnable);
+	ret = util_ctl_exec(pop, "debug.test_runnable", &arg_runnable);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 1);
 	UT_ASSERTeq(arg_write, 1);
@@ -347,54 +387,56 @@ test_ctl_parser(PMEMobjpool *pop)
 }
 
 static void
-test_string_config(PMEMobjpool *pop)
+test_string_config(struct pool *pop)
 {
+	UT_ASSERTne(pop, NULL);
 	int ret;
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, "");
+	ret = ctl_load_config_from_string(pop->ctl, pop, "");
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, ";;");
+	ret = ctl_load_config_from_string(pop->ctl, pop, ";;");
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, ";=;");
+	ret = ctl_load_config_from_string(pop->ctl, pop, ";=;");
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, "=");
+	ret = ctl_load_config_from_string(pop->ctl, pop, "=");
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, "debug.test_wo=");
+	ret = ctl_load_config_from_string(pop->ctl, pop,
+			"debug.test_wo=");
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, "=b");
+	ret = ctl_load_config_from_string(pop->ctl, pop, "=b");
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop,
+	ret = ctl_load_config_from_string(pop->ctl, pop,
 			"debug.test_wo=111=222");
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop,
+	ret = ctl_load_config_from_string(pop->ctl, pop,
 			"debug.test_wo=333;debug.test_rw=444;");
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 2);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop,
+	ret = ctl_load_config_from_string(pop->ctl, pop,
 			"debug.test_config="TEST_CONFIG_VALUE";");
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 1);
@@ -410,19 +452,20 @@ config_file_create(const char *buf)
 }
 
 static void
-create_and_test_file_config(PMEMobjpool *pop, const char *buf, int ret,
+create_and_test_file_config(struct pool *pop, const char *buf, int ret,
 		int result)
 {
 	config_file_create(buf);
 
 	test_config_written = 0;
-	int r = ctl_load_config_from_file(pop, testconfig_path);
+	int r = ctl_load_config_from_file(pop ? pop->ctl : NULL,
+			pop, testconfig_path);
 	UT_ASSERTeq(r, ret);
 	UT_ASSERTeq(test_config_written, result);
 }
 
 static void
-test_too_large_file(PMEMobjpool *pop)
+test_too_large_file(struct pool *pop)
 {
 	char *too_large_buf = calloc(1, 1 << 21);
 	UT_ASSERTne(too_large_buf, NULL);
@@ -430,14 +473,15 @@ test_too_large_file(PMEMobjpool *pop)
 
 	config_file_create(too_large_buf);
 
-	int ret = ctl_load_config_from_file(pop, testconfig_path);
+	int ret = ctl_load_config_from_file(pop->ctl, pop,
+			testconfig_path);
 	UT_ASSERTne(ret, 0);
 
 	free(too_large_buf);
 }
 
 static void
-test_file_config(PMEMobjpool *pop)
+test_file_config(struct pool *pop)
 {
 	create_and_test_file_config(pop,
 		"debug.test_config="TEST_CONFIG_VALUE";", 0, 1);
@@ -484,16 +528,17 @@ test_file_config(PMEMobjpool *pop)
 
 	test_too_large_file(pop);
 
-	int ret = ctl_load_config_from_file(pop, "does_not_exist");
+	int ret = ctl_load_config_from_file(pop->ctl,
+			pop, "does_not_exist");
 	UT_ASSERTne(ret, 0);
 }
 
 static void
-test_ctl_global_namespace(PMEMobjpool *pop)
+test_ctl_global_namespace(struct pool *pop)
 {
 	int arg_read = 1;
 
-	int ret = pmemobj_ctl_get(pop, "global_debug.gtest_ro", &arg_read);
+	int ret = util_ctl_get(pop, "global_debug.gtest_ro", &arg_read);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 }
@@ -667,22 +712,23 @@ test_ctl_arg_parsers()
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_ctl");
+	START(argc, argv, "util_ctl");
 
-	if (argc != 3)
-		UT_FATAL("usage: %s file-name testconfig", argv[0]);
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+			MAJOR_VERSION, MINOR_VERSION);
 
-	const char *path = argv[1];
-	testconfig_path = argv[2];
+	if (argc != 2)
+		UT_FATAL("usage: %s testconfig", argv[0]);
+
+	testconfig_path = argv[1];
 
 	CTL_REGISTER_MODULE(NULL, global_debug);
 
 	test_ctl_global_namespace(NULL);
 
-	PMEMobjpool *pop;
-	if ((pop = pmemobj_create(path, "ctl", PMEMOBJ_MIN_POOL,
-		S_IWUSR | S_IRUSR)) == NULL)
-		UT_FATAL("!pmemobj_create: %s", path);
+	struct pool *pop = malloc(sizeof(pop));
+
+	pop->ctl = ctl_new();
 
 	test_ctl_global_namespace(NULL);
 
@@ -695,7 +741,10 @@ main(int argc, char *argv[])
 	test_file_config(pop);
 	test_ctl_arg_parsers();
 
-	pmemobj_close(pop);
+	ctl_delete(pop->ctl);
+	free(pop);
+
+	common_fini();
 
 	DONE(NULL);
 }

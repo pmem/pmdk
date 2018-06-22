@@ -43,8 +43,6 @@ SOURCE +=\
 	bucket.c\
 	container_ravl.c\
 	container_seglists.c\
-	ctl.c\
-	ctl_global.c\
 	cuckoo.c\
 	heap.c\
 	lane.c\

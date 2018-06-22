@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,19 +30,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
+# src/test/util_ctl/TEST0 -- unit test for util_ctl interface
+#
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
-require_test_type medium
-
-configure_valgrind memcheck force-enable
+require_test_type short
 
 setup
 
-expect_normal_exit\
-	./obj_ctl$EXESUFFIX $DIR/testfile1 $DIR/testconfig
-
-rm -rf $DIR/testconfig
+expect_normal_exit $Env:EXE_DIR\util_ctl$Env:EXESUFFIX $DIR\testconfig
 
 pass

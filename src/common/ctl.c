@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,10 +34,7 @@
  * ctl.c -- implementation of the interface for examination and modification of
  *	the library's internal state
  */
-#include "out.h"
-#include "obj.h"
 #include "ctl.h"
-
 #include "os.h"
 
 #define CTL_MAX_ENTRIES 100
@@ -232,7 +229,7 @@ ctl_query_cleanup_real_args(struct ctl_node *n, void *real_arg,
  * ctl_exec_query_read -- (internal) calls the read callback of a node
  */
 static int
-ctl_exec_query_read(PMEMobjpool *pop, struct ctl_node *n,
+ctl_exec_query_read(void *ctx, struct ctl_node *n,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	if (arg == NULL) {
@@ -241,14 +238,14 @@ ctl_exec_query_read(PMEMobjpool *pop, struct ctl_node *n,
 		return -1;
 	}
 
-	return n->cb[CTL_QUERY_READ](pop, source, arg, indexes);
+	return n->cb[CTL_QUERY_READ](ctx, source, arg, indexes);
 }
 
 /*
  * ctl_exec_query_write -- (internal) calls the write callback of a node
  */
 static int
-ctl_exec_query_write(PMEMobjpool *pop, struct ctl_node *n,
+ctl_exec_query_write(void *ctx, struct ctl_node *n,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	if (arg == NULL) {
@@ -264,7 +261,7 @@ ctl_exec_query_write(PMEMobjpool *pop, struct ctl_node *n,
 		return -1;
 	}
 
-	int ret = n->cb[CTL_QUERY_WRITE](pop, source, real_arg, indexes);
+	int ret = n->cb[CTL_QUERY_WRITE](ctx, source, real_arg, indexes);
 	ctl_query_cleanup_real_args(n, real_arg, source);
 
 	return ret;
@@ -274,13 +271,13 @@ ctl_exec_query_write(PMEMobjpool *pop, struct ctl_node *n,
  * ctl_exec_query_runnable -- (internal) calls the run callback of a node
  */
 static int
-ctl_exec_query_runnable(PMEMobjpool *pop, struct ctl_node *n,
+ctl_exec_query_runnable(void *ctx, struct ctl_node *n,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
-	return n->cb[CTL_QUERY_RUNNABLE](pop, source, arg, indexes);
+	return n->cb[CTL_QUERY_RUNNABLE](ctx, source, arg, indexes);
 }
 
-static int (*ctl_exec_query[MAX_CTL_QUERY_TYPE])(PMEMobjpool *pop,
+static int (*ctl_exec_query[MAX_CTL_QUERY_TYPE])(void *ctx,
 	struct ctl_node *n, enum ctl_query_source source, void *arg,
 	struct ctl_indexes *indexes) = {
 	ctl_exec_query_read,
@@ -292,11 +289,12 @@ static int (*ctl_exec_query[MAX_CTL_QUERY_TYPE])(PMEMobjpool *pop,
  * ctl_query -- (internal) parses the name and calls the appropriate methods
  *	from the ctl tree
  */
-static int
-ctl_query(PMEMobjpool *pop, enum ctl_query_source source,
+int
+ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
 	const char *name, enum ctl_query_type type, void *arg)
 {
-	LOG(3, "pop %p source %d name %s", pop, source, name);
+	LOG(3, "ctl %p ctx %p source %d name %s type %d arg %p",
+			ctl, ctx, source, name, type, arg);
 
 	if (name == NULL) {
 		ERR("invalid query");
@@ -317,9 +315,9 @@ ctl_query(PMEMobjpool *pop, enum ctl_query_source source,
 	struct ctl_node *n = ctl_find_node(CTL_NODE(global),
 		name, &indexes);
 
-	if (n == NULL && pop) {
+	if (n == NULL && ctl) {
 		ctl_delete_indexes(&indexes);
-		n = ctl_find_node(pop->ctl->root, name, &indexes);
+		n = ctl_find_node(ctl->root, name, &indexes);
 	}
 
 	if (n == NULL || n->type != CTL_NODE_LEAF || n->cb[type] == NULL) {
@@ -328,7 +326,7 @@ ctl_query(PMEMobjpool *pop, enum ctl_query_source source,
 		goto out;
 	}
 
-	ret = ctl_exec_query[type](pop, n, source, arg, &indexes);
+	ret = ctl_exec_query[type](ctx, n, source, arg, &indexes);
 
 out:
 	ctl_delete_indexes(&indexes);
@@ -336,124 +334,7 @@ out:
 	return ret;
 }
 
-/*
- * pmemobj_ctl_getU -- programmatically executes a read ctl query
- */
-#ifndef _WIN32
-static inline
-#endif
-int
-pmemobj_ctl_getU(PMEMobjpool *pop, const char *name, void *arg)
-{
-	LOG(3, "pop %p name %s arg %p", pop, name, arg);
-	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
-		name, CTL_QUERY_READ, arg);
-}
 
-/*
- * pmemobj_ctl_setU -- programmatically executes a write ctl query
- */
-#ifndef _WIN32
-static inline
-#endif
-int
-pmemobj_ctl_setU(PMEMobjpool *pop, const char *name, void *arg)
-{
-	LOG(3, "pop %p name %s arg %p", pop, name, arg);
-	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
-		name, CTL_QUERY_WRITE, arg);
-}
-
-/*
- * pmemobj_ctl_execU -- programmatically executes a runnable ctl query
- */
-#ifndef _WIN32
-static inline
-#endif
-int
-pmemobj_ctl_execU(PMEMobjpool *pop, const char *name, void *arg)
-{
-	LOG(3, "pop %p name %s arg %p", pop, name, arg);
-	return ctl_query(pop, CTL_QUERY_PROGRAMMATIC,
-		name, CTL_QUERY_RUNNABLE, arg);
-}
-
-#ifndef _WIN32
-/*
- * pmemobj_ctl_get -- programmatically executes a read ctl query
- */
-int
-pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg)
-{
-	return pmemobj_ctl_getU(pop, name, arg);
-}
-
-/*
- * pmemobj_ctl_set -- programmatically executes a write ctl query
- */
-int
-pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg)
-{
-	return pmemobj_ctl_setU(pop, name, arg);
-}
-
-/*
- * pmemobj_ctl_exec -- programmatically executes a runnable ctl query
- */
-int
-pmemobj_ctl_exec(PMEMobjpool *pop, const char *name, void *arg)
-{
-	return pmemobj_ctl_execU(pop, name, arg);
-}
-#else
-/*
- * pmemobj_ctl_getW -- programmatically executes a read ctl query
- */
-int
-pmemobj_ctl_getW(PMEMobjpool *pop, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemobj_ctl_getU(pop, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-
-/*
- * pmemobj_ctl_setW -- programmatically executes a write ctl query
- */
-int
-pmemobj_ctl_setW(PMEMobjpool *pop, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemobj_ctl_setU(pop, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-
-/*
- * pmemobj_ctl_execW -- programmatically executes a runnable ctl query
- */
-int
-pmemobj_ctl_execW(PMEMobjpool *pop, const wchar_t *name, void *arg)
-{
-	char *uname = util_toUTF8(name);
-	if (uname == NULL)
-		return -1;
-
-	int ret = pmemobj_ctl_execU(pop, uname, arg);
-	util_free_UTF8(uname);
-
-	return ret;
-}
-#endif
 
 /*
  * ctl_register_module_node -- adds a new node to the CTL tree root.
@@ -501,7 +382,7 @@ ctl_parse_query(char *qbuf, char **name, char **value)
  * ctl_load_config -- executes the entire query collection from a provider
  */
 static int
-ctl_load_config(PMEMobjpool *pop, char *buf)
+ctl_load_config(struct ctl *ctl, void *ctx, char *buf)
 {
 	int r = 0;
 	char *sptr = NULL; /* for internal use of strtok */
@@ -514,7 +395,7 @@ ctl_load_config(PMEMobjpool *pop, char *buf)
 	do {
 		r = ctl_parse_query(qbuf, &name, &value);
 		if (r == 0)
-			r = ctl_query(pop, CTL_QUERY_CONFIG_INPUT,
+			r = ctl_query(ctl, ctx, CTL_QUERY_CONFIG_INPUT,
 				name, CTL_QUERY_WRITE, value);
 
 		if (r == -1) {
@@ -533,9 +414,9 @@ ctl_load_config(PMEMobjpool *pop, char *buf)
  * ctl_load_config_from_string -- loads obj configuration from string
  */
 int
-ctl_load_config_from_string(PMEMobjpool *pop, const char *cfg_string)
+ctl_load_config_from_string(struct ctl *ctl, void *ctx, const char *cfg_string)
 {
-	LOG(3, "pop %p cfg_string \"%s\"", pop, cfg_string);
+	LOG(3, "ctl %p ctx %p cfg_string \"%s\"", ctl, ctx, cfg_string);
 
 	char *buf = Strdup(cfg_string);
 	if (buf == NULL) {
@@ -543,7 +424,7 @@ ctl_load_config_from_string(PMEMobjpool *pop, const char *cfg_string)
 		return -1;
 	}
 
-	int ret = ctl_load_config(pop, buf);
+	int ret = ctl_load_config(ctl, ctx, buf);
 
 	Free(buf);
 	return ret;
@@ -556,9 +437,9 @@ ctl_load_config_from_string(PMEMobjpool *pop, const char *cfg_string)
  * the size of the file, reads its content and sanitizes it for ctl_load_config.
  */
 int
-ctl_load_config_from_file(PMEMobjpool *pop, const char *cfg_file)
+ctl_load_config_from_file(struct ctl *ctl, void *ctx, const char *cfg_file)
 {
-	LOG(3, "pop %p cfg_file \"%s\"", pop, cfg_file);
+	LOG(3, "ctl %p ctx %p cfg_file \"%s\"", ctl, ctx, cfg_file);
 
 	int ret = -1;
 
@@ -601,7 +482,7 @@ ctl_load_config_from_file(PMEMobjpool *pop, const char *cfg_file)
 			buf[bufpos++] = (char)c;
 	}
 
-	ret = ctl_load_config(pop, buf);
+	ret = ctl_load_config(ctl, ctx, buf);
 
 	Free(buf);
 
