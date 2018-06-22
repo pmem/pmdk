@@ -397,8 +397,11 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 	uintptr_t addr = (uintptr_t)addrp;
 	uintptr_t end = (uintptr_t)endp;
 	ASSERTne(mt, NULL);
-	ASSERTeq(addr % Mmap_align, 0);
-	ASSERTeq(end % Mmap_align, 0);
+	if (addr == end || addr % Mmap_align != 0 || end % Mmap_align != 0) {
+		ERR(
+		"invalid munmap length, must be non-zero and page aligned");
+		return -1;
+	}
 
 	struct map_tracker *mtb = NULL;
 	struct map_tracker *mte = NULL;
@@ -481,6 +484,18 @@ util_range_unregister(const void *addr, size_t len)
 	int ret = 0;
 
 	util_rwlock_wrlock(&Mmap_list_lock);
+
+	/*
+	 * Changes in the map tracker list must match the underlying behavior.
+	 *
+	 * $ man 2 mmap:
+	 *	The address addr must be a multiple of the page size (but length
+	 *	need not be). All pages containing a part of the indicated range
+	 *	are unmapped.
+	 *
+	 * This means that we must align the length to the page size.
+	 */
+	len = PAGE_ALIGNED_UP_SIZE(len);
 
 	void *end = (char *)addr + len;
 
