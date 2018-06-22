@@ -124,6 +124,8 @@ static struct {
  */
 #define RUN_SIZE_IDX_CAP (16)
 
+#define ALLOC_CLASS_DEFAULT_FLAGS CHUNK_FLAG_FLEX_BITMAP
+
 struct alloc_class_collection {
 	size_t granularity;
 
@@ -214,7 +216,8 @@ alloc_class_new(int id, struct alloc_class_collection *ac,
 	c->type = type;
 	c->flags = (uint16_t)
 		(header_type_to_flag[c->header_type] |
-		(alignment ? CHUNK_FLAG_ALIGNED : 0));
+		(alignment ? CHUNK_FLAG_ALIGNED : 0)) |
+		ALLOC_CLASS_DEFAULT_FLAGS;
 
 	switch (type) {
 		case CLASS_HUGE:
@@ -222,8 +225,10 @@ alloc_class_new(int id, struct alloc_class_collection *ac,
 			break;
 		case CLASS_RUN:
 			c->run.alignment = alignment;
-			c->run.nallocs = memblock_run_nallocs(&size_idx,
-				c->flags, unit_size, alignment);
+			struct run_bitmap b;
+			memblock_run_bitmap(&size_idx, c->flags, unit_size,
+				alignment, NULL, &b);
+			c->run.nallocs = b.nbits;
 			c->run.size_idx = size_idx;
 
 			uint8_t slot = (uint8_t)id;
@@ -314,10 +319,18 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 	 * run data size must be divisible by the allocation class unit size
 	 * with the smallest possible remainder, preferably 0.
 	 */
-	size_t runsize_bytes = RUN_SIZE_BYTES(required_size_idx);
-	while ((runsize_bytes % n) > MAX_RUN_WASTED_BYTES) {
-		n += ALLOC_BLOCK_SIZE_GEN;
-	}
+	struct run_bitmap b;
+	size_t runsize_bytes = 0;
+	do {
+		if (runsize_bytes != 0) /* don't increase on first iteration */
+			n += ALLOC_BLOCK_SIZE_GEN;
+
+		uint32_t size_idx = required_size_idx;
+		memblock_run_bitmap(&size_idx, ALLOC_CLASS_DEFAULT_FLAGS, n, 0,
+			NULL, &b);
+
+		runsize_bytes = RUN_CONTENT_SIZE_BYTES(size_idx) - b.size;
+	} while ((runsize_bytes % n) > MAX_RUN_WASTED_BYTES);
 
 	/*
 	 * Now that the desired unit size is found the existing classes need

@@ -56,14 +56,16 @@
 
 #define BITS_PER_VALUE 64U
 #define MAX_CACHELINE_ALIGNMENT 40 /* run alignment, 5 cachelines */
-#define RUN_BASE_METADATA_SIZE (sizeof(uint64_t) * 2)
+#define RUN_BASE_METADATA_VALUES (2U)
+#define RUN_BASE_METADATA_SIZE (sizeof(uint64_t) * RUN_BASE_METADATA_VALUES)
 
 #define DEFAULT_BITMAP_SIZE (sizeof(uint64_t) * DEFAULT_BITMAP_VALUES)
-#define DEFAULT_BITMAP_VALUES (MAX_CACHELINE_ALIGNMENT - 2)
+#define DEFAULT_BITMAP_VALUES \
+	(MAX_CACHELINE_ALIGNMENT - RUN_BASE_METADATA_VALUES)
 #define DEFAULT_RUN_BITMAP_NBITS (BITS_PER_VALUE * DEFAULT_BITMAP_VALUES)
 
 #define RUNSIZE (CHUNKSIZE - RUN_BASE_METADATA_SIZE - DEFAULT_BITMAP_SIZE)
-#define RUN_CONTENT_SIZE (CHUNKSIZE - (sizeof(uint64_t) * 2))
+#define RUN_CONTENT_SIZE (CHUNKSIZE - RUN_BASE_METADATA_SIZE)
 #define MIN_RUN_SIZE 128
 #define RUN_BASE_ALIGNMENT 64
 
@@ -71,21 +73,30 @@
 #define CHUNK_ALIGN_UP(value) ((((value) + CHUNK_MASK) & ~CHUNK_MASK))
 
 /*
- * Calculates the size in bytes of a single run instance
+ * Calculates the size in bytes of a single run instance, including bitmap
  */
-#define RUN_SIZE_BYTES(size_idx)\
+#define RUN_CONTENT_SIZE_BYTES(size_idx)\
+(RUN_CONTENT_SIZE + (((size_idx) - 1) * CHUNKSIZE))
+
+/*
+ * Calculates the size in bytes of a single run instance, without bitmap,
+ * but only for the default fixed-bitmap algorithm
+ */
+#define RUN_DEFAULT_SIZE_BYTES(size_idx)\
 (RUNSIZE + (((size_idx) - 1) * CHUNKSIZE))
 
 enum chunk_flags {
 	CHUNK_FLAG_COMPACT_HEADER	=	0x0001,
 	CHUNK_FLAG_HEADER_NONE		=	0x0002,
 	CHUNK_FLAG_ALIGNED		=	0x0004,
+	CHUNK_FLAG_FLEX_BITMAP		=	0x0008,
 };
 
 #define CHUNK_FLAGS_ALL_VALID (\
 	CHUNK_FLAG_COMPACT_HEADER |\
 	CHUNK_FLAG_HEADER_NONE |\
-	CHUNK_FLAG_ALIGNED\
+	CHUNK_FLAG_ALIGNED |\
+	CHUNK_FLAG_FLEX_BITMAP\
 )
 
 enum chunk_type {

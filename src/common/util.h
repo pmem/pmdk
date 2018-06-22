@@ -168,6 +168,15 @@ util_is_pow2(uint64_t v)
 }
 
 /*
+ * util_div_ceil -- divides a by b and rounds up the result
+ */
+static force_inline unsigned
+util_div_ceil(unsigned a, unsigned b)
+{
+	return 1 + ((a - 1) / b);
+}
+
+/*
  * util_bool_compare_and_swap -- perform an atomic compare and swap
  * util_fetch_and_* -- perform an operation atomically, return old value
  * util_synchronize -- issue a full memory barrier

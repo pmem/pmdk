@@ -307,7 +307,8 @@ struct memory_block memblock_run_init(struct palloc_heap *heap,
 	uint32_t chunk_id, uint32_t zone_id, uint32_t size_idx, uint16_t flags,
 	uint64_t unit_size, uint64_t alignment);
 
-unsigned memblock_run_nallocs(uint32_t *size_idx, uint16_t flags,
-	uint64_t unit_size, uint64_t alignment);
+void memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
+	uint64_t unit_size, uint64_t alignment, void *content,
+	struct run_bitmap *b);
 
 #endif
