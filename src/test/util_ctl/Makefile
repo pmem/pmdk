@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2016-2018, Intel Corporation
 #
@@ -31,17 +30,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
+# src/test/util_ctl/Makefile -- build util_ctl test
+#
+TARGET = util_ctl
+OBJS = util_ctl.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-require_test_type short
-
-setup
-
-expect_normal_exit\
-	./obj_ctl$EXESUFFIX $DIR/testfile1 $DIR/testconfig
-
-rm -rf $DIR/testconfig
-
-pass
+include ../Makefile.inc
