@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,19 +31,12 @@
 #
 
 #
-# src/test/obj_ringbuf/Makefile -- build ring buffer unit test
+# src/test/obj_memops/Makefile -- build obj_memops test
 #
-TOP = ../../..
+TARGET = obj_memops
+OBJS = obj_memops.o
 
-vpath %.c $(TOP)/src/libpmemobj
-
-TARGET = obj_ringbuf
-OBJS = obj_ringbuf.o
-
-LIBPMEMCOMMON=y
 LIBPMEM=y
 LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
-
-INCS += -I$(TOP)/src/libpmemobj/

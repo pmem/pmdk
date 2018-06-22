@@ -59,7 +59,6 @@ SOURCE +=\
 	ravl.c\
 	recycler.c\
 	redo.c\
-	ringbuf.c\
 	sync.c\
 	tx.c\
 	stats.c

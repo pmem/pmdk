@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,55 +40,37 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "vec.h"
 #include "pmemops.h"
 #include "redo.h"
 #include "lane.h"
 
-enum operation_type {
-	OPERATION_SET,
-	OPERATION_AND,
-	OPERATION_OR,
+enum operation_log_type {
+	LOG_PERSISTENT, /* log of persistent modifications */
+	LOG_TRANSIENT, /* log of transient memory modifications */
 
-	MAX_OPERATION_TYPE
+	MAX_OPERATION_LOG_TYPE
 };
 
-struct operation_entry {
-	uint64_t *ptr;
-	uint64_t value;
-	enum operation_type type;
-};
+struct operation_context;
 
-#define MAX_MEMOPS_ENTRIES REDO_NUM_ENTRIES
+struct operation_context *operation_new(void *base,
+	const struct redo_ctx *redo_ctx,
+	struct redo_log *redo, size_t redo_base_capacity,
+	redo_extend_fn extend);
 
-enum operation_entry_type {
-	ENTRY_PERSISTENT,
-	ENTRY_TRANSIENT,
+void operation_init(struct operation_context *ctx);
+void operation_start(struct operation_context *ctx);
 
-	MAX_OPERATION_ENTRY_TYPE
-};
+void operation_delete(struct operation_context *ctx);
 
-/*
- * operation_context -- context of an ongoing palloc operation
- */
-struct operation_context {
-	const void *base;
-
-	const struct redo_ctx *redo_ctx;
-	struct redo_log *redo;
-	const struct pmem_ops *p_ops;
-
-	size_t nentries[MAX_OPERATION_ENTRY_TYPE];
-	struct operation_entry
-		entries[MAX_OPERATION_ENTRY_TYPE][MAX_MEMOPS_ENTRIES];
-};
-
-void operation_init(struct operation_context *ctx, const void *base,
-	const struct redo_ctx *redo_ctx, struct redo_log *redo);
-void operation_add_entry(struct operation_context *ctx,
-	void *ptr, uint64_t value, enum operation_type type);
-void operation_add_typed_entry(struct operation_context *ctx,
+int operation_add_entry(struct operation_context *ctx,
+	void *ptr, uint64_t value, enum redo_operation_type type);
+int operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
-	enum operation_type type, enum operation_entry_type en_type);
+	enum redo_operation_type type, enum operation_log_type log_type);
+int operation_reserve(struct operation_context *ctx, size_t new_capacity);
 void operation_process(struct operation_context *ctx);
+void operation_cancel(struct operation_context *ctx);
 
 #endif

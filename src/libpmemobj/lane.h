@@ -42,10 +42,11 @@
 #include "libpmemobj.h"
 #include "redo.h"
 
-#define LANE_SECTION_LEN 1024
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#define REDO_NUM_ENTRIES \
-	((LANE_SECTION_LEN - 2 * sizeof(uint64_t)) / sizeof(struct redo_log))
+#define LANE_SECTION_LEN 1024
 
 /*
  * Distance between lanes used by threads required to prevent threads from
@@ -106,7 +107,7 @@ struct lane_descriptor {
 };
 
 typedef int (*section_layout_op)(PMEMobjpool *pop, void *data, unsigned length);
-typedef void *(*section_constr)(PMEMobjpool *pop);
+typedef void *(*section_constr)(PMEMobjpool *pop, void *data);
 typedef void (*section_destr)(PMEMobjpool *pop, void *rt);
 typedef int (*section_global_op)(PMEMobjpool *pop);
 
@@ -166,6 +167,10 @@ static void _section_parm_##n(void)\
 { Section_ops[n] = ops; }\
 MSVC_CONSTR(_section_parm_##n)
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

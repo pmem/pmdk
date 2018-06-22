@@ -55,7 +55,6 @@
     <ClCompile Include="container_seglists.c" />
     <ClCompile Include="alloc_class.c" />
     <ClCompile Include="stats.c" />
-    <ClCompile Include="ringbuf.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h" />
@@ -109,7 +108,6 @@
     <ClInclude Include="ctl_global.h" />
     <ClInclude Include="memblock.h" />
     <ClInclude Include="pvector.h" />
-    <ClInclude Include="ringbuf.h" />
     <ClInclude Include="sync.h" />
     <ClInclude Include="tx.h" />
     <ClInclude Include="recycler.h" />

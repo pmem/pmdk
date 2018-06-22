@@ -289,7 +289,9 @@ main(int argc, char *argv[])
 	 * This workload might create many allocation classes due to pvector,
 	 * keep it last.
 	 */
-	run_worker(tx_worker, args);
+	if (Threads == MAX_THREADS) /* don't run for short tests */
+		run_worker(tx_worker, args);
+
 	run_worker(tx3_worker, args);
 
 	pmemobj_close(pop);

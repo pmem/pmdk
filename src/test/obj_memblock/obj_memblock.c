@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,33 +43,34 @@
 
 static PMEMobjpool *pop;
 
-FUNC_MOCK(operation_add_typed_entry, void, struct operation_context *ctx,
+FUNC_MOCK(operation_add_typed_entry, int, struct operation_context *ctx,
 	void *ptr, uint64_t value,
-	enum operation_type type, enum operation_entry_type en_type)
+	enum redo_operation_type type, enum operation_log_type en_type)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *pval = ptr;
 		switch (type) {
-			case OPERATION_SET:
+			case REDO_OPERATION_SET:
 				*pval = value;
 				break;
-			case OPERATION_AND:
+			case REDO_OPERATION_AND:
 				*pval &= value;
 				break;
-			case OPERATION_OR:
+			case REDO_OPERATION_OR:
 				*pval |= value;
 				break;
 			default:
 				UT_ASSERT(0);
 		}
+		return 0;
 	}
 FUNC_MOCK_END
 
-FUNC_MOCK(operation_add_entry, void, struct operation_context *ctx, void *ptr,
-	uint64_t value, enum operation_type type)
+FUNC_MOCK(operation_add_entry, int, struct operation_context *ctx, void *ptr,
+	uint64_t value, enum redo_operation_type type)
 	FUNC_MOCK_RUN_DEFAULT {
 		/* just call the mock above - the entry type doesn't matter */
-		operation_add_typed_entry(ctx, ptr, value, type,
-			ENTRY_TRANSIENT);
+		return operation_add_typed_entry(ctx, ptr, value, type,
+			LOG_TRANSIENT);
 	}
 FUNC_MOCK_END
 
@@ -186,6 +187,12 @@ test_prep_hdr(void)
 	UT_ASSERTeq(run->bitmap[2], ~0ULL);
 }
 
+static int
+fake_persist(void *base, const void *addr, size_t size, unsigned flags)
+{
+	return 0;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -195,6 +202,8 @@ main(int argc, char *argv[])
 
 	pop->heap.layout = ZALLOC(sizeof(struct heap_layout) +
 		NCHUNKS * sizeof(struct chunk));
+
+	pop->heap.p_ops.persist = fake_persist;
 
 	test_detect();
 	test_block_size();

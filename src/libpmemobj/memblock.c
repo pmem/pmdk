@@ -507,7 +507,13 @@ huge_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 		hdr->flags,
 		m->size_idx);
 
-	operation_add_entry(ctx, hdr, val, OPERATION_SET);
+	if (ctx == NULL) {
+		util_atomic_store_explicit64((uint64_t *)hdr, val,
+			memory_order_relaxed);
+		pmemops_persist(&m->heap->p_ops, hdr, sizeof(*hdr));
+	} else {
+		operation_add_entry(ctx, hdr, val, REDO_OPERATION_SET);
+	}
 
 	VALGRIND_DO_MAKE_MEM_NOACCESS(hdr + 1,
 		(hdr->size_idx - 1) * sizeof(struct chunk_header));
@@ -533,8 +539,14 @@ huge_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	 * be recreated at heap boot regardless - it's just needed for runtime
 	 * operations.
 	 */
-	operation_add_typed_entry(ctx,
-		footer, val, OPERATION_SET, ENTRY_TRANSIENT);
+	if (ctx == NULL) {
+		util_atomic_store_explicit64((uint64_t *)footer, val,
+			memory_order_relaxed);
+		VALGRIND_SET_CLEAN(footer, sizeof(*footer));
+	} else {
+		operation_add_typed_entry(ctx,
+			footer, val, REDO_OPERATION_SET, LOG_TRANSIENT);
+	}
 }
 
 /*
@@ -580,10 +592,10 @@ run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	/* the bit mask is applied immediately by the add entry operations */
 	if (op == MEMBLOCK_ALLOCATED) {
 		operation_add_entry(ctx, &r->bitmap[bpos],
-			bmask, OPERATION_OR);
+			bmask, REDO_OPERATION_OR);
 	} else if (op == MEMBLOCK_FREE) {
 		operation_add_entry(ctx, &r->bitmap[bpos],
-			~bmask, OPERATION_AND);
+			~bmask, REDO_OPERATION_AND);
 	} else {
 		ASSERT(0);
 	}
@@ -888,86 +900,6 @@ struct memory_block
 memblock_from_offset(struct palloc_heap *heap, uint64_t off)
 {
 	return memblock_from_offset_opt(heap, off, 1);
-}
-
-/*
- * memblock_validate_offset -- checks the state of any arbtirary offset within
- *	the heap.
- *
- * This function traverses an entire zone, so use with caution.
- */
-enum memblock_state
-memblock_validate_offset(struct palloc_heap *heap, uint64_t off)
-{
-	struct memory_block m = MEMORY_BLOCK_NONE;
-	m.heap = heap;
-
-	off -= HEAP_PTR_TO_OFF(heap, &heap->layout->zone0);
-	m.zone_id = (uint32_t)(off / ZONE_MAX_SIZE);
-
-	off -= (ZONE_MAX_SIZE * m.zone_id) + sizeof(struct zone);
-	m.chunk_id = (uint32_t)(off / CHUNKSIZE);
-
-	struct zone *z = ZID_TO_ZONE(heap->layout, m.zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m.chunk_id];
-
-	if (hdr->type == CHUNK_TYPE_RUN_DATA)
-		m.chunk_id -= hdr->size_idx;
-
-	off -= CHUNKSIZE * m.chunk_id;
-
-	for (uint32_t i = 0; i < z->header.size_idx; ) {
-		hdr = &z->chunk_headers[i];
-		if (i + hdr->size_idx > m.chunk_id && i < m.chunk_id) {
-			return MEMBLOCK_STATE_UNKNOWN; /* invalid chunk */
-		} else if (m.chunk_id == i) {
-			break;
-		}
-		i += hdr->size_idx;
-	}
-	ASSERTne(hdr, NULL);
-
-	m.header_type = memblock_header_type(&m);
-
-	if (hdr->type != CHUNK_TYPE_RUN) {
-		if (header_type_to_size[m.header_type] != off)
-			return MEMBLOCK_STATE_UNKNOWN;
-		else if (hdr->type == CHUNK_TYPE_USED)
-			return MEMBLOCK_ALLOCATED;
-		else if (hdr->type == CHUNK_TYPE_FREE)
-			return MEMBLOCK_FREE;
-		else
-			return MEMBLOCK_STATE_UNKNOWN;
-	}
-
-	if (header_type_to_size[m.header_type] > off)
-		return MEMBLOCK_STATE_UNKNOWN;
-
-	off -= header_type_to_size[m.header_type];
-
-	m.type = off != 0 ? MEMORY_BLOCK_RUN : MEMORY_BLOCK_HUGE;
-	ASSERTeq(memblock_detect_type(heap, &m), m.type);
-
-	m.m_ops = &mb_ops[m.type];
-
-	uint64_t unit_size = m.m_ops->block_size(&m);
-
-	if (off != 0) { /* run */
-		off -= RUN_METASIZE;
-		struct chunk_run *run = (struct chunk_run *)
-			&z->chunks[m.chunk_id];
-
-		off -= run_get_alignment_padding(hdr, run, m.header_type);
-		m.block_off = (uint16_t)(off / unit_size);
-		off -= m.block_off * unit_size;
-	}
-
-	m.size_idx = CALC_SIZE_IDX(unit_size,
-		memblock_header_ops[m.header_type].get_size(&m));
-
-	ASSERTeq(off, 0);
-
-	return m.m_ops->get_state(&m);
 }
 
 /*

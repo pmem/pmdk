@@ -119,7 +119,6 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/ravl.o\
 	$(TOP)/src/debug/libpmemobj/recycler.o\
 	$(TOP)/src/debug/libpmemobj/redo.o\
-	$(TOP)/src/debug/libpmemobj/ringbuf.o\
 	$(TOP)/src/debug/libpmemobj/sync.o\
 	$(TOP)/src/debug/libpmemobj/tx.o\
 	$(TOP)/src/debug/libpmemobj/stats.o
@@ -150,7 +149,6 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/ravl.o\
 	$(TOP)/src/nondebug/libpmemobj/recycler.o\
 	$(TOP)/src/nondebug/libpmemobj/redo.o\
-	$(TOP)/src/nondebug/libpmemobj/ringbuf.o\
 	$(TOP)/src/nondebug/libpmemobj/sync.o\
 	$(TOP)/src/nondebug/libpmemobj/tx.o\
 	$(TOP)/src/nondebug/libpmemobj/stats.o

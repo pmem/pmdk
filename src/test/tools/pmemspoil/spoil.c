@@ -1176,7 +1176,7 @@ pmemspoil_process_heap(struct pmemspoil *psp, struct pmemspoil_list *pfp,
  */
 static int
 pmemspoil_process_redo_log(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct redo_log *redo)
+	struct pmemspoil_list *pfp, struct redo_log_entry *redo)
 {
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD(redo, offset, uint64_t);
@@ -1194,8 +1194,8 @@ pmemspoil_process_sec_allocator(struct pmemspoil *psp,
 	struct pmemspoil_list *pfp, struct lane_alloc_layout *sec)
 {
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS(redo_log, &sec->redo[PROCESS_INDEX],
-			ALLOC_REDO_LOG_SIZE, struct redo_log *);
+		PROCESS(redo_log, &sec->internal.entries[PROCESS_INDEX],
+			ALLOC_REDO_INTERNAL_SIZE, struct redo_log_entry *);
 	} PROCESS_END
 
 	return PROCESS_RET;
@@ -1224,14 +1224,10 @@ pmemspoil_process_sec_tx(struct pmemspoil *psp,
 	struct pmemspoil_list *pfp, struct lane_tx_layout *sec)
 {
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(sec, state, uint64_t);
-
-		PROCESS_NAME("undo_alloc", vector,
-			&sec->undo_log[UNDO_ALLOC], 1);
 		PROCESS_NAME("undo_set", vector,
 			&sec->undo_log[UNDO_SET], 1);
-		PROCESS_NAME("undo_free", vector,
-			&sec->undo_log[UNDO_FREE], 1);
+		PROCESS_NAME("undo_set_cache", vector,
+			&sec->undo_log[UNDO_SET_CACHE], 1);
 	} PROCESS_END
 
 	return PROCESS_RET;
@@ -1244,11 +1240,11 @@ static int
 pmemspoil_process_sec_list(struct pmemspoil *psp,
 	struct pmemspoil_list *pfp, struct lane_list_layout *sec)
 {
-	size_t redo_size = REDO_NUM_ENTRIES;
+	size_t redo_size = LIST_REDO_LOG_SIZE;
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD(sec, obj_offset, uint64_t);
-		PROCESS(redo_log, &sec->redo[PROCESS_INDEX], redo_size,
-			struct redo_log *);
+		PROCESS(redo_log, &sec->redo.entries[PROCESS_INDEX], redo_size,
+			struct redo_log_entry *);
 	} PROCESS_END
 
 	return PROCESS_RET;

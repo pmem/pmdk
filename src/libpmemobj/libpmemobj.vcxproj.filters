@@ -109,9 +109,6 @@
     <ClCompile Include="ctl_global.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ringbuf.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stats.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -296,9 +293,6 @@
     </ClInclude>
     <ClInclude Include="..\include\libpmemobj\ctl.h">
       <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="ringbuf.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\fs.h">
       <Filter>Header Files</Filter>

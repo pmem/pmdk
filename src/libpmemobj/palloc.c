@@ -99,9 +99,6 @@ struct pobj_action_internal {
 	};
 };
 
-#define OBJ_HEAP_ACTION_INITIALIZER(off, nstate)\
-{POBJ_ACTION_TYPE_HEAP, 0, NULL, {{off, nstate, MEMORY_BLOCK_NONE, NULL}}}
-
 /*
  * palloc_set_value -- creates a new set memory action
  */
@@ -192,6 +189,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 	int err = 0;
 
 	struct memory_block *new_block = &out->m;
+	out->type = POBJ_ACTION_TYPE_HEAP;
 
 	ASSERT(class_id < UINT8_MAX);
 	struct alloc_class *c = class_id == 0 ?
@@ -221,6 +219,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 		return -1;
 	}
 	ASSERT(size_idx <= UINT32_MAX);
+	*new_block = MEMORY_BLOCK_NONE;
 	new_block->size_idx = (uint32_t)size_idx;
 
 	struct bucket *b = heap_bucket_acquire(heap, c);
@@ -300,7 +299,14 @@ palloc_restore_free_chunk_state(struct palloc_heap *heap,
 	if (m->type == MEMORY_BLOCK_HUGE) {
 		struct bucket *b = heap_bucket_acquire_by_id(heap,
 			DEFAULT_ALLOC_CLASS_ID);
-		heap_free_chunk_reuse(heap, b, m);
+		if (heap_free_chunk_reuse(heap, b, m) != 0) {
+			if (errno == EEXIST) {
+				FATAL(
+					"duplicate runtime chunk state, possible double free");
+			} else {
+				LOG(2, "unable to track runtime chunk state");
+			}
+		}
 		heap_bucket_release(heap, b);
 	}
 }
@@ -378,7 +384,7 @@ palloc_mem_action_exec(struct palloc_heap *heap,
 	const struct pobj_action_internal *act,
 	struct operation_context *ctx)
 {
-	operation_add_entry(ctx, act->ptr, act->value, OPERATION_SET);
+	operation_add_entry(ctx, act->ptr, act->value, REDO_OPERATION_SET);
 }
 
 static struct {
@@ -450,17 +456,17 @@ static void
 palloc_exec_actions(struct palloc_heap *heap,
 	struct operation_context *ctx,
 	struct pobj_action_internal *actv,
-	int actvcnt)
+	size_t actvcnt)
 {
 	/*
 	 * The operations array is sorted so that proper lock ordering is
 	 * ensured.
 	 */
-	qsort(actv, (size_t)actvcnt, sizeof(struct pobj_action_internal),
+	qsort(actv, actvcnt, sizeof(struct pobj_action_internal),
 		palloc_action_compare);
 
 	struct pobj_action_internal *act;
-	for (int i = 0; i < actvcnt; ++i) {
+	for (size_t i = 0; i < actvcnt; ++i) {
 		act = &actv[i];
 
 		/*
@@ -485,8 +491,7 @@ palloc_exec_actions(struct palloc_heap *heap,
 	/* perform all persistent memory operations */
 	operation_process(ctx);
 
-	/* finish runtime state modifications */
-	for (int i = 0; i < actvcnt; ++i) {
+	for (size_t i = 0; i < actvcnt; ++i) {
 		act = &actv[i];
 
 		action_funcs[act->type].on_process(heap, act);
@@ -497,7 +502,7 @@ palloc_exec_actions(struct palloc_heap *heap,
 		}
 	}
 
-	for (int i = 0; i < actvcnt; ++i) {
+	for (size_t i = 0; i < actvcnt; ++i) {
 		act = &actv[i];
 
 		action_funcs[act->type].on_unlock(heap, act);
@@ -515,7 +520,6 @@ palloc_reserve(struct palloc_heap *heap, size_t size,
 {
 	COMPILE_ERROR_ON(sizeof(struct pobj_action) !=
 		sizeof(struct pobj_action_internal));
-	act->type = POBJ_ACTION_TYPE_HEAP;
 
 	return palloc_reservation_create(heap, size, constructor, arg,
 		extra_field, object_flags, class_id,
@@ -523,14 +527,50 @@ palloc_reserve(struct palloc_heap *heap, size_t size,
 }
 
 /*
+ * palloc_defer_free -- creates an internal deferred free action
+ */
+static void
+palloc_defer_free_create(struct palloc_heap *heap, uint64_t off,
+	struct pobj_action_internal *out)
+{
+	COMPILE_ERROR_ON(sizeof(struct pobj_action) !=
+		sizeof(struct pobj_action_internal));
+
+	out->type = POBJ_ACTION_TYPE_HEAP;
+	out->offset = off;
+	out->m = memblock_from_offset(heap, off);
+
+	/*
+	 * For the duration of free we may need to protect surrounding
+	 * metadata from being modified.
+	 */
+	out->lock = out->m.m_ops->get_lock(&out->m);
+	out->resvp = NULL;
+	out->new_state = MEMBLOCK_FREE;
+}
+
+/*
+ * palloc_defer_free -- creates a deferred free action
+ */
+void
+palloc_defer_free(struct palloc_heap *heap, uint64_t off,
+	struct pobj_action *act)
+{
+	COMPILE_ERROR_ON(sizeof(struct pobj_action) !=
+		sizeof(struct pobj_action_internal));
+
+	palloc_defer_free_create(heap, off, (struct pobj_action_internal *)act);
+}
+
+/*
  * palloc_cancel -- cancels all reservations in the array
  */
 void
 palloc_cancel(struct palloc_heap *heap,
-	struct pobj_action *actv, int actvcnt)
+	struct pobj_action *actv, size_t actvcnt)
 {
 	struct pobj_action_internal *act;
-	for (int i = 0; i < actvcnt; ++i) {
+	for (size_t i = 0; i < actvcnt; ++i) {
 		act = (struct pobj_action_internal *)&actv[i];
 		action_funcs[act->type].on_cancel(heap, act);
 	}
@@ -541,7 +581,7 @@ palloc_cancel(struct palloc_heap *heap,
  */
 void
 palloc_publish(struct palloc_heap *heap,
-	struct pobj_action *actv, int actvcnt,
+	struct pobj_action *actv, size_t actvcnt,
 	struct operation_context *ctx)
 {
 	palloc_exec_actions(heap, ctx,
@@ -589,32 +629,12 @@ palloc_operation(struct palloc_heap *heap,
 	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
 	struct operation_context *ctx)
 {
-	struct pobj_action_internal alloc =
-		OBJ_HEAP_ACTION_INITIALIZER(0, MEMBLOCK_ALLOCATED);
-	struct pobj_action_internal dealloc =
-		OBJ_HEAP_ACTION_INITIALIZER(off, MEMBLOCK_FREE);
-
 	size_t user_size = 0;
 
-	int nops = 0;
+	size_t nops = 0;
 	struct pobj_action_internal ops[2];
-
-	/* free or realloc */
-	if (dealloc.offset != 0) {
-		dealloc.m = memblock_from_offset(heap, dealloc.offset);
-		user_size = dealloc.m.m_ops->get_user_size(&dealloc.m);
-		if (user_size == size)
-			return 0;
-	}
-
-	/* alloc or realloc */
-	if (size != 0) {
-		if (palloc_reservation_create(heap, size, constructor, arg,
-			extra_field, object_flags, class_id, &alloc) != 0)
-			return -1;
-
-		ops[nops++] = alloc;
-	}
+	struct pobj_action_internal *alloc = NULL;
+	struct pobj_action_internal *dealloc = NULL;
 
 	/*
 	 * The offset of an existing block can be nonzero which means this
@@ -622,44 +642,53 @@ palloc_operation(struct palloc_heap *heap,
 	 * object needs to be translated into memory block, which is a structure
 	 * that all of the heap methods expect.
 	 */
-	if (dealloc.offset != 0) {
-		/* realloc */
-		if (!MEMORY_BLOCK_IS_NONE(alloc.m)) {
-			/* copy data to newly allocated memory */
-			size_t old_size = user_size;
-			size_t to_cpy = old_size > size ? size : old_size;
-			VALGRIND_ADD_TO_TX(
-				HEAP_OFF_TO_PTR(heap, alloc.offset),
-				to_cpy);
-			pmemops_memcpy(&heap->p_ops,
-				HEAP_OFF_TO_PTR(heap, alloc.offset),
-				HEAP_OFF_TO_PTR(heap, off),
-				to_cpy,
-				0);
-			VALGRIND_REMOVE_FROM_TX(
-				HEAP_OFF_TO_PTR(heap, alloc.offset),
-				to_cpy);
+	if (off != 0) {
+		dealloc = &ops[nops++];
+		palloc_defer_free_create(heap, off, dealloc);
+		user_size = dealloc->m.m_ops->get_user_size(&dealloc->m);
+		if (user_size == size) {
+			operation_cancel(ctx);
+			return 0;
 		}
+	}
 
-		/*
-		 * For the duration of free we may need to protect surrounding
-		 * metadata from being modified.
-		 */
-		dealloc.lock = dealloc.m.m_ops->get_lock(&dealloc.m);
+	/* alloc or realloc */
+	if (size != 0) {
+		alloc = &ops[nops++];
+		if (palloc_reservation_create(heap, size, constructor, arg,
+			extra_field, object_flags, class_id, alloc) != 0) {
+			operation_cancel(ctx);
+			return -1;
+		}
+	}
 
-		ops[nops++] = dealloc;
+	/* realloc */
+	if (alloc != NULL && dealloc != NULL) {
+		/* copy data to newly allocated memory */
+		size_t old_size = user_size;
+		size_t to_cpy = old_size > size ? size : old_size;
+		VALGRIND_ADD_TO_TX(
+			HEAP_OFF_TO_PTR(heap, alloc->offset),
+			to_cpy);
+		pmemops_memcpy(&heap->p_ops,
+			HEAP_OFF_TO_PTR(heap, alloc->offset),
+			HEAP_OFF_TO_PTR(heap, off),
+			to_cpy,
+			0);
+		VALGRIND_REMOVE_FROM_TX(
+			HEAP_OFF_TO_PTR(heap, alloc->offset),
+			to_cpy);
 	}
 
 	/*
 	 * If the caller provided a destination value to update, it needs to be
 	 * modified atomically alongside the heap metadata, and so the operation
 	 * context must be used.
-	 * The actual offset value depends on the operation type, but
-	 * alloc.offset variable is used because it's 0 in the case of free,
-	 * and valid otherwise.
 	 */
-	if (dest_off)
-		operation_add_entry(ctx, dest_off, alloc.offset, OPERATION_SET);
+	if (dest_off) {
+		operation_add_entry(ctx, dest_off,
+			alloc ? alloc->offset : 0, REDO_OPERATION_SET);
+	}
 
 	/* and now actually perform the requested operation! */
 	palloc_exec_actions(heap, ctx, ops, nops);
@@ -753,20 +782,6 @@ palloc_next(struct palloc_heap *heap, uint64_t off)
 	void *uptr = search.m_ops->get_user_data(&search);
 
 	return HEAP_PTR_TO_OFF(heap, uptr);
-}
-
-/*
- * palloc_is_allocated -- returns true if the offset points to a valid object
- *
- * Not MT safe!!
- * This function can have relevant information only if there were no allocations
- * done between the reservation of the provided offset and the call to this
- * function.
- */
-int
-palloc_is_allocated(struct palloc_heap *heap, uint64_t off)
-{
-	return memblock_validate_offset(heap, off) == MEMBLOCK_ALLOCATED;
 }
 
 /*

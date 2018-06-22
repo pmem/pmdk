@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 
 #include <stdint.h>
 #include "pvector.h"
+#include "redo.h"
 
 #define TX_DEFAULT_RANGE_CACHE_SIZE (1 << 15)
 #define TX_DEFAULT_RANGE_CACHE_THRESHOLD (1 << 12)
@@ -62,8 +63,6 @@ struct tx_range {
 struct tx_range_cache;
 
 enum undo_types {
-	UNDO_ALLOC,
-	UNDO_FREE,
 	UNDO_SET,
 	UNDO_SET_CACHE,
 
@@ -71,7 +70,6 @@ enum undo_types {
 };
 
 struct lane_tx_layout {
-	uint64_t state;
 	struct pvector undo_log[MAX_UNDO_TYPES];
 };
 

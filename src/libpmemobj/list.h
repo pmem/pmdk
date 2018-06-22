@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,9 @@
 #include "pmalloc.h"
 #include "redo.h"
 
+
+#define LIST_REDO_LOG_SIZE 59 /* (lane size - redo log - 16) / entry size */
+
 /*
  * lane_list_layout -- structure of list section in lane
  *
@@ -53,8 +56,8 @@
  * redo       - redo log
  */
 struct lane_list_layout {
+	struct REDO_LOG(LIST_REDO_LOG_SIZE) redo;
 	uint64_t obj_offset;
-	struct redo_log redo[REDO_NUM_ENTRIES];
 };
 
 struct list_entry {

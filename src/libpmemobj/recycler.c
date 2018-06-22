@@ -317,7 +317,9 @@ recycler_recalc(struct recycler *r, int force)
 
 	uint64_t units = r->unaccounted_units;
 
-	if (r->recalc_inprogress || (!force && units < (r->recalc_threshold)))
+	if (r->recalc_inprogress ||
+	    units == 0 ||
+	    (!force && units < (r->recalc_threshold)))
 		return runs;
 
 	if (!util_bool_compare_and_swap32(&r->recalc_inprogress, 0, 1))
