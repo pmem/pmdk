@@ -233,9 +233,6 @@ a `unit_size` of 512 bytes and a `units_per_block` of 1000, a single block of
 memory for that class will have 512 kilobytes.
 This is relevant because the bigger the block size, the less frequently blocks
 need to be fetched, resulting in lower contention on global heap state.
-Keep in mind that object allocation is tracked in a bitmap with a limited
-number of entries, making it inefficient to create allocation classes smaller
-than 128 bytes.
 
 The `header_type` field defines the header of objects from the allocation class.
 There are three types:
