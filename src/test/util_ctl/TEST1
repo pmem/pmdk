@@ -35,12 +35,14 @@
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_test_type short
+require_test_type medium
+
+configure_valgrind memcheck force-enable
 
 setup
 
 expect_normal_exit\
-	./obj_ctl$EXESUFFIX $DIR/testfile1 $DIR/testconfig
+	./util_ctl$EXESUFFIX $DIR/testconfig
 
 rm -rf $DIR/testconfig
 

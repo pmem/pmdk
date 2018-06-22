@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +31,13 @@
 #
 
 #
-# src/test/obj_ctl/TEST0 -- unit test for obj_ctl interface
+# src/test/util_ctl/Makefile -- build util_ctl test
 #
+TARGET = util_ctl
+OBJS = util_ctl.o
 
-# standard unit test setup
-. ..\unittest\unittest.ps1
+LIBPMEM=y
+LIBPMEMOBJ=y
+LIBPMEMOBJ=internal-debug
 
-require_test_type short
-
-setup
-
-expect_normal_exit $Env:EXE_DIR\obj_ctl$Env:EXESUFFIX $DIR\testfile1 $DIR\testconfig
-
-pass
+include ../Makefile.inc
