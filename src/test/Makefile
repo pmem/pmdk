@@ -74,7 +74,6 @@ OBJ_TESTS = \
 	obj_bucket\
 	obj_check\
 	obj_constructor\
-	obj_ctl\
 	obj_ctl_alignment\
 	obj_ctl_alloc_class\
 	obj_ctl_alloc_class_config\
@@ -210,6 +209,7 @@ OTHER_TESTS = \
 	unicode_api\
 	unicode_match_script\
 	util_badblock\
+	util_ctl\
 	util_extent\
 	util_file_create\
 	util_file_open\

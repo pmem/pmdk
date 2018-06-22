@@ -103,8 +103,6 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/bucket.o\
 	$(TOP)/src/debug/libpmemobj/container_ravl.o\
 	$(TOP)/src/debug/libpmemobj/container_seglists.o\
-	$(TOP)/src/debug/libpmemobj/ctl.o\
-	$(TOP)/src/debug/libpmemobj/ctl_global.o\
 	$(TOP)/src/debug/libpmemobj/cuckoo.o\
 	$(TOP)/src/debug/libpmemobj/heap.o\
 	$(TOP)/src/debug/libpmemobj/lane.o\
@@ -133,8 +131,6 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/bucket.o\
 	$(TOP)/src/nondebug/libpmemobj/container_ravl.o\
 	$(TOP)/src/nondebug/libpmemobj/container_seglists.o\
-	$(TOP)/src/nondebug/libpmemobj/ctl.o\
-	$(TOP)/src/nondebug/libpmemobj/ctl_global.o\
 	$(TOP)/src/nondebug/libpmemobj/cuckoo.o\
 	$(TOP)/src/nondebug/libpmemobj/heap.o\
 	$(TOP)/src/nondebug/libpmemobj/lane.o\
@@ -203,6 +199,8 @@ ifeq ($(LIBPMEMCOMMON), internal-nondebug)
 OBJS +=\
 	$(call osdep, $(TOP)/src/nondebug/common/badblock,.o)\
 	$(TOP)/src/nondebug/common/badblock.o\
+	$(TOP)/src/nondebug/common/ctl.o\
+	$(TOP)/src/nondebug/common/ctl_global.o\
 	$(call osdep, $(TOP)/src/nondebug/common/extent,.o)\
 	$(TOP)/src/nondebug/common/file.o\
 	$(TOP)/src/nondebug/common/file_posix.o\
@@ -230,6 +228,8 @@ ifeq ($(LIBPMEMCOMMON), internal-debug)
 OBJS +=\
 	$(call osdep, $(TOP)/src/debug/common/badblock,.o)\
 	$(TOP)/src/debug/common/badblock.o\
+	$(TOP)/src/debug/common/ctl.o\
+	$(TOP)/src/debug/common/ctl_global.o\
 	$(call osdep, $(TOP)/src/debug/common/extent,.o)\
 	$(TOP)/src/debug/common/file.o\
 	$(TOP)/src/debug/common/file_posix.o\

@@ -373,12 +373,12 @@ SECTION_PARM(LANE_SECTION_ALLOCATOR, &allocator_ops);
  * CTL_WRITE_HANDLER(proto) -- creates a new allocation class
  */
 static int
-CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
+CTL_WRITE_HANDLER(desc)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
 	uint8_t id;
 	struct alloc_class_collection *ac = heap_alloc_classes(&pop->heap);
-
 	struct pobj_alloc_class_desc *p = arg;
 
 	if (p->unit_size <= 0 || p->unit_size > PMEMOBJ_MAX_ALLOC_SIZE ||
@@ -501,9 +501,10 @@ pmalloc_header_type_parser(const void *arg, void *dest, size_t dest_size)
  * CTL_READ_HANDLER(desc) -- reads the information about allocation class
  */
 static int
-CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
+CTL_READ_HANDLER(desc)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
 	uint8_t id;
 
 	struct ctl_index *idx = SLIST_FIRST(indexes);
@@ -590,9 +591,11 @@ static const struct ctl_node CTL_NODE(alloc_class)[] = {
  * CTL_RUNNABLE_HANDLER(extend) -- extends the pool by the given size
  */
 static int
-CTL_RUNNABLE_HANDLER(extend)(PMEMobjpool *pop,
+CTL_RUNNABLE_HANDLER(extend)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
+
 	ssize_t arg_in = *(ssize_t *)arg;
 	if (arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
 		ERR("incorrect size for extend, must be larger than %" PRIu64,
@@ -615,9 +618,11 @@ CTL_RUNNABLE_HANDLER(extend)(PMEMobjpool *pop,
  * CTL_READ_HANDLER(granularity) -- reads the current heap grow size
  */
 static int
-CTL_READ_HANDLER(granularity)(PMEMobjpool *pop,
+CTL_READ_HANDLER(granularity)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
+
 	ssize_t *arg_out = arg;
 
 	*arg_out = (ssize_t)pop->heap.growsize;
@@ -629,9 +634,11 @@ CTL_READ_HANDLER(granularity)(PMEMobjpool *pop,
  * CTL_WRITE_HANDLER(granularity) -- changes the heap grow size
  */
 static int
-CTL_WRITE_HANDLER(granularity)(PMEMobjpool *pop,
+CTL_WRITE_HANDLER(granularity)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
+
 	ssize_t arg_in = *(int *)arg;
 	if (arg_in != 0 && arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
 		ERR("incorrect grow size, must be 0 or larger than %" PRIu64,
