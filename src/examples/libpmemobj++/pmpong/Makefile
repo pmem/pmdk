@@ -42,7 +42,7 @@ endif
 PROGS = pmpong
 else
 $(info NOTE: Skipping pmpong because sfml is missing \
--- see src/examples/libpmemobj/pmpong/README for details.)
+-- see src/examples/libpmemobj++/pmpong/README for details.)
 endif
 
 LIBS = -lpmemobj -lpmem

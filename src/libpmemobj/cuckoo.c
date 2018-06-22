@@ -55,7 +55,7 @@ struct cuckoo_slot {
 
 struct cuckoo {
 	size_t size; /* number of hash table slots */
-	struct cuckoo_slot *tab;
+	struct cuckoo_slot *restrict tab;
 };
 
 static const struct cuckoo_slot null_slot = {0, NULL};
@@ -160,7 +160,7 @@ cuckoo_insert_try(struct cuckoo *c, struct cuckoo_slot *src)
 }
 
 /*
- * cuckoo_grow -- (internal) rehashes the table with twice the size
+ * cuckoo_grow -- (internal) rehashes the table with GROWTH_FACTOR * size
  */
 static int
 cuckoo_grow(struct cuckoo *c)
