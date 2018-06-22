@@ -375,14 +375,16 @@ static struct {
 };
 
 /*
- * memblock_run_nallocs -- returns the number of memory blocks available in the
- *	in a run with given parameters
+ * memblock_run_default_nallocs -- returns the number of memory blocks
+ *	available in the in a run with given parameters using the default
+ *	fixed-bitmap algorithm
  */
-unsigned
-memblock_run_nallocs(uint32_t *size_idx, uint16_t flags,
+static unsigned
+memblock_run_default_nallocs(uint32_t *size_idx, uint16_t flags,
 	uint64_t unit_size, uint64_t alignment)
 {
-	unsigned nallocs = (unsigned)(RUN_SIZE_BYTES(*size_idx) / unit_size);
+	unsigned nallocs = (unsigned)
+		(RUN_DEFAULT_SIZE_BYTES(*size_idx) / unit_size);
 
 	while (nallocs > DEFAULT_RUN_BITMAP_NBITS) {
 		LOG(3, "tried to create a run (%lu) with number "
@@ -392,7 +394,7 @@ memblock_run_nallocs(uint32_t *size_idx, uint16_t flags,
 			*size_idx -= 1;
 			/* recalculate the number of allocations */
 			nallocs = (uint32_t)
-				(RUN_SIZE_BYTES(*size_idx) / unit_size);
+				(RUN_DEFAULT_SIZE_BYTES(*size_idx) / unit_size);
 			LOG(3, "run (%lu) was constructed with "
 				"fewer (%u) than requested chunks (%u)",
 				unit_size, *size_idx, *size_idx + 1);
@@ -412,27 +414,59 @@ memblock_run_nallocs(uint32_t *size_idx, uint16_t flags,
 }
 
 /*
- * run_get_bitmap -- initializes run bitmap information
+ * memblock_run_bitmap -- calculate bitmap parameters for given arguments
  */
-static void
-run_get_bitmap(const struct memory_block *m, struct run_bitmap *b)
+void
+memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
+	uint64_t unit_size, uint64_t alignment, void *content,
+	struct run_bitmap *b)
 {
-	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
-	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
+	ASSERTne(*size_idx, 0);
 
-	size_t unit_size = run->block_size;
+	if (flags & CHUNK_FLAG_FLEX_BITMAP) {
+		size_t content_size = RUN_CONTENT_SIZE_BYTES(*size_idx);
+		b->nbits = (unsigned)(content_size / unit_size);
+		b->nvalues = util_div_ceil(b->nbits, BITS_PER_VALUE);
+
+		b->nvalues = ALIGN_UP(b->nvalues + RUN_BASE_METADATA_VALUES, 8U)
+			- RUN_BASE_METADATA_VALUES;
+
+		b->size = b->nvalues * sizeof(*b->values);
+		b->nbits = (unsigned)((content_size - b->size) / unit_size);
+
+		unsigned unused_bits = (b->nvalues * BITS_PER_VALUE) - b->nbits;
+		unsigned unused_values = unused_bits / BITS_PER_VALUE;
+		b->nvalues -= unused_values;
+
+		b->values = (uint64_t *)content;
+
+		return;
+	}
 
 	b->size = DEFAULT_BITMAP_SIZE;
-	uint32_t size_idx = hdr->size_idx;
-	b->nbits = memblock_run_nallocs(&size_idx, hdr->flags,
-		unit_size, run->alignment);
-	ASSERTeq(size_idx, hdr->size_idx);
+	b->nbits = memblock_run_default_nallocs(size_idx, flags,
+		unit_size, alignment);
 
 	unsigned unused_bits = DEFAULT_RUN_BITMAP_NBITS - b->nbits;
 	unsigned unused_values = unused_bits / BITS_PER_VALUE;
 	b->nvalues = DEFAULT_BITMAP_VALUES - unused_values;
 
-	b->values = (uint64_t *)run->content;
+	b->values = (uint64_t *)content;
+}
+
+/*
+ * run_get_bitmap -- initializes run bitmap information
+ */
+static void
+run_get_bitmap(const struct memory_block *m, struct run_bitmap *b)
+{
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
+	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
+
+	uint32_t size_idx = hdr->size_idx;
+	memblock_run_bitmap(&size_idx, hdr->flags, run->block_size,
+		run->alignment, run->content, b);
+	ASSERTeq(size_idx, hdr->size_idx);
 }
 
 /*
@@ -1257,7 +1291,8 @@ memblock_run_init(struct palloc_heap *heap,
 	run->alignment = alignment;
 
 	struct run_bitmap b;
-	run_get_bitmap(&m, &b);
+	memblock_run_bitmap(&size_idx, flags, unit_size, alignment,
+		run->content, &b);
 
 	size_t bitmap_size = b.size;
 

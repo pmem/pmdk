@@ -419,11 +419,12 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 	struct recycler_element e = recycler_element_new(heap, m);
 	if (c == NULL) {
 		uint32_t size_idx = m->size_idx;
-		unsigned nallocs = memblock_run_nallocs(&size_idx,
-			hdr->flags, run->block_size, run->alignment);
+		struct run_bitmap b;
+		m->m_ops->get_bitmap(m, &b);
+
 		ASSERTeq(size_idx, m->size_idx);
 
-		return e.free_space == nallocs;
+		return e.free_space == b.nbits;
 	}
 
 	if (e.free_space == c->run.nallocs)
