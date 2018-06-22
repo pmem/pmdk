@@ -137,7 +137,6 @@ test_load_factor(void)
 	srand(INITIAL_SEED);
 
 	float avg_load = 0.f;
-	rand64();
 	int inserted = 0;
 	for (int i = 0; ; ++i) {
 		if (cuckoo_insert(c, rand64() % NVALUES, TEST_VALUE) == 0) {
