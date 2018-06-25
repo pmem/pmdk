@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,12 +30,30 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-LIBRARIES = hashmap_atomic hashmap_tx hashmap_rp
+#
+# src/test/ex_libpmemobj/TEST21 -- unit test for libpmemobj examples
+#
 
-LIBS = -lpmemobj
+# standard unit test setup
+. ..\unittest\unittest.PS1
 
-include ../../Makefile.inc
+require_test_type medium
+require_build_type debug nondebug
+require_no_unicode
 
-libhashmap_atomic.o: hashmap_atomic.o
-libhashmap_tx.o: hashmap_tx.o
-libhashmap_rp.o: hashmap_rp.o
+setup
+
+echo @"
+i 1234
+i 4321
+p
+n 5
+p
+q
+"@ | &$Env:EXE_DIR\ex_pmemobj_mapcli hashmap_rp $DIR\testfile1 666 > out$Env:UNITTEST_NUM.log 2>&1
+
+check_exit_code
+
+check
+
+pass

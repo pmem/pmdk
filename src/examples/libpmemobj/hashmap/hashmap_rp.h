@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -29,21 +29,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef HASHMAP_RP_H
+#define HASHMAP_RP_H
 
-#ifndef HASHSET_INTERNAL_H
-#define HASHSET_INTERNAL_H
+#include <stddef.h>
+#include <stdint.h>
+#include <hashmap.h>
+#include <libpmemobj.h>
 
-/* large prime number used as a hashing function coefficient */
-#define HASH_FUNC_COEFF_P 32212254719ULL
-
-/* initial number of buckets */
-#define INIT_BUCKETS_NUM 10
-#define INIT_BUCKETS_NUM_RP 16
-
-/* number of values in a bucket which trigger hashtable rebuild check */
-#define MIN_HASHSET_THRESHOLD 5
-
-/* number of values in a bucket which force hashtable rebuild */
-#define MAX_HASHSET_THRESHOLD 10
-
+#ifndef HASHMAP_RP_TYPE_OFFSET
+#define HASHMAP_RP_TYPE_OFFSET 1008
 #endif
+
+#define HASHMAP_RP_DEBUG 0
+
+#define HASHMAP_RP_LOAD_FACTOR 0.5f
+#define HASHMAP_RP_MAX_SWAPS 150
+#define HASHMAP_RP_MAX_ACTIONS (4 + HASHMAP_RP_DEBUG) * HASHMAP_RP_MAX_SWAPS +\
+				5 + HASHMAP_RP_DEBUG
+
+struct hashmap_rp;
+TOID_DECLARE(struct hashmap_rp, HASHMAP_RP_TYPE_OFFSET + 0);
+
+int hm_rp_check(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap);
+int hm_rp_create(PMEMobjpool *pop, TOID(struct hashmap_rp) *map, void *arg);
+int hm_rp_init(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap);
+int hm_rp_insert(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap,
+		uint64_t key, PMEMoid value);
+PMEMoid hm_rp_remove(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap,
+		uint64_t key);
+PMEMoid hm_rp_get(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap,
+		uint64_t key);
+int hm_rp_lookup(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap,
+		uint64_t key);
+int hm_rp_foreach(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap,
+		int (*cb)(uint64_t key, PMEMoid value, void *arg), void *arg);
+size_t hm_rp_count(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap);
+int hm_rp_cmd(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap,
+		unsigned cmd, uint64_t arg);
+
+#endif /* HASHMAP_RP_H */

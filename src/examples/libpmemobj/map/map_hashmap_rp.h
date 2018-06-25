@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,20 +30,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef HASHSET_INTERNAL_H
-#define HASHSET_INTERNAL_H
+/*
+ * map_hashmap_rp.h -- common interface for maps
+ */
 
-/* large prime number used as a hashing function coefficient */
-#define HASH_FUNC_COEFF_P 32212254719ULL
+#ifndef MAP_HASHMAP_RP_H
+#define MAP_HASHMAP_RP_H
 
-/* initial number of buckets */
-#define INIT_BUCKETS_NUM 10
-#define INIT_BUCKETS_NUM_RP 16
+#include "map.h"
 
-/* number of values in a bucket which trigger hashtable rebuild check */
-#define MIN_HASHSET_THRESHOLD 5
+extern struct map_ops hashmap_rp_ops;
 
-/* number of values in a bucket which force hashtable rebuild */
-#define MAX_HASHSET_THRESHOLD 10
+#define MAP_HASHMAP_RP (&hashmap_rp_ops)
 
-#endif
+#endif /* MAP_HASHMAP_RP_H */
