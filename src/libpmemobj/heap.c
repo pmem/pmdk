@@ -657,10 +657,19 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	if (heap_reuse_from_recycler(heap, b, units, 0) == 0)
 		goto out;
 
+	/* search in the next zone before attempting to create a new run */
+	struct bucket *defb = heap_bucket_acquire_by_id(heap,
+		DEFAULT_ALLOC_CLASS_ID);
+	heap_populate_bucket(heap, defb);
+	heap_bucket_release(heap, defb);
+
+	if (heap_reuse_from_recycler(heap, b, units, 0) == 0)
+		goto out;
+
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.size_idx = b->aclass->run.size_idx;
 
-	struct bucket *defb = heap_bucket_acquire_by_id(heap,
+	defb = heap_bucket_acquire_by_id(heap,
 		DEFAULT_ALLOC_CLASS_ID);
 	/* cannot reuse an existing run, create a new one */
 	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
