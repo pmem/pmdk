@@ -80,7 +80,7 @@ typedef
        VG_USERREQ__PMC_ADD_THREAD_TO_TX_N,
        VG_USERREQ__PMC_REMOVE_THREAD_FROM_TX_N,
        VG_USERREQ__PMC_ADD_TO_GLOBAL_TX_IGNORE,
-       VG_USERREQ__PMC_DEFAULT_REORDER
+       VG_USERREQ__PMC_DEFAULT_REORDER,
    } Vg_PMemCheckClientRequest;
 
 
@@ -129,7 +129,7 @@ typedef
     VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DO_FENCE,               \
                                     0, 0, 0, 0, 0)
 
-/** Register a PCOMMIT */
+/** Register a PCOMMIT (DEPRECATED, DO NOT USE) */
 #define VALGRIND_PMC_DO_COMMIT                                              \
     VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DO_COMMIT,              \
                                     0, 0, 0, 0, 0)
@@ -180,7 +180,7 @@ typedef
     VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_STOP_REORDER_FAULT,     \
                                     0, 0, 0, 0, 0)
 
-/** Issue a log to default reorder */
+/** Issue a log to set the default reorder engine */
 #define VALGRIND_PMC_DEFAULT_REORDER                                    \
     VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DEFAULT_REORDER,     \
                                     0, 0, 0, 0, 0)

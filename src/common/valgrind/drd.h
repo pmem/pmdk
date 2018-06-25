@@ -12,7 +12,7 @@
   This file is part of DRD, a Valgrind tool for verification of
   multithreaded programs.
 
-  Copyright (C) 2006-2015 Bart Van Assche <bvanassche@acm.org>.
+  Copyright (C) 2006-2017 Bart Van Assche <bvanassche@acm.org>.
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -355,7 +355,7 @@
  * be reported.
  */
 #define ANNOTATE_BENIGN_RACE(addr, descr) \
-   ANNOTATE_BENIGN_RACE_SIZED(addr, sizeof(*(addr)), descr)
+   ANNOTATE_BENIGN_RACE_SIZED(addr, sizeof(*addr), descr)
 
 /* Same as ANNOTATE_BENIGN_RACE(addr, descr), but applies to
    the memory range [addr, addr + size). */
