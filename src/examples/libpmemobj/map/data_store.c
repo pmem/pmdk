@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,6 +47,7 @@
 #include "map_rbtree.h"
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
+#include "map_hashmap_rp.h"
 #include "map_skiplist.h"
 
 POBJ_LAYOUT_BEGIN(data_store);
@@ -116,6 +117,8 @@ parse_map_type(const char *type)
 		return MAP_HASHMAP_ATOMIC;
 	else if (strcmp(type, "hashmap_tx") == 0)
 		return MAP_HASHMAP_TX;
+	else if (strcmp(type, "hashmap_rp") == 0)
+		return MAP_HASHMAP_RP;
 	else if (strcmp(type, "skiplist") == 0)
 		return MAP_SKIPLIST;
 	return NULL;
@@ -125,7 +128,7 @@ parse_map_type(const char *type)
 int main(int argc, const char *argv[]) {
 	if (argc < 3) {
 		printf("usage: %s "
-			"<ctree|btree|rbtree|hashmap_atomic|"
+			"<ctree|btree|rbtree|hashmap_atomic|hashmap_rp|"
 			"hashmap_tx|skiplist> file-name [nops]\n", argv[0]);
 		return 1;
 	}
@@ -134,7 +137,7 @@ int main(int argc, const char *argv[]) {
 	const char *path = argv[2];
 	const struct map_ops *map_ops = parse_map_type(type);
 	if (!map_ops) {
-		fprintf(stderr, "invalid map type -- '%s'\n", type);
+		fprintf(stderr, "invalid container type -- '%s'\n", type);
 		return 1;
 	}
 
