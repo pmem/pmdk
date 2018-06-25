@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,8 +38,8 @@ include $(TOP)/src/common.inc
 
 PROGS = mapcli data_store
 LIBRARIES = map_ctree map_btree map_rbtree map_skiplist\
-	    map_hashmap_atomic map_hashmap_tx map_rtree\
-	    map
+		map_hashmap_atomic map_hashmap_tx map_hashmap_rp\
+		map_rtree map
 
 LIBUV := $(call check_package, libuv --atleast-version 1.0)
 ifeq ($(LIBUV),y)
@@ -72,17 +72,19 @@ libmap_rtree.o: map_rtree.o map.o ../tree_map/librtree_map.a
 libmap_rbtree.o: map_rbtree.o map.o ../tree_map/librbtree_map.a
 libmap_hashmap_atomic.o: map_hashmap_atomic.o map.o ../hashmap/libhashmap_atomic.a
 libmap_hashmap_tx.o: map_hashmap_tx.o map.o ../hashmap/libhashmap_tx.a
+libmap_hashmap_rp.o: map_hashmap_rp.o map.o ../hashmap/libhashmap_rp.a
 libmap_skiplist.o: map_skiplist.o map.o ../list_map/libskiplist_map.a
 
 libmap.o: map.o map_ctree.o map_btree.o map_rtree.o map_rbtree.o map_skiplist.o\
-	map_hashmap_atomic.o map_hashmap_tx.o\
+	map_hashmap_atomic.o map_hashmap_tx.o map_hashmap_rp.o\
 	../tree_map/libctree_map.a\
 	../tree_map/libbtree_map.a\
 	../tree_map/librtree_map.a\
 	../tree_map/librbtree_map.a\
 	../list_map/libskiplist_map.a\
 	../hashmap/libhashmap_atomic.a\
-	../hashmap/libhashmap_tx.a
+	../hashmap/libhashmap_tx.a\
+	../hashmap/libhashmap_rp.a
 
 ../tree_map/libctree_map.a:
 	$(MAKE) -C ../tree_map ctree_map
@@ -104,3 +106,6 @@ libmap.o: map.o map_ctree.o map_btree.o map_rtree.o map_rbtree.o map_skiplist.o\
 
 ../hashmap/libhashmap_tx.a:
 	$(MAKE) -C ../hashmap hashmap_tx
+
+../hashmap/libhashmap_rp.a:
+	$(MAKE) -C ../hashmap hashmap_rp
