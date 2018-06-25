@@ -2,9 +2,10 @@ This directory contains an example application implemented using libpmemobj.
 
 The *mapcli* application is a simple CLI application which uses:
 
- * two implementations of hashmap:
+ * three implementations of hashmap:
  ** hashmap_atomic	- hashmap using atomic API of libpmemobj
  ** hashmap_tx		- hashmap using tx API of libpmemobj
+ ** hashmap_rp		- hashmap using action API of libpmemobj
 
  * four implementations of tree maps:
  ** ctree		- Crit-Bit using tx API of libpmemobj
@@ -13,15 +14,15 @@ The *mapcli* application is a simple CLI application which uses:
  ** rbtree		- red-black tree using tx API of libpmemobj
 
 Usage:
-$ ./mapcli ctree|btree|rtree|rbtree|hashmap_atomic|hashmap_tx <file> [<RNG seed>]
+$ ./mapcli ctree|btree|rtree|rbtree|hashmap_atomic|hashmap_tx|hashmap_rp <file> [<RNG seed>]
 
 The first argument specifies which map should be used.
 
 The file will either be created if it doesn't exist or opened if it contains
 a valid pool.
 
-The third argument specifies seed for RNG - the seed is utilized by both
-implementations of hashmap.
+The third argument specifies seed for RNG - the seed is utilized by three of
+hashmaps implementations.
 
 The application expects one of the below commands on standard input:
 h - help

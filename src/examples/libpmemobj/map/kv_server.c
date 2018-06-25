@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@
 #include "map_rbtree.h"
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
+#include "map_hashmap_rp.h"
 #include "map_skiplist.h"
 
 #include "kv_protocol.h"
@@ -396,6 +397,7 @@ static const struct {
 } maps[] = {
 	{MAP_HASHMAP_TX, "hashmap_tx"},
 	{MAP_HASHMAP_ATOMIC, "hashmap_atomic"},
+	{MAP_HASHMAP_RP, "hashmap_rp"},
 	{MAP_CTREE, "ctree"},
 	{MAP_BTREE, "btree"},
 	{MAP_RTREE, "rtree"},
@@ -424,8 +426,9 @@ int
 main(int argc, char *argv[])
 {
 	if (argc < 4) {
-		printf("usage: %s hashmap_tx|hashmap_atomic|ctree|btree|rtree|"
-				"rbtree|skiplist file-name port\n", argv[0]);
+		printf("usage: %s hashmap_tx|hashmap_atomic|hashmap_rp|"
+				"ctree|btree|rtree|rbtree|skiplist file-name port\n",
+				argv[0]);
 		return 1;
 	}
 
