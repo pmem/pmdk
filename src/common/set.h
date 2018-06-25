@@ -83,6 +83,9 @@ struct pool_set_option {
 #define REPLICAS_DISABLED 0
 #define REPLICAS_ENABLED 1
 
+#define NON_DIR_BASED_POOL 0
+#define DIR_BASED_POOL 1
+
 /*  util_pool_open flags */
 #define POOL_OPEN_COW			1	/* copy-on-write mode */
 #define POOL_OPEN_IGNORE_SDS		2	/* ignore shutdown state */

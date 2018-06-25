@@ -39,6 +39,8 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_errormsg;
 		pmemobj_create;
 		pmemobj_open;
+		pmemobj_xopen;
+		pmemobj_xopen_dir;
 		pmemobj_close;
 		pmemobj_check;
 		pmemobj_ctl_exec;
