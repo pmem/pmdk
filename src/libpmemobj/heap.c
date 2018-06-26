@@ -57,6 +57,7 @@
 	(sizeof(*(runp)) + (((size_idx) - 1) * CHUNKSIZE))
 
 #define MAX_RUN_LOCKS MAX_CHUNK
+#define MAX_RUN_LOCKS_VG 1024 /* avoid perf issues /w drd */
 
 /*
  * This is the value by which the heap might grow once we hit an OOM.
@@ -90,6 +91,8 @@ struct heap_rt {
 	struct recycler *recyclers[MAX_ALLOCATION_CLASSES];
 
 	os_mutex_t run_locks[MAX_RUN_LOCKS];
+	unsigned nlocks;
+
 	unsigned nzones;
 	unsigned zones_exhausted;
 	unsigned narenas;
@@ -244,7 +247,7 @@ heap_bucket_release(struct palloc_heap *heap, struct bucket *b)
 os_mutex_t *
 heap_get_run_lock(struct palloc_heap *heap, uint32_t chunk_id)
 {
-	return &heap->rt->run_locks[chunk_id % MAX_RUN_LOCKS];
+	return &heap->rt->run_locks[chunk_id % heap->rt->nlocks];
 }
 
 /*
@@ -1322,7 +1325,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	h->zones_exhausted = 0;
 
-	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
+	h->nlocks = On_valgrind ? MAX_RUN_LOCKS_VG : MAX_RUN_LOCKS;
+	for (unsigned i = 0; i < h->nlocks; ++i)
 		util_mutex_init(&h->run_locks[i]);
 
 	util_mutex_init(&h->arenas_lock);
@@ -1431,7 +1435,7 @@ heap_cleanup(struct palloc_heap *heap)
 	for (unsigned i = 0; i < rt->narenas; ++i)
 		heap_arena_destroy(&rt->arenas[i]);
 
-	for (int i = 0; i < MAX_RUN_LOCKS; ++i)
+	for (unsigned i = 0; i < rt->nlocks; ++i)
 		util_mutex_destroy(&rt->run_locks[i]);
 
 	util_mutex_destroy(&rt->arenas_lock);
