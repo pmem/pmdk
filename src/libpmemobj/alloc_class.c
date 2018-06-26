@@ -117,7 +117,7 @@ static struct {
 /*
  * Target number of allocations per run instance.
  */
-#define RUN_MIN_NALLOCS 500
+#define RUN_MIN_NALLOCS 200
 
 /*
  * Hard limit of chunks per single run.
