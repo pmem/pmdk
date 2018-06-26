@@ -39,6 +39,13 @@
 
 #define LAYOUT_NAME "obj_action"
 
+struct macro_reserve_s {
+	PMEMoid oid;
+	uint64_t value;
+};
+
+TOID_DECLARE(struct macro_reserve_s, 1);
+
 struct foo {
 	int bar;
 };
@@ -120,6 +127,37 @@ test_defer_free(PMEMobjpool *pop)
 	pmemobj_cancel(pop, &act, 1);
 	f = (struct foo *)pmemobj_direct(oid);
 	f->bar = 5; /* should NOT trigger memcheck error */
+}
+
+/*
+ * This function tests if macros included in action.h api compile and
+ * allocates memory. It does not valid correctness of flags on xreserve
+ * function.
+ */
+static void
+test_api_macros(PMEMobjpool *pop)
+{
+	struct pobj_action macro_reserve_act[1];
+
+	TOID(struct macro_reserve_s) macro_reserve_p = POBJ_RESERVE_NEW(pop,
+		struct macro_reserve_s, &macro_reserve_act[0]);
+	pmemobj_publish(pop, macro_reserve_act, 1);
+	POBJ_FREE(&macro_reserve_p); /* should NOT trigger pmemcheck error */
+
+	macro_reserve_p = POBJ_RESERVE_ALLOC(pop, struct macro_reserve_s,
+		sizeof(struct macro_reserve_s), &macro_reserve_act[0]);
+	pmemobj_publish(pop, macro_reserve_act, 1);
+	POBJ_FREE(&macro_reserve_p); /* should NOT trigger pmemcheck error */
+
+	macro_reserve_p = POBJ_XRESERVE_NEW(pop, struct macro_reserve_s,
+		&macro_reserve_act[0], 0);
+	pmemobj_publish(pop, macro_reserve_act, 1);
+	POBJ_FREE(&macro_reserve_p); /* should NOT trigger pmemcheck error */
+
+	macro_reserve_p = POBJ_XRESERVE_ALLOC(pop, struct macro_reserve_s,
+		sizeof(struct macro_reserve_s), &macro_reserve_act[0], 0);
+	pmemobj_publish(pop, macro_reserve_act, 1);
+	POBJ_FREE(&macro_reserve_p); /* should NOT trigger pmemcheck error */
 }
 
 int
@@ -224,6 +262,8 @@ main(int argc, char *argv[])
 	test_resv_cancel_huge(pop);
 
 	test_defer_free(pop);
+
+	test_api_macros(pop);
 
 	pmemobj_close(pop);
 
