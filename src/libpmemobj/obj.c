@@ -2142,6 +2142,7 @@ struct carg_bytype {
 	type_num_t user_type;
 	int zero_init;
 	pmemobj_constr constructor;
+	unsigned memset_flags;
 	void *arg;
 };
 
@@ -2161,7 +2162,7 @@ constructor_alloc_bytype(void *ctx, void *ptr, size_t usable_size, void *arg)
 	struct carg_bytype *carg = arg;
 
 	if (carg->zero_init)
-		pmemops_memset(p_ops, ptr, 0, usable_size, 0);
+		pmemops_memset(p_ops, ptr, 0, usable_size, carg->memset_flags);
 
 	int ret = 0;
 	if (carg->constructor)
@@ -2953,6 +2954,7 @@ pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 	carg.user_type = type_num;
 	carg.zero_init = flags & POBJ_FLAG_ZERO;
 	carg.constructor = NULL;
+	carg.memset_flags = PMEM_F_MEM_NOFLUSH;
 	carg.arg = NULL;
 
 	if (palloc_reserve(&pop->heap, size, constructor_alloc_bytype, &carg,
