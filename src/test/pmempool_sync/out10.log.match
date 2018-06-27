@@ -9,7 +9,7 @@ PMEMPOOLSET
 REPLICA
 20M $(nW)part10
 20M $(nW)part11
-error: failed to synchronize: poolset health check failed
+error: failed to synchronize: extra healthy replicas found (probably coming from a different poolset file)
 error: Invalid argument
 Poolset structure:
 Number of replicas       : 1

@@ -10,7 +10,7 @@ PMEMPOOLSET
 8M $(nW)part00
 REPLICA
 8M $(nW)part10
-error: failed to synchronize: poolset health check failed
+error: failed to synchronize: inconsistent replica uuids on borders of replica 1
 error: Invalid argument
 Poolset structure:
 Number of replicas       : 3
