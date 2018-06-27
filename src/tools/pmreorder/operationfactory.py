@@ -36,7 +36,7 @@ class OperationFactory:
     An abstract memory operation factory.
 
     This object factory puts special constraints on names of classes.
-    It creates objects based on log in string format, as such the c
+    It creates objects based on log in string format, as such the
     classes have to start with a capital letter and the rest of the
     name has to be in lowercase. For example::
 
