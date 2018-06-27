@@ -1510,7 +1510,7 @@ pools_shared_data_destroy(void)
 
 #ifdef JEMALLOC_VALGRIND
 /*
- * Iterates thru all the chunks/allocations on the heap and marks them
+ * Iterates through all the chunks/allocations on the heap and marks them
  * as defined/undefined.
  */
 static extent_node_t *
@@ -1531,7 +1531,7 @@ vg_tree_binary_iter_cb(extent_tree_t *tree, extent_node_t *node, void *arg)
 }
 
 /*
- * Iterates thru all the chunks/allocations on the heap and marks them
+ * Iterates through all the chunks/allocations on the heap and marks them
  * as defined/undefined.
  */
 static arena_chunk_map_t *
@@ -1565,7 +1565,7 @@ vg_tree_chunks_avail_iter_cb(arena_avail_tree_t *tree,
 
 /*
  * Reinitializes memcheck state if run under Valgrind.
- * Iterates thru all the chunks/allocations on the heap and marks them
+ * Iterates through all the chunks/allocations on the heap and marks them
  * as defined/undefined.
  */
 static int
@@ -1598,17 +1598,17 @@ vg_pool_init(pool_t *pool, size_t size)
 			usable_addr,
 			usable_size);
 
-	/* iterate thru unused (available) chunks - mark as NOACCESS */
+	/* iterate through unused (available) chunks - mark as NOACCESS */
 	int noaccess = 1;
 	extent_tree_szad_iter(&pool->chunks_szad_mmap, NULL,
 			vg_tree_binary_iter_cb, &noaccess);
 
-	/* iterate thru huge allocations - mark as MALLOCLIKE */
+	/* iterate through huge allocations - mark as MALLOCLIKE */
 	noaccess = 0;
 	extent_tree_ad_iter(&pool->huge, NULL,
 			vg_tree_binary_iter_cb, &noaccess);
 
-	/* iterate thru arenas/runs */
+	/* iterate through arenas/runs */
 	for (unsigned i = 0; i < pool->narenas_total; ++i) {
 		arena_t *arena = pool->arenas[i];
 		if (arena != NULL) {
