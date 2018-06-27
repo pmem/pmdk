@@ -1186,7 +1186,7 @@ switch ($Env:FS) {
         }
     }
     'none' {
-        # dont add long path nor unicode sufix to DIR
+        # don't add long path nor unicode sufix to DIR
         require_no_unicode
         require_short_path
         sv -Name DIR "\nul\not_existing_dir\"

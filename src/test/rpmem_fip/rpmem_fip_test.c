@@ -167,7 +167,7 @@ client_persist_thread(void *arg)
 	struct persist_arg *args = arg;
 	int ret;
 
-	/* presist with len == 0 should always succeed */
+	/* persist with len == 0 should always succeed */
 	ret = rpmem_fip_persist(args->fip, args->lane * TOTAL_PER_LANE,
 			0, args->lane, RPMEM_PERSIST_WRITE);
 	UT_ASSERTeq(ret, 0);
