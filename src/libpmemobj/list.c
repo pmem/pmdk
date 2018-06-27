@@ -481,7 +481,7 @@ list_insert_user(PMEMobjpool *pop,
 static int
 list_insert_new(PMEMobjpool *pop,
 	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
-	size_t size, int (*constructor)(void *ctx, void *ptr,
+	size_t size, uint64_t type_num, int (*constructor)(void *ctx, void *ptr,
 	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
 {
 	LOG(3, NULL);
@@ -507,12 +507,12 @@ list_insert_new(PMEMobjpool *pop,
 	if (constructor) {
 		if ((ret = pmalloc_construct(pop,
 				&section->obj_offset, size,
-				constructor, arg, 0, 0, 0))) {
+				constructor, arg, type_num, 0, 0))) {
 			ERR("!pmalloc_construct");
 			goto err_pmalloc;
 		}
 	} else {
-		ret = pmalloc(pop, &section->obj_offset, size, 0, 0);
+		ret = pmalloc(pop, &section->obj_offset, size, type_num, 0);
 		if (ret) {
 			ERR("!pmalloc");
 			goto err_pmalloc;
@@ -601,7 +601,7 @@ err_pmalloc:
 int
 list_insert_new_user(PMEMobjpool *pop,
 	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
-	size_t size, int (*constructor)(void *ctx, void *ptr,
+	size_t size, uint64_t type_num, int (*constructor)(void *ctx, void *ptr,
 	size_t usable_size, void *arg), void *arg, PMEMoid *oidp)
 {
 	int ret;
@@ -612,7 +612,7 @@ list_insert_new_user(PMEMobjpool *pop,
 	}
 
 	ret = list_insert_new(pop, pe_offset, user_head,
-			dest, before, size, constructor, arg, oidp);
+			dest, before, size, type_num, constructor, arg, oidp);
 
 	pmemobj_mutex_unlock_nofail(pop, &user_head->lock);
 
