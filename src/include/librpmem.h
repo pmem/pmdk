@@ -68,6 +68,9 @@ struct rpmem_pool_attr {
 	unsigned char user_flags[RPMEM_POOL_USER_FLAGS_LEN]; /* user flags */
 };
 
+/* pool header only in the first part */
+#define RPMEM_POOL_FEAT_SINGLEHDR	0x0001
+
 RPMEMpool *rpmem_create(const char *target, const char *pool_set_name,
 		void *pool_addr, size_t pool_size, unsigned *nlanes,
 		const struct rpmem_pool_attr *create_attr);
