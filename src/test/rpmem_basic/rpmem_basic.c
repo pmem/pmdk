@@ -62,20 +62,6 @@
 	.user_flags		= "USER_FLAGS\0\0\0\n~.",\
 }
 
-/* as above but with SINGLEHDR incompat feature */
-#define POOL_ATTR_INIT_SINGLEHDR {\
-	.signature		= "<RPMEM>",\
-	.major			= 1,\
-	.compat_features	= 2,\
-	.incompat_features	= 1,\
-	.ro_compat_features	= 4,\
-	.poolset_uuid		= "POOLSET_UUID0123",\
-	.uuid			= "UUID0123456789AB",\
-	.next_uuid		= "NEXT_UUID0123456",\
-	.prev_uuid		= "PREV_UUID0123456",\
-	.user_flags		= "USER_FLAGS\0\0\0\n~.",\
-}
-
 #define POOL_ATTR_ALT {\
 	.signature		= "<ALT>",\
 	.major			= 5,\
@@ -89,32 +75,14 @@
 	.user_flags		= "\0\0\0\n~._ALT_FLAGS",\
 }
 
-/* as above but with SINGLEHDR incompat feature */
-#define POOL_ATTR_ALT_SINGLEHDR {\
-	.signature		= "<ALT>",\
-	.major			= 5,\
-	.compat_features	= 6,\
-	.incompat_features	= 1,\
-	.ro_compat_features	= 8,\
-	.poolset_uuid		= "UUID_POOLSET_ALT",\
-	.uuid			= "ALT_UUIDCDEFFEDC",\
-	.next_uuid		= "456UUID_NEXT_ALT",\
-	.prev_uuid		= "UUID012_ALT_PREV",\
-	.user_flags		= "\0\0\0\n~._ALT_FLAGS",\
-}
-
 const struct rpmem_pool_attr pool_attrs[] = {
 	POOL_ATTR_INIT,
-	POOL_ATTR_INIT_SINGLEHDR,
-	POOL_ATTR_ALT,
-	POOL_ATTR_ALT_SINGLEHDR
+	POOL_ATTR_ALT
 };
 
 const char *pool_attr_names[] = {
 	"init",
-	"init_singlehdr",
-	"alt",
-	"alt_singlehdr"
+	"alt"
 };
 
 #define POOL_ATTR_INIT_INDEX	0
