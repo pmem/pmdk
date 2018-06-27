@@ -43,6 +43,7 @@
 #include "rpmem_common.h"
 #include "rpmem_util.h"
 #include "rpmem_fip.h"
+#include "pool_hdr.h"
 #include "util.h"
 #include "out.h"
 
@@ -55,6 +56,8 @@ ATTR_CONSTRUCTOR
 void
 librpmem_init(void)
 {
+	COMPILE_ERROR_ON(RPMEM_POOL_FEAT_SINGLEHDR != POOL_FEAT_SINGLEHDR);
+
 	util_init();
 	out_init(RPMEM_LOG_PREFIX, RPMEM_LOG_LEVEL_VAR, RPMEM_LOG_FILE_VAR,
 			RPMEM_MAJOR_VERSION, RPMEM_MINOR_VERSION);
