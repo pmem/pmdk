@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,7 +69,8 @@ struct list_head {
 
 int list_insert_new_user(PMEMobjpool *pop,
 	size_t pe_offset, struct list_head *user_head, PMEMoid dest, int before,
-	size_t size, palloc_constr constructor, void *arg, PMEMoid *oidp);
+	size_t size, uint64_t type_num, palloc_constr constructor, void *arg,
+	PMEMoid *oidp);
 
 int list_insert(PMEMobjpool *pop,
 	ssize_t pe_offset, struct list_head *head, PMEMoid dest, int before,

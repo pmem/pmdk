@@ -2021,19 +2021,18 @@ pmemobj_pool_by_ptr(const void *addr)
 	return pop;
 }
 
-/* arguments for constructor_alloc_bytype */
-struct carg_bytype {
-	type_num_t user_type;
+/* arguments for constructor_alloc */
+struct constr_args {
 	int zero_init;
 	pmemobj_constr constructor;
 	void *arg;
 };
 
 /*
- * constructor_alloc_bytype -- (internal) constructor for obj_alloc_construct
+ * constructor_alloc -- (internal) constructor for obj_alloc_construct
  */
 static int
-constructor_alloc_bytype(void *ctx, void *ptr, size_t usable_size, void *arg)
+constructor_alloc(void *ctx, void *ptr, size_t usable_size, void *arg)
 {
 	PMEMobjpool *pop = ctx;
 	LOG(3, "pop %p ptr %p arg %p", pop, ptr, arg);
@@ -2042,7 +2041,7 @@ constructor_alloc_bytype(void *ctx, void *ptr, size_t usable_size, void *arg)
 	ASSERTne(ptr, NULL);
 	ASSERTne(arg, NULL);
 
-	struct carg_bytype *carg = arg;
+	struct constr_args *carg = arg;
 
 	if (carg->zero_init)
 		pmemops_memset_persist(p_ops, ptr, 0, usable_size);
@@ -2068,9 +2067,8 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
-	struct carg_bytype carg;
+	struct constr_args carg;
 
-	carg.user_type = type_num;
 	carg.zero_init = flags & POBJ_FLAG_ZERO;
 	carg.constructor = constructor;
 	carg.arg = arg;
@@ -2086,7 +2084,7 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 	int ret = pmalloc_operation(&pop->heap, 0,
 			oidp != NULL ? &oidp->off : NULL, size,
-			constructor_alloc_bytype, &carg, type_num, 0,
+			constructor_alloc, &carg, type_num, 0,
 			CLASS_ID_FROM_FLAG(flags),
 			&ctx);
 
@@ -2770,14 +2768,13 @@ pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 		return oid;
 	}
 
-	struct carg_bytype carg;
+	struct constr_args carg;
 
-	carg.user_type = type_num;
 	carg.zero_init = flags & POBJ_FLAG_ZERO;
 	carg.constructor = NULL;
 	carg.arg = NULL;
 
-	if (palloc_reserve(&pop->heap, size, constructor_alloc_bytype, &carg,
+	if (palloc_reserve(&pop->heap, size, constructor_alloc, &carg,
 		type_num, 0, CLASS_ID_FROM_FLAG(flags), act) != 0)
 		return oid;
 
@@ -2875,17 +2872,15 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 		return OID_NULL;
 	}
 
-	struct carg_bytype carg;
+	struct constr_args carg;
 
-	carg.user_type = (type_num_t)type_num;
 	carg.constructor = constructor;
 	carg.arg = arg;
 	carg.zero_init = 0;
 
 	PMEMoid retoid = OID_NULL;
-	list_insert_new_user(pop,
-			pe_offset, head, dest, before,
-			size, constructor_alloc_bytype, &carg, &retoid);
+	list_insert_new_user(pop, pe_offset, head, dest, before, size, type_num,
+			constructor_alloc, &carg, &retoid);
 	return retoid;
 }
 
