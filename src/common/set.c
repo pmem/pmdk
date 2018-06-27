@@ -3395,8 +3395,19 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		 * (aligned to memory mapping granularity)
 		 */
 		for (unsigned p = 1; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+			size_t targetsize = mapsize +
+				ALIGN_DOWN(part->filesize - hdrsize,
+				part->alignment);
+			if (targetsize > rep->resvsize) {
+				ERR(
+					"pool mapping failed - address space reservation too small");
+				errno = EINVAL;
+				goto err;
+			}
+
 			/* map data part */
-			if (util_map_part(&rep->part[p], addr, 0, hdrsize,
+			if (util_map_part(part, addr, 0, hdrsize,
 					flags | MAP_FIXED, 0) != 0) {
 				/*
 				 * if we can't map the part at the address we
@@ -3422,12 +3433,11 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 				goto err;
 			}
 
-			VALGRIND_REGISTER_PMEM_FILE(rep->part[p].fd,
-				rep->part[p].addr, rep->part[p].size,
-				hdrsize);
+			VALGRIND_REGISTER_PMEM_FILE(part->fd,
+				part->addr, part->size, hdrsize);
 
-			mapsize += rep->part[p].size;
-			addr = (char *)addr + rep->part[p].size;
+			mapsize += part->size;
+			addr = (char *)addr + part->size;
 		}
 	} while (retry_for_contiguous_addr);
 
