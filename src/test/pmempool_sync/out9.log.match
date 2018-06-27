@@ -12,7 +12,7 @@ PMEMPOOLSET
 REPLICA
 20M $(nW)/part10
 10M $(nW)/part11
-error: failed to synchronize: poolset health check failed
+error: failed to synchronize: some replicas are too small to hold synchronized data
 error: Invalid argument
-error: failed to synchronize: poolset health check failed
+error: failed to synchronize: no healthy replica found - cannot synchronize
 error: Invalid argument

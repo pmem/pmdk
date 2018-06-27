@@ -655,9 +655,9 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 		}
 
 		if (uuidcmp(HDR(rep, p)->poolset_uuid, poolset_uuid)) {
-			ERR("different poolset uuids in parts from the same"
-				" replica (repn %u, parts %u and %u); cannot"
-				" synchronize", repn, part_stored, p);
+			ERR(
+				"different poolset uuids in parts from the same replica (repn %u, parts %u and %u) - cannot synchronize",
+				repn, part_stored, p);
 			errno = EINVAL;
 			return -1;
 		}
@@ -684,9 +684,9 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 				hdrp->next_repl_uuid);
 
 		if (prev_differ || next_differ) {
-			ERR("different adjacent replica UUID between parts"
-				" (repn %u, parts %u and %u);"
-				" cannot synchronize", repn, unbroken_p, p);
+			ERR(
+				"different adjacent replica UUID between parts (repn %u, parts %u and %u) - cannot synchronize",
+				repn, unbroken_p, p);
 			errno = EINVAL;
 			return -1;
 		}
@@ -710,9 +710,8 @@ check_uuids_between_parts(struct pool_set *set, unsigned repn,
 					hdrp->uuid) ||
 				uuidcmp(hdrp->next_part_uuid, next_hdrp->uuid);
 			if (next_decoupled) {
-				ERR("two consecutive unbroken parts are not"
-					" linked to each other (repn %u, parts"
-					" %u and %u); cannot synchronize",
+				ERR(
+					"two consecutive unbroken parts are not linked to each other (repn %u, parts %u and %u) - cannot synchronize",
 					repn, p, p + 1);
 				errno = EINVAL;
 				return -1;
@@ -757,8 +756,9 @@ check_replica_options(struct pool_set *set, unsigned repn,
 		struct pool_hdr *hdr = HDR(rep, p);
 		if (((hdr->incompat_features & POOL_FEAT_SINGLEHDR) == 0) !=
 				((set->options & OPTION_SINGLEHDR) == 0)) {
-			LOG(1, "improper options are set in part %u's header in"
-					" replica %u", p, repn);
+			LOG(1,
+				"improper options are set in part %u's header in replica %u",
+				p, repn);
 			rep_hs->part[p] |= IS_BROKEN;
 		}
 	}
@@ -825,7 +825,7 @@ check_poolset_uuids(struct pool_set *set,
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 	unsigned r_h = replica_find_healthy_replica(set_hs);
 	if (r_h == UNDEF_REPLICA) {
-		ERR("no healthy replica. Cannot synchronize.");
+		ERR("no healthy replica found - cannot synchronize");
 		return -1;
 	}
 
@@ -839,8 +839,9 @@ check_poolset_uuids(struct pool_set *set,
 			continue;
 
 		if (check_replica_poolset_uuids(set, r, poolset_uuid, set_hs)) {
-			ERR("inconsistent poolset uuids between replicas %u and"
-				" %u; cannot synchronize", r_h, r);
+			ERR(
+				"inconsistent poolset uuids between replicas %u and %u - cannot synchronize",
+				r_h, r);
 			return -1;
 		}
 	}
@@ -911,7 +912,7 @@ check_uuids_between_replicas(struct pool_set *set,
 				uuidcmp(*rep_uuidp,
 					HDR(rep_n, p_n)->prev_repl_uuid)) {
 			ERR(
-			"inconsistent replica uuids between replicas %u and %u",
+				"inconsistent replica uuids between replicas %u and %u",
 				r, r_n);
 			return -1;
 		}
@@ -919,7 +920,7 @@ check_uuids_between_replicas(struct pool_set *set,
 				uuidcmp(*rep_n_uuidp,
 					HDR(rep, p)->next_repl_uuid)) {
 			ERR(
-			"inconsistent replica uuids between replicas %u and %u",
+				"inconsistent replica uuids between replicas %u and %u",
 				r, r_n);
 			return -1;
 		}
@@ -936,7 +937,7 @@ check_uuids_between_replicas(struct pool_set *set,
 				replica_find_unbroken_part(r_nn, set_hs);
 			if (p_nn == UNDEF_PART) {
 				LOG(2,
-				"cannot compare uuids on borders of replica %u",
+					"cannot compare uuids on borders of replica %u",
 					r);
 				continue;
 			}
@@ -944,7 +945,7 @@ check_uuids_between_replicas(struct pool_set *set,
 			if (uuidcmp(HDR(rep, p)->next_repl_uuid,
 					HDR(rep_nn, p_nn)->prev_repl_uuid)) {
 				ERR(
-				"inconsistent replica uuids on borders of replica %u",
+					"inconsistent replica uuids on borders of replica %u",
 					r);
 				return -1;
 			}
@@ -982,12 +983,12 @@ check_replica_cycles(struct pool_set *set,
 		if (uuidcmp(hdrh->uuid, hdr->next_repl_uuid) == 0 &&
 			count_healthy < set->nreplicas) {
 			/*
-			 * healthy replicas form a cycle shorter than
+			 * Healthy replicas form a cycle shorter than
 			 * the number of all replicas; for the user it
 			 * means that:
 			 */
-			ERR("there exist healthy replicas which come"
-				" from a different poolset file");
+			ERR(
+				"alien replica found (probably coming from a different poolset)");
 			return -1;
 		}
 	}
@@ -1026,8 +1027,8 @@ check_replica_sizes(struct pool_set *set, struct poolset_health_status *set_hs)
 		enum pool_type type = pool_hdr_get_type(HDR(REP(set, r), 0));
 		if ((size_t)replica_pool_size < pool_get_min_size(type)) {
 			LOG(1,
-			"pool size from replica %u is smaller than the minimum size allowed for the pool",
-			r);
+				"pool size from replica %u is smaller than the minimum size allowed for the pool",
+				r);
 			set_hs->replica[r]->flags |= IS_BROKEN;
 			continue;
 		}
@@ -1035,7 +1036,7 @@ check_replica_sizes(struct pool_set *set, struct poolset_health_status *set_hs)
 		/* check if each replica is big enough to hold the pool data */
 		if (set->poolsize < (size_t)replica_pool_size) {
 			ERR(
-			"some replicas are too small to hold synchronized data");
+				"some replicas are too small to hold synchronized data");
 			return -1;
 		}
 
@@ -1224,8 +1225,8 @@ replica_check_local_part_dir(struct pool_set *set, unsigned repn,
 	const char *dir = dirname(path);
 	os_stat_t sb;
 	if (os_stat(dir, &sb) != 0 || !(sb.st_mode & S_IFDIR)) {
-		ERR("directory %s for part %u in replica %u"
-			" does not exist or is not accessible",
+		ERR(
+			"directory %s for part %u in replica %u does not exist or is not accessible",
 			path, partn, repn);
 		Free(path);
 		return -1;

@@ -208,8 +208,8 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 			hdrp = HDR(REPP(set, repn), 0);
 			if (is_uuid_already_used(hdrp->next_repl_uuid, set,
 					repn)) {
-				ERR("repeated uuid - some replicas were created"
-					" with a different poolset file");
+				ERR(
+					"repeated uuid - some replicas were created with a different poolset file");
 				errno = EINVAL;
 				return -1;
 			}
@@ -221,8 +221,8 @@ fill_struct_broken_part_uuids(struct pool_set *set, unsigned repn,
 			hdrp = HDR(REPN(set, repn), 0);
 			if (is_uuid_already_used(hdrp->prev_repl_uuid, set,
 					repn)) {
-				ERR("repeated uuid - some replicas were created"
-					" with a different poolset file");
+				ERR(
+					"repeated uuid - some replicas were created with a different poolset file");
 				errno = EINVAL;
 				return -1;
 			}
@@ -291,8 +291,9 @@ create_headers_for_broken_parts(struct pool_set *set, unsigned src_replica,
 			struct pool_attr attr;
 			util_pool_hdr2attr(&attr, src_hdr);
 			if (util_header_create(set, r, p, &attr, 0) != 0) {
-				LOG(1, "part headers create failed for"
-						" replica %u part %u", r, p);
+				LOG(1,
+				    "part headers create failed for replica %u part %u",
+				    r, p);
 				errno = EINVAL;
 				return -1;
 			}
@@ -424,8 +425,9 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 
 			/* set rights to those of existing part files */
 			if (os_chmod(PART(REP(set, r), p)->path, src_mode)) {
-				ERR("cannot set permission rights for created"
-					" parts: replica %u, part %u", r, p);
+				ERR(
+					"cannot set permission rights for created parts: replica %u, part %u",
+					r, p);
 				errno = EPERM;
 				return -1;
 			}
@@ -575,8 +577,9 @@ update_remote_headers(struct pool_set *set)
 			continue;
 
 		if (util_update_remote_header(set, r)) {
-			LOG(1, "updating header of a remote replica no. %u"
-					" failed", r);
+			LOG(1,
+			    "updating header of a remote replica no. %u failed",
+			    r);
 			return -1;
 		}
 	}
@@ -727,13 +730,13 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 
 		/* examine poolset's health */
 		if (replica_check_poolset_health(set, &set_hs, flags)) {
-			ERR("poolset health check failed");
+			LOG(1, "poolset health check failed");
 			return -1;
 		}
 
 		/* check if poolset is broken; if not, nothing to do */
 		if (replica_is_poolset_healthy(set_hs)) {
-			LOG(1, "Poolset is healthy");
+			LOG(1, "poolset is healthy");
 			goto out;
 		}
 	} else {
