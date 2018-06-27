@@ -34,7 +34,7 @@ from itertools import permutations
 from itertools import islice
 from itertools import chain
 from random import sample
-
+from functools import partial
 
 class FullReorderEngine:
     """
@@ -139,18 +139,70 @@ class SlicePartialReorderEngine:
                          self._start, self._stop, self._step):
             yield sl
 
-
 class FilterPartialReorderEngine:
     """
-    Generates a filtered set of the full reordering of stores within a given list.
+    Generates a filtered set of the combinations without duplication of stores within a given list.
+    Example:
+        input: (a, b, c), filter = filter_min_elem, kwarg1 = 2
+        output:
+               (a, b)
+               (a, c)
+               (b, c)
+               (a, b, c)
+
+        input: (a, b, c), filter = filter_max_elem, kwarg1 = 2
+        output:
+               ()
+               (a)
+               (b)
+               (c)
+               (a, b)
+               (a, c)
+               (b, c)
+
+        input: (a, b, c), filter = filter_between_elem, kwarg1 = 1, kwarg2 = 3
+        output:
+               (a, b)
+               (a, c)
+               (b, c)
     """
-    def __init__(self, filter_):
+    def __init__(self, func, **kwargs):
         """
         Initializes the generator with the provided parameters.
 
-        :param filter_: The filter function.
+        :param func: The filter function.
+        :param **kwargs: Arguments to the filter function.
         """
-        self._filter = filter_
+        self._filter = func
+        self._filter_kwargs = kwargs
+
+    @staticmethod
+    def filter_min_elem(store_list, **kwargs):
+        """
+        Filter stores list if number of element is less than kwarg1
+        """
+        if (len(store_list) < kwargs["kwarg1"]):
+            return False
+        return True
+
+    @staticmethod
+    def filter_max_elem(store_list, **kwargs):
+        """
+        Filter stores list if number of element is greater than kwarg1.
+        """
+        if (len(store_list) > kwargs["kwarg1"]):
+            return False
+        return True
+
+    @staticmethod
+    def filter_between_elem(store_list, **kwargs):
+        """
+        Filter stores list if number of element is greater than kwarg1 and less than kwarg2.
+        """
+        store_len = len(store_list)
+        if (store_len > kwargs["kwarg1"] and store_len < kwargs["kwarg2"]):
+            return True
+        return False
 
     def generate_sequence(self, store_list):
         """
@@ -161,8 +213,8 @@ class FilterPartialReorderEngine:
         :return: Yields a filtered set of combinations.
         :rtype: iterable
         """
-        for elem in filter(chain(*map(lambda x: combinations(store_list, x), range(0, len(store_list) + 1))),
-                           self._filter):
+        filter_fun = getattr(self, self._filter, None)
+        for elem in filter(partial(filter_fun, **self._filter_kwargs), chain(*map(lambda x: combinations(store_list, x), range(0, len(store_list) + 1)))):
             yield elem
 
 
