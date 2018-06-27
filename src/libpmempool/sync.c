@@ -730,7 +730,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 
 		/* examine poolset's health */
 		if (replica_check_poolset_health(set, &set_hs, flags)) {
-			ERR("poolset health check failed");
+			LOG(1, "poolset health check failed");
 			return -1;
 		}
 
