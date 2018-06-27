@@ -237,6 +237,10 @@ If the *SINGLEHDR* option is used, only the first part in each replica contains
 the pool part internal metadata. In that case the effective size of a replica
 is the sum of sizes of all its part files decreased once by 4096 bytes.
 
+*SINGLEHDR* option in the remote poolset file requires
+*RPMEM_POOL_FEAT_SINGLEHDR* to be set in the ```create_attr.incompat_features```
+during **rpmem_create**().
+
 The *NOHDRS* option can appear only in the remote pool set file, when
 **librpmem** does not serve as a means of replication for **libpmemobj** pool.
 In that case none of the pool parts contains internal metadata.
