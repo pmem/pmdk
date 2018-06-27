@@ -562,7 +562,7 @@ os_cpu_set(size_t cpu, os_cpu_set_t *set)
 		sum += GetActiveProcessorCount(group);
 		if (sum > cpu) {
 			/*
-			 * XXX: can't set affinity to two diffrent cpu groups
+			 * XXX: can't set affinity to two different cpu groups
 			 */
 			if (internal_set->affinity.Group != group) {
 				internal_set->affinity.Mask = 0;
