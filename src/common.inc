@@ -302,26 +302,12 @@ LIBUTIL=
 LIBUUID=
 LIBCXXABI=-lc++abi
 
-# XXX: disable building with ndctl, unless explicitly enabled
-NDCTL_ENABLE ?= n
+NDCTL_ENABLE ?= y
 
 # Detect libndctl if not disabled.
-ifneq ($(NDCTL_ENABLE),n)
-HAS_NDCTL :=  $(shell echo "int main() {struct ndctl_cmd *cmd; ndctl_cmd_smart_get_shutdown_count(cmd);return 0;}" | \
- $(CC) -x c -include ndctl/libndctl.h -o /dev/null - -lndctl 2>/dev/null && echo y || echo n)
-HAS_DAXCTL := $(call check_package, libdaxctl --atleast-version $(NDCTL_MIN_VERSION))
-endif
-
-# If neither disabled or enabled, set it based on libndctl presence.
-ifeq ($(NDCTL_ENABLE),)
-ifeq ($(HAS_NDCTL)$(HAS_DAXCTL),yy)
-export NDCTL_ENABLE=y
-else
-export NDCTL_ENABLE=n
-endif
-endif
-
 ifeq ($(NDCTL_ENABLE),y)
+HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION))
+HAS_DAXCTL := $(call check_package, libdaxctl --atleast-version $(NDCTL_MIN_VERSION))
 ifeq ($(HAS_NDCTL),n)
 $(error libndctl(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
 endif
@@ -333,6 +319,16 @@ OS_DIMM=ndctl
 else
 OS_DIMM=none
 LIBNDCTL=
+endif
+
+ifeq ($(USE_LIBUNWIND),)
+export USE_LIBUNWIND := $(call check_package, libunwind)
+ifeq ($(USE_LIBUNWIND),y)
+export LIBUNWIND_LIBS := $(shell $(PKG_CONFIG) --libs libunwind)
+endif
+else
+export USE_LIBUNWIND
+export LIBUNWIND_LIBS
 endif
 
 endif

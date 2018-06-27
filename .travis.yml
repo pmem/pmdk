@@ -21,7 +21,6 @@ env:
     - VALGRIND=1
     - LIBCPP_LIBDIR=/usr/local/libcxx/lib
     - LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1
-    - NDCTL_ENABLE=y
   matrix:
     - COVERAGE=1 TEST_BUILD=debug
     - TEST_BUILD=debug
