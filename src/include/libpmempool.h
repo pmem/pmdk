@@ -241,6 +241,11 @@ struct pmempool_check_statusW *pmempool_checkW(PMEMpoolcheck *ppc);
  */
 
 /*
+ * fix bad blocks - it requires creating or reading special recovery files
+ */
+#define PMEMPOOL_FIX_BAD_BLOCKS (1 << 8)
+
+/*
  * Synchronize data between replicas within a poolset.
  *
  * EXPERIMENTAL
