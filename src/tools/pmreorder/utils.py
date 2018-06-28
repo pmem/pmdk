@@ -91,7 +91,7 @@ def memory_map(filename, size=0, access=mmap.ACCESS_WRITE, offset=0):
     :rtype: mmap.mmap
     """
     fd = os.open(filename, os.O_RDWR)
-    m_file =  mmap.mmap(fd, size, access=access, offset=offset)
+    m_file = mmap.mmap(fd, size, access=access, offset=offset)
     os.close(fd)
     return m_file
 
