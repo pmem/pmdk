@@ -84,8 +84,7 @@ lane_need_recovery_list(struct pmem_info *pip,
 	 * object's offset or size are nonzero.
 	 */
 	return lane_need_recovery_redo(pip->obj.pop,
-		(struct redo_log *)&section->redo,
-		LIST_REDO_LOG_SIZE) || section->obj_offset;
+		(struct redo_log *)&section->redo, LIST_REDO_LOG_SIZE);
 }
 
 /*
@@ -269,7 +268,6 @@ info_obj_lane_list(struct pmem_info *pip, int v,
 {
 	struct lane_list_layout *section = (struct lane_list_layout *)layout;
 
-	outv_field(v, "Object offset", "0x%016lx", section->obj_offset);
 	info_obj_redo(v, (struct redo_log *)&section->redo, LIST_REDO_LOG_SIZE);
 }
 

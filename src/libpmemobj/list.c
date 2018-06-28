@@ -412,7 +412,6 @@ list_insert_after(PMEMobjpool *pop,
 					PREV_OFF;
 	u64_add_offset(&dest_next_prev_off, args_common->pe_offset);
 
-
 	void *dest_next_ptr = (char *)pop + dest_next_off;
 	void *dest_next_prev_ptr = (char *)pop + dest_next_prev_off;
 	operation_add_entry(ctx, dest_next_ptr, args_common->obj_doffset,
@@ -501,28 +500,17 @@ list_insert_new(PMEMobjpool *pop,
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
 
-	struct lane_list_layout *section =
-		(struct lane_list_layout *)lane_section->layout;
-
-	if (constructor) {
-		if ((ret = pmalloc_construct(pop,
-				&section->obj_offset, size,
-				constructor, arg, type_num, 0, 0))) {
-			ERR("!pmalloc_construct");
-			goto err_pmalloc;
-		}
-	} else {
-		ret = pmalloc(pop, &section->obj_offset, size, type_num, 0);
-		if (ret) {
-			ERR("!pmalloc");
-			goto err_pmalloc;
-		}
+	struct pobj_action reserved;
+	if (palloc_reserve(&pop->heap, size, constructor, arg,
+		type_num, 0, 0, &reserved) != 0) {
+		ERR("!palloc_reserve");
+		ret = -1;
+		goto err_pmalloc;
 	}
+	uint64_t obj_doffset = reserved.heap.offset;
 
 	struct operation_context *ctx = lane_section->runtime;
 	operation_start(ctx);
-
-	uint64_t obj_doffset = section->obj_offset;
 
 	ASSERT((ssize_t)pe_offset >= 0);
 
@@ -572,8 +560,7 @@ list_insert_new(PMEMobjpool *pop,
 		}
 	}
 
-	operation_add_entry(ctx, &section->obj_offset, 0, REDO_OPERATION_SET);
-	operation_process(ctx);
+	palloc_publish(&pop->heap, &reserved, 1, ctx);
 
 	ret = 0;
 
@@ -730,11 +717,11 @@ list_remove_free(PMEMobjpool *pop, size_t pe_offset,
 	ASSERTne(lane_section, NULL);
 	ASSERTne(lane_section->layout, NULL);
 
-	struct lane_list_layout *section =
-		(struct lane_list_layout *)lane_section->layout;
 	struct operation_context *ctx = lane_section->runtime;
 	operation_start(ctx);
 
+	struct pobj_action deferred;
+	palloc_defer_free(&pop->heap, oidp->off, &deferred);
 	uint64_t obj_doffset = oidp->off;
 
 	ASSERT((ssize_t)pe_offset >= 0);
@@ -759,15 +746,7 @@ list_remove_free(PMEMobjpool *pop, size_t pe_offset,
 	else
 		oidp->off = 0;
 
-	operation_add_entry(ctx, &section->obj_offset, obj_doffset,
-		REDO_OPERATION_SET);
-	operation_process(ctx);
-
-	/*
-	 * Don't need to fill next and prev offsets of removing element
-	 * because the element is freed.
-	 */
-	pfree(pop, &section->obj_offset);
+	palloc_publish(&pop->heap, &deferred, 1, ctx);
 
 	lane_release(pop);
 }
@@ -1021,11 +1000,6 @@ lane_list_recovery(PMEMobjpool *pop, void *data, unsigned length)
 
 	redo_log_recover(pop->redo, (struct redo_log *)&section->redo);
 
-	if (section->obj_offset) {
-		/* alloc or free recovery */
-		pfree(pop, &section->obj_offset);
-	}
-
 	return 0;
 }
 
@@ -1045,14 +1019,6 @@ lane_list_check(PMEMobjpool *pop, void *data, unsigned length)
 		ERR("list lane: redo log check failed");
 		ASSERT(ret == 0 || ret == -1);
 		return ret;
-	}
-
-	if (section->obj_offset &&
-	    !OBJ_OFF_FROM_HEAP(pop, section->obj_offset)) {
-		ERR("list lane: invalid offset 0x%" PRIx64,
-				section->obj_offset);
-
-		return -1;
 	}
 
 	return 0;

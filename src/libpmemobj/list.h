@@ -57,7 +57,6 @@
  */
 struct lane_list_layout {
 	struct REDO_LOG(LIST_REDO_LOG_SIZE) redo;
-	uint64_t obj_offset;
 };
 
 struct list_entry {

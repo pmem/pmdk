@@ -66,7 +66,7 @@
 #define SIZEOF_TX_RANGE_META_V3 (16)
 #define SIZEOF_REDO_LOG_V4 (64)
 #define SIZEOF_REDO_LOG_ENTRY_V4 (16)
-#define SIZEOF_LANE_LIST_LAYOUT_V4 (1024 - 8)
+#define SIZEOF_LANE_LIST_LAYOUT_V4 (1024 - 16)
 #define SIZEOF_LANE_ALLOC_LAYOUT_V4 (1024)
 #define SIZEOF_LANE_TX_LAYOUT_V4 ((2 * SIZEOF_PVECTOR_V3))
 
@@ -219,7 +219,6 @@ main(int argc, char *argv[])
 
 	ASSERT_ALIGNED_BEGIN(struct lane_list_layout);
 	ASSERT_ALIGNED_FIELD(struct lane_list_layout, redo);
-	ASSERT_ALIGNED_FIELD(struct lane_list_layout, obj_offset);
 	ASSERT_ALIGNED_CHECK(struct lane_list_layout);
 	UT_COMPILE_ERROR_ON(sizeof(struct lane_list_layout) >
 		sizeof(struct lane_section_layout));

@@ -62,6 +62,9 @@ extern "C" {
 #define prealloc __wrap_prealloc
 #define prealloc_construct __wrap_prealloc_construct
 #define palloc_usable_size __wrap_palloc_usable_size
+#define palloc_reserve __wrap_palloc_reserve
+#define palloc_publish __wrap_palloc_publish
+#define palloc_defer_free __wrap_palloc_defer_free
 #endif
 
 #ifndef WRAP_REAL_REDO
