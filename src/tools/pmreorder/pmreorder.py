@@ -37,24 +37,45 @@ import opscontext
 import consistencycheckwrap
 import loggingfacility
 
+
 def main():
     # TODO unicode support
     # TODO parameterize reorder engine type
     parser = argparse.ArgumentParser(description="Store reordering tool")
-    parser.add_argument("-l", "--logfile", required=True, help="the pmemcheck log file to process")
-    parser.add_argument("-c", "--checker", required=True, choices=consistencycheckwrap.checkers,
+    parser.add_argument("-l", "--logfile",
+                        required=True,
+                        help="the pmemcheck log file to process")
+    parser.add_argument("-c", "--checker",
+                        required=True,
+                        choices=consistencycheckwrap.checkers,
                         help="choose consistency checker type")
-    parser.add_argument("-p", "--path", required=True, help="path to the consistency checker")
-    parser.add_argument("-n", "--name", help="consistency check function for the 'lib' checker")
-    parser.add_argument("-t", "--output_type", choices=loggingfacility.loggers, default="print",
+    parser.add_argument("-p", "--path",
+                        required=True,
+                        help="path to the consistency checker")
+    parser.add_argument("-n", "--name",
+                        help="consistency check function " +
+                        "for the 'lib' checker")
+    parser.add_argument("-t", "--output_type",
+                        choices=loggingfacility.loggers, default="print",
                         help='choose logger type default="print"')
-    parser.add_argument("-o", "--output", help="set the logger output")
-    parser.add_argument("-e", "--output_level", choices=loggingfacility.log_levels, help="set the output log level")
-    parser.add_argument("args", nargs=argparse.REMAINDER, help="remaining args passed to the checker")
+    parser.add_argument("-o", "--output",
+                        help="set the logger output")
+    parser.add_argument("-e", "--output_level",
+                        choices=loggingfacility.log_levels,
+                        help="set the output log level")
+    parser.add_argument("args", nargs=argparse.REMAINDER,
+                        help="remaining args passed to the checker")
     args = parser.parse_args()
 
-    logger = loggingfacility.get_logger(args.output_type, args.output, args.output_level)
-    checker = consistencycheckwrap.get_checker(args.checker, args.path, args.name, args.args)
+    logger = loggingfacility.get_logger(
+                                        args.output_type,
+                                        args.output,
+                                        args.output_level)
+    checker = consistencycheckwrap.get_checker(
+                                               args.checker,
+                                               args.path,
+                                               args.name,
+                                               args.args)
 
     # create the script context
     context = opscontext.OpsContext(args.logfile, checker, logger)
@@ -62,6 +83,7 @@ def main():
     # init and run the state machine
     a = statemachine.StateMachine(statemachine.InitState(context))
     a.run_all(context.extract_operations())
+
 
 if __name__ == "__main__":
     main()

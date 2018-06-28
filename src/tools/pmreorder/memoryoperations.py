@@ -91,7 +91,8 @@ class Store(BaseOperation, Rangeable):
         # calculate the offset given the registered file mapping
         self.address = int(params[1], 16)
         self.size = int(params[3], 16)
-        self.new_value = int(params[2], 16).to_bytes(self.size, byteorder=byteorder)
+        self.new_value = \
+            int(params[2], 16).to_bytes(self.size, byteorder=byteorder)
         if len(params) > 4:
             self.trace = StackTrace(params[4:])
         else:
@@ -100,7 +101,8 @@ class Store(BaseOperation, Rangeable):
         self.flushed = False
 
     def __str__(self):
-        return "addr: " + hex(self.address) + " size " + str(self.size) + " value " + str(self.new_value)
+        return "addr: " + hex(self.address) + " size " + \
+            str(self.size) + " value " + str(self.new_value)
 
     def get_base_address(self):
         """
@@ -278,7 +280,8 @@ class Areorder(ReorderBase):
     """
     Describes the type of reordering engine to be used.
 
-    This marker class triggers writing all possible accumulative sequences of stores
+    This marker class triggers writing all
+    possible accumulative sequences of stores
     between barriers.
     """
     class Factory:
@@ -295,6 +298,7 @@ class Areorder(ReorderBase):
             :rtype: Areorder
             """
             return Areorder()
+
 
 class No_reorder_fault(ReorderBase):
     """
@@ -381,7 +385,8 @@ class Register_file(BaseOperation):
             """
             Factory object creation method.
 
-            :param values: Pre-formatted string describing the file registration.
+            :param values: Pre-formatted string
+                           describing the file registration.
             :type values: str
             :return: New Register_file object.
             :rtype: Register_file

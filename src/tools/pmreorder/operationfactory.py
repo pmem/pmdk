@@ -28,7 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from memoryoperations import *
+import memoryoperations
 
 
 class OperationFactory:
@@ -51,6 +51,7 @@ class OperationFactory:
     :type __factories: dict
     """
     __factories = {}
+    memoryoperations.BaseOperation()
 
     @staticmethod
     def add_factory(id_, operation_factory):
@@ -83,5 +84,9 @@ class OperationFactory:
         """
         id_ = string_operation.split(";")[0]
         if id_ not in OperationFactory.__factories:
-            OperationFactory.__factories[id_] = eval(id_.lower().capitalize() + '.Factory()')
+            OperationFactory.__factories[id_] = \
+             eval(
+                  'memoryoperations.' +
+                  id_.lower().capitalize() +
+                  '.Factory()')
         return OperationFactory.__factories[id_].create(string_operation)

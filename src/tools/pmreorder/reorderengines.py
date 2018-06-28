@@ -36,6 +36,7 @@ from itertools import chain
 from random import sample
 from functools import partial
 
+
 class FullReorderEngine:
     """
     Realizes a full reordering of stores within a given list.
@@ -76,6 +77,7 @@ class FullReorderEngine:
 
 class AccumulativeReorderEngine:
     """
+    Realizes an accumulative reorder of stores within a given list.
     Example:
         input: (a, b, c)
         output:
@@ -83,7 +85,6 @@ class AccumulativeReorderEngine:
                ('a')
                ('a', 'b')
                ('a', 'b', 'c')
-    Realizes an accumulative reorder of stores within a given list.
     """
     def generate_sequence(self, store_list):
         """
@@ -96,8 +97,8 @@ class AccumulativeReorderEngine:
         :rtype: iterable
         """
 
-        for i in  range(0, len(store_list) + 1):
-            out_list = [ store_list[i] for i in range(0, i) ]
+        for i in range(0, len(store_list) + 1):
+            out_list = [store_list[i] for i in range(0, i)]
             yield out_list
 
 
@@ -135,13 +136,16 @@ class SlicePartialReorderEngine:
         :return: Yields a slice of all combinations of stores.
         :rtype: iterable
         """
-        for sl in islice(chain(*map(lambda x: combinations(store_list, x), range(0, len(store_list) + 1))),
+        for sl in islice(chain(*map(lambda x: combinations(store_list, x),
+                         range(0, len(store_list) + 1))),
                          self._start, self._stop, self._step):
             yield sl
 
+
 class FilterPartialReorderEngine:
     """
-    Generates a filtered set of the combinations without duplication of stores within a given list.
+    Generates a filtered set of the combinations
+    without duplication of stores within a given list.
     Example:
         input: (a, b, c), filter = filter_min_elem, kwarg1 = 2
         output:
@@ -215,7 +219,10 @@ class FilterPartialReorderEngine:
         :rtype: iterable
         """
         filter_fun = getattr(self, self._filter, None)
-        for elem in filter(partial(filter_fun, **self._filter_kwargs), chain(*map(lambda x: combinations(store_list, x), range(0, len(store_list) + 1)))):
+        for elem in filter(
+                       partial(filter_fun, **self._filter_kwargs), chain(
+                           *map(lambda x: combinations(store_list, x), range(
+                               0, len(store_list) + 1)))):
             yield elem
 
 
@@ -246,8 +253,10 @@ class RandomPartialReorderEngine:
         :return: Yields a random sequence of combinations.
         :rtype: iterable
         """
-        for elem in sample(list(chain(*map(lambda x: combinations(store_list, x), range(0, len(store_list) + 1)))),
-                           self._max_seq):
+        for elem in sample(list(chain(*map(
+                          lambda x: combinations(store_list, x),
+                          range(0, len(store_list) + 1)))),
+                          self._max_seq):
             yield elem
 
 
