@@ -45,4 +45,7 @@ void badblocks_delete(struct badblocks *bbs);
 int badblocks_check_poolset(struct pool_set *set, int create);
 int badblocks_clear_poolset(struct pool_set *set, int create);
 
+char *badblocks_recovery_file_alloc(const char *file);
+int badblocks_recovery_file_exist(struct pool_set *set);
+
 #endif /* PMDK_BADBLOCK_POOLSET_H */

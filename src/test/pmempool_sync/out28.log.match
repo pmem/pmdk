@@ -1,6 +1,9 @@
-    "badblock_count":12,
+create($(nW)/testset1): allocating records in the pool ...
+create($(nW)/testset1): allocated $(N) records (of size $(N))
+verify($(nW)/testset1): pool file successfully verified ($(N) records of size $(N))
+    "badblock_count":512,
         "offset":$(N),
-        "length":12,
+        "length":512,
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 1 part(s):
@@ -11,7 +14,7 @@ size                     : $(N)
 alignment                : 4096
 bad blocks:
 	offset		length
-	11		12
+	0		$(N)
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1
@@ -46,9 +49,9 @@ Heap offset              : $(nW)
 Heap size                : $(nW)
 Checksum                 : $(*)
 Root offset              : $(nW)
-    "badblock_count":12,
+    "badblock_count":512,
         "offset":$(N),
-        "length":12,
+        "length":512,
 $(nW)/testset1: synchronized
 No bad blocks found
 replica 0: checking shutdown state
@@ -104,3 +107,4 @@ Heap size                : $(nW)
 Checksum                 : $(*)
 Root offset              : $(nW)
 No bad blocks found
+verify($(nW)/testset1): pool file successfully verified ($(N) records of size $(N))
