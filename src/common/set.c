@@ -3733,7 +3733,7 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 				"WARNING: pool set contains bad blocks, ignoring");
 		} else {
 			ERR(
-				"pool set contains bad blocks and cannot be opened, run 'pmempool' utility to try to recover the pool");
+				"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
 			errno = EIO;
 			return -1;
 		}
@@ -3823,6 +3823,14 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	ASSERT(set->nreplicas > 0);
 
+	/* check if any bad block recovery file exists */
+	if (badblocks_recovery_file_exist(set)) {
+		LOG(1,
+			"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
+		errno = EINVAL;
+		return -1;
+	}
+
 	int bbs = badblocks_check_poolset(set, 0 /* not create */);
 	if (bbs < 0) {
 		LOG(1,
@@ -3837,7 +3845,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 				path);
 		} else {
 			ERR(
-				"pool set contains bad blocks and cannot be opened, run 'pmempool' utility to try to recover the pool -- '%s'",
+				"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool -- '%s'",
 				path);
 			errno = EIO;
 			return -1;
