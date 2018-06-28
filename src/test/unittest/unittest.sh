@@ -2693,7 +2693,7 @@ function get_node_dir() {
 #
 # example:
 #    The following command initialize rpmem environment variables on the node 1
-#    to perform replication to the node 0 and node 2. Additionaly rpmemd pid
+#    to perform replication to the node 0 and node 2. Additionally rpmemd pid
 #    will be stored in file.pid.
 #
 #       init_rpmem_on_node 1 0 2:file.pid

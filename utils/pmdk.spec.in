@@ -580,7 +580,7 @@ Requires: openssh-clients
 %description -n librpmem__PKG_NAME_SUFFIX__
 The librpmem library provides low-level support for remote access
 to persistent memory utilizing RDMA-capable NICs. It can be used
-to replicate peristent memory regions over RDMA protocol.
+to replicate persistent memory regions over RDMA protocol.
 
 %files -n librpmem__PKG_NAME_SUFFIX__
 %defattr(-,root,root,-)
@@ -596,7 +596,7 @@ Requires: librpmem__PKG_NAME_SUFFIX__ = %{version}-%{release}
 %description -n librpmem-devel
 The librpmem library provides low-level support for remote access
 to persistent memory utilizing RDMA-capable NICs. It can be used
-to replicate peristent memory regions over RDMA protocol.
+to replicate persistent memory regions over RDMA protocol.
 
 This sub-package contains libraries and header files for developing
 applications that want to specifically make use of librpmem.
@@ -619,7 +619,7 @@ Requires: librpmem__PKG_NAME_SUFFIX__ = %{version}-%{release}
 %description -n librpmem-debug
 The librpmem library provides low-level support for remote access
 to persistent memory utilizing RDMA-capable NICs. It can be used
-to replicate peristent memory regions over RDMA protocol.
+to replicate persistent memory regions over RDMA protocol.
 
 This sub-package contains debug variant of the library, providing
 run-time assertions and trace points. The typical way to access the

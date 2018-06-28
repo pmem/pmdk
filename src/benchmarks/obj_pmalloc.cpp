@@ -311,7 +311,7 @@ pmix_worker_fini(struct benchmark *bench, struct benchmark_args *args,
  * shuffle_objects -- randomly shuffle elements on a list
  *
  * Ideally, we wouldn't count the time this function takes, but for all
- * practial purposes this is fast enough and isn't visible on the results.
+ * practical purposes this is fast enough and isn't visible on the results.
  * Just make sure the amount of objects to shuffle is not large.
  */
 static void

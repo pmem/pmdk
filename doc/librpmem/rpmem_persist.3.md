@@ -87,7 +87,7 @@ which means the persist operation will be done without any guarantees regarding
 atomicity of memory transfer.
 
 The **rpmem_deep_persist**() function works in the same way as
-**rpmem_persist**(3) function, but additionaly it flushes the data to the
+**rpmem_persist**(3) function, but additionally it flushes the data to the
 lowest possible persistency domain available from software.
 Please see **pmem_deep_persist**(3) for details.
 
