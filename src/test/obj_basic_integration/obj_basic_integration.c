@@ -310,6 +310,11 @@ test_list_api(PMEMobjpool *pop)
 			sizeof(struct dummy_node), dummy_node_constructor,
 			&test_val);
 
+	TOID(struct dummy_node) inserted =
+			POBJ_LIST_FIRST(&D_RW(root)->dummies);
+	UT_ASSERTeq(pmemobj_type_num(inserted.oid),
+			TOID_TYPE_NUM(struct dummy_node));
+
 	TOID(struct dummy_node) node;
 	POBJ_ZNEW(pop, &node, struct dummy_node);
 

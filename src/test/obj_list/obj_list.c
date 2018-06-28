@@ -222,6 +222,7 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 			get_item_list(List.oid, n),
 			before,
 			sizeof(struct item),
+			TOID_TYPE_NUM(struct item),
 			item_constructor,
 			&id, (PMEMoid *)Item);
 
@@ -234,6 +235,7 @@ do_insert_new(PMEMobjpool *pop, const char *arg)
 			get_item_list(List.oid, n),
 			before,
 			sizeof(struct item),
+			TOID_TYPE_NUM(struct item),
 			NULL, NULL, (PMEMoid *)Item);
 
 		if (ret)
