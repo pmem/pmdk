@@ -1,6 +1,6 @@
-error: failed to synchronize: poolset health check failed
+error: failed to synchronize: file size does not match config: $(*)
 error: Invalid argument
-error: failed to synchronize: poolset health check failed
+error: failed to synchronize: file size does not match config: $(*)
 error: Invalid argument
 Poolset structure:
 Number of replicas       : 2
