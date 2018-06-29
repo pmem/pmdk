@@ -114,7 +114,7 @@ test_everything(const char *path)
 
 	/* read of uninitialized variable */
 	if (s1->fld)
-		printf("%d\n", 1);
+		UT_OUT("%d", 1);
 
 	/* write to freed object */
 	s2->fld = 7;

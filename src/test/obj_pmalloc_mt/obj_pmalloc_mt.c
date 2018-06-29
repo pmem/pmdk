@@ -246,15 +246,15 @@ main(int argc, char *argv[])
 		pop = pmemobj_create(argv[4], "TEST", (PMEMOBJ_MIN_POOL) +
 			(MAX_THREADS * CHUNKSIZE * CHUNKS_PER_THREAD),
 		0666);
-	} else {
-		if ((pop = pmemobj_open(argv[4], "TEST")) == NULL) {
-			printf("failed to open pool\n");
-			return 1;
-		}
-	}
 
-	if (pop == NULL)
-		UT_FATAL("!pmemobj_create");
+		if (pop == NULL)
+			UT_FATAL("!pmemobj_create");
+	} else {
+		pop = pmemobj_open(argv[4], "TEST");
+
+		if (pop == NULL)
+			UT_FATAL("!pmemobj_open");
+	}
 
 	PMEMoid oid = pmemobj_root(pop, sizeof(struct root));
 	struct root *r = pmemobj_direct(oid);

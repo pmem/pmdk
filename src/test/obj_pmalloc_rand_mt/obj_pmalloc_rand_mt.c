@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -107,15 +107,15 @@ main(int argc, char *argv[])
 		pop = pmemobj_create(argv[1], "TEST",
 		(PMEMOBJ_MIN_POOL * 10) + (nthreads * nobjects * object_size),
 		0666);
-	} else {
-		if ((pop = pmemobj_open(argv[1], "TEST")) == NULL) {
-			printf("failed to open pool\n");
-			return 1;
-		}
-	}
 
-	if (pop == NULL)
-		UT_FATAL("!pmemobj_create");
+		if (pop == NULL)
+			UT_FATAL("!pmemobj_create");
+	} else {
+		pop = pmemobj_open(argv[1], "TEST");
+
+		if (pop == NULL)
+			UT_FATAL("!pmemobj_open");
+	}
 
 	os_thread_t *threads = MALLOC(sizeof(os_thread_t) * nthreads);
 
