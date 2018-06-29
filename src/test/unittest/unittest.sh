@@ -78,15 +78,17 @@ export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFI
 
 VMMALLOC=libvmmalloc.so.1
 TOOLS=../tools
+LIB_TOOLS="../../tools"
 # Paths to some useful tools
-[ "$PMEMPOOL" ] || PMEMPOOL=../../tools/pmempool/pmempool
-[ "$DAXIO" ] || DAXIO=../../tools/daxio/daxio
+[ "$PMEMPOOL" ] || PMEMPOOL=$LIB_TOOLS/pmempool/pmempool
+[ "$DAXIO" ] || DAXIO=$LIB_TOOLS/daxio/daxio
 [ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
 [ "$BTTCREATE" ] || BTTCREATE=$TOOLS/bttcreate/bttcreate.static-nondebug
 [ "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
 [ "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
 [ "$PMEMOBJCLI" ] || PMEMOBJCLI=$TOOLS/pmemobjcli/pmemobjcli
 [ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
+[ "$PMREORDER" ] || PMREORDER=$LIB_TOOLS/pmreorder/pmreorder.py
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
@@ -215,7 +217,7 @@ fi
 
 REAL_FS=$FS
 if [ "$DIR" ]; then
-	DIR=$DIR/$curtestdir$UNITTEST_NUM$SUFFIX
+	DIR=$DIR/$curtestdir$UNITTEST_NUM
 else
 	case "$FS"
 	in
@@ -224,7 +226,7 @@ else
 		if [ "$PMEM_FS_DIR" == "" ]; then
 			fatal "$UNITTEST_NAME: PMEM_FS_DIR is not set"
 		fi
-		DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
+		DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 		if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ] || [ "$PMEM_FS_DIR_FORCE_PMEM" = "2" ]; then
 			export PMEM_IS_PMEM_FORCE=1
 		fi
@@ -234,24 +236,24 @@ else
 		if [ "$NON_PMEM_FS_DIR" == "" ]; then
 			fatal "$UNITTEST_NAME: NON_PMEM_FS_DIR is not set"
 		fi
-		DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
+		DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 		;;
 	any)
 		if [ "$PMEM_FS_DIR" != "" ]; then
-			DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
+			DIR=$PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 			REAL_FS=pmem
 			if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ] || [ "$PMEM_FS_DIR_FORCE_PMEM" = "2" ]; then
 				export PMEM_IS_PMEM_FORCE=1
 			fi
 		elif [ "$NON_PMEM_FS_DIR" != "" ]; then
-			DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
+			DIR=$NON_PMEM_FS_DIR/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 			REAL_FS=non-pmem
 		else
 			fatal "$UNITTEST_NAME: fs-type=any and both env vars are empty"
 		fi
 		;;
 	none)
-		DIR=/dev/null/not_existing_dir/$DIRSUFFIX/$curtestdir$UNITTEST_NUM$SUFFIX
+		DIR=/dev/null/not_existing_dir/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 		;;
 	*)
 		verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
@@ -259,13 +261,6 @@ else
 		;;
 	esac
 fi
-
-# writes test working directory to temporary file
-# that allows read location of data after test failure
-if [ -f "$TEMP_LOC" ]; then
-	echo "$DIR" > $TEMP_LOC
-fi
-
 
 #
 # The default is to turn on library logging to level 3 and save it to local files.
@@ -286,7 +281,6 @@ export PMEMCTO_LOG_FILE=pmemcto$UNITTEST_NUM.log
 export PMEMPOOL_LOG_LEVEL=3
 export PMEMPOOL_LOG_FILE=pmempool$UNITTEST_NUM.log
 
-export VMMALLOC_POOL_DIR="$DIR"
 export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
 export VMMALLOC_LOG_LEVEL=3
 export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
@@ -1179,6 +1173,13 @@ function require_dax_devices() {
 function require_node_dax_device() {
 	validate_node_number $1
 	require_dev_dax_node $2 $1
+}
+
+#
+# require_no_unicode -- overwrite unicode suffix to empty string
+#
+function require_no_unicode() {
+	export SUFFIX=""
 }
 
 #
@@ -2334,6 +2335,16 @@ function create_holey_file_on_node() {
 # setup -- print message that test setup is commencing
 #
 function setup() {
+
+	DIR=$DIR$SUFFIX
+	export VMMALLOC_POOL_DIR="$DIR"
+
+	# writes test working directory to temporary file
+	# that allows read location of data after test failure
+	if [ -f "$TEMP_LOC" ]; then
+		echo "$DIR" > $TEMP_LOC
+	fi
+
 	# test type must be explicitly specified
 	if [ "$req_test_type" != "1" ]; then
 		fatal "error: required test type is not specified"
@@ -3003,3 +3014,61 @@ function count_lines() {
 	$GREP -ce "$1" $2
 	restore_exit_on_error
 }
+
+#
+# require_python_3 -- check if python3 is available
+#
+function require_python3()
+{
+	if hash python3 &>/dev/null;
+	then
+		PYTHON_EXE=python3
+	else
+		PYTHON_EXE=python
+	fi
+
+	case "$($PYTHON_EXE --version 2>&1)" in
+	    *" 3."*)
+		return
+		;;
+	    *)
+		echo "$UNITTEST_NAME: SKIP: required python version 3"
+		exit 0
+		;;
+	esac
+}
+
+#
+# do_reorder_test -- perform a reordering test
+#
+# This function expects 5 additional parameters. They are in order:
+# 1 - the pool file to be tested
+# 2 - the application and necessary parameters to run pmemcheck logging
+# 3 - the log output file
+# 4 - the checker type - for a list of supported types run `./pmreorder.py -h`
+# 5 - the path to the checker binary/library
+# 6 - the remaining parameters which will be passed to the consistency checker
+#     binary. If you are using a library checker, prepend '-n funcname'
+#
+function do_reorder_test()
+{
+	# python3 is necessary
+	require_python3
+	require_valgrind
+
+	#copy original file and perform store logging
+	cp $1 "$1.pmr"
+	rm -f store_log$UNITTEST_NUM.log
+
+	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $VALGRINDEXE --tool=pmemcheck -q \
+	--log-stores=yes --print-summary=no \
+	--log-file=store_log$UNITTEST_NUM.log --log-stores-stacktraces=yes \
+	--log-stores-stacktraces-depth=2 --expect-fence-after-clflush=yes $2
+
+	# shuffle files and do the reorder/check testing
+	mv $1 "$1.bak"
+	mv "$1.pmr" $1
+	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PYTHON_EXE $PMREORDER \
+	-l store_log$UNITTEST_NUM.log -t file -o $3 -c $4 -p $5 $6
+}
+

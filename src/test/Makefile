@@ -238,6 +238,7 @@ PMEM_TESTS = \
 	pmem_map_file\
 	pmem_has_auto_flush\
 	pmem_deep_persist\
+	pmem_reorder_simple\
 	pmem_memcpy\
 	pmem_memmove\
 	pmem_memset\
