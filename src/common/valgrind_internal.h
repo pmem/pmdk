@@ -208,6 +208,11 @@ extern unsigned _On_valgrind;
 		VALGRIND_PMC_REMOVE_LOG_REGION((addr), (len));\
 } while (0)
 
+#define VALGRIND_EMIT_LOG(emit_log) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_EMIT_LOG((emit_log));\
+} while (0)
+
 #define VALGRIND_FULL_REORDER do {\
 	if (On_valgrind)\
 		VALGRIND_PMC_FULL_REORDER;\
@@ -335,6 +340,10 @@ extern unsigned _On_valgrind;
 #define VALGRIND_REMOVE_LOG_REGION(addr, len) do {\
 	(void) (addr);\
 	(void) (len);\
+} while (0)
+
+#define VALGRIND_EMIT_LOG(emit_log) do {\
+	(void) (emit_log);\
 } while (0)
 
 #define VALGRIND_FULL_REORDER do {} while (0)

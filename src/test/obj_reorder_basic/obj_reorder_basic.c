@@ -105,7 +105,7 @@ main(int argc, char *argv[])
 	UT_ASSERT(pop != NULL);
 
 	char opt = argv[1][0];
-	VALGRIND_PARTIAL_REORDER;
+	VALGRIND_EMIT_LOG(PARTIAL_ENGINE);
 	switch (opt) {
 		case 'w':
 		{
