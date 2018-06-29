@@ -81,6 +81,7 @@ typedef
        VG_USERREQ__PMC_REMOVE_THREAD_FROM_TX_N,
        VG_USERREQ__PMC_ADD_TO_GLOBAL_TX_IGNORE,
        VG_USERREQ__PMC_DEFAULT_REORDER,
+       VG_USERREQ__PMC_EMIT_LOG,
    } Vg_PMemCheckClientRequest;
 
 
@@ -190,6 +191,12 @@ typedef
     VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,                 \
                             VG_USERREQ__PMC_SET_CLEAN,                      \
                             (_qzz_addr), (_qzz_len), 0, 0, 0)
+
+/** Emit user log */
+#define VALGRIND_PMC_EMIT_LOG(_qzz_emit_log)                                \
+    VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,                 \
+                            VG_USERREQ__PMC_EMIT_LOG,                       \
+                            (_qzz_emit_log), 0, 0, 0, 0)
 
 /** Support for transactions */
 
