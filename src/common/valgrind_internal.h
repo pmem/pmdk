@@ -140,6 +140,11 @@ extern unsigned _On_valgrind;
 		VALGRIND_PMC_REGISTER_PMEM_MAPPING((addr), (len));\
 } while (0)
 
+#define VALGRIND_EMIT_LOG(emit_log) do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_EMIT_LOG((emit_log));\
+} while (0)
+
 #define VALGRIND_REGISTER_PMEM_FILE(desc, base_addr, size, offset) do {\
 	if (On_valgrind)\
 		VALGRIND_PMC_REGISTER_PMEM_FILE((desc), (base_addr), (size), \
@@ -283,6 +288,10 @@ extern unsigned _On_valgrind;
 #define VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
 	(void) (addr);\
 	(void) (len);\
+} while (0)
+
+#define VALGRIND_EMIT_LOG(emit_log) do {\
+	(void) (emit_log);\
 } while (0)
 
 #define VALGRIND_REGISTER_PMEM_FILE(desc, base_addr, size, offset) do {\
