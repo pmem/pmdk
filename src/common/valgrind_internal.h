@@ -223,6 +223,11 @@ extern unsigned _On_valgrind;
 		VALGRIND_PMC_ONLY_FAULT;\
 } while (0)
 
+#define VALGRIND_DEFAULT_REORDER do {\
+	if (On_valgrind)\
+		VALGRIND_PMC_DEFAULT_REORDER;\
+} while (0)
+
 #define VALGRIND_STOP_REORDER_FAULT do {\
 	if (On_valgrind)\
 		VALGRIND_PMC_STOP_REORDER_FAULT;\
@@ -335,6 +340,8 @@ extern unsigned _On_valgrind;
 #define VALGRIND_FULL_REORDER do {} while (0)
 
 #define VALGRIND_PARTIAL_REORDER do {} while (0)
+
+#define VALGRIND_DEFAULT_REORDER do {} while (0)
 
 #define VALGRIND_ONLY_FAULT do {} while (0)
 
