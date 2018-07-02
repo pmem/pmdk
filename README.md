@@ -108,13 +108,13 @@ required packages on the build system:
 
 * **autoconf**
 * **pkg-config**
+* **ndctl** and **daxctl** (v60.1 or later)
 
 The following packages are required only by selected PMDK components
 or features.  If not present, those components or features may not be
 available:
 
 * **libfabric** (v1.4.2 or later) -- required by **librpmem**
-* **ndctl** and **daxctl** (v60.1 or later) -- required by **daxio** and RAS features
 
 
 On Windows, to build PMDK and run the tests you need:
