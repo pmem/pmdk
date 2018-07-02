@@ -57,7 +57,6 @@ BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	man
 BuildRequires:	pkgconfig
-BuildRequires:	doxygen
 BuildRequires:	gdb
 
 %if %{with ndctl}
@@ -485,30 +484,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
-# Specify a virtual Provide for libpmemobj++-static package, so the package
-# usage can be tracked.
-%package -n libpmemobj++-devel
-Summary: C++ bindings for Persistent Memory Transactional Object Store library
-Group: __GROUP_DEV_LIBS__
-Provides: libpmemobj++-static = %{version}-%{release}
-Requires: libpmemobj-devel = %{version}-%{release}
-%description -n libpmemobj++-devel
-The libpmemobj library provides a transactional object store,
-providing memory allocation, transactions, and general facilities for
-persistent memory programming.
-
-This sub-package contains header files for libpmemobj C++ bindings.
-
-%files -n libpmemobj++-devel
-%defattr(-,root,root,-)
-%{_libdir}/pkgconfig/libpmemobj++.pc
-%{_includedir}/libpmemobj++/*.hpp
-%{_includedir}/libpmemobj++/detail/*.hpp
-%{_docdir}/libpmemobj++-devel/*
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
 %package -n libpmempool__PKG_NAME_SUFFIX__
 Summary: Persistent Memory pool management library
 Group: __GROUP_SYS_LIBS__
@@ -779,8 +754,7 @@ make install DESTDIR=%{buildroot} \
 	mandir=%{_mandir} \
 	bindir=%{_bindir} \
 	sysconfdir=%{_sysconfdir} \
-	docdir=%{_docdir} \
-	CPP_DOC_DIR=libpmemobj++-devel
+	docdir=%{_docdir}
 mkdir -p %{buildroot}%{_datadir}/pmdk
 cp utils/pmdk.magic %{buildroot}%{_datadir}/pmdk/
 __MAKE_INSTALL_FDUPES__
