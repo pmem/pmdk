@@ -3072,3 +3072,16 @@ function do_reorder_test()
 	-l store_log$UNITTEST_NUM.log -t file -o $3 -c $4 -p $5 $6
 }
 
+#
+# check_free_space -- check if there is enough free space to run the test
+#
+function check_free_space {
+	size_16G=$(echo "16*1024*1024" | bc)
+	deviceInfo=$(df $DIR)
+    deviceInfoArray=( $deviceInfo )
+    freeSpace=${deviceInfoArray[10]}
+	if [ $freeSpace -lt $size_16G ]; then
+		msg "$UNITTEST_NAME: SKIP not enough free space"
+		exit 0
+	fi
+}
