@@ -1,6 +1,6 @@
-    "badblock_count":1,
+    "badblock_count":$(N),
         "offset":$(N),
-        "length":1,
+        "length":$(N),
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 3 part(s):
@@ -53,9 +53,9 @@ Heap offset              : $(nW)
 Heap size                : $(nW)
 Checksum                 : $(*)
 Root offset              : $(nW)
-    "badblock_count":1,
+    "badblock_count":$(N),
         "offset":$(N),
-        "length":1,
+        "length":$(N),
 $(nW)/testset1: synchronized
 replica 0: checking shutdown state
 replica 0: shutdown state correct
