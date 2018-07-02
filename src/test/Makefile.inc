@@ -50,7 +50,6 @@ EX_LIBPMEM=$(EXAMPLES_DIR)/libpmem
 EX_LIBPMEMBLK=$(EXAMPLES_DIR)/libpmemblk
 EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
 EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
-EX_LIBPMEMOBJCPP=$(EXAMPLES_DIR)/libpmemobj++
 EX_LIBPMEMCTO=$(EXAMPLES_DIR)/libpmemcto
 
 UT = ../unittest/libut.a
@@ -382,30 +381,6 @@ MAKEFILE_DEPS=Makefile ../Makefile.inc $(TOP)/src/common.inc
 ifneq ($(HEADERS),)
 ifneq ($(filter 1 2, $(CSTYLEON)),)
 TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
-endif
-endif
-
-ifeq ($(USE_LLVM_LIBCPP),1)
-
-$(call check_defined, LIBCPP_LIBDIR LIBCPP_INCDIR, when using USE_LLVM_LIBCPP)
-
-ifeq ($(COMPILE_LANG), cpp)
-CXXFLAGS += -nostdinc++
-INCS += -I$(LIBCPP_INCDIR)
-LIBS += -L$(LIBCPP_LIBDIR) -lc++ $(LIBCXXABI)
-LDFLAGS += -Wl,-rpath,$(LIBCPP_LIBDIR)
-endif
-endif
-
-ifeq ($(USE_CUSTOM_GCC),1)
-
-$(call check_defined, GCC_LIBDIR GCC_INCDIR,\
-		when using USE_CUSTOM_GCC)
-
-ifeq ($(COMPILE_LANG), cpp)
-INCS += -I$(GCC_INCDIR)
-LIBS += -L$(GCC_LIBDIR)
-LDFLAGS += -Wl,-rpath,$(GCC_LIBDIR)
 endif
 endif
 
