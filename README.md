@@ -301,23 +301,6 @@ and UndefinedBehaviorSanitizer, run:
 	$ make SANITIZE=address,undefined clobber check
 ```
 
-If you wish to run C++ standard library containers tests, you need to set the
-path to your custom versions of either gcc or libc++. For gcc run:
-```
-	$ make USE_CUSTOM_GCC=1 GCC_INCDIR=/path/to/includes GCC_LIBDIR=/path/to/lib check
-```
-If you want to use a custom version of libc++ run:
-```
-	$ make USE_LLVM_LIBCPP=1 LIBCPP_INCDIR=/path/to/includes/ LIBCPP_LIBDIR=/path/to/lib check
-```
-Please remember to set the appropriate versions of *CC/CXX* when using custom versions of the library.
-
-For example, when using a custom version of libc++(version 3.9) installed to /usr/local/libcxx, to execute the tests run:
-
-```
-	$ CC=clang CXX=clang++ make USE_LLVM_LIBCPP=1 LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1 LIBCPP_LIBDIR=/usr/local/libcxx/lib check
-```
-
 ><sup>8</sup> PM-aware Valgrind is not yet available for FreeBSD.
 >
 ><sup>9</sup> The address sanitizer is not supported for libvmmalloc on FreeBSD and will be ignored.

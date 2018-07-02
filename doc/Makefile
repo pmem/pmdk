@@ -171,7 +171,6 @@ MANPAGES = $(MANPAGES_7_GROFF) $(MANPAGES_5_GROFF) $(MANPAGES_3_GROFF) $(MANPAGE
 
 MANPAGES_BUILD = $(addprefix $(MANPAGES_BUILDDIR)/, $(notdir $(MANPAGES)))
 
-HTMLFILES = $(MANPAGES_BUILD:=.html)
 TXTFILES = $(MANPAGES_BUILD:=.txt)
 
 GZFILES_7 = $(MANPAGES_7_GROFF:=.gz)
@@ -196,19 +195,12 @@ GZFILES_1_BUILD = $(addprefix $(MANPAGES_BUILDDIR)/, $(notdir $(GZFILES_1)))
 
 GZFILES_3_BUILD += $(addprefix $(MANPAGES_BUILDDIR)/, $(GZFILES_3_DUMMY))
 
-DOXYGEN_HTMLDIR=cpp_html
-
 MANPAGES_DESTDIR_7 = $(DESTDIR)$(man7dir)
 MANPAGES_DESTDIR_5 = $(DESTDIR)$(man5dir)
 MANPAGES_DESTDIR_3 = $(DESTDIR)$(man3dir)
 MANPAGES_DESTDIR_1 = $(DESTDIR)$(man1dir)
 
 DOCS_DESTDIR = $(DESTDIR)$(docdir)
-CPP_DOC_DIR ?= libpmemobj++-dev
-CPP_DOCS_DESTDIR = $(DOCS_DESTDIR)/$(CPP_DOC_DIR)
-
-
-all: md2man $(TXTFILES) doxygen_docs | $(MANPAGES_BUILDDIR)
 
 $(MANPAGES_BUILDDIR) $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 	$(MKDIR) -p $@
@@ -217,14 +209,6 @@ $(MANPAGES_BUILDDIR) $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 	man ./$< > $@
 
 groff: $(MANPAGES_7_GROFF) $(MANPAGES_5_GROFF) $(MANPAGES_3_GROFF) $(MANPAGES_1_GROFF)
-
-doxygen_docs:
-	doxygen cppobj.Doxyfile
-
-html: $(HTMLFILES) doxygen_docs
-
-%.html: %
-	groff -mandoc -Thtml ./$< > $@
 
 md2man:
 	$(foreach f, $(MANPAGES_7_MD), ../utils/md2man.sh $(f) default.man $(MANPAGES_BUILDDIR)/$(basename $(notdir $(f)));)
@@ -253,20 +237,9 @@ clean:
 clobber: clean
 	$(RM) -rf $(DOXYGEN_HTMLDIR) \
 		$(MANPAGES_BUILDDIR)/*.txt \
-		$(MANPAGES_BUILDDIR)/*.html \
 		$(MANPAGES_BUILDDIR)/*.gz \
 		$(MANPAGES_WEBDIR_LINUX) \
 		$(MANPAGES_WEBDIR_WINDOWS)
-
-install-cpp: doxygen_docs
-	$(call install_recursive,$(DOXYGEN_HTMLDIR),0644,$(CPP_DOCS_DESTDIR))
-
-install: install-cpp
-
-uninstall-cpp:
-	$(RM) -rf $(CPP_DOCS_DESTDIR)
-
-uninstall: uninstall-cpp
 
 install: compress
 	install -d -v $(MANPAGES_DESTDIR_7)
@@ -286,5 +259,4 @@ uninstall:
 
 FORCE:
 
-.PHONY: all html clean compress clobber cstyle install uninstall install-cpp\
-	uninstall-cpp doxygen_docs
+.PHONY: all clean compress clobber cstyle install uninstall
