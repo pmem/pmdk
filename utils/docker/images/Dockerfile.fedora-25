@@ -47,7 +47,6 @@ RUN dnf update -y \
 	bc \
 	clang \
 	cmake \
-	doxygen \
 	file \
 	findutils \
 	fuse \
@@ -92,10 +91,6 @@ RUN ./install-valgrind.sh
 # Install libfabric
 COPY install-libfabric.sh install-libfabric.sh
 RUN ./install-libfabric.sh fedora
-
-# Install libcxx
-COPY install-libcxx.sh install-libcxx.sh
-RUN ./install-libcxx.sh
 
 # Add user
 ENV USER pmdkuser
