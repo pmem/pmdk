@@ -3072,3 +3072,16 @@ function do_reorder_test()
 	-l store_log$UNITTEST_NUM.log -t file -o $3 -c $4 -p $5 $6
 }
 
+#
+# check_free_space -- check if there is enough free space to run the test
+# Example, checking if there are 1 GB of free space on disk:
+# check_free_space 1073741824
+#
+function check_free_space() {
+	checking_size=$1
+	freeSpace=$(df $DIR --output=avail | tail -n 1)
+	if [ $freeSpace -lt $checking_size ]; then
+		msg "$UNITTEST_NAME: SKIP not enough free space"
+		exit 0
+	fi
+}
