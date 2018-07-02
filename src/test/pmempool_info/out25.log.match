@@ -1,3 +1,6 @@
+    "badblock_count":$(N),
+        "offset":$(N),
+        "length":$(N),
 Poolset structure:
 Number of replicas       : 1
 Replica 0 (master) - local, 3 part(s):

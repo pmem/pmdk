@@ -69,6 +69,8 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOL
 # inject bad block: OFF=11 LEN=12
 ndctl_inject_error $NAMESPACE 11 12
 
+expect_bad_blocks
+
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -k $POOLSET >> $LOG
 
 ndctl_nfit_test_fini
