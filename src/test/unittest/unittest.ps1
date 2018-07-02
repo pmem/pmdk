@@ -1259,3 +1259,21 @@ function enable_log_append() {
     rm -Force -ErrorAction SilentlyContinue $Env:PREP_LOG_FILE
     $Env:UNITTEST_LOG_APPEND=1
 }
+
+#
+# require_free_space -- check if there is enough free space to run the test
+# Example, checking if there is 1 GB of free space on disk:
+# require_free_space 1G
+#
+function require_free_space() {
+	$req_free_space = (convert_to_bytes $args[0])
+	$path = $DIR -replace '\\\\\?\\', ''
+	$device_name = (Get-Item $path).PSDrive.Root
+	$filter = "Name='$($device_name -replace '\\', '\\')'"
+	$free_space = (gwmi Win32_Volume -Filter $filter | select FreeSpace).freespace
+	if ([INT64]$free_space -lt [INT64]$req_free_space)
+	{
+		msg "${Env:UNITTEST_NAME}: SKIP not enough free space"
+		exit 0
+	}
+}
