@@ -49,7 +49,6 @@ RUN apt-get update \
 	cmake \
 	debhelper \
 	devscripts \
-	doxygen \
 	flake8 \
 	gcc \
 	gdb \
@@ -81,10 +80,6 @@ RUN ./install-valgrind.sh
 # Install libfabric
 COPY install-libfabric.sh install-libfabric.sh
 RUN ./install-libfabric.sh
-
-# Install libcxx
-COPY install-libcxx.sh install-libcxx.sh
-RUN ./install-libcxx.sh
 
 # Install libndctl
 COPY install-libndctl.sh install-libndctl.sh

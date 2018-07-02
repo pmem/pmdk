@@ -39,12 +39,6 @@ include ../common.inc
 DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem\
 	libpmempool libpmemcto
 
-ifeq ($(call cxx_ok), y)
-DIRS += libpmemobj++
-else
-$(info NOTE: Skipping C++ examples because of compiler issues)
-endif
-
 include Makefile.inc
 
 rmtmp:
