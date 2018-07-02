@@ -19,16 +19,14 @@ env:
     - PMDK_CXX=g++
     - REMOTE_TESTS=1
     - VALGRIND=1
-    - LIBCPP_LIBDIR=/usr/local/libcxx/lib
-    - LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1
   matrix:
     - COVERAGE=1 TEST_BUILD=debug
     - TEST_BUILD=debug
     - TEST_BUILD=nondebug
-    - PMDK_CC=clang PMDK_CXX=clang++ USE_LLVM_LIBCPP=1 TEST_BUILD=debug
-    - PMDK_CC=clang PMDK_CXX=clang++ USE_LLVM_LIBCPP=1 TEST_BUILD=nondebug
-    - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ USE_LLVM_LIBCPP=1 TEST_BUILD=debug
-    - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ USE_LLVM_LIBCPP=1 TEST_BUILD=nondebug
+    - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
+    - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug
+    - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
+    - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug
     - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PUSH_IMAGE=1
     - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=y PUSH_IMAGE=1 OS=fedora OS_VER=25
     - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PMDK_CC=clang PMDK_CXX=clang++
