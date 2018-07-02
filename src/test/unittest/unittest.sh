@@ -1646,7 +1646,7 @@ function require_valgrind_tool() {
 		fi
 	fi
 	if [ "$tool" == "pmemcheck" ]; then
-		out=`valgrind --tool=$tool --help 2>&1`
+		out=`valgrind --tool=$tool --help 2>&1` && true
 		echo "$out" | grep -qi "$tool is Copyright (c)" && true
 		if [ $? -ne 0 ]; then
 			msg "$UNITTEST_NAME: SKIP Valgrind with $tool required"
