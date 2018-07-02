@@ -61,13 +61,10 @@ HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
 
 OBJ_HEADERS_INSTALL = include/libpmemobj/*.h
 
-CPP_HEADERS_DESTDIR = $(DESTDIR)$(includedir)/libpmemobj++
-
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
 PKG_CONFIG_COMMON = common.pc
 PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc libpmemobj.pc\
-		libpmemlog.pc libpmemblk.pc libpmempool.pc libpmemobj++.pc\
-		libpmemcto.pc
+		libpmemlog.pc libpmemblk.pc libpmempool.pc libpmemcto.pc
 
 ifeq ($(BUILD_RPMEM),y)
 	PKG_CONFIG_FILES += librpmem.pc
@@ -106,8 +103,6 @@ HEADERS =\
 		freebsd/include/*/*.h\
 		include/lib*.h\
 		include/libpmemobj/*.h\
-		include/libpmemobj++/*.hpp\
-		include/libpmemobj++/detail/*.hpp\
 		windows/include/*.h\
 		windows/include/*/*.h\
 		), $(f))
@@ -192,17 +187,6 @@ ifeq ($(custom_build),)
 	$(MAKE) -C jemalloc -f Makefile.libpmemcto  $@ DEBUG=1 EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common"
 endif
 
-install-cpp:
-	$(call install_recursive_filter,include/libpmemobj++,*.hpp,0644,$(CPP_HEADERS_DESTDIR))
-
-install: install-cpp
-
-uninstall-cpp:
-	$(foreach f, include/libpmemobj++/*.hpp, $(RM) $(HEADERS_DESTDIR)/libpmemobj++/$(notdir $(f)))
-	$(foreach f, include/libpmemobj++/detail/*.hpp, $(RM) $(HEADERS_DESTDIR)/libpmemobj++/detail/$(notdir $(f)))
-
-uninstall: uninstall-cpp
-
 # Re-generate pkg-config files on 'make install' (not on 'make all'),
 # to handle the case when prefix is specified only for 'install'.
 # Clean up generated files when done.
@@ -240,7 +224,6 @@ clobber: clean-here
 
 .NOTPARALLEL: libvmem libvmmalloc libpmemcto
 
-.PHONY: all install uninstall uninstall-cpp install-cpp clean clobber cstyle\
-	format test check pcheck jemalloc jemalloc-clean jemalloc-test\
-	jemalloc-check cscope $(ALL_TARGETS) pkg-config check-remote clean-here\
-	pkg-cfg-common
+.PHONY: all install uninstall clean clobber cstyle format test check pcheck\
+	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)\
+	pkg-config check-remote clean-here pkg-cfg-common
