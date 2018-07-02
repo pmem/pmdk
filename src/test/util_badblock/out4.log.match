@@ -1,6 +1,6 @@
 util_badblock$(nW)TEST4: START: util_badblock
  $(nW)util_badblock$(nW) /dev/dax$(N).0 l c l
 Found 1 bad block(s):
-11 12
+11 $(N)
 No bad blocks found.
 util_badblock$(nW)TEST4: DONE
