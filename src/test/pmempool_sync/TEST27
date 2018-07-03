@@ -33,7 +33,7 @@
 #
 # pmempool_sync/TEST27 -- test for sync command with badblocks
 #                         - bad blocks in the regular file
-#                           blocks: offset: 0 length: 512
+#                           blocks: offset: 0 length: 1
 #
 
 # standard unit test setup
@@ -76,7 +76,7 @@ expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG
 
 # inject bad block:
 FIRST_SECTOR=$(expect_normal_exit $EXTENTS $MOUNT_DIR/testfile1 -l 0)
-ndctl_inject_error $NAMESPACE $FIRST_SECTOR 512
+ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1
 
 expect_bad_blocks
 

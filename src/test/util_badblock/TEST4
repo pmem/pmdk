@@ -60,8 +60,8 @@ DEVICE=$(ndctl_nfit_test_get_dax_device)
 NAMESPACE=$(ndctl_nfit_test_get_namespace_of_device $DEVICE)
 FULLDEV="/dev/$DEVICE"
 
-# inject bad block: OFF=11 LEN=12
-ndctl_inject_error $NAMESPACE 11 12
+# inject bad block: OFF=11 LEN=1
+ndctl_inject_error $NAMESPACE 11 1
 
 expect_bad_blocks
 
