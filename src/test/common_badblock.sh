@@ -157,5 +157,14 @@ function print_bad_blocks {
 #                      and fail if they are not there
 #
 function expect_bad_blocks {
-	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || fatal "Error: ndctl failed to inject or retain bad blocks"
+	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG
+	if [ $? -ne 0 ]; then
+		msg "====================================================================="
+		msg "Error occurred, the preparation log ($PREP_LOG_FILE) is listed below:"
+		msg ""
+		cat $PREP_LOG_FILE
+		msg "====================================================================="
+		msg ""
+		fatal "Error: ndctl failed to inject or retain bad blocks"
+	fi
 }
