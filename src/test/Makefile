@@ -78,6 +78,7 @@ OBJ_TESTS = \
 	obj_ctl_alloc_class\
 	obj_ctl_alloc_class_config\
 	obj_ctl_config\
+	obj_ctl_debug\
 	obj_ctl_heap_size\
 	obj_ctl_prefault\
 	obj_ctl_stats\

@@ -360,6 +360,12 @@ Extends the heap by the given size. Must be larger than *PMEMOBJ_MIN_PART*.
 
 This function returns 0 if successful, -1 otherwise.
 
+debug.heap.alloc_pattern | rw | - | int | int | - | -
+
+Single byte pattern that is used to fill new uninitialized memory allocation.
+If the value is negative, no pattern is written. This is intended for
+debugging, and is disabled by default.
+
 # CTL EXTERNAL CONFIGURATION #
 
 In addition to direct function call, each write entry point can also be set
