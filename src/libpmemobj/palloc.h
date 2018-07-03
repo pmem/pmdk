@@ -46,6 +46,8 @@
 #include "valgrind_internal.h"
 #include "stats.h"
 
+#define PALLOC_CTL_DEBUG_NO_PATTERN (-1)
+
 struct palloc_heap {
 	struct pmem_ops p_ops;
 	struct heap_layout *layout;
@@ -57,6 +59,8 @@ struct palloc_heap {
 	struct pool_set *set;
 
 	void *base;
+
+	int alloc_pattern;
 };
 
 struct memory_block;
