@@ -820,14 +820,10 @@ check_replica_poolset_uuids(struct pool_set *set, unsigned repn,
  */
 static int
 check_poolset_uuids(struct pool_set *set,
-		struct poolset_health_status *set_hs)
+		struct poolset_health_status *set_hs,
+		unsigned r_h)
 {
-	LOG(3, "set %p, set_hs %p", set, set_hs);
-	unsigned r_h = replica_find_healthy_replica(set_hs);
-	if (r_h == UNDEF_REPLICA) {
-		ERR("no healthy replica found - cannot synchronize");
-		return -1;
-	}
+	LOG(3, "set %p, set_hs %p, r_h %u", set, set_hs, r_h);
 
 	uuid_t poolset_uuid;
 	memcpy(poolset_uuid, HDR(REP(set, r_h), 0)->poolset_uuid,
@@ -1107,8 +1103,15 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
+	/* find a healthy replica - it is needed by check_poolset_uuids() */
+	unsigned r_h = replica_find_healthy_replica(set_hs);
+	if (r_h == UNDEF_REPLICA) {
+		/* no healthy replica found - cannot proceed */
+		goto exit;
+	}
+
 	/* check poolset_uuid values between replicas */
-	if (check_poolset_uuids(set, set_hs)) {
+	if (check_poolset_uuids(set, set_hs, r_h)) {
 		LOG(1, "poolset uuids check failed");
 		goto err;
 	}
@@ -1136,6 +1139,7 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
+exit:
 	unmap_all_headers(set);
 	util_poolset_fdclose_always(set);
 	return 0;
