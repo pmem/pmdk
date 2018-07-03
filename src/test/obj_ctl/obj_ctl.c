@@ -180,7 +180,7 @@ static const struct ctl_node CTL_NODE(test_index)[] = {
 	CTL_NODE_END
 };
 
-static const struct ctl_node CTL_NODE(debug)[] = {
+static const struct ctl_node CTL_NODE(test_debug)[] = {
 	CTL_LEAF_RO(test_ro),
 	CTL_LEAF_WO(test_wo),
 	CTL_LEAF_RUNNABLE(test_runnable),
@@ -243,7 +243,7 @@ test_ctl_parser(PMEMobjpool *pop)
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "debug.", NULL);
+	ret = pmemobj_ctl_get(pop, "test_debug.", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
@@ -259,11 +259,11 @@ test_ctl_parser(PMEMobjpool *pop)
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "debug.1.", NULL);
+	ret = pmemobj_ctl_get(pop, "test_debug.1.", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "debug.1.invalid", NULL);
+	ret = pmemobj_ctl_get(pop, "test_debug.1.invalid", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 
@@ -274,38 +274,38 @@ test_ctl_parser(PMEMobjpool *pop)
 	errno = 0;
 
 	/* correct name, wrong args */
-	ret = pmemobj_ctl_get(pop, "debug.test_rw", NULL);
+	ret = pmemobj_ctl_get(pop, "test_debug.test_rw", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_set(pop, "debug.test_rw", NULL);
+	ret = pmemobj_ctl_set(pop, "test_debug.test_rw", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "debug.test_wo", &arg_read);
+	ret = pmemobj_ctl_get(pop, "test_debug.test_wo", &arg_read);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_get(pop, "debug.test_wo", NULL);
+	ret = pmemobj_ctl_get(pop, "test_debug.test_wo", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_set(pop, "debug.test_ro", &arg_write);
+	ret = pmemobj_ctl_set(pop, "test_debug.test_ro", &arg_write);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
-	ret = pmemobj_ctl_set(pop, "debug.test_ro", NULL);
+	ret = pmemobj_ctl_set(pop, "test_debug.test_ro", NULL);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTne(errno, 0);
 	errno = 0;
 
-	ret = pmemobj_ctl_get(pop, "debug.test_rw", &arg_read);
+	ret = pmemobj_ctl_get(pop, "test_debug.test_rw", &arg_read);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 	UT_ASSERTeq(arg_write, 0);
 	UT_ASSERTeq(errno, 0);
 
-	ret = pmemobj_ctl_set(pop, "debug.test_rw", &arg_write);
+	ret = pmemobj_ctl_set(pop, "test_debug.test_rw", &arg_write);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 	UT_ASSERTeq(arg_write, 1);
@@ -313,7 +313,7 @@ test_ctl_parser(PMEMobjpool *pop)
 	arg_read = 1;
 	arg_write = 0;
 
-	ret = pmemobj_ctl_get(pop, "debug.test_ro", &arg_read);
+	ret = pmemobj_ctl_get(pop, "test_debug.test_ro", &arg_read);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 0);
 	UT_ASSERTeq(arg_write, 0);
@@ -321,17 +321,17 @@ test_ctl_parser(PMEMobjpool *pop)
 	arg_read = 1;
 	arg_write = 0;
 
-	ret = pmemobj_ctl_set(pop, "debug.test_wo", &arg_write);
+	ret = pmemobj_ctl_set(pop, "test_debug.test_wo", &arg_write);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 1);
 	UT_ASSERTeq(arg_write, 1);
 
 	long index_value = 0;
-	ret = pmemobj_ctl_get(pop, "debug.5.index_value", &index_value);
+	ret = pmemobj_ctl_get(pop, "test_debug.5.index_value", &index_value);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(index_value, 5);
 
-	ret = pmemobj_ctl_get(pop, "debug.10.index_value", &index_value);
+	ret = pmemobj_ctl_get(pop, "test_debug.10.index_value", &index_value);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(index_value, 10);
 
@@ -339,7 +339,7 @@ test_ctl_parser(PMEMobjpool *pop)
 	arg_write = 1;
 	int arg_runnable = 1;
 
-	ret = pmemobj_ctl_exec(pop, "debug.test_runnable", &arg_runnable);
+	ret = pmemobj_ctl_exec(pop, "test_debug.test_runnable", &arg_runnable);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arg_read, 1);
 	UT_ASSERTeq(arg_write, 1);
@@ -372,7 +372,7 @@ test_string_config(PMEMobjpool *pop)
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
-	ret = ctl_load_config_from_string(pop, "debug.test_wo=");
+	ret = ctl_load_config_from_string(pop, "test_debug.test_wo=");
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
@@ -383,19 +383,19 @@ test_string_config(PMEMobjpool *pop)
 
 	test_config_written = 0;
 	ret = ctl_load_config_from_string(pop,
-			"debug.test_wo=111=222");
+			"test_debug.test_wo=111=222");
 	UT_ASSERTeq(ret, -1);
 	UT_ASSERTeq(test_config_written, 0);
 
 	test_config_written = 0;
 	ret = ctl_load_config_from_string(pop,
-			"debug.test_wo=333;debug.test_rw=444;");
+			"test_debug.test_wo=333;test_debug.test_rw=444;");
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 2);
 
 	test_config_written = 0;
 	ret = ctl_load_config_from_string(pop,
-			"debug.test_config="TEST_CONFIG_VALUE";");
+			"test_debug.test_config="TEST_CONFIG_VALUE";");
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(test_config_written, 1);
 }
@@ -440,29 +440,30 @@ static void
 test_file_config(PMEMobjpool *pop)
 {
 	create_and_test_file_config(pop,
-		"debug.test_config="TEST_CONFIG_VALUE";", 0, 1);
+		"test_debug.test_config="TEST_CONFIG_VALUE";", 0, 1);
 	create_and_test_file_config(pop,
-		"debug.test_config="TEST_CONFIG_VALUE";"
-		"debug.test_config="TEST_CONFIG_VALUE";", 0, 2);
+		"test_debug.test_config="TEST_CONFIG_VALUE";"
+		"test_debug.test_config="TEST_CONFIG_VALUE";", 0, 2);
 	create_and_test_file_config(pop,
 		"#this is a comment\n"
-		"debug.test_config="TEST_CONFIG_VALUE";", 0, 1);
+		"test_debug.test_config="TEST_CONFIG_VALUE";", 0, 1);
 	create_and_test_file_config(pop,
-		"debug.#this is a comment\n"
+		"test_debug.#this is a comment\n"
 		"test_config#this is a comment\n"
 		"="TEST_CONFIG_VALUE";", 0, 1);
 	create_and_test_file_config(pop,
-		"debug.test_config="TEST_CONFIG_VALUE";#this is a comment",
+		"test_debug.test_config="TEST_CONFIG_VALUE";#this is a comment",
 		0, 1);
 	create_and_test_file_config(pop,
-		"\n\n\ndebug\n.\ntest\t_\tconfig="TEST_CONFIG_VALUE";\n", 0, 1);
-	create_and_test_file_config(pop,
-		" d e b u g . t e s t _ c o n f i g = "TEST_CONFIG_VALUE";",
+		"\n\n\ntest_debug\n.\ntest\t_\tconfig="TEST_CONFIG_VALUE";\n",
 		0, 1);
 	create_and_test_file_config(pop,
-		"#debug.test_config="TEST_CONFIG_VALUE";", 0, 0);
+		"t e s t _ d e b u g . t e s t _ c o n f i g = "
+		TEST_CONFIG_VALUE";", 0, 1);
 	create_and_test_file_config(pop,
-		"debug.#this is a comment\n"
+		"#test_debug.test_config="TEST_CONFIG_VALUE";", 0, 0);
+	create_and_test_file_config(pop,
+		"test_debug.#this is a comment\n"
 		"test_config#this is a not properly terminated comment"
 		"="TEST_CONFIG_VALUE";", -1, 0);
 	create_and_test_file_config(pop,
@@ -471,13 +472,14 @@ test_file_config(PMEMobjpool *pop)
 		"", 0, 0);
 
 	create_and_test_file_config(pop,
-		"debug.test_config_complex_arg=;", -1, 0);
+		"test_debug.test_config_complex_arg=;", -1, 0);
 	create_and_test_file_config(pop,
-		"debug.test_config_complex_arg=1,2,3;", -1, 0);
+		"test_debug.test_config_complex_arg=1,2,3;", -1, 0);
 	create_and_test_file_config(pop,
-		"debug.test_config_complex_arg=12345,abcd,,1;", -1, 0);
+		"test_debug.test_config_complex_arg=12345,abcd,,1;", -1, 0);
 	create_and_test_file_config(pop,
-		"debug.test_config_complex_arg=12345,abcd,3147483647,1;", 0, 1);
+		"test_debug.test_config_complex_arg=12345,abcd,3147483647,1;",
+		0, 1);
 
 	create_and_test_file_config(NULL,
 		"global_debug.gtest_config="TEST_CONFIG_VALUE";", 0, 1);
@@ -686,7 +688,7 @@ main(int argc, char *argv[])
 
 	test_ctl_global_namespace(NULL);
 
-	CTL_REGISTER_MODULE(pop->ctl, debug);
+	CTL_REGISTER_MODULE(pop->ctl, test_debug);
 
 	test_ctl_global_namespace(pop);
 
