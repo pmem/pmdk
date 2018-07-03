@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\libpmemobj\bucket.c" />
     <ClCompile Include="..\..\src\libpmemobj\cuckoo.c" />
+    <ClCompile Include="..\..\src\libpmemobj\ctl_debug.c" />
     <ClCompile Include="..\..\src\libpmemobj\heap.c" />
     <ClCompile Include="..\..\src\libpmemobj\lane.c" />
     <ClCompile Include="..\..\src\libpmemobj\libpmemobj.c" />
@@ -63,6 +64,7 @@
     <ClInclude Include="..\..\src\include\libpmemobj.h" />
     <ClInclude Include="..\..\src\libpmemobj\bucket.h" />
     <ClInclude Include="..\..\src\libpmemobj\cuckoo.h" />
+    <ClInclude Include="..\..\src\libpmemobj\ctl_debug.h" />
     <ClInclude Include="..\..\src\libpmemobj\heap.h" />
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h" />
     <ClInclude Include="..\..\src\libpmemobj\lane.h" />
