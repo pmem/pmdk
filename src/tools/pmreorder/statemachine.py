@@ -198,6 +198,9 @@ class CollectingState(State):
         elif isinstance(order_ops, memoryoperations.No_reorder_fault):
             self._context.reorder_engine = reorderengines.NoReorderEngine()
             self._context.test_on_barrier = False
+        elif isinstance(order_ops, memoryoperations.Default_reorder):
+            self._context.reorder_engine = self._context.default_engine
+            self._context.test_on_barrier = self._context.default_barrier
         else:
             raise NotSupportedOperationException(
                                    "Not supported reorder engine: {}"

@@ -40,8 +40,13 @@ class OpsContext:
     :ivar _operations: The operations to be performed, based on the log file.
     :type _operations: list of strings
     :ivar reorder_engine: The reordering engine used at the moment.
+    :type one of the reorderengine Class
+    :ivar default_engine: The default reordering engine.
+    :type default_engine: One of the reorderengines Class
     :ivar test_on_barrier: Check consistency on barrier.
     :type test_on_barrier: bool
+    :ivar default_barrier: Default consistency barrier status.
+    :type default_barrier: bool
     :ivar file_handler: The file handler used.
     """
     def __init__(self, log_file, checker, logger):
@@ -58,6 +63,8 @@ class OpsContext:
         self._operations = open(log_file).read().split("|")
         self.reorder_engine = reorderengines.FullReorderEngine()
         self.test_on_barrier = True
+        self.default_engine = self.reorder_engine
+        self.default_barrier = self.test_on_barrier
         self.file_handler = BinaryOutputHandler(checker)
         self.checker = checker
         self.logger = logger

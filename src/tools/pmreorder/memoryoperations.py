@@ -324,6 +324,28 @@ class No_reorder_fault(ReorderBase):
             return No_reorder_fault()
 
 
+class Default_reorder(ReorderBase):
+    """
+    Describes the default reordering engine to be used.
+
+    This marker class triggers default reordering.
+    """
+    class Factory:
+        """
+        Internal factory class to be used in dynamic object creation.
+        """
+        def create(self, values):
+            """
+            Factory object creation method.
+
+            :param values: Ignored.
+            :type values: str
+            :return: Default_reorder object.
+            :rtype: Default_reorder
+            """
+            return Default_reorder()
+
+
 class Preorder(ReorderBase):
     """
     Describes the type of reordering engine to be used.

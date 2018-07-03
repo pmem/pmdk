@@ -120,6 +120,11 @@ main(int argc, char *argv[])
 		memset(structp, 0, sizeof(*structp));
 
 	VALGRIND_LOG_STORES;
+	/* change only for VALGRIND_DEFAULT_REORDER test */
+	VALGRIND_PARTIAL_REORDER;
+	/* reorder engine type has to back to default */
+	VALGRIND_DEFAULT_REORDER;
+
 	switch (opt) {
 		case 'g':
 			write_consistent(structp);
