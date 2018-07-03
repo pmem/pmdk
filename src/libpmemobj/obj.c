@@ -196,6 +196,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 		tx_ctl_register(pop);
 		pmalloc_ctl_register(pop);
 		stats_ctl_register(pop);
+		debug_ctl_register(pop);
 	}
 
 	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);
@@ -1249,14 +1250,22 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	pop->lanes_desc.runtime_nlanes = nlanes;
 
+	pop->ctl_debug = ctl_debug_new(pop);
+	if (pop->ctl_debug == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
 	pop->tx_params = tx_params_new();
 	if (pop->tx_params == NULL) {
+		ctl_debug_delete(pop->ctl_debug);
 		errno = EINVAL;
 		return -1;
 	}
 
 	pop->stats = stats_new(pop);
 	if (pop->stats == NULL) {
+		ctl_debug_delete(pop->ctl_debug);
 		tx_params_delete(pop->tx_params);
 		errno = ENOMEM;
 		return -1;
@@ -1325,6 +1334,7 @@ err_cuckoo_insert:
 err_boot:
 	stats_delete(pop, pop->stats);
 	tx_params_delete(pop->tx_params);
+	ctl_debug_delete(pop->ctl_debug);
 
 	return -1;
 }
@@ -1953,6 +1963,7 @@ obj_pool_cleanup(PMEMobjpool *pop)
 
 	stats_delete(pop, pop->stats);
 	tx_params_delete(pop->tx_params);
+	ctl_debug_delete(pop->ctl_debug);
 	ctl_delete(pop->ctl);
 
 	obj_pool_lock_cleanup(pop);
@@ -2042,6 +2053,7 @@ pmemobj_checkU(const char *path, const char *layout)
 	} else {
 		stats_delete(pop, pop->stats);
 		tx_params_delete(pop->tx_params);
+		ctl_debug_delete(pop->ctl_debug);
 		ctl_delete(pop->ctl);
 
 		/* unmap all the replicas */
