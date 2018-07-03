@@ -48,7 +48,8 @@ date: pmemobj API version 2.3
 
 **pmemobj_reserve**(), **pmemobj_xreserve**(), **pmemobj_defer_free**(),
 **pmemobj_set_value**(), **pmemobj_publish**(), **pmemobj_tx_publish**(),
-**pmemobj_cancel**(), **POBJ_RESERVE_NEW**(), **POBJ_RESERVE_ALLOC**()
+**pmemobj_cancel**(), **POBJ_RESERVE_NEW**(), **POBJ_RESERVE_ALLOC**(),
+**POBJ_XRESERVE_NEW**(),**POBJ_XRESERVE_ALLOC**()
 -- Delayed atomicity actions (EXPERIMENTAL)
 
 
@@ -72,6 +73,8 @@ pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv,
 
 POBJ_RESERVE_NEW(pop, t, act) (EXPERIMENTAL)
 POBJ_RESERVE_ALLOC(pop, t, size, act) (EXPERIMENTAL)
+POBJ_XRESERVE_NEW(pop, t, act, flags) (EXPERIMENTAL)
+POBJ_XRESERVE_ALLOC(pop, t, size, act, flags) (EXPERIMENTAL)
 ```
 
 # DESCRIPTION #
@@ -110,7 +113,7 @@ of the object must be manually persisted, just like in the case of the atomic AP
 **pmemobj_xreserve**() is equivalent to **pmemobj_reserve**(), but with an
 additional *flags* argument that is a bitmask of the following values:
 
-+ **POBJ_XALLOC_ZERO** - zero the object
++ **POBJ_XALLOC_ZERO** - zero the object (and persist it)
 
 + **POBJ_CLASS_ID(class_id)** - allocate the object from allocation class
 *class_id*. The class id cannot be 0.
@@ -139,6 +142,10 @@ The size of the reservation is determined from the provided type *t*.
 
 The **POBJ_RESERVE_ALLOC** macro is a typed variant of **pmemobj_reserve**.
 The *size* of the reservation is user-provided.
+
+The **POBJ_XRESERVE_NEW** and the **POBJ_XRESERVE_ALLOC** macros are equivalent
+to **POBJ_RESERVE_NEW** and the **POBJ_RESERVE_ALLOC**, but with an additional
+*flags* argument defined for **pmemobj_xreserve**().
 
 # EXAMPLES #
 

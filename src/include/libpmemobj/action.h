@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,6 +48,12 @@ extern "C" {
 
 #define POBJ_RESERVE_ALLOC(pop, t, size, act)\
 ((TOID(t))pmemobj_reserve(pop, act, size, TOID_TYPE_NUM(t)))
+
+#define POBJ_XRESERVE_NEW(pop, t, act, flags)\
+((TOID(t))pmemobj_xreserve(pop, act, sizeof(t), TOID_TYPE_NUM(t), flags))
+
+#define POBJ_XRESERVE_ALLOC(pop, t, size, act, flags)\
+((TOID(t))pmemobj_xreserve(pop, act, size, TOID_TYPE_NUM(t), flags))
 
 #ifdef __cplusplus
 }
