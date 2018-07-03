@@ -136,8 +136,13 @@ tx_worker(void *arg)
 	 * will automatically abort and all of the objects will be freed.
 	 */
 	TX_BEGIN(a->pop) {
-		for (;;) /* this is NOT an infinite loop */
+		for (int n = 0; ; ++n) { /* this is NOT an infinite loop */
 			pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
+			if (Ops_per_thread != MAX_OPS_PER_THREAD &&
+			    n == Ops_per_thread) {
+				pmemobj_tx_abort(0);
+			}
+		}
 	} TX_END
 
 	return NULL;
