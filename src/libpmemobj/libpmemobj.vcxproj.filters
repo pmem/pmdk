@@ -106,6 +106,9 @@
     <ClCompile Include="ctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ctl_debug.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ctl_global.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -286,6 +289,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ctl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ctl_debug.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ctl_global.h">
