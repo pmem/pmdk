@@ -1,6 +1,6 @@
-    "badblock_count":$(N),
+    "badblock_count":1,
         "offset":11,
-        "length":$(N),
+        "length":1,
 Poolset structure:
 Number of replicas       : 1
 Replica 0 (master) - local, 1 part(s):
@@ -11,7 +11,7 @@ size                     : $(nW)
 alignment                : 4096
 bad blocks:
 	offset		length
-	11		$(N)
+	11		1
 
 POOL Header:
 Signature                : PMEMOBJ
