@@ -100,6 +100,8 @@ FILE=${MOUNT_DIR}/pool.local.part.1
 FIRST_SECTOR=$(expect_normal_exit run_on_node 0 ../extents $FILE -l 0)
 
 expect_normal_exit run_on_node 0 sudo ndctl inject-error --block=$FIRST_SECTOR --count=1 $NAMESPACE &>> $PREP_LOG_FILE
+expect_normal_exit run_on_node 0 sudo ndctl start-scrub &>> $PREP_LOG_FILE
+expect_normal_exit run_on_node 0 sudo ndctl wait-scrub &>> $PREP_LOG_FILE
 
 expect_bad_blocks_node 0
 
