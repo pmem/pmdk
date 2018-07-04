@@ -2821,6 +2821,10 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 		return OID_NULL;
 	}
 
+	if (size == 0) {
+		return OID_NULL;
+	}
+
 	PMEMoid root;
 
 	pmemobj_mutex_lock_nofail(pop, &pop->rootlock);
