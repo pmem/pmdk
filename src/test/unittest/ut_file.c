@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -292,12 +292,19 @@ ut_mmap(const char *file, int line, const char *func, void *addr,
 {
 	void *ret_addr = mmap(addr, length, prot, flags, fd, offset);
 
-	if (ret_addr == MAP_FAILED)
+	if (ret_addr == MAP_FAILED) {
+		const char *error = "";
+#ifdef _WIN32
+		/*
+		 * XXX: on Windows mmap is implemented and exported by libpmem
+		 */
+		error = pmem_errormsg();
+#endif
 		ut_fatal(file, line, func,
-		    "!mmap: addr=0x%llx length=0x%zx prot=%d flags=%d fd=%d "
-		    "offset=0x%llx", (unsigned long long)addr,
-		    length, prot, flags, fd, (unsigned long long)offset);
-
+			"!mmap: addr=0x%llx length=0x%zx prot=%d flags=%d fd=%d offset=0x%llx %s",
+			(unsigned long long)addr, length, prot,
+			flags, fd, (unsigned long long)offset, error);
+	}
 	return ret_addr;
 }
 
