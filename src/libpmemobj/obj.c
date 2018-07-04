@@ -2823,6 +2823,12 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 		return OID_NULL;
 	}
 
+	if (size == 0 && pop->root_offset == 0) {
+		ERR("requested size cannot equals zero");
+		errno = EINVAL;
+		return OID_NULL;
+	}
+
 	PMEMoid root;
 
 	pmemobj_mutex_lock_nofail(pop, &pop->rootlock);
