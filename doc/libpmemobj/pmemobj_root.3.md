@@ -80,7 +80,8 @@ thread simultaneously (as long as all threads use the identical *size* value).
 The size of the root object is guaranteed to be not less than the requested
 *size*. If the requested size is larger than the current size, the root
 object is automatically resized. In such case, the old data is preserved and
-the extra space is zeroed.
+the extra space is zeroed. If the requested size is equal to or smaller than
+the current size, the root object remains unchanged.
 If the requested *size* is equal to zero, the root object is not allocated.
 
 **pmemobj_root_construct**() performs the same actions as **pmemobj_root**(),
@@ -102,9 +103,9 @@ with the persistent memory pool *pop*. The same root object handle is returned
 in all the threads. If the requested object size is larger than the maximum
 allocation size supported for the pool, or if there is not enough free
 space in the pool to satisfy a reallocation request, **pmemobj_root**() returns
-**OID_NULL** and sets *errno* appropriately.
+**OID_NULL** and sets *errno* to ENOMEM.
 If the *size* was equal to zero and the root object has not been allocated,
-**pmemobj_root**() returns **OID_NULL**.
+**pmemobj_root**() returns **OID_NULL** and sets *errno* to EINVAL.
 
 If the **pmemobj_root_construct**() constructor fails, the allocation is
 canceled, **pmemobj_root_construct**() returns *OID_NULL*, and *errno* is set
