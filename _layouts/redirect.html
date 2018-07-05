@@ -1,0 +1,46 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="refresh" content="1; url={{ page.newurl }}">
+	<title>pmem.io Page Moved</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" href="/css/pmem.css" type="text/css">
+	<link rel="stylesheet" href="/css/pygment_trac.css" type="text/css">
+	<link rel="shortcut icon" href="/favicon.ico">
+	<link href="http://pmem.io/feed.xml" rel="alternate" type="application/atom+xml">
+	<script type="text/javascript" src="/js/jquery.min.js"></script>
+	<script type="text/javascript" src="/js/gist-embed.min.js"></script>
+</head>
+<body>
+<!-- _layouts/pmdk.html -->
+<div id="wrap">
+	<div id="header">
+		<a href="http://pmem.io/">
+			<h2>pmem.io page moved</h2>
+		</a>
+	</div>
+	<div id="nav">
+		<ul>
+			<li><a href="/">Home</a></li>
+			<li><a href="/glossary/" title="Glossary of Terms Used on This Site">Glossary</a></li>
+			<li><a href="/documents/" title="Introductory Materials">Documents</a></li>
+			<li><a href="/pmdk/" title="Persistent Memory Development Kit" class="sel">PMDK</a></li>
+			<li><a href="/ndctl/" title="Documentation for ndctl">ndctl</a></li>
+			<li><a href="/blog/" title="Persistent Memory Programming Blog">Blog</a></li>
+			<li><a href="/about/" title="About This Project">About</a></li>
+		</ul>
+	</div>
+	<br>
+	This page has moved to <a href="{{ page.newurl }}">{{ page.newurl }}</a>.
+	<br><br><br><br>
+	{{ content }}
+	<br>
+	<br>
+	<div id="footer">
+		<hr>
+		{% include pagefooter.html %}
+	</div>
+</div>
+</body>
+</html>
