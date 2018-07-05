@@ -30,7 +30,6 @@
 
 import utils
 from reorderexceptions import InconsistentFileException
-from memoryoperations import Store
 
 
 class BinaryOutputHandler:
@@ -97,7 +96,9 @@ class BinaryOutputHandler:
                 bf.do_store(store_op)
                 store_ok = True
         if not store_ok:
-            raise OSError("No suitable file found for store {}".format(store_op))
+            raise OSError(
+                          "No suitable file found for store {}"
+                          .format(store_op))
 
     def do_revert(self, store_op):
         """
@@ -117,7 +118,9 @@ class BinaryOutputHandler:
                 bf.do_revert(store_op)
                 revert_ok = True
         if not revert_ok:
-            raise OSError("No suitable file found for store {}".format(store_op))
+            raise OSError(
+                          "No suitable file found for store {}"
+                          .format(store_op))
 
     def check_consistency(self):
         """
@@ -128,7 +131,8 @@ class BinaryOutputHandler:
         """
         for bf in self._files:
             if not bf.check_consistency():
-                raise InconsistentFileException("File {} inconsistent".format(bf))
+                raise InconsistentFileException(
+                          "File {} inconsistent".format(bf))
 
 
 class BinaryFile(utils.Rangeable):

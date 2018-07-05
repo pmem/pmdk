@@ -53,7 +53,8 @@ class OpsContext:
         :type log_file: str
         :return: None
         """
-        # TODO reading the whole file at once is rather naive, change in the future
+        # TODO reading the whole file at once is rather naive
+        # change in the future
         self._operations = open(log_file).read().split("|")
         self.reorder_engine = reorderengines.FullReorderEngine()
         self.test_on_barrier = True

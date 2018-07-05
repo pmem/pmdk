@@ -33,6 +33,7 @@ import reorderengines
 from reorderexceptions import InconsistentFileException
 from reorderexceptions import NotSupportedOperationException
 
+
 class State:
     """
     The base class of all states.
@@ -140,7 +141,8 @@ class CollectingState(State):
         :return: The next state.
         :rtype: subclass of :class:`State`
         """
-        if isinstance(in_op, memoryoperations.Fence) and self._inner_state is "flush":
+        if isinstance(in_op, memoryoperations.Fence) and \
+                self._inner_state is "flush":
             return ReplayingState(self._ops_list, self._context)
         else:
             return self
@@ -181,19 +183,25 @@ class CollectingState(State):
         """
         self._context.test_on_barrier = True
         if isinstance(order_ops, memoryoperations.Freorder):
-            self._context.reorder_engine = reorderengines.FullReorderEngine()
+            self._context.reorder_engine = \
+                reorderengines.FullReorderEngine()
         elif isinstance(order_ops, memoryoperations.Preorder):
-            # TODO add macro in valgrind or parameter inside the tool to support parameters?
-            self._context.reorder_engine = reorderengines.RandomPartialReorderEngine(3)
+            # TODO add macro in valgrind or
+            # parameter inside the tool to support parameters?
+            self._context.reorder_engine = \
+                reorderengines.RandomPartialReorderEngine(3)
         elif isinstance(order_ops, memoryoperations.Areorder):
-            self._context.reorder_engine = reorderengines.AccumulativeReorderEngine()
+            self._context.reorder_engine = \
+                reorderengines.AccumulativeReorderEngine()
         elif isinstance(order_ops, memoryoperations.Fault_only):
             self._context.reorder_engine = reorderengines.NoReorderEngine()
         elif isinstance(order_ops, memoryoperations.No_reorder_fault):
             self._context.reorder_engine = reorderengines.NoReorderEngine()
             self._context.test_on_barrier = False
         else:
-            raise NotSupportedOperationException("Not supported reorder engine: {}".format(order_ops))
+            raise NotSupportedOperationException(
+                                   "Not supported reorder engine: {}"
+                                   .format(order_ops))
 
     def flush_stores(self, flush_op):
         """
@@ -218,7 +226,9 @@ class CollectingState(State):
         :type file_op: memoryoperations.Register_file
         :return: None
         """
-        self._context.file_handler.add_file(file_op.name, file_op.address, file_op.size)
+        self._context.file_handler.add_file(file_op.name,
+                                            file_op.address,
+                                            file_op.size)
 
     def move_inner_state(self, in_op):
         """
@@ -231,11 +241,14 @@ class CollectingState(State):
         :type in_op: subclass of :class:`memoryoperations.BaseOperation`
         :return: None
         """
-        if isinstance(in_op, memoryoperations.Store) and self._inner_state is "init":
+        if isinstance(in_op, memoryoperations.Store) and \
+                self._inner_state is "init":
             self._inner_state = "dirty"
-        elif isinstance(in_op, memoryoperations.FlushBase) and self._inner_state is "dirty":
+        elif isinstance(in_op, memoryoperations.FlushBase) and \
+                self._inner_state is "dirty":
             self._inner_state = "flush"
-        elif isinstance(in_op, memoryoperations.Fence) and self._inner_state is "flush":
+        elif isinstance(in_op, memoryoperations.Fence) and \
+                self._inner_state is "flush":
             self._inner_state = "fence"
 
 
@@ -282,7 +295,8 @@ class ReplayingState(State):
         # consider only flushed stores
         flushed_stores = list(filter(lambda x: x.flushed, self._ops_list))
         if self._context.test_on_barrier:
-            for seq in self._context.reorder_engine.generate_sequence(flushed_stores):
+            for seq in self._context.reorder_engine.generate_sequence(
+                                                              flushed_stores):
                 for op in seq:
                     # do stores
                     self._context.file_handler.do_store(op)

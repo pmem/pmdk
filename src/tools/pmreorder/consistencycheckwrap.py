@@ -30,7 +30,7 @@
 
 from sys import exit
 from os import path
-from ctypes import *
+from ctypes import cdll, c_char_p, c_int
 import os
 
 checkers = ["prog", "lib"]
@@ -64,7 +64,8 @@ class LibChecker(ConsistencyCheckerBase):
 
         :param library_name: The full name of the library.
         :type library_name: str
-        :param func_name: The name of the consistency checking function within the library.
+        :param func_name: The name of the consistency
+                          checking function within the library.
         :type func_name: str
         :return: None
         """
@@ -74,7 +75,9 @@ class LibChecker(ConsistencyCheckerBase):
 
     def check_consistency(self, filename):
         """
-        Checks the consistency of a given file using the previously loaded function.
+        Checks the consistency of a given file
+        using the previously loaded function.
+
         :param filename: The full name of the file to be checked.
         :type filename: str
         :return: 1 if file is consistent, 0 otherwise.
@@ -98,7 +101,9 @@ class ProgChecker(ConsistencyCheckerBase):
 
     def check_consistency(self, filename):
         """
-        Checks the consistency of a given file using the previously loaded function.
+        Checks the consistency of a given file
+        using the previously loaded function.
+
         :param filename: The full name of the file to be checked.
         :type filename: str
         :return: 1 if file is consistent, 0 otherwise.
