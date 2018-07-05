@@ -159,6 +159,7 @@ function print_bad_blocks {
 function expect_bad_blocks {
 	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG && true
 	if [ $? -ne 0 ]; then
+		sudo ndctl list -M &>> $PREP_LOG_FILE && true
 		msg "====================================================================="
 		msg "Error occurred, the preparation log ($PREP_LOG_FILE) is listed below:"
 		msg ""
