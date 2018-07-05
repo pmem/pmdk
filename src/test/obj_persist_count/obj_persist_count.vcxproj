@@ -19,11 +19,13 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\ctl.c" />
+    <ClCompile Include="..\..\common\ctl_global.c" />
     <ClCompile Include="..\..\common\file.c" />
     <ClCompile Include="..\..\common\file_windows.c" />
+    <ClCompile Include="..\..\common\fs_windows.c" />
     <ClCompile Include="..\..\common\mmap.c" />
     <ClCompile Include="..\..\common\mmap_windows.c" />
-    <ClCompile Include="..\..\common\fs_windows.c" />
     <ClCompile Include="..\..\common\os_deep_windows.c" />
     <ClCompile Include="..\..\common\os_dimm_none.c" />
     <ClCompile Include="..\..\common\os_thread_windows.c" />
@@ -32,14 +34,14 @@
     <ClCompile Include="..\..\common\pool_hdr.c" />
     <ClCompile Include="..\..\common\set.c" />
     <ClCompile Include="..\..\common\shutdown_state.c" />
-    <ClCompile Include="..\..\common\util.c" />
-    <ClCompile Include="..\..\common\util_windows.c" />
     <ClCompile Include="..\..\common\uuid.c" />
     <ClCompile Include="..\..\common\uuid_windows.c" />
+    <ClCompile Include="..\..\common\util.c" />
+    <ClCompile Include="..\..\common\util_windows.c" />
+    <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
     <ClCompile Include="..\..\libpmemobj\bucket.c" />
-    <ClCompile Include="..\..\libpmemobj\ctl.c" />
-    <ClCompile Include="..\..\libpmemobj\ctl_global.c" />
-    <ClCompile Include="..\..\libpmemobj\ravl.c" />
+    <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
+    <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\cuckoo.c" />
     <ClCompile Include="..\..\libpmemobj\heap.c" />
     <ClCompile Include="..\..\libpmemobj\lane.c" />
@@ -51,14 +53,12 @@
     <ClCompile Include="..\..\libpmemobj\palloc.c" />
     <ClCompile Include="..\..\libpmemobj\pmalloc.c" />
     <ClCompile Include="..\..\libpmemobj\pvector.c" />
+    <ClCompile Include="..\..\libpmemobj\ravl.c" />
     <ClCompile Include="..\..\libpmemobj\recycler.c" />
-    <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
-    <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\redo.c" />
+    <ClCompile Include="..\..\libpmemobj\stats.c" />
     <ClCompile Include="..\..\libpmemobj\sync.c" />
     <ClCompile Include="..\..\libpmemobj\tx.c" />
-    <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
-    <ClCompile Include="..\..\libpmemobj\stats.c" />
     <ClCompile Include="obj_persist_count.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>

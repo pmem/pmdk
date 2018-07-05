@@ -12,13 +12,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="obj_list.c">
+    <ClCompile Include="..\..\common\ctl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\ctl_global.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\alloc_class.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\bucket.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ravl.c">
+    <ClCompile Include="..\..\libpmemobj\container_ravl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\container_seglists.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\cuckoo.c">
@@ -54,7 +63,16 @@
     <ClCompile Include="..\..\libpmemobj\pvector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\ravl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\recycler.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\redo.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\stats.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\sync.c">
@@ -63,31 +81,13 @@
     <ClCompile Include="..\..\libpmemobj\tx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="obj_list.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="obj_list_mocks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="obj_list_mocks_palloc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\recycler.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\container_ravl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\container_seglists.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\alloc_class.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ctl_global.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ctl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\stats.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

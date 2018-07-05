@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\libpmemobj\bucket.c" />
-    <ClCompile Include="..\..\src\libpmemobj\ravl.c" />
     <ClCompile Include="..\..\src\libpmemobj\cuckoo.c" />
     <ClCompile Include="..\..\src\libpmemobj\heap.c" />
     <ClCompile Include="..\..\src\libpmemobj\lane.c" />
@@ -22,17 +21,20 @@
     <ClCompile Include="..\..\src\libpmemobj\obj.c" />
     <ClCompile Include="..\..\src\libpmemobj\palloc.c" />
     <ClCompile Include="..\..\src\libpmemobj\pmalloc.c" />
+    <ClCompile Include="..\..\src\libpmemobj\ravl.c" />
     <ClCompile Include="..\..\src\libpmemobj\redo.c" />
     <ClCompile Include="..\..\src\libpmemobj\sync.c" />
     <ClCompile Include="..\..\src\libpmemobj\tx.c" />
     <ClCompile Include="..\common\badblock.c" />
+    <ClCompile Include="..\common\badblock_windows.c" />
+    <ClCompile Include="..\common\ctl.c" />
+    <ClCompile Include="..\common\ctl_global.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
+    <ClCompile Include="..\common\fs_windows.c" />
     <ClCompile Include="..\common\mmap.c" />
     <ClCompile Include="..\common\mmap_windows.c" />
-    <ClCompile Include="..\common\fs_windows.c" />
     <ClCompile Include="..\common\os_auto_flush_windows.c" />
-    <ClCompile Include="..\common\badblock_windows.c" />
     <ClCompile Include="..\common\os_deep_windows.c" />
     <ClCompile Include="..\common\os_dimm_windows.c" />
     <ClCompile Include="..\common\os_thread_windows.c" />
@@ -45,15 +47,13 @@
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\common\uuid.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
-    <ClCompile Include="ctl.c" />
-    <ClCompile Include="ctl_global.c" />
+    <ClCompile Include="alloc_class.c" />
+    <ClCompile Include="container_ravl.c" />
+    <ClCompile Include="container_seglists.c" />
     <ClCompile Include="libpmemobj_main.c" />
     <ClCompile Include="memblock.c" />
     <ClCompile Include="pvector.c" />
     <ClCompile Include="recycler.c" />
-    <ClCompile Include="container_ravl.c" />
-    <ClCompile Include="container_seglists.c" />
-    <ClCompile Include="alloc_class.c" />
     <ClCompile Include="stats.c" />
   </ItemGroup>
   <ItemGroup>
@@ -62,7 +62,6 @@
     <ClInclude Include="..\..\src\common\valgrind_internal.h" />
     <ClInclude Include="..\..\src\include\libpmemobj.h" />
     <ClInclude Include="..\..\src\libpmemobj\bucket.h" />
-    <ClInclude Include="..\..\src\libpmemobj\ravl.h" />
     <ClInclude Include="..\..\src\libpmemobj\cuckoo.h" />
     <ClInclude Include="..\..\src\libpmemobj\heap.h" />
     <ClInclude Include="..\..\src\libpmemobj\heap_layout.h" />
@@ -74,6 +73,9 @@
     <ClInclude Include="..\..\src\libpmemobj\pmalloc.h" />
     <ClInclude Include="..\..\src\libpmemobj\pmemops.h" />
     <ClInclude Include="..\..\src\libpmemobj\redo.h" />
+    <ClInclude Include="..\..\src\libpmemobj\ravl.h" />
+    <ClInclude Include="..\common\ctl.h" />
+    <ClInclude Include="..\common\ctl_global.h" />
     <ClInclude Include="..\common\dlsym.h" />
     <ClInclude Include="..\common\file.h" />
     <ClInclude Include="..\common\fs.h" />
@@ -93,7 +95,6 @@
     <ClInclude Include="..\include\libpmemobj\atomic.h" />
     <ClInclude Include="..\include\libpmemobj\atomic_base.h" />
     <ClInclude Include="..\include\libpmemobj\base.h" />
-    <ClInclude Include="..\include\libpmemobj\ctl.h" />
     <ClInclude Include="..\include\libpmemobj\iterator.h" />
     <ClInclude Include="..\include\libpmemobj\iterator_base.h" />
     <ClInclude Include="..\include\libpmemobj\lists_atomic.h" />
@@ -104,18 +105,16 @@
     <ClInclude Include="..\include\libpmemobj\tx.h" />
     <ClInclude Include="..\include\libpmemobj\tx_base.h" />
     <ClInclude Include="..\include\libpmemobj\types.h" />
-    <ClInclude Include="ctl.h" />
-    <ClInclude Include="ctl_global.h" />
-    <ClInclude Include="memblock.h" />
-    <ClInclude Include="pvector.h" />
-    <ClInclude Include="sync.h" />
-    <ClInclude Include="tx.h" />
-    <ClInclude Include="recycler.h" />
+    <ClInclude Include="alloc_class.h" />
+    <ClInclude Include="container.h" />
     <ClInclude Include="container_ravl.h" />
     <ClInclude Include="container_seglists.h" />
-    <ClInclude Include="container.h" />
-    <ClInclude Include="alloc_class.h" />
+    <ClInclude Include="memblock.h" />
+    <ClInclude Include="pvector.h" />
+    <ClInclude Include="recycler.h" />
     <ClInclude Include="stats.h" />
+    <ClInclude Include="sync.h" />
+    <ClInclude Include="tx.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmemobj.def" />

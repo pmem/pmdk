@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,11 +34,12 @@
  * ctl.h -- internal declaration of statistics and control related structures
  */
 
-#ifndef LIBPMEMOBJ_CTL_INTERNAL_H
-#define LIBPMEMOBJ_CTL_INTERNAL_H 1
+#ifndef PMDK_CTL_H
+#define PMDK_CTL_H 1
 
-#include "libpmemobj.h"
 #include "queue.h"
+#include "errno.h"
+#include "out.h"
 
 struct ctl;
 
@@ -68,7 +69,7 @@ enum ctl_query_type {
 	MAX_CTL_QUERY_TYPE
 };
 
-typedef int (*node_callback)(PMEMobjpool *pop, enum ctl_query_source type,
+typedef int (*node_callback)(void *ctx, enum ctl_query_source type,
 	void *arg, struct ctl_indexes *indexes);
 
 enum ctl_node_type {
@@ -120,8 +121,10 @@ struct ctl_node {
 struct ctl *ctl_new(void);
 void ctl_delete(struct ctl *stats);
 
-int ctl_load_config_from_string(PMEMobjpool *pop, const char *cfg_string);
-int ctl_load_config_from_file(PMEMobjpool *pop, const char *cfg_file);
+int ctl_load_config_from_string(struct ctl *ctl, void *ctx,
+	const char *cfg_string);
+int ctl_load_config_from_file(struct ctl *ctl, void *ctx,
+	const char *cfg_file);
 
 /* Use through CTL_REGISTER_MODULE, never directly */
 void ctl_register_module_node(struct ctl *c,
@@ -152,6 +155,9 @@ int ctl_arg_string(const void *arg, void *dest, size_t dest_size);
 
 #define CTL_NODE(name)\
 ctl_node_##name
+
+int ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
+		const char *name, enum ctl_query_type type, void *arg);
 
 /* Declaration of a new child node */
 #define CTL_CHILD(name)\

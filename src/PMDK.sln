@@ -857,7 +857,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_constructor", "test\obj
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl", "test\obj_ctl\obj_ctl.vcxproj", "{E796AA20-D664-4D05-ABD9-C93A4FBE3E5C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_ctl", "test\util_ctl\util_ctl.vcxproj", "{E796AA20-D664-4D05-ABD9-C93A4FBE3E5C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_recovery", "test\log_recovery\log_recovery.vcxproj", "{E901B756-EA72-4B8D-967F-85F109D0D1DE}"
 EndProject

@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,17 +31,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_ctl/TEST0 -- unit test for obj_ctl interface
-#
 
 # standard unit test setup
-. ..\unittest\unittest.ps1
+. ../unittest/unittest.sh
 
 require_test_type short
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_ctl$Env:EXESUFFIX $DIR\testfile1 $DIR\testconfig
+expect_normal_exit\
+	./util_ctl$EXESUFFIX $DIR/testconfig
+
+rm -f $DIR/testconfig
 
 pass

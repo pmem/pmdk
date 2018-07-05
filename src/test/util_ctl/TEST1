@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,14 +31,19 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_ctl/Makefile -- build obj_ctl test
-#
-TARGET = obj_ctl
-OBJS = obj_ctl.o
 
-LIBPMEM=y
-LIBPMEMOBJ=y
-LIBPMEMOBJ=internal-debug
+# standard unit test setup
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+require_test_type medium
+
+configure_valgrind memcheck force-enable
+
+setup
+
+expect_normal_exit\
+	./util_ctl$EXESUFFIX $DIR/testconfig
+
+rm -f $DIR/testconfig
+
+pass

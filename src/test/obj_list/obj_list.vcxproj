@@ -22,10 +22,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\ctl.c" />
+    <ClCompile Include="..\..\common\ctl_global.c" />
+    <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
     <ClCompile Include="..\..\libpmemobj\bucket.c" />
-    <ClCompile Include="..\..\libpmemobj\ctl.c" />
-    <ClCompile Include="..\..\libpmemobj\ctl_global.c" />
-    <ClCompile Include="..\..\libpmemobj\ravl.c" />
+    <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
+    <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\cuckoo.c" />
     <ClCompile Include="..\..\libpmemobj\heap.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_HEAP</PreprocessorDefinitions>
@@ -52,17 +54,15 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_PMALLOC</PreprocessorDefinitions>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\pvector.c" />
+    <ClCompile Include="..\..\libpmemobj\ravl.c" />
     <ClCompile Include="..\..\libpmemobj\recycler.c" />
-    <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
-    <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\redo.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_REDO</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_REDO</PreprocessorDefinitions>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\stats.c" />
     <ClCompile Include="..\..\libpmemobj\sync.c" />
     <ClCompile Include="..\..\libpmemobj\tx.c" />
-    <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
-    <ClCompile Include="..\..\libpmemobj\stats.c" />
     <ClCompile Include="obj_list.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
