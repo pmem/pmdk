@@ -1,9 +1,0 @@
-<map id="nvml/src/include/libpmemobj++/detail/array_traits.hpp" name="nvml/src/include/libpmemobj++/detail/array_traits.hpp">
-<area shape="rect" id="node2" href="$life_8hpp.html" title="Functions for destroying arrays. " alt="" coords="493,95,697,136"/>
-<area shape="rect" id="node4" href="$make__atomic__impl_8hpp.html" title="Implementation details of atomic allocation and construction. " alt="" coords="5,184,241,225"/>
-<area shape="rect" id="node5" href="$make__persistent__array__atomic_8hpp.html" title="Atomic persistent_ptr allocation functions for arrays. " alt="" coords="572,273,776,329"/>
-<area shape="rect" id="node8" href="$make__persistent__array_8hpp.html" title="Persistent_ptr allocation functions for arrays. " alt="" coords="722,184,943,225"/>
-<area shape="rect" id="node3" href="$allocator_8hpp.html" title="Persistent memory aware allocator. " alt="" coords="265,184,469,225"/>
-<area shape="rect" id="node7" href="$make__persistent_8hpp.html" title="Persistent_ptr transactional allocation functions for objects. " alt="" coords="493,184,697,225"/>
-<area shape="rect" id="node6" href="$make__persistent__atomic_8hpp.html" title="Persistent_ptr atomic allocation functions for objects. " alt="" coords="6,281,241,322"/>
-</map>

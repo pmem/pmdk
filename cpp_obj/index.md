@@ -9,7 +9,7 @@ The **C++ bindings** provide a less error prone version of libpmemobj
 through the implementation of a pmem-resident property, persistent pointers,
 scoped and closure transactions, locking primitives and many others.
 
-The [C++ documentation](master/cpp_html/index.html) contains the description of all
+The [C++ documentation](http://pmem.io/libpmemobj-cpp/master/doxygen/index.html) contains the description of all
 available classes.
 
 #### Blog entries

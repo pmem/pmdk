@@ -1,0 +1,4 @@
+---
+layout: redirect
+newurl: http://pmem.io/libpmemobj-cpp/master/doxygen/classpmem_1_1obj_1_1standard__alloc__policy_3_01void_01_4.html
+---
