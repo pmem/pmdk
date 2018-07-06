@@ -77,14 +77,6 @@ extern "C" {
 #include <limits.h>
 
 
-/* COMMON FLAGS */
-
-/*
- * do not apply changes, only check if operation is viable
- */
-#define PMEMPOOL_DRY_RUN (1 << 1)
-
-
 /* PMEMPOOL CHECK */
 
 /*
@@ -106,7 +98,7 @@ enum pmempool_pool_type {
 /*
  * emulate repairs
  */
-#define PMEMPOOL_CHECK_DRY_RUN PMEMPOOL_DRY_RUN
+#define PMEMPOOL_CHECK_DRY_RUN		(1 << 1)
 /*
  * perform hazardous repairs
  */
@@ -159,6 +151,27 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 #define PMEMPOOL_RM_FORCE		(1 << 0) /* ignore any errors */
 #define PMEMPOOL_RM_POOLSET_LOCAL	(1 << 1) /* remove local poolsets */
 #define PMEMPOOL_RM_POOLSET_REMOTE	(1 << 2) /* remove remote poolsets */
+
+
+/*
+ * LIBPMEMPOOL SYNC
+ */
+
+/*
+ * do not apply changes, only check if operation is viable
+ */
+#define PMEMPOOL_SYNC_DRY_RUN		(1U << 1)
+
+
+/*
+ * LIBPMEMPOOL TRANSFORM
+ */
+
+/*
+ * do not apply changes, only check if operation is viable
+ */
+#define PMEMPOOL_TRANSFORM_DRY_RUN	(1U << 1)
+
 
 /*
  * PMEMPOOL_MAJOR_VERSION and PMEMPOOL_MINOR_VERSION provide the current version
