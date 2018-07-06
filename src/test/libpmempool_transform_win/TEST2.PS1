@@ -68,7 +68,7 @@ expect_normal_exit $PMEMPOOL create --layout=$LAYOUT obj $POOLSET_IN
 cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 
 # Try to transform poolset
-$FLAGS = "1" # invalid flag
+$FLAGS = "10" # invalid flag
 expect_normal_exit $Env:EXE_DIR\libpmempool_transform_win$Env:EXESUFFIX `
     $POOLSET_IN $POOLSET_OUT $FLAGS
 cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
