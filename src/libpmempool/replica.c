@@ -64,7 +64,7 @@
 static int
 check_flags_sync(unsigned flags)
 {
-	flags &= ~(unsigned)PMEMPOOL_DRY_RUN;
+	flags &= ~PMEMPOOL_SYNC_DRY_RUN;
 	return flags > 0;
 }
 
@@ -75,7 +75,7 @@ check_flags_sync(unsigned flags)
 static int
 check_flags_transform(unsigned flags)
 {
-	flags &= ~(unsigned)PMEMPOOL_DRY_RUN;
+	flags &= ~PMEMPOOL_TRANSFORM_DRY_RUN;
 	return flags > 0;
 }
 
