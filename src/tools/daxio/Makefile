@@ -32,6 +32,7 @@
 #
 
 TOP = ../../..
+include $(TOP)/src/common.inc
 
 ifeq ($(NDCTL_ENABLE),y)
 
