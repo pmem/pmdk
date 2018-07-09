@@ -121,6 +121,7 @@ OBJ_TESTS = \
 	obj_ravl\
 	obj_recovery\
 	obj_recreate\
+	obj_root\
 	obj_strdup\
 	obj_sds\
 	obj_toid\
