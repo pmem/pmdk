@@ -319,7 +319,7 @@ err:
  *                                 (offset and size) of the given namespace
  *                                 relative to the beginning of its region
  */
-static void
+static int
 os_dimm_get_namespace_bounds(struct ndctl_region *region,
 				struct ndctl_namespace *ndns,
 				unsigned long long *ns_offset,
@@ -336,16 +336,61 @@ os_dimm_get_namespace_bounds(struct ndctl_region *region,
 
 	if (pfn) {
 		*ns_offset = ndctl_pfn_get_resource(pfn);
+		if (*ns_offset == ULLONG_MAX) {
+			ERR("!(pfn) cannot read offset of the namespace");
+			return -1;
+		}
+
 		*ns_size = ndctl_pfn_get_size(pfn);
+		if (*ns_size == ULLONG_MAX) {
+			ERR("!(pfn) cannot read size of the namespace");
+			return -1;
+		}
+
+		LOG(10, "(pfn) ns_offset 0x%llx ns_size %llu",
+			*ns_offset, *ns_size);
 	} else if (dax) {
 		*ns_offset = ndctl_dax_get_resource(dax);
+		if (*ns_offset == ULLONG_MAX) {
+			ERR("!(dax) cannot read offset of the namespace");
+			return -1;
+		}
+
 		*ns_size = ndctl_dax_get_size(dax);
+		if (*ns_size == ULLONG_MAX) {
+			ERR("!(dax) cannot read size of the namespace");
+			return -1;
+		}
+
+		LOG(10, "(dax) ns_offset 0x%llx ns_size %llu",
+			*ns_offset, *ns_size);
 	} else { /* raw or btt */
 		*ns_offset = ndctl_namespace_get_resource(ndns);
+		if (*ns_offset == ULLONG_MAX) {
+			ERR("!(raw/btt) cannot read offset of the namespace");
+			return -1;
+		}
+
 		*ns_size = ndctl_namespace_get_size(ndns);
+		if (*ns_size == ULLONG_MAX) {
+			ERR("!(raw/btt) cannot read size of the namespace");
+			return -1;
+		}
+
+		LOG(10, "(raw/btt) ns_offset 0x%llx ns_size %llu",
+			*ns_offset, *ns_size);
 	}
 
-	*ns_offset -= ndctl_region_get_resource(region);
+	unsigned long long region_offset = ndctl_region_get_resource(region);
+	if (region_offset == ULLONG_MAX) {
+		ERR("!cannot read offset of the region");
+		return -1;
+	}
+
+	LOG(10, "region_offset 0x%llx", region_offset);
+	*ns_offset -= region_offset;
+
+	return 0;
 }
 
 /*
@@ -371,7 +416,10 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 	bbs->bb_cnt = 0;
 	bbs->bbv = NULL;
 
-	os_dimm_get_namespace_bounds(region, ndns, &ns_beg, &ns_size);
+	if (os_dimm_get_namespace_bounds(region, ndns, &ns_beg, &ns_size)) {
+		LOG(1, "cannot read namespace's bounds");
+		return -1;
+	}
 
 	ns_end = ns_beg + ns_size - 1;
 
@@ -673,10 +721,11 @@ os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 					bbs->bbv[b].offset + bbs->ns_resource,
 					bbs->bbv[b].length);
 		if (ret) {
-			ERR(
+			LOG(1,
 				"failed to clear bad block: offset %llu length %u (in 512B sectors)",
 				B2SEC(bbs->bbv[b].offset),
 				B2SEC(bbs->bbv[b].length));
+			goto exit_free_all;
 		}
 	}
 
