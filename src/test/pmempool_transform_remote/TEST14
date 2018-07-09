@@ -50,8 +50,6 @@ require_node_dax_device_alignments 1 $SIZE_2MB $SIZE_2MB
 
 . common.sh
 
-setup
-
 node_dax_device_zero 1
 
 NODE_1_DAX_SIZE[0]=$(get_node_devdax_size 1 0)

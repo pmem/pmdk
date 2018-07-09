@@ -42,8 +42,6 @@ require_fs_type		any
 
 . common.sh
 
-setup
-
 # Create local poolset files
 create_poolset $DIR/$POOLSET_LOCAL_IN \
 	10M:${NODE_DIR[1]}part00:x \

@@ -41,6 +41,8 @@ require_nodes 2
 require_node_libfabric 0 $RPMEM_PROVIDER
 require_node_libfabric 1 $RPMEM_PROVIDER
 
+setup
+
 init_rpmem_on_node 1 0
 
 require_node_log_files 1 pmemobj$UNITTEST_NUM.log
