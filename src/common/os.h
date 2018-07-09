@@ -107,6 +107,12 @@ typedef off_t os_off_t;
 #else
 /* XXX: os_off_t defined in platform.h */
 #endif
+
+#ifdef _WIN32
+/* define missing flags */
+#define O_DIRECTORY 0
+#endif
+
 int os_open(const char *pathname, int flags, ...);
 int os_fsync(int fd);
 int os_stat(const char *pathname, os_stat_t *buf);

@@ -75,6 +75,26 @@ be opened are recreated.=e=)
 
 ##### Available options: #####
 
+`-b, --bad-blocks`
+
+: Fix bad blocks - requires creating or reading special recovery files.
+When bad blocks are detected, special recovery files have to be created
+in order to fix them safely. A separate recovery file is created per each part
+containing bad blocks. The recovery file is created in the same directory
+where the pool's part is located and with the name
+\<pool-part-file-name\>_badblocks.txt where \<pool-part-file-name\> is the name
+of the pool's part file. These recovery files are automatically removed
+if the sync operation finishes successfully.
+If the last sync operation was interrupted and not finished correctly
+(eg. the application crashed) and the bad blocks fixing procedure was in progress,
+the bad block recovery files may be left over. In such case bad blocks
+might have been cleared and zeroed, but the correct data from these blocks
+was not recovered (not copied from a healthy replica). Pmempool-sync should be
+run again with the '-b' option set. It will finish the previously interrupted
+sync operation and copy correct data to zeroed bad blocks using the left-over
+bad block recovery files (the bad blocks will be read from the saved
+recovery files).
+
 `-d, --dry-run`
 
 : Enable dry run mode. In this mode no changes are applied, only check for
