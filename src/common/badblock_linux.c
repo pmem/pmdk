@@ -100,6 +100,13 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 	if (extents == 0) {
 		/* dax device has no extents */
 		bb_found = (int)bbs->bb_cnt;
+
+		for (unsigned b = 0; b < bbs->bb_cnt; b++) {
+			LOG(4, "bad block found: offset: %llu, length: %u",
+				bbs->bbv[b].offset,
+				bbs->bbv[b].length);
+		}
+
 		goto exit_free_all;
 	}
 

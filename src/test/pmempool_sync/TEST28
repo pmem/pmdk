@@ -33,6 +33,7 @@
 #
 # pmempool_sync/TEST28 -- test for sync command with badblocks
 #                         - bad blocks in the dax device
+#                           blocks: offset: 0 length: 512
 #
 
 # standard unit test setup
@@ -67,16 +68,19 @@ create_poolset $POOLSET AUTO:$FULLDEV:x \
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 
-# inject bad block: OFF=11 LEN=12
-ndctl_inject_error $NAMESPACE 11 12
+expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG
+
+# inject bad block: OFF=0 LEN=512
+ndctl_inject_error $NAMESPACE 0 512
 
 expect_bad_blocks
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -k $POOLSET &>> $LOG
+expect_abnormal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null
 
 expect_bad_blocks
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync -v $POOLSET &>> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX sync -b -v $POOLSET &>> $LOG
 
 print_bad_blocks
 
@@ -87,6 +91,8 @@ print_bad_blocks
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -k $POOLSET &>> $LOG
 
 print_bad_blocks
+
+expect_normal_exit $OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG
 
 ndctl_nfit_test_fini $MOUNT_DIR
 

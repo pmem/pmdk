@@ -223,3 +223,96 @@ badblocks_clear_poolset(struct pool_set *set, int create)
 
 	return 0;
 }
+
+/*
+ * badblocks_recovery_file_alloc -- allocate name of bad block recovery file,
+ *                                  the allocated name has to be freed
+ *                                  using Free()
+ */
+char *
+badblocks_recovery_file_alloc(const char *file, unsigned rep, unsigned part)
+{
+	LOG(3, "file %s rep %u part %u", file, rep, part);
+
+	char bbs_suffix[32];
+	char *path;
+
+	sprintf(bbs_suffix, "_r%u_p%u_badblocks.txt", rep, part);
+
+	size_t len_file = strlen(file);
+	size_t len_bbs_suffix = strlen(bbs_suffix);
+	size_t len_path = len_file + len_bbs_suffix;
+
+	path = Zalloc(len_path + 1);
+	if (path == NULL) {
+		ERR("!Zalloc");
+		return NULL;
+	}
+
+	strncpy(path, file, len_file);
+	strncat(path, bbs_suffix, len_bbs_suffix);
+
+	return path;
+}
+
+/*
+ * badblocks_recovery_file_exists -- check if any bad block recovery file exists
+ *
+ * Returns:
+ *    0 when there are no bad block recovery files and
+ *    1 when there is at least one bad block recovery file.
+ */
+int
+badblocks_recovery_file_exists(struct pool_set *set)
+{
+	LOG(3, "set %p", set);
+
+	int recovery_file_exists = 0;
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+
+		/* XXX: not supported yet */
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			const char *path = PART(rep, p)->path;
+
+			int exists = util_file_exists(path);
+			if (exists < 0)
+				return -1;
+
+			if (!exists) {
+				/* part file does not exist - skip it */
+				continue;
+			}
+
+			char *rec_file = badblocks_recovery_file_alloc(path,
+									r, p);
+			if (rec_file == NULL) {
+				LOG(1,
+					"allocating name of bad block recovery file failed");
+				return -1;
+			}
+
+			exists = util_file_exists(rec_file);
+			if (exists < 0)
+				return -1;
+
+			if (exists) {
+				LOG(3, "bad block recovery file exists: %s",
+					rec_file);
+
+				recovery_file_exists = 1;
+			}
+
+			Free(rec_file);
+
+			if (recovery_file_exists)
+				return 1;
+		}
+	}
+
+	return 0;
+}
