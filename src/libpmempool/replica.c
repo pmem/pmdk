@@ -57,6 +57,7 @@
 #include "uuid.h"
 #include "shutdown_state.h"
 #include "os_dimm.h"
+#include "badblock.h"
 
 /*
  * check_flags_sync -- (internal) check if flags are supported for sync
@@ -64,7 +65,7 @@
 static int
 check_flags_sync(unsigned flags)
 {
-	flags &= ~PMEMPOOL_SYNC_DRY_RUN;
+	flags &= ~(PMEMPOOL_SYNC_DRY_RUN | PMEMPOOL_SYNC_FIX_BAD_BLOCKS);
 	return flags > 0;
 }
 
@@ -80,6 +81,25 @@ check_flags_transform(unsigned flags)
 }
 
 /*
+ * replica_align_offset_length -- align data offset and length for given part
+ */
+void
+replica_align_offset_length(size_t *offset, size_t *length,
+			struct pool_set *set_in, unsigned repn, unsigned partn)
+{
+	LOG(3, "offset %zu, length %zu, pool_set %p, replica %u, part %u",
+		*offset, *length, set_in, repn, partn);
+
+	size_t alignment = set_in->replica[repn]->part[partn].alignment;
+
+	size_t off = ALIGN_DOWN(*offset, alignment);
+	size_t len = ALIGN_UP(*length + (*offset - off), alignment);
+
+	*offset = off;
+	*length = len;
+}
+
+/*
  * replica_get_part_data_len -- get data length for given part
  */
 size_t
@@ -90,6 +110,16 @@ replica_get_part_data_len(struct pool_set *set_in, unsigned repn,
 	size_t hdrsize = (set_in->options & OPTION_SINGLEHDR) ? 0 : alignment;
 	return ALIGN_DOWN(set_in->replica[repn]->part[partn].filesize,
 		alignment) - ((partn == 0) ? POOL_HDR_SIZE : hdrsize);
+}
+
+/*
+ * replica_get_part_offset -- get part's offset from the beginning of replica
+ */
+uint64_t
+replica_get_part_offset(struct pool_set *set, unsigned repn, unsigned partn)
+{
+	return (uint64_t)set->replica[repn]->part[partn].addr -
+		(uint64_t)set->replica[repn]->part[0].addr;
 }
 
 /*
@@ -155,7 +185,7 @@ create_replica_health_status(struct pool_set *set, unsigned repn)
 	unsigned nparts = set->replica[repn]->nparts;
 	struct replica_health_status *replica_hs;
 	replica_hs = Zalloc(sizeof(struct replica_health_status)
-			+ nparts * sizeof(unsigned));
+			+ nparts * sizeof(struct part_health_status));
 	if (replica_hs == NULL) {
 		ERR("!Zalloc for replica health status");
 		return NULL;
@@ -166,6 +196,31 @@ create_replica_health_status(struct pool_set *set, unsigned repn)
 }
 
 /*
+ * replica_part_remove_recovery_file -- remove bad blocks recovery file
+ */
+void
+replica_part_remove_recovery_file(struct part_health_status *phs)
+{
+	LOG(3, "phs %p", phs);
+
+	if (phs->recovery_file_name == NULL || phs->recovery_file_exists == 0)
+		return;
+
+	int ret = os_unlink(phs->recovery_file_name);
+	if (ret < 0) {
+		ERR("WARNING: removing bad blocks recovery file failed -- '%s'",
+			phs->recovery_file_name);
+	} else {
+		LOG(3, "bad blocks recovery file removed -- '%s'",
+			phs->recovery_file_name);
+	}
+
+	Free(phs->recovery_file_name);
+	phs->recovery_file_name = NULL;
+	phs->recovery_file_exists = 0;
+}
+
+/*
  * replica_free_poolset_health_status -- free memory allocated for helping
  *                                       structure
  */
@@ -173,8 +228,13 @@ void
 replica_free_poolset_health_status(struct poolset_health_status *set_hs)
 {
 	LOG(3, "set_hs %p", set_hs);
-	for (unsigned i = 0; i < set_hs->nreplicas; ++i) {
-		Free(set_hs->replica[i]);
+	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
+		struct replica_health_status *rhs = set_hs->replica[r];
+		for (unsigned p = 0; p < rhs->nparts; ++p) {
+			replica_part_remove_recovery_file(&rhs->part[p]);
+		}
+		Free(set_hs->replica[r]);
+		set_hs->replica[r] = NULL;
 	}
 	Free(set_hs);
 }
@@ -224,6 +284,33 @@ replica_is_part_broken(unsigned repn, unsigned partn,
 }
 
 /*
+ * replica_mark_no_badblocks -- mark replica as not having bad blocks
+ */
+void
+replica_mark_no_badblocks(unsigned repn, struct poolset_health_status *set_hs)
+{
+	LOG(3, "repn %u set_hs %p", repn, set_hs);
+
+	struct replica_health_status *rhs = REP_HEALTH(set_hs, repn);
+	rhs->flags &= ~HAS_BAD_BLOCKS;
+	LOG(4, "Replica %u has no bad blocks now", repn);
+}
+
+/*
+ * replica_mark_part_no_badblocks -- mark part as not having bad blocks
+ */
+void
+replica_mark_part_no_badblocks(unsigned repn, unsigned partn,
+				struct poolset_health_status *set_hs)
+{
+	LOG(3, "repn %u partn %u set_hs %p", repn, partn, set_hs);
+
+	struct replica_health_status *rhs = REP_HEALTH(set_hs, repn);
+	rhs->part[PART_HEALTHidx(rhs, partn)].flags &= ~HAS_BAD_BLOCKS;
+	LOG(4, "Replica %u part %u has no bad blocks now", repn, partn);
+}
+
+/*
  * is_replica_broken -- check if any part in the replica is marked as broken
  */
 int
@@ -253,6 +340,24 @@ replica_is_replica_consistent(unsigned repn,
 }
 
 /*
+ * replica_has_bad_blocks -- (internal) check if replica has bad blocks
+ */
+static int
+replica_has_bad_blocks(unsigned repn, struct poolset_health_status *set_hs)
+{
+	return REP_HEALTH(set_hs, repn)->flags & HAS_BAD_BLOCKS;
+}
+
+/*
+ * replica_part_has_bad_blocks -- check if replica's part has bad blocks
+ */
+int
+replica_part_has_bad_blocks(struct part_health_status *phs)
+{
+	return phs->flags & HAS_BAD_BLOCKS;
+}
+
+/*
  * replica_is_replica_healthy -- check if replica is unbroken and consistent
  */
 int
@@ -260,7 +365,8 @@ replica_is_replica_healthy(unsigned repn,
 		struct poolset_health_status *set_hs)
 {
 	return !replica_is_replica_broken(repn, set_hs) &&
-			replica_is_replica_consistent(repn, set_hs);
+			replica_is_replica_consistent(repn, set_hs) &&
+			!replica_has_bad_blocks(repn, set_hs);
 }
 
 /*
@@ -421,7 +527,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 			if (os_access(path, R_OK|W_OK) != 0) {
 				LOG(1, "part file %s is not accessible", path);
 				errno = 0;
-				rep_hs->part[p] |= IS_BROKEN;
+				rep_hs->part[p].flags |= IS_BROKEN;
 				if (is_dry_run(flags))
 					continue;
 			}
@@ -434,7 +540,7 @@ check_and_open_poolset_part_files(struct pool_set *set,
 				}
 				LOG(1, "opening part %s failed", path);
 				errno = 0;
-				rep_hs->part[p] |= IS_BROKEN;
+				rep_hs->part[p].flags |= IS_BROKEN;
 			}
 		}
 	}
@@ -465,7 +571,7 @@ map_all_unbroken_headers(struct pool_set *set,
 			LOG(4, "mapping header for part %u, replica %u", p, r);
 			if (util_map_hdr(&rep->part[p], MAP_SHARED, 0) != 0) {
 				LOG(1, "header mapping failed - part #%d", p);
-				rep_hs->part[p] |= IS_BROKEN;
+				rep_hs->part[p].flags |= IS_BROKEN;
 			}
 		}
 	}
@@ -528,15 +634,15 @@ check_checksums_and_signatures(struct pool_set *set,
 			if (!util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 0,
 					POOL_HDR_CSUM_END_OFF)) {
 				ERR("invalid checksum of pool header");
-				rep_hs->part[p] |= IS_BROKEN;
+				rep_hs->part[p].flags |= IS_BROKEN;
 			} else if (util_is_zeroed(hdr, sizeof(*hdr))) {
-					rep_hs->part[p] |= IS_BROKEN;
+					rep_hs->part[p].flags |= IS_BROKEN;
 			}
 
 			enum pool_type type = pool_hdr_get_type(hdr);
 			if (type == POOL_TYPE_UNKNOWN) {
 				ERR("invalid signature");
-				rep_hs->part[p] |= IS_BROKEN;
+				rep_hs->part[p].flags |= IS_BROKEN;
 			}
 		}
 	}
@@ -544,10 +650,324 @@ check_checksums_and_signatures(struct pool_set *set,
 }
 
 /*
- * check_badblocks -- (internal) check if replica contains bad blocks
+ * replica_badblocks_recovery_file_save -- save bad blocks in the bad blocks
+ *                                         recovery file before clearing them
  */
 static int
-check_badblocks(struct pool_set *set, struct poolset_health_status *set_hs)
+replica_badblocks_recovery_file_save(struct part_health_status *part_hs)
+{
+	LOG(3, "part_health_status %p", part_hs);
+
+	ASSERTeq(part_hs->recovery_file_exists, 1);
+	ASSERTne(part_hs->recovery_file_name, NULL);
+
+	struct badblocks *bbs = &part_hs->bbs;
+	char *path = part_hs->recovery_file_name;
+	int ret = -1;
+
+	int fd = os_open(path, O_WRONLY);
+	if (fd < 0) {
+		ERR("!opening bad blocks recovery file failed -- '%s'", path);
+		return -1;
+	}
+
+	FILE *recovery_file_name = os_fdopen(fd, "w");
+	if (recovery_file_name == NULL) {
+		ERR(
+			"!opening a file stream for bad blocks recovery file failed -- '%s'",
+			path);
+		os_close(fd);
+		return -1;
+	}
+
+	/* save bad blocks */
+	for (unsigned i = 0; i < bbs->bb_cnt; i++) {
+		fprintf(recovery_file_name, "%llu %u\n",
+			bbs->bbv[i].offset, bbs->bbv[i].length);
+	}
+
+	if (fflush(recovery_file_name) == EOF) {
+		ERR("!flushing bad blocks recovery file failed -- '%s'", path);
+		goto exit_error;
+	}
+
+	if (os_fsync(fd) < 0) {
+		ERR("!syncing bad blocks recovery file failed -- '%s'", path);
+		goto exit_error;
+	}
+
+	/* save the finish flag */
+	fprintf(recovery_file_name, "0 0\n");
+
+	if (fflush(recovery_file_name) == EOF) {
+		ERR("!flushing bad blocks recovery file failed -- '%s'", path);
+		goto exit_error;
+	}
+
+	if (os_fsync(fd) < 0) {
+		ERR("!syncing bad blocks recovery file failed -- '%s'", path);
+		goto exit_error;
+	}
+
+	LOG(3, "bad blocks saved in the recovery file -- '%s'", path);
+	ret = 0;
+
+exit_error:
+	os_fclose(recovery_file_name);
+
+	return ret;
+}
+
+/*
+ * replica_part_badblocks_recovery_file_read -- read bad blocks
+ *                                             from the bad blocks recovery file
+ *                                             for the current part
+ */
+static int
+replica_part_badblocks_recovery_file_read(const char *file,
+					struct part_health_status *part_hs)
+{
+	LOG(3, "file %s part_health_status %p", file, part_hs);
+
+	ASSERT(part_hs->recovery_file_exists);
+	ASSERTne(part_hs->recovery_file_name, NULL);
+
+	VEC(bbsvec, struct bad_block) bbv = VEC_INITIALIZER;
+	char *path = part_hs->recovery_file_name;
+	struct bad_block bb;
+	int ret = -1;
+
+	FILE *recovery_file_name = os_fopen(path, "r");
+	if (!recovery_file_name) {
+		ERR("!opening the recovery file for reading failed -- '%s'",
+			path);
+		return -1;
+	}
+
+	do {
+		if (fscanf(recovery_file_name, "%llu %u\n",
+				&bb.offset, &bb.length) < 2) {
+			LOG(1, "incomplete bad blocks recovery file -- '%s'",
+				path);
+			ret = 1;
+			goto error_exit;
+		}
+
+		if (bb.offset == 0 && bb.length == 0) {
+			/* finish_flag */
+			break;
+		}
+
+		/* add the new bad block to the vector */
+		if (VEC_PUSH_BACK(&bbv, bb))
+			goto error_exit;
+	} while (1);
+
+	part_hs->bbs.bbv = VEC_ARR(&bbv);
+	part_hs->bbs.bb_cnt = (unsigned)VEC_SIZE(&bbv);
+
+	fclose(recovery_file_name);
+
+	LOG(1, "bad blocks read from the recovery file -- '%s'", path);
+
+	return 0;
+
+error_exit:
+	VEC_DELETE(&bbv);
+	fclose(recovery_file_name);
+	return ret;
+}
+
+/* status returned by the replica_badblocks_recovery_files_check() function */
+enum badblocks_recovery_files_status {
+	RECOVERY_FILES_ERROR = -1,
+	RECOVERY_FILES_DO_NOT_EXIST = 0,
+	RECOVERY_FILES_EXIST_ALL = 1,
+	RECOVERY_FILES_NOT_ALL_EXIST = 2
+};
+
+/*
+ * replica_badblocks_recovery_files_check -- (internal) check if bad blocks
+ *                                           recovery files exist
+ */
+static enum badblocks_recovery_files_status
+replica_badblocks_recovery_files_check(struct pool_set *set,
+					struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
+	int recovery_file_exists = 0;
+	int recovery_file_does_not_exist = 0;
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+
+		/* XXX: not supported yet */
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			const char *path = PART(rep, p)->path;
+			struct part_health_status *part_hs = &rep_hs->part[p];
+
+			if (os_access(path, F_OK) != 0) {
+				/* part file does not exist - skip it */
+				continue;
+			}
+
+			part_hs->recovery_file_name =
+					badblocks_recovery_file_alloc(path);
+			if (part_hs->recovery_file_name == NULL) {
+				LOG(1,
+					"allocating name of bad blocks recovery file failed");
+				return RECOVERY_FILES_ERROR;
+			}
+
+			part_hs->recovery_file_exists =
+				(os_access(part_hs->recovery_file_name,
+								F_OK) == 0);
+
+			if (part_hs->recovery_file_exists) {
+				LOG(3, "bad blocks recovery file exists: %s",
+					part_hs->recovery_file_name);
+
+				recovery_file_exists = 1;
+
+			} else {
+				LOG(3,
+					"bad blocks recovery file does not exist: %s",
+					part_hs->recovery_file_name);
+
+				recovery_file_does_not_exist = 1;
+			}
+		}
+	}
+
+	if (recovery_file_exists) {
+		if (recovery_file_does_not_exist)
+			return RECOVERY_FILES_NOT_ALL_EXIST;
+		else
+			return RECOVERY_FILES_EXIST_ALL;
+	}
+
+	return RECOVERY_FILES_DO_NOT_EXIST;
+}
+
+/*
+ * replica_badblocks_recovery_files_read -- (internal) read bad blocks from all
+ *                                     bad blocks recovery files for all parts
+ */
+static int
+replica_badblocks_recovery_files_read(struct pool_set *set,
+					struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
+	int ret;
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+
+		/* XXX: not supported yet */
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			const char *path = PART(rep, p)->path;
+			struct part_health_status *part_hs = &rep_hs->part[p];
+
+			int exists = os_access(path, F_OK) == 0;
+			if (!exists)
+				continue;
+
+			LOG(1,
+				"reading bad blocks from the recovery file -- '%s'",
+				part_hs->recovery_file_name);
+
+			ret = replica_part_badblocks_recovery_file_read(path,
+								part_hs);
+			if (ret < 0) {
+				LOG(1,
+					"reading bad blocks from the recovery file failed -- '%s'",
+					part_hs->recovery_file_name);
+				return -1;
+			}
+
+			if (ret > 0) {
+				LOG(1,
+					"incomplete bad blocks recovery file detected -- '%s'",
+					part_hs->recovery_file_name);
+				return 1;
+			}
+
+			if (part_hs->bbs.bb_cnt) {
+				LOG(3, "part %u contains %u bad blocks -- '%s'",
+					p, part_hs->bbs.bb_cnt, path);
+			}
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * replica_badblocks_recovery_files_remove -- (internal)
+ *                                       remove all bad blocks recovery files
+ */
+static int
+replica_badblocks_recovery_files_remove(struct pool_set *set,
+					struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
+	int ret = 0;
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+
+		/* XXX: not supported yet */
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			struct part_health_status *part_hs = &rep_hs->part[p];
+
+			if (!part_hs->recovery_file_exists) {
+				/*
+				 * Bad blocks recovery file for this part
+				 * does not exist.
+				 */
+				continue;
+			}
+
+			LOG(1, "removing the bad blocks recovery file -- '%s'",
+				part_hs->recovery_file_name);
+
+			if (os_unlink(part_hs->recovery_file_name) < 0) {
+				ERR(
+					"removing the bad blocks recovery file failed -- '%s'",
+					part_hs->recovery_file_name);
+				ret = -1;
+			}
+
+			part_hs->recovery_file_exists = 0;
+		}
+	}
+
+	return ret;
+}
+
+/*
+ * replica_badblocks_recovery_files_create_empty -- (internal) create one empty
+ *                                                  bad blocks recovery file
+ *                                                  for each part file
+ */
+static int
+replica_badblocks_recovery_files_create_empty(struct pool_set *set,
+					struct poolset_health_status *set_hs)
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 
@@ -561,23 +981,60 @@ check_badblocks(struct pool_set *set, struct poolset_health_status *set_hs)
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			const char *path = PART(rep, p)->path;
+			struct part_health_status *part_hs = &rep_hs->part[p];
 
-			int exists = os_access(path, F_OK) == 0;
-			if (!exists)
+			if (!part_hs->recovery_file_name)
 				continue;
 
-			int ret = os_badblocks_check_file(path);
-			if (ret < 0) {
+			int fd = os_open(part_hs->recovery_file_name,
+					O_RDWR | O_CREAT,
+					0600);
+			if (fd < 0) {
 				ERR(
-					"checking replica for bad blocks failed -- '%s'",
-					path);
+					"creating empty bad blocks recovery file failed -- '%s' (part file '%s')",
+					part_hs->recovery_file_name, path);
 				return -1;
 			}
 
-			if (ret > 0) {
-				/* bad blocks were found */
-				rep_hs->part[p] |= IS_BROKEN;
-				rep_hs->flags |= IS_BROKEN;
+			os_close(fd);
+
+			part_hs->recovery_file_exists = 1;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * replica_badblocks_recovery_files_save -- (internal) save bad blocks
+ *                                     in the bad blocks recovery files
+ */
+static int
+replica_badblocks_recovery_files_save(struct pool_set *set,
+					struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+
+		/* XXX: not supported yet */
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			struct part_health_status *part_hs = &rep_hs->part[p];
+
+			if (!part_hs->recovery_file_name)
+				continue;
+
+			int ret = replica_badblocks_recovery_file_save(part_hs);
+			if (ret < 0) {
+				LOG(1,
+					"opening bad blocks recovery file failed -- '%s'",
+					part_hs->recovery_file_name);
+				return -1;
 			}
 		}
 	}
@@ -585,6 +1042,261 @@ check_badblocks(struct pool_set *set, struct poolset_health_status *set_hs)
 	return 0;
 }
 
+/*
+ * replica_badblocks_get -- (internal) get all bad blocks
+ */
+static int
+replica_badblocks_get(struct pool_set *set,
+			struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
+	int bad_blocks_found = 0;
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+
+		/* XXX: not supported yet */
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			const char *path = PART(rep, p)->path;
+			struct part_health_status *part_hs = &rep_hs->part[p];
+
+			int exists = os_access(path, F_OK) == 0;
+			if (!exists)
+				continue;
+
+			int ret = os_badblocks_get(path, &part_hs->bbs);
+			if (ret < 0) {
+				ERR(
+					"checking the pool part for bad blocks failed -- '%s'",
+					path);
+				return -1;
+			}
+
+			if (part_hs->bbs.bb_cnt) {
+				LOG(3, "part %u contains %u bad blocks -- '%s'",
+					p, part_hs->bbs.bb_cnt, path);
+
+				bad_blocks_found = 1;
+			}
+		}
+	}
+
+	return bad_blocks_found;
+}
+
+/*
+ * replica_badblocks_clear -- (internal) clear all bad blocks
+ */
+static int
+replica_badblocks_clear(struct pool_set *set,
+			struct poolset_health_status *set_hs)
+{
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
+	int ret;
+
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = set->replica[r];
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+
+		/* XXX: not supported yet */
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; ++p) {
+			const char *path = PART(rep, p)->path;
+			struct part_health_status *part_hs = &rep_hs->part[p];
+
+			int exists = os_access(path, F_OK) == 0;
+			if (!exists)
+				continue;
+
+			if (part_hs->bbs.bb_cnt == 0) {
+				/* no bad blocks found */
+				continue;
+			}
+
+			/* bad blocks were found */
+			part_hs->flags |= HAS_BAD_BLOCKS;
+			rep_hs->flags |= HAS_BAD_BLOCKS;
+
+			ret = os_badblocks_clear(path, &part_hs->bbs);
+			if (ret < 0) {
+				LOG(1,
+					"clearing bad blocks in replica failed -- '%s'",
+					path);
+				return -1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * replica_badblocks_check_or_clear -- (internal) check if replica contains
+ *                                     bad blocks when in dry run
+ *                                     or clear them otherwise
+ */
+static int
+replica_badblocks_check_or_clear(struct pool_set *set,
+				struct poolset_health_status *set_hs,
+				int dry_run, int use_recovery_files)
+{
+	LOG(3, "set %p, set_hs %p dry_run %i use_recovery_files %i",
+		set, set_hs, dry_run, use_recovery_files);
+
+#define ERR_MSG	"       please read the manual first and use this option\n"\
+		"       ONLY IF you are sure that you know what you are doing"
+
+	enum badblocks_recovery_files_status status;
+	int ret;
+
+	/* check all bad blocks recovery files */
+	status = replica_badblocks_recovery_files_check(set, set_hs);
+
+	/* phase #1 - error handling */
+	switch (status) {
+	case RECOVERY_FILES_ERROR:
+		LOG(1, "checking bad blocks recovery files failed");
+		return -1;
+
+	case RECOVERY_FILES_EXIST_ALL:
+	case RECOVERY_FILES_NOT_ALL_EXIST:
+		if (!use_recovery_files) {
+			ERR(
+				"error: bad blocks recovery file exists, but the '--bad-blocks' option is not set\n"
+				ERR_MSG);
+			return -1;
+		}
+		break;
+
+	default:
+		break;
+	};
+
+	/* phase #2 - reading recovery files */
+	switch (status) {
+	case RECOVERY_FILES_EXIST_ALL:
+		/* read all bad blocks recovery files */
+		ret = replica_badblocks_recovery_files_read(set, set_hs);
+		if (ret < 0) {
+			LOG(1, "checking bad blocks recovery files failed");
+			return -1;
+		}
+
+		if (ret > 0) {
+			/* incomplete bad blocks recovery file was detected */
+
+			LOG(1,
+				"warning: incomplete bad blocks recovery file detected\n"
+				"         - all recovery files will be removed");
+
+			/* changing status to RECOVERY_FILES_NOT_ALL_EXIST */
+			status = RECOVERY_FILES_NOT_ALL_EXIST;
+		}
+		break;
+
+	case RECOVERY_FILES_NOT_ALL_EXIST:
+		LOG(1,
+			"warning: one of bad blocks recovery file does not exist\n"
+			"         - all recovery files will be removed");
+		break;
+
+	default:
+		break;
+	};
+
+	if (status == RECOVERY_FILES_NOT_ALL_EXIST) {
+		/*
+		 * One of bad blocks recovery file does not exist,
+		 * or an incomplete bad blocks recovery file was detected,
+		 * so all recovery files have to be removed.
+		 */
+
+		if (!dry_run) {
+			LOG(1, "removing all bad blocks recovery files...");
+			ret = replica_badblocks_recovery_files_remove(set,
+									set_hs);
+			if (ret < 0) {
+				LOG(1,
+					"removing bad blocks recovery files failed");
+				return -1;
+			}
+		} else {
+			LOG(1,
+				"all bad blocks recovery files would be removed");
+		}
+
+		/* changing status to RECOVERY_FILES_DO_NOT_EXIST */
+		status = RECOVERY_FILES_DO_NOT_EXIST;
+	}
+
+	if (status == RECOVERY_FILES_DO_NOT_EXIST) {
+		/*
+		 * There are no bad blocks recovery files,
+		 * so let's check bad blocks.
+		 */
+
+		int bad_blocks_found = replica_badblocks_get(set, set_hs);
+		if (bad_blocks_found < 0) {
+			LOG(1, "checking bad blocks failed");
+			return -1;
+		}
+
+		if (!bad_blocks_found) {
+			LOG(4, "no bad blocks found");
+			return 0;
+		}
+
+		/* bad blocks were found */
+		if (!use_recovery_files) {
+			ERR(
+				"error: bad blocks found, but the '--bad-blocks' option is not set\n"
+				ERR_MSG);
+			return -1;
+		}
+
+		if (dry_run) {
+			/* dry-run - do nothing */
+			return 0;
+		}
+
+		/* create one empty recovery file for each part file */
+		ret = replica_badblocks_recovery_files_create_empty(set,
+								set_hs);
+		if (ret < 0) {
+			LOG(1,
+				"creating empty bad blocks recovery files failed");
+			return -1;
+		}
+
+		/* save bad blocks in recovery files */
+		ret = replica_badblocks_recovery_files_save(set, set_hs);
+		if (ret < 0) {
+			LOG(1, "saving bad blocks recovery files failed");
+			return -1;
+		}
+	}
+
+	if (dry_run) {
+		/* dry-run - do nothing */
+		return 0;
+	}
+
+	ret = replica_badblocks_clear(set, set_hs);
+	if (ret < 0) {
+		ERR("clearing bad blocks failed");
+		return -1;
+	}
+
+	return 0;
+}
 
 /*
  * check_shutdown_state -- (internal) check if replica has
@@ -759,7 +1471,7 @@ check_replica_options(struct pool_set *set, unsigned repn,
 			LOG(1,
 				"improper options are set in part %u's header in replica %u",
 				p, repn);
-			rep_hs->part[p] |= IS_BROKEN;
+			rep_hs->part[p].flags |= IS_BROKEN;
 		}
 	}
 	return 0;
@@ -1072,6 +1784,13 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
+	/* check for bad blocks when in dry run or clear them otherwise */
+	if (replica_badblocks_check_or_clear(set, set_hs, is_dry_run(flags),
+						use_recovery_files(flags))) {
+		LOG(1, "replica bad_blocks check failed");
+		goto err;
+	}
+
 	/* map all headers */
 	map_all_unbroken_headers(set, set_hs);
 
@@ -1084,11 +1803,6 @@ replica_check_poolset_health(struct pool_set *set,
 	/* check if option flags are consistent */
 	if (check_options(set, set_hs)) {
 		LOG(1, "flags check failed");
-		goto err;
-	}
-
-	if (check_badblocks(set, set_hs)) {
-		LOG(1, "replica bad_blocks check failed");
 		goto err;
 	}
 
