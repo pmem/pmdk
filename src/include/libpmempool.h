@@ -161,6 +161,10 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
  * do not apply changes, only check if operation is viable
  */
 #define PMEMPOOL_SYNC_DRY_RUN		(1U << 0)
+/*
+ * fix bad blocks - it requires creating or reading special recovery files
+ */
+#define PMEMPOOL_SYNC_FIX_BAD_BLOCKS	(1U << 1)
 
 
 /*
