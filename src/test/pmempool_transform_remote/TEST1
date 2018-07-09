@@ -40,9 +40,9 @@
 require_test_type	medium
 require_fs_type		any
 
-. common.sh
-
 setup
+
+. common.sh
 
 # Create local poolset files
 create_poolset $DIR/$POOLSET_LOCAL_IN \

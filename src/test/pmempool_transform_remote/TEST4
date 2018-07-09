@@ -43,9 +43,9 @@ require_fs_type		any
 require_nodes 2
 require_node_dax_device 0 1
 
-. common.sh
-
 setup
+
+. common.sh
 
 node_dax_device_zero 0
 
