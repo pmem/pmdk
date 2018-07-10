@@ -839,3 +839,122 @@ pmemblk_checkW(const wchar_t *path, size_t bsize)
 	return ret;
 }
 #endif
+
+/*
+ * pmemblk_ctl_getU -- programmatically executes a read ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemblk_ctl_getU(PMEMblkpool *pbp, const char *name, void *arg)
+{
+	LOG(3, "pbp %p name %s arg %p", pbp, name, arg);
+	return ctl_query(pbp == NULL ? NULL : pbp->ctl, pbp,
+			CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_READ, arg);
+}
+
+/*
+ * pmemblk_ctl_setU -- programmatically executes a write ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemblk_ctl_setU(PMEMblkpool *pbp, const char *name, void *arg)
+{
+	LOG(3, "pbp %p name %s arg %p", pbp, name, arg);
+	return ctl_query(pbp == NULL ? NULL : pbp->ctl, pbp,
+		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_WRITE, arg);
+}
+
+/*
+ * pmemblk_ctl_execU -- programmatically executes a runnable ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemblk_ctl_execU(PMEMblkpool *pbp, const char *name, void *arg)
+{
+	LOG(3, "pbp %p name %s arg %p", pbp, name, arg);
+	return ctl_query(pbp == NULL ? NULL : pbp->ctl, pbp,
+		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_RUNNABLE, arg);
+}
+
+#ifndef _WIN32
+/*
+ * pmemblk_ctl_get -- programmatically executes a read ctl query
+ */
+int
+pmemblk_ctl_get(PMEMblkpool *pbp, const char *name, void *arg)
+{
+	return pmemblk_ctl_getU(pbp, name, arg);
+}
+
+/*
+ * pmemblk_ctl_set -- programmatically executes a write ctl query
+ */
+int
+pmemblk_ctl_set(PMEMblkpool *pbp, const char *name, void *arg)
+{
+	return pmemblk_ctl_setU(pbp, name, arg);
+}
+
+/*
+ * pmemblk_ctl_exec -- programmatically executes a runnable ctl query
+ */
+int
+pmemblk_ctl_exec(PMEMblkpool *pbp, const char *name, void *arg)
+{
+	return pmemblk_ctl_execU(pbp, name, arg);
+}
+#else
+/*
+ * pmemblk_ctl_getW -- programmatically executes a read ctl query
+ */
+int
+pmemblk_ctl_getW(PMEMblkpool *pbp, const wchar_t *name, void *arg)
+{
+	char *uname = util_toUTF8(name);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemblk_ctl_getU(pbp, uname, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+
+/*
+ * pmemblk_ctl_setW -- programmatically executes a write ctl query
+ */
+int
+pmemblk_ctl_setW(PMEMblkpool *pbp, const wchar_t *name, void *arg)
+{
+	char *uname = util_toUTF8(name);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemblk_ctl_setU(pbp, uname, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+
+/*
+ * pmemblk_ctl_execW -- programmatically executes a runnable ctl query
+ */
+int
+pmemblk_ctl_execW(PMEMblkpool *pbp, const wchar_t *name, void *arg)
+{
+	char *uname = util_toUTF8(name);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemblk_ctl_execU(pbp, uname, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+#endif
