@@ -46,8 +46,6 @@ require_node_dax_device 1 1
 
 . ./common.sh
 
-setup
-
 node_dax_device_zero 0
 node_dax_device_zero 1
 

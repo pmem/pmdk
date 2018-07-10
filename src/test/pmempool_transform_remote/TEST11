@@ -49,8 +49,6 @@ require_node_dax_device_alignments 0 $SIZE_4KB $SIZE_4KB
 
 . common.sh
 
-setup
-
 node_dax_device_zero 0
 
 # Create poolset files

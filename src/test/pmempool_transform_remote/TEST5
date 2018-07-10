@@ -45,8 +45,6 @@ require_node_dax_device 0 1
 
 . common.sh
 
-setup
-
 node_dax_device_zero 0
 
 # Create local poolset files

@@ -44,8 +44,6 @@ require_fs_type		any
 
 . common.sh
 
-setup
-
 # Create poolset files
 create_poolset $DIR/pool.set \
 	10M:${NODE_DIR[1]}pool.1:x \

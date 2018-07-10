@@ -45,8 +45,6 @@ require_node_dax_device 0 1
 
 . ./common.sh
 
-setup
-
 create_poolset $DIR/pool.set \
 	8M:${NODE_DIR[1]}pool.1:x \
         m \
