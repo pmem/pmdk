@@ -226,6 +226,11 @@ then
 	sed -i '/^#.*bugzilla.redhat/d' $RPM_SPEC_FILE
 fi
 
+if [ "$DISTRO" = "RHEL" ]
+then
+	sed -i '/^%defattr/d' $RPM_SPEC_FILE
+fi
+
 # do not split on space
 IFS=$'\n'
 
