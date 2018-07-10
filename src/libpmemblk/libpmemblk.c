@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,9 +38,65 @@
 #include <stdint.h>
 
 #include "libpmemblk.h"
+#include "ctl_global.h"
 
 #include "pmemcommon.h"
 #include "blk.h"
+
+/*
+ * The variable from which the config is directly loaded. The string
+ * cannot contain any comments or extraneous white characters.
+ */
+#define BLK_CONFIG_ENV_VARIABLE "PMEMBLK_CONF"
+
+/*
+ * The variable that points to a config file from which the config is loaded.
+ */
+#define BLK_CONFIG_FILE_ENV_VARIABLE "PMEMBLK_CONF_FILE"
+
+/*
+ * blk_ctl_init_and_load -- (static) initializes CTL and loads configuration
+ *	from env variable and file
+ */
+static int
+blk_ctl_init_and_load(PMEMblkpool *pbp)
+{
+	LOG(3, "pbp %p", pbp);
+
+	if (pbp != NULL && (pbp->ctl = ctl_new()) == NULL) {
+		LOG(2, "!ctl_new");
+		return -1;
+	}
+
+	char *env_config = os_getenv(BLK_CONFIG_ENV_VARIABLE);
+	if (env_config != NULL) {
+		if (ctl_load_config_from_string(pbp ? pbp->ctl : NULL,
+				pbp, env_config) != 0) {
+			LOG(2, "unable to parse config stored in %s "
+				"environment variable",
+				BLK_CONFIG_ENV_VARIABLE);
+			goto err;
+		}
+	}
+
+	char *env_config_file = os_getenv(BLK_CONFIG_FILE_ENV_VARIABLE);
+	if (env_config_file != NULL && env_config_file[0] != '\0') {
+		if (ctl_load_config_from_file(pbp ? pbp->ctl : NULL,
+				pbp, env_config_file) != 0) {
+			LOG(2, "unable to parse config stored in %s "
+				"file (from %s environment variable)",
+				env_config_file,
+				BLK_CONFIG_FILE_ENV_VARIABLE);
+			goto err;
+		}
+	}
+
+	return 0;
+err:
+	if (pbp)
+		ctl_delete(pbp->ctl);
+	return -1;
+}
 
 /*
  * libpmemblk_init -- (internal) load-time initialization for blk
@@ -51,6 +107,11 @@ ATTR_CONSTRUCTOR
 void
 libpmemblk_init(void)
 {
+	ctl_global_register();
+
+	if (blk_ctl_init_and_load(NULL))
+		FATAL("Ctl initialization failed");
+
 	common_init(PMEMBLK_LOG_PREFIX, PMEMBLK_LOG_LEVEL_VAR,
 			PMEMBLK_LOG_FILE_VAR, PMEMBLK_MAJOR_VERSION,
 			PMEMBLK_MINOR_VERSION);

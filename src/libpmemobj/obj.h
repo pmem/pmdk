@@ -156,7 +156,7 @@ struct pmemobjpool {
 	uint64_t uuid_lo;
 	int is_dev_dax;		/* true if mapped on device dax */
 
-	struct ctl *ctl;
+	struct ctl *ctl;	/* top level node of the ctl tree structure */
 	struct stats *stats;
 
 	struct pool_set *set;		/* pool set info */

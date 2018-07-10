@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,27 +29,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/libpmemblk.map -- linker map file for libpmemblk
+# src/test/util_ctl_prefault/Makefile -- build util_ctl_prefault test
 #
-LIBPMEMBLK_1.0 {
-	global:
-		pmemblk_check_version;
-		pmemblk_set_funcs;
-		pmemblk_errormsg;
-		pmemblk_create;
-		pmemblk_open;
-		pmemblk_close;
-		pmemblk_check;
-		pmemblk_ctl_exec;
-		pmemblk_ctl_get;
-		pmemblk_ctl_set;
-		pmemblk_nblock;
-		pmemblk_read;
-		pmemblk_write;
-		pmemblk_set_zero;
-		pmemblk_set_error;
-		pmemblk_bsize;
-	local:
-		*;
-};
+TARGET = util_ctl_prefault
+OBJS = util_ctl_prefault.o
+
+LIBPMEM=y
+LIBPMEMBLK=y
+LIBPMEMLOG=y
+LIBPMEMOBJ=y
+
+include ../Makefile.inc

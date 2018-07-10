@@ -58,7 +58,7 @@
 #include "sys_util.h"
 
 /*
- * The variable from which the config is directly loaded. The contained string
+ * The variable from which the config is directly loaded. The string
  * cannot contain any comments or extraneous white characters.
  */
 #define OBJ_CONFIG_ENV_VARIABLE "PMEMOBJ_CONF"
@@ -188,7 +188,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	LOG(3, "pop %p", pop);
 
 	if (pop != NULL && (pop->ctl = ctl_new()) == NULL) {
-		ERR("!ctl_new");
+		LOG(2, "!ctl_new");
 		return -1;
 	}
 
@@ -203,7 +203,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	if (env_config != NULL) {
 		if (ctl_load_config_from_string(pop ? pop->ctl : NULL,
 				pop, env_config) != 0) {
-			ERR("unable to parse config stored in %s "
+			LOG(2, "unable to parse config stored in %s "
 				"environment variable",
 				OBJ_CONFIG_ENV_VARIABLE);
 			goto err;
@@ -214,7 +214,7 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 	if (env_config_file != NULL && env_config_file[0] != '\0') {
 		if (ctl_load_config_from_file(pop ? pop->ctl : NULL,
 				pop, env_config_file) != 0) {
-			ERR("unable to parse config stored in %s "
+			LOG(2, "unable to parse config stored in %s "
 				"file (from %s environment variable)",
 				env_config_file,
 				OBJ_CONFIG_FILE_ENV_VARIABLE);
@@ -321,12 +321,13 @@ obj_init(void)
 	/* XXX - temporary implementation (see above) */
 	os_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 #endif
-	ctl_global_register();
-
 	/*
 	 * Load global config, ignore any issues. They will be caught on the
 	 * subsequent call to this function for individual pools.
 	 */
+
+	ctl_global_register();
+
 	obj_ctl_init_and_load(NULL);
 
 	lane_info_boot();

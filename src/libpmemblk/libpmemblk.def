@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ;
-; Copyright 2015-2017, Intel Corporation
+; Copyright 2015-2018, Intel Corporation
 ;
 ; Redistribution and use in source and binary forms, with or without
 ; modification, are permitted provided that the following conditions
@@ -49,6 +49,12 @@ EXPORTS
 	pmemblk_close
 	pmemblk_checkU
 	pmemblk_checkW
+	pmemblk_ctl_execU;
+	pmemblk_ctl_execW;
+	pmemblk_ctl_getU;
+	pmemblk_ctl_getW;
+	pmemblk_ctl_setU;
+	pmemblk_ctl_setW;
 	pmemblk_bsize
 	pmemblk_nblock
 	pmemblk_read
