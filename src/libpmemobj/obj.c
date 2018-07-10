@@ -58,7 +58,7 @@
 #include "sys_util.h"
 
 /*
- * The variable from which the config is directly loaded. The contained string
+ * The variable from which the config is directly loaded. The string
  * cannot contain any comments or extraneous white characters.
  */
 #define OBJ_CONFIG_ENV_VARIABLE "PMEMOBJ_CONF"
@@ -321,12 +321,13 @@ obj_init(void)
 	/* XXX - temporary implementation (see above) */
 	os_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 #endif
-	ctl_global_register();
-
 	/*
 	 * Load global config, ignore any issues. They will be caught on the
 	 * subsequent call to this function for individual pools.
 	 */
+
+	ctl_global_register();
+
 	obj_ctl_init_and_load(NULL);
 
 	lane_info_boot();
