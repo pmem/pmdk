@@ -37,9 +37,6 @@
     <ClCompile Include="..\common\file_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\libpmemlog\libpmemlog.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="libpmempool.c">
       <Filter>Source Files</Filter>
     </ClCompile>

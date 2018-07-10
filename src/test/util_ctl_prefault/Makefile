@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,12 +31,14 @@
 #
 
 #
-# src/test/obj_ctl_prefault/Makefile -- build obj_ctl_prefault test
+# src/test/util_ctl_prefault/Makefile -- build util_ctl_prefault test
 #
-TARGET = obj_ctl_prefault
-OBJS = obj_ctl_prefault.o
+TARGET = util_ctl_prefault
+OBJS = util_ctl_prefault.o
 
 LIBPMEM=y
+LIBPMEMBLK=y
+LIBPMEMLOG=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
