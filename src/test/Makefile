@@ -79,7 +79,6 @@ OBJ_TESTS = \
 	obj_ctl_alloc_class_config\
 	obj_ctl_config\
 	obj_ctl_heap_size\
-	obj_ctl_prefault\
 	obj_ctl_stats\
 	obj_cuckoo\
 	obj_debug\
@@ -210,6 +209,7 @@ OTHER_TESTS = \
 	unicode_match_script\
 	util_badblock\
 	util_ctl\
+	util_ctl_prefault\
 	util_extent\
 	util_file_create\
 	util_file_open\
