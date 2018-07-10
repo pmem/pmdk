@@ -36,6 +36,7 @@
 
 #include <stddef.h>
 
+#include "ctl.h"
 #include "os_thread.h"
 #include "pool_hdr.h"
 
@@ -77,6 +78,7 @@ struct pmemblk {
 	unsigned next_lane;		/* used to rotate through lanes */
 	os_mutex_t *locks;		/* one per lane */
 	int is_dev_dax;			/* true if mapped on device dax */
+	struct ctl *ctl;
 
 	struct pool_set *set;		/* pool set info */
 

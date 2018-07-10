@@ -320,12 +320,13 @@ obj_init(void)
 	/* XXX - temporary implementation (see above) */
 	os_once(&Cached_pool_key_once, _Cached_pool_key_alloc);
 #endif
-	ctl_global_register();
-
 	/*
 	 * Load global config, ignore any issues. They will be caught on the
 	 * subsequent call to this function for individual pools.
 	 */
+
+	ctl_global_register();
+
 	obj_ctl_init_and_load(NULL);
 
 	lane_info_boot();
