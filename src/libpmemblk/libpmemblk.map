@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,6 +41,9 @@ LIBPMEMBLK_1.0 {
 		pmemblk_open;
 		pmemblk_close;
 		pmemblk_check;
+		pmemblk_ctl_exec;
+		pmemblk_ctl_get;
+		pmemblk_ctl_set;
 		pmemblk_nblock;
 		pmemblk_read;
 		pmemblk_write;

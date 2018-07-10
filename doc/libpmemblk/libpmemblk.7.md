@@ -7,7 +7,7 @@ header: PMDK
 date: pmemblk API version 1.1
 ...
 
-[comment]: <> (Copyright 2016-2017, Intel Corporation)
+[comment]: <> (Copyright 2016-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -92,7 +92,8 @@ A description of other **libpmemblk** functions can be found on the following
 manual pages:
 
 **pmemblk_create**(3), **pmemblk_bsize**(3),
-**pmemblk_read**(3), **pmemblk_set_zero**(3)
+**pmemblk_read**(3), **pmemblk_set_zero**(3),
+**pmemobj_ctl_get**(3)
 
 
 # DESCRIPTION #
@@ -345,6 +346,7 @@ by the SNIA NVM Programming Technical Work Group:
 
 **msync**(2), **dlclose**(3), **pmemblk_bsize**(3), **pmemblk_create**(3),
 **pmemblk_read**(3), **pmemblk_set_zero**(3), **pmem_is_pmem**(3),
-**pmem_persist**(3), **strerror**(3),
+**pmem_persist**(3), **strerror**(3), **pmemblk_ctl_get**(3),
+**pmemblk_ctl_set**(3),
 **libpmem**(7), **libpmemcto**(7), **libpmemlog**(7), **libpmemobj**(7)
 and **<http://pmem.io>**

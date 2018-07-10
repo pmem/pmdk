@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,38 +30,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
+# src/test/util_ctl_prefault/Makefile -- build util_ctl_prefault test
+#
+TARGET = util_ctl_prefault
+OBJS = util_ctl_prefault.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEM=y
+LIBPMEMBLK=y
+LIBPMEMOBJ=y
 
-require_test_type short
-
-setup
-
-# create, don't prefault
-expect_normal_exit ./obj_ctl_prefault$EXESUFFIX $DIR/testfile1 0 0
-pagefault_create_baseline=`cat out$UNITTEST_NUM.log | sed -n '3p'`
-
-# open, don't prefault
-expect_normal_exit ./obj_ctl_prefault$EXESUFFIX $DIR/testfile1 0 1
-pagefault_open_baseline=`cat out$UNITTEST_NUM.log | sed -n '3p'`
-
-rm -rf $DIR/testfile1
-
-# create, prefault
-expect_normal_exit ./obj_ctl_prefault$EXESUFFIX $DIR/testfile1 2 0
-pagefault_create_prefault=`cat out$UNITTEST_NUM.log | sed -n '3p'`
-
-# open, prefault
-expect_normal_exit ./obj_ctl_prefault$EXESUFFIX $DIR/testfile1 1 1
-pagefault_open_prefault=`cat out$UNITTEST_NUM.log | sed -n '3p'`
-
-if [ ${pagefault_create_baseline} -ge ${pagefault_create_prefault} ]; then
-	fatal "create: ${pagefault_create_baseline} >= ${pagefault_create_prefault} "
-fi
-
-if [ ${pagefault_open_baseline} -ge ${pagefault_open_prefault} ]; then
-	fatal "open: ${pagefault_open_baseline} >= ${pagefault_open_prefault}"
-fi
-
-pass
+include ../Makefile.inc
