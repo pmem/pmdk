@@ -39,7 +39,7 @@ require_test_type short
 
 setup
 
-for type in obj blk;
+for type in obj blk log;
 do
 	# create, don't prefault
 	expect_normal_exit ./util_ctl_prefault$EXESUFFIX $type $DIR/testfile1 0 0

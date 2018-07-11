@@ -38,6 +38,7 @@ OBJS = util_ctl_prefault.o
 
 LIBPMEM=y
 LIBPMEMBLK=y
+LIBPMEMLOG=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
