@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: _MP(CTL, 5)
 collection: ctl
 header: PMDK
-date: ctl API version 1.0
+date: ctl API version 1.4
 ...
 
 [comment]: <> (Copyright 2018, Intel Corporation)
@@ -43,14 +43,10 @@ date: ctl API version 1.0
 
 # NAME #
 
-ctl -- interface for examination and modification of the library's internal state
+ctl -- interface for examination and modification of the library's internal state.
 
 
 # DESCRIPTION #
-
-The _UW(pmemobj_ctl_get), _UW(pmemobj_ctl_set) and _UW(pmemobj_ctl_exec)
-functions provide a uniform interface for querying and modifying the internal
-behavior of **libpmemobj**, **libpmemblk**, **libpmemlog** through the control (CTL) namespace.
 
 The CTL namespace is organized in a tree structure. Starting from the root,
 each node can be either internal, containing other elements, or a leaf.
@@ -79,12 +75,12 @@ name | r(ead)w(rite)x(ecute) | global/- | read argument type | write argument ty
 
 A description of **ctl** functions can be found on the following
 manual pages:
-**libpmemobj_ctl_get**(7), **libpmemblk_ctl_get**(7), **libpmemlog_ctl_get**(7)
+**libpmemblk_ctl_get**(3), **libpmemlog_ctl_get**(3), **libpmemobj_ctl_get**(3)
 
 description...
 
 
 # SEE ALSO #
 
-**libpmemobj_ctl_get**(7), **libpmemblk_ctl_get**(7), **libpmemlog_ctl_get**(7)
+**libpmemblk_ctl_get**(3), **libpmemlog_ctl_get**(3), **libpmemobj_ctl_get**(3)
 and **<http://pmem.io>**
