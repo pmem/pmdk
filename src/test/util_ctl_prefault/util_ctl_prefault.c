@@ -40,6 +40,7 @@
 #include "unittest.h"
 
 #define OBJ_STR "obj"
+#define BLK_STR "blk"
 
 #define BSIZE 20
 #define LAYOUT "obj_ctl_prefault"
@@ -160,6 +161,29 @@ test_blk(const char *path, int open)
 
 	UT_OUT("%ld", resident_pages);
 }
+/*
+ * test_log -- open/ create PMEMlogpool
+ */
+static void
+test_log(const char *path, int open)
+{
+	PMEMlogpool *plp;
+	if (open) {
+		if ((plp = pmemlog_open(path)) == NULL)
+			UT_FATAL("!pmemlog_open: %s", path);
+	} else {
+		if ((plp = pmemlog_create(path, PMEMLOG_MIN_POOL,
+				S_IWUSR | S_IRUSR)) == NULL)
+			UT_FATAL("!pmemlog_create: %s", path);
+	}
+
+	size_t resident_pages = count_resident_pages(plp, PMEMLOG_MIN_POOL);
+
+	pmemlog_close(plp);
+
+	UT_OUT("%ld", resident_pages);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -180,11 +204,16 @@ main(int argc, char *argv[])
 
 		test_obj(path, open);
 
-	} else {
+	} else if (strcmp(type, BLK_STR) == 0) {
 		prefault_fun(prefault, (fun)pmemblk_ctl_get,
 				(fun)pmemblk_ctl_set);
 
 		test_blk(path, open);
+	} else {
+		prefault_fun(prefault, (fun)pmemlog_ctl_get,
+				(fun)pmemlog_ctl_set);
+
+		test_log(path, open);
 	}
 
 	DONE(NULL);
