@@ -214,8 +214,6 @@ unsigned replica_find_healthy_replica(
 		struct poolset_health_status *set_hs);
 unsigned replica_find_replica_healthy_header(
 		struct poolset_health_status *set_hs);
-unsigned replica_find_replica_no_bad_blocks(
-		struct poolset_health_status *set_hs);
 
 int replica_is_poolset_healthy(struct poolset_health_status *set_hs);
 int replica_is_poolset_transformed(unsigned flags);

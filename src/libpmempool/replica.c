@@ -495,25 +495,6 @@ replica_find_replica_healthy_header(struct poolset_health_status *set_hs)
 }
 
 /*
- * replica_find_replica_no_bad_blocks -- find a replica with no bad blocks
- */
-unsigned
-replica_find_replica_no_bad_blocks(struct poolset_health_status *set_hs)
-{
-	LOG(3, "set_hs %p", set_hs);
-
-	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-		if (!replica_has_bad_blocks(r, set_hs)) {
-			LOG(4, "return %i", r);
-			return r;
-		}
-	}
-
-	LOG(4, "return %i", UNDEF_REPLICA);
-	return UNDEF_REPLICA;
-}
-
-/*
  * replica_check_store_size -- (internal) store size from pool descriptor for
  * replica
  */

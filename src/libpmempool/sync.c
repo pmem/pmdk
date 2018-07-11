@@ -720,13 +720,13 @@ sync_check_badblocks(struct pool_set *set, struct poolset_health_status *set_hs)
 	struct bb_vec bbv_all = VEC_INITIALIZER;
 	struct bb_vec bbv_aux = VEC_INITIALIZER;
 
-	unsigned i_all = 0;	/* index in bbv_all */
-
 	int ret = -1;
 
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = REP(set, r);
 		struct replica_health_status *rep_hs = set_hs->replica[r];
+
+		unsigned i_all = 0;	/* index in bbv_all */
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			struct part_health_status *phs = &rep_hs->part[p];
@@ -801,7 +801,7 @@ sync_check_badblocks(struct pool_set *set, struct poolset_health_status *set_hs)
 			continue;
 		}
 
-		i_all = 0;
+		unsigned i_all = 0;	/* index in bbv_all */
 
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			struct part_health_status *phs = &rep_hs->part[p];
@@ -829,15 +829,11 @@ exit:
  * sync_badblocks_data -- (internal) clear bad blocks in replica
  */
 static int
-sync_badblocks_data(struct pool_set *set, unsigned replica_no_bb,
-			struct poolset_health_status *set_hs)
+sync_badblocks_data(struct pool_set *set, struct poolset_health_status *set_hs)
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 
-	struct pool_replica *rep_h = NULL;
-
-	if (replica_no_bb != UNDEF_REPLICA)
-		rep_h = REP(set, replica_no_bb);
+	struct pool_replica *rep_h;
 
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
 		struct pool_replica *rep = REP(set, r);
@@ -862,11 +858,10 @@ sync_badblocks_data(struct pool_set *set, unsigned replica_no_bb,
 				size_t off = phs->bbs.bbv[i].offset - part_off;
 				size_t len = phs->bbs.bbv[i].length;
 
-				if (replica_no_bb == UNDEF_REPLICA) {
-					ASSERT(phs->bbs.bbv[i].nhealthy >= 0);
-					rep_h = REP(set, (unsigned)
-						phs->bbs.bbv[i].nhealthy);
-				}
+				ASSERT(phs->bbs.bbv[i].nhealthy >= 0);
+
+				rep_h = REP(set,
+					(unsigned)phs->bbs.bbv[i].nhealthy);
 
 				void *src_addr = ADDR_SUM(rep_h->part[0].addr,
 								part_off + off);
@@ -1593,36 +1588,29 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 		goto out;
 	}
 
-	/* find a replica with no bad blocks */
-	unsigned replica_no_bb = healthy_replica;
-	if (replica_no_bb == UNDEF_REPLICA)
-		replica_no_bb = replica_find_replica_no_bad_blocks(set_hs);
-
-	if (replica_no_bb == UNDEF_REPLICA) {
-		/*
-		 * Check if there are uncorrectable bad blocks
-		 * (bad blocks overlapping in all replicas).
-		 */
-		int status = sync_check_badblocks(set, set_hs);
-		if (status == -1) {
-			LOG(1, "checking bad blocks failed");
-			ret = -1;
-			goto out;
-		}
-
-		if (status == 1) {
-			ERR(
-				"no healthy replica found - the same bad block exists in all replicas");
-			errno = EINVAL;
-			ret = -1;
-			goto out;
-		}
-
-		LOG(1, "bad blocks do not overlap");
+	/*
+	 * Check if there are uncorrectable bad blocks
+	 * (bad blocks overlapping in all replicas).
+	 */
+	int status = sync_check_badblocks(set, set_hs);
+	if (status == -1) {
+		LOG(1, "checking bad blocks failed");
+		ret = -1;
+		goto out;
 	}
 
+	if (status == 1) {
+		ERR(
+			"no healthy replica found - the same bad block exists in all replicas");
+		errno = EINVAL;
+		ret = -1;
+		goto out;
+	}
+
+	LOG(3, "bad blocks do not overlap");
+
 	/* sync data in bad blocks */
-	if (sync_badblocks_data(set, replica_no_bb, set_hs)) {
+	if (sync_badblocks_data(set, set_hs)) {
 		LOG(1, "syncing bad blocks data failed");
 		ret = -1;
 		goto out;
