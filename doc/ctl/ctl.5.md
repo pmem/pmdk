@@ -48,10 +48,6 @@ ctl -- interface for examination and modification of the library's internal stat
 
 # DESCRIPTION #
 
-The _UW(pmemobj_ctl_get), _UW(pmemobj_ctl_set) and _UW(pmemobj_ctl_exec)
-functions provide a uniform interface for querying and modifying the internal
-behavior of **libpmemobj**, **libpmemblk**, **libpmemlog** through the control (CTL) namespace.
-
 The CTL namespace is organized in a tree structure. Starting from the root,
 each node can be either internal, containing other elements, or a leaf.
 Internal nodes themselves can only contain other nodes and cannot be entry
@@ -79,12 +75,12 @@ name | r(ead)w(rite)x(ecute) | global/- | read argument type | write argument ty
 
 A description of **ctl** functions can be found on the following
 manual pages:
-**libpmemobj_ctl_get**(7), **libpmemblk_ctl_get**(7), **libpmemlog_ctl_get**(7)
+**libpmemblk_ctl_get**(3), **libpmemlog_ctl_get**(3), **libpmemobj_ctl_get**(3)
 
 description...
 
 
 # SEE ALSO #
 
-**libpmemobj_ctl_get**(7), **libpmemblk_ctl_get**(7), **libpmemlog_ctl_get**(7)
+**libpmemblk_ctl_get**(3), **libpmemlog_ctl_get**(3), **libpmemobj_ctl_get**(3)
 and **<http://pmem.io>**

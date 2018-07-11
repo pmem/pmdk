@@ -70,9 +70,11 @@ _UNICODE()
 
 # DESCRIPTION #
 
-The description of the function is in **ctl**(5) man page
+The _UW(pmemobj_ctl_get), _UW(pmemobj_ctl_set) and _UW(pmemobj_ctl_exec)
+functions provide a uniform interface for querying and modifying the internal
+behavior of **libpmemobj** through the control (CTL) namespace.
 
-description...
+See more in **ctl**(5) man page
 
 
 # CTL NAMESPACE #

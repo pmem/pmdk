@@ -38,6 +38,7 @@
 #include <stddef.h>
 #include <endian.h>
 
+#include "ctl.h"
 #include "util.h"
 #include "os_thread.h"
 #include "pool_hdr.h"
@@ -73,6 +74,7 @@ struct pmemlog {
 	int rdonly;			/* true if pool is opened read-only */
 	os_rwlock_t *rwlockp;	/* pointer to RW lock */
 	int is_dev_dax;			/* true if mapped on device dax */
+	struct ctl *ctl;
 
 	struct pool_set *set;		/* pool set info */
 };
