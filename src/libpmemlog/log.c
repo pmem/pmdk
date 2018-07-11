@@ -47,6 +47,7 @@
 
 #include "libpmem.h"
 #include "libpmemlog.h"
+#include "ctl_global.h"
 
 #include "os.h"
 #include "set.h"
@@ -804,6 +805,125 @@ pmemlog_checkW(const wchar_t *path)
 	int ret = pmemlog_checkU(upath);
 
 	util_free_UTF8(upath);
+	return ret;
+}
+#endif
+
+/*
+ * pmemlog_ctl_getU -- programmatically executes a read ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemlog_ctl_getU(PMEMlogpool *plp, const char *name, void *arg)
+{
+	LOG(3, "plp %p name %s arg %p", plp, name, arg);
+	return ctl_query(plp == NULL ? NULL : plp->ctl, plp,
+			CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_READ, arg);
+}
+
+/*
+ * pmemblk_ctl_setU -- programmatically executes a write ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemlog_ctl_setU(PMEMlogpool *plp, const char *name, void *arg)
+{
+	LOG(3, "plp %p name %s arg %p", plp, name, arg);
+	return ctl_query(plp == NULL ? NULL : plp->ctl, plp,
+		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_WRITE, arg);
+}
+
+/*
+ * pmemlog_ctl_execU -- programmatically executes a runnable ctl query
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemlog_ctl_execU(PMEMlogpool *plp, const char *name, void *arg)
+{
+	LOG(3, "plp %p name %s arg %p", plp, name, arg);
+	return ctl_query(plp == NULL ? NULL : plp->ctl, plp,
+		CTL_QUERY_PROGRAMMATIC, name, CTL_QUERY_RUNNABLE, arg);
+}
+
+#ifndef _WIN32
+/*
+ * pmemlog_ctl_get -- programmatically executes a read ctl query
+ */
+int
+pmemlog_ctl_get(PMEMlogpool *plp, const char *name, void *arg)
+{
+	return pmemlog_ctl_getU(plp, name, arg);
+}
+
+/*
+ * pmemlog_ctl_set -- programmatically executes a write ctl query
+ */
+int
+pmemlog_ctl_set(PMEMlogpool *plp, const char *name, void *arg)
+{
+	return pmemlog_ctl_setU(plp, name, arg);
+}
+
+/*
+ * pmemlog_ctl_exec -- programmatically executes a runnable ctl query
+ */
+int
+pmemlog_ctl_exec(PMEMlogpool *plp, const char *name, void *arg)
+{
+	return pmemlog_ctl_execU(plp, name, arg);
+}
+#else
+/*
+ * pmemlog_ctl_getW -- programmatically executes a read ctl query
+ */
+int
+pmemlog_ctl_getW(PMEMlogpool *plp, const wchar_t *name, void *arg)
+{
+	char *uname = util_toUTF8(name);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemlog_ctl_getU(plp, uname, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+
+/*
+ * pmemlog_ctl_setW -- programmatically executes a write ctl query
+ */
+int
+pmemlog_ctl_setW(PMEMlogpool *plp, const wchar_t *name, void *arg)
+{
+	char *uname = util_toUTF8(name);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemlog_ctl_setU(plp, uname, arg);
+	util_free_UTF8(uname);
+
+	return ret;
+}
+
+/*
+ * pmemlog_ctl_execW -- programmatically executes a runnable ctl query
+ */
+int
+pmemlog_ctl_execW(PMEMlogpool *plp, const wchar_t *name, void *arg)
+{
+	char *uname = util_toUTF8(name);
+	if (uname == NULL)
+		return -1;
+
+	int ret = pmemlog_ctl_execU(plp, uname, arg);
+	util_free_UTF8(uname);
+
 	return ret;
 }
 #endif

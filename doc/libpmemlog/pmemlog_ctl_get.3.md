@@ -1,10 +1,10 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEMBLK_CTL_GET, 3)
-collection: libpmemblk
+title: _MP(PMEMLOG_CTL_GET, 3)
+collection: libpmemlog
 header: PMDK
-date: pmemblk API version 2.3
+date: pmemlog API version 2.3
 ...
 
 [comment]: <> (Copyright 2018, Intel Corporation)
@@ -34,7 +34,7 @@ date: pmemblk API version 2.3
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmemblk_ctl_get.3 -- man page for libpmemblk CTL)
+[comment]: <> (pmemlog_ctl_get.3 -- man page for libpmemlog CTL)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -46,22 +46,22 @@ date: pmemblk API version 2.3
 
 # NAME #
 
-_UW(pmemblk_ctl_get),
-_UW(pmemblk_ctl_set),
-_UW(pmemblk_ctl_exec)
--- Query and modify libpmemblk internal behavior (EXPERIMENTAL)
+_UW(pmemlog_ctl_get),
+_UW(pmemlog_ctl_set),
+_UW(pmemlog_ctl_exec)
+-- Query and modify libpmemlog internal behavior (EXPERIMENTAL)
 
 
 # SYNOPSIS #
 
 ```c
-#include <libpmemblk.h>
+#include <libpmemlog.h>
 
-_UWFUNCR2(int, pmemblk_ctl_get, PMEMblkpool *pbp, *name, void *arg,
+_UWFUNCR2(int, pmemlog_ctl_get, PMEMlogpool *plp, *name, void *arg,
 	=q= (EXPERIMENTAL)=e=)
-_UWFUNCR2(int, pmemblk_ctl_set, PMEMblkpool *pbp, *name, void *arg,
+_UWFUNCR2(int, pmemlog_ctl_set, PMEMlogpool *plp, *name, void *arg,
 	=q= (EXPERIMENTAL)=e=)
-_UWFUNCR2(int, pmemblk_ctl_exec, PMEMblkpool *pbp, *name, void *arg,
+_UWFUNCR2(int, pmemlog_ctl_exec, PMEMlogpool *plp, *name, void *arg,
 	=q= (EXPERIMENTAL)=e=)
 ```
 
@@ -70,9 +70,9 @@ _UNICODE()
 
 # DESCRIPTION #
 
-The _UW(pmemblk_ctl_get), _UW(pmemblk_ctl_set) and _UW(pmemblk_ctl_exec)
+The _UW(pmemlog_ctl_get), _UW(pmemlog_ctl_set) and _UW(pmemlog_ctl_exec)
 functions provide a uniform interface for querying and modifying the internal
-behavior of **libpmemblk**(7) through the control (CTL) namespace.
+behavior of **libpmemlog**(7) through the control (CTL) namespace.
 
 See more in **ctl**(5) man page
 
@@ -83,7 +83,7 @@ prefault.at_create | rw | global | int | int | - | boolean
 
 If set, every page of the pool will be touched and written to when the pool
 is created, in order to trigger page allocation and minimize the performance
-impact of pagefaults. Affects only the _UW(pmemblk_create) function.
+impact of pagefaults. Affects only the _UW(pmemlog_create) function.
 
 Always returns 0.
 
@@ -91,7 +91,7 @@ prefault.at_open | rw | global | int | int | - | boolean
 
 If set, every page of the pool will be touched and written to when the pool
 is opened, in order to trigger page allocation and minimize the performance
-impact of pagefaults. Affects only the _UW(pmemblk_open) function.
+impact of pagefaults. Affects only the _UW(pmemlog_open) function.
 
 Always returns 0.
 
@@ -100,7 +100,7 @@ Always returns 0.
 In addition to direct function call, each write entry point can also be set
 using two alternative methods.
 
-The first method is to load a configuration directly from the **PMEMBLK_CONF**
+The first method is to load a configuration directly from the **PMEMLOG_CONF**
 environment variable. A properly formatted ctl config string is a single-line
 sequence of queries separated by ';':
 
@@ -145,7 +145,7 @@ PMEMBLK_CONF="prefault.at_open=1;prefault.at_create=1"
 ```
 
 The second method of loading an external configuration is to set the
-**PMEMBLK_CONF_FILE** environment variable to point to a file that contains
+**PMEMLOG_CONF_FILE** environment variable to point to a file that contains
 a sequence of ctl queries. The parsing rules are all the same, but the file
 can also contain white-spaces and comments.
 
@@ -156,7 +156,7 @@ An example configuration file:
 
 ```
 #########################
-# My pmemblk configuration
+# My pmemlog configuration
 #########################
 #
 # Global settings:
@@ -174,5 +174,5 @@ prefault.
 
 # SEE ALSO #
 
-**libpmemblk**(7), **pmemblk_ctl_exec**(3), **pmemblk_ctl_get**(3),
-**pmemblk_ctl_set**(3) and **<http://pmem.io>**
+**libpmemlog**(7), **pmemlog_ctl_exec**(3), **pmemlog_ctl_get**(3),
+**pmemlog_ctl_set**(3) and **<http://pmem.io>**
