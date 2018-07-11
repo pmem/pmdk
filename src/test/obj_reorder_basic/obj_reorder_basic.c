@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 		{
 			int ret = check_consistency(pop);
 			pmemobj_close(pop);
-			return ret;
+			END(ret);
 		}
 		default:
 			UT_FATAL("Unrecognized option %c", opt);

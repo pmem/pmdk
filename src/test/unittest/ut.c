@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -404,6 +404,22 @@ open_file_free(struct fd_lut *root)
 			FREE(root->fdfile);
 		FREE(root);
 	}
+}
+
+/*
+ * close_output_files -- close opened output files
+ */
+static void
+close_output_files(void)
+{
+	if (Outfp != NULL)
+		fclose(Outfp);
+
+	if (Errfp != NULL)
+		fclose(Errfp);
+
+	if (Tracefp != NULL)
+		fclose(Tracefp);
 }
 
 #ifndef _WIN32
@@ -842,6 +858,24 @@ ut_startW(const char *file, int line, const char *func,
 #endif
 
 /*
+ * ut_end -- indicate test is done, exit program with specified value
+ */
+void
+ut_end(const char *file, int line, const char *func, int ret)
+{
+#ifdef _WIN32
+	os_mutex_destroy(&Sigactions_lock);
+#endif
+	if (!os_getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
+		check_open_files();
+	prefix(file, line, func, 0);
+	out(OF_NAME, "END %d", ret);
+
+	close_output_files();
+	exit(ret);
+}
+
+/*
  * ut_done -- indicate test is done, exit program
  */
 void
@@ -851,27 +885,19 @@ ut_done(const char *file, int line, const char *func,
 #ifdef _WIN32
 	os_mutex_destroy(&Sigactions_lock);
 #endif
+	if (!os_getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
+		check_open_files();
+
 	va_list ap;
 
 	va_start(ap, fmt);
-
-	if (!os_getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
-		check_open_files();
 
 	prefix(file, line, func, 0);
 	vout(OF_NAME, "DONE", fmt, ap);
 
 	va_end(ap);
 
-	if (Outfp != NULL)
-		fclose(Outfp);
-
-	if (Errfp != NULL)
-		fclose(Errfp);
-
-	if (Tracefp != NULL)
-		fclose(Tracefp);
-
+	close_output_files();
 	exit(0);
 }
 
