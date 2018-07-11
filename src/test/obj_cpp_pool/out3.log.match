@@ -1,4 +1,0 @@
-obj_cpp_pool$(nW)TEST3: START: obj_cpp_pool$(nW)
- $(nW)obj_cpp_pool$(nW) i $(nW)testfile test 20 0600
-pool.get_root: Invalid pool handle
-obj_cpp_pool$(nW)TEST3: DONE
