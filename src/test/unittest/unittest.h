@@ -159,6 +159,8 @@ void NORETURN ut_done(const char *file, int line, const char *func,
 void NORETURN ut_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
+void NORETURN ut_end(const char *file, int line, const char *func,
+	int ret);
 void ut_out(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
@@ -201,6 +203,9 @@ void ut_err(const char *file, int line, const char *func,
 
 #define DONEW(...)\
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
+
+#define END(ret, ...)\
+    ut_end(__FILE__, __LINE__, __func__, ret)
 
 /* fatal error detected */
 #define UT_FATAL(...)\
