@@ -779,6 +779,8 @@ replica_part_badblocks_recovery_file_read(struct part_health_status *part_hs)
 		/* update the minimum possible offset */
 		min_offset = bb.offset + bb.length;
 
+		bb.nhealthy = NO_HEALTHY_REPLICA; /* unknown healthy replica */
+
 		/* add the new bad block to the vector */
 		if (VEC_PUSH_BACK(&bbv, bb))
 			goto error_exit;
