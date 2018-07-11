@@ -162,6 +162,8 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 			struct bad_block bb;
 			bb.offset = bb_off;
 			bb.length = (unsigned)(bb_len);
+			/* unknown healthy replica */
+			bb.nhealthy = NO_HEALTHY_REPLICA;
 
 			/* add the new bad block to the vector */
 			if (VEC_PUSH_BACK(&bbv, bb)) {
