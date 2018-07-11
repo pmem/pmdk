@@ -781,6 +781,8 @@ replica_part_badblocks_recovery_file_read(struct part_health_status *part_hs)
 			break;
 		}
 
+		bb.hr = NO_HEALTHY_REPLICA; /* healthy replica is unknown */
+
 		/* add the new bad block to the vector */
 		if (VEC_PUSH_BACK(&bbv, bb))
 			goto error_exit;
