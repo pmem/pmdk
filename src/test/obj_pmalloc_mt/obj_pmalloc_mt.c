@@ -59,7 +59,7 @@ struct root {
 struct worker_args {
 	PMEMobjpool *pop;
 	struct root *r;
-	int idx;
+	unsigned idx;
 };
 
 static void *
@@ -136,7 +136,7 @@ tx_worker(void *arg)
 	 * will automatically abort and all of the objects will be freed.
 	 */
 	TX_BEGIN(a->pop) {
-		for (int n = 0; ; ++n) { /* this is NOT an infinite loop */
+		for (unsigned n = 0; ; ++n) { /* this is NOT an infinite loop */
 			pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
 			if (Ops_per_thread != MAX_OPS_PER_THREAD &&
 			    n == Ops_per_thread) {
@@ -157,7 +157,7 @@ tx3_worker(void *arg)
 	 * Allocate N objects, abort, repeat M times. Should reveal issues in
 	 * transaction abort handling.
 	 */
-	for (int n = 0; n < Tx_per_thread; ++n) {
+	for (unsigned n = 0; n < Tx_per_thread; ++n) {
 		TX_BEGIN(a->pop) {
 			for (int i = 0; i < Ops_per_thread; ++i) {
 				pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
@@ -200,7 +200,8 @@ tx2_worker(void *arg)
 		TX_BEGIN(a->pop) {
 			for (int i = 0; i < OPS_PER_TX; ++i) {
 				oids[i] = pmemobj_tx_alloc(ALLOC_SIZE, a->idx);
-				for (int j = 0; j < ALLOC_SIZE; j += STEP) {
+				for (unsigned j = 0; j < ALLOC_SIZE;
+						j += STEP) {
 					pmemobj_tx_add_range(oids[i], j, STEP);
 				}
 			}
@@ -267,7 +268,7 @@ main(int argc, char *argv[])
 
 	struct worker_args args[MAX_THREADS];
 
-	for (int i = 0; i < Threads; ++i) {
+	for (unsigned i = 0; i < Threads; ++i) {
 		args[i].pop = pop;
 		args[i].r = r;
 		args[i].idx = i;

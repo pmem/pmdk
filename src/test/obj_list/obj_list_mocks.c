@@ -329,20 +329,17 @@ FUNC_MOCK_END
 /*
  * lane_hold -- lane_hold mock
  *
- * Returns pointer to list lane section. For other types returns error.
+ * Returns pointer to list lane section.
  */
 FUNC_MOCK(lane_hold, unsigned, PMEMobjpool *pop, struct lane_section **section,
 		enum lane_section_type type)
 	FUNC_MOCK_RUN_DEFAULT {
-		int ret = 0;
 		if (type != LANE_SECTION_LIST) {
-			ret = -1;
 			*section = NULL;
 		} else {
-			ret = 0;
 			*section = &Lane_section;
 		}
-		return ret;
+		return 0;
 	}
 FUNC_MOCK_END
 

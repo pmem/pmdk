@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		UT_FATAL("usage: %s init fail file (uuid usc)...", argv[0]);
 
-	int files = (argc - 3) / 2;
+	unsigned files = (unsigned)(argc - 3) / 2;
 
 	uids = MALLOC(files * sizeof(uids[0]));
 	uscs = MALLOC(files * sizeof(uscs[0]));

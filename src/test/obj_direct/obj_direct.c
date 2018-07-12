@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -84,7 +84,7 @@ main(int argc, char *argv[])
 	if (argc != 3)
 		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
 
-	int npools = atoi(argv[2]);
+	unsigned npools = ATOU(argv[2]);
 	const char *dir = argv[1];
 	int r;
 

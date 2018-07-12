@@ -524,7 +524,7 @@ os_getenv(const char *name)
  *	as thread-safety is more important, a seed parameter is ignored in this
  *	implementation.
  */
-int
+unsigned
 os_rand_r(unsigned *seedp)
 {
 	UNREFERENCED_PARAMETER(seedp);

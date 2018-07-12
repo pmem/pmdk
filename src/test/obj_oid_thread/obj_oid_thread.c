@@ -83,7 +83,7 @@ main(int argc, char *argv[])
 	os_mutex_init(&lock);
 	os_cond_init(&cond);
 
-	int npools = atoi(argv[2]);
+	unsigned npools = ATOU(argv[2]);
 	const char *dir = argv[1];
 	int r;
 

@@ -318,6 +318,10 @@ CXXFLAGS += $(EXTRA_CXXFLAGS)
 CFLAGS  = -std=gnu99
 CFLAGS += -Wmissing-prototypes
 CFLAGS += $(COMMON_FLAGS)
+ifneq ($(JMALLOC_INTERNAL),y)
+CFLAGS += -Wsign-conversion
+endif
+
 CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)

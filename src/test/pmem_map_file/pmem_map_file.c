@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -155,7 +155,7 @@ main(int argc, char *argv[])
 	const char *path;
 	unsigned long long len;
 	int flags;
-	int mode;
+	unsigned mode;
 	int is_pmem;
 	int *is_pmemp;
 	int use_mlen;
@@ -215,7 +215,7 @@ main(int argc, char *argv[])
 				if (!use_mlen) {
 					os_stat_t stbuf;
 					FSTAT(fd, &stbuf);
-					mlen = stbuf.st_size;
+					mlen = (size_t)stbuf.st_size;
 				}
 
 				if (fd != -1) {

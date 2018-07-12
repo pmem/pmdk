@@ -75,7 +75,7 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		UT_FATAL("usage: %s init fail (file uuid usc)...", argv[0]);
 
-	int files = (argc - 2) / 3;
+	unsigned files = (unsigned)(argc - 2) / 3;
 
 	char **pmemaddr = MALLOC(files * sizeof(char *));
 	uids = MALLOC(files * sizeof(uids[0]));

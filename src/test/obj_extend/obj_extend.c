@@ -63,7 +63,7 @@ main(int argc, char *argv[])
 
 	size_t alloc_size;
 	if (argc > 2)
-		alloc_size = atoi(argv[2]);
+		alloc_size = ATOUL(argv[2]);
 	else
 		alloc_size = ALLOC_SIZE;
 

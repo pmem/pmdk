@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -219,7 +219,7 @@ main(int argc, char *argv[])
 
 	do_lock_init(D_RW(lock));
 
-	for (int i = 0; i < MAX_FUNC; i++)
+	for (unsigned i = 0; i < MAX_FUNC; i++)
 		do_lock_mt(lock, i);
 
 	POBJ_FREE(&lock);

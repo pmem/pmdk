@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 
 #define NALLOCS 100
 
-static int *ptrs[NALLOCS * 2];
+static unsigned *ptrs[NALLOCS * 2];
 
 #define POOL_SIZE (PMEMCTO_MIN_POOL * 2)
 
@@ -129,7 +129,7 @@ do_malloc(PMEMctopool *pcp)
 static void
 do_calloc(PMEMctopool *pcp)
 {
-	for (int count = 1; count < 1024; count *= 2) {
+	for (size_t count = 1; count < 1024; count *= 2) {
 		for (int i = 0; i < NALLOCS; i++) {
 			ptrs[i] = pmemcto_calloc(pcp, count, sizeof(int));
 			UT_ASSERTne(ptrs[i], NULL);
@@ -239,7 +239,7 @@ do_strdup(PMEMctopool *pcp)
 int
 main(int argc, char *argv[])
 {
-	int *root;
+	unsigned *root;
 
 	START(argc, argv, "cto_basic");
 
