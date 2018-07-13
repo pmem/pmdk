@@ -221,6 +221,7 @@ test_realloc_api(PMEMobjpool *pop)
 
 	pmemobj_free(&oid);
 	UT_ASSERT(OID_IS_NULL(oid));
+	UT_ASSERTeq(pmemobj_alloc_usable_size(oid), 0);
 	UT_OUT("free");
 
 	/* alloc */
