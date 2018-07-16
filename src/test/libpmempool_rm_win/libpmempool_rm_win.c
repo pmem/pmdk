@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,7 +53,7 @@ wmain(int argc, wchar_t *argv[])
 	if (argc < 2)
 		FATAL_USAGE(ut_toUTF8(argv[0]));
 
-	int flags = 0;
+	unsigned flags = 0;
 	int do_open = 0;
 	int i = 1;
 	for (; i < argc - 1; i++) {
