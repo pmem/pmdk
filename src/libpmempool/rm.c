@@ -58,7 +58,7 @@
 #define CHECK_FLAG(f, i) ((f) & PMEMPOOL_RM_##i)
 
 struct cb_args {
-	int flags;
+	unsigned flags;
 	int error;
 };
 
@@ -66,7 +66,7 @@ struct cb_args {
  * rm_local -- (internal) remove single local file
  */
 static int
-rm_local(const char *path, int flags, int is_part_file)
+rm_local(const char *path, unsigned flags, int is_part_file)
 {
 	int ret = util_unlink_flock(path);
 	if (!ret) {
@@ -105,7 +105,7 @@ rm_local(const char *path, int flags, int is_part_file)
  * rm_remote -- (internal) remove remote replica
  */
 static int
-rm_remote(const char *node, const char *path, int flags)
+rm_remote(const char *node, const char *path, unsigned flags)
 {
 	if (!Rpmem_remove) {
 		ERR_F(flags, "cannot remove remote replica"
@@ -160,7 +160,7 @@ rm_cb(struct part_file *pf, void *arg)
 static inline
 #endif
 int
-pmempool_rmU(const char *path, int flags)
+pmempool_rmU(const char *path, unsigned flags)
 {
 	LOG(3, "path %s flags %x", path, flags);
 	int ret;
@@ -255,7 +255,7 @@ pmempool_rmU(const char *path, int flags)
  * pmempool_rm -- remove pool files or poolsets
  */
 int
-pmempool_rm(const char *path, int flags)
+pmempool_rm(const char *path, unsigned flags)
 {
 	return pmempool_rmU(path, flags);
 }
@@ -264,7 +264,7 @@ pmempool_rm(const char *path, int flags)
  * pmempool_rmW -- remove pool files or poolsets in widechar
  */
 int
-pmempool_rmW(const wchar_t *path, int flags)
+pmempool_rmW(const wchar_t *path, unsigned flags)
 {
 	char *upath = util_toUTF8(path);
 	if (upath == NULL) {
