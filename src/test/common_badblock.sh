@@ -149,7 +149,7 @@ function ndctl_nfit_test_mount_pmem() {
 #                     or "No bad blocks found" if there are no bad blocks
 #
 function print_bad_blocks {
-	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || echo "No bad blocks found" >> $LOG
+	ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || echo "No bad blocks found" >> $LOG
 }
 
 #
@@ -157,9 +157,9 @@ function print_bad_blocks {
 #                      and fail if they are not there
 #
 function expect_bad_blocks {
-	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG && true
+	ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG && true
 	if [ $? -ne 0 ]; then
-		sudo ndctl list -M &>> $PREP_LOG_FILE && true
+		ndctl list -M &>> $PREP_LOG_FILE && true
 		msg "====================================================================="
 		msg "Error occurred, the preparation log ($PREP_LOG_FILE) is listed below:"
 		msg ""
