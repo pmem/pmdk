@@ -36,7 +36,7 @@ from itertools import chain
 from random import sample
 from functools import partial
 
-engines = ("full", "noreorder", "accumulative")
+engines = ("full", "noreorder", "accumulative", "partial")
 
 
 class FullReorderEngine:
@@ -286,6 +286,8 @@ def get_engine(engine):
         reorder_engine = NoReorderEngine()
     elif engine == "accumulative":
         reorder_engine = AccumulativeReorderEngine()
+    elif engine == "partial":
+        reorder_engine = RandomPartialReorderEngine(3)
     else:
         reorder_engine = FullReorderEngine()
 
