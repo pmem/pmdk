@@ -249,16 +249,23 @@ class RandomPartialReorderEngine:
     def generate_sequence(self, store_list):
         """
         This generator yields a random sequence of combinations.
-
+        Number of combinations without replacement has to be limited to
+        1000 because of exponential growth of elements.
+        Example:
+            for 10 element from 80 -> 1646492110120 combinations
+            for 20 element from 80 -> 3.5353161422122E+18 combinations
+            for 40 element from 80 -> 1.0750720873334E+23 combinations
         :param store_list: The list of stores to be reordered.
         :type store_list: list of :class:`memoryoperations.Store`
         :return: Yields a random sequence of combinations.
         :rtype: iterable
         """
-        for elem in sample(list(chain(*map(
-                          lambda x: combinations(store_list, x),
-                          range(0, len(store_list) + 1)))),
-                          self._max_seq):
+        population = list(chain(*map(
+                          lambda x: islice(combinations(store_list, x), 1000),
+                          range(0, len(store_list) + 1))))
+        population_size = len(population)
+        for elem in sample(population, self._max_seq if self._max_seq <=
+                           population_size else population_size):
             yield elem
 
 
