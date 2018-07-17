@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1003,3 +1003,85 @@ ut_toUTF16(const char *wstr)
 	return str;
 }
 #endif
+
+
+/*
+ * ut_strtoul -- a strtoul call that cannot return error
+ */
+unsigned long
+ut_strtoul(const char *file, int line, const char *func,
+	const char *nptr, char **endptr, int base)
+{
+	unsigned long retval;
+	errno = 0;
+	if (*nptr == '\0')
+		goto fatal;
+
+
+	if (endptr != NULL) {
+		retval = strtoul(nptr, endptr, base);
+	} else {
+		char *end;
+		retval = strtoul(nptr, &end, base);
+		if (*end != '\0')
+			goto fatal;
+	}
+	if (errno != 0)
+		goto fatal;
+
+
+	return retval;
+fatal:
+	ut_fatal(file, line, func,
+		"!strtoul: nptr=%s, endptr=%s, base=%d",
+		nptr, endptr ? *endptr : "NULL", base);
+}
+
+
+/*
+ * ut_strtou -- a strtou call that cannot return error
+ */
+unsigned
+ut_strtou(const char *file, int line, const char *func,
+	const char *nptr, char **endptr, int base)
+{
+	unsigned long ret = ut_strtoul(file, line, func, nptr, endptr, base);
+
+	if (ret > UINT32_MAX)
+		ut_fatal(file, line, func,
+			"!strtou: nptr=%s, endptr=%s, base=%d",
+			nptr, endptr ? *endptr : "NULL", base);
+
+	return (unsigned)ret;
+}
+
+/*
+ * ut_strtol -- a strtol call that cannot return error
+ */
+long
+ut_strtol(const char *file, int line, const char *func,
+	const char *nptr, char **endptr, int base)
+{
+	long retval;
+	errno = 0;
+	if (nptr == '\0')
+		goto fatal;
+
+	if (endptr != NULL) {
+		retval = strtol(nptr, endptr, base);
+	} else {
+		char *end;
+		retval = strtol(nptr, &end, base);
+		if (*end != '\0')
+			goto fatal;
+	}
+	if (errno != 0)
+		goto fatal;
+
+	return retval;
+fatal:
+	ut_fatal(file, line, func,
+		"!strtol: nptr=%s, endptr=%s, base=%d",
+		nptr, endptr ? *endptr : "NULL", base);
+
+}

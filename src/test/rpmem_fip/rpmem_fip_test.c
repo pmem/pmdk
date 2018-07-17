@@ -175,7 +175,7 @@ client_persist_thread(void *arg)
 	for (unsigned i = 0; i < COUNT_PER_LANE; i++) {
 		size_t offset = args->lane * TOTAL_PER_LANE + i * SIZE_PER_LANE;
 		unsigned val = args->lane + i;
-		memset(&lpool[offset], val, SIZE_PER_LANE);
+		memset(&lpool[offset], (int)val, SIZE_PER_LANE);
 
 		ret = rpmem_fip_persist(args->fip, offset,
 				SIZE_PER_LANE, args->lane, RPMEM_PERSIST_WRITE);

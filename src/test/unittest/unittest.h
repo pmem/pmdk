@@ -425,6 +425,15 @@ int ut_mprotect(const char *file, int line, const char *func, void *addr,
 int ut_ftruncate(const char *file, int line, const char *func,
     int fd, os_off_t length);
 
+unsigned long ut_strtoul(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+unsigned ut_strtou(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+long ut_strtol(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
 /* an open() that can't return < 0 */
 #define OPEN(path, ...)\
     ut_open(__FILE__, __LINE__, __func__, path, __VA_ARGS__)
@@ -487,6 +496,22 @@ int ut_ftruncate(const char *file, int line, const char *func,
 
 #define FTRUNCATE(fd, length)\
     ut_ftruncate(__FILE__, __LINE__, __func__, fd, length)
+
+#define ATOU(nptr) STRTOU(nptr, NULL, 10)
+
+#define ATOUL(nptr) STRTOUL(nptr, NULL, 10)
+
+#define ATOL(nptr) STRTOL(nptr, NULL, 10)
+
+
+#define STRTOUL(nptr, endptr, base)\
+    ut_strtoul(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOU(nptr, endptr, base)\
+    ut_strtou(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOL(nptr, endptr, base)\
+    ut_strtol(__FILE__, __LINE__, __func__, nptr, endptr, base)
 
 #ifndef _WIN32
 #define ut_jmp_buf_t sigjmp_buf

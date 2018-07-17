@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 TARGET = vmmalloc_calloc
 OBJS = vmmalloc_calloc.o
 
+USING_JEMALLOC_HEADERS=y
 include ../Makefile.inc
 
 INCS += -I../../jemalloc/include/

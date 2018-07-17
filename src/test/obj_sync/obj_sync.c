@@ -250,8 +250,8 @@ timed_check_worker(void *arg)
 		if (mutex_id == LOCKED_MUTEX) {
 			UT_ASSERTeq(ret, ETIMEDOUT);
 
-			uint64_t diff = (t2.tv_sec - t1.tv_sec) * NANO_PER_ONE +
-					t2.tv_nsec - t1.tv_nsec;
+			uint64_t diff = (uint64_t)((t2.tv_sec - t1.tv_sec) *
+				NANO_PER_ONE + t2.tv_nsec - t1.tv_nsec);
 
 			UT_ASSERT(diff >= TIMEOUT);
 
@@ -262,8 +262,8 @@ timed_check_worker(void *arg)
 			UT_ASSERTne(mutex_id, LOCKED_MUTEX);
 			pmemobj_mutex_unlock(&Mock_pop, mtx);
 		} else if (ret == ETIMEDOUT) {
-			uint64_t diff = (t2.tv_sec - t1.tv_sec) * NANO_PER_ONE +
-					t2.tv_nsec - t1.tv_nsec;
+			uint64_t diff = (uint64_t)((t2.tv_sec - t1.tv_sec)
+				* NANO_PER_ONE + t2.tv_nsec - t1.tv_nsec);
 
 			UT_ASSERT(diff >= TIMEOUT);
 		} else {

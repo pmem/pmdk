@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@ TARGET = vmem_pages_purging
 OBJS = vmem_pages_purging.o
 
 LIBVMEM=y
-
+USING_JEMALLOC_HEADERS=y
 include ../Makefile.inc
 
 INCS += -I../../jemalloc/include/

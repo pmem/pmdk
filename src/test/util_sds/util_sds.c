@@ -75,7 +75,7 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		UT_FATAL("usage: %s init fail (file uuid usc)...", argv[0]);
 
-	int files = (argc - 2) / 3;
+	unsigned files = (unsigned)(argc - 2) / 3;
 
 	char **pmemaddr = MALLOC(files * sizeof(char *));
 	uids = MALLOC(files * sizeof(uids[0]));
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 	int init = atoi(argv[1]);
 	int fail_on = atoi(argv[2]);
 	char **args = argv + 3;
-	for (int i = 0; i < files; i++) {
+	for (unsigned i = 0; i < files; i++) {
 		if ((pmemaddr[i] = pmem_map_file(args[i * 3], PMEM_LEN,
 				PMEM_FILE_CREATE, 0666, &mapped_len,
 					&is_pmem)) == NULL) {
@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 		/* initialize pool shutdown state */
 		shutdown_state_init(pool_sds, rep);
 		FAIL(fail_on, 2);
-		for (int i = 0; i < files; i++) {
+		for (unsigned i = 0; i < files; i++) {
 			shutdown_state_add_part(pool_sds, args[2 + i], rep);
 			FAIL(fail_on, 3);
 		}
@@ -116,7 +116,7 @@ main(int argc, char *argv[])
 		struct shutdown_state current_sds;
 		shutdown_state_init(&current_sds, NULL);
 		FAIL(fail_on, 2);
-		for (int i = 0; i < files; i++) {
+		for (unsigned i = 0; i < files; i++) {
 			shutdown_state_add_part(&current_sds,
 				args[2 + i], NULL);
 			FAIL(fail_on, 3);
@@ -137,7 +137,7 @@ main(int argc, char *argv[])
 	shutdown_state_clear_dirty(pool_sds, rep);
 	FAIL(fail_on, 6);
 
-	for (int i = 0; i < files; i++)
+	for (unsigned i = 0; i < files; i++)
 		pmem_unmap(pmemaddr[i], mapped_len);
 
 	FREE(pmemaddr);
