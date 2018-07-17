@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -84,7 +84,7 @@ main(int argc, char *argv[])
 	if (argc != 3)
 		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
 
-	int npools = atoi(argv[2]);
+	unsigned npools = ATOU(argv[2]);
 	const char *dir = argv[1];
 	int r;
 
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 
 	size_t length = strlen(dir) + MAX_PATH_LEN;
 	char *path = MALLOC(length);
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		int ret = snprintf(path, length, "%s"OS_DIR_SEP_STR"testfile%d",
 			dir, i);
 		if (ret < 0 || ret >= length)
@@ -119,7 +119,7 @@ main(int argc, char *argv[])
 	oids[0] = OID_NULL;
 	UT_ASSERTeq(obj_direct(oids[0]), NULL);
 
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		oids[i] = (PMEMoid) {pops[i]->uuid_lo, 0};
 		UT_ASSERTeq(obj_direct(oids[i]), NULL);
 
@@ -145,7 +145,7 @@ main(int argc, char *argv[])
 		os_cond_wait(&sync_cond1, &lock1);
 	os_mutex_unlock(&lock1);
 
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		UT_ASSERTne(obj_direct(tmpoids[i]), NULL);
 
 		pmemobj_free(&tmpoids[i]);

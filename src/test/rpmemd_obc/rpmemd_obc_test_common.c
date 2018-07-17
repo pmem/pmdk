@@ -357,7 +357,7 @@ server_msg_resp(const struct test_case *tc, int argc, char *argv[])
 	if (argc < 2)
 		UT_FATAL("usage: %s msg_type status", tc->name);
 
-	int type = atoi(argv[0]);
+	unsigned type = ATOU(argv[0]);
 	int status = atoi(argv[1]);
 
 	int ret;
@@ -373,7 +373,7 @@ server_msg_resp(const struct test_case *tc, int argc, char *argv[])
 		.ret = 0,
 		.force_ret = 0,
 		.resp = 1,
-		.types = (1 << type),
+		.types = (1U << type),
 		.status = status,
 	};
 
@@ -406,7 +406,7 @@ server_msg_noresp(const struct test_case *tc, int argc, char *argv[])
 		.ret = -1,
 		.force_ret = 1,
 		.resp = 0,
-		.types = (1 << type),
+		.types = (1U << type),
 		.status = 0,
 	};
 

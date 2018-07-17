@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -79,7 +79,7 @@ TOID_DECLARE(struct object_macro, TYPE_COMMIT_ZERO_MACRO);
  * do_tx_alloc -- do tx allocation with specified type number
  */
 static PMEMoid
-do_tx_alloc(PMEMobjpool *pop, int type_num, size_t value)
+do_tx_alloc(PMEMobjpool *pop, unsigned type_num, size_t value)
 {
 	TOID(struct object) obj;
 	TOID_ASSIGN(obj, OID_NULL);

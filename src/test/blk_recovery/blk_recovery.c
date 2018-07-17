@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 			argv[1], Bsize, pmemblk_nblock(handle));
 
 	/* write the first lba */
-	os_off_t lba = strtoul(argv[3], NULL, 0);
+	os_off_t lba = STRTOL(argv[3], NULL, 0);
 	unsigned char *buf = MALLOC(Bsize);
 
 	construct(buf);
@@ -145,7 +145,7 @@ main(int argc, char *argv[])
 	SIGACTION(SIGSEGV, &v, NULL);
 
 	/* map each file argument with the given map type */
-	lba = strtoul(argv[4], NULL, 0);
+	lba = STRTOL(argv[4], NULL, 0);
 
 	construct(buf);
 

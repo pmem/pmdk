@@ -83,7 +83,7 @@ main(int argc, char *argv[])
 	os_mutex_init(&lock);
 	os_cond_init(&cond);
 
-	int npools = atoi(argv[2]);
+	unsigned npools = ATOU(argv[2]);
 	const char *dir = argv[1];
 	int r;
 
@@ -91,7 +91,7 @@ main(int argc, char *argv[])
 
 	size_t length = strlen(dir) + MAX_PATH_LEN;
 	char *path = MALLOC(length);
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		int ret = snprintf(path, length, "%s"OS_DIR_SEP_STR"testfile%d",
 			dir, i);
 		if (ret < 0 || ret >= length)
@@ -113,7 +113,7 @@ main(int argc, char *argv[])
 	UT_ASSERT(OID_IS_NULL(pmemobj_oid(NULL)));
 	oids[0] = OID_NULL;
 
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		uint64_t off = pops[i]->heap_offset;
 		oids[i] = (PMEMoid) {pops[i]->uuid_lo, off};
 		UT_ASSERT(OID_EQUALS(oids[i],
@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 	while (flag != 0)
 		os_cond_wait(&cond, &lock);
 
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		pmemobj_free(&tmpoids[i]);
 
 		UT_ASSERT(OID_IS_NULL(pmemobj_oid(

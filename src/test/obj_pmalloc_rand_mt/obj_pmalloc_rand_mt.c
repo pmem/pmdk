@@ -39,9 +39,9 @@
 
 #define RRAND(seed, max, min) (os_rand_r(&(seed)) % ((max) - (min)) + (min))
 
-static ssize_t object_size;
-static int nobjects;
-static int iterations = 1000000;
+static size_t object_size;
+static unsigned nobjects;
+static unsigned iterations = 1000000;
 static unsigned seed;
 
 static void *
@@ -57,7 +57,7 @@ test_worker(void *arg)
 
 	for (int i = 0; i < iterations; ++i) {
 		int fill_ratio = ((double)fill / nobjects) * 100;
-		int pos = RRAND(myseed, nobjects, 0);
+		unsigned pos = RRAND(myseed, nobjects, 0);
 		size_t size = RRAND(myseed, object_size, 64);
 		if (RRAND(myseed, 100, 0) < fill_ratio) {
 			if (!OID_IS_NULL(objects[pos])) {
@@ -91,13 +91,13 @@ main(int argc, char *argv[])
 			"[iterations (def: 1000000)] [seed (def: time)]",
 			argv[0]);
 
-	int nthreads = atoi(argv[2]);
-	nobjects = atoi(argv[3]);
-	object_size = atoi(argv[4]);
+	unsigned nthreads = ATOU(argv[2]);
+	nobjects = ATOU(argv[3]);
+	object_size = ATOUL(argv[4]);
 	if (argc > 5)
-		iterations = atoi(argv[5]);
+		iterations = ATOU(argv[5]);
 	if (argc > 6)
-		seed = (unsigned)atoi(argv[6]);
+		seed = ATOU(argv[6]);
 	else
 		seed = time(NULL);
 
