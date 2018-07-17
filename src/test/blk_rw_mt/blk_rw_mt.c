@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,8 @@
 #include "unittest.h"
 
 static size_t Bsize;
-static size_t Nblock = 100; /* all I/O below this LBA (increases collisions) */
+/* all I/O below this LBA (increases collisions) */
+static const unsigned Nblock = 100;
 static unsigned Seed;
 static unsigned Nthread;
 static unsigned Nops;
@@ -126,13 +127,11 @@ main(int argc, char *argv[])
 			S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!%s: pmemblk_create", path);
 
-	if (Nblock == 0)
-		Nblock = pmemblk_nblock(Handle);
 	Seed = strtoul(argv[3], NULL, 0);
 	Nthread = strtoul(argv[4], NULL, 0);
 	Nops = strtoul(argv[5], NULL, 0);
 
-	UT_OUT("%s block size %zu usable blocks %zu", argv[1], Bsize, Nblock);
+	UT_OUT("%s block size %zu usable blocks %u", argv[1], Bsize, Nblock);
 
 	os_thread_t *threads = MALLOC(Nthread * sizeof(os_thread_t));
 

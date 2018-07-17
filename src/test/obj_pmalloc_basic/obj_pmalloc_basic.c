@@ -181,7 +181,7 @@ test_oom_resrv(size_t size)
 		size_t nresv = MIN(count - i, 10);
 		struct operation_context *ctx =
 			pmalloc_operation_hold(mock_pop);
-		palloc_publish(&mock_pop->heap, &resvs[i], (int)nresv, ctx);
+		palloc_publish(&mock_pop->heap, &resvs[i], nresv, ctx);
 
 		pmalloc_operation_release(mock_pop);
 
@@ -259,7 +259,7 @@ static void
 test_pmalloc_first_next(PMEMobjpool *pop)
 {
 	uint64_t vals[PMALLOC_ELEMENTS];
-	for (int i = 0; i < PMALLOC_ELEMENTS; ++i) {
+	for (unsigned i = 0; i < PMALLOC_ELEMENTS; ++i) {
 		int ret = pmalloc(pop, &vals[i], FIRST_SIZE, i, i);
 		UT_ASSERTeq(ret, 0);
 	}

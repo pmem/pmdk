@@ -41,7 +41,7 @@
 #define ALLOC_SIZE 100
 
 static void
-define_path(char *str, size_t size, const char *dir, int i)
+define_path(char *str, size_t size, const char *dir, unsigned i)
 {
 	int ret = snprintf(str, size, "%s"OS_DIR_SEP_STR"testfile%d",
 			dir, i);
@@ -57,7 +57,7 @@ main(int argc, char *argv[])
 	if (argc != 3)
 		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
 
-	int npools = atoi(argv[2]);
+	unsigned npools = ATOU(argv[2]);
 	const char *dir = argv[1];
 	int r;
 
@@ -72,7 +72,7 @@ main(int argc, char *argv[])
 
 	size_t length = strlen(dir) + MAX_PATH_LEN;
 	char *path = MALLOC(length);
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		define_path(path, length, dir, i);
 		pops[i] = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 				S_IWUSR | S_IRUSR);
@@ -94,7 +94,7 @@ main(int argc, char *argv[])
 
 	PMEMoid *oids = MALLOC(npools * sizeof(PMEMoid));
 
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		r = pmemobj_alloc(pops[i], &oids[i], ALLOC_SIZE, 1, NULL, NULL);
 		UT_ASSERTeq(r, 0);
 	}
@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(pmemobj_pool_by_oid(OID_NULL), NULL);
 	UT_ASSERTeq(pmemobj_pool_by_oid(invalid), NULL);
 
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		UT_ASSERTeq(pmemobj_pool_by_oid(oids[i]), pops[i]);
 	}
 
@@ -115,7 +115,7 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(pmemobj_pool_by_ptr(valid_ptr), NULL);
 	FREE(valid_ptr);
 
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		void *before_pool = (char *)pops[i] - 1;
 		void *after_pool = (char *)pops[i] + PMEMOBJ_MIN_POOL + 1;
 		void *start_pool = (char *)pops[i];
@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 		MUNMAP(guard_after[i], Ut_pagesize);
 	}
 
-	for (int i = 0; i < npools; ++i) {
+	for (unsigned i = 0; i < npools; ++i) {
 		UT_ASSERTeq(pmemobj_pool_by_oid(oids[i]), NULL);
 
 		define_path(path, length, dir, i);

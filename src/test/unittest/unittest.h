@@ -119,7 +119,6 @@ extern "C" {
 #include <dirent.h>
 
 /* XXX: move OS abstraction layer out of common */
-#include "os_attribute.h"
 #include "os.h"
 #include "os_thread.h"
 #include "util.h"
@@ -425,6 +424,24 @@ int ut_mprotect(const char *file, int line, const char *func, void *addr,
 int ut_ftruncate(const char *file, int line, const char *func,
     int fd, os_off_t length);
 
+long long ut_strtoll(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+long ut_strtol(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+int ut_strtoi(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+unsigned long long ut_strtoull(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+unsigned long ut_strtoul(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+unsigned ut_strtou(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
 /* an open() that can't return < 0 */
 #define OPEN(path, ...)\
     ut_open(__FILE__, __LINE__, __func__, path, __VA_ARGS__)
@@ -487,6 +504,31 @@ int ut_ftruncate(const char *file, int line, const char *func,
 
 #define FTRUNCATE(fd, length)\
     ut_ftruncate(__FILE__, __LINE__, __func__, fd, length)
+
+#define ATOU(nptr) STRTOU(nptr, NULL, 10)
+#define ATOUL(nptr) STRTOUL(nptr, NULL, 10)
+#define ATOULL(nptr) STRTOULL(nptr, NULL, 10)
+#define ATOI(nptr) STRTOI(nptr, NULL, 10)
+#define ATOL(nptr) STRTOL(nptr, NULL, 10)
+#define ATOLL(nptr) STRTOLL(nptr, NULL, 10)
+
+#define STRTOULL(nptr, endptr, base)\
+    ut_strtoull(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOUL(nptr, endptr, base)\
+    ut_strtoul(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOL(nptr, endptr, base)\
+    ut_strtol(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOLL(nptr, endptr, base)\
+    ut_strtoll(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOU(nptr, endptr, base)\
+    ut_strtou(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOI(nptr, endptr, base)\
+    ut_strtoi(__FILE__, __LINE__, __func__, nptr, endptr, base)
 
 #ifndef _WIN32
 #define ut_jmp_buf_t sigjmp_buf

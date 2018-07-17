@@ -429,7 +429,7 @@ struct thread_arg {
 	RPMEMpool *rpp;
 	size_t off;
 	size_t size;
-	int nops;
+	unsigned nops;
 	unsigned lane;
 	int error_must_occur;
 	int exp_errno;
@@ -446,7 +446,7 @@ thread_func(void *arg)
 	struct thread_arg *args = arg;
 	size_t flush_size = args->size / args->nops;
 	UT_ASSERTeq(args->size % args->nops, 0);
-	for (int i = 0; i < args->nops; i++) {
+	for (unsigned i = 0; i < args->nops; i++) {
 		size_t off = args->off + i * flush_size;
 		size_t left = args->size - i * flush_size;
 		size_t size = left < flush_size ?
@@ -461,7 +461,8 @@ thread_func(void *arg)
 }
 
 static void
-test_flush(int id, int seed, int nthreads, int nops, flush_func func)
+test_flush(unsigned id, unsigned seed, unsigned nthreads, unsigned nops,
+	flush_func func)
 {
 	struct pool_entry *pool = &pools[id];
 
@@ -483,7 +484,7 @@ test_flush(int id, int seed, int nthreads, int nops, flush_func func)
 	size_t size_per_thread = buff_size / nthreads;
 	UT_ASSERTeq(buff_size % nthreads, 0);
 
-	for (int i = 0; i < nthreads; i++) {
+	for (unsigned i = 0; i < nthreads; i++) {
 		args[i].rpp = pool->rpp;
 		args[i].nops = nops;
 		args[i].lane = (unsigned)i;
@@ -515,12 +516,12 @@ test_persist(const struct test_case *tc, int argc, char *argv[])
 		UT_FATAL("usage: test_persist <id> <seed> <nthreads> "
 				"<nops> <relaxed>");
 
-	int id = atoi(argv[0]);
+	unsigned id = ATOU(argv[0]);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
-	int seed = atoi(argv[1]);
-	int nthreads = atoi(argv[2]);
-	int nops = atoi(argv[3]);
-	int relaxed = atoi(argv[4]);
+	unsigned seed = ATOU(argv[1]);
+	unsigned nthreads = ATOU(argv[2]);
+	unsigned nops = ATOU(argv[3]);
+	unsigned relaxed = ATOU(argv[4]);
 
 	if (relaxed)
 		test_flush(id, seed, nthreads, nops, persist_relaxed);
@@ -540,11 +541,11 @@ test_deep_persist(const struct test_case *tc, int argc, char *argv[])
 		UT_FATAL("usage: test_deep_persist <id> <seed> <nthreads> "
 				"<nops>");
 
-	int id = atoi(argv[0]);
+	unsigned id = ATOU(argv[0]);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
-	int seed = atoi(argv[1]);
-	int nthreads = atoi(argv[2]);
-	int nops = atoi(argv[3]);
+	unsigned seed = ATOU(argv[1]);
+	unsigned nthreads = ATOU(argv[2]);
+	unsigned nops = ATOU(argv[3]);
 
 	test_flush(id, seed, nthreads, nops, rpmem_deep_persist);
 
@@ -564,7 +565,7 @@ test_read(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	struct pool_entry *pool = &pools[id];
 
-	srand(atoi(argv[1]));
+	srand(ATOU(argv[1]));
 
 	int ret;
 	uint8_t *buff = (uint8_t *)((uintptr_t)pool->pool + POOL_HDR_SIZE);
@@ -664,7 +665,7 @@ check_pool(const struct test_case *tc, int argc, char *argv[])
 		UT_FATAL("usage: fill_pool <pool set> <seed> <size>");
 
 	char *pool_set = argv[0];
-	srand(atoi(argv[1]));
+	srand(ATOU(argv[1]));
 
 	int ret;
 
@@ -699,7 +700,7 @@ fill_pool(const struct test_case *tc, int argc, char *argv[])
 		UT_FATAL("usage: fill_pool <pool set> <seed>");
 
 	char *pool_set = argv[0];
-	srand(atoi(argv[1]));
+	srand(ATOU(argv[1]));
 
 	int ret;
 

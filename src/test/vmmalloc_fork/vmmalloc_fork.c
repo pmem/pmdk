@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,7 +53,7 @@
 static size_t
 get_rand_size(void)
 {
-	return sizeof(int) + 64 * (rand() % 100);
+	return sizeof(int) + 64 * ((unsigned)rand() % 100);
 }
 
 /*
@@ -102,15 +102,13 @@ main(int argc, char *argv[])
 	if (argc < 4)
 		UT_FATAL("usage: %s [c|e] <nfork> <nthread>", argv[0]);
 
-	int nfork = atoi(argv[2]);
-	int nthread = atoi(argv[3]);
-	UT_ASSERT(nfork >= 0);
-	UT_ASSERT(nthread >= 0);
+	unsigned nfork = ATOU(argv[2]);
+	unsigned nthread = ATOU(argv[3]);
 
 	os_thread_t thread[nthread];
-	int first_child = 0;
+	unsigned first_child = 0;
 
-	int **bufs = malloc(nfork * NBUFS * sizeof(void *));
+	unsigned **bufs = malloc(nfork * NBUFS * sizeof(void *));
 	UT_ASSERTne(bufs, NULL);
 
 	size_t *sizes = malloc(nfork * NBUFS * sizeof(size_t));
@@ -122,9 +120,9 @@ main(int argc, char *argv[])
 	int *pids2 = malloc(nfork * sizeof(pid_t));
 	UT_ASSERTne(pids2, NULL);
 
-	for (int i = 0; i < nfork; i++) {
-		for (int j = 0; j < NBUFS; j++) {
-			int idx = i * NBUFS + j;
+	for (unsigned i = 0; i < nfork; i++) {
+		for (unsigned j = 0; j < NBUFS; j++) {
+			unsigned idx = i * NBUFS + j;
 
 			sizes[idx] = get_rand_size();
 			bufs[idx] = malloc(sizes[idx]);
@@ -162,7 +160,7 @@ main(int argc, char *argv[])
 
 		pids2[i] = getpid();
 
-		for (int j = 0; j < NBUFS; j++) {
+		for (unsigned j = 0; j < NBUFS; j++) {
 			*bufs[i * NBUFS + j] = ((unsigned)pids2[i] << 16) + j;
 		}
 
@@ -179,15 +177,15 @@ main(int argc, char *argv[])
 			first_child = i + 1;
 		}
 
-		for (int ii = 0; ii < i; ii++) {
-			for (int j = 0; j < NBUFS; j++) {
+		for (unsigned ii = 0; ii < i; ii++) {
+			for (unsigned j = 0; j < NBUFS; j++) {
 				UT_ASSERTeq(*bufs[ii * NBUFS + j],
 					((unsigned)pids2[ii] << 16) + j);
 			}
 		}
 	}
 
-	for (int i = first_child; i < nfork; i++) {
+	for (unsigned i = first_child; i < nfork; i++) {
 		int status;
 		waitpid(pids1[i], &status, 0);
 		UT_ASSERT(WIFEXITED(status));

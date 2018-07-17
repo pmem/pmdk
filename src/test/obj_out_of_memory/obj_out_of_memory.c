@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 	if (argc < 3)
 		UT_FATAL("usage: %s size filename ...", argv[0]);
 
-	size_t size = atoll(argv[1]);
+	size_t size = ATOUL(argv[1]);
 
 	for (int i = 2; i < argc; i++) {
 		const char *path = argv[i];

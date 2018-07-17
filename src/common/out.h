@@ -41,7 +41,6 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-#include "os_attribute.h"
 #include "util.h"
 
 /*

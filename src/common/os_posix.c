@@ -234,10 +234,10 @@ os_clock_gettime(int id, struct timespec *ts)
 /*
  * os_rand_r -- rand_r abstraction layer
  */
-int
+unsigned
 os_rand_r(unsigned *seedp)
 {
-	return rand_r(seedp);
+	return (unsigned)rand_r(seedp);
 }
 
 /*

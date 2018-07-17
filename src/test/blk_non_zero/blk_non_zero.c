@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -95,14 +95,14 @@ is_zeroed(const char *path)
 
 	FSTAT(fd, &stbuf);
 
-	void *addr = MMAP(NULL, stbuf.st_size, PROT_READ|PROT_WRITE,
+	void *addr = MMAP(NULL, (size_t)stbuf.st_size, PROT_READ|PROT_WRITE,
 			MAP_SHARED, fd, 0);
 
 	struct pmemblk *header = addr;
 
 	int ret = header->is_zeroed;
 
-	MUNMAP(addr, stbuf.st_size);
+	MUNMAP(addr, (size_t)stbuf.st_size);
 	CLOSE(fd);
 
 	return ret;
@@ -156,7 +156,7 @@ main(int argc, char *argv[])
 		if (strchr("rwze", argv[read_arg][0]) == NULL ||
 				argv[read_arg][1] != ':')
 			UT_FATAL("op must be r: or w: or z: or e:");
-		os_off_t lba = strtoul(&argv[read_arg][2], NULL, 0);
+		os_off_t lba = STRTOL(&argv[read_arg][2], NULL, 0);
 
 		switch (argv[read_arg][0]) {
 		case 'r':

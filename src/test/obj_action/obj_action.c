@@ -82,7 +82,7 @@ test_resv_cancel_huge(PMEMobjpool *pop)
 {
 	PMEMoid oid;
 
-	int nallocs = 0;
+	unsigned nallocs = 0;
 	struct pobj_action *act = (struct pobj_action *)
 		ZALLOC(sizeof(struct pobj_action) * MAX_ACTS);
 
@@ -91,7 +91,7 @@ test_resv_cancel_huge(PMEMobjpool *pop)
 	} while (!OID_IS_NULL(oid));
 	pmemobj_cancel(pop, act, nallocs - 1);
 
-	int nallocs2 = 0;
+	unsigned nallocs2 = 0;
 	do {
 		oid = pmemobj_reserve(pop, &act[nallocs2++],
 			HUGE_ALLOC_SIZE, 0);
