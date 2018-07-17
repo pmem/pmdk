@@ -119,6 +119,7 @@ extern "C" {
 #include <dirent.h>
 
 /* XXX: move OS abstraction layer out of common */
+#include "os_attribute.h"
 #include "os.h"
 #include "os_thread.h"
 #include "util.h"
@@ -153,14 +154,12 @@ void ut_startW(const char *file, int line, const char *func,
 	int argc, wchar_t * const argv[], const char *fmt, ...)
 	__attribute__((format(printf, 6, 7)));
 
-void ut_done(const char *file, int line, const char *func,
+void NORETURN ut_done(const char *file, int line, const char *func,
 	const char *fmt, ...)
-	__attribute__((format(printf, 4, 5)))
-	__attribute__((noreturn));
-void ut_fatal(const char *file, int line, const char *func,
+	__attribute__((format(printf, 4, 5)));
+void NORETURN ut_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...)
-	__attribute__((format(printf, 4, 5)))
-	__attribute__((noreturn));
+	__attribute__((format(printf, 4, 5)));
 void ut_out(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
