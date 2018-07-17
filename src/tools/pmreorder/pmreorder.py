@@ -36,6 +36,7 @@ import statemachine
 import opscontext
 import consistencycheckwrap
 import loggingfacility
+import sys
 
 
 def main():
@@ -82,7 +83,8 @@ def main():
 
     # init and run the state machine
     a = statemachine.StateMachine(statemachine.InitState(context))
-    a.run_all(context.extract_operations())
+    if a.run_all(context.extract_operations()) is False:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

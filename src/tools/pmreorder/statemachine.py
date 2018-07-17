@@ -261,6 +261,8 @@ class ReplayingState(State):
 
     :ivar _ops_list: The list of stores to be reordered and replayed.
     :type _ops_list: list of :class:`memoryoperations.Store`
+    :ivar _consistency: Specifies consistency state of sequence.
+    :type _consistency: bool
     """
     def __init__(self, in_ops_list, context):
         """
@@ -271,6 +273,7 @@ class ReplayingState(State):
         """
         super(ReplayingState, self).__init__(context)
         self._ops_list = in_ops_list
+        self._consistency = True
 
     def next(self, in_op):
         """
@@ -293,7 +296,7 @@ class ReplayingState(State):
 
         :param in_op: The operation to be performed in this state.
         :type in_op: subclass of :class:`memoryoperations.BaseOperation`
-        :return: None
+        :return: State of consistency check.
         """
         # consider only flushed stores
         flushed_stores = list(filter(lambda x: x.flushed, self._ops_list))
@@ -307,6 +310,7 @@ class ReplayingState(State):
                 try:
                     self._context.file_handler.check_consistency()
                 except InconsistentFileException as e:
+                    self._consistency = False
                     self._context.logger.warning(e)
                     stacktrace = "Call trace:\n"
                     for num, op in enumerate(seq):
@@ -320,6 +324,8 @@ class ReplayingState(State):
         # write all flushed stores
         for op in flushed_stores:
             self._context.file_handler.do_store(op)
+
+        return self._consistency
 
 
 class StateMachine:
@@ -347,6 +353,11 @@ class StateMachine:
         :type operations: list of :class:`memoryoperations.BaseOperation`
         :return: None
         """
+        consistency = True
         for ops in operations:
             self._curr_state = self._curr_state.next(ops)
-            self._curr_state.run(ops)
+            check = self._curr_state.run(ops)
+            if check is False:
+                consistency = check
+
+        return consistency
