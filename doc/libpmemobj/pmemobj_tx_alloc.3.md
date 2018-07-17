@@ -55,7 +55,7 @@ date: pmemobj API version 2.3
 **TX_XALLOC**(), **TX_REALLOC**(),
 **TX_ZREALLOC**(), **TX_STRDUP**(),
 **TX_WCSDUP**(), **TX_FREE**()
--- transactional object manipulation
+- transactional object manipulation
 
 
 # SYNOPSIS #

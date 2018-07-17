@@ -46,7 +46,7 @@ date: pmem Tools version 1.4
 
 # NAME #
 
-**pmempool** -- Persistent Memory Pool Management Tool
+**pmempool** - Persistent Memory Pool Management Tool
 
 
 # SYNOPSIS #

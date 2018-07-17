@@ -48,7 +48,7 @@ date: rpmem API version 1.2
 
 **rpmem_create**(), **rpmem_open**(),
 **rpmem_set_attr**(), **rpmem_close**(), **rpmem_remove**()
--- most commonly used functions for remote access to *persistent memory*
+- most commonly used functions for remote access to *persistent memory*
 
 
 # SYNOPSIS #
