@@ -103,9 +103,9 @@ class InitState(State):
         Does nothing.
 
         :param in_op: Ignored.
-        :return: None
+        :return: always True
         """
-        pass
+        return True
 
 
 class CollectingState(State):
@@ -161,7 +161,7 @@ class CollectingState(State):
 
         :param in_op: The operation to be performed in this state.
         :type in_op: subclass of :class:`memoryoperations.BaseOperation`
-        :return: None
+        :return: always True
         """
         self.move_inner_state(in_op)
         if isinstance(in_op, memoryoperations.ReorderBase):
@@ -172,6 +172,8 @@ class CollectingState(State):
             self._ops_list.append(in_op)
         elif isinstance(in_op, memoryoperations.Register_file):
             self.reg_file(in_op)
+
+        return True
 
     def substitute_reorder(self, order_ops):
         """
@@ -293,8 +295,10 @@ class ReplayingState(State):
 
         :param in_op: The operation to be performed in this state.
         :type in_op: subclass of :class:`memoryoperations.BaseOperation`
-        :return: None
+        :return: State of consistency check.
         """
+        # specifies consistency state of sequence
+        consistency = True
         # consider only flushed stores
         flushed_stores = list(filter(lambda x: x.flushed, self._ops_list))
         if self._context.test_on_barrier:
@@ -307,6 +311,7 @@ class ReplayingState(State):
                 try:
                     self._context.file_handler.check_consistency()
                 except InconsistentFileException as e:
+                    consistency = False
                     self._context.logger.warning(e)
                     stacktrace = "Call trace:\n"
                     for num, op in enumerate(seq):
@@ -320,6 +325,8 @@ class ReplayingState(State):
         # write all flushed stores
         for op in flushed_stores:
             self._context.file_handler.do_store(op)
+
+        return consistency
 
 
 class StateMachine:
@@ -347,6 +354,11 @@ class StateMachine:
         :type operations: list of :class:`memoryoperations.BaseOperation`
         :return: None
         """
+        all_consistent = True
         for ops in operations:
             self._curr_state = self._curr_state.next(ops)
-            self._curr_state.run(ops)
+            check = self._curr_state.run(ops)
+            if check is False:
+                all_consistent = check
+
+        return all_consistent
