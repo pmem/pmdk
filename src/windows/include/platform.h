@@ -121,7 +121,6 @@ typedef long long ssize_t;
 
 int setenv(const char *name, const char *value, int overwrite);
 int unsetenv(const char *name);
-int rand_r(unsigned *seedp);
 
 /* fcntl.h */
 int posix_fallocate(int fd, os_off_t offset, os_off_t len);
