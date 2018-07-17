@@ -42,9 +42,7 @@
 require_fs_type pmem non-pmem
 require_build_type debug
 require_test_type medium
-# pmreorder tool does not support unicode yet
-require_no_unicode
-configure_valgrind pmemcheck force-enable
+pmreorder_configure
 
 setup
 
@@ -55,8 +53,8 @@ truncate -s 4M $DIR/testfile1
 PROGR="./pmem_reorder_simple$EXESUFFIX"
 CMD="$PROGR b $DIR/testfile1"
 
-do_reorder_test $DIR/testfile1 "$CMD" "outfile$UNITTEST_NUM.log" prog $PROGR \
-	"c"
+pmreorder_create_store_log $DIR/testfile1 "$CMD"
+pmreorder_expect_failed "outfile$UNITTEST_NUM.log" prog $PROGR "c"
 
 check
 
