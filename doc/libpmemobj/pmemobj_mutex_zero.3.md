@@ -54,7 +54,7 @@ date: pmemobj API version 2.3
 
 **pmemobj_cond_zero**(), **pmemobj_cond_broadcast**(), **pmemobj_cond_signal**(),
 **pmemobj_cond_timedwait**(), **pmemobj_cond_wait**()
--- pmemobj synchronization primitives
+- pmemobj synchronization primitives
 
 
 # SYNOPSIS #

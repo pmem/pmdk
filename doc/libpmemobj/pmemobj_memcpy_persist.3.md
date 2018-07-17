@@ -47,7 +47,7 @@ date: pmemobj API version 2.3
 # NAME #
 
 **pmemobj_memcpy_persist**(), **pmemobj_memset_persist**(), **pmemobj_persist**(),
-**pmemobj_flush**(), **pmemobj_drain**() -- low-level memory manipulation functions
+**pmemobj_flush**(), **pmemobj_drain**() - low-level memory manipulation functions
 
 
 # SYNOPSIS #

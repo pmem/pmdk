@@ -49,7 +49,7 @@ _WINUX(,[NOTES](#notes)<br />)
 **OID_IS_NULL**(), **OID_EQUALS**(),
 **pmemobj_direct**(), **pmemobj_oid**(),
 **pmemobj_type_num**(), **pmemobj_pool_by_oid**(),
-**pmemobj_pool_by_ptr**() -- functions that allow mapping
+**pmemobj_pool_by_ptr**() - functions that allow mapping
 operations between object addresses, object handles, oids or type numbers
 
 
