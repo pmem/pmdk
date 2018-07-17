@@ -280,6 +280,7 @@ export PMEMCTO_LOG_LEVEL=3
 export PMEMCTO_LOG_FILE=pmemcto$UNITTEST_NUM.log
 export PMEMPOOL_LOG_LEVEL=3
 export PMEMPOOL_LOG_FILE=pmempool$UNITTEST_NUM.log
+export PMREORDER_LOG_FILE=pmreorder$UNITTEST_NUM.log
 
 export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
 export VMMALLOC_LOG_LEVEL=3
@@ -1997,8 +1998,7 @@ function require_nodes() {
 			&& fatal "error: working directory for node #$N (${NODE[$N]}) is not provided"
 
 		# check if the node is reachable
-		check_if_node_is_reachable $N
-		[ $? -ne 0 ] \
+		check_if_node_is_reachab$? -ne 0 ] \
 			&& fatal "error: node #$N (${NODE[$N]}) is unreachable"
 
 		# clear the list of PID files for each node
@@ -3039,37 +3039,106 @@ function require_python3()
 }
 
 #
-# do_reorder_test -- perform a reordering test
+# pmreorder_configure -- check all necessarily conditions to run pmreorder
+#
+function require_pmreorder()
+{
+	# python3 and valgrind are necessary
+	require_python3
+	# pmemcheck is required to generate store_log
+	configure_valgrind pmemcheck force-enable
+	# pmreorder tool does not support unicode yet
+	require_no_unicode
+}
+
+#
+# pmreorder_run_tool -- run pmreorder with parameters and return exit status
+#
+# 1 - the checker type - for a list of supported types run `./pmreorder.py -h`
+# 2 - the path to the checker binary/library
+# 3 - the remaining parameters which will be passed to the consistency checker
+#     binary. If you are using a library checker, prepend '-n funcname'
+#
+function pmreorder_run_tool()
+{
+	rm -f pmreorder$UNITTEST_NUM.log
+	disable_exit_on_error
+	eval LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PYTHON_EXE $PMREORDER \
+		-l store_log$UNITTEST_NUM.log \
+		-t file \
+		-o pmreorder$UNITTEST_NUM.log \
+		-c $1 \
+		-p $2 $3
+	ret=$?
+	restore_exit_on_error
+	echo $ret
+}
+
+#
+# pmreorder_expect_succes -- run pmreoreder with forwarded parameters,
+#				expect it to exit zero
+#
+function pmreorder_expect_succes()
+{
+	ret=$(pmreorder_run_tool $*)
+
+	# exit code 130 - script terminated by user (Control-C)
+	if [ "$ret" -ne "0" ] && [ "$ret" -ne "130" ]; then
+		msg="failed with exit code $ret"
+		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+
+		echo -e "$UNITTEST_NAME $msg." >&2
+		dump_last_n_lines $PMREORDER_LOG_FILE
+
+		false
+	fi
+}
+
+#
+# pmreorder_expect_failure -- run pmreoreder with forwarded parameters,
+#				expect it to exit non zero
+#
+function pmreorder_expect_failure()
+{
+	ret=$(pmreorder_run_tool $*)
+
+	if [ "$ret" -eq "0" ]; then
+		msg="succeeded"
+		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+
+		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
+
+		false
+	fi
+}
+
+#
+# pmreorder_create_store_log -- perform a reordering test
 #
 # This function expects 5 additional parameters. They are in order:
 # 1 - the pool file to be tested
 # 2 - the application and necessary parameters to run pmemcheck logging
-# 3 - the log output file
-# 4 - the checker type - for a list of supported types run `./pmreorder.py -h`
-# 5 - the path to the checker binary/library
-# 6 - the remaining parameters which will be passed to the consistency checker
-#     binary. If you are using a library checker, prepend '-n funcname'
 #
-function do_reorder_test()
+function pmreorder_create_store_log()
 {
-	# python3 is necessary
-	require_python3
-	require_valgrind
 
 	#copy original file and perform store logging
 	cp $1 "$1.pmr"
 	rm -f store_log$UNITTEST_NUM.log
 
-	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $VALGRINDEXE --tool=pmemcheck -q \
-	--log-stores=yes --print-summary=no \
-	--log-file=store_log$UNITTEST_NUM.log --log-stores-stacktraces=yes \
-	--log-stores-stacktraces-depth=2 --expect-fence-after-clflush=yes $2
+	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $VALGRINDEXE \
+			--tool=pmemcheck -q \
+			--log-stores=yes \
+			--print-summary=no \
+			--log-file=store_log$UNITTEST_NUM.log \
+			--log-stores-stacktraces=yes \
+			--log-stores-stacktraces-depth=2 \
+			--expect-fence-after-clflush=yes \
+			$2
 
-	# shuffle files and do the reorder/check testing
-	mv $1 "$1.bak"
+	# uncomment this line for debug purposes
+	# mv $1 "$1.bak"
 	mv "$1.pmr" $1
-	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PYTHON_EXE $PMREORDER \
-	-l store_log$UNITTEST_NUM.log -t file -o $3 -c $4 -p $5 $6
 }
 
 #
