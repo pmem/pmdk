@@ -46,7 +46,7 @@ date: pmemblk API version 1.1
 
 # NAME #
 
-**pmemblk_set_zero**(), **pmemblk_set_error**() --  block management functions
+**pmemblk_set_zero**(), **pmemblk_set_error**() - block management functions
 
 
 # SYNOPSIS #

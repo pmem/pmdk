@@ -51,7 +51,7 @@ date: pmemlog API version 1.1
 
 # NAME #
 
-**libpmemlog** -- persistent memory resident log file
+**libpmemlog** - persistent memory resident log file
 
 
 # SYNOPSIS #

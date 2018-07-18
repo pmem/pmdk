@@ -49,7 +49,7 @@ date: rpmemd version 1.4
 
 # NAME #
 
-**rpmemd** -- librpmem target node process (EXPERIMENTAL)
+**rpmemd** - librpmem target node process (EXPERIMENTAL)
 
 
 # SYNOPSIS #

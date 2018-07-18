@@ -48,7 +48,7 @@ date: pmemlog API version 1.1
 
 _UW(pmemlog_create), _UW(pmemlog_open),
 **pmemlog_close**(), _UW(pmemlog_check)
--- create, open, close and validate persistent memory resident log file
+- create, open, close and validate persistent memory resident log file
 
 
 # SYNOPSIS #

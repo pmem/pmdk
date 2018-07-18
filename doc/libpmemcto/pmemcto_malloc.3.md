@@ -48,7 +48,7 @@ date: libpmemcto API version 1.0
 # NAME #
 
 pmemcto_malloc, pmemcto_free, pmemcto_calloc, pmemcto_realloc
--- allocate and free persistent memory
+- allocate and free persistent memory
 
 
 # SYNOPSIS #

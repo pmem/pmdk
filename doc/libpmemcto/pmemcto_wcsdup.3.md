@@ -46,7 +46,7 @@ date: libpmemcto API version 1.0
 
 # NAME #
 
-pmemcto_wcsdup -- duplicate a wide-char string
+pmemcto_wcsdup - duplicate a wide-char string
 
 
 # SYNOPSIS #

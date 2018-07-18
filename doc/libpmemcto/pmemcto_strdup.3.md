@@ -46,7 +46,7 @@ date: libpmemcto API version 1.0
 
 # NAME #
 
-pmemcto_strdup -- duplicate a string
+pmemcto_strdup - duplicate a string
 
 
 # SYNOPSIS #
