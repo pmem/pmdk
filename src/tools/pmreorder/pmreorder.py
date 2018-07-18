@@ -53,23 +53,24 @@ def main():
                         help="choose consistency checker type")
     parser.add_argument("-p", "--path",
                         required=True,
-                        help="path to the consistency checker")
+                        help="path to the consistency checker and arguments",
+                        nargs='+')
     parser.add_argument("-n", "--name",
                         help="consistency check function " +
                         "for the 'lib' checker")
     parser.add_argument("-t", "--output_type",
                         choices=loggingfacility.loggers, default="print",
-                        help='choose logger type default="print"')
+                        help='choose logger type, default="print"')
     parser.add_argument("-o", "--output",
                         help="set the logger output")
     parser.add_argument("-e", "--output_level",
                         choices=loggingfacility.log_levels,
                         help="set the output log level")
+    engines_keys = list(reorderengines.engines.keys())
     parser.add_argument("-r", "--default_engine",
-                        help="set default reorder engine",
-                        choices=reorderengines.engines, default="full")
-    parser.add_argument("args", nargs=argparse.REMAINDER,
-                        help="remaining args passed to the checker")
+                        help="set default reorder engine, default=full",
+                        choices=engines_keys,
+                        default=engines_keys[0])
     args = parser.parse_args()
 
     logger = loggingfacility.get_logger(
@@ -78,9 +79,8 @@ def main():
                                         args.output_level)
     checker = consistencycheckwrap.get_checker(
                                                args.checker,
-                                               args.path,
-                                               args.name,
-                                               args.args)
+                                               ' '.join(args.path),
+                                               args.name)
     engine = reorderengines.get_engine(args.default_engine)
 
     # create the script context

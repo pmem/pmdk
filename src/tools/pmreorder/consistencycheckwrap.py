@@ -115,7 +115,12 @@ class ProgChecker(ConsistencyCheckerBase):
         return os.system(self._bin_path + " " + self._bin_cmd + " " + filename)
 
 
-def get_checker(checker_type, checker_path, name, args):
+def get_checker(checker_type, checker_path_args, name):
+
+    split_args = checker_path_args.split(" ", 1)
+    checker_path = split_args[0]
+    args = split_args[1]
+
     if not path.exists(checker_path):
         print("Invalid path:" + checker_path)
         exit(1)
