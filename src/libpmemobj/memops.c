@@ -175,6 +175,7 @@ error_ctx_alloc:
 void
 operation_delete(struct operation_context *ctx)
 {
+	VEC_DELETE(&ctx->next);
 	Free(ctx->pshadow_ops.redo);
 	Free(ctx->transient_ops.redo);
 	Free(ctx);
