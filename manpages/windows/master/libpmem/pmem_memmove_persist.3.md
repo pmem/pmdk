@@ -48,7 +48,7 @@ date: pmem API version 1.1
 **pmem_memmove**(), **pmem_memcpy**(), **pmem_memset**(),
 **pmem_memmove_persist**(), **pmem_memcpy_persist**(), **pmem_memset_persist**(),
 **pmem_memmove_nodrain**(), **pmem_memcpy_nodrain**(), **pmem_memset_nodrain**()
--- functions that provide optimized copying to persistent memory
+- functions that provide optimized copying to persistent memory
 
 
 # SYNOPSIS #

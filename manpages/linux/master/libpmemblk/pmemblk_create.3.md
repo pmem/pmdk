@@ -47,7 +47,7 @@ date: pmemblk API version 1.1
 
 **pmemblk_create**(), **pmemblk_open**(),
 **pmemblk_close**(), **pmemblk_check**()
--- create, open, close and validate block pool
+- create, open, close and validate block pool
 
 
 # SYNOPSIS #

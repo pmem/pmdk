@@ -50,7 +50,7 @@ date: pmemblk API version 1.1
 
 # NAME #
 
-**libpmemblk** -- persistent memory resident array of blocks
+**libpmemblk** - persistent memory resident array of blocks
 
 
 # SYNOPSIS #

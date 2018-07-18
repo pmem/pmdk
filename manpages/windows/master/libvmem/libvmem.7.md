@@ -49,7 +49,7 @@ date: vmem API version 1.1
 
 # NAME #
 
-**libvmem** -- volatile memory allocation library
+**libvmem** - volatile memory allocation library
 
 
 # SYNOPSIS #

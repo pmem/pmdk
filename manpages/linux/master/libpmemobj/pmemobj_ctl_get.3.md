@@ -49,7 +49,7 @@ date: pmemobj API version 2.3
 **pmemobj_ctl_get**(),
 **pmemobj_ctl_set**(),
 **pmemobj_ctl_exec**()
--- Query and modify libpmemobj internal behavior (EXPERIMENTAL)
+- Query and modify libpmemobj internal behavior (EXPERIMENTAL)
 
 
 # SYNOPSIS #

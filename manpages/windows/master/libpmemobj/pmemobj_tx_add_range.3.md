@@ -56,7 +56,7 @@ date: pmemobj API version 2.3
 
 **TX_SET**(), **TX_SET_DIRECT**(),
 **TX_MEMCPY**(), **TX_MEMSET**()
--- transactional object manipulation
+- transactional object manipulation
 
 
 # SYNOPSIS #

@@ -47,7 +47,7 @@ date: pmempool API version 1.3
 
 # NAME #
 
-**pmempool_syncU**()/**pmempool_syncW**(), **pmempool_transformU**()/**pmempool_transformW**() -- pool set synchronization and transformation
+**pmempool_syncU**()/**pmempool_syncW**(), **pmempool_transformU**()/**pmempool_transformW**() - pool set synchronization and transformation
 
 
 # SYNOPSIS #
