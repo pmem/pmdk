@@ -35,8 +35,8 @@ from itertools import islice
 from itertools import chain
 from random import sample
 from functools import partial
-
-engines = ("full", "noreorder", "accumulative", "partial")
+from reorderexceptions import NotSupportedOperationException
+import collections
 
 
 class FullReorderEngine:
@@ -238,7 +238,7 @@ class RandomPartialReorderEngine:
                ('b',)
                ('a', 'b', 'c')
     """
-    def __init__(self, max_seq):
+    def __init__(self, max_seq=3):
         """
         Initializes the generator with the provided parameters.
 
@@ -289,13 +289,18 @@ class NoReorderEngine:
 
 
 def get_engine(engine):
-    if engine == "noreorder":
-        reorder_engine = NoReorderEngine()
-    elif engine == "accumulative":
-        reorder_engine = AccumulativeReorderEngine()
-    elif engine == "partial":
-        reorder_engine = RandomPartialReorderEngine(3)
+    if engine in engines:
+        reorder_engine = engines[engine]()
     else:
-        reorder_engine = FullReorderEngine()
+        raise NotSupportedOperationException(
+                  "Not supported reorder engine: {}"
+                  .format(engine))
 
     return reorder_engine
+
+
+engines = collections.OrderedDict([
+           ('full', FullReorderEngine),
+           ('noreorder', NoReorderEngine),
+           ('accumulative', AccumulativeReorderEngine),
+           ('partial', RandomPartialReorderEngine)])

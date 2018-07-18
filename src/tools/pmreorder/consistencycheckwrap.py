@@ -97,7 +97,7 @@ class ProgChecker(ConsistencyCheckerBase):
 
     def __init__(self, bin_path, bin_args):
         self._bin_path = bin_path
-        self._bin_cmd = ' '.join(bin_args)
+        self._bin_cmd = bin_args
 
     def check_consistency(self, filename):
         """
@@ -115,15 +115,23 @@ class ProgChecker(ConsistencyCheckerBase):
         return os.system(self._bin_path + " " + self._bin_cmd + " " + filename)
 
 
-def get_checker(checker_type, checker_path, name, args):
+def get_checker(checker_type, checker_path_args, name):
+
+    checker_path_args = checker_path_args.split(" ", 1)
+    checker_path = checker_path_args[0]
+
+    # check for params
+    if len(checker_path_args) > 1:
+        args = checker_path_args[1]
+    else:
+        args = ""
+
     if not path.exists(checker_path):
         print("Invalid path:" + checker_path)
         exit(1)
 
     checker = None
     if checker_type == "prog":
-        if args is None:
-            args = ""
         checker = ProgChecker(checker_path, args)
     elif checker_type == "lib":
         checker = LibChecker(checker_path, name)

@@ -49,11 +49,12 @@ setup
 # create holey file
 truncate -s 4M $DIR/testfile1
 
-PROGR="./pmem_reorder_simple$EXESUFFIX"
-CMD="$PROGR b $DIR/testfile1"
+BIN="./pmem_reorder_simple$EXESUFFIX"
+PMEMCHECK_CMD="$BIN b $DIR/testfile1"
+PMREORDER_CMD="$BIN c"
 
-pmreorder_create_store_log $DIR/testfile1 "$CMD"
-pmreorder_expect_failure prog $PROGR "c"
+pmreorder_create_store_log $DIR/testfile1 "$PMEMCHECK_CMD"
+pmreorder_expect_failure full prog "$PMREORDER_CMD"
 
 check
 
