@@ -71,7 +71,6 @@ struct pobj_action {
 	};
 };
 
-#define POBJ_MAX_ACTIONS 60
 #define POBJ_ACTION_XRESERVE_VALID_FLAGS\
 	(POBJ_XALLOC_CLASS_MASK | POBJ_XALLOC_ZERO)
 

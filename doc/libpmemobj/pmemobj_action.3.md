@@ -90,8 +90,7 @@ the persistent publication of a set of prepared actions to an arbitrary moment
 in time of the execution of a program.
 
 The publication is fail-safe atomic in the scope of the entire collection of
-actions, but the number of said actions is limited by *POBJ_MAX_ACTIONS*
-constant. If a program exits without publishing the actions, or the actions are
+actions. If a program exits without publishing the actions, or the actions are
 canceled, any resources reserved by those actions are released and placed back in
 the pool.
 
@@ -127,7 +126,6 @@ modify the memory location pointed to by *ptr* to *value*.
 The **pmemobj_publish** function publishes the provided set of actions. The
 publication is fail-safe atomic. Once done, the persistent state will reflect
 the changes contained in the actions.
-The *actvcnt* cannot exceed *POBJ_MAX_ACTIONS*.
 
 The **pmemobj_tx_publish** function moves the provided actions to the scope of
 the transaction in which it is called. Only object reservations are supported
