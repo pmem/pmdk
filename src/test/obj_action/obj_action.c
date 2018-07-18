@@ -163,6 +163,33 @@ test_api_macros(PMEMobjpool *pop)
 	POBJ_FREE(&macro_reserve_p);
 }
 
+#define POBJ_MAX_ACTIONS 60
+
+static void
+test_over_old_limit(PMEMobjpool *pop)
+{
+	struct pobj_action *act = (struct pobj_action *)
+		MALLOC(sizeof(struct pobj_action) * POBJ_MAX_ACTIONS * 2);
+	PMEMoid *oid = (PMEMoid *)
+		MALLOC(sizeof(PMEMoid) * POBJ_MAX_ACTIONS * 2);
+
+	for (int i = 0; i < POBJ_MAX_ACTIONS * 2; ++i) {
+		oid[i] = pmemobj_reserve(pop, &act[i], 1, 0);
+		UT_ASSERT(!OID_IS_NULL(oid[i]));
+	}
+
+	UT_ASSERTeq(pmemobj_publish(pop, act, POBJ_MAX_ACTIONS * 2), 0);
+
+	for (int i = 0; i < POBJ_MAX_ACTIONS * 2; ++i) {
+		pmemobj_defer_free(pop, oid[i], &act[i]);
+	}
+
+	UT_ASSERTeq(pmemobj_publish(pop, act, POBJ_MAX_ACTIONS * 2), 0);
+
+	FREE(oid);
+	FREE(act);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -267,6 +294,8 @@ main(int argc, char *argv[])
 	test_defer_free(pop);
 
 	test_api_macros(pop);
+
+	test_over_old_limit(pop);
 
 	pmemobj_close(pop);
 

@@ -65,7 +65,7 @@ PMEMoid pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 void pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act);
 void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 	uint64_t *ptr, uint64_t value); (EXPERIMENTAL)
-void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
+int pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
 	size_t actvcnt); (EXPERIMENTAL)
 int pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt); (EXPERIMENTAL)
 pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv,
@@ -188,6 +188,9 @@ reserved object, otherwise an *OID_NULL* is returned.
 
 On success, **pmemobj_tx_publish**() returns 0, otherwise,
 stage changes to *TX_STAGE_ONABORT* and *errno* is set appropriately
+
+On success, **pmemobj_publish**() returns 0, otherwise, returns -1 and *errno*
+is set appropriately.
 
 # SEE ALSO #
 
