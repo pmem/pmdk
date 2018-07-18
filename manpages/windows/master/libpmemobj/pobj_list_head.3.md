@@ -71,7 +71,7 @@ date: pmemobj API version 2.3
 **POBJ_LIST_MOVE_ELEMENT_TAIL**(),
 **POBJ_LIST_MOVE_ELEMENT_AFTER**(),
 **POBJ_LIST_MOVE_ELEMENT_BEFORE**()
--- type-safe non-transactional persistent atomic lists
+- type-safe non-transactional persistent atomic lists
 
 
 # SYNOPSIS #

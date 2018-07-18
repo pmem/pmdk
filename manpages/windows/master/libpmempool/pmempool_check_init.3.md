@@ -48,7 +48,7 @@ date: pmempool API version 1.3
 # NAME #
 
 **pmempool_check_initU**()/**pmempool_check_initW**(), **pmempool_checkU**()/**pmempool_checkW**(),
-**pmempool_check_end**() -- checks pmempool health
+**pmempool_check_end**() - checks pmempool health
 
 
 # SYNOPSIS #

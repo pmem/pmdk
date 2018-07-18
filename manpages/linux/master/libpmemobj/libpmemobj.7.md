@@ -49,7 +49,7 @@ date: pmemobj API version 2.3
 
 # NAME #
 
-**libpmemobj** -- persistent memory transactional object store
+**libpmemobj** - persistent memory transactional object store
 
 
 # SYNOPSIS #

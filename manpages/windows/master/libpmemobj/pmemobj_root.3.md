@@ -46,7 +46,7 @@ date: pmemobj API version 2.3
 # NAME #
 
 **pmemobj_root**(), **pmemobj_root_construct**()
-**POBJ_ROOT**(), **pmemobj_root_size**() -- root object management
+**POBJ_ROOT**(), **pmemobj_root_size**() - root object management
 
 
 # SYNOPSIS #
