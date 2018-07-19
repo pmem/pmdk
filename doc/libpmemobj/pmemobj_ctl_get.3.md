@@ -72,36 +72,9 @@ _UNICODE()
 
 The _UW(pmemobj_ctl_get), _UW(pmemobj_ctl_set) and _UW(pmemobj_ctl_exec)
 functions provide a uniform interface for querying and modifying the internal
-behavior of **libpmemobj** through the control (CTL) namespace.
+behavior of **libpmemobj**(7) through the control (CTL) namespace.
 
-The CTL namespace is organized in a tree structure. Starting from the root,
-each node can be either internal, containing other elements, or a leaf.
-Internal nodes themselves can only contain other nodes and cannot be entry
-points. There are two types of those nodes: *named* and *indexed*. Named nodes
-have string identifiers. Indexed nodes represent an abstract array index and
-have an associated string identifier. The index itself is provided by the user.
-A collection of indexes present on the path of an entry point is provided to
-the handler functions as name and index pairs.
-
-The *name* argument specifies an entry point as defined in the CTL namespace
-specification. The entry point description specifies whether the extra *arg* is
-required. Those two parameters together create a CTL query. The *pop* argument
-is optional if the entry point resides in a global namespace (i.e., is shared
-for all the pools). The functions and the entry points are thread-safe unless
-indicated otherwise below. If there are special conditions for calling an entry
-point, they are explicitly stated in its description. The functions propagate
-the return value of the entry point. If either *name* or *arg* is invalid, -1
-is returned.
-
-Entry points are the leaves of the CTL namespace structure. Each entry point
-can read from the internal state, write to the internal state,
-exec a function or a combination of these operations.
-
-The entry points are listed in the following format:
-
-name | r(ead)w(rite)x(ecute) | global/- | read argument type | write argument type | exec argument type | config argument type
-
-description...
+See more in **pmem_ctl**(5) man page.
 
 
 # CTL NAMESPACE #
@@ -445,4 +418,5 @@ prefault.
 
 # SEE ALSO #
 
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7), **pmemobj_ctl_exec**(3), **pmemobj_ctl_get**(3),
+**pmemobj_ctl_set**(3), **pmem_ctl**(5) and **<http://pmem.io>**

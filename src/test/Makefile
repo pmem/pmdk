@@ -197,6 +197,7 @@ OTHER_TESTS = \
 	bttdevice\
 	checksum\
 	compat_incompat_features\
+	ctl_prefault\
 	magic\
 	out_err\
 	out_err_mt\
@@ -211,7 +212,6 @@ OTHER_TESTS = \
 	unicode_match_script\
 	util_badblock\
 	util_ctl\
-	util_ctl_prefault\
 	util_extent\
 	util_file_create\
 	util_file_open\

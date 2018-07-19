@@ -31,10 +31,10 @@
 #
 
 #
-# src/test/util_ctl_prefault/Makefile -- build util_ctl_prefault test
+# src/test/ctl_prefault/Makefile -- build ctl_prefault test
 #
-TARGET = util_ctl_prefault
-OBJS = util_ctl_prefault.o
+TARGET = ctl_prefault
+OBJS = ctl_prefault.o
 
 LIBPMEM=y
 LIBPMEMBLK=y
