@@ -1251,17 +1251,12 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	pop->lanes_desc.runtime_nlanes = nlanes;
 
 	pop->tx_params = tx_params_new();
-	if (pop->tx_params == NULL) {
-		errno = EINVAL;
-		return -1;
-	}
+	if (pop->tx_params == NULL)
+		goto err_tx_params;
 
 	pop->stats = stats_new(pop);
-	if (pop->stats == NULL) {
-		tx_params_delete(pop->tx_params);
-		errno = ENOMEM;
-		return -1;
-	}
+	if (pop->stats == NULL)
+		goto err_stat;
 
 	VALGRIND_REMOVE_PMEM_MAPPING(&pop->mutex_head,
 		sizeof(pop->mutex_head));
@@ -1325,7 +1320,9 @@ err_cuckoo_insert:
 	obj_runtime_cleanup_common(pop);
 err_boot:
 	stats_delete(pop, pop->stats);
+err_stat:
 	tx_params_delete(pop->tx_params);
+err_tx_params:
 
 	return -1;
 }
