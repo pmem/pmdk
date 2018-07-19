@@ -2992,14 +2992,19 @@ pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act)
 /*
  * pmemobj_publish -- publishes a collection of actions
  */
-void
+int
 pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt)
 {
 	struct operation_context *ctx = pmalloc_operation_hold(pop);
 
+	if (operation_reserve(ctx, actvcnt) != 0)
+		return -1;
+
 	palloc_publish(&pop->heap, actv, actvcnt, ctx);
 
 	pmalloc_operation_release(pop);
+
+	return 0;
 }
 
 /*
