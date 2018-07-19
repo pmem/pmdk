@@ -47,7 +47,7 @@ date: pmemblk API version 1.1
 
 _UW(pmemblk_create), _UW(pmemblk_open),
 **pmemblk_close**(), _UW(pmemblk_check)
--- create, open, close and validate block pool
+- create, open, close and validate block pool
 
 
 # SYNOPSIS #

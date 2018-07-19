@@ -47,7 +47,7 @@ date: pmem Tools version 1.4
 
 # NAME #
 
-**pmempool-info** -- show information about persistent memory pool
+**pmempool-info** - show information about persistent memory pool
 
 
 # SYNOPSIS #

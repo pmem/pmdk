@@ -47,7 +47,7 @@ date: vmem API version 1.1
 
 **vmem_malloc**(), **vmem_calloc**(), **vmem_realloc**(),
 **vmem_free**(), **vmem_aligned_alloc**(), **vmem_strdup**(),
-**vmem_wcsdup**(), **vmem_malloc_usable_size**() -- memory allocation related functions
+**vmem_wcsdup**(), **vmem_malloc_usable_size**() - memory allocation related functions
 
 
 # SYNOPSIS #
