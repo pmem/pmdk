@@ -40,11 +40,11 @@ MANPAGES_7_MD = libpmem/libpmem.7.md libpmemblk/libpmemblk.7.md libpmemlog/libpm
 		libpmemobj/libpmemobj.7.md libpmempool/libpmempool.7.md libvmem/libvmem.7.md \
 		libvmmalloc/libvmmalloc.7.md libpmemcto/libpmemcto.7.md
 
-MANPAGES_5_MD = poolset/poolset.5.md
+MANPAGES_5_MD = poolset/poolset.5.md pmem_ctl/pmem_ctl.5.md
 
 MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_memmove_persist.3.md \
-		libpmemblk/pmemblk_bsize.3.md libpmemblk/pmemblk_create.3.md libpmemblk/pmemblk_read.3.md libpmemblk/pmemblk_set_zero.3.md \
-		libpmemlog/pmemlog_append.3.md libpmemlog/pmemlog_create.3.md libpmemlog/pmemlog_nbyte.3.md libpmemlog/pmemlog_tell.3.md \
+		libpmemblk/pmemblk_bsize.3.md libpmemblk/pmemblk_create.3.md libpmemblk/pmemblk_ctl_get.3.md libpmemblk/pmemblk_read.3.md libpmemblk/pmemblk_set_zero.3.md \
+		libpmemlog/pmemlog_append.3.md libpmemlog/pmemlog_create.3.md libpmemlog/pmemlog_ctl_get.3.md libpmemlog/pmemlog_nbyte.3.md libpmemlog/pmemlog_tell.3.md \
 		libpmemobj/oid_is_null.3.md libpmemobj/pmemobj_action.3.md libpmemobj/pmemobj_alloc.3.md libpmemobj/pmemobj_ctl_get.3.md libpmemobj/pmemobj_first.3.md \
 		libpmemobj/pmemobj_list_insert.3.md libpmemobj/pmemobj_memcpy_persist.3.md libpmemobj/pmemobj_mutex_zero.3.md \
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
@@ -74,10 +74,12 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmemblk_write.3 \
 		   pmemblk_set_error.3 \
 		   pmemblk_check_version.3 pmemblk_check.3 pmemblk_errormsg.3 pmemblk_set_funcs.3 \
+		   pmemblk_ctl_set.3 pmemblk_ctl_exec.3\
 		   pmemlog_rewind.3 pmemlog_walk.3 \
 		   pmemlog_open.3 pmemlog_close.3 \
 		   pmemlog_appendv.3 \
 		   pmemlog_check_version.3 pmemlog_check.3 pmemlog_errormsg.3 pmemlog_set_funcs.3 \
+		   pmemlog_ctl_set.3 pmemlog_ctl_exec.3\
 		   pmempool_check.3 pmempool_check_end.3 \
 		   pmempool_transform.3 \
 		   pmempool_check_version.3 pmempool_errormsg.3 \
