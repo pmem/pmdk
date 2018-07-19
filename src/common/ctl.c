@@ -498,8 +498,10 @@ struct ctl *
 ctl_new(void)
 {
 	struct ctl *c = Zalloc(sizeof(struct ctl));
-	if (c == NULL)
+	if (c == NULL) {
+		ERR("!ctl_new");
 		return NULL;
+	}
 
 	c->first_free = 0;
 	return c;

@@ -31,7 +31,7 @@
  */
 
 /*
- * util_ctl_prefault.c -- tests for the ctl entry points: prefault
+ * ctl_prefault.c -- tests for the ctl entry points: prefault
  */
 
 #include <stdlib.h>
@@ -41,6 +41,7 @@
 
 #define OBJ_STR "obj"
 #define BLK_STR "blk"
+#define LOG_STR "log"
 
 #define BSIZE 20
 #define LAYOUT "obj_ctl_prefault"
@@ -57,7 +58,7 @@ typedef int (*fun)(void *, const char *, void *);
  * prefault_fun -- function ctl_get/set testing
  */
 static void
-prefault_fun(int prefault, fun util_ctl_get, fun util_ctl_set)
+prefault_fun(int prefault, fun get_func, fun set_func)
 {
 	int ret;
 	int arg;
@@ -65,33 +66,33 @@ prefault_fun(int prefault, fun util_ctl_get, fun util_ctl_set)
 
 	if (prefault == 1) { /* prefault at open */
 		arg_read = -1;
-		ret = util_ctl_get(NULL, "prefault.at_open", &arg_read);
+		ret = get_func(NULL, "prefault.at_open", &arg_read);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(arg_read, 0);
 
 		arg = 1;
-		ret = util_ctl_set(NULL, "prefault.at_open", &arg);
+		ret = set_func(NULL, "prefault.at_open", &arg);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(arg, 1);
 
 		arg_read = -1;
-		ret = util_ctl_get(NULL, "prefault.at_open", &arg_read);
+		ret = get_func(NULL, "prefault.at_open", &arg_read);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(arg_read, 1);
 
 	} else if (prefault == 2) { /* prefault at create */
 		arg_read = -1;
-		ret = util_ctl_get(NULL, "prefault.at_create", &arg_read);
+		ret = get_func(NULL, "prefault.at_create", &arg_read);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(arg_read, 0);
 
 		arg = 1;
-		ret = util_ctl_set(NULL, "prefault.at_create", &arg);
+		ret = set_func(NULL, "prefault.at_create", &arg);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(arg, 1);
 
 		arg_read = -1;
-		ret = util_ctl_get(NULL, "prefault.at_create", &arg_read);
+		ret = get_func(NULL, "prefault.at_create", &arg_read);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(arg_read, 1);
 	}
@@ -117,7 +118,7 @@ count_resident_pages(void *pool, size_t length)
 	return resident_pages;
 }
 /*
- * test_obj -- open/ create PMEMobjpool
+ * test_obj -- open/create PMEMobjpool
  */
 static void
 test_obj(const char *path, int open)
@@ -140,7 +141,7 @@ test_obj(const char *path, int open)
 	UT_OUT("%ld", resident_pages);
 }
 /*
- * test_blk -- open/ create PMEMblkpool
+ * test_blk -- open/create PMEMblkpool
  */
 static void
 test_blk(const char *path, int open)
@@ -162,7 +163,7 @@ test_blk(const char *path, int open)
 	UT_OUT("%ld", resident_pages);
 }
 /*
- * test_log -- open/ create PMEMlogpool
+ * test_log -- open/create PMEMlogpool
  */
 static void
 test_log(const char *path, int open)
@@ -184,14 +185,18 @@ test_log(const char *path, int open)
 	UT_OUT("%ld", resident_pages);
 }
 
+#define USAGE() do {\
+	UT_FATAL("usage: %s file-name type(obj/blk/log) prefault(0/1/2) "\
+			"open(0/1)", argv[0]);\
+} while (0)
+
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "util_ctl_prefault");
+	START(argc, argv, "ctl_prefault");
 
 	if (argc != 5)
-		UT_FATAL("usage: %s file-name type(obj/blk) prefault(0/1/2)"
-				"open(0/1)", argv[0]);
+		USAGE();
 
 	char *type = argv[1];
 	const char *path = argv[2];
@@ -201,20 +206,17 @@ main(int argc, char *argv[])
 	if (strcmp(type, OBJ_STR) == 0) {
 		prefault_fun(prefault, (fun)pmemobj_ctl_get,
 				(fun)pmemobj_ctl_set);
-
 		test_obj(path, open);
-
 	} else if (strcmp(type, BLK_STR) == 0) {
 		prefault_fun(prefault, (fun)pmemblk_ctl_get,
 				(fun)pmemblk_ctl_set);
-
 		test_blk(path, open);
-	} else {
+	} else if (strcmp(type, LOG_STR) == 0) {
 		prefault_fun(prefault, (fun)pmemlog_ctl_get,
 				(fun)pmemlog_ctl_set);
-
 		test_log(path, open);
-	}
+	} else
+		USAGE();
 
 	DONE(NULL);
 }
