@@ -140,6 +140,16 @@ alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 
 	m->m_ops->write_header(m, extra_field, object_flags);
 
+	/*
+	 * Set allocated memory with pattern, if debug.heap.alloc_pattern CTL
+	 * parameter had been set.
+	 */
+	if (unlikely(heap->alloc_pattern > PALLOC_CTL_DEBUG_NO_PATTERN)) {
+		pmemops_memset(&heap->p_ops, uptr, heap->alloc_pattern,
+			usize, 0);
+		VALGRIND_DO_MAKE_MEM_UNDEFINED(uptr, usize);
+	}
+
 	int ret;
 	if (constructor != NULL &&
 		(ret = constructor(heap->base, uptr, usize, arg)) != 0) {

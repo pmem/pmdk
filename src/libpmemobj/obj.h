@@ -47,6 +47,7 @@
 #include "ctl.h"
 #include "sync.h"
 #include "stats.h"
+#include "ctl_debug.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
@@ -200,7 +201,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[992];
+	char unused2[984];
 };
 
 /*

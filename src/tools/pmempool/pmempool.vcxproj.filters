@@ -41,6 +41,9 @@
     <ClCompile Include="..\..\libpmemobj\container_seglists.c">
       <Filter>libs</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemobj\ctl_debug.c">
+      <Filter>libs</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\cuckoo.c">
       <Filter>libs</Filter>
     </ClCompile>

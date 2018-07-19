@@ -1341,6 +1341,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	heap->stats = stats;
 	heap->set = set;
 	heap->growsize = HEAP_DEFAULT_GROW_SIZE;
+	heap->alloc_pattern = PALLOC_CTL_DEBUG_NO_PATTERN;
 	VALGRIND_DO_CREATE_MEMPOOL(heap->layout, 0, 0);
 
 	for (unsigned i = 0; i < h->narenas; ++i)
