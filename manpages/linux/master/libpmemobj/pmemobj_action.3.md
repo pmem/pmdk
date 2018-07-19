@@ -65,7 +65,7 @@ PMEMoid pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 void pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act);
 void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 	uint64_t *ptr, uint64_t value); (EXPERIMENTAL)
-void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
+int pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
 	size_t actvcnt); (EXPERIMENTAL)
 int pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt); (EXPERIMENTAL)
 pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv,
@@ -90,8 +90,7 @@ the persistent publication of a set of prepared actions to an arbitrary moment
 in time of the execution of a program.
 
 The publication is fail-safe atomic in the scope of the entire collection of
-actions, but the number of said actions is limited by *POBJ_MAX_ACTIONS*
-constant. If a program exits without publishing the actions, or the actions are
+actions. If a program exits without publishing the actions, or the actions are
 canceled, any resources reserved by those actions are released and placed back in
 the pool.
 
@@ -127,7 +126,6 @@ modify the memory location pointed to by *ptr* to *value*.
 The **pmemobj_publish** function publishes the provided set of actions. The
 publication is fail-safe atomic. Once done, the persistent state will reflect
 the changes contained in the actions.
-The *actvcnt* cannot exceed *POBJ_MAX_ACTIONS*.
 
 The **pmemobj_tx_publish** function moves the provided actions to the scope of
 the transaction in which it is called. Only object reservations are supported
@@ -190,6 +188,9 @@ reserved object, otherwise an *OID_NULL* is returned.
 
 On success, **pmemobj_tx_publish**() returns 0, otherwise,
 stage changes to *TX_STAGE_ONABORT* and *errno* is set appropriately
+
+On success, **pmemobj_publish**() returns 0, otherwise, returns -1 and *errno*
+is set appropriately.
 
 # SEE ALSO #
 
