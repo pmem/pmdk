@@ -136,5 +136,4 @@ main(int argc, char *argv[])
 	rpmemd_config_free(&config);
 
 	DONE(NULL);
-	return 0;
 }

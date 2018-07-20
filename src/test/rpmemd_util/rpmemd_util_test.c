@@ -49,9 +49,9 @@ struct result {
 };
 
 /* all values to test */
-const enum rpmem_persist_method pms[] =
+static const enum rpmem_persist_method pms[] =
 		{RPMEM_PM_GPSPM, RPMEM_PM_APM, MAX_RPMEM_PM};
-const int is_pmems[] = {0, 1};
+static const int is_pmems[] = {0, 1};
 
 enum mode {
 	MODE_VALID,
@@ -59,7 +59,7 @@ enum mode {
 	MODE_MAX
 };
 
-const int ranges[2][2][2] = {
+static const int ranges[2][2][2] = {
 	[MODE_VALID] = {
 		{0, ARRAY_SIZE(pms) - 1},
 		{0, ARRAY_SIZE(is_pmems)}
@@ -71,7 +71,7 @@ const int ranges[2][2][2] = {
 };
 
 /* expected results */
-const struct result exp_results[3][2] = {
+static const struct result exp_results[3][2] = {
 		{
 			/* GPSPM and is_pmem == false */
 			{0, RPMEM_PM_GPSPM, pmem_msync, memcpy},
@@ -169,5 +169,4 @@ main(int argc, char *argv[])
 	test(ranges[mode][0], ranges[mode][1]);
 
 	DONE(NULL);
-	return 0;
 }

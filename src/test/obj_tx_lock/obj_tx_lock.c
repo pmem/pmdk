@@ -45,7 +45,7 @@ struct transaction_data {
 	PMEMrwlock rwlocks[NUM_LOCKS];
 };
 
-PMEMobjpool *Pop;
+static PMEMobjpool *Pop;
 
 #define DO_LOCK(mtx, rwlock)\
 	pmemobj_tx_lock(TX_PARAM_MUTEX, &(mtx)[0]);\

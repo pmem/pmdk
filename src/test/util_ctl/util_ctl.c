@@ -75,7 +75,7 @@ CTL_WRITE_HANDLER(test_rw)(void *ctx, enum ctl_query_source source,
 	return 0;
 }
 
-struct ctl_argument CTL_ARG(test_rw) = CTL_ARG_INT;
+static struct ctl_argument CTL_ARG(test_rw) = CTL_ARG_INT;
 
 static int
 CTL_WRITE_HANDLER(test_wo)(void *ctx, enum ctl_query_source source,
@@ -88,7 +88,7 @@ CTL_WRITE_HANDLER(test_wo)(void *ctx, enum ctl_query_source source,
 	return 0;
 }
 
-struct ctl_argument CTL_ARG(test_wo) = CTL_ARG_INT;
+static struct ctl_argument CTL_ARG(test_wo) = CTL_ARG_INT;
 
 #define TEST_CONFIG_VALUE "abcd"
 
@@ -105,7 +105,7 @@ CTL_WRITE_HANDLER(test_config)(void *ctx, enum ctl_query_source source,
 	return 0;
 }
 
-struct ctl_argument CTL_ARG(test_config) = CTL_ARG_STRING(8);
+static struct ctl_argument CTL_ARG(test_config) = CTL_ARG_STRING(8);
 
 struct complex_arg {
 	int a;
@@ -136,7 +136,7 @@ CTL_WRITE_HANDLER(test_config_complex_arg)(void *ctx,
 	return 0;
 }
 
-struct ctl_argument CTL_ARG(test_config_complex_arg) = {
+static struct ctl_argument CTL_ARG(test_config_complex_arg) = {
 	.dest_size = sizeof(struct complex_arg),
 	.parsers = {
 		CTL_ARG_PARSER_STRUCT(struct complex_arg, a, ctl_arg_integer),
@@ -216,7 +216,7 @@ CTL_WRITE_HANDLER(gtest_config)(void *ctx, enum ctl_query_source source,
 	return 0;
 }
 
-struct ctl_argument CTL_ARG(gtest_config) = CTL_ARG_STRING(8);
+static struct ctl_argument CTL_ARG(gtest_config) = CTL_ARG_STRING(8);
 
 static int
 CTL_READ_HANDLER(gtest_ro)(void *ctx, enum ctl_query_source source,

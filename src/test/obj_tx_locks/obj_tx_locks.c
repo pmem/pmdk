@@ -61,7 +61,7 @@ struct transaction_data {
 	int c;
 };
 
-PMEMobjpool *Pop;
+static PMEMobjpool *Pop;
 
 /*
  * do_tx -- (internal) thread-friendly transaction
