@@ -186,7 +186,8 @@ OTHER_TESTS = \
 	util_poolset_size\
 	util_sds\
 	util_uuid_generate\
-	util_vec
+	util_vec\
+	util_vecq
 
 ifeq ($(ARCH), x86_64)
 OTHER_TESTS += \
