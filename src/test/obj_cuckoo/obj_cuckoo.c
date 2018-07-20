@@ -85,19 +85,19 @@ test_insert_get_remove(void)
 	struct cuckoo *c = cuckoo_new();
 	UT_ASSERT(c != NULL);
 
-	for (int i = 0; i < TEST_INSERTS; ++i)
+	for (unsigned i = 0; i < TEST_INSERTS; ++i)
 		UT_ASSERT(cuckoo_insert(c, i, TEST_VAL(i)) == 0);
 
-	for (int i = 0; i < TEST_INSERTS; ++i)
+	for (unsigned i = 0; i < TEST_INSERTS; ++i)
 		UT_ASSERT(cuckoo_get(c, i) == TEST_VAL(i));
 
-	for (int i = 0; i < TEST_INSERTS; ++i)
+	for (unsigned i = 0; i < TEST_INSERTS; ++i)
 		UT_ASSERT(cuckoo_remove(c, i) == TEST_VAL(i));
 
-	for (int i = 0; i < TEST_INSERTS; ++i)
+	for (unsigned i = 0; i < TEST_INSERTS; ++i)
 		UT_ASSERT(cuckoo_remove(c, i) == NULL);
 
-	for (int i = 0; i < TEST_INSERTS; ++i)
+	for (unsigned i = 0; i < TEST_INSERTS; ++i)
 		UT_ASSERT(cuckoo_get(c, i) == NULL);
 
 	cuckoo_delete(c);
@@ -110,7 +110,7 @@ test_insert_get_remove(void)
 static uint64_t
 rand64(void)
 {
-	return (((uint64_t)rand()) << 32) | rand();
+	return (((uint64_t)rand()) << 32) | (unsigned)rand();
 }
 
 #define NVALUES (100000)

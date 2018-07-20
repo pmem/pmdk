@@ -78,9 +78,10 @@ main(int argc, char *argv[])
 
 		os_stat_t stbuf;
 		FSTAT(fd, &stbuf);
+		size_t size = (size_t)stbuf.st_size;
 
 		void *addr =
-			MMAP(NULL, stbuf.st_size, PROT_READ|PROT_WRITE,
+			MMAP(NULL, size, PROT_READ|PROT_WRITE,
 					MAP_PRIVATE, fd, 0);
 
 		uint64_t *ptr = addr;
@@ -92,7 +93,7 @@ main(int argc, char *argv[])
 		 * verified against the gold standard fletcher64
 		 * routine in this file.
 		 */
-		while ((char *)(ptr + 1) < (char *)addr + stbuf.st_size) {
+		while ((char *)(ptr + 1) < (char *)addr + size) {
 			/* save whatever was at *ptr */
 			uint64_t oldval = *ptr;
 
@@ -102,21 +103,20 @@ main(int argc, char *argv[])
 			/*
 			 * calculate a checksum and have it installed
 			 */
-			util_checksum(addr, stbuf.st_size, ptr, 1, 0);
+			util_checksum(addr, size, ptr, 1, 0);
 
 			uint64_t csum = *ptr;
 
 			/*
 			 * verify inserted checksum checks out
 			 */
-			UT_ASSERT(util_checksum(addr, stbuf.st_size, ptr,
-					0, 0));
+			UT_ASSERT(util_checksum(addr, size, ptr, 0, 0));
 
 			/* put a zero where the checksum was installed */
 			*ptr = 0;
 
 			/* calculate a checksum */
-			uint64_t gold_csum = fletcher64(addr, stbuf.st_size);
+			uint64_t gold_csum = fletcher64(addr, size);
 
 			/* put the old value back */
 			*ptr = oldval;
@@ -124,7 +124,7 @@ main(int argc, char *argv[])
 			/*
 			 * verify checksum now fails
 			 */
-			UT_ASSERT(!util_checksum(addr, stbuf.st_size, ptr,
+			UT_ASSERT(!util_checksum(addr, size, ptr,
 					0, 0));
 
 			/*
@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 		}
 
 		uint64_t *addr2 =
-			MMAP(NULL, stbuf.st_size, PROT_READ|PROT_WRITE,
+			MMAP(NULL, size, PROT_READ|PROT_WRITE,
 				MAP_PRIVATE, fd, 0);
 
 		uint64_t *csum = (uint64_t *)addr;
@@ -148,9 +148,9 @@ main(int argc, char *argv[])
 		 * in the second map
 		 */
 		*addr2 = 0;
-		for (size_t i = (stbuf.st_size) / 8 - 1; i > 0; i -= 1) {
+		for (size_t i = size / 8 - 1; i > 0; i -= 1) {
 			/* calculate a checksum and have it installed */
-			util_checksum(addr, stbuf.st_size, csum, 1, i * 8);
+			util_checksum(addr, size, csum, 1, i * 8);
 
 			/*
 			 * put a zero in the second map where an ignored part is
@@ -158,7 +158,7 @@ main(int argc, char *argv[])
 			*(addr2 + i) = 0;
 
 			/* calculate a checksum */
-			uint64_t gold_csum = fletcher64(addr2, stbuf.st_size);
+			uint64_t gold_csum = fletcher64(addr2, size);
 			/*
 			 * verify the checksum matched the gold version
 			 */
@@ -166,8 +166,8 @@ main(int argc, char *argv[])
 		}
 
 		CLOSE(fd);
-		MUNMAP(addr, stbuf.st_size);
-		MUNMAP(addr2, stbuf.st_size);
+		MUNMAP(addr, size);
+		MUNMAP(addr2, size);
 
 	}
 

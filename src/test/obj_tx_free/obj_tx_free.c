@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -72,7 +72,7 @@ struct object {
  * do_tx_alloc -- do tx allocation with specified type number
  */
 static PMEMoid
-do_tx_alloc(PMEMobjpool *pop, int type_num)
+do_tx_alloc(PMEMobjpool *pop, unsigned type_num)
 {
 	PMEMoid ret = OID_NULL;
 

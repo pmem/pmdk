@@ -54,7 +54,7 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		UT_FATAL("usage: %s init fail file (uuid usc)...", argv[0]);
 
-	int files = (argc - 3) / 2;
+	unsigned files = (unsigned)(argc - 3) / 2;
 
 	uids = MALLOC(files * sizeof(uids[0]));
 	uscs = MALLOC(files * sizeof(uscs[0]));
@@ -66,7 +66,7 @@ main(int argc, char *argv[])
 	char *path = argv[3];
 
 	char **args = argv + 4;
-	for (int i = 0; i < files; i++) {
+	for (unsigned i = 0; i < files; i++) {
 		uids[i] = args[i * 2];
 		uscs[i] = strtoull(args[i * 2 + 1], NULL, 0);
 	}

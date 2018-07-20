@@ -120,7 +120,7 @@ int os_ftruncate(int fd, os_off_t length);
 int os_flock(int fd, int operation);
 ssize_t os_writev(int fd, const struct iovec *iov, int iovcnt);
 int os_clock_gettime(int id, struct timespec *ts);
-int os_rand_r(unsigned *seedp);
+unsigned os_rand_r(unsigned *seedp);
 int os_unsetenv(const char *name);
 int os_setenv(const char *name, const char *value, int overwrite);
 char *os_getenv(const char *name);

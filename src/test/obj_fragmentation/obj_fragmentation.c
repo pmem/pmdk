@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -61,11 +61,11 @@ main(int argc, char *argv[])
 
 	size_t file_size;
 	if (argc == 4)
-		file_size = atoll(argv[3]);
+		file_size = ATOUL(argv[3]);
 	else
 		file_size = DEFAULT_FILE_SIZE;
 
-	size_t alloc_size = atoll(argv[1]);
+	size_t alloc_size = ATOUL(argv[1]);
 	const char *path = argv[2];
 
 	PMEMobjpool *pop = pmemobj_create(path, LAYOUT_NAME, file_size,

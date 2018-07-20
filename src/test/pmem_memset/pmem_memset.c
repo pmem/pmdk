@@ -57,8 +57,8 @@ pmem_memset_nodrain_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
 }
 
 static void
-do_memset(int fd, char *dest, const char *file_name, os_off_t dest_off,
-		os_off_t bytes, pmem_memset_fn fn, unsigned flags)
+do_memset(int fd, char *dest, const char *file_name, size_t dest_off,
+		size_t bytes, pmem_memset_fn fn, unsigned flags)
 {
 	char *buf = MALLOC(bytes);
 	char *dest1;
@@ -95,7 +95,7 @@ do_memset(int fd, char *dest, const char *file_name, os_off_t dest_off,
 		UT_FATAL("%s: first %zu bytes do not match",
 				file_name, bytes / 2);
 
-	LSEEK(fd, (os_off_t)0, SEEK_SET);
+	LSEEK(fd, 0, SEEK_SET);
 	if (READ(fd, buf, bytes / 2) == bytes / 2) {
 		if (memcmp(buf, dest, bytes / 2))
 			UT_FATAL("%s: first %zu bytes do not match",
@@ -123,8 +123,8 @@ static unsigned Flags[] = {
 };
 
 static void
-do_memset_variants(int fd, char *dest, const char *file_name, os_off_t dest_off,
-		os_off_t bytes)
+do_memset_variants(int fd, char *dest, const char *file_name, size_t dest_off,
+		size_t bytes)
 {
 	do_memset(fd, dest, file_name, dest_off, bytes,
 			pmem_memset_persist_wrapper, 0);
@@ -164,7 +164,7 @@ main(int argc, char *argv[])
 	if ((dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL)) == NULL)
 		UT_FATAL("!Could not mmap %s\n", argv[1]);
 
-	int dest_off = atoi(argv[2]);
+	size_t dest_off = strtoul(argv[2], NULL, 0);
 	size_t bytes = strtoul(argv[3], NULL, 0);
 
 	do_memset_variants(fd, dest, argv[1], dest_off, bytes);

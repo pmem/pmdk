@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,17 +42,17 @@
 
 static char **mem_pools;
 static VMEM **pools;
-static int npools;
+static unsigned npools;
 static const char *dir;
 
 static void *
 thread_func(void *arg)
 {
-	int start_idx = *(int *)arg;
+	unsigned start_idx = *(unsigned *)arg;
 
 	for (int repeat = 0; repeat < TEST_REPEAT_CREATE_POOLS; ++repeat) {
-		for (int idx = 0; idx < npools; ++idx) {
-			int pool_id = start_idx + idx;
+		for (unsigned idx = 0; idx < npools; ++idx) {
+			unsigned pool_id = start_idx + idx;
 
 			/* delete old pool with the same id if exist */
 			if (pools[pool_id] != NULL) {
@@ -94,8 +94,8 @@ main(int argc, char *argv[])
 		UT_FATAL("usage: %s directory npools nthreads", argv[0]);
 
 	dir = argv[1];
-	npools = atoi(argv[2]);
-	int nthreads = atoi(argv[3]);
+	npools = ATOU(argv[2]);
+	unsigned nthreads = ATOU(argv[3]);
 
 	UT_OUT("create %d pools in %d thread(s)", npools, nthreads);
 
@@ -104,7 +104,7 @@ main(int argc, char *argv[])
 	pools = CALLOC(npools * nthreads, sizeof(VMEM *));
 	os_thread_t *threads = CALLOC(nthreads, sizeof(os_thread_t));
 	UT_ASSERTne(threads, NULL);
-	int *pool_idx = CALLOC(nthreads, sizeof(int));
+	unsigned *pool_idx = CALLOC(nthreads, sizeof(pool_idx[0]));
 	UT_ASSERTne(pool_idx, NULL);
 
 	for (unsigned pool_id = 0; pool_id < mem_pools_size; ++pool_id) {
@@ -113,15 +113,15 @@ main(int argc, char *argv[])
 	}
 
 	/* create and destroy pools multiple times */
-	for (int t = 0; t < nthreads; t++) {
+	for (unsigned t = 0; t < nthreads; t++) {
 		pool_idx[t] = npools * t;
 		PTHREAD_CREATE(&threads[t], NULL, thread_func, &pool_idx[t]);
 	}
 
-	for (int t = 0; t < nthreads; t++)
+	for (unsigned t = 0; t < nthreads; t++)
 		PTHREAD_JOIN(&threads[t], NULL);
 
-	for (int pool_id = 0; pool_id < npools * nthreads; ++pool_id) {
+	for (unsigned pool_id = 0; pool_id < npools * nthreads; ++pool_id) {
 		if (pools[pool_id] != NULL) {
 			vmem_delete(pools[pool_id]);
 			pools[pool_id] = NULL;

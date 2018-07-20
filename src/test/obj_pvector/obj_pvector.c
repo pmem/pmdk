@@ -117,7 +117,7 @@ main(int argc, char *argv[])
 	pvector_delete(ctx);
 
 	ctx = pvector_new(pop, &r->vec);
-	for (int i = 0; i < PVECTOR_INSERT_VALUES; ++i) {
+	for (unsigned i = 0; i < PVECTOR_INSERT_VALUES; ++i) {
 		val = pvector_push_back(ctx);
 		UT_ASSERTne(val, NULL);
 		*val = i;

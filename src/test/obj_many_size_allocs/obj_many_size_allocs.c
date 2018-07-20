@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -68,7 +68,7 @@ test_allocs(PMEMobjpool *pop, const char *path)
 	if (pmemobj_alloc(pop, &oid[0], 0, 0, NULL, NULL) == 0)
 		UT_FATAL("pmemobj_alloc(0) succeeded");
 
-	for (int i = 1; i < TEST_ALLOC_SIZE; ++i) {
+	for (unsigned i = 1; i < TEST_ALLOC_SIZE; ++i) {
 		struct cargs args = { i };
 		if (pmemobj_alloc(pop, &oid[i], i, 0,
 				test_constructor, &args) != 0)
@@ -120,7 +120,7 @@ test_lazy_load(PMEMobjpool *pop, const char *path)
 static void
 test_all_classes(PMEMobjpool *pop)
 {
-	for (int i = 1; i <= MAX_BUCKET_MAP_ENTRIES; ++i) {
+	for (unsigned i = 1; i <= MAX_BUCKET_MAP_ENTRIES; ++i) {
 		int err;
 		int nallocs = 0;
 		while ((err = pmemobj_alloc(pop, NULL, i * ALLOC_BLOCK_SIZE, 0,

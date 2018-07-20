@@ -123,7 +123,7 @@ verify_contents(const char *file_name, int test,
  */
 static void
 do_memmove(int ddax, char *dst, char *src, const char *file_name,
-		os_off_t dest_off, os_off_t src_off, os_off_t bytes,
+		size_t dest_off, size_t src_off, size_t bytes,
 		pmem_memmove_fn fn, unsigned flags)
 {
 	void *ret;
@@ -205,7 +205,7 @@ static unsigned Flags[] = {
 
 static void
 do_memmove_variants(int ddax, char *dst, char *src, const char *file_name,
-	os_off_t dest_off, os_off_t src_off, os_off_t bytes)
+	size_t dest_off, size_t src_off, size_t bytes)
 {
 	do_memmove(ddax, dst, src, file_name, dest_off, src_off,
 			bytes, pmem_memmove_persist_wrapper, 0);
@@ -224,9 +224,9 @@ main(int argc, char *argv[])
 	int fd;
 	char *dst;
 	char *src;
-	os_off_t dst_off = 0;
-	os_off_t src_off = 0;
-	uint64_t bytes = 0;
+	size_t dst_off = 0;
+	size_t src_off = 0;
+	size_t bytes = 0;
 	int who = 0;
 	size_t mapped_len;
 
@@ -253,7 +253,7 @@ main(int argc, char *argv[])
 		    argv[arg][0]) == NULL || argv[arg][1] != ':')
 			UT_FATAL("op must be d: or s: or b: or o:");
 
-		os_off_t val = strtoul(&argv[arg][2], NULL, 0);
+		size_t val = STRTOUL(&argv[arg][2], NULL, 0);
 
 		switch (argv[arg][0]) {
 		case 'd':

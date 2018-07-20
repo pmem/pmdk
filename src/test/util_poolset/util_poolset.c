@@ -135,11 +135,11 @@ mock_options(const char *arg)
 		break;
 	case 'f':
 		/* fallocate */
-		Fallocate_len = atoll(&arg[4]);
+		Fallocate_len = ATOLL(&arg[4]);
 		break;
 	case 'p':
 		/* is_pmem */
-		Is_pmem_len = atoll(&arg[4]);
+		Is_pmem_len = ATOULL(&arg[4]);
 		break;
 	default:
 		UT_FATAL("unknown mock option: %c", arg[2]);

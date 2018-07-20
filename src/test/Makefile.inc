@@ -320,6 +320,10 @@ CXXFLAGS += $(EXTRA_CXXFLAGS)
 CFLAGS  = -std=gnu99
 CFLAGS += -Wmissing-prototypes
 CFLAGS += $(COMMON_FLAGS)
+ifneq ($(USING_JEMALLOC_HEADERS),y)
+CFLAGS += -Wsign-conversion
+endif
+
 CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)

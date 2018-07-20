@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@ print_errors(const char *msg)
 }
 
 static void
-check_errors(int ver)
+check_errors(unsigned ver)
 {
 	int ret;
 	int err_need;
@@ -116,7 +116,7 @@ check_errors(int ver)
 static void *
 do_test(void *arg)
 {
-	int ver = *(int *)arg;
+	unsigned ver = *(unsigned *)arg;
 
 	pmem_check_version(ver, 0);
 	pmemobj_check_version(ver, 0);
@@ -134,13 +134,13 @@ static void
 run_mt_test(void *(*worker)(void *))
 {
 	os_thread_t thread[NUM_THREADS];
-	int ver[NUM_THREADS];
+	unsigned ver[NUM_THREADS];
 
-	for (int i = 0; i < NUM_THREADS; ++i) {
+	for (unsigned i = 0; i < NUM_THREADS; ++i) {
 		ver[i] = 10000 + i;
 		PTHREAD_CREATE(&thread[i], NULL, worker, &ver[i]);
 	}
-	for (int i = 0; i < NUM_THREADS; ++i) {
+	for (unsigned i = 0; i < NUM_THREADS; ++i) {
 		PTHREAD_JOIN(&thread[i], NULL);
 	}
 }
@@ -197,7 +197,7 @@ main(int argc, char *argv[])
 	print_errors("pmemlog_append");
 
 	size_t nblock = pmemblk_nblock(pbp);
-	pmemblk_set_error(pbp, nblock + 1);
+	pmemblk_set_error(pbp, (long long)nblock + 1);
 	print_errors("pmemblk_set_error");
 
 	ret = pmemcto_check(argv[4], "xxx");

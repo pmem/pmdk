@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -65,7 +65,7 @@ test_reopen(const char *path)
 
 #ifndef _WIN32
 static void
-test_open_in_different_process(int argc, char **argv, int sleep)
+test_open_in_different_process(int argc, char **argv, unsigned sleep)
 {
 	pid_t pid = fork();
 	PMEMblkpool *blk;
@@ -111,7 +111,7 @@ test_open_in_different_process(int argc, char **argv, int sleep)
 }
 #else
 static void
-test_open_in_different_process(int argc, char **argv, int sleep)
+test_open_in_different_process(int argc, char **argv, unsigned sleep)
 {
 	PMEMblkpool *blk;
 
@@ -150,7 +150,7 @@ main(int argc, char *argv[])
 	if (argc == 2) {
 		test_reopen(argv[1]);
 		test_open_in_different_process(argc, argv, 0);
-		for (int i = 1; i < 100000; i *= 2)
+		for (unsigned i = 1; i < 100000; i *= 2)
 			test_open_in_different_process(argc, argv, i);
 	} else if (argc == 3) {
 		PMEMblkpool *blk;

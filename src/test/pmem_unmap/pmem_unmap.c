@@ -64,7 +64,7 @@ main(int argc, char *argv[])
 	mode = S_IWUSR | S_IRUSR;
 
 	STAT(path, &stbuf);
-	size = stbuf.st_size;
+	size = (size_t)stbuf.st_size;
 
 	UT_ASSERTeq(size, 20 * MEGABYTE);
 

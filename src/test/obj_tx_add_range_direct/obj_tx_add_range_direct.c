@@ -54,7 +54,7 @@ TOID_DECLARE(struct object, 0);
 
 struct object {
 	size_t value;
-	char data[OBJ_SIZE - sizeof(size_t)];
+	unsigned char data[OBJ_SIZE - sizeof(size_t)];
 };
 
 #define VALUE_OFF	(offsetof(struct object, value))
@@ -68,7 +68,7 @@ struct object {
  * do_tx_alloc -- do tx allocation with specified type number
  */
 static PMEMoid
-do_tx_zalloc(PMEMobjpool *pop, int type_num)
+do_tx_zalloc(PMEMobjpool *pop, unsigned type_num)
 {
 	PMEMoid ret = OID_NULL;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 
 #define NALLOCS 100
 
-static int *ptrs[NALLOCS * 2];
+static unsigned *ptrs[NALLOCS * 2];
 
 #define POOL_SIZE (PMEMCTO_MIN_POOL * 2)
 
@@ -72,7 +72,7 @@ test_alloc(PMEMctopool *pcp, unsigned start, unsigned cnt)
 {
 	unsigned i;
 	for (i = start; i < start + cnt; ++i) {
-		ptrs[i] = pmemcto_malloc(pcp, 16 * sizeof(int));
+		ptrs[i] = pmemcto_malloc(pcp, 16 * sizeof(ptrs[0]));
 		UT_ASSERTne(ptrs[i], NULL);
 		*(ptrs[i]) = i;
 	}
@@ -84,7 +84,7 @@ test_check(PMEMctopool *pcp, unsigned start, unsigned cnt)
 	unsigned i;
 	for (i = start; i < start + cnt; ++i) {
 		size_t usize = pmemcto_malloc_usable_size(pcp, ptrs[i]);
-		UT_ASSERT(usize >= 16 * sizeof(int));
+		UT_ASSERT(usize >= 16 * sizeof(ptrs[0]));
 		UT_ASSERTeq(*(ptrs[i]), i);
 	}
 }
@@ -129,9 +129,9 @@ do_malloc(PMEMctopool *pcp)
 static void
 do_calloc(PMEMctopool *pcp)
 {
-	for (int count = 1; count < 1024; count *= 2) {
+	for (size_t count = 1; count < 1024; count *= 2) {
 		for (int i = 0; i < NALLOCS; i++) {
-			ptrs[i] = pmemcto_calloc(pcp, count, sizeof(int));
+			ptrs[i] = pmemcto_calloc(pcp, count, sizeof(ptrs[0]));
 			UT_ASSERTne(ptrs[i], NULL);
 
 			/* check that pointer came from mem_pool */
@@ -239,7 +239,7 @@ do_strdup(PMEMctopool *pcp)
 int
 main(int argc, char *argv[])
 {
-	int *root;
+	unsigned *root;
 
 	START(argc, argv, "cto_basic");
 
