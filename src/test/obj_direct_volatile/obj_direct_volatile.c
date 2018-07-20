@@ -35,7 +35,7 @@
  */
 #include "unittest.h"
 
-PMEMobjpool *pop;
+static PMEMobjpool *pop;
 
 struct test {
 	PMEMvlt(int) count;
@@ -43,7 +43,7 @@ struct test {
 
 #define TEST_OBJECTS 100
 #define TEST_WORKERS 10
-struct test *tests[TEST_OBJECTS];
+static struct test *tests[TEST_OBJECTS];
 
 static int
 test_constructor(void *ptr, void *arg)
