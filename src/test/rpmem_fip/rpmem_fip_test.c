@@ -62,8 +62,8 @@
 #define TOTAL_PER_LANE	(SIZE_PER_LANE * COUNT_PER_LANE)
 #define POOL_SIZE	(NLANES * TOTAL_PER_LANE)
 
-uint8_t lpool[POOL_SIZE];
-uint8_t rpool[POOL_SIZE];
+static uint8_t lpool[POOL_SIZE];
+static uint8_t rpool[POOL_SIZE];
 
 TEST_CASE_DECLARE(client_init);
 TEST_CASE_DECLARE(server_init);

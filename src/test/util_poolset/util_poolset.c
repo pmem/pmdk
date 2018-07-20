@@ -53,7 +53,7 @@
 
 #define TEST_FORMAT_INCOMPAT_CHECK POOL_FEAT_ALL
 
-size_t Extend_size = MIN_PART * 2;
+static size_t Extend_size = MIN_PART * 2;
 
 const char *Open_path = "";
 os_off_t Fallocate_len = -1;

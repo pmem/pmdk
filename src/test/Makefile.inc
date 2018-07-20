@@ -322,7 +322,20 @@ CFLAGS += $(COMMON_FLAGS)
 ifneq ($(USING_JEMALLOC_HEADERS),y)
 CFLAGS += -Wsign-conversion
 endif
-
+ifeq ($(call check_compiler, icc), n)
+ifeq ($(call check_flag, -Wunreachable-code-return), y)
+CFLAGS += -Wunreachable-code-return
+endif
+ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+CFLAGS += -Wmissing-variable-declarations
+endif
+ifeq ($(call check_flag, -Wfloat-equal), y)
+CFLAGS += -Wfloat-equal
+endif
+ifeq ($(call check_flag, -Wcast-function-type), y)
+CFLAGS += -Wcast-function-type
+endif
+endif
 CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)

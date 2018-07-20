@@ -51,7 +51,6 @@ str2type(char *str)
 		return PMEM_MAP_SYNC;
 
 	FATAL("unknown type '%s'", str);
-	return MAX_PMEM_TYPE;
 }
 
 int

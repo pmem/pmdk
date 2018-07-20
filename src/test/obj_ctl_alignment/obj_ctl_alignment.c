@@ -38,7 +38,7 @@
 
 #define LAYOUT "obj_ctl_alignment"
 
-PMEMobjpool *pop;
+static PMEMobjpool *pop;
 
 static void
 test_fail(void)

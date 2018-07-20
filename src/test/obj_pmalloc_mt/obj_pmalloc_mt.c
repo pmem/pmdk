@@ -48,9 +48,9 @@
 #define CHUNKSIZE (1 << 18)
 #define CHUNKS_PER_THREAD 3
 
-unsigned Threads;
-unsigned Ops_per_thread;
-unsigned Tx_per_thread;
+static unsigned Threads;
+static unsigned Ops_per_thread;
+static unsigned Tx_per_thread;
 
 struct root {
 	uint64_t offs[MAX_THREADS][MAX_OPS_PER_THREAD];

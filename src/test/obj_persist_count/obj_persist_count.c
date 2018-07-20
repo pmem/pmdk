@@ -53,8 +53,8 @@ struct ops_counter {
 	unsigned n_pot_cache_misses;
 };
 
-struct ops_counter ops_counter;
-struct ops_counter tx_counter;
+static struct ops_counter ops_counter;
+static struct ops_counter tx_counter;
 
 #define FLUSH_ALIGN ((uintptr_t)64)
 #define MOVNT_THRESHOLD	256
