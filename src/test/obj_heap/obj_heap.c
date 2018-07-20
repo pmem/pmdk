@@ -142,14 +142,12 @@ test_container(struct block_container *bc, struct palloc_heap *heap)
 {
 	UT_ASSERTne(bc, NULL);
 
-	struct memory_block a = {1, 0, 1, 0};
-	struct memory_block b = {2, 0, 2, 0};
-	struct memory_block c = {3, 0, 3, 0};
-	struct memory_block d = {5, 0, 5, 0};
+	struct memory_block a = {1, 0, 1, 4};
+	struct memory_block b = {1, 0, 2, 8};
+	struct memory_block c = {1, 0, 3, 16};
+	struct memory_block d = {1, 0, 5, 32};
+
 	init_run_with_score(heap->layout, 1, 128);
-	init_run_with_score(heap->layout, 2, 128);
-	init_run_with_score(heap->layout, 3, 128);
-	init_run_with_score(heap->layout, 5, 128);
 	memblock_rebuild_state(heap, &a);
 	memblock_rebuild_state(heap, &b);
 	memblock_rebuild_state(heap, &c);

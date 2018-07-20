@@ -43,23 +43,14 @@
 #include "sys_util.h"
 #include "util.h"
 #include "valgrind_internal.h"
-#include "queue.h"
-
-/*
- * The list entries are stored inside of the free memory blocks, but they are
- * treated as volatile. This is to save cpu and memory calling malloc() for
- * every node.
- */
-struct seglist_entry {
-	struct memory_block m;
-	STAILQ_ENTRY(seglist_entry) entry;
-};
+#include "vecq.h"
 
 #define SEGLIST_BLOCK_LISTS 64U
 
 struct block_container_seglists {
 	struct block_container super;
-	STAILQ_HEAD(, seglist_entry) blocks[SEGLIST_BLOCK_LISTS];
+	struct memory_block m;
+	VECQ(, uint16_t) blocks[SEGLIST_BLOCK_LISTS];
 	uint64_t nonempty_lists;
 };
 
@@ -78,29 +69,15 @@ container_seglists_insert_block(struct block_container *bc,
 	struct block_container_seglists *c =
 		(struct block_container_seglists *)bc;
 
+	if (c->nonempty_lists == 0)
+		c->m = *m;
+
 	ASSERT(m->size_idx <= SEGLIST_BLOCK_LISTS);
+	ASSERT(m->chunk_id == c->m.chunk_id);
+	ASSERT(m->zone_id == c->m.zone_id);
 
-	struct seglist_entry *e = m->m_ops->get_user_data(m);
-	VALGRIND_DO_MAKE_MEM_DEFINED(e, sizeof(*e));
-
-	struct seglist_entry **last = c->blocks[m->size_idx - 1].stqh_last;
-
-	VALGRIND_ADD_TO_TX(e, sizeof(*e));
-	VALGRIND_ADD_TO_TX(last, sizeof(*last));
-
-	e->m = *m;
-
-	/*
-	 * Add to the end of the list, so that the blocks inserted first are
-	 * allocated first (FIFO).
-	 */
-	STAILQ_INSERT_TAIL(&c->blocks[m->size_idx - 1], e, entry);
-
-	VALGRIND_SET_CLEAN(last, sizeof(*last));
-	VALGRIND_SET_CLEAN(e, sizeof(*e));
-
-	VALGRIND_REMOVE_FROM_TX(last, sizeof(*last));
-	VALGRIND_REMOVE_FROM_TX(e, sizeof(*e));
+	if (VECQ_ENQUEUE(&c->blocks[m->size_idx - 1], m->block_off) != 0)
+		return -1;
 
 	/* marks the list as nonempty */
 	c->nonempty_lists |= 1ULL << (m->size_idx - 1);
@@ -131,18 +108,14 @@ container_seglists_get_rm_block_bestfit(struct block_container *bc,
 	/* finds the list that serves the smallest applicable size */
 	i = util_lssb_index64(v);
 
-	struct seglist_entry *e = STAILQ_FIRST(&c->blocks[i]);
-	VALGRIND_ADD_TO_TX(e, sizeof(*e));
+	uint16_t block_offset = VECQ_DEQUEUE(&c->blocks[i]);
 
-	STAILQ_REMOVE_HEAD(&c->blocks[i], entry);
-
-	if (STAILQ_EMPTY(&c->blocks[i])) /* marks the list as empty */
+	if (VECQ_SIZE(&c->blocks[i]) == 0) /* marks the list as empty */
 		c->nonempty_lists &= ~(1ULL << (i));
 
-	VALGRIND_SET_CLEAN(e, sizeof(*e));
-	VALGRIND_REMOVE_FROM_TX(e, sizeof(*e));
-
-	*m = e->m;
+	*m = c->m;
+	m->block_off = block_offset;
+	m->size_idx = i + 1;
 
 	return 0;
 }
@@ -169,17 +142,8 @@ container_seglists_rm_all(struct block_container *bc)
 	struct block_container_seglists *c =
 		(struct block_container_seglists *)bc;
 
-	for (unsigned i = 0; i < SEGLIST_BLOCK_LISTS; ++i) {
-		while (!STAILQ_EMPTY(&c->blocks[i])) {
-			struct seglist_entry *e = STAILQ_FIRST(&c->blocks[i]);
-			VALGRIND_ADD_TO_TX(e, sizeof(*e));
-
-			STAILQ_REMOVE_HEAD(&c->blocks[i], entry);
-
-			VALGRIND_SET_CLEAN(e, sizeof(*e));
-			VALGRIND_REMOVE_FROM_TX(e, sizeof(*e));
-		}
-	}
+	for (unsigned i = 0; i < SEGLIST_BLOCK_LISTS; ++i)
+		VECQ_CLEAR(&c->blocks[i]);
 
 	c->nonempty_lists = 0;
 }
@@ -192,6 +156,9 @@ container_seglists_destroy(struct block_container *bc)
 {
 	struct block_container_seglists *c =
 		(struct block_container_seglists *)bc;
+
+	for (unsigned i = 0; i < SEGLIST_BLOCK_LISTS; ++i)
+		VECQ_DELETE(&c->blocks[i]);
 
 	Free(c);
 }
@@ -224,7 +191,7 @@ container_new_seglists(struct palloc_heap *heap)
 	bc->super.c_ops = &container_seglists_ops;
 
 	for (unsigned i = 0; i < SEGLIST_BLOCK_LISTS; ++i)
-		STAILQ_INIT(&bc->blocks[i]);
+		VECQ_INIT(&bc->blocks[i]);
 	bc->nonempty_lists = 0;
 
 	return (struct block_container *)&bc->super;
