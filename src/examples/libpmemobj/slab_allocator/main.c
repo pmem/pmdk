@@ -115,6 +115,7 @@ main(int argc, char *argv[])
 
 	slab_delete(foo_producer);
 	slab_delete(bar_producer);
+
 	pmemobj_close(pop);
 
 	return 0;
