@@ -46,7 +46,7 @@ date: vmem API version 1.1
 # NAME #
 
 **vmem_createU**()/**vmem_createW**(), **vmem_create_in_region**(), **vmem_delete**(),
-**vmem_check**(), **vmem_stats_print**() -- volatile memory pool management
+**vmem_check**(), **vmem_stats_print**() - volatile memory pool management
 
 
 # SYNOPSIS #

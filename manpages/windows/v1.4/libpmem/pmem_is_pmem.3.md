@@ -49,7 +49,7 @@ date: pmem API version 1.1
 # NAME #
 
 **pmem_is_pmem**(), **pmem_map_fileU**()/**pmem_map_fileW**(),
-**pmem_unmap**() -- check persistency, create and delete mappings
+**pmem_unmap**() - check persistency, create and delete mappings
 
 
 # SYNOPSIS #

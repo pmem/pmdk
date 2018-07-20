@@ -46,7 +46,7 @@ date: pmem Tools version 1.4
 
 # NAME #
 
-**pmempool-dump** -- dump user data from persistent memory pool
+**pmempool-dump** - dump user data from persistent memory pool
 
 
 # SYNOPSIS #
