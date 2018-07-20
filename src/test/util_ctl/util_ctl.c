@@ -75,7 +75,7 @@ CTL_WRITE_HANDLER(test_rw)(void *ctx, enum ctl_query_source source,
 	return 0;
 }
 
-struct ctl_argument CTL_ARG(test_rw) = CTL_ARG_INT;
+static struct ctl_argument CTL_ARG(test_rw) = CTL_ARG_INT;
 
 static int
 CTL_WRITE_HANDLER(test_wo)(void *ctx, enum ctl_query_source source,
@@ -88,7 +88,7 @@ CTL_WRITE_HANDLER(test_wo)(void *ctx, enum ctl_query_source source,
 	return 0;
 }
 
-struct ctl_argument CTL_ARG(test_wo) = CTL_ARG_INT;
+static struct ctl_argument CTL_ARG(test_wo) = CTL_ARG_INT;
 
 #define TEST_CONFIG_VALUE "abcd"
 
