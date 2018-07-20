@@ -44,7 +44,7 @@ date: pmem Tools version 1.4
 
 # NAME #
 
-**pmempool-sync** -- Synchronize replicas or their parts within a pool set.
+**pmempool-sync** - Synchronize replicas or their parts within a pool set.
 
 
 # SYNOPSIS #

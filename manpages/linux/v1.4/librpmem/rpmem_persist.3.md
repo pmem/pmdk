@@ -46,7 +46,7 @@ date: rpmem API version 1.2
 # NAME #
 
 **rpmem_persist**(), **rpmem_read**(),
--- functions to copy and read remote pools
+- functions to copy and read remote pools
 
 
 # SYNOPSIS #

@@ -53,7 +53,7 @@ date: libpmemcto API version 1.0
 
 # NAME #
 
-**libpmemcto** -- close-to-open persistence (EXPERIMENTAL)
+**libpmemcto** - close-to-open persistence (EXPERIMENTAL)
 
 
 # SYNOPSIS #

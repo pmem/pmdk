@@ -48,7 +48,7 @@ date: pmemobj API version 2.3
 
 **pmemobj_open**(), **pmemobj_create**(),
 **pmemobj_close**(), **pmemobj_check**()
--- create, open, close and validate persistent memory transactional object store
+- create, open, close and validate persistent memory transactional object store
 
 
 # SYNOPSIS #
