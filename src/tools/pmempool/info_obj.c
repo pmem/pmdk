@@ -546,20 +546,17 @@ info_obj_object(struct pmem_info *pip, const struct memory_block *m,
  * info_obj_run_bitmap -- print chunk run's bitmap
  */
 static void
-info_obj_run_bitmap(int v, const struct memory_block *m)
+info_obj_run_bitmap(int v, struct run_bitmap *b)
 {
-	struct run_bitmap b;
-	m->m_ops->get_bitmap(m, &b);
-
 	/* print only used values for lower verbosity */
 	uint32_t i;
-	for (i = 0; i < b.nbits / BITS_PER_VALUE; i++)
-		outv(v, "%s\n", get_bitmap_str(b.values[i],
+	for (i = 0; i < b->nbits / BITS_PER_VALUE; i++)
+		outv(v, "%s\n", get_bitmap_str(b->values[i],
 					BITS_PER_VALUE));
 
-	unsigned mod = b.nbits % BITS_PER_VALUE;
+	unsigned mod = b->nbits % BITS_PER_VALUE;
 	if (mod != 0) {
-		outv(v, "%s\n", get_bitmap_str(b.values[i], mod));
+		outv(v, "%s\n", get_bitmap_str(b->values[i], mod));
 	}
 }
 
@@ -594,6 +591,29 @@ info_obj_run_cb(const struct memory_block *m, void *arg)
 	return 0;
 }
 
+static struct pmem_obj_class_stats *
+info_obj_class_stats_get_or_insert(struct pmem_obj_zone_stats *stats,
+	uint64_t unit_size, uint64_t alignment,
+	uint32_t nallocs, uint16_t flags)
+{
+	struct pmem_obj_class_stats *cstats;
+	VEC_FOREACH_BY_PTR(cstats, &stats->class_stats) {
+		if (cstats->alignment == alignment &&
+		    cstats->flags == flags &&
+		    cstats->nallocs == nallocs &&
+		    cstats->unit_size == unit_size)
+			return cstats;
+	}
+
+	struct pmem_obj_class_stats s = {0, 0, unit_size,
+		alignment, nallocs, flags};
+
+	if (VEC_PUSH_BACK(&stats->class_stats, s) != 0)
+		return NULL;
+
+	return &VEC_BACK(&stats->class_stats);
+}
+
 /*
  * info_obj_chunk -- print chunk info
  */
@@ -624,11 +644,11 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 
 	if (chunk_hdr->type == CHUNK_TYPE_USED ||
 		chunk_hdr->type == CHUNK_TYPE_FREE) {
-		stats->class_stats[DEFAULT_ALLOC_CLASS_ID].n_units +=
+		VEC_FRONT(&stats->class_stats).n_units +=
 			chunk_hdr->size_idx;
 
 		if (chunk_hdr->type == CHUNK_TYPE_USED) {
-			stats->class_stats[DEFAULT_ALLOC_CLASS_ID].n_used +=
+			VEC_FRONT(&stats->class_stats).n_used +=
 				chunk_hdr->size_idx;
 
 			/* skip root object */
@@ -644,33 +664,36 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 				sizeof(run->alignment),
 				PTR_TO_OFF(pop, run), 1);
 
-		struct alloc_class *aclass = alloc_class_by_run(
-			pip->obj.alloc_classes,
-			run->block_size, chunk_hdr->flags, m.size_idx);
-		if (aclass) {
-			outv_field(v, "Block size", "%s",
-					out_get_size_str(run->block_size,
-						pip->args.human));
+		struct run_bitmap bitmap;
+		m.m_ops->get_bitmap(&m, &bitmap);
 
-			uint32_t units = aclass->run.nallocs;
-			uint32_t free_space;
-			uint32_t max_free_block;
-			m.m_ops->calc_free(&m, &free_space, &max_free_block);
-			uint32_t used = 0;
-
-			stats->class_stats[aclass->id].n_units += units;
-			stats->class_stats[aclass->id].n_used += used;
-
-			outv_field(v, "Bitmap", "%u / %u", used, units);
-
-			info_obj_run_bitmap(v && pip->args.obj.vbitmap, &m);
-
-			m.m_ops->iterate_used(&m, info_obj_run_cb, pip);
-		} else {
-			outv_field(v, "Block size", "%s [invalid!]",
-					out_get_size_str(run->block_size,
-						pip->args.human));
+		struct pmem_obj_class_stats *cstats =
+			info_obj_class_stats_get_or_insert(stats,
+			run->block_size, run->alignment, bitmap.nbits,
+			chunk_hdr->flags);
+		if (cstats == NULL) {
+			outv_err("out of memory, can't allocate statistics");
+			return;
 		}
+
+		outv_field(v, "Block size", "%s",
+				out_get_size_str(run->block_size,
+					pip->args.human));
+
+		uint32_t units = bitmap.nbits;
+		uint32_t free_space;
+		uint32_t max_free_block;
+		m.m_ops->calc_free(&m, &free_space, &max_free_block);
+		uint32_t used = units - free_space;
+
+		cstats->n_units += units;
+		cstats->n_used += used;
+
+		outv_field(v, "Bitmap", "%u / %u", used, units);
+
+		info_obj_run_bitmap(v && pip->args.obj.vbitmap, &bitmap);
+
+		m.m_ops->iterate_used(&m, info_obj_run_cb, pip);
 	}
 }
 
@@ -681,6 +704,12 @@ static void
 info_obj_zone_chunks(struct pmem_info *pip, struct zone *zone, uint64_t z,
 	struct pmem_obj_zone_stats *stats)
 {
+	VEC_INIT(&stats->class_stats);
+
+	struct pmem_obj_class_stats default_class_stats = {0, 0,
+		CHUNKSIZE, 0, 0, 0};
+	VEC_PUSH_BACK(&stats->class_stats, default_class_stats);
+
 	uint64_t c = 0;
 	while (c < zone->header.size_idx) {
 		enum chunk_type type = zone->chunk_headers[c].type;
@@ -877,31 +906,27 @@ info_obj_stats_alloc_classes(struct pmem_info *pip, int v,
 	uint64_t total_used = 0;
 
 	outv_indent(v, 1);
-	for (unsigned class = 0; class < MAX_ALLOCATION_CLASSES; class++) {
-		struct alloc_class *c = alloc_class_by_id(
-				pip->obj.alloc_classes, (uint8_t)class);
-		if (c == NULL)
-			continue;
-		if (!stats->class_stats[class].n_units)
+
+	struct pmem_obj_class_stats *cstats;
+	VEC_FOREACH_BY_PTR(cstats, &stats->class_stats) {
+		if (cstats->n_units == 0)
 			continue;
 
 		double used_perc = 100.0 *
-			(double)stats->class_stats[class].n_used /
-			(double)stats->class_stats[class].n_units;
+			(double)cstats->n_used / (double)cstats->n_units;
 
 		outv_nl(v);
 		outv_field(v, "Unit size", "%s", out_get_size_str(
-					c->unit_size, pip->args.human));
-		outv_field(v, "Units", "%lu",
-				stats->class_stats[class].n_units);
+					cstats->unit_size, pip->args.human));
+		outv_field(v, "Units", "%lu", cstats->n_units);
 		outv_field(v, "Used units", "%lu [%s]",
-				stats->class_stats[class].n_used,
+				cstats->n_used,
 				out_get_percentage(used_perc));
 
-		uint64_t bytes = c->unit_size *
-			stats->class_stats[class].n_units;
-		uint64_t used = c->unit_size *
-			stats->class_stats[class].n_used;
+		uint64_t bytes = cstats->unit_size *
+			cstats->n_units;
+		uint64_t used = cstats->unit_size *
+			cstats->n_used;
 
 		total_bytes += bytes;
 		total_used += used;
@@ -914,6 +939,7 @@ info_obj_stats_alloc_classes(struct pmem_info *pip, int v,
 				out_get_size_str(used, pip->args.human),
 				out_get_percentage(used_bytes_perc));
 	}
+
 	outv_indent(v, -1);
 
 	double used_bytes_perc = total_bytes ? 100.0 *
@@ -988,11 +1014,17 @@ info_obj_add_zone_stats(struct pmem_obj_zone_stats *total,
 			stats->size_chunks_type[type];
 	}
 
-	for (int class = 0; class < MAX_ALLOCATION_CLASSES; class++) {
-		total->class_stats[class].n_units +=
-			stats->class_stats[class].n_units;
-		total->class_stats[class].n_used +=
-			stats->class_stats[class].n_used;
+	struct pmem_obj_class_stats *cstats;
+	VEC_FOREACH_BY_PTR(cstats, &stats->class_stats) {
+		struct pmem_obj_class_stats *ctotal =
+		info_obj_class_stats_get_or_insert(total, cstats->unit_size,
+			cstats->alignment, cstats->nallocs, cstats->flags);
+		if (ctotal == NULL) {
+			outv_err("out of memory, can't allocate statistics");
+			return;
+		}
+		ctotal->n_units += cstats->n_units;
+		ctotal->n_used += cstats->n_used;
 	}
 }
 
