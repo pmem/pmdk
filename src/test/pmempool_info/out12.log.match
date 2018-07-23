@@ -73,6 +73,21 @@ Size idx                 : $(*)
    Flags                    : $(*)
  
  Chunk                    : $(*)
+ Type                     : run
+ Flags                    : $(*)
+ Size idx                 : $(*)
+ Block size               : $(*)
+ Bitmap                   : $(*)
+
+  Object                   : $(*)
+  Offset                   : $(*)
+
+   Allocation Header:
+   Size                     : $(*)
+   Extra                    : $(*)
+   Flags                    : $(*)
+ 
+ Chunk                    : $(*)
  Type                     : free
  Flags                    : $(*)
  Size idx                 : $(*)
@@ -80,17 +95,21 @@ Size idx                 : $(*)
 Statistics:
 
 Objects:
-Number of objects        : 2
+Number of objects        : 3
 Number of bytes          : $(*)
 
 Objects by type:
 
  Type number              : 1
- Number of objects        : 1 [50.000000 %]
+ Number of objects        : 1 [33.333333 %]
  Number of bytes          : $(*)
 
  Type number              : 2
- Number of objects        : 1 [50.000000 %]
+ Number of objects        : 1 [33.333333 %]
+ Number of bytes          : $(*)
+
+ Type number              : 3
+ Number of objects        : 1 [33.333333 %]
  Number of bytes          : $(*)
 
 Heap:
@@ -109,6 +128,12 @@ Number of used zones     : 1 [100 %]
   run                      : $(*)
 
  Zone's allocation classes:
+
+  Unit size                : $(*)
+  Units                    : $(*)
+  Used units               : $(*)
+  Bytes                    : $(*)
+  Used bytes               : $(*)
 
   Unit size                : $(*)
   Units                    : $(*)
