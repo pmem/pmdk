@@ -39,7 +39,7 @@
 	{% assign page_title =  page.title | downcase %}
 	{% assign dc_title =  page.collection %}
 	{% assign man_name =  dc_title | append:'3.html' %}
-	{% if dc_title == 'rpmemd' or dc_title == 'daxio' or dc_title == 'pmempool' or dc_title contains 'pmempool-' %}
+	{% if dc_title == 'rpmemd' or dc_title == 'daxio' or dc_title == 'pmreorder' or dc_title == 'pmempool' or dc_title contains 'pmempool-' %}
 		{% assign dc_title_ext =  dc_title | append:'.1.html' %}
 		{% assign dc_title_ext_old =  dc_title | append:'.1.html' %}
 	{% else %}
@@ -47,7 +47,7 @@
 		{% assign dc_title_ext_old =  dc_title | append:'.3.html' %}
 	{% endif %}
 
-	{% if dc_title == 'pmempool' or dc_title == 'poolset' or dc_title == 'rpmemd' or dc_title == 'daxio' %}
+	{% if dc_title == 'pmempool' or dc_title == 'poolset' or dc_title == 'rpmemd' or dc_title == 'daxio' or dc_title == 'pmreorder' %}
 		<!-- no libraries -->
 	{% else %}
 	<div id="shortcut">
@@ -55,7 +55,7 @@
 		{% for system in sys_array %}
 		<ul id="menu">
 			{% if system == "windows" %}
-				{% if dc_title == "librpmem" or dc_title == "rpmemd" or dc_title == "libvmmalloc" or dc_title == "daxio" %}
+				{% if dc_title == "librpmem" or dc_title == "rpmemd" or dc_title == "libvmmalloc" or dc_title == "daxio" or dc_title == 'pmreorder' %}
 					<!-- skip Linux-only components -->
 				{% else %}
 					<li class="sys_header"><a href="#">{{ system | upcase }}</a></li>
