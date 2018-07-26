@@ -283,6 +283,12 @@ extern unsigned _On_valgrind;
 		VALGRIND_PMC_ADD_TO_GLOBAL_TX_IGNORE(addr, len);\
 } while (0)
 
+#define DEFAULT_ENGINE "|DEFAULT_REORDER"
+#define PARTIAL_ENGINE "|PREORDER"
+#define FULL_ENGINE "|FREORDER"
+#define NO_REORDER_ENGINE "|FAULT_ONLY"
+#define SKIP_REORDER_CHECKER "|NO_REORDER_FAULT"
+
 #else
 
 #define VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
