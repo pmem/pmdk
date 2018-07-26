@@ -121,8 +121,8 @@ main(int argc, char *argv[])
 
 	VALGRIND_LOG_STORES;
 	/* verify that VALGRIND_DEFAULT_REORDER restores default engine */
-	VALGRIND_PARTIAL_REORDER;
-	VALGRIND_DEFAULT_REORDER;
+	VALGRIND_EMIT_LOG(PARTIAL_ENGINE);
+	VALGRIND_EMIT_LOG(DEFAULT_ENGINE);
 
 	switch (opt) {
 		case 'g':
