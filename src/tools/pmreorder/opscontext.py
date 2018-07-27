@@ -30,7 +30,6 @@
 
 from operationfactory import OperationFactory
 from binaryoutputhandler import BinaryOutputHandler
-import reorderengines
 
 
 class OpsContext:
@@ -49,7 +48,7 @@ class OpsContext:
     :type default_barrier: bool
     :ivar file_handler: The file handler used.
     """
-    def __init__(self, log_file, checker, logger):
+    def __init__(self, log_file, checker, logger, engine):
         """
         Splits the operations in the log file and sets the instance variables
         to default values.
@@ -61,7 +60,7 @@ class OpsContext:
         # TODO reading the whole file at once is rather naive
         # change in the future
         self._operations = open(log_file).read().split("|")
-        self.reorder_engine = reorderengines.FullReorderEngine()
+        self.reorder_engine = engine
         self.test_on_barrier = True
         self.default_engine = self.reorder_engine
         self.default_barrier = self.test_on_barrier

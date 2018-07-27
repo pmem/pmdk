@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/pmem_reorder_simple/TEST0 -- unit test for the reordering script
+# src/test/pmem_reorder_simple/TEST4 -- unit test for the reordering script
 #
 
 # standard unit test setup
@@ -50,11 +50,11 @@ setup
 truncate -s 4M $DIR/testfile1
 
 BIN="./pmem_reorder_simple$EXESUFFIX"
-PMEMCHECK_CMD="$BIN b $DIR/testfile1"
+PMEMCHECK_CMD="$BIN g $DIR/testfile1"
 PMREORDER_CMD="$BIN c"
 
 pmreorder_create_store_log $DIR/testfile1 "$PMEMCHECK_CMD"
-pmreorder_expect_failure full prog "$PMREORDER_CMD"
+pmreorder_expect_success partial prog "$PMREORDER_CMD"
 
 check
 

@@ -3033,14 +3033,14 @@ function require_python3()
 		return
 		;;
 	    *)
-		echo "$UNITTEST_NAME: SKIP: required python version 3"
+		msg "$UNITTEST_NAME: SKIP: required python version 3"
 		exit 0
 		;;
 	esac
 }
 
 #
-# pmreorder_configure -- check all necessarily conditions to run pmreorder
+# require_pmreorder -- check all necessarily conditions to run pmreorder
 #
 function require_pmreorder()
 {
@@ -3055,10 +3055,11 @@ function require_pmreorder()
 #
 # pmreorder_run_tool -- run pmreorder with parameters and return exit status
 #
-# 1 - the checker type - for a list of supported types run `./pmreorder.py -h`
-# 2 - the path to the checker binary/library
-# 3 - the remaining parameters which will be passed to the consistency checker
-#     binary. If you are using a library checker, prepend '-n funcname'
+# 1 - reorder engine type [full|noreorder|partial|accumulative]
+# 2 - the checker type - for a list of supported types run `./pmreorder.py -h`
+# 3 - the path to the checker binary/library and  remaining parameters which
+#     will be passed to the consistency checker binary.
+#     If you are using a library checker, prepend '-n funcname'
 #
 function pmreorder_run_tool()
 {
@@ -3068,8 +3069,9 @@ function pmreorder_run_tool()
 		-l store_log$UNITTEST_NUM.log \
 		-t file \
 		-o pmreorder$UNITTEST_NUM.log \
-		-c $1 \
-		-p $2 $3
+		-r $1 \
+		-c $2 \
+		-p "$3"
 	ret=$?
 	restore_exit_on_error
 	echo $ret
@@ -3081,7 +3083,7 @@ function pmreorder_run_tool()
 #
 function pmreorder_expect_success()
 {
-	ret=$(pmreorder_run_tool $*)
+	ret=$(pmreorder_run_tool "$@")
 
 	if [ "$ret" -ne "0" ]; then
 		msg="failed with exit code $ret"
@@ -3104,7 +3106,7 @@ function pmreorder_expect_success()
 #
 function pmreorder_expect_failure()
 {
-	ret=$(pmreorder_run_tool $*)
+	ret=$(pmreorder_run_tool "$@")
 
 	if [ "$ret" -eq "0" ]; then
 		msg="succeeded"
@@ -3125,7 +3127,6 @@ function pmreorder_expect_failure()
 #
 function pmreorder_create_store_log()
 {
-
 	#copy original file and perform store logging
 	cp $1 "$1.pmr"
 	rm -f store_log$UNITTEST_NUM.log
