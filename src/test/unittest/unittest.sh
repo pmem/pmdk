@@ -3067,7 +3067,6 @@ function pmreorder_run_tool()
 	disable_exit_on_error
 	eval LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PYTHON_EXE $PMREORDER \
 		-l store_log$UNITTEST_NUM.log \
-		-t file \
 		-o pmreorder$UNITTEST_NUM.log \
 		-r $1 \
 		-c $2 \

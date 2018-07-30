@@ -58,10 +58,8 @@ def main():
     parser.add_argument("-n", "--name",
                         help="consistency check function " +
                         "for the 'lib' checker")
-    parser.add_argument("-t", "--output_type",
-                        choices=loggingfacility.loggers, default="print",
-                        help='choose logger type, default="print"')
     parser.add_argument("-o", "--output",
+                        default="print",
                         help="set the logger output")
     parser.add_argument("-e", "--output_level",
                         choices=loggingfacility.log_levels,
@@ -74,7 +72,6 @@ def main():
     args = parser.parse_args()
 
     logger = loggingfacility.get_logger(
-                                        args.output_type,
                                         args.output,
                                         args.output_level)
     checker = consistencycheckwrap.get_checker(
