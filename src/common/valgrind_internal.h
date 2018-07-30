@@ -208,31 +208,6 @@ extern unsigned _On_valgrind;
 		VALGRIND_PMC_REMOVE_LOG_REGION((addr), (len));\
 } while (0)
 
-#define VALGRIND_FULL_REORDER do {\
-	if (On_valgrind)\
-		VALGRIND_PMC_FULL_REORDER;\
-} while (0)
-
-#define VALGRIND_PARTIAL_REORDER do {\
-	if (On_valgrind)\
-		VALGRIND_PMC_PARTIAL_REORDER;\
-} while (0)
-
-#define VALGRIND_ONLY_FAULT do {\
-	if (On_valgrind)\
-		VALGRIND_PMC_ONLY_FAULT;\
-} while (0)
-
-#define VALGRIND_DEFAULT_REORDER do {\
-	if (On_valgrind)\
-		VALGRIND_PMC_DEFAULT_REORDER;\
-} while (0)
-
-#define VALGRIND_STOP_REORDER_FAULT do {\
-	if (On_valgrind)\
-		VALGRIND_PMC_STOP_REORDER_FAULT;\
-} while (0)
-
 #define VALGRIND_START_TX do {\
 	if (On_valgrind)\
 		VALGRIND_PMC_START_TX;\
@@ -336,16 +311,6 @@ extern unsigned _On_valgrind;
 	(void) (addr);\
 	(void) (len);\
 } while (0)
-
-#define VALGRIND_FULL_REORDER do {} while (0)
-
-#define VALGRIND_PARTIAL_REORDER do {} while (0)
-
-#define VALGRIND_DEFAULT_REORDER do {} while (0)
-
-#define VALGRIND_ONLY_FAULT do {} while (0)
-
-#define VALGRIND_STOP_REORDER_FAULT do {} while (0)
 
 #define VALGRIND_START_TX do {} while (0)
 
