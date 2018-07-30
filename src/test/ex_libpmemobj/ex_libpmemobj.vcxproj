@@ -23,6 +23,7 @@
     <None Include="out19.log.match" />
     <None Include="out2.log.match" />
     <None Include="out20.log.match" />
+    <None Include="out21.log.match" />
     <None Include="out3.log.match" />
     <None Include="out4.log.match" />
     <None Include="out5.log.match" />
@@ -43,6 +44,7 @@
     <None Include="TEST19.PS1" />
     <None Include="TEST2.PS1" />
     <None Include="TEST20.PS1" />
+    <None Include="TEST21.PS1" />
     <None Include="TEST3.PS1" />
     <None Include="TEST4.PS1" />
     <None Include="TEST5.PS1" />

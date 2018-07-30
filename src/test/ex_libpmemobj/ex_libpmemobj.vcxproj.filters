@@ -66,6 +66,9 @@
     <None Include="out20.log.match">
       <Filter>Match Files</Filter>
     </None>
+    <None Include="out21.log.match">
+      <Filter>Match Files</Filter>
+    </None>
     <None Include="TEST0.PS1">
       <Filter>Test Scripts</Filter>
     </None>
@@ -118,6 +121,9 @@
       <Filter>Test Scripts</Filter>
     </None>
     <None Include="TEST20.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST21.PS1">
       <Filter>Test Scripts</Filter>
     </None>
     <None Include="README" />

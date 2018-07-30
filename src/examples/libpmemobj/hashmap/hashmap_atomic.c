@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -297,9 +297,8 @@ hm_atomic_insert(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
 /*
  * hm_atomic_remove -- removes specified value from the hashmap,
  * returns:
- * - 1 if successful,
- * - 0 if value didn't exist,
- * - -1 if something bad happened
+ * - key's value if successful,
+ * - OID_NULL if value didn't exist or if something bad happened
  */
 PMEMoid
 hm_atomic_remove(PMEMobjpool *pop, TOID(struct hashmap_atomic) hashmap,
