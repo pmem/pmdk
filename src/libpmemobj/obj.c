@@ -1874,6 +1874,99 @@ pmemobj_openW(const wchar_t *path, const wchar_t *layout)
 #endif
 
 /*
+ * obj_xopen_common -- open / create pool according to provided flags
+ *
+ * This routine takes flags and does all the work. It can handle directory
+ * based pools and file based as well.
+ */
+static PMEMobjpool *
+obj_xopen_common(const char *path, const char *layout, size_t poolsize,
+		mode_t mode, size_t growsize, uint64_t flags, int dir_based) {
+	ASSERT(dir_based == NON_DIR_BASED_POOL || dir_based == DIR_BASED_POOL);
+
+	/* validate flags */
+	if (flags & PMEMOBJ_X_ACCESS) {
+		if (!((flags & PMEMOBJ_X_OPEN) && (flags & PMEMOBJ_X_CREATE))) {
+			LOG(2, "PMEMOBJ_X_ACCESS requires both PMEMOBJ_X_OPEN "
+					"and PMEMOBJ_X_CREATE flags");
+			errno = EINVAL;
+			return NULL;
+		}
+	} else if (!(flags & (PMEMOBJ_X_OPEN | PMEMOBJ_X_CREATE))) {
+		// flags require create or open or both
+		LOG(2, "neither PMEMOBJ_X_OPEN nor PMEMOBJ_X_CREATE flag "
+				"provided");
+		errno = EINVAL;
+		return NULL;
+	}
+
+	/* pick a right access path */
+	const char *access_path = NULL;
+	if (dir_based == NON_DIR_BASED_POOL) {
+		access_path = path;
+	} else {
+		// XXX: handle dir based pool
+		access_path = path; /* generate a first part path */
+	}
+	ASSERTne(access_path, NULL);
+
+	// XXX: PMEMOBJ_X_PREFAULT
+
+	if (flags & PMEMOBJ_X_ACCESS) {
+		/* access based logic */
+		if (os_access(access_path, F_OK)) {
+			if (errno == ENOENT) {
+				return pmemobj_create(path, layout, poolsize,
+						mode);
+			} else {
+				return NULL;
+			}
+		} else {
+			return pmemobj_open(path, layout);
+		}
+	} else {
+		PMEMobjpool *pop = 0;
+		if (flags & PMEMOBJ_X_OPEN) {
+			pop = pmemobj_open(path, layout);
+			if (!pop && errno != ENOENT) {
+				return NULL;
+			}
+		}
+		if ((flags & PMEMOBJ_X_CREATE) && !pop) {
+			pop = pmemobj_create(path, layout, poolsize, mode);
+		}
+		return pop;
+	}
+}
+
+/*
+ * pmemobj_xopen -- pmemobj version of pmemobj_create with additional flags
+ */
+PMEMobjpool *
+pmemobj_xopen(const char *path, const char *layout, size_t poolsize,
+	mode_t mode, uint64_t flags)
+{
+	LOG(3, "path %s layout %s poolsize %zu mode %o flags %" PRIu64,
+		path, layout, poolsize, mode, flags);
+	return obj_xopen_common(path, layout, poolsize, mode, 0, flags,
+			NON_DIR_BASED_POOL);
+}
+
+/*
+ * pmemobj_xopen_dir -- pmemobj version of pmemobj_create capable of opening
+ * directory based pools
+ */
+PMEMobjpool *
+pmemobj_xopen_dir(const char *dir, const char *layout, size_t poolsize,
+	mode_t mode, size_t growsize, uint64_t flags)
+{
+	LOG(3, "dir %s layout %s poolsize %zu mode %o growsize %zu flags %"
+		PRIu64, dir, layout, poolsize, mode, growsize, flags);
+	return obj_xopen_common(dir, layout, poolsize, mode, growsize, flags,
+			DIR_BASED_POOL);
+}
+
+/*
  * obj_replicas_cleanup -- (internal) free resources allocated for replicas
  */
 static void

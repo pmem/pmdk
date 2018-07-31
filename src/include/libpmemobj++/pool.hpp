@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 #define PMEMOBJ_POOL_HPP
 
 #include <stddef.h>
+#include <cstdarg>
 #include <string>
 #include <sys/stat.h>
 
@@ -167,6 +168,68 @@ public:
 	}
 
 	/**
+	 * Opens / creates object store memory pool according to provided flags
+	 *
+	 * @param path System path to the file to be created. If exists
+	 *	the pool can be created in-place depending on the size
+	 *	parameter. Existing file must be zeroed.
+	 * @param layout Unique identifier of the pool, can be a
+	 *	null-terminated string.
+	 * @param flags Control flags.
+	 * @param size Size of the pool in bytes. If zero and the file
+	 *	exists the pool is created in-place.
+	 * @param mode File mode for the new file.
+	 *
+	 * @return handle to the created pool.
+	 *
+	 * @throw pmem::pool_error when an error during creation occurs.
+	 */
+	static pool_base
+	xopen(const std::string &path, const std::string &layout,
+	      uint64_t flags = PMEMOBJ_X_OPEN,
+	      std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = DEFAULT_MODE)
+	{
+		pmemobjpool *pop = pmemobj_xopen(path.c_str(), layout.c_str(),
+						 size, mode, flags);
+		if (pop == nullptr)
+			throw pool_error("Failed opening pool");
+
+		return pool_base(pop);
+	}
+
+	/**
+	 * Opens / creates object store memory pool according to provided flags
+	 *
+	 * @param path System path to the file to be created. If exists
+	 *	the pool can be created in-place depending on the size
+	 *	parameter. Existing file must be zeroed.
+	 * @param layout Unique identifier of the pool, can be a
+	 *	null-terminated string.
+	 * @param flags Control flags.
+	 * @param size Size of the pool in bytes. If zero and the file
+	 *	exists the pool is created in-place.
+	 * @param mode File mode for the new file.
+	 * @param growsize Increment in which pool will grow.
+	 *
+	 * @return handle to the created pool.
+	 *
+	 * @throw pmem::pool_error when an error during creation occurs.
+	 */
+	static pool_base
+	xopen_dir(const std::string &dir, const std::string &layout,
+	      uint64_t flags = PMEMOBJ_X_OPEN,
+	      std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = DEFAULT_MODE,
+	      std::size_t growsize = 0)
+	{
+		pmemobjpool *pop = pmemobj_xopen_dir(dir.c_str(), layout.c_str(),
+						 size, mode, growsize, flags);
+		if (pop == nullptr)
+			throw pool_error("Failed opening pool");
+
+		return pool_base(pop);
+	}
+
+	/**
 	 * Checks if a given pool is consistent.
 	 *
 	 * @param path System path to the file containing the memory
@@ -235,6 +298,36 @@ public:
 						   size, mode);
 		if (pop == nullptr)
 			throw pool_error("Failed creating pool");
+
+		return pool_base(pop);
+	}
+
+	/**
+	 * Opens / creates object store memory pool according to provided flags
+	 *
+	 * @param path System path to the file to be created. If exists
+	 *	the pool can be created in-place depending on the size
+	 *	parameter. Existing file must be zeroed.
+	 * @param layout Unique identifier of the pool, can be a
+	 *	null-terminated string.
+	 * @param flags Control flags.
+	 * @param size Size of the pool in bytes. If zero and the file
+	 *	exists the pool is created in-place.
+	 * @param mode File mode for the new file.
+	 *
+	 * @return handle to the created pool.
+	 *
+	 * @throw pmem::pool_error when an error during creation occurs.
+	 */
+	static pool_base
+	xopen(const std::wstring &path, const std::wstring &layout,
+	      uint64_t flags = PMEMOBJ_X_OPEN,
+	      std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = DEFAULT_MODE)
+	{
+		pmemobjpool *pop = pmemobj_xopen(path.c_str(), layout.c_str(),
+						 size, mode, flags);
+		if (pop == nullptr)
+			throw pool_error("Failed opening pool");
 
 		return pool_base(pop);
 	}
@@ -520,6 +613,60 @@ public:
 	       std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = DEFAULT_MODE)
 	{
 		return pool<T>(pool_base::create(path, layout, size, mode));
+	}
+
+	/**
+	 * Opens / creates object store memory pool according to provided flags
+	 *
+	 * @param path System path to the file to be created. If exists
+	 *	the pool can be created in-place depending on the size
+	 *	parameter. Existing file must be zeroed.
+	 * @param layout Unique identifier of the pool, can be a
+	 *	null-terminated string.
+	 * @param flags Control flags.
+	 * @param size Size of the pool in bytes. If zero and the file
+	 *	exists the pool is created in-place.
+	 * @param mode File mode for the new file.
+	 *
+	 * @return handle to the created pool.
+	 *
+	 * @throw pmem::pool_error when an error during creation occurs.
+	 */
+	static pool<T>
+	xopen(const std::string &path, const std::string &layout,
+	      uint64_t flags = PMEMOBJ_X_OPEN,
+	      std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = DEFAULT_MODE)
+	{
+		return pool<T>(pool_base::xopen(path, layout, flags, size,
+			       mode));
+	}
+
+	/**
+	 * Opens / creates object store memory pool according to provided flags
+	 *
+	 * @param path System path to the file to be created. If exists
+	 *	the pool can be created in-place depending on the size
+	 *	parameter. Existing file must be zeroed.
+	 * @param layout Unique identifier of the pool, can be a
+	 *	null-terminated string.
+	 * @param flags Control flags.
+	 * @param size Size of the pool in bytes. If zero and the file
+	 *	exists the pool is created in-place.
+	 * @param mode File mode for the new file.
+	 * @param growsize Increment in which pool will grow.
+	 *
+	 * @return handle to the created pool.
+	 *
+	 * @throw pmem::pool_error when an error during creation occurs.
+	 */
+	static pool<T>
+	xopen_dir(const std::string &dir, const std::string &layout,
+	      uint64_t flags = PMEMOBJ_X_OPEN,
+	      std::size_t size = PMEMOBJ_MIN_POOL, mode_t mode = DEFAULT_MODE,
+	      std::size_t growsize = 0)
+	{
+		return pool<T>(pool_base::xopen_dir(dir, layout, flags, size,
+			       mode, growsize));
 	}
 
 	/**

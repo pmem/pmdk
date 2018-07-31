@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -84,6 +84,28 @@ PMEMobjpool *pmemobj_createU(const char *path, const char *layout,
 	size_t poolsize, mode_t mode);
 PMEMobjpool *pmemobj_createW(const wchar_t *path, const wchar_t *layout,
 	size_t poolsize, mode_t mode);
+#endif
+
+#define PMEMOBJ_X_OPEN		(1 << 0)
+#define PMEMOBJ_X_CREATE	(1 << 1)
+#define PMEMOBJ_X_PREFAULT	(1 << 2)
+#define PMEMOBJ_X_ACCESS	(1 << 3)
+
+#define PMEMOBJ_X_OPEN_CREAT \
+		(PMEMOBJ_X_ACCESS | PMEMOBJ_X_OPEN | PMEMOBJ_X_CREATE)
+
+#ifndef _WIN32
+PMEMobjpool *pmemobj_xopen(const char *path, const char *layout,
+	size_t poolsize, mode_t mode, uint64_t flags);
+#else
+// XXX
+#endif
+
+#ifndef _WIN32
+PMEMobjpool *pmemobj_xopen_dir(const char *dir, const char *layout,
+	size_t poolsize, mode_t mode, size_t growsize, uint64_t flags);
+#else
+// XXX
 #endif
 
 #ifndef _WIN32
