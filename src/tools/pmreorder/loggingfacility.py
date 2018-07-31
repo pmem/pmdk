@@ -30,7 +30,6 @@
 
 import logging
 
-loggers = ["print", "file"]
 log_levels = ["debug", "info", "warning", "error", "critical"]
 
 
@@ -90,7 +89,7 @@ class DefaultPrintLogger(LoggingBase):
         print("CRITICAL:", text)
 
 
-def get_logger(logger_type, log_output, log_level=None):
+def get_logger(log_output, log_level=None):
     logger = None
     # check if log_level is valid
     log_level = "warning" if log_level is None else log_level
@@ -98,8 +97,8 @@ def get_logger(logger_type, log_output, log_level=None):
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s'.format(log_level.upper()))
 
-    if logger_type == "print":
+    if log_output is None:
         logger = DefaultPrintLogger()
-    elif logger_type == "file":
+    else:
         logger = DefaultFileLogger(filename=log_output, level=numeric_level)
     return logger
