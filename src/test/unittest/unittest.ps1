@@ -667,6 +667,11 @@ function pass {
         }
     }
 
+    if ($Env:PMDK_LIB_PATH_NONDEBUG -And $Env:BUILD -eq 'nondebug')
+    {
+        rename_dll_files($Env:release_dll_directory)
+    }
+
     msg ""
 }
 
@@ -674,6 +679,11 @@ function pass {
 # fail -- print message that the test has failed
 #
 function fail {
+    if ($Env:PMDK_LIB_PATH_NONDEBUG -And $Env:BUILD -eq 'nondebug')
+    {
+        rename_dll_files($Env:release_dll_directory)
+    }
+
     Write-Error $args[0]
     Write-Host -NoNewline ($Env:UNITTEST_NAME + ": ")
     Write-Host -NoNewLine -foregroundcolor red "FAILED"
@@ -1055,6 +1065,13 @@ function setup {
     if ($Env:TM -eq "1" ) {
         $script:tm = [system.diagnostics.stopwatch]::startNew()
     }
+
+    if ($Env:PMDK_LIB_PATH_NONDEBUG -And $Env:BUILD -eq 'nondebug')
+    {
+        $Env:Path = $Env:Path + ';' + $Env:PMDK_LIB_PATH_NONDEBUG
+        $Env:release_dll_directory = '..\..\x64\Release\'
+        rename_dll_files($Env:release_dll_directory)
+    }
 }
 
 #
@@ -1276,4 +1293,16 @@ function require_free_space() {
 		msg "${Env:UNITTEST_NAME}: SKIP not enough free space"
 		exit 0
 	}
+}
+
+function rename_dll_files($DLL_DIRECTORY)
+{
+    if (Test-Path ($DLL_DIRECTORY + '\*.dll.temp'))
+    {
+        Get-ChildItem $DLL_DIRECTORY | Rename-Item -NewName { $_.name -Replace '.dll.temp', '.dll' }
+    }
+    else
+    {
+        Get-ChildItem $DLL_DIRECTORY | Rename-Item -NewName { $_.name -Replace '.dll', '.dll.temp' }
+    }
 }
