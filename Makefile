@@ -140,7 +140,7 @@ pkg-clean:
 rpm dpkg: pkg-clean source
 	+utils/build-$@.sh -t $(SRCVERSION) -s $(DESTDIR)/pmdk -w $(DESTDIR) -o $(CURDIR)/$@\
 			-e $(EXPERIMENTAL) -c $(BUILD_PACKAGE_CHECK) -r $(BUILD_RPMEM)\
-			-f $(TEST_CONFIG_FILE) -n $(NDCTL_ENABLE)
+			-f $(TEST_CONFIG_FILE) -n $(NDCTL_ENABLE) -d $(DISTRO)
 
 install uninstall:
 	$(MAKE) -C src $@
