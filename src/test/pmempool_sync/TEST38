@@ -53,7 +53,7 @@ require_fs_type any
 require_build_type debug
 require_command gdb
 
-require_superuser
+require_sudo_allowed
 require_kernel_module nfit_test
 require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
 require_command ndctl
