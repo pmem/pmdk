@@ -328,7 +328,8 @@ obj_init(void)
 
 	ctl_global_register();
 
-	obj_ctl_init_and_load(NULL);
+	if (obj_ctl_init_and_load(NULL))
+		FATAL("Ctl initialization failed");
 
 	lane_info_boot();
 

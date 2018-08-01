@@ -199,6 +199,7 @@ OTHER_TESTS = \
 	checksum\
 	compat_incompat_features\
 	ctl_prefault\
+	fix_ctl\
 	magic\
 	out_err\
 	out_err_mt\
