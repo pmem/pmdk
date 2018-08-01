@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -480,6 +480,9 @@ test_file_config(PMEMobjpool *pop)
 		"debug.test_config_complex_arg=12345,abcd,3147483647,1;", 0, 1);
 
 	create_and_test_file_config(NULL,
+		"global_debug.gtest_config="TEST_CONFIG_VALUE";", 0, 1);
+
+	create_and_test_file_config(NULL, "private.missing.query=1;"
 		"global_debug.gtest_config="TEST_CONFIG_VALUE";", 0, 1);
 
 	test_too_large_file(pop);
