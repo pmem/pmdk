@@ -398,9 +398,11 @@ ctl_load_config(struct ctl *ctl, void *ctx, char *buf)
 			r = ctl_query(ctl, ctx, CTL_QUERY_CONFIG_INPUT,
 				name, CTL_QUERY_WRITE, value);
 
-		if (r == -1) {
+		if (r == -1 && ctx != NULL) {
 			ERR("failed to parse query %s", qbuf);
 			return -1;
+		} else {
+			r = 0;
 		}
 
 		qbuf = strtok_r(NULL, CTL_STRING_QUERY_SEPARATOR, &sptr);
