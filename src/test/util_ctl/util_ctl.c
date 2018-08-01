@@ -526,6 +526,9 @@ test_file_config(struct pool *pop)
 	create_and_test_file_config(NULL,
 		"global_debug.gtest_config="TEST_CONFIG_VALUE";", 0, 1);
 
+	create_and_test_file_config(NULL, "private.missing.query=1;"
+		"global_debug.gtest_config="TEST_CONFIG_VALUE";", 0, 1);
+
 	test_too_large_file(pop);
 
 	int ret = ctl_load_config_from_file(pop->ctl,
