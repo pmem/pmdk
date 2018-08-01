@@ -997,21 +997,21 @@ function require_linked_with_ndctl() {
 }
 
 #
-# require_superuser -- require user with superuser rights
+# require_sudo_allowed -- require sudo command is allowed
 #
-function require_superuser() {
-	# user_id can be used later to check if we have superuser rights
-	user_id=$(id -u)
-	[ "$user_id" == "0" ] && return
-	msg "$UNITTEST_NAME: SKIP required: run with superuser rights"
-	exit 0
+function require_sudo_allowed() {
+	if ! timeout --signal=SIGKILL --kill-after=3s 3s sudo date >/dev/null 2>&1
+	then
+		msg "$UNITTEST_NAME: SKIP required: sudo allowed"
+		exit 0
+	fi
 }
 
 #
 # require_sudo_allowed_node -- require sudo command on a remote node
 #
 function require_sudo_allowed_node() {
-	if ! run_on_node $1 "timeout --signal=SIGKILL --kill-after=3s 3s sudo date" 1>/dev/null
+	if ! run_on_node $1 "timeout --signal=SIGKILL --kill-after=3s 3s sudo date" >/dev/null 2>&1
 	then
 		msg "$UNITTEST_NAME: SKIP required: sudo allowed on node $1"
 		exit 0
@@ -1495,8 +1495,6 @@ function require_command_node() {
 # require_kernel_module <module_name> [path_to_modinfo]
 #
 function require_kernel_module() {
-	[ "$user_id" == "" ] && require_superuser
-
 	MODULE=$1
 	MODINFO=$2
 
