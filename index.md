@@ -124,6 +124,12 @@ a Device DAX device.
 
 See the [daxio page](daxio) for available commands and documentation.
 
+#### pmreorder
+
+The **pmreorder** is an utility that performs a consistency check of a persistent program.
+
+See the [pmreorder page](pmreorder) for available commands and documentation.
+
 #### C++ bindings
 
 The C++ bindings aim at providing an easier to use, less error prone
