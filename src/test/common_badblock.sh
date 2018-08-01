@@ -56,7 +56,7 @@ COMMAND_NDCTL_NFIT_TEST_FINI="\
 # ndctl_nfit_test_init -- reset all regions and reload the nfit_test module
 #
 function ndctl_nfit_test_init() {
-	eval $COMMAND_NDCTL_NFIT_TEST_INIT
+	expect_normal_exit $COMMAND_NDCTL_NFIT_TEST_INIT
 }
 
 #
@@ -72,8 +72,8 @@ function ndctl_nfit_test_init_node() {
 #
 function ndctl_nfit_test_fini() {
 	MOUNT_DIR=$1
-	[ $MOUNT_DIR ] && umount $MOUNT_DIR &>> $PREP_LOG_FILE
-	eval $COMMAND_NDCTL_NFIT_TEST_FINI
+	[ $MOUNT_DIR ] && sudo umount $MOUNT_DIR &>> $PREP_LOG_FILE
+	expect_normal_exit $COMMAND_NDCTL_NFIT_TEST_FINI
 }
 
 #
@@ -96,9 +96,11 @@ function ndctl_nfit_test_fini_node() {
 function ndctl_nfit_test_mount_pmem() {
 	FULLDEV=$1
 	MOUNT_DIR=$2
-	mkfs.ext4 $FULLDEV &>>$PREP_LOG_FILE
-	mkdir -p $MOUNT_DIR &>>$PREP_LOG_FILE
-	mount $FULLDEV $MOUNT_DIR &>>$PREP_LOG_FILE
+	expect_normal_exit "\
+		sudo mkfs.ext4 $FULLDEV &>>$PREP_LOG_FILE && \
+		sudo mkdir -p $MOUNT_DIR &>>$PREP_LOG_FILE && \
+		sudo mount $FULLDEV $MOUNT_DIR &>>$PREP_LOG_FILE && \
+		sudo chmod 0777 $MOUNT_DIR"
 }
 
 #
@@ -115,7 +117,8 @@ function ndctl_nfit_test_mount_pmem_node() {
 	expect_normal_exit run_on_node $1 "\
 		sudo mkfs.ext4 $FULLDEV &>>$PREP_LOG_FILE && \
 		sudo mkdir -p $MOUNT_DIR &>>$PREP_LOG_FILE && \
-		sudo mount $FULLDEV $MOUNT_DIR &>>$PREP_LOG_FILE"
+		sudo mount $FULLDEV $MOUNT_DIR &>>$PREP_LOG_FILE && \
+		sudo chmod 0777 $MOUNT_DIR"
 }
 
 #
@@ -134,7 +137,7 @@ function ndctl_nfit_test_get_device() {
 
 	BUS="nfit_test.0"
 	REGION=$(ndctl list -b $BUS -t pmem -Ri | sed "/dev/!d;s/[\", ]//g;s/dev://g" | tail -1)
-	DEVICE=$(ndctl create-namespace -b $BUS -r $REGION -f -m $MODE -a 4096 | sed "/$DEVTYPE/!d;s/[\", ]//g;s/$DEVTYPE://g")
+	DEVICE=$(sudo ndctl create-namespace -b $BUS -r $REGION -f -m $MODE -a 4096 | sed "/$DEVTYPE/!d;s/[\", ]//g;s/$DEVTYPE://g")
 	echo $DEVICE
 }
 
@@ -153,7 +156,7 @@ function ndctl_nfit_test_get_device_node() {
 	[ "$DEVTYPE" == "" ] && echo "ERROR: wrong namespace mode: $MODE" >&2 && exit 1
 
 	BUS="nfit_test.0"
-	REGION=$(expect_normal_exit run_on_node $1 sudo ndctl list -b $BUS -t pmem -Ri | sed "/dev/!d;s/[\", ]//g;s/dev://g" | tail -1)
+	REGION=$(expect_normal_exit run_on_node $1 ndctl list -b $BUS -t pmem -Ri | sed "/dev/!d;s/[\", ]//g;s/dev://g" | tail -1)
 	DEVICE=$(expect_normal_exit run_on_node $1 sudo ndctl create-namespace -b $BUS -r $REGION -f -m $MODE -a 4096 | sed "/$DEVTYPE/!d;s/[\", ]//g;s/$DEVTYPE://g")
 	echo $DEVICE
 }
@@ -164,6 +167,7 @@ function ndctl_nfit_test_get_device_node() {
 #
 function ndctl_nfit_test_get_dax_device() {
 	DEVICE=$(ndctl_nfit_test_get_device devdax)
+	sudo chmod o+rw /dev/$DEVICE
 	echo $DEVICE
 }
 
@@ -206,7 +210,7 @@ function ndctl_nfit_test_get_namespace_of_device() {
 #
 function ndctl_nfit_test_get_namespace_of_device_node() {
 	DEVICE=$2
-	NAMESPACE=$(expect_normal_exit run_on_node $1 sudo ndctl list | grep -e "$DEVICE" -e namespace | grep -B1 -e "$DEVICE" | head -n1 | cut -d'"' -f4)
+	NAMESPACE=$(expect_normal_exit run_on_node $1 ndctl list | grep -e "$DEVICE" -e namespace | grep -B1 -e "$DEVICE" | head -n1 | cut -d'"' -f4)
 	echo $NAMESPACE
 }
 
@@ -222,7 +226,7 @@ function ndctl_inject_error() {
 	local NAMESPACE=$1
 	local BLOCK=$2
 	local COUNT=$3
-	ndctl inject-error --block=$BLOCK --count=$COUNT $NAMESPACE &>> $PREP_LOG_FILE
+	sudo ndctl inject-error --block=$BLOCK --count=$COUNT $NAMESPACE &>> $PREP_LOG_FILE
 }
 
 #
@@ -256,5 +260,5 @@ function expect_bad_blocks {
 #                      and fail if they are not there
 #
 function expect_bad_blocks_node {
-	expect_normal_exit run_on_node $1 sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || fatal "Error: ndctl failed to inject or retain bad blocks"
+	expect_normal_exit run_on_node $1 ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || fatal "Error: ndctl failed to inject or retain bad blocks"
 }
