@@ -22,12 +22,15 @@
   pmem_msync: pmem_flush.3
   pmem_persist: pmem_flush.3
   pmem_unmap: pmem_is_pmem.3
-- libpmemblk: pmemblk_bsize.3 pmemblk_check.3 pmemblk_check_version.3 pmemblk_close.3 pmemblk_create.3 pmemblk_errormsg.3 pmemblk_nblock.3 pmemblk_open.3 pmemblk_read.3 pmemblk_set_error.3 pmemblk_set_funcs.3 pmemblk_set_zero.3 pmemblk_write.3
+- libpmemblk: pmemblk_bsize.3 pmemblk_check.3 pmemblk_check_version.3 pmemblk_close.3 pmemblk_create.3 pmemblk_ctl_exec.3 pmemblk_ctl_get.3 pmemblk_ctl_set.3 pmemblk_errormsg.3 pmemblk_nblock.3 pmemblk_open.3 pmemblk_read.3 pmemblk_set_error.3 pmemblk_set_funcs.3 pmemblk_set_zero.3 pmemblk_write.3
   pmemblk_bsize: pmemblk_bsize.3
   pmemblk_check: pmemblk_create.3
   pmemblk_check_version: libpmemblk.7
   pmemblk_close: pmemblk_create.3
   pmemblk_create: pmemblk_create.3
+  pmemblk_ctl_exec: pmemblk_ctl_get.3
+  pmemblk_ctl_get: pmemblk_ctl_get.3
+  pmemblk_ctl_set: pmemblk_ctl_get.3
   pmemblk_errormsg: libpmemblk.7
   pmemblk_nblock: pmemblk_bsize.3
   pmemblk_open: pmemblk_create.3
@@ -55,13 +58,16 @@
   pmemcto_stats_print: pmemcto_stats_print.3
   pmemcto_strdup: pmemcto_strdup.3
   pmemcto_wcsdup: pmemcto_wcsdup.3
-- libpmemlog: pmemlog_append.3 pmemlog_appendv.3 pmemlog_check.3 pmemlog_check_version.3 pmemlog_close.3 pmemlog_create.3 pmemlog_errormsg.3 pmemlog_nbyte.3 pmemlog_open.3 pmemlog_rewind.3 pmemlog_set_funcs.3 pmemlog_tell.3 pmemlog_walk.3
+- libpmemlog: pmemlog_append.3 pmemlog_appendv.3 pmemlog_check.3 pmemlog_check_version.3 pmemlog_close.3 pmemlog_create.3 pmemlog_ctl_exec.3 pmemlog_ctl_get.3 pmemlog_ctl_set.3 pmemlog_errormsg.3 pmemlog_nbyte.3 pmemlog_open.3 pmemlog_rewind.3 pmemlog_set_funcs.3 pmemlog_tell.3 pmemlog_walk.3
   pmemlog_append: pmemlog_append.3
   pmemlog_appendv: pmemlog_append.3
   pmemlog_check: pmemlog_create.3
   pmemlog_check_version: libpmemlog.7
   pmemlog_close: pmemlog_create.3
   pmemlog_create: pmemlog_create.3
+  pmemlog_ctl_exec: pmemlog_ctl_get.3
+  pmemlog_ctl_get: pmemlog_ctl_get.3
+  pmemlog_ctl_set: pmemlog_ctl_get.3
   pmemlog_errormsg: libpmemlog.7
   pmemlog_nbyte: pmemlog_nbyte.3
   pmemlog_open: pmemlog_create.3
