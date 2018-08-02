@@ -7,7 +7,7 @@ header: PMDK
 date: pmemlog API version 1.1
 ...
 
-[comment]: <> (Copyright 2016-2017, Intel Corporation)
+[comment]: <> (Copyright 2016-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -99,7 +99,8 @@ int pmemlog_checkW(const wchar_t *path);
 A description of other **libpmemlog** functions can be found on the following
 manual pages:
 
-**pmemlog_create**(3), **pmemlog_nbyte**(3), **pmemlog_append**(3),
+**pmemlog_append**(3), **pmemlog_create**(3), **pmemlog_ctl_exec**(3),
+**pmemlog_ctl_get**(3), **pmemlog_ctl_set**(3), **pmemlog_nbyte**(3),
 **pmemlog_tell**(3)
 
 
@@ -354,6 +355,7 @@ by the SNIA NVM Programming Technical Work Group:
 # SEE ALSO #
 
 **msync**(2), **pmemlog_append**(3), **pmemlog_create**(3),
+**pmemlog_ctl_exec**(3), **pmemlog_ctl_get**(3), **pmemlog_ctl_set**(3),
 **pmemlog_nbyte**(3), **pmemlog_tell**(3), **strerror**(3),
 **libpmem**(7), **libpmemblk**(7), **libpmemcto**(7), **libpmemobj**(7)
 and **<http://pmem.io>**
