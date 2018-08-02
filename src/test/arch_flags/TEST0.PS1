@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2015-2018, Intel Corporation
 #
@@ -36,7 +35,7 @@
 #
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 
@@ -44,16 +43,15 @@ require_fs_type none
 
 setup
 
-export ARCH_FLAGS_LOG_LEVEL=15
+$Env:ARCH_FLAGS_LOG_LEVEL=15
+$Env:ARCH_FLAGS_LOG_FILE="log$Env:UNITTEST_NUM.log"
 
-export ARCH_FLAGS_LOG_FILE="log${UNITTEST_NUM}.log"
-
-expect_normal_exit ./arch_flags$EXESUFFIX\
-	0:0:0:0x0:0x0\
-	65535:0:0:0x0:0x0\
-	0:255:0:0x0:0x0\
-	0:0:255:0x0:0x0\
-	0:0:0:0x1:0x0\
+expect_normal_exit $Env:EXE_DIR\arch_flags$Env:EXESUFFIX `
+	0:0:0:0x0:0x0 `
+	65535:0:0:0x0:0x0 `
+	0:255:0:0x0:0x0 `
+	0:0:255:0x0:0x0 `
+	0:0:0:0x1:0x0 `
 	0:0:0:0x0:0x1
 
 check
