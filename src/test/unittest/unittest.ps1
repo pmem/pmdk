@@ -376,19 +376,21 @@ function create_poolset {
 # dump_last_n_lines -- dumps the last N lines of given log file to stdout
 #
 function dump_last_n_lines {
-    if (Test-Path $Args[0]) {
-        sv -Name fname ((Get-Location).path + "\" + $Args[0])
-        sv -Name ln (getLineCount $fname)
-        if ($ln -gt $UT_DUMP_LINES) {
-            $ln = $UT_DUMP_LINES
-            msg "Last $UT_DUMP_LINES lines of $fname below (whole file has $ln lines)."
-        } else {
-            msg "$fname below."
-        }
-        foreach ($line in Get-Content $fname -Tail $ln) {
-            msg $line
-        }
-    }
+	if ($Args[0]) {
+		if (Test-Path $Args[0]) {
+			sv -Name fname ((Get-Location).path + "\" + $Args[0])
+			sv -Name ln (getLineCount $fname)
+			if ($ln -gt $UT_DUMP_LINES) {
+				$ln = $UT_DUMP_LINES
+				msg "Last $UT_DUMP_LINES lines of $fname below (whole file has $ln lines)."
+			} else {
+				msg "$fname below."
+			}
+			foreach ($line in Get-Content $fname -Tail $ln) {
+				msg $line
+			}
+		}
+	}
 }
 
 #
