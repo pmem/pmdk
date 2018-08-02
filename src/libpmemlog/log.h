@@ -38,6 +38,7 @@
 #include <stddef.h>
 #include <endian.h>
 
+#include "ctl.h"
 #include "util.h"
 #include "os_thread.h"
 #include "pool_hdr.h"
@@ -67,14 +68,15 @@ struct pmemlog {
 	uint64_t write_offset;	/* current write point for the log */
 
 	/* some run-time state, allocated out of memory pool... */
-	void *addr;			/* mapped region */
-	size_t size;			/* size of mapped region */
-	int is_pmem;			/* true if pool is PMEM */
-	int rdonly;			/* true if pool is opened read-only */
+	void *addr;		/* mapped region */
+	size_t size;		/* size of mapped region */
+	int is_pmem;		/* true if pool is PMEM */
+	int rdonly;		/* true if pool is opened read-only */
 	os_rwlock_t *rwlockp;	/* pointer to RW lock */
-	int is_dev_dax;			/* true if mapped on device dax */
+	int is_dev_dax;		/* true if mapped on device dax */
+	struct ctl *ctl;	/* top level node of the ctl tree structure */
 
-	struct pool_set *set;		/* pool set info */
+	struct pool_set *set;	/* pool set info */
 };
 
 /* data area starts at this alignment after the struct pmemlog above */

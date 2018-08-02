@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ;
-; Copyright (c) 2016, Intel Corporation
+; Copyright (c) 2016-2018, Intel Corporation
 ;
 ; Redistribution and use in source and binary forms, with or without
 ; modification, are permitted provided that the following conditions
@@ -39,6 +39,12 @@ VERSION 1.0
 EXPORTS
 	pmemlog_check_versionU
 	pmemlog_check_versionW
+	pmemlog_ctl_execU;
+	pmemlog_ctl_execW;
+	pmemlog_ctl_getU;
+	pmemlog_ctl_getW;
+	pmemlog_ctl_setU;
+	pmemlog_ctl_setW;
 	pmemlog_set_funcs
 	pmemlog_errormsgU
 	pmemlog_errormsgW

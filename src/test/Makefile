@@ -80,7 +80,6 @@ OBJ_TESTS = \
 	obj_ctl_config\
 	obj_ctl_debug\
 	obj_ctl_heap_size\
-	obj_ctl_prefault\
 	obj_ctl_stats\
 	obj_cuckoo\
 	obj_debug\
@@ -199,6 +198,7 @@ OTHER_TESTS = \
 	bttdevice\
 	checksum\
 	compat_incompat_features\
+	ctl_prefault\
 	magic\
 	out_err\
 	out_err_mt\
