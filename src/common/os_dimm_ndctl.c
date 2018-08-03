@@ -67,6 +67,42 @@
 		ndctl_region_foreach(bus, region)		\
 			ndctl_namespace_foreach(region, ndns)	\
 
+
+/*
+ * os_dimm_match_device -- (internal) returns 1 if the device matches
+ *                         with the given file, 0 if it doesn't match,
+ *                         and -1 in case of error.
+ */
+static int
+os_dimm_match_device(const os_stat_t *st, const char *devname)
+{
+	LOG(3, "st %p devname %s", st, devname);
+
+	if (*devname == '\0')
+		return 0;
+
+	char path[PATH_MAX];
+	os_stat_t stat;
+	if (snprintf(path, PATH_MAX, "/dev/%s", devname) < 0) {
+		ERR("snprintf");
+		return -1;
+	}
+
+	if (os_stat(path, &stat)) {
+		ERR("!stat %s", path);
+		return -1;
+	}
+
+	dev_t dev = S_ISCHR(st->st_mode) ? st->st_rdev : st->st_dev;
+	if (dev == stat.st_rdev) {
+		LOG(4, "found matching device: %s", path);
+		return 1;
+	}
+
+	LOG(10, "skipping not matching device: %s", path);
+	return 0;
+}
+
 /*
  * os_dimm_region_namespace -- (internal) returns the region
  *                             (and optionally the namespace)
@@ -83,7 +119,6 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 	struct ndctl_bus *bus;
 	struct ndctl_region *region;
 	struct ndctl_namespace *ndns;
-	dev_t dev = S_ISCHR(st->st_mode) ? st->st_rdev : st->st_dev;
 
 	ASSERTne(pregion, NULL);
 	*pregion = NULL;
@@ -97,53 +132,52 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 		struct ndctl_pfn *pfn;
 		const char *devname;
 
-		if ((btt = ndctl_namespace_get_btt(ndns))) {
-			devname = ndctl_btt_get_block_device(btt);
-		} else if ((pfn = ndctl_namespace_get_pfn(ndns))) {
-			devname = ndctl_pfn_get_block_device(pfn);
-		} else if ((dax = ndctl_namespace_get_dax(ndns))) {
+		if ((dax = ndctl_namespace_get_dax(ndns))) {
 			struct daxctl_region *dax_region;
 			dax_region = ndctl_dax_get_daxctl_region(dax);
-			/* there is always one dax device in dax_region */
-			if (dax_region) {
-				struct daxctl_dev *dev;
-				dev = daxctl_dev_get_first(dax_region);
-				devname = daxctl_dev_get_devname(dev);
-			} else {
-				ERR("cannot find dax region");
+			if (!dax_region) {
+				ERR("!cannot find dax region");
 				return -1;
 			}
+			struct daxctl_dev *dev;
+			daxctl_dev_foreach(dax_region, dev) {
+				devname = daxctl_dev_get_devname(dev);
+				int ret = os_dimm_match_device(st,
+					devname);
+				if (ret < 0)
+					return ret;
+
+				if (ret) {
+					*pregion = region;
+					if (pndns)
+						*pndns = ndns;
+
+					return 0;
+				}
+			}
+
 		} else {
-			devname = ndctl_namespace_get_block_device(ndns);
+			if ((btt = ndctl_namespace_get_btt(ndns))) {
+				devname = ndctl_btt_get_block_device(btt);
+			} else if ((pfn = ndctl_namespace_get_pfn(ndns))) {
+				devname = ndctl_pfn_get_block_device(pfn);
+			} else {
+				devname =
+					ndctl_namespace_get_block_device(ndns);
+			}
+
+			int ret = os_dimm_match_device(st, devname);
+			if (ret < 0)
+				return ret;
+
+			if (ret) {
+				*pregion = region;
+				if (pndns)
+					*pndns = ndns;
+
+				return 0;
+			}
 		}
-
-		if (*devname == '\0')
-			continue;
-
-		char path[PATH_MAX];
-		os_stat_t stat;
-		if (snprintf(path, PATH_MAX, "/dev/%s", devname) == -1) {
-			ERR("!snprintf");
-			return -1;
-		}
-
-		if (os_stat(path, &stat)) {
-			ERR("!stat %s", path);
-			return -1;
-		}
-
-		if (dev == stat.st_rdev) {
-			LOG(4, "found matching device: %s", path);
-
-			*pregion = region;
-
-			if (pndns)
-				*pndns = ndns;
-
-			return 0;
-		}
-
-		LOG(10, "skipping not matching device: %s", path);
 	}
 
 	LOG(10, "did not found any matching device");
