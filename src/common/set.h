@@ -148,6 +148,7 @@ struct pool_replica {
 };
 
 struct pool_set {
+	char *path;		/* path of the poolset file */
 	unsigned nreplicas;
 	uuid_t uuid;
 	int rdonly;
