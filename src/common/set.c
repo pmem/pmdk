@@ -540,6 +540,7 @@ util_poolset_free(struct pool_set *set)
 		VEC_DELETE(&rep->directory);
 		Free(set->replica[r]);
 	}
+	Free(set->path);
 	Free(set);
 }
 
@@ -1548,6 +1549,12 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 	set = Zalloc(sizeof(struct pool_set));
 	if (set == NULL) {
 		ERR("!Malloc for pool set");
+		goto err;
+	}
+
+	set->path = strdup(path);
+	if (set->path == NULL)  {
+		ERR("!strdup");
 		goto err;
 	}
 
