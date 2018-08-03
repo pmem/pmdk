@@ -28,28 +28,38 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #
-# SRCVERSION.PS1 -- script to create SCRVERSION macro on windows
+# SRCVERSION.PS1 -- script to create SCRVERSION macro and generate srcversion.h
 #
 
 #
-# Expected Values:
-# +--------------------+-----+-----+-----+--------+------+-------+----------+
-# |git describe --long |MAJOR|MINOR|BUILD|REVISION|BUGFIX|PRIVATE|PRERELEASE|
-# +--------------------+-----+-----+-----+--------+------+-------+----------+
-# |1.2-0-12345678      |    1|    2|    0|    1000| false|  false|     false|
-# |1.2-32-123345678    |    1|    2|   32|    1000| false|   true|     false|
-# |1.2-XXX-0-12345678  |    1|    2|    0|       0| false|  false|      true|
-# |1.2-rc2-0-12345678  |    1|    2|    0|       2| false|  false|      true|
-# |1.2-rc3-32-12345678 |    1|    2|   32|       3| false|   true|      true|
-# |1.2+b3-0-12345678   |    1|    2|    0|    1003|  true|  false|     false|
-# |1.2+b2-327-12345678 |    1|    2|  327|    1002|  true|   true|     false|
-# +--------------------+-----+-----+-----+--------+------+-------+----------+
+# Windows dll versioning supports only fixed number of fields. The most
+# important are MAJOR, MINOR and REVISION. We have 3-compoment releases
+# (e.g. 1.4.1) with release candidates, so we have to encode this information
+# into this fixed number of fields. That's why we abuse REVISION to encode both
+# 3rd component and rc status.
+# REVISION = 3RDCOMP * 10000 + (!is_rc) * 1000 + rc.
+#
+# Examples:
+# +---------------------+-----+-----+--------+-----+------+-------+----------+
+# |git describe --long  |MAJOR|MINOR|REVISION|BUILD|BUGFIX|PRIVATE|PRERELEASE|
+# +---------------------+-----+-----+--------+-----+------+-------+----------+
+# |1.4-rc2-0-12345678   |    1|    4|       2|    0| false|  false|      true|
+# |1.4-rc3-6-12345678   |    1|    4|       3|    6| false|   true|      true|
+# |1.4-0-12345678       |    1|    4|    1000|    0| false|  false|     false|
+# |1.4-6-123345678      |    1|    4|    1000|    6| false|   true|     false|
+# |1.4.2-rc1-0-12345678 |    1|    4|   20001|    0|  true|  false|      true|
+# |1.4.2-rc4-6-12345678 |    1|    4|   20004|    6|  true|   true|      true|
+# |1.4.2-0-12345678     |    1|    4|   21000|    0|  true|  false|     false|
+# |1.4.2-6-12345678     |    1|    4|   21000|    6|  true|   true|     false|
+# +---------------------+-----+-----+--------+-----+------+-------+----------+
 #
 
 $scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition
 $file_path = $scriptPath + "\..\src\windows\include\srcversion.h"
 $git_version_file = $scriptPath + "\..\GIT_VERSION"
+$version_file = $scriptPath + "\..\VERSION"
 $git = Get-Command -Name git -ErrorAction SilentlyContinue
 
 if (Test-Path $file_path) {
@@ -84,6 +94,9 @@ $CUSTOM = $false
 if ($null -ne $args[0]) {
     $version = $args[0]
     $ver_array = $version.split("-+")
+} elseif (Test-Path $version_file) {
+    $version = Get-Content $version_file
+    $ver_array = $version.split("-+")
 } elseif ($null -ne $git) {
     $version = $(git describe)
     $ver_array = $(git describe --long).split("-+")
@@ -111,30 +124,33 @@ if ($null -ne $args[0]) {
 }
 
 if ($null -ne $ver_array) {
-    $MAJOR = $ver_array[0].split(".")[0]
-    $MINOR = $ver_array[0].split(".")[1]
+    $ver_dots = $ver_array[0].split(".")
+    $MAJOR = $ver_dots[0]
+    $MINOR = $ver_dots[1]
+    if ($ver_dots.length -ge 3) {
+        $REV = $ver_dots[2]
+        $BUGFIX = $true
+    } else {
+        $REV = 0
+    }
+
+    $REVISION = 10000 * $REV
     $BUILD = $ver_array[$ver_array.length - 2]
 
     if ($ver_array.length -eq 4) {
-        # <MAJOR>.<MINOR>-<SUFFIX><REVISION>-<BUILDNUMBER>-<HASH>
-        # <MAJOR>.<MINOR>+<SUFFIX><REVISION>-<BUILDNUMBER>-<HASH>
+        # <MAJOR>.<MINOR>[.<BUGFIX>]-<SUFFIX><REVISION>-<BUILD>-<HASH>
 
         if ($ver_array[1].StartsWith("rc")) {
-            # <MAJOR>.<MINOR>-rc<REVISION>-<BUILDNUMBER>-<HASH>
-            $REVISION = $ver_array[1].Substring("rc".Length)
+            # <MAJOR>.<MINOR>[.<BUGFIX>]-rc<REVISION>-<BUILD>-<HASH>
+            $REVISION += $ver_array[1].Substring("rc".Length)
             $PRERELEASE = $true
-        } elseif ($ver_array[1].StartsWith("b")) {
-            # <MAJOR>.<MINOR>+b<REVISION>-<BUILDNUMBER>-<HASH>
-            $REVISION = 1000 + $ver_array[1].Substring("b".Length)
-            $BUGFIX = $true
         } else {
-            # <MAJOR>.<MINOR>-<SUFFIX><REVISION>-<BUILDNUMBER>-<HASH>
-            $REVISION = 0
-            $PRERELEASE = $true
+            # <MAJOR>.<MINOR>[.<BUGFIX>]-<SOMETHING>-<BUILD>-<HASH>
+            throw "Unknown version format"
         }
     } else {
-        # <MAJOR>.<MINOR>-<BUILDNUMBER>-<HASH>
-        $REVISION = 1000
+        # <MAJOR>.<MINOR>[.<BUGFIX>]-<BUILD>-<HASH>
+        $REVISION += 1000
     }
 
     if ($BUILD -eq 0) {
