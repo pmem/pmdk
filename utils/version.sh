@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,35 +29,60 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #
-# src/version.inc -- common version rules for PMDK makefiles
+# utils/version.sh -- determine project's version
 #
+set -e
 
-TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
+if [ -f "$1/VERSION" ]; then
+	cat "$1/VERSION"
+	exit 0
+fi
 
-VERSION = $(TOP)/.version
-GIT_VERSION = $(TOP)/.git_version
-
-GIT_VERSION_TAG=$(shell cat $(TOP)/GIT_VERSION | grep tag: | sed 's/.*tag: \([0-9a-z.+-]*\).*/\1/')
-GIT_VERSION_HASH=$(shell cat $(TOP)/GIT_VERSION | sed -e 's/.Format:%h %d.//g' -e 's/ .*//')
-
-ifneq ($(GIT_VERSION_TAG),)
-$(shell echo "$(GIT_VERSION_TAG)" > $(GIT_VERSION))
+if [ -f $1/GIT_VERSION ]; then
+	echo -n "\$Format:%h %d\$" | cmp -s $1/GIT_VERSION - && true
+	if [ $? -eq 0 ]; then
+		PARSE_GIT_VERSION=0
+	else
+		PARSE_GIT_VERSION=1
+	fi
 else
-ifneq ($(GIT_VERSION_HASH),)
-$(shell echo "$(GIT_VERSION_HASH)" > $(GIT_VERSION))
-else
-$(shell rm -f $(GIT_VERSION))
-endif
-endif
+	PARSE_GIT_VERSION=0
+fi
 
-export SRCVERSION = $(shell git describe 2>/dev/null ||\
-			cat $(VERSION) 2>/dev/null ||\
-			git log -1 --format=%h 2>/dev/null ||\
-			cat $(GIT_VERSION) 2>/dev/null ||\
-			(basename `realpath $(TOP)` | sed 's/pmdk[-]*\([0-9a-z.+-]*\).*/\1/'))
+if [ $PARSE_GIT_VERSION -eq 1 ]; then
+	GIT_VERSION_TAG=$(cat $1/GIT_VERSION | grep tag: | sed 's/.*tag: \([0-9a-z.+-]*\).*/\1/')
+	GIT_VERSION_HASH=$(cat $1/GIT_VERSION | sed -e 's/ .*//')
 
-ifeq ($(SRCVERSION),)
-$(error Cannot evaluate version)
-endif
+	if [ -n "$GIT_VERSION_TAG" ]; then
+		echo "$GIT_VERSION_TAG"
+		exit 0
+	fi
+
+	if [ -n "$GIT_VERSION_HASH" ]; then
+		echo "$GIT_VERSION_HASH"
+		exit 0
+	fi
+fi
+
+GIT_DESCRIBE=$(git -C $1 describe 2>/dev/null) && true
+if [ -n "$GIT_DESCRIBE" ]; then
+	echo "$GIT_DESCRIBE"
+	exit 0
+fi
+
+# try commit it, git describe can fail when there are no tags (e.g. with shallow clone, like on Travis)
+GIT_COMMIT=$(git -C $1 log -1 --format=%h) && true
+if [ -n "$GIT_COMMIT" ]; then
+	echo "$GIT_COMMIT"
+	exit 0
+fi
+
+# If nothing works, try to get version from directory name
+VER=$(basename `realpath $1` | sed 's/pmdk[-]*\([0-9a-z.+-]*\).*/\1/')
+if [ -n "$VER" ]; then
+	echo "$VER"
+	exit 0
+fi
+
+exit 1
