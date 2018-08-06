@@ -47,13 +47,14 @@
 #include "obj.h"
 #include "out.h"
 #include "valgrind_internal.h"
+#include "vecq.h"
 
-#define REDO_LOG_BASE_ENTRIES 128
+#define REDO_LOG_BASE_SIZE 1024
 #define OP_MERGE_SEARCH 64
 
 struct operation_log {
 	size_t capacity; /* capacity of the redo log */
-	size_t size; /* number of entries currently in the redo log */
+	size_t offset; /* data offset inside of the log */
 	struct redo_log *redo; /* DRAM allocated log of modifications */
 };
 
@@ -61,14 +62,13 @@ struct operation_log {
  * operation_context -- context of an ongoing palloc operation
  */
 struct operation_context {
-	void *base; /* pool address */
 	redo_extend_fn extend; /* function to allocate next redo logs */
 
-	const struct redo_ctx *redo_ctx;
 	const struct pmem_ops *p_ops;
+	struct pmem_ops t_ops; /* used for transient data processing */
 
 	struct redo_log *redo; /* pointer to the persistent redo log */
-	size_t redo_base_capacity; /* number of entries in initial redo log */
+	size_t redo_base_nbytes; /* available bytes in initial redo log */
 	size_t redo_capacity; /* sum of capacity, incl all next redo logs */
 
 	struct redo_next next; /* vector of 'next' fields of persistent redo */
@@ -77,6 +77,9 @@ struct operation_context {
 
 	struct operation_log pshadow_ops; /* shadow copy of persistent redo */
 	struct operation_log transient_ops; /* log of transient changes */
+
+	/* collection used to look for potential merge candidates */
+	VECQ(, struct redo_log_entry_val *) merge_entries;
 };
 
 /*
@@ -86,16 +89,16 @@ struct operation_context {
 static int
 operation_log_transient_init(struct operation_log *log)
 {
-	log->capacity = REDO_LOG_BASE_ENTRIES;
-	log->size = 0;
+	log->capacity = REDO_LOG_BASE_SIZE;
+	log->offset = 0;
 
 	struct redo_log *src = Zalloc(sizeof(struct redo_log) +
-	(sizeof(struct redo_log_entry) * REDO_LOG_BASE_ENTRIES));
+		REDO_LOG_BASE_SIZE);
 	if (src == NULL)
 		return -1;
 
 	/* initialize underlying redo log structure */
-	src->capacity = REDO_LOG_BASE_ENTRIES;
+	src->capacity = REDO_LOG_BASE_SIZE;
 
 	log->redo = src;
 
@@ -108,18 +111,18 @@ operation_log_transient_init(struct operation_log *log)
  */
 static int
 operation_log_persistent_init(struct operation_log *log,
-	size_t redo_base_capacity)
+	size_t redo_base_nbytes)
 {
-	log->capacity = REDO_LOG_BASE_ENTRIES;
-	log->size = 0;
+	log->capacity = REDO_LOG_BASE_SIZE;
+	log->offset = 0;
 
 	struct redo_log *src = Zalloc(sizeof(struct redo_log) +
-	(sizeof(struct redo_log_entry) * REDO_LOG_BASE_ENTRIES));
+		REDO_LOG_BASE_SIZE);
 	if (src == NULL)
 		return -1;
 
 	/* initialize underlying redo log structure */
-	src->capacity = redo_base_capacity;
+	src->capacity = redo_base_nbytes;
 	memset(src->unused, 0, sizeof(src->unused));
 
 	log->redo = src;
@@ -128,37 +131,59 @@ operation_log_persistent_init(struct operation_log *log,
 }
 
 /*
+ * operation_transient_clean -- cleans pmemcheck address state
+ */
+static int
+operation_transient_clean(void *base, const void *addr, size_t len,
+	unsigned flags)
+{
+	VALGRIND_SET_CLEAN(addr, len);
+
+	return 0;
+}
+
+/*
+ * operation_transient_memcpy -- transient memcpy wrapper
+ */
+static void *
+operation_transient_memcpy(void *base, void *dest, const void *src, size_t len,
+	unsigned flags)
+{
+	return memcpy(dest, src, len);
+}
+
+/*
  * operation_new -- creates new operation context
  */
 struct operation_context *
-operation_new(void *base, const struct redo_ctx *redo_ctx,
-	struct redo_log *redo, size_t redo_base_capacity, redo_extend_fn extend)
+operation_new(struct redo_log *redo, size_t redo_base_nbytes,
+	redo_extend_fn extend, const struct pmem_ops *p_ops)
 {
 	struct operation_context *ctx = Zalloc(sizeof(*ctx));
 	if (ctx == NULL)
 		goto error_ctx_alloc;
 
-	ctx->base = base;
-	ctx->redo_ctx = redo_ctx;
 	ctx->redo = redo;
-	ctx->redo_base_capacity = redo_base_capacity;
-	ctx->redo_capacity = redo_log_capacity(redo_ctx, redo,
-		redo_base_capacity);
+	ctx->redo_base_nbytes = redo_base_nbytes;
+	ctx->redo_capacity = redo_log_capacity(redo,
+		redo_base_nbytes, p_ops);
 	ctx->extend = extend;
 	ctx->in_progress = 0;
 	VEC_INIT(&ctx->next);
-	redo_log_rebuild_next_vec(redo_ctx, redo, &ctx->next);
+	redo_log_rebuild_next_vec(redo, &ctx->next, p_ops);
+	ctx->p_ops = p_ops;
 
-	if (redo_ctx)
-		ctx->p_ops = redo_get_pmem_ops(redo_ctx);
-	else
-		ctx->p_ops = NULL;
+	ctx->t_ops.base = p_ops->base;
+	ctx->t_ops.flush = operation_transient_clean;
+	ctx->t_ops.memcpy = operation_transient_memcpy;
+
+	VECQ_INIT(&ctx->merge_entries);
 
 	if (operation_log_transient_init(&ctx->transient_ops) != 0)
 		goto error_redo_alloc;
 
 	if (operation_log_persistent_init(&ctx->pshadow_ops,
-	    redo_base_capacity) != 0)
+	    redo_base_nbytes) != 0)
 		goto error_redo_alloc;
 
 	return ctx;
@@ -175,6 +200,7 @@ error_ctx_alloc:
 void
 operation_delete(struct operation_context *ctx)
 {
+	VECQ_DELETE(&ctx->merge_entries);
 	VEC_DELETE(&ctx->next);
 	Free(ctx->pshadow_ops.redo);
 	Free(ctx->transient_ops.redo);
@@ -182,28 +208,79 @@ operation_delete(struct operation_context *ctx)
 }
 
 /*
- * operation_apply -- (internal) performs operation on a field
+ * operation_merge -- (internal) performs operation on a field
  */
 static inline void
-operation_apply(struct redo_log_entry *oentry, struct redo_log_entry *nentry,
-	enum redo_operation_type op_type)
+operation_merge(struct redo_log_entry_base *entry, uint64_t value,
+	enum redo_operation_type type)
 {
-	switch (op_type) {
+	struct redo_log_entry_val *e = (struct redo_log_entry_val *)entry;
+
+	switch (type) {
 		case REDO_OPERATION_AND:
-			oentry->value &= nentry->value;
-		break;
+			e->value &= value;
+			break;
 		case REDO_OPERATION_OR:
-			oentry->value |= nentry->value;
-		break;
-		case REDO_OPERATION_SET: /* do nothing, duplicate entry */
-		break;
+			e->value |= value;
+			break;
+		case REDO_OPERATION_SET:
+			e->value = value;
+			break;
 		default:
 			ASSERT(0); /* unreachable */
 	}
 }
 
 /*
- * operation_add_typed_entry -- adds new entry to the current operation, if the
+ * operation_try_merge_entry -- tries to merge the incoming log entry with
+ *	existing entries
+ *
+ * Because this requires a reverse foreach, it cannot be implemented using
+ * the on-media redo log structure since there's no way to find what's
+ * the previous entry in the log. Instead, the last N entries are stored
+ * in a collection and traversed backwards.
+ */
+static int
+operation_try_merge_entry(struct operation_context *ctx,
+	void *ptr, uint64_t value, enum redo_operation_type type)
+{
+	int ret = 0;
+	uint64_t offset = OBJ_PTR_TO_OFF(ctx->p_ops->base, ptr);
+
+	struct redo_log_entry_val *e;
+	VECQ_FOREACH_REVERSE(e, &ctx->merge_entries) {
+		if (redo_log_entry_offset(&e->base) == offset) {
+			if (redo_log_entry_type(&e->base) == type) {
+				operation_merge(&e->base, value, type);
+				return 1;
+			} else {
+				break;
+			}
+		}
+	}
+
+	return ret;
+}
+
+/*
+ * operation_merge_entry_add -- adds a new entry to the merge collection,
+ *	keeps capacity at OP_MERGE_SEARCH. Removes old entries in FIFO fashion.
+ */
+static void
+operation_merge_entry_add(struct operation_context *ctx,
+	struct redo_log_entry_val *entry)
+{
+	if (VECQ_SIZE(&ctx->merge_entries) == OP_MERGE_SEARCH)
+		(void) VECQ_DEQUEUE(&ctx->merge_entries);
+
+	if (VECQ_ENQUEUE(&ctx->merge_entries, entry) != 0) {
+		/* this is fine, only runtime perf will get slower */
+		LOG(2, "out of memory - unable to track entries");
+	}
+}
+
+/*
+ * operation_add_typed_value -- adds new entry to the current operation, if the
  *	same ptr address already exists and the operation type is set,
  *	the new value is not added and the function has no effect.
  */
@@ -212,50 +289,40 @@ operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
 	enum redo_operation_type type, enum operation_log_type log_type)
 {
-	/*
-	 * New entry to be added to the operations, all operations eventually
-	 * come down to a set operation regardless.
-	 */
-	struct redo_log_entry entry;
-	redo_log_entry_create(ctx->base, &entry, ptr, value, type);
+	ASSERTeq(type & REDO_VAL_OPERATIONS, type);
 
 	struct operation_log *oplog = log_type == LOG_PERSISTENT ?
 		&ctx->pshadow_ops : &ctx->transient_ops;
 
-	struct redo_log_entry *e; /* existing entry */
-
-	/* search last few entries to see if we could merge ops */
-	for (size_t i = 1; i <= OP_MERGE_SEARCH && oplog->size >= i; ++i) {
-		e = &oplog->redo->entries[oplog->size - i];
-		enum redo_operation_type e_type = redo_log_operation(e);
-		if (redo_log_offset(e) == redo_log_offset(&entry)) {
-			if (e_type == type) {
-				operation_apply(e, &entry, type);
-				return 0;
-			} else {
-				break;
-			}
-		}
-	}
-
-	if (oplog->size == oplog->capacity) {
-		size_t ncapacity = oplog->capacity + REDO_LOG_BASE_ENTRIES;
+	/*
+	 * Always make sure to have one extra spare cacheline so that the
+	 * redo log entry creation has enough room for zeroing.
+	 */
+	if (oplog->offset + CACHELINE_SIZE == oplog->capacity) {
+		size_t ncapacity = oplog->capacity + REDO_LOG_BASE_SIZE;
 		struct redo_log *redo = Realloc(oplog->redo,
 			SIZEOF_REDO_LOG(ncapacity));
 		if (redo == NULL)
 			return -1;
-		oplog->capacity += REDO_LOG_BASE_ENTRIES;
+		oplog->capacity += REDO_LOG_BASE_SIZE;
 		oplog->redo = redo;
 	}
 
-	size_t pos = oplog->size++;
-	oplog->redo->entries[pos] = entry;
+	if (operation_try_merge_entry(ctx, ptr, value, type) != 0)
+		return 0;
+
+	struct redo_log_entry_val *entry = redo_log_entry_val_create(
+		oplog->redo, oplog->offset, ptr, value, type, &ctx->t_ops);
+
+	operation_merge_entry_add(ctx, entry);
+
+	oplog->offset += redo_log_entry_size(&entry->base);
 
 	return 0;
 }
 
 /*
- * operation_add_entry -- adds new entry to the current operation with
+ * operation_add_value -- adds new entry to the current operation with
  *	entry type autodetected based on the memory location
  */
 int
@@ -278,18 +345,16 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 static void
 operation_process_persistent_redo(struct operation_context *ctx)
 {
-	const struct redo_ctx *redo = ctx->redo_ctx;
+	ASSERTeq(ctx->pshadow_ops.capacity % CACHELINE_SIZE, 0);
 
-	ASSERTeq((ctx->pshadow_ops.capacity *
-		sizeof(*ctx->pshadow_ops.redo->entries)) % CACHELINE_SIZE, 0);
+	redo_log_store(ctx->redo, ctx->pshadow_ops.redo,
+		ctx->pshadow_ops.offset, ctx->redo_base_nbytes, &ctx->next,
+		ctx->p_ops);
 
-	redo_log_store(ctx->redo_ctx, ctx->redo,
-		ctx->pshadow_ops.redo, ctx->pshadow_ops.size,
-		ctx->redo_base_capacity, &ctx->next);
+	redo_log_process(ctx->pshadow_ops.redo,
+		OBJ_OFF_IS_VALID_FROM_CTX, ctx->p_ops);
 
-	redo_log_process(redo, ctx->pshadow_ops.redo);
-
-	redo_log_clobber(ctx->redo_ctx, ctx->redo, &ctx->next);
+	redo_log_clobber(ctx->redo, &ctx->next, ctx->p_ops);
 }
 
 /*
@@ -304,9 +369,9 @@ operation_reserve(struct operation_context *ctx, size_t new_capacity)
 			return -1;
 		}
 
-		if (redo_log_reserve(ctx->redo_ctx, ctx->redo,
-		    ctx->redo_base_capacity, &new_capacity, ctx->extend,
-		    &ctx->next) != 0)
+		if (redo_log_reserve(ctx->redo,
+		    ctx->redo_base_nbytes, &new_capacity, ctx->extend,
+		    &ctx->next, ctx->p_ops) != 0)
 			return -1;
 		ctx->redo_capacity = new_capacity;
 	}
@@ -325,11 +390,12 @@ operation_init(struct operation_context *ctx)
 
 	VALGRIND_ANNOTATE_NEW_MEMORY(ctx, sizeof(*ctx));
 	VALGRIND_ANNOTATE_NEW_MEMORY(tlog->redo, sizeof(struct redo_log) +
-		(sizeof(struct redo_log_entry) * tlog->capacity));
+		tlog->capacity);
 	VALGRIND_ANNOTATE_NEW_MEMORY(plog->redo, sizeof(struct redo_log) +
-		(sizeof(struct redo_log_entry) * plog->capacity));
-	tlog->size = 0;
-	plog->size = 0;
+		plog->capacity);
+	tlog->offset = 0;
+	plog->offset = 0;
+	VECQ_REINIT(&ctx->merge_entries);
 }
 
 /*
@@ -354,18 +420,6 @@ operation_cancel(struct operation_context *ctx)
 }
 
 /*
- * operation_transient_clean -- cleans pmemcheck address state
- */
-static int
-operation_transient_clean(void *base, const void *addr, size_t len,
-	unsigned flags)
-{
-	VALGRIND_SET_CLEAN(addr, len);
-
-	return 0;
-}
-
-/*
  * operation_process -- processes registered operations
  *
  * The order of processing is important: persistent, transient.
@@ -376,27 +430,29 @@ operation_transient_clean(void *base, const void *addr, size_t len,
 void
 operation_process(struct operation_context *ctx)
 {
-	struct redo_log_entry *e;
-
-	struct operation_log *plog = &ctx->pshadow_ops;
-	struct operation_log *tlog = &ctx->transient_ops;
-
 	/*
 	 * If there's exactly one persistent entry there's no need to involve
 	 * the redo log. We can simply assign the value, the operation will be
 	 * atomic.
 	 */
-	if (plog->size == 1) {
-		e = &plog->redo->entries[0];
-		redo_log_entry_apply(ctx->base, e, ctx->p_ops->persist);
-	} else if (plog->size != 0) {
-		operation_process_persistent_redo(ctx);
+	int pmem_processed = 0;
+	if (ctx->pshadow_ops.offset == sizeof(struct redo_log_entry_val)) {
+		struct redo_log_entry_base *e = (struct redo_log_entry_base *)
+			ctx->pshadow_ops.redo->data;
+		enum redo_operation_type t = redo_log_entry_type(e);
+		if ((t & REDO_VAL_OPERATIONS) == t) {
+			redo_log_entry_apply(e, 1, ctx->p_ops);
+			pmem_processed = 1;
+		}
 	}
 
-	for (size_t i = 0; i < tlog->size; ++i) {
-		e = &tlog->redo->entries[i];
-		redo_log_entry_apply(ctx->base, e, operation_transient_clean);
-	}
+	if (!pmem_processed && ctx->pshadow_ops.offset != 0)
+		operation_process_persistent_redo(ctx);
+
+	/* process transient entries with transient memory ops */
+	if (ctx->transient_ops.offset != 0)
+		redo_log_process(ctx->transient_ops.redo,
+			OBJ_OFF_IS_VALID_FROM_CTX, &ctx->t_ops);
 
 	ASSERTeq(ctx->in_progress, 1);
 	ctx->in_progress = 0;

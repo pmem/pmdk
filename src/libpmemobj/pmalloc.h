@@ -45,13 +45,16 @@
 #include "palloc.h"
 
 /*
- * The maximum number of entries in redo log used by the allocator. The common
- * case is to use two, one for modification of the object destination memory
- * location and the second for applying the chunk metadata modifications.
+ * The maximum size of redo logs used by the allocator. The common
+ * case is to use two entries, one for modification of the object destination
+ * memory location and the second for applying the chunk metadata modifications.
+ * The remaining space is used whenever the memory operations is larger than
+ * a singe allocation.
  * These two values should be divisible by 8 to maintain cacheline alignment.
+ * The sum of these defines should be 1024 - (sizeof(struct redo_log) * 2).
  */
-#define ALLOC_REDO_EXTERNAL_SIZE 48
-#define ALLOC_REDO_INTERNAL_SIZE 8
+#define ALLOC_REDO_EXTERNAL_SIZE 640
+#define ALLOC_REDO_INTERNAL_SIZE 256
 
 struct lane_alloc_layout {
 	struct REDO_LOG(ALLOC_REDO_EXTERNAL_SIZE) external;

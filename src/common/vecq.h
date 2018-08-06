@@ -58,6 +58,14 @@ struct name {\
 	(vec)->back = 0;\
 } while (0)
 
+#define VECQ_REINIT(vec) do {\
+	VALGRIND_ANNOTATE_NEW_MEMORY((vec), sizeof(*vec));\
+	VALGRIND_ANNOTATE_NEW_MEMORY((vec)->buffer,\
+		(sizeof(*(vec)->buffer) * ((vec)->capacity)));\
+	(vec)->front = 0;\
+	(vec)->back = 0;\
+} while (0)
+
 #define VECQ_FRONT_POS(vec)\
 ((vec)->front & ((vec)->capacity - 1))
 
@@ -106,6 +114,18 @@ VECQ_INSERT(vec, element))
 
 #define VECQ_CAPACITY(vec)\
 ((vec)->capacity)
+
+#define VECQ_FOREACH(el, vec)\
+for (size_t _vec_i = 0;\
+	_vec_i < VECQ_SIZE(vec) &&\
+	(((el) = (vec)->buffer[_vec_i & ((vec)->capacity - 1)]), 1);\
+	++_vec_i)
+
+#define VECQ_FOREACH_REVERSE(el, vec)\
+for (size_t _vec_i = VECQ_SIZE(vec);\
+	_vec_i > 0 &&\
+	(((el) = (vec)->buffer[(_vec_i - 1) & ((vec)->capacity - 1)]), 1);\
+	--_vec_i)
 
 #define VECQ_CLEAR(vec) do {\
 	(vec)->front = 0;\
