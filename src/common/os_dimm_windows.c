@@ -74,8 +74,9 @@ os_dimm_volume_handle(const char *path)
 	 */
 	volume[wcslen(volume) - 1] = L'\0';
 
-	HANDLE h = CreateFileW(volume, 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE h = CreateFileW(volume, FILE_READ_ATTRIBUTES, FILE_SHARE_READ |
+		FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL, NULL);
 	if (h == INVALID_HANDLE_VALUE)
 		ERR("!CreateFileW");
 
