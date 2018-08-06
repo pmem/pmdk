@@ -63,7 +63,7 @@ os_dimm_volume_handle(const char *path)
 
 	/* get volume name - "\\?\Volume{VOLUME_GUID}\" */
 	if (!GetVolumeNameForVolumeMountPointW(mount, volume, MAX_PATH) ||
-		wcslen(volume) == 0 || volume[wcslen(volume) - 1] != '\\') {
+		wcslen(volume) == 0 || volume[wcslen(volume) - 1] != L'\\') {
 		ERR("!GetVolumeNameForVolumeMountPointW");
 		return INVALID_HANDLE_VALUE;
 	}
@@ -72,7 +72,7 @@ os_dimm_volume_handle(const char *path)
 	 * Remove trailing \\ as "CreateFile processes a volume GUID path with
 	 * an appended backslash as the root directory of the volume."
 	 */
-	volume[wcslen(volume) - 1] = '\0';
+	volume[wcslen(volume) - 1] = L'\0';
 
 	HANDLE h = CreateFileW(volume, 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
 		NULL, OPEN_EXISTING, 0, NULL);
