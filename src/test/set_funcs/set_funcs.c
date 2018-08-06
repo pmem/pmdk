@@ -54,6 +54,7 @@ static struct counters {
 	int mallocs;
 	int frees;
 	int reallocs;
+	int reallocs_null;
 	int strdups;
 } cnt[5];
 
@@ -91,6 +92,8 @@ test_realloc(void *ptr, size_t size)
 		p = malloc(size + EXTRA);
 	}
 	UT_ASSERTne(p, NULL);
+	*p = GUARD;
+
 	return ++p;
 }
 
@@ -126,7 +129,10 @@ obj_free(void *ptr)
 static void *
 obj_realloc(void *ptr, size_t size)
 {
-	cnt[OBJ].reallocs++;
+	if (ptr == NULL)
+		cnt[OBJ].reallocs_null++;
+	else
+		cnt[OBJ].reallocs++;
 	return test_realloc(ptr, size);
 }
 
@@ -314,7 +320,7 @@ test_obj(const char *path)
 			UT_FATAL("OBJ allocation used %d functions", i);
 	}
 
-	if (cnt[OBJ].mallocs + cnt[OBJ].strdups !=
+	if (cnt[OBJ].mallocs + cnt[OBJ].strdups + cnt[OBJ].reallocs_null !=
 					cnt[OBJ].frees + OBJ_EXTRA_NALLOC)
 		UT_FATAL("OBJ memory leak");
 
@@ -355,7 +361,8 @@ test_blk(const char *path)
 			UT_FATAL("BLK allocation used %d functions", i);
 	}
 
-	if (cnt[BLK].mallocs + cnt[BLK].strdups != cnt[BLK].frees)
+	if (cnt[BLK].mallocs + cnt[BLK].strdups + cnt[BLK].reallocs_null
+					!= cnt[BLK].frees)
 		UT_FATAL("BLK memory leak");
 
 	UNLINK(path);
@@ -395,7 +402,8 @@ test_log(const char *path)
 			UT_FATAL("LOG allocation used %d functions", i);
 	}
 
-	if (cnt[LOG].mallocs + cnt[LOG].strdups != cnt[LOG].frees)
+	if (cnt[LOG].mallocs + cnt[LOG].strdups + cnt[LOG].reallocs_null
+					!= cnt[LOG].frees)
 		UT_FATAL("LOG memory leak");
 
 	UNLINK(path);
@@ -459,7 +467,7 @@ test_cto(const char *path)
 			UT_FATAL("CTO allocation used %d functions", i);
 	}
 
-	if (cnt[CTO].mallocs + cnt[CTO].strdups !=
+	if (cnt[CTO].mallocs + cnt[CTO].strdups + cnt[CTO].reallocs_null !=
 					cnt[CTO].frees + CTO_EXTRA_NALLOC)
 		UT_FATAL("CTO memory leak");
 
@@ -509,7 +517,8 @@ test_vmem(const char *dir)
 			UT_FATAL("VMEM allocation used %d functions", i);
 	}
 
-	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups > cnt[VMEM_].frees + 4)
+	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups + cnt[VMEM_].reallocs_null
+					> cnt[VMEM_].frees + 4)
 		UT_FATAL("VMEM memory leak");
 }
 
