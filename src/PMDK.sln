@@ -240,6 +240,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sys", "sys", "{45027FC5-4A3
 		windows\include\sys\mman.h = windows\include\sys\mman.h
 		windows\include\sys\mount.h = windows\include\sys\mount.h
 		windows\include\sys\param.h = windows\include\sys\param.h
+		windows\include\sys\resource.h = windows\include\sys\resource.h
 		windows\include\sys\statvfs.h = windows\include\sys\statvfs.h
 		windows\include\sys\uio.h = windows\include\sys\uio.h
 		windows\include\sys\wait.h = windows\include\sys\wait.h
@@ -835,6 +836,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_cpp_ptr", "test\obj_cpp
 		{9E9E3D25-2139-4A5D-9200-18148DDEAD45} = {9E9E3D25-2139-4A5D-9200-18148DDEAD45}
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl_alloc_class", "test\obj_ctl_alloc_class\obj_ctl_alloc_class.vcxproj", "{E07C9A5F-B2E4-44FB-AA87-FBC885AC955D}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{E23BB160-006E-44F2-8FB4-3A2240BBC20C}"
 EndProject
@@ -1888,6 +1891,10 @@ Global
 		{DFEBEBAA-9624-445C-82A0-93363E22D806}.Debug|x64.Build.0 = Debug|x64
 		{DFEBEBAA-9624-445C-82A0-93363E22D806}.Release|x64.ActiveCfg = Release|x64
 		{DFEBEBAA-9624-445C-82A0-93363E22D806}.Release|x64.Build.0 = Release|x64
+		{E07C9A5F-B2E4-44FB-AA87-FBC885AC955D}.Debug|x64.ActiveCfg = Debug|x64
+		{E07C9A5F-B2E4-44FB-AA87-FBC885AC955D}.Debug|x64.Build.0 = Debug|x64
+		{E07C9A5F-B2E4-44FB-AA87-FBC885AC955D}.Release|x64.ActiveCfg = Release|x64
+		{E07C9A5F-B2E4-44FB-AA87-FBC885AC955D}.Release|x64.Build.0 = Release|x64
 		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A}.Debug|x64.ActiveCfg = Debug|x64
 		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A}.Debug|x64.Build.0 = Debug|x64
 		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A}.Release|x64.ActiveCfg = Release|x64
@@ -2282,6 +2289,7 @@ Global
 		{DB68AB21-510B-4BA1-9E6F-E5731D8647BC} = {BFBAB433-860E-4A28-96E3-A4B7AFE3B297}
 		{DEA3CD0A-8781-4ABE-9A7D-00B91132FED0} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
 		{DFEBEBAA-9624-445C-82A0-93363E22D806} = {42F57B5A-9E6B-44DE-A6D3-7B03B3DFDED7}
+		{E07C9A5F-B2E4-44FB-AA87-FBC885AC955D} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{E23BB160-006E-44F2-8FB4-3A2240BBC20C} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{E3229AF7-1FA2-4632-BB0B-B74F709F1A33} = {F42C09CD-ABA5-4DA9-8383-5EA40FA4D763}
 		{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
