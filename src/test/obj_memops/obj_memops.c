@@ -40,7 +40,7 @@
 #include "memops.h"
 #include "unittest.h"
 
-#define TEST_ENTRIES 16
+#define TEST_ENTRIES 256
 
 #define TEST_VALUES 128
 
@@ -76,7 +76,7 @@ redo_log_constructor(void *ctx, void *ptr, size_t usable_size, void *arg)
 
 	pmemops_flush(p_ops, redo, sizeof(*redo));
 
-	pmemops_memset(p_ops, redo->entries, 0,
+	pmemops_memset(p_ops, redo->data, 0,
 		usable_size - sizeof(*redo), 0);
 
 	return 0;
@@ -104,7 +104,7 @@ test_set_entries(PMEMobjpool *pop,
 			REDO_OPERATION_SET, LOG_PERSISTENT);
 	}
 
-	operation_reserve(ctx, nentries);
+	operation_reserve(ctx, nentries * 16);
 
 	if (fail != FAIL_NONE) {
 		operation_cancel(ctx);
@@ -118,13 +118,13 @@ test_set_entries(PMEMobjpool *pop,
 					&object->redo.next);
 			break;
 			case FAIL_MODIFY_VALUE:
-				object->redo.entries[1].offset += 8;
+				object->redo.data[16] += 8;
 			break;
 			default:
 				UT_ASSERT(0);
 		}
 
-		redo_log_recover(pop->redo, (struct redo_log *)&object->redo);
+		redo_log_recover((struct redo_log *)&object->redo, &pop->p_ops);
 
 		for (size_t i = 0; i < nentries; ++i)
 			UT_ASSERTeq(object->values[i], 0);
@@ -134,24 +134,6 @@ test_set_entries(PMEMobjpool *pop,
 		for (size_t i = 0; i < nentries; ++i)
 			UT_ASSERTeq(object->values[i], i + 1);
 	}
-}
-
-static void
-test_same_twice(struct operation_context *ctx, struct test_object *object)
-{
-	operation_start(ctx);
-
-	operation_add_typed_entry(ctx,
-		&object->values[0], 5,
-		REDO_OPERATION_SET, LOG_PERSISTENT);
-
-	operation_add_typed_entry(ctx,
-		&object->values[0], 10,
-		REDO_OPERATION_SET, LOG_PERSISTENT);
-
-	operation_process(ctx);
-
-	UT_ASSERTeq(object->values[0], 5);
 }
 
 static void
@@ -200,16 +182,13 @@ main(int argc, char *argv[])
 		pmemobj_direct(pmemobj_root(pop, sizeof(struct test_object)));
 	UT_ASSERTne(object, NULL);
 
-	struct operation_context *ctx = operation_new(pop, pop->redo,
+	struct operation_context *ctx = operation_new(
 		(struct redo_log *)&object->redo, TEST_ENTRIES,
-		pmalloc_redo_extend);
+		pmalloc_redo_extend, &pop->p_ops);
 
 	test_set_entries(pop, ctx, object, 10, FAIL_NONE);
 	clear_test_values(object);
-	test_same_twice(ctx, object);
-	clear_test_values(object);
 	test_merge_op(ctx, object);
-	clear_test_values(object);
 	clear_test_values(object);
 	test_set_entries(pop, ctx, object, 100, FAIL_NONE);
 	clear_test_values(object);
@@ -224,9 +203,9 @@ main(int argc, char *argv[])
 	operation_delete(ctx);
 
 	/* verify that rebuilding redo_next works */
-	ctx = operation_new(pop, pop->redo,
+	ctx = operation_new(
 		(struct redo_log *)&object->redo, TEST_ENTRIES,
-		NULL);
+		NULL, &pop->p_ops);
 
 	test_set_entries(pop, ctx, object, 100, 0);
 	clear_test_values(object);
