@@ -46,8 +46,7 @@
 #include "pmalloc.h"
 #include "redo.h"
 
-
-#define LIST_REDO_LOG_SIZE 59 /* (lane size - redo log - 16) / entry size */
+#define LIST_REDO_LOG_SIZE 960 /* sizeof(lane) - sizeof(struct redo_log) */
 
 /*
  * lane_list_layout -- structure of list section in lane

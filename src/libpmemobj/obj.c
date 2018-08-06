@@ -1138,16 +1138,6 @@ obj_cleanup_remote(PMEMobjpool *pop)
 }
 
 /*
- * redo_log_check_offset -- (internal) check if offset is valid
- */
-static int
-redo_log_check_offset(void *ctx, uint64_t offset)
-{
-	PMEMobjpool *pop = ctx;
-	return OBJ_OFF_IS_VALID(pop, offset);
-}
-
-/*
  * obj_replica_init -- (internal) initialize runtime part of the replica
  */
 static int
@@ -1203,11 +1193,6 @@ obj_replica_init(PMEMobjpool *rep, struct pool_set *set, unsigned repidx,
 	if (ret)
 		return ret;
 
-	rep->redo = redo_log_config_new(rep->addr, &rep->p_ops,
-			redo_log_check_offset, rep);
-	if (!rep->redo)
-		return -1;
-
 	return 0;
 }
 
@@ -1221,8 +1206,6 @@ obj_replica_fini(struct pool_replica *repset)
 
 	if (repset->remote)
 		obj_cleanup_remote(rep);
-
-	redo_log_config_delete(rep->redo);
 }
 
 /*
@@ -1886,7 +1869,6 @@ obj_replicas_cleanup(struct pool_set *set)
 		struct pool_replica *rep = set->replica[r];
 
 		PMEMobjpool *pop = rep->part[0].addr;
-		redo_log_config_delete(pop->redo);
 
 		if (pop->rpp != NULL) {
 			/*

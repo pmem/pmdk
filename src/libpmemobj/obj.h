@@ -161,7 +161,6 @@ struct pmemobjpool {
 
 	struct pool_set *set;		/* pool set info */
 	struct pmemobjpool *replica;	/* next replica */
-	struct redo_ctx *redo;
 
 	/* per-replica functions: pmem or non-pmem */
 	persist_local_fn persist_local;	/* persist function */
@@ -201,7 +200,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[984];
+	char unused2[992];
 };
 
 /*
@@ -242,6 +241,13 @@ OBJ_OID_IS_VALID(PMEMobjpool *pop, PMEMoid oid)
 		(oid.pool_uuid_lo == pop->uuid_lo &&
 		    oid.off >= pop->heap_offset &&
 		    oid.off < pop->heap_offset + pop->heap_size);
+}
+
+static inline int
+OBJ_OFF_IS_VALID_FROM_CTX(void *ctx, uint64_t offset)
+{
+	PMEMobjpool *pop = (PMEMobjpool *)ctx;
+	return OBJ_OFF_IS_VALID(pop, offset);
 }
 
 void obj_init(void);
