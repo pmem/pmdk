@@ -133,18 +133,6 @@ linear_alloc(uint64_t *cur_offset, size_t size)
 }
 
 /*
- * redo_log_check_offset -- (internal) check if offset is valid
- *
- * XXX: copy & paste from obj.c (since it's static)
- */
-static int
-redo_log_check_offset(void *ctx, uint64_t offset)
-{
-	PMEMobjpool *pop = (PMEMobjpool *)ctx;
-	return OBJ_OFF_IS_VALID(pop, offset);
-}
-
-/*
  * pmemobj_open -- pmemobj_open mock
  *
  * This function initializes the pmemobj pool for purposes of this
@@ -246,14 +234,10 @@ FUNC_MOCK_RUN_DEFAULT
 	Pop->run_id += 2;
 	pmemops_persist(p_ops, &Pop->run_id, sizeof(Pop->run_id));
 
-	Pop->redo = redo_log_config_new(Pop->addr, p_ops, redo_log_check_offset,
-			Pop);
-	pmemops_persist(p_ops, &Pop->redo, sizeof(Pop->redo));
-
 	struct lane_list_layout *layout =
 		(struct lane_list_layout *)Lane_section.layout;
-	Lane_section.runtime = operation_new(Pop, Pop->redo,
-		(struct redo_log *)&layout->redo, LIST_REDO_LOG_SIZE, NULL);
+	Lane_section.runtime = operation_new((struct redo_log *)&layout->redo,
+		LIST_REDO_LOG_SIZE, NULL, p_ops);
 
 	return Pop;
 }
@@ -266,7 +250,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmemobj_close, void, PMEMobjpool *pop)
 	FUNC_MOCK_RUN_DEFAULT {
-		redo_log_config_delete(Pop->redo);
+		operation_delete(Lane_section.runtime);
 		UT_ASSERTeq(pmem_unmap(Pop,
 			Pop->heap_size + Pop->heap_offset), 0);
 		Pop = NULL;
@@ -373,27 +357,25 @@ FUNC_MOCK_END
 /*
  * redo_log_store_last -- redo_log_store_last mock
  */
-FUNC_MOCK(redo_log_store, void, const struct redo_ctx *ctx,
+FUNC_MOCK(redo_log_store, void,
 	struct redo_log *dest,
-	struct redo_log *src, size_t nentries, size_t n,
-	struct redo_next *next)
+	struct redo_log *src, size_t nbytes, size_t redo_base_nbytes,
+	struct redo_next *next, const struct pmem_ops *p_ops)
 	FUNC_MOCK_RUN_DEFAULT {
 		switch (Redo_fail) {
 		case FAIL_AFTER_FINISH:
-			_FUNC_REAL(redo_log_store)(ctx,
-					dest, src,
-					nentries, n,
-					next);
+			_FUNC_REAL(redo_log_store)(dest, src,
+					nbytes, redo_base_nbytes,
+					next, p_ops);
 			DONEW(NULL);
 			break;
 		case FAIL_BEFORE_FINISH:
 			DONEW(NULL);
 			break;
 		default:
-			_FUNC_REAL(redo_log_store)(ctx,
-					dest, src,
-					nentries, n,
-					next);
+			_FUNC_REAL(redo_log_store)(dest, src,
+					nbytes, redo_base_nbytes,
+					next, p_ops);
 			break;
 		}
 
@@ -403,10 +385,10 @@ FUNC_MOCK_END
 /*
  * redo_log_process -- redo_log_process mock
  */
-FUNC_MOCK(redo_log_process, void, const struct redo_ctx *ctx,
-		struct redo_log *redo)
+FUNC_MOCK(redo_log_process, void, struct redo_log *redo,
+	redo_check_offset_fn check, const struct pmem_ops *p_ops)
 		FUNC_MOCK_RUN_DEFAULT {
-			_FUNC_REAL(redo_log_process)(ctx, redo);
+			_FUNC_REAL(redo_log_process)(redo, check, p_ops);
 			if (Redo_fail == FAIL_AFTER_PROCESS) {
 				DONEW(NULL);
 			}

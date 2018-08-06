@@ -226,13 +226,6 @@ test_realloc(size_t org, size_t dest)
 	pfree(mock_pop, &addr->ptr);
 }
 
-static int
-redo_log_check_offset(void *ctx, uint64_t offset)
-{
-	PMEMobjpool *pop = ctx;
-	return OBJ_OFF_IS_VALID(pop, offset);
-}
-
 #define PMALLOC_EXTRA 20
 #define PALLOC_FLAG (1 << 15)
 
@@ -309,9 +302,6 @@ test_mock_pool_allocs(void)
 	mock_pop->set->options = 0;
 	mock_pop->set->directory_based = 0;
 
-	mock_pop->redo = redo_log_config_new(addr, &mock_pop->p_ops,
-			redo_log_check_offset, mock_pop);
-
 	void *heap_start = (char *)mock_pop + mock_pop->heap_offset;
 	uint64_t heap_size = MOCK_POOL_SIZE - mock_pop->heap_offset;
 
@@ -371,7 +361,6 @@ test_mock_pool_allocs(void)
 
 	stats_delete(mock_pop, s);
 	lane_cleanup(mock_pop);
-	redo_log_config_delete(mock_pop->redo);
 	heap_cleanup(&mock_pop->heap);
 
 	FREE(mock_pop->set);
