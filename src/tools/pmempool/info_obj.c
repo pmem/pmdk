@@ -67,7 +67,7 @@ lane_need_recovery_redo(PMEMobjpool *pop,
 	struct redo_log *redo, size_t nentries)
 {
 	/* Needs recovery if any of redo log entries has finish flag set */
-	return redo_log_nentries(redo) != 0;
+	return redo_log_recovery_needed(redo, &pop->p_ops) != 0;
 }
 
 /*
@@ -206,35 +206,67 @@ pmem_obj_stats_get_type(struct pmem_obj_stats *stats, uint64_t type_num)
 	return type;
 }
 
+struct info_obj_redo_args {
+	int v;
+	size_t i;
+};
+
+/*
+ * info_obj_redo_entry - print redo log entry info
+ */
+static int
+info_obj_redo_entry(struct redo_log_entry_base *e, void *arg,
+	const struct pmem_ops *p_ops)
+{
+	struct info_obj_redo_args *a = arg;
+	struct redo_log_entry_val *ev;
+
+	switch (redo_log_entry_type(e)) {
+		case REDO_OPERATION_AND:
+		case REDO_OPERATION_OR:
+		case REDO_OPERATION_SET:
+			ev = (struct redo_log_entry_val *)e;
+
+			outv(a->v, "%010zu: "
+				"Offset: 0x%016jx "
+				"Value: 0x%016jx ",
+				a->i++,
+				redo_log_entry_offset(e),
+				ev->value);
+			break;
+		default:
+			ASSERT(0); /* unreachable */
+	}
+
+	return 0;
+}
+
 /*
  * info_obj_redo -- print redo log entries
  */
 static void
-info_obj_redo(int v, struct redo_log *redo, size_t nentries)
+info_obj_redo(int v, struct redo_log *redo, size_t nentries,
+	const struct pmem_ops *ops)
 {
 	outv_field(v, "Redo log entries", "%lu", nentries);
-	for (size_t i = 0; i < nentries; i++) {
-		outv(v, "%010zu: "
-			"Offset: 0x%016jx "
-			"Value: 0x%016jx ",
-			i,
-			redo_log_offset(&redo->entries[i]),
-			redo->entries[i].value);
-	}
+
+	struct info_obj_redo_args args = {v, 0};
+	redo_log_foreach_entry(redo, info_obj_redo_entry, &args, ops);
 }
 
 /*
  * info_obj_lane_alloc -- print allocator's lane section
  */
 static void
-info_obj_lane_alloc(int v, struct lane_section_layout *layout)
+info_obj_lane_alloc(int v, struct lane_section_layout *layout,
+	const struct pmem_ops *p_ops)
 {
 	struct lane_alloc_layout *section =
 		(struct lane_alloc_layout *)layout;
 	info_obj_redo(v, (struct redo_log *)&section->internal,
-		ALLOC_REDO_INTERNAL_SIZE);
+		ALLOC_REDO_INTERNAL_SIZE, p_ops);
 	info_obj_redo(v, (struct redo_log *)&section->external,
-		ALLOC_REDO_EXTERNAL_SIZE);
+		ALLOC_REDO_EXTERNAL_SIZE, p_ops);
 }
 
 /*
@@ -246,7 +278,8 @@ info_obj_lane_list(struct pmem_info *pip, int v,
 {
 	struct lane_list_layout *section = (struct lane_list_layout *)layout;
 
-	info_obj_redo(v, (struct redo_log *)&section->redo, LIST_REDO_LOG_SIZE);
+	info_obj_redo(v, (struct redo_log *)&section->redo, LIST_REDO_LOG_SIZE,
+		&pip->obj.pop->p_ops);
 }
 
 static void
@@ -414,7 +447,8 @@ info_obj_lane_section(struct pmem_info *pip, int v, struct lane_layout *lane,
 	outv_indent(v, 1);
 	switch (type) {
 	case LANE_SECTION_ALLOCATOR:
-		info_obj_lane_alloc(v, &lane->sections[type]);
+		info_obj_lane_alloc(v, &lane->sections[type],
+			&pip->obj.pop->p_ops);
 		break;
 	case LANE_SECTION_LIST:
 		info_obj_lane_list(pip, v, &lane->sections[type]);

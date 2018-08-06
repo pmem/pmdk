@@ -54,10 +54,9 @@ enum operation_log_type {
 
 struct operation_context;
 
-struct operation_context *operation_new(void *base,
-	const struct redo_ctx *redo_ctx,
-	struct redo_log *redo, size_t redo_base_capacity,
-	redo_extend_fn extend);
+struct operation_context *
+operation_new(struct redo_log *redo, size_t redo_base_nbytes,
+	redo_extend_fn extend, const struct pmem_ops *p_ops);
 
 void operation_init(struct operation_context *ctx);
 void operation_start(struct operation_context *ctx);
@@ -69,6 +68,7 @@ int operation_add_entry(struct operation_context *ctx,
 int operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
 	enum redo_operation_type type, enum operation_log_type log_type);
+
 int operation_reserve(struct operation_context *ctx, size_t new_capacity);
 void operation_process(struct operation_context *ctx);
 void operation_cancel(struct operation_context *ctx);
