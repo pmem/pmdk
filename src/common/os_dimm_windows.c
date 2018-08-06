@@ -140,6 +140,7 @@ os_dimm_usc(const char *path, uint64_t *usc)
 	DWORD dwSize;
 	prop.PropertyId = StorageDeviceUnsafeShutdownCount;
 	prop.QueryType = PropertyExistsQuery;
+	prop.AdditionalParameters[0] = 0;
 	STORAGE_DEVICE_UNSAFE_SHUTDOWN_COUNT ret;
 
 	BOOL bResult = DeviceIoControl(vHandle,
