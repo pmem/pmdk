@@ -29,6 +29,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import memoryoperations
+from reorderexceptions import NotSupportedOperationException
+import sys
 
 
 class OperationFactory:
@@ -70,7 +72,7 @@ class OperationFactory:
         OperationFactory.__factories[id_] = operation_factory
 
     @staticmethod
-    def create_operation(string_operation):
+    def create_operation(string_operation, markers, stack):
         """
         Creates the object based on the pre-formatted string.
 
@@ -80,13 +82,47 @@ class OperationFactory:
         specific values.
 
         :param string_operation: The string describing the operation.
+        :param markers: The dict describing the pair marker-engine.
+        :param stack: The stack describing the order of engine changes.
         :return: The specific object instantiated based on the string.
         """
         id_ = string_operation.split(";")[0]
+        id_case_sensitive = id_.lower().capitalize()
+        mem_mod = 'memoryoperations'
+
+        # checks if id_ is one of memoryoperation classes
+        mem_ops = getattr(sys.modules[mem_mod], id_case_sensitive, None)
+
+        # if class is not one of memoryoperations
+        # it means it can be user defined marker
+        if mem_ops is None:
+            if id_ in markers:
+                id_ = markers[id_]
+                engine_case_sensitive = id_.lower().capitalize()
+                try:
+                    mem_ops = getattr(sys.modules[mem_mod],
+                                      engine_case_sensitive)
+                except AttributeError:
+                    raise NotSupportedOperationException(
+                            "Not supported reorder engine: {}"
+                            .format(engine_case_sensitive))
+            else:
+                # if marker is undefined by user, use the last pushed engine
+                # or default one for the last level section
+                if len(stack) == 1:
+                    mem_ops = memoryoperations.Default_reorder
+                else:
+                    mem_ops = stack[-1]
+
+        # here we have proper memory operation to perform,
+        # it can be STORE, FREORDER, FENCE, DEFAULT_REORDER, END_SECTION etc.
+        if issubclass(mem_ops, memoryoperations.End_section):
+            mem_ops = stack.pop()
+        elif issubclass(mem_ops, memoryoperations.ReorderBase):
+            stack.append(mem_ops)
+
+        id_ = mem_ops.__name__
         if id_ not in OperationFactory.__factories:
-            OperationFactory.__factories[id_] = \
-             eval(
-                  'memoryoperations.' +
-                  id_.lower().capitalize() +
-                  '.Factory()')
+            OperationFactory.__factories[id_] = mem_ops.Factory()
+
         return OperationFactory.__factories[id_].create(string_operation)

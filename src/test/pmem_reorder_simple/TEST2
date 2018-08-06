@@ -33,12 +33,15 @@
 
 #
 # src/test/pmem_reorder_simple/TEST2 -- unit test for the reordering script
+# Tests negative case using no_reorder_do_check reorder engine
+# for most critical mark section and no_reorder_no_checker engine for other
+# parts of code.
 #
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-# doesn't make sense to run in local directory
+# it doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
 require_build_type debug
 require_test_type medium
@@ -49,14 +52,14 @@ require_pmreorder
 setup
 
 # create holey file
-truncate -s 4M $DIR/testfile1
+truncate -s 4M $DIR/testfile2
 
 BIN="./pmem_reorder_simple$EXESUFFIX"
-PMEMCHECK_CMD="$BIN b $DIR/testfile1"
+PMEMCHECK_CMD="$BIN b $DIR/testfile2"
 PMREORDER_CMD="$BIN c"
 
-pmreorder_create_store_log $DIR/testfile1 "$PMEMCHECK_CMD"
-pmreorder_expect_success noreorder prog "$PMREORDER_CMD"
+pmreorder_create_store_log $DIR/testfile2 "$PMEMCHECK_CMD"
+pmreorder_expect_success nochecker pmreorder2.conf "$PMREORDER_CMD"
 
 check
 

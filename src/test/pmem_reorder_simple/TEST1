@@ -33,12 +33,15 @@
 
 #
 # src/test/pmem_reorder_simple/TEST1 -- unit test for the reordering script
+# Tests positive case using full reorder engine for most critical section
+# and no_reorder_no_checker engine for other parts of code.
+# This test also checks cli markers parser.
 #
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-# doesn't make sense to run in local directory
+# it doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
 require_build_type debug
 require_test_type medium
@@ -56,7 +59,7 @@ PMEMCHECK_CMD="$BIN g $DIR/testfile1"
 PMREORDER_CMD="$BIN c"
 
 pmreorder_create_store_log $DIR/testfile1 "$PMEMCHECK_CMD"
-pmreorder_expect_success full prog "$PMREORDER_CMD"
+pmreorder_expect_success noreorder "PMREORDER_MARKER_CHANGE=REORDER_FULL" "$PMREORDER_CMD"
 
 check
 

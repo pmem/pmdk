@@ -115,14 +115,13 @@ main(int argc, char *argv[])
 	struct three_field *structp = map;
 
 	char opt = argv[1][0];
+
 	/* clear the struct to get a consistent start state for writing */
 	if (strchr("gb", opt))
-		memset(structp, 0, sizeof(*structp));
+		pmem_memset_persist(structp, 0, sizeof(*structp));
 
-	VALGRIND_LOG_STORES;
-	/* verify that VALGRIND_DEFAULT_REORDER restores default engine */
-	VALGRIND_EMIT_LOG("PREORDER");
-	VALGRIND_EMIT_LOG("DEFAULT_REORDER");
+	/* verify that DEFAULT_REORDER restores default engine */
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_CHANGE");
 
 	switch (opt) {
 		case 'g':
@@ -136,8 +135,10 @@ main(int argc, char *argv[])
 		default:
 			UT_FATAL("Unrecognized option %c", opt);
 	}
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_END");
 
-	VALGRIND_NO_LOG_STORES;
+	/* check if undefined marker will not cause an issue */
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_UNDEFINED");
 
 	CLOSE(fd);
 

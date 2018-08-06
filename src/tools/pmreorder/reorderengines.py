@@ -40,6 +40,8 @@ import collections
 
 
 class FullReorderEngine:
+    def __init__(self):
+        self.test_on_barrier = True
     """
     Realizes a full reordering of stores within a given list.
     Example:
@@ -78,6 +80,8 @@ class FullReorderEngine:
 
 
 class AccumulativeReorderEngine:
+    def __init__(self):
+        self.test_on_barrier = True
     """
     Realizes an accumulative reorder of stores within a given list.
     Example:
@@ -125,6 +129,7 @@ class SlicePartialReorderEngine:
         self._start = start
         self._stop = stop
         self._step = step
+        self.test_on_barrier = True
 
     def generate_sequence(self, store_list):
         """
@@ -181,6 +186,7 @@ class FilterPartialReorderEngine:
         """
         self._filter = func
         self._filter_kwargs = kwargs
+        self.test_on_barrier = True
 
     @staticmethod
     def filter_min_elem(store_list, **kwargs):
@@ -244,6 +250,7 @@ class RandomPartialReorderEngine:
 
         :param max_seq: The number of combinations to be generated.
         """
+        self.test_on_barrier = True
         self._max_seq = max_seq
 
     def generate_sequence(self, store_list):
@@ -270,6 +277,8 @@ class RandomPartialReorderEngine:
 
 
 class NoReorderEngine:
+    def __init__(self):
+        self.test_on_barrier = True
     """
     A NULL reorder engine.
     Example:
@@ -281,7 +290,29 @@ class NoReorderEngine:
         This generator does not modify the provided store list.
 
         :param store_list: The list of stores to be reordered.
-        :type store_list: list of :class:`memoryoperations.Store`
+        :type store_list: The list of :class:`memoryoperations.Store`
+        :return: The unmodified list of stores.
+        :rtype: iterable
+        """
+        return [store_list]
+
+
+class NoCheckerEngine:
+    def __init__(self):
+        self.test_on_barrier = False
+    """
+    A NULL reorder engine.
+    Example:
+        input: (a, b, c)
+        output: (a, b, c)
+    """
+    def generate_sequence(self, store_list):
+        """
+        This generator does not modify the provided store list
+        and does not do the check.
+
+        :param store_list: The list of stores to be reordered.
+        :type store_list: The list of :class:`memoryoperations.Store`
         :return: The unmodified list of stores.
         :rtype: iterable
         """
@@ -300,6 +331,7 @@ def get_engine(engine):
 
 
 engines = collections.OrderedDict([
+           ('nochecker', NoCheckerEngine),
            ('full', FullReorderEngine),
            ('noreorder', NoReorderEngine),
            ('accumulative', AccumulativeReorderEngine),

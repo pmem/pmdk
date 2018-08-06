@@ -3147,8 +3147,9 @@ function require_pmreorder()
 #
 # pmreorder_run_tool -- run pmreorder with parameters and return exit status
 #
-# 1 - reorder engine type [full|noreorder|partial|accumulative]
-# 2 - the checker type - for a list of supported types run `./pmreorder.py -h`
+# 1 - reorder engine type [nochecker|full|noreorder|partial|accumulative]
+# 2 - marker-engine pairs in format: MARKER=ENGINE,MARKER1=ENGINE1 or
+#     config file in json format: { "MARKER":"ENGINE","MARKER1":"ENGINE1" }
 # 3 - the path to the checker binary/library and  remaining parameters which
 #     will be passed to the consistency checker binary.
 #     If you are using a library checker, prepend '-n funcname'
@@ -3157,11 +3158,11 @@ function pmreorder_run_tool()
 {
 	rm -f pmreorder$UNITTEST_NUM.log
 	disable_exit_on_error
-	eval LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PYTHON_EXE $PMREORDER \
+	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PYTHON_EXE $PMREORDER \
 		-l store_log$UNITTEST_NUM.log \
 		-o pmreorder$UNITTEST_NUM.log \
 		-r $1 \
-		-c $2 \
+		-x $2 \
 		-p "$3"
 	ret=$?
 	restore_exit_on_error

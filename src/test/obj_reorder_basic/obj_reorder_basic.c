@@ -47,6 +47,8 @@
 #define MAX_BUF_LEN 10
 #define BUF_VALUE 'a'
 
+#define END_MARKER "END_SECTION"
+
 struct my_root {
 	size_t len;
 	char buf[MAX_BUF_LEN];
@@ -99,13 +101,11 @@ main(int argc, char *argv[])
 	if (argc != 3 || strchr("wc", argv[1][0]) == 0 || argv[1][1] != '\0')
 		UT_FATAL("usage: %s w|c file", argv[0]);
 
-	VALGRIND_LOG_STORES;
-
 	PMEMobjpool *pop = pmemobj_open(argv[2], LAYOUT_NAME);
 	UT_ASSERT(pop != NULL);
 
 	char opt = argv[1][0];
-	VALGRIND_EMIT_LOG("PREORDER");
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_WRITE");
 	switch (opt) {
 		case 'w':
 		{
@@ -121,8 +121,7 @@ main(int argc, char *argv[])
 		default:
 			UT_FATAL("Unrecognized option %c", opt);
 	}
-
-	VALGRIND_NO_LOG_STORES;
+	VALGRIND_EMIT_LOG(END_MARKER);
 
 	pmemobj_close(pop);
 	DONE(NULL);

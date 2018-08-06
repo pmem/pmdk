@@ -38,7 +38,7 @@
 # standard unit test setup
 . ../unittest/unittest.sh
 
-# doesn't make sense to run in local directory
+# it doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
 require_build_type debug
 require_test_type medium
@@ -58,7 +58,7 @@ PMEMCHECK_CMD="$BIN w $DIR/testfile1"
 PMREORDER_CMD="$BIN c"
 
 pmreorder_create_store_log $DIR/testfile1 "$PMEMCHECK_CMD"
-pmreorder_expect_success full prog "$PMREORDER_CMD"
+pmreorder_expect_success full "PMREORDER_MARKER_WRITE=PREORDER" "$PMREORDER_CMD"
 
 check
 

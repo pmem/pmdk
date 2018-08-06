@@ -183,23 +183,31 @@ class CollectingState(State):
         :type order_ops: subclass of :class:`memoryoperations.ReorderBase`
         :return: None
         """
-        self._context.test_on_barrier = True
         if isinstance(order_ops, memoryoperations.Freorder):
             self._context.reorder_engine = \
                 reorderengines.FullReorderEngine()
+            self._context.test_on_barrier = \
+                self._context.reorder_engine.test_on_barrier
         elif isinstance(order_ops, memoryoperations.Preorder):
             # TODO add macro in valgrind or
             # parameter inside the tool to support parameters?
             self._context.reorder_engine = \
-                reorderengines.RandomPartialReorderEngine(3)
+                 reorderengines.RandomPartialReorderEngine(3)
+            self._context.test_on_barrier = \
+                self._context.reorder_engine.test_on_barrier
         elif isinstance(order_ops, memoryoperations.Areorder):
             self._context.reorder_engine = \
                 reorderengines.AccumulativeReorderEngine()
+            self._context.test_on_barrier = \
+                self._context.reorder_engine.test_on_barrier
         elif isinstance(order_ops, memoryoperations.Fault_only):
             self._context.reorder_engine = reorderengines.NoReorderEngine()
+            self._context.test_on_barrier = \
+                self._context.reorder_engine.test_on_barrier
         elif isinstance(order_ops, memoryoperations.No_reorder_fault):
-            self._context.reorder_engine = reorderengines.NoReorderEngine()
-            self._context.test_on_barrier = False
+            self._context.reorder_engine = reorderengines.NoCheckerEngine()
+            self._context.test_on_barrier = \
+                self._context.reorder_engine.test_on_barrier
         elif isinstance(order_ops, memoryoperations.Default_reorder):
             self._context.reorder_engine = self._context.default_engine
             self._context.test_on_barrier = self._context.default_barrier
