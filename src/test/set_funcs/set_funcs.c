@@ -54,6 +54,7 @@ static struct counters {
 	int mallocs;
 	int frees;
 	int reallocs;
+	int reallocs_null;
 	int strdups;
 } cnt[5];
 
@@ -91,6 +92,8 @@ test_realloc(void *ptr, size_t size)
 		p = malloc(size + EXTRA);
 	}
 	UT_ASSERTne(p, NULL);
+	*p = GUARD;
+
 	return ++p;
 }
 
@@ -126,7 +129,10 @@ obj_free(void *ptr)
 static void *
 obj_realloc(void *ptr, size_t size)
 {
-	cnt[OBJ].reallocs++;
+	if (ptr == NULL)
+		cnt[OBJ].reallocs_null++;
+	else
+		cnt[OBJ].reallocs++;
 	return test_realloc(ptr, size);
 }
 
@@ -156,7 +162,10 @@ blk_free(void *ptr)
 static void *
 blk_realloc(void *ptr, size_t size)
 {
-	cnt[BLK].reallocs++;
+	if (ptr == NULL)
+		cnt[BLK].reallocs_null++;
+	else
+		cnt[BLK].reallocs++;
 	return test_realloc(ptr, size);
 }
 
@@ -185,7 +194,10 @@ log_free(void *ptr)
 static void *
 log_realloc(void *ptr, size_t size)
 {
-	cnt[LOG].reallocs++;
+	if (ptr == NULL)
+		cnt[LOG].reallocs_null++;
+	else
+		cnt[LOG].reallocs++;
 	return test_realloc(ptr, size);
 }
 
@@ -214,7 +226,10 @@ _vmem_free(void *ptr)
 static void *
 _vmem_realloc(void *ptr, size_t size)
 {
-	cnt[VMEM_].reallocs++;
+	if (ptr == NULL)
+		cnt[VMEM_].reallocs_null++;
+	else
+		cnt[VMEM_].reallocs++;
 	return test_realloc(ptr, size);
 }
 
@@ -243,7 +258,10 @@ cto_free(void *ptr)
 static void *
 cto_realloc(void *ptr, size_t size)
 {
-	cnt[CTO].reallocs++;
+	if (ptr == NULL)
+		cnt[CTO].reallocs_null++;
+	else
+		cnt[CTO].reallocs++;
 	return test_realloc(ptr, size);
 }
 
@@ -301,6 +319,7 @@ test_obj(const char *path)
 	UT_OUT("obj_mallocs: %d", cnt[OBJ].mallocs);
 	UT_OUT("obj_frees: %d", cnt[OBJ].frees);
 	UT_OUT("obj_reallocs: %d", cnt[OBJ].reallocs);
+	UT_OUT("obj_reallocs_null: %d", cnt[OBJ].reallocs_null);
 	UT_OUT("obj_strdups: %d", cnt[OBJ].strdups);
 
 	if (cnt[OBJ].mallocs == 0 || cnt[OBJ].frees == 0)
@@ -314,7 +333,7 @@ test_obj(const char *path)
 			UT_FATAL("OBJ allocation used %d functions", i);
 	}
 
-	if (cnt[OBJ].mallocs + cnt[OBJ].strdups !=
+	if (cnt[OBJ].mallocs + cnt[OBJ].strdups + cnt[OBJ].reallocs_null !=
 					cnt[OBJ].frees + OBJ_EXTRA_NALLOC)
 		UT_FATAL("OBJ memory leak");
 
@@ -342,6 +361,7 @@ test_blk(const char *path)
 	UT_OUT("blk_mallocs: %d", cnt[BLK].mallocs);
 	UT_OUT("blk_frees: %d", cnt[BLK].frees);
 	UT_OUT("blk_reallocs: %d", cnt[BLK].reallocs);
+	UT_OUT("blk_reallocs_null: %d", cnt[BLK].reallocs_null);
 	UT_OUT("blk_strdups: %d", cnt[BLK].strdups);
 
 	if (cnt[BLK].mallocs == 0 || cnt[BLK].frees == 0)
@@ -355,7 +375,8 @@ test_blk(const char *path)
 			UT_FATAL("BLK allocation used %d functions", i);
 	}
 
-	if (cnt[BLK].mallocs + cnt[BLK].strdups != cnt[BLK].frees)
+	if (cnt[BLK].mallocs + cnt[BLK].strdups + cnt[BLK].reallocs_null
+					!= cnt[BLK].frees)
 		UT_FATAL("BLK memory leak");
 
 	UNLINK(path);
@@ -382,6 +403,7 @@ test_log(const char *path)
 	UT_OUT("log_mallocs: %d", cnt[LOG].mallocs);
 	UT_OUT("log_frees: %d", cnt[LOG].frees);
 	UT_OUT("log_reallocs: %d", cnt[LOG].reallocs);
+	UT_OUT("log_reallocs_null: %d", cnt[LOG].reallocs_null);
 	UT_OUT("log_strdups: %d", cnt[LOG].strdups);
 
 	if (cnt[LOG].mallocs == 0 || cnt[LOG].frees == 0)
@@ -395,7 +417,8 @@ test_log(const char *path)
 			UT_FATAL("LOG allocation used %d functions", i);
 	}
 
-	if (cnt[LOG].mallocs + cnt[LOG].strdups != cnt[LOG].frees)
+	if (cnt[LOG].mallocs + cnt[LOG].strdups + cnt[LOG].reallocs_null
+					!= cnt[LOG].frees)
 		UT_FATAL("LOG memory leak");
 
 	UNLINK(path);
@@ -446,6 +469,7 @@ test_cto(const char *path)
 	UT_OUT("cto_mallocs: %d", cnt[CTO].mallocs);
 	UT_OUT("cto_frees: %d", cnt[CTO].frees);
 	UT_OUT("cto_reallocs: %d", cnt[CTO].reallocs);
+	UT_OUT("cto_reallocs_null: %d", cnt[CTO].reallocs_null);
 	UT_OUT("cto_strdups: %d", cnt[CTO].strdups);
 
 	if (cnt[CTO].mallocs == 0 || cnt[CTO].frees == 0)
@@ -459,7 +483,7 @@ test_cto(const char *path)
 			UT_FATAL("CTO allocation used %d functions", i);
 	}
 
-	if (cnt[CTO].mallocs + cnt[CTO].strdups !=
+	if (cnt[CTO].mallocs + cnt[CTO].strdups + cnt[CTO].reallocs_null !=
 					cnt[CTO].frees + CTO_EXTRA_NALLOC)
 		UT_FATAL("CTO memory leak");
 
@@ -496,6 +520,7 @@ test_vmem(const char *dir)
 	UT_OUT("vmem_mallocs: %d", cnt[VMEM_].mallocs);
 	UT_OUT("vmem_frees: %d", cnt[VMEM_].frees);
 	UT_OUT("vmem_reallocs: %d", cnt[VMEM_].reallocs);
+	UT_OUT("vmem_reallocs_null: %d", cnt[VMEM_].reallocs_null);
 	UT_OUT("vmem_strdups: %d", cnt[VMEM_].strdups);
 
 	if (cnt[VMEM_].mallocs == 0 && cnt[VMEM_].frees == 0)
@@ -509,7 +534,8 @@ test_vmem(const char *dir)
 			UT_FATAL("VMEM allocation used %d functions", i);
 	}
 
-	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups > cnt[VMEM_].frees + 4)
+	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups + cnt[VMEM_].reallocs_null
+					> cnt[VMEM_].frees + 4)
 		UT_FATAL("VMEM memory leak");
 }
 
