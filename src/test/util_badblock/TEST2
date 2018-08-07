@@ -55,6 +55,10 @@ setup
 ndctl_nfit_test_init
 
 DEVICE=$(ndctl_nfit_test_get_dax_device)
+
+# XXX needed by libndctl (it should be removed when it is not needed)
+ndctl_nfit_test_grant_access $DEVICE
+
 FULLDEV="/dev/$DEVICE"
 
 expect_normal_exit ./util_badblock$EXESUFFIX $FULLDEV l
