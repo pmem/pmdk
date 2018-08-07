@@ -31,6 +31,9 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
+# src/test/obj_extend/TEST0 -- unit test for extending the pool
+#
 
 # standard unit test setup
 . ../unittest/unittest.sh

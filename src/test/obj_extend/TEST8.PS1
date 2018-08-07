@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -32,28 +31,32 @@
 #
 
 #
-# src/test/obj_extend/TEST1 -- unit test for extending the pool
+# src/test/obj_extend/TEST8 -- negative unit test for reducing reservation size
 #
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
-require_build_type debug
-require_fs_type pmem
+require_fs_type any
 
 setup
 
-RESVSIZE=$(((512 + 8) * 1024 * 1024)) # 512MiB + 8MiB
-GRANULARITY=$((1024 * 1024 * 10)) # 10MiB
+$Env:RESVSIZE=$((512 * 1024 * 1024)) # 512MiB
+$Env:RESVSIZE_SMALL=$((256 * 1024 * 1024)) # 256MiB
+$Env:ALLOCSIZE=$((10 * 1024 * 1024)) # 10MiB
 
 # prepare pool sets
-create_poolset $DIR/testset2\
-	$RESVSIZE:$DIR/testdir21:d\
+create_poolset $DIR\testset1 `
+	($Env:RESVSIZE + ":" + $DIR + "\testdir10:d") `
 	O SINGLEHDR
 
-PMEMOBJ_CONF="heap.size.granularity=$GRANULARITY"\
-	expect_normal_exit ./obj_extend$EXESUFFIX $DIR/testset2
+# prepare pool sets
+create_poolset $DIR\testset2 `
+	($Env:RESVSIZE_SMALL + ":" + $DIR + "\testdir10:d") `
+	O SINGLEHDR
+
+expect_normal_exit $Env:EXE_DIR\obj_extend$Env:EXESUFFIX $DIR\testset1 $Env:ALLOCSIZE $DIR\testset2
 
 check
 

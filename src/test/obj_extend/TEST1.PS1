@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -36,7 +35,7 @@
 #
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_build_type debug
@@ -44,16 +43,16 @@ require_fs_type pmem
 
 setup
 
-RESVSIZE=$(((512 + 8) * 1024 * 1024)) # 512MiB + 8MiB
-GRANULARITY=$((1024 * 1024 * 10)) # 10MiB
+$Env:RESVSIZE=$(((512 + 8) * 1024 * 1024)) # 512MiB + 8MiB
+$Env:GRANULARITY=$((1024 * 1024 * 10)) # 10MiB
 
 # prepare pool sets
-create_poolset $DIR/testset2\
-	$RESVSIZE:$DIR/testdir21:d\
+create_poolset $DIR\testset2 `
+	($Env:RESVSIZE + ":" + $DIR + "\testdir21:d") `
 	O SINGLEHDR
 
-PMEMOBJ_CONF="heap.size.granularity=$GRANULARITY"\
-	expect_normal_exit ./obj_extend$EXESUFFIX $DIR/testset2
+$Env:PMEMOBJ_CONF="heap.size.granularity=$Env:GRANULARITY"
+expect_normal_exit $Env:EXE_DIR\obj_extend$Env:EXESUFFIX $DIR\testset2
 
 check
 
