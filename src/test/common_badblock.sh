@@ -166,6 +166,10 @@ function ndctl_nfit_test_get_device_node() {
 #                                   of the nfit_test module
 #
 function ndctl_nfit_test_get_dax_device() {
+
+	# XXX needed by libndctl (it should be removed when it is not needed)
+	sudo chmod o+rw /dev/ndctl*
+
 	DEVICE=$(ndctl_nfit_test_get_device devdax)
 	sudo chmod o+rw /dev/$DEVICE
 	echo $DEVICE
@@ -190,6 +194,48 @@ function ndctl_nfit_test_get_block_device_node() {
 }
 
 #
+# ndctl_nfit_test_grant_access -- grant accesses required by libndctl
+#
+# XXX needed by libndctl (it should be removed when these extra access rights are not needed)
+#
+# Input argument:
+# 1) a name of pmem device
+#
+function ndctl_nfit_test_grant_access() {
+	DEVICE=$1
+
+	BUS="nfit_test.0"
+	REGION=$(ndctl list -b $BUS -t pmem -Ri | sed "/dev/!d;s/[\", ]//g;s/dev://g" | tail -1)
+	N=$(echo $REGION | cut -c7-)
+	expect_normal_exit "\
+		sudo chmod o+rw /dev/nmem$N && \
+		sudo chmod o+r /sys/devices/platform/$BUS/ndbus1/$REGION/*/resource && \
+		sudo chmod o+r /sys/devices/platform/$BUS/ndbus1/$REGION/resource"
+}
+
+
+#
+# ndctl_nfit_test_grant_access_node -- grant accesses required by libndctl on a node
+#
+# XXX needed by libndctl (it should be removed when these extra access rights are not needed)
+#
+# Input argument:
+# 1) node number
+# 2) name of pmem device
+#
+function ndctl_nfit_test_grant_access_node() {
+	DEVICE=$1
+
+	BUS="nfit_test.0"
+	REGION=$(expect_normal_exit run_on_node $1 ndctl list -b $BUS -t pmem -Ri | sed "/dev/!d;s/[\", ]//g;s/dev://g" | tail -1)
+	N=$(echo $REGION | cut -c7-)
+	expect_normal_exit run_on_node $1 "\
+		sudo chmod o+rw /dev/nmem$N && \
+		sudo chmod o+r /sys/devices/platform/$BUS/ndbus1/$REGION/*/resource && \
+		sudo chmod o+r /sys/devices/platform/$BUS/ndbus1/$REGION/resource"
+}
+
+#
 # ndctl_nfit_test_get_namespace_of_device -- get namespace of the pmem device
 #
 # Input argument:
@@ -198,6 +244,10 @@ function ndctl_nfit_test_get_block_device_node() {
 function ndctl_nfit_test_get_namespace_of_device() {
 	DEVICE=$1
 	NAMESPACE=$(ndctl list | grep -e "$DEVICE" -e namespace | grep -B1 -e "$DEVICE" | head -n1 | cut -d'"' -f4)
+
+	# XXX needed by libndctl (it should be removed when it is not needed)
+	ndctl_nfit_test_grant_access $DEVICE
+
 	echo $NAMESPACE
 }
 
@@ -211,6 +261,10 @@ function ndctl_nfit_test_get_namespace_of_device() {
 function ndctl_nfit_test_get_namespace_of_device_node() {
 	DEVICE=$2
 	NAMESPACE=$(expect_normal_exit run_on_node $1 ndctl list | grep -e "$DEVICE" -e namespace | grep -B1 -e "$DEVICE" | head -n1 | cut -d'"' -f4)
+
+	# XXX needed by libndctl (it should be removed when it is not needed)
+	ndctl_nfit_test_grant_access_node $1 $DEVICE
+
 	echo $NAMESPACE
 }
 
@@ -234,7 +288,8 @@ function ndctl_inject_error() {
 #                     or "No bad blocks found" if there are no bad blocks
 #
 function print_bad_blocks {
-	ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || echo "No bad blocks found" >> $LOG
+	# XXX sudo should be removed when it is not needed
+	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || echo "No bad blocks found" >> $LOG
 }
 
 #
@@ -242,9 +297,11 @@ function print_bad_blocks {
 #                      and fail if they are not there
 #
 function expect_bad_blocks {
-	ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG && true
+	# XXX sudo should be removed when it is not needed
+	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG && true
 	if [ $? -ne 0 ]; then
-		ndctl list -M &>> $PREP_LOG_FILE && true
+		# XXX sudo should be removed when it is not needed
+		sudo ndctl list -M &>> $PREP_LOG_FILE && true
 		msg "====================================================================="
 		msg "Error occurred, the preparation log ($PREP_LOG_FILE) is listed below:"
 		msg ""
@@ -260,5 +317,6 @@ function expect_bad_blocks {
 #                      and fail if they are not there
 #
 function expect_bad_blocks_node {
-	expect_normal_exit run_on_node $1 ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || fatal "Error: ndctl failed to inject or retain bad blocks"
+	# XXX sudo should be removed when it is not needed
+	expect_normal_exit run_on_node $1 sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || fatal "Error: ndctl failed to inject or retain bad blocks"
 }
