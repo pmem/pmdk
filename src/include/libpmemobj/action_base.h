@@ -69,6 +69,15 @@ struct pobj_action {
 		} heap;
 		uint64_t data2[14];
 	};
+
+#ifdef __cplusplus
+	/*
+	 * Default constructor
+	 */
+	pobj_action() noexcept
+	{
+	}
+#endif
 };
 
 #define POBJ_ACTION_XRESERVE_VALID_FLAGS\
