@@ -1116,7 +1116,7 @@ if ($Env:EXE_DIR -eq $null) {
 }
 
 if ($Env:EXAMPLES_DIR -eq $null) {
-	$Env:EXAMPLES_DIR = "..\..\x64\debug"
+	$Env:EXAMPLES_DIR = "..\..\x64\debug\examples"
 }
 
 if ($Env:LIBS_DIR -eq $null) {
