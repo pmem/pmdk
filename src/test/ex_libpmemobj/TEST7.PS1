@@ -45,10 +45,10 @@ setup
 
 @"
 Hello!
-"@| &$Env:EXE_DIR\ex_pmemobj_writer $DIR\testfile1 > out$Env:UNITTEST_NUM.log 2>&1
+"@| &$Env:EXAMPLES_DIR\ex_pmemobj_writer $DIR\testfile1 > out$Env:UNITTEST_NUM.log 2>&1
 check_exit_code
 
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_reader $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_reader $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
 
 check
 
