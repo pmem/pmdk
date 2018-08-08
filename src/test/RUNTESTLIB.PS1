@@ -293,7 +293,10 @@ function runtest {
                 $Env:BUILD = $build
                 $Env:EXE_DIR = $(get_build_dir $build)[0]
 				$Env:EXAMPLE_DIR = $(get_build_dir $build)[1]
-				$Env:LIBS_DIR = $(get_build_dir $build)[2]
+
+				if (-Not $Env:PMDK_LIB_PATH_NONDEBUG -And -Not $Env:PMDK_LIB_PATH_DEBUG) {
+					$Env:LIBS_DIR = $(get_build_dir $build)[2]
+				}
 
                 if ($dryrun -eq "1") {
                     Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"

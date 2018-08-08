@@ -78,3 +78,11 @@ $Env:TM = "1"
 #
 # XXX - remote capabilities not ported to Windows yet
 #
+
+#
+# Allow testing installed libraries in the indicated path,
+# NOT the one built in tree.
+#
+# $Env:PMDK_LIB_PATH_NONDEBUG = "C:\vcpkg\packages\pmdk_x64-windows\bin"
+# $Env:PMDK_LIB_PATH_DEBUG = "C:\vcpkg\packages\pmdk_x64-windows\debug\bin"
+# $Env:PMDK_TOOLS_PATH = "C:\vcpkg\packages\pmdk_x64-windows\tools\pmdk\"

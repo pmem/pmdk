@@ -1057,12 +1057,20 @@ function setup {
     }
 
 	if ($Env:BUILD -eq 'nondebug') {
-		$Env:PMDK_LIB_PATH_NONDEBUG = '..\..\x64\Release\libs\'
+		if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
+			$Env:PMDK_LIB_PATH_NONDEBUG = '..\..\x64\Release\libs\'
+		} else {
+			$Env:LIBS_DIR = $Env:PMDK_LIB_PATH_NONDEBUG
+		}
         $Env:Path = $Env:Path + ';' + $Env:PMDK_LIB_PATH_NONDEBUG
     }
 
 	if ($Env:BUILD -eq 'debug') {
-		$Env:PMDK_LIB_PATH_DEBUG = '..\..\x64\Debug\libs\'
+		if (-Not $Env:PMDK_LIB_PATH_DEBUG) {
+			$Env:PMDK_LIB_PATH_DEBUG = '..\..\x64\Debug\libs\'
+		} else {
+			$Env:LIBS_DIR = $Env:PMDK_LIB_PATH_DEBUG
+		}
         $Env:Path = $Env:Path + ';' + $Env:PMDK_LIB_PATH_DEBUG
     }
 }
@@ -1123,9 +1131,15 @@ if ($Env:LIBS_DIR -eq $null) {
 	$Env:LIBS_DIR = "..\..\x64\debug\libs"
 }
 
-switch -regex ($Env:BUILD) {
+if ($Env:PMDK_TOOLS_PATH) {
+	$PMEMPOOL = "$Env:PMDK_TOOLS_PATH\pmempool$Env:EXESUFFIX"
+}
+else
+{
+	switch -regex ($Env:BUILD) {
         'debug' { $PMEMPOOL = "..\..\x64\debug\libs\pmempool$Env:EXESUFFIX" }
         'nondebug' { $PMEMPOOL = "..\..\x64\release\libs\pmempool$Env:EXESUFFIX" }
+    }
 }
 
 $PMEMSPOIL="$Env:EXE_DIR\pmemspoil$Env:EXESUFFIX"
