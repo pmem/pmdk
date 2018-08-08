@@ -1055,6 +1055,16 @@ function setup {
     if ($Env:TM -eq "1" ) {
         $script:tm = [system.diagnostics.stopwatch]::startNew()
     }
+
+	if ($Env:BUILD -eq 'nondebug') {
+		$Env:PMDK_LIB_PATH_NONDEBUG = '..\..\x64\Release\libs\'
+        $Env:Path = $Env:Path + ';' + $Env:PMDK_LIB_PATH_NONDEBUG
+    }
+
+	if ($Env:BUILD -eq 'debug') {
+		$Env:PMDK_LIB_PATH_DEBUG = '..\..\x64\Debug\libs\'
+        $Env:Path = $Env:Path + ';' + $Env:PMDK_LIB_PATH_DEBUG
+    }
 }
 
 #
@@ -1102,10 +1112,22 @@ if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋"}
 if (-Not $Env:DIRSUFFIX) { $Env:DIRSUFFIX = ""}
 
 if ($Env:EXE_DIR -eq $null) {
-    $Env:EXE_DIR = "..\..\x64\debug"
+    $Env:EXE_DIR = "..\..\x64\debug\tests"
 }
 
-$PMEMPOOL="$Env:EXE_DIR\pmempool$Env:EXESUFFIX"
+if ($Env:EXAMPLES_DIR -eq $null) {
+	$Env:EXAMPLES_DIR = "..\..\x64\debug"
+}
+
+if ($Env:LIBS_DIR -eq $null) {
+	$Env:LIBS_DIR = "..\..\x64\debug\libs"
+}
+
+switch -regex ($Env:BUILD) {
+        'debug' { $PMEMPOOL = "..\..\x64\debug\libs\pmempool$Env:EXESUFFIX" }
+        'nondebug' { $PMEMPOOL = "..\..\x64\release\libs\pmempool$Env:EXESUFFIX" }
+}
+
 $PMEMSPOIL="$Env:EXE_DIR\pmemspoil$Env:EXESUFFIX"
 $PMEMWRITE="$Env:EXE_DIR\pmemwrite$Env:EXESUFFIX"
 $PMEMALLOC="$Env:EXE_DIR\pmemalloc$Env:EXESUFFIX"

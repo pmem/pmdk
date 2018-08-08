@@ -171,15 +171,19 @@ function get_build_dir() {
         [ValidateSet("debug", "nondebug")]
         [string]$build
     )
+	$build_dirs = @()
 
-    # default build dir is Debug
-    $build_dir = "..\..\x64\Debug"
-
-    if ($build -eq "nondebug") {
-        $build_dir = "..\..\x64\Release"
+    if ($build -eq "debug") {
+		$build_dirs += "..\..\x64\Debug\tests"
+		$build_dirs += "..\..\x64\Debug"
+		$build_dirs += "..\..\x64\Debug\libs"
+	} else {
+        $build_dirs += "..\..\x64\Release\tests"
+		$build_dirs += "..\..\x64\Release"
+		$build_dirs += "..\..\x64\Release\libs"
     }
 
-    return $build_dir
+    return ,$build_dirs
 }
 
 #
@@ -287,7 +291,9 @@ function runtest {
                 $Env:TYPE = $config.testtype
                 $Env:FS = $fs
                 $Env:BUILD = $build
-                $Env:EXE_DIR = get_build_dir $build
+                $Env:EXE_DIR = $(get_build_dir $build)[0]
+                $Env:EXAMPLES_DIR = $(get_build_dir $build)[1]
+                $Env:LIBS_DIR = $(get_build_dir $build)[2]
 
                 if ($dryrun -eq "1") {
                     Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"
@@ -344,10 +350,10 @@ if ($Env:NON_PMEM_FS_DIR -And (-Not (isDir($Env:NON_PMEM_FS_DIR)))) {
     throw "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR doesn't exist"
 }
 
-$PMEMDETECT="..\x64\Debug\pmemdetect.exe"
+$PMEMDETECT="..\x64\Debug\tests\pmemdetect.exe"
 
 if (-Not (Test-Path $PMEMDETECT)) {
-    $PMEMDETECT="..\x64\Release\pmemdetect.exe"
+    $PMEMDETECT="..\x64\Release\tests\pmemdetect.exe"
 }
 
 if (isDir($Env:PMEM_FS_DIR)) {

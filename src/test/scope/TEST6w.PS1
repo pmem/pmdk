@@ -50,7 +50,7 @@ function parse_lib {
 }
 
 echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
-parse_lib "$Env:EXE_DIR\libpmempool.dll"
+parse_lib "$Env:LIBS_DIR\libpmempool.dll"
 
 check
 

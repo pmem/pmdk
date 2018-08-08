@@ -43,8 +43,8 @@ require_no_unicode
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_pi $DIR\testfile1 c 2 20 > out$Env:UNITTEST_NUM.log 2>&1
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_pi $DIR\testfile1 p >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_pi $DIR\testfile1 c 2 20 > out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_pi $DIR\testfile1 p >> out$Env:UNITTEST_NUM.log 2>&1
 
 check
 

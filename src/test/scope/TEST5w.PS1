@@ -52,7 +52,7 @@ function parse_lib {
 # XXX: libvmmalloc not yet ported to Windows
 
 #echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
-#parse_lib "$Env:EXE_DIR\libvmmalloc.dll"
+#parse_lib "$Env:LIBS_DIR\libvmmalloc.dll"
 
 #check
 
