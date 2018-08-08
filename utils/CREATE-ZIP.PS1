@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -82,14 +82,19 @@ if ($extended -eq "1") {
 }
 
 foreach ($lib in $libs) {
-    Copy-Item ($builddir + $build + "\" + $lib + ".dll") ($zipdir + "\bin\")
+    Copy-Item ($builddir + $build + "\libs\" + $lib + ".dll") ($zipdir + "\bin\")
     foreach ($ex in @(".lib", ".pdb")) {
-        Copy-Item ($builddir + $build + "\" + $lib + $ex) ($zipdir + "\lib\")
+        Copy-Item ($builddir + $build + "\libs\" + $lib + $ex) ($zipdir + "\lib\")
     }
 }
 foreach ($app in $apps) {
-    Copy-Item ($builddir + $build + "\" + $app + ".exe") ($zipdir + "\bin\")
-    Copy-Item ($builddir + $build + "\" + $app + ".pdb") ($zipdir + "\lib\")
+	if ($app -eq "pmempool") {
+		Copy-Item ($builddir + $build + "\libs\" + $app + ".exe") ($zipdir + "\bin\")
+		Copy-Item ($builddir + $build + "\libs\" + $app + ".pdb") ($zipdir + "\lib\")
+	} else {
+		Copy-Item ($builddir + $build + "\tests\" + $app + ".exe") ($zipdir + "\bin\")
+		Copy-Item ($builddir + $build + "\tests\" + $app + ".pdb") ($zipdir + "\lib\")
+	}
 }
 
 Copy-Item -Recurse ($rootdir + "src\include") ($zipdir)
