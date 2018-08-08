@@ -43,7 +43,7 @@ require_no_unicode
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_obj_pmemblk c $DIR\testfile1 512 `
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_obj_pmemblk c $DIR\testfile1 512 `
 	n w:0:Hello w:13:World! w:20:foo w:30:bar `
 	r:13 r:0 r:30 r:20 r:1 `
 	z:20 z:30 `

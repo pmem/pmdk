@@ -50,7 +50,7 @@ p
 n 5
 p
 q
-"@ | &$Env:EXE_DIR\ex_pmemobj_mapcli rbtree $DIR\testfile1 444 > out$Env:UNITTEST_NUM.log 2>&1
+"@ | &$Env:EXAMPLES_DIR\ex_pmemobj_mapcli rbtree $DIR\testfile1 444 > out$Env:UNITTEST_NUM.log 2>&1
 
 check_exit_code
 
