@@ -175,11 +175,11 @@ function get_build_dir() {
 
     if ($build -eq "debug") {
 		$build_dirs += "..\..\x64\Debug\tests"
-		$build_dirs += "..\..\x64\Debug"
+		$build_dirs += "..\..\x64\Debug\examples"
 		$build_dirs += "..\..\x64\Debug\libs"
 	} else {
         $build_dirs += "..\..\x64\Release\tests"
-		$build_dirs += "..\..\x64\Release"
+		$build_dirs += "..\..\x64\Release\examples"
 		$build_dirs += "..\..\x64\Release\libs"
     }
 
