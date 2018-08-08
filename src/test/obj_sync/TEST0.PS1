@@ -45,12 +45,6 @@ require_build_type debug nondebug
 setup
 
 expect_normal_exit $Env:EXE_DIR\obj_sync$Env:EXESUFFIX m 50 5
-expect_normal_exit $Env:EXAMPLE_DIR\ex_pmemobj_cpp_queue $DIR\testfile1 push 1
-expect_normal_exit $Env:EXAMPLE_DIR\ex_pmemobj_cpp_queue $DIR\testfile1 push 2
-expect_normal_exit $Env:EXAMPLE_DIR\ex_pmemobj_cpp_queue $DIR\testfile1 push 3
-expect_normal_exit $Env:EXAMPLE_DIR\ex_pmemobj_cpp_queue $DIR\testfile1 pop > $null
-expect_normal_exit $Env:EXAMPLE_DIR\ex_pmemobj_cpp_queue $DIR\testfile1 show `
-	> out$Env:UNITTEST_NUM.log 2>&1
 
 check
 
