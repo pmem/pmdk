@@ -41,6 +41,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <TargetExt>.scr</TargetExt>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\examples\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
@@ -69,16 +70,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\life\life_common.c" />
-    <ClCompile Include="lifesaver.c" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\..\libpmemcto\libpmemcto.vcxproj">
       <Project>{1ba340ec-b0b2-438d-a47c-27f86f604133}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\libpmem\libpmem.vcxproj">
       <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\life\life_common.c" />
+    <ClCompile Include="lifesaver.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\life\life.h" />
