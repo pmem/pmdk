@@ -49,19 +49,19 @@
 /*
  * do_list -- (internal) list bad blocks in the file
  */
-static int
+static void
 do_list(const char *path)
 {
 	int ret;
 
 	struct badblocks *bbs = badblocks_new();
-	if (bbs == NULL)
-		return -1;
+	if (bbs == NULL) {
+		UT_FATAL("!badblocks_new");
+	}
 
 	ret = os_badblocks_get(path, bbs);
 	if (ret) {
-		UT_OUT("Checking bad blocks failed.");
-		goto exit_free;
+		UT_FATAL("!os_badblocks_get");
 	}
 
 	if (bbs->bb_cnt == 0 || bbs->bbv == NULL) {
@@ -80,17 +80,17 @@ do_list(const char *path)
 
 exit_free:
 	badblocks_delete(bbs);
-
-	return 0;
 }
 
 /*
  * do_clear -- (internal) clear bad blocks in the file
  */
-static int
+static void
 do_clear(const char *path)
 {
-	return os_badblocks_clear_all(path);
+	if (os_badblocks_clear_all(path)) {
+		UT_FATAL("!os_badblocks_clear_all: %s", path);
+	}
 }
 
 /*
