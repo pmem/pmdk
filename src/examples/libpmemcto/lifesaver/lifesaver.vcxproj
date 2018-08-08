@@ -41,10 +41,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <TargetExt>.scr</TargetExt>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\examples\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
     <TargetExt>.scr</TargetExt>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\examples\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
