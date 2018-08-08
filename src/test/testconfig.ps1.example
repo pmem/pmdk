@@ -70,6 +70,13 @@ $Env:NON_PMEM_FS_DIR = "\temp"
 $Env:TM = "1"
 
 #
+# Allow testing installed libraries in the indicated path,
+# NOT the one built in tree.
+#
+# $Env:PMDK_LIB_PATH_NONDEBUG = "C:\vcpkg\buildtrees\pmdk\src\1.4.1-0ecc9f7f1f\src\x64\Release"
+# $Env:PMDK_LIB_PATH_DEBUG = "C:\vcpkg\buildtrees\pmdk\src\1.4.1-0ecc9f7f1f\src\x64\Debug"
+
+#
 # 2) *** REMOTE CONFIGURATION ***
 #
 # The second part of the file tells the script unittest/unittest.sh
