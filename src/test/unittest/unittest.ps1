@@ -1056,14 +1056,19 @@ function setup {
         $script:tm = [system.diagnostics.stopwatch]::startNew()
     }
 
-	if ($Env:BUILD -eq 'nondebug') {
-		$Env:PMDK_LIB_PATH_NONDEBUG = '..\..\x64\Release\libs\'
-        $Env:Path = $Env:Path + ';' + $Env:PMDK_LIB_PATH_NONDEBUG
-    }
+    $DEBUG_DIR = '..\..\x64\Debug'
+    $RELEASE_DIR = '..\..\x64\Release'
 
-	if ($Env:BUILD -eq 'debug') {
-		$Env:PMDK_LIB_PATH_DEBUG = '..\..\x64\Debug\libs\'
-        $Env:Path = $Env:Path + ';' + $Env:PMDK_LIB_PATH_DEBUG
+    if ($Env:BUILD -eq 'nondebug') {
+        if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
+            $Env:PMDK_LIB_PATH_NONDEBUG = $RELEASE_DIR + '\libs\'
+        }
+        $Env:Path = $Env:PMDK_LIB_PATH_NONDEBUG + ';' + $Env:Path
+    } elseif ($Env:BUILD -eq 'debug') {
+        if (-Not $Env:PMDK_LIB_PATH_DEBUG) {
+            $Env:PMDK_LIB_PATH_DEBUG = $DEBUG_DIR + '\libs\'
+        }
+        $Env:Path = $Env:PMDK_LIB_PATH_DEBUG + ';' + $Env:Path
     }
 }
 
@@ -1111,21 +1116,18 @@ if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
 if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋"}
 if (-Not $Env:DIRSUFFIX) { $Env:DIRSUFFIX = ""}
 
-if ($Env:EXE_DIR -eq $null) {
-    $Env:EXE_DIR = "..\..\x64\debug\tests"
-}
-
-if ($Env:EXAMPLES_DIR -eq $null) {
-	$Env:EXAMPLES_DIR = "..\..\x64\debug\examples"
-}
-
-if ($Env:LIBS_DIR -eq $null) {
-	$Env:LIBS_DIR = "..\..\x64\debug\libs"
-}
-
-switch -regex ($Env:BUILD) {
-        'debug' { $PMEMPOOL = "..\..\x64\debug\libs\pmempool$Env:EXESUFFIX" }
-        'nondebug' { $PMEMPOOL = "..\..\x64\release\libs\pmempool$Env:EXESUFFIX" }
+if ($Env:BUILD -eq 'nondebug') {
+    if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
+        $PMEMPOOL = $RELEASE_DIR + "\libs\pmempool$Env:EXESUFFIX"
+    } else {
+        $PMEMPOOL = "$Env:PMDK_LIB_PATH_NONDEBUG\pmempool$Env:EXESUFFIX"
+    }
+} elseif ($Env:BUILD -eq 'debug') {
+    if (-Not $Env:PMDK_LIB_PATH_DEBUG) {
+        $PMEMPOOL = $DEBUG_DIR + "\libs\pmempool$Env:EXESUFFIX"
+    } else {
+        $PMEMPOOL = "$Env:PMDK_LIB_PATH_DEBUG\pmempool$Env:EXESUFFIX"
+    }
 }
 
 $PMEMSPOIL="$Env:EXE_DIR\pmemspoil$Env:EXESUFFIX"
