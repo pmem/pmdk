@@ -65,21 +65,25 @@ if [ $PARSE_GIT_VERSION -eq 1 ]; then
 	fi
 fi
 
-GIT_DESCRIBE=$(git -C $1 describe 2>/dev/null) && true
+cd "$1"
+
+GIT_DESCRIBE=$(git describe 2>/dev/null) && true
 if [ -n "$GIT_DESCRIBE" ]; then
 	echo "$GIT_DESCRIBE"
 	exit 0
 fi
 
 # try commit it, git describe can fail when there are no tags (e.g. with shallow clone, like on Travis)
-GIT_COMMIT=$(git -C $1 log -1 --format=%h) && true
+GIT_COMMIT=$(git log -1 --format=%h) && true
 if [ -n "$GIT_COMMIT" ]; then
 	echo "$GIT_COMMIT"
 	exit 0
 fi
 
+cd - >/dev/null
+
 # If nothing works, try to get version from directory name
-VER=$(basename `realpath $1` | sed 's/pmdk[-]*\([0-9a-z.+-]*\).*/\1/')
+VER=$(basename `realpath "$1"` | sed 's/pmdk[-]*\([0-9a-z.+-]*\).*/\1/')
 if [ -n "$VER" ]; then
 	echo "$VER"
 	exit 0
