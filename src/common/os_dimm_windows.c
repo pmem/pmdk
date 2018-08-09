@@ -63,7 +63,7 @@ os_dimm_volume_handle(const char *path)
 
 	/* get volume name - "\\?\Volume{VOLUME_GUID}\" */
 	if (!GetVolumeNameForVolumeMountPointW(mount, volume, MAX_PATH) ||
-		wcslen(volume) == 0 || volume[wcslen(volume) - 1] != '\\') {
+		wcslen(volume) == 0 || volume[wcslen(volume) - 1] != L'\\') {
 		ERR("!GetVolumeNameForVolumeMountPointW");
 		return INVALID_HANDLE_VALUE;
 	}
@@ -72,10 +72,18 @@ os_dimm_volume_handle(const char *path)
 	 * Remove trailing \\ as "CreateFile processes a volume GUID path with
 	 * an appended backslash as the root directory of the volume."
 	 */
-	volume[wcslen(volume) - 1] = '\0';
+	volume[wcslen(volume) - 1] = L'\0';
 
-	HANDLE h = CreateFileW(volume, 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		NULL, OPEN_EXISTING, 0, NULL);
+	HANDLE h = CreateFileW(volume, /* path to the file */
+		/* request access to send ioctl to the file */
+		FILE_READ_ATTRIBUTES,
+		/* do not block access to the file */
+		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		NULL, /* security attributes */
+		OPEN_EXISTING, /* open only if it exists */
+		FILE_ATTRIBUTE_NORMAL, /* no attributes */
+		NULL); /* used only for new files */
+
 	if (h == INVALID_HANDLE_VALUE)
 		ERR("!CreateFileW");
 
@@ -140,6 +148,7 @@ os_dimm_usc(const char *path, uint64_t *usc)
 	DWORD dwSize;
 	prop.PropertyId = StorageDeviceUnsafeShutdownCount;
 	prop.QueryType = PropertyExistsQuery;
+	prop.AdditionalParameters[0] = 0;
 	STORAGE_DEVICE_UNSAFE_SHUTDOWN_COUNT ret;
 
 	BOOL bResult = DeviceIoControl(vHandle,
