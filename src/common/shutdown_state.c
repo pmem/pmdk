@@ -43,9 +43,12 @@
 #include "util.h"
 #include "os_deep.h"
 #include "set.h"
+#include "ctl.h"
 
 #define FLUSH_SDS(sds, rep) \
 	if ((rep) != NULL) os_part_deep_common(rep, 0, sds, sizeof(*(sds)), 1)
+
+int SDS_enabled = 1;
 
 /*
  * shutdown_state_checksum -- (internal) counts SDS checksum and flush it
@@ -133,6 +136,9 @@ shutdown_state_set_dirty(struct shutdown_state *sds, struct pool_replica *rep)
 {
 	LOG(3, "sds %p", sds);
 
+	if (SDS_enabled == 0)
+		return;
+
 	sds->dirty = 1;
 	rep->part[0].sds_dirty_modified = 1;
 
@@ -148,6 +154,9 @@ void
 shutdown_state_clear_dirty(struct shutdown_state *sds, struct pool_replica *rep)
 {
 	LOG(3, "sds %p", sds);
+
+	if (SDS_enabled == 0)
+		return;
 
 	struct pool_set_part part = rep->part[0];
 	/*
@@ -191,6 +200,9 @@ shutdown_state_check(struct shutdown_state *curr_sds,
 	struct shutdown_state *pool_sds, struct pool_replica *rep)
 {
 	LOG(3, "curr_sds %p, pool_sds %p", curr_sds, pool_sds);
+
+	if (SDS_enabled == 0)
+		return 0;
 
 	if (util_is_zeroed(pool_sds, sizeof(*pool_sds)) &&
 			!util_is_zeroed(curr_sds, sizeof(*curr_sds))) {
@@ -236,4 +248,38 @@ shutdown_state_check(struct shutdown_state *curr_sds,
 	/* an ADR failure - the pool might be corrupted */
 	ERR("an ADR failure was detected, the pool might be corrupted");
 	return 1;
+}
+
+static int
+CTL_READ_HANDLER(enable)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int *arg_out = arg;
+	*arg_out = SDS_enabled;
+
+	return 0;
+}
+
+static int
+CTL_WRITE_HANDLER(enable)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int arg_in = *(int *)arg;
+
+	SDS_enabled = arg_in;
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(enable) = CTL_ARG_BOOLEAN;
+static const struct ctl_node CTL_NODE(shutdown_state)[] = {
+	CTL_LEAF_RW(enable),
+
+	CTL_NODE_END
+};
+
+void
+sds_register(void)
+{
+	CTL_REGISTER_MODULE(NULL, shutdown_state);
 }

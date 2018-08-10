@@ -68,6 +68,9 @@ log_ctl_init_and_load(PMEMlogpool *plp)
 		return -1;
 	}
 
+	if (!plp)
+		sds_register();
+
 	char *env_config = os_getenv(LOG_CONFIG_ENV_VARIABLE);
 	if (env_config != NULL) {
 		if (ctl_load_config_from_string(plp ? plp->ctl : NULL,

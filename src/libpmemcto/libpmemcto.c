@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,6 +41,7 @@
 #include "pmemcommon.h"
 #include "cto.h"
 #include "jemalloc.h"
+#include "shutdown_state.h"
 
 /*
  * libpmemcto_init -- load-time initialization for log
@@ -51,6 +52,12 @@ ATTR_CONSTRUCTOR
 void
 libpmemcto_init(void)
 {
+/*
+ * Shutdown state is not needed by libpmemcto, because
+ * we'll fail to open the pool after unclean shutdown for other reasons
+ */
+	SDS_enabled = 0;
+
 	common_init(PMEMCTO_LOG_PREFIX, PMEMCTO_LOG_LEVEL_VAR,
 			PMEMCTO_LOG_FILE_VAR, PMEMCTO_MAJOR_VERSION,
 			PMEMCTO_MINOR_VERSION);
