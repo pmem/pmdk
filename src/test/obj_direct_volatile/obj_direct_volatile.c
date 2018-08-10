@@ -34,6 +34,9 @@
  * obj_direct_volatile.c -- unit test for pmemobj_direct_volatile()
  */
 #include "unittest.h"
+#ifndef _MSC_VER
+#include "valgrind/pmemcheck.h"
+#endif
 
 PMEMobjpool *pop;
 
@@ -50,6 +53,10 @@ test_constructor(void *ptr, void *arg)
 {
 	int *count = ptr;
 	util_fetch_and_add32(count, 1);
+#ifndef _MSC_VER
+	VALGRIND_PMC_SET_CLEAN(count, sizeof(*count));
+#endif
+
 	return 0;
 }
 

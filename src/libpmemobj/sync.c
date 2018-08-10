@@ -655,8 +655,14 @@ pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt, void *ptr,
 	if (likely(vlt->runid == pop->run_id))
 		return ptr;
 
-	if (_get_value(pop->run_id, &vlt->runid, ptr, arg, constr) < 0)
+	VALGRIND_ADD_TO_TX(vlt, sizeof(*vlt));
+	if (_get_value(pop->run_id, &vlt->runid, ptr, arg, constr) < 0) {
+		VALGRIND_REMOVE_FROM_TX(vlt, sizeof(*vlt));
 		return NULL;
+	}
+
+	VALGRIND_REMOVE_FROM_TX(vlt, sizeof(*vlt));
+	VALGRIND_SET_CLEAN(vlt, sizeof(*vlt));
 
 	return ptr;
 }
