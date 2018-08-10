@@ -54,6 +54,16 @@ COVERAGE = 0
 PKG_CONFIG ?= pkg-config
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)
 
+ifeq ($(SRCVERSION),)
+export SRCVERSION := $(shell $(TOP)/utils/version.sh $(TOP))
+else
+export SRCVERSION
+endif
+
+ifeq ($(SRCVERSION),)
+$(error Cannot evaluate version)
+endif
+
 ifeq ($(shell command -v clang-format-3.8 > /dev/null && echo y || echo n), y)
 CLANG_FORMAT ?= clang-format-3.8
 else
