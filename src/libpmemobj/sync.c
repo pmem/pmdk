@@ -652,6 +652,9 @@ pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt, void *ptr,
 	LOG(3, "pop %p vlt %p ptr %p constr %p arg %p", pop, vlt, ptr,
 		constr, arg);
 
+	if (likely(vlt->runid == pop->run_id))
+		return ptr;
+
 	if (_get_value(pop->run_id, &vlt->runid, ptr, arg, constr) < 0)
 		return NULL;
 
