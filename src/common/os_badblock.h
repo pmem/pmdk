@@ -45,11 +45,18 @@
 
 /*
  * 'struct badblock' is already defined in ndctl/libndctl.h,
- * so we cannot use this name
+ * so we cannot use this name.
+ *
+ * libndctl returns offset relative to the beginning of the region,
+ * but in this structure we save offset relative
+ * to the beginning of the namespace.
  */
 struct bad_block {
-	unsigned long long offset;	/* in bytes */
-	unsigned length;		/* in bytes */
+	/* offset in bytes, relative to the beginning of the namespace */
+	unsigned long long offset;
+
+	/* length in bytes */
+	unsigned length;
 };
 
 struct badblocks {
