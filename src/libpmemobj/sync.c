@@ -658,5 +658,7 @@ pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt, void *ptr,
 	if (_get_value(pop->run_id, &vlt->runid, ptr, arg, constr) < 0)
 		return NULL;
 
+	VALGRIND_SET_CLEAN(vlt, sizeof(*vlt));
+
 	return ptr;
 }
