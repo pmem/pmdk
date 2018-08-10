@@ -164,6 +164,7 @@ OTHER_TESTS = \
 	pmemobjcli\
 	pmemspoil\
 	scope\
+	sds_check\
 	set_funcs\
 	traces\
 	traces_custom_function\
