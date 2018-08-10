@@ -95,6 +95,10 @@ impact of pagefaults. Affects only the _UW(pmemblk_open) function.
 
 Always returns 0.
 
+shutdown_state.disable | rw | global |int | int | - | boolean
+
+Disable detection of ADR failure.
+
 # CTL EXTERNAL CONFIGURATION #
 
 In addition to direct function call, each write entry point can also be set

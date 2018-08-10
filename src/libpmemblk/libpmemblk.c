@@ -68,6 +68,9 @@ blk_ctl_init_and_load(PMEMblkpool *pbp)
 		return -1;
 	}
 
+	if (!pbp)
+		sds_register();
+
 	char *env_config = os_getenv(BLK_CONFIG_ENV_VARIABLE);
 	if (env_config != NULL) {
 		if (ctl_load_config_from_string(pbp ? pbp->ctl : NULL,
