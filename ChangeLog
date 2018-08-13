@@ -1,8 +1,19 @@
+Mon Aug 13 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.4.2-rc1
+
+	This release fixes how PMDK reports its version through
+	pkg-config files.
+
+	Bug fixes:
+	- common: fix reported version
+	- doc: use single "-" in NAME section (pmem/issues#914)
+
 Fri Jun 29 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.4.1
 
-	In 1.4 development cycle, we developed new daxio utility
+	In 1.4 development cycle, we created new daxio utility
 	(command line tool for performing I/O on Device-DAX), but due
 	to some complications we had to disable it just before
 	the 1.4 release.
