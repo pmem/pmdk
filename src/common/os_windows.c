@@ -105,6 +105,17 @@ os_fsync(int fd)
 }
 
 /*
+ * os_fsync_dir -- fsync the directory
+ */
+int
+os_fsync_dir(const char *dir_name)
+{
+	/* XXX not used and not implemented */
+	ASSERT(0);
+	return -1;
+}
+
+/*
  * os_stat -- stat abstraction layer
  */
 int
