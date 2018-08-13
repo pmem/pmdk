@@ -49,20 +49,18 @@
 /*
  * do_list -- (internal) list bad blocks in the file
  */
-static int
+static void
 do_list(const char *path)
 {
 	int ret;
 
 	struct badblocks *bbs = badblocks_new();
 	if (bbs == NULL)
-		return -1;
+		UT_FATAL("!badblocks_new");
 
 	ret = os_badblocks_get(path, bbs);
-	if (ret) {
-		UT_OUT("Checking bad blocks failed.");
-		goto exit_free;
-	}
+	if (ret)
+		UT_FATAL("!os_badblocks_get");
 
 	if (bbs->bb_cnt == 0 || bbs->bbv == NULL) {
 		UT_OUT("No bad blocks found.");
@@ -80,17 +78,16 @@ do_list(const char *path)
 
 exit_free:
 	badblocks_delete(bbs);
-
-	return 0;
 }
 
 /*
  * do_clear -- (internal) clear bad blocks in the file
  */
-static int
+static void
 do_clear(const char *path)
 {
-	return os_badblocks_clear_all(path);
+	if (os_badblocks_clear_all(path))
+		UT_FATAL("!os_badblocks_clear_all: %s", path);
 }
 
 /*
@@ -104,9 +101,8 @@ do_create(const char *path)
 	unsigned nlanes = 1;
 
 	if (util_pool_create(&set, path, 0, MIN_POOL, MIN_PART,
-				&attr, &nlanes, REPLICAS_ENABLED) != 0) {
+				&attr, &nlanes, REPLICAS_ENABLED) != 0)
 		UT_FATAL("!util_pool_create: %s", path);
-	}
 
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 }
