@@ -105,6 +105,16 @@ os_fsync(int fd)
 }
 
 /*
+ * os_fsync_dir -- open and fsync the directory
+ */
+int
+os_fsync_dir(char *dir_name)
+{
+	/* XXX should be implemented when fixing bad blocks is supported */
+	return 0;
+}
+
+/*
  * os_stat -- stat abstraction layer
  */
 int
