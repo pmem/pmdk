@@ -88,6 +88,23 @@ os_fsync(int fd)
 }
 
 /*
+ * os_fsync_dir -- fsync the directory
+ */
+int
+os_fsync_dir(const char *dir_name)
+{
+	int fd = os_open(dir_name, O_RDONLY | O_DIRECTORY);
+	if (fd < 0)
+		return -1;
+
+	int ret = os_fsync(fd);
+
+	os_close(fd);
+
+	return ret;
+}
+
+/*
  * os_stat -- stat abstraction layer
  */
 int
