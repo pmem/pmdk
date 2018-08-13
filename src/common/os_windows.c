@@ -105,6 +105,47 @@ os_fsync(int fd)
 }
 
 /*
+ * os_fsync_dir -- fsync the directory
+ */
+int
+os_fsync_dir(char *dir_name)
+{
+	int ret = 0;
+
+	wchar_t *wpath = util_toUTF16(dir_name);
+
+	if (wpath == NULL) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	HANDLE handle = CreateFileW(
+			wpath, /* path to the file */
+			GENERIC_READ | GENERIC_WRITE,
+			0, /* do not share the file */
+			NULL, /* security attributes */
+			OPEN_EXISTING, /* open only if it exists */
+			FILE_ATTRIBUTE_NORMAL, /* no attributes */
+			NULL); /* used only for new files */
+
+	util_free_UTF16(wpath);
+
+	if (handle == INVALID_HANDLE_VALUE) {
+		errno = EBADF;
+		return -1;
+	}
+
+	if (!FlushFileBuffers(handle)) {
+		errno = EINVAL;
+		ret = -1;
+	}
+
+	CloseHandle(handle);
+
+	return ret;
+}
+
+/*
  * os_stat -- stat abstraction layer
  */
 int
