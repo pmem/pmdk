@@ -221,10 +221,11 @@ rtree_map_insert_value(TOID(struct tree_map_node) *node,
 
 		D_RW(*node)->slots[D_RO(orig_node)->key[i]] = orig_node;
 
-		pmemobj_tx_add_range(orig_node.oid,
-				offsetof(struct tree_map_node, key_size),
-				sizeof(uint64_t) + D_RO(orig_node)->key_size);
+		TX_ADD_FIELD(orig_node, key_size);
 		D_RW(orig_node)->key_size -= i;
+
+		pmemobj_tx_add_range_direct(D_RW(orig_node)->key,
+				D_RO(orig_node)->key_size);
 		memmove(D_RW(orig_node)->key, D_RO(orig_node)->key + i,
 				D_RO(orig_node)->key_size);
 
