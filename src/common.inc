@@ -101,27 +101,6 @@ check_flag = $(shell echo "int main(){return 0;}" |\
 
 check_compiler = $(shell $(CC) --version | grep $(1) && echo y || echo n)
 
-# Check for issues with older clang compilers which assert on delete persistent<[][]>.
-check_clang_template_bug = $(shell echo "using namespace pmem::obj; int main() { delete_persistent<int[][3]>(make_persistent<int[][3]>(2), 2); return 0; }" |\
-	$(CXX) --std=c++11 -x c++ -I$(TOP)/src/include/ -include libpmemobj++/make_persistent_array.hpp -L$(TOP)/src/debug/ -c -o /dev/null - 2>/dev/null && echo y || echo n)
-
-# Check for issues with older gcc compilers which do not expand variadic template
-# variables in lambda expressions.
-check_gcc_variadic_template_bug = $(shell echo "void print() {} template<typename...Args, typename T> void print(const T&, const Args &...arg) {auto f = [&]{ print(arg...);};} int main() {print(1, 2, 3); return 0;}" |\
-	$(CXX) --std=c++11 -x c++ -o /dev/null - 2>/dev/null && echo y || echo n)
-
-check_cxx_flags = $(shell echo "int main(){return 0;}" |\
-	$(CXX) $(1) -x c++ -o /dev/null - 2>/dev/null && echo y || echo n)
-
-CXX_TESTS=$(check_gcc_variadic_template_bug)
-
-cxx_ok=$(if $(findstring n,$(CXX_TESTS)),n,y)
-
-# This is a workaround for older incompatible versions of libstdc++ and clang.
-# Please see https://llvm.org/bugs/show_bug.cgi?id=15517 for more info.
-check_cxx_chrono = $(shell echo "int main(){return 0;}" |\
-	$(CXX) -std=c++11 -x c++ -include future -o /dev/null - 2>/dev/null && echo y || echo n)
-
 check_Wconversion = $(shell echo "long random(void); char test(void); char test(void){char a = 0; char b = 'a'; char ret = random() == 1 ? a : b; return ret;}" |\
 	$(CC) -c $(CFLAGS) -Wconversion -x c -o /dev/null - 2>/dev/null && echo y || echo n)
 
@@ -297,7 +276,6 @@ OS_LIBS=-L/usr/local/lib
 LIBDL=
 LIBUTIL=-lutil
 LIBUUID=-luuid
-LIBCXXABI=-lcxxrt
 LIBNDCTL=
 OS_DIMM=none
 
@@ -310,7 +288,6 @@ OS_LIBS=
 LIBDL=-ldl
 LIBUTIL=
 LIBUUID=
-LIBCXXABI=-lc++abi
 
 NDCTL_ENABLE ?= y
 

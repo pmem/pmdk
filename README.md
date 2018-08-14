@@ -220,7 +220,7 @@ This will install files to /tmp/usr/lib, /tmp/usr/include /tmp/usr/share/man.
 ```
 	$ make doc
 ```
-This call requires the following dependencies: **doxygen**, **graphviz**, and **pandoc**. Pandoc is provided by the hs-pandoc package on FreeBSD.
+This call requires the following dependencies: **pandoc**. Pandoc is provided by the hs-pandoc package on FreeBSD.
 
 
 **Install copy of source tree** can be done by specifying the path where you want it installed.
@@ -274,24 +274,6 @@ This will set the timeout to 1 minute.
 
 Please refer to the **src/test/README** for more details on how to
 run different types of tests.
-
-**C++ standard library container** tests can be run by setting the path variable to your custom versions of either gcc or libc++.
-
-For gcc run:
-```
-	$ make USE_CUSTOM_GCC=1 GCC_INCDIR=/path/to/includes GCC_LIBDIR=/path/to/lib check
-```
-
-For a custom version of libc++, run:
-```
-	$ make USE_LLVM_LIBCPP=1 LIBCPP_INCDIR=/path/to/includes/ LIBCPP_LIBDIR=/path/to/lib check
-```
-
-Please remember to set the appropriate versions of *CC/CXX* when using custom versions of the library. For example, when using a custom version of libc++(version 3.9) installed to /usr/local/libcxx, to execute the tests run:
-
-```
-	$ CC=clang CXX=clang++ make USE_LLVM_LIBCPP=1 LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1 LIBCPP_LIBDIR=/usr/local/libcxx/lib check
-```
 
 ### Memory Management Tools
 

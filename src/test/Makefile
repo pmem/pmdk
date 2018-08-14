@@ -151,48 +151,6 @@ OBJ_REMOTE_TESTS = \
 	obj_rpmem_heap_interrupt\
 	obj_rpmem_heap_state
 
-OBJ_CPP_TESTS = \
-	obj_cpp_allocator\
-	obj_cpp_make_persistent\
-	obj_cpp_make_persistent_atomic\
-	obj_cpp_mutex_posix\
-	obj_cpp_p_ext\
-	obj_cpp_pool\
-	obj_cpp_pool_primitives\
-	obj_cpp_ptr\
-	obj_cpp_ptr_arith\
-	obj_cpp_shared_mutex_posix\
-	obj_cpp_transaction\
-	obj_cpp_v
-
-OBJ_CPP_ARRAY_TESTS = \
-	obj_cpp_make_persistent_array\
-	obj_cpp_make_persistent_array_atomic
-
-OBJ_CPP_CONTAINER_TESTS = \
-	obj_cpp_deque\
-	obj_cpp_list\
-	obj_cpp_map\
-	obj_cpp_multimap\
-	obj_cpp_multiset\
-	obj_cpp_priority_queue\
-	obj_cpp_queue\
-	obj_cpp_set\
-	obj_cpp_stack\
-	obj_cpp_unordered_map\
-	obj_cpp_unordered_multimap\
-	obj_cpp_unordered_multiset\
-	obj_cpp_unordered_set\
-	obj_cpp_vector
-
-CHRONO_TESTS = \
-	obj_cpp_cond_var\
-	obj_cpp_cond_var_posix\
-	obj_cpp_mutex\
-	obj_cpp_shared_mutex\
-	obj_cpp_timed_mtx\
-	obj_cpp_timed_mtx_posix
-
 OTHER_TESTS = \
 	arch_flags\
 	bttdevice\
@@ -326,9 +284,6 @@ EXAMPLES_TESTS = \
 	ex_libpmemobj\
 	ex_linkedlist
 
-CPP_EXAMPLE_TESTS = \
-	ex_libpmemobj_cpp
-
 LIBPMEMPOOL_DEPS = \
 	libpmempool_api
 
@@ -387,37 +342,6 @@ REMOTE_TESTS = \
 	pmempool_rm_remote\
 	pmempool_sync_remote\
 	pmempool_transform_remote
-
-ifeq ($(filter n,$(call check_cxx_flags, -std=c++11)),)
-LOCAL_TESTS += $(OBJ_CPP_TESTS)
-
-ifeq ($(filter n,$(call check_clang_template_bug)),)
-LOCAL_TESTS += $(OBJ_CPP_ARRAY_TESTS)
-else
-$(info NOTE: Skipping C++ array tests because of compiler issues)
-endif
-
-ifeq ($(call cxx_ok), y)
-LOCAL_TESTS += $(CPP_EXAMPLE_TESTS)
-else
-$(info NOTE: Skipping C++ tests because of compiler issues)
-endif
-
-ifeq ($(call check_cxx_chrono), y)
-LOCAL_TESTS += $(CHRONO_TESTS)
-else
-$(info NOTE: Skipping C++ chrono tests because of compiler/stdc++ issues)
-endif
-else
-$(info NOTE: Skipping C++ tests because the compiler does not support C++11)
-endif
-
-# enable only when using custom standard libraries
-ifneq (,$(filter 1, $(USE_CUSTOM_GCC) $(USE_LLVM_LIBCPP)))
-LOCAL_TESTS += $(OBJ_CPP_CONTAINER_TESTS)
-else
-$(info NOTE: Skipping C++ container tests because a custom version of the standard library is not used)
-endif
 
 TESTS = \
 	$(LOCAL_TESTS)\

@@ -305,8 +305,6 @@ PACKAGE_TARBALL_ORIG=${PACKAGE_NAME}_${PACKAGE_VERSION}.orig.tar.gz
 MAGIC_INSTALL=utils/magic-install.sh
 MAGIC_UNINSTALL=utils/magic-uninstall.sh
 CONTROL_FILE=debian/control
-OBJ_CPP_NAME=libpmemobj++-dev
-OBJ_CPP_DOC_DIR=${OBJ_CPP_NAME}-${PACKAGE_VERSION}
 
 [ -d $WORKING_DIR ] || mkdir $WORKING_DIR
 [ -d $OUT_DIR ] || mkdir $OUT_DIR
@@ -336,7 +334,7 @@ Maintainer: $PACKAGE_MAINTAINER
 Section: misc
 Priority: optional
 Standards-version: 3.9.4
-Build-Depends: debhelper (>= 9), doxygen
+Build-Depends: debhelper (>= 9)
 
 Package: libpmem
 Architecture: any
@@ -461,13 +459,6 @@ Description: pmempool utility
  of utilities for administration and diagnostics of Persistent Memory pools.
  Pmempool may be useful for troubleshooting by system administrators
  and users of the applications based on PMDK libraries.
-
-Package: ${OBJ_CPP_NAME}
-Section: libdevel
-Architecture: any
-Depends: libpmemobj-dev (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: C++ bindings for libpmemobj
- Headers-only C++ library for libpmemobj.
 EOF
 
 cp LICENSE debian/copyright
@@ -482,7 +473,7 @@ override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
 override_dh_auto_install:
-	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} CPP_DOC_DIR="${OBJ_CPP_DOC_DIR}" prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc NORPATH=1
+	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc NORPATH=1
 
 override_dh_install:
 	mkdir -p debian/tmp/usr/share/pmdk/
@@ -826,38 +817,6 @@ EOF
 cat << EOF > debian/pmempool.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
-EOF
-
-cat << EOF > debian/${OBJ_CPP_NAME}.install
-$INC_DIR/libpmemobj++/*.hpp
-$INC_DIR/libpmemobj++/detail/*.hpp
-$DOC_DIR/${OBJ_CPP_DOC_DIR}/*
-$LIB_DIR/pkgconfig/libpmemobj++.pc
-EOF
-
-cat << EOF > debian/${OBJ_CPP_NAME}.triggers
-interest doc-base
-EOF
-
-cat << EOF > debian/${OBJ_CPP_NAME}.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-# The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
-postinst-has-useless-call-to-ldconfig
-postrm-has-useless-call-to-ldconfig
-EOF
-
-cat << EOF > debian/${OBJ_CPP_NAME}.doc-base
-Document: ${OBJ_CPP_NAME}
-Title: PMDK libpmemobj C++ bindings Manual
-Author: PMDK Developers
-Abstract: This is the HTML docs for the C++ bindings for PMDK's libpmemobj.
-Section: Programming
-
-Format: HTML
-Index: /$DOC_DIR/${OBJ_CPP_DOC_DIR}/index.html
-Files: /$DOC_DIR/${OBJ_CPP_DOC_DIR}/*
 EOF
 
 # librpmem & rpmemd
