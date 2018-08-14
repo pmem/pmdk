@@ -142,8 +142,7 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			struct daxctl_dev *dev;
 			daxctl_dev_foreach(dax_region, dev) {
 				devname = daxctl_dev_get_devname(dev);
-				int ret = os_dimm_match_device(st,
-					devname);
+				int ret = os_dimm_match_device(st, devname);
 				if (ret < 0)
 					return ret;
 
@@ -380,6 +379,11 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 
 	struct badblock *bb;
 	ndctl_region_badblock_foreach(region, bb) {
+		/*
+		 * libndctl returns offset and length of a bad block
+		 * both expressed in 512B sectors and offset is relative
+		 * to the beginning of the region.
+		 */
 		bb_beg = SEC2B(bb->offset);
 		bb_end = bb_beg + SEC2B(bb->len) - 1;
 
@@ -393,7 +397,11 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 		beg = (bb_beg > ns_beg) ? bb_beg : ns_beg;
 		end = (bb_end < ns_end) ? bb_end : ns_end;
 
-		/* form a new bad block */
+		/*
+		 * Form a new bad block structure with offset and length
+		 * expressed in bytes and offset relative to the beginning
+		 * of the namespace.
+		 */
 		struct bad_block bb;
 		bb.offset = beg - ns_beg;
 		bb.length = (unsigned)(end - beg + 1);
