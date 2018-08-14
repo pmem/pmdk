@@ -66,7 +66,8 @@ PMEMoid pmemobj_oid(const void *addr);
 uint64_t pmemobj_type_num(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
-void *pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt, void *ptr,
+void *pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
+	size_t size, void *ptr,
 	int (*constr)(void *ptr, void *arg), void *arg);
 ```
 
@@ -129,7 +130,9 @@ constructor function is called exactly once in the current instance of the
 pmemobj pool.
 The constructor is called with the *ptr* pointer to the data, and this function
 will return the same pointer if the constructor returns *0*, otherwise NULL is
-returned.
+returned. The *size* argument must accurately describe the total size of the
+volatile memory region that will be accessed. Calling **pmemobj_volatile()**
+on the same region with different sizes is undefined behavior.
 For this mechanism to be effective, all accesses to transient variables must
 go through it, otherwise there's a risk of the constructor not being called
 on the first load.
