@@ -111,7 +111,7 @@ class OperationFactory:
                 # if marker is undefined by user, use the last pushed engine
                 # or default one for the last level section
                 if len(stack) == 1:
-                    mem_ops = memoryoperations.Default_reorder
+                    mem_ops = memoryoperations.Reorder_default
                 else:
                     mem_ops = stack[-1]
 
