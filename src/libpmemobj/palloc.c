@@ -364,8 +364,26 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 		if (act->resvp)
 			util_fetch_and_sub64(act->resvp, 1);
 	} else if (act->new_state == MEMBLOCK_FREE) {
-		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
-			act->m.m_ops->get_user_data(&act->m));
+		if (On_valgrind) {
+			void *ptr = act->m.m_ops->get_user_data(&act->m);
+			size_t size = act->m.m_ops->get_real_size(&act->m);
+
+			VALGRIND_DO_MEMPOOL_FREE(heap->layout, ptr);
+
+			/*
+			 * The sync module, responsible for implementations of
+			 * persistent memory resident volatile variables,
+			 * de-registers the pmemcheck pmem mapping at the time
+			 * of initialization. This is done so that usage of
+			 * pmem locks is not reported as an error due to
+			 * missing flushes/stores outside of transaction. But,
+			 * after we freed an object, we need to reestablish
+			 * the pmem mapping, otherwise pmemchek might miss bugs
+			 * that occurr in newly allocated memory locations, that
+			 * once were occupied by a lock/volatile variable.
+			 */
+			VALGRIND_REGISTER_PMEM_MAPPING(ptr, size);
+		}
 
 		STATS_SUB(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));

@@ -114,6 +114,7 @@ OBJ_TESTS = \
 	obj_pmalloc_mt\
 	obj_pmalloc_oom_mt\
 	obj_pmalloc_rand_mt\
+	obj_pmemcheck\
 	obj_pool\
 	obj_pool_lock\
 	obj_pool_lookup\
