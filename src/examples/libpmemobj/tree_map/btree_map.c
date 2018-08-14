@@ -365,7 +365,6 @@ btree_map_rotate_left(TOID(struct tree_map_node) lsb,
 	TX_ADD_FIELD(parent, items[p - 1]);
 	D_RW(parent)->items[p - 1] = D_RO(lsb)->items[D_RO(lsb)->n - 1];
 
-	TX_ADD(node);
 	/* rotate the node children */
 	memmove(D_RW(node)->slots + 1, D_RO(node)->slots,
 		sizeof(TOID(struct tree_map_node)) * (D_RO(node)->n));
