@@ -97,26 +97,24 @@ class OperationFactory:
         # it means it can be user defined marker
         if mem_ops is None:
             if id_ in markers:
-                id_ = markers[id_]
-                engine_case_sensitive = id_.lower().capitalize()
+                engine = markers[id_]
                 try:
-                    mem_ops = getattr(sys.modules[mem_mod],
-                                      engine_case_sensitive)
+                    mem_ops = getattr(sys.modules[mem_mod], engine)
                 except AttributeError:
                     raise NotSupportedOperationException(
                             "Not supported reorder engine: {}"
-                            .format(engine_case_sensitive))
+                            .format(engine))
             else:
                 # if marker is undefined by user, use the last pushed engine
                 # or default one for the last level section
                 if len(stack) == 1:
-                    mem_ops = memoryoperations.Default_reorder
+                    mem_ops = memoryoperations.ReorderDefault
                 else:
                     mem_ops = stack[-1]
 
         # here we have proper memory operation to perform,
-        # it can be STORE, FREORDER, FENCE, DEFAULT_REORDER, END_SECTION etc.
-        if issubclass(mem_ops, memoryoperations.End_section):
+        # it can be Store, Fence, ReorderDefault, EndSection etc.
+        if issubclass(mem_ops, memoryoperations.EndSection):
             mem_ops = stack.pop()
         elif issubclass(mem_ops, memoryoperations.ReorderBase):
             stack.append(mem_ops)

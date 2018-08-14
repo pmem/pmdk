@@ -230,7 +230,7 @@ class ReorderBase(BaseOperation):
     pass
 
 
-class Fault_only(ReorderBase):
+class NoReorderDoCheck(ReorderBase):
     """
     Describes the type of reordering engine to be used.
 
@@ -247,13 +247,13 @@ class Fault_only(ReorderBase):
 
             :param values: Ignored.
             :type values: str
-            :return: New Fault_only object.
-            :rtype: Fault_only
+            :return: New NoReorderDoCheck object.
+            :rtype: NoReorderDoCheck
             """
-            return Fault_only()
+            return NoReorderDoCheck()
 
 
-class Freorder(ReorderBase):
+class ReorderFull(ReorderBase):
     """
     Describes the type of reordering engine to be used.
 
@@ -270,13 +270,13 @@ class Freorder(ReorderBase):
 
             :param values: Ignored.
             :type values: str
-            :return: New Freorder object.
-            :rtype: Freorder
+            :return: New ReorderFull object.
+            :rtype: ReorderFull
             """
-            return Freorder()
+            return ReorderFull()
 
 
-class Areorder(ReorderBase):
+class ReorderAccumulative(ReorderBase):
     """
     Describes the type of reordering engine to be used.
 
@@ -294,13 +294,13 @@ class Areorder(ReorderBase):
 
             :param values: Ignored.
             :type values: str
-            :return: New Areorder object.
-            :rtype: Areorder
+            :return: New ReorderAccumulative object.
+            :rtype: ReorderAccumulative
             """
-            return Areorder()
+            return ReorderAccumulative()
 
 
-class No_reorder_fault(ReorderBase):
+class NoReorderNoCheck(ReorderBase):
     """
     Describes the type of reordering engine to be used.
 
@@ -318,13 +318,13 @@ class No_reorder_fault(ReorderBase):
 
             :param values: Ignored.
             :type values: str
-            :return: New No_reorder_fault object.
-            :rtype: No_reorder_fault
+            :return: New NoReorderNoCheck object.
+            :rtype: NoReorderNoCheck
             """
-            return No_reorder_fault()
+            return NoReorderNoCheck()
 
 
-class Default_reorder(ReorderBase):
+class ReorderDefault(ReorderBase):
     """
     Describes the default reordering engine to be used.
 
@@ -340,13 +340,13 @@ class Default_reorder(ReorderBase):
 
             :param values: Ignored.
             :type values: str
-            :return: Default_reorder object.
-            :rtype: Default_reorder
+            :return: ReorderDefault object.
+            :rtype: ReorderDefault
             """
-            return Default_reorder()
+            return ReorderDefault()
 
 
-class Preorder(ReorderBase):
+class ReorderPartial(ReorderBase):
     """
     Describes the type of reordering engine to be used.
 
@@ -366,10 +366,10 @@ class Preorder(ReorderBase):
 
             :param values: Ignored.
             :type values: str
-            :return: New Preorder object.
-            :rtype: Preorder
+            :return: New ReorderPartial object.
+            :rtype: ReorderPartial
             """
-            return Preorder()
+            return ReorderPartial()
 
 
 class Register_file(BaseOperation):
@@ -416,7 +416,7 @@ class Register_file(BaseOperation):
             return Register_file(values)
 
 
-class End_section(ReorderBase):
+class EndSection(ReorderBase):
     """
     Describes the end of reordering section.
     """
@@ -430,7 +430,7 @@ class End_section(ReorderBase):
 
             :param values: Ignored.
             :type values: str
-            :return: New End_section object.
-            :rtype: End_section
+            :return: New EndSection object.
+            :rtype: EndSection
             """
-            return End_section()
+            return EndSection()
