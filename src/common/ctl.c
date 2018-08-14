@@ -359,7 +359,7 @@ static int
 ctl_parse_query(char *qbuf, char **name, char **value)
 {
 	if (qbuf == NULL)
-		return 1;
+		return -1;
 
 	char *sptr;
 	*name = strtok_r(qbuf, CTL_NAME_VALUE_SEPARATOR, &sptr);
@@ -392,22 +392,23 @@ ctl_load_config(struct ctl *ctl, void *ctx, char *buf)
 	ASSERTne(buf, NULL);
 
 	char *qbuf = strtok_r(buf, CTL_STRING_QUERY_SEPARATOR, &sptr);
-	do {
+	while (qbuf != NULL) {
 		r = ctl_parse_query(qbuf, &name, &value);
-		if (r == 0)
-			r = ctl_query(ctl, ctx, CTL_QUERY_CONFIG_INPUT,
-				name, CTL_QUERY_WRITE, value);
-
-		if (r == -1) {
+		if (r != 0) {
 			ERR("failed to parse query %s", qbuf);
 			return -1;
 		}
 
-		qbuf = strtok_r(NULL, CTL_STRING_QUERY_SEPARATOR, &sptr);
-	} while (r == 0 && qbuf != NULL);
+		r = ctl_query(ctl, ctx, CTL_QUERY_CONFIG_INPUT,
+				name, CTL_QUERY_WRITE, value);
 
-	/* ctl_parse_query() returns 1 to indicate end */
-	return r >= 0 ? 0 : -1;
+		if (r < 0 && ctx != NULL)
+			return -1;
+
+		qbuf = strtok_r(NULL, CTL_STRING_QUERY_SEPARATOR, &sptr);
+	}
+
+	return 0;
 }
 
 /*

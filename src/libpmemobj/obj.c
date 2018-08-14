@@ -325,10 +325,10 @@ obj_init(void)
 	 * Load global config, ignore any issues. They will be caught on the
 	 * subsequent call to this function for individual pools.
 	 */
-
 	ctl_global_register();
 
-	obj_ctl_init_and_load(NULL);
+	if (obj_ctl_init_and_load(NULL))
+		FATAL("error: %s", pmemobj_errormsg());
 
 	lane_info_boot();
 
