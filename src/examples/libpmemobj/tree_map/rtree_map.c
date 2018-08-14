@@ -220,7 +220,12 @@ rtree_map_insert_value(TOID(struct tree_map_node) *node,
 		}
 
 		D_RW(*node)->slots[D_RO(orig_node)->key[i]] = orig_node;
+
+		TX_ADD_FIELD(orig_node, key_size);
 		D_RW(orig_node)->key_size -= i;
+
+		pmemobj_tx_add_range_direct(D_RW(orig_node)->key,
+				D_RO(orig_node)->key_size);
 		memmove(D_RW(orig_node)->key, D_RO(orig_node)->key + i,
 				D_RO(orig_node)->key_size);
 
@@ -367,6 +372,7 @@ remove_extra_node(TOID(struct tree_map_node) *node)
 		D_RO(tmp_child)->key,
 		D_RO(tmp_child)->key_size);
 
+	TX_ADD_DIRECT(node);
 	*node = rtree_new_node(new_key, new_key_size,
 		D_RO(tmp_child)->value, D_RO(tmp_child)->has_value);
 
@@ -420,6 +426,7 @@ rtree_map_remove_node(TOID(struct rtree_map) map,
 			pmemobj_tx_add_range(node->oid, 0,
 					sizeof(*node) + D_RO(*node)->key_size);
 			TX_FREE(*node);
+			TX_ADD_DIRECT(node);
 			(*node) = TOID_NULL(struct tree_map_node);
 		}
 
