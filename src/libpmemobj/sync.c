@@ -646,14 +646,26 @@ pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
  *	generic value
  */
 void *
-pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt, void *ptr,
+pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
+	void *ptr, size_t size,
 	int (*constr)(void *ptr, void *arg), void *arg)
 {
 	LOG(3, "pop %p vlt %p ptr %p constr %p arg %p", pop, vlt, ptr,
 		constr, arg);
 
-	if (_get_value(pop->run_id, &vlt->runid, ptr, arg, constr) < 0)
+	if (likely(vlt->runid == pop->run_id))
+		return ptr;
+
+	VALGRIND_REMOVE_PMEM_MAPPING(ptr, size);
+
+	VALGRIND_ADD_TO_TX(vlt, sizeof(*vlt));
+	if (_get_value(pop->run_id, &vlt->runid, ptr, arg, constr) < 0) {
+		VALGRIND_REMOVE_FROM_TX(vlt, sizeof(*vlt));
 		return NULL;
+	}
+
+	VALGRIND_REMOVE_FROM_TX(vlt, sizeof(*vlt));
+	VALGRIND_SET_CLEAN(vlt, sizeof(*vlt));
 
 	return ptr;
 }
