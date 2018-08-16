@@ -1,8 +1,8 @@
-Mon Aug 13 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+Thu Aug 16 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.4.2-rc1
+	* Version 1.4.2
 
-	This release fixes how PMDK reports its version through
+	This release fixes the way PMDK reports its version via
 	pkg-config files.
 
 	Bug fixes:
