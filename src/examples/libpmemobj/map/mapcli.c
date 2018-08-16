@@ -194,7 +194,8 @@ hashmap_print(uint64_t key, PMEMoid value, void *arg)
 static void
 print_all(void)
 {
-	printf("count: %zu\n", map_count(mapc, map));
+	if (mapc->ops->count)
+		printf("count: %zu\n", map_count(mapc, map));
 	map_foreach(mapc, map, hashmap_print, NULL);
 	printf("\n");
 }

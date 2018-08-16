@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -198,6 +198,7 @@ btree_map_create_split_node(TOID(struct tree_map_node) node,
 
 	int c = (BTREE_ORDER / 2);
 	*m = D_RO(node)->items[c - 1]; /* select median item */
+	TX_ADD(node);
 	set_empty_item(&D_RW(node)->items[c - 1]);
 
 	/* move everything right side of median to the new node */
@@ -364,7 +365,6 @@ btree_map_rotate_left(TOID(struct tree_map_node) lsb,
 	TX_ADD_FIELD(parent, items[p - 1]);
 	D_RW(parent)->items[p - 1] = D_RO(lsb)->items[D_RO(lsb)->n - 1];
 
-	TX_ADD(node);
 	/* rotate the node children */
 	memmove(D_RW(node)->slots + 1, D_RO(node)->slots,
 		sizeof(TOID(struct tree_map_node)) * (D_RO(node)->n));
