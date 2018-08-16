@@ -59,7 +59,7 @@ PMEMCHECK_CMD="$BIN b $DIR/testfile2"
 PMREORDER_CMD="$BIN c"
 
 pmreorder_create_store_log $DIR/testfile2 "$PMEMCHECK_CMD"
-pmreorder_expect_success nochecker pmreorder2.conf "$PMREORDER_CMD"
+pmreorder_expect_success NoReorderNoCheck pmreorder2.conf "$PMREORDER_CMD"
 
 check
 

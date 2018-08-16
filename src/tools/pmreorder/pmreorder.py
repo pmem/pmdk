@@ -69,7 +69,7 @@ def main():
                         "json config file")
     engines_keys = list(reorderengines.engines.keys())
     parser.add_argument("-r", "--default_engine",
-                        help="set default reorder engine, default=nochecker",
+                        help="set default reorder engine, default=NoReorderNoChecker",
                         choices=engines_keys,
                         default=engines_keys[0])
     args = parser.parse_args()
@@ -80,7 +80,6 @@ def main():
                                                args.checker,
                                                ' '.join(args.path),
                                                args.name)
-    engine = reorderengines.get_engine(args.default_engine)
 
     markers = markerparser.MarkerParser().get_markers(args.extended_macros)
 
@@ -89,7 +88,7 @@ def main():
                                     args.logfile,
                                     checker,
                                     logger,
-                                    engine,
+                                    args.default_engine,
                                     markers)
 
     # init and run the state machine

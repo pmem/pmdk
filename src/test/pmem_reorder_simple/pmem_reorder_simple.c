@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 		pmem_memset_persist(structp, 0, sizeof(*structp));
 
 	/* verify that DEFAULT_REORDER restores default engine */
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_CHANGE");
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_CHANGE.BEGIN");
 
 	switch (opt) {
 		case 'g':
@@ -135,10 +135,11 @@ main(int argc, char *argv[])
 		default:
 			UT_FATAL("Unrecognized option %c", opt);
 	}
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_END");
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_CHANGE.END");
 
 	/* check if undefined marker will not cause an issue */
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_UNDEFINED");
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_UNDEFINED.BEGIN");
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_UNDEFINED.END");
 
 	CLOSE(fd);
 

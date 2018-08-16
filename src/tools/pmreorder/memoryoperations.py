@@ -414,23 +414,3 @@ class Register_file(BaseOperation):
             :rtype: Register_file
             """
             return Register_file(values)
-
-
-class EndSection(ReorderBase):
-    """
-    Describes the end of reordering section.
-    """
-    class Factory:
-        """
-        Internal factory class to be used in dynamic object creation.
-        """
-        def create(self, values):
-            """
-            Factory object creation method.
-
-            :param values: Ignored.
-            :type values: str
-            :return: New EndSection object.
-            :rtype: EndSection
-            """
-            return EndSection()

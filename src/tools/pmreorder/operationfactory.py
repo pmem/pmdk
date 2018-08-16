@@ -31,6 +31,7 @@
 import memoryoperations
 from reorderexceptions import NotSupportedOperationException
 import sys
+import re
 
 
 class OperationFactory:
@@ -53,6 +54,7 @@ class OperationFactory:
     :type __factories: dict
     """
     __factories = {}
+    __suffix = ['.BEGIN', '.END']
     memoryoperations.BaseOperation()
 
     @staticmethod
@@ -73,6 +75,49 @@ class OperationFactory:
 
     @staticmethod
     def create_operation(string_operation, markers, stack):
+
+        def check_marker_format(marker):
+            """
+            Checks if marker has proper suffix.
+            """
+            for s in OperationFactory.__suffix:
+                if marker.endswith(s):
+                    return
+
+            raise NotSupportedOperationException(
+                        "Incorrect marker format {}, suffix is missing."
+                        .format(marker))
+
+        def check_pair_consistency(stack, marker):
+            """
+            Checks if markers are not crossed.
+            You can pop from stack only if end
+            marker match previous one.
+
+            Example OK:
+                MACRO1.BEGIN
+                    MACRO2.BEGIN
+                    MACRO2.END
+                MACRO1.END
+
+            Example NOT OK:
+                MACRO1.BEGIN
+                    MACRO2.BEGIN
+                MACRO1.END
+                    MACRO2.END
+            """
+            top = stack[-1][0]
+            if top.endswith(OperationFactory.__suffix[0]):
+                    top = top[:-len(OperationFactory.__suffix[0])]
+            if marker.endswith(OperationFactory.__suffix[-1]):
+                    marker = marker[:-len(OperationFactory.__suffix[-1])]
+
+            if top != marker:
+                raise NotSupportedOperationException(
+                        "Cannot cross markers: {0}, {1}"
+                        .format(top, marker))
+
+
         """
         Creates the object based on the pre-formatted string.
 
@@ -96,29 +141,33 @@ class OperationFactory:
         # if class is not one of memoryoperations
         # it means it can be user defined marker
         if mem_ops is None:
-            if id_ in markers:
-                engine = markers[id_]
-                try:
-                    mem_ops = getattr(sys.modules[mem_mod], engine)
-                except AttributeError:
-                    raise NotSupportedOperationException(
-                            "Not supported reorder engine: {}"
-                            .format(engine))
-            else:
-                # if marker is undefined by user, use the last pushed engine
-                # or default one for the last level section
-                if len(stack) == 1:
-                    mem_ops = memoryoperations.ReorderDefault
+            check_marker_format(id_)
+            # if id_ is section BEGIN
+            if id_.endswith(OperationFactory.__suffix[0]):
+                # BEGIN defined by user
+                if id_ in markers:
+                    engine = markers[id_]
+                    try:
+                        mem_ops = getattr(sys.modules[mem_mod], engine)
+                    except AttributeError:
+                        raise NotSupportedOperationException(
+                                "Not supported reorder engine: {}"
+                                .format(engine))
+                # BEGIN but not defined by user
                 else:
-                    mem_ops = stack[-1]
+                    mem_ops = stack[-1][1]
+
+                if issubclass(mem_ops, memoryoperations.ReorderBase):
+                    stack.append((id_, mem_ops))
+
+            # END section
+            elif id_.endswith(OperationFactory.__suffix[-1]):
+                check_pair_consistency(stack, id_)
+                stack.pop()
+                mem_ops = stack[-1][1]
 
         # here we have proper memory operation to perform,
-        # it can be Store, Fence, ReorderDefault, EndSection etc.
-        if issubclass(mem_ops, memoryoperations.EndSection):
-            mem_ops = stack.pop()
-        elif issubclass(mem_ops, memoryoperations.ReorderBase):
-            stack.append(mem_ops)
-
+        # it can be Store, Fence, ReorderDefault etc.
         id_ = mem_ops.__name__
         if id_ not in OperationFactory.__factories:
             OperationFactory.__factories[id_] = mem_ops.Factory()
