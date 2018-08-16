@@ -30,6 +30,8 @@
 
 from operationfactory import OperationFactory
 from binaryoutputhandler import BinaryOutputHandler
+import reorderengines
+import memoryoperations
 from itertools import repeat
 
 
@@ -49,7 +51,7 @@ class OpsContext:
     :type default_barrier: bool
     :ivar file_handler: The file handler used.
     """
-    def __init__(self, log_file, checker, logger, engine, markers):
+    def __init__(self, log_file, checker, logger, arg_engine, markers):
         """
         Splits the operations in the log file and sets the instance variables
         to default values.
@@ -61,6 +63,7 @@ class OpsContext:
         # TODO reading the whole file at once is rather naive
         # change in the future
         self._operations = open(log_file).read().split("|")
+        engine = reorderengines.get_engine(arg_engine)
         self.reorder_engine = engine
         self.test_on_barrier = engine.test_on_barrier
         self.default_engine = self.reorder_engine
@@ -70,7 +73,7 @@ class OpsContext:
         self.logger = logger
         self.markers = markers
         self.stack_engines = []
-        self.stack_engines.append(self.default_engine)
+        self.stack_engines.append(('START', getattr(memoryoperations, arg_engine)))
 
     # TODO this should probably be made a generator
     def extract_operations(self):

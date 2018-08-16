@@ -331,8 +331,8 @@ def get_engine(engine):
 
 
 engines = collections.OrderedDict([
-           ('nochecker', NoCheckerEngine),
-           ('full', FullReorderEngine),
-           ('noreorder', NoReorderEngine),
-           ('accumulative', AccumulativeReorderEngine),
-           ('partial', RandomPartialReorderEngine)])
+           ('NoReorderNoCheck', NoCheckerEngine),
+           ('ReorderFull', FullReorderEngine),
+           ('NoReorderDoCheck', NoReorderEngine),
+           ('ReorderAccumulative', AccumulativeReorderEngine),
+           ('ReorderPartial', RandomPartialReorderEngine)])
