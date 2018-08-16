@@ -59,7 +59,7 @@ PMEMCHECK_CMD="$BIN g $DIR/testfile1"
 PMREORDER_CMD="$BIN c"
 
 pmreorder_create_store_log $DIR/testfile1 "$PMEMCHECK_CMD"
-pmreorder_expect_success noreorder "PMREORDER_MARKER_CHANGE=ReorderFull" "$PMREORDER_CMD"
+pmreorder_expect_success NoReorderDoCheck "PMREORDER_MARKER_CHANGE.BEGIN=ReorderFull" "$PMREORDER_CMD"
 
 check
 

@@ -36,7 +36,7 @@
 # Tests negative case using full reorder engine for most critical section
 # and no_reorder_no_checker engine for other parts of code.
 # This test also checks behavior for markers unused in program
-# but defined be user in config file.
+# but defined by user in the config file.
 #
 
 # standard unit test setup
@@ -60,7 +60,7 @@ PMEMCHECK_CMD="$BIN b $DIR/testfile0"
 PMREORDER_CMD="$BIN c"
 
 pmreorder_create_store_log $DIR/testfile0 "$PMEMCHECK_CMD"
-pmreorder_expect_failure nochecker pmreorder0.conf "$PMREORDER_CMD"
+pmreorder_expect_failure NoReorderNoCheck pmreorder0.conf "$PMREORDER_CMD"
 
 check
 

@@ -58,7 +58,7 @@ PMEMCHECK_CMD="$BIN b $DIR/testfile3"
 PMREORDER_CMD="$BIN c"
 
 pmreorder_create_store_log $DIR/testfile3 "$PMEMCHECK_CMD"
-pmreorder_expect_failure accumulative pmreorder3.conf  "$PMREORDER_CMD"
+pmreorder_expect_failure ReorderAccumulative pmreorder3.conf  "$PMREORDER_CMD"
 
 check
 

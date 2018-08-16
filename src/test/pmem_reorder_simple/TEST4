@@ -34,7 +34,7 @@
 #
 # src/test/pmem_reorder_simple/TEST4 -- unit test for the reordering script
 # Tests positive case partial reorder engine
-# for most critical mark section and full  engine for other
+# for most critical mark section and full engine for other
 # parts of code.
 #
 
@@ -59,7 +59,7 @@ PMEMCHECK_CMD="$BIN g $DIR/testfile4"
 PMREORDER_CMD="$BIN c"
 
 pmreorder_create_store_log $DIR/testfile4 "$PMEMCHECK_CMD"
-pmreorder_expect_success full pmreorder4.conf "$PMREORDER_CMD"
+pmreorder_expect_success ReorderFull pmreorder4.conf "$PMREORDER_CMD"
 
 check
 
