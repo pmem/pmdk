@@ -330,7 +330,8 @@ replica_mark_part_no_badblocks(unsigned repn, unsigned partn,
 	LOG(3, "repn %u partn %u set_hs %p", repn, partn, set_hs);
 
 	struct replica_health_status *rhs = REP_HEALTH(set_hs, repn);
-	rhs->part[PART_HEALTHidx(rhs, partn)].flags &= ~HAS_BAD_BLOCKS;
+	rhs->part[PART_HEALTHidx(rhs, partn)].flags &=
+				~(HAS_BAD_BLOCKS | HAS_CORRUPTED_HEADER);
 	LOG(4, "Replica %u part %u has no bad blocks now", repn, partn);
 }
 
@@ -364,9 +365,9 @@ replica_is_replica_consistent(unsigned repn,
 }
 
 /*
- * replica_has_bad_blocks -- (internal) check if replica has bad blocks
+ * replica_has_bad_blocks -- check if replica has bad blocks
  */
-static int
+int
 replica_has_bad_blocks(unsigned repn, struct poolset_health_status *set_hs)
 {
 	return REP_HEALTH(set_hs, repn)->flags & HAS_BAD_BLOCKS;
@@ -382,15 +383,60 @@ replica_part_has_bad_blocks(struct part_health_status *phs)
 }
 
 /*
+ * replica_part_has_corrupted_header -- (internal) check if replica's part
+ *                              has bad blocks in the header (corrupted header)
+ */
+int
+replica_part_has_corrupted_header(unsigned repn, unsigned partn,
+					struct poolset_health_status *set_hs)
+{
+	struct replica_health_status *rhs = REP_HEALTH(set_hs, repn);
+	return PART_HEALTH(rhs, partn) & HAS_CORRUPTED_HEADER;
+}
+
+/*
+ * replica_has_corrupted_header -- (internal) check if replica has bad blocks
+ *                                 in the header (corrupted header)
+ */
+static int
+replica_has_corrupted_header(unsigned repn,
+				struct poolset_health_status *set_hs)
+{
+	return REP_HEALTH(set_hs, repn)->flags & HAS_CORRUPTED_HEADER;
+}
+
+/*
  * replica_is_replica_healthy -- check if replica is unbroken and consistent
  */
 int
-replica_is_replica_healthy(unsigned repn,
-		struct poolset_health_status *set_hs)
+replica_is_replica_healthy(unsigned repn, struct poolset_health_status *set_hs)
 {
-	return !replica_is_replica_broken(repn, set_hs) &&
+	LOG(3, "repn %u, set_hs %p", repn, set_hs);
+
+	int ret = !replica_is_replica_broken(repn, set_hs) &&
 			replica_is_replica_consistent(repn, set_hs) &&
 			!replica_has_bad_blocks(repn, set_hs);
+
+	LOG(4, "return %i", ret);
+
+	return ret;
+}
+
+/*
+ * replica_has_healthy_header -- (interal) check if replica has healthy headers
+ */
+static int
+replica_has_healthy_header(unsigned repn, struct poolset_health_status *set_hs)
+{
+	LOG(3, "repn %u, set_hs %p", repn, set_hs);
+
+	int ret = !replica_is_replica_broken(repn, set_hs) &&
+			replica_is_replica_consistent(repn, set_hs) &&
+			!replica_has_corrupted_header(repn, set_hs);
+
+	LOG(4, "return %i", ret);
+
+	return ret;
 }
 
 /*
@@ -436,8 +482,7 @@ replica_find_unbroken_part(unsigned repn, struct poolset_health_status *set_hs)
 }
 
 /*
- * replica_find_healthy_replica -- find a replica number which is a good source
- *                                 of data
+ * replica_find_healthy_replica -- find a replica which is a good source of data
  */
 unsigned
 replica_find_healthy_replica(struct poolset_health_status *set_hs)
@@ -445,10 +490,51 @@ replica_find_healthy_replica(struct poolset_health_status *set_hs)
 	LOG(3, "set_hs %p", set_hs);
 
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
-		if (replica_is_replica_healthy(r, set_hs))
+		if (replica_is_replica_healthy(r, set_hs)) {
+			LOG(4, "return %i", r);
 			return r;
+		}
 	}
 
+	LOG(4, "return %i", UNDEF_REPLICA);
+	return UNDEF_REPLICA;
+}
+
+/*
+ * replica_find_replica_healthy_header -- find a replica with a healthy header
+ */
+unsigned
+replica_find_replica_healthy_header(struct poolset_health_status *set_hs)
+{
+	LOG(3, "set_hs %p", set_hs);
+
+	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
+		if (replica_has_healthy_header(r, set_hs)) {
+			LOG(4, "return %i", r);
+			return r;
+		}
+	}
+
+	LOG(4, "return %i", UNDEF_REPLICA);
+	return UNDEF_REPLICA;
+}
+
+/*
+ * replica_find_replica_no_bad_blocks -- find a replica with no bad blocks
+ */
+unsigned
+replica_find_replica_no_bad_blocks(struct poolset_health_status *set_hs)
+{
+	LOG(3, "set_hs %p", set_hs);
+
+	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
+		if (!replica_has_bad_blocks(r, set_hs)) {
+			LOG(4, "return %i", r);
+			return r;
+		}
+	}
+
+	LOG(4, "return %i", UNDEF_REPLICA);
 	return UNDEF_REPLICA;
 }
 
@@ -507,8 +593,9 @@ check_store_all_sizes(struct pool_set *set,
 {
 	LOG(3, "set %p, set_hs %p", set, set_hs);
 	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		if (!replica_is_replica_healthy(r, set_hs))
+		if (!replica_has_healthy_header(r, set_hs))
 			continue;
+
 		if (replica_check_store_size(set, set_hs, r))
 			return -1;
 	}
@@ -1145,6 +1232,20 @@ replica_badblocks_get(struct pool_set *set,
 }
 
 /*
+ * check_badblocks_in_header -- (internal) check if bad blocks corrupted
+ *                              the header
+ */
+static int
+check_badblocks_in_header(struct badblocks *bbs)
+{
+	for (unsigned b = 0; b < bbs->bb_cnt; b++)
+		if (bbs->bbv[b].offset < POOL_HDR_SIZE)
+			return 1;
+
+	return 0;
+}
+
+/*
  * replica_badblocks_clear -- (internal) clear all bad blocks
  */
 static int
@@ -1179,6 +1280,12 @@ replica_badblocks_clear(struct pool_set *set,
 			/* bad blocks were found */
 			part_hs->flags |= HAS_BAD_BLOCKS;
 			rep_hs->flags |= HAS_BAD_BLOCKS;
+
+			if (check_badblocks_in_header(&part_hs->bbs)) {
+				part_hs->flags |= HAS_CORRUPTED_HEADER;
+				if (p == 0)
+					rep_hs->flags |= HAS_CORRUPTED_HEADER;
+			}
 
 			ret = os_badblocks_clear(path, &part_hs->bbs);
 			if (ret < 0) {
@@ -1605,10 +1712,16 @@ check_replica_poolset_uuids(struct pool_set *set, unsigned repn,
  */
 static int
 check_poolset_uuids(struct pool_set *set,
-		struct poolset_health_status *set_hs,
-		unsigned r_h)
+		struct poolset_health_status *set_hs)
 {
-	LOG(3, "set %p, set_hs %p, r_h %u", set, set_hs, r_h);
+	LOG(3, "set %p, set_hs %p", set, set_hs);
+
+	/* find a replica with healthy header */
+	unsigned r_h = replica_find_replica_healthy_header(set_hs);
+	if (r_h == UNDEF_REPLICA) {
+		ERR("no healthy replica found");
+		return -1;
+	}
 
 	uuid_t poolset_uuid;
 	memcpy(poolset_uuid, HDR(REP(set, r_h), 0)->poolset_uuid,
@@ -1894,15 +2007,8 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
-	/* find a healthy replica - it is needed by check_poolset_uuids() */
-	unsigned r_h = replica_find_healthy_replica(set_hs);
-	if (r_h == UNDEF_REPLICA) {
-		/* no healthy replica found - cannot proceed */
-		goto exit;
-	}
-
 	/* check poolset_uuid values between replicas */
-	if (check_poolset_uuids(set, set_hs, r_h)) {
+	if (check_poolset_uuids(set, set_hs)) {
 		LOG(1, "poolset uuids check failed");
 		goto err;
 	}
@@ -1930,7 +2036,6 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
-exit:
 	unmap_all_headers(set);
 	util_poolset_fdclose_always(set);
 	return 0;
