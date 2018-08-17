@@ -875,10 +875,12 @@ block_get_flags(const struct memory_block *m)
  * value, creates a valid memory block out of them and inserts that
  * block into the given bucket.
  */
-static void
+static int
 run_process_bitmap_value(const struct memory_block *m,
 	uint64_t value, uint16_t base_offset, object_callback cb, void *arg)
 {
+	int ret = 0;
+
 	uint64_t shift = 0; /* already processed bits */
 	struct memory_block s = *m;
 	do {
@@ -900,7 +902,8 @@ run_process_bitmap_value(const struct memory_block *m,
 			s.block_off = (uint16_t)(base_offset + shift);
 			s.size_idx = (uint32_t)(BITS_PER_VALUE - shift);
 
-			cb(&s, arg);
+			if ((ret = cb(&s, arg)) != 0)
+				return ret;
 
 			break;
 		} else if (shifted == UINT64_MAX) {
@@ -922,9 +925,12 @@ run_process_bitmap_value(const struct memory_block *m,
 			s.size_idx = (uint32_t)(size);
 
 			memblock_rebuild_state(m->heap, &s);
-			cb(&s, arg);
+			if ((ret = cb(&s, arg)) != 0)
+				return ret;
 		}
 	} while (shift != BITS_PER_VALUE);
+
+	return 0;
 }
 
 /*
@@ -933,6 +939,7 @@ run_process_bitmap_value(const struct memory_block *m,
 static int
 run_iterate_free(const struct memory_block *m, object_callback cb, void *arg)
 {
+	int ret = 0;
 	uint16_t block_off = 0;
 
 	struct run_bitmap b;
@@ -943,7 +950,9 @@ run_iterate_free(const struct memory_block *m, object_callback cb, void *arg)
 		uint64_t v = b.values[i];
 		ASSERT(BITS_PER_VALUE * i <= UINT16_MAX);
 		block_off = (uint16_t)(BITS_PER_VALUE * i);
-		run_process_bitmap_value(&nm, v, block_off, cb, arg);
+		ret = run_process_bitmap_value(&nm, v, block_off, cb, arg);
+		if (ret != 0)
+			return ret;
 	}
 
 	return 0;
@@ -1046,8 +1055,8 @@ huge_vg_init(const struct memory_block *m, int objects,
 	VALGRIND_DO_MAKE_MEM_NOACCESS(chunk, size);
 
 	if (objects && huge_get_state(m) == MEMBLOCK_ALLOCATED) {
-		int ret = cb(m, arg);
-		ASSERTeq(ret, 0);
+		if (cb(m, arg) != 0)
+			FATAL("failed to initialize valgrind state");
 	}
 }
 
@@ -1086,8 +1095,8 @@ run_vg_init(const struct memory_block *m, int objects,
 	VALGRIND_DO_MAKE_MEM_DEFINED(run, b.size + RUN_BASE_METADATA_SIZE);
 
 	if (objects) {
-		int ret = run_iterate_used(m, cb, arg);
-		ASSERTeq(ret, 0);
+		if (run_iterate_used(m, cb, arg) != 0)
+			FATAL("failed to initialize valgrind state");
 	}
 }
 
