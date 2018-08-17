@@ -63,6 +63,16 @@ struct name {\
 	(vec)->capacity = 0;\
 } while (0)
 
+#define VEC_MOVE(vecl, vecr) do {\
+	(vecl)->buffer = (vecr)->buffer;\
+	(vecl)->size = (vecr)->size;\
+	(vecl)->capacity = (vecr)->capacity;\
+	(vecr)->buffer = NULL;\
+	(vecr)->size = 0;\
+	(vecr)->capacity = 0;\
+} while (0)
+
+
 #define VEC_REINIT(vec) do {\
 	VALGRIND_ANNOTATE_NEW_MEMORY((vec), sizeof(*vec));\
 	VALGRIND_ANNOTATE_NEW_MEMORY((vec)->buffer,\
@@ -164,6 +174,8 @@ for (size_t _vec_i = 0;\
 #define VEC_DELETE(vec) do {\
 	Free((vec)->buffer);\
 	(vec)->buffer = NULL;\
+	(vec)->size = 0;\
+	(vec)->capacity = 0;\
 } while (0)
 
 #ifdef __cplusplus
