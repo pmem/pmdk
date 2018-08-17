@@ -125,7 +125,7 @@ do_create(const char *path, const char *layout)
 		exit(-1);
 	}
 
-	out("create(%s): allocating records in the pool ...", path);
+	printf("create(%s): allocating records in the pool ...\n", path);
 
 	count = D_RO(root)->count;
 	while (pmemobj_xalloc(pop, &oid, class.unit_size, 0,
@@ -135,10 +135,10 @@ do_create(const char *path, const char *layout)
 
 	count = D_RO(root)->count - count;
 	if (count) {
-		out("create(%s): allocated %lu records (of size %zu)",
+		printf("create(%s): allocated %lu records (of size %zu)\n",
 			path, count, sizeof(struct data_s));
 	} else {
-		out("create(%s): pool is full", path);
+		printf("create(%s): pool is full\n", path);
 	}
 
 	pmemobj_close(pop);
@@ -169,7 +169,7 @@ do_verify(const char *path, const char *layout)
 		if (!util_checksum(D_RW(rec), sizeof(*D_RW(rec)),
 					&D_RW(rec)->checksum,
 					0 /* verify */, SKIP_OFFSET)) {
-			out("verify(%s): incorrect record: %s (#%lu)",
+			printf("verify(%s): incorrect record: %s (#%lu)\n",
 				path, D_RW(rec)->signature, count);
 			error = 1;
 			break;
@@ -179,8 +179,8 @@ do_verify(const char *path, const char *layout)
 	}
 
 	if (D_RO(root)->count != count) {
-		out(
-			"verify(%s): incorrect number of records (is: %lu, should be: %lu)",
+		printf(
+			"verify(%s): incorrect number of records (is: %lu, should be: %lu)\n",
 			path, count, D_RO(root)->count);
 		error = 1;
 	}
@@ -188,12 +188,12 @@ do_verify(const char *path, const char *layout)
 	pmemobj_close(pop);
 
 	if (error) {
-		out("verify(%s): pool file contains error", path);
+		printf("verify(%s): pool file contains error\n", path);
 		exit(-1);
 	}
 
-	out(
-		"verify(%s): pool file successfully verified (%lu records of size %zu)",
+	printf(
+		"verify(%s): pool file successfully verified (%lu records of size %zu)\n",
 		path, count, sizeof(struct data_s));
 }
 
@@ -204,7 +204,7 @@ main(int argc, char *argv[])
 	out_init("OBJ_VERIFY", "OBJ_VERIFY", "", 1, 0);
 
 	if (argc < 4) {
-		out("Usage: %s <obj_pool> <layout> <op:c|v>\n"
+		printf("Usage: %s <obj_pool> <layout> <op:c|v>\n"
 		    "Options:\n"
 		    "   c - create\n"
 		    "   v - verify\n",
