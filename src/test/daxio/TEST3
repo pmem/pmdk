@@ -47,6 +47,7 @@ setup
 require_binary $DAXIO$EXESUFFIX
 
 LOG=out$UNITTEST_NUM.log
+STDIN_TMP=stdin$UNITTEST_NUM.log
 DATALOG=data$UNITTEST_NUM.log
 
 DATA1=$DIR/data1.bin
@@ -87,7 +88,9 @@ expect_normal_exit $DAXIO$EXESUFFIX -i $DATA2 -o ${DEVICE_DAX_PATH[0]} -k 1K -s 
 
 # offset = 10K
 # 8 * 'a'
-expect_normal_exit echo -n "aaaaaaaa" | $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -s 10K 2>>$LOG
+echo -n "aaaaaaaa" > $STDIN_TMP
+expect_normal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -s 10K 2>>$LOG < $STDIN_TMP
+rm $STDIN_TMP
 
 # zero some fragments
 expect_normal_exit $DAXIO$EXESUFFIX -z -o ${DEVICE_DAX_PATH[0]} -l 256B 2>>$LOG
