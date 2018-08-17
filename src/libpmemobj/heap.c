@@ -312,9 +312,18 @@ heap_zone_init(struct palloc_heap *heap, uint32_t zone_id,
 }
 
 /*
+ * heap_memblock_insert_block -- (internal) bucket insert wrapper for callbacks
+ */
+static int
+heap_memblock_insert_block(const struct memory_block *m, void *b)
+{
+	return bucket_insert_block(b, m);
+}
+
+/*
  * heap_run_create -- (internal) initializes a new run on an existing free chunk
  */
-static void
+static int
 heap_run_create(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m)
 {
@@ -323,28 +332,40 @@ heap_run_create(struct palloc_heap *heap, struct bucket *b,
 		b->aclass->flags, b->aclass->unit_size,
 		b->aclass->run.alignment);
 
-	m->m_ops->iterate_free(m, (object_callback)bucket_insert_block, b);
+	if (m->m_ops->iterate_free(m, heap_memblock_insert_block, b) != 0) {
+		b->c_ops->rm_all(b->container);
+		return -1;
+	}
+
+	return 0;
 }
 
 /*
  * heap_run_reuse -- (internal) reuses existing run
  */
-static void
+static int
 heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
 	const struct memory_block *m)
 {
+	int ret = 0;
+
 	ASSERTeq(m->type, MEMORY_BLOCK_RUN);
 	os_mutex_t *lock = m->m_ops->get_lock(m);
 
 	util_mutex_lock(lock);
 
-	m->m_ops->iterate_free(m, (object_callback)bucket_insert_block, b);
+	ret = m->m_ops->iterate_free(m, heap_memblock_insert_block, b);
 
 	util_mutex_unlock(lock);
 
-	b->active_memory_block->m = *m;
-	b->is_active = 1;
+	if (ret == 0) {
+		b->active_memory_block->m = *m;
+		b->is_active = 1;
+	} else {
+		b->c_ops->rm_all(b->container);
+	}
 
+	return ret;
 }
 
 /*
@@ -366,7 +387,7 @@ heap_free_chunk_reuse(struct palloc_heap *heap,
 
 	*m = nm;
 
-	return bucket_insert_block(m, bucket);
+	return bucket_insert_block(bucket, m);
 }
 
 /*
@@ -604,19 +625,13 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 	m.size_idx = units;
 
 	struct recycler *r = heap->rt->recyclers[b->aclass->id];
-	if (!force && recycler_get(r, &m) == 0) {
-		heap_run_reuse(heap, b, &m);
-
-		return 0;
-	}
+	if (!force && recycler_get(r, &m) == 0)
+		return heap_run_reuse(heap, b, &m);
 
 	heap_recycle_unused(heap, r, NULL, force);
 
-	if (recycler_get(r, &m) == 0) {
-		heap_run_reuse(heap, b, &m);
-
-		return 0;
-	}
+	if (recycler_get(r, &m) == 0)
+		return heap_run_reuse(heap, b, &m);
 
 	return ENOMEM;
 }
@@ -675,7 +690,10 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
 
 		ASSERTeq(m.block_off, 0);
-		heap_run_create(heap, b, &m);
+		if (heap_run_create(heap, b, &m) != 0) {
+			heap_bucket_release(heap, defb);
+			return ENOMEM;
+		}
 
 		b->active_memory_block->m = m;
 		b->is_active = 1;
@@ -736,7 +754,9 @@ heap_split_block(struct palloc_heap *heap, struct bucket *b,
 			m->size_idx - units, (uint16_t)(m->block_off + units),
 			0, NULL, NULL, 0, 0};
 		memblock_rebuild_state(heap, &r);
-		bucket_insert_block(&r, b);
+		if (bucket_insert_block(b, &r) != 0)
+			LOG(2,
+				"failed to allocate memory block runtime tracking info");
 	} else {
 		uint32_t new_chunk_id = m->chunk_id + units;
 		uint32_t new_size_idx = m->size_idx - units;
@@ -746,7 +766,9 @@ heap_split_block(struct palloc_heap *heap, struct bucket *b,
 		struct memory_block n = memblock_huge_init(heap,
 			new_chunk_id, m->zone_id, new_size_idx);
 
-		bucket_insert_block(&n, b);
+		if (bucket_insert_block(b, &n) != 0)
+			LOG(2,
+				"failed to allocate memory block runtime tracking info");
 	}
 
 	m->size_idx = units;

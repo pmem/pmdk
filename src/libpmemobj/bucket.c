@@ -91,7 +91,7 @@ error_active_alloc:
  * bucket_insert_block -- inserts a block into the bucket
  */
 int
-bucket_insert_block(const struct memory_block *m, struct bucket *b)
+bucket_insert_block(struct bucket *b, const struct memory_block *m)
 {
 #if VG_MEMCHECK_ENABLED || VG_HELGRIND_ENABLED || VG_DRD_ENABLED
 	if (On_valgrind) {
