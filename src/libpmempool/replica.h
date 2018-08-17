@@ -65,6 +65,11 @@ extern "C" {
 #define HAS_BAD_BLOCKS		(1U << 2)
 
 /*
+ * A part marked in this way has bad blocks in the header
+ */
+#define HAS_CORRUPTED_HEADER	(1U << 3)
+
+/*
  * A flag which can be passed to sync_replica() to indicate that the function is
  * called by pmempool_transform
  */
@@ -192,7 +197,10 @@ int replica_check_poolset_health(struct pool_set *set,
 		int called_from_sync, unsigned flags);
 int replica_is_part_broken(unsigned repn, unsigned partn,
 		struct poolset_health_status *set_hs);
+int replica_has_bad_blocks(unsigned repn, struct poolset_health_status *set_hs);
 int replica_part_has_bad_blocks(struct part_health_status *phs);
+int replica_part_has_corrupted_header(unsigned repn, unsigned partn,
+				struct poolset_health_status *set_hs);
 unsigned replica_find_unbroken_part(unsigned repn,
 		struct poolset_health_status *set_hs);
 int replica_is_replica_broken(unsigned repn,
@@ -201,7 +209,12 @@ int replica_is_replica_consistent(unsigned repn,
 		struct poolset_health_status *set_hs);
 int replica_is_replica_healthy(unsigned repn,
 		struct poolset_health_status *set_hs);
-unsigned replica_find_healthy_replica(struct poolset_health_status *set_hs);
+
+unsigned replica_find_healthy_replica(
+		struct poolset_health_status *set_hs);
+unsigned replica_find_replica_healthy_header(
+		struct poolset_health_status *set_hs);
+
 int replica_is_poolset_healthy(struct poolset_health_status *set_hs);
 int replica_is_poolset_transformed(unsigned flags);
 ssize_t replica_get_pool_size(struct pool_set *set, unsigned repn);
