@@ -64,7 +64,7 @@ struct bucket *bucket_new(struct block_container *c,
 
 int *bucket_current_resvp(struct bucket *b);
 
-int bucket_insert_block(const struct memory_block *m, struct bucket *b);
+int bucket_insert_block(struct bucket *b, const struct memory_block *m);
 
 void bucket_delete(struct bucket *b);
 

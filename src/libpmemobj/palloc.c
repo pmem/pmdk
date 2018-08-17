@@ -245,7 +245,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 		 * the memory block reservation has to be rolled back.
 		 */
 		if (new_block->type == MEMORY_BLOCK_HUGE) {
-			bucket_insert_block(new_block, b);
+			bucket_insert_block(b, new_block);
 		}
 		err = ECANCELED;
 		goto out;
