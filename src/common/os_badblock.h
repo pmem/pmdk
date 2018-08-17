@@ -54,11 +54,20 @@ extern "C" {
  * so we cannot use this name.
  *
  * libndctl returns offset relative to the beginning of the region,
- * but in this structure we save offset relative
- * to the beginning of the namespace.
+ * but in this structure we save offset:
+ * - relative to the beginning of the namespace (before sync_recalc_badblocks())
+ * and
+ * - relative to the beginning of the pool (after sync_recalc_badblocks())
  */
 struct bad_block {
-	/* offset in bytes, relative to the beginning of the namespace */
+	/*
+	 * offset in bytes:
+	 * - before sync_recalc_badblocks():
+	 *         relative to the beginning of the namespace ()
+	 * and
+	 * - after sync_recalc_badblocks():
+	 *         relative to the beginning of the pool ()
+	 */
 	unsigned long long offset;
 
 	/* length in bytes */
