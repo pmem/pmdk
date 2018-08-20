@@ -62,10 +62,17 @@ struct operation_log {
  * operation_context -- context of an ongoing palloc operation
  */
 struct operation_context {
+	enum log_type type;
+
 	redo_extend_fn extend; /* function to allocate next redo logs */
 
 	const struct pmem_ops *p_ops;
 	struct pmem_ops t_ops; /* used for transient data processing */
+
+	size_t redo_curr_offset; /* offset in the log for buffer stores */
+	size_t redo_curr_capacity; /* capacity of the current log */
+	struct redo_log *redo_curr; /* current persistent log */
+	size_t total_logged; /* total amount of buffer stores in the logs */
 
 	struct redo_log *redo; /* pointer to the persistent redo log */
 	size_t redo_base_nbytes; /* available bytes in initial redo log */
@@ -157,7 +164,7 @@ operation_transient_memcpy(void *base, void *dest, const void *src, size_t len,
  */
 struct operation_context *
 operation_new(struct redo_log *redo, size_t redo_base_nbytes,
-	redo_extend_fn extend, const struct pmem_ops *p_ops)
+	redo_extend_fn extend, const struct pmem_ops *p_ops, enum log_type type)
 {
 	struct operation_context *ctx = Zalloc(sizeof(*ctx));
 	if (ctx == NULL)
@@ -172,6 +179,11 @@ operation_new(struct redo_log *redo, size_t redo_base_nbytes,
 	VEC_INIT(&ctx->next);
 	redo_log_rebuild_next_vec(redo, &ctx->next, p_ops);
 	ctx->p_ops = p_ops;
+	ctx->type = type;
+
+	ctx->redo_curr_offset = 0;
+	ctx->redo_curr_capacity = 0;
+	ctx->redo_curr = NULL;
 
 	ctx->t_ops.base = p_ops->base;
 	ctx->t_ops.flush = operation_transient_clean;
@@ -289,8 +301,6 @@ operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
 	enum redo_operation_type type, enum operation_log_type log_type)
 {
-	ASSERTeq(type & REDO_VAL_OPERATIONS, type);
-
 	struct operation_log *oplog = log_type == LOG_PERSISTENT ?
 		&ctx->pshadow_ops : &ctx->transient_ops;
 
@@ -340,6 +350,51 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 }
 
 /*
+ * operation_add_buffer -- adds a buffer operation to the log
+ */
+int
+operation_add_buffer(struct operation_context *ctx,
+	void *dest, void *src, size_t size, enum redo_operation_type type)
+{
+	size_t real_size = size + sizeof(struct redo_log_entry_buf);
+
+	/* if there's no space left in the log, reserve some more */
+	if (ctx->redo_curr_capacity == 0) {
+		if (operation_reserve(ctx, ctx->total_logged + real_size) != 0)
+			return -1;
+
+		ctx->redo_curr = ctx->redo_curr == NULL ? ctx->redo :
+			OBJ_OFF_TO_PTR(ctx->p_ops->base, ctx->redo_curr->next);
+		ctx->redo_curr_offset = 0;
+		ctx->redo_curr_capacity = ctx->redo_curr->capacity;
+	}
+
+	size_t curr_size = MIN(real_size, ctx->redo_curr_capacity);
+	size_t data_size = curr_size - sizeof(struct redo_log_entry_buf);
+
+	/* create a persistent log entry */
+	struct redo_log_entry_buf *e = redo_log_entry_buf_create(ctx->redo_curr,
+		ctx->redo_curr_offset,
+		dest, src, data_size,
+		type, ctx->p_ops);
+	size_t entry_size = redo_log_entry_size(&e->base);
+	ASSERT(entry_size <= ctx->redo_curr_capacity);
+
+	ctx->total_logged += entry_size;
+	ctx->redo_curr_offset += entry_size;
+	ctx->redo_curr_capacity -= entry_size;
+
+	/*
+	 * Recursively add the data to the log until the entire buffer is
+	 * processed.
+	 */
+	return size - data_size == 0 ? 0 : operation_add_buffer(ctx,
+			(char *)dest + data_size,
+			(char *)src + data_size,
+			size - data_size, type);
+}
+
+/*
  * operation_process_persistent_redo -- (internal) process using redo
  */
 static void
@@ -348,13 +403,24 @@ operation_process_persistent_redo(struct operation_context *ctx)
 	ASSERTeq(ctx->pshadow_ops.capacity % CACHELINE_SIZE, 0);
 
 	redo_log_store(ctx->redo, ctx->pshadow_ops.redo,
-		ctx->pshadow_ops.offset, ctx->redo_base_nbytes, &ctx->next,
-		ctx->p_ops);
+		ctx->pshadow_ops.offset, ctx->redo_base_nbytes,
+		&ctx->next, ctx->p_ops);
 
 	redo_log_process(ctx->pshadow_ops.redo,
 		OBJ_OFF_IS_VALID_FROM_CTX, ctx->p_ops);
 
 	redo_log_clobber(ctx->redo, &ctx->next, ctx->p_ops);
+}
+
+/*
+ * operation_process_persistent_undo -- (internal) process using redo
+ */
+static void
+operation_process_persistent_undo(struct operation_context *ctx)
+{
+	ASSERTeq(ctx->pshadow_ops.capacity % CACHELINE_SIZE, 0);
+
+	redo_log_process(ctx->redo, ctx->p_ops);
 }
 
 /*
@@ -396,6 +462,18 @@ operation_init(struct operation_context *ctx)
 	tlog->offset = 0;
 	plog->offset = 0;
 	VECQ_REINIT(&ctx->merge_entries);
+
+	ctx->redo_curr_offset = 0;
+	ctx->redo_curr_capacity = 0;
+	ctx->redo_curr = NULL;
+	ctx->total_logged = 0;
+
+	/* initialize first log with metadata */
+	if (ctx->type == LOG_TYPE_UNDO) {
+		redo_log_store(ctx->redo, ctx->pshadow_ops.redo, 0,
+			ctx->redo_base_nbytes,
+			&ctx->next, ctx->p_ops);
+	}
 }
 
 /*
@@ -435,25 +513,44 @@ operation_process(struct operation_context *ctx)
 	 * the redo log. We can simply assign the value, the operation will be
 	 * atomic.
 	 */
-	int pmem_processed = 0;
-	if (ctx->pshadow_ops.offset == sizeof(struct redo_log_entry_val)) {
+	int redo_process = ctx->type == LOG_TYPE_REDO &&
+		ctx->pshadow_ops.offset != 0;
+	if (redo_process &&
+	    ctx->pshadow_ops.offset == sizeof(struct redo_log_entry_val)) {
 		struct redo_log_entry_base *e = (struct redo_log_entry_base *)
 			ctx->pshadow_ops.redo->data;
 		enum redo_operation_type t = redo_log_entry_type(e);
-		if ((t & REDO_VAL_OPERATIONS) == t) {
+		if (t == REDO_OPERATION_SET || t == REDO_OPERATION_AND ||
+		    t == REDO_OPERATION_OR) {
 			redo_log_entry_apply(e, 1, ctx->p_ops);
-			pmem_processed = 1;
+			redo_process = 0;
 		}
 	}
 
-	if (!pmem_processed && ctx->pshadow_ops.offset != 0)
+	if (redo_process)
 		operation_process_persistent_redo(ctx);
+	else if (ctx->type == LOG_TYPE_UNDO)
+		operation_process_persistent_undo(ctx);
 
 	/* process transient entries with transient memory ops */
 	if (ctx->transient_ops.offset != 0)
-		redo_log_process(ctx->transient_ops.redo,
-			OBJ_OFF_IS_VALID_FROM_CTX, &ctx->t_ops);
+		redo_log_process(ctx->transient_ops.redo, &ctx->t_ops);
+}
 
+/*
+ * operation_finish -- finalizes the operation
+ */
+void
+operation_finish(struct operation_context *ctx)
+{
 	ASSERTeq(ctx->in_progress, 1);
 	ctx->in_progress = 0;
+
+	if (ctx->type == LOG_TYPE_REDO) {
+		operation_process(ctx);
+	} else {
+		redo_log_clobber_data(ctx->redo,
+			ctx->total_logged, ctx->redo_base_nbytes,
+			&ctx->next, ctx->p_ops);
+	}
 }
