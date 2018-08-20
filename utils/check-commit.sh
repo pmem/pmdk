@@ -61,8 +61,7 @@ AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmall
 # Check commit message
 for commit in $commits; do
 	subject=$(git log --format="%s" -n 1 $commit)
-	subject_len=$(echo $subject | wc -m)
-	body_len=$(git log --format="%b" -n 1 $commit | wc -L)
+	commit_len=$(git log --format="%s%n%b" -n 1 $commit | wc -L)
 	prefix=$(echo $subject | sed -n "s/^\($AREAS\)\:.*/\1/p")
 
 	if [[ $subject =~ ^Merge.* ]]; then
@@ -75,14 +74,9 @@ for commit in $commits; do
 		git log -n 1 $commit
 		exit 1
 	fi
-	if [ $subject_len -gt 51 ]; then
-		echo "FAIL: subject line in commit message exceeds 50 chars ($subject_len)"
-		echo
-		git log -n 1 $commit
-		exit 1
-	fi
-	if [ $body_len -gt 73 ]; then
-		echo "FAIL: commit message body exceeds 72 chars per line ($body_len)"
+
+	if [ $commit_len -gt 73 ]; then
+		echo "FAIL: commit message exceeds 72 chars per line (commit_len)"
 		echo
 		git log -n 1 $commit
 		exit 1
