@@ -59,14 +59,23 @@ struct redo_log_entry_val {
 	uint64_t value; /* value to be applied */
 };
 
+/*
+ * redo_log_entry_buf - redo log buffer entry
+ */
+struct redo_log_entry_buf {
+	struct redo_log_entry_base base; /* offset with operation type flag */
+	uint64_t checksum; /* checksum of the entire log entry */
+	uint64_t size; /* size of the buffer to be modified */
+	uint8_t data[]; /* content to fill in */
+};
+
 #define REDO_LOG(capacity_bytes) {\
 	/* 64 bytes of metadata */\
 	uint64_t checksum; /* checksum of redo header and its entries */\
 	uint64_t next; /* offset of redo log extension */\
 	uint64_t capacity; /* capacity of this redo in bytes */\
 	uint64_t unused[5]; /* must be 0 */\
-	/* N bytes of data */\
-	uint8_t data[capacity_bytes];\
+	uint8_t data[capacity_bytes]; /* N bytes of data */\
 }\
 
 #define SIZEOF_REDO_LOG(base_capacity)\
@@ -80,10 +89,11 @@ enum redo_operation_type {
 	REDO_OPERATION_SET	=	0b000,
 	REDO_OPERATION_AND	=	0b001,
 	REDO_OPERATION_OR	=	0b010,
+	REDO_OPERATION_BUF_SET	=	0b101,
+	REDO_OPERATION_BUF_CPY	=	0b110,
 };
 
 #define REDO_BIT_OPERATIONS (REDO_OPERATION_AND | REDO_OPERATION_OR)
-#define REDO_VAL_OPERATIONS (REDO_BIT_OPERATIONS | REDO_OPERATION_SET)
 
 typedef int (*redo_check_offset_fn)(void *ctx, uint64_t offset);
 typedef int (*redo_extend_fn)(void *, uint64_t *);
@@ -109,6 +119,10 @@ void redo_log_store(struct redo_log *dest,
 
 void redo_log_clobber(struct redo_log *dest, struct redo_next *next,
 	const struct pmem_ops *p_ops);
+void redo_log_clobber_data(struct redo_log *dest,
+	size_t nbytes, size_t redo_base_nbytes,
+	struct redo_next *next, const struct pmem_ops *p_ops);
+
 void redo_log_process(struct redo_log *redo, redo_check_offset_fn check,
 	const struct pmem_ops *p_ops);
 
@@ -123,6 +137,11 @@ struct redo_log_entry_val *redo_log_entry_val_create(struct redo_log *redo,
 	size_t offset, uint64_t *dest, uint64_t value,
 	enum redo_operation_type type,
 	const struct pmem_ops *p_ops);
+
+struct redo_log_entry_buf *
+redo_log_entry_buf_create(struct redo_log *redo, size_t offset,
+	uint64_t *dest, const void *src, uint64_t size,
+	enum redo_operation_type type, const struct pmem_ops *p_ops);
 
 void redo_log_entry_apply(const struct redo_log_entry_base *e, int persist,
 	const struct pmem_ops *p_ops);

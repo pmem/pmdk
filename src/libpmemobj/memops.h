@@ -56,16 +56,27 @@ enum operation_log_type {
 	MAX_OPERATION_LOG_TYPE
 };
 
+enum log_type {
+	LOG_TYPE_UNDO,
+	LOG_TYPE_REDO,
+
+	MAX_LOG_TYPE,
+};
+
 struct operation_context;
 
 struct operation_context *
 operation_new(struct redo_log *redo, size_t redo_base_nbytes,
-	redo_extend_fn extend, const struct pmem_ops *p_ops);
+	redo_extend_fn extend, const struct pmem_ops *p_ops,
+	enum log_type type);
 
 void operation_init(struct operation_context *ctx);
 void operation_start(struct operation_context *ctx);
 
 void operation_delete(struct operation_context *ctx);
+
+int operation_add_buffer(struct operation_context *ctx,
+	void *dest, void *src, size_t size, enum redo_operation_type type);
 
 int operation_add_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value, enum redo_operation_type type);
@@ -75,6 +86,7 @@ int operation_add_typed_entry(struct operation_context *ctx,
 
 int operation_reserve(struct operation_context *ctx, size_t new_capacity);
 void operation_process(struct operation_context *ctx);
+void operation_finish(struct operation_context *ctx);
 void operation_cancel(struct operation_context *ctx);
 
 #ifdef __cplusplus

@@ -53,6 +53,7 @@ enum fail_types {
 
 struct test_object {
 	struct REDO_LOG(TEST_ENTRIES) redo;
+	struct REDO_LOG(TEST_ENTRIES) undo;
 	uint64_t values[TEST_VALUES];
 };
 
@@ -130,7 +131,7 @@ test_set_entries(PMEMobjpool *pop,
 		for (size_t i = 0; i < nentries; ++i)
 			UT_ASSERTeq(object->values[i], 0);
 	} else {
-		operation_process(ctx);
+		operation_finish(ctx);
 
 		for (size_t i = 0; i < nentries; ++i)
 			UT_ASSERTeq(object->values[i], i + 1);
@@ -158,7 +159,7 @@ test_merge_op(struct operation_context *ctx, struct test_object *object)
 		&object->values[0], 0b01,
 		REDO_OPERATION_OR, LOG_PERSISTENT);
 
-	operation_process(ctx);
+	operation_finish(ctx);
 
 	UT_ASSERTeq(object->values[0], 0b01);
 }
@@ -180,26 +181,9 @@ test_same_twice(struct operation_context *ctx, struct test_object *object)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_memops");
-
-	if (argc != 2)
-		UT_FATAL("usage: %s file-name", argv[0]);
-
-	const char *path = argv[1];
-
-	PMEMobjpool *pop = NULL;
-
-	if ((pop = pmemobj_create(path, "obj_memops",
-			PMEMOBJ_MIN_POOL * 10, S_IWUSR | S_IRUSR)) == NULL)
-		UT_FATAL("!pmemobj_create: %s", path);
-
-	struct test_object *object =
-		pmemobj_direct(pmemobj_root(pop, sizeof(struct test_object)));
-	UT_ASSERTne(object, NULL);
-
 	struct operation_context *ctx = operation_new(
 		(struct redo_log *)&object->redo, TEST_ENTRIES,
-		pmalloc_redo_extend, &pop->p_ops);
+		pmalloc_redo_extend, &pop->p_ops, LOG_TYPE_REDO);
 
 	test_set_entries(pop, ctx, object, 10, FAIL_NONE);
 	clear_test_values(object);
@@ -223,7 +207,7 @@ main(int argc, char *argv[])
 	/* verify that rebuilding redo_next works */
 	ctx = operation_new(
 		(struct redo_log *)&object->redo, TEST_ENTRIES,
-		NULL, &pop->p_ops);
+		NULL, &pop->p_ops, LOG_TYPE_REDO);
 
 	test_set_entries(pop, ctx, object, 100, 0);
 	clear_test_values(object);
@@ -235,6 +219,203 @@ main(int argc, char *argv[])
 	clear_test_values(object);
 
 	operation_delete(ctx);
+}
+
+static void
+test_undo_small_single_copy(struct operation_context *ctx,
+	struct test_object *object)
+{
+	operation_start(ctx);
+
+	object->values[0] = 1;
+	object->values[1] = 2;
+
+	operation_add_buffer(ctx,
+		&object->values, &object->values, sizeof(*object->values) * 2,
+		REDO_OPERATION_BUF_CPY);
+
+	object->values[0] = 2;
+	object->values[1] = 1;
+
+	operation_process(ctx);
+	operation_finish(ctx);
+
+	operation_start(ctx);
+
+	UT_ASSERTeq(object->values[0], 1);
+	UT_ASSERTeq(object->values[1], 2);
+
+	object->values[0] = 2;
+	object->values[1] = 1;
+
+	operation_process(ctx);
+
+	UT_ASSERTeq(object->values[0], 2);
+	UT_ASSERTeq(object->values[1], 1);
+
+	operation_finish(ctx);
+}
+
+static void
+test_undo_small_single_set(struct operation_context *ctx,
+	struct test_object *object)
+{
+	operation_start(ctx);
+
+	object->values[0] = 1;
+	object->values[1] = 2;
+
+	int c = 0;
+
+	operation_add_buffer(ctx,
+		&object->values, &c, sizeof(*object->values) * 2,
+		REDO_OPERATION_BUF_SET);
+
+	operation_process(ctx);
+
+	UT_ASSERTeq(object->values[0], 0);
+	UT_ASSERTeq(object->values[1], 0);
+
+	operation_finish(ctx);
+}
+
+static void
+test_undo_large_single_copy(struct operation_context *ctx,
+	struct test_object *object)
+{
+	operation_start(ctx);
+
+	for (uint64_t i = 0; i < TEST_VALUES; ++i)
+		object->values[i] = i + 1;
+
+	operation_add_buffer(ctx,
+		&object->values, &object->values, sizeof(object->values),
+		REDO_OPERATION_BUF_CPY);
+
+	for (uint64_t i = 0; i < TEST_VALUES; ++i)
+		object->values[i] = i + 2;
+
+	operation_process(ctx);
+
+	for (uint64_t i = 0; i < TEST_VALUES; ++i)
+		UT_ASSERTeq(object->values[i], i + 1);
+
+	operation_finish(ctx);
+}
+
+static void
+test_undo_checksum_mismatch(struct operation_context *ctx,
+	struct test_object *object, struct redo_log *log)
+{
+	operation_start(ctx);
+
+	for (uint64_t i = 0; i < 20; ++i)
+		object->values[i] = i + 1;
+
+	operation_add_buffer(ctx,
+		&object->values, &object->values, sizeof(*object->values) * 20,
+		REDO_OPERATION_BUF_CPY);
+
+	for (uint64_t i = 0; i < 20; ++i)
+		object->values[i] = i + 2;
+
+	log->data[100] += 1; /* corrupt the log somewhere */
+
+	operation_process(ctx);
+
+	/* the log shouldn't get applied */
+	for (uint64_t i = 0; i < 20; ++i)
+		UT_ASSERTeq(object->values[i], i + 2);
+
+	operation_finish(ctx);
+}
+
+static void
+test_undo_large_copy(struct operation_context *ctx,
+	struct test_object *object)
+{
+	operation_start(ctx);
+
+	for (uint64_t i = 0; i < TEST_VALUES; ++i)
+		object->values[i] = i + 1;
+
+	operation_add_buffer(ctx,
+		&object->values, &object->values, sizeof(object->values),
+		REDO_OPERATION_BUF_CPY);
+
+	for (uint64_t i = 0; i < TEST_VALUES; ++i)
+		object->values[i] = i + 2;
+
+	operation_process(ctx);
+
+	for (uint64_t i = 0; i < TEST_VALUES; ++i)
+		UT_ASSERTeq(object->values[i], i + 1);
+
+
+	operation_finish(ctx);
+
+	for (uint64_t i = 0; i < TEST_VALUES; ++i)
+		object->values[i] = i + 3;
+
+	operation_start(ctx);
+
+	operation_add_buffer(ctx,
+		&object->values, &object->values, sizeof(*object->values) * 26,
+		REDO_OPERATION_BUF_CPY);
+
+	for (uint64_t i = 0; i < TEST_VALUES; ++i)
+		object->values[i] = i + 4;
+
+	operation_process(ctx);
+
+	for (uint64_t i = 0; i < 26; ++i)
+		UT_ASSERTeq(object->values[i], i + 3);
+
+	for (uint64_t i = 26; i < TEST_VALUES; ++i)
+		UT_ASSERTeq(object->values[i], i + 4);
+
+	operation_finish(ctx);
+}
+
+static void
+test_undo(PMEMobjpool *pop, struct test_object *object)
+{
+	struct operation_context *ctx = operation_new(
+		(struct redo_log *)&object->undo, TEST_ENTRIES,
+		pmalloc_redo_extend, &pop->p_ops, LOG_TYPE_UNDO);
+
+	test_undo_small_single_copy(ctx, object);
+	test_undo_small_single_set(ctx, object);
+	test_undo_large_single_copy(ctx, object);
+	test_undo_large_copy(ctx, object);
+	test_undo_checksum_mismatch(ctx, object,
+		(struct redo_log *)&object->undo);
+
+	operation_delete(ctx);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "obj_memops");
+
+	if (argc != 2)
+		UT_FATAL("usage: %s file-name", argv[0]);
+
+	const char *path = argv[1];
+
+	PMEMobjpool *pop = NULL;
+
+	if ((pop = pmemobj_create(path, "obj_memops",
+			PMEMOBJ_MIN_POOL * 10, S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemobj_create: %s", path);
+
+	struct test_object *object =
+		pmemobj_direct(pmemobj_root(pop, sizeof(struct test_object)));
+	UT_ASSERTne(object, NULL);
+
+	test_redo(pop, object);
+	test_undo(pop, object);
 
 	pmemobj_close(pop);
 
