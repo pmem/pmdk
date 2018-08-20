@@ -255,13 +255,13 @@ pmalloc_construct_rt(PMEMobjpool *pop, void *data)
 
 	alloc_rt->ctx[OPERATION_INTERNAL] = operation_new(
 		(struct redo_log *)&layout->internal, ALLOC_REDO_INTERNAL_SIZE,
-		NULL, &pop->p_ops);
+		NULL, &pop->p_ops, LOG_TYPE_REDO);
 	if (alloc_rt->ctx[OPERATION_INTERNAL] == NULL)
 		goto error_internal_alloc;
 
 	alloc_rt->ctx[OPERATION_EXTERNAL] = operation_new(
 		(struct redo_log *)&layout->external, ALLOC_REDO_EXTERNAL_SIZE,
-		alloc_redo_external_extend, &pop->p_ops);
+		alloc_redo_external_extend, &pop->p_ops, LOG_TYPE_REDO);
 	if (alloc_rt->ctx[OPERATION_EXTERNAL] == NULL)
 		goto error_external_alloc;
 

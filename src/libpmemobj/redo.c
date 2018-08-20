@@ -98,12 +98,18 @@ size_t
 redo_log_entry_size(const struct redo_log_entry_base *entry)
 {
 	enum redo_operation_type t = redo_log_entry_type(entry);
+	struct redo_log_entry_buf *eb;
 
 	switch (t) {
 		case REDO_OPERATION_AND:
 		case REDO_OPERATION_OR:
 		case REDO_OPERATION_SET:
 			return sizeof(struct redo_log_entry_val);
+		case REDO_OPERATION_BUF_SET:
+		case REDO_OPERATION_BUF_CPY:
+			eb = (struct redo_log_entry_buf *)entry;
+			return CACHELINE_ALIGN(
+				sizeof(struct redo_log_entry_buf) + eb->size);
 		default:
 			ASSERT(0);
 	}
@@ -113,11 +119,30 @@ redo_log_entry_size(const struct redo_log_entry_base *entry)
 
 /*
  * redo_log_entry_valid -- (internal) checks if a redo log entry is valid
+ * Returns 1 if the range is valid, otherwise 0 is returned.
  */
 static int
 redo_log_entry_valid(const struct redo_log_entry_base *entry)
 {
-	return entry->offset != 0;
+	if (entry->offset == 0)
+		return 0;
+
+	size_t size;
+	struct redo_log_entry_buf *b;
+
+	switch (redo_log_entry_type(entry)) {
+		case REDO_OPERATION_BUF_CPY:
+		case REDO_OPERATION_BUF_SET:
+			size = redo_log_entry_size(entry);
+			b = (struct redo_log_entry_buf *)entry;
+			if (!util_checksum(b, size, &b->checksum, 0, 0))
+				return 0;
+			break;
+		default:
+			break;
+	}
+
+	return 1;
 }
 
 /*
@@ -323,6 +348,75 @@ redo_log_entry_val_create(struct redo_log *redo, size_t offset, uint64_t *dest,
 }
 
 /*
+ * redo_log_entry_buf_create -- atomically creates a buffer entry in the log
+ */
+struct redo_log_entry_buf *
+redo_log_entry_buf_create(struct redo_log *redo, size_t offset, uint64_t *dest,
+	const void *src, uint64_t size,
+	enum redo_operation_type type, const struct pmem_ops *p_ops)
+{
+	struct redo_log_entry_buf *e =
+		(struct redo_log_entry_buf *)(redo->data + offset);
+
+	/*
+	 * Depending on the size of the source buffer, we might need to perform
+	 * up to three separate copies:
+	 *	1. The first cacheline, 24b of metadata and 40b of data
+	 * If there's still data to be logged:
+	 *	2. The entire remainder of data data aligned down to cacheline,
+	 *	for example, if there's 150b left, this step will copy only
+	 *	128b.
+	 * Now, we are left with between 0 to 63 bytes. If nonzero:
+	 *	3. Create a stack allocated cacheline-sized buffer, fill in the
+	 *	remainder of the data, and copy the entire cacheline.
+	 *
+	 * This is done so that we avoid a cache-miss on misaligned writes.
+	 */
+
+	struct redo_log_entry_buf *b = alloca(CACHELINE_SIZE);
+	b->base.offset = (uint64_t)(dest) - (uint64_t)p_ops->base;
+	b->base.offset |= REDO_OPERATION(type);
+	b->size = size;
+
+	size_t ncopy = MIN(size,
+		CACHELINE_SIZE - sizeof(struct redo_log_entry_buf));
+	memcpy(b->data, src, ncopy);
+
+	size_t remaining_size = ncopy > size ? 0 : size - ncopy;
+
+	char *srcof = (char *)src + ncopy;
+	size_t rcopy = ALIGN_DOWN(remaining_size, CACHELINE_SIZE);
+	size_t lcopy = remaining_size - rcopy;
+
+	uint8_t last_cacheline[CACHELINE_SIZE];
+	if (lcopy != 0)
+		memcpy(last_cacheline, srcof + rcopy, lcopy);
+
+	b->checksum = util_checksum_seq(b, CACHELINE_SIZE, 0);
+	if (rcopy != 0)
+		b->checksum = util_checksum_seq(srcof, rcopy, b->checksum);
+	if (lcopy != 0)
+		b->checksum = util_checksum_seq(last_cacheline,
+			CACHELINE_SIZE, b->checksum);
+
+	pmemops_memcpy(p_ops, e, b, CACHELINE_SIZE,
+		PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
+
+	if (rcopy != 0)
+		pmemops_memcpy(p_ops, e->data + ncopy, srcof, rcopy,
+			PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
+
+	if (lcopy != 0)
+		pmemops_memcpy(p_ops, e->data + ncopy + rcopy, last_cacheline,
+			CACHELINE_SIZE,
+			PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
+
+	pmemops_drain(p_ops);
+
+	return e;
+}
+
+/*
  * redo_log_entry_apply -- applies modifications of a single redo log entry
  */
 void
@@ -336,6 +430,7 @@ redo_log_entry_apply(const struct redo_log_entry_base *e, int persist,
 	uint64_t *dst = (uint64_t *)((uintptr_t)p_ops->base + offset);
 
 	struct redo_log_entry_val *ev;
+	struct redo_log_entry_buf *eb;
 
 	flush_fn f = persist ? p_ops->persist : p_ops->flush;
 
@@ -363,6 +458,22 @@ redo_log_entry_apply(const struct redo_log_entry_base *e, int persist,
 			*dst = ev->value;
 			f(p_ops->base, dst, sizeof(uint64_t),
 				PMEMOBJ_F_RELAXED);
+		break;
+		case REDO_OPERATION_BUF_SET:
+			eb = (struct redo_log_entry_buf *)e;
+
+			dst_size = eb->size;
+			VALGRIND_ADD_TO_TX(dst, dst_size);
+			pmemops_memset(p_ops, dst, *eb->data, eb->size,
+				PMEMOBJ_F_RELAXED | PMEMOBJ_F_MEM_NODRAIN);
+		break;
+		case REDO_OPERATION_BUF_CPY:
+			eb = (struct redo_log_entry_buf *)e;
+
+			dst_size = eb->size;
+			VALGRIND_ADD_TO_TX(dst, dst_size);
+			pmemops_memcpy(p_ops, dst, eb->data, eb->size,
+				PMEMOBJ_F_RELAXED | PMEMOBJ_F_MEM_NODRAIN);
 		break;
 		default:
 			ASSERT(0);
@@ -399,6 +510,31 @@ redo_log_clobber(struct redo_log *dest, struct redo_next *next,
 
 	pmemops_memcpy(p_ops, dest, &empty, sizeof(empty),
 		PMEMOBJ_F_MEM_WC);
+}
+
+/*
+ * redo_log_clobber_data -- zeroes out 'nbytes' of data in the logs
+ */
+void
+redo_log_clobber_data(struct redo_log *dest,
+	size_t nbytes, size_t redo_base_nbytes,
+	struct redo_next *next, const struct pmem_ops *p_ops)
+{
+	size_t rcapacity = redo_base_nbytes;
+	size_t nlog = 0;
+
+	for (struct redo_log *r = dest; r != NULL; ) {
+		size_t nzero = MIN(nbytes, rcapacity);
+		pmemops_memset(p_ops, r->data, 0, nzero, PMEMOBJ_F_MEM_WC);
+		nbytes -= nzero;
+
+		if (nbytes == 0)
+			break;
+
+		r = redo_log_next_by_offset(VEC_ARR(next)[nlog++], p_ops);
+		ASSERTne(r, NULL);
+		rcapacity = r->capacity;
+	}
 }
 
 /*
