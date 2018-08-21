@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -309,6 +309,11 @@ test_list_api(PMEMobjpool *pop)
 	POBJ_LIST_INSERT_NEW_TAIL(pop, &D_RW(root)->dummies, plist,
 			sizeof(struct dummy_node), dummy_node_constructor,
 			&test_val);
+
+	TOID(struct dummy_node) inserted =
+			POBJ_LIST_FIRST(&D_RW(root)->dummies);
+	UT_ASSERTeq(pmemobj_type_num(inserted.oid),
+			TOID_TYPE_NUM(struct dummy_node));
 
 	TOID(struct dummy_node) node;
 	POBJ_ZNEW(pop, &node, struct dummy_node);
