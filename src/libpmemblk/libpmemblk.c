@@ -110,7 +110,7 @@ libpmemblk_init(void)
 	ctl_global_register();
 
 	if (blk_ctl_init_and_load(NULL))
-		FATAL("Ctl initialization failed");
+		FATAL("error: %s", pmemblk_errormsg());
 
 	common_init(PMEMBLK_LOG_PREFIX, PMEMBLK_LOG_LEVEL_VAR,
 			PMEMBLK_LOG_FILE_VAR, PMEMBLK_MAJOR_VERSION,

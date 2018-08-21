@@ -110,7 +110,7 @@ libpmemlog_init(void)
 	ctl_global_register();
 
 	if (log_ctl_init_and_load(NULL))
-		FATAL("Ctl initialization failed");
+		FATAL("error: %s", pmemlog_errormsg());
 
 	common_init(PMEMLOG_LOG_PREFIX, PMEMLOG_LOG_LEVEL_VAR,
 			PMEMLOG_LOG_FILE_VAR, PMEMLOG_MAJOR_VERSION,
