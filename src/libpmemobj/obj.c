@@ -197,6 +197,8 @@ obj_ctl_init_and_load(PMEMobjpool *pop)
 		pmalloc_ctl_register(pop);
 		stats_ctl_register(pop);
 		debug_ctl_register(pop);
+	} else {
+		sds_register();
 	}
 
 	char *env_config = os_getenv(OBJ_CONFIG_ENV_VARIABLE);

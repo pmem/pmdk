@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\ctl.h" />
     <ClInclude Include="..\common\dlsym.h" />
     <ClInclude Include="..\common\file.h" />
     <ClInclude Include="..\common\fs.h" />
@@ -22,6 +23,7 @@
     <ClInclude Include="..\common\pmemcommon.h" />
     <ClInclude Include="..\common\pool_hdr.h" />
     <ClInclude Include="..\common\set.h" />
+    <ClInclude Include="..\common\shutdown_state.h" />
     <ClInclude Include="..\common\sys_util.h" />
     <ClInclude Include="..\common\util.h" />
     <ClInclude Include="..\common\uuid.h" />
@@ -36,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\common\badblock.c" />
+    <ClCompile Include="..\common\ctl.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\mmap.c" />

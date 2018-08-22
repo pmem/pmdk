@@ -103,9 +103,6 @@
     <ClCompile Include="check_log.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\shutdown_state.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\os_dimm_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -119,6 +116,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\badblock_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\shutdown_state.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -187,6 +190,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\os_auto_flush.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\shutdown_state.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ctl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

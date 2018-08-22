@@ -95,6 +95,10 @@ impact of pagefaults. Affects only the _UW(pmemobj_open) function.
 
 Always returns 0.
 
+shutdown_state.enable | rw | global |int | int | - | boolean
+
+Enable detection of ADR failure.
+
 tx.debug.skip_expensive_checks | rw | - | int | int | - | boolean
 
 Turns off some expensive checks performed by the transaction module in "debug"
