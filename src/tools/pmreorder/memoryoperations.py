@@ -300,6 +300,30 @@ class ReorderAccumulative(ReorderBase):
             return ReorderAccumulative()
 
 
+class ReorderRevertAccumulative(ReorderBase):
+    """
+    Describes the type of reordering engine to be used.
+
+    This marker class triggers writing all
+    possible reverted accumulative sequences of stores
+    between barriers.
+    """
+    class Factory:
+        """
+        Internal factory class to be used in dynamic object creation.
+        """
+        def create(self, values):
+            """
+            Factory object creation method.
+
+            :param values: Ignored.
+            :type values: str
+            :return: New ReorderRevertAccumulative object.
+            :rtype: ReorderRevertAccumulative
+            """
+            return ReorderRevertAccumulative()
+
+
 class NoReorderNoCheck(ReorderBase):
     """
     Describes the type of reordering engine to be used.

@@ -200,6 +200,11 @@ class CollectingState(State):
                 reorderengines.AccumulativeReorderEngine()
             self._context.test_on_barrier = \
                 self._context.reorder_engine.test_on_barrier
+        elif isinstance(order_ops, memoryoperations.ReorderRevertAccumulative):
+            self._context.reorder_engine = \
+                reorderengines.AccumulativeRevertReorderEngine()
+            self._context.test_on_barrier = \
+                self._context.reorder_engine.test_on_barrier
         elif isinstance(order_ops, memoryoperations.NoReorderDoCheck):
             self._context.reorder_engine = reorderengines.NoReorderEngine()
             self._context.test_on_barrier = \
