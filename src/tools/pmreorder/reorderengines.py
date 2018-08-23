@@ -108,6 +108,36 @@ class AccumulativeReorderEngine:
             yield out_list
 
 
+class AccumulativeReverseReorderEngine:
+    def __init__(self):
+        self.test_on_barrier = True
+    """
+    Realizes an accumulative reorder of stores
+    within a given list in reverse order.
+    Example:
+        input: (a, b, c)
+        output:
+               ()
+               ('c')
+               ('c', 'b')
+               ('c', 'b', 'a')
+    """
+    def generate_sequence(self, store_list):
+        """
+        Reverse all elements order and
+        generates all accumulative lists.
+
+        :param store_list: The list of stores to be reordered.
+        :type store_list: list of :class:`memoryoperations.Store`
+        :return: Yields all accumulative combinations of stores.
+        :rtype: iterable
+        """
+        store_list = list(reversed(store_list))
+        for i in range(0, len(store_list) + 1):
+            out_list = [store_list[i] for i in range(0, i)]
+            yield out_list
+
+
 class SlicePartialReorderEngine:
     """
     Generates a slice of the full reordering of stores within a given list.
@@ -335,4 +365,5 @@ engines = collections.OrderedDict([
            ('ReorderFull', FullReorderEngine),
            ('NoReorderDoCheck', NoReorderEngine),
            ('ReorderAccumulative', AccumulativeReorderEngine),
+           ('ReorderReverseAccumulative', AccumulativeReverseReorderEngine),
            ('ReorderPartial', RandomPartialReorderEngine)])

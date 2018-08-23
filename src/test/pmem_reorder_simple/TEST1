@@ -45,8 +45,7 @@
 require_fs_type pmem non-pmem
 require_build_type debug
 require_test_type medium
-require_pmemcheck_version_ge 0 2
-require_pmemcheck_version_lt 1 0
+require_pmemcheck_version_ge 1 0
 require_pmreorder
 
 setup
