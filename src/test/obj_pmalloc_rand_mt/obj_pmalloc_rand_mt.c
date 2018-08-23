@@ -50,13 +50,13 @@ test_worker(void *arg)
 	PMEMobjpool *pop = arg;
 
 	PMEMoid *objects = ZALLOC(sizeof(PMEMoid) * nobjects);
-	int fill = 0;
+	unsigned fill = 0;
 
 	int ret;
 	unsigned myseed = seed;
 
-	for (int i = 0; i < iterations; ++i) {
-		int fill_ratio = ((double)fill / nobjects) * 100;
+	for (unsigned i = 0; i < iterations; ++i) {
+		unsigned fill_ratio = (fill * 100) / nobjects;
 		unsigned pos = RRAND(myseed, nobjects, 0);
 		size_t size = RRAND(myseed, object_size, 64);
 		if (RRAND(myseed, 100, 0) < fill_ratio) {
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 	if (argc > 6)
 		seed = ATOU(argv[6]);
 	else
-		seed = time(NULL);
+		seed = (unsigned)time(NULL);
 
 	PMEMobjpool *pop;
 
@@ -119,11 +119,11 @@ main(int argc, char *argv[])
 
 	os_thread_t *threads = MALLOC(sizeof(os_thread_t) * nthreads);
 
-	for (int i = 0; i < nthreads; ++i) {
+	for (unsigned i = 0; i < nthreads; ++i) {
 		PTHREAD_CREATE(&threads[i], NULL, test_worker, pop);
 	}
 
-	for (int i = 0; i < nthreads; ++i) {
+	for (unsigned i = 0; i < nthreads; ++i) {
 		PTHREAD_JOIN(&threads[i], NULL);
 	}
 
