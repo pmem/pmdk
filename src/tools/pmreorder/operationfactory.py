@@ -31,7 +31,6 @@
 import memoryoperations
 from reorderexceptions import NotSupportedOperationException
 import sys
-import re
 
 
 class OperationFactory:
