@@ -145,8 +145,9 @@ class OperationFactory:
             # if id_ is section BEGIN
             if id_.endswith(OperationFactory.__suffix[0]):
                 # BEGIN defined by user
-                if id_ in markers:
-                    engine = markers[id_]
+                marker_name = id_.partition('.')[0]
+                if marker_name in markers:
+                    engine = markers[marker_name]
                     try:
                         mem_ops = getattr(sys.modules[mem_mod], engine)
                     except AttributeError:
