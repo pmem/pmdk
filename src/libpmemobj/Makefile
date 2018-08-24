@@ -54,7 +54,6 @@ SOURCE +=\
 	obj.c\
 	palloc.c\
 	pmalloc.c\
-	pvector.c\
 	ravl.c\
 	recycler.c\
 	sync.c\

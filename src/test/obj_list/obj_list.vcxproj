@@ -54,7 +54,6 @@
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_PMALLOC</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL_PMALLOC</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\pvector.c" />
     <ClCompile Include="..\..\libpmemobj\ravl.c" />
     <ClCompile Include="..\..\libpmemobj\recycler.c" />
     <ClCompile Include="..\..\libpmemobj\ulog.c">
