@@ -77,9 +77,6 @@
     <ClCompile Include="..\..\libpmemobj\pmalloc.c">
       <Filter>libs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\pvector.c">
-      <Filter>libs</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\ravl.c">
       <Filter>libs</Filter>
     </ClCompile>
