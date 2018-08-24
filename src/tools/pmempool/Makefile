@@ -52,8 +52,7 @@ LIBPMEMCTO=y
 LIBPMEMPOOL=y
 TOOLS_COMMON=y
 
-LIBPMEMOBJ_PRIV=pvector_new pvector_size pvector_first pvector_next\
-	pvector_delete memblock_from_offset alloc_class_by_id\
+LIBPMEMOBJ_PRIV=memblock_from_offset alloc_class_by_id\
 	memblock_rebuild_state alloc_class_by_run\
 	heap_run_foreach_object alloc_class_collection_new\
 	alloc_class_collection_delete

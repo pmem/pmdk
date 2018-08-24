@@ -64,14 +64,13 @@
 #define SIZEOF_LANE_SECTION_V3 (1024)
 #define SIZEOF_LANE_V3 (3 * SIZEOF_LANE_SECTION_V3)
 #define SIZEOF_PVECTOR_V3 (224)
-#define SIZEOF_TX_RANGE_META_V3 (16)
 #define SIZEOF_ULOG_V4 (64)
 #define SIZEOF_ULOG_BASE_ENTRY_V4 (8)
 #define SIZEOF_ULOG_VAL_ENTRY_V4 (16)
 #define SIZEOF_ULOG_BUF_ENTRY_V4 (24)
 #define SIZEOF_LANE_LIST_LAYOUT_V4 (1024)
 #define SIZEOF_LANE_ALLOC_LAYOUT_V4 (1024)
-#define SIZEOF_LANE_TX_LAYOUT_V4 ((2 * SIZEOF_PVECTOR_V3))
+#define SIZEOF_LANE_TX_LAYOUT_V4 (1024)
 
 POBJ_LAYOUT_BEGIN(layout);
 POBJ_LAYOUT_ROOT(layout, struct foo);
@@ -248,7 +247,7 @@ main(int argc, char *argv[])
 
 
 	ASSERT_ALIGNED_BEGIN(struct lane_tx_layout);
-	ASSERT_ALIGNED_FIELD(struct lane_tx_layout, undo_log);
+	ASSERT_ALIGNED_FIELD(struct lane_tx_layout, undo);
 	ASSERT_ALIGNED_CHECK(struct lane_tx_layout);
 	UT_COMPILE_ERROR_ON(sizeof(struct lane_tx_layout) >
 		sizeof(struct lane_section_layout));
@@ -273,13 +272,6 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_CHECK(struct pvector);
 	UT_COMPILE_ERROR_ON(sizeof(struct pvector) !=
 		SIZEOF_PVECTOR_V3);
-
-	ASSERT_ALIGNED_BEGIN(struct tx_range);
-	ASSERT_ALIGNED_FIELD(struct tx_range, offset);
-	ASSERT_ALIGNED_FIELD(struct tx_range, size);
-	ASSERT_ALIGNED_CHECK(struct tx_range);
-	UT_COMPILE_ERROR_ON(sizeof(struct tx_range) !=
-		SIZEOF_TX_RANGE_META_V3);
 
 	DONE(NULL);
 }

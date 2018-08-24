@@ -50,7 +50,6 @@
 #include "memops.h"
 #include "pmalloc.h"
 #include "list.h"
-#include "pvector.h"
 #include "obj.h"
 #include "memblock.h"
 #include "heap_layout.h"
