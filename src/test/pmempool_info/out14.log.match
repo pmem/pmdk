@@ -69,14 +69,13 @@ Root offset              : $(*)
 Lane 0:
 
  Lane section             : tx
-  Undo Log - set           : 0 elements
-  Undo Log - set cache     : 1 element
 
-   Object                   : 0
-   Offset                   : $(*)
+  Undo Log:
 
-   Tx range cache:
-    0000000000: Offset: $(*) Size: 1
+   Tx range:
+    Offset                   : $(*)
+    Size                     : 1
+
 
 Part file:
 path                     : $(nW)file.pool
@@ -115,14 +114,18 @@ Root offset              : $(*)
 Lane 0:
 
  Lane section             : tx
-  Undo Log - set           : 0 elements
-  Undo Log - set cache     : 1 element
 
-   Object                   : 0
-   Offset                   : $(*)
+  Undo Log:
 
-   Tx range cache:
-    0000000000: Offset: $(*) Size: 1024
+   Tx range:
+    Offset                   : $(*)
+    Size                     : 936
+
+
+   Tx range:
+    Offset                   : $(*)
+    Size                     : 88
+
 
 Part file:
 path                     : $(nW)file.pool
