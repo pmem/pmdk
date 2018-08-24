@@ -3017,6 +3017,60 @@ function count_lines() {
 }
 
 #
+# get_pmemcheck_version() - return pmemcheck API major or minor version
+#	usage: get_pmemcheck_version <0|1>
+#
+function get_pmemcheck_version()
+{
+	require_valgrind_tool pmemcheck
+
+	PMEMCHECK_VERSION=$($VALGRINDEXE --tool=pmemcheck true 2>&1 \
+			| head -n 1 | sed "s/.*-\([0-9.]*\),.*/\1/")
+
+	OIFS=$IFS
+	IFS="."
+	PMEMCHECK_MAJ_MIN=($PMEMCHECK_VERSION)
+	IFS=$OIFS
+	PMEMCHECK_VERSION_PART=${PMEMCHECK_MAJ_MIN[$1]}
+
+	echo "$PMEMCHECK_VERSION_PART"
+}
+
+#
+# require_pmemcheck_major_eq - check if pmemcheck API major
+# version is equal to required value
+#	usage: require_pmemcheck_major_eq <version>
+#
+function require_pmemcheck_major_eq()
+{
+	REQUIRE_MAJOR=$1
+	PMEMCHECK_MAJOR=$(get_pmemcheck_version 0)
+
+	if [ $PMEMCHECK_MAJOR -ne $REQUIRE_MAJOR ]; then
+		msg "$UNITTEST_NAME: SKIP pmemcheck API major version:" \
+			"$PMEMCHECK_MAJOR is not equal required $REQUIRE_MAJOR"
+		exit 0
+	fi
+}
+
+#
+# require_pmemcheck_minor_ge - check if pmemcheck API minor
+# version is greater or equal to required value
+#	usage: require_pmemcheck_minor_ge <version>
+#
+function require_pmemcheck_minor_ge()
+{
+	REQUIRE_MINOR=$1
+	PMEMCHECK_MINOR=$(get_pmemcheck_version 1)
+
+	if [ $PMEMCHECK_MINOR -lt $REQUIRE_MINOR ]; then
+		msg "$UNITTEST_NAME: SKIP pmemcheck API minor version:" \
+			"$PMEMCHECK_MINOR is lower than required $REQUIRE_MINOR"
+		exit 0
+	fi
+}
+
+#
 # require_python_3 -- check if python3 is available
 #
 function require_python3()
