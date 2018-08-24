@@ -1055,6 +1055,21 @@ function setup {
     if ($Env:TM -eq "1" ) {
         $script:tm = [system.diagnostics.stopwatch]::startNew()
     }
+
+    $DEBUG_DIR = '..\..\x64\Debug'
+    $RELEASE_DIR = '..\..\x64\Release'
+
+    if ($Env:BUILD -eq 'nondebug') {
+        if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
+            $Env:PMDK_LIB_PATH_NONDEBUG = $RELEASE_DIR + '\libs\'
+        }
+        $Env:Path = $Env:PMDK_LIB_PATH_NONDEBUG + ';' + $Env:Path
+    } elseif ($Env:BUILD -eq 'debug') {
+        if (-Not $Env:PMDK_LIB_PATH_DEBUG) {
+            $Env:PMDK_LIB_PATH_DEBUG = $DEBUG_DIR + '\libs\'
+        }
+        $Env:Path = $Env:PMDK_LIB_PATH_DEBUG + ';' + $Env:Path
+    }
 }
 
 #
@@ -1101,11 +1116,20 @@ if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
 if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋"}
 if (-Not $Env:DIRSUFFIX) { $Env:DIRSUFFIX = ""}
 
-if ($Env:EXE_DIR -eq $null) {
-    $Env:EXE_DIR = "..\..\x64\debug"
+if ($Env:BUILD -eq 'nondebug') {
+    if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
+        $PMEMPOOL = $RELEASE_DIR + "\libs\pmempool$Env:EXESUFFIX"
+    } else {
+        $PMEMPOOL = "$Env:PMDK_LIB_PATH_NONDEBUG\pmempool$Env:EXESUFFIX"
+    }
+} elseif ($Env:BUILD -eq 'debug') {
+    if (-Not $Env:PMDK_LIB_PATH_DEBUG) {
+        $PMEMPOOL = $DEBUG_DIR + "\libs\pmempool$Env:EXESUFFIX"
+    } else {
+        $PMEMPOOL = "$Env:PMDK_LIB_PATH_DEBUG\pmempool$Env:EXESUFFIX"
+    }
 }
 
-$PMEMPOOL="$Env:EXE_DIR\pmempool$Env:EXESUFFIX"
 $PMEMSPOIL="$Env:EXE_DIR\pmemspoil$Env:EXESUFFIX"
 $PMEMWRITE="$Env:EXE_DIR\pmemwrite$Env:EXESUFFIX"
 $PMEMALLOC="$Env:EXE_DIR\pmemalloc$Env:EXESUFFIX"

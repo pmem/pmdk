@@ -43,21 +43,21 @@ require_no_unicode
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile alloc int 23 int > out$Env:UNITTEST_NUM.log
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile alloc PMEMoid 17 PMEMoid >> out$Env:UNITTEST_NUM.log
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile alloc TOID 11 TOID >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile alloc int 23 int > out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile alloc PMEMoid 17 PMEMoid >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile alloc TOID 11 TOID >> out$Env:UNITTEST_NUM.log
 
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile print int >> out$Env:UNITTEST_NUM.log
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile print PMEMoid >> out$Env:UNITTEST_NUM.log
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile print TOID >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile print int >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile print PMEMoid >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile print TOID >> out$Env:UNITTEST_NUM.log
 
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile realloc int 17 >> out$Env:UNITTEST_NUM.log
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile realloc PMEMoid 11 >> out$Env:UNITTEST_NUM.log
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile realloc TOID 13 >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile realloc int 17 >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile realloc PMEMoid 11 >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile realloc TOID 13 >> out$Env:UNITTEST_NUM.log
 
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile print int >> out$Env:UNITTEST_NUM.log
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile print PMEMoid >> out$Env:UNITTEST_NUM.log
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_array $DIR\testfile print TOID >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile print int >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile print PMEMoid >> out$Env:UNITTEST_NUM.log
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_array $DIR\testfile print TOID >> out$Env:UNITTEST_NUM.log
 
 check
 

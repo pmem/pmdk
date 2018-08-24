@@ -160,26 +160,32 @@ Write-Host "Usage: $name [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-typ
 }
 
 #
-# get_build_dir -- returns the directory to pick the test binaries from
+# get_build_dirs -- returns the directories to pick the test binaries from
 #
-# example, to get release build dir
-#	get_build_dir "nondebug"
+# example, to get release build dirs
+#	get_build_dirs "nondebug"
 #
+$DEBUG_DIR = '..\..\x64\Debug'
+$RELEASE_DIR = '..\..\x64\Release'
 
-function get_build_dir() {
+function get_build_dirs() {
     param(
         [ValidateSet("debug", "nondebug")]
         [string]$build
     )
+	$build_dirs = @()
 
-    # default build dir is Debug
-    $build_dir = "..\..\x64\Debug"
-
-    if ($build -eq "nondebug") {
-        $build_dir = "..\..\x64\Release"
+    if ($build -eq "debug") {
+		$build_dirs += $DEBUG_DIR + "\tests"
+		$build_dirs += $DEBUG_DIR + "\examples"
+		$build_dirs += $DEBUG_DIR + "\libs"
+	} else {
+        $build_dirs += $RELEASE_DIR + "\tests"
+		$build_dirs += $RELEASE_DIR + "\examples"
+		$build_dirs += $RELEASE_DIR + "\libs"
     }
 
-    return $build_dir
+    return $build_dirs
 }
 
 #
@@ -287,7 +293,22 @@ function runtest {
                 $Env:TYPE = $config.testtype
                 $Env:FS = $fs
                 $Env:BUILD = $build
-                $Env:EXE_DIR = get_build_dir $build
+                $Env:EXE_DIR = $(get_build_dirs $build)[0]
+                $Env:EXAMPLES_DIR = $(get_build_dirs $build)[1]
+
+                if ($Env:BUILD -eq 'nondebug') {
+                    if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
+                        $Env:LIBS_DIR = $(get_build_dirs $build)[2]
+                    } else {
+                        $Env:LIBS_DIR = $Env:PMDK_LIB_PATH_NONDEBUG
+                    }
+                } elseif ($Env:BUILD -eq 'debug') {
+                    if (-Not $Env:PMDK_LIB_PATH_DEBUG) {
+                        $Env:LIBS_DIR = $(get_build_dirs $build)[2]
+                    } else {
+                        $Env:LIBS_DIR = $Env:PMDK_LIB_PATH_DEBUG
+                    }
+                }
 
                 if ($dryrun -eq "1") {
                     Write-Host "(in ./$testName) TEST=$testtype FS=$fs BUILD=$build .\$runscript"
@@ -344,10 +365,10 @@ if ($Env:NON_PMEM_FS_DIR -And (-Not (isDir($Env:NON_PMEM_FS_DIR)))) {
     throw "error: NON_PMEM_FS_DIR=$Env:NON_PMEM_FS_DIR doesn't exist"
 }
 
-$PMEMDETECT="..\x64\Debug\pmemdetect.exe"
+$PMEMDETECT="..\x64\Debug\tests\pmemdetect.exe"
 
 if (-Not (Test-Path $PMEMDETECT)) {
-    $PMEMDETECT="..\x64\Release\pmemdetect.exe"
+    $PMEMDETECT="..\x64\Release\tests\pmemdetect.exe"
 }
 
 if (isDir($Env:PMEM_FS_DIR)) {

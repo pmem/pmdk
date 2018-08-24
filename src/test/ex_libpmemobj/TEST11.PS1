@@ -43,7 +43,7 @@ require_no_unicode
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_obj_pmemlog c $DIR\testfile1 `
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_obj_pmemlog c $DIR\testfile1 `
 	n t a:Hello a:World! n t w r n t v:Hello:World!:bar:foo n t w r `
 	> out$Env:UNITTEST_NUM.log 2>&1
 
