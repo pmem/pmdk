@@ -211,7 +211,7 @@ alloc_redo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 	const struct pmem_ops *p_ops = &pop->p_ops;
 	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
-	struct redo_log *redo = ptr;
+	struct ulog *redo = ptr;
 	redo->capacity = PMALLOC_REDO_LOG_EXTEND_SIZE;
 	redo->checksum = 0;
 	redo->next = 0;
@@ -236,7 +236,7 @@ alloc_redo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 static int
 alloc_redo_external_extend(void *base, uint64_t *redo)
 {
-	size_t s = SIZEOF_REDO_LOG(PMALLOC_REDO_LOG_EXTEND_SIZE);
+	size_t s = SIZEOF_ULOG(PMALLOC_REDO_LOG_EXTEND_SIZE);
 
 	return pmalloc_construct(base, redo, s, alloc_redo_constructor, NULL, 0,
 		OBJ_INTERNAL_OBJECT_MASK, 0);
@@ -254,13 +254,13 @@ pmalloc_construct_rt(PMEMobjpool *pop, void *data)
 		goto error_rt_alloc;
 
 	alloc_rt->ctx[OPERATION_INTERNAL] = operation_new(
-		(struct redo_log *)&layout->internal, ALLOC_REDO_INTERNAL_SIZE,
+		(struct ulog *)&layout->internal, ALLOC_REDO_INTERNAL_SIZE,
 		NULL, &pop->p_ops, LOG_TYPE_REDO);
 	if (alloc_rt->ctx[OPERATION_INTERNAL] == NULL)
 		goto error_internal_alloc;
 
 	alloc_rt->ctx[OPERATION_EXTERNAL] = operation_new(
-		(struct redo_log *)&layout->external, ALLOC_REDO_EXTERNAL_SIZE,
+		(struct ulog *)&layout->external, ALLOC_REDO_EXTERNAL_SIZE,
 		alloc_redo_external_extend, &pop->p_ops, LOG_TYPE_REDO);
 	if (alloc_rt->ctx[OPERATION_EXTERNAL] == NULL)
 		goto error_external_alloc;
@@ -295,10 +295,10 @@ pmalloc_recovery(PMEMobjpool *pop, void *data, unsigned length)
 	struct lane_alloc_layout *sec = data;
 	ASSERT(sizeof(*sec) <= length);
 
-	redo_log_recover((struct redo_log *)&sec->internal,
-		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
-	redo_log_recover((struct redo_log *)&sec->external,
-		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
+	ulog_recover((struct ulog *)&sec->internal, OBJ_OFF_IS_VALID_FROM_CTX,
+		&pop->p_ops);
+	ulog_recover((struct ulog *)&sec->external, OBJ_OFF_IS_VALID_FROM_CTX,
+		&pop->p_ops);
 
 	return 0;
 }
@@ -313,12 +313,12 @@ pmalloc_check(PMEMobjpool *pop, void *data, unsigned length)
 
 	struct lane_alloc_layout *sec = data;
 
-	int ret = redo_log_check((struct redo_log *)&sec->internal,
+	int ret = ulog_check((struct ulog *)&sec->internal,
 		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
 	if (ret != 0)
 		ERR("allocator lane: internal redo log check failed");
 
-	int ret2 = redo_log_check((struct redo_log *)&sec->external,
+	int ret2 = ulog_check((struct ulog *)&sec->external,
 		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
 	if (ret2 != 0)
 		ERR("allocator lane: external redo log check failed");
