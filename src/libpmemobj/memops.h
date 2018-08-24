@@ -72,6 +72,7 @@ operation_new(struct ulog *redo, size_t ulog_base_nbytes,
 
 void operation_init(struct operation_context *ctx);
 void operation_start(struct operation_context *ctx);
+void operation_resume(struct operation_context *ctx);
 
 void operation_delete(struct operation_context *ctx);
 

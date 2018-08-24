@@ -1207,21 +1207,6 @@ pmemspoil_process_sec_allocator(struct pmemspoil *psp,
 }
 
 /*
- * pmemspoil_process_vector -- process vector
- */
-static int
-pmemspoil_process_vector(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct pvector *vec)
-{
-	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD_ARRAY(vec, embedded, uint64_t, PVECTOR_INIT_SIZE);
-		PROCESS_FIELD_ARRAY(vec, arrays, uint64_t, PVECTOR_MAX_ARRAYS);
-	} PROCESS_END
-
-	return PROCESS_RET;
-}
-
-/*
  * pmemspoil_process_tx -- process lane transaction section
  */
 static int
@@ -1229,10 +1214,8 @@ pmemspoil_process_sec_tx(struct pmemspoil *psp,
 	struct pmemspoil_list *pfp, struct lane_tx_layout *sec)
 {
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_NAME("undo_set", vector,
-			&sec->undo_log[UNDO_SET], 1);
-		PROCESS_NAME("undo_set_cache", vector,
-			&sec->undo_log[UNDO_SET_CACHE], 1);
+		PROCESS_FIELD_ARRAY(sec, undo.data,
+			uint8_t, LIST_REDO_LOG_SIZE);
 	} PROCESS_END
 
 	return PROCESS_RET;

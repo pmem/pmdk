@@ -467,13 +467,6 @@ operation_init(struct operation_context *ctx)
 	ctx->ulog_curr_capacity = 0;
 	ctx->ulog_curr = NULL;
 	ctx->total_logged = 0;
-
-	/* initialize first log with metadata */
-	if (ctx->type == LOG_TYPE_UNDO) {
-		ulog_store(ctx->ulog, ctx->pshadow_ops.ulog, 0,
-			ctx->ulog_base_nbytes,
-			&ctx->next, ctx->p_ops);
-	}
 }
 
 /*
@@ -485,6 +478,23 @@ operation_start(struct operation_context *ctx)
 	operation_init(ctx);
 	ASSERTeq(ctx->in_progress, 0);
 	ctx->in_progress = 1;
+
+	/* initialize first log with metadata */
+	if (ctx->type == LOG_TYPE_UNDO) {
+		ulog_store(ctx->ulog, ctx->pshadow_ops.ulog, 0,
+			ctx->ulog_base_nbytes,
+			&ctx->next, ctx->p_ops);
+	}
+}
+
+void
+operation_resume(struct operation_context *ctx)
+{
+	operation_init(ctx);
+	ASSERTeq(ctx->in_progress, 0);
+	ctx->in_progress = 1;
+	/* assume the entire log is occupied for the purpose of data clobber */
+	ctx->total_logged = ctx->ulog_capacity;
 }
 
 /*
