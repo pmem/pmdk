@@ -648,22 +648,6 @@ out_get_lane_section_str(enum lane_section_type type)
 }
 
 /*
- * out_get_tx_state_str -- get transaction state string
- */
-const char *
-out_get_tx_state_str(uint64_t state)
-{
-	switch (state) {
-	case TX_STATE_NONE:
-		return "none";
-	case TX_STATE_COMMITTED:
-		return "committed";
-	default:
-		return "unknown";
-	}
-}
-
-/*
  * out_get_chunk_type_str -- get chunk type string
  */
 const char *
