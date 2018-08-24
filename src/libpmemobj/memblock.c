@@ -639,7 +639,7 @@ huge_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 			memory_order_relaxed);
 		pmemops_persist(&m->heap->p_ops, hdr, sizeof(*hdr));
 	} else {
-		operation_add_entry(ctx, hdr, val, REDO_OPERATION_SET);
+		operation_add_entry(ctx, hdr, val, ULOG_OPERATION_SET);
 	}
 
 	VALGRIND_DO_MAKE_MEM_NOACCESS(hdr + 1,
@@ -672,7 +672,7 @@ huge_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 		VALGRIND_SET_CLEAN(footer, sizeof(*footer));
 	} else {
 		operation_add_typed_entry(ctx,
-			footer, val, REDO_OPERATION_SET, LOG_TRANSIENT);
+			footer, val, ULOG_OPERATION_SET, LOG_TRANSIENT);
 	}
 }
 
@@ -720,10 +720,10 @@ run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	/* the bit mask is applied immediately by the add entry operations */
 	if (op == MEMBLOCK_ALLOCATED) {
 		operation_add_entry(ctx, &b.values[bpos],
-			bmask, REDO_OPERATION_OR);
+			bmask, ULOG_OPERATION_AND);
 	} else if (op == MEMBLOCK_FREE) {
 		operation_add_entry(ctx, &b.values[bpos],
-			~bmask, REDO_OPERATION_AND);
+			~bmask, ULOG_OPERATION_AND);
 	} else {
 		ASSERT(0);
 	}

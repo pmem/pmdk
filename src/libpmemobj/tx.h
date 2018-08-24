@@ -39,7 +39,6 @@
 
 #include <stdint.h>
 #include "pvector.h"
-#include "redo.h"
 
 #ifdef __cplusplus
 extern "C" {

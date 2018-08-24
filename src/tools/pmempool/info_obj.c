@@ -64,10 +64,10 @@ typedef void (*pvector_callback_fn)(struct pmem_info *pip, int v, int vnum,
  */
 static int
 lane_need_recovery_redo(PMEMobjpool *pop,
-	struct redo_log *redo, size_t nentries)
+	struct ulog *redo, size_t nentries)
 {
 	/* Needs recovery if any of redo log entries has finish flag set */
-	return redo_log_recovery_needed(redo, &pop->p_ops) != 0;
+	return ulog_recovery_needed(redo, &pop->p_ops) != 0;
 }
 
 /*
@@ -84,7 +84,7 @@ lane_need_recovery_list(struct pmem_info *pip,
 	 * object's offset or size are nonzero.
 	 */
 	return lane_need_recovery_redo(pip->obj.pop,
-		(struct redo_log *)&section->redo, LIST_REDO_LOG_SIZE);
+		(struct ulog *)&section->redo, LIST_REDO_LOG_SIZE);
 }
 
 /*
@@ -99,10 +99,10 @@ lane_need_recovery_alloc(struct pmem_info *pip,
 
 	/* there is just a redo log */
 	return lane_need_recovery_redo(pip->obj.pop,
-		(struct redo_log *)&section->external,
+		(struct ulog *)&section->external,
 		ALLOC_REDO_EXTERNAL_SIZE) ||
 		lane_need_recovery_redo(pip->obj.pop,
-			(struct redo_log *)&section->internal,
+			(struct ulog *)&section->internal,
 			ALLOC_REDO_INTERNAL_SIZE);
 }
 
@@ -215,23 +215,23 @@ struct info_obj_redo_args {
  * info_obj_redo_entry - print redo log entry info
  */
 static int
-info_obj_redo_entry(struct redo_log_entry_base *e, void *arg,
+info_obj_redo_entry(struct ulog_entry_base *e, void *arg,
 	const struct pmem_ops *p_ops)
 {
 	struct info_obj_redo_args *a = arg;
-	struct redo_log_entry_val *ev;
+	struct ulog_entry_val *ev;
 
-	switch (redo_log_entry_type(e)) {
-		case REDO_OPERATION_AND:
-		case REDO_OPERATION_OR:
-		case REDO_OPERATION_SET:
-			ev = (struct redo_log_entry_val *)e;
+	switch (ulog_entry_type(e)) {
+		case ULOG_OPERATION_AND:
+		case ULOG_OPERATION_OR:
+		case ULOG_OPERATION_SET:
+			ev = (struct ulog_entry_val *)e;
 
 			outv(a->v, "%010zu: "
 				"Offset: 0x%016jx "
 				"Value: 0x%016jx ",
 				a->i++,
-				redo_log_entry_offset(e),
+				ulog_entry_offset(e),
 				ev->value);
 			break;
 		default:
@@ -245,13 +245,13 @@ info_obj_redo_entry(struct redo_log_entry_base *e, void *arg,
  * info_obj_redo -- print redo log entries
  */
 static void
-info_obj_redo(int v, struct redo_log *redo, size_t nentries,
+info_obj_redo(int v, struct ulog *redo, size_t nentries,
 	const struct pmem_ops *ops)
 {
 	outv_field(v, "Redo log entries", "%lu", nentries);
 
 	struct info_obj_redo_args args = {v, 0};
-	redo_log_foreach_entry(redo, info_obj_redo_entry, &args, ops);
+	ulog_foreach_entry(redo, info_obj_redo_entry, &args, ops);
 }
 
 /*
@@ -263,9 +263,9 @@ info_obj_lane_alloc(int v, struct lane_section_layout *layout,
 {
 	struct lane_alloc_layout *section =
 		(struct lane_alloc_layout *)layout;
-	info_obj_redo(v, (struct redo_log *)&section->internal,
+	info_obj_redo(v, (struct ulog *)&section->internal,
 		ALLOC_REDO_INTERNAL_SIZE, p_ops);
-	info_obj_redo(v, (struct redo_log *)&section->external,
+	info_obj_redo(v, (struct ulog *)&section->external,
 		ALLOC_REDO_EXTERNAL_SIZE, p_ops);
 }
 
@@ -278,7 +278,7 @@ info_obj_lane_list(struct pmem_info *pip, int v,
 {
 	struct lane_list_layout *section = (struct lane_list_layout *)layout;
 
-	info_obj_redo(v, (struct redo_log *)&section->redo, LIST_REDO_LOG_SIZE,
+	info_obj_redo(v, (struct ulog *)&section->redo, LIST_REDO_LOG_SIZE,
 		&pip->obj.pop->p_ops);
 }
 

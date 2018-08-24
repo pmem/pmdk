@@ -39,7 +39,7 @@ vpath %.c ../../rpmem_common/
 TARGET = pmempool
 
 OBJS = pmempool.o\
-       info.o info_blk.o info_log.o info_obj.o info_cto.o redo.o\
+       info.o info_blk.o info_log.o info_obj.o info_cto.o ulog.o\
        create.o dump.o check.o rm.o convert.o convert_obj_v1_v2.o\
        synchronize.o transform.o rpmem_ssh.o rpmem_cmd.o rpmem_util.o\
        rpmem_common.o convert_obj_v3_v4.o

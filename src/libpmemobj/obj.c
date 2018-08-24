@@ -2176,7 +2176,7 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 
 	if (oidp)
 		operation_add_entry(ctx, &oidp->pool_uuid_lo, pop->uuid_lo,
-				REDO_OPERATION_SET);
+				ULOG_OPERATION_SET);
 
 	int ret = palloc_operation(&pop->heap, 0,
 			oidp != NULL ? &oidp->off : NULL, size,
@@ -2291,7 +2291,7 @@ obj_free(PMEMobjpool *pop, PMEMoid *oidp)
 
 	struct operation_context *ctx = pmalloc_operation_hold(pop);
 
-	operation_add_entry(ctx, &oidp->pool_uuid_lo, 0, REDO_OPERATION_SET);
+	operation_add_entry(ctx, &oidp->pool_uuid_lo, 0, ULOG_OPERATION_SET);
 
 	palloc_operation(&pop->heap, oidp->off, &oidp->off, 0, NULL, NULL,
 			0, 0, 0, ctx);
@@ -2762,7 +2762,7 @@ obj_alloc_root(PMEMobjpool *pop, size_t size,
 
 	struct operation_context *ctx = pmalloc_operation_hold(pop);
 
-	operation_add_entry(ctx, &pop->root_size, size, REDO_OPERATION_SET);
+	operation_add_entry(ctx, &pop->root_size, size, ULOG_OPERATION_SET);
 
 	int ret = palloc_operation(&pop->heap, pop->root_offset,
 			&pop->root_offset, size,

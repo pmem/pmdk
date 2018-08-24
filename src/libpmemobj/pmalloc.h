@@ -61,8 +61,8 @@ extern "C" {
 #define ALLOC_REDO_INTERNAL_SIZE 256
 
 struct lane_alloc_layout {
-	struct REDO_LOG(ALLOC_REDO_EXTERNAL_SIZE) external;
-	struct REDO_LOG(ALLOC_REDO_INTERNAL_SIZE) internal;
+	struct ULOG(ALLOC_REDO_EXTERNAL_SIZE) external;
+	struct ULOG(ALLOC_REDO_INTERNAL_SIZE) internal;
 };
 
 /* single operations done in the internal context of the allocator's lane */

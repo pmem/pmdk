@@ -40,7 +40,6 @@
 #include <stdint.h>
 
 #include "libpmemobj.h"
-#include "redo.h"
 
 #ifdef __cplusplus
 extern "C" {
