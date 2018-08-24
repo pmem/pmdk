@@ -360,7 +360,7 @@ function create_poolset {
             # non-zeroed file, except 4K header
             'h' { create_nonzeroed_file $asize 4K $fpath }
             # create empty directory
-            'd' { new-item $fpath -itemtype directory >> $Env:PREP_LOG_FILE }
+            'd' { new-item $fpath -force -itemtype directory >> $Env:PREP_LOG_FILE }
         }
 
         # XXX: didn't convert chmod
