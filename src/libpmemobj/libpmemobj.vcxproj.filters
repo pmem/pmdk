@@ -37,7 +37,7 @@
     <ClCompile Include="..\..\src\libpmemobj\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmemobj\redo.c">
+    <ClCompile Include="..\..\src\libpmemobj\ulog.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\libpmemobj\sync.c">

@@ -45,17 +45,17 @@ static PMEMobjpool *pop;
 
 FUNC_MOCK(operation_add_typed_entry, int, struct operation_context *ctx,
 	void *ptr, uint64_t value,
-	enum redo_operation_type type, enum operation_log_type en_type)
+	enum ulog_operation_type type, enum operation_log_type en_type)
 	FUNC_MOCK_RUN_DEFAULT {
 		uint64_t *pval = ptr;
 		switch (type) {
-			case REDO_OPERATION_SET:
+			case ULOG_OPERATION_SET:
 				*pval = value;
 				break;
-			case REDO_OPERATION_AND:
+			case ULOG_OPERATION_AND:
 				*pval &= value;
 				break;
-			case REDO_OPERATION_OR:
+			case ULOG_OPERATION_OR:
 				*pval |= value;
 				break;
 			default:
@@ -66,7 +66,7 @@ FUNC_MOCK(operation_add_typed_entry, int, struct operation_context *ctx,
 FUNC_MOCK_END
 
 FUNC_MOCK(operation_add_entry, int, struct operation_context *ctx, void *ptr,
-	uint64_t value, enum redo_operation_type type)
+	uint64_t value, enum ulog_operation_type type)
 	FUNC_MOCK_RUN_DEFAULT {
 		/* just call the mock above - the entry type doesn't matter */
 		return operation_add_typed_entry(ctx, ptr, value, type,

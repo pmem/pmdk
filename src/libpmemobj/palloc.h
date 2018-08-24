@@ -42,7 +42,7 @@
 
 #include "libpmemobj.h"
 #include "memops.h"
-#include "redo.h"
+#include "ulog.h"
 #include "valgrind_internal.h"
 #include "stats.h"
 

@@ -42,7 +42,7 @@
 
 #include "vec.h"
 #include "pmemops.h"
-#include "redo.h"
+#include "ulog.h"
 #include "lane.h"
 
 #ifdef __cplusplus
@@ -66,8 +66,8 @@ enum log_type {
 struct operation_context;
 
 struct operation_context *
-operation_new(struct redo_log *redo, size_t redo_base_nbytes,
-	redo_extend_fn extend, const struct pmem_ops *p_ops,
+operation_new(struct ulog *redo, size_t ulog_base_nbytes,
+	ulog_extend_fn extend, const struct pmem_ops *p_ops,
 	enum log_type type);
 
 void operation_init(struct operation_context *ctx);
@@ -76,13 +76,13 @@ void operation_start(struct operation_context *ctx);
 void operation_delete(struct operation_context *ctx);
 
 int operation_add_buffer(struct operation_context *ctx,
-	void *dest, void *src, size_t size, enum redo_operation_type type);
+	void *dest, void *src, size_t size, enum ulog_operation_type type);
 
 int operation_add_entry(struct operation_context *ctx,
-	void *ptr, uint64_t value, enum redo_operation_type type);
+	void *ptr, uint64_t value, enum ulog_operation_type type);
 int operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
-	enum redo_operation_type type, enum operation_log_type log_type);
+	enum ulog_operation_type type, enum operation_log_type log_type);
 
 int operation_reserve(struct operation_context *ctx, size_t new_capacity);
 void operation_process(struct operation_context *ctx);

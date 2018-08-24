@@ -42,12 +42,12 @@ POBJ_LAYOUT_END(heap_interrupt);
 
 
 static int exit_on_process = 0;
-FUNC_MOCK(operation_process, void, struct operation_context *ctx)
+FUNC_MOCK(operation_finish, void, struct operation_context *ctx)
 	FUNC_MOCK_RUN_DEFAULT {
 		if (exit_on_process)
 			exit(0);
 		else
-			_FUNC_REAL(operation_process)(ctx);
+			_FUNC_REAL(operation_finish)(ctx);
 	}
 FUNC_MOCK_END
 

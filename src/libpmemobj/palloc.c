@@ -412,7 +412,7 @@ palloc_mem_action_exec(struct palloc_heap *heap,
 	const struct pobj_action_internal *act,
 	struct operation_context *ctx)
 {
-	operation_add_entry(ctx, act->ptr, act->value, REDO_OPERATION_SET);
+	operation_add_entry(ctx, act->ptr, act->value, ULOG_OPERATION_SET);
 }
 
 static struct {
@@ -715,7 +715,7 @@ palloc_operation(struct palloc_heap *heap,
 	 */
 	if (dest_off) {
 		operation_add_entry(ctx, dest_off,
-			alloc ? alloc->offset : 0, REDO_OPERATION_SET);
+			alloc ? alloc->offset : 0, ULOG_OPERATION_SET);
 	}
 
 	/* and now actually perform the requested operation! */

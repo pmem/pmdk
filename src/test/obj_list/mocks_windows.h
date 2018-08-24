@@ -68,8 +68,8 @@ extern "C" {
 #endif
 
 #ifndef WRAP_REAL_REDO
-#define redo_log_store __wrap_redo_log_store
-#define redo_log_process __wrap_redo_log_process
+#define ulog_store __wrap_ulog_store
+#define ulog_process __wrap_ulog_process
 #endif
 
 #ifndef WRAP_REAL_LANE

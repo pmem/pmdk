@@ -49,7 +49,6 @@
 #include "out.h"
 #include "pmalloc.h"
 #include "pvector.h"
-#include "redo.h"
 #include "sync.h"
 
 struct prog_args {

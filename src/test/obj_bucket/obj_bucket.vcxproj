@@ -45,7 +45,7 @@
     <ClCompile Include="..\..\libpmemobj\pmalloc.c" />
     <ClCompile Include="..\..\libpmemobj\pvector.c" />
     <ClCompile Include="..\..\libpmemobj\recycler.c" />
-    <ClCompile Include="..\..\libpmemobj\redo.c" />
+    <ClCompile Include="..\..\libpmemobj\ulog.c" />
     <ClCompile Include="..\..\libpmemobj\ravl.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NDEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>

@@ -22,7 +22,7 @@
     <ClCompile Include="..\..\libpmemobj\memops.c" />
     <ClCompile Include="..\..\libpmemobj\ravl.c" />
     <ClCompile Include="..\..\libpmemobj\recycler.c" />
-    <ClCompile Include="..\..\libpmemobj\redo.c" />
+    <ClCompile Include="..\..\libpmemobj\ulog.c" />
     <ClCompile Include="..\..\libpmemobj\stats.c" />
     <ClCompile Include="obj_heap.c" />
   </ItemGroup>

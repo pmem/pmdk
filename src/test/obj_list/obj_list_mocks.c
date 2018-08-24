@@ -236,7 +236,7 @@ FUNC_MOCK_RUN_DEFAULT
 
 	struct lane_list_layout *layout =
 		(struct lane_list_layout *)Lane_section.layout;
-	Lane_section.runtime = operation_new((struct redo_log *)&layout->redo,
+	Lane_section.runtime = operation_new((struct ulog *)&layout->redo,
 		LIST_REDO_LOG_SIZE, NULL, p_ops, LOG_TYPE_REDO);
 
 	return Pop;
@@ -355,16 +355,16 @@ FUNC_MOCK(lane_section_cleanup, int, PMEMobjpool *pop)
 FUNC_MOCK_END
 
 /*
- * redo_log_store_last -- redo_log_store_last mock
+ * ulog_store_last -- ulog_store_last mock
  */
-FUNC_MOCK(redo_log_store, void,
-	struct redo_log *dest,
-	struct redo_log *src, size_t nbytes, size_t redo_base_nbytes,
-	struct redo_next *next, const struct pmem_ops *p_ops)
+FUNC_MOCK(ulog_store, void,
+	struct ulog *dest,
+	struct ulog *src, size_t nbytes, size_t redo_base_nbytes,
+	struct ulog_next *next, const struct pmem_ops *p_ops)
 	FUNC_MOCK_RUN_DEFAULT {
 		switch (Redo_fail) {
 		case FAIL_AFTER_FINISH:
-			_FUNC_REAL(redo_log_store)(dest, src,
+			_FUNC_REAL(ulog_store)(dest, src,
 					nbytes, redo_base_nbytes,
 					next, p_ops);
 			DONEW(NULL);
@@ -373,7 +373,7 @@ FUNC_MOCK(redo_log_store, void,
 			DONEW(NULL);
 			break;
 		default:
-			_FUNC_REAL(redo_log_store)(dest, src,
+			_FUNC_REAL(ulog_store)(dest, src,
 					nbytes, redo_base_nbytes,
 					next, p_ops);
 			break;
@@ -383,12 +383,12 @@ FUNC_MOCK(redo_log_store, void,
 FUNC_MOCK_END
 
 /*
- * redo_log_process -- redo_log_process mock
+ * ulog_process -- ulog_process mock
  */
-FUNC_MOCK(redo_log_process, void, struct redo_log *redo,
-	redo_check_offset_fn check, const struct pmem_ops *p_ops)
+FUNC_MOCK(ulog_process, void, struct ulog *ulog,
+	ulog_check_offset_fn check, const struct pmem_ops *p_ops)
 		FUNC_MOCK_RUN_DEFAULT {
-			_FUNC_REAL(redo_log_process)(redo, check, p_ops);
+			_FUNC_REAL(ulog_process)(ulog, check, p_ops);
 			if (Redo_fail == FAIL_AFTER_PROCESS) {
 				DONEW(NULL);
 			}

@@ -57,10 +57,10 @@ SOURCE +=\
 	pvector.c\
 	ravl.c\
 	recycler.c\
-	redo.c\
 	sync.c\
 	tx.c\
-	stats.c
+	stats.c\
+	ulog.c
 
 include ../Makefile.inc
 

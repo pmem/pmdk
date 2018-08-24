@@ -23,7 +23,7 @@
     <ClCompile Include="..\..\src\libpmemobj\palloc.c" />
     <ClCompile Include="..\..\src\libpmemobj\pmalloc.c" />
     <ClCompile Include="..\..\src\libpmemobj\ravl.c" />
-    <ClCompile Include="..\..\src\libpmemobj\redo.c" />
+    <ClCompile Include="..\..\src\libpmemobj\ulog.c" />
     <ClCompile Include="..\..\src\libpmemobj\sync.c" />
     <ClCompile Include="..\..\src\libpmemobj\tx.c" />
     <ClCompile Include="..\common\badblock.c" />

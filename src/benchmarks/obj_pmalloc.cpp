@@ -50,7 +50,6 @@
 #include "os.h"
 #include "pmalloc.h"
 #include "poolset_util.hpp"
-#include "redo.h"
 #include "valgrind_internal.h"
 
 /*
