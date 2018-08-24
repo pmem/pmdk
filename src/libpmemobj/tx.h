@@ -39,7 +39,6 @@
 
 #include <stdint.h>
 #include "pvector.h"
-#include "redo.h"
 
 #define TX_DEFAULT_RANGE_CACHE_SIZE (1 << 15)
 #define TX_DEFAULT_RANGE_CACHE_THRESHOLD (1 << 12)

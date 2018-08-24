@@ -86,7 +86,7 @@
     <ClCompile Include="..\..\libpmemobj\recycler.c">
       <Filter>libs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\redo.c">
+    <ClCompile Include="..\..\libpmemobj\ulog.c">
       <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\stats.c">

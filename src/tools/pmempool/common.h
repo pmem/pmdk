@@ -46,7 +46,7 @@
 #include "libpmemcto.h"
 #include "cto.h"
 #include "lane.h"
-#include "redo.h"
+#include "ulog.h"
 #include "memops.h"
 #include "pmalloc.h"
 #include "list.h"

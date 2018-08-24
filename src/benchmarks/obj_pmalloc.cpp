@@ -54,7 +54,6 @@ extern "C" {
 #endif
 #include "memops.h"
 #include "pmalloc.h"
-#include "redo.h"
 #ifdef __cplusplus
 }
 #endif

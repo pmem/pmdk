@@ -43,7 +43,6 @@
 #include "lane.h"
 #include "pool_hdr.h"
 #include "pmalloc.h"
-#include "redo.h"
 #include "ctl.h"
 #include "sync.h"
 #include "stats.h"
