@@ -63,9 +63,6 @@
     <ClCompile Include="..\..\libpmemobj\pmalloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\pvector.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
