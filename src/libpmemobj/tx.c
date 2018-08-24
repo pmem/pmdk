@@ -423,7 +423,7 @@ static struct operation_context *
 tx_create_undo_context(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	return operation_new((struct ulog *)&layout->undo, TX_UNDO_LOG_SIZE,
-		tx_undo_extend, &pop->p_ops, LOG_TYPE_UNDO);	
+		tx_undo_extend, &pop->p_ops, LOG_TYPE_UNDO);
 }
 
 /*
@@ -1704,7 +1704,8 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 	struct lane_tx_runtime *lane =
 		(struct lane_tx_runtime *)tx->section->runtime;
 
-	if (operation_reserve(tx->redo, VEC_SIZE(&lane->actions) + actvcnt) != 0)
+	if (operation_reserve(tx->redo,
+	    VEC_SIZE(&lane->actions) + actvcnt) != 0)
 		return -1;
 
 	for (size_t i = 0; i < actvcnt; ++i) {
