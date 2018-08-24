@@ -69,7 +69,8 @@ def main():
                         "json config file")
     engines_keys = list(reorderengines.engines.keys())
     parser.add_argument("-r", "--default_engine",
-                        help="set default reorder engine, default=NoReorderNoChecker",
+                        help="set default reorder engine " +
+                        "default=NoReorderNoChecker",
                         choices=engines_keys,
                         default=engines_keys[0])
     args = parser.parse_args()

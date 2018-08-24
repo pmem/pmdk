@@ -89,7 +89,7 @@ class OperationFactory:
 
         def check_pair_consistency(stack, marker):
             """
-            Checks if markers are not crossed.
+            Checks if markers do not cross.
             You can pop from stack only if end
             marker match previous one.
 
@@ -115,7 +115,6 @@ class OperationFactory:
                 raise NotSupportedOperationException(
                         "Cannot cross markers: {0}, {1}"
                         .format(top, marker))
-
 
         """
         Creates the object based on the pre-formatted string.
@@ -144,8 +143,9 @@ class OperationFactory:
             # if id_ is section BEGIN
             if id_.endswith(OperationFactory.__suffix[0]):
                 # BEGIN defined by user
-                if id_ in markers:
-                    engine = markers[id_]
+                marker_name = id_.partition('.')[0]
+                if marker_name in markers:
+                    engine = markers[marker_name]
                     try:
                         mem_ops = getattr(sys.modules[mem_mod], engine)
                     except AttributeError:
