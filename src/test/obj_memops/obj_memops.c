@@ -52,8 +52,8 @@ enum fail_types {
 };
 
 struct test_object {
-	struct REDO_LOG(TEST_ENTRIES) redo;
-	struct REDO_LOG(TEST_ENTRIES) undo;
+	struct ULOG(TEST_ENTRIES) redo;
+	struct ULOG(TEST_ENTRIES) undo;
 	uint64_t values[TEST_VALUES];
 };
 
@@ -69,16 +69,16 @@ redo_log_constructor(void *ctx, void *ptr, size_t usable_size, void *arg)
 	PMEMobjpool *pop = ctx;
 	const struct pmem_ops *p_ops = &pop->p_ops;
 
-	struct redo_log *redo = ptr;
-	redo->capacity = TEST_ENTRIES;
-	redo->checksum = 0;
-	redo->next = 0;
-	memset(redo->unused, 0, sizeof(redo->unused));
+	struct ulog *ulog = ptr;
+	ulog->capacity = TEST_ENTRIES;
+	ulog->checksum = 0;
+	ulog->next = 0;
+	memset(ulog->unused, 0, sizeof(ulog->unused));
 
-	pmemops_flush(p_ops, redo, sizeof(*redo));
+	pmemops_flush(p_ops, ulog, sizeof(*ulog));
 
-	pmemops_memset(p_ops, redo->data, 0,
-		usable_size - sizeof(*redo), 0);
+	pmemops_memset(p_ops, ulog->data, 0,
+		usable_size - sizeof(*ulog), 0);
 
 	return 0;
 }
@@ -86,7 +86,7 @@ redo_log_constructor(void *ctx, void *ptr, size_t usable_size, void *arg)
 static int
 pmalloc_redo_extend(void *base, uint64_t *redo)
 {
-	size_t s = SIZEOF_REDO_LOG(TEST_ENTRIES);
+	size_t s = SIZEOF_ULOG(TEST_ENTRIES);
 
 	return pmalloc_construct(base, redo, s, redo_log_constructor, NULL, 0,
 		OBJ_INTERNAL_OBJECT_MASK, 0);
@@ -102,7 +102,7 @@ test_set_entries(PMEMobjpool *pop,
 	for (size_t i = 0; i < nentries; ++i) {
 		operation_add_typed_entry(ctx,
 			&object->values[i], i + 1,
-			REDO_OPERATION_SET, LOG_PERSISTENT);
+			ULOG_OPERATION_SET, LOG_PERSISTENT);
 	}
 
 	operation_reserve(ctx, nentries * 16);
@@ -125,7 +125,7 @@ test_set_entries(PMEMobjpool *pop,
 				UT_ASSERT(0);
 		}
 
-		redo_log_recover((struct redo_log *)&object->redo, &pop->p_ops);
+		ulog_recover((struct ulog *)&object->redo, &pop->p_ops);
 
 		for (size_t i = 0; i < nentries; ++i)
 			UT_ASSERTeq(object->values[i], 0);
@@ -144,19 +144,19 @@ test_merge_op(struct operation_context *ctx, struct test_object *object)
 
 	operation_add_typed_entry(ctx,
 		&object->values[0], 0b10,
-		REDO_OPERATION_OR, LOG_PERSISTENT);
+		ULOG_OPERATION_OR, LOG_PERSISTENT);
 
 	operation_add_typed_entry(ctx,
 		&object->values[0], 0b01,
-		REDO_OPERATION_OR, LOG_PERSISTENT);
+		ULOG_OPERATION_OR, LOG_PERSISTENT);
 
 	operation_add_typed_entry(ctx,
 		&object->values[0], 0b00,
-		REDO_OPERATION_AND, LOG_PERSISTENT);
+		ULOG_OPERATION_AND, LOG_PERSISTENT);
 
 	operation_add_typed_entry(ctx,
 		&object->values[0], 0b01,
-		REDO_OPERATION_OR, LOG_PERSISTENT);
+		ULOG_OPERATION_OR, LOG_PERSISTENT);
 
 	operation_finish(ctx);
 
@@ -167,7 +167,7 @@ static void
 test_redo(PMEMobjpool *pop, struct test_object *object)
 {
 	struct operation_context *ctx = operation_new(
-		(struct redo_log *)&object->redo, TEST_ENTRIES,
+		(struct ulog *)&object->redo, TEST_ENTRIES,
 		pmalloc_redo_extend, &pop->p_ops, LOG_TYPE_REDO);
 
 	test_set_entries(pop, ctx, object, 10, FAIL_NONE);
@@ -188,7 +188,7 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 
 	/* verify that rebuilding redo_next works */
 	ctx = operation_new(
-		(struct redo_log *)&object->redo, TEST_ENTRIES,
+		(struct ulog *)&object->redo, TEST_ENTRIES,
 		NULL, &pop->p_ops, LOG_TYPE_REDO);
 
 	test_set_entries(pop, ctx, object, 100, 0);
@@ -214,7 +214,7 @@ test_undo_small_single_copy(struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &object->values, sizeof(*object->values) * 2,
-		REDO_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY);
 
 	object->values[0] = 2;
 	object->values[1] = 1;
@@ -251,7 +251,7 @@ test_undo_small_single_set(struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &c, sizeof(*object->values) * 2,
-		REDO_OPERATION_BUF_SET);
+		ULOG_OPERATION_BUF_SET);
 
 	operation_process(ctx);
 
@@ -272,7 +272,7 @@ test_undo_large_single_copy(struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &object->values, sizeof(object->values),
-		REDO_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY);
 
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)
 		object->values[i] = i + 2;
@@ -287,7 +287,7 @@ test_undo_large_single_copy(struct operation_context *ctx,
 
 static void
 test_undo_checksum_mismatch(struct operation_context *ctx,
-	struct test_object *object, struct redo_log *log)
+	struct test_object *object, struct ulog *log)
 {
 	operation_start(ctx);
 
@@ -296,7 +296,7 @@ test_undo_checksum_mismatch(struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &object->values, sizeof(*object->values) * 20,
-		REDO_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY);
 
 	for (uint64_t i = 0; i < 20; ++i)
 		object->values[i] = i + 2;
@@ -323,7 +323,7 @@ test_undo_large_copy(struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &object->values, sizeof(object->values),
-		REDO_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY);
 
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)
 		object->values[i] = i + 2;
@@ -343,7 +343,7 @@ test_undo_large_copy(struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &object->values, sizeof(*object->values) * 26,
-		REDO_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY);
 
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)
 		object->values[i] = i + 4;
@@ -363,7 +363,7 @@ static void
 test_undo(PMEMobjpool *pop, struct test_object *object)
 {
 	struct operation_context *ctx = operation_new(
-		(struct redo_log *)&object->undo, TEST_ENTRIES,
+		(struct ulog *)&object->undo, TEST_ENTRIES,
 		pmalloc_redo_extend, &pop->p_ops, LOG_TYPE_UNDO);
 
 	test_undo_small_single_copy(ctx, object);
@@ -371,7 +371,7 @@ test_undo(PMEMobjpool *pop, struct test_object *object)
 	test_undo_large_single_copy(ctx, object);
 	test_undo_large_copy(ctx, object);
 	test_undo_checksum_mismatch(ctx, object,
-		(struct redo_log *)&object->undo);
+		(struct ulog *)&object->undo);
 
 	operation_delete(ctx);
 }

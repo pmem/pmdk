@@ -44,7 +44,7 @@
 #include "libpmemobj.h"
 #include "lane.h"
 #include "pmalloc.h"
-#include "redo.h"
+#include "ulog.h"
 
 #define LIST_REDO_LOG_SIZE 960 /* sizeof(lane) - sizeof(struct redo_log) */
 
@@ -55,7 +55,7 @@
  * redo       - redo log
  */
 struct lane_list_layout {
-	struct REDO_LOG(LIST_REDO_LOG_SIZE) redo;
+	struct ULOG(LIST_REDO_LOG_SIZE) redo;
 };
 
 struct list_entry {
