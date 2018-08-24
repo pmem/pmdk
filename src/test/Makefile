@@ -118,7 +118,6 @@ OBJ_TESTS = \
 	obj_pool\
 	obj_pool_lock\
 	obj_pool_lookup\
-	obj_pvector\
 	obj_ravl\
 	obj_recovery\
 	obj_recreate\

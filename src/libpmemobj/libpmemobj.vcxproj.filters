@@ -127,9 +127,6 @@
     <ClCompile Include="memblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pvector.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="recycler.c">
       <Filter>Source Files</Filter>
     </ClCompile>
