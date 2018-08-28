@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -32,30 +31,13 @@
 #
 
 #
-# src/test/pmem_reorder_stack/TEST0 -- unit test for pmreorder
-# engines stack functionality
+# src/test/pmreorder_stack/Makefile -- build pmreorder_stack test
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = pmreorder_stack
+OBJS = pmreorder_stack.o
 
-require_fs_type pmem non-pmem
-require_build_type debug
-require_test_type medium
-require_pmreorder
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-setup
-
-# create holey file
-truncate -s 4M $DIR/testfile
-
-BIN="./pmem_reorder_stack$EXESUFFIX"
-PMEMCHECK_CMD="$BIN w $DIR/testfile"
-PMREORDER_CMD="$BIN c"
-
-pmreorder_create_store_log $DIR/testfile "$PMEMCHECK_CMD"
-pmreorder_expect_failure NoReorderNoCheck pmreorder0.conf "$PMREORDER_CMD"
-
-check
-
-pass
+include ../Makefile.inc

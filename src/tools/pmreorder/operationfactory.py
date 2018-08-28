@@ -30,7 +30,6 @@
 
 import memoryoperations
 from reorderexceptions import NotSupportedOperationException
-import sys
 
 
 class OperationFactory:
@@ -131,10 +130,9 @@ class OperationFactory:
         """
         id_ = string_operation.split(";")[0]
         id_case_sensitive = id_.lower().capitalize()
-        mem_mod = 'memoryoperations'
 
         # checks if id_ is one of memoryoperation classes
-        mem_ops = getattr(sys.modules[mem_mod], id_case_sensitive, None)
+        mem_ops = getattr(memoryoperations, id_case_sensitive, None)
 
         # if class is not one of memoryoperations
         # it means it can be user defined marker
@@ -147,7 +145,7 @@ class OperationFactory:
                 if marker_name in markers:
                     engine = markers[marker_name]
                     try:
-                        mem_ops = getattr(sys.modules[mem_mod], engine)
+                        mem_ops = getattr(memoryoperations, engine)
                     except AttributeError:
                         raise NotSupportedOperationException(
                                 "Not supported reorder engine: {}"
