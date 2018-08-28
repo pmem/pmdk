@@ -1,12 +1,12 @@
-This is src/test/pmem_reorder_stack/README.
+This is src/test/pmreorder_stack/README.
 
 This directory contains a unit test for pmemreorder script.
 
 SYNOPSIS:
-pmem_reorder_stack w|c file
+pmreorder_stack w|c file
 
 DESCRIPTION:
-pmem_reorder_stack is the unit test for verifying the functionality of
+pmreorder_stack is the unit test for verifying the functionality of
 pmreorder stack.
 
 OPTIONS:
@@ -17,8 +17,8 @@ OPTIONS:
 The pool contains 12 int fields. Pool is consistent only if
 field 'e' is equal to 1 and field 'f' is equal to 0. To test
 pmreorder stack with this consistency checker we are using 3
-types of engines: NoReorderNoCheck, ReorderRevertAccumulative,
-ReorderAccumulative and sets 3 barriers, after each 4 fields.
+types of engines: NoReorderNoCheck, ReorderReverseAccumulative,
+ReorderAccumulative and set 3 barriers, after each 4 fields.
 Here's the stack flow:
 
 push(NoReorderNoCheck) # the default one
@@ -33,7 +33,7 @@ check:  d,
 result: ALL INCONSISTENT
 ]
 
-pop(ReorderRevertAccumulative) # engine should back to previous one
+pop(ReorderReverseAccumulative) # engine should back to previous one
 [
 check:  e, # e=1 and f=0
 	e, f

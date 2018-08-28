@@ -40,7 +40,7 @@ class MarkerParser:
     """
     def marker_file_parser(self, macros):
         """
-        Parse markers passed by cli.
+        Parse markers passed by file.
         They should be in json format:
         { "MARKER_NAME"="ENGINE_TYPE" } and separated by commas.
         """
