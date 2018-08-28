@@ -28,7 +28,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import memoryoperations
+import memoryoperations as memops
 import reorderengines
 from reorderexceptions import InconsistentFileException
 from reorderexceptions import NotSupportedOperationException
@@ -141,7 +141,7 @@ class CollectingState(State):
         :return: The next state.
         :rtype: subclass of :class:`State`
         """
-        if isinstance(in_op, memoryoperations.Fence) and \
+        if isinstance(in_op, memops.Fence) and \
                 self._inner_state is "flush":
             return ReplayingState(self._ops_list, self._context)
         else:
@@ -164,13 +164,13 @@ class CollectingState(State):
         :return: always True
         """
         self.move_inner_state(in_op)
-        if isinstance(in_op, memoryoperations.ReorderBase):
+        if isinstance(in_op, memops.ReorderBase):
             self.substitute_reorder(in_op)
-        elif isinstance(in_op, memoryoperations.FlushBase):
+        elif isinstance(in_op, memops.FlushBase):
             self.flush_stores(in_op)
-        elif isinstance(in_op, memoryoperations.Store):
+        elif isinstance(in_op, memops.Store):
             self._ops_list.append(in_op)
-        elif isinstance(in_op, memoryoperations.Register_file):
+        elif isinstance(in_op, memops.Register_file):
             self.reg_file(in_op)
 
         return True
@@ -183,38 +183,37 @@ class CollectingState(State):
         :type order_ops: subclass of :class:`memoryoperations.ReorderBase`
         :return: None
         """
-        if isinstance(order_ops, memoryoperations.ReorderFull):
+        if isinstance(order_ops, memops.ReorderFull):
             self._context.reorder_engine = \
                 reorderengines.FullReorderEngine()
             self._context.test_on_barrier = \
                 self._context.reorder_engine.test_on_barrier
-        elif isinstance(order_ops, memoryoperations.ReorderPartial):
+        elif isinstance(order_ops, memops.ReorderPartial):
             # TODO add macro in valgrind or
             # parameter inside the tool to support parameters?
             self._context.reorder_engine = \
                  reorderengines.RandomPartialReorderEngine(3)
             self._context.test_on_barrier = \
                 self._context.reorder_engine.test_on_barrier
-        elif isinstance(order_ops, memoryoperations.ReorderAccumulative):
+        elif isinstance(order_ops, memops.ReorderAccumulative):
             self._context.reorder_engine = \
                 reorderengines.AccumulativeReorderEngine()
             self._context.test_on_barrier = \
                 self._context.reorder_engine.test_on_barrier
-        elif isinstance(order_ops,
-                        memoryoperations.ReorderReverseAccumulative):
-                            self._context.reorder_engine = \
-                              reorderengines.AccumulativeReverseReorderEngine()
-                            self._context.test_on_barrier = \
-                                self._context.reorder_engine.test_on_barrier
-        elif isinstance(order_ops, memoryoperations.NoReorderDoCheck):
+        elif isinstance(order_ops, memops.ReorderReverseAccumulative):
+            self._context.reorder_engine = \
+                reorderengines.AccumulativeReverseReorderEngine()
+            self._context.test_on_barrier = \
+                self._context.reorder_engine.test_on_barrier
+        elif isinstance(order_ops, memops.NoReorderDoCheck):
             self._context.reorder_engine = reorderengines.NoReorderEngine()
             self._context.test_on_barrier = \
                 self._context.reorder_engine.test_on_barrier
-        elif isinstance(order_ops, memoryoperations.NoReorderNoCheck):
+        elif isinstance(order_ops, memops.NoReorderNoCheck):
             self._context.reorder_engine = reorderengines.NoCheckerEngine()
             self._context.test_on_barrier = \
                 self._context.reorder_engine.test_on_barrier
-        elif isinstance(order_ops, memoryoperations.ReorderDefault):
+        elif isinstance(order_ops, memops.ReorderDefault):
             self._context.reorder_engine = self._context.default_engine
             self._context.test_on_barrier = self._context.default_barrier
         else:
@@ -260,13 +259,13 @@ class CollectingState(State):
         :type in_op: subclass of :class:`memoryoperations.BaseOperation`
         :return: None
         """
-        if isinstance(in_op, memoryoperations.Store) and \
+        if isinstance(in_op, memops.Store) and \
                 self._inner_state is "init":
             self._inner_state = "dirty"
-        elif isinstance(in_op, memoryoperations.FlushBase) and \
+        elif isinstance(in_op, memops.FlushBase) and \
                 self._inner_state is "dirty":
             self._inner_state = "flush"
-        elif isinstance(in_op, memoryoperations.Fence) and \
+        elif isinstance(in_op, memops.Fence) and \
                 self._inner_state is "flush":
             self._inner_state = "fence"
 

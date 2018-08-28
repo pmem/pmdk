@@ -1,16 +1,16 @@
-This is src/test/pmem_reorder_simple/README.
+This is src/test/pmreorder_simple/README.
 
 This directory contains a unit test for pmemreorder script.
 
 SYNOPSIS:
-pmem_reorder_simple g|b|c file
+pmreorder_simple g|b|c file
 
 DESCRIPTION:
-pmem_reorder_simple is the unit test for verifying the functionality of
+pmreorder_simple is the unit test for verifying the functionality of
 pmreorder script.
 
 OPTIONS:
-	file is '$DIR/testfile1' for all tests.
+	file is '$DIR/testfile' for all tests.
 	b: write data to the pool in an inconsistent way
 	g: write data to the pool in a consistent way
 	c: check pool consistency
