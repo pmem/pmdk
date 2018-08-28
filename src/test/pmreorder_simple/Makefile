@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -32,34 +31,14 @@
 #
 
 #
-# src/test/pmem_reorder_simple/TEST4 -- unit test for the reordering script
-# Tests positive case partial reorder engine
-# for most critical mark section and full engine for other
-# parts of code.
+# src/test/pmreorder_simple/Makefile -- build pmreorder_simple
+# unit test
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = pmreorder_simple
+OBJS = pmreorder_simple.o
 
-# it doesn't make sense to run in local directory
-require_fs_type pmem non-pmem
-require_build_type debug
-require_test_type medium
-require_pmemcheck_version_ge 1 0
-require_pmreorder
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-setup
-
-# create holey file
-truncate -s 4M $DIR/testfile
-
-BIN="./pmem_reorder_simple$EXESUFFIX"
-PMEMCHECK_CMD="$BIN g $DIR/testfile"
-PMREORDER_CMD="$BIN c"
-
-pmreorder_create_store_log $DIR/testfile "$PMEMCHECK_CMD"
-pmreorder_expect_success ReorderFull pmreorder4.conf "$PMREORDER_CMD"
-
-check
-
-pass
+include ../Makefile.inc

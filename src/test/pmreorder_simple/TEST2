@@ -32,10 +32,10 @@
 #
 
 #
-# src/test/pmem_reorder_simple/TEST1 -- unit test for the reordering script
-# Tests positive case using full reorder engine for most critical section
-# and no_reorder_no_checker engine for other parts of code.
-# This test also checks cli markers parser.
+# src/test/pmreorder_simple/TEST2 -- unit test for the reordering script
+# Tests negative case using no_reorder_do_check reorder engine
+# for most critical mark section and no_reorder_no_checker engine for other
+# parts of code.
 #
 
 # standard unit test setup
@@ -53,12 +53,12 @@ setup
 # create holey file
 truncate -s 4M $DIR/testfile
 
-BIN="./pmem_reorder_simple$EXESUFFIX"
-PMEMCHECK_CMD="$BIN g $DIR/testfile"
+BIN="./pmreorder_simple$EXESUFFIX"
+PMEMCHECK_CMD="$BIN b $DIR/testfile"
 PMREORDER_CMD="$BIN c"
 
 pmreorder_create_store_log $DIR/testfile "$PMEMCHECK_CMD"
-pmreorder_expect_success NoReorderDoCheck "PMREORDER_MARKER_CHANGE=ReorderFull" "$PMREORDER_CMD"
+pmreorder_expect_success NoReorderNoCheck pmreorder2.conf "$PMREORDER_CMD"
 
 check
 

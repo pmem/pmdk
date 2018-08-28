@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -32,33 +31,13 @@
 #
 
 #
-# src/test/pmem_reorder_simple/TEST3 -- unit test for the reordering script
-# Tests negative case using accumulative reorder engine
-# for most critical marked section and not marked parts of code.
+# src/test/pmreorder_stack/Makefile -- build pmreorder_stack test
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = pmreorder_stack
+OBJS = pmreorder_stack.o
 
-# it doesn't make sense to run in local directory
-require_fs_type pmem non-pmem
-require_build_type debug
-require_test_type medium
-require_pmemcheck_version_ge 1 0
-require_pmreorder
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-setup
-
-# create holey file
-truncate -s 4M $DIR/testfile
-
-BIN="./pmem_reorder_simple$EXESUFFIX"
-PMEMCHECK_CMD="$BIN b $DIR/testfile"
-PMREORDER_CMD="$BIN c"
-
-pmreorder_create_store_log $DIR/testfile "$PMEMCHECK_CMD"
-pmreorder_expect_failure ReorderFull pmreorder3.conf  "$PMREORDER_CMD"
-
-check
-
-pass
+include ../Makefile.inc

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -31,14 +32,35 @@
 #
 
 #
-# src/test/pmem_reorder_simple/Makefile -- build pmem_reorder_simple
-# unit test
+# src/test/pmreorder_simple/TEST0 -- unit test for the reordering script
+# Tests negative case using full reorder engine for most critical section
+# and no_reorder_no_checker engine for other parts of code.
+# This test also checks behavior for markers unused in program
+# but defined by user in the config file.
 #
 
-TARGET = pmem_reorder_simple
-OBJS = pmem_reorder_simple.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBPMEM=y
-LIBPMEMCOMMON=y
+# it doesn't make sense to run in local directory
+require_fs_type pmem non-pmem
+require_build_type debug
+require_test_type medium
+require_pmemcheck_version_ge 1 0
+require_pmreorder
 
-include ../Makefile.inc
+setup
+
+# create holey file
+truncate -s 4M $DIR/testfile
+
+BIN="./pmreorder_simple$EXESUFFIX"
+PMEMCHECK_CMD="$BIN b $DIR/testfile"
+PMREORDER_CMD="$BIN c"
+
+pmreorder_create_store_log $DIR/testfile "$PMEMCHECK_CMD"
+pmreorder_expect_failure NoReorderNoCheck pmreorder0.conf "$PMREORDER_CMD"
+
+check
+
+pass

@@ -31,9 +31,9 @@
  */
 
 /*
- * pmem_reorder_stack.c -- unit test for engines pmreorder stack
+ * pmreorder_stack.c -- unit test for engines pmreorder stack
  *
- * usage: pmem_reorder_stack w|c file
+ * usage: pmreorder_stack w|c file
  * w - write data in a possibly inconsistent manner
  * c - check data consistency
  *
@@ -112,8 +112,9 @@ check_consistency(struct fields *fieldsp)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_reorder_stack");
+	START(argc, argv, "pmreorder_stack");
 
+	VALGRIND_EMIT_LOG("NOT_DEFINED_BY_USER.END");
 	util_init();
 
 	if ((argc != 3) || (strchr("wc", argv[1][0]) == NULL) ||

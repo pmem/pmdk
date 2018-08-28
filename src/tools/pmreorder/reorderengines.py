@@ -133,9 +133,8 @@ class AccumulativeReverseReorderEngine:
         :rtype: iterable
         """
         store_list = list(reversed(store_list))
-        for i in range(0, len(store_list) + 1):
-            out_list = [store_list[i] for i in range(0, i)]
-            yield out_list
+        for i in range(len(store_list) + 1):
+            yield [store_list[j] for j in range(i)]
 
 
 class SlicePartialReorderEngine:

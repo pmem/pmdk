@@ -40,20 +40,18 @@ class MarkerParser:
     """
     def marker_file_parser(self, macros):
         """
-        Parse markers passed by cli.
+        Parse markers passed by file.
         They should be in json format:
         { "MARKER_NAME"="ENGINE_TYPE" } and separated by commas.
         """
         markers = {}
-        config_file = open(macros)
         try:
-            markers = json.load(config_file)
+            with open(macros) as config_file:
+                markers = json.load(config_file)
         except json.decoder.JSONDecodeError:
             print("Invalid config macros file format: ", macros,
                   "Use: {\"MARKER_NAME1\"=\"ENGINE_TYPE1\","
                   "\"MARKER_NAME2\"=\"ENGINE_TYPE2\"}")
-        finally:
-            config_file.close()
 
         return markers
 

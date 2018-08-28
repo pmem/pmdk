@@ -61,14 +61,14 @@ def main():
                         "for the 'lib' checker")
     parser.add_argument("-o", "--output",
                         help="set the logger output file")
-    parser.add_argument("-e", "--output_level",
+    parser.add_argument("-e", "--output-level",
                         choices=loggingfacility.log_levels,
                         help="set the output log level")
-    parser.add_argument("-x", "--extended_macros",
+    parser.add_argument("-x", "--extended-macros",
                         help="list of pairs MARKER=ENGINE or " +
                         "json config file")
     engines_keys = list(reorderengines.engines.keys())
-    parser.add_argument("-r", "--default_engine",
+    parser.add_argument("-r", "--default-engine",
                         help="set default reorder engine " +
                         "default=NoReorderNoChecker",
                         choices=engines_keys,

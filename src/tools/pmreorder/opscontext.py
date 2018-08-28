@@ -72,9 +72,7 @@ class OpsContext:
         self.checker = checker
         self.logger = logger
         self.markers = markers
-        self.stack_engines = []
-        self.stack_engines.append(('START',
-                                  getattr(memoryoperations, arg_engine)))
+        self.stack_engines = [('START', getattr(memoryoperations, arg_engine))]
 
     # TODO this should probably be made a generator
     def extract_operations(self):

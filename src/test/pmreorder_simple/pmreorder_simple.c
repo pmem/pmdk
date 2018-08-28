@@ -31,9 +31,9 @@
  */
 
 /*
- * pmem_reorder_simple.c -- a simple unit test for store reordering
+ * pmreorder_simple.c -- a simple unit test for store reordering
  *
- * usage: pmem_reorder_simple g|b|c file
+ * usage: pmreorder_simple g|b|c file
  * g - write data in a consistent manner
  * b - write data in a possibly inconsistent manner
  * c - check data consistency
@@ -98,7 +98,7 @@ check_consistency(struct three_field *structp)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_reorder_simple");
+	START(argc, argv, "pmreorder_simple");
 
 	util_init();
 
