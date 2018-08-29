@@ -56,7 +56,7 @@ size_t nobjects;
 size_t allocated_current;
 #define MAX_OBJECTS (200ULL * 1000000)
 
-#define ALLOC_TOTAL (5000 * MEGABYTE)
+#define ALLOC_TOTAL (5000ULL * MEGABYTE)
 #define ALLOC_CURR (1000 * MEGABYTE)
 #define FREES_P 200
 
@@ -125,7 +125,7 @@ allocate_objects(PMEMobjpool *pop, size_t size_min, size_t size_max)
 static void
 delete_objects(PMEMobjpool *pop, float pct)
 {
-	size_t nfree = (float)nobjects * pct;
+	size_t nfree = (size_t)(nobjects * pct);
 
 	PMEMoid oid = pmemobj_root(pop, 1);
 	uint64_t uuid_lo = oid.pool_uuid_lo;
@@ -154,7 +154,7 @@ static void w1(PMEMobjpool *pop) {
 
 static void w2(PMEMobjpool *pop) {
 	allocate_objects(pop, 100, 100);
-	delete_objects(pop, 0.9);
+	delete_objects(pop, 0.9F);
 	allocate_objects(pop, 130, 130);
 }
 
@@ -165,7 +165,7 @@ static void w3(PMEMobjpool *pop) {
 
 static void w4(PMEMobjpool *pop) {
 	allocate_objects(pop, 100, 150);
-	delete_objects(pop, 0.9);
+	delete_objects(pop, 0.9F);
 	allocate_objects(pop, 200, 250);
 }
 
@@ -177,13 +177,13 @@ static void w5(PMEMobjpool *pop) {
 
 static void w6(PMEMobjpool *pop) {
 	allocate_objects(pop, 1000, 2000);
-	delete_objects(pop, 0.9);
+	delete_objects(pop, 0.9F);
 	allocate_objects(pop, 1500, 2500);
 }
 
 static void w7(PMEMobjpool *pop) {
 	allocate_objects(pop, 50, 150);
-	delete_objects(pop, 0.9);
+	delete_objects(pop, 0.9F);
 	allocate_objects(pop, 5000, 15000);
 }
 
@@ -219,7 +219,7 @@ main(int argc, char *argv[])
 	if (argc > 3)
 		seed = (unsigned)atoi(argv[3]);
 	else
-		seed = time(NULL);
+		seed = ((unsigned)time(NULL));
 
 	objects = ZALLOC(sizeof(uint64_t) * MAX_OBJECTS);
 	UT_ASSERTne(objects, NULL);
