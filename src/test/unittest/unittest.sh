@@ -2705,10 +2705,13 @@ function get_node_dir() {
 #
 # example:
 #    The following command initialize rpmem environment variables on the node 1
-#    to perform replication to the node 0 and node 2. Additionally rpmemd pid
-#    will be stored in file.pid.
+#    to perform replication to node 0, node 2 and node 3.
+#    Additionally:
+#    - on node 2 rpmemd pid will be stored in file.pid
+#    - on node 3 no pid file will be created (SKIP) and rpmemd will use
+#      file.conf config file
 #
-#       init_rpmem_on_node 1 0 2:file.pid
+#       init_rpmem_on_node 1 0 2:file.pid 3:SKIP:file.conf
 #
 function init_rpmem_on_node() {
 	local master=$1
@@ -2738,6 +2741,7 @@ function init_rpmem_on_node() {
 	for slave in "$@"
 	do
 		slave=(${slave//:/ })
+		conf=${slave[2]}
 		pid=${slave[1]}
 		slave=${slave[0]}
 
@@ -2751,7 +2755,7 @@ function init_rpmem_on_node() {
 			log_file=${CHECK_TYPE}${UNITTEST_NUM}.log
 			trace=$(get_trace $CHECK_TYPE $log_file $slave)
 		fi
-		if [ -n "$pid" ]; then
+		if [ -n "$pid" -a "$pid" != "SKIP" ]; then
 			trace="$trace ../ctrld $pid exe"
 		fi
 		if [ -n ${UNITTEST_DO_NOT_CHECK_OPEN_FILES+x} ]; then
@@ -2772,6 +2776,10 @@ function init_rpmem_on_node() {
 		CMD="$CMD --log-file=$RPMEMD_LOG_FILE"
 		CMD="$CMD --log-level=$RPMEMD_LOG_LEVEL"
 		CMD="$CMD --poolset-dir=$poolset_dir"
+
+		if [ -n "$conf" ]; then
+			CMD="$CMD --config=$conf"
+		fi
 
 		if [ "$RPMEM_PM" == "APM" ]; then
 			CMD="$CMD --persist-apm"

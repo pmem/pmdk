@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -313,6 +313,7 @@ rpmem_ssh_open(const struct rpmem_target_info *info)
 	if (status) {
 		ERR("%s: unexpected status received -- '%d'",
 				info->node, status);
+		errno = status;
 		goto err_status;
 	}
 
