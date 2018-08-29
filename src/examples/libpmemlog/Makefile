@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,8 @@
 PROGS = manpage
 DIRS = logfile
 
-LIBS = -lpmemlog -lpmem -pthread
+LIBPMEM=y
+LIBPMEMLOG=y
 
 include ../Makefile.inc
 

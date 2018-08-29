@@ -37,7 +37,8 @@
 PROGS = manpage
 DIRS = life libart
 
-LIBS = -lpmemcto -lpmem -pthread
+LIBPMEM=y
+LIBPMEMCTO=y
 
 include ../Makefile.inc
 

@@ -54,9 +54,9 @@ PROGS = arttree
 LIBRARIES = art
 endif
 
-include ../../Makefile.inc
+LIBVMEM=y
 
-LIBS = -lvmem
+include ../../Makefile.inc
 
 $(PROGS): | $(DYNAMIC_LIBRARIES)
 $(PROGS): LDFLAGS += -Wl,-rpath=. -L. -lart

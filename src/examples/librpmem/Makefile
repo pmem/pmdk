@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,7 +39,7 @@ include $(TOP)/src/common.inc
 ifeq ($(BUILD_RPMEM), y)
 PROGS = basic manpage
 
-LIBS = -lrpmem -pthread $(shell $(PKG_CONFIG) --libs libfabric)
+LIBRPMEM=y
 
 CFLAGS = $(shell $(PKG_CONFIG) --cflags libfabric)
 else

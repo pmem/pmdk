@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,7 +45,8 @@ $(info NOTE: Skipping pminvaders and pminvaders2 because ncurses is missing \
 -- see src/examples/libpmemobj/pminvaders/README for details.)
 endif
 
-LIBS = -lpmemobj -lpmem -pthread
+LIBPMEM=y
+LIBPMEMOBJ=y
 
 ifeq ($(NCURSES),y)
 LIBS += $(shell $(PKG_CONFIG) --libs ncurses)

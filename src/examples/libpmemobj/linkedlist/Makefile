@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,7 +33,8 @@
 #
 PROGS = fifo
 
-LIBS = -lpmemobj -lpmem -pthread
+LIBPMEM=y
+LIBPMEMOBJ=y
 
 include ../../Makefile.inc
 
