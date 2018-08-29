@@ -44,9 +44,6 @@ OBJS = daxio.o
 LIBPMEM=y
 LIBPMEMCOMMON=y
 
-LIBS += $(LIBNDCTL)
-LIBS += $(LIBDAXCTL)
-
 MANPAGES = $(TOP)/doc/daxio.1
 
 # XXX: to be done
