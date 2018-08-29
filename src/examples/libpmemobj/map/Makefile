@@ -49,7 +49,7 @@ $(info NOTE: Skipping kv_server because libuv is missing \
 -- see src/examples/libpmemobj/map/README for details.)
 endif
 
-LIBS = -lpmemobj -pthread
+LIBPMEMOBJ=y
 
 ifeq ($(LIBUV),y)
 LIBS += $(shell $(PKG_CONFIG) --libs libuv)

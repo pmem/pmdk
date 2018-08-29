@@ -35,7 +35,7 @@
 #
 PROGS = queue
 
-LIBS = -lpmemobj
+LIBPMEMOBJ=y
 
 include ../../Makefile.inc
 

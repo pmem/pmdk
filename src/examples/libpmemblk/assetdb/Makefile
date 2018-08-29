@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,8 @@
 #
 PROGS = asset_load asset_list asset_checkout asset_checkin
 
-LIBS = -lpmemblk -lpmem -pthread
+LIBPMEM=y
+LIBPMEMBLK=y
 
 include ../../Makefile.inc
 

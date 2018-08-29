@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,7 +53,50 @@ CXXFLAGS += -fsanitize=$(SANITIZE)
 LDFLAGS += -fsanitize=$(SANITIZE)
 endif
 INCS = -I$(INCDIR) -I. -I$(TOP_SRC)/examples $(OS_INCS)
+
 LIBS += $(OS_LIBS) $(LIBUUID)
+
+ifeq ($(LIBPMEMPOOL), y)
+LIBS += -lpmempool
+endif
+
+ifeq ($(LIBPMEMBLK), y)
+LIBS += -lpmemblk
+endif
+
+ifeq ($(LIBPMEMLOG), y)
+LIBS += -lpmemlog
+endif
+
+ifeq ($(LIBPMEMOBJ), y)
+LIBS += -lpmemobj
+endif
+
+ifeq ($(LIBPMEMCTO), y)
+LIBS += -lpmemcto
+endif
+
+ifeq ($(LIBRPMEM),y)
+LIBS += -lrpmem $(shell $(PKG_CONFIG) --libs libfabric)
+endif
+
+ifeq ($(LIBPMEM),y)
+LIBS += -lpmem
+endif
+
+ifeq ($(LIBVMEM),y)
+LIBS += -lvmem
+endif
+
+# If any of these libraries is required, we need to link libpthread
+ifneq ($(LIBPMEM)$(LIBRPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBPMEMCTO)$(LIBVMEM),)
+LIBS += -pthread
+endif
+
+# If any of these libraries is required, we need to link libndctl and libdaxctl
+ifneq ($(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBPMEMCTO),)
+LIBS += $(LIBNDCTL)
+endif
 
 LINKER=$(CC)
 ifeq ($(COMPILE_LANG), cpp)

@@ -54,7 +54,8 @@ PROGS = arttree
 LIBRARIES = art
 endif
 
-LIBS = -lpmem -lpmemcto
+LIBPMEM=y
+LIBPMEMCTO=y
 
 include ../../Makefile.inc
 

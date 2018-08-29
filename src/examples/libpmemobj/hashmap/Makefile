@@ -32,7 +32,7 @@
 
 LIBRARIES = hashmap_atomic hashmap_tx hashmap_rp
 
-LIBS = -lpmemobj
+LIBPMEMOBJ=y
 
 include ../../Makefile.inc
 

@@ -36,9 +36,8 @@
 PROGS = manpage
 DIRS = libart
 
-LIBS = -lvmem -pthread
+LIBVMEM=y
 
 include ../Makefile.inc
 
 manpage: manpage.o
-
