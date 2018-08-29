@@ -93,6 +93,11 @@ ifneq ($(LIBPMEM)$(LIBRPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ
 LIBS += -pthread
 endif
 
+# If any of these libraries is required, we need to link libndctl and libdaxctl
+ifneq ($(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBPMEMCTO),)
+LIBS += $(LIBNDCTL)
+endif
+
 LINKER=$(CC)
 ifeq ($(COMPILE_LANG), cpp)
 LINKER=$(CXX)
