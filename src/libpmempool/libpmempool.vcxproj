@@ -68,6 +68,7 @@
     <ClCompile Include="check_sds.c" />
     <ClCompile Include="check_util.c" />
     <ClCompile Include="check_write.c" />
+    <ClCompile Include="feature.c" />
     <ClCompile Include="libpmempool.c" />
     <ClCompile Include="libpmempool_main.c" />
     <ClCompile Include="pool.c" />
