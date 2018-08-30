@@ -47,6 +47,7 @@
 #include "out.h"
 #include "os.h"
 #include "os_thread.h"
+#include "pool_hdr.h"
 #include "valgrind_internal.h"
 #include "util.h"
 
@@ -583,3 +584,58 @@ out_get_errormsgW(void)
 	return (const wchar_t *)utf16;
 }
 #endif
+
+static const char *incompat_features_str[] = {
+	"SINGLEHDR",
+	"CKSUM_2K",
+	"SHUTDOWN_STATE"
+};
+
+#define INCOMPAT_FEATURES_MAX ARRAY_SIZE(incompat_features_str)
+
+/*
+ * out_str2feature -- convert string to uint32_t feature
+ */
+uint32_t
+out_str2feature(const char *str)
+{
+	/* all features has to be named in incompat_features_str array */
+	COMPILE_ERROR_ON(POOL_FEAT_ALL >> INCOMPAT_FEATURES_MAX);
+
+	for (uint32_t f = 0; f < INCOMPAT_FEATURES_MAX; ++f) {
+		if (strcmp(str, incompat_features_str[f]) == 0) {
+			return (1u << f);
+		}
+	}
+	return 0;
+}
+
+/*
+ * out_str2pmempool_feature -- convert string to uint32_t enum pmempool_feature
+ * equivalent
+ */
+uint32_t
+out_str2pmempool_feature(const char *str)
+{
+	uint32_t fval = out_str2feature(str);
+	if (!fval)
+		return UINT32_MAX;
+	return util_lssb_index(fval);
+}
+
+/*
+ * out_feature2str -- convert uint32_t feature to string
+ */
+const char *
+out_feature2str(uint32_t feature, uint32_t *found)
+{
+	for (uint32_t f = 0; f < INCOMPAT_FEATURES_MAX; ++f) {
+		const uint32_t feat_bit = (1u << f);
+		if (feature & feat_bit) {
+			if (found)
+				*found = feat_bit;
+			return incompat_features_str[f];
+		}
+	}
+	return NULL;
+}

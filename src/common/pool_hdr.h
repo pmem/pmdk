@@ -184,7 +184,7 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 #endif
 
 #define POOL_FEAT_VALID \
-	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
+	(uint32_t)(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
 
 #define POOL_FEAT_DEFAULT \
 	(POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
