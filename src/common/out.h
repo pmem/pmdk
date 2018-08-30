@@ -235,4 +235,7 @@ const char *out_get_errormsgU(void);
 const wchar_t *out_get_errormsgW(void);
 #endif
 
+const char *out_feature2str(uint32_t incompat, uint32_t *found);
+uint32_t out_str2feature(const char *str);
+
 #endif
