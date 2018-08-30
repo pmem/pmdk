@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,6 +51,7 @@
 #include "convert.h"
 #include "synchronize.h"
 #include "transform.h"
+#include "feature.h"
 #include "set.h"
 
 #ifndef _WIN32
@@ -165,6 +166,12 @@ static struct command commands[] = {
 		.brief = "modify internal structure of a poolset",
 		.func = pmempool_transform_func,
 		.help = pmempool_transform_help,
+	},
+	{
+		.name = "feature",
+		.brief = "toggle / query pool features",
+		.func = pmempool_feature_func,
+		.help = pmempool_feature_help,
 	},
 	{
 		.name = "help",

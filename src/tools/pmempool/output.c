@@ -45,6 +45,7 @@
 #include <endian.h>
 #include <inttypes.h>
 #include <float.h>
+#include "feature.h"
 #include "common.h"
 #include "output.h"
 

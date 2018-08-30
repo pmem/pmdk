@@ -31,12 +31,6 @@
     <ClCompile Include="check_write.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\file.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\file_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="libpmempool.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -101,6 +95,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="check_log.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="feature.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\shutdown_state.c">
