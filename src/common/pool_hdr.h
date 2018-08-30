@@ -154,7 +154,14 @@ void util_convert2h_hdr_nocheck(struct pool_hdr *hdrp);
 void util_get_arch_flags(struct arch_flags *arch_flags);
 int util_check_arch_flags(const struct arch_flags *arch_flags);
 
-int util_feature_check(struct pool_hdr *hdrp, features_t feat);
+int util_feature_check(struct pool_hdr *hdrp, features_t features);
+int util_feature_cmp(features_t features, features_t ref);
+int util_feature_is_zero(features_t features);
+
+const char *util_feature2str(uint32_t incompat, uint32_t *found);
+features_t util_str2feature(const char *str);
+uint32_t util_str2pmempool_feature(const char *str);
+uint32_t util_feature2pmempool_feature(features_t feat);
 
 /*
  * set of macros for determining the alignment descriptor
@@ -174,6 +181,11 @@ int util_feature_check(struct pool_hdr *hdrp, features_t feat);
 (alignment_desc_of(double)	<<  8 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(long double)	<<  9 * ALIGNMENT_DESC_BITS) |\
 (alignment_desc_of(void *)	<< 10 * ALIGNMENT_DESC_BITS)
+
+#define POOL_FEAT_ZERO		0x0000
+
+static const features_t feat_flags_zero =
+	{POOL_FEAT_ZERO, POOL_FEAT_ZERO, POOL_FEAT_ZERO};
 
 /*
  * incompat features
@@ -199,6 +211,9 @@ int util_feature_check(struct pool_hdr *hdrp, features_t feat);
 
 #define POOL_FEAT_INCOMPAT_DEFAULT \
 	(POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
+
+#define FEAT_FLAGS_INCOMPAT(X) \
+	{POOL_FEAT_ZERO, POOL_FEAT_##X, POOL_FEAT_ZERO}
 
 /*
  * defines the first not checksummed field - all fields after this will be

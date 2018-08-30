@@ -170,7 +170,7 @@ util_feature_check(struct pool_hdr *hdrp, features_t features)
 
 	/* check incompatible ("must support") features */
 	ubits = util_get_not_masked_bits(
-			hdrp->features.incompat,features.incompat);
+			hdrp->features.incompat, features.incompat);
 	if (ubits) {
 		ERR("unsafe to continue due to unknown incompat "\
 				"features: %#x", ubits);
@@ -195,4 +195,121 @@ util_feature_check(struct pool_hdr *hdrp, features_t features)
 	}
 
 	return 1;
+}
+
+/*
+ * util_feature_cmp -- compares features with reference
+ */
+int
+util_feature_cmp(features_t features, features_t ref)
+{
+	LOG(3, "features {incompat %#x ro_compat %#x compat %#x}"
+			"ref {incompat %#x ro_compat %#x compat %#x}",
+			features.incompat, features.ro_compat, features.compat,
+			ref.incompat, ref.ro_compat, ref.compat);
+
+	uint32_t ubits = 0;	/* unsupported bits */
+
+	/* check incompatible ("must support") features */
+	ubits |= util_get_not_masked_bits(features.incompat, ref.incompat);
+
+	/* check RO-compatible features (force RO if unsupported) */
+	ubits |= util_get_not_masked_bits(features.ro_compat, ref.ro_compat);
+
+	/* check compatible ("may") features */
+	ubits |= util_get_not_masked_bits(features.compat, ref.compat);
+
+	return (ubits) ? 1 : 0;
+}
+
+/*
+ * util_feature_is_zero -- check if features flags are zeroed
+ */
+int
+util_feature_is_zero(features_t feat)
+{
+	return util_feature_cmp(feat, feat_flags_zero) == 0;
+}
+
+static const char *incompat_features_str[] = {
+	"SINGLEHDR",
+	"CKSUM_2K",
+	"SHUTDOWN_STATE"
+};
+
+#define INCOMPAT_FEATURES_MAX ARRAY_SIZE(incompat_features_str)
+
+/*
+ * util_str2feature -- convert string to feat_flags value
+ */
+features_t
+util_str2feature(const char *str)
+{
+	/* all features has to be named in incompat_features_str array */
+	COMPILE_ERROR_ON(POOL_FEAT_INCOMPAT_ALL >> INCOMPAT_FEATURES_MAX);
+
+	features_t features = feat_flags_zero;
+
+	for (uint32_t f = 0; f < INCOMPAT_FEATURES_MAX; ++f) {
+		if (strcmp(str, incompat_features_str[f]) == 0) {
+			features.incompat = (1u << f);
+			break;
+		}
+	}
+	return features;
+}
+
+static const features_t features_2_pmempool_feature_map[] = {
+	FEAT_FLAGS_INCOMPAT(SINGLEHDR), /* PMEMPOOL_FEAT_SINGLEHDR */
+	FEAT_FLAGS_INCOMPAT(CKSUM_2K), /* PMEMPOOL_FEAT_CKSUM_2K */
+	FEAT_FLAGS_INCOMPAT(SDS), /* PMEMPOOL_FEAT_SHUTDOWN_STATE */
+};
+
+#define FEAT_2_PMEMPOOL_FEAT_MAP_SIZE \
+	ARRAY_SIZE(features_2_pmempool_feature_map)
+
+/*
+ * util_feature2pmempool_feature -- convert feature to pmempool_feature
+ */
+uint32_t
+util_feature2pmempool_feature(features_t feat)
+{
+	for (uint32_t pf = 0; pf < FEAT_2_PMEMPOOL_FEAT_MAP_SIZE; ++pf) {
+		const features_t *record =
+				&features_2_pmempool_feature_map[pf];
+		if (util_feature_cmp(feat, *record) == 0) {
+			return pf;
+		}
+	}
+	return UINT32_MAX;
+}
+
+/*
+ * util_str2pmempool_feature -- convert string to uint32_t enum pmempool_feature
+ * equivalent
+ */
+uint32_t
+util_str2pmempool_feature(const char *str)
+{
+	features_t fval = util_str2feature(str);
+	if (util_feature_is_zero(fval))
+		return UINT32_MAX;
+	return util_feature2pmempool_feature(fval);
+}
+
+/*
+ * util_feature2str -- convert uint32_t feature to string
+ */
+const char *
+util_feature2str(uint32_t feature, uint32_t *found)
+{
+	for (uint32_t f = 0; f < INCOMPAT_FEATURES_MAX; ++f) {
+		const uint32_t feat_bit = (1u << f);
+		if (feature & feat_bit) {
+			if (found)
+				*found = feat_bit;
+			return incompat_features_str[f];
+		}
+	}
+	return NULL;
 }
