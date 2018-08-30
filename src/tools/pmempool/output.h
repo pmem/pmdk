@@ -75,5 +75,3 @@ const char *out_get_arch_machine_str(uint16_t machine);
 const char *out_get_last_shutdown_str(uint8_t dirty);
 const char *out_get_alignment_desc_str(uint64_t ad, uint64_t cur_ad);
 const char *out_get_incompat_features_str(uint32_t incompat);
-const char *out_feature2str(uint32_t *feature);
-uint32_t out_str2feature(const char *str);
