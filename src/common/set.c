@@ -3751,6 +3751,21 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 }
 
 /*
+ * util_pool_has_device_dax -- (internal) check if poolset has any device dax
+ */
+int
+util_pool_has_device_dax(struct pool_set *set)
+{
+	for (unsigned r = 0; r < set->nreplicas; ++r) {
+		struct pool_replica *rep = REP(set, r);
+		/* either all the parts must be Device DAX or none */
+		if (PART(rep, 0)->is_dev_dax)
+			return 1;
+	}
+	return 0;
+}
+
+/*
  * util_pool_open_nocheck -- open a memory pool (set or a single file)
  *
  * This function opens a pool set without checking the header values.
@@ -3762,7 +3777,7 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 
 	int cow = flags & POOL_OPEN_COW;
 
-	if (cow && set->replica[0]->part[0].is_dev_dax) {
+	if (cow && util_pool_has_device_dax(set)) {
 		ERR("device dax cannot be mapped privately");
 		errno = ENOTSUP;
 		return -1;
