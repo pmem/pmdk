@@ -3045,37 +3045,67 @@ function get_pmemcheck_version()
 }
 
 #
-# require_pmemcheck_major_eq - check if pmemcheck API major
-# version is equal to required value
-#	usage: require_pmemcheck_major_eq <version>
+# require_pmemcheck_version_ge - check if pmemcheck API
+# version is greater or equal to required value
+#	usage: require_pmemcheck_version_ge <major> <minor>
 #
-function require_pmemcheck_major_eq()
+function require_pmemcheck_version_ge()
 {
 	REQUIRE_MAJOR=$1
+	REQUIRE_MINOR=$2
 	PMEMCHECK_MAJOR=$(get_pmemcheck_version 0)
+	PMEMCHECK_MINOR=$(get_pmemcheck_version 1)
 
-	if [ $PMEMCHECK_MAJOR -ne $REQUIRE_MAJOR ]; then
-		msg "$UNITTEST_NAME: SKIP pmemcheck API major version:" \
-			"$PMEMCHECK_MAJOR is not equal required $REQUIRE_MAJOR"
-		exit 0
+	# compare MAJOR
+	if [ $PMEMCHECK_MAJOR -gt $REQUIRE_MAJOR ]; then
+		return 0
 	fi
+
+	# compare MINOR
+	if [ $PMEMCHECK_MAJOR -eq $REQUIRE_MAJOR ]; then
+		if [ $PMEMCHECK_MINOR -ge $REQUIRE_MINOR ]; then
+			return 0
+		fi
+	fi
+
+	msg "$UNITTEST_NAME: SKIP pmemcheck API version:" \
+		"$PMEMCHECK_MAJOR.$PMEMCHECK_MINOR " \
+		"is less than required " \
+		"$REQUIRE_MAJOR.$REQUIRE_MINOR"
+
+	exit 0
 }
 
 #
-# require_pmemcheck_minor_ge - check if pmemcheck API minor
-# version is greater or equal to required value
-#	usage: require_pmemcheck_minor_ge <version>
+# require_pmemcheck_version_lt - check if pmemcheck API
+# version is less than required value
+#	usage: require_pmemcheck_version_lt <major> <minor>
 #
-function require_pmemcheck_minor_ge()
+function require_pmemcheck_version_lt()
 {
-	REQUIRE_MINOR=$1
+	REQUIRE_MAJOR=$1
+	REQUIRE_MINOR=$2
+	PMEMCHECK_MAJOR=$(get_pmemcheck_version 0)
 	PMEMCHECK_MINOR=$(get_pmemcheck_version 1)
 
-	if [ $PMEMCHECK_MINOR -lt $REQUIRE_MINOR ]; then
-		msg "$UNITTEST_NAME: SKIP pmemcheck API minor version:" \
-			"$PMEMCHECK_MINOR is lower than required $REQUIRE_MINOR"
-		exit 0
+	# compare MAJOR
+	if [ $PMEMCHECK_MAJOR -lt $REQUIRE_MAJOR ]; then
+		return 0
 	fi
+
+	# compare MINOR
+	if [ $PMEMCHECK_MAJOR -eq $REQUIRE_MAJOR ]; then
+		if [ $PMEMCHECK_MINOR -lt $REQUIRE_MINOR ]; then
+			return 0
+		fi
+	fi
+
+	msg "$UNITTEST_NAME: SKIP pmemcheck API version:" \
+		"$PMEMCHECK_MAJOR.$PMEMCHECK_MINOR " \
+		"is greater or equal than required " \
+		"$REQUIRE_MAJOR.$REQUIRE_MINOR"
+
+	exit 0
 }
 
 #
