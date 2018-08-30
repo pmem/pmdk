@@ -40,9 +40,6 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\Examples_$(Configuration).props" />
   </ImportGroup>
-  <PropertyGroup>
-    <IncludePath>$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-  </PropertyGroup>
   <ItemDefinitionGroup>
     <Manifest>
       <AdditionalManifestFiles>..\..\LongPath.manifest</AdditionalManifestFiles>

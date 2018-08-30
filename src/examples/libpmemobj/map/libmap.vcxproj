@@ -72,7 +72,7 @@
     <Import Project="..\..\Examples_$(Configuration).props" />
   </ImportGroup>
   <PropertyGroup>
-    <IncludePath>$(SolutionDir)include;$(ProjectDir)..\..\;$(ProjectDir)..\list_map;$(ProjectDir)..\hashmap;$(ProjectDir)..\tree_map;$(IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\$(Platform)\$(Configuration);$(ProjectDir)</IncludePath>
+    <IncludePath>$(solutionDir)include;$(solutionDir)..\include;$(ProjectDir)..\..\;$(ProjectDir)..\list_map;$(ProjectDir)..\hashmap;$(ProjectDir)..\tree_map;$(IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)..\$(Platform)\$(Configuration);$(ProjectDir)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
