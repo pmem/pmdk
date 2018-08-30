@@ -63,6 +63,7 @@ SOURCE +=\
 	check_write.c\
 	pool.c\
 	replica.c\
+	feature.c\
 	$(RPMEM_COMMON)/rpmem_common.c\
 	rpmem_ssh.c\
 	rpmem_cmd.c\

@@ -135,6 +135,8 @@ void util_set_alloc_funcs(
 #define NORETURN __attribute__((noreturn))
 #endif
 
+#define util_get_not_masked_bits(x, mask) ((x) & ~(mask))
+
 /*
  * util_setbit -- setbit macro substitution which properly deals with types
  */

@@ -116,6 +116,9 @@
     <ClCompile Include="dump.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="feature.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="info.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -158,6 +161,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dump.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="feature.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="info.h">

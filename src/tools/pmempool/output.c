@@ -45,6 +45,7 @@
 #include <endian.h>
 #include <inttypes.h>
 #include <float.h>
+#include "feature.h"
 #include "common.h"
 #include "output.h"
 
@@ -815,51 +816,6 @@ out_get_alignment_desc_str(uint64_t ad, uint64_t valid_ad)
 	return str_buff;
 }
 
-
-static const char *incompat_features_str[] = {
-	"SINGLEHDR",
-	"CKSUM_2K",
-	"SHUTDOWN_STATE"
-};
-
-#define INCOMPAT_FEATURES_MAX ARRAY_SIZE(incompat_features_str)
-
-/*
- * out_str2feature -- convert string to unit32_t feature
- */
-uint32_t
-out_str2feature(const char *str)
-{
-	/* all features has to be named in incompat_features_str array */
-	COMPILE_ERROR_ON(POOL_FEAT_INCOMPAT_ALL >> INCOMPAT_FEATURES_MAX);
-
-	for (uint32_t f = 0; f < INCOMPAT_FEATURES_MAX; ++f) {
-		if (strcmp(str, incompat_features_str[f]) == 0) {
-			return (1u << f);
-		}
-	}
-
-	return 0;
-}
-
-/*
- * out_feature2str -- convert unit32_t feature to string
- */
-const char *
-out_feature2str(uint32_t *feature)
-{
-	for (uint32_t f = 0; f < INCOMPAT_FEATURES_MAX; ++f) {
-		const uint32_t feat_bit = (1u << f);
-		if (*feature & feat_bit) {
-			/* take off the flag */
-			*feature &= (uint32_t)(~(feat_bit));
-			return incompat_features_str[f];
-		}
-	}
-
-	return NULL;
-}
-
 /*
  * out_concat -- concatenate the new element to the list of strings
  *
@@ -892,6 +848,7 @@ const char *
 out_get_incompat_features_str(uint32_t incompat)
 {
 	static char str_buff[STR_MAX] = {0};
+	features_t features = {POOL_FEAT_ZERO, incompat, POOL_FEAT_ZERO};
 	int ret = 0;
 
 	if (incompat == 0) {
@@ -908,16 +865,18 @@ out_get_incompat_features_str(uint32_t incompat)
 		/* print names of known options */
 		int count = 0;
 		int curr = ret;
+		features_t found;
 		const char *feat;
 
-		while (((feat = out_feature2str(&incompat))) != NULL) {
+		while (((feat = util_feature2str(features, &found))) != NULL) {
+			util_feature_disable(&features, found);
 			ret = out_concat(str_buff, &curr, &count, feat);
 			if (ret < 0)
 				return "";
 		}
 
 		/* check if any unknown flags are set */
-		if (incompat > 0) {
+		if (util_feature_is_zero(features)) {
 			if (out_concat(str_buff, &curr, &count,
 					"?UNKNOWN_FLAG?"))
 				return "";

@@ -202,21 +202,23 @@ pool_hdr_default_check(PMEMpoolcheck *ppc, location *loc)
 			"to default value 0x%x?", loc->prefix, def_hdr.major);
 	}
 
-	if (loc->hdr.features.compat != def_hdr.features.compat) {
+	features_t unknown = util_get_unknown_features(
+			loc->hdr.features, def_hdr.features);
+	if (unknown.compat) {
 		CHECK_ASK(ppc, Q_DEFAULT_COMPAT_FEATURES,
 			"%spool_hdr.features.compat is not valid.|Do you want "
 			"to set it to default value 0x%x?", loc->prefix,
 			def_hdr.features.compat);
 	}
 
-	if (loc->hdr.features.incompat != def_hdr.features.incompat) {
+	if (unknown.incompat) {
 		CHECK_ASK(ppc, Q_DEFAULT_INCOMPAT_FEATURES,
 			"%spool_hdr.features.incompat is not valid.|Do you "
 			"want to set it to default value 0x%x?", loc->prefix,
 			def_hdr.features.incompat);
 	}
 
-	if (loc->hdr.features.ro_compat != def_hdr.features.ro_compat) {
+	if (unknown.ro_compat) {
 		CHECK_ASK(ppc, Q_DEFAULT_RO_COMPAT_FEATURES,
 			"%spool_hdr.features.ro_compat is not valid.|Do you "
 			"want to set it to default value 0x%x?", loc->prefix,
