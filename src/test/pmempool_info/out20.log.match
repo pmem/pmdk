@@ -6,7 +6,7 @@ size                     : $(nW)
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(*)
-Mandatory features       : 0x1 [SINGLEHDR]
+Mandatory features       : 0x$(X) [SINGLEHDR$(*)]
 Not mandatory features   : $(*)
 Forced RO                : $(*)
 Pool set UUID            : $(*)
@@ -30,7 +30,7 @@ size                     : $(nW)
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(*)
-Mandatory features       : 0x1 [SINGLEHDR]
+Mandatory features       : 0x$(X) [SINGLEHDR$(*)]
 Not mandatory features   : $(*)
 Forced RO                : $(*)
 Pool set UUID            : $(*)
