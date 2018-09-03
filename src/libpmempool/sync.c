@@ -457,19 +457,21 @@ update_parts_linkage(struct pool_set *set, unsigned repn,
 		memcpy(hdrp->next_part_uuid, PARTN(rep, p)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
-			1, POOL_HDR_CSUM_END_OFF);
+			1, POOL_HDR_CSUM_END_OFF(hdrp));
 
 		/* set uuids in the previous part */
 		memcpy(prev_hdrp->next_part_uuid, PART(rep, p)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(prev_hdrp, sizeof(*prev_hdrp),
-			&prev_hdrp->checksum, 1, POOL_HDR_CSUM_END_OFF);
+			&prev_hdrp->checksum, 1,
+			POOL_HDR_CSUM_END_OFF(prev_hdrp));
 
 		/* set uuids in the next part */
 		memcpy(next_hdrp->prev_part_uuid, PART(rep, p)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(next_hdrp, sizeof(*next_hdrp),
-			&next_hdrp->checksum, 1, POOL_HDR_CSUM_END_OFF);
+			&next_hdrp->checksum, 1,
+			POOL_HDR_CSUM_END_OFF(next_hdrp));
 
 		/* store pool's header */
 		util_persist(PART(rep, p)->is_dev_dax, hdrp, sizeof(*hdrp));
@@ -505,7 +507,7 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 		memcpy(hdrp->next_repl_uuid, PART(next_r, 0)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
-			1, POOL_HDR_CSUM_END_OFF);
+			1, POOL_HDR_CSUM_END_OFF(hdrp));
 
 		/* store pool's header */
 		util_persist(PART(rep, p)->is_dev_dax, hdrp, sizeof(*hdrp));
@@ -517,7 +519,8 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 		memcpy(prev_hdrp->next_repl_uuid, PART(rep, 0)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(prev_hdrp, sizeof(*prev_hdrp),
-			&prev_hdrp->checksum, 1, POOL_HDR_CSUM_END_OFF);
+			&prev_hdrp->checksum, 1,
+			POOL_HDR_CSUM_END_OFF(prev_hdrp));
 
 		/* store pool's header */
 		util_persist(PART(prev_r, p)->is_dev_dax, prev_hdrp,
@@ -531,7 +534,8 @@ update_replicas_linkage(struct pool_set *set, unsigned repn)
 		memcpy(next_hdrp->prev_repl_uuid, PART(rep, 0)->uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(next_hdrp, sizeof(*next_hdrp),
-			&next_hdrp->checksum, 1, POOL_HDR_CSUM_END_OFF);
+			&next_hdrp->checksum, 1,
+			POOL_HDR_CSUM_END_OFF(next_hdrp));
 
 		/* store pool's header */
 		util_persist(PART(next_r, p)->is_dev_dax, next_hdrp,
@@ -554,7 +558,7 @@ update_poolset_uuids(struct pool_set *set, unsigned repn,
 		struct pool_hdr *hdrp = HDR(rep, p);
 		memcpy(hdrp->poolset_uuid, set->uuid, POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
-			1, POOL_HDR_CSUM_END_OFF);
+			1, POOL_HDR_CSUM_END_OFF(hdrp));
 
 		/* store pool's header */
 		util_persist(PART(rep, p)->is_dev_dax, hdrp, sizeof(*hdrp));

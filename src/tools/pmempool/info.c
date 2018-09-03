@@ -821,7 +821,7 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 	outv_field(v, "Last shutdown", "%s",
 			out_get_last_shutdown_str(hdr->sds.dirty));
 	outv_field(v, "Checksum", "%s", out_get_checksum(hdr, sizeof(*hdr),
-			&hdr->checksum, POOL_HDR_CSUM_END_OFF));
+			&hdr->checksum, POOL_HDR_CSUM_END_OFF(hdr)));
 
 	free(hdr);
 

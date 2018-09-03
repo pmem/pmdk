@@ -60,7 +60,7 @@ pool_hdr_valid(struct pool_hdr *hdrp)
 {
 	return !util_is_zeroed((void *)hdrp, sizeof(*hdrp)) &&
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0,
-			POOL_HDR_CSUM_END_OFF);
+			POOL_HDR_CSUM_END_OFF(hdrp));
 }
 
 /*

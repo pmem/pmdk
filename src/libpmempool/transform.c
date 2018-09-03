@@ -667,7 +667,7 @@ update_replica_header(struct pool_set *set, unsigned repn)
 
 	}
 	util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1,
-		POOL_HDR_CSUM_END_OFF);
+		POOL_HDR_CSUM_END_OFF(hdr));
 	util_persist_auto(rep->is_pmem, hdr, sizeof(*hdr));
 }
 
@@ -713,7 +713,7 @@ update_uuids(struct pool_set *set, unsigned repn)
 		memcpy(hdrp->poolset_uuid, hdr0->poolset_uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1,
-			POOL_HDR_CSUM_END_OFF);
+			POOL_HDR_CSUM_END_OFF(hdrp));
 		util_persist(PART(rep, p)->is_dev_dax, hdrp, sizeof(*hdrp));
 	}
 }
