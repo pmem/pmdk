@@ -987,6 +987,8 @@ function require_unlimited_vm() {
 #
 # require_linked_with_ndctl -- require an executable linked with libndctl
 #
+# usage: require_linked_with_ndctl <executable-file>
+#
 function require_linked_with_ndctl() {
 	[ "$1" == "" -o ! -x "$1" ] && \
 		fatal "$UNITTEST_NAME: ERROR: require_linked_with_ndctl() requires one argument - an executable file"
@@ -1009,6 +1011,8 @@ function require_sudo_allowed() {
 
 #
 # require_sudo_allowed_node -- require sudo command on a remote node
+#
+# usage: require_sudo_allowed_node <node-number>
 #
 function require_sudo_allowed_node() {
 	if ! run_on_node $1 "timeout --signal=SIGKILL --kill-after=3s 3s sudo date" >/dev/null 2>&1
@@ -1481,6 +1485,8 @@ function require_command() {
 #
 # require_command_node -- only allow script to continue if specified command exists on a remote node
 #
+# usage: require_command_node <node-number>
+#
 function require_command_node() {
 	if ! run_on_node $1 "which $1 &>/dev/null"; then
 		msg "$UNITTEST_NAME: SKIP: node $1: '$2' command required"
@@ -1491,8 +1497,7 @@ function require_command_node() {
 #
 # require_kernel_module -- only allow script to continue if specified kernel module exists
 #
-# Syntax:
-# require_kernel_module <module_name> [path_to_modinfo]
+# usage: require_kernel_module <module_name> [path_to_modinfo]
 #
 function require_kernel_module() {
 	MODULE=$1
@@ -1527,8 +1532,7 @@ function require_kernel_module() {
 #
 # require_kernel_module_node -- only allow script to continue if specified kernel module exists on a remote node
 #
-# Syntax:
-# require_kernel_module_node <node> <module_name> [path_to_modinfo]
+# usage: require_kernel_module_node <node> <module_name> [path_to_modinfo]
 #
 function require_kernel_module_node() {
 	NODE_N=$1
