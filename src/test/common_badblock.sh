@@ -70,6 +70,9 @@ function ndctl_nfit_test_init_node() {
 # ndctl_nfit_test_fini -- disable all regions, remove the nfit_test module
 #                         and (optionally) umount the pmem block device
 #
+# Input argument:
+# 1) pmem mount directory to be umounted
+#
 function ndctl_nfit_test_fini() {
 	MOUNT_DIR=$1
 	[ $MOUNT_DIR ] && sudo umount $MOUNT_DIR &>> $PREP_LOG_FILE
@@ -80,6 +83,10 @@ function ndctl_nfit_test_fini() {
 # ndctl_nfit_test_fini_node -- disable all regions, remove the nfit_test module
 #                              and (optionally) umount the pmem block device on a remote node
 #
+# Input arguments:
+# 1) node number
+# 2) pmem mount directory to be umounted
+#
 function ndctl_nfit_test_fini_node() {
 	MOUNT_DIR=$2
 	[ $MOUNT_DIR ] && expect_normal_exit run_on_node $1 sudo umount $MOUNT_DIR &>> $PREP_LOG_FILE
@@ -89,7 +96,7 @@ function ndctl_nfit_test_fini_node() {
 #
 # ndctl_nfit_test_mount_pmem -- mount a pmem block device
 #
-# Input argument:
+# Input arguments:
 # 1) path of a pmem block device
 # 2) mount directory
 #
@@ -106,7 +113,7 @@ function ndctl_nfit_test_mount_pmem() {
 #
 # ndctl_nfit_test_mount_pmem_node -- mount a pmem block device on a remote node
 #
-# Input argument:
+# Input arguments:
 # 1) number of a node
 # 2) path of a pmem block device
 # 3) mount directory
@@ -219,7 +226,7 @@ function ndctl_nfit_test_grant_access() {
 #
 # XXX needed by libndctl (it should be removed when these extra access rights are not needed)
 #
-# Input argument:
+# Input arguments:
 # 1) node number
 # 2) name of pmem device
 #
@@ -254,9 +261,9 @@ function ndctl_nfit_test_get_namespace_of_device() {
 #
 # ndctl_nfit_test_get_namespace_of_device_node -- get namespace of the pmem device on a remote node
 #
-# Input argument:
-# 1) a node number
-# 2) a name of pmem device
+# Input arguments:
+# 1) node number
+# 2) name of pmem device
 #
 function ndctl_nfit_test_get_namespace_of_device_node() {
 	DEVICE=$2
