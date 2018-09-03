@@ -10,9 +10,9 @@ alignment                : $(nW)
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)
 UUID                     : $(nW)
 Previous part UUID       : $(nW)
@@ -44,9 +44,9 @@ alignment                : $(nW)
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)
 UUID                     : $(nW)
 Previous part UUID       : $(nW)

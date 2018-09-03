@@ -11,9 +11,9 @@ size                     : $(nW)
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)
 Part file:
 path                     : $(nW)testfile1
@@ -23,9 +23,9 @@ size                     : $(nW)
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)
 Part file:
 path                     : $(nW)testfile2
@@ -35,9 +35,9 @@ size                     : $(nW)
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)
 Part file:
 path                     : $(nW)testfile3
@@ -47,9 +47,9 @@ size                     : $(nW)
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)
 Part file:
 path                     : $(nW)testfile4
@@ -59,9 +59,9 @@ size                     : $(nW)
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)
 Part file:
 path                     : $(nW)testfile5
@@ -71,9 +71,9 @@ size                     : $(nW)
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)
 Part file:
 path                     : $(nW)testfile6
@@ -83,7 +83,7 @@ size                     : $(nW)
 POOL Header:
 Signature                : PMEMOBJ [part file]
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)

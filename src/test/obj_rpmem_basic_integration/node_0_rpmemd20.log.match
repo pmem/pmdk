@@ -14,9 +14,9 @@ create request:
 pool attributes:
     signature: 'PMEMOBJ'
     major: 4
-    compat_features: 0x0
-    incompat_features: 0x0
-    ro_compat_features: 0x0
+    compat_features: 0x$(X)
+    incompat_features: 0x$(X)
+    ro_compat_features: 0x$(X)
     poolset_uuid: $(nW)
     uuid: $(nW)
     next_uuid: $(nW)
