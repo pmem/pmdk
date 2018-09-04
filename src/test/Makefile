@@ -201,7 +201,6 @@ PMEM_TESTS = \
 	pmem_map_file\
 	pmem_has_auto_flush\
 	pmem_deep_persist\
-	pmem_reorder_simple\
 	pmem_memcpy\
 	pmem_memmove\
 	pmem_memset\
@@ -318,6 +317,10 @@ CTO_TESTS = \
 DAXIO_TESTS = \
 	daxio
 
+PMREORDER_TESTS = \
+	pmreorder_simple\
+	pmreorder_stack
+
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
@@ -332,7 +335,8 @@ LOCAL_TESTS = \
 	$(EXAMPLES_TESTS)\
 	$(LIBPMEMPOOL_TESTS)\
 	$(LIBPMEMPOOL_MOD_TESTS)\
-	$(DAXIO_TESTS)
+	$(DAXIO_TESTS)\
+	$(PMREORDER_TESTS)
 
 REMOTE_TESTS = \
 	$(OBJ_REMOTE_TESTS)\

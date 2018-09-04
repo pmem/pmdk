@@ -31,10 +31,10 @@
  */
 
 /*
- * obj_reorder_basic.c -- a simple unit test for store reordering
+ * pmreorder_stack.c -- unit test for engines pmreorder stack
  *
- * usage: obj_reorder_basic file w|c
- * w - write data
+ * usage: pmreorder_stack w|c file
+ * w - write data in a possibly inconsistent manner
  * c - check data consistency
  *
  */
@@ -43,84 +43,111 @@
 #include "util.h"
 #include "valgrind_internal.h"
 
-#define LAYOUT_NAME "intro_1"
-#define MAX_BUF_LEN 10
-#define BUF_VALUE 'a'
+/*
+ * Consistent only if field 'e' is set and field 'f' is not.
+ */
+struct fields {
+	int a;
+	int b;
+	int c;
+	int d;
 
-struct my_root {
-	size_t len;
-	char buf[MAX_BUF_LEN];
+	int e;
+	int f;
+	int g;
+	int h;
+
+	int i;
+	int j;
+	int k;
+	int l;
 };
 
 /*
- * write_consistent -- (internal) write data in a consistent manner
+ * write_fields -- (internal) write data in a consistent manner.
  */
 static void
-write_consistent(struct pmemobjpool *pop)
+write_fields(struct fields *fieldsp)
 {
-	PMEMoid root = pmemobj_root(pop, sizeof(struct my_root));
-	struct my_root *rootp = pmemobj_direct(root);
+	VALGRIND_EMIT_LOG("FIELDS_PACK_TWO.BEGIN");
 
-	char buf[MAX_BUF_LEN];
-	memset(buf, BUF_VALUE, sizeof(buf));
-	buf[MAX_BUF_LEN - 1] = '\0';
+	VALGRIND_EMIT_LOG("FIELDS_PACK_ONE.BEGIN");
 
-	rootp->len = strlen(buf);
-	pmemobj_persist(pop, &rootp->len, sizeof(rootp->len));
+	fieldsp->a = 1;
+	fieldsp->b = 1;
+	fieldsp->c = 1;
+	fieldsp->d = 1;
+	pmem_persist(&fieldsp->a, sizeof(int) * 4);
 
-	pmemobj_memcpy_persist(pop, rootp->buf, buf, rootp->len);
+	VALGRIND_EMIT_LOG("FIELDS_PACK_ONE.END");
+
+	fieldsp->e = 1;
+	fieldsp->f = 1;
+	fieldsp->g = 1;
+	fieldsp->h = 1;
+	pmem_persist(&fieldsp->e, sizeof(int) * 4);
+
+	VALGRIND_EMIT_LOG("FIELDS_PACK_TWO.END");
+
+	fieldsp->i = 1;
+	fieldsp->j = 1;
+	fieldsp->k = 1;
+	fieldsp->l = 1;
+	pmem_persist(&fieldsp->i, sizeof(int) * 4);
 }
 
 /*
- * check_consistency -- (internal) check buf consistency
+ * check_consistency -- (internal) check struct fields consistency.
  */
 static int
-check_consistency(struct pmemobjpool *pop)
+check_consistency(struct fields *fieldsp)
 {
+	int consistency = 1;
+	if (fieldsp->e == 1 && fieldsp->f == 0)
+		consistency = 0;
 
-	PMEMoid root = pmemobj_root(pop, sizeof(struct my_root));
-	struct my_root *rootp = pmemobj_direct(root);
-
-	if (rootp->len == strlen(rootp->buf) && rootp->len != 0)
-		for (int i = 0; i < MAX_BUF_LEN - 1; ++i)
-			if (rootp->buf[i] != BUF_VALUE)
-				return 1;
-
-	return 0;
+	return consistency;
 }
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_reorder_basic");
+	START(argc, argv, "pmreorder_stack");
 
+	VALGRIND_EMIT_LOG("NOT_DEFINED_BY_USER.END");
 	util_init();
 
-	if (argc != 3 || strchr("wc", argv[1][0]) == 0 || argv[1][1] != '\0')
+	if ((argc != 3) || (strchr("wc", argv[1][0]) == NULL) ||
+			argv[1][1] != '\0')
 		UT_FATAL("usage: %s w|c file", argv[0]);
 
-	PMEMobjpool *pop = pmemobj_open(argv[2], LAYOUT_NAME);
-	UT_ASSERT(pop != NULL);
+	int fd = OPEN(argv[2], O_RDWR);
+	size_t size;
+
+	/* mmap and register in valgrind pmemcheck */
+	void *map = pmem_map_file(argv[2], 0, 0, 0, &size, NULL);
+	UT_ASSERTne(map, NULL);
+	UT_ASSERT(size >= sizeof(struct fields));
+
+	struct fields *fieldsp = map;
 
 	char opt = argv[1][0];
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_WRITE.BEGIN");
+
+	/* clear the struct to get a consistent start state for writing */
+	if (strchr("w", opt))
+		pmem_memset_persist(fieldsp, 0, sizeof(*fieldsp));
+
 	switch (opt) {
 		case 'w':
-		{
-			write_consistent(pop);
+			write_fields(fieldsp);
 			break;
-		}
 		case 'c':
-		{
-			int ret = check_consistency(pop);
-			pmemobj_close(pop);
-			END(ret);
-		}
+			return check_consistency(fieldsp);
 		default:
 			UT_FATAL("Unrecognized option %c", opt);
 	}
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_WRITE.END");
 
-	pmemobj_close(pop);
+	CLOSE(fd);
+
 	DONE(NULL);
 }

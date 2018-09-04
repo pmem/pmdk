@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -32,33 +31,13 @@
 #
 
 #
-# src/test/obj_reorder_basic/TEST0 -- unit test for the reordering script
+# src/test/pmreorder_stack/Makefile -- build pmreorder_stack test
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = pmreorder_stack
+OBJS = pmreorder_stack.o
 
-# it doesn't make sense to run in local directory
-require_fs_type pmem non-pmem
-require_build_type debug
-require_test_type medium
-require_pmemcheck_version_ge 1 0
-require_pmreorder
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-setup
-
-export PMEMOBJ_LOG_LEVEL=10
-
-POOL_SIZE=$((32*1024*1024))
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout intro_1 obj $DIR/testfile -s $POOL_SIZE
-
-BIN="./obj_reorder_basic$EXESUFFIX"
-PMEMCHECK_CMD="$BIN w $DIR/testfile"
-PMREORDER_CMD="$BIN c"
-
-pmreorder_create_store_log $DIR/testfile "$PMEMCHECK_CMD"
-pmreorder_expect_success ReorderFull "PMREORDER_MARKER_WRITE=ReorderPartial" "$PMREORDER_CMD"
-
-check
-
-pass
+include ../Makefile.inc

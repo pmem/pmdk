@@ -36,6 +36,7 @@ import statemachine
 import opscontext
 import consistencycheckwrap
 import loggingfacility
+import markerparser
 import sys
 import reorderengines
 
@@ -48,8 +49,8 @@ def main():
                         required=True,
                         help="the pmemcheck log file to process")
     parser.add_argument("-c", "--checker",
-                        required=True,
                         choices=consistencycheckwrap.checkers,
+                        default=consistencycheckwrap.checkers[0],
                         help="choose consistency checker type")
     parser.add_argument("-p", "--path",
                         required=True,
@@ -60,16 +61,19 @@ def main():
                         "for the 'lib' checker")
     parser.add_argument("-o", "--output",
                         help="set the logger output file")
-    parser.add_argument("-e", "--output_level",
+    parser.add_argument("-e", "--output-level",
                         choices=loggingfacility.log_levels,
                         help="set the output log level")
+    parser.add_argument("-x", "--extended-macros",
+                        help="list of pairs MARKER=ENGINE or " +
+                        "json config file")
     engines_keys = list(reorderengines.engines.keys())
-    parser.add_argument("-r", "--default_engine",
-                        help="set default reorder engine, default=full",
+    parser.add_argument("-r", "--default-engine",
+                        help="set default reorder engine " +
+                        "default=NoReorderNoChecker",
                         choices=engines_keys,
                         default=engines_keys[0])
     args = parser.parse_args()
-
     logger = loggingfacility.get_logger(
                                         args.output,
                                         args.output_level)
@@ -77,10 +81,16 @@ def main():
                                                args.checker,
                                                ' '.join(args.path),
                                                args.name)
-    engine = reorderengines.get_engine(args.default_engine)
+
+    markers = markerparser.MarkerParser().get_markers(args.extended_macros)
 
     # create the script context
-    context = opscontext.OpsContext(args.logfile, checker, logger, engine)
+    context = opscontext.OpsContext(
+                                    args.logfile,
+                                    checker,
+                                    logger,
+                                    args.default_engine,
+                                    markers)
 
     # init and run the state machine
     a = statemachine.StateMachine(statemachine.InitState(context))

@@ -31,9 +31,9 @@
  */
 
 /*
- * pmem_reorder_simple.c -- a simple unit test for store reordering
+ * pmreorder_simple.c -- a simple unit test for store reordering
  *
- * usage: pmem_reorder_simple g|b|c file
+ * usage: pmreorder_simple g|b|c file
  * g - write data in a consistent manner
  * b - write data in a possibly inconsistent manner
  * c - check data consistency
@@ -98,7 +98,7 @@ check_consistency(struct three_field *structp)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem_reorder_simple");
+	START(argc, argv, "pmreorder_simple");
 
 	util_init();
 
@@ -115,14 +115,13 @@ main(int argc, char *argv[])
 	struct three_field *structp = map;
 
 	char opt = argv[1][0];
+
 	/* clear the struct to get a consistent start state for writing */
 	if (strchr("gb", opt))
-		memset(structp, 0, sizeof(*structp));
+		pmem_memset_persist(structp, 0, sizeof(*structp));
 
-	VALGRIND_LOG_STORES;
-	/* verify that VALGRIND_DEFAULT_REORDER restores default engine */
-	VALGRIND_EMIT_LOG("PREORDER");
-	VALGRIND_EMIT_LOG("DEFAULT_REORDER");
+	/* verify that DEFAULT_REORDER restores default engine */
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_CHANGE.BEGIN");
 
 	switch (opt) {
 		case 'g':
@@ -136,8 +135,11 @@ main(int argc, char *argv[])
 		default:
 			UT_FATAL("Unrecognized option %c", opt);
 	}
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_CHANGE.END");
 
-	VALGRIND_NO_LOG_STORES;
+	/* check if undefined marker will not cause an issue */
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_UNDEFINED.BEGIN");
+	VALGRIND_EMIT_LOG("PMREORDER_MARKER_UNDEFINED.END");
 
 	CLOSE(fd);
 

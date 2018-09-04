@@ -40,6 +40,8 @@ import collections
 
 
 class FullReorderEngine:
+    def __init__(self):
+        self.test_on_barrier = True
     """
     Realizes a full reordering of stores within a given list.
     Example:
@@ -78,6 +80,8 @@ class FullReorderEngine:
 
 
 class AccumulativeReorderEngine:
+    def __init__(self):
+        self.test_on_barrier = True
     """
     Realizes an accumulative reorder of stores within a given list.
     Example:
@@ -104,6 +108,35 @@ class AccumulativeReorderEngine:
             yield out_list
 
 
+class AccumulativeReverseReorderEngine:
+    def __init__(self):
+        self.test_on_barrier = True
+    """
+    Realizes an accumulative reorder of stores
+    within a given list in reverse order.
+    Example:
+        input: (a, b, c)
+        output:
+               ()
+               ('c')
+               ('c', 'b')
+               ('c', 'b', 'a')
+    """
+    def generate_sequence(self, store_list):
+        """
+        Reverse all elements order and
+        generates all accumulative lists.
+
+        :param store_list: The list of stores to be reordered.
+        :type store_list: list of :class:`memoryoperations.Store`
+        :return: Yields all accumulative combinations of stores.
+        :rtype: iterable
+        """
+        store_list = list(reversed(store_list))
+        for i in range(len(store_list) + 1):
+            yield [store_list[j] for j in range(i)]
+
+
 class SlicePartialReorderEngine:
     """
     Generates a slice of the full reordering of stores within a given list.
@@ -125,6 +158,7 @@ class SlicePartialReorderEngine:
         self._start = start
         self._stop = stop
         self._step = step
+        self.test_on_barrier = True
 
     def generate_sequence(self, store_list):
         """
@@ -181,6 +215,7 @@ class FilterPartialReorderEngine:
         """
         self._filter = func
         self._filter_kwargs = kwargs
+        self.test_on_barrier = True
 
     @staticmethod
     def filter_min_elem(store_list, **kwargs):
@@ -244,6 +279,7 @@ class RandomPartialReorderEngine:
 
         :param max_seq: The number of combinations to be generated.
         """
+        self.test_on_barrier = True
         self._max_seq = max_seq
 
     def generate_sequence(self, store_list):
@@ -270,6 +306,8 @@ class RandomPartialReorderEngine:
 
 
 class NoReorderEngine:
+    def __init__(self):
+        self.test_on_barrier = True
     """
     A NULL reorder engine.
     Example:
@@ -281,7 +319,29 @@ class NoReorderEngine:
         This generator does not modify the provided store list.
 
         :param store_list: The list of stores to be reordered.
-        :type store_list: list of :class:`memoryoperations.Store`
+        :type store_list: The list of :class:`memoryoperations.Store`
+        :return: The unmodified list of stores.
+        :rtype: iterable
+        """
+        return [store_list]
+
+
+class NoCheckerEngine:
+    def __init__(self):
+        self.test_on_barrier = False
+    """
+    A NULL reorder engine.
+    Example:
+        input: (a, b, c)
+        output: (a, b, c)
+    """
+    def generate_sequence(self, store_list):
+        """
+        This generator does not modify the provided store list
+        and does not do the check.
+
+        :param store_list: The list of stores to be reordered.
+        :type store_list: The list of :class:`memoryoperations.Store`
         :return: The unmodified list of stores.
         :rtype: iterable
         """
@@ -300,7 +360,9 @@ def get_engine(engine):
 
 
 engines = collections.OrderedDict([
-           ('full', FullReorderEngine),
-           ('noreorder', NoReorderEngine),
-           ('accumulative', AccumulativeReorderEngine),
-           ('partial', RandomPartialReorderEngine)])
+           ('NoReorderNoCheck', NoCheckerEngine),
+           ('ReorderFull', FullReorderEngine),
+           ('NoReorderDoCheck', NoReorderEngine),
+           ('ReorderAccumulative', AccumulativeReorderEngine),
+           ('ReorderReverseAccumulative', AccumulativeReverseReorderEngine),
+           ('ReorderPartial', RandomPartialReorderEngine)])
