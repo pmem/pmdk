@@ -111,7 +111,6 @@
     <ClInclude Include="container_ravl.h" />
     <ClInclude Include="container_seglists.h" />
     <ClInclude Include="memblock.h" />
-    <ClInclude Include="pvector.h" />
     <ClInclude Include="recycler.h" />
     <ClInclude Include="stats.h" />
     <ClInclude Include="sync.h" />

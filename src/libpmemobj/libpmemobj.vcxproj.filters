@@ -297,9 +297,6 @@
     <ClInclude Include="memblock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="pvector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="recycler.h">
       <Filter>Header Files</Filter>
     </ClInclude>

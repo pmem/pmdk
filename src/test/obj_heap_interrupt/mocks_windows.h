@@ -44,5 +44,5 @@
  */
 
 #ifndef WRAP_REAL
-#define operation_process __wrap_operation_process
+#define operation_finish __wrap_operation_finish
 #endif

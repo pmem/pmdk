@@ -209,20 +209,7 @@ alloc_redo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 {
 	PMEMobjpool *pop = base;
 	const struct pmem_ops *p_ops = &pop->p_ops;
-	VALGRIND_ADD_TO_TX(ptr, usable_size);
-
-	struct ulog *redo = ptr;
-	redo->capacity = PMALLOC_REDO_LOG_EXTEND_SIZE;
-	redo->checksum = 0;
-	redo->next = 0;
-	memset(redo->unused, 0, sizeof(redo->unused));
-
-	pmemops_flush(p_ops, redo, sizeof(*redo));
-
-	pmemops_memset(p_ops, redo->data, 0,
-		usable_size - sizeof(*redo), 0);
-
-	VALGRIND_REMOVE_FROM_TX(ptr, usable_size);
+	ulog_construct(ptr, PMALLOC_REDO_LOG_EXTEND_SIZE, p_ops);
 
 	return 0;
 }

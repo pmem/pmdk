@@ -69,16 +69,7 @@ redo_log_constructor(void *ctx, void *ptr, size_t usable_size, void *arg)
 	PMEMobjpool *pop = ctx;
 	const struct pmem_ops *p_ops = &pop->p_ops;
 
-	struct ulog *ulog = ptr;
-	ulog->capacity = TEST_ENTRIES;
-	ulog->checksum = 0;
-	ulog->next = 0;
-	memset(ulog->unused, 0, sizeof(ulog->unused));
-
-	pmemops_flush(p_ops, ulog, sizeof(*ulog));
-
-	pmemops_memset(p_ops, ulog->data, 0,
-		usable_size - sizeof(*ulog), 0);
+	ulog_construct(ptr, TEST_ENTRIES, p_ops);
 
 	return 0;
 }
@@ -413,6 +404,7 @@ main(int argc, char *argv[])
 	struct test_object *object =
 		pmemobj_direct(pmemobj_root(pop, sizeof(struct test_object)));
 	UT_ASSERTne(object, NULL);
+	ulog_construct((struct ulog *)&object->undo, TEST_ENTRIES, &pop->p_ops);
 
 	test_redo(pop, object);
 	test_undo(pop, object);
