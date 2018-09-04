@@ -237,7 +237,7 @@ FUNC_MOCK_RUN_DEFAULT
 	struct lane_list_layout *layout =
 		(struct lane_list_layout *)Lane_section.layout;
 	Lane_section.runtime = operation_new((struct ulog *)&layout->redo,
-		LIST_REDO_LOG_SIZE, NULL, p_ops, LOG_TYPE_REDO);
+		LIST_REDO_LOG_SIZE, NULL, NULL, p_ops, LOG_TYPE_REDO);
 
 	return Pop;
 }
