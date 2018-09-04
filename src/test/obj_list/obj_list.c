@@ -63,7 +63,7 @@ struct lane_section Lane_section;
 int *Id;
 
 /* fail event */
-enum redo_fail Redo_fail = NO_FAIL;
+enum ulog_fail Ulog_fail = NO_FAIL;
 
 /* global "in band" lists */
 TOID(struct list) List;
@@ -382,11 +382,11 @@ static void
 do_fail(PMEMobjpool *pop, const char *arg)
 {
 	if (strcmp(arg, "F:before_finish") == 0) {
-		Redo_fail = FAIL_BEFORE_FINISH;
+		Ulog_fail = FAIL_BEFORE_FINISH;
 	} else if (strcmp(arg, "F:after_finish") == 0) {
-		Redo_fail = FAIL_AFTER_FINISH;
+		Ulog_fail = FAIL_AFTER_FINISH;
 	} else if (strcmp(arg, "F:after_process") == 0) {
-		Redo_fail = FAIL_AFTER_PROCESS;
+		Ulog_fail = FAIL_AFTER_PROCESS;
 	} else {
 		FATAL_USAGE_FAIL();
 	}
