@@ -64,7 +64,8 @@ struct operation_log {
 struct operation_context {
 	enum log_type type;
 
-	ulog_extend_fn extend; /* function to allocate next ulog logs */
+	ulog_extend_fn extend; /* function to allocate next ulog */
+	ulog_free_fn ulog_free; /* function to free next ulogs */
 
 	const struct pmem_ops *p_ops;
 	struct pmem_ops t_ops; /* used for transient data processing */
@@ -165,7 +166,8 @@ operation_transient_memcpy(void *base, void *dest, const void *src, size_t len,
  */
 struct operation_context *
 operation_new(struct ulog *ulog, size_t ulog_base_nbytes,
-	ulog_extend_fn extend, const struct pmem_ops *p_ops, enum log_type type)
+	ulog_extend_fn extend, ulog_free_fn ulog_free,
+	const struct pmem_ops *p_ops, enum log_type type)
 {
 	struct operation_context *ctx = Zalloc(sizeof(*ctx));
 	if (ctx == NULL)
@@ -176,6 +178,7 @@ operation_new(struct ulog *ulog, size_t ulog_base_nbytes,
 	ctx->ulog_capacity = ulog_capacity(ulog,
 		ulog_base_nbytes, p_ops);
 	ctx->extend = extend;
+	ctx->ulog_free = ulog_free;
 	ctx->in_progress = 0;
 	VEC_INIT(&ctx->next);
 	ulog_rebuild_next_vec(ulog, &ctx->next, p_ops);
@@ -562,6 +565,11 @@ operation_finish(struct operation_context *ctx)
 	} else if (ctx->type == LOG_TYPE_UNDO && ctx->total_logged != 0) {
 		ulog_clobber_data(ctx->ulog,
 			ctx->total_logged, ctx->ulog_base_nbytes,
-			&ctx->next, ctx->p_ops);
+			&ctx->next, ctx->ulog_free, ctx->p_ops);
+		/* clobbering might have shrunk the ulog */
+		ctx->ulog_capacity = ulog_capacity(ctx->ulog,
+			ctx->ulog_base_nbytes, ctx->p_ops);
+		VEC_CLEAR(&ctx->next);
+		ulog_rebuild_next_vec(ctx->ulog, &ctx->next, ctx->p_ops);
 	}
 }

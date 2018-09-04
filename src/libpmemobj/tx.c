@@ -409,7 +409,8 @@ static struct operation_context *
 tx_create_undo_context(PMEMobjpool *pop, struct lane_tx_layout *layout)
 {
 	return operation_new((struct ulog *)&layout->undo, TX_UNDO_LOG_SIZE,
-		tx_undo_extend, &pop->p_ops, LOG_TYPE_UNDO);
+		tx_undo_extend, (ulog_free_fn)pfree,
+		&pop->p_ops, LOG_TYPE_UNDO);
 }
 
 /*

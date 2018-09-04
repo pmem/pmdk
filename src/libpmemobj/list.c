@@ -1033,7 +1033,7 @@ lane_list_construct_rt(PMEMobjpool *pop, void *data)
 {
 	struct lane_list_layout *layout = data;
 	return operation_new((struct ulog *)&layout->redo,
-		LIST_REDO_LOG_SIZE, NULL, &pop->p_ops, LOG_TYPE_REDO);
+		LIST_REDO_LOG_SIZE, NULL, NULL, &pop->p_ops, LOG_TYPE_REDO);
 }
 
 /*

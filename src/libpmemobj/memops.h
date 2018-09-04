@@ -67,8 +67,8 @@ struct operation_context;
 
 struct operation_context *
 operation_new(struct ulog *redo, size_t ulog_base_nbytes,
-	ulog_extend_fn extend, const struct pmem_ops *p_ops,
-	enum log_type type);
+	ulog_extend_fn extend, ulog_free_fn ulog_free,
+	const struct pmem_ops *p_ops, enum log_type type);
 
 void operation_init(struct operation_context *ctx);
 void operation_start(struct operation_context *ctx);
