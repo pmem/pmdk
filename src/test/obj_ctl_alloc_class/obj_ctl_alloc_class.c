@@ -51,7 +51,7 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 
-	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL * 10,
+	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL * 20,
 		S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
@@ -239,6 +239,23 @@ main(int argc, char *argv[])
 	ret = pmemobj_xalloc(pop, &oid, s + 1, 0,
 		POBJ_CLASS_ID(alloc_class_new_loop.class_id), NULL, NULL);
 	UT_ASSERTne(ret, 0);
+
+	struct pobj_alloc_class_desc alloc_class_tiny;
+	alloc_class_tiny.header_type = POBJ_HEADER_NONE;
+	alloc_class_tiny.unit_size = 7;
+	alloc_class_tiny.units_per_block = 1000;
+	alloc_class_tiny.class_id = 0;
+	alloc_class_tiny.alignment = 0;
+
+	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
+		&alloc_class_tiny);
+	UT_ASSERTeq(ret, 0);
+
+	for (int i = 0; i < 1000; ++i) {
+		ret = pmemobj_xalloc(pop, &oid, 7, 0,
+			POBJ_CLASS_ID(alloc_class_tiny.class_id), NULL, NULL);
+		UT_ASSERTeq(ret, 0);
+	}
 
 	pmemobj_close(pop);
 
