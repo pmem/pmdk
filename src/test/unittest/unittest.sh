@@ -3069,8 +3069,8 @@ function require_pmemcheck_version_ge()
 	fi
 
 	msg "$UNITTEST_NAME: SKIP pmemcheck API version:" \
-		"$PMEMCHECK_MAJOR.$PMEMCHECK_MINOR " \
-		"is less than required " \
+		"$PMEMCHECK_MAJOR.$PMEMCHECK_MINOR" \
+		"is less than required" \
 		"$REQUIRE_MAJOR.$REQUIRE_MINOR"
 
 	exit 0
@@ -3101,8 +3101,8 @@ function require_pmemcheck_version_lt()
 	fi
 
 	msg "$UNITTEST_NAME: SKIP pmemcheck API version:" \
-		"$PMEMCHECK_MAJOR.$PMEMCHECK_MINOR " \
-		"is greater or equal than required " \
+		"$PMEMCHECK_MAJOR.$PMEMCHECK_MINOR" \
+		"is greater or equal than" \
 		"$REQUIRE_MAJOR.$REQUIRE_MINOR"
 
 	exit 0
