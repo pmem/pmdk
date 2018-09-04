@@ -42,7 +42,6 @@
 #include "sync.h"
 #include "heap_layout.h"
 #include "lane.h"
-#include "pvector.h"
 #include "tx.h"
 #include "ulog.h"
 #include "list.h"
@@ -63,7 +62,6 @@
 #define SIZEOF_LIST_HEAD_V3 (SIZEOF_PMEMOID_V3 + SIZEOF_LOCK_V3)
 #define SIZEOF_LANE_SECTION_V3 (1024)
 #define SIZEOF_LANE_V3 (3 * SIZEOF_LANE_SECTION_V3)
-#define SIZEOF_PVECTOR_V3 (224)
 #define SIZEOF_ULOG_V4 (64)
 #define SIZEOF_ULOG_BASE_ENTRY_V4 (8)
 #define SIZEOF_ULOG_VAL_ENTRY_V4 (16)
@@ -265,13 +263,6 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_CHECK(struct lane_section_layout);
 	UT_COMPILE_ERROR_ON(sizeof(struct lane_section_layout) !=
 		SIZEOF_LANE_SECTION_V3);
-
-	ASSERT_ALIGNED_BEGIN(struct pvector);
-	ASSERT_ALIGNED_FIELD(struct pvector, arrays);
-	ASSERT_ALIGNED_FIELD(struct pvector, embedded);
-	ASSERT_ALIGNED_CHECK(struct pvector);
-	UT_COMPILE_ERROR_ON(sizeof(struct pvector) !=
-		SIZEOF_PVECTOR_V3);
 
 	DONE(NULL);
 }
