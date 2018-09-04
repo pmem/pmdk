@@ -182,8 +182,8 @@ main(int argc, char *argv[])
 
 	ASSERT_ALIGNED_BEGIN(struct ulog_entry_buf);
 	ASSERT_ALIGNED_FIELD(struct ulog_entry_buf, base);
-	ASSERT_ALIGNED_FIELD(struct ulog_entry_buf, size);
 	ASSERT_ALIGNED_FIELD(struct ulog_entry_buf, checksum);
+	ASSERT_ALIGNED_FIELD(struct ulog_entry_buf, size);
 	ASSERT_ALIGNED_CHECK(struct ulog_entry_buf);
 	UT_COMPILE_ERROR_ON(sizeof(struct ulog_entry_buf) !=
 		SIZEOF_ULOG_BUF_ENTRY_V4);
