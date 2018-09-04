@@ -39,12 +39,17 @@ date: pmreorder version 1.5
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
+[OPTIONS](#options)<br />
+[ENGINES](#engines)<br />
+[INSTRUMENTATION](#instrumentation)<br />
+[PMEMCHECK STORE LOG](#pmemcheck-store-log)<br />
+[EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
 
 # NAME #
 
-**pmreorder** -- performs a persistent consistency check
+**pmreorder** - performs a persistent consistency check
 		 using a store reordering mechanism
 
 
@@ -71,8 +76,242 @@ Considering that logging, replaying and reordering of operations
 is very time consuming, it is recommended to use as few stores as
 possible in test workloads.
 
-**pmreorder** core functionality is still under construction.
-Please expect man page update soon.
+
+# OPTIONS #
+
+`-h, --help`
+Prints synopsis and list of options.
+
+`-l <store_log>, --logfile <store_log>`
+The pmemcheck log file to process.
+
+`-c <prog|lib>, --checker <prog|lib>`
+Consistency checker type.
+
+`-p <path>, --path <path>`
+Path to the consistency checker.
+
+`-n <name>, --name <name>`
+The symbol name of the consistency checking function
+in the library. Valid only if the checker type is `lib`.
+
+`-o <pmreorder_output>, --output <pmreorder_output>`
+Set the logger output file.
+
+`-e <debug|info|warning|error|critical>,
+ --output-level <debug|info|warning|error|critical>`
+Set the output log level.
+
+`-r  <NoReorderNoCheck|
+      NoReorderDoCheck|
+      ReorderFull|
+      ReorderPartial|
+      ReorderAccumulative|
+      ReorderReverseAccumulative>,
+ --default-engine  <NoReorderNoCheck|
+		    NoReorderDoCheck|
+		    ReorderFull|
+		    ReorderPartial|
+		    ReorderAccumulative|
+		    ReorderReverseAccumulative>`
+Set the initial reorder engine. Default value is `NoReorderNoCheck`.
+
+`-x <cli_macros|config_file>, --extended-macros <cli_macros|config_file>`
+Assign an engine types to the defined marker.
+
+
+# ENGINES #
+
+By default, the **NoReorderNoCheck** engine is used,
+which means that for each set of stores, the tool
+will pass-through all sequences of stores not reordered
+and does not run consistency checker on them.
+
+To enable different types of the reorder engine and
+begin proper reordering tests, a number of other
+engines exist:
+
++ **NoReorderDoCheck** - pass-through of unchanged operations.
+Checks correctness of the stores as they were logged.
+Useful for operations that do not require fail safety.
+
+```
+Example:
+        input: (a, b, c)
+        output: (a, b, c)
+```
+
++ **ReorderAccumulative** - checks correctness on a growing
+subset of the original sequence.
+
+```
+Example:
+        input: (a, b, c)
+        output:
+               ()
+               (a)
+               (a, b)
+               (a, b, c)
+```
+
++ **ReorderReverseAccumulative** - checks correctness on a reverted growing
+subset of the original sequence.
+
+```
+Example:
+        input: (a, b, c)
+        output:
+               ()
+               (c)
+               (c, b)
+               (c, b, a)
+```
+
++ **ReorderPartial** - checks consistency on 3 randomly selected sequences
+from a set of 1000 combination without repetition of the original log.
+
+```
+ Example:
+         input: (a, b, c)
+         output:
+                (b, c)
+                (b)
+                (a, b, c)
+```
+
++ **ReorderFull** - for each set of stores generates and checks consistency
+of all possible store permutations.
+This might prove to be very computationally expensive for most workloads.
+It can be useful for critical sections of code with limited number of stores.
+
+```
+ Example:
+        input: (a, b, c)
+        output:
+               ()
+               (a)
+               (b)
+               (c)
+               (a, b)
+               (a, c)
+               (b, a)
+               (b, c)
+               (c, a)
+               (c, b)
+               (a, b, c)
+               (a, c, b)
+               (b, a, c)
+               (b, c, a)
+               (c, a, b)
+               (c, b, a)
+```
+
+When the engine is passed with an `-r` option, it will be used
+for each logged set of stores.
+Additionaly, the `-x` parameter can be used to switch engines
+separately for any marked code sections.
+For more details about `-x` extended macros functionality see section
+INSTRUMENTATION below.
+
+
+# INSTRUMENTATION #
+
+The core of **pmreorder** is based on user-provided named markers.
+Sections of code can be 'marked' depending on their importance,
+and the degree of reordering can be customized by the use of various
+provided engines.
+
+For this purpose, Valgrind's pmemcheck tool exposes a
+generic marker macro:
+
++ **VALGRIND_EMIT_LOG(value)**
+
+It emits log to *store_log* during pmemcheck processing.
+*value* is a user-defined marker name.
+For more details about pmemcheck execution see
+PMEMCHECK STORE LOG section below.
+
+Example:
+```
+main.c
+.
+.
+.
+VALGRIND_EMIT_LOG("PMREORDER_MEMSET_PERSIST.BEGIN");
+
+pmem_memset_persist(...);
+
+VALGRIND_EMIT_LOG("PMREORDER_MEMSET_PERSIST.END");
+.
+.
+.
+```
+
+There are a few rules for macros creation:
+
++ Valid macro can have any name,
+but begin and end section have to match -
+they are case sensitive.
++ Macro must have `.BEGIN` or `.END` suffix.
++ Macros can't be crossed.
+
+Defined markers can be assigned engines types and configured
+through the **pmreorder** tool using the `-x` parameter.
+
+There are two ways to set macro options:
+
++ Using command line interface in format:
+```PMREORDER_MARKER_NAME1=ReorderName1,PMREORDER_MARKER_NAME2=ReorderName2```
+
++ Using configutation file in .json format:
+```
+{
+    "PMREORDER_MARKER_NAME1"="ReorderName1",
+    "PMREORDER_MARKER_NAME2"="ReorderName2"
+}
+```
+
+For more details about available
+engines types, see ENGINES section above.
+
+
+# PMEMCHECK STORE LOG #
+
+To generate *store_log* for **pmreorder** run pmemcheck
+with additional parameters:
+
+```
+valgrind \
+	--tool=pmemcheck \
+	-q \
+	--log-stores=yes \
+	--print-summary=no \
+	--log-file=store_log.log \
+	--log-stores-stacktraces=yes \
+	--log-stores-stacktraces-depth=2 \
+	--expect-fence-after-clflush=yes \
+	test_binary writer_parameter
+```
+
+For further details of pmemcheck parameters see [pmemcheck documentation](https://github.com/pmem/valgrind/blob/pmem-3.13/pmemcheck/docs/pmc-manual.xml)
+
+
+# EXAMPLE #
+
+```
+python pmreorder.py \
+		-l store_log.log \
+		-r NoReorderDoCheck \
+		-o pmreorder_out.log \
+		-c prog \
+		-x PMREORDER_MARKER_NAME=ReorderPartial \
+		-p test_binary checker_parameter
+```
+
+Checker function has to return 0 for consistent cases and 1 for other.
+
+Any inconsistent stores found during **pmreorder** analysis
+are logged to `pmreorder_out.log`.
 
 
 # SEE ALSO #
