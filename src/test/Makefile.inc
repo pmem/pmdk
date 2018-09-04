@@ -305,7 +305,7 @@ COMMON_FLAGS += -Wall
 COMMON_FLAGS += -Werror
 COMMON_FLAGS += -Wpointer-arith
 
-ifeq ($(call check_compiler, icc), n)
+ifeq ($(IS_ICC), n)
 COMMON_FLAGS += -Wunused-macros
 endif
 COMMON_FLAGS += -fno-common
@@ -319,23 +319,27 @@ CXXFLAGS += $(EXTRA_CXXFLAGS)
 CFLAGS  = -std=gnu99
 CFLAGS += -Wmissing-prototypes
 CFLAGS += $(COMMON_FLAGS)
+
 ifneq ($(USING_JEMALLOC_HEADERS),y)
 CFLAGS += -Wsign-conversion
 endif
-ifeq ($(call check_compiler, icc), n)
-ifeq ($(call check_flag, -Wunreachable-code-return), y)
+
+ifeq ($(WUNREACHABLE_CODE_RETURN_AVAILABLE), y)
 CFLAGS += -Wunreachable-code-return
 endif
-ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+
+ifeq ($(WMISSING_VARIABLE_DECLARATIONS_AVAILABLE), y)
 CFLAGS += -Wmissing-variable-declarations
 endif
-ifeq ($(call check_flag, -Wfloat-equal), y)
+
+ifeq ($(WFLOAT_EQUAL_AVAILABLE), y)
 CFLAGS += -Wfloat-equal
 endif
-ifeq ($(call check_flag, -Wcast-function-type), y)
+
+ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
 CFLAGS += -Wcast-function-type
 endif
-endif
+
 CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
