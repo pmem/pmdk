@@ -174,7 +174,7 @@ consistent. Any inconsistencies found will cause **pmemobj_checkU**()/**pmemobj_
 return 0, in which case the use of the file with **libpmemobj**(7) will result
 in undefined behavior. The debug version of **libpmemobj**(7) will provide
 additional details on inconsistencies when **PMEMOBJ_LOG_LEVEL** is at least 1,
-asdescribed in the **DEBUGGING AND ERROR HANDLING** section in
+as described in the **DEBUGGING AND ERROR HANDLING** section in
 **libpmemobj**(7). **pmemobj_checkU**()/**pmemobj_checkW**() returns -1 and sets *errno* if it cannot
 perform the consistency check due to other errors.
 
