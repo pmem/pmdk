@@ -38,6 +38,7 @@
 #include <stddef.h>
 #include "obj.h"
 #include "memops.h"
+#include "ulog.h"
 #include "unittest.h"
 
 #define TEST_ENTRIES 256
@@ -174,7 +175,7 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 {
 	struct operation_context *ctx = operation_new(
 		(struct ulog *)&object->redo, TEST_ENTRIES,
-		pmalloc_redo_extend, &pop->p_ops, LOG_TYPE_REDO);
+		pmalloc_redo_extend, NULL, &pop->p_ops, LOG_TYPE_REDO);
 
 	test_set_entries(pop, ctx, object, 10, FAIL_NONE);
 	clear_test_values(object);
@@ -198,7 +199,7 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 	/* verify that rebuilding redo_next works */
 	ctx = operation_new(
 		(struct ulog *)&object->redo, TEST_ENTRIES,
-		NULL, &pop->p_ops, LOG_TYPE_REDO);
+		NULL, NULL, &pop->p_ops, LOG_TYPE_REDO);
 
 	test_set_entries(pop, ctx, object, 100, 0);
 	clear_test_values(object);
@@ -373,7 +374,8 @@ test_undo(PMEMobjpool *pop, struct test_object *object)
 {
 	struct operation_context *ctx = operation_new(
 		(struct ulog *)&object->undo, TEST_ENTRIES,
-		pmalloc_redo_extend, &pop->p_ops, LOG_TYPE_UNDO);
+		pmalloc_redo_extend, (ulog_free_fn)pfree,
+		&pop->p_ops, LOG_TYPE_UNDO);
 
 	test_undo_small_single_copy(ctx, object);
 	test_undo_small_single_set(ctx, object);
@@ -381,6 +383,13 @@ test_undo(PMEMobjpool *pop, struct test_object *object)
 	test_undo_large_copy(ctx, object);
 	test_undo_checksum_mismatch(ctx, object,
 		(struct ulog *)&object->undo);
+
+	/* undo logs are clobbered at the end, which shrinks their size */
+	size_t capacity = ulog_capacity((struct ulog *)&object->undo,
+		TEST_ENTRIES, &pop->p_ops);
+
+	/* builtin log + one next */
+	UT_ASSERTeq(capacity, TEST_ENTRIES * 2);
 
 	operation_delete(ctx);
 }
