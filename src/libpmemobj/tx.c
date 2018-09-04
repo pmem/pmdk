@@ -115,7 +115,6 @@ struct tx_range_def {
 
 struct tx_parameters {
 	size_t cache_size;
-	size_t cache_threshold;
 };
 
 /*
@@ -147,7 +146,6 @@ tx_params_new(void)
 		return NULL;
 
 	tx_params->cache_size = TX_DEFAULT_RANGE_CACHE_SIZE;
-	tx_params->cache_threshold = TX_DEFAULT_RANGE_CACHE_THRESHOLD;
 
 	return tx_params;
 }
@@ -1835,8 +1833,6 @@ CTL_WRITE_HANDLER(size)(void *ctx,
 	size_t argu = (size_t)arg_in;
 
 	pop->tx_params->cache_size = argu;
-	if (pop->tx_params->cache_threshold > argu)
-		pop->tx_params->cache_threshold = argu;
 
 	return 0;
 }
@@ -1850,34 +1846,19 @@ static int
 CTL_READ_HANDLER(threshold)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
-	PMEMobjpool *pop = ctx;
-
-	ssize_t *arg_out = arg;
-
-	*arg_out = (ssize_t)pop->tx_params->cache_threshold;
+	LOG(1, "tx.cache.threshold parameter is depracated");
 
 	return 0;
 }
 
 /*
- * CTL_WRITE_HANDLER(threshold) --
- *	sets the cache threshold transaction parameter
+ * CTL_WRITE_HANDLER(threshold) -- depracated
  */
 static int
 CTL_WRITE_HANDLER(threshold)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
-	PMEMobjpool *pop = ctx;
-
-	ssize_t arg_in = *(int *)arg;
-
-	if (arg_in < 0 || arg_in > (ssize_t)pop->tx_params->cache_size) {
-		errno = EINVAL;
-		ERR("invalid threshold size, must be between 0 and cache size");
-		return -1;
-	}
-
-	pop->tx_params->cache_threshold = (size_t)arg_in;
+	LOG(1, "tx.cache.threshold parameter is depracated");
 
 	return 0;
 }
