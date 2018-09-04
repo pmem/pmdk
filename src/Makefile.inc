@@ -53,31 +53,37 @@ DEFAULT_CFLAGS += -Wmissing-prototypes
 DEFAULT_CFLAGS += -Wpointer-arith
 DEFAULT_CFLAGS += -Wsign-conversion
 DEFAULT_CFLAGS += -Wsign-compare
-ifeq ($(call check_Wconversion), y)
+
+ifeq ($(WCONVERSION_AVAILABLE), y)
 DEFAULT_CFLAGS += -Wconversion
 endif
 
-ifeq ($(call check_compiler, icc), n)
+ifeq ($(IS_ICC), n)
 DEFAULT_CFLAGS += -Wunused-macros
 DEFAULT_CFLAGS += -Wmissing-field-initializers
-ifeq ($(call check_flag, -Wunreachable-code-return), y)
-DEFAULT_CFLAGS += -Wunreachable-code-return
-endif
-ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
-DEFAULT_CFLAGS += -Wmissing-variable-declarations
-endif
-ifeq ($(call check_flag, -Wfloat-equal), y)
-DEFAULT_CFLAGS += -Wfloat-equal
-endif
-ifeq ($(call check_flag, -Wswitch-default), y)
-DEFAULT_CFLAGS += -Wswitch-default
-endif
-ifeq ($(call check_flag, -Wcast-function-type), y)
-DEFAULT_CFLAGS += -Wcast-function-type
-endif
 endif
 
-ifeq ($(call check_flag, -Wstringop-truncation), y)
+ifeq ($(WUNREACHABLE_CODE_RETURN_AVAILABLE), y)
+DEFAULT_CFLAGS += -Wunreachable-code-return
+endif
+
+ifeq ($(WMISSING_VARIABLE_DECLARATIONS_AVAILABLE), y)
+DEFAULT_CFLAGS += -Wmissing-variable-declarations
+endif
+
+ifeq ($(WFLOAT_EQUAL_AVAILABLE), y)
+DEFAULT_CFLAGS += -Wfloat-equal
+endif
+
+ifeq ($(WSWITCH_DEFAULT_AVAILABLE), y)
+DEFAULT_CFLAGS += -Wswitch-default
+endif
+
+ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
+DEFAULT_CFLAGS += -Wcast-function-type
+endif
+
+ifeq ($(WSTRINGOP_TRUNCATION_AVAILABLE), y)
 DEFAULT_CFLAGS += -DSTRINGOP_TRUNCATION_SUPPORTED
 endif
 

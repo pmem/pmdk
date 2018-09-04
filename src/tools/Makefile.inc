@@ -47,31 +47,38 @@ CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
 CFLAGS += -Wsign-conversion
 CFLAGS += -Wsign-compare
-ifeq ($(call check_Wconversion), y)
+
+ifeq ($(WCONVERSION_AVAILABLE), y)
 CFLAGS += -Wconversion
 endif
+
 CFLAGS += -fno-common
 
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
-ifeq ($(call check_compiler, icc), n)
+ifeq ($(IS_ICC), n)
 CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
-ifeq ($(call check_flag, -Wunreachable-code-return), y)
+endif
+
+ifeq ($(WUNREACHABLE_CODE_RETURN_AVAILABLE), y)
 CFLAGS += -Wunreachable-code-return
 endif
-ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+
+ifeq ($(WMISSING_VARIABLE_DECLARATIONS_AVAILABLE), y)
 CFLAGS += -Wmissing-variable-declarations
 endif
-ifeq ($(call check_flag, -Wfloat-equal), y)
+
+ifeq ($(WFLOAT_EQUAL_AVAILABLE), y)
 CFLAGS += -Wfloat-equal
 endif
-ifeq ($(call check_flag, -Wswitch-default), y)
+
+ifeq ($(WSWITCH_DEFAULT_AVAILABLE), y)
 CFLAGS += -Wswitch-default
 endif
-ifeq ($(call check_flag, -Wcast-function-type), y)
+
+ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
 CFLAGS += -Wcast-function-type
-endif
 endif
 
 ifeq ($(DEBUG),1)

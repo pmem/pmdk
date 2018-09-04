@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -61,7 +61,7 @@ struct transaction_data {
 	int c;
 };
 
-PMEMobjpool *Pop;
+static PMEMobjpool *Pop;
 
 /*
  * do_tx -- (internal) thread-friendly transaction

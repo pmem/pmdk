@@ -51,9 +51,9 @@
 #define RRAND(seed, max, min)\
 ((min) == (max) ? (min) : (os_rand_r(&(seed)) % ((max) - (min)) + (min)))
 
-uint64_t *objects;
-size_t nobjects;
-size_t allocated_current;
+static uint64_t *objects;
+static size_t nobjects;
+static size_t allocated_current;
 #define MAX_OBJECTS (200ULL * 1000000)
 
 #define ALLOC_TOTAL (5000ULL * MEGABYTE)

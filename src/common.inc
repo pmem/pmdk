@@ -116,6 +116,74 @@ else
 export LIBRT_NEEDED
 endif
 
+ifeq ($(IS_ICC),)
+export IS_ICC := $(call check_compiler, icc)
+else
+export IS_ICC
+endif
+
+ifeq ($(WCONVERSION_AVAILABLE),)
+export WCONVERSION_AVAILABLE := $(call check_Wconversion)
+else
+export WCONVERSION_AVAILABLE
+endif
+
+ifeq ($(WUNREACHABLE_CODE_RETURN_AVAILABLE),)
+ifeq ($(IS_ICC), n)
+export WUNREACHABLE_CODE_RETURN_AVAILABLE := $(call check_flag, -Wunreachable-code-return)
+else
+export WUNREACHABLE_CODE_RETURN_AVAILABLE := n
+endif
+else
+export WUNREACHABLE_CODE_RETURN_AVAILABLE
+endif
+
+ifeq ($(WMISSING_VARIABLE_DECLARATIONS_AVAILABLE),)
+ifeq ($(IS_ICC), n)
+export WMISSING_VARIABLE_DECLARATIONS_AVAILABLE := $(call check_flag, -Wmissing-variable-declarations)
+else
+export WMISSING_VARIABLE_DECLARATIONS_AVAILABLE := n
+endif
+else
+export WMISSING_VARIABLE_DECLARATIONS_AVAILABLE
+endif
+
+ifeq ($(WFLOAT_EQUAL_AVAILABLE),)
+ifeq ($(IS_ICC), n)
+export WFLOAT_EQUAL_AVAILABLE := $(call check_flag, -Wfloat-equal)
+else
+export WFLOAT_EQUAL_AVAILABLE := n
+endif
+else
+export WFLOAT_EQUAL_AVAILABLE
+endif
+
+ifeq ($(WSWITCH_DEFAULT_AVAILABLE),)
+ifeq ($(IS_ICC), n)
+export WSWITCH_DEFAULT_AVAILABLE := $(call check_flag, -Wswitch-default)
+else
+export WSWITCH_DEFAULT_AVAILABLE := n
+endif
+else
+export WSWITCH_DEFAULT_AVAILABLE
+endif
+
+ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE),)
+ifeq ($(IS_ICC), n)
+export WCAST_FUNCTION_TYPE_AVAILABLE := $(call check_flag, -Wcast-function-type)
+else
+export WCAST_FUNCTION_TYPE_AVAILABLE := n
+endif
+else
+export WCAST_FUNCTION_TYPE_AVAILABLE
+endif
+
+ifeq ($(WSTRINGOP_TRUNCATION_AVAILABLE),)
+export WSTRINGOP_TRUNCATION_AVAILABLE := $(call check_flag, -Wstringop-truncation)
+else
+export WSTRINGOP_TRUNCATION_AVAILABLE
+endif
+
 install_recursive = $(shell cd $(1) && find . -type f -exec install -m $(2) -D {} $(3)/{} \;)
 
 install_recursive_filter = $(shell cd $(1) && find . -type f -name "$(2)" -exec install -m $(3) -D {} $(4)/{} \;)

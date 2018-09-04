@@ -305,7 +305,7 @@ COMMON_FLAGS += -Wall
 COMMON_FLAGS += -Werror
 COMMON_FLAGS += -Wpointer-arith
 
-ifeq ($(call check_compiler, icc), n)
+ifeq ($(IS_ICC), n)
 COMMON_FLAGS += -Wunused-macros
 endif
 COMMON_FLAGS += -fno-common
@@ -319,8 +319,25 @@ CXXFLAGS += $(EXTRA_CXXFLAGS)
 CFLAGS  = -std=gnu99
 CFLAGS += -Wmissing-prototypes
 CFLAGS += $(COMMON_FLAGS)
+
 ifneq ($(USING_JEMALLOC_HEADERS),y)
 CFLAGS += -Wsign-conversion
+endif
+
+ifeq ($(WUNREACHABLE_CODE_RETURN_AVAILABLE), y)
+CFLAGS += -Wunreachable-code-return
+endif
+
+ifeq ($(WMISSING_VARIABLE_DECLARATIONS_AVAILABLE), y)
+CFLAGS += -Wmissing-variable-declarations
+endif
+
+ifeq ($(WFLOAT_EQUAL_AVAILABLE), y)
+CFLAGS += -Wfloat-equal
+endif
+
+ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
+CFLAGS += -Wcast-function-type
 endif
 
 CFLAGS += $(EXTRA_CFLAGS)

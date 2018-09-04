@@ -103,14 +103,14 @@
 	.user_flags		= "\0\0\0\n~._ALT_FLAGS",\
 }
 
-const struct rpmem_pool_attr pool_attrs[] = {
+static const struct rpmem_pool_attr pool_attrs[] = {
 	POOL_ATTR_INIT,
 	POOL_ATTR_INIT_SINGLEHDR,
 	POOL_ATTR_ALT,
 	POOL_ATTR_ALT_SINGLEHDR
 };
 
-const char *pool_attr_names[] = {
+static const char *pool_attr_names[] = {
 	"init",
 	"init_singlehdr",
 	"alt",
@@ -133,7 +133,7 @@ struct pool_entry {
 };
 
 #define MAX_IDS	1024
-struct pool_entry pools[MAX_IDS];
+static struct pool_entry pools[MAX_IDS];
 
 /*
  * init_pool -- map local pool file or allocate memory region
@@ -724,7 +724,7 @@ enum wait_type {
 	NOWAIT
 };
 
-const char *wait_type_str[2] = {
+static const char *wait_type_str[2] = {
 	"wait",
 	"nowait"
 };

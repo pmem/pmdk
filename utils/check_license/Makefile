@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,23 +41,30 @@ CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
 CFLAGS += -Wsign-conversion
 CFLAGS += -Wsign-compare
-ifeq ($(call check_Wconversion), y)
+
+ifeq ($(WCONVERSION_AVAILABLE), y)
 CFLAGS += -Wconversion
 endif
+
 CFLAGS += -fno-common
-ifeq ($(call check_flag, -Wunreachable-code-return), y)
+
+ifeq ($(WUNREACHABLE_CODE_RETURN_AVAILABLE), y)
 CFLAGS += -Wunreachable-code-return
 endif
-ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+
+ifeq ($(WMISSING_VARIABLE_DECLARATIONS_AVAILABLE), y)
 CFLAGS += -Wmissing-variable-declarations
 endif
-ifeq ($(call check_flag, -Wfloat-equal), y)
+
+ifeq ($(WFLOAT_EQUAL_AVAILABLE), y)
 CFLAGS += -Wfloat-equal
 endif
-ifeq ($(call check_flag, -Wswitch-default), y)
+
+ifeq ($(WSWITCH_DEFAULT_AVAILABLE), y)
 CFLAGS += -Wswitch-default
 endif
-ifeq ($(call check_flag, -Wcast-function-type), y)
+
+ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
 CFLAGS += -Wcast-function-type
 endif
 
