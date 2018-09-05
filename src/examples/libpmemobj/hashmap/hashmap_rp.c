@@ -599,8 +599,10 @@ hm_rp_remove(PMEMobjpool *pop, TOID(struct hashmap_rp) hashmap,
 	HM_ASSERT(sizeof(actv) / sizeof(actv[0]) >= actvcnt);
 	pmemobj_publish(pop, actv, actvcnt);
 
-	uint64_t reduced_threshold = (uint64_t)((D_RO(hashmap)->capacity / 2)
-					* HASHMAP_RP_LOAD_FACTOR);
+	uint64_t reduced_threshold = (uint64_t)
+		(((uint64_t)(D_RO(hashmap)->capacity / 2))
+			* HASHMAP_RP_LOAD_FACTOR);
+
 	if (reduced_threshold >= INIT_ENTRIES_NUM_RP &&
 		D_RW(hashmap)->count < reduced_threshold &&
 		hm_rp_rebuild(pop, hashmap, D_RO(hashmap)->capacity / 2))
