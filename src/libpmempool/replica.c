@@ -516,8 +516,11 @@ check_and_open_poolset_part_files(struct pool_set *set,
 					rep->repsize, 0,
 					rep->part[0].addr,
 					rep->resvsize, &nlanes);
-			if (ret)
+			if (ret) {
 				rep_hs->flags |= IS_BROKEN;
+				LOG(1, "remote replica #%u marked as BROKEN",
+					r);
+			}
 
 			continue;
 		}
@@ -821,11 +824,12 @@ replica_badblocks_recovery_files_check(struct pool_set *set,
 		struct pool_replica *rep = set->replica[r];
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 
-		/* XXX: not supported yet */
 		if (rep->remote) {
-			LOG(1,
-				"WARNING: skipping the remote replica #%u (checking and fixing bad blocks in remote replicas is not supported yet",
-				r);
+			/*
+			 * Bad blocks in remote replicas curently are fixed
+			 * during opening by removing and recreating
+			 * the whole remote replica.
+			 */
 			continue;
 		}
 
@@ -874,12 +878,16 @@ replica_badblocks_recovery_files_check(struct pool_set *set,
 	}
 
 	if (recovery_file_exists) {
-		if (recovery_file_does_not_exist)
+		if (recovery_file_does_not_exist) {
+			LOG(4, "return RECOVERY_FILES_NOT_ALL_EXIST");
 			return RECOVERY_FILES_NOT_ALL_EXIST;
-		else
+		} else {
+			LOG(4, "return RECOVERY_FILES_EXIST_ALL");
 			return RECOVERY_FILES_EXIST_ALL;
+		}
 	}
 
+	LOG(4, "return RECOVERY_FILES_DO_NOT_EXIST");
 	return RECOVERY_FILES_DO_NOT_EXIST;
 }
 
