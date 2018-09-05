@@ -3961,6 +3961,28 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 		goto err_poolset;
 	}
 
+	/* check if there are any bad blocks */
+	int bbs = badblocks_check_poolset(set, 0 /* not create */);
+	if (bbs < 0) {
+		LOG(1,
+			"WARNING: failed to check the remote replica for bad blocks -- '%s'",
+			path);
+	}
+
+	if (bbs > 0) {
+		if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
+			LOG(1,
+				"WARNING: remote replica contains bad blocks, ignoring -- '%s'",
+				path);
+		} else {
+			ERR(
+				"remote replica contains bad blocks and cannot be opened, delete the corrupted parts and run 'pmempool sync --bad-blocks' utility to recreate them -- '%s'",
+				path);
+			errno = EIO;
+			return -1;
+		}
+	}
+
 	ret = util_poolset_files_local(set, minpartsize, 0);
 	if (ret != 0)
 		goto err_poolset;
