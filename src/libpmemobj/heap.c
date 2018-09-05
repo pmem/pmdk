@@ -756,9 +756,11 @@ heap_recycle_unused(struct palloc_heap *heap, struct recycler *recycler,
 	struct bucket *nb = defb == NULL ? heap_bucket_acquire_by_id(heap,
 		DEFAULT_ALLOC_CLASS_ID) : NULL;
 
+	ASSERT(defb != NULL || nb != NULL);
+
 	struct memory_block *nm;
 	VEC_FOREACH_BY_PTR(nm, &r) {
-		heap_run_into_free_chunk(heap, nb ? nb : defb, nm);
+		heap_run_into_free_chunk(heap, defb ? defb : nb, nm);
 	}
 
 	if (nb != NULL)
