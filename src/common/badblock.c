@@ -94,10 +94,11 @@ badblocks_check_file_cb(struct part_file *pf, void *arg)
 
 	struct check_file_cb *pcfcb = arg;
 
-	if (pf->is_remote) { /* XXX not supported yet */
-		LOG(1,
-			"WARNING: checking remote replicas for bad blocks is not supported yet -- '%s:%s'",
-			pf->remote->node_addr, pf->remote->pool_desc);
+	if (pf->is_remote) {
+		/*
+		 * Remote replicas are checked for bad blocks
+		 * while opening in util_pool_open_remote().
+		 */
 		return 0;
 	}
 
@@ -117,8 +118,7 @@ badblocks_check_file_cb(struct part_file *pf, void *arg)
 	}
 
 	if (ret > 0) {
-		LOG(1, "the pool file contains bad blocks -- '%s'",
-			pf->part->path);
+		ERR("part file contains bad blocks -- '%s'", pf->part->path);
 		pcfcb->n_files_bbs++;
 		pf->part->has_bad_blocks = 1;
 	}
