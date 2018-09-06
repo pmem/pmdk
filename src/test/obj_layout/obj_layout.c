@@ -50,6 +50,7 @@
 #define SIZEOF_CHUNK_HEADER_V3 (8)
 #define MAX_CHUNK_V3 (65535 - 7)
 #define SIZEOF_CHUNK_V3 (1024ULL * 256)
+#define SIZEOF_CHUNK_RUN_HEADER_V3 (16)
 #define SIZEOF_ZONE_HEADER_V3 (64)
 #define SIZEOF_ZONE_METADATA_V3 (SIZEOF_ZONE_HEADER_V3 +\
 	SIZEOF_CHUNK_HEADER_V3 * MAX_CHUNK_V3)
@@ -92,9 +93,15 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_CHECK(struct chunk);
 	UT_COMPILE_ERROR_ON(sizeof(struct chunk_run) != SIZEOF_CHUNK_V3);
 
+	ASSERT_ALIGNED_BEGIN(struct chunk_run_header);
+	ASSERT_ALIGNED_FIELD(struct chunk_run_header, block_size);
+	ASSERT_ALIGNED_FIELD(struct chunk_run_header, alignment);
+	ASSERT_ALIGNED_CHECK(struct chunk_run_header);
+	UT_COMPILE_ERROR_ON(sizeof(struct chunk_run_header) !=
+		SIZEOF_CHUNK_RUN_HEADER_V3);
+
 	ASSERT_ALIGNED_BEGIN(struct chunk_run);
-	ASSERT_ALIGNED_FIELD(struct chunk_run, block_size);
-	ASSERT_ALIGNED_FIELD(struct chunk_run, alignment);
+	ASSERT_ALIGNED_FIELD(struct chunk_run, hdr);
 	ASSERT_ALIGNED_FIELD(struct chunk_run, content);
 	ASSERT_ALIGNED_CHECK(struct chunk_run);
 	UT_COMPILE_ERROR_ON(sizeof(struct chunk_run) != SIZEOF_CHUNK_V3);

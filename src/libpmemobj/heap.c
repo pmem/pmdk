@@ -435,7 +435,7 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 
 	struct alloc_class *c = alloc_class_by_run(
 		heap->rt->alloc_classes,
-		run->block_size, hdr->flags, m->size_idx);
+		run->hdr.block_size, hdr->flags, m->size_idx);
 
 	struct recycler_element e = recycler_element_new(heap, m);
 	if (c == NULL) {
@@ -730,7 +730,7 @@ heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m)
 
 	struct alloc_class *c = alloc_class_by_run(
 		heap->rt->alloc_classes,
-		run->block_size, hdr->flags, hdr->size_idx);
+		run->hdr.block_size, hdr->flags, hdr->size_idx);
 
 	if (c == NULL)
 		return;

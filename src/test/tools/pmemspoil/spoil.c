@@ -1111,7 +1111,7 @@ pmemspoil_process_run(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 	}
 
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(run, block_size, uint64_t);
+		PROCESS_FIELD(run, hdr.block_size, uint64_t);
 		PROCESS_FIELD_ARRAY(run, content, uint8_t, RUN_CONTENT_SIZE);
 	} PROCESS_END
 

@@ -464,8 +464,8 @@ run_get_bitmap(const struct memory_block *m, struct run_bitmap *b)
 	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
 
 	uint32_t size_idx = hdr->size_idx;
-	memblock_run_bitmap(&size_idx, hdr->flags, run->block_size,
-		run->alignment, run->content, b);
+	memblock_run_bitmap(&size_idx, hdr->flags, run->hdr.block_size,
+		run->hdr.alignment, run->content, b);
 	ASSERTeq(size_idx, hdr->size_idx);
 }
 
@@ -488,7 +488,7 @@ run_block_size(const struct memory_block *m)
 {
 	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
 
-	return run->block_size;
+	return run->hdr.block_size;
 }
 
 /*
@@ -522,7 +522,7 @@ run_get_data_start(const struct memory_block *m)
 		uintptr_t hsize = header_type_to_size[m->header_type];
 		uintptr_t base = (uintptr_t)run->content +
 			b.size + hsize;
-		return (char *)(ALIGN_UP(base, run->alignment) - hsize);
+		return (char *)(ALIGN_UP(base, run->hdr.alignment) - hsize);
 	} else {
 		return (char *)&run->content + b.size;
 	}
@@ -546,9 +546,9 @@ static void *
 run_get_real_data(const struct memory_block *m)
 {
 	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
-	ASSERT(run->block_size != 0);
+	ASSERT(run->hdr.block_size != 0);
 
-	return run_get_data_start(m) + (run->block_size * m->block_off);
+	return run_get_data_start(m) + (run->hdr.block_size * m->block_off);
 }
 
 /*
@@ -996,7 +996,8 @@ run_iterate_used(const struct memory_block *m, object_callback cb, void *arg)
 				if (cb(&iter, arg) != 0)
 					return 1;
 
-				iter.size_idx = CALC_SIZE_IDX(run->block_size,
+				iter.size_idx = CALC_SIZE_IDX(
+					run->hdr.block_size,
 					iter.m_ops->get_real_size(&iter));
 				j = (uint16_t)(j + iter.size_idx);
 			} else {
@@ -1296,8 +1297,8 @@ memblock_run_init(struct palloc_heap *heap,
 
 	/* add/remove chunk_run and chunk_header to valgrind transaction */
 	VALGRIND_ADD_TO_TX(run, runsize);
-	run->block_size = unit_size;
-	run->alignment = alignment;
+	run->hdr.block_size = unit_size;
+	run->hdr.alignment = alignment;
 
 	struct run_bitmap b;
 	memblock_run_bitmap(&size_idx, flags, unit_size, alignment,
@@ -1318,8 +1319,7 @@ memblock_run_init(struct palloc_heap *heap,
 	VALGRIND_REMOVE_FROM_TX(run, runsize);
 
 	pmemops_flush(&heap->p_ops, run,
-		sizeof(run->block_size) +
-		sizeof(run->alignment) +
+		sizeof(struct chunk_run_header) +
 		bitmap_size);
 
 	struct chunk_header run_data_hdr;

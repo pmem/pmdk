@@ -56,8 +56,9 @@
 
 #define BITS_PER_VALUE 64U
 #define MAX_CACHELINE_ALIGNMENT 40 /* run alignment, 5 cachelines */
-#define RUN_BASE_METADATA_VALUES (2U)
-#define RUN_BASE_METADATA_SIZE (sizeof(uint64_t) * RUN_BASE_METADATA_VALUES)
+#define RUN_BASE_METADATA_VALUES\
+	((unsigned)(sizeof(struct chunk_run_header) / sizeof(uint64_t)))
+#define RUN_BASE_METADATA_SIZE (sizeof(struct chunk_run_header))
 
 #define DEFAULT_BITMAP_SIZE (sizeof(uint64_t) * DEFAULT_BITMAP_VALUES)
 #define DEFAULT_BITMAP_VALUES \
@@ -114,9 +115,13 @@ struct chunk {
 	uint8_t data[CHUNKSIZE];
 };
 
-struct chunk_run {
+struct chunk_run_header {
 	uint64_t block_size;
 	uint64_t alignment; /* valid only /w CHUNK_FLAG_ALIGNED */
+};
+
+struct chunk_run {
+	struct chunk_run_header hdr;
 	uint8_t content[RUN_CONTENT_SIZE]; /* bitmap + data */
 };
 

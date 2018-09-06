@@ -660,8 +660,8 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 		struct chunk_run *run = (struct chunk_run *)chunk;
 
 		outv_hexdump(v && pip->args.vhdrdump, run,
-				sizeof(run->block_size) +
-				sizeof(run->alignment),
+				sizeof(run->hdr.block_size) +
+				sizeof(run->hdr.alignment),
 				PTR_TO_OFF(pop, run), 1);
 
 		struct run_bitmap bitmap;
@@ -669,7 +669,7 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 
 		struct pmem_obj_class_stats *cstats =
 			info_obj_class_stats_get_or_insert(stats,
-			run->block_size, run->alignment, bitmap.nbits,
+			run->hdr.block_size, run->hdr.alignment, bitmap.nbits,
 			chunk_hdr->flags);
 		if (cstats == NULL) {
 			outv_err("out of memory, can't allocate statistics");
@@ -677,7 +677,7 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 		}
 
 		outv_field(v, "Block size", "%s",
-				out_get_size_str(run->block_size,
+				out_get_size_str(run->hdr.block_size,
 					pip->args.human));
 
 		uint32_t units = bitmap.nbits;

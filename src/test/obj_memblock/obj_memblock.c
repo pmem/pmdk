@@ -116,7 +116,7 @@ test_block_size(void)
 	layout->zone0.chunk_headers[1].type = CHUNK_TYPE_RUN;
 	struct chunk_run *run = (struct chunk_run *)
 		&layout->zone0.chunks[1];
-	run->block_size = 1234;
+	run->hdr.block_size = 1234;
 
 	memblock_rebuild_state(&pop->heap, &mhuge);
 	memblock_rebuild_state(&pop->heap, &mrun);
@@ -154,7 +154,7 @@ test_prep_hdr(void)
 	layout->zone0.chunk_headers[2].type = CHUNK_TYPE_RUN;
 
 	struct chunk_run *run = (struct chunk_run *)&layout->zone0.chunks[2];
-	run->block_size = 128;
+	run->hdr.block_size = 128;
 
 	uint64_t *bitmap = (uint64_t *)run->content;
 	bitmap[0] = 0b1111;
