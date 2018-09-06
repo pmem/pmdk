@@ -1,0 +1,6 @@
+$(OPT)<libpmempool>: <3> [feature.c:$(*)] path $(*), feature 0
+$(OPT)<libpmempool>: <1> [feature.c:$(*)] unsupported feature: SINGLEHDR
+Mandatory features       : $(*)
+$(OPT)<libpmempool>: <3> [feature.c:$(*)] path $(*), feature 0
+$(OPT)<libpmempool>: <1> [feature.c:$(*)] unsupported feature: SINGLEHDR
+Mandatory features       : $(*)

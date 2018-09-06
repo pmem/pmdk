@@ -292,6 +292,7 @@ LIBPMEMPOOL_TESTS = \
 	libpmempool_include\
 	libpmempool_backup\
 	libpmempool_bttdev\
+	libpmempool_feature\
 	libpmempool_map_flog\
 	libpmempool_rm
 
