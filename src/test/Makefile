@@ -213,6 +213,7 @@ PMEMPOOL_TESTS = \
 	pmempool_check\
 	pmempool_create\
 	pmempool_dump\
+	pmempool_feature\
 	pmempool_help\
 	pmempool_info\
 	pmempool_rm\
@@ -292,6 +293,7 @@ LIBPMEMPOOL_TESTS = \
 	libpmempool_include\
 	libpmempool_backup\
 	libpmempool_bttdev\
+	libpmempool_feature\
 	libpmempool_map_flog\
 	libpmempool_rm
 
@@ -345,6 +347,7 @@ REMOTE_TESTS = \
 	remote_basic\
 	remote_obj_basic\
 	pmempool_info_remote\
+	pmempool_feature_remote\
 	pmempool_rm_remote\
 	pmempool_sync_remote\
 	pmempool_transform_remote
