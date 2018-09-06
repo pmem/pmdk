@@ -1,0 +1,4 @@
+unsupported feature: SINGLEHDR
+unsupported feature: SINGLEHDR
+query SINGLEHDR result is 0
+pmempool info: SINGLEHDR is NOT set
