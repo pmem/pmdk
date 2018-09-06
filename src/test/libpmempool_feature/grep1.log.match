@@ -1,0 +1,11 @@
+query CKSUM_2K result is 1
+pmempool info: CKSUM_2K is set
+$(OPT)<libpmempool>: <1> [feature.c:$(N) require_other_feature_is] disable SHUTDOWN_STATE prior to disabling CKSUM_2K
+query CKSUM_2K result is 1
+pmempool info: CKSUM_2K is set
+query SHUTDOWN_STATE result is 0
+pmempool info: SHUTDOWN_STATE is NOT set
+query CKSUM_2K result is 0
+pmempool info: CKSUM_2K is NOT set
+query CKSUM_2K result is 1
+pmempool info: CKSUM_2K is set
