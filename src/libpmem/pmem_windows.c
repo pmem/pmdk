@@ -117,6 +117,9 @@ is_pmem_detect(const void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
 
+	if (len == 0)
+		return 0;
+
 	if (len > UINTPTR_MAX - (uintptr_t)addr) {
 		len = UINTPTR_MAX - (uintptr_t)addr;
 		LOG(4, "limit len to %zu to not get beyond address space", len);
