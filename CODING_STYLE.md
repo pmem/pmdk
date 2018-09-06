@@ -106,7 +106,7 @@ conventions for git commit messages:
   with an area name and then a colon.  There should be no period after
   the short summary.
 - Valid area names are: **pmem, obj, blk, log, cto, vmem, vmmalloc, jemalloc,
-  **test, doc, daxio, pool** (for *libpmempool* and *pmempool*), **rpmem**
+  **test, doc, daxio, pmreorder, pool** (for *libpmempool* and *pmempool*), **rpmem**
   (for *librpmem* and *rpmemd*), **benchmark, examples** and **common** (for everything else).
 - It is acceptable for the short summary to be the only thing in the commit
   message if it is a trivial change.  Otherwise, the second line must be
