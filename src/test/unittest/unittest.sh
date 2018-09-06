@@ -775,6 +775,10 @@ function expect_normal_exit() {
 		export VALGRIND_OPTS="--suppressions=../helgrind-log.supp"
 	fi
 
+	if [ "$CHECK_TYPE" = "memcheck" ]; then
+		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../memcheck-dlopen.supp"
+	fi
+
 	# in case of preloading libvmmalloc.so.1 force valgrind to not override malloc
 	if [ -n "$VALGRINDEXE" -a -n "$TEST_LD_PRELOAD" ]; then
 		if [ $(valgrind_version) -ge 312 ]; then
