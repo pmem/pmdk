@@ -208,7 +208,7 @@ It can be useful for critical sections of code with limited number of stores.
 
 When the engine is passed with an `-r` option, it will be used
 for each logged set of stores.
-Additionaly, the `-x` parameter can be used to switch engines
+Additionally, the `-x` parameter can be used to switch engines
 separately for any marked code sections.
 For more details about `-x` extended macros functionality see section
 INSTRUMENTATION below.
