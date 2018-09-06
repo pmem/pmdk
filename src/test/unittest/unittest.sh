@@ -743,6 +743,8 @@ function validate_valgrind_log() {
 #
 # expect_normal_exit -- run a given command, expect it to exit 0
 #
+# if VALGRIND_DISABLED is not empty valgrind tool will be omitted
+#
 function expect_normal_exit() {
 	local VALGRIND_LOG_FILE=${CHECK_TYPE}${UNITTEST_NUM}.log
 	local N=$2
@@ -750,6 +752,9 @@ function expect_normal_exit() {
 	# in case of a remote execution disable valgrind check if valgrind is not
 	# enabled on node
 	local _CHECK_TYPE=$CHECK_TYPE
+	if [ "x$VALGRIND_DISABLED" != "x" ]; then
+		_CHECK_TYPE=none
+	fi
 	if [ "$1" == "run_on_node" -o "$1" == "run_on_node_background" ]; then
 		if [ -z $(is_valgrind_enabled_on_node $N) ]; then
 			_CHECK_TYPE="none"
@@ -1805,22 +1810,6 @@ function set_valgrind_exe_name() {
 			fatal ${NODE_VALGRINDEXE[$N]}
 		fi
 	done
-}
-
-_CHECK_TYPE_OLD=
-#
-# valgrind_off -- disable valgrind for following commands
-#
-function valgrind_off() {
-	_CHECK_TYPE_OLD=$CHECK_TYPE
-	CHECK_TYPE=none
-}
-
-#
-# reenable_valgrind -- reenable valgrind for following commands
-#
-function valgrind_on() {
-	CHECK_TYPE=$_CHECK_TYPE_OLD
 }
 
 #
