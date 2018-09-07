@@ -173,7 +173,7 @@ util_is_pow2(uint64_t v)
 static force_inline unsigned
 util_div_ceil(unsigned a, unsigned b)
 {
-	return 1 + ((a - 1) / b);
+	return (unsigned)(((unsigned long)a + b - 1) / b);
 }
 
 /*
