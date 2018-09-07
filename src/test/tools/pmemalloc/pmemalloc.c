@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -73,6 +73,7 @@ main(int argc, char *argv[])
 	char exit_at = '\0';
 	int do_set = 0;
 	int do_free = 0;
+	size_t alloc_class_size = 0;
 
 	if (argc < 2) {
 		USAGE();
@@ -80,7 +81,7 @@ main(int argc, char *argv[])
 		goto end;
 	}
 
-	while ((opt = getopt(argc, argv, "r:o:t:e:sf")) != -1) {
+	while ((opt = getopt(argc, argv, "r:o:c:t:e:sf")) != -1) {
 		switch (opt) {
 		case 'r':
 			tmpl = atoll(optarg);
@@ -99,6 +100,15 @@ main(int argc, char *argv[])
 				goto end;
 			}
 			size = (size_t)tmpl;
+			break;
+		case 'c':
+			tmpl = atoll(optarg);
+			if (tmpl < 0) {
+				USAGE();
+				ret = 1;
+				goto end;
+			}
+			alloc_class_size = (size_t)tmpl;
 			break;
 		case 't':
 			tmpi = atoi(optarg);
@@ -142,6 +152,23 @@ main(int argc, char *argv[])
 			ret = 1;
 			goto end;
 		}
+	}
+
+	if (alloc_class_size) {
+		PMEMoid oid;
+		struct pobj_alloc_class_desc desc;
+		desc.alignment = 0;
+		desc.class_id = 0;
+		desc.header_type = POBJ_HEADER_COMPACT;
+		desc.unit_size = alloc_class_size;
+		desc.units_per_block = 1;
+		ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc", &desc);
+		if (ret != 0)
+			goto end;
+		ret = pmemobj_xalloc(pop, &oid, 1, type_num,
+			POBJ_CLASS_ID(desc.class_id), NULL, NULL);
+		if (ret != 0)
+			goto end;
 	}
 
 	if (size) {

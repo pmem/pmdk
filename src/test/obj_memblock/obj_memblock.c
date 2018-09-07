@@ -116,7 +116,7 @@ test_block_size(void)
 	layout->zone0.chunk_headers[1].type = CHUNK_TYPE_RUN;
 	struct chunk_run *run = (struct chunk_run *)
 		&layout->zone0.chunks[1];
-	run->block_size = 1234;
+	run->hdr.block_size = 1234;
 
 	memblock_rebuild_state(&pop->heap, &mhuge);
 	memblock_rebuild_state(&pop->heap, &mrun);
@@ -154,10 +154,12 @@ test_prep_hdr(void)
 	layout->zone0.chunk_headers[2].type = CHUNK_TYPE_RUN;
 
 	struct chunk_run *run = (struct chunk_run *)&layout->zone0.chunks[2];
+	run->hdr.block_size = 128;
 
-	run->bitmap[0] = 0b1111;
-	run->bitmap[1] = ~0ULL;
-	run->bitmap[2] = 0ULL;
+	uint64_t *bitmap = (uint64_t *)run->content;
+	bitmap[0] = 0b1111;
+	bitmap[1] = ~0ULL;
+	bitmap[2] = 0ULL;
 
 	memblock_rebuild_state(heap, &mhuge_used);
 	memblock_rebuild_state(heap, &mhuge_free);
@@ -174,17 +176,17 @@ test_prep_hdr(void)
 	UT_ASSERTeq(layout->zone0.chunk_headers[1].type, CHUNK_TYPE_USED);
 
 	mrun_used.m_ops->prep_hdr(&mrun_used, MEMBLOCK_FREE, NULL);
-	UT_ASSERTeq(run->bitmap[0], 0ULL);
+	UT_ASSERTeq(bitmap[0], 0ULL);
 
 	mrun_free.m_ops->prep_hdr(&mrun_free, MEMBLOCK_ALLOCATED, NULL);
-	UT_ASSERTeq(run->bitmap[0], 0b11110000);
+	UT_ASSERTeq(bitmap[0], 0b11110000);
 
 	mrun_large_used.m_ops->prep_hdr(&mrun_large_used, MEMBLOCK_FREE, NULL);
-	UT_ASSERTeq(run->bitmap[1], 0ULL);
+	UT_ASSERTeq(bitmap[1], 0ULL);
 
 	mrun_large_free.m_ops->prep_hdr(&mrun_large_free,
 		MEMBLOCK_ALLOCATED, NULL);
-	UT_ASSERTeq(run->bitmap[2], ~0ULL);
+	UT_ASSERTeq(bitmap[2], ~0ULL);
 }
 
 static int

@@ -115,7 +115,7 @@ test_lazy_load(PMEMobjpool *pop, const char *path)
 }
 
 #define ALLOC_BLOCK_SIZE 64
-#define MAX_BUCKET_MAP_ENTRIES (RUNSIZE / ALLOC_BLOCK_SIZE)
+#define MAX_BUCKET_MAP_ENTRIES (RUN_DEFAULT_SIZE / ALLOC_BLOCK_SIZE)
 
 static void
 test_all_classes(PMEMobjpool *pop)

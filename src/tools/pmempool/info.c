@@ -1004,8 +1004,12 @@ pmempool_info_alloc(void)
 static void
 pmempool_info_free(struct pmem_info *pip)
 {
-	if (pip->obj.stats.zone_stats)
+	if (pip->obj.stats.zone_stats) {
+		for (uint64_t i = 0; i < pip->obj.stats.n_zones; ++i)
+			VEC_DELETE(&pip->obj.stats.zone_stats[i].class_stats);
+
 		free(pip->obj.stats.zone_stats);
+	}
 	util_options_free(pip->opts);
 	util_ranges_clear(&pip->args.ranges);
 	util_ranges_clear(&pip->args.obj.type_ranges);

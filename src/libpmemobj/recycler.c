@@ -167,55 +167,17 @@ recycler_element_new(struct palloc_heap *heap, const struct memory_block *m)
 	os_mutex_t *lock = m->m_ops->get_lock(m);
 	util_mutex_lock(lock);
 
-	struct chunk_run *run = heap_get_chunk_run(heap, m);
-
-	uint16_t free_space = 0;
-	uint16_t max_block = 0;
-
-	for (int i = 0; i < MAX_BITMAP_VALUES; ++i) {
-		uint64_t value = ~run->bitmap[i];
-		if (value == 0)
-			continue;
-
-		uint16_t free_in_value = util_popcount64(value);
-		free_space = (uint16_t)(free_space + free_in_value);
-
-		/*
-		 * If this value has less free blocks than already found max,
-		 * there's no point in searching.
-		 */
-		if (free_in_value < max_block)
-			continue;
-
-		/* if the entire value is empty, no point in searching */
-		if (free_in_value == BITS_PER_VALUE) {
-			max_block = BITS_PER_VALUE;
-			continue;
-		}
-
-		/*
-		 * Find the biggest free block in the bitmap.
-		 * This algorithm is not the most clever imaginable, but it's
-		 * easy to implement and fast enough.
-		 */
-		uint16_t n = 0;
-		while (value != 0) {
-			value &= (value << 1ULL);
-			n++;
-		}
-
-		if (n > max_block)
-			max_block = n;
-	}
-
-	util_mutex_unlock(lock);
-
-	return (struct recycler_element){
-		.free_space = free_space,
-		.max_free_block = max_block,
+	struct recycler_element e = {
+		.free_space = 0,
+		.max_free_block = 0,
 		.chunk_id = m->chunk_id,
 		.zone_id = m->zone_id,
 	};
+	m->m_ops->calc_free(m, &e.free_space, &e.max_free_block);
+
+	util_mutex_unlock(lock);
+
+	return e;
 }
 
 /*

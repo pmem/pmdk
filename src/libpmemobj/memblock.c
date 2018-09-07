@@ -53,17 +53,9 @@
 #include "out.h"
 #include "valgrind_internal.h"
 
-const size_t header_type_to_size[MAX_HEADER_TYPES] = {
-	sizeof(struct allocation_header_legacy),
-	sizeof(struct allocation_header_compact),
-	0
-};
-
-const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES] = {
-	0,
-	CHUNK_FLAG_COMPACT_HEADER,
-	CHUNK_FLAG_HEADER_NONE
-};
+/* calculates the size of the entire run, including any additional chunks */
+#define SIZEOF_RUN(runp, size_idx)\
+	(sizeof(*(runp)) + (((size_idx) - 1) * CHUNKSIZE))
 
 /*
  * memblock_header_type -- determines the memory block's header type
@@ -383,6 +375,137 @@ static struct {
 };
 
 /*
+ * memblock_run_default_nallocs -- returns the number of memory blocks
+ *	available in the in a run with given parameters using the default
+ *	fixed-bitmap algorithm
+ */
+static unsigned
+memblock_run_default_nallocs(uint32_t *size_idx, uint16_t flags,
+	uint64_t unit_size, uint64_t alignment)
+{
+	unsigned nallocs = (unsigned)
+		(RUN_DEFAULT_SIZE_BYTES(*size_idx) / unit_size);
+
+	while (nallocs > RUN_DEFAULT_BITMAP_NBITS) {
+		LOG(3, "tried to create a run (%lu) with number "
+			"of units (%u) exceeding the bitmap size (%u)",
+			unit_size, nallocs, RUN_DEFAULT_BITMAP_NBITS);
+		if (*size_idx > 1) {
+			*size_idx -= 1;
+			/* recalculate the number of allocations */
+			nallocs = (uint32_t)
+				(RUN_DEFAULT_SIZE_BYTES(*size_idx) / unit_size);
+			LOG(3, "run (%lu) was constructed with "
+				"fewer (%u) than requested chunks (%u)",
+				unit_size, *size_idx, *size_idx + 1);
+		} else {
+			LOG(3, "run (%lu) was constructed with "
+				"fewer units (%u) than optimal (%u), "
+				"this might lead to "
+				"inefficient memory utilization!",
+				unit_size,
+				RUN_DEFAULT_BITMAP_NBITS, nallocs);
+
+			nallocs = RUN_DEFAULT_BITMAP_NBITS;
+		}
+	}
+
+	return nallocs - (alignment ? 1 : 0);
+}
+
+/*
+ * memblock_run_bitmap -- calculate bitmap parameters for given arguments
+ */
+void
+memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
+	uint64_t unit_size, uint64_t alignment, void *content,
+	struct run_bitmap *b)
+{
+	ASSERTne(*size_idx, 0);
+
+	/*
+	 * Flexible bitmaps have a variably sized values array. The size varies
+	 * depending on:
+	 *	alignment - initial run alignment might require up-to a unit
+	 *	size idx - the larger the run, the more units it carries
+	 *	unit_size - the smaller the unit size, the more units per run
+	 *
+	 * The size of the bitmap also has to be calculated in such a way that
+	 * the beginning of allocations data is cacheline aligned. This is
+	 * required to perform many optimizations throughout the codebase.
+	 * This alignment requirement means that some of the bitmap values might
+	 * remain unused and will serve only as a padding for data.
+	 */
+	if (flags & CHUNK_FLAG_FLEX_BITMAP) {
+		/*
+		 * First calculate the number of values without accounting for
+		 * the bitmap size.
+		 */
+		size_t content_size = RUN_CONTENT_SIZE_BYTES(*size_idx);
+		b->nbits = (unsigned)(content_size / unit_size);
+		b->nvalues = util_div_ceil(b->nbits, RUN_BITS_PER_VALUE);
+
+		/*
+		 * Then, align the number of values up, so that the cacheline
+		 * alignment is preserved.
+		 */
+		b->nvalues = ALIGN_UP(b->nvalues + RUN_BASE_METADATA_VALUES, 8U)
+			- RUN_BASE_METADATA_VALUES;
+
+		/*
+		 * This is the total number of bytes needed for the bitmap AND
+		 * padding.
+		 */
+		b->size = b->nvalues * sizeof(*b->values);
+
+		/*
+		 * Calculate the number of allocations again, but this time
+		 * accounting for the bitmap/padding.
+		 */
+		b->nbits = (unsigned)((content_size - b->size) / unit_size)
+			- (alignment ? 1U : 0U);
+
+		/*
+		 * The last step is to calculate how much of the padding
+		 * is left at the end of the bitmap.
+		 */
+		unsigned unused_bits = (b->nvalues * RUN_BITS_PER_VALUE)
+			- b->nbits;
+		unsigned unused_values = unused_bits / RUN_BITS_PER_VALUE;
+		b->nvalues -= unused_values;
+
+		b->values = (uint64_t *)content;
+
+		return;
+	}
+
+	b->size = RUN_DEFAULT_BITMAP_SIZE;
+	b->nbits = memblock_run_default_nallocs(size_idx, flags,
+		unit_size, alignment);
+
+	unsigned unused_bits = RUN_DEFAULT_BITMAP_NBITS - b->nbits;
+	unsigned unused_values = unused_bits / RUN_BITS_PER_VALUE;
+	b->nvalues = RUN_DEFAULT_BITMAP_VALUES - unused_values;
+
+	b->values = (uint64_t *)content;
+}
+
+/*
+ * run_get_bitmap -- initializes run bitmap information
+ */
+static void
+run_get_bitmap(const struct memory_block *m, struct run_bitmap *b)
+{
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
+	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
+
+	uint32_t size_idx = hdr->size_idx;
+	memblock_run_bitmap(&size_idx, hdr->flags, run->hdr.block_size,
+		run->hdr.alignment, run->content, b);
+	ASSERTeq(size_idx, hdr->size_idx);
+}
+
+/*
  * huge_block_size -- returns the compile-time constant which defines the
  *	huge memory block size.
  */
@@ -401,7 +524,7 @@ run_block_size(const struct memory_block *m)
 {
 	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
 
-	return run->block_size;
+	return run->hdr.block_size;
 }
 
 /*
@@ -418,32 +541,38 @@ huge_get_real_data(const struct memory_block *m)
  *	allocations in a run
  */
 static char *
-run_get_data_start(struct chunk_header *hdr, struct chunk_run *run,
-	enum header_type htype)
+run_get_data_start(const struct memory_block *m)
 {
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
+	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
+
+	struct run_bitmap b;
+	run_get_bitmap(m, &b);
+
 	if (hdr->flags & CHUNK_FLAG_ALIGNED) {
 		/*
 		 * Alignment is property of user data in allocations. And
 		 * since objects have headers, we need to take them into
 		 * account when calculating the address.
 		 */
-		uintptr_t hsize = header_type_to_size[htype];
-		uintptr_t base = (uintptr_t)run->data + hsize;
-		return (char *)(ALIGN_UP(base, run->alignment) - hsize);
+		uintptr_t hsize = header_type_to_size[m->header_type];
+		uintptr_t base = (uintptr_t)run->content +
+			b.size + hsize;
+		return (char *)(ALIGN_UP(base, run->hdr.alignment) - hsize);
 	} else {
-		return (char *)&run->data;
+		return (char *)&run->content + b.size;
 	}
 }
 
 /*
- * run_get_alignment_padding -- (internal) returns the number of bytes of
- *	padding in aligned runs
+ * run_get_data_offset -- (internal) returns the number of bytes between
+ *	run base metadata and data
  */
 static size_t
-run_get_alignment_padding(struct chunk_header *hdr, struct chunk_run *run,
-	enum header_type htype)
+run_get_data_offset(const struct memory_block *m)
 {
-	return (size_t)run_get_data_start(hdr, run, htype) - (size_t)&run->data;
+	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
+	return (size_t)run_get_data_start(m) - (size_t)&run->content;
 }
 
 /*
@@ -453,11 +582,9 @@ static void *
 run_get_real_data(const struct memory_block *m)
 {
 	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
-	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
-	ASSERT(run->block_size != 0);
+	ASSERT(run->hdr.block_size != 0);
 
-	return run_get_data_start(hdr, run, m->header_type) +
-		(run->block_size * m->block_off);
+	return run_get_data_start(m) + (run->hdr.block_size * m->block_off);
 }
 
 /*
@@ -561,9 +688,7 @@ static void
 run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	struct operation_context *ctx)
 {
-	struct chunk_run *r = heap_get_chunk_run(m->heap, m);
-
-	ASSERT(m->size_idx <= BITS_PER_VALUE);
+	ASSERT(m->size_idx <= RUN_BITS_PER_VALUE);
 
 	/*
 	 * Free blocks are represented by clear bits and used blocks by set
@@ -575,26 +700,29 @@ run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	 * relatively simple.
 	 */
 	uint64_t bmask;
-	if (m->size_idx == BITS_PER_VALUE) {
-		ASSERTeq(m->block_off % BITS_PER_VALUE, 0);
+	if (m->size_idx == RUN_BITS_PER_VALUE) {
+		ASSERTeq(m->block_off % RUN_BITS_PER_VALUE, 0);
 		bmask = UINT64_MAX;
 	} else {
 		bmask = ((1ULL << m->size_idx) - 1ULL) <<
-				(m->block_off % BITS_PER_VALUE);
+				(m->block_off % RUN_BITS_PER_VALUE);
 	}
 
 	/*
 	 * The run bitmap is composed of several 8 byte values, so a proper
 	 * element of the bitmap array must be selected.
 	 */
-	int bpos = m->block_off / BITS_PER_VALUE;
+	int bpos = m->block_off / RUN_BITS_PER_VALUE;
+
+	struct run_bitmap b;
+	run_get_bitmap(m, &b);
 
 	/* the bit mask is applied immediately by the add entry operations */
 	if (op == MEMBLOCK_ALLOCATED) {
-		operation_add_entry(ctx, &r->bitmap[bpos],
+		operation_add_entry(ctx, &b.values[bpos],
 			bmask, REDO_OPERATION_OR);
 	} else if (op == MEMBLOCK_FREE) {
-		operation_add_entry(ctx, &r->bitmap[bpos],
+		operation_add_entry(ctx, &b.values[bpos],
 			~bmask, REDO_OPERATION_AND);
 	} else {
 		ASSERT(0);
@@ -644,20 +772,17 @@ huge_get_state(const struct memory_block *m)
 static enum memblock_state
 run_get_state(const struct memory_block *m)
 {
-	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
-	struct chunk_header *hdr = &z->chunk_headers[m->chunk_id];
-	ASSERTeq(hdr->type, CHUNK_TYPE_RUN);
+	struct run_bitmap b;
+	run_get_bitmap(m, &b);
 
-	struct chunk_run *r = (struct chunk_run *)&z->chunks[m->chunk_id];
+	unsigned v = m->block_off / RUN_BITS_PER_VALUE;
+	uint64_t bitmap = b.values[v];
+	unsigned bit = m->block_off % RUN_BITS_PER_VALUE;
 
-	unsigned v = m->block_off / BITS_PER_VALUE;
-	uint64_t bitmap = r->bitmap[v];
-	unsigned b = m->block_off % BITS_PER_VALUE;
+	unsigned bit_last = bit + m->size_idx;
+	ASSERT(bit_last <= RUN_BITS_PER_VALUE);
 
-	unsigned b_last = b + m->size_idx;
-	ASSERT(b_last <= BITS_PER_VALUE);
-
-	for (unsigned i = b; i < b_last; ++i) {
+	for (unsigned i = bit; i < bit_last; ++i) {
 		if (!BIT_IS_CLR(bitmap, i)) {
 			return MEMBLOCK_ALLOCATED;
 		}
@@ -781,6 +906,326 @@ block_get_flags(const struct memory_block *m)
 	return memblock_header_ops[m->header_type].get_flags(m);
 }
 
+/*
+ * heap_run_process_bitmap_value -- (internal) looks for unset bits in the
+ * value, creates a valid memory block out of them and inserts that
+ * block into the given bucket.
+ */
+static int
+run_process_bitmap_value(const struct memory_block *m,
+	uint64_t value, uint16_t base_offset, object_callback cb, void *arg)
+{
+	int ret = 0;
+
+	uint64_t shift = 0; /* already processed bits */
+	struct memory_block s = *m;
+	do {
+		/*
+		 * Shift the value so that the next memory block starts on the
+		 * least significant position:
+		 *	..............0 (free block)
+		 * or	..............1 (used block)
+		 */
+		uint64_t shifted = value >> shift;
+
+		/* all clear or set bits indicate the end of traversal */
+		if (shifted == 0) {
+			/*
+			 * Insert the remaining blocks as free. Remember that
+			 * unsigned values are always zero-filled, so we must
+			 * take the current shift into account.
+			 */
+			s.block_off = (uint16_t)(base_offset + shift);
+			s.size_idx = (uint32_t)(RUN_BITS_PER_VALUE - shift);
+
+			if ((ret = cb(&s, arg)) != 0)
+				return ret;
+
+			break;
+		} else if (shifted == UINT64_MAX) {
+			break;
+		}
+
+		/*
+		 * Offset and size of the next free block, either of these
+		 * can be zero depending on where the free block is located
+		 * in the value.
+		 */
+		unsigned off = (unsigned)util_lssb_index64(~shifted);
+		unsigned size = (unsigned)util_lssb_index64(shifted);
+
+		shift += off + size;
+
+		if (size != 0) { /* zero size means skip to the next value */
+			s.block_off = (uint16_t)(base_offset + (shift - size));
+			s.size_idx = (uint32_t)(size);
+
+			memblock_rebuild_state(m->heap, &s);
+			if ((ret = cb(&s, arg)) != 0)
+				return ret;
+		}
+	} while (shift != RUN_BITS_PER_VALUE);
+
+	return 0;
+}
+
+/*
+ * run_iterate_free -- iterates over free blocks in a run
+ */
+static int
+run_iterate_free(const struct memory_block *m, object_callback cb, void *arg)
+{
+	int ret = 0;
+	uint16_t block_off = 0;
+
+	struct run_bitmap b;
+	run_get_bitmap(m, &b);
+
+	struct memory_block nm = *m;
+	for (unsigned i = 0; i < b.nvalues; ++i) {
+		uint64_t v = b.values[i];
+		ASSERT(RUN_BITS_PER_VALUE * i <= UINT16_MAX);
+		block_off = (uint16_t)(RUN_BITS_PER_VALUE * i);
+		ret = run_process_bitmap_value(&nm, v, block_off, cb, arg);
+		if (ret != 0)
+			return ret;
+	}
+
+	return 0;
+}
+
+/*
+ * run_iterate_used -- iterates over used blocks in a run
+ */
+static int
+run_iterate_used(const struct memory_block *m, object_callback cb, void *arg)
+{
+	uint16_t i = m->block_off / RUN_BITS_PER_VALUE;
+	uint16_t block_start = m->block_off % RUN_BITS_PER_VALUE;
+	uint16_t block_off;
+
+	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
+
+	struct memory_block iter = *m;
+
+	struct run_bitmap b;
+	run_get_bitmap(m, &b);
+
+	for (; i < b.nvalues; ++i) {
+		uint64_t v = b.values[i];
+		block_off = (uint16_t)(RUN_BITS_PER_VALUE * i);
+
+		for (uint16_t j = block_start; j < RUN_BITS_PER_VALUE; ) {
+			if (block_off + j >= (uint16_t)b.nbits)
+				break;
+
+			if (!BIT_IS_CLR(v, j)) {
+				iter.block_off = (uint16_t)(block_off + j);
+
+				/*
+				 * The size index of this memory block cannot be
+				 * retrieved at this time because the header
+				 * might not be initialized in valgrind yet.
+				 */
+				iter.size_idx = 0;
+
+				if (cb(&iter, arg) != 0)
+					return 1;
+
+				iter.size_idx = CALC_SIZE_IDX(
+					run->hdr.block_size,
+					iter.m_ops->get_real_size(&iter));
+				j = (uint16_t)(j + iter.size_idx);
+			} else {
+				++j;
+			}
+		}
+		block_start = 0;
+	}
+
+	return 0;
+}
+
+/*
+ * huge_iterate_free -- calls cb on memory block if it's free
+ */
+static int
+huge_iterate_free(const struct memory_block *m, object_callback cb, void *arg)
+{
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
+
+	return hdr->type == CHUNK_TYPE_FREE ? cb(m, arg) : 0;
+}
+
+/*
+ * huge_iterate_free -- calls cb on memory block if it's used
+ */
+static int
+huge_iterate_used(const struct memory_block *m, object_callback cb, void *arg)
+{
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
+
+	return hdr->type == CHUNK_TYPE_USED ? cb(m, arg) : 0;
+}
+
+/*
+ * huge_vg_init -- initalizes chunk metadata in memcheck state
+ */
+static void
+huge_vg_init(const struct memory_block *m, int objects,
+	object_callback cb, void *arg)
+{
+	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
+	struct chunk *chunk = heap_get_chunk(m->heap, m);
+	VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
+
+	/*
+	 * Mark unused chunk headers as not accessible.
+	 */
+	VALGRIND_DO_MAKE_MEM_NOACCESS(
+		&z->chunk_headers[m->chunk_id + 1],
+		(m->size_idx - 1) *
+		sizeof(struct chunk_header));
+
+	size_t size = block_get_real_size(m);
+	VALGRIND_DO_MAKE_MEM_NOACCESS(chunk, size);
+
+	if (objects && huge_get_state(m) == MEMBLOCK_ALLOCATED) {
+		if (cb(m, arg) != 0)
+			FATAL("failed to initialize valgrind state");
+	}
+}
+
+/*
+ * run_vg_init -- initalizes run metadata in memcheck state
+ */
+static void
+run_vg_init(const struct memory_block *m, int objects,
+	object_callback cb, void *arg)
+{
+	struct zone *z = ZID_TO_ZONE(m->heap->layout, m->zone_id);
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
+	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
+	VALGRIND_DO_MAKE_MEM_DEFINED(hdr, sizeof(*hdr));
+
+	/* set the run metadata as defined */
+	VALGRIND_DO_MAKE_MEM_DEFINED(run, RUN_BASE_METADATA_SIZE);
+
+	struct run_bitmap b;
+	run_get_bitmap(m, &b);
+
+	/*
+	 * Mark run data headers as defined.
+	 */
+	for (unsigned j = 1; j < m->size_idx; ++j) {
+		struct chunk_header *data_hdr =
+			&z->chunk_headers[m->chunk_id + j];
+		VALGRIND_DO_MAKE_MEM_DEFINED(data_hdr,
+			sizeof(struct chunk_header));
+		ASSERTeq(data_hdr->type, CHUNK_TYPE_RUN_DATA);
+	}
+
+	VALGRIND_DO_MAKE_MEM_NOACCESS(run, SIZEOF_RUN(run, m->size_idx));
+
+	/* set the run bitmap as defined */
+	VALGRIND_DO_MAKE_MEM_DEFINED(run, b.size + RUN_BASE_METADATA_SIZE);
+
+	if (objects) {
+		if (run_iterate_used(m, cb, arg) != 0)
+			FATAL("failed to initialize valgrind state");
+	}
+}
+
+/*
+ * run_reinit_chunk -- run reinitialization on first zone traversal
+ */
+static void
+run_reinit_chunk(const struct memory_block *m)
+{
+	/* noop */
+}
+
+/*
+ * huge_write_footer -- (internal) writes a chunk footer
+ */
+static void
+huge_write_footer(struct chunk_header *hdr, uint32_t size_idx)
+{
+	if (size_idx == 1) /* that would overwrite the header */
+		return;
+
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr + size_idx - 1, sizeof(*hdr));
+
+	struct chunk_header f = *hdr;
+	f.type = CHUNK_TYPE_FOOTER;
+	f.size_idx = size_idx;
+	*(hdr + size_idx - 1) = f;
+	/* no need to persist, footers are recreated in heap_populate_buckets */
+	VALGRIND_SET_CLEAN(hdr + size_idx - 1, sizeof(f));
+}
+
+/*
+ * huge_reinit_chunk -- chunk reinitialization on first zone traversal
+ */
+static void
+huge_reinit_chunk(const struct memory_block *m)
+{
+	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
+	if (hdr->type == CHUNK_TYPE_USED)
+		huge_write_footer(hdr, hdr->size_idx);
+}
+
+/*
+ * run_calc_free -- calculates the number of free units in a run
+ */
+static void
+run_calc_free(const struct memory_block *m,
+	uint32_t *free_space, uint32_t *max_free_block)
+{
+	struct run_bitmap b;
+	run_get_bitmap(m, &b);
+	for (unsigned i = 0; i < b.nvalues; ++i) {
+		uint64_t value = ~b.values[i];
+		if (value == 0)
+			continue;
+
+		uint32_t free_in_value = util_popcount64(value);
+		*free_space = *free_space + free_in_value;
+
+		/*
+		 * If this value has less free blocks than already found max,
+		 * there's no point in calculating.
+		 */
+		if (free_in_value < *max_free_block)
+			continue;
+
+		/* if the entire value is empty, no point in calculating */
+		if (free_in_value == RUN_BITS_PER_VALUE) {
+			*max_free_block = RUN_BITS_PER_VALUE;
+			continue;
+		}
+
+		/* if already at max, no point in calculating */
+		if (*max_free_block == RUN_BITS_PER_VALUE)
+			continue;
+
+		/*
+		 * Calculate the biggest free block in the bitmap.
+		 * This algorithm is not the most clever imaginable, but it's
+		 * easy to implement and fast enough.
+		 */
+		uint16_t n = 0;
+		while (value != 0) {
+			value &= (value << 1ULL);
+			n++;
+		}
+
+		if (n > *max_free_block)
+			*max_free_block = n;
+	}
+}
+
 static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 	[MEMORY_BLOCK_HUGE] = {
 		.block_size = huge_block_size,
@@ -795,8 +1240,14 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.invalidate = block_invalidate,
 		.ensure_header_type = huge_ensure_header_type,
 		.reinit_header = block_reinit_header,
+		.vg_init = huge_vg_init,
 		.get_extra = block_get_extra,
 		.get_flags = block_get_flags,
+		.iterate_free = huge_iterate_free,
+		.iterate_used = huge_iterate_used,
+		.reinit_chunk = huge_reinit_chunk,
+		.calc_free = NULL,
+		.get_bitmap = NULL,
 	},
 	[MEMORY_BLOCK_RUN] = {
 		.block_size = run_block_size,
@@ -811,10 +1262,140 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.invalidate = block_invalidate,
 		.ensure_header_type = run_ensure_header_type,
 		.reinit_header = block_reinit_header,
+		.vg_init = run_vg_init,
 		.get_extra = block_get_extra,
 		.get_flags = block_get_flags,
+		.iterate_free = run_iterate_free,
+		.iterate_used = run_iterate_used,
+		.reinit_chunk = run_reinit_chunk,
+		.calc_free = run_calc_free,
+		.get_bitmap = run_get_bitmap,
 	}
 };
+
+/*
+ * memblock_huge_init -- initializes a new huge memory block
+ */
+struct memory_block
+memblock_huge_init(struct palloc_heap *heap,
+	uint32_t chunk_id, uint32_t zone_id, uint32_t size_idx)
+{
+	struct memory_block m = MEMORY_BLOCK_NONE;
+	m.chunk_id = chunk_id;
+	m.zone_id = zone_id;
+	m.size_idx = size_idx;
+	m.heap = heap;
+
+	struct chunk_header nhdr = {
+		.type = CHUNK_TYPE_FREE,
+		.flags = 0,
+		.size_idx = size_idx
+	};
+
+	struct chunk_header *hdr = heap_get_chunk_hdr(heap, &m);
+
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(hdr, sizeof(*hdr));
+	VALGRIND_ANNOTATE_NEW_MEMORY(hdr, sizeof(*hdr));
+
+	*hdr = nhdr; /* write the entire header (8 bytes) at once */
+
+	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
+
+	huge_write_footer(hdr, size_idx);
+
+	memblock_rebuild_state(heap, &m);
+
+	return m;
+}
+
+/*
+ * memblock_run_init -- initializes a new run memory block
+ */
+struct memory_block
+memblock_run_init(struct palloc_heap *heap,
+	uint32_t chunk_id, uint32_t zone_id, uint32_t size_idx, uint16_t flags,
+	uint64_t unit_size, uint64_t alignment)
+{
+	ASSERTne(size_idx, 0);
+
+	struct memory_block m = MEMORY_BLOCK_NONE;
+	m.chunk_id = chunk_id;
+	m.zone_id = zone_id;
+	m.size_idx = size_idx;
+	m.heap = heap;
+
+	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
+
+	struct chunk_run *run = heap_get_chunk_run(heap, &m);
+	size_t runsize = SIZEOF_RUN(run, size_idx);
+
+	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, runsize);
+
+	/* add/remove chunk_run and chunk_header to valgrind transaction */
+	VALGRIND_ADD_TO_TX(run, runsize);
+	run->hdr.block_size = unit_size;
+	run->hdr.alignment = alignment;
+
+	struct run_bitmap b;
+	memblock_run_bitmap(&size_idx, flags, unit_size, alignment,
+		run->content, &b);
+
+	size_t bitmap_size = b.size;
+
+	/* set all the bits */
+	memset(b.values, 0xFF, bitmap_size);
+
+	/* clear only the bits available for allocations from this bucket */
+	memset(b.values, 0, sizeof(*b.values) * (b.nvalues - 1));
+
+	unsigned trailing_bits = b.nbits % RUN_BITS_PER_VALUE;
+	uint64_t last_value = UINT64_MAX << trailing_bits;
+	b.values[b.nvalues - 1] = last_value;
+
+	VALGRIND_REMOVE_FROM_TX(run, runsize);
+
+	pmemops_flush(&heap->p_ops, run,
+		sizeof(struct chunk_run_header) +
+		bitmap_size);
+
+	struct chunk_header run_data_hdr;
+	run_data_hdr.type = CHUNK_TYPE_RUN_DATA;
+	run_data_hdr.flags = 0;
+
+	VALGRIND_ADD_TO_TX(&z->chunk_headers[chunk_id],
+		sizeof(struct chunk_header) * size_idx);
+
+	struct chunk_header *data_hdr;
+	for (unsigned i = 1; i < size_idx; ++i) {
+		data_hdr = &z->chunk_headers[chunk_id + i];
+		VALGRIND_DO_MAKE_MEM_UNDEFINED(data_hdr, sizeof(*data_hdr));
+		VALGRIND_ANNOTATE_NEW_MEMORY(data_hdr, sizeof(*data_hdr));
+		run_data_hdr.size_idx = i;
+		*data_hdr = run_data_hdr;
+	}
+	pmemops_persist(&heap->p_ops,
+		&z->chunk_headers[chunk_id + 1],
+		sizeof(struct chunk_header) * (size_idx - 1));
+
+	struct chunk_header *hdr = &z->chunk_headers[chunk_id];
+	ASSERT(hdr->type == CHUNK_TYPE_FREE);
+
+	VALGRIND_ANNOTATE_NEW_MEMORY(hdr, sizeof(*hdr));
+
+	struct chunk_header run_hdr;
+	run_hdr.size_idx = hdr->size_idx;
+	run_hdr.type = CHUNK_TYPE_RUN;
+	run_hdr.flags = flags;
+	*hdr = run_hdr;
+	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
+
+	VALGRIND_REMOVE_FROM_TX(&z->chunk_headers[chunk_id],
+		sizeof(struct chunk_header) * size_idx);
+
+	memblock_rebuild_state(heap, &m);
+
+	return m;
+}
 
 /*
  * memblock_detect_type -- looks for the corresponding chunk header and
@@ -877,10 +1458,8 @@ memblock_from_offset_opt(struct palloc_heap *heap, uint64_t off, int size)
 	uint64_t unit_size = m.m_ops->block_size(&m);
 
 	if (off != 0) { /* run */
-		struct chunk_run *run = heap_get_chunk_run(heap, &m);
-
-		off -= run_get_alignment_padding(hdr, run, m.header_type);
-		off -= RUN_METASIZE;
+		off -= run_get_data_offset(&m);
+		off -= RUN_BASE_METADATA_SIZE;
 		m.block_off = (uint16_t)(off / unit_size);
 		off -= m.block_off * unit_size;
 	}

@@ -85,6 +85,11 @@
  */
 #define ALLOC_BLOCK_SIZE_GEN 64
 
+/*
+ * The first predefined allocation class size
+ */
+#define MIN_UNIT_SIZE 128
+
 static struct {
 	size_t size;
 	float step;
@@ -115,20 +120,16 @@ static struct {
 #define SIZE_TO_CLASS_MAP_INDEX(_s, _g) (1 + (((_s) - 1) / (_g)))
 
 /*
- * Calculates the size in bytes of a single run instance
- */
-#define RUN_SIZE_BYTES(size_idx)\
-(RUNSIZE + (((size_idx) - 1) * CHUNKSIZE))
-
-/*
  * Target number of allocations per run instance.
  */
-#define RUN_MIN_NALLOCS 500
+#define RUN_MIN_NALLOCS 200
 
 /*
  * Hard limit of chunks per single run.
  */
 #define RUN_SIZE_IDX_CAP (16)
+
+#define ALLOC_CLASS_DEFAULT_FLAGS CHUNK_FLAG_FLEX_BITMAP
 
 struct alloc_class_collection {
 	size_t granularity;
@@ -201,77 +202,6 @@ alloc_class_reservation_clear(struct alloc_class_collection *ac, int id)
 }
 
 /*
- * alloc_class_generate_run_proto -- generates the run bitmap-related
- *	information needed for the allocation class
- */
-void
-alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
-	size_t unit_size, uint32_t size_idx, size_t alignment)
-{
-	LOG(10, NULL);
-
-	ASSERTne(size_idx, 0);
-	dest->size_idx = size_idx;
-	dest->alignment = alignment;
-
-	/*
-	 * Here the bitmap definition is calculated based on the
-	 * size of the available memory and the size of
-	 * a memory block - the result of dividing those two
-	 * numbers is the number of possible allocations from
-	 * that block, and in other words, the amount of bits
-	 * in the bitmap.
-	 */
-	dest->bitmap_nallocs = (uint32_t)
-		(RUN_SIZE_BYTES(dest->size_idx) / unit_size);
-
-	while (dest->bitmap_nallocs > RUN_BITMAP_SIZE) {
-		LOG(3, "tried to create allocation class (%lu) with number "
-			"of units (%u) exceeding the bitmap size (%u)",
-			unit_size, dest->bitmap_nallocs, RUN_BITMAP_SIZE);
-		if (dest->size_idx > 1) {
-			dest->size_idx -= 1;
-			/* recalculate the number of allocations */
-			dest->bitmap_nallocs = (uint32_t)
-				(RUN_SIZE_BYTES(dest->size_idx) / unit_size);
-			LOG(3, "allocation class (%lu) was constructed with "
-				"fewer (%u) than requested chunks (%u)",
-				unit_size, dest->size_idx, dest->size_idx + 1);
-		} else {
-			LOG(3, "allocation class (%lu) was constructed with "
-				"fewer units (%u) than optimal (%u), "
-				"this might lead to "
-				"inefficient memory utilization!",
-				unit_size,
-				RUN_BITMAP_SIZE, dest->bitmap_nallocs);
-
-			dest->bitmap_nallocs = RUN_BITMAP_SIZE;
-		}
-	}
-
-	/*
-	 * The two other numbers that define our bitmap is the
-	 * size of the array that represents the bitmap and the
-	 * last value of that array with the bits that exceed
-	 * number of blocks marked as set (1).
-	 */
-	ASSERT(dest->bitmap_nallocs <= RUN_BITMAP_SIZE);
-	unsigned unused_bits = RUN_BITMAP_SIZE - dest->bitmap_nallocs;
-
-	unsigned unused_values = unused_bits / BITS_PER_VALUE;
-
-	ASSERT(MAX_BITMAP_VALUES >= unused_values);
-	dest->bitmap_nval = MAX_BITMAP_VALUES - unused_values;
-
-	ASSERT(unused_bits >= unused_values * BITS_PER_VALUE);
-	unused_bits -= unused_values * BITS_PER_VALUE;
-
-	dest->bitmap_lastval = unused_bits ?
-		(((1ULL << unused_bits) - 1ULL) <<
-			(BITS_PER_VALUE - unused_bits)) : 0;
-}
-
-/*
  * alloc_class_new -- creates a new allocation class
  */
 struct alloc_class *
@@ -291,19 +221,24 @@ alloc_class_new(int id, struct alloc_class_collection *ac,
 	c->type = type;
 	c->flags = (uint16_t)
 		(header_type_to_flag[c->header_type] |
-		(alignment ? CHUNK_FLAG_ALIGNED : 0));
+		(alignment ? CHUNK_FLAG_ALIGNED : 0)) |
+		ALLOC_CLASS_DEFAULT_FLAGS;
 
 	switch (type) {
 		case CLASS_HUGE:
 			id = DEFAULT_ALLOC_CLASS_ID;
 			break;
 		case CLASS_RUN:
-			alloc_class_generate_run_proto(&c->run, unit_size,
-				size_idx, alignment);
+			c->run.alignment = alignment;
+			struct run_bitmap b;
+			memblock_run_bitmap(&size_idx, c->flags, unit_size,
+				alignment, NULL, &b);
+			c->run.nallocs = b.nbits;
+			c->run.size_idx = size_idx;
 
 			uint8_t slot = (uint8_t)id;
 			if (id < 0 && alloc_class_find_first_free_slot(ac,
-			    &slot) != 0)
+					&slot) != 0)
 				goto error_class_alloc;
 			id = slot;
 
@@ -311,8 +246,7 @@ alloc_class_new(int id, struct alloc_class_collection *ac,
 				ac->granularity);
 			ASSERT(map_idx <= UINT32_MAX);
 			uint32_t map_idx_s = (uint32_t)map_idx;
-			ASSERT(c->run.size_idx <= UINT16_MAX);
-			uint16_t size_idx_s = (uint16_t)c->run.size_idx;
+			uint16_t size_idx_s = (uint16_t)size_idx;
 			uint16_t flags_s = (uint16_t)c->flags;
 			uint64_t k = RUN_CLASS_KEY_PACK(map_idx_s,
 				flags_s, size_idx_s);
@@ -365,8 +299,8 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 	COMPILE_ERROR_ON(MAX_ALLOCATION_CLASSES > UINT8_MAX);
 	uint64_t required_size_bytes = n * RUN_MIN_NALLOCS;
 	uint32_t required_size_idx = 1;
-	if (required_size_bytes > RUNSIZE) {
-		required_size_bytes -= RUNSIZE;
+	if (required_size_bytes > RUN_DEFAULT_SIZE) {
+		required_size_bytes -= RUN_DEFAULT_SIZE;
 		required_size_idx +=
 			CALC_SIZE_IDX(CHUNKSIZE, required_size_bytes);
 		if (required_size_idx > RUN_SIZE_IDX_CAP)
@@ -390,10 +324,18 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 	 * run data size must be divisible by the allocation class unit size
 	 * with the smallest possible remainder, preferably 0.
 	 */
-	size_t runsize_bytes = RUN_SIZE_BYTES(required_size_idx);
-	while ((runsize_bytes % n) > MAX_RUN_WASTED_BYTES) {
-		n += ALLOC_BLOCK_SIZE_GEN;
-	}
+	struct run_bitmap b;
+	size_t runsize_bytes = 0;
+	do {
+		if (runsize_bytes != 0) /* don't increase on first iteration */
+			n += ALLOC_BLOCK_SIZE_GEN;
+
+		uint32_t size_idx = required_size_idx;
+		memblock_run_bitmap(&size_idx, ALLOC_CLASS_DEFAULT_FLAGS, n, 0,
+			NULL, &b);
+
+		runsize_bytes = RUN_CONTENT_SIZE_BYTES(size_idx) - b.size;
+	} while ((runsize_bytes % n) > MAX_RUN_WASTED_BYTES);
 
 	/*
 	 * Now that the desired unit size is found the existing classes need
@@ -461,10 +403,10 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 		 * memory at the end of the run.
 		 */
 		if (c->type == CLASS_RUN) {
-			size_t wasted_units = c->run.bitmap_nallocs % units;
+			size_t wasted_units = c->run.nallocs % units;
 			size_t wasted_bytes = wasted_units * c->unit_size;
 			size_t waste_avg_per_unit = wasted_bytes /
-				c->run.bitmap_nallocs;
+				c->run.nallocs;
 
 			waste += waste_avg_per_unit;
 		}
@@ -511,7 +453,7 @@ alloc_class_collection_new()
 
 	struct alloc_class *predefined_class =
 		alloc_class_new(-1, ac, CLASS_RUN, HEADER_COMPACT,
-			MIN_RUN_SIZE, 0, 1);
+			MIN_UNIT_SIZE, 0, 1);
 	if (predefined_class == NULL)
 		goto error;
 
@@ -559,8 +501,8 @@ alloc_class_collection_new()
 	 * The actual run might contain less unit blocks than the theoretical
 	 * unit max variable. This may be the case for very large unit sizes.
 	 */
-	size_t real_unit_max = c->run.bitmap_nallocs < RUN_UNIT_MAX_ALLOC ?
-		c->run.bitmap_nallocs : RUN_UNIT_MAX_ALLOC;
+	size_t real_unit_max = c->run.nallocs < RUN_UNIT_MAX_ALLOC ?
+		c->run.nallocs : RUN_UNIT_MAX_ALLOC;
 
 	size_t theoretical_run_max_size = c->unit_size * real_unit_max;
 
@@ -711,7 +653,7 @@ alloc_class_calc_size_idx(struct alloc_class *c, size_t size)
 			return -1;
 		else if (size_idx > RUN_UNIT_MAX)
 			return -1;
-		else if (size_idx > c->run.bitmap_nallocs)
+		else if (size_idx > c->run.nallocs)
 			return -1;
 	}
 

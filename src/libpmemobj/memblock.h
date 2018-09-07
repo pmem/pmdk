@@ -155,16 +155,15 @@ enum memblock_state {
 	MAX_MEMBLOCK_STATE,
 };
 
-enum header_type {
-	HEADER_LEGACY,
-	HEADER_COMPACT,
-	HEADER_NONE,
+/* runtime bitmap information for a run */
+struct run_bitmap {
+	unsigned nvalues; /* number of 8 byte values - size of values array */
+	unsigned nbits; /* number of valid bits */
 
-	MAX_HEADER_TYPES
+	size_t size; /* total size of the bitmap in bytes */
+
+	uint64_t *values; /* pointer to the bitmap's values array */
 };
-
-extern const size_t header_type_to_size[MAX_HEADER_TYPES];
-extern const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES];
 
 struct memory_block_ops {
 	/* returns memory block size */
@@ -218,6 +217,32 @@ struct memory_block_ops {
 
 	/* returns the flags of an allocation */
 	uint16_t (*get_flags)(const struct memory_block *m);
+
+	/* initializes memblock in valgrind */
+	void (*vg_init)(const struct memory_block *m, int objects,
+		object_callback cb, void *arg);
+
+	/* iterates over every free block */
+	int (*iterate_free)(const struct memory_block *m,
+		object_callback cb, void *arg);
+
+	/* iterates over every used block */
+	int (*iterate_used)(const struct memory_block *m,
+		object_callback cb, void *arg);
+
+	/* calculates number of free units, valid only for runs */
+	void (*calc_free)(const struct memory_block *m,
+		uint32_t *free_space, uint32_t *max_free_block);
+
+	/* this is called exactly once for every existing chunk */
+	void (*reinit_chunk)(const struct memory_block *m);
+
+	/*
+	 * Initializes bitmap data for a run.
+	 * Do *not* use this function unless absolutely necessery, it breaks
+	 * the abstraction layer by exposing implementation details.
+	 */
+	void (*get_bitmap)(const struct memory_block *m, struct run_bitmap *b);
 };
 
 struct memory_block {
@@ -274,5 +299,16 @@ struct memory_block memblock_from_offset(struct palloc_heap *heap,
 struct memory_block memblock_from_offset_opt(struct palloc_heap *heap,
 	uint64_t off, int size);
 void memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m);
+
+struct memory_block memblock_huge_init(struct palloc_heap *heap,
+	uint32_t chunk_id, uint32_t zone_id, uint32_t size_idx);
+
+struct memory_block memblock_run_init(struct palloc_heap *heap,
+	uint32_t chunk_id, uint32_t zone_id, uint32_t size_idx, uint16_t flags,
+	uint64_t unit_size, uint64_t alignment);
+
+void memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
+	uint64_t unit_size, uint64_t alignment, void *content,
+	struct run_bitmap *b);
 
 #endif
