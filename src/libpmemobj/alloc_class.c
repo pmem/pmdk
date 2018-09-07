@@ -85,6 +85,11 @@
  */
 #define ALLOC_BLOCK_SIZE_GEN 64
 
+/*
+ * The first predefined allocation class size
+ */
+#define MIN_UNIT_SIZE 128
+
 static struct {
 	size_t size;
 	float step;
@@ -294,8 +299,8 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 	COMPILE_ERROR_ON(MAX_ALLOCATION_CLASSES > UINT8_MAX);
 	uint64_t required_size_bytes = n * RUN_MIN_NALLOCS;
 	uint32_t required_size_idx = 1;
-	if (required_size_bytes > RUNSIZE) {
-		required_size_bytes -= RUNSIZE;
+	if (required_size_bytes > RUN_DEFAULT_SIZE) {
+		required_size_bytes -= RUN_DEFAULT_SIZE;
 		required_size_idx +=
 			CALC_SIZE_IDX(CHUNKSIZE, required_size_bytes);
 		if (required_size_idx > RUN_SIZE_IDX_CAP)
@@ -448,7 +453,7 @@ alloc_class_collection_new()
 
 	struct alloc_class *predefined_class =
 		alloc_class_new(-1, ac, CLASS_RUN, HEADER_COMPACT,
-			MIN_RUN_SIZE, 0, 1);
+			MIN_UNIT_SIZE, 0, 1);
 	if (predefined_class == NULL)
 		goto error;
 

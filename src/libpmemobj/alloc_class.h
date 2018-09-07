@@ -44,7 +44,7 @@
 
 #define MAX_ALLOCATION_CLASSES (UINT8_MAX)
 #define DEFAULT_ALLOC_CLASS_ID (0)
-#define RUN_UNIT_MAX BITS_PER_VALUE
+#define RUN_UNIT_MAX RUN_BITS_PER_VALUE
 
 struct alloc_class_collection;
 

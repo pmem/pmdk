@@ -550,11 +550,11 @@ info_obj_run_bitmap(int v, struct run_bitmap *b)
 {
 	/* print only used values for lower verbosity */
 	uint32_t i;
-	for (i = 0; i < b->nbits / BITS_PER_VALUE; i++)
+	for (i = 0; i < b->nbits / RUN_BITS_PER_VALUE; i++)
 		outv(v, "%s\n", get_bitmap_str(b->values[i],
-					BITS_PER_VALUE));
+					RUN_BITS_PER_VALUE));
 
-	unsigned mod = b->nbits % BITS_PER_VALUE;
+	unsigned mod = b->nbits % RUN_BITS_PER_VALUE;
 	if (mod != 0) {
 		outv(v, "%s\n", get_bitmap_str(b->values[i], mod));
 	}

@@ -386,10 +386,10 @@ memblock_run_default_nallocs(uint32_t *size_idx, uint16_t flags,
 	unsigned nallocs = (unsigned)
 		(RUN_DEFAULT_SIZE_BYTES(*size_idx) / unit_size);
 
-	while (nallocs > DEFAULT_RUN_BITMAP_NBITS) {
+	while (nallocs > RUN_DEFAULT_BITMAP_NBITS) {
 		LOG(3, "tried to create a run (%lu) with number "
 			"of units (%u) exceeding the bitmap size (%u)",
-			unit_size, nallocs, DEFAULT_RUN_BITMAP_NBITS);
+			unit_size, nallocs, RUN_DEFAULT_BITMAP_NBITS);
 		if (*size_idx > 1) {
 			*size_idx -= 1;
 			/* recalculate the number of allocations */
@@ -404,9 +404,9 @@ memblock_run_default_nallocs(uint32_t *size_idx, uint16_t flags,
 				"this might lead to "
 				"inefficient memory utilization!",
 				unit_size,
-				DEFAULT_RUN_BITMAP_NBITS, nallocs);
+				RUN_DEFAULT_BITMAP_NBITS, nallocs);
 
-			nallocs = DEFAULT_RUN_BITMAP_NBITS;
+			nallocs = RUN_DEFAULT_BITMAP_NBITS;
 		}
 	}
 
@@ -423,19 +423,53 @@ memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
 {
 	ASSERTne(*size_idx, 0);
 
+	/*
+	 * Flexible bitmaps have a variably sized values array. The size varies
+	 * depending on:
+	 *	size idx - the larger the run, the more units it carries
+	 *	unit_size - the smaller the unit size, the more units per run
+	 *
+	 * The size of the bitmap also has to be calculated in such a way that
+	 * the beginning of allocations data is cacheline aligned. This is
+	 * required to perform many optimizations throughout the codebase.
+	 * This alignment requirement means that some of the bitmap values might
+	 * remain unused and will serve only as a padding for data.
+	 */
 	if (flags & CHUNK_FLAG_FLEX_BITMAP) {
+		/*
+		 * First calculate the number of values without accounting for
+		 * the bitmap size.
+		 */
 		size_t content_size = RUN_CONTENT_SIZE_BYTES(*size_idx);
 		b->nbits = (unsigned)(content_size / unit_size);
-		b->nvalues = util_div_ceil(b->nbits, BITS_PER_VALUE);
+		b->nvalues = util_div_ceil(b->nbits, RUN_BITS_PER_VALUE);
 
+		/*
+		 * Then, align the number of values up, so that the cacheline
+		 * alignment is preserved.
+		 */
 		b->nvalues = ALIGN_UP(b->nvalues + RUN_BASE_METADATA_VALUES, 8U)
 			- RUN_BASE_METADATA_VALUES;
 
+		/*
+		 * This is the total number of bytes needed for the bitmap AND
+		 * padding.
+		 */
 		b->size = b->nvalues * sizeof(*b->values);
+
+		/*
+		 * Calculate the number of allocations again, but this time
+		 * accounting for the bitmap/padding.
+		 */
 		b->nbits = (unsigned)((content_size - b->size) / unit_size);
 
-		unsigned unused_bits = (b->nvalues * BITS_PER_VALUE) - b->nbits;
-		unsigned unused_values = unused_bits / BITS_PER_VALUE;
+		/*
+		 * The last step is to calculate how much of the padding
+		 * is left at the end of the bitmap.
+		 */
+		unsigned unused_bits = (b->nvalues * RUN_BITS_PER_VALUE)
+			- b->nbits;
+		unsigned unused_values = unused_bits / RUN_BITS_PER_VALUE;
 		b->nvalues -= unused_values;
 
 		b->values = (uint64_t *)content;
@@ -443,13 +477,13 @@ memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
 		return;
 	}
 
-	b->size = DEFAULT_BITMAP_SIZE;
+	b->size = RUN_DEFAULT_BITMAP_SIZE;
 	b->nbits = memblock_run_default_nallocs(size_idx, flags,
 		unit_size, alignment);
 
-	unsigned unused_bits = DEFAULT_RUN_BITMAP_NBITS - b->nbits;
-	unsigned unused_values = unused_bits / BITS_PER_VALUE;
-	b->nvalues = DEFAULT_BITMAP_VALUES - unused_values;
+	unsigned unused_bits = RUN_DEFAULT_BITMAP_NBITS - b->nbits;
+	unsigned unused_values = unused_bits / RUN_BITS_PER_VALUE;
+	b->nvalues = RUN_DEFAULT_BITMAP_VALUES - unused_values;
 
 	b->values = (uint64_t *)content;
 }
@@ -652,7 +686,7 @@ static void
 run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	struct operation_context *ctx)
 {
-	ASSERT(m->size_idx <= BITS_PER_VALUE);
+	ASSERT(m->size_idx <= RUN_BITS_PER_VALUE);
 
 	/*
 	 * Free blocks are represented by clear bits and used blocks by set
@@ -664,19 +698,19 @@ run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	 * relatively simple.
 	 */
 	uint64_t bmask;
-	if (m->size_idx == BITS_PER_VALUE) {
-		ASSERTeq(m->block_off % BITS_PER_VALUE, 0);
+	if (m->size_idx == RUN_BITS_PER_VALUE) {
+		ASSERTeq(m->block_off % RUN_BITS_PER_VALUE, 0);
 		bmask = UINT64_MAX;
 	} else {
 		bmask = ((1ULL << m->size_idx) - 1ULL) <<
-				(m->block_off % BITS_PER_VALUE);
+				(m->block_off % RUN_BITS_PER_VALUE);
 	}
 
 	/*
 	 * The run bitmap is composed of several 8 byte values, so a proper
 	 * element of the bitmap array must be selected.
 	 */
-	int bpos = m->block_off / BITS_PER_VALUE;
+	int bpos = m->block_off / RUN_BITS_PER_VALUE;
 
 	struct run_bitmap b;
 	run_get_bitmap(m, &b);
@@ -739,12 +773,12 @@ run_get_state(const struct memory_block *m)
 	struct run_bitmap b;
 	run_get_bitmap(m, &b);
 
-	unsigned v = m->block_off / BITS_PER_VALUE;
+	unsigned v = m->block_off / RUN_BITS_PER_VALUE;
 	uint64_t bitmap = b.values[v];
-	unsigned bit = m->block_off % BITS_PER_VALUE;
+	unsigned bit = m->block_off % RUN_BITS_PER_VALUE;
 
 	unsigned bit_last = bit + m->size_idx;
-	ASSERT(bit_last <= BITS_PER_VALUE);
+	ASSERT(bit_last <= RUN_BITS_PER_VALUE);
 
 	for (unsigned i = bit; i < bit_last; ++i) {
 		if (!BIT_IS_CLR(bitmap, i)) {
@@ -900,7 +934,7 @@ run_process_bitmap_value(const struct memory_block *m,
 			 * take the current shift into account.
 			 */
 			s.block_off = (uint16_t)(base_offset + shift);
-			s.size_idx = (uint32_t)(BITS_PER_VALUE - shift);
+			s.size_idx = (uint32_t)(RUN_BITS_PER_VALUE - shift);
 
 			if ((ret = cb(&s, arg)) != 0)
 				return ret;
@@ -928,7 +962,7 @@ run_process_bitmap_value(const struct memory_block *m,
 			if ((ret = cb(&s, arg)) != 0)
 				return ret;
 		}
-	} while (shift != BITS_PER_VALUE);
+	} while (shift != RUN_BITS_PER_VALUE);
 
 	return 0;
 }
@@ -948,8 +982,8 @@ run_iterate_free(const struct memory_block *m, object_callback cb, void *arg)
 	struct memory_block nm = *m;
 	for (unsigned i = 0; i < b.nvalues; ++i) {
 		uint64_t v = b.values[i];
-		ASSERT(BITS_PER_VALUE * i <= UINT16_MAX);
-		block_off = (uint16_t)(BITS_PER_VALUE * i);
+		ASSERT(RUN_BITS_PER_VALUE * i <= UINT16_MAX);
+		block_off = (uint16_t)(RUN_BITS_PER_VALUE * i);
 		ret = run_process_bitmap_value(&nm, v, block_off, cb, arg);
 		if (ret != 0)
 			return ret;
@@ -964,8 +998,8 @@ run_iterate_free(const struct memory_block *m, object_callback cb, void *arg)
 static int
 run_iterate_used(const struct memory_block *m, object_callback cb, void *arg)
 {
-	uint16_t i = m->block_off / BITS_PER_VALUE;
-	uint16_t block_start = m->block_off % BITS_PER_VALUE;
+	uint16_t i = m->block_off / RUN_BITS_PER_VALUE;
+	uint16_t block_start = m->block_off % RUN_BITS_PER_VALUE;
 	uint16_t block_off;
 
 	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
@@ -977,9 +1011,9 @@ run_iterate_used(const struct memory_block *m, object_callback cb, void *arg)
 
 	for (; i < b.nvalues; ++i) {
 		uint64_t v = b.values[i];
-		block_off = (uint16_t)(BITS_PER_VALUE * i);
+		block_off = (uint16_t)(RUN_BITS_PER_VALUE * i);
 
-		for (uint16_t j = block_start; j < BITS_PER_VALUE; ) {
+		for (uint16_t j = block_start; j < RUN_BITS_PER_VALUE; ) {
 			if (block_off + j >= (uint16_t)b.nbits)
 				break;
 
@@ -1165,13 +1199,13 @@ run_calc_free(const struct memory_block *m,
 			continue;
 
 		/* if the entire value is empty, no point in calculating */
-		if (free_in_value == BITS_PER_VALUE) {
-			*max_free_block = BITS_PER_VALUE;
+		if (free_in_value == RUN_BITS_PER_VALUE) {
+			*max_free_block = RUN_BITS_PER_VALUE;
 			continue;
 		}
 
 		/* if already at max, no point in calculating */
-		if (*max_free_block == BITS_PER_VALUE)
+		if (*max_free_block == RUN_BITS_PER_VALUE)
 			continue;
 
 		/*
@@ -1312,7 +1346,7 @@ memblock_run_init(struct palloc_heap *heap,
 	/* clear only the bits available for allocations from this bucket */
 	memset(b.values, 0, sizeof(*b.values) * (b.nvalues - 1));
 
-	unsigned trailing_bits = b.nbits % BITS_PER_VALUE;
+	unsigned trailing_bits = b.nbits % RUN_BITS_PER_VALUE;
 	uint64_t last_value = UINT64_MAX << trailing_bits;
 	b.values[b.nvalues - 1] = last_value;
 

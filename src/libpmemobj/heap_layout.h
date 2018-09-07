@@ -54,24 +54,13 @@
 #define ZONE_MAX_SIZE (sizeof(struct zone) + sizeof(struct chunk) * MAX_CHUNK)
 #define HEAP_MIN_SIZE (sizeof(struct heap_layout) + ZONE_MIN_SIZE)
 
-#define BITS_PER_VALUE 64U
-#define MAX_CACHELINE_ALIGNMENT 40 /* run alignment, 5 cachelines */
+/* Base bitmap values, relevant for both normal and flexible bitmaps */
+#define RUN_BITS_PER_VALUE 64U
 #define RUN_BASE_METADATA_VALUES\
 	((unsigned)(sizeof(struct chunk_run_header) / sizeof(uint64_t)))
 #define RUN_BASE_METADATA_SIZE (sizeof(struct chunk_run_header))
 
-#define DEFAULT_BITMAP_SIZE (sizeof(uint64_t) * DEFAULT_BITMAP_VALUES)
-#define DEFAULT_BITMAP_VALUES \
-	(MAX_CACHELINE_ALIGNMENT - RUN_BASE_METADATA_VALUES)
-#define DEFAULT_RUN_BITMAP_NBITS (BITS_PER_VALUE * DEFAULT_BITMAP_VALUES)
-
-#define RUNSIZE (CHUNKSIZE - RUN_BASE_METADATA_SIZE - DEFAULT_BITMAP_SIZE)
 #define RUN_CONTENT_SIZE (CHUNKSIZE - RUN_BASE_METADATA_SIZE)
-#define MIN_RUN_SIZE 128
-#define RUN_BASE_ALIGNMENT 64
-
-#define CHUNK_MASK ((CHUNKSIZE) - 1)
-#define CHUNK_ALIGN_UP(value) ((((value) + CHUNK_MASK) & ~CHUNK_MASK))
 
 /*
  * Calculates the size in bytes of a single run instance, including bitmap
@@ -79,12 +68,25 @@
 #define RUN_CONTENT_SIZE_BYTES(size_idx)\
 (RUN_CONTENT_SIZE + (((size_idx) - 1) * CHUNKSIZE))
 
+/* Default bitmap values, specific for old, non-flexible, bitmaps */
+#define RUN_DEFAULT_METADATA_VALUES 40 /* in 8 byte words, 320 bytes total */
+#define RUN_DEFAULT_BITMAP_VALUES \
+	(RUN_DEFAULT_METADATA_VALUES - RUN_BASE_METADATA_VALUES)
+#define RUN_DEFAULT_BITMAP_SIZE (sizeof(uint64_t) * RUN_DEFAULT_BITMAP_VALUES)
+#define RUN_DEFAULT_BITMAP_NBITS\
+	(RUN_BITS_PER_VALUE * RUN_DEFAULT_BITMAP_VALUES)
+#define RUN_DEFAULT_SIZE \
+	(CHUNKSIZE - RUN_BASE_METADATA_SIZE - RUN_DEFAULT_BITMAP_SIZE)
+
 /*
  * Calculates the size in bytes of a single run instance, without bitmap,
  * but only for the default fixed-bitmap algorithm
  */
 #define RUN_DEFAULT_SIZE_BYTES(size_idx)\
-(RUNSIZE + (((size_idx) - 1) * CHUNKSIZE))
+(RUN_DEFAULT_SIZE + (((size_idx) - 1) * CHUNKSIZE))
+
+#define CHUNK_MASK ((CHUNKSIZE) - 1)
+#define CHUNK_ALIGN_UP(value) ((((value) + CHUNK_MASK) & ~CHUNK_MASK))
 
 enum chunk_flags {
 	CHUNK_FLAG_COMPACT_HEADER	=	0x0001,
