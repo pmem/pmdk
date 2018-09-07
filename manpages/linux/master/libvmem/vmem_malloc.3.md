@@ -140,7 +140,7 @@ pointer value that can later be successfully passed to **vmem_free**().
 If **vmem_calloc**() is unable to satisfy the allocation request, it returns
 NULL and sets *errno* appropriately.
 
-On success, **vmem_realloc**() returns a pointer to the allocted memory, which
+On success, **vmem_realloc**() returns a pointer to the allocated memory, which
 may be different from *ptr*. If the area pointed to was moved, a
 *vmem_free(vmp, ptr)* is done. If **vmem_realloc**() is unable to satisfy the
 allocation request, it returns NULL and sets *errno* appropriately.
