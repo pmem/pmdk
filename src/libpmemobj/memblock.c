@@ -410,7 +410,7 @@ memblock_run_default_nallocs(uint32_t *size_idx, uint16_t flags,
 		}
 	}
 
-	return nallocs;
+	return nallocs - (alignment ? 1 : 0);
 }
 
 /*
@@ -426,6 +426,7 @@ memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
 	/*
 	 * Flexible bitmaps have a variably sized values array. The size varies
 	 * depending on:
+	 *	alignment - initial run alignment might require up-to a unit
 	 *	size idx - the larger the run, the more units it carries
 	 *	unit_size - the smaller the unit size, the more units per run
 	 *
@@ -461,7 +462,8 @@ memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
 		 * Calculate the number of allocations again, but this time
 		 * accounting for the bitmap/padding.
 		 */
-		b->nbits = (unsigned)((content_size - b->size) / unit_size);
+		b->nbits = (unsigned)((content_size - b->size) / unit_size)
+			- (alignment ? 1U : 0U);
 
 		/*
 		 * The last step is to calculate how much of the padding
