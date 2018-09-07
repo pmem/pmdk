@@ -849,6 +849,74 @@ out_get_alignment_desc_str(uint64_t ad, uint64_t valid_ad)
 	return str_buff;
 }
 
+
+static const char *incompat_features_str[] = {
+	"SINGLEHDR",
+	"CKSUM_2K"
+};
+
+#define INCOMPAT_FEATURES_MAX ARRAY_SIZE(incompat_features_str)
+
+/*
+ * out_str2feature -- convert string to unit32_t feature
+ */
+uint32_t
+out_str2feature(const char *str)
+{
+	/* all features has to be named in incompat_features_str array */
+	COMPILE_ERROR_ON(POOL_FEAT_ALL >> INCOMPAT_FEATURES_MAX);
+
+	for (uint32_t f = 0; f < INCOMPAT_FEATURES_MAX; ++f) {
+		if (strcmp(str, incompat_features_str[f]) == 0) {
+			return (1u << f);
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * out_feature2str -- convert unit32_t feature to string
+ */
+const char *
+out_feature2str(uint32_t *feature)
+{
+	for (uint32_t f = 0; f < INCOMPAT_FEATURES_MAX; ++f) {
+		const uint32_t feat_bit = (1u << f);
+		if (*feature & feat_bit) {
+			/* take off the flag */
+			*feature &= (uint32_t)(~(feat_bit));
+			return incompat_features_str[f];
+		}
+	}
+
+	return NULL;
+}
+
+/*
+ * out_concat -- concatenate the new element to the list of strings
+ *
+ * If concatenation is successful it increments current position in the output
+ * string and number of elements in the list. Elements are separated with ", ".
+ */
+static int
+out_concat(char *str_buff, int *curr, int *count, const char *str)
+{
+	ASSERTne(str_buff, NULL);
+	ASSERTne(curr, NULL);
+	ASSERTne(str, NULL);
+
+	const char *separator = (count != NULL && *count > 0) ? ", " : "";
+	int ret = snprintf(str_buff + *curr,
+		(size_t)(STR_MAX - *curr), "%s%s", separator, str);
+	if (ret < 0 || *curr + ret >= STR_MAX)
+		return -1;
+	*curr += ret;
+	if (count)
+		++(*count);
+	return 0;
+}
+
 /*
  * out_get_incompat_features_str -- (internal) get a string with names of
  *                                  incompatibility flags
@@ -870,35 +938,26 @@ out_get_incompat_features_str(uint32_t incompat)
 			return "<error>";
 		}
 
-		/* print the name of SINGLEHDR option */
+		/* print names of known options */
 		int count = 0;
 		int curr = ret;
-		if (incompat & POOL_FEAT_SINGLEHDR) {
-			ret = snprintf(str_buff + curr,
-				(size_t)(STR_MAX - curr), "%s", "SINGLEHDR");
-			if (ret < 0 || curr + ret >= STR_MAX)
-				return "";
-			curr += ret;
-			++count;
-			/* take off the flag */
-			incompat &= (uint32_t)(~(POOL_FEAT_SINGLEHDR));
-		}
+		const char *feat;
 
-		/* handle other flags here */
+		while (((feat = out_feature2str(&incompat))) != NULL) {
+			ret = out_concat(str_buff, &curr, &count, feat);
+			if (ret < 0)
+				return "";
+		}
 
 		/* check if any unknown flags are set */
 		if (incompat > 0) {
-			ret = snprintf(str_buff + curr,
-				(size_t)(STR_MAX - curr), "%s%s",
-				count ? ", " : "", "?UNKNOWN_FLAG?");
-			if (ret < 0 || curr + ret >= STR_MAX)
+			if (out_concat(str_buff, &curr, &count,
+					"?UNKNOWN_FLAG?"))
 				return "";
-			curr += ret;
 		}
 
 		/* print the right square bracket */
-		ret = snprintf(str_buff + curr, (size_t)(STR_MAX - curr), "]");
-		if (ret < 0 || curr + ret >= STR_MAX)
+		if (out_concat(str_buff, &curr, NULL, "]"))
 			return "";
 	}
 	return str_buff;
