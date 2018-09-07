@@ -67,6 +67,7 @@ typedef struct {
 	int single_part;
 
 	struct pool_set *set;
+	int is_dev_dax;
 
 	struct pool_hdr *hdrp;
 	/* copy of the pool header in host byte order */
