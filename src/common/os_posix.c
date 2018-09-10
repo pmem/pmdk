@@ -287,7 +287,7 @@ os_setenv(const char *name, const char *value, int overwrite)
 /*
  * secure_getenv -- provide GNU secure_getenv for FreeBSD
  */
-#ifdef __FreeBSD__
+#ifndef __USE_GNU
 static char *
 secure_getenv(const char *name)
 {
