@@ -106,11 +106,18 @@ do_create(const char *path, const char *layout)
 
 	srand((unsigned int)time(NULL));
 
-	if ((pop = pmemobj_create(path, layout, 0, S_IWUSR | S_IRUSR)) == NULL)
+	if ((pop = pmemobj_create(path, layout, 0,
+						S_IWUSR | S_IRUSR)) == NULL) {
+		if (errno != EEXIST) {
+			out("!pmemobj_create: %s", path);
+			exit(-1);
+		}
+
 		if ((pop = pmemobj_open(path, layout)) == NULL) {
 			out("!pmemobj_open: %s", path);
 			exit(-1);
 		}
+	}
 
 	TOID(struct root_s) root = POBJ_ROOT(pop, struct root_s);
 
