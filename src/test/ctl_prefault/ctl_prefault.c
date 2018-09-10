@@ -169,16 +169,23 @@ static void
 test_log(const char *path, int open)
 {
 	PMEMlogpool *plp;
+
+	/*
+	 * To test prefaulting, pool must have size at least equal to 2 pages.
+	 * If 2MB huge pages are used this is at least 4MB.
+	 */
+	size_t pool_size = 2 * PMEMLOG_MIN_POOL;
+
 	if (open) {
 		if ((plp = pmemlog_open(path)) == NULL)
 			UT_FATAL("!pmemlog_open: %s", path);
 	} else {
-		if ((plp = pmemlog_create(path, PMEMLOG_MIN_POOL,
+		if ((plp = pmemlog_create(path, pool_size,
 				S_IWUSR | S_IRUSR)) == NULL)
 			UT_FATAL("!pmemlog_create: %s", path);
 	}
 
-	size_t resident_pages = count_resident_pages(plp, PMEMLOG_MIN_POOL);
+	size_t resident_pages = count_resident_pages(plp, pool_size);
 
 	pmemlog_close(plp);
 
