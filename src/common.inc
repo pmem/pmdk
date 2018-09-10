@@ -76,6 +76,8 @@ GCOV_CFLAGS=-fprofile-arcs -ftest-coverage --coverage
 GCOV_LDFLAGS=-fprofile-arcs -ftest-coverage
 GCOV_LIBS=-lgcov
 
+LIBS += $(EXTRA_LIBS)
+
 ifeq ($(OS_KERNEL_NAME),)
 export OS_KERNEL_NAME := $(shell uname -s)
 endif
