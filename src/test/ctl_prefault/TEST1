@@ -39,6 +39,8 @@ require_test_type short
 
 setup
 
+require_fs_name ext4
+
 # create, don't prefault
 expect_normal_exit ./ctl_prefault$EXESUFFIX blk $DIR/testfile1 0 0
 pagefault_create_baseline=`cat out$UNITTEST_NUM.log | sed -n '3p'`
