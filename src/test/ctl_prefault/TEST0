@@ -39,6 +39,13 @@ require_test_type short
 
 setup
 
+if ! fallocate -l 1MB $DIR/testfile1 ; then
+	msg "$UNITTEST_NAME: SKIP: filesystem does not support fallocate"
+	exit 0
+fi
+
+rm -f $DIR/testfile1
+
 # create, don't prefault
 expect_normal_exit ./ctl_prefault$EXESUFFIX obj $DIR/testfile1 0 0
 pagefault_create_baseline=`cat out$UNITTEST_NUM.log | sed -n '3p'`
