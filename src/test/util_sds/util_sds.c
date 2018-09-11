@@ -119,7 +119,7 @@ main(int argc, char *argv[])
 		FAIL(fail_on, 2);
 		for (unsigned i = 0; i < files; i++) {
 			if (shutdown_state_add_part(&current_sds,
-				args[2 + i], NULL))
+					args[2 + i], NULL))
 				UT_FATAL("shutdown_state_add_part");
 			FAIL(fail_on, 3);
 		}

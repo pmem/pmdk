@@ -613,13 +613,13 @@ check_shutdown_state(struct pool_set *set,
 		shutdown_state_init(&curr_sds, NULL);
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			if (shutdown_state_add_part(&curr_sds,
-			PART(rep, p)->path, NULL)) {
+					PART(rep, p)->path, NULL)) {
 				rep_hs->flags |= IS_BROKEN;
 				break;
 			}
 		}
 
-		if ((rep_hs->flags & IS_BROKEN) == IS_BROKEN)
+		if (rep_hs->flags & IS_BROKEN)
 			continue;
 
 		/* make a copy of sds as we shouldn't modify a pool */
