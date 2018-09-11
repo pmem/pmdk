@@ -48,6 +48,7 @@
 #include <stdlib.h>
 
 #include "rpmemd_log.h"
+#include "out.h"
 #include "os.h"
 #include "valgrind_internal.h"
 
@@ -56,12 +57,14 @@
 #define RPMEMD_DEFAULT_FH	stderr
 #define RPMEMD_MAX_MSG		((size_t)8192)
 #define RPMEMD_MAX_PREFIX	((size_t)256)
+#define RPMEMD_OUT_LOG_LEVEL_VAR	"RPMEMD_OUT_LOG_LEVEL"
 
 enum rpmemd_log_level rpmemd_log_level;
 static char *rpmemd_ident;
 static int rpmemd_use_syslog;
 static FILE *rpmemd_log_file;
 static char rpmemd_prefix_buff[RPMEMD_MAX_PREFIX];
+static int Out_inited;
 
 static const char *rpmemd_log_level_str[MAX_RPD_LOG] = {
 	[RPD_LOG_ERR]		= "err",
@@ -112,9 +115,11 @@ rpmemd_log_level_to_str(enum rpmemd_log_level level)
  *
  * ident      - string prepended to every message
  * use_syslog - use syslog instead of standard output
+ * init_out   - init the 'out' module
  */
 int
-rpmemd_log_init(const char *ident, const char *fname, int use_syslog)
+rpmemd_log_init(const char *ident, const char *fname, int use_syslog,
+			int init_out)
 {
 	rpmemd_use_syslog = use_syslog;
 
@@ -137,6 +142,23 @@ rpmemd_log_init(const char *ident, const char *fname, int use_syslog)
 		} else {
 			rpmemd_log_file = RPMEMD_DEFAULT_FH;
 		}
+
+		if (init_out) {
+			int ilog_level;
+
+			char *slog_level = os_getenv(RPMEMD_OUT_LOG_LEVEL_VAR);
+			if (slog_level != NULL) {
+				ilog_level = atoi(slog_level);
+				if (ilog_level < 0)
+					ilog_level = 0;
+			} else {
+				ilog_level = (int)rpmemd_log_level + 1;
+			}
+
+			out_init_attach(rpmemd_ident, ilog_level,
+					rpmemd_log_file, 0, 0);
+			Out_inited = 1;
+		}
 	}
 
 	return 0;
@@ -146,11 +168,16 @@ rpmemd_log_init(const char *ident, const char *fname, int use_syslog)
  * rpmemd_log_close -- deinitialize logging subsystem
  */
 void
-rpmemd_log_close(void)
+rpmemd_log_close()
 {
 	if (rpmemd_use_syslog) {
 		closelog();
 	} else {
+		if (Out_inited) {
+			out_fini();
+			Out_inited = 0;
+		}
+
 		if (rpmemd_log_file != RPMEMD_DEFAULT_FH)
 			fclose(rpmemd_log_file);
 

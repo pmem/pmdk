@@ -1,28 +1,140 @@
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 ; invalid comment format
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 ; invalid comment format
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 dir= 		 		# invalid dir path
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 dir= 		 		# invalid dir path
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 log-file= 		 		 # invalid log-file path
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 log-file= 		 		 # invalid log-file path
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 log-level=Invalid # invalid log-level
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 log-level=Invalid # invalid log-level
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 persist-apm=invalid # invalid persist-apm value
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 persist-apm=invalid # invalid persist-apm value
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 persist-general=invalid # invalid persist-general value
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 persist-general=invalid # invalid persist-general value
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 use-syslog=invalid # invalid use-syslog value
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] rpmemd_log version $(*)
+<rpmemd_log>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd_log>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 Invalid config file line at $(*):1
 use-syslog=invalid # invalid use-syslog value

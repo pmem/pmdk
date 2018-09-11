@@ -52,7 +52,7 @@ CONFIG=in${UNITTEST_NUM}.conf
 
 CL_LOG_LEVEL=notice
 
-expect_normal_exit $RPMEMD -c $CONFIG
+expect_normal_exit $RPMEMD -c $CONFIG 2>/dev/null
 cat $LOG >> $LOG_TEMP
 
 expect_normal_exit $RPMEMD -c $CONFIG\
@@ -61,7 +61,7 @@ expect_normal_exit $RPMEMD -c $CONFIG\
 	--persist-apm\
 	--persist-general\
 	--use-syslog\
-	--log-level=$CL_LOG_LEVEL
+	--log-level=$CL_LOG_LEVEL 2>/dev/null
 cat $LOG >> $LOG_TEMP
 
 $GREP -v rpmemd_config $LOG_TEMP > $LOG

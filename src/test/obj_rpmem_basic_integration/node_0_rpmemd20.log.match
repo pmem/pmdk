@@ -1,3 +1,11 @@
+<rpmemd>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd>: <1> [out.c:$(N) out_init_common] rpmemd version $(*)
+<rpmemd>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
 rpmemd version $(nW)
 ssh connection: $(*)
 user: $(nW)
@@ -21,4 +29,6 @@ pool attributes:
     uuid: $(nW)
     next_uuid: $(nW)
     prev_uuid: $(nW)
+<rpmemd>: <1> [file.c:$(N) util_file_create] size 2093056 smaller than 2097152
+<rpmemd>: <2> [set.c:$(N) util_part_open] failed to create file: $(*)
 cannot create pool set -- '$(nW)/testset_remote': Invalid argument

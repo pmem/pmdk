@@ -50,10 +50,10 @@ rm -f $LOG $LOG_TEMP
 
 CONFIG=in${UNITTEST_NUM}.conf
 
-expect_normal_exit $RPMEMD -c $CONFIG
+expect_normal_exit $RPMEMD -c $CONFIG 2>/dev/null
 cat $LOG >> $LOG_TEMP
 
-expect_normal_exit $RPMEMD --config $CONFIG
+expect_normal_exit $RPMEMD --config $CONFIG 2>/dev/null
 cat $LOG >> $LOG_TEMP
 
 $GREP -v rpmemd_config $LOG_TEMP > $LOG

@@ -97,7 +97,8 @@ enum rpmemd_log_level rpmemd_log_level_from_str(const char *str);
 const char *rpmemd_log_level_to_str(enum rpmemd_log_level level);
 
 extern enum rpmemd_log_level rpmemd_log_level;
-int rpmemd_log_init(const char *ident, const char *fname, int use_syslog);
+int rpmemd_log_init(const char *ident, const char *fname, int use_syslog,
+			int init_out);
 void rpmemd_log_close(void);
 int rpmemd_prefix(const char *fmt, ...) FORMAT_PRINTF(1, 2);
 void rpmemd_log(enum rpmemd_log_level level, const char *fname,
