@@ -80,7 +80,8 @@ SRC=pmembench.cpp\
     map_bench.cpp\
     pmemobj_tx.cpp\
     pmemobj_atomic_lists.cpp\
-    poolset_util.cpp
+    poolset_util.cpp\
+    fragmentation.cpp
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
