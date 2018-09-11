@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-#
 # Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,43 +28,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+# Makefile -- Makefile for fallocate detection tool
+#
 
+TOP = ../../../..
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = fallocate_detect
+OBJS = fallocate_detect.o
 
-require_test_type short
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-setup
-
-require_native_fallocate $DIR/testfile1
-
-# create, don't prefault
-expect_normal_exit ./ctl_prefault$EXESUFFIX log $DIR/testfile1 0 0
-pagefault_create_baseline=`cat out$UNITTEST_NUM.log | sed -n '3p'`
-
-# open, don't prefault
-expect_normal_exit ./ctl_prefault$EXESUFFIX log $DIR/testfile1 0 1
-pagefault_open_baseline=`cat out$UNITTEST_NUM.log | sed -n '3p'`
-
-rm -f $DIR/testfile1
-
-# create, prefault
-expect_normal_exit ./ctl_prefault$EXESUFFIX log $DIR/testfile1 2 0
-pagefault_create_prefault=`cat out$UNITTEST_NUM.log | sed -n '3p'`
-
-# open, prefault
-expect_normal_exit ./ctl_prefault$EXESUFFIX log $DIR/testfile1 1 1
-pagefault_open_prefault=`cat out$UNITTEST_NUM.log | sed -n '3p'`
-
-rm -f $DIR/testfile1
-
-if [ ${pagefault_create_baseline} -ge ${pagefault_create_prefault} ]; then
-	fatal "create: ${pagefault_create_baseline} >= ${pagefault_create_prefault} "
-fi
-
-if [ ${pagefault_open_baseline} -ge ${pagefault_open_prefault} ]; then
-	fatal "open: ${pagefault_open_baseline} >= ${pagefault_open_prefault}"
-fi
-
-pass
+include $(TOP)/src/tools/Makefile.inc

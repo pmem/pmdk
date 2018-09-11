@@ -38,10 +38,11 @@
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type any
 require_test_type medium
 
 setup
+
+require_native_fallocate $DIR/testfile1
 
 MIN_POOL=0x4000
 
