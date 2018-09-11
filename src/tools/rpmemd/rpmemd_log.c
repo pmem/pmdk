@@ -41,6 +41,7 @@
 #include <stdlib.h>
 
 #include "rpmemd_log.h"
+#include "out.h"
 #include "os.h"
 #include "valgrind_internal.h"
 
@@ -55,6 +56,7 @@ static char *rpmemd_ident;
 static int rpmemd_use_syslog;
 static FILE *rpmemd_log_file;
 static char rpmemd_prefix_buff[RPMEMD_MAX_PREFIX];
+static int Out_inited;
 
 static const char *rpmemd_log_level_str[MAX_RPD_LOG] = {
 	[RPD_LOG_ERR]		= "err",
@@ -70,6 +72,14 @@ static int rpmemd_level2prio[MAX_RPD_LOG] = {
 	[RPD_LOG_NOTICE]	= LOG_NOTICE,
 	[RPD_LOG_INFO]		= LOG_INFO,
 	[_RPD_LOG_DBG]		= LOG_DEBUG,
+};
+
+static int rpmemd_level2out[MAX_RPD_LOG] = {
+	[RPD_LOG_ERR]		= 1, /* error details */
+	[RPD_LOG_WARN]		= 1,
+	[RPD_LOG_NOTICE]	= 2, /* + trace of basic operations */
+	[RPD_LOG_INFO]		= 2,
+	[_RPD_LOG_DBG]		= 4, /* + function call tracing + details */
 };
 
 /*
@@ -123,9 +133,11 @@ rpmemd_log_level_to_str(enum rpmemd_log_level level)
  *
  * ident      - string prepended to every message
  * use_syslog - use syslog instead of standard output
+ * init_out   - init the 'out' module
  */
 int
-rpmemd_log_init(const char *ident, const char *fname, int use_syslog)
+rpmemd_log_init(const char *ident, const char *fname, int use_syslog,
+			int init_out)
 {
 	rpmemd_use_syslog = use_syslog;
 
@@ -148,6 +160,19 @@ rpmemd_log_init(const char *ident, const char *fname, int use_syslog)
 		} else {
 			rpmemd_log_file = RPMEMD_DEFAULT_FH;
 		}
+
+		if (init_out) {
+			int log_level = rpmemd_level2out[rpmemd_log_level];
+			int log_prefix_level = LOG_PREFIX_LEVEL_NO;
+
+			/* for debug print all messages with function prefix */
+			if (rpmemd_log_level == _RPD_LOG_DBG)
+				log_prefix_level = LOG_PREFIX_LEVEL_FUNC;
+
+			out_init_attach(rpmemd_ident, log_prefix_level,
+					log_level, rpmemd_log_file);
+			Out_inited = 1;
+		}
 	}
 
 	return 0;
@@ -157,11 +182,16 @@ rpmemd_log_init(const char *ident, const char *fname, int use_syslog)
  * rpmemd_log_close -- deinitialize logging subsystem
  */
 void
-rpmemd_log_close(void)
+rpmemd_log_close()
 {
 	if (rpmemd_use_syslog) {
 		closelog();
 	} else {
+		if (Out_inited) {
+			out_fini();
+			Out_inited = 0;
+		}
+
 		if (rpmemd_log_file != RPMEMD_DEFAULT_FH)
 			fclose(rpmemd_log_file);
 

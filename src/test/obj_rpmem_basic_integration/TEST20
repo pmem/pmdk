@@ -46,6 +46,8 @@ require_nodes 2
 require_node_libfabric 0 $RPMEM_PROVIDER
 require_node_libfabric 1 $RPMEM_PROVIDER
 
+export RPMEMD_LOG_LEVEL=info
+
 init_rpmem_on_node 1 0
 
 # binary for this test
