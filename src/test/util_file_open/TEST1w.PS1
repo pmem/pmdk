@@ -64,9 +64,6 @@ expect_normal_exit $Env:EXE_DIR\util_file_open$Env:EXESUFFIX 0x4000 `
 & icacls $DIR\testfile1 /grant ${Env:USERNAME}:F >$null
 & icacls $DIR\testfile2 /grant ${Env:USERNAME}:F >$null
 
-rm -Force $DIR\testfile1
-rm -Force $DIR\testfile2
-
 check
 
 pass

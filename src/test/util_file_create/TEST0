@@ -46,8 +46,6 @@ setup
 
 MIN_POOL=0x4000
 
-rm -fr $DIR/testdir1
-
 truncate -s 32K $DIR/testfile1
 mkdir $DIR/testdir1
 ln -s $DIR/testfile0 $DIR/testlink1
@@ -65,8 +63,6 @@ expect_normal_exit ./util_file_create$EXESUFFIX $MIN_POOL \
     $MIN_POOL:$DIR/testfile1\
     0x1000:$DIR/testfile2\
     $MIN_POOL:$DIR/testfile3
-
-rm -fr $DIR/testdir1
 
 check
 

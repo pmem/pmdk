@@ -52,8 +52,6 @@ expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
     0x4000:NUL `
     0x4000:$DIR\testfile1
 
-rm -Force -Recurse $DIR\testdir1
-
 check
 
 pass

@@ -45,12 +45,8 @@ setup
 
 MIN_POOL=0x4000
 
-rm -f $DIR/testfile
-
 expect_normal_exit ./util_file_create$EXESUFFIX $MIN_POOL \
     0x7FFFFFFFFFFFFFFF:$DIR/testfile
-
-rm -f $DIR/testfile
 
 check
 

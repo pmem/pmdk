@@ -52,7 +52,6 @@ REPL2=$DIR/pool.rep.part2
 REPL3=$DIR/pool.rep.part3
 REPS="$REPL1 $REPL2 $REPL3"
 
-rm -f $POOLSET
 create_poolset $POOLSET 32M:$POOL1:z 32M:$POOL2:z 32M:$POOL3:z \
 	O SINGLEHDR
 

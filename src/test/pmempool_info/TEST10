@@ -46,12 +46,9 @@ POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
-rm -rf $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout "pmempool$SUFFIX" obj\
   $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL >> $LOG
-
-rm -f $POOL
 
 check
 

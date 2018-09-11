@@ -49,8 +49,6 @@ POOL_PART2=$DIR/pool.part2
 LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
-rm -f $POOLSET $POOL_PART1 $POOL_PART2
-
 create_poolset $POOLSET 32M:$POOL_PART1:z 32M:$POOL_PART2:z
 
 expect_normal_exit $PMEMPOOL create blk 512 $POOLSET

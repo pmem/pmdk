@@ -47,15 +47,11 @@ setup
 
 MIN_POOL=0x4000
 
-rm -fr $DIR/testdir1
-
 mkdir $DIR/testdir1
 chmod -w $DIR/testdir1
 
 expect_normal_exit ./util_file_create$EXESUFFIX $MIN_POOL \
     $MIN_POOL:$DIR/testdir1/testfile
-
-rm -fr $DIR/testdir1
 
 check
 

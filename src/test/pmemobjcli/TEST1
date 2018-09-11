@@ -44,7 +44,6 @@ POOL=$DIR/testfile
 SCRIPT=_example_tx.posc
 LOG=out${UNITTEST_NUM}.log
 
-rm -rf $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL -s 16M
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $PMEMOBJCLI$SCRIPT $POOL > $LOG
 
