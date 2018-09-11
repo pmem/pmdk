@@ -55,9 +55,11 @@
 #include "srcversion.h"
 #endif
 
+static int init_log_once;
 static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
+static int Out_fp_opened;
 static unsigned Log_alignment;
 
 #ifndef NO_LIBPTHREAD
@@ -162,62 +164,11 @@ Last_errormsg_get(void)
 #endif /* NO_LIBPTHREAD */
 
 /*
- * out_init -- initialize the log
- *
- * This is called from the library initialization code.
+ * out_init_common -- (internal) common part of the log initialization
  */
-void
-out_init(const char *log_prefix, const char *log_level_var,
-		const char *log_file_var, int major_version,
-		int minor_version)
+static void
+out_init_common(const char *log_prefix, int major_version, int minor_version)
 {
-	static int once;
-
-	/* only need to initialize the out module once */
-	if (once)
-		return;
-	once++;
-
-	Log_prefix = log_prefix;
-
-#ifdef DEBUG
-	char *log_level;
-	char *log_file;
-
-	if ((log_level = os_getenv(log_level_var)) != NULL) {
-		Log_level = atoi(log_level);
-		if (Log_level < 0) {
-			Log_level = 0;
-		}
-	}
-
-	if ((log_file = os_getenv(log_file_var)) != NULL &&
-				log_file[0] != '\0') {
-
-		/* reserve more than enough space for a PID + '\0' */
-		char log_file_pid[PATH_MAX];
-		size_t len = strlen(log_file);
-		if (len > 0 && log_file[len - 1] == '-') {
-			int ret = snprintf(log_file_pid, PATH_MAX, "%s%d",
-				log_file, getpid());
-			if (ret < 0 || ret >= PATH_MAX) {
-				ERR("snprintf: %d", ret);
-				abort();
-			}
-			log_file = log_file_pid;
-		}
-
-		if ((Out_fp = os_fopen(log_file, "w")) == NULL) {
-			char buff[UTIL_MAX_ERR_MSG];
-			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
-			fprintf(stderr, "Error (%s): %s=%s: %s\n",
-				log_prefix, log_file_var,
-				log_file, buff);
-			abort();
-		}
-	}
-#endif	/* DEBUG */
-
 	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
 	if (log_alignment) {
 		int align = atoi(log_alignment);
@@ -266,11 +217,105 @@ out_init(const char *log_prefix, const char *log_level_var,
 #endif /* VG_DRD_ENABLED */
 #if SDS_ENABLED
 	static __attribute__((used)) const char *shutdown_state_msg =
-			"compiled with support for shutdown state";
+		"compiled with support for shutdown state";
 	LOG(1, "%s", shutdown_state_msg);
 #endif
+}
+
+/*
+ * out_init -- initialize the log
+ *
+ * This is called from the library initialization code.
+ */
+void
+out_init(const char *log_prefix, const char *log_level_var,
+		const char *log_file_var, int major_version,
+		int minor_version)
+{
+	/* the out module can be initialized only once */
+	if (init_log_once)
+		return;
+
+	init_log_once = 1;
 
 	Last_errormsg_key_alloc();
+
+	Log_prefix = log_prefix;
+
+#ifdef DEBUG
+	char *log_level;
+	char *log_file;
+
+	if ((log_level = os_getenv(log_level_var)) != NULL) {
+		Log_level = atoi(log_level);
+		if (Log_level < 0) {
+			Log_level = 0;
+		}
+	}
+
+	if ((log_file = os_getenv(log_file_var)) != NULL &&
+				log_file[0] != '\0') {
+
+		/* reserve more than enough space for a PID + '\0' */
+		char log_file_pid[PATH_MAX];
+		size_t len = strlen(log_file);
+		if (len > 0 && log_file[len - 1] == '-') {
+			int ret = snprintf(log_file_pid, PATH_MAX, "%s%d",
+				log_file, getpid());
+			if (ret < 0 || ret >= PATH_MAX) {
+				ERR("snprintf: %d", ret);
+				abort();
+			}
+			log_file = log_file_pid;
+		}
+
+		if ((Out_fp = os_fopen(log_file, "w")) == NULL) {
+			char buff[UTIL_MAX_ERR_MSG];
+			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
+			fprintf(stderr, "Error (%s): %s=%s: %s\n",
+				log_prefix, log_file_var,
+				log_file, buff);
+			abort();
+		}
+
+		Out_fp_opened = 1;
+	}
+#endif	/* DEBUG */
+
+	out_init_common(log_prefix, major_version, minor_version);
+}
+
+/*
+ * out_init_attach -- initialize the log using given values
+ *                    and can attach it to the already opened log file
+ */
+void
+out_init_attach(const char *log_prefix, int log_level_var,
+		FILE *log_file_var, int major_version,
+		int minor_version)
+{
+	/* the out module can be initialized only once */
+	if (init_log_once)
+		return;
+
+	init_log_once = 1;
+
+	Last_errormsg_key_alloc();
+
+	Log_prefix = log_prefix;
+
+#ifdef DEBUG
+	if (log_level_var > 0) {
+		Log_level = log_level_var;
+	} else {
+		Log_level = 0;
+	}
+
+	Out_fp = log_file_var;
+	Out_fp_opened = 0;
+#endif	/* DEBUG */
+
+	out_init_common(log_prefix, major_version, minor_version);
 }
 
 /*
@@ -281,10 +326,12 @@ out_init(const char *log_prefix, const char *log_level_var,
 void
 out_fini(void)
 {
-	if (Out_fp != NULL && Out_fp != stderr) {
+	init_log_once = 0;
+
+	if (Out_fp_opened && Out_fp != NULL && Out_fp != stderr)
 		fclose(Out_fp);
-		Out_fp = stderr;
-	}
+
+	Out_fp = stderr;
 
 	Last_errormsg_fini();
 }

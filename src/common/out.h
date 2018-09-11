@@ -225,6 +225,9 @@ out_fatal_abort(const char *file, int line, const char *func,
 void out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
 		int minor_version);
+void out_init_attach(const char *log_prefix, int log_level_var,
+		FILE *log_file_var, int major_version,
+		int minor_version);
 void out_fini(void);
 void out(const char *fmt, ...) FORMAT_PRINTF(1, 2);
 void out_nonl(int level, const char *fmt, ...) FORMAT_PRINTF(2, 3);
