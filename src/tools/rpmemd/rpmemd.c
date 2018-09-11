@@ -734,7 +734,7 @@ main(int argc, char *argv[])
 		goto err_obc;
 	}
 
-	if (rpmemd_log_init(DAEMON_NAME, NULL, 0)) {
+	if (rpmemd_log_init(DAEMON_NAME, NULL, 0, 0 /* init_out */)) {
 		RPMEMD_LOG(ERR, "logging subsystem initialization failed");
 		goto err_log_init;
 	}
@@ -747,7 +747,7 @@ main(int argc, char *argv[])
 	rpmemd_log_close();
 	rpmemd_log_level = rpmemd->config.log_level;
 	if (rpmemd_log_init(DAEMON_NAME, rpmemd->config.log_file,
-				rpmemd->config.use_syslog)) {
+				rpmemd->config.use_syslog, 1 /* init_out */)) {
 		RPMEMD_LOG(ERR, "logging subsystem initialization"
 			" failed (%s, %d)", rpmemd->config.log_file,
 			rpmemd->config.use_syslog);

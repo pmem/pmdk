@@ -1,9 +1,5 @@
-$(OPT)rpmemd_config/TEST0: START: rpmemd_config
-$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 rpmemd version $(*)
-$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 rpmemd version $(*)
-$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 usage: $(*) [--version] [--help] [<args>]
 rpmemd version $(*)
 
@@ -27,7 +23,6 @@ Options:
                                         debug   debug-level message
 
 For complete documentation see rpmemd(1) manual page.
-$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 usage: $(*) [--version] [--help] [<args>]
 rpmemd version $(*)
 
@@ -51,9 +46,5 @@ Options:
                                         debug   debug-level message
 
 For complete documentation see rpmemd(1) manual page.
-$(OPT)rpmemd_config/TEST0: START: rpmemd_config
-$(OPT)rpmemd_config/TEST0: START: rpmemd_config
-$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 $(*): No such file or directory
-$(OPT)rpmemd_config/TEST0: START: rpmemd_config
 $(*): No such file or directory

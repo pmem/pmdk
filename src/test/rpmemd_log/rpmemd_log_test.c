@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -218,15 +218,15 @@ main(int argc, char *argv[])
 
 	switch (type) {
 	case TEST_STDERR:
-		ret = rpmemd_log_init("rpmemd_log", NULL, 0);
+		ret = rpmemd_log_init("rpmemd_log", NULL, 0, 1 /* init_out */);
 		UT_ASSERTeq(ret, 0);
 		break;
 	case TEST_SYSLOG:
-		ret = rpmemd_log_init("rpmemd_log", NULL, 1);
+		ret = rpmemd_log_init("rpmemd_log", NULL, 1, 1 /* init_out */);
 		UT_ASSERTeq(ret, 0);
 		break;
 	case TEST_FILE:
-		ret = rpmemd_log_init("rpmemd_log", file, 0);
+		ret = rpmemd_log_init("rpmemd_log", file, 0, 1 /* init_out */);
 		UT_ASSERTeq(ret, 0);
 		break;
 	}

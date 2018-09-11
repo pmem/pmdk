@@ -657,7 +657,7 @@ main(int argc, char *argv[])
 	pool_desc[0] = argv[3];
 	pool_desc[1] = argv[4];
 
-	if (rpmemd_log_init("rpmemd error: ", log_file, 0))
+	if (rpmemd_log_init("rpmemd error: ", log_file, 0, 1 /* init_out */))
 		FAILED_FUNC("rpmemd_log_init");
 
 	test_init(root_dir);

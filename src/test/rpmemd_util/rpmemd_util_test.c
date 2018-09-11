@@ -113,7 +113,7 @@ static void
 test(const int pm_range[2], const int is_pmem_range[2])
 {
 	rpmemd_log_level = RPD_LOG_NOTICE;
-	int ret = rpmemd_log_init("rpmemd_log", NULL, 0);
+	int ret = rpmemd_log_init("rpmemd_log", NULL, 0, 1 /* init_out */);
 	UT_ASSERTeq(ret, 0);
 
 	struct result result;

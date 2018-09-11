@@ -21,4 +21,6 @@ pool attributes:
     uuid: $(nW)
     next_uuid: $(nW)
     prev_uuid: $(nW)
+size 2093056 smaller than 2097152
+failed to create file: $(*)
 cannot create pool set -- '$(nW)/testset_remote': Invalid argument

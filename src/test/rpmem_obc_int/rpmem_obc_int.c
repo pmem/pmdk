@@ -408,7 +408,8 @@ main(int argc, char *argv[])
 	common_init("rpmem_fip",
 		"RPMEM_LOG_LEVEL",
 		"RPMEM_LOG_FILE", 0, 0);
-	rpmemd_log_init("rpmemd", os_getenv("RPMEMD_LOG_FILE"), 0);
+	rpmemd_log_init("rpmemd", os_getenv("RPMEMD_LOG_FILE"), 0,
+				1 /* init_out */);
 	rpmemd_log_level = rpmemd_log_level_from_str(
 			os_getenv("RPMEMD_LOG_LEVEL"));
 	rpmem_util_cmds_init();

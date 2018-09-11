@@ -118,7 +118,7 @@ main(int argc, char *argv[])
 
 	START(argc, argv, "rpmemd_config");
 
-	int ret = rpmemd_log_init("rpmemd_log", NULL, 0);
+	int ret = rpmemd_log_init("rpmemd_log", NULL, 0, 1 /* init_out */);
 	UT_ASSERTeq(ret, 0);
 
 	parse_test_params(&argc, argv);
