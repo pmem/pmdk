@@ -702,13 +702,15 @@ rpmemd_print_info(struct rpmemd *rpmemd)
 			rpmem_persist_method_to_str(rpmemd->persist_method));
 	RPMEMD_LOG(NOTICE, RPMEMD_LOG_INDENT "number of threads: %lu",
 			rpmemd->config.nthreads);
-	RPMEMD_DBG("\tpersist APM: %s",
-		bool2str(rpmemd->config.persist_apm));
-	RPMEMD_DBG("\tpersist GPSPM: %s",
-		bool2str(rpmemd->config.persist_general));
-	RPMEMD_DBG("\tuse syslog: %s", bool2str(rpmemd->config.use_syslog));
-	RPMEMD_DBG("\tlog file: %s", _str(rpmemd->config.log_file));
-	RPMEMD_DBG("\tlog level: %s",
+	RPMEMD_DBG(RPMEMD_LOG_INDENT "persist APM: %s",
+			bool2str(rpmemd->config.persist_apm));
+	RPMEMD_DBG(RPMEMD_LOG_INDENT "persist GPSPM: %s",
+			bool2str(rpmemd->config.persist_general));
+	RPMEMD_DBG(RPMEMD_LOG_INDENT "use syslog: %s",
+			bool2str(rpmemd->config.use_syslog));
+	RPMEMD_DBG(RPMEMD_LOG_INDENT "log file: %s",
+			_str(rpmemd->config.log_file));
+	RPMEMD_DBG(RPMEMD_LOG_INDENT "log level: %s",
 			rpmemd_log_level_to_str(rpmemd->config.log_level));
 }
 
