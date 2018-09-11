@@ -51,7 +51,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX info -s $POOL >> $LOG
 
 echo >> $LOG
 
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -s $POOL >> $LOG
 

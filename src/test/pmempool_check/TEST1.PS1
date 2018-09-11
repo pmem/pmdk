@@ -51,21 +51,21 @@ Invoke-Expression "$PMEMSPOIL -v $POOL pool_hdr.major=0x0 pool_hdr.compat_featur
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 echo "PMEMLOG: pmemlog" >> $LOG
-rm $POOL -Force -Recurse
+rm $POOL -Force
 expect_normal_exit $PMEMPOOL create log $POOL
 check_file $POOL
 Invoke-Expression "$PMEMSPOIL -v $POOL pmemlog.start_offset=0 pmemlog.end_offset=0 >> $LOG"
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 echo "PMEMBLK: pool_hdr" >> $LOG
-rm $POOL -Force -Recurse
+rm $POOL -Force
 expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
 check_file $POOL
 Invoke-Expression "$PMEMSPOIL -v $POOL pool_hdr.signature=ERROR	pool_hdr.major=0xff	pool_hdr.compat_features=0xff pool_hdr.incompat_features=0xff pool_hdr.ro_compat_features=0xff pool_hdr.unused=ERROR >> $LOG"
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 echo "PMEMBLK: pmemblk" >> $LOG
-rm $POOL -Force -Recurse
+rm $POOL -Force
 expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
 check_file $POOL
 Invoke-Expression "$PMEMSPOIL -v $POOL pool_hdr.signature=ERROR pmemblk.bsize=0 >> $LOG"

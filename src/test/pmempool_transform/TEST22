@@ -52,7 +52,7 @@ ERR_LOG=err${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
 rm -f $LOG && touch $LOG
 rm -f $LOG_TEMP && touch $LOG_TEMP
-rm -rf $ERR_LOG && touch $ERR_LOG
+rm -f $ERR_LOG && touch $ERR_LOG
 
 LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET_IN=$DIR/poolset.in

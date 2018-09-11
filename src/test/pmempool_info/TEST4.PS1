@@ -43,14 +43,14 @@ setup
 
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -Recurse -ea si
+rm $LOG -Force -ea si
 
 expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
 expect_normal_exit $PMEMPOOL info -s $POOL >> $LOG
 
 echo "">> $LOG
 
-rm $POOL -Force -Recurse -ea si
+rm $POOL -Force -ea si
 expect_normal_exit $PMEMPOOL create log $POOL
 expect_normal_exit $PMEMPOOL info -s $POOL >> $LOG
 

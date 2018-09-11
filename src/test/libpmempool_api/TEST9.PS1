@@ -47,8 +47,8 @@ $POOL="$DIR\file.pool"
 $LOG="out${Env:UNITTEST_NUM}.log"
 $LOG_TEMP="out${Env:UNITTEST_NUM}_part.log"
 
-rm $LOG -Force -Recurse -ea si
-rm $LOG_TEMP -Force -Recurse -ea si
+rm $LOG -Force -ea si
+rm $LOG_TEMP -Force -ea si
 touch $LOG_TEMP
 
 $pool_args=@{"blk"="blk 512"; "log"="log"}
@@ -65,8 +65,8 @@ foreach ($h in $pool_args.GetEnumerator()) {
 	cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP
 	cmp $POOL ${POOL}_copy >> $LOG_TEMP
 
-	rm $POOL -Force -Recurse -ea si
-	rm ${POOL}_copy -Force -Recurse -ea si
+	rm $POOL -Force -ea si
+	rm ${POOL}_copy -Force -ea si
 }
 rm $LOG -Force
 mv $LOG_TEMP $LOG
