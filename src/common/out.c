@@ -55,10 +55,13 @@
 #include "srcversion.h"
 #endif
 
+static int init_log_once;
 static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
+static int Out_fp_opened;
 static unsigned Log_alignment;
+static int Log_prefix_level;
 
 #ifndef NO_LIBPTHREAD
 #define MAXPRINT 8192	/* maximum expected log line */
@@ -162,139 +165,6 @@ Last_errormsg_get(void)
 #endif /* NO_LIBPTHREAD */
 
 /*
- * out_init -- initialize the log
- *
- * This is called from the library initialization code.
- */
-void
-out_init(const char *log_prefix, const char *log_level_var,
-		const char *log_file_var, int major_version,
-		int minor_version)
-{
-	static int once;
-
-	/* only need to initialize the out module once */
-	if (once)
-		return;
-	once++;
-
-	Log_prefix = log_prefix;
-
-#ifdef DEBUG
-	char *log_level;
-	char *log_file;
-
-	if ((log_level = os_getenv(log_level_var)) != NULL) {
-		Log_level = atoi(log_level);
-		if (Log_level < 0) {
-			Log_level = 0;
-		}
-	}
-
-	if ((log_file = os_getenv(log_file_var)) != NULL &&
-				log_file[0] != '\0') {
-
-		/* reserve more than enough space for a PID + '\0' */
-		char log_file_pid[PATH_MAX];
-		size_t len = strlen(log_file);
-		if (len > 0 && log_file[len - 1] == '-') {
-			int ret = snprintf(log_file_pid, PATH_MAX, "%s%d",
-				log_file, getpid());
-			if (ret < 0 || ret >= PATH_MAX) {
-				ERR("snprintf: %d", ret);
-				abort();
-			}
-			log_file = log_file_pid;
-		}
-
-		if ((Out_fp = os_fopen(log_file, "w")) == NULL) {
-			char buff[UTIL_MAX_ERR_MSG];
-			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
-			fprintf(stderr, "Error (%s): %s=%s: %s\n",
-				log_prefix, log_file_var,
-				log_file, buff);
-			abort();
-		}
-	}
-#endif	/* DEBUG */
-
-	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
-	if (log_alignment) {
-		int align = atoi(log_alignment);
-		if (align > 0)
-			Log_alignment = (unsigned)align;
-	}
-
-	if (Out_fp == NULL)
-		Out_fp = stderr;
-	else
-		setlinebuf(Out_fp);
-
-#ifdef DEBUG
-	static char namepath[PATH_MAX];
-	LOG(1, "pid %d: program: %s", getpid(),
-		util_getexecname(namepath, PATH_MAX));
-#endif
-	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
-
-	static __attribute__((used)) const char *version_msg =
-			"src version: " SRCVERSION;
-	LOG(1, "%s", version_msg);
-#if VG_PMEMCHECK_ENABLED
-	/*
-	 * Attribute "used" to prevent compiler from optimizing out the variable
-	 * when LOG expands to no code (!DEBUG)
-	 */
-	static __attribute__((used)) const char *pmemcheck_msg =
-			"compiled with support for Valgrind pmemcheck";
-	LOG(1, "%s", pmemcheck_msg);
-#endif /* VG_PMEMCHECK_ENABLED */
-#if VG_HELGRIND_ENABLED
-	static __attribute__((used)) const char *helgrind_msg =
-			"compiled with support for Valgrind helgrind";
-	LOG(1, "%s", helgrind_msg);
-#endif /* VG_HELGRIND_ENABLED */
-#if VG_MEMCHECK_ENABLED
-	static __attribute__((used)) const char *memcheck_msg =
-			"compiled with support for Valgrind memcheck";
-	LOG(1, "%s", memcheck_msg);
-#endif /* VG_MEMCHECK_ENABLED */
-#if VG_DRD_ENABLED
-	static __attribute__((used)) const char *drd_msg =
-			"compiled with support for Valgrind drd";
-	LOG(1, "%s", drd_msg);
-#endif /* VG_DRD_ENABLED */
-#if SDS_ENABLED
-	static __attribute__((used)) const char *shutdown_state_msg =
-			"compiled with support for shutdown state";
-	LOG(1, "%s", shutdown_state_msg);
-#endif
-#if NDCTL_GE_63
-	static __attribute__((used)) const char *ndctl_ge_63_msg =
-		"compiled with libndctl 63+";
-	LOG(1, "%s", ndctl_ge_63_msg);
-#endif
-
-	Last_errormsg_key_alloc();
-}
-
-/*
- * out_fini -- close the log file
- *
- * This is called to close log file before process stop.
- */
-void
-out_fini(void)
-{
-	if (Out_fp != NULL && Out_fp != stderr) {
-		fclose(Out_fp);
-		Out_fp = stderr;
-	}
-
-	Last_errormsg_fini();
-}
-
-/*
  * out_print_func -- default print_func, goes to stderr or Out_fp
  */
 static void
@@ -346,6 +216,194 @@ out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
 }
 
 /*
+ * out_init_common -- (internal) common part of the log initialization
+ */
+static void
+out_init_common()
+{
+	/* read required log alignment */
+	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
+	if (log_alignment) {
+		int align = atoi(log_alignment);
+		if (align > 0)
+			Log_alignment = (unsigned)align;
+	}
+
+	if (Out_fp == NULL)
+		Out_fp = stderr;
+	else
+		setlinebuf(Out_fp);
+}
+
+/*
+ * out_init_preamble -- (internal) common part of the log initialization
+ */
+static void
+out_init_preamble(const char *log_prefix, int major_version, int minor_version)
+{
+#ifdef DEBUG
+	static char namepath[PATH_MAX];
+	LOG(1, "pid %d: program: %s", getpid(),
+		util_getexecname(namepath, PATH_MAX));
+#endif
+	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
+
+	static __attribute__((used)) const char *version_msg =
+			"src version: " SRCVERSION;
+	LOG(1, "%s", version_msg);
+#if VG_PMEMCHECK_ENABLED
+	/*
+	 * Attribute "used" to prevent compiler from optimizing out the variable
+	 * when LOG expands to no code (!DEBUG)
+	 */
+	static __attribute__((used)) const char *pmemcheck_msg =
+			"compiled with support for Valgrind pmemcheck";
+	LOG(1, "%s", pmemcheck_msg);
+#endif /* VG_PMEMCHECK_ENABLED */
+#if VG_HELGRIND_ENABLED
+	static __attribute__((used)) const char *helgrind_msg =
+			"compiled with support for Valgrind helgrind";
+	LOG(1, "%s", helgrind_msg);
+#endif /* VG_HELGRIND_ENABLED */
+#if VG_MEMCHECK_ENABLED
+	static __attribute__((used)) const char *memcheck_msg =
+			"compiled with support for Valgrind memcheck";
+	LOG(1, "%s", memcheck_msg);
+#endif /* VG_MEMCHECK_ENABLED */
+#if VG_DRD_ENABLED
+	static __attribute__((used)) const char *drd_msg =
+			"compiled with support for Valgrind drd";
+	LOG(1, "%s", drd_msg);
+#endif /* VG_DRD_ENABLED */
+#if SDS_ENABLED
+	static __attribute__((used)) const char *shutdown_state_msg =
+		"compiled with support for shutdown state";
+	LOG(1, "%s", shutdown_state_msg);
+#endif /* SDS_ENABLED */
+#if NDCTL_GE_63
+	static __attribute__((used)) const char *ndctl_ge_63_msg =
+		"compiled with libndctl 63+";
+	LOG(1, "%s", ndctl_ge_63_msg);
+#endif /* NDCTL_GE_63 */
+}
+
+/*
+ * out_init -- initialize the log
+ *
+ * This is called from the library initialization code.
+ */
+void
+out_init(const char *log_prefix, const char *log_level_var,
+		const char *log_file_var, int major_version,
+		int minor_version)
+{
+	/* the out module can be initialized only once */
+	if (init_log_once)
+		return;
+
+	init_log_once = 1;
+
+	Last_errormsg_key_alloc();
+
+	Log_prefix = log_prefix;
+
+#ifdef DEBUG
+	char *log_level;
+	char *log_file;
+
+	if ((log_level = os_getenv(log_level_var)) != NULL) {
+		Log_level = atoi(log_level);
+		if (Log_level < 0) {
+			Log_level = 0;
+		}
+	}
+
+	if ((log_file = os_getenv(log_file_var)) != NULL &&
+				log_file[0] != '\0') {
+
+		/* reserve more than enough space for a PID + '\0' */
+		char log_file_pid[PATH_MAX];
+		size_t len = strlen(log_file);
+		if (len > 0 && log_file[len - 1] == '-') {
+			int ret = snprintf(log_file_pid, PATH_MAX, "%s%d",
+				log_file, getpid());
+			if (ret < 0 || ret >= PATH_MAX) {
+				ERR("snprintf: %d", ret);
+				abort();
+			}
+			log_file = log_file_pid;
+		}
+
+		if ((Out_fp = os_fopen(log_file, "w")) == NULL) {
+			char buff[UTIL_MAX_ERR_MSG];
+			util_strerror(errno, buff, UTIL_MAX_ERR_MSG);
+			fprintf(stderr, "Error (%s): %s=%s: %s\n",
+				log_prefix, log_file_var,
+				log_file, buff);
+			abort();
+		}
+
+		Out_fp_opened = 1;
+	}
+#endif	/* DEBUG */
+
+	out_init_common();
+	out_init_preamble(log_prefix, major_version, minor_version);
+}
+
+/*
+ * out_init_attach -- initialize the log using given values
+ *                    and can attach it to the already opened log file
+ */
+void
+out_init_attach(const char *log_prefix, int log_prefix_level, int log_level,
+		FILE *log_file)
+{
+	/* the out module can be initialized only once */
+	if (init_log_once)
+		return;
+
+	init_log_once = 1;
+
+	Last_errormsg_key_alloc();
+
+	Log_prefix = log_prefix;
+
+	Log_prefix_level = log_prefix_level;
+
+#ifdef DEBUG
+	if (log_level > 0) {
+		Log_level = log_level;
+	} else {
+		Log_level = 0;
+	}
+
+	Out_fp = log_file;
+	Out_fp_opened = 0;
+#endif	/* DEBUG */
+
+	out_init_common();
+}
+
+/*
+ * out_fini -- close the log file
+ *
+ * This is called to close log file before process stop.
+ */
+void
+out_fini(void)
+{
+	init_log_once = 0;
+
+	if (Out_fp_opened && Out_fp != NULL && Out_fp != stderr)
+		fclose(Out_fp);
+
+	Out_fp = stderr;
+
+	Last_errormsg_fini();
+}
+
+/*
  * out_snprintf -- (internal) custom snprintf implementation
  */
 FORMAT_PRINTF(3, 4)
@@ -363,7 +421,36 @@ out_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 /*
- * out_common -- common output code, all output goes through here
+ * out_prefix -- (internal) print prefix
+ */
+static int
+out_prefix(char *buf, unsigned cc, const char *file, int line, const char *func,
+		int level)
+{
+	int ret = 0;
+
+	switch (Log_prefix_level) {
+	case LOG_PREFIX_LEVEL_FUNC:
+		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
+			"[%s:%d %s] ",
+			file, line, func);
+		break;
+	case LOG_PREFIX_LEVEL_NO:
+		break;
+	default: /* LOG_PREFIX_LEVEL_COMPLETE */
+		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
+			"<%s>: <%d> [%s:%d %s] ",
+			Log_prefix, level, file, line, func);
+	}
+
+	if (ret < 0)
+		Print("out_snprintf failed");
+
+	return ret;
+}
+
+/*
+ * out_common -- (internal) common output code, all output goes through here
  */
 static void
 out_common(const char *file, int line, const char *func, int level,
@@ -380,13 +467,9 @@ out_common(const char *file, int line, const char *func, int level,
 		char *f = strrchr(file, OS_DIR_SEPARATOR);
 		if (f)
 			file = f + 1;
-		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
-				"<%s>: <%d> [%s:%d %s] ",
-				Log_prefix, level, file, line, func);
-		if (ret < 0) {
-			Print("out_snprintf failed");
+		ret = out_prefix(buf, cc, file, line, func, level);
+		if (ret < 0)
 			goto end;
-		}
 		cc += (unsigned)ret;
 		if (cc < Log_alignment) {
 			memset(buf + cc, ' ', Log_alignment - cc);
@@ -456,13 +539,10 @@ out_error(const char *file, int line, const char *func,
 			char *f = strrchr(file, OS_DIR_SEPARATOR);
 			if (f)
 				file = f + 1;
-			ret = out_snprintf(&buf[cc], MAXPRINT,
-					"<%s>: <1> [%s:%d %s] ",
-					Log_prefix, file, line, func);
-			if (ret < 0) {
-				Print("out_snprintf failed");
+			ret = out_prefix(buf, cc, file, line, func,
+					1 /* err log level */);
+			if (ret < 0)
 				goto end;
-			}
 			cc += (unsigned)ret;
 			if (cc < Log_alignment) {
 				memset(buf + cc, ' ', Log_alignment - cc);
