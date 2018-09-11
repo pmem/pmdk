@@ -55,10 +55,13 @@
 #include "srcversion.h"
 #endif
 
+static int init_log_once;
 static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
+static int Out_fp_opened;
 static unsigned Log_alignment;
+static int Log_prefix_level;
 
 #ifndef NO_LIBPTHREAD
 #define MAXPRINT 8192	/* maximum expected log line */
@@ -162,6 +165,130 @@ Last_errormsg_get(void)
 #endif /* NO_LIBPTHREAD */
 
 /*
+ * out_print_func -- default print_func, goes to stderr or Out_fp
+ */
+static void
+out_print_func(const char *s)
+{
+	/* to suppress drd false-positive */
+	/* XXX: confirm real nature of this issue: pmem/issues#863 */
+#ifdef SUPPRESS_FPUTS_DRD_ERROR
+	VALGRIND_ANNOTATE_IGNORE_READS_BEGIN();
+	VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN();
+#endif
+	fputs(s, Out_fp);
+#ifdef SUPPRESS_FPUTS_DRD_ERROR
+	VALGRIND_ANNOTATE_IGNORE_READS_END();
+	VALGRIND_ANNOTATE_IGNORE_WRITES_END();
+#endif
+}
+
+/*
+ * calling Print(s) calls the current print_func...
+ */
+typedef void (*Print_func_t)(const char *s);
+typedef int (*Vsnprintf_func_t)(char *str, size_t size, const char *format,
+		va_list ap);
+static Print_func_t Print = out_print_func;
+static Vsnprintf_func_t Vsnprintf = vsnprintf;
+
+/*
+ * out_set_print_func -- allow override of print_func used by out module
+ */
+void
+out_set_print_func(Print_func_t print_func)
+{
+	LOG(3, "print_func %p", print_func);
+
+	Print = (print_func == NULL) ? out_print_func : print_func;
+}
+
+/*
+ * out_set_vsnprintf_func -- allow override of vsnprintf_func used by out module
+ */
+void
+out_set_vsnprintf_func(Vsnprintf_func_t vsnprintf_func)
+{
+	LOG(3, "vsnprintf_func %p", vsnprintf_func);
+
+	Vsnprintf = (vsnprintf_func == NULL) ? vsnprintf : vsnprintf_func;
+}
+
+/*
+ * out_init_common -- (internal) common part of the log initialization
+ */
+static void
+out_init_common()
+{
+	/* read required log alignment */
+	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
+	if (log_alignment) {
+		int align = atoi(log_alignment);
+		if (align > 0)
+			Log_alignment = (unsigned)align;
+	}
+
+	if (Out_fp == NULL)
+		Out_fp = stderr;
+	else
+		setlinebuf(Out_fp);
+}
+
+/*
+ * out_init_preamble -- (internal) the log preamble
+ *
+ * It is intended to be printed only once when the log is initialized.
+ */
+static void
+out_init_preamble(const char *log_prefix, int major_version, int minor_version)
+{
+#ifdef DEBUG
+	static char namepath[PATH_MAX];
+	LOG(1, "pid %d: program: %s", getpid(),
+		util_getexecname(namepath, PATH_MAX));
+#endif
+	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
+
+	static __attribute__((used)) const char *version_msg =
+			"src version: " SRCVERSION;
+	LOG(1, "%s", version_msg);
+#if VG_PMEMCHECK_ENABLED
+	/*
+	 * Attribute "used" to prevent compiler from optimizing out the variable
+	 * when LOG expands to no code (!DEBUG)
+	 */
+	static __attribute__((used)) const char *pmemcheck_msg =
+			"compiled with support for Valgrind pmemcheck";
+	LOG(1, "%s", pmemcheck_msg);
+#endif /* VG_PMEMCHECK_ENABLED */
+#if VG_HELGRIND_ENABLED
+	static __attribute__((used)) const char *helgrind_msg =
+			"compiled with support for Valgrind helgrind";
+	LOG(1, "%s", helgrind_msg);
+#endif /* VG_HELGRIND_ENABLED */
+#if VG_MEMCHECK_ENABLED
+	static __attribute__((used)) const char *memcheck_msg =
+			"compiled with support for Valgrind memcheck";
+	LOG(1, "%s", memcheck_msg);
+#endif /* VG_MEMCHECK_ENABLED */
+#if VG_DRD_ENABLED
+	static __attribute__((used)) const char *drd_msg =
+			"compiled with support for Valgrind drd";
+	LOG(1, "%s", drd_msg);
+#endif /* VG_DRD_ENABLED */
+#if SDS_ENABLED
+	static __attribute__((used)) const char *shutdown_state_msg =
+		"compiled with support for shutdown state";
+	LOG(1, "%s", shutdown_state_msg);
+#endif /* SDS_ENABLED */
+#if NDCTL_GE_63
+	static __attribute__((used)) const char *ndctl_ge_63_msg =
+		"compiled with libndctl 63+";
+	LOG(1, "%s", ndctl_ge_63_msg);
+#endif /* NDCTL_GE_63 */
+}
+
+/*
  * out_init -- initialize the log
  *
  * This is called from the library initialization code.
@@ -171,12 +298,13 @@ out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
 		int minor_version)
 {
-	static int once;
-
-	/* only need to initialize the out module once */
-	if (once)
+	/* the out module can be initialized only once */
+	if (init_log_once)
 		return;
-	once++;
+
+	init_log_once = 1;
+
+	Last_errormsg_key_alloc();
 
 	Log_prefix = log_prefix;
 
@@ -215,67 +343,47 @@ out_init(const char *log_prefix, const char *log_level_var,
 				log_file, buff);
 			abort();
 		}
+
+		Out_fp_opened = 1;
 	}
 #endif	/* DEBUG */
 
-	char *log_alignment = os_getenv("PMDK_LOG_ALIGN");
-	if (log_alignment) {
-		int align = atoi(log_alignment);
-		if (align > 0)
-			Log_alignment = (unsigned)align;
-	}
+	out_init_common();
+	out_init_preamble(log_prefix, major_version, minor_version);
+}
 
-	if (Out_fp == NULL)
-		Out_fp = stderr;
-	else
-		setlinebuf(Out_fp);
+/*
+ * out_init_attach -- initialize the log using given values
+ *                    and can attach it to the already opened log file
+ */
+void
+out_init_attach(const char *log_prefix, int log_prefix_level, int log_level,
+		FILE *log_file)
+{
+	/* the out module can be initialized only once */
+	if (init_log_once)
+		return;
 
-#ifdef DEBUG
-	static char namepath[PATH_MAX];
-	LOG(1, "pid %d: program: %s", getpid(),
-		util_getexecname(namepath, PATH_MAX));
-#endif
-	LOG(1, "%s version %d.%d", log_prefix, major_version, minor_version);
-
-	static __attribute__((used)) const char *version_msg =
-			"src version: " SRCVERSION;
-	LOG(1, "%s", version_msg);
-#if VG_PMEMCHECK_ENABLED
-	/*
-	 * Attribute "used" to prevent compiler from optimizing out the variable
-	 * when LOG expands to no code (!DEBUG)
-	 */
-	static __attribute__((used)) const char *pmemcheck_msg =
-			"compiled with support for Valgrind pmemcheck";
-	LOG(1, "%s", pmemcheck_msg);
-#endif /* VG_PMEMCHECK_ENABLED */
-#if VG_HELGRIND_ENABLED
-	static __attribute__((used)) const char *helgrind_msg =
-			"compiled with support for Valgrind helgrind";
-	LOG(1, "%s", helgrind_msg);
-#endif /* VG_HELGRIND_ENABLED */
-#if VG_MEMCHECK_ENABLED
-	static __attribute__((used)) const char *memcheck_msg =
-			"compiled with support for Valgrind memcheck";
-	LOG(1, "%s", memcheck_msg);
-#endif /* VG_MEMCHECK_ENABLED */
-#if VG_DRD_ENABLED
-	static __attribute__((used)) const char *drd_msg =
-			"compiled with support for Valgrind drd";
-	LOG(1, "%s", drd_msg);
-#endif /* VG_DRD_ENABLED */
-#if SDS_ENABLED
-	static __attribute__((used)) const char *shutdown_state_msg =
-			"compiled with support for shutdown state";
-	LOG(1, "%s", shutdown_state_msg);
-#endif
-#if NDCTL_GE_63
-	static __attribute__((used)) const char *ndctl_ge_63_msg =
-		"compiled with libndctl 63+";
-	LOG(1, "%s", ndctl_ge_63_msg);
-#endif
+	init_log_once = 1;
 
 	Last_errormsg_key_alloc();
+
+	Log_prefix = log_prefix;
+
+	Log_prefix_level = log_prefix_level;
+
+#ifdef DEBUG
+	if (log_level > 0) {
+		Log_level = log_level;
+	} else {
+		Log_level = 0;
+	}
+
+	Out_fp = log_file;
+	Out_fp_opened = 0;
+#endif	/* DEBUG */
+
+	out_init_common();
 }
 
 /*
@@ -286,63 +394,14 @@ out_init(const char *log_prefix, const char *log_level_var,
 void
 out_fini(void)
 {
-	if (Out_fp != NULL && Out_fp != stderr) {
+	init_log_once = 0;
+
+	if (Out_fp_opened && Out_fp != NULL && Out_fp != stderr)
 		fclose(Out_fp);
-		Out_fp = stderr;
-	}
+
+	Out_fp = stderr;
 
 	Last_errormsg_fini();
-}
-
-/*
- * out_print_func -- default print_func, goes to stderr or Out_fp
- */
-static void
-out_print_func(const char *s)
-{
-	/* to suppress drd false-positive */
-	/* XXX: confirm real nature of this issue: pmem/issues#863 */
-#ifdef SUPPRESS_FPUTS_DRD_ERROR
-	VALGRIND_ANNOTATE_IGNORE_READS_BEGIN();
-	VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN();
-#endif
-	fputs(s, Out_fp);
-#ifdef SUPPRESS_FPUTS_DRD_ERROR
-	VALGRIND_ANNOTATE_IGNORE_READS_END();
-	VALGRIND_ANNOTATE_IGNORE_WRITES_END();
-#endif
-}
-
-/*
- * calling Print(s) calls the current print_func...
- */
-typedef void (*Print_func)(const char *s);
-typedef int (*Vsnprintf_func)(char *str, size_t size, const char *format,
-		va_list ap);
-static Print_func Print = out_print_func;
-static Vsnprintf_func Vsnprintf = vsnprintf;
-
-/*
- * out_set_print_func -- allow override of print_func used by out module
- */
-void
-out_set_print_func(void (*print_func)(const char *s))
-{
-	LOG(3, "print %p", print_func);
-
-	Print = (print_func == NULL) ? out_print_func : print_func;
-}
-
-/*
- * out_set_vsnprintf_func -- allow override of vsnprintf_func used by out module
- */
-void
-out_set_vsnprintf_func(int (*vsnprintf_func)(char *str, size_t size,
-				const char *format, va_list ap))
-{
-	LOG(3, "vsnprintf %p", vsnprintf_func);
-
-	Vsnprintf = (vsnprintf_func == NULL) ? vsnprintf : vsnprintf_func;
 }
 
 /*
@@ -363,7 +422,36 @@ out_snprintf(char *str, size_t size, const char *format, ...)
 }
 
 /*
- * out_common -- common output code, all output goes through here
+ * out_prefix -- (internal) print prefix
+ */
+static int
+out_prefix(char *buf, unsigned cc, const char *file, int line, const char *func,
+		int level)
+{
+	int ret = 0;
+
+	switch (Log_prefix_level) {
+	case LOG_PREFIX_LEVEL_FUNC:
+		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
+			"[%s:%d %s] ",
+			file, line, func);
+		break;
+	case LOG_PREFIX_LEVEL_NO:
+		break;
+	default: /* LOG_PREFIX_LEVEL_COMPLETE */
+		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
+			"<%s>: <%d> [%s:%d %s] ",
+			Log_prefix, level, file, line, func);
+	}
+
+	if (ret < 0)
+		Print("out_snprintf failed");
+
+	return ret;
+}
+
+/*
+ * out_common -- (internal) common output code, all output goes through here
  */
 static void
 out_common(const char *file, int line, const char *func, int level,
@@ -380,13 +468,9 @@ out_common(const char *file, int line, const char *func, int level,
 		char *f = strrchr(file, OS_DIR_SEPARATOR);
 		if (f)
 			file = f + 1;
-		ret = out_snprintf(&buf[cc], MAXPRINT - cc,
-				"<%s>: <%d> [%s:%d %s] ",
-				Log_prefix, level, file, line, func);
-		if (ret < 0) {
-			Print("out_snprintf failed");
+		ret = out_prefix(buf, cc, file, line, func, level);
+		if (ret < 0)
 			goto end;
-		}
 		cc += (unsigned)ret;
 		if (cc < Log_alignment) {
 			memset(buf + cc, ' ', Log_alignment - cc);
@@ -456,13 +540,10 @@ out_error(const char *file, int line, const char *func,
 			char *f = strrchr(file, OS_DIR_SEPARATOR);
 			if (f)
 				file = f + 1;
-			ret = out_snprintf(&buf[cc], MAXPRINT,
-					"<%s>: <1> [%s:%d %s] ",
-					Log_prefix, file, line, func);
-			if (ret < 0) {
-				Print("out_snprintf failed");
+			ret = out_prefix(buf, cc, file, line, func,
+					1 /* err log level */);
+			if (ret < 0)
 				goto end;
-			}
 			cc += (unsigned)ret;
 			if (cc < Log_alignment) {
 				memset(buf + cc, ' ', Log_alignment - cc);

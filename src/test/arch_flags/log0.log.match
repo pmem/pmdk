@@ -1,12 +1,12 @@
-<arch_flags>: <1> [$(nW) out_init]$(W)pid $(nW): program: $(nW)
-<arch_flags>: <1> [$(nW) out_init]$(W)arch_flags version 0.0
-<arch_flags>: <1> [$(nW) out_init]$(W)src version: $(nW)
-$(OPT)<arch_flags>: <1> [$(nW) out_init]$(W)compiled with support for Valgrind pmemcheck
-$(OPT)<arch_flags>: <1> [$(nW) out_init]$(W)compiled with support for Valgrind helgrind
-$(OPT)<arch_flags>: <1> [$(nW) out_init]$(W)compiled with support for Valgrind memcheck
-$(OPT)<arch_flags>: <1> [$(nW) out_init]$(W)compiled with support for Valgrind drd
-$(OPT)<arch_flags>: <1> [$(nW) out_init]$(W)compiled with support for shutdown state
-$(OPT)<arch_flags>: <1> [$(nW) out_init]$(W)compiled with libndctl 63+
+<arch_flags>: <1> [$(nW) out_init_preamble]$(W)pid $(nW): program: $(nW)
+<arch_flags>: <1> [$(nW) out_init_preamble]$(W)arch_flags version 0.0
+<arch_flags>: <1> [$(nW) out_init_preamble]$(W)src version: $(nW)
+$(OPT)<arch_flags>: <1> [$(nW) out_init_preamble]$(W)compiled with support for Valgrind pmemcheck
+$(OPT)<arch_flags>: <1> [$(nW) out_init_preamble]$(W)compiled with support for Valgrind helgrind
+$(OPT)<arch_flags>: <1> [$(nW) out_init_preamble]$(W)compiled with support for Valgrind memcheck
+$(OPT)<arch_flags>: <1> [$(nW) out_init_preamble]$(W)compiled with support for Valgrind drd
+$(OPT)<arch_flags>: <1> [$(nW) out_init_preamble]$(W)compiled with support for shutdown state
+$(OPT)<arch_flags>: <1> [$(nW) out_init_preamble]$(W)compiled with libndctl 63+
 <arch_flags>: <3> [$(nW) util_mmap_init] 
 <arch_flags>: <1> [$(nW) util_check_arch_flags]$(W)invalid machine value
 <arch_flags>: <1> [$(nW) util_check_arch_flags]$(W)invalid machine_class value

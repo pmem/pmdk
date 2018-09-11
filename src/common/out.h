@@ -222,9 +222,15 @@ out_fatal_abort(const char *file, int line, const char *func,
 #define ERR(...)\
 	out_err(__FILE__, __LINE__, __func__, __VA_ARGS__)
 
+#define LOG_PREFIX_LEVEL_COMPLETE	(0)
+#define LOG_PREFIX_LEVEL_FUNC		(1)
+#define LOG_PREFIX_LEVEL_NO		(2)
+
 void out_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
 		int minor_version);
+void out_init_attach(const char *log_prefix, int log_prefix_level,
+		int log_level, FILE *log_file);
 void out_fini(void);
 void out(const char *fmt, ...) FORMAT_PRINTF(1, 2);
 void out_nonl(int level, const char *fmt, ...) FORMAT_PRINTF(2, 3);
