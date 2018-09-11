@@ -39,6 +39,10 @@ require_test_type short
 
 setup
 
+# without fallocate, creating pool causes writes to each block and
+# number of page faults is the same no matter if prefaulting is enabled
+require_native_fallocate $DIR/testfile1
+
 # create, don't prefault
 expect_normal_exit ./ctl_prefault$EXESUFFIX blk $DIR/testfile1 0 0
 pagefault_create_baseline=`cat out$UNITTEST_NUM.log | sed -n '3p'`

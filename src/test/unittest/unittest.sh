@@ -93,6 +93,7 @@ LIB_TOOLS="../../tools"
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
 [ "$EXTENTS" ] || EXTENTS=$TOOLS/extents/extents
+[ "$FALLOCATE_DETECT" ] || FALLOCATE_DETECT=$TOOLS/fallocate_detect/fallocate_detect.static-nondebug
 [ "$OBJ_VERIFY" ] || OBJ_VERIFY=$TOOLS/obj_verify/obj_verify
 
 # force globs to fail if they don't match
@@ -1400,6 +1401,27 @@ function require_fs_type() {
 	done
 	verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS ($* required)"
 	exit 0
+}
+
+
+#
+# require_native_fallocate -- verify if filesystem supports fallocate
+#
+function require_native_fallocate() {
+	require_fs_type pmem non-pmem
+
+	set +e
+	$FALLOCATE_DETECT $1
+	status=$?
+	set -e
+
+	if [ $status -eq 1 ]; then
+		msg "$UNITTEST_NAME: SKIP: filesystem does not support fallocate"
+		exit 0
+	elif [ $status -ne 0 ]; then
+		msg "$UNITTEST_NAME: fallocate_detect failed"
+		exit 1
+	fi
 }
 
 #
