@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -132,6 +132,7 @@
     <ClCompile Include="clo.cpp" />
     <ClCompile Include="clo_vec.cpp" />
     <ClCompile Include="config_reader_win.cpp" />
+    <ClCompile Include="fragmentation.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="map_bench.cpp" />
     <ClCompile Include="obj_lanes.cpp" />
