@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,8 +40,9 @@
 #define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
 
 /*
- * A tab character is not allowed in rpmemd log because it is not well handled
- * by syslog. Please use RPMEMD_LOG_INDENT instead.
+ * The tab character is not allowed in rpmemd log,
+ * because it is not well handled by syslog.
+ * Please use RPMEMD_LOG_INDENT instead.
  */
 #define RPMEMD_LOG_INDENT "    "
 
