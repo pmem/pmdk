@@ -1,13 +1,13 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEMPOOL, 1)
+title: _MP(PMEMPOOL-FEATURE, 1)
 collection: pmempool
 header: PMDK
 date: pmem Tools version 1.4
 ...
 
-[comment]: <> (Copyright 2016-2018, Intel Corporation)
+[comment]: <> (Copyright 2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -34,89 +34,93 @@ date: pmem Tools version 1.4
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmempool.1 -- man page for pmempool)
+[comment]: <> (pmempool-feature.1 -- man page for pmempool-feature)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
-[OPTIONS](#options)<br />
-[COMMANDS](#commands)<br />
+[EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
 
 # NAME #
 
-**pmempool** - Persistent Memory Pool Management Tool
+**pmempool-feature** - toggle or query pool set features
 
 
 # SYNOPSIS #
 
 ```
-$ pmempool [--help] [--version] <command> [<args>]
+$ pmempool feature (-e|-d|-q feature-name) [options] <file>
 ```
+
 
 # DESCRIPTION #
 
-The **pmempool** is a management tool for *Persistent Memory* pool files
-created by **PMDK** libraries.
+The **pmempool feature** command enables / disables or queries pool set features.
 
-The main purpose of **pmempool** is to provide a user with a set of utilities
-for off-line analysis and manipulation of pools created by pmem libraries.
-The pmempool is a generic command which consists of subcommands for specific
-purposes. Some of subcommands are required to work *without* any impact
-on processed pool, but some of them *may* create a new or modify an existing one.
+Available pool *feature-names* are:
 
-The **pmempool** may be useful for troubleshooting by system administrators
-and for software developers who work on applications based on **PMDK**.
-The latter may find these tools useful for testing and debugging purposes also.
++ **SINGLEHDR** - only the first part in each replica contains the pool part
+internal metadata. This value can be used only with **-q**. It can not be
+enabled or disabled. For details see **poolset**(5).
+
++ **CHECKSUM_2K** - only the first 2KiB of pool part internal metadata
+is checksummed. Other features may depend on this one to store additional metadata
+in otherwise unused second 2KiB part of a header.
+When **CHECKSUM_2K** is disabled whole 4KiB is checksummed.
+
++ **SHUTDOWN_STATE** - enables additional check performed during
+pool open which verifies pool consistency in the presence of dirty shutdown.
+**CHECKSUM_2K** has to be enabled prior to **SHUTDOWN_STATE**
+otherwise enabling **SHUTDOWN_STATE** will fail.
 
 
-# OPTIONS #
-
-`-V, --version`
-
-Prints the version of **pmempool**.
+##### Available options: #####
 
 `-h, --help`
 
-Prints synopsis and list of commands.
+Print help message.
+
+`-v, --verbose`
+
+Increase verbosity level.
+
+`-e, --enable feature-name`
+
+Enable feature for pool set.
+
+`-d, --disable feature-name`
+
+Disable feature for pool set.
+
+`-q, --query feature-name`
+
+Print feature status.
 
 
-# COMMANDS #
+# EXAMPLE #
 
-Currently there is a following set of commands available:
+```
+$ pmempool feature --enable CHECKSUM_2K pool.set
+```
 
-+ **pmempool-info**(1) -
-Prints information and statistics in human-readable format about specified pool.
+Enables POOL_FEAT_CKSUM_2K incompat feature flag.
 
-+ **pmempool-check**(1) -
-Checks pool's consistency and repairs pool if it is not consistent.
+```
+$ pmempool feature --disable CHECKSUM_2K pool.set
+```
 
-+ **pmempool-create**(1) -
-Creates a pool of specified type with additional properties specific for this type of pool.
+Disables POOL_FEAT_CKSUM_2K incompat feature flag.
 
-+ **pmempool-dump**(1) -
-Dumps usable data from pool in hexadecimal or binary format.
+```
+$ pmempool feature --query CHECKSUM_2K pool.set
+0
+```
 
-+ **pmempool-rm**(1)
-Removes pool file or all pool files listed in pool set configuration file.
-
-+ **pmempool-convert**(1) -
-Updates the pool to the latest available layout version.
-
-+ **pmempool-sync**(1) -
-Synchronizes replicas within a poolset.
-
-+ **pmempool-transform**(1) -
-Modifies internal structure of a poolset.
-
-+ **pmempool-feature**(1) -
-Toggle or query a poolset features.
-
-In order to get more information about specific *command* you can use **pmempool help <command>.**
+Prints POOL_FEAT_CKSUM_2K incompat feature flag value.
 
 
 # SEE ALSO #
 
-**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
-and **<http://pmem.io>**
+**poolset**(5) and **<http://pmem.io>**
