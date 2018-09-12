@@ -7,7 +7,7 @@ header: PMDK
 date: pmempool API version 1.3
 ...
 
-[comment]: <> (Copyright 2016-2017, Intel Corporation)
+[comment]: <> (Copyright 2016-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -84,6 +84,8 @@ manual pages:
 + pool set synchronization and transformation: **pmempool_sync**(3)
 
 + pool set management functions: **pmempool_rm**(3)
+
++ toggle or query pool set features: **pmempool_feature_query**(3)
 
 
 # DESCRIPTION #
@@ -295,7 +297,7 @@ recommended by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**dlclose**(3), **pmempool_check_init**(3), **pmempool_rm**(3),
-**pmempool_sync**(3), **strerror**(3),
-**libpmem**(7), **libpmemblk**(7), **libpmemcto**(7), **libpmemlog**(7),
-**libpmemobj**(7) and **<http://pmem.io>**
+**dlclose**(3), **pmempool_check_init**(3), **pmempool_feature_query**(3),
+**pmempool_rm**(3), **pmempool_sync**(3), **strerror**(3), **libpmem**(7),
+**libpmemblk**(7), **libpmemcto**(7), **libpmemlog**(7), **libpmemobj**(7)**
+and **<http://pmem.io>**
