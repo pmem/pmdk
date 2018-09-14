@@ -31,18 +31,61 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_check/TEST30 -- test for checking pools
+# pmempool_check/common.sh -- checking pools helpers
 #
-. ../unittest/unittest.sh
 
-require_test_type medium
-require_fs_type any
-require_sds $PMEMPOOL$EXESUFFIX
+LOG=out${UNITTEST_NUM}.log
+rm -f $LOG && touch $LOG
 
-setup
-. ./common.sh
+LAYOUT=OBJ_LAYOUT$SUFFIX
+POOLSET=$DIR/poolset
 
-pmempool_check_sds fix_no_replicas
+# pmemspoil_corrupt_replica_sds -- corrupt shutdown state
+#
+#	usage: pmemspoil_corrupt_replica_sds <replica>
+function pmemspoil_corrupt_replica_sds() {
+	local replica=$1
+	expect_normal_exit $PMEMSPOIL --replica $replica $POOLSET \
+		pool_hdr.shutdown_state.usc=999 \
+		pool_hdr.shutdown_state.dirty=1 \
+		"pool_hdr.shutdown_state.checksum_gen\(\)"
+}
 
-check
-pass
+# pmempool_check_sds -- perform shutdown state unittest
+#
+#	usage: pmempool_check_sds <scenario>
+function pmempool_check_sds() {
+	# initialize poolset
+	create_poolset $POOLSET \
+		8M:$DIR/part00:x \
+		r 8M:$DIR/part10:x
+	expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
+
+	# corrupt poolset replicas
+	pmemspoil_corrupt_replica_sds 0
+	pmemspoil_corrupt_replica_sds 1
+
+	# verify it is corrupted
+	expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
+	exit_func=expect_normal_exit
+
+	# perform fixes
+	case "$1" in
+	fix_second_replica_only)
+		echo -e "n\ny\n" | expect_normal_exit $PMEMPOOL$EXESUFFIX check -vr $POOLSET >> $LOG
+		;;
+	fix_first_replica)
+		echo -e "y\n" | expect_normal_exit $PMEMPOOL$EXESUFFIX check -vr $POOLSET >> $LOG
+		;;
+	fix_no_replicas)
+		echo -e "n\nn\n" | expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vr $POOLSET >> $LOG
+		exit_func=expect_abnormal_exit
+		;;
+	*)
+		fatal "unittest_sds: undefined scenario '$1'"
+		;;
+	esac
+
+	#verify result
+	$exit_func $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
+}
