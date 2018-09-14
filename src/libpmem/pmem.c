@@ -304,12 +304,16 @@ pmem_msync(const void *addr, size_t len)
 }
 
 /*
- * is_pmem_always -- (internal) always true version of pmem_is_pmem()
+ * is_pmem_always -- (internal) always true (for meaningful parameters) version
+ *	of pmem_is_pmem()
  */
 static int
 is_pmem_always(const void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
+
+	if (len == 0)
+		return 0;
 
 	return 1;
 }
