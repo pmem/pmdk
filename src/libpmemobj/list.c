@@ -998,7 +998,8 @@ lane_list_recovery(PMEMobjpool *pop, void *data, unsigned length)
 	struct lane_list_layout *section = data;
 	ASSERT(sizeof(*section) <= length);
 
-	redo_log_recover(pop->redo, (struct redo_log *)&section->redo);
+	redo_log_recover((struct redo_log *)&section->redo,
+		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
 
 	return 0;
 }
@@ -1014,8 +1015,8 @@ lane_list_check(PMEMobjpool *pop, void *data, unsigned length)
 	struct lane_list_layout *section = data;
 
 	int ret = 0;
-	if ((ret = redo_log_check(pop->redo,
-			(struct redo_log *)&section->redo)) != 0) {
+	if ((ret = redo_log_check((struct redo_log *)&section->redo,
+			OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops)) != 0) {
 		ERR("list lane: redo log check failed");
 		ASSERT(ret == 0 || ret == -1);
 		return ret;
@@ -1031,9 +1032,8 @@ static void *
 lane_list_construct_rt(PMEMobjpool *pop, void *data)
 {
 	struct lane_list_layout *layout = data;
-	return operation_new(pop, pop->redo,
-		(struct redo_log *)&layout->redo, LIST_REDO_LOG_SIZE,
-		NULL);
+	return operation_new((struct redo_log *)&layout->redo,
+		LIST_REDO_LOG_SIZE, NULL, &pop->p_ops);
 }
 
 /*

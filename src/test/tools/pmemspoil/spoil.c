@@ -622,7 +622,6 @@ pmemspoil_process_uint8_t(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 	if (sscanf(pfp->value, "0x%" SCNx8, &v) != 1 &&
 	    sscanf(pfp->value, "%" SCNu8, &v) != 1)
 		return -1;
-
 	*valp = v;
 
 	pmemspoil_persist(valp, sizeof(*valp));
@@ -1191,21 +1190,6 @@ pmemspoil_process_heap(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 }
 
 /*
- * pmemspoil_process_redo_log -- process redo log
- */
-static int
-pmemspoil_process_redo_log(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct redo_log_entry *redo)
-{
-	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD(redo, offset, uint64_t);
-		PROCESS_FIELD(redo, value, uint64_t);
-	} PROCESS_END
-
-	return PROCESS_RET;
-}
-
-/*
  * pmemspoil_process_allocator -- process lane allocator section
  */
 static int
@@ -1213,8 +1197,10 @@ pmemspoil_process_sec_allocator(struct pmemspoil *psp,
 	struct pmemspoil_list *pfp, struct lane_alloc_layout *sec)
 {
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS(redo_log, &sec->internal.entries[PROCESS_INDEX],
-			ALLOC_REDO_INTERNAL_SIZE, struct redo_log_entry *);
+		PROCESS_FIELD_ARRAY(sec, internal.data,
+			uint8_t, ALLOC_REDO_INTERNAL_SIZE);
+		PROCESS_FIELD_ARRAY(sec, external.data,
+			uint8_t, ALLOC_REDO_EXTERNAL_SIZE);
 	} PROCESS_END
 
 	return PROCESS_RET;
@@ -1259,10 +1245,9 @@ static int
 pmemspoil_process_sec_list(struct pmemspoil *psp,
 	struct pmemspoil_list *pfp, struct lane_list_layout *sec)
 {
-	size_t redo_size = LIST_REDO_LOG_SIZE;
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS(redo_log, &sec->redo.entries[PROCESS_INDEX], redo_size,
-			struct redo_log_entry *);
+		PROCESS_FIELD_ARRAY(sec, redo.data,
+			uint8_t, LIST_REDO_LOG_SIZE);
 	} PROCESS_END
 
 	return PROCESS_RET;

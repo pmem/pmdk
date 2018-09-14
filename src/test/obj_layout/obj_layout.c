@@ -66,8 +66,9 @@
 #define SIZEOF_PVECTOR_V3 (224)
 #define SIZEOF_TX_RANGE_META_V3 (16)
 #define SIZEOF_REDO_LOG_V4 (64)
-#define SIZEOF_REDO_LOG_ENTRY_V4 (16)
-#define SIZEOF_LANE_LIST_LAYOUT_V4 (1024 - 16)
+#define SIZEOF_REDO_LOG_BASE_ENTRY_V4 (8)
+#define SIZEOF_REDO_LOG_VAL_ENTRY_V4 (16)
+#define SIZEOF_LANE_LIST_LAYOUT_V4 (1024)
 #define SIZEOF_LANE_ALLOC_LAYOUT_V4 (1024)
 #define SIZEOF_LANE_TX_LAYOUT_V4 ((2 * SIZEOF_PVECTOR_V3))
 
@@ -161,7 +162,6 @@ main(int argc, char *argv[])
 
 	ASSERT_ALIGNED_BEGIN(struct redo_log);
 	ASSERT_ALIGNED_FIELD(struct redo_log, checksum);
-	ASSERT_ALIGNED_FIELD(struct redo_log, nentries);
 	ASSERT_ALIGNED_FIELD(struct redo_log, next);
 	ASSERT_ALIGNED_FIELD(struct redo_log, capacity);
 	ASSERT_ALIGNED_FIELD(struct redo_log, unused);
@@ -169,12 +169,18 @@ main(int argc, char *argv[])
 	UT_COMPILE_ERROR_ON(sizeof(struct redo_log) !=
 		SIZEOF_REDO_LOG_V4);
 
-	ASSERT_ALIGNED_BEGIN(struct redo_log_entry);
-	ASSERT_ALIGNED_FIELD(struct redo_log_entry, offset);
-	ASSERT_ALIGNED_FIELD(struct redo_log_entry, value);
-	ASSERT_ALIGNED_CHECK(struct redo_log_entry);
-	UT_COMPILE_ERROR_ON(sizeof(struct redo_log_entry) !=
-		SIZEOF_REDO_LOG_ENTRY_V4);
+	ASSERT_ALIGNED_BEGIN(struct redo_log_entry_base);
+	ASSERT_ALIGNED_FIELD(struct redo_log_entry_base, offset);
+	ASSERT_ALIGNED_CHECK(struct redo_log_entry_base);
+	UT_COMPILE_ERROR_ON(sizeof(struct redo_log_entry_base) !=
+		SIZEOF_REDO_LOG_BASE_ENTRY_V4);
+
+	ASSERT_ALIGNED_BEGIN(struct redo_log_entry_val);
+	ASSERT_ALIGNED_FIELD(struct redo_log_entry_val, base);
+	ASSERT_ALIGNED_FIELD(struct redo_log_entry_val, value);
+	ASSERT_ALIGNED_CHECK(struct redo_log_entry_val);
+	UT_COMPILE_ERROR_ON(sizeof(struct redo_log_entry_val) !=
+		SIZEOF_REDO_LOG_VAL_ENTRY_V4);
 
 	ASSERT_ALIGNED_BEGIN(PMEMoid);
 	ASSERT_ALIGNED_FIELD(PMEMoid, pool_uuid_lo);
