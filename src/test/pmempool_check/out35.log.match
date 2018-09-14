@@ -1,0 +1,10 @@
+replica 0: shutdown state is dirty
+$(nW): not consistent
+replica 0: checking shutdown state
+replica 0: shutdown state is dirty. Do you want to zero shutdown state? [Y/n] n
+replica 1: checking shutdown state
+replica 1: shutdown state is dirty. Do you want to zero shutdown state? [Y/n] n
+cannot complete repair, reverting changes
+$(nW): not consistent
+replica 0: shutdown state is dirty
+$(nW): not consistent
