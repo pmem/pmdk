@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,39 +31,68 @@
  */
 
 /*
- * util_file_create.c -- unit test for util_file_create()
- *
- * usage: util_file_create minlen len:path [len:path]...
+ * fallocate_detect -- checks fallocate support on filesystem
  */
 
-#include "unittest.h"
+#define _GNU_SOURCE
 #include "file.h"
+#include "os.h"
+
+#ifdef __linux__
+#include <errno.h>
+#include <fcntl.h>
+
+/*
+ * posix_fallocate on Linux is implemented using fallocate
+ * syscall. This syscall requires file system-specific code on
+ * the kernel side and not all file systems have this code.
+ * So when posix_fallocate gets 'not supported' error from
+ * fallocate it falls back to just writing zeroes.
+ * Detect it and return information to the caller.
+ */
+static int
+check_fallocate(const char *file)
+{
+	int exit_code = 0;
+	int fd = os_open(file, O_RDWR | O_CREAT | O_EXCL, 0644);
+	if (fd < 0) {
+		perror("os_open");
+		return 2;
+	}
+
+	if (fallocate(fd, 0, 0, 4096)) {
+		if (errno == EOPNOTSUPP) {
+			exit_code = 1;
+			goto exit;
+		}
+
+		perror("fallocate");
+		exit_code = 2;
+		goto exit;
+	}
+
+exit:
+	os_close(fd);
+	os_unlink(file);
+
+	return exit_code;
+}
+#else
+/* no support for fallocate in FreeBSD */
+static int
+check_fallocate(const char *file)
+{
+	return 1;
+}
+#endif
 
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "util_file_create");
-
-	if (argc < 3)
-		UT_FATAL("usage: %s minlen len:path...", argv[0]);
-
-	char *fname;
-	size_t minsize = strtoul(argv[1], &fname, 0);
-
-	for (int arg = 2; arg < argc; arg++) {
-		size_t size = strtoul(argv[arg], &fname, 0);
-		if (*fname != ':')
-			UT_FATAL("usage: %s minlen len:path...", argv[0]);
-		fname++;
-
-		int fd;
-		if ((fd = util_file_create(fname, size, minsize)) == -1)
-			UT_OUT("!%s: util_file_create", fname);
-		else {
-			UT_OUT("%s: created", fname);
-			os_close(fd);
-		}
+	if (argc != 2) {
+		fprintf(stderr, "usage: %s filename\n", argv[0]);
+		return 1;
 	}
 
-	DONE(NULL);
+	return check_fallocate(argv[1]);
 }

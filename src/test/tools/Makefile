@@ -50,6 +50,7 @@ DIRS = \
        ddmap\
        cmpmap\
        extents\
+       fallocate_detect\
        obj_verify
 
 REMOTE_TOOLS = \

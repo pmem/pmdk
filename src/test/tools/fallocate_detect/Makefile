@@ -1,6 +1,4 @@
-#!/usr/bin/env bash
-#
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,30 +28,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-#
-# src/test/util_file_create/TEST2 -- unit test for util_file_create()
+# Makefile -- Makefile for fallocate detection tool
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TOP = ../../../..
 
-require_test_type medium
+TARGET = fallocate_detect
+OBJS = fallocate_detect.o
 
-setup
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-# without fallocate this test takes forever
-require_native_fallocate $DIR/testfile1
-
-MIN_POOL=0x4000
-
-rm -f $DIR/testfile
-
-expect_normal_exit ./util_file_create$EXESUFFIX $MIN_POOL \
-    0x7FFFFFFFFFFFFFFF:$DIR/testfile
-
-rm -f $DIR/testfile
-
-check
-
-pass
+include $(TOP)/src/tools/Makefile.inc
