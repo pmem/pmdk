@@ -5,6 +5,7 @@ $(OPT)<libpmem>: <$(N)> [out.c:$(N) $(*)] compiled with support for Valgrind $(*
 $(OPT)<libpmem>: <$(N)> [out.c:$(N) $(*)] compiled with support for Valgrind $(*)
 $(OPT)<libpmem>: <$(N)> [out.c:$(N) $(*)] compiled with support for Valgrind $(*)
 $(OPT)<libpmem>: <$(N)> [out.c:$(N) $(*)] compiled with support for Valgrind $(*)
+$(OPT)<libpmem>: <$(N)> [out.c:$(N) $(*)] compiled with support for shutdown state
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)
 $(OPT)<libpmem>: <$(N)> [$(*)] $(*)

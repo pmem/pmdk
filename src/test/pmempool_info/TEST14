@@ -40,6 +40,8 @@ require_test_type medium
 
 require_fs_type pmem non-pmem
 
+require_sds $PMEMALLOC$EXESUFFIX
+
 setup
 
 POOL=$DIR/file.pool

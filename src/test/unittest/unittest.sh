@@ -1825,6 +1825,50 @@ function require_preload() {
 }
 
 #
+# require_sds -- continue script execution only if binary is compiled with
+#	shutdown state support
+#
+#	usage: require_sds <binary>
+#
+function require_sds() {
+	local binary=$1
+	local dir=.
+	if [ -z "$binary" ]; then
+		fatal "require_sds: error: no binary found"
+	fi
+	strings ${binary} 2>&1 | \
+		grep -q "compiled with support for shutdown state" && true
+	if [ $? -ne 0 ]; then
+		msg "$UNITTEST_NAME: SKIP not compiled with support for shutdown state"
+		exit 0
+	fi
+	return 0
+}
+
+#
+# require_no_sds -- continue script execution only if binary is NOT compiled with
+#	shutdown state support
+#
+#	usage: require_no_sds <binary>
+#
+function require_no_sds() {
+	local binary=$1
+	local dir=.
+	if [ -z "$binary" ]; then
+		fatal "require_sds: error: no binary found"
+	fi
+	set +e
+	found=$(strings ${binary} 2>&1 | \
+		grep -c "compiled with support for shutdown state")
+	set -e
+	if [ "$found" -ne "0" ]; then
+		msg "$UNITTEST_NAME: SKIP compiled with support for shutdown state"
+		exit 0
+	fi
+	return 0
+}
+
+#
 # check_absolute_path -- continue script execution only if $DIR path is
 #                        an absolute path; do not resolve symlinks
 #
