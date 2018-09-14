@@ -123,40 +123,20 @@ out:
 }
 #endif
 
-/*
- * util_fd_is_device_dax -- check whether the file descriptor is associated
- *                          with a device dax
- */
-int
-util_fd_is_device_dax(int fd)
+static int
+util_get_file_type_common(os_stat_t *st)
 {
-	LOG(3, "fd %d", fd);
-
 #ifdef _WIN32
-	return 0;
+	return FILE_TYPE_NORMAL;
 #else
-	os_stat_t st;
-	int olderrno = errno;
-	int ret = 0;
-
-	if (fd < 0) {
-		ERR("invalid file descriptor %d", fd);
-		goto out;
-	}
-
-	if (os_fstat(fd, &st) < 0) {
-		ERR("!fstat");
-		goto out;
-	}
-
-	if (!S_ISCHR(st.st_mode)) {
+	if (!S_ISCHR(st->st_mode)) {
 		LOG(4, "not a character device");
-		goto out;
+		return FILE_TYPE_NORMAL;
 	}
 
 	char spath[PATH_MAX];
 	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/subsystem",
-		os_major(st.st_rdev), os_minor(st.st_rdev));
+		os_major(st->st_rdev), os_minor(st->st_rdev));
 
 	LOG(4, "device subsystem path \"%s\"", spath);
 
@@ -164,53 +144,75 @@ util_fd_is_device_dax(int fd)
 	char *rpath = realpath(spath, npath);
 	if (rpath == NULL) {
 		ERR("!realpath \"%s\"", spath);
-		goto out;
+		return -1;
 	}
 
-	ret = strcmp(DEVICE_DAX_PREFIX, rpath) == 0;
-
-out:
-	errno = olderrno;
-	LOG(4, "returning %d", ret);
-	return ret;
+	if (strcmp(DEVICE_DAX_PREFIX, rpath) == 0)
+		return FILE_TYPE_DEVDAX;
+	else
+		return FILE_TYPE_NORMAL;
 #endif
-
 }
 
 /*
- * util_file_is_device_dax -- checks whether the path points to a device dax
+ * util_fd_get_type -- checks whether a file descriptor is associated
+ *		       with a device dax or a normal file
  */
 int
-util_file_is_device_dax(const char *path)
+util_fd_get_type(int fd)
+{
+	LOG(3, "fd %d", fd);
+
+	os_stat_t st;
+
+	if (os_fstat(fd, &st) < 0) {
+		ERR("!fstat");
+		return -1;
+	}
+
+	return util_get_file_type_common(&st);
+}
+
+/*
+ * util_file_get_type -- checks whether the path points to a device dax or
+ *			 a normal file
+ */
+int
+util_file_get_type(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
-#ifdef _WIN32
-	return 0;
-#else
-	int olderrno = errno;
-	int ret = 0;
+	os_stat_t st;
 
-	if (path == NULL) {
-		ERR("invalid (NULL) path");
-		goto out;
+	if (os_stat(path, &st) < 0) {
+		ERR("!stat");
+		return -1;
 	}
 
-	int fd = os_open(path, O_RDONLY);
-	if (fd < 0) {
-		/* not a problem - 'path' may point to non existent file */
-		/* LOG(4, "!open \"%s\"", path); */
-		goto out;
+	return util_get_file_type_common(&st);
+}
+
+/*
+ * util_file_get_type_noent -- checks whether the path points to a device dax or
+ *			       a normal file. If file does not exists
+ *			       FILE_TYPE_NORMAL is returned.
+ */
+int
+util_file_get_type_noent(const char *path)
+{
+	LOG(3, "path \"%s\"", path);
+
+	os_stat_t st;
+
+	if (os_stat(path, &st) < 0) {
+		if (errno == ENOENT)
+			return FILE_TYPE_NORMAL;
+
+		ERR("!stat");
+		return -1;
 	}
 
-	ret = util_fd_is_device_dax(fd);
-	(void) os_close(fd);
-
-out:
-	errno = olderrno;
-	LOG(4, "returning %d", ret);
-	return ret;
-#endif
+	return util_get_file_type_common(&st);
 }
 
 /*
@@ -222,7 +224,11 @@ util_file_get_size(const char *path)
 	LOG(3, "path \"%s\"", path);
 
 #ifndef _WIN32
-	if (util_file_is_device_dax(path)) {
+	int file_type = util_file_get_type(path);
+	if (file_type < 0)
+		return -1;
+
+	if (file_type == FILE_TYPE_DEVDAX) {
 		return device_dax_size(path);
 	}
 #endif
@@ -341,7 +347,11 @@ util_file_pwrite(const char *path, const void *buffer, size_t size,
 	LOG(3, "path \"%s\" buffer %p size %zu offset %ju",
 			path, buffer, size, offset);
 
-	if (!util_file_is_device_dax(path)) {
+	int file_type = util_file_get_type(path);
+	if (file_type < 0)
+		return -1;
+
+	if (file_type == FILE_TYPE_NORMAL) {
 		int fd = util_file_open(path, NULL, 0, O_RDWR);
 		if (fd < 0) {
 			LOG(2, "failed to open file \"%s\"", path);
@@ -390,7 +400,11 @@ util_file_pread(const char *path, void *buffer, size_t size,
 	LOG(3, "path \"%s\" buffer %p size %zu offset %ju",
 			path, buffer, size, offset);
 
-	if (!util_file_is_device_dax(path)) {
+	int file_type = util_file_get_type(path);
+	if (file_type < 0)
+		return -1;
+
+	if (file_type == FILE_TYPE_NORMAL) {
 		int fd = util_file_open(path, NULL, 0, O_RDONLY);
 		if (fd < 0) {
 			LOG(2, "failed to open file \"%s\"", path);
@@ -562,7 +576,11 @@ util_unlink(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
-	if (util_file_is_device_dax(path)) {
+	int file_type = util_file_get_type(path);
+	if (file_type < 0)
+		return -1;
+
+	if (file_type == FILE_TYPE_DEVDAX) {
 		return util_file_zero(path, 0, DEVICE_DAX_ZERO_LEN);
 	} else {
 #ifdef _WIN32

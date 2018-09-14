@@ -105,15 +105,18 @@ do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
 	void *ret;
 	char *buf = MALLOC(bytes);
 
+	int fd_type = util_fd_get_type(fd);
+	UT_ASSERT(fd_type > 0);
+
 	memset(buf, 0, bytes);
 	memset(dest, 0, bytes);
 	memset(src, 0, bytes);
-	util_persist_auto(util_fd_is_device_dax(fd), src, bytes);
+	util_persist_auto(fd_type == FILE_TYPE_DEVDAX, src, bytes);
 
 	memset(src, 0x5A, bytes / 4);
-	util_persist_auto(util_fd_is_device_dax(fd), src, bytes / 4);
+	util_persist_auto(fd_type == FILE_TYPE_NORMAL, src, bytes / 4);
 	memset(src + bytes / 4, 0x46, bytes / 4);
-	util_persist_auto(util_fd_is_device_dax(fd), src + bytes / 4,
+	util_persist_auto(fd_type == FILE_TYPE_NORMAL, src + bytes / 4,
 			bytes / 4);
 
 	/* dest == src */
@@ -229,7 +232,11 @@ main(int argc, char *argv[])
 	}
 
 	memset(dest, 0, (2 * bytes));
-	util_persist_auto(util_fd_is_device_dax(fd), dest, 2 * bytes);
+
+	int fd_type = util_fd_get_type(fd);
+	UT_ASSERT(fd_type > 0);
+
+	util_persist_auto(fd_type == FILE_TYPE_DEVDAX, dest, 2 * bytes);
 	memset(src, 0, (2 * bytes));
 
 	do_memcpy_variants(fd, dest, dest_off, src, src_off, bytes, argv[1]);

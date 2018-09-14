@@ -217,7 +217,11 @@ is_dev_dax(const char *path)
 		return -1;
 	}
 
-	if (!util_file_is_device_dax(path)) {
+	int file_type = util_file_get_type(path);
+	if (file_type < 0)
+		return -1;
+
+	if (file_type == FILE_TYPE_NORMAL) {
 		printf("%s -- not device dax\n", path);
 		return 0;
 	}

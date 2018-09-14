@@ -1276,6 +1276,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 {
 	char old_wd[PATH_MAX];
 	int ret = 0;
+	int file_type;
 
 	struct benchmark_args *args = nullptr;
 	struct total_results *total_res = nullptr;
@@ -1386,6 +1387,10 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		} else {
 			args->is_poolset =
 				util_is_poolset_file(args->fname) == 1;
+
+			file_type = util_file_get_type_noent(args->fname);
+			assert(file_type > 0);
+
 			if (args->is_poolset) {
 				if (!bench->info->allow_poolset) {
 					fprintf(stderr, "poolset files not "
@@ -1398,7 +1403,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 						"invalid size of poolset\n");
 					goto out;
 				}
-			} else if (util_file_is_device_dax(args->fname)) {
+			} else if (file_type == FILE_TYPE_DEVDAX) {
 				args->fsize = util_file_get_size(args->fname);
 
 				if (!args->fsize) {

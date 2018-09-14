@@ -501,6 +501,9 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	if (util_safe_strcpy(path, args->fname, sizeof(path)) != 0)
 		return -1;
 
+	int file_type = util_file_get_type_noent(path);
+	assert(file_type > 0);
+
 	size_t size_per_key;
 	struct map_bench *map_bench =
 		(struct map_bench *)calloc(1, sizeof(*map_bench));
@@ -544,7 +547,7 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 
 	map_bench->pool_size = map_bench->nkeys * size_per_key * FACTOR;
 
-	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+	if (args->is_poolset || file_type == FILE_TYPE_DEVDAX) {
 		if (args->fsize < map_bench->pool_size) {
 			fprintf(stderr, "file size too large\n");
 			goto err_free_bench;
@@ -621,7 +624,6 @@ static int
 map_common_exit(struct benchmark *bench, struct benchmark_args *args)
 {
 	auto *tree = (struct map_bench *)pmembench_get_priv(bench);
-
 	os_mutex_destroy(&tree->lock);
 	map_ctx_free(tree->mapc);
 	pmemobj_close(tree->pop);

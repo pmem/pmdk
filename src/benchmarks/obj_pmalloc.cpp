@@ -149,7 +149,10 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	/* multiply by FACTOR for metadata, fragmentation, etc. */
 	poolsize = (size_t)(poolsize * FACTOR);
 
-	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+	int file_type = util_file_get_type_noent(args->fname);
+	assert(file_type > 0);
+
+	if (args->is_poolset || file_type == FILE_TYPE_DEVDAX) {
 		if (args->fsize < poolsize) {
 			fprintf(stderr, "file size too large\n");
 			goto free_ob;

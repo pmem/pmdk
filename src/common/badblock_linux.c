@@ -297,7 +297,11 @@ os_badblocks_clear(const char *file, struct badblocks *bbs)
 
 	ASSERTne(bbs, NULL);
 
-	if (util_file_is_device_dax(file))
+	int file_type = util_file_get_type(file);
+	if (file_type < 0)
+		return -1;
+
+	if (file_type == FILE_TYPE_DEVDAX)
 		return os_dimm_devdax_clear_badblocks(file, bbs);
 
 	return os_badblocks_clear_file(file, bbs);
@@ -312,7 +316,11 @@ os_badblocks_clear_all(const char *file)
 {
 	LOG(3, "file %s", file);
 
-	if (util_file_is_device_dax(file))
+	int file_type = util_file_get_type(file);
+	if (file_type < 0)
+		return -1;
+
+	if (file_type == FILE_TYPE_DEVDAX)
 		return os_dimm_devdax_clear_badblocks_all(file);
 
 	struct badblocks *bbs = badblocks_new();

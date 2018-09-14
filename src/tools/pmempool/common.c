@@ -583,6 +583,10 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	if (fd < 0)
 		return -1;
 
+	int fd_type = util_fd_get_type(fd);
+	if (fd_type < 0)
+		return -1;
+
 	/* get file size and mode */
 	os_stat_t stat_buf;
 	if (os_fstat(fd, &stat_buf)) {
@@ -638,7 +642,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		}
 	} else {
 		/* read first two pages */
-		if (util_file_is_device_dax(fname)) {
+		if (fd_type == FILE_TYPE_DEVDAX) {
 			addr = util_file_map_whole(fname);
 			if (addr == NULL) {
 				ret = -1;
@@ -1299,8 +1303,12 @@ pool_set_file_write(struct pool_set_file *file, void *buff,
 		if (num < (ssize_t)nbytes)
 			return -1;
 	} else {
+		int file_type = util_file_get_type_noent(file->fname);
+		if (file_type < 0)
+			return -1;
+
 		memcpy((char *)file->addr + off, buff, nbytes);
-		util_persist_auto(util_file_is_device_dax(file->fname),
+		util_persist_auto(file_type == FILE_TYPE_DEVDAX,
 				(char *)file->addr + off, nbytes);
 	}
 	return 0;

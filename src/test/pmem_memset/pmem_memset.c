@@ -59,13 +59,17 @@ pmem_memset_nodrain_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
 static void
 do_memset(int fd, char *dest, const char *file_name, size_t dest_off,
 		size_t bytes, pmem_memset_fn fn, unsigned flags)
+
 {
 	char *buf = MALLOC(bytes);
 	char *dest1;
 	char *ret;
 
 	memset(dest, 0, bytes);
-	util_persist_auto(util_fd_is_device_dax(fd), dest, bytes);
+	int fd_type = util_fd_get_type(fd);
+	UT_ASSERT(fd_type > 0);
+
+	util_persist_auto(fd_type == FILE_TYPE_DEVDAX, dest, bytes);
 	dest1 = MALLOC(bytes);
 	memset(dest1, 0, bytes);
 
