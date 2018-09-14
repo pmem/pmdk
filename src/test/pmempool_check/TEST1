@@ -57,7 +57,7 @@ $PMEMSPOIL -v $POOL pool_hdr.major=0x0\
 expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
 
 echo "PMEMLOG: pmemlog" >> $LOG
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
 check_file $POOL
 $PMEMSPOIL -v $POOL pmemlog.start_offset=0\
@@ -65,7 +65,7 @@ $PMEMSPOIL -v $POOL pmemlog.start_offset=0\
 expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
 
 echo "PMEMBLK: pool_hdr" >> $LOG
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create -w blk 512 $POOL
 check_file $POOL
 $PMEMSPOIL -v $POOL pool_hdr.signature=ERROR\
@@ -77,7 +77,7 @@ $PMEMSPOIL -v $POOL pool_hdr.signature=ERROR\
 expect_normal_exit $PMEMPOOL$EXESUFFIX check -vry $POOL >> $LOG
 
 echo "PMEMBLK: pmemblk" >> $LOG
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create -w blk 512 $POOL
 check_file $POOL
 $PMEMSPOIL -v $POOL pool_hdr.signature=ERROR\

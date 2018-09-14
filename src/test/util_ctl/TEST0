@@ -42,6 +42,4 @@ setup
 expect_normal_exit\
 	./util_ctl$EXESUFFIX $DIR/testconfig
 
-rm -f $DIR/testconfig
-
 pass

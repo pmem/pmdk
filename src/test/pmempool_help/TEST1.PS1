@@ -43,7 +43,7 @@ setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
 
-rm $LOG -Force -Recurse -ea si
+rm $LOG -Force -ea si
 
 foreach($cmd in "info","dump","create","check") {
 	rm help_${cmd}.log -Force -ea si

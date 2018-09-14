@@ -43,7 +43,7 @@ setup
 
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -Recurse -ea si
+rm $LOG -Force -ea si
 
 expect_normal_exit $PMEMPOOL create --layout pmempool$Env:SUFFIX obj $POOL
 expect_normal_exit $PMEMPOOL info -H $POOL >> $LOG

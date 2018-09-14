@@ -50,13 +50,13 @@ check_file $POOL
 check_signature PMEMBLK $POOL
 
 # PMEMLOG
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
 
 # PMEMOBJ
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=LAYOUT_NAME$SUFFIX obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL

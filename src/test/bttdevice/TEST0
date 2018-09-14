@@ -52,7 +52,7 @@ expect_normal_exit $BTTCREATE -s 20M -b 1K -l 256 \
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL >> $LOG
 check_file $POOL
-rm -rf $POOL
+rm -f $POOL
 
 echo -e "\nCreate btt device - automatic uuid generation" >> $LOG
 expect_normal_exit $BTTCREATE -s 40M -b 2K -l 256 -v $POOL >> $LOG

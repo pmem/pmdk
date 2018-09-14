@@ -45,7 +45,7 @@ $POOL="$DIR\file.pool"
 $POOL_BACKUP="$DIR\file.pool.backup"
 $LOG="out$Env:UNITTEST_NUM.log"
 
-rm $LOG -Force -Recurse -ea si
+rm $LOG -Force -ea si
 
 expect_normal_exit $PMEMPOOL create blk 512 $POOL
 check_file $POOL

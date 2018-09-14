@@ -43,7 +43,7 @@ setup
 
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
-rm $LOG -Force -Recurse -ea si
+rm $LOG -Force -ea si
 
 expect_normal_exit $PMEMPOOL create blk 512 $POOL
 check_file $POOL
@@ -52,7 +52,7 @@ expect_abnormal_exit $PMEMPOOL check $POOL >> $LOG
 expect_normal_exit $PMEMPOOL check -vyr $POOL >> $LOG
 expect_normal_exit $PMEMPOOL check -v $POOL >> $LOG
 
-rm $POOL -Force -Recurse -ea si
+rm $POOL -Force -ea si
 expect_normal_exit $PMEMPOOL create blk 512 $POOL
 check_file $POOL
 &$PMEMSPOIL -v $POOL pool_hdr.prev_part_uuid=ERROR_PREV pool_hdr.next_part_uuid=ERROR_NEXT >> $LOG
@@ -61,7 +61,7 @@ expect_abnormal_exit $PMEMPOOL check -vyr $POOL >> $LOG
 expect_normal_exit $PMEMPOOL check -avyr $POOL >> $LOG
 expect_normal_exit $PMEMPOOL check -v $POOL >> $LOG
 
-rm $POOL -Force -Recurse -ea si
+rm $POOL -Force -ea si
 expect_normal_exit $PMEMPOOL create blk 512 $POOL
 check_file $POOL
 &$PMEMSPOIL -v $POOL pool_hdr.prev_part_uuid=ERROR_PREV pool_hdr.next_part_uuid=ERROR_NEXT pool_hdr.prev_repl_uuid=ERROR_RPREV pool_hdr.next_repl_uuid=ERROR_RNEXT >> $LOG

@@ -51,23 +51,23 @@ LOG=out${UNITTEST_NUM}.log
 MAGIC=../../../utils/pmdk.magic
 rm -f $LOG && touch $LOG
 
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL create blk 512 $POOL
 expect_normal_exit file -m $MAGIC $POOL >> $LOG
 
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL create log $POOL
 expect_normal_exit file -m $MAGIC $POOL >> $LOG
 
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL create obj $POOL
 expect_normal_exit file -m $MAGIC $POOL >> $LOG
 
-rm -rf $POOL
+rm -f $POOL
 create_poolset $POOL 32M:file.part1:x 32M:file.part2:x
 expect_normal_exit file -m $MAGIC $POOL >> $LOG
 
-rm -rf $POOL
+rm -f $POOL
 create_poolset $POOL 32M:file.part1:x 32M:file.part2:x R 32M:file.rep1:x 32M:file.rep2:x
 expect_normal_exit file -m $MAGIC $POOL >> $LOG
 

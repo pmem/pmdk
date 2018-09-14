@@ -46,8 +46,6 @@ setup
 expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
     0x7FFFFFFFFFFFFFFF:$DIR\testfile
 
-rm $DIR\testfile -Force
-
 check
 
 pass
