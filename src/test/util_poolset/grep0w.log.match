@@ -5,6 +5,7 @@ $(OPT)compiled with support for Valgrind pmemcheck
 $(OPT)compiled with support for Valgrind helgrind
 $(OPT)compiled with support for Valgrind memcheck
 $(OPT)compiled with support for Valgrind drd
+$(OPT)compiled with support for shutdown state
 open "$(nW)testset0": No such file or directory
 size 131072 smaller than 2097152
 size 131072 smaller than 2097152

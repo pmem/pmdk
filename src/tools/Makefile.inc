@@ -56,6 +56,10 @@ CFLAGS += -fno-common
 
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
+ifeq ($(OS_DIMM),ndctl)
+CFLAGS += -DSDS_ENABLED
+endif
+
 ifeq ($(IS_ICC), n)
 CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
