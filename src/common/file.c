@@ -199,7 +199,11 @@ util_file_is_device_dax(const char *path)
 	int fd = os_open(path, O_RDONLY);
 	if (fd < 0) {
 		/* not a problem - 'path' may point to non existent file */
-		/* LOG(4, "!open \"%s\"", path); */
+		if (errno == ENOENT)
+			goto out;
+
+		LOG(4, "!open \"%s\"", path);
+		olderrno = errno;
 		goto out;
 	}
 
