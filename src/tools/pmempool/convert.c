@@ -246,7 +246,7 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 					hdr->major = htole32(target_m);
 					util_checksum(hdr, sizeof(*hdr),
 						&hdr->checksum, 1,
-						POOL_HDR_CSUM_END_OFF);
+						POOL_HDR_CSUM_END_OFF(hdr));
 					util_persist_auto(part->is_dev_dax, hdr,
 						sizeof(struct pool_hdr));
 				}

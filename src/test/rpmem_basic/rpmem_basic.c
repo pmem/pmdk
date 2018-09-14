@@ -53,7 +53,7 @@
 	.signature		= "<RPMEM>",\
 	.major			= 1,\
 	.compat_features	= 2,\
-	.incompat_features	= 0,\
+	.incompat_features	= 2,\
 	.ro_compat_features	= 4,\
 	.poolset_uuid		= "POOLSET_UUID0123",\
 	.uuid			= "UUID0123456789AB",\
@@ -67,7 +67,7 @@
 	.signature		= "<RPMEM>",\
 	.major			= 1,\
 	.compat_features	= 2,\
-	.incompat_features	= 1,\
+	.incompat_features	= 3,\
 	.ro_compat_features	= 4,\
 	.poolset_uuid		= "POOLSET_UUID0123",\
 	.uuid			= "UUID0123456789AB",\
@@ -80,7 +80,7 @@
 	.signature		= "<ALT>",\
 	.major			= 5,\
 	.compat_features	= 6,\
-	.incompat_features	= 0,\
+	.incompat_features	= 2,\
 	.ro_compat_features	= 8,\
 	.poolset_uuid		= "UUID_POOLSET_ALT",\
 	.uuid			= "ALT_UUIDCDEFFEDC",\
@@ -94,7 +94,7 @@
 	.signature		= "<ALT>",\
 	.major			= 5,\
 	.compat_features	= 6,\
-	.incompat_features	= 1,\
+	.incompat_features	= 3,\
 	.ro_compat_features	= 8,\
 	.poolset_uuid		= "UUID_POOLSET_ALT",\
 	.uuid			= "ALT_UUIDCDEFFEDC",\

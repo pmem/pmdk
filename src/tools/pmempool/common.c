@@ -115,7 +115,7 @@ pmem_pool_checksum(const void *base_pool_addr)
 		struct pool_hdr hdrp;
 		memcpy(&hdrp, base_pool_addr, sizeof(hdrp));
 		return util_checksum(&hdrp, sizeof(hdrp),
-			&hdrp.checksum, 0, POOL_HDR_CSUM_END_OFF);
+			&hdrp.checksum, 0, POOL_HDR_CSUM_END_OFF(&hdrp));
 	}
 }
 

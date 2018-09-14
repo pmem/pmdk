@@ -769,7 +769,7 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 			.ptr = &pool_hdr,
 			.len = sizeof(pool_hdr),
 			.checksum = &pool_hdr.checksum,
-			.skip_off = POOL_HDR_CSUM_END_OFF,
+			.skip_off = POOL_HDR_CSUM_END_OFF(&pool_hdr),
 		};
 
 		PROCESS_FIELD(&pool_hdr, signature, char);

@@ -51,7 +51,8 @@
 #define SIG "PMEMXXX"
 #define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
-#define TEST_FORMAT_INCOMPAT_CHECK POOL_FEAT_ALL
+#define TEST_FORMAT_INCOMPAT_DEFAULT	POOL_FEAT_CKSUM_2K
+#define TEST_FORMAT_INCOMPAT_CHECK	POOL_FEAT_ALL
 
 static size_t Extend_size = MIN_PART * 2;
 
@@ -176,6 +177,7 @@ main(int argc, char *argv[])
 
 		switch (argv[1][0]) {
 		case 'c':
+			attr.incompat_features = TEST_FORMAT_INCOMPAT_DEFAULT;
 			ret = util_pool_create(&set, fname, 0, minsize,
 				MIN_PART, &attr, NULL, REPLICAS_ENABLED);
 			if (ret == -1)
