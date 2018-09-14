@@ -344,6 +344,10 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
 
+ifeq ($(OS_DIMM),ndctl)
+CFLAGS += -DSDS_ENABLED
+endif
+
 ifeq ($(COVERAGE),1)
 CFLAGS += $(GCOV_CFLAGS)
 CXXFLAGS += $(GCOV_CFLAGS)

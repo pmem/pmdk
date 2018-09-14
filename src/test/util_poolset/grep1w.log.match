@@ -5,6 +5,7 @@ $(OPT)compiled with support for Valgrind pmemcheck
 $(OPT)compiled with support for Valgrind helgrind
 $(OPT)compiled with support for Valgrind memcheck
 $(OPT)compiled with support for Valgrind drd
+$(OPT)compiled with support for shutdown state
 open "$(nW)testset0": No such file or directory
 invalid major version (0)
 open "$(nW)testset2": Permission denied

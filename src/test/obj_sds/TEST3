@@ -44,6 +44,8 @@ require_fs_type any
 
 require_build_type debug
 
+require_sds ./obj_sds
+
 setup
 
 POOLSET=$DIR/pool.set
