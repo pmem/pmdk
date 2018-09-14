@@ -852,7 +852,8 @@ out_get_alignment_desc_str(uint64_t ad, uint64_t valid_ad)
 
 static const char *incompat_features_str[] = {
 	"SINGLEHDR",
-	"CKSUM_2K"
+	"CKSUM_2K",
+	"SHUTDOWN_STATE"
 };
 
 #define INCOMPAT_FEATURES_MAX ARRAY_SIZE(incompat_features_str)
