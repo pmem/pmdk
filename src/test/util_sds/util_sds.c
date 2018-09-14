@@ -108,7 +108,8 @@ main(int argc, char *argv[])
 		shutdown_state_init(pool_sds, rep);
 		FAIL(fail_on, 2);
 		for (unsigned i = 0; i < files; i++) {
-			shutdown_state_add_part(pool_sds, args[2 + i], rep);
+			if (shutdown_state_add_part(pool_sds, args[2 + i], rep))
+				UT_FATAL("shutdown_state_add_part");
 			FAIL(fail_on, 3);
 		}
 	} else {
@@ -117,8 +118,9 @@ main(int argc, char *argv[])
 		shutdown_state_init(&current_sds, NULL);
 		FAIL(fail_on, 2);
 		for (unsigned i = 0; i < files; i++) {
-			shutdown_state_add_part(&current_sds,
-				args[2 + i], NULL);
+			if (shutdown_state_add_part(&current_sds,
+					args[2 + i], NULL))
+				UT_FATAL("shutdown_state_add_part");
 			FAIL(fail_on, 3);
 		}
 
