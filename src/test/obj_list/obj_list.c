@@ -58,7 +58,7 @@ PMEMobjpool *Pop;
 /* pointer to heap offset */
 uint64_t *Heap_offset;
 /* list lane section */
-struct lane_section Lane_section;
+struct lane Lane;
 /* actual item id */
 int *Id;
 

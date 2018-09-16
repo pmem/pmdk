@@ -68,14 +68,18 @@ Root offset              : $(*)
 
 Lane 0:
 
- Lane section             : tx
+ Undo Log:
 
-  Undo Log:
+  Log entries:
+  0000000000: Offset: $(*) Size: 1 
 
-   Tx range:
-    Offset                   : $(*)
-    Size                     : 1
+ Internal Undo Log:
 
+  Log entries:
+
+ External Undo Log:
+
+  Log entries:
 
 Part file:
 path                     : $(nW)file.pool
@@ -113,19 +117,18 @@ Root offset              : $(*)
 
 Lane 0:
 
- Lane section             : tx
+ Undo Log:
 
-  Undo Log:
+  Log entries:
+  0000000000: Offset: $(*) Size: 1024 
 
-   Tx range:
-    Offset                   : $(*)
-    Size                     : 936
+ Internal Undo Log:
 
+  Log entries:
 
-   Tx range:
-    Offset                   : $(*)
-    Size                     : 88
+ External Undo Log:
 
+  Log entries:
 
 Part file:
 path                     : $(nW)file.pool

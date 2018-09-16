@@ -497,8 +497,7 @@ operation_resume(struct operation_context *ctx)
 	operation_init(ctx);
 	ASSERTeq(ctx->in_progress, 0);
 	ctx->in_progress = 1;
-	/* assume the entire log is occupied for the purpose of data clobber */
-	ctx->total_logged = ctx->ulog_capacity;
+	ctx->total_logged = ulog_base_nbytes(ctx->ulog);
 }
 
 /*

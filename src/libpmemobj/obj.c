@@ -562,7 +562,7 @@ obj_rep_memcpy(void *ctx, void *dest, const void *src, size_t len,
 	unsigned lane = UINT_MAX;
 
 	if (pop->has_remote_replicas)
-		lane = lane_hold(pop, NULL, LANE_ID);
+		lane = lane_hold(pop, NULL);
 
 	void *ret = pop->memcpy_local(dest, src, len, flags);
 
@@ -599,7 +599,7 @@ obj_rep_memmove(void *ctx, void *dest, const void *src, size_t len,
 	unsigned lane = UINT_MAX;
 
 	if (pop->has_remote_replicas)
-		lane = lane_hold(pop, NULL, LANE_ID);
+		lane = lane_hold(pop, NULL);
 
 	void *ret = pop->memmove_local(dest, src, len, flags);
 
@@ -635,7 +635,7 @@ obj_rep_memset(void *ctx, void *dest, int c, size_t len, unsigned flags)
 	unsigned lane = UINT_MAX;
 
 	if (pop->has_remote_replicas)
-		lane = lane_hold(pop, NULL, LANE_ID);
+		lane = lane_hold(pop, NULL);
 
 	void *ret = pop->memset_local(dest, c, len, flags);
 
@@ -670,7 +670,7 @@ obj_rep_persist(void *ctx, const void *addr, size_t len, unsigned flags)
 	unsigned lane = UINT_MAX;
 
 	if (pop->has_remote_replicas)
-		lane = lane_hold(pop, NULL, LANE_ID);
+		lane = lane_hold(pop, NULL);
 
 	pop->persist_local(addr, len);
 
@@ -704,7 +704,7 @@ obj_rep_flush(void *ctx, const void *addr, size_t len, unsigned flags)
 	unsigned lane = UINT_MAX;
 
 	if (pop->has_remote_replicas)
-		lane = lane_hold(pop, NULL, LANE_ID);
+		lane = lane_hold(pop, NULL);
 
 	pop->flush_local(addr, len);
 
@@ -923,9 +923,7 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	pop->nlanes = OBJ_NLANES;
 
 	/* zero all lanes */
-	void *lanes_layout = (void *)((uintptr_t)pop + pop->lanes_offset);
-	pmemops_memset(p_ops, lanes_layout, 0,
-				pop->nlanes * sizeof(struct lane_layout), 0);
+	lane_init_data(pop);
 
 	pop->heap_offset = pop->lanes_offset +
 		pop->nlanes * sizeof(struct lane_layout);

@@ -97,7 +97,7 @@ typedef int (*ulog_entry_cb)(struct ulog_entry_base *e, void *arg,
 	const struct pmem_ops *p_ops);
 typedef void (*ulog_free_fn)(void *base, uint64_t *next);
 
-void ulog_construct(struct ulog *ulog, size_t capacity,
+void ulog_construct(struct ulog *ulog, size_t capacity, int zero_data,
 	const struct pmem_ops *p_ops);
 
 size_t ulog_capacity(struct ulog *ulog, size_t ulog_base_bytes,
@@ -127,6 +127,7 @@ void ulog_clobber_data(struct ulog *dest,
 void ulog_process(struct ulog *ulog, ulog_check_offset_fn check,
 	const struct pmem_ops *p_ops);
 
+size_t ulog_base_nbytes(struct ulog *ulog);
 int ulog_recovery_needed(struct ulog *ulog, int verify_checksum);
 
 uint64_t ulog_entry_offset(const struct ulog_entry_base *entry);
