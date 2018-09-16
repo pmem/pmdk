@@ -282,15 +282,10 @@ pmalloc_recovery(PMEMobjpool *pop, void *data, unsigned length)
 	struct lane_alloc_layout *sec = data;
 	ASSERT(sizeof(*sec) <= length);
 
-<<<<<<< HEAD
-	redo_log_recover((struct redo_log *)&sec->internal,
-		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
-	redo_log_recover((struct redo_log *)&sec->external,
-		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
-=======
-	ulog_recover((struct ulog *)&sec->internal, &pop->p_ops);
-	ulog_recover((struct ulog *)&sec->external, &pop->p_ops);
->>>>>>> 1c064f6c4... obj: rename redo to ulog
+	ulog_recover((struct ulog *)&sec->internal, OBJ_OFF_IS_VALID_FROM_CTX,
+		&pop->p_ops);
+	ulog_recover((struct ulog *)&sec->external, OBJ_OFF_IS_VALID_FROM_CTX,
+		&pop->p_ops);
 
 	return 0;
 }

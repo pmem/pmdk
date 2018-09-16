@@ -285,13 +285,14 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
 	/*
 	 * Copy at least 8 bytes more than needed. If the user always
 	 * properly uses entry creation functions, this will zero-out the
-	 * potential leftovers of the previous log.
+	 * potential leftovers of the previous log. Since all we really need
+	 * to zero is the offset, sizeof(struct redo_log_entry_base) is enough.
 	 * If the nbytes is aligned, an entire cacheline needs to be addtionally
 	 * zeroed.
 	 * But the checksum must be calculated based solely on actual data.
 	 */
 	size_t checksum_nbytes = MIN(ulog_base_nbytes, nbytes);
-	nbytes = CACHELINE_ALIGN(nbytes + 1);
+	nbytes = CACHELINE_ALIGN(nbytes + sizeof(struct ulog_entry_base));
 
 	size_t base_nbytes = MIN(ulog_base_nbytes, nbytes);
 	size_t next_nbytes = nbytes - base_nbytes;
@@ -621,6 +622,11 @@ ulog_process(struct ulog *ulog, ulog_check_offset_fn check,
 	const struct pmem_ops *p_ops)
 {
 	LOG(15, "ulog %p", ulog);
+
+#ifdef DEBUG
+	if (check)
+		ulog_check(ulog, check, p_ops);
+#endif
 
 	ulog_foreach_entry(ulog, ulog_process_entry, NULL, p_ops);
 }

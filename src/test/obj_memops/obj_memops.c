@@ -162,16 +162,16 @@ test_same_twice(struct operation_context *ctx, struct test_object *object)
 	operation_start(ctx);
 	operation_add_typed_entry(ctx,
 		&object->values[0], 5,
-		REDO_OPERATION_SET, LOG_PERSISTENT);
+		ULOG_OPERATION_SET, LOG_PERSISTENT);
 	operation_add_typed_entry(ctx,
 		&object->values[0], 10,
-		REDO_OPERATION_SET, LOG_PERSISTENT);
+		ULOG_OPERATION_SET, LOG_PERSISTENT);
 	operation_process(ctx);
 	UT_ASSERTeq(object->values[0], 10);
 }
 
-int
-main(int argc, char *argv[])
+static void
+test_redo(PMEMobjpool *pop, struct test_object *object)
 {
 	struct operation_context *ctx = operation_new(
 		(struct ulog *)&object->redo, TEST_ENTRIES,

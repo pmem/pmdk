@@ -548,8 +548,7 @@ operation_process(struct operation_context *ctx)
 
 	/* process transient entries with transient memory ops */
 	if (ctx->transient_ops.offset != 0)
-		ulog_process(ctx->transient_ops.ulog,
-			OBJ_OFF_IS_VALID_FROM_CTX, &ctx->t_ops);
+		ulog_process(ctx->transient_ops.ulog, NULL, &ctx->t_ops);
 }
 
 /*
