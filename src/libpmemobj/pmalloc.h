@@ -44,23 +44,6 @@
 #include "memops.h"
 #include "palloc.h"
 
-/*
- * The maximum size of redo logs used by the allocator. The common
- * case is to use two entries, one for modification of the object destination
- * memory location and the second for applying the chunk metadata modifications.
- * The remaining space is used whenever the memory operations is larger than
- * a singe allocation.
- * These two values should be divisible by 8 to maintain cacheline alignment.
- * The sum of these defines should be 1024 - (sizeof(struct redo_log) * 2).
- */
-#define ALLOC_REDO_EXTERNAL_SIZE 640
-#define ALLOC_REDO_INTERNAL_SIZE 256
-
-struct lane_alloc_layout {
-	struct ULOG(ALLOC_REDO_EXTERNAL_SIZE) external;
-	struct ULOG(ALLOC_REDO_INTERNAL_SIZE) internal;
-};
-
 /* single operations done in the internal context of the allocator's lane */
 
 int pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
@@ -81,5 +64,8 @@ struct operation_context *pmalloc_operation_hold_no_start(PMEMobjpool *pop);
 void pmalloc_operation_release(PMEMobjpool *pop);
 
 void pmalloc_ctl_register(PMEMobjpool *pop);
+
+int pmalloc_cleanup(PMEMobjpool *pop);
+int pmalloc_boot(PMEMobjpool *pop);
 
 #endif

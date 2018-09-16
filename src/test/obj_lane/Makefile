@@ -38,10 +38,11 @@ TOP = ../../..
 vpath %.c $(TOP)/src/libpmemobj
 
 TARGET = obj_lane
-OBJS = obj_lane.o cuckoo.o lane.o
+OBJS = obj_lane.o
 
 LIBPMEMCOMMON=y
 LIBPMEM=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
 
