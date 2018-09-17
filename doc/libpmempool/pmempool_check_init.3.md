@@ -260,6 +260,8 @@ return one of the following values:
 + **PMEMPOOL_CHECK_RESULT_ERROR** - the *pool* has errors or the check
   encountered an issue
 
++ **PMEMPOOL_CHECK_RESULT_SYNC_REQ** - the *pool* has single healthy replica.
+  To fix remaining issues use **pmempool_sync**(3).
 
 # EXAMPLE #
 
