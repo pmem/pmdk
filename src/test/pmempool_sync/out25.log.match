@@ -20,7 +20,7 @@ alignment                : $(nW)
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Forced RO                : $(*)
+Mandatory features       : $(*)
 Not mandatory features   : $(*)
 Forced RO                : $(*)
 Pool set UUID            : $(nW)
