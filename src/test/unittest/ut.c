@@ -264,7 +264,7 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 	int ret = snprintf(&buf[cc], MAXPRINT - cc,
 		"%s%s%s", sep, errstr, nl);
 	if (ret < 0 || ret >= MAXPRINT - (int)cc)
-		UT_FATAL("!snprintf");
+		UT_FATAL("snprintf: %d", ret);
 
 	/* buf has the fully-baked output, send it everywhere it goes... */
 	fputs(buf, Tracefp);
@@ -671,7 +671,7 @@ enum_handles(int op)
 			type_info->Name.Length / 2, type_info->Name.Buffer);
 
 		if (ret < 0 || ret >= MAX_PATH)
-			UT_FATAL("!snprintf");
+			UT_FATAL("snprintf: %d", ret);
 
 		int fd = (int)(ULONGLONG)handle.HandleValue;
 		if (op == 0)
@@ -775,7 +775,7 @@ ut_start_common(const char *file, int line, const char *func,
 
 	int ret = snprintf(logname, MAXLOGFILENAME, "out%s.log", logsuffix);
 	if (ret < 0 || ret >= MAXLOGFILENAME)
-		UT_FATAL("!snprintf");
+		UT_FATAL("snprintf: %d", ret);
 	if ((Outfp = os_fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
@@ -783,7 +783,7 @@ ut_start_common(const char *file, int line, const char *func,
 
 	ret = snprintf(logname, MAXLOGFILENAME, "err%s.log", logsuffix);
 	if (ret < 0 || ret >= MAXLOGFILENAME)
-		UT_FATAL("!snprintf");
+		UT_FATAL("snprintf: %d", ret);
 	if ((Errfp = os_fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
@@ -791,7 +791,7 @@ ut_start_common(const char *file, int line, const char *func,
 
 	ret = snprintf(logname, MAXLOGFILENAME, "trace%s.log", logsuffix);
 	if (ret < 0 || ret >= MAXLOGFILENAME)
-		UT_FATAL("!snprintf");
+		UT_FATAL("snprintf: %d", ret);
 	if ((Tracefp = os_fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);

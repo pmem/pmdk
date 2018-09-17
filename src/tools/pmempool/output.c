@@ -742,7 +742,7 @@ out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo)
 		ret = snprintf(str_buff, STR_MAX,
 			"wrong! should be 0x%016"PRIx64, uuid_lo);
 		if (ret < 0 || ret >= STR_MAX)
-			err(1, "!snprintf");
+			err(1, "snprintf: %d", ret);
 		correct = strdup(str_buff);
 		if (!correct)
 			err(1, "Cannot allocate memory for PMEMoid string\n");
@@ -757,7 +757,7 @@ out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo)
 		free(correct);
 
 	if (ret < 0 || ret >= STR_MAX)
-		err(1, "!snprintf");
+		err(1, "snprintf: %d", ret);
 
 	return str_buff;
 }
@@ -934,7 +934,7 @@ out_get_incompat_features_str(uint32_t incompat)
 		/* print the value and the left square bracket */
 		ret = snprintf(str_buff, STR_MAX, "0x%x [", incompat);
 		if (ret < 0 || ret >= STR_MAX) {
-			ERR("!snprintf for incompat features");
+			ERR("snprintf for incompat features: %d", ret);
 			return "<error>";
 		}
 

@@ -524,7 +524,7 @@ get_home_dir(char *str, size_t size)
 	if (home) {
 		int r = snprintf(str, size, "%s", home);
 		if (r < 0)
-			RPMEMD_FATAL("!snprintf");
+			RPMEMD_FATAL("snprintf: %d", r);
 	} else {
 		uid_t uid = getuid();
 		struct passwd *pw = getpwuid(uid);
@@ -533,7 +533,7 @@ get_home_dir(char *str, size_t size)
 
 		int r = snprintf(str, size, "%s", pw->pw_dir);
 		if (r < 0)
-			RPMEMD_FATAL("!snprintf");
+			RPMEMD_FATAL("snprintf: %d", r);
 	}
 }
 
@@ -547,7 +547,7 @@ concat_dir_and_file_name(char *path, size_t size, const char *dir,
 {
 	int r = snprintf(path, size, "%s/%s", dir, file);
 	if (r < 0)
-		RPMEMD_FATAL("!snprintf");
+		RPMEMD_FATAL("snprintf: %d", r);
 }
 
 /*
@@ -575,13 +575,13 @@ str_replace_home(char *haystack, const char *home_dir)
 	haystack_len += home_len - placeholder_len + 1;
 	char *buf = malloc(sizeof(char) * haystack_len);
 	if (!buf)
-		RPMEMD_FATAL("!snprintf");
+		RPMEMD_FATAL("!malloc");
 
 	*pos = '\0';
 	int r = snprintf(buf, haystack_len, "%s%s%s", haystack, home_dir,
 		after);
 	if (r < 0)
-		RPMEMD_FATAL("!snprintf");
+		RPMEMD_FATAL("snprintf: %d", r);
 
 	free(haystack);
 	return buf;
