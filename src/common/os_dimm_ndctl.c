@@ -83,8 +83,9 @@ os_dimm_match_device(const os_stat_t *st, const char *devname)
 
 	char path[PATH_MAX];
 	os_stat_t stat;
-	if (snprintf(path, PATH_MAX, "/dev/%s", devname) < 0) {
-		ERR("snprintf");
+	int ret;
+	if ((ret = snprintf(path, PATH_MAX, "/dev/%s", devname)) < 0) {
+		ERR("snprintf: %d", ret);
 		return -1;
 	}
 

@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 		int ret = snprintf(path, length, "%s"OS_DIR_SEP_STR"testfile%d",
 			dir, i);
 		if (ret < 0 || ret >= length)
-			UT_FATAL("!snprintf");
+			UT_FATAL("snprintf: %d", ret);
 		pops[i] = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 				S_IWUSR | S_IRUSR);
 

@@ -46,7 +46,7 @@ define_path(char *str, size_t size, const char *dir, unsigned i)
 	int ret = snprintf(str, size, "%s"OS_DIR_SEP_STR"testfile%d",
 			dir, i);
 	if (ret < 0 || ret >= size)
-		UT_FATAL("!snprintf");
+		UT_FATAL("snprintf: %d", ret);
 }
 
 int

@@ -77,7 +77,7 @@ util_tmpfile(const char *dir, const char *templ, int flags)
 
 	int ret = _snprintf(fullname, len, "%s%s", dir, templ);
 	if (ret < 0 || ret >= len) {
-		ERR("!snprintf");
+		ERR("snprintf: %d", ret);
 		goto err;
 	}
 
