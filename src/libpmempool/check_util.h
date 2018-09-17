@@ -58,6 +58,7 @@ struct check_status;
 /* container storing state of all check steps */
 #define PREFIX_MAX_SIZE 30
 typedef struct {
+	unsigned init_done;
 	unsigned step;
 
 	unsigned replica;
@@ -67,6 +68,7 @@ typedef struct {
 	int single_part;
 
 	struct pool_set *set;
+	int is_dev_dax;
 
 	struct pool_hdr *hdrp;
 	/* copy of the pool header in host byte order */
@@ -77,6 +79,8 @@ typedef struct {
 	 * the pool parameters structure requires refresh.
 	 */
 	int pool_hdr_modified;
+
+	unsigned healthy_replicas;
 
 	struct pool_hdr *next_part_hdrp;
 	struct pool_hdr *prev_part_hdrp;
