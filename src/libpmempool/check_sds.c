@@ -52,109 +52,82 @@ enum question {
 	Q_RESET_SDS,
 };
 
-/*
- * pool_hdr_valid -- (internal) return true if pool header is valid
- */
-static int
-pool_hdr_valid(struct pool_hdr *hdrp)
-{
-	return !util_is_zeroed((void *)hdrp, sizeof(*hdrp)) &&
-		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0,
-			POOL_HDR_CSUM_END_OFF(hdrp));
-}
+#define SDS_CHECK_STR	"checking shutdown state"
+#define SDS_OK_STR	"shutdown state correct"
+
+#define ADR_FAILURE_STR \
+	"an ADR failure was detected - your pool might be corrupted"
+
+#define RESET_SDS_STR \
+	"Do you want to reset shutdown state at your own risk? " \
+	"If you have more then one replica you will have to " \
+	"synchronize your pool after this operation."
 
 /*
- * check_shutdown_state -- (internal) check if poolset has healthy replica
+ * sds_check_replica -- (internal) check if replica is healthy
  */
 static int
-check_shutdown_state(struct pool_set *set)
-{
-	LOG(3, "set %p", set);
-
-	if (set == NULL)
-		return 0; /* skip */
-
-	for (unsigned r = 0; r < set->nreplicas; ++r) {
-		struct pool_replica *rep = set->replica[r];
-		struct pool_hdr *hdrp = HDR(rep, 0);
-
-		if (rep->remote)
-			continue;
-
-		struct shutdown_state curr_sds;
-		shutdown_state_init(&curr_sds, NULL);
-		for (unsigned p = 0; p < rep->nparts; ++p) {
-			if (shutdown_state_add_part(&curr_sds,
-					PART(rep, p)->path, NULL))
-				return -1;
-		}
-		/* make a copy of sds as we shouldn't modify a pool */
-		struct shutdown_state pool_sds = hdrp->sds;
-
-		if (!shutdown_state_check(&curr_sds, &pool_sds, NULL)) {
-			return 0; /* healthy replica found */
-		}
-
-	}
-
-	return -1;
-}
-
-/*
- * shutdown_state_preliminary_checks -- (internal) check shutdown_state
- */
-static int
-shutdown_state_preliminary_check(PMEMpoolcheck *ppc, location *loc)
+sds_check_replica(location *loc)
 {
 	LOG(3, NULL);
 
-	CHECK_INFO(ppc, "%schecking shutdown state", loc->prefix);
+	struct pool_replica *rep = REP(loc->set, loc->replica);
 
-	if (check_shutdown_state(loc->set)) {
-		if (CHECK_IS_NOT(ppc, REPAIR)) {
-			check_end(ppc->data);
-			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
-			return CHECK_ERR(ppc,
-				"%san ADR failure was detected - your pool might be corrupted",
-				loc->prefix);
-		}
-	} else {
-		/* valid check sum */
-		CHECK_INFO(ppc, "%sshutdown state correct",
-			loc->prefix);
+	if (rep->remote)
+		return 0;
+
+	/* make a copy of sds as we shouldn't modify a pool */
+	struct shutdown_state old_sds = loc->hdr.sds;
+	struct shutdown_state curr_sds;
+
+	shutdown_state_init(&curr_sds, NULL);
+
+	/* get current shutdown state */
+	for (unsigned p = 0; p < rep->nparts; ++p) {
+		if (shutdown_state_add_part(&curr_sds,
+				PART(rep, p)->path, NULL))
+			return -1;
+	}
+
+	/* compare current and old shutdown state */
+	return shutdown_state_check(&curr_sds, &old_sds, NULL);
+}
+
+/*
+ * sds_check -- (internal) check shutdown_state
+ */
+static int
+sds_check(PMEMpoolcheck *ppc, location *loc)
+{
+	LOG(3, NULL);
+
+	CHECK_INFO(ppc, "%s" SDS_CHECK_STR, loc->prefix);
+
+	/* shutdown state is valid */
+	if (!sds_check_replica(loc)) {
+		CHECK_INFO(ppc, "%s" SDS_OK_STR, loc->prefix);
 		loc->step = CHECK_STEP_COMPLETE;
 		return 0;
 	}
 
-	ASSERT(CHECK_IS(ppc, REPAIR));
-
-	return 0;
-}
-
-/*
- * shutdown_state_sds_check -- (internal) check shutdown state
- */
-static int
-shutdown_state_sds_check(PMEMpoolcheck *ppc, location *loc)
-{
-	LOG(3, NULL);
-
-	if (loc->part == 0 && check_shutdown_state(loc->set)) {
-		CHECK_ASK(ppc, Q_RESET_SDS,
-			"An ADR failure was detected - your pool might be corrupted.|"
-			"Do you want to reset shutdown state for replica: %u to be able to open pool on your own risk? "
-			"If you have more then one replica you will have to synchronize your pool after this operation",
-			loc->replica);
+	/* shutdown state is NOT valid and can NOT be repaired */
+	if (CHECK_IS_NOT(ppc, REPAIR)) {
+		check_end(ppc->data);
+		ppc->result = CHECK_RESULT_NOT_CONSISTENT;
+		return CHECK_ERR(ppc, "%s" ADR_FAILURE_STR, loc->prefix);
 	}
 
+	/* shutdown state is NOT valid but can be repaired */
+	CHECK_ASK(ppc, Q_RESET_SDS, "%s" ADR_FAILURE_STR ".|" RESET_SDS_STR,
+			loc->prefix);
 	return check_questions_sequence_validate(ppc);
 }
 
 /*
- * shutdown_state_sds_fix -- (internal) fix shutdown state
+ * sds_fix -- (internal) fix shutdown state
  */
 static int
-shutdown_state_sds_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
+sds_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	void *context)
 {
 	LOG(3, NULL);
@@ -163,6 +136,7 @@ shutdown_state_sds_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	case Q_RESET_SDS:
 		CHECK_INFO(ppc, "%sresetting pool_hdr.sds", loc->prefix);
 		memset(&loc->hdr.sds, 0, sizeof(loc->hdr.sds));
+		++loc->healthy_replicas;
 		break;
 	default:
 		ERR("not implemented question id: %u", question);
@@ -175,17 +149,13 @@ struct step {
 	int (*fix)(PMEMpoolcheck *, location *, uint32_t, void *);
 };
 
-static const struct step steps_initial[] = {
+static const struct step steps[] = {
 	{
-		.check	= shutdown_state_preliminary_check,
+		.check	= sds_check,
 	},
 	{
-		.check	= shutdown_state_sds_check,
+		.fix	= sds_fix,
 	},
-	{
-		.fix	= shutdown_state_sds_fix,
-	},
-
 	{
 		.check	= NULL,
 		.fix	= NULL,
@@ -196,8 +166,7 @@ static const struct step steps_initial[] = {
  * step_exe -- (internal) perform single step according to its parameters
  */
 static int
-step_exe(PMEMpoolcheck *ppc, const struct step *steps, location *loc,
-	struct pool_replica *rep, unsigned nreplicas)
+step_exe(PMEMpoolcheck *ppc, const struct step *steps, location *loc)
 {
 	const struct step *step = &steps[loc->step++];
 
@@ -207,23 +176,34 @@ step_exe(PMEMpoolcheck *ppc, const struct step *steps, location *loc,
 	if (!check_has_answer(ppc->data))
 		return 0;
 
-	if (check_answer_loop(ppc, loc, NULL, 0, step->fix))
+	if (check_answer_loop(ppc, loc, NULL, 0 /* fail on no */, step->fix))
 		return -1;
 
 	util_convert2le_hdr(&loc->hdr);
 	memcpy(loc->hdrp, &loc->hdr, sizeof(loc->hdr));
-	loc->hdr_valid = pool_hdr_valid(loc->hdrp);
-	util_persist_auto(rep->part[0].is_dev_dax, loc->hdrp,
-			sizeof(*loc->hdrp));
+	util_persist_auto(loc->is_dev_dax, loc->hdrp, sizeof(*loc->hdrp));
 
 	util_convert2h_hdr_nocheck(&loc->hdr);
 	loc->pool_hdr_modified = 1;
 
-	/* execute check after fix if available */
-	if (step->check)
-		return step->check(ppc, loc);
-
 	return 0;
+}
+
+/*
+ * init_prefix -- prepare prefix for messages
+ */
+static void
+init_prefix(location *loc)
+{
+	if (loc->set->nreplicas > 1) {
+		int ret = snprintf(loc->prefix, PREFIX_MAX_SIZE,
+			"replica %u: ",
+			loc->replica);
+		if (ret < 0 || ret >= PREFIX_MAX_SIZE)
+			FATAL("snprintf: %d", ret);
+	} else
+		loc->prefix[0] = '\0';
+	loc->step = 0;
 }
 
 /*
@@ -232,25 +212,39 @@ step_exe(PMEMpoolcheck *ppc, const struct step *steps, location *loc,
 static void
 init_location_data(PMEMpoolcheck *ppc, location *loc)
 {
-	/* prepare prefix for messages */
-	unsigned nfiles = pool_set_files_count(ppc->pool->set_file);
-	if (ppc->result != CHECK_RESULT_PROCESS_ANSWERS) {
-		if (nfiles > 1) {
-			int ret = snprintf(loc->prefix, PREFIX_MAX_SIZE,
-				"replica %u: ",
-				loc->replica);
-			if (ret < 0 || ret >= PREFIX_MAX_SIZE)
-				FATAL("!snprintf");
-		} else
-			loc->prefix[0] = '\0';
-		loc->step = 0;
-	}
+	ASSERTeq(loc->part, 0);
 
 	loc->set = ppc->pool->set_file->poolset;
+
+	if (ppc->result != CHECK_RESULT_PROCESS_ANSWERS)
+		init_prefix(loc);
+
 	struct pool_replica *rep = REP(loc->set, loc->replica);
 	loc->hdrp = HDR(rep, loc->part);
 	memcpy(&loc->hdr, loc->hdrp, sizeof(loc->hdr));
 	util_convert2h_hdr_nocheck(&loc->hdr);
+	loc->is_dev_dax = PART(rep, 0)->is_dev_dax;
+}
+
+/*
+ * sds_get_healthy_replicas_num -- (internal) get number of healthy replicas
+ */
+static void
+sds_get_healthy_replicas_num(PMEMpoolcheck *ppc, location *loc)
+{
+	const unsigned nreplicas = ppc->pool->set_file->poolset->nreplicas;
+	loc->healthy_replicas = 0;
+	loc->part = 0;
+
+	for (; loc->replica < nreplicas; loc->replica++) {
+		init_location_data(ppc, loc);
+
+		if (!sds_check_replica(loc)) {
+			++loc->healthy_replicas; /* healthy replica found */
+		}
+	}
+
+	loc->replica = 0; /* reset replica index */
 }
 
 /*
@@ -261,37 +255,48 @@ check_sds(PMEMpoolcheck *ppc)
 {
 	LOG(3, NULL);
 
+	const unsigned nreplicas = ppc->pool->set_file->poolset->nreplicas;
 	location *loc = check_get_step_data(ppc->data);
-	unsigned nreplicas = ppc->pool->set_file->poolset->nreplicas;
-	struct pool_set *poolset = ppc->pool->set_file->poolset;
 
+	if (!loc->init_done) {
+		sds_get_healthy_replicas_num(ppc, loc);
+
+		if (loc->healthy_replicas == nreplicas) {
+			/* all replicas have healthy shutdown state */
+			/* print summary */
+			for (; loc->replica < nreplicas; loc->replica++) {
+				init_prefix(loc);
+				CHECK_INFO(ppc, "%s" SDS_CHECK_STR,
+						loc->prefix);
+				CHECK_INFO(ppc, "%s" SDS_OK_STR, loc->prefix);
+			}
+			return;
+		} else if (loc->healthy_replicas > 0) {
+			ppc->sync_required = true;
+			return;
+		}
+		loc->init_done = true;
+	}
+
+	/* produce single healthy replica */
+	loc->part = 0;
 	for (; loc->replica < nreplicas; loc->replica++) {
-		struct pool_replica *rep = poolset->replica[loc->replica];
-		loc->part = 0;
 		init_location_data(ppc, loc);
 
-		/* do all checks */
-		while (CHECK_NOT_COMPLETE(loc, steps_initial)) {
-			ASSERT(loc->step < ARRAY_SIZE(steps_initial));
-			if (step_exe(ppc, steps_initial, loc, rep,
-					nreplicas))
+		while (CHECK_NOT_COMPLETE(loc, steps)) {
+			ASSERT(loc->step < ARRAY_SIZE(steps));
+			if (step_exe(ppc, steps, loc))
 				return;
 		}
+
+		if (loc->healthy_replicas)
+			break;
 	}
 
-	if (check_shutdown_state(ppc->pool->set_file->poolset)) {
+	if (loc->healthy_replicas == 0) {
 		ppc->result = CHECK_RESULT_NOT_CONSISTENT;
 		CHECK_ERR(ppc, "cannot complete repair, reverting changes");
-		return;
-	}
-
-	memcpy(&ppc->pool->hdr.pool, poolset->replica[0]->part[0].hdr,
-		sizeof(struct pool_hdr));
-
-	if (loc->pool_hdr_modified) {
-		struct pool_hdr hdr;
-		memcpy(&hdr, &ppc->pool->hdr.pool, sizeof(struct pool_hdr));
-		util_convert2h_hdr_nocheck(&hdr);
-		pool_params_from_header(&ppc->pool->params, &hdr);
+	} else if (loc->healthy_replicas < nreplicas) {
+		ppc->sync_required = true;
 	}
 }
