@@ -198,7 +198,7 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
 				"[%s:%d] ", basename(fname), lineno);
 		if (ret < 0)
-			RPMEMD_FATAL("snprintf failed");
+			RPMEMD_FATAL("snprintf failed: %d", ret);
 
 		cnt += (size_t)ret;
 	}
@@ -206,7 +206,7 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
 				"%s ", rpmemd_prefix_buff);
 		if (ret < 0)
-			RPMEMD_FATAL("snprintf failed");
+			RPMEMD_FATAL("snprintf failed: %d", ret);
 
 		cnt += (size_t)ret;
 	}
@@ -234,7 +234,7 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
 				"%s%s%s", prefix, errorstr, suffix);
 		if (ret < 0)
-			RPMEMD_FATAL("snprintf failed");
+			RPMEMD_FATAL("snprintf failed: %d", ret);
 	}
 
 	if (rpmemd_use_syslog) {

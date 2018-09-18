@@ -201,7 +201,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 			int ret = snprintf(log_file_pid, PATH_MAX, "%s%d",
 				log_file, getpid());
 			if (ret < 0 || ret >= PATH_MAX) {
-				ERR("!snprintf");
+				ERR("snprintf: %d", ret);
 				abort();
 			}
 			log_file = log_file_pid;

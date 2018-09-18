@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -67,7 +67,7 @@ util_uuid_to_string(const uuid_t u, char *buf)
 		uuid->node[5]);
 
 	if (len != POOL_HDR_UUID_STR_LEN - 1) {
-		LOG(2, "snprintf(uuid)");
+		LOG(2, "snprintf(uuid): %d", len);
 		return -1;
 	}
 

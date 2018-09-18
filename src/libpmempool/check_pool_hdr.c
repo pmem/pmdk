@@ -916,7 +916,7 @@ init_location_data(PMEMpoolcheck *ppc, location *loc)
 				"replica %u part %u: ",
 				loc->replica, loc->part);
 			if (ret < 0 || ret >= PREFIX_MAX_SIZE)
-				FATAL("!snprintf");
+				FATAL("snprintf: %d", ret);
 		} else
 			loc->prefix[0] = '\0';
 		loc->step = 0;
