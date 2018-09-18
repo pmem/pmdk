@@ -1,0 +1,26 @@
+<rpmemd>: <1> [out.c:$(N) out_init_common] pid $(N): program: $(*)
+<rpmemd>: <1> [out.c:$(N) out_init_common] rpmemd version $(*)
+<rpmemd>: <1> [out.c:$(N) out_init_common] src version: $(*)
+$(OPT)<rpmemd>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind pmemcheck
+$(OPT)<rpmemd>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind helgrind
+$(OPT)<rpmemd>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind memcheck
+$(OPT)<rpmemd>: <1> [out.c:$(N) out_init_common] compiled with support for Valgrind drd
+$(OPT)<rpmemd>: <1> [out.c:$(N) out_init_common] compiled with support for shutdown state
+rpmemd version $(*)
+ssh connection: $(*)
+user: $(*)
+configuration
+    pool set directory: '$(*)'
+    persist method: Appliance Persistency Method
+    number of threads: 0
+open request:
+    pool descriptor: 'remote_pool.set'
+    pool size: 8388608
+    nlanes: 1024
+    provider: sockets
+    buff_size: 8192
+<rpmemd>: <1> [badblock_linux.c:$(N) os_badblocks_check_file] pool file '/$(*)/pool.remote' contains 1 bad block(s)
+<rpmemd>: <1> [badblock.c:$(N) badblocks_check_file_cb] part file contains bad blocks -- '/$(*)/pool.remote'
+<rpmemd>: <1> [badblock.c:$(N) badblocks_check_poolset] 1 pool file(s) contain bad blocks
+<rpmemd>: <1> [set.c:$(N) util_pool_open_remote] remote replica contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to recreate it -- '/$(*)/remote_pool.set'
+cannot open pool set -- '/$(*)/remote_pool.set': Input/output error

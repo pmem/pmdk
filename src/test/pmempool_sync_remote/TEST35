@@ -56,12 +56,16 @@ setup
 require_node_libfabric 0 $RPMEM_PROVIDER
 require_node_libfabric 1 $RPMEM_PROVIDER
 
+export RPMEMD_OUT_LOG_LEVEL=2
+export_vars_node 1 RPMEMD_OUT_LOG_LEVEL
+
 init_rpmem_on_node 0 1
 
 require_node_log_files 0 pmemobj$UNITTEST_NUM.log
 require_node_log_files 0 pmempool$UNITTEST_NUM.log
 require_node_log_files 1 pmemobj$UNITTEST_NUM.log
 require_node_log_files 1 pmempool$UNITTEST_NUM.log
+require_node_log_files 1 rpmemd$UNITTEST_NUM.log
 
 . ../common_badblock.sh
 
@@ -136,5 +140,8 @@ expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}/$POOLSET
 expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}/$POOLSET_LOCAL $LAYOUT v &>> $LOG"
 
 ndctl_nfit_test_fini_node 1 $MOUNT_DIR
+
+tail -n26 node_1_rpmemd${UNITTEST_NUM}.log > grep_node_1_rpmemd${UNITTEST_NUM}.log
+match grep_node_1_rpmemd${UNITTEST_NUM}.log.match
 
 pass
