@@ -84,11 +84,18 @@ main(int argc, char *argv[])
 	for (int i = 1; i < NTHREAD; i++)
 		UT_ASSERTeq(ret[0], ret[i]);
 
-	UT_OUT("%d", ret[0]);
+	UT_OUT("threads.is_pmem(Addr, Size): %d", ret[0]);
 
 	UT_ASSERTeq(os_unsetenv("PMEM_IS_PMEM_FORCE"), 0);
 
-	UT_OUT("%d", pmem_is_pmem(Addr, Size));
+	UT_OUT("is_pmem(Addr, Size): %d", pmem_is_pmem(Addr, Size));
+
+	/* zero-sized region is not pmem */
+	UT_OUT("is_pmem(Addr, 0): %d", pmem_is_pmem(Addr, 0));
+	UT_OUT("is_pmem(Addr + Size / 2, 0): %d",
+			pmem_is_pmem((char *)Addr + Size / 2, 0));
+	UT_OUT("is_pmem(Addr + Size, 0): %d",
+			pmem_is_pmem((char *)Addr + Size, 0));
 
 	DONE(NULL);
 }
