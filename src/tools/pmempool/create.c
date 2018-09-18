@@ -480,7 +480,11 @@ pmempool_create_func(char *appname, int argc, char *argv[])
 
 	umask(0);
 
-	pc.fexists = os_access(pc.fname, F_OK) == 0;
+	int exists = util_file_exists(pc.fname);
+	if (exists < 0)
+		return -1;
+
+	pc.fexists = exists;
 	int is_poolset = util_is_poolset_file(pc.fname) == 1;
 
 	if (pc.inherit_fname)  {

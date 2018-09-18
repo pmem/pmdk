@@ -1782,8 +1782,11 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 {
 	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
 
-	/* check if file exists */
-	if (os_access(part->path, F_OK) == 0)
+	int exists = util_file_exists(part->path);
+	if (exists < 0)
+		return -1;
+
+	if (exists)
 		create = 0;
 
 	part->created = 0;
@@ -3103,8 +3106,12 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	int flags = MAP_SHARED;
 	int oerrno;
 
+	int exists = util_file_exists(path);
+	if (exists < 0)
+		return -1;
+
 	/* check if file exists */
-	if (poolsize > 0 && os_access(path, F_OK) == 0) {
+	if (poolsize > 0 && exists) {
 		ERR("file %s already exists", path);
 		errno = EEXIST;
 		return -1;

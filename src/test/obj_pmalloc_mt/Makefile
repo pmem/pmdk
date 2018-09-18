@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,5 +38,6 @@ OBJS = obj_pmalloc_mt.o
 
 LIBPMEM=y
 LIBPMEMOBJ=internal-debug
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
