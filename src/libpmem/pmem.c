@@ -422,7 +422,10 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 	int fd;
 	int open_flags = O_RDWR;
 	int delete_on_err = 0;
-	int is_dev_dax = util_file_is_device_dax(path);
+
+	int file_type = util_file_get_type_noent(path);
+	if (file_type < 0)
+		return NULL;
 
 	if (flags & ~(PMEM_FILE_ALL_FLAGS)) {
 		ERR("invalid flag specified %x", flags);
@@ -430,7 +433,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		return NULL;
 	}
 
-	if (is_dev_dax) {
+	if (file_type == FILE_TYPE_DEVDAX) {
 		if (flags & ~(PMEM_DAX_VALID_FLAGS)) {
 			ERR("flag unsupported for Device DAX %x", flags);
 			errno = EINVAL;
@@ -529,7 +532,8 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		len = (size_t)actual_size;
 	}
 
-	void *addr = pmem_map_register(fd, len, path, is_dev_dax);
+	void *addr = pmem_map_register(fd, len, path,
+		file_type == FILE_TYPE_DEVDAX);
 	if (addr == NULL)
 		goto err;
 

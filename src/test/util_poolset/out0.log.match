@@ -16,11 +16,9 @@ $(nW)/testset4: util_pool_create: Invalid argument
 $(nW)/testset5: util_pool_create: Invalid argument
 $(nW)/testset6: util_pool_create: No such file or directory
 mocked open: $(nW)/testfile72
-mocked open: $(nW)/testfile72
 $(nW)/testset7: util_pool_create: Permission denied
 mocked fallocate: 1073741824
 $(nW)/testset8: util_pool_create: No space left on device
-mocked open: $(nW)/testfile102
 mocked open: $(nW)/testfile102
 $(nW)/testset10: util_pool_create: Permission denied
 $(nW)/testset11: util_pool_create: Invalid argument
@@ -38,7 +36,6 @@ $(nW)/testset22: created: nreps 1 poolsize 8384512 zeroed 0
   replica[0]: nparts 2 nhdrs 2 repsize 8384512 is_pmem 0
     part[0] path $(nW)/testfile221 filesize 4194304 size 4194304
     part[1] path $(nW)/testfile222 filesize 4194304 size 4190208
-mocked open: $(nW)/testset23
 mocked open: $(nW)/testset23
 $(nW)/testset23: util_pool_create: Permission denied
 $(nW)/testset24: created: nreps 3 poolsize 8384512 zeroed 1

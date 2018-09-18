@@ -297,6 +297,9 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	mb->pargs = (struct memset_args *)args->opts;
 	mb->pargs->chunk_size = args->dsize;
 
+	int file_type = util_file_get_type_noent(args->fname);
+	assert(file_type > 0);
+
 	enum operation_mode op_mode = parse_op_mode(mb->pargs->mode);
 	if (op_mode == OP_MODE_UNKNOWN) {
 		fprintf(stderr, "Invalid operation mode argument '%s'\n",
@@ -320,7 +323,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	/* initialize memset() value */
 	mb->const_b = CONST_B;
 
-	if (!util_file_is_device_dax(args->fname)) {
+	if (file_type == FILE_TYPE_NORMAL) {
 		file_size = mb->fsize;
 		flags = PMEM_FILE_CREATE | PMEM_FILE_EXCL;
 	}
@@ -356,7 +359,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 						   : libpmem_memset_nodrain;
 	}
 
-	if (!mb->pargs->no_warmup && !util_file_is_device_dax(args->fname)) {
+	if (!mb->pargs->no_warmup && file_type == FILE_TYPE_NORMAL) {
 		ret = warmup_func(mb);
 		if (ret) {
 			perror("Pool warmup failed");

@@ -398,7 +398,10 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 		return -1;
 	}
 
-	if (bb->type == OP_TYPE_FILE && util_file_is_device_dax(args->fname)) {
+	int file_type = util_file_get_type_noent(path);
+	assert(file_type > 0);
+
+	if (bb->type == OP_TYPE_FILE && file_type == FILE_TYPE_DEVDAX) {
 		fprintf(stderr, "fileio not supported on device dax\n");
 		return -1;
 	}
@@ -425,7 +428,7 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 		return -1;
 	}
 
-	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+	if (args->is_poolset || file_type == FILE_TYPE_DEVDAX) {
 		if (args->fsize < ba->fsize) {
 			fprintf(stderr, "file size too large\n");
 			return -1;

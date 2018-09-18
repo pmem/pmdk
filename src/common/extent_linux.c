@@ -74,8 +74,12 @@ os_extents_common(const char *path, struct extents *exts,
 		exts->blksize = (uint64_t)st.st_blksize;
 	}
 
+	int fd_type = util_fd_get_type(fd);
+	if (fd_type < 0)
+		goto error_close;
+
 	/* devdax does not have any extents */
-	if (util_fd_is_device_dax(fd)) {
+	if (fd_type == FILE_TYPE_DEVDAX) {
 		close(fd);
 		return 0;
 	}

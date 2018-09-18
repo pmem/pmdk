@@ -398,6 +398,9 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 
 	pmb->pargs->chunk_size = args->dsize;
 
+	int file_type = util_file_get_type_noent(args->fname);
+	assert(file_type > 0);
+
 	enum operation_type op_type;
 	/*
 	 * Assign file and buffer size depending on the operation type
@@ -429,7 +432,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	for (size_t i = 0; i < pmb->n_rand_offsets; ++i)
 		pmb->rand_offsets[i] = rand() % args->n_ops_per_thread;
 
-	if (!util_file_is_device_dax(args->fname)) {
+	if (file_type == FILE_TYPE_NORMAL) {
 		file_size = pmb->fsize;
 		flags = PMEM_FILE_CREATE | PMEM_FILE_EXCL;
 	}

@@ -385,6 +385,9 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 	pmb->pargs = (struct pmem_args *)args->opts;
 	assert(pmb->pargs != nullptr);
 
+	int file_type = util_file_get_type_noent(args->fname);
+	assert(file_type > 0);
+
 	int i = parse_op_type(pmb->pargs->operation);
 	if (i == -1) {
 		fprintf(stderr, "wrong operation: %s\n", pmb->pargs->operation);
@@ -414,7 +417,7 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 	for (size_t i = 0; i < pmb->n_offsets; ++i)
 		pmb->offsets[i] = func_mode(pmb, i);
 
-	if (!util_file_is_device_dax(args->fname)) {
+	if (file_type == FILE_TYPE_NORMAL) {
 		file_size = pmb->fsize;
 		flags = PMEM_FILE_CREATE | PMEM_FILE_EXCL;
 	}

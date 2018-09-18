@@ -121,8 +121,12 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn)
 
 	int olderrno = errno;
 
+	int file_type = util_file_get_type_noent(part->path);
+	if (file_type < 0)
+		return -1;
+
 	/* if the part is a device dax, clear its bad blocks */
-	if (util_file_is_device_dax(part->path) &&
+	if (file_type == FILE_TYPE_DEVDAX &&
 	    os_dimm_devdax_clear_badblocks_all(part->path)) {
 		ERR("clearing bad blocks in device dax failed -- '%s'",
 			part->path);
@@ -426,7 +430,11 @@ check_and_open_poolset_part_files(struct pool_set *set,
 					continue;
 			}
 			if (util_part_open(&rep->part[p], 0, 0)) {
-				if (util_file_is_device_dax(path)) {
+				int file_type = util_file_get_type_noent(path);
+				if (file_type < 0)
+					return -1;
+
+				if (file_type == FILE_TYPE_DEVDAX) {
 					LOG(1,
 					"opening part on Device DAX %s failed",
 					path);

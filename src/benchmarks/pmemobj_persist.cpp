@@ -173,6 +173,9 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != nullptr);
 	assert(args->opts != nullptr);
 
+	int file_type = util_file_get_type_noent(args->fname);
+	assert(file_type > 0);
+
 	auto *pa = (struct prog_args *)args->opts;
 	size_t poolsize;
 	if (pa->minsize >= args->dsize) {
@@ -205,7 +208,7 @@ obj_persist_init(struct benchmark *bench, struct benchmark_args *args)
 	/* multiply by FACTOR for metadata, fragmentation, etc. */
 	poolsize = poolsize * FACTOR;
 
-	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+	if (args->is_poolset || file_type == FILE_TYPE_DEVDAX) {
 		if (args->fsize < poolsize) {
 			fprintf(stderr, "file size too large\n");
 			goto free_ob;

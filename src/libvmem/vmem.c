@@ -170,14 +170,16 @@ vmem_createU(const char *dir, size_t size)
 		return NULL;
 	}
 
-	int is_dev_dax = util_file_is_device_dax(dir);
+	int file_type = util_file_get_type_noent(dir);
+	if (file_type < 0)
+		return NULL;
 
 	util_mutex_lock(&Pool_lock);
 
 	/* silently enforce multiple of mapping alignment */
 	size = roundup(size, Mmap_align);
 	void *addr;
-	if (is_dev_dax) {
+	if (file_type == FILE_TYPE_DEVDAX) {
 		if ((addr = util_file_map_whole(dir)) == NULL) {
 			util_mutex_unlock(&Pool_lock);
 			return NULL;
@@ -201,7 +203,7 @@ vmem_createU(const char *dir, size_t size)
 	/* Prepare pool for jemalloc */
 	if (je_vmem_pool_create((void *)((uintptr_t)addr + Header_size),
 			size - Header_size,
-			/* zeroed if */ !is_dev_dax,
+			/* zeroed if */ file_type == FILE_TYPE_NORMAL,
 			/* empty */ 1) == NULL) {
 		ERR("pool creation failed");
 		util_unmap(vmp->addr, vmp->size);
@@ -215,7 +217,7 @@ vmem_createU(const char *dir, size_t size)
 	 * The prototype PMFS doesn't allow this when large pages are in
 	 * use. It is not considered an error if this fails.
 	 */
-	if (!is_dev_dax)
+	if (file_type == FILE_TYPE_NORMAL)
 		util_range_none(addr, sizeof(struct pool_hdr));
 
 	util_mutex_unlock(&Pool_lock);

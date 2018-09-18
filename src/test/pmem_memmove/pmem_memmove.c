@@ -243,7 +243,8 @@ main(int argc, char *argv[])
 			avx512f ? "" : "!");
 
 	fd = OPEN(argv[1], O_RDWR);
-	int ddax = util_fd_is_device_dax(fd);
+	int fd_type = util_fd_get_type(fd);
+	UT_ASSERT(fd_type > 0);
 
 	if (argc < 3)
 		USAGE();
@@ -308,8 +309,8 @@ main(int argc, char *argv[])
 				UT_FATAL("cannot map files in memory order");
 		}
 
-		do_memmove_variants(ddax, dst, src, argv[1], dst_off, src_off,
-				bytes);
+		do_memmove_variants(fd_type == FILE_TYPE_DEVDAX, dst, src,
+				argv[1], dst_off, src_off, bytes);
 
 		/* dest > src */
 		swap_mappings(&dst, &src, mapped_len, fd);
@@ -317,8 +318,8 @@ main(int argc, char *argv[])
 		if (dst <= src)
 			UT_FATAL("cannot map files in memory order");
 
-		do_memmove_variants(ddax, dst, src, argv[1], dst_off, src_off,
-				bytes);
+		do_memmove_variants(fd_type == FILE_TYPE_DEVDAX, dst, src,
+				argv[1], dst_off, src_off, bytes);
 
 		int ret = pmem_unmap(dst, mapped_len);
 		UT_ASSERTeq(ret, 0);
@@ -331,9 +332,9 @@ main(int argc, char *argv[])
 			UT_FATAL("!Could not mmap %s: \n", argv[1]);
 
 		memset(dst, 0, bytes);
-		util_persist_auto(ddax, dst, bytes);
-		do_memmove_variants(ddax, dst, dst, argv[1], dst_off,
-				src_off, bytes);
+		util_persist_auto(fd_type == FILE_TYPE_DEVDAX, dst, bytes);
+		do_memmove_variants(fd_type == FILE_TYPE_DEVDAX, dst, dst,
+				argv[1], dst_off, src_off, bytes);
 
 		int ret = pmem_unmap(dst, mapped_len);
 		UT_ASSERTeq(ret, 0);

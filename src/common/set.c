@@ -729,7 +729,11 @@ util_poolset_fdclose(struct pool_set *set)
 static ssize_t
 util_autodetect_size(const char *path)
 {
-	if (!util_file_is_device_dax(path)) {
+	int file_type = util_file_get_type(path);
+	if (file_type < 0)
+		return -1;
+
+	if (file_type == FILE_TYPE_NORMAL) {
 		ERR("size autodetection is supported only for device dax");
 		return -1;
 	}
@@ -930,19 +934,21 @@ util_replica_add_part_by_idx(struct pool_replica **repp,
 	struct pool_replica *rep = *repp;
 	ASSERTne(rep, NULL);
 
-	int is_dev_dax = util_file_is_device_dax(path);
+	int file_type = util_file_get_type_noent(path);
+	if (file_type < 0)
+		return -1;
 
 	rep->part[p].path = path;
 	rep->part[p].filesize = filesize;
 	rep->part[p].fd = -1;
-	rep->part[p].is_dev_dax = is_dev_dax;
+	rep->part[p].is_dev_dax = file_type == FILE_TYPE_DEVDAX;
 	rep->part[p].created = 0;
 	rep->part[p].hdr = NULL;
 	rep->part[p].addr = NULL;
 	rep->part[p].remote_hdr = NULL;
 	rep->part[p].has_bad_blocks = 0;
 
-	if (is_dev_dax)
+	if (file_type == FILE_TYPE_DEVDAX)
 		rep->part[p].alignment = util_file_device_dax_alignment(path);
 	else
 		rep->part[p].alignment = Mmap_align;
@@ -1734,6 +1740,10 @@ util_poolset_single(const char *path, size_t filesize, int create,
 		return NULL;
 	}
 
+	int file_type = util_file_get_type_noent(path);
+	if (file_type < 0)
+		return NULL;
+
 	VEC_INIT(&rep->directory);
 
 	set->replica[0] = rep;
@@ -1741,7 +1751,7 @@ util_poolset_single(const char *path, size_t filesize, int create,
 	rep->part[0].filesize = filesize;
 	rep->part[0].path = Strdup(path);
 	rep->part[0].fd = -1;	/* will be filled out by util_poolset_file() */
-	rep->part[0].is_dev_dax = util_file_is_device_dax(path);
+	rep->part[0].is_dev_dax = file_type == FILE_TYPE_DEVDAX;
 	rep->part[0].created = create;
 	rep->part[0].hdr = NULL;
 	rep->part[0].addr = NULL;
@@ -2114,10 +2124,12 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 	int fd;
 	size_t size = 0;
 
-	int is_dev_dax = util_file_is_device_dax(path);
+	int file_type = util_file_get_type_noent(path);
+	if (file_type < 0)
+		return -1;
 
 	if (poolsize != 0) {
-		if (is_dev_dax) {
+		if (file_type == FILE_TYPE_DEVDAX) {
 			ERR("size must be zero for device dax");
 			return -1;
 		}
@@ -2133,7 +2145,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		return -1;
 
 	char signature[POOLSET_HDR_SIG_LEN];
-	if (!is_dev_dax) {
+	if (file_type == FILE_TYPE_NORMAL) {
 		/*
 		 * read returns ssize_t, but we know it will return value
 		 * between -1 and POOLSET_HDR_SIG_LEN (11), so we can safely
@@ -2146,7 +2158,7 @@ util_poolset_create_set(struct pool_set **setp, const char *path,
 		}
 	}
 
-	if (is_dev_dax || ret < POOLSET_HDR_SIG_LEN ||
+	if (file_type == FILE_TYPE_DEVDAX || ret < POOLSET_HDR_SIG_LEN ||
 	    strncmp(signature, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN)) {
 		LOG(4, "not a pool set header");
 		(void) os_close(fd);
@@ -3998,7 +4010,10 @@ err_poolset:
 int
 util_is_poolset_file(const char *path)
 {
-	if (util_file_is_device_dax(path))
+	int file_type = util_file_get_type(path);
+	if (file_type < 0)
+		return -1;
+	else if (file_type == FILE_TYPE_DEVDAX)
 		return 0;
 
 	int fd = util_file_open(path, NULL, 0, O_RDONLY);

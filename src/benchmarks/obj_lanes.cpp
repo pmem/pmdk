@@ -105,7 +105,10 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 	ob->pa = (struct prog_args *)args->opts;
 	size_t psize;
 
-	if (args->is_poolset || util_file_is_device_dax(args->fname))
+	int file_type = util_file_get_type_noent(args->fname);
+	assert(file_type > 0);
+
+	if (args->is_poolset || file_type == FILE_TYPE_DEVDAX)
 		psize = 0;
 	else
 		psize = PMEMOBJ_MIN_POOL;
