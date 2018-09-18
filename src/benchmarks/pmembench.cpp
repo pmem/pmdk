@@ -1088,7 +1088,11 @@ pmembench_remove_file(const char *path)
 	os_stat_t status;
 	char *tmp;
 
-	if (os_access(path, F_OK) != 0)
+	int exists = util_file_exists(path);
+	if (exists < 0)
+		return -1;
+
+	if (!exists)
 		return 0;
 
 	if (os_stat(path, &status) != 0)

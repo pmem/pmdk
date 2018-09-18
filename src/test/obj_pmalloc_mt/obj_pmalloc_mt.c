@@ -35,6 +35,7 @@
  */
 #include <stdint.h>
 
+#include "file.h"
 #include "obj.h"
 #include "pmalloc.h"
 #include "unittest.h"
@@ -248,7 +249,11 @@ main(int argc, char *argv[])
 		UT_FATAL("Ops per thread %d > %d", Threads, MAX_THREADS);
 	Tx_per_thread = ATOU(argv[3]);
 
-	if (os_access(argv[4], F_OK) != 0) {
+	int exists = util_file_exists(argv[4]);
+	if (exists < 0)
+		UT_FATAL("!util_file_exists");
+
+	if (!exists) {
 		pop = pmemobj_create(argv[4], "TEST", (PMEMOBJ_MIN_POOL) +
 			(MAX_THREADS * CHUNKSIZE * CHUNKS_PER_THREAD),
 		0666);

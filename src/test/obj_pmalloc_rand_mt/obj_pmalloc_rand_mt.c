@@ -35,6 +35,7 @@
  */
 #include <stdint.h>
 
+#include "file.h"
 #include "unittest.h"
 
 #define RRAND(seed, max, min) (os_rand_r(&(seed)) % ((max) - (min)) + (min))
@@ -103,7 +104,11 @@ main(int argc, char *argv[])
 
 	PMEMobjpool *pop;
 
-	if (os_access(argv[1], F_OK) != 0) {
+	int exists = util_file_exists(argv[1]);
+	if (exists < 0)
+		UT_FATAL("!util_file_exists");
+
+	if (!exists) {
 		pop = pmemobj_create(argv[1], "TEST",
 		(PMEMOBJ_MIN_POOL * 10) + (nthreads * nobjects * object_size),
 		0666);

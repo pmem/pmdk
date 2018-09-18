@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,5 +37,7 @@ SCP_TO_REMOTE_NODES = y
 
 TARGET = remote_basic
 OBJS = remote_basic.o
+
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
