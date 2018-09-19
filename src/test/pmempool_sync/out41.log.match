@@ -31,7 +31,7 @@ size                     : 31457280
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x0
+Mandatory features       : 0x2 [CKSUM_2K]
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
@@ -98,7 +98,7 @@ size                     : 31457280
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x0
+Mandatory features       : 0x2 [CKSUM_2K]
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
