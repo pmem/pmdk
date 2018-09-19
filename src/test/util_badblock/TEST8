@@ -43,6 +43,7 @@
 require_test_type medium
 require_fs_type any
 
+require_nfit_tests_enabled
 require_sudo_allowed
 require_kernel_module nfit_test
 require_linked_with_ndctl ./util_badblock$EXESUFFIX

@@ -45,6 +45,7 @@ require_fs_type any
 require_build_type debug nondebug
 require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
 
+require_nfit_tests_enabled
 require_nodes 2
 require_sudo_allowed_node 0
 require_kernel_module_node 0 nfit_test
