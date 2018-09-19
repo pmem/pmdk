@@ -69,6 +69,8 @@ fallocate -l 10M $FILE
 # create a pool
 expect_normal_exit ./util_badblock$EXESUFFIX $FILE r
 
+turn_on_checking_bad_blocks $FILE
+
 # inject bad block:
 FIRST_SECTOR=$(expect_normal_exit $EXTENTS $FILE -l 0)
 ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1

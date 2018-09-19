@@ -3435,3 +3435,29 @@ function require_nfit_tests_enabled() {
 		exit 0
 	fi
 }
+
+#
+# turn_on_checking_bad_blocks -- set the compat_feature POOL_FEAT_CHECK_BAD_BLOCKS on
+#
+function turn_on_checking_bad_blocks()
+{
+	FILE=$1
+	POOL_FEAT_CHECK_BAD_BLOCKS=1
+
+	# XXX temporary solution - pmemspoil should be replaced with 'pmempool enable-feature check-bad-blocks'
+	# when it is implemented
+	expect_normal_exit $PMEMSPOIL $FILE pool_hdr.compat_features=$POOL_FEAT_CHECK_BAD_BLOCKS "pool_hdr.checksum_gen\(\)"
+}
+
+#
+# turn_on_checking_bad_blocks_node -- set the compat_feature POOL_FEAT_CHECK_BAD_BLOCKS on
+#
+function turn_on_checking_bad_blocks_node()
+{
+	FILE=$2
+	POOL_FEAT_CHECK_BAD_BLOCKS=1
+
+	# XXX temporary solution - pmemspoil should be replaced with 'pmempool enable-feature check-bad-blocks'
+	# when it is implemented
+	expect_normal_exit run_on_node $1 ../pmemspoil $FILE pool_hdr.compat_features=$POOL_FEAT_CHECK_BAD_BLOCKS "pool_hdr.checksum_gen\(\)"
+}

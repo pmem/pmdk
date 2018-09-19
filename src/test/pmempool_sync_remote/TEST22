@@ -93,6 +93,8 @@ copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$POOLSET_REMOTE
 expect_normal_exit run_on_node 0 ../pmempool rm -sf ${NODE_DIR[0]}$POOLSET_LOCAL
 expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT c v &>> $LOG"
 
+turn_on_checking_bad_blocks_node 0 ${NODE_DIR[0]}$POOLSET_LOCAL
+
 # inject bad block:
 FILE=${MOUNT_DIR}/pool.local
 FIRST_SECTOR=$(expect_normal_exit run_on_node 0 ../extents $FILE -l 0)
