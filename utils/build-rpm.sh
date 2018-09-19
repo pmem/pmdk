@@ -183,7 +183,7 @@ cd $WORKING_DIR
 check_dir $SOURCE
 mv $SOURCE $PACKAGE_SOURCE
 
-if [ "$DISTRO" = "SLES" ]
+if [ "$DISTRO" = "SLES_like" ]
 then
 	RPM_LICENSE="BSD-3-Clause"
 	RPM_GROUP_SYS_BASE="System\/Base"
@@ -221,7 +221,7 @@ sed -e "s/__VERSION__/$PACKAGE_VERSION/g" \
 	-e "s/__NDCTL_MIN_VER__/$NDCTL_MIN_VERSION/g" \
 	$OLDPWD/$SCRIPT_DIR/pmdk.spec.in > $RPM_SPEC_FILE
 
-if [ "$DISTRO" = "SLES" ]
+if [ "$DISTRO" = "SLES_like" ]
 then
 	sed -i '/^#.*bugzilla.redhat/d' $RPM_SPEC_FILE
 fi
