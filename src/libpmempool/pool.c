@@ -671,19 +671,19 @@ pool_copy(struct pool_data *pool, const char *dst_path, int overwrite)
 {
 	struct pool_set_file *file = pool->set_file;
 	int dfd;
-	if (!os_access(dst_path, F_OK)) {
+	int exists = util_file_exists(dst_path);
+	if (exists < 0)
+		return -1;
+
+	if (exists) {
 		if (!overwrite) {
 			errno = EEXIST;
 			return -1;
 		}
 		dfd = util_file_open(dst_path, NULL, 0, O_RDWR);
 	} else {
-		if (errno == ENOENT) {
-			errno = 0;
-			dfd = util_file_create(dst_path, file->size, 0);
-		} else {
-			return -1;
-		}
+		errno = 0;
+		dfd = util_file_create(dst_path, file->size, 0);
 	}
 	if (dfd < 0)
 		return -1;
@@ -769,7 +769,13 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 	int is_pmem;
 	void *daddr;
 
-	if (!os_access(dpart->path, F_OK)) {
+	int exists = util_file_exists(dpart->path);
+	if (exists < 0) {
+		result = -1;
+		goto out_sunmap;
+	}
+
+	if (exists) {
 		if (!overwrite) {
 			errno = EEXIST;
 			result = -1;
@@ -779,15 +785,10 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 		daddr = pmem_map_file(dpart->path, 0, 0, S_IWRITE, &dmapped,
 			&is_pmem);
 	} else {
-		if (errno == ENOENT) {
-			errno = 0;
-			daddr = pmem_map_file(dpart->path, dpart->filesize,
+		errno = 0;
+		daddr = pmem_map_file(dpart->path, dpart->filesize,
 				PMEM_FILE_CREATE | PMEM_FILE_EXCL,
 				stat_buf.st_mode, &dmapped, &is_pmem);
-		} else {
-			result = -1;
-			goto out_sunmap;
-		}
 	}
 	if (!daddr) {
 		result = -1;
