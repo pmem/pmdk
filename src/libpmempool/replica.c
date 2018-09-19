@@ -562,7 +562,9 @@ check_badblocks(struct pool_set *set, struct poolset_health_status *set_hs)
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			const char *path = PART(rep, p)->path;
 
-			int exists = os_access(path, F_OK) == 0;
+			int exists = util_file_exists(path);
+			if (exists < 0)
+				return -1;
 			if (!exists)
 				continue;
 

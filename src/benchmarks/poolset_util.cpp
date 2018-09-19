@@ -56,7 +56,11 @@ dynamic_poolset_clear(const char *dir)
 		return -1;
 	}
 
-	if (os_access(path, F_OK) != 0)
+	int exists = util_file_exists(path);
+	if (exists < 0)
+		return -1;
+
+	if (!exists)
 		return 0;
 
 	return util_file_zero(path, 0, POOL_HDR_SIZE);

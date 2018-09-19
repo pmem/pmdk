@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
  * usage: remote_basic <file-to-be-checked>
  */
 
+#include "file.h"
 #include "unittest.h"
 
 int
@@ -48,7 +49,11 @@ main(int argc, char *argv[])
 
 	const char *file = argv[1];
 
-	if (os_access(file, F_OK) != 0)
+	int exists = util_file_exists(file);
+	if (exists < 0)
+		UT_FATAL("!util_file_exists");
+
+	if (!exists)
 		UT_FATAL("File '%s' does not exist", file);
 	else
 		UT_OUT("File '%s' exists", file);

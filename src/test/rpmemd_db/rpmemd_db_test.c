@@ -36,6 +36,7 @@
  * usage: rpmemd_db <log-file> <root_dir> <pool_desc_1> <pool_desc_2>
  */
 
+#include "file.h"
 #include "unittest.h"
 #include "librpmem.h"
 #include "rpmemd_db.h"
@@ -567,13 +568,17 @@ err:
 static int
 exists_cb(struct part_file *pf, void *arg)
 {
-	return os_access(pf->part->path, F_OK);
+	return util_file_exists(pf->part->path);
 }
 
 static int
 noexists_cb(struct part_file *pf, void *arg)
 {
-	return !os_access(pf->part->path, F_OK);
+	int exists = util_file_exists(pf->part->path);
+	if (exists < 0)
+		return -1;
+	else
+		return !exists;
 }
 
 /*
@@ -601,13 +606,13 @@ test_remove(const char *root_dir, const char *pool_desc)
 	rpmemd_db_pool_close(db, prp);
 
 	ret = util_poolset_foreach_part(path, exists_cb, NULL);
-	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 1);
 
 	ret = rpmemd_db_pool_remove(db, pool_desc, 0, 0);
 	UT_ASSERTeq(ret, 0);
 
 	ret = util_poolset_foreach_part(path, noexists_cb, NULL);
-	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 1);
 
 	prp = rpmemd_db_pool_create(db, pool_desc, 0, &attr);
 	UT_ASSERTne(prp, NULL);
@@ -616,8 +621,8 @@ test_remove(const char *root_dir, const char *pool_desc)
 	ret = rpmemd_db_pool_remove(db, pool_desc, 0, 1);
 	UT_ASSERTeq(ret, 0);
 
-	ret = os_access(path, F_OK);
-	UT_ASSERTne(ret, 0);
+	ret = util_file_exists(path);
+	UT_ASSERTne(ret, 1);
 
 	rpmemd_db_fini(db);
 }

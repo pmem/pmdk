@@ -71,15 +71,16 @@ backup_nonpoolset_requirements(PMEMpoolcheck *ppc, location *loc)
 {
 	LOG(3, "backup_path %s", ppc->backup_path);
 
-	if (os_access(ppc->backup_path, F_OK)) {
-		if (errno == ENOENT) {
-			errno = 0;
-			return 0;
-		} else {
-			return CHECK_ERR(ppc,
-					"unable to access the backup destination: %s",
-					ppc->backup_path);
-		}
+	int exists = util_file_exists(ppc->backup_path);
+	if (exists < 0) {
+		return CHECK_ERR(ppc,
+				"unable to access the backup destination: %s",
+				ppc->backup_path);
+	}
+
+	if (!exists) {
+		errno = 0;
+		return 0;
 	}
 
 	if ((size_t)util_file_get_size(ppc->backup_path) !=
@@ -187,6 +188,14 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 
 	int overwrite_required = 0;
 	for (unsigned p = 0; p < srep->nparts; p++) {
+		int exists = util_file_exists(drep->part[p].path);
+		if (exists < 0) {
+			CHECK_INFO(ppc,
+				"unable to access the part of the destination poolset: %s",
+				ppc->backup_path);
+			goto err_poolset;
+		}
+
 		if (srep->part[p].filesize != drep->part[p].filesize) {
 			CHECK_INFO(ppc,
 				"size of the part %u of the backup poolset does not match source poolset",
@@ -194,16 +203,9 @@ backup_poolset_requirements(PMEMpoolcheck *ppc, location *loc)
 			goto err_poolset;
 		}
 
-		if (os_access(drep->part[p].path, F_OK)) {
-			if (errno == ENOENT) {
-				errno = 0;
-				continue;
-			} else {
-				CHECK_INFO(ppc,
-					"unable to access the part of the destination poolset: %s",
-					ppc->backup_path);
-				goto err_poolset;
-			}
+		if (!exists) {
+			errno = 0;
+			continue;
 		}
 
 		overwrite_required = true;

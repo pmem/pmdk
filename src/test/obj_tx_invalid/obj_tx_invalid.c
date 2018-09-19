@@ -37,6 +37,7 @@
 
 #include <stddef.h>
 
+#include "file.h"
 #include "unittest.h"
 
 /*
@@ -69,7 +70,11 @@ main(int argc, char *argv[])
 	PMEMobjpool *pop;
 	const char *path = argv[1];
 
-	if (os_access(path, F_OK) != 0) {
+	int exists = util_file_exists(path);
+	if (exists < 0)
+		UT_FATAL("!util_file_exists");
+
+	if (!exists) {
 		if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(tx_invalid),
 			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL) {
 			UT_FATAL("!pmemobj_create %s", path);

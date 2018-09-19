@@ -106,7 +106,10 @@ badblocks_check_file_cb(struct part_file *pf, void *arg)
 		 * Poolset is just being created - check if file exists
 		 * and if we can read it.
 		 */
-		int exists = os_access(pf->part->path, F_OK) == 0;
+		int exists = util_file_exists(pf->part->path);
+		if (exists < 0)
+			return -1;
+
 		if (!exists)
 			return 0;
 	}
@@ -182,7 +185,10 @@ badblocks_clear_poolset_cb(struct part_file *pf, void *arg)
 		 * Poolset is just being created - check if file exists
 		 * and if we can read it.
 		 */
-		int exists = os_access(pf->part->path, F_OK) == 0;
+		int exists = util_file_exists(pf->part->path);
+		if (exists < 0)
+			return -1;
+
 		if (!exists)
 			return 0;
 	}

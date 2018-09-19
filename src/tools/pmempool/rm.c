@@ -254,8 +254,10 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 
 		outv(2, "part file   : %s\n", part_file);
 
-		int exists = os_access(part_file, F_OK) == 0;
-		if (!exists) {
+		int exists = util_file_exists(part_file);
+		if (exists < 0)
+			ret = 1;
+		else if (!exists) {
 			/*
 			 * Ignore not accessible file if force
 			 * flag is set.
