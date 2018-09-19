@@ -166,35 +166,33 @@ util_feature_check(struct pool_hdr *hdrp, features_t features)
 			hdrp,
 			features.incompat, features.ro_compat, features.compat);
 
-#define GET_NOT_MASKED_BITS(x, mask) ((x) & ~(mask))
-
 	uint32_t ubits;	/* unsupported bits */
 
 	/* check incompatible ("must support") features */
-	ubits = GET_NOT_MASKED_BITS(hdrp->features.incompat, features.incompat);
+	ubits = util_get_not_masked_bits(
+			hdrp->features.incompat,features.incompat);
 	if (ubits) {
 		ERR("unsafe to continue due to unknown incompat "\
-							"features: %#x", ubits);
+				"features: %#x", ubits);
 		errno = EINVAL;
 		return -1;
 	}
 
 	/* check RO-compatible features (force RO if unsupported) */
-	ubits = GET_NOT_MASKED_BITS(
+	ubits = util_get_not_masked_bits(
 			hdrp->features.ro_compat, features.ro_compat);
 	if (ubits) {
 		ERR("switching to read-only mode due to unknown ro_compat "\
-							"features: %#x", ubits);
+				"features: %#x", ubits);
 		return 0;
 	}
 
 	/* check compatible ("may") features */
-	ubits = GET_NOT_MASKED_BITS(hdrp->features.compat, features.compat);
+	ubits = util_get_not_masked_bits(
+			hdrp->features.compat, features.compat);
 	if (ubits) {
 		LOG(3, "ignoring unknown compat features: %#x", ubits);
 	}
-
-#undef	GET_NOT_MASKED_BITS
 
 	return 1;
 }
