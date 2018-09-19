@@ -3381,3 +3381,13 @@ function require_free_space() {
 		exit 0
 	fi
 }
+
+#
+# require_nfit_tests_enabled - check if tests using the nfit_test kernel module are not enabled
+#
+function require_nfit_tests_enabled() {
+	if [ "$ENABLE_NFIT_TESTS" != "y" ]; then
+		msg "$UNITTEST_NAME: SKIP: tests using the nfit_test kernel module are not enabled in testconfig.sh"
+		exit 0
+	fi
+}
