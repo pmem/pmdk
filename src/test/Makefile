@@ -403,6 +403,10 @@ memcheck-summary-errors:
 memcheck-summary-leaks:
 	grep "in use at exit" */memcheck*.log | grep -v " 0 bytes in 0 blocks" || true
 
+pycheck:
+	./RUNTESTS.py $(RUNTEST_OPTIONS)
+	echo "No failures."
+
 check: sync-remotes
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(TESTS)
 	@echo "No failures."
