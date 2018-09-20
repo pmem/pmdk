@@ -400,6 +400,10 @@ $(FILE_MAX_DAX_DEVICES): $(TESTCONFIG) $(CHECK_MAX_MMAP)
 
 global-checks: $(TEST_DEPS) $(FILE_MAX_DAX_DEVICES)
 
+pycheck:
+	@./RUNTESTS.py $(RUNTEST_OPTIONS)
+	echo "No failures."
+
 check: sync-remotes global-checks
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(TESTS)
 	@echo "No failures."
@@ -413,7 +417,7 @@ check-remote: check-remote-quiet
 	@echo "No failures."
 
 # XXX remote tests do not work in parallel mode
-pcheck: pcheck-local-quiet check-remote-quiet
+pcheck: pcheck-local-quiet check-remote-quiet pycheck
 	@echo "No failures."
 
 pcheck-blk: TARGET = pcheck
