@@ -5,6 +5,7 @@ $(OPT)$(*) compiled with support for Valgrind pmemcheck
 $(OPT)$(*) compiled with support for Valgrind helgrind
 $(OPT)$(*) compiled with support for Valgrind memcheck
 $(OPT)$(*) compiled with support for Valgrind drd
+$(OPT)$(*) compiled with support for shutdown state
 $(*)Log level NONE
 $(*)Log level ERROR
 $(*)Log level WARNING

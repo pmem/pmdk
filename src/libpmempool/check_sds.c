@@ -54,14 +54,26 @@ enum question {
 
 #define SDS_CHECK_STR	"checking shutdown state"
 #define SDS_OK_STR	"shutdown state correct"
+#define SDS_DIRTY_STR	"shutdown state is dirty"
 
 #define ADR_FAILURE_STR \
 	"an ADR failure was detected - your pool might be corrupted"
+
+#define ZERO_SDS_STR \
+	"Do you want to zero shutdown state?"
 
 #define RESET_SDS_STR \
 	"Do you want to reset shutdown state at your own risk? " \
 	"If you have more then one replica you will have to " \
 	"synchronize your pool after this operation."
+
+#define SDS_FAIL_MSG(hdrp) \
+	IGNORE_SDS(hdrp) ? SDS_DIRTY_STR : ADR_FAILURE_STR
+
+#define SDS_REPAIR_MSG(hdrp) \
+	IGNORE_SDS(hdrp) \
+		? SDS_DIRTY_STR ".|" ZERO_SDS_STR \
+		: ADR_FAILURE_STR ".|" RESET_SDS_STR
 
 /*
  * sds_check_replica -- (internal) check if replica is healthy
@@ -79,6 +91,9 @@ sds_check_replica(location *loc)
 	/* make a copy of sds as we shouldn't modify a pool */
 	struct shutdown_state old_sds = loc->hdr.sds;
 	struct shutdown_state curr_sds;
+
+	if (IGNORE_SDS(&loc->hdr))
+		return util_is_zeroed(&old_sds, sizeof(old_sds)) ? 0 : -1;
 
 	shutdown_state_init(&curr_sds, NULL);
 
@@ -114,12 +129,13 @@ sds_check(PMEMpoolcheck *ppc, location *loc)
 	if (CHECK_IS_NOT(ppc, REPAIR)) {
 		check_end(ppc->data);
 		ppc->result = CHECK_RESULT_NOT_CONSISTENT;
-		return CHECK_ERR(ppc, "%s" ADR_FAILURE_STR, loc->prefix);
+		return CHECK_ERR(ppc, "%s%s", loc->prefix,
+				SDS_FAIL_MSG(&loc->hdr));
 	}
 
 	/* shutdown state is NOT valid but can be repaired */
-	CHECK_ASK(ppc, Q_RESET_SDS, "%s" ADR_FAILURE_STR ".|" RESET_SDS_STR,
-			loc->prefix);
+	CHECK_ASK(ppc, Q_RESET_SDS, "%s%s", loc->prefix,
+			SDS_REPAIR_MSG(&loc->hdr));
 	return check_questions_sequence_validate(ppc);
 }
 

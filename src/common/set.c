@@ -2558,6 +2558,9 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 		return -1;
 	}
 
+	/* read shutdown state toggle from header */
+	set->ignore_sds |= IGNORE_SDS(HDR(rep, 0));
+
 	if (!set->ignore_sds && partidx == 0) {
 		struct shutdown_state sds;
 		shutdown_state_init(&sds, NULL);
@@ -3117,7 +3120,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		return -1;
 	}
 
-	int ret = util_poolset_create_set(setp, path, poolsize, minsize, 0);
+	int ret = util_poolset_create_set(setp, path, poolsize, minsize,
+			IGNORE_SDS(attr));
 	if (ret < 0) {
 		LOG(2, "cannot create pool set -- '%s'", path);
 		return -1;
@@ -3670,6 +3674,9 @@ static int
 util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 {
 	LOG(3, "set %p attr %p", set, attr);
+
+	/* read shutdown state toggle from header */
+	set->ignore_sds |= IGNORE_SDS(HDR(REP(set, 0), 0));
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
