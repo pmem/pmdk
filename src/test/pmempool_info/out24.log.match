@@ -16,7 +16,7 @@ bad blocks:
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x0
+Mandatory features       : $(*)
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
