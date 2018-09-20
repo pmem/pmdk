@@ -1,3 +1,6 @@
+create($(nW)/testset1): allocating records in the pool ...
+create($(nW)/testset1): allocated $(N) records (of size $(N))
+verify($(nW)/testset1): pool file successfully verified ($(N) records of size $(N))
     "badblock_count":$(N),
         "offset":$(N),
         "length":$(N),
@@ -14,7 +17,7 @@ type                     : regular file
 size                     : 10485760
 bad blocks:
 	offset		length
-	0		2
+	0		$(N)
 part 2:
 path                     : $(nW)/testfile2
 type                     : regular file
@@ -28,7 +31,7 @@ size                     : 31457280
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x0
+Mandatory features       : $(*)
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
@@ -94,7 +97,7 @@ size                     : 31457280
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x0
+Mandatory features       : $(*)
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
@@ -119,3 +122,4 @@ Heap offset              : $(nW)
 Heap size                : $(nW)
 Checksum                 : $(*)
 Root offset              : $(nW)
+verify($(nW)/testset1): pool file successfully verified ($(N) records of size $(N))

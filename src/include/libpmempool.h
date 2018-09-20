@@ -77,14 +77,6 @@ extern "C" {
 #include <limits.h>
 
 
-/* COMMON FLAGS */
-
-/*
- * do not apply changes, only check if operation is viable
- */
-#define PMEMPOOL_DRY_RUN (1 << 1)
-
-
 /* PMEMPOOL CHECK */
 
 /*
@@ -102,27 +94,27 @@ enum pmempool_pool_type {
 /*
  * perform repairs
  */
-#define PMEMPOOL_CHECK_REPAIR		(1 << 0)
+#define PMEMPOOL_CHECK_REPAIR		(1U << 0)
 /*
  * emulate repairs
  */
-#define PMEMPOOL_CHECK_DRY_RUN PMEMPOOL_DRY_RUN
+#define PMEMPOOL_CHECK_DRY_RUN		(1U << 1)
 /*
  * perform hazardous repairs
  */
-#define PMEMPOOL_CHECK_ADVANCED		(1 << 2)
+#define PMEMPOOL_CHECK_ADVANCED		(1U << 2)
 /*
  * do not ask before repairs
  */
-#define PMEMPOOL_CHECK_ALWAYS_YES	(1 << 3)
+#define PMEMPOOL_CHECK_ALWAYS_YES	(1U << 3)
 /*
  * generate info statuses
  */
-#define PMEMPOOL_CHECK_VERBOSE		(1 << 4)
+#define PMEMPOOL_CHECK_VERBOSE		(1U << 4)
 /*
  * generate string format statuses
  */
-#define PMEMPOOL_CHECK_FORMAT_STR	(1 << 5)
+#define PMEMPOOL_CHECK_FORMAT_STR	(1U << 5)
 
 /*
  * types of check statuses
@@ -157,9 +149,34 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 
 /* PMEMPOOL RM */
 
-#define PMEMPOOL_RM_FORCE		(1 << 0) /* ignore any errors */
-#define PMEMPOOL_RM_POOLSET_LOCAL	(1 << 1) /* remove local poolsets */
-#define PMEMPOOL_RM_POOLSET_REMOTE	(1 << 2) /* remove remote poolsets */
+#define PMEMPOOL_RM_FORCE		(1U << 0) /* ignore any errors */
+#define PMEMPOOL_RM_POOLSET_LOCAL	(1U << 1) /* remove local poolsets */
+#define PMEMPOOL_RM_POOLSET_REMOTE	(1U << 2) /* remove remote poolsets */
+
+
+/*
+ * LIBPMEMPOOL SYNC
+ */
+
+/*
+ * fix bad blocks - it requires creating or reading special recovery files
+ */
+#define PMEMPOOL_SYNC_FIX_BAD_BLOCKS	(1U << 0)
+/*
+ * do not apply changes, only check if operation is viable
+ */
+#define PMEMPOOL_SYNC_DRY_RUN		(1U << 1)
+
+
+/*
+ * LIBPMEMPOOL TRANSFORM
+ */
+
+/*
+ * do not apply changes, only check if operation is viable
+ */
+#define PMEMPOOL_TRANSFORM_DRY_RUN	(1U << 1)
+
 
 /*
  * PMEMPOOL_MAJOR_VERSION and PMEMPOOL_MINOR_VERSION provide the current version
@@ -200,7 +217,7 @@ struct pmempool_check_argsU {
 	const char *path;
 	const char *backup_path;
 	enum pmempool_pool_type pool_type;
-	int flags;
+	unsigned flags;
 };
 
 #ifndef _WIN32
@@ -210,7 +227,7 @@ struct pmempool_check_argsW {
 	const wchar_t *path;
 	const wchar_t *backup_path;
 	enum pmempool_pool_type pool_type;
-	int flags;
+	unsigned flags;
 };
 #endif
 
@@ -270,10 +287,10 @@ int pmempool_transformW(const wchar_t *poolset_file_src,
 
 /* PMEMPOOL RM */
 #ifndef _WIN32
-int pmempool_rm(const char *path, int flags);
+int pmempool_rm(const char *path, unsigned flags);
 #else
-int pmempool_rmU(const char *path, int flags);
-int pmempool_rmW(const wchar_t *path, int flags);
+int pmempool_rmU(const char *path, unsigned flags);
+int pmempool_rmW(const wchar_t *path, unsigned flags);
 #endif
 
 #ifndef _WIN32

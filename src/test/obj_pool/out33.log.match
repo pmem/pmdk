@@ -1,0 +1,4 @@
+obj_pool$(nW)/TEST33: START: obj_pool$(nW)
+ $(nW)/obj_pool$(nW) o $(nW)/testset1 test$(nW)
+$(nW)/testset1: pmemobj_open: Invalid argument
+obj_pool$(nW)/TEST33: DONE

@@ -116,6 +116,8 @@ FILES_COMMON_DIR="\
 $DIR_SRC/test/*.supp \
 $DIR_SRC/tools/rpmemd/rpmemd \
 $DIR_SRC/tools/pmempool/pmempool \
+$DIR_SRC/test/tools/extents/extents \
+$DIR_SRC/test/tools/obj_verify/obj_verify \
 $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
@@ -985,6 +987,8 @@ function require_unlimited_vm() {
 #
 # require_linked_with_ndctl -- require an executable linked with libndctl
 #
+# usage: require_linked_with_ndctl <executable-file>
+#
 function require_linked_with_ndctl() {
 	[ "$1" == "" -o ! -x "$1" ] && \
 		fatal "$UNITTEST_NAME: ERROR: require_linked_with_ndctl() requires one argument - an executable file"
@@ -995,14 +999,27 @@ function require_linked_with_ndctl() {
 }
 
 #
-# require_superuser -- require user with superuser rights
+# require_sudo_allowed -- require sudo command is allowed
 #
-function require_superuser() {
-	# user_id can be used later to check if we have superuser rights
-	user_id=$(id -u)
-	[ "$user_id" == "0" ] && return
-	msg "$UNITTEST_NAME: SKIP required: run with superuser rights"
-	exit 0
+function require_sudo_allowed() {
+	if ! timeout --signal=SIGKILL --kill-after=3s 3s sudo date >/dev/null 2>&1
+	then
+		msg "$UNITTEST_NAME: SKIP required: sudo allowed"
+		exit 0
+	fi
+}
+
+#
+# require_sudo_allowed_node -- require sudo command on a remote node
+#
+# usage: require_sudo_allowed_node <node-number>
+#
+function require_sudo_allowed_node() {
+	if ! run_on_node $1 "timeout --signal=SIGKILL --kill-after=3s 3s sudo date" >/dev/null 2>&1
+	then
+		msg "$UNITTEST_NAME: SKIP required: sudo allowed on node $1"
+		exit 0
+	fi
 }
 
 #
@@ -1459,9 +1476,20 @@ function require_build_type() {
 # require_command -- only allow script to continue if specified command exists
 #
 function require_command() {
-	if ! command -pv $1 1>/dev/null
-	then
+	if ! which $1 &>/dev/null; then
 		msg "$UNITTEST_NAME: SKIP: '$1' command required"
+		exit 0
+	fi
+}
+
+#
+# require_command_node -- only allow script to continue if specified command exists on a remote node
+#
+# usage: require_command_node <node-number>
+#
+function require_command_node() {
+	if ! run_on_node $1 "which $1 &>/dev/null"; then
+		msg "$UNITTEST_NAME: SKIP: node $1: '$2' command required"
 		exit 0
 	fi
 }
@@ -1469,11 +1497,70 @@ function require_command() {
 #
 # require_kernel_module -- only allow script to continue if specified kernel module exists
 #
+# usage: require_kernel_module <module_name> [path_to_modinfo]
+#
 function require_kernel_module() {
-	[ "$user_id" == "" ] && require_superuser
-	local MODULE=$(depmod -n | $GREP -cw -e "$1.ko")
-	if [ $MODULE == "0" ]; then
-		msg "$UNITTEST_NAME: SKIP: '$1' kernel module required"
+	MODULE=$1
+	MODINFO=$2
+
+	if [ "$MODINFO" == "" ]; then
+		set +e
+		[ "$MODINFO" == "" ] && \
+			MODINFO=$(which modinfo 2>/dev/null)
+		set -e
+
+		[ "$MODINFO" == "" ] && \
+			[ -x /usr/sbin/modinfo ] && MODINFO=/usr/sbin/modinfo
+		[ "$MODINFO" == "" ] && \
+			[ -x /sbin/modinfo ] && MODINFO=/sbin/modinfo
+		[ "$MODINFO" == "" ] && \
+			msg "$UNITTEST_NAME: SKIP: modinfo command required" && \
+			exit 0
+	else
+		[ ! -x $MODINFO ] && \
+			msg "$UNITTEST_NAME: SKIP: modinfo command required" && \
+			exit 0
+	fi
+
+	$MODINFO -F name $MODULE &>/dev/null && true
+	if [ $? -ne 0 ]; then
+		msg "$UNITTEST_NAME: SKIP: '$MODULE' kernel module required"
+		exit 0
+	fi
+}
+
+#
+# require_kernel_module_node -- only allow script to continue if specified kernel module exists on a remote node
+#
+# usage: require_kernel_module_node <node> <module_name> [path_to_modinfo]
+#
+function require_kernel_module_node() {
+	NODE_N=$1
+	MODULE=$2
+	MODINFO=$3
+
+	if [ "$MODINFO" == "" ]; then
+		set +e
+		[ "$MODINFO" == "" ] && \
+			MODINFO=$(run_on_node $NODE_N which modinfo 2>/dev/null)
+		set -e
+
+		[ "$MODINFO" == "" ] && \
+			run_on_node $NODE_N "test -x /usr/sbin/modinfo" && MODINFO=/usr/sbin/modinfo
+		[ "$MODINFO" == "" ] && \
+			run_on_node $NODE_N "test -x /sbin/modinfo" && MODINFO=/sbin/modinfo
+		[ "$MODINFO" == "" ] && \
+			msg "$UNITTEST_NAME: SKIP: node $NODE_N: modinfo command required" && \
+			exit 0
+	else
+		run_on_node $NODE_N "test ! -x $MODINFO" && \
+			msg "$UNITTEST_NAME: SKIP: node $NODE_N: modinfo command required" && \
+			exit 0
+	fi
+
+	run_on_node $NODE_N "$MODINFO -F name $MODULE &>/dev/null" && true
+	if [ $? -ne 0 ]; then
+		msg "$UNITTEST_NAME: SKIP: node $NODE_N: '$MODULE' kernel module required"
 		exit 0
 	fi
 }
@@ -3335,6 +3422,16 @@ function require_free_space() {
 	fi
 	if [ $free_space -lt $req_free_space ]; then
 		msg "$UNITTEST_NAME: SKIP: not enough free space"
+		exit 0
+	fi
+}
+
+#
+# require_nfit_tests_enabled - check if tests using the nfit_test kernel module are not enabled
+#
+function require_nfit_tests_enabled() {
+	if [ "$ENABLE_NFIT_TESTS" != "y" ]; then
+		msg "$UNITTEST_NAME: SKIP: tests using the nfit_test kernel module are not enabled in testconfig.sh"
 		exit 0
 	fi
 }

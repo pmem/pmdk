@@ -42,7 +42,8 @@ require_test_type medium
 require_fs_type any
 require_build_type debug nondebug
 
-require_superuser
+require_nfit_tests_enabled
+require_sudo_allowed
 require_kernel_module nfit_test
 require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
 require_command ndctl

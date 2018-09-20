@@ -34,6 +34,8 @@
 # src/test/tools/obj_verify -- build obj_verify tool
 #
 
+SCP_TO_REMOTE_NODES = y
+
 TOP = ../../../..
 
 TARGET = obj_verify

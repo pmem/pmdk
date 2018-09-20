@@ -929,7 +929,8 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 
 	/* check if the source poolset is healthy */
 	struct poolset_health_status *set_in_hs = NULL;
-	if (replica_check_poolset_health(set_in, &set_in_hs, flags)) {
+	if (replica_check_poolset_health(set_in, &set_in_hs,
+					0 /* called from transform */, flags)) {
 		ERR("source poolset health check failed");
 		return -1;
 	}

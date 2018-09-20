@@ -108,6 +108,8 @@ typedef off_t os_off_t;
 /* XXX: os_off_t defined in platform.h */
 #endif
 int os_open(const char *pathname, int flags, ...);
+int os_fsync(int fd);
+int os_fsync_dir(const char *dir_name);
 int os_stat(const char *pathname, os_stat_t *buf);
 int os_unlink(const char *pathname);
 int os_access(const char *pathname, int mode);
