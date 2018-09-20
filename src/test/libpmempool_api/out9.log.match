@@ -1,6 +1,7 @@
 Pool type: log Params: log
 libpmempool_api$(nW)TEST9: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -d 1 -r 1 -y 1 -t log $(nW)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -14,6 +15,7 @@ libpmempool_api$(nW)TEST9: DONE
 Pool type: blk Params: blk 512
 libpmempool_api$(nW)TEST9: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -d 1 -r 1 -y 1 -t blk $(nW)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header

@@ -1271,6 +1271,11 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 
 		int bad_blocks_found = replica_badblocks_get(set, set_hs);
 		if (bad_blocks_found < 0) {
+			if (errno == ENOTSUP) {
+				LOG(1, "checking bad blocks is not supported");
+				return 0;
+			}
+
 			LOG(1, "checking bad blocks failed");
 			return -1;
 		}

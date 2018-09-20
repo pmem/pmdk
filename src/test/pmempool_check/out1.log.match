@@ -4,6 +4,7 @@ $(nW): spoil: pool_hdr.compat_features=$(*)
 $(nW): spoil: pool_hdr.incompat_features=$(*)
 $(nW): spoil: pool_hdr.ro_compat_features=$(*)
 $(nW): spoil: pool_hdr.unused=$(*)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -24,6 +25,7 @@ $(nW): repaired
 PMEMLOG: pmemlog
 $(nW): spoil: pmemlog.start_offset=$(*)
 $(nW): spoil: pmemlog.end_offset=$(*)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -41,6 +43,7 @@ $(nW): spoil: pool_hdr.compat_features=$(*)
 $(nW): spoil: pool_hdr.incompat_features=$(*)
 $(nW): spoil: pool_hdr.ro_compat_features=$(*)
 $(nW): spoil: pool_hdr.unused=$(*)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking pool header
 incorrect pool header
 pool_hdr.signature is not valid
@@ -65,6 +68,7 @@ $(nW): repaired
 PMEMBLK: pmemblk
 $(nW): spoil: pool_hdr.signature=$(*)
 $(nW): spoil: pmemblk.bsize=$(*)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking pool header
 incorrect pool header
 pool_hdr.signature is not valid

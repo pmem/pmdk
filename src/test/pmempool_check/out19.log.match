@@ -1,9 +1,11 @@
 $(nW)pool.p1: spoil: pool_hdr.arch_flags=$(nW)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 $(nW)pool.set: not consistent
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 replica 0 part 0: checking pool header
@@ -17,11 +19,13 @@ pmemlog header correct
 $(nW)pool.set: repaired
 $(nW)pool.p1: spoil: pool_hdr.arch_flags=$(nW)
 $(nW)pool.p2: spoil: pool_hdr.arch_flags=$(nW)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 $(nW)pool.set: not consistent
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 replica 0 part 0: checking pool header
@@ -31,6 +35,7 @@ replica 0 part 1: incorrect pool header
 replica 0 part 0: the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 replica 0 part 0: invalid pool_hdr.checksum
 $(nW)pool.set: cannot repair
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 replica 0 part 0: checking pool header

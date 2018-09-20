@@ -1,3 +1,4 @@
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking pool header
 incorrect pool header
 pool_hdr.signature is not valid

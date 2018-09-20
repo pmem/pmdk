@@ -1,4 +1,5 @@
 $(nW): spoil: pool_hdr.checksum=$(nW)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -6,6 +7,7 @@ incorrect pool header
 the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 invalid pool_hdr.checksum
 $(nW)file.pool: cannot repair
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header

@@ -63,6 +63,14 @@ check_bad_blocks(PMEMpoolcheck *ppc)
 	}
 
 	if (ret < 0) {
+		if (errno == ENOTSUP) {
+			ppc->result = CHECK_RESULT_CONSISTENT;
+			CHECK_INFO_ERRNO(ppc,
+				"checking poolset for bad blocks is not supported -- '%s'",
+				ppc->path);
+			return;
+		}
+
 		ppc->result = CHECK_RESULT_ERROR;
 		CHECK_ERR(ppc, "checking poolset for bad blocks failed -- '%s'",
 				ppc->path);
