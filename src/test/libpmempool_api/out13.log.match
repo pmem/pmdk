@@ -4,6 +4,7 @@ Error: Invalid argument
 libpmempool_api$(nW)TEST13: DONE
 libpmempool_api$(nW)TEST13: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -s 999999 $(nW)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header

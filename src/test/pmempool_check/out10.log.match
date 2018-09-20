@@ -1,4 +1,5 @@
 $(nW)pool.replica2.part1: spoil: pool_hdr.uuid=ERROR
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 replica 0: checking shutdown state
 replica 0: shutdown state correct
 replica 1: checking shutdown state

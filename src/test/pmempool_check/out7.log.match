@@ -1,6 +1,7 @@
 $(nW)file.pool: spoil: pool_hdr.uuid=ERROR
 incorrect pool header
 $(nW)file.pool: not consistent
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -12,6 +13,7 @@ pmemblk header correct
 checking BTT Info headers
 BTT Layout not written
 $(nW)file.pool: repaired
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -25,6 +27,7 @@ $(nW)file.pool: spoil: pool_hdr.prev_part_uuid=ERROR_PREV
 $(nW)file.pool: spoil: pool_hdr.next_part_uuid=ERROR_NEXT
 incorrect pool header
 $(nW)file.pool: not consistent
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -32,6 +35,7 @@ incorrect pool header
 the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 invalid pool_hdr.uuid
 $(nW)file.pool: cannot repair
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -53,6 +57,7 @@ pmemblk header correct
 checking BTT Info headers
 BTT Layout not written
 $(nW)file.pool: repaired
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -68,6 +73,7 @@ $(nW)file.pool: spoil: pool_hdr.prev_repl_uuid=ERROR_RPREV
 $(nW)file.pool: spoil: pool_hdr.next_repl_uuid=ERROR_RNEXT
 incorrect pool header
 $(nW)file.pool: not consistent
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -75,6 +81,7 @@ incorrect pool header
 the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 invalid pool_hdr.uuid
 $(nW)file.pool: cannot repair
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -96,6 +103,7 @@ pmemblk header correct
 checking BTT Info headers
 BTT Layout not written
 $(nW)file.pool: repaired
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header

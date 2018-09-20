@@ -1,17 +1,20 @@
 libpmempool_backup$(nW)TEST1: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t blk -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 invalid poolset backup file: $(nW)pool.set_backup: No such file or directory
 unable to backup poolset
 status = fatal
 libpmempool_backup$(nW)TEST1: DONE
 libpmempool_backup$(nW)TEST1: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t log -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 invalid poolset backup file: $(nW)pool.set_backup: No such file or directory
 unable to backup poolset
 status = fatal
 libpmempool_backup$(nW)TEST1: DONE
 libpmempool_backup$(nW)TEST1: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t obj -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 invalid poolset backup file: $(nW)pool.set_backup: No such file or directory
 unable to backup poolset
 status = fatal

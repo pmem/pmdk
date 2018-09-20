@@ -1,5 +1,6 @@
 libpmempool_backup/TEST7: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.blk_backup -t blk -r 1 $(nW)pool.blk
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 destination of the backup already exists. Do you want to overwrite it?
 checking shutdown state
 shutdown state correct
@@ -15,11 +16,13 @@ status = consistent
 libpmempool_backup/TEST7: DONE
 libpmempool_backup/TEST7: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.blk_backup -t blk -r 1 $(nW)pool.blk
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 destination of the backup does not match the size of the source pool file: $(nW)pool.blk_backup
 status = fatal
 libpmempool_backup/TEST7: DONE
 libpmempool_backup/TEST7: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.log_backup -t log -r 1 $(nW)pool.log
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 destination of the backup already exists. Do you want to overwrite it?
 checking shutdown state
 shutdown state correct
@@ -31,11 +34,13 @@ status = consistent
 libpmempool_backup/TEST7: DONE
 libpmempool_backup/TEST7: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.log_backup -t log -r 1 $(nW)pool.log
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 destination of the backup does not match the size of the source pool file: $(nW)pool.log_backup
 status = fatal
 libpmempool_backup/TEST7: DONE
 libpmempool_backup/TEST7: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.obj_backup -t obj -r 1 $(nW)pool.obj
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 destination of the backup already exists. Do you want to overwrite it?
 checking shutdown state
 shutdown state correct
@@ -45,6 +50,7 @@ status = consistent
 libpmempool_backup/TEST7: DONE
 libpmempool_backup/TEST7: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.obj_backup -t obj -r 1 $(nW)pool.obj
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 destination of the backup does not match the size of the source pool file: $(nW)pool.obj_backup
 status = fatal
 libpmempool_backup/TEST7: DONE

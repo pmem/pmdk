@@ -1,3 +1,4 @@
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -8,6 +9,7 @@ $(nW)file.pool: spoil: pool_hdr.compat_features=0xff
 $(nW)file.pool: spoil: pool_hdr.incompat_features=0xff
 $(nW)file.pool: spoil: pool_hdr.ro_compat_features=0xff
 $(nW)file.pool: spoil: pool_hdr.unused=ERROR
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header

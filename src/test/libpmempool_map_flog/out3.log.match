@@ -16,6 +16,7 @@ bttdevice.arena.btt_map(11)=0xC0000002
 bttdevice.arena.btt_map(12)=0xC0000003
 libpmempool_map_flog$(nW)TEST3: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -r 1 -t btt -a 1 $(nW)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 checking BTT Map and Flog

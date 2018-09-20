@@ -1,5 +1,6 @@
 libpmempool_api$(nW)TEST10: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -d 0 -r 0 -y 0 $(nW)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -8,6 +9,7 @@ status = not consistent
 libpmempool_api$(nW)TEST10: DONE
 libpmempool_api$(nW)TEST10: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -d 0 -r 1 -y 1 $(nW)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 checking pool header
