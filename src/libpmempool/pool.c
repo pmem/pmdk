@@ -795,7 +795,14 @@ pool_set_part_copy(struct pool_set_part *dpart, struct pool_set_part *spart,
 		goto out_sunmap;
 	}
 
-	ASSERT(dmapped >= smapped);
+#ifdef DEBUG
+	/* provide extra logging in case of wrong dmapped/smapped value */
+	if (dmapped < smapped) {
+		LOG(1, "dmapped < smapped: dmapped = %lu, smapped = %lu",
+			dmapped, smapped);
+		ASSERT(0);
+	}
+#endif
 
 	if (is_pmem) {
 		pmem_memcpy_persist(daddr, saddr, smapped);
