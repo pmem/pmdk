@@ -3,14 +3,12 @@ util_poolset/TEST1: START: util_poolset
 $(nW)/testset0: util_pool_open: No such file or directory
 $(nW)/testset1: util_pool_open: Invalid argument
 mocked open: $(nW)/testset2
-mocked open: $(nW)/testset2
 $(nW)/testset2: util_pool_open: Permission denied
 $(nW)/testset3: util_pool_open: No such file or directory
 $(nW)/testset4: util_pool_open: No such file or directory
 $(nW)/testset5: util_pool_open: Invalid argument
 $(nW)/testset6: util_pool_open: Invalid argument
 $(nW)/testset7: util_pool_open: Invalid argument
-mocked open: $(nW)/testfile82
 mocked open: $(nW)/testfile82
 $(nW)/testset8: util_pool_open: Permission denied
 $(nW)/testset9: util_pool_open: Invalid argument

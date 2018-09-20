@@ -335,6 +335,10 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 #endif
 		addr = NULL;
 	} else {
+		enum file_type type = util_file_get_type(ppc->path);
+		if (type < 0)
+			return -1;
+
 		ssize_t s = util_file_get_size(ppc->path);
 		if (s < 0) {
 			ret = -1;
@@ -347,7 +351,7 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 			ret = -1;
 			goto out_close;
 		}
-		params->is_dev_dax = util_file_is_device_dax(ppc->path);
+		params->is_dev_dax = type == TYPE_DEVDAX;
 		params->is_pmem = params->is_dev_dax || map_sync ||
 			pmem_is_pmem(addr, params->size);
 	}

@@ -676,6 +676,13 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != nullptr);
 	assert(args != nullptr);
 
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	int ret = 0;
 	size_t poolsize;
 
@@ -705,7 +712,7 @@ locks_init(struct benchmark *bench, struct benchmark_args *args)
 	/* reserve some space for metadata */
 	poolsize = mb->pa->n_locks * sizeof(lock_t) + PMEMOBJ_MIN_POOL;
 
-	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+	if (args->is_poolset || type == TYPE_DEVDAX) {
 		if (args->fsize < poolsize) {
 			fprintf(stderr, "file size too large\n");
 			goto err_free_mb;

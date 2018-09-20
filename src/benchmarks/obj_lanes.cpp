@@ -95,6 +95,13 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != nullptr);
 	assert(args->opts != nullptr);
 
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	auto *ob = (struct obj_bench *)malloc(sizeof(struct obj_bench));
 	if (ob == nullptr) {
 		perror("malloc");
@@ -105,7 +112,7 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 	ob->pa = (struct prog_args *)args->opts;
 	size_t psize;
 
-	if (args->is_poolset || util_file_is_device_dax(args->fname))
+	if (args->is_poolset || type == TYPE_DEVDAX)
 		psize = 0;
 	else
 		psize = PMEMOBJ_MIN_POOL;

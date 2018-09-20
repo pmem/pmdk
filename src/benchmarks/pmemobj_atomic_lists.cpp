@@ -855,6 +855,13 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(args != nullptr);
 	assert(args->opts != nullptr);
 
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	obj_bench.args = (struct obj_list_args *)args->opts;
 	obj_bench.min_len = obj_bench.args->list_len + 1;
 	obj_bench.max_len = args->n_ops_per_thread + obj_bench.min_len;
@@ -904,7 +911,7 @@ obj_init(struct benchmark *bench, struct benchmark_args *args)
 		size_t psize =
 			(args->n_ops_per_thread + obj_bench.min_len + 1) *
 			obj_size * args->n_threads * FACTOR;
-		if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+		if (args->is_poolset || type == TYPE_DEVDAX) {
 			if (args->fsize < psize) {
 				fprintf(stderr, "file size too large\n");
 				goto free_all;

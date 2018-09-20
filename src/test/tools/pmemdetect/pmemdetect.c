@@ -212,17 +212,22 @@ is_pmem(const char *path)
 static int
 is_dev_dax(const char *path)
 {
+	enum file_type type = util_file_get_type(path);
+	if (type < 0) {
+		printf("%s -- not accessible\n", path);
+		return -1;
+	}
+
 	if (os_access(path, W_OK|R_OK)) {
 		printf("%s -- permission denied\n", path);
 		return -1;
 	}
 
-	if (!util_file_is_device_dax(path)) {
-		printf("%s -- not device dax\n", path);
-		return 0;
-	}
+	if (type == TYPE_DEVDAX)
+		return 1;
 
-	return 1;
+	printf("%s -- not device dax\n", path);
+	return 0;
 }
 
 /*

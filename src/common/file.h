@@ -67,13 +67,20 @@ struct dir_handle {
 #endif
 };
 
+enum file_type {
+	OTHER_ERROR = -2,
+	NOT_EXISTS = -1,
+	TYPE_NORMAL = 1,
+	TYPE_DEVDAX = 2
+};
+
 int util_file_dir_open(struct dir_handle *a, const char *path);
 int util_file_dir_next(struct dir_handle *a, struct file_info *info);
 int util_file_dir_close(struct dir_handle *a);
 int util_file_dir_remove(const char *path);
 int util_file_exists(const char *path);
-int util_file_is_device_dax(const char *path);
-int util_fd_is_device_dax(int fd);
+enum file_type util_fd_get_type(int fd);
+enum file_type util_file_get_type(const char *path);
 int util_ddax_region_find(const char *path);
 ssize_t util_file_get_size(const char *path);
 size_t util_file_device_dax_alignment(const char *path);
