@@ -467,6 +467,13 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	if (util_safe_strcpy(path, args->fname, sizeof(path)) != 0)
 		return -1;
 
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	auto *lb = (struct log_bench *)malloc(sizeof(struct log_bench));
 
 	if (!lb) {
@@ -500,7 +507,7 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 	if (lb->psize < PMEMLOG_MIN_POOL)
 		lb->psize = PMEMLOG_MIN_POOL;
 
-	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+	if (args->is_poolset || type == TYPE_DEVDAX) {
 		if (lb->args->fileio) {
 			fprintf(stderr, "fileio not supported on device dax "
 					"nor poolset\n");
@@ -566,7 +573,7 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 			: fileio_append;
 	}
 
-	if (!lb->args->no_warmup && !util_file_is_device_dax(args->fname)) {
+	if (!lb->args->no_warmup && type != TYPE_DEVDAX) {
 		size_t warmup_nops = args->n_threads * args->n_ops_per_thread;
 		if (do_warmup(lb, warmup_nops)) {
 			fprintf(stderr, "warmup failed\n");

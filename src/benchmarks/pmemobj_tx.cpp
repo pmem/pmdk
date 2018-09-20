@@ -942,6 +942,13 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 	if (util_safe_strcpy(path, args->fname, sizeof(path)) != 0)
 		return -1;
 
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	pmembench_set_priv(bench, &obj_bench);
 
 	obj_bench.obj_args = (struct obj_tx_args *)args->opts;
@@ -1016,7 +1023,7 @@ obj_tx_init(struct benchmark *bench, struct benchmark_args *args)
 		return 0;
 
 	/* Create pmemobj pool. */
-	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+	if (args->is_poolset || type == TYPE_DEVDAX) {
 		if (args->fsize < psize) {
 			fprintf(stderr, "file size too large\n");
 			goto free_all;

@@ -501,6 +501,13 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	if (util_safe_strcpy(path, args->fname, sizeof(path)) != 0)
 		return -1;
 
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	size_t size_per_key;
 	struct map_bench *map_bench =
 		(struct map_bench *)calloc(1, sizeof(*map_bench));
@@ -544,7 +551,7 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 
 	map_bench->pool_size = map_bench->nkeys * size_per_key * FACTOR;
 
-	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+	if (args->is_poolset || type == TYPE_DEVDAX) {
 		if (args->fsize < map_bench->pool_size) {
 			fprintf(stderr, "file size too large\n");
 			goto err_free_bench;

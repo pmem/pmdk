@@ -578,7 +578,15 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 	paramsp->type = PMEM_POOL_TYPE_UNKNOWN;
 	char pool_str_addr[POOL_HDR_DESC_SIZE];
 
-	paramsp->is_poolset = util_is_poolset_file(fname) == 1;
+	enum file_type type = util_file_get_type(fname);
+	if (type < 0)
+		return -1;
+
+	int is_poolset = util_is_poolset_file(fname);
+	if (is_poolset < 0)
+		return -1;
+
+	paramsp->is_poolset = is_poolset;
 	int fd = util_file_open(fname, NULL, 0, O_RDONLY);
 	if (fd < 0)
 		return -1;
@@ -638,7 +646,7 @@ pmem_pool_parse_params(const char *fname, struct pmem_pool_params *paramsp,
 		}
 	} else {
 		/* read first two pages */
-		if (util_file_is_device_dax(fname)) {
+		if (type == TYPE_DEVDAX) {
 			addr = util_file_map_whole(fname);
 			if (addr == NULL) {
 				ret = -1;
@@ -1291,6 +1299,10 @@ int
 pool_set_file_write(struct pool_set_file *file, void *buff,
 		size_t nbytes, uint64_t off)
 {
+	enum file_type type = util_file_get_type(file->fname);
+	if (type < 0)
+		return -1;
+
 	if (off + nbytes > file->size)
 		return -1;
 
@@ -1300,8 +1312,8 @@ pool_set_file_write(struct pool_set_file *file, void *buff,
 			return -1;
 	} else {
 		memcpy((char *)file->addr + off, buff, nbytes);
-		util_persist_auto(util_file_is_device_dax(file->fname),
-				(char *)file->addr + off, nbytes);
+		util_persist_auto(type == TYPE_DEVDAX, (char *)file->addr + off,
+					nbytes);
 	}
 	return 0;
 }

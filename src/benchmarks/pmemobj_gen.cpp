@@ -296,6 +296,13 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != nullptr);
 	assert(args != nullptr);
 
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	auto *bench_priv =
 		(struct pobj_bench *)malloc(sizeof(struct pobj_bench));
 	if (bench_priv == nullptr) {
@@ -313,7 +320,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	bench_priv->pool = bench_priv->n_pools > 1 ? diff_num : one_num;
 	bench_priv->obj = !bench_priv->args_priv->one_obj ? diff_num : one_num;
 
-	if ((args->is_poolset || util_file_is_device_dax(args->fname)) &&
+	if ((args->is_poolset || type == TYPE_DEVDAX) &&
 	    bench_priv->n_pools > 1) {
 		fprintf(stderr,
 			"cannot use poolset nor device dax for multiple pools,"
@@ -410,7 +417,7 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 			}
 		}
 	} else {
-		if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+		if (args->is_poolset || type == TYPE_DEVDAX) {
 			if (args->fsize < psize) {
 				fprintf(stderr, "file size too large\n");
 				goto free_pools;

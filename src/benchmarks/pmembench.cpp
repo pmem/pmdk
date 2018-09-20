@@ -1278,6 +1278,7 @@ is_absolute_path_to_directory(const char *path)
 static int
 pmembench_run(struct pmembench *pb, struct benchmark *bench)
 {
+	enum file_type type;
 	char old_wd[PATH_MAX];
 	int ret = 0;
 
@@ -1358,6 +1359,13 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 		goto out;
 	}
 
+	type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	pmembench_print_header(pb, bench, clovec);
 
 	size_t args_i;
@@ -1402,7 +1410,7 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 						"invalid size of poolset\n");
 					goto out;
 				}
-			} else if (util_file_is_device_dax(args->fname)) {
+			} else if (type == TYPE_DEVDAX) {
 				args->fsize = util_file_get_size(args->fname);
 
 				if (!args->fsize) {

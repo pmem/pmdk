@@ -377,6 +377,13 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 	size_t file_size = 0;
 	int flags = 0;
 
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	uint64_t (*func_mode)(struct pmem_bench * pmb, uint64_t index);
 
 	auto *pmb = (struct pmem_bench *)malloc(sizeof(struct pmem_bench));
@@ -414,7 +421,7 @@ pmem_flush_init(struct benchmark *bench, struct benchmark_args *args)
 	for (size_t i = 0; i < pmb->n_offsets; ++i)
 		pmb->offsets[i] = func_mode(pmb, i);
 
-	if (!util_file_is_device_dax(args->fname)) {
+	if (type != TYPE_DEVDAX) {
 		file_size = pmb->fsize;
 		flags = PMEM_FILE_CREATE | PMEM_FILE_EXCL;
 	}

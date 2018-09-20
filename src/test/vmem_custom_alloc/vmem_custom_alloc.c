@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -58,15 +58,15 @@ malloc_null(size_t size)
 #ifdef _WIN32
 	/*
 	 * Because Windows version requires UTF-16 string conversion
-	 * which requires three malloc calls to succeed due to long path
-	 * support
+	 * which requires four malloc calls and one free to succeed due to
+	 * long path support
 	 */
-	if (custom_alloc_calls < 4) {
+	if (custom_alloc_calls < 6) {
 		custom_allocs++;
 		return malloc(size);
 	}
 #endif
-
+	errno = ENOMEM;
 	return NULL;
 }
 

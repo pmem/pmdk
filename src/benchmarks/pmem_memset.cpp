@@ -287,6 +287,13 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	size_t file_size = 0;
 	int flags = 0;
 
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	int (*warmup_func)(struct memset_bench *) = warmup_persist;
 	auto *mb = (struct memset_bench *)malloc(sizeof(struct memset_bench));
 	if (!mb) {
@@ -320,7 +327,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	/* initialize memset() value */
 	mb->const_b = CONST_B;
 
-	if (!util_file_is_device_dax(args->fname)) {
+	if (type != TYPE_DEVDAX) {
 		file_size = mb->fsize;
 		flags = PMEM_FILE_CREATE | PMEM_FILE_EXCL;
 	}
@@ -356,7 +363,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 						   : libpmem_memset_nodrain;
 	}
 
-	if (!mb->pargs->no_warmup && !util_file_is_device_dax(args->fname)) {
+	if (!mb->pargs->no_warmup && type != TYPE_DEVDAX) {
 		ret = warmup_func(mb);
 		if (ret) {
 			perror("Pool warmup failed");
