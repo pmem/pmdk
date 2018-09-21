@@ -72,10 +72,10 @@ DPKG_BUILDDIR=dpkgbuild
 EXPERIMENTAL ?= n
 BUILD_PACKAGE_CHECK ?= y
 BUILD_RPMEM ?= y
-TEST_CONFIG_FILE ?= $(CURDIR)/src/test/testconfig.sh
+TEST_CONFIG_FILE ?= "$(CURDIR)"/src/test/testconfig.sh
 
-rpm : override DESTDIR=$(CURDIR)/$(RPM_BUILDDIR)
-dpkg: override DESTDIR=$(CURDIR)/$(DPKG_BUILDDIR)
+rpm : override DESTDIR="$(CURDIR)/$(RPM_BUILDDIR)"
+dpkg: override DESTDIR="$(CURDIR)/$(DPKG_BUILDDIR)"
 rpm dpkg: override prefix=/usr
 
 all:
@@ -126,18 +126,15 @@ sparse:
 	$(MAKE) -C src sparse
 
 source:
-	$(if $(shell git rev-parse 2>&1), $(error Not a git repository))
-	$(if $(DESTDIR), , $(error Please provide DESTDIR variable))
-	$(if $(shell git status --porcelain), $(error Working directory is dirty: $(shell git status --porcelain)))
-	mkdir -p $(DESTDIR)/pmdk
-	echo -n $(SRCVERSION) > $(DESTDIR)/pmdk/.version
-	git archive HEAD | tar -x -C $(DESTDIR)/pmdk
+	$(if "$(DESTDIR)", , $(error Please provide DESTDIR variable))
+	+utils/copy-source.sh "$(DESTDIR)" $(SRCVERSION)
 
 pkg-clean:
-	$(RM) -r $(DESTDIR)
+	$(RM) -r "$(DESTDIR)"
 
-rpm dpkg: pkg-clean source
-	+utils/build-$@.sh -t $(SRCVERSION) -s $(DESTDIR)/pmdk -w $(DESTDIR) -o $(CURDIR)/$@\
+rpm dpkg: pkg-clean
+	$(MAKE) source DESTDIR="$(DESTDIR)"
+	+utils/build-$@.sh -t $(SRCVERSION) -s "$(DESTDIR)"/pmdk -w "$(DESTDIR)" -o $(CURDIR)/$@\
 			-e $(EXPERIMENTAL) -c $(BUILD_PACKAGE_CHECK) -r $(BUILD_RPMEM)\
 			-f $(TEST_CONFIG_FILE) -n $(NDCTL_ENABLE)
 
