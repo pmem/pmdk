@@ -109,12 +109,14 @@ do_create(const char *path, const char *layout)
 	if ((pop = pmemobj_create(path, layout, 0,
 						S_IWUSR | S_IRUSR)) == NULL) {
 		if (errno != EEXIST) {
-			out("!pmemobj_create: %s", path);
+			out("!%s: pmemobj_create: %s",
+				path, pmemobj_errormsg());
 			exit(-1);
 		}
 
 		if ((pop = pmemobj_open(path, layout)) == NULL) {
-			out("!pmemobj_open: %s", path);
+			out("!%s: pmemobj_open: %s",
+				path, pmemobj_errormsg());
 			exit(-1);
 		}
 	}
@@ -164,7 +166,8 @@ do_verify(const char *path, const char *layout)
 	int error = 0;
 
 	if ((pop = pmemobj_open(path, layout)) == NULL) {
-		out("!pmemobj_open: %s", path);
+		out("!%s: pmemobj_open: %s",
+			path, pmemobj_errormsg());
 		exit(-1);
 	}
 
