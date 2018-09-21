@@ -1748,11 +1748,19 @@ util_poolset_single(const char *path, size_t filesize, int create,
 		return NULL;
 	}
 
+	set->path = Strdup(path);
+	if (set->path == NULL)  {
+		ERR("!Strdup");
+		Free(set);
+		return NULL;
+	}
+
 	struct pool_replica *rep;
 	rep = Zalloc(sizeof(struct pool_replica) +
 			sizeof(struct pool_set_part));
 	if (rep == NULL) {
 		ERR("!Malloc for pool set replica");
+		Free(set->path);
 		Free(set);
 		return NULL;
 	}
@@ -1794,6 +1802,7 @@ util_poolset_single(const char *path, size_t filesize, int create,
 
 	set->nreplicas = 1;
 	set->ignore_sds = ignore_sds || (set->options & OPTION_NOHDRS);
+
 	return set;
 }
 
