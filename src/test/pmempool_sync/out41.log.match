@@ -59,7 +59,7 @@ Root offset              : $(nW)
     "badblock_count":1,
         "offset":$(N),
         "length":1,
-pmemobj_open: $(nW)/testset1: Input/output error
+$(nW)/testset1: pmemobj_open: error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool: Invalid argument
 $(nW)/testset1: synchronized
 replica 0: checking shutdown state
 replica 0: shutdown state correct
