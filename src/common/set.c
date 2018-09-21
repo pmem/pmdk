@@ -3782,7 +3782,7 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 
 	/* check if any bad block recovery file exists */
 	if (badblocks_recovery_file_exists(set)) {
-		LOG(1,
+		ERR(
 			"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
 		errno = EINVAL;
 		return -1;
@@ -3891,7 +3891,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	/* check if any bad block recovery file exists */
 	if (badblocks_recovery_file_exists(set)) {
-		LOG(1,
+		ERR(
 			"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
 		errno = EINVAL;
 		return -1;
