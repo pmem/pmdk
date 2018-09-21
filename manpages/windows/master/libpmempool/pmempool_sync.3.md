@@ -95,7 +95,7 @@ pools, so **pmempool_syncU**()/**pmempool_syncW**() cannot be used with other po
 
 The following flags are available:
 
-* **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
+* **PMEMPOOL_SYNC_DRY_RUN** - do not apply changes, only check for viability of
 synchronization.
 
 **pmempool_syncU**()/**pmempool_syncW**() checks that the metadata of all replicas in
@@ -128,7 +128,7 @@ is performed.
 
 The following flags are available:
 
-* **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
+* **PMEMPOOL_TRANSFORM_DRY_RUN** - do not apply changes, only check for viability of
 transformation.
 
 When adding or deleting replicas, the two pool set files can differ only in the
