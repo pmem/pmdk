@@ -46,6 +46,7 @@
 #include <libpmemobj.h>
 #include "common.h"
 #include "os.h"
+#include "vec.h"
 
 #define POCLI_ENV_EXIT_ON_ERROR	"PMEMOBJCLI_EXIT_ON_ERROR"
 #define POCLI_ENV_ECHO_MODE	"PMEMOBJCLI_ECHO_MODE"
@@ -82,6 +83,7 @@ struct pocli_ctx {
 	FILE *out;
 	struct pocli *pocli;
 	bool tx_aborted;
+	VEC(, struct pocli_args *) free_on_abort;
 };
 
 /*
@@ -1317,6 +1319,16 @@ pocli_pmemobj_tx_begin(struct pocli_ctx *ctx, struct pocli_args *args)
 					"pmemobj_tx_abort" : "pmemobj_tx_end";
 				pocli_printf(ctx, "%s: %d\n",
 					command, pmemobj_tx_errno());
+
+				/*
+				 * Free all objects, except the one we currently
+				 * use.
+				 */
+				while (VEC_SIZE(&ctx->free_on_abort) > 1) {
+					free(VEC_BACK(&ctx->free_on_abort));
+					VEC_POP_BACK(&ctx->free_on_abort);
+				}
+
 				return POCLI_RET_OK;
 			} else {
 				r = pmemobj_tx_begin(ctx->pop, jmp,
@@ -2190,6 +2202,7 @@ pocli_free(struct pocli *pcli)
 			pmemobj_tx_process();
 		pmemobj_tx_end();
 	}
+	VEC_DELETE(&pcli->ctx.free_on_abort);
 	pmemobj_close(pcli->ctx.pop);
 
 	free(pcli->inbuf);
@@ -2262,8 +2275,19 @@ pocli_process(struct pocli *pcli)
 				argstr, POCLI_CMD_DELIM);
 		if (!args)
 			return 1;
+
+		/*
+		 * Put the args object on the stack, just in case we are
+		 * in transaction, cmd->func will abort it and skip free(args).
+		 */
+		VEC_PUSH_BACK(&pcli->ctx.free_on_abort, args);
+
 		enum pocli_ret ret = cmd->func(&pcli->ctx, args);
 		free(args);
+
+		/* Take args off the stack. */
+		VEC_POP_BACK(&pcli->ctx.free_on_abort);
+
 		if (ret != POCLI_RET_OK)
 			return (int)ret;
 
