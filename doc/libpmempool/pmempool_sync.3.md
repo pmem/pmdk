@@ -88,7 +88,7 @@ pools, so _UW(pmempool_sync) cannot be used with other pool types
 
 The following flags are available:
 
-* **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
+* **PMEMPOOL_SYNC_DRY_RUN** - do not apply changes, only check for viability of
 synchronization.
 
 _UW(pmempool_sync) checks that the metadata of all replicas in
@@ -127,7 +127,7 @@ is performed.
 
 The following flags are available:
 
-* **PMEMPOOL_DRY_RUN** - do not apply changes, only check for viability of
+* **PMEMPOOL_TRANSFORM_DRY_RUN** - do not apply changes, only check for viability of
 transformation.
 
 _WINUX(=q=When adding or deleting replicas, the two pool set files can differ only in the
