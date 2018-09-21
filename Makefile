@@ -126,17 +126,14 @@ sparse:
 	$(MAKE) -C src sparse
 
 source:
-	$(if $(shell git rev-parse 2>&1), $(error Not a git repository))
 	$(if $(DESTDIR), , $(error Please provide DESTDIR variable))
-	$(if $(shell git status --porcelain), $(error Working directory is dirty: $(shell git status --porcelain)))
-	mkdir -p $(DESTDIR)/pmdk
-	echo -n $(SRCVERSION) > $(DESTDIR)/pmdk/.version
-	git archive HEAD | tar -x -C $(DESTDIR)/pmdk
+	+utils/copy-source.sh $(DESTDIR) $(SRCVERSION)
 
 pkg-clean:
 	$(RM) -r $(DESTDIR)
 
-rpm dpkg: pkg-clean source
+rpm dpkg: pkg-clean
+	$(MAKE) source DESTDIR=$(DESTDIR)
 	+utils/build-$@.sh -t $(SRCVERSION) -s $(DESTDIR)/pmdk -w $(DESTDIR) -o $(CURDIR)/$@\
 			-e $(EXPERIMENTAL) -c $(BUILD_PACKAGE_CHECK) -r $(BUILD_RPMEM)\
 			-f $(TEST_CONFIG_FILE) -n $(NDCTL_ENABLE)
