@@ -288,8 +288,8 @@ badblocks_recovery_file_exists(struct pool_set *set)
 				continue;
 			}
 
-			char *rec_file = badblocks_recovery_file_alloc(path,
-									r, p);
+			char *rec_file =
+				badblocks_recovery_file_alloc(set->path, r, p);
 			if (rec_file == NULL) {
 				LOG(1,
 					"allocating name of bad block recovery file failed");
