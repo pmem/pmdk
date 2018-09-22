@@ -148,7 +148,17 @@ util_unmap(void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
 
-	int retval = munmap(addr, len);
+	int retval;
+/*
+ * XXX Workaround for https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=169608
+ */
+#ifdef __FreeBSD__
+	if (!IS_PAGE_ALIGNED((uintptr_t)addr)) {
+		errno = EINVAL;
+		retval = -1;
+	} else
+#endif
+	retval = munmap(addr, len);
 	if (retval < 0)
 		ERR("!munmap");
 
