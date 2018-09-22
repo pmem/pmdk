@@ -53,6 +53,10 @@ extern void (*__free_hook)(void *, const void *);
 extern void *(*__malloc_hook)(size_t size, const void *);
 extern void *(*__memalign_hook)(size_t alignment, size_t size, const void *);
 extern void *(*__realloc_hook)(void *ptr, size_t size, const void *);
+void (*__free_hook)(void *, const void *);
+void *(*__malloc_hook)(size_t size, const void *);
+void *(*__memalign_hook)(size_t alignment, size_t size, const void *);
+void *(*__realloc_hook)(void *ptr, size_t size, const void *);
 #endif
 
 #endif
