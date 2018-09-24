@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct cuckoo;
 
 struct cuckoo *cuckoo_new(void);
@@ -48,5 +52,9 @@ int cuckoo_insert(struct cuckoo *c, uint64_t key, void *value);
 void *cuckoo_remove(struct cuckoo *c, uint64_t key);
 void *cuckoo_get(struct cuckoo *c, uint64_t key);
 size_t cuckoo_get_size(struct cuckoo *c);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

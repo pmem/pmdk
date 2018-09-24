@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,6 +43,10 @@
 #include "libpmemobj.h"
 #include "out.h"
 #include "os_thread.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  * internal definitions of PMEM-locks
@@ -129,5 +133,9 @@ pmemobj_mutex_unlock_nofail(PMEMobjpool *pop, PMEMmutex *mutexp)
 }
 
 int pmemobj_mutex_assert_locked(PMEMobjpool *pop, PMEMmutex *mutexp);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

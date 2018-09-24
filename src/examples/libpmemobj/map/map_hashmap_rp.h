@@ -39,8 +39,16 @@
 
 #include "map.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern struct map_ops hashmap_rp_ops;
 
 #define MAP_HASHMAP_RP (&hashmap_rp_ops)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MAP_HASHMAP_RP_H */

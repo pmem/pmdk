@@ -39,6 +39,10 @@
 
 #include "ctl.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct stats_transient {
 	int unused;
 };
@@ -89,5 +93,9 @@ void stats_ctl_register(PMEMobjpool *pop);
 
 struct stats *stats_new(PMEMobjpool *pop);
 void stats_delete(PMEMobjpool *pop, struct stats *stats);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -45,6 +45,10 @@
 #include "memops.h"
 #include "palloc.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MEMORY_BLOCK_NONE \
 (struct memory_block)\
 {0, 0, 0, 0, 0, NULL, NULL, MAX_HEADER_TYPES, MAX_MEMORY_BLOCK}
@@ -310,5 +314,9 @@ struct memory_block memblock_run_init(struct palloc_heap *heap,
 void memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
 	uint64_t unit_size, uint64_t alignment, void *content,
 	struct run_bitmap *b);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

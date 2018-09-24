@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,6 +41,10 @@
 #include "out.h"
 #include "mmap.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static inline void
 common_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
@@ -58,4 +62,9 @@ common_fini(void)
 	util_mmap_fini();
 	out_fini();
 }
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

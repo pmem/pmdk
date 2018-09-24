@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,13 @@
 /*
  * Layout of BTT info block.  All integers are stored little-endian.
  */
+
+#ifndef BTT_LAYOUT_H
+#define BTT_LAYOUT_H 1
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define BTT_ALIGNMENT ((uintptr_t)4096)	/* alignment of all BTT structures */
 #define BTTINFO_SIG_LEN 16
@@ -121,3 +128,9 @@ struct btt_flog {
 #define BTT_MIN_LBA_SIZE (size_t)512
 #define BTT_INTERNAL_LBA_ALIGNMENT 256U
 #define BTT_DEFAULT_NFREE 256
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

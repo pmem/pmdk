@@ -37,6 +37,14 @@
 #ifndef PMDK_OS_AUTO_FLUSH_H
 #define PMDK_OS_AUTO_FLUSH_H 1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int os_auto_flush(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

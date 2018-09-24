@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,6 +40,14 @@
 
 #include "container.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct block_container *container_new_seglists(struct palloc_heap *heap);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LIBPMEMOBJ_CONTAINER_SEGLISTS_H */

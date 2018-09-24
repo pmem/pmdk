@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,7 +34,14 @@
  * rpmem_cmd.h -- helper module for invoking separate process
  */
 
+#ifndef RPMEM_CMD_H
+#define RPMEM_CMD_H 1
+
 #include <sys/types.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct rpmem_cmd {
 	int fd_in;	/* stdin */
@@ -53,3 +60,9 @@ int rpmem_cmd_run(struct rpmem_cmd *cmd);
 int rpmem_cmd_term(struct rpmem_cmd *cmd);
 int rpmem_cmd_wait(struct rpmem_cmd *cmd, int *status);
 void rpmem_cmd_fini(struct rpmem_cmd *cmd);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

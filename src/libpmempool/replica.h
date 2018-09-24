@@ -33,9 +33,16 @@
 /*
  * replica.h -- module for synchronizing and transforming poolset
  */
+#ifndef REPLICA_H
+#define REPLICA_H
+
 #include "libpmempool.h"
 #include "pool.h"
 #include "os_badblock.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define UNDEF_REPLICA UINT_MAX
 #define UNDEF_PART UINT_MAX
@@ -211,3 +218,9 @@ int replica_sync(struct pool_set *set_in, struct poolset_health_status *set_hs,
 		unsigned flags);
 int replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 		unsigned flags);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

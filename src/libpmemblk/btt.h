@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,6 +33,13 @@
 /*
  * btt.h -- btt module definitions
  */
+
+#ifndef BTT_H
+#define BTT_H 1
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* callback functions passed to btt_init() */
 struct ns_callback {
@@ -73,3 +80,9 @@ void btt_info_convert2h(struct btt_info *infop);
 void btt_info_convert2le(struct btt_info *infop);
 void btt_flog_convert2h(struct btt_flog *flogp);
 void btt_flog_convert2le(struct btt_flog *flogp);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

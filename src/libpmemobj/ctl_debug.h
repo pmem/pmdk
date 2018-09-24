@@ -38,6 +38,14 @@
 
 #include "libpmemobj.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void debug_ctl_register(PMEMobjpool *pop);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LIBPMEMOBJ_CTL_DEBUG_H */

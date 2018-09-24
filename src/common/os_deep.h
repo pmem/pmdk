@@ -41,8 +41,16 @@
 #include <stddef.h>
 #include "set.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int os_range_deep_common(uintptr_t addr, size_t len);
 int os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
 			size_t len, int flush);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

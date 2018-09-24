@@ -39,6 +39,10 @@
 
 #include <unistd.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct fs;
 
 enum fs_entry_type {
@@ -68,5 +72,9 @@ void fs_delete(struct fs *f);
 
 /* this call invalidates the previous entry */
 struct fs_entry *fs_read(struct fs *f);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* PMDK_FS_H */

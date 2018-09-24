@@ -45,6 +45,10 @@
 #include "redo.h"
 #include "lane.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum operation_log_type {
 	LOG_PERSISTENT, /* log of persistent modifications */
 	LOG_TRANSIENT, /* log of transient memory modifications */
@@ -72,5 +76,9 @@ int operation_add_typed_entry(struct operation_context *ctx,
 int operation_reserve(struct operation_context *ctx, size_t new_capacity);
 void operation_process(struct operation_context *ctx);
 void operation_cancel(struct operation_context *ctx);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

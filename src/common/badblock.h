@@ -39,6 +39,10 @@
 
 #include "set.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct badblocks *badblocks_new(void);
 void badblocks_delete(struct badblocks *bbs);
 
@@ -48,5 +52,9 @@ int badblocks_clear_poolset(struct pool_set *set, int create);
 char *badblocks_recovery_file_alloc(const char *file,
 					unsigned rep, unsigned part);
 int badblocks_recovery_file_exists(struct pool_set *set);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* PMDK_BADBLOCK_POOLSET_H */

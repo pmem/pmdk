@@ -39,6 +39,14 @@
 
 #include "container.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct block_container *container_new_ravl(struct palloc_heap *heap);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LIBPMEMOBJ_CONTAINER_RAVL_H */

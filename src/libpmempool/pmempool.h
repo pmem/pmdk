@@ -34,6 +34,13 @@
  * pmempool.h -- internal definitions for libpmempool
  */
 
+#ifndef PMEMPOOL_H
+#define PMEMPOOL_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define PMEMPOOL_LOG_PREFIX "libpmempool"
 #define PMEMPOOL_LOG_LEVEL_VAR "PMEMPOOL_LOG_LEVEL"
 #define PMEMPOOL_LOG_FILE_VAR "PMEMPOOL_LOG_FILE"
@@ -62,3 +69,9 @@ struct pmempool_check_ctx {
 	enum check_result result;
 	unsigned sync_required;
 };
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

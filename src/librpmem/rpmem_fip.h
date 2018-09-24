@@ -34,10 +34,17 @@
  * rpmem_fip.h -- rpmem libfabric provider module header file
  */
 
+#ifndef RPMEM_FIP_H
+#define RPMEM_FIP_H
+
 #include <stdint.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct rpmem_fip;
 
@@ -67,3 +74,9 @@ int rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 int rpmem_fip_read(struct rpmem_fip *fip, void *buff,
 		size_t len, size_t off, unsigned lane);
 void rpmem_fip_probe_fork_safety(int *fork_unsafe);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

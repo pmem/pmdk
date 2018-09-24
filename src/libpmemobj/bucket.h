@@ -44,6 +44,10 @@
 #include "memblock.h"
 #include "os_thread.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define CALC_SIZE_IDX(_unit_size, _size)\
 ((_size) == 0 ? 0 : (uint32_t)((((_size) - 1) / (_unit_size)) + 1))
 
@@ -67,5 +71,9 @@ int *bucket_current_resvp(struct bucket *b);
 int bucket_insert_block(struct bucket *b, const struct memory_block *m);
 
 void bucket_delete(struct bucket *b);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

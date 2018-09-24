@@ -42,6 +42,10 @@
 #include "util.h"
 #include "out.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define VEC_INIT_SIZE (64)
 
 #define VEC(name, type)\
@@ -156,5 +160,9 @@ for (size_t _vec_i = 0;\
 	Free((vec)->buffer);\
 	(vec)->buffer = NULL;\
 } while (0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* PMDK_VEC_H */

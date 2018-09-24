@@ -40,6 +40,10 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define B2SEC(n) ((n) >> 9)	/* convert bytes to sectors */
 #define SEC2B(n) ((n) << 9)	/* convert sectors to bytes */
 
@@ -70,5 +74,9 @@ int os_badblocks_get(const char *file, struct badblocks *bbs);
 int os_badblocks_clear(const char *path, struct badblocks *bbs);
 int os_badblocks_clear_all(const char *file);
 int os_badblocks_check_file(const char *path);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* PMDK_BADBLOCK_H */

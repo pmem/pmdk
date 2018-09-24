@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,4 +34,17 @@
  * ctl_global.h -- definitions for the global CTL namespace
  */
 
+#ifndef PMDK_CTL_GLOBAL_H
+#define PMDK_CTL_GLOBAL_H 1
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void ctl_global_register(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

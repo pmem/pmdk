@@ -40,6 +40,10 @@
 #include "util.h"
 #include "pool_hdr.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define PMEMCTO_LOG_PREFIX "libpmemcto"
 #define PMEMCTO_LOG_LEVEL_VAR "PMEMCTO_LOG_LEVEL"
 #define PMEMCTO_LOG_FILE_VAR "PMEMCTO_LOG_FILE"
@@ -119,6 +123,10 @@ void cto_fini(void);
 #define je_cto_pool_set_alloc_funcs je_vmem_pool_set_alloc_funcs
 #define je_cto_pool_check je_vmem_pool_check
 #define je_cto_malloc_message je_vmem_malloc_message
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif /* LIBPMEMCTO_CTO_H */

@@ -46,6 +46,9 @@
 #include "palloc.h"
 #include "os_thread.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define HEAP_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
 #define HEAP_PTR_TO_OFF(heap, ptr)\
@@ -122,5 +125,9 @@ heap_get_chunk_run(struct palloc_heap *heap, const struct memory_block *m)
 {
 	return GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

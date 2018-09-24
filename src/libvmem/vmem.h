@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,9 +34,16 @@
  * vmem.h -- internal definitions for libvmem
  */
 
+#ifndef VMEM_H
+#define VMEM_H 1
+
 #include <stddef.h>
 
 #include "pool_hdr.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define VMEM_LOG_PREFIX "libvmem"
 #define VMEM_LOG_LEVEL_VAR "VMEM_LOG_LEVEL"
@@ -55,3 +62,9 @@ struct vmem {
 };
 
 void vmem_construct(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -42,6 +42,10 @@
 #include <sys/types.h>
 #include "heap_layout.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MAX_ALLOCATION_CLASSES (UINT8_MAX)
 #define DEFAULT_ALLOC_CLASS_ID (0)
 #define RUN_UNIT_MAX RUN_BITS_PER_VALUE
@@ -99,5 +103,10 @@ alloc_class_new(int id, struct alloc_class_collection *ac,
 
 void alloc_class_delete(struct alloc_class_collection *ac,
 	struct alloc_class *c);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

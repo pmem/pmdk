@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,8 +39,16 @@
 
 #include "map.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern struct map_ops rtree_map_ops;
 
 #define MAP_RTREE (&rtree_map_ops)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MAP_RTREE_H */

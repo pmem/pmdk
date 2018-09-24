@@ -42,6 +42,11 @@
 #include <unistd.h>
 #include "uuid.h"
 #include "shutdown_state.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Number of bits per type in alignment descriptor
  */
@@ -207,5 +212,9 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 /* ignore shutdown state if incompat feature is disabled */
 #define IGNORE_SDS(hdrp) \
 	(((hdrp) != NULL) && (((hdrp)->incompat_features & POOL_FEAT_SDS) == 0))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

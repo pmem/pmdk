@@ -43,6 +43,10 @@
 
 #include "util.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Suppress errors which are after appropriate ASSERT* macro for nondebug
  * builds.
@@ -233,6 +237,10 @@ const char *out_get_errormsg(void);
 #else
 const char *out_get_errormsgU(void);
 const wchar_t *out_get_errormsgW(void);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

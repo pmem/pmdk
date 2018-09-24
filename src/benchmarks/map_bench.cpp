@@ -41,10 +41,6 @@
 #include "os_thread.h"
 #include "poolset_util.hpp"
 
-/* XXX: maps are build as C++ on windows and as C on linux */
-#ifndef _WIN32
-extern "C" {
-#endif
 #include "map.h"
 #include "map_btree.h"
 #include "map_ctree.h"
@@ -53,9 +49,6 @@ extern "C" {
 #include "map_hashmap_tx.h"
 #include "map_rbtree.h"
 #include "map_rtree.h"
-#ifndef _WIN32
-}
-#endif
 
 /* Values less than 3 is not suitable for current rtree implementation */
 #define FACTOR 3

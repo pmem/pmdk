@@ -34,10 +34,17 @@
  * rpmem_proto.h -- rpmem protocol definitions
  */
 
+#ifndef RPMEM_PROTO_H
+#define RPMEM_PROTO_H 1
+
 #include <stdint.h>
 #include <endian.h>
 
 #include "librpmem.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define PACKED	__attribute__((packed))
 
@@ -561,3 +568,9 @@ unpack_rpmem_pool_attr(const struct rpmem_pool_attr_packed *src,
 	memcpy(dst->prev_uuid, src->prev_uuid, sizeof(dst->prev_uuid));
 	memcpy(dst->user_flags, src->user_flags, sizeof(dst->user_flags));
 }
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
