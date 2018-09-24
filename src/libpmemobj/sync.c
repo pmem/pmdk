@@ -528,6 +528,7 @@ void
 pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp)
 {
 	LOG(3, "pop %p cond %p", pop, condp);
+	PMEMOBJ_API_START();
 
 	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
 
@@ -535,6 +536,7 @@ pmemobj_cond_zero(PMEMobjpool *pop, PMEMcond *condp)
 	condip->pmemcond.runid = 0;
 	pmemops_persist(&pop->p_ops, &condip->pmemcond.runid,
 			sizeof(condip->pmemcond.runid));
+	PMEMOBJ_API_END();
 }
 
 /*
@@ -547,17 +549,22 @@ int
 pmemobj_cond_broadcast(PMEMobjpool *pop, PMEMcond *condp)
 {
 	LOG(3, "pop %p cond %p", pop, condp);
+	PMEMOBJ_API_START();
 
 	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	os_cond_t *cond = get_cond(pop, condip);
-	if (cond == NULL)
+	if (cond == NULL) {
+		PMEMOBJ_API_END();
 		return EINVAL;
+	}
 
 	ASSERTeq((uintptr_t)cond % util_alignof(os_cond_t), 0);
 
-	return os_cond_broadcast(cond);
+	int ret = os_cond_broadcast(cond);
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -570,17 +577,22 @@ int
 pmemobj_cond_signal(PMEMobjpool *pop, PMEMcond *condp)
 {
 	LOG(3, "pop %p cond %p", pop, condp);
+	PMEMOBJ_API_START();
 
 	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
 
 	PMEMcond_internal *condip = (PMEMcond_internal *)condp;
 	os_cond_t *cond = get_cond(pop, condip);
-	if (cond == NULL)
+	if (cond == NULL) {
+		PMEMOBJ_API_END();
 		return EINVAL;
+	}
 
 	ASSERTeq((uintptr_t)cond % util_alignof(os_cond_t), 0);
 
-	return os_cond_signal(cond);
+	int ret = os_cond_signal(cond);
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -596,6 +608,7 @@ pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
 {
 	LOG(3, "pop %p cond %p mutex %p abstime sec %ld nsec %ld", pop, condp,
 		mutexp, abs_timeout->tv_sec, abs_timeout->tv_nsec);
+	PMEMOBJ_API_START();
 
 	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
 	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
@@ -604,13 +617,17 @@ pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *__restrict condp,
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	os_cond_t *cond = get_cond(pop, condip);
 	os_mutex_t *mutex = get_mutex(pop, mutexip);
-	if ((cond == NULL) || (mutex == NULL))
+	if ((cond == NULL) || (mutex == NULL)) {
+		PMEMOBJ_API_END();
 		return EINVAL;
+	}
 
 	ASSERTeq((uintptr_t)mutex % util_alignof(os_mutex_t), 0);
 	ASSERTeq((uintptr_t)cond % util_alignof(os_cond_t), 0);
 
-	return os_cond_timedwait(cond, mutex, abs_timeout);
+	int ret = os_cond_timedwait(cond, mutex, abs_timeout);
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -624,6 +641,7 @@ pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
 			PMEMmutex *__restrict mutexp)
 {
 	LOG(3, "pop %p cond %p mutex %p", pop, condp, mutexp);
+	PMEMOBJ_API_START();
 
 	ASSERTeq(pop, pmemobj_pool_by_ptr(mutexp));
 	ASSERTeq(pop, pmemobj_pool_by_ptr(condp));
@@ -632,13 +650,17 @@ pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *condp,
 	PMEMmutex_internal *mutexip = (PMEMmutex_internal *)mutexp;
 	os_cond_t *cond = get_cond(pop, condip);
 	os_mutex_t *mutex = get_mutex(pop, mutexip);
-	if ((cond == NULL) || (mutex == NULL))
+	if ((cond == NULL) || (mutex == NULL)) {
+		PMEMOBJ_API_END();
 		return EINVAL;
+	}
 
 	ASSERTeq((uintptr_t)mutex % util_alignof(os_mutex_t), 0);
 	ASSERTeq((uintptr_t)cond % util_alignof(os_cond_t), 0);
 
-	return os_cond_wait(cond, mutex);
+	int ret = os_cond_wait(cond, mutex);
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*

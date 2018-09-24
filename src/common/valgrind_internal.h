@@ -37,6 +37,9 @@
 #ifndef PMDK_VALGRIND_INTERNAL_H
 #define PMDK_VALGRIND_INTERNAL_H 1
 
+#define LIB_LOG_LEN 20
+#define FUNC_LOG_LEN 50
+
 #ifndef _WIN32
 #ifndef VALGRIND_ENABLED
 #define VALGRIND_ENABLED 1
@@ -457,3 +460,40 @@ extern unsigned _On_valgrind;
 #endif
 
 #endif
+
+#define EMIT_API_LOG(lib, func, suffix)					\
+	do {								\
+		char lib_name[LIB_LOG_LEN] = {0};			\
+		char func_name[FUNC_LOG_LEN] = {0};			\
+		size_t lib_len = strlen(lib);				\
+		size_t func_len = strlen(func);				\
+									\
+		if (lib_len + 1 > LIB_LOG_LEN) {			\
+			VALGRIND_EMIT_LOG("Library name is too long");	\
+			break;						\
+		}							\
+		if (func_len + 1 > FUNC_LOG_LEN) {			\
+			VALGRIND_EMIT_LOG("Function name is too long");	\
+			break;						\
+		}							\
+		strcat(lib_name, lib);					\
+		strcat(lib_name, suffix);				\
+		strcat(func_name, func);				\
+		strcat(func_name, suffix);				\
+									\
+		if (strcmp(suffix, ".BEGIN") == 0) {			\
+			VALGRIND_EMIT_LOG(lib_name);			\
+			VALGRIND_EMIT_LOG(func_name);			\
+		}							\
+		if (strcmp(suffix, ".END") == 0) {			\
+			VALGRIND_EMIT_LOG(func_name);			\
+			VALGRIND_EMIT_LOG(lib_name);			\
+		}							\
+	} while (0)
+
+/*
+ * Logs library and function name with proper suffix
+ * to pmemcheck store log file.
+ */
+#define PMEMOBJ_API_START() EMIT_API_LOG("libpmemobj", __func__, ".BEGIN")
+#define PMEMOBJ_API_END() EMIT_API_LOG("libpmemobj", __func__, ".END")
