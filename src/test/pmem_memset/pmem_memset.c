@@ -64,8 +64,12 @@ do_memset(int fd, char *dest, const char *file_name, size_t dest_off,
 	char *dest1;
 	char *ret;
 
+	enum file_type type = util_fd_get_type(fd);
+	if (type < 0)
+		UT_FATAL("cannot check type of file with fd %d", fd);
+
 	memset(dest, 0, bytes);
-	util_persist_auto(util_fd_is_device_dax(fd), dest, bytes);
+	util_persist_auto(type == TYPE_DEVDAX, dest, bytes);
 	dest1 = MALLOC(bytes);
 	memset(dest1, 0, bytes);
 

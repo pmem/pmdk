@@ -63,6 +63,10 @@ os_extents_common(const char *path, struct extents *exts,
 		return -1;
 	}
 
+	enum file_type type = util_fd_get_type(fd);
+	if (type < 0)
+		goto error_close;
+
 	struct stat st;
 	if (fstat(fd, &st) < 0) {
 		ERR("!fstat %d", fd);
@@ -75,7 +79,7 @@ os_extents_common(const char *path, struct extents *exts,
 	}
 
 	/* devdax does not have any extents */
-	if (util_fd_is_device_dax(fd)) {
+	if (type == TYPE_DEVDAX) {
 		close(fd);
 		return 0;
 	}

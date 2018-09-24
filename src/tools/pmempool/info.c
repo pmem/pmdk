@@ -618,9 +618,12 @@ pmempool_info_part(struct pmem_info *pip, unsigned repn, unsigned partn, int v)
 	}
 	outv_field(v, "path", "%s", path);
 
-	/* get type of the part file */
-	int is_dev_dax = util_file_is_device_dax(path);
-	const char *type_str = is_dev_dax ? "device dax" : "regular file";
+	enum file_type type = util_file_get_type(path);
+	if (type < 0)
+		return -1;
+
+	const char *type_str = type == TYPE_DEVDAX ? "device dax" :
+				"regular file";
 	outv_field(v, "type", "%s", type_str);
 
 	/* get size of the part file */
@@ -633,7 +636,7 @@ pmempool_info_part(struct pmem_info *pip, unsigned repn, unsigned partn, int v)
 			pip->args.human));
 
 	/* get alignment of device dax */
-	if (is_dev_dax) {
+	if (type == TYPE_DEVDAX) {
 		size_t alignment = util_file_device_dax_alignment(path);
 		outv_field(v, "alignment", "%s", out_get_size_str(alignment,
 				pip->args.human));

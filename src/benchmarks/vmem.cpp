@@ -452,6 +452,13 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != nullptr);
 	assert(args != nullptr);
 
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
 	auto *vb = (struct vmem_bench *)calloc(1, sizeof(struct vmem_bench));
 	if (vb == nullptr) {
 		perror("malloc");
@@ -463,12 +470,17 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 	vb->alloc_sizes = nullptr;
 	vb->lib_mode = va->stdlib_alloc ? STDLIB_MODE : VMEM_MODE;
 
-	if (util_file_is_device_dax(args->fname) && va->pool_per_thread) {
+	if (type == TYPE_DEVDAX && va->pool_per_thread) {
 		fprintf(stderr, "cannot use device dax for multiple pools\n");
 		goto err;
 	}
 
-	if (!util_file_is_device_dax(args->fname) && !va->stdlib_alloc &&
+	if (type == TYPE_NORMAL) {
+		fprintf(stderr, "Path cannot point to existing file\n");
+		goto err;
+	}
+
+	if (type == NOT_EXISTS && !va->stdlib_alloc &&
 	    mkdir(args->fname, DIR_MODE) != 0)
 		goto err;
 
