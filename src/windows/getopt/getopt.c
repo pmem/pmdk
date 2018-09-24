@@ -229,6 +229,11 @@ int getopt_long(int argc, char* const argv[], const char* optstring,
     if (strncmp(o->name, current_argument, argument_name_length) == 0) {
       match = o;
       ++num_matches;
+      if (strlen(o->name) == argument_name_length) {
+        /* found match is exactly the one which we are looking for */
+        num_matches = 1;
+        break;
+      }
     }
   }
 
