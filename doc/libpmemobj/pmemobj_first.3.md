@@ -49,7 +49,7 @@ date: pmemobj API version 2.3
 **POBJ_NEXT**(), **POBJ_NEXT_TYPE_NUM**(),
 **POBJ_FOREACH**(), **POBJ_FOREACH_SAFE**(),
 **POBJ_FOREACH_TYPE**(), **POBJ_FOREACH_SAFE_TYPE**()
--- pmemobj container operations
+- pmemobj container operations
 
 
 # SYNOPSIS #

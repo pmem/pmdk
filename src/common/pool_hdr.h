@@ -111,13 +111,6 @@ struct arch_flags {
  */
 #define POOL_HDR_SIG_LEN 8
 
-
-/*
- * defines the first not checksumed field - all fields after this will be
- * ignored during checksum calculations
- */
-#define POOL_HDR_CSUM_END_OFF offsetof(struct pool_hdr, unused2)
-
 struct pool_hdr {
 	char signature[POOL_HDR_SIG_LEN];
 	uint32_t major;			/* format major version number */
@@ -176,7 +169,43 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
  */
 #define POOL_FEAT_SINGLEHDR	0x0001	/* pool header only in the first part */
 #define POOL_FEAT_CKSUM_2K	0x0002	/* only first 2K of hdr checksummed */
+#define POOL_FEAT_SDS		0x0004	/* check shutdown state */
 
-#define POOL_FEAT_ALL	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K)
+#define POOL_FEAT_ALL \
+	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_FEAT_SDS)
+
+/*
+ * incompat features effective values (if applicable)
+ */
+#ifdef SDS_ENABLED
+#define POOL_E_FEAT_SDS		POOL_FEAT_SDS
+#else
+#define POOL_E_FEAT_SDS		0x0000	/* empty */
+#endif
+
+#define POOL_FEAT_VALID \
+	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
+
+#define POOL_FEAT_DEFAULT \
+	(POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
+
+/*
+ * defines the first not checksummed field - all fields after this will be
+ * ignored during checksum calculations.
+ */
+#define POOL_HDR_CSUM_2K_END_OFF offsetof(struct pool_hdr, unused2)
+#define POOL_HDR_CSUM_4K_END_OFF offsetof(struct pool_hdr, checksum)
+
+/*
+ * pick the first not checksummed field. 2K variant is used if
+ * POOL_FEAT_CKSUM_2K incompat feature is set.
+ */
+#define POOL_HDR_CSUM_END_OFF(hdrp) \
+	((hdrp)->incompat_features & POOL_FEAT_CKSUM_2K) \
+		? POOL_HDR_CSUM_2K_END_OFF : POOL_HDR_CSUM_4K_END_OFF
+
+/* ignore shutdown state if incompat feature is disabled */
+#define IGNORE_SDS(hdrp) \
+	(((hdrp) != NULL) && (((hdrp)->incompat_features & POOL_FEAT_SDS) == 0))
 
 #endif

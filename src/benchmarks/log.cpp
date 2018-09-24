@@ -45,6 +45,7 @@
 #include "file.h"
 #include "libpmemlog.h"
 #include "os.h"
+#include "poolset_util.hpp"
 
 /*
  * Size of pool header, pool descriptor
@@ -103,7 +104,7 @@ do_warmup(struct log_bench *lb, size_t nops)
 {
 	int ret = 0;
 	size_t bsize = lb->args->vec_size * lb->args->el_size;
-	char *buf = (char *)calloc(1, bsize);
+	auto *buf = (char *)calloc(1, bsize);
 	if (!buf) {
 		perror("calloc");
 		return -1;
@@ -151,11 +152,10 @@ out:
 static int
 log_append(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)info->worker->priv;
+	auto *worker_info = (struct log_worker_info *)info->worker->priv;
 
 	assert(worker_info);
 
@@ -176,11 +176,10 @@ log_append(struct benchmark *bench, struct operation_info *info)
 static int
 log_appendv(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)info->worker->priv;
+	auto *worker_info = (struct log_worker_info *)info->worker->priv;
 
 	assert(worker_info);
 
@@ -200,11 +199,10 @@ log_appendv(struct benchmark *bench, struct operation_info *info)
 static int
 fileio_append(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)info->worker->priv;
+	auto *worker_info = (struct log_worker_info *)info->worker->priv;
 
 	assert(worker_info);
 
@@ -225,11 +223,10 @@ fileio_append(struct benchmark *bench, struct operation_info *info)
 static int
 fileio_appendv(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
-	assert(lb != NULL);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
+	assert(lb != nullptr);
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)info->worker->priv;
+	auto *worker_info = (struct log_worker_info *)info->worker->priv;
 
 	assert(worker_info);
 
@@ -250,7 +247,7 @@ fileio_appendv(struct benchmark *bench, struct operation_info *info)
 static int
 log_process_data(const void *buf, size_t len, void *arg)
 {
-	struct log_worker_info *worker_info = (struct log_worker_info *)arg;
+	auto *worker_info = (struct log_worker_info *)arg;
 	size_t left = worker_info->buf_size - worker_info->buf_ptr;
 	if (len > left) {
 		worker_info->buf_ptr = 0;
@@ -298,11 +295,10 @@ fileio_read(int fd, ssize_t len, struct log_worker_info *worker_info)
 static int
 log_read_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	assert(lb);
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)info->worker->priv;
+	auto *worker_info = (struct log_worker_info *)info->worker->priv;
 
 	assert(worker_info);
 
@@ -333,11 +329,11 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
 	int ret = 0;
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 	size_t i_size, n_vectors;
 	assert(lb);
 
-	struct log_worker_info *worker_info = (struct log_worker_info *)malloc(
+	auto *worker_info = (struct log_worker_info *)malloc(
 		sizeof(struct log_worker_info));
 	if (!worker_info) {
 		perror("malloc");
@@ -383,15 +379,15 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 		/* generate append sizes */
 		for (size_t i = 0; i < n_sizes; i++) {
-			uint32_t hr = (uint32_t)os_rand_r(&worker_info->seed);
-			uint32_t lr = (uint32_t)os_rand_r(&worker_info->seed);
+			auto hr = (uint32_t)os_rand_r(&worker_info->seed);
+			auto lr = (uint32_t)os_rand_r(&worker_info->seed);
 			uint64_t r64 = (uint64_t)hr << 32 | lr;
 			size_t width = lb->args->el_size - lb->args->min_size;
 			worker_info->rand_sizes[i] =
 				r64 % width + lb->args->min_size;
 		}
 	} else {
-		worker_info->rand_sizes = NULL;
+		worker_info->rand_sizes = nullptr;
 	}
 
 	worker_info->vec_sizes = (size_t *)calloc(
@@ -445,8 +441,7 @@ log_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
 
-	struct log_worker_info *worker_info =
-		(struct log_worker_info *)worker->priv;
+	auto *worker_info = (struct log_worker_info *)worker->priv;
 	assert(worker_info);
 
 	free(worker_info->buf);
@@ -464,11 +459,15 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 {
 	int ret = 0;
 	assert(bench);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 	struct benchmark_info *bench_info;
-	struct log_bench *lb =
-		(struct log_bench *)malloc(sizeof(struct log_bench));
+
+	char path[PATH_MAX];
+	if (util_safe_strcpy(path, args->fname, sizeof(path)) != 0)
+		return -1;
+
+	auto *lb = (struct log_bench *)malloc(sizeof(struct log_bench));
 
 	if (!lb) {
 		perror("malloc");
@@ -502,6 +501,13 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 		lb->psize = PMEMLOG_MIN_POOL;
 
 	if (args->is_poolset || util_file_is_device_dax(args->fname)) {
+		if (lb->args->fileio) {
+			fprintf(stderr, "fileio not supported on device dax "
+					"nor poolset\n");
+			ret = -1;
+			goto err_free_lb;
+		}
+
 		if (args->fsize < lb->psize) {
 			fprintf(stderr, "file size too large\n");
 			ret = -1;
@@ -509,19 +515,29 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 		}
 
 		lb->psize = 0;
-	}
+	} else if (args->is_dynamic_poolset) {
+		if (lb->args->fileio) {
+			fprintf(stderr,
+				"fileio not supported with dynamic poolset\n");
+			ret = -1;
+			goto err_free_lb;
+		}
 
-	if (lb->args->fileio && util_file_is_device_dax(args->fname)) {
-		fprintf(stderr, "fileio not supported on device dax\n");
-		ret = -1;
-		goto err_free_lb;
+		ret = dynamic_poolset_create(args->fname, lb->psize);
+		if (ret == -1)
+			goto err_free_lb;
+
+		if (util_safe_strcpy(path, POOLSET_PATH, sizeof(path)) != 0)
+			goto err_free_lb;
+
+		lb->psize = 0;
 	}
 
 	bench_info = pmembench_get_info(bench);
 
 	if (!lb->args->fileio) {
-		if ((lb->plp = pmemlog_create(args->fname, lb->psize,
-					      args->fmode)) == NULL) {
+		if ((lb->plp = pmemlog_create(path, lb->psize, args->fmode)) ==
+		    nullptr) {
 			perror("pmemlog_create");
 			ret = -1;
 			goto err_free_lb;
@@ -580,7 +596,7 @@ err_free_lb:
 static int
 log_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct log_bench *lb = (struct log_bench *)pmembench_get_priv(bench);
+	auto *lb = (struct log_bench *)pmembench_get_priv(bench);
 
 	if (!lb->args->fileio)
 		pmemlog_close(lb->plp);
@@ -667,7 +683,7 @@ log_constructor(void)
 	log_append_info.init_worker = log_init_worker;
 	log_append_info.free_worker = log_free_worker;
 	/* this will be assigned in log_init */
-	log_append_info.operation = NULL;
+	log_append_info.operation = nullptr;
 	log_append_info.measure_time = true;
 	log_append_info.clos = log_clo;
 	log_append_info.nclos = ARRAY_SIZE(log_clo);

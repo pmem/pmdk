@@ -48,7 +48,7 @@ date: pmemobj API version 2.3
 **POBJ_LAYOUT_BEGIN**(), **POBJ_LAYOUT_TOID**(),
 **POBJ_LAYOUT_ROOT**(), **POBJ_LAYOUT_NAME**(),
 **POBJ_LAYOUT_END**(), **POBJ_LAYOUT_TYPES_NUM**()
--- persistent memory transactional object store layout
+- persistent memory transactional object store layout
 
 
 # SYNOPSIS #

@@ -45,9 +45,9 @@
 #include "pmalloc.h"
 #include "redo.h"
 #include "ctl.h"
-#include "ringbuf.h"
 #include "sync.h"
 #include "stats.h"
+#include "ctl_debug.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
@@ -57,13 +57,13 @@
 #define OBJ_HDR_SIG "PMEMOBJ"	/* must be 8 bytes including '\0' */
 #define OBJ_FORMAT_MAJOR 4
 
-#define OBJ_FORMAT_COMPAT_DEFAULT 0x0000
-#define OBJ_FORMAT_INCOMPAT_DEFAULT 0x000
-#define OBJ_FORMAT_RO_COMPAT_DEFAULT 0x0000
+#define OBJ_FORMAT_COMPAT_DEFAULT	0x0000
+#define OBJ_FORMAT_INCOMPAT_DEFAULT	POOL_FEAT_DEFAULT
+#define OBJ_FORMAT_RO_COMPAT_DEFAULT	0x0000
 
-#define OBJ_FORMAT_COMPAT_CHECK 0x0000
-#define OBJ_FORMAT_INCOMPAT_CHECK POOL_FEAT_ALL
-#define OBJ_FORMAT_RO_COMPAT_CHECK 0x0000
+#define OBJ_FORMAT_COMPAT_CHECK		0x0000
+#define OBJ_FORMAT_INCOMPAT_CHECK	POOL_FEAT_VALID
+#define OBJ_FORMAT_RO_COMPAT_CHECK	0x0000
 
 /* size of the persistent part of PMEMOBJ pool descriptor (2kB) */
 #define OBJ_DSC_P_SIZE		2048
@@ -109,8 +109,8 @@ typedef void *(*memmove_local_fn)(void *dest, const void *src, size_t len,
 		unsigned flags);
 typedef void *(*memset_local_fn)(void *dest, int c, size_t len, unsigned flags);
 
-typedef void *(*persist_remote_fn)(PMEMobjpool *pop, const void *addr,
-					size_t len, unsigned lane);
+typedef int (*persist_remote_fn)(PMEMobjpool *pop, const void *addr,
+				size_t len, unsigned lane, unsigned flags);
 
 typedef uint64_t type_num_t;
 
@@ -156,13 +156,11 @@ struct pmemobjpool {
 	uint64_t uuid_lo;
 	int is_dev_dax;		/* true if mapped on device dax */
 
-	struct ctl *ctl;
+	struct ctl *ctl;	/* top level node of the ctl tree structure */
 	struct stats *stats;
-	struct ringbuf *tx_postcommit_tasks;
 
 	struct pool_set *set;		/* pool set info */
 	struct pmemobjpool *replica;	/* next replica */
-	struct redo_ctx *redo;
 
 	/* per-replica functions: pmem or non-pmem */
 	persist_local_fn persist_local;	/* persist function */
@@ -202,7 +200,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[984];
+	char unused2[992];
 };
 
 /*
@@ -243,6 +241,13 @@ OBJ_OID_IS_VALID(PMEMobjpool *pop, PMEMoid oid)
 		(oid.pool_uuid_lo == pop->uuid_lo &&
 		    oid.off >= pop->heap_offset &&
 		    oid.off < pop->heap_offset + pop->heap_size);
+}
+
+static inline int
+OBJ_OFF_IS_VALID_FROM_CTX(void *ctx, uint64_t offset)
+{
+	PMEMobjpool *pop = (PMEMobjpool *)ctx;
+	return OBJ_OFF_IS_VALID(pop, offset);
 }
 
 void obj_init(void);

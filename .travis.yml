@@ -19,20 +19,17 @@ env:
     - PMDK_CXX=g++
     - REMOTE_TESTS=1
     - VALGRIND=1
-    - LIBCPP_LIBDIR=/usr/local/libcxx/lib
-    - LIBCPP_INCDIR=/usr/local/libcxx/include/c++/v1
-    - NDCTL_ENABLE=y
   matrix:
     - COVERAGE=1 TEST_BUILD=debug
     - TEST_BUILD=debug
     - TEST_BUILD=nondebug
-    - PMDK_CC=clang PMDK_CXX=clang++ USE_LLVM_LIBCPP=1 TEST_BUILD=debug
-    - PMDK_CC=clang PMDK_CXX=clang++ USE_LLVM_LIBCPP=1 TEST_BUILD=nondebug
-    - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ USE_LLVM_LIBCPP=1 TEST_BUILD=debug
-    - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ USE_LLVM_LIBCPP=1 TEST_BUILD=nondebug
-    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n
+    - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
+    - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug
+    - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
+    - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug
+    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PUSH_IMAGE=1
+    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=y PUSH_IMAGE=1 OS=fedora OS_VER=25
     - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PMDK_CC=clang PMDK_CXX=clang++
-    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=y OS=fedora OS_VER=25
     - COVERITY=1
 
 before_install:
@@ -41,7 +38,8 @@ before_install:
   - cd utils/docker
   - ./pull-or-rebuild-image.sh
   - if [[ -f push_image_to_repo_flag ]]; then PUSH_THE_IMAGE=1; fi
-  - rm -f push_image_to_repo_flag
+  - if [[ -f skip_build_package_check ]]; then export SKIP_CHECK=1; fi
+  - rm -f push_image_to_repo_flag skip_build_package_check
 
 script:
   - ./build-travis.sh

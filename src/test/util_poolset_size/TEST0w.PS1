@@ -32,15 +32,6 @@
 #
 # src\test\util_poolset_size\TEST0 -- unit test for util_poolset_size
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

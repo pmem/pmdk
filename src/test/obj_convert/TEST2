@@ -51,7 +51,6 @@ REPL1=$DIR/pool.rep.part1
 
 rm -f $LOG
 
-rm -f $POOLSET
 create_poolset $POOLSET 32M:$POOL1:z\
 	R 32M:$REPL1:z
 

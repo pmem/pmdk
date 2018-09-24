@@ -43,8 +43,7 @@ SOURCE +=\
 	bucket.c\
 	container_ravl.c\
 	container_seglists.c\
-	ctl.c\
-	ctl_global.c\
+	ctl_debug.o\
 	cuckoo.c\
 	heap.c\
 	lane.c\
@@ -59,7 +58,6 @@ SOURCE +=\
 	ravl.c\
 	recycler.c\
 	redo.c\
-	ringbuf.c\
 	sync.c\
 	tx.c\
 	stats.c

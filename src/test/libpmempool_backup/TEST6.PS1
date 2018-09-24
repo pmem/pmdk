@@ -33,12 +33,6 @@
 # libpmempool_backup/TEST6 -- test backup to poolset which parts already exist
 # or almost all parts already exist
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

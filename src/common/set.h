@@ -37,9 +37,7 @@
 
 #ifndef PMDK_SET_H
 #define PMDK_SET_H 1
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -50,6 +48,10 @@ extern "C" {
 #include "vec.h"
 #include "pool_hdr.h"
 #include "librpmem.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  * pool sets & replicas
@@ -115,6 +117,7 @@ struct pool_set_part {
 				/* the whole poolset */
 	uuid_t uuid;
 	int has_bad_blocks;	/* part file contains bad blocks */
+	int sds_dirty_modified;	/* sds dirty flag was set */
 };
 
 struct pool_set_directory {
@@ -145,6 +148,7 @@ struct pool_replica {
 };
 
 struct pool_set {
+	char *path;		/* path of the poolset file */
 	unsigned nreplicas;
 	uuid_t uuid;
 	int rdonly;
@@ -412,7 +416,7 @@ int util_replica_close_remote(struct pool_replica *rep, unsigned repn,
 		enum del_parts_mode del);
 
 extern int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
-								unsigned lane);
+						unsigned lane, unsigned flags);
 extern int (*Rpmem_deep_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 								unsigned lane);
 extern int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,

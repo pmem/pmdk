@@ -50,7 +50,7 @@ date: libpmemcto API version 1.0
 
 _UW(pmemcto_create), _UW(pmemcto_open),
 **pmemcto_close**(), _UW(pmemcto_check)
--- create, open, close and validate close-to-open persistence pool
+- create, open, close and validate close-to-open persistence pool
 
 
 # SYNOPSIS #

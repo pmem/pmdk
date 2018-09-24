@@ -1,0 +1,4 @@
+obj_check$(nW)TEST7: START: obj_check
+ $(nW)obj_check$(nW) $(nW)testfile -l Valid_layout
+error: open $(nW)testfile": No such file or directory
+obj_check$(nW)TEST7: DONE

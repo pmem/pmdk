@@ -32,12 +32,6 @@
 #
 # pmempool_create/TEST3 -- test for inheriting pools
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

@@ -34,11 +34,6 @@
 # src/test/util_file_create/TEST2 -- unit test for util_file_create()
 #
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -50,8 +45,6 @@ setup
 
 expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
     0x7FFFFFFFFFFFFFFF:$DIR\testfile
-
-rm $DIR\testfile -Force
 
 check
 

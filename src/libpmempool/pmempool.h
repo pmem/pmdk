@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,4 +60,5 @@ struct pmempool_check_ctx {
 	struct check_data *data;
 	struct pool_data *pool;
 	enum check_result result;
+	unsigned sync_required;
 };

@@ -1,0 +1,4 @@
+obj_check$(nW)TEST8: START: obj_check
+ $(nW)obj_check$(nW) $(nW)testfile -l Valid_layout
+consistent
+obj_check$(nW)TEST8: DONE

@@ -38,9 +38,6 @@
 
 . ../unittest/unittest.sh
 
-SIZE_4KB=4096
-SIZE_2MB=2097152
-
 require_test_type medium
 require_fs_type any
 
@@ -53,9 +50,9 @@ dax_device_zero
 LOG=out${UNITTEST_NUM}.log
 ERR_LOG=err${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
-rm -rf $LOG && touch $LOG
-rm -rf $LOG_TEMP && touch $LOG_TEMP
-rm -rf $ERR_LOG && touch $ERR_LOG
+rm -f $LOG && touch $LOG
+rm -f $LOG_TEMP && touch $LOG_TEMP
+rm -f $ERR_LOG && touch $ERR_LOG
 
 LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET_IN=$DIR/poolset.in

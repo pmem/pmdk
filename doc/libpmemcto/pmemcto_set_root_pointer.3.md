@@ -46,7 +46,7 @@ date: libpmemcto API version 1.0
 # NAME #
 
 pmemcto_set_root_pointer, pmemcto_get_root_pointer
--- set or obtain the root object pointer
+- set or obtain the root object pointer
 
 
 # SYNOPSIS #

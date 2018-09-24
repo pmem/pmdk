@@ -35,7 +35,7 @@ TOP = ../..
 
 TESTCONFIG=$(TOP)/src/test/testconfig.sh
 
-TARGETS = pmempool rpmemd daxio
+TARGETS = pmempool rpmemd daxio pmreorder
 SCOPEDIRS=$(TARGETS)
 SCOPEFILES=$(foreach dir, $(SCOPEDIRS), $(shell find $(dir) -name *.[ch] ))
 

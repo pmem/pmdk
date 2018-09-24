@@ -45,7 +45,7 @@ date: pmem Tools version 1.4
 
 # NAME #
 
-**pmempool-create** -- create a persistent memory pool
+**pmempool-create** - create a persistent memory pool
 
 
 # SYNOPSIS #

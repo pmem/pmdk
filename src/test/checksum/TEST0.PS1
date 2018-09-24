@@ -31,15 +31,6 @@
 #
 # src/test/checksum/TEST0 -- unit test for checksum
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

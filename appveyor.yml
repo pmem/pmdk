@@ -12,6 +12,7 @@ configuration:
 
 environment:
   solutionname: PMDK.sln
+  ex_solutionname: Examples.sln
 
 matrix:
   fast_finish: true
@@ -39,6 +40,7 @@ before_build:
 
 build_script:
 - ps: msbuild src\$Env:solutionname /property:Configuration=$Env:CONFIGURATION /m /v:m
+- ps: msbuild src\examples\$Env:ex_solutionname /property:Configuration=$Env:CONFIGURATION /m /v:m
 
 after_build:
 - ps: utils/CREATE-ZIP.ps1 -b $Env:CONFIGURATION

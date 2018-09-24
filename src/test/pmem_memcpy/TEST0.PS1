@@ -33,15 +33,6 @@
 #
 # src/test/pmem_memcpy/TEST0 -- unit test for pmem_memcpy
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

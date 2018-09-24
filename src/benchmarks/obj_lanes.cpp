@@ -43,9 +43,7 @@
 #include "libpmemobj.h"
 
 /* an internal libpmemobj code */
-extern "C" {
 #include "lane.h"
-}
 
 /*
  * The number of times to repeat the operation, used to get more accurate
@@ -93,13 +91,12 @@ parse_lane_section(const char *arg)
 static int
 lanes_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
-	struct obj_bench *ob =
-		(struct obj_bench *)malloc(sizeof(struct obj_bench));
-	if (ob == NULL) {
+	auto *ob = (struct obj_bench *)malloc(sizeof(struct obj_bench));
+	if (ob == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -115,7 +112,7 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* create pmemobj pool */
 	ob->pop = pmemobj_create(args->fname, "obj_lanes", psize, args->fmode);
-	if (ob->pop == NULL) {
+	if (ob->pop == nullptr) {
 		fprintf(stderr, "%s\n", pmemobj_errormsg());
 		goto err;
 	}
@@ -139,7 +136,7 @@ err:
 static int
 lanes_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 
 	pmemobj_close(ob->pop);
 	free(ob);
@@ -153,7 +150,7 @@ lanes_exit(struct benchmark *bench, struct benchmark_args *args)
 static int
 lanes_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct obj_bench *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
 	struct lane_section *section;
 
 	for (int i = 0; i < OPERATION_REPEAT_COUNT; i++) {

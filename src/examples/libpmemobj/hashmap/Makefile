@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-LIBRARIES = hashmap_atomic hashmap_tx
+LIBRARIES = hashmap_atomic hashmap_tx hashmap_rp
 
 LIBS = -lpmemobj
 
@@ -38,3 +38,4 @@ include ../../Makefile.inc
 
 libhashmap_atomic.o: hashmap_atomic.o
 libhashmap_tx.o: hashmap_tx.o
+libhashmap_rp.o: hashmap_rp.o

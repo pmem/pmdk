@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,6 +40,8 @@ require_nodes 2
 require_node_libfabric 0 $RPMEM_PROVIDER
 require_node_libfabric 1 $RPMEM_PROVIDER
 
+setup
+
 init_rpmem_on_node 1 0
 
 require_node_log_files 1 pmemobj$UNITTEST_NUM.log
@@ -49,9 +51,6 @@ PMEMOBJCLI_SCRIPT="pmemobjcli.script"
 copy_files_to_node 1 ${NODE_TEST_DIR[1]} $PMEMOBJCLI_SCRIPT
 
 POOLSET_LOCAL="local_pool.set"
-
-SIZE_4KB=4096
-SIZE_2MB=2097152
 
 #
 # configure_poolsets -- configure pool set files for test

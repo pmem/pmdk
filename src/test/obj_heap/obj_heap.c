@@ -56,10 +56,25 @@ struct mock_pop {
 	void *heap;
 };
 
-static void
-obj_heap_persist(void *ctx, const void *ptr, size_t sz)
+static int
+obj_heap_persist(void *ctx, const void *ptr, size_t sz, unsigned flags)
 {
 	UT_ASSERTeq(pmem_msync(ptr, sz), 0);
+
+	return 0;
+}
+
+static int
+obj_heap_flush(void *ctx, const void *ptr, size_t sz, unsigned flags)
+{
+	UT_ASSERTeq(pmem_msync(ptr, sz), 0);
+
+	return 0;
+}
+
+static void
+obj_heap_drain(void *ctx)
+{
 }
 
 static void *
@@ -81,13 +96,14 @@ init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
 		&l->zone0.chunks[chunk_id];
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
 
-	run->block_size = 1024;
-	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
+	run->hdr.block_size = 1024;
+	memset(run->content, 0xFF, RUN_DEFAULT_BITMAP_SIZE);
 	UT_ASSERTeq(score % 64, 0);
 	score /= 64;
 
-	for (; score > 0; --score) {
-		run->bitmap[score] = 0;
+	uint64_t *bitmap = (uint64_t *)run->content;
+	for (; score >= 0; --score) {
+		bitmap[score] = 0;
 	}
 }
 
@@ -102,24 +118,13 @@ init_run_with_max_block(struct heap_layout *l, uint32_t chunk_id)
 		&l->zone0.chunks[chunk_id];
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
 
-	run->block_size = 1024;
-	memset(run->bitmap, 0xFF, sizeof(run->bitmap));
+	uint64_t *bitmap = (uint64_t *)run->content;
+	run->hdr.block_size = 1024;
+	memset(bitmap, 0xFF, RUN_DEFAULT_BITMAP_SIZE);
 
 	/* the biggest block is 10 bits */
-	run->bitmap[3] =
+	bitmap[3] =
 	0b1000001110111000111111110000111111000000000011111111110000000011;
-}
-
-static void
-test_alloc_class_bitmap_correctness(void)
-{
-	struct alloc_class_run_proto proto;
-	alloc_class_generate_run_proto(&proto, RUNSIZE / 10, 1);
-	/* 54 set (not available for allocations), and 10 clear (available) */
-	uint64_t bitmap_lastval =
-	0b1111111111111111111111111111111111111111111111111111110000000000;
-
-	UT_ASSERTeq(proto.bitmap_lastval, bitmap_lastval);
 }
 
 static void
@@ -127,14 +132,12 @@ test_container(struct block_container *bc, struct palloc_heap *heap)
 {
 	UT_ASSERTne(bc, NULL);
 
-	struct memory_block a = {1, 0, 1, 0};
-	struct memory_block b = {2, 0, 2, 0};
-	struct memory_block c = {3, 0, 3, 0};
-	struct memory_block d = {5, 0, 5, 0};
+	struct memory_block a = {1, 0, 1, 4};
+	struct memory_block b = {1, 0, 2, 8};
+	struct memory_block c = {1, 0, 3, 16};
+	struct memory_block d = {1, 0, 5, 32};
+
 	init_run_with_score(heap->layout, 1, 128);
-	init_run_with_score(heap->layout, 2, 128);
-	init_run_with_score(heap->layout, 3, 128);
-	init_run_with_score(heap->layout, 5, 128);
 	memblock_rebuild_state(heap, &a);
 	memblock_rebuild_state(heap, &b);
 	memblock_rebuild_state(heap, &c);
@@ -208,6 +211,8 @@ test_heap(void)
 	memset(pop, 0, MOCK_POOL_SIZE);
 	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
 	pop->p_ops.persist = obj_heap_persist;
+	pop->p_ops.flush = obj_heap_flush;
+	pop->p_ops.drain = obj_heap_drain;
 	pop->p_ops.memset = obj_heap_memset;
 	pop->p_ops.base = pop;
 	pop->set = MALLOC(sizeof(*(pop->set)));
@@ -230,8 +235,6 @@ test_heap(void)
 		pop, p_ops, s, pop->set) == 0);
 	UT_ASSERT(heap_buckets_init(heap) == 0);
 	UT_ASSERT(pop->heap.rt != NULL);
-
-	test_alloc_class_bitmap_correctness();
 
 	test_container((struct block_container *)container_new_ravl(heap),
 		heap);
@@ -304,6 +307,8 @@ test_recycler(void)
 	memset(pop, 0, MOCK_POOL_SIZE);
 	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
 	pop->p_ops.persist = obj_heap_persist;
+	pop->p_ops.flush = obj_heap_flush;
+	pop->p_ops.drain = obj_heap_drain;
 	pop->p_ops.memset = obj_heap_memset;
 	pop->p_ops.base = pop;
 	pop->set = MALLOC(sizeof(*(pop->set)));
@@ -352,10 +357,10 @@ test_recycler(void)
 	memblock_rebuild_state(&pop->heap, &mrun2);
 
 	ret = recycler_put(r, &mrun,
-		recycler_calc_score(&pop->heap, &mrun, NULL));
+		recycler_element_new(&pop->heap, &mrun));
 	UT_ASSERTeq(ret, 0);
 	ret = recycler_put(r, &mrun2,
-		recycler_calc_score(&pop->heap, &mrun2, NULL));
+		recycler_element_new(&pop->heap, &mrun2));
 	UT_ASSERTeq(ret, 0);
 
 	struct memory_block mrun_ret = MEMORY_BLOCK_NONE;
@@ -370,10 +375,10 @@ test_recycler(void)
 	UT_ASSERTeq(mrun2.chunk_id, mrun2_ret.chunk_id);
 	UT_ASSERTeq(mrun.chunk_id, mrun_ret.chunk_id);
 
-	init_run_with_score(pop->heap.layout, 7, 256);
-	init_run_with_score(pop->heap.layout, 2, 64);
-	init_run_with_score(pop->heap.layout, 5, 512);
-	init_run_with_score(pop->heap.layout, 10, 128);
+	init_run_with_score(pop->heap.layout, 7, 64);
+	init_run_with_score(pop->heap.layout, 2, 128);
+	init_run_with_score(pop->heap.layout, 5, 192);
+	init_run_with_score(pop->heap.layout, 10, 256);
 
 	mrun.chunk_id = 7;
 	mrun2.chunk_id = 2;
@@ -390,25 +395,25 @@ test_recycler(void)
 	mrun4_ret.size_idx = 1;
 
 	ret = recycler_put(r, &mrun,
-		recycler_calc_score(&pop->heap, &mrun, NULL));
+		recycler_element_new(&pop->heap, &mrun));
 	UT_ASSERTeq(ret, 0);
 	ret = recycler_put(r, &mrun2,
-		recycler_calc_score(&pop->heap, &mrun2, NULL));
+		recycler_element_new(&pop->heap, &mrun2));
 	UT_ASSERTeq(ret, 0);
 	ret = recycler_put(r, &mrun3,
-		recycler_calc_score(&pop->heap, &mrun3, NULL));
+		recycler_element_new(&pop->heap, &mrun3));
 	UT_ASSERTeq(ret, 0);
 	ret = recycler_put(r, &mrun4,
-		recycler_calc_score(&pop->heap, &mrun4, NULL));
+		recycler_element_new(&pop->heap, &mrun4));
 	UT_ASSERTeq(ret, 0);
 
-	ret = recycler_get(r, &mrun2_ret);
-	UT_ASSERTeq(ret, 0);
-	ret = recycler_get(r, &mrun4_ret);
-	UT_ASSERTeq(ret, 0);
 	ret = recycler_get(r, &mrun_ret);
 	UT_ASSERTeq(ret, 0);
+	ret = recycler_get(r, &mrun2_ret);
+	UT_ASSERTeq(ret, 0);
 	ret = recycler_get(r, &mrun3_ret);
+	UT_ASSERTeq(ret, 0);
+	ret = recycler_get(r, &mrun4_ret);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(mrun.chunk_id, mrun_ret.chunk_id);
 	UT_ASSERTeq(mrun2.chunk_id, mrun2_ret.chunk_id);
@@ -420,7 +425,7 @@ test_recycler(void)
 	memblock_rebuild_state(&pop->heap, &mrun5);
 
 	ret = recycler_put(r, &mrun5,
-		recycler_calc_score(&pop->heap, &mrun5, NULL));
+		recycler_element_new(&pop->heap, &mrun5));
 	UT_ASSERTeq(ret, 0);
 
 	struct memory_block mrun5_ret = MEMORY_BLOCK_NONE;

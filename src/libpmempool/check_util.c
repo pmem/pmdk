@@ -368,7 +368,7 @@ check_status_create(PMEMpoolcheck *ppc, enum pmempool_check_msg_type type,
 		int ret = snprintf(st->msg + p, MAX_MSG_STR_SIZE - (size_t)p,
 			": %s", buff);
 		if (ret < 0 || ret >= (int)(MAX_MSG_STR_SIZE - (size_t)p)) {
-			ERR("!snprintf");
+			ERR("snprintf: %d", ret);
 			free(st);
 			return -1;
 		}

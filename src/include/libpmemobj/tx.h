@@ -126,7 +126,7 @@ pmemobj_tx_add_range((o).oid, 0, sizeof(*(o)._type))
 	TX_ADD_DIRECT(&(D_RO(o)->field))
 
 #define TX_ADD_DIRECT(p)\
-pmemobj_tx_add_range_direct(p, sizeof(*p))
+pmemobj_tx_add_range_direct(p, sizeof(*(p)))
 
 #define TX_ADD_FIELD_DIRECT(p, field)\
 pmemobj_tx_add_range_direct(&(p)->field, sizeof((p)->field))
@@ -138,7 +138,7 @@ pmemobj_tx_xadd_range((o).oid, 0, sizeof(*(o)._type), flags)
 	TX_XADD_DIRECT(&(D_RO(o)->field), flags)
 
 #define TX_XADD_DIRECT(p, flags)\
-pmemobj_tx_xadd_range_direct(p, sizeof(*p), flags)
+pmemobj_tx_xadd_range_direct(p, sizeof(*(p)), flags)
 
 #define TX_XADD_FIELD_DIRECT(p, field, flags)\
 pmemobj_tx_xadd_range_direct(&(p)->field, sizeof((p)->field), flags)
@@ -179,11 +179,11 @@ pmemobj_tx_free((o).oid)
 
 #define TX_SET(o, field, value) (\
 	TX_ADD_FIELD(o, field),\
-	D_RW(o)->field = value)
+	D_RW(o)->field = (value))
 
 #define TX_SET_DIRECT(p, field, value) (\
 	TX_ADD_FIELD_DIRECT(p, field),\
-	(p)->field = value)
+	(p)->field = (value))
 
 static inline void *
 TX_MEMCPY(void *dest, const void *src, size_t num)

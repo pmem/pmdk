@@ -1,12 +1,11 @@
 replica 0: an ADR failure was detected - your pool might be corrupted
 $(nW): not consistent
 replica 0: checking shutdown state
-An ADR failure was detected - your pool might be corrupted. Do you want to reset shutdown state for replica: 0 to be able to open pool on your own risk? If you have more then one replica you will have to synchronize your pool after this operation [Y/n] y
+replica 0: an ADR failure was detected - your pool might be corrupted. Do you want to reset shutdown state at your own risk? If you have more then one replica you will have to synchronize your pool after this operation. [Y/n] y
 replica 0: resetting pool_hdr.sds
-replica 1: checking shutdown state
-replica 1: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 1 part 0: checking pool header
 replica 1 part 0: pool header correct
-$(nW): repaired
+$(nW): sync required
+$(nW): sync required

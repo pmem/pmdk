@@ -36,6 +36,7 @@
  * usage: rpmemd_db <log-file> <root_dir> <pool_desc_1> <pool_desc_2>
  */
 
+#include "file.h"
 #include "unittest.h"
 #include "librpmem.h"
 #include "rpmemd_db.h"
@@ -129,6 +130,7 @@ test_create(const char *root_dir, const char *pool_desc)
 {
 	struct rpmem_pool_attr attr;
 	memset(&attr, 0, sizeof(attr));
+	attr.incompat_features = 2;
 	struct rpmemd_db_pool *prp;
 	struct rpmemd_db *db;
 	int ret = -1;
@@ -162,6 +164,7 @@ test_create_dual(const char *root_dir, const char *pool_desc_1,
 {
 	struct rpmem_pool_attr attr1;
 	memset(&attr1, 0, sizeof(attr1));
+	attr1.incompat_features = 2;
 	struct rpmemd_db_pool *prp1, *prp2;
 	struct rpmemd_db *db;
 	int ret = -1;
@@ -272,7 +275,7 @@ test_open(const char *root_dir, const char *pool_desc)
 
 	fill_rand(&attr1, sizeof(attr1));
 	attr1.major = 1;
-	attr1.incompat_features = 0;
+	attr1.incompat_features = 2;
 
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	if (db == NULL) {
@@ -320,9 +323,9 @@ test_open_dual(const char *root_dir, const char *pool_desc_1,
 	fill_rand(&attr1a, sizeof(attr1a));
 	fill_rand(&attr1b, sizeof(attr1b));
 	attr1a.major = 1;
-	attr1a.incompat_features = 0;
+	attr1a.incompat_features = 2;
 	attr1b.major = 1;
-	attr1b.incompat_features = 0;
+	attr1b.incompat_features = 2;
 
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	if (db == NULL) {
@@ -398,9 +401,9 @@ test_set_attr(const char *root_dir, const char *pool_desc)
 	fill_rand(&attr[POOL_ATTR_CREATE], sizeof(attr[POOL_ATTR_CREATE]));
 	fill_rand(&attr[POOL_ATTR_SET_ATTR], sizeof(attr[POOL_ATTR_SET_ATTR]));
 	attr[POOL_ATTR_CREATE].major = 1;
-	attr[POOL_ATTR_CREATE].incompat_features = 0;
+	attr[POOL_ATTR_CREATE].incompat_features = 2;
 	attr[POOL_ATTR_SET_ATTR].major = 1;
-	attr[POOL_ATTR_SET_ATTR].incompat_features = 0;
+	attr[POOL_ATTR_SET_ATTR].incompat_features = 2;
 
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	if (db == NULL) {
@@ -487,9 +490,9 @@ test_set_attr_dual(const char *root_dir, const char *pool_desc_1,
 			sizeof(attr[p][POOL_ATTR_SET_ATTR]));
 
 		attr[p][POOL_ATTR_CREATE].major = 1;
-		attr[p][POOL_ATTR_CREATE].incompat_features = 0;
+		attr[p][POOL_ATTR_CREATE].incompat_features = 2;
 		attr[p][POOL_ATTR_SET_ATTR].major = 1;
-		attr[p][POOL_ATTR_SET_ATTR].incompat_features = 0;
+		attr[p][POOL_ATTR_SET_ATTR].incompat_features = 2;
 
 		/* create pool */
 		prp[p] = rpmemd_db_pool_create(db, pool_desc[p], 0,
@@ -565,13 +568,17 @@ err:
 static int
 exists_cb(struct part_file *pf, void *arg)
 {
-	return os_access(pf->part->path, F_OK);
+	return util_file_exists(pf->part->path);
 }
 
 static int
 noexists_cb(struct part_file *pf, void *arg)
 {
-	return !os_access(pf->part->path, F_OK);
+	int exists = util_file_exists(pf->part->path);
+	if (exists < 0)
+		return -1;
+	else
+		return !exists;
 }
 
 /*
@@ -589,7 +596,7 @@ test_remove(const char *root_dir, const char *pool_desc)
 
 	fill_rand(&attr, sizeof(attr));
 	strncpy((char *)attr.poolset_uuid, "TEST", sizeof(attr.poolset_uuid));
-	attr.incompat_features = 0;
+	attr.incompat_features = 2;
 
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	UT_ASSERTne(db, NULL);
@@ -599,13 +606,13 @@ test_remove(const char *root_dir, const char *pool_desc)
 	rpmemd_db_pool_close(db, prp);
 
 	ret = util_poolset_foreach_part(path, exists_cb, NULL);
-	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 1);
 
 	ret = rpmemd_db_pool_remove(db, pool_desc, 0, 0);
 	UT_ASSERTeq(ret, 0);
 
 	ret = util_poolset_foreach_part(path, noexists_cb, NULL);
-	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(ret, 1);
 
 	prp = rpmemd_db_pool_create(db, pool_desc, 0, &attr);
 	UT_ASSERTne(prp, NULL);
@@ -614,8 +621,8 @@ test_remove(const char *root_dir, const char *pool_desc)
 	ret = rpmemd_db_pool_remove(db, pool_desc, 0, 1);
 	UT_ASSERTeq(ret, 0);
 
-	ret = os_access(path, F_OK);
-	UT_ASSERTne(ret, 0);
+	ret = util_file_exists(path);
+	UT_ASSERTne(ret, 1);
 
 	rpmemd_db_fini(db);
 }

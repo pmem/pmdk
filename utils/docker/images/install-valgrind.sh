@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,11 +36,9 @@
 
 set -e
 
-git clone --recursive https://github.com/pmem/valgrind.git
+git clone https://github.com/pmem/valgrind.git
 cd valgrind
-git checkout pmem-3.12
-git submodule init
-git submodule update
+git checkout b660021d776daec4165c6645bedf66d6d6fc545a
 ./autogen.sh
 ./configure
 make

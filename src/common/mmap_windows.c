@@ -43,7 +43,7 @@
  * util_map_hint_unused -- use VirtualQuery to determine hint address
  *
  * This is a helper function for util_map_hint().
- * It iterates thru memory regions and looks for the first unused address
+ * It iterates through memory regions and looks for the first unused address
  * in the process address space that is:
  * - greater or equal 'minaddr' argument,
  * - large enough to hold range of given length,

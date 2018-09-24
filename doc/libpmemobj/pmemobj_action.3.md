@@ -46,10 +46,11 @@ date: pmemobj API version 2.3
 
 # NAME #
 
-**pmemobj_reserve**(), **pmemobj_xreserve**(), **pmemobj_set_value**(),
-**pmemobj_publish**(), **pmemobj_tx_publish**(), **pmemobj_cancel**(),
-**POBJ_RESERVE_NEW**(), **POBJ_RESERVE_ALLOC**()
--- Delayed atomicity actions (EXPERIMENTAL)
+**pmemobj_reserve**(), **pmemobj_xreserve**(), **pmemobj_defer_free**(),
+**pmemobj_set_value**(), **pmemobj_publish**(), **pmemobj_tx_publish**(),
+**pmemobj_cancel**(), **POBJ_RESERVE_NEW**(), **POBJ_RESERVE_ALLOC**(),
+**POBJ_XRESERVE_NEW**(),**POBJ_XRESERVE_ALLOC**()
+- Delayed atomicity actions (EXPERIMENTAL)
 
 
 # SYNOPSIS #
@@ -61,9 +62,10 @@ PMEMoid pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num); (EXPERIMENTAL)
 PMEMoid pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 	size_t size, uint64_t type_num, uint64_t flags); (EXPERIMENTAL)
+void pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act);
 void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 	uint64_t *ptr, uint64_t value); (EXPERIMENTAL)
-void pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
+int pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
 	size_t actvcnt); (EXPERIMENTAL)
 int pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt); (EXPERIMENTAL)
 pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv,
@@ -71,6 +73,8 @@ pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv,
 
 POBJ_RESERVE_NEW(pop, t, act) (EXPERIMENTAL)
 POBJ_RESERVE_ALLOC(pop, t, size, act) (EXPERIMENTAL)
+POBJ_XRESERVE_NEW(pop, t, act, flags) (EXPERIMENTAL)
+POBJ_XRESERVE_ALLOC(pop, t, size, act, flags) (EXPERIMENTAL)
 ```
 
 # DESCRIPTION #
@@ -86,8 +90,7 @@ the persistent publication of a set of prepared actions to an arbitrary moment
 in time of the execution of a program.
 
 The publication is fail-safe atomic in the scope of the entire collection of
-actions, but the number of said actions is limited by *POBJ_MAX_ACTIONS*
-constant. If a program exists without publishing the actions, or the actions are
+actions. If a program exits without publishing the actions, or the actions are
 canceled, any resources reserved by those actions are released and placed back in
 the pool.
 
@@ -109,10 +112,13 @@ of the object must be manually persisted, just like in the case of the atomic AP
 **pmemobj_xreserve**() is equivalent to **pmemobj_reserve**(), but with an
 additional *flags* argument that is a bitmask of the following values:
 
-+ **POBJ_XALLOC_ZERO** - zero the object
++ **POBJ_XALLOC_ZERO** - zero the object (and persist it)
 
 + **POBJ_CLASS_ID(class_id)** - allocate the object from allocation class
 *class_id*. The class id cannot be 0.
+
+**pmemobj_defer_free**() function creates a deferred free action, meaning that
+the provided object will be freed when the action is published.
 
 The **pmemobj_set_value** function prepares an action that, once published, will
 modify the memory location pointed to by *ptr* to *value*.
@@ -120,7 +126,6 @@ modify the memory location pointed to by *ptr* to *value*.
 The **pmemobj_publish** function publishes the provided set of actions. The
 publication is fail-safe atomic. Once done, the persistent state will reflect
 the changes contained in the actions.
-The *actvcnt* cannot exceed *POBJ_MAX_ACTIONS*.
 
 The **pmemobj_tx_publish** function moves the provided actions to the scope of
 the transaction in which it is called. Only object reservations are supported
@@ -135,6 +140,10 @@ The size of the reservation is determined from the provided type *t*.
 
 The **POBJ_RESERVE_ALLOC** macro is a typed variant of **pmemobj_reserve**.
 The *size* of the reservation is user-provided.
+
+The **POBJ_XRESERVE_NEW** and the **POBJ_XRESERVE_ALLOC** macros are equivalent
+to **POBJ_RESERVE_NEW** and the **POBJ_RESERVE_ALLOC**, but with an additional
+*flags* argument defined for **pmemobj_xreserve**().
 
 # EXAMPLES #
 
@@ -179,6 +188,9 @@ reserved object, otherwise an *OID_NULL* is returned.
 
 On success, **pmemobj_tx_publish**() returns 0, otherwise,
 stage changes to *TX_STAGE_ONABORT* and *errno* is set appropriately
+
+On success, **pmemobj_publish**() returns 0, otherwise, returns -1 and *errno*
+is set appropriately.
 
 # SEE ALSO #
 

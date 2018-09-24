@@ -33,11 +33,6 @@
 #
 # src/test/util_file_open/TEST0 -- unit test for util_file_open()
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -58,8 +53,6 @@ expect_normal_exit $Env:EXE_DIR\util_file_open$Env:EXESUFFIX 0x4000 `
     $DIR\testfile0 `
     $DIR\testfile1 `
     $DIR\testfile2
-
-rm -Force -Recurse $DIR\testdir1
 
 check
 

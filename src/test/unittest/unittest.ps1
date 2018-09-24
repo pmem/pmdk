@@ -360,7 +360,7 @@ function create_poolset {
             # non-zeroed file, except 4K header
             'h' { create_nonzeroed_file $asize 4K $fpath }
             # create empty directory
-            'd' { new-item $fpath -itemtype directory >> $Env:PREP_LOG_FILE }
+            'd' { new-item $fpath -force -itemtype directory >> $Env:PREP_LOG_FILE }
         }
 
         # XXX: didn't convert chmod
@@ -376,7 +376,7 @@ function create_poolset {
 # dump_last_n_lines -- dumps the last N lines of given log file to stdout
 #
 function dump_last_n_lines {
-    if (Test-Path $Args[0]) {
+    if ($Args[0] -And (Test-Path $Args[0])) {
         sv -Name fname ((Get-Location).path + "\" + $Args[0])
         sv -Name ln (getLineCount $fname)
         if ($ln -gt $UT_DUMP_LINES) {
@@ -1008,7 +1008,18 @@ function require_short_path {
 # setup -- print message that test setup is commencing
 #
 function setup {
-    $Script:DIR = $DIR + $Env:SUFFIX
+
+    $curtestdir = (Get-Item -Path ".\").BaseName
+
+    # just in case
+    if (-Not $curtestdir) {
+        fatal "curtestdir does not exist"
+    }
+
+    $curtestdir = "test_" + $curtestdir
+
+    $Script:DIR = $DIR + "\" + $Env:DIRSUFFIX + "\" + $curtestdir + $Env:UNITTEST_NUM + $Env:SUFFIX
+
 
     # test type must be explicitly specified
     if ($req_test_type -ne "1") {
@@ -1043,6 +1054,21 @@ function setup {
 
     if ($Env:TM -eq "1" ) {
         $script:tm = [system.diagnostics.stopwatch]::startNew()
+    }
+
+    $DEBUG_DIR = '..\..\x64\Debug'
+    $RELEASE_DIR = '..\..\x64\Release'
+
+    if ($Env:BUILD -eq 'nondebug') {
+        if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
+            $Env:PMDK_LIB_PATH_NONDEBUG = $RELEASE_DIR + '\libs\'
+        }
+        $Env:Path = $Env:PMDK_LIB_PATH_NONDEBUG + ';' + $Env:Path
+    } elseif ($Env:BUILD -eq 'debug') {
+        if (-Not $Env:PMDK_LIB_PATH_DEBUG) {
+            $Env:PMDK_LIB_PATH_DEBUG = $DEBUG_DIR + '\libs\'
+        }
+        $Env:Path = $Env:PMDK_LIB_PATH_DEBUG + ';' + $Env:Path
     }
 }
 
@@ -1090,11 +1116,20 @@ if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
 if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋"}
 if (-Not $Env:DIRSUFFIX) { $Env:DIRSUFFIX = ""}
 
-if ($Env:EXE_DIR -eq $null) {
-    $Env:EXE_DIR = "..\..\x64\debug"
+if ($Env:BUILD -eq 'nondebug') {
+    if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
+        $PMEMPOOL = $RELEASE_DIR + "\libs\pmempool$Env:EXESUFFIX"
+    } else {
+        $PMEMPOOL = "$Env:PMDK_LIB_PATH_NONDEBUG\pmempool$Env:EXESUFFIX"
+    }
+} elseif ($Env:BUILD -eq 'debug') {
+    if (-Not $Env:PMDK_LIB_PATH_DEBUG) {
+        $PMEMPOOL = $DEBUG_DIR + "\libs\pmempool$Env:EXESUFFIX"
+    } else {
+        $PMEMPOOL = "$Env:PMDK_LIB_PATH_DEBUG\pmempool$Env:EXESUFFIX"
+    }
 }
 
-$PMEMPOOL="$Env:EXE_DIR\pmempool$Env:EXESUFFIX"
 $PMEMSPOIL="$Env:EXE_DIR\pmemspoil$Env:EXESUFFIX"
 $PMEMWRITE="$Env:EXE_DIR\pmemwrite$Env:EXESUFFIX"
 $PMEMALLOC="$Env:EXE_DIR\pmemalloc$Env:EXESUFFIX"
@@ -1129,19 +1164,6 @@ if (-Not $Env:TEST_TYPE_LD_LIBRARY_PATH) {
 # constructing test files.  DIR is chosen based on the fs-type for
 # this test, and if the appropriate fs-type doesn't have a directory
 # defined in testconfig.sh, the test is skipped.
-#
-# This behavior can be overridden by passin in DIR with -d.  Example:
-#	.\TEST0 -d \force\test\dir
-#
-
-sv -Name curtestdir (Get-Item -Path ".\").BaseName
-
-# just in case
-if (-Not $curtestdir) {
-    fatal "$curtestdir does not exist"
-}
-
-sv -Name curtestdir ("test_" + $curtestdir)
 
 if (-Not $Env:UNITTEST_NUM) {
     fatal "UNITTEST_NUM does not have a value"
@@ -1153,52 +1175,51 @@ if (-Not $Env:UNITTEST_NAME) {
 
 $Global:REAL_FS = $Env:FS
 
-if ($DIR) {
-    # if user passed it in...
-    sv -Name DIR ($DIR + "\" + $curtestdir + $Env:UNITTEST_NUM)
-} else {
-    $tail = "\" + $Env:DIRSUFFIX + "\" + $curtestdir + $Env:UNITTEST_NUM
-    # choose based on FS env variable
-    switch ($Env:FS) {
-        'pmem' {
-            # if a variable is set - it must point to a valid directory
-            if (-Not $Env:PMEM_FS_DIR) {
-                fatal "${Env:UNITTEST_NAME}: PMEM_FS_DIR not set"
-            }
+
+# choose based on FS env variable
+switch ($Env:FS) {
+    'pmem' {
+        # if a variable is set - it must point to a valid directory
+        if (-Not $Env:PMEM_FS_DIR) {
+            fatal "${Env:UNITTEST_NAME}: PMEM_FS_DIR not set"
+        }
+        sv -Name DIR $Env:PMEM_FS_DIR
+        if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
+            $Env:PMEM_IS_PMEM_FORCE = "1"
+        }
+    }
+    'non-pmem' {
+        # if a variable is set - it must point to a valid directory
+        if (-Not $Env:NON_PMEM_FS_DIR) {
+            fatal "${Env:UNITTEST_NAME}: NON_PMEM_FS_DIR not set"
+        }
+        sv -Name DIR $Env:NON_PMEM_FS_DIR
+    }
+    'any' {
+         if ($Env:PMEM_FS_DIR) {
             sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
+            $Global:REAL_FS='pmem'
             if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
                 $Env:PMEM_IS_PMEM_FORCE = "1"
             }
+        } ElseIf ($Env:NON_PMEM_FS_DIR) {
+            sv -Name DIR $Env:NON_PMEM_FS_DIR
+            $Global:REAL_FS='non-pmem'
+        } Else {
+            fatal "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
         }
-        'non-pmem' {
-            # if a variable is set - it must point to a valid directory
-            if (-Not $Env:NON_PMEM_FS_DIR) {
-                fatal "${Env:UNITTEST_NAME}: NON_PMEM_FS_DIR not set"
-            }
-            sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
-        }
-        'any' {
-             if ($Env:PMEM_FS_DIR) {
-                sv -Name DIR ($Env:PMEM_FS_DIR + $tail)
-                $Global:REAL_FS='pmem'
-                if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {
-                    $Env:PMEM_IS_PMEM_FORCE = "1"
-                }
-            } ElseIf ($Env:NON_PMEM_FS_DIR) {
-                sv -Name DIR ($Env:NON_PMEM_FS_DIR + $tail)
-                $Global:REAL_FS='non-pmem'
-            } Else {
-                fatal "${Env:UNITTEST_NAME}: fs-type=any and both env vars are empty"
-            }
-        }
-        'none' {
-            sv -Name DIR "\nul\not_existing_dir\${curtestdir}${Env:UNITTEST_NUM}"
-        }
-        default {
-            fatal "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
-        }
-    } # switch
-}
+    }
+    'none' {
+        # don't add long path nor unicode sufix to DIR
+        require_no_unicode
+        require_short_path
+        sv -Name DIR "\nul\not_existing_dir\"
+    }
+    default {
+        fatal "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
+    }
+} # switch
+
 
 # Length of pool file's signature
 sv -Name SIG_LEN 8
@@ -1261,4 +1282,22 @@ function enable_log_append() {
     rm -Force -ErrorAction SilentlyContinue $Env:TRACE_LOG_FILE
     rm -Force -ErrorAction SilentlyContinue $Env:PREP_LOG_FILE
     $Env:UNITTEST_LOG_APPEND=1
+}
+
+#
+# require_free_space -- check if there is enough free space to run the test
+# Example, checking if there is 1 GB of free space on disk:
+# require_free_space 1G
+#
+function require_free_space() {
+	$req_free_space = (convert_to_bytes $args[0])
+	$path = $DIR -replace '\\\\\?\\', ''
+	$device_name = (Get-Item $path).PSDrive.Root
+	$filter = "Name='$($device_name -replace '\\', '\\')'"
+	$free_space = (gwmi Win32_Volume -Filter $filter | select FreeSpace).freespace
+	if ([INT64]$free_space -lt [INT64]$req_free_space)
+	{
+		msg "${Env:UNITTEST_NAME}: SKIP not enough free space"
+		exit 0
+	}
 }

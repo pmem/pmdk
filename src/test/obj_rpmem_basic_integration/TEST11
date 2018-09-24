@@ -31,8 +31,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# obj_rpmem_basic_integration/TEST11 --
+# obj_rpmem_basic_integration/TEST11 -- rpmem replication to single remote
+#       replica with valgrind memcheck on target side
 #
+
+# initiator side is covered by TEST9
 
 EXE=obj_basic_integration
 
@@ -54,9 +57,6 @@ init_valgrind_on_node 0
 
 init_rpmem_on_node 1 0
 
-# upload test
-copy_files_to_node 1 . ../$EXE/$EXE$EXESUFFIX
-
 # define files and directories
 TEST_SET_LOCAL="testset_local"
 TEST_SET_REMOTE="testset_remote"
@@ -75,9 +75,11 @@ copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$TEST_SET_LOCAL
 rm_files_from_node 0 ${NODE_DIR[0]}$TEST_FILE_REMOTE
 rm_files_from_node 1 ${NODE_DIR[1]}$TEST_FILE_LOCAL
 
-# execute test
-PMEMOBJ_NLANES=300
+# limited number of lanes speed up test execution
+PMEMOBJ_NLANES=50
 export_vars_node 1 PMEMOBJ_NLANES
+
+# execute test
 expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX ${NODE_DIR[1]}$TEST_SET_LOCAL
 
 pass

@@ -384,7 +384,7 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst)
 
 	if (is_dst) {
 		/* XXX - clear only badblocks in range bound by offset/len */
-		if (os_dimm_devdax_clear_badblocks(dev->path)) {
+		if (os_dimm_devdax_clear_badblocks_all(dev->path)) {
 			ERR("failed to clear badblocks on \"%s\"\n",
 					dev->path);
 			return -1;

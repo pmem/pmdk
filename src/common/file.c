@@ -124,6 +124,35 @@ out:
 #endif
 
 /*
+ * util_file_exists -- checks whether file exists
+ */
+int
+util_file_exists(const char *path)
+{
+	LOG(3, "path \"%s\"", path);
+
+	if (os_access(path, F_OK) == 0)
+		return 1;
+
+	if (errno != ENOENT) {
+		ERR("!os_access \"%s\"", path);
+		return -1;
+	}
+
+	/*
+	 * ENOENT means that some component of a pathname does not exists.
+	 *
+	 * XXX - we should also call os_access on parent directory and
+	 * if this also results in ENOENT -1 should be returned.
+	 *
+	 * The problem is that we would need to use realpath, which fails
+	 * if file does not exist.
+	 */
+
+	return 0;
+}
+
+/*
  * util_fd_is_device_dax -- check whether the file descriptor is associated
  *                          with a device dax
  */
@@ -608,4 +637,28 @@ util_unlink_flock(const char *path)
 
 	return ret;
 #endif
+}
+
+/*
+ * util_write_all -- a wrapper for util_write
+ *
+ * writes exactly count bytes from buf to file referred to by fd
+ * returns -1 on error, 0 otherwise
+ */
+int
+util_write_all(int fd, const char *buf, size_t count)
+{
+	ssize_t n_wrote = 0;
+	size_t total = 0;
+
+	while (count > total) {
+		n_wrote = util_write(fd, buf, count - total);
+		if (n_wrote <= 0)
+			return -1;
+
+		buf += (size_t)n_wrote;
+		total += (size_t)n_wrote;
+	}
+
+	return 0;
 }

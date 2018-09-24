@@ -33,11 +33,6 @@
 #
 # src/test/scope/TEST0 -- scope test to check libvmem symbols
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -55,7 +50,7 @@ function parse_lib {
 }
 
 echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
-parse_lib "$Env:EXE_DIR\libvmem.dll"
+parse_lib "$Env:LIBS_DIR\libvmem.dll"
 
 check
 

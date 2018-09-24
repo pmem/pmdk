@@ -49,8 +49,6 @@
 
 include ../../../common.inc
 
-ARCH := $(call get_arch)
-
 ifeq ($(ARCH), x86_64)
 # libart uses x86 intrinsics
 PROGS = arttree examine_arttree

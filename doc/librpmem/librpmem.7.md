@@ -55,7 +55,7 @@ date: rpmem API version 1.2
 
 # NAME #
 
-**librpmem** -- remote persistent memory support library (EXPERIMENTAL)
+**librpmem** - remote persistent memory support library (EXPERIMENTAL)
 
 
 # SYNOPSIS #
@@ -395,7 +395,7 @@ main(int argc, char *argv[])
 	memset(pool, 0, POOL_SIZE);
 
 	/* make local data persistent on remote node */
-	ret = rpmem_persist(rpp, 0, POOL_SIZE, 0);
+	ret = rpmem_persist(rpp, 0, POOL_SIZE, 0, 0);
 	if (ret) {
 		fprintf(stderr, "rpmem_persist: %s\n", rpmem_errormsg());
 		return 1;

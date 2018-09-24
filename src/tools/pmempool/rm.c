@@ -75,7 +75,7 @@ static enum ask_type ask_mode;
 static int rpmem_avail;
 
 /* help message */
-static const char *help_str =
+static const char * const help_str =
 "Remove pool file or all files from poolset\n"
 "\n"
 "Available options:\n"
@@ -142,6 +142,9 @@ rm_file(const char *file)
 	case ASK_SOMETIMES:
 		cask = write_protected ? '?' : 'y';
 		break;
+	default:
+		outv_err("unknown state");
+		return 1;
 	}
 
 	const char *pre_msg = write_protected ? "write-protected " : "";
@@ -177,6 +180,9 @@ remove_remote(const char *target, const char *pool_set)
 	case ASK_SOMETIMES:
 		cask = 'y';
 		break;
+	default:
+		outv_err("unknown state");
+		return 1;
 	}
 
 	char ans = ask_Yn(cask, "remove remote pool '%s' on '%s'?",
@@ -248,8 +254,10 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 
 		outv(2, "part file   : %s\n", part_file);
 
-		int exists = os_access(part_file, F_OK) == 0;
-		if (!exists) {
+		int exists = util_file_exists(part_file);
+		if (exists < 0)
+			ret = 1;
+		else if (!exists) {
 			/*
 			 * Ignore not accessible file if force
 			 * flag is set.

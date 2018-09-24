@@ -48,7 +48,7 @@ require_no_asan
 setup
 
 unset VMMALLOC_POOL_SIZE
-export TEST_LD_PRELOAD=libvmmalloc.so
+export TEST_LD_PRELOAD=$VMMALLOC
 
 expect_abnormal_exit ./vmmalloc_init$EXESUFFIX 2> stderr$UNITTEST_NUM.log
 

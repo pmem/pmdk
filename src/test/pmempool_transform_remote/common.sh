@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,6 +41,8 @@ require_nodes 2
 require_node_libfabric 0 $RPMEM_PROVIDER
 require_node_libfabric 1 $RPMEM_PROVIDER
 
+setup
+
 init_rpmem_on_node 1 0
 
 require_node_log_files 1 pmemobj$UNITTEST_NUM.log
@@ -48,8 +50,8 @@ require_node_log_files 1 pmempool$UNITTEST_NUM.log
 
 LOG=out${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
-rm -rf $LOG && touch $LOG
-rm -rf $LOG_TEMP && touch $LOG_TEMP
+rm -f $LOG && touch $LOG
+rm -f $LOG_TEMP && touch $LOG_TEMP
 rm_files_from_node 0 ${NODE_TEST_DIR[0]}/$LOG
 rm_files_from_node 1 ${NODE_TEST_DIR[1]}/$LOG
 
@@ -59,9 +61,6 @@ POOLSET_LOCAL_OUT=poolset.out
 POOLSET_REMOTE=poolset.remote
 POOLSET_REMOTE1=poolset.remote1
 POOLSET_REMOTE2=poolset.remote2
-
-SIZE_4KB=4096
-SIZE_2MB=2097152
 
 # CLI scripts for writing and reading some data hitting all the parts
 WRITE_SCRIPT="pmemobjcli.write.script"

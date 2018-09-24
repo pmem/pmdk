@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ;
-; Copyright 2017, Intel Corporation
+; Copyright 2017-2018, Intel Corporation
 ;
 ; Redistribution and use in source and binary forms, with or without
 ; modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 ;
 ;;;;  End Copyright Notice
 
-NAME		LIFESAVER.SCR
+NAME		EX_LIFESAVER_LIFESAVER.SCR
 
 HEAPSIZE	1024
 STACKSIZE	4096

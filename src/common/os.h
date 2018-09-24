@@ -37,15 +37,15 @@
 #ifndef PMDK_OS_H
 #define PMDK_OS_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <sys/stat.h>
 #include <stdio.h>
 #include <unistd.h>
 
 #include "errno_freebsd.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef _WIN32
 #define OS_DIR_SEPARATOR '/'
@@ -108,6 +108,8 @@ typedef off_t os_off_t;
 /* XXX: os_off_t defined in platform.h */
 #endif
 int os_open(const char *pathname, int flags, ...);
+int os_fsync(int fd);
+int os_fsync_dir(const char *dir_name);
 int os_stat(const char *pathname, os_stat_t *buf);
 int os_unlink(const char *pathname);
 int os_access(const char *pathname, int mode);
@@ -120,7 +122,7 @@ int os_ftruncate(int fd, os_off_t length);
 int os_flock(int fd, int operation);
 ssize_t os_writev(int fd, const struct iovec *iov, int iovcnt);
 int os_clock_gettime(int id, struct timespec *ts);
-int os_rand_r(unsigned *seedp);
+unsigned os_rand_r(unsigned *seedp);
 int os_unsetenv(const char *name);
 int os_setenv(const char *name, const char *value, int overwrite);
 char *os_getenv(const char *name);

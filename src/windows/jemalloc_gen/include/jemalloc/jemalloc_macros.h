@@ -15,7 +15,7 @@
 #    define MALLOCX_ALIGN(a)	(ffs(a)-1)
 #  else
 #    define MALLOCX_ALIGN(a)						\
-	 ((a < (size_t)INT_MAX) ? ffs(a)-1 : ffs(a>>32)+31)
+	 (((a) < (size_t)INT_MAX) ? ffs(a)-1 : ffs((a)>>32)+31)
 #  endif
 #  define MALLOCX_ZERO	((int)0x40)
 /* Bias arena index bits so that 0 encodes "MALLOCX_ARENA() unspecified". */

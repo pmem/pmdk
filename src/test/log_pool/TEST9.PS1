@@ -31,14 +31,6 @@
 #
 # src/test/log_pool/TEST9 -- unit test for pmemlog_create
 #
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -46,6 +38,8 @@ Param(
 require_test_type medium
 
 require_fs_type "any"
+# icacls does have problems with handling long paths in the correct way.
+require_short_path
 
 setup
 

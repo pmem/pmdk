@@ -33,11 +33,6 @@
 #
 # src/test/ex_libpmem/TEST1 -- unit test for libpmem examples
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 
@@ -51,7 +46,7 @@ setup
 
 create_nonzeroed_file 2 0 $DIR\testfile1
 
-expect_normal_exit $Env:EXE_DIR\ex_pmem_full_copy $DIR\testfile1 $DIR\testfile2 `
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmem_full_copy $DIR\testfile1 $DIR\testfile2 `
 	> out$Env:UNITTEST_NUM.log 2>&1
 
 cmp $DIR\testfile1 $DIR\testfile2 > cmp$Env:UNITTEST_NUM.log 2>&1

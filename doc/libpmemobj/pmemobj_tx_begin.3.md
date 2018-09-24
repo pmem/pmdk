@@ -56,7 +56,7 @@ date: pmemobj API version 2.3
 **TX_BEGIN_PARAM**(), **TX_BEGIN_CB**(),
 **TX_BEGIN**(), **TX_ONABORT**,
 **TX_ONCOMMIT**, **TX_FINALLY**, **TX_END**
--- transactional object manipulation
+- transactional object manipulation
 
 
 # SYNOPSIS #

@@ -9,7 +9,7 @@
 #define	CTL_P_GET_ARRAY(n, v, t, c) do {				\
 	size_t mib[8];							\
 	size_t miblen = sizeof(mib) / sizeof(size_t);			\
-	size_t sz = sizeof(t) * c;					\
+	size_t sz = sizeof(t) * (c);					\
 	xmallctlnametomib(n, mib, &miblen);				\
 	mib[1] = p;							\
 	xmallctlbymib(mib, miblen, v, &sz, NULL, 0);			\

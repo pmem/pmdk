@@ -46,10 +46,10 @@ date: pmemobj API version 2.3
 
 # NAME #
 
-**pmemobj_persist**(), **pmemobj_flush**(), **pmemobj_drain**(),
-**pmemobj_memcpy**(), **pmemobj_memmove**(), **pmemobj_memset**(),
-**pmemobj_memcpy_persist**(), **pmemobj_memset_persist**() -- low-level memory
-manipulation functions
+**pmemobj_persist**(), **pmemobj_xpersist**(), **pmemobj_flush**(),
+**pmemobj_xflush**(), **pmemobj_drain**(), **pmemobj_memcpy**(),
+**pmemobj_memmove**(), **pmemobj_memset**(), **pmemobj_memcpy_persist**(),
+**pmemobj_memset_persist**() - low-level memory manipulation functions
 
 
 # SYNOPSIS #
@@ -62,6 +62,11 @@ void pmemobj_persist(PMEMobjpool *pop, const void *addr,
 void pmemobj_flush(PMEMobjpool *pop, const void *addr,
 	size_t len);
 void pmemobj_drain(PMEMobjpool *pop);
+
+int pmemobj_xpersist(PMEMobjpool *pop, const void *addr,
+	size_t len, unsigned flags);
+int pmemobj_xflush(PMEMobjpool *pop, const void *addr,
+	size_t len, unsigned flags);
 
 void *pmemobj_memcpy(PMEMobjpool *pop, void *dest,
 	const void *src, size_t len, unsigned flags);
@@ -110,11 +115,47 @@ call **pmemobj_flush**() for each range and then follow up by calling
 **pmemobj_drain**() once. For more information on partial flushing operations,
 see **pmem_flush**(3).
 
+**pmemobj_xpersist**() is a version of **pmemobj_persist**() function with
+additional *flags* argument.
+It supports only the **PMEMOBJ_F_RELAXED** flag.
+This flag indicates that memory transfer operation does
+not require 8-byte atomicity guarantees.
+
+**pmemobj_xflush**() is a version of **pmemobj_flush**() function with
+additional *flags* argument.
+It supports only the **PMEMOBJ_F_RELAXED** flag.
+
 The **pmemobj_memmove**(), **pmemobj_memcpy**() and **pmemobj_memset**() functions
 provide the same memory copying as their namesakes **memmove**(3), **memcpy**(3),
 and **memset**(3), and ensure that the result has been flushed to persistence
-before returning (unless **PMEM_MEM_NOFLUSH** flag was used). Flags have
-the same meaning as in **pmem_memmove**(3), **pmem_memcpy**(3) and **pmem_memset**(3).
+before returning (unless **PMEMOBJ_MEM_NOFLUSH** flag was used).
+Valid flags for those functions:
+
++ **PMEMOBJ_F_RELAXED** - This flag indicates that memory transfer operation
+  does not require 8-byte atomicity guarantees.
+
++ **PMEMOBJ_F_MEM_NOFLUSH** - Don't flush anything.
+  This implies **PMEMOBJ_F_MEM_NODRAIN**.
+  Using this flag only makes sense when it's followed by any function that
+  flushes data.
+
+The remaining flags say *how* the operation should be done, and are merely hints.
+
++ **PMEMOBJ_F_MEM_NONTEMPORAL** - Use non-temporal instructions.
+  This flag is mutually exclusive with **PMEMOBJ_F_MEM_TEMPORAL**.
+  On x86\_64 this flag is mutually exclusive with **PMEMOBJ_F_MEM_NOFLUSH**.
+
++ **PMEMOBJ_F_MEM_TEMPORAL** - Use temporal instructions.
+  This flag is mutually exclusive with **PMEMOBJ_F_MEM_NONTEMPORAL**.
+
++ **PMEMOBJ_F_MEM_WC** - Use write combining mode.
+  This flag is mutually exclusive with **PMEMOBJ_F_MEM_WB**.
+  On x86\_64 this is an alias for **PMEMOBJ_F_MEM_NONTEMPORAL**.
+  On x86\_64 this flag is mutually exclusive with **PMEMOBJ_F_MEM_NOFLUSH**.
+
++ **PMEMOBJ_F_MEM_WB** - Use write back mode.
+  This flag is mutually exclusive with **PMEMOBJ_F_MEM_WC**.
+  On x86\_64 this is an alias for **PMEMOBJ_F_MEM_TEMPORAL**.
 
 **pmemobj_memcpy_persist**() is an alias for **pmemobj_memcpy**() with flags equal to 0.
 
@@ -127,6 +168,10 @@ the same meaning as in **pmem_memmove**(3), **pmem_memcpy**(3) and **pmem_memset
 buffer.
 
 **pmemobj_persist**(), **pmemobj_flush**() and **pmemobj_drain**()
+
+**pmemobj_xpersist**() and **pmemobj_xflush**() returns non-zero value and
+sets errno to EINVAL only if not supported flags has been provided.
+
 do not return any value.
 
 # EXAMPLES #

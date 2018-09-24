@@ -35,12 +35,6 @@
 # src/test/pmem_movnt_align/TEST0 -- unit test for pmem_memcpy_persist
 #
 
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

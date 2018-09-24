@@ -34,6 +34,7 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
+Last shutdown            : clean
 Checksum                 : $(*) [OK]
 
 PMEM LOG Header:
@@ -83,6 +84,7 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
+Last shutdown            : clean
 Checksum                 : $(*) [OK]
 
 PMEM BLK Header:
@@ -92,6 +94,7 @@ PMEM BLK Header:
 00001030$(*)|$(*)|
 00001040$(*)|$(*)|
 00001050$(*)|$(*)|
+00001060$(*)|$(*)|
 ------------------------------------------------------------------------------
 Block size               : $(*)
 Is zeroed                : $(*)

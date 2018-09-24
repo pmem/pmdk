@@ -46,7 +46,7 @@ date: pmemlog API version 1.1
 # NAME #
 
 **pmemlog_tell**(), **pmemlog_rewind**(),
-**pmemlog_walk**() -- checks current write point for the log or walks through the log
+**pmemlog_walk**() - checks current write point for the log or walks through the log
 
 
 # SYNOPSIS #

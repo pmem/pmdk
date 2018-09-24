@@ -33,11 +33,6 @@
 #
 # src/test/obj_list_recovery/TEST2 -- unit test for list recovery process
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,4 +33,7 @@
 #
 # src/test/pmemspoil/Makefile -- build pmemspoil unittest
 #
+
+USE_PMEMSPOIL=y
+
 include ../Makefile.inc

@@ -75,10 +75,16 @@
     <ClCompile Include="..\common\os_auto_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\badblock_poolset.c">
+    <ClCompile Include="..\common\badblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\badblock_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ctl_global.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\ctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -141,6 +147,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\os_auto_flush.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ctl_global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ctl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -32,11 +32,6 @@
 #
 # src/test/vmem_malloc_usable_size/TEST0.PS1 -- unit test for vmem_malloc_usable_size
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

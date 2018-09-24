@@ -66,7 +66,6 @@
 # e.g.: "make install prefix=/usr"
 
 include src/common.inc
-include src/version.inc
 
 RPM_BUILDDIR=rpmbuild
 DPKG_BUILDDIR=dpkgbuild

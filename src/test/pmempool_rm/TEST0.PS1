@@ -32,12 +32,6 @@
 #
 # pmempool_rm/TEST0 -- test for pmempool rm
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

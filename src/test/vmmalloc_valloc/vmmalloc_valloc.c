@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,7 +47,7 @@ int
 main(int argc, char *argv[])
 {
 	const int test_value = 123456;
-	size_t pagesize = sysconf(_SC_PAGESIZE);
+	size_t pagesize = (size_t)sysconf(_SC_PAGESIZE);
 	size_t min_size = sizeof(int);
 	size_t max_size = 4 * pagesize;
 	size_t size;

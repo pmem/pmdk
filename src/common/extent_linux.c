@@ -70,7 +70,7 @@ os_extents_common(const char *path, struct extents *exts,
 	}
 
 	if (exts->extents_count == 0) {
-		LOG(10, "%s: block size: %li", path, st.st_blksize);
+		LOG(10, "%s: block size: %li", path, (long int)st.st_blksize);
 		exts->blksize = (uint64_t)st.st_blksize;
 	}
 
@@ -172,7 +172,7 @@ os_extents_get(const char *path, struct extents *exts)
 						fmap->fm_mapped_extents *
 						sizeof(struct fiemap_extent));
 	if (newfmap == NULL) {
-		ERR("!realloc");
+		ERR("!Realloc");
 		goto error_free;
 	}
 

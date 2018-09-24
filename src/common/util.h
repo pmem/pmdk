@@ -38,10 +38,7 @@
 #ifndef PMDK_UTIL_H
 #define PMDK_UTIL_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include <string.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -53,8 +50,14 @@ extern "C" {
 
 #include <sys/param.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;
+
+#define CACHELINE_SIZE 64U
 
 #define PAGE_ALIGNED_DOWN_SIZE(size) ((size) & ~(Pagesize - 1))
 #define PAGE_ALIGNED_UP_SIZE(size)\
@@ -65,7 +68,7 @@ extern unsigned long long Mmap_align;
 #define ALIGN_UP(size, align) (((size) + (align) - 1) & ~((align) - 1))
 #define ALIGN_DOWN(size, align) ((size) & ~((align) - 1))
 
-#define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + lp))
+#define ADDR_SUM(vp, lp) ((void *)((char *)(vp) + (lp)))
 
 #define util_alignof(t) offsetof(struct {char _util_c; t _util_m; }, _util_m)
 #define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
@@ -96,6 +99,7 @@ int util_compare_file_inodes(const char *path1, const char *path2);
 void *util_aligned_malloc(size_t alignment, size_t size);
 void util_aligned_free(void *ptr);
 struct tm *util_localtime(const time_t *timep);
+int util_safe_strcpy(char *dst, const char *src, size_t max_length);
 
 #ifdef _WIN32
 char *util_toUTF8(const wchar_t *wstr);
@@ -124,8 +128,10 @@ void util_set_alloc_funcs(
 
 #ifdef _MSC_VER
 #define force_inline inline __forceinline
+#define NORETURN __declspec(noreturn)
 #else
 #define force_inline __attribute__((always_inline)) inline
+#define NORETURN __attribute__((noreturn))
 #endif
 
 /*
@@ -159,6 +165,15 @@ static force_inline int
 util_is_pow2(uint64_t v)
 {
 	return v && !(v & (v - 1));
+}
+
+/*
+ * util_div_ceil -- divides a by b and rounds up the result
+ */
+static force_inline unsigned
+util_div_ceil(unsigned a, unsigned b)
+{
+	return (unsigned)(((unsigned long)a + b - 1) / b);
 }
 
 /*
@@ -284,7 +299,7 @@ typedef enum {
 #error MSVC ports of util_atomic_ only work on X86_64
 #endif
 
-#if _MSC_VER > 1911
+#if _MSC_VER >= 2000
 #error util_atomic_ utility functions not tested with this version of VC++
 #error These utility functions are not future proof, as they are not
 #error based on publicly available documentation.

@@ -32,12 +32,6 @@
 #
 # pmempool_help/TEST0 -- test for pmempool help
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 
@@ -49,7 +43,7 @@ setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
 
-rm $LOG -Force -Recurse -ea si
+rm $LOG -Force -ea si
 
 expect_normal_exit $PMEMPOOL >> $LOG
 expect_normal_exit $PMEMPOOL --version >> $LOG

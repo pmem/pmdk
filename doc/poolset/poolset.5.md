@@ -47,7 +47,7 @@ date: poolset API version 1.0
 
 # NAME #
 
-poolset -- persistent memory pool configuration file format
+poolset - persistent memory pool configuration file format
 
 
 # SYNOPSIS #

@@ -51,9 +51,10 @@
 #define SIG "PMEMXXX"
 #define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
 
-#define TEST_FORMAT_INCOMPAT_CHECK POOL_FEAT_ALL
+#define TEST_FORMAT_INCOMPAT_DEFAULT	POOL_FEAT_CKSUM_2K
+#define TEST_FORMAT_INCOMPAT_CHECK	POOL_FEAT_VALID
 
-size_t Extend_size = MIN_PART * 2;
+static size_t Extend_size = MIN_PART * 2;
 
 const char *Open_path = "";
 os_off_t Fallocate_len = -1;
@@ -135,11 +136,11 @@ mock_options(const char *arg)
 		break;
 	case 'f':
 		/* fallocate */
-		Fallocate_len = atoll(&arg[4]);
+		Fallocate_len = ATOLL(&arg[4]);
 		break;
 	case 'p':
 		/* is_pmem */
-		Is_pmem_len = atoll(&arg[4]);
+		Is_pmem_len = ATOULL(&arg[4]);
 		break;
 	default:
 		UT_FATAL("unknown mock option: %c", arg[2]);
@@ -176,6 +177,7 @@ main(int argc, char *argv[])
 
 		switch (argv[1][0]) {
 		case 'c':
+			attr.incompat_features = TEST_FORMAT_INCOMPAT_DEFAULT;
 			ret = util_pool_create(&set, fname, 0, minsize,
 				MIN_PART, &attr, NULL, REPLICAS_ENABLED);
 			if (ret == -1)

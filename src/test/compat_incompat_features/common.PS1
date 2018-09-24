@@ -64,7 +64,7 @@ $POOL_FEAT_CKSUM_2K = 0x0002
 $UNKNOWN_COMPAT = 1, 2, 3, 1111
 
 # Unknown incompat flags:
-$UNKNOWN_INCOMPAT = 4, 7, 1111
+$UNKNOWN_INCOMPAT = 8, 15, 1111
 
 # set compat flags in header
 function set_compat {

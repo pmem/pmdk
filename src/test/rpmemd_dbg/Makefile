@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,7 +33,8 @@
 #
 # src/test/rpmemd_dbg/Makefile -- build rpmemd_dbg test
 #
-vpath %.c ../../tools/rpmemd
+TOP = ../../..
+vpath %.c $(TOP)/src/tools/rpmemd
 vpath %.c ../rpmemd_log/
 
 TARGET = rpmemd_dbg
@@ -41,6 +42,7 @@ OBJS = rpmemd_log_test.o rpmemd_log.o
 
 BUILD_STATIC_DEBUG=n
 BUILD_STATIC_NONDEBUG=n
+LIBPMEMCOMMON=y
 
 include ../Makefile.inc
 

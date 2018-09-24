@@ -49,7 +49,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_extend");
 
 	if (argc < 2)
-		UT_FATAL("usage: %s file-name [alloc-size]", argv[0]);
+		UT_FATAL("usage: %s file-name [alloc-size] [opath]", argv[0]);
 
 	const char *path = argv[1];
 
@@ -63,9 +63,13 @@ main(int argc, char *argv[])
 
 	size_t alloc_size;
 	if (argc > 2)
-		alloc_size = atoi(argv[2]);
+		alloc_size = ATOUL(argv[2]);
 	else
 		alloc_size = ALLOC_SIZE;
+
+	const char *opath = path;
+	if (argc > 3)
+		opath = argv[3];
 
 	size_t allocated = 0;
 	PMEMoid oid;
@@ -77,13 +81,14 @@ main(int argc, char *argv[])
 
 	pmemobj_close(pop);
 
-	if ((pop = pmemobj_open(path, "obj_extend")) == NULL)
-		UT_FATAL("!pmemobj_open: %s", path);
+	if ((pop = pmemobj_open(opath, "obj_extend")) != NULL) {
+		pmemobj_close(pop);
 
-	pmemobj_close(pop);
-
-	int result = pmemobj_check(path, "obj_extend");
-	UT_ASSERTeq(result, 1);
+		int result = pmemobj_check(opath, "obj_extend");
+		UT_ASSERTeq(result, 1);
+	} else {
+		UT_ERR("pmemobj_open: %s", pmemobj_errormsg());
+	}
 
 	DONE(NULL);
 }

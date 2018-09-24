@@ -50,7 +50,7 @@ date: pmem API version 1.1
 
 # NAME #
 
-**libpmem** -- persistent memory support library
+**libpmem** - persistent memory support library
 
 
 # SYNOPSIS #

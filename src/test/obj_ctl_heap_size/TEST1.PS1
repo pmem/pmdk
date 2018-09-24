@@ -33,11 +33,6 @@
 #
 # src/test/obj_ctl_heap_size/TEST1 -- unit test for obj_ctl_heap_size()
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

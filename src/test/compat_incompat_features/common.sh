@@ -60,12 +60,13 @@ create_args[cto]="cto $POOLSET"
 # Known incompat flags:
 let "POOL_FEAT_SINGLEHDR = 0x0001"
 let "POOL_FEAT_CKSUM_2K = 0x0002"
+let "POOL_FEAT_SDS = 0x0004"
 
 # Unknown compat flags:
 UNKNOWN_COMPAT=(1 2 3 1111)
 
 # Unknown incompat flags:
-UNKNOWN_INCOMPAT=(4 7 1111)
+UNKNOWN_INCOMPAT=(8 15 1111)
 
 # set compat flags in header
 set_compat() {

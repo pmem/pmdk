@@ -36,7 +36,7 @@
 PROGS = manpage btree pi lists setjmp
 DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
 	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist list_map slab_allocator
+	linkedlist list_map slab_allocator queue
 
 LIBS = -lpmemobj -lpmem -pthread -lm -pthread
 

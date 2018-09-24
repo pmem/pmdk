@@ -35,14 +35,6 @@
 # src/test/cto_pool/TEST29 -- unit test for pmemcto_open
 #
 
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

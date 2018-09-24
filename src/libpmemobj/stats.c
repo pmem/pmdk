@@ -49,10 +49,12 @@ static const struct ctl_node CTL_NODE(heap)[] = {
  * CTL_READ_HANDLER(enabled) -- returns whether or not statistics are enabled
  */
 static int
-CTL_READ_HANDLER(enabled)(PMEMobjpool *pop,
+CTL_READ_HANDLER(enabled)(void *ctx,
 	enum ctl_query_source source, void *arg,
 	struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
+
 	int *arg_out = arg;
 
 	*arg_out = pop->stats->enabled > 0;
@@ -64,10 +66,12 @@ CTL_READ_HANDLER(enabled)(PMEMobjpool *pop,
  * CTL_WRITE_HANDLER(enabled) -- enables or disables statistics counting
  */
 static int
-CTL_WRITE_HANDLER(enabled)(PMEMobjpool *pop,
+CTL_WRITE_HANDLER(enabled)(void *ctx,
 	enum ctl_query_source source, void *arg,
 	struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
+
 	int arg_in = *(int *)arg;
 
 	pop->stats->enabled = arg_in > 0;
@@ -111,7 +115,7 @@ void
 stats_delete(PMEMobjpool *pop, struct stats *s)
 {
 	pmemops_persist(&pop->p_ops, s->persistent,
-		sizeof(struct stats_persistent));
+	sizeof(struct stats_persistent));
 	Free(s->transient);
 	Free(s);
 }

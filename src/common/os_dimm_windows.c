@@ -40,10 +40,6 @@
 #include "util.h"
 
 #define GUID_SIZE sizeof("XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX")
-#define UNC_PREFIX "\\\\?\\"
-#define UNC_PREFIX_LEN (sizeof(UNC_PREFIX) - 1 /* \0 */)
-#define VOLUME_PREFIX "\\\\.\\"
-#define VOLUME_PREFIX_LEN (sizeof(VOLUME_PREFIX) - 1 /* \0 */)
 
 /*
  * os_dimm_volume -- returns volume handle
@@ -51,22 +47,48 @@
 static HANDLE
 os_dimm_volume_handle(const char *path)
 {
-	LOG(3, "path %s", path);
-	char vol[MAX_PATH] = VOLUME_PREFIX;
-	char *v = vol + VOLUME_PREFIX_LEN;
+	wchar_t mount[MAX_PATH];
+	wchar_t volume[MAX_PATH];
+	wchar_t *wpath = util_toUTF16(path);
 
-	if (strncmp(path, UNC_PREFIX, UNC_PREFIX_LEN) == 0) {
-		path += UNC_PREFIX_LEN;
+	if (wpath == NULL)
+		return INVALID_HANDLE_VALUE;
+
+	if (!GetVolumePathNameW(wpath, mount, MAX_PATH)) {
+		ERR("!GetVolumePathNameW");
+		util_free_UTF16(wpath);
+		return INVALID_HANDLE_VALUE;
 	}
-	if (!GetVolumePathName(path, v, MAX_PATH - VOLUME_PREFIX_LEN)) {
+	util_free_UTF16(wpath);
+
+	/* get volume name - "\\?\Volume{VOLUME_GUID}\" */
+	if (!GetVolumeNameForVolumeMountPointW(mount, volume, MAX_PATH) ||
+		wcslen(volume) == 0 || volume[wcslen(volume) - 1] != L'\\') {
+		ERR("!GetVolumeNameForVolumeMountPointW");
 		return INVALID_HANDLE_VALUE;
 	}
 
-	vol[strlen(vol) - 1] = '\0'; /* remove trailing \\ */
-	return CreateFileA(vol, 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
-		NULL, OPEN_EXISTING, 0,  NULL);
-}
+	/*
+	 * Remove trailing \\ as "CreateFile processes a volume GUID path with
+	 * an appended backslash as the root directory of the volume."
+	 */
+	volume[wcslen(volume) - 1] = L'\0';
 
+	HANDLE h = CreateFileW(volume, /* path to the file */
+		/* request access to send ioctl to the file */
+		FILE_READ_ATTRIBUTES,
+		/* do not block access to the file */
+		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		NULL, /* security attributes */
+		OPEN_EXISTING, /* open only if it exists */
+		FILE_ATTRIBUTE_NORMAL, /* no attributes */
+		NULL); /* used only for new files */
+
+	if (h == INVALID_HANDLE_VALUE)
+		ERR("!CreateFileW");
+
+	return h;
+}
 /*
  * os_dimm_uid -- returns a file uid based on dimm guid
  */
@@ -126,6 +148,7 @@ os_dimm_usc(const char *path, uint64_t *usc)
 	DWORD dwSize;
 	prop.PropertyId = StorageDeviceUnsafeShutdownCount;
 	prop.QueryType = PropertyExistsQuery;
+	prop.AdditionalParameters[0] = 0;
 	STORAGE_DEVICE_UNSAFE_SHUTDOWN_COUNT ret;
 
 	BOOL bResult = DeviceIoControl(vHandle,
@@ -173,11 +196,10 @@ os_dimm_files_namespace_badblocks(const char *path, struct badblocks *bbs)
 }
 
 /*
- * os_dimm_devdax_get_clear_badblocks -- fake bad block getting
- *                                       and clearing routine
+ * os_dimm_devdax_clear_badblocks -- fake bad block clearing routine
  */
 int
-os_dimm_devdax_get_clear_badblocks(const char *path, struct badblocks *bbs)
+os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *bbs)
 {
 	LOG(3, "path %s badblocks %p", path, bbs);
 
@@ -185,10 +207,10 @@ os_dimm_devdax_get_clear_badblocks(const char *path, struct badblocks *bbs)
 }
 
 /*
- * os_dimm_devdax_clear_badblocks -- fake bad block clearing routine
+ * os_dimm_devdax_clear_badblocks_all -- fake bad block clearing routine
  */
 int
-os_dimm_devdax_clear_badblocks(const char *path)
+os_dimm_devdax_clear_badblocks_all(const char *path)
 {
 	LOG(3, "path %s", path);
 

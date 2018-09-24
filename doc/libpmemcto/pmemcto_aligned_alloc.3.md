@@ -46,7 +46,7 @@ date: libpmemcto API version 1.0
 
 # NAME #
 
-pmemcto_aligned_alloc -- allocate aligned memory
+pmemcto_aligned_alloc - allocate aligned memory
 
 
 # SYNOPSIS #

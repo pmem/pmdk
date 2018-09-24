@@ -32,12 +32,6 @@
 #
 # pmempool_dump/TEST6.PS1 -- test for dump command
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 
@@ -49,7 +43,7 @@ setup
 
 $LOG="out$Env:UNITTEST_NUM.log"
 
-rm $LOG -Force -Recurse -ea si
+rm $LOG -Force -ea si
 
 $POOLSET="$DIR\pool.set"
 $POOL_PART1="$DIR\pool.part1"

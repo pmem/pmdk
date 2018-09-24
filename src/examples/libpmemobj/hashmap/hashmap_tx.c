@@ -253,6 +253,7 @@ hm_tx_remove(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, uint64_t key)
 		return OID_NULL;
 	int ret = 0;
 
+	PMEMoid retoid = D_RO(var)->value;
 	TX_BEGIN(pop) {
 		if (TOID_IS_NULL(prev))
 			TX_ADD_FIELD(D_RO(hashmap)->buckets, bucket[h]);
@@ -278,7 +279,7 @@ hm_tx_remove(PMEMobjpool *pop, TOID(struct hashmap_tx) hashmap, uint64_t key)
 	if (D_RO(hashmap)->count < D_RO(buckets)->nbuckets)
 		hm_tx_rebuild(pop, hashmap, D_RO(buckets)->nbuckets / 2);
 
-	return D_RO(var)->value;
+	return retoid;
 }
 
 /*

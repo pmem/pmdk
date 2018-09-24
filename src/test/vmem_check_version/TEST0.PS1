@@ -33,12 +33,6 @@
 # src/test/vmem_check_version/TEST0.PS1 -- unit test for vmem_check_version
 #
 
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

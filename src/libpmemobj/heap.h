@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,17 +41,15 @@
 #include <stdint.h>
 
 #include "bucket.h"
-#include "heap_layout.h"
 #include "memblock.h"
 #include "memops.h"
 #include "palloc.h"
 #include "os_thread.h"
 
-#define MAX_RUN_LOCKS 1024
 
 #define HEAP_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
 #define HEAP_PTR_TO_OFF(heap, ptr)\
-	((uintptr_t)(ptr) - (uintptr_t)(heap->base))
+	((uintptr_t)(ptr) - (uintptr_t)((heap)->base))
 
 #define BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
 
@@ -93,13 +91,10 @@ os_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 
 void
 heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m);
-void
+int
 heap_free_chunk_reuse(struct palloc_heap *heap,
 	struct bucket *bucket, struct memory_block *m);
 
-int
-heap_run_foreach_object(struct palloc_heap *heap, object_callback cb,
-	void *arg, struct memory_block *m);
 void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 	void *arg, struct memory_block start);
 
@@ -109,5 +104,23 @@ void *heap_end(struct palloc_heap *heap);
 
 void heap_vg_open(struct palloc_heap *heap, object_callback cb,
 		void *arg, int objects);
+
+static inline struct chunk_header *
+heap_get_chunk_hdr(struct palloc_heap *heap, const struct memory_block *m)
+{
+	return GET_CHUNK_HDR(heap->layout, m->zone_id, m->chunk_id);
+}
+
+static inline struct chunk *
+heap_get_chunk(struct palloc_heap *heap, const struct memory_block *m)
+{
+	return GET_CHUNK(heap->layout, m->zone_id, m->chunk_id);
+}
+
+static inline struct chunk_run *
+heap_get_chunk_run(struct palloc_heap *heap, const struct memory_block *m)
+{
+	return GET_CHUNK_RUN(heap->layout, m->zone_id, m->chunk_id);
+}
 
 #endif

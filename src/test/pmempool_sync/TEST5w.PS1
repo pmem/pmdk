@@ -33,11 +33,6 @@
 # pmempool_sync/TEST5 -- test for checking pmempool sync;
 #                        pmem/issues#275
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

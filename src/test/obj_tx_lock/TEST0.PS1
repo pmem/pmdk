@@ -34,12 +34,6 @@
 #
 # src/test/obj_tx_lock/TEST0 -- unit test for pmemobj_tx_lock()
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

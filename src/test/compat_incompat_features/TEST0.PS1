@@ -34,11 +34,6 @@
 #
 # check if pool opens when compat flags are equal and nonzero
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

@@ -34,10 +34,11 @@
  * util_sds.c -- unit test for shutdown state functions
  */
 
+#include <stdlib.h>
 #include "unittest.h"
 #include "shutdown_state.h"
-#include <stdlib.h>
 #include "pmemcommon.h"
+#include "set.h"
 
 #define PMEM_LEN 4096
 
@@ -49,7 +50,7 @@ static size_t uscs_size;
 static size_t usc_it;
 
 #define FAIL(X, Y) \
-	if (X == Y) {\
+	if ((X) == (Y)) {\
 		common_fini();\
 		DONE(NULL);\
 		exit(0);\
@@ -74,7 +75,7 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		UT_FATAL("usage: %s init fail (file uuid usc)...", argv[0]);
 
-	int files = (argc - 2) / 3;
+	unsigned files = (unsigned)(argc - 2) / 3;
 
 	char **pmemaddr = MALLOC(files * sizeof(char *));
 	uids = MALLOC(files * sizeof(uids[0]));
@@ -85,7 +86,7 @@ main(int argc, char *argv[])
 	int init = atoi(argv[1]);
 	int fail_on = atoi(argv[2]);
 	char **args = argv + 3;
-	for (int i = 0; i < files; i++) {
+	for (unsigned i = 0; i < files; i++) {
 		if ((pmemaddr[i] = pmem_map_file(args[i * 3], PMEM_LEN,
 				PMEM_FILE_CREATE, 0666, &mapped_len,
 					&is_pmem)) == NULL) {
@@ -96,14 +97,19 @@ main(int argc, char *argv[])
 		uscs[i] = strtoull(args[i * 3 + 2], NULL, 0);
 	}
 	FAIL(fail_on, 1);
+	struct pool_replica *rep = MALLOC(
+		sizeof(*rep) + sizeof(struct pool_set_part));
+
+	memset(rep, 0, sizeof(*rep) + sizeof(struct pool_set_part));
 
 	struct shutdown_state *pool_sds = (struct shutdown_state *)pmemaddr[0];
 	if (init) {
 		/* initialize pool shutdown state */
-		shutdown_state_init(pool_sds, NULL);
+		shutdown_state_init(pool_sds, rep);
 		FAIL(fail_on, 2);
-		for (int i = 0; i < files; i++) {
-			shutdown_state_add_part(pool_sds, args[2 + i], NULL);
+		for (unsigned i = 0; i < files; i++) {
+			if (shutdown_state_add_part(pool_sds, args[2 + i], rep))
+				UT_FATAL("shutdown_state_add_part");
 			FAIL(fail_on, 3);
 		}
 	} else {
@@ -111,28 +117,29 @@ main(int argc, char *argv[])
 		struct shutdown_state current_sds;
 		shutdown_state_init(&current_sds, NULL);
 		FAIL(fail_on, 2);
-		for (int i = 0; i < files; i++) {
-			shutdown_state_add_part(&current_sds,
-				args[2 + i], NULL);
+		for (unsigned i = 0; i < files; i++) {
+			if (shutdown_state_add_part(&current_sds,
+					args[2 + i], NULL))
+				UT_FATAL("shutdown_state_add_part");
 			FAIL(fail_on, 3);
 		}
 
-		if (shutdown_state_check(&current_sds, pool_sds, NULL)) {
+		if (shutdown_state_check(&current_sds, pool_sds, rep)) {
 			UT_FATAL(
 				"An ADR failure is detected, the pool might be corrupted");
 		}
 	}
 	FAIL(fail_on, 4);
-	shutdown_state_set_flag(pool_sds, NULL);
+	shutdown_state_set_dirty(pool_sds, rep);
 
 	/* pool is open */
 	FAIL(fail_on, 5);
 
 	/* close pool */
-	shutdown_state_clear_flag(pool_sds, NULL);
+	shutdown_state_clear_dirty(pool_sds, rep);
 	FAIL(fail_on, 6);
 
-	for (int i = 0; i < files; i++)
+	for (unsigned i = 0; i < files; i++)
 		pmem_unmap(pmemaddr[i], mapped_len);
 
 	FREE(pmemaddr);

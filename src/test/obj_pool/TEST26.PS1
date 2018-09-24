@@ -35,18 +35,12 @@
 # src/test/obj_pool/TEST26 -- unit test for pmemobj_open
 #
 
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+# icacls does have problems with handling long paths in the correct way.
+require_short_path
 
 setup
 

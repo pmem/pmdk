@@ -69,7 +69,7 @@
 #include "util_pmem.h"
 #include "fs.h"
 #include "os_deep.h"
-#include "badblock_poolset.h"
+#include "badblock.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
@@ -88,7 +88,7 @@ static RPMEMpool *(*Rpmem_open)(const char *target, const char *pool_set_name,
 			struct rpmem_pool_attr *rpmem_attr);
 int (*Rpmem_close)(RPMEMpool *rpp);
 int (*Rpmem_persist)(RPMEMpool *rpp, size_t offset, size_t length,
-			unsigned lane);
+			unsigned lane, unsigned flags);
 int (*Rpmem_deep_persist)(RPMEMpool *rpp, size_t offset, size_t length,
 			unsigned lane);
 int (*Rpmem_read)(RPMEMpool *rpp, void *buff, size_t offset,
@@ -540,6 +540,7 @@ util_poolset_free(struct pool_set *set)
 		VEC_DELETE(&rep->directory);
 		Free(set->replica[r]);
 	}
+	Free(set->path);
 	Free(set);
 }
 
@@ -1040,7 +1041,8 @@ util_parse_add_directory(struct pool_set *set, const char *path,
 	d.path = path;
 	d.resvsize = filesize;
 
-	VEC_PUSH_BACK(&rep->directory, d);
+	if (VEC_PUSH_BACK(&rep->directory, d) != 0)
+		return -1;
 
 	rep->resvsize += filesize;
 
@@ -1092,7 +1094,7 @@ util_parse_add_replica(struct pool_set **setp)
 	struct pool_replica *rep;
 	rep = Zalloc(sizeof(struct pool_replica));
 	if (rep == NULL) {
-		ERR("!Malloc");
+		ERR("!Zalloc");
 		return -1;
 	}
 
@@ -1550,6 +1552,12 @@ util_poolset_parse(struct pool_set **setp, const char *path, int fd)
 		goto err;
 	}
 
+	set->path = Strdup(path);
+	if (set->path == NULL)  {
+		ERR("!Strdup");
+		goto err;
+	}
+
 	/* check also if the last character is '\n' */
 	if (strncmp(line, POOLSET_HDR_SIG, POOLSET_HDR_SIG_LEN) == 0 &&
 	    line[POOLSET_HDR_SIG_LEN] == '\n') {
@@ -1781,8 +1789,11 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 {
 	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
 
-	/* check if file exists */
-	if (os_access(part->path, F_OK) == 0)
+	int exists = util_file_exists(part->path);
+	if (exists < 0)
+		return -1;
+
+	if (exists)
 		create = 0;
 
 	part->created = 0;
@@ -2293,17 +2304,17 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	if (!set->ignore_sds && partidx == 0 && !rep->remote) {
-		shutdown_state_init(&hdrp->sds, PART(rep, 0));
+		shutdown_state_init(&hdrp->sds, rep);
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			if (shutdown_state_add_part(&hdrp->sds,
-					PART(rep, p)->path, PART(rep, 0)))
+					PART(rep, p)->path, rep))
 				return -1;
 		}
-		shutdown_state_set_flag(&hdrp->sds, PART(rep, 0));
+		shutdown_state_set_dirty(&hdrp->sds, rep);
 	}
 
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
-		1, POOL_HDR_CSUM_END_OFF);
+		1, POOL_HDR_CSUM_END_OFF(hdrp));
 
 	/* store pool's header */
 	util_persist_auto(rep->is_pmem, hdrp, sizeof(*hdrp));
@@ -2381,7 +2392,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 		 * invalid checksum.
 		 */
 		if (!util_checksum(&hdr, sizeof(hdr), &hdr.checksum,
-				0, POOL_HDR_CSUM_END_OFF)) {
+				0, POOL_HDR_CSUM_END_OFF(&hdr))) {
 			ERR("invalid checksum of pool header");
 			errno = EINVAL;
 			return -1;
@@ -2506,7 +2517,7 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 	 * checksum.
 	 */
 	if (!util_checksum(&hdr, sizeof(hdr), &hdr.checksum,
-			0, POOL_HDR_CSUM_END_OFF)) {
+			0, POOL_HDR_CSUM_END_OFF(&hdr))) {
 		ERR("invalid checksum of pool header");
 		return -1;
 	}
@@ -2554,6 +2565,9 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 		return -1;
 	}
 
+	/* read shutdown state toggle from header */
+	set->ignore_sds |= IGNORE_SDS(HDR(rep, 0));
+
 	if (!set->ignore_sds && partidx == 0) {
 		struct shutdown_state sds;
 		shutdown_state_init(&sds, NULL);
@@ -2563,13 +2577,12 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 				return -1;
 		}
 
-		if (shutdown_state_check(&sds, &hdrp->sds,
-				PART(rep, 0))) {
+		if (shutdown_state_check(&sds, &hdrp->sds, rep)) {
 			errno = EINVAL;
 			return -1;
 		}
 
-		shutdown_state_set_flag(&hdrp->sds, PART(rep, 0));
+		shutdown_state_set_dirty(&hdrp->sds, rep);
 	}
 
 
@@ -2874,10 +2887,21 @@ util_replica_close(struct pool_set *set, unsigned repidx)
 		struct pool_set_part *part = PART(rep, 0);
 		if (!set->ignore_sds && part->addr != NULL &&
 				part->size != 0) {
-			/* XXX: DEEP DRAIN */
 			struct pool_hdr *hdr = part->addr;
 			RANGE_RW(hdr, sizeof(*hdr), part->is_dev_dax);
-			shutdown_state_clear_flag(&hdr->sds, part);
+			/*
+			 * deep drain will call msync on one page in each
+			 * part in replica to trigger WPQ flush.
+			 * This pages may have been marked as
+			 * undefined/inaccessible, but msyncing such memory
+			 * is not a bug, so as a workaround temporarily
+			 * disable error reporting.
+			 */
+			VALGRIND_DO_DISABLE_ERROR_REPORTING;
+			util_replica_deep_drain(part->addr, rep->repsize,
+				set, repidx);
+			VALGRIND_DO_ENABLE_ERROR_REPORTING;
+			shutdown_state_clear_dirty(&hdr->sds, rep);
 		}
 		for (unsigned p = 0; p < rep->nhdrs; p++)
 			util_unmap_hdr(&rep->part[p]);
@@ -3092,14 +3116,19 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	int flags = MAP_SHARED;
 	int oerrno;
 
+	int exists = util_file_exists(path);
+	if (exists < 0)
+		return -1;
+
 	/* check if file exists */
-	if (poolsize > 0 && os_access(path, F_OK) == 0) {
+	if (poolsize > 0 && exists) {
 		ERR("file %s already exists", path);
 		errno = EEXIST;
 		return -1;
 	}
 
-	int ret = util_poolset_create_set(setp, path, poolsize, minsize, 0);
+	int ret = util_poolset_create_set(setp, path, poolsize, minsize,
+			IGNORE_SDS(attr));
 	if (ret < 0) {
 		LOG(2, "cannot create pool set -- '%s'", path);
 		return -1;
@@ -3148,7 +3177,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		return -1;
 	}
 
-	int bbs = os_badblocks_check_poolset(set, 1 /* create */);
+	int bbs = badblocks_check_poolset(set, 1 /* create */);
 	if (bbs < 0) {
 		LOG(1,
 			"WARNING: failed to check pool set for bad blocks -- '%s'",
@@ -3384,8 +3413,19 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		 * (aligned to memory mapping granularity)
 		 */
 		for (unsigned p = 1; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+			size_t targetsize = mapsize +
+				ALIGN_DOWN(part->filesize - hdrsize,
+				part->alignment);
+			if (targetsize > rep->resvsize) {
+				ERR(
+					"pool mapping failed - address space reservation too small");
+				errno = EINVAL;
+				goto err;
+			}
+
 			/* map data part */
-			if (util_map_part(&rep->part[p], addr, 0, hdrsize,
+			if (util_map_part(part, addr, 0, hdrsize,
 					flags | MAP_FIXED, 0) != 0) {
 				/*
 				 * if we can't map the part at the address we
@@ -3411,12 +3451,11 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 				goto err;
 			}
 
-			VALGRIND_REGISTER_PMEM_FILE(rep->part[p].fd,
-				rep->part[p].addr, rep->part[p].size,
-				hdrsize);
+			VALGRIND_REGISTER_PMEM_FILE(part->fd,
+				part->addr, part->size, hdrsize);
 
-			mapsize += rep->part[p].size;
-			addr = (char *)addr + rep->part[p].size;
+			mapsize += part->size;
+			addr = (char *)addr + part->size;
 		}
 	} while (retry_for_contiguous_addr);
 
@@ -3558,7 +3597,7 @@ util_replica_set_attr(struct pool_replica *rep,
 		util_convert2le_hdr(hdrp);
 
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
-			1, POOL_HDR_CSUM_END_OFF);
+			1, POOL_HDR_CSUM_END_OFF(hdrp));
 
 		/* store pool's header */
 		util_persist_auto(rep->is_pmem, hdrp, sizeof(*hdrp));
@@ -3643,6 +3682,9 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 {
 	LOG(3, "set %p attr %p", set, attr);
 
+	/* read shutdown state toggle from header */
+	set->ignore_sds |= IGNORE_SDS(HDR(REP(set, 0), 0));
+
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
 		for (unsigned p = 0; p < rep->nhdrs; p++) {
@@ -3675,13 +3717,13 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 			ASSERTne(rep->nhdrs, 0);
 			ASSERTne(rep->nparts, 0);
 			if (shutdown_state_check(&sds, &HDR(rep, 0)->sds,
-					PART(rep, 0))) {
+					rep)) {
 				LOG(2, "ADR failure detected");
 				errno = EINVAL;
 				return -1;
 			}
-			shutdown_state_set_flag(&HDR(rep, 0)->sds,
-				PART(rep, 0));
+			shutdown_state_set_dirty(&HDR(rep, 0)->sds,
+				rep);
 		}
 	}
 	return 0;
@@ -3690,7 +3732,7 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 /*
  * util_pool_open_nocheck -- open a memory pool (set or a single file)
  *
- * This function opens opens a pool set without checking the header values.
+ * This function opens a pool set without checking the header values.
  */
 int
 util_pool_open_nocheck(struct pool_set *set, unsigned flags)
@@ -3711,7 +3753,15 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 	ASSERTne(set, NULL);
 	ASSERT(set->nreplicas > 0);
 
-	int bbs = os_badblocks_check_poolset(set, 0 /* not create */);
+	/* check if any bad block recovery file exists */
+	if (badblocks_recovery_file_exists(set)) {
+		LOG(1,
+			"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
+		errno = EINVAL;
+		return -1;
+	}
+
+	int bbs = badblocks_check_poolset(set, 0 /* not create */);
 	if (bbs < 0) {
 		LOG(1, "WARNING: failed to check pool set for bad blocks");
 	}
@@ -3722,7 +3772,7 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 				"WARNING: pool set contains bad blocks, ignoring");
 		} else {
 			ERR(
-				"pool set contains bad blocks and cannot be opened, run 'pmempool' utility to try to recover the pool");
+				"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
 			errno = EIO;
 			return -1;
 		}
@@ -3812,7 +3862,15 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	ASSERT(set->nreplicas > 0);
 
-	int bbs = os_badblocks_check_poolset(set, 0 /* not create */);
+	/* check if any bad block recovery file exists */
+	if (badblocks_recovery_file_exists(set)) {
+		LOG(1,
+			"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
+		errno = EINVAL;
+		return -1;
+	}
+
+	int bbs = badblocks_check_poolset(set, 0 /* not create */);
 	if (bbs < 0) {
 		LOG(1,
 			"WARNING: failed to check pool set for bad blocks -- '%s'",
@@ -3826,7 +3884,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 				path);
 		} else {
 			ERR(
-				"pool set contains bad blocks and cannot be opened, run 'pmempool' utility to try to recover the pool -- '%s'",
+				"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool -- '%s'",
 				path);
 			errno = EIO;
 			return -1;
@@ -4173,7 +4231,7 @@ util_replica_deep_common(const void *addr, size_t len, struct pool_set *set,
 		LOG(15, "perform deep flushing for replica %u "
 			"part %p, addr %p, len %lu",
 			replica_id, part, (void *)range_start, range_len);
-		if (os_part_deep_common(part, (void *)range_start,
+		if (os_part_deep_common(rep, p, (void *)range_start,
 				range_len, flush)) {
 			LOG(1, "os_part_deep_common(%p, %p, %lu)",
 				part, (void *)range_start, range_len);

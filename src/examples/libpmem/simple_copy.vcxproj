@@ -33,13 +33,13 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="..\Examples_$(Configuration).props" />
   </ImportGroup>
-  <PropertyGroup>
-    <IncludePath>$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-  </PropertyGroup>
   <ItemDefinitionGroup>
     <Manifest>
       <AdditionalManifestFiles>..\..\LongPath.manifest</AdditionalManifestFiles>
     </Manifest>
+    <Link>
+      <AdditionalDependencies>libpmem.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libpmem\libpmem.vcxproj" Condition="'$(SolutionName)'=='PMDK'">

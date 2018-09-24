@@ -34,11 +34,6 @@
 #
 # src/test/obj_heap_interrupt/TEST0 -- unit test for pool heap interruption
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

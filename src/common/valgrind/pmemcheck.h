@@ -79,7 +79,9 @@ typedef
        VG_USERREQ__PMC_REMOVE_FROM_TX_N,
        VG_USERREQ__PMC_ADD_THREAD_TO_TX_N,
        VG_USERREQ__PMC_REMOVE_THREAD_FROM_TX_N,
-       VG_USERREQ__PMC_ADD_TO_GLOBAL_TX_IGNORE
+       VG_USERREQ__PMC_ADD_TO_GLOBAL_TX_IGNORE,
+       VG_USERREQ__PMC_DEFAULT_REORDER,
+       VG_USERREQ__PMC_EMIT_LOG,
    } Vg_PMemCheckClientRequest;
 
 
@@ -128,7 +130,7 @@ typedef
     VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DO_FENCE,               \
                                     0, 0, 0, 0, 0)
 
-/** Register a PCOMMIT */
+/** Register a PCOMMIT (DEPRECATED, DO NOT USE) */
 #define VALGRIND_PMC_DO_COMMIT                                              \
     VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DO_COMMIT,              \
                                     0, 0, 0, 0, 0)
@@ -179,11 +181,22 @@ typedef
     VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_STOP_REORDER_FAULT,     \
                                     0, 0, 0, 0, 0)
 
+/** Issue a log to set the default reorder engine */
+#define VALGRIND_PMC_DEFAULT_REORDER                                    \
+    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DEFAULT_REORDER,     \
+                                    0, 0, 0, 0, 0)
+
 /** Set a region of persistent memory as clean */
 #define VALGRIND_PMC_SET_CLEAN(_qzz_addr,_qzz_len)                          \
     VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,                 \
                             VG_USERREQ__PMC_SET_CLEAN,                      \
                             (_qzz_addr), (_qzz_len), 0, 0, 0)
+
+/** Emit user log */
+#define VALGRIND_PMC_EMIT_LOG(_qzz_emit_log)                                \
+    VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,                 \
+                            VG_USERREQ__PMC_EMIT_LOG,                       \
+                            (_qzz_emit_log), 0, 0, 0, 0)
 
 /** Support for transactions */
 

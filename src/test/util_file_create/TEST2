@@ -38,19 +38,17 @@
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_fs_type any
 require_test_type medium
 
 setup
 
-MIN_POOL=0x4000
+# without fallocate this test takes forever
+require_native_fallocate $DIR/testfile1
 
-rm -f $DIR/testfile
+MIN_POOL=0x4000
 
 expect_normal_exit ./util_file_create$EXESUFFIX $MIN_POOL \
     0x7FFFFFFFFFFFFFFF:$DIR/testfile
-
-rm -f $DIR/testfile
 
 check
 

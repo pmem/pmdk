@@ -32,12 +32,6 @@
 #
 # pmempool_create/TEST1 -- test for creating pmemblk pool with btt layout
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

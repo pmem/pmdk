@@ -45,7 +45,7 @@ date: pmem Tools version 1.4
 
 # NAME #
 
-**pmempool-rm** -- remove a persistent memory pool
+**pmempool-rm** - remove a persistent memory pool
 
 
 # SYNOPSIS #

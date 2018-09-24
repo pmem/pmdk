@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -153,14 +153,14 @@ void ut_startW(const char *file, int line, const char *func,
 	int argc, wchar_t * const argv[], const char *fmt, ...)
 	__attribute__((format(printf, 6, 7)));
 
-void ut_done(const char *file, int line, const char *func,
+void NORETURN ut_done(const char *file, int line, const char *func,
 	const char *fmt, ...)
-	__attribute__((format(printf, 4, 5)))
-	__attribute__((noreturn));
-void ut_fatal(const char *file, int line, const char *func,
+	__attribute__((format(printf, 4, 5)));
+void NORETURN ut_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...)
-	__attribute__((format(printf, 4, 5)))
-	__attribute__((noreturn));
+	__attribute__((format(printf, 4, 5)));
+void NORETURN ut_end(const char *file, int line, const char *func,
+	int ret);
 void ut_out(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)));
@@ -203,6 +203,9 @@ void ut_err(const char *file, int line, const char *func,
 
 #define DONEW(...)\
     ut_done(__FILE__, __LINE__, __func__, __VA_ARGS__)
+
+#define END(ret, ...)\
+    ut_end(__FILE__, __LINE__, __func__, ret)
 
 /* fatal error detected */
 #define UT_FATAL(...)\
@@ -426,6 +429,24 @@ int ut_mprotect(const char *file, int line, const char *func, void *addr,
 int ut_ftruncate(const char *file, int line, const char *func,
     int fd, os_off_t length);
 
+long long ut_strtoll(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+long ut_strtol(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+int ut_strtoi(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+unsigned long long ut_strtoull(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+unsigned long ut_strtoul(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
+unsigned ut_strtou(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
 /* an open() that can't return < 0 */
 #define OPEN(path, ...)\
     ut_open(__FILE__, __LINE__, __func__, path, __VA_ARGS__)
@@ -488,6 +509,31 @@ int ut_ftruncate(const char *file, int line, const char *func,
 
 #define FTRUNCATE(fd, length)\
     ut_ftruncate(__FILE__, __LINE__, __func__, fd, length)
+
+#define ATOU(nptr) STRTOU(nptr, NULL, 10)
+#define ATOUL(nptr) STRTOUL(nptr, NULL, 10)
+#define ATOULL(nptr) STRTOULL(nptr, NULL, 10)
+#define ATOI(nptr) STRTOI(nptr, NULL, 10)
+#define ATOL(nptr) STRTOL(nptr, NULL, 10)
+#define ATOLL(nptr) STRTOLL(nptr, NULL, 10)
+
+#define STRTOULL(nptr, endptr, base)\
+    ut_strtoull(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOUL(nptr, endptr, base)\
+    ut_strtoul(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOL(nptr, endptr, base)\
+    ut_strtol(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOLL(nptr, endptr, base)\
+    ut_strtoll(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOU(nptr, endptr, base)\
+    ut_strtou(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define STRTOI(nptr, endptr, base)\
+    ut_strtoi(__FILE__, __LINE__, __func__, nptr, endptr, base)
 
 #ifndef _WIN32
 #define ut_jmp_buf_t sigjmp_buf
@@ -587,6 +633,13 @@ intptr_t ut_spawnv(int argc, const char **argv, ...);
 	ret_type __wrap_##name(__VA_ARGS__) {\
 		switch (util_fetch_and_add32(&RCOUNTER(name), 1)) {
 
+#define FUNC_MOCK_DLLIMPORT(name, ret_type, ...)\
+	__declspec(dllimport) _FUNC_REAL_DECL(name, ret_type, ##__VA_ARGS__)\
+	static unsigned RCOUNTER(name);\
+	ret_type __wrap_##name(__VA_ARGS__);\
+	ret_type __wrap_##name(__VA_ARGS__) {\
+		switch (util_fetch_and_add32(&RCOUNTER(name), 1)) {
+
 #define FUNC_MOCK_END\
 	}}
 
@@ -673,7 +726,7 @@ _name(const struct test_case *tc, int argc, char *argv[])
 #define TEST_CASE(_name)\
 {\
 	.name = #_name,\
-	.func = _name,\
+	.func = (_name),\
 }
 
 #define STR(x) #x

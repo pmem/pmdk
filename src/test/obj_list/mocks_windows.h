@@ -62,11 +62,13 @@ extern "C" {
 #define prealloc __wrap_prealloc
 #define prealloc_construct __wrap_prealloc_construct
 #define palloc_usable_size __wrap_palloc_usable_size
+#define palloc_reserve __wrap_palloc_reserve
+#define palloc_publish __wrap_palloc_publish
+#define palloc_defer_free __wrap_palloc_defer_free
 #endif
 
 #ifndef WRAP_REAL_REDO
-#define redo_log_store_last __wrap_redo_log_store_last
-#define redo_log_set_last __wrap_redo_log_set_last
+#define redo_log_store __wrap_redo_log_store
 #define redo_log_process __wrap_redo_log_process
 #endif
 

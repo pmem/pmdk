@@ -33,11 +33,6 @@
 #
 # src/test/cto_aligned_alloc/TEST0.PS1 -- unit test for pmemcto_aligned_alloc
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

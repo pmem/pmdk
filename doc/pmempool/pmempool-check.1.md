@@ -45,7 +45,7 @@ date: pmem Tools version 1.4
 
 # NAME #
 
-**pmempool-check** -- check and repair persistent memory pool
+**pmempool-check** - check and repair persistent memory pool
 
 
 # SYNOPSIS #

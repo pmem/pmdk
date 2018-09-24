@@ -33,15 +33,6 @@
 #
 # src/test/util_cpuid/TEST0 -- unit test for CPU features detection
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

@@ -52,14 +52,14 @@ check_signature PMEMBLK $POOL
 check_size $SIZE $POOL
 
 # PMEMLOG
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create -s $SIZE log $POOL
 check_file $POOL
 check_signature PMEMLOG $POOL
 check_size $SIZE $POOL
 
 #PMEMOBJ
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create -s $SIZE obj $POOL
 check_file $POOL
 check_signature PMEMOBJ $POOL

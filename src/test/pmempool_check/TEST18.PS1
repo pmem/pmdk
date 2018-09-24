@@ -33,11 +33,6 @@
 # pmempool_check/TEST18 -- test for fixing various fields repairability without
 #  advanced flag
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 

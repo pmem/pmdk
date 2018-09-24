@@ -29,9 +29,9 @@ type                     : regular file
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x0
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : $(*)
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Alignment Descriptor     : 0x0000077737773310[OK]
 Class                    : 64
 Data                     : 2's complement, little endian

@@ -43,6 +43,6 @@ require_build_type static-nondebug
 setup
 
 PMEM_IS_PMEM_FORCE=1 PMEM_NO_FLUSH=1 expect_normal_exit\
-	./obj_fragmentation2$EXESUFFIX $DIR/testfile1 7 12345
+	./obj_fragmentation2$EXESUFFIX $DIR/testfile1 6 12345
 
 pass

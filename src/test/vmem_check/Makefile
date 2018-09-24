@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,6 @@
 # src/test/vmem_check/Makefile -- build vmem_check unit test
 #
 
-vpath %.h ../..
 TARGET = vmem_check
 OBJS = vmem_check.o
 

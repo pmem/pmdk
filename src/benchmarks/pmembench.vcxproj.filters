@@ -52,6 +52,9 @@
     <ClCompile Include="..\libpmemobj\heap.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\libpmemobj\ctl_debug.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
     <ClCompile Include="..\libpmemobj\cuckoo.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
@@ -73,10 +76,10 @@
     <ClCompile Include="..\libpmemobj\alloc_class.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\libpmemobj\ctl.c">
+    <ClCompile Include="..\common\ctl.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\libpmemobj\ctl_global.c">
+    <ClCompile Include="..\common\ctl_global.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
     <ClCompile Include="pmemobj_tx.cpp">
@@ -145,14 +148,23 @@
     <ClCompile Include="pmemobj_persist.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\libpmemobj\ringbuf.c">
-      <Filter>pmemobj</Filter>
-    </ClCompile>
     <ClCompile Include="..\libpmemobj\stats.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="poolset_util.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="benchmark.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="benchmark_time.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="benchmark_worker.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="clo.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -162,16 +174,10 @@
     <ClInclude Include="config_reader.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="poolset_util.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="scenario.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="benchmark.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="benchmark_time.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="benchmark_worker.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

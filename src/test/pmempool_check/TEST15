@@ -53,7 +53,7 @@ PART4=$DIR/pool.part4
 PARTS="$PART1 $PART2 $PART3 $PART4"
 
 LOG=out${UNITTEST_NUM}.log
-rm -rf $LOG && touch $LOG
+rm -f $LOG && touch $LOG
 
 for args in "log" "blk 512" "obj" ; do
 	echo "Arguments: create $args" >> $LOG

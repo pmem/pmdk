@@ -34,8 +34,6 @@
 
 include ../common.inc
 
-ARCH := $(call get_arch)
-
 LIBRARY_NAME = pmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
@@ -58,6 +56,8 @@ SOURCE =\
 	pmem_posix.c
 
 include $(ARCH)/sources.inc
+
+SOURCE += $(LIBPMEM_ARCH_SOURCE)
 
 include ../Makefile.inc
 
