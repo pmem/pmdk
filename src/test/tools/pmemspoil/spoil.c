@@ -137,21 +137,6 @@ if (pmemspoil_check_field(_pfp, STR(_name))) {\
 }\
 } while (0)
 
-/* _max - size of _arg if it is array (if not it must be 1) */
-#define PROCESS_NAME(_name, _func, _arg, _max) do {\
-if (pmemspoil_check_field(_pfp, (_name))) {\
-	PROCESS_STATE = PROCESS_STATE_FOUND;\
-	if (_pfp->cur->index >= (_max)) {\
-		PROCESS_STATE = PROCESS_STATE_ERROR_MSG;\
-	} else {\
-		pmemspoil_next_field(_pfp);\
-		if (pmemspoil_process_##_func(_psp, _pfp, _arg))\
-			PROCESS_STATE = PROCESS_STATE_ERROR;\
-	}\
-	goto _process_end;\
-}\
-} while (0)
-
 #define PROCESS_FIELD(_ptr, _name, _type) do {\
 	if (pmemspoil_check_field(_pfp, STR(_name))) {\
 		pmemspoil_next_field(_pfp);\
@@ -1190,71 +1175,19 @@ pmemspoil_process_heap(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 }
 
 /*
- * pmemspoil_process_allocator -- process lane allocator section
- */
-static int
-pmemspoil_process_sec_allocator(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct lane_alloc_layout *sec)
-{
-	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD_ARRAY(sec, internal.data,
-			uint8_t, ALLOC_REDO_INTERNAL_SIZE);
-		PROCESS_FIELD_ARRAY(sec, external.data,
-			uint8_t, ALLOC_REDO_EXTERNAL_SIZE);
-	} PROCESS_END
-
-	return PROCESS_RET;
-}
-
-/*
- * pmemspoil_process_tx -- process lane transaction section
- */
-static int
-pmemspoil_process_sec_tx(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct lane_tx_layout *sec)
-{
-	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD_ARRAY(sec, undo.data,
-			uint8_t, TX_UNDO_LOG_SIZE);
-	} PROCESS_END
-
-	return PROCESS_RET;
-}
-
-/*
- * pmemspoil_process_list -- process lane list section
- */
-static int
-pmemspoil_process_sec_list(struct pmemspoil *psp,
-	struct pmemspoil_list *pfp, struct lane_list_layout *sec)
-{
-	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD_ARRAY(sec, redo.data,
-			uint8_t, LIST_REDO_LOG_SIZE);
-	} PROCESS_END
-
-	return PROCESS_RET;
-}
-
-/*
  * pmemspoil_process_lane -- process pmemobj lanes
  */
 static int
 pmemspoil_process_lane(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		struct lane_layout *lane)
 {
-	struct lane_tx_layout *sec_tx = (struct lane_tx_layout *)
-		&lane->sections[LANE_SECTION_TRANSACTION];
-	struct lane_list_layout *sec_list = (struct lane_list_layout *)
-		&lane->sections[LANE_SECTION_LIST];
-	struct lane_alloc_layout *sec_alloc =
-		(struct lane_alloc_layout *)
-		&lane->sections[LANE_SECTION_ALLOCATOR];
-
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_NAME("allocator", sec_allocator, sec_alloc, 1);
-		PROCESS_NAME("tx", sec_tx, sec_tx, 1);
-		PROCESS_NAME("list", sec_list, sec_list, 1);
+		PROCESS_FIELD_ARRAY(lane, undo.data,
+			uint8_t, LANE_UNDO_SIZE);
+		PROCESS_FIELD_ARRAY(lane, internal.data,
+			uint8_t, LANE_REDO_INTERNAL_SIZE);
+		PROCESS_FIELD_ARRAY(lane, external.data,
+			uint8_t, LANE_REDO_EXTERNAL_SIZE);
 	} PROCESS_END
 
 	return PROCESS_RET;

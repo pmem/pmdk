@@ -66,9 +66,6 @@
 #define SIZEOF_ULOG_BASE_ENTRY_V4 (8)
 #define SIZEOF_ULOG_VAL_ENTRY_V4 (16)
 #define SIZEOF_ULOG_BUF_ENTRY_V4 (24)
-#define SIZEOF_LANE_LIST_LAYOUT_V4 (1024)
-#define SIZEOF_LANE_ALLOC_LAYOUT_V4 (1024)
-#define SIZEOF_LANE_TX_LAYOUT_V4 (1024)
 
 POBJ_LAYOUT_BEGIN(layout);
 POBJ_LAYOUT_ROOT(layout, struct foo);
@@ -225,44 +222,14 @@ main(int argc, char *argv[])
 	UT_COMPILE_ERROR_ON(sizeof(struct foo_head) != SIZEOF_LIST_HEAD_V3);
 	UT_COMPILE_ERROR_ON(sizeof(struct list_head) != SIZEOF_LIST_HEAD_V3);
 
-	ASSERT_ALIGNED_BEGIN(struct lane_alloc_layout);
-	ASSERT_ALIGNED_FIELD(struct lane_alloc_layout, external);
-	ASSERT_ALIGNED_FIELD(struct lane_alloc_layout, internal);
-	ASSERT_ALIGNED_CHECK(struct lane_alloc_layout);
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_alloc_layout) >
-		sizeof(struct lane_section_layout));
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_alloc_layout) !=
-		SIZEOF_LANE_ALLOC_LAYOUT_V4);
-
-
-	ASSERT_ALIGNED_BEGIN(struct lane_list_layout);
-	ASSERT_ALIGNED_FIELD(struct lane_list_layout, redo);
-	ASSERT_ALIGNED_CHECK(struct lane_list_layout);
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_list_layout) >
-		sizeof(struct lane_section_layout));
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_list_layout) !=
-		SIZEOF_LANE_LIST_LAYOUT_V4);
-
-
-	ASSERT_ALIGNED_BEGIN(struct lane_tx_layout);
-	ASSERT_ALIGNED_FIELD(struct lane_tx_layout, undo);
-	ASSERT_ALIGNED_CHECK(struct lane_tx_layout);
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_tx_layout) >
-		sizeof(struct lane_section_layout));
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_tx_layout) !=
-		SIZEOF_LANE_TX_LAYOUT_V4);
-
 	ASSERT_ALIGNED_BEGIN(struct lane_layout);
-	ASSERT_ALIGNED_FIELD(struct lane_layout, sections);
+	ASSERT_ALIGNED_FIELD(struct lane_layout, internal);
+	ASSERT_ALIGNED_FIELD(struct lane_layout, external);
+	ASSERT_ALIGNED_FIELD(struct lane_layout, undo);
 	ASSERT_ALIGNED_CHECK(struct lane_layout);
 	UT_COMPILE_ERROR_ON(sizeof(struct lane_layout) !=
 		SIZEOF_LANE_V3);
 
-	ASSERT_ALIGNED_BEGIN(struct lane_section_layout);
-	ASSERT_ALIGNED_FIELD(struct lane_section_layout, data);
-	ASSERT_ALIGNED_CHECK(struct lane_section_layout);
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_section_layout) !=
-		SIZEOF_LANE_SECTION_V3);
 
 	DONE(NULL);
 }

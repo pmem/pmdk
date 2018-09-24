@@ -103,8 +103,10 @@ operation_log_transient_init(struct operation_log *log)
 
 	struct ulog *src = Zalloc(sizeof(struct ulog) +
 		ULOG_BASE_SIZE);
-	if (src == NULL)
+	if (src == NULL) {
+		ERR("!Zalloc");
 		return -1;
+	}
 
 	/* initialize underlying redo log structure */
 	src->capacity = ULOG_BASE_SIZE;
@@ -127,8 +129,10 @@ operation_log_persistent_init(struct operation_log *log,
 
 	struct ulog *src = Zalloc(sizeof(struct ulog) +
 		ULOG_BASE_SIZE);
-	if (src == NULL)
+	if (src == NULL) {
+		ERR("!Zalloc");
 		return -1;
+	}
 
 	/* initialize underlying redo log structure */
 	src->capacity = ulog_base_nbytes;
@@ -170,8 +174,10 @@ operation_new(struct ulog *ulog, size_t ulog_base_nbytes,
 	const struct pmem_ops *p_ops, enum log_type type)
 {
 	struct operation_context *ctx = Zalloc(sizeof(*ctx));
-	if (ctx == NULL)
+	if (ctx == NULL) {
+		ERR("!Zalloc");
 		goto error_ctx_alloc;
+	}
 
 	ctx->ulog = ulog;
 	ctx->ulog_base_nbytes = ulog_base_nbytes;
@@ -497,8 +503,7 @@ operation_resume(struct operation_context *ctx)
 	operation_init(ctx);
 	ASSERTeq(ctx->in_progress, 0);
 	ctx->in_progress = 1;
-	/* assume the entire log is occupied for the purpose of data clobber */
-	ctx->total_logged = ctx->ulog_capacity;
+	ctx->total_logged = ulog_base_nbytes(ctx->ulog);
 }
 
 /*

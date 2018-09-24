@@ -92,7 +92,7 @@ extern PMEMobjpool *Pop;
 /* pointer to heap offset */
 extern uint64_t *Heap_offset;
 /* list lane section */
-extern struct lane_section Lane_section;
+extern struct lane Lane;
 /* actual item id */
 extern int *Id;
 

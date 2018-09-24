@@ -200,8 +200,8 @@ FUNC_MOCK_RUN_DEFAULT
 	Id = (int *)((uintptr_t)Pop + linear_alloc(&heap_offset, sizeof(*Id)));
 
 	/* Alloc lane layout */
-	Lane_section.layout = (struct lane_section_layout *)((uintptr_t)Pop +
-			linear_alloc(&heap_offset, LANE_SECTION_LEN));
+	Lane.layout = (struct lane_layout *)((uintptr_t)Pop +
+			linear_alloc(&heap_offset, LANE_TOTAL_SIZE));
 
 	/* Alloc in band lists */
 	List.oid.pool_uuid_lo = Pop->uuid_lo;
@@ -234,10 +234,8 @@ FUNC_MOCK_RUN_DEFAULT
 	Pop->run_id += 2;
 	pmemops_persist(p_ops, &Pop->run_id, sizeof(Pop->run_id));
 
-	struct lane_list_layout *layout =
-		(struct lane_list_layout *)Lane_section.layout;
-	Lane_section.runtime = operation_new((struct ulog *)&layout->redo,
-		LIST_REDO_LOG_SIZE, NULL, NULL, p_ops, LOG_TYPE_REDO);
+	Lane.external = operation_new((struct ulog *)&Lane.layout->external,
+		LANE_REDO_EXTERNAL_SIZE, NULL, NULL, p_ops, LOG_TYPE_REDO);
 
 	return Pop;
 }
@@ -250,7 +248,7 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(pmemobj_close, void, PMEMobjpool *pop)
 	FUNC_MOCK_RUN_DEFAULT {
-		operation_delete(Lane_section.runtime);
+		operation_delete(Lane.external);
 		UT_ASSERTeq(pmem_unmap(Pop,
 			Pop->heap_size + Pop->heap_offset), 0);
 		Pop = NULL;
@@ -315,14 +313,9 @@ FUNC_MOCK_END
  *
  * Returns pointer to list lane section.
  */
-FUNC_MOCK(lane_hold, unsigned, PMEMobjpool *pop, struct lane_section **section,
-		enum lane_section_type type)
+FUNC_MOCK(lane_hold, unsigned, PMEMobjpool *pop, struct lane **lane)
 	FUNC_MOCK_RUN_DEFAULT {
-		if (type != LANE_SECTION_LIST) {
-			*section = NULL;
-		} else {
-			*section = &Lane_section;
-		}
+		*lane = &Lane;
 		return 0;
 	}
 FUNC_MOCK_END
@@ -339,9 +332,9 @@ FUNC_MOCK_RET_ALWAYS_VOID(lane_release, PMEMobjpool *pop);
  */
 FUNC_MOCK(lane_recover_and_section_boot, int, PMEMobjpool *pop)
 	FUNC_MOCK_RUN_DEFAULT {
-		return Section_ops[LANE_SECTION_LIST]->recover(Pop,
-				Lane_section.layout,
-				sizeof(*Lane_section.layout));
+		ulog_recover((struct ulog *)&Lane.layout->external,
+			OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
+		return 0;
 	}
 FUNC_MOCK_END
 

@@ -51,14 +51,15 @@
 #include "obj.h"
 #include "os_thread.h"
 #include "valgrind_internal.h"
+#include "memops.h"
+#include "palloc.h"
+#include "tx.h"
 
 static os_tls_key_t Lane_info_key;
 
 static __thread struct cuckoo *Lane_info_ht;
 static __thread struct lane_info *Lane_info_records;
 static __thread struct lane_info *Lane_info_cache;
-
-struct section_operations *Section_ops[MAX_LANE_SECTION];
 
 /*
  * lane_info_create -- (internal) constructor for thread shared data
@@ -179,6 +180,49 @@ lane_get_layout(PMEMobjpool *pop, uint64_t lane_idx)
 }
 
 /*
+ * lane_ulog_constructor -- (internal) constructor of a ulog extension
+ */
+static int
+lane_ulog_constructor(void *base, void *ptr, size_t usable_size, void *arg)
+{
+	PMEMobjpool *pop = base;
+	const struct pmem_ops *p_ops = &pop->p_ops;
+
+	size_t capacity = ALIGN_DOWN(usable_size - sizeof(struct ulog),
+		CACHELINE_SIZE);
+
+	ulog_construct(ptr, capacity, 1, p_ops);
+
+	return 0;
+}
+
+/*
+ * lane_undo_extend -- allocates a new undo log
+ */
+static int
+lane_undo_extend(void *base, uint64_t *redo)
+{
+	PMEMobjpool *pop = base;
+	struct tx_parameters *params = pop->tx_params;
+	size_t s = SIZEOF_ULOG(params->cache_size);
+
+	return pmalloc_construct(base, redo, s, lane_ulog_constructor, NULL,
+		0, OBJ_INTERNAL_OBJECT_MASK, 0);
+}
+
+/*
+ * lane_redo_extend -- allocates a new redo log
+ */
+static int
+lane_redo_extend(void *base, uint64_t *redo)
+{
+	size_t s = SIZEOF_ULOG(LANE_REDO_EXTERNAL_SIZE);
+
+	return pmalloc_construct(base, redo, s, lane_ulog_constructor, NULL,
+		0, OBJ_INTERNAL_OBJECT_MASK, 0);
+}
+
+/*
  * lane_init -- (internal) initializes a single lane runtime variables
  */
 static int
@@ -186,26 +230,36 @@ lane_init(PMEMobjpool *pop, struct lane *lane, struct lane_layout *layout)
 {
 	ASSERTne(lane, NULL);
 
-	int i;
-	int oerrno;
+	lane->layout = layout;
 
-	for (i = 0; i < MAX_LANE_SECTION; ++i) {
-		lane->sections[i].layout = &layout->sections[i];
-		errno = 0;
-		lane->sections[i].runtime = Section_ops[i]->construct_rt(pop,
-			&layout->sections[i]);
-		if (lane->sections[i].runtime == NULL && errno) {
-			ERR("!lane_construct_ops %d", i);
-			goto error_section_construct;
-		}
-	}
+	lane->internal = operation_new((struct ulog *)&layout->internal,
+		LANE_REDO_INTERNAL_SIZE,
+		NULL, NULL, &pop->p_ops,
+		LOG_TYPE_REDO);
+	if (lane->internal == NULL)
+		goto error_internal_new;
+
+	lane->external = operation_new((struct ulog *)&layout->external,
+		LANE_REDO_EXTERNAL_SIZE,
+		lane_redo_extend, (ulog_free_fn)pfree, &pop->p_ops,
+		LOG_TYPE_REDO);
+	if (lane->external == NULL)
+		goto error_external_new;
+
+	lane->undo = operation_new((struct ulog *)&layout->undo,
+		LANE_UNDO_SIZE,
+		lane_undo_extend, (ulog_free_fn)pfree, &pop->p_ops,
+		LOG_TYPE_UNDO);
+	if (lane->undo == NULL)
+		goto error_undo_new;
+
 	return 0;
 
-error_section_construct:
-	oerrno = errno;
-	for (i = i - 1; i >= 0; --i)
-		Section_ops[i]->destroy_rt(pop, &lane->sections[i].runtime);
-	errno = oerrno;
+error_undo_new:
+	operation_delete(lane->external);
+error_external_new:
+	operation_delete(lane->internal);
+error_internal_new:
 	return -1;
 }
 
@@ -215,8 +269,9 @@ error_section_construct:
 static void
 lane_destroy(PMEMobjpool *pop, struct lane *lane)
 {
-	for (int i = 0; i < MAX_LANE_SECTION; ++i)
-		Section_ops[i]->destroy_rt(pop, lane->sections[i].runtime);
+	operation_delete(lane->undo);
+	operation_delete(lane->internal);
+	operation_delete(lane->external);
 }
 
 /*
@@ -272,6 +327,30 @@ error_lanes_malloc:
 }
 
 /*
+ * lane_init_data -- initalizes ulogs for all the lanes
+ */
+void
+lane_init_data(PMEMobjpool *pop)
+{
+	struct lane_layout *layout = lane_get_layout(pop, 0);
+
+	/* first, zero out all lanes */
+	pmemops_memset(&pop->p_ops, layout, 0,
+		pop->nlanes * sizeof(struct lane_layout),
+		PMEMOBJ_F_MEM_NONTEMPORAL);
+
+	for (uint64_t i = 0; i < pop->nlanes; ++i) {
+		layout = lane_get_layout(pop, i);
+		ulog_construct((struct ulog *)&layout->internal,
+			LANE_REDO_INTERNAL_SIZE, 0, &pop->p_ops);
+		ulog_construct((struct ulog *)&layout->external,
+			LANE_REDO_EXTERNAL_SIZE, 0, &pop->p_ops);
+		ulog_construct((struct ulog *)&layout->undo,
+			LANE_UNDO_SIZE, 0, &pop->p_ops);
+	}
+}
+
+/*
  * lane_cleanup -- destroys all lanes
  */
 void
@@ -295,31 +374,56 @@ lane_cleanup(PMEMobjpool *pop)
 int
 lane_recover_and_section_boot(PMEMobjpool *pop)
 {
+	COMPILE_ERROR_ON(SIZEOF_ULOG(LANE_UNDO_SIZE) +
+		SIZEOF_ULOG(LANE_REDO_EXTERNAL_SIZE) +
+		SIZEOF_ULOG(LANE_REDO_INTERNAL_SIZE) != LANE_TOTAL_SIZE);
+
 	int err = 0;
-	int i; /* section index */
-	uint64_t j; /* lane index */
+	uint64_t i; /* lane index */
 	struct lane_layout *layout;
 
-	for (i = 0; i < MAX_LANE_SECTION; ++i) {
-		for (j = 0; j < pop->nlanes; ++j) {
-			layout = lane_get_layout(pop, j);
-			err = Section_ops[i]->recover(pop, &layout->sections[i],
-				sizeof(layout->sections[i]));
+	/*
+	 * First we need to recover the internal/external redo logs so that the
+	 * allocator state is consistent before we boot it.
+	 */
+	for (i = 0; i < pop->nlanes; ++i) {
+		layout = lane_get_layout(pop, i);
 
-			if (err != 0) {
-				LOG(2, "section_ops->recover %d %" PRIu64 " %d",
-					i, j, err);
-				return err;
-			}
-		}
-
-		if ((err = Section_ops[i]->boot(pop)) != 0) {
-			LOG(2, "section_ops->init %d %d", i, err);
-			return err;
-		}
+		ulog_recover((struct ulog *)&layout->internal,
+			OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
+		ulog_recover((struct ulog *)&layout->external,
+			OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
 	}
 
-	return err;
+	if ((err = pmalloc_boot(pop)) != 0)
+		return err;
+
+	/*
+	 * Undo logs must be processed after the heap is initialized since
+	 * a undo recovery might require deallocation of the next ulogs.
+	 */
+	for (i = 0; i < pop->nlanes; ++i) {
+		layout = lane_get_layout(pop, i);
+
+		struct ulog *undo = (struct ulog *)&layout->undo;
+
+		struct operation_context *ctx = operation_new(
+			undo,
+			LANE_UNDO_SIZE,
+			lane_undo_extend, (ulog_free_fn)pfree, &pop->p_ops,
+			LOG_TYPE_UNDO);
+		if (ctx == NULL) {
+			LOG(2, "undo recovery failed %" PRIu64 " %d",
+				i, err);
+			return err;
+		}
+		operation_resume(ctx);
+		operation_process(ctx);
+		operation_finish(ctx);
+		operation_delete(ctx);
+	}
+
+	return 0;
 }
 
 /*
@@ -328,17 +432,7 @@ lane_recover_and_section_boot(PMEMobjpool *pop)
 int
 lane_section_cleanup(PMEMobjpool *pop)
 {
-	int err;
-	int lerr = 0;
-
-	for (int i = 0; i < MAX_LANE_SECTION; i++) {
-		if ((err = Section_ops[i]->cleanup(pop)) != 0) {
-			LOG(2, "section_ops->cleanup %d %d", i, err);
-			lerr = err;
-		}
-	}
-
-	return lerr;
+	return pmalloc_cleanup(pop);
 }
 
 /*
@@ -348,26 +442,20 @@ int
 lane_check(PMEMobjpool *pop)
 {
 	int err = 0;
-	int i; /* section index */
 	uint64_t j; /* lane index */
 	struct lane_layout *layout;
 
-	for (i = 0; i < MAX_LANE_SECTION; ++i) {
-		for (j = 0; j < pop->nlanes; ++j) {
-			layout = lane_get_layout(pop, j);
-			err = Section_ops[i]->check(pop, &layout->sections[i],
-					sizeof(layout->sections[i]));
-
-			if (err) {
-				LOG(2, "section_ops->check %d %" PRIu64 " %d",
-					i, j, err);
-
-				return err;
-			}
+	for (j = 0; j < pop->nlanes; ++j) {
+		layout = lane_get_layout(pop, j);
+		if (ulog_check((struct ulog *)&layout->internal,
+		    OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops) != 0) {
+			LOG(2, "lane %" PRIu64 " internal redo failed: %d",
+				j, err);
+			return err;
 		}
 	}
 
-	return err;
+	return 0;
 }
 
 /*
@@ -454,19 +542,15 @@ get_lane_info_record(PMEMobjpool *pop)
  * lane_hold -- grabs a per-thread lane in a round-robin fashion
  */
 unsigned
-lane_hold(PMEMobjpool *pop, struct lane_section **section,
-	enum lane_section_type type)
+lane_hold(PMEMobjpool *pop, struct lane **lanep)
 {
-	if (section == NULL)
-		ASSERTeq(type, LANE_ID);
-
 	/*
 	 * Before runtime lane initialization all remote operations are
 	 * executed using RLANE_DEFAULT.
 	 */
 	if (unlikely(!pop->lanes_desc.runtime_nlanes)) {
 		ASSERT(pop->has_remote_replicas);
-		if (section != NULL)
+		if (lanep != NULL)
 			FATAL("cannot obtain section before lane's init");
 		return RLANE_DEFAULT;
 	}
@@ -484,16 +568,19 @@ lane_hold(PMEMobjpool *pop, struct lane_section **section,
 		get_lane(llocks, lane, pop->lanes_desc.runtime_nlanes);
 	}
 
-	if (section) {
-		ASSERT(type < MAX_LANE_SECTION);
-		struct lane_section *s =
-			&pop->lanes_desc.lane[lane->lane_idx].sections[type];
+	struct lane *l = &pop->lanes_desc.lane[lane->lane_idx];
 
-		VALGRIND_ANNOTATE_NEW_MEMORY(s, sizeof(*s));
-		VALGRIND_ANNOTATE_NEW_MEMORY(s->layout, sizeof(*s->layout));
-
-		*section = s;
+	/* reinitialize lane's content only if in outermost hold */
+	if (lanep && lane->nest_count == 1) {
+		VALGRIND_ANNOTATE_NEW_MEMORY(l, sizeof(*l));
+		VALGRIND_ANNOTATE_NEW_MEMORY(l->layout, sizeof(*l->layout));
+		operation_init(l->external);
+		operation_init(l->internal);
+		operation_init(l->undo);
 	}
+
+	if (lanep)
+		*lanep = l;
 
 	return (unsigned)lane->lane_idx;
 }
