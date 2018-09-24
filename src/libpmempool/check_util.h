@@ -33,10 +33,16 @@
 /*
  * check_util.h -- internal definitions check util
  */
+#ifndef CHECK_UTIL_H
+#define CHECK_UTIL_H
 
 #include <time.h>
 #include <limits.h>
 #include <sys/param.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define CHECK_STEP_COMPLETE	UINT_MAX
 #define CHECK_INVALID_QUESTION	UINT_MAX
@@ -212,3 +218,9 @@ void cache_to_utf8(struct check_data *data, char *buf, size_t size);
 
 #define CHECK_WITHOUT_FIXING(ppc)\
 	CHECK_IS_NOT(ppc, REPAIR) || CHECK_IS(ppc, DRY_RUN)
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -41,6 +41,10 @@
 
 #include "os_thread.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * util_mutex_init -- os_mutex_init variant that never fails from
  * caller perspective. If os_mutex_init failed, this function aborts
@@ -317,5 +321,9 @@ util_semaphore_post(os_semaphore_t *sem)
 	if (os_semaphore_post(sem) != 0)
 		FATAL("!os_semaphore_post");
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

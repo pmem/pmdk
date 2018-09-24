@@ -39,6 +39,10 @@
 
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ravl;
 struct ravl_node;
 
@@ -70,5 +74,9 @@ struct ravl_node *ravl_find(struct ravl *ravl, const void *data,
 	enum ravl_predicate predicate_flags);
 void *ravl_data(struct ravl_node *node);
 void ravl_remove(struct ravl *ravl, struct ravl_node *node);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LIBPMEMOBJ_RAVL_H */

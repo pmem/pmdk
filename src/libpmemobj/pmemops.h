@@ -37,6 +37,10 @@
 #include <stdint.h>
 #include "util.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef int (*persist_fn)(void *base, const void *, size_t, unsigned);
 typedef int (*flush_fn)(void *base, const void *, size_t, unsigned);
 typedef void (*drain_fn)(void *base);
@@ -121,5 +125,9 @@ pmemops_memset(const struct pmem_ops *p_ops, void *dest, int c,
 {
 	return p_ops->memset(p_ops->base, dest, c, len, flags);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

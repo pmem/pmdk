@@ -43,6 +43,10 @@
 #include "vec.h"
 #include "pmemops.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct redo_log_entry_base {
 	uint64_t offset; /* offset with operation type flag */
 };
@@ -129,5 +133,9 @@ void redo_log_recover(struct redo_log *redo, redo_check_offset_fn check,
 	const struct pmem_ops *p_ops);
 int redo_log_check(struct redo_log *redo, redo_check_offset_fn check,
 	const struct pmem_ops *p_ops);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

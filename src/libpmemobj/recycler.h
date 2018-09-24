@@ -43,6 +43,10 @@
 #include "memblock.h"
 #include "vec.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct recycler;
 VEC(empty_runs, struct memory_block);
 
@@ -73,5 +77,9 @@ struct empty_runs recycler_recalc(struct recycler *r, int force);
 
 void recycler_inc_unaccounted(struct recycler *r,
 	const struct memory_block *m);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

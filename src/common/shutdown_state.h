@@ -39,6 +39,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct pool_replica;
 struct shutdown_state {
 	uint64_t usc;
@@ -58,5 +62,9 @@ void shutdown_state_clear_dirty(struct shutdown_state *sds,
 
 int shutdown_state_check(struct shutdown_state *curr_sds,
 	struct shutdown_state *pool_sds, struct pool_replica *rep);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* shutdown_state.h */

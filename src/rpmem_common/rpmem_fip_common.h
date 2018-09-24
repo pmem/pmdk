@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,12 +34,19 @@
  * rpmem_fip_common.h -- common definitions for librpmem and rpmemd
  */
 
+#ifndef RPMEM_FIP_COMMON_H
+#define RPMEM_FIP_COMMON_H 1
+
 #include <string.h>
 #include <netinet/in.h>
 
 #include <rdma/fabric.h>
 #include <rdma/fi_cm.h>
 #include <rdma/fi_rma.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define RPMEM_FIVERSION FI_VERSION(1, 4)
 #define RPMEM_FIP_CQ_WAIT_MS	100
@@ -101,3 +108,9 @@ size_t rpmem_fip_rx_size(enum rpmem_persist_method pm,
 size_t rpmem_fip_max_nlanes(struct fi_info *fi);
 
 void rpmem_fip_print_info(struct fi_info *fi);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

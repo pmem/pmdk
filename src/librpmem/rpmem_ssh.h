@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,14 @@
 /*
  * rpmem_ssh.h -- rpmem ssh transport layer header file
  */
+#ifndef RPMEM_SSH_H
+#define RPMEM_SSH_H 1
+
 #include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct rpmem_ssh;
 
@@ -48,3 +55,9 @@ int rpmem_ssh_recv(struct rpmem_ssh *rps, void *buff, size_t len);
 int rpmem_ssh_monitor(struct rpmem_ssh *rps, int nonblock);
 
 const char *rpmem_ssh_strerror(struct rpmem_ssh *rps, int oerrno);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

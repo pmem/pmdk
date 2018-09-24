@@ -40,6 +40,10 @@
 #include "libpmem.h"
 #include "util.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define PMEM_LOG_PREFIX "libpmem"
 #define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
 #define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
@@ -98,5 +102,9 @@ pmem_flush_flags(const void *addr, size_t len, unsigned flags)
 void *memmove_nodrain_generic(void *pmemdest, const void *src, size_t len,
 		unsigned flags);
 void *memset_nodrain_generic(void *pmemdest, int c, size_t len, unsigned flags);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

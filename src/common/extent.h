@@ -40,6 +40,10 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct extent {
 	uint64_t offset_physical;
 	uint64_t offset_logical;
@@ -54,5 +58,9 @@ struct extents {
 
 long os_extents_count(const char *path, struct extents *exts);
 int os_extents_get(const char *path, struct extents *exts);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* PMDK_EXTENT_H */

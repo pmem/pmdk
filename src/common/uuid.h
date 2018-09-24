@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,6 +40,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * Structure for binary version of uuid. From RFC4122,
  * https://tools.ietf.org/html/rfc4122
@@ -72,5 +76,9 @@ uuidcmp(const uuid_t uuid1, const uuid_t uuid2)
 {
 	return memcmp(uuid1, uuid2, POOL_HDR_UUID_LEN);
 }
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

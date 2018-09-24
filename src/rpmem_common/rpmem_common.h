@@ -34,6 +34,9 @@
  * rpmem_common.h -- common definitions for librpmem and rpmemd
  */
 
+#ifndef RPMEM_COMMON_H
+#define RPMEM_COMMON_H 1
+
 /*
  * Values for SO_KEEPALIVE socket option
  */
@@ -52,6 +55,10 @@
 #include <stdint.h>
 #include <sys/socket.h>
 #include <netdb.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
  * rpmem_err -- error codes
@@ -151,3 +158,9 @@ void rpmem_target_free(struct rpmem_target_info *info);
 int rpmem_xwrite(int fd, const void *buf, size_t len, int flags);
 int rpmem_xread(int fd, void *buf, size_t len, int flags);
 char *rpmem_get_ssh_conn_addr(void);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

@@ -46,6 +46,10 @@
 #include "valgrind_internal.h"
 #include "stats.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define PALLOC_CTL_DEBUG_NO_PATTERN (-1)
 
 struct palloc_heap {
@@ -124,6 +128,10 @@ typedef int (*object_callback)(const struct memory_block *m, void *arg);
 
 #if VG_MEMCHECK_ENABLED
 void palloc_heap_vg_open(struct palloc_heap *heap, int objects);
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

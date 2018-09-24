@@ -34,6 +34,9 @@
  * pool.h -- internal definitions for pool processing functions
  */
 
+#ifndef POOL_H
+#define POOL_H
+
 #include <stdbool.h>
 #include <sys/types.h>
 
@@ -46,6 +49,10 @@
 #include "blk.h"
 #include "btt_layout.h"
 #include "cto.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 enum pool_type {
 	POOL_TYPE_UNKNOWN	= (1 << 0),
@@ -158,3 +165,9 @@ uint64_t pool_next_arena_offset(struct pool_data *pool, uint64_t header_offset);
 uint64_t pool_get_first_valid_btt(struct pool_data *pool,
 	struct btt_info *infop, uint64_t offset, bool *zeroed);
 size_t pool_get_min_size(enum pool_type);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

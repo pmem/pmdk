@@ -49,6 +49,10 @@
 #include "stats.h"
 #include "ctl_debug.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
 #define PMEMOBJ_LOG_FILE_VAR "PMEMOBJ_LOG_FILE"
@@ -263,6 +267,10 @@ int obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 	_pobj_debug_notice(__func__, NULL, 0)
 #else
 #define _POBJ_DEBUG_NOTICE_IN_TX() do {} while (0)
+#endif
+
+#ifdef __cplusplus
+}
 #endif
 
 #endif

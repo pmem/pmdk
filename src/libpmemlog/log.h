@@ -34,6 +34,9 @@
  * log.h -- internal definitions for libpmem log module
  */
 
+#ifndef LOG_H
+#define LOG_H 1
+
 #include <stdint.h>
 #include <stddef.h>
 #include <endian.h>
@@ -42,6 +45,10 @@
 #include "util.h"
 #include "os_thread.h"
 #include "pool_hdr.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define PMEMLOG_LOG_PREFIX "libpmemlog"
 #define PMEMLOG_LOG_LEVEL_VAR "PMEMLOG_LOG_LEVEL"
@@ -103,3 +110,9 @@ log_convert2le(struct pmemlog *plp)
 	plp->end_offset = htole64(plp->end_offset);
 	plp->write_offset = htole64(plp->write_offset);
 }
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

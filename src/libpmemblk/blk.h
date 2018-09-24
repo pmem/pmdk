@@ -34,11 +34,18 @@
  * blk.h -- internal definitions for libpmem blk module
  */
 
+#ifndef BLK_H
+#define BLK_H 1
+
 #include <stddef.h>
 
 #include "ctl.h"
 #include "os_thread.h"
 #include "pool_hdr.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define PMEMBLK_LOG_PREFIX "libpmemblk"
 #define PMEMBLK_LOG_LEVEL_VAR "PMEMBLK_LOG_LEVEL"
@@ -90,3 +97,9 @@ struct pmemblk {
 
 /* data area starts at this alignment after the struct pmemblk above */
 #define BLK_FORMAT_DATA_ALIGN ((uintptr_t)4096)
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

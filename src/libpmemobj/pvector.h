@@ -45,6 +45,10 @@
 
 #include "libpmemobj.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * The PVECTOR_INIT_SHIFT and PVECTOR_INIT_SIZE sets the initial
  * size of the vector. In other words, the shift defines from which term
@@ -90,5 +94,9 @@ uint64_t pvector_first(struct pvector_context *ctx);
 uint64_t pvector_last(struct pvector_context *ctx);
 uint64_t pvector_prev(struct pvector_context *ctx);
 uint64_t pvector_next(struct pvector_context *ctx);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

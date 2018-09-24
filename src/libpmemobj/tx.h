@@ -41,6 +41,10 @@
 #include "pvector.h"
 #include "redo.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define TX_DEFAULT_RANGE_CACHE_SIZE (1 << 15)
 #define TX_DEFAULT_RANGE_CACHE_THRESHOLD (1 << 12)
 
@@ -85,5 +89,9 @@ void tx_ctl_register(PMEMobjpool *pop);
 
 struct tx_parameters *tx_params_new(void);
 void tx_params_delete(struct tx_parameters *tx_params);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

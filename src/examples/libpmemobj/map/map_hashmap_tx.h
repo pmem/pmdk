@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,8 +39,16 @@
 
 #include "map.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern struct map_ops hashmap_tx_ops;
 
 #define MAP_HASHMAP_TX (&hashmap_tx_ops)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MAP_HASHMAP_TX_H */

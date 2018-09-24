@@ -44,6 +44,10 @@
 #include "memops.h"
 #include "palloc.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*
  * The maximum size of redo logs used by the allocator. The common
  * case is to use two entries, one for modification of the object destination
@@ -81,5 +85,9 @@ struct operation_context *pmalloc_operation_hold_no_start(PMEMobjpool *pop);
 void pmalloc_operation_release(PMEMobjpool *pop);
 
 void pmalloc_ctl_register(PMEMobjpool *pop);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

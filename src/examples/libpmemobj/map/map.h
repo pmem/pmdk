@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,10 @@
 #define MAP_H
 
 #include <libpmemobj.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #ifndef MAP_TYPE_OFFSET
 #define MAP_TYPE_OFFSET 1000
@@ -108,5 +112,9 @@ int map_is_empty(struct map_ctx *mapc, TOID(struct map) map);
 size_t map_count(struct map_ctx *mapc, TOID(struct map) map);
 int map_cmd(struct map_ctx *mapc, TOID(struct map) map,
 	unsigned cmd, uint64_t arg);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* MAP_H */

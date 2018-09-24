@@ -41,6 +41,10 @@
 #include "errno.h"
 #include "out.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct ctl;
 
 struct ctl_index {
@@ -216,5 +220,9 @@ ctl_arg_##name
 #define CTL_REGISTER_MODULE(_ctl, name)\
 ctl_register_module_node((_ctl), CTL_STR(name),\
 (struct ctl_node *)CTL_NODE(name))
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

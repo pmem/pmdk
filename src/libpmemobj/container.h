@@ -39,6 +39,10 @@
 
 #include "memblock.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct block_container {
 	struct block_container_ops *c_ops;
 	struct palloc_heap *heap;
@@ -69,5 +73,9 @@ struct block_container_ops {
 	/* deletes the container */
 	void (*destroy)(struct block_container *c);
 };
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LIBPMEMOBJ_CONTAINER_H */

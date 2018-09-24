@@ -46,6 +46,10 @@
 #include "pmalloc.h"
 #include "redo.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define LIST_REDO_LOG_SIZE 960 /* sizeof(lane) - sizeof(struct redo_log) */
 
 /*
@@ -93,5 +97,9 @@ int list_move(PMEMobjpool *pop,
 void list_move_oob(PMEMobjpool *pop,
 	struct list_head *head_old, struct list_head *head_new,
 	PMEMoid oid);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

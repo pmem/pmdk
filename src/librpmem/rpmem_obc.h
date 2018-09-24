@@ -34,10 +34,17 @@
  * rpmem_obc.h -- rpmem out-of-band connection client header file
  */
 
+#ifndef RPMEM_OBC_H
+#define RPMEM_OBC_H 1
+
 #include <sys/types.h>
 #include <sys/socket.h>
 
 #include "librpmem.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct rpmem_obc;
 
@@ -61,3 +68,9 @@ int rpmem_obc_open(struct rpmem_obc *rpc,
 int rpmem_obc_set_attr(struct rpmem_obc *rpc,
 		const struct rpmem_pool_attr *pool_attr);
 int rpmem_obc_close(struct rpmem_obc *rpc, int flags);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
