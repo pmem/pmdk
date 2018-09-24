@@ -46,18 +46,13 @@
 #include "benchmark.hpp"
 #include "file.h"
 #include "libpmemobj.h"
-#include "os.h"
-#include "poolset_util.hpp"
-#include "valgrind_internal.h"
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "memops.h"
+#include "os.h"
 #include "pmalloc.h"
+#include "poolset_util.hpp"
 #include "redo.h"
-#ifdef __cplusplus
-}
-#endif
+#include "valgrind_internal.h"
+
 /*
  * The factor used for PMEM pool size calculation, accounts for metadata,
  * fragmentation and etc.

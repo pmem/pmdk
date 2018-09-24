@@ -38,16 +38,10 @@
 
 #include "unittest.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 #include "heap.h"
 #include "alloc_class.h"
 #include "obj.h"
 #include "util.h"
-#ifdef __cplusplus
-}
-#endif
 
 #define MAX_ALLOC_MUL	8
 #define MAX_ALLOC_CLASS	5
