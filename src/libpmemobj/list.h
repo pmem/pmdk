@@ -50,18 +50,6 @@
 extern "C" {
 #endif
 
-#define LIST_REDO_LOG_SIZE 960 /* sizeof(lane) - sizeof(struct redo_log) */
-
-/*
- * lane_list_layout -- structure of list section in lane
- *
- * obj_offset - offset to object which should be freed
- * redo       - redo log
- */
-struct lane_list_layout {
-	struct ULOG(LIST_REDO_LOG_SIZE) redo;
-};
-
 struct list_entry {
 	PMEMoid pe_next;
 	PMEMoid pe_prev;

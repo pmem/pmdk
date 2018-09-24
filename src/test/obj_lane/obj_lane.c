@@ -47,96 +47,43 @@
 #include "pmemcommon.h"
 
 #define MAX_MOCK_LANES 5
-#define MOCK_RUNTIME (void *)(0xABC)
-#define MOCK_RUNTIME_2 (void *)(0xBCD)
 
 #define MOCK_LAYOUT (void *)(0xAAA)
-#define MOCK_LAYOUT_2 (void *)(0xBBB)
-
-#define LOG_PREFIX "trace"
-#define LOG_LEVEL_VAR "TRACE_LOG_LEVEL"
-#define LOG_FILE_VAR "TRACE_LOG_FILE"
-#define MAJOR_VERSION 1
-#define MINOR_VERSION 0
 
 static void *base_ptr;
-#define RPTR(p) (uintptr_t)((char *)(p) - (char *)base_ptr)
 
 struct mock_pop {
 	PMEMobjpool p;
 	struct lane_layout l[MAX_MOCK_LANES];
 };
 
-static int construct_fail;
+/*
+ * mock_flush -- mock flush for lanes
+ */
+static int
+mock_flush(void *ctx, const void *addr, size_t len, unsigned flags)
+{
+	return 0;
+}
 
+/*
+ * mock_memset -- mock memset for lanes
+ */
 static void *
-lane_noop_construct_rt(PMEMobjpool *pop, void *data)
+mock_memset(void *ctx, void *ptr, int c, size_t sz, unsigned flags)
 {
-	UT_OUT("lane_noop_construct");
-	if (construct_fail) {
-		errno = EINVAL;
-		return NULL;
-	}
-
-	return MOCK_RUNTIME;
+	memset(ptr, c, sz);
+	return ptr;
 }
 
+/*
+ * mock_drain -- mock drain for lanes
+ */
 static void
-lane_noop_destroy_rt(PMEMobjpool *pop, void *rt)
+mock_drain(void *ctx)
 {
-	UT_OUT("lane_noop_destruct");
+
 }
-
-static int recovery_check_fail;
-
-static int
-lane_noop_recovery(PMEMobjpool *pop, void *data, unsigned length)
-{
-	UT_OUT("lane_noop_recovery 0x%"PRIxPTR, RPTR(data));
-	if (recovery_check_fail)
-		return EINVAL;
-
-	return 0;
-}
-
-static int
-lane_noop_check(PMEMobjpool *pop, void *data, unsigned length)
-{
-	UT_OUT("lane_noop_check 0x%"PRIxPTR, RPTR(data));
-	if (recovery_check_fail)
-		return EINVAL;
-
-	return 0;
-}
-
-static int
-lane_noop_boot(PMEMobjpool *pop)
-{
-	UT_OUT("lane_noop_init");
-
-	return 0;
-}
-
-static int
-lane_noop_cleanup(PMEMobjpool *pop)
-{
-	UT_OUT("lane_noop_cleanup");
-
-	return 0;
-}
-
-static struct section_operations noop_ops = {
-	.construct_rt = lane_noop_construct_rt,
-	.destroy_rt = lane_noop_destroy_rt,
-	.recover = lane_noop_recovery,
-	.check = lane_noop_check,
-	.boot = lane_noop_boot,
-	.cleanup = lane_noop_cleanup,
-};
-
-SECTION_PARM(LANE_SECTION_ALLOCATOR, &noop_ops);
-SECTION_PARM(LANE_SECTION_LIST, &noop_ops);
-SECTION_PARM(LANE_SECTION_TRANSACTION, &noop_ops);
 
 static void
 test_lane_boot_cleanup_ok(void)
@@ -148,75 +95,23 @@ test_lane_boot_cleanup_ok(void)
 
 	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
 
+	pop->p.p_ops.flush = mock_flush;
+	pop->p.p_ops.memset = mock_memset;
+	pop->p.p_ops.drain = mock_drain;
+
+	lane_init_data(&pop->p);
 	lane_info_boot();
 	UT_ASSERTeq(lane_boot(&pop->p), 0);
 
 	for (int i = 0; i < MAX_MOCK_LANES; ++i) {
-		for (int j = 0; j < MAX_LANE_SECTION; ++j) {
-			struct lane_section *section =
-				&pop->p.lanes_desc.lane[i].sections[j];
-			UT_ASSERTeq(section->layout, &pop->l[i].sections[j]);
-			UT_ASSERTeq(section->runtime, MOCK_RUNTIME);
-		}
+		struct lane *lane = &pop->p.lanes_desc.lane[i];
+		UT_ASSERTeq(lane->layout, &pop->l[i]);
 	}
 
 	lane_cleanup(&pop->p);
 
 	UT_ASSERTeq(pop->p.lanes_desc.lane, NULL);
 	UT_ASSERTeq(pop->p.lanes_desc.lane_locks, NULL);
-
-	FREE(pop);
-}
-
-static void
-test_lane_boot_fail(void)
-{
-	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
-	pop->p.nlanes = MAX_MOCK_LANES;
-
-	base_ptr = &pop->p;
-	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
-
-	construct_fail = 1;
-
-	UT_ASSERTne(lane_boot(&pop->p), 0);
-
-	construct_fail = 0;
-
-	UT_ASSERTeq(pop->p.lanes_desc.lane, NULL);
-	UT_ASSERTeq(pop->p.lanes_desc.lane_locks, NULL);
-
-	FREE(pop);
-}
-
-static void
-test_lane_recovery_check_ok(void)
-{
-	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
-	pop->p.nlanes = MAX_MOCK_LANES;
-
-	base_ptr = &pop->p;
-	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
-
-	UT_ASSERTeq(lane_recover_and_section_boot(&pop->p), 0);
-	UT_ASSERTeq(lane_check(&pop->p), 0);
-
-	FREE(pop);
-}
-
-static void
-test_lane_recovery_check_fail(void)
-{
-	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
-	pop->p.nlanes = MAX_MOCK_LANES;
-
-	base_ptr = &pop->p;
-	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
-
-	recovery_check_fail = 1;
-
-	UT_ASSERTne(lane_recover_and_section_boot(&pop->p), 0);
-	UT_ASSERTne(lane_check(&pop->p), 0);
 
 	FREE(pop);
 }
@@ -232,20 +127,20 @@ signal_handler(int sig)
 static void
 test_lane_hold_release(void)
 {
+	struct ulog *mock_ulog = ZALLOC(SIZEOF_ULOG(1024));
+	struct pmem_ops p_ops;
+	struct operation_context *ctx = operation_new(mock_ulog, 1024,
+		NULL, NULL, &p_ops, LOG_TYPE_REDO);
+
 	struct lane mock_lane = {
-		.sections = {
-			[LANE_SECTION_ALLOCATOR] = {
-				.runtime = MOCK_RUNTIME,
-				.layout = MOCK_LAYOUT
-			},
-			[LANE_SECTION_LIST] = {
-				.runtime = MOCK_RUNTIME_2,
-				.layout = MOCK_LAYOUT_2
-			}
-		}
+		.layout = MOCK_LAYOUT,
+		.internal = ctx,
+		.external = ctx,
+		.undo = ctx,
 	};
 
 	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
+
 	pop->p.nlanes = 1;
 	pop->p.lanes_desc.runtime_nlanes = 1,
 	pop->p.lanes_desc.lane = &mock_lane;
@@ -256,11 +151,14 @@ test_lane_hold_release(void)
 	pop->p.uuid_lo = 123456;
 	base_ptr = &pop->p;
 
-	struct lane_section *sec;
-	lane_hold(&pop->p, &sec, LANE_SECTION_ALLOCATOR);
-	UT_ASSERTeq(sec->runtime, MOCK_RUNTIME);
-	lane_hold(&pop->p, &sec, LANE_SECTION_LIST);
-	UT_ASSERTeq(sec->runtime, MOCK_RUNTIME_2);
+	struct lane *lane;
+	lane_hold(&pop->p, &lane);
+	UT_ASSERTeq(lane->layout, MOCK_LAYOUT);
+	UT_ASSERTeq(lane->undo, ctx);
+
+	lane_hold(&pop->p, &lane);
+	UT_ASSERTeq(lane->layout, MOCK_LAYOUT);
+	UT_ASSERTeq(lane->undo, ctx);
 
 	lane_release(&pop->p);
 	lane_release(&pop->p);
@@ -280,16 +178,14 @@ test_lane_hold_release(void)
 
 	FREE(pop->p.lanes_desc.lane_locks);
 	FREE(pop);
+	operation_delete(ctx);
+	FREE(mock_ulog);
 }
 
 static void
 test_lane_sizes(void)
 {
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_tx_layout) > LANE_SECTION_LEN);
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_alloc_layout) >
-				LANE_SECTION_LEN);
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_list_layout) >
-				LANE_SECTION_LEN);
+	UT_COMPILE_ERROR_ON(sizeof(struct lane_layout) != LANE_TOTAL_SIZE);
 }
 
 enum thread_work_type {
@@ -356,20 +252,21 @@ test_lane_cleanup_in_separate_thread(void)
 	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
 	pop->p.nlanes = MAX_MOCK_LANES;
 
+	pop->p.p_ops.flush = mock_flush;
+	pop->p.p_ops.memset = mock_memset;
+	pop->p.p_ops.drain = mock_drain;
+
 	base_ptr = &pop->p;
 
 	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
 
+	lane_init_data(&pop->p);
 	lane_info_boot();
 	UT_ASSERTeq(lane_boot(&pop->p), 0);
 
 	for (int i = 0; i < MAX_MOCK_LANES; ++i) {
-		for (int j = 0; j < MAX_LANE_SECTION; ++j) {
-			struct lane_section *section =
-				&pop->p.lanes_desc.lane[i].sections[j];
-			UT_ASSERTeq(section->layout, &pop->l[i].sections[j]);
-			UT_ASSERTeq(section->runtime, MOCK_RUNTIME);
-		}
+		struct lane *lane = &pop->p.lanes_desc.lane[i];
+		UT_ASSERTeq(lane->layout, &pop->l[i]);
 	}
 
 	struct thread_data data;
@@ -396,8 +293,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_lane");
 
-	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
-		MAJOR_VERSION, MINOR_VERSION);
+	obj_init();
 
 	if (argc != 2)
 		usage(argv[0]);
@@ -406,9 +302,6 @@ main(int argc, char *argv[])
 	case 's':
 		/* single thread scenarios */
 		test_lane_boot_cleanup_ok();
-		test_lane_boot_fail();
-		test_lane_recovery_check_ok();
-		test_lane_recovery_check_fail();
 		test_lane_hold_release();
 		test_lane_sizes();
 		break;
@@ -421,6 +314,15 @@ main(int argc, char *argv[])
 		usage(argv[0]);
 	}
 
-	common_fini();
+	obj_fini();
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+/*
+ * Since libpmemobj is linked statically,
+ * we need to invoke its ctor/dtor.
+ */
+MSVC_CONSTR(libpmemobj_init)
+MSVC_DESTR(libpmemobj_fini)
+#endif

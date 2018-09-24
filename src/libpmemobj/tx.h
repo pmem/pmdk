@@ -53,13 +53,9 @@ extern "C" {
 
 #define TX_ALIGN_SIZE(s, amask) (((s) + (amask)) & ~(amask))
 
-#define TX_UNDO_LOG_SIZE 960 /* LANE_SECTION_LEN - sizeof(struct ulog) */
-
-struct lane_tx_layout {
-	struct ULOG(TX_UNDO_LOG_SIZE) undo;
+struct tx_parameters {
+	size_t cache_size;
 };
-
-struct tx_parameters;
 
 /*
  * Returns the current transaction's pool handle, NULL if not within

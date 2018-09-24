@@ -55,7 +55,7 @@
 
 struct mock_pop {
 	PMEMobjpool p;
-	char lanes[LANE_SECTION_LEN * MAX_LANE_SECTION];
+	char lanes[LANE_TOTAL_SIZE];
 	char padding[1024]; /* to page boundary */
 	uint64_t ptr;
 };

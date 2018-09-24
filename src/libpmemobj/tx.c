@@ -55,10 +55,13 @@ struct tx {
 	PMEMobjpool *pop;
 	enum pobj_tx_stage stage;
 	int last_errnum;
-	struct lane_section *section;
+	struct lane *lane;
 	SLIST_HEAD(txl, tx_lock_data) tx_locks;
 	SLIST_HEAD(txd, tx_data) tx_entries;
-	struct operation_context *redo;
+
+	struct ravl *ranges;
+
+	VEC(, struct pobj_action) actions;
 
 	pmemobj_tx_callback stage_callback;
 	void *stage_callback_arg;
@@ -87,14 +90,6 @@ struct tx_lock_data {
 	SLIST_ENTRY(tx_lock_data) tx_lock;
 };
 
-struct lane_tx_runtime {
-	struct ravl *ranges;
-	uint64_t cache_offset;
-
-	struct operation_context *undo;
-	VEC(, struct pobj_action) actions;
-};
-
 struct tx_alloc_args {
 	uint64_t flags;
 	const void *copy_ptr;
@@ -111,10 +106,6 @@ struct tx_range_def {
 	uint64_t offset;
 	uint64_t size;
 	uint64_t flags;
-};
-
-struct tx_parameters {
-	size_t cache_size;
 };
 
 /*
@@ -202,15 +193,13 @@ obj_tx_abort_null(int errnum)
 static struct pobj_action *
 tx_action_add(struct tx *tx)
 {
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
-
-	if (operation_reserve(tx->redo, VEC_SIZE(&lane->actions) + 1) != 0)
+	if (operation_reserve(tx->lane->external,
+	    VEC_SIZE(&tx->actions) + 1) != 0)
 		return NULL;
 
-	VEC_INC_BACK(&lane->actions);
+	VEC_INC_BACK(&tx->actions);
 
-	return &VEC_BACK(&lane->actions);
+	return &VEC_BACK(&tx->actions);
 }
 
 /*
@@ -219,10 +208,7 @@ tx_action_add(struct tx *tx)
 static void
 tx_action_remove(struct tx *tx)
 {
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
-
-	VEC_POP_BACK(&lane->actions);
+	VEC_POP_BACK(&tx->actions);
 }
 
 /*
@@ -323,10 +309,6 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct ulog_entry_buf *range)
 	COMPILE_ERROR_ON(sizeof(PMEMrwlock) != _POBJ_CL_SIZE);
 	COMPILE_ERROR_ON(sizeof(PMEMcond) != _POBJ_CL_SIZE);
 
-	struct lane_tx_runtime *runtime =
-			(struct lane_tx_runtime *)tx->section->runtime;
-	ASSERTne(runtime, NULL);
-
 	struct txr tx_ranges;
 	SLIST_INIT(&tx_ranges);
 
@@ -372,48 +354,6 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct ulog_entry_buf *range)
 }
 
 /*
- * tx_undo_constructor -- constructor of a new undo log section
- */
-static int
-tx_undo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
-{
-	PMEMobjpool *pop = base;
-	const struct pmem_ops *p_ops = &pop->p_ops;
-
-	size_t capacity = ALIGN_DOWN(usable_size - sizeof(struct ulog),
-		CACHELINE_SIZE);
-
-	ulog_construct(ptr, capacity, p_ops);
-
-	return 0;
-}
-
-/*
- * tx_undo_extend -- allocates a new undo log
- */
-static int
-tx_undo_extend(void *base, uint64_t *redo)
-{
-	struct tx *tx = get_tx();
-	struct tx_parameters *params = tx->pop->tx_params;
-	size_t s = SIZEOF_ULOG(params->cache_size);
-
-	return pmalloc_construct(base, redo, s, tx_undo_constructor, params,
-		0, OBJ_INTERNAL_OBJECT_MASK, 0);
-}
-
-/*
- * tx_create_undo_context -- creates a new operation context for the undo log
- */
-static struct operation_context *
-tx_create_undo_context(PMEMobjpool *pop, struct lane_tx_layout *layout)
-{
-	return operation_new((struct ulog *)&layout->undo, TX_UNDO_LOG_SIZE,
-		tx_undo_extend, (ulog_free_fn)pfree,
-		&pop->p_ops, LOG_TYPE_UNDO);
-}
-
-/*
  * tx_undo_entry_apply -- applies modifications of a single ulog entry
  */
 static int
@@ -443,31 +383,13 @@ tx_undo_entry_apply(struct ulog_entry_base *e, void *arg,
  * tx_abort_set -- (internal) abort all set operations
  */
 static void
-tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout,
-	struct lane_tx_runtime *lane, int recovery)
+tx_abort_set(PMEMobjpool *pop, struct lane *lane)
 {
 	LOG(7, NULL);
 
-	if (recovery) {
-		if (!ulog_recovery_needed((struct ulog *)&layout->undo, 0)) {
-			struct ulog *u = (struct ulog *)&layout->undo;
-			if (u->capacity == 0) /* do this only once */
-				ulog_construct(u,
-					TX_UNDO_LOG_SIZE, &pop->p_ops);
-			return;
-		}
-
-		struct operation_context *ctx =
-			tx_create_undo_context(pop, layout);
-		operation_resume(ctx);
-		operation_process(ctx);
-		operation_finish(ctx);
-		operation_delete(ctx);
-	} else {
-		ulog_foreach_entry((struct ulog *)&layout->undo,
-			tx_undo_entry_apply, NULL, &pop->p_ops);
-		operation_finish(lane->undo);
-	}
+	ulog_foreach_entry((struct ulog *)&lane->layout->undo,
+		tx_undo_entry_apply, NULL, &pop->p_ops);
+	operation_finish(lane->undo);
 }
 
 /*
@@ -501,15 +423,13 @@ tx_clean_range(void *data, void *ctx)
  * tx_pre_commit -- (internal) do pre-commit operations
  */
 static void
-tx_pre_commit(struct tx *tx, struct lane_tx_runtime *lane)
+tx_pre_commit(struct tx *tx)
 {
 	LOG(5, NULL);
 
-	ASSERTne(tx->section->runtime, NULL);
-
 	/* Flush all regions and destroy the whole tree. */
-	ravl_delete_cb(lane->ranges, tx_flush_range, tx->pop);
-	lane->ranges = NULL;
+	ravl_delete_cb(tx->ranges, tx_flush_range, tx->pop);
+	tx->ranges = NULL;
 }
 
 
@@ -517,20 +437,19 @@ tx_pre_commit(struct tx *tx, struct lane_tx_runtime *lane)
  * tx_abort -- (internal) abort all allocated objects
  */
 static void
-tx_abort(PMEMobjpool *pop, struct lane_tx_runtime *lane,
-		struct lane_tx_layout *layout, int recovery)
+tx_abort(PMEMobjpool *pop, struct lane *lane)
 {
 	LOG(7, NULL);
 
-	if (!recovery) {
-		palloc_cancel(&pop->heap,
-			VEC_ARR(&lane->actions), VEC_SIZE(&lane->actions));
-		VEC_CLEAR(&lane->actions);
-		ravl_delete_cb(lane->ranges, tx_clean_range, pop);
-		lane->ranges = NULL;
-	}
+	struct tx *tx = get_tx();
 
-	tx_abort_set(pop, layout, recovery ? NULL : lane, recovery);
+	palloc_cancel(&pop->heap,
+		VEC_ARR(&tx->actions), VEC_SIZE(&tx->actions));
+	VEC_CLEAR(&tx->actions);
+	ravl_delete_cb(tx->ranges, tx_clean_range, pop);
+	tx->ranges = NULL;
+
+	tx_abort_set(pop, lane);
 }
 
 /*
@@ -629,13 +548,13 @@ release_and_free_tx_locks(struct tx *tx)
  *	definition into the ranges tree
  */
 static int
-tx_lane_ranges_insert_def(PMEMobjpool *pop, struct lane_tx_runtime *lane,
+tx_lane_ranges_insert_def(PMEMobjpool *pop, struct tx *tx,
 	const struct tx_range_def *rdef)
 {
 	LOG(3, "rdef->offset %"PRIu64" rdef->size %"PRIu64,
 		rdef->offset, rdef->size);
 
-	int ret = ravl_emplace_copy(lane->ranges, rdef);
+	int ret = ravl_emplace_copy(tx->ranges, rdef);
 	if (ret == EEXIST)
 		FATAL("invalid state of ranges tree");
 
@@ -672,11 +591,8 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	retoid.pool_uuid_lo = pop->uuid_lo;
 	size = palloc_usable_size(&pop->heap, retoid.off);
 
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
-
 	const struct tx_range_def r = {retoid.off, size, args.flags};
-	if (tx_lane_ranges_insert_def(pop, lane, &r) != 0)
+	if (tx_lane_ranges_insert_def(pop, tx, &r) != 0)
 		goto err_oom;
 
 	return retoid;
@@ -702,9 +618,6 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 		ERR("requested size too large");
 		return obj_tx_abort_null(ENOMEM);
 	}
-
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
 
 	/* if oid is NULL just alloc */
 	if (OBJ_OID_IS_NULL(oid))
@@ -735,7 +648,7 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 	if (!OBJ_OID_IS_NULL(new_obj)) {
 		if (pmemobj_tx_free(oid)) {
 			ERR("pmemobj_tx_free failed");
-			VEC_POP_BACK(&lane->actions);
+			VEC_POP_BACK(&tx->actions);
 			return OID_NULL;
 		}
 	}
@@ -754,9 +667,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	int err = 0;
 	struct tx *tx = get_tx();
 
-	struct lane_tx_runtime *lane = NULL;
 	if (tx->stage == TX_STAGE_WORK) {
-		ASSERTne(tx->section, NULL);
+		ASSERTne(tx->lane, NULL);
 		if (tx->pop != pop) {
 			ERR("nested transaction for different pool");
 			return obj_tx_abort_err(EINVAL);
@@ -766,20 +678,15 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	} else if (tx->stage == TX_STAGE_NONE) {
 		VALGRIND_START_TX;
 
-		lane_hold(pop, &tx->section, LANE_SECTION_TRANSACTION);
+		lane_hold(pop, &tx->lane);
+		operation_start(tx->lane->undo);
 
-		lane = tx->section->runtime;
-		VALGRIND_ANNOTATE_NEW_MEMORY(lane, sizeof(*lane));
-		VEC_REINIT(&lane->actions);
+		VEC_INIT(&tx->actions);
 		SLIST_INIT(&tx->tx_entries);
 		SLIST_INIT(&tx->tx_locks);
 
-		tx->redo = pmalloc_operation_hold_no_start(pop);
-		operation_start(lane->undo);
-
-		lane->ranges = ravl_new_sized(tx_range_def_cmp,
+		tx->ranges = ravl_new_sized(tx_range_def_cmp,
 			sizeof(struct tx_range_def));
-		lane->cache_offset = 0;
 
 		tx->pop = pop;
 
@@ -902,25 +809,22 @@ obj_tx_abort(int errnum, int user)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	ASSERT(tx->section != NULL);
+	ASSERT(tx->lane != NULL);
 
 	if (errnum == 0)
 		errnum = ECANCELED;
 
 	tx->stage = TX_STAGE_ONABORT;
-	struct lane_tx_runtime *lane = tx->section->runtime;
 	struct tx_data *txd = SLIST_FIRST(&tx->tx_entries);
 
 	if (SLIST_NEXT(txd, tx_entry) == NULL) {
 		/* this is the outermost transaction */
-		struct lane_tx_layout *layout =
-				(struct lane_tx_layout *)tx->section->layout;
 
 		/* process the undo log */
-		tx_abort(tx->pop, lane, layout, 0 /* abort */);
-		tx->redo = NULL;
+		tx_abort(tx->pop, tx->lane);
+
 		lane_release(tx->pop);
-		tx->section = NULL;
+		tx->lane = NULL;
 	}
 
 	tx->last_errnum = errnum;
@@ -958,11 +862,11 @@ pmemobj_tx_errno(void)
 }
 
 static void
-tx_post_commit(struct lane_tx_runtime *lane)
+tx_post_commit(struct tx *tx)
 {
-	operation_finish(lane->undo);
+	operation_finish(tx->lane->undo);
 
-	VEC_CLEAR(&lane->actions);
+	VEC_CLEAR(&tx->actions);
 }
 
 /*
@@ -980,10 +884,8 @@ pmemobj_tx_commit(void)
 	/* WORK */
 	obj_tx_callback(tx);
 
-	ASSERT(tx->section != NULL);
+	ASSERT(tx->lane != NULL);
 
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
 	struct tx_data *txd = SLIST_FIRST(&tx->tx_entries);
 
 	if (SLIST_NEXT(txd, tx_entry) == NULL) {
@@ -992,22 +894,19 @@ pmemobj_tx_commit(void)
 		PMEMobjpool *pop = tx->pop;
 
 		/* pre-commit phase */
-		tx_pre_commit(tx, lane);
+		tx_pre_commit(tx);
 
 		pmemops_drain(&pop->p_ops);
 
-		operation_start(tx->redo);
-		palloc_publish(&pop->heap, VEC_ARR(&lane->actions),
-			VEC_SIZE(&lane->actions), tx->redo);
+		operation_start(tx->lane->external);
+		palloc_publish(&pop->heap, VEC_ARR(&tx->actions),
+			VEC_SIZE(&tx->actions), tx->lane->external);
 
-		pmalloc_operation_release(pop);
-		tx->redo = NULL;
-
-		tx_post_commit(lane);
+		tx_post_commit(tx);
 
 		lane_release(pop);
 
-		tx->section = NULL;
+		tx->lane = NULL;
 	}
 
 	tx->stage = TX_STAGE_ONCOMMIT;
@@ -1046,11 +945,12 @@ pmemobj_tx_end(void)
 	VALGRIND_END_TX;
 
 	if (SLIST_EMPTY(&tx->tx_entries)) {
-		ASSERTeq(tx->section, NULL);
+		ASSERTeq(tx->lane, NULL);
 
 		release_and_free_tx_locks(tx);
 		tx->pop = NULL;
 		tx->stage = TX_STAGE_NONE;
+		VEC_DELETE(&tx->actions);
 
 		if (tx->stage_callback) {
 			pmemobj_tx_callback cb = tx->stage_callback;
@@ -1154,12 +1054,9 @@ pmemobj_tx_add_snapshot(struct tx *tx, struct tx_range_def *snapshot)
 		if (action == NULL)
 			return -1;
 
-		struct lane_tx_layout *layout =
-			(struct lane_tx_layout *)tx->section->layout;
-
 		/* first entry of the first ulog */
 		struct ulog_entry_base *e =
-			(struct ulog_entry_base *)layout->undo.data;
+			(struct ulog_entry_base *)tx->lane->layout->undo.data;
 		palloc_set_value(&tx->pop->heap, action,
 			&e->offset, 0);
 
@@ -1173,8 +1070,7 @@ pmemobj_tx_add_snapshot(struct tx *tx, struct tx_range_def *snapshot)
 	void *ptr = OBJ_OFF_TO_PTR(tx->pop, snapshot->offset);
 	VALGRIND_ADD_TO_TX(ptr, snapshot->size);
 
-	struct lane_tx_runtime *runtime = tx->section->runtime;
-	return operation_add_buffer(runtime->undo, ptr, ptr, snapshot->size,
+	return operation_add_buffer(tx->lane->undo, ptr, ptr, snapshot->size,
 		ULOG_OPERATION_BUF_CPY);
 }
 
@@ -1200,7 +1096,6 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 	}
 
 	int ret = 0;
-	struct lane_tx_runtime *runtime = tx->section->runtime;
 
 	/*
 	 * Search existing ranges backwards starting from the end of the
@@ -1216,7 +1111,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 	struct ravl_node *nprev = NULL;
 	while (r.size != 0) {
 		search.offset = r.offset + r.size;
-		struct ravl_node *n = ravl_find(runtime->ranges, &search, p);
+		struct ravl_node *n = ravl_find(tx->ranges, &search, p);
 		/*
 		 * We have to skip searching for LESS_EQUAL because
 		 * the snapshot we would find is the one that was just
@@ -1257,7 +1152,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 				 * a new range in the tree.
 				 */
 				ret = tx_lane_ranges_insert_def(tx->pop,
-					runtime, &r);
+					tx, &r);
 				if (ret != 0)
 					break;
 			}
@@ -1302,7 +1197,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 				struct tx_range_def *fprev = ravl_data(nprev);
 				ASSERTeq(rend, fprev->offset);
 				f->size += fprev->size;
-				ravl_remove(runtime->ranges, nprev);
+				ravl_remove(tx->ranges, nprev);
 			}
 		} else if (fend >= r.offset) {
 			/*
@@ -1650,11 +1545,8 @@ pmemobj_tx_free(PMEMoid oid)
 
 	struct pobj_action *action;
 
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
-
 	struct tx_range_def range = {oid.off, 0, 0};
-	struct ravl_node *n = ravl_find(lane->ranges, &range,
+	struct ravl_node *n = ravl_find(tx->ranges, &range,
 		RAVL_PREDICATE_EQUAL);
 
 	/*
@@ -1662,16 +1554,16 @@ pmemobj_tx_free(PMEMoid oid)
 	 * transaction, simply cancel the alloc and remove it from the actions.
 	 */
 	if (n != NULL) {
-		VEC_FOREACH_BY_PTR(action, &lane->actions) {
+		VEC_FOREACH_BY_PTR(action, &tx->actions) {
 			if (action->type == POBJ_ACTION_TYPE_HEAP &&
 			    action->heap.offset == oid.off) {
 				struct tx_range_def *r = ravl_data(n);
 				void *ptr = OBJ_OFF_TO_PTR(pop, r->offset);
 				VALGRIND_SET_CLEAN(ptr, r->size);
 				VALGRIND_REMOVE_FROM_TX(ptr, r->size);
-				ravl_remove(lane->ranges, n);
+				ravl_remove(tx->ranges, n);
 				palloc_cancel(&pop->heap, action, 1);
-				VEC_ERASE_BY_PTR(&lane->actions, action);
+				VEC_ERASE_BY_PTR(&tx->actions, action);
 
 				return 0;
 			}
@@ -1696,107 +1588,16 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 	struct tx *tx = get_tx();
 	ASSERT_TX_STAGE_WORK(tx);
 
-	struct lane_tx_runtime *lane =
-		(struct lane_tx_runtime *)tx->section->runtime;
-
-	if (operation_reserve(tx->redo,
-	    VEC_SIZE(&lane->actions) + actvcnt) != 0)
+	if (operation_reserve(tx->lane->external,
+	    VEC_SIZE(&tx->actions) + actvcnt) != 0)
 		return -1;
 
 	for (size_t i = 0; i < actvcnt; ++i) {
-		VEC_PUSH_BACK(&lane->actions, actv[i]);
+		VEC_PUSH_BACK(&tx->actions, actv[i]);
 	}
 
 	return 0;
 }
-
-/*
- * lane_transaction_construct_rt -- construct runtime part of transaction
- * section
- */
-static void *
-lane_transaction_construct_rt(PMEMobjpool *pop, void *data)
-{
-	struct lane_tx_runtime *lane = Zalloc(sizeof(struct lane_tx_runtime));
-	if ((lane->undo = tx_create_undo_context(pop, data)) == NULL)
-		goto err_undo;
-
-	return lane;
-
-err_undo:
-	Free(lane);
-	return NULL;
-}
-
-/*
- * lane_transaction_destroy_rt -- destroy runtime part of transaction section
- */
-static void
-lane_transaction_destroy_rt(PMEMobjpool *pop, void *rt)
-{
-	struct lane_tx_runtime *lane = rt;
-	VEC_DELETE(&lane->actions);
-	operation_delete(lane->undo);
-	Free(lane);
-}
-
-/*
- * lane_transaction_recovery -- recovery of transaction lane section
- */
-static int
-lane_transaction_recovery(PMEMobjpool *pop, void *data, unsigned length)
-{
-	struct lane_tx_layout *layout = data;
-	int ret = 0;
-	ASSERT(sizeof(*layout) <= length);
-
-	/* process undo log and restore all operations */
-	tx_abort(pop, NULL, layout, 1 /* recovery */);
-
-	return ret;
-}
-
-/*
- * lane_transaction_check -- consistency check of transaction lane section
- */
-static int
-lane_transaction_check(PMEMobjpool *pop, void *data, unsigned length)
-{
-	LOG(3, "tx lane %p", data);
-
-	return 0;
-}
-
-/*
- * lane_transaction_boot -- global runtime init routine of tx section
- */
-static int
-lane_transaction_boot(PMEMobjpool *pop)
-{
-	/* NOP */
-	return 0;
-}
-
-/*
- * lane_transaction_cleanup -- global runtime cleanup routine of tx section
- */
-static int
-lane_transaction_cleanup(PMEMobjpool *pop)
-{
-	/* NOP */
-	return 0;
-}
-
-static struct section_operations transaction_ops = {
-	.construct_rt = lane_transaction_construct_rt,
-	.destroy_rt = lane_transaction_destroy_rt,
-	.recover = lane_transaction_recovery,
-	.check = lane_transaction_check,
-	.boot = lane_transaction_boot,
-	.cleanup = lane_transaction_cleanup,
-};
-
-SECTION_PARM(LANE_SECTION_TRANSACTION, &transaction_ops);
 
 /*
  * CTL_READ_HANDLER(size) -- gets the cache size transaction parameter

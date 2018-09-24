@@ -62,11 +62,6 @@
 	(1<<CHUNK_TYPE_USED)|\
 	(1<<CHUNK_TYPE_RUN))
 
-#define DEFAULT_LANE_SECTIONS\
-	((1<<LANE_SECTION_ALLOCATOR)|\
-	(1<<LANE_SECTION_TRANSACTION)|\
-	(1<<LANE_SECTION_LIST))
-
 #define GET_ALIGNMENT(ad, x)\
 (1 + (((ad) >> (ALIGNMENT_DESC_BITS * (x))) & ((1 << ALIGNMENT_DESC_BITS) - 1)))
 
@@ -112,7 +107,6 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 		.vzonehdr	= VERBOSE_SILENT,
 		.vchunkhdr	= VERBOSE_SILENT,
 		.vbitmap	= VERBOSE_SILENT,
-		.lane_sections	= DEFAULT_LANE_SECTIONS,
 		.lanes_recovery	= false,
 		.ignore_empty_obj = false,
 		.chunk_types	= DEFAULT_CHUNK_TYPES,
@@ -441,15 +435,6 @@ parse_args(char *appname, int argc, char *argv[],
 			break;
 		case 'R':
 			argsp->obj.lanes_recovery = true;
-			break;
-		case 'S':
-			argsp->obj.lane_sections = 0;
-			if (util_parse_lane_sections(optarg,
-						&argsp->obj.lane_sections)) {
-				outv_err("'%s' -- cannot parse"
-					" lane section(s)\n", optarg);
-				return -1;
-			}
 			break;
 		case 'O':
 			argsp->obj.vobjects = VERBOSE_DEFAULT;

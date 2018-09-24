@@ -149,7 +149,7 @@ ulog_entry_valid(const struct ulog_entry_base *entry)
  * ulog_construct -- initializes the ulog structure
  */
 void
-ulog_construct(struct ulog *ulog, size_t capacity,
+ulog_construct(struct ulog *ulog, size_t capacity, int zero_data,
 	const struct pmem_ops *p_ops)
 {
 	VALGRIND_ADD_TO_TX(ulog, SIZEOF_ULOG(capacity));
@@ -161,8 +161,12 @@ ulog_construct(struct ulog *ulog, size_t capacity,
 
 	pmemops_flush(p_ops, ulog, sizeof(*ulog));
 
-	pmemops_memset(p_ops, ulog->data, 0,
-		capacity, 0);
+	if (zero_data) {
+		pmemops_memset(p_ops, ulog->data, 0, capacity,
+			PMEMOBJ_F_MEM_NONTEMPORAL);
+	} else {
+		pmemops_drain(p_ops);
+	}
 
 	VALGRIND_REMOVE_FROM_TX(ulog, SIZEOF_ULOG(capacity));
 }
@@ -633,7 +637,7 @@ ulog_process(struct ulog *ulog, ulog_check_offset_fn check,
  * ulog_base_nbytes -- (internal) counts the actual of number of bytes
  *	occupied by the ulog
  */
-static size_t
+size_t
 ulog_base_nbytes(struct ulog *ulog)
 {
 	size_t offset = 0;

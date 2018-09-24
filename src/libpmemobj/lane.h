@@ -38,14 +38,12 @@
 #define LIBPMEMOBJ_LANE_H 1
 
 #include <stdint.h>
-
+#include "ulog.h"
 #include "libpmemobj.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define LANE_SECTION_LEN 1024
 
 /*
  * Distance between lanes used by threads required to prevent threads from
@@ -63,34 +61,50 @@ extern "C" {
 
 #define RLANE_DEFAULT 0
 
-enum lane_section_type {
-	LANE_SECTION_ALLOCATOR,
-	LANE_SECTION_LIST,
-	LANE_SECTION_TRANSACTION,
-
-	MAX_LANE_SECTION,
-
-	LANE_ID = MAX_LANE_SECTION
-};
-
-struct lane_section_layout {
-	unsigned char data[LANE_SECTION_LEN];
-};
-
-struct lane_section {
-	/* persistent */
-	struct lane_section_layout *layout;
-
-	void *runtime;
-};
+#define LANE_TOTAL_SIZE 3072 /* 3 * 1024 (sum of 3 old lane sections) */
+/*
+ * We have 3 kilobytes to distribute.
+ * The smallest capacity is needed for the internal redo log for which we can
+ * accurately calculate the maximum number of occupied space: 48 bytes,
+ * 3 times sizeof(struct ulog_entry_val). One for bitmap OR, second for bitmap
+ * AND, third for modification of the destination pointer. For future needs,
+ * this has been bumped up to 12 ulog entries.
+ *
+ * The remaining part has to be split between transactional redo and undo logs,
+ * and since by far the most space consuming operations are transactional
+ * snapshots, most of the space, 2 kilobytes, is assigned to the undo log.
+ * After that, the remainder, 640 bytes, or 40 ulog entries, is left for the
+ * transactional redo logs.
+ * Thanks to this distribution, all small and medium transactions should be
+ * entirely performed without allocating any additional metadata.
+ */
+#define LANE_UNDO_SIZE 2048
+#define LANE_REDO_EXTERNAL_SIZE 640
+#define LANE_REDO_INTERNAL_SIZE 192
 
 struct lane_layout {
-	struct lane_section_layout sections[MAX_LANE_SECTION];
+	/*
+	 * Redo log for self-contained and 'one-shot' allocator operations.
+	 * Cannot be extended.
+	 */
+	struct ULOG(LANE_REDO_INTERNAL_SIZE) internal;
+	/*
+	 * Redo log for large operations/transactions.
+	 * Can be extended by the use of internal ulog.
+	 */
+	struct ULOG(LANE_REDO_EXTERNAL_SIZE) external;
+	/*
+	 * Undo log for snapshots done in a transaction.
+	 * Can be extended/shrunk by the use of internal ulog.
+	 */
+	struct ULOG(LANE_UNDO_SIZE) undo;
 };
 
 struct lane {
-	/* volatile state */
-	struct lane_section sections[MAX_LANE_SECTION];
+	struct lane_layout *layout; /* pointer to persistent layout */
+	struct operation_context *internal; /* context for internal ulog */
+	struct operation_context *external; /* context for external ulog */
+	struct operation_context *undo; /* context for undo ulog */
 };
 
 struct lane_descriptor {
@@ -135,38 +149,21 @@ struct lane_info {
 	struct lane_info *prev, *next;
 };
 
-extern struct section_operations *Section_ops[MAX_LANE_SECTION];
-
 void lane_info_boot(void);
 void lane_info_destroy(void);
 
+void lane_init_data(PMEMobjpool *pop);
 int lane_boot(PMEMobjpool *pop);
 void lane_cleanup(PMEMobjpool *pop);
 int lane_recover_and_section_boot(PMEMobjpool *pop);
 int lane_section_cleanup(PMEMobjpool *pop);
 int lane_check(PMEMobjpool *pop);
 
-unsigned lane_hold(PMEMobjpool *pop, struct lane_section **section,
-	enum lane_section_type type);
+unsigned lane_hold(PMEMobjpool *pop, struct lane **lane);
 void lane_release(PMEMobjpool *pop);
 
 void lane_attach(PMEMobjpool *pop, unsigned lane);
 unsigned lane_detach(PMEMobjpool *pop);
-
-#ifndef _MSC_VER
-
-#define SECTION_PARM(n, ops)\
-__attribute__((constructor)) static void _section_parm_##n(void)\
-{ Section_ops[n] = ops; }
-
-#else
-
-#define SECTION_PARM(n, ops)\
-static void _section_parm_##n(void)\
-{ Section_ops[n] = ops; }\
-MSVC_CONSTR(_section_parm_##n)
-
-#endif
 
 #ifdef __cplusplus
 }
