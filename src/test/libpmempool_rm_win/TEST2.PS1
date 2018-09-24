@@ -32,12 +32,6 @@
 #
 # libpmempool_rm_win/TEST2 -- test pmempool_rm with non-pool files
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 
@@ -48,7 +42,6 @@ require_fs_type any
 setup
 
 enable_log_append
-
 
 [System.IO.File]::WriteAllText("$DIR\file.1", "TEST");
 [System.IO.File]::WriteAllText("$DIR\file.2", "TEST`n");

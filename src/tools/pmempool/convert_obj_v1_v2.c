@@ -287,7 +287,7 @@ struct heap_layout {
 					+ ZONE_MAX_SIZE * (zone_id)))
 
 #define CALC_SIZE_IDX(_unit_size, _size)\
-((uint32_t)(((_size - 1) / _unit_size) + 1))
+((uint32_t)((((_size) - 1) / (_unit_size)) + 1))
 
 static void *
 pmemobj_direct(PMEMoid oid)

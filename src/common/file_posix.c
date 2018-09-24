@@ -321,9 +321,10 @@ util_ddax_region_find(const char *path)
 		"/sys/dev/char/%u:%u/device/dax_region/id",
 		major, minor);
 	if (ret < 0) {
-		ERR("!snprintf(%p, %d, /sys/dev/char/%u:%u/device/"
-			"dax_region/id, %u, %u)",
-			dax_region_path, PATH_MAX, major, minor, major, minor);
+		ERR("snprintf(%p, %d, /sys/dev/char/%u:%u/device/"
+			"dax_region/id, %u, %u): %d",
+			dax_region_path, PATH_MAX, major, minor, major, minor,
+			ret);
 		return -1;
 	}
 

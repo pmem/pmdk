@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,14 +33,8 @@
 #
 # src/test/obj_ctl_config/TEST1 -- unit test for ctl configuration
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 $Env:UNITTEST_NAME = "obj_ctl_config/TEST1"
 $Env:UNITTEST_NUM = "100" # TEST0 poses as different test numbers
-
 
 # standard unit test setup
 

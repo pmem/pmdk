@@ -33,11 +33,6 @@
 #
 # src/test/ex_libpmemobj/TEST19 -- unit test for libpmemobj examples
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.PS1
@@ -57,7 +52,7 @@ c 4321
 r 4321
 c 4321
 q
-"@ | &$Env:EXE_DIR\ex_pmemobj_mapcli skiplist $DIR\testfile1 555 > out$Env:UNITTEST_NUM.log 2>&1
+"@ | &$Env:EXAMPLES_DIR\ex_pmemobj_mapcli skiplist $DIR\testfile1 555 > out$Env:UNITTEST_NUM.log 2>&1
 
 check_exit_code
 

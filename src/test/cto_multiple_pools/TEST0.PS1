@@ -32,11 +32,6 @@
 #
 # src/test/cto_multiple_pools/TEST0.PS1 -- unit test for cto_multiple_pools
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

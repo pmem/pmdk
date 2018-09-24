@@ -33,11 +33,6 @@
 #
 # src/test/scope/TEST2 -- scope test to check libpmemlog symbols
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -55,7 +50,7 @@ function parse_lib {
 }
 
 echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
-parse_lib "$Env:EXE_DIR\libpmemlog.dll"
+parse_lib "$Env:LIBS_DIR\libpmemlog.dll"
 
 check
 

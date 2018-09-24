@@ -34,12 +34,6 @@
 # src/test/log_recovery/TEST0 -- unit test for pmemlog recovery
 #                                pmemlog_append() is used to append data
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

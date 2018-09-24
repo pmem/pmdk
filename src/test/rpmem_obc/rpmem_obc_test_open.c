@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -63,11 +63,12 @@ check_open_msg(struct rpmem_msg_open *msg)
 
 	UT_ASSERTeq(msg->hdr.type, RPMEM_MSG_TYPE_OPEN);
 	UT_ASSERTeq(msg->hdr.size, msg_size);
-	UT_ASSERTeq(msg->major, RPMEM_PROTO_MAJOR);
-	UT_ASSERTeq(msg->minor, RPMEM_PROTO_MINOR);
-	UT_ASSERTeq(msg->pool_size, POOL_SIZE);
-	UT_ASSERTeq(msg->provider, PROVIDER);
-	UT_ASSERTeq(msg->nlanes, NLANES);
+	UT_ASSERTeq(msg->c.major, RPMEM_PROTO_MAJOR);
+	UT_ASSERTeq(msg->c.minor, RPMEM_PROTO_MINOR);
+	UT_ASSERTeq(msg->c.pool_size, POOL_SIZE);
+	UT_ASSERTeq(msg->c.provider, PROVIDER);
+	UT_ASSERTeq(msg->c.nlanes, NLANES);
+	UT_ASSERTeq(msg->c.buff_size, BUFF_SIZE);
 	UT_ASSERTeq(msg->pool_desc.size, pool_desc_size);
 	UT_ASSERTeq(strcmp((char *)msg->pool_desc.desc, POOL_DESC), 0);
 }
@@ -227,6 +228,7 @@ client_open_errno(char *target, int ex_errno)
 		.nlanes = NLANES,
 		.provider = PROVIDER,
 		.pool_desc = POOL_DESC,
+		.buff_size = BUFF_SIZE,
 	};
 
 	struct rpmem_pool_attr pool_attr;
@@ -298,6 +300,7 @@ client_open_error(char *target)
 		.nlanes = NLANES,
 		.provider = PROVIDER,
 		.pool_desc = POOL_DESC,
+		.buff_size = BUFF_SIZE,
 	};
 
 	struct rpmem_pool_attr pool_attr;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@
 #define SIZEOF_CHUNK_HEADER_V3 (8)
 #define MAX_CHUNK_V3 (65535 - 7)
 #define SIZEOF_CHUNK_V3 (1024ULL * 256)
+#define SIZEOF_CHUNK_RUN_HEADER_V3 (16)
 #define SIZEOF_ZONE_HEADER_V3 (64)
 #define SIZEOF_ZONE_METADATA_V3 (SIZEOF_ZONE_HEADER_V3 +\
 	SIZEOF_CHUNK_HEADER_V3 * MAX_CHUNK_V3)
@@ -64,10 +65,12 @@
 #define SIZEOF_LANE_V3 (3 * SIZEOF_LANE_SECTION_V3)
 #define SIZEOF_PVECTOR_V3 (224)
 #define SIZEOF_TX_RANGE_META_V3 (16)
-#define SIZEOF_REDO_LOG_V3 (16)
-#define SIZEOF_LANE_LIST_LAYOUT_V3 (1024 - 8)
-#define SIZEOF_LANE_ALLOC_LAYOUT_V3 (1024 - 16)
-#define SIZEOF_LANE_TX_LAYOUT_V3 (8 + (4 * SIZEOF_PVECTOR_V3))
+#define SIZEOF_REDO_LOG_V4 (64)
+#define SIZEOF_REDO_LOG_BASE_ENTRY_V4 (8)
+#define SIZEOF_REDO_LOG_VAL_ENTRY_V4 (16)
+#define SIZEOF_LANE_LIST_LAYOUT_V4 (1024)
+#define SIZEOF_LANE_ALLOC_LAYOUT_V4 (1024)
+#define SIZEOF_LANE_TX_LAYOUT_V4 ((2 * SIZEOF_PVECTOR_V3))
 
 POBJ_LAYOUT_BEGIN(layout);
 POBJ_LAYOUT_ROOT(layout, struct foo);
@@ -91,11 +94,16 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_CHECK(struct chunk);
 	UT_COMPILE_ERROR_ON(sizeof(struct chunk_run) != SIZEOF_CHUNK_V3);
 
+	ASSERT_ALIGNED_BEGIN(struct chunk_run_header);
+	ASSERT_ALIGNED_FIELD(struct chunk_run_header, block_size);
+	ASSERT_ALIGNED_FIELD(struct chunk_run_header, alignment);
+	ASSERT_ALIGNED_CHECK(struct chunk_run_header);
+	UT_COMPILE_ERROR_ON(sizeof(struct chunk_run_header) !=
+		SIZEOF_CHUNK_RUN_HEADER_V3);
+
 	ASSERT_ALIGNED_BEGIN(struct chunk_run);
-	ASSERT_ALIGNED_FIELD(struct chunk_run, block_size);
-	ASSERT_ALIGNED_FIELD(struct chunk_run, incarnation_claim);
-	ASSERT_ALIGNED_FIELD(struct chunk_run, bitmap);
-	ASSERT_ALIGNED_FIELD(struct chunk_run, data);
+	ASSERT_ALIGNED_FIELD(struct chunk_run, hdr);
+	ASSERT_ALIGNED_FIELD(struct chunk_run, content);
 	ASSERT_ALIGNED_CHECK(struct chunk_run);
 	UT_COMPILE_ERROR_ON(sizeof(struct chunk_run) != SIZEOF_CHUNK_V3);
 
@@ -153,11 +161,26 @@ main(int argc, char *argv[])
 		SIZEOF_COMPACT_ALLOCATION_HEADER_V3);
 
 	ASSERT_ALIGNED_BEGIN(struct redo_log);
-	ASSERT_ALIGNED_FIELD(struct redo_log, offset);
-	ASSERT_ALIGNED_FIELD(struct redo_log, value);
+	ASSERT_ALIGNED_FIELD(struct redo_log, checksum);
+	ASSERT_ALIGNED_FIELD(struct redo_log, next);
+	ASSERT_ALIGNED_FIELD(struct redo_log, capacity);
+	ASSERT_ALIGNED_FIELD(struct redo_log, unused);
 	ASSERT_ALIGNED_CHECK(struct redo_log);
 	UT_COMPILE_ERROR_ON(sizeof(struct redo_log) !=
-		SIZEOF_REDO_LOG_V3);
+		SIZEOF_REDO_LOG_V4);
+
+	ASSERT_ALIGNED_BEGIN(struct redo_log_entry_base);
+	ASSERT_ALIGNED_FIELD(struct redo_log_entry_base, offset);
+	ASSERT_ALIGNED_CHECK(struct redo_log_entry_base);
+	UT_COMPILE_ERROR_ON(sizeof(struct redo_log_entry_base) !=
+		SIZEOF_REDO_LOG_BASE_ENTRY_V4);
+
+	ASSERT_ALIGNED_BEGIN(struct redo_log_entry_val);
+	ASSERT_ALIGNED_FIELD(struct redo_log_entry_val, base);
+	ASSERT_ALIGNED_FIELD(struct redo_log_entry_val, value);
+	ASSERT_ALIGNED_CHECK(struct redo_log_entry_val);
+	UT_COMPILE_ERROR_ON(sizeof(struct redo_log_entry_val) !=
+		SIZEOF_REDO_LOG_VAL_ENTRY_V4);
 
 	ASSERT_ALIGNED_BEGIN(PMEMoid);
 	ASSERT_ALIGNED_FIELD(PMEMoid, pool_uuid_lo);
@@ -196,31 +219,32 @@ main(int argc, char *argv[])
 	UT_COMPILE_ERROR_ON(sizeof(struct foo_head) != SIZEOF_LIST_HEAD_V3);
 	UT_COMPILE_ERROR_ON(sizeof(struct list_head) != SIZEOF_LIST_HEAD_V3);
 
+	ASSERT_ALIGNED_BEGIN(struct lane_alloc_layout);
+	ASSERT_ALIGNED_FIELD(struct lane_alloc_layout, external);
+	ASSERT_ALIGNED_FIELD(struct lane_alloc_layout, internal);
+	ASSERT_ALIGNED_CHECK(struct lane_alloc_layout);
+	UT_COMPILE_ERROR_ON(sizeof(struct lane_alloc_layout) >
+		sizeof(struct lane_section_layout));
+	UT_COMPILE_ERROR_ON(sizeof(struct lane_alloc_layout) !=
+		SIZEOF_LANE_ALLOC_LAYOUT_V4);
+
+
 	ASSERT_ALIGNED_BEGIN(struct lane_list_layout);
-	ASSERT_ALIGNED_FIELD(struct lane_list_layout, obj_offset);
 	ASSERT_ALIGNED_FIELD(struct lane_list_layout, redo);
 	ASSERT_ALIGNED_CHECK(struct lane_list_layout);
 	UT_COMPILE_ERROR_ON(sizeof(struct lane_list_layout) >
 		sizeof(struct lane_section_layout));
 	UT_COMPILE_ERROR_ON(sizeof(struct lane_list_layout) !=
-		SIZEOF_LANE_LIST_LAYOUT_V3);
+		SIZEOF_LANE_LIST_LAYOUT_V4);
 
-	ASSERT_ALIGNED_BEGIN(struct lane_alloc_layout);
-	ASSERT_ALIGNED_FIELD(struct lane_alloc_layout, redo);
-	ASSERT_ALIGNED_CHECK(struct lane_alloc_layout);
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_alloc_layout) >
-		sizeof(struct lane_section_layout));
-	UT_COMPILE_ERROR_ON(sizeof(struct lane_alloc_layout) !=
-		SIZEOF_LANE_ALLOC_LAYOUT_V3);
 
 	ASSERT_ALIGNED_BEGIN(struct lane_tx_layout);
-	ASSERT_ALIGNED_FIELD(struct lane_tx_layout, state);
 	ASSERT_ALIGNED_FIELD(struct lane_tx_layout, undo_log);
 	ASSERT_ALIGNED_CHECK(struct lane_tx_layout);
 	UT_COMPILE_ERROR_ON(sizeof(struct lane_tx_layout) >
 		sizeof(struct lane_section_layout));
 	UT_COMPILE_ERROR_ON(sizeof(struct lane_tx_layout) !=
-		SIZEOF_LANE_TX_LAYOUT_V3);
+		SIZEOF_LANE_TX_LAYOUT_V4);
 
 	ASSERT_ALIGNED_BEGIN(struct lane_layout);
 	ASSERT_ALIGNED_FIELD(struct lane_layout, sections);

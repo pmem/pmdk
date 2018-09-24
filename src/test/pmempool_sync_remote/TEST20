@@ -39,9 +39,9 @@
 
 require_test_type medium
 
-. common.sh
+require_sds $PMEMPOOL
 
-setup
+. common.sh
 
 configure_poolsets 0 1
 
@@ -55,6 +55,7 @@ run_on_node 0 ../pmemspoil ${NODE_DIR[0]}remote.0.part.1 \
 				   pool_hdr.shutdown_state.dirty=1 \
 				   "pool_hdr.shutdown_state.checksum_gen\(\)"
 
+expect_abnormal_exit run_on_node 1 "../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL 2> /dev/null"
 expect_abnormal_exit run_on_node 1 "../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL 2> /dev/null"
 
 pass

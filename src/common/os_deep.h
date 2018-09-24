@@ -42,7 +42,7 @@
 #include "set.h"
 
 int os_range_deep_common(uintptr_t addr, size_t len);
-int os_part_deep_common(struct pool_set_part *part, void *addr,
+int os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
 			size_t len, int flush);
 
 #endif

@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,7 +33,6 @@
 #
 # src/test/win_mmap/Makefile -- build win_mmap unit test
 #
-vpath %.c ../../common
 
 TARGET = win_mmap
 OBJS = win_mmap.o

@@ -1,4 +1,0 @@
-obj_cpp_pool_win$(nW)TEST1: START: obj_cpp_pool_win$(nW)
- $(nW)obj_cpp_pool_win$(nW) o $(nW)testfile test
-$(nW)testfile: pool::open: Success
-obj_cpp_pool_win$(nW)TEST1: DONE

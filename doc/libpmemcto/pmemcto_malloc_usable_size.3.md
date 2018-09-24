@@ -45,7 +45,7 @@ date: libpmemcto API version 1.0
 
 # NAME #
 
-pmemcto_malloc_usable_size -- obtain size of block of memory allocated from pool
+pmemcto_malloc_usable_size - obtain size of block of memory allocated from pool
 
 
 # SYNOPSIS #

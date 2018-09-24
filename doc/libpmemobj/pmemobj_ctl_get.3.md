@@ -49,7 +49,7 @@ date: pmemobj API version 2.3
 _UW(pmemobj_ctl_get),
 _UW(pmemobj_ctl_set),
 _UW(pmemobj_ctl_exec)
--- Query and modify libpmemobj internal behavior (EXPERIMENTAL)
+- Query and modify libpmemobj internal behavior (EXPERIMENTAL)
 
 
 # SYNOPSIS #
@@ -72,36 +72,9 @@ _UNICODE()
 
 The _UW(pmemobj_ctl_get), _UW(pmemobj_ctl_set) and _UW(pmemobj_ctl_exec)
 functions provide a uniform interface for querying and modifying the internal
-behavior of **libpmemobj** through the control (CTL) namespace.
+behavior of **libpmemobj**(7) through the control (CTL) namespace.
 
-The CTL namespace is organized in a tree structure. Starting from the root,
-each node can be either internal, containing other elements, or a leaf.
-Internal nodes themselves can only contain other nodes and cannot be entry
-points. There are two types of those nodes: *named* and *indexed*. Named nodes
-have string identifiers. Indexed nodes represent an abstract array index and
-have an associated string identifier. The index itself is provided by the user.
-A collection of indexes present on the path of an entry point is provided to
-the handler functions as name and index pairs.
-
-The *name* argument specifies an entry point as defined in the CTL namespace
-specification. The entry point description specifies whether the extra *arg* is
-required. Those two parameters together create a CTL query. The *pop* argument
-is optional if the entry point resides in a global namespace (i.e., is shared
-for all the pools). The functions and the entry points are thread-safe unless
-indicated otherwise below. If there are special conditions for calling an entry
-point, they are explicitly stated in its description. The functions propagate
-the return value of the entry point. If either *name* or *arg* is invalid, -1
-is returned.
-
-Entry points are the leaves of the CTL namespace structure. Each entry point
-can read from the internal state, write to the internal state,
-exec a function or a combination of these operations.
-
-The entry points are listed in the following format:
-
-name | r(ead)w(rite)x(ecute) | global/- | read argument type | write argument type | exec argument type | config argument type
-
-description...
+See more in **pmem_ctl**(5) man page.
 
 
 # CTL NAMESPACE #
@@ -208,7 +181,7 @@ executed.
 Always returns 0.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
-`struct pobj_alloc_class_desc` | - | integer, integer, string
+`struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 
 Describes an allocation class. Allows one to create or view the internal
 data structures of the allocator.
@@ -247,9 +220,11 @@ allocation class size. While theoretically limited only by
 **PMEMOBJ_MAX_ALLOC_SIZE**, for most workloads this value should be between
 8 bytes and 2 megabytes.
 
-The `alignment` field is currently unsupported and must be set to 0. All objects
-have default alignment of 64 bytes, but the user data alignment is affected
-by the size of the chosen header.
+The `alignment` field specifies the user data alignment of objects allocated
+using the class. If set, must be a power of two and an even divisor of unit
+size. Alignment is limited to maximum of 2 megabytes.
+All objects have default alignment of 64 bytes, but the user data alignment
+is affected by the size of the chosen header.
 
 The `units_per_block` field defines how many units a single block of memory
 contains. This value will be rounded up to match the internal size of the
@@ -258,9 +233,6 @@ a `unit_size` of 512 bytes and a `units_per_block` of 1000, a single block of
 memory for that class will have 512 kilobytes.
 This is relevant because the bigger the block size, the less frequently blocks
 need to be fetched, resulting in lower contention on global heap state.
-Keep in mind that object allocation is tracked in a bitmap with a limited
-number of entries, making it inefficient to create allocation classes smaller
-than 128 bytes.
 
 The `header_type` field defines the header of objects from the allocation class.
 There are three types:
@@ -310,7 +282,7 @@ not exist it sets the errno to **ENOENT** and returns -1;
 For writing, function returns 0 if the allocation class has been successfully
 created, -1 otherwise.
 
-heap.alloc_class.new.desc | -w | - | - | `struct pobj_alloc_class_desc` | - | integer, integer, string
+heap.alloc_class.new.desc | -w | - | - | `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 
 Same as `heap.alloc_class.[class_id].desc`, but instead of requiring the user
 to provide the class_id, it automatically creates the allocation class with the
@@ -358,83 +330,27 @@ Extends the heap by the given size. Must be larger than *PMEMOBJ_MIN_PART*.
 
 This function returns 0 if successful, -1 otherwise.
 
+debug.heap.alloc_pattern | rw | - | int | int | - | -
+
+Single byte pattern that is used to fill new uninitialized memory allocation.
+If the value is negative, no pattern is written. This is intended for
+debugging, and is disabled by default.
+
 # CTL EXTERNAL CONFIGURATION #
 
 In addition to direct function call, each write entry point can also be set
 using two alternative methods.
 
 The first method is to load a configuration directly from the **PMEMOBJ_CONF**
-environment variable. A properly formatted ctl config string is a single-line
-sequence of queries separated by ';':
-
-```
-query0;query1;...;queryN
-```
-
-A single query is constructed from the name of the ctl write entry point and
-the argument, separated by '=':
-
-```
-entry_point=entry_point_argument
-```
-
-The entry point argument type is defined by the entry point itself, but there
-are three predefined primitives:
-
-	*) integer: represented by a sequence of [0-9] characters that form
-		a single number.
-	*) boolean: represented by a single character: y/n/Y/N/0/1, each
-		corresponds to true or false. If the argument contains any
-		trailing characters, they are ignored.
-	*) string: a simple sequence of characters.
-
-There are also complex argument types that are formed from the primitives
-separated by a ',':
-
-```
-first_arg,second_arg
-```
-
-In summary, a full configuration sequence looks like this:
-
-```
-(first_entry_point)=(arguments, ...);...;(last_entry_point)=(arguments, ...);
-```
-
-As an example, to set both prefault at_open and at_create variables:
-```
-
-PMEMOBJ_CONF="prefault.at_open=1;prefault.at_create=1"
-```
+environment variable.
 
 The second method of loading an external configuration is to set the
 **PMEMOBJ_CONF_FILE** environment variable to point to a file that contains
-a sequence of ctl queries. The parsing rules are all the same, but the file
-can also contain white-spaces and comments.
+a sequence of ctl queries.
 
-To create a comment, simply use '#' anywhere in a line and everything
-afterwards, until a new line, will be ignored.
-
-An example configuration file:
-
-```
-#########################
-# My pmemobj configuration
-#########################
-#
-# Global settings:
-prefault. # modify the behavior of pre-faulting
-	at_open = 1; # prefault when the pool is opened
-
-prefault.
-	at_create = 0; # but don't prefault when it's created
-
-# Per-pool settings:
-# ...
-
-```
+See more in **pmem_ctl**(5) man page.
 
 
 # SEE ALSO #
 
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7), **pmem_ctl**(5) and **<http://pmem.io>**

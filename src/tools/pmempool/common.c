@@ -66,7 +66,7 @@
 #include "out.h"
 #include "mmap.h"
 #include "util_pmem.h"
-#include "badblock_poolset.h"
+#include "badblock.h"
 
 #define REQ_BUFF_SIZE	2048U
 #define Q_BUFF_SIZE	8192
@@ -115,7 +115,7 @@ pmem_pool_checksum(const void *base_pool_addr)
 		struct pool_hdr hdrp;
 		memcpy(&hdrp, base_pool_addr, sizeof(hdrp));
 		return util_checksum(&hdrp, sizeof(hdrp),
-			&hdrp.checksum, 0, POOL_HDR_CSUM_END_OFF);
+			&hdrp.checksum, 0, POOL_HDR_CSUM_END_OFF(&hdrp));
 	}
 }
 
@@ -1153,48 +1153,6 @@ util_heap_max_zone(size_t size)
 }
 
 /*
- * util_heap_get_bitmap_params -- return bitmap parameters of given block size
- *
- * The function returns the following values:
- * - number of allocations
- * - number of used values in bitmap
- * - initial value of last used entry
- */
-int
-util_heap_get_bitmap_params(uint64_t block_size, uint64_t *nallocsp,
-		uint64_t *nvalsp, uint64_t *last_valp)
-{
-	assert(RUNSIZE / block_size <= UINT32_MAX);
-	uint32_t nallocs = (uint32_t)(RUNSIZE / block_size);
-
-	assert(nallocs <= RUN_BITMAP_SIZE);
-	unsigned unused_bits = RUN_BITMAP_SIZE - nallocs;
-
-	unsigned unused_values = unused_bits / BITS_PER_VALUE;
-
-	assert(MAX_BITMAP_VALUES >= unused_values);
-	uint64_t nvals = MAX_BITMAP_VALUES - unused_values;
-
-	assert(unused_bits >= unused_values * BITS_PER_VALUE);
-	unused_bits -= unused_values * BITS_PER_VALUE;
-
-	uint64_t last_val = unused_bits ? (((1ULL << unused_bits) - 1ULL) <<
-				(BITS_PER_VALUE - unused_bits)) : 0;
-
-	if (nvals >= MAX_BITMAP_VALUES || nvals == 0)
-		return -1;
-
-	if (nallocsp)
-		*nallocsp = nallocs;
-	if (nvalsp)
-		*nvalsp = nvals;
-	if (last_valp)
-		*last_valp = last_val;
-
-	return 0;
-}
-
-/*
  * pool_set_file_open -- opens pool set file or regular file
  */
 struct pool_set_file *
@@ -1435,7 +1393,7 @@ util_pool_clear_badblocks(const char *path, int create)
 		return -1;
 	}
 
-	if (os_badblocks_clear_poolset(setp, create)) {
+	if (badblocks_clear_poolset(setp, create)) {
 		ERR("clearing bad blocks in the pool set failed -- '%s'", path);
 		errno = EIO;
 		return -1;

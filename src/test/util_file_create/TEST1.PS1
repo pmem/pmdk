@@ -34,11 +34,6 @@
 # src/test/util_file_create/TEST1 -- unit test for util_file_create()
 #
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -47,6 +42,8 @@ require_test_type medium
 
 require_fs_type any
 require_no_superuser
+# icacls does have problems with handling long paths in the correct way.
+require_short_path
 
 setup
 
@@ -60,8 +57,6 @@ expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
 
 # grant full permissions so test code can cleanup
 & icacls $DIR/testdir1 /grant ${Env:USERNAME}:F >$null
-
-rm -Force -Recurse $DIR\testdir1
 
 check
 

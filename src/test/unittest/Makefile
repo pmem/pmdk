@@ -54,32 +54,39 @@ CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
 CFLAGS += -Wsign-conversion
 CFLAGS += -Wsign-compare
-ifeq ($(call check_Wconversion), y)
+ifeq ($(WCONVERSION_AVAILABLE), y)
 CFLAGS += -Wconversion
 endif
 CFLAGS += -pthread
 CFLAGS += -fno-common
 
-ifeq ($(call check_compiler, icc), n)
+ifeq ($(IS_ICC), n)
 CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
-ifeq ($(call check_flag, -Wunreachable-code-return), y)
-CFLAGS += -Wunreachable-code-return
-endif
-ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
-CFLAGS += -Wmissing-variable-declarations
-endif
 endif
 
-ifeq ($(USE_LIBUNWIND),1)
-CFLAGS += -DUSE_LIBUNWIND
-else
-ifneq ($(USE_LIBUNWIND),0)
-UNWIND := $(call check_package, libunwind)
-ifeq ($(UNWIND),y)
+ifeq ($(WUNREACHABLE_CODE_RETURN_AVAILABLE), y)
+CFLAGS += -Wunreachable-code-return
+endif
+
+ifeq ($(WMISSING_VARIABLE_DECLARATIONS_AVAILABLE), y)
+CFLAGS += -Wmissing-variable-declarations
+endif
+
+ifeq ($(WFLOAT_EQUAL_AVAILABLE), y)
+CFLAGS += -Wfloat-equal
+endif
+
+ifeq ($(WSWITCH_DEFAULT_AVAILABLE), y)
+CFLAGS += -Wswitch-default
+endif
+
+ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
+CFLAGS += -Wcast-function-type
+endif
+
+ifeq ($(USE_LIBUNWIND),y)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libunwind) -DUSE_LIBUNWIND
-endif
-endif
 endif
 
 ifeq ($(COVERAGE),1)

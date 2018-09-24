@@ -32,11 +32,6 @@
 #
 # src/test/vmem_stats/TEST6 -- unit test for vmem_stats
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

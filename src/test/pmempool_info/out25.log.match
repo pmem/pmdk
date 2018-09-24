@@ -1,3 +1,6 @@
+    "badblock_count":$(N),
+        "offset":$(N),
+        "length":$(N),
 Poolset structure:
 Number of replicas       : 1
 Replica 0 (master) - local, 3 part(s):
@@ -11,7 +14,7 @@ type                     : regular file
 size                     : 10485760
 bad blocks:
 	offset		length
-	0		1
+	0		2
 part 2:
 path                     : $(nW)/testfile2
 type                     : regular file
@@ -20,7 +23,7 @@ size                     : 10485760
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x0
+Mandatory features       : $(*)
 Not mandatory features   : 0x0
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
@@ -34,6 +37,7 @@ Alignment Descriptor     : $(nW)
 Class                    : 64
 Data                     : 2's complement, little endian
 Machine                  : AMD X86-64
+Last shutdown            : clean
 Checksum                 : $(*)
 
 PMEM OBJ Header:

@@ -47,7 +47,7 @@ date: pmemobj API version 2.3
 
 **pmemobj_list_insert**(), **pmemobj_list_insert_new**(),
 **pmemobj_list_move**(), **pmemobj_list_remove**()
--- non-transactional persistent atomic lists functions
+- non-transactional persistent atomic lists functions
 
 
 # SYNOPSIS #

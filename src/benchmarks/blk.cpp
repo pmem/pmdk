@@ -38,7 +38,9 @@
 #include "file.h"
 #include "libpmem.h"
 #include "libpmemblk.h"
+#include "libpmempool.h"
 #include "os.h"
+#include "poolset_util.hpp"
 #include <cassert>
 #include <cerrno>
 #include <cstdint>
@@ -155,7 +157,7 @@ blk_do_warmup(struct blk_bench *bb, struct benchmark_args *args)
 {
 	size_t lba;
 	int ret = 0;
-	char *buff = (char *)calloc(1, args->dsize);
+	auto *buff = (char *)calloc(1, args->dsize);
 	if (!buff) {
 		perror("calloc");
 		return -1;
@@ -287,8 +289,8 @@ fileio_write(struct blk_bench *bb, struct benchmark_args *ba,
 static int
 blk_operation(struct benchmark *bench, struct operation_info *info)
 {
-	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
-	struct blk_worker *bworker = (struct blk_worker *)info->worker->priv;
+	auto *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	auto *bworker = (struct blk_worker *)info->worker->priv;
 
 	os_off_t off = bworker->blocks[info->index];
 	return bb->worker(bb, info->args, bworker, off);
@@ -309,8 +311,8 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		return -1;
 	}
 
-	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
-	struct blk_args *bargs = (struct blk_args *)args->opts;
+	auto *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	auto *bargs = (struct blk_args *)args->opts;
 
 	bworker->seed = os_rand_r(&bargs->seed);
 
@@ -370,7 +372,7 @@ static void
 blk_free_worker(struct benchmark *bench, struct benchmark_args *args,
 		struct worker_info *worker)
 {
-	struct blk_worker *bworker = (struct blk_worker *)worker->priv;
+	auto *bworker = (struct blk_worker *)worker->priv;
 	free(bworker->blocks);
 	free(bworker->buff);
 	free(bworker);
@@ -382,8 +384,12 @@ blk_free_worker(struct benchmark *bench, struct benchmark_args *args,
 static int
 blk_init(struct blk_bench *bb, struct benchmark_args *args)
 {
-	struct blk_args *ba = (struct blk_args *)args->opts;
-	assert(ba != NULL);
+	auto *ba = (struct blk_args *)args->opts;
+	assert(ba != nullptr);
+
+	char path[PATH_MAX];
+	if (util_safe_strcpy(path, args->fname, sizeof(path)) != 0)
+		return -1;
 
 	bb->type = parse_op_type(ba->type_str);
 	if (bb->type == OP_TYPE_UNKNOWN) {
@@ -426,6 +432,15 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 		}
 
 		ba->fsize = 0;
+	} else if (args->is_dynamic_poolset) {
+		int ret = dynamic_poolset_create(args->fname, ba->fsize);
+		if (ret == -1)
+			return -1;
+
+		if (util_safe_strcpy(path, POOLSET_PATH, sizeof(path)) != 0)
+			return -1;
+
+		ba->fsize = 0;
 	}
 
 	bb->fd = -1;
@@ -434,9 +449,9 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 	 * Create pmemblk in order to get the number of blocks
 	 * even for file-io mode.
 	 */
-	bb->pbp = pmemblk_create(args->fname, args->dsize, ba->fsize,
-				 args->fmode);
-	if (bb->pbp == NULL) {
+	bb->pbp = pmemblk_create(path, args->dsize, ba->fsize, args->fmode);
+
+	if (bb->pbp == nullptr) {
 		perror("pmemblk_create");
 		return -1;
 	}
@@ -454,7 +469,7 @@ blk_init(struct blk_bench *bb, struct benchmark_args *args)
 
 	if (bb->type == OP_TYPE_FILE) {
 		pmemblk_close(bb->pbp);
-		bb->pbp = NULL;
+		bb->pbp = nullptr;
 
 		int flags = O_RDWR | O_CREAT | O_SYNC;
 #ifdef _WIN32
@@ -492,13 +507,12 @@ out_close:
 static int
 blk_read_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
 
 	int ret;
-	struct blk_bench *bb =
-		(struct blk_bench *)malloc(sizeof(struct blk_bench));
-	if (bb == NULL) {
+	auto *bb = (struct blk_bench *)malloc(sizeof(struct blk_bench));
+	if (bb == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -535,13 +549,12 @@ blk_read_init(struct benchmark *bench, struct benchmark_args *args)
 static int
 blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
 
 	int ret;
-	struct blk_bench *bb =
-		(struct blk_bench *)malloc(sizeof(struct blk_bench));
-	if (bb == NULL) {
+	auto *bb = (struct blk_bench *)malloc(sizeof(struct blk_bench));
+	if (bb == nullptr) {
 		perror("malloc");
 		return -1;
 	}
@@ -578,7 +591,15 @@ blk_write_init(struct benchmark *bench, struct benchmark_args *args)
 static int
 blk_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct blk_bench *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	auto *bb = (struct blk_bench *)pmembench_get_priv(bench);
+	char path[PATH_MAX];
+	if (util_safe_strcpy(path, args->fname, sizeof(path)) != 0)
+		return -1;
+
+	if (args->is_dynamic_poolset) {
+		if (util_safe_strcpy(path, POOLSET_PATH, sizeof(path)) != 0)
+			return -1;
+	}
 
 	int result;
 	switch (bb->type) {
@@ -587,7 +608,7 @@ blk_exit(struct benchmark *bench, struct benchmark_args *args)
 			break;
 		case OP_TYPE_BLK:
 			pmemblk_close(bb->pbp);
-			result = pmemblk_check(args->fname, args->dsize);
+			result = pmemblk_check(path, args->dsize);
 			if (result < 0) {
 				perror("pmemblk_check error");
 				return -1;

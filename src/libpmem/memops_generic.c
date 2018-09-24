@@ -179,19 +179,19 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 		const uint64_t *src8 = (const uint64_t *)csrc;
 
 		while (len >= 64) {
+			dst8 -= 8;
+			src8 -= 8;
 			cpy64(dst8, src8);
 			pmem_flush_flags(dst8, 64, flags);
 			len -= 64;
-			dst8 -= 8;
-			src8 -= 8;
 		}
 
 		remaining = len;
 		while (len >= 8) {
+			--dst8;
+			--src8;
 			cpy8(dst8, src8);
 			len -= 8;
-			dst8--;
-			src8--;
 		}
 
 		cdst = (char *)dst8;

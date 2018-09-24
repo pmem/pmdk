@@ -32,12 +32,6 @@
 #
 # libpmempool_rm_win/TEST4 -- test pmempool_rm with opened files
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

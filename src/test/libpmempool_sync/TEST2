@@ -46,8 +46,8 @@ setup
 
 LOG=out${UNITTEST_NUM}.log
 LOG_TEMP=out${UNITTEST_NUM}_part.log
-rm -rf $LOG && touch $LOG
-rm -rf $LOG_TEMP && touch $LOG_TEMP
+rm -f $LOG && touch $LOG
+rm -f $LOG_TEMP && touch $LOG_TEMP
 
 LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET=$DIR/poolset
@@ -67,7 +67,7 @@ cat $LOG >> $LOG_TEMP
 rm -f $DIR/part10
 
 # Try to synchronize replicas
-FLAG=1 #invalid flag
+FLAG=32 #invalid flag
 expect_normal_exit ./libpmempool_sync$EXESUFFIX $POOLSET $FLAG
 cat $LOG >> $LOG_TEMP
 

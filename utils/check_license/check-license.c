@@ -73,7 +73,7 @@
 /*
  * help_str -- string for the help message
  */
-static const char *help_str =
+static const char * const help_str =
 "Usage: %s <mode> <file_1> <file_2> [filename]\n"
 "\n"
 "Modes:\n"

@@ -201,7 +201,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 			int ret = snprintf(log_file_pid, PATH_MAX, "%s%d",
 				log_file, getpid());
 			if (ret < 0 || ret >= PATH_MAX) {
-				ERR("!snprintf");
+				ERR("snprintf: %d", ret);
 				abort();
 			}
 			log_file = log_file_pid;
@@ -264,6 +264,11 @@ out_init(const char *log_prefix, const char *log_level_var,
 			"compiled with support for Valgrind drd";
 	LOG(1, "%s", drd_msg);
 #endif /* VG_DRD_ENABLED */
+#if SDS_ENABLED
+	static __attribute__((used)) const char *shutdown_state_msg =
+			"compiled with support for shutdown state";
+	LOG(1, "%s", shutdown_state_msg);
+#endif
 
 	Last_errormsg_key_alloc();
 }
@@ -291,6 +296,7 @@ static void
 out_print_func(const char *s)
 {
 	/* to suppress drd false-positive */
+	/* XXX: confirm real nature of this issue: pmem/issues#863 */
 #ifdef SUPPRESS_FPUTS_DRD_ERROR
 	VALGRIND_ANNOTATE_IGNORE_READS_BEGIN();
 	VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN();

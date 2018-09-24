@@ -33,12 +33,6 @@
 #
 # src/test/obj_pmalloc_oom_mt/TEST0 -- unit test for pmalloc interface
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 

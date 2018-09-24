@@ -81,7 +81,7 @@ MANPAGES = $(TOP)/doc/pmempool.1\
 	   $(TOP)/doc/pmempool-sync.1\
 	   $(TOP)/doc/pmempool-tranform.1
 
-BASH_COMP_FILES = pmempool.sh
+BASH_COMP_FILES = bash_completion/pmempool
 
 include ../Makefile.inc
 

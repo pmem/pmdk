@@ -254,8 +254,7 @@ warmup_msync(struct memset_bench *mb)
 static int
 memset_op(struct benchmark *bench, struct operation_info *info)
 {
-	struct memset_bench *mb =
-		(struct memset_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct memset_bench *)pmembench_get_priv(bench);
 
 	assert(info->index < mb->n_offsets);
 
@@ -277,9 +276,9 @@ memset_op(struct benchmark *bench, struct operation_info *info)
 static int
 memset_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
-	assert(args->opts != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
 
 	int ret = 0;
 	size_t size;
@@ -289,8 +288,7 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 	int flags = 0;
 
 	int (*warmup_func)(struct memset_bench *) = warmup_persist;
-	struct memset_bench *mb =
-		(struct memset_bench *)malloc(sizeof(struct memset_bench));
+	auto *mb = (struct memset_bench *)malloc(sizeof(struct memset_bench));
 	if (!mb) {
 		perror("malloc");
 		return -1;
@@ -329,7 +327,8 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* create a pmem file and memory map it */
 	if ((mb->pmem_addr = pmem_map_file(args->fname, file_size, flags,
-					   args->fmode, NULL, NULL)) == NULL) {
+					   args->fmode, nullptr, nullptr)) ==
+	    nullptr) {
 		perror(args->fname);
 		ret = -1;
 		goto err_free_offsets;
@@ -383,8 +382,7 @@ err_free_mb:
 static int
 memset_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct memset_bench *mb =
-		(struct memset_bench *)pmembench_get_priv(bench);
+	auto *mb = (struct memset_bench *)pmembench_get_priv(bench);
 	pmem_unmap(mb->pmem_addr, mb->fsize);
 	free(mb->offsets);
 	free(mb);

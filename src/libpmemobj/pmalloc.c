@@ -49,78 +49,68 @@
 #include "pmalloc.h"
 #include "alloc_class.h"
 #include "set.h"
+#include "mmap.h"
 
-#ifdef DEBUG
-/*
- * In order to prevent allocations from inside of a constructor, each lane hold
- * invocation sets the, otherwise unused, runtime part of the lane section
- * to a value that marks an in progress allocation. Likewise, each lane release
- * sets the runtime variable back to NULL.
- *
- * Because this check requires additional hold/release pair for every single
- * allocation, it's done only for debug builds.
- */
-#define ALLOC_INPROGRESS_MARK ((void *)0x1)
-#endif
+#define PMALLOC_REDO_LOG_EXTEND_SIZE 256 /* rounded up to a cacheline */
+
+enum pmalloc_operation_type {
+	OPERATION_INTERNAL, /* used only for single, one-off operations */
+	OPERATION_EXTERNAL, /* used for everything else, incl. large redos */
+
+	MAX_OPERATION_TYPE,
+};
+
+struct lane_alloc_runtime {
+	struct operation_context *ctx[MAX_OPERATION_TYPE];
+};
 
 /*
- * pmalloc_redo_hold -- acquires allocator lane section and returns a pointer to
- * it's redo log
+ * pmalloc_operation_hold_type -- acquires allocator lane section and returns a
+ *	pointer to its operation context
  */
-struct redo_log *
-pmalloc_redo_hold(PMEMobjpool *pop)
+static struct operation_context *
+pmalloc_operation_hold_type(PMEMobjpool *pop, enum pmalloc_operation_type type,
+	int start)
 {
 	struct lane_section *lane;
 	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
+	struct lane_alloc_runtime *rt = lane->runtime;
 
-#ifdef DEBUG
-	ASSERTeq(lane->runtime, NULL);
-	lane->runtime = ALLOC_INPROGRESS_MARK;
-#endif
+	if (start)
+		operation_start(rt->ctx[type]);
+	else
+		operation_init(rt->ctx[type]);
 
-	struct lane_alloc_layout *sec = (void *)lane->layout;
-	return sec->redo;
+	return rt->ctx[type];
 }
 
 /*
- * pmalloc_redo_release -- releases allocator lane section
+ * pmalloc_operation_hold_type -- acquires allocator lane section and returns a
+ *	pointer to its operation context without starting
+ */
+struct operation_context *
+pmalloc_operation_hold_no_start(PMEMobjpool *pop)
+{
+	return pmalloc_operation_hold_type(pop, OPERATION_EXTERNAL, 0);
+}
+
+/*
+ * pmalloc_operation_hold -- acquires allocator lane section and returns a
+ *	pointer to its redo log
+ */
+struct operation_context *
+pmalloc_operation_hold(PMEMobjpool *pop)
+{
+	return pmalloc_operation_hold_type(pop, OPERATION_EXTERNAL, 1);
+}
+
+/*
+ * pmalloc_operation_release -- releases allocator lane section
  */
 void
-pmalloc_redo_release(PMEMobjpool *pop)
+pmalloc_operation_release(PMEMobjpool *pop)
 {
-#ifdef DEBUG
-	/* there's no easier way, I've tried */
-	struct lane_section *lane;
-	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
-	lane->runtime = NULL;
 	lane_release(pop);
-#endif
-	lane_release(pop);
-}
-
-/*
- * pmalloc_operation -- higher level wrapper for basic allocator API
- *
- * If successful function returns zero. Otherwise an error number is returned.
- */
-int
-pmalloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
-	size_t size, palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
-	struct operation_context *ctx)
-{
-#if VG_MEMCHECK_ENABLED
-	uint64_t tmp;
-	if (size && On_valgrind && dest_off == NULL)
-		dest_off = &tmp;
-#endif
-
-	int ret = palloc_operation(heap, off, dest_off, size, constructor, arg,
-			extra_field, object_flags, class_id, ctx);
-	if (ret)
-		return ret;
-
-	return 0;
 }
 
 /*
@@ -134,15 +124,13 @@ int
 pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 	uint64_t extra_field, uint16_t object_flags)
 {
-	struct redo_log *redo = pmalloc_redo_hold(pop);
+	struct operation_context *ctx =
+		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
-	struct operation_context ctx;
-	operation_init(&ctx, pop, pop->redo, redo);
+	int ret = palloc_operation(&pop->heap, 0, off, size, NULL, NULL,
+		extra_field, object_flags, 0, ctx);
 
-	int ret = pmalloc_operation(&pop->heap, 0, off, size, NULL, NULL,
-		extra_field, object_flags, 0, &ctx);
-
-	pmalloc_redo_release(pop);
+	pmalloc_operation_release(pop);
 
 	return ret;
 }
@@ -160,15 +148,13 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 	palloc_constr constructor, void *arg,
 	uint64_t extra_field, uint16_t object_flags, uint16_t class_id)
 {
-	struct redo_log *redo = pmalloc_redo_hold(pop);
-	struct operation_context ctx;
+	struct operation_context *ctx =
+		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
-	operation_init(&ctx, pop, pop->redo, redo);
+	int ret = palloc_operation(&pop->heap, 0, off, size, constructor, arg,
+			extra_field, object_flags, class_id, ctx);
 
-	int ret = pmalloc_operation(&pop->heap, 0, off, size, constructor, arg,
-			extra_field, object_flags, class_id, &ctx);
-
-	pmalloc_redo_release(pop);
+	pmalloc_operation_release(pop);
 
 	return ret;
 }
@@ -184,15 +170,13 @@ int
 prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 	uint64_t extra_field, uint16_t object_flags)
 {
-	struct redo_log *redo = pmalloc_redo_hold(pop);
-	struct operation_context ctx;
+	struct operation_context *ctx =
+		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
-	operation_init(&ctx, pop, pop->redo, redo);
+	int ret = palloc_operation(&pop->heap, *off, off, size, NULL, NULL,
+		extra_field, object_flags, 0, ctx);
 
-	int ret = pmalloc_operation(&pop->heap, *off, off, size, NULL, NULL,
-		extra_field, object_flags, 0, &ctx);
-
-	pmalloc_redo_release(pop);
+	pmalloc_operation_release(pop);
 
 	return ret;
 }
@@ -207,24 +191,86 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 void
 pfree(PMEMobjpool *pop, uint64_t *off)
 {
-	struct redo_log *redo = pmalloc_redo_hold(pop);
-	struct operation_context ctx;
+	struct operation_context *ctx =
+		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
-	operation_init(&ctx, pop, pop->redo, redo);
-
-	int ret = pmalloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
-		0, 0, 0, &ctx);
+	int ret = palloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
+		0, 0, 0, ctx);
 	ASSERTeq(ret, 0);
 
-	pmalloc_redo_release(pop);
+	pmalloc_operation_release(pop);
+}
+
+/*
+ * alloc_redo_constructor -- constructor of a new redo log section
+ */
+static int
+alloc_redo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
+{
+	PMEMobjpool *pop = base;
+	const struct pmem_ops *p_ops = &pop->p_ops;
+	VALGRIND_ADD_TO_TX(ptr, usable_size);
+
+	struct redo_log *redo = ptr;
+	redo->capacity = PMALLOC_REDO_LOG_EXTEND_SIZE;
+	redo->checksum = 0;
+	redo->next = 0;
+	memset(redo->unused, 0, sizeof(redo->unused));
+
+	pmemops_flush(p_ops, redo, sizeof(*redo));
+
+	pmemops_memset(p_ops, redo->data, 0,
+		usable_size - sizeof(*redo), 0);
+
+	VALGRIND_REMOVE_FROM_TX(ptr, usable_size);
+
+	return 0;
+}
+
+/*
+ * alloc_redo_external_extend -- redo log extend callback
+ *
+ * Uses the secondary 'internal' redo log, so that the pmalloc() can finish
+ * during an ongoing operation.
+ */
+static int
+alloc_redo_external_extend(void *base, uint64_t *redo)
+{
+	size_t s = SIZEOF_REDO_LOG(PMALLOC_REDO_LOG_EXTEND_SIZE);
+
+	return pmalloc_construct(base, redo, s, alloc_redo_constructor, NULL, 0,
+		OBJ_INTERNAL_OBJECT_MASK, 0);
 }
 
 /*
  * pmalloc_construct_rt -- construct runtime part of allocator section
  */
 static void *
-pmalloc_construct_rt(PMEMobjpool *pop)
+pmalloc_construct_rt(PMEMobjpool *pop, void *data)
 {
+	struct lane_alloc_layout *layout = data;
+	struct lane_alloc_runtime *alloc_rt = Malloc(sizeof(*alloc_rt));
+	if (alloc_rt == NULL)
+		goto error_rt_alloc;
+
+	alloc_rt->ctx[OPERATION_INTERNAL] = operation_new(
+		(struct redo_log *)&layout->internal, ALLOC_REDO_INTERNAL_SIZE,
+		NULL, &pop->p_ops);
+	if (alloc_rt->ctx[OPERATION_INTERNAL] == NULL)
+		goto error_internal_alloc;
+
+	alloc_rt->ctx[OPERATION_EXTERNAL] = operation_new(
+		(struct redo_log *)&layout->external, ALLOC_REDO_EXTERNAL_SIZE,
+		alloc_redo_external_extend, &pop->p_ops);
+	if (alloc_rt->ctx[OPERATION_EXTERNAL] == NULL)
+		goto error_external_alloc;
+
+	return alloc_rt;
+error_external_alloc:
+	Free(alloc_rt->ctx[OPERATION_INTERNAL]);
+error_internal_alloc:
+	Free(alloc_rt);
+error_rt_alloc:
 	return NULL;
 }
 
@@ -234,7 +280,10 @@ pmalloc_construct_rt(PMEMobjpool *pop)
 static void
 pmalloc_destroy_rt(PMEMobjpool *pop, void *rt)
 {
-	/* NOP */
+	struct lane_alloc_runtime *alloc_rt = rt;
+	operation_delete(alloc_rt->ctx[OPERATION_INTERNAL]);
+	operation_delete(alloc_rt->ctx[OPERATION_EXTERNAL]);
+	Free(alloc_rt);
 }
 
 /*
@@ -246,7 +295,10 @@ pmalloc_recovery(PMEMobjpool *pop, void *data, unsigned length)
 	struct lane_alloc_layout *sec = data;
 	ASSERT(sizeof(*sec) <= length);
 
-	redo_log_recover(pop->redo, sec->redo, ALLOC_REDO_LOG_SIZE);
+	redo_log_recover((struct redo_log *)&sec->internal,
+		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
+	redo_log_recover((struct redo_log *)&sec->external,
+		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
 
 	return 0;
 }
@@ -261,11 +313,17 @@ pmalloc_check(PMEMobjpool *pop, void *data, unsigned length)
 
 	struct lane_alloc_layout *sec = data;
 
-	int ret = redo_log_check(pop->redo, sec->redo, ALLOC_REDO_LOG_SIZE);
+	int ret = redo_log_check((struct redo_log *)&sec->internal,
+		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
 	if (ret != 0)
-		ERR("allocator lane: redo log check failed");
+		ERR("allocator lane: internal redo log check failed");
 
-	return ret;
+	int ret2 = redo_log_check((struct redo_log *)&sec->external,
+		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
+	if (ret2 != 0)
+		ERR("allocator lane: external redo log check failed");
+
+	return ret == 0 && ret2 == 0 ? 0 : -1;
 }
 
 /*
@@ -319,22 +377,28 @@ SECTION_PARM(LANE_SECTION_ALLOCATOR, &allocator_ops);
  * CTL_WRITE_HANDLER(proto) -- creates a new allocation class
  */
 static int
-CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
+CTL_WRITE_HANDLER(desc)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
 	uint8_t id;
 	struct alloc_class_collection *ac = heap_alloc_classes(&pop->heap);
-
 	struct pobj_alloc_class_desc *p = arg;
-
-	if (p->alignment != 0) {
-		ERR("Allocation class alignment is not supported yet");
-		errno = ENOTSUP;
-		return -1;
-	}
 
 	if (p->unit_size <= 0 || p->unit_size > PMEMOBJ_MAX_ALLOC_SIZE ||
 		p->units_per_block <= 0) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (p->alignment != 0 && p->unit_size % p->alignment != 0) {
+		ERR("unit size must be evenly divisible by alignment");
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (p->alignment > (MEGABYTE * 2)) {
+		ERR("alignment cannot be larger than 2 megabytes");
 		errno = EINVAL;
 		return -1;
 	}
@@ -382,33 +446,32 @@ CTL_WRITE_HANDLER(desc)(PMEMobjpool *pop,
 		}
 	}
 
-	p->class_id = id;
-
-	struct alloc_class c;
-	c.id = id;
-	c.header_type = lib_htype;
-	c.type = CLASS_RUN;
-	c.unit_size = p->unit_size;
 	size_t runsize_bytes =
 		CHUNK_ALIGN_UP((p->units_per_block * p->unit_size) +
-		RUN_METASIZE);
-	c.run.size_idx = (uint32_t)(runsize_bytes / CHUNKSIZE);
-	if (c.run.size_idx > UINT16_MAX)
-		c.run.size_idx = UINT16_MAX;
+		RUN_BASE_METADATA_SIZE);
 
-	alloc_class_generate_run_proto(&c.run, c.unit_size, c.run.size_idx);
+	/* aligning the buffer might require up-to to 'alignment' bytes */
+	if (p->alignment != 0)
+		runsize_bytes += p->alignment;
 
-	struct alloc_class *realc = alloc_class_register(
-		heap_alloc_classes(&pop->heap), &c);
-	if (realc == NULL) {
+	uint32_t size_idx = (uint32_t)(runsize_bytes / CHUNKSIZE);
+	if (size_idx > UINT16_MAX)
+		size_idx = UINT16_MAX;
+
+	struct alloc_class *c = alloc_class_new(id,
+		heap_alloc_classes(&pop->heap), CLASS_RUN,
+		lib_htype, p->unit_size, p->alignment, size_idx);
+	if (c == NULL) {
 		errno = EINVAL;
 		return -1;
 	}
 
-	if (heap_create_alloc_class_buckets(&pop->heap, realc) != 0) {
-		alloc_class_delete(ac, realc);
+	if (heap_create_alloc_class_buckets(&pop->heap, c) != 0) {
+		alloc_class_delete(ac, c);
 		return -1;
 	}
+
+	p->class_id = c->id;
 
 	return 0;
 }
@@ -439,12 +502,13 @@ pmalloc_header_type_parser(const void *arg, void *dest, size_t dest_size)
 }
 
 /*
- * CTL_READ_HANDLER(proto) -- reads the information about allocation class
+ * CTL_READ_HANDLER(desc) -- reads the information about allocation class
  */
 static int
-CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
+CTL_READ_HANDLER(desc)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
 	uint8_t id;
 
 	struct ctl_index *idx = SLIST_FIRST(indexes);
@@ -484,11 +548,11 @@ CTL_READ_HANDLER(desc)(PMEMobjpool *pop,
 	}
 
 	struct pobj_alloc_class_desc *p = arg;
-	p->units_per_block = c->type == CLASS_HUGE ? 0 : c->run.bitmap_nallocs;
+	p->units_per_block = c->type == CLASS_HUGE ? 0 : c->run.nallocs;
 	p->header_type = user_htype;
 	p->unit_size = c->unit_size;
 	p->class_id = c->id;
-	p->alignment = 0;
+	p->alignment = c->flags & CHUNK_FLAG_ALIGNED ? c->run.alignment : 0;
 
 	return 0;
 }
@@ -531,9 +595,11 @@ static const struct ctl_node CTL_NODE(alloc_class)[] = {
  * CTL_RUNNABLE_HANDLER(extend) -- extends the pool by the given size
  */
 static int
-CTL_RUNNABLE_HANDLER(extend)(PMEMobjpool *pop,
+CTL_RUNNABLE_HANDLER(extend)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
+
 	ssize_t arg_in = *(ssize_t *)arg;
 	if (arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
 		ERR("incorrect size for extend, must be larger than %" PRIu64,
@@ -556,9 +622,11 @@ CTL_RUNNABLE_HANDLER(extend)(PMEMobjpool *pop,
  * CTL_READ_HANDLER(granularity) -- reads the current heap grow size
  */
 static int
-CTL_READ_HANDLER(granularity)(PMEMobjpool *pop,
+CTL_READ_HANDLER(granularity)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
+
 	ssize_t *arg_out = arg;
 
 	*arg_out = (ssize_t)pop->heap.growsize;
@@ -570,9 +638,11 @@ CTL_READ_HANDLER(granularity)(PMEMobjpool *pop,
  * CTL_WRITE_HANDLER(granularity) -- changes the heap grow size
  */
 static int
-CTL_WRITE_HANDLER(granularity)(PMEMobjpool *pop,
+CTL_WRITE_HANDLER(granularity)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
+	PMEMobjpool *pop = ctx;
+
 	ssize_t arg_in = *(int *)arg;
 	if (arg_in != 0 && arg_in < (ssize_t)PMEMOBJ_MIN_PART) {
 		ERR("incorrect grow size, must be 0 or larger than %" PRIu64,

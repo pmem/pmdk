@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -264,7 +264,7 @@ vout(int flags, const char *prepend, const char *fmt, va_list ap)
 	int ret = snprintf(&buf[cc], MAXPRINT - cc,
 		"%s%s%s", sep, errstr, nl);
 	if (ret < 0 || ret >= MAXPRINT - (int)cc)
-		UT_FATAL("!snprintf");
+		UT_FATAL("snprintf: %d", ret);
 
 	/* buf has the fully-baked output, send it everywhere it goes... */
 	fputs(buf, Tracefp);
@@ -404,6 +404,22 @@ open_file_free(struct fd_lut *root)
 			FREE(root->fdfile);
 		FREE(root);
 	}
+}
+
+/*
+ * close_output_files -- close opened output files
+ */
+static void
+close_output_files(void)
+{
+	if (Outfp != NULL)
+		fclose(Outfp);
+
+	if (Errfp != NULL)
+		fclose(Errfp);
+
+	if (Tracefp != NULL)
+		fclose(Tracefp);
 }
 
 #ifndef _WIN32
@@ -655,7 +671,7 @@ enum_handles(int op)
 			type_info->Name.Length / 2, type_info->Name.Buffer);
 
 		if (ret < 0 || ret >= MAX_PATH)
-			UT_FATAL("!snprintf");
+			UT_FATAL("snprintf: %d", ret);
 
 		int fd = (int)(ULONGLONG)handle.HandleValue;
 		if (op == 0)
@@ -759,7 +775,7 @@ ut_start_common(const char *file, int line, const char *func,
 
 	int ret = snprintf(logname, MAXLOGFILENAME, "out%s.log", logsuffix);
 	if (ret < 0 || ret >= MAXLOGFILENAME)
-		UT_FATAL("!snprintf");
+		UT_FATAL("snprintf: %d", ret);
 	if ((Outfp = os_fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
@@ -767,7 +783,7 @@ ut_start_common(const char *file, int line, const char *func,
 
 	ret = snprintf(logname, MAXLOGFILENAME, "err%s.log", logsuffix);
 	if (ret < 0 || ret >= MAXLOGFILENAME)
-		UT_FATAL("!snprintf");
+		UT_FATAL("snprintf: %d", ret);
 	if ((Errfp = os_fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
@@ -775,7 +791,7 @@ ut_start_common(const char *file, int line, const char *func,
 
 	ret = snprintf(logname, MAXLOGFILENAME, "trace%s.log", logsuffix);
 	if (ret < 0 || ret >= MAXLOGFILENAME)
-		UT_FATAL("!snprintf");
+		UT_FATAL("snprintf: %d", ret);
 	if ((Tracefp = os_fopen(logname, fmode)) == NULL) {
 		perror(logname);
 		exit(1);
@@ -842,6 +858,24 @@ ut_startW(const char *file, int line, const char *func,
 #endif
 
 /*
+ * ut_end -- indicate test is done, exit program with specified value
+ */
+void
+ut_end(const char *file, int line, const char *func, int ret)
+{
+#ifdef _WIN32
+	os_mutex_destroy(&Sigactions_lock);
+#endif
+	if (!os_getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
+		check_open_files();
+	prefix(file, line, func, 0);
+	out(OF_NAME, "END %d", ret);
+
+	close_output_files();
+	exit(ret);
+}
+
+/*
  * ut_done -- indicate test is done, exit program
  */
 void
@@ -851,27 +885,19 @@ ut_done(const char *file, int line, const char *func,
 #ifdef _WIN32
 	os_mutex_destroy(&Sigactions_lock);
 #endif
+	if (!os_getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
+		check_open_files();
+
 	va_list ap;
 
 	va_start(ap, fmt);
-
-	if (!os_getenv("UNITTEST_DO_NOT_CHECK_OPEN_FILES"))
-		check_open_files();
 
 	prefix(file, line, func, 0);
 	vout(OF_NAME, "DONE", fmt, ap);
 
 	va_end(ap);
 
-	if (Outfp != NULL)
-		fclose(Outfp);
-
-	if (Errfp != NULL)
-		fclose(Errfp);
-
-	if (Tracefp != NULL)
-		fclose(Tracefp);
-
+	close_output_files();
 	exit(0);
 }
 
@@ -1003,3 +1029,137 @@ ut_toUTF16(const char *wstr)
 	return str;
 }
 #endif
+
+
+/*
+ * ut_strtoi -- a strtoi call that cannot return error
+ */
+int
+ut_strtoi(const char *file, int line, const char *func,
+	const char *nptr, char **endptr, int base)
+{
+	long ret = ut_strtol(file, line, func, nptr, endptr, base);
+
+	if (ret > INT_MAX || ret < INT_MIN)
+		ut_fatal(file, line, func,
+			"!strtoi: nptr=%s, endptr=%s, base=%d",
+			nptr, endptr ? *endptr : "NULL", base);
+
+	return (int)ret;
+}
+
+/*
+ * ut_strtou -- a strtou call that cannot return error
+ */
+unsigned
+ut_strtou(const char *file, int line, const char *func,
+	const char *nptr, char **endptr, int base)
+{
+	unsigned long ret = ut_strtoul(file, line, func, nptr, endptr, base);
+
+	if (ret > UINT_MAX)
+		ut_fatal(file, line, func,
+			"!strtou: nptr=%s, endptr=%s, base=%d",
+			nptr, endptr ? *endptr : "NULL", base);
+
+	return (unsigned)ret;
+}
+
+/*
+ * ut_strtol -- a strtol call that cannot return error
+ */
+long
+ut_strtol(const char *file, int line, const char *func,
+	const char *nptr, char **endptr, int base)
+{
+	long long ret = ut_strtoll(file, line, func, nptr, endptr, base);
+
+	if (ret > LONG_MAX || ret < LONG_MIN)
+		ut_fatal(file, line, func,
+			"!strtol: nptr=%s, endptr=%s, base=%d",
+			nptr, endptr ? *endptr : "NULL", base);
+
+	return (long)ret;
+}
+
+/*
+ * ut_strtoul -- a strtou call that cannot return error
+ */
+unsigned long
+ut_strtoul(const char *file, int line, const char *func,
+	const char *nptr, char **endptr, int base)
+{
+	unsigned long long ret =
+		ut_strtoull(file, line, func, nptr, endptr, base);
+
+	if (ret > ULONG_MAX)
+		ut_fatal(file, line, func,
+			"!strtoul: nptr=%s, endptr=%s, base=%d",
+			nptr, endptr ? *endptr : "NULL", base);
+
+	return (unsigned long)ret;
+}
+
+/*
+ * ut_strtoull -- a strtoul call that cannot return error
+ */
+unsigned long long
+ut_strtoull(const char *file, int line, const char *func,
+	const char *nptr, char **endptr, int base)
+{
+	unsigned long long retval;
+	errno = 0;
+	if (*nptr == '\0') {
+		errno = EINVAL;
+		goto fatal;
+	}
+
+	if (endptr != NULL) {
+		retval = strtoull(nptr, endptr, base);
+	} else {
+		char *end;
+		retval = strtoull(nptr, &end, base);
+		if (*end != '\0')
+			goto fatal;
+	}
+	if (errno != 0)
+		goto fatal;
+
+	return retval;
+fatal:
+	ut_fatal(file, line, func,
+		"!strtoull: nptr=%s, endptr=%s, base=%d",
+		nptr, endptr ? *endptr : "NULL", base);
+}
+
+/*
+ * ut_strtoll -- a strtol call that cannot return error
+ */
+long long
+ut_strtoll(const char *file, int line, const char *func,
+	const char *nptr, char **endptr, int base)
+{
+	long long retval;
+	errno = 0;
+	if (*nptr == '\0') {
+		errno = EINVAL;
+		goto fatal;
+	}
+
+	if (endptr != NULL) {
+		retval = strtoll(nptr, endptr, base);
+	} else {
+		char *end;
+		retval = strtoll(nptr, &end, base);
+		if (*end != '\0')
+			goto fatal;
+	}
+	if (errno != 0)
+		goto fatal;
+
+	return retval;
+fatal:
+	ut_fatal(file, line, func,
+		"!strtoll: nptr=%s, endptr=%s, base=%d",
+		nptr, endptr ? *endptr : "NULL", base);
+}

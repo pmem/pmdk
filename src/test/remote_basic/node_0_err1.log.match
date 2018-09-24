@@ -1,1 +1,1 @@
-{$(nW)remote_basic.c:58 main} remote_basic/TEST1: An example of ERR message
+{$(nW)remote_basic.c:$(nW) main} remote_basic/TEST1: An example of ERR message

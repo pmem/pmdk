@@ -40,11 +40,11 @@ MANPAGES_7_MD = libpmem/libpmem.7.md libpmemblk/libpmemblk.7.md libpmemlog/libpm
 		libpmemobj/libpmemobj.7.md libpmempool/libpmempool.7.md libvmem/libvmem.7.md \
 		libvmmalloc/libvmmalloc.7.md libpmemcto/libpmemcto.7.md
 
-MANPAGES_5_MD = poolset/poolset.5.md
+MANPAGES_5_MD = poolset/poolset.5.md pmem_ctl/pmem_ctl.5.md
 
 MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_memmove_persist.3.md \
-		libpmemblk/pmemblk_bsize.3.md libpmemblk/pmemblk_create.3.md libpmemblk/pmemblk_read.3.md libpmemblk/pmemblk_set_zero.3.md \
-		libpmemlog/pmemlog_append.3.md libpmemlog/pmemlog_create.3.md libpmemlog/pmemlog_nbyte.3.md libpmemlog/pmemlog_tell.3.md \
+		libpmemblk/pmemblk_bsize.3.md libpmemblk/pmemblk_create.3.md libpmemblk/pmemblk_ctl_get.3.md libpmemblk/pmemblk_read.3.md libpmemblk/pmemblk_set_zero.3.md \
+		libpmemlog/pmemlog_append.3.md libpmemlog/pmemlog_create.3.md libpmemlog/pmemlog_ctl_get.3.md libpmemlog/pmemlog_nbyte.3.md libpmemlog/pmemlog_tell.3.md \
 		libpmemobj/oid_is_null.3.md libpmemobj/pmemobj_action.3.md libpmemobj/pmemobj_alloc.3.md libpmemobj/pmemobj_ctl_get.3.md libpmemobj/pmemobj_first.3.md \
 		libpmemobj/pmemobj_list_insert.3.md libpmemobj/pmemobj_memcpy_persist.3.md libpmemobj/pmemobj_mutex_zero.3.md \
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
@@ -61,29 +61,33 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 
 MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmempool-create.1.md \
 		pmempool/pmempool-check.1.md pmempool/pmempool-dump.1.md pmempool/pmempool-rm.1.md \
-		pmempool/pmempool-convert.1.md pmempool/pmempool-sync.1.md pmempool/pmempool-transform.1.md
+		pmempool/pmempool-convert.1.md pmempool/pmempool-sync.1.md pmempool/pmempool-transform.1.md \
+		pmreorder/pmreorder.1.md
 
 
 MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmem_persist.3 pmem_msync.3 pmem_map_file.3 pmem_deep_persist.3 pmem_deep_flush.3 pmem_deep_drain.3 pmem_unmap.3 \
 		   pmem_memcpy_persist.3 pmem_memset_persist.3 pmem_memmove_nodrain.3 pmem_memcpy_nodrain.3 pmem_memset_nodrain.3 \
+		   pmem_memcpy.3 pmem_memset.3 pmem_memmove.3 \
 		   pmem_check_version.3 pmem_errormsg.3 \
 		   pmemblk_nblock.3 \
 		   pmemblk_open.3 pmemblk_close.3 \
 		   pmemblk_write.3 \
 		   pmemblk_set_error.3 \
 		   pmemblk_check_version.3 pmemblk_check.3 pmemblk_errormsg.3 pmemblk_set_funcs.3 \
+		   pmemblk_ctl_set.3 pmemblk_ctl_exec.3\
 		   pmemlog_rewind.3 pmemlog_walk.3 \
 		   pmemlog_open.3 pmemlog_close.3 \
 		   pmemlog_appendv.3 \
 		   pmemlog_check_version.3 pmemlog_check.3 pmemlog_errormsg.3 pmemlog_set_funcs.3 \
+		   pmemlog_ctl_set.3 pmemlog_ctl_exec.3\
 		   pmempool_check.3 pmempool_check_end.3 \
 		   pmempool_transform.3 \
 		   pmempool_check_version.3 pmempool_errormsg.3 \
 		   vmem_create_in_region.3 vmem_delete.3 vmem_check.3 vmem_stats_print.3 \
 		   vmem_calloc.3 vmem_realloc.3 vmem_free.3 vmem_aligned_alloc.3 vmem_strdup.3 vmem_wcsdup.3 vmem_malloc_usable_size.3 \
 		   vmem_check_version.3 vmem_errormsg.3 vmem_set_funcs.3 \
-		   oid_equals.3 pmemobj_direct.3 pmemobj_oid.3 pmemobj_type_num.3 pmemobj_pool_by_oid.3 pmemobj_pool_by_ptr.3 \
+		   oid_equals.3 pmemobj_direct.3 pmemobj_oid.3 pmemobj_type_num.3 pmemobj_pool_by_oid.3 pmemobj_pool_by_ptr.3 pmemobj_volatile.3\
 		   pmemobj_zalloc.3 pmemobj_xalloc.3 pmemobj_free.3 pmemobj_realloc.3 pmemobj_zrealloc.3 pmemobj_strdup.3 pmemobj_wcsdup.3 pmemobj_alloc_usable_size.3 \
 		   pobj_new.3 pobj_alloc.3 pobj_znew.3 pobj_zalloc.3 pobj_realloc.3 pobj_zrealloc.3 pobj_free.3 \
 		   pobj_layout_toid.3 pobj_layout_root.3 pobj_layout_name.3 pobj_layout_end.3 pobj_layout_types_num.3 \
@@ -92,7 +96,7 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmemobj_list_insert_new.3 pmemobj_list_remove.3 pmemobj_list_move.3 \
 		   toid_declare_root.3 toid.3 toid_type_num.3 toid_type_num_of.3 toid_valid.3 oid_instanceof.3 toid_assign.3 toid_is_null.3 toid_equals.3 toid_typeof.3 toid_offsetof.3 direct_rw.3 d_rw.3 direct_ro.3 d_ro.3 \
 		   pmemobj_memcpy.3 pmemobj_memmove.3 pmemobj_memset.3 \
-		   pmemobj_memset_persist.3 pmemobj_persist.3 pmemobj_flush.3 pmemobj_drain.3 \
+		   pmemobj_memset_persist.3 pmemobj_persist.3 pmemobj_xpersist.3 pmemobj_flush.3 pmemobj_xflush.3 pmemobj_drain.3 \
 		   pmemobj_tx_stage.3 pmemobj_tx_lock.3 pmemobj_tx_abort.3 pmemobj_tx_commit.3 pmemobj_tx_end.3 pmemobj_tx_errno.3 \
 		   pmemobj_tx_process.3 pmemobj_tx_add_range_direct.3 pmemobj_tx_xadd_range.3 pmemobj_tx_xadd_range_direct.3 \
 		   pmemobj_tx_zalloc.3 pmemobj_tx_xalloc.3 pmemobj_tx_realloc.3 pmemobj_tx_zrealloc.3 pmemobj_tx_strdup.3 pmemobj_tx_wcsdup.3 pmemobj_tx_free.3 \
@@ -109,7 +113,7 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmemobj_next.3 pobj_first_type_num.3 pobj_first.3 pobj_next_type_num.3 pobj_next.3 pobj_foreach.3 pobj_foreach_safe.3 pobj_foreach_type.3 pobj_foreach_safe_type.3 \
 		   pmemobj_root_construct.3 pobj_root.3 pmemobj_root_size.3 \
 		   pmemobj_check_version.3 pmemobj_check.3 pmemobj_errormsg.3 pmemobj_set_funcs.3 \
-		   pmemobj_reserve.3 pmemobj_xreserve.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3 \
+		   pmemobj_reserve.3 pmemobj_xreserve.3 pmemobj_defer_free.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3 pobj_xreserve_new.3 pobj_xreserve_alloc.3 \
 		   pmemcto_close.3 pmemcto_create.3 \
 		   pmemcto_check.3 \
 		   pmemcto_calloc.3 pmemcto_realloc.3 pmemcto_free.3 \
@@ -195,19 +199,14 @@ GZFILES_1_BUILD = $(addprefix $(MANPAGES_BUILDDIR)/, $(notdir $(GZFILES_1)))
 
 GZFILES_3_BUILD += $(addprefix $(MANPAGES_BUILDDIR)/, $(GZFILES_3_DUMMY))
 
-DOXYGEN_HTMLDIR=cpp_html
-
 MANPAGES_DESTDIR_7 = $(DESTDIR)$(man7dir)
 MANPAGES_DESTDIR_5 = $(DESTDIR)$(man5dir)
 MANPAGES_DESTDIR_3 = $(DESTDIR)$(man3dir)
 MANPAGES_DESTDIR_1 = $(DESTDIR)$(man1dir)
 
 DOCS_DESTDIR = $(DESTDIR)$(docdir)
-CPP_DOC_DIR ?= libpmemobj++-dev
-CPP_DOCS_DESTDIR = $(DOCS_DESTDIR)/$(CPP_DOC_DIR)
 
-
-all: md2man $(TXTFILES) doxygen_docs | $(MANPAGES_BUILDDIR)
+all: md2man $(TXTFILES) | $(MANPAGES_BUILDDIR)
 
 $(MANPAGES_BUILDDIR) $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 	$(MKDIR) -p $@
@@ -217,10 +216,7 @@ $(MANPAGES_BUILDDIR) $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 
 groff: $(MANPAGES_7_GROFF) $(MANPAGES_5_GROFF) $(MANPAGES_3_GROFF) $(MANPAGES_1_GROFF)
 
-doxygen_docs:
-	doxygen cppobj.Doxyfile
-
-html: $(HTMLFILES) doxygen_docs
+html: $(HTMLFILES)
 
 %.html: %
 	groff -mandoc -Thtml ./$< > $@
@@ -250,22 +246,11 @@ compress: $(GZFILES_BUILD)
 clean:
 
 clobber: clean
-	$(RM) -rf $(DOXYGEN_HTMLDIR) \
-		$(MANPAGES_BUILDDIR)/*.txt \
+	$(RM) -rf $(MANPAGES_BUILDDIR)/*.txt \
 		$(MANPAGES_BUILDDIR)/*.html \
 		$(MANPAGES_BUILDDIR)/*.gz \
 		$(MANPAGES_WEBDIR_LINUX) \
 		$(MANPAGES_WEBDIR_WINDOWS)
-
-install-cpp: doxygen_docs
-	$(call install_recursive,$(DOXYGEN_HTMLDIR),0644,$(CPP_DOCS_DESTDIR))
-
-install: install-cpp
-
-uninstall-cpp:
-	$(RM) -rf $(CPP_DOCS_DESTDIR)
-
-uninstall: uninstall-cpp
 
 install: compress
 	install -d -v $(MANPAGES_DESTDIR_7)
@@ -285,5 +270,4 @@ uninstall:
 
 FORCE:
 
-.PHONY: all html clean compress clobber cstyle install uninstall install-cpp\
-	uninstall-cpp doxygen_docs
+.PHONY: all html clean compress clobber cstyle install uninstall

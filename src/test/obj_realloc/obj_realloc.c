@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -188,7 +188,7 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
  */
 static void
 test_realloc_sizes(PMEMobjpool *pop, unsigned type_from,
-		unsigned type_to, int zrealloc, int size_diff)
+		unsigned type_to, int zrealloc, unsigned size_diff)
 {
 	for (uint8_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *c = alloc_class_by_id(alloc_classes, i);
@@ -198,7 +198,7 @@ test_realloc_sizes(PMEMobjpool *pop, unsigned type_from,
 		size_t header_size = header_type_to_size[c->header_type];
 		size_t size_from = c->unit_size - header_size - size_diff;
 
-		for (int j = 2; j <= MAX_ALLOC_MUL; j++) {
+		for (unsigned j = 2; j <= MAX_ALLOC_MUL; j++) {
 			size_t inc_size_to = c->unit_size * j - header_size;
 			test_realloc(pop, size_from, inc_size_to,
 				type_from, type_to, zrealloc);

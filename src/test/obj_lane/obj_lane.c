@@ -60,7 +60,7 @@
 #define MINOR_VERSION 0
 
 static void *base_ptr;
-#define RPTR(p) (uintptr_t)((char *)p - (char *)base_ptr)
+#define RPTR(p) (uintptr_t)((char *)(p) - (char *)base_ptr)
 
 struct mock_pop {
 	PMEMobjpool p;
@@ -70,7 +70,7 @@ struct mock_pop {
 static int construct_fail;
 
 static void *
-lane_noop_construct_rt(PMEMobjpool *pop)
+lane_noop_construct_rt(PMEMobjpool *pop, void *data)
 {
 	UT_OUT("lane_noop_construct");
 	if (construct_fail) {

@@ -46,6 +46,8 @@
 #include "valgrind_internal.h"
 #include "stats.h"
 
+#define PALLOC_CTL_DEBUG_NO_PATTERN (-1)
+
 struct palloc_heap {
 	struct pmem_ops p_ops;
 	struct heap_layout *layout;
@@ -57,6 +59,8 @@ struct palloc_heap {
 	struct pool_set *set;
 
 	void *base;
+
+	int alloc_pattern;
 };
 
 struct memory_block;
@@ -76,12 +80,16 @@ palloc_reserve(struct palloc_heap *heap, size_t size,
 	struct pobj_action *act);
 
 void
+palloc_defer_free(struct palloc_heap *heap, uint64_t off,
+	struct pobj_action *act);
+
+void
 palloc_cancel(struct palloc_heap *heap,
-	struct pobj_action *actv, int actvcnt);
+	struct pobj_action *actv, size_t actvcnt);
 
 void
 palloc_publish(struct palloc_heap *heap,
-	struct pobj_action *actv, int actvcnt,
+	struct pobj_action *actv, size_t actvcnt,
 	struct operation_context *ctx);
 
 void
@@ -94,8 +102,6 @@ uint64_t palloc_next(struct palloc_heap *heap, uint64_t off);
 size_t palloc_usable_size(struct palloc_heap *heap, uint64_t off);
 uint64_t palloc_extra(struct palloc_heap *heap, uint64_t off);
 uint16_t palloc_flags(struct palloc_heap *heap, uint64_t off);
-
-int palloc_is_allocated(struct palloc_heap *heap, uint64_t off);
 
 int palloc_boot(struct palloc_heap *heap, void *heap_start,
 		uint64_t heap_size, uint64_t *sizep,
@@ -117,7 +123,6 @@ size_t palloc_heap(void *heap_start);
 typedef int (*object_callback)(const struct memory_block *m, void *arg);
 
 #if VG_MEMCHECK_ENABLED
-void palloc_vg_register_off(struct palloc_heap *heap, uint64_t off);
 void palloc_heap_vg_open(struct palloc_heap *heap, int objects);
 #endif
 

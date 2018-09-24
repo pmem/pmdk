@@ -38,8 +38,6 @@
 
 include ../common.inc
 
-ARCH := $(call get_arch)
-
 TEST_DEPS = \
 	unittest\
 	tools
@@ -67,7 +65,6 @@ OBJ_DEPS = \
 
 # long tests first
 OBJ_TESTS = \
-	obj_async_postcommit\
 	obj_basic_integration\
 	obj_many_size_allocs\
 	obj_realloc\
@@ -77,17 +74,17 @@ OBJ_TESTS = \
 	obj_bucket\
 	obj_check\
 	obj_constructor\
-	obj_convert\
-	obj_ctl\
+	obj_ctl_alignment\
 	obj_ctl_alloc_class\
 	obj_ctl_alloc_class_config\
 	obj_ctl_config\
+	obj_ctl_debug\
 	obj_ctl_heap_size\
-	obj_ctl_prefault\
 	obj_ctl_stats\
 	obj_cuckoo\
 	obj_debug\
 	obj_direct\
+	obj_direct_volatile\
 	obj_extend\
 	obj_first_next\
 	obj_fragmentation\
@@ -108,13 +105,16 @@ OBJ_TESTS = \
 	obj_mem\
 	obj_memblock\
 	obj_memcheck\
-	obj_oid\
+	obj_memcheck_register\
+	obj_memops\
+	obj_oid_thread\
 	obj_out_of_memory\
 	obj_persist_count\
 	obj_pmalloc_basic\
 	obj_pmalloc_mt\
 	obj_pmalloc_oom_mt\
 	obj_pmalloc_rand_mt\
+	obj_pmemcheck\
 	obj_pool\
 	obj_pool_lock\
 	obj_pool_lookup\
@@ -122,8 +122,8 @@ OBJ_TESTS = \
 	obj_ravl\
 	obj_recovery\
 	obj_recreate\
-	obj_redo_log\
-	obj_ringbuf\
+	obj_root\
+	obj_reorder_basic\
 	obj_strdup\
 	obj_sds\
 	obj_toid\
@@ -152,52 +152,12 @@ OBJ_REMOTE_TESTS = \
 	obj_rpmem_heap_interrupt\
 	obj_rpmem_heap_state
 
-OBJ_CPP_TESTS = \
-	obj_cpp_allocator\
-	obj_cpp_make_persistent\
-	obj_cpp_make_persistent_atomic\
-	obj_cpp_mutex_posix\
-	obj_cpp_p_ext\
-	obj_cpp_pool\
-	obj_cpp_pool_primitives\
-	obj_cpp_ptr\
-	obj_cpp_ptr_arith\
-	obj_cpp_shared_mutex_posix\
-	obj_cpp_transaction
-
-OBJ_CPP_ARRAY_TESTS = \
-	obj_cpp_make_persistent_array\
-	obj_cpp_make_persistent_array_atomic
-
-OBJ_CPP_CONTAINER_TESTS = \
-	obj_cpp_deque\
-	obj_cpp_list\
-	obj_cpp_map\
-	obj_cpp_multimap\
-	obj_cpp_multiset\
-	obj_cpp_priority_queue\
-	obj_cpp_queue\
-	obj_cpp_set\
-	obj_cpp_stack\
-	obj_cpp_unordered_map\
-	obj_cpp_unordered_multimap\
-	obj_cpp_unordered_multiset\
-	obj_cpp_unordered_set\
-	obj_cpp_vector
-
-CHRONO_TESTS = \
-	obj_cpp_cond_var\
-	obj_cpp_cond_var_posix\
-	obj_cpp_mutex\
-	obj_cpp_shared_mutex\
-	obj_cpp_timed_mtx\
-	obj_cpp_timed_mtx_posix
-
 OTHER_TESTS = \
 	arch_flags\
 	bttdevice\
 	checksum\
 	compat_incompat_features\
+	ctl_prefault\
 	magic\
 	out_err\
 	out_err_mt\
@@ -211,21 +171,23 @@ OTHER_TESTS = \
 	unicode_api\
 	unicode_match_script\
 	util_badblock\
+	util_ctl\
 	util_extent\
 	util_file_create\
 	util_file_open\
 	util_is_absolute\
 	util_is_poolset\
+	util_is_zeroed\
 	util_map_proc\
 	util_parse_size\
-	util_plugin\
 	util_poolset\
 	util_poolset_foreach\
 	util_poolset_parse\
 	util_poolset_size\
 	util_sds\
 	util_uuid_generate\
-	util_vec
+	util_vec\
+	util_vecq
 
 ifeq ($(ARCH), x86_64)
 OTHER_TESTS += \
@@ -244,7 +206,8 @@ PMEM_TESTS = \
 	pmem_memset\
 	pmem_movnt\
 	pmem_movnt_align\
-	pmem_valgr_simple
+	pmem_valgr_simple\
+	pmem_unmap
 
 PMEMPOOL_TESTS = \
 	pmempool_check\
@@ -258,6 +221,7 @@ PMEMPOOL_TESTS = \
 
 RPMEM_TESTS = \
 	rpmem_addr\
+	rpmem_addr_ext\
 	rpmem_basic\
 	rpmem_fip\
 	rpmem_obc\
@@ -269,10 +233,6 @@ RPMEM_TESTS = \
 	rpmemd_log\
 	rpmemd_obc\
 	rpmemd_util
-
-# XXX: temporarily skip this test, as it fails with libfabric 1.6.0
-#	rpmem_addr_ext
-
 
 VMEM_TESTS = \
 	vmem_aligned_alloc\
@@ -325,9 +285,6 @@ EXAMPLES_TESTS = \
 	ex_libpmemobj\
 	ex_linkedlist
 
-CPP_EXAMPLE_TESTS = \
-	ex_libpmemobj_cpp
-
 LIBPMEMPOOL_DEPS = \
 	libpmempool_api
 
@@ -360,6 +317,10 @@ CTO_TESTS = \
 DAXIO_TESTS = \
 	daxio
 
+PMREORDER_TESTS = \
+	pmreorder_simple\
+	pmreorder_stack
+
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
@@ -374,7 +335,8 @@ LOCAL_TESTS = \
 	$(EXAMPLES_TESTS)\
 	$(LIBPMEMPOOL_TESTS)\
 	$(LIBPMEMPOOL_MOD_TESTS)\
-	$(DAXIO_TESTS)
+	$(DAXIO_TESTS)\
+	$(PMREORDER_TESTS)
 
 REMOTE_TESTS = \
 	$(OBJ_REMOTE_TESTS)\
@@ -386,37 +348,6 @@ REMOTE_TESTS = \
 	pmempool_rm_remote\
 	pmempool_sync_remote\
 	pmempool_transform_remote
-
-ifeq ($(filter n,$(call check_cxx_flags, -std=c++11)),)
-LOCAL_TESTS += $(OBJ_CPP_TESTS)
-
-ifeq ($(filter n,$(call check_clang_template_bug)),)
-LOCAL_TESTS += $(OBJ_CPP_ARRAY_TESTS)
-else
-$(info NOTE: Skipping C++ array tests because of compiler issues)
-endif
-
-ifeq ($(call cxx_ok), y)
-LOCAL_TESTS += $(CPP_EXAMPLE_TESTS)
-else
-$(info NOTE: Skipping C++ tests because of compiler issues)
-endif
-
-ifeq ($(call check_cxx_chrono), y)
-LOCAL_TESTS += $(CHRONO_TESTS)
-else
-$(info NOTE: Skipping C++ chrono tests because of compiler/stdc++ issues)
-endif
-else
-$(info NOTE: Skipping C++ tests because the compiler does not support C++11)
-endif
-
-# enable only when using custom standard libraries
-ifneq (,$(filter 1, $(USE_CUSTOM_GCC) $(USE_LLVM_LIBCPP)))
-LOCAL_TESTS += $(OBJ_CPP_CONTAINER_TESTS)
-else
-$(info NOTE: Skipping C++ container tests because a custom version of the standard library is not used)
-endif
 
 TESTS = \
 	$(LOCAL_TESTS)\

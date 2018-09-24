@@ -32,12 +32,6 @@
 #
 # libpmempool_rm_win/TEST0 -- test pmempool_rm with single-file pools
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

@@ -47,9 +47,11 @@
  * functions are defined here in terms of asm statements for now.
  */
 #define _mm_clflushopt(addr)\
-	asm volatile(".byte 0x66; clflush %0" : "+m" (*(volatile char *)addr));
+	asm volatile(".byte 0x66; clflush %0" :\
+	"+m" (*(volatile char *)(addr)));
 #define _mm_clwb(addr)\
-	asm volatile(".byte 0x66; xsaveopt %0" : "+m" (*(volatile char *)addr));
+	asm volatile(".byte 0x66; xsaveopt %0" :\
+	"+m" (*(volatile char *)(addr)));
 #endif
 
 static char Buf[32];

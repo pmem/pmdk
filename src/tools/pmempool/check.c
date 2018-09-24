@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@ typedef enum
 	CHECK_RESULT_NOT_CONSISTENT,
 	CHECK_RESULT_REPAIRED,
 	CHECK_RESULT_CANNOT_REPAIR,
+	CHECK_RESULT_SYNC_REQ,
 	CHECK_RESULT_ERROR
 } check_result_t;
 
@@ -85,7 +86,7 @@ static const struct pmempool_check_context pmempool_check_default = {
 /*
  * help_str -- string for help message
  */
-static const char *help_str =
+static const char * const help_str =
 "Check consistency of a pool\n"
 "\n"
 "Common options:\n"
@@ -213,6 +214,7 @@ static check_result_t pmempool_check_2_check_res_t[] =
 	[PMEMPOOL_CHECK_RESULT_NOT_CONSISTENT] = CHECK_RESULT_NOT_CONSISTENT,
 	[PMEMPOOL_CHECK_RESULT_REPAIRED] = CHECK_RESULT_REPAIRED,
 	[PMEMPOOL_CHECK_RESULT_CANNOT_REPAIR] = CHECK_RESULT_CANNOT_REPAIR,
+	[PMEMPOOL_CHECK_RESULT_SYNC_REQ] = CHECK_RESULT_SYNC_REQ,
 	[PMEMPOOL_CHECK_RESULT_ERROR] = CHECK_RESULT_ERROR,
 };
 
@@ -317,6 +319,10 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 		outv(1, "%s: cannot repair\n", pc.fname);
 		ret = -1;
 		break;
+	case CHECK_RESULT_SYNC_REQ:
+		outv(1, "%s: sync required\n", pc.fname);
+		ret = 0;
+		break;
 	case CHECK_RESULT_ERROR:
 		if (errno)
 			outv_err("%s\n", strerror(errno));
@@ -324,6 +330,10 @@ pmempool_check_func(char *appname, int argc, char *argv[])
 			outv_err("repairing failed\n");
 		else
 			outv_err("checking consistency failed\n");
+		ret = -1;
+		break;
+	default:
+		outv_err("status unknown\n");
 		ret = -1;
 		break;
 	}

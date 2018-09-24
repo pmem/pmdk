@@ -44,9 +44,9 @@
 #include "bucket.h"
 #include "cuckoo.h"
 
-#define RUN_CLASS_KEY_PACK(map_idx_s, header_type_s, size_idx_s)\
+#define RUN_CLASS_KEY_PACK(map_idx_s, flags_s, size_idx_s)\
 ((uint64_t)(map_idx_s) << 32 |\
-(uint64_t)(header_type_s) << 16 |\
+(uint64_t)(flags_s) << 16 |\
 (uint64_t)(size_idx_s))
 
 /*
@@ -85,6 +85,11 @@
  */
 #define ALLOC_BLOCK_SIZE_GEN 64
 
+/*
+ * The first predefined allocation class size
+ */
+#define MIN_UNIT_SIZE 128
+
 static struct {
 	size_t size;
 	float step;
@@ -115,20 +120,16 @@ static struct {
 #define SIZE_TO_CLASS_MAP_INDEX(_s, _g) (1 + (((_s) - 1) / (_g)))
 
 /*
- * Calculates the size in bytes of a single run instance
- */
-#define RUN_SIZE_BYTES(size_idx)\
-(RUNSIZE + ((size_idx - 1) * CHUNKSIZE))
-
-/*
  * Target number of allocations per run instance.
  */
-#define RUN_MIN_NALLOCS 500
+#define RUN_MIN_NALLOCS 200
 
 /*
  * Hard limit of chunks per single run.
  */
 #define RUN_SIZE_IDX_CAP (16)
+
+#define ALLOC_CLASS_DEFAULT_FLAGS CHUNK_FLAG_FLEX_BITMAP
 
 struct alloc_class_collection {
 	size_t granularity;
@@ -162,6 +163,8 @@ int
 alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 	uint8_t *slot)
 {
+	LOG(10, NULL);
+
 	for (int n = 0; n < MAX_ALLOCATION_CLASSES; ++n) {
 		if (util_bool_compare_and_swap64(&ac->aclasses[n],
 				NULL, ACLASS_RESERVED)) {
@@ -179,6 +182,8 @@ alloc_class_find_first_free_slot(struct alloc_class_collection *ac,
 int
 alloc_class_reserve(struct alloc_class_collection *ac, uint8_t id)
 {
+	LOG(10, NULL);
+
 	return util_bool_compare_and_swap64(&ac->aclasses[id],
 			NULL, ACLASS_RESERVED) ? 0 : -1;
 }
@@ -189,156 +194,83 @@ alloc_class_reserve(struct alloc_class_collection *ac, uint8_t id)
 static void
 alloc_class_reservation_clear(struct alloc_class_collection *ac, int id)
 {
+	LOG(10, NULL);
+
 	int ret = util_bool_compare_and_swap64(&ac->aclasses[id],
 		ACLASS_RESERVED, NULL);
 	ASSERT(ret);
 }
 
 /*
- * alloc_class_generate_run_proto -- generates the run bitmap-related
- *	information needed for the allocation class
- */
-void
-alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
-	size_t unit_size, uint32_t size_idx)
-{
-	ASSERTne(size_idx, 0);
-	dest->size_idx = size_idx;
-
-	/*
-	 * Here the bitmap definition is calculated based on the
-	 * size of the available memory and the size of
-	 * a memory block - the result of dividing those two
-	 * numbers is the number of possible allocations from
-	 * that block, and in other words, the amount of bits
-	 * in the bitmap.
-	 */
-	dest->bitmap_nallocs = (uint32_t)
-		(RUN_SIZE_BYTES(dest->size_idx) / unit_size);
-
-	while (dest->bitmap_nallocs > RUN_BITMAP_SIZE) {
-		LOG(3, "tried to create allocation class (%lu) with number "
-			"of units (%u) exceeding the bitmap size (%u)",
-			unit_size, dest->bitmap_nallocs, RUN_BITMAP_SIZE);
-		if (dest->size_idx > 1) {
-			dest->size_idx -= 1;
-			/* recalculate the number of allocations */
-			dest->bitmap_nallocs = (uint32_t)
-				(RUN_SIZE_BYTES(dest->size_idx) / unit_size);
-			LOG(3, "allocation class (%lu) was constructed with "
-				"fewer (%u) than requested chunks (%u)",
-				unit_size, dest->size_idx, dest->size_idx + 1);
-		} else {
-			LOG(3, "allocation class (%lu) was constructed with "
-				"fewer units (%u) than optimal (%u), "
-				"this might lead to "
-				"inefficient memory utilization!",
-				unit_size,
-				RUN_BITMAP_SIZE, dest->bitmap_nallocs);
-
-			dest->bitmap_nallocs = RUN_BITMAP_SIZE;
-		}
-	}
-
-	/*
-	 * The two other numbers that define our bitmap is the
-	 * size of the array that represents the bitmap and the
-	 * last value of that array with the bits that exceed
-	 * number of blocks marked as set (1).
-	 */
-	ASSERT(dest->bitmap_nallocs <= RUN_BITMAP_SIZE);
-	unsigned unused_bits = RUN_BITMAP_SIZE - dest->bitmap_nallocs;
-
-	unsigned unused_values = unused_bits / BITS_PER_VALUE;
-
-	ASSERT(MAX_BITMAP_VALUES >= unused_values);
-	dest->bitmap_nval = MAX_BITMAP_VALUES - unused_values;
-
-	ASSERT(unused_bits >= unused_values * BITS_PER_VALUE);
-	unused_bits -= unused_values * BITS_PER_VALUE;
-
-	dest->bitmap_lastval = unused_bits ?
-		(((1ULL << unused_bits) - 1ULL) <<
-			(BITS_PER_VALUE - unused_bits)) : 0;
-}
-
-/*
- * alloc_class_register -- registers an allocation classes in the collection
+ * alloc_class_new -- creates a new allocation class
  */
 struct alloc_class *
-alloc_class_register(struct alloc_class_collection *ac,
-	struct alloc_class *c)
-{
-	struct alloc_class *nc = Malloc(sizeof(*nc));
-	if (nc == NULL)
-		goto error_class_alloc;
-
-	*nc = *c;
-
-	if (c->type == CLASS_RUN) {
-		size_t map_idx = SIZE_TO_CLASS_MAP_INDEX(nc->unit_size,
-			ac->granularity);
-		ASSERT(map_idx <= UINT32_MAX);
-		uint32_t map_idx_s = (uint32_t)map_idx;
-		ASSERT(nc->run.size_idx <= UINT16_MAX);
-		uint16_t size_idx_s = (uint16_t)nc->run.size_idx;
-		uint16_t header_type_s = (uint16_t)nc->header_type;
-		uint64_t k = RUN_CLASS_KEY_PACK(map_idx_s,
-			header_type_s, size_idx_s);
-		if (cuckoo_insert(ac->class_map_by_unit_size, k, nc) != 0) {
-			ERR("unable to register allocation class");
-			goto error_map_insert;
-		}
-	}
-
-	ac->aclasses[nc->id] = nc;
-
-	return nc;
-
-error_map_insert:
-	Free(nc);
-error_class_alloc:
-	alloc_class_reservation_clear(ac, c->id);
-	return NULL;
-}
-
-/*
- * alloc_class_from_params -- (internal) creates a new allocation class
- */
-static struct alloc_class *
-alloc_class_from_params(struct alloc_class_collection *ac,
-	enum alloc_class_type type,
-	size_t unit_size,
-	unsigned unit_max, unsigned unit_max_alloc,
+alloc_class_new(int id, struct alloc_class_collection *ac,
+	enum alloc_class_type type, enum header_type htype,
+	size_t unit_size, size_t alignment,
 	uint32_t size_idx)
 {
-	struct alloc_class c;
+	LOG(10, NULL);
 
-	c.unit_size = unit_size;
-	c.header_type = HEADER_COMPACT;
-	c.type = type;
+	struct alloc_class *c = Malloc(sizeof(*c));
+	if (c == NULL)
+		goto error_class_alloc;
+
+	c->unit_size = unit_size;
+	c->header_type = htype;
+	c->type = type;
+	c->flags = (uint16_t)
+		(header_type_to_flag[c->header_type] |
+		(alignment ? CHUNK_FLAG_ALIGNED : 0)) |
+		ALLOC_CLASS_DEFAULT_FLAGS;
 
 	switch (type) {
 		case CLASS_HUGE:
-			c.id = DEFAULT_ALLOC_CLASS_ID;
+			id = DEFAULT_ALLOC_CLASS_ID;
 			break;
 		case CLASS_RUN:
-			alloc_class_generate_run_proto(&c.run, unit_size,
-				size_idx);
+			c->run.alignment = alignment;
+			struct run_bitmap b;
+			memblock_run_bitmap(&size_idx, c->flags, unit_size,
+				alignment, NULL, &b);
+			c->run.nallocs = b.nbits;
+			c->run.size_idx = size_idx;
 
-			uint8_t slot;
-			if (alloc_class_find_first_free_slot(ac, &slot) != 0) {
-				return NULL;
+			uint8_t slot = (uint8_t)id;
+			if (id < 0 && alloc_class_find_first_free_slot(ac,
+					&slot) != 0)
+				goto error_class_alloc;
+			id = slot;
+
+			size_t map_idx = SIZE_TO_CLASS_MAP_INDEX(c->unit_size,
+				ac->granularity);
+			ASSERT(map_idx <= UINT32_MAX);
+			uint32_t map_idx_s = (uint32_t)map_idx;
+			uint16_t size_idx_s = (uint16_t)size_idx;
+			uint16_t flags_s = (uint16_t)c->flags;
+			uint64_t k = RUN_CLASS_KEY_PACK(map_idx_s,
+				flags_s, size_idx_s);
+			if (cuckoo_insert(ac->class_map_by_unit_size,
+			    k, c) != 0) {
+				ERR("unable to register allocation class");
+				goto error_map_insert;
 			}
-
-			c.id = slot;
 
 			break;
 		default:
 			ASSERT(0);
 	}
 
-	return alloc_class_register(ac, &c);
+	c->id = (uint8_t)id;
+	ac->aclasses[c->id] = c;
+	return c;
+
+error_map_insert:
+	Free(c);
+error_class_alloc:
+	if (id >= 0)
+		alloc_class_reservation_clear(ac, id);
+	return NULL;
 }
 
 /*
@@ -348,6 +280,8 @@ void
 alloc_class_delete(struct alloc_class_collection *ac,
 	struct alloc_class *c)
 {
+	LOG(10, NULL);
+
 	ac->aclasses[c->id] = NULL;
 	Free(c);
 }
@@ -360,11 +294,13 @@ alloc_class_delete(struct alloc_class_collection *ac,
 static struct alloc_class *
 alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 {
+	LOG(10, NULL);
+
 	COMPILE_ERROR_ON(MAX_ALLOCATION_CLASSES > UINT8_MAX);
 	uint64_t required_size_bytes = n * RUN_MIN_NALLOCS;
 	uint32_t required_size_idx = 1;
-	if (required_size_bytes > RUNSIZE) {
-		required_size_bytes -= RUNSIZE;
+	if (required_size_bytes > RUN_DEFAULT_SIZE) {
+		required_size_bytes -= RUN_DEFAULT_SIZE;
 		required_size_idx +=
 			CALC_SIZE_IDX(CHUNKSIZE, required_size_bytes);
 		if (required_size_idx > RUN_SIZE_IDX_CAP)
@@ -388,10 +324,18 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 	 * run data size must be divisible by the allocation class unit size
 	 * with the smallest possible remainder, preferably 0.
 	 */
-	size_t runsize_bytes = RUN_SIZE_BYTES(required_size_idx);
-	while ((runsize_bytes % n) > MAX_RUN_WASTED_BYTES) {
-		n += ALLOC_BLOCK_SIZE_GEN;
-	}
+	struct run_bitmap b;
+	size_t runsize_bytes = 0;
+	do {
+		if (runsize_bytes != 0) /* don't increase on first iteration */
+			n += ALLOC_BLOCK_SIZE_GEN;
+
+		uint32_t size_idx = required_size_idx;
+		memblock_run_bitmap(&size_idx, ALLOC_CLASS_DEFAULT_FLAGS, n, 0,
+			NULL, &b);
+
+		runsize_bytes = RUN_CONTENT_SIZE_BYTES(size_idx) - b.size;
+	} while ((runsize_bytes % n) > MAX_RUN_WASTED_BYTES);
 
 	/*
 	 * Now that the desired unit size is found the existing classes need
@@ -409,8 +353,8 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 			return c;
 	}
 
-	return alloc_class_from_params(ac, CLASS_RUN, n,
-		RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC, required_size_idx);
+	return alloc_class_new(-1, ac, CLASS_RUN, HEADER_COMPACT, n, 0,
+		required_size_idx);
 }
 
 /*
@@ -421,9 +365,10 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 static struct alloc_class *
 alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 {
+	LOG(10, NULL);
+
 	struct alloc_class *best_c = NULL;
-	size_t best_frag_d = SIZE_MAX;
-	size_t best_frag_r = SIZE_MAX;
+	size_t lowest_waste = SIZE_MAX;
 
 	ASSERTne(n, 0);
 
@@ -443,21 +388,32 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 		size_t units = CALC_SIZE_IDX(c->unit_size, real_size);
 
 		/* can't exceed the maximum allowed run unit max */
-		if (units > RUN_UNIT_MAX_ALLOC)
+		if (c->type == CLASS_RUN && units > RUN_UNIT_MAX_ALLOC)
 			continue;
 
 		if (c->unit_size * units == real_size)
 			return c;
 
-		ASSERT(c->unit_size * units > real_size);
+		size_t waste = (c->unit_size * units) - real_size;
 
-		size_t frag_d = (c->unit_size * units) / real_size;
-		size_t frag_r = (c->unit_size * units) % real_size;
-		if (best_c == NULL || frag_d < best_frag_d ||
-			(frag_d == best_frag_d && frag_r < best_frag_r)) {
+		/*
+		 * If we assume that the allocation class is only ever going to
+		 * be used with exactly one size, the effective internal
+		 * fragmentation would be increased by the leftover
+		 * memory at the end of the run.
+		 */
+		if (c->type == CLASS_RUN) {
+			size_t wasted_units = c->run.nallocs % units;
+			size_t wasted_bytes = wasted_units * c->unit_size;
+			size_t waste_avg_per_unit = wasted_bytes /
+				c->run.nallocs;
+
+			waste += waste_avg_per_unit;
+		}
+
+		if (best_c == NULL || lowest_waste > waste) {
 			best_c = c;
-			best_frag_d = frag_d;
-			best_frag_r = frag_r;
+			lowest_waste = waste;
 		}
 	}
 
@@ -471,11 +427,11 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 struct alloc_class_collection *
 alloc_class_collection_new()
 {
+	LOG(10, NULL);
+
 	struct alloc_class_collection *ac = Zalloc(sizeof(*ac));
 	if (ac == NULL)
 		return NULL;
-
-	memset(ac->aclasses, 0, sizeof(ac->aclasses));
 
 	ac->granularity = ALLOC_BLOCK_SIZE;
 	ac->last_run_max_size = MAX_RUN_SIZE;
@@ -491,12 +447,13 @@ alloc_class_collection_new()
 
 	memset(ac->class_map_by_alloc_size, 0xFF, maps_size);
 
-	if (alloc_class_from_params(ac, CLASS_HUGE, CHUNKSIZE, 0, 0, 1) == NULL)
+	if (alloc_class_new(-1, ac, CLASS_HUGE, HEADER_COMPACT,
+		CHUNKSIZE, 0, 1) == NULL)
 		goto error;
 
 	struct alloc_class *predefined_class =
-		alloc_class_from_params(ac, CLASS_RUN, MIN_RUN_SIZE,
-			RUN_UNIT_MAX, RUN_UNIT_MAX_ALLOC, 1);
+		alloc_class_new(-1, ac, CLASS_RUN, HEADER_COMPACT,
+			MIN_UNIT_SIZE, 0, 1);
 	if (predefined_class == NULL)
 		goto error;
 
@@ -519,7 +476,8 @@ alloc_class_collection_new()
 
 			float stepf = (float)n * categories[c].step;
 			size_t stepi = (size_t)stepf;
-			stepi = stepf == stepi ? stepi : stepi + 1;
+			stepi = (stepf - (float)stepi < FLT_EPSILON) ?
+				stepi : stepi + 1;
 
 			n += (stepi + (granularity_mask)) & ~granularity_mask;
 		} while (n <= categories[c].size);
@@ -543,8 +501,8 @@ alloc_class_collection_new()
 	 * The actual run might contain less unit blocks than the theoretical
 	 * unit max variable. This may be the case for very large unit sizes.
 	 */
-	size_t real_unit_max = c->run.bitmap_nallocs < RUN_UNIT_MAX_ALLOC ?
-		c->run.bitmap_nallocs : RUN_UNIT_MAX_ALLOC;
+	size_t real_unit_max = c->run.nallocs < RUN_UNIT_MAX_ALLOC ?
+		c->run.nallocs : RUN_UNIT_MAX_ALLOC;
 
 	size_t theoretical_run_max_size = c->unit_size * real_unit_max;
 
@@ -563,7 +521,7 @@ alloc_class_collection_new()
 		if (c != NULL && c->type == CLASS_RUN) {
 			ASSERTeq(i, c->id);
 			ASSERTeq(alloc_class_by_run(ac, c->unit_size,
-				c->header_type, c->run.size_idx), c);
+				c->flags, c->run.size_idx), c);
 		}
 	}
 #endif
@@ -583,6 +541,8 @@ error:
 void
 alloc_class_collection_delete(struct alloc_class_collection *ac)
 {
+	LOG(10, NULL);
+
 	for (size_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *c = ac->aclasses[i];
 		if (c != NULL) {
@@ -603,6 +563,8 @@ static struct alloc_class *
 alloc_class_assign_by_size(struct alloc_class_collection *ac,
 	size_t size)
 {
+	LOG(10, NULL);
+
 	size_t class_map_index = SIZE_TO_CLASS_MAP_INDEX(size,
 		ac->granularity);
 
@@ -655,17 +617,17 @@ alloc_class_by_alloc_size(struct alloc_class_collection *ac, size_t size)
  */
 struct alloc_class *
 alloc_class_by_run(struct alloc_class_collection *ac,
-	size_t unit_size, enum header_type header_type, uint32_t size_idx)
+	size_t unit_size, uint16_t flags, uint32_t size_idx)
 {
 	size_t map_idx = SIZE_TO_CLASS_MAP_INDEX(unit_size, ac->granularity);
 	ASSERT(map_idx <= UINT32_MAX);
 	uint32_t map_idx_s = (uint32_t)map_idx;
 	ASSERT(size_idx <= UINT16_MAX);
 	uint16_t size_idx_s = (uint16_t)size_idx;
-	uint16_t header_type_s = (uint16_t)header_type;
+	uint16_t flags_s = (uint16_t)flags;
 
 	return cuckoo_get(ac->class_map_by_unit_size,
-		RUN_CLASS_KEY_PACK(map_idx_s, header_type_s, size_idx_s));
+		RUN_CLASS_KEY_PACK(map_idx_s, flags_s, size_idx_s));
 }
 
 /*
@@ -691,7 +653,7 @@ alloc_class_calc_size_idx(struct alloc_class *c, size_t size)
 			return -1;
 		else if (size_idx > RUN_UNIT_MAX)
 			return -1;
-		else if (size_idx > c->run.bitmap_nallocs)
+		else if (size_idx > c->run.nallocs)
 			return -1;
 	}
 

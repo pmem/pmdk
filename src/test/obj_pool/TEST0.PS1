@@ -35,13 +35,6 @@
 # src/test/obj_pool/TEST0 -- unit test for pmemobj_create
 #
 
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 # standard unit test setup
 . ..\unittest\unittest.ps1
 

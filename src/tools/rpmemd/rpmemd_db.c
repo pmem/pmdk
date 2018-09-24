@@ -141,7 +141,7 @@ rpmemd_db_concat(const char *path1, const char *path2)
 
 	int ret = snprintf(new_str, new_len, "%s/%s", path1, path2);
 	if (ret < 0 || (size_t)ret != new_len - 1) {
-		RPMEMD_LOG(ERR, "snprintf error");
+		RPMEMD_LOG(ERR, "snprintf error: %d", ret);
 		free(new_str);
 		errno = EINVAL;
 		return NULL;

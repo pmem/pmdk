@@ -150,7 +150,7 @@ struct {								\
 } while (/*CONSTCOND*/0)
 
 #define	LIST_REMOVE(elm, field) do {					\
-	ANALYZER_ASSERT(elm != NULL);					\
+	ANALYZER_ASSERT((elm) != NULL);					\
 	if ((elm)->field.le_next != NULL)				\
 		(elm)->field.le_next->field.le_prev = 			\
 		    (elm)->field.le_prev;				\
@@ -450,7 +450,7 @@ struct {								\
 } while (/*CONSTCOND*/0)
 
 #define	TAILQ_REMOVE(head, elm, field) do {				\
-	ANALYZER_ASSERT(elm != NULL);					\
+	ANALYZER_ASSERT((elm) != NULL);					\
 	if (((elm)->field.tqe_next) != NULL)				\
 		(elm)->field.tqe_next->field.tqe_prev = 		\
 		    (elm)->field.tqe_prev;				\
@@ -501,7 +501,7 @@ struct name {								\
 }
 
 #define	CIRCLEQ_HEAD_INITIALIZER(head)					\
-	{ (void *)&head, (void *)&head }
+	{ (void *)&(head), (void *)&(head) }
 
 #define	CIRCLEQ_ENTRY(type)						\
 struct {								\
@@ -592,11 +592,11 @@ struct {								\
 #define CIRCLEQ_LOOP_NEXT(head, elm, field)				\
 	(((elm)->field.cqe_next == (void *)(head))			\
 	    ? ((head)->cqh_first)					\
-	    : (elm->field.cqe_next))
+	    : ((elm)->field.cqe_next))
 #define CIRCLEQ_LOOP_PREV(head, elm, field)				\
 	(((elm)->field.cqe_prev == (void *)(head))			\
 	    ? ((head)->cqh_last)					\
-	    : (elm->field.cqe_prev))
+	    : ((elm)->field.cqe_prev))
 
 /*
  * Sorted queue functions.

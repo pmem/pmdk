@@ -140,6 +140,15 @@ pvector_reinit(struct pvector_context *ctx)
 }
 
 /*
+ * pvector_resize -- forcefully changes the runtime state of the vector
+ */
+void
+pvector_resize(struct pvector_context *ctx, size_t size)
+{
+	ctx->nvalues = size;
+}
+
+/*
  * A small helper structure that defines the position of a value in the array
  * of arrays.
  */

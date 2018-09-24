@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,13 @@
 
 #define LAYOUT_NAME "obj_action"
 
+struct macro_reserve_s {
+	PMEMoid oid;
+	uint64_t value;
+};
+
+TOID_DECLARE(struct macro_reserve_s, 1);
+
 struct foo {
 	int bar;
 };
@@ -75,7 +82,7 @@ test_resv_cancel_huge(PMEMobjpool *pop)
 {
 	PMEMoid oid;
 
-	int nallocs = 0;
+	unsigned nallocs = 0;
 	struct pobj_action *act = (struct pobj_action *)
 		ZALLOC(sizeof(struct pobj_action) * MAX_ACTS);
 
@@ -84,7 +91,7 @@ test_resv_cancel_huge(PMEMobjpool *pop)
 	} while (!OID_IS_NULL(oid));
 	pmemobj_cancel(pop, act, nallocs - 1);
 
-	int nallocs2 = 0;
+	unsigned nallocs2 = 0;
 	do {
 		oid = pmemobj_reserve(pop, &act[nallocs2++],
 			HUGE_ALLOC_SIZE, 0);
@@ -93,6 +100,93 @@ test_resv_cancel_huge(PMEMobjpool *pop)
 
 	UT_ASSERTeq(nallocs, nallocs2);
 
+	FREE(act);
+}
+
+static void
+test_defer_free(PMEMobjpool *pop)
+{
+	PMEMoid oid;
+
+	int ret = pmemobj_alloc(pop, &oid, sizeof(struct foo), 0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	struct pobj_action act;
+	pmemobj_defer_free(pop, oid, &act);
+
+	pmemobj_publish(pop, &act, 1);
+
+	struct foo *f = (struct foo *)pmemobj_direct(oid);
+	f->bar = 5; /* should trigger memcheck error */
+
+	ret = pmemobj_alloc(pop, &oid, sizeof(struct foo), 0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	pmemobj_defer_free(pop, oid, &act);
+
+	pmemobj_cancel(pop, &act, 1);
+	f = (struct foo *)pmemobj_direct(oid);
+	f->bar = 5; /* should NOT trigger memcheck error */
+}
+
+/*
+ * This function tests if macros included in action.h api compile and
+ * allocate memory.
+ */
+static void
+test_api_macros(PMEMobjpool *pop)
+{
+	struct pobj_action macro_reserve_act[1];
+
+	TOID(struct macro_reserve_s) macro_reserve_p = POBJ_RESERVE_NEW(pop,
+		struct macro_reserve_s, &macro_reserve_act[0]);
+	UT_ASSERT(!OID_IS_NULL(macro_reserve_p.oid));
+	pmemobj_publish(pop, macro_reserve_act, 1);
+	POBJ_FREE(&macro_reserve_p);
+
+	macro_reserve_p = POBJ_RESERVE_ALLOC(pop, struct macro_reserve_s,
+		sizeof(struct macro_reserve_s), &macro_reserve_act[0]);
+	UT_ASSERT(!OID_IS_NULL(macro_reserve_p.oid));
+	pmemobj_publish(pop, macro_reserve_act, 1);
+	POBJ_FREE(&macro_reserve_p);
+
+	macro_reserve_p = POBJ_XRESERVE_NEW(pop, struct macro_reserve_s,
+		&macro_reserve_act[0], 0);
+	UT_ASSERT(!OID_IS_NULL(macro_reserve_p.oid));
+	pmemobj_publish(pop, macro_reserve_act, 1);
+	POBJ_FREE(&macro_reserve_p);
+
+	macro_reserve_p = POBJ_XRESERVE_ALLOC(pop, struct macro_reserve_s,
+		sizeof(struct macro_reserve_s), &macro_reserve_act[0], 0);
+	UT_ASSERT(!OID_IS_NULL(macro_reserve_p.oid));
+	pmemobj_publish(pop, macro_reserve_act, 1);
+	POBJ_FREE(&macro_reserve_p);
+}
+
+#define POBJ_MAX_ACTIONS 60
+
+static void
+test_over_old_limit(PMEMobjpool *pop)
+{
+	struct pobj_action *act = (struct pobj_action *)
+		MALLOC(sizeof(struct pobj_action) * POBJ_MAX_ACTIONS * 2);
+	PMEMoid *oid = (PMEMoid *)
+		MALLOC(sizeof(PMEMoid) * POBJ_MAX_ACTIONS * 2);
+
+	for (int i = 0; i < POBJ_MAX_ACTIONS * 2; ++i) {
+		oid[i] = pmemobj_reserve(pop, &act[i], 1, 0);
+		UT_ASSERT(!OID_IS_NULL(oid[i]));
+	}
+
+	UT_ASSERTeq(pmemobj_publish(pop, act, POBJ_MAX_ACTIONS * 2), 0);
+
+	for (int i = 0; i < POBJ_MAX_ACTIONS * 2; ++i) {
+		pmemobj_defer_free(pop, oid[i], &act[i]);
+	}
+
+	UT_ASSERTeq(pmemobj_publish(pop, act, POBJ_MAX_ACTIONS * 2), 0);
+
+	FREE(oid);
 	FREE(act);
 }
 
@@ -196,6 +290,12 @@ main(int argc, char *argv[])
 	tx_published_foop->bar = 1; /* should NOT trigger memcheck error */
 
 	test_resv_cancel_huge(pop);
+
+	test_defer_free(pop);
+
+	test_api_macros(pop);
+
+	test_over_old_limit(pop);
 
 	pmemobj_close(pop);
 

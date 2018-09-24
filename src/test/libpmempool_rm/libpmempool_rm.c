@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,7 +53,7 @@ main(int argc, char *argv[])
 	if (argc < 2)
 		FATAL_USAGE(argv[0]);
 
-	int flags = 0;
+	unsigned flags = 0;
 
 	char *optstr = "flro";
 	int do_open = 0;

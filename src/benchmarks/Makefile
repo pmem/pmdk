@@ -79,7 +79,8 @@ SRC=pmembench.cpp\
     obj_lanes.cpp\
     map_bench.cpp\
     pmemobj_tx.cpp\
-    pmemobj_atomic_lists.cpp
+    pmemobj_atomic_lists.cpp\
+    poolset_util.cpp
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
@@ -111,7 +112,7 @@ LIBS += ../debug/libpmemcommon.a
 endif
 LIBS += -lpmemobj -lpmemlog -lpmemblk -lpmempool -lpmem -lvmem -pthread -lm \
 	$(LIBDL) $(LIBUUID) $(LIBNDCTL)
-ifeq ($(call check_librt), n)
+ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
 endif
 
@@ -130,6 +131,10 @@ CXXFLAGS += -I../rpmem_common
 CXXFLAGS += -I../librpmem
 CXXFLAGS += $(OS_INCS)
 CXXFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
+
+ifeq ($(OS_DIMM),ndctl)
+CXXFLAGS += -DSDS_ENABLED
+endif
 
 ifeq ($(COVERAGE),1)
 CXXFLAGS += $(GCOV_CFLAGS)

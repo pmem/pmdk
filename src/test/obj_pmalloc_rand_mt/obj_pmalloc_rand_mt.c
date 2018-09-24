@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,13 +35,14 @@
  */
 #include <stdint.h>
 
+#include "file.h"
 #include "unittest.h"
 
-#define RRAND(seed, max, min) (os_rand_r(&seed) % ((max) - (min)) + (min))
+#define RRAND(seed, max, min) (os_rand_r(&(seed)) % ((max) - (min)) + (min))
 
-static ssize_t object_size;
-static int nobjects;
-static int iterations = 1000000;
+static size_t object_size;
+static unsigned nobjects;
+static unsigned iterations = 1000000;
 static unsigned seed;
 
 static void *
@@ -50,14 +51,14 @@ test_worker(void *arg)
 	PMEMobjpool *pop = arg;
 
 	PMEMoid *objects = ZALLOC(sizeof(PMEMoid) * nobjects);
-	int fill = 0;
+	unsigned fill = 0;
 
 	int ret;
 	unsigned myseed = seed;
 
-	for (int i = 0; i < iterations; ++i) {
-		int fill_ratio = ((double)fill / nobjects) * 100;
-		int pos = RRAND(myseed, nobjects, 0);
+	for (unsigned i = 0; i < iterations; ++i) {
+		unsigned fill_ratio = (fill * 100) / nobjects;
+		unsigned pos = RRAND(myseed, nobjects, 0);
 		size_t size = RRAND(myseed, object_size, 64);
 		if (RRAND(myseed, 100, 0) < fill_ratio) {
 			if (!OID_IS_NULL(objects[pos])) {
@@ -91,39 +92,43 @@ main(int argc, char *argv[])
 			"[iterations (def: 1000000)] [seed (def: time)]",
 			argv[0]);
 
-	int nthreads = atoi(argv[2]);
-	nobjects = atoi(argv[3]);
-	object_size = atoi(argv[4]);
+	unsigned nthreads = ATOU(argv[2]);
+	nobjects = ATOU(argv[3]);
+	object_size = ATOUL(argv[4]);
 	if (argc > 5)
-		iterations = atoi(argv[5]);
+		iterations = ATOU(argv[5]);
 	if (argc > 6)
-		seed = (unsigned)atoi(argv[6]);
+		seed = ATOU(argv[6]);
 	else
-		seed = time(NULL);
+		seed = (unsigned)time(NULL);
 
 	PMEMobjpool *pop;
 
-	if (os_access(argv[1], F_OK) != 0) {
+	int exists = util_file_exists(argv[1]);
+	if (exists < 0)
+		UT_FATAL("!util_file_exists");
+
+	if (!exists) {
 		pop = pmemobj_create(argv[1], "TEST",
 		(PMEMOBJ_MIN_POOL * 10) + (nthreads * nobjects * object_size),
 		0666);
-	} else {
-		if ((pop = pmemobj_open(argv[1], "TEST")) == NULL) {
-			printf("failed to open pool\n");
-			return 1;
-		}
-	}
 
-	if (pop == NULL)
-		UT_FATAL("!pmemobj_create");
+		if (pop == NULL)
+			UT_FATAL("!pmemobj_create");
+	} else {
+		pop = pmemobj_open(argv[1], "TEST");
+
+		if (pop == NULL)
+			UT_FATAL("!pmemobj_open");
+	}
 
 	os_thread_t *threads = MALLOC(sizeof(os_thread_t) * nthreads);
 
-	for (int i = 0; i < nthreads; ++i) {
+	for (unsigned i = 0; i < nthreads; ++i) {
 		PTHREAD_CREATE(&threads[i], NULL, test_worker, pop);
 	}
 
-	for (int i = 0; i < nthreads; ++i) {
+	for (unsigned i = 0; i < nthreads; ++i) {
 		PTHREAD_JOIN(&threads[i], NULL);
 	}
 

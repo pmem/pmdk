@@ -82,6 +82,7 @@ if [[ ( "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" )\
 fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
+if [[ $SKIP_CHECK -eq 1 ]]; then BUILD_PACKAGE_CHECK=n; else BUILD_PACKAGE_CHECK=y; fi
 
 WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
@@ -100,13 +101,11 @@ docker run --rm --privileged=true --name=$containerName -ti \
 	--env VALGRIND=$VALGRIND \
 	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
 	--env EXTRA_CXXFLAGS=$EXTRA_CXXFLAGS \
-	--env USE_LLVM_LIBCPP=$USE_LLVM_LIBCPP \
-	--env LIBCPP_LIBDIR=$LIBCPP_LIBDIR \
-	--env LIBCPP_INCDIR=$LIBCPP_INCDIR \
 	--env REMOTE_TESTS=$REMOTE_TESTS \
 	--env TEST_BUILD=$TEST_BUILD \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
+	--env BUILD_PACKAGE_CHECK=$BUILD_PACKAGE_CHECK \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
 	--env CLANG_FORMAT=clang-format-3.8 \
 	--env TRAVIS=$TRAVIS \

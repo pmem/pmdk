@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,8 @@
 
 #define RPMEM_DEFAULT_MAX_LANES	1024
 
+#define RPMEM_DEFAULT_NTHREADS 0
+
 #define HOME_ENV "HOME"
 
 #define HOME_STR_PLACEHOLDER ("$" HOME_ENV)
@@ -65,6 +67,7 @@ struct rpmemd_config {
 	bool use_syslog;
 	uint64_t max_lanes;
 	enum rpmemd_log_level log_level;
+	size_t nthreads;
 };
 
 int rpmemd_config_read(struct rpmemd_config *config, int argc, char *argv[]);

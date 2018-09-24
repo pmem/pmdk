@@ -32,12 +32,6 @@
 #
 # pmempool_create/TEST4 -- test for creating pool with specified permissions
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

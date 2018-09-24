@@ -45,7 +45,7 @@ date: pmemblk API version 1.1
 
 # NAME #
 
-**pmemblk_read**(), **pmemblk_write**() --  read or write a block from a block
+**pmemblk_read**(), **pmemblk_write**() - read or write a block from a block
 memory pool
 
 

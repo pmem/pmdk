@@ -80,8 +80,10 @@ int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 
 int rpmem_close(RPMEMpool *rpp);
 
+#define RPMEM_PERSIST_RELAXED	(1U << 0)
+
 int rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
-		unsigned lane);
+		unsigned lane, unsigned flags);
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset, size_t length,
 		unsigned lane);
 int rpmem_deep_persist(RPMEMpool *rpp, size_t offset, size_t length,

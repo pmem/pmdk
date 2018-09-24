@@ -32,12 +32,6 @@
 #
 # pmempool_create/TEST5 -- test for pmempool create for checking bsize argument
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 

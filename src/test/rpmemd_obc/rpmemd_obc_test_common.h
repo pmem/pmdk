@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -77,6 +77,7 @@
 #define NLANES_RESP	16
 #define PROVIDER	RPMEM_PROV_LIBFABRIC_SOCKETS
 #define POOL_DESC	"pool.set"
+#define BUFF_SIZE	8192
 
 static const char pool_desc[] = POOL_DESC;
 #define POOL_DESC_SIZE	(sizeof(pool_desc) / sizeof(pool_desc[0]))
@@ -114,11 +115,14 @@ static const struct rpmem_msg_create CREATE_MSG = {
 		.type = RPMEM_MSG_TYPE_CREATE,
 		.size = sizeof(struct rpmem_msg_create),
 	},
-	.major = RPMEM_PROTO_MAJOR,
-	.minor = RPMEM_PROTO_MINOR,
-	.pool_size = POOL_SIZE,
-	.nlanes = NLANES,
-	.provider = PROVIDER,
+	.c = {
+		.major = RPMEM_PROTO_MAJOR,
+		.minor = RPMEM_PROTO_MINOR,
+		.pool_size = POOL_SIZE,
+		.nlanes = NLANES,
+		.provider = PROVIDER,
+		.buff_size = BUFF_SIZE,
+	},
 	.pool_attr = POOL_ATTR_INIT,
 	.pool_desc = {
 		.size = POOL_DESC_SIZE,
@@ -130,11 +134,14 @@ static const struct rpmem_msg_open OPEN_MSG = {
 		.type = RPMEM_MSG_TYPE_OPEN,
 		.size = sizeof(struct rpmem_msg_open),
 	},
-	.major = RPMEM_PROTO_MAJOR,
-	.minor = RPMEM_PROTO_MINOR,
-	.pool_size = POOL_SIZE,
-	.nlanes = NLANES,
-	.provider = PROVIDER,
+	.c = {
+		.major = RPMEM_PROTO_MAJOR,
+		.minor = RPMEM_PROTO_MINOR,
+		.pool_size = POOL_SIZE,
+		.nlanes = NLANES,
+		.provider = PROVIDER,
+		.buff_size = BUFF_SIZE,
+	},
 	.pool_desc = {
 		.size = POOL_DESC_SIZE,
 	},

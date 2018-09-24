@@ -48,7 +48,7 @@ date: pmempool API version 1.3
 
 # NAME #
 
-**libpmempool** -- persistent memory pool management library
+**libpmempool** - persistent memory pool management library
 
 
 # SYNOPSIS #

@@ -54,7 +54,7 @@ configure_valgrind memcheck force-disable
 
 setup
 
-# do not pre-load libvmmalloc.so
+# do not pre-load libvmmalloc.so.1
 # user-defined hooks should be called
 expect_normal_exit ./vmmalloc_malloc_hooks$EXESUFFIX
 

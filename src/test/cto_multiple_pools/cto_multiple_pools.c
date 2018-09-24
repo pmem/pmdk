@@ -41,22 +41,22 @@
 #define NREPEATS 10
 
 static PMEMctopool **Pools;
-static int Npools;
+static unsigned Npools;
 static const char *Dir;
-static int *Pool_idx;
+static unsigned *Pool_idx;
 static os_thread_t *Threads;
 
 static void *
 thread_func_open(void *arg)
 {
-	int start_idx = *(int *)arg;
+	unsigned start_idx = *(unsigned *)arg;
 
 	size_t len = strlen(Dir) + 50;	/* reserve some space for pool id */
 	char *filename = MALLOC(sizeof(*filename) * len);
 
 	for (int repeat = 0; repeat < NREPEATS; ++repeat) {
-		for (int idx = 0; idx < Npools; ++idx) {
-			int pool_id = start_idx + idx;
+		for (unsigned idx = 0; idx < Npools; ++idx) {
+			unsigned pool_id = start_idx + idx;
 
 			snprintf(filename, len, "%s" OS_DIR_SEP_STR "pool%d",
 				Dir, pool_id);
@@ -82,14 +82,14 @@ thread_func_open(void *arg)
 static void *
 thread_func_create(void *arg)
 {
-	int start_idx = *(int *)arg;
+	unsigned start_idx = *(unsigned *)arg;
 
 	size_t len = strlen(Dir) + 50;	/* reserve some space for pool id */
 	char *filename = MALLOC(sizeof(*filename) * len);
 
 	for (int repeat = 0; repeat < NREPEATS; ++repeat) {
-		for (int idx = 0; idx < Npools; ++idx) {
-			int pool_id = start_idx + idx;
+		for (unsigned idx = 0; idx < Npools; ++idx) {
+			unsigned pool_id = start_idx + idx;
 
 			snprintf(filename, len, "%s" OS_DIR_SEP_STR "pool%d",
 				Dir, pool_id);
@@ -118,13 +118,13 @@ thread_func_create(void *arg)
 }
 
 static void
-test_open(int nthreads)
+test_open(unsigned nthreads)
 {
 	size_t len = strlen(Dir) + 50;	/* reserve some space for pool id */
 	char *filename = MALLOC(sizeof(*filename) * len);
 
 	/* create all the pools */
-	for (int pool_id = 0; pool_id < Npools * nthreads; ++pool_id) {
+	for (unsigned pool_id = 0; pool_id < Npools * nthreads; ++pool_id) {
 		snprintf(filename, len, "%s" OS_DIR_SEP_STR "pool%d",
 				Dir, pool_id);
 		UT_OUT("%s", filename);
@@ -134,35 +134,35 @@ test_open(int nthreads)
 		UT_ASSERTne(Pools[pool_id], NULL);
 	}
 
-	for (int pool_id = 0; pool_id < Npools * nthreads; ++pool_id)
+	for (unsigned pool_id = 0; pool_id < Npools * nthreads; ++pool_id)
 		pmemcto_close(Pools[pool_id]);
 
-	for (int t = 0; t < nthreads; t++) {
+	for (unsigned t = 0; t < nthreads; t++) {
 		Pool_idx[t] = Npools * t;
 		PTHREAD_CREATE(&Threads[t], NULL, thread_func_open,
 				&Pool_idx[t]);
 	}
 
-	for (int t = 0; t < nthreads; t++)
+	for (unsigned t = 0; t < nthreads; t++)
 		PTHREAD_JOIN(&Threads[t], NULL);
 
 	FREE(filename);
 }
 
 static void
-test_create(int nthreads)
+test_create(unsigned nthreads)
 {
 	/* create and destroy pools multiple times */
-	for (int t = 0; t < nthreads; t++) {
+	for (unsigned t = 0; t < nthreads; t++) {
 		Pool_idx[t] = Npools * t;
 		PTHREAD_CREATE(&Threads[t], NULL, thread_func_create,
 				&Pool_idx[t]);
 	}
 
-	for (int t = 0; t < nthreads; t++)
+	for (unsigned t = 0; t < nthreads; t++)
 		PTHREAD_JOIN(&Threads[t], NULL);
 
-	for (int i = 0; i < Npools * nthreads; ++i) {
+	for (unsigned i = 0; i < Npools * nthreads; ++i) {
 		if (Pools[i] != NULL) {
 			pmemcto_close(Pools[i]);
 			Pools[i] = NULL;
@@ -180,14 +180,14 @@ main(int argc, char *argv[])
 
 	Dir = argv[1];
 	char mode = argv[2][0];
-	Npools = atoi(argv[3]);
-	int nthreads = atoi(argv[4]);
+	Npools = ATOU(argv[3]);
+	unsigned nthreads = ATOU(argv[4]);
 
 	UT_OUT("create %d pools in %d thread(s)", Npools, nthreads);
 
-	Pools = CALLOC(Npools * nthreads, sizeof(PMEMctopool *));
-	Threads = CALLOC(nthreads, sizeof(os_thread_t));
-	Pool_idx = CALLOC(nthreads, sizeof(int));
+	Pools = CALLOC(Npools * nthreads, sizeof(Pools[0]));
+	Threads = CALLOC(nthreads, sizeof(Threads[0]));
+	Pool_idx = CALLOC(nthreads, sizeof(Pool_idx[0]));
 
 	switch (mode) {
 	case 'o':

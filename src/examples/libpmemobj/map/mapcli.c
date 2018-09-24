@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,6 +47,7 @@
 #include "map_rbtree.h"
 #include "map_hashmap_atomic.h"
 #include "map_hashmap_tx.h"
+#include "map_hashmap_rp.h"
 #include "map_skiplist.h"
 #include "hashmap/hashmap.h"
 
@@ -193,7 +194,8 @@ hashmap_print(uint64_t key, PMEMoid value, void *arg)
 static void
 print_all(void)
 {
-	printf("count: %zu\n", map_count(mapc, map));
+	if (mapc->ops->count)
+		printf("count: %zu\n", map_count(mapc, map));
 	map_foreach(mapc, map, hashmap_print, NULL);
 	printf("\n");
 }
@@ -204,7 +206,7 @@ main(int argc, char *argv[])
 {
 	if (argc < 3 || argc > 4) {
 		printf("usage: %s "
-			"hashmap_tx|hashmap_atomic|"
+			"hashmap_tx|hashmap_atomic|hashmap_rp|"
 			"ctree|btree|rtree|rbtree|skiplist"
 				" file-name [<seed>]\n", argv[0]);
 		return 1;
@@ -217,6 +219,8 @@ main(int argc, char *argv[])
 		ops = MAP_HASHMAP_TX;
 	} else if (strcmp(type, "hashmap_atomic") == 0) {
 		ops = MAP_HASHMAP_ATOMIC;
+	} else if (strcmp(type, "hashmap_rp") == 0) {
+		ops = MAP_HASHMAP_RP;
 	} else if (strcmp(type, "ctree") == 0) {
 		ops = MAP_CTREE;
 	} else if (strcmp(type, "btree") == 0) {
@@ -228,7 +232,7 @@ main(int argc, char *argv[])
 	} else if (strcmp(type, "skiplist") == 0) {
 		ops = MAP_SKIPLIST;
 	} else {
-		fprintf(stderr, "invalid hasmap type -- '%s'\n", type);
+		fprintf(stderr, "invalid container type -- '%s'\n", type);
 		return 1;
 	}
 

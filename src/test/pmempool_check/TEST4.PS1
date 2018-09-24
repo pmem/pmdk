@@ -32,12 +32,6 @@
 #
 # pmempool_check/TEST4 -- test for checking pools
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 . ..\unittest\unittest.ps1
 
@@ -50,7 +44,7 @@ setup
 $POOL="$DIR\file.pool"
 $LOG="out$Env:UNITTEST_NUM.log"
 
-rm $LOG -Force -Recurse -ea si
+rm $LOG -Force -ea si
 
 expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
 check_file $POOL

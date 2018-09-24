@@ -45,7 +45,7 @@ date: pmemblk API version 1.1
 
 # NAME #
 
-**pmemblk_bsize**(), **pmemblk_nblock**() -- check number of available blocks or
+**pmemblk_bsize**(), **pmemblk_nblock**() - check number of available blocks or
 usable space in block memory pool
 
 

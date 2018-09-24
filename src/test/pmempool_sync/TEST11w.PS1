@@ -33,11 +33,6 @@
 # pmempool_sync/TEST11w -- test for checking pmempool sync
 #                          check for healthy replicas cycles
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 . ..\unittest\unittest.ps1
 
@@ -73,7 +68,6 @@ create_poolset $POOLSET3 `
 	10M:$DIR\part10:x `
 	r `
 	10M:$DIR\part20:x
-
 
 # Log poolset structures
 echo poolset1: >> $LOG_TEMP

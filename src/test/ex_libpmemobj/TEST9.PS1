@@ -33,11 +33,6 @@
 #
 # src/test/ex_libpmemobj/TEST9 -- unit test for libpmemobj examples
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.PS1
@@ -50,10 +45,10 @@ setup
 
 @"
 Hello!
-"@| &$Env:EXE_DIR\ex_pmemobj_tx_type_writer $DIR\testfile1 > out$Env:UNITTEST_NUM.log 2>&1
+"@| &$Env:EXAMPLES_DIR\ex_pmemobj_tx_type_writer $DIR\testfile1 > out$Env:UNITTEST_NUM.log 2>&1
 check_exit_code
 
-expect_normal_exit $Env:EXE_DIR\ex_pmemobj_tx_type_reader $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_tx_type_reader $DIR\testfile1 >> out$Env:UNITTEST_NUM.log 2>&1
 
 check
 

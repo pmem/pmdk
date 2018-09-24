@@ -34,11 +34,6 @@
 #                               check if flags are supported
 #                               pmem/issues#367
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -72,7 +67,7 @@ cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TE
 rm $DIR\part10 -Force -ea si
 
 # Try to synchronize replicas
-$FLAGS = "1" # invalid flag
+$FLAGS = "32" # invalid flag
 expect_normal_exit $Env:EXE_DIR\libpmempool_sync_win$Env:EXESUFFIX `
 	$POOLSET $FLAGS
 cat -Encoding Ascii $LOG | out-file -append -encoding ascii -literalpath $LOG_TEMP

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,6 +49,7 @@
 
 #include "rpmemd_log.h"
 #include "os.h"
+#include "valgrind_internal.h"
 
 #define RPMEMD_SYSLOG_OPTS	(LOG_NDELAY | LOG_PID)
 #define RPMEMD_SYSLOG_FACILITY	(LOG_USER)
@@ -197,7 +198,7 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
 				"[%s:%d] ", basename(fname), lineno);
 		if (ret < 0)
-			RPMEMD_FATAL("snprintf failed");
+			RPMEMD_FATAL("snprintf failed: %d", ret);
 
 		cnt += (size_t)ret;
 	}
@@ -205,7 +206,7 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
 				"%s ", rpmemd_prefix_buff);
 		if (ret < 0)
-			RPMEMD_FATAL("snprintf failed");
+			RPMEMD_FATAL("snprintf failed: %d", ret);
 
 		cnt += (size_t)ret;
 	}
@@ -233,15 +234,25 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
 				"%s%s%s", prefix, errorstr, suffix);
 		if (ret < 0)
-			RPMEMD_FATAL("snprintf failed");
+			RPMEMD_FATAL("snprintf failed: %d", ret);
 	}
 
 	if (rpmemd_use_syslog) {
 		int prio = rpmemd_level2prio[level];
 		syslog(prio, "%s", buff);
 	} else {
+		/* to suppress drd false-positive */
+		/* XXX: confirm real nature of this issue: pmem/issues#863 */
+#ifdef SUPPRESS_FPUTS_DRD_ERROR
+		VALGRIND_ANNOTATE_IGNORE_READS_BEGIN();
+		VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN();
+#endif
 		fprintf(rpmemd_log_file, "%s", buff);
 		fflush(rpmemd_log_file);
+#ifdef SUPPRESS_FPUTS_DRD_ERROR
+		VALGRIND_ANNOTATE_IGNORE_READS_END();
+		VALGRIND_ANNOTATE_IGNORE_WRITES_END();
+#endif
 	}
 
 }

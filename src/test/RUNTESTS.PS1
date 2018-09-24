@@ -219,7 +219,7 @@ try {
             throw "one of the tests failed"
         }
     } else {
-        # if there is no timeout don't run tests in separate thread - usefull for script debugging
+        # if there is no timeout don't run tests in separate thread - useful for script debugging
         if ($config.timeout.TotalSeconds -eq 0) {
             & $sb_ST $PSScriptRoot $config
         } else {

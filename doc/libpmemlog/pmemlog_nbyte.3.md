@@ -45,7 +45,7 @@ date: pmemlog API version 1.1
 
 # NAME #
 
-**pmemlog_nbyte**() -- checks the amount of usable space in the log pool.
+**pmemlog_nbyte**() - checks the amount of usable space in the log pool.
 
 
 # SYNOPSIS #

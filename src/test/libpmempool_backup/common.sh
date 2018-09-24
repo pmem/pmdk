@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,7 +43,7 @@ POOL_PART=$DIR/pool.part
 OUT=out${UNITTEST_NUM}.log
 OUT_TEMP=out${UNITTEST_NUM}_temp.log
 DIFF=diff${UNITTEST_NUM}.log
-rm -rf $LOG $DIFF $OUT_TEMP && touch $LOG $DIFF $OUT_TEMP
+rm -f $LOG $DIFF $OUT_TEMP && touch $LOG $DIFF $OUT_TEMP
 
 # params for blk, log and obj pools
 POOL_TYPES=( blk log obj )

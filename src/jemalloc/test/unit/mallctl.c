@@ -382,7 +382,7 @@ TEST_BEGIN(test_arenas_constants)
 #define	TEST_ARENAS_CONSTANT(t, name, expected) do {			\
 	t name;								\
 	size_t sz = sizeof(t);						\
-	assert_d_eq(mallctl("pool.0.arenas."#name, &name, &sz, NULL, 0), 0,	\
+	assert_d_eq(mallctl("pool.0.arenas."#name, &(name), &sz, NULL, 0), 0,	\
 	    "Unexpected mallctl() failure");				\
 	assert_zu_eq(name, expected, "Incorrect "#name" size");		\
 } while (0)
@@ -402,7 +402,7 @@ TEST_BEGIN(test_arenas_bin_constants)
 #define	TEST_ARENAS_BIN_CONSTANT(t, name, expected) do {		\
 	t name;								\
 	size_t sz = sizeof(t);						\
-	assert_d_eq(mallctl("pool.0.arenas.bin.0."#name, &name, &sz, NULL, 0),	\
+	assert_d_eq(mallctl("pool.0.arenas.bin.0."#name, &(name), &sz, NULL, 0),	\
 	    0, "Unexpected mallctl() failure");				\
 	assert_zu_eq(name, expected, "Incorrect "#name" size");		\
 } while (0)
@@ -420,7 +420,7 @@ TEST_BEGIN(test_arenas_lrun_constants)
 #define	TEST_ARENAS_LRUN_CONSTANT(t, name, expected) do {		\
 	t name;								\
 	size_t sz = sizeof(t);						\
-	assert_d_eq(mallctl("pool.0.arenas.lrun.0."#name, &name, &sz, NULL,	\
+	assert_d_eq(mallctl("pool.0.arenas.lrun.0."#name, &(name), &sz, NULL,	\
 	    0), 0, "Unexpected mallctl() failure");			\
 	assert_zu_eq(name, expected, "Incorrect "#name" size");		\
 } while (0)
@@ -494,7 +494,7 @@ TEST_BEGIN(test_stats_arenas)
 #define	TEST_STATS_ARENAS(t, name) do {					\
 	t name;								\
 	size_t sz = sizeof(t);						\
-	assert_d_eq(mallctl("pool.0.stats.arenas.0."#name, &name, &sz, NULL,	\
+	assert_d_eq(mallctl("pool.0.stats.arenas.0."#name, &(name), &sz, NULL,	\
 	    0), 0, "Unexpected mallctl() failure");			\
 } while (0)
 

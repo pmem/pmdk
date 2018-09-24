@@ -18,9 +18,9 @@ SINGLEHDR
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x1 [SINGLEHDR]
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : 0x$(X) [SINGLEHDR$(*)]
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)
 UUID                     : $(nW)
 Previous part UUID       : $(nW)
@@ -32,6 +32,7 @@ Alignment Descriptor     : $(nW)
 Class                    : $(nW)
 Data                     : 2's complement, little endian
 Machine                  : AMD X86-64
+Last shutdown            : clean
 Checksum                 : $(*)
 
 PMEM OBJ Header:
@@ -51,9 +52,9 @@ alignment                : $(nW)
 POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
-Mandatory features       : 0x1 [SINGLEHDR]
-Not mandatory features   : 0x0
-Forced RO                : 0x0
+Mandatory features       : 0x$(X) [SINGLEHDR$(*)]
+Not mandatory features   : $(*)
+Forced RO                : $(*)
 Pool set UUID            : $(nW)
 UUID                     : $(nW)
 Previous part UUID       : $(nW)
@@ -65,6 +66,7 @@ Alignment Descriptor     : $(nW)
 Class                    : $(nW)
 Data                     : 2's complement, little endian
 Machine                  : AMD X86-64
+Last shutdown            : clean
 Checksum                 : $(*)
 
 PMEM OBJ Header:

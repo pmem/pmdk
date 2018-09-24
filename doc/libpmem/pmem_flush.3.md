@@ -48,7 +48,7 @@ date: pmem API version 1.1
 **pmem_flush**(), **pmem_drain**(),
 **pmem_persist**(), **pmem_msync**(),
 **pmem_deep_flush**(), **pmem_deep_drain**(), **pmem_deep_persist**(),
-**pmem_has_hw_drain**(), **pmem_has_auto_flush**()  -- check persistency,
+**pmem_has_hw_drain**(), **pmem_has_auto_flush**() - check persistency,
 				store persistent data and delete mappings
 
 

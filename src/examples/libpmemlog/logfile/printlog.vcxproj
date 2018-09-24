@@ -36,13 +36,13 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <PropertyGroup>
-    <IncludePath>$(ProjectDir)..\..\;$(solutionDir)include;$(IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
-  </PropertyGroup>
   <ItemDefinitionGroup>
     <Manifest>
       <AdditionalManifestFiles>..\..\..\LongPath.manifest</AdditionalManifestFiles>
     </Manifest>
+    <Link>
+      <AdditionalDependencies>libpmem.lib;libpmemlog.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="..\..\Examples_$(Configuration).props" />

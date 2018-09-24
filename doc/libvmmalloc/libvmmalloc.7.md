@@ -50,13 +50,13 @@ date: vmmalloc API version 1.1
 
 # NAME #
 
-**libvmmalloc** -- general purpose volatile memory allocation library
+**libvmmalloc** - general purpose volatile memory allocation library
 
 
 # SYNOPSIS #
 
 ```
-$ LD_PRELOAD=libvmmalloc.so command [ args... ]
+$ LD_PRELOAD=libvmmalloc.so.1 command [ args... ]
 ```
 
 or

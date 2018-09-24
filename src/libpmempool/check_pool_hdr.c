@@ -93,7 +93,7 @@ pool_hdr_valid(struct pool_hdr *hdrp)
 {
 	return !util_is_zeroed((void *)hdrp, sizeof(*hdrp)) &&
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0,
-			POOL_HDR_CSUM_END_OFF);
+			POOL_HDR_CSUM_END_OFF(hdrp));
 }
 
 /*
@@ -306,7 +306,7 @@ pool_hdr_nondefault(PMEMpoolcheck *ppc, location *loc)
 	LOG(3, NULL);
 
 	if (loc->hdr.crtime > (uint64_t)ppc->pool->set_file->mtime) {
-		const char *error = "%spool_hdr.crtime is not valid";
+		const char * const error = "%spool_hdr.crtime is not valid";
 		if (CHECK_IS_NOT(ppc, REPAIR)) {
 			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
 			return CHECK_ERR(ppc, error, loc->prefix);
@@ -326,7 +326,7 @@ pool_hdr_nondefault(PMEMpoolcheck *ppc, location *loc)
 			memcmp(&loc->valid_part_hdrp->arch_flags,
 				&loc->hdr.arch_flags,
 				sizeof(struct arch_flags)) != 0) {
-		const char *error = "%spool_hdr.arch_flags is not valid";
+		const char * const error = "%spool_hdr.arch_flags is not valid";
 		if (CHECK_IS_NOT(ppc, REPAIR)) {
 			ppc->result = CHECK_RESULT_NOT_CONSISTENT;
 			return CHECK_ERR(ppc, error, loc->prefix);
@@ -798,7 +798,7 @@ pool_hdr_checksum_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	switch (question) {
 	case Q_CHECKSUM:
 		util_checksum(&loc->hdr, sizeof(loc->hdr), &loc->hdr.checksum,
-			1, POOL_HDR_CSUM_END_OFF);
+			1, POOL_HDR_CSUM_END_OFF(&loc->hdr));
 		CHECK_INFO(ppc, "%ssetting pool_hdr.checksum to 0x%jx",
 			loc->prefix, le64toh(loc->hdr.checksum));
 		break;
@@ -916,7 +916,7 @@ init_location_data(PMEMpoolcheck *ppc, location *loc)
 				"replica %u part %u: ",
 				loc->replica, loc->part);
 			if (ret < 0 || ret >= PREFIX_MAX_SIZE)
-				FATAL("!snprintf");
+				FATAL("snprintf: %d", ret);
 		} else
 			loc->prefix[0] = '\0';
 		loc->step = 0;

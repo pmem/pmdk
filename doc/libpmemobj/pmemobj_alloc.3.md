@@ -50,7 +50,7 @@ date: pmemobj API version 2.3
 **pmemobj_wcsdup**(), **pmemobj_alloc_usable_size**(),
 **POBJ_NEW**(), **POBJ_ALLOC**(), **POBJ_ZNEW**(), **POBJ_ZALLOC**(),
 **POBJ_REALLOC**(), **POBJ_ZREALLOC**(), **POBJ_FREE**()
--- non-transactional atomic allocations
+- non-transactional atomic allocations
 
 
 # SYNOPSIS #

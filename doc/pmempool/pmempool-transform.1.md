@@ -44,7 +44,7 @@ date: pmem Tools version 1.4
 
 # NAME #
 
-**pmempool-transform** -- Modify internal structure of a pool set.
+**pmempool-transform** - Modify internal structure of a pool set.
 
 
 # SYNOPSIS #

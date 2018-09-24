@@ -34,15 +34,6 @@
 # src/test/util_uuid_generate/TEST0 -- unit test for util_uuid_generate.
 # No uuid string specified.
 #
-#
-# parameter handling
-#
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

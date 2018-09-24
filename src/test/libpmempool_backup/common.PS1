@@ -40,7 +40,7 @@ $POOL_PART="$DIR\pool.part"
 $OUT="out$Env:UNITTEST_NUM.log"
 $OUT_TEMP="out$Env:UNITTEST_NUM_temp.log"
 $DIFF="diff$Env:UNITTEST_NUM.log"
-rm $DIFF, $OUT_TEMP -Recurse -Force -ea si
+rm $DIFF, $OUT_TEMP -Force -ea si
 touch $DIFF $OUT_TEMP
 
 # params for blk, log and obj pools

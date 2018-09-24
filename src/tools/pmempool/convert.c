@@ -50,7 +50,11 @@
 #include "convert.h"
 #include "util_pmem.h"
 
-static const char *help_str = "";
+static const char * const help_str =
+"Upgrade pool files layout version.\n"
+"\n"
+"For complete documentation see %s-convert(1) manual page.\n"
+;
 
 /*
  * print_usage -- print application usage short description
@@ -242,7 +246,7 @@ pmempool_convert_func(char *appname, int argc, char *argv[])
 					hdr->major = htole32(target_m);
 					util_checksum(hdr, sizeof(*hdr),
 						&hdr->checksum, 1,
-						POOL_HDR_CSUM_END_OFF);
+						POOL_HDR_CSUM_END_OFF(hdr));
 					util_persist_auto(part->is_dev_dax, hdr,
 						sizeof(struct pool_hdr));
 				}

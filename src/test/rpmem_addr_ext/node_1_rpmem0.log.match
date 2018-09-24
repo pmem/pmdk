@@ -5,7 +5,8 @@ $(OPT)<librpmem>: <1> [$(*)] compiled with support for Valgrind pmemcheck
 $(OPT)<librpmem>: <1> [$(*)] compiled with support for Valgrind helgrind
 $(OPT)<librpmem>: <1> [$(*)] compiled with support for Valgrind memcheck
 $(OPT)<librpmem>: <1> [$(*)] compiled with support for Valgrind drd
-<librpmem>: <3> [$(*)] 
+$(OPT)<librpmem>: <1> [$(*)] compiled with support for shutdown state
+<librpmem>: <3> [$(*)]
 <librpmem>: <3> [$(*)] Libfabric is fork safe
 $(OPT)<librpmem>: <3> [$(*)] $(*)
 $(OPT)<librpmem>: <3> [$(*)] $(*)
@@ -227,4 +228,4 @@ $(OPT)<librpmem>: <3> [$(*)] $(*)
 $(OPT)<librpmem>: <3> [$(*)] $(*)
 $(OPT)<librpmem>: <3> [$(*)] $(*)
 <librpmem>: <1> [$(*)] cannot find provider
-<librpmem>: <3> [$(*)] 
+<librpmem>: <3> [$(*)]$(W)

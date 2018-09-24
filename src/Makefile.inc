@@ -53,19 +53,38 @@ DEFAULT_CFLAGS += -Wmissing-prototypes
 DEFAULT_CFLAGS += -Wpointer-arith
 DEFAULT_CFLAGS += -Wsign-conversion
 DEFAULT_CFLAGS += -Wsign-compare
-ifeq ($(call check_Wconversion), y)
+
+ifeq ($(WCONVERSION_AVAILABLE), y)
 DEFAULT_CFLAGS += -Wconversion
 endif
 
-ifeq ($(call check_compiler, icc), n)
+ifeq ($(IS_ICC), n)
 DEFAULT_CFLAGS += -Wunused-macros
 DEFAULT_CFLAGS += -Wmissing-field-initializers
-ifeq ($(call check_flag, -Wunreachable-code-return), y)
+endif
+
+ifeq ($(WUNREACHABLE_CODE_RETURN_AVAILABLE), y)
 DEFAULT_CFLAGS += -Wunreachable-code-return
 endif
-ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+
+ifeq ($(WMISSING_VARIABLE_DECLARATIONS_AVAILABLE), y)
 DEFAULT_CFLAGS += -Wmissing-variable-declarations
 endif
+
+ifeq ($(WFLOAT_EQUAL_AVAILABLE), y)
+DEFAULT_CFLAGS += -Wfloat-equal
+endif
+
+ifeq ($(WSWITCH_DEFAULT_AVAILABLE), y)
+DEFAULT_CFLAGS += -Wswitch-default
+endif
+
+ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
+DEFAULT_CFLAGS += -Wcast-function-type
+endif
+
+ifeq ($(WSTRINGOP_TRUNCATION_AVAILABLE), y)
+DEFAULT_CFLAGS += -DSTRINGOP_TRUNCATION_SUPPORTED
 endif
 
 ifeq ($(DEBUG),1)
@@ -89,6 +108,10 @@ CFLAGS += -fno-common
 CFLAGS += -pthread
 CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
 
+ifeq ($(OS_DIMM),ndctl)
+CFLAGS += -DSDS_ENABLED
+endif
+
 ifeq ($(COVERAGE),1)
 CFLAGS += $(GCOV_CFLAGS)
 LDFLAGS += $(GCOV_LDFLAGS)
@@ -102,7 +125,7 @@ endif
 
 # On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
 tsanitize := $(SANITIZE)
-ifeq ($(shell uname -s),FreeBSD)
+ifeq ($(OS_KERNEL_NAME),FreeBSD)
 ifeq ($(JEMALLOC_PMDKDIR),libvmmalloc)
 hasaddrcomma := address,
 tsanitize := $(subst address,,$(subst $(hasaddrcomma),,$(SANITIZE)))
@@ -130,10 +153,7 @@ ifneq ($(NORPATH),1)
 LDFLAGS += -Wl,-rpath=$(libdir)$(LIB_SUBDIR)
 endif
 
-# XXX: required by clock_gettime(), if glibc version < 2.17
-# The os_clock_gettime() function is now in OS abstraction layer,
-# linked to all the librariess, unit tests and benchmarks.
-ifeq ($(call check_librt), n)
+ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
 endif
 
@@ -152,7 +172,6 @@ ifneq ($(TESTBUILD), 1)
 $(error "$(TESTCMD)" failed)
 endif
 
-ARCH := $(call get_arch)
 ifneq ($(ARCH), x86_64)
 ifneq ($(ARCH), aarch64)
 $(error unsupported architecture: $(ARCH))

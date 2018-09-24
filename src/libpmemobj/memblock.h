@@ -107,11 +107,11 @@ enum memory_block_type {
 	 * This is the heap after the previous example with the single chunk
 	 * in between changed from used to free.
 	 *
-	 * 1) Determine the neighbours of the memory block which is being
+	 * 1) Determine the neighbors of the memory block which is being
 	 *	freed.
 	 *
 	 * 2) Update the footer (if needed) information of the last chunk which
-	 *	is the memory block being freed or it's neighbour to the right.
+	 *	is the memory block being freed or it's neighbor to the right.
 	 *	|F| <> |U...R| <> |F.R << this one|
 	 *
 	 * 3) Update the size index and type of the left-most chunk header.
@@ -155,39 +155,94 @@ enum memblock_state {
 	MAX_MEMBLOCK_STATE,
 };
 
-enum header_type {
-	HEADER_LEGACY,
-	HEADER_COMPACT,
-	HEADER_NONE,
+/* runtime bitmap information for a run */
+struct run_bitmap {
+	unsigned nvalues; /* number of 8 byte values - size of values array */
+	unsigned nbits; /* number of valid bits */
 
-	MAX_HEADER_TYPES
+	size_t size; /* total size of the bitmap in bytes */
+
+	uint64_t *values; /* pointer to the bitmap's values array */
 };
 
-extern const size_t header_type_to_size[MAX_HEADER_TYPES];
-extern const enum chunk_flags header_type_to_flag[MAX_HEADER_TYPES];
-
 struct memory_block_ops {
+	/* returns memory block size */
 	size_t (*block_size)(const struct memory_block *m);
+
+	/* prepares header modification operation */
 	void (*prep_hdr)(const struct memory_block *m,
 		enum memblock_state dest_state, struct operation_context *ctx);
+
+	/* returns lock associated with memory block */
 	os_mutex_t *(*get_lock)(const struct memory_block *m);
+
+	/* returns whether a block is allocated or not */
 	enum memblock_state (*get_state)(const struct memory_block *m);
+
+	/* returns pointer to the data of a block */
 	void *(*get_user_data)(const struct memory_block *m);
+
+	/*
+	 * Returns the size of a memory block without overhead.
+	 * This is the size of a data block that can be used.
+	 */
 	size_t (*get_user_size)(const struct memory_block *m);
+
+	/* returns pointer to the beginning of data of a run block */
 	void *(*get_real_data)(const struct memory_block *m);
+
+	/* returns the size of a memory block, including headers */
 	size_t (*get_real_size)(const struct memory_block *m);
+
+	/* writes a header of an allocation */
 	void (*write_header)(const struct memory_block *m,
 		uint64_t extra_field, uint16_t flags);
-	void (*flush_header)(const struct memory_block *m);
 	void (*invalidate)(const struct memory_block *m);
+
+	/*
+	 * Checks the header type of a chunk matches the expected type and
+	 * modifies it if necessary. This is fail-safe atomic.
+	 */
 	void (*ensure_header_type)(const struct memory_block *m,
 		enum header_type t);
 
-	/* this is called for EVERY allocation, but *only* on valgrind */
+	/*
+	 * Reinitializes a block after a heap restart.
+	 * This is called for EVERY allocation, but *only* under Valgrind.
+	 */
 	void (*reinit_header)(const struct memory_block *m);
 
+	/* returns the extra field of an allocation */
 	uint64_t (*get_extra)(const struct memory_block *m);
+
+	/* returns the flags of an allocation */
 	uint16_t (*get_flags)(const struct memory_block *m);
+
+	/* initializes memblock in valgrind */
+	void (*vg_init)(const struct memory_block *m, int objects,
+		object_callback cb, void *arg);
+
+	/* iterates over every free block */
+	int (*iterate_free)(const struct memory_block *m,
+		object_callback cb, void *arg);
+
+	/* iterates over every used block */
+	int (*iterate_used)(const struct memory_block *m,
+		object_callback cb, void *arg);
+
+	/* calculates number of free units, valid only for runs */
+	void (*calc_free)(const struct memory_block *m,
+		uint32_t *free_space, uint32_t *max_free_block);
+
+	/* this is called exactly once for every existing chunk */
+	void (*reinit_chunk)(const struct memory_block *m);
+
+	/*
+	 * Initializes bitmap data for a run.
+	 * Do *not* use this function unless absolutely necessery, it breaks
+	 * the abstraction layer by exposing implementation details.
+	 */
+	void (*get_bitmap)(const struct memory_block *m, struct run_bitmap *b);
 };
 
 struct memory_block {
@@ -239,12 +294,21 @@ struct memory_block_reserved {
 	int nresv;
 };
 
-enum memblock_state memblock_validate_offset(struct palloc_heap *heap,
-	uint64_t off);
 struct memory_block memblock_from_offset(struct palloc_heap *heap,
 	uint64_t off);
 struct memory_block memblock_from_offset_opt(struct palloc_heap *heap,
 	uint64_t off, int size);
 void memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m);
+
+struct memory_block memblock_huge_init(struct palloc_heap *heap,
+	uint32_t chunk_id, uint32_t zone_id, uint32_t size_idx);
+
+struct memory_block memblock_run_init(struct palloc_heap *heap,
+	uint32_t chunk_id, uint32_t zone_id, uint32_t size_idx, uint16_t flags,
+	uint64_t unit_size, uint64_t alignment);
+
+void memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
+	uint64_t unit_size, uint64_t alignment, void *content,
+	struct run_bitmap *b);
 
 #endif

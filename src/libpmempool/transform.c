@@ -532,8 +532,11 @@ do_added_parts_exist(struct pool_set *set,
 		for (unsigned p = 0; p < rep->nparts; ++p) {
 			/* check if part file exists */
 			int oerrno = errno;
-			if (os_access(rep->part[p].path, F_OK) == 0 &&
-					!rep->part[p].is_dev_dax) {
+			int exists = util_file_exists(rep->part[p].path);
+			if (exists < 0)
+				return -1;
+
+			if (exists && !rep->part[p].is_dev_dax) {
 				LOG(1, "part file %s exists",
 						rep->part[p].path);
 				return 1;
@@ -667,7 +670,7 @@ update_replica_header(struct pool_set *set, unsigned repn)
 
 	}
 	util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1,
-		POOL_HDR_CSUM_END_OFF);
+		POOL_HDR_CSUM_END_OFF(hdr));
 	util_persist_auto(rep->is_pmem, hdr, sizeof(*hdr));
 }
 
@@ -713,7 +716,7 @@ update_uuids(struct pool_set *set, unsigned repn)
 		memcpy(hdrp->poolset_uuid, hdr0->poolset_uuid,
 				POOL_HDR_UUID_LEN);
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1,
-			POOL_HDR_CSUM_END_OFF);
+			POOL_HDR_CSUM_END_OFF(hdrp));
 		util_persist(PART(rep, p)->is_dev_dax, hdrp, sizeof(*hdrp));
 	}
 }
@@ -926,7 +929,8 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 
 	/* check if the source poolset is healthy */
 	struct poolset_health_status *set_in_hs = NULL;
-	if (replica_check_poolset_health(set_in, &set_in_hs, flags)) {
+	if (replica_check_poolset_health(set_in, &set_in_hs,
+					0 /* called from transform */, flags)) {
 		ERR("source poolset health check failed");
 		return -1;
 	}

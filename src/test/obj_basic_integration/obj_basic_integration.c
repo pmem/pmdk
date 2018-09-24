@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -221,6 +221,7 @@ test_realloc_api(PMEMobjpool *pop)
 
 	pmemobj_free(&oid);
 	UT_ASSERT(OID_IS_NULL(oid));
+	UT_ASSERTeq(pmemobj_alloc_usable_size(oid), 0);
 	UT_OUT("free");
 
 	/* alloc */
@@ -309,6 +310,11 @@ test_list_api(PMEMobjpool *pop)
 	POBJ_LIST_INSERT_NEW_TAIL(pop, &D_RW(root)->dummies, plist,
 			sizeof(struct dummy_node), dummy_node_constructor,
 			&test_val);
+
+	TOID(struct dummy_node) inserted =
+			POBJ_LIST_FIRST(&D_RW(root)->dummies);
+	UT_ASSERTeq(pmemobj_type_num(inserted.oid),
+			TOID_TYPE_NUM(struct dummy_node));
 
 	TOID(struct dummy_node) node;
 	POBJ_ZNEW(pop, &node, struct dummy_node);
@@ -617,6 +623,27 @@ test_offsetof(void)
 				offsetof(struct dummy_node, plist_m));
 }
 
+static void
+test_layout(void)
+{
+	/* get number of declared types when there are no types declared */
+	POBJ_LAYOUT_BEGIN(mylayout);
+	POBJ_LAYOUT_END(mylayout);
+
+	size_t number_of_declared_types = POBJ_LAYOUT_TYPES_NUM(mylayout);
+	UT_ASSERTeq(number_of_declared_types, 0);
+}
+
+static void
+test_root_size(PMEMobjpool *pop)
+{
+	UT_ASSERTeq(pmemobj_root_size(pop), 0);
+
+	size_t alloc_size = sizeof(struct dummy_root);
+	pmemobj_root(pop, alloc_size);
+	UT_ASSERTeq(pmemobj_root_size(pop), sizeof(struct dummy_root));
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -636,12 +663,14 @@ main(int argc, char *argv[])
 			0, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
+	test_root_size(pop);
 	test_alloc_api(pop);
 	test_realloc_api(pop);
 	test_list_api(pop);
 	test_tx_api(pop);
 	test_action_api(pop);
 	test_offsetof();
+	test_layout();
 
 	pmemobj_close(pop);
 

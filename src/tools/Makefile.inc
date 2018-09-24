@@ -47,22 +47,42 @@ CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
 CFLAGS += -Wsign-conversion
 CFLAGS += -Wsign-compare
-ifeq ($(call check_Wconversion), y)
+
+ifeq ($(WCONVERSION_AVAILABLE), y)
 CFLAGS += -Wconversion
 endif
+
 CFLAGS += -fno-common
 
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
-ifeq ($(call check_compiler, icc), n)
+ifeq ($(OS_DIMM),ndctl)
+CFLAGS += -DSDS_ENABLED
+endif
+
+ifeq ($(IS_ICC), n)
 CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
-ifeq ($(call check_flag, -Wunreachable-code-return), y)
+endif
+
+ifeq ($(WUNREACHABLE_CODE_RETURN_AVAILABLE), y)
 CFLAGS += -Wunreachable-code-return
 endif
-ifeq ($(call check_flag, -Wmissing-variable-declarations), y)
+
+ifeq ($(WMISSING_VARIABLE_DECLARATIONS_AVAILABLE), y)
 CFLAGS += -Wmissing-variable-declarations
 endif
+
+ifeq ($(WFLOAT_EQUAL_AVAILABLE), y)
+CFLAGS += -Wfloat-equal
+endif
+
+ifeq ($(WSWITCH_DEFAULT_AVAILABLE), y)
+CFLAGS += -Wswitch-default
+endif
+
+ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
+CFLAGS += -Wcast-function-type
 endif
 
 ifeq ($(DEBUG),1)
@@ -116,10 +136,7 @@ PMEMCTO_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemcto/libpmemcto_unscoped.o
 
 LIBS += $(LIBUUID)
 
-# XXX: required by clock_gettime(), if glibc version < 2.17
-# The os_clock_gettime() function is now in OS abstraction layer,
-# linked to all the librariess, unit tests and benchmarks.
-ifeq ($(call check_librt), n)
+ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
 endif
 

@@ -33,12 +33,6 @@
 #
 # src/test/obj_tx_mt/TEST0 -- multi-threaded test for pmemobj_tx*
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

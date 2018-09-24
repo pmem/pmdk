@@ -46,7 +46,7 @@ date: pmemlog API version 1.1
 
 # NAME #
 
-**pmemlog_append**(), **pmemlog_appendv**() -- append bytes to the persistent
+**pmemlog_append**(), **pmemlog_appendv**() - append bytes to the persistent
 memory resident log file
 
 

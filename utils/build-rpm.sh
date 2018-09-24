@@ -155,7 +155,7 @@ if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 fi
 
 LIBFABRIC_MIN_VERSION=1.4.2
-NDCTL_MIN_VERSION=58.2.37
+NDCTL_MIN_VERSION=60.1
 
 RPMBUILD_OPTS=( )
 PACKAGE_VERSION=$(get_version $PACKAGE_VERSION_TAG)
@@ -183,7 +183,7 @@ cd $WORKING_DIR
 check_dir $SOURCE
 mv $SOURCE $PACKAGE_SOURCE
 
-if [ "$DISTRO" = "SLES" ]
+if [ "$DISTRO" = "SLES_like" ]
 then
 	RPM_LICENSE="BSD-3-Clause"
 	RPM_GROUP_SYS_BASE="System\/Base"
@@ -221,7 +221,7 @@ sed -e "s/__VERSION__/$PACKAGE_VERSION/g" \
 	-e "s/__NDCTL_MIN_VER__/$NDCTL_MIN_VERSION/g" \
 	$OLDPWD/$SCRIPT_DIR/pmdk.spec.in > $RPM_SPEC_FILE
 
-if [ "$DISTRO" = "SLES" ]
+if [ "$DISTRO" = "SLES_like" ]
 then
 	sed -i '/^#.*bugzilla.redhat/d' $RPM_SPEC_FILE
 fi

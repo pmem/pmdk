@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,7 +69,7 @@ static const struct pmempool_transform_context pmempool_transform_default = {
 /*
  * help_str -- string for help message
  */
-static const char *help_str =
+static const char * const help_str =
 "Modify internal structure of a poolset\n"
 "\n"
 "Common options:\n"
@@ -133,7 +133,7 @@ pmempool_transform_parse_args(struct pmempool_transform_context *ctx,
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'd':
-			ctx->flags = PMEMPOOL_DRY_RUN;
+			ctx->flags = PMEMPOOL_TRANSFORM_DRY_RUN;
 			break;
 		case 'h':
 			pmempool_transform_help(appname);

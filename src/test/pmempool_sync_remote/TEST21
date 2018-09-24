@@ -39,9 +39,9 @@
 
 require_test_type medium
 
-. common.sh
+require_sds $PMEMPOOL
 
-setup
+. common.sh
 
 configure_poolsets 0 1
 

@@ -34,12 +34,6 @@
 #
 # obj_constructor/TEST0 -- test for obj_constructor
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 

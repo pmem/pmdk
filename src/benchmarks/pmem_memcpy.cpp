@@ -268,7 +268,7 @@ assign_mode_func(char *option)
 		case OP_MODE_RAND:
 			return mode_rand;
 		default:
-			return NULL;
+			return nullptr;
 	}
 }
 
@@ -384,18 +384,17 @@ assign_size(struct pmem_bench *pmb, struct benchmark_args *args,
 static int
 pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 {
-	assert(bench != NULL);
-	assert(args != NULL);
+	assert(bench != nullptr);
+	assert(args != nullptr);
 	int ret = 0;
 	size_t file_size = 0;
 	int flags = 0;
 
-	struct pmem_bench *pmb =
-		(struct pmem_bench *)malloc(sizeof(struct pmem_bench));
-	assert(pmb != NULL);
+	auto *pmb = (struct pmem_bench *)malloc(sizeof(struct pmem_bench));
+	assert(pmb != nullptr);
 
 	pmb->pargs = (struct pmem_args *)args->opts;
-	assert(pmb->pargs != NULL);
+	assert(pmb->pargs != nullptr);
 
 	pmb->pargs->chunk_size = args->dsize;
 
@@ -410,7 +409,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 	pmb->buf =
 		(unsigned char *)util_aligned_malloc(FLUSH_ALIGN, pmb->bsize);
-	if (pmb->buf == NULL) {
+	if (pmb->buf == nullptr) {
 		perror("posix_memalign");
 		ret = -1;
 		goto err_free_pmb;
@@ -421,7 +420,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	pmb->rand_offsets = (unsigned *)malloc(pmb->n_rand_offsets *
 					       sizeof(*pmb->rand_offsets));
 
-	if (pmb->rand_offsets == NULL) {
+	if (pmb->rand_offsets == nullptr) {
 		perror("malloc");
 		ret = -1;
 		goto err_free_pmb;
@@ -437,8 +436,8 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* create a pmem file and memory map it */
 	pmb->pmem_addr = (unsigned char *)pmem_map_file(
-		args->fname, file_size, flags, args->fmode, NULL, NULL);
-	if (pmb->pmem_addr == NULL) {
+		args->fname, file_size, flags, args->fmode, nullptr, nullptr);
+	if (pmb->pmem_addr == nullptr) {
 		perror(args->fname);
 		ret = -1;
 		goto err_free_buf;
@@ -453,7 +452,8 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	/* set proper func_src() and func_dest() depending on benchmark args */
-	if ((pmb->func_src = assign_mode_func(pmb->pargs->src_mode)) == NULL) {
+	if ((pmb->func_src = assign_mode_func(pmb->pargs->src_mode)) ==
+	    nullptr) {
 		fprintf(stderr, "wrong src_mode parameter -- '%s'",
 			pmb->pargs->src_mode);
 		ret = -1;
@@ -461,7 +461,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	if ((pmb->func_dest = assign_mode_func(pmb->pargs->dest_mode)) ==
-	    NULL) {
+	    nullptr) {
 		fprintf(stderr, "wrong dest_mode parameter -- '%s'",
 			pmb->pargs->dest_mode);
 		ret = -1;
@@ -504,7 +504,7 @@ err_free_pmb:
 static int
 pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
 {
-	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
+	auto *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 
 	size_t src_index = pmb->func_src(pmb, info);
 
@@ -526,7 +526,7 @@ pmem_memcpy_operation(struct benchmark *bench, struct operation_info *info)
 static int
 pmem_memcpy_exit(struct benchmark *bench, struct benchmark_args *args)
 {
-	struct pmem_bench *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
+	auto *pmb = (struct pmem_bench *)pmembench_get_priv(bench);
 	pmem_unmap(pmb->pmem_addr, pmb->fsize);
 	util_aligned_free(pmb->buf);
 	free(pmb->rand_offsets);

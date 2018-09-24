@@ -49,7 +49,7 @@ date: pmemobj API version 2.3
 **OID_INSTANCEOF**(), **TOID_ASSIGN**(), **TOID_IS_NULL**(),
 **TOID_EQUALS**(), **TOID_TYPEOF**(), **TOID_OFFSETOF**(),
 **DIRECT_RW**(), **D_RW**(), **DIRECT_RO**(),
-**D_RO**() -- libpmemobj type safety mechanism
+**D_RO**() - libpmemobj type safety mechanism
 
 
 # SYNOPSIS #

@@ -147,6 +147,20 @@ void *pmemobj_direct(PMEMoid oid);
 #define pmemobj_direct pmemobj_direct_inline
 #endif
 
+struct pmemvlt {
+	uint64_t runid;
+};
+
+#define PMEMvlt(T)\
+struct {\
+	struct pmemvlt vlt;\
+	T value;\
+}
+
+void *pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
+	void *ptr, size_t size,
+	int (*constr)(void *ptr, void *arg), void *arg);
+
 /*
  * Returns the OID of the object pointed to by addr.
  */
@@ -212,9 +226,21 @@ void *pmemobj_memset(PMEMobjpool *pop, void *dest, int c, size_t len,
 void pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len);
 
 /*
+ * Pmemobj version of pmem_persist with additional flags argument.
+ */
+int pmemobj_xpersist(PMEMobjpool *pop, const void *addr, size_t len,
+		unsigned flags);
+
+/*
  * Pmemobj version of pmem_flush.
  */
 void pmemobj_flush(PMEMobjpool *pop, const void *addr, size_t len);
+
+/*
+ * Pmemobj version of pmem_flush with additional flags argument.
+ */
+int pmemobj_xflush(PMEMobjpool *pop, const void *addr, size_t len,
+		unsigned flags);
 
 /*
  * Pmemobj version of pmem_drain.
@@ -232,7 +258,7 @@ void pmemobj_drain(PMEMobjpool *pop);
  * used at compile-time by passing these defines to pmemobj_check_version().
  */
 #define PMEMOBJ_MAJOR_VERSION 2
-#define PMEMOBJ_MINOR_VERSION 3
+#define PMEMOBJ_MINOR_VERSION 4
 
 #ifndef _WIN32
 const char *pmemobj_check_version(unsigned major_required,

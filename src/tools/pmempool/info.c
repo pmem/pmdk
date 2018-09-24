@@ -58,6 +58,7 @@
 #include "set.h"
 #include "file.h"
 #include "os_badblock.h"
+#include "badblock.h"
 
 #define DEFAULT_CHUNK_TYPES\
 	((1<<CHUNK_TYPE_FREE)|\
@@ -259,7 +260,7 @@ static const struct option_requirement option_requirements[] = {
 /*
  * help_str -- string for help message
  */
-static const char *help_str =
+static const char * const help_str =
 "Show information about pmem pool from specified file.\n"
 "\n"
 "Common options:\n"
@@ -569,11 +570,9 @@ pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
 	if (!outv_check(pip->args.vbadblocks))
 		return 0;
 
-	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
-	if (bbs == NULL) {
-		outv_err("!malloc");
+	struct badblocks *bbs = badblocks_new();
+	if (bbs == NULL)
 		return -1;
-	}
 
 	ret = os_badblocks_get(file_name, bbs);
 	if (ret) {
@@ -595,8 +594,7 @@ pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
 	}
 
 exit_free:
-	Free(bbs->bbv);
-	Free(bbs);
+	badblocks_delete(bbs);
 
 	return ret;
 }
@@ -820,9 +818,10 @@ pmempool_info_pool_hdr(struct pmem_info *pip, int v)
 			out_get_arch_data_str(hdr->arch_flags.data));
 	outv_field(v, "Machine", "%s",
 			out_get_arch_machine_str(hdr->arch_flags.machine));
-
+	outv_field(v, "Last shutdown", "%s",
+			out_get_last_shutdown_str(hdr->sds.dirty));
 	outv_field(v, "Checksum", "%s", out_get_checksum(hdr, sizeof(*hdr),
-			&hdr->checksum, POOL_HDR_CSUM_END_OFF));
+			&hdr->checksum, POOL_HDR_CSUM_END_OFF(hdr)));
 
 	free(hdr);
 
@@ -1005,8 +1004,12 @@ pmempool_info_alloc(void)
 static void
 pmempool_info_free(struct pmem_info *pip)
 {
-	if (pip->obj.stats.zone_stats)
+	if (pip->obj.stats.zone_stats) {
+		for (uint64_t i = 0; i < pip->obj.stats.n_zones; ++i)
+			VEC_DELETE(&pip->obj.stats.zone_stats[i].class_stats);
+
 		free(pip->obj.stats.zone_stats);
+	}
 	util_options_free(pip->opts);
 	util_ranges_clear(&pip->args.ranges);
 	util_ranges_clear(&pip->args.obj.type_ranges);

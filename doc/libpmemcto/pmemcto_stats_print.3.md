@@ -44,7 +44,7 @@ date: libpmemcto API version 1.0
 
 # NAME #
 
-pmemcto_stats_print -- write human-readable memory pool statistics
+pmemcto_stats_print - write human-readable memory pool statistics
 
 
 # SYNOPSIS #

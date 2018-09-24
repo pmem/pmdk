@@ -33,11 +33,6 @@
 #
 # src/test/scope/TEST3 -- scope test to check libpmemblk symbols
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
@@ -55,7 +50,7 @@ function parse_lib {
 }
 
 echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
-parse_lib "$Env:EXE_DIR\libpmemblk.dll"
+parse_lib "$Env:LIBS_DIR\libpmemblk.dll"
 
 check
 

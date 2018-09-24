@@ -61,17 +61,18 @@ for field in flags unused major sig nextoff infosize infooff dataoff nfree mapof
 do
 	spcmd="bttdevice.arena(0).btt_info.$field=${btt_info_dic_err["$field"]}"
 
+	rm -f $POOL
+
 	expect_normal_exit $BTTCREATE $POOL
 	$PMEMSPOIL -v $POOL $spcmd >> $LOG_TEMP
 
 	expect_normal_exit $EXE$EXESUFFIX -r 1 -t btt $POOL
 	cat $LOG >> $LOG_TEMP
-	rm -f POOL
 
+	check_file $POOL
 done
-mv $LOG_TEMP $LOG
 
-check_file $POOL
+mv $LOG_TEMP $LOG
 
 check
 

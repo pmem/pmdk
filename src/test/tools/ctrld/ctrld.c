@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -386,12 +386,12 @@ static int
 has_port_inode(unsigned short port, struct inodes *inodes)
 {
 	/* format of /proc/net/tcp entries */
-	const char *tcp_fmt =
+	const char * const tcp_fmt =
 		"%*d: "
 		"%*64[0-9A-Fa-f]:%X "
 		"%*64[0-9A-Fa-f]:%*X "
-		"%*X %*lX:%*lX %*X:%*lX "
-		"%*lX %*d %*d %lu %*s\n";
+		"%*X %*X:%*X %*X:%*X "
+		"%*X %*d %*d %lu %*s\n";
 
 	char buff[BUFF_SIZE];
 
@@ -447,14 +447,13 @@ get_inodes(pid_t pid, struct inodes *inodes)
 {
 	char path[PATH_MAX];
 	char link[PATH_MAX];
+	int ret;
 
 	/* set a path to opened files of specified process */
-	if (snprintf(path, PATH_MAX, "/proc/%d/fd", pid) < 0) {
-		CTRLD_LOG("!snprintf");
+	if ((ret = snprintf(path, PATH_MAX, "/proc/%d/fd", pid)) < 0) {
+		CTRLD_LOG("snprintf: %d", ret);
 		return -1;
 	}
-
-	int ret;
 
 	/* open dir with all opened files */
 	DIR *d = opendir(path);
@@ -468,9 +467,9 @@ get_inodes(pid_t pid, struct inodes *inodes)
 	struct dirent *dent;
 	while ((dent = readdir(d)) != NULL) {
 		/* create a full path to file */
-		if (snprintf(path, PATH_MAX,
-			"/proc/%d/fd/%s", pid, dent->d_name) < 0) {
-			CTRLD_LOG("!snprintf");
+		if ((ret = snprintf(path, PATH_MAX,
+			"/proc/%d/fd/%s", pid, dent->d_name)) < 0) {
+			CTRLD_LOG("snprintf: %d", ret);
 			ret = -1;
 			goto out_dir;
 		}
@@ -613,10 +612,10 @@ log_run(const char *pid_file, char *cmd, char *argv[])
 	size_t i = 0;
 	char *arg = argv[0];
 	while (arg) {
-		ssize_t ret = snprintf(&buff[cnt], BUFF_SIZE - cnt,
+		int ret = snprintf(&buff[cnt], BUFF_SIZE - cnt,
 				" %s", arg);
 		if (ret < 0) {
-			CTRLD_LOG("!snprintf");
+			CTRLD_LOG("snprintf: %d", ret);
 			exit(EXIT_FAILURE);
 		}
 
@@ -648,6 +647,8 @@ convert_timeout(char *str)
 		break;
 	case 'd':
 		ftimeout *= S_DAY;
+		break;
+	default:
 		break;
 	}
 	return (unsigned)ftimeout;

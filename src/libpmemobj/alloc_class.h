@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,11 +40,11 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <sys/types.h>
-#include "memblock.h"
+#include "heap_layout.h"
 
 #define MAX_ALLOCATION_CLASSES (UINT8_MAX)
 #define DEFAULT_ALLOC_CLASS_ID (0)
-#define RUN_UNIT_MAX BITS_PER_VALUE
+#define RUN_UNIT_MAX RUN_BITS_PER_VALUE
 
 struct alloc_class_collection;
 
@@ -56,53 +56,29 @@ enum alloc_class_type {
 	MAX_ALLOC_CLASS_TYPES
 };
 
-struct alloc_class_run_proto {
-	/*
-	 * Last value of a bitmap representing completely free
-	 * run from this bucket.
-	 */
-	uint64_t bitmap_lastval;
-
-	/*
-	 * Number of 8 byte values this run bitmap is
-	 * composed of.
-	 */
-	unsigned bitmap_nval;
-
-	/*
-	 * Number of allocations that can be performed from a
-	 * single run.
-	 */
-	unsigned bitmap_nallocs;
-
-	/*
-	 * The size index of a single run instance.
-	 */
-	uint32_t size_idx;
-};
-
 struct alloc_class {
 	uint8_t id;
+	uint16_t flags;
 
 	size_t unit_size;
+
 	enum header_type header_type;
 	enum alloc_class_type type;
 
-	union {
-		/* struct { ... } huge; */
-		struct alloc_class_run_proto run;
-	};
+	/* run-specific data */
+	struct {
+		uint32_t size_idx; /* size index of a single run instance */
+		size_t alignment; /* required alignment of objects */
+		unsigned nallocs; /* number of allocs per run */
+	} run;
 };
 
 struct alloc_class_collection *alloc_class_collection_new(void);
 void alloc_class_collection_delete(struct alloc_class_collection *ac);
 
-void alloc_class_generate_run_proto(struct alloc_class_run_proto *dest,
-	size_t unit_size, uint32_t size_idx);
-
 struct alloc_class *alloc_class_by_run(
 	struct alloc_class_collection *ac,
-	size_t unit_size, enum header_type header_type, uint32_t size_idx);
+	size_t unit_size, uint16_t flags, uint32_t size_idx);
 struct alloc_class *alloc_class_by_alloc_size(
 	struct alloc_class_collection *ac, size_t size);
 struct alloc_class *alloc_class_by_id(
@@ -116,8 +92,10 @@ ssize_t
 alloc_class_calc_size_idx(struct alloc_class *c, size_t size);
 
 struct alloc_class *
-alloc_class_register(struct alloc_class_collection *ac,
-	struct alloc_class *c);
+alloc_class_new(int id, struct alloc_class_collection *ac,
+	enum alloc_class_type type, enum header_type htype,
+	size_t unit_size, size_t alignment,
+	uint32_t size_idx);
 
 void alloc_class_delete(struct alloc_class_collection *ac,
 	struct alloc_class *c);

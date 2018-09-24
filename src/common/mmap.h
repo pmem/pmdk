@@ -36,9 +36,6 @@
 
 #ifndef PMDK_MMAP_H
 #define PMDK_MMAP_H 1
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include <stddef.h>
 #include <stdint.h>
@@ -50,6 +47,10 @@ extern "C" {
 #include "out.h"
 #include "queue.h"
 #include "os.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern int Mmap_no_random;
 extern void *Mmap_hint;
@@ -140,19 +141,22 @@ char *util_map_hint(size_t len, size_t req_align);
 /*
  * util_map_hint_align -- choose the desired mapping alignment
  *
- * Use 2MB/1GB page alignment only if the mapping length is at least
+ * The smallest supported alignment is 2 megabytes because of the object
+ * alignment requirements. Changing this value to 4 kilobytes constitues a
+ * layout change.
+ *
+ * Use 1GB page alignment only if the mapping length is at least
  * twice as big as the page size.
  */
 static inline size_t
 util_map_hint_align(size_t len, size_t req_align)
 {
-	size_t align = Mmap_align;
+	size_t align = 2 * MEGABYTE;
 	if (req_align)
 		align = req_align;
 	else if (len >= 2 * GIGABYTE)
 		align = GIGABYTE;
-	else if (len >= 4 * MEGABYTE)
-		align = 2 * MEGABYTE;
+
 	return align;
 }
 

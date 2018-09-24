@@ -45,7 +45,7 @@ date: pmempool API version 1.3
 
 # NAME #
 
-_UW(pmempool_rm) -- remove persistent memory pool
+_UW(pmempool_rm) - remove persistent memory pool
 
 
 # SYNOPSIS #

@@ -34,13 +34,6 @@
 #
 # src/test/obj_pool/TEST22 -- unit test for pmemobj_open
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

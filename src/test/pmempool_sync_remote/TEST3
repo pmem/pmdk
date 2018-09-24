@@ -41,8 +41,6 @@ require_test_type medium
 
 . common.sh
 
-setup
-
 configure_poolsets 0 1
 
 dump_info_log_remote 0 ${NODE_DIR[0]}${POOLSET_REMOTE[0]} before.log

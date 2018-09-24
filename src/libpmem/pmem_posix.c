@@ -55,6 +55,9 @@ is_pmem_detect(const void *addr, size_t len)
 {
 	LOG(3, "addr %p len %zu", addr, len);
 
+	if (len == 0)
+		return 0;
+
 	int retval = util_range_is_pmem(addr, len);
 
 	LOG(4, "returning %d", retval);

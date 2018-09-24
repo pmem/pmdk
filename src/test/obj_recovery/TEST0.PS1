@@ -34,12 +34,6 @@
 #
 # src/test/obj_recovery/TEST0 -- unit test for pool recovery
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

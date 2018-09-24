@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 
 	char *addr;
 	size_t mapped_len;
-	ssize_t persist_size;
+	size_t persist_size;
 	size_t offset;
 	const char *path;
 	int is_pmem;
@@ -87,7 +87,10 @@ main(int argc, char *argv[])
 		case 'm':
 		{
 			int fd = OPEN(path, O_RDWR);
-			ssize_t file_size = util_file_get_size(path);
+			ssize_t size = util_file_get_size(path);
+			if (size < 0)
+				UT_FATAL("!util_file_get_size: %s", path);
+			size_t file_size = (size_t)size;
 			/* XXX: add MAP_SYNC flag */
 			addr = MMAP(NULL, file_size, PROT_READ|PROT_WRITE,
 				MAP_SHARED, fd, 0);

@@ -33,12 +33,6 @@
 # src/test/blk_non_zero/TEST0 -- unit test for
 # pmemblk_read/write/set_zero/set_error
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
-
 
 # standard unit test setup
 . ..\unittest\unittest.ps1

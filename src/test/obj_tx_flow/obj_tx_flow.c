@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -106,9 +106,9 @@ do_tx_macro_commit_nested(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 static void
 do_tx_macro_abort_nested(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 {
-	int a = 0;
-	int b = 0;
-	int c = 0;
+	volatile int a = 0;
+	volatile int b = 0;
+	volatile int c = 0;
 	D_RW(*obj)->a = TEST_VALUE_A;
 	D_RW(*obj)->b = TEST_VALUE_B;
 	TX_BEGIN(pop) {

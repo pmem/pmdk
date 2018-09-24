@@ -44,14 +44,14 @@ setup
 
 POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
-rm -rf $LOG && touch $LOG
+rm -f $LOG && touch $LOG
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -x $POOL >> $LOG
 
 echo >> $LOG
 
-rm -rf $POOL
+rm -f $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX create blk 512 $POOL
 expect_normal_exit $PMEMPOOL$EXESUFFIX info -x $POOL >> $LOG
 

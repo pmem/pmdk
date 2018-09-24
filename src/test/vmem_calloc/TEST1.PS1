@@ -33,11 +33,6 @@
 #
 # src/test/vmem_calloc/TEST1.PS1 -- unit test for vmem_calloc
 #
-[CmdletBinding(PositionalBinding=$false)]
-Param(
-    [alias("d")]
-    $DIR = ""
-    )
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
