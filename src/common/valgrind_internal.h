@@ -135,6 +135,8 @@ extern unsigned _On_valgrind;
 
 #include "valgrind/pmemcheck.h"
 
+extern void util_emit_log(const char *lib, const char *func, int order);
+
 #define VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
 	if (On_valgrind)\
 		VALGRIND_PMC_REGISTER_PMEM_MAPPING((addr), (len));\
@@ -457,3 +459,12 @@ extern unsigned _On_valgrind;
 #endif
 
 #endif
+
+/*
+ * Logs library and function name with proper suffix
+ * to pmemcheck store log file.
+ */
+#define PMEMOBJ_API_START()\
+	util_emit_log("libpmemobj", __func__, 0);
+#define PMEMOBJ_API_END()\
+	util_emit_log("libpmemobj", __func__, 1);
