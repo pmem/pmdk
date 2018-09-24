@@ -1,9 +1,9 @@
 create($(nW)/testset1): allocating records in the pool ...
 create($(nW)/testset1): allocated $(N) records (of size $(N))
 verify($(nW)/testset1): pool file successfully verified ($(N) records of size $(N))
-    "badblock_count":$(N),
+    "badblock_count":1,
         "offset":$(N),
-        "length":$(N),
+        "length":1,
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 3 part(s):
@@ -13,7 +13,7 @@ type                     : regular file
 size                     : 10485760
 bad blocks:
 	offset		length
-	8000		$(N)
+	8000		2
 part 1:
 path                     : $(nW)/testfile1
 type                     : regular file
@@ -56,9 +56,9 @@ Heap offset              : $(nW)
 Heap size                : $(nW)
 Checksum                 : $(*)
 Root offset              : $(nW)
-    "badblock_count":$(N),
+    "badblock_count":1,
         "offset":$(N),
-        "length":$(N),
+        "length":1,
 verify($(nW)/testset1): incorrect record: OBJ_VERIFY$(N) (#$(N))
 verify($(nW)/testset1): incorrect number of records (is: $(N), should be: $(N))
 verify($(nW)/testset1): pool file contains error

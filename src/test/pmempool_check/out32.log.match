@@ -1,6 +1,6 @@
-    "badblock_count":$(N),
+    "badblock_count":1,
         "offset":11,
-        "length":$(N),
+        "length":1,
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 1 part(s):
@@ -11,7 +11,7 @@ size                     : $(N)
 alignment                : 4096
 bad blocks:
 	offset		length
-	11		$(N)
+	11		1
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1
@@ -46,14 +46,14 @@ Heap offset              : $(nW)
 Heap size                : $(nW)
 Checksum                 : $(*)
 Root offset              : $(nW)
-    "badblock_count":$(N),
+    "badblock_count":1,
         "offset":11,
-        "length":$(N),
+        "length":1,
 poolset contains bad blocks, use 'pmempool info -k' to print or 'pmempool sync -b' to clear them
 $(nW)/testset1: cannot repair
-    "badblock_count":$(N),
+    "badblock_count":1,
         "offset":11,
-        "length":$(N),
+        "length":1,
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 1 part(s):
@@ -64,7 +64,7 @@ size                     : $(N)
 alignment                : 4096
 bad blocks:
 	offset		length
-	11		$(N)
+	11		1
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1
@@ -99,6 +99,6 @@ Heap offset              : $(nW)
 Heap size                : $(nW)
 Checksum                 : $(*)
 Root offset              : $(nW)
-    "badblock_count":$(N),
+    "badblock_count":1,
         "offset":11,
-        "length":$(N),
+        "length":1,

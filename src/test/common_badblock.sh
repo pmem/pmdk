@@ -287,7 +287,17 @@ function ndctl_inject_error() {
 	local NAMESPACE=$1
 	local BLOCK=$2
 	local COUNT=$3
-	sudo ndctl inject-error --block=$BLOCK --count=$COUNT $NAMESPACE &>> $PREP_LOG_FILE
+
+	echo "# sudo ndctl inject-error --block=$BLOCK --count=$COUNT $NAMESPACE" >> $PREP_LOG_FILE
+	sudo ndctl inject-error --block=$BLOCK --count=$COUNT $NAMESPACE  &>> $PREP_LOG_FILE
+
+	echo "# sudo ndctl start-scrub" >> $PREP_LOG_FILE
+	sudo ndctl start-scrub &>> $PREP_LOG_FILE
+
+	echo "# sudo ndctl wait-scrub" >> $PREP_LOG_FILE
+	sudo ndctl wait-scrub &>> $PREP_LOG_FILE
+
+	echo "(done: ndctl wait-scrub)" >> $PREP_LOG_FILE
 }
 
 #

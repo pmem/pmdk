@@ -62,8 +62,8 @@ FULLDEV="/dev/$DEVICE"
 # create a pool
 expect_normal_exit ./util_badblock$EXESUFFIX $FULLDEV r
 
-# inject bad block: OFF=11 LEN=12
-ndctl_inject_error $NAMESPACE 11 12
+# inject bad block: OFF=11 LEN=1
+ndctl_inject_error $NAMESPACE 11 1
 
 expect_bad_blocks
 

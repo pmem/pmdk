@@ -34,7 +34,7 @@
 # pmempool_sync_remote/TEST23 -- pmempool sync with remote replication
 #                                and bad blocks in the regular file:
 #                                - the pool consists of 1 part
-#                                - bad blocks: 1000-1511
+#                                - offset of bad block: 1000
 #
 
 # standard unit test setup
@@ -97,7 +97,9 @@ expect_normal_exit run_on_node 0 ../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAY
 FILE=${MOUNT_DIR}/pool.local
 FIRST_SECTOR=$(expect_normal_exit run_on_node 0 ../extents $FILE -l 1000)
 
-expect_normal_exit run_on_node 0 sudo ndctl inject-error --block=$FIRST_SECTOR --count=512 $NAMESPACE &>> $PREP_LOG_FILE
+expect_normal_exit run_on_node 0 sudo ndctl inject-error --block=$FIRST_SECTOR --count=1 $NAMESPACE &>> $PREP_LOG_FILE
+expect_normal_exit run_on_node 0 sudo ndctl start-scrub &>> $PREP_LOG_FILE
+expect_normal_exit run_on_node 0 sudo ndctl wait-scrub &>> $PREP_LOG_FILE
 
 expect_bad_blocks_node 0
 
