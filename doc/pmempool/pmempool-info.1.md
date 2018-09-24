@@ -220,12 +220,6 @@ See **RANGE** section for details about range format.
 Print information about only those lanes which require recovery process.
 This option requires **-l**, **--lanes** option.
 
-`-S, --section tx,allocator,list`
-
-Print information only about specified sections from lane.
-The section types may be separated by comma.
-This option requires **-l**, **--lanes** option.
-
 `-O, --object-store`
 
 Print information about all allocated objects.
