@@ -39,8 +39,6 @@ def pmem_obj_cli_functions_block():
             for _ in re.finditer(pattern_of_end, line):
                 end_of_command_block = i
         if start_of_command_block > 0 and end_of_command_block > 0:
-            print("start: ", start_of_command_block)
-            print("end: ", end_of_command_block)
             break
     return lines
 
