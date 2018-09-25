@@ -337,12 +337,14 @@ os_dimm_get_namespace_bounds(struct ndctl_region *region,
 	if (pfn) {
 		*ns_offset = ndctl_pfn_get_resource(pfn);
 		if (*ns_offset == ULLONG_MAX) {
+			errno = EPERM;
 			ERR("!(pfn) cannot read offset of the namespace");
 			return -1;
 		}
 
 		*ns_size = ndctl_pfn_get_size(pfn);
 		if (*ns_size == ULLONG_MAX) {
+			errno = EPERM;
 			ERR("!(pfn) cannot read size of the namespace");
 			return -1;
 		}
@@ -352,12 +354,14 @@ os_dimm_get_namespace_bounds(struct ndctl_region *region,
 	} else if (dax) {
 		*ns_offset = ndctl_dax_get_resource(dax);
 		if (*ns_offset == ULLONG_MAX) {
+			errno = EPERM;
 			ERR("!(dax) cannot read offset of the namespace");
 			return -1;
 		}
 
 		*ns_size = ndctl_dax_get_size(dax);
 		if (*ns_size == ULLONG_MAX) {
+			errno = EPERM;
 			ERR("!(dax) cannot read size of the namespace");
 			return -1;
 		}
@@ -367,12 +371,14 @@ os_dimm_get_namespace_bounds(struct ndctl_region *region,
 	} else { /* raw or btt */
 		*ns_offset = ndctl_namespace_get_resource(ndns);
 		if (*ns_offset == ULLONG_MAX) {
+			errno = EPERM;
 			ERR("!(raw/btt) cannot read offset of the namespace");
 			return -1;
 		}
 
 		*ns_size = ndctl_namespace_get_size(ndns);
 		if (*ns_size == ULLONG_MAX) {
+			errno = EPERM;
 			ERR("!(raw/btt) cannot read size of the namespace");
 			return -1;
 		}
