@@ -77,13 +77,13 @@ void operation_resume(struct operation_context *ctx);
 void operation_delete(struct operation_context *ctx);
 
 int operation_add_buffer(struct operation_context *ctx,
-	void *dest, void *src, size_t size, enum ulog_operation_type type);
+	void *dest, void *src, size_t size, ulog_operation_type type);
 
 int operation_add_entry(struct operation_context *ctx,
-	void *ptr, uint64_t value, enum ulog_operation_type type);
+	void *ptr, uint64_t value, ulog_operation_type type);
 int operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
-	enum ulog_operation_type type, enum operation_log_type log_type);
+	ulog_operation_type type, enum operation_log_type log_type);
 
 int operation_reserve(struct operation_context *ctx, size_t new_capacity);
 void operation_process(struct operation_context *ctx);
