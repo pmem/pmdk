@@ -68,6 +68,7 @@ struct operation_context {
 
 	const struct pmem_ops *p_ops;
 	struct pmem_ops t_ops; /* used for transient data processing */
+	struct pmem_ops s_ops; /* used for shadow copy data processing */
 
 	size_t ulog_curr_offset; /* offset in the log for buffer stores */
 	size_t ulog_curr_capacity; /* capacity of the current log */
@@ -185,9 +186,13 @@ operation_new(struct ulog *ulog, size_t ulog_base_nbytes,
 	ctx->ulog_curr_capacity = 0;
 	ctx->ulog_curr = NULL;
 
-	ctx->t_ops.base = p_ops->base;
+	ctx->t_ops.base = NULL;
 	ctx->t_ops.flush = operation_transient_clean;
 	ctx->t_ops.memcpy = operation_transient_memcpy;
+
+	ctx->s_ops.base = p_ops->base;
+	ctx->s_ops.flush = operation_transient_clean;
+	ctx->s_ops.memcpy = operation_transient_memcpy;
 
 	VECQ_INIT(&ctx->merge_entries);
 
@@ -248,7 +253,7 @@ operation_merge(struct ulog_entry_base *entry, uint64_t value,
  *	existing entries
  *
  * Because this requires a reverse foreach, it cannot be implemented using
- * the on-media ulog log structure because there's no way to find what's
+ * the on-media ulog log structure since there's no way to find what's
  * the previous entry in the log. Instead, the last N entries are stored
  * in a collection and traversed backwards.
  */
@@ -318,13 +323,16 @@ operation_add_typed_entry(struct operation_context *ctx,
 		oplog->ulog = ulog;
 	}
 
-	if (operation_try_merge_entry(ctx, ptr, value, type) != 0)
+	if (log_type == LOG_PERSISTENT &&
+		operation_try_merge_entry(ctx, ptr, value, type) != 0)
 		return 0;
 
 	struct ulog_entry_val *entry = ulog_entry_val_create(
-		oplog->ulog, oplog->offset, ptr, value, type, &ctx->t_ops);
+		oplog->ulog, oplog->offset, ptr, value, type,
+		log_type == LOG_TRANSIENT ? &ctx->t_ops : &ctx->s_ops);
 
-	operation_merge_entry_add(ctx, entry);
+	if (log_type == LOG_PERSISTENT)
+		operation_merge_entry_add(ctx, entry);
 
 	oplog->offset += ulog_entry_size(&entry->base);
 
@@ -478,13 +486,6 @@ operation_start(struct operation_context *ctx)
 	operation_init(ctx);
 	ASSERTeq(ctx->in_progress, 0);
 	ctx->in_progress = 1;
-
-	/* initialize first log with metadata */
-	if (ctx->type == LOG_TYPE_UNDO) {
-		ulog_store(ctx->ulog, ctx->pshadow_ops.ulog, 0,
-			ctx->ulog_base_nbytes,
-			&ctx->next, ctx->p_ops);
-	}
 }
 
 void
@@ -544,8 +545,7 @@ operation_process(struct operation_context *ctx)
 
 	/* process transient entries with transient memory ops */
 	if (ctx->transient_ops.offset != 0)
-		ulog_process(ctx->transient_ops.ulog,
-			OBJ_OFF_IS_VALID_FROM_CTX, &ctx->t_ops);
+		ulog_process(ctx->transient_ops.ulog, NULL, &ctx->t_ops);
 }
 
 /*
@@ -557,9 +557,9 @@ operation_finish(struct operation_context *ctx)
 	ASSERTeq(ctx->in_progress, 1);
 	ctx->in_progress = 0;
 
-	if (ctx->type == LOG_TYPE_REDO) {
+	if (ctx->type == LOG_TYPE_REDO && ctx->pshadow_ops.offset != 0) {
 		operation_process(ctx);
-	} else {
+	} else if (ctx->type == LOG_TYPE_UNDO && ctx->total_logged != 0) {
 		ulog_clobber_data(ctx->ulog,
 			ctx->total_logged, ctx->ulog_base_nbytes,
 			&ctx->next, ctx->p_ops);

@@ -368,9 +368,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct ulog_entry_buf *range)
 				(char *)txr->begin - (char *)dst_ptr];
 		ASSERT((char *)txr->end >= (char *)txr->begin);
 		size_t size = (size_t)((char *)txr->end - (char *)txr->begin);
-		VALGRIND_ADD_TO_TX(txr->begin, size);
 		pmemops_memcpy(&pop->p_ops, txr->begin, src, size, 0);
-		VALGRIND_REMOVE_FROM_TX(txr->begin, size);
 		Free(txr);
 	}
 }
@@ -383,21 +381,11 @@ tx_undo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 {
 	PMEMobjpool *pop = base;
 	const struct pmem_ops *p_ops = &pop->p_ops;
-	VALGRIND_ADD_TO_TX(ptr, usable_size);
 
-	struct ulog *redo = ptr;
-	redo->capacity = ALIGN_DOWN(usable_size - sizeof(struct ulog),
+	size_t capacity = ALIGN_DOWN(usable_size - sizeof(struct ulog),
 		CACHELINE_SIZE);
-	redo->checksum = 0;
-	redo->next = 0;
-	memset(redo->unused, 0, sizeof(redo->unused));
 
-	pmemops_flush(p_ops, redo, sizeof(*redo));
-
-	pmemops_memset(p_ops, redo->data, 0,
-		usable_size - sizeof(*redo), 0);
-
-	VALGRIND_REMOVE_FROM_TX(ptr, usable_size);
+	ulog_construct(ptr, capacity, p_ops);
 
 	return 0;
 }
@@ -462,6 +450,14 @@ tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout,
 	LOG(7, NULL);
 
 	if (recovery) {
+		if (!ulog_recovery_needed((struct ulog *)&layout->undo, 0)) {
+			struct ulog *u = (struct ulog *)&layout->undo;
+			if (u->capacity == 0) /* do this only once */
+				ulog_construct(u,
+					TX_UNDO_LOG_SIZE, &pop->p_ops);
+			return;
+		}
+
 		struct operation_context *ctx =
 			tx_create_undo_context(pop, layout);
 		operation_resume(ctx);

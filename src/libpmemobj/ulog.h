@@ -96,6 +96,9 @@ typedef int (*ulog_extend_fn)(void *, uint64_t *);
 typedef int (*ulog_entry_cb)(struct ulog_entry_base *e, void *arg,
 	const struct pmem_ops *p_ops);
 
+void ulog_construct(struct ulog *ulog, size_t capacity,
+	const struct pmem_ops *p_ops);
+
 size_t ulog_capacity(struct ulog *ulog, size_t ulog_base_bytes,
 	const struct pmem_ops *p_ops);
 void ulog_rebuild_next_vec(struct ulog *ulog, struct ulog_next *next,

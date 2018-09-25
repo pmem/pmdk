@@ -146,6 +146,28 @@ ulog_entry_valid(const struct ulog_entry_base *entry)
 }
 
 /*
+ * ulog_construct -- initializes the ulog structure
+ */
+void
+ulog_construct(struct ulog *ulog, size_t capacity,
+	const struct pmem_ops *p_ops)
+{
+	VALGRIND_ADD_TO_TX(ulog, SIZEOF_ULOG(capacity));
+
+	ulog->capacity = capacity;
+	ulog->checksum = 0;
+	ulog->next = 0;
+	memset(ulog->unused, 0, sizeof(ulog->unused));
+
+	pmemops_flush(p_ops, ulog, sizeof(*ulog));
+
+	pmemops_memset(p_ops, ulog->data, 0,
+		capacity, 0);
+
+	VALGRIND_REMOVE_FROM_TX(ulog, SIZEOF_ULOG(capacity));
+}
+
+/*
  * ulog_foreach_entry -- iterates over every existing entry in the ulog
  */
 int
@@ -261,13 +283,16 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
 	size_t offset = ulog_base_nbytes;
 
 	/*
-	 * Copy exactly one cacheline more than needed. If the user always
+	 * Copy at least 8 bytes more than needed. If the user always
 	 * properly uses entry creation functions, this will zero-out the
-	 * potential leftovers of the previous log.
+	 * potential leftovers of the previous log. Since all we really need
+	 * to zero is the offset, sizeof(struct redo_log_entry_base) is enough.
+	 * If the nbytes is aligned, an entire cacheline needs to be addtionally
+	 * zeroed.
 	 * But the checksum must be calculated based solely on actual data.
 	 */
 	size_t checksum_nbytes = MIN(ulog_base_nbytes, nbytes);
-	nbytes = CACHELINE_ALIGN(nbytes + 1);
+	nbytes = CACHELINE_ALIGN(nbytes + sizeof(struct ulog_entry_base));
 
 	size_t base_nbytes = MIN(ulog_base_nbytes, nbytes);
 	size_t next_nbytes = nbytes - base_nbytes;
@@ -324,21 +349,22 @@ ulog_entry_val_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 
 	struct {
 		struct ulog_entry_val v;
-		uint8_t zeroes[sizeof(struct ulog_entry_base)];
+		struct ulog_entry_base zeroes;
 	} data;
+	COMPILE_ERROR_ON(sizeof(data) != sizeof(data.v) + sizeof(data.zeroes));
 
 	/*
 	 * Write a little bit more to the buffer so that the next entry that
 	 * resides in the log is erased. This will prevent leftovers from
 	 * a previous, clobbered, log from being incorrectly applied.
 	 */
-	memset(data.zeroes, 0, sizeof(data.zeroes));
+	data.zeroes.offset = 0;
 	data.v.base.offset = (uint64_t)(dest) - (uint64_t)p_ops->base;
 	data.v.base.offset |= ULOG_OPERATION(type);
 	data.v.value = value;
 
 	pmemops_memcpy(p_ops, e, &data, sizeof(data),
-		PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_RELAXED);
+		PMEMOBJ_F_MEM_NOFLUSH | PMEMOBJ_F_RELAXED);
 
 	return e;
 }
@@ -370,15 +396,15 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 	 */
 
 	struct ulog_entry_buf *b = alloca(CACHELINE_SIZE);
-	VALGRIND_MAKE_MEM_DEFINED(b, CACHELINE_SIZE);
 	b->base.offset = (uint64_t)(dest) - (uint64_t)p_ops->base;
 	b->base.offset |= ULOG_OPERATION(type);
 	b->size = size;
 	b->checksum = 0;
 
-	size_t ncopy = MIN(size,
-		CACHELINE_SIZE - sizeof(struct ulog_entry_buf));
+	size_t bdatasize = CACHELINE_SIZE - sizeof(struct ulog_entry_buf);
+	size_t ncopy = MIN(size, bdatasize);
 	memcpy(b->data, src, ncopy);
+	memset(b->data + ncopy, 0, bdatasize - ncopy);
 
 	size_t remaining_size = ncopy > size ? 0 : size - ncopy;
 
@@ -387,8 +413,6 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 	size_t lcopy = remaining_size - rcopy;
 
 	uint8_t last_cacheline[CACHELINE_SIZE];
-	VALGRIND_MAKE_MEM_DEFINED(last_cacheline, CACHELINE_SIZE);
-
 	if (lcopy != 0) {
 		memcpy(last_cacheline, srcof + rcopy, lcopy);
 		memset(last_cacheline + lcopy, 0, CACHELINE_SIZE - lcopy);
@@ -560,6 +584,11 @@ ulog_process(struct ulog *ulog, ulog_check_offset_fn check,
 	const struct pmem_ops *p_ops)
 {
 	LOG(15, "ulog %p", ulog);
+
+#ifdef DEBUG
+	if (check)
+		ulog_check(ulog, check, p_ops);
+#endif
 
 	ulog_foreach_entry(ulog, ulog_process_entry, NULL, p_ops);
 }

@@ -1215,7 +1215,7 @@ pmemspoil_process_sec_tx(struct pmemspoil *psp,
 {
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS_FIELD_ARRAY(sec, undo.data,
-			uint8_t, LIST_REDO_LOG_SIZE);
+			uint8_t, TX_UNDO_LOG_SIZE);
 	} PROCESS_END
 
 	return PROCESS_RET;

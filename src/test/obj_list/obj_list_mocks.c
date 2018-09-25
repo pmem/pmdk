@@ -362,7 +362,7 @@ FUNC_MOCK(ulog_store, void,
 	struct ulog *src, size_t nbytes, size_t redo_base_nbytes,
 	struct ulog_next *next, const struct pmem_ops *p_ops)
 	FUNC_MOCK_RUN_DEFAULT {
-		switch (Redo_fail) {
+		switch (Ulog_fail) {
 		case FAIL_AFTER_FINISH:
 			_FUNC_REAL(ulog_store)(dest, src,
 					nbytes, redo_base_nbytes,
@@ -389,7 +389,7 @@ FUNC_MOCK(ulog_process, void, struct ulog *ulog,
 	ulog_check_offset_fn check, const struct pmem_ops *p_ops)
 		FUNC_MOCK_RUN_DEFAULT {
 			_FUNC_REAL(ulog_process)(ulog, check, p_ops);
-			if (Redo_fail == FAIL_AFTER_PROCESS) {
+			if (Ulog_fail == FAIL_AFTER_PROCESS) {
 				DONEW(NULL);
 			}
 		}
