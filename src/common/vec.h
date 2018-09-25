@@ -132,6 +132,11 @@ for (size_t _vec_i = 0;\
 	_vec_i < (vec)->size && (((el) = (vec)->buffer[_vec_i]), 1);\
 	++_vec_i)
 
+#define VEC_FOREACH_REVERSE(el, vec)\
+for (size_t _vec_i = ((vec)->size);\
+	_vec_i != 0 && (((el) = (vec)->buffer[_vec_i - 1]), 1);\
+	--_vec_i)
+
 #define VEC_FOREACH_BY_POS(elpos, vec)\
 for ((elpos) = 0; (elpos) < (vec)->size; ++(elpos))
 

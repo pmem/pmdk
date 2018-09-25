@@ -720,7 +720,7 @@ run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	/* the bit mask is applied immediately by the add entry operations */
 	if (op == MEMBLOCK_ALLOCATED) {
 		operation_add_entry(ctx, &b.values[bpos],
-			bmask, ULOG_OPERATION_AND);
+			bmask, ULOG_OPERATION_OR);
 	} else if (op == MEMBLOCK_FREE) {
 		operation_add_entry(ctx, &b.values[bpos],
 			~bmask, ULOG_OPERATION_AND);

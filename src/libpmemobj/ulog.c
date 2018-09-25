@@ -555,7 +555,8 @@ ulog_clobber(struct ulog *dest, struct ulog_next *next,
 void
 ulog_clobber_data(struct ulog *dest,
 	size_t nbytes, size_t ulog_base_nbytes,
-	struct ulog_next *next, const struct pmem_ops *p_ops)
+	struct ulog_next *next, ulog_free_fn ulog_free,
+	const struct pmem_ops *p_ops)
 {
 	size_t rcapacity = ulog_base_nbytes;
 	size_t nlog = 0;
@@ -571,9 +572,44 @@ ulog_clobber_data(struct ulog *dest,
 			break;
 
 		r = ulog_next_by_offset(VEC_ARR(next)[nlog++], p_ops);
+		if (nlog > 1)
+			break;
+
 		ASSERTne(r, NULL);
 		rcapacity = r->capacity;
 	}
+
+	/*
+	 * To make sure that transaction logs do not occupy too much of space,
+	 * all of them, expect for the first one, are freed at the end of
+	 * the operation. The reasoning for this is that pmalloc() is
+	 * a relatively cheap operation for transactions where many hundreds of
+	 * kilobytes are being snapshot, and so, allocating and freeing the
+	 * buffer for each transaction is an acceptable overhead for the average
+	 * case.
+	 */
+	struct ulog *u = ulog_next_by_offset(dest->next, p_ops);
+	if (u == NULL)
+		return;
+
+	VEC(, uint64_t *) logs_past_first;
+	VEC_INIT(&logs_past_first);
+
+	do {
+		if (VEC_PUSH_BACK(&logs_past_first, &u->next) != 0) {
+			/* this is fine, it will just use more pmem */
+			LOG(1, "unable to free transaction logs memory");
+			goto out;
+		}
+	} while (((u = ulog_next_by_offset(u->next, p_ops)) != NULL));
+
+	uint64_t *ulog_ptr;
+	VEC_FOREACH_REVERSE(ulog_ptr, &logs_past_first) {
+		ulog_free(p_ops->base, ulog_ptr);
+	}
+
+out:
+	VEC_DELETE(&logs_past_first);
 }
 
 /*
