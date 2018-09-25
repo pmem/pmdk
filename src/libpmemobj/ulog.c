@@ -48,7 +48,7 @@
  */
 #define ULOG_OPERATION(op)		((uint64_t)(op))
 #define ULOG_OPERATION_MASK		((uint64_t)(0b111ULL << 61ULL))
-#define ULOG_OPERATION_FROM_OFFSET(off)	(enum ulog_operation_type)\
+#define ULOG_OPERATION_FROM_OFFSET(off)	(ulog_operation_type)\
 	((off) & ULOG_OPERATION_MASK)
 #define ULOG_OFFSET_MASK		(~(ULOG_OPERATION_MASK))
 
@@ -77,7 +77,7 @@ ulog_next(struct ulog *ulog, const struct pmem_ops *p_ops)
 /*
  * ulog_operation -- returns the type of entry operation
  */
-enum ulog_operation_type
+ulog_operation_type
 ulog_entry_type(const struct ulog_entry_base *entry)
 {
 	return ULOG_OPERATION_FROM_OFFSET(entry->offset);
@@ -98,10 +98,9 @@ ulog_entry_offset(const struct ulog_entry_base *entry)
 size_t
 ulog_entry_size(const struct ulog_entry_base *entry)
 {
-	enum ulog_operation_type t = ulog_entry_type(entry);
 	struct ulog_entry_buf *eb;
 
-	switch (t) {
+	switch (ulog_entry_type(entry)) {
 		case ULOG_OPERATION_AND:
 		case ULOG_OPERATION_OR:
 		case ULOG_OPERATION_SET:
@@ -317,7 +316,7 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
  */
 struct ulog_entry_val *
 ulog_entry_val_create(struct ulog *ulog, size_t offset, uint64_t *dest,
-	uint64_t value, enum ulog_operation_type type,
+	uint64_t value, ulog_operation_type type,
 	const struct pmem_ops *p_ops)
 {
 	struct ulog_entry_val *e =
@@ -350,7 +349,7 @@ ulog_entry_val_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 struct ulog_entry_buf *
 ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 	const void *src, uint64_t size,
-	enum ulog_operation_type type, const struct pmem_ops *p_ops)
+	ulog_operation_type type, const struct pmem_ops *p_ops)
 {
 	struct ulog_entry_buf *e =
 		(struct ulog_entry_buf *)(ulog->data + offset);
@@ -437,7 +436,7 @@ void
 ulog_entry_apply(const struct ulog_entry_base *e, int persist,
 	const struct pmem_ops *p_ops)
 {
-	enum ulog_operation_type t = ulog_entry_type(e);
+	ulog_operation_type t = ulog_entry_type(e);
 	uint64_t offset = ulog_entry_offset(e);
 
 	size_t dst_size = sizeof(uint64_t);

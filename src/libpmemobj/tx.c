@@ -433,11 +433,9 @@ static int
 tx_undo_entry_apply(struct ulog_entry_base *e, void *arg,
 	const struct pmem_ops *p_ops)
 {
-	enum ulog_operation_type t = ulog_entry_type(e);
-
 	struct ulog_entry_buf *eb;
 
-	switch (t) {
+	switch (ulog_entry_type(e)) {
 		case ULOG_OPERATION_BUF_CPY:
 			eb = (struct ulog_entry_buf *)e;
 

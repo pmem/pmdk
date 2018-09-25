@@ -81,13 +81,13 @@ struct ulog ULOG(0);
 
 VEC(ulog_next, uint64_t);
 
-enum ulog_operation_type {
-	ULOG_OPERATION_SET	=	(0b000ULL << 61ULL),
-	ULOG_OPERATION_AND	=	(0b001ULL << 61ULL),
-	ULOG_OPERATION_OR	=	(0b010ULL << 61ULL),
-	ULOG_OPERATION_BUF_SET	=	(0b101ULL << 61ULL),
-	ULOG_OPERATION_BUF_CPY	=	(0b110ULL << 61ULL),
-};
+typedef uint64_t ulog_operation_type;
+
+#define ULOG_OPERATION_SET		(0b000ULL << 61ULL)
+#define ULOG_OPERATION_AND		(0b001ULL << 61ULL)
+#define ULOG_OPERATION_OR		(0b010ULL << 61ULL)
+#define ULOG_OPERATION_BUF_SET		(0b101ULL << 61ULL)
+#define ULOG_OPERATION_BUF_CPY		(0b110ULL << 61ULL)
 
 #define ULOG_BIT_OPERATIONS (ULOG_OPERATION_AND | ULOG_OPERATION_OR)
 
@@ -125,18 +125,18 @@ void ulog_process(struct ulog *ulog, ulog_check_offset_fn check,
 int ulog_recovery_needed(struct ulog *ulog, int verify_checksum);
 
 uint64_t ulog_entry_offset(const struct ulog_entry_base *entry);
-enum ulog_operation_type ulog_entry_type(
+ulog_operation_type ulog_entry_type(
 	const struct ulog_entry_base *entry);
 
 struct ulog_entry_val *ulog_entry_val_create(struct ulog *ulog,
 	size_t offset, uint64_t *dest, uint64_t value,
-	enum ulog_operation_type type,
+	ulog_operation_type type,
 	const struct pmem_ops *p_ops);
 
 struct ulog_entry_buf *
 ulog_entry_buf_create(struct ulog *ulog, size_t offset,
 	uint64_t *dest, const void *src, uint64_t size,
-	enum ulog_operation_type type, const struct pmem_ops *p_ops);
+	ulog_operation_type type, const struct pmem_ops *p_ops);
 
 void ulog_entry_apply(const struct ulog_entry_base *e, int persist,
 	const struct pmem_ops *p_ops);

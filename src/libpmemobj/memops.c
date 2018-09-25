@@ -224,7 +224,7 @@ operation_delete(struct operation_context *ctx)
  */
 static inline void
 operation_merge(struct ulog_entry_base *entry, uint64_t value,
-	enum ulog_operation_type type)
+	ulog_operation_type type)
 {
 	struct ulog_entry_val *e = (struct ulog_entry_val *)entry;
 
@@ -254,7 +254,7 @@ operation_merge(struct ulog_entry_base *entry, uint64_t value,
  */
 static int
 operation_try_merge_entry(struct operation_context *ctx,
-	void *ptr, uint64_t value, enum ulog_operation_type type)
+	void *ptr, uint64_t value, ulog_operation_type type)
 {
 	int ret = 0;
 	uint64_t offset = OBJ_PTR_TO_OFF(ctx->p_ops->base, ptr);
@@ -299,7 +299,7 @@ operation_merge_entry_add(struct operation_context *ctx,
 int
 operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
-	enum ulog_operation_type type, enum operation_log_type log_type)
+	ulog_operation_type type, enum operation_log_type log_type)
 {
 	struct operation_log *oplog = log_type == LOG_PERSISTENT ?
 		&ctx->pshadow_ops : &ctx->transient_ops;
@@ -337,7 +337,7 @@ operation_add_typed_entry(struct operation_context *ctx,
  */
 int
 operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
-	enum ulog_operation_type type)
+	ulog_operation_type type)
 {
 	const struct pmem_ops *p_ops = ctx->p_ops;
 	PMEMobjpool *pop = (PMEMobjpool *)p_ops->base;
@@ -354,7 +354,7 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
  */
 int
 operation_add_buffer(struct operation_context *ctx,
-	void *dest, void *src, size_t size, enum ulog_operation_type type)
+	void *dest, void *src, size_t size, ulog_operation_type type)
 {
 	size_t real_size = size + sizeof(struct ulog_entry_buf);
 
@@ -529,7 +529,7 @@ operation_process(struct operation_context *ctx)
 	    ctx->pshadow_ops.offset == sizeof(struct ulog_entry_val)) {
 		struct ulog_entry_base *e = (struct ulog_entry_base *)
 			ctx->pshadow_ops.ulog->data;
-		enum ulog_operation_type t = ulog_entry_type(e);
+		ulog_operation_type t = ulog_entry_type(e);
 		if (t == ULOG_OPERATION_SET || t == ULOG_OPERATION_AND ||
 		    t == ULOG_OPERATION_OR) {
 			ulog_entry_apply(e, 1, ctx->p_ops);
