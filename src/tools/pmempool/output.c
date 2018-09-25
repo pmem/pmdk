@@ -849,7 +849,7 @@ uint32_t
 out_str2feature(const char *str)
 {
 	/* all features has to be named in incompat_features_str array */
-	COMPILE_ERROR_ON(POOL_FEAT_ALL >> INCOMPAT_FEATURES_MAX);
+	COMPILE_ERROR_ON(POOL_FEAT_INCOMPAT_ALL >> INCOMPAT_FEATURES_MAX);
 
 	for (uint32_t f = 0; f < INCOMPAT_FEATURES_MAX; ++f) {
 		if (strcmp(str, incompat_features_str[f]) == 0) {

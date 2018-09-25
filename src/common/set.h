@@ -183,11 +183,9 @@ struct part_file {
 };
 
 struct pool_attr {
-	char signature[POOL_HDR_SIG_LEN];	/* pool signature */
-	uint32_t major;			/* format major version number */
-	uint32_t compat_features;	/* mask: compatible "may" features */
-	uint32_t incompat_features;	/* mask: "must support" features */
-	uint32_t ro_compat_features;	/* mask: force RO if unsupported */
+	char signature[POOL_HDR_SIG_LEN]; /* pool signature */
+	uint32_t major; /* format major version number */
+	features_t features; /* features flags */
 	unsigned char poolset_uuid[POOL_HDR_UUID_LEN];		/* pool uuid */
 	unsigned char first_part_uuid[POOL_HDR_UUID_LEN]; /* first part uuid */
 	unsigned char prev_repl_uuid[POOL_HDR_UUID_LEN]; /* prev replica uuid */

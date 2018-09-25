@@ -58,13 +58,13 @@ extern "C" {
 #define LOG_HDR_SIG "PMEMLOG"	/* must be 8 bytes including '\0' */
 #define LOG_FORMAT_MAJOR 1
 
-#define LOG_FORMAT_COMPAT_DEFAULT	0x0000
-#define LOG_FORMAT_INCOMPAT_DEFAULT	POOL_FEAT_DEFAULT
-#define LOG_FORMAT_RO_COMPAT_DEFAULT	0x0000
+#define LOG_FORMAT_FEAT_DEFAULT \
+	{0x0000, POOL_FEAT_INCOMPAT_DEFAULT, 0x0000}
 
-#define LOG_FORMAT_COMPAT_CHECK		0x0000
-#define LOG_FORMAT_INCOMPAT_CHECK	POOL_FEAT_VALID
-#define LOG_FORMAT_RO_COMPAT_CHECK	0x0000
+#define LOG_FORMAT_FEAT_CHECK \
+	{0x0000, POOL_FEAT_INCOMPAT_VALID, 0x0000}
+
+static const features_t log_format_feat_default = LOG_FORMAT_FEAT_DEFAULT;
 
 struct pmemlog {
 	struct pool_hdr hdr;	/* memory pool header */

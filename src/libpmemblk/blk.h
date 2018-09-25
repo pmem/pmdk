@@ -55,13 +55,13 @@ extern "C" {
 #define BLK_HDR_SIG "PMEMBLK"	/* must be 8 bytes including '\0' */
 #define BLK_FORMAT_MAJOR 1
 
-#define BLK_FORMAT_COMPAT_DEFAULT	0x0000
-#define BLK_FORMAT_INCOMPAT_DEFAULT	POOL_FEAT_DEFAULT
-#define BLK_FORMAT_RO_COMPAT_DEFAULT	0x0000
+#define BLK_FORMAT_FEAT_DEFAULT \
+	{0x0000, POOL_FEAT_INCOMPAT_DEFAULT, 0x0000}
 
-#define BLK_FORMAT_COMPAT_CHECK		0x0000
-#define BLK_FORMAT_INCOMPAT_CHECK	POOL_FEAT_VALID
-#define BLK_FORMAT_RO_COMPAT_CHECK	0x0000
+#define BLK_FORMAT_FEAT_CHECK \
+	{0x0000, POOL_FEAT_INCOMPAT_VALID, 0x0000}
+
+static const features_t blk_format_feat_default = BLK_FORMAT_FEAT_DEFAULT;
 
 struct pmemblk {
 	struct pool_hdr hdr;	/* memory pool header */
