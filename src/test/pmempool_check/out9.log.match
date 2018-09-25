@@ -4,9 +4,9 @@ checking pool header
 pool header correct
 $(nW)file.pool: consistent
 $(nW)file.pool: spoil: pool_hdr.major=0x0
-$(nW)file.pool: spoil: pool_hdr.compat_features=0xff
-$(nW)file.pool: spoil: pool_hdr.incompat_features=0xff
-$(nW)file.pool: spoil: pool_hdr.ro_compat_features=0xff
+$(nW)file.pool: spoil: pool_hdr.features.compat=0xff
+$(nW)file.pool: spoil: pool_hdr.features.incompat=0xff
+$(nW)file.pool: spoil: pool_hdr.features.ro_compat=0xff
 $(nW)file.pool: spoil: pool_hdr.unused=ERROR
 checking shutdown state
 shutdown state correct

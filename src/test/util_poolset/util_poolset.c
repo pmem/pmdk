@@ -177,7 +177,7 @@ main(int argc, char *argv[])
 
 		switch (argv[1][0]) {
 		case 'c':
-			attr.incompat_features = TEST_FORMAT_INCOMPAT_DEFAULT;
+			attr.features.incompat = TEST_FORMAT_INCOMPAT_DEFAULT;
 			ret = util_pool_create(&set, fname, 0, minsize,
 				MIN_PART, &attr, NULL, REPLICAS_ENABLED);
 			if (ret == -1)
@@ -195,7 +195,7 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 'o':
-			attr.incompat_features = TEST_FORMAT_INCOMPAT_CHECK;
+			attr.features.incompat = TEST_FORMAT_INCOMPAT_CHECK;
 			ret = util_pool_open(&set, fname, MIN_PART, &attr,
 						NULL, NULL, 0 /* flags */);
 			if (ret == -1)
@@ -206,7 +206,7 @@ main(int argc, char *argv[])
 			}
 			break;
 		case 'e':
-			attr.incompat_features = TEST_FORMAT_INCOMPAT_CHECK;
+			attr.features.incompat = TEST_FORMAT_INCOMPAT_CHECK;
 			ret = util_pool_open(&set, fname, MIN_PART, &attr,
 						NULL, NULL, 0 /* flags */);
 			UT_ASSERTeq(ret, 0);

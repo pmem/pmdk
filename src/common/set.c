@@ -1876,9 +1876,9 @@ util_set_rpmem_attr(struct pool_hdr *hdrp, const struct rpmem_pool_attr *rattr)
 	LOG(5, "hdrp %p rattr %p", hdrp, rattr);
 	memcpy(hdrp->signature, rattr->signature, POOL_HDR_SIG_LEN);
 	hdrp->major = rattr->major;
-	hdrp->compat_features = rattr->compat_features;
-	hdrp->incompat_features = rattr->incompat_features;
-	hdrp->ro_compat_features = rattr->ro_compat_features;
+	hdrp->features.compat = rattr->compat_features;
+	hdrp->features.incompat = rattr->incompat_features;
+	hdrp->features.ro_compat = rattr->ro_compat_features;
 	memcpy(hdrp->poolset_uuid, rattr->poolset_uuid, POOL_HDR_UUID_LEN);
 	memcpy(hdrp->next_repl_uuid, rattr->next_uuid, POOL_HDR_UUID_LEN);
 	memcpy(hdrp->prev_repl_uuid, rattr->prev_uuid, POOL_HDR_UUID_LEN);
@@ -1895,9 +1895,9 @@ util_get_rpmem_attr(struct rpmem_pool_attr *rattr, const struct pool_hdr *hdrp)
 	ASSERTne(rattr, NULL);
 	memcpy(rattr->signature, hdrp->signature, POOL_HDR_SIG_LEN);
 	rattr->major = hdrp->major;
-	rattr->compat_features = hdrp->compat_features;
-	rattr->incompat_features = hdrp->incompat_features;
-	rattr->ro_compat_features = hdrp->ro_compat_features;
+	rattr->compat_features = hdrp->features.compat;
+	rattr->incompat_features = hdrp->features.incompat;
+	rattr->ro_compat_features = hdrp->features.ro_compat;
 	memcpy(rattr->poolset_uuid, hdrp->poolset_uuid, POOL_HDR_UUID_LEN);
 	memcpy(rattr->uuid, hdrp->uuid, POOL_HDR_UUID_LEN);
 	memcpy(rattr->next_uuid, hdrp->next_repl_uuid, POOL_HDR_UUID_LEN);
@@ -2272,7 +2272,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	util_pool_attr2hdr(hdrp, attr);
 
 	if (set->options & OPTION_SINGLEHDR)
-		hdrp->incompat_features |= POOL_FEAT_SINGLEHDR;
+		hdrp->features.incompat |= POOL_FEAT_SINGLEHDR;
 
 	memcpy(hdrp->poolset_uuid, set->uuid, POOL_HDR_UUID_LEN);
 	memcpy(hdrp->uuid, PART(rep, partidx)->uuid, POOL_HDR_UUID_LEN);
@@ -2401,8 +2401,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 
 	rep->part[partidx].rdonly = 0;
 
-	int retval = util_feature_check(&hdr, attr->incompat_features,
-			attr->ro_compat_features, attr->compat_features);
+	int retval = util_feature_check(&hdr, attr->features);
 	if (retval < 0)
 		return -1;
 
@@ -2460,9 +2459,9 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	/* check compatibility features */
-	if (HDR(rep, 0)->compat_features != hdrp->compat_features ||
-	    HDR(rep, 0)->incompat_features != hdrp->incompat_features ||
-	    HDR(rep, 0)->ro_compat_features != hdrp->ro_compat_features) {
+	if (HDR(rep, 0)->features.compat != hdrp->features.compat ||
+	    HDR(rep, 0)->features.incompat != hdrp->features.incompat ||
+	    HDR(rep, 0)->features.ro_compat != hdrp->features.ro_compat) {
 		ERR("incompatible feature flags");
 		errno = EINVAL;
 		return -1;
@@ -2470,7 +2469,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 
 	/* check poolset options */
 	if (util_poolset_check_header_options(set,
-			HDR(rep, 0)->incompat_features))
+			HDR(rep, 0)->features.incompat))
 		return -1;
 
 	return 0;
@@ -2516,19 +2515,19 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 	}
 
 	/* check compatibility features */
-	if (HDR(rep, 0)->compat_features != hdrp->compat_features) {
+	if (HDR(rep, 0)->features.compat != hdrp->features.compat) {
 		ERR("'may have' compatibility flags mismatch in part %d",
 								partidx);
 		errno = EINVAL;
 		return -1;
 	}
-	if (HDR(rep, 0)->incompat_features != hdrp->incompat_features) {
+	if (HDR(rep, 0)->features.incompat != hdrp->features.incompat) {
 		ERR("'must support' compatibility flags mismatch in part %d",
 								partidx);
 		errno = EINVAL;
 		return -1;
 	}
-	if (HDR(rep, 0)->ro_compat_features != hdrp->ro_compat_features) {
+	if (HDR(rep, 0)->features.ro_compat != hdrp->features.ro_compat) {
 		ERR("'force read-only' compatibility flags mismatch in part %d",
 								partidx);
 		errno = EINVAL;
@@ -3232,7 +3231,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		/* check if poolset options match remote pool attributes */
 		if (attr != NULL &&
 				((set->options & OPTION_SINGLEHDR) == 0) !=
-				((attr->incompat_features &
+				((attr->features.incompat &
 						POOL_FEAT_SINGLEHDR) == 0)) {
 			ERR(
 				"pool incompat feature flags and remote poolset options do not match");
@@ -3649,9 +3648,9 @@ util_pool_hdr2attr(struct pool_attr *attr, struct pool_hdr *hdr)
 	memset(attr, 0, sizeof(*attr));
 	memcpy(attr->signature, hdr->signature, POOL_HDR_SIG_LEN);
 	attr->major = hdr->major;
-	attr->compat_features = hdr->compat_features;
-	attr->incompat_features = hdr->incompat_features;
-	attr->ro_compat_features = hdr->ro_compat_features;
+	attr->features.compat = hdr->features.compat;
+	attr->features.incompat = hdr->features.incompat;
+	attr->features.ro_compat = hdr->features.ro_compat;
 	memcpy(attr->poolset_uuid, hdr->poolset_uuid, POOL_HDR_UUID_LEN);
 }
 
@@ -3666,9 +3665,9 @@ util_pool_attr2hdr(struct pool_hdr *hdr, const struct pool_attr *attr)
 	ASSERTne(attr, NULL);
 	memcpy(hdr->signature, attr->signature, POOL_HDR_SIG_LEN);
 	hdr->major = attr->major;
-	hdr->compat_features = attr->compat_features;
-	hdr->incompat_features = attr->incompat_features;
-	hdr->ro_compat_features = attr->ro_compat_features;
+	hdr->features.compat = attr->features.compat;
+	hdr->features.incompat = attr->features.incompat;
+	hdr->features.ro_compat = attr->features.ro_compat;
 }
 
 /*

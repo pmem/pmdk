@@ -954,27 +954,19 @@ pool_hdr_default(enum pool_type type, struct pool_hdr *hdrp)
 	switch (type) {
 	case POOL_TYPE_LOG:
 		hdrp->major = LOG_FORMAT_MAJOR;
-		hdrp->compat_features = LOG_FORMAT_COMPAT_DEFAULT;
-		hdrp->incompat_features = LOG_FORMAT_INCOMPAT_DEFAULT;
-		hdrp->ro_compat_features = LOG_FORMAT_RO_COMPAT_DEFAULT;
+		hdrp->features = log_format_feat_default;
 		break;
 	case POOL_TYPE_BLK:
 		hdrp->major = BLK_FORMAT_MAJOR;
-		hdrp->compat_features = BLK_FORMAT_COMPAT_DEFAULT;
-		hdrp->incompat_features = BLK_FORMAT_INCOMPAT_DEFAULT;
-		hdrp->ro_compat_features = BLK_FORMAT_RO_COMPAT_DEFAULT;
+		hdrp->features = blk_format_feat_default;
 		break;
 	case POOL_TYPE_OBJ:
 		hdrp->major = OBJ_FORMAT_MAJOR;
-		hdrp->compat_features = OBJ_FORMAT_COMPAT_DEFAULT;
-		hdrp->incompat_features = OBJ_FORMAT_INCOMPAT_DEFAULT;
-		hdrp->ro_compat_features = OBJ_FORMAT_RO_COMPAT_DEFAULT;
+		hdrp->features = obj_format_feat_default;
 		break;
 	case POOL_TYPE_CTO:
 		hdrp->major = CTO_FORMAT_MAJOR;
-		hdrp->compat_features = CTO_FORMAT_COMPAT_DEFAULT;
-		hdrp->incompat_features = CTO_FORMAT_INCOMPAT_DEFAULT;
-		hdrp->ro_compat_features = CTO_FORMAT_RO_COMPAT_DEFAULT;
+		hdrp->features = cto_format_feat_default;
 		break;
 	default:
 		break;

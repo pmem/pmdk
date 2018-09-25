@@ -78,18 +78,14 @@
 static const struct pool_attr Obj_create_attr = {
 		OBJ_HDR_SIG,
 		OBJ_FORMAT_MAJOR,
-		OBJ_FORMAT_COMPAT_DEFAULT,
-		OBJ_FORMAT_INCOMPAT_DEFAULT,
-		OBJ_FORMAT_RO_COMPAT_DEFAULT,
+		OBJ_FORMAT_FEAT_DEFAULT,
 		{0}, {0}, {0}, {0}, {0}
 };
 
 static const struct pool_attr Obj_open_attr = {
 		OBJ_HDR_SIG,
 		OBJ_FORMAT_MAJOR,
-		OBJ_FORMAT_COMPAT_CHECK,
-		OBJ_FORMAT_INCOMPAT_CHECK,
-		OBJ_FORMAT_RO_COMPAT_CHECK,
+		OBJ_FORMAT_FEAT_CHECK,
 		{0}, {0}, {0}, {0}, {0}
 };
 

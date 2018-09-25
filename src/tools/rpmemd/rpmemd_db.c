@@ -196,9 +196,9 @@ rpmemd_get_attr(struct pool_attr *attr, const struct rpmem_pool_attr *rattr)
 	LOG(3, "attr %p, rattr %p", attr, rattr);
 	memcpy(attr->signature, rattr->signature, POOL_HDR_SIG_LEN);
 	attr->major = rattr->major;
-	attr->compat_features = rattr->compat_features;
-	attr->incompat_features = rattr->incompat_features;
-	attr->ro_compat_features = rattr->ro_compat_features;
+	attr->features.compat = rattr->compat_features;
+	attr->features.incompat = rattr->incompat_features;
+	attr->features.ro_compat = rattr->ro_compat_features;
 	memcpy(attr->poolset_uuid, rattr->poolset_uuid, POOL_HDR_UUID_LEN);
 	memcpy(attr->first_part_uuid, rattr->uuid, POOL_HDR_UUID_LEN);
 	memcpy(attr->prev_repl_uuid, rattr->prev_uuid, POOL_HDR_UUID_LEN);
