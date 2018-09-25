@@ -53,7 +53,7 @@ extern "C" {
 
 #define TX_ALIGN_SIZE(s, amask) (((s) + (amask)) & ~(amask))
 
-#define TX_UNDO_LOG_SIZE 960
+#define TX_UNDO_LOG_SIZE 960 /* LANE_SECTION_LEN - sizeof(struct ulog) */
 
 struct lane_tx_layout {
 	struct ULOG(TX_UNDO_LOG_SIZE) undo;
