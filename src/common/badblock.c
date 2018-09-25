@@ -297,8 +297,10 @@ badblocks_recovery_file_exists(struct pool_set *set)
 			}
 
 			exists = util_file_exists(rec_file);
-			if (exists < 0)
+			if (exists < 0) {
+				Free(rec_file);
 				return -1;
+			}
 
 			if (exists) {
 				LOG(3, "bad block recovery file exists: %s",
