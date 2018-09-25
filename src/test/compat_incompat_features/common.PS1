@@ -75,7 +75,7 @@ function set_compat {
         [String]$flag
 
     )
-    expect_normal_exit $PMEMSPOIL $part "pool_hdr.compat_features=$flag" `
+    expect_normal_exit $PMEMSPOIL $part "pool_hdr.features.compat=$flag" `
         "pool_hdr.checksum_gen()"
 }
 
@@ -88,6 +88,6 @@ function set_incompat {
         [String]$flag
 
     )
-    expect_normal_exit $PMEMSPOIL $part "pool_hdr.incompat_features=$flag" `
+    expect_normal_exit $PMEMSPOIL $part "pool_hdr.features.incompat=$flag" `
         "pool_hdr.checksum_gen()"
 }

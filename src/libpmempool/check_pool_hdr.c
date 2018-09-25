@@ -202,25 +202,25 @@ pool_hdr_default_check(PMEMpoolcheck *ppc, location *loc)
 			"to default value 0x%x?", loc->prefix, def_hdr.major);
 	}
 
-	if (loc->hdr.compat_features != def_hdr.compat_features) {
+	if (loc->hdr.features.compat != def_hdr.features.compat) {
 		CHECK_ASK(ppc, Q_DEFAULT_COMPAT_FEATURES,
-			"%spool_hdr.compat_features is not valid.|Do you want "
+			"%spool_hdr.features.compat is not valid.|Do you want "
 			"to set it to default value 0x%x?", loc->prefix,
-			def_hdr.compat_features);
+			def_hdr.features.compat);
 	}
 
-	if (loc->hdr.incompat_features != def_hdr.incompat_features) {
+	if (loc->hdr.features.incompat != def_hdr.features.incompat) {
 		CHECK_ASK(ppc, Q_DEFAULT_INCOMPAT_FEATURES,
-			"%spool_hdr.incompat_features is not valid.|Do you "
+			"%spool_hdr.features.incompat is not valid.|Do you "
 			"want to set it to default value 0x%x?", loc->prefix,
-			def_hdr.incompat_features);
+			def_hdr.features.incompat);
 	}
 
-	if (loc->hdr.ro_compat_features != def_hdr.ro_compat_features) {
+	if (loc->hdr.features.ro_compat != def_hdr.features.ro_compat) {
 		CHECK_ASK(ppc, Q_DEFAULT_RO_COMPAT_FEATURES,
-			"%spool_hdr.ro_compat_features is not valid.|Do you "
+			"%spool_hdr.features.ro_compat is not valid.|Do you "
 			"want to set it to default value 0x%x?", loc->prefix,
-			def_hdr.ro_compat_features);
+			def_hdr.features.ro_compat);
 	}
 
 	if (!util_is_zeroed(loc->hdr.unused, sizeof(loc->hdr.unused))) {
@@ -258,19 +258,19 @@ pool_hdr_default_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 		loc->hdr.major = def_hdr.major;
 		break;
 	case Q_DEFAULT_COMPAT_FEATURES:
-		CHECK_INFO(ppc, "%ssetting pool_hdr.compat_features to 0x%x",
-			loc->prefix, def_hdr.compat_features);
-		loc->hdr.compat_features = def_hdr.compat_features;
+		CHECK_INFO(ppc, "%ssetting pool_hdr.features.compat to 0x%x",
+			loc->prefix, def_hdr.features.compat);
+		loc->hdr.features.compat = def_hdr.features.compat;
 		break;
 	case Q_DEFAULT_INCOMPAT_FEATURES:
-		CHECK_INFO(ppc, "%ssetting pool_hdr.incompat_features to 0x%x",
-			loc->prefix, def_hdr.incompat_features);
-		loc->hdr.incompat_features = def_hdr.incompat_features;
+		CHECK_INFO(ppc, "%ssetting pool_hdr.features.incompat to 0x%x",
+			loc->prefix, def_hdr.features.incompat);
+		loc->hdr.features.incompat = def_hdr.features.incompat;
 		break;
 	case Q_DEFAULT_RO_COMPAT_FEATURES:
-		CHECK_INFO(ppc, "%ssetting pool_hdr.ro_compat_features to 0x%x",
-			loc->prefix, def_hdr.ro_compat_features);
-		loc->hdr.ro_compat_features = def_hdr.ro_compat_features;
+		CHECK_INFO(ppc, "%ssetting pool_hdr.features.ro_compat to 0x%x",
+			loc->prefix, def_hdr.features.ro_compat);
+		loc->hdr.features.ro_compat = def_hdr.features.ro_compat;
 		break;
 	case Q_ZERO_UNUSED_AREA:
 		CHECK_INFO(ppc, "%ssetting pool_hdr.unused to zeros",

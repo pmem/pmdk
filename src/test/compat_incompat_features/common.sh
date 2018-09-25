@@ -72,7 +72,7 @@ UNKNOWN_INCOMPAT=(8 15 1111)
 set_compat() {
 	local part=$1
 	local flag=$2
-	expect_normal_exit $PMEMSPOIL $part pool_hdr.compat_features=$flag \
+	expect_normal_exit $PMEMSPOIL $part pool_hdr.features.compat=$flag \
 		"pool_hdr.checksum_gen\(\)"
 }
 
@@ -80,7 +80,6 @@ set_compat() {
 set_incompat() {
 	local part=$1
 	local flag=$2
-	expect_normal_exit $PMEMSPOIL $part pool_hdr.incompat_features=$flag \
+	expect_normal_exit $PMEMSPOIL $part pool_hdr.features.incompat=$flag \
 		"pool_hdr.checksum_gen\(\)"
 }
-
