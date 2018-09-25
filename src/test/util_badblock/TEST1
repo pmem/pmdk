@@ -44,9 +44,20 @@ require_fs_type any
 
 require_dax_devices 1
 
+#
+# Listing bad blocks on a DAX device requires superuser privileges.
+#
+require_sudo_allowed
+
 setup
 
-expect_normal_exit ./util_badblock$EXESUFFIX ${DEVICE_DAX_PATH[0]} l
+ENV="\
+LD_LIBRARY_PATH=${TEST_LD_LIBRARY_PATH} \
+UNITTEST_NUM=${UNITTEST_NUM} \
+UNITTEST_NAME=${UNITTEST_NAME} \
+UNITTEST_LOG_LEVEL=${UNITTEST_LOG_LEVEL}"
+
+expect_normal_exit sudo bash -c \"${ENV} ./util_badblock$EXESUFFIX ${DEVICE_DAX_PATH[0]} l \"
 
 check
 
