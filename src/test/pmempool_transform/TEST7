@@ -41,6 +41,12 @@ require_test_type medium
 require_dax_devices 1
 require_fs_type any
 
+#
+# Recreating a poolset's part on a DAX device causes clearing bad blocks,
+# but clearing bad blocks in a DAX device requires superuser privileges.
+#
+require_sudo_allowed
+
 setup
 
 dax_device_zero
@@ -100,9 +106,15 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $WRITE_SCRIPT $POOLSET_IN >> \
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_IN >> \
 	$LOG_TEMP
 
+ENV="\
+LD_LIBRARY_PATH=${TEST_LD_LIBRARY_PATH} \
+UNITTEST_NUM=${UNITTEST_NUM} \
+UNITTEST_NAME=${UNITTEST_NAME} \
+UNITTEST_LOG_LEVEL=${UNITTEST_LOG_LEVEL}"
+
 # Transform poolset
-expect_normal_exit $PMEMPOOL$EXESUFFIX transform \
-	$POOLSET_IN $POOLSET_OUT >> $LOG_TEMP
+expect_normal_exit sudo bash -c \"${ENV} \
+	$PMEMPOOL$EXESUFFIX transform $POOLSET_IN $POOLSET_OUT >> $LOG_TEMP \"
 
 # Check if correctly read
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET_OUT >> \

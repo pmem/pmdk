@@ -44,6 +44,12 @@ require_test_type medium
 require_fs_type any
 require_dax_devices 2
 
+#
+# Recreating a poolset's part on a DAX device causes clearing bad blocks,
+# but clearing bad blocks in a DAX device requires superuser privileges.
+#
+require_sudo_allowed
+
 setup
 
 dax_device_zero
@@ -75,14 +81,23 @@ cat $LOG >> $LOG_TEMP
 # Damage the replica
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm ${DEVICE_DAX_PATH[1]}
 
+ENV="\
+LD_LIBRARY_PATH=${TEST_LD_LIBRARY_PATH} \
+UNITTEST_NUM=${UNITTEST_NUM} \
+UNITTEST_NAME=${UNITTEST_NAME} \
+UNITTEST_LOG_LEVEL=${UNITTEST_LOG_LEVEL}"
+
 # Try to synchronize replicas using the second poolset in dry-run mode
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync -d $POOLSET2 >> $LOG_TEMP 2>&1
+expect_abnormal_exit sudo bash -c \"${ENV} \
+	$PMEMPOOL$EXESUFFIX sync -d $POOLSET2 >> $LOG_TEMP 2>&1 \"
 
 # Try to synchronize replicas using the second poolset in normal mode
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET2 >> $LOG_TEMP 2>&1
+expect_abnormal_exit sudo bash -c \"${ENV} \
+	$PMEMPOOL$EXESUFFIX sync $POOLSET2 >> $LOG_TEMP 2>&1 \"
 
 # Synchronize replicas using the first poolset
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET1 >> $LOG_TEMP
+expect_normal_exit sudo bash -c \"${ENV} \
+	$PMEMPOOL$EXESUFFIX sync $POOLSET1 >> $LOG_TEMP \"
 
 # Check metadata using pmempool info
 dump_pool_info $POOLSET1 >> $LOG_TEMP

@@ -41,6 +41,12 @@ require_test_type medium
 require_dax_devices 1
 require_fs_type any
 
+#
+# Recreating a poolset's part on a DAX device causes clearing bad blocks,
+# but clearing bad blocks in a DAX device requires superuser privileges.
+#
+require_sudo_allowed
+
 setup
 
 dax_device_zero
@@ -74,8 +80,7 @@ srpr 0 9
 EOF
 
 # Create poolset1
-expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET \
->> $LOG_TEMP
+expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET >> $LOG_TEMP
 
 # Write some data into the pool, hitting all part files
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $WRITE_SCRIPT $POOLSET >> $LOG_TEMP
@@ -86,8 +91,15 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 # Clear part header on the dax device
 expect_normal_exit $DDMAP$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -n $HDR_LEN -b 1
 
+ENV="\
+LD_LIBRARY_PATH=${TEST_LD_LIBRARY_PATH} \
+UNITTEST_NUM=${UNITTEST_NUM} \
+UNITTEST_NAME=${UNITTEST_NAME} \
+UNITTEST_LOG_LEVEL=${UNITTEST_LOG_LEVEL}"
+
 # Synchronize replicas
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP
+expect_normal_exit sudo bash -c \"${ENV} \
+	$PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP \"
 
 # Check if correctly written
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP

@@ -44,6 +44,12 @@ require_fs_type any
 
 require_dax_device_alignments $SIZE_2MB $SIZE_2MB $SIZE_4KB $SIZE_4KB
 
+#
+# Recreating a poolset's part on a DAX device causes clearing bad blocks,
+# but clearing bad blocks in a DAX device requires superuser privileges.
+#
+require_sudo_allowed
+
 setup
 
 dax_device_zero
@@ -101,8 +107,15 @@ expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f ${DEVICE_DAX_PATH[0]} >> $LOG_TEMP
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f ${DEVICE_DAX_PATH[1]} >> $LOG_TEMP
 
+ENV="\
+LD_LIBRARY_PATH=${TEST_LD_LIBRARY_PATH} \
+UNITTEST_NUM=${UNITTEST_NUM} \
+UNITTEST_NAME=${UNITTEST_NAME} \
+UNITTEST_LOG_LEVEL=${UNITTEST_LOG_LEVEL}"
+
 # Synchronize replicas
-expect_normal_exit $PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP
+expect_normal_exit sudo bash -c \"${ENV} \
+	$PMEMPOOL$EXESUFFIX sync $POOLSET >> $LOG_TEMP \"
 
 # Check if correctly copied
 expect_normal_exit $PMEMOBJCLI$EXESUFFIX -s $READ_SCRIPT $POOLSET >> $LOG_TEMP
