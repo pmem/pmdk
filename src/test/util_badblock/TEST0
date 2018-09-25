@@ -34,13 +34,14 @@
 #
 # src/test/util_badblock/TEST0 -- unit test for util_badblock
 #                                 - regular file with no bad blocks
+#                                   on a non-pmem filesystem
 #
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type any
+require_fs_type non-pmem
 
 setup
 
