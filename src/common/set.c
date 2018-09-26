@@ -3167,48 +3167,42 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	if (!remote && (set->options & OPTION_NOHDRS)) {
 		ERR(
-		"the NOHDRS poolset option is not supported for local poolsets");
-		util_poolset_free(set);
+			"the NOHDRS poolset option is not supported for local poolsets");
 		errno = EINVAL;
-		return -1;
+		goto err_poolset_free;
 	}
 
 	if ((attr == NULL) != ((set->options & OPTION_NOHDRS) != 0)) {
 		ERR(
-		"pool attributes are not supported for poolsets without headers (with the NOHDRS option)");
-		util_poolset_free(set);
+			"pool attributes are not supported for poolsets without headers (with the NOHDRS option)");
 		errno = EINVAL;
-		return -1;
+		goto err_poolset_free;
 	}
 
 	if (set->directory_based && ((set->options & OPTION_SINGLEHDR) == 0)) {
 		ERR(
-		"directory based pools are not supported for poolsets with headers (without SINGLEHDR option)");
-		util_poolset_free(set);
+			"directory based pools are not supported for poolsets with headers (without SINGLEHDR option)");
 		errno = EINVAL;
-		return -1;
+		goto err_poolset_free;
 	}
 
 	if (set->resvsize < minsize) {
-		ERR("reservation pool size %zu smaller than %zu", set->resvsize,
-			minsize);
-		util_poolset_free(set);
+		ERR("reservation pool size %zu smaller than %zu",
+			set->resvsize, minsize);
 		errno = EINVAL;
-		return -1;
+		goto err_poolset_free;
 	}
 
 	if (set->directory_based && set->poolsize == 0 &&
 			util_poolset_append_new_part(set, minsize) != 0) {
 		ERR("cannot create a new part in provided directories");
-		util_poolset_free(set);
-		return -1;
+		goto err_poolset_free;
 	}
 
 	int bbs = badblocks_check_poolset(set, 1 /* create */);
 	if (bbs < 0) {
-		LOG(1,
-			"WARNING: failed to check pool set for bad blocks -- '%s'",
-			path);
+		ERR("failed to check pool set for bad blocks -- '%s'", path);
+		goto err_poolset_free;
 	}
 
 	if (bbs > 0) {
@@ -3216,26 +3210,23 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 							NULL);
 		ERR(
 			"pool set contains bad blocks and cannot be created, run 'pmempool' utility with options 'create -b' to clear bad blocks and create a pool");
-
 		errno = EIO;
-		return -1;
+		goto err_poolset_free;
 	}
 
 	if (set->poolsize < minsize) {
-		ERR("net pool size %zu smaller than %zu", set->poolsize,
-			minsize);
-		util_poolset_free(set);
+		ERR("net pool size %zu smaller than %zu",
+			set->poolsize, minsize);
 		errno = EINVAL;
-		return -1;
+		goto err_poolset_free;
 	}
 
 	if (remote) {
 		/* it is a remote replica - it cannot have replicas */
 		if (set->nreplicas > 1) {
 			LOG(2, "remote pool set cannot have replicas");
-			util_poolset_free(set);
 			errno = EINVAL;
-			return -1;
+			goto err_poolset_free;
 		}
 
 		/* check if poolset options match remote pool attributes */
@@ -3244,25 +3235,23 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 				((attr->incompat_features &
 						POOL_FEAT_SINGLEHDR) == 0)) {
 			ERR(
-			"pool incompat feature flags and remote poolset options do not match");
+				"pool incompat feature flags and remote poolset options do not match");
 			errno = EINVAL;
-			return -1;
+			goto err_poolset_free;
 		}
 	}
 
 	if (!can_have_rep && set->nreplicas > 1) {
 		ERR("replication not supported");
-		util_poolset_free(set);
 		errno = ENOTSUP;
-		return -1;
+		goto err_poolset_free;
 	}
 
 	if (set->remote && util_remote_load()) {
 		ERR(
-		"the pool set requires a remote replica, but the '%s' library cannot be loaded",
+			"the pool set requires a remote replica, but the '%s' library cannot be loaded",
 			LIBRARY_REMOTE);
-		util_poolset_free(set);
-		return -1;
+		goto err_poolset_free;
 	}
 
 	set->zeroed = 1;
@@ -3357,6 +3346,12 @@ err_create:
 err_poolset:
 	oerrno = errno;
 	util_poolset_close(set, DELETE_CREATED_PARTS);
+	errno = oerrno;
+	return -1;
+
+err_poolset_free:
+	oerrno = errno;
+	util_poolset_free(set);
 	errno = oerrno;
 	return -1;
 }
@@ -3790,7 +3785,8 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 
 	int bbs = badblocks_check_poolset(set, 0 /* not create */);
 	if (bbs < 0) {
-		LOG(1, "WARNING: failed to check pool set for bad blocks");
+		ERR("failed to check pool set for bad blocks");
+		return -1;
 	}
 
 	if (bbs > 0) {
@@ -3881,8 +3877,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 	if (cow && (*setp)->replica[0]->part[0].is_dev_dax) {
 		ERR("device dax cannot be mapped privately");
 		errno = ENOTSUP;
-		util_poolset_free(*setp);
-		return -1;
+		goto err_poolset_free;
 	}
 
 	struct pool_set *set = *setp;
@@ -3894,14 +3889,13 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 		ERR(
 			"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
 		errno = EINVAL;
-		return -1;
+		goto err_poolset_free;
 	}
 
 	int bbs = badblocks_check_poolset(set, 0 /* not create */);
 	if (bbs < 0) {
-		LOG(1,
-			"WARNING: failed to check pool set for bad blocks -- '%s'",
-			path);
+		ERR("failed to check pool set for bad blocks -- '%s'", path);
+		goto err_poolset_free;
 	}
 
 	if (bbs > 0) {
@@ -3914,16 +3908,15 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 				"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool -- '%s'",
 				path);
 			errno = EIO;
-			return -1;
+			goto err_poolset_free;
 		}
 	}
 
 	if (set->remote && util_remote_load()) {
-		ERR("the pool set requires a remote replica, "
-			"but the '%s' library cannot be loaded",
+		ERR(
+			"the pool set requires a remote replica, but the '%s' library cannot be loaded",
 			LIBRARY_REMOTE);
-		util_poolset_free(*setp);
-		return -1;
+		goto err_poolset_free;
 	}
 
 	ret = util_poolset_files_local(set, minpartsize, 0);
@@ -3962,6 +3955,12 @@ err_replica:
 err_poolset:
 	oerrno = errno;
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
+	errno = oerrno;
+	return -1;
+
+err_poolset_free:
+	oerrno = errno;
+	util_poolset_free(*setp);
 	errno = oerrno;
 	return -1;
 }
