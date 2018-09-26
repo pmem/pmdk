@@ -133,8 +133,10 @@ rpmem_fip_probe_get(const char *target, struct rpmem_fip_probe *probe)
 		while (prov) {
 			enum rpmem_provider p = rpmem_provider_from_str(
 					prov->fabric_attr->prov_name);
-			if (p == RPMEM_PROV_UNKNOWN)
+			if (p == RPMEM_PROV_UNKNOWN) {
+				prov = prov->next;
 				continue;
+			}
 
 			probe->providers |= (1U << p);
 			prov = prov->next;
