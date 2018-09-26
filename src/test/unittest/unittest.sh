@@ -1488,7 +1488,7 @@ function require_command() {
 # usage: require_command_node <node-number>
 #
 function require_command_node() {
-	if ! run_on_node $1 "which $1 &>/dev/null"; then
+	if ! run_on_node $1 "which $2 &>/dev/null"; then
 		msg "$UNITTEST_NAME: SKIP: node $1: '$2' command required"
 		exit 0
 	fi
