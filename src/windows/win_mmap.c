@@ -193,12 +193,10 @@ mmap_unreserve(void *addr, size_t len)
 }
 
 /*
- * mmap_init -- (internal) load-time initialization of file mapping tracker
- *
- * Called automatically by the run-time loader.
+ * win_mmap_init -- initialization of file mapping tracker
  */
-static void
-mmap_init(void)
+void
+win_mmap_init(void)
 {
 	AcquireSRWLockExclusive(&FileMappingQLock);
 	SORTEDQ_INIT(&FileMappingQHead);
@@ -206,12 +204,10 @@ mmap_init(void)
 }
 
 /*
- * mmap_fini -- (internal) file mapping tracker cleanup routine
- *
- * Called automatically when the process terminates.
+ * win_mmap_fini -- file mapping tracker cleanup routine
  */
-static void
-mmap_fini(void)
+void
+win_mmap_fini(void)
 {
 	/*
 	 * Let's make sure that no one is in the middle of updating the
@@ -1129,9 +1125,3 @@ err:
 	ReleaseSRWLockShared(&FileMappingQLock);
 	return retval;
 }
-
-/*
- * library constructor/destructor functions
- */
-MSVC_CONSTR(mmap_init)
-MSVC_DESTR(mmap_fini)

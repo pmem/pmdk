@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,8 @@
  * should be moved here.
  */
 
+#include "win_mmap.h"
+
 void libpmem_init(void);
 void libpmem_fini(void);
 
@@ -47,6 +49,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 	switch (dwReason) {
 	case DLL_PROCESS_ATTACH:
 		libpmem_init();
+		win_mmap_init();
 		break;
 
 	case DLL_THREAD_ATTACH:
@@ -54,6 +57,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 		break;
 
 	case DLL_PROCESS_DETACH:
+		win_mmap_fini();
 		libpmem_fini();
 		break;
 	}
