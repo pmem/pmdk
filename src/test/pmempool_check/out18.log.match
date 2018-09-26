@@ -1,6 +1,7 @@
 $(nW)pool.p1: spoil: pool_hdr.major=$(nW)
 $(nW)pool.p1: spoil: pool_hdr.poolset_uuid=$(nW)
 $(nW)pool.p1: spoil: pool_hdr.uuid=$(nW)
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 checking shutdown state
 shutdown state correct
 replica 0 part 0: checking pool header

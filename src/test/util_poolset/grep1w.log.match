@@ -7,6 +7,7 @@ $(OPT)compiled with support for Valgrind memcheck
 $(OPT)compiled with support for Valgrind drd
 $(OPT)compiled with support for shutdown state
 open "$(nW)testset0": No such file or directory
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 invalid major version (0)
 open "$(nW)testset2": Permission denied
 open "$(nW)testfile31": No such file or directory

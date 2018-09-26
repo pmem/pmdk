@@ -32,6 +32,7 @@
 
 /*
  * badblock_freebsd.c - implementation of the FreeBSD bad block API
+ *                      - NOT SUPPORTED
  */
 
 #include "out.h"
@@ -50,7 +51,9 @@ os_badblocks_check_file(const char *file)
 {
 	LOG(3, "file %s", file);
 
-	return 0;
+	/* not supported */
+	errno = ENOTSUP;
+	return -1;
 }
 
 /*
@@ -62,7 +65,9 @@ os_badblocks_count(const char *file)
 {
 	LOG(3, "file %s", file);
 
-	return 0;
+	/* not supported */
+	errno = ENOTSUP;
+	return -1;
 }
 
 /*
@@ -73,7 +78,9 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 {
 	LOG(3, "file %s", file);
 
-	return 0;
+	/* not supported */
+	errno = ENOTSUP;
+	return -1;
 }
 
 /*
@@ -85,7 +92,9 @@ os_badblocks_clear(const char *file, struct badblocks *bbs)
 {
 	LOG(3, "file %s badblocks %p", file, bbs);
 
-	return 0;
+	/* not supported */
+	errno = ENOTSUP;
+	return -1;
 }
 
 /*
@@ -97,5 +106,7 @@ os_badblocks_clear_all(const char *file)
 {
 	LOG(3, "file %s", file);
 
-	return 0;
+	/* not supported */
+	errno = ENOTSUP;
+	return -1;
 }

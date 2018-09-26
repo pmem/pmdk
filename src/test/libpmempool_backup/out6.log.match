@@ -1,5 +1,6 @@
 libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t blk -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
 shutdown state correct
@@ -21,12 +22,14 @@ status = consistent
 libpmempool_backup/TEST6: DONE
 libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t blk -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 destination of the backup part does not match size of the source part file: $(nW)pool.part3_backup
 unable to backup poolset
 status = fatal
 libpmempool_backup/TEST6: DONE
 libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t blk -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
 shutdown state correct
@@ -48,6 +51,7 @@ status = consistent
 libpmempool_backup/TEST6: DONE
 libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t log -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
 shutdown state correct
@@ -65,12 +69,14 @@ status = consistent
 libpmempool_backup/TEST6: DONE
 libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t log -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 destination of the backup part does not match size of the source part file: $(nW)pool.part3_backup
 unable to backup poolset
 status = fatal
 libpmempool_backup/TEST6: DONE
 libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t log -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
 shutdown state correct
@@ -88,6 +94,7 @@ status = consistent
 libpmempool_backup/TEST6: DONE
 libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t obj -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
 shutdown state correct
@@ -103,12 +110,14 @@ status = consistent
 libpmempool_backup/TEST6: DONE
 libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t obj -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 destination of the backup part does not match size of the source part file: $(nW)pool.part3_backup
 unable to backup poolset
 status = fatal
 libpmempool_backup/TEST6: DONE
 libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t obj -r 1 $(nW)pool.set
+$(OPT)checking poolset for bad blocks is not supported -- $(*)
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
 shutdown state correct
