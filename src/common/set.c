@@ -3201,9 +3201,8 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 
 	int bbs = badblocks_check_poolset(set, 1 /* create */);
 	if (bbs < 0) {
-		LOG(1,
-			"WARNING: failed to check pool set for bad blocks -- '%s'",
-			path);
+		ERR("failed to check pool set for bad blocks -- '%s'", path);
+		goto err_poolset_free;
 	}
 
 	if (bbs > 0) {
@@ -3786,7 +3785,8 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 
 	int bbs = badblocks_check_poolset(set, 0 /* not create */);
 	if (bbs < 0) {
-		LOG(1, "WARNING: failed to check pool set for bad blocks");
+		ERR("failed to check pool set for bad blocks");
+		return -1;
 	}
 
 	if (bbs > 0) {
@@ -3894,9 +3894,8 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	int bbs = badblocks_check_poolset(set, 0 /* not create */);
 	if (bbs < 0) {
-		LOG(1,
-			"WARNING: failed to check pool set for bad blocks -- '%s'",
-			path);
+		ERR("failed to check pool set for bad blocks -- '%s'", path);
+		goto err_poolset_free;
 	}
 
 	if (bbs > 0) {

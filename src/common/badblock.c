@@ -101,18 +101,13 @@ badblocks_check_file_cb(struct part_file *pf, void *arg)
 		return 0;
 	}
 
-	if (pcfcb->create) {
-		/*
-		 * Poolset is just being created - check if file exists
-		 * and if we can read it.
-		 */
-		int exists = util_file_exists(pf->part->path);
-		if (exists < 0)
-			return -1;
+	int exists = util_file_exists(pf->part->path);
+	if (exists < 0)
+		return -1;
 
-		if (!exists)
-			return 0;
-	}
+	if (!exists)
+		/* the part does not exist, so it has no bad blocks */
+		return 0;
 
 	int ret = os_badblocks_check_file(pf->part->path);
 	if (ret < 0) {
