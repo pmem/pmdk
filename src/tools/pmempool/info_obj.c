@@ -56,18 +56,14 @@
 
 #define PTR_TO_OFF(pop, ptr) ((uintptr_t)(ptr) - (uintptr_t)(pop))
 
-typedef void (*pvector_callback_fn)(struct pmem_info *pip, int v, int vnum,
-		const struct memory_block *m, uint64_t i);
-
 /*
  * lane_need_recovery_redo -- return 1 if redo log needs recovery
  */
 static int
 lane_need_recovery_redo(PMEMobjpool *pop,
-	struct redo_log *redo, size_t nentries)
+	struct ulog *redo, size_t nentries)
 {
-	/* Needs recovery if any of redo log entries has finish flag set */
-	return redo_log_recovery_needed(redo, &pop->p_ops) != 0;
+	return ulog_recovery_needed(redo, 1) != 0;
 }
 
 /*
@@ -84,7 +80,7 @@ lane_need_recovery_list(struct pmem_info *pip,
 	 * object's offset or size are nonzero.
 	 */
 	return lane_need_recovery_redo(pip->obj.pop,
-		(struct redo_log *)&section->redo, LIST_REDO_LOG_SIZE);
+		(struct ulog *)&section->redo, LIST_REDO_LOG_SIZE);
 }
 
 /*
@@ -99,14 +95,12 @@ lane_need_recovery_alloc(struct pmem_info *pip,
 
 	/* there is just a redo log */
 	return lane_need_recovery_redo(pip->obj.pop,
-		(struct redo_log *)&section->external,
+		(struct ulog *)&section->external,
 		ALLOC_REDO_EXTERNAL_SIZE) ||
 		lane_need_recovery_redo(pip->obj.pop,
-			(struct redo_log *)&section->internal,
+			(struct ulog *)&section->internal,
 			ALLOC_REDO_INTERNAL_SIZE);
 }
-
-#define PVECTOR_EMPTY(_pvec) ((_pvec).embedded[0] == 0)
 
 /*
  * lane_need_recovery_tx -- return 1 if transaction's section needs recovery
@@ -117,24 +111,7 @@ lane_need_recovery_tx(struct pmem_info *pip,
 {
 	struct lane_tx_layout *section = (struct lane_tx_layout *)layout;
 
-	int set_cache = 0;
-
-	uint64_t off = section->undo_log[UNDO_SET_CACHE].embedded[0];
-
-	if (off != 0) {
-		struct tx_range_cache *cache = OFF_TO_PTR(pip->obj.pop, off);
-		struct tx_range *range = (struct tx_range *)cache;
-
-		set_cache = (range->offset && range->size);
-	}
-
-	/*
-	 * The transaction section needs recovery
-	 * if state is not committed and
-	 * any undo log not empty
-	 */
-	return (!PVECTOR_EMPTY(section->undo_log[UNDO_SET]) ||
-		set_cache);
+	return ulog_recovery_needed((struct ulog *)&section->undo, 0);
 }
 
 /*
@@ -215,23 +192,23 @@ struct info_obj_redo_args {
  * info_obj_redo_entry - print redo log entry info
  */
 static int
-info_obj_redo_entry(struct redo_log_entry_base *e, void *arg,
+info_obj_redo_entry(struct ulog_entry_base *e, void *arg,
 	const struct pmem_ops *p_ops)
 {
 	struct info_obj_redo_args *a = arg;
-	struct redo_log_entry_val *ev;
+	struct ulog_entry_val *ev;
 
-	switch (redo_log_entry_type(e)) {
-		case REDO_OPERATION_AND:
-		case REDO_OPERATION_OR:
-		case REDO_OPERATION_SET:
-			ev = (struct redo_log_entry_val *)e;
+	switch (ulog_entry_type(e)) {
+		case ULOG_OPERATION_AND:
+		case ULOG_OPERATION_OR:
+		case ULOG_OPERATION_SET:
+			ev = (struct ulog_entry_val *)e;
 
 			outv(a->v, "%010zu: "
 				"Offset: 0x%016jx "
 				"Value: 0x%016jx ",
 				a->i++,
-				redo_log_entry_offset(e),
+				ulog_entry_offset(e),
 				ev->value);
 			break;
 		default:
@@ -245,13 +222,13 @@ info_obj_redo_entry(struct redo_log_entry_base *e, void *arg,
  * info_obj_redo -- print redo log entries
  */
 static void
-info_obj_redo(int v, struct redo_log *redo, size_t nentries,
+info_obj_redo(int v, struct ulog *redo, size_t nentries,
 	const struct pmem_ops *ops)
 {
 	outv_field(v, "Redo log entries", "%lu", nentries);
 
 	struct info_obj_redo_args args = {v, 0};
-	redo_log_foreach_entry(redo, info_obj_redo_entry, &args, ops);
+	ulog_foreach_entry(redo, info_obj_redo_entry, &args, ops);
 }
 
 /*
@@ -263,9 +240,9 @@ info_obj_lane_alloc(int v, struct lane_section_layout *layout,
 {
 	struct lane_alloc_layout *section =
 		(struct lane_alloc_layout *)layout;
-	info_obj_redo(v, (struct redo_log *)&section->internal,
+	info_obj_redo(v, (struct ulog *)&section->internal,
 		ALLOC_REDO_INTERNAL_SIZE, p_ops);
-	info_obj_redo(v, (struct redo_log *)&section->external,
+	info_obj_redo(v, (struct ulog *)&section->external,
 		ALLOC_REDO_EXTERNAL_SIZE, p_ops);
 }
 
@@ -278,37 +255,11 @@ info_obj_lane_list(struct pmem_info *pip, int v,
 {
 	struct lane_list_layout *section = (struct lane_list_layout *)layout;
 
-	info_obj_redo(v, (struct redo_log *)&section->redo, LIST_REDO_LOG_SIZE,
-		&pip->obj.pop->p_ops);
-}
+	struct pmem_ops p_ops;
+	p_ops.base = pip->obj.pop;
 
-static void
-info_obj_pvector(struct pmem_info *pip, int vnum, int vobj,
-	struct pvector *vec, const char *name, pvector_callback_fn cb)
-{
-	struct pvector_context *ctx = pvector_new(pip->obj.pop, vec);
-	if (ctx == NULL) {
-		outv_err("Cannot initialize pvector context\n");
-		exit(EXIT_FAILURE);
-	}
-
-	size_t nvalues = pvector_size(ctx);
-	outv_field(vnum, name, "%lu element%s", nvalues,
-			nvalues != 1 ? "s" : "");
-
-	outv_indent(vobj, 1);
-
-	uint64_t i = 0;
-	uint64_t off;
-	struct memory_block m;
-	for (off = pvector_first(ctx); off != 0; off = pvector_next(ctx)) {
-		m = memblock_from_offset(pip->obj.heap, off);
-		cb(pip, vobj, vobj, &m, i);
-		i++;
-	}
-
-	pvector_delete(ctx);
-	outv_indent(vobj, -1);
+	info_obj_redo(v, (struct ulog *)&section->redo, LIST_REDO_LOG_SIZE,
+		&p_ops);
 }
 
 /*
@@ -356,59 +307,28 @@ info_obj_object_hdr(struct pmem_info *pip, int v, int vid,
 
 }
 
-/*
- * set_entry_cb -- callback for set objects from undo log
- */
-static void
-set_entry_cb(struct pmem_info *pip, int v, int vid,
-	const struct memory_block *m, uint64_t i)
+struct lane_tx_log_args {
+	struct pmem_info *pip;
+	int v;
+};
+
+static int
+tx_undo_entry_apply(struct ulog_entry_base *e, void *arg,
+	const struct pmem_ops *p_ops)
 {
-	struct tx_range *range = m->m_ops->get_user_data(m);
-	info_obj_object_hdr(pip, v, vid, m, i);
+	struct lane_tx_log_args *a = arg;
 
-	outv_title(v, "Tx range");
-	outv_indent(v, 1);
-	outv_field(v, "Offset", "0x%016lx", range->offset);
-	outv_field(v, "Size", "%s", out_get_size_str(range->size,
-				pip->args.human));
-	outv_indent(v, -1);
-	outv_nl(v);
-}
+	outv_title(a->v, "Tx range");
+	outv_indent(a->v, 1);
+	outv_field(a->v, "Offset", "0x%016lx", ulog_entry_offset(e));
+	struct ulog_entry_buf *b = (struct ulog_entry_buf *)e;
 
-/*
- * set_entry_cache_cb -- callback for set cache objects from undo log
- */
-static void
-set_entry_cache_cb(struct pmem_info *pip, int v, int vid,
-	const struct memory_block *m, uint64_t i)
-{
-	struct tx_range_cache *cache = m->m_ops->get_user_data(m);
-	info_obj_object_hdr(pip, v, vid, m, i);
+	outv_field(a->v, "Size", "%s", out_get_size_str(b->size,
+				a->pip->args.human));
+	outv_indent(a->v, -1);
+	outv_nl(a->v);
 
-	int title = 0;
-	uint64_t cache_size = m->m_ops->get_user_size(m);
-	struct tx_range *range;
-
-	for (uint64_t cache_offset = 0; cache_offset < cache_size; ) {
-		range = (struct tx_range *)((char *)cache + cache_offset);
-		if (range->offset == 0 || range->size == 0)
-			break;
-
-		if (!title) {
-			outv_title(v, "Tx range cache");
-			outv_indent(v, 1);
-			title = 1;
-		}
-		outv(v, "%010" PRIu64 ": Offset: 0x%016lx Size: %s\n", i,
-			range->offset, out_get_size_str(range->size,
-					pip->args.human));
-
-		cache_offset += TX_ALIGN_SIZE(range->size, TX_RANGE_MASK) +
-			sizeof(struct tx_range);
-	}
-
-	if (title)
-		outv_indent(v, -1);
+	return 0;
 }
 
 /*
@@ -420,11 +340,18 @@ info_obj_lane_tx(struct pmem_info *pip, int v,
 {
 	struct lane_tx_layout *section = (struct lane_tx_layout *)layout;
 
-	info_obj_pvector(pip, v, v, &section->undo_log[UNDO_SET],
-			"Undo Log - set", set_entry_cb);
-	info_obj_pvector(pip, v, v, &section->undo_log[UNDO_SET_CACHE],
-			"Undo Log - set cache", set_entry_cache_cb);
+	outv_title(v, "Undo Log");
 
+	outv_indent(v, 1);
+
+	struct pmem_ops p_ops;
+	p_ops.base = pip->obj.pop;
+
+	struct lane_tx_log_args args = {pip, v};
+	ulog_foreach_entry((struct ulog *)&section->undo,
+		tx_undo_entry_apply, &args, &p_ops);
+
+	outv_indent(v, -1);
 }
 
 /*
@@ -444,11 +371,14 @@ info_obj_lane_section(struct pmem_info *pip, int v, struct lane_layout *lane,
 	outv_hexdump(v && pip->args.vhdrdump, &lane->sections[type],
 			LANE_SECTION_LEN, lane_off, 1);
 
+	struct pmem_ops p_ops;
+	p_ops.base = pip->obj.pop;
+
 	outv_indent(v, 1);
 	switch (type) {
 	case LANE_SECTION_ALLOCATOR:
 		info_obj_lane_alloc(v, &lane->sections[type],
-			&pip->obj.pop->p_ops);
+			&p_ops);
 		break;
 	case LANE_SECTION_LIST:
 		info_obj_lane_list(pip, v, &lane->sections[type]);

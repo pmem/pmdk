@@ -195,11 +195,11 @@ list_set_oid_redo_log(PMEMobjpool *pop,
 			ASSERTeq(oidp->pool_uuid_lo, 0);
 
 		operation_add_entry(ctx, &oidp->pool_uuid_lo, pop->uuid_lo,
-			REDO_OPERATION_SET);
+			ULOG_OPERATION_SET);
 	}
 
 	operation_add_entry(ctx, &oidp->off, obj_doffset,
-		REDO_OPERATION_SET);
+		ULOG_OPERATION_SET);
 	return 0;
 }
 
@@ -215,11 +215,11 @@ list_update_head(PMEMobjpool *pop,
 	LOG(15, NULL);
 
 	operation_add_entry(ctx, &head->pe_first.off, first_offset,
-		REDO_OPERATION_SET);
+		ULOG_OPERATION_SET);
 
 	if (head->pe_first.pool_uuid_lo == 0) {
 		operation_add_entry(ctx, &head->pe_first.pool_uuid_lo,
-			pop->uuid_lo, REDO_OPERATION_SET);
+			pop->uuid_lo, ULOG_OPERATION_SET);
 	}
 
 	return 0;
@@ -309,8 +309,8 @@ list_fill_entry_redo_log(PMEMobjpool *pop,
 	void *next_ptr = (char *)pop + next_off_off;
 	void *prev_ptr = (char *)pop + prev_off_off;
 
-	operation_add_entry(ctx, next_ptr, next_offset, REDO_OPERATION_SET);
-	operation_add_entry(ctx, prev_ptr, prev_offset, REDO_OPERATION_SET);
+	operation_add_entry(ctx, next_ptr, next_offset, ULOG_OPERATION_SET);
+	operation_add_entry(ctx, prev_ptr, prev_offset, ULOG_OPERATION_SET);
 
 	return 0;
 }
@@ -344,9 +344,9 @@ list_remove_single(PMEMobjpool *pop,
 		void *next_ptr = (char *)pop + prev_next_off;
 
 		operation_add_entry(ctx, prev_ptr, prev_off,
-			REDO_OPERATION_SET);
+			ULOG_OPERATION_SET);
 		operation_add_entry(ctx, next_ptr, next_off,
-			REDO_OPERATION_SET);
+			ULOG_OPERATION_SET);
 
 		if (args->head->pe_first.off == args->obj_doffset) {
 			/* removing element is the first one */
@@ -383,9 +383,9 @@ list_insert_before(PMEMobjpool *pop,
 	void *dest_prev_ptr = (char *)pop + dest_prev_off;
 	void *dest_prev_next_ptr = (char *)pop + dest_prev_next_off;
 	operation_add_entry(ctx, dest_prev_ptr, args_common->obj_doffset,
-		REDO_OPERATION_SET);
+		ULOG_OPERATION_SET);
 	operation_add_entry(ctx, dest_prev_next_ptr, args_common->obj_doffset,
-		REDO_OPERATION_SET);
+		ULOG_OPERATION_SET);
 
 	return 0;
 }
@@ -415,9 +415,9 @@ list_insert_after(PMEMobjpool *pop,
 	void *dest_next_ptr = (char *)pop + dest_next_off;
 	void *dest_next_prev_ptr = (char *)pop + dest_next_prev_off;
 	operation_add_entry(ctx, dest_next_ptr, args_common->obj_doffset,
-		REDO_OPERATION_SET);
+		ULOG_OPERATION_SET);
 	operation_add_entry(ctx, dest_next_prev_ptr, args_common->obj_doffset,
-		REDO_OPERATION_SET);
+		ULOG_OPERATION_SET);
 
 	return 0;
 }
@@ -679,7 +679,7 @@ list_insert(PMEMobjpool *pop,
 	list_fill_entry_redo_log(pop, ctx,
 			&args_common, next_offset, prev_offset, 1);
 
-	operation_process(ctx);
+	operation_finish(ctx);
 
 	pmemobj_mutex_unlock_nofail(pop, &head->lock);
 err:
@@ -839,7 +839,7 @@ list_remove(PMEMobjpool *pop,
 	list_fill_entry_redo_log(pop, ctx,
 			&args_common, 0, 0, 0);
 
-	operation_process(ctx);
+	operation_finish(ctx);
 
 	pmemobj_mutex_unlock_nofail(pop, &head->lock);
 err:
@@ -978,7 +978,7 @@ list_move(PMEMobjpool *pop,
 
 redo_last:
 unlock:
-	operation_process(ctx);
+	operation_finish(ctx);
 	list_mutexes_unlock(pop, head_new, head_old);
 err:
 	lane_release(pop);
@@ -998,7 +998,7 @@ lane_list_recovery(PMEMobjpool *pop, void *data, unsigned length)
 	struct lane_list_layout *section = data;
 	ASSERT(sizeof(*section) <= length);
 
-	redo_log_recover((struct redo_log *)&section->redo,
+	ulog_recover((struct ulog *)&section->redo,
 		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
 
 	return 0;
@@ -1015,7 +1015,7 @@ lane_list_check(PMEMobjpool *pop, void *data, unsigned length)
 	struct lane_list_layout *section = data;
 
 	int ret = 0;
-	if ((ret = redo_log_check((struct redo_log *)&section->redo,
+	if ((ret = ulog_check((struct ulog *)&section->redo,
 			OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops)) != 0) {
 		ERR("list lane: redo log check failed");
 		ASSERT(ret == 0 || ret == -1);
@@ -1032,8 +1032,8 @@ static void *
 lane_list_construct_rt(PMEMobjpool *pop, void *data)
 {
 	struct lane_list_layout *layout = data;
-	return operation_new((struct redo_log *)&layout->redo,
-		LIST_REDO_LOG_SIZE, NULL, &pop->p_ops);
+	return operation_new((struct ulog *)&layout->redo,
+		LIST_REDO_LOG_SIZE, NULL, NULL, &pop->p_ops, LOG_TYPE_REDO);
 }
 
 /*

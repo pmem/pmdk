@@ -49,7 +49,7 @@ extern "C" {
 
 #ifdef WRAP_REAL
 #define WRAP_REAL_PMALLOC
-#define WRAP_REAL_REDO
+#define WRAP_REAL_ULOG
 #define WRAP_REAL_LANE
 #define WRAP_REAL_HEAP
 #define WRAP_REAL_PMEMOBJ
@@ -67,9 +67,9 @@ extern "C" {
 #define palloc_defer_free __wrap_palloc_defer_free
 #endif
 
-#ifndef WRAP_REAL_REDO
-#define redo_log_store __wrap_redo_log_store
-#define redo_log_process __wrap_redo_log_process
+#ifndef WRAP_REAL_ULOG
+#define ulog_store __wrap_ulog_store
+#define ulog_process __wrap_ulog_process
 #endif
 
 #ifndef WRAP_REAL_LANE

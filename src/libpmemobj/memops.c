@@ -49,37 +49,46 @@
 #include "valgrind_internal.h"
 #include "vecq.h"
 
-#define REDO_LOG_BASE_SIZE 1024
+#define ULOG_BASE_SIZE 1024
 #define OP_MERGE_SEARCH 64
 
 struct operation_log {
-	size_t capacity; /* capacity of the redo log */
+	size_t capacity; /* capacity of the ulog log */
 	size_t offset; /* data offset inside of the log */
-	struct redo_log *redo; /* DRAM allocated log of modifications */
+	struct ulog *ulog; /* DRAM allocated log of modifications */
 };
 
 /*
  * operation_context -- context of an ongoing palloc operation
  */
 struct operation_context {
-	redo_extend_fn extend; /* function to allocate next redo logs */
+	enum log_type type;
+
+	ulog_extend_fn extend; /* function to allocate next ulog */
+	ulog_free_fn ulog_free; /* function to free next ulogs */
 
 	const struct pmem_ops *p_ops;
 	struct pmem_ops t_ops; /* used for transient data processing */
+	struct pmem_ops s_ops; /* used for shadow copy data processing */
 
-	struct redo_log *redo; /* pointer to the persistent redo log */
-	size_t redo_base_nbytes; /* available bytes in initial redo log */
-	size_t redo_capacity; /* sum of capacity, incl all next redo logs */
+	size_t ulog_curr_offset; /* offset in the log for buffer stores */
+	size_t ulog_curr_capacity; /* capacity of the current log */
+	struct ulog *ulog_curr; /* current persistent log */
+	size_t total_logged; /* total amount of buffer stores in the logs */
 
-	struct redo_next next; /* vector of 'next' fields of persistent redo */
+	struct ulog *ulog; /* pointer to the persistent ulog log */
+	size_t ulog_base_nbytes; /* available bytes in initial ulog log */
+	size_t ulog_capacity; /* sum of capacity, incl all next ulog logs */
+
+	struct ulog_next next; /* vector of 'next' fields of persistent ulog */
 
 	int in_progress; /* operation sanity check */
 
-	struct operation_log pshadow_ops; /* shadow copy of persistent redo */
+	struct operation_log pshadow_ops; /* shadow copy of persistent ulog */
 	struct operation_log transient_ops; /* log of transient changes */
 
 	/* collection used to look for potential merge candidates */
-	VECQ(, struct redo_log_entry_val *) merge_entries;
+	VECQ(, struct ulog_entry_val *) merge_entries;
 };
 
 /*
@@ -89,18 +98,18 @@ struct operation_context {
 static int
 operation_log_transient_init(struct operation_log *log)
 {
-	log->capacity = REDO_LOG_BASE_SIZE;
+	log->capacity = ULOG_BASE_SIZE;
 	log->offset = 0;
 
-	struct redo_log *src = Zalloc(sizeof(struct redo_log) +
-		REDO_LOG_BASE_SIZE);
+	struct ulog *src = Zalloc(sizeof(struct ulog) +
+		ULOG_BASE_SIZE);
 	if (src == NULL)
 		return -1;
 
 	/* initialize underlying redo log structure */
-	src->capacity = REDO_LOG_BASE_SIZE;
+	src->capacity = ULOG_BASE_SIZE;
 
-	log->redo = src;
+	log->ulog = src;
 
 	return 0;
 }
@@ -111,21 +120,21 @@ operation_log_transient_init(struct operation_log *log)
  */
 static int
 operation_log_persistent_init(struct operation_log *log,
-	size_t redo_base_nbytes)
+	size_t ulog_base_nbytes)
 {
-	log->capacity = REDO_LOG_BASE_SIZE;
+	log->capacity = ULOG_BASE_SIZE;
 	log->offset = 0;
 
-	struct redo_log *src = Zalloc(sizeof(struct redo_log) +
-		REDO_LOG_BASE_SIZE);
+	struct ulog *src = Zalloc(sizeof(struct ulog) +
+		ULOG_BASE_SIZE);
 	if (src == NULL)
 		return -1;
 
 	/* initialize underlying redo log structure */
-	src->capacity = redo_base_nbytes;
+	src->capacity = ulog_base_nbytes;
 	memset(src->unused, 0, sizeof(src->unused));
 
-	log->redo = src;
+	log->ulog = src;
 
 	return 0;
 }
@@ -156,39 +165,50 @@ operation_transient_memcpy(void *base, void *dest, const void *src, size_t len,
  * operation_new -- creates new operation context
  */
 struct operation_context *
-operation_new(struct redo_log *redo, size_t redo_base_nbytes,
-	redo_extend_fn extend, const struct pmem_ops *p_ops)
+operation_new(struct ulog *ulog, size_t ulog_base_nbytes,
+	ulog_extend_fn extend, ulog_free_fn ulog_free,
+	const struct pmem_ops *p_ops, enum log_type type)
 {
 	struct operation_context *ctx = Zalloc(sizeof(*ctx));
 	if (ctx == NULL)
 		goto error_ctx_alloc;
 
-	ctx->redo = redo;
-	ctx->redo_base_nbytes = redo_base_nbytes;
-	ctx->redo_capacity = redo_log_capacity(redo,
-		redo_base_nbytes, p_ops);
+	ctx->ulog = ulog;
+	ctx->ulog_base_nbytes = ulog_base_nbytes;
+	ctx->ulog_capacity = ulog_capacity(ulog,
+		ulog_base_nbytes, p_ops);
 	ctx->extend = extend;
+	ctx->ulog_free = ulog_free;
 	ctx->in_progress = 0;
 	VEC_INIT(&ctx->next);
-	redo_log_rebuild_next_vec(redo, &ctx->next, p_ops);
+	ulog_rebuild_next_vec(ulog, &ctx->next, p_ops);
 	ctx->p_ops = p_ops;
+	ctx->type = type;
 
-	ctx->t_ops.base = p_ops->base;
+	ctx->ulog_curr_offset = 0;
+	ctx->ulog_curr_capacity = 0;
+	ctx->ulog_curr = NULL;
+
+	ctx->t_ops.base = NULL;
 	ctx->t_ops.flush = operation_transient_clean;
 	ctx->t_ops.memcpy = operation_transient_memcpy;
+
+	ctx->s_ops.base = p_ops->base;
+	ctx->s_ops.flush = operation_transient_clean;
+	ctx->s_ops.memcpy = operation_transient_memcpy;
 
 	VECQ_INIT(&ctx->merge_entries);
 
 	if (operation_log_transient_init(&ctx->transient_ops) != 0)
-		goto error_redo_alloc;
+		goto error_ulog_alloc;
 
 	if (operation_log_persistent_init(&ctx->pshadow_ops,
-	    redo_base_nbytes) != 0)
-		goto error_redo_alloc;
+	    ulog_base_nbytes) != 0)
+		goto error_ulog_alloc;
 
 	return ctx;
 
-error_redo_alloc:
+error_ulog_alloc:
 	operation_delete(ctx);
 error_ctx_alloc:
 	return NULL;
@@ -202,8 +222,8 @@ operation_delete(struct operation_context *ctx)
 {
 	VECQ_DELETE(&ctx->merge_entries);
 	VEC_DELETE(&ctx->next);
-	Free(ctx->pshadow_ops.redo);
-	Free(ctx->transient_ops.redo);
+	Free(ctx->pshadow_ops.ulog);
+	Free(ctx->transient_ops.ulog);
 	Free(ctx);
 }
 
@@ -211,19 +231,19 @@ operation_delete(struct operation_context *ctx)
  * operation_merge -- (internal) performs operation on a field
  */
 static inline void
-operation_merge(struct redo_log_entry_base *entry, uint64_t value,
-	enum redo_operation_type type)
+operation_merge(struct ulog_entry_base *entry, uint64_t value,
+	ulog_operation_type type)
 {
-	struct redo_log_entry_val *e = (struct redo_log_entry_val *)entry;
+	struct ulog_entry_val *e = (struct ulog_entry_val *)entry;
 
 	switch (type) {
-		case REDO_OPERATION_AND:
+		case ULOG_OPERATION_AND:
 			e->value &= value;
 			break;
-		case REDO_OPERATION_OR:
+		case ULOG_OPERATION_OR:
 			e->value |= value;
 			break;
-		case REDO_OPERATION_SET:
+		case ULOG_OPERATION_SET:
 			e->value = value;
 			break;
 		default:
@@ -236,21 +256,21 @@ operation_merge(struct redo_log_entry_base *entry, uint64_t value,
  *	existing entries
  *
  * Because this requires a reverse foreach, it cannot be implemented using
- * the on-media redo log structure since there's no way to find what's
+ * the on-media ulog log structure since there's no way to find what's
  * the previous entry in the log. Instead, the last N entries are stored
  * in a collection and traversed backwards.
  */
 static int
 operation_try_merge_entry(struct operation_context *ctx,
-	void *ptr, uint64_t value, enum redo_operation_type type)
+	void *ptr, uint64_t value, ulog_operation_type type)
 {
 	int ret = 0;
 	uint64_t offset = OBJ_PTR_TO_OFF(ctx->p_ops->base, ptr);
 
-	struct redo_log_entry_val *e;
+	struct ulog_entry_val *e;
 	VECQ_FOREACH_REVERSE(e, &ctx->merge_entries) {
-		if (redo_log_entry_offset(&e->base) == offset) {
-			if (redo_log_entry_type(&e->base) == type) {
+		if (ulog_entry_offset(&e->base) == offset) {
+			if (ulog_entry_type(&e->base) == type) {
 				operation_merge(&e->base, value, type);
 				return 1;
 			} else {
@@ -268,7 +288,7 @@ operation_try_merge_entry(struct operation_context *ctx,
  */
 static void
 operation_merge_entry_add(struct operation_context *ctx,
-	struct redo_log_entry_val *entry)
+	struct ulog_entry_val *entry)
 {
 	if (VECQ_SIZE(&ctx->merge_entries) == OP_MERGE_SEARCH)
 		(void) VECQ_DEQUEUE(&ctx->merge_entries);
@@ -287,36 +307,37 @@ operation_merge_entry_add(struct operation_context *ctx,
 int
 operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
-	enum redo_operation_type type, enum operation_log_type log_type)
+	ulog_operation_type type, enum operation_log_type log_type)
 {
-	ASSERTeq(type & REDO_VAL_OPERATIONS, type);
-
 	struct operation_log *oplog = log_type == LOG_PERSISTENT ?
 		&ctx->pshadow_ops : &ctx->transient_ops;
 
 	/*
 	 * Always make sure to have one extra spare cacheline so that the
-	 * redo log entry creation has enough room for zeroing.
+	 * ulog log entry creation has enough room for zeroing.
 	 */
 	if (oplog->offset + CACHELINE_SIZE == oplog->capacity) {
-		size_t ncapacity = oplog->capacity + REDO_LOG_BASE_SIZE;
-		struct redo_log *redo = Realloc(oplog->redo,
-			SIZEOF_REDO_LOG(ncapacity));
-		if (redo == NULL)
+		size_t ncapacity = oplog->capacity + ULOG_BASE_SIZE;
+		struct ulog *ulog = Realloc(oplog->ulog,
+			SIZEOF_ULOG(ncapacity));
+		if (ulog == NULL)
 			return -1;
-		oplog->capacity += REDO_LOG_BASE_SIZE;
-		oplog->redo = redo;
+		oplog->capacity += ULOG_BASE_SIZE;
+		oplog->ulog = ulog;
 	}
 
-	if (operation_try_merge_entry(ctx, ptr, value, type) != 0)
+	if (log_type == LOG_PERSISTENT &&
+		operation_try_merge_entry(ctx, ptr, value, type) != 0)
 		return 0;
 
-	struct redo_log_entry_val *entry = redo_log_entry_val_create(
-		oplog->redo, oplog->offset, ptr, value, type, &ctx->t_ops);
+	struct ulog_entry_val *entry = ulog_entry_val_create(
+		oplog->ulog, oplog->offset, ptr, value, type,
+		log_type == LOG_TRANSIENT ? &ctx->t_ops : &ctx->s_ops);
 
-	operation_merge_entry_add(ctx, entry);
+	if (log_type == LOG_PERSISTENT)
+		operation_merge_entry_add(ctx, entry);
 
-	oplog->offset += redo_log_entry_size(&entry->base);
+	oplog->offset += ulog_entry_size(&entry->base);
 
 	return 0;
 }
@@ -327,7 +348,7 @@ operation_add_typed_entry(struct operation_context *ctx,
  */
 int
 operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
-	enum redo_operation_type type)
+	ulog_operation_type type)
 {
 	const struct pmem_ops *p_ops = ctx->p_ops;
 	PMEMobjpool *pop = (PMEMobjpool *)p_ops->base;
@@ -340,40 +361,96 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 }
 
 /*
- * operation_process_persistent_redo -- (internal) process using redo
+ * operation_add_buffer -- adds a buffer operation to the log
+ */
+int
+operation_add_buffer(struct operation_context *ctx,
+	void *dest, void *src, size_t size, ulog_operation_type type)
+{
+	size_t real_size = size + sizeof(struct ulog_entry_buf);
+
+	/* if there's no space left in the log, reserve some more */
+	if (ctx->ulog_curr_capacity == 0) {
+		if (operation_reserve(ctx, ctx->total_logged + real_size) != 0)
+			return -1;
+
+		ctx->ulog_curr = ctx->ulog_curr == NULL ? ctx->ulog :
+			OBJ_OFF_TO_PTR(ctx->p_ops->base, ctx->ulog_curr->next);
+		ctx->ulog_curr_offset = 0;
+		ctx->ulog_curr_capacity = ctx->ulog_curr->capacity;
+	}
+
+	size_t curr_size = MIN(real_size, ctx->ulog_curr_capacity);
+	size_t data_size = curr_size - sizeof(struct ulog_entry_buf);
+
+	/* create a persistent log entry */
+	struct ulog_entry_buf *e = ulog_entry_buf_create(ctx->ulog_curr,
+		ctx->ulog_curr_offset,
+		dest, src, data_size,
+		type, ctx->p_ops);
+	size_t entry_size = ulog_entry_size(&e->base);
+	ASSERT(entry_size <= ctx->ulog_curr_capacity);
+
+	ctx->total_logged += entry_size;
+	ctx->ulog_curr_offset += entry_size;
+	ctx->ulog_curr_capacity -= entry_size;
+
+	/*
+	 * Recursively add the data to the log until the entire buffer is
+	 * processed.
+	 */
+	return size - data_size == 0 ? 0 : operation_add_buffer(ctx,
+			(char *)dest + data_size,
+			(char *)src + data_size,
+			size - data_size, type);
+}
+
+/*
+ * operation_process_persistent_redo -- (internal) process using ulog
  */
 static void
 operation_process_persistent_redo(struct operation_context *ctx)
 {
 	ASSERTeq(ctx->pshadow_ops.capacity % CACHELINE_SIZE, 0);
 
-	redo_log_store(ctx->redo, ctx->pshadow_ops.redo,
-		ctx->pshadow_ops.offset, ctx->redo_base_nbytes, &ctx->next,
+	ulog_store(ctx->ulog, ctx->pshadow_ops.ulog,
+		ctx->pshadow_ops.offset, ctx->ulog_base_nbytes,
+		&ctx->next, ctx->p_ops);
+
+	ulog_process(ctx->pshadow_ops.ulog, OBJ_OFF_IS_VALID_FROM_CTX,
 		ctx->p_ops);
 
-	redo_log_process(ctx->pshadow_ops.redo,
-		OBJ_OFF_IS_VALID_FROM_CTX, ctx->p_ops);
-
-	redo_log_clobber(ctx->redo, &ctx->next, ctx->p_ops);
+	ulog_clobber(ctx->ulog, &ctx->next, ctx->p_ops);
 }
 
 /*
- * operation_reserve -- (internal) reserves new capacity in persistent redo log
+ * operation_process_persistent_undo -- (internal) process using ulog
+ */
+static void
+operation_process_persistent_undo(struct operation_context *ctx)
+{
+	ASSERTeq(ctx->pshadow_ops.capacity % CACHELINE_SIZE, 0);
+
+	ulog_process(ctx->ulog, OBJ_OFF_IS_VALID_FROM_CTX, ctx->p_ops);
+}
+
+/*
+ * operation_reserve -- (internal) reserves new capacity in persistent ulog log
  */
 int
 operation_reserve(struct operation_context *ctx, size_t new_capacity)
 {
-	if (new_capacity > ctx->redo_capacity) {
+	if (new_capacity > ctx->ulog_capacity) {
 		if (ctx->extend == NULL) {
 			ERR("no extend function present");
 			return -1;
 		}
 
-		if (redo_log_reserve(ctx->redo,
-		    ctx->redo_base_nbytes, &new_capacity, ctx->extend,
+		if (ulog_reserve(ctx->ulog,
+		    ctx->ulog_base_nbytes, &new_capacity, ctx->extend,
 		    &ctx->next, ctx->p_ops) != 0)
 			return -1;
-		ctx->redo_capacity = new_capacity;
+		ctx->ulog_capacity = new_capacity;
 	}
 
 	return 0;
@@ -389,13 +466,18 @@ operation_init(struct operation_context *ctx)
 	struct operation_log *tlog = &ctx->transient_ops;
 
 	VALGRIND_ANNOTATE_NEW_MEMORY(ctx, sizeof(*ctx));
-	VALGRIND_ANNOTATE_NEW_MEMORY(tlog->redo, sizeof(struct redo_log) +
+	VALGRIND_ANNOTATE_NEW_MEMORY(tlog->ulog, sizeof(struct ulog) +
 		tlog->capacity);
-	VALGRIND_ANNOTATE_NEW_MEMORY(plog->redo, sizeof(struct redo_log) +
+	VALGRIND_ANNOTATE_NEW_MEMORY(plog->ulog, sizeof(struct ulog) +
 		plog->capacity);
 	tlog->offset = 0;
 	plog->offset = 0;
 	VECQ_REINIT(&ctx->merge_entries);
+
+	ctx->ulog_curr_offset = 0;
+	ctx->ulog_curr_capacity = 0;
+	ctx->ulog_curr = NULL;
+	ctx->total_logged = 0;
 }
 
 /*
@@ -407,6 +489,16 @@ operation_start(struct operation_context *ctx)
 	operation_init(ctx);
 	ASSERTeq(ctx->in_progress, 0);
 	ctx->in_progress = 1;
+}
+
+void
+operation_resume(struct operation_context *ctx)
+{
+	operation_init(ctx);
+	ASSERTeq(ctx->in_progress, 0);
+	ctx->in_progress = 1;
+	/* assume the entire log is occupied for the purpose of data clobber */
+	ctx->total_logged = ctx->ulog_capacity;
 }
 
 /*
@@ -435,25 +527,49 @@ operation_process(struct operation_context *ctx)
 	 * the redo log. We can simply assign the value, the operation will be
 	 * atomic.
 	 */
-	int pmem_processed = 0;
-	if (ctx->pshadow_ops.offset == sizeof(struct redo_log_entry_val)) {
-		struct redo_log_entry_base *e = (struct redo_log_entry_base *)
-			ctx->pshadow_ops.redo->data;
-		enum redo_operation_type t = redo_log_entry_type(e);
-		if ((t & REDO_VAL_OPERATIONS) == t) {
-			redo_log_entry_apply(e, 1, ctx->p_ops);
-			pmem_processed = 1;
+	int redo_process = ctx->type == LOG_TYPE_REDO &&
+		ctx->pshadow_ops.offset != 0;
+	if (redo_process &&
+	    ctx->pshadow_ops.offset == sizeof(struct ulog_entry_val)) {
+		struct ulog_entry_base *e = (struct ulog_entry_base *)
+			ctx->pshadow_ops.ulog->data;
+		ulog_operation_type t = ulog_entry_type(e);
+		if (t == ULOG_OPERATION_SET || t == ULOG_OPERATION_AND ||
+		    t == ULOG_OPERATION_OR) {
+			ulog_entry_apply(e, 1, ctx->p_ops);
+			redo_process = 0;
 		}
 	}
 
-	if (!pmem_processed && ctx->pshadow_ops.offset != 0)
+	if (redo_process)
 		operation_process_persistent_redo(ctx);
+	else if (ctx->type == LOG_TYPE_UNDO)
+		operation_process_persistent_undo(ctx);
 
 	/* process transient entries with transient memory ops */
 	if (ctx->transient_ops.offset != 0)
-		redo_log_process(ctx->transient_ops.redo,
-			OBJ_OFF_IS_VALID_FROM_CTX, &ctx->t_ops);
+		ulog_process(ctx->transient_ops.ulog, NULL, &ctx->t_ops);
+}
 
+/*
+ * operation_finish -- finalizes the operation
+ */
+void
+operation_finish(struct operation_context *ctx)
+{
 	ASSERTeq(ctx->in_progress, 1);
 	ctx->in_progress = 0;
+
+	if (ctx->type == LOG_TYPE_REDO && ctx->pshadow_ops.offset != 0) {
+		operation_process(ctx);
+	} else if (ctx->type == LOG_TYPE_UNDO && ctx->total_logged != 0) {
+		ulog_clobber_data(ctx->ulog,
+			ctx->total_logged, ctx->ulog_base_nbytes,
+			&ctx->next, ctx->ulog_free, ctx->p_ops);
+		/* clobbering might have shrunk the ulog */
+		ctx->ulog_capacity = ulog_capacity(ctx->ulog,
+			ctx->ulog_base_nbytes, ctx->p_ops);
+		VEC_CLEAR(&ctx->next);
+		ulog_rebuild_next_vec(ctx->ulog, &ctx->next, ctx->p_ops);
+	}
 }

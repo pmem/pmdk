@@ -1,7 +1,7 @@
 obj_persist_count$(nW)TEST0: START: obj_persist_count
  $(nW)obj_persist_count$(nW) $(nW)testfile
 task           cl(all) drain(all) pmem_persist pmem_msync pmem_flush pmem_drain pmem_memcpy_cls pmem_memcpy_drain pmem_memset_cls pmem_memset_drain potential_cache_misses 
-pool_create    99467   19         0            19         0          0          0               0                 0               0                 99467                  
+pool_create    245899  2067       0            2067       0          0          0               0                 0               0                 245899                 
 root_alloc     454     7          0            7          0          0          0               0                 0               0                 454                    
 atomic_alloc   129     2          0            2          0          0          0               0                 0               0                 129                    
 atomic_free    64      1          0            1          0          0          0               0                 0               0                 64                     
@@ -10,7 +10,7 @@ tx_alloc       193     3          0            3          0          0          
 tx_alloc_next  193     3          0            3          0          0          0               0                 0               0                 193                    
 tx_free        64      1          0            1          0          0          0               0                 0               0                 64                     
 tx_free_next   64      1          0            1          0          0          0               0                 0               0                 64                     
-tx_add         2186    18         0            18         0          0          0               0                 0               0                 2186                   
+tx_add         258     4          0            4          0          0          0               0                 0               0                 258                    
 tx_add_next    258     4          0            4          0          0          0               0                 0               0                 258                    
 pmalloc        324     5          0            5          0          0          0               0                 0               0                 324                    
 pfree          259     4          0            4          0          0          0               0                 0               0                 259                    

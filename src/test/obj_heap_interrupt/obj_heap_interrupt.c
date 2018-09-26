@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,13 +41,13 @@ POBJ_LAYOUT_BEGIN(heap_interrupt);
 POBJ_LAYOUT_END(heap_interrupt);
 
 
-static int exit_on_process = 0;
-FUNC_MOCK(operation_process, void, struct operation_context *ctx)
+static int exit_on_finish = 0;
+FUNC_MOCK(operation_finish, void, struct operation_context *ctx)
 	FUNC_MOCK_RUN_DEFAULT {
-		if (exit_on_process)
+		if (exit_on_finish)
 			exit(0);
 		else
-			_FUNC_REAL(operation_process)(ctx);
+			_FUNC_REAL(operation_finish)(ctx);
 	}
 FUNC_MOCK_END
 
@@ -63,7 +63,7 @@ sc0_create(PMEMobjpool *pop)
 
 	pmemobj_free(&oids[0]);
 
-	exit_on_process = 1;
+	exit_on_finish = 1;
 	pmemobj_free(&oids[1]);
 }
 

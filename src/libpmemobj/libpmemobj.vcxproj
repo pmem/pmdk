@@ -23,7 +23,7 @@
     <ClCompile Include="..\..\src\libpmemobj\palloc.c" />
     <ClCompile Include="..\..\src\libpmemobj\pmalloc.c" />
     <ClCompile Include="..\..\src\libpmemobj\ravl.c" />
-    <ClCompile Include="..\..\src\libpmemobj\redo.c" />
+    <ClCompile Include="..\..\src\libpmemobj\ulog.c" />
     <ClCompile Include="..\..\src\libpmemobj\sync.c" />
     <ClCompile Include="..\..\src\libpmemobj\tx.c" />
     <ClCompile Include="..\common\badblock.c" />
@@ -53,7 +53,6 @@
     <ClCompile Include="container_seglists.c" />
     <ClCompile Include="libpmemobj_main.c" />
     <ClCompile Include="memblock.c" />
-    <ClCompile Include="pvector.c" />
     <ClCompile Include="recycler.c" />
     <ClCompile Include="stats.c" />
   </ItemGroup>
@@ -112,7 +111,6 @@
     <ClInclude Include="container_ravl.h" />
     <ClInclude Include="container_seglists.h" />
     <ClInclude Include="memblock.h" />
-    <ClInclude Include="pvector.h" />
     <ClInclude Include="recycler.h" />
     <ClInclude Include="stats.h" />
     <ClInclude Include="sync.h" />

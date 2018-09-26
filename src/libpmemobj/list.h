@@ -44,7 +44,7 @@
 #include "libpmemobj.h"
 #include "lane.h"
 #include "pmalloc.h"
-#include "redo.h"
+#include "ulog.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,7 +59,7 @@ extern "C" {
  * redo       - redo log
  */
 struct lane_list_layout {
-	struct REDO_LOG(LIST_REDO_LOG_SIZE) redo;
+	struct ULOG(LIST_REDO_LOG_SIZE) redo;
 };
 
 struct list_entry {

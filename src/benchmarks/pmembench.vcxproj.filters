@@ -31,10 +31,7 @@
     <ClCompile Include="..\libpmemobj\pmalloc.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\libpmemobj\pvector.c">
-      <Filter>pmemobj</Filter>
-    </ClCompile>
-    <ClCompile Include="..\libpmemobj\redo.c">
+    <ClCompile Include="..\libpmemobj\ulog.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
     <ClCompile Include="..\libpmemobj\sync.c">

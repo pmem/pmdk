@@ -37,7 +37,7 @@
     <ClCompile Include="..\..\src\libpmemobj\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmemobj\redo.c">
+    <ClCompile Include="..\..\src\libpmemobj\ulog.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\libpmemobj\sync.c">
@@ -125,9 +125,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="memblock.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pvector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="recycler.c">
@@ -298,9 +295,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="memblock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pvector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="recycler.h">
