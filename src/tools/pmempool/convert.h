@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,8 +38,4 @@
 
 int pmempool_convert_func(char *appname, int argc, char *argv[]);
 void pmempool_convert_help(char *appname);
-
-void pmempool_convert_persist(void *poolset, const void *addr, size_t len);
-
-int convert_v1_v2(void *poolset, void *addr);
-int convert_v3_v4(void *poolset, void *addr);
+char *get_convert_path(char *appname);

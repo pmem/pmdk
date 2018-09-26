@@ -102,7 +102,7 @@ Dumps usable data from pool in hexadecimal or binary format.
 Removes pool file or all pool files listed in pool set configuration file.
 
 + **pmempool-convert**(1) -
-Updates the pool to the latest available layout version.
+Invokes pmdk-convert tool.
 
 + **pmempool-sync**(1) -
 Synchronizes replicas within a poolset.
