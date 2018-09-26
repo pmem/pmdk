@@ -1,3 +1,35 @@
+#
+# Copyright 2014-2018, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 import sys
 import os
 import shutil
@@ -73,7 +105,6 @@ def str2list(arg):
 #   str2time("5s")  -->  "0:00:05"
 #   str2time("15m") -->  "0:15:00"
 #
-
 def str2time(arg):
     timeout = int(arg[:-1])
     if "d" in arg:
@@ -130,8 +161,10 @@ class context:
             cmd = F"{win_cmd} {' '.join(cmd.split()[1:])}"
         else:
             suffix_exe = cmd.split()[0] + self.exesuffix
-            cmd = F" {suffix_exe} {' '.join(cmd.split()[1:])}"
-        self.ret = os.system(str(Path(cmd)))
+            cmd = F"{suffix_exe} {' '.join(cmd.split()[1:])}"
+        self.start_time = datetime.now()
+        self.ret = subprocess.run(cmd.split(), timeout=str2time(env_timeout).total_seconds())
+        self.end_time = datetime.now()
 
 
 class build:
@@ -188,18 +221,22 @@ class debug(build):
     """ This class sets the context for debug build"""
     def setup_context(ctx):
         ctx.exesuffix = ''
-        os.environ['LD_LIBRARY_PATH'] = '../../debug'
         if sys.platform == "win32":
-            ctx.exedir = "../../x64/debug"
+            ctx.exedir = "..\..\\x64\Debug"
+            os.environ['PMDK_LIB_PATH_DEBUG'] = os.path.join(ctx.exedir, 'libs')
+        else:
+            os.environ['LD_LIBRARY_PATH'] = '../../debug'
 
 
 class nondebug(build):
     """ This class sets the context for nondebug build"""
     def setup_context(ctx):
         ctx.exesuffix = ''
-        os.environ['LD_LIBRARY_PATH'] = '../../nondebug'
         if sys.platform == "win32":
-            ctx.exedir = '../../x64/release'
+            ctx.exedir = '../../x64/Release'
+            os.environ['PMDK_LIB_PATH_NONDEBUG'] = os.path.join(ctx.exedir, 'libs')
+        else:
+            os.environ['LD_LIBRARY_PATH'] = '../../nondebug'
 
 
 class static_debug(build):
@@ -230,11 +267,11 @@ class nonpmem(fs):
 
 class executor:
     """ This class is responsible for managing the test,
-        e.g. creating and deleting files, checking logs, counting time, running the test. """
+        e.g. creating and deleting files, checking logs, running the test. """
     def match(self, ctx, test_type):
         """ Matches log files. """
         perl = ""
-        if ctx.ret != 0:
+        if ctx.ret.returncode != 0:
             self.fail()
         else:
             if sys.platform == "win32":
@@ -256,32 +293,24 @@ class executor:
         """ Removes directory, even if it is not empty. """
         shutil.rmtree(F'{dirname}', ignore_errors=True)
 
-    def timed_test(self):
-        """ Starts counting the time. """
-        global start_time
-        self.start_time = datetime.now()
-
     def test_passed(self, ctx, test_type):
         """ Pass the test if the result is lower than timeout.
             Otherwise, depending on the "keep_going" variable, continue running tests. """
-        end_time = datetime.now()
-        delta = end_time - self.start_time
+        delta = ctx.end_time - ctx.start_time
         if large in test_type:
             if delta > str2time(env_timeout):
                 message().msg(F"Skipping: {ctx.unittest_name} {colors.CRED}timed out{colors.CEND}")
                 try:
-                    config['keep_going']
+                    config['keep_going'] == 'y'
                 except:
                     subprocess.check_call(["pkill", "-f", "RUNTESTS.py"])
                     sys.exit()
-
         if delta.total_seconds() < 61:
             sec_test = float(delta.total_seconds())
             delta = "%06.3f" % sec_test
-        try:
-            config['tm']
+        if config.get('tm') == 1:
             tm = F"\t\t\t[{delta}] s"
-        except:
+        else:
             tm = ''
         message().msg(F'{ctx.unittest_name}: {colors.CGREEN}PASS {colors.CEND} {tm}')
 
@@ -292,7 +321,7 @@ class executor:
         os.environ['UNITTEST_NAME'] = ctx.unittest_name = F'{os.path.basename(os.getcwd())}/TEST{testnum}'
         ctx.unittest_num = testnum
         os.environ['UNITTEST_NUM'] = testnum
-        fs_type, build_type, valgrind_type, test_type = [], [], [], []
+        fs_type, build_type, test_type = [], [], []
 
         def check_global():
             """ Check global variables and return False
@@ -306,37 +335,32 @@ class executor:
                     return False
 
             if env_build != "all":
-                if eval(env_build) in build_type:
+                _build = getattr(sys.modules[__name__], env_build)
+                if _build in build_type:
                     build_type.clear()
-                    build_type.append(eval(env_build))
+                    build_type.append(_build)
                 else:
                     return False
 
             if env_fs != "all":
-                if eval(env_fs) in fs_type:
+                _fs = getattr(sys.modules[__name__], env_fs)
+                if _fs in fs_type:
                     fs_type.clear()
-                    fs_type.append(eval(env_fs))
+                    fs_type.append(_fs)
                 else:
                     return False
 
-            if env_trace != "check":
-                if eval(env_trace) in valgrind_type:
-                    valgrind_type.clear()
-                    valgrind_type.append(eval(env_trace))
-                else:
-                    return False
+        # create list of different types, based on the inheritance
+        for group_type in args:
+            for subclass in group_type:
+                if issubclass(subclass, build):
+                    build_type.append(subclass)
+                if issubclass(subclass, fs):
+                    fs_type.append(subclass)
+                if issubclass(subclass, check):
+                    test_type.append(subclass)
 
-        # create list of different types, based on the inheritence
-        for arg in args:
-            for i in arg:
-                if issubclass(i, build):
-                    build_type.append(i)
-                if issubclass(i, fs):
-                    fs_type.append(i)
-                if issubclass(i, check):
-                    test_type.append(i)
-
-        # If the list is empty, treat it as if it contains everything
+        # if the list is empty, treat it as if it contains everything
         if fs_type == []:
             fs_type = fs()
         if build_type == []:
@@ -353,7 +377,6 @@ class executor:
                     print(F'{ctx.unittest_name}: SETUP ' + str(Path(F'({f.__name__}/{b.__name__})')))
                 except:
                     print(F'{ctx.unittest_name}: SETUP ' + str(Path(F'({f.__name__})')))
-                self.timed_test()
                 test.run(ctx)
                 self.match(ctx, test_type)
                 self.clean(F'{ctx.dir}')
