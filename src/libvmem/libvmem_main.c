@@ -44,6 +44,8 @@ void vmem_fini(void);
 void jemalloc_constructor(void);
 void jemalloc_destructor(void);
 
+void win_mmap_init(void);
+void win_mmap_fini(void);
 
 int APIENTRY
 DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
@@ -52,6 +54,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 	case DLL_PROCESS_ATTACH:
 		jemalloc_constructor();
 		vmem_init();
+		win_mmap_init();
 		break;
 
 	case DLL_THREAD_ATTACH:
@@ -59,6 +62,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 		break;
 
 	case DLL_PROCESS_DETACH:
+		win_mmap_fini();
 		vmem_fini();
 		jemalloc_destructor();
 		break;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,12 +43,16 @@
 void libpmempool_init(void);
 void libpmempool_fini(void);
 
+void win_mmap_init(void);
+void win_mmap_fini(void);
+
 int APIENTRY
 DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 {
 	switch (dwReason) {
 	case DLL_PROCESS_ATTACH:
 		libpmempool_init();
+		win_mmap_init();
 		break;
 
 	case DLL_THREAD_ATTACH:
@@ -56,6 +60,7 @@ DllMain(HINSTANCE hInstance, DWORD dwReason, LPVOID lpReserved)
 		break;
 
 	case DLL_PROCESS_DETACH:
+		win_mmap_fini();
 		libpmempool_fini();
 		break;
 	}
