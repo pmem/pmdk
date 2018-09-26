@@ -49,28 +49,28 @@ config = {
     # where: check = short + medium; all = short + medium + long
     #
 
-    'test_type': 'check',
+    # 'test_type': 'check',
 
     #
     # Overwrite available build types:
     # debug, nondebug, static-debug, static-nondebug, all (default)
     #
 
-    'test_build': 'all',
+    # 'test_build': 'all',
 
     #
     # Overwrite available filesystem types:
     # pmem, non-pmem, any, none, all (default)
     #
 
-    'test_fs': 'all',
+    # 'test_fs': 'all',
 
     #
     # Normally the first failed test terminates the test run. If KEEP_GOING
     # is set, continues executing all tests.
     #
 
-    'keep_going': 'y',
+    # 'keep_going': 'y',
 
     #
     # Overwrite default timeout
