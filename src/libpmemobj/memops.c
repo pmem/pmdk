@@ -381,7 +381,7 @@ operation_add_buffer(struct operation_context *ctx,
 			return -1;
 
 		ctx->ulog_curr = ctx->ulog_curr == NULL ? ctx->ulog :
-			OBJ_OFF_TO_PTR(ctx->p_ops->base, ctx->ulog_curr->next);
+			ulog_next(ctx->ulog_curr, ctx->p_ops);
 		ctx->ulog_curr_offset = 0;
 		ctx->ulog_curr_capacity = ctx->ulog_curr->capacity;
 	}

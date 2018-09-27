@@ -95,6 +95,7 @@ test_lane_boot_cleanup_ok(void)
 
 	pop->p.lanes_offset = (uint64_t)&pop->l - (uint64_t)&pop->p;
 
+	pop->p.p_ops.base = pop;
 	pop->p.p_ops.flush = mock_flush;
 	pop->p.p_ops.memset = mock_memset;
 	pop->p.p_ops.drain = mock_drain;
@@ -252,6 +253,7 @@ test_lane_cleanup_in_separate_thread(void)
 	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
 	pop->p.nlanes = MAX_MOCK_LANES;
 
+	pop->p.p_ops.base = pop;
 	pop->p.p_ops.flush = mock_flush;
 	pop->p.p_ops.memset = mock_memset;
 	pop->p.p_ops.drain = mock_drain;
