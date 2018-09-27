@@ -78,6 +78,8 @@ shutdown_state_init(struct shutdown_state *sds, struct pool_replica *rep)
 
 /*
  * shutdown_state_add_part -- adds file uuid and usc to shutdown_state struct
+ *
+ * if path does not exist it will fail which does NOT mean shutdown failure
  */
 int
 shutdown_state_add_part(struct shutdown_state *sds, const char *path,
