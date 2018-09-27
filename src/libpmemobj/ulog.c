@@ -599,13 +599,15 @@ ulog_clobber_data(struct ulog *dest,
 	VEC(, uint64_t *) logs_past_first;
 	VEC_INIT(&logs_past_first);
 
-	do {
+	size_t next_offset;
+	while (u != NULL && ((next_offset = u->next) != 0)) {
 		if (VEC_PUSH_BACK(&logs_past_first, &u->next) != 0) {
 			/* this is fine, it will just use more pmem */
 			LOG(1, "unable to free transaction logs memory");
 			goto out;
 		}
-	} while (((u = ulog_next_by_offset(u->next, p_ops)) != NULL));
+		u = ulog_next_by_offset(u->next, p_ops);
+	}
 
 	uint64_t *ulog_ptr;
 	VEC_FOREACH_REVERSE(ulog_ptr, &logs_past_first) {
