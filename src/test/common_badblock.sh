@@ -216,8 +216,8 @@ function ndctl_nfit_test_grant_access() {
 	N=$(echo $REGION | cut -c7-)
 	expect_normal_exit "\
 		sudo chmod o+rw /dev/nmem$N && \
-		sudo chmod o+r /sys/devices/platform/$BUS/ndbus1/$REGION/*/resource && \
-		sudo chmod o+r /sys/devices/platform/$BUS/ndbus1/$REGION/resource"
+		sudo chmod o+r /sys/devices/platform/$BUS/ndbus?/$REGION/*/resource && \
+		sudo chmod o+r /sys/devices/platform/$BUS/ndbus?/$REGION/resource"
 }
 
 
@@ -238,8 +238,8 @@ function ndctl_nfit_test_grant_access_node() {
 	N=$(echo $REGION | cut -c7-)
 	expect_normal_exit run_on_node $1 "\
 		sudo chmod o+rw /dev/nmem$N && \
-		sudo chmod o+r /sys/devices/platform/$BUS/ndbus1/$REGION/*/resource && \
-		sudo chmod o+r /sys/devices/platform/$BUS/ndbus1/$REGION/resource"
+		sudo chmod o+r /sys/devices/platform/$BUS/ndbus?/$REGION/*/resource && \
+		sudo chmod o+r /sys/devices/platform/$BUS/ndbus?/$REGION/resource"
 }
 
 #
