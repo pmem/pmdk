@@ -130,9 +130,9 @@ struct pool_hdr {
 	uuid_t next_repl_uuid; /* next replica */
 	uint64_t crtime;		/* when created (seconds since epoch) */
 	struct arch_flags arch_flags;	/* architecture identification flags */
-	unsigned char unused[1888];	/* must be zero */
+	unsigned char unused[1904];	/* must be zero */
 	/* not checksumed */
-	unsigned char unused2[1992];	/* must be zero */
+	unsigned char unused2[1976];	/* must be zero */
 	struct shutdown_state sds;	/* shutdown status */
 	uint64_t checksum;		/* checksum of above fields */
 };

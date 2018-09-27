@@ -745,6 +745,17 @@ off += sizeof(t.field);\
 last = STR(field);\
 } while (0)
 
+#define ASSERT_FIELD_SIZE(field, size) do {\
+UT_COMPILE_ERROR_ON(size != sizeof(t.field));\
+} while (0)
+
+#define ASSERT_OFFSET_CHECKPOINT(type, checkpoint) do {\
+if (off != checkpoint)\
+	UT_FATAL("%s: violated offset checkpoint -- "\
+		"checkpoint %lu, real offset %lu",\
+		STR(type), checkpoint, off);\
+} while (0)
+
 #define ASSERT_ALIGNED_CHECK(type)\
 if (off != sizeof(type))\
 	UT_FATAL("%s: missing field or padding after '%s': "\
