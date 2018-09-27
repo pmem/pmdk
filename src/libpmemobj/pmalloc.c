@@ -209,7 +209,8 @@ alloc_redo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 {
 	PMEMobjpool *pop = base;
 	const struct pmem_ops *p_ops = &pop->p_ops;
-	ulog_construct(ptr, PMALLOC_REDO_LOG_EXTEND_SIZE, p_ops);
+	ulog_construct(OBJ_PTR_TO_OFF(base, ptr),
+		PMALLOC_REDO_LOG_EXTEND_SIZE, p_ops);
 
 	return 0;
 }
@@ -223,7 +224,7 @@ alloc_redo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 static int
 alloc_redo_external_extend(void *base, uint64_t *redo)
 {
-	size_t s = SIZEOF_ULOG(PMALLOC_REDO_LOG_EXTEND_SIZE);
+	size_t s = SIZEOF_ALIGNED_ULOG(PMALLOC_REDO_LOG_EXTEND_SIZE);
 
 	return pmalloc_construct(base, redo, s, alloc_redo_constructor, NULL, 0,
 		OBJ_INTERNAL_OBJECT_MASK, 0);

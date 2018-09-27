@@ -383,7 +383,7 @@ tx_undo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 	size_t capacity = ALIGN_DOWN(usable_size - sizeof(struct ulog),
 		CACHELINE_SIZE);
 
-	ulog_construct(ptr, capacity, p_ops);
+	ulog_construct(OBJ_PTR_TO_OFF(base, ptr), capacity, p_ops);
 
 	return 0;
 }
@@ -396,7 +396,7 @@ tx_undo_extend(void *base, uint64_t *redo)
 {
 	struct tx *tx = get_tx();
 	struct tx_parameters *params = tx->pop->tx_params;
-	size_t s = SIZEOF_ULOG(params->cache_size);
+	size_t s = SIZEOF_ALIGNED_ULOG(params->cache_size);
 
 	return pmalloc_construct(base, redo, s, tx_undo_constructor, params,
 		0, OBJ_INTERNAL_OBJECT_MASK, 0);
@@ -452,7 +452,7 @@ tx_abort_set(PMEMobjpool *pop, struct lane_tx_layout *layout,
 		if (!ulog_recovery_needed((struct ulog *)&layout->undo, 0)) {
 			struct ulog *u = (struct ulog *)&layout->undo;
 			if (u->capacity == 0) /* do this only once */
-				ulog_construct(u,
+				ulog_construct(OBJ_PTR_TO_OFF(pop, u),
 					TX_UNDO_LOG_SIZE, &pop->p_ops);
 			return;
 		}
