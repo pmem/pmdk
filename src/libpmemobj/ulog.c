@@ -53,6 +53,8 @@
 #define ULOG_OFFSET_MASK		(~(ULOG_OPERATION_MASK))
 
 #define CACHELINE_ALIGN(size) ALIGN_UP(size, CACHELINE_SIZE)
+#define IS_CACHELINE_ALIGNED(ptr)\
+	(((uintptr_t)(ptr) & (CACHELINE_SIZE - 1)) == 0)
 
 /*
  * ulog_next_by_offset -- (internal) calculates the next pointer
@@ -60,19 +62,22 @@
 static struct ulog *
 ulog_next_by_offset(size_t offset, const struct pmem_ops *p_ops)
 {
-	return offset == 0 ? NULL :
-		(struct ulog *)((char *)p_ops->base + offset);
+	if (offset == 0)
+		return NULL;
+
+	size_t aligned_offset = CACHELINE_ALIGN(offset);
+
+	return (struct ulog *)((char *)p_ops->base + aligned_offset);
 }
 
 /*
- * ulog_next -- (internal) retrieves the pointer to the next ulog
+ * ulog_next -- retrieves the pointer to the next ulog
  */
-static struct ulog *
+struct ulog *
 ulog_next(struct ulog *ulog, const struct pmem_ops *p_ops)
 {
 	return ulog_next_by_offset(ulog->next, p_ops);
 }
-
 
 /*
  * ulog_operation -- returns the type of entry operation
@@ -152,6 +157,8 @@ void
 ulog_construct(struct ulog *ulog, size_t capacity,
 	const struct pmem_ops *p_ops)
 {
+	ulog = (struct ulog *)CACHELINE_ALIGN((uintptr_t)ulog);
+
 	VALGRIND_ADD_TO_TX(ulog, SIZEOF_ULOG(capacity));
 
 	ulog->capacity = capacity;
@@ -306,6 +313,8 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
 		size_t copy_nbytes = MIN(next_nbytes, ulog->capacity);
 		next_nbytes -= copy_nbytes;
 
+		ASSERT(IS_CACHELINE_ALIGNED(ulog->data));
+
 		VALGRIND_ADD_TO_TX(ulog->data, copy_nbytes);
 		pmemops_memcpy(p_ops,
 			ulog->data,
@@ -425,25 +434,31 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 		b->checksum = util_checksum_seq(last_cacheline,
 			CACHELINE_SIZE, b->checksum);
 
+	ASSERT(IS_CACHELINE_ALIGNED(e));
+
 	VALGRIND_ADD_TO_TX(e, CACHELINE_SIZE);
 	pmemops_memcpy(p_ops, e, b, CACHELINE_SIZE,
 		PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
 	VALGRIND_REMOVE_FROM_TX(e, CACHELINE_SIZE);
 
 	if (rcopy != 0) {
-		VALGRIND_ADD_TO_TX(e->data + ncopy, rcopy);
-		pmemops_memcpy(p_ops, e->data + ncopy, srcof, rcopy,
+		void *dest = e->data + ncopy;
+		ASSERT(IS_CACHELINE_ALIGNED(dest));
+
+		VALGRIND_ADD_TO_TX(dest, rcopy);
+		pmemops_memcpy(p_ops, dest, srcof, rcopy,
 			PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
-		VALGRIND_REMOVE_FROM_TX(e->data + ncopy, rcopy);
+		VALGRIND_REMOVE_FROM_TX(dest, rcopy);
 	}
 
 	if (lcopy != 0) {
-		VALGRIND_ADD_TO_TX(e->data + ncopy + rcopy, CACHELINE_SIZE);
-		pmemops_memcpy(p_ops, e->data + ncopy + rcopy, last_cacheline,
-			CACHELINE_SIZE,
+		void *dest = e->data + ncopy + rcopy;
+		ASSERT(IS_CACHELINE_ALIGNED(dest));
+
+		VALGRIND_ADD_TO_TX(dest, CACHELINE_SIZE);
+		pmemops_memcpy(p_ops, dest, last_cacheline, CACHELINE_SIZE,
 			PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
-		VALGRIND_REMOVE_FROM_TX(e->data + ncopy + rcopy,
-			CACHELINE_SIZE);
+		VALGRIND_REMOVE_FROM_TX(dest, CACHELINE_SIZE);
 	}
 
 	pmemops_drain(p_ops);

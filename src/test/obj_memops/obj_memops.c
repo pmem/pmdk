@@ -53,6 +53,7 @@ enum fail_types {
 };
 
 struct test_object {
+	uint8_t padding[CACHELINE_SIZE - 16]; /* align to a cacheline */
 	struct ULOG(TEST_ENTRIES) redo;
 	struct ULOG(TEST_ENTRIES) undo;
 	uint64_t values[TEST_VALUES];

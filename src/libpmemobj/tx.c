@@ -396,7 +396,7 @@ tx_undo_extend(void *base, uint64_t *redo)
 {
 	struct tx *tx = get_tx();
 	struct tx_parameters *params = tx->pop->tx_params;
-	size_t s = SIZEOF_ULOG(params->cache_size);
+	size_t s = SIZEOF_ALIGNED_ULOG(params->cache_size);
 
 	return pmalloc_construct(base, redo, s, tx_undo_constructor, params,
 		0, OBJ_INTERNAL_OBJECT_MASK, 0);

@@ -337,12 +337,16 @@ print_reset_counters(const char *task, unsigned tx)
 	reset_counters();
 }
 
+#define LARGE_SNAPSHOT ((1 << 10) * 10)
+
 struct foo {
 	int val;
 	uint64_t dest;
 
 	PMEMoid bar;
 	PMEMoid bar2;
+
+	uint8_t snapshot[LARGE_SNAPSHOT];
 };
 
 int
@@ -424,14 +428,28 @@ main(int argc, char *argv[])
 	print_reset_counters("tx_free_next", 1);
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(&f->val, sizeof(f->val));
+		pmemobj_tx_xadd_range_direct(&f->val, sizeof(f->val),
+			POBJ_XADD_NO_FLUSH);
 	} TX_END
 	print_reset_counters("tx_add", 1);
 
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(&f->val, sizeof(f->val));
+		pmemobj_tx_xadd_range_direct(&f->val, sizeof(f->val),
+			POBJ_XADD_NO_FLUSH);
 	} TX_END
 	print_reset_counters("tx_add_next", 1);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_xadd_range_direct(&f->snapshot, sizeof(f->snapshot),
+			POBJ_XADD_NO_FLUSH);
+	} TX_END
+	print_reset_counters("tx_add_large", 1);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_xadd_range_direct(&f->snapshot, sizeof(f->snapshot),
+			POBJ_XADD_NO_FLUSH);
+	} TX_END
+	print_reset_counters("tx_add_lnext", 1);
 
 	pmalloc(pop, &f->dest, sizeof(f->val), 0, 0);
 	print_reset_counters("pmalloc", 0);
