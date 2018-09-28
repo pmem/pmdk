@@ -35,6 +35,7 @@
  *            Device DAX device using mmap instead of file I/O API
  */
 
+#include <assert.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <getopt.h>
@@ -437,24 +438,26 @@ setup_devices(struct ndctl_ctx *ndctl_ctx, struct daxio_context *ctx)
 static void
 adjust_io_len(struct daxio_context *ctx)
 {
-	if (ctx->len != SIZE_MAX)
+	size_t src_len = ctx->src.maplen - ctx->src.offset;
+	size_t dst_len = ctx->dst.maplen - ctx->dst.offset;
+	size_t max_len = SIZE_MAX;
+
+	if (ctx->zero)
+		assert(ctx->dst.is_devdax);
+	else
+		assert(ctx->src.is_devdax || ctx->dst.is_devdax);
+
+	if (ctx->src.is_devdax)
+		max_len = src_len;
+	if (ctx->dst.is_devdax)
+		max_len = max_len < dst_len ? max_len : dst_len;
+
+	/* if length is specified and is not bigger than mmaped region */
+	if (ctx->len != SIZE_MAX && ctx->len <= max_len)
 		return;
 
-	if (ctx->zero) {
-		/* adjust len to device size */
-		ctx->len = ctx->dst.maplen - ctx->dst.offset;
-	} else if (ctx->src.is_devdax && ctx->dst.is_devdax) {
-		size_t src_len = ctx->src.maplen - ctx->src.offset;
-		size_t dst_len = ctx->dst.maplen - ctx->dst.offset;
-
-		ctx->len = src_len < dst_len ? src_len : dst_len;
-	} else if (ctx->src.is_devdax) {
-		ctx->len = ctx->src.maplen - ctx->src.offset;
-	} else if (ctx->dst.is_devdax) {
-		ctx->len = ctx->dst.maplen - ctx->dst.offset;
-	} else {
-		/* should never get here */
-	}
+	/* adjust len to device size */
+	ctx->len = max_len;
 }
 
 /*
@@ -487,6 +490,8 @@ static int
 do_io(struct ndctl_ctx *ndctl_ctx, struct daxio_context *ctx)
 {
 	ssize_t cnt = 0;
+
+	assert(ctx->src.is_devdax || ctx->dst.is_devdax);
 
 	if (ctx->zero) {
 		if (ctx->dst.offset > ctx->dst.maplen) {
@@ -554,9 +559,6 @@ do_io(struct ndctl_ctx *ndctl_ctx, struct daxio_context *ctx)
 		if ((size_t)cnt != ctx->len)
 			ERR("requested size %zu larger than source\n",
 					ctx->len);
-	} else {
-		ERR("neither input or output is device dax\n");
-		return -1;
 	}
 
 	ERR("copied %zd bytes to device \"%s\"\n", cnt, ctx->dst.path);
@@ -583,6 +585,12 @@ main(int argc, char **argv)
 		return EXIT_FAILURE;
 
 	if (setup_devices(ndctl_ctx, &Ctx)) {
+		ret = EXIT_FAILURE;
+		goto err;
+	}
+
+	if (!Ctx.src.is_devdax && !Ctx.dst.is_devdax) {
+		ERR("neither input nor output is device dax\n");
 		ret = EXIT_FAILURE;
 		goto err;
 	}
