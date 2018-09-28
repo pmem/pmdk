@@ -77,7 +77,8 @@ be opened are recreated.=e=)
 
 `-b, --bad-blocks`
 
-: Fix bad blocks - requires creating or reading special recovery files.
+: Fix bad blocks - requires the super user privileges and causes creating
+or reading special recovery files.
 When bad blocks are detected, special recovery files have to be created
 in order to fix them safely. A separate recovery file is created per each part
 containing bad blocks. The recovery files are created in the same directory
