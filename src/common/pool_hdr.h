@@ -192,6 +192,17 @@ static const features_t features_zero =
 	{POOL_FEAT_ZERO, POOL_FEAT_ZERO, POOL_FEAT_ZERO};
 
 /*
+ * compat features
+ */
+#define POOL_FEAT_CHECK_BAD_BLOCKS	0x0001U	/* check bad blocks in a pool */
+
+#define POOL_FEAT_COMPAT_ALL \
+	(POOL_FEAT_CHECK_BAD_BLOCKS)
+
+#define FEAT_COMPAT(X) \
+	{POOL_FEAT_##X, POOL_FEAT_ZERO, POOL_FEAT_ZERO}
+
+/*
  * incompat features
  */
 #define POOL_FEAT_SINGLEHDR	0x0001U	/* pool header only in the first part */
