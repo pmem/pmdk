@@ -10,8 +10,8 @@ daxio: requested size 8192 larger than source
 daxio: copied 4000 bytes to device "$(nW)"
 daxio: '$(N)' -- offset beyond device size ($(N))
 daxio: '$(N)' -- offset beyond device size ($(N))
-daxio: do_io:$(N): read: Bad address
-daxio: failed to perform I/O
+daxio: copied $(N) bytes to device "$(nW)"
 daxio: copied $(N) bytes to device "/dev/null"
-daxio: do_io:$(N): read: Bad address
-daxio: failed to perform I/O
+daxio: copied 100 bytes to device "$(nW)"
+daxio: copied 100 bytes to device "$(nW)"
+daxio: copied 100 bytes to device "$(nW)"
