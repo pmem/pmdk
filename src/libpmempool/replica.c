@@ -607,8 +607,8 @@ check_and_open_poolset_part_files(struct pool_set *set,
 			if (util_part_open(&rep->part[p], 0, 0)) {
 				if (type == TYPE_DEVDAX) {
 					LOG(1,
-					"opening part on Device DAX %s failed",
-					path);
+						"opening part on Device DAX %s failed",
+						path);
 					return -1;
 				}
 				LOG(1, "opening part %s failed", path);
@@ -1263,11 +1263,13 @@ static int
 replica_badblocks_check_or_clear(struct pool_set *set,
 				struct poolset_health_status *set_hs,
 				int dry_run, int called_from_sync,
-				int use_recovery_files)
+				int check_bad_blocks, int fix_bad_blocks)
 {
 	LOG(3,
-		"set %p, set_hs %p, dry_run %i, called_from_sync %i, use_recovery_files %i",
-		set, set_hs, dry_run, called_from_sync, use_recovery_files);
+		"set %p, set_hs %p, dry_run %i, called_from_sync %i, "
+		"check_bad_blocks %i, fix_bad_blocks %i",
+		set, set_hs, dry_run, called_from_sync,
+		check_bad_blocks, fix_bad_blocks);
 
 #define ERR_MSG_BB \
 	"       please read the manual first and use this option\n"\
@@ -1293,7 +1295,7 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 			return -1;
 		}
 
-		if (!use_recovery_files) {
+		if (!fix_bad_blocks) {
 			ERR(
 				"error: a bad block recovery file exists, but the '--bad-blocks' option is not set\n"
 				ERR_MSG_BB);
@@ -1304,6 +1306,22 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 	default:
 		break;
 	};
+
+	/*
+	 * The pool is checked for bad blocks only if:
+	 * 1) compat feature POOL_FEAT_CHECK_BAD_BLOCKS is set
+	 *    OR:
+	 * 2) the '--bad-blocks' option is set
+	 *    (both of them require the root priviliges)
+	 *
+	 * Bad blocks are cleared and fixed only if:
+	 * - the '--bad-blocks' option is set
+	 *    (it requires the root priviliges)
+	 */
+	if (!fix_bad_blocks && !check_bad_blocks) {
+		LOG(3, "skipping bad blocks checking");
+		return 0;
+	}
 
 	/* phase #2 - reading recovery files */
 	switch (status) {
@@ -1385,7 +1403,7 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 			return -1;
 		}
 
-		if (!use_recovery_files) {
+		if (!fix_bad_blocks) {
 			ERR(
 				"error: bad blocks found, but the '--bad-blocks' option is not set\n"
 				ERR_MSG_BB);
@@ -1919,6 +1937,46 @@ check_replica_sizes(struct pool_set *set, struct poolset_health_status *set_hs)
 }
 
 /*
+ * replica_read_compat_features -- (internal) read compat features
+ *                                 from the header
+ */
+static int
+replica_read_compat_features(struct pool_set *set, uint32_t *compat_features)
+{
+	LOG(3, "set %p compat_features %p", set, compat_features);
+
+	*compat_features = 0;
+
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+
+			if (part->fd == -1)
+				continue;
+
+			if (util_map_hdr(part, MAP_SHARED, 0) != 0) {
+				LOG(1, "header mapping failed");
+				return -1;
+			}
+
+			struct pool_hdr *hdrp = part->hdr;
+			*compat_features = hdrp->features.compat;
+
+			if (util_unmap_hdr(part) != 0) {
+				LOG(1, "header unmapping failed");
+				return -1;
+			}
+
+			return 0;
+		}
+	}
+
+	/* if there is no opened part, compat_features is set to 0 */
+	return 0;
+}
+
+/*
  * replica_check_poolset_health -- check if a given poolset can be considered as
  *                         healthy, and store the status in a helping structure
  */
@@ -1943,10 +2001,19 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
+	uint32_t compat_features;
+
+	if (replica_read_compat_features(set, &compat_features)) {
+		LOG(1, "reading compat features failed");
+		goto err;
+	}
+
+	int check_bad_blocks = compat_features & POOL_FEAT_CHECK_BAD_BLOCKS;
+
 	/* check for bad blocks when in dry run or clear them otherwise */
 	if (replica_badblocks_check_or_clear(set, set_hs, is_dry_run(flags),
-			called_from_sync,
-			called_from_sync && use_recovery_files(flags))) {
+			called_from_sync, check_bad_blocks,
+			called_from_sync && fix_bad_blocks(flags))) {
 		LOG(1, "replica bad_blocks check failed");
 		goto err;
 	}

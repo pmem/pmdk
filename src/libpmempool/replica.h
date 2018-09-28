@@ -178,11 +178,12 @@ is_dry_run(unsigned flags)
 }
 
 /*
- * use_recovery_files -- (internal) read or create recovery file for bad blocks
- *                                  (depending on if they exist or not)
+ * fix_bad_blocks -- (internal) fix bad blocks - it causes reading or creating
+ *                              bad blocks recovery files
+ *                              (depending on if they exist or not)
  */
 static inline bool
-use_recovery_files(unsigned flags)
+fix_bad_blocks(unsigned flags)
 {
 	return flags & PMEMPOOL_SYNC_FIX_BAD_BLOCKS;
 }

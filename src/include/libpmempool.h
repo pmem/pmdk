@@ -165,7 +165,8 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
  */
 
 /*
- * fix bad blocks - it requires creating or reading special recovery files
+ * fix bad blocks - it requires the super user privileges and causes
+ *                  creating or reading special recovery files
  */
 #define PMEMPOOL_SYNC_FIX_BAD_BLOCKS	(1U << 0)
 /*
