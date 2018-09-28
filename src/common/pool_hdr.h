@@ -170,6 +170,11 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 (alignment_desc_of(void *)	<< 10 * ALIGNMENT_DESC_BITS)
 
 /*
+ * compat features
+ */
+#define POOL_FEAT_CHECK_BAD_BLOCKS	0x0001	/* check bad blocks in a pool */
+
+/*
  * incompat features
  */
 #define POOL_FEAT_SINGLEHDR	0x0001	/* pool header only in the first part */
