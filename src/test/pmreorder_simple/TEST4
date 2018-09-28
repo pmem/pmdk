@@ -33,9 +33,8 @@
 
 #
 # src/test/pmreorder_simple/TEST4 -- unit test for the reordering script
-# Tests positive case partial reorder engine
-# for most critical mark section and full engine for other
-# parts of code.
+# Tests positive case using partial reorder engine for section marked as
+# the most critical and full reorder engine for other parts of the code.
 #
 
 # standard unit test setup
