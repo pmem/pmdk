@@ -77,7 +77,18 @@ be opened are recreated.=e=)
 
 `-b, --bad-blocks`
 
-: Fix bad blocks - requires creating or reading special recovery files.
+: Fix bad blocks - requires read access to the resource files (containing
+physical addresses) of NVDIMM devices which only root can read by default
+(their default file mode is (0400/-r--------)):
+
+```
+/sys/devices/platform/<pmem_device>/ndbus?/region?/resource
+/sys/devices/platform/<pmem_device>/ndbus?/region?/dax?.0/resource
+/sys/devices/platform/<pmem_device>/ndbus?/region?/pfn?.0/resource
+/sys/devices/platform/<pmem_device>/ndbus?/region?/namespace?.0/resource
+```
+
+Fixing bad blocks also causes creating or reading special recovery files.
 When bad blocks are detected, special recovery files have to be created
 in order to fix them safely. A separate recovery file is created per each part
 containing bad blocks. The recovery files are created in the same directory

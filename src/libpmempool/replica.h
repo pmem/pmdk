@@ -178,17 +178,19 @@ is_dry_run(unsigned flags)
 }
 
 /*
- * use_recovery_files -- (internal) read or create recovery file for bad blocks
- *                                  (depending on if they exist or not)
+ * fix_bad_blocks -- (internal) fix bad blocks - it causes reading or creating
+ *                              bad blocks recovery files
+ *                              (depending on if they exist or not)
  */
 static inline bool
-use_recovery_files(unsigned flags)
+fix_bad_blocks(unsigned flags)
 {
 	return flags & PMEMPOOL_SYNC_FIX_BAD_BLOCKS;
 }
 
 int replica_remove_all_recovery_files(struct poolset_health_status *set_hs);
-int replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn);
+int replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn,
+		int fix_bad_blocks);
 int replica_create_poolset_health_status(struct pool_set *set,
 		struct poolset_health_status **set_hsp);
 void replica_free_poolset_health_status(struct poolset_health_status *set_s);

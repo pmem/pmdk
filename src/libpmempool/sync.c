@@ -903,9 +903,11 @@ sync_badblocks_data(struct pool_set *set, struct poolset_health_status *set_hs)
  */
 static int
 recreate_broken_parts(struct pool_set *set,
-			struct poolset_health_status *set_hs)
+			struct poolset_health_status *set_hs,
+			int fix_bad_blocks)
 {
-	LOG(3, "set %p, set_hs %p", set, set_hs);
+	LOG(3, "set %p set_hs %p fix_bad_blocks %i",
+		set, set_hs, fix_bad_blocks);
 
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		if (set->replica[r]->remote)
@@ -919,7 +921,7 @@ recreate_broken_parts(struct pool_set *set,
 				continue;
 
 			/* remove parts from broken replica */
-			if (replica_remove_part(set, r, p)) {
+			if (replica_remove_part(set, r, p, fix_bad_blocks)) {
 				LOG(2, "cannot remove part");
 				return -1;
 			}
@@ -1552,7 +1554,7 @@ replica_sync(struct pool_set *set, struct poolset_health_status *s_hs,
 	}
 
 	/* recreate broken parts */
-	if (recreate_broken_parts(set, set_hs)) {
+	if (recreate_broken_parts(set, set_hs, fix_bad_blocks(flags))) {
 		ERR("recreating broken parts failed");
 		ret = -1;
 		goto out;
