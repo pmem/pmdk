@@ -96,7 +96,7 @@ Thu Mar 29 2018 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	Experimental features:
 	- common: port PMDK to FreeBSD
-	- common: add experimental suport for aarch64
+	- common: add experimental support for aarch64
 	- obj: introduce allocation classes
 	- obj: introduce two-phase heap ops (reserve/publish) (#380, #415)
 	- obj: provide basic heap statistics (#676)
@@ -304,7 +304,7 @@ Thu Dec 15 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	  C++ API is no longer considered experimental.
 	  Web-based documentation for C++ API is available on http://pmem.io.
 	- Add "sync" and "transform" commands to pmempool utility.
-	  The "sync" command allows to recover missing or corrupted part(s)
+	  The "sync" command allows one to recover missing or corrupted part(s)
 	  of a pool set from a healthy replica, while the "transform" command
 	  is a convenient way for modifying the structure of an existing
 	  pool set, i.e. by adding or removing replicas.
