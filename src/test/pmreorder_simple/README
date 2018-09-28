@@ -1,6 +1,6 @@
 This is src/test/pmreorder_simple/README.
 
-This directory contains a unit test for pmemreorder script.
+This directory contains a unit test for pmreorder script.
 
 SYNOPSIS:
 pmreorder_simple g|b|c file

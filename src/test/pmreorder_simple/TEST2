@@ -33,9 +33,9 @@
 
 #
 # src/test/pmreorder_simple/TEST2 -- unit test for the reordering script
-# Tests negative case using no_reorder_do_check reorder engine
-# for most critical mark section and no_reorder_no_checker engine for other
-# parts of code.
+# Tests negative case using no_reorder_do_check reorder engine for most
+# critical marked section and no_reorder_no_checker reorder engine
+# for other parts of code.
 #
 
 # standard unit test setup
