@@ -87,6 +87,7 @@ struct pool_set_option {
 #define POOL_OPEN_COW			1	/* copy-on-write mode */
 #define POOL_OPEN_IGNORE_SDS		2	/* ignore shutdown state */
 #define POOL_OPEN_IGNORE_BAD_BLOCKS	4	/* ignore bad blocks */
+#define POOL_OPEN_CHECK_BAD_BLOCKS	8	/* check bad blocks */
 
 enum del_parts_mode {
 	DO_NOT_DELETE_PARTS,	/* do not delete part files */
