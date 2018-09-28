@@ -61,7 +61,7 @@ $POOL_FEAT_SINGLEHDR = 0x0001
 $POOL_FEAT_CKSUM_2K = 0x0002
 
 # Unknown compat flags:
-$UNKNOWN_COMPAT = 1, 2, 3, 1111
+$UNKNOWN_COMPAT = 2, 4, 8, 1024
 
 # Unknown incompat flags:
 $UNKNOWN_INCOMPAT = 8, 15, 1111
