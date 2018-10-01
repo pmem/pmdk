@@ -2965,6 +2965,7 @@ pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 void
 pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act)
 {
+	ASSERT(!OID_IS_NULL(oid));
 	palloc_defer_free(&pop->heap, oid.off, act);
 }
 
