@@ -244,12 +244,12 @@ else
 	RPMBUILD_OPTS+=(--without fabric)
 fi
 
-# daxio
-if [ "${NDCTL_ENABLE}" = "y" ]
+# daxio & RAS
+if [ "${NDCTL_ENABLE}" = "n" ]
 then
-	RPMBUILD_OPTS+=(--with ndctl)
-else
 	RPMBUILD_OPTS+=(--without ndctl)
+else
+	RPMBUILD_OPTS+=(--with ndctl)
 fi
 
 # use specified testconfig file or default
