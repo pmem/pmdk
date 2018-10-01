@@ -838,7 +838,7 @@ then
 fi
 
 # daxio
-if [ "${NDCTL_ENABLE}" = "y" ]
+if [ "${NDCTL_ENABLE}" != "n" ]
 then
 	append_daxio_control;
 	daxio_install_triggers_overrides;
