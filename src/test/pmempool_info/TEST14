@@ -40,7 +40,7 @@ require_test_type medium
 
 require_fs_type pmem non-pmem
 
-require_sds $PMEMALLOC$EXESUFFIX
+require_sds $PMEMPOOL$EXESUFFIX
 
 setup
 
