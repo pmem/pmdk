@@ -124,6 +124,8 @@ persistent memory, there's a mechanism composed of *struct pmemvlt* type and
 **pmemobj_volatile()** function. To use it, the *struct pmemvlt* needs to
 be placed in the neighborhood of transient data region. The *PMEMvlt* macro
 can be used to construct such a region.
+The *struct pmemvlt* must be zeroed prior to use. This can be easily done in
+object constructor or in a transaction directly after an allocation.
 When the **pmemobj_volatile()** function is called on a *struct pmemvlt*,
 it will return the pointer to the data and it will ensure that the provided
 constructor function is called exactly once in the current instance of the
@@ -136,6 +138,14 @@ on the same region with different sizes is undefined behavior.
 For this mechanism to be effective, all accesses to transient variables must
 go through it, otherwise there's a risk of the constructor not being called
 on the first load.
+Maintaining transient state on persistent memory is challenging due to
+difficulties with dynamic resources acquisition and subsequent resource release.
+For example, one needs to consider what happens with volatile state of an object
+which is being freed inside of a transaction, especially with regards to the
+possibility of an abort.
+It's generally recommended to entirely separate the persistent and transient
+states, and when it's not possible, to only store types which do not require
+lifecycle management (i.e., primitive types) inside of volatile regions.
 
 # RETURN VALUE #
 
