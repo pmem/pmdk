@@ -118,7 +118,8 @@ additional *flags* argument that is a bitmask of the following values:
 *class_id*. The class id cannot be 0.
 
 **pmemobj_defer_free**() function creates a deferred free action, meaning that
-the provided object will be freed when the action is published.
+the provided object will be freed when the action is published. Calling this
+function with a NULL OID is invalid and causes undefined behavior.
 
 The **pmemobj_set_value** function prepares an action that, once published, will
 modify the memory location pointed to by *ptr* to *value*.
