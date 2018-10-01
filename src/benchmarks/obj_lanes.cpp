@@ -53,37 +53,12 @@
 #define OPERATION_REPEAT_COUNT 10000
 
 /*
- * prog_args - command line parsed arguments
- */
-struct prog_args {
-	char *lane_section_name; /* lane section to be held */
-};
-
-/*
  * obj_bench - variables used in benchmark, passed within functions
  */
 struct obj_bench {
-	PMEMobjpool *pop;		  /* persistent pool handle */
-	struct prog_args *pa;		  /* prog_args structure */
-	enum lane_section_type lane_type; /* lane section to be held */
+	PMEMobjpool *pop;     /* persistent pool handle */
+	struct prog_args *pa; /* prog_args structure */
 };
-
-/*
- * parse_lane_section -- parses command line "--lane_section" and returns
- * proper lane section type enum
- */
-static enum lane_section_type
-parse_lane_section(const char *arg)
-{
-	if (strcmp(arg, "allocator") == 0)
-		return LANE_SECTION_ALLOCATOR;
-	else if (strcmp(arg, "list") == 0)
-		return LANE_SECTION_LIST;
-	else if (strcmp(arg, "transaction") == 0)
-		return LANE_SECTION_TRANSACTION;
-	else
-		return MAX_LANE_SECTION;
-}
 
 /*
  * lanes_init -- benchmark initialization
@@ -124,12 +99,6 @@ lanes_init(struct benchmark *bench, struct benchmark_args *args)
 		goto err;
 	}
 
-	ob->lane_type = parse_lane_section(ob->pa->lane_section_name);
-	if (ob->lane_type == MAX_LANE_SECTION) {
-		fprintf(stderr, "wrong lane type\n");
-		goto err;
-	}
-
 	return 0;
 
 err:
@@ -158,32 +127,22 @@ static int
 lanes_op(struct benchmark *bench, struct operation_info *info)
 {
 	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
-	struct lane_section *section;
+	struct lane *lane;
 
 	for (int i = 0; i < OPERATION_REPEAT_COUNT; i++) {
-		lane_hold(ob->pop, &section, ob->lane_type);
+		lane_hold(ob->pop, &lane);
 
 		lane_release(ob->pop);
 	}
 
 	return 0;
 }
-static struct benchmark_clo lanes_clo[1];
 static struct benchmark_info lanes_info;
 
 CONSTRUCTOR(obj_lines_constructor)
 void
 obj_lines_constructor(void)
 {
-	lanes_clo[0].opt_short = 's';
-	lanes_clo[0].opt_long = "lane_section";
-	lanes_clo[0].descr = "The lane section type: allocator,"
-			     " list or transaction";
-	lanes_clo[0].type = CLO_TYPE_STR;
-	lanes_clo[0].off =
-		clo_field_offset(struct prog_args, lane_section_name);
-	lanes_clo[0].def = "allocator";
-
 	lanes_info.name = "obj_lanes";
 	lanes_info.brief = "Benchmark for internal lanes "
 			   "operation";
@@ -193,9 +152,9 @@ obj_lines_constructor(void)
 	lanes_info.multiops = true;
 	lanes_info.operation = lanes_op;
 	lanes_info.measure_time = true;
-	lanes_info.clos = lanes_clo;
-	lanes_info.nclos = ARRAY_SIZE(lanes_clo);
-	lanes_info.opts_size = sizeof(struct prog_args);
+	lanes_info.clos = NULL;
+	lanes_info.nclos = 0;
+	lanes_info.opts_size = 0;
 	lanes_info.rm_file = true;
 	lanes_info.allow_poolset = true;
 	REGISTER_BENCHMARK(lanes_info);

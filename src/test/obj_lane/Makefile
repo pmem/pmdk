@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,10 +38,11 @@ TOP = ../../..
 vpath %.c $(TOP)/src/libpmemobj
 
 TARGET = obj_lane
-OBJS = obj_lane.o cuckoo.o lane.o
+OBJS = obj_lane.o
 
 LIBPMEMCOMMON=y
 LIBPMEM=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
 

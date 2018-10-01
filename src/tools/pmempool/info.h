@@ -94,7 +94,6 @@ struct pmempool_info_args {
 		int vzonehdr;
 		int vchunkhdr;
 		int vbitmap;
-		uint64_t lane_sections;
 		bool lanes_recovery;
 		bool ignore_empty_obj;
 		uint64_t chunk_types;

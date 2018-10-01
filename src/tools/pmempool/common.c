@@ -867,17 +867,6 @@ util_parse_chunk_types(const char *str, uint64_t *types)
 }
 
 /*
- * util_parse_lane_section -- parse lane section strings
- */
-int
-util_parse_lane_sections(const char *str, uint64_t *types)
-{
-	assert(MAX_LANE_SECTION < 8 * sizeof(*types));
-	return util_parse_enums(str, 0, MAX_LANE_SECTION, types,
-			(enum_to_str_fn)out_get_lane_section_str);
-}
-
-/*
  * util_options_alloc -- allocate and initialize options structure
  */
 struct options *

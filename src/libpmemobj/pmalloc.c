@@ -51,8 +51,6 @@
 #include "set.h"
 #include "mmap.h"
 
-#define PMALLOC_REDO_LOG_EXTEND_SIZE 256 /* rounded up to a cacheline */
-
 enum pmalloc_operation_type {
 	OPERATION_INTERNAL, /* used only for single, one-off operations */
 	OPERATION_EXTERNAL, /* used for everything else, incl. large redos */
@@ -72,16 +70,15 @@ static struct operation_context *
 pmalloc_operation_hold_type(PMEMobjpool *pop, enum pmalloc_operation_type type,
 	int start)
 {
-	struct lane_section *lane;
-	lane_hold(pop, &lane, LANE_SECTION_ALLOCATOR);
-	struct lane_alloc_runtime *rt = lane->runtime;
+	struct lane *lane;
+	lane_hold(pop, &lane);
+	struct operation_context *ctx = type == OPERATION_INTERNAL ?
+		lane->internal : lane->external;
 
 	if (start)
-		operation_start(rt->ctx[type]);
-	else
-		operation_init(rt->ctx[type]);
+		operation_start(ctx);
 
-	return rt->ctx[type];
+	return ctx;
 }
 
 /*
@@ -202,121 +199,9 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 }
 
 /*
- * alloc_redo_constructor -- constructor of a new redo log section
- */
-static int
-alloc_redo_constructor(void *base, void *ptr, size_t usable_size, void *arg)
-{
-	PMEMobjpool *pop = base;
-	const struct pmem_ops *p_ops = &pop->p_ops;
-	ulog_construct(ptr, PMALLOC_REDO_LOG_EXTEND_SIZE, p_ops);
-
-	return 0;
-}
-
-/*
- * alloc_redo_external_extend -- redo log extend callback
- *
- * Uses the secondary 'internal' redo log, so that the pmalloc() can finish
- * during an ongoing operation.
- */
-static int
-alloc_redo_external_extend(void *base, uint64_t *redo)
-{
-	size_t s = SIZEOF_ULOG(PMALLOC_REDO_LOG_EXTEND_SIZE);
-
-	return pmalloc_construct(base, redo, s, alloc_redo_constructor, NULL, 0,
-		OBJ_INTERNAL_OBJECT_MASK, 0);
-}
-
-/*
- * pmalloc_construct_rt -- construct runtime part of allocator section
- */
-static void *
-pmalloc_construct_rt(PMEMobjpool *pop, void *data)
-{
-	struct lane_alloc_layout *layout = data;
-	struct lane_alloc_runtime *alloc_rt = Malloc(sizeof(*alloc_rt));
-	if (alloc_rt == NULL)
-		goto error_rt_alloc;
-
-	alloc_rt->ctx[OPERATION_INTERNAL] = operation_new(
-		(struct ulog *)&layout->internal, ALLOC_REDO_INTERNAL_SIZE,
-		NULL, NULL, &pop->p_ops, LOG_TYPE_REDO);
-	if (alloc_rt->ctx[OPERATION_INTERNAL] == NULL)
-		goto error_internal_alloc;
-
-	alloc_rt->ctx[OPERATION_EXTERNAL] = operation_new(
-		(struct ulog *)&layout->external, ALLOC_REDO_EXTERNAL_SIZE,
-		alloc_redo_external_extend, NULL, &pop->p_ops, LOG_TYPE_REDO);
-	if (alloc_rt->ctx[OPERATION_EXTERNAL] == NULL)
-		goto error_external_alloc;
-
-	return alloc_rt;
-error_external_alloc:
-	Free(alloc_rt->ctx[OPERATION_INTERNAL]);
-error_internal_alloc:
-	Free(alloc_rt);
-error_rt_alloc:
-	return NULL;
-}
-
-/*
- * pmalloc_destroy_rt -- destroy runtime part of allocator section
- */
-static void
-pmalloc_destroy_rt(PMEMobjpool *pop, void *rt)
-{
-	struct lane_alloc_runtime *alloc_rt = rt;
-	operation_delete(alloc_rt->ctx[OPERATION_INTERNAL]);
-	operation_delete(alloc_rt->ctx[OPERATION_EXTERNAL]);
-	Free(alloc_rt);
-}
-
-/*
- * pmalloc_recovery -- recovery of allocator lane section
- */
-static int
-pmalloc_recovery(PMEMobjpool *pop, void *data, unsigned length)
-{
-	struct lane_alloc_layout *sec = data;
-	ASSERT(sizeof(*sec) <= length);
-
-	ulog_recover((struct ulog *)&sec->internal, OBJ_OFF_IS_VALID_FROM_CTX,
-		&pop->p_ops);
-	ulog_recover((struct ulog *)&sec->external, OBJ_OFF_IS_VALID_FROM_CTX,
-		&pop->p_ops);
-
-	return 0;
-}
-
-/*
- * pmalloc_check -- consistency check of allocator lane section
- */
-static int
-pmalloc_check(PMEMobjpool *pop, void *data, unsigned length)
-{
-	LOG(3, "allocator lane %p", data);
-
-	struct lane_alloc_layout *sec = data;
-
-	int ret = ulog_check((struct ulog *)&sec->internal,
-		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
-	if (ret != 0)
-		ERR("allocator lane: internal redo log check failed");
-
-	int ret2 = ulog_check((struct ulog *)&sec->external,
-		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
-	if (ret2 != 0)
-		ERR("allocator lane: external redo log check failed");
-
-	return ret == 0 && ret2 == 0 ? 0 : -1;
-}
-
-/*
  * pmalloc_boot -- global runtime init routine of allocator section
  */
-static int
+int
 pmalloc_boot(PMEMobjpool *pop)
 {
 	int ret = palloc_boot(&pop->heap, (char *)pop + pop->heap_offset,
@@ -341,24 +226,13 @@ pmalloc_boot(PMEMobjpool *pop)
 /*
  * pmalloc_cleanup -- global cleanup routine of allocator section
  */
-static int
+int
 pmalloc_cleanup(PMEMobjpool *pop)
 {
 	palloc_heap_cleanup(&pop->heap);
 
 	return 0;
 }
-
-static struct section_operations allocator_ops = {
-	.construct_rt = pmalloc_construct_rt,
-	.destroy_rt = pmalloc_destroy_rt,
-	.recover = pmalloc_recovery,
-	.check = pmalloc_check,
-	.boot = pmalloc_boot,
-	.cleanup = pmalloc_cleanup,
-};
-
-SECTION_PARM(LANE_SECTION_ALLOCATOR, &allocator_ops);
 
 /*
  * CTL_WRITE_HANDLER(proto) -- creates a new allocation class

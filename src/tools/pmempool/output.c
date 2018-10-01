@@ -630,24 +630,6 @@ out_get_pool_signature(pmem_pool_type_t type)
 }
 
 /*
- * out_get_lane_section_str -- get lane section type string
- */
-const char *
-out_get_lane_section_str(enum lane_section_type type)
-{
-	switch (type) {
-	case LANE_SECTION_ALLOCATOR:
-		return "allocator";
-	case LANE_SECTION_LIST:
-		return "list";
-	case LANE_SECTION_TRANSACTION:
-		return "tx";
-	default:
-		return "unknown";
-	}
-}
-
-/*
  * out_get_chunk_type_str -- get chunk type string
  */
 const char *

@@ -488,17 +488,12 @@ list_insert_new(PMEMobjpool *pop,
 
 	int ret;
 
-	struct lane_section *lane_section;
-
 #ifdef DEBUG
 	int r = pmemobj_mutex_assert_locked(pop, &user_head->lock);
 	ASSERTeq(r, 0);
 #endif
-
-	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
-
-	ASSERTne(lane_section, NULL);
-	ASSERTne(lane_section->layout, NULL);
+	struct lane *lane;
+	lane_hold(pop, &lane);
 
 	struct pobj_action reserved;
 	if (palloc_reserve(&pop->heap, size, constructor, arg,
@@ -509,7 +504,7 @@ list_insert_new(PMEMobjpool *pop,
 	}
 	uint64_t obj_doffset = reserved.heap.offset;
 
-	struct operation_context *ctx = lane_section->runtime;
+	struct operation_context *ctx = lane->external;
 	operation_start(ctx);
 
 	ASSERT((ssize_t)pe_offset >= 0);
@@ -626,11 +621,10 @@ list_insert(PMEMobjpool *pop,
 	LOG(3, NULL);
 	ASSERTne(head, NULL);
 
+	struct lane *lane;
+	lane_hold(pop, &lane);
+
 	int ret;
-
-	struct lane_section *lane_section;
-
-	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
 
 	if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
 		errno = ret;
@@ -639,10 +633,7 @@ list_insert(PMEMobjpool *pop,
 		goto err;
 	}
 
-	ASSERTne(lane_section, NULL);
-	ASSERTne(lane_section->layout, NULL);
-
-	struct operation_context *ctx = lane_section->runtime;
+	struct operation_context *ctx = lane->external;
 	operation_start(ctx);
 
 	dest = list_get_dest(pop, head, dest, pe_offset, before);
@@ -710,14 +701,9 @@ list_remove_free(PMEMobjpool *pop, size_t pe_offset,
 	ASSERTeq(r, 0);
 #endif
 
-	struct lane_section *lane_section;
-
-	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
-
-	ASSERTne(lane_section, NULL);
-	ASSERTne(lane_section->layout, NULL);
-
-	struct operation_context *ctx = lane_section->runtime;
+	struct lane *lane;
+	lane_hold(pop, &lane);
+	struct operation_context *ctx = lane->external;
 	operation_start(ctx);
 
 	struct pobj_action deferred;
@@ -798,12 +784,8 @@ list_remove(PMEMobjpool *pop,
 
 	int ret;
 
-	struct lane_section *lane_section;
-
-	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
-
-	ASSERTne(lane_section, NULL);
-	ASSERTne(lane_section->layout, NULL);
+	struct lane *lane;
+	lane_hold(pop, &lane);
 
 	if ((ret = pmemobj_mutex_lock(pop, &head->lock))) {
 		errno = ret;
@@ -812,7 +794,7 @@ list_remove(PMEMobjpool *pop,
 		goto err;
 	}
 
-	struct operation_context *ctx = lane_section->runtime;
+	struct operation_context *ctx = lane->external;
 	operation_start(ctx);
 
 	struct list_entry *entry_ptr =
@@ -873,12 +855,8 @@ list_move(PMEMobjpool *pop,
 
 	int ret;
 
-	struct lane_section *lane_section;
-
-	lane_hold(pop, &lane_section, LANE_SECTION_LIST);
-
-	ASSERTne(lane_section, NULL);
-	ASSERTne(lane_section->layout, NULL);
+	struct lane *lane;
+	lane_hold(pop, &lane);
 
 	/*
 	 * Grab locks in specified order to avoid dead-locks.
@@ -892,7 +870,7 @@ list_move(PMEMobjpool *pop,
 		goto err;
 	}
 
-	struct operation_context *ctx = lane_section->runtime;
+	struct operation_context *ctx = lane->external;
 	operation_start(ctx);
 
 	dest = list_get_dest(pop, head_new, dest,
@@ -986,92 +964,3 @@ err:
 	ASSERT(ret == 0 || ret == -1);
 	return ret;
 }
-
-/*
- * lane_list_recovery -- (internal) recover the list section of the lane
- */
-static int
-lane_list_recovery(PMEMobjpool *pop, void *data, unsigned length)
-{
-	LOG(7, "list lane %p", data);
-
-	struct lane_list_layout *section = data;
-	ASSERT(sizeof(*section) <= length);
-
-	ulog_recover((struct ulog *)&section->redo,
-		OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
-
-	return 0;
-}
-
-/*
- * lane_list_check -- (internal) check consistency of lane
- */
-static int
-lane_list_check(PMEMobjpool *pop, void *data, unsigned length)
-{
-	LOG(3, "list lane %p", data);
-
-	struct lane_list_layout *section = data;
-
-	int ret = 0;
-	if ((ret = ulog_check((struct ulog *)&section->redo,
-			OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops)) != 0) {
-		ERR("list lane: redo log check failed");
-		ASSERT(ret == 0 || ret == -1);
-		return ret;
-	}
-
-	return 0;
-}
-
-/*
- * lane_list_construct_rt -- (internal) construct runtime part of list section
- */
-static void *
-lane_list_construct_rt(PMEMobjpool *pop, void *data)
-{
-	struct lane_list_layout *layout = data;
-	return operation_new((struct ulog *)&layout->redo,
-		LIST_REDO_LOG_SIZE, NULL, NULL, &pop->p_ops, LOG_TYPE_REDO);
-}
-
-/*
- * lane_list_destroy_rt -- (internal) destroy runtime part of list section
- */
-static void
-lane_list_destroy_rt(PMEMobjpool *pop, void *rt)
-{
-	operation_delete(rt);
-}
-
-/*
- * lane_list_boot -- global runtime init routine of list section
- */
-static int
-lane_list_boot(PMEMobjpool *pop)
-{
-	/* NOP */
-	return 0;
-}
-
-/*
- * lane_list_cleanup -- global runtime cleanup routine of list section
- */
-static int
-lane_list_cleanup(PMEMobjpool *pop)
-{
-	/* NOP */
-	return 0;
-}
-
-static struct section_operations list_ops = {
-	.construct_rt = lane_list_construct_rt,
-	.destroy_rt = lane_list_destroy_rt,
-	.recover = lane_list_recovery,
-	.check = lane_list_check,
-	.boot = lane_list_boot,
-	.cleanup = lane_list_cleanup,
-};
-
-SECTION_PARM(LANE_SECTION_LIST, &list_ops);
