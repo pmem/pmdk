@@ -179,6 +179,7 @@ OTHER_TESTS = \
 	util_is_zeroed\
 	util_map_proc\
 	util_parse_size\
+	util_pool_hdr_layout\
 	util_poolset\
 	util_poolset_foreach\
 	util_poolset_parse\

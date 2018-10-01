@@ -61,18 +61,14 @@
 static const struct pool_attr Log_create_attr = {
 		LOG_HDR_SIG,
 		LOG_FORMAT_MAJOR,
-		LOG_FORMAT_COMPAT_DEFAULT,
-		LOG_FORMAT_INCOMPAT_DEFAULT,
-		LOG_FORMAT_RO_COMPAT_DEFAULT,
+		LOG_FORMAT_FEAT_DEFAULT,
 		{0}, {0}, {0}, {0}, {0}
 };
 
 static const struct pool_attr Log_open_attr = {
 		LOG_HDR_SIG,
 		LOG_FORMAT_MAJOR,
-		LOG_FORMAT_COMPAT_CHECK,
-		LOG_FORMAT_INCOMPAT_CHECK,
-		LOG_FORMAT_RO_COMPAT_CHECK,
+		LOG_FORMAT_FEAT_CHECK,
 		{0}, {0}, {0}, {0}, {0}
 };
 

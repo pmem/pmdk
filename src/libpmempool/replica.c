@@ -1519,7 +1519,7 @@ check_replica_options(struct pool_set *set, unsigned repn,
 			continue;
 
 		struct pool_hdr *hdr = HDR(rep, p);
-		if (((hdr->incompat_features & POOL_FEAT_SINGLEHDR) == 0) !=
+		if (((hdr->features.incompat & POOL_FEAT_SINGLEHDR) == 0) !=
 				((set->options & OPTION_SINGLEHDR) == 0)) {
 			LOG(1,
 				"improper options are set in part %u's header in replica %u",

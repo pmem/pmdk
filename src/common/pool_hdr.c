@@ -89,9 +89,9 @@ void
 util_convert2le_hdr(struct pool_hdr *hdrp)
 {
 	hdrp->major = htole32(hdrp->major);
-	hdrp->compat_features = htole32(hdrp->compat_features);
-	hdrp->incompat_features = htole32(hdrp->incompat_features);
-	hdrp->ro_compat_features = htole32(hdrp->ro_compat_features);
+	hdrp->features.compat = htole32(hdrp->features.compat);
+	hdrp->features.incompat = htole32(hdrp->features.incompat);
+	hdrp->features.ro_compat = htole32(hdrp->features.ro_compat);
 	hdrp->arch_flags.alignment_desc =
 		htole64(hdrp->arch_flags.alignment_desc);
 	hdrp->arch_flags.machine = htole16(hdrp->arch_flags.machine);
@@ -106,9 +106,9 @@ void
 util_convert2h_hdr_nocheck(struct pool_hdr *hdrp)
 {
 	hdrp->major = le32toh(hdrp->major);
-	hdrp->compat_features = le32toh(hdrp->compat_features);
-	hdrp->incompat_features = le32toh(hdrp->incompat_features);
-	hdrp->ro_compat_features = le32toh(hdrp->ro_compat_features);
+	hdrp->features.compat = le32toh(hdrp->features.compat);
+	hdrp->features.incompat = le32toh(hdrp->features.incompat);
+	hdrp->features.ro_compat = le32toh(hdrp->features.ro_compat);
 	hdrp->crtime = le64toh(hdrp->crtime);
 	hdrp->arch_flags.machine = le16toh(hdrp->arch_flags.machine);
 	hdrp->arch_flags.alignment_desc =
@@ -160,18 +160,18 @@ util_check_arch_flags(const struct arch_flags *arch_flags)
  * util_feature_check -- check features masks
  */
 int
-util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
-			uint32_t ro_compat, uint32_t compat)
+util_feature_check(struct pool_hdr *hdrp, features_t features)
 {
-	LOG(3, "hdrp %p incompat %#x ro_compat %#x compat %#x",
-			hdrp, incompat, ro_compat, compat);
+	LOG(3, "hdrp %p features {incompat %#x ro_compat %#x compat %#x}",
+			hdrp,
+			features.incompat, features.ro_compat, features.compat);
 
 #define GET_NOT_MASKED_BITS(x, mask) ((x) & ~(mask))
 
 	uint32_t ubits;	/* unsupported bits */
 
 	/* check incompatible ("must support") features */
-	ubits = GET_NOT_MASKED_BITS(hdrp->incompat_features, incompat);
+	ubits = GET_NOT_MASKED_BITS(hdrp->features.incompat, features.incompat);
 	if (ubits) {
 		ERR("unsafe to continue due to unknown incompat "\
 							"features: %#x", ubits);
@@ -180,7 +180,8 @@ util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 	}
 
 	/* check RO-compatible features (force RO if unsupported) */
-	ubits = GET_NOT_MASKED_BITS(hdrp->ro_compat_features, ro_compat);
+	ubits = GET_NOT_MASKED_BITS(
+			hdrp->features.ro_compat, features.ro_compat);
 	if (ubits) {
 		ERR("switching to read-only mode due to unknown ro_compat "\
 							"features: %#x", ubits);
@@ -188,7 +189,7 @@ util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 	}
 
 	/* check compatible ("may") features */
-	ubits = GET_NOT_MASKED_BITS(hdrp->compat_features, compat);
+	ubits = GET_NOT_MASKED_BITS(hdrp->features.compat, features.compat);
 	if (ubits) {
 		LOG(3, "ignoring unknown compat features: %#x", ubits);
 	}

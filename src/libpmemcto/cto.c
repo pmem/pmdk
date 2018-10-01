@@ -69,18 +69,14 @@
 static const struct pool_attr Cto_create_attr = {
 		CTO_HDR_SIG,
 		CTO_FORMAT_MAJOR,
-		CTO_FORMAT_COMPAT_DEFAULT,
-		CTO_FORMAT_INCOMPAT_DEFAULT,
-		CTO_FORMAT_RO_COMPAT_DEFAULT,
+		CTO_FORMAT_FEAT_DEFAULT,
 		{0}, {0}, {0}, {0}, {0}
 };
 
 static const struct pool_attr Cto_open_attr = {
 		CTO_HDR_SIG,
 		CTO_FORMAT_MAJOR,
-		CTO_FORMAT_COMPAT_CHECK,
-		CTO_FORMAT_INCOMPAT_CHECK,
-		CTO_FORMAT_RO_COMPAT_CHECK,
+		CTO_FORMAT_FEAT_CHECK,
 		{0}, {0}, {0}, {0}, {0}
 };
 

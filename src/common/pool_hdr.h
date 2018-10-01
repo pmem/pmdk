@@ -109,6 +109,15 @@ struct arch_flags {
 #define PMDK_DATA_BE 2 /* 2's complement, big endian */
 
 /*
+ * features flags
+ */
+typedef struct {
+	uint32_t compat;	/* mask: compatible "may" features */
+	uint32_t incompat;	/* mask: "must support" features */
+	uint32_t ro_compat;	/* mask: force RO if unsupported */
+} features_t;
+
+/*
  * header used at the beginning of all types of memory pools
  *
  * for pools build on persistent memory, the integer types
@@ -119,20 +128,18 @@ struct arch_flags {
 struct pool_hdr {
 	char signature[POOL_HDR_SIG_LEN];
 	uint32_t major;			/* format major version number */
-	uint32_t compat_features;	/* mask: compatible "may" features */
-	uint32_t incompat_features;	/* mask: "must support" features */
-	uint32_t ro_compat_features;	/* mask: force RO if unsupported */
-	uuid_t poolset_uuid; /* pool set UUID */
-	uuid_t uuid; /* UUID of this file */
-	uuid_t prev_part_uuid; /* prev part */
-	uuid_t next_part_uuid; /* next part */
-	uuid_t prev_repl_uuid; /* prev replica */
-	uuid_t next_repl_uuid; /* next replica */
+	features_t features;		/* features flags */
+	uuid_t poolset_uuid;		/* pool set UUID */
+	uuid_t uuid;			/* UUID of this file */
+	uuid_t prev_part_uuid;		/* prev part */
+	uuid_t next_part_uuid;		/* next part */
+	uuid_t prev_repl_uuid;		/* prev replica */
+	uuid_t next_repl_uuid;		/* next replica */
 	uint64_t crtime;		/* when created (seconds since epoch) */
 	struct arch_flags arch_flags;	/* architecture identification flags */
-	unsigned char unused[1888];	/* must be zero */
+	unsigned char unused[1904];	/* must be zero */
 	/* not checksumed */
-	unsigned char unused2[1992];	/* must be zero */
+	unsigned char unused2[1976];	/* must be zero */
 	struct shutdown_state sds;	/* shutdown status */
 	uint64_t checksum;		/* checksum of above fields */
 };
@@ -147,8 +154,7 @@ void util_convert2h_hdr_nocheck(struct pool_hdr *hdrp);
 void util_get_arch_flags(struct arch_flags *arch_flags);
 int util_check_arch_flags(const struct arch_flags *arch_flags);
 
-int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
-				uint32_t ro_compat, uint32_t compat);
+int util_feature_check(struct pool_hdr *hdrp, features_t feat);
 
 /*
  * set of macros for determining the alignment descriptor
@@ -176,7 +182,7 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 #define POOL_FEAT_CKSUM_2K	0x0002	/* only first 2K of hdr checksummed */
 #define POOL_FEAT_SDS		0x0004	/* check shutdown state */
 
-#define POOL_FEAT_ALL \
+#define POOL_FEAT_INCOMPAT_ALL \
 	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_FEAT_SDS)
 
 /*
@@ -188,10 +194,10 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
 #define POOL_E_FEAT_SDS		0x0000	/* empty */
 #endif
 
-#define POOL_FEAT_VALID \
+#define POOL_FEAT_INCOMPAT_VALID \
 	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
 
-#define POOL_FEAT_DEFAULT \
+#define POOL_FEAT_INCOMPAT_DEFAULT \
 	(POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
 
 /*
@@ -206,12 +212,12 @@ int util_feature_check(struct pool_hdr *hdrp, uint32_t incompat,
  * POOL_FEAT_CKSUM_2K incompat feature is set.
  */
 #define POOL_HDR_CSUM_END_OFF(hdrp) \
-	((hdrp)->incompat_features & POOL_FEAT_CKSUM_2K) \
+	((hdrp)->features.incompat & POOL_FEAT_CKSUM_2K) \
 		? POOL_HDR_CSUM_2K_END_OFF : POOL_HDR_CSUM_4K_END_OFF
 
 /* ignore shutdown state if incompat feature is disabled */
 #define IGNORE_SDS(hdrp) \
-	(((hdrp) != NULL) && (((hdrp)->incompat_features & POOL_FEAT_SDS) == 0))
+	(((hdrp) != NULL) && (((hdrp)->features.incompat & POOL_FEAT_SDS) == 0))
 
 #ifdef __cplusplus
 }

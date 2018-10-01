@@ -639,7 +639,7 @@ create_missing_headers(struct pool_set *set, unsigned repn)
 	for (unsigned p = 1; p < set->replica[repn]->nhdrs; ++p) {
 		struct pool_attr attr;
 		util_pool_hdr2attr(&attr, src_hdr);
-		attr.incompat_features &= (uint32_t)(~POOL_FEAT_SINGLEHDR);
+		attr.features.incompat &= (uint32_t)(~POOL_FEAT_SINGLEHDR);
 		if (util_header_create(set, repn, p, &attr, 1) != 0) {
 			LOG(1, "part headers create failed for"
 					" replica %u part %u", repn, p);
@@ -662,11 +662,11 @@ update_replica_header(struct pool_set *set, unsigned repn)
 	struct pool_set_part *part = PART(REP(set, repn), 0);
 	struct pool_hdr *hdr = (struct pool_hdr *)part->hdr;
 	if (set->options & OPTION_SINGLEHDR) {
-		hdr->incompat_features |= POOL_FEAT_SINGLEHDR;
+		hdr->features.incompat |= POOL_FEAT_SINGLEHDR;
 		memcpy(hdr->next_part_uuid, hdr->uuid, POOL_HDR_UUID_LEN);
 		memcpy(hdr->prev_part_uuid, hdr->uuid, POOL_HDR_UUID_LEN);
 	} else {
-		hdr->incompat_features &= (uint32_t)(~POOL_FEAT_SINGLEHDR);
+		hdr->features.incompat &= (uint32_t)(~POOL_FEAT_SINGLEHDR);
 
 	}
 	util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 1,

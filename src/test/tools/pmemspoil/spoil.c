@@ -739,6 +739,23 @@ pmemspoil_process_shutdown_state(struct pmemspoil *psp,
 }
 
 /*
+ * pmemspoil_process_features -- process features fields
+ */
+static int
+pmemspoil_process_features(struct pmemspoil *psp,
+	struct pmemspoil_list *pfp, void *arg)
+{
+	features_t *features = arg;
+	PROCESS_BEGIN(psp, pfp) {
+		PROCESS_FIELD_LE(features, compat, uint32_t);
+		PROCESS_FIELD_LE(features, incompat, uint32_t);
+		PROCESS_FIELD_LE(features, ro_compat, uint32_t);
+	} PROCESS_END;
+
+	return PROCESS_RET;
+}
+
+/*
  * pmemspoil_process_pool_hdr -- process pool_hdr fields
  */
 static int
@@ -767,9 +784,7 @@ pmemspoil_process_pool_hdr(struct pmemspoil *psp,
 		PROCESS_FIELD(&pool_hdr, unused, char);
 		PROCESS_FIELD(&pool_hdr, unused2, char);
 		PROCESS_FIELD_LE(&pool_hdr, major, uint32_t);
-		PROCESS_FIELD_LE(&pool_hdr, compat_features, uint32_t);
-		PROCESS_FIELD_LE(&pool_hdr, incompat_features, uint32_t);
-		PROCESS_FIELD_LE(&pool_hdr, ro_compat_features, uint32_t);
+		PROCESS(features, &pool_hdr.features, 1, features_t *);
 		PROCESS_FIELD_LE(&pool_hdr, crtime, uint64_t);
 		PROCESS_FIELD(&pool_hdr, arch_flags, char); /* XXX */
 		PROCESS(shutdown_state, &pool_hdr.sds, 1,

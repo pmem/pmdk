@@ -62,18 +62,14 @@
 static const struct pool_attr Blk_create_attr = {
 		BLK_HDR_SIG,
 		BLK_FORMAT_MAJOR,
-		BLK_FORMAT_COMPAT_DEFAULT,
-		BLK_FORMAT_INCOMPAT_DEFAULT,
-		BLK_FORMAT_RO_COMPAT_DEFAULT,
+		BLK_FORMAT_FEAT_DEFAULT,
 		{0}, {0}, {0}, {0}, {0}
 };
 
 static const struct pool_attr Blk_open_attr = {
 		BLK_HDR_SIG,
 		BLK_FORMAT_MAJOR,
-		BLK_FORMAT_COMPAT_CHECK,
-		BLK_FORMAT_INCOMPAT_CHECK,
-		BLK_FORMAT_RO_COMPAT_CHECK,
+		BLK_FORMAT_FEAT_CHECK,
 		{0}, {0}, {0}, {0}, {0}
 };
 

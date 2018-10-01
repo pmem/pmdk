@@ -52,13 +52,13 @@ extern "C" {
 #define CTO_HDR_SIG "PMEMCTO"	/* must be 8 bytes including '\0' */
 #define CTO_FORMAT_MAJOR 1
 
-#define CTO_FORMAT_COMPAT_DEFAULT	0x0000
-#define CTO_FORMAT_INCOMPAT_DEFAULT	POOL_FEAT_DEFAULT
-#define CTO_FORMAT_RO_COMPAT_DEFAULT	0x0000
+#define CTO_FORMAT_FEAT_DEFAULT \
+	{0x0000, POOL_FEAT_INCOMPAT_DEFAULT, 0x0000}
 
-#define CTO_FORMAT_COMPAT_CHECK		0x0000
-#define CTO_FORMAT_INCOMPAT_CHECK	POOL_FEAT_VALID
-#define CTO_FORMAT_RO_COMPAT_CHECK	0x0000
+#define CTO_FORMAT_FEAT_CHECK \
+	{0x0000, POOL_FEAT_INCOMPAT_VALID, 0x0000}
+
+static const features_t cto_format_feat_default = CTO_FORMAT_FEAT_DEFAULT;
 
 /* size of the persistent part of PMEMOBJ pool descriptor (2kB) */
 #define CTO_DSC_P_SIZE		2048
