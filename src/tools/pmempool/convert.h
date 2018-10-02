@@ -38,8 +38,3 @@
 
 int pmempool_convert_func(const char *appname, int argc, char *argv[]);
 void pmempool_convert_help(const char *appname);
-
-void pmempool_convert_persist(void *poolset, const void *addr, size_t len);
-
-int convert_v1_v2(void *poolset, void *addr);
-int convert_v3_v4(void *poolset, void *addr);
