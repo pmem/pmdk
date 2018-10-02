@@ -108,7 +108,7 @@ typedef void (*ulog_free_fn)(void *base, uint64_t *next);
 
 struct ulog *ulog_next(struct ulog *ulog, const struct pmem_ops *p_ops);
 
-void ulog_construct(uint64_t offset, size_t capacity, int zero_data,
+void ulog_construct(uint64_t offset, size_t capacity, int flush,
 	const struct pmem_ops *p_ops);
 
 size_t ulog_capacity(struct ulog *ulog, size_t ulog_base_bytes,
