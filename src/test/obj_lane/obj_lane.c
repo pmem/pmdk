@@ -67,6 +67,15 @@ mock_flush(void *ctx, const void *addr, size_t len, unsigned flags)
 }
 
 /*
+ * mock_persist -- mock flush for lanes
+ */
+static int
+mock_persist(void *ctx, const void *addr, size_t len, unsigned flags)
+{
+	return 0;
+}
+
+/*
  * mock_memset -- mock memset for lanes
  */
 static void *
@@ -99,6 +108,7 @@ test_lane_boot_cleanup_ok(void)
 	pop->p.p_ops.flush = mock_flush;
 	pop->p.p_ops.memset = mock_memset;
 	pop->p.p_ops.drain = mock_drain;
+	pop->p.p_ops.persist = mock_persist;
 
 	lane_init_data(&pop->p);
 	lane_info_boot();
@@ -257,6 +267,7 @@ test_lane_cleanup_in_separate_thread(void)
 	pop->p.p_ops.flush = mock_flush;
 	pop->p.p_ops.memset = mock_memset;
 	pop->p.p_ops.drain = mock_drain;
+	pop->p.p_ops.persist = mock_persist;
 
 	base_ptr = &pop->p;
 

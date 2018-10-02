@@ -154,7 +154,7 @@ ulog_entry_valid(const struct ulog_entry_base *entry)
  * ulog_construct -- initializes the ulog structure
  */
 void
-ulog_construct(uint64_t offset, size_t capacity, int zero_data,
+ulog_construct(uint64_t offset, size_t capacity, int flush,
 	const struct pmem_ops *p_ops)
 {
 	struct ulog *ulog = ulog_by_offset(offset, p_ops);
@@ -166,13 +166,19 @@ ulog_construct(uint64_t offset, size_t capacity, int zero_data,
 	ulog->next = 0;
 	memset(ulog->unused, 0, sizeof(ulog->unused));
 
-	pmemops_flush(p_ops, ulog, sizeof(*ulog));
-
-	if (zero_data) {
+	if (flush) {
+		pmemops_xflush(p_ops, ulog, sizeof(*ulog),
+			PMEMOBJ_F_RELAXED);
 		pmemops_memset(p_ops, ulog->data, 0, capacity,
-			PMEMOBJ_F_MEM_NONTEMPORAL);
+			PMEMOBJ_F_MEM_NONTEMPORAL |
+			PMEMOBJ_F_MEM_NODRAIN |
+			PMEMOBJ_F_RELAXED);
 	} else {
-		pmemops_drain(p_ops);
+		/*
+		 * We want to avoid replicating zeroes for every ulog of every
+		 * lane, to do that, we need to use plain old memset.
+		 */
+		memset(ulog->data, 0, capacity);
 	}
 
 	VALGRIND_REMOVE_FROM_TX(ulog, SIZEOF_ULOG(capacity));
