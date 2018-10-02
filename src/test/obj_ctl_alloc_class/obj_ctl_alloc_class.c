@@ -39,16 +39,9 @@
 
 #define LAYOUT "obj_ctl_alloc_class"
 
-int
-main(int argc, char *argv[])
+static void
+basic(const char *path)
 {
-	START(argc, argv, "obj_ctl_alloc_class");
-
-	if (argc != 2)
-		UT_FATAL("usage: %s file-name", argv[0]);
-
-	const char *path = argv[1];
-
 	PMEMobjpool *pop;
 
 	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL * 20,
@@ -74,7 +67,6 @@ main(int argc, char *argv[])
 	alloc_class_129.unit_size = 1024;
 	alloc_class_129.units_per_block = 1000;
 	alloc_class_129.alignment = 0;
-
 
 	ret = pmemobj_ctl_set(pop, "heap.alloc_class.129.desc",
 		&alloc_class_129);
@@ -258,6 +250,60 @@ main(int argc, char *argv[])
 	}
 
 	pmemobj_close(pop);
+}
+
+static void
+many(const char *path)
+{
+	PMEMobjpool *pop;
+
+	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL,
+		S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemobj_create: %s", path);
+
+	unsigned nunits = UINT16_MAX + 1;
+
+	struct pobj_alloc_class_desc alloc_class_tiny;
+	alloc_class_tiny.header_type = POBJ_HEADER_NONE;
+	alloc_class_tiny.unit_size = 8;
+	alloc_class_tiny.units_per_block = nunits;
+	alloc_class_tiny.class_id = 0;
+	alloc_class_tiny.alignment = 0;
+	int ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
+		&alloc_class_tiny);
+	UT_ASSERTeq(ret, 0);
+
+	PMEMoid oid;
+	uint64_t *counterp = NULL;
+	for (size_t i = 0; i < nunits; ++i) {
+		pmemobj_xalloc(pop, &oid, 8, 0,
+			POBJ_CLASS_ID(alloc_class_tiny.class_id), NULL, NULL);
+		counterp = pmemobj_direct(oid);
+		(*counterp)++;
+		/*
+		 * This works only because this is a fresh pool in a new file
+		 * and so the counter must be initially zero.
+		 * This might have to be fixed if that ever changes.
+		 */
+		UT_ASSERTeq(*counterp, 1);
+	}
+
+	pmemobj_close(pop);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "obj_ctl_alloc_class");
+
+	if (argc != 3)
+		UT_FATAL("usage: %s file-name b|m", argv[0]);
+
+	const char *path = argv[1];
+	if (argv[2][0] == 'b')
+		basic(path);
+	else if (argv[2][0] == 'm')
+		many(path);
 
 	DONE(NULL);
 }

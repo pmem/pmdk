@@ -50,7 +50,7 @@
 struct block_container_seglists {
 	struct block_container super;
 	struct memory_block m;
-	VECQ(, uint16_t) blocks[SEGLIST_BLOCK_LISTS];
+	VECQ(, uint32_t) blocks[SEGLIST_BLOCK_LISTS];
 	uint64_t nonempty_lists;
 };
 
@@ -108,7 +108,7 @@ container_seglists_get_rm_block_bestfit(struct block_container *bc,
 	/* finds the list that serves the smallest applicable size */
 	i = util_lssb_index64(v);
 
-	uint16_t block_offset = VECQ_DEQUEUE(&c->blocks[i]);
+	uint32_t block_offset = VECQ_DEQUEUE(&c->blocks[i]);
 
 	if (VECQ_SIZE(&c->blocks[i]) == 0) /* marks the list as empty */
 		c->nonempty_lists &= ~(1ULL << (i));
