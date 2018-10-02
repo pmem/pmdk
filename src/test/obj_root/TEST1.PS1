@@ -31,13 +31,15 @@
 #
 
 #
-# src/test/obj_root/TEST0 -- unit test for pmemobj_root
+# src/test/obj_root/TEST1 -- unit test for pmemobj_root
 #
 
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_test_type medium
+# test type is long, because test freezes the system during execution
+# on AppVeyor service
+require_test_type long
 
 setup
 
@@ -47,6 +49,6 @@ require_free_space 18G
 
 create_holey_file 17G $DIR\testfile
 
-expect_normal_exit $Env:EXE_DIR\obj_root$Env:EXESUFFIX $DIR\testfile
+expect_normal_exit $Env:EXE_DIR\obj_root$Env:EXESUFFIX $DIR\testfile l
 
 pass
