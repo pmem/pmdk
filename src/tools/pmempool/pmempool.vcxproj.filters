@@ -104,12 +104,6 @@
     <ClCompile Include="convert.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="convert_obj_v1_v2.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="convert_obj_v3_v4.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="create.c">
       <Filter>Source Files</Filter>
     </ClCompile>
