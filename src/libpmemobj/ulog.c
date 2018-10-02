@@ -53,26 +53,31 @@
 #define ULOG_OFFSET_MASK		(~(ULOG_OPERATION_MASK))
 
 #define CACHELINE_ALIGN(size) ALIGN_UP(size, CACHELINE_SIZE)
+#define IS_CACHELINE_ALIGNED(ptr)\
+	(((uintptr_t)(ptr) & (CACHELINE_SIZE - 1)) == 0)
 
 /*
- * ulog_next_by_offset -- (internal) calculates the next pointer
+ * ulog_by_offset -- (internal) calculates the ulog pointer
  */
 static struct ulog *
-ulog_next_by_offset(size_t offset, const struct pmem_ops *p_ops)
+ulog_by_offset(size_t offset, const struct pmem_ops *p_ops)
 {
-	return offset == 0 ? NULL :
-		(struct ulog *)((char *)p_ops->base + offset);
+	if (offset == 0)
+		return NULL;
+
+	size_t aligned_offset = CACHELINE_ALIGN(offset);
+
+	return (struct ulog *)((char *)p_ops->base + aligned_offset);
 }
 
 /*
- * ulog_next -- (internal) retrieves the pointer to the next ulog
+ * ulog_next -- retrieves the pointer to the next ulog
  */
-static struct ulog *
+struct ulog *
 ulog_next(struct ulog *ulog, const struct pmem_ops *p_ops)
 {
-	return ulog_next_by_offset(ulog->next, p_ops);
+	return ulog_by_offset(ulog->next, p_ops);
 }
-
 
 /*
  * ulog_operation -- returns the type of entry operation
@@ -149,9 +154,11 @@ ulog_entry_valid(const struct ulog_entry_base *entry)
  * ulog_construct -- initializes the ulog structure
  */
 void
-ulog_construct(struct ulog *ulog, size_t capacity, int zero_data,
+ulog_construct(uint64_t offset, size_t capacity, int zero_data,
 	const struct pmem_ops *p_ops)
 {
+	struct ulog *ulog = ulog_by_offset(offset, p_ops);
+
 	VALGRIND_ADD_TO_TX(ulog, SIZEOF_ULOG(capacity));
 
 	ulog->capacity = capacity;
@@ -240,7 +247,7 @@ ulog_reserve(struct ulog *ulog,
 
 	uint64_t offset;
 	VEC_FOREACH(offset, next) {
-		ulog = ulog_next_by_offset(offset, p_ops);
+		ulog = ulog_by_offset(offset, p_ops);
 		capacity += ulog->capacity;
 	}
 
@@ -304,11 +311,13 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
 	size_t nlog = 0;
 
 	while (next_nbytes > 0) {
-		ulog = ulog_next_by_offset(VEC_ARR(next)[nlog++], p_ops);
+		ulog = ulog_by_offset(VEC_ARR(next)[nlog++], p_ops);
 		ASSERTne(ulog, NULL);
 
 		size_t copy_nbytes = MIN(next_nbytes, ulog->capacity);
 		next_nbytes -= copy_nbytes;
+
+		ASSERT(IS_CACHELINE_ALIGNED(ulog->data));
 
 		VALGRIND_ADD_TO_TX(ulog->data, copy_nbytes);
 		pmemops_memcpy(p_ops,
@@ -429,25 +438,31 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 		b->checksum = util_checksum_seq(last_cacheline,
 			CACHELINE_SIZE, b->checksum);
 
+	ASSERT(IS_CACHELINE_ALIGNED(e));
+
 	VALGRIND_ADD_TO_TX(e, CACHELINE_SIZE);
 	pmemops_memcpy(p_ops, e, b, CACHELINE_SIZE,
 		PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
 	VALGRIND_REMOVE_FROM_TX(e, CACHELINE_SIZE);
 
 	if (rcopy != 0) {
-		VALGRIND_ADD_TO_TX(e->data + ncopy, rcopy);
-		pmemops_memcpy(p_ops, e->data + ncopy, srcof, rcopy,
+		void *dest = e->data + ncopy;
+		ASSERT(IS_CACHELINE_ALIGNED(dest));
+
+		VALGRIND_ADD_TO_TX(dest, rcopy);
+		pmemops_memcpy(p_ops, dest, srcof, rcopy,
 			PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
-		VALGRIND_REMOVE_FROM_TX(e->data + ncopy, rcopy);
+		VALGRIND_REMOVE_FROM_TX(dest, rcopy);
 	}
 
 	if (lcopy != 0) {
-		VALGRIND_ADD_TO_TX(e->data + ncopy + rcopy, CACHELINE_SIZE);
-		pmemops_memcpy(p_ops, e->data + ncopy + rcopy, last_cacheline,
-			CACHELINE_SIZE,
+		void *dest = e->data + ncopy + rcopy;
+		ASSERT(IS_CACHELINE_ALIGNED(dest));
+
+		VALGRIND_ADD_TO_TX(dest, CACHELINE_SIZE);
+		pmemops_memcpy(p_ops, dest, last_cacheline, CACHELINE_SIZE,
 			PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
-		VALGRIND_REMOVE_FROM_TX(e->data + ncopy + rcopy,
-			CACHELINE_SIZE);
+		VALGRIND_REMOVE_FROM_TX(dest, CACHELINE_SIZE);
 	}
 
 	pmemops_drain(p_ops);
@@ -575,7 +590,7 @@ ulog_clobber_data(struct ulog *dest,
 		if (nbytes == 0)
 			break;
 
-		r = ulog_next_by_offset(VEC_ARR(next)[nlog++], p_ops);
+		r = ulog_by_offset(VEC_ARR(next)[nlog++], p_ops);
 		if (nlog > 1)
 			break;
 
@@ -592,20 +607,22 @@ ulog_clobber_data(struct ulog *dest,
 	 * buffer for each transaction is an acceptable overhead for the average
 	 * case.
 	 */
-	struct ulog *u = ulog_next_by_offset(dest->next, p_ops);
+	struct ulog *u = ulog_by_offset(dest->next, p_ops);
 	if (u == NULL)
 		return;
 
 	VEC(, uint64_t *) logs_past_first;
 	VEC_INIT(&logs_past_first);
 
-	do {
+	size_t next_offset;
+	while (u != NULL && ((next_offset = u->next) != 0)) {
 		if (VEC_PUSH_BACK(&logs_past_first, &u->next) != 0) {
 			/* this is fine, it will just use more pmem */
 			LOG(1, "unable to free transaction logs memory");
 			goto out;
 		}
-	} while (((u = ulog_next_by_offset(u->next, p_ops)) != NULL));
+		u = ulog_by_offset(u->next, p_ops);
+	}
 
 	uint64_t *ulog_ptr;
 	VEC_FOREACH_REVERSE(ulog_ptr, &logs_past_first) {

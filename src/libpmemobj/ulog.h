@@ -65,6 +65,11 @@ struct ulog_entry_buf {
 	uint8_t data[]; /* content to fill in */
 };
 
+/*
+ * This structure *must* be located at a cacheline boundry. To achieve this,
+ * the next field is always allocated with extra padding, and then the offset
+ * is additionally aligned.
+ */
 #define ULOG(capacity_bytes) {\
 	/* 64 bytes of metadata */\
 	uint64_t checksum; /* checksum of ulog header and its entries */\
@@ -76,6 +81,10 @@ struct ulog_entry_buf {
 
 #define SIZEOF_ULOG(base_capacity)\
 (sizeof(struct ulog) + base_capacity)
+
+/* use this for allocations of aligned ulog extensions */
+#define SIZEOF_ALIGNED_ULOG(base_capacity)\
+(SIZEOF_ULOG(base_capacity) + CACHELINE_SIZE)
 
 struct ulog ULOG(0);
 
@@ -97,7 +106,9 @@ typedef int (*ulog_entry_cb)(struct ulog_entry_base *e, void *arg,
 	const struct pmem_ops *p_ops);
 typedef void (*ulog_free_fn)(void *base, uint64_t *next);
 
-void ulog_construct(struct ulog *ulog, size_t capacity, int zero_data,
+struct ulog *ulog_next(struct ulog *ulog, const struct pmem_ops *p_ops);
+
+void ulog_construct(uint64_t offset, size_t capacity, int zero_data,
 	const struct pmem_ops *p_ops);
 
 size_t ulog_capacity(struct ulog *ulog, size_t ulog_base_bytes,

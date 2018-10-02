@@ -53,6 +53,7 @@ enum fail_types {
 };
 
 struct test_object {
+	uint8_t padding[CACHELINE_SIZE - 16]; /* align to a cacheline */
 	struct ULOG(TEST_ENTRIES) redo;
 	struct ULOG(TEST_ENTRIES) undo;
 	uint64_t values[TEST_VALUES];
@@ -70,7 +71,7 @@ redo_log_constructor(void *ctx, void *ptr, size_t usable_size, void *arg)
 	PMEMobjpool *pop = ctx;
 	const struct pmem_ops *p_ops = &pop->p_ops;
 
-	ulog_construct(ptr, TEST_ENTRIES, 1, p_ops);
+	ulog_construct(OBJ_PTR_TO_OFF(ctx, ptr), TEST_ENTRIES, 1, p_ops);
 
 	return 0;
 }
@@ -413,7 +414,7 @@ main(int argc, char *argv[])
 	struct test_object *object =
 		pmemobj_direct(pmemobj_root(pop, sizeof(struct test_object)));
 	UT_ASSERTne(object, NULL);
-	ulog_construct((struct ulog *)&object->undo,
+	ulog_construct(OBJ_PTR_TO_OFF(pop, &object->undo),
 		TEST_ENTRIES, 1, &pop->p_ops);
 
 	test_redo(pop, object);

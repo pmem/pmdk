@@ -191,7 +191,7 @@ lane_ulog_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 	size_t capacity = ALIGN_DOWN(usable_size - sizeof(struct ulog),
 		CACHELINE_SIZE);
 
-	ulog_construct(ptr, capacity, 1, p_ops);
+	ulog_construct(OBJ_PTR_TO_OFF(base, ptr), capacity, 1, p_ops);
 
 	return 0;
 }
@@ -204,7 +204,7 @@ lane_undo_extend(void *base, uint64_t *redo)
 {
 	PMEMobjpool *pop = base;
 	struct tx_parameters *params = pop->tx_params;
-	size_t s = SIZEOF_ULOG(params->cache_size);
+	size_t s = SIZEOF_ALIGNED_ULOG(params->cache_size);
 
 	return pmalloc_construct(base, redo, s, lane_ulog_constructor, NULL,
 		0, OBJ_INTERNAL_OBJECT_MASK, 0);
@@ -216,7 +216,7 @@ lane_undo_extend(void *base, uint64_t *redo)
 static int
 lane_redo_extend(void *base, uint64_t *redo)
 {
-	size_t s = SIZEOF_ULOG(LANE_REDO_EXTERNAL_SIZE);
+	size_t s = SIZEOF_ALIGNED_ULOG(LANE_REDO_EXTERNAL_SIZE);
 
 	return pmalloc_construct(base, redo, s, lane_ulog_constructor, NULL,
 		0, OBJ_INTERNAL_OBJECT_MASK, 0);
@@ -341,11 +341,11 @@ lane_init_data(PMEMobjpool *pop)
 
 	for (uint64_t i = 0; i < pop->nlanes; ++i) {
 		layout = lane_get_layout(pop, i);
-		ulog_construct((struct ulog *)&layout->internal,
+		ulog_construct(OBJ_PTR_TO_OFF(pop, &layout->internal),
 			LANE_REDO_INTERNAL_SIZE, 0, &pop->p_ops);
-		ulog_construct((struct ulog *)&layout->external,
+		ulog_construct(OBJ_PTR_TO_OFF(pop, &layout->external),
 			LANE_REDO_EXTERNAL_SIZE, 0, &pop->p_ops);
-		ulog_construct((struct ulog *)&layout->undo,
+		ulog_construct(OBJ_PTR_TO_OFF(pop, &layout->undo),
 			LANE_UNDO_SIZE, 0, &pop->p_ops);
 	}
 }
