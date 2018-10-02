@@ -3187,8 +3187,6 @@ function count_lines() {
 #
 function get_pmemcheck_version()
 {
-	require_valgrind_tool pmemcheck
-
 	PMEMCHECK_VERSION=$($VALGRINDEXE --tool=pmemcheck true 2>&1 \
 			| head -n 1 | sed "s/.*-\([0-9.]*\),.*/\1/")
 
@@ -3208,6 +3206,8 @@ function get_pmemcheck_version()
 #
 function require_pmemcheck_version_ge()
 {
+	require_valgrind_tool pmemcheck
+
 	REQUIRE_MAJOR=$1
 	REQUIRE_MINOR=$2
 	PMEMCHECK_MAJOR=$(get_pmemcheck_version 0)
@@ -3240,6 +3240,8 @@ function require_pmemcheck_version_ge()
 #
 function require_pmemcheck_version_lt()
 {
+	require_valgrind_tool pmemcheck
+
 	REQUIRE_MAJOR=$1
 	REQUIRE_MINOR=$2
 	PMEMCHECK_MAJOR=$(get_pmemcheck_version 0)
