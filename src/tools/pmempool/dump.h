@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,5 +34,5 @@
  * dump.h -- pmempool dump command header file
  */
 
-int pmempool_dump_func(char *appname, int argc, char *argv[]);
-void pmempool_dump_help(char *appname);
+int pmempool_dump_func(const char *appname, int argc, char *argv[]);
+void pmempool_dump_help(const char *appname);

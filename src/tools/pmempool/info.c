@@ -308,7 +308,7 @@ static const char * const help_str =
  * print_usage -- print application usage short description
  */
 static void
-print_usage(char *appname)
+print_usage(const char *appname)
 {
 	printf("Usage: %s info [<args>] <file>\n", appname);
 }
@@ -317,7 +317,7 @@ print_usage(char *appname)
  * print_version -- print version string
  */
 static void
-print_version(char *appname)
+print_version(const char *appname)
 {
 	printf("%s %s\n", appname, SRCVERSION);
 }
@@ -326,7 +326,7 @@ print_version(char *appname)
  * pmempool_info_help -- print application usage detailed description
  */
 void
-pmempool_info_help(char *appname)
+pmempool_info_help(const char *appname)
 {
 	print_usage(appname);
 	print_version(appname);
@@ -341,7 +341,7 @@ pmempool_info_help(char *appname)
  * Terminates process if invalid arguments passed.
  */
 static int
-parse_args(char *appname, int argc, char *argv[],
+parse_args(const char *appname, int argc, char *argv[],
 		struct pmempool_info_args *argsp,
 		struct options *opts)
 {
@@ -1013,7 +1013,7 @@ pmempool_info_free(struct pmem_info *pip)
 }
 
 int
-pmempool_info_func(char *appname, int argc, char *argv[])
+pmempool_info_func(const char *appname, int argc, char *argv[])
 {
 	int ret = 0;
 	struct pmem_info *pip = pmempool_info_alloc();

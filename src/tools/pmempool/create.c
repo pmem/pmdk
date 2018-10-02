@@ -152,7 +152,7 @@ static const struct option long_options[] = {
  * print_usage -- print application usage short description
  */
 static void
-print_usage(char *appname)
+print_usage(const char *appname)
 {
 	printf("Usage: %s create [<args>] <blk|log|obj|cto> [<bsize>] <file>\n",
 			appname);
@@ -162,7 +162,7 @@ print_usage(char *appname)
  * print_version -- print version string
  */
 static void
-print_version(char *appname)
+print_version(const char *appname)
 {
 	printf("%s %s\n", appname, SRCVERSION);
 }
@@ -171,7 +171,7 @@ print_version(char *appname)
  * pmempool_create_help -- print help message for create command
  */
 void
-pmempool_create_help(char *appname)
+pmempool_create_help(const char *appname)
 {
 	print_usage(appname);
 	print_version(appname);
@@ -385,7 +385,7 @@ inherit_pool_params(struct pmempool_create *pcp)
  * pmempool_create_parse_args -- parse command line args
  */
 static int
-pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
+pmempool_create_parse_args(struct pmempool_create *pcp, const char *appname,
 		int argc, char *argv[], struct options *opts)
 {
 	int opt, ret;
@@ -463,7 +463,7 @@ pmempool_create_parse_args(struct pmempool_create *pcp, char *appname,
  * pmempool_create_func -- main function for create command
  */
 int
-pmempool_create_func(char *appname, int argc, char *argv[])
+pmempool_create_func(const char *appname, int argc, char *argv[])
 {
 	int ret = 0;
 	struct pmempool_create pc = pmempool_create_default;

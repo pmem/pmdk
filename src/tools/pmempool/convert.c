@@ -60,7 +60,7 @@ static const char * const help_str =
  * print_usage -- print application usage short description
  */
 static void
-print_usage(char *appname)
+print_usage(const char *appname)
 {
 	printf("Usage: %s convert <file>\n", appname);
 }
@@ -69,7 +69,7 @@ print_usage(char *appname)
  * print_version -- print version string
  */
 static void
-print_version(char *appname)
+print_version(const char *appname)
 {
 	printf("%s %s\n", appname, SRCVERSION);
 }
@@ -78,7 +78,7 @@ print_version(char *appname)
  * pmempool_convert_help -- print help message for convert command
  */
 void
-pmempool_convert_help(char *appname)
+pmempool_convert_help(const char *appname)
 {
 	print_usage(appname);
 	print_version(appname);
@@ -137,7 +137,7 @@ pmempool_convert_persist(void *poolset, const void *addr, size_t len)
  * pmempool_convert_func -- main function for convert command
  */
 int
-pmempool_convert_func(char *appname, int argc, char *argv[])
+pmempool_convert_func(const char *appname, int argc, char *argv[])
 {
 	if (argc != 2) {
 		print_usage(appname);

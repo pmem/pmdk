@@ -118,7 +118,7 @@ print_usage(const char *appname)
  * pmempool_rm_help -- print help message
  */
 void
-pmempool_rm_help(char *appname)
+pmempool_rm_help(const char *appname)
 {
 	print_usage(appname);
 	printf(help_str, appname);
@@ -304,7 +304,7 @@ rm_poolset(const char *file)
  * pmempool_rm_func -- main function for rm command
  */
 int
-pmempool_rm_func(char *appname, int argc, char *argv[])
+pmempool_rm_func(const char *appname, int argc, char *argv[])
 {
 	/* by default do not remove any poolset files */
 	rm_poolset_mode = RM_POOLSET_NONE;

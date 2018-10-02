@@ -177,8 +177,8 @@ struct pmem_info {
 	} cto;
 };
 
-int pmempool_info_func(char *appname, int argc, char *argv[]);
-void pmempool_info_help(char *appname);
+int pmempool_info_func(const char *appname, int argc, char *argv[]);
+void pmempool_info_help(const char *appname);
 
 int pmempool_info_read(struct pmem_info *pip, void *buff,
 		size_t nbytes, uint64_t off);

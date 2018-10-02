@@ -121,7 +121,7 @@ static const struct option long_options[] = {
  * print_usage -- print short description of application's usage
  */
 static void
-print_usage(char *appname)
+print_usage(const char *appname)
 {
 	printf("Usage: %s check [<args>] <file>\n", appname);
 }
@@ -130,7 +130,7 @@ print_usage(char *appname)
  * print_version -- print version string
  */
 static void
-print_version(char *appname)
+print_version(const char *appname)
 {
 	printf("%s %s\n", appname, SRCVERSION);
 }
@@ -139,7 +139,7 @@ print_version(char *appname)
  * pmempool_check_help -- print help message for check command
  */
 void
-pmempool_check_help(char *appname)
+pmempool_check_help(const char *appname)
 {
 	print_usage(appname);
 	print_version(appname);
@@ -150,8 +150,8 @@ pmempool_check_help(char *appname)
  * pmempool_check_parse_args -- parse command line arguments
  */
 static int
-pmempool_check_parse_args(struct pmempool_check_context *pcp, char *appname,
-		int argc, char *argv[])
+pmempool_check_parse_args(struct pmempool_check_context *pcp,
+		const char *appname, int argc, char *argv[])
 {
 	int opt;
 	while ((opt = getopt_long(argc, argv, "ahvrNb:qy",
@@ -218,7 +218,7 @@ static check_result_t pmempool_check_2_check_res_t[] =
 	[PMEMPOOL_CHECK_RESULT_ERROR] = CHECK_RESULT_ERROR,
 };
 
-static char *
+static const char *
 check_ask(const char *msg)
 {
 	char answer = ask_Yn('?', "%s", msg);
@@ -286,7 +286,7 @@ pmempool_check_perform(struct pmempool_check_context *pc)
  * pmempool_check_func -- main function for check command
  */
 int
-pmempool_check_func(char *appname, int argc, char *argv[])
+pmempool_check_func(const char *appname, int argc, char *argv[])
 {
 	int ret = 0;
 	check_result_t res = CHECK_RESULT_CONSISTENT;

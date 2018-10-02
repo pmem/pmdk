@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -112,7 +112,7 @@ static const char * const help_str =
  * print_usage -- print application usage short description
  */
 static void
-print_usage(char *appname)
+print_usage(const char *appname)
 {
 	printf("Usage: %s dump [<args>] <file>\n", appname);
 }
@@ -121,7 +121,7 @@ print_usage(char *appname)
  * print_version -- print version string
  */
 static void
-print_version(char *appname)
+print_version(const char *appname)
 {
 	printf("%s %s\n", appname, SRCVERSION);
 }
@@ -130,7 +130,7 @@ print_version(char *appname)
  * pmempool_dump_help -- print help message for dump command
  */
 void
-pmempool_dump_help(char *appname)
+pmempool_dump_help(const char *appname)
 {
 	print_usage(appname);
 	print_version(appname);
@@ -311,7 +311,7 @@ static const struct option_requirement option_requirements[] = {
  * pmempool_dump_func -- dump command main function
  */
 int
-pmempool_dump_func(char *appname, int argc, char *argv[])
+pmempool_dump_func(const char *appname, int argc, char *argv[])
 {
 	struct pmempool_dump pd = pmempool_dump_default;
 	LIST_INIT(&pd.ranges.head);
