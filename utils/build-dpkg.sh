@@ -86,6 +86,10 @@ do
 		TEST_CONFIG_FILE="$2"
 		shift 2
 		;;
+	-r)
+		BUILD_RPMEM="$2"
+		shift 2
+		;;
 	-n)
 		NDCTL_ENABLE="$2"
 		shift 2
