@@ -155,11 +155,16 @@ or features:
 
 ## Building PMDK on Linux or FreeBSD
 
-To build the latest development version, clone this tree and build the master branch:
+To build from source, clone this tree:
 ```
 	$ git clone https://github.com/pmem/pmdk
 	$ cd pmdk
 ```
+
+For a stable version, checkout a [release tag](https://github.com/pmem/pmdk/releases) as follows. Otherwise skip this step to build the latest development release<sup>5</sup>. 
+```
+	$ git checkout tags/1.4.2 
+``` 
 
 Once the build system is setup, the Persistent Memory Development Kit is built using the `make` command at the top level:
 ```
@@ -178,7 +183,8 @@ use the EXTRA_CFLAGS variable:
 ```
 	$ make EXTRA_CFLAGS="-Wno-error=$(type-of-warning)"
 ```
-
+><sup>5</sup> Latest builds may require root permissions (sudo) to execute.
+  
 ### Make Options
 
 There are many options that follow `make`. If you want to invoke make with the same variables multiple times, you can create a user.mk file in the top level directory and put all variables there.
