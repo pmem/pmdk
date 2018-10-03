@@ -74,10 +74,13 @@ DEVSIZE=`$PMEMDETECT -z ${DEVICE_DAX_PATH[0]}`
 
 expect_abnormal_exit $DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o /dev/null -k $(($DEVSIZE + 100)) &>>$LOG
 expect_abnormal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -s $(($DEVSIZE + 1)) &>>$LOG
-expect_abnormal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -l $(($DEVSIZE + 1000)) &>>$LOG
-# this succeeds, but copies less bytes than requested
+
+# these succeed, but copy less bytes than requested
+expect_normal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -l $(($DEVSIZE + 1000)) &>>$LOG
 expect_normal_exit $DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o /dev/null -k $(($DEVSIZE / 2)) -l $DEVSIZE &>>$LOG
-expect_abnormal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -s $(($DEVSIZE - 100)) -l $DEVSIZE &>>$LOG
+expect_normal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -s $(($DEVSIZE - 100)) -l $DEVSIZE &>>$LOG
+expect_normal_exit $DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o $DIR/dummy_out -k $(($DEVSIZE - 100)) -l $DEVSIZE &>>$LOG
+expect_normal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i $DIR/dummy -s $(($DEVSIZE - 100)) -l $DEVSIZE &>>$LOG
 
 check
 
