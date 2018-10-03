@@ -85,13 +85,13 @@ POOLSET_LOCAL="local_pool.set"
 POOLSET_REMOTE="remote_pool.set"
 
 create_poolset $DIR/$POOLSET_LOCAL \
-	8M:${MOUNT_DIR}/pool.local.part.0:z \
-	8M:${MOUNT_DIR}/pool.local.part.1:z \
+	8M:${MOUNT_DIR}/pool.local.part.0:x \
+	8M:${MOUNT_DIR}/pool.local.part.1:x \
 	M \
 	${NODE_ADDR[1]}:$POOLSET_REMOTE
 
 create_poolset $DIR/$POOLSET_REMOTE \
-	24M:${NODE_DIR[1]}/pool.remote:z
+	24M:${NODE_DIR[1]}/pool.remote:x
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$POOLSET_LOCAL
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$POOLSET_REMOTE
