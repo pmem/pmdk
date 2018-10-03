@@ -49,7 +49,7 @@ setup
 require_nodes 1
 
 # create a unique name for pool file
-POOL_FILE=/tmp/pool-remote_obj_basic-TEST$UNITTEST_NUM-$$-`$DATE +%s`
+POOL_FILE=${NODE_DIR[0]}/pool-remote_obj_basic-TEST$UNITTEST_NUM-$$-`$DATE +%s`
 
 # create poolset file
 POOLSET_FILE=pool$UNITTEST_NUM.set
