@@ -332,12 +332,7 @@ error_lanes_malloc:
 void
 lane_init_data(PMEMobjpool *pop)
 {
-	struct lane_layout *layout = lane_get_layout(pop, 0);
-
-	/* first, zero out all lanes */
-	pmemops_memset(&pop->p_ops, layout, 0,
-		pop->nlanes * sizeof(struct lane_layout),
-		PMEMOBJ_F_MEM_NONTEMPORAL);
+	struct lane_layout *layout;
 
 	for (uint64_t i = 0; i < pop->nlanes; ++i) {
 		layout = lane_get_layout(pop, i);
@@ -348,6 +343,10 @@ lane_init_data(PMEMobjpool *pop)
 		ulog_construct(OBJ_PTR_TO_OFF(pop, &layout->undo),
 			LANE_UNDO_SIZE, 0, &pop->p_ops);
 	}
+	layout = lane_get_layout(pop, 0);
+	pmemops_xpersist(&pop->p_ops, layout,
+		pop->nlanes * sizeof(struct lane_layout),
+		PMEMOBJ_F_RELAXED);
 }
 
 /*
