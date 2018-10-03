@@ -40,6 +40,7 @@ require_build_type debug
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_ctl_alloc_class$Env:EXESUFFIX $DIR\testfile
+expect_normal_exit `
+$Env:EXE_DIR\obj_ctl_alloc_class$Env:EXESUFFIX $DIR\testfile b
 
 pass

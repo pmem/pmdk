@@ -712,7 +712,7 @@ run_prep_operation_hdr(const struct memory_block *m, enum memblock_state op,
 	 * The run bitmap is composed of several 8 byte values, so a proper
 	 * element of the bitmap array must be selected.
 	 */
-	int bpos = m->block_off / RUN_BITS_PER_VALUE;
+	unsigned bpos = m->block_off / RUN_BITS_PER_VALUE;
 
 	struct run_bitmap b;
 	run_get_bitmap(m, &b);
@@ -913,7 +913,7 @@ block_get_flags(const struct memory_block *m)
  */
 static int
 run_process_bitmap_value(const struct memory_block *m,
-	uint64_t value, uint16_t base_offset, object_callback cb, void *arg)
+	uint64_t value, uint32_t base_offset, object_callback cb, void *arg)
 {
 	int ret = 0;
 
@@ -935,7 +935,7 @@ run_process_bitmap_value(const struct memory_block *m,
 			 * unsigned values are always zero-filled, so we must
 			 * take the current shift into account.
 			 */
-			s.block_off = (uint16_t)(base_offset + shift);
+			s.block_off = (uint32_t)(base_offset + shift);
 			s.size_idx = (uint32_t)(RUN_BITS_PER_VALUE - shift);
 
 			if ((ret = cb(&s, arg)) != 0)
@@ -957,7 +957,7 @@ run_process_bitmap_value(const struct memory_block *m,
 		shift += off + size;
 
 		if (size != 0) { /* zero size means skip to the next value */
-			s.block_off = (uint16_t)(base_offset + (shift - size));
+			s.block_off = (uint32_t)(base_offset + (shift - size));
 			s.size_idx = (uint32_t)(size);
 
 			memblock_rebuild_state(m->heap, &s);
@@ -976,7 +976,7 @@ static int
 run_iterate_free(const struct memory_block *m, object_callback cb, void *arg)
 {
 	int ret = 0;
-	uint16_t block_off = 0;
+	uint32_t block_off = 0;
 
 	struct run_bitmap b;
 	run_get_bitmap(m, &b);
@@ -984,8 +984,9 @@ run_iterate_free(const struct memory_block *m, object_callback cb, void *arg)
 	struct memory_block nm = *m;
 	for (unsigned i = 0; i < b.nvalues; ++i) {
 		uint64_t v = b.values[i];
-		ASSERT(RUN_BITS_PER_VALUE * i <= UINT16_MAX);
-		block_off = (uint16_t)(RUN_BITS_PER_VALUE * i);
+		ASSERT((uint64_t)RUN_BITS_PER_VALUE * (uint64_t)i
+			<= UINT32_MAX);
+		block_off = RUN_BITS_PER_VALUE * i;
 		ret = run_process_bitmap_value(&nm, v, block_off, cb, arg);
 		if (ret != 0)
 			return ret;
@@ -1000,9 +1001,9 @@ run_iterate_free(const struct memory_block *m, object_callback cb, void *arg)
 static int
 run_iterate_used(const struct memory_block *m, object_callback cb, void *arg)
 {
-	uint16_t i = m->block_off / RUN_BITS_PER_VALUE;
-	uint16_t block_start = m->block_off % RUN_BITS_PER_VALUE;
-	uint16_t block_off;
+	uint32_t i = m->block_off / RUN_BITS_PER_VALUE;
+	uint32_t block_start = m->block_off % RUN_BITS_PER_VALUE;
+	uint32_t block_off;
 
 	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
 
@@ -1013,14 +1014,14 @@ run_iterate_used(const struct memory_block *m, object_callback cb, void *arg)
 
 	for (; i < b.nvalues; ++i) {
 		uint64_t v = b.values[i];
-		block_off = (uint16_t)(RUN_BITS_PER_VALUE * i);
+		block_off = (uint32_t)(RUN_BITS_PER_VALUE * i);
 
-		for (uint16_t j = block_start; j < RUN_BITS_PER_VALUE; ) {
-			if (block_off + j >= (uint16_t)b.nbits)
+		for (uint32_t j = block_start; j < RUN_BITS_PER_VALUE; ) {
+			if (block_off + j >= (uint32_t)b.nbits)
 				break;
 
 			if (!BIT_IS_CLR(v, j)) {
-				iter.block_off = (uint16_t)(block_off + j);
+				iter.block_off = (uint32_t)(block_off + j);
 
 				/*
 				 * The size index of this memory block cannot be
@@ -1035,7 +1036,7 @@ run_iterate_used(const struct memory_block *m, object_callback cb, void *arg)
 				iter.size_idx = CALC_SIZE_IDX(
 					run->hdr.block_size,
 					iter.m_ops->get_real_size(&iter));
-				j = (uint16_t)(j + iter.size_idx);
+				j = (uint32_t)(j + iter.size_idx);
 			} else {
 				++j;
 			}

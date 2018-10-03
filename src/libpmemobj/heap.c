@@ -749,10 +749,10 @@ heap_split_block(struct palloc_heap *heap, struct bucket *b,
 	ASSERT(units > 0);
 
 	if (b->aclass->type == CLASS_RUN) {
-		ASSERT(m->block_off + units <= UINT16_MAX);
+		ASSERT((uint64_t)m->block_off + (uint64_t)units <= UINT32_MAX);
 		struct memory_block r = {m->chunk_id, m->zone_id,
-			m->size_idx - units, (uint16_t)(m->block_off + units),
-			0, NULL, NULL, 0, 0};
+			m->size_idx - units, (uint32_t)(m->block_off + units),
+			NULL, NULL, 0, 0};
 		memblock_rebuild_state(heap, &r);
 		if (bucket_insert_block(b, &r) != 0)
 			LOG(2,

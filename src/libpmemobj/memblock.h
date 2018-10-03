@@ -51,7 +51,7 @@ extern "C" {
 
 #define MEMORY_BLOCK_NONE \
 (struct memory_block)\
-{0, 0, 0, 0, 0, NULL, NULL, MAX_HEADER_TYPES, MAX_MEMORY_BLOCK}
+{0, 0, 0, 0, NULL, NULL, MAX_HEADER_TYPES, MAX_MEMORY_BLOCK}
 
 #define MEMORY_BLOCK_IS_NONE(_m)\
 ((_m).heap == NULL)
@@ -265,8 +265,7 @@ struct memory_block {
 	 * Number of preceding blocks in the chunk. In other words, the
 	 * position of this memory block in run bitmap.
 	 */
-	uint16_t block_off;
-	uint16_t padding;
+	uint32_t block_off;
 
 	/*
 	 * The variables below are associated with the memory block and are
