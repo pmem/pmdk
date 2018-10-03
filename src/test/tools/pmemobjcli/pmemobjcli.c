@@ -412,7 +412,6 @@ pocli_args_act(struct pocli_ctx *ctx, struct pocli_args *args,
 		return pocli_err(ctx, POCLI_ERR_PARS,
 			"invalid object specified -- '%s'\n", acts);
 	}
-
 	return POCLI_RET_OK;
 }
 
@@ -440,20 +439,20 @@ pocli_args_class_id(struct pocli_args *args, int arg, uint64_t *class_id)
 }
 
 /*
-* pocli_args_xallz -- parse type xalloc_zero
+* pocli_args_flag -- parse type xalloc_zero
 */
 static enum pocli_ret
-pocli_args_xallz(struct pocli_args *args, int arg, bool *xallz)
+pocli_args_flag(struct pocli_args *args, int arg, bool *flag)
 {
 	assert(args != NULL);
 	assert(arg >= 0 && arg < args->argc);
 
-	int xaz;
-	int ret = sscanf(args->argv[arg],"%x", &xaz);
+	int read;
+	int ret = sscanf(args->argv[arg],"%x", &read);
 	if (ret == 0)
 		return POCLI_ERR_PARS;
 
-	*xallz = xaz;
+	*flag = (bool) read;
 
 	return POCLI_RET_OK;
 }
@@ -1790,9 +1789,7 @@ pocli_pmemobj_tx_errno(struct pocli_ctx *ctx, struct pocli_args *args)
 */
 static enum pocli_ret
 pocli_pmemobj_reserve(struct pocli_ctx *ctx, struct pocli_args *args)
-
 {
-
 	if (args->argc != 4)
 		return POCLI_ERR_ARGS;
 
@@ -1800,7 +1797,6 @@ pocli_pmemobj_reserve(struct pocli_ctx *ctx, struct pocli_args *args)
 	uint64_t type_num = 0;
 	size_t size = 0;
 	enum pocli_ret ret;
-
 
 	ret = pocli_args_act(ctx, args, 1, &actp->type);
 	if (ret)
@@ -1814,14 +1810,10 @@ pocli_pmemobj_reserve(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		goto out;
 
-
-	PMEMoid r = pmemobj_reserve(ctx->pop, actp, size, type_num);
+	PMEMoid result = pmemobj_reserve(ctx->pop, actp, size, type_num);
 
 	pocli_printf(ctx, "%s(%s, %zu, %llu) \n",
 		args->argv[0], args->argv[1], size, type_num);
-
-
-	return ret;
 
 out:
 	free(actp);
@@ -1833,9 +1825,7 @@ out:
 */
 static enum pocli_ret
 pocli_pmemobj_xreserve(struct pocli_ctx *ctx, struct pocli_args *args)
-
 {
-
 	if (args->argc != 6)
 		return POCLI_ERR_ARGS;
 
@@ -1844,9 +1834,8 @@ pocli_pmemobj_xreserve(struct pocli_ctx *ctx, struct pocli_args *args)
 	uint64_t flags = 0;
 	size_t size = 0;
 	uint64_t class_id = 0;
-	bool xallz;
+	bool xalloc_zero;
 	enum pocli_ret ret;
-
 
 	ret = pocli_args_act(ctx, args, 1, &actp->type);
 	if (ret)
@@ -1864,30 +1853,24 @@ pocli_pmemobj_xreserve(struct pocli_ctx *ctx, struct pocli_args *args)
 		if (ret)
 			goto out;
 
-	ret = pocli_args_xallz(args, 5, &xallz);
+	ret = pocli_args_flag(args, 5, &xalloc_zero);
 		if (ret)
 			goto out;
 
-	if (xallz == false)
+	if (xalloc_zero == false)
 		flags = class_id + 1;
 	else
 		flags = class_id;
 
-
-	PMEMoid r = pmemobj_xreserve(ctx->pop, actp, size, type_num, flags);
+	PMEMoid result = pmemobj_xreserve(ctx->pop, actp, size, type_num, flags);
 
 	pocli_printf(ctx, "%s(%s, %zu, %llu, %x) \n",
 		args->argv[0], args->argv[1], size, type_num, flags);
-
-
-	return ret;
 
 out:
 	free(actp);
 	return ret;
 }
-
-
 
 /*
 * pocli_pmemobj_defer_free -- pmemobj_defer_free() command
@@ -1969,28 +1952,27 @@ pocli_pmemobj_publish(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 3)
 		return POCLI_ERR_ARGS;
 
-	pobj_action *actvp = (struct pobj_action *)malloc(sizeof(pobj_action));
-	size_t actvcnt = 0;
+	pobj_action *actp = (struct pobj_action *)malloc(sizeof(pobj_action));
+	size_t actcnt = 0;
 	enum pocli_ret ret;
 
-	ret = pocli_args_act(ctx, args, 1, &actvp->type);
+	ret = pocli_args_act(ctx, args, 1, &actp->type);
 	if (ret)
 		goto out;
 
-	ret = pocli_args_size(args, 2, &actvcnt);
+	ret = pocli_args_size(args, 2, &actcnt);
 	if (ret)
 		goto out;
 
-	int r = pmemobj_publish(ctx->pop, actvp, actvcnt);
+	int result = pmemobj_publish(ctx->pop, actp, actcnt);
 
 	pocli_printf(ctx, "%s(%s, %zu) \n",
-		args->argv[0], args->argv[1], actvcnt);
+		args->argv[0], args->argv[1], actcnt);
 
 out:
-	free(actvp);
+	free(actp);
 	return ret;
 }
-
 
 /*
 * pocli_pmemobj_tx_publish -- pmemobj_tx_publish() command
@@ -2001,29 +1983,27 @@ pocli_pmemobj_tx_publish(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 2)
 		return POCLI_ERR_ARGS;
 
-	pobj_action *actvp = (struct pobj_action *)malloc(sizeof(pobj_action));
-	size_t actvcnt = 0;
+	pobj_action *actp = (struct pobj_action *)malloc(sizeof(pobj_action));
+	size_t actcnt = 0;
 	enum pocli_ret ret;
 
-	ret = pocli_args_act(ctx, args, 1, &actvp->type);
+	ret = pocli_args_act(ctx, args, 1, &actp->type);
 	if (ret)
 		goto out;
 
-	ret = pocli_args_size(args, 2, &actvcnt);
+	ret = pocli_args_size(args, 2, &actcnt);
 	if (ret)
 		goto out;
 
-	int r = pmemobj_tx_publish(actvp, actvcnt);
+	int result = pmemobj_tx_publish(actp, actcnt);
 
 	pocli_printf(ctx, "%s(%s, %zu) \n",
-		args->argv[0], args->argv[1], actvcnt);
+		args->argv[0], args->argv[1], actcnt);
 
 out:
-	free(actvp);
+	free(actp);
 	return ret;
-
 }
-
 
 /*
 * pocli_pmemobj_cancel -- pmemobj_cancel() command
@@ -2034,30 +2014,27 @@ pocli_pmemobj_cancel(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 3)
 		return POCLI_ERR_ARGS;
 
-	pobj_action *actvp = (struct pobj_action *)malloc(sizeof(pobj_action));
-	size_t actvcnt = 0;
+	pobj_action *actp = (struct pobj_action *)malloc(sizeof(pobj_action));
+	size_t actcnt = 0;
 	enum pocli_ret ret;
 
-	ret = pocli_args_act(ctx, args, 1, &actvp->type);
+	ret = pocli_args_act(ctx, args, 1, &actp->type);
 	if (ret)
 		goto out;
 
-	ret = pocli_args_size(args, 2, &actvcnt);
+	ret = pocli_args_size(args, 2, &actcnt);
 	if (ret)
 		goto out;
 
-	pmemobj_cancel(ctx->pop, actvp, actvcnt);
+	pmemobj_cancel(ctx->pop, actp, actcnt);
 
 	pocli_printf(ctx, "%s(%s, %zu) \n",
-		args->argv[0], args->argv[1], actvcnt);
+		args->argv[0], args->argv[1], actcnt);
 
 out:
-	free(actvp);
+	free(actp);
 	return ret;
 }
-
-
-
 
 /*
  * pocli_get_cmd -- find command of given name
@@ -2430,13 +2407,7 @@ static struct pocli_cmd pocli_commands[] = {
 	},
 	{
 		"pmemobj_publish",
-		"ppu",
-		"<obj> <actvcnt>",
-		pocli_pmemobj_publish,
-	},
-	{
-		"pmemobj_publish",
-		"ppu",
+		"ppub",
 		"<obj> <actvcnt>",
 		pocli_pmemobj_publish,
 	},
@@ -2448,7 +2419,7 @@ static struct pocli_cmd pocli_commands[] = {
 	},
 	{
 		"pmemobj_cancel",
-		"pxp",
+		"pca",
 		"<obj> <actvcnt>",
 		pocli_pmemobj_cancel,
 	}
