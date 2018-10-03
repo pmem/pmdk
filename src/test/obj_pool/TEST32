@@ -50,7 +50,7 @@ setup
 expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testfile "test" 20 0640
 
 # create a bad block recovery file
-echo "0 0" > $DIR/testfile_r0_p0_badblocks.txt
+create_recovery_file $DIR/testfile_r0_p0_badblocks.txt
 
 # pmemobj_open() should fail, because the bad block recovery file exists
 expect_normal_exit ./obj_pool$EXESUFFIX o $DIR/testfile "test"

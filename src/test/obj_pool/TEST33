@@ -54,10 +54,10 @@ create_poolset $POOLSET 10M:$DIR/testfile0:z 10M:$DIR/testfile1:z 10M:$DIR/testf
 expect_normal_exit ./obj_pool$EXESUFFIX c $DIR/testset1 "test" 0 0640
 
 # create recovery files - no bad blocks
-echo "0 0" > $DIR/testset1_r0_p0_badblocks.txt
-echo "0 0" > $DIR/testset1_r0_p1_badblocks.txt
-echo "0 0" > $DIR/testset1_r0_p2_badblocks.txt
-echo "0 0" > $DIR/testset1_r1_p0_badblocks.txt
+create_recovery_file $DIR/testset1_r0_p0_badblocks.txt
+create_recovery_file $DIR/testset1_r0_p1_badblocks.txt
+create_recovery_file $DIR/testset1_r0_p2_badblocks.txt
+create_recovery_file $DIR/testset1_r1_p0_badblocks.txt
 
 # pmemobj_open() should fail, because the bad block recovery files exist
 expect_normal_exit ./obj_pool$EXESUFFIX o $DIR/testset1 "test"
