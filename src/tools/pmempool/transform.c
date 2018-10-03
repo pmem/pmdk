@@ -95,7 +95,7 @@ static const struct option long_options[] = {
  * print_usage -- print application usage short description
  */
 static void
-print_usage(char *appname)
+print_usage(const char *appname)
 {
 	printf("usage: %s transform [<options>] <poolset_file_src>"
 			" <poolset_file_dst>\n", appname);
@@ -105,7 +105,7 @@ print_usage(char *appname)
  * print_version -- print version string
  */
 static void
-print_version(char *appname)
+print_version(const char *appname)
 {
 	printf("%s %s\n", appname, SRCVERSION);
 }
@@ -114,7 +114,7 @@ print_version(char *appname)
  * pmempool_transform_help -- print help message for the transform command
  */
 void
-pmempool_transform_help(char *appname)
+pmempool_transform_help(const char *appname)
 {
 	print_usage(appname);
 	print_version(appname);
@@ -126,7 +126,7 @@ pmempool_transform_help(char *appname)
  */
 static int
 pmempool_transform_parse_args(struct pmempool_transform_context *ctx,
-		char *appname, int argc, char *argv[])
+		const char *appname, int argc, char *argv[])
 {
 	int opt;
 	while ((opt = getopt_long(argc, argv, "dhv",
@@ -162,7 +162,7 @@ pmempool_transform_parse_args(struct pmempool_transform_context *ctx,
  * pmempool_transform_func -- main function for the transform command
  */
 int
-pmempool_transform_func(char *appname, int argc, char *argv[])
+pmempool_transform_func(const char *appname, int argc, char *argv[])
 {
 	int ret;
 	struct pmempool_transform_context ctx = pmempool_transform_default;

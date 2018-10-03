@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,5 +34,5 @@
  * synchronize.h -- pmempool sync command header file
  */
 
-int pmempool_sync_func(char *appname, int argc, char *argv[]);
-void pmempool_sync_help(char *appname);
+int pmempool_sync_func(const char *appname, int argc, char *argv[]);
+void pmempool_sync_help(const char *appname);

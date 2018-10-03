@@ -95,7 +95,7 @@ static const struct option long_options[] = {
  * print_usage -- (internal) print application usage short description
  */
 static void
-print_usage(char *appname)
+print_usage(const char *appname)
 {
 	printf("usage: %s sync [<options>] <poolset_file>\n", appname);
 }
@@ -104,7 +104,7 @@ print_usage(char *appname)
  * print_version -- (internal) print version string
  */
 static void
-print_version(char *appname)
+print_version(const char *appname)
 {
 	printf("%s %s\n", appname, SRCVERSION);
 }
@@ -113,7 +113,7 @@ print_version(char *appname)
  * pmempool_sync_help -- print help message for the sync command
  */
 void
-pmempool_sync_help(char *appname)
+pmempool_sync_help(const char *appname)
 {
 	print_usage(appname);
 	print_version(appname);
@@ -124,7 +124,7 @@ pmempool_sync_help(char *appname)
  * pmempool_sync_parse_args -- (internal) parse command line arguments
  */
 static int
-pmempool_sync_parse_args(struct pmempool_sync_context *ctx, char *appname,
+pmempool_sync_parse_args(struct pmempool_sync_context *ctx, const char *appname,
 		int argc, char *argv[])
 {
 	int opt;
@@ -163,7 +163,7 @@ pmempool_sync_parse_args(struct pmempool_sync_context *ctx, char *appname,
  * pmempool_sync_func -- main function for the sync command
  */
 int
-pmempool_sync_func(char *appname, int argc, char *argv[])
+pmempool_sync_func(const char *appname, int argc, char *argv[])
 {
 	int ret = 0;
 	struct pmempool_sync_context ctx = pmempool_sync_default;
