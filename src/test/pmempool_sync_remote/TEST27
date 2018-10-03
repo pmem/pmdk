@@ -67,12 +67,12 @@ POOLSET_REMOTE="remote_pool.set"
 RECOVERY_FILE=$DIR/${POOLSET_LOCAL}_r0_p0_badblocks.txt
 
 create_poolset $DIR/$POOLSET_LOCAL \
-	10M:${NODE_DIR[0]}/pool.local:z \
+	10M:${NODE_DIR[0]}/pool.local:x \
 	M \
 	${NODE_ADDR[1]}:$POOLSET_REMOTE
 
 create_poolset $DIR/$POOLSET_REMOTE \
-	10M:${NODE_DIR[1]}/pool.remote:z
+	10M:${NODE_DIR[1]}/pool.remote:x
 
 # create the recovery file
 echo "$((8000 * 512)) $((8 * 512))" > $RECOVERY_FILE
