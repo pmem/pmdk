@@ -67,6 +67,7 @@ struct pmempool_check_context {
 	char *backup_fname;	/* backup file name */
 	bool exec;		/* do execute */
 	char ans;		/* default answer on all questions or '?' */
+	unsigned flags;		/* flags which modify the command execution */
 };
 
 /*
@@ -81,6 +82,7 @@ static const struct pmempool_check_context pmempool_check_default = {
 	.advanced	= false,
 	.exec		= true,
 	.ans		= '?',
+	.flags		= 0,
 };
 
 /*
@@ -90,6 +92,7 @@ static const char * const help_str =
 "Check consistency of a pool\n"
 "\n"
 "Common options:\n"
+"  -b, --bad-blocks     check bad blocks - it requires superuser privileges\n"
 "  -r, --repair         try to repair a pool file if possible\n"
 "  -y, --yes            answer yes to all questions\n"
 "  -N, --no-exec        don't execute, just show what would be done\n"
@@ -106,6 +109,7 @@ static const char * const help_str =
  * long_options -- command line options
  */
 static const struct option long_options[] = {
+	{"bad-blocks",	no_argument,		NULL,	'c'},
 	{"repair",	no_argument,		NULL,	'r'},
 	{"yes",		no_argument,		NULL,	'y'},
 	{"no-exec",	no_argument,		NULL,	'N'},
@@ -154,9 +158,12 @@ pmempool_check_parse_args(struct pmempool_check_context *pcp,
 		const char *appname, int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "ahvrNb:qy",
+	while ((opt = getopt_long(argc, argv, "ahvcrNb:qy",
 			long_options, NULL)) != -1) {
 		switch (opt) {
+		case 'c':
+			pcp->flags |= PMEMPOOL_CHECK_BAD_BLOCKS;
+			break;
 		case 'r':
 			pcp->repair = true;
 			break;
@@ -253,6 +260,8 @@ pmempool_check_perform(struct pmempool_check_context *pc)
 		args.flags |= PMEMPOOL_CHECK_ALWAYS_YES;
 	if (pc->verbose == 2)
 		args.flags |= PMEMPOOL_CHECK_VERBOSE;
+	if (pc->flags & PMEMPOOL_CHECK_BAD_BLOCKS)
+		args.flags |= PMEMPOOL_CHECK_BAD_BLOCKS;
 
 	PMEMpoolcheck *ppc = pmempool_check_init(&args, sizeof(args));
 

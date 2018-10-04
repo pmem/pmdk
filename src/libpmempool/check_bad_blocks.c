@@ -56,6 +56,12 @@ check_bad_blocks(PMEMpoolcheck *ppc)
 
 	int ret;
 
+	if (!(ppc->args.flags & PMEMPOOL_CHECK_BAD_BLOCKS)) {
+		/* skipping checking poolset for bad blocks */
+		ppc->result = CHECK_RESULT_CONSISTENT;
+		return;
+	}
+
 	if (ppc->pool->set_file->poolset) {
 		ret = badblocks_check_poolset(ppc->pool->set_file->poolset, 0);
 	} else {
