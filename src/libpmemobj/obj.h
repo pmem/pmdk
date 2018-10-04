@@ -58,7 +58,7 @@ extern "C" {
 
 /* attributes of the obj memory pool format for the pool header */
 #define OBJ_HDR_SIG "PMEMOBJ"	/* must be 8 bytes including '\0' */
-#define OBJ_FORMAT_MAJOR 4
+#define OBJ_FORMAT_MAJOR 5
 
 #define OBJ_FORMAT_FEAT_DEFAULT \
 	{0x0000, POOL_FEAT_INCOMPAT_DEFAULT, 0x0000}

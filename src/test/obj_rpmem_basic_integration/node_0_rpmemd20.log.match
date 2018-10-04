@@ -13,7 +13,7 @@ create request:
     buff_size: $(nW)
 pool attributes:
     signature: 'PMEMOBJ'
-    major: 4
+    major: $(*)
     compat_features: 0x$(X)
     incompat_features: 0x$(X)
     ro_compat_features: 0x$(X)
