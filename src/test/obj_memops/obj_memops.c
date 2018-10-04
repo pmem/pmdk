@@ -297,7 +297,7 @@ test_undo_large_single_copy(struct operation_context *ctx,
 }
 
 static void
-test_undo_checksum_mismatch(struct operation_context *ctx,
+test_undo_checksum_mismatch(PMEMobjpool *pop, struct operation_context *ctx,
 	struct test_object *object, struct ulog *log)
 {
 	operation_start(ctx);
@@ -312,6 +312,8 @@ test_undo_checksum_mismatch(struct operation_context *ctx,
 	for (uint64_t i = 0; i < 20; ++i)
 		object->values[i] = i + 2;
 
+	pmemobj_persist(pop, &object->values, sizeof(*object->values) * 20);
+
 	log->data[100] += 1; /* corrupt the log somewhere */
 
 	operation_process(ctx);
@@ -324,7 +326,7 @@ test_undo_checksum_mismatch(struct operation_context *ctx,
 }
 
 static void
-test_undo_large_copy(struct operation_context *ctx,
+test_undo_large_copy(PMEMobjpool *pop, struct operation_context *ctx,
 	struct test_object *object)
 {
 	operation_start(ctx);
@@ -359,6 +361,8 @@ test_undo_large_copy(struct operation_context *ctx,
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)
 		object->values[i] = i + 4;
 
+	pmemobj_persist(pop, &object->values, sizeof(object->values));
+
 	operation_process(ctx);
 
 	for (uint64_t i = 0; i < 26; ++i)
@@ -381,8 +385,8 @@ test_undo(PMEMobjpool *pop, struct test_object *object)
 	test_undo_small_single_copy(ctx, object);
 	test_undo_small_single_set(ctx, object);
 	test_undo_large_single_copy(ctx, object);
-	test_undo_large_copy(ctx, object);
-	test_undo_checksum_mismatch(ctx, object,
+	test_undo_large_copy(pop, ctx, object);
+	test_undo_checksum_mismatch(pop, ctx, object,
 		(struct ulog *)&object->undo);
 
 	/* undo logs are clobbered at the end, which shrinks their size */
