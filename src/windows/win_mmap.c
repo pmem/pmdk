@@ -226,8 +226,12 @@ win_mmap_fini(void)
 
 		size_t release_size =
 			(char *)mt->EndAddress - (char *)mt->BaseAddress;
-		void *release_addr = (char *)mt->BaseAddress + release_size;
-		mmap_unreserve(release_addr, release_size);
+		/*
+		 * Free reservation after file mapping (if reservation was
+		 * bigger than length of mapped file)
+		 */
+		void *release_addr = (char *)mt->BaseAddress + mt->FileLen;
+		mmap_unreserve(release_addr, release_size - mt->FileLen);
 
 		if (mt->FileMappingHandle != NULL)
 			CloseHandle(mt->FileMappingHandle);
