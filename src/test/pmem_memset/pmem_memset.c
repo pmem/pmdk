@@ -139,6 +139,8 @@ do_memset_variants(int fd, char *dest, const char *file_name, size_t dest_off,
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
 		do_memset(fd, dest, file_name, dest_off, bytes,
 				pmem_memset, Flags[i]);
+		if (Flags[i] & PMEMOBJ_F_MEM_NOFLUSH)
+			pmem_persist(dest, bytes);
 	}
 }
 
