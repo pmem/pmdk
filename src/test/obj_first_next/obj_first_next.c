@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -128,6 +128,8 @@ type_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	item->id = id;
 	UT_OUT("constructor(id = %d)", id);
 
+	pmemobj_persist(pop, item, sizeof(*item));
+
 	return 0;
 }
 
@@ -142,6 +144,8 @@ type_sec_constructor(PMEMobjpool *pop, void *ptr, void *arg)
 	struct type_sec *item = (struct type_sec *)ptr;
 	item->id = id;
 	UT_OUT("constructor(id = %d)", id);
+
+	pmemobj_persist(pop, item, sizeof(*item));
 
 	return 0;
 }
