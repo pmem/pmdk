@@ -33,8 +33,9 @@
 
 #
 # src/test/pmreorder_simple/TEST0 -- unit test for the reordering script
-# Tests negative case using full reorder engine for most critical section
-# and no_reorder_no_checker engine for other parts of code.
+# Tests negative case using full reorder engine for section marked as the most
+# critical and no_reorder_no_checker reorder engine for other parts of the
+# code.
 # This test also checks behavior for markers unused in program
 # but defined by user in the config file.
 #
