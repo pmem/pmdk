@@ -41,6 +41,8 @@
 #ifdef __linux__
 #include <errno.h>
 #include <fcntl.h>
+#include <linux/magic.h>
+#include <sys/vfs.h>
 
 /*
  * posix_fallocate on Linux is implemented using fallocate
@@ -69,6 +71,22 @@ check_fallocate(const char *file)
 		perror("fallocate");
 		exit_code = 2;
 		goto exit;
+	}
+
+	struct statfs fs;
+	if (!fstatfs(fd, &fs)) {
+		if (fs.f_type != EXT4_SUPER_MAGIC // also ext2, ext3
+		    && fs.f_type != 0x58465342) { // XFS -- no #define in
+						  // userspace headers
+			/*
+			 * On CoW filesystems, fallocate reserves _amount
+			 * of_ space but doesn't allocate a specific block.
+			 * As we're interested in DAX filesystems only, just
+			 * skip these tests anywhere else.
+			 */
+			exit_code = 1;
+			goto exit;
+		}
 	}
 
 exit:
