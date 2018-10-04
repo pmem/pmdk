@@ -2279,7 +2279,7 @@ function copy_log_files() {
 		for file in ${NODE_LOG_FILES[$N]}; do
 			NODE_SCP_LOG_FILES[$N]="${NODE_SCP_LOG_FILES[$N]} ${NODE[$N]}:$DIR/${file}"
 		done
-		[ "${NODE_SCP_LOG_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_LOG_FILES[$N]} . &> $PREP_LOG_FILE
+		[ "${NODE_SCP_LOG_FILES[$N]}" ] && run_command scp $SCP_OPTS ${NODE_SCP_LOG_FILES[$N]} . &>> $PREP_LOG_FILE
 		for file in ${NODE_LOG_FILES[$N]}; do
 			[ -f $file ] && mv $file node_${N}_${file}
 		done
