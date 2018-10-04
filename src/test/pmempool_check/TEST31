@@ -71,6 +71,8 @@ create_poolset $POOLSET 10M:$DIR/testfile0:z 10M:$MOUNT_DIR/testfile1:z 10M:$DIR
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 
+turn_on_checking_bad_blocks $POOLSET
+
 # inject bad block:
 FIRST_SECTOR=$(expect_normal_exit $EXTENTS $MOUNT_DIR/testfile1 -l 0)
 ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1
