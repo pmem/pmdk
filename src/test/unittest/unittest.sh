@@ -734,7 +734,7 @@ function validate_valgrind_log() {
 	then
 		msg="failed"
 		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
-		echo -e "$UNITTEST_NAME $msg with Valgrind. See $1. First 20 lines below." >&2
+		echo -e "$UNITTEST_NAME $msg with Valgrind. See $1. Last 20 lines below." >&2
 		paste -d " " <(yes $UNITTEST_NAME $1 | head -n 20) <(tail -n 20 $1) >&2
 		false
 	fi
