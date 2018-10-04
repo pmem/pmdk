@@ -121,6 +121,10 @@ enum pmempool_pool_type {
  * generate string format statuses
  */
 #define PMEMPOOL_CHECK_FORMAT_STR	(1U << 5)
+/*
+ * check bad blocks - it requires the super user privileges
+ */
+#define PMEMPOOL_CHECK_BAD_BLOCKS	(1U << 6)
 
 /*
  * types of check statuses
