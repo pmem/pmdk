@@ -1807,6 +1807,22 @@ function set_valgrind_exe_name() {
 	done
 }
 
+_CHECK_TYPE_OLD=
+#
+# valgrind_off -- disable valgrind for following commands
+#
+function valgrind_off() {
+	_CHECK_TYPE_OLD=$CHECK_TYPE
+	CHECK_TYPE=none
+}
+
+#
+# reenable_valgrind -- reenable valgrind for following commands
+#
+function valgrind_on() {
+	CHECK_TYPE=$_CHECK_TYPE_OLD
+}
+
 #
 # require_no_asan_for - continue script execution only if passed binary does
 #	NOT require libasan
