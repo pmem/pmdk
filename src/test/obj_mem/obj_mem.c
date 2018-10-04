@@ -86,6 +86,9 @@ main(int argc, char *argv[])
 		pmemobj_memmove(pop, &r->c[125], &r->c[150], 100, f);
 
 		pmemobj_memmove(pop, &r->c[350], &r->c[325], 100, f);
+
+		if (f & PMEMOBJ_F_MEM_NOFLUSH)
+			pmemobj_persist(pop, r, sizeof(*r));
 	}
 
 	pmemobj_close(pop);
