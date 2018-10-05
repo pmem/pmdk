@@ -634,3 +634,46 @@ os_strsignal(int sig)
 	else
 		return STR_UNKNOWN_SIGNAL;
 }
+
+int
+os_execv(const char *path, char *const argv[])
+{
+	wchar_t *wpath = util_toUTF16(path);
+	if (wpath == NULL)
+		return -1;
+
+	int argc = 0;
+	while (argv[argc])
+		argc++;
+
+	int ret;
+	wchar_t **wargv = Zalloc((argc + 1) * sizeof(wargv[0]));
+	if (!wargv) {
+		ret = -1;
+		goto wargv_alloc_failed;
+	}
+
+	for (int i = 0; i < argc; ++i) {
+		wargv[i] = util_toUTF16(argv[i]);
+		if (!wargv[i]) {
+			ret = -1;
+			goto end;
+		}
+	}
+
+	intptr_t iret = _wexecv(wpath, wargv);
+	if (iret == 0)
+		ret = 0;
+	else
+		ret = -1;
+
+end:
+	for (int i = 0; i < argc; ++i)
+		util_free_UTF16(wargv[i]);
+	Free(wargv);
+
+wargv_alloc_failed:
+	util_free_UTF16(wpath);
+
+	return ret;
+}

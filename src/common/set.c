@@ -2392,7 +2392,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 		ERR("pool version %d (library expects %d)", hdr.major,
 				attr->major);
 		if (hdr.major < attr->major) {
-			ERR("Please run the pmempool convert utility to "
+			ERR("Please run the pmdk-convert utility to "
 				"upgrade the pool.");
 		}
 		errno = EINVAL;

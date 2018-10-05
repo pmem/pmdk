@@ -127,6 +127,7 @@ int os_unsetenv(const char *name);
 int os_setenv(const char *name, const char *value, int overwrite);
 char *os_getenv(const char *name);
 const char *os_strsignal(int sig);
+int os_execv(const char *path, char *const argv[]);
 
 /*
  * XXX: missing APis (used in ut_file.c)
