@@ -3437,3 +3437,45 @@ function require_nfit_tests_enabled() {
 		exit 0
 	fi
 }
+
+#
+# create_recovery_file - create bad block recovery file
+#
+# Usage: create_recovery_file <file> [<offset_1> <length_1> ...]
+#
+function create_recovery_file() {
+	[ $# -lt 1 ] && fatal "create_recovery_file(): not enough parameters: $*"
+
+	FILE=$1
+	shift
+	rm -f $FILE
+
+	while [ $# -ge 2 ]; do
+		OFFSET=$1
+		LENGTH=$2
+		shift 2
+		echo "$(($OFFSET * 512)) $(($LENGTH * 512))" >> $FILE
+	done
+
+	# write the finish flag
+	echo "0 0" >> $FILE
+}
+
+#
+# zero_blocks - zero blocks in a file
+#
+# Usage: zero_blocks <file> <offset> <length>
+#
+function zero_blocks() {
+	[ $# -lt 3 ] && fatal "zero_blocks(): not enough parameters: $*"
+
+	FILE=$1
+	shift
+
+	while [ $# -ge 2 ]; do
+		OFFSET=$1
+		LENGTH=$2
+		shift 2
+		dd if=/dev/zero of=$FILE bs=512 seek=$OFFSET count=$LENGTH conv=notrunc status=none
+	done
+}

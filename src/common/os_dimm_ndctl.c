@@ -454,6 +454,7 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 		struct bad_block bb;
 		bb.offset = beg - ns_beg;
 		bb.length = (unsigned)(end - beg + 1);
+		bb.nhealthy = NO_HEALTHY_REPLICA; /* unknown healthy replica */
 
 		/* add the new bad block to the vector */
 		if (VEC_PUSH_BACK(&bbv, bb)) {

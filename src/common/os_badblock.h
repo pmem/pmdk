@@ -47,20 +47,36 @@ extern "C" {
 #define B2SEC(n) ((n) >> 9)	/* convert bytes to sectors */
 #define SEC2B(n) ((n) << 9)	/* convert sectors to bytes */
 
+#define NO_HEALTHY_REPLICA ((int)(-1))
+
 /*
  * 'struct badblock' is already defined in ndctl/libndctl.h,
  * so we cannot use this name.
  *
  * libndctl returns offset relative to the beginning of the region,
- * but in this structure we save offset relative
- * to the beginning of the namespace.
+ * but in this structure we save offset relative to the beginning of:
+ * - namespace (before os_badblocks_get())
+ * and
+ * - file (before sync_recalc_badblocks())
+ * and
+ * - pool (after sync_recalc_badblocks())
  */
 struct bad_block {
-	/* offset in bytes, relative to the beginning of the namespace */
+	/*
+	 * offset in bytes relative to the beginning of
+	 *  - namespace (before os_badblocks_get())
+	 * and
+	 *  - file (before sync_recalc_badblocks())
+	 * and
+	 *  - pool (after sync_recalc_badblocks())
+	 */
 	unsigned long long offset;
 
 	/* length in bytes */
 	unsigned length;
+
+	/* number of healthy replica to fix this bad block */
+	int nhealthy;
 };
 
 struct badblocks {

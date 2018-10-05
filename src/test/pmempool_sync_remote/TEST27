@@ -75,8 +75,7 @@ create_poolset $DIR/$POOLSET_REMOTE \
 	10M:${NODE_DIR[1]}/pool.remote:x
 
 # create the recovery file
-echo "$((8000 * 512)) $((8 * 512))" > $RECOVERY_FILE
-echo "0 0"  >> $RECOVERY_FILE
+create_recovery_file $RECOVERY_FILE 8000 8
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$POOLSET_LOCAL
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$POOLSET_REMOTE

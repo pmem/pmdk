@@ -158,10 +158,16 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 			LOG(4, "bad block found: offset: %llu, length: %llu",
 				bb_off, bb_len);
 
-			/* form a new bad block */
+			/*
+			 * Form a new bad block structure with offset and length
+			 * expressed in bytes and offset relative
+			 * to the beginning of the file.
+			 */
 			struct bad_block bb;
 			bb.offset = bb_off;
 			bb.length = (unsigned)(bb_len);
+			/* unknown healthy replica */
+			bb.nhealthy = NO_HEALTHY_REPLICA;
 
 			/* add the new bad block to the vector */
 			if (VEC_PUSH_BACK(&bbv, bb)) {
