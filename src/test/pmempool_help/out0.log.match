@@ -16,6 +16,7 @@ rm		- remove pool or poolset
 convert		- $(*)
 sync		- $(*)
 transform	- $(*)
+feature		- $(*)
 help		- $(*)
 
 $(*) pmempool(1) $(*)

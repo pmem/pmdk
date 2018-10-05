@@ -43,6 +43,7 @@
     <ClCompile Include="convert.c" />
     <ClCompile Include="create.c" />
     <ClCompile Include="dump.c" />
+    <ClCompile Include="feature.c" />
     <ClCompile Include="info.c" />
     <ClCompile Include="info_blk.c" />
     <ClCompile Include="info_log.c" />
@@ -59,6 +60,7 @@
     <ClInclude Include="convert.h" />
     <ClInclude Include="create.h" />
     <ClInclude Include="dump.h" />
+    <ClInclude Include="feature.h" />
     <ClInclude Include="info.h" />
     <ClInclude Include="output.h" />
     <ClInclude Include="rm.h" />

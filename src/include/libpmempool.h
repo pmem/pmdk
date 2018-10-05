@@ -53,6 +53,9 @@
 #define pmempool_rm pmempool_rmW
 #define pmempool_check_version pmempool_check_versionW
 #define pmempool_errormsg pmempool_errormsgW
+#define pmempool_feature_enable pmempool_feature_enableW
+#define pmempool_feature_disable pmempool_feature_disableW
+#define pmempool_feature_query pmempool_feature_queryW
 #else
 #define pmempool_check_status pmempool_check_statusU
 #define pmempool_check_args pmempool_check_argsU
@@ -64,6 +67,9 @@
 #define pmempool_rm pmempool_rmU
 #define pmempool_check_version pmempool_check_versionU
 #define pmempool_errormsg pmempool_errormsgU
+#define pmempool_feature_enable pmempool_feature_enableU
+#define pmempool_feature_disable pmempool_feature_disableU
+#define pmempool_feature_query pmempool_feature_queryU
 #endif
 
 #endif
@@ -283,6 +289,50 @@ int pmempool_transformU(const char *poolset_file_src,
 	const char *poolset_file_dst, unsigned flags);
 int pmempool_transformW(const wchar_t *poolset_file_src,
 	const wchar_t *poolset_file_dst, unsigned flags);
+#endif
+
+/* PMEMPOOL feature enable, disable, query */
+
+/*
+ * feature types
+ */
+enum pmempool_feature {
+	PMEMPOOL_FEAT_SINGLEHDR,
+	PMEMPOOL_FEAT_CKSUM_2K,
+	PMEMPOOL_FEAT_SHUTDOWN_STATE,
+};
+
+/* PMEMPOOL FEATURE ENABLE */
+#ifndef _WIN32
+int pmempool_feature_enable(const char *path, enum pmempool_feature feature,
+	unsigned flags);
+#else
+int pmempool_feature_enableU(const char *path, enum pmempool_feature feature,
+	unsigned flags);
+int pmempool_feature_enableW(const wchar_t *path,
+	enum pmempool_feature feature, unsigned flags);
+#endif
+
+/* PMEMPOOL FEATURE DISABLE */
+#ifndef _WIN32
+int pmempool_feature_disable(const char *path, enum pmempool_feature feature,
+	unsigned flags);
+#else
+int pmempool_feature_disableU(const char *path, enum pmempool_feature feature,
+	unsigned flags);
+int pmempool_feature_disableW(const wchar_t *path,
+	enum pmempool_feature feature, unsigned flags);
+#endif
+
+/* PMEMPOOL FEATURE QUERY */
+#ifndef _WIN32
+int pmempool_feature_query(const char *path, enum pmempool_feature feature,
+	unsigned flags);
+#else
+int pmempool_feature_queryU(const char *path, enum pmempool_feature feature,
+	unsigned flags);
+int pmempool_feature_queryW(const wchar_t *path,
+	enum pmempool_feature feature, unsigned flags);
 #endif
 
 /* PMEMPOOL RM */

@@ -7,7 +7,7 @@ header: PMDK
 date: pmem Tools version 1.4
 ...
 
-[comment]: <> (Copyright 2016-2017, Intel Corporation)
+[comment]: <> (Copyright 2016-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -109,6 +109,9 @@ Synchronizes replicas within a poolset.
 
 + **pmempool-transform**(1) -
 Modifies internal structure of a poolset.
+
++ **pmempool-feature**(1) -
+Toggle or query a poolset features.
 
 In order to get more information about specific *command* you can use **pmempool help <command>.**
 

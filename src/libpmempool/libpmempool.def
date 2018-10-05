@@ -52,4 +52,10 @@ EXPORTS
 	pmempool_transformW
 	pmempool_rmU
 	pmempool_rmW
+	pmempool_feature_enableU
+	pmempool_feature_enableW
+	pmempool_feature_disableU
+	pmempool_feature_disableW
+	pmempool_feature_queryU
+	pmempool_feature_queryW
 	DllMain

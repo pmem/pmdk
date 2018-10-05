@@ -49,7 +49,7 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 		libpmemobj/pmemobj_list_insert.3.md libpmemobj/pmemobj_memcpy_persist.3.md libpmemobj/pmemobj_mutex_zero.3.md \
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
 		libpmemobj/pmemobj_tx_alloc.3.md libpmemobj/pobj_layout_begin.3.md libpmemobj/pobj_list_head.3.md libpmemobj/toid_declare.3.md \
-		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md \
+		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_feature_query.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md \
 		libvmem/vmem_create.3.md libvmem/vmem_malloc.3.md \
 		libpmemcto/pmemcto_open.3.md \
 		libpmemcto/pmemcto_malloc.3.md libpmemcto/pmemcto_aligned_alloc.3.md \
@@ -62,7 +62,7 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmempool-create.1.md \
 		pmempool/pmempool-check.1.md pmempool/pmempool-dump.1.md pmempool/pmempool-rm.1.md \
 		pmempool/pmempool-convert.1.md pmempool/pmempool-sync.1.md pmempool/pmempool-transform.1.md \
-		pmreorder/pmreorder.1.md
+		pmempool/pmempool-feature.1.md pmreorder/pmreorder.1.md
 
 
 MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
@@ -82,6 +82,7 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmemlog_check_version.3 pmemlog_check.3 pmemlog_errormsg.3 pmemlog_set_funcs.3 \
 		   pmemlog_ctl_set.3 pmemlog_ctl_exec.3\
 		   pmempool_check.3 pmempool_check_end.3 \
+		   pmempool_feature_enable.3 pmempool_feature_disable.3 \
 		   pmempool_transform.3 \
 		   pmempool_check_version.3 pmempool_errormsg.3 \
 		   vmem_create_in_region.3 vmem_delete.3 vmem_check.3 vmem_stats_print.3 \

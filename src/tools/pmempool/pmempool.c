@@ -51,6 +51,7 @@
 #include "convert.h"
 #include "synchronize.h"
 #include "transform.h"
+#include "feature.h"
 #include "set.h"
 
 #ifndef _WIN32
@@ -165,6 +166,12 @@ static const struct command commands[] = {
 		.brief = "modify internal structure of a poolset",
 		.func = pmempool_transform_func,
 		.help = pmempool_transform_help,
+	},
+	{
+		.name = "feature",
+		.brief = "toggle / query pool features",
+		.func = pmempool_feature_func,
+		.help = pmempool_feature_help,
 	},
 	{
 		.name = "help",
