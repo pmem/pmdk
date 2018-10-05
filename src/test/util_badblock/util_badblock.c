@@ -97,8 +97,10 @@ static void
 do_create(const char *path)
 {
 	struct pool_set *set;
-	const struct pool_attr attr;
+	struct pool_attr attr;
 	unsigned nlanes = 1;
+
+	memset(&attr, 0, sizeof(attr));
 
 	if (util_pool_create(&set, path, 0, MIN_POOL, MIN_PART,
 				&attr, &nlanes, REPLICAS_ENABLED) != 0)
