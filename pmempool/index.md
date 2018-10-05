@@ -157,3 +157,10 @@ for current master documentation and examples or see older version:
    <li><a href="../manpages/linux/v{{ release.tag }}/pmempool/{{ command }}.1.html">{{ command }} version {{ release.tag }}</a></li>
    {% endif %}{% endfor %}
 </ul>
+
+##### feature
+
+The **pmempool feature** command enables / disables or query pool set features.
+
+See the [pmempool feature man page](../manpages/linux/master/pmempool/pmempool-feature.1.html)
+for current master documentation and examples.
