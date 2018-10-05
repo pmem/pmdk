@@ -346,8 +346,9 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst)
 			}
 			return 0;
 		} else {
+			ERR("failed to open '%s': %s\n", dev->path,
+				strerror(errno));
 			return -1;
-			FAIL("open");
 		}
 	}
 
