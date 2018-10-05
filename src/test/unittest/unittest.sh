@@ -3484,3 +3484,23 @@ function zero_blocks() {
 		dd if=/dev/zero of=$FILE bs=512 seek=$OFFSET count=$LENGTH conv=notrunc status=none
 	done
 }
+
+#
+# turn_on_checking_bad_blocks -- set the compat_feature POOL_FEAT_CHECK_BAD_BLOCKS on
+#
+function turn_on_checking_bad_blocks()
+{
+	FILE=$1
+
+	expect_normal_exit "$PMEMPOOL feature -e CHECK_BAD_BLOCKS $FILE &>> $PREP_LOG_FILE"
+}
+
+#
+# turn_on_checking_bad_blocks_node -- set the compat_feature POOL_FEAT_CHECK_BAD_BLOCKS on
+#
+function turn_on_checking_bad_blocks_node()
+{
+	FILE=$2
+
+	expect_normal_exit run_on_node $1 "../pmempool feature -e CHECK_BAD_BLOCKS $FILE &>> $PREP_LOG_FILE"
+}

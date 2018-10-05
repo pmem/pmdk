@@ -60,6 +60,8 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOL
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
+turn_on_checking_bad_blocks $POOLSET
+
 # zero blocks: offset: 0 length: 2000
 zero_blocks $DIR/testfile1 0 2000
 

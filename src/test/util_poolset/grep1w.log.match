@@ -10,6 +10,10 @@ open "$(nW)testset0": No such file or directory
 invalid major version (0)
 open "$(nW)testset2": Permission denied
 open "$(nW)testfile31": No such file or directory
+$(OPT)cannot open the part -- "$(nW)testfile31": No such file or directory
+open "$(nW)testfile32": No such file or directory
+$(OPT)cannot open the part -- "$(nW)testfile32": No such file or directory
+open "$(nW)testfile31": No such file or directory
 open "$(nW)testfile42": No such file or directory
 size 1048576 smaller than 2097152
 size 1048576 smaller than 2097152

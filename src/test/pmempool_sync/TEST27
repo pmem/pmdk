@@ -81,6 +81,9 @@ ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1
 expect_bad_blocks
 
 expect_normal_exit "$PMEMPOOL$EXESUFFIX info -k $POOLSET >> $LOG"
+
+turn_on_checking_bad_blocks $POOLSET
+
 expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null"
 
 expect_bad_blocks
