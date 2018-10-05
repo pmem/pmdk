@@ -416,6 +416,8 @@ tx_clean_range(void *data, void *ctx)
 {
 	PMEMobjpool *pop = ctx;
 	struct tx_range_def *range = data;
+	VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, range->offset),
+		range->size);
 	VALGRIND_SET_CLEAN(OBJ_OFF_TO_PTR(pop, range->offset), range->size);
 }
 
@@ -443,13 +445,13 @@ tx_abort(PMEMobjpool *pop, struct lane *lane)
 
 	struct tx *tx = get_tx();
 
+	tx_abort_set(pop, lane);
+
+	ravl_delete_cb(tx->ranges, tx_clean_range, pop);
 	palloc_cancel(&pop->heap,
 		VEC_ARR(&tx->actions), VEC_SIZE(&tx->actions));
 	VEC_CLEAR(&tx->actions);
-	ravl_delete_cb(tx->ranges, tx_clean_range, pop);
 	tx->ranges = NULL;
-
-	tx_abort_set(pop, lane);
 }
 
 /*
