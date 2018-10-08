@@ -193,8 +193,9 @@ obj_tx_abort_null(int errnum)
 static struct pobj_action *
 tx_action_add(struct tx *tx)
 {
-	if (operation_reserve(tx->lane->external,
-	    VEC_SIZE(&tx->actions) + 1) != 0)
+	size_t entries_size = (VEC_SIZE(&tx->actions) + 1) *
+		sizeof(struct ulog_entry_val);
+	if (operation_reserve(tx->lane->external, entries_size) != 0)
 		return NULL;
 
 	VEC_INC_BACK(&tx->actions);
@@ -1588,8 +1589,10 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 	struct tx *tx = get_tx();
 	ASSERT_TX_STAGE_WORK(tx);
 
-	if (operation_reserve(tx->lane->external,
-	    VEC_SIZE(&tx->actions) + actvcnt) != 0)
+	size_t entries_size = (VEC_SIZE(&tx->actions) + actvcnt) *
+		sizeof(struct ulog_entry_val);
+
+	if (operation_reserve(tx->lane->external, entries_size) != 0)
 		return -1;
 
 	for (size_t i = 0; i < actvcnt; ++i) {
