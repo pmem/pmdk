@@ -166,29 +166,54 @@ test_api_macros(PMEMobjpool *pop)
 #define POBJ_MAX_ACTIONS 60
 
 static void
-test_over_old_limit(PMEMobjpool *pop)
+test_many(PMEMobjpool *pop, size_t n)
 {
 	struct pobj_action *act = (struct pobj_action *)
-		MALLOC(sizeof(struct pobj_action) * POBJ_MAX_ACTIONS * 2);
+		MALLOC(sizeof(struct pobj_action) * n);
 	PMEMoid *oid = (PMEMoid *)
-		MALLOC(sizeof(PMEMoid) * POBJ_MAX_ACTIONS * 2);
+		MALLOC(sizeof(PMEMoid) * n);
 
-	for (int i = 0; i < POBJ_MAX_ACTIONS * 2; ++i) {
+	for (int i = 0; i < n; ++i) {
 		oid[i] = pmemobj_reserve(pop, &act[i], 1, 0);
 		UT_ASSERT(!OID_IS_NULL(oid[i]));
 	}
 
-	UT_ASSERTeq(pmemobj_publish(pop, act, POBJ_MAX_ACTIONS * 2), 0);
+	UT_ASSERTeq(pmemobj_publish(pop, act, n), 0);
 
-	for (int i = 0; i < POBJ_MAX_ACTIONS * 2; ++i) {
+	for (int i = 0; i < n; ++i) {
 		pmemobj_defer_free(pop, oid[i], &act[i]);
 	}
 
-	UT_ASSERTeq(pmemobj_publish(pop, act, POBJ_MAX_ACTIONS * 2), 0);
+	UT_ASSERTeq(pmemobj_publish(pop, act, n), 0);
 
 	FREE(oid);
 	FREE(act);
 }
+
+
+static void
+test_many_sets(PMEMobjpool *pop, size_t n)
+{
+	struct pobj_action *act = (struct pobj_action *)
+		MALLOC(sizeof(struct pobj_action) * n);
+	PMEMoid oid;
+	pmemobj_alloc(pop, &oid, sizeof(uint64_t) * n, 0, NULL, NULL);
+	UT_ASSERT(!OID_IS_NULL(oid));
+
+	uint64_t *values = (uint64_t *)pmemobj_direct(oid);
+
+	for (uint64_t i = 0; i < n; ++i)
+		pmemobj_set_value(pop, &act[i], values + i, i);
+
+	UT_ASSERTeq(pmemobj_publish(pop, act, n), 0);
+
+	for (uint64_t i = 0; i < n; ++i)
+		UT_ASSERTeq(*(values + i), i);
+
+	pmemobj_free(&oid);
+	FREE(act);
+}
+
 
 int
 main(int argc, char *argv[])
@@ -295,7 +320,8 @@ main(int argc, char *argv[])
 
 	test_api_macros(pop);
 
-	test_over_old_limit(pop);
+	test_many(pop, POBJ_MAX_ACTIONS * 2);
+	test_many_sets(pop, POBJ_MAX_ACTIONS * 2);
 
 	pmemobj_close(pop);
 

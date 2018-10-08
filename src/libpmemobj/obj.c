@@ -2973,7 +2973,9 @@ pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt)
 {
 	struct operation_context *ctx = pmalloc_operation_hold(pop);
 
-	if (operation_reserve(ctx, actvcnt) != 0)
+	size_t entries_size = actvcnt * sizeof(struct ulog_entry_val);
+
+	if (operation_reserve(ctx, entries_size) != 0)
 		return -1;
 
 	palloc_publish(&pop->heap, actv, actvcnt, ctx);

@@ -330,6 +330,12 @@ operation_add_typed_entry(struct operation_context *ctx,
 			return -1;
 		oplog->capacity += ULOG_BASE_SIZE;
 		oplog->ulog = ulog;
+
+		/*
+		 * Realloc invalidated the ulog entries that are inside of this
+		 * vector, need to clear it to avoid use after free.
+		 */
+		VECQ_CLEAR(&ctx->merge_entries);
 	}
 
 	if (log_type == LOG_PERSISTENT &&
