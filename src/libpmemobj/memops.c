@@ -394,7 +394,8 @@ operation_add_buffer(struct operation_context *ctx,
 		ctx->ulog_curr_offset,
 		dest, src, data_size,
 		type, ctx->p_ops);
-	size_t entry_size = ulog_entry_size(&e->base);
+	size_t entry_size = ALIGN_UP(curr_size, CACHELINE_SIZE);
+	ASSERT(entry_size == ulog_entry_size(&e->base));
 	ASSERT(entry_size <= ctx->ulog_curr_capacity);
 
 	ctx->total_logged += entry_size;
