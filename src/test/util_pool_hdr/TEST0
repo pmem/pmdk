@@ -32,7 +32,8 @@
 #
 
 #
-# src/test/util_pool_hdr_layout/TEST0 -- unit test for pool_hdr layout
+# src/test/util_pool_hdr/TEST0 -- unit test for pool_hdr layout
+#					and default values
 #
 
 # standard unit test setup
@@ -42,6 +43,6 @@ require_test_type short
 
 setup
 
-expect_normal_exit ./util_pool_hdr_layout$EXESUFFIX
+expect_normal_exit ./util_pool_hdr$EXESUFFIX
 
 pass
