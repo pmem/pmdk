@@ -31,7 +31,7 @@
  */
 
 /*
- * util_pool_hdr_layout.c -- unit test for pool_hdr layout
+ * util_pool_hdr.c -- unit test for pool_hdr layout and default values
  *
  * This test should be modified after every layout change. It's here to prevent
  * any accidental layout changes.
@@ -54,11 +54,12 @@
 #define SHUTDOWN_STATE_SIZE_V1 (64)
 #define SHUTDOWN_STATE_RESERVED_LEN_V1 (39)
 
-int
-main(int argc, char *argv[])
+/*
+ * test_layout -- test pool_hdr layout
+ */
+static void
+test_layout()
 {
-	START(argc, argv, "util_pool_hdr_layout");
-
 	ASSERT_ALIGNED_BEGIN(struct pool_hdr);
 	ASSERT_ALIGNED_FIELD(struct pool_hdr, signature);
 	ASSERT_FIELD_SIZE(signature, POOL_HDR_SIG_LEN_V1);
@@ -108,6 +109,55 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_CHECK(struct shutdown_state);
 	UT_COMPILE_ERROR_ON(sizeof(struct shutdown_state) !=
 			SHUTDOWN_STATE_SIZE_V1);
+}
+
+/* incompat features - final values */
+#define POOL_FEAT_SINGLEHDR_FINAL	0x0001U
+#define POOL_FEAT_CKSUM_2K_FINAL	0x0002U
+#define POOL_FEAT_SDS_FINAL		0x0004U
+
+/* incompat features effective values */
+#ifdef _WIN32
+#ifdef SDS_ENABLED
+#define POOL_E_FEAT_SDS_FINAL		POOL_FEAT_SDS_FINAL
+#else
+#define POOL_E_FEAT_SDS_FINAL		0x0000U	/* empty */
+#endif
+#endif
+
+#ifdef _WIN32
+#define POOL_FEAT_INCOMPAT_DEFAULT_V1 \
+	(POOL_FEAT_CKSUM_2K_FINAL | POOL_E_FEAT_SDS_FINAL)
+#else
+/*
+ * shutdown state support on Linux requires root access
+ * so it is disabled by default
+ */
+#define POOL_FEAT_INCOMPAT_DEFAULT_V1 \
+	(POOL_FEAT_CKSUM_2K_FINAL)
+#endif
+
+/*
+ * test_default_values -- test default values
+ */
+static void
+test_default_values()
+{
+	UT_COMPILE_ERROR_ON(POOL_FEAT_SINGLEHDR != POOL_FEAT_SINGLEHDR_FINAL);
+	UT_COMPILE_ERROR_ON(POOL_FEAT_CKSUM_2K != POOL_FEAT_CKSUM_2K_FINAL);
+	UT_COMPILE_ERROR_ON(POOL_FEAT_SDS != POOL_FEAT_SDS_FINAL);
+
+	UT_COMPILE_ERROR_ON(POOL_FEAT_INCOMPAT_DEFAULT !=
+			POOL_FEAT_INCOMPAT_DEFAULT_V1);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "util_pool_hdr");
+
+	test_layout();
+	test_default_values();
 
 	DONE(NULL);
 }

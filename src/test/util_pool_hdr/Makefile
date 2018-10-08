@@ -31,9 +31,9 @@
 #
 
 #
-# src/test/util_pool_hdr_layout/Makefile -- build pool_hdr layout unit test
+# src/test/util_pool_hdr/Makefile -- build util_pool_hdr unit test
 #
-TARGET = util_pool_hdr_layout
-OBJS = util_pool_hdr_layout.o
+TARGET = util_pool_hdr
+OBJS = util_pool_hdr.o
 
 include ../Makefile.inc
