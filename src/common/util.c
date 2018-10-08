@@ -80,6 +80,10 @@ unsigned _On_valgrind;
 #define LIB_LOG_LEN 20
 #define FUNC_LOG_LEN 50
 #define SUFFIX_LEN 7
+
+/* true if pmreorder instrumentization has to be enabled */
+int _Pmreorder_emit;
+
 /*
  * util_emit_log -- emits lib and func name with appropriate suffix
  * to pmemcheck store log file
@@ -334,6 +338,16 @@ util_init(void)
 
 #if ANY_VG_TOOL_ENABLED
 	_On_valgrind = RUNNING_ON_VALGRIND;
+#endif
+
+#if VG_PMEMCHECK_ENABLED
+	if (On_valgrind) {
+		char *pmreorder_env = getenv("PMREORDER_EMIT_LOG");
+		if (pmreorder_env)
+			_Pmreorder_emit = atoi(pmreorder_env);
+	} else {
+			_Pmreorder_emit = 0;
+	}
 #endif
 }
 
