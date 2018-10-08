@@ -171,6 +171,16 @@ function pmempool_feature_test_SHUTDOWN_STATE() {
 	pmempool_feature_enable "SHUTDOWN_STATE" # should succeed
 }
 
+# pmempool_feature_test_CHECK_BAD_BLOCKS -- test SHUTDOWN_STATE
+function pmempool_feature_test_CHECK_BAD_BLOCKS() {
+
+	# PMEMPOOL_FEAT_CHECK_BAD_BLOCKS is disabled by default
+	pmempool_feature_query "CHECK_BAD_BLOCKS"
+
+	pmempool_feature_enable "CHECK_BAD_BLOCKS"
+	pmempool_feature_disable "CHECK_BAD_BLOCKS"
+}
+
 # pmempool_feature_remote_init -- initialization remote replics
 function pmempool_feature_remote_init() {
 	require_nodes 2
