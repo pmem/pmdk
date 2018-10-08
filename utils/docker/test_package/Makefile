@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,39 +29,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#
-# run-build-package.sh - is called inside a Docker container; prepares
-#                        the environment and starts a build of PMDK project.
-#
+check_package = $(shell pkg-config $(1) && echo y || echo n)
 
-set -e
+HAS_LIBPMEMOBJ := $(call check_package, libpmemobj --atleast-version $(LIBPMEMOBJ_MIN_VERSION) --print-errors)
 
-# Prepare build enviromnent
-./prepare-for-build.sh
+LIBS += $(shell pkg-config --libs libpmemobj)
+CFLAGS += $(shell pkg-config --cflags libpmemobj)
 
-# Build librpmem even if libfabric is not compiled with ibverbs
-export RPMEM_DISABLE_LIBIBVERBS=y
+ifeq ($(HAS_LIBPMEMOBJ),n)
+$(error libpmemobj(version >= $(LIBPMEMOBJ_MIN_VERSION)) is missing)
+endif
 
-# Create fake tag, so that package has proper 'version' field
-git config user.email "test@package.com"
-git config user.name "test package"
-git tag -a 1.4.99 -m "1.4" HEAD~1
+test_package: test_package.c
+	$(CC) test_package.c $(LIBS) $(CFLAGS) -o $@
 
-# Build all and run tests
-cd $WORKDIR
-export PCHECK_OPTS=-j2
-make -j2 $PACKAGE_MANAGER
+clean:
+	rm -f test_package
 
-# Install packages
-if [[ "$PACKAGE_MANAGER" == "dpkg" ]]; then
-	cd $PACKAGE_MANAGER
-	echo $USERPASS | sudo -S dpkg --install -R *.deb
-else
-	cd $PACKAGE_MANAGER/x86_64
-	echo $USERPASS | sudo -S rpm --install *.rpm
-fi
-
-# Compile and run standalone test
-cd $WORKDIR/utils/docker/test_package
-make LIBPMEMOBJ_MIN_VERSION=1.4
-./test_package testfile1
+.PHONY: clean
