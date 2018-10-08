@@ -145,6 +145,10 @@ function pmempool_feature_test_CKSUM_2K() {
 	# PMEMPOOL_FEAT_CHCKSUM_2K is enabled by default
 	pmempool_feature_query "CKSUM_2K"
 
+	# SHUTDOWN_STATE is disabled by default on Linux
+	# enable it to interfere toggling CKSUM_2K
+	pmempool_feature_enable SHUTDOWN_STATE "no-query"
+
 	# disable PMEMPOOL_FEAT_SHUTDOWN_STATE prior to success
 	exit_func=expect_abnormal_exit
 	pmempool_feature_disable "CKSUM_2K" # should fail
@@ -157,10 +161,8 @@ function pmempool_feature_test_CKSUM_2K() {
 
 # pmempool_feature_test_SHUTDOWN_STATE -- test SHUTDOWN_STATE
 function pmempool_feature_test_SHUTDOWN_STATE() {
-	# PMEMPOOL_FEAT_SHUTDOWN_STATE is enabled by default
+	# PMEMPOOL_FEAT_SHUTDOWN_STATE is disabled by default
 	pmempool_feature_query "SHUTDOWN_STATE"
-
-	pmempool_feature_disable "SHUTDOWN_STATE"
 
 	# PMEMPOOL_FEAT_SHUTDOWN_STATE requires PMEMPOOL_FEAT_CHCKSUM_2K
 	pmempool_feature_disable "CKSUM_2K"

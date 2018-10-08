@@ -42,6 +42,7 @@ require_no_sds $PMEMPOOL$EXESUFFIX
 setup
 . ./common.sh
 
+pmempool_check_sds_init # do not enable SHUTDOWN_STATE
 pmempool_check_sds fix_no_replicas
 
 check

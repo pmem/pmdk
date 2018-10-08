@@ -51,16 +51,27 @@ function pmemspoil_corrupt_replica_sds() {
 		"pool_hdr.shutdown_state.checksum_gen\(\)"
 }
 
-# pmempool_check_sds -- perform shutdown state unittest
+# pmempool_check_sds_init -- shutdown state unittest init
 #
-#	usage: pmempool_check_sds <scenario>
-function pmempool_check_sds() {
+#	usage: pmempool_check_sds [enable-sds]
+function pmempool_check_sds_init() {
 	# initialize poolset
 	create_poolset $POOLSET \
 		8M:$DIR/part00:x \
 		r 8M:$DIR/part10:x
 	expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
 
+	# enable SHUTDOWN_STATE feature
+	if [ "x$1" == "xenable-sds" ]; then
+		expect_normal_exit $PMEMPOOL$EXESUFFIX feature \
+			--enable "SHUTDOWN_STATE" $POOLSET
+	fi
+}
+
+# pmempool_check_sds -- perform shutdown state unittest
+#
+#	usage: pmempool_check_sds <scenario>
+function pmempool_check_sds() {
 	# corrupt poolset replicas
 	pmemspoil_corrupt_replica_sds 0
 	pmemspoil_corrupt_replica_sds 1

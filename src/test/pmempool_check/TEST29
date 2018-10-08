@@ -42,6 +42,7 @@ require_sds $PMEMPOOL$EXESUFFIX
 setup
 . ./common.sh
 
+pmempool_check_sds_init enable-sds
 pmempool_check_sds fix_first_replica
 
 check

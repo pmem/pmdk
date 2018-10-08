@@ -76,6 +76,13 @@ main(int argc, char *argv[])
 		if ((pop = pmemobj_create(path, "LAYOUT", 0, 0600)) == NULL) {
 			UT_FATAL("!%s: pmemobj_create", path);
 		}
+#ifndef _WIN32
+		pmemobj_close(pop);
+		pmempool_feature_enable(path, PMEMPOOL_FEAT_SHUTDOWN_STATE, 0);
+		if ((pop = pmemobj_open(path, "LAYOUT")) == NULL) {
+			UT_FATAL("!%s: pmemobj_open", path);
+		}
+#endif
 	} else {
 		if ((pop = pmemobj_open(path, "LAYOUT")) == NULL) {
 			UT_FATAL("!%s: pmemobj_open", path);

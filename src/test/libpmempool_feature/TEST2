@@ -47,10 +47,8 @@ setup
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.obj
 
-# PMEMPOOL_FEAT_SHUTDOWN_STATE is enabled by default
+# PMEMPOOL_FEAT_SHUTDOWN_STATE is disabled by default
 libpmempool_feature_query SHUTDOWN_STATE
-
-libpmempool_feature_disable SHUTDOWN_STATE
 
 # PMEMPOOL_FEAT_SHUTDOWN_STATE requires PMEMPOOL_FEAT_CHCKSUM_2K
 libpmempool_feature_disable CKSUM_2K
