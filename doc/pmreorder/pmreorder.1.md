@@ -43,6 +43,7 @@ date: pmreorder version 1.5
 [ENGINES](#engines)<br />
 [INSTRUMENTATION](#instrumentation)<br />
 [PMEMCHECK STORE LOG](#pmemcheck-store-log)<br />
+[ENVIRONMENT](#environment)<br />
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
@@ -283,6 +284,25 @@ There are two ways to set macro options:
 For more details about available
 engines types, see ENGINES section above.
 
+**libpmemobj**(7) also provides set of macros that allows change
+reordering engine on library or function level:
+
+`<library_name|api_function_name>`
+
+Example of configutation on function level:
+```
+{
+    "pmemobj_open"="NoReorderNoCheck",
+    "pmemobj_memcpy_persist"="ReorderPartial"
+}
+
+Example of configutation on library level
+(affecting all library functions):
+```
+{
+    "libpmemobj"="NoReorderNoCheck"
+}
+```
 
 # PMEMCHECK STORE LOG #
 
@@ -303,6 +323,14 @@ valgrind \
 ```
 
 For further details of pmemcheck parameters see [pmemcheck documentation](https://github.com/pmem/valgrind/blob/pmem-3.13/pmemcheck/docs/pmc-manual.xml)
+
+
+# ENVIRONMENT #
+
+By default all logging from PMDK libraries is disabled.
+To enable API macros logging set environment variable:
+
++ **PMREORDER_EMIT_LOG**=1
 
 
 # EXAMPLE #
