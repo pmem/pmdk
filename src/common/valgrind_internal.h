@@ -137,6 +137,9 @@ extern unsigned _On_valgrind;
 
 extern void util_emit_log(const char *lib, const char *func, int order);
 
+extern int _Pmreorder_emit;
+#define Pmreorder_emit __builtin_expect(_Pmreorder_emit, 0)
+
 #define VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
 	if (On_valgrind)\
 		VALGRIND_PMC_REGISTER_PMEM_MAPPING((addr), (len));\
@@ -265,11 +268,15 @@ extern void util_emit_log(const char *lib, const char *func, int order);
  * to pmemcheck store log file.
  */
 #define PMEMOBJ_API_START()\
-	util_emit_log("libpmemobj", __func__, 0);
+	if (Pmreorder_emit)\
+		util_emit_log("libpmemobj", __func__, 0);
 #define PMEMOBJ_API_END()\
-	util_emit_log("libpmemobj", __func__, 1);
+	if (Pmreorder_emit)\
+		util_emit_log("libpmemobj", __func__, 1);
 
 #else
+
+#define Pmreorder_emit (0)
 
 #define VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
 	(void) (addr);\
