@@ -330,6 +330,7 @@ operation_add_typed_entry(struct operation_context *ctx,
 			return -1;
 		oplog->capacity += ULOG_BASE_SIZE;
 		oplog->ulog = ulog;
+		VECQ_CLEAR(&ctx->merge_entries);
 	}
 
 	if (log_type == LOG_PERSISTENT &&
