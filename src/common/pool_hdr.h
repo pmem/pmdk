@@ -213,8 +213,17 @@ static const features_t features_zero =
 #define POOL_FEAT_INCOMPAT_VALID \
 	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
 
+#ifdef _WIN32
 #define POOL_FEAT_INCOMPAT_DEFAULT \
 	(POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
+#else
+/*
+ * shutdown state support on Linux requires root access
+ * so it is disabled by default
+ */
+#define POOL_FEAT_INCOMPAT_DEFAULT \
+	(POOL_FEAT_CKSUM_2K)
+#endif
 
 #define FEAT_INCOMPAT(X) \
 	{POOL_FEAT_ZERO, POOL_FEAT_##X, POOL_FEAT_ZERO}
