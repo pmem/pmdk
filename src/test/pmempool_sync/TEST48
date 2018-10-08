@@ -46,7 +46,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type any
+require_fs_type non-pmem
 require_build_type debug nondebug
 require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
 
