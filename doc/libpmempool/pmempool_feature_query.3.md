@@ -85,6 +85,12 @@ pool open which verifies pool consistency in the presence of dirty shutdown.
 **PMEMPOOL_FEAT_CKSUM_2K** has to be enabled prior to
 **PMEMPOOL_FEAT_SHUTDOWN_STATE** otherwise enabling **PMEMPOOL_FEAT_SHUTDOWN_STATE** will fail.
 
++ **PMEMPOOL_FEAT_CHECK_BAD_BLOCKS** - enables fixing bad blocks performed
+by pmempool-sync during syncing a pool. Checking and fixing bad blocks
+require read access to the resource files (containing physical addresses)
+of NVDIMM devices which only root can read by default (their default
+file mode is (0400/-r--------)). For details see **pmempool-sync**(1).
+
 The _UW(pmempool_feature_query) function checks state of *feature* in the
 pool set pointed by *path*.
 

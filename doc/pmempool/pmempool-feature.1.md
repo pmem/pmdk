@@ -75,6 +75,12 @@ pool open which verifies pool consistency in the presence of dirty shutdown.
 **CHECKSUM_2K** has to be enabled prior to **SHUTDOWN_STATE**
 otherwise enabling **SHUTDOWN_STATE** will fail.
 
++ **CHECK_BAD_BLOCKS** - enables checking bad blocks performed during opening
+a pool and fixing bad blocks performed by pmempool-sync during syncing a pool.
+Checking and fixing bad blocks require read access to the resource files
+(containing physical addresses) of NVDIMM devices which only root can read
+by default (their default file mode is (0400/-r--------)).
+For details see **pmempool-sync**(1).
 
 ##### Available options: #####
 
