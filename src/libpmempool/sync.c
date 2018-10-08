@@ -610,14 +610,15 @@ sync_badblocks_assign_healthy_replica(struct part_health_status *phs,
 			"assigning old bad block: " BB_DATA_STR,
 			bb_old.offset, bb_old.length, bb_old.nhealthy);
 
-		/* all from bbv_all before the bb_old */
-		while (pbb_all != NULL && pbb_all->offset < bb_old.offset) {
-			if (*i_all < size_all - 1) {
-				pbb_all = VEC_GET(pbbv_all, ++(*i_all));
-			} else {
-				pbb_all = NULL;
-				break;
-			}
+		/*
+		 * Skip all bad blocks from bbv_all with offsets
+		 * less than the offset of the current bb_old.
+		 */
+		while (pbb_all->offset < bb_old.offset) {
+			/* (*i_all) has to be less than (size_all - 1) */
+			ASSERTne(*i_all, size_all - 1);
+
+			pbb_all = VEC_GET(pbbv_all, ++(*i_all));
 		}
 
 		bb_new.offset = bb_old.offset;
