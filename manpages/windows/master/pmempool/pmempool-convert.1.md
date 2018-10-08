@@ -45,37 +45,8 @@ date: pmem Tools version 1.4
 
 # NAME #
 
-**pmempool-convert** - upgrade pool files layout version
-
-
-# SYNOPSIS #
-
-```
-$ pmempool convert <file>
-```
-
-
-# DESCRIPTION #
-
-The **pmempool** invoked with the *convert* command
-performs a conversion of the specified pool to the newest
-layout supported by this tool. Currently only
-**libpmemobj**(7) pools are supported. It is advised to
-have a backup of the pool before conversion.
-
->NOTE:
-The conversion process is not fail-safe - power interruption may damage the
-pool.
-
-
-# EXAMPLE #
-
-```
-$ pmempool convert pool.obj
-```
-
-Updates pool.obj to the latest layout version.
-
+**pmempool-convert** - this is a wrapper around pmdk-convert tool. More information
+can be found in pmdk-convert man page.
 
 # SEE ALSO #
 

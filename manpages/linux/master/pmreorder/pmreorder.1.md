@@ -73,33 +73,40 @@ command line options to check whether files are in a
 consistent state.
 
 Considering that logging, replaying and reordering of operations
-is very time consuming, it is recommended to use as few stores as
+are very time consuming, it is recommended to use as few stores as
 possible in test workloads.
 
 
 # OPTIONS #
 
 `-h, --help`
+
 Prints synopsis and list of options.
 
 `-l <store_log>, --logfile <store_log>`
+
 The pmemcheck log file to process.
 
 `-c <prog|lib>, --checker <prog|lib>`
+
 Consistency checker type.
 
 `-p <path>, --path <path>`
-Path to the consistency checker.
+
+Path to the consistency checker. Checker function has to return 0 for consistent cases and 1 otherwise.
 
 `-n <name>, --name <name>`
+
 The symbol name of the consistency checking function
 in the library. Valid only if the checker type is `lib`.
 
 `-o <pmreorder_output>, --output <pmreorder_output>`
+
 Set the logger output file.
 
 `-e <debug|info|warning|error|critical>,
  --output-level <debug|info|warning|error|critical>`
+
 Set the output log level.
 
 `-r  <NoReorderNoCheck|
@@ -114,9 +121,11 @@ Set the output log level.
 		    ReorderPartial|
 		    ReorderAccumulative|
 		    ReorderReverseAccumulative>`
+
 Set the initial reorder engine. Default value is `NoReorderNoCheck`.
 
 `-x <cli_macros|config_file>, --extended-macros <cli_macros|config_file>`
+
 Assign an engine types to the defined marker.
 
 
@@ -125,7 +134,7 @@ Assign an engine types to the defined marker.
 By default, the **NoReorderNoCheck** engine is used,
 which means that for each set of stores, the tool
 will pass-through all sequences of stores not reordered
-and does not run consistency checker on them.
+and will not run consistency checker on them.
 
 To enable different types of the reorder engine and
 begin proper reordering tests, a number of other
@@ -168,7 +177,7 @@ Example:
 ```
 
 + **ReorderPartial** - checks consistency on 3 randomly selected sequences
-from a set of 1000 combination without repetition of the original log.
+from a set of 1000 combinations of the original log, without repetitions.
 
 ```
  Example:
@@ -305,13 +314,13 @@ python pmreorder.py \
 		-o pmreorder_out.log \
 		-c prog \
 		-x PMREORDER_MARKER_NAME=ReorderPartial \
-		-p test_binary checker_parameter
+		-p checker_binary checker_parameter
 ```
 
-Checker function has to return 0 for consistent cases and 1 for other.
-
-Any inconsistent stores found during **pmreorder** analysis
-are logged to `pmreorder_out.log`.
+Checker binary will be used to run consistency checks on
+"store_log.log", output of pmemcheck tool. Any inconsistent
+stores found during **pmreorder** analysis will be logged
+to `pmreorder_out.log`.
 
 
 # SEE ALSO #

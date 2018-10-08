@@ -1,13 +1,13 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEMPOOL-CONVERT
+title: PMEMPOOL-FEATURE
 collection: pmempool
 header: PMDK
 date: pmem Tools version 1.4
 ...
 
-[comment]: <> (Copyright 2016-2017, Intel Corporation)
+[comment]: <> (Copyright 2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -34,7 +34,7 @@ date: pmem Tools version 1.4
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmempool-convert.1 -- man page for pmempool-convert)
+[comment]: <> (pmempool-feature.1 -- man page for pmempool-feature)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -45,10 +45,82 @@ date: pmem Tools version 1.4
 
 # NAME #
 
-**pmempool-convert** - this is a wrapper around pmdk-convert tool. More information
-can be found in pmdk-convert man page.
+**pmempool-feature** - toggle or query pool set features
+
+
+# SYNOPSIS #
+
+```
+$ pmempool feature (-e|-d|-q feature-name) [options] <file>
+```
+
+
+# DESCRIPTION #
+
+The **pmempool feature** command enables / disables or queries pool set features.
+
+Available pool *feature-names* are:
+
++ **SINGLEHDR** - only the first part in each replica contains the pool part
+internal metadata. This value can be used only with **-q**. It can not be
+enabled or disabled. For details see **poolset**(5).
+
++ **CHECKSUM_2K** - only the first 2KiB of pool part internal metadata
+is checksummed. Other features may depend on this one to store additional metadata
+in otherwise unused second 2KiB part of a header.
+When **CHECKSUM_2K** is disabled whole 4KiB is checksummed.
+
++ **SHUTDOWN_STATE** - enables additional check performed during
+pool open which verifies pool consistency in the presence of dirty shutdown.
+**CHECKSUM_2K** has to be enabled prior to **SHUTDOWN_STATE**
+otherwise enabling **SHUTDOWN_STATE** will fail.
+
+
+##### Available options: #####
+
+`-h, --help`
+
+Print help message.
+
+`-v, --verbose`
+
+Increase verbosity level.
+
+`-e, --enable feature-name`
+
+Enable feature for pool set.
+
+`-d, --disable feature-name`
+
+Disable feature for pool set.
+
+`-q, --query feature-name`
+
+Print feature status.
+
+
+# EXAMPLE #
+
+```
+$ pmempool feature --enable CHECKSUM_2K pool.set
+```
+
+Enables POOL_FEAT_CKSUM_2K incompat feature flag.
+
+```
+$ pmempool feature --disable CHECKSUM_2K pool.set
+```
+
+Disables POOL_FEAT_CKSUM_2K incompat feature flag.
+
+```
+$ pmempool feature --query CHECKSUM_2K pool.set
+0
+```
+
+Prints POOL_FEAT_CKSUM_2K incompat feature flag value.
+
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7), **libpmempool**(7) and **<http://pmem.io>**
+**poolset**(5) and **<http://pmem.io>**

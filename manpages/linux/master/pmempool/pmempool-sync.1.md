@@ -82,7 +82,7 @@ When bad blocks are detected, special recovery files have to be created
 in order to fix them safely. A separate recovery file is created per each part
 containing bad blocks. The recovery files are created in the same directory
 where the poolset file is located using the following name pattern:
-\<poolset-file-name\>_r\<replica-number\>_p\<part-number\>_badblocks.txt
+\<poolset-file-name\> _r \<replica-number\> _p \<part-number\> _badblocks.txt
 These recovery files are automatically removed if the sync operation finishes
 successfully.
 If the last sync operation was interrupted and not finished correctly

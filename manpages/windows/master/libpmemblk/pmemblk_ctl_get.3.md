@@ -49,7 +49,7 @@ date: pmemblk API version 1.1
 **pmemblk_ctl_getU**()/**pmemblk_ctl_getW**(),
 **pmemblk_ctl_setU**()/**pmemblk_ctl_setW**(),
 **pmemblk_ctl_execU**()/**pmemblk_ctl_execW**()
--- Query and modify libpmemblk internal behavior (EXPERIMENTAL)
+- Query and modify libpmemblk internal behavior (EXPERIMENTAL)
 
 
 # SYNOPSIS #
