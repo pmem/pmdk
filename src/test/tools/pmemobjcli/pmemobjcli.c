@@ -46,6 +46,7 @@
 #include <libpmemobj.h>
 #include "common.h"
 #include "os.h"
+#include "vec.h"
 
 #define POCLI_ENV_EXIT_ON_ERROR	"PMEMOBJCLI_EXIT_ON_ERROR"
 #define POCLI_ENV_ECHO_MODE	"PMEMOBJCLI_ECHO_MODE"
@@ -82,6 +83,7 @@ struct pocli_ctx {
 	FILE *out;
 	struct pocli *pocli;
 	bool tx_aborted;
+	VEC(, struct pocli_args *) free_on_abort;
 };
 
 /*
@@ -388,15 +390,14 @@ parse_stage(void)
 }
 
 /*
-* pocli_args_action -- parse action
-*/
-
+ * pocli_args_action -- parse action
+ */
 static enum pocli_ret
 pocli_args_act(struct pocli_ctx *ctx, struct pocli_args *args,
-	int arg, pobj_action_type *type)
+	int arg, enum pobj_action_type *type)
 {
 	assert(args != NULL);
-	assert(arg >= 0 && arg <args->argc);
+	assert(arg >= 0 && arg < args->argc);
 	assert(type != NULL);
 	assert(ctx != NULL);
 
@@ -404,11 +405,9 @@ pocli_args_act(struct pocli_ctx *ctx, struct pocli_args *args,
 
 	if (strcmp(acts, "h") == 0) {
 		*type = POBJ_ACTION_TYPE_HEAP;
-	}
-	else if (strcmp(acts, "m") == 0) {
+	} else if (strcmp(acts, "m") == 0) {
 		*type = POBJ_ACTION_TYPE_MEM;
-	}
-	else {
+	} else {
 		return pocli_err(ctx, POCLI_ERR_PARS,
 			"invalid object specified -- '%s'\n", acts);
 	}
@@ -416,8 +415,8 @@ pocli_args_act(struct pocli_ctx *ctx, struct pocli_args *args,
 }
 
 /*
-* pocli_args_class_id -- parse type class_id
-*/
+ * pocli_args_class_id -- parse type class_id
+ */
 static enum pocli_ret
 pocli_args_class_id(struct pocli_args *args, int arg, uint64_t *class_id)
 {
@@ -426,7 +425,7 @@ pocli_args_class_id(struct pocli_args *args, int arg, uint64_t *class_id)
 	assert(class_id != NULL);
 
 	uint64_t cid;
-	int ret = sscanf(args->argv[arg], "%ull", &cid);
+	int ret = sscanf(args->argv[arg], "%" SCNu64 "", &cid);
 	if (ret == 0)
 		return POCLI_ERR_PARS;
 
@@ -439,8 +438,8 @@ pocli_args_class_id(struct pocli_args *args, int arg, uint64_t *class_id)
 }
 
 /*
-* pocli_args_flag -- parse type xalloc_zero
-*/
+ * pocli_args_flag -- parse type xalloc_zero
+ */
 static enum pocli_ret
 pocli_args_flag(struct pocli_args *args, int arg, bool *flag)
 {
@@ -448,7 +447,7 @@ pocli_args_flag(struct pocli_args *args, int arg, bool *flag)
 	assert(arg >= 0 && arg < args->argc);
 
 	int read;
-	int ret = sscanf(args->argv[arg],"%x", &read);
+	int ret = sscanf(args->argv[arg], "%x", &read);
 	if (ret == 0)
 		return POCLI_ERR_PARS;
 
@@ -1387,6 +1386,16 @@ pocli_pmemobj_tx_begin(struct pocli_ctx *ctx, struct pocli_args *args)
 					"pmemobj_tx_abort" : "pmemobj_tx_end";
 				pocli_printf(ctx, "%s: %d\n",
 					command, pmemobj_tx_errno());
+
+				/*
+				 * Free all objects, except the one we currently
+				 * use.
+				 */
+				while (VEC_SIZE(&ctx->free_on_abort) > 1) {
+					free(VEC_BACK(&ctx->free_on_abort));
+					VEC_POP_BACK(&ctx->free_on_abort);
+				}
+
 				return POCLI_RET_OK;
 			} else {
 				r = pmemobj_tx_begin(ctx->pop, jmp,
@@ -1785,15 +1794,16 @@ pocli_pmemobj_tx_errno(struct pocli_ctx *ctx, struct pocli_args *args)
 }
 
 /*
-* pocli_pmemobj_reserve -- pmemobj_reserve() command
-*/
+ * pocli_pmemobj_reserve -- pmemobj_reserve() command
+ */
 static enum pocli_ret
 pocli_pmemobj_reserve(struct pocli_ctx *ctx, struct pocli_args *args)
 {
 	if (args->argc != 4)
 		return POCLI_ERR_ARGS;
 
-	pobj_action *actp = (struct pobj_action *)malloc(sizeof(pobj_action));
+	struct pobj_action *actp = (struct pobj_action *)
+		malloc(sizeof(struct pobj_action));
 	uint64_t type_num = 0;
 	size_t size = 0;
 	enum pocli_ret ret;
@@ -1810,10 +1820,10 @@ pocli_pmemobj_reserve(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		goto out;
 
-	PMEMoid result = pmemobj_reserve(ctx->pop, actp, size, type_num);
+	PMEMoid r = pmemobj_reserve(ctx->pop, actp, size, type_num);
 
 	pocli_printf(ctx, "%s(%s, %zu, %llu) \n",
-		args->argv[0], args->argv[1], size, type_num);
+		args->argv[0], args->argv[1], size, type_num, r);
 
 out:
 	free(actp);
@@ -1821,15 +1831,16 @@ out:
 }
 
 /*
-* pocli_pmemobj_xreserve -- pmemobj_xreserve() command
-*/
+ * pocli_pmemobj_xreserve -- pmemobj_xreserve() command
+ */
 static enum pocli_ret
 pocli_pmemobj_xreserve(struct pocli_ctx *ctx, struct pocli_args *args)
 {
 	if (args->argc != 6)
 		return POCLI_ERR_ARGS;
 
-	pobj_action *actp = (struct pobj_action *)malloc(sizeof(pobj_action));
+	struct pobj_action *actp = (struct pobj_action *)
+		malloc(sizeof(struct pobj_action));
 	uint64_t type_num = 0;
 	uint64_t flags = 0;
 	size_t size = 0;
@@ -1862,10 +1873,11 @@ pocli_pmemobj_xreserve(struct pocli_ctx *ctx, struct pocli_args *args)
 	else
 		flags = class_id;
 
-	PMEMoid result = pmemobj_xreserve(ctx->pop, actp, size, type_num, flags);
+	PMEMoid r = pmemobj_xreserve(ctx->pop, actp,
+		size, type_num, flags);
 
 	pocli_printf(ctx, "%s(%s, %zu, %llu, %x) \n",
-		args->argv[0], args->argv[1], size, type_num, flags);
+		args->argv[0], args->argv[1], size, type_num, flags, r);
 
 out:
 	free(actp);
@@ -1873,15 +1885,16 @@ out:
 }
 
 /*
-* pocli_pmemobj_defer_free -- pmemobj_defer_free() command
-*/
+ * pocli_pmemobj_defer_free -- pmemobj_defer_free() command
+ */
 static enum pocli_ret
 pocli_pmemobj_defer_free(struct pocli_ctx *ctx, struct pocli_args *args)
 {
 	if (args->argc != 3)
 		return POCLI_ERR_ARGS;
 
-	pobj_action *actp = (struct pobj_action *)malloc(sizeof(pobj_action));
+	struct pobj_action *actp = (struct pobj_action *)
+		malloc(sizeof(struct pobj_action));
 	PMEMoid *oidp = NULL;
 	enum pocli_ret ret;
 
@@ -1908,15 +1921,16 @@ out:
 }
 
 /*
-* pocli_pmemobj_set_value -- pmemobj_set_value() command
-*/
+ * pocli_pmemobj_set_value -- pmemobj_set_value() command
+ */
 static enum pocli_ret
 pocli_pmemobj_set_value(struct pocli_ctx *ctx, struct pocli_args *args)
 {
 	if (args->argc != 4)
 		return POCLI_ERR_ARGS;
 
-	pobj_action *actp = (struct pobj_action *)malloc(sizeof(pobj_action));
+	struct pobj_action *actp = (struct pobj_action *)
+		malloc(sizeof(struct pobj_action));
 	uint64_t *ptr;
 	uint64_t value;
 	PMEMoid *oid;
@@ -1944,15 +1958,16 @@ out:
 
 
 /*
-* pocli_pmemobj_publish -- pmemobj_publish() command
-*/
+ * pocli_pmemobj_publish -- pmemobj_publish() command
+ */
 static enum pocli_ret
 pocli_pmemobj_publish(struct pocli_ctx *ctx, struct pocli_args *args)
 {
 	if (args->argc != 3)
 		return POCLI_ERR_ARGS;
 
-	pobj_action *actp = (struct pobj_action *)malloc(sizeof(pobj_action));
+	struct pobj_action *actp = (struct pobj_action *)
+		malloc(sizeof(struct pobj_action));
 	size_t actcnt = 0;
 	enum pocli_ret ret;
 
@@ -1964,10 +1979,10 @@ pocli_pmemobj_publish(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		goto out;
 
-	int result = pmemobj_publish(ctx->pop, actp, actcnt);
+	int r = pmemobj_publish(ctx->pop, actp, actcnt);
 
 	pocli_printf(ctx, "%s(%s, %zu) \n",
-		args->argv[0], args->argv[1], actcnt);
+		args->argv[0], args->argv[1], actcnt, r);
 
 out:
 	free(actp);
@@ -1975,15 +1990,16 @@ out:
 }
 
 /*
-* pocli_pmemobj_tx_publish -- pmemobj_tx_publish() command
-*/
+ * pocli_pmemobj_tx_publish -- pmemobj_tx_publish() command
+ */
 static enum pocli_ret
 pocli_pmemobj_tx_publish(struct pocli_ctx *ctx, struct pocli_args *args)
 {
 	if (args->argc != 2)
 		return POCLI_ERR_ARGS;
 
-	pobj_action *actp = (struct pobj_action *)malloc(sizeof(pobj_action));
+	struct pobj_action *actp = (struct pobj_action *)
+		malloc(sizeof(struct pobj_action));
 	size_t actcnt = 0;
 	enum pocli_ret ret;
 
@@ -1995,10 +2011,10 @@ pocli_pmemobj_tx_publish(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (ret)
 		goto out;
 
-	int result = pmemobj_tx_publish(actp, actcnt);
+	int r = pmemobj_tx_publish(actp, actcnt);
 
 	pocli_printf(ctx, "%s(%s, %zu) \n",
-		args->argv[0], args->argv[1], actcnt);
+		args->argv[0], args->argv[1], actcnt, r);
 
 out:
 	free(actp);
@@ -2006,15 +2022,16 @@ out:
 }
 
 /*
-* pocli_pmemobj_cancel -- pmemobj_cancel() command
-*/
+ * pocli_pmemobj_cancel -- pmemobj_cancel() command
+ */
 static enum pocli_ret
 pocli_pmemobj_cancel(struct pocli_ctx *ctx, struct pocli_args *args)
 {
 	if (args->argc != 3)
 		return POCLI_ERR_ARGS;
 
-	pobj_action *actp = (struct pobj_action *)malloc(sizeof(pobj_action));
+	struct pobj_action *actp = (struct pobj_action *)
+		malloc(sizeof(struct pobj_action));
 	size_t actcnt = 0;
 	enum pocli_ret ret;
 
@@ -2554,6 +2571,7 @@ pocli_free(struct pocli *pcli)
 			pmemobj_tx_process();
 		pmemobj_tx_end();
 	}
+	VEC_DELETE(&pcli->ctx.free_on_abort);
 	pmemobj_close(pcli->ctx.pop);
 
 	free(pcli->inbuf);
@@ -2626,8 +2644,19 @@ pocli_process(struct pocli *pcli)
 				argstr, POCLI_CMD_DELIM);
 		if (!args)
 			return 1;
+
+		/*
+		 * Put the args object on the stack, just in case we are
+		 * in transaction, cmd->func will abort it and skip free(args).
+		 */
+		VEC_PUSH_BACK(&pcli->ctx.free_on_abort, args);
+
 		enum pocli_ret ret = cmd->func(&pcli->ctx, args);
 		free(args);
+
+		/* Take args off the stack. */
+		VEC_POP_BACK(&pcli->ctx.free_on_abort);
+
 		if (ret != POCLI_RET_OK)
 			return (int)ret;
 
