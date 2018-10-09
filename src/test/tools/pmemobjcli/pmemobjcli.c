@@ -441,17 +441,14 @@ pocli_args_class_id(struct pocli_args *args, int arg, uint64_t *class_id)
  * pocli_args_flag -- parse type xalloc_zero
  */
 static enum pocli_ret
-pocli_args_flag(struct pocli_args *args, int arg, bool *flag)
+pocli_args_flag(struct pocli_args *args, int arg, int *flag)
 {
 	assert(args != NULL);
 	assert(arg >= 0 && arg < args->argc);
 
-	int read;
-	int ret = sscanf(args->argv[arg], "%x", &read);
+	int ret = sscanf(args->argv[arg], "%p", &flag);
 	if (ret == 0)
 		return POCLI_ERR_PARS;
-
-	*flag = (bool) read;
 
 	return POCLI_RET_OK;
 }
@@ -1845,7 +1842,7 @@ pocli_pmemobj_xreserve(struct pocli_ctx *ctx, struct pocli_args *args)
 	uint64_t flags = 0;
 	size_t size = 0;
 	uint64_t class_id = 0;
-	bool xalloc_zero;
+	int xalloc_zero;
 	enum pocli_ret ret;
 
 	ret = pocli_args_act(ctx, args, 1, &actp->type);
@@ -1868,7 +1865,7 @@ pocli_pmemobj_xreserve(struct pocli_ctx *ctx, struct pocli_args *args)
 		if (ret)
 			goto out;
 
-	if (xalloc_zero == false)
+	if (xalloc_zero != 0)
 		flags = class_id + 1;
 	else
 		flags = class_id;
