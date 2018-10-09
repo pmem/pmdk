@@ -30,34 +30,23 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/util_badblock/TEST1 -- unit test for util_badblock
-#                                 - dax device with no bad blocks
+# pmempool_feature/TEST12 -- unit test for CHECK_BAD_BLOCKS
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
 require_fs_type any
+require_sds $PMEMPOOL$EXESUFFIX
 
-require_dax_devices 1
-
-#
-# Listing bad blocks on a DAX device requires superuser privileges.
-#
-require_sudo_allowed
+configure_valgrind force-disable
 
 setup
+. ./common.sh
 
-ENV="\
-LD_LIBRARY_PATH=${TEST_LD_LIBRARY_PATH} \
-UNITTEST_NUM=${UNITTEST_NUM} \
-UNITTEST_NAME=${UNITTEST_NAME} \
-UNITTEST_LOG_LEVEL=${UNITTEST_LOG_LEVEL}"
-
-expect_normal_exit sudo bash -c \"${ENV} ./util_badblock$EXESUFFIX ${DEVICE_DAX_PATH[0]} l \"
+pmempool_feature_create_poolset "no_dax_device"
+pmempool_feature_test_CHECK_BAD_BLOCKS
 
 check
 

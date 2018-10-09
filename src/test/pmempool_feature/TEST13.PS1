@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -30,34 +29,29 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/util_badblock/TEST1 -- unit test for util_badblock
-#                                 - dax device with no bad blocks
+# pmempool_feature/TEST13 -- unit test for CHECK_BAD_BLOCKS
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
+
 require_fs_type any
 
-require_dax_devices 1
-
-#
-# Listing bad blocks on a DAX device requires superuser privileges.
-#
-require_sudo_allowed
-
 setup
+. .\common.PS1
 
-ENV="\
-LD_LIBRARY_PATH=${TEST_LD_LIBRARY_PATH} \
-UNITTEST_NUM=${UNITTEST_NUM} \
-UNITTEST_NAME=${UNITTEST_NAME} \
-UNITTEST_LOG_LEVEL=${UNITTEST_LOG_LEVEL}"
+expect_normal_exit $PMEMPOOL create obj $POOLSET
 
-expect_normal_exit sudo bash -c \"${ENV} ./util_badblock$EXESUFFIX ${DEVICE_DAX_PATH[0]} l \"
+# PMEMPOOL_FEAT_CHECK_BAD_BLOCKS is disabled by default
+pmempool_feature_query "CHECK_BAD_BLOCKS"
+
+$exit_func="expect_abnormal_exit"
+pmempool_feature_enable "CHECK_BAD_BLOCKS" # should fail
+
+$exit_func="expect_normal_exit"
+pmempool_feature_disable "CHECK_BAD_BLOCKS" # should succeed
 
 check
 

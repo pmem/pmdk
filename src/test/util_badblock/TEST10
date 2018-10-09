@@ -32,24 +32,25 @@
 #
 
 #
-# src/test/util_badblock/TEST1 -- unit test for util_badblock
-#                                 - dax device with no bad blocks
+# src/test/util_badblock/TEST10 -- unit test for util_badblock
+#                                 - regular file with no bad blocks
+#                                   on a pmem filesystem
 #
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type any
-
-require_dax_devices 1
 
 #
-# Listing bad blocks on a DAX device requires superuser privileges.
+# Listing bad blocks on a pmem filesystem requires superuser privileges.
 #
+require_fs_type pmem
 require_sudo_allowed
 
 setup
+
+$FALLOCATE 100M $DIR/testfile1
 
 ENV="\
 LD_LIBRARY_PATH=${TEST_LD_LIBRARY_PATH} \
@@ -57,7 +58,8 @@ UNITTEST_NUM=${UNITTEST_NUM} \
 UNITTEST_NAME=${UNITTEST_NAME} \
 UNITTEST_LOG_LEVEL=${UNITTEST_LOG_LEVEL}"
 
-expect_normal_exit sudo bash -c \"${ENV} ./util_badblock$EXESUFFIX ${DEVICE_DAX_PATH[0]} l \"
+expect_normal_exit sudo bash -c \"${ENV} \
+	./util_badblock$EXESUFFIX $DIR/testfile1 l \"
 
 check
 

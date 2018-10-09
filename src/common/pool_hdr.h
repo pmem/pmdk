@@ -192,6 +192,17 @@ static const features_t features_zero =
 	{POOL_FEAT_ZERO, POOL_FEAT_ZERO, POOL_FEAT_ZERO};
 
 /*
+ * compat features
+ */
+#define POOL_FEAT_CHECK_BAD_BLOCKS	0x0001U	/* check bad blocks in a pool */
+
+#define POOL_FEAT_COMPAT_ALL \
+	(POOL_FEAT_CHECK_BAD_BLOCKS)
+
+#define FEAT_COMPAT(X) \
+	{POOL_FEAT_##X, POOL_FEAT_ZERO, POOL_FEAT_ZERO}
+
+/*
  * incompat features
  */
 #define POOL_FEAT_SINGLEHDR	0x0001U	/* pool header only in the first part */
@@ -209,6 +220,9 @@ static const features_t features_zero =
 #else
 #define POOL_E_FEAT_SDS		0x0000U	/* empty */
 #endif
+
+#define POOL_FEAT_COMPAT_VALID \
+	(POOL_FEAT_CHECK_BAD_BLOCKS)
 
 #define POOL_FEAT_INCOMPAT_VALID \
 	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
@@ -229,7 +243,7 @@ static const features_t features_zero =
 	{POOL_FEAT_ZERO, POOL_FEAT_##X, POOL_FEAT_ZERO}
 
 #define POOL_FEAT_VALID \
-	{POOL_FEAT_ZERO, POOL_FEAT_INCOMPAT_VALID, POOL_FEAT_ZERO}
+	{POOL_FEAT_COMPAT_VALID, POOL_FEAT_INCOMPAT_VALID, POOL_FEAT_ZERO}
 
 /*
  * defines the first not checksummed field - all fields after this will be

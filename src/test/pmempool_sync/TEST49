@@ -47,7 +47,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type any
+require_fs_type non-pmem
 require_build_type debug nondebug
 require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
 
@@ -92,6 +92,8 @@ create_recovery_file $DIR/testset1_r1_p1_badblocks.txt 8008 8
 create_recovery_file $DIR/testset1_r1_p2_badblocks.txt 8000 24
 create_recovery_file $DIR/testset1_r2_p2_badblocks.txt 8000 24
 create_recovery_file $DIR/testset1_r2_p0_badblocks.txt 8000 24
+
+turn_on_checking_bad_blocks $POOLSET
 
 # fail because of bad blocks
 expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"

@@ -59,6 +59,8 @@ create_recovery_file $DIR/testset1_r0_p1_badblocks.txt
 create_recovery_file $DIR/testset1_r0_p2_badblocks.txt
 create_recovery_file $DIR/testset1_r1_p0_badblocks.txt
 
+turn_on_checking_bad_blocks $DIR/testset1
+
 # pmemobj_open() should fail, because the bad block recovery files exist
 expect_normal_exit ./obj_pool$EXESUFFIX o $DIR/testset1 "test"
 

@@ -213,6 +213,7 @@ void
 pool_params_from_header(struct pool_params *params, const struct pool_hdr *hdr)
 {
 	memcpy(params->signature, hdr->signature, sizeof(params->signature));
+	memcpy(&params->features, &hdr->features, sizeof(params->features));
 
 	/*
 	 * Check if file is a part of pool set by comparing the UUID with the

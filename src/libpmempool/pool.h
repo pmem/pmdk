@@ -69,6 +69,7 @@ enum pool_type {
 struct pool_params {
 	enum pool_type type;
 	char signature[POOL_HDR_SIG_LEN];
+	features_t features;
 	size_t size;
 	mode_t mode;
 	int is_poolset;

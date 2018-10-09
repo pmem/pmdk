@@ -89,6 +89,25 @@ copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$POOLSET_REMOTE
 expect_normal_exit run_on_node 0 ../pmempool rm -sf ${NODE_DIR[0]}$POOLSET_LOCAL
 expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT c v &>> $LOG"
 
+###############################################################################
+# Enabling features in poolsets with remote replicas is not supported now,
+# so we have to use the following workaround to enable
+# the POOL_FEAT_CHECK_BAD_BLOCKS compat feature in such poolset.
+# We create the auxiliary poolset without the remote replica
+# and enable this compat feature on all nodes separately.
+
+create_poolset $DIR/${POOLSET_LOCAL}_aux \
+	10M:${NODE_DIR[0]}/pool.local.part.0:x \
+	10M:${NODE_DIR[0]}/pool.local.part.1:x \
+	10M:${NODE_DIR[0]}/pool.local.part.2:x \
+
+copy_files_to_node 0 ${NODE_DIR[0]} $DIR/${POOLSET_LOCAL}_aux
+
+turn_on_checking_bad_blocks_node 0 ${NODE_DIR[0]}/${POOLSET_LOCAL}_aux
+turn_on_checking_bad_blocks_node 1 ${NODE_DIR[1]}/${POOLSET_REMOTE}
+
+###############################################################################
+
 # inject bad block:
 expect_normal_exit run_on_node 0 "dd if=/dev/zero of=${NODE_DIR[0]}/pool.local.part.1 bs=512 seek=8000 count=8 conv=notrunc status=none"
 

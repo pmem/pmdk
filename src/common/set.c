@@ -2391,10 +2391,9 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 	if (hdr.major != attr->major) {
 		ERR("pool version %d (library expects %d)", hdr.major,
 				attr->major);
-		if (hdr.major < attr->major) {
-			ERR("Please run the pmdk-convert utility to "
-				"upgrade the pool.");
-		}
+		if (hdr.major < attr->major)
+			ERR(
+				"Please run the pmdk-convert utility to upgrade the pool.");
 		errno = EINVAL;
 		return -1;
 	}
@@ -3198,19 +3197,25 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 		goto err_poolset_free;
 	}
 
-	int bbs = badblocks_check_poolset(set, 1 /* create */);
-	if (bbs < 0) {
-		LOG(1, "failed to check pool set for bad blocks -- '%s'", path);
-		goto err_poolset_free;
-	}
+	if (attr != NULL &&
+	    (attr->features.compat & POOL_FEAT_CHECK_BAD_BLOCKS)) {
+		int bbs = badblocks_check_poolset(set, 1 /* create */);
+		if (bbs < 0) {
+			LOG(1,
+				"failed to check pool set for bad blocks -- '%s'",
+				path);
+			goto err_poolset_free;
+		}
 
-	if (bbs > 0) {
-		util_poolset_foreach_part_struct(set, util_print_bad_files_cb,
+		if (bbs > 0) {
+			util_poolset_foreach_part_struct(set,
+							util_print_bad_files_cb,
 							NULL);
-		ERR(
-			"pool set contains bad blocks and cannot be created, run 'pmempool' utility with options 'create -b' to clear bad blocks and create a pool");
-		errno = EIO;
-		goto err_poolset_free;
+			ERR(
+				"pool set contains bad blocks and cannot be created, run 'pmempool create --bad-blocks' utility to clear bad blocks and create a pool");
+			errno = EIO;
+			goto err_poolset_free;
+		}
 	}
 
 	if (set->poolsize < minsize) {
@@ -3789,29 +3794,31 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 	ASSERTne(set, NULL);
 	ASSERT(set->nreplicas > 0);
 
-	/* check if any bad block recovery file exists */
-	if (badblocks_recovery_file_exists(set)) {
-		ERR(
-			"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
-		errno = EINVAL;
-		return -1;
-	}
-
-	int bbs = badblocks_check_poolset(set, 0 /* not create */);
-	if (bbs < 0) {
-		LOG(1, "failed to check pool set for bad blocks");
-		return -1;
-	}
-
-	if (bbs > 0) {
-		if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
-			LOG(1,
-				"WARNING: pool set contains bad blocks, ignoring");
-		} else {
+	if (flags & POOL_OPEN_CHECK_BAD_BLOCKS) {
+		/* check if any bad block recovery file exists */
+		if (badblocks_recovery_file_exists(set)) {
 			ERR(
-				"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
-			errno = EIO;
+				"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
+			errno = EINVAL;
 			return -1;
+		}
+
+		int bbs = badblocks_check_poolset(set, 0 /* not create */);
+		if (bbs < 0) {
+			LOG(1, "failed to check pool set for bad blocks");
+			return -1;
+		}
+
+		if (bbs > 0) {
+			if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
+				LOG(1,
+					"WARNING: pool set contains bad blocks, ignoring");
+			} else {
+				ERR(
+					"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
+				errno = EIO;
+				return -1;
+			}
 		}
 	}
 
@@ -3859,6 +3866,59 @@ err_poolset:
 }
 
 /*
+ * util_read_compat_features -- (internal) read compat features from the header
+ */
+static int
+util_read_compat_features(struct pool_set *set, uint32_t *compat_features)
+{
+	LOG(3, "set %p pcompat_features %p", set, compat_features);
+
+	*compat_features = 0;
+
+	for (unsigned r = 0; r < set->nreplicas; r++) {
+		struct pool_replica *rep = set->replica[r];
+
+		if (rep->remote)
+			continue;
+
+		for (unsigned p = 0; p < rep->nparts; p++) {
+			struct pool_set_part *part = &rep->part[p];
+
+			if (util_part_open(part, 0, 0 /* create */)) {
+				LOG(1, "!cannot open the part -- \"%s\"",
+					part->path);
+				/* try to open the next part */
+				continue;
+			}
+
+			if (util_map_hdr(part, MAP_SHARED, 0) != 0) {
+				LOG(1, "header mapping failed -- \"%s\"",
+					part->path);
+				util_part_fdclose(part);
+				return -1;
+			}
+
+			struct pool_hdr *hdrp = part->hdr;
+			*compat_features = hdrp->features.compat;
+
+			if (util_unmap_hdr(part) != 0) {
+				LOG(1, "header unmapping failed -- \"%s\"",
+					part->path);
+				util_part_fdclose(part);
+				return -1;
+			}
+
+			util_part_fdclose(part);
+
+			/* exit on the first successfully opened part */
+			return 0;
+		}
+	}
+
+	return 0;
+}
+
+/*
  * util_pool_open -- open a memory pool (set or a single file)
  *
  * This routine does all the work, but takes a rdonly flag so internal
@@ -3898,31 +3958,42 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	ASSERT(set->nreplicas > 0);
 
-	/* check if any bad block recovery file exists */
-	if (badblocks_recovery_file_exists(set)) {
-		ERR(
-			"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
-		errno = EINVAL;
+	uint32_t compat_features;
+
+	if (util_read_compat_features(set, &compat_features)) {
+		LOG(1, "reading compat features failed");
 		goto err_poolset_free;
 	}
 
-	int bbs = badblocks_check_poolset(set, 0 /* not create */);
-	if (bbs < 0) {
-		LOG(1, "failed to check pool set for bad blocks -- '%s'", path);
-		goto err_poolset_free;
-	}
-
-	if (bbs > 0) {
-		if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
-			LOG(1,
-				"WARNING: pool set contains bad blocks, ignoring -- '%s'",
-				path);
-		} else {
+	if (compat_features & POOL_FEAT_CHECK_BAD_BLOCKS) {
+		/* check if any bad block recovery file exists */
+		if (badblocks_recovery_file_exists(set)) {
 			ERR(
-				"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool -- '%s'",
-				path);
-			errno = EIO;
+				"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
+			errno = EINVAL;
 			goto err_poolset_free;
+		}
+
+		int bbs = badblocks_check_poolset(set, 0 /* not create */);
+		if (bbs < 0) {
+			LOG(1,
+				"failed to check pool set for bad blocks -- '%s'",
+				path);
+			goto err_poolset_free;
+		}
+
+		if (bbs > 0) {
+			if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
+				LOG(1,
+					"WARNING: pool set contains bad blocks, ignoring -- '%s'",
+					path);
+			} else {
+				ERR(
+					"pool set contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to try to recover the pool -- '%s'",
+					path);
+				errno = EIO;
+				goto err_poolset_free;
+			}
 		}
 	}
 
@@ -4015,26 +4086,35 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 		goto err_poolset;
 	}
 
-	/* check if there are any bad blocks */
-	int bbs = badblocks_check_poolset(set, 0 /* not create */);
-	if (bbs < 0) {
-		LOG(1,
-			"failed to check the remote replica for bad blocks -- '%s'",
-			path);
+	uint32_t compat_features;
+
+	if (util_read_compat_features(set, &compat_features)) {
+		LOG(1, "reading compat features failed");
 		goto err_poolset;
 	}
 
-	if (bbs > 0) {
-		if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
+	if (compat_features & POOL_FEAT_CHECK_BAD_BLOCKS) {
+		/* check if there are any bad blocks */
+		int bbs = badblocks_check_poolset(set, 0 /* not create */);
+		if (bbs < 0) {
 			LOG(1,
-				"WARNING: remote replica contains bad blocks, ignoring -- '%s'",
+				"failed to check the remote replica for bad blocks -- '%s'",
 				path);
-		} else {
-			ERR(
-				"remote replica contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to recreate it -- '%s'",
-				path);
-			errno = EIO;
 			goto err_poolset;
+		}
+
+		if (bbs > 0) {
+			if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
+				LOG(1,
+					"WARNING: remote replica contains bad blocks, ignoring -- '%s'",
+					path);
+			} else {
+				ERR(
+					"remote replica contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to recreate it -- '%s'",
+					path);
+				errno = EIO;
+				goto err_poolset;
+			}
 		}
 	}
 

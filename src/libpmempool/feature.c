@@ -54,6 +54,7 @@
 static const features_t f_singlehdr = FEAT_INCOMPAT(SINGLEHDR);
 static const features_t f_cksum_2k = FEAT_INCOMPAT(CKSUM_2K);
 static const features_t f_sds = FEAT_INCOMPAT(SDS);
+static const features_t f_chkbb = FEAT_COMPAT(CHECK_BAD_BLOCKS);
 
 #define FEAT_INVALID \
 	{UINT32_MAX, UINT32_MAX, UINT32_MAX};
@@ -531,6 +532,59 @@ query_shutdown_state(const char *path)
 	return query_feature(path, f_sds);
 }
 
+/*
+ * enable_badblocks_checking -- (internal) enable POOL_FEAT_CHECK_BAD_BLOCKS
+ */
+static int
+enable_badblocks_checking(const char *path)
+{
+#ifdef _WIN32
+	ERR("bad blocks checking is not supported on Windows");
+	return -1;
+#else
+	struct pool_set *set = poolset_open(path, RW);
+	if (!set)
+		return -1;
+
+	if (require_feature_is(set, f_chkbb, DISABLED))
+		feature_set(set, f_chkbb, ENABLED);
+
+	poolset_close(set);
+
+	return 0;
+#endif
+}
+
+/*
+ * disable_badblocks_checking -- (internal) disable POOL_FEAT_CHECK_BAD_BLOCKS
+ */
+static int
+disable_badblocks_checking(const char *path)
+{
+	struct pool_set *set = poolset_open(path, RW);
+	if (!set)
+		return -1;
+
+	int ret = 0;
+	if (!require_feature_is(set, f_chkbb, ENABLED))
+		goto exit;
+
+	feature_set(set, f_chkbb, DISABLED);
+exit:
+	poolset_close(set);
+
+	return ret;
+}
+
+/*
+ * query_badblocks_checking -- (internal) query POOL_FEAT_CHECK_BAD_BLOCKS
+ */
+static int
+query_badblocks_checking(const char *path)
+{
+	return query_feature(path, f_chkbb);
+}
+
 struct feature_funcs {
 	int (*enable)(const char *);
 	int (*disable)(const char *);
@@ -552,6 +606,11 @@ static struct feature_funcs features[] = {
 			.enable = enable_shutdown_state,
 			.disable = disable_shutdown_state,
 			.query = query_shutdown_state
+		},
+		{
+			.enable = enable_badblocks_checking,
+			.disable = disable_badblocks_checking,
+			.query = query_badblocks_checking
 		},
 };
 
