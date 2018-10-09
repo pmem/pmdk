@@ -850,7 +850,9 @@ obj_tx_abort(int errnum, int user)
 void
 pmemobj_tx_abort(int errnum)
 {
+	PMEMOBJ_API_START();
 	obj_tx_abort(errnum, 1);
+	PMEMOBJ_API_END();
 }
 
 /*
@@ -879,6 +881,8 @@ void
 pmemobj_tx_commit(void)
 {
 	LOG(3, NULL);
+
+	PMEMOBJ_API_START();
 	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
@@ -916,6 +920,7 @@ pmemobj_tx_commit(void)
 
 	/* ONCOMMIT */
 	obj_tx_callback(tx);
+	PMEMOBJ_API_END();
 }
 
 /*
@@ -925,6 +930,7 @@ int
 pmemobj_tx_end(void)
 {
 	LOG(3, NULL);
+
 	struct tx *tx = get_tx();
 
 	if (tx->stage == TX_STAGE_WORK)
@@ -1246,6 +1252,8 @@ int
 pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 {
 	LOG(3, NULL);
+
+	PMEMOBJ_API_START();
 	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
@@ -1255,7 +1263,9 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 
 	if (!OBJ_PTR_FROM_POOL(pop, ptr)) {
 		ERR("object outside of pool");
-		return obj_tx_abort_err(EINVAL);
+		int ret = obj_tx_abort_err(EINVAL);
+		PMEMOBJ_API_END();
+		return ret;
 	}
 
 	struct tx_range_def args = {
@@ -1264,7 +1274,10 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 		.flags = 0,
 	};
 
-	return pmemobj_tx_add_common(tx, &args);
+	int ret = pmemobj_tx_add_common(tx, &args);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -1280,14 +1293,20 @@ pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
+	PMEMOBJ_API_START();
+	int ret;
 	if (!OBJ_PTR_FROM_POOL(tx->pop, ptr)) {
 		ERR("object outside of pool");
-		return obj_tx_abort_err(EINVAL);
+		ret = obj_tx_abort_err(EINVAL);
+		PMEMOBJ_API_END();
+		return ret;
 	}
 
 	if (flags & ~POBJ_XADD_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64, flags & ~POBJ_XADD_VALID_FLAGS);
-		return obj_tx_abort_err(EINVAL);
+		ret = obj_tx_abort_err(EINVAL);
+		PMEMOBJ_API_END();
+		return ret;
 	}
 
 	struct tx_range_def args = {
@@ -1296,7 +1315,10 @@ pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 		.flags = flags,
 	};
 
-	return pmemobj_tx_add_common(tx, &args);
+	ret = pmemobj_tx_add_common(tx, &args);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -1306,6 +1328,8 @@ int
 pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 {
 	LOG(3, NULL);
+
+	PMEMOBJ_API_START();
 	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
@@ -1313,7 +1337,9 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 
 	if (oid.pool_uuid_lo != tx->pop->uuid_lo) {
 		ERR("invalid pool uuid");
-		return obj_tx_abort_err(EINVAL);
+		int ret = obj_tx_abort_err(EINVAL);
+		PMEMOBJ_API_END();
+		return ret;
 	}
 	ASSERT(OBJ_OID_IS_VALID(tx->pop, oid));
 
@@ -1323,7 +1349,10 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 		.flags = 0,
 	};
 
-	return pmemobj_tx_add_common(tx, &args);
+	int ret = pmemobj_tx_add_common(tx, &args);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -1333,20 +1362,27 @@ int
 pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 {
 	LOG(3, NULL);
+
+	PMEMOBJ_API_START();
 	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
+	int ret;
 	if (oid.pool_uuid_lo != tx->pop->uuid_lo) {
 		ERR("invalid pool uuid");
-		return obj_tx_abort_err(EINVAL);
+		ret = obj_tx_abort_err(EINVAL);
+		PMEMOBJ_API_END();
+		return ret;
 	}
 	ASSERT(OBJ_OID_IS_VALID(tx->pop, oid));
 
 	if (flags & ~POBJ_XADD_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64, flags & ~POBJ_XADD_VALID_FLAGS);
-		return obj_tx_abort_err(EINVAL);
+		ret = obj_tx_abort_err(EINVAL);
+		PMEMOBJ_API_END();
+		return ret;
 	}
 
 	struct tx_range_def args = {
@@ -1355,7 +1391,9 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 		.flags = flags,
 	};
 
-	return pmemobj_tx_add_common(tx, &args);
+	ret = pmemobj_tx_add_common(tx, &args);
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -1365,18 +1403,26 @@ PMEMoid
 pmemobj_tx_alloc(size_t size, uint64_t type_num)
 {
 	LOG(3, NULL);
+
+	PMEMOBJ_API_START();
 	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
+	PMEMoid oid;
 	if (size == 0) {
 		ERR("allocation with size 0");
-		return obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL);
+		PMEMOBJ_API_END();
+		return oid;
 	}
 
-	return tx_alloc_common(tx, size, (type_num_t)type_num,
+	oid = tx_alloc_common(tx, size, (type_num_t)type_num,
 			constructor_tx_alloc, ALLOC_ARGS(0));
+
+	PMEMOBJ_API_END();
+	return oid;
 }
 
 /*
@@ -1391,13 +1437,20 @@ pmemobj_tx_zalloc(size_t size, uint64_t type_num)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
+	PMEMOBJ_API_START();
+	PMEMoid oid;
 	if (size == 0) {
 		ERR("allocation with size 0");
-		return obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL);
+		PMEMOBJ_API_END();
+		return oid;
 	}
 
-	return tx_alloc_common(tx, size, (type_num_t)type_num,
+	oid = tx_alloc_common(tx, size, (type_num_t)type_num,
 			constructor_tx_alloc, ALLOC_ARGS(POBJ_FLAG_ZERO));
+
+	PMEMOBJ_API_END();
+	return oid;
 }
 
 /*
@@ -1411,20 +1464,29 @@ pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags)
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
+	PMEMOBJ_API_START();
 
+	PMEMoid oid;
 	if (size == 0) {
 		ERR("allocation with size 0");
-		return obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL);
+		PMEMOBJ_API_END();
+		return oid;
 	}
 
 	if (flags & ~POBJ_TX_XALLOC_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_TX_XALLOC_VALID_FLAGS);
-		return obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL);
+		PMEMOBJ_API_END();
+		return oid;
 	}
 
-	return tx_alloc_common(tx, size, (type_num_t)type_num,
+	oid = tx_alloc_common(tx, size, (type_num_t)type_num,
 			constructor_tx_alloc, ALLOC_ARGS(flags));
+
+	PMEMOBJ_API_END();
+	return oid;
 }
 
 /*
@@ -1439,8 +1501,11 @@ pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	return tx_realloc_common(tx, oid, size, type_num,
+	PMEMOBJ_API_START();
+	PMEMoid ret = tx_realloc_common(tx, oid, size, type_num,
 			constructor_tx_alloc, constructor_tx_alloc, 0);
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 
@@ -1456,9 +1521,12 @@ pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	return tx_realloc_common(tx, oid, size, type_num,
+	PMEMOBJ_API_START();
+	PMEMoid ret = tx_realloc_common(tx, oid, size, type_num,
 			constructor_tx_alloc, constructor_tx_alloc,
 			POBJ_FLAG_ZERO);
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -1473,22 +1541,32 @@ pmemobj_tx_strdup(const char *s, uint64_t type_num)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
+	PMEMOBJ_API_START();
+	PMEMoid oid;
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
-		return obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL);
+		PMEMOBJ_API_END();
+		return oid;
 	}
 
 	size_t len = strlen(s);
 
-	if (len == 0)
-		return tx_alloc_common(tx, sizeof(char), (type_num_t)type_num,
+	if (len == 0) {
+		oid = tx_alloc_common(tx, sizeof(char), (type_num_t)type_num,
 				constructor_tx_alloc,
 				ALLOC_ARGS(POBJ_FLAG_ZERO));
+		PMEMOBJ_API_END();
+		return oid;
+	}
 
 	size_t size = (len + 1) * sizeof(char);
 
-	return tx_alloc_common(tx, size, (type_num_t)type_num,
+	oid = tx_alloc_common(tx, size, (type_num_t)type_num,
 			constructor_tx_alloc, COPY_ARGS(0, s, size));
+
+	PMEMOBJ_API_END();
+	return oid;
 }
 
 /*
@@ -1504,22 +1582,32 @@ pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
+	PMEMOBJ_API_END();
+	PMEMoid oid;
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
-		return obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL);
+		PMEMOBJ_API_END();
+		return oid;
 	}
 
 	size_t len = wcslen(s);
 
-	if (len == 0)
-		return tx_alloc_common(tx, sizeof(wchar_t),
+	if (len == 0) {
+		oid = tx_alloc_common(tx, sizeof(wchar_t),
 				(type_num_t)type_num, constructor_tx_alloc,
 				ALLOC_ARGS(POBJ_FLAG_ZERO));
+		PMEMOBJ_API_END();
+		return oid;
+	}
 
 	size_t size = (len + 1) * sizeof(wchar_t);
 
-	return tx_alloc_common(tx, size, (type_num_t)type_num,
+	oid = tx_alloc_common(tx, size, (type_num_t)type_num,
 			constructor_tx_alloc, COPY_ARGS(0, s, size));
+
+	PMEMOBJ_API_END();
+	return oid;
 }
 
 /*
@@ -1546,6 +1634,8 @@ pmemobj_tx_free(PMEMoid oid)
 	}
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
+	PMEMOBJ_API_START();
+
 	struct pobj_action *action;
 
 	struct tx_range_def range = {oid.off, 0, 0};
@@ -1567,18 +1657,22 @@ pmemobj_tx_free(PMEMoid oid)
 				ravl_remove(tx->ranges, n);
 				palloc_cancel(&pop->heap, action, 1);
 				VEC_ERASE_BY_PTR(&tx->actions, action);
-
+				PMEMOBJ_API_END();
 				return 0;
 			}
 		}
 	}
 
 	action = tx_action_add(tx);
-	if (action == NULL)
-		return obj_tx_abort_err(errno);
+	if (action == NULL) {
+		int ret = obj_tx_abort_err(errno);
+		PMEMOBJ_API_END();
+		return ret;
+	}
 
 	palloc_defer_free(&pop->heap, oid.off, action);
 
+	PMEMOBJ_API_END();
 	return 0;
 }
 
@@ -1590,17 +1684,21 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 {
 	struct tx *tx = get_tx();
 	ASSERT_TX_STAGE_WORK(tx);
+	PMEMOBJ_API_START();
 
 	size_t entries_size = (VEC_SIZE(&tx->actions) + actvcnt) *
 		sizeof(struct ulog_entry_val);
 
-	if (operation_reserve(tx->lane->external, entries_size) != 0)
+	if (operation_reserve(tx->lane->external, entries_size) != 0) {
+		PMEMOBJ_API_END();
 		return -1;
+	}
 
 	for (size_t i = 0; i < actvcnt; ++i) {
 		VEC_PUSH_BACK(&tx->actions, actv[i]);
 	}
 
+	PMEMOBJ_API_END();
 	return 0;
 }
 

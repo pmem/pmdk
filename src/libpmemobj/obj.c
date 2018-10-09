@@ -1443,7 +1443,12 @@ PMEMobjpool *
 pmemobj_create(const char *path, const char *layout,
 		size_t poolsize, mode_t mode)
 {
-	return pmemobj_createU(path, layout, poolsize, mode);
+	PMEMOBJ_API_START();
+
+	PMEMobjpool *pop = pmemobj_createU(path, layout, poolsize, mode);
+
+	PMEMOBJ_API_END();
+	return pop;
 }
 #else
 /*
@@ -1822,7 +1827,12 @@ pmemobj_openU(const char *path, const char *layout)
 PMEMobjpool *
 pmemobj_open(const char *path, const char *layout)
 {
-	return pmemobj_openU(path, layout);
+	PMEMOBJ_API_START();
+
+	PMEMobjpool *pop = pmemobj_openU(path, layout);
+
+	PMEMOBJ_API_END();
+	return pop;
 }
 #else
 /*
@@ -1947,6 +1957,7 @@ void
 pmemobj_close(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
+	PMEMOBJ_API_START();
 
 	_pobj_cache_invalidate++;
 
@@ -1981,6 +1992,7 @@ pmemobj_close(PMEMobjpool *pop)
 #endif /* _WIN32 */
 
 	obj_pool_cleanup(pop);
+	PMEMOBJ_API_END();
 }
 
 /*
@@ -2037,7 +2049,12 @@ pmemobj_checkU(const char *path, const char *layout)
 int
 pmemobj_check(const char *path, const char *layout)
 {
-	return pmemobj_checkU(path, layout);
+	PMEMOBJ_API_START();
+
+	int ret = pmemobj_checkU(path, layout);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 #else
 /*
@@ -2203,8 +2220,12 @@ pmemobj_alloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
-	return obj_alloc_construct(pop, oidp, size, type_num,
+	PMEMOBJ_API_START();
+	int ret = obj_alloc_construct(pop, oidp, size, type_num,
 			0, constructor, arg);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -2237,8 +2258,12 @@ pmemobj_xalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
-	return obj_alloc_construct(pop, oidp, size, type_num,
+	PMEMOBJ_API_START();
+	int ret = obj_alloc_construct(pop, oidp, size, type_num,
 			flags, constructor, arg);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /* arguments for constructor_realloc and constructor_zrealloc */
@@ -2271,8 +2296,12 @@ pmemobj_zalloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 		return -1;
 	}
 
-	return obj_alloc_construct(pop, oidp, size, type_num, POBJ_FLAG_ZERO,
+	PMEMOBJ_API_START();
+	int ret = obj_alloc_construct(pop, oidp, size, type_num, POBJ_FLAG_ZERO,
 		NULL, NULL);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -2408,11 +2437,15 @@ pmemobj_realloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	LOG(3, "pop %p oid.off 0x%016" PRIx64 " size %zu type_num %" PRIu64,
 		pop, oidp->off, size, type_num);
 
+	PMEMOBJ_API_START();
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
-	return obj_realloc_common(pop, oidp, size, (type_num_t)type_num, 0);
+	int ret = obj_realloc_common(pop, oidp, size, (type_num_t)type_num, 0);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -2427,11 +2460,16 @@ pmemobj_zrealloc(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	LOG(3, "pop %p oid.off 0x%016" PRIx64 " size %zu type_num %" PRIu64,
 		pop, oidp->off, size, type_num);
 
+	PMEMOBJ_API_START();
+
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
 	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
-	return obj_realloc_common(pop, oidp, size, (type_num_t)type_num, 1);
+	int ret = obj_realloc_common(pop, oidp, size, (type_num_t)type_num, 1);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /* arguments for constructor_strdup */
@@ -2477,12 +2515,16 @@ pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 		return -1;
 	}
 
+	PMEMOBJ_API_START();
 	struct carg_strdup carg;
 	carg.size = (strlen(s) + 1) * sizeof(char);
 	carg.s = s;
 
-	return obj_alloc_construct(pop, oidp, carg.size,
+	int ret = obj_alloc_construct(pop, oidp, carg.size,
 		(type_num_t)type_num, 0, constructor_strdup, &carg);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /* arguments for constructor_wcsdup */
@@ -2529,12 +2571,16 @@ pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s,
 		return -1;
 	}
 
+	PMEMOBJ_API_START();
 	struct carg_wcsdup carg;
 	carg.size = (wcslen(s) + 1) * sizeof(wchar_t);
 	carg.s = s;
 
-	return obj_alloc_construct(pop, oidp, carg.size,
+	int ret = obj_alloc_construct(pop, oidp, carg.size,
 		(type_num_t)type_num, 0, constructor_wcsdup, &carg);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -2553,12 +2599,14 @@ pmemobj_free(PMEMoid *oidp)
 	if (oidp->off == 0)
 		return;
 
+	PMEMOBJ_API_START();
 	PMEMobjpool *pop = pmemobj_pool_by_oid(*oidp);
 
 	ASSERTne(pop, NULL);
 	ASSERT(OBJ_OID_IS_VALID(pop, *oidp));
 
 	obj_free(pop, oidp);
+	PMEMOBJ_API_END();
 }
 
 /*
@@ -2588,8 +2636,12 @@ pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest, const void *src,
 	size_t len)
 {
 	LOG(15, "pop %p dest %p src %p len %zu", pop, dest, src, len);
+	PMEMOBJ_API_START();
 
-	return pmemops_memcpy(&pop->p_ops, dest, src, len, 0);
+	void *ptr = pmemops_memcpy(&pop->p_ops, dest, src, len, 0);
+
+	PMEMOBJ_API_END();
+	return ptr;
 }
 
 /*
@@ -2599,8 +2651,12 @@ void *
 pmemobj_memset_persist(PMEMobjpool *pop, void *dest, int c, size_t len)
 {
 	LOG(15, "pop %p dest %p c 0x%02x len %zu", pop, dest, c, len);
+	PMEMOBJ_API_START();
 
-	return pmemops_memset(&pop->p_ops, dest, c, len, 0);
+	void *ptr = pmemops_memset(&pop->p_ops, dest, c, len, 0);
+
+	PMEMOBJ_API_END();
+	return ptr;
 }
 
 /*
@@ -2613,7 +2669,12 @@ pmemobj_memcpy(PMEMobjpool *pop, void *dest, const void *src, size_t len,
 	LOG(15, "pop %p dest %p src %p len %zu flags 0x%x", pop, dest, src, len,
 			flags);
 
-	return pmemops_memcpy(&pop->p_ops, dest, src, len, flags);
+	PMEMOBJ_API_START();
+
+	void *ptr = pmemops_memcpy(&pop->p_ops, dest, src, len, flags);
+
+	PMEMOBJ_API_END();
+	return ptr;
 }
 
 /*
@@ -2626,7 +2687,12 @@ pmemobj_memmove(PMEMobjpool *pop, void *dest, const void *src, size_t len,
 	LOG(15, "pop %p dest %p src %p len %zu flags 0x%x", pop, dest, src, len,
 			flags);
 
-	return pmemops_memmove(&pop->p_ops, dest, src, len, flags);
+	PMEMOBJ_API_START();
+
+	void *ptr = pmemops_memmove(&pop->p_ops, dest, src, len, flags);
+
+	PMEMOBJ_API_END();
+	return ptr;
 }
 
 /*
@@ -2638,7 +2704,12 @@ pmemobj_memset(PMEMobjpool *pop, void *dest, int c, size_t len, unsigned flags)
 	LOG(15, "pop %p dest %p c 0x%02x len %zu flags 0x%x", pop, dest, c, len,
 			flags);
 
-	return pmemops_memset(&pop->p_ops, dest, c, len, flags);
+	PMEMOBJ_API_START();
+
+	void *ptr = pmemops_memset(&pop->p_ops, dest, c, len, flags);
+
+	PMEMOBJ_API_END();
+	return ptr;
 }
 
 /*
@@ -2725,7 +2796,7 @@ pmemobj_type_num(PMEMoid oid)
 	ASSERTne(pop, NULL);
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
-	return (palloc_extra(&pop->heap, oid.off));
+	return palloc_extra(&pop->heap, oid.off);
 }
 
 /* arguments for constructor_alloc_root */
@@ -2804,6 +2875,8 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 		return OID_NULL;
 	}
 
+	PMEMOBJ_API_START();
+
 	PMEMoid root;
 
 	pmemobj_mutex_lock_nofail(pop, &pop->rootlock);
@@ -2812,6 +2885,7 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 		obj_alloc_root(pop, size, constructor, arg)) {
 		pmemobj_mutex_unlock_nofail(pop, &pop->rootlock);
 		LOG(2, "obj_realloc_root failed");
+		PMEMOBJ_API_END();
 		return OID_NULL;
 	}
 
@@ -2819,6 +2893,8 @@ pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 	root.off = pop->root_offset;
 
 	pmemobj_mutex_unlock_nofail(pop, &pop->rootlock);
+
+	PMEMOBJ_API_END();
 	return root;
 }
 
@@ -2830,7 +2906,10 @@ pmemobj_root(PMEMobjpool *pop, size_t size)
 {
 	LOG(3, "pop %p size %zu", pop, size);
 
-	return pmemobj_root_construct(pop, size, NULL, NULL);
+	PMEMOBJ_API_START();
+	PMEMoid oid = pmemobj_root_construct(pop, size, NULL, NULL);
+	PMEMOBJ_API_END();
+	return oid;
 }
 
 /*
@@ -2897,15 +2976,19 @@ pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
 		pop, act, size,
 		(unsigned long long)type_num);
 
+	PMEMOBJ_API_START();
 	PMEMoid oid = OID_NULL;
 
 	if (palloc_reserve(&pop->heap, size, NULL, NULL, type_num,
-		0, 0, act) != 0)
+		0, 0, act) != 0) {
+		PMEMOBJ_API_END();
 		return oid;
+	}
 
 	oid.off = act->heap.offset;
 	oid.pool_uuid_lo = pop->uuid_lo;
 
+	PMEMOBJ_API_END();
 	return oid;
 }
 
@@ -2929,6 +3012,7 @@ pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 		return oid;
 	}
 
+	PMEMOBJ_API_START();
 	struct constr_args carg;
 
 	carg.zero_init = flags & POBJ_FLAG_ZERO;
@@ -2936,12 +3020,15 @@ pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 	carg.arg = NULL;
 
 	if (palloc_reserve(&pop->heap, size, constructor_alloc, &carg,
-		type_num, 0, CLASS_ID_FROM_FLAG(flags), act) != 0)
+		type_num, 0, CLASS_ID_FROM_FLAG(flags), act) != 0) {
+		PMEMOBJ_API_END();
 		return oid;
+	}
 
 	oid.off = act->heap.offset;
 	oid.pool_uuid_lo = pop->uuid_lo;
 
+	PMEMOBJ_API_END();
 	return oid;
 }
 
@@ -2971,17 +3058,21 @@ pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act)
 int
 pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt)
 {
+	PMEMOBJ_API_START();
 	struct operation_context *ctx = pmalloc_operation_hold(pop);
 
 	size_t entries_size = actvcnt * sizeof(struct ulog_entry_val);
 
-	if (operation_reserve(ctx, entries_size) != 0)
+	if (operation_reserve(ctx, entries_size) != 0) {
+		PMEMOBJ_API_END();
 		return -1;
+	}
 
 	palloc_publish(&pop->heap, actv, actvcnt, ctx);
 
 	pmalloc_operation_release(pop);
 
+	PMEMOBJ_API_END();
 	return 0;
 }
 
@@ -2991,7 +3082,9 @@ pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt)
 void
 pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt)
 {
+	PMEMOBJ_API_START();
 	palloc_cancel(&pop->heap, actv, actvcnt);
+	PMEMOBJ_API_END();
 }
 
 /*
@@ -3004,6 +3097,7 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	LOG(3, "pop %p pe_offset %zu head %p dest.off 0x%016" PRIx64
 	    " before %d oid.off 0x%016" PRIx64,
 	    pop, pe_offset, head, dest.off, before, oid.off);
+	PMEMOBJ_API_START();
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -3015,7 +3109,10 @@ pmemobj_list_insert(PMEMobjpool *pop, size_t pe_offset, void *head,
 	ASSERT(pe_offset <= pmemobj_alloc_usable_size(oid)
 			- sizeof(struct list_entry));
 
-	return list_insert(pop, (ssize_t)pe_offset, head, dest, before, oid);
+	int ret = list_insert(pop, (ssize_t)pe_offset, head, dest, before, oid);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -3045,6 +3142,7 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 		return OID_NULL;
 	}
 
+	PMEMOBJ_API_START();
 	struct constr_args carg;
 
 	carg.constructor = constructor;
@@ -3054,6 +3152,8 @@ pmemobj_list_insert_new(PMEMobjpool *pop, size_t pe_offset, void *head,
 	PMEMoid retoid = OID_NULL;
 	list_insert_new_user(pop, pe_offset, head, dest, before, size, type_num,
 			constructor_alloc, &carg, &retoid);
+
+	PMEMOBJ_API_END();
 	return retoid;
 }
 
@@ -3066,6 +3166,7 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 {
 	LOG(3, "pop %p pe_offset %zu head %p oid.off 0x%016" PRIx64 " free %d",
 	    pop, pe_offset, head, oid.off, free);
+	PMEMOBJ_API_START();
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -3074,11 +3175,14 @@ pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset, void *head,
 	ASSERT(pe_offset <= pmemobj_alloc_usable_size(oid)
 			- sizeof(struct list_entry));
 
-	if (free) {
-		return list_remove_free_user(pop, pe_offset, head, &oid);
-	} else {
-		return list_remove(pop, (ssize_t)pe_offset, head, oid);
-	}
+	int ret;
+	if (free)
+		ret = list_remove_free_user(pop, pe_offset, head, &oid);
+	else
+		ret = list_remove(pop, (ssize_t)pe_offset, head, oid);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -3094,6 +3198,7 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 	    " before %d oid.off 0x%016" PRIx64 "",
 	    pop, pe_old_offset, pe_new_offset,
 	    head_old, head_new, dest.off, before, oid.off);
+	PMEMOBJ_API_START();
 
 	/* log notice message if used inside a transaction */
 	_POBJ_DEBUG_NOTICE_IN_TX();
@@ -3110,9 +3215,12 @@ pmemobj_list_move(PMEMobjpool *pop, size_t pe_old_offset, void *head_old,
 	ASSERT(pe_new_offset <= pmemobj_alloc_usable_size(dest)
 			- sizeof(struct list_entry));
 
-	return list_move(pop, pe_old_offset, head_old,
+	int ret = list_move(pop, pe_old_offset, head_old,
 				pe_new_offset, head_new,
 				dest, before, oid);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -3173,7 +3281,12 @@ pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg)
 int
 pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg)
 {
-	return pmemobj_ctl_setU(pop, name, arg);
+	PMEMOBJ_API_START();
+
+	int ret = pmemobj_ctl_setU(pop, name, arg);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 
 /*
@@ -3182,7 +3295,12 @@ pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg)
 int
 pmemobj_ctl_exec(PMEMobjpool *pop, const char *name, void *arg)
 {
-	return pmemobj_ctl_execU(pop, name, arg);
+	PMEMOBJ_API_START();
+
+	int ret =  pmemobj_ctl_execU(pop, name, arg);
+
+	PMEMOBJ_API_END();
+	return ret;
 }
 #else
 /*

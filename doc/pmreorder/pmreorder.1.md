@@ -43,6 +43,7 @@ date: pmreorder version 1.5
 [ENGINES](#engines)<br />
 [INSTRUMENTATION](#instrumentation)<br />
 [PMEMCHECK STORE LOG](#pmemcheck-store-log)<br />
+[ENVIRONMENT](#environment)<br />
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
@@ -283,6 +284,75 @@ There are two ways to set macro options:
 For more details about available
 engines types, see ENGINES section above.
 
+**libpmemobj**(7) also provides set of macros that allows change
+reordering engine on library or function level:
+
+`<library_name|api_function_name>`
+
+Example of configutation on function level:
+```
+{
+    "pmemobj_open"="NoReorderNoCheck",
+    "pmemobj_memcpy_persist"="ReorderPartial"
+}
+
+Example of configutation on library level
+(affecting all library functions):
+```
+{
+    "libpmemobj"="NoReorderNoCheck"
+}
+```
+
+List of marked **libpmemobj**(7) API functions:
+
+```
+pmemobj_alloc
+pmemobj_cancel
+pmemobj_check
+pmemobj_close
+pmemobj_create
+pmemobj_ctl_exec
+pmemobj_ctl_set
+pmemobj_free
+pmemobj_list_insert
+pmemobj_list_insert_new
+pmemobj_list_move
+pmemobj_list_remove
+pmemobj_memcpy
+pmemobj_memmove
+pmemobj_memset
+pmemobj_memcpy_persist
+pmemobj_memset_persist
+pmemobj_open
+pmemobj_publish
+pmemobj_realloc
+pmemobj_reserve
+pmemobj_root
+pmemobj_root_construct
+pmemobj_strdup
+pmemobj_tx_abort
+pmemobj_tx_add_range
+pmemobj_tx_add_range_direct
+pmemobj_tx_alloc
+pmemobj_tx_commit
+pmemobj_tx_free
+pmemobj_tx_publish
+pmemobj_tx_realloc
+pmemobj_tx_strdup
+pmemobj_tx_wcsdup
+pmemobj_tx_xadd_range
+pmemobj_tx_xadd_range_direct
+pmemobj_tx_xalloc
+pmemobj_tx_zalloc
+pmemobj_tx_zrealloc
+pmemobj_wcsdup
+pmemobj_xalloc
+pmemobj_xreserve
+pmemobj_zalloc
+pmemobj_zrealloc
+```
+
 
 # PMEMCHECK STORE LOG #
 
@@ -303,6 +373,14 @@ valgrind \
 ```
 
 For further details of pmemcheck parameters see [pmemcheck documentation](https://github.com/pmem/valgrind/blob/pmem-3.13/pmemcheck/docs/pmc-manual.xml)
+
+
+# ENVIRONMENT #
+
+By default all logging from PMDK libraries is disabled.
+To enable API macros logging set environment variable:
+
++ **PMREORDER_EMIT_LOG**=1
 
 
 # EXAMPLE #
