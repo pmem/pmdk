@@ -119,15 +119,14 @@ obj_msync_nofail(const void *addr, size_t size)
 static void *
 obj_memcpy(void *ctx, void *dest, const void *src, size_t len, unsigned flags)
 {
-	memcpy(dest, src, len);
+	pmem_memcpy(dest, src, len, flags);
 	return dest;
 }
 
 static void *
 obj_memset(void *ctx, void *ptr, int c, size_t sz, unsigned flags)
 {
-	memset(ptr, c, sz);
-	UT_ASSERTeq(pmem_msync(ptr, sz), 0);
+	pmem_memset(ptr, c, sz, flags);
 	return ptr;
 }
 
