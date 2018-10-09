@@ -437,20 +437,6 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 		memset(last_cacheline + lcopy, 0, CACHELINE_SIZE - lcopy);
 	}
 
-	b->checksum = util_checksum_seq(b, CACHELINE_SIZE, 0);
-	if (rcopy != 0)
-		b->checksum = util_checksum_seq(srcof, rcopy, b->checksum);
-	if (lcopy != 0)
-		b->checksum = util_checksum_seq(last_cacheline,
-			CACHELINE_SIZE, b->checksum);
-
-	ASSERT(IS_CACHELINE_ALIGNED(e));
-
-	VALGRIND_ADD_TO_TX(e, CACHELINE_SIZE);
-	pmemops_memcpy(p_ops, e, b, CACHELINE_SIZE,
-		PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
-	VALGRIND_REMOVE_FROM_TX(e, CACHELINE_SIZE);
-
 	if (rcopy != 0) {
 		void *dest = e->data + ncopy;
 		ASSERT(IS_CACHELINE_ALIGNED(dest));
@@ -470,6 +456,20 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 			PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
 		VALGRIND_REMOVE_FROM_TX(dest, CACHELINE_SIZE);
 	}
+
+	b->checksum = util_checksum_seq(b, CACHELINE_SIZE, 0);
+	if (rcopy != 0)
+		b->checksum = util_checksum_seq(srcof, rcopy, b->checksum);
+	if (lcopy != 0)
+		b->checksum = util_checksum_seq(last_cacheline,
+			CACHELINE_SIZE, b->checksum);
+
+	ASSERT(IS_CACHELINE_ALIGNED(e));
+
+	VALGRIND_ADD_TO_TX(e, CACHELINE_SIZE);
+	pmemops_memcpy(p_ops, e, b, CACHELINE_SIZE,
+		PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
+	VALGRIND_REMOVE_FROM_TX(e, CACHELINE_SIZE);
 
 	pmemops_drain(p_ops);
 
