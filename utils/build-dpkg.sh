@@ -180,8 +180,8 @@ $LIB_DIR/pmdk_debug/librpmem.so.* $LIB_DIR/pmdk_dbg/
 $LIB_DIR/librpmem.so
 $LIB_DIR/pkgconfig/librpmem.pc
 $INC_DIR/librpmem.h
-$MAN7_DIR/librpmem.7.gz
-$MAN3_DIR/rpmem_*.3.gz
+$MAN7_DIR/librpmem.7
+$MAN3_DIR/rpmem_*.3
 EOF
 
 cat << EOF > debian/librpmem-dev.triggers
@@ -201,7 +201,7 @@ EOF
 
 cat << EOF > debian/rpmemd.install
 usr/bin/rpmemd
-$MAN1_DIR/rpmemd.1.gz
+$MAN1_DIR/rpmemd.1
 EOF
 
 cat << EOF > debian/rpmemd.triggers
@@ -257,7 +257,7 @@ EOF
 function daxio_install_triggers_overrides() {
 cat << EOF > debian/daxio.install
 usr/bin/daxio
-$MAN1_DIR/daxio.1.gz
+$MAN1_DIR/daxio.1
 EOF
 
 cat << EOF > debian/daxio.triggers
