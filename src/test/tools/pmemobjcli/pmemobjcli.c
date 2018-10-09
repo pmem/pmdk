@@ -1842,7 +1842,7 @@ pocli_pmemobj_xreserve(struct pocli_ctx *ctx, struct pocli_args *args)
 	uint64_t flags = 0;
 	size_t size = 0;
 	uint64_t class_id = 0;
-	int xalloc_zero;
+	int xalloc_zero = 0;
 	enum pocli_ret ret;
 
 	ret = pocli_args_act(ctx, args, 1, &actp->type);
