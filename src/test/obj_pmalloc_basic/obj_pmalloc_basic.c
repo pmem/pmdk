@@ -119,7 +119,7 @@ obj_msync_nofail(const void *addr, size_t size)
 static void *
 obj_memcpy(void *ctx, void *dest, const void *src, size_t len, unsigned flags)
 {
-	memcpy(dest, src, len);
+	pmem_memcpy_persist(dest, src, len);
 	return dest;
 }
 
