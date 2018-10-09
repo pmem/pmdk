@@ -451,13 +451,13 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 		 * expressed in bytes and offset relative to the beginning
 		 * of the namespace.
 		 */
-		struct bad_block bb;
-		bb.offset = beg - ns_beg;
-		bb.length = (unsigned)(end - beg + 1);
-		bb.nhealthy = NO_HEALTHY_REPLICA; /* unknown healthy replica */
+		struct bad_block bbn;
+		bbn.offset = beg - ns_beg;
+		bbn.length = (unsigned)(end - beg + 1);
+		bbn.nhealthy = NO_HEALTHY_REPLICA; /* unknown healthy replica */
 
 		/* add the new bad block to the vector */
-		if (VEC_PUSH_BACK(&bbv, bb)) {
+		if (VEC_PUSH_BACK(&bbv, bbn)) {
 			VEC_DELETE(&bbv);
 			return -1;
 		}
