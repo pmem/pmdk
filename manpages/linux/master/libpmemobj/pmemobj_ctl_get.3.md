@@ -114,7 +114,7 @@ Returns 0 if successful, -1 otherwise.
 
 tx.cache.threshold | rw | - | long long | long long | - | integer
 
-This entry point is depracated.
+This entry point is deprecated.
 All snapshots, regardless of the size, use the transactional cache.
 
 Returns 0 if successful, -1 otherwise.
