@@ -1,7 +1,8 @@
 obj_persist_count$(nW)TEST0: START: obj_persist_count
  $(nW)obj_persist_count$(nW) $(nW)testfile
 task           cl(all) drain(all) pmem_persist pmem_msync pmem_flush pmem_drain pmem_memcpy_cls pmem_memcpy_drain pmem_memset_cls pmem_memset_drain potential_cache_misses 
-pool_create    50315   19         0            19         0          0          0               0                 0               0                 50315                  
+$(OPT)pool_create    49995   14         0            14         0          0          0               0                 0               0                 49995                  
+$(OPX)pool_create    50315   19         0            19         0          0          0               0                 0               0                 50315                  
 root_alloc     454     7          0            7          0          0          0               0                 0               0                 454                    
 atomic_alloc   129     2          0            2          0          0          0               0                 0               0                 129                    
 atomic_free    64      1          0            1          0          0          0               0                 0               0                 64                     

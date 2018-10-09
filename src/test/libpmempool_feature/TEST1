@@ -50,6 +50,10 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.obj
 # PMEMPOOL_FEAT_CHCKSUM_2K is enabled by default
 libpmempool_feature_query CKSUM_2K
 
+# SHUTDOWN_STATE is disabled by default on Linux
+# enable it to interfere toggling CKSUM_2K
+libpmempool_feature_enable SHUTDOWN_STATE no-query
+
 # disable PMEMPOOL_FEAT_SHUTDOWN_STATE prior to success
 exit_func=expect_abnormal_exit
 libpmempool_feature_disable CKSUM_2K # should fail

@@ -1,3 +1,5 @@
+query SHUTDOWN_STATE result is 1
+pmempool info: SHUTDOWN_STATE is set
 query SHUTDOWN_STATE result is 0
 pmempool info: SHUTDOWN_STATE is NOT set
 query CKSUM_2K result is 0
