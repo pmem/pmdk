@@ -32,7 +32,8 @@
 #
 
 #
-# src/test/obj_reorder_basic/TEST0 -- unit test for the reordering script
+# src/test/obj_reorder_basic/TEST1 -- unit test for the reordering script
+# with PMREORDER_EMIT_LOG flag enabled
 #
 
 # standard unit test setup
@@ -49,6 +50,7 @@ require_pmreorder
 setup
 
 export PMEMOBJ_LOG_LEVEL=10
+export PMREORDER_EMIT_LOG=1
 
 POOL_SIZE=$((32*1024*1024))
 expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout intro_1 obj $DIR/testfile -s $POOL_SIZE
