@@ -36,23 +36,23 @@
 #
 # Windows dll versioning supports only fixed number of fields. The most
 # important are MAJOR, MINOR and REVISION. We have 3-compoment releases
-# (e.g. 1.4.1) with release candidates, so we have to encode this information
+# (e.g. 1.5.1) with release candidates, so we have to encode this information
 # into this fixed number of fields. That's why we abuse REVISION to encode both
 # 3rd component and rc status.
-# REVISION = 3RDCOMP * 10000 + (!is_rc) * 1000 + rc.
+# REVISION = 3RDCOMP * 1000 + (!is_rc) * 100 + rc.
 #
 # Examples:
 # +---------------------+-----+-----+--------+-----+------+-------+----------+
 # |git describe --long  |MAJOR|MINOR|REVISION|BUILD|BUGFIX|PRIVATE|PRERELEASE|
 # +---------------------+-----+-----+--------+-----+------+-------+----------+
-# |1.4-rc2-0-12345678   |    1|    4|       2|    0| false|  false|      true|
-# |1.4-rc3-6-12345678   |    1|    4|       3|    6| false|   true|      true|
-# |1.4-0-12345678       |    1|    4|    1000|    0| false|  false|     false|
-# |1.4-6-123345678      |    1|    4|    1000|    6| false|   true|     false|
-# |1.4.2-rc1-0-12345678 |    1|    4|   20001|    0|  true|  false|      true|
-# |1.4.2-rc4-6-12345678 |    1|    4|   20004|    6|  true|   true|      true|
-# |1.4.2-0-12345678     |    1|    4|   21000|    0|  true|  false|     false|
-# |1.4.2-6-12345678     |    1|    4|   21000|    6|  true|   true|     false|
+# |1.5-rc2-0-12345678   |    1|    5|       2|    0| false|  false|      true|
+# |1.5-rc3-6-12345678   |    1|    5|       3|    6| false|   true|      true|
+# |1.5-0-12345678       |    1|    5|     100|    0| false|  false|     false|
+# |1.5-6-123345678      |    1|    5|     100|    6| false|   true|     false|
+# |1.5.2-rc1-0-12345678 |    1|    5|    2001|    0|  true|  false|      true|
+# |1.5.2-rc4-6-12345678 |    1|    5|    2004|    6|  true|   true|      true|
+# |1.5.2-0-12345678     |    1|    5|    2100|    0|  true|  false|     false|
+# |1.5.2-6-12345678     |    1|    5|    2100|    6|  true|   true|     false|
 # +---------------------+-----+-----+--------+-----+------+-------+----------+
 #
 
@@ -134,7 +134,7 @@ if ($null -ne $ver_array) {
         $REV = 0
     }
 
-    $REVISION = 10000 * $REV
+    $REVISION = 1000 * $REV
     $BUILD = $ver_array[$ver_array.length - 2]
 
     if ($ver_array.length -eq 4) {
@@ -150,7 +150,7 @@ if ($null -ne $ver_array) {
         }
     } else {
         # <MAJOR>.<MINOR>[.<BUGFIX>]-<BUILD>-<HASH>
-        $REVISION += 1000
+        $REVISION += 100
     }
 
     if ($BUILD -eq 0) {
