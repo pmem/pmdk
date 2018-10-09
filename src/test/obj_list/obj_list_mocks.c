@@ -111,13 +111,13 @@ static void *
 obj_memcpy(void *ctx, void *dest, const void *src, size_t len,
 	unsigned flags)
 {
-	return pmem_memcpy_persist(dest, src, len);
+	return pmem_memcpy(dest, src, len, flags);
 }
 
 static void *
 obj_memset(void *ctx, void *ptr, int c, size_t sz, unsigned flags)
 {
-	return pmem_memset_persist(ptr, c, sz);
+	return pmem_memset(ptr, c, sz, flags);
 }
 
 /*
