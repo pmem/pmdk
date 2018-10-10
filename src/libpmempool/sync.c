@@ -616,8 +616,7 @@ sync_badblocks_assign_healthy_replica(struct part_health_status *phs,
 		 */
 		while (pbb_all->offset < bb_old.offset) {
 			/* (*i_all) has to be less than (size_all - 1) */
-			ASSERTne(*i_all, size_all - 1);
-
+			ASSERT(*i_all < size_all - 1);
 			pbb_all = VEC_GET(pbbv_all, ++(*i_all));
 		}
 
@@ -649,12 +648,9 @@ sync_badblocks_assign_healthy_replica(struct part_health_status *phs,
 			if (length_left == 0)
 				continue;
 
-			if (*i_all < size_all - 1) {
-				pbb_all = VEC_GET(pbbv_all, ++(*i_all));
-			} else {
-				pbb_all = NULL;
-				break;
-			}
+			/* (*i_all) has to be less than (size_all - 1) */
+			ASSERT(*i_all < size_all - 1);
+			pbb_all = VEC_GET(pbbv_all, ++(*i_all));
 		}
 	}
 
