@@ -56,11 +56,11 @@ _UW(pmempool_feature_disable) - toggle or query pool set features
 ```c
 #include <libpmempool.h>
 
-_UWFUNCR1(int, pmempool_feature_query, *path, enum pmempool_feature feature, unsigned flags)
+_UWFUNCR1(int, pmempool_feature_query, *path, =q=enum pmempool_feature feature, unsigned flags=e=)
 
-_UWFUNCR1(int, pmempool_feature_enable, *path, enum pmempool_feature feature, unsigned flags)
+_UWFUNCR1(int, pmempool_feature_enable, *path, =q=enum pmempool_feature feature, unsigned flags=e=)
 
-_UWFUNCR1(int, pmempool_feature_disable, *path, enum pmempool_feature feature, unsigned flags)
+_UWFUNCR1(int, pmempool_feature_disable, *path, =q=enum pmempool_feature feature, unsigned flags=e=)
 ```
 
 _UNICODE()
