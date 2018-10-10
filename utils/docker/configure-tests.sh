@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,6 +46,7 @@ NON_PMEM_FS_DIR=/tmp
 PMEM_FS_DIR=/tmp
 PMEM_FS_DIR_FORCE_PMEM=1
 TEST_BUILD="debug nondebug"
+ENABLE_SUDO_TESTS=y
 TM=1
 EOF
 
