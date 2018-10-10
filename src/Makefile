@@ -65,6 +65,11 @@ PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
 PKG_CONFIG_COMMON = common.pc
 PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc libpmemobj.pc\
 		libpmemlog.pc libpmemblk.pc libpmempool.pc libpmemcto.pc
+PMREORDER_BIN = $(DESTDIR)$(bindir)
+PMREORDER_SRC = tools/pmreorder
+PMREORDER_FILES = $(PMREORDER_SRC)/*.py
+PMREORDER_DESTDIR = $(DESTDIR)$(datarootdir)/pmreorder
+PMREORDER_ROOTDIR = $(datarootdir)/pmreorder
 
 ifeq ($(BUILD_RPMEM),y)
 	PKG_CONFIG_FILES += librpmem.pc
@@ -197,12 +202,20 @@ install: all pkg-config
 	install -p -m 0644 $(OBJ_HEADERS_INSTALL) $(HEADERS_DESTDIR)/libpmemobj
 	install -d $(PKG_CONFIG_DESTDIR)
 	install -p -m 0644 $(PKG_CONFIG_FILES) $(PKG_CONFIG_DESTDIR)
+	install -d $(PMREORDER_DESTDIR)
+	install -p -m 0644 $(PMREORDER_FILES) $(PMREORDER_DESTDIR)
+	@echo "#!/bin/sh\n" > $(PMREORDER_SRC)/pmreorder
+	@echo "exec python3 $(PMREORDER_ROOTDIR)/pmreorder.py \$$*\n" >> $(PMREORDER_SRC)/pmreorder
+	install -d $(PMREORDER_BIN)
+	install -p $(PMREORDER_SRC)/pmreorder $(PMREORDER_BIN)
 	$(RM) $(PKG_CONFIG_FILES)
 
 uninstall:
 	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
 	$(foreach f, $(OBJ_HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/libpmemobj/$(notdir $(f)))
 	$(foreach f, $(PKG_CONFIG_FILES), $(RM) $(PKG_CONFIG_DESTDIR)/$(notdir $(f)))
+	$(foreach f, $(PMREORDER_FILES), $(RM) $(PMREORDER_DESTDIR)/$(notdir $(f)))
+	$(RM) $(PMREORDER_BIN)/pmreorder
 
 cstyle:
 	$(STYLE_CHECK) check $(HEADERS)
