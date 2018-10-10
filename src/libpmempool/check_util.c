@@ -99,16 +99,11 @@ check_data_alloc(void)
 {
 	LOG(3, NULL);
 
-	struct check_data *data = malloc(sizeof(*data));
+	struct check_data *data = calloc(1, sizeof(*data));
 	if (data == NULL) {
-		ERR("!malloc");
+		ERR("!calloc");
 		return NULL;
 	}
-
-	memset(&data->step_data, 0, sizeof(location));
-	data->check_status_cache = NULL;
-	data->error = NULL;
-	data->step = 0;
 
 	TAILQ_INIT(&data->infos);
 	TAILQ_INIT(&data->questions);
