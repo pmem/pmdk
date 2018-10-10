@@ -38,6 +38,7 @@
  */
 #include "util.h"
 #include "unittest.h"
+#include "set.h"
 
 #include "pool_hdr.h"
 
@@ -137,6 +138,12 @@ test_layout()
 	(POOL_FEAT_CKSUM_2K_FINAL)
 #endif
 
+#ifdef _WIN32
+#define SDS_AT_CREATE_EXPECTED 1
+#else
+#define SDS_AT_CREATE_EXPECTED 0
+#endif
+
 /*
  * test_default_values -- test default values
  */
@@ -146,6 +153,7 @@ test_default_values()
 	UT_COMPILE_ERROR_ON(POOL_FEAT_SINGLEHDR != POOL_FEAT_SINGLEHDR_FINAL);
 	UT_COMPILE_ERROR_ON(POOL_FEAT_CKSUM_2K != POOL_FEAT_CKSUM_2K_FINAL);
 	UT_COMPILE_ERROR_ON(POOL_FEAT_SDS != POOL_FEAT_SDS_FINAL);
+	UT_COMPILE_ERROR_ON(SDS_at_create != SDS_AT_CREATE_EXPECTED);
 
 	UT_COMPILE_ERROR_ON(POOL_FEAT_INCOMPAT_DEFAULT !=
 			POOL_FEAT_INCOMPAT_DEFAULT_V1);

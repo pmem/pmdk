@@ -16,7 +16,8 @@
     <ClCompile Include="..\..\src\libpmemblk\libpmemblk.c" />
     <ClCompile Include="..\common\badblock.c" />
     <ClCompile Include="..\common\ctl.c" />
-    <ClCompile Include="..\common\ctl_global.c" />
+    <ClCompile Include="..\common\ctl_prefault.c" />
+    <ClCompile Include="..\common\ctl_sds.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\mmap.c" />

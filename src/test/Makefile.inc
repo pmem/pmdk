@@ -191,7 +191,8 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/nondebug/common/badblock,.o)\
 	$(TOP)/src/nondebug/common/badblock.o\
 	$(TOP)/src/nondebug/common/ctl.o\
-	$(TOP)/src/nondebug/common/ctl_global.o\
+	$(TOP)/src/nondebug/common/ctl_prefault.o\
+	$(TOP)/src/nondebug/common/ctl_sds.o\
 	$(call osdep, $(TOP)/src/nondebug/common/extent,.o)\
 	$(TOP)/src/nondebug/common/file.o\
 	$(TOP)/src/nondebug/common/file_posix.o\
@@ -220,7 +221,8 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/debug/common/badblock,.o)\
 	$(TOP)/src/debug/common/badblock.o\
 	$(TOP)/src/debug/common/ctl.o\
-	$(TOP)/src/debug/common/ctl_global.o\
+	$(TOP)/src/debug/common/ctl_prefault.o\
+	$(TOP)/src/debug/common/ctl_sds.o\
 	$(call osdep, $(TOP)/src/debug/common/extent,.o)\
 	$(TOP)/src/debug/common/file.o\
 	$(TOP)/src/debug/common/file_posix.o\

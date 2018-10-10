@@ -13,9 +13,6 @@
     <ClCompile Include="..\..\common\ctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\ctl_global.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemobj\alloc_class.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -80,6 +77,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="obj_pmalloc_mt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\ctl_prefault.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\common\ctl_sds.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
