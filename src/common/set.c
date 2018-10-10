@@ -102,6 +102,7 @@ static void *Rpmem_handle_remote;
 
 int Prefault_at_open = 0;
 int Prefault_at_create = 0;
+int SDS_at_create = 1;
 
 /* list of pool set option names and flags */
 static struct pool_set_option Options[] = {
@@ -3118,6 +3119,17 @@ util_print_bad_files_cb(struct part_file *pf, void *arg)
 }
 
 /*
+ * util_adjust_pool_attr -- (internal) adjusts pool attributes
+ */
+static void
+util_adjust_pool_attr(struct pool_attr *attr)
+{
+	/* disable POOL_FEAT_SDS */
+	if (!SDS_at_create)
+		attr->features.incompat &= ~POOL_FEAT_SDS;
+}
+
+/*
  * util_pool_create_uuids -- create a new memory pool (set or a single file)
  *                           with given uuids
  *
@@ -3138,8 +3150,15 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 	/* attributes cannot be NULL for local replicas */
 	ASSERT(remote || attr != NULL);
 
+	struct pool_attr adj_attr;
 	int flags = MAP_SHARED;
 	int oerrno;
+
+	if (attr != NULL) {
+		adj_attr = *attr;
+		util_adjust_pool_attr(&adj_attr);
+		attr = &adj_attr;
+	}
 
 	int exists = util_file_exists(path);
 	if (exists < 0)
