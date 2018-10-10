@@ -295,6 +295,7 @@ Example of configutation on function level:
     "pmemobj_open"="NoReorderNoCheck",
     "pmemobj_memcpy_persist"="ReorderPartial"
 }
+```
 
 Example of configutation on library level
 (affecting all library functions):
