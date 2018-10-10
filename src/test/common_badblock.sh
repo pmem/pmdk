@@ -213,9 +213,8 @@ function ndctl_nfit_test_grant_access() {
 
 	BUS="nfit_test.0"
 	REGION=$(ndctl list -b $BUS -t pmem -Ri | sed "/dev/!d;s/[\", ]//g;s/dev://g" | tail -1)
-	N=$(echo $REGION | cut -c7-)
 	expect_normal_exit "\
-		sudo chmod o+rw /dev/nmem$N && \
+		sudo chmod o+rw /dev/nmem* && \
 		sudo chmod o+r /sys/devices/platform/$BUS/ndbus?/$REGION/*/resource && \
 		sudo chmod o+r /sys/devices/platform/$BUS/ndbus?/$REGION/resource"
 }
@@ -235,9 +234,8 @@ function ndctl_nfit_test_grant_access_node() {
 
 	BUS="nfit_test.0"
 	REGION=$(expect_normal_exit run_on_node $1 ndctl list -b $BUS -t pmem -Ri | sed "/dev/!d;s/[\", ]//g;s/dev://g" | tail -1)
-	N=$(echo $REGION | cut -c7-)
 	expect_normal_exit run_on_node $1 "\
-		sudo chmod o+rw /dev/nmem$N && \
+		sudo chmod o+rw /dev/nmem* && \
 		sudo chmod o+r /sys/devices/platform/$BUS/ndbus?/$REGION/*/resource && \
 		sudo chmod o+r /sys/devices/platform/$BUS/ndbus?/$REGION/resource"
 }
