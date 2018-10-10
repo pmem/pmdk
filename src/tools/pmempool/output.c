@@ -876,7 +876,7 @@ out_get_incompat_features_str(uint32_t incompat)
 		}
 
 		/* check if any unknown flags are set */
-		if (util_feature_is_zero(features)) {
+		if (!util_feature_is_zero(features)) {
 			if (out_concat(str_buff, &curr, &count,
 					"?UNKNOWN_FLAG?"))
 				return "";
