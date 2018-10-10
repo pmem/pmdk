@@ -99,7 +99,7 @@ util_emit_log(const char *lib, const char *func, int order)
 
 	if (order == 0)
 		strcpy(suffix, ".BEGIN");
-	else if (order == 1)
+	else
 		strcpy(suffix, ".END");
 
 	size_t suffix_len = strlen(suffix);
@@ -122,7 +122,7 @@ util_emit_log(const char *lib, const char *func, int order)
 	if (order == 0) {
 		VALGRIND_EMIT_LOG(func_name);
 		VALGRIND_EMIT_LOG(lib_name);
-	} else if (order == 1) {
+	} else {
 		VALGRIND_EMIT_LOG(lib_name);
 		VALGRIND_EMIT_LOG(func_name);
 	}
