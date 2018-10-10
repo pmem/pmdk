@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * ctl_global.c -- implementation of the global CTL namespace
+ * ctl_sds.c -- implementation of the sds CTL namespace
  */
 
 #include "ctl.h"
@@ -44,7 +44,7 @@ CTL_READ_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
 	int *arg_out = arg;
-	*arg_out = Prefault_at_create;
+	*arg_out = SDS_at_create;
 
 	return 0;
 }
@@ -55,44 +55,21 @@ CTL_WRITE_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
 {
 	int arg_in = *(int *)arg;
 
-	Prefault_at_create = arg_in;
-
-	return 0;
-}
-
-static int
-CTL_READ_HANDLER(at_open)(void *ctx, enum ctl_query_source source,
-	void *arg, struct ctl_indexes *indexes)
-{
-	int *arg_out = arg;
-	*arg_out = Prefault_at_open;
-
-	return 0;
-}
-
-static int
-CTL_WRITE_HANDLER(at_open)(void *ctx, enum ctl_query_source source,
-	void *arg, struct ctl_indexes *indexes)
-{
-	int arg_in = *(int *)arg;
-
-	Prefault_at_open = arg_in;
+	SDS_at_create = arg_in;
 
 	return 0;
 }
 
 static struct ctl_argument CTL_ARG(at_create) = CTL_ARG_BOOLEAN;
-static struct ctl_argument CTL_ARG(at_open) = CTL_ARG_BOOLEAN;
 
-static const struct ctl_node CTL_NODE(prefault)[] = {
+static const struct ctl_node CTL_NODE(sds)[] = {
 	CTL_LEAF_RW(at_create),
-	CTL_LEAF_RW(at_open),
 
 	CTL_NODE_END
 };
 
 void
-ctl_global_register(void)
+ctl_sds_register(void)
 {
-	CTL_REGISTER_MODULE(NULL, prefault);
+	CTL_REGISTER_MODULE(NULL, sds);
 }
