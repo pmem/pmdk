@@ -56,14 +56,14 @@ set features)
 ```c
 #include <libpmempool.h>
 
-int pmempool_feature_queryU(const char *path, enum pmempool_feature feature);unsigned flags
-int pmempool_feature_queryW(const wchar_t *path, enum pmempool_feature feature);unsigned flags
+int pmempool_feature_queryU(const char *path, enum pmempool_feature feature, unsigned flags);
+int pmempool_feature_queryW(const wchar_t *path, enum pmempool_feature feature, unsigned flags);
 
-int pmempool_feature_enableU(const char *path, enum pmempool_feature feature);unsigned flags
-int pmempool_feature_enableW(const wchar_t *path, enum pmempool_feature feature);unsigned flags
+int pmempool_feature_enableU(const char *path, enum pmempool_feature feature, unsigned flags);
+int pmempool_feature_enableW(const wchar_t *path, enum pmempool_feature feature, unsigned flags);
 
-int pmempool_feature_disableU(const char *path, enum pmempool_feature feature);unsigned flags
-int pmempool_feature_disableW(const wchar_t *path, enum pmempool_feature feature);unsigned flags
+int pmempool_feature_disableU(const char *path, enum pmempool_feature feature, unsigned flags);
+int pmempool_feature_disableW(const wchar_t *path, enum pmempool_feature feature, unsigned flags);
 ```
 
 
