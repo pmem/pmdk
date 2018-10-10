@@ -119,6 +119,12 @@ TM=1
 #PMDK_LIB_PATH_DEBUG=/usr/lib/x86_64-linux-gnu/pmdk_dbg
 
 #
+# Tests using the 'sudo' command can be potentially very harmful,
+# so they have to be enabled deliberately.
+#
+#ENABLE_SUDO_TESTS=y
+
+#
 # The 'nfit' tests test the code handling bad blocks.
 # They use the 'sudo' command many times and insert the 'nfit_test' kernel
 # module, so they can be considered as POTENTIALLY DANGEROUS

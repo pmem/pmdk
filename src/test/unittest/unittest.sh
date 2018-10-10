@@ -1007,6 +1007,11 @@ function require_linked_with_ndctl() {
 # require_sudo_allowed -- require sudo command is allowed
 #
 function require_sudo_allowed() {
+	if [ "$ENABLE_SUDO_TESTS" != "y" ]; then
+		msg "$UNITTEST_NAME: SKIP: tests using 'sudo' are not enabled in testconfig.sh (ENABLE_SUDO_TESTS)"
+		exit 0
+	fi
+
 	if ! timeout --signal=SIGKILL --kill-after=3s 3s sudo date >/dev/null 2>&1
 	then
 		msg "$UNITTEST_NAME: SKIP required: sudo allowed"
@@ -1020,6 +1025,11 @@ function require_sudo_allowed() {
 # usage: require_sudo_allowed_node <node-number>
 #
 function require_sudo_allowed_node() {
+	if [ "$ENABLE_SUDO_TESTS" != "y" ]; then
+		msg "$UNITTEST_NAME: SKIP: tests using 'sudo' are not enabled in testconfig.sh (ENABLE_SUDO_TESTS)"
+		exit 0
+	fi
+
 	if ! run_on_node $1 "timeout --signal=SIGKILL --kill-after=3s 3s sudo date" >/dev/null 2>&1
 	then
 		msg "$UNITTEST_NAME: SKIP required: sudo allowed on node $1"
