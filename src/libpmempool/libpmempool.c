@@ -181,17 +181,12 @@ pmempool_errormsgW(void)
 static void
 pmempool_ppc_set_default(PMEMpoolcheck *ppc)
 {
+	/* all other fields should be zeroed */
 	const PMEMpoolcheck ppc_default = {
 		.args		= {
-			.path		= NULL,
-			.backup_path	= NULL,
 			.pool_type	= PMEMPOOL_POOL_TYPE_DETECT,
-			.flags		= 0
 		},
-		.data		= NULL,
-		.pool		= NULL,
 		.result		= CHECK_RESULT_CONSISTENT,
-		.sync_required	= false
 	};
 	*ppc = ppc_default;
 }
@@ -253,9 +248,9 @@ pmempool_check_initU(struct pmempool_check_argsU *args, size_t args_size)
 		return NULL;
 	}
 
-	PMEMpoolcheck *ppc = malloc(sizeof(*ppc));
+	PMEMpoolcheck *ppc = calloc(1, sizeof(*ppc));
 	if (ppc == NULL) {
-		ERR("!malloc");
+		ERR("!calloc");
 		return NULL;
 	}
 

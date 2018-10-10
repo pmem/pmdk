@@ -505,18 +505,14 @@ pool_data_alloc(PMEMpoolcheck *ppc)
 {
 	LOG(3, NULL);
 
-	struct pool_data *pool = malloc(sizeof(*pool));
+	struct pool_data *pool = calloc(1, sizeof(*pool));
 	if (!pool) {
-		ERR("!malloc");
+		ERR("!calloc");
 		return NULL;
 	}
 
 	TAILQ_INIT(&pool->arenas);
-	pool->narenas = 0;
-	pool->blk_no_layout = 0;
 	pool->uuid_op = UUID_NOP;
-	pool->set_file = NULL;
-	pool->bttc.valid = false;
 
 	if (pool_params_parse(ppc, &pool->params, 0))
 		goto error;
