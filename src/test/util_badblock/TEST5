@@ -41,7 +41,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type any
+require_fs_type non-pmem
 
 require_nfit_tests_enabled
 require_sudo_allowed
