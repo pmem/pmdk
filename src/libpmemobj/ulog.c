@@ -585,6 +585,7 @@ ulog_clobber_data(struct ulog *dest,
 {
 	size_t rcapacity = ulog_base_nbytes;
 	size_t nlog = 0;
+	ASSERTne(dest, NULL);
 
 	for (struct ulog *r = dest; r != NULL; ) {
 		size_t nzero = MIN(nbytes, rcapacity);
