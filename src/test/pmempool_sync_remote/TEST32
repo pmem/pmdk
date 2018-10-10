@@ -53,6 +53,8 @@ require_command_node 0 ndctl
 
 setup
 
+set -x
+
 require_node_libfabric 0 $RPMEM_PROVIDER
 require_node_libfabric 1 $RPMEM_PROVIDER
 
