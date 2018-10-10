@@ -733,7 +733,15 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 	if (op != '?')
 		return op;
 
-	vsnprintf(qbuff, Q_BUFF_SIZE, fmt, ap);
+	int p = vsnprintf(qbuff, Q_BUFF_SIZE, fmt, ap);
+	if (p < 0) {
+		outv_err("vsnprintf");
+		exit(EXIT_FAILURE);
+	}
+	if (p >= Q_BUFF_SIZE) {
+		outv_err("vsnprintf: output was truncated");
+		exit(EXIT_FAILURE);
+	}
 
 	int is_tty = isatty(fileno(stdin));
 	printf("%s", qbuff);
