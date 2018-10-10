@@ -81,6 +81,27 @@ CTL_WRITE_HANDLER(at_open)(void *ctx, enum ctl_query_source source,
 	return 0;
 }
 
+static int
+CTL_READ_HANDLER(disable_at_create)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int *arg_out = arg;
+	*arg_out = !SDS_at_create;
+
+	return 0;
+}
+
+static int
+CTL_WRITE_HANDLER(disable_at_create)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int arg_in = *(int *)arg;
+
+	SDS_at_create = !arg_in;
+
+	return 0;
+}
+
 static struct ctl_argument CTL_ARG(at_create) = CTL_ARG_BOOLEAN;
 static struct ctl_argument CTL_ARG(at_open) = CTL_ARG_BOOLEAN;
 
@@ -91,8 +112,17 @@ static const struct ctl_node CTL_NODE(prefault)[] = {
 	CTL_NODE_END
 };
 
+static struct ctl_argument CTL_ARG(disable_at_create) = CTL_ARG_BOOLEAN;
+
+static const struct ctl_node CTL_NODE(SDS)[] = {
+	CTL_LEAF_RW(disable_at_create),
+
+	CTL_NODE_END
+};
+
 void
 ctl_global_register(void)
 {
 	CTL_REGISTER_MODULE(NULL, prefault);
+	CTL_REGISTER_MODULE(NULL, SDS);
 }
