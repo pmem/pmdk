@@ -102,6 +102,7 @@ static void *Rpmem_handle_remote;
 
 int Prefault_at_open = 0;
 int Prefault_at_create = 0;
+int SDS_at_create = 1;
 
 /* list of pool set option names and flags */
 static struct pool_set_option Options[] = {

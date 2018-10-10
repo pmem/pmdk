@@ -31,28 +31,68 @@
  */
 
 /*
- * ctl_global.h -- definitions for the global CTL namespace
+ * ctl_prefault.c -- implementation of the prefault CTL namespace
  */
 
-#ifndef PMDK_CTL_GLOBAL_H
-#define PMDK_CTL_GLOBAL_H 1
+#include "ctl.h"
+#include "set.h"
+#include "out.h"
+#include "ctl_global.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern void ctl_prefault_register(void);
-extern void ctl_sds_register(void);
-
-static inline void
-ctl_global_register(void)
+static int
+CTL_READ_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
 {
-	ctl_prefault_register();
-	ctl_sds_register();
+	int *arg_out = arg;
+	*arg_out = Prefault_at_create;
+
+	return 0;
 }
 
-#ifdef __cplusplus
-}
-#endif
+static int
+CTL_WRITE_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int arg_in = *(int *)arg;
 
-#endif
+	Prefault_at_create = arg_in;
+
+	return 0;
+}
+
+static int
+CTL_READ_HANDLER(at_open)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int *arg_out = arg;
+	*arg_out = Prefault_at_open;
+
+	return 0;
+}
+
+static int
+CTL_WRITE_HANDLER(at_open)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int arg_in = *(int *)arg;
+
+	Prefault_at_open = arg_in;
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(at_create) = CTL_ARG_BOOLEAN;
+static struct ctl_argument CTL_ARG(at_open) = CTL_ARG_BOOLEAN;
+
+static const struct ctl_node CTL_NODE(prefault)[] = {
+	CTL_LEAF_RW(at_create),
+	CTL_LEAF_RW(at_open),
+
+	CTL_NODE_END
+};
+
+void
+ctl_prefault_register(void)
+{
+	CTL_REGISTER_MODULE(NULL, prefault);
+}

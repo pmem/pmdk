@@ -281,8 +281,13 @@ pmemcto_createU(const char *path, const char *layout, size_t poolsize,
 		Mmap_hint = CTO_MMAP_HINT; /* XXX: add randomization */
 	}
 
+	struct pool_attr adj_pool_attr = Cto_create_attr;
+
+	if (!SDS_at_create)
+		adj_pool_attr.features.incompat &= ~POOL_FEAT_SDS;
+
 	if (util_pool_create(&set, path, poolsize, PMEMCTO_MIN_POOL,
-			PMEMCTO_MIN_PART, &Cto_create_attr, NULL,
+			PMEMCTO_MIN_PART, &adj_pool_attr, NULL,
 			REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		Mmap_no_random = old_no_random;
