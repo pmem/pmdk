@@ -105,6 +105,12 @@ Upon successful opening of the remote pool, \**nlanes* is set to the
 maximum number of lanes supported by both the local and remote nodes.
 See **LANES**, below, for details.
 
+Be aware that if the pool contains bad blocks inside, opening can be aborted
+by the SIGBUS signal, because currently the pool is not checked against
+bad blocks during opening. It can be turned on by setting the CHECK_BAD_BLOCKS
+compat feature. For details see description of this feature
+in **pmempool-feature**(1).
+
 The **rpmem_set_attr**() function overwrites the pool's attributes.
 The *attr* structure contains the attributes used for overwriting the remote
 pool attributes that were passed to **rpmem_create**() at pool creation.
