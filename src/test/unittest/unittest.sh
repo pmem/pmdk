@@ -102,6 +102,9 @@ shopt -s failglob
 # number of remote nodes required in the current unit test
 NODES_MAX=-1
 
+# name of directory with data files for remote tests
+REMOTE_DATA_DIR="data${UNITTEST_NUM}"
+
 # sizes of aligments
 SIZE_4KB=4096
 SIZE_2MB=2097152
@@ -2177,7 +2180,10 @@ function require_nodes() {
 		# clear the list of PID files for each node
 		NODE_PID_FILES[$N]=""
 		NODE_TEST_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir
-		NODE_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir/data/
+		NODE_DIR[$N]=${NODE_WORKING_DIR[$N]}/$curtestdir/$REMOTE_DATA_DIR/
+
+		# create the working data dir
+		run_command ssh $SSH_OPTS ${NODE[$N]} "mkdir -p ${NODE_DIR[$N]}"
 
 		require_node_log_files $N $ERR_LOG_FILE $OUT_LOG_FILE $TRACE_LOG_FILE
 
@@ -3128,10 +3134,6 @@ function copy_test_to_remote_nodes() {
 		# create a new test dir
 		run_command ssh $SSH_OPTS ${NODE[$N]} "rm -rf $DIR && mkdir -p $DIR"
 
-		# create the working data dir
-		run_command ssh $SSH_OPTS ${NODE[$N]} "mkdir -p \
-			${DIR}/data"
-
 		# copy all required files
 		[ $# -gt 0 ] && run_command scp $SCP_OPTS $* ${NODE[$N]}:$DIR > /dev/null
 	done
@@ -3160,11 +3162,11 @@ if [ "$CLEAN_FAILED_REMOTE" == "y" ]; then
 	do
 
 		if [[ -z "${NODE_WORKING_DIR[$i]}" || -z "$curtestdir" ]]; then
-			echo "Invalid path to tests data: ${NODE_WORKING_DIR[$i]}/$curtestdir/data/"
+			echo "Invalid path to tests data: ${NODE_WORKING_DIR[$i]}/$curtestdir/$REMOTE_DATA_DIR/"
 			exit 1
 		fi
 
-		N[$i]=${NODE_WORKING_DIR[$i]}/$curtestdir/data/
+		N[$i]=${NODE_WORKING_DIR[$i]}/$curtestdir/$REMOTE_DATA_DIR/
 		run_command ssh $SSH_OPTS ${NODE[$i]} "rm -rf ${N[$i]}; mkdir ${N[$i]}"
 
 		if [ $? -eq 0 ]; then
