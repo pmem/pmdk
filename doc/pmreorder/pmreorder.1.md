@@ -105,23 +105,23 @@ in the library. Valid only if the checker type is `lib`.
 
 Set the logger output file.
 
-`-e <debug|info|warning|error|critical>,
- --output-level <debug|info|warning|error|critical>`
+`-e <debug|info|warning|error|critical>,`
+` --output-level <debug|info|warning|error|critical>`
 
 Set the output log level.
 
-`-r  <NoReorderNoCheck|
-      NoReorderDoCheck|
-      ReorderFull|
-      ReorderPartial|
-      ReorderAccumulative|
-      ReorderReverseAccumulative>,
- --default-engine  <NoReorderNoCheck|
-		    NoReorderDoCheck|
-		    ReorderFull|
-		    ReorderPartial|
-		    ReorderAccumulative|
-		    ReorderReverseAccumulative>`
+`-r  <NoReorderNoCheck|`
+`      NoReorderDoCheck|`
+`      ReorderFull|`
+`      ReorderPartial|`
+`      ReorderAccumulative|`
+`      ReorderReverseAccumulative>,`
+`--default-engine  <NoReorderNoCheck|`
+`		    NoReorderDoCheck|`
+`		    ReorderFull|`
+`		    ReorderPartial|`
+`		    ReorderAccumulative|`
+`		    ReorderReverseAccumulative>`
 
 Set the initial reorder engine. Default value is `NoReorderNoCheck`.
 
