@@ -273,7 +273,7 @@ There are two ways to set macro options:
 + Using command line interface in format:
 ```PMREORDER_MARKER_NAME1=ReorderName1,PMREORDER_MARKER_NAME2=ReorderName2```
 
-+ Using configutation file in .json format:
++ Using configuration file in .json format:
 ```
 {
     "PMREORDER_MARKER_NAME1"="ReorderName1",
@@ -289,7 +289,7 @@ reordering engine on library or function level:
 
 `<library_name|api_function_name>`
 
-Example of configutation on function level:
+Example of configuration on function level:
 ```
 {
     "pmemobj_open"="NoReorderNoCheck",
@@ -297,7 +297,7 @@ Example of configutation on function level:
 }
 ```
 
-Example of configutation on library level
+Example of configuration on library level
 (affecting all library functions):
 ```
 {
