@@ -390,7 +390,7 @@ parse_stage(void)
 }
 
 /*
- * pocli_args_action -- parse action
+ * pocli_args_action -- parse action.
  */
 static enum pocli_ret
 pocli_args_act(struct pocli_ctx *ctx, struct pocli_args *args,
