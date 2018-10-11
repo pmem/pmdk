@@ -309,6 +309,8 @@ pmempool_rm_func(const char *appname, int argc, char *argv[])
 	/* by default do not remove any poolset files */
 	rm_poolset_mode = RM_POOLSET_NONE;
 
+	ask_mode = ASK_SOMETIMES;
+
 	int opt;
 	while ((opt = getopt_long(argc, argv, optstr,
 			long_options, NULL)) != -1) {
