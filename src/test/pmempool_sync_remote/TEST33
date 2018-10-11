@@ -40,6 +40,8 @@
 # standard unit test setup
 . ../unittest/unittest.sh
 
+set -x
+
 require_test_type medium
 require_fs_type non-pmem
 require_build_type debug nondebug
