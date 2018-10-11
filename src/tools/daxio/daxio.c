@@ -361,12 +361,10 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst)
 
 	/* check if this is regular file or device */
 	if (S_ISREG(stbuf.st_mode)) {
-		if (is_dst) {
-			flags = O_RDWR|O_TRUNC;
+		if (is_dst)
 			dev->size = SIZE_MAX;
-		} else {
+		else
 			dev->size = (size_t)stbuf.st_size;
-		}
 	} else if (S_ISBLK(stbuf.st_mode)) {
 		dev->size = (size_t)stbuf.st_size;
 	} else if (S_ISCHR(stbuf.st_mode)) {
