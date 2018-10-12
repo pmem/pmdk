@@ -909,7 +909,7 @@ info_obj_stats(struct pmem_info *pip)
 		outv_title(v, "Allocation classes");
 		info_obj_stats_alloc_classes(pip, v, &total);
 	}
-
+	VEC_DELETE(&total.class_stats);
 }
 
 static struct pmem_info *Pip;

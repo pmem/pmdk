@@ -48,7 +48,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout "pmempool$SUFFIX" obj $PO
 expect_normal_exit $PMEMALLOC$EXESUFFIX -o $((3*1024*1024)) -t 1 $POOL
 expect_normal_exit $PMEMALLOC$EXESUFFIX -o 16 -t 2 $POOL
 expect_normal_exit $PMEMALLOC$EXESUFFIX -c 777 -t 3 $POOL
-expect_normal_exit $PMEMPOOL$EXESUFFIX info -O -E -a -A -H -Z -C -s $POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX info -O -E -a -A -H -Z -C -s $POOL >> $LOG
 
 check
 
