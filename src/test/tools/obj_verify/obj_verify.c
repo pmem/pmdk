@@ -226,6 +226,13 @@ main(int argc, char *argv[])
 	const char *layout = argv[2];
 	const char *op;
 
+	/*
+	 * This application can be very time-consuming
+	 * when it is run on an non-pmem filesystem,
+	 * so let's set PMEM_IS_PMEM_FORCE to 1 for this case.
+	 */
+	setenv("PMEM_IS_PMEM_FORCE", "1", 1 /* overwrite */);
+
 	/* go through all arguments one by one */
 	for (int arg = 3; arg < argc; arg++) {
 		op = argv[arg];
