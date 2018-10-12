@@ -533,6 +533,18 @@ Description: Standalone utility for management and off-line analysis
  of utilities for administration and diagnostics of Persistent Memory pools.
  Pmempool may be useful for troubleshooting by system administrators
  and users of the applications based on PMDK libraries.
+
+Package: pmreorder
+Section: misc
+Architecture: any
+Priority: optional
+Depends: \${shlibs:Depends}, \${misc:Depends}
+Description: Standalone tool which is a collection of python scripts designed
+ to parse and replay operations logged by pmemcheck - a persistent memory
+ checking tool. Pmreorder performs the store reordering between persistent
+ memory barriers - a sequence of flush-fence operations. It uses a
+ consistency checking routine provided in the command line options to check
+ whether files are in a consistent state.
 EOF
 
 cp LICENSE debian/copyright
@@ -897,6 +909,17 @@ usr/share/bash-completion/completions/pmempool
 EOF
 
 cat << EOF > debian/pmempool.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+EOF
+
+cat << EOF > debian/pmreorder.install
+usr/bin/pmreorder
+usr/share/pmreorder/*.py
+$MAN1_DIR/pmreorder.1
+EOF
+
+cat << EOF > debian/pmreorder.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 EOF
