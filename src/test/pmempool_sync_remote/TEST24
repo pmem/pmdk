@@ -53,6 +53,12 @@ require_command_node 0 ndctl
 
 setup
 
+#
+# All tests using the 'obj_verify' tool have to have the PMEM_IS_PMEM_FORCE
+# variable set, because they can time-out otherwise.
+#
+export PMEM_IS_PMEM_FORCE=1
+
 require_node_libfabric 0 $RPMEM_PROVIDER
 require_node_libfabric 1 $RPMEM_PROVIDER
 
