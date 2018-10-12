@@ -698,6 +698,23 @@ and users of the applications based on PMDK libraries.
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
+%package -n pmreorder
+Summary: Consistency Checker for Persistent Memory
+Group: __GROUP_SYS_BASE__
+%description -n pmreorder
+The pmreorder tool is a collection of python scripts designed to parse
+and replay operations logged by pmemcheck - a persistent memory checking tool.
+Pmreorder performs the store reordering between persistent memory barriers -
+a sequence of flush-fence operations. It uses a consistency checking routine
+provided in the command line options to check whether files are in a consistent state.
+
+%files -n pmreorder
+%{_bindir}/pmreorder
+%{_datadir}/pmreorder/*.py
+%{_mandir}/man1/pmreorder.1.gz
+%license LICENSE
+%doc ChangeLog CONTRIBUTING.md README.md
+
 
 %if %{with ndctl}
 
