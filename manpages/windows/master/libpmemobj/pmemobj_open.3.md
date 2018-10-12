@@ -146,6 +146,12 @@ be used to verify that the layout of the pool matches what was expected.
 The application must have permission to open the file and memory map it with
 read/write permissions.
 
+Be aware that if the pool contains bad blocks inside, opening can be aborted
+by the SIGBUS signal, because currently the pool is not checked against
+bad blocks during opening. It can be turned on by setting the CHECK_BAD_BLOCKS
+compat feature. For details see description of this feature
+in **pmempool-feature**(1).
+
 The **pmemobj_close**() function closes the memory pool indicated by *pop* and
 deletes the memory pool handle. The object store itself lives on in the file
 that contains it and may be re-opened at a later time using

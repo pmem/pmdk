@@ -127,6 +127,12 @@ size used when the pool was created. Otherwise, **pmemblk_openU**()/**pmemblk_op
 the pool without verifying the block size. The *bsize* can be determined
 using the **pmemblk_bsize**(3) function.
 
+Be aware that if the pool contains bad blocks inside, opening can be aborted
+by the SIGBUS signal, because currently the pool is not checked against
+bad blocks during opening. It can be turned on by setting the CHECK_BAD_BLOCKS
+compat feature. For details see description of this feature
+in **pmempool-feature**(1).
+
 The **pmemblk_close**() function closes the memory pool
 indicated by *pbp* and deletes the memory pool handle.
 The block memory pool itself lives on in the file that contains it and may be
