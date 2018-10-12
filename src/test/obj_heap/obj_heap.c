@@ -96,6 +96,7 @@ init_run_with_score(struct heap_layout *l, uint32_t chunk_id, int score)
 		&l->zone0.chunks[chunk_id];
 	VALGRIND_DO_MAKE_MEM_UNDEFINED(run, sizeof(*run));
 
+	run->hdr.alignment = 0;
 	run->hdr.block_size = 1024;
 	memset(run->content, 0xFF, RUN_DEFAULT_BITMAP_SIZE);
 	UT_ASSERTeq(score % 64, 0);
@@ -120,6 +121,7 @@ init_run_with_max_block(struct heap_layout *l, uint32_t chunk_id)
 
 	uint64_t *bitmap = (uint64_t *)run->content;
 	run->hdr.block_size = 1024;
+	run->hdr.alignment = 0;
 	memset(bitmap, 0xFF, RUN_DEFAULT_BITMAP_SIZE);
 
 	/* the biggest block is 10 bits */
