@@ -501,8 +501,8 @@ info_obj_chunk(struct pmem_info *pip, uint64_t c, uint64_t z,
 					pip->args.human));
 
 		uint32_t units = bitmap.nbits;
-		uint32_t free_space;
-		uint32_t max_free_block;
+		uint32_t free_space = 0;
+		uint32_t max_free_block = 0;
 		m.m_ops->calc_free(&m, &free_space, &max_free_block);
 		uint32_t used = units - free_space;
 
@@ -909,7 +909,7 @@ info_obj_stats(struct pmem_info *pip)
 		outv_title(v, "Allocation classes");
 		info_obj_stats_alloc_classes(pip, v, &total);
 	}
-
+	VEC_DELETE(&total.class_stats);
 }
 
 static struct pmem_info *Pip;

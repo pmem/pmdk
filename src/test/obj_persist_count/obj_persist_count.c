@@ -442,7 +442,7 @@ main(int argc, char *argv[])
 	print_reset_counters("tx_add_next", 1);
 
 	PMEMoid large_foo;
-	pmemobj_alloc(pop, &large_foo, sizeof(struct foo_large), 0, NULL, NULL);
+	pmemobj_zalloc(pop, &large_foo, sizeof(struct foo_large), 0);
 	UT_ASSERT(!OID_IS_NULL(large_foo));
 	reset_counters();
 
