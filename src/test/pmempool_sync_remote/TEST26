@@ -91,7 +91,7 @@ expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LA
 # and enable this compat feature on all nodes separately.
 
 create_poolset $DIR/${POOLSET_LOCAL}_aux \
-	10M:${NODE_DIR[0]}/pool.local:x \
+	10M:${NODE_DIR[0]}/pool.local:x
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/${POOLSET_LOCAL}_aux
 
