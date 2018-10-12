@@ -43,6 +43,12 @@ require_build_type debug nondebug
 
 setup
 
+#
+# All tests using the 'obj_verify' tool have to have the PMEM_IS_PMEM_FORCE
+# variable set, because they can time-out otherwise.
+#
+export PMEM_IS_PMEM_FORCE=1
+
 LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 
