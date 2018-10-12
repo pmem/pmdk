@@ -616,12 +616,13 @@ pmem_memmove(void *pmemdest, const void *src, size_t len, unsigned flags)
 	if (flags & ~PMEM_F_MEM_VALID_FLAGS)
 		ERR("invalid flags 0x%x", flags);
 #endif
-
+	PMEM_API_START();
 	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
 
+	PMEM_API_END();
 	return pmemdest;
 }
 
@@ -631,7 +632,21 @@ pmem_memmove(void *pmemdest, const void *src, size_t len, unsigned flags)
 void *
 pmem_memcpy(void *pmemdest, const void *src, size_t len, unsigned flags)
 {
-	return pmem_memmove(pmemdest, src, len, flags);
+	LOG(15, "pmemdest %p src %p len %zu flags 0x%x",
+			pmemdest, src, len, flags);
+
+#ifdef DEBUG
+	if (flags & ~PMEM_F_MEM_VALID_FLAGS)
+		ERR("invalid flags 0x%x", flags);
+#endif
+	PMEM_API_START();
+	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN);
+
+	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
+		pmem_drain();
+
+	PMEM_API_END();
+	return pmemdest;
 }
 
 /*
@@ -648,11 +663,13 @@ pmem_memset(void *pmemdest, int c, size_t len, unsigned flags)
 		ERR("invalid flags 0x%x", flags);
 #endif
 
+	PMEM_API_START();
 	Funcs.memset_nodrain(pmemdest, c, len, flags & ~PMEM_F_MEM_NODRAIN);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
 
+	PMEM_API_END();
 	return pmemdest;
 }
 
@@ -662,7 +679,14 @@ pmem_memset(void *pmemdest, int c, size_t len, unsigned flags)
 void *
 pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
 {
-	return pmem_memmove(pmemdest, src, len, PMEM_F_MEM_NODRAIN);
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	PMEM_API_START();
+
+	Funcs.memmove_nodrain(pmemdest, src, len, 0);
+
+	PMEM_API_END();
+	return pmemdest;
 }
 
 /*
@@ -671,7 +695,14 @@ pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
 void *
 pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
 {
-	return pmem_memcpy(pmemdest, src, len, PMEM_F_MEM_NODRAIN);
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	PMEM_API_START();
+
+	Funcs.memmove_nodrain(pmemdest, src, len, 0);
+
+	PMEM_API_END();
+	return pmemdest;
 }
 
 /*
@@ -680,7 +711,15 @@ pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
 void *
 pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 {
-	return pmem_memmove(pmemdest, src, len, 0);
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	PMEM_API_START();
+
+	Funcs.memmove_nodrain(pmemdest, src, len, 0);
+	pmem_drain();
+
+	PMEM_API_END();
+	return pmemdest;
 }
 
 /*
@@ -689,7 +728,15 @@ pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 void *
 pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 {
-	return pmem_memcpy(pmemdest, src, len, 0);
+	LOG(15, "pmemdest %p src %p len %zu", pmemdest, src, len);
+
+	PMEM_API_START();
+
+	Funcs.memmove_nodrain(pmemdest, src, len, 0);
+	pmem_drain();
+
+	PMEM_API_END();
+	return pmemdest;
 }
 
 /*
@@ -698,7 +745,14 @@ pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 void *
 pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 {
-	return pmem_memset(pmemdest, c, len, PMEM_F_MEM_NODRAIN);
+	LOG(15, "pmemdest %p c %d len %zu", pmemdest, c, len);
+
+	PMEM_API_START();
+
+	Funcs.memset_nodrain(pmemdest, c, len, 0);
+
+	PMEM_API_END();
+	return pmemdest;
 }
 
 /*
@@ -707,7 +761,15 @@ pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 void *
 pmem_memset_persist(void *pmemdest, int c, size_t len)
 {
-	return pmem_memset(pmemdest, c, len, 0);
+	LOG(15, "pmemdest %p c %d len %zu", pmemdest, c, len);
+
+	PMEM_API_START();
+
+	Funcs.memset_nodrain(pmemdest, c, len, 0);
+	pmem_drain();
+
+	PMEM_API_END();
+	return pmemdest;
 }
 
 /*
@@ -747,3 +809,14 @@ pmem_deep_drain(const void *addr, size_t len)
 
 	return os_range_deep_common((uintptr_t)addr, len);
 }
+
+#if VG_PMEMCHECK_ENABLED
+/*
+ * pmem_emit_log -- logs library and function names to pmemcheck store log
+ */
+void
+pmem_emit_log(const char *func, int order)
+{
+	util_emit_log("libpmem", func, order);
+}
+#endif
