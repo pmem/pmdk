@@ -60,11 +60,6 @@ echo "==== build ndctl ===="
 ./configure
 make
 
-echo "==== update ndctl.spec ===="
-# XXX: pre-process ndctl.spec to remove dependency on libpmem
-# To be removed once ndctl v60 is available.
-sed -i -e "/pkgconfig(libpmem)/d" -e "s/--with-libpmem//g" $SPEC
-
 echo "==== build ndctl packages ===="
 rpmbuild -ba $SPEC
 
