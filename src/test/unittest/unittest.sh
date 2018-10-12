@@ -662,7 +662,7 @@ function valgrind_ignore_warnings() {
 		-e "Warning: set address range perms: large range"\
 		-e "further instances of this message will not be shown"\
 		>  $1.tmp
-	mv $1.tmp $1
+	mv -f $1.tmp $1
 }
 
 #
@@ -823,6 +823,12 @@ function expect_normal_exit() {
 	fi
 
 	disable_exit_on_error
+
+	# move 'sudo' before '$trace' if both of them are used
+	if [ "$1" == "sudo" -a "$trace" != "" ]; then
+		shift
+		trace="sudo $trace"
+	fi
 
 	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
 		$trace $*
