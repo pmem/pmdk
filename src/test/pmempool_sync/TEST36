@@ -49,12 +49,6 @@ require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
 
 setup
 
-#
-# The tests using the 'obj_verify' tool on a non-pmem filesystem
-# should have this variable set, because they can time-out otherwise.
-#
-export PMEM_IS_PMEM_FORCE=1
-
 LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
 

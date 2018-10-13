@@ -40,6 +40,7 @@
 
 #include "libpmemobj.h"
 #include "set.h"
+#include "os.h"
 
 #define SIGNATURE_LEN 10
 #define NUMBER_LEN 10
@@ -225,6 +226,13 @@ main(int argc, char *argv[])
 	const char *path = argv[1];
 	const char *layout = argv[2];
 	const char *op;
+
+	/*
+	 * This application can be very time-consuming
+	 * when it is run on an non-pmem filesystem,
+	 * so let's set PMEM_IS_PMEM_FORCE to 1 for this case.
+	 */
+	os_setenv("PMEM_IS_PMEM_FORCE", "1", 1 /* overwrite */);
 
 	/* go through all arguments one by one */
 	for (int arg = 3; arg < argc; arg++) {

@@ -99,7 +99,7 @@ expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LA
 create_poolset $DIR/${POOLSET_LOCAL}_aux \
 	10M:${NODE_DIR[0]}/pool.local.part.0:x \
 	10M:${NODE_DIR[0]}/pool.local.part.1:x \
-	10M:${NODE_DIR[0]}/pool.local.part.2:x \
+	10M:${NODE_DIR[0]}/pool.local.part.2:x
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/${POOLSET_LOCAL}_aux
 
