@@ -276,10 +276,10 @@ match_dev_dax(struct daxio_device *dev, struct daxctl_region *dax_region)
 static int
 find_dev_dax(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev)
 {
-	struct ndctl_bus *bus;
-	struct ndctl_region *region;
-	struct ndctl_dax *dax;
-	struct daxctl_region *dax_region;
+	struct ndctl_bus *bus = NULL;
+	struct ndctl_region *region = NULL;
+	struct ndctl_dax *dax = NULL;
+	struct daxctl_region *dax_region = NULL;
 
 	ndctl_bus_foreach(ndctl_ctx, bus) {
 		ndctl_region_foreach(bus, region) {
