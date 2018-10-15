@@ -1297,7 +1297,7 @@ function require_free_space() {
 	$free_space = (gwmi Win32_Volume -Filter $filter | select FreeSpace).freespace
 	if ([INT64]$free_space -lt [INT64]$req_free_space)
 	{
-		msg "${Env:UNITTEST_NAME}: SKIP not enough free space"
+		msg "${Env:UNITTEST_NAME}: SKIP not enough free space ($Args[0] required)"
 		exit 0
 	}
 }
