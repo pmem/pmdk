@@ -55,6 +55,13 @@ NON_PMEM_FS_DIR=/tmp
 # those devices in an array format. For most tests one device is enough, but
 # some might require more.
 #
+# It is required to have R/W access to these devices and at least RO access
+# to all of the following resource files (containing physical addresses)
+# of NVDIMM devices (only root can read them by default):
+#
+# /sys/devices/platform/<pmem_device>/ndbus?/region?/resource
+# /sys/devices/platform/<pmem_device>/ndbus?/region?/dax?.0/resource
+#
 #DEVICE_DAX_PATH=(/dev/dax0.0)
 
 #
