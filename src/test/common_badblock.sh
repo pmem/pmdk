@@ -323,7 +323,10 @@ function expect_bad_blocks {
 		cat $PREP_LOG_FILE
 		msg "====================================================================="
 		msg ""
-		fatal "Error: ndctl failed to inject or retain bad blocks"
+		# umount MOUNT_DIR to reset the test environment
+		[ $MOUNT_DIR ] && sudo umount $MOUNT_DIR && true
+		msg "SKIP: ndctl failed to inject or retain bad blocks"
+		exit 0
 	fi
 }
 
