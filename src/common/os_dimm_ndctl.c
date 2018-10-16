@@ -296,11 +296,6 @@ os_dimm_usc(const char *path, uint64_t *usc)
 			goto err;
 		}
 
-		if (ndctl_cmd_submit(cmd)) {
-			ERR("!ndctl_cmd_submit");
-			goto err;
-		}
-
 		if (!(ndctl_cmd_smart_get_flags(cmd) & USC_VALID_FLAG)) {
 			/* dimm doesn't support unsafe shutdown count */
 			continue;
