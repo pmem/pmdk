@@ -46,7 +46,7 @@ date: pmem Tools version 1.4
 # NAME #
 
 **pmempool-convert** - this is a wrapper around pmdk-convert tool. More information
-can be found in pmdk-convert man page.
+can be found in [pmdk-convert man page](https://pmem.io/pmdk-convert/pmdk-convert.1.html).
 
 # SEE ALSO #
 
