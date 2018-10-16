@@ -39,6 +39,8 @@ date: pmem Tools version 1.4
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
+[COMPATIBILITY](#compatibility)<br />
+[DISCLAIMER](#disclaimer)<br />
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
@@ -88,6 +90,9 @@ addresses) of NVDIMM devices which only root can read by default:
 /sys/devices/platform/<pmem_device>/ndbus?/region?/namespace?.0/resource
 ```
 
+It is possible to use poolset as *file* argument. But poolsets with remote
+replicas are not supported.
+
 ##### Available options: #####
 
 `-h, --help`
@@ -109,6 +114,17 @@ Disable feature for pool set.
 `-q, --query feature-name`
 
 Print feature status.
+
+
+# COMPATIBILITY #
+
+Poolsets with features not defined in this document (e.g. enabled by the newer
+software version) are not supported.
+
+
+# DISCLAIMER #
+
+```pmempool feature``` command is not fail safe.
 
 
 # EXAMPLE #
