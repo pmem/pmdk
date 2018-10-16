@@ -141,7 +141,6 @@ struct pool_replica {
 	size_t repsize;		/* total size of all the parts (mappings) */
 	size_t resvsize;	/* min size of the address space reservation */
 	int is_pmem;		/* true if all the parts are in PMEM */
-	void *mapaddr;		/* base address (libpmemcto only) */
 	struct remote_replica *remote;	/* not NULL if the replica */
 					/* is a remote one */
 	VEC(, struct pool_set_directory) directory;
