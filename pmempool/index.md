@@ -115,9 +115,9 @@ from the old layout versions to the newest one supported by this tool.
 Currently only **pmemobj** pools are supported.
 
 See [pmdk-convert tool man page](https://pmem.io/pmdk-convert/pmdk-convert.1.html) that is
-already wrapper around pmdk-convert tool.
+already wrapper around pmempool-convert tool.
 
-Or see older version or pmempool-convert tool:
+Or see older version of pmempool-convert tool:
 <ul>
    {% assign command = 'pmempool-convert' %}
    {% for release in site.data.releases_linux %}{% if release.libs contains command and release.tag != "master" %}
