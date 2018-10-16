@@ -42,7 +42,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "compat_incompat_features");
 	if (argc < 3)
-		UT_FATAL("usage: %s <obj|blk|log|cto> <path>", argv[0]);
+		UT_FATAL("usage: %s <obj|blk|log> <path>", argv[0]);
 
 	char *type = argv[1];
 	char *path = argv[2];
@@ -71,16 +71,8 @@ main(int argc, char *argv[])
 			UT_OUT("%s: pmemlog_open succeeded", path);
 			pmemlog_close(pop);
 		}
-	} else if (strcmp(type, "cto") == 0) {
-		PMEMctopool *pop = pmemcto_open(path, "");
-		if (pop == NULL) {
-			UT_FATAL("!%s: pmemcto_open failed", path);
-		} else {
-			UT_OUT("%s: pmemcto_open succeeded", path);
-			pmemcto_close(pop);
-		}
 	} else {
-		UT_FATAL("usage: %s <obj|blk|log|cto> <path>", argv[0]);
+		UT_FATAL("usage: %s <obj|blk|log> <path>", argv[0]);
 	}
 
 	DONE(NULL);

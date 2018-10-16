@@ -614,65 +614,6 @@ and facilitates access to persistent memory over RDMA.
 
 %endif # _with_fabric
 
-
-%package -n libpmemcto__PKG_NAME_SUFFIX__
-Summary: Close-to-Open Persistence library
-Group: __GROUP_SYS_LIBS__
-Requires: libpmem__PKG_NAME_SUFFIX__ >= %{version}-%{release}
-%description -n libpmemcto__PKG_NAME_SUFFIX__
-The libpmemcto library is a Persistent Memory allocator with no overhead
-imposed by run-time flushing or transactional updates.
-
-%files -n libpmemcto__PKG_NAME_SUFFIX__
-%defattr(-,root,root,-)
-%{_libdir}/libpmemcto.so.*
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
-%package -n libpmemcto-devel
-Summary: Development files for Close-to-Open Persistence library
-Group: __GROUP_DEV_LIBS__
-Requires: libpmemcto__PKG_NAME_SUFFIX__ = %{version}-%{release}
-Requires: libpmem-devel = %{version}-%{release}
-%description -n libpmemcto-devel
-The libpmemcto library is a Persistent Memory allocator with no overhead
-imposed by run-time flushing or transactional updates.
-
-%files -n libpmemcto-devel
-%defattr(-,root,root,-)
-%{_libdir}/libpmemcto.so
-%{_libdir}/pkgconfig/libpmemcto.pc
-%{_includedir}/libpmemcto.h
-%{_mandir}/man7/libpmemcto.7.gz
-%{_mandir}/man5/poolset.5.gz
-%{_mandir}/man3/pmemcto*.3.gz
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
-%package -n libpmemcto-debug
-Summary: Debug variant of the Close-to-Open Persistence library
-Group: __GROUP_DEV_LIBS__
-Requires: libpmemcto__PKG_NAME_SUFFIX__ = %{version}-%{release}
-%description -n libpmemcto-debug
-The libpmemcto library is a Persistent Memory allocator with no overhead
-imposed by run-time flushing or transactional updates.
-
-This sub-package contains debug variant of the library, providing
-run-time assertions and trace points. The typical way to access the
-debug version is to set the environment variable LD_LIBRARY_PATH to
-/usr/lib64/pmdk_debug.
-
-%files -n libpmemcto-debug
-%defattr(-,root,root,-)
-%dir %{_libdir}/pmdk_debug
-%{_libdir}/pmdk_debug/libpmemcto.so
-%{_libdir}/pmdk_debug/libpmemcto.so.*
-%license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
-
-
 %package -n pmempool
 Summary: Utilities for Persistent Memory
 Group: __GROUP_SYS_BASE__
@@ -681,7 +622,6 @@ Requires: libpmemlog__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmemblk__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmemobj__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Requires: libpmempool__PKG_NAME_SUFFIX__ >= %{version}-%{release}
-Requires: libpmemcto__PKG_NAME_SUFFIX__ >= %{version}-%{release}
 Obsoletes: nvml-tools < %{version}-%{release}
 %description -n pmempool
 The pmempool is a standalone utility for management and off-line analysis
@@ -794,8 +734,6 @@ __MAKE_INSTALL_FDUPES__
 %postun -n libvmmalloc__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %post   -n libpmempool__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n libpmempool__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
-%post   -n libpmemcto__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
-%postun -n libpmemcto__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 
 %if %{with fabric}
 %post   -n librpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig

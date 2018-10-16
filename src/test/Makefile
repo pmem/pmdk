@@ -281,7 +281,6 @@ VMMALLOC_TESTS = \
 EXAMPLES_TESTS = \
 	ex_libpmem\
 	ex_libpmemblk\
-	ex_libpmemcto\
 	ex_libpmemlog\
 	ex_libpmemobj\
 	ex_linkedlist
@@ -303,19 +302,6 @@ LIBPMEMPOOL_MOD_DEPS = \
 LIBPMEMPOOL_MOD_TESTS = \
 	libpmempool_transform
 
-CTO_TESTS = \
-	cto_aligned_alloc\
-	cto_basic\
-	cto_check_allocations\
-	cto_dirty\
-	cto_include\
-	cto_multiple_pools\
-	cto_pool\
-	cto_realloc_inplace\
-	cto_reopen\
-	cto_stats\
-	cto_valgrind
-
 DAXIO_TESTS = \
 	daxio
 
@@ -326,7 +312,6 @@ PMREORDER_TESTS = \
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
-	$(CTO_TESTS)\
 	$(LOG_TESTS)\
 	$(OTHER_TESTS)\
 	$(PMEM_TESTS)\

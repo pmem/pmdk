@@ -42,8 +42,6 @@ Available Libraries:
 
 - [​libpmemlog](http://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file.
 
-- [​libpmemcto](http://pmem.io/pmdk/libpmemcto/):  provides common malloc-like interfaces to persistent memory pools built on memory-mapped files, with no overhead imposed by run-time flushing or transactional updates.
-
 - [​libvmem](http://pmem.io/pmdk/libvmem/):  turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API.
 
 - [​libvmmalloc](http://pmem.io/pmdk/libvmmalloc/)<sup>1</sup>:  transparently converts all the dynamic memory allocations into persistent memory allocations.

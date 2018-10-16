@@ -33,8 +33,5 @@
     <None Include="trace_pmemobj_head0.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="trace_pmemcto_head0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

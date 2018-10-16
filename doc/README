@@ -24,7 +24,6 @@ libpmem -- low-level persistent memory support
 libpmemblk -- pmem-resident arrays of blocks
 libpmemlog -- pmem-resident log files
 libpmemobj -- transactional object store
-libpmemcto -- close-to-open persistence (EXPERIMENTAL)
 libvmem -- volatile memory allocation library
 libvmmalloc -- general purpose volatile memory allocation library
 libpmempool -- persistent memory pool management library

@@ -22,10 +22,6 @@ libpmemblk(7) -- pmem-resident arrays of blocks
     Example programs are in the libpmemblk directory.
     More documentation: http://pmem.io/pmdk/libpmemblk
 
-libpmemcto(7) -- close-to-open persistence
-    Example programs are in the libpmemcto directory.
-    More documentation: http://pmem.io/pmdk/libpmemcto
-
 libpmemlog(7) -- pmem-resident log files
     Example programs are in the libpmemlog directory.
     More documentation: http://pmem.io/pmdk/libpmemlog
@@ -39,7 +35,7 @@ libpmempool(7) -- pool management, diagnostics and repair
     More documentation: http://pmem.io/pmdk/libpmempool
 
 librpmem(7) -- remote access to persistent memory
-    Example programs are in the libpmemcto directory.
+    Example programs are in the librpmem directory.
     More documentation: http://pmem.io/pmdk/librpmem
 
 libvmem(7) -- volatile memory allocation library

@@ -400,34 +400,6 @@ Depends: libpmemlog (=\${binary:Version}), libpmem-dev,  \${shlibs:Depends}, \${
 Description: Development files for libpmemlog
  libpmemlog implements a pmem-resident log file.
 
-Package: libpmemcto
-Architecture: any
-Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: Persistent Memory allocator cto library
- The libpmemcto library is a persistent memory allocator providing malloc-like
- interfaces, with no overhead imposed by run-time flushing or transactional
- updates. An overhead is imposed only when program exits normally and have to
- flush the pool contents.
- .
- NOTE: This is an experimental API and should not be used in production
- environments.
-
-Package: libpmemcto-dev
-Section: libdevel
-Architecture: any
-Depends: libpmemcto (=\${binary:Version}), libpmem-dev, \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for libpmemcto
- The libpmemcto library is a persistent memory allocator providing malloc-like
- interfaces, with no overhead imposed by run-time flushing or transactional
- updates. An overhead is imposed only when program exits normally and have to
- flush the pool contents.
- .
- NOTE: This is an experimental API and should not be used in production
- environments.
- .
- This package contains libraries and header files used for linking programs
- against libpmemcto.
-
 Package: libpmemobj
 Architecture: any
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
@@ -519,7 +491,7 @@ Package: $PACKAGE_NAME-dbg
 Section: debug
 Priority: optional
 Architecture: any
-Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), libpmemcto (=\${binary:Version}), libpmempool (=\${binary:Version}), \${misc:Depends}
+Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), libpmempool (=\${binary:Version}), \${misc:Depends}
 Description: Debug symbols for PMDK libraries
  Debug symbols for all PMDK libraries.
 
@@ -707,43 +679,6 @@ hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
 # These are in /usr/lib/$arch/pmdk_dbg/, but still trigger ldconfig.
 # Related issue: https://github.com/pmem/issues/issues/841
 libpmemlog-dev: package-has-unnecessary-activation-of-ldconfig-trigger
-EOF
-
-cat << EOF > debian/libpmemcto.install
-$LIB_DIR/libpmemcto.so.*
-EOF
-
-cat << EOF > debian/libpmemcto.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-libpmemcto: package-name-doesnt-match-sonames
-EOF
-
-cat << EOF > debian/libpmemcto-dev.install
-$LIB_DIR/pmdk_debug/libpmemcto.a $LIB_DIR/pmdk_dbg/
-$LIB_DIR/pmdk_debug/libpmemcto.so $LIB_DIR/pmdk_dbg/
-$LIB_DIR/pmdk_debug/libpmemcto.so.* $LIB_DIR/pmdk_dbg/
-$LIB_DIR/libpmemcto.so
-$LIB_DIR/pkgconfig/libpmemcto.pc
-$INC_DIR/libpmemcto.h
-$MAN7_DIR/libpmemcto.7
-$MAN3_DIR/pmemcto*.3
-EOF
-
-cat << EOF > debian/libpmemcto-dev.lintian-overrides
-$ITP_BUG_EXCUSE
-new-package-should-close-itp-bug
-# The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
-postinst-has-useless-call-to-ldconfig
-postrm-has-useless-call-to-ldconfig
-# We do not want to compile with -O2 for debug version
-hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
-# pmdk provides second set of libraries for debugging.
-# These are in /usr/lib/$arch/pmdk_dbg/, but still trigger ldconfig.
-# Related issue: https://github.com/pmem/issues/issues/841
-libpmemcto-dev: package-has-unnecessary-activation-of-ldconfig-trigger
-
 EOF
 
 cat << EOF > debian/libpmemobj.install

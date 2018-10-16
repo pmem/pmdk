@@ -97,9 +97,6 @@
     <ClCompile Include="check_blk.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="check_cto.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="check_log.c">
       <Filter>Source Files</Filter>
     </ClCompile>

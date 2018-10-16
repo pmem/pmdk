@@ -54,7 +54,6 @@
 #include "output.h"
 #include "libpmemblk.h"
 #include "libpmemlog.h"
-#include "libpmemcto.h"
 #include "libpmempool.h"
 
 
@@ -124,7 +123,7 @@ static const char * const help_str =
 "Options for PMEMBLK:\n"
 "  -w, --write-layout force writing the BTT layout\n"
 "\n"
-"Options for PMEMOBJ and PMEMCTO:\n"
+"Options for PMEMOBJ:\n"
 "  -l, --layout <name>  layout name stored in pool's header\n"
 "\n"
 "For complete documentation see %s-create(1) manual page.\n"
@@ -141,8 +140,7 @@ static const struct option long_options[] = {
 	{"inherit",	required_argument,	NULL,	'i' | OPT_ALL},
 	{"mode",	required_argument,	NULL,	'm' | OPT_ALL},
 	{"write-layout", no_argument,		NULL,	'w' | OPT_BLK},
-	{"layout",	required_argument,	NULL,	'l' | OPT_OBJ |
-								OPT_CTO},
+	{"layout",	required_argument,	NULL,	'l' | OPT_OBJ},
 	{"force",	no_argument,		NULL,	'f' | OPT_ALL},
 	{"clearbadblocks", no_argument,		NULL,	'b' | OPT_ALL},
 	{NULL,		0,			NULL,	 0 },
@@ -154,7 +152,7 @@ static const struct option long_options[] = {
 static void
 print_usage(const char *appname)
 {
-	printf("Usage: %s create [<args>] <blk|log|obj|cto> [<bsize>] <file>\n",
+	printf("Usage: %s create [<args>] <blk|log|obj> [<bsize>] <file>\n",
 			appname);
 }
 
@@ -192,24 +190,6 @@ pmempool_create_obj(struct pmempool_create *pcp)
 	}
 
 	pmemobj_close(pop);
-
-	return 0;
-}
-
-/*
- * pmempool_create_cto -- create pmem cto pool
- */
-static int
-pmempool_create_cto(struct pmempool_create *pcp)
-{
-	PMEMctopool *ptp = pmemcto_create(pcp->fname, pcp->layout,
-			pcp->params.size, pcp->params.mode);
-	if (!ptp) {
-		outv_err("'%s' -- %s\n", pcp->fname, pmemcto_errormsg());
-		return -1;
-	}
-
-	pmemcto_close(ptp);
 
 	return 0;
 }
@@ -339,9 +319,6 @@ print_pool_params(struct pmem_pool_params *params)
 		break;
 	case PMEM_POOL_TYPE_OBJ:
 		outv(1, "\tlayout: '%s'\n", params->obj.layout);
-		break;
-	case PMEM_POOL_TYPE_CTO:
-		outv(1, "\tlayout: '%s'\n", params->cto.layout);
 		break;
 	default:
 		break;
@@ -560,8 +537,7 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 		return -1;
 	}
 
-	size_t max_layout = pc.params.type == PMEM_POOL_TYPE_OBJ ?
-			PMEMOBJ_MAX_LAYOUT : PMEMCTO_MAX_LAYOUT;
+	size_t max_layout = PMEMOBJ_MAX_LAYOUT;
 
 	if (pc.layout && strlen(pc.layout) >= max_layout) {
 		outv_err("Layout name is to long, maximum number of characters"
@@ -591,18 +567,6 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 				strncpy(pc.params.obj.layout, pc.layout,
 						len - 1);
 				pc.params.obj.layout[len - 1] = '\0';
-			}
-			break;
-		case PMEM_POOL_TYPE_CTO:
-			if (!pc.layout) {
-				memcpy(pc.params.cto.layout,
-					pc.inherit_params.cto.layout,
-					sizeof(pc.params.cto.layout));
-			} else {
-				size_t len = sizeof(pc.params.cto.layout);
-				strncpy(pc.params.cto.layout, pc.layout,
-						len - 1);
-				pc.params.cto.layout[len - 1] = '\0';
 			}
 			break;
 		default:
@@ -670,9 +634,6 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 		break;
 	case PMEM_POOL_TYPE_OBJ:
 		ret = pmempool_create_obj(&pc);
-		break;
-	case PMEM_POOL_TYPE_CTO:
-		ret = pmempool_create_cto(&pc);
 		break;
 	default:
 		ret = -1;

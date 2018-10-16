@@ -88,7 +88,6 @@
 #include <libpmemblk.h>
 #include <libpmemlog.h>
 #include <libpmemobj.h>
-#include <libpmemcto.h>
 #include <libpmempool.h>
 #include <libvmem.h>
 

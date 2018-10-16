@@ -51,7 +51,6 @@ print_errors(const char *msg)
 	UT_OUT("PMEMOBJ: %s", pmemobj_errormsg());
 	UT_OUT("PMEMLOG: %s", pmemlog_errormsg());
 	UT_OUT("PMEMBLK: %s", pmemblk_errormsg());
-	UT_OUT("PMEMCTO: %s", pmemcto_errormsg());
 	UT_OUT("VMEM: %s", vmem_errormsg());
 	UT_OUT("PMEMPOOL: %s", pmempool_errormsg());
 }
@@ -91,13 +90,6 @@ check_errors(unsigned ver)
 	UT_ASSERTeq(err_need, ver);
 	UT_ASSERTeq(err_found, PMEMBLK_MAJOR_VERSION);
 
-	ret = sscanf(pmemcto_errormsg(),
-		"libpmemcto major version mismatch (need %d, found %d)",
-		&err_need, &err_found);
-	UT_ASSERTeq(ret, 2);
-	UT_ASSERTeq(err_need, ver);
-	UT_ASSERTeq(err_found, PMEMCTO_MAJOR_VERSION);
-
 	ret = sscanf(vmem_errormsg(),
 		"libvmem major version mismatch (need %d, found %d)",
 		&err_need, &err_found);
@@ -122,7 +114,6 @@ do_test(void *arg)
 	pmemobj_check_version(ver, 0);
 	pmemlog_check_version(ver, 0);
 	pmemblk_check_version(ver, 0);
-	pmemcto_check_version(ver, 0);
 	vmem_check_version(ver, 0);
 	pmempool_check_version(ver, 0);
 	check_errors(ver);
@@ -162,8 +153,6 @@ main(int argc, char *argv[])
 		PMEMLOG_MIN_POOL, 0666);
 	PMEMblkpool *pbp = pmemblk_create(argv[3],
 		128, PMEMBLK_MIN_POOL, 0666);
-	PMEMctopool *pcp = pmemcto_create(argv[4], "test",
-		PMEMCTO_MIN_POOL, 0666);
 	VMEM *vmp = vmem_create(argv[5], VMEM_MIN_POOL);
 
 	util_init();
@@ -172,7 +161,6 @@ main(int argc, char *argv[])
 	pmemobj_check_version(10001, 0);
 	pmemlog_check_version(10002, 0);
 	pmemblk_check_version(10003, 0);
-	pmemcto_check_version(10004, 0);
 	vmem_check_version(10005, 0);
 	pmempool_check_version(10006, 0);
 	print_errors("version check");
@@ -200,10 +188,6 @@ main(int argc, char *argv[])
 	pmemblk_set_error(pbp, (long long)nblock + 1);
 	print_errors("pmemblk_set_error");
 
-	ret = pmemcto_check(argv[4], "xxx");
-	UT_ASSERTeq(ret, -1);
-	print_errors("pmemcto_check");
-
 	VMEM *vmp2 = vmem_create_in_region(NULL, 1);
 	UT_ASSERTeq(vmp2, NULL);
 	print_errors("vmem_create_in_region");
@@ -213,7 +197,6 @@ main(int argc, char *argv[])
 	pmemobj_close(pop);
 	pmemlog_close(plp);
 	pmemblk_close(pbp);
-	pmemcto_close(pcp);
 	vmem_delete(vmp);
 
 	PMEMpoolcheck *ppc;

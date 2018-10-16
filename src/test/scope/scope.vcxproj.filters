@@ -53,11 +53,5 @@
     <None Include="TEST6w.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="TEST7w.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="out7w.log.match">
-      <Filter>Match Files</Filter>
-    </None>
   </ItemGroup>
 </Project>

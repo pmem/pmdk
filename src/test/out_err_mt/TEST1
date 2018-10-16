@@ -52,7 +52,6 @@ unset PMEMBLK_LOG_LEVEL
 unset PMEMOBJ_LOG_LEVEL
 unset VMEM_LOG_LEVEL
 unset PMEMPOOL_LOG_LEVEL
-unset PMEMCTO_LOG_LEVEL
 
 unset PMEM_LOG_FILE
 unset PMEMLOG_LOG_FILE
@@ -60,7 +59,6 @@ unset PMEMBLK_LOG_FILE
 unset PMEMOBJ_LOG_FILE
 unset VMEM_LOG_FILE
 unset PMEMPOOL_LOG_FILE
-unset PMEMCTO_LOG_FILE
 
 expect_normal_exit ./out_err_mt$EXESUFFIX $DIR/testfile1\
 		$DIR/testfile2 $DIR/testfile3 $DIR/testfile4 $DIR

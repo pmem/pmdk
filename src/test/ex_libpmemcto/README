@@ -1,7 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/ex_libpmemcto/README.
-
-This directory contains unit tests for libpmemcto examples.
-
-The unit tests utilizes examples from src/examples/libpmemcto directory.

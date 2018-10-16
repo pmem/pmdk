@@ -299,5 +299,5 @@ recommended by the SNIA NVM Programming Technical Work Group:
 
 **dlclose**(3), **pmempool_check_init**(3), **pmempool_feature_query**(3),
 **pmempool_rm**(3), **pmempool_sync**(3), **strerror**(3), **libpmem**(7),
-**libpmemblk**(7), **libpmemcto**(7), **libpmemlog**(7), **libpmemobj**(7)**
+**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)**
 and **<http://pmem.io>**

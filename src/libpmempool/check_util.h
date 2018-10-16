@@ -141,7 +141,6 @@ void check_pool_hdr_uuids(PMEMpoolcheck *ppc);
 void check_sds(PMEMpoolcheck *ppc);
 void check_log(PMEMpoolcheck *ppc);
 void check_blk(PMEMpoolcheck *ppc);
-void check_cto(PMEMpoolcheck *ppc);
 void check_btt_info(PMEMpoolcheck *ppc);
 void check_btt_map_flog(PMEMpoolcheck *ppc);
 void check_write(PMEMpoolcheck *ppc);
