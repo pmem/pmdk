@@ -3370,3 +3370,14 @@ _pobj_debug_notice(const char *api_name, const char *file, int line)
 	}
 #endif /* DEBUG */
 }
+
+#if VG_PMEMCHECK_ENABLED
+/*
+ * pobj_emit_log -- logs library and function names to pmemcheck store log
+ */
+void
+pobj_emit_log(const char *func, int order)
+{
+	util_emit_log("libpmemobj", func, order);
+}
+#endif
