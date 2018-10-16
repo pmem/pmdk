@@ -42,18 +42,6 @@ to a log file.
 
 See the [libpmemlog page](libpmemlog) for documentation and examples.
 
-#### libpmemcto
-
-The **libpmemcto** provides common malloc-like interfaces to persistent
-memory pools built on memory-mapped files, with no overhead imposed
-by run-time flushing or transactional updates.
-
->NOTE:
-This is still an **experimental API** and should not be used in production
-environments.
-
-See the [libpmemcto page](libpmemcto) for documentation and examples.
-
 #### libpmem
 
 The **libpmem** library provides low level persistent memory support.
