@@ -69,14 +69,14 @@ RECOVERY_FILE_P1=$DIR/${POOLSET_LOCAL}_r0_p1_badblocks.txt
 RECOVERY_FILE_P2=$DIR/${POOLSET_LOCAL}_r0_p2_badblocks.txt
 
 create_poolset $DIR/$POOLSET_LOCAL \
-	10M:${NODE_DIR[0]}/pool.local.part.0:x \
-	10M:${NODE_DIR[0]}/pool.local.part.1:x \
-	10M:${NODE_DIR[0]}/pool.local.part.2:x \
+	8M:${NODE_DIR[0]}/pool.local.part.0:x \
+	8M:${NODE_DIR[0]}/pool.local.part.1:x \
+	8M:${NODE_DIR[0]}/pool.local.part.2:x \
 	M \
 	${NODE_ADDR[1]}:$POOLSET_REMOTE
 
 create_poolset $DIR/$POOLSET_REMOTE \
-	30M:${NODE_DIR[1]}/pool.remote:x
+	24M:${NODE_DIR[1]}/pool.remote:x
 
 # create the recovery files
 create_recovery_file $RECOVERY_FILE_P0
@@ -97,9 +97,9 @@ expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LA
 # and enable this compat feature on all nodes separately.
 
 create_poolset $DIR/${POOLSET_LOCAL}_aux \
-	10M:${NODE_DIR[0]}/pool.local.part.0:x \
-	10M:${NODE_DIR[0]}/pool.local.part.1:x \
-	10M:${NODE_DIR[0]}/pool.local.part.2:x
+	8M:${NODE_DIR[0]}/pool.local.part.0:x \
+	8M:${NODE_DIR[0]}/pool.local.part.1:x \
+	8M:${NODE_DIR[0]}/pool.local.part.2:x
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/${POOLSET_LOCAL}_aux
 

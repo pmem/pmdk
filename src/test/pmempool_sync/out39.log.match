@@ -10,23 +10,23 @@ Replica 0 (master) - local, 3 part(s):
 part 0:
 path                     : $(nW)/testfile0
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 part 1:
 path                     : $(nW)/mnt-pmem/testfile1
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 bad blocks:
 	offset		length
 	1000		2
 part 2:
 path                     : $(nW)/testfile2
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile3
 type                     : regular file
-size                     : 31457280
+size                     : $(N)
 
 POOL Header:
 Signature                : PMEMOBJ
@@ -80,20 +80,20 @@ Replica 0 (master) - local, 3 part(s):
 part 0:
 path                     : $(nW)/testfile0
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 part 1:
 path                     : $(nW)/mnt-pmem/testfile1
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 part 2:
 path                     : $(nW)/testfile2
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile3
 type                     : regular file
-size                     : 31457280
+size                     : $(N)
 
 POOL Header:
 Signature                : PMEMOBJ

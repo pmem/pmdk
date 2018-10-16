@@ -60,11 +60,18 @@ LOG=out${UNITTEST_NUM}.log
 rm -rf $LOG && touch $LOG
 
 POOLSET=$DIR/testset1
-create_poolset $POOLSET 10M:$DIR/testfile_r0_p0:z 10M:$DIR/testfile_r0_p1:z 10M:$DIR/testfile_r0_p2:z \
-			R \
-			10M:$DIR/testfile_r1_p0:z 10M:$DIR/testfile_r1_p1:z 10M:$DIR/testfile_r1_p2:z \
-			R \
-			10M:$DIR/testfile_r2_p0:z 10M:$DIR/testfile_r2_p1:z 10M:$DIR/testfile_r2_p2:z
+create_poolset $POOLSET \
+	8M:$DIR/testfile_r0_p0:z \
+	8M:$DIR/testfile_r0_p1:z \
+	8M:$DIR/testfile_r0_p2:z \
+	R \
+	8M:$DIR/testfile_r1_p0:z \
+	8M:$DIR/testfile_r1_p1:z \
+	8M:$DIR/testfile_r1_p2:z \
+	R \
+	8M:$DIR/testfile_r2_p0:z \
+	8M:$DIR/testfile_r2_p1:z \
+	8M:$DIR/testfile_r2_p2:z
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
