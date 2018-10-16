@@ -55,6 +55,9 @@ NON_PMEM_FS_DIR=/tmp
 # those devices in an array format. For most tests one device is enough, but
 # some might require more.
 #
+# To test full code paths (not only mocked) in tests that require 'deep_flush' file
+# in '/sys/bus/nd/devices/regionX', set write access to that file.
+#
 #DEVICE_DAX_PATH=(/dev/dax0.0)
 
 #
