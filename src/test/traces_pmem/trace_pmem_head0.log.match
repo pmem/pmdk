@@ -1,0 +1,3 @@
+<libpmem>: <$(N)> [out.c:$(N) $(*)] pid $(N): program: $(*)
+<libpmem>: <$(N)> [out.c:$(N) $(*)] libpmem version $(N).$(N)
+<libpmem>: <$(N)> [out.c:$(N) $(*)] src version: $(*)

@@ -21,19 +21,19 @@
     <None Include="TEST0.PS1">
       <Filter>Test scripts</Filter>
     </None>
-    <None Include="trace_pmem0.log.match">
+    <None Include="trace_pmem_head0.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="trace_pmemblk0.log.match">
+    <None Include="trace_pmemblk_head0.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="trace_pmemlog0.log.match">
+    <None Include="trace_pmemlog_head0.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="trace_pmemobj0.log.match">
+    <None Include="trace_pmemobj_head0.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="trace_pmemcto0.log.match">
+    <None Include="trace_pmemcto_head0.log.match">
       <Filter>Match Files</Filter>
     </None>
   </ItemGroup>
