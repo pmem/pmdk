@@ -41,6 +41,7 @@ set features)
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [COMPATIBILITY](#compatibility)<br />
+[DISCLAIMER](#disclaimer)<br />
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
@@ -100,8 +101,13 @@ pointed by *path*.
 
 # COMPATIBILITY #
 
-Pool sets with features not defined in this document (e.g. enabled by the newer
+Poolsets with features not defined in this document (e.g. enabled by the newer
 software version) are not supported.
+
+# DISCLAIMER #
+
+**pmempool_feature_query**(), **pmempool_feature_enable**() and
+**pmempool_feature_disable**() are not fail safe.
 
 # RETURN VALUE #
 
@@ -113,6 +119,9 @@ and sets *errno* accordingly.
 
 On success, **pmempool_feature_disable**() returns 0. On error, it returns -1
 and sets *errno* accordingly.
+
+If *path* points poolset with remote replica **errno** is set to EINVAL and
+function returns -1.
 
 If non zero *flags* are provided **errno** is set to EINVAL and function
 returns -1.
