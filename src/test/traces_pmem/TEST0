@@ -58,6 +58,15 @@ export PMEMCTO_LOG_FILE=./trace_pmemcto$UNITTEST_NUM.log
 
 expect_normal_exit ./traces_pmem$EXESUFFIX
 
+# We want to check if traces are enabled and correctness of printed
+# string format. We can't rely on full output (because of different
+# machines configurations), hence comparison of only first 3 lines.
+head -n 3 $PMEM_LOG_FILE > ./trace_pmem_head$UNITTEST_NUM.log
+head -n 3 $PMEMBLK_LOG_FILE > ./trace_pmemblk_head$UNITTEST_NUM.log
+head -n 3 $PMEMLOG_LOG_FILE > ./trace_pmemlog_head$UNITTEST_NUM.log
+head -n 3 $PMEMOBJ_LOG_FILE > ./trace_pmemobj_head$UNITTEST_NUM.log
+head -n 3 $PMEMCTO_LOG_FILE > ./trace_pmemcto_head$UNITTEST_NUM.log
+
 check
 
 pass
