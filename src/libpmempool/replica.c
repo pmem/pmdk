@@ -2419,6 +2419,7 @@ pmempool_transformU(const char *poolset_src,
 	/* check if the source poolset is of a correct type */
 	enum pool_type ptype = pool_set_type(set_in);
 	if (ptype != POOL_TYPE_OBJ) {
+		errno = EINVAL;
 		ERR("transform is not supported for given pool type: %s",
 				pool_get_pool_type_str(ptype));
 		goto err_free_poolout;
