@@ -1,3 +1,0 @@
-cto_valgrind/TEST1: START: cto_valgrind
- ./cto_valgrind $(*)testfile 1
-free after close

@@ -51,8 +51,6 @@ $Env:PMEMLOG_LOG_LEVEL = 4
 $Env:PMEMLOG_LOG_FILE = ".\trace_pmemlog$Env:UNITTEST_NUM.log"
 $Env:PMEMOBJ_LOG_LEVEL = 4
 $Env:PMEMOBJ_LOG_FILE = ".\trace_pmemobj$Env:UNITTEST_NUM.log"
-$Env:PMEMCTO_LOG_LEVEL = 4
-$Env:PMEMCTO_LOG_FILE = ".\trace_pmemcto$Env:UNITTEST_NUM.log"
 
 expect_normal_exit $Env:EXE_DIR\traces_pmem$Env:EXESUFFIX
 
@@ -63,7 +61,6 @@ Get-Content $Env:PMEM_LOG_FILE -TotalCount 3 | Set-Content ./trace_pmem_head$Env
 Get-Content $Env:PMEMBLK_LOG_FILE -TotalCount 3 | Set-Content ./trace_pmemblk_head$Env:UNITTEST_NUM.log
 Get-Content $Env:PMEMLOG_LOG_FILE -TotalCount 3 | Set-Content ./trace_pmemlog_head$Env:UNITTEST_NUM.log
 Get-Content $Env:PMEMOBJ_LOG_FILE -TotalCount 3 | Set-Content ./trace_pmemobj_head$Env:UNITTEST_NUM.log
-Get-Content $Env:PMEMCTO_LOG_FILE -TotalCount 3 | Set-Content ./trace_pmemcto_head$Env:UNITTEST_NUM.log
 
 check
 

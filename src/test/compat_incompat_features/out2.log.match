@@ -22,11 +22,3 @@ compat_incompat_features/TEST2: START: compat_incompat_features
  $(nW)pool_open$(nW) log $(nW)pool.set
 compat_incompat_features/TEST2: START: compat_incompat_features
  $(nW)pool_open$(nW) log $(nW)pool.set
-compat_incompat_features/TEST2: START: compat_incompat_features
- $(nW)pool_open$(nW) cto $(nW)pool.set
-compat_incompat_features/TEST2: START: compat_incompat_features
- $(nW)pool_open$(nW) cto $(nW)pool.set
-compat_incompat_features/TEST2: START: compat_incompat_features
- $(nW)pool_open$(nW) cto $(nW)pool.set
-compat_incompat_features/TEST2: START: compat_incompat_features
- $(nW)pool_open$(nW) cto $(nW)pool.set

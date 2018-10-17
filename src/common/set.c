@@ -3393,10 +3393,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 	size_t hdrsize = (set->options & (OPTION_SINGLEHDR | OPTION_NOHDRS)) ?
 			0 : Mmap_align;
 	struct pool_replica *rep = set->replica[repidx];
-	void *addr = rep->mapaddr;
-
-	/* mapaddr can be set for master replica only */
-	ASSERT(repidx == 0 || addr == NULL);
+	void *addr = NULL;
 
 	do {
 		retry_for_contiguous_addr = 0;
@@ -3944,9 +3941,6 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 		LOG(2, "cannot open pool set -- '%s'", path);
 		return -1;
 	}
-
-	/* configure base mapping address for master replica */
-	(*setp)->replica[0]->mapaddr = addr;
 
 	if (cow && (*setp)->replica[0]->part[0].is_dev_dax) {
 		ERR("device dax cannot be mapped privately");

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,7 +51,6 @@ print_errors(const wchar_t *msg)
 	UT_OUT("PMEMOBJ: %S", pmemobj_errormsgW());
 	UT_OUT("PMEMLOG: %S", pmemlog_errormsgW());
 	UT_OUT("PMEMBLK: %S", pmemblk_errormsgW());
-	UT_OUT("PMEMCTO: %S", pmemcto_errormsgW());
 	UT_OUT("VMEM: %S", vmem_errormsgW());
 	UT_OUT("PMEMPOOL: %S", pmempool_errormsgW());
 }
@@ -91,13 +90,6 @@ check_errors(int ver)
 	UT_ASSERTeq(err_need, ver);
 	UT_ASSERTeq(err_found, PMEMBLK_MAJOR_VERSION);
 
-	ret = swscanf(pmemcto_errormsgW(),
-		L"libpmemcto major version mismatch (need %d, found %d)",
-		&err_need, &err_found);
-	UT_ASSERTeq(ret, 2);
-	UT_ASSERTeq(err_need, ver);
-	UT_ASSERTeq(err_found, PMEMCTO_MAJOR_VERSION);
-
 	ret = swscanf(vmem_errormsgW(),
 		L"libvmem major version mismatch (need %d, found %d)",
 		&err_need, &err_found);
@@ -122,7 +114,6 @@ do_test(void *arg)
 	pmemobj_check_version(ver, 0);
 	pmemlog_check_version(ver, 0);
 	pmemblk_check_version(ver, 0);
-	pmemcto_check_version(ver, 0);
 	vmem_check_version(ver, 0);
 	pmempool_check_version(ver, 0);
 	check_errors(ver);
@@ -162,8 +153,6 @@ wmain(int argc, wchar_t *argv[])
 		PMEMLOG_MIN_POOL, 0666);
 	PMEMblkpool *pbp = pmemblk_createW(argv[3],
 		128, PMEMBLK_MIN_POOL, 0666);
-	PMEMctopool *pcp = pmemcto_createW(argv[4], L"test",
-		PMEMCTO_MIN_POOL, 0666);
 	VMEM *vmp = vmem_createW(argv[5], VMEM_MIN_POOL);
 
 	util_init();
@@ -172,7 +161,6 @@ wmain(int argc, wchar_t *argv[])
 	pmemobj_check_version(10001, 0);
 	pmemlog_check_version(10002, 0);
 	pmemblk_check_version(10003, 0);
-	pmemcto_check_version(10004, 0);
 	vmem_check_version(10005, 0);
 	pmempool_check_version(10006, 0);
 	print_errors(L"version check");
@@ -200,10 +188,6 @@ wmain(int argc, wchar_t *argv[])
 	pmemblk_set_error(pbp, nblock + 1);
 	print_errors(L"pmemblk_set_error");
 
-	char dummy[8192 + 64] = { 0 };
-	pmemcto_close((PMEMctopool *)&dummy);
-	print_errors(L"pmemcto_check");
-
 	VMEM *vmp2 = vmem_create_in_region(NULL, 1);
 	UT_ASSERTeq(vmp2, NULL);
 	print_errors(L"vmem_create_in_region");
@@ -213,7 +197,6 @@ wmain(int argc, wchar_t *argv[])
 	pmemobj_close(pop);
 	pmemlog_close(plp);
 	pmemblk_close(pbp);
-	pmemcto_close(pcp);
 	vmem_delete(vmp);
 
 	PMEMpoolcheck *ppc;

@@ -38,7 +38,7 @@ include ../src/common.inc
 
 MANPAGES_7_MD = libpmem/libpmem.7.md libpmemblk/libpmemblk.7.md libpmemlog/libpmemlog.7.md \
 		libpmemobj/libpmemobj.7.md libpmempool/libpmempool.7.md libvmem/libvmem.7.md \
-		libvmmalloc/libvmmalloc.7.md libpmemcto/libpmemcto.7.md
+		libvmmalloc/libvmmalloc.7.md
 
 MANPAGES_5_MD = poolset/poolset.5.md pmem_ctl/pmem_ctl.5.md
 
@@ -50,13 +50,7 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
 		libpmemobj/pmemobj_tx_alloc.3.md libpmemobj/pobj_layout_begin.3.md libpmemobj/pobj_list_head.3.md libpmemobj/toid_declare.3.md \
 		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_feature_query.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md \
-		libvmem/vmem_create.3.md libvmem/vmem_malloc.3.md \
-		libpmemcto/pmemcto_open.3.md \
-		libpmemcto/pmemcto_malloc.3.md libpmemcto/pmemcto_aligned_alloc.3.md \
-		libpmemcto/pmemcto_strdup.3.md libpmemcto/pmemcto_wcsdup.3.md \
-		libpmemcto/pmemcto_set_root_pointer.3.md \
-		libpmemcto/pmemcto_malloc_usable_size.3.md \
-		libpmemcto/pmemcto_stats_print.3.md
+		libvmem/vmem_create.3.md libvmem/vmem_malloc.3.md
 
 
 MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmempool-create.1.md \
@@ -114,12 +108,7 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmemobj_next.3 pobj_first_type_num.3 pobj_first.3 pobj_next_type_num.3 pobj_next.3 pobj_foreach.3 pobj_foreach_safe.3 pobj_foreach_type.3 pobj_foreach_safe_type.3 \
 		   pmemobj_root_construct.3 pobj_root.3 pmemobj_root_size.3 \
 		   pmemobj_check_version.3 pmemobj_check.3 pmemobj_errormsg.3 pmemobj_set_funcs.3 \
-		   pmemobj_reserve.3 pmemobj_xreserve.3 pmemobj_defer_free.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3 pobj_xreserve_new.3 pobj_xreserve_alloc.3 \
-		   pmemcto_close.3 pmemcto_create.3 \
-		   pmemcto_check.3 \
-		   pmemcto_calloc.3 pmemcto_realloc.3 pmemcto_free.3 \
-		   pmemcto_get_root_pointer.3 \
-		   pmemcto_check_version.3 pmemcto_set_funcs.3 pmemcto_errormsg.3
+		   pmemobj_reserve.3 pmemobj_xreserve.3 pmemobj_defer_free.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3 pobj_xreserve_new.3 pobj_xreserve_alloc.3
 
 
 MANPAGES_BUILDDIR = generated

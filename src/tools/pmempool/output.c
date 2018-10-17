@@ -603,8 +603,6 @@ out_get_pool_type_str(pmem_pool_type_t type)
 		return "obj";
 	case PMEM_POOL_TYPE_BTT:
 		return "btt";
-	case PMEM_POOL_TYPE_CTO:
-		return "cto";
 	default:
 		return "unknown";
 	}
@@ -623,8 +621,6 @@ out_get_pool_signature(pmem_pool_type_t type)
 		return BLK_HDR_SIG;
 	case PMEM_POOL_TYPE_OBJ:
 		return OBJ_HDR_SIG;
-	case PMEM_POOL_TYPE_CTO:
-		return CTO_HDR_SIG;
 	default:
 		return NULL;
 	}

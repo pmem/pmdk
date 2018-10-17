@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,8 +49,6 @@ main(int argc, char *argv[])
 				PMEMLOG_MINOR_VERSION));
 	UT_ASSERT(!pmemobj_check_version(PMEMOBJ_MAJOR_VERSION,
 				PMEMOBJ_MINOR_VERSION));
-	UT_ASSERT(!pmemcto_check_version(PMEMCTO_MAJOR_VERSION,
-				PMEMCTO_MINOR_VERSION));
 
 	DONE(NULL);
 }

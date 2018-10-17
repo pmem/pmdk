@@ -41,14 +41,12 @@
 #include <sys/types.h>
 
 #include "libpmemobj.h"
-#include "libpmemcto.h"
 
 #include "queue.h"
 #include "set.h"
 #include "log.h"
 #include "blk.h"
 #include "btt_layout.h"
-#include "cto.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -60,10 +58,9 @@ enum pool_type {
 	POOL_TYPE_BLK		= (1 << 2),
 	POOL_TYPE_OBJ		= (1 << 3),
 	POOL_TYPE_BTT		= (1 << 4),
-	POOL_TYPE_CTO		= (1 << 5),
 
 	POOL_TYPE_ANY		= POOL_TYPE_UNKNOWN | POOL_TYPE_LOG |
-		POOL_TYPE_BLK | POOL_TYPE_OBJ | POOL_TYPE_BTT | POOL_TYPE_CTO,
+		POOL_TYPE_BLK | POOL_TYPE_OBJ | POOL_TYPE_BTT,
 };
 
 struct pool_params {
@@ -83,9 +80,6 @@ struct pool_params {
 		struct {
 			char layout[PMEMOBJ_MAX_LAYOUT];
 		} obj;
-		struct {
-			char layout[PMEMCTO_MAX_LAYOUT];
-		} cto;
 	};
 };
 
@@ -120,7 +114,6 @@ struct pool_data {
 		struct pool_hdr pool;
 		struct pmemlog log;
 		struct pmemblk blk;
-		struct pmemcto cto;
 	} hdr;
 	enum {
 		UUID_NOP = 0,

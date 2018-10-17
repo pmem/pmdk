@@ -36,13 +36,13 @@ TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 
 TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
-		  libpmemcto libvmmalloc tools
+		  libvmmalloc tools
 ALL_TARGETS = $(TARGETS) common librpmem examples benchmarks
 
 SCOPE_DIRS = $(TARGETS) common librpmem rpmem_common
 
 DEBUG_RELEASE_TARGETS = common libpmem libvmem libpmemblk libpmemlog libpmemobj\
-	libpmempool libvmmalloc librpmem libpmemcto
+	libpmempool libvmmalloc librpmem
 RELEASE_TARGETS = tools examples benchmarks
 
 CLEAN_NO_JE_TARGETS = $(ALL_TARGETS) rpmem_common test
@@ -57,14 +57,14 @@ HEADERS_DESTDIR = $(DESTDIR)$(includedir)
 HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
 		include/libpmemobj.h include/libpmempool.h\
 		include/libpmemblk.h include/libpmemlog.h\
-		include/libvmmalloc.h include/libpmemcto.h
+		include/libvmmalloc.h
 
 OBJ_HEADERS_INSTALL = include/libpmemobj/*.h
 
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
 PKG_CONFIG_COMMON = common.pc
 PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc libpmemobj.pc\
-		libpmemlog.pc libpmemblk.pc libpmempool.pc libpmemcto.pc
+		libpmemlog.pc libpmemblk.pc libpmempool.pc
 PMREORDER_BIN = $(DESTDIR)$(bindir)
 PMREORDER_SRC = tools/pmreorder
 PMREORDER_FILES = $(PMREORDER_SRC)/*.py
@@ -86,16 +86,12 @@ SCOPE_HDR_DIRS = $(SCOPE_DIRS) include jemalloc/src\
 		jemalloc/include/jemalloc/internal\
 		debug/libvmem/jemalloc/include/jemalloc\
 		debug/libvmmalloc/jemalloc/include/jemalloc\
-		debug/libpmemcto/jemalloc/include/jemalloc\
 		debug/libvmem/jemalloc/include/jemalloc/internal\
 		debug/libvmmalloc/jemalloc/include/jemalloc/internal\
-		debug/libpmemcto/jemalloc/include/jemalloc/internal\
 		nondebug/libvmem/jemalloc/include/jemalloc\
 		nondebug/libvmmalloc/jemalloc/include/jemalloc\
-		nondebug/libpmemcto/jemalloc/include/jemalloc\
 		nondebug/libvmem/jemalloc/include/jemalloc/internal\
-		nondebug/libvmmalloc/jemalloc/include/jemalloc/internal\
-		nondebug/libpmemcto/jemalloc/include/jemalloc/internal
+		nondebug/libvmmalloc/jemalloc/include/jemalloc/internal
 
 SCOPE_SRC_FILES = $(foreach d, $(SCOPE_SRC_DIRS), $(wildcard $(d)/*.c))
 SCOPE_HDR_FILES = $(foreach d, $(SCOPE_HDR_DIRS), $(wildcard $(D)/*.h))
@@ -137,9 +133,9 @@ sparse: $(SPARSE_TARGETS:=-sparse)
 
 custom_build = $(DEBUG)$(OBJDIR)
 
-libvmmalloc libvmem libpmemcto: jemalloc
-tools: libpmem libpmemblk libpmemlog libpmemobj libpmemcto
-libpmemblk libpmemlog libpmemobj libpmemcto: libpmem
+libvmmalloc libvmem: jemalloc
+tools: libpmem libpmemblk libpmemlog libpmemobj
+libpmemblk libpmemlog libpmemobj: libpmem
 benchmarks test tools: common
 
 pkg-cfg-common:
@@ -185,11 +181,9 @@ check-remote: test
 jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
 	$(MAKE) -C jemalloc -f Makefile.libvmem     $@ EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common"
 	$(MAKE) -C jemalloc -f Makefile.libvmmalloc $@ EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common"
-	$(MAKE) -C jemalloc -f Makefile.libpmemcto  $@ EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common"
 ifeq ($(custom_build),)
 	$(MAKE) -C jemalloc -f Makefile.libvmem     $@ DEBUG=1 EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common"
 	$(MAKE) -C jemalloc -f Makefile.libvmmalloc $@ DEBUG=1 EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common"
-	$(MAKE) -C jemalloc -f Makefile.libpmemcto  $@ DEBUG=1 EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common"
 endif
 
 # Re-generate pkg-config files on 'make install' (not on 'make all'),
@@ -235,7 +229,7 @@ clean: clean-here
 
 clobber: clean-here
 
-.NOTPARALLEL: libvmem libvmmalloc libpmemcto
+.NOTPARALLEL: libvmem libvmmalloc
 
 .PHONY: all install uninstall clean clobber cstyle format test check pcheck\
 	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)\

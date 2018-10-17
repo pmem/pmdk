@@ -62,7 +62,6 @@
     <ClCompile Include="check_blk.c" />
     <ClCompile Include="check_btt_info.c" />
     <ClCompile Include="check_btt_map_flog.c" />
-    <ClCompile Include="check_cto.c" />
     <ClCompile Include="check_log.c" />
     <ClCompile Include="check_pool_hdr.c" />
     <ClCompile Include="check_sds.c" />
@@ -83,9 +82,6 @@
   <ItemGroup>
     <ProjectReference Include="..\libpmemblk\libpmemblk.vcxproj">
       <Project>{f7c6c6b6-4142-4c82-8699-4a9d8183181b}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\libpmemcto\libpmemcto.vcxproj">
-      <Project>{1ba340ec-b0b2-438d-a47c-27f86f604133}</Project>
     </ProjectReference>
     <ProjectReference Include="..\libpmemlog\libpmemlog.vcxproj">
       <Project>{0b1818eb-bdc8-4865-964f-db8bf05cfd86}</Project>
@@ -138,12 +134,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemcto;$(SolutionDir)\libpmemlog;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemlog;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemcto;$(SolutionDir)\libpmemlog;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemlog;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

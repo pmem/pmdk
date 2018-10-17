@@ -45,14 +45,13 @@ touch $ERR_TEMP
 $LAYOUT = "OBJ_LAYOUT${Env:SUFFIX}"
 $POOLSET = "$DIR\pool.set"
 
-$POOL_TYPES = "obj", "blk", "log", "cto"
+$POOL_TYPES = "obj", "blk", "log"
 
 # pmempool create arguments:
 $create_args = @{}
 $create_args.obj = @("obj", "$POOLSET")
 $create_args.blk = @("blk", "512", "$POOLSET")
 $create_args.log = @("log", "$POOLSET")
-$create_args.cto = @("cto", "$POOLSET")
 
 # Known compat flags:
 
