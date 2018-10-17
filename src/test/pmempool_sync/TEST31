@@ -64,7 +64,8 @@ rm -f $LOG && touch $LOG
 
 POOLSET=$DIR/testset1
 create_poolset $POOLSET AUTO:$FULLDEV:x \
-			R 10M:$DIR/testfile1:z
+			R \
+			8M:$DIR/testfile1:z
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET

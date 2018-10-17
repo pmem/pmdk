@@ -19,7 +19,7 @@ Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 
 POOL Header:
 Signature                : PMEMOBJ
@@ -76,7 +76,7 @@ Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 
 POOL Header:
 Signature                : PMEMOBJ

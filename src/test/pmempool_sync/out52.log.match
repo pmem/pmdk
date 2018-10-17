@@ -34,41 +34,41 @@ Replica 0 (master) - local, 3 part(s):
 part 0:
 path                     : $(nW)/testfile_r0_p0
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 part 1:
 path                     : $(nW)/testfile_r0_p1
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 part 2:
 path                     : $(nW)/testfile_r0_p2
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 Replica 1 - local, 3 part(s):
 part 0:
 path                     : $(nW)/testfile_r1_p0
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 part 1:
 path                     : $(nW)/testfile_r1_p1
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 part 2:
 path                     : $(nW)/testfile_r1_p2
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 Replica 2 - local, 3 part(s):
 part 0:
 path                     : $(nW)/testfile_r2_p0
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 part 1:
 path                     : $(nW)/testfile_r2_p1
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 part 2:
 path                     : $(nW)/testfile_r2_p2
 type                     : regular file
-size                     : 10485760
+size                     : $(N)
 
 POOL Header:
 Signature                : PMEMOBJ
