@@ -304,7 +304,9 @@ function ndctl_inject_error() {
 #
 function print_bad_blocks {
 	# XXX sudo should be removed when it is not needed
-	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || echo "No bad blocks found" >> $LOG
+	sudo ndctl list -M | \
+		grep -e "badblock_count" -e "offset" -e "length" >> $LOG \
+		|| echo "No bad blocks found" >> $LOG
 }
 
 #
@@ -333,5 +335,7 @@ function expect_bad_blocks {
 #
 function expect_bad_blocks_node {
 	# XXX sudo should be removed when it is not needed
-	expect_normal_exit run_on_node $1 sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || fatal "Error: ndctl failed to inject or retain bad blocks"
+	expect_normal_exit run_on_node $1 sudo ndctl list -M | \
+		grep -e "badblock_count" -e "offset" -e "length" >> $LOG \
+		|| fatal "Error: ndctl failed to inject or retain bad blocks (node $1)"
 }
