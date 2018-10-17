@@ -39,25 +39,6 @@
   pmemblk_set_funcs: libpmemblk.7
   pmemblk_set_zero: pmemblk_set_zero.3
   pmemblk_write: pmemblk_read.3
-- libpmemcto: pmemcto_aligned_alloc.3 pmemcto_calloc.3 pmemcto_check.3 pmemcto_check_version.3 pmemcto_close.3 pmemcto_create.3 pmemcto_errormsg.3 pmemcto_free.3 pmemcto_get_root_pointer.3 pmemcto_malloc.3 pmemcto_malloc_usable_size.3 pmemcto_open.3 pmemcto_realloc.3 pmemcto_set_funcs.3 pmemcto_set_root_pointer.3 pmemcto_stats_print.3 pmemcto_strdup.3 pmemcto_wcsdup.3
-  pmemcto_aligned_alloc: pmemcto_aligned_alloc.3
-  pmemcto_calloc: pmemcto_malloc.3
-  pmemcto_check: pmemcto_open.3
-  pmemcto_check_version: libpmemcto.7
-  pmemcto_close: pmemcto_open.3
-  pmemcto_create: pmemcto_open.3
-  pmemcto_errormsg: libpmemcto.7
-  pmemcto_free: pmemcto_malloc.3
-  pmemcto_get_root_pointer: pmemcto_set_root_pointer.3
-  pmemcto_malloc: pmemcto_malloc.3
-  pmemcto_malloc_usable_size: pmemcto_malloc_usable_size.3
-  pmemcto_open: pmemcto_open.3
-  pmemcto_realloc: pmemcto_malloc.3
-  pmemcto_set_funcs: libpmemcto.7
-  pmemcto_set_root_pointer: pmemcto_set_root_pointer.3
-  pmemcto_stats_print: pmemcto_stats_print.3
-  pmemcto_strdup: pmemcto_strdup.3
-  pmemcto_wcsdup: pmemcto_wcsdup.3
 - libpmemlog: pmemlog_append.3 pmemlog_appendv.3 pmemlog_check.3 pmemlog_check_version.3 pmemlog_close.3 pmemlog_create.3 pmemlog_ctl_exec.3 pmemlog_ctl_get.3 pmemlog_ctl_set.3 pmemlog_errormsg.3 pmemlog_nbyte.3 pmemlog_open.3 pmemlog_rewind.3 pmemlog_set_funcs.3 pmemlog_tell.3 pmemlog_walk.3
   pmemlog_append: pmemlog_append.3
   pmemlog_appendv: pmemlog_append.3

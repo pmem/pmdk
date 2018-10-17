@@ -84,7 +84,7 @@ are no replicas in the pool set.  In such case, it fails with an error.
 
 >NOTE: At the moment, replication is only supported for **libpmemobj**(7)
 pools, so **pmempool_sync**() cannot be used with other pool types
-(**libpmemlog**(7), **libpmemblk**(7), **libpmemcto**(7)).
+(**libpmemlog**(7), **libpmemblk**(7)).
 
 The following flags are available:
 
@@ -156,7 +156,7 @@ metadata.
 
 >NOTE: At the moment, *transform* operation is only supported for
 **libpmemobj**(7) pools, so **pmempool_transform**() cannot be used with other
-pool types (**libpmemlog**(7), **libpmemblk**(7), **libpmemcto**(7)).
+pool types (**libpmemlog**(7), **libpmemblk**(7)).
 
 
 # RETURN VALUE #

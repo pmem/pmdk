@@ -7,7 +7,7 @@ header: PMDK
 date: pmem Tools version 1.4
 ...
 
-[comment]: <> (Copyright 2016-2017, Intel Corporation)
+[comment]: <> (Copyright 2016-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -46,9 +46,9 @@ date: pmem Tools version 1.4
 # NAME #
 
 **pmempool-convert** - this is a wrapper around pmdk-convert tool. More information
-can be found in pmdk-convert man page.
+can be found in **pmdk-convert**(1) man page.
 
 # SEE ALSO #
 
-**pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
+**pmdk-convert**(1), **pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
 **libpmemobj**(7), **libpmempool**(7) and **<http://pmem.io>**
