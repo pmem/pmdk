@@ -70,6 +70,19 @@ do {\
 		__func__, __LINE__, func, strerror(errno));\
 } while (0)
 
+#define USAGE_MESSAGE \
+"Usage: daxio [option] ...\n"\
+"Valid options:\n"\
+"   -i, --input=FILE                - input device/file (default stdin)\n"\
+"   -o, --output=FILE               - output device/file (default stdout)\n"\
+"   -k, --skip=BYTES                - skip offset for input (default 0)\n"\
+"   -s, --seek=BYTES                - seek offset for output (default 0)\n"\
+"   -l, --len=BYTES                 - total length to perform the I/O\n"\
+"   -b, --clear-bad-blocks=yes/no   - clear bad blocks (default: yes)\n"\
+"   -z, --zero                      - zeroing the device\n"\
+"   -h. --help                      - print this help\n"\
+"   -V, --version                   - display version of daxio\n"
+
 struct daxio_device {
 	char *path;
 	int fd;
@@ -94,6 +107,7 @@ struct daxio_device {
 struct daxio_context {
 	size_t len;	/* total length of I/O */
 	int zero;
+	int clear_bad_blocks;
 	struct daxio_device src;
 	struct daxio_device dst;
 };
@@ -104,6 +118,7 @@ struct daxio_context {
 static struct daxio_context Ctx = {
 	SIZE_MAX,	/* len */
 	0,		/* zero */
+	1,		/* clear_bad_blocks */
 	{ NULL, -1, SIZE_MAX, 0, 0, NULL, 0, 0, 0, 0, NULL, NULL },
 	{ NULL, -1, SIZE_MAX, 0, 0, NULL, 0, 0, 0, 0, NULL, NULL },
 };
@@ -123,31 +138,23 @@ print_version(void)
 static void
 print_usage(void)
 {
-	printf("Usage: daxio [option] ...\n");
-	printf("Valid options:\n");
-	printf("-i, --input=FILE  - input device/file (default stdin)\n");
-	printf("-o, --output=FILE - output device/file (default stdout)\n");
-	printf("-k, --skip=BYTES  - skip offset for input (default 0)\n");
-	printf("-s, --seek=BYTES  - seek offset for output (default 0)\n");
-	printf("-l, --len=BYTES   - total length to perform the I/O\n");
-	printf("-z, --zero        - zeroing the device\n");
-	printf("-h. --help        - print this help\n");
-	printf("-V, --version     - display version of daxio\n");
+	fprintf(stderr, USAGE_MESSAGE);
 }
 
 /*
  * long_options -- command line options
  */
 static const struct option long_options[] = {
-	{"input",	required_argument,	NULL,	'i'},
-	{"output",	required_argument,	NULL,	'o'},
-	{"skip",	required_argument,	NULL,	'k'},
-	{"seek",	required_argument,	NULL,	's'},
-	{"len",		required_argument,	NULL,	'l'},
-	{"zero",	no_argument,		NULL,	'z'},
-	{"help",	no_argument,		NULL,	'h'},
-	{"version",	no_argument,		NULL,	'V'},
-	{NULL,		0,			NULL,	 0 },
+	{"input",			required_argument,	NULL,	'i'},
+	{"output",			required_argument,	NULL,	'o'},
+	{"skip",			required_argument,	NULL,	'k'},
+	{"seek",			required_argument,	NULL,	's'},
+	{"len",				required_argument,	NULL,	'l'},
+	{"clear-bad-blocks",		required_argument,	NULL,	'b'},
+	{"zero",			no_argument,		NULL,	'z'},
+	{"help",			no_argument,		NULL,	'h'},
+	{"version",			no_argument,		NULL,	'V'},
+	{NULL,				0,			NULL,	 0 },
 };
 
 /*
@@ -160,7 +167,7 @@ parse_args(struct daxio_context *ctx, int argc, char * const argv[])
 	size_t offset;
 	size_t len;
 
-	while ((opt = getopt_long(argc, argv, "i:o:k:s:l:zhV",
+	while ((opt = getopt_long(argc, argv, "i:o:k:s:l:b:zhV",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'i':
@@ -192,6 +199,18 @@ parse_args(struct daxio_context *ctx, int argc, char * const argv[])
 			break;
 		case 'z':
 			ctx->zero = 1;
+			break;
+		case 'b':
+			if (strcmp(optarg, "no") == 0) {
+				ctx->clear_bad_blocks = 0;
+			} else if (strcmp(optarg, "yes") == 0) {
+				ctx->clear_bad_blocks = 1;
+			} else {
+				ERR(
+					"'%s' -- invalid argument of the '--clear-bad-blocks' option\n",
+					optarg);
+				return -1;
+			}
 			break;
 		case 'h':
 			print_usage();
@@ -320,7 +339,8 @@ end:
  * setup_device -- (internal) open/mmap file/device
  */
 static int
-setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst)
+setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst,
+		int clear_bad_blocks)
 {
 	int ret;
 	int flags = O_RDWR;
@@ -382,11 +402,19 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst)
 	if (!dev->is_devdax)
 		return 0;
 
-	if (is_dst) {
+	if (is_dst && clear_bad_blocks) {
 		/* XXX - clear only badblocks in range bound by offset/len */
 		if (os_dimm_devdax_clear_badblocks_all(dev->path)) {
-			ERR("failed to clear badblocks on \"%s\"\n",
-					dev->path);
+			ERR("failed to clear bad blocks on \"%s\"\n"
+			    "       Probably you have not enough permissions to do that.\n"
+			    "       You can choose one of three options now:\n"
+			    "       1) run 'daxio' with 'sudo' or as 'root',\n"
+			    "       2) turn off clearing bad blocks using\n"
+			    "          the '-b/--clear-bad-blocks=no' option or\n"
+			    "       3) change permissions of some resource files -\n"
+			    "          - for details see the description of the CHECK_BAD_BLOCKS\n"
+			    "          compat feature in the pmempool-feature(1) man page.\n",
+				dev->path);
 			return -1;
 		}
 	}
@@ -426,9 +454,9 @@ static int
 setup_devices(struct ndctl_ctx *ndctl_ctx, struct daxio_context *ctx)
 {
 	if (!ctx->zero &&
-	    setup_device(ndctl_ctx, &ctx->src, 0))
+	    setup_device(ndctl_ctx, &ctx->src, 0, ctx->clear_bad_blocks))
 		return -1;
-	return setup_device(ndctl_ctx, &ctx->dst, 1);
+	return setup_device(ndctl_ctx, &ctx->dst, 1, ctx->clear_bad_blocks);
 }
 
 /*
