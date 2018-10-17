@@ -1,0 +1,3 @@
+<libpmemcto>: <$(N)> [out.c:$(N) $(*)] pid $(N): program: $(*)
+<libpmemcto>: <$(N)> [out.c:$(N) $(*)] libpmemcto version $(N).$(N)
+<libpmemcto>: <$(N)> [out.c:$(N) $(*)] src version: $(*)

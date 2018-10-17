@@ -56,6 +56,15 @@ $Env:PMEMCTO_LOG_FILE = ".\trace_pmemcto$Env:UNITTEST_NUM.log"
 
 expect_normal_exit $Env:EXE_DIR\traces_pmem$Env:EXESUFFIX
 
+# We want to check if traces are enabled and correctness of printed
+# string format. We can't rely on full output (because of different
+# machines configurations), hence comparison of only first 3 lines.
+Get-Content $Env:PMEM_LOG_FILE -TotalCount 3 | Set-Content ./trace_pmem_head$Env:UNITTEST_NUM.log
+Get-Content $Env:PMEMBLK_LOG_FILE -TotalCount 3 | Set-Content ./trace_pmemblk_head$Env:UNITTEST_NUM.log
+Get-Content $Env:PMEMLOG_LOG_FILE -TotalCount 3 | Set-Content ./trace_pmemlog_head$Env:UNITTEST_NUM.log
+Get-Content $Env:PMEMOBJ_LOG_FILE -TotalCount 3 | Set-Content ./trace_pmemobj_head$Env:UNITTEST_NUM.log
+Get-Content $Env:PMEMCTO_LOG_FILE -TotalCount 3 | Set-Content ./trace_pmemcto_head$Env:UNITTEST_NUM.log
+
 check
 
 pass
