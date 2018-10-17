@@ -1938,15 +1938,14 @@ check_replica_sizes(struct pool_set *set, struct poolset_health_status *set_hs)
 }
 
 /*
- * replica_read_compat_features -- (internal) read compat features
- *                                 from the header
+ * replica_read_features -- (internal) read features from the header
  */
 static int
-replica_read_compat_features(struct pool_set *set, uint32_t *compat_features)
+replica_read_features(struct pool_set *set, features_t *features)
 {
-	LOG(3, "set %p compat_features %p", set, compat_features);
+	LOG(3, "set %p features %p", set, features);
 
-	*compat_features = 0;
+	ASSERTne(features, NULL);
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
@@ -1962,7 +1961,7 @@ replica_read_compat_features(struct pool_set *set, uint32_t *compat_features)
 			}
 
 			struct pool_hdr *hdrp = part->hdr;
-			*compat_features = hdrp->features.compat;
+			memcpy(features, &hdrp->features, sizeof(*features));
 
 			if (util_unmap_hdr(part) != 0) {
 				LOG(1, "header unmapping failed");
@@ -2002,18 +2001,17 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
-	uint32_t compat_features;
+	features_t features;
 
-	if (replica_read_compat_features(set, &compat_features)) {
-		LOG(1, "reading compat features failed");
+	if (replica_read_features(set, &features)) {
+		LOG(1, "reading features failed");
 		goto err;
 	}
 
-	int check_bad_blocks = compat_features & POOL_FEAT_CHECK_BAD_BLOCKS;
-
 	/* check for bad blocks when in dry run or clear them otherwise */
 	if (replica_badblocks_check_or_clear(set, set_hs, is_dry_run(flags),
-			called_from_sync, check_bad_blocks,
+			called_from_sync,
+			features.compat & POOL_FEAT_CHECK_BAD_BLOCKS,
 			called_from_sync && fix_bad_blocks(flags))) {
 		LOG(1, "replica bad_blocks check failed");
 		goto err;
@@ -2034,7 +2032,8 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
-	if (check_shutdown_state(set, set_hs)) {
+	if ((features.incompat & POOL_FEAT_SDS) &&
+	    check_shutdown_state(set, set_hs)) {
 		LOG(1, "replica shutdown_state check failed");
 		goto err;
 	}
