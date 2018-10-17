@@ -661,6 +661,7 @@ function valgrind_ignore_warnings() {
 		-e "see section Limitations in user manual" \
 		-e "Warning: set address range perms: large range"\
 		-e "further instances of this message will not be shown"\
+		-e "get_Form_contents: DW_FORM_GNU_strp_alt used, but no alternate .debug_str"\
 		>  $1.tmp
 	mv $1.tmp $1
 }
