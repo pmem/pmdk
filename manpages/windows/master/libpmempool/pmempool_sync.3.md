@@ -91,7 +91,7 @@ are no replicas in the pool set.  In such case, it fails with an error.
 
 >NOTE: At the moment, replication is only supported for **libpmemobj**(7)
 pools, so **pmempool_syncU**()/**pmempool_syncW**() cannot be used with other pool types
-(**libpmemlog**(7), **libpmemblk**(7), **libpmemcto**(7)).
+(**libpmemlog**(7), **libpmemblk**(7)).
 
 The following flags are available:
 
@@ -145,7 +145,7 @@ file is utilized for storing internal metadata of the pool part files.
 
 >NOTE: At the moment, *transform* operation is only supported for
 **libpmemobj**(7) pools, so **pmempool_transformU**()/**pmempool_transformW**() cannot be used with other
-pool types (**libpmemlog**(7), **libpmemblk**(7), **libpmemcto**(7)).
+pool types (**libpmemlog**(7), **libpmemblk**(7)).
 
 
 # RETURN VALUE #

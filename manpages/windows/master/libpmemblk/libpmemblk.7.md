@@ -129,8 +129,6 @@ allocation and transactional operations on variable-sized objects.
 
 + **libpmemlog**(7), providing a pmem-resident log file.
 
-+ **libpmemcto**(7), providing close-to-open persistence.
-
 + **libpmem**(7), low-level persistent memory support.
 
 Under normal usage, **libpmemblk** will never print messages or intentionally
@@ -354,5 +352,5 @@ by the SNIA NVM Programming Technical Work Group:
 **msync**(2), **dlclose**(3), **pmemblk_bsize**(3), **pmemblk_create**(3),
 **pmemblk_ctl_exec**(3), **pmemblk_ctl_get**(3), **pmemblk_ctl_set**(3),
 **pmemblk_read**(3), **pmemblk_set_zero**(3), **pmem_is_pmem**(3),
-**pmem_persist**(3), **strerror**(3), **libpmem**(7), **libpmemcto**(7),
+**pmem_persist**(3), **strerror**(3), **libpmem**(7),
 **libpmemlog**(7), **libpmemobj**(7) and **<http://pmem.io>**
