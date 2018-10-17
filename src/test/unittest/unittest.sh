@@ -3438,7 +3438,7 @@ function require_free_space() {
 		exit 0
 	fi
 	if [ $free_space -lt $req_free_space ]; then
-		msg "$UNITTEST_NAME: SKIP: not enough free space"
+		msg "$UNITTEST_NAME: SKIP: not enough free space ($1 required)"
 		exit 0
 	fi
 }
@@ -3448,7 +3448,7 @@ function require_free_space() {
 #
 function require_nfit_tests_enabled() {
 	if [ "$ENABLE_NFIT_TESTS" != "y" ]; then
-		msg "$UNITTEST_NAME: SKIP: tests using the nfit_test kernel module are not enabled in testconfig.sh"
+		msg "$UNITTEST_NAME: SKIP: tests using the nfit_test kernel module are not enabled in testconfig.sh (ENABLE_NFIT_TESTS)"
 		exit 0
 	fi
 }
