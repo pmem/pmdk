@@ -1,7 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/ex_libpmemobj/README.
-
-This directory contains unit tests for libpmemobj examples.
-
-The unit tests utilizes examples from src/examples/libpmemobj directory.

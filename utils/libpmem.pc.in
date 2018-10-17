@@ -1,9 +1,0 @@
-includedir=${prefix}/include
-
-Name: libpmem
-Description: libpmem library from PMDK project
-Version: ${version}
-URL: http://pmem.io/pmdk
-Requires:
-Libs: -L${libdir} -lpmem
-Cflags: -I${includedir}

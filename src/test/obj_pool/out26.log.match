@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST26: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) o $(nW)testfile NULL
-$(nW)testfile: pmemobj_open: open "$(nW)testfile": Permission denied: Permission denied
-obj_pool$(nW)TEST26: DONE

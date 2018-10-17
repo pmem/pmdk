@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,88 +31,54 @@
  */
 
 /*
- * out_err_mt.c -- unit test for error messages
+ * pmemcompat.h -- compatibility layer for libpmem* libraries
  */
 
-#include <sys/types.h>
-#include <stdarg.h>
-#include <errno.h>
-#include "unittest.h"
-#include "valgrind_internal.h"
-#include "util.h"
+#ifndef PMEMCOMPAT_H
+#define PMEMCOMPAT_H
+#include <windows.h>
 
-#define NUM_THREADS 16
+struct iovec {
+	void  *iov_base;
+	size_t iov_len;
+};
 
-static void
-print_errors(const char *msg)
-{
-	UT_OUT("%s", msg);
-	UT_OUT("VMEM: %s", vmem_errormsg());
-}
+typedef int mode_t;
+/*
+ * XXX: this code will not work on windows if our library is included in
+ * an extern block.
+ */
+#if defined(__cplusplus) && defined(_MSC_VER) && !defined(__typeof__)
+#include <type_traits>
+/*
+ * These templates are used to remove a type reference(T&) which, in some
+ * cases, is returned by decltype
+ */
+namespace pmem {
 
-static void
-check_errors(unsigned ver)
-{
-	int ret;
-	int err_need;
-	int err_found;
+namespace detail {
 
-	ret = sscanf(vmem_errormsg(),
-		"libvmem major version mismatch (need %d, found %d)",
-		&err_need, &err_found);
-	UT_ASSERTeq(ret, 2);
-	UT_ASSERTeq(err_need, ver);
-	UT_ASSERTeq(err_found, VMEM_MAJOR_VERSION);
-}
+template<typename T>
+struct get_type {
+	using type = T;
+};
 
-static void *
-do_test(void *arg)
-{
-	unsigned ver = *(unsigned *)arg;
+template<typename T>
+struct get_type<T*> {
+	using type = T*;
+};
 
-	vmem_check_version(ver, 0);
-	check_errors(ver);
+template<typename T>
+struct get_type<T&> {
+	using type = T;
+};
 
-	return NULL;
-}
+} /* namespace detail */
 
-static void
-run_mt_test(void *(*worker)(void *))
-{
-	os_thread_t thread[NUM_THREADS];
-	unsigned ver[NUM_THREADS];
+} /* namespace pmem */
 
-	for (unsigned i = 0; i < NUM_THREADS; ++i) {
-		ver[i] = 10000 + i;
-		PTHREAD_CREATE(&thread[i], NULL, worker, &ver[i]);
-	}
-	for (unsigned i = 0; i < NUM_THREADS; ++i) {
-		PTHREAD_JOIN(&thread[i], NULL);
-	}
-}
+#define __typeof__(p) pmem::detail::get_type<decltype(p)>::type
 
-int
-main(int argc, char *argv[])
-{
-	START(argc, argv, "out_err_mt");
+#endif
 
-	if (argc != 2)
-		UT_FATAL("usage: %s dir", argv[0]);
-
-	print_errors("start");
-
-	VMEM *vmp = vmem_create(argv[1], VMEM_MIN_POOL);
-
-	vmem_check_version(10005, 0);
-	print_errors("version check");
-
-	VMEM *vmp2 = vmem_create_in_region(NULL, 1);
-	UT_ASSERTeq(vmp2, NULL);
-	print_errors("vmem_create_in_region");
-
-	run_mt_test(do_test);
-
-	vmem_delete(vmp);
-
-	DONE(NULL);
-}
+#endif

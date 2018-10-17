@@ -1,3 +1,0 @@
-obj_recovery$(nW)TEST3: START: obj_recovery
- $(nW)obj_recovery$(nW) $(nW)testset n o s
-obj_recovery$(nW)TEST3: DONE

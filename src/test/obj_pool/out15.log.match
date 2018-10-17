@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST15: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) c $(nW)testfile test$(nW) 7 0640
-$(nW)testfile: pmemobj_create: reservation pool size 7340032 smaller than 8388608: Invalid argument
-obj_pool$(nW)TEST15: DONE

@@ -1,7 +1,0 @@
-obj_out_of_memory$(nW)TEST0: START: obj_out_of_memory
- $(nW)obj_out_of_memory$(nW) 1024 $(nW)testfile1 $(nW)testfile2 $(nW)testset1 $(nW)testset2
-size: 1024 allocs: 4080
-size: 1024 allocs: 11760
-size: 1024 allocs: 4080
-size: 1024 allocs: 11760
-obj_out_of_memory$(nW)TEST0: DONE

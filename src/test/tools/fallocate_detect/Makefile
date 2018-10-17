@@ -36,7 +36,6 @@ TOP = ../../../..
 TARGET = fallocate_detect
 OBJS = fallocate_detect.o
 
-LIBPMEM=y
 LIBPMEMCOMMON=y
 
 include $(TOP)/src/tools/Makefile.inc

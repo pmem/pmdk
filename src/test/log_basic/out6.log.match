@@ -1,4 +1,0 @@
-log_basic$(nW)TEST6: START: log_basic
- $(nW)log_basic$(nW) $(nW)testset1 n
-usable size: 4182016
-log_basic$(nW)TEST6: DONE

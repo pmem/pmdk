@@ -1,4 +1,0 @@
-obj_check$(nW)TEST2: START: obj_check
- $(nW)obj_check$(nW) $(nW)testfile
-error: invalid checksum of pool descriptor
-obj_check$(nW)TEST2: DONE

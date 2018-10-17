@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST7: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) c $(nW)testfile test$(nW) 0 0640
-$(nW)testfile: pmemobj_create: Non-empty file detected: File exists
-obj_pool$(nW)TEST7: DONE

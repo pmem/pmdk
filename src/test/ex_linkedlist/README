@@ -1,7 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/ex_linkedlist/README.
-
-This directory contains unit tests for libpmemobj example.
-
-The unit tests utilize example from src/examples/libpmemobj/linkedlist directory.

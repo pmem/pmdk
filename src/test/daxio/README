@@ -1,8 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/daxio/README.
-
-This directory contains a unit test for 'daxio' utility.
-
-The tests in this directory verify the 'daxio' utility
-features and error handling.

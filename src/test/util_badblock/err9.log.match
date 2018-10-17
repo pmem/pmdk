@@ -1,1 +1,0 @@
-{util_badblock.c:$(N) do_open} util_badblock/TEST9: Error: util_pool_open: $(nW)/mnt-pmem/file: Input/output error

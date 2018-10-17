@@ -1,4 +1,0 @@
-obj_check$(nW)TEST1: START: obj_check
- $(nW)obj_check$(nW) $(nW)testfile
-error: wrong pool type: "ERRORBJ"
-obj_check$(nW)TEST1: DONE

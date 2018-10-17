@@ -1,4 +1,0 @@
-pmem_deep_persist$(nW)TEST3: START: pmem_deep_persist$(nW)
- $(nW)pmem_deep_persist$(nW) $(*)
-deep_persist -1
-pmem_deep_persist$(nW)TEST3: DONE

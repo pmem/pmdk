@@ -1,8 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/pmem_unmap/README.
-
-This directory contains a unit test for 'pmem_unmap' command.
-
-The tests in this directory verify the action of unmap mechanism with
-the various sizes.

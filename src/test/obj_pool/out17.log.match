@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST17: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) c $(nW)testfile test$(nW) 17592186044415 0640
-$(nW)testfile: pmemobj_create: invalid size (18446744073708503040) for os_off_t: File too large
-obj_pool$(nW)TEST17: DONE

@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST20: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) o $(nW)testfile NULL
-$(nW)testfile: pmemobj_open: open "$(nW)testfile": No such file or directory: No such file or directory
-obj_pool$(nW)TEST20: DONE

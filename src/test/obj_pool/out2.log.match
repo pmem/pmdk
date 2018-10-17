@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST2: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) c $(nW)testfile test$(nW) 0 0640
-$(nW)testfile: pmemobj_create: open "$(nW)testfile": No such file or directory: No such file or directory
-obj_pool$(nW)TEST2: DONE

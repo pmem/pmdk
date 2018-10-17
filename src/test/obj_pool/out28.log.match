@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST28: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) o $(nW)testfile test$(nW)
-$(nW)testfile: pmemobj_open: Success
-obj_pool$(nW)TEST28: DONE

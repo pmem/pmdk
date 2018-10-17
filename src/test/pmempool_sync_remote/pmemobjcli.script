@@ -1,5 +1,0 @@
-pmemobj_root 2M
-pmemobj_alloc r.0 0 2M
-pmemobj_alloc r.1 1 2M
-pmemobj_alloc r.2 2 2M
-pmemobj_alloc r.3 3 2M

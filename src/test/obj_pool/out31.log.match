@@ -1,5 +1,0 @@
-obj_pool$(nW)TEST31: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) f $(nW)testfile NULL
-$(nW)testfile: pmemobj_open: pool initialization failed: Invalid argument
-$(nW)testfile: pmemobj_open: Success
-obj_pool$(nW)TEST31: DONE

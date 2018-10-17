@@ -1,8 +1,0 @@
-libpmempool_rm/TEST4: START: libpmempool_rm$(nW)
- $(nW)libpmempool_rm$(nW) -o $(*)
-$(nW): removing file failed: $(*)
-libpmempool_rm/TEST4: DONE
-libpmempool_rm/TEST4: START: libpmempool_rm$(nW)
- $(nW)libpmempool_rm$(nW) -o $(*)
-$(nW): $(nW): removing file failed: $(*)
-libpmempool_rm/TEST4: DONE

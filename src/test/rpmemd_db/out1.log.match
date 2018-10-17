@@ -1,3 +1,0 @@
-rpmemd_db/TEST1: START: rpmemd_db
- ./rpmemd_db$(nW) rpmemd1.log $(nW) pool0.set pool1.set
-rpmemd_db/TEST1: DONE

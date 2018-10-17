@@ -1,8 +1,0 @@
-This directory contains a tool which supports remote access
-to persistent memory over RDMA on server side.
-
-** DEPENDENCIES: **
-The rpmemd depends on libfabric library:
-
-https://github.com/ofiwg/libfabric
-

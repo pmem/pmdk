@@ -1,2 +1,0 @@
-util_badblock$(nW)TEST9: START: util_badblock
- $(nW)util_badblock$(nW) $(nW)/mnt-pmem/file o

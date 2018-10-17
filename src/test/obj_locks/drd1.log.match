@@ -1,8 +1,0 @@
-==$(N)== drd, a thread error detector
-==$(N)== Copyright $(*)
-==$(N)== Using $(*)
-==$(N)== Command: ./obj_locks$(nW) $(nW)
-==$(N)== Parent PID: $(N)
-==$(N)==$(W)
-==$(N)==$(W)
-==$(N)== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: $(N) from $(N))

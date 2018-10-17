@@ -45,7 +45,7 @@ require_fs_type any
 setup
 
 expect_normal_exit $Env:EXE_DIR\out_err_mt$Env:EXESUFFIX `
-	$DIR\testfile1 $DIR\testfile2 $DIR\testfile3 $DIR\testfile4 $DIR
+	$DIR
 
 check
 

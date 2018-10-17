@@ -1,8 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/obj_root/README.
-
-This directory contains a unit test for 'pmemobj_root' command.
-
-The tests in this directory verify creating and resizing pmemobj root
-with various sizes.

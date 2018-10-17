@@ -1,6 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/compat_incompat_features/README.
-
-This directory contains unit tests for compat and incompat feature flags.
-The tests check if the flags are handled properly.

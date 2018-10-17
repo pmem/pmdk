@@ -1,1 +1,0 @@
-<ut>: <2> [shutdown_state.c:$(N) shutdown_state_check] the pool was not closed - SDS will be reinitialized

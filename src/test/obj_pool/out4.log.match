@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST4: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) c $(nW)testfile test$(nW) 0 0640
-$(nW)testfile: pmemobj_create: file is not a poolset file and its size (0) is smaller than 8388608: Invalid argument
-obj_pool$(nW)TEST4: DONE

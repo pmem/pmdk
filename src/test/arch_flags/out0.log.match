@@ -1,9 +1,0 @@
-arch_flags/TEST0: START: arch_flags
- $(nW)arch_flags$(nW) 0:0:0:0x0:0x0 65535:0:0:0x0:0x0 0:255:0:0x0:0x0 0:0:255:0x0:0x0 0:0:0:0x1:0x0 0:0:0:0x0:0x1
-check: 0
-check: -1
-check: -1
-check: -1
-check: -1
-check: -1
-arch_flags/TEST0: DONE

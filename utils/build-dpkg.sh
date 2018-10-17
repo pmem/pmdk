@@ -356,95 +356,6 @@ Standards-version: 4.1.4
 Build-Depends: debhelper (>= 9)
 Homepage: http://pmem.io/pmdk/
 
-Package: libpmem
-Architecture: any
-Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: Persistent Memory low level support library
- libpmem provides low level persistent memory support. In particular, support
- for the persistent memory instructions for flushing changes to pmem is
- provided.
-
-Package: libpmem-dev
-Section: libdevel
-Architecture: any
-Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for libpmem
- libpmem provides low level persistent memory support. In particular, support
- for the persistent memory instructions for flushing changes to pmem is
- provided.
-
-Package: libpmemblk
-Architecture: any
-Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: Persistent Memory block array support library
- libpmemblk implements a pmem-resident array of blocks, all the same size, where
- a block is updated atomically with respect to power failure or program
- interruption (no torn blocks).
-
-Package: libpmemblk-dev
-Section: libdevel
-Architecture: any
-Depends: libpmemblk (=\${binary:Version}), libpmem-dev, \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for libpmemblk
- libpmemblk implements a pmem-resident array of blocks, all the same size, where
- a block is updated atomically with respect to power failure or program
- interruption (no torn blocks).
-
-Package: libpmemlog
-Architecture: any
-Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: Persistent Memory log file support library
- libpmemlog implements a pmem-resident log file.
-
-Package: libpmemlog-dev
-Section: libdevel
-Architecture: any
-Depends: libpmemlog (=\${binary:Version}), libpmem-dev,  \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for libpmemlog
- libpmemlog implements a pmem-resident log file.
-
-Package: libpmemobj
-Architecture: any
-Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: Persistent Memory object store support library
- libpmemobj turns a persistent memory file into a flexible object store,
- supporting transactions, memory management, locking, lists, and a number of
- other features.
-
-Package: libpmemobj-dev
-Section: libdevel
-Architecture: any
-Depends: libpmemobj (=\${binary:Version}), libpmem-dev, \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for libpmemobj
- libpmemobj turns a persistent memory file into a flexible object store,
- supporting transactions, memory management, locking, lists, and a number of
- other features.
- .
- This package contains libraries and header files used for linking programs
- against libpmemobj.
-
-Package: libpmempool
-Architecture: any
-Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: Persistent Memory pool management support library
- libpmempool provides a set of utilities for management, diagnostics and repair
- of persistent memory pools. A pool in this context means a pmemobj pool,
- pmemblk pool, pmemlog pool or BTT layout, independent of the underlying
- storage. The libpmempool is for applications that need high reliability or
- built-in troubleshooting. It may be useful for testing and debugging purposes
- also.
-
-Package: libpmempool-dev
-Section: libdevel
-Architecture: any
-Depends: libpmempool (=\${binary:Version}), libpmem-dev, \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for libpmempool
- libpmempool provides a set of utilities for management, diagnostics and repair
- of persistent memory pools.
- .
- This package contains libraries and header files used for linking programs
- against libpmempool.
-
 Package: libvmem
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
@@ -497,30 +408,6 @@ Architecture: any
 Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), libpmempool (=\${binary:Version}), \${misc:Depends}
 Description: Debug symbols for PMDK libraries
  Debug symbols for all PMDK libraries.
-
-Package: pmempool
-Section: misc
-Architecture: any
-Priority: optional
-Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: Standalone utility for management and off-line analysis
- of Persistent Memory pools created by PMDK libraries. It provides a set
- of utilities for administration and diagnostics of Persistent Memory pools.
- Pmempool may be useful for troubleshooting by system administrators
- and users of the applications based on PMDK libraries.
-
-Package: pmreorder
-Section: misc
-Architecture: any
-Priority: optional
-Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: Standalone tool which is a collection of python scripts designed
- to parse and replay operations logged by pmemcheck - a persistent memory
- checking tool. Pmreorder performs the store reordering between persistent
- memory barriers - a sequence of flush-fence operations. It uses a
- consistency checking routine provided in the command line options to check
- whether files are in a consistent state.
-EOF
 
 cp LICENSE debian/copyright
 

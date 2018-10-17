@@ -1,7 +1,0 @@
-util_poolset_size$(nW)TEST0: START: util_poolset_size
- $(nW)util_poolset_size$(nW) $(*)pool.set1 $(*)pool.set2 $(*)pool.set3 $(*)pool.set4
-util_poolset_size($(*)pool.set1): 32768
-util_poolset_size($(*)pool.set2): 33583104
-util_poolset_size($(*)pool.set3): 67104768
-util_poolset_size($(*)pool.set4): 67104768
-util_poolset_size$(nW)TEST0: DONE

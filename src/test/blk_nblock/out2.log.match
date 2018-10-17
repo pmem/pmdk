@@ -1,5 +1,0 @@
-blk_nblock$(nW)TEST2: START: blk_nblock
- $(nW)blk_nblock$(nW) 512:$(nW)testset1 512:$(nW)testset2
-$(nW)testset1: block size 512 usable blocks: 129728
-$(nW)testset2: block size 512 usable blocks: 259776
-blk_nblock$(nW)TEST2: DONE

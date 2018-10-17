@@ -1,9 +1,0 @@
-util_badblock$(nW)TEST7: START: util_badblock
- $(nW)util_badblock$(nW) $(nW)/mnt-pmem/file l c
-Found 1 bad block(s):
-0 2
-util_badblock$(nW)TEST7: DONE
-util_badblock$(nW)TEST7: START: util_badblock
- $(nW)util_badblock$(nW) $(nW)/mnt-pmem/file l
-No bad blocks found.
-util_badblock$(nW)TEST7: DONE

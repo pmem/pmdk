@@ -35,47 +35,35 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 
-TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
-		  libvmmalloc tools
-ALL_TARGETS = $(TARGETS) common librpmem examples benchmarks
+TARGETS = libvmem libvmmalloc
+ALL_TARGETS = $(TARGETS) common examples
 
-SCOPE_DIRS = $(TARGETS) common librpmem rpmem_common
+SCOPE_DIRS = $(TARGETS) common
 
-DEBUG_RELEASE_TARGETS = common libpmem libvmem libpmemblk libpmemlog libpmemobj\
-	libpmempool libvmmalloc librpmem
-RELEASE_TARGETS = tools examples benchmarks
+DEBUG_RELEASE_TARGETS = common libvmem libvmmalloc
+RELEASE_TARGETS = examples
 
-CLEAN_NO_JE_TARGETS = $(ALL_TARGETS) rpmem_common test
+CLEAN_NO_JE_TARGETS = $(ALL_TARGETS) test
 CLEAN_TARGETS = $(CLEAN_NO_JE_TARGETS) jemalloc
-CLOBBER_NO_JE_TARGETS = $(ALL_TARGETS) rpmem_common test
+CLOBBER_NO_JE_TARGETS = $(ALL_TARGETS) test
 CLOBBER_TARGETS = $(CLOBBER_NO_JE_TARGETS) jemalloc
-CSTYLE_TARGETS = $(ALL_TARGETS) test rpmem_common
+CSTYLE_TARGETS = $(ALL_TARGETS) test
 INSTALL_TARGETS = $(TARGETS)
-SPARSE_TARGETS = $(ALL_TARGETS) test rpmem_common
+SPARSE_TARGETS = $(ALL_TARGETS) test
 
 HEADERS_DESTDIR = $(DESTDIR)$(includedir)
-HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
-		include/libpmemobj.h include/libpmempool.h\
-		include/libpmemblk.h include/libpmemlog.h\
-		include/libvmmalloc.h
+HEADERS_INSTALL = include/libvmem.h include/libvmmalloc.h
 
-OBJ_HEADERS_INSTALL = include/libpmemobj/*.h
+OBJ_HEADERS_INSTALL =
 
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
 PKG_CONFIG_COMMON = common.pc
-PKG_CONFIG_FILES = libpmem.pc libvmem.pc libvmmalloc.pc libpmemobj.pc\
-		libpmemlog.pc libpmemblk.pc libpmempool.pc
+PKG_CONFIG_FILES = libvmem.pc libvmmalloc.pc
 PMREORDER_BIN = $(DESTDIR)$(bindir)
-PMREORDER_SRC = tools/pmreorder
-PMREORDER_FILES = $(PMREORDER_SRC)/*.py
+PMREORDER_SRC =
+PMREORDER_FILES =
 PMREORDER_DESTDIR = $(DESTDIR)$(datarootdir)/pmreorder
 PMREORDER_ROOTDIR = $(datarootdir)/pmreorder
-
-ifeq ($(BUILD_RPMEM),y)
-	PKG_CONFIG_FILES += librpmem.pc
-	HEADERS_INSTALL += include/librpmem.h
-	INSTALL_TARGETS += librpmem
-endif
 
 rwildcard=$(strip $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2)\
 	$(filter $(subst *,%,$2),$d)))
@@ -103,7 +91,6 @@ HEADERS =\
 		freebsd/include/*.h\
 		freebsd/include/*/*.h\
 		include/lib*.h\
-		include/libpmemobj/*.h\
 		windows/include/*.h\
 		windows/include/*/*.h\
 		), $(f))
@@ -134,9 +121,7 @@ sparse: $(SPARSE_TARGETS:=-sparse)
 custom_build = $(DEBUG)$(OBJDIR)
 
 libvmmalloc libvmem: jemalloc
-tools: libpmem libpmemblk libpmemlog libpmemobj
-libpmemblk libpmemlog libpmemobj: libpmem
-benchmarks test tools: common
+test: common
 
 pkg-cfg-common:
 	@printf "version=%s\nlibdir=%s\nprefix=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" > $(PKG_CONFIG_COMMON)
@@ -192,24 +177,13 @@ endif
 install: all pkg-config
 	install -d $(HEADERS_DESTDIR)
 	install -p -m 0644 $(HEADERS_INSTALL) $(HEADERS_DESTDIR)
-	install -d $(HEADERS_DESTDIR)/libpmemobj
-	install -p -m 0644 $(OBJ_HEADERS_INSTALL) $(HEADERS_DESTDIR)/libpmemobj
 	install -d $(PKG_CONFIG_DESTDIR)
 	install -p -m 0644 $(PKG_CONFIG_FILES) $(PKG_CONFIG_DESTDIR)
-	install -d $(PMREORDER_DESTDIR)
-	install -p -m 0644 $(PMREORDER_FILES) $(PMREORDER_DESTDIR)
-	@echo "#!/bin/sh" > $(PMREORDER_SRC)/pmreorder
-	@echo "exec python3 $(PMREORDER_ROOTDIR)/pmreorder.py \$$*" >> $(PMREORDER_SRC)/pmreorder
-	install -d $(PMREORDER_BIN)
-	install -p $(PMREORDER_SRC)/pmreorder $(PMREORDER_BIN)
 	$(RM) $(PKG_CONFIG_FILES)
 
 uninstall:
 	$(foreach f, $(HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/$(notdir $(f)))
-	$(foreach f, $(OBJ_HEADERS_INSTALL), $(RM) $(HEADERS_DESTDIR)/libpmemobj/$(notdir $(f)))
 	$(foreach f, $(PKG_CONFIG_FILES), $(RM) $(PKG_CONFIG_DESTDIR)/$(notdir $(f)))
-	$(foreach f, $(PMREORDER_FILES), $(RM) $(PMREORDER_DESTDIR)/$(notdir $(f)))
-	$(RM) $(PMREORDER_BIN)/pmreorder
 
 cstyle:
 	$(STYLE_CHECK) check $(HEADERS)

@@ -1,8 +1,0 @@
-pmem_is_pmem$(nW)TEST1: START: pmem_is_pmem
- $(nW)pmem_is_pmem$(nW) $(nW)testfile1
-threads.is_pmem(Addr, Size): 1
-is_pmem(Addr, Size): 1
-is_pmem(Addr, 0): 0
-is_pmem(Addr + Size / 2, 0): 0
-is_pmem(Addr + Size, 0): 0
-pmem_is_pmem$(nW)TEST1: DONE

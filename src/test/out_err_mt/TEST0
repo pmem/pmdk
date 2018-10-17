@@ -43,8 +43,7 @@ require_fs_type any
 
 setup
 
-expect_normal_exit ./out_err_mt$EXESUFFIX \
-	$DIR/testfile1 $DIR/testfile2 $DIR/testfile3 $DIR/testfile4 $DIR
+expect_normal_exit ./out_err_mt$EXESUFFIX $DIR
 
 check
 

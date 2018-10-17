@@ -1,4 +1,0 @@
-obj_zones$(nW)TEST0: START: obj_zones
- $(nW)obj_zones$(nW) $(nW)testfile1 c
-allocated: 32
-obj_zones$(nW)TEST0: DONE

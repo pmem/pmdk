@@ -1,9 +1,0 @@
-create($(nW)/testset1): allocating records in the pool ...
-create($(nW)/testset1): allocated $(N) records (of size $(N))
-verify($(nW)/testset1): pool file successfully verified ($(N) records of size $(N))
-verify($(nW)/testset1): incorrect record: OBJ_VERIFY$(N) (#$(N))
-verify($(nW)/testset1): incorrect number of records (is: $(N), should be: $(N))
-verify($(nW)/testset1): pool file contains error
-$(nW)/testset1: pmemobj_open: error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool: Invalid argument
-$(nW)/testset1: synchronized
-verify($(nW)/testset1): pool file successfully verified ($(N) records of size $(N))

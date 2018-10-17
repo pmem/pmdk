@@ -1,6 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/libpmempool_transform/README.
-
-This directory contains unit tests for libpmempool transform. The tests check
-if adding and deleting replicas works.

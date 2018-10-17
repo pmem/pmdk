@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST14: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) c $(nW)testfile $(nW) 20 0640
-$(nW)testfile: pmemobj_create: Layout too long: Invalid argument
-obj_pool$(nW)TEST14: DONE

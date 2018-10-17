@@ -1,4 +1,0 @@
-blk_pool$(nW)TEST31: START: blk_pool$(nW)
- $(nW)blk_pool$(nW) o $(nW)ㅹestㆅile 4096
-$(nW)ㅹestㆅile: pmemblk_open: Success
-blk_pool$(nW)TEST31: DONE

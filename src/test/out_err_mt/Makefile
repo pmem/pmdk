@@ -36,12 +36,6 @@
 TARGET = out_err_mt
 OBJS = out_err_mt.o
 
-LIBPMEMCOMMON=y
-LIBPMEM=y
-LIBPMEMLOG=y
-LIBPMEMBLK=y
-LIBPMEMOBJ=y
-LIBPMEMPOOL=y
 LIBVMEM=y
 
 include ../Makefile.inc

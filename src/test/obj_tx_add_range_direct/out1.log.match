@@ -1,3 +1,0 @@
-obj_tx_add_range_direct$(nW)TEST1: START: obj_tx_add_range_direct
- $(nW)obj_tx_add_range_direct$(nW) $(nW)testfile1
-obj_tx_add_range_direct$(nW)TEST1: DONE

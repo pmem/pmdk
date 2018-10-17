@@ -1,5 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/pmempool_rm/README.
-
-This directory contains a unit test for 'pmempool rm' command.

@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST30: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) c $(nW)testset test 0 0640
-$(nW)testset: file size $(nW) mode 0666
-obj_pool$(nW)TEST30: DONE

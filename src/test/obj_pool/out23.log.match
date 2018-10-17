@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST23: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) o $(nW)testfile NULL
-$(nW)testfile: pmemobj_open: invalid major version (0): Invalid argument
-obj_pool$(nW)TEST23: DONE

@@ -1,1 +1,0 @@
-{$(nW)obj_sync.c:$(N) rwlock_$(nW)_worker} obj_sync$(nW)TEST3: pmemobj_rwlock_$(nW)

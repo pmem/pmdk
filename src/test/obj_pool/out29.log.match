@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST29: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) o $(nW)pool.set NULL
-$(nW)pool.set: pmemobj_open: $(nW)pool.set [incorrect path (must be an absolute one):2]: Invalid argument
-obj_pool$(nW)TEST29: DONE

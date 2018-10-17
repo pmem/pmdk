@@ -1,3 +1,0 @@
-obj_many_size_allocs$(nW)TEST2: START: obj_many_size_allocs
- $(nW)obj_many_size_allocs$(nW) $(nW)testset1
-obj_many_size_allocs$(nW)TEST2: DONE

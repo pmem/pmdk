@@ -1,5 +1,0 @@
-PMEMPOOLSET
-OPTION XXX # unknown option
-100G /mountpoint1/part0
-REPLICA
-100G /mountpoint2/part0

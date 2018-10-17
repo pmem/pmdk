@@ -38,30 +38,9 @@ TOP = ../../..
 
 TESTCONFIG=$(TOP)/src/test/testconfig.sh
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip\
-       ddmap\
-       cmpmap\
-       extents\
-       fallocate_detect\
-       obj_verify\
-       usc_permission_check
+DIRS = fallocate_detect
 
-REMOTE_TOOLS = \
-	ctrld\
-	extents\
-	fip\
-	obj_verify\
-	pmemobjcli\
-	pmemspoil\
-	pmemdetect
+REMOTE_TOOLS =
 
 all     : TARGET = all
 clean   : TARGET = clean

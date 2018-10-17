@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST22: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) o $(nW)testfile NULL
-$(nW)testfile: pmemobj_open: size 1048576 smaller than 2097152: Invalid argument
-obj_pool$(nW)TEST22: DONE

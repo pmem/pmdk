@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST32: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) o $(nW)testfile test$(nW)
-$(nW)testfile: pmemobj_open: error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool: Invalid argument
-obj_pool$(nW)TEST32: DONE

@@ -1,4 +1,0 @@
-obj_out_of_memory$(nW)TEST1: START: obj_out_of_memory
- $(nW)obj_out_of_memory$(nW) 1024 $(nW)testset1
-size: 1024 allocs: 4080
-obj_out_of_memory$(nW)TEST1: DONE

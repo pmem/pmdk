@@ -1,8 +1,0 @@
-Persistent Memory Development Kit
-
-This is src/test/magic/README.
-
-This directory contains a unit test for PMDK magic file.
-
-Magic file contains pattern for identifying PMDK pool file format. This file
-is read by file(1) command. See file(1) and magic(4) manual pages for details.

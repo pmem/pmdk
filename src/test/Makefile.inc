@@ -46,10 +46,6 @@ LDFLAGS += $(OS_LIBS)
 LIBS_DIR=$(TOP)/src
 
 EXAMPLES_DIR=$(TOP)/src/examples
-EX_LIBPMEM=$(EXAMPLES_DIR)/libpmem
-EX_LIBPMEMBLK=$(EXAMPLES_DIR)/libpmemblk
-EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
-EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
 
 UT = ../unittest/libut.a
 LIBS += $(UT) $(LIBUUID)
@@ -65,121 +61,6 @@ ifeq ($(LIBRT_NEEDED), y)
 LIBS += -lrt
 endif
 
-ifeq ($(LIBPMEMPOOL), y)
-LIBPMEM=y
-DYNAMIC_LIBS += -lpmempool
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmempool.a
-CFLAGS += -DUSE_LIBDL
-endif
-
-ifeq ($(LIBPMEMBLK), y)
-LIBPMEM=y
-DYNAMIC_LIBS += -lpmemblk
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemblk.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemblk.a
-endif
-
-ifeq ($(LIBPMEMLOG), y)
-LIBPMEM=y
-DYNAMIC_LIBS += -lpmemlog
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemlog.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemlog.a
-endif
-
-ifeq ($(LIBPMEMOBJ), y)
-LIBPMEM=y
-DYNAMIC_LIBS += -lpmemobj
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemobj.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemobj.a
-endif
-
-ifeq ($(LIBPMEMOBJ), internal-debug)
-LIBPMEM=y
-LIBPMEMCOMMON=internal-debug
-OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
-	$(TOP)/src/debug/libpmemobj/bucket.o\
-	$(TOP)/src/debug/libpmemobj/container_ravl.o\
-	$(TOP)/src/debug/libpmemobj/container_seglists.o\
-	$(TOP)/src/debug/libpmemobj/ctl_debug.o\
-	$(TOP)/src/debug/libpmemobj/cuckoo.o\
-	$(TOP)/src/debug/libpmemobj/heap.o\
-	$(TOP)/src/debug/libpmemobj/lane.o\
-	$(TOP)/src/debug/libpmemobj/libpmemobj.o\
-	$(TOP)/src/debug/libpmemobj/list.o\
-	$(TOP)/src/debug/libpmemobj/memblock.o\
-	$(TOP)/src/debug/libpmemobj/memops.o\
-	$(TOP)/src/debug/libpmemobj/obj.o\
-	$(TOP)/src/debug/libpmemobj/palloc.o\
-	$(TOP)/src/debug/libpmemobj/pmalloc.o\
-	$(TOP)/src/debug/libpmemobj/ravl.o\
-	$(TOP)/src/debug/libpmemobj/recycler.o\
-	$(TOP)/src/debug/libpmemobj/ulog.o\
-	$(TOP)/src/debug/libpmemobj/sync.o\
-	$(TOP)/src/debug/libpmemobj/tx.o\
-	$(TOP)/src/debug/libpmemobj/stats.o
-
-INCS += -I$(TOP)/src/libpmemobj
-endif
-
-ifeq ($(LIBPMEMOBJ), internal-nondebug)
-LIBPMEM=y
-LIBPMEMCOMMON=internal-nondebug
-OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
-	$(TOP)/src/nondebug/libpmemobj/bucket.o\
-	$(TOP)/src/nondebug/libpmemobj/container_ravl.o\
-	$(TOP)/src/nondebug/libpmemobj/container_seglists.o\
-	$(TOP)/src/nondebug/libpmemobj/ctl_debug.o\
-	$(TOP)/src/nondebug/libpmemobj/cuckoo.o\
-	$(TOP)/src/nondebug/libpmemobj/heap.o\
-	$(TOP)/src/nondebug/libpmemobj/lane.o\
-	$(TOP)/src/nondebug/libpmemobj/libpmemobj.o\
-	$(TOP)/src/nondebug/libpmemobj/list.o\
-	$(TOP)/src/nondebug/libpmemobj/memblock.o\
-	$(TOP)/src/nondebug/libpmemobj/memops.o\
-	$(TOP)/src/nondebug/libpmemobj/obj.o\
-	$(TOP)/src/nondebug/libpmemobj/palloc.o\
-	$(TOP)/src/nondebug/libpmemobj/pmalloc.o\
-	$(TOP)/src/nondebug/libpmemobj/ravl.o\
-	$(TOP)/src/nondebug/libpmemobj/recycler.o\
-	$(TOP)/src/nondebug/libpmemobj/ulog.o\
-	$(TOP)/src/nondebug/libpmemobj/sync.o\
-	$(TOP)/src/nondebug/libpmemobj/tx.o\
-	$(TOP)/src/nondebug/libpmemobj/stats.o
-
-INCS += -I$(TOP)/src/libpmemobj
-endif
-
-ifeq ($(LIBPMEM), internal-nondebug)
-OBJS +=\
-	$(TOP)/src/nondebug/libpmem/libpmem.o\
-	$(TOP)/src/nondebug/libpmem/memops_generic.o\
-	$(TOP)/src/nondebug/libpmem/pmem.o\
-	$(TOP)/src/nondebug/libpmem/pmem_posix.o
-
-include $(TOP)/src/libpmem/$(ARCH)/sources.inc
-OBJS_MEM = $(LIBPMEM_ARCH_SOURCE:.c=.o)
-OBJS += $(addprefix $(TOP)/src/nondebug/libpmem/, ${OBJS_MEM})
-
-INCS += -I$(TOP)/src/libpmem
-INCS += -I$(TOP)/src/libpmem/$(ARCH)
-endif
-
-ifeq ($(LIBPMEM), internal-debug)
-OBJS +=\
-	$(TOP)/src/debug/libpmem/libpmem.o\
-	$(TOP)/src/debug/libpmem/memops_generic.o\
-	$(TOP)/src/debug/libpmem/pmem.o\
-	$(TOP)/src/debug/libpmem/pmem_posix.o
-
-include $(TOP)/src/libpmem/$(ARCH)/sources.inc
-OBJS_MEM = $(LIBPMEM_ARCH_SOURCE:.c=.o)
-OBJS += $(addprefix $(TOP)/src/debug/libpmem/, ${OBJS_MEM})
-
-INCS += -I$(TOP)/src/libpmem
-INCS += -I$(TOP)/src/libpmem/$(ARCH)
-endif
-
 ifeq ($(LIBPMEMCOMMON), y)
 LIBPMEM=y
 OBJS += $(LIBS_DIR)/debug/libpmemcommon.a
@@ -188,74 +69,41 @@ endif
 
 ifeq ($(LIBPMEMCOMMON), internal-nondebug)
 OBJS +=\
-	$(TOP)/src/nondebug/common/badblock_$(OS_DIMM).o\
-	$(TOP)/src/nondebug/common/badblock.o\
-	$(TOP)/src/nondebug/common/ctl.o\
-	$(TOP)/src/nondebug/common/ctl_prefault.o\
-	$(TOP)/src/nondebug/common/ctl_sds.o\
-	$(call osdep, $(TOP)/src/nondebug/common/extent,.o)\
 	$(TOP)/src/nondebug/common/file.o\
 	$(TOP)/src/nondebug/common/file_posix.o\
-	$(TOP)/src/nondebug/common/fs_posix.o\
 	$(TOP)/src/nondebug/common/mmap.o\
 	$(TOP)/src/nondebug/common/mmap_posix.o\
 	$(TOP)/src/nondebug/common/os_posix.o\
 	$(TOP)/src/nondebug/common/os_thread_posix.o\
-	$(TOP)/src/nondebug/common/os_deep_linux.o\
-	$(TOP)/src/nondebug/common/os_auto_flush_linux.o\
-	$(TOP)/src/nondebug/common/os_dimm_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/common/out.o\
 	$(TOP)/src/nondebug/common/pool_hdr.o\
-	$(TOP)/src/nondebug/common/set.o\
-	$(TOP)/src/nondebug/common/shutdown_state.o\
 	$(TOP)/src/nondebug/common/util.o\
 	$(TOP)/src/nondebug/common/util_posix.o\
-	$(TOP)/src/nondebug/common/uuid.o\
-	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)
+#	$(TOP)/src/nondebug/common/uuid.o\
+#	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)
 
 INCS += -I$(TOP)/src/common
 endif
 
 ifeq ($(LIBPMEMCOMMON), internal-debug)
+#vpath %.c $(TOP)/src/common
+#vpath %.h $(TOP)/src/common
+
 OBJS +=\
-	$(TOP)/src/debug/common/badblock_$(OS_DIMM).o\
-	$(TOP)/src/debug/common/badblock.o\
-	$(TOP)/src/debug/common/ctl.o\
-	$(TOP)/src/debug/common/ctl_prefault.o\
-	$(TOP)/src/debug/common/ctl_sds.o\
-	$(call osdep, $(TOP)/src/debug/common/extent,.o)\
 	$(TOP)/src/debug/common/file.o\
 	$(TOP)/src/debug/common/file_posix.o\
-	$(TOP)/src/debug/common/fs_posix.o\
 	$(TOP)/src/debug/common/mmap.o\
 	$(TOP)/src/debug/common/mmap_posix.o\
 	$(TOP)/src/debug/common/os_posix.o\
 	$(TOP)/src/debug/common/os_thread_posix.o\
-	$(TOP)/src/debug/common/os_deep_linux.o\
-	$(TOP)/src/debug/common/os_auto_flush_linux.o\
-	$(TOP)/src/debug/common/os_dimm_$(OS_DIMM).o\
 	$(TOP)/src/debug/common/out.o\
 	$(TOP)/src/debug/common/pool_hdr.o\
-	$(TOP)/src/debug/common/set.o\
-	$(TOP)/src/debug/common/shutdown_state.o\
 	$(TOP)/src/debug/common/util.o\
 	$(TOP)/src/debug/common/util_posix.o\
-	$(TOP)/src/debug/common/uuid.o\
-	$(call osdep, $(TOP)/src/debug/common/uuid,.o)
+#	$(TOP)/src/debug/common/uuid.o\
+#	$(call osdep, $(TOP)/src/debug/common/uuid,.o)
 
 INCS += -I$(TOP)/src/common
-endif
-
-ifeq ($(LIBPMEM),y)
-DYNAMIC_LIBS += -lpmem
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem.a
-endif
-
-ifeq ($(LIBRPMEM),y)
-DYNAMIC_LIBS += -lrpmem
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/librpmem.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/librpmem.a
 endif
 
 ifeq ($(LIBVMEM),y)
@@ -264,18 +112,9 @@ STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libvmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libvmem.a
 endif
 
-ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBVMEM)$(LIBRPMEM),)
+ifneq ($(LIBPMEMCOMMON)$(LIBVMEM),)
 LIBS += -pthread
 endif
-
-ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMOBJ),)
-LIBS += $(LIBDL)
-endif
-
-ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ),)
-LIBS += $(LIBNDCTL)
-endif
-
 
 #
 # This is a helper function to be combined with usage of macros available
@@ -472,59 +311,7 @@ test: all
 
 TOOLS=../tools
 
-$(TOOLS)/pmemspoil/pmemspoil:
-	$(MAKE) -C $(TOOLS)/pmemspoil all
-
-ifeq ($(USE_PMEMSPOIL), y)
-all: $(TOOLS)/pmemspoil/pmemspoil
-endif
-
-$(TOOLS)/bttcreate/bttcreate:
-	$(MAKE) -C $(TOOLS)/bttcreate all
-
-ifeq ($(USE_BTTCREATE), y)
-all: $(TOOLS)/bttcreate/bttcreate
-endif
-
-$(TOOLS)/pmemwrite/pmemwrite:
-	$(MAKE) -C $(TOOLS)/pmemwrite all
-
-ifeq ($(USE_PMEMWRITE), y)
-all: $(TOOLS)/pmemwrite/pmemwrite
-endif
-
-$(TOOLS)/pmemalloc/pmemalloc:
-	$(MAKE) -C $(TOOLS)/pmemalloc all
-
-ifeq ($(USE_PMEMALLOC), y)
-all: $(TOOLS)/pmemalloc/pmemalloc
-endif
-
-$(TOOLS)/pmemobjcli/pmemobjcli:
-	$(MAKE) -C $(TOOLS)/pmemobjcli all
-
-ifeq ($(USE_PMEMOBJCLI), y)
-all: $(TOOLS)/pmemobjcli/pmemobjcli
-endif
-
-$(TOOLS)/ddmap/ddmap:
-	$(MAKE) -C $(TOOLS)/ddmap all
-
-ifeq ($(USE_DDMAP), y)
-all: $(TOOLS)/ddmap/ddmap
-endif
-
-$(TOOLS)/obj_verify/obj_verify:
-	$(MAKE) -C $(TOOLS)/obj_verify all
-
-ifeq ($(USE_OBJ_VERIFY), y)
-all: $(TOOLS)/obj_verify/obj_verify
-endif
-
-$(TOOLS)/pmemdetect/pmemdetect.static-nondebug:
-	$(MAKE) -C $(TOOLS)/pmemdetect all
-
-all: $(TOOLS)/pmemdetect/pmemdetect.static-nondebug
+all:
 
 sparse:
 	$(if $(TARGET), $(sparse-c))

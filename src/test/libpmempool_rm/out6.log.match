@@ -1,4 +1,0 @@
-libpmempool_rm/TEST6: START: libpmempool_rm
- ./libpmempool_rm$(nW) $(nW)pool.set
-$(nW)pool.set: $(nW)pool3: removing file failed: No such file or directory
-libpmempool_rm/TEST6: DONE

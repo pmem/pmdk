@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST11: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) c $(nW)testfile test$(nW) 20 0640
-$(nW)testfile: pmemobj_create: file $(nW)testfile already exists: File exists
-obj_pool$(nW)TEST11: DONE

@@ -1,4 +1,0 @@
-obj_pool$(nW)TEST24: START: obj_pool$(nW)
- $(nW)obj_pool$(nW) o $(nW)testfile EMPTY
-$(nW)testfile: pmemobj_open: wrong layout (""), pool created with layout "test": Invalid argument
-obj_pool$(nW)TEST24: DONE

@@ -84,11 +84,6 @@
 #ifndef _UNITTEST_H
 #define _UNITTEST_H 1
 
-#include <libpmem.h>
-#include <libpmemblk.h>
-#include <libpmemlog.h>
-#include <libpmemobj.h>
-#include <libpmempool.h>
 #include <libvmem.h>
 
 #ifdef __cplusplus
