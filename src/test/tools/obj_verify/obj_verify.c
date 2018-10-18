@@ -66,32 +66,41 @@ struct root_s {
 	uint64_t count;
 };
 
-/*
- * record_constructor -- constructor of a list element
- */
-static int
-record_constructor(PMEMobjpool *pop, void *ptr, void *arg)
+static void
+fill_data_s(struct data_s *rec, uint64_t number)
 {
-	struct data_s *rec = (struct data_s *)ptr;
-	uint64_t *count = arg;
-
 	memcpy(rec->signature, Signature, sizeof(rec->signature));
-	snprintf(rec->number_str, NUMBER_LEN, "%09lu", *count);
-	rec->number = *count;
+	snprintf(rec->number_str, NUMBER_LEN, "%09lu", number);
+	rec->number = number;
 
 	for (int i = 0; i < FILL_SIZE; i++)
 		rec->fill[i] = (uint32_t)rand();
 
 	util_checksum(rec, sizeof(*rec), &rec->checksum,
 			1 /* insert */, SKIP_OFFSET);
+}
 
-	pmemobj_persist(pop, rec, sizeof(*rec));
+static int
+alloc_objs(PMEMobjpool *pop, TOID(struct root_s) root, unsigned cnt,
+		unsigned class_id)
+{
+	int aborted = 0;
 
-	(*count)++;
+	TX_BEGIN(pop) {
+		TX_ADD_FIELD(root, count);
 
-	pmemobj_persist(pop, count, sizeof(*count));
+		for (unsigned i = 0; i < cnt; ++i) {
+			PMEMoid oid = pmemobj_tx_xalloc(sizeof(struct data_s),
+					0,
+					POBJ_CLASS_ID(class_id));
+			fill_data_s(pmemobj_direct(oid),
+					D_RW(root)->count++);
+		}
+	} TX_ONABORT {
+		aborted = 1;
+	} TX_END
 
-	return 0;
+	return aborted;
 }
 
 /*
@@ -102,7 +111,6 @@ do_create(const char *path, const char *layout)
 {
 	struct pobj_alloc_class_desc class;
 	PMEMobjpool *pop;
-	PMEMoid oid;
 	uint64_t count;
 
 	srand((unsigned int)time(NULL));
@@ -138,9 +146,9 @@ do_create(const char *path, const char *layout)
 	out("create(%s): allocating records in the pool ...", path);
 
 	count = D_RO(root)->count;
-	while (pmemobj_xalloc(pop, &oid, class.unit_size, 0,
-				POBJ_CLASS_ID(class.class_id),
-				record_constructor, &D_RW(root)->count) == 0)
+
+	while (alloc_objs(pop, root, class.units_per_block,
+			class.class_id) == 0)
 		;
 
 	count = D_RO(root)->count - count;
