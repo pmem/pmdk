@@ -5,7 +5,8 @@ pool header correct
 $(nW)file.pool: consistent
 $(nW)file.pool: spoil: pool_hdr.major=0x0
 $(nW)file.pool: spoil: pool_hdr.features.compat=0xfe
-$(nW)file.pool: spoil: pool_hdr.features.incompat=0xff
+$(OPT)$(nW)file.pool: spoil: pool_hdr.features.incompat=0xfb
+$(OPX)$(nW)file.pool: spoil: pool_hdr.features.incompat=0xfe
 $(nW)file.pool: spoil: pool_hdr.features.ro_compat=0xff
 $(nW)file.pool: spoil: pool_hdr.unused=ERROR
 checking shutdown state
