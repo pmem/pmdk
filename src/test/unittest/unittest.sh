@@ -995,7 +995,7 @@ function require_unlimited_vm() {
 function require_linked_with_ndctl() {
 	[ "$1" == "" -o ! -x "$1" ] && \
 		fatal "$UNITTEST_NAME: ERROR: require_linked_with_ndctl() requires one argument - an executable file"
-	local lddndctl=$(expect_normal_exit ldd $1 | $GREP -ce "libndctl")
+	local lddndctl=$(LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH ldd $1 | $GREP -ce "libndctl")
 	[ "$lddndctl" == "1" ] && return
 	msg "$UNITTEST_NAME: SKIP required: executable $1 linked with libndctl"
 	exit 0
