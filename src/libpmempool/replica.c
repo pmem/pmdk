@@ -1945,7 +1945,7 @@ replica_read_features(struct pool_set *set,
 			struct poolset_health_status *set_hs,
 			features_t *features)
 {
-	LOG(3, "set %p set_hs %p pfeatures %p", set, set_hs, features);
+	LOG(3, "set %p set_hs %p features %p", set, set_hs, features);
 
 	ASSERTne(features, NULL);
 
@@ -1955,9 +1955,7 @@ replica_read_features(struct pool_set *set,
 
 		if (rep->remote && !(rep_hs->flags & IS_BROKEN)) {
 			struct pool_hdr *hdrp = rep->part[0].hdr;
-
 			memcpy(features, &hdrp->features, sizeof(*features));
-
 			return 0;
 		}
 
@@ -2017,10 +2015,13 @@ replica_check_poolset_health(struct pool_set *set,
 
 	features_t features;
 
-	if (replica_read_features(set, &features)) {
+	if (replica_read_features(set, set_hs, &features)) {
 		LOG(1, "reading features failed");
 		goto err;
 	}
+
+	/* set ignore_sds flag basing on features read from the header */
+	set->ignore_sds = !(features.incompat & POOL_FEAT_SDS);
 
 	/* check for bad blocks when in dry run or clear them otherwise */
 	if (replica_badblocks_check_or_clear(set, set_hs, is_dry_run(flags),
@@ -2046,8 +2047,7 @@ replica_check_poolset_health(struct pool_set *set,
 		goto err;
 	}
 
-	if ((features.incompat & POOL_FEAT_SDS) &&
-	    check_shutdown_state(set, set_hs)) {
+	if (!set->ignore_sds && check_shutdown_state(set, set_hs)) {
 		LOG(1, "replica shutdown_state check failed");
 		goto err;
 	}
