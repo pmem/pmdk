@@ -276,6 +276,7 @@ test_open(const char *root_dir, const char *pool_desc)
 	fill_rand(&attr1, sizeof(attr1));
 	attr1.major = 1;
 	attr1.incompat_features = 2;
+	attr1.compat_features = 0;
 
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	if (db == NULL) {
@@ -324,8 +325,10 @@ test_open_dual(const char *root_dir, const char *pool_desc_1,
 	fill_rand(&attr1b, sizeof(attr1b));
 	attr1a.major = 1;
 	attr1a.incompat_features = 2;
+	attr1a.compat_features = 0;
 	attr1b.major = 1;
 	attr1b.incompat_features = 2;
+	attr1b.compat_features = 0;
 
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	if (db == NULL) {
@@ -402,8 +405,10 @@ test_set_attr(const char *root_dir, const char *pool_desc)
 	fill_rand(&attr[POOL_ATTR_SET_ATTR], sizeof(attr[POOL_ATTR_SET_ATTR]));
 	attr[POOL_ATTR_CREATE].major = 1;
 	attr[POOL_ATTR_CREATE].incompat_features = 2;
+	attr[POOL_ATTR_CREATE].compat_features = 0;
 	attr[POOL_ATTR_SET_ATTR].major = 1;
 	attr[POOL_ATTR_SET_ATTR].incompat_features = 2;
+	attr[POOL_ATTR_SET_ATTR].compat_features = 0;
 
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	if (db == NULL) {
@@ -491,8 +496,10 @@ test_set_attr_dual(const char *root_dir, const char *pool_desc_1,
 
 		attr[p][POOL_ATTR_CREATE].major = 1;
 		attr[p][POOL_ATTR_CREATE].incompat_features = 2;
+		attr[p][POOL_ATTR_CREATE].compat_features = 0;
 		attr[p][POOL_ATTR_SET_ATTR].major = 1;
 		attr[p][POOL_ATTR_SET_ATTR].incompat_features = 2;
+		attr[p][POOL_ATTR_SET_ATTR].compat_features = 0;
 
 		/* create pool */
 		prp[p] = rpmemd_db_pool_create(db, pool_desc[p], 0,
@@ -597,6 +604,7 @@ test_remove(const char *root_dir, const char *pool_desc)
 	fill_rand(&attr, sizeof(attr));
 	strncpy((char *)attr.poolset_uuid, "TEST", sizeof(attr.poolset_uuid));
 	attr.incompat_features = 2;
+	attr.compat_features = 0;
 
 	db = rpmemd_db_init(root_dir, POOL_MODE);
 	UT_ASSERTne(db, NULL);
