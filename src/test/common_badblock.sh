@@ -40,9 +40,12 @@
 
 LOG=out${UNITTEST_NUM}.log
 
+UNITTEST_DIRNAME=$(echo $UNITTEST_NAME | cut -d'/' -f1)
+
+COMMAND_MOUNTED_DIRS="\
+	mount | grep -e $UNITTEST_DIRNAME | cut -d' ' -f1 | xargs && true"
+
 COMMAND_NDCTL_NFIT_TEST_INIT="\
-	sudo ndctl disable-region all &>>$PREP_LOG_FILE && \
-	sudo modprobe -r nfit_test &>>$PREP_LOG_FILE && \
 	sudo modprobe nfit_test &>>$PREP_LOG_FILE && \
 	sudo ndctl disable-region all &>>$PREP_LOG_FILE && \
 	sudo ndctl zero-labels all &>>$PREP_LOG_FILE && \
@@ -56,6 +59,13 @@ COMMAND_NDCTL_NFIT_TEST_FINI="\
 # ndctl_nfit_test_init -- reset all regions and reload the nfit_test module
 #
 function ndctl_nfit_test_init() {
+	sudo ndctl disable-region all &>>$PREP_LOG_FILE
+	if ! sudo modprobe -r nfit_test &>>$PREP_LOG_FILE; then
+		MOUNTED_DIRS="$(eval $COMMAND_MOUNTED_DIRS)"
+		[ "$MOUNTED_DIRS" ] && sudo umount $MOUNTED_DIRS
+		sudo ndctl disable-region all &>>$PREP_LOG_FILE
+		sudo modprobe -r nfit_test
+	fi
 	expect_normal_exit $COMMAND_NDCTL_NFIT_TEST_INIT
 }
 
@@ -63,6 +73,14 @@ function ndctl_nfit_test_init() {
 # ndctl_nfit_test_init_node -- reset all regions and reload the nfit_test module on a remote node
 #
 function ndctl_nfit_test_init_node() {
+	run_on_node $1 "sudo ndctl disable-region all &>>$PREP_LOG_FILE"
+	if ! run_on_node $1 "sudo modprobe -r nfit_test &>>$PREP_LOG_FILE"; then
+		MOUNTED_DIRS="$(run_on_node $1 "$COMMAND_MOUNTED_DIRS")"
+		run_on_node $1 "\
+			[ \"$MOUNTED_DIRS\" ] && sudo umount $MOUNTED_DIRS; \
+			sudo ndctl disable-region all &>>$PREP_LOG_FILE; \
+			sudo modprobe -r nfit_test"
+	fi
 	expect_normal_exit run_on_node $1 "$COMMAND_NDCTL_NFIT_TEST_INIT"
 }
 
@@ -304,7 +322,9 @@ function ndctl_inject_error() {
 #
 function print_bad_blocks {
 	# XXX sudo should be removed when it is not needed
-	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || echo "No bad blocks found" >> $LOG
+	sudo ndctl list -M | \
+		grep -e "badblock_count" -e "offset" -e "length" >> $LOG \
+		|| echo "No bad blocks found" >> $LOG
 }
 
 #
@@ -333,5 +353,7 @@ function expect_bad_blocks {
 #
 function expect_bad_blocks_node {
 	# XXX sudo should be removed when it is not needed
-	expect_normal_exit run_on_node $1 sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG || fatal "Error: ndctl failed to inject or retain bad blocks"
+	expect_normal_exit run_on_node $1 sudo ndctl list -M | \
+		grep -e "badblock_count" -e "offset" -e "length" >> $LOG \
+		|| fatal "Error: ndctl failed to inject or retain bad blocks (node $1)"
 }
