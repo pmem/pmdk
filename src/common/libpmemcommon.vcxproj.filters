@@ -74,7 +74,10 @@
     <ClCompile Include="ctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ctl_global.c">
+    <ClCompile Include="ctl_prefault.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ctl_sds.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

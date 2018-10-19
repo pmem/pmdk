@@ -35,7 +35,8 @@ SOURCE =\
 	$(call osdep, $(COMMON)/badblock,.c)\
 	$(COMMON)/badblock.c\
 	$(COMMON)/ctl.c\
-	$(COMMON)/ctl_global.c\
+	$(COMMON)/ctl_prefault.c\
+	$(COMMON)/ctl_sds.c\
 	$(call osdep, $(COMMON)/extent,.c)\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\

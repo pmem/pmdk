@@ -430,9 +430,16 @@ pmemblk_createU(const char *path, size_t bsize, size_t poolsize, mode_t mode)
 	}
 
 	struct pool_set *set;
+	struct pool_attr adj_pool_attr = Blk_create_attr;
+
+	/* force set SDS feature */
+	if (SDS_at_create)
+		adj_pool_attr.features.incompat |= POOL_FEAT_SDS;
+	else
+		adj_pool_attr.features.incompat &= ~POOL_FEAT_SDS;
 
 	if (util_pool_create(&set, path, poolsize, PMEMBLK_MIN_POOL,
-			PMEMBLK_MIN_PART, &Blk_create_attr, NULL,
+			PMEMBLK_MIN_PART, &adj_pool_attr, NULL,
 			REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;

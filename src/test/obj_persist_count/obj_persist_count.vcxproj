@@ -20,7 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\ctl.c" />
-    <ClCompile Include="..\..\common\ctl_global.c" />
+    <ClCompile Include="..\..\common\ctl_prefault.c" />
+    <ClCompile Include="..\..\common\ctl_sds.c" />
     <ClCompile Include="..\..\common\file.c" />
     <ClCompile Include="..\..\common\file_windows.c" />
     <ClCompile Include="..\..\common\fs_windows.c" />

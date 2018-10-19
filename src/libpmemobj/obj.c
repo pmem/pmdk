@@ -1365,8 +1365,16 @@ pmemobj_createU(const char *path, const char *layout,
 	 */
 	unsigned runtime_nlanes = obj_get_nlanes();
 
+	struct pool_attr adj_pool_attr = Obj_create_attr;
+
+	/* force set SDS feature */
+	if (SDS_at_create)
+		adj_pool_attr.features.incompat |= POOL_FEAT_SDS;
+	else
+		adj_pool_attr.features.incompat &= ~POOL_FEAT_SDS;
+
 	if (util_pool_create(&set, path, poolsize, PMEMOBJ_MIN_POOL,
-			PMEMOBJ_MIN_PART, &Obj_create_attr, &runtime_nlanes,
+			PMEMOBJ_MIN_PART, &adj_pool_attr, &runtime_nlanes,
 			REPLICAS_ENABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;

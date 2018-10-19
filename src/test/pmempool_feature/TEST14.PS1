@@ -29,13 +29,24 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/util_pool_hdr/Makefile -- build util_pool_hdr unit test
+# pmempool_feature/TEST14 -- unit test for SHUTDOWN_STATE + ctl
 #
-TARGET = util_pool_hdr
-OBJS = util_pool_hdr.o
 
-LIBPMEMCOMMON=y
+. ..\unittest\unittest.ps1
 
-include ../Makefile.inc
+require_test_type medium
+
+require_fs_type any
+
+setup
+. .\common.PS1
+
+$Env:PMEMOBJ_CONF="sds.at_create=0"
+expect_normal_exit $PMEMPOOL create obj $POOLSET
+
+pmempool_feature_query "SHUTDOWN_STATE"
+
+check
+
+pass

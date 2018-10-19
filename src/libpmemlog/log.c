@@ -189,9 +189,16 @@ pmemlog_createU(const char *path, size_t poolsize, mode_t mode)
 	LOG(3, "path %s poolsize %zu mode %d", path, poolsize, mode);
 
 	struct pool_set *set;
+	struct pool_attr adj_pool_attr = Log_create_attr;
+
+	/* force set SDS feature */
+	if (SDS_at_create)
+		adj_pool_attr.features.incompat |= POOL_FEAT_SDS;
+	else
+		adj_pool_attr.features.incompat &= ~POOL_FEAT_SDS;
 
 	if (util_pool_create(&set, path, poolsize, PMEMLOG_MIN_POOL,
-			PMEMLOG_MIN_PART, &Log_create_attr, NULL,
+			PMEMLOG_MIN_PART, &adj_pool_attr, NULL,
 			REPLICAS_DISABLED) != 0) {
 		LOG(2, "cannot create pool or pool set");
 		return NULL;

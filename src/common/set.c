@@ -102,6 +102,8 @@ static void *Rpmem_handle_remote;
 
 int Prefault_at_open = 0;
 int Prefault_at_create = 0;
+int SDS_at_create = POOL_FEAT_INCOMPAT_DEFAULT & POOL_E_FEAT_SDS ? 1 : 0;
+
 
 /* list of pool set option names and flags */
 static struct pool_set_option Options[] = {

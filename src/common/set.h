@@ -330,6 +330,7 @@ HDRP(struct pool_replica *rep, unsigned p)
 
 extern int Prefault_at_open;
 extern int Prefault_at_create;
+extern int SDS_at_create;
 
 int util_poolset_parse(struct pool_set **setp, const char *path, int fd);
 int util_poolset_read(struct pool_set **setp, const char *path);
