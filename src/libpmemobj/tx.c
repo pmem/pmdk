@@ -402,8 +402,8 @@ tx_flush_range(void *data, void *ctx)
 	PMEMobjpool *pop = ctx;
 	struct tx_range_def *range = data;
 	if (!(range->flags & POBJ_FLAG_NO_FLUSH)) {
-		pmemops_flush(&pop->p_ops, OBJ_OFF_TO_PTR(pop, range->offset),
-				range->size);
+		pmemops_xflush(&pop->p_ops, OBJ_OFF_TO_PTR(pop, range->offset),
+				range->size, PMEMOBJ_F_RELAXED);
 	}
 	VALGRIND_REMOVE_FROM_TX(OBJ_OFF_TO_PTR(pop, range->offset),
 		range->size);
