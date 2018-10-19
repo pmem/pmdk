@@ -1941,14 +1941,28 @@ check_replica_sizes(struct pool_set *set, struct poolset_health_status *set_hs)
  * replica_read_features -- (internal) read features from the header
  */
 static int
-replica_read_features(struct pool_set *set, features_t *features)
+replica_read_features(struct pool_set *set,
+			struct poolset_health_status *set_hs,
+			features_t *features)
 {
-	LOG(3, "set %p features %p", set, features);
+	LOG(3, "set %p set_hs %p pfeatures %p", set, set_hs, features);
 
 	ASSERTne(features, NULL);
 
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		struct pool_replica *rep = set->replica[r];
+		struct replica_health_status *rep_hs = set_hs->replica[r];
+
+		if (rep->remote) {
+			if (rep_hs->flags & IS_BROKEN)
+				continue;
+
+			struct pool_hdr *hdrp = rep->part[0].hdr;
+			memcpy(features, &hdrp->features, sizeof(*features));
+
+			return 0;
+		}
+
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			struct pool_set_part *part = &rep->part[p];
 
@@ -1972,8 +1986,8 @@ replica_read_features(struct pool_set *set, features_t *features)
 		}
 	}
 
-	/* if there is no opened part, compat_features is set to 0 */
-	return 0;
+	/* no healthy replica/part found */
+	return -1;
 }
 
 /*
