@@ -333,6 +333,7 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 	}
 
 	p->class_id = c->id;
+	p->units_per_block = c->run.nallocs;
 
 	return 0;
 }

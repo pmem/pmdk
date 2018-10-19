@@ -235,13 +235,14 @@ basic(const char *path)
 	struct pobj_alloc_class_desc alloc_class_tiny;
 	alloc_class_tiny.header_type = POBJ_HEADER_NONE;
 	alloc_class_tiny.unit_size = 7;
-	alloc_class_tiny.units_per_block = 1000;
+	alloc_class_tiny.units_per_block = 1;
 	alloc_class_tiny.class_id = 0;
 	alloc_class_tiny.alignment = 0;
 
 	ret = pmemobj_ctl_set(pop, "heap.alloc_class.new.desc",
 		&alloc_class_tiny);
 	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(alloc_class_tiny.units_per_block > 1);
 
 	for (int i = 0; i < 1000; ++i) {
 		ret = pmemobj_xalloc(pop, &oid, 7, 0,
