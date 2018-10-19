@@ -942,6 +942,9 @@ replica_transform(struct pool_set *set_in, struct pool_set *set_out,
 		goto free_hs_in;
 	}
 
+	/* copy value of the ignore_sds flag from the input poolset */
+	set_out->ignore_sds = set_in->ignore_sds;
+
 	struct poolset_health_status *set_out_hs = NULL;
 	if (replica_create_poolset_health_status(set_out, &set_out_hs)) {
 		ERR("creating poolset health status failed");
