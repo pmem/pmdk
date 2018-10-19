@@ -95,6 +95,7 @@ LIB_TOOLS="../../tools"
 [ "$EXTENTS" ] || EXTENTS=$TOOLS/extents/extents
 [ "$FALLOCATE_DETECT" ] || FALLOCATE_DETECT=$TOOLS/fallocate_detect/fallocate_detect.static-nondebug
 [ "$OBJ_VERIFY" ] || OBJ_VERIFY=$TOOLS/obj_verify/obj_verify
+[ "$ANONYMOUS_MAPPING" ] || ANONYMOUS_MAPPING=$TOOLS/anonymous_mapping/anonymous_mapping.static-nondebug
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -351,7 +352,6 @@ function disable_exit_on_error() {
 	store_exit_on_error
 	set +e
 }
-
 
 #
 # get_files -- print list of files in the current directory matching the given regex to stdout
@@ -972,6 +972,51 @@ function check_pools() {
 			check_pool $f
 		done
 	fi
+}
+
+#
+# require_mmap_under_valgrind -- only allow script to continue if mapping is
+# possible under valgrind with maximum possible length (size of biggest DAX
+# device).
+#
+# Requirements:
+# At least one valid DAX device, valgrind with memcheck available.
+# Tests will be skipped if requirements won't be met.
+#
+require_mmap_under_valgrind() {
+	require_valgrind_tool memcheck
+	require_dax_devices 1
+
+	max="0"
+	for index in ${!DEVICE_DAX_PATH[@]}
+	do
+		curr=$(get_devdax_size $index)
+		((curr > max)) && max=$curr
+	done
+
+	if [[ max -eq 0 ]]; then
+		fatal "$UNITTEST_NAME: size of the biggest DAX device pointed by DEVICE_DAX_PATH[*] equals 0. Probably invalid path in testconfig.sh file is set."
+	fi
+
+	set +e
+	$ANONYMOUS_MAPPING $max
+	status=$?
+	set -e
+	if [[ status -ne 0 ]]
+	then
+		fatal "$UNITTEST_NAME: anonymous mapping of length=$* failed without valgrind"
+	fi
+
+	set +e
+	$VALGRINDEXE --tool=memcheck $ANONYMOUS_MAPPING $max
+	status=$?
+	set -e
+	if [[ status -ne 0 ]]
+	then
+		msg "$UNITTEST_NAME: SKIP required: anonymous mapping of length=$* unable under valgrind."
+		exit 0
+	fi
+	return
 }
 
 #
