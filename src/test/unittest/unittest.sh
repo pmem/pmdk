@@ -96,6 +96,7 @@ LIB_TOOLS="../../tools"
 [ "$FALLOCATE_DETECT" ] || FALLOCATE_DETECT=$TOOLS/fallocate_detect/fallocate_detect.static-nondebug
 [ "$OBJ_VERIFY" ] || OBJ_VERIFY=$TOOLS/obj_verify/obj_verify
 [ "$USC_PERMISSION" ] || USC_PERMISSION=$TOOLS/usc_permission_check/usc_permission_check.static-nondebug
+[ "$ANONYMOUS_MMAP" ] || ANONYMOUS_MMAP=$TOOLS/anonymous_mmap/anonymous_mmap.static-nondebug
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -355,7 +356,6 @@ function disable_exit_on_error() {
 	store_exit_on_error
 	set +e
 }
-
 
 #
 # get_files -- print list of files in the current directory matching the given regex to stdout
@@ -1203,6 +1203,7 @@ function require_dev_dax_node() {
 # number of Device DAX devices
 #
 function require_dax_devices() {
+	REQUIRE_DAX_DEVICES=$1
 	require_dev_dax_node $1
 }
 
@@ -2530,6 +2531,31 @@ function create_holey_file_on_node() {
 }
 
 #
+# require_mmap_under_valgrind -- only allow script to continue if mapping is
+#				possible under Valgrind with required length
+#				(sum of required DAX devices size).
+#				This function is being called internally in
+#				setup() function.
+#
+function require_mmap_under_valgrind() {
+
+	local FILE_MAX_DAX_DEVICES="../tools/anonymous_mmap/max_dax_devices"
+
+	if [ -z "$REQUIRE_DAX_DEVICES" ]; then
+		return
+	fi
+
+	if [ ! -f "$FILE_MAX_DAX_DEVICES" ]; then
+		fatal "$FILE_MAX_DAX_DEVICES not found. Run make global-checks."
+	fi
+
+	if [ "$REQUIRE_DAX_DEVICES" -gt "$(< $FILE_MAX_DAX_DEVICES)" ]; then
+		msg "$UNITTEST_NAME: SKIP: anonymous mmap under Valgrind not possible for $REQUIRE_DAX_DEVICES DAX device(s)."
+		exit 0
+	fi
+}
+
+#
 # setup -- print message that test setup is commencing
 #
 function setup() {
@@ -2560,6 +2586,10 @@ function setup() {
 
 	if [ "$CHECK_TYPE" != "none" ]; then
 		require_valgrind
+
+		# detect possible Valgrind mmap issues and skip uncertain tests
+		require_mmap_under_valgrind
+
 		export VALGRIND_LOG_FILE=$CHECK_TYPE${UNITTEST_NUM}.log
 		MCSTR="/$CHECK_TYPE"
 	else

@@ -1,0 +1,8 @@
+Persistent Memory Development Kit
+
+This is src/test/tools/anonymous_mmap/README.
+
+This directory contains a simple tool 'anonymous_mmap' for verifying ability
+for anonymously mmapping (huge) amount of memory into the virtual address space.
+
+'anonymous_mmap' takes one argument - length in bytes

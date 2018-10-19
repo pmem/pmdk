@@ -472,6 +472,13 @@ test: all
 
 TOOLS=../tools
 
+$(TOOLS)/anonymous_mmap/anonymous_mmap:
+	$(MAKE) -C $(TOOLS)/anonymous_mmap all
+
+ifeq ($(USE_ANONYMOUS_MMAP), y)
+all: $(TOOLS)/anonymous_mmap/anonymous_mmap
+endif
+
 $(TOOLS)/pmemspoil/pmemspoil:
 	$(MAKE) -C $(TOOLS)/pmemspoil all
 
