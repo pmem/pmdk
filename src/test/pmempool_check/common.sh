@@ -77,19 +77,19 @@ function pmempool_check_sds() {
 	pmemspoil_corrupt_replica_sds 1
 
 	# verify it is corrupted
-	expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
+	expect_abnormal_exit $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG 2>/dev/null
 	exit_func=expect_normal_exit
 
 	# perform fixes
 	case "$1" in
 	fix_second_replica_only)
-		echo -e "n\ny\n" | expect_normal_exit $PMEMPOOL$EXESUFFIX check -vr $POOLSET >> $LOG
+		echo -e "n\ny\n" | expect_normal_exit $PMEMPOOL$EXESUFFIX check -vr $POOLSET >> $LOG 2>/dev/null
 		;;
 	fix_first_replica)
-		echo -e "y\n" | expect_normal_exit $PMEMPOOL$EXESUFFIX check -vr $POOLSET >> $LOG
+		echo -e "y\n" | expect_normal_exit $PMEMPOOL$EXESUFFIX check -vr $POOLSET >> $LOG 2>/dev/null
 		;;
 	fix_no_replicas)
-		echo -e "n\nn\n" | expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vr $POOLSET >> $LOG
+		echo -e "n\nn\n" | expect_abnormal_exit $PMEMPOOL$EXESUFFIX check -vr $POOLSET >> $LOG 2>/dev/null
 		exit_func=expect_abnormal_exit
 		;;
 	*)
@@ -98,5 +98,5 @@ function pmempool_check_sds() {
 	esac
 
 	#verify result
-	$exit_func $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG
+	$exit_func $PMEMPOOL$EXESUFFIX check $POOLSET >> $LOG 2>/dev/null
 }
