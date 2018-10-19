@@ -44,10 +44,6 @@
 #include <linux/magic.h>
 #include <sys/vfs.h>
 
-#ifndef XFS_SUPER_MAGIC
-#define XFS_SUPER_MAGIC 0x58465342
-#endif
-
 /*
  * posix_fallocate on Linux is implemented using fallocate
  * syscall. This syscall requires file system-specific code on
@@ -79,8 +75,7 @@ check_fallocate(const char *file)
 
 	struct statfs fs;
 	if (!fstatfs(fd, &fs)) {
-		if (fs.f_type != EXT4_SUPER_MAGIC && /* also ext2, ext3 */
-		    fs.f_type != XFS_SUPER_MAGIC) {
+		if (fs.f_type != EXT4_SUPER_MAGIC /* also ext2, ext3 */) {
 			/*
 			 * On CoW filesystems, fallocate reserves _amount
 			 * of_ space but doesn't allocate a specific block.
