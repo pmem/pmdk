@@ -48,6 +48,9 @@ require_test_type medium
 require_fs_type pmem
 require_sudo_allowed
 
+# it's not possible to run sudo under Valgrind
+configure_valgrind force-disable
+
 setup
 
 $FALLOCATE 100M $DIR/testfile1
