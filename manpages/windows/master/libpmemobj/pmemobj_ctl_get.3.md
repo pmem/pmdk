@@ -223,12 +223,14 @@ All objects have default alignment of 64 bytes, but the user data alignment
 is affected by the size of the chosen header.
 
 The `units_per_block` field defines how many units a single block of memory
-contains. This value will be rounded up to match the internal size of the
+contains. This value will be adjusted to match the internal size of the
 block (256 kilobytes or a multiple thereof). For example, given a class with
 a `unit_size` of 512 bytes and a `units_per_block` of 1000, a single block of
 memory for that class will have 512 kilobytes.
 This is relevant because the bigger the block size, the less frequently blocks
 need to be fetched, resulting in lower contention on global heap state.
+If the CTL call is being done at runtime, the `units_per_block` variable of the
+provided alloc class structure is modified to match the actual value.
 
 The `header_type` field defines the header of objects from the allocation class.
 There are three types:
