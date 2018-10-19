@@ -470,6 +470,13 @@ test: all
 
 TOOLS=../tools
 
+$(TOOLS)/anonymous_mapping/anonymous_mapping:
+	$(MAKE) -C $(TOOLS)/anonymous_mapping all
+
+ifeq ($(USE_ANONYMOUS_MAPPING), y)
+all: $(TOOLS)/anonymous_mapping/anonymous_mapping
+endif
+
 $(TOOLS)/pmemspoil/pmemspoil:
 	$(MAKE) -C $(TOOLS)/pmemspoil all
 
