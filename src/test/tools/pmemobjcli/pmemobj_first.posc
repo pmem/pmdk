@@ -1,0 +1,44 @@
+#!./pmemobjcli -s
+# usage: ./classic2.posc <file>
+
+# print root object pointer
+pmemobj_direct r
+
+# allocate root object with specified size
+pmemobj_root 1024
+
+# print root object pointer after allocation
+pmemobj_direct r
+
+# print size of root object
+pmemobj_root_size
+
+# print usable size of root object
+pmemobj_alloc_usable_size r
+
+# print type number of root object
+pmemobj_type_num r
+
+# allocate four zeroed objects in root object
+# at positions 0, 1, 2 and 3
+pmemobj_zalloc r.0 1 8192
+pmemobj_zalloc r.1 2 256
+pmemobj_zalloc r.2 3 128
+pmemobj_zalloc r.3 3 128
+
+# print first and next element on external list
+pmemobj_first
+pmemobj_next r.0
+pmemobj_next r.2
+
+# free allocated objects
+pmemobj_free r.0
+pmemobj_free r.1
+pmemobj_free r.2
+pmemobj_free r.3
+
+# print pointer of freed object
+pmemobj_direct r.0
+pmemobj_direct r.1
+pmemobj_direct r.2
+pmemobj_direct r.3
