@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -32,25 +31,37 @@
 #
 
 #
-# src/test/pmem_deep_persist/TEST1 -- unit test for pmem_deep_persist
+# src/test/pmem_deep_persist/TEST6 -- unit test for pmem_deep_persist
 #
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type pmem non-pmem
+require_build_type debug
 
 setup
 
-export PMEM_LOG_LEVEL=15
+$Env:PMEM_LOG_LEVEL=15
 
-truncate -s 2M $DIR/testfile1
+create_poolset $DIR\testset1 16M:$DIR\testfile1 16M:$DIR\testfile2 r `
+	64M:$DIR\testfile3
 
-expect_normal_exit ./pmem_deep_persist$EXESUFFIX $DIR/testfile1 p 0 0
+$Env:DEEP_PERSIST_SIZE=$(convert_to_bytes 16M)
+$Env:OFFSET=$(convert_to_bytes 8M)
+expect_normal_exit $Env:EXE_DIR\pmem_deep_persist$Env:EXESUFFIX $DIR\testset1 o $Env:DEEP_PERSIST_SIZE $Env:OFFSET
 
-count_lines "<pmem_deep_persist>: <15>.*pmem\.c.*pmem_msync.*" pmem$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
-count_lines "<pmem_deep_persist>: <3>.*deep_flush_write.*" pmem$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
+$FileContent = Get-Content "pmem$Env:UNITTEST_NUM.log"
+
+$Matches = Select-String -InputObject $FileContent -Pattern "<pmem_deep_persist>: <3> .*os_deep_windows.c.* os_part_deep_common.*part 0.*"
+$Matches.Matches.Count > grep$Env:UNITTEST_NUM.log
+
+$Matches = Select-String -InputObject $FileContent -Pattern "<pmem_deep_persist>: <3> .*os_deep_windows.c.* os_part_deep_common.*part 1.*"
+$Matches.Matches.Count >> grep$Env:UNITTEST_NUM.log
+
+$Matches = Select-String -InputObject $FileContent -Pattern "<pmem_deep_persist>: <3> .*os_deep_windows.c.* os_part_deep_common.*part 2.*"
+$Matches.Matches.Count >> grep$Env:UNITTEST_NUM.log
 
 check
 

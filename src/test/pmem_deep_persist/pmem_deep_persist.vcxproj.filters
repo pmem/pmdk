@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Test Files">
+      <UniqueIdentifier>{43b16ba6-eb2f-4083-9f90-76ecc299c720}</UniqueIdentifier>
+      <Extensions>ps1</Extensions>
+    </Filter>
+    <Filter Include="Match Files">
+      <UniqueIdentifier>{b539ef93-f1f6-4c62-b624-1a07e6615e21}</UniqueIdentifier>
+      <Extensions>match</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="pmem_deep_persist.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TEST0w.PS1">
+      <Filter>Test Files</Filter>
+    </None>
+    <None Include="TEST1w.PS1">
+      <Filter>Test Files</Filter>
+    </None>
+    <None Include="TEST4w.PS1">
+      <Filter>Test Files</Filter>
+    </None>
+    <None Include="TEST5w.PS1">
+      <Filter>Test Files</Filter>
+    </None>
+    <None Include="TEST6w.PS1">
+      <Filter>Test Files</Filter>
+    </None>
+    <None Include="TEST7w.PS1">
+      <Filter>Test Files</Filter>
+    </None>
+    <None Include="grep0w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="grep1w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="grep4w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="grep5w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="grep6w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="grep7w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out0w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out1w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out4w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out5w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out6w.log.match">
+      <Filter>Match Files</Filter>
+    </None>
+    <None Include="out7w.log - Copy.match">
+      <Filter>Match Files</Filter>
+    </None>
+  </ItemGroup>
+</Project>
