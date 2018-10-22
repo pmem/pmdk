@@ -74,6 +74,17 @@ TEST_BUILD="debug nondebug"
 TEST_PROVIDERS=sockets
 EOF
 
+#configure python tests
+	cat << EOF >> $WORKDIR/src/test/testconfig.py
+config = {
+	'unittest_log_level': 1,
+	'pmem_fs_dir': '/mnt/pmem',
+	'non_pmem_fs_dir': '/tmp',
+	'tm': 1,
+	'test_timeout': '3m',
+   }
+EOF
+
 	mkdir -p ~/.ssh/cm
 
 	cat << EOF >> ~/.ssh/config
