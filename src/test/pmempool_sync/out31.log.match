@@ -52,6 +52,9 @@ Root offset              : $(nW)
     "badblock_count":1,
         "offset":$(N),
         "length":1,
+    "badblock_count":1,
+        "offset":$(N),
+        "length":1,
 $(nW)/testset1: synchronized
 No bad blocks found
 replica 0: checking shutdown state
