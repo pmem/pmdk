@@ -1,6 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,20 +36,16 @@ from pmdk_unittest import *
 # each class is treated as a test
 # example tests:
 
-
-class launch0:
+class Launch0:
     def run(self, ctx):
         filepath = ctx.create_holey_file(MB(16), "testfile1")
-        ctx.test_exec(F'./obj_basic_integration {filepath}')
+        ctx.test_exec('./obj_basic_integration {filepath}')
 
+Executor().run(Launch0(), Build(Debug, Static_Debug), Fs(Pmem))
 
-executor().run(launch0(), build(debug, static_debug), fs(pmem))
-
-
-class launch1:
+class Launch1:
     def run(self, ctx):
         filepath = ctx.create_holey_file(MB(16), "testfile1")
-        ctx.test_exec(F'./obj_basic_integration {filepath}')
+        ctx.test_exec('./obj_basic_integration {filepath}')
 
-
-executor().run(launch1(), build(debug, nondebug))
+Executor().run(Launch1(), Build(Debug, Nondebug))

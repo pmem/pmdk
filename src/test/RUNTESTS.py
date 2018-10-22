@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 #
-# Copyright 2014-2018, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the follo  wing conditions
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #     * Redistributions of source code must retain the above copyright
@@ -46,7 +45,7 @@ def run_tests():
         argv = ' '.join(sys.argv[1:])
         # set current working directory to the directory with TESTS.py
         os.chdir(os.path.join(CURDIR, m.replace('TESTS.py', '')))
-        os.system(F"python3 TESTS.py {argv}")
+        os.system('python3 TESTS.py {argv}')
 
 
 run_tests()

@@ -358,6 +358,7 @@ format  : TARGET = format
 check   : TARGET = check
 pcheck  : TARGET = pcheck
 sparse  : TARGET = sparse
+pycheck : TARGET = pycheck
 
 DIR_SYNC=$(TOP)/src/test/.sync-dir
 SYNC_EXT=synced
@@ -417,7 +418,7 @@ check-remote: check-remote-quiet
 	@echo "No failures."
 
 # XXX remote tests do not work in parallel mode
-pcheck: pcheck-local-quiet check-remote-quiet pycheck
+pcheck: pcheck-local-quiet check-remote-quiet
 	@echo "No failures."
 
 pcheck-blk: TARGET = pcheck

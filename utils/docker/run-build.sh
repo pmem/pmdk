@@ -47,5 +47,6 @@ make cstyle
 make -j2 USE_LIBUNWIND=1
 make -j2 test USE_LIBUNWIND=1
 make -j2 pcheck TEST_BUILD=$TEST_BUILD
+make -j2 -C src/test pycheck
 make DESTDIR=/tmp source
 

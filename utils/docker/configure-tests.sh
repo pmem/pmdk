@@ -74,6 +74,17 @@ TEST_BUILD="debug nondebug"
 TEST_PROVIDERS=sockets
 EOF
 
+#configure python tests
+	cat << EOF >> $WORKDIR/src/test/testconfig.py
+config = {
+	'unittest_log_level': 1,
+	'pmem_fs_dir': '/tmp',
+	'non_pmem_fs_dir': '/tmp',
+	'tm': 1,
+	'test_timeout': '3m',
+   }
+EOF
+
 	mkdir -p ~/.ssh/cm
 
 	cat << EOF >> ~/.ssh/config
@@ -83,6 +94,11 @@ Host 127.0.0.1
 	ControlMaster auto
 	ControlPersist 10m
 EOF
+
+	if [ "$PMEM_FS_DIR_FORCE_PMEM" ]
+	then
+        export PMEM_FS_DIR_FORCE_PMEM=1;
+	fi
 
 	if [ ! -f /etc/ssh/ssh_host_rsa_key ]
 	then
