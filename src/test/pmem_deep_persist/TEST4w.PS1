@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,35 +31,31 @@
 #
 
 #
-# src/test/pmem_deep_persist/Makefile -- build pmem_deep_persist test
+# src/test/pmem_deep_persist/TEST4 -- unit test for pmem_deep_persist
 #
-include ../../common.inc
 
-TOP = ../../..
-vpath %.c $(TOP)/src/libpmem
-vpath %.c $(TOP)/src/libpmem/$(ARCH)
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-TARGET = pmem_deep_persist
+require_test_type medium
+require_fs_type pmem non-pmem
+require_build_type debug
 
-OBJS = pmem_deep_persist.o\
-	libpmem.o\
-	pmem.o\
-	pmem_posix.o\
-	memops_generic.o\
-	mocks_posix.o\
-	init.o
+setup
 
-ifeq ($(ARCH), x86_64)
-OBJS += cpu.o
-endif
+$Env:PMEM_LOG_LEVEL=15
 
-LIBPMEMOBJ=y
-LIBPMEM=y
-LIBPMEMCOMMON=internal-debug
+truncate -s 2M $DIR\testfile1
 
-include ../Makefile.inc
+$Env:DEEP_PERSIST_SIZE=$(convert_to_bytes 2M)
 
-CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
-CFLAGS += -I$(TOP)/src/libpmem
-CFLAGS += -I$(TOP)/src/libpmemobj/
-LDFLAGS += $(call extract_funcs, mocks_posix.c)
+expect_normal_exit $Env:EXE_DIR\pmem_deep_persist$Env:EXESUFFIX $DIR\testfile1 m $Env:DEEP_PERSIST_SIZE 0
+
+$FileContent = Get-Content "pmem$Env:UNITTEST_NUM.log"
+
+$Matches = Select-String -InputObject $FileContent -Pattern "<libpmem>: <15>.*pmem\.c.*pmem_msync.*" -AllMatches
+$Matches.Matches.Count > grep$Env:UNITTEST_NUM.log
+
+check
+
+pass
