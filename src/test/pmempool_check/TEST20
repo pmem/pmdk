@@ -45,6 +45,8 @@ require_fs_type any
 configure_valgrind memcheck force-enable $PMEMPOOL$EXESUFFIX
 require_valgrind 3.11
 
+require_mmap_under_valgrind
+
 setup
 
 dax_device_zero
