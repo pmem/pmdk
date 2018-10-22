@@ -1,6 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,10 +43,10 @@ from testconfig import config
 # defaults
 # If key is not in dictionary (testconfig.py -> config) then set default value
 config["unittest_log_level"] = config.get("unittest_log_level", 2)
-config["test_type"] = config.get("test_type", "check")
+config["test_type"] = config.get("test_type", "Check")
 config["fs_type"] = config.get("fs_type", "all")
-config["build_type"] = config.get("build_type", "debug")
-config["suffix"] = config.get("suffix", "😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋")
+config["build_type"] = config.get("build_type", "Debug")
+config["suffix"] = config.get("suffix", "")
 
 
 #
@@ -88,13 +87,13 @@ def PB(n):
 def str2list(arg):
     seq_list = []
     arg = arg.split(",")
-    for i in arg:
-        if i.find("-"):
-            i = i.split("-")
-            for x in range(int(i[-2]), int(i[-1])+1):
+    for str in arg:
+        if str.find("-"):
+            str = str.split("-")
+            for x in range(int(str[-2]), int(str[-1])+1):
                 seq_list.append(x)
         else:
-            seq_list.append(int(i))
+            seq_list.append(int(str))
     return seq_list
 
 
@@ -118,14 +117,14 @@ def str2time(arg):
     return timeout
 
 
-class colors:
+class Colors:
     """ This class sets the font colour """
     CRED = '\33[91m'
     CGREEN = '\33[92m'
     CEND = '\33[0m'
 
 
-class message:
+class Message:
     """ This class checks the value of unittest_log_level
         to print the message. """
     def msg(self, args):
@@ -137,7 +136,7 @@ class message:
             print(args)
 
 
-class context:
+class Context:
     """ This class sets the context of the variables. """
     def __init__(self):
         self.suffix = config['suffix']
@@ -157,7 +156,8 @@ class context:
         """ This method runs the given command depending on the system. """
         if sys.platform == "win32":
             win_cmd = cmd.split()[0]
-            win_cmd = win_cmd.replace(".", self.exedir) + '.exe'
+            win_path = os.path.join(self.exedir, 'tests' )
+            win_cmd = win_cmd.replace(".", win_path) + '.exe'
             cmd = F"{win_cmd} {' '.join(cmd.split()[1:])}"
         else:
             suffix_exe = cmd.split()[0] + self.exesuffix
@@ -167,57 +167,57 @@ class context:
         self.end_time = datetime.now()
 
 
-class build:
+class Build:
     """ This class returns a list of build types based on arguments.
         If class is empty, treats like "all"."""
     def __new__(self, *args):
         if args is ():
-            args = (debug, nondebug, static_debug, static_nondebug)
+            args = (Debug, Nondebug, Static_Debug, Static_Nondebug)
         build = list(args)
         return build
 
 
-class fs:
+class Fs:
     """ This class returns a list of filesystem types based on arguments.
         If class is empty, treats like "all". """
     def __new__(self, *args):
         if args is ():
-            args = (pmem, nonpmem)
-        fs = list(args)
-        return fs
+            args = (Pmem, Nonpmem)
+        Fs = list(args)
+        return Fs
 
 
-class check:
+class Check:
     """ This class returns a list of test types based on arguments.
         If class is empty, treats like "all". """
     def __new__(self, *args):
         if args is ():
-            args = (short, medium)
-        if all_types == args:
-            args = (short, medium, all_types)
+            args = (Short, Medium)
+        if All_Types == args:
+            args = (Short, Medium, All_Types)
         check = list(args)
         return check
 
 
 # These empty classes are used to recognize the length of the tests.
 
-class short(check):
+class Short(Check):
     pass
 
 
-class medium(check):
+class Medium(Check):
     pass
 
 
-class large(check):
+class Large(Check):
     pass
 
 
-class all_types(check):
+class All_Types(Check):
     pass
 
 
-class debug(build):
+class Debug(Build):
     """ This class sets the context for debug build"""
     def setup_context(ctx):
         ctx.exesuffix = ''
@@ -228,7 +228,7 @@ class debug(build):
             os.environ['LD_LIBRARY_PATH'] = '../../debug'
 
 
-class nondebug(build):
+class Nondebug(Build):
     """ This class sets the context for nondebug build"""
     def setup_context(ctx):
         ctx.exesuffix = ''
@@ -239,33 +239,33 @@ class nondebug(build):
             os.environ['LD_LIBRARY_PATH'] = '../../nondebug'
 
 
-class static_debug(build):
+class Static_Debug(Build):
     """ This class sets the context for static_debug build"""
     def setup_context(ctx):
         ctx.exesuffix = '.static-debug'
         os.environ['LD_LIBRARY_PATH'] = '../../debug'
 
 
-class static_nondebug(build):
+class Static_Nondebug(Build):
     """ This class sets the context for static_nondebug build"""
     def setup_context(ctx):
         ctx.exesuffix = '.static-nondebug'
         os.environ['LD_LIBRARY_PATH'] = '../../nondebug'
 
 
-class pmem(fs):
+class Pmem(Fs):
     """ This class sets the context for pmem filesystem"""
     def setup_context(ctx):
         ctx.dir = Path(F"{config['pmem_fs_dir']}//test_{os.path.basename(os.getcwd())}{ctx.unittest_num}{ctx.suffix}")
 
 
-class nonpmem(fs):
+class Nonpmem(Fs):
     """ This class sets the context for nonpmem filesystem"""
     def setup_context(ctx):
         ctx.dir = Path(F"{config['non_pmem_fs_dir']}//test_{os.path.basename(os.getcwd())}{ctx.unittest_num}{ctx.suffix}")
 
 
-class executor:
+class Executor:
     """ This class is responsible for managing the test,
         e.g. creating and deleting files, checking logs, running the test. """
     def match(self, ctx, test_type):
@@ -287,7 +287,7 @@ class executor:
 
     def fail(self):
         """ Prints fail message. """
-        message().msg(F'{colors.CRED}FAILED {colors.CEND}')
+        Message().msg(F'{Colors.CRED}FAILED {Colors.CEND}')
 
     def clean(self, dirname):
         """ Removes directory, even if it is not empty. """
@@ -297,9 +297,9 @@ class executor:
         """ Pass the test if the result is lower than timeout.
             Otherwise, depending on the "keep_going" variable, continue running tests. """
         delta = ctx.end_time - ctx.start_time
-        if large in test_type:
+        if Large in test_type:
             if delta > str2time(env_timeout):
-                message().msg(F"Skipping: {ctx.unittest_name} {colors.CRED}timed out{colors.CEND}")
+                Message().msg(F"Skipping: {ctx.unittest_name} {Colors.CRED}timed out{Colors.CEND}")
                 try:
                     config['keep_going'] == 'y'
                 except:
@@ -312,12 +312,12 @@ class executor:
             tm = F"\t\t\t[{delta}] s"
         else:
             tm = ''
-        message().msg(F'{ctx.unittest_name}: {colors.CGREEN}PASS {colors.CEND} {tm}')
+        Message().msg(F'{ctx.unittest_name}: {Colors.CGREEN}PASS {Colors.CEND} {tm}')
 
     def run(self, test, *args):
         """ Run the test with required variables. """
         testnum = test.__class__.__name__.replace("launch", "")
-        ctx = context()
+        ctx = Context()
         os.environ['UNITTEST_NAME'] = ctx.unittest_name = F'{os.path.basename(os.getcwd())}/TEST{testnum}'
         ctx.unittest_num = testnum
         os.environ['UNITTEST_NUM'] = testnum
@@ -353,18 +353,18 @@ class executor:
         # create list of different types, based on the inheritance
         for group_type in args:
             for subclass in group_type:
-                if issubclass(subclass, build):
+                if issubclass(subclass, Build):
                     build_type.append(subclass)
-                if issubclass(subclass, fs):
+                if issubclass(subclass, Fs):
                     fs_type.append(subclass)
-                if issubclass(subclass, check):
+                if issubclass(subclass, Check):
                     test_type.append(subclass)
 
         # if the list is empty, treat it as if it contains everything
         if fs_type == []:
-            fs_type = fs()
+            fs_type = Fs()
         if build_type == []:
-            build_type = build()
+            build_type = Build()
 
         if check_global() is False:
             return

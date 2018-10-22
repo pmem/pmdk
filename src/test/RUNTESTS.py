@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 #
-# Copyright 2014-2018, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the follo  wing conditions
+# modification, are permitted provided that the following conditions
 # are met:
 #
 #     * Redistributions of source code must retain the above copyright
