@@ -124,7 +124,6 @@ expect_abnormal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $
 
 expect_bad_blocks_node 0
 
-expect_abnormal_exit run_on_node 0 "../pmempool sync -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
 expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
 expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
 
