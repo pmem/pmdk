@@ -333,8 +333,10 @@ pool_params_parse(const PMEMpoolcheck *ppc, struct pool_params *params,
 		addr = NULL;
 	} else {
 		enum file_type type = util_file_get_type(ppc->path);
-		if (type < 0)
-			return -1;
+		if (type < 0) {
+			ret = -1;
+			goto out_close;
+		}
 
 		ssize_t s = util_file_get_size(ppc->path);
 		if (s < 0) {
