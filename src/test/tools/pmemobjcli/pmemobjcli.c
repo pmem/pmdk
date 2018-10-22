@@ -1819,7 +1819,7 @@ pocli_pmemobj_reserve(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	PMEMoid r = pmemobj_reserve(ctx->pop, actp, size, type_num);
 
-	pocli_printf(ctx, "%s(%s, %zu, %llu) \n",
+	pocli_printf(ctx, "%s(%s, %zu, %llu)\n",
 		args->argv[0], args->argv[1], size, type_num, r);
 
 out:
@@ -1873,7 +1873,7 @@ pocli_pmemobj_xreserve(struct pocli_ctx *ctx, struct pocli_args *args)
 	PMEMoid r = pmemobj_xreserve(ctx->pop, actp,
 		size, type_num, flags);
 
-	pocli_printf(ctx, "%s(%s, %zu, %llu, %x) \n",
+	pocli_printf(ctx, "%s(%s, %zu, %llu, %x)\n",
 		args->argv[0], args->argv[1], size, type_num, flags, r);
 
 out:
@@ -1909,7 +1909,7 @@ pocli_pmemobj_defer_free(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	pmemobj_defer_free(ctx->pop, *oidp, actp);
 
-	pocli_printf(ctx, "%s(%s, %s) \n",
+	pocli_printf(ctx, "%s(%s, %s)\n",
 		args->argv[0], args->argv[1], args->argv[2]);
 
 out:
@@ -1933,26 +1933,27 @@ pocli_pmemobj_set_value(struct pocli_ctx *ctx, struct pocli_args *args)
 	PMEMoid *oid;
 	enum pocli_ret ret;
 
-	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
+	ret = pocli_args_obj(ctx, args, 1, &oid);
+	if (ret)
 		goto out;
 	ret = pocli_args_act(ctx, args, 2, &actp->type);
 	if (ret)
 		goto out;
-	if ((ret = pocli_args_number(args, 3, &value)))
+	ret = pocli_args_number(args, 3, &value);
+	if (ret)
 		goto out;
 
 	ptr = (uint64_t *)pmemobj_direct(*oid);
 
 	pmemobj_set_value(ctx->pop, actp, ptr, value);
 
-	pocli_printf(ctx, "%s(%s, %llu, %llu) \n",
+	pocli_printf(ctx, "%s(%s, %llu, %llu)\n",
 		args->argv[0], args->argv[1], ptr, value);
 
 out:
 	free(actp);
 	return ret;
 }
-
 
 /*
  * pocli_pmemobj_publish -- pmemobj_publish() command
@@ -1978,7 +1979,7 @@ pocli_pmemobj_publish(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	int r = pmemobj_publish(ctx->pop, actp, actcnt);
 
-	pocli_printf(ctx, "%s(%s, %zu) \n",
+	pocli_printf(ctx, "%s(%s, %zu)\n",
 		args->argv[0], args->argv[1], actcnt, r);
 
 out:
@@ -1992,7 +1993,7 @@ out:
 static enum pocli_ret
 pocli_pmemobj_tx_publish(struct pocli_ctx *ctx, struct pocli_args *args)
 {
-	if (args->argc != 2)
+	if (args->argc != 3)
 		return POCLI_ERR_ARGS;
 
 	struct pobj_action *actp = (struct pobj_action *)
@@ -2010,7 +2011,7 @@ pocli_pmemobj_tx_publish(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	int r = pmemobj_tx_publish(actp, actcnt);
 
-	pocli_printf(ctx, "%s(%s, %zu) \n",
+	pocli_printf(ctx, "%s(%s, %zu)\n",
 		args->argv[0], args->argv[1], actcnt, r);
 
 out:
@@ -2042,7 +2043,7 @@ pocli_pmemobj_cancel(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	pmemobj_cancel(ctx->pop, actp, actcnt);
 
-	pocli_printf(ctx, "%s(%s, %zu) \n",
+	pocli_printf(ctx, "%s(%s, %zu)\n",
 		args->argv[0], args->argv[1], actcnt);
 
 out:
