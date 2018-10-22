@@ -72,8 +72,9 @@ or stdout respectively.
 No length specified will default to input file/device length or to the
 output file/device length, if input is a special char file or stdin.
 
-For a Device DAX device, **daxio** will attempts to clear badblocks within
-range of writes before performing the I/O.
+For a Device DAX device, **daxio** will attempt to clear bad blocks within
+the range of writes before performing the I/O (it can be turned off using
+the '--clear-bad-blocks=no' option).
 
 
 # OPTIONS #
@@ -87,6 +88,10 @@ Output device or file to write to.
 `-z, --zero`
 Zero the output device for *len* size, or the entire device if no
 length was provided.  The output device must be a Device DAX device.
+
+`-b, --clear-bad-blocks=<yes|no>`
+Clear bad blocks within the range of writes before performing the I/O
+(default: yes).
 
 `-l, --len`
 The length in bytes to perform the I/O.  To make passing in size easier
