@@ -229,7 +229,7 @@ badblocks_recovery_file_alloc(const char *file, unsigned rep, unsigned part)
 {
 	LOG(3, "file %s rep %u part %u", file, rep, part);
 
-	char bbs_suffix[32];
+	char bbs_suffix[64];
 	char *path;
 
 	sprintf(bbs_suffix, "_r%u_p%u_badblocks.txt", rep, part);
