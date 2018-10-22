@@ -238,14 +238,14 @@ badblocks_recovery_file_alloc(const char *file, unsigned rep, unsigned part)
 	size_t len_bbs_suffix = strlen(bbs_suffix);
 	size_t len_path = len_file + len_bbs_suffix;
 
-	path = Zalloc(len_path + 1);
+	path = Malloc(len_path + 1);
 	if (path == NULL) {
-		ERR("!Zalloc");
+		ERR("!Malloc");
 		return NULL;
 	}
 
-	strncpy(path, file, len_file);
-	strncat(path, bbs_suffix, len_bbs_suffix);
+	strcpy(path, file);
+	strcat(path, bbs_suffix);
 
 	return path;
 }
