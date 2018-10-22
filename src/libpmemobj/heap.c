@@ -164,6 +164,9 @@ heap_thread_arena_assign(struct heap_rt *heap)
 	struct arena *least_used = NULL;
 
 	struct arena *a;
+
+	ASSERTne(heap->narenas, 0);
+
 	for (unsigned i = 0; i < heap->narenas; ++i) {
 		a = &heap->arenas[i];
 		if (least_used == NULL || a->nthreads < least_used->nthreads)
