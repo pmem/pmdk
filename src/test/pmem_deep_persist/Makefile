@@ -42,10 +42,10 @@ vpath %.c $(TOP)/src/libpmem/$(ARCH)
 TARGET = pmem_deep_persist
 
 OBJS = pmem_deep_persist.o\
-	libpmem.o\
 	pmem.o\
 	pmem_posix.o\
 	memops_generic.o\
+	mocks_posix.o\
 	init.o
 
 ifeq ($(ARCH), x86_64)
@@ -61,4 +61,4 @@ include ../Makefile.inc
 CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
 CFLAGS += -I$(TOP)/src/libpmem
 CFLAGS += -I$(TOP)/src/libpmemobj/
-LDFLAGS += $(call extract_funcs, pmem_deep_persist.c)
+LDFLAGS += $(call extract_funcs, mocks_posix.c)
