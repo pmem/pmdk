@@ -48,7 +48,7 @@ setup
 
 dax_device_zero
 
-export PMEM_LOG_LEVEL=15
+export PMEMOBJ_LOG_LEVEL=15
 
 create_poolset $DIR/testset1 AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]} o SINGLEHDR
 
@@ -56,8 +56,8 @@ DEEP_PERSIST_SIZE=$(get_devdax_size 0)
 OFFSET=$(convert_to_bytes 20M)
 expect_normal_exit ./pmem_deep_persist$EXESUFFIX $DIR/testset1 o $DEEP_PERSIST_SIZE $OFFSET
 
-count_lines "<libpmem>: <3>.*part_deep_common.*" pmem$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
-count_lines "<libpmem>: <3>.*deep_flush_write.*" pmem$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <3>.*part_deep_common.*" pmemobj$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <3>.*deep_flush_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
 
 check
 
