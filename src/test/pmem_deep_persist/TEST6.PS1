@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -32,27 +31,35 @@
 #
 
 #
-# src/test/pmem_deep_persist/TEST4 -- unit test for pmem_deep_persist
+# src/test/pmem_deep_persist/TEST6 -- unit test for pmem_deep_persist
 #
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 require_fs_type pmem non-pmem
+require_build_type debug
 
 setup
 
-export PMEMOBJ_LOG_LEVEL=15
+$Env:PMEMOBJ_LOG_LEVEL=15
 
-truncate -s 2M $DIR/testfile1
+create_poolset $DIR\testset1 16M:$DIR\testfile1 16M:$DIR\testfile2 r `
+	64M:$DIR\testfile3
 
-DEEP_PERSIST_SIZE=$(convert_to_bytes 2M)
+$Env:DEEP_PERSIST_SIZE=$(convert_to_bytes 16M)
+$Env:OFFSET=$(convert_to_bytes 8M)
 
-expect_normal_exit ./pmem_deep_persist$EXESUFFIX $DIR/testfile1 m $DEEP_PERSIST_SIZE 0
+expect_normal_exit $Env:EXE_DIR\pmem_deep_persist$Env:EXESUFFIX $DIR\testset1 o $Env:DEEP_PERSIST_SIZE $Env:OFFSET
 
-count_lines "<libpmemobj>: <15>.*pmem\.c.*pmem_msync.*" pmemobj$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
-count_lines "<libpmemobj>: <3>.*deep_flush_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
+$FileContent = Get-Content "pmemobj$Env:UNITTEST_NUM.log"
+
+$Matches = $FileContent | Select-String -Pattern "<libpmemobj>: <3> .*os_part_deep_common.*"
+$Matches.Matches.Count > grep$Env:UNITTEST_NUM.log
+
+# Instead of count deep_flush_write
+echo 0 >> grep$Env:UNITTEST_NUM.log
 
 check
 

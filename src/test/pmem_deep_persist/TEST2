@@ -48,8 +48,8 @@ create_poolset $DIR/testset AUTO:${DEVICE_DAX_PATH[0]}
 
 expect_normal_exit ./pmem_deep_persist$EXESUFFIX ${DEVICE_DAX_PATH[0]} p -1 0
 
-count_lines "<libpmem>: <15>.*pmem\.c.*pmem_msync.*" pmem$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
-count_lines "<libpmem>: <3>.*deep_flush_write.*" pmem$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <15>.*pmem\.c.*pmem_msync.*" pmemobj$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <3>.*deep_flush_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
 
 check
 

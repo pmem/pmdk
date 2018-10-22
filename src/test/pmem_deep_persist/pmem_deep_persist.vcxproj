@@ -1,0 +1,156 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
+      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\unittest\libut.vcxproj">
+      <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
+    <ClCompile Include="..\..\libpmemobj\bucket.c" />
+    <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
+    <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
+    <ClCompile Include="..\..\libpmemobj\ctl_debug.c" />
+    <ClCompile Include="..\..\libpmemobj\cuckoo.c" />
+    <ClCompile Include="..\..\libpmemobj\heap.c" />
+    <ClCompile Include="..\..\libpmemobj\lane.c" />
+    <ClCompile Include="..\..\libpmemobj\libpmemobj.c" />
+    <ClCompile Include="..\..\libpmemobj\list.c" />
+    <ClCompile Include="..\..\libpmemobj\memblock.c" />
+    <ClCompile Include="..\..\libpmemobj\memops.c" />
+    <ClCompile Include="..\..\libpmemobj\obj.c" />
+    <ClCompile Include="..\..\libpmemobj\palloc.c" />
+    <ClCompile Include="..\..\libpmemobj\pmalloc.c" />
+    <ClCompile Include="..\..\libpmemobj\ravl.c" />
+    <ClCompile Include="..\..\libpmemobj\recycler.c" />
+    <ClCompile Include="..\..\libpmemobj\stats.c" />
+    <ClCompile Include="..\..\libpmemobj\sync.c" />
+    <ClCompile Include="..\..\libpmemobj\tx.c" />
+    <ClCompile Include="..\..\libpmemobj\ulog.c" />
+    <ClCompile Include="..\..\libpmem\pmem_windows.c" />
+    <ClCompile Include="..\..\libpmem\x86_64\cpu.c" />
+    <ClCompile Include="..\..\libpmem\x86_64\init.c">
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmem\memops_generic.c" />
+    <ClCompile Include="..\..\libpmem\pmem.c" />
+    <ClCompile Include="..\..\windows\win_mmap.c" />
+    <ClCompile Include="pmem_deep_persist.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="grep0.log.match" />
+    <None Include="grep1.log.match" />
+    <None Include="grep4.log.match" />
+    <None Include="grep5.log.match" />
+    <None Include="grep6.log.match" />
+    <None Include="grep7.log.match" />
+    <None Include="out0.log.match" />
+    <None Include="out1.log.match" />
+    <None Include="out4.log.match" />
+    <None Include="out5.log.match" />
+    <None Include="out6.log.match" />
+    <None Include="out7.log.match" />
+    <None Include="TEST0.PS1" />
+    <None Include="TEST1.PS1" />
+    <None Include="TEST4.PS1" />
+    <None Include="TEST5.PS1" />
+    <None Include="TEST6.PS1" />
+    <None Include="TEST7.PS1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\libpmemobj\alloc_class.h" />
+    <ClInclude Include="..\..\libpmemobj\bucket.h" />
+    <ClInclude Include="..\..\libpmemobj\container.h" />
+    <ClInclude Include="..\..\libpmemobj\container_ravl.h" />
+    <ClInclude Include="..\..\libpmemobj\container_seglists.h" />
+    <ClInclude Include="..\..\libpmemobj\ctl_debug.h" />
+    <ClInclude Include="..\..\libpmemobj\cuckoo.h" />
+    <ClInclude Include="..\..\libpmemobj\heap.h" />
+    <ClInclude Include="..\..\libpmemobj\heap_layout.h" />
+    <ClInclude Include="..\..\libpmemobj\lane.h" />
+    <ClInclude Include="..\..\libpmemobj\list.h" />
+    <ClInclude Include="..\..\libpmemobj\memblock.h" />
+    <ClInclude Include="..\..\libpmemobj\memops.h" />
+    <ClInclude Include="..\..\libpmemobj\obj.h" />
+    <ClInclude Include="..\..\libpmemobj\palloc.h" />
+    <ClInclude Include="..\..\libpmemobj\pmalloc.h" />
+    <ClInclude Include="..\..\libpmemobj\pmemops.h" />
+    <ClInclude Include="..\..\libpmemobj\ravl.h" />
+    <ClInclude Include="..\..\libpmemobj\recycler.h" />
+    <ClInclude Include="..\..\libpmemobj\stats.h" />
+    <ClInclude Include="..\..\libpmemobj\sync.h" />
+    <ClInclude Include="..\..\libpmemobj\tx.h" />
+    <ClInclude Include="..\..\libpmemobj\ulog.h" />
+    <ClInclude Include="..\..\libpmem\x86_64\cpu.h" />
+    <ClInclude Include="..\..\windows\include\win_mmap.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0D4E38EF-A9D5-4797-8994-5DBB1125C9EA}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>pmem_deep_persist</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\test_debug.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\test_release.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir)libpmemobj;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)libpmemobj;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link />
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile />
+    <Link />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
