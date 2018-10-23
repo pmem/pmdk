@@ -199,6 +199,9 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 				"[%s:%d] ", basename(fname), lineno);
 		if (ret < 0)
 			RPMEMD_FATAL("snprintf failed: %d", ret);
+		if ((unsigned)ret >= RPMEMD_MAX_MSG - cnt)
+			RPMEMD_FATAL("overflow(1): %d >= %lu", ret,
+					RPMEMD_MAX_MSG - cnt);
 
 		cnt += (size_t)ret;
 	}
@@ -207,6 +210,9 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 				"%s ", rpmemd_prefix_buff);
 		if (ret < 0)
 			RPMEMD_FATAL("snprintf failed: %d", ret);
+		if ((unsigned)ret >= RPMEMD_MAX_MSG - cnt)
+			RPMEMD_FATAL("overflow(2): %d >= %lu", ret,
+					RPMEMD_MAX_MSG - cnt);
 
 		cnt += (size_t)ret;
 	}
@@ -228,6 +234,9 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 
 		if (ret < 0)
 			RPMEMD_FATAL("vsnprintf failed");
+		if ((unsigned)ret >= RPMEMD_MAX_MSG - cnt)
+			RPMEMD_FATAL("overflow(3): %d >= %lu", ret,
+					RPMEMD_MAX_MSG - cnt);
 
 		cnt += (size_t)ret;
 
@@ -235,7 +244,13 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 				"%s%s%s", prefix, errorstr, suffix);
 		if (ret < 0)
 			RPMEMD_FATAL("snprintf failed: %d", ret);
+		if ((unsigned)ret >= RPMEMD_MAX_MSG - cnt)
+			RPMEMD_FATAL("overflow(4): %d >= %lu", ret,
+					RPMEMD_MAX_MSG - cnt);
+
+		cnt += (size_t)ret;
 	}
+	buff[cnt] = 0;
 
 	if (rpmemd_use_syslog) {
 		int prio = rpmemd_level2prio[level];

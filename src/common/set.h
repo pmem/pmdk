@@ -382,7 +382,7 @@ int util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	const struct pool_attr *attr, int overwrite);
 
 int util_map_hdr(struct pool_set_part *part, int flags, int rdonly);
-int util_unmap_hdr(struct pool_set_part *part);
+void util_unmap_hdr(struct pool_set_part *part);
 
 int util_pool_has_device_dax(struct pool_set *set);
 

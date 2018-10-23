@@ -229,7 +229,7 @@ badblocks_recovery_file_alloc(const char *file, unsigned rep, unsigned part)
 {
 	LOG(3, "file %s rep %u part %u", file, rep, part);
 
-	char bbs_suffix[32];
+	char bbs_suffix[64];
 	char *path;
 
 	sprintf(bbs_suffix, "_r%u_p%u_badblocks.txt", rep, part);
@@ -238,14 +238,14 @@ badblocks_recovery_file_alloc(const char *file, unsigned rep, unsigned part)
 	size_t len_bbs_suffix = strlen(bbs_suffix);
 	size_t len_path = len_file + len_bbs_suffix;
 
-	path = Zalloc(len_path + 1);
+	path = Malloc(len_path + 1);
 	if (path == NULL) {
-		ERR("!Zalloc");
+		ERR("!Malloc");
 		return NULL;
 	}
 
-	strncpy(path, file, len_file);
-	strncat(path, bbs_suffix, len_bbs_suffix);
+	strcpy(path, file);
+	strcat(path, bbs_suffix);
 
 	return path;
 }
