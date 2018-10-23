@@ -107,7 +107,6 @@ expect_normal_exit run_on_node 0 "dd if=/dev/zero of=${NODE_DIR[0]}/pool.local b
 copy_files_to_node 0 ${NODE_DIR[0]} $RECOVERY_FILE
 
 expect_abnormal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
-expect_abnormal_exit run_on_node 0 "../pmempool sync -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
 expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
 expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
 

@@ -121,7 +121,9 @@ expect_normal_exit run_on_node 0 "sudo ndctl wait-scrub &>> $PREP_LOG_FILE"
 expect_bad_blocks_node 0
 
 expect_abnormal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
-expect_abnormal_exit run_on_node 0 "../pmempool sync -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
+
+expect_bad_blocks_node 0
+
 expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
 expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
 
