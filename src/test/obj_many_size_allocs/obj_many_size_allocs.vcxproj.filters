@@ -32,5 +32,11 @@
     <None Include="TEST2.PS1">
       <Filter>Test Scripts</Filter>
     </None>
+    <None Include="TEST0.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="out0.log.match">
+      <Filter>Match Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
