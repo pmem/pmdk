@@ -70,7 +70,9 @@ function libpmempool_feature_enable($arg1, $arg2) {
 	& $exit_func $Env:EXE_DIR\libpmempool_feature$Env:EXESUFFIX $DIR\pool.obj e $arg1 2>&1 `
 		| Select-String "$arg1" | %{$_.Line} >> $LOG
 	if ( "$exit_func" -eq "expect_abnormal_exit" ) {
-		cat $Env:PMEMPOOL_LOG_FILE | Select-String "$ERROR_PATTERN" | %{$_.Line} >> $LOG
+		if ( Test-Path $Env:PMEMPOOL_LOG_FILE ) {
+			cat $Env:PMEMPOOL_LOG_FILE | Select-String "$ERROR_PATTERN" | %{$_.Line} >> $LOG
+		}
 	}
 	if ( "$arg2" -ne "no-query" ){
 		libpmempool_feature_query $arg1
