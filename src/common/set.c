@@ -414,20 +414,19 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 /*
  * util_unmap_hdr -- unmap pool set part header
  */
-int
+void
 util_unmap_hdr(struct pool_set_part *part)
 {
-	if (part->hdr != NULL && part->hdrsize != 0) {
-		LOG(4, "munmap: addr %p size %zu", part->hdr, part->hdrsize);
-		VALGRIND_REMOVE_PMEM_MAPPING(part->hdr, part->hdrsize);
-		if (munmap(part->hdr, part->hdrsize) != 0) {
-			ERR("!munmap: %s", part->path);
-		}
-		part->hdr = NULL;
-		part->hdrsize = 0;
-	}
+	if (part->hdr == NULL || part->hdrsize == 0)
+		return;
 
-	return 0;
+	LOG(4, "munmap: addr %p size %zu", part->hdr, part->hdrsize);
+	VALGRIND_REMOVE_PMEM_MAPPING(part->hdr, part->hdrsize);
+	if (munmap(part->hdr, part->hdrsize) != 0)
+		/* this means there's a bug on the caller side */
+		FATAL("!munmap: %s", part->path);
+	part->hdr = NULL;
+	part->hdrsize = 0;
 }
 
 /*
@@ -3900,13 +3899,7 @@ util_read_compat_features(struct pool_set *set, uint32_t *compat_features)
 			struct pool_hdr *hdrp = part->hdr;
 			*compat_features = hdrp->features.compat;
 
-			if (util_unmap_hdr(part) != 0) {
-				LOG(1, "header unmapping failed -- \"%s\"",
-					part->path);
-				util_part_fdclose(part);
-				return -1;
-			}
-
+			util_unmap_hdr(part);
 			util_part_fdclose(part);
 
 			/* exit on the first successfully opened part */

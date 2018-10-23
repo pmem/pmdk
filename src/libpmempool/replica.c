@@ -1977,10 +1977,7 @@ replica_read_features(struct pool_set *set,
 			struct pool_hdr *hdrp = part->hdr;
 			memcpy(features, &hdrp->features, sizeof(*features));
 
-			if (util_unmap_hdr(part) != 0) {
-				LOG(1, "header unmapping failed");
-				return -1;
-			}
+			util_unmap_hdr(part);
 
 			return 0;
 		}
