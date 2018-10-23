@@ -388,6 +388,7 @@ operation_add_buffer(struct operation_context *ctx,
 
 		ctx->ulog_curr = ctx->ulog_curr == NULL ? ctx->ulog :
 			ulog_next(ctx->ulog_curr, ctx->p_ops);
+		ASSERTne(ctx->ulog_curr, NULL);
 		ctx->ulog_curr_offset = 0;
 		ctx->ulog_curr_capacity = ctx->ulog_curr->capacity;
 	}

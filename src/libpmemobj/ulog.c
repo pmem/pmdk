@@ -158,6 +158,7 @@ ulog_construct(uint64_t offset, size_t capacity, int flush,
 	const struct pmem_ops *p_ops)
 {
 	struct ulog *ulog = ulog_by_offset(offset, p_ops);
+	ASSERTne(ulog, NULL);
 
 	VALGRIND_ADD_TO_TX(ulog, SIZEOF_ULOG(capacity));
 
@@ -254,6 +255,8 @@ ulog_reserve(struct ulog *ulog,
 	uint64_t offset;
 	VEC_FOREACH(offset, next) {
 		ulog = ulog_by_offset(offset, p_ops);
+		ASSERTne(ulog, NULL);
+
 		capacity += ulog->capacity;
 	}
 
@@ -262,6 +265,8 @@ ulog_reserve(struct ulog *ulog,
 			return -1;
 		VEC_PUSH_BACK(next, ulog->next);
 		ulog = ulog_next(ulog, p_ops);
+		ASSERTne(ulog, NULL);
+
 		capacity += ulog->capacity;
 	}
 	*new_capacity = capacity;
