@@ -73,7 +73,7 @@ check_cpu_cache(const char *domain_path)
 			domain_value, DOMAIN_VALUE_LEN);
 		cpu_cache = -1;
 		goto end;
-	} else if (domain_value[len - 1] != '\n') {
+	} else if (len > 0 && domain_value[len - 1] != '\n') {
 		ERR("!read(%d, %p, %d) invalid format",
 			domain_fd, domain_value,
 			DOMAIN_VALUE_LEN);
