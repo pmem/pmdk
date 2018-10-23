@@ -38,7 +38,7 @@
 # standard unit test setup
 . ..\unittest\unittest.ps1
 
-require_test_type medium
+require_test_type long
 
 require_fs_type pmem
 require_build_type nondebug
