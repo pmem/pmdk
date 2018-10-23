@@ -4093,17 +4093,11 @@ util_pool_open_remote(struct pool_set **setp, const char *path, int cow,
 		}
 
 		if (bbs > 0) {
-			if (flags & POOL_OPEN_IGNORE_BAD_BLOCKS) {
-				LOG(1,
-					"WARNING: remote replica contains bad blocks, ignoring -- '%s'",
-					path);
-			} else {
-				ERR(
-					"remote replica contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to recreate it -- '%s'",
-					path);
-				errno = EIO;
-				goto err_poolset;
-			}
+			ERR(
+				"remote replica contains bad blocks and cannot be opened, run 'pmempool sync --bad-blocks' utility to recreate it -- '%s'",
+				path);
+			errno = EIO;
+			goto err_poolset;
 		}
 	}
 

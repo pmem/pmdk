@@ -56,6 +56,7 @@
 #include "kv_protocol.h"
 
 #define COUNT_OF(x) (sizeof(x) / sizeof(0[x]))
+#define COMPILE_ERROR_ON(cond) ((void)sizeof(char[(cond) ? -1 : 1]))
 
 POBJ_LAYOUT_BEGIN(kv_server);
 POBJ_LAYOUT_ROOT(kv_server, struct root);
@@ -196,7 +197,10 @@ static int
 cmsg_remove_handler(uv_stream_t *client, const char *msg, size_t len)
 {
 	char key[MAX_KEY_LEN] = {0};
-	int ret = sscanf(msg, "REMOVE %s\n", key);
+
+	/* check if the constant used in sscanf() below has the correct value */
+	COMPILE_ERROR_ON(MAX_KEY_LEN - 1 != 254);
+	int ret = sscanf(msg, "REMOVE %254s\n", key);
 	assert(ret == 1);
 
 	int result = map_remove_free(mapc, map, djb2_hash(key));
@@ -213,7 +217,10 @@ static int
 cmsg_get_handler(uv_stream_t *client, const char *msg, size_t len)
 {
 	char key[MAX_KEY_LEN];
-	int ret = sscanf(msg, "GET %s\n", key);
+
+	/* check if the constant used in sscanf() below has the correct value */
+	COMPILE_ERROR_ON(MAX_KEY_LEN - 1 != 254);
+	int ret = sscanf(msg, "GET %254s\n", key);
 	assert(ret == 1);
 
 	TOID(struct map_value) value;
