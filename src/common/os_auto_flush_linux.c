@@ -40,6 +40,7 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <errno.h>
 #include "out.h"
 #include "os.h"
 #include "fs.h"
@@ -68,9 +69,16 @@ check_cpu_cache(const char *domain_path)
 	ssize_t len = read(domain_fd, domain_value,
 			DOMAIN_VALUE_LEN);
 
-	if (len == -1) {
+	if (len < 0) {
 		ERR("!read(%d, %p, %d)", domain_fd,
 			domain_value, DOMAIN_VALUE_LEN);
+		cpu_cache = -1;
+		goto end;
+	} else if (len == 0) {
+		errno = ENODATA;
+		ERR("read(%d, %p, %d) empty string",
+			domain_fd, domain_value,
+			DOMAIN_VALUE_LEN);
 		cpu_cache = -1;
 		goto end;
 	} else if (domain_value[len - 1] != '\n') {
