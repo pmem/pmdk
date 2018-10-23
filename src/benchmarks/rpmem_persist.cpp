@@ -215,10 +215,11 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 {
 	auto *mb = (struct rpmem_bench *)pmembench_get_priv(bench);
 
-	assert(info->index < mb->n_offsets);
-
 	uint64_t idx = info->worker->index * info->args->n_ops_per_thread +
 		info->index;
+
+	assert(idx < mb->n_offsets);
+
 	size_t offset = mb->offsets[idx];
 	size_t len = mb->pargs->chunk_size;
 
