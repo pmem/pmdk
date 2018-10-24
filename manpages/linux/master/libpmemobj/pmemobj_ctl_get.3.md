@@ -92,6 +92,14 @@ impact of pagefaults. Affects only the **pmemobj_open**() function.
 
 Always returns 0.
 
+sds.at_create | rw | global | int | int | - | boolean
+
+If set, force-enables or force-disables SDS feature during pool creation.
+Affects only the **pmemobj_create**() function. See **pmempool_feature_query**(3)
+for informations about SDS (SHUTDOWN_STATE) feature.
+
+Always returns 0.
+
 tx.debug.skip_expensive_checks | rw | - | int | int | - | boolean
 
 Turns off some expensive checks performed by the transaction module in "debug"
