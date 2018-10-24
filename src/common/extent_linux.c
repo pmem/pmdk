@@ -191,6 +191,8 @@ os_extents_get(const char *path, struct extents *exts)
 		goto error_free;
 	}
 
+	LOG(10, "path %s has %u extents:", path, fmap->fm_extent_count);
+
 	unsigned e;
 	for (e = 0; e < fmap->fm_extent_count; e++) {
 		exts->extents[e].offset_physical =
@@ -198,6 +200,12 @@ os_extents_get(const char *path, struct extents *exts)
 		exts->extents[e].offset_logical =
 						fmap->fm_extents[e].fe_logical;
 		exts->extents[e].length = fmap->fm_extents[e].fe_length;
+
+		LOG(10, "   #%u: off_phy: %lu off_log; %lu len: %lu",
+			e,
+			exts->extents[e].offset_physical,
+			exts->extents[e].offset_logical,
+			exts->extents[e].length);
 	}
 
 	ret = 0;

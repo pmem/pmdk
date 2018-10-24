@@ -145,6 +145,10 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 			bb_off = bb_beg + exts->extents[e].offset_logical
 					- exts->extents[e].offset_physical;
 
+			LOG(4,
+				"bad block found: physical offset: %llu, length: %llu",
+				bb_beg, bb_len);
+
 			/* check if offset is block-aligned */
 			not_block_aligned = bb_off & (exts->blksize - 1);
 			if (not_block_aligned) {
@@ -155,7 +159,8 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 			/* check if length is block-aligned */
 			bb_len = ALIGN_UP(bb_len, exts->blksize);
 
-			LOG(4, "bad block found: offset: %llu, length: %llu",
+			LOG(4,
+				"bad block found: logical offset: %llu, length: %llu",
 				bb_off, bb_len);
 
 			/*
@@ -275,8 +280,8 @@ os_badblocks_clear_file(const char *file, struct badblocks *bbs)
 		off_t length = (off_t)bbs->bbv[b].length;
 
 		LOG(10,
-			"clearing bad block: logical offset %li length %li (in 512B sectors)",
-			B2SEC(offset), B2SEC(length));
+			"clearing bad block: logical offset %li length %li (in 512B sectors) -- '%s'",
+			B2SEC(offset), B2SEC(length), file);
 
 		/* deallocate bad blocks */
 		if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
