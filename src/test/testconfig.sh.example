@@ -59,10 +59,10 @@ NON_PMEM_FS_DIR=/tmp
 # to all of the following resource files (containing physical addresses)
 # of NVDIMM devices (only root can read them by default):
 #
-# /sys/devices/platform/<pmem_device>/ndbus?/region?/resource
-# /sys/devices/platform/<pmem_device>/ndbus?/region?/dax?.0/resource
+# /sys/bus/nd/devices/ndbus*/region*/resource
+# /sys/bus/nd/devices/ndbus*/region*/dax*/resource
 #
-# Note: some tests require write access to '/sys/bus/nd/devices/regionX/deep_flush'.
+# Note: some tests require write access to '/sys/bus/nd/devices/region*/deep_flush'.
 #
 #DEVICE_DAX_PATH=(/dev/dax0.0)
 
