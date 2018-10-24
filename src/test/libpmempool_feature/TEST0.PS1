@@ -43,7 +43,7 @@ require_fs_type any
 setup
 . .\common.PS1
 
-expect_normal_exit $PMEMPOOL create obj $DIR\pool.obj
+expect_normal_exit $PMEMPOOL create obj $POOL
 
 $exit_func="expect_abnormal_exit"
 libpmempool_feature_enable "SINGLEHDR" "no-query" # UNSUPPORTED
