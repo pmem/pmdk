@@ -566,7 +566,7 @@ static int
 pmembench_init_workers(struct benchmark_worker **workers,
 		       struct benchmark *bench, struct benchmark_args *args)
 {
-	size_t i;
+	unsigned i;
 	int ncpus = 0;
 	char *saveptr = nullptr;
 	int ret = 0;
@@ -625,7 +625,12 @@ pmembench_init_workers(struct benchmark_worker **workers,
 		workers[i]->func = pmembench_run_worker;
 		workers[i]->init = bench->info->init_worker;
 		workers[i]->exit = bench->info->free_worker;
-		benchmark_worker_init(workers[i]);
+		if (benchmark_worker_init(workers[i])) {
+			fprintf(stderr,
+				"thread number %u initialization failed\n", i);
+			ret = -1;
+			goto end;
+		}
 	}
 
 end:

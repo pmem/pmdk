@@ -87,6 +87,11 @@ thread_func(void *arg)
 	worker_state_transition(worker, WORKER_STATE_INIT,
 				WORKER_STATE_INITIALIZED);
 
+	if (worker->ret_init) {
+		os_mutex_unlock(&worker->lock);
+		return nullptr;
+	}
+
 	worker_state_wait_for_transition(worker, WORKER_STATE_INITIALIZED,
 					 WORKER_STATE_RUN);
 
