@@ -84,10 +84,10 @@ require read access to the following resource files (containing physical
 addresses) of NVDIMM devices which only root can read by default:
 
 ```
-/sys/devices/platform/<pmem_device>/ndbus?/region?/resource
-/sys/devices/platform/<pmem_device>/ndbus?/region?/dax?.0/resource
-/sys/devices/platform/<pmem_device>/ndbus?/region?/pfn?.0/resource
-/sys/devices/platform/<pmem_device>/ndbus?/region?/namespace?.0/resource
+/sys/bus/nd/devices/ndbus*/region*/resource
+/sys/bus/nd/devices/ndbus*/region*/dax*/resource
+/sys/bus/nd/devices/ndbus*/region*/pfn*/resource
+/sys/bus/nd/devices/ndbus*/region*/namespace*/resource
 ```
 
 It is possible to use poolset as *file* argument. But poolsets with remote
