@@ -215,7 +215,7 @@ util_feature_check(struct pool_hdr *hdrp, features_t known)
 int
 util_feature_cmp(features_t features, features_t ref)
 {
-	LOG(3, "features {incompat %#x ro_compat %#x compat %#x}"
+	LOG(3, "features {incompat %#x ro_compat %#x compat %#x} "
 			"ref {incompat %#x ro_compat %#x compat %#x}",
 			features.incompat, features.ro_compat, features.compat,
 			ref.incompat, ref.ro_compat, ref.compat);
