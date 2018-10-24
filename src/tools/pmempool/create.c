@@ -180,12 +180,12 @@ pmempool_create_help(const char *appname)
  * pmempool_create_obj -- create pmem obj pool
  */
 static int
-pmempool_create_obj(struct pmempool_create *pcp)
+pmempool_create_obj(struct pmempool_create *pcp, const char **message)
 {
 	PMEMobjpool *pop = pmemobj_create(pcp->fname, pcp->layout,
 			pcp->params.size, pcp->params.mode);
 	if (!pop) {
-		outv_err("'%s' -- %s\n", pcp->fname, pmemobj_errormsg());
+		*message = pmemobj_errormsg();
 		return -1;
 	}
 
@@ -198,7 +198,7 @@ pmempool_create_obj(struct pmempool_create *pcp)
  * pmempool_create_blk -- create pmem blk pool
  */
 static int
-pmempool_create_blk(struct pmempool_create *pcp)
+pmempool_create_blk(struct pmempool_create *pcp, const char **message)
 {
 	int ret = 0;
 
@@ -211,7 +211,7 @@ pmempool_create_blk(struct pmempool_create *pcp)
 	PMEMblkpool *pbp = pmemblk_create(pcp->fname, pcp->params.blk.bsize,
 			pcp->params.size, pcp->params.mode);
 	if (!pbp) {
-		outv_err("'%s' -- %s\n", pcp->fname, pmemblk_errormsg());
+		*message = pmemblk_errormsg();
 		return -1;
 	}
 
@@ -234,13 +234,13 @@ pmempool_create_blk(struct pmempool_create *pcp)
  * pmempool_create_log -- create pmem log pool
  */
 static int
-pmempool_create_log(struct pmempool_create *pcp)
+pmempool_create_log(struct pmempool_create *pcp, const char **message)
 {
 	PMEMlogpool *plp = pmemlog_create(pcp->fname,
 					pcp->params.size, pcp->params.mode);
 
 	if (!plp) {
-		outv_err("'%s' -- %s\n", pcp->fname, pmemlog_errormsg());
+		*message = pmemlog_errormsg();
 		return -1;
 	}
 
@@ -625,19 +625,41 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 		}
 	}
 
-	switch (pc.params.type) {
-	case PMEM_POOL_TYPE_BLK:
-		ret = pmempool_create_blk(&pc);
-		break;
-	case PMEM_POOL_TYPE_LOG:
-		ret = pmempool_create_log(&pc);
-		break;
-	case PMEM_POOL_TYPE_OBJ:
-		ret = pmempool_create_obj(&pc);
-		break;
-	default:
-		ret = -1;
-		break;
+	const char *message = NULL;
+
+	while (1) {
+		switch (pc.params.type) {
+		case PMEM_POOL_TYPE_BLK:
+			ret = pmempool_create_blk(&pc, &message);
+			break;
+		case PMEM_POOL_TYPE_LOG:
+			ret = pmempool_create_log(&pc, &message);
+			break;
+		case PMEM_POOL_TYPE_OBJ:
+			ret = pmempool_create_obj(&pc, &message);
+			break;
+		default:
+			ret = -1;
+			break;
+		}
+
+		if (ret == -1) {
+			if (pc.max_size && errno == ENOSPC) {
+				if (pc.params.size > Pagesize) {
+					pc.params.size -= Pagesize;
+				} else {
+					outv_err("'%s' -- %s\n", pc.fname,
+						message);
+					break;
+				}
+			} else {
+				outv_err("'%s' -- %s\n", pc.fname, message);
+				break;
+			}
+		} else {
+			break;
+		}
+
 	}
 
 	if (ret) {
