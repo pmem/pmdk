@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -30,33 +29,56 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# libpmempool_feature/TEST2 -- unit test for PMEMPOOL_FEAT_SHUTDOWN_STATE
+# libpmempool_feature/TEST3 -- unit test for invalid features
 #
 
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 
+require_build_type debug
+
 require_fs_type any
 
-require_sds ./libpmempool_feature$EXESUFFIX
-
 setup
-. ./common.sh
+. .\common.ps1
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL
+# test single file pool with invalid compat features
+expect_normal_exit $PMEMPOOL create obj $POOL
+expect_normal_exit $PMEMSPOIL -v $POOL `
+	pool_hdr.features.compat=0xfe `
+	"pool_hdr.checksum_gen()" >> $LOG
 
-# PMEMPOOL_FEAT_SHUTDOWN_STATE is disabled by default
-libpmempool_feature_query SHUTDOWN_STATE
+libpmempool_feature_query_abnormal "CKSUM_2K"
 
-# PMEMPOOL_FEAT_SHUTDOWN_STATE requires PMEMPOOL_FEAT_CHCKSUM_2K
-libpmempool_feature_disable CKSUM_2K
-exit_func=expect_abnormal_exit
-libpmempool_feature_enable SHUTDOWN_STATE # should fail
-exit_func=expect_normal_exit
-libpmempool_feature_enable CKSUM_2K
-libpmempool_feature_enable SHUTDOWN_STATE # should succeed
+# test multipart poolset with invalid incompat features in one of its part
+$POOLSET="$DIR\testset"
+$POOL=$POOLSET
+$TARGET_PART1="$DIR\testfile23"
+$TARGET_PART2="$DIR\testfile11"
+$PART_SIZE = (convert_to_bytes "10M")
+$PART_SIZE_STR = ${PART_SIZE}.toString() + "B" #10MiB
+
+create_poolset $POOLSET `
+	${PART_SIZE_STR}:${TARGET_PART2}:x ${PART_SIZE_STR}:$DIR\testfile12:x `
+	R ${PART_SIZE_STR}:$DIR\testfile21:x ${PART_SIZE_STR}:$DIR\testfile22:x `
+	${PART_SIZE_STR}:${TARGET_PART1}:x
+
+expect_normal_exit $PMEMPOOL create obj $POOLSET
+expect_normal_exit $PMEMSPOIL -v $TARGET_PART1 `
+	pool_hdr.features.incompat=0xfe `
+	"pool_hdr.checksum_gen()" >> $LOG
+
+libpmempool_feature_query_abnormal "CKSUM_2K"
+
+# test invalid rocompat features in first of its part
+expect_normal_exit $PMEMSPOIL -v $TARGET_PART2 `
+	pool_hdr.features.ro_compat=0xfe `
+	"pool_hdr.checksum_gen()" >> $LOG
+
+libpmempool_feature_query_abnormal "CKSUM_2K"
 
 check
 

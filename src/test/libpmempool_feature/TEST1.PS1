@@ -43,7 +43,7 @@ require_fs_type any
 setup
 . .\common.ps1
 
-expect_normal_exit $PMEMPOOL create obj $DIR\pool.obj
+expect_normal_exit $PMEMPOOL create obj $POOL
 
 # PMEMPOOL_FEAT_CHCKSUM_2K is enabled by default
 libpmempool_feature_query "CKSUM_2K"

@@ -45,7 +45,7 @@ require_sds ./libpmempool_feature$EXESUFFIX
 setup
 . ./common.sh
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.obj
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL
 
 # PMEMPOOL_FEAT_CHCKSUM_2K is enabled by default
 libpmempool_feature_query CKSUM_2K
