@@ -73,7 +73,7 @@ ndctl_nfit_test_init_node 0
 DEVICE=$(ndctl_nfit_test_get_block_device_node 0)
 NAMESPACE=$(ndctl_nfit_test_get_namespace_of_device_node 0 $DEVICE)
 FULLDEV="/dev/$DEVICE"
-MOUNT_DIR="$DIR/mnt-pmem"
+MOUNT_DIR="${NODE_DIR[0]}/mnt-pmem"
 LAYOUT="layout"
 
 ndctl_nfit_test_mount_pmem_node 0 $FULLDEV $MOUNT_DIR
