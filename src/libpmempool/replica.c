@@ -688,6 +688,12 @@ check_checksums_and_signatures(struct pool_set *set,
 		struct pool_replica *rep = REP(set, r);
 		struct replica_health_status *rep_hs = REP_HEALTH(set_hs, r);
 
+		/*
+		 * Checksums and signatures of remote replicas are checked
+		 * during opening them on the remote side by the rpmem deamon.
+		 * The local version of remote headers does not contain
+		 * such data.
+		 */
 		if (rep->remote)
 			continue;
 
@@ -700,12 +706,8 @@ check_checksums_and_signatures(struct pool_set *set,
 			/* check part's checksum */
 			LOG(4, "checking checksum for part %u, replica %u",
 					p, r);
-			struct pool_hdr *hdr;
-			if (rep->remote) {
-				hdr = rep->part[p].remote_hdr;
-			} else {
-				hdr = HDR(rep, p);
-			}
+
+			struct pool_hdr *hdr = HDR(rep, p);
 
 			if (!util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 0,
 					POOL_HDR_CSUM_END_OFF(hdr))) {
