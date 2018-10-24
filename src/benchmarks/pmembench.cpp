@@ -584,7 +584,8 @@ pmembench_init_workers(struct benchmark_worker **workers,
 			int cpu;
 			os_cpu_set_t cpuset;
 
-			if (*args->affinity_list != '\0') {
+			if (args->affinity_list &&
+			    *args->affinity_list != '\0') {
 				cpu = pmembench_parse_affinity(
 					args->affinity_list, &saveptr);
 				if (cpu == -1) {
