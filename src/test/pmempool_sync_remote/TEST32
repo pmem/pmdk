@@ -139,6 +139,16 @@ expect_abnormal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $
 expect_bad_blocks_node 0
 
 expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
+
+#
+# This doubled pmempool-sync call is a workaround for a kernel bug that sometimes occurs.
+# Two bad blocks (one bad block in each of two parts) are supposed to be fixed during
+# the 1st pmempool-sync call by unlinking and recreating the broken parts (because the headers are zeroed).
+# Sometimes happens that one of recreated parts has the same bad block inside again.
+# It should be cleared by the 2nd pmempool-sync call.
+#
+expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
+
 expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
 
 ndctl_nfit_test_fini_node 0 $MOUNT_DIR
