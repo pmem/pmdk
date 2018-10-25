@@ -56,7 +56,7 @@ Root offset              : $(nW)
     "badblock_count":1,
         "offset":$(N),
         "length":1,
-poolset contains bad blocks, use 'pmempool info -k' to print or 'pmempool sync -b' to clear them
+poolset contains bad blocks, use 'pmempool info --bad-blocks=yes' to print or 'pmempool sync --bad-blocks' to clear them
 $(nW)/testset1: cannot repair
     "badblock_count":1,
         "offset":$(N),
