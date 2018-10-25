@@ -34,7 +34,7 @@
 # src/test/pmempool_feature/common.ps1 -- common part of pmempool_feature tests
 #
 
-$PART_SIZE= 10 * 1024 * 1024 # 10MiB
+$PART_SIZE = (convert_to_bytes "10M")
 $PART_SIZE_STR = ${PART_SIZE}.toString() + "B" #10MiB
 $POOLSET="$DIR\testset"
 

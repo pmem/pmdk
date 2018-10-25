@@ -36,7 +36,7 @@
 #
 # for feature values please see: pmempool feature help
 
-PART_SIZE=$((10 * 1024 * 1024)) # 10MiB
+PART_SIZE=$(convert_to_bytes 10M)
 
 # define files and directories
 POOLSET=$DIR/testset
