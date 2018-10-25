@@ -43,6 +43,8 @@ require_sds $PMEMPOOL$EXESUFFIX
 setup
 . ./common.sh
 
+require_usc_permission $DIR
+
 PMEMOBJ_CONF="sds.at_create=1" pmempool_feature_create_poolset "no_dax_device"
 pmempool_feature_query SHUTDOWN_STATE normal
 

@@ -45,6 +45,8 @@ require_sds ./libpmempool_feature$EXESUFFIX
 setup
 . ./common.sh
 
+require_usc_permission $DIR
+
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.obj
 
 # PMEMPOOL_FEAT_CHCKSUM_2K is enabled by default
