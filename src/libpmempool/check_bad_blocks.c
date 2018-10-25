@@ -78,6 +78,6 @@ check_bad_blocks(PMEMpoolcheck *ppc)
 	if (ret > 0) {
 		ppc->result = CHECK_RESULT_CANNOT_REPAIR;
 		CHECK_ERR(ppc,
-			"poolset contains bad blocks, use 'pmempool info -k' to print or 'pmempool sync -b' to clear them");
+			"poolset contains bad blocks, use 'pmempool info --bad-blocks=yes' to print or 'pmempool sync --bad-blocks' to clear them");
 	}
 }

@@ -144,7 +144,7 @@ allows one to see how data is stored in file.
 
 Print pool's statistics. See **STATISTICS** section for details.
 
-`-k, --badblocks`
+`-k, --bad-blocks=<yes|no>`
 
 Print bad blocks found in the pool.
 
