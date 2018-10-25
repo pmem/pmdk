@@ -59,13 +59,13 @@ function pmempool_check_sds_init() {
 	create_poolset $POOLSET \
 		8M:$DIR/part00:x \
 		r 8M:$DIR/part10:x
-	expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
 
 	# enable SHUTDOWN_STATE feature
 	if [ "x$1" == "xenable-sds" ]; then
-		expect_normal_exit $PMEMPOOL$EXESUFFIX feature \
-			--enable "SHUTDOWN_STATE" $POOLSET
+		local conf="sds.at_create=1"
 	fi
+
+	PMEMOBJ_CONF="$conf" expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
 }
 
 # pmempool_check_sds -- perform shutdown state unittest

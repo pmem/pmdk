@@ -78,7 +78,7 @@ do {\
 "   -k, --skip=BYTES                - skip offset for input (default 0)\n"\
 "   -s, --seek=BYTES                - seek offset for output (default 0)\n"\
 "   -l, --len=BYTES                 - total length to perform the I/O\n"\
-"   -b, --clear-bad-blocks=yes/no   - clear bad blocks (default: yes)\n"\
+"   -b, --clear-bad-blocks=<yes|no> - clear bad blocks (default: yes)\n"\
 "   -z, --zero                      - zeroing the device\n"\
 "   -h. --help                      - print this help\n"\
 "   -V, --version                   - display version of daxio\n"

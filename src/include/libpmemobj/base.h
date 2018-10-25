@@ -157,6 +157,9 @@ struct {\
 	T value;\
 }
 
+/*
+ * Returns lazily initialized volatile variable. (EXPERIMENTAL)
+ */
 void *pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
 	void *ptr, size_t size,
 	int (*constr)(void *ptr, void *arg), void *arg);

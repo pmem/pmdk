@@ -335,9 +335,8 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 	n_objs = bench_priv->args_priv->n_objs;
 	if (bench_priv->n_pools == 1)
 		n_objs *= args->n_threads;
-	psize = n_objs * args->dsize * args->n_threads * FACTOR;
-	if (psize < PMEMOBJ_MIN_POOL)
-		psize = PMEMOBJ_MIN_POOL;
+	psize = PMEMOBJ_MIN_POOL +
+		n_objs * args->dsize * args->n_threads * FACTOR;
 
 	/* assign type_number determining function */
 	bench_priv->type_mode =

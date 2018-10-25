@@ -80,12 +80,12 @@ static const struct pmempool_info_args pmempool_info_args_default = {
 	.col_width	= 24,
 	.human		= false,
 	.force		= false,
+	.badblocks	= PRINT_BAD_BLOCKS_NOT_SET,
 	.type		= PMEM_POOL_TYPE_UNKNOWN,
 	.vlevel		= VERBOSE_DEFAULT,
 	.vdata		= VERBOSE_SILENT,
 	.vhdrdump	= VERBOSE_SILENT,
 	.vstats		= VERBOSE_SILENT,
-	.vbadblocks	= VERBOSE_SILENT,
 	.log		= {
 		.walk		= 0,
 	},
@@ -127,7 +127,7 @@ static const struct option long_options[] = {
 	{"headers-hex",	no_argument,		NULL, 'x' | OPT_ALL},
 	{"stats",	no_argument,		NULL, 's' | OPT_ALL},
 	{"range",	required_argument,	NULL, 'r' | OPT_ALL},
-	{"badblocks",	no_argument,		NULL, 'k' | OPT_ALL},
+	{"bad-blocks",	required_argument,	NULL, 'k' | OPT_ALL},
 	{"walk",	required_argument,	NULL, 'w' | OPT_LOG},
 	{"skip-zeros",	no_argument,		NULL, 'z' | OPT_BLK | OPT_BTT},
 	{"skip-error",	no_argument,		NULL, 'e' | OPT_BLK | OPT_BTT},
@@ -264,7 +264,7 @@ static const char * const help_str =
 "  -d, --data                      Dump log data and blocks.\n"
 "  -s, --stats                     Print statistics.\n"
 "  -r, --range <range>             Range of blocks/chunks/objects.\n"
-"  -k, --badblocks                 Print badblocks.\n"
+"  -k, --bad-blocks=<yes|no>       Print bad blocks.\n"
 "\n"
 "Options for PMEMLOG:\n"
 "  -w, --walk <size>               Chunk size.\n"
@@ -355,7 +355,7 @@ parse_args(const char *appname, int argc, char *argv[],
 
 	struct ranges *rangesp = &argsp->ranges;
 	while ((opt = util_options_getopt(argc, argv,
-			"vhnf:ezuF:L:c:dmxVw:gBsr:lRS:OECZHT:bot:aAp:k",
+			"vhnf:ezuF:L:c:dmxVw:gBsr:lRS:OECZHT:bot:aAp:k:",
 			opts)) != -1) {
 
 		switch (opt) {
@@ -378,6 +378,18 @@ parse_args(const char *appname, int argc, char *argv[],
 				return -1;
 			}
 			argsp->force = true;
+			break;
+		case 'k':
+			if (strcmp(optarg, "no") == 0) {
+				argsp->badblocks = PRINT_BAD_BLOCKS_NO;
+			} else if (strcmp(optarg, "yes") == 0) {
+				argsp->badblocks = PRINT_BAD_BLOCKS_YES;
+			} else {
+				ERR(
+					"'%s' -- invalid argument of the '--bad-blocks' option\n",
+					optarg);
+				return -1;
+			}
 			break;
 		case 'e':
 			argsp->blk.skip_error = true;
@@ -417,9 +429,6 @@ parse_args(const char *appname, int argc, char *argv[],
 			break;
 		case 's':
 			argsp->vstats = VERBOSE_DEFAULT;
-			break;
-		case 'k':
-			argsp->vbadblocks = VERBOSE_DEFAULT;
 			break;
 		case 'w':
 			argsp->log.walk = (size_t)atoll(optarg);
@@ -549,7 +558,7 @@ pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
 {
 	int ret;
 
-	if (!outv_check(pip->args.vbadblocks))
+	if (pip->args.badblocks != PRINT_BAD_BLOCKS_YES)
 		return 0;
 
 	struct badblocks *bbs = badblocks_new();
@@ -858,6 +867,20 @@ pmempool_info_file(struct pmem_info *pip, const char *file_name)
 		if (!pip->pfile) {
 			perror(file_name);
 			return -1;
+		}
+
+		/* check if we should check and print bad blocks */
+		if (pip->args.badblocks == PRINT_BAD_BLOCKS_NOT_SET) {
+			struct pool_hdr hdr;
+			if (pmempool_info_read(pip, &hdr, sizeof(hdr), 0)) {
+				outv_err("cannot read pool header\n");
+				goto out_close;
+			}
+			util_convert2h_hdr_nocheck(&hdr);
+			if (hdr.features.compat & POOL_FEAT_CHECK_BAD_BLOCKS)
+				pip->args.badblocks = PRINT_BAD_BLOCKS_YES;
+			else
+				pip->args.badblocks = PRINT_BAD_BLOCKS_NO;
 		}
 
 		if (pip->type != PMEM_POOL_TYPE_BTT) {

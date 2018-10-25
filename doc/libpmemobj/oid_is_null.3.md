@@ -68,7 +68,7 @@ PMEMobjpool *pmemobj_pool_by_oid(PMEMoid oid);
 PMEMobjpool *pmemobj_pool_by_ptr(const void *addr);
 void *pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
 	size_t size, void *ptr,
-	int (*constr)(void *ptr, void *arg), void *arg);
+	int (*constr)(void *ptr, void *arg), void *arg); (EXPERIMENTAL)
 ```
 
 

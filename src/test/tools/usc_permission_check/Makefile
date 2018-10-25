@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-#
 # Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,22 +28,15 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+# Makefile -- Makefile for fallocate detection tool
 #
-# pmempool_check/TEST28 -- test for checking pools
-#
-. ../unittest/unittest.sh
 
-require_test_type medium
-require_fs_type any
-require_sds $PMEMPOOL$EXESUFFIX
+TOP = ../../../..
 
-setup
-. ./common.sh
+TARGET = usc_permission_check
+OBJS = usc_permission_check.o
 
-require_usc_permission $DIR
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-pmempool_check_sds_init enable-sds
-pmempool_check_sds fix_second_replica_only
-
-check
-pass
+include $(TOP)/src/tools/Makefile.inc
