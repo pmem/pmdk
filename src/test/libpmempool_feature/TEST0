@@ -43,7 +43,7 @@ require_fs_type any
 setup
 . ./common.sh
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.obj
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL
 
 exit_func=expect_abnormal_exit
 

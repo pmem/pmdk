@@ -31,48 +31,55 @@
 #
 
 #
-# src/test/pmempool_feature/common.ps1 -- common part of pmempool_feature tests
+# libpmempool_feature/TEST3 -- unit test for invalid features
 #
 
+. ..\unittest\unittest.ps1
+
+require_test_type medium
+
+require_build_type debug
+
+require_fs_type any
+
+setup
+. .\common.ps1
+
+# test single file pool with invalid compat features
+expect_normal_exit $PMEMPOOL create obj $POOL
+expect_normal_exit $PMEMSPOIL -v $POOL `
+	pool_hdr.features.compat=0xfe `
+	"pool_hdr.checksum_gen()" >> $LOG
+
+libpmempool_feature_query_abnormal "CKSUM_2K"
+
+# test multipart poolset with invalid incompat features in one of its part
+$POOLSET="$DIR\testset"
+$POOL=$POOLSET
+$TARGET_PART1="$DIR\testfile23"
+$TARGET_PART2="$DIR\testfile11"
 $PART_SIZE = (convert_to_bytes "10M")
 $PART_SIZE_STR = ${PART_SIZE}.toString() + "B" #10MiB
-$POOLSET="$DIR\testset"
 
-# create poolset
 create_poolset $POOLSET `
-	${PART_SIZE_STR}:$DIR\testfile11:x ${PART_SIZE_STR}:$DIR\testfile12:x `
+	${PART_SIZE_STR}:${TARGET_PART2}:x ${PART_SIZE_STR}:$DIR\testfile12:x `
 	R ${PART_SIZE_STR}:$DIR\testfile21:x ${PART_SIZE_STR}:$DIR\testfile22:x `
-	R ${PART_SIZE_STR}:$DIR\testfile31:x
+	${PART_SIZE_STR}:${TARGET_PART1}:x
 
-$LOG = "grep${Env:UNITTEST_NUM}.log"
-remove_files $LOG
+expect_normal_exit $PMEMPOOL create obj $POOLSET
+expect_normal_exit $PMEMSPOIL -v $TARGET_PART1 `
+	pool_hdr.features.incompat=0xfe `
+	"pool_hdr.checksum_gen()" >> $LOG
 
-$exit_func="expect_normal_exit"
+libpmempool_feature_query_abnormal "CKSUM_2K"
 
-# pmempool_feature_query -- query feature
-#
-# usage: pmempool_feature_query <feature>
-function pmempool_feature_query($arg1) {
-	$val=$(expect_normal_exit $PMEMPOOL feature -q $arg1 $POOLSET)
-	echo "query $arg1 result is $val" >> $LOG
-}
+# test invalid rocompat features in first of its part
+expect_normal_exit $PMEMSPOIL -v $TARGET_PART2 `
+	pool_hdr.features.ro_compat=0xfe `
+	"pool_hdr.checksum_gen()" >> $LOG
 
-# pmempool_feature_enable -- enable feature
-#
-# usage: pmempool_feature_enable <feature> [no-query]
-function pmempool_feature_enable($arg1, $arg2) {
-	& $exit_func $PMEMPOOL feature -e $arg1 $POOLSET 2>&1 | Select-String "$arg1" | %{$_.Line} >> $LOG
-	if ( "x$arg2" -ne "xno-query" ){
-		pmempool_feature_query $arg1
-	}
-}
+libpmempool_feature_query_abnormal "CKSUM_2K"
 
-# pmempool_feature_disable -- disable feature
-#
-# usage: pmempool_feature_disable <feature> [no-query]
-function pmempool_feature_disable($arg1, $arg2) {
-	& $exit_func $PMEMPOOL feature -d $arg1 $POOLSET 2>&1 | Select-String "$arg1" | %{$_.Line} >> $LOG
-	if ( "x$arg2" -ne "xno-query" ){
-		pmempool_feature_query $arg1
-	}
-}
+check
+
+pass

@@ -71,13 +71,20 @@ buff_concat(char *buff, size_t *pos, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	int ret = vsnprintf(buff + *pos, FEATURE_MAXPRINT - *pos - 1, fmt, ap);
+	const size_t size = FEATURE_MAXPRINT - *pos - 1;
+	int ret = vsnprintf(buff + *pos, size, fmt, ap);
 	va_end(ap);
 
 	if (ret < 0) {
 		ERR("vsprintf");
 		return ret;
 	}
+
+	if ((size_t)ret >= size) {
+		ERR("buffer truncated %d >= %zu", ret, size);
+		return -1;
+	}
+
 	*pos += (size_t)ret;
 	return 0;
 }
@@ -123,17 +130,21 @@ features_check(features_t *features, struct pool_hdr *hdrp)
 	memcpy(&hdr, hdrp, sizeof(hdr));
 	util_convert2h_hdr_nocheck(&hdr);
 
+	/* (features != f_invlaid) <=> features is set */
 	if (!util_feature_cmp(*features, f_invalid)) {
+		/* features from current and previous headers have to match */
 		if (!util_feature_cmp(*features, hdr.features)) {
 			size_t pos = 0;
-			if (!buff_concat_features(msg, &pos, hdr.features))
+			if (buff_concat_features(msg, &pos, hdr.features))
 				goto err;
-			if (!buff_concat(msg, &pos, "%s", " != "))
+			if (buff_concat(msg, &pos, "%s", " != "))
 				goto err;
-			if (!buff_concat_features(msg, &pos, *features))
+			if (buff_concat_features(msg, &pos, *features))
 				goto err;
 			ERR("features mismatch detected: %s", msg);
 			return -1;
+		} else {
+			return 0;
 		}
 	}
 

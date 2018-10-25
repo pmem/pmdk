@@ -47,7 +47,7 @@ setup
 
 require_usc_permission $DIR
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.obj
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL
 
 # PMEMPOOL_FEAT_SHUTDOWN_STATE is disabled by default
 libpmempool_feature_query SHUTDOWN_STATE
