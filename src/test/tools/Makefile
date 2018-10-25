@@ -51,7 +51,8 @@ DIRS = \
        cmpmap\
        extents\
        fallocate_detect\
-       obj_verify
+       obj_verify\
+       usc_permission_check
 
 REMOTE_TOOLS = \
 	ctrld\

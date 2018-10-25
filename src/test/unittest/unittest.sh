@@ -95,6 +95,7 @@ LIB_TOOLS="../../tools"
 [ "$EXTENTS" ] || EXTENTS=$TOOLS/extents/extents
 [ "$FALLOCATE_DETECT" ] || FALLOCATE_DETECT=$TOOLS/fallocate_detect/fallocate_detect.static-nondebug
 [ "$OBJ_VERIFY" ] || OBJ_VERIFY=$TOOLS/obj_verify/obj_verify
+[ "$USC_PERMISSION" ] || USC_PERMISSION=$TOOLS/usc_permission_check/usc_permission_check.static-nondebug
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -1450,6 +1451,29 @@ function require_native_fallocate() {
 		exit 0
 	elif [ $status -ne 0 ]; then
 		msg "$UNITTEST_NAME: fallocate_detect failed"
+		exit 1
+	fi
+}
+
+#
+# require_usc_persmission -- verify if usc can be read with current persmission
+#
+function require_usc_permission() {
+	set +e
+	$USC_PERMISSION $1 2> $DIR/usc_permission.txt
+	status=$?
+	set -e
+
+	# check if there were any messages printed to stderr, skip test if there were
+	usc_stderr=$(cat $DIR/usc_permission.txt | wc -c)
+
+	rm -f $DIR/usc_permission.txt
+
+	if [ $status -eq 1 ] || [ $usc_stderr -ne 0 ]; then
+		msg "$UNITTEST_NAME: SKIP: missing permissions to read usc"
+		exit 0
+	elif [ $status -ne 0 ]; then
+		msg "$UNITTEST_NAME: usc_permission_check failed"
 		exit 1
 	fi
 }
