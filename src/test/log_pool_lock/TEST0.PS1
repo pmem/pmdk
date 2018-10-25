@@ -36,7 +36,6 @@
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-require_no_superuser
 
 # doesn't make sense to run in local directory
 require_fs_type any
