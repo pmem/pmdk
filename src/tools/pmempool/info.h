@@ -58,6 +58,17 @@
 #define VERBOSE_MAX	2
 
 /*
+ * print_bb_e -- printing bad blocks options
+ */
+enum print_bb_e {
+	PRINT_BAD_BLOCKS_NOT_SET,
+	PRINT_BAD_BLOCKS_NO,
+	PRINT_BAD_BLOCKS_YES,
+
+	PRINT_BAD_BLOCKS_MAX
+};
+
+/*
  * pmempool_info_args -- structure for storing command line arguments
  */
 struct pmempool_info_args {
@@ -65,6 +76,7 @@ struct pmempool_info_args {
 	unsigned col_width;	/* column width for printing fields */
 	bool human;		/* sizes in human-readable formats */
 	bool force;		/* force parsing pool */
+	enum print_bb_e badblocks; /* print bad blocks */
 	pmem_pool_type_t type;	/* forced pool type */
 	bool use_range;		/* use range for blocks */
 	struct ranges ranges;	/* range of block/chunks to dump */
@@ -72,7 +84,6 @@ struct pmempool_info_args {
 	int vdata;		/* verbosity level for data dump */
 	int vhdrdump;		/* verbosity level for headers hexdump */
 	int vstats;		/* verbosity level for statistics */
-	int vbadblocks;		/* verbosity level for bad blocks */
 	struct {
 		size_t walk;		/* data chunk size */
 	} log;
