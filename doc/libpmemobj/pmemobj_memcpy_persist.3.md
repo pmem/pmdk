@@ -168,11 +168,10 @@ The remaining flags say *how* the operation should be done, and are merely hints
 buffer.
 
 **pmemobj_persist**(), **pmemobj_flush**() and **pmemobj_drain**()
+do not return any value.
 
 **pmemobj_xpersist**() and **pmemobj_xflush**() returns non-zero value and
 sets errno to EINVAL only if not supported flags has been provided.
-
-do not return any value.
 
 # EXAMPLES #
 

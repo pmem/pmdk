@@ -134,7 +134,7 @@ The constructor is called with the *ptr* pointer to the data, and this function
 will return the same pointer if the constructor returns *0*, otherwise NULL is
 returned. The *size* argument must accurately describe the total size of the
 volatile memory region that will be accessed. Calling **pmemobj_volatile()**
-on the same region with different sizes is undefined behavior.
+on the same region with different sizes has undefined behavior.
 For this mechanism to be effective, all accesses to transient variables must
 go through it, otherwise there's a risk of the constructor not being called
 on the first load.
