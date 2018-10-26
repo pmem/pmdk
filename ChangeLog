@@ -2,7 +2,52 @@ Wed Oct 19 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.5-rc2
 
-	TBD
+	This release has had two major focus areas - performance and RAS
+	(Reliability, Availability and Serviceability). Beyond that, it introduces
+	new APIs, new tools and many other improvements. As a side effect
+	of performance optimizations, the libpmemobj on-media layout had to be
+	changed, which means that old pools have to be converted using pmdk-convert.
+	libpmemcto experiment has been finished and removed from the tree.
+
+	For more details, please see http://pmem.io/2018/10/22/release-1-5.html.
+
+	New features:
+	- common: unsafe shutdown detection (SDS)
+	- common: detection and repair of uncorrectable memory errors (bad blocks)
+	- pool: new "feature" subcommand for enabling and disabling detection of
+	  unsafe shutdown and uncorrectable memory errors
+	- common: auto flush detection on Windows (on Linux since 1.4)
+	- pmreorder: new tool for verification of persistent memory algorithms
+	- obj: new on media layout
+	- pmem/obj: new flexible memcpy|memmove|memset API
+	- obj: new flushing APIs: pmemobj_xpersist, pmemobj_xflush (PMEMOBJ_F_RELAXED)
+	- rpmem: new flag RPMEM_PERSIST_RELAXED for rpmem_persist
+	- obj: lazily initialized volatile variables (pmemobj_volatile) (EXPERIMENTAL)
+	- obj: allocation classes with alignment
+	- obj: new action APIs: pmemobj_defer_free, POBJ_XRESERVE_NEW,
+	  POBJ_XRESERVE_ALLOC
+	- blk/log: new "ctl" API
+
+	Optimizations:
+	- obj: major performance improvements for AEP NVDIMMs
+	- obj: better space utilization for small allocations
+	- common: call msync only on one page for deep drain
+
+	Other changes:
+	- cto: removed
+	- obj: remove actions limit
+	- common: new dependency on libndctl on Linux
+	- pmempool: "convert" subcommand is now a wrapper around pmdk-convert
+	  (please see https://github.com/pmem/pmdk-convert)
+	- obj: C++ bindings have been moved to a new repository
+	  (please see https://github.com/pmem/libpmemobj-cpp)
+
+	Bug fixes:
+	- obj: fix type numbers for pmemobj_list_insert_new
+	- pmem: fix inconsistency in pmem_is_pmem
+	- common: fix windows mmap destruction
+	- daxio: fix checking and adjusting length
+	- common: fix long paths support on Windows
 
 Thu Aug 16 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
