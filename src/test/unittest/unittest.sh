@@ -107,6 +107,9 @@ NODES_MAX=-1
 SIZE_4KB=4096
 SIZE_2MB=2097152
 
+# PMEMOBJ limitations
+PMEMOBJ_MAX_ALLOC_SIZE=17177771968
+
 # SSH and SCP options
 SSH_OPTS="-o BatchMode=yes"
 SCP_OPTS="-o BatchMode=yes -r -p"
@@ -3461,6 +3464,20 @@ function require_free_space() {
 	fi
 	if [ $free_space -lt $req_free_space ]; then
 		msg "$UNITTEST_NAME: SKIP: not enough free space ($1 required)"
+		exit 0
+	fi
+}
+
+#
+# require_root_object_size -- if required root object size is bigger than
+# libpmemobj limit it has to be skipped
+#
+# usage: require_root_object_size <root-object-size>
+#
+function require_root_object_size() {
+	req_root_object_size=$(convert_to_bytes $1)
+	if [ $req_root_object_size -ge $PMEMOBJ_MAX_ALLOC_SIZE ]; then
+		msg "$UNITTEST_NAME: SKIP: pmemobj does not support so big root object ($1 required)"
 		exit 0
 	fi
 }
