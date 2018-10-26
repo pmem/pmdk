@@ -1,6 +1,6 @@
-Wed Oct 19 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+Fri Oct 26 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.5-rc2
+	* Version 1.5
 
 	This release has had two major focus areas - performance and RAS
 	(Reliability, Availability and Serviceability). Beyond that, it introduces
