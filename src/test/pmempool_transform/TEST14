@@ -48,6 +48,11 @@ require_dax_device_alignments $SIZE_4KB $SIZE_4KB
 
 setup
 
+# test requires at least (size of device DAX #0 + 1G) of free space in $DIR
+DAX_SIZE[0]=$(get_devdax_size 0)
+SIZE_1G=$(convert_to_bytes 1G)
+require_free_space $(( DAX_SIZE[0] + SIZE_1G ))
+
 dax_device_zero
 
 LOG=out${UNITTEST_NUM}.log
@@ -58,8 +63,6 @@ rm -f $LOG_TEMP && touch $LOG_TEMP
 LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET_IN=$DIR/poolset.in
 POOLSET_OUT=$DIR/poolset.out
-
-DAX_SIZE[0]=$(get_devdax_size 0)
 
 # Create poolset files
 create_poolset $POOLSET_IN \
