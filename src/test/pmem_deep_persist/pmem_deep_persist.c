@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,8 +69,8 @@ main(int argc, char *argv[])
 	int ret = -1;
 
 	path = argv[1];
-	persist_size = (size_t)atoi(argv[3]);
-	offset = (size_t)atoi(argv[4]);
+	persist_size = ATOULL(argv[3]);
+	offset = ATOULL(argv[4]);
 
 	switch (*argv[2]) {
 		case 'p':
