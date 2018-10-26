@@ -69,7 +69,12 @@ main(int argc, char *argv[])
 	int ret = -1;
 
 	path = argv[1];
-	persist_size = ATOULL(argv[3]);
+	ssize_t tmp = ATOLL(argv[3]);
+	if (tmp < 0)
+		persist_size = UINT64_MAX;
+	else
+		persist_size = (size_t)tmp;
+
 	offset = ATOULL(argv[4]);
 
 	switch (*argv[2]) {
@@ -79,7 +84,7 @@ main(int argc, char *argv[])
 				UT_FATAL("!pmem_map_file");
 			}
 
-			if (persist_size == -1)
+			if (persist_size == UINT64_MAX)
 				persist_size = mapped_len;
 			ret = pmem_deep_persist(addr + offset, persist_size);
 
@@ -94,7 +99,7 @@ main(int argc, char *argv[])
 			UT_ASSERTne(addr, MAP_FAILED);
 			CLOSE(fd);
 
-			if (persist_size == -1)
+			if (persist_size == UINT64_MAX)
 				persist_size = file_size;
 			ret = pmem_deep_persist(addr + offset, persist_size);
 
