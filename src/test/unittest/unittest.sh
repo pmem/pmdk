@@ -260,7 +260,7 @@ else
 		DIR=/dev/null/not_existing_dir/$DIRSUFFIX/$curtestdir$UNITTEST_NUM
 		;;
 	*)
-		verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS (not configured)"
+		verbose_msg "$UNITTEST_NAME: SKIP: fs-type $FS (not configured)"
 		exit 0
 		;;
 	esac
@@ -984,7 +984,7 @@ function check_pools() {
 #
 function require_unlimited_vm() {
 	$VM_OVERCOMMIT && [ $(ulimit -v) = "unlimited" ] && return
-	msg "$UNITTEST_NAME: SKIP required: overcommit_memory enabled and unlimited virtual memory"
+	msg "$UNITTEST_NAME: SKIP: required: overcommit_memory enabled and unlimited virtual memory"
 	exit 0
 }
 
@@ -998,7 +998,7 @@ function require_linked_with_ndctl() {
 		fatal "$UNITTEST_NAME: ERROR: require_linked_with_ndctl() requires one argument - an executable file"
 	local lddndctl=$(LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH ldd $1 | $GREP -ce "libndctl")
 	[ "$lddndctl" == "1" ] && return
-	msg "$UNITTEST_NAME: SKIP required: executable $1 linked with libndctl"
+	msg "$UNITTEST_NAME: SKIP: required: executable $1 linked with libndctl"
 	exit 0
 }
 
@@ -1013,7 +1013,7 @@ function require_sudo_allowed() {
 
 	if ! timeout --signal=SIGKILL --kill-after=3s 3s sudo date >/dev/null 2>&1
 	then
-		msg "$UNITTEST_NAME: SKIP required: sudo allowed"
+		msg "$UNITTEST_NAME: SKIP: required: sudo allowed"
 		exit 0
 	fi
 }
@@ -1031,7 +1031,7 @@ function require_sudo_allowed_node() {
 
 	if ! run_on_node $1 "timeout --signal=SIGKILL --kill-after=3s 3s sudo date" >/dev/null 2>&1
 	then
-		msg "$UNITTEST_NAME: SKIP required: sudo allowed on node $1"
+		msg "$UNITTEST_NAME: SKIP: required: sudo allowed on node $1"
 		exit 0
 	fi
 }
@@ -1042,7 +1042,7 @@ function require_sudo_allowed_node() {
 function require_no_superuser() {
 	local user_id=$(id -u)
 	[ "$user_id" != "0" ] && return
-	msg "$UNITTEST_NAME: SKIP required: run without superuser rights"
+	msg "$UNITTEST_NAME: SKIP: required: run without superuser rights"
 	exit 0
 }
 
@@ -1096,7 +1096,7 @@ function require_test_type() {
 			;;
 		esac
 	done
-	verbose_msg "$UNITTEST_NAME: SKIP test-type $TEST ($* required)"
+	verbose_msg "$UNITTEST_NAME: SKIP: test-type $TEST ($* required)"
 	exit 0
 }
 
@@ -1159,7 +1159,7 @@ function require_dev_dax_node() {
 	local node=$2
 	if [ -n "$node" ]; then
 		local DIR=${NODE_WORKING_DIR[$node]}/$curtestdir
-		local prefix="$UNITTEST_NAME: SKIP NODE $node:"
+		local prefix="$UNITTEST_NAME: SKIP: NODE $node:"
 		local device_dax_path=(${NODE_DEVICE_DAX_PATH[$node]})
 		if [  ${#device_dax_path[@]} -lt $min ]; then
 			msg "$prefix NODE_${node}_DEVICE_DAX_PATH does not specify enough dax devices (min: $min)"
@@ -1247,7 +1247,7 @@ dax_device_zero() {
 node_dax_device_zero() {
 	local node=$1
 	local DIR=${NODE_WORKING_DIR[$node]}/$curtestdir
-	local prefix="$UNITTEST_NAME: SKIP NODE $node:"
+	local prefix="$UNITTEST_NAME: SKIP: NODE $node:"
 	local device_dax_path=(${NODE_DEVICE_DAX_PATH[$node]})
 	local cmd="ssh $SSH_OPTS ${NODE[$node]} cd $DIR && LD_LIBRARY_PATH=$REMOTE_LD_LIBRARY_PATH ../pmempool rm -f"
 
@@ -1392,10 +1392,10 @@ function require_node_dax_device_alignments() {
 
 		if [ $i -eq $cnt ]; then
 			if [ "$node" == "-1" ]; then
-				msg "$UNITTEST_NAME: SKIP DEVICE_DAX_PATH"\
+				msg "$UNITTEST_NAME: SKIP: DEVICE_DAX_PATH"\
 					"does not specify enough dax devices or they don't have required alignments (min: $#, alignments: $*)"
 			else
-				msg "$UNITTEST_NAME: SKIP NODE $node: NODE_${node}_DEVICE_DAX_PATH"\
+				msg "$UNITTEST_NAME: SKIP: NODE $node: NODE_${node}_DEVICE_DAX_PATH"\
 					"does not specify enough dax devices or they don't have required alignments (min: $#, alignments: $*)"
 			fi
 			exit 0
@@ -1430,7 +1430,7 @@ function require_fs_type() {
 			([ -n "${FORCE_FS:+x}" ] && [ "$type" = "any" ] &&
 			[ "$FS" != "none" ]) && return
 	done
-	verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS ($* required)"
+	verbose_msg "$UNITTEST_NAME: SKIP: fs-type $FS ($* required)"
 	exit 0
 }
 
@@ -1456,7 +1456,7 @@ function require_native_fallocate() {
 }
 
 #
-# require_usc_persmission -- verify if usc can be read with current persmission
+# require_usc_permission -- verify if usc can be read with current permissions
 #
 function require_usc_permission() {
 	set +e
@@ -1493,7 +1493,7 @@ function require_fs_name() {
 		fi
 	done
 
-	echo "$UNITTEST_NAME: SKIP file system $fsname ($* required)"
+	echo "$UNITTEST_NAME: SKIP: file system $fsname ($* required)"
 	exit 0
 }
 
@@ -1505,7 +1505,7 @@ function require_build_type() {
 	do
 		[ "$type" = "$BUILD" ] && return
 	done
-	verbose_msg "$UNITTEST_NAME: SKIP build-type $BUILD ($* required)"
+	verbose_msg "$UNITTEST_NAME: SKIP: build-type $BUILD ($* required)"
 	exit 0
 }
 
@@ -1609,12 +1609,12 @@ function require_kernel_module_node() {
 function require_pkg() {
 	if ! command -v pkg-config 1>/dev/null
 	then
-		msg "$UNITTEST_NAME: SKIP pkg-config required"
+		msg "$UNITTEST_NAME: SKIP: pkg-config required"
 		exit 0
 	fi
 
 	local COMMAND="pkg-config $1"
-	local MSG="$UNITTEST_NAME: SKIP '$1' package"
+	local MSG="$UNITTEST_NAME: SKIP: '$1' package"
 	if [ "$#" -eq "2" ]; then
 		COMMAND="$COMMAND --atleast-version $2"
 		MSG="$MSG (version >= $2)"
@@ -1646,7 +1646,7 @@ function require_node_pkg() {
 	fi
 
 	COMMAND="$COMMAND pkg-config $1"
-	MSG="$UNITTEST_NAME: SKIP NODE $N: '$1' package"
+	MSG="$UNITTEST_NAME: SKIP: NODE $N: '$1' package"
 	if [ "$#" -eq "2" ]; then
 		COMMAND="$COMMAND --atleast-version $2"
 		MSG="$MSG (version >= $2)"
@@ -1690,13 +1690,13 @@ function configure_valgrind() {
 		fi
 	else
 		if [ "$1" == "force-disable" ]; then
-			msg "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable valgrind test when all valgrind tests are disabled in TEST"
+			msg "$UNITTEST_NAME: SKIP: RUNTESTS script parameter $CHECK_TYPE tries to enable valgrind test when all valgrind tests are disabled in TEST"
 			exit 0
 		elif [ "$CHECK_TYPE" != "$1" -a "$2" == "force-enable" ]; then
-			msg "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable different valgrind test than one defined in TEST"
+			msg "$UNITTEST_NAME: SKIP: RUNTESTS script parameter $CHECK_TYPE tries to enable different valgrind test than one defined in TEST"
 			exit 0
 		elif [ "$CHECK_TYPE" == "$1" -a "$2" == "force-disable" ]; then
-			msg "$UNITTEST_NAME: SKIP RUNTESTS script parameter $CHECK_TYPE tries to enable test defined in TEST as force-disable"
+			msg "$UNITTEST_NAME: SKIP: RUNTESTS script parameter $CHECK_TYPE tries to enable test defined in TEST as force-disable"
 			exit 0
 		fi
 		require_valgrind_tool $CHECK_TYPE $3
@@ -1727,7 +1727,7 @@ function require_valgrind() {
 	local ret=$?
 	restore_exit_on_error
 	if [ $ret -ne 0 ]; then
-		msg "$UNITTEST_NAME: SKIP valgrind required"
+		msg "$UNITTEST_NAME: SKIP: valgrind required"
 		exit 0
 	fi
 	[ $NODES_MAX -lt 0 ] && return;
@@ -1737,7 +1737,7 @@ function require_valgrind() {
 		required=`echo $1 | sed "s/\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc`
 
 		if [ $available -lt $required ]; then
-			msg "$UNITTEST_NAME: SKIP valgrind required (ver $1 or later)"
+			msg "$UNITTEST_NAME: SKIP: valgrind required (ver $1 or later)"
 			exit 0
 		fi
 	fi
@@ -1749,7 +1749,7 @@ function require_valgrind() {
 			ret=$?
 			restore_exit_on_error
 			if [ $ret -ne 0 ]; then
-				msg "$UNITTEST_NAME: SKIP valgrind required on remote node #$N"
+				msg "$UNITTEST_NAME: SKIP: valgrind required on remote node #$N"
 				exit 0
 			fi
 		fi
@@ -1784,7 +1784,7 @@ function require_valgrind_tool() {
 	strings ${binary} 2>&1 | \
 	grep -q "compiled with support for Valgrind $tool" && true
 	if [ $? -ne 0 ]; then
-		msg "$UNITTEST_NAME: SKIP not compiled with support for Valgrind $tool"
+		msg "$UNITTEST_NAME: SKIP: not compiled with support for Valgrind $tool"
 		exit 0
 	fi
 
@@ -1792,7 +1792,7 @@ function require_valgrind_tool() {
 		valgrind --tool=$tool --help 2>&1 | \
 		grep -qi "$tool is Copyright (c)" && true
 		if [ $? -ne 0 ]; then
-			msg "$UNITTEST_NAME: SKIP Valgrind with $tool required"
+			msg "$UNITTEST_NAME: SKIP: Valgrind with $tool required"
 			exit 0;
 		fi
 	fi
@@ -1800,12 +1800,12 @@ function require_valgrind_tool() {
 		out=`valgrind --tool=$tool --help 2>&1` && true
 		echo "$out" | grep -qi "$tool is Copyright (c)" && true
 		if [ $? -ne 0 ]; then
-			msg "$UNITTEST_NAME: SKIP Valgrind with $tool required"
+			msg "$UNITTEST_NAME: SKIP: Valgrind with $tool required"
 			exit 0;
 		fi
 		echo "$out" | grep -qi "expect-fence-after-clflush" && true
 		if [ $? -ne 0 ]; then
-			msg "$UNITTEST_NAME: SKIP pmemcheck does not support --expect-fence-after-clflush option. Please update it to the latest version."
+			msg "$UNITTEST_NAME: SKIP: pmemcheck does not support --expect-fence-after-clflush option. Please update it to the latest version."
 			exit 0;
 		fi
 	fi
@@ -1903,7 +1903,7 @@ function require_no_asan() {
 #
 function require_tty() {
 	if ! tty >/dev/null; then
-		msg "$UNITTEST_NAME: SKIP no terminal"
+		msg "$UNITTEST_NAME: SKIP: no terminal"
 		exit 0
 	fi
 }
@@ -1918,7 +1918,7 @@ function require_binary() {
 		fatal "require_binary: error: binary not provided"
 	fi
 	if [ ! -x "$1" ]; then
-		msg "$UNITTEST_NAME: SKIP no binary found"
+		msg "$UNITTEST_NAME: SKIP: no binary found"
 		exit 0
 	fi
 
@@ -1963,7 +1963,7 @@ function require_sds() {
 	strings ${binary} 2>&1 | \
 		grep -q "compiled with support for shutdown state" && true
 	if [ $? -ne 0 ]; then
-		msg "$UNITTEST_NAME: SKIP not compiled with support for shutdown state"
+		msg "$UNITTEST_NAME: SKIP: not compiled with support for shutdown state"
 		exit 0
 	fi
 	return 0
@@ -1986,7 +1986,7 @@ function require_no_sds() {
 		grep -c "compiled with support for shutdown state")
 	set -e
 	if [ "$found" -ne "0" ]; then
-		msg "$UNITTEST_NAME: SKIP compiled with support for shutdown state"
+		msg "$UNITTEST_NAME: SKIP: compiled with support for shutdown state"
 		exit 0
 	fi
 	return 0
@@ -2111,12 +2111,12 @@ function require_node_libfabric() {
 	require_node_pkg $N libfabric "$version"
 	if [ "$RPMEM_DISABLE_LIBIBVERBS" != "y" ]; then
 		if ! fi_info --list | grep -q verbs; then
-			msg "$UNITTEST_NAME: SKIP libfabric not compiled with verbs provider"
+			msg "$UNITTEST_NAME: SKIP: libfabric not compiled with verbs provider"
 			exit 0
 		fi
 
 		if ! run_on_node $N "fi_info --list | grep -q verbs"; then
-			msg "$UNITTEST_NAME: SKIP libfabric on node $N not compiled with verbs provider"
+			msg "$UNITTEST_NAME: SKIP: libfabric on node $N not compiled with verbs provider"
 			exit 0
 
 		fi
@@ -2135,7 +2135,7 @@ function require_node_libfabric() {
 	if [ "$ret" == "0" ]; then
 		return
 	elif [ "$ret" == "1" ]; then
-		msg "$UNITTEST_NAME: SKIP NODE $N: $fip_out"
+		msg "$UNITTEST_NAME: SKIP: NODE $N: $fip_out"
 		exit 0
 	else
 		fatal "NODE $N: require_libfabric $provider: $fip_out"
@@ -2209,7 +2209,7 @@ function require_nodes() {
 			local ret=$?
 			restore_exit_on_error
 			if [ $ret -ne 0 ]; then
-				msg "$UNITTEST_NAME: SKIP valgrind required on remote node #$N"
+				msg "$UNITTEST_NAME: SKIP: valgrind required on remote node #$N"
 				exit 0
 			fi
 		fi
@@ -2917,7 +2917,7 @@ function init_rpmem_on_node() {
 	APM|GPSPM)
 		;;
 	*)
-		msg "$UNITTEST_NAME: SKIP required: RPMEM_PM is invalid or empty"
+		msg "$UNITTEST_NAME: SKIP: required: RPMEM_PM is invalid or empty"
 		exit 0
 		;;
 	esac
@@ -3000,7 +3000,7 @@ function init_rpmem_on_node() {
 		RPMEM_ENABLE_VERBS=1
 		;;
 	*)
-		msg "$UNITTEST_NAME: SKIP required: RPMEM_PROVIDER is invalid or empty"
+		msg "$UNITTEST_NAME: SKIP: required: RPMEM_PROVIDER is invalid or empty"
 		exit 0
 		;;
 	esac
@@ -3262,7 +3262,7 @@ function require_pmemcheck_version_ge()
 		fi
 	fi
 
-	msg "$UNITTEST_NAME: SKIP pmemcheck API version:" \
+	msg "$UNITTEST_NAME: SKIP: pmemcheck API version:" \
 		"$PMEMCHECK_MAJOR.$PMEMCHECK_MINOR" \
 		"is less than required" \
 		"$REQUIRE_MAJOR.$REQUIRE_MINOR"
@@ -3296,7 +3296,7 @@ function require_pmemcheck_version_lt()
 		fi
 	fi
 
-	msg "$UNITTEST_NAME: SKIP pmemcheck API version:" \
+	msg "$UNITTEST_NAME: SKIP: pmemcheck API version:" \
 		"$PMEMCHECK_MAJOR.$PMEMCHECK_MINOR" \
 		"is greater or equal than" \
 		"$REQUIRE_MAJOR.$REQUIRE_MINOR"

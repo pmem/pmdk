@@ -100,7 +100,6 @@ buff_concat_features(char *buff, size_t *pos, features_t f)
 			f.compat, f.incompat, f.ro_compat);
 }
 
-
 /*
  * poolset_close -- (internal) close pool set
  */

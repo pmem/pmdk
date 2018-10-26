@@ -99,8 +99,8 @@ static void
 print_usage(const char *appname)
 {
 	printf("Usage: %s feature [<args>] <file>\n", appname);
-	printf(
-		"feature: SINGLEHDR, CKSUM_2K, SHUTDOWN_STATE, CHECK_BAD_BLOCKS\n");
+	printf("feature: SINGLEHDR, CKSUM_2K, SHUTDOWN_STATE, "
+			"CHECK_BAD_BLOCKS\n");
 }
 
 /*
