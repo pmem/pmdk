@@ -46,6 +46,11 @@ require_dax_device_alignments $SIZE_4KB $SIZE_4KB
 
 setup
 
+OFFSET=$(get_devdax_size 0)
+ROOT_SIZE=$[OFFSET + 1024]
+MAX_SIZE=$[PMEMOBJ_MAX_ALLOC_SIZE - 1024]
+require_max_devdax_size 0 $MAX_SIZE
+
 dax_device_zero
 
 LOG=out${UNITTEST_NUM}.log
@@ -66,11 +71,6 @@ create_poolset $POOLSET_OUT \
 	O SINGLEHDR \
 	AUTO:${DEVICE_DAX_PATH[0]}:x \
 	AUTO:${DEVICE_DAX_PATH[1]}:x
-
-DAX_SIZE[0]=$(get_devdax_size 0)
-
-OFFSET=${DAX_SIZE[0]}
-ROOT_SIZE=$[OFFSET + 1024]
 
 # CLI script for writing some data hitting all the parts
 WRITE_SCRIPT=$DIR/write_data

@@ -107,6 +107,9 @@ NODES_MAX=-1
 SIZE_4KB=4096
 SIZE_2MB=2097152
 
+# PMEMOBJ limitations
+PMEMOBJ_MAX_ALLOC_SIZE=17177771968
+
 # SSH and SCP options
 SSH_OPTS="-o BatchMode=yes"
 SCP_OPTS="-o BatchMode=yes -r -p"
@@ -3461,6 +3464,20 @@ function require_free_space() {
 	fi
 	if [ $free_space -lt $req_free_space ]; then
 		msg "$UNITTEST_NAME: SKIP: not enough free space ($1 required)"
+		exit 0
+	fi
+}
+
+#
+# require_max_devdax_size -- checks that dev dax is smaller than requested
+#
+# usage: require_max_devdax_size <dev-dax-num> <max-size>
+#
+function require_max_devdax_size() {
+	cur_sz=$(get_devdax_size 0)
+	max_size=$2
+	if [ $cur_sz -ge $max_size ]; then
+		msg "$UNITTEST_NAME: SKIP: DevDAX $1 is too big for this test (max $2 required)"
 		exit 0
 	fi
 }
