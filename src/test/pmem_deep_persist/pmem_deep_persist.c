@@ -69,8 +69,8 @@ main(int argc, char *argv[])
 	int ret = -1;
 
 	path = argv[1];
-	persist_size = (size_t)atoi(argv[3]);
-	offset = (size_t)atoi(argv[4]);
+	persist_size = ATOULL(argv[3]);
+	offset = ATOULL(argv[4]);
 
 	switch (*argv[2]) {
 		case 'p':
