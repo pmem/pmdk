@@ -542,9 +542,16 @@ pobj_direct_op(struct benchmark *bench, struct operation_info *info)
 	auto *bench_priv = (struct pobj_bench *)pmembench_get_priv(bench);
 	auto *pw = (struct pobj_worker *)info->worker->priv;
 	size_t idx = bench_priv->obj(info->index);
-	if (pmemobj_direct(pw->oids[idx]) == nullptr)
-		return -1;
+#define OBJ_DIRECT_NITER 1024
+	/*
+	 * As we measure a very fast operation, we need a loop inside the
+	 * test harness.
+	 */
+	for (int i = 0; i < OBJ_DIRECT_NITER; i++)
+		if (pmemobj_direct(pw->oids[idx]) == nullptr)
+			return -1;
 	return 0;
+#undef OBJ_DIRECT_NITER
 }
 
 /*
