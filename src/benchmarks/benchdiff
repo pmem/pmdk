@@ -1,0 +1,110 @@
+#!/usr/bin/perl -w
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2018, Intel Corporation
+
+# A simple tool to compare the results of two benchmarks.
+# Results assume a terminal, you can also "apt install colorized-logs"
+# then pipe through ansi2txt or ansi2html.
+#
+# Numbers which improved are in green (bright if > 2×), ones which worsened
+# in red, white means same (within 5%).  Fields in light grey don't have an
+# assigned direction.
+#
+# This tool needs to be teached which fields go up and which go down;
+# please update the table below accordingly.
+
+# +1 means "more is better"
+my %dir=(
+    "total-avg[sec]" => -1,
+    "ops-per-second[1/sec]" => +1,
+    "total-max[sec]" => -1,
+    "total-min[sec]" => -1,
+    "total-median[sec]" => -1,
+    "total-std-dev[sec]" => -1,
+    "latency-avg[nsec]" => -1,
+    "latency-min[nsec]" => -1,
+    "latency-max[nsec]" => -1,
+    "latency-std-dev[nsec]" => -1,
+    "latency-pctl-50.0%[nsec]" => -1,
+    "latency-pctl-99.0%[nsec]" => -1,
+    "latency-pctl-99.9%[nsec]" => -1,
+    "threads" => 0,
+    "ops-per-thread" => 0,
+    "data-size" => 0,
+    "seed" => 0,
+    "repeats" => 0,
+    "thread-affinity" => 0,
+    "main-affinity" => 0,
+    "min-exe-time" => 0,
+    "type-number" => 0,
+    "min-size" => 0,
+    "one-pool" => 0,
+    "one-object" => 0,
+);
+my %head_colors = (
+    +1 => "\e[32m",
+    -1 => "\e[31m",
+    0  => "",
+);
+my %arrows = (
+    +1 => "↑",
+    -1 => "↓",
+    0  => "",
+);
+
+$#ARGV==1 or die "Usage: benchdiff <result1> <result2>\n";
+open FA, "<", "$ARGV[0]" or die "Can't open ｢$ARGV[0]｣: $!\n";
+my $titleA = <FA>;
+my $headA = <FA>;
+my @dataA; { undef local $/; $_ = <FA>; @dataA = split /\n/ }
+close FA;
+open FB, "<", "$ARGV[1]" or die "Can't open ｢$ARGV[1]｣: $!\n";
+my $titleB = <FB>;
+my $headB = <FB>;
+my @dataB; { undef local $/; $_ = <FB>; @dataB = split /\n/ }
+close FB;
+
+$titleA eq $titleB or die "Titles don't match: ｢$titleA｣ vs [$titleB｣\n";
+$headA eq $headB or die "Headers don't match: ｢$titleA｣ vs [$titleB｣\n";
+$#dataA == $#dataB or die "Data lengths don't match!\n";
+chomp $headA;
+@head = split /;/, $headA; #/
+print $titleA;
+print join("\e[0;30;1m;\e[0m", map { $_.$head_colors{$dir{$_}}.$arrows{$dir{$_}}."\e[0m" } @head), "\n";
+
+for (0..$#dataA)
+{
+    my @A = split /;/, $dataA[$_]; #/
+    my @B = split /;/, $dataB[$_]; #/
+
+    for (0..$#head)
+    {
+        print "\e[0;30;1m;\e[0m" if $_;
+        my ($a, $b, $dir) = ($A[$_], $B[$_], $dir{$head[$_]});
+        if ($dir)
+        {
+            if (1.0*($dir>0?$a:$b))
+            {
+                my $d = $dir>0 ? $b/$a : $a/$b;
+                print $d<0.5       ? "\e[31;1m"
+                    : $d<0.95      ? "\e[31m"
+                    : $d<1.0526    ? "\e[1m"
+                    : $d<2         ? "\e[32m"
+                    :                "\e[32;1m";
+                printf "%1.2f\e[0m", $d;
+            }
+            else
+            {
+                # 0 -> non-zero
+                print $a eq $b ? $a : "\e[0;45m$a↔$b\e[0m";
+            }
+        }
+        else
+        {
+            # All fields without a known direction are assumed to stay
+            # constant, warn if they're not.
+            print $a eq $b ? $a : "\e[0;31;45m$a\e[0m↔\e[0;32;45m$b\e[0m";
+        }
+    }
+    print "\n";
+}
