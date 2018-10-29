@@ -542,9 +542,13 @@ pobj_direct_op(struct benchmark *bench, struct operation_info *info)
 	auto *bench_priv = (struct pobj_bench *)pmembench_get_priv(bench);
 	auto *pw = (struct pobj_worker *)info->worker->priv;
 	size_t idx = bench_priv->obj(info->index);
-	for (int i=0; i<1024; i++)
+	PMEMoid bad = {1, 1};
+	for (int i=0; i<1024; i++) {
 		if (pmemobj_direct(pw->oids[idx]) == nullptr)
 			return -1;
+		if (pmemobj_direct(bad) != nullptr)
+			return -1;
+	}
 	return 0;
 }
 
