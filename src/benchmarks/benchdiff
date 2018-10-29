@@ -1,0 +1,136 @@
+#!/usr/bin/perl -w
+
+# Copyright 2018, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+# A simple tool to compare the results of two benchmarks.
+# Results assume a terminal, you can also install "colorized-logs" then pipe
+# through ansi2txt or ansi2html.
+#
+# Numbers which improved are in green (bright if > 2×), ones which worsened
+# in red, white means same (within 5%).  Fields in light gray don't have an
+# assigned direction.
+#
+# This tool needs to be taught which fields go up and which go down;
+# please update the table below accordingly.
+use Term::ANSIColor;
+
+# +1 means "more is better"
+my %dir=(
+	"total-avg[sec]" => -1,
+	"ops-per-second[1/sec]" => +1,
+	"total-max[sec]" => -1,
+	"total-min[sec]" => -1,
+	"total-median[sec]" => -1,
+	"total-std-dev[sec]" => -1,
+	"latency-avg[nsec]" => -1,
+	"latency-min[nsec]" => -1,
+	"latency-max[nsec]" => -1,
+	"latency-std-dev[nsec]" => -1,
+	"latency-pctl-50.0%[nsec]" => -1,
+	"latency-pctl-99.0%[nsec]" => -1,
+	"latency-pctl-99.9%[nsec]" => -1,
+	"threads" => 0,
+	"ops-per-thread" => 0,
+	"data-size" => 0,
+	"seed" => 0,
+	"repeats" => 0,
+	"thread-affinity" => 0,
+	"main-affinity" => 0,
+	"min-exe-time" => 0,
+	"type-number" => 0,
+	"min-size" => 0,
+	"one-pool" => 0,
+	"one-object" => 0,
+);
+my %head_colors = (
+	+1 => color('green'),
+	-1 => color('red'),
+	0  => "",
+);
+my %arrows = (
+	+1 => "↑",
+	-1 => "↓",
+	0  => "",
+);
+
+scalar @ARGV==2 or die "Usage: benchdiff <result1> <result2>\n";
+open FA, "<", "$ARGV[0]" or die "Can't open ｢$ARGV[0]｣: $!\n";
+my $titleA = <FA>;
+my $headA = <FA>;
+my @dataA; { undef local $/; $_ = <FA>; @dataA = split /\n/ }
+close FA;
+open FB, "<", "$ARGV[1]" or die "Can't open ｢$ARGV[1]｣: $!\n";
+my $titleB = <FB>;
+my $headB = <FB>;
+my @dataB; { undef local $/; $_ = <FB>; @dataB = split /\n/ }
+close FB;
+
+$titleA eq $titleB or die "Titles don't match: ｢$titleA｣ vs ｢$titleB｣\n";
+$headA eq $headB or die "Headers don't match: ｢$titleA｣ vs ｢$titleB｣\n";
+$#dataA == $#dataB or die "Data lengths don't match!\n";
+chomp $headA;
+@head = split /;/, $headA;
+print $titleA;
+print join(colored(";", 'bright_black'),
+	map { "$_$head_colors{$dir{$_}}$arrows{$dir{$_}}" . color('reset') }
+	@head), "\n";
+
+for (0..$#dataA) {
+	my @A = split /;/, $dataA[$_];
+	my @B = split /;/, $dataB[$_];
+
+	for (0..$#head) {
+		print colored(";", 'bright_black') if $_;
+		my ($a, $b, $dir) = ($A[$_], $B[$_], $dir{$head[$_]});
+		if ($dir) {
+			if (1.0 * ($dir > 0 ? $a : $b)) {
+				my $d = $dir > 0 ? $b / $a : $a / $b;
+				print $d < 0.5		? color('bright_red')
+				    : $d < 0.95		? color('red')
+				    : $d < 1/0.95	? color('bright_white')
+				    : $d < 2		? color('green')
+							: color('bright_green');
+				printf "%1.2f".color('reset'), $d;
+			} else {
+				# 0 or non-numeric -> non-zero
+				print $a eq $b ? $a : colored("$a↔$b", 'on_magenta');
+			}
+		} else {
+			# All fields without a known direction are assumed to stay
+			# constant, warn if they're not.
+			print $a eq $b ? $a
+				: colored($a, 'bright_red on_magenta') . "↔"
+				. colored($b, 'bright_green on_magenta');
+		}
+	}
+	print "\n";
+}
