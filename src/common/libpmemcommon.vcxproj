@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="badblock_windows.c" />
+    <ClCompile Include="badblock_none.c" />
     <ClCompile Include="badblock.c" />
     <ClCompile Include="ctl.c" />
     <ClCompile Include="ctl_prefault.c" />

@@ -188,7 +188,7 @@ endif
 
 ifeq ($(LIBPMEMCOMMON), internal-nondebug)
 OBJS +=\
-	$(call osdep, $(TOP)/src/nondebug/common/badblock,.o)\
+	$(TOP)/src/nondebug/common/badblock_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/common/badblock.o\
 	$(TOP)/src/nondebug/common/ctl.o\
 	$(TOP)/src/nondebug/common/ctl_prefault.o\
@@ -218,7 +218,7 @@ endif
 
 ifeq ($(LIBPMEMCOMMON), internal-debug)
 OBJS +=\
-	$(call osdep, $(TOP)/src/debug/common/badblock,.o)\
+	$(TOP)/src/debug/common/badblock_$(OS_DIMM).o\
 	$(TOP)/src/debug/common/badblock.o\
 	$(TOP)/src/debug/common/ctl.o\
 	$(TOP)/src/debug/common/ctl_prefault.o\
