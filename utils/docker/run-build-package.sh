@@ -40,9 +40,6 @@ set -e
 # Prepare build enviromnent
 ./prepare-for-build.sh
 
-# Build librpmem even if libfabric is not compiled with ibverbs
-export RPMEM_DISABLE_LIBIBVERBS=y
-
 # Create fake tag, so that package has proper 'version' field
 git config user.email "test@package.com"
 git config user.name "test package"
