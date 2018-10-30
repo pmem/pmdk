@@ -2112,7 +2112,7 @@ function require_node_libfabric() {
 
 	require_pkg libfabric "$version"
 	require_node_pkg $N libfabric "$version"
-	if [ "$RPMEM_DISABLE_LIBIBVERBS" != "y" ]; then
+	if [ "$RPMEM_PROVIDER" == "verbs" ]; then
 		if ! fi_info --list | grep -q verbs; then
 			msg "$UNITTEST_NAME: SKIP libfabric not compiled with verbs provider"
 			exit 0
