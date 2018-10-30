@@ -1168,7 +1168,7 @@ replica_badblocks_get(struct pool_set *set,
 			int ret = os_badblocks_get(path, &part_hs->bbs);
 			if (ret < 0) {
 				ERR(
-					"checking the pool part for bad blocks failed -- '%s'",
+					"!checking the pool part for bad blocks failed -- '%s'",
 					path);
 				return -1;
 			}
@@ -1389,6 +1389,12 @@ replica_badblocks_check_or_clear(struct pool_set *set,
 
 		int bad_blocks_found = replica_badblocks_get(set, set_hs);
 		if (bad_blocks_found < 0) {
+			if (errno == ENOTSUP) {
+				LOG(1,
+					"checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'");
+				return -1;
+			}
+
 			LOG(1, "checking bad blocks failed");
 			return -1;
 		}

@@ -69,6 +69,13 @@ check_bad_blocks(PMEMpoolcheck *ppc)
 	}
 
 	if (ret < 0) {
+		if (errno == ENOTSUP) {
+			ppc->result = CHECK_RESULT_CANNOT_REPAIR;
+			CHECK_ERR(ppc,
+				"checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'");
+			return;
+		}
+
 		ppc->result = CHECK_RESULT_ERROR;
 		CHECK_ERR(ppc, "checking poolset for bad blocks failed -- '%s'",
 				ppc->path);

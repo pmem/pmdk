@@ -567,6 +567,13 @@ pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
 
 	ret = os_badblocks_get(file_name, bbs);
 	if (ret) {
+		if (errno == ENOTSUP) {
+			outv(v,
+				"checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'");
+			ret = -1;
+			goto exit_free;
+		}
+
 		outv_err("checking bad blocks failed -- '%s'", file_name);
 		goto exit_free;
 	}
