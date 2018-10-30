@@ -31,7 +31,7 @@
  */
 
 /*
- * badblock_windows.c - implementation of the windows bad block API
+ * badblock_none.c - fake bad block API
  */
 
 #include <errno.h>
