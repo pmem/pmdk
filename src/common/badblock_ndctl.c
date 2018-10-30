@@ -31,7 +31,8 @@
  */
 
 /*
- * badblock_linux.c - implementation of the linux bad block API
+ * badblock_ndctl.c - implementation of the bad block API
+ *                    based on the ndctl library
  */
 
 #define _GNU_SOURCE
