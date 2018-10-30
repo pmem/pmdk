@@ -47,7 +47,7 @@
 		{% assign dc_title_ext_old =  dc_title | append:'.3.html' %}
 	{% endif %}
 
-	{% if dc_title == 'pmempool' or dc_title == 'poolset' or dc_title == 'rpmemd' or dc_title == 'daxio' or dc_title == 'pmreorder' %}
+	{% if dc_title == 'pmempool' or dc_title == 'poolset' or dc_title == 'rpmemd' or dc_title == 'daxio' or dc_title == 'pmreorder' or dc_title == 'pmem_ctl' %}
 		<!-- no libraries -->
 	{% else %}
 	<div id="shortcut">
@@ -79,7 +79,12 @@
 									<li><a href="/pmdk/manpages/{{ system }}/v{{ release.tag }}/{{ dc_title_ext_old }}">{{ dc_title }}</a></li>
 							{% else %}
 								{% if dc_title == "libpmemlog" or dc_title == "libpmemobj" or dc_title == "libpmemblk" or dc_title == "libpmempool" %}
-									<li><a href="/pmdk/manpages/{{ system }}/{{ version_tag }}/poolset/poolset.5">poolset</a></li>
+									{% if release.libs contains 'poolset' %}
+										<li><a href="/pmdk/manpages/{{ system }}/{{ version_tag }}/poolset/poolset.5">poolset</a></li>
+									{% endif  %}
+									{% if release.libs contains 'pmem_ctl' %}
+										<li><a href="/pmdk/manpages/{{ system }}/{{ version_tag }}/pmem_ctl/pmem_ctl.5">pmem_ctl</a></li>
+									{% endif %}
 								{% endif %}
 								<li><a href="/pmdk/manpages/{{ system }}/{{ version_tag }}/{{ dc_title }}/{{ dc_title_ext }}">{{ dc_title }}</a></li>
 								{% assign rev_functions =  release.func.[dc_title] | split: " " %}
