@@ -116,8 +116,12 @@ Currently only **pmemobj** pools are supported.
 
 Starting from PMDK 1.5 **pmempool convert** is a thin wrapper around a tool
 called **pmdk-convert**. This tool handles all versions of PMDK pools and is
-the recommended conversion mechanism. For its documentation see
-[pmdk-convert man page](https://pmem.io/pmdk-convert/pmdk-convert.1.html).
+the recommended conversion mechanism.
+
+See the [pmdk-convert man page](https://pmem.io/pmdk-convert/manpages/master/pmdk-convert.1.html) for the current master documentation or see the older version:
+<ul>
+<li> <a href="https://pmem.io/pmdk-convert/manpages/v1.5/pmdk-convert.1.html">pmdk-convert version 1.5</a></li>
+</ul>
 
 For documentation of **pmempool convert** for older PMDK versions see:
 <ul>
