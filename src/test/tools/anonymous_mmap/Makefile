@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,56 +31,15 @@
 #
 
 #
-# src/test/tools/Makefile -- build unit test helpers
+# src/test/tools/anonymous_mmap/Makefile -- Makefile for anonymous_mmap
 #
 
-TOP = ../../..
+TOP = ../../../..
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+TARGET = anonymous_mmap
+OBJS = anonymous_mmap.o
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip\
-       ddmap\
-       cmpmap\
-       extents\
-       fallocate_detect\
-       obj_verify\
-       usc_permission_check\
-       anonymous_mmap
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-REMOTE_TOOLS = \
-	ctrld\
-	extents\
-	fip\
-	obj_verify\
-	pmemobjcli\
-	pmemspoil\
-	pmemdetect
-
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
-sparse  : TARGET = sparse
-
-all test cstyle clean clobber format sparse: $(DIRS)
-
-$(TESTCONFIG):
-
-sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-check pcheck: all
-
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+include $(TOP)/src/tools/Makefile.inc
