@@ -41,6 +41,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+require_linked_with_ndctl ./util_badblock$EXESUFFIX
 
 #
 # Listing bad blocks on a pmem filesystem requires superuser privileges.
