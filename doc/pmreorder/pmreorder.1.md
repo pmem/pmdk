@@ -284,8 +284,8 @@ There are two ways to set macro options:
 For more details about available
 engines types, see ENGINES section above.
 
-**libpmemobj**(7) also provides set of macros that allows change
-reordering engine on library or function level:
+**libpmemobj**(7) and **libpmem**(7) also provide set of macros
+that allow to change reordering engine on library or function level:
 
 `<library_name|api_function_name>`
 
@@ -352,6 +352,20 @@ pmemobj_xalloc
 pmemobj_xreserve
 pmemobj_zalloc
 pmemobj_zrealloc
+```
+
+List of marked **libpmem**(7) API functions:
+
+```
+pmem_memmove
+pmem_memcpy
+pmem_memset
+pmem_memmove_nodrain
+pmem_memcpy_nodrain
+pmem_memset_nodrain
+pmem_memmove_persist
+pmem_memcpy_persist
+pmem_memset_persist
 ```
 
 
