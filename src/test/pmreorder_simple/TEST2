@@ -41,7 +41,6 @@
 # standard unit test setup
 . ../unittest/unittest.sh
 
-# it doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
 require_build_type debug
 require_test_type medium
