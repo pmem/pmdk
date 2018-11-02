@@ -102,9 +102,9 @@ main(int argc, char *argv[])
 
 	util_init();
 
-	if ((argc != 3) || (strchr("gbc", argv[1][0]) == NULL) ||
+	if ((argc != 3) || (strchr("gbcm", argv[1][0]) == NULL) ||
 			argv[1][1] != '\0')
-		UT_FATAL("usage: %s g|b|c file", argv[0]);
+		UT_FATAL("usage: %s g|b|c|m file", argv[0]);
 
 	int fd = OPEN(argv[2], O_RDWR);
 	size_t size;
@@ -119,6 +119,14 @@ main(int argc, char *argv[])
 	/* clear the struct to get a consistent start state for writing */
 	if (strchr("gb", opt))
 		pmem_memset_persist(structp, 0, sizeof(*structp));
+	else if (strchr("m", opt)) {
+		/* set test values to log an inconsistent start state */
+		pmem_memset_persist(&structp->flag, 1, sizeof(int));
+		pmem_memset_persist(&structp->first_field, 0, sizeof(int) * 2);
+		pmem_memset_persist(&structp->third_field, 1, sizeof(int));
+		/* clear the struct to get back a consistent start state */
+		pmem_memset_persist(structp, 0, sizeof(*structp));
+	}
 
 	/* verify that DEFAULT_REORDER restores default engine */
 	VALGRIND_EMIT_LOG("PMREORDER_MARKER_CHANGE.BEGIN");
@@ -129,6 +137,9 @@ main(int argc, char *argv[])
 			break;
 		case 'b':
 			write_inconsistent(structp);
+			break;
+		case 'm':
+			write_consistent(structp);
 			break;
 		case 'c':
 			return check_consistency(structp);
