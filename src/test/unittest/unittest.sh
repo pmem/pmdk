@@ -1460,7 +1460,7 @@ function require_native_fallocate() {
 }
 
 #
-# require_usc_persmission -- verify if usc can be read with current persmission
+# require_usc_permission -- verify if usc can be read with current permissions
 #
 function require_usc_permission() {
 	set +e
