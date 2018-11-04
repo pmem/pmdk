@@ -34,7 +34,7 @@
 #
 # src/test/tools/anonymous_mmap/check_max_mmap.sh -- checks how many DAX
 #               devices can be mapped under Valgrind and saves the number in
-#               src/test/tools/anonymous_mmap/max_mmap_file.
+#               src/test/tools/anonymous_mmap/max_dax_devices.
 #
 
 DIR_CHECK_MAX_MMAP="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -56,27 +56,27 @@ function get_devdax_size() {
 	cat /sys/dev/char/$major_dec:$minor_dec/size
 }
 
-function fatal() {
-	echo "Exit check_max_mmap.sh: $*" >&2
-	exit 1
-}
+echo "0" > "$FILE_MAX_DAX_DEVICES"
 
 # check if DEVICE_DAX_PATH specifies at least one DAX device
 if [ ${#DEVICE_DAX_PATH[@]} -lt 1 ]; then
-	return
+	echo "$0: SKIP: DEVICE_DAX_PATH does not specify path to DAX device."
+	exit 0
 fi
 
 # check if valgrind package is installed
 VALGRINDEXE=`which valgrind 2>/dev/null`
 ret=$?
 if [ $ret -ne 0 ]; then
-	return
+	echo "$0: SKIP: Valgrind required."
+	exit 0
 fi
 
 # check if memcheck tool is installed
 $VALGRINDEXE --tool=memcheck --help 2>&1 | grep -qi "memcheck is Copyright (c)" && true
 if [ $? -ne 0 ]; then
-	return
+	echo "$0: SKIP: Valgrind with memcheck required."
+	exit 0
 fi
 
 # checks how many DAX devices can be mmapped under Valgrind and save the number
@@ -85,9 +85,15 @@ bytes="0"
 max_devices="0"
 for index in ${!DEVICE_DAX_PATH[@]}
 do
+	if [ ! -f "${DEVICE_DAX_PATH[$index]}" ]; then
+		echo "$0: FAILED: ${DEVICE_DAX_PATH[$index]} does not exist"
+		exit 1
+	fi
+
 	curr=$(get_devdax_size $index)
 	if [[ curr -eq 0 ]]; then
-		fatal "size of DAX device pointed by DEVICE_DAX_PATH[$index] equals 0. Invalid path is set in testconfig.sh."
+		echo "$0: FAILED: size of DAX device pointed by DEVICE_DAX_PATH[$index] equals 0."
+		exit 1
 	fi
 
 	$VALGRINDEXE --tool=memcheck --quiet $ANONYMOUS_MMAP $((bytes + curr))
@@ -102,4 +108,4 @@ done
 
 echo "$max_devices" > "$FILE_MAX_DAX_DEVICES"
 
-echo "check_max_mmap.sh: maximum possible anonymous mmap under Valgrind: $bytes bytes, equals to size of $max_devices DAX device(s). Value saved in $FILE_MAX_DAX_DEVICES."
+echo "$0: maximum possible anonymous mmap under Valgrind: $bytes bytes, equals to size of $max_devices DAX device(s). Value saved in $FILE_MAX_DAX_DEVICES."
