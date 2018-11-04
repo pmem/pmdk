@@ -362,7 +362,7 @@ sparse  : TARGET = sparse
 DIR_SYNC=$(TOP)/src/test/.sync-dir
 SYNC_EXT=synced
 TESTCONFIG=$(TOP)/src/test/testconfig.sh
-UNITTEST=$(TOP)/src/test/unittest/unittest.sh
+CHECK_MAX_MMAP=$(TOP)/src/test/tools/anonymous_mmap/check_max_mmap.sh
 FILE_MAX_DAX_DEVICES=$(TOP)/src/test/tools/anonymous_mmap/max_dax_devices
 
 all test format sparse: $(TESTS_BUILD)
@@ -373,6 +373,7 @@ cstyle: $(TESTS_BUILD)
 clean clobber: $(TESTS_BUILD)
 	$(RM) -r $(DIR_SYNC)
 	$(RM) *.$(SYNC_EXT)
+	$(RM) $(FILE_MAX_DAX_DEVICES)
 
 $(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS) $(LIBPMEMPOOL_MOD_DEPS) $(VMMALLOC_DUMMY_FUNCS_DEPS): $(TEST_DEPS)
 
@@ -394,10 +395,10 @@ memcheck-summary-errors:
 memcheck-summary-leaks:
 	grep "in use at exit" */memcheck*.log | grep -v " 0 bytes in 0 blocks" || true
 
-$(FILE_MAX_DAX_DEVICES): $(TESTCONFIG)
+$(FILE_MAX_DAX_DEVICES): $(TESTCONFIG) $(CHECK_MAX_MMAP)
 	@./tools/anonymous_mmap/check_max_mmap.sh
 
-global-checks: $(UINTTEST) $(FILE_MAX_DAX_DEVICES)
+global-checks: $(TEST_DEPS) $(FILE_MAX_DAX_DEVICES)
 
 check: sync-remotes global-checks
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(TESTS)
@@ -457,6 +458,8 @@ pcheck-vmmalloc: $(VMMALLOC_TESTS)
 
 pcheck-local-quiet: TARGET = pcheck
 pcheck-local-quiet: $(LOCAL_TESTS)
+
+$(LOCAL_TESTS): global-checks
 
 pcheck-local: pcheck-local-quiet
 	@echo "No failures."
