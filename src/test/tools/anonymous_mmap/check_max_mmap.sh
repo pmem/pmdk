@@ -56,27 +56,25 @@ function get_devdax_size() {
 	cat /sys/dev/char/$major_dec:$minor_dec/size
 }
 
-function fatal() {
-	echo "Exit check_max_mmap.sh: $*" >&2
-	exit 1
-}
-
 # check if DEVICE_DAX_PATH specifies at least one DAX device
 if [ ${#DEVICE_DAX_PATH[@]} -lt 1 ]; then
-	return
+	echo "skipping check_max_mmap.sh: DEVICE_DAX_PATH does not specify path to DAX device."
+	exit 0
 fi
 
 # check if valgrind package is installed
 VALGRINDEXE=`which valgrind 2>/dev/null`
 ret=$?
 if [ $ret -ne 0 ]; then
-	return
+	echo "skipping check_max_mmap.sh: cannot find Valgrind package."
+	exit 0
 fi
 
 # check if memcheck tool is installed
 $VALGRINDEXE --tool=memcheck --help 2>&1 | grep -qi "memcheck is Copyright (c)" && true
 if [ $? -ne 0 ]; then
-	return
+	echo "skipping check_max_mmap.sh: cannot find memcheck tool."
+	exit 0
 fi
 
 # checks how many DAX devices can be mmapped under Valgrind and save the number
@@ -87,7 +85,8 @@ for index in ${!DEVICE_DAX_PATH[@]}
 do
 	curr=$(get_devdax_size $index)
 	if [[ curr -eq 0 ]]; then
-		fatal "size of DAX device pointed by DEVICE_DAX_PATH[$index] equals 0. Invalid path is set in testconfig.sh."
+		echo "check_max_mmap.sh failed: size of DAX device pointed by DEVICE_DAX_PATH[$index] equals 0. Invalid path is set in testconfig.sh."
+		exit 1
 	fi
 
 	$VALGRINDEXE --tool=memcheck --quiet $ANONYMOUS_MMAP $((bytes + curr))
