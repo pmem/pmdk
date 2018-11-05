@@ -59,10 +59,10 @@ check_files\
 # Try to remove all files in interactive mode
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -il $DIR/pool.set >> $LOG 2>&1 <<EOF
 Y
-x
+n
 n
 y
-N
+n
 EOF
 
 check_no_files\
