@@ -77,6 +77,7 @@ y
 y
 y
 y
+n
 "@ | &$PMEMPOOL rm -sv `
 $DIR\pool.log $DIR\pool.blk $DIR\pool.obj $DIR\pool.set >> $LOG
 check_exit_code

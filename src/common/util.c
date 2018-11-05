@@ -200,7 +200,6 @@ util_checksum(void *addr, size_t len, uint64_t *csump,
 	return *csump == htole64(csum);
 }
 
-
 /*
  * util_checksum_seq -- compute sequential Fletcher64 checksum
  *
@@ -412,3 +411,37 @@ util_safe_strcpy(char *dst, const char *src, size_t max_length)
 #ifdef STRINGOP_TRUNCATION_SUPPORTED
 #pragma GCC diagnostic pop
 #endif
+
+#define PARSER_MAX_LINE (PATH_MAX + 1024)
+
+/*
+ * util_readline -- read line from stream
+ */
+char *
+util_readline(FILE *fh)
+{
+	size_t bufsize = PARSER_MAX_LINE;
+	size_t position = 0;
+	char *buffer = NULL;
+
+	do {
+		char *tmp = buffer;
+		buffer = Realloc(buffer, bufsize);
+		if (buffer == NULL) {
+			Free(tmp);
+			return NULL;
+		}
+
+		/* ensure if we can cast bufsize to int */
+		char *s = util_fgets(buffer + position, (int)bufsize / 2, fh);
+		if (s == NULL) {
+			Free(buffer);
+			return NULL;
+		}
+
+		position = strlen(buffer);
+		bufsize *= 2;
+	} while (!feof(fh) && buffer[position - 1] != '\n');
+
+	return buffer;
+}

@@ -58,7 +58,7 @@ check_files `
 # Try to remove all files in interactive mode
 echo @"
 Y
-x
+n
 n
 y
 N

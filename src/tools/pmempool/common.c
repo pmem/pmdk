@@ -66,10 +66,10 @@
 #include "mmap.h"
 #include "util_pmem.h"
 #include "badblock.h"
+#include "util.h"
 
 #define REQ_BUFF_SIZE	2048U
 #define Q_BUFF_SIZE	8192
-
 typedef const char *(*enum_to_str_fn)(int);
 
 /*
@@ -717,14 +717,71 @@ util_check_memory(const uint8_t *buff, size_t len, uint8_t val)
 }
 
 /*
- * ask -- print question and wait for single-char answer
+ * pmempool_ask_yes_no -- prints the question,
+ * takes user answer and returns validated value
+ */
+static char
+pmempool_ask_yes_no(char def_ans, const char *answers, const char *qbuff)
+{
+	char ret = INV_ANS;
+	printf("%s", qbuff);
+	size_t len = strlen(answers);
+	size_t i;
+
+	char def_anslo = (char)tolower(def_ans);
+	printf(" [");
+	for (i = 0; i < len; i++) {
+		char anslo = (char)tolower(answers[i]);
+		printf("%c", anslo == def_anslo ?
+				toupper(anslo) : anslo);
+		if (i != len - 1)
+			printf("/");
+	}
+	printf("] ");
+
+	char *line_of_answer = util_readline(stdin);
+	if (line_of_answer == NULL) {
+		outv_err("util_readline has returned NULL");
+		return -1;
+	}
+
+	char first_letter = line_of_answer[0];
+	line_of_answer[0] = (char)tolower(first_letter);
+
+	if (strcmp(line_of_answer, "yes\n") == 0) {
+		if (strchr(answers, 'y') != NULL)
+			ret = 'y';
+	}
+
+	if (strcmp(line_of_answer, "no\n") == 0) {
+		if (strchr(answers, 'n') != NULL)
+			ret = 'n';
+	}
+
+	if (strlen(line_of_answer) == 2 &&
+			line_of_answer[1] == '\n') {
+		if (strchr(answers, line_of_answer[0]) != NULL)
+			ret = line_of_answer[0];
+	}
+
+	if (strlen(line_of_answer) == 1 &&
+			line_of_answer[0] == '\n') {
+		ret = def_ans;
+	}
+
+	Free(line_of_answer);
+	return ret;
+}
+
+/*
+ * ask -- keep asking for answer until it gets valid input
  */
 char
 ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 {
 	char qbuff[Q_BUFF_SIZE];
-	char ans = '\0';
-	int valid = 0;
+	char ret = INV_ANS;
+	int is_tty = 0;
 	if (op != '?')
 		return op;
 
@@ -738,45 +795,13 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 		exit(EXIT_FAILURE);
 	}
 
-	int is_tty = isatty(fileno(stdin));
-	printf("%s", qbuff);
-	size_t len = strlen(answers);
-	size_t i;
-	char def_anslo = (char)tolower(def_ans);
-	printf(" [");
-	for (i = 0; i < len; i++) {
-		char anslo = (char)tolower(answers[i]);
-		printf("%c", anslo == def_anslo ?
-				toupper(anslo) : anslo);
-		if (i != len - 1)
-			printf("/");
-	}
-	printf("] ");
+	is_tty = isatty(fileno(stdin));
 
-	int c = getchar();
-	if (c == EOF)
-		ans = INV_ANS;
-	else
-		ans = (char)tolower(c);
-
-	if (ans != '\n') {
-		valid = 1;
-		/*
-		 * Valid answer must consist of a single letter and new
-		 * line character just after it. Otherwise it is
-		 * invalid.
-		 */
-		while ((char)(c = getchar()) != '\n' && c != EOF)
-			valid = 0;
-	}
-
-	char ret = ans == '\n' ? def_ans : ans;
+	while ((ret = pmempool_ask_yes_no(def_ans, answers, qbuff)) == INV_ANS)
+		;
 
 	if (!is_tty)
 		printf("%c\n", ret);
-
-	if (!valid || strchr(answers, ans) == NULL)
-		ret = INV_ANS;
 
 	return ret;
 }
