@@ -45,3 +45,12 @@ TOOLS_COMMON=y
 LIBPMEMBLK_PRIV=btt_info_convert2h
 
 include $(TOP)/src/tools/Makefile.inc
+
+FLAKE8 := $(shell flake8 --version 2>/dev/null)
+
+cstyle:
+ifdef FLAKE8
+	flake8 .
+else
+	@echo "Flake8 not found. Python files check skipped."
+endif
