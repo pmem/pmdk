@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,28 +30,60 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#
-# run-build.sh - is called inside a Docker container; prepares the environment
-#                and starts a build of PMDK project.
-#
-
 set -e
 
-# Prepare build environment
-./prepare-for-build.sh
+ORIGIN="https://${GITHUB_TOKEN}@github.com/pmem-bot/pmdk"
+UPSTREAM="https://github.com/pmem/pmdk"
 
-# Create PR on gh-pages
-if [[ "$AUTO_DOC_UPDATE" == "1" ]]; then
-	echo "Running auto doc update"
-	./run-doc-update.sh
-fi
+# Clone repo
+git clone ${ORIGIN}
+cd pmdk
+git remote add upstream ${UPSTREAM}
 
-# Build all and run tests
-cd $WORKDIR
-make check-license
-make cstyle
-make -j2 USE_LIBUNWIND=1
-make -j2 test USE_LIBUNWIND=1
-make -j2 pcheck TEST_BUILD=$TEST_BUILD
-make DESTDIR=/tmp source
+git config --local user.name "pmem-bot"
+git config --local user.email "pmem-bot@intel.com"
 
+git checkout master
+git remote update
+git rebase upstream/master
+
+make doc
+
+# Build & PR groff
+git add -A
+git commit -m "doc: automatic master docs update" && true
+git push -f ${ORIGIN} master
+
+# Makes pull request.
+# When there is already an open PR or there are no changes an error is thrown, which we ignore.
+hub pull-request -f -b pmem:master -h pmem-bot:master -m "doc: automatic master docs update" && true
+
+git clean -dfx
+
+# Copy man & PR web md
+cd  ./doc
+make web
+cd ..
+
+#mkdir ../web_manpages
+mv ./doc/web_linux ../
+mv ./doc/web_windows ../
+
+# Checkout gh-pages and copy docs
+git checkout -fb gh-pages upstream/gh-pages
+git clean -dfx
+
+cp -r  ../web_linux/* ./manpages/linux/master/
+cp -r  ../web_windows/* ./manpages/windows/master/
+
+# Add and push changes.
+# git commit command may fail if there is nothing to commit.
+# In that case we want to force push anyway (there might be open pull request with
+# changes which were reverted).
+git add -A
+git commit -m "doc: automatic gh-pages docs update" && true
+git push -f ${ORIGIN} gh-pages
+
+hub pull-request -f -b pmem:gh-pages -h pmem-bot:gh-pages -m "doc: automatic gh-pages docs update" && true
+
+exit 0

@@ -85,6 +85,11 @@ if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 if [[ $SKIP_CHECK -eq 1 ]]; then BUILD_PACKAGE_CHECK=n; else BUILD_PACKAGE_CHECK=y; fi
 if [ -z "$NDCTL_ENABLE" ]; then ndctl_enable=; else ndctl_enable="--env NDCTL_ENABLE=$NDCTL_ENABLE"; fi
 
+# Only run doc update on pmem/pmdk master branch
+if [[ "$TRAVIS_BRANCH" != "master" || "$TRAVIS_PULL_REQUEST" != "false" || "$TRAVIS_REPO_SLUG" != "${GITHUB_REPO}" ]]; then
+	AUTO_DOC_UPDATE=0
+fi
+
 WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
@@ -97,6 +102,7 @@ docker run --rm --privileged=true --name=$containerName -ti \
 	$ci_env \
 	--env http_proxy=$http_proxy \
 	--env https_proxy=$https_proxy \
+	--env AUTO_DOC_UPDATE=$AUTO_DOC_UPDATE \
 	--env CC=$PMDK_CC \
 	--env CXX=$PMDK_CXX \
 	--env VALGRIND=$VALGRIND \
