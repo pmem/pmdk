@@ -297,7 +297,6 @@ err:
 }
 
 /* reserve space for size, path and some whitespace and/or comment */
-#define PARSER_MAX_LINE (PATH_MAX + 1024)
 
 enum parser_codes {
 	PARSER_CONTINUE = 0,
@@ -1296,43 +1295,6 @@ util_parse_add_remote_replica(struct pool_set **setp, char *node_addr,
 
 	return 0;
 }
-
-/*
- * util_readline -- read line from stream
- */
-static char *
-util_readline(FILE *fh)
-{
-	LOG(10, "fh %p", fh);
-
-	size_t bufsize = PARSER_MAX_LINE;
-	size_t position = 0;
-	char *buffer = NULL;
-
-	do {
-		char *tmp = buffer;
-		buffer = Realloc(buffer, bufsize);
-		if (buffer == NULL) {
-			Free(tmp);
-			return NULL;
-		}
-
-		/* ensure if we can cast bufsize to int */
-		ASSERT(bufsize / 2 <= INT_MAX);
-		ASSERT((bufsize - position) >= (bufsize / 2));
-		char *s = util_fgets(buffer + position, (int)bufsize / 2, fh);
-		if (s == NULL) {
-			Free(buffer);
-			return NULL;
-		}
-
-		position = strlen(buffer);
-		bufsize *= 2;
-	} while (!feof(fh) && buffer[position - 1] != '\n');
-
-	return buffer;
-}
-
 
 /*
  * util_part_idx_by_file_name -- (internal) retrieves the part index from a
