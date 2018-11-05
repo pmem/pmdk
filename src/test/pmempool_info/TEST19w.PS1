@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 #
 # Copyright 2018, Intel Corporation
 #
@@ -30,46 +29,27 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/util_badblock/TEST5 -- unit test for util_badblock
-#                                 - regular file with no bad blocks
-#                                 - only list bad blocks
+# pmempool_info/TEST19 -- test for info command
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
-require_fs_type non-pmem
-require_linked_with_ndctl ./util_badblock$EXESUFFIX
 
-require_nfit_tests_enabled
-require_sudo_allowed
-require_kernel_module nfit_test
-require_linked_with_ndctl ./util_badblock$EXESUFFIX
-require_command ndctl
+require_fs_type any
 
 setup
 
-. ../common_badblock.sh
+$POOL="$DIR\file.pool"
+$LOG="out$Env:UNITTEST_NUM.log"
+rm $LOG -Force -ea si
 
-ndctl_nfit_test_init
-
-DEVICE=$(ndctl_nfit_test_get_block_device)
-NAMESPACE=$(ndctl_nfit_test_get_namespace_of_device $DEVICE)
-
-FULLDEV="/dev/$DEVICE"
-MOUNT_DIR="$DIR/mnt-pmem"
-
-ndctl_nfit_test_mount_pmem $FULLDEV $MOUNT_DIR
-
-FILE="$MOUNT_DIR/file"
-fallocate -l 1M $FILE
-
-expect_normal_exit ./util_badblock$EXESUFFIX $FILE l
-
-ndctl_nfit_test_fini $MOUNT_DIR
+expect_normal_exit $PMEMPOOL create log $POOL
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.checksum_gen()" >> $LOG
+expect_abnormal_exit $PMEMPOOL info $POOL >> $LOG
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.checksum_gen()" >> $LOG
+expect_normal_exit $PMEMPOOL info $POOL >> $LOG
 
 check
 
