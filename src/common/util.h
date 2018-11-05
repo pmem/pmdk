@@ -54,6 +54,7 @@
 extern "C" {
 #endif
 
+#define PARSER_MAX_LINE (PATH_MAX + 1024)
 extern unsigned long long Pagesize;
 extern unsigned long long Mmap_align;
 
@@ -102,6 +103,7 @@ void util_aligned_free(void *ptr);
 struct tm *util_localtime(const time_t *timep);
 int util_safe_strcpy(char *dst, const char *src, size_t max_length);
 void util_emit_log(const char *lib, const char *func, int order);
+char *util_readline(FILE *fh);
 
 #ifdef _WIN32
 char *util_toUTF8(const wchar_t *wstr);
