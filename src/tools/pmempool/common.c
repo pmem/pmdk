@@ -716,70 +716,100 @@ util_check_memory(const uint8_t *buff, size_t len, uint8_t val)
 	return 0;
 }
 
+#define PARSER_MAX_LINE (PATH_MAX + 1024)
+
+static char *
+util_readline(FILE *fh)
+{
+	LOG(10, "fh %p", fh);
+
+	size_t bufsize = PARSER_MAX_LINE;
+	size_t position = 0;
+	char *buffer = NULL;
+
+	do {
+		char *tmp = buffer;
+		buffer = Realloc(buffer, bufsize);
+		if (buffer == NULL) {
+			Free(tmp);
+			return NULL;
+		}
+
+		/* ensure if we can cast bufsize to int */
+		ASSERT(bufsize / 2 <= INT_MAX);
+		ASSERT((bufsize - position) >= (bufsize / 2));
+		char *s = util_fgets(buffer + position, (int)bufsize / 2, fh);
+		if (s == NULL) {
+			Free(buffer);
+			return NULL;
+		}
+
+		position = strlen(buffer);
+		bufsize *= 2;
+	} while (!feof(fh) && buffer[position - 1] != '\n');
+
+	return buffer;
+}
+
+
 /*
- * ask -- print question and wait for single-char answer
+ * ask -- print question and wait for answer
  */
 char
 ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 {
 	char qbuff[Q_BUFF_SIZE];
-	char ans = '\0';
 	int valid = 0;
-	if (op != '?')
-		return op;
+	char ret = '\n';
+	while(!valid){
+		if (op != '?')
+			return op;
 
-	int p = vsnprintf(qbuff, Q_BUFF_SIZE, fmt, ap);
-	if (p < 0) {
-		outv_err("vsnprintf");
-		exit(EXIT_FAILURE);
+		int p = vsnprintf(qbuff, Q_BUFF_SIZE, fmt, ap);
+		if (p < 0) {
+			outv_err("vsnprintf");
+			exit(EXIT_FAILURE);
+		}
+		if (p >= Q_BUFF_SIZE) {
+			outv_err("vsnprintf: output was truncated");
+			exit(EXIT_FAILURE);
+		}
+
+		int is_tty = isatty(fileno(stdin));
+		printf("%s", qbuff);
+		size_t len = strlen(answers);
+		size_t i;
+		char def_anslo = (char)tolower(def_ans);
+		printf(" [");
+		for (i = 0; i < len; i++) {
+			char anslo = (char)tolower(answers[i]);
+			printf("%c", anslo == def_anslo ?
+					toupper(anslo) : anslo);
+			if (i != len - 1)
+				printf("/");
+		}
+		printf("] ");
+
+		
+		const char *line_of_answer = util_readline(STDIN_FILENO);
+
+		if (strlen(line_of_answer )> 3) {
+			continue;
+		} else if (strcmp(line_of_answer,"yes") || strcmp(line_of_answer,"y")) {
+			ret = 'y';
+			valid = 1;
+		} else if (strcmp(line_of_answer,"no") || strcmp(line_of_answer,"n")) {
+			ret = 'n';
+			valid = 1;
+		}
+
+		if (!is_tty)
+			printf("%c\n", ret);
+
 	}
-	if (p >= Q_BUFF_SIZE) {
-		outv_err("vsnprintf: output was truncated");
-		exit(EXIT_FAILURE);
-	}
-
-	int is_tty = isatty(fileno(stdin));
-	printf("%s", qbuff);
-	size_t len = strlen(answers);
-	size_t i;
-	char def_anslo = (char)tolower(def_ans);
-	printf(" [");
-	for (i = 0; i < len; i++) {
-		char anslo = (char)tolower(answers[i]);
-		printf("%c", anslo == def_anslo ?
-				toupper(anslo) : anslo);
-		if (i != len - 1)
-			printf("/");
-	}
-	printf("] ");
-
-	int c = getchar();
-	if (c == EOF)
-		ans = INV_ANS;
-	else
-		ans = (char)tolower(c);
-
-	if (ans != '\n') {
-		valid = 1;
-		/*
-		 * Valid answer must consist of a single letter and new
-		 * line character just after it. Otherwise it is
-		 * invalid.
-		 */
-		while ((char)(c = getchar()) != '\n' && c != EOF)
-			valid = 0;
-	}
-
-	char ret = ans == '\n' ? def_ans : ans;
-
-	if (!is_tty)
-		printf("%c\n", ret);
-
-	if (!valid || strchr(answers, ans) == NULL)
-		ret = INV_ANS;
-
 	return ret;
 }
+
 
 char
 ask_yn(char op, char def_ans, const char *fmt, va_list ap)
