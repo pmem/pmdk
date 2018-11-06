@@ -42,7 +42,7 @@ cd pmdk
 git remote add upstream ${UPSTREAM}
 
 git config --local user.name "WeronikaLewandowska"
-git config --local user.email "taj5wero@gmail.com.com"
+git config --local user.email "taj5wero@gmail.com"
 
 git checkout master
 git remote update
@@ -57,7 +57,7 @@ git push -f ${ORIGIN} master
 
 # Makes pull request.
 # When there is already an open PR or there are no changes an error is thrown, which we ignore.
-hub pull-request -f -b wlemkows:master -h WeronikaLewandowska:master -m "doc: automatic master docs update" && true
+hub pull-request -f -b wlemkows:master -h WeronikaLewandowska:doc-auto-update -m "doc: automatic master docs update" && true
 
 git clean -dfx
 
