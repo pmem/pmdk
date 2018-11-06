@@ -75,7 +75,7 @@ consistent state.
 
 Considering that logging, replaying and reordering of operations
 are very time consuming, it is recommended to use as few stores as
-possible in test workloads.
+-----------possible in test workloads.
 
 
 # OPTIONS #
