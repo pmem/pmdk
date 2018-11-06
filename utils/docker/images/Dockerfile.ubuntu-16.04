@@ -53,6 +53,7 @@ RUN apt-get update \
 	gcc \
 	gdb \
 	git \
+	hub \
 	libc6-dbg \
 	libfuse-dev \
 	libglib2.0-dev \
