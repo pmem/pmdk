@@ -88,6 +88,12 @@ get_arch = $(shell $(CC) -dumpmachine | awk -F'[/-]' '{print $$1}')
 ifeq ($(ARCH),)
 export ARCH := $(call get_arch)
 endif
+ifeq ($(ARCH),amd64)
+override ARCH := x86_64
+endif
+ifeq ($(ARCH),arm64)
+override ARCH := aarch64
+endif
 
 ifeq ($(PKG_CONFIG_CHECKED),)
 ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)

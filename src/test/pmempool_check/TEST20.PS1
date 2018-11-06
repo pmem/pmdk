@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,13 +29,11 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/rpmemd_db/TEST0 -- unit test for remote tests support
+# pmempool_check/TEST20 -- test for checking pools for bad blocks
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 
@@ -44,34 +41,36 @@ require_fs_type any
 
 setup
 
-ROOT_DIR=$DIR/poolset-dir
-PART_DIR=$DIR/parts-dir
-LOG_FILE=rpmemd$UNITTEST_NUM.log
-rm -f $LOG_FILE
+$POOL="$DIR\file.pool"
+$LOG="out$Env:UNITTEST_NUM.log"
+rm $LOG -Force -ea si
 
-mkdir -p $ROOT_DIR
-mkdir -p $PART_DIR
+echo "PMEMLOG: pmemlog" >> $LOG
+rm $POOL -Force -ea si
+expect_normal_exit $PMEMPOOL create log $POOL
+check_file $POOL
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.checksum_gen()" >> $LOG
+expect_abnormal_exit $PMEMPOOL check -vry $POOL >> $LOG
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.checksum_gen()" >> $LOG
+expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
-create_poolset $ROOT_DIR/pool0.set\
-	8M:$PART_DIR/pool0.part.0:x\
-	8M:$PART_DIR/pool0.part.1:x\
-	8M:$PART_DIR/pool0.part.2:x\
-	8M:$PART_DIR/pool0.part.3:x
+echo "PMEMBLK: pmemblk" >> $LOG
+rm $POOL -Force -ea si
+expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
+check_file $POOL
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.checksum_gen()" >> $LOG
+expect_abnormal_exit $PMEMPOOL check -vry $POOL >> $LOG
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.checksum_gen()" >> $LOG
+expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
-create_poolset $ROOT_DIR/pool1.set\
-	8M:$PART_DIR/pool1.part.0:x\
-	8M:$PART_DIR/pool1.part.1:x\
-	8M:$PART_DIR/pool1.part.2:x\
-	8M:$PART_DIR/pool1.part.3:x
-
-expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/pool0.set
-expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/pool1.set
-
-expect_normal_exit ./rpmemd_db$EXESUFFIX $LOG_FILE $ROOT_DIR \
-				pool0.set pool1.set
-
-mv rpmem0.log rpmem0_tmp.log
-$GREP -e " flock " -e Non-empty rpmem0_tmp.log > rpmem0.log || true
+echo "PMEMLOG: pmemobj" >> $LOG
+rm $POOL -Force -ea si
+expect_normal_exit $PMEMPOOL create obj $POOL
+check_file $POOL
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.checksum_gen()" >> $LOG
+expect_abnormal_exit $PMEMPOOL check -vry $POOL >> $LOG
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.checksum_gen()" >> $LOG
+expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 check
 

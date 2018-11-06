@@ -32,7 +32,7 @@
 #
 
 SOURCE =\
-	$(call osdep, $(COMMON)/badblock,.c)\
+	$(COMMON)/badblock_$(OS_DIMM).c\
 	$(COMMON)/badblock.c\
 	$(COMMON)/ctl.c\
 	$(COMMON)/ctl_prefault.c\

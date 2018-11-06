@@ -49,6 +49,9 @@ extern "C" {
 
 #define NO_HEALTHY_REPLICA ((int)(-1))
 
+#define BB_NOT_SUPP \
+	"checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'"
+
 /*
  * 'struct badblock' is already defined in ndctl/libndctl.h,
  * so we cannot use this name.
