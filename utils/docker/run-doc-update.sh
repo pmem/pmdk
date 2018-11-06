@@ -32,16 +32,17 @@
 
 set -e
 
-ORIGIN="https://${GITHUB_TOKEN}@github.com/pmem-bot/pmdk"
-UPSTREAM="https://github.com/pmem/pmdk"
+ORIGIN="https://${GITHUB_TOKEN}@github.com/WeronikaLewandowska/pmdk"
+UPSTREAM="https://github.com/wlemkows/pmdk"
+TARGET_BRANCH=${TRAVIS_BRANCH}
 
-# Clone repo
+# Clone bot repo
 git clone ${ORIGIN}
 cd pmdk
 git remote add upstream ${UPSTREAM}
 
-git config --local user.name "pmem-bot"
-git config --local user.email "pmem-bot@intel.com"
+git config --local user.name "WeronikaLewandowska"
+git config --local user.email "taj5wero@gmail.com.com"
 
 git checkout master
 git remote update
@@ -56,7 +57,7 @@ git push -f ${ORIGIN} master
 
 # Makes pull request.
 # When there is already an open PR or there are no changes an error is thrown, which we ignore.
-hub pull-request -f -b pmem:master -h pmem-bot:master -m "doc: automatic master docs update" && true
+hub pull-request -f -b wlemkows:master -h WeronikaLewandowska:master -m "doc: automatic master docs update" && true
 
 git clean -dfx
 
@@ -84,6 +85,6 @@ git add -A
 git commit -m "doc: automatic gh-pages docs update" && true
 git push -f ${ORIGIN} gh-pages
 
-hub pull-request -f -b pmem:gh-pages -h pmem-bot:gh-pages -m "doc: automatic gh-pages docs update" && true
+hub pull-request -f -b wlemkows:gh-pages -h WeronikaLewandowska:gh-pages -m "doc: automatic gh-pages docs update" && true
 
 exit 0
