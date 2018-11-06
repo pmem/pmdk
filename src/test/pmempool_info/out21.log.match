@@ -31,7 +31,7 @@ Creation Time            : $(*)
 Alignment Descriptor     : $(nW)
 Class                    : $(nW)
 Data                     : 2's complement, little endian
-Machine                  : AMD X86-64
+Machine                  : $(*)
 Last shutdown            : clean
 Checksum                 : $(*)
 
@@ -65,7 +65,7 @@ Creation Time            : $(*)
 Alignment Descriptor     : $(nW)
 Class                    : $(nW)
 Data                     : 2's complement, little endian
-Machine                  : AMD X86-64
+Machine                  : $(*)
 Last shutdown            : clean
 Checksum                 : $(*)
 
