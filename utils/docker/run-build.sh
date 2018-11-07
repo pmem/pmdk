@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -52,3 +52,8 @@ make -j2 test USE_LIBUNWIND=1
 make -j2 pcheck TEST_BUILD=$TEST_BUILD
 make DESTDIR=/tmp source
 
+# Create PR with generated docs
+if [[ "$AUTO_DOC_UPDATE" == "1" ]]; then
+	echo "Running auto doc update"
+	./utils/docker/run-doc-update.sh
+fi
