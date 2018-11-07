@@ -721,7 +721,6 @@ util_check_memory(const uint8_t *buff, size_t len, uint8_t val)
 static char *
 util_readline(FILE *fh)
 {
-	LOG(10, "fh %p", fh);
 
 	size_t bufsize = PARSER_MAX_LINE;
 	size_t position = 0;
@@ -736,8 +735,6 @@ util_readline(FILE *fh)
 		}
 
 		/* ensure if we can cast bufsize to int */
-		ASSERT(bufsize / 2 <= INT_MAX);
-		ASSERT((bufsize - position) >= (bufsize / 2));
 		char *s = util_fgets(buffer + position, (int)bufsize / 2, fh);
 		if (s == NULL) {
 			Free(buffer);
@@ -759,23 +756,22 @@ char
 ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 {
 	char qbuff[Q_BUFF_SIZE];
-	int valid = 0;
 	char ret = '\n';
-	while(!valid){
-		if (op != '?')
-			return op;
+	int is_tty = 0;
+	if (op != '?')
+		return op;
+	int p = vsnprintf(qbuff, Q_BUFF_SIZE, fmt, ap);
+	if (p < 0) {
+		outv_err("vsnprintf");
+		exit(EXIT_FAILURE);
+	}
+	if (p >= Q_BUFF_SIZE) {
+		outv_err("vsnprintf: output was truncated");
+		exit(EXIT_FAILURE);
+	}
+	is_tty = isatty(fileno(stdin));
 
-		int p = vsnprintf(qbuff, Q_BUFF_SIZE, fmt, ap);
-		if (p < 0) {
-			outv_err("vsnprintf");
-			exit(EXIT_FAILURE);
-		}
-		if (p >= Q_BUFF_SIZE) {
-			outv_err("vsnprintf: output was truncated");
-			exit(EXIT_FAILURE);
-		}
-
-		int is_tty = isatty(fileno(stdin));
+	do {
 		printf("%s", qbuff);
 		size_t len = strlen(answers);
 		size_t i;
@@ -789,24 +785,28 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 				printf("/");
 		}
 		printf("] ");
+		char *line_of_answer = util_readline(stdin);
 
-		
-		const char *line_of_answer = util_readline(STDIN_FILENO);
-
-		if (strlen(line_of_answer )> 3) {
-			continue;
-		} else if (strcmp(line_of_answer,"yes") || strcmp(line_of_answer,"y")) {
+		if (strcmp(line_of_answer, "yes\n") == 0 ||
+				strcmp(line_of_answer, "y\n") == 0 ||
+				strcmp(line_of_answer, "Yes\n") == 0 ||
+				strcmp(line_of_answer, "Y\n") == 0) {
 			ret = 'y';
-			valid = 1;
-		} else if (strcmp(line_of_answer,"no") || strcmp(line_of_answer,"n")) {
+		} else if (strcmp(line_of_answer, "no\n") == 0 ||
+				strcmp(line_of_answer, "n\n") == 0 ||
+				strcmp(line_of_answer, "No\n") == 0 ||
+				strcmp(line_of_answer, "N\n") == 0) {
 			ret = 'n';
-			valid = 1;
+		} else if (strlen(line_of_answer) == 1 &&
+				line_of_answer[0] == '\n') {
+			ret = def_ans;
+		} else {
+			ret = INV_ANS;
 		}
+	} while (ret == INV_ANS);
 
-		if (!is_tty)
-			printf("%c\n", ret);
-
-	}
+	if (!is_tty)
+		printf("%c\n", ret);
 	return ret;
 }
 
