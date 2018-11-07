@@ -44,6 +44,8 @@ setup
 $POOL="$DIR\file.pool"
 $SIZE=(1024 + 512) * 1024 * 1024
 
+require_free_space "${SIZE}b"
+
 # PMEMBLK
 expect_normal_exit $PMEMPOOL create -s $SIZE blk 512 $POOL
 check_file $POOL
