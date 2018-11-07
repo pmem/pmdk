@@ -25,7 +25,7 @@ env:
     - TEST_BUILD=nondebug
     - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
     - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug
-    - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
+    - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug AUTO_DOC_UPDATE=1
     - OS=fedora OS_VER=25 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug
     - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PUSH_IMAGE=1
     - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=y PUSH_IMAGE=1 OS=fedora OS_VER=25
