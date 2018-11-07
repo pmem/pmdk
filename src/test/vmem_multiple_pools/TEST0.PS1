@@ -42,6 +42,8 @@ require_build_type debug nondebug
 
 setup
 
+require_free_space 2G
+
 expect_normal_exit $Env:EXE_DIR\vmem_multiple_pools$Env:EXESUFFIX $DIR 128 1
 
 check
