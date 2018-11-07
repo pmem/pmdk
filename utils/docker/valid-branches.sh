@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,30 +30,8 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#
-# run-build.sh - is called inside a Docker container; prepares the environment
-#                and starts a build of PMDK project.
-#
+VALID_BRANCHES=("master" "stable-1.5")
 
-set -e
-
-# Prepare build environment
-./prepare-for-build.sh
-
-# Build librpmem even if libfabric is not compiled with ibverbs
-export RPMEM_DISABLE_LIBIBVERBS=y
-
-# Build all and run tests
-cd $WORKDIR
-make check-license
-make cstyle
-make -j2 USE_LIBUNWIND=1
-make -j2 test USE_LIBUNWIND=1
-make -j2 pcheck TEST_BUILD=$TEST_BUILD
-make DESTDIR=/tmp source
-
-# Create PR with generated docs
-if [[ "$AUTO_DOC_UPDATE" == "1" ]]; then
-	echo "Running auto doc update"
-	./utils/docker/run-doc-update.sh
-fi
+declare -A TARGET_BRANCHES=(		\
+		["master"]="master"	\
+		["stable-1.5"]="v1.5")
