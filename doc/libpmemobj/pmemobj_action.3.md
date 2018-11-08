@@ -68,7 +68,7 @@ void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 int pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
 	size_t actvcnt); (EXPERIMENTAL)
 int pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt); (EXPERIMENTAL)
-pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv,
+void pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv,
 	size_t actvcnt); (EXPERIMENTAL)
 
 POBJ_RESERVE_NEW(pop, t, act) (EXPERIMENTAL)
