@@ -39,13 +39,13 @@ from pmdk_unittest import *
 class Launch0:
     def run(self, ctx):
         filepath = ctx.create_holey_file(MB(16), "testfile1")
-        ctx.test_exec('./obj_basic_integration {filepath}')
+        ctx.test_exec("./obj_basic_integration {}".format(filepath))
 
 Executor().run(Launch0(), Build(Debug, Static_Debug), Fs(Pmem))
 
 class Launch1:
     def run(self, ctx):
         filepath = ctx.create_holey_file(MB(16), "testfile1")
-        ctx.test_exec('./obj_basic_integration {filepath}')
+        ctx.test_exec("./obj_basic_integration {}".format(filepath))
 
 Executor().run(Launch1(), Build(Debug, Nondebug))

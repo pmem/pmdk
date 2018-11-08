@@ -144,7 +144,7 @@ class Context:
 
     def create_holey_file(self, size, name):
         """ This method creates a new file with the selected size and name. """
-        filepath = Path('{self.dir}/{name}')
+        filepath = "{}/{}".format(self.dir, name)
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
         with open(filepath, 'w') as f:
@@ -158,10 +158,10 @@ class Context:
             win_cmd = cmd.split()[0]
             win_path = os.path.join(self.exedir, 'tests' )
             win_cmd = win_cmd.replace(".", win_path) + '.exe'
-            cmd = "{win_cmd} {' '.join(cmd.split()[1:])}"
+            cmd = "{} {}".format(win_cmd, ' '.join(cmd.split()[1:]))
         else:
             suffix_exe = cmd.split()[0] + self.exesuffix
-            cmd = "{suffix_exe} {' '.join(cmd.split()[1:])}"
+            cmd = "{} {}".format(suffix_exe, ' '.join(cmd.split()[1:]))
         self.start_time = datetime.now()
         self.ret = subprocess.run(cmd.split(), timeout=str2time(env_timeout).total_seconds())
         self.end_time = datetime.now()
@@ -256,13 +256,19 @@ class Static_Nondebug(Build):
 class Pmem(Fs):
     """ This class sets the context for pmem filesystem"""
     def setup_context(ctx):
-        ctx.dir = Path("{config['pmem_fs_dir']}//test_{os.path.basename(os.getcwd())}{ctx.unittest_num}{ctx.suffix}")
+        ctx.dir = "{}//test_{}{}{}".format(config['pmem_fs_dir'], \
+		os.path.basename(os.getcwd()), \
+		ctx.unittest_num, \
+		ctx.suffix)
 
 
 class Nonpmem(Fs):
     """ This class sets the context for nonpmem filesystem"""
     def setup_context(ctx):
-        ctx.dir = Path("{config['non_pmem_fs_dir']}//test_{os.path.basename(os.getcwd())}{ctx.unittest_num}{ctx.suffix}")
+        ctx.dir = "{}//test_{}{}{}".format(config['non_pmem_fs_dir'], \
+		os.path.basename(os.getcwd()), \
+		ctx.unittest_num, \
+		ctx.suffix)
 
 
 class Executor:
@@ -276,9 +282,10 @@ class Executor:
         else:
             if sys.platform == "win32":
                 perl = "perl"
-            files = glob.glob('{os.getcwd()}/*[a-z]{ctx.unittest_num}.log.match', recursive=True)
+            files = glob.glob("{}/*[a-z]{}.log.match".format( \
+			os.getcwd(), ctx.unittest_num), recursive=True)
             for f in files:
-                cmd = Path('{perl} ../match {f}')
+                cmd = Path("{} ../match {}".format(perl, f))
                 ret = os.system(str(cmd))
                 if ret != 0:
                     self.fail()
@@ -287,11 +294,11 @@ class Executor:
 
     def fail(self):
         """ Prints fail message. """
-        Message().msg('{Colors.CRED}FAILED {Colors.CEND}')
+        Message().msg("{}FAILED {}".format(Colors.CRED, Colors.CEND))
 
     def clean(self, dirname):
         """ Removes directory, even if it is not empty. """
-        shutil.rmtree('{dirname}', ignore_errors=True)
+        shutil.rmtree("{}".format(dirname), ignore_errors=True)
 
     def test_passed(self, ctx, test_type):
         """ Pass the test if the result is lower than timeout.
@@ -299,7 +306,8 @@ class Executor:
         delta = ctx.end_time - ctx.start_time
         if Large in test_type:
             if delta > str2time(env_timeout):
-                Message().msg("Skipping: {ctx.unittest_name} {Colors.CRED}timed out{Colors.CEND}")
+                Message().msg("Skipping: {} {}timed out{}".format( \
+				ctx.unittest_name, Colors.CRED, Colors.CEND))
                 try:
                     config['keep_going'] == 'y'
                 except:
@@ -309,16 +317,18 @@ class Executor:
             sec_test = float(delta.total_seconds())
             delta = "%06.3f" % sec_test
         if config.get('tm') == 1:
-            tm = "\t\t\t[{delta}] s"
+            tm = "\t\t\t[{}] s".format(delta)
         else:
             tm = ''
-        Message().msg('{ctx.unittest_name}: {Colors.CGREEN}PASS {Colors.CEND} {tm}')
+        Message().msg("{}: {}PASS {} {}".format( \
+		ctx.unittest_name, Colors.CGREEN, Colors.CEND, tm))
 
     def run(self, test, *args):
         """ Run the test with required variables. """
         testnum = test.__class__.__name__.replace("launch", "")
         ctx = Context()
-        os.environ['UNITTEST_NAME'] = ctx.unittest_name = '{os.path.basename(os.getcwd())}/TEST{testnum}'
+        os.environ['UNITTEST_NAME'] = ctx.unittest_name = "{}/TEST{}".format( \
+		os.path.basename(os.getcwd()), testnum)
         ctx.unittest_num = testnum
         os.environ['UNITTEST_NUM'] = testnum
         fs_type, build_type, test_type = [], [], []
@@ -327,7 +337,7 @@ class Executor:
             """ Check global variables and return False
                 if they do not comply with the test requirements  """
             if env_testfile != "all":
-                if env_testfile != "TEST{testnum}":
+                if env_testfile != "TEST{}".format(testnum):
                     return False
 
             if env_testseq != '':
@@ -374,9 +384,10 @@ class Executor:
             for b in build_type:
                 b.setup_context(ctx)
                 try:
-                    print('{ctx.unittest_name}: SETUP ' + str(Path('({f.__name__}/{b.__name__})')))
+                    print("{}: SETUP ".format(ctx.unittest_name) + \
+					str(Path("({}/{})".format(f.__name__, b.__name__))))
                 except:
-                    print('{ctx.unittest_name}: SETUP ' + str(Path('({f.__name__})')))
+                    print("{}: SETUP ".format(ctx.unittest_name) + str(Path("({})".format(f.__name__))))
                 test.run(ctx)
                 self.match(ctx, test_type)
-                self.clean('{ctx.dir}')
+                self.clean("{}".format(ctx.dir))

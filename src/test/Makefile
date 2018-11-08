@@ -363,6 +363,7 @@ pycheck : TARGET = pycheck
 DIR_SYNC=$(TOP)/src/test/.sync-dir
 SYNC_EXT=synced
 TESTCONFIG=$(TOP)/src/test/testconfig.sh
+TESTCONFIGPY=$(TOP)/src/test/testconfig.py
 CHECK_MAX_MMAP=$(TOP)/src/test/tools/anonymous_mmap/check_max_mmap.sh
 FILE_MAX_DAX_DEVICES=$(TOP)/src/test/tools/anonymous_mmap/max_dax_devices
 
@@ -375,6 +376,7 @@ clean clobber: $(TESTS_BUILD)
 	$(RM) -r $(DIR_SYNC)
 	$(RM) *.$(SYNC_EXT)
 	$(RM) $(FILE_MAX_DAX_DEVICES)
+	@rm -f $(TESTCONFIGPY)
 
 $(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS) $(LIBPMEMPOOL_MOD_DEPS) $(VMMALLOC_DUMMY_FUNCS_DEPS): $(TEST_DEPS)
 
@@ -403,7 +405,7 @@ global-checks: $(TEST_DEPS) $(FILE_MAX_DAX_DEVICES)
 
 pycheck:
 	@./RUNTESTS.py $(RUNTEST_OPTIONS)
-	echo "No failures."
+	@echo "No failures."
 
 check: sync-remotes global-checks
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(TESTS)

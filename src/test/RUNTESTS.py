@@ -45,7 +45,7 @@ def run_tests():
         argv = ' '.join(sys.argv[1:])
         # set current working directory to the directory with TESTS.py
         os.chdir(os.path.join(CURDIR, m.replace('TESTS.py', '')))
-        os.system('python3 TESTS.py {argv}')
+        os.system("python3 TESTS.py {}".format(argv))
 
 
 run_tests()
