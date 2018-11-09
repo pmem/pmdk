@@ -521,8 +521,8 @@ map_common_init(struct benchmark *bench, struct benchmark_args *args)
 	}
 
 	if (map_bench->margs->ext_tx && args->n_threads > 1) {
-		fprintf(stderr, "external transaction "
-				"requires single thread\n");
+		fprintf(stderr,
+			"external transaction requires single thread\n");
 		goto err_free_bench;
 	}
 
