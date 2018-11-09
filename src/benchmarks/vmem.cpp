@@ -494,8 +494,8 @@ vmem_init(struct benchmark *bench, struct benchmark_args *args)
 
 	/* vmem library is enable to create limited number of pools */
 	if (va->pool_per_thread && args->n_threads > MAX_POOLS) {
-		fprintf(stderr, "Maximum number of threads is %d for"
-				"pool-per-thread option\n",
+		fprintf(stderr,
+			"Maximum number of threads is %d for pool-per-thread option\n",
 			MAX_POOLS);
 		goto err;
 	}
