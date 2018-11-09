@@ -35,7 +35,7 @@ Forced RO                : $(*)
 Alignment Descriptor     : 0x0000077737773310[OK]
 Class                    : 64
 Data                     : 2's complement, little endian
-Machine                  : AMD X86-64
+Machine                  : $(*)
 
 PMEM OBJ Header:
 Layout                   : OBJ_LAYOUT$(nW)

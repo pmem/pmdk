@@ -16,5 +16,5 @@ Next part UUID           : $(nW)
 Alignment Descriptor     : $(nW)[OK]
 Class                    : $(nW)
 Data                     : 2's complement, little endian
-Machine                  : AMD X86-64
+Machine                  : $(*)
 Last shutdown            : clean
