@@ -167,10 +167,10 @@ struct obj_worker {
 	size_t n_elm;		     /* number of elements in array */
 	fn_position_t *fn_positions; /* element access functions */
 	struct element elm;	  /* pointer to current element */
-				     /*
-				      * list_move is a pointer to structure storing variables used by
-				      * second list (used only for obj_move benchmark).
-				      */
+	/*
+	 * list_move is a pointer to structure storing variables used by
+	 * second list (used only for obj_move benchmark).
+	 */
 	struct obj_worker *list_move;
 };
 
