@@ -343,9 +343,8 @@ memset_init(struct benchmark *bench, struct benchmark_args *args)
 
 	if (mb->pargs->memset) {
 		if (mb->pargs->persist && mb->pargs->msync) {
-			fprintf(stderr, "Invalid benchmark parameters: "
-					"persist and msync cannot be specified "
-					"together\n");
+			fprintf(stderr,
+				"Invalid benchmark parameters: persist and msync cannot be specified together\n");
 			ret = -1;
 			goto err_free_offsets;
 		}

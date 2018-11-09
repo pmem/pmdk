@@ -324,8 +324,8 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 	assert(rep);
 	assert(rep->remote == nullptr);
 	if (rep->nparts != 1) {
-		fprintf(stderr, "Multipart master replicas "
-				"are not supported\n");
+		fprintf(stderr,
+			"Multipart master replicas are not supported\n");
 		goto err_poolset_free;
 	}
 
@@ -377,8 +377,8 @@ rpmem_poolset_init(const char *path, struct rpmem_bench *mb,
 		}
 
 		if (mb->nlanes[r] < args->n_threads) {
-			fprintf(stderr, "Number of threads too large for "
-					"replica #%u (max: %u)\n",
+			fprintf(stderr,
+				"Number of threads too large for replica #%u (max: %u)\n",
 				r, mb->nlanes[r]);
 			r++; /* close current replica */
 			goto err_rpmem_close;
