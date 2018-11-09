@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,6 +39,8 @@ CSTYLE_ARGS=()
 CLANG_ARGS=()
 CHECK_TYPE=$1
 
+[ -z "$clang_format_bin" ] && which clang-format >/dev/null &&
+	clang_format_bin=clang-format
 [ -z "$clang_format_bin" ] && clang_format_bin=clang-format
 
 #
@@ -49,15 +51,15 @@ function usage() {
 }
 
 #
-# require clang-format version 3.8
+# require clang-format version 6.0
 #
 function check_clang_version() {
 	set +e
 	which ${clang_format_bin} &> /dev/null && ${clang_format_bin} --version |\
-	grep "version 3\.8"\
+	grep "version 6\.0"\
 	&> /dev/null
 	if [ $? -ne 0 ]; then
-		echo "SKIP: requires clang-format version 3.8"
+		echo "SKIP: requires clang-format version 6.0"
 		exit 0
 	fi
 	set -e

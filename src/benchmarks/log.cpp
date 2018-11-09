@@ -509,8 +509,8 @@ log_init(struct benchmark *bench, struct benchmark_args *args)
 
 	if (args->is_poolset || type == TYPE_DEVDAX) {
 		if (lb->args->fileio) {
-			fprintf(stderr, "fileio not supported on device dax "
-					"nor poolset\n");
+			fprintf(stderr,
+				"fileio not supported on device dax nor poolset\n");
 			ret = -1;
 			goto err_free_lb;
 		}

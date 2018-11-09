@@ -151,7 +151,9 @@ struct op_mode {
 };
 
 static struct op_mode modes[] = {
-	{"stat", mode_stat}, {"seq", mode_seq}, {"rand", mode_rand},
+	{"stat", mode_stat},
+	{"seq", mode_seq},
+	{"rand", mode_rand},
 };
 
 #define MODES (sizeof(modes) / sizeof(modes[0]))
