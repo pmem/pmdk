@@ -42,6 +42,7 @@
 #include <limits.h>
 #include <setjmp.h>
 #include <inttypes.h>
+#include <getopt.h>
 
 #include <libpmemobj.h>
 #include "common.h"
@@ -2308,6 +2309,15 @@ pocli_do_process(struct pocli *pcli)
 		return 1;
 }
 
+/*
+ * print_usage -- print usage of program
+ */
+static void
+print_usage(const char *name)
+{
+	printf("Usage: %s [-s <script>] <file>\n", name);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -2323,41 +2333,34 @@ main(int argc, char *argv[])
 		}
 	}
 #endif
+	int opt;
 	int ret = 1;
-
 	const char *fname = NULL;
 	FILE *input = stdin;
-	if (argc < 2 || argc > 4) {
-		printf("usage: %s [-s <script>] <file>\n", argv[0]);
-		goto out;
-	}
 
-	int is_script = strcmp(argv[1], "-s") == 0;
-
-	if (is_script) {
-		if (argc != 4) {
-			if (argc == 2) {
-				printf("usage: %s -s <script> <file>\n",
-						argv[0]);
-				goto out;
-			} else if (argc == 3) {
-				printf("usage: %s -s <script> <file> "
-					"or %s <file>\n", argv[0], argv[2]);
+	while ((opt = getopt(argc, argv, "s:")) != -1) {
+		switch (opt) {
+		case 's':
+			input = os_fopen(optarg, "r");
+			if (!input) {
+				perror(optarg);
 				goto out;
 			}
-		}
-		fname = argv[3];
-		input = os_fopen(argv[2], "r");
-		if (!input) {
-			perror(argv[2]);
+
+
+			break;
+		default:
+			print_usage(argv[0]);
+			ret = 1;
 			goto out;
 		}
+	}
+
+	if (optind < argc) {
+		fname = argv[optind];
 	} else {
-		if (argc != 2) {
-			printf("usage: %s <file>\n", argv[0]);
-			goto out;
-		}
-		fname = argv[1];
+		print_usage(argv[0]);
+		goto out;
 	}
 
 	struct pocli *pcli = pocli_alloc(input, fname,
