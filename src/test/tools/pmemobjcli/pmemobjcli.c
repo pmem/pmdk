@@ -148,6 +148,7 @@ struct pocli {
 	size_t ncmds;			/* number of available commands */
 	int istty;			/* stdout is tty */
 	struct pocli_opts opts;		/* configuration options */
+	bool print_only;		/* don't execute, just print */
 };
 
 int pocli_process(struct pocli *pcli);
@@ -1746,6 +1747,28 @@ pocli_get_cmd(struct pocli *pcli, const char *cmds)
 	return NULL;
 }
 
+static enum pocli_ret
+pocli_print(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	const struct pocli_cmd *cmd = pocli_get_cmd(ctx->pocli, args->argv[0]);
+	if (!cmd)
+		return POCLI_ERR_PARS;
+
+	printf("%s", cmd->name_short);
+	if (args->argc == 1) {
+		printf("\n");
+		return POCLI_RET_OK;
+	}
+
+	for (int i = 1; i < args->argc; i++)
+		printf(" %s", args->argv[i]);
+	printf("\n");
+
+	return POCLI_RET_OK;
+}
+
+static struct pocli_cmd print_cmd = {"", "", "", pocli_print};
+
 /*
  * pocli_print_cmd -- print description of specified command
  */
@@ -2150,7 +2173,7 @@ pocli_read_opts(struct pocli_opts *opts)
  */
 static struct pocli *
 pocli_alloc(FILE *input, const char *fname, const struct pocli_cmd *cmds,
-		size_t ncmds, size_t inbuf_len)
+		size_t ncmds, size_t inbuf_len, bool print_only)
 {
 	assert(inbuf_len < INT_MAX);
 	struct pocli_opts opts;
@@ -2166,18 +2189,21 @@ pocli_alloc(FILE *input, const char *fname, const struct pocli_cmd *cmds,
 	pcli->istty = isatty(fileno(pcli->in));
 	pcli->cmds = cmds;
 	pcli->ncmds = ncmds;
+	pcli->print_only = print_only;
 	pcli->ctx.pocli = pcli;
 	pcli->ctx.err = stderr;
 	pcli->ctx.out = stdout;
-	pcli->ctx.pop = pmemobj_open(fname, NULL);
-	if (!pcli->ctx.pop) {
-		fprintf(stderr, "%s: %s\n", fname, pmemobj_errormsg());
-		goto err_free_pcli;
-	}
+	if (!print_only) {
+		pcli->ctx.pop = pmemobj_open(fname, NULL);
+		if (!pcli->ctx.pop) {
+			fprintf(stderr, "%s: %s\n", fname, pmemobj_errormsg());
+			goto err_free_pcli;
+		}
 
-	size_t root_size = pmemobj_root_size(pcli->ctx.pop);
-	if (root_size)
-		pcli->ctx.root = pmemobj_root(pcli->ctx.pop, root_size);
+		size_t root_size = pmemobj_root_size(pcli->ctx.pop);
+		if (root_size)
+			pcli->ctx.root = pmemobj_root(pcli->ctx.pop, root_size);
+	}
 
 	pcli->inbuf_len = inbuf_len;
 	pcli->inbuf = (char *)malloc(inbuf_len);
@@ -2204,7 +2230,8 @@ pocli_free(struct pocli *pcli)
 		pmemobj_tx_end();
 	}
 	VEC_DELETE(&pcli->ctx.free_on_abort);
-	pmemobj_close(pcli->ctx.pop);
+	if (pcli->ctx.pop)
+		pmemobj_close(pcli->ctx.pop);
 
 	free(pcli->inbuf);
 	free(pcli);
@@ -2260,7 +2287,12 @@ pocli_process(struct pocli *pcli)
 			argstr++;
 		}
 		char *cmds = pcli->inbuf;
-		const struct pocli_cmd *cmd = pocli_get_cmd(pcli, cmds);
+		const struct pocli_cmd *cmd;
+		if (pcli->print_only)
+			cmd = &print_cmd;
+		else
+			cmd = pocli_get_cmd(pcli, cmds);
+
 		if (!cmd) {
 			pocli_err(&pcli->ctx, POCLI_RET_OK, /* XXX */
 				"unknown command -- '%s'\n", cmds);
@@ -2315,7 +2347,7 @@ pocli_do_process(struct pocli *pcli)
 static void
 print_usage(const char *name)
 {
-	printf("Usage: %s [-s <script>] <file>\n", name);
+	printf("Usage: %s [-s <script>] -p|<file>\n", name);
 }
 
 int
@@ -2337,8 +2369,9 @@ main(int argc, char *argv[])
 	int ret = 1;
 	const char *fname = NULL;
 	FILE *input = stdin;
+	bool print_only = false;
 
-	while ((opt = getopt(argc, argv, "s:")) != -1) {
+	while ((opt = getopt(argc, argv, "s:p")) != -1) {
 		switch (opt) {
 		case 's':
 			input = os_fopen(optarg, "r");
@@ -2349,6 +2382,9 @@ main(int argc, char *argv[])
 
 
 			break;
+		case 'p':
+			print_only = true;
+			break;
 		default:
 			print_usage(argv[0]);
 			ret = 1;
@@ -2358,13 +2394,13 @@ main(int argc, char *argv[])
 
 	if (optind < argc) {
 		fname = argv[optind];
-	} else {
+	} else if (!print_only) {
 		print_usage(argv[0]);
 		goto out;
 	}
 
-	struct pocli *pcli = pocli_alloc(input, fname,
-			pocli_commands, POCLI_NCOMMANDS, POCLI_INBUF_LEN);
+	struct pocli *pcli = pocli_alloc(input, fname, pocli_commands,
+			POCLI_NCOMMANDS, POCLI_INBUF_LEN, print_only);
 	if (!pcli) {
 		perror("pocli_alloc");
 		goto out;

@@ -1,0 +1,71 @@
+pdr r
+pr 1024
+pdr r
+prs
+paus r
+ptn r
+pa r.0 1 8192
+pza r.1 2 256
+pza r.2 3 128
+pza r.3 3 128
+pre r.0 3 2
+pzre r.0 4 8192
+psd r.4 0 5
+pdr r.0
+pdr r.1
+ptn r.0
+ptn r.1
+paus r.0
+paus r.1
+pfi
+pn r.2
+pmsp r.2 0 255 128
+pmsp r.3 0 0 128
+pmcp r.3 0 r.2 0 128
+pp r.3 32 96
+pfl r.2 32 96
+pd
+ppbo r
+ppbp r.3 32
+pmsp r.0 0 0 256
+pmsp r.1 0 0 256
+pmsp r.0 0 0 32
+plin r.4 r.0 NULL 1 64 3
+plin r.5 r.1 NULL 1 64 3
+pli r.3 r.0 r.4 1
+pli r.2 r.1 NULL 0
+plm r.4 r.0 r.1 r.5 0
+plm r.3 r.0 r.1 r.4 0
+plr r.2 r.1 0
+plr r.3 r.1 0
+plr r.4 r.1 1
+plr r.5 r.1 1
+pf r.0
+pf r.1
+pf r.2
+pf r.3
+pdr r.0
+---
+pr 256
+pza r.0 1 8192
+pza r.1 2 256
+ptb jmp
+ptar r 0 256
+ptsd r.4 0 5
+ptard r.0 64 128
+ptar r.1 16 16
+ptzal r.3 8192 3
+ptzre r.3 2048 3
+ptf r.4
+pts
+ptb
+ptc
+pts
+ptp
+pts
+pte
+pts
+ptab -1
+pts
+pte
+pts
