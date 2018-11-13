@@ -91,7 +91,7 @@ bytes="0"
 max_devices="0"
 for index in ${!DEVICE_DAX_PATH[@]}
 do
-	if [ ! -f "${DEVICE_DAX_PATH[$index]}" ]; then
+	if [ ! -e "${DEVICE_DAX_PATH[$index]}" ]; then
 		msg_failed "${DEVICE_DAX_PATH[$index]} does not exist"
 	fi
 
