@@ -172,7 +172,7 @@ jemalloc-check: jemalloc-test
 test: all jemalloc-test
 	$(MAKE) -C test test
 
-check pcheck: test jemalloc-check
+check pcheck pycheck: test jemalloc-check
 	$(MAKE) -C test $@
 
 require-rpmem:
