@@ -45,6 +45,10 @@ require_fs_type pmem non-pmem
 
 setup
 
+# require about 110% (2253M) of actually required free space (2G)
+# to be sure the test will run
+require_free_space 2253M
+
 create_poolset $DIR/testset1 1G:$DIR/testfile1:x 1G:$DIR/testfile2:x
 
 expect_normal_exit ./blk_rw$EXESUFFIX 512 $DIR/testset1 c\
