@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,24 +28,39 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# run-build.sh - is called inside a Docker container; prepares the environment
-#                and starts a build of PMDK project.
 #
 
-set -e
 
-# Prepare build environment
-./prepare-for-build.sh
+import sys
+from os import path
 
-# Build all and run tests
-cd $WORKDIR
-make check-license
-make cstyle
-make -j2 USE_LIBUNWIND=1
-make -j2 test USE_LIBUNWIND=1
-make -j2 pcheck TEST_BUILD=$TEST_BUILD
-make -j2 -C src/test pycheck
-make DESTDIR=/tmp source
+up = path.abspath(path.join(path.dirname(sys.argv[0]), '..'))
+sys.path.insert(1, up)
 
+import basetest
+import context as ctx
+from helpers import MB
+
+
+class TEST0(basetest.BaseTest):
+    test_type = ctx.Medium
+
+    # TODO configure_valgrind memcheck force-disable
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(MB(16), "testfile1")
+        ctx.test_binary_exec('obj_basic_integration', filepath)
+
+
+class TEST1(basetest.BaseTest):
+    test_type = ctx.Medium
+
+    # TODO configure_valgrind pmemcheck force-enable
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(MB(16), "testfile1")
+        ctx.test_binary_exec('obj_basic_integration', filepath)
+
+
+if __name__ == '__main__':
+    basetest.testcase_main()

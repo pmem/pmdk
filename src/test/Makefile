@@ -358,10 +358,12 @@ format  : TARGET = format
 check   : TARGET = check
 pcheck  : TARGET = pcheck
 sparse  : TARGET = sparse
+pycheck : TARGET = pycheck
 
 DIR_SYNC=$(TOP)/src/test/.sync-dir
 SYNC_EXT=synced
 TESTCONFIG=$(TOP)/src/test/testconfig.sh
+TESTCONFIGPY=$(TOP)/src/test/testconfig.py
 FILE_MAX_DAX_DEVICES=$(TOP)/src/test/tools/anonymous_mmap/max_dax_devices
 
 all test format sparse: $(TESTS_BUILD)
@@ -373,6 +375,7 @@ clean clobber: $(TESTS_BUILD)
 	$(RM) -r $(DIR_SYNC)
 	$(RM) *.$(SYNC_EXT)
 	$(RM) $(FILE_MAX_DAX_DEVICES)
+	$(RM) $(TESTCONFIGPY)
 
 $(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS) $(LIBPMEMPOOL_MOD_DEPS) $(VMMALLOC_DUMMY_FUNCS_DEPS): $(TEST_DEPS)
 
@@ -402,6 +405,10 @@ memcheck-summary-leaks:
 check:
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(LOCAL_TESTS)
 	$(MAKE) check-remote-quiet-conditional
+	@echo "No failures."
+
+pycheck:
+	@./RUNTESTS.py $(RUNTEST_OPTIONS)
 	@echo "No failures."
 
 check-remote-quiet-conditional:
@@ -501,6 +508,6 @@ endif
 
 .PHONY: all check clean clobber cstyle pcheck pcheck-blk pcheck-log pcheck-obj\
 	 pcheck-other pcheck-pmem pcheck-pmempool pcheck-vmem pcheck-vmmalloc\
-	 test unittest tools check-remote format pcheck-libpmempool\
+	 test unittest tools check-remote format pcheck-libpmempool pycheck\
 	 pcheck-rpmem pcheck-local pcheck-remote sync-remotes $(TESTS_BUILD)\
 	 require-rpmem check-remote-quiet check-remote-quiet-conditional

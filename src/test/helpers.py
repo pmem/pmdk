@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,24 +28,56 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# run-build.sh - is called inside a Docker container; prepares the environment
-#                and starts a build of PMDK project.
 #
 
-set -e
+""" Helper functions """
 
-# Prepare build environment
-./prepare-for-build.sh
 
-# Build all and run tests
-cd $WORKDIR
-make check-license
-make cstyle
-make -j2 USE_LIBUNWIND=1
-make -j2 test USE_LIBUNWIND=1
-make -j2 pcheck TEST_BUILD=$TEST_BUILD
-make -j2 -C src/test pycheck
-make DESTDIR=/tmp source
+#
+# KB, MB, GB, TB, PB -- these functions convert the integer to bytes
+#
+# example:
+#   MB(3)  -->  3145728
+#   KB(16) -->  16384
+#
+def KB(n):
+    return 2 ** 10 * n
 
+
+def MB(n):
+    return 2 ** 20 * n
+
+
+def GB(n):
+    return 2 ** 30 * n
+
+
+def TB(n):
+    return 2 ** 40 * n
+
+
+def PB(n):
+    return 2 ** 50 * n
+
+
+class Colors:
+    """ This class sets the font colour """
+    RED = '\33[91m'
+    GREEN = '\33[92m'
+    END = '\33[0m'
+
+
+class Message:
+    """ This class checks the value of unittest_log_level
+        to print the message. """
+
+    def __init__(self, config):
+        self.config = config
+
+    def print(self, args):
+        if self.config.unittest_log_level >= 1:
+            print(args)
+
+    def print_verbose(self, args):
+        if self.config.unittest_log_level >= 2:
+            print(args)

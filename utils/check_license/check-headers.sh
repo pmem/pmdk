@@ -32,7 +32,7 @@
 #
 
 # check-headers.sh - check copyright and license in source files
-
+set -x
 SELF=$0
 
 function usage() {
