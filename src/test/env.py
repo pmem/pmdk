@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,24 +29,51 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #
-# run-build.sh - is called inside a Docker container; prepares the environment
-#                and starts a build of PMDK project.
-#
+"""Interpreter managing test group specific TESTS.py file execution"""
 
-set -e
 
-# Prepare build environment
-./prepare-for-build.sh
+import importlib.util as importutil
+import os
+import sys
 
-# Build all and run tests
-cd $WORKDIR
-make check-license
-make cstyle
-make -j2 USE_LIBUNWIND=1
-make -j2 test USE_LIBUNWIND=1
-make -j2 pcheck TEST_BUILD=$TEST_BUILD
-make -j2 pycheck
-make DESTDIR=/tmp source
+from testframework import BaseTest, Configurator
 
+
+def run_testcases():
+    """Parse user configuration, run test cases"""
+
+    config = Configurator().parse_config()
+    testcases = BaseTest.__subclasses__()
+
+    if config.test_sequence:
+        # filter test cases from sequence
+        testcases = [t for t in testcases if t.testnum in config.test_sequence]
+        # sort testcases so their sequence matches provided test sequence
+        testcases.sort(key=lambda tc: config.test_sequence.index(tc.testnum))
+
+    for test in testcases:
+        test(config)._execute()
+
+
+def main():
+    # Interpreter receives TESTS.py file as first argument
+    if len(sys.argv) < 2:
+        sys.exit('Provide test file to run')
+    testfile = sys.argv[1]
+
+    # Remove TESTS.py file from args, the rest of the args is parsed as a
+    # test configuration
+    sys.argv.pop(1)
+
+    # import TESTS.py as a module
+    testfile_dir = os.path.abspath(os.path.dirname(testfile))
+    spec = importutil.spec_from_file_location(testfile_dir, testfile)
+    module = importutil.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    run_testcases()
+
+
+if __name__ == '__main__':
+    main()
