@@ -69,7 +69,9 @@ cd "$1"
 
 GIT_DESCRIBE=$(git describe 2>/dev/null) && true
 if [ -n "$GIT_DESCRIBE" ]; then
-	echo "$GIT_DESCRIBE"
+	# 1.5-19-gb8f78a329 -> 1.5+git19.gb8f78a329
+	# 1.5-rc1-19-gb8f78a329 -> 1.5-rc1+git19.gb8f78a329
+	echo "$GIT_DESCRIBE" | sed "s/\([0-9.]*\)-rc\([0-9]*\)-\([0-9]*\)-\([0-9a-g]*\)/\1-rc\2+git\3.\4/" | sed "s/\([0-9.]*\)-\([0-9]*\)-\([0-9a-g]*\)/\1+git\2.\3/"
 	exit 0
 fi
 
