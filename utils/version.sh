@@ -69,7 +69,8 @@ cd "$1"
 
 GIT_DESCRIBE=$(git describe 2>/dev/null) && true
 if [ -n "$GIT_DESCRIBE" ]; then
-	echo "$GIT_DESCRIBE"
+	# 1.5-19-gb8f78a329 -> 1.5+git19.gb8f78a329
+	echo "$GIT_DESCRIBE" | sed "s/-/+git/" | sed "s/-/./"
 	exit 0
 fi
 
