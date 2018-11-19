@@ -43,6 +43,7 @@ SOURCE +=\
 	bucket.c\
 	container_ravl.c\
 	container_seglists.c\
+	critnib.c\
 	ctl_debug.o\
 	cuckoo.c\
 	heap.c\
