@@ -133,7 +133,7 @@ or features:
 
 * **MS Visual Studio 2015**
 * [Windows SDK 10.0.16299.15](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
-* **perl** (i.e. [ActivePerl](http://www.activestate.com/activeperl/downloads))
+* **perl** (i.e. [StrawberryPerl](http://strawberryperl.com/))
 * **PowerShell 5**
 
 ### FreeBSD
