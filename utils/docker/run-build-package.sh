@@ -53,7 +53,7 @@ make -j2 $PACKAGE_MANAGER
 # Install packages
 if [[ "$PACKAGE_MANAGER" == "dpkg" ]]; then
 	cd $PACKAGE_MANAGER
-	echo $USERPASS | sudo -S dpkg --install -R *.deb
+	echo $USERPASS | sudo -S dpkg --install *.deb
 else
 	cd $PACKAGE_MANAGER/x86_64
 	echo $USERPASS | sudo -S rpm --install *.rpm

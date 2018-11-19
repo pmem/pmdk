@@ -35,9 +35,9 @@
 #
 
 # Pull base image
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 MAINTAINER marcin.slusarz@intel.com
-
+ENV DEBIAN_FRONTEND noninteractive
 # Update the Apt cache and install basic tools
 RUN apt-get update \
  && apt-get install -y software-properties-common \
@@ -45,7 +45,6 @@ RUN apt-get update \
 	autoconf \
 	bc \
 	clang \
-	clang-format-3.8 \
 	cmake \
 	debhelper \
 	devscripts \
@@ -92,7 +91,7 @@ USER $USER
 
 # Set required environment variables
 ENV OS ubuntu
-ENV OS_VER 16.04
+ENV OS_VER 18.04
 ENV START_SSH_COMMAND service ssh start
 ENV PACKAGE_MANAGER dpkg
 ENV NOTTY 1
