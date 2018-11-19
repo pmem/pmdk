@@ -74,7 +74,7 @@
     <ClCompile Include="..\..\libpmemobj\container_seglists.c">
       <Filter>libs</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\cuckoo.c">
+    <ClCompile Include="..\..\libpmemobj\critnib.c">
       <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\lane.c">

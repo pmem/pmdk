@@ -44,7 +44,7 @@
 #include <sched.h>
 
 #include "libpmemobj.h"
-#include "cuckoo.h"
+#include "critnib.h"
 #include "lane.h"
 #include "out.h"
 #include "util.h"
@@ -57,7 +57,7 @@
 
 static os_tls_key_t Lane_info_key;
 
-static __thread struct cuckoo *Lane_info_ht;
+static __thread struct critnib *Lane_info_ht;
 static __thread struct lane_info *Lane_info_records;
 static __thread struct lane_info *Lane_info_cache;
 
@@ -67,9 +67,9 @@ static __thread struct lane_info *Lane_info_cache;
 static inline void
 lane_info_create(void)
 {
-	Lane_info_ht = cuckoo_new();
+	Lane_info_ht = critnib_new();
 	if (Lane_info_ht == NULL)
-		FATAL("cuckoo_new");
+		FATAL("critnib_new");
 }
 
 /*
@@ -81,7 +81,7 @@ lane_info_delete(void)
 	if (unlikely(Lane_info_ht == NULL))
 		return;
 
-	cuckoo_delete(Lane_info_ht);
+	critnib_delete(Lane_info_ht);
 	struct lane_info *record;
 	struct lane_info *head = Lane_info_records;
 	while (head != NULL) {
@@ -151,7 +151,7 @@ lane_info_cleanup(PMEMobjpool *pop)
 	if (unlikely(Lane_info_ht == NULL))
 		return;
 
-	struct lane_info *info = cuckoo_remove(Lane_info_ht, pop->uuid_lo);
+	struct lane_info *info = critnib_remove(Lane_info_ht, pop->uuid_lo);
 	if (likely(info != NULL)) {
 		if (info->prev)
 			info->prev->next = info->next;
@@ -508,7 +508,7 @@ get_lane_info_record(PMEMobjpool *pop)
 		lane_info_ht_boot();
 	}
 
-	struct lane_info *info = cuckoo_get(Lane_info_ht, pop->uuid_lo);
+	struct lane_info *info = critnib_get(Lane_info_ht, pop->uuid_lo);
 
 	if (unlikely(info == NULL)) {
 		info = Malloc(sizeof(struct lane_info));
@@ -527,9 +527,9 @@ get_lane_info_record(PMEMobjpool *pop)
 		}
 		Lane_info_records = info;
 
-		if (unlikely(cuckoo_insert(
+		if (unlikely(critnib_insert(
 				Lane_info_ht, pop->uuid_lo, info) != 0)) {
-			FATAL("cuckoo_insert");
+			FATAL("critnib_insert");
 		}
 	}
 
