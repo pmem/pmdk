@@ -4,7 +4,7 @@
     <ClCompile Include="..\..\src\libpmemobj\bucket.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmemobj\cuckoo.c">
+    <ClCompile Include="..\..\src\libpmemobj\critnib.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\libpmemobj\ctl_debug.c">
@@ -153,7 +153,7 @@
     <ClInclude Include="..\..\src\libpmemobj\bucket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\cuckoo.h">
+    <ClInclude Include="..\..\src\libpmemobj\critnib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\libpmemobj\ctl_debug.h">

@@ -42,7 +42,7 @@
 #include "libpmem.h"
 #include "memblock.h"
 #include "ravl.h"
-#include "cuckoo.h"
+#include "critnib.h"
 #include "list.h"
 #include "mmap.h"
 #include "obj.h"
@@ -89,7 +89,7 @@ static const struct pool_attr Obj_open_attr = {
 		{0}, {0}, {0}, {0}, {0}
 };
 
-static struct cuckoo *pools_ht; /* hash table used for searching by UUID */
+static struct critnib *pools_ht; /* hash table used for searching by UUID */
 static struct ravl *pools_tree; /* tree used for searching by address */
 
 int _pobj_cache_invalidate;
@@ -253,9 +253,9 @@ obj_pool_init(void)
 	if (pools_ht)
 		return;
 
-	pools_ht = cuckoo_new();
+	pools_ht = critnib_new();
 	if (pools_ht == NULL)
-		FATAL("!cuckoo_new");
+		FATAL("!critnib_new");
 
 	pools_tree = ravl_new(obj_pool_cmp);
 	if (pools_tree == NULL)
@@ -342,7 +342,7 @@ obj_fini(void)
 	LOG(3, NULL);
 
 	if (pools_ht)
-		cuckoo_delete(pools_ht);
+		critnib_delete(pools_ht);
 	if (pools_tree)
 		ravl_delete(pools_tree);
 	lane_info_destroy();
@@ -1261,9 +1261,9 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 		obj_pool_init();
 
-		if ((errno = cuckoo_insert(pools_ht, pop->uuid_lo, pop)) != 0) {
-			ERR("!cuckoo_insert");
-			goto err_cuckoo_insert;
+		if ((errno = critnib_insert(pools_ht, pop->uuid_lo, pop)) != 0) {
+			ERR("!critnib_insert");
+			goto err_critnib_insert;
 		}
 
 		if ((errno = ravl_insert(pools_tree, pop)) != 0) {
@@ -1293,8 +1293,8 @@ err_ctl:
 	ASSERTne(n, NULL);
 	ravl_remove(pools_tree, n);
 err_tree_insert:
-	cuckoo_remove(pools_ht, pop->uuid_lo);
-err_cuckoo_insert:
+	critnib_remove(pools_ht, pop->uuid_lo);
+err_critnib_insert:
 	obj_runtime_cleanup_common(pop);
 err_boot:
 	stats_delete(pop, pop->stats);
@@ -1973,8 +1973,8 @@ pmemobj_close(PMEMobjpool *pop)
 
 	_pobj_cache_invalidate++;
 
-	if (cuckoo_remove(pools_ht, pop->uuid_lo) != pop) {
-		ERR("cuckoo_remove");
+	if (critnib_remove(pools_ht, pop->uuid_lo) != pop) {
+		ERR("critnib_remove");
 	}
 
 	struct ravl_node *n = ravl_find(pools_tree, pop, RAVL_PREDICATE_EQUAL);
@@ -2109,7 +2109,7 @@ pmemobj_pool_by_oid(PMEMoid oid)
 	if (pools_ht == NULL)
 		return NULL;
 
-	return cuckoo_get(pools_ht, oid.pool_uuid_lo);
+	return critnib_get(pools_ht, oid.pool_uuid_lo);
 }
 
 /*
