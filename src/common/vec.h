@@ -64,6 +64,7 @@ struct name {\
 } while (0)
 
 #define VEC_MOVE(vecl, vecr) do {\
+	Free((vecl)->buffer);\
 	(vecl)->buffer = (vecr)->buffer;\
 	(vecl)->size = (vecr)->size;\
 	(vecl)->capacity = (vecr)->capacity;\
