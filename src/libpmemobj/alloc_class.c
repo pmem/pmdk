@@ -42,7 +42,7 @@
 #include "util.h"
 #include "out.h"
 #include "bucket.h"
-#include "cuckoo.h"
+#include "critnib.h"
 
 #define RUN_CLASS_KEY_PACK(map_idx_s, flags_s, size_idx_s)\
 ((uint64_t)(map_idx_s) << 32 |\
@@ -146,7 +146,7 @@ struct alloc_class_collection {
 	uint8_t *class_map_by_alloc_size;
 
 	/* maps allocation classes to run unit sizes */
-	struct cuckoo *class_map_by_unit_size;
+	struct critnib *class_map_by_unit_size;
 
 	int fail_on_missing_class;
 	int autogenerate_on_missing_class;
@@ -250,7 +250,7 @@ alloc_class_new(int id, struct alloc_class_collection *ac,
 			uint16_t flags_s = (uint16_t)c->flags;
 			uint64_t k = RUN_CLASS_KEY_PACK(map_idx_s,
 				flags_s, size_idx_s);
-			if (cuckoo_insert(ac->class_map_by_unit_size,
+			if (critnib_insert(ac->class_map_by_unit_size,
 			    k, c) != 0) {
 				ERR("unable to register allocation class");
 				goto error_map_insert;
@@ -442,7 +442,7 @@ alloc_class_collection_new()
 
 	if ((ac->class_map_by_alloc_size = Malloc(maps_size)) == NULL)
 		goto error;
-	if ((ac->class_map_by_unit_size = cuckoo_new()) == NULL)
+	if ((ac->class_map_by_unit_size = critnib_new()) == NULL)
 		goto error;
 
 	memset(ac->class_map_by_alloc_size, 0xFF, maps_size);
@@ -550,7 +550,7 @@ alloc_class_collection_delete(struct alloc_class_collection *ac)
 		}
 	}
 
-	cuckoo_delete(ac->class_map_by_unit_size);
+	critnib_delete(ac->class_map_by_unit_size);
 	Free(ac->class_map_by_alloc_size);
 	Free(ac);
 }
@@ -626,7 +626,7 @@ alloc_class_by_run(struct alloc_class_collection *ac,
 	uint16_t size_idx_s = (uint16_t)size_idx;
 	uint16_t flags_s = (uint16_t)flags;
 
-	return cuckoo_get(ac->class_map_by_unit_size,
+	return critnib_get(ac->class_map_by_unit_size,
 		RUN_CLASS_KEY_PACK(map_idx_s, flags_s, size_idx_s));
 }
 
