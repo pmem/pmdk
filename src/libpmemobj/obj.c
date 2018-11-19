@@ -1400,8 +1400,9 @@ obj_check_basic_local(PMEMobjpool *pop, size_t mapped_size)
 		consistent = 0;
 	}
 
+	size_t heap_size = pop->set->poolsize - pop->heap_offset;
 	errno = palloc_heap_check((char *)pop + pop->heap_offset,
-		mapped_size);
+		heap_size);
 	if (errno != 0) {
 		LOG(2, "!heap_check");
 		consistent = 0;
@@ -1462,8 +1463,9 @@ obj_check_basic_remote(PMEMobjpool *pop, size_t mapped_size)
 
 	/* XXX add lane_check_remote */
 
+	size_t heap_size = pop->set->poolsize - pop->heap_offset;
 	errno = palloc_heap_check_remote((char *)pop + pop->heap_offset,
-		mapped_size, &pop->p_ops.remote);
+		heap_size, &pop->p_ops.remote);
 	if (errno != 0) {
 		LOG(2, "!heap_check_remote");
 		consistent = 0;
