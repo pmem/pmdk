@@ -247,10 +247,10 @@ _vmem_strdup(const char *s)
  * into account when detecting memory leaks.
  *
  * obj_init/obj_pool_init:
- *   cuckoo_new  - Malloc + Zalloc
+ *   critnib_new  - Malloc + Zalloc
  *   ctree_new   - Malloc
  * lane_info_ht_boot/lane_info_create:
- *   cuckoo_new  - Malloc + Zalloc
+ *   critnib_new  - Malloc + Zalloc
  */
 #define OBJ_EXTRA_NALLOC 5
 

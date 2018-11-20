@@ -45,7 +45,6 @@ SOURCE +=\
 	container_seglists.c\
 	critnib.c\
 	ctl_debug.o\
-	cuckoo.c\
 	heap.c\
 	lane.c\
 	libpmemobj.c\
