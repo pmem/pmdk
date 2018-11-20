@@ -252,7 +252,7 @@ _vmem_strdup(const char *s)
  * lane_info_ht_boot/lane_info_create:
  *   critnib_new  - Malloc + Zalloc
  */
-#define OBJ_EXTRA_NALLOC 5
+#define OBJ_EXTRA_NALLOC 6
 
 static void
 test_obj(const char *path)
