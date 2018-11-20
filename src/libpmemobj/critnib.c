@@ -343,8 +343,8 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 	if (!at) {
 		ASSERT(is_leaf(n));
 		free_leaf(c, to_leaf(kn));
-		to_leaf(n)->value = value;
-		return UNLOCK, 0;
+		/* fail instead of replacing */
+		return UNLOCK, EINVAL;
 	}
 
 	/* and convert that to an index. */
