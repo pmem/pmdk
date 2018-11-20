@@ -41,7 +41,6 @@
 #include "valgrind_internal.h"
 #include "libpmem.h"
 #include "memblock.h"
-#include "ravl.h"
 #include "critnib.h"
 #include "list.h"
 #include "mmap.h"
@@ -90,7 +89,7 @@ static const struct pool_attr Obj_open_attr = {
 };
 
 static struct critnib *pools_ht; /* hash table used for searching by UUID */
-static struct ravl *pools_tree; /* tree used for searching by address */
+static struct critnib *pools_tree; /* tree used for searching by address */
 
 int _pobj_cache_invalidate;
 
@@ -226,20 +225,6 @@ err:
 }
 
 /*
- * obj_pool_cmp -- (internal) compares two PMEMobjpool pointers
- */
-static int
-obj_pool_cmp(const void *lhs, const void *rhs)
-{
-	if (lhs > rhs)
-		return 1;
-	else if (lhs < rhs)
-		return -1;
-
-	return 0;
-}
-
-/*
  * obj_pool_init -- (internal) allocate global structs holding all opened pools
  *
  * This is invoked on a first call to pmemobj_open() or pmemobj_create().
@@ -255,11 +240,11 @@ obj_pool_init(void)
 
 	pools_ht = critnib_new();
 	if (pools_ht == NULL)
-		FATAL("!critnib_new");
+		FATAL("!critnib_new for pools_ht");
 
-	pools_tree = ravl_new(obj_pool_cmp);
+	pools_tree = critnib_new();
 	if (pools_tree == NULL)
-		FATAL("!ravl_new");
+		FATAL("!critnib_new for pools_tree");
 }
 
 /*
@@ -344,7 +329,7 @@ obj_fini(void)
 	if (pools_ht)
 		critnib_delete(pools_ht);
 	if (pools_tree)
-		ravl_delete(pools_tree);
+		critnib_delete(pools_tree);
 	lane_info_destroy();
 	util_remote_fini();
 
@@ -1261,13 +1246,13 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 		obj_pool_init();
 
-		if ((errno = critnib_insert(pools_ht, pop->uuid_lo, pop)) != 0) {
-			ERR("!critnib_insert");
+		if ((errno = critnib_insert(pools_ht, pop->uuid_lo, pop))) {
+			ERR("!critnib_insert to pools_ht");
 			goto err_critnib_insert;
 		}
 
-		if ((errno = ravl_insert(pools_tree, pop)) != 0) {
-			ERR("!ravl_insert");
+		if ((errno = critnib_insert(pools_tree, (uint64_t)pop, pop))) {
+			ERR("!critnib_insert to pools_tree");
 			goto err_tree_insert;
 		}
 	}
@@ -1287,11 +1272,9 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	return 0;
 
-	struct ravl_node *n;
-err_ctl:
-	n = ravl_find(pools_tree, pop, RAVL_PREDICATE_EQUAL);
+err_ctl:;
+	void *n = critnib_remove(pools_tree, (uint64_t)pop);
 	ASSERTne(n, NULL);
-	ravl_remove(pools_tree, n);
 err_tree_insert:
 	critnib_remove(pools_ht, pop->uuid_lo);
 err_critnib_insert:
@@ -1974,15 +1957,11 @@ pmemobj_close(PMEMobjpool *pop)
 	_pobj_cache_invalidate++;
 
 	if (critnib_remove(pools_ht, pop->uuid_lo) != pop) {
-		ERR("critnib_remove");
+		ERR("critnib_remove for pools_ht");
 	}
 
-	struct ravl_node *n = ravl_find(pools_tree, pop, RAVL_PREDICATE_EQUAL);
-	if (n == NULL) {
-		ERR("ravl_find");
-	} else {
-		ravl_remove(pools_tree, n);
-	}
+	if (critnib_remove(pools_tree, (uint64_t)pop) != pop)
+		ERR("critnib_remove for pools_tree");
 
 #ifndef _WIN32
 
@@ -2130,12 +2109,10 @@ pmemobj_pool_by_ptr(const void *addr)
 	if (pools_tree == NULL)
 		return NULL;
 
-	struct ravl_node *n = ravl_find(pools_tree, addr,
-		RAVL_PREDICATE_LESS_EQUAL);
-	if (n == NULL)
+	pop = critnib_find_le(pools_tree, (uint64_t)addr);
+	if (pop == NULL)
 		return NULL;
 
-	pop = ravl_data(n);
 	size_t pool_size = pop->heap_offset + pop->heap_size;
 	if ((char *)addr >= (char *)pop + pool_size)
 		return NULL;
