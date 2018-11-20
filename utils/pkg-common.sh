@@ -64,50 +64,8 @@ function check_tool() {
 	fi
 }
 
-function format_version () {
-	echo $1 | sed 's|0*\([0-9]\+\)|\1|g'
-}
-
-function get_version_item() {
-	local INPUT=$1
-	local TARGET=$2
-	local REGEX="([^0-9]*)(([0-9]+\.){,2}[0-9]+)([.+-]?.*)"
-	local VERSION="0.0"
-	local RELEASE="-$INPUT"
-
-	if [[ $INPUT =~ $REGEX ]]
-	then
-		VERSION="${BASH_REMATCH[2]}"
-		RELEASE="${BASH_REMATCH[4]}"
-	fi
-
-	case $TARGET in
-		version)
-			echo -n $VERSION
-			;;
-		release)
-			echo -n $RELEASE
-			;;
-		*)
-			error "Wrong target"
-			exit 1
-			;;
-	esac
-}
-
 function get_version() {
-	local VERSION=$(get_version_item $1 version)
-	local RELEASE=$(get_version_item $1 release)
-
-	VERSION=$(format_version $VERSION)
-
-	if [ -z "$RELEASE" ]
-	then
-		echo -n $VERSION
-	else
-		RELEASE=${RELEASE//[-:_.]/"~"}
-		echo -n ${VERSION}${RELEASE}
-	fi
+	echo -n $1
 }
 
 function get_os() {
