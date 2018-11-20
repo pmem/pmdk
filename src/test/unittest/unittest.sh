@@ -2546,7 +2546,7 @@ function require_mmap_under_valgrind() {
 	fi
 
 	if [ ! -f "$FILE_MAX_DAX_DEVICES" ]; then
-		fatal "$FILE_MAX_DAX_DEVICES not found. Run make global-checks."
+		fatal "$FILE_MAX_DAX_DEVICES not found. Run make test."
 	fi
 
 	if [ "$REQUIRE_DAX_DEVICES" -gt "$(< $FILE_MAX_DAX_DEVICES)" ]; then
