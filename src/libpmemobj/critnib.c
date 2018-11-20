@@ -255,8 +255,8 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 	if (!at) {
 		ASSERTeq(n->shift, ENDBIT);
 		free_node(c, k);
-		n->child[0] = value;
-		return UNLOCK, 0;
+		/* fail instead of replacing */
+		return UNLOCK, EINVAL;
 	}
 	int32_t sh = util_mssb_index64(at) & ~(SLICE - 1);
 
