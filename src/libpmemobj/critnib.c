@@ -397,11 +397,11 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 	if (!at) {
 		ASSERT(is_leaf(n));
 		free_leaf(c, to_leaf(kn));
-		to_leaf(n)->value = value;
+		/* fail instead of replacing */
 
 		os_mutex_unlock(&c->mutex);
 
-		return 0;
+		return EINVAL;
 	}
 
 	/* and convert that to an index. */
