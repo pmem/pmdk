@@ -85,6 +85,11 @@ if [ $? -ne 0 ]; then
 	msg_skip "Valgrind with memcheck required."
 fi
 
+# check if anonymous_mmap tool is built
+if [ ! -f "${ANONYMOUS_MMAP}" ]; then
+	msg_failed "${ANONYMOUS_MMAP} does not exist"
+fi
+
 # checks how many DAX devices can be mmapped under Valgrind and save the number
 # in $FILE_MAX_DAX_DEVICES file
 bytes="0"

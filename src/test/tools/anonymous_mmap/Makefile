@@ -43,3 +43,10 @@ LIBPMEM=y
 LIBPMEMCOMMON=y
 
 include $(TOP)/src/tools/Makefile.inc
+
+TESTCONFIG=$(TOP)/src/test/testconfig.sh
+
+all: max_dax_devices
+
+max_dax_devices: $(TESTCONFIG) check_max_mmap.sh
+	@./check_max_mmap.sh
