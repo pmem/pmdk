@@ -33,7 +33,7 @@
     <ClCompile Include="..\..\libpmemobj\ctl_debug.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\cuckoo.c">
+    <ClCompile Include="..\..\libpmemobj\critnib.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\heap.c">
