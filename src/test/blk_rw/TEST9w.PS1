@@ -45,6 +45,8 @@ require_fs_type pmem non-pmem
 
 setup
 
+require_free_space 2G
+
 create_poolset $DIR\testset1 1G:$DIR\testfile1:x 1G:$DIR\testfile2:x
 
 #

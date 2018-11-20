@@ -45,6 +45,7 @@ setup
 
 # mix writes with set_zero and set_error and check results
 $FILE_SIZE = $((1024*1024*1024))
+require_free_space "${FILE_SIZE}b"
 
 expect_normal_exit $Env:EXE_DIR\blk_non_zero$Env:EXESUFFIX 512 `
 $DIR\testfile1 c $FILE_SIZE	w:100 w:200 w:300 w:400 `

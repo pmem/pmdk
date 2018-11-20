@@ -49,6 +49,8 @@ configure_valgrind drd force-disable
 
 setup
 
+require_free_space 1G
+
 expect_normal_exit ./vmem_multiple_pools$EXESUFFIX $DIR 4 16
 
 check
