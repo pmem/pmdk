@@ -144,6 +144,7 @@ if ($null -ne $ver_array) {
             # <MAJOR>.<MINOR>[.<BUGFIX>]-rc<REVISION>-<BUILD>-<HASH>
             $REVISION += $ver_array[1].Substring("rc".Length)
             $PRERELEASE = $true
+            $version = "$($ver_array[0])-$($ver_array[1])+git$($ver_array[2]).$($ver_array[3])"
         } else {
             # <MAJOR>.<MINOR>[.<BUGFIX>]-<SOMETHING>-<BUILD>-<HASH>
             throw "Unknown version format"
@@ -151,6 +152,7 @@ if ($null -ne $ver_array) {
     } else {
         # <MAJOR>.<MINOR>[.<BUGFIX>]-<BUILD>-<HASH>
         $REVISION += 100
+        $version = "$($ver_array[0])+git$($ver_array[1]).$($ver_array[2])"
     }
 
     if ($BUILD -eq 0) {

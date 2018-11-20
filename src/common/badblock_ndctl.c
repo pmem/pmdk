@@ -270,7 +270,7 @@ os_badblocks_clear_file(const char *file, struct badblocks *bbs)
 	int ret = 0;
 	int fd;
 
-	if ((fd = open(file, O_RDWR)) < 0) {
+	if ((fd = os_open(file, O_RDWR)) < 0) {
 		ERR("!open: %s", file);
 		return -1;
 	}
@@ -299,7 +299,7 @@ os_badblocks_clear_file(const char *file, struct badblocks *bbs)
 		}
 	}
 
-	close(fd);
+	os_close(fd);
 
 	return ret;
 }

@@ -3474,6 +3474,17 @@ function pmreorder_create_store_log()
 #
 function require_free_space() {
 	req_free_space=$(convert_to_bytes $1)
+
+	# actually require 5% or 8MB (whichever is higher) more, just in case
+	# file system requires some space for its meta data
+	pct=$((5 * $req_free_space / 100))
+	abs=$(convert_to_bytes 8M)
+	if [ $pct -gt $abs ]; then
+		req_free_space=$(($req_free_space + $pct))
+	else
+		req_free_space=$(($req_free_space + $abs))
+	fi
+
 	output=$(df -k $DIR)
 	found=false
 	i=1
