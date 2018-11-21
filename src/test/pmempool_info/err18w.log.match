@@ -1,0 +1,7 @@
+$(nW)pmempool.exe : error: Unable to retrieve badblock info
+At line:$(N) char:$(N)
++ $(nW)pmempool.exe  'info' $(*)
+$(*)
+$(*)(error: Unable to retrieve badblock info:String)$(*)
+$(*)
+$(*)
