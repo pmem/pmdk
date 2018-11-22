@@ -386,6 +386,11 @@ $(VMMALLOC_DUMMY_FUNCS_TESTS): $(VMMALLOC_DUMMY_FUNCS_DEPS)
 $(TESTS_BUILD):
 	$(MAKE) -C $@ $(TARGET)
 
+require-rpmem:
+ifneq ($(BUILD_RPMEM),y)
+	$(error ERROR: cannot run remote tests because $(BUILD_RPMEM_INFO))
+endif
+
 memcheck-summary:
 	grep ERROR */memcheck*.log
 
@@ -400,20 +405,28 @@ $(FILE_MAX_DAX_DEVICES): $(TESTCONFIG) $(CHECK_MAX_MMAP)
 
 global-checks: $(TEST_DEPS) $(FILE_MAX_DAX_DEVICES)
 
-check: sync-remotes global-checks
-	@./RUNTESTS $(RUNTEST_OPTIONS) $(TESTS)
+check: global-checks
+	@./RUNTESTS $(RUNTEST_OPTIONS) $(LOCAL_TESTS)
+	$(MAKE) check-remote-quiet-conditional
 	@echo "No failures."
+
+check-remote-quiet-conditional:
+ifeq ($(BUILD_RPMEM),y)
+	$(MAKE) check-remote-quiet
+else
+	$(info NOTE: Skipping remote tests because $(BUILD_RPMEM_INFO))
+endif
 
 check-remote-quiet: sync-remotes global-checks
 	@MAKEFLAGS="$(MAKEFLAGS)" ./RUNTESTS $(RUNTEST_OPTIONS) $(REMOTE_TESTS)
 
-sync-remotes: test
+sync-remotes: require-rpmem test
 
 check-remote: check-remote-quiet
 	@echo "No failures."
 
 # XXX remote tests do not work in parallel mode
-pcheck: pcheck-local-quiet check-remote-quiet
+pcheck: pcheck-local-quiet check-remote-quiet-conditional
 	@echo "No failures."
 
 pcheck-blk: TARGET = pcheck
@@ -498,4 +511,5 @@ endif
 	 pcheck-other pcheck-pmem pcheck-pmempool pcheck-vmem pcheck-vmmalloc\
 	 test unittest tools check-remote format pcheck-libpmempool\
 	 pcheck-rpmem pcheck-local pcheck-remote sync-remotes $(TESTS_BUILD)\
+	 require-rpmem check-remote-quiet check-remote-quiet-conditional\
 	 global-checks
