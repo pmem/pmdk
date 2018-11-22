@@ -362,7 +362,6 @@ sparse  : TARGET = sparse
 DIR_SYNC=$(TOP)/src/test/.sync-dir
 SYNC_EXT=synced
 TESTCONFIG=$(TOP)/src/test/testconfig.sh
-CHECK_MAX_MMAP=$(TOP)/src/test/tools/anonymous_mmap/check_max_mmap.sh
 FILE_MAX_DAX_DEVICES=$(TOP)/src/test/tools/anonymous_mmap/max_dax_devices
 
 all test format sparse: $(TESTS_BUILD)
@@ -400,12 +399,7 @@ memcheck-summary-errors:
 memcheck-summary-leaks:
 	grep "in use at exit" */memcheck*.log | grep -v " 0 bytes in 0 blocks" || true
 
-$(FILE_MAX_DAX_DEVICES): $(TESTCONFIG) $(CHECK_MAX_MMAP)
-	@./tools/anonymous_mmap/check_max_mmap.sh
-
-global-checks: $(TEST_DEPS) $(FILE_MAX_DAX_DEVICES)
-
-check: global-checks
+check:
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(LOCAL_TESTS)
 	$(MAKE) check-remote-quiet-conditional
 	@echo "No failures."
@@ -417,7 +411,7 @@ else
 	$(info NOTE: Skipping remote tests because $(BUILD_RPMEM_INFO))
 endif
 
-check-remote-quiet: sync-remotes global-checks
+check-remote-quiet: sync-remotes
 	@MAKEFLAGS="$(MAKEFLAGS)" ./RUNTESTS $(RUNTEST_OPTIONS) $(REMOTE_TESTS)
 
 sync-remotes: require-rpmem test
@@ -472,8 +466,6 @@ pcheck-vmmalloc: $(VMMALLOC_TESTS)
 pcheck-local-quiet: TARGET = pcheck
 pcheck-local-quiet: $(LOCAL_TESTS)
 
-$(LOCAL_TESTS): global-checks
-
 pcheck-local: pcheck-local-quiet
 	@echo "No failures."
 
@@ -511,5 +503,4 @@ endif
 	 pcheck-other pcheck-pmem pcheck-pmempool pcheck-vmem pcheck-vmmalloc\
 	 test unittest tools check-remote format pcheck-libpmempool\
 	 pcheck-rpmem pcheck-local pcheck-remote sync-remotes $(TESTS_BUILD)\
-	 require-rpmem check-remote-quiet check-remote-quiet-conditional\
-	 global-checks
+	 require-rpmem check-remote-quiet check-remote-quiet-conditional

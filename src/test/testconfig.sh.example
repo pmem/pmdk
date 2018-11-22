@@ -57,9 +57,8 @@ NON_PMEM_FS_DIR=/tmp
 #
 # For big sizes of DAX devices, some tests ran against Valgrind might fail due
 # to length of anonymous mmap and Valgrind limitations. Maximum possible length
-# is being calculated (via global-checks make target) each time testconfig.sh
-# changes. Tests which require more than detected maximum possible length are
-# skipped.
+# is being calculated each time testconfig.sh changes. Tests which require more
+# than detected maximum possible length are skipped.
 #
 # It is required to have R/W access to these devices and at least RO access
 # to all of the following resource files (containing physical addresses)
