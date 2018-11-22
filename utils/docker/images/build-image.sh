@@ -63,7 +63,7 @@ if [[ ! -f "Dockerfile.$1" ]]; then
 fi
 
 # Build a Docker image tagged with pmem/pmdk:OS-VER
-tag=pmem/pmdk:$1
+tag=pmem/pmdk:1.5-$1
 docker build -t $tag \
 	--build-arg http_proxy=$http_proxy \
 	--build-arg https_proxy=$https_proxy \
