@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -52,6 +52,7 @@ create_poolset $DIR\testset2 `
 	O SINGLEHDR
 
 $Env:PMEMOBJ_CONF="heap.size.granularity=$Env:GRANULARITY"
+fallocate_at_create_disable
 expect_normal_exit $Env:EXE_DIR\obj_extend$Env:EXESUFFIX $DIR\testset2
 
 check

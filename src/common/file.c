@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,6 +57,8 @@
 #define MAX_SIZE_LENGTH 64
 
 #define DEVICE_DAX_ZERO_LEN (2 * MEGABYTE)
+
+int Fallocate_at_create = 0;
 
 #ifndef _WIN32
 /*
@@ -590,6 +592,18 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 			*size = (size_t)actual_size;
 			LOG(4, "actual file size %zu", *size);
 		}
+
+		int ret;
+		if (Fallocate_at_create && (flags & O_RDWR)) {
+			if ((ret = os_posix_fallocate(fd, 0,
+					(os_off_t)actual_size)) != 0) {
+				errno = ret;
+				ERR("!posix_fallocate \"%s\", %zu", path,
+					actual_size);
+				goto err;
+			}
+		}
+
 	}
 
 	return fd;

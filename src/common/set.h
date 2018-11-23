@@ -430,7 +430,6 @@ extern int (*Rpmem_remove)(const char *target,
 extern int (*Rpmem_set_attr)(RPMEMpool *rpp,
 		const struct rpmem_pool_attr *rattr);
 
-
 #ifdef __cplusplus
 }
 #endif

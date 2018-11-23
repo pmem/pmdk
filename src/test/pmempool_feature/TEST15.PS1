@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,6 +43,7 @@ setup
 . .\common.PS1
 
 $Env:PMEMOBJ_CONF="sds.at_create=1"
+fallocate_at_create_disable
 expect_normal_exit $PMEMPOOL create obj $POOLSET
 
 pmempool_feature_query "SHUTDOWN_STATE"
