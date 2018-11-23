@@ -20,6 +20,9 @@
     <ProjectReference Include="..\..\..\libpmem\libpmem.vcxproj">
       <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\windows\getopt\getopt.vcxproj">
+      <Project>{9186eac4-2f34-4f17-b940-6585d7869bcd}</Project>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pmemobjcli.c" />

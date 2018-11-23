@@ -41,3 +41,11 @@ The *pmemobjcli* application was developed to help testing the libpmemobj
 library with AFL (American Fuzzy Lop) tool. For this purpose it is recommended
 to use a PMEMOBJ_COW=1 environment variable which causes each pool file
 to be mapped with MAP_PRIVATE flag set.
+
+If the script for pmemobjcli uses long commands ("pmemobj_root" instead
+of "pr"), before running it under AFL it is recommended to first translate
+the script to use short commands using -p option.
+
+	$ ./pmemobjcli -s example.posc -p > example_short.posc
+	And now under AFL:
+	$ ./pmemobjcli -s example_short.posc pool.obj

@@ -31,7 +31,7 @@
  */
 
 /*
- * usc_permission_check.c -- checks wheter its possible to read usc
+ * usc_permission_check.c -- checks whether it's possible to read usc
  *			     with current permissions
  */
 

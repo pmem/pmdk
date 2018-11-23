@@ -29,7 +29,7 @@ Creation Time            : $(*)
 Alignment Descriptor     : $(nW)
 Class                    : 64
 Data                     : 2's complement, little endian
-Machine                  : AMD X86-64
+Machine                  : $(*)
 Last shutdown            : clean
 Checksum                 : $(*)
 

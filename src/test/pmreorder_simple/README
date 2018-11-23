@@ -3,7 +3,7 @@ This is src/test/pmreorder_simple/README.
 This directory contains a unit test for pmreorder script.
 
 SYNOPSIS:
-pmreorder_simple g|b|c file
+pmreorder_simple g|b|c|m file
 
 DESCRIPTION:
 pmreorder_simple is the unit test for verifying the functionality of
@@ -13,6 +13,8 @@ OPTIONS:
 	file is '$DIR/testfile' for all tests.
 	b: write data to the pool in an inconsistent way
 	g: write data to the pool in a consistent way
+	m: write data to the pool in a consistent way,
+		but at the beginning logs some inconsistent values
 	c: check pool consistency
 
 The pool contains three int fields and a "written" flag. If the flag is set, all

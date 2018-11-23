@@ -55,6 +55,11 @@ NON_PMEM_FS_DIR=/tmp
 # those devices in an array format. For most tests one device is enough, but
 # some might require more.
 #
+# For big sizes of DAX devices, some tests ran against Valgrind might fail due
+# to length of anonymous mmap and Valgrind limitations. Maximum possible length
+# is being calculated each time testconfig.sh changes. Tests which require more
+# than detected maximum possible length are skipped.
+#
 # It is required to have R/W access to these devices and at least RO access
 # to all of the following resource files (containing physical addresses)
 # of NVDIMM devices (only root can read them by default):

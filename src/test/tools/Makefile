@@ -52,7 +52,8 @@ DIRS = \
        extents\
        fallocate_detect\
        obj_verify\
-       usc_permission_check
+       usc_permission_check\
+       anonymous_mmap
 
 REMOTE_TOOLS = \
 	ctrld\

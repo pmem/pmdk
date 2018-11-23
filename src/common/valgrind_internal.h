@@ -136,6 +136,7 @@ extern unsigned _On_valgrind;
 #include "valgrind/pmemcheck.h"
 
 void pobj_emit_log(const char *func, int order);
+void pmem_emit_log(const char *func, int order);
 extern int _Pmreorder_emit;
 
 #define Pmreorder_emit __builtin_expect(_Pmreorder_emit, 0)
@@ -274,6 +275,13 @@ extern int _Pmreorder_emit;
 	if (Pmreorder_emit)\
 		pobj_emit_log(__func__, 1);
 
+#define PMEM_API_START()\
+	if (Pmreorder_emit)\
+		pmem_emit_log(__func__, 0);
+#define PMEM_API_END()\
+	if (Pmreorder_emit)\
+		pmem_emit_log(__func__, 1);
+
 #else
 
 #define Pmreorder_emit (0)
@@ -379,6 +387,10 @@ extern int _Pmreorder_emit;
 #define PMEMOBJ_API_START() do {} while (0)
 
 #define PMEMOBJ_API_END() do {} while (0)
+
+#define PMEM_API_START() do {} while (0)
+
+#define PMEM_API_END() do {} while (0)
 
 #endif
 

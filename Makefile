@@ -98,7 +98,15 @@ clobber:
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 	$(RM) -f $(GIT_VERSION)
 
-test check pcheck check-remote: all
+require-rpmem:
+ifneq ($(BUILD_RPMEM),y)
+	$(error ERROR: cannot run remote tests because $(BUILD_RPMEM_INFO))
+endif
+
+check-remote: require-rpmem all
+	$(MAKE) -C src $@
+
+test check pcheck: all
 	$(MAKE) -C src $@
 
 cstyle:
@@ -143,4 +151,5 @@ install uninstall:
 	$(MAKE) -C doc $@
 
 .PHONY: all clean clobber test check cstyle check-license install uninstall\
-	source rpm dpkg pkg-clean pcheck check-remote format doc $(SUBDIRS)
+	source rpm dpkg pkg-clean pcheck check-remote format doc require-rpmem\
+	$(SUBDIRS)
