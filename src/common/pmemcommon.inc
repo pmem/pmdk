@@ -1,4 +1,4 @@
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,6 +37,7 @@ SOURCE =\
 	$(COMMON)/ctl.c\
 	$(COMMON)/ctl_prefault.c\
 	$(COMMON)/ctl_sds.c\
+	$(COMMON)/ctl_fallocate.c\
 	$(call osdep, $(COMMON)/extent,.c)\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
