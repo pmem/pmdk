@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -323,6 +323,18 @@ export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 
 # In case a lock is required for Device DAXes
 DEVDAX_LOCK=../devdax.lock
+
+function init_ctl_config_env() {
+	export PMEMBLK_CONF="fallc.at_create=0;"
+	export PMEMOBJ_CONF="fallc.at_create=0;"
+	export PMEMLOG_CONF="fallc.at_create=0;"
+}
+
+function set_ctl_config() {
+	PMEMBLK_CONF="$PMEMBLK_CONF;fallc.at_create=0;"
+	PMEMOBJ_CONF="$PMEMOBJ_CONF;fallc.at_create=0;"
+	PMEMLOG_CONF="$PMEMLOG_CONF;fallc.at_create=0;"
+}
 
 #
 # store_exit_on_error -- store on a stack a sign that reflects the current state
@@ -2622,6 +2634,8 @@ function setup() {
 	if [ "$DEVDAX_TO_LOCK" == 1 ]; then
 		lock_devdax
 	fi
+
+	init_ctl_config_env
 }
 
 #

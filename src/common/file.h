@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -101,6 +101,8 @@ int util_unlink_flock(const char *path);
 int util_file_mkdir(const char *path, mode_t mode);
 
 int util_write_all(int fd, const char *buf, size_t count);
+
+extern int Fallc;
 
 #ifndef _WIN32
 #define util_read	read
