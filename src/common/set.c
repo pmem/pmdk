@@ -103,7 +103,7 @@ static void *Rpmem_handle_remote;
 int Prefault_at_open = 0;
 int Prefault_at_create = 0;
 int SDS_at_create = POOL_FEAT_INCOMPAT_DEFAULT & POOL_E_FEAT_SDS ? 1 : 0;
-
+int Fallocate_at_create = 1;
 
 /* list of pool set option names and flags */
 static const struct pool_set_option Options[] = {
@@ -1773,19 +1773,21 @@ util_poolset_single(const char *path, size_t filesize, int create,
  * util_part_open -- open or create a single part file
  */
 int
-util_part_open(struct pool_set_part *part, size_t minsize, int create)
+util_part_open(struct pool_set_part *part, size_t minsize, int create_part)
 {
-	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
+	LOG(3, "part %p minsize %zu create %d", part, minsize, create_part);
 
 	int exists = util_file_exists(part->path);
 	if (exists < 0)
 		return -1;
 
+	int create_file = create_part;
+
 	if (exists)
-		create = 0;
+		create_file = 0;
 
 	part->created = 0;
-	if (create) {
+	if (create_file) {
 		part->fd = util_file_create(part->path, part->filesize,
 				minsize);
 		if (part->fd == -1) {
@@ -1800,6 +1802,17 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 		if (part->fd == -1) {
 			LOG(2, "failed to open file: %s", part->path);
 			return -1;
+		}
+
+		if (Fallocate_at_create && create_part) {
+			int ret = os_posix_fallocate(part->fd, 0,
+					(os_off_t)size);
+			if (ret != 0) {
+				errno = ret;
+				ERR("!posix_fallocate \"%s\", %zu", part->path,
+					size);
+				return -1;
+			}
 		}
 
 		/* check if filesize matches */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -331,6 +331,7 @@ HDRP(struct pool_replica *rep, unsigned p)
 extern int Prefault_at_open;
 extern int Prefault_at_create;
 extern int SDS_at_create;
+extern int Fallocate_at_create;
 
 int util_poolset_parse(struct pool_set **setp, const char *path, int fd);
 int util_poolset_read(struct pool_set **setp, const char *path);
@@ -364,7 +365,7 @@ int util_pool_create_uuids(struct pool_set **setp, const char *path,
 	const struct pool_attr *attr, unsigned *nlanes, int can_have_rep,
 	int remote);
 
-int util_part_open(struct pool_set_part *part, size_t minsize, int create);
+int util_part_open(struct pool_set_part *part, size_t minsize, int create_part);
 void util_part_fdclose(struct pool_set_part *part);
 int util_replica_open(struct pool_set *set, unsigned repidx, int flags);
 int util_replica_set_attr(struct pool_replica *rep,
@@ -429,7 +430,6 @@ extern int (*Rpmem_remove)(const char *target,
 
 extern int (*Rpmem_set_attr)(RPMEMpool *rpp,
 		const struct rpmem_pool_attr *rattr);
-
 
 #ifdef __cplusplus
 }
