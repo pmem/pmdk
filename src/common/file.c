@@ -552,7 +552,6 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 
 	int oerrno;
 	int fd;
-
 #ifdef _WIN32
 	flags |= O_BINARY;
 #endif

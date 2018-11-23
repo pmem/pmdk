@@ -80,6 +80,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\alloc.c">
+    <ClCompile Include="..\common\ctl_fallocate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

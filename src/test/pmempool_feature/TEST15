@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,7 +45,8 @@ setup
 
 require_usc_permission $DIR
 
-PMEMOBJ_CONF="sds.at_create=1" pmempool_feature_create_poolset "no_dax_device"
+PMEMOBJ_CONF="${PMEMOBJ_CONF}sds.at_create=1"
+pmempool_feature_create_poolset "no_dax_device"
 pmempool_feature_query SHUTDOWN_STATE normal
 
 check

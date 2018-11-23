@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,7 +43,8 @@ require_sds $PMEMPOOL$EXESUFFIX
 setup
 . ./common.sh
 
-PMEMOBJ_CONF="sds.at_create=0" pmempool_feature_create_poolset "no_dax_device"
+PMEMOBJ_CONF="${PMEMOBJ_CONF}sds.at_create=0"
+pmempool_feature_create_poolset "no_dax_device"
 pmempool_feature_query SHUTDOWN_STATE normal
 
 check

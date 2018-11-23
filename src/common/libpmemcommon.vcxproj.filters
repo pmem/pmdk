@@ -77,6 +77,9 @@
     <ClCompile Include="ctl_prefault.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ctl_fallocate.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ctl_sds.c">
       <Filter>Source Files</Filter>
     </ClCompile>

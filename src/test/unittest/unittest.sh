@@ -324,6 +324,12 @@ export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 # In case a lock is required for Device DAXes
 DEVDAX_LOCK=../devdax.lock
 
+function fallocate_at_create_disable_init() {
+	export PMEMBLK_CONF="fallocate.at_create=0;"
+	export PMEMOBJ_CONF="fallocate.at_create=0;"
+	export PMEMLOG_CONF="fallocate.at_create=0;"
+}
+
 #
 # store_exit_on_error -- store on a stack a sign that reflects the current state
 #                        of the 'errexit' shell option
@@ -2622,6 +2628,8 @@ function setup() {
 	if [ "$DEVDAX_TO_LOCK" == 1 ]; then
 		lock_devdax
 	fi
+
+	fallocate_at_create_disable_init
 }
 
 #

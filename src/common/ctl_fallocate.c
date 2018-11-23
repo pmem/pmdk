@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,30 +31,45 @@
  */
 
 /*
- * ctl_global.h -- definitions for the global CTL namespace
+ * ctl_fallocate.c -- implementation of the fallocate CTL namespace
  */
 
-#ifndef PMDK_CTL_GLOBAL_H
-#define PMDK_CTL_GLOBAL_H 1
+#include "ctl.h"
+#include "set.h"
+#include "out.h"
+#include "ctl_global.h"
+#include "file.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern void ctl_prefault_register(void);
-extern void ctl_sds_register(void);
-extern void ctl_fallocate_register(void);
-
-static inline void
-ctl_global_register(void)
+static int
+CTL_READ_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
 {
-	ctl_prefault_register();
-	ctl_sds_register();
-	ctl_fallocate_register();
+	int *arg_out = arg;
+	*arg_out = Fallocate_at_create;
+
+	return 0;
 }
 
-#ifdef __cplusplus
-}
-#endif
+static int
+CTL_WRITE_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	int arg_in = *(int *)arg;
+	Fallocate_at_create = arg_in;
 
-#endif
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(at_create) = CTL_ARG_BOOLEAN;
+
+static const struct ctl_node CTL_NODE(fallocate)[] = {
+	CTL_LEAF_RW(at_create),
+
+	CTL_NODE_END
+};
+
+void
+ctl_fallocate_register(void)
+{
+	CTL_REGISTER_MODULE(NULL, fallocate);
+}

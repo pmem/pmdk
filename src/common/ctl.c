@@ -425,7 +425,6 @@ ctl_load_config_from_string(struct ctl *ctl, void *ctx, const char *cfg_string)
 		ERR("!Strdup");
 		return -1;
 	}
-
 	int ret = ctl_load_config(ctl, ctx, buf);
 
 	Free(buf);
