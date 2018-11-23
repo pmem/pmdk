@@ -102,6 +102,8 @@ int util_file_mkdir(const char *path, mode_t mode);
 
 int util_write_all(int fd, const char *buf, size_t count);
 
+extern int Fallc;
+
 #ifndef _WIN32
 #define util_read	read
 #define util_write	write

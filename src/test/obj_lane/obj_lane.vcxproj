@@ -26,6 +26,7 @@
     <ClCompile Include="..\..\common\ctl_prefault.c" />
     <ClCompile Include="..\..\common\ctl_sds.c" />
     <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
+    <ClCompile Include="..\..\common\ctl_fallocate.c" />
     <ClCompile Include="..\..\libpmemobj\bucket.c" />
     <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
     <ClCompile Include="..\..\libpmemobj\container_seglists.c" />

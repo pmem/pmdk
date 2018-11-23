@@ -52,6 +52,7 @@ create_poolset $DIR\testset2 `
 	O SINGLEHDR
 
 $Env:PMEMOBJ_CONF="heap.size.granularity=$Env:GRANULARITY"
+set_ctl_config
 expect_normal_exit $Env:EXE_DIR\obj_extend$Env:EXESUFFIX $DIR\testset2
 
 check

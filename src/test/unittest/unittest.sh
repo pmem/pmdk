@@ -288,6 +288,10 @@ export PMEMPOOL_LOG_LEVEL=3
 export PMEMPOOL_LOG_FILE=pmempool$UNITTEST_NUM.log
 export PMREORDER_LOG_FILE=pmreorder$UNITTEST_NUM.log
 
+#export PMEMBLK_CONF_FILE=../test_ctl.conf
+#export PMEMLOG_CONF_FILE=../test_ctl.conf
+#export PMEMOBJ_CONF_FILE=../test_ctl.conf
+
 export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
 export VMMALLOC_LOG_LEVEL=3
 export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
@@ -323,6 +327,18 @@ export CHECK_POOL_LOG_FILE=check_pool_${BUILD}_${UNITTEST_NUM}.log
 
 # In case a lock is required for Device DAXes
 DEVDAX_LOCK=../devdax.lock
+
+function init_ctl_config_env() {
+	export PMEMBLK_CONF="fallc.at_create=0;"
+	export PMEMOBJ_CONF="fallc.at_create=0;"
+	export PMEMLOG_CONF="fallc.at_create=0;"
+}
+
+function set_ctl_config() {
+	PMEMBLK_CONF="$PMEMBLK_CONF;fallc.at_create=0;"
+	PMEMOBJ_CONF="$PMEMOBJ_CONF;fallc.at_create=0;"
+	PMEMLOG_CONF="$PMEMLOG_CONF;fallc.at_create=0;"
+}
 
 #
 # store_exit_on_error -- store on a stack a sign that reflects the current state
@@ -2622,6 +2638,8 @@ function setup() {
 	if [ "$DEVDAX_TO_LOCK" == 1 ]; then
 		lock_devdax
 	fi
+
+	init_ctl_config_env
 }
 
 #

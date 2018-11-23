@@ -65,7 +65,9 @@ function pmempool_check_sds_init() {
 		local conf="sds.at_create=1"
 	fi
 
-	PMEMOBJ_CONF="$conf" expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
+	PMEMOBJ_CONF="$conf"
+	set_ctl_config
+	expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
 }
 
 # pmempool_check_sds -- perform shutdown state unittest

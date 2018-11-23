@@ -58,6 +58,8 @@
 
 #define DEVICE_DAX_ZERO_LEN (2 * MEGABYTE)
 
+int Fallc = 0;
+
 #ifndef _WIN32
 /*
  * device_dax_size -- (internal) checks the size of a given dax device
@@ -590,6 +592,18 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 			*size = (size_t)actual_size;
 			LOG(4, "actual file size %zu", *size);
 		}
+
+		int ret;
+		if (Fallc && (flags & O_RDWR)) {
+			if ((ret = os_posix_fallocate(fd, 0,
+					(os_off_t)actual_size)) != 0) {
+				errno = ret;
+				ERR("!posix_fallocate \"%s\", %zu", path,
+					actual_size);
+				goto err;
+			}
+		}
+
 	}
 
 	return fd;

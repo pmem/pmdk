@@ -45,7 +45,9 @@ setup
 
 require_usc_permission $DIR
 
-PMEMOBJ_CONF="sds.at_create=1" pmempool_feature_create_poolset "no_dax_device"
+PMEMOBJ_CONF="sds.at_create=1"
+set_ctl_config
+pmempool_feature_create_poolset "no_dax_device"
 pmempool_feature_query SHUTDOWN_STATE normal
 
 check

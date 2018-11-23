@@ -43,6 +43,7 @@ setup
 . .\common.PS1
 
 $Env:PMEMOBJ_CONF="sds.at_create=1"
+set_ctl_config
 expect_normal_exit $PMEMPOOL create obj $POOLSET
 
 pmempool_feature_query "SHUTDOWN_STATE"
