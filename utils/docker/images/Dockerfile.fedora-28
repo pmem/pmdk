@@ -35,7 +35,7 @@
 #
 
 # Pull base image
-FROM fedora:25
+FROM fedora:28
 MAINTAINER marcin.slusarz@intel.com
 
 # Install basic tools
@@ -44,6 +44,7 @@ RUN dnf update -y \
 	asciidoc \
 	autoconf \
 	automake \
+	bash-completion \
 	bc \
 	clang \
 	cmake \
@@ -102,7 +103,7 @@ USER $USER
 
 # Set required environment variables
 ENV OS fedora
-ENV OS_VER 25
+ENV OS_VER 28
 ENV START_SSH_COMMAND /usr/sbin/sshd
 ENV PACKAGE_MANAGER rpm
 ENV NOTTY 1

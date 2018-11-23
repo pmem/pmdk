@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,7 +41,7 @@ BUILD_STATIC=n
 include ../Makefile.inc
 
 libvmmalloc_dummy_funcs.so: vmmalloc_dummy_funcs.c
-	$(CC) $(CFLAGS) -fPIC -shared -Wl,-soname,libvmmalloc_dummy_funcs.so -o $@ $^
+	$(CC) $(CFLAGS) -fPIC -shared -Wl,--version-script=libvmmalloc_dummy_funcs.map,-soname,libvmmalloc_dummy_funcs.so -o $@ $^
 
 all: libvmmalloc_dummy_funcs.so
 

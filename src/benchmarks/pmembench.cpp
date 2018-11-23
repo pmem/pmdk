@@ -468,8 +468,9 @@ pmembench_print_results(struct benchmark *bench, struct benchmark_args *args,
 	size_t i;
 	for (i = 0; i < bench->nclos; i++) {
 		if (!bench->clos[i].ignore_in_res)
-			printf(";%s", benchmark_clo_str(&bench->clos[i], args,
-							bench->args_size));
+			printf(";%s",
+			       benchmark_clo_str(&bench->clos[i], args,
+						 bench->args_size));
 	}
 
 	if (bench->info->print_bandwidth)
@@ -679,8 +680,8 @@ compare_doubles(const void *a1, const void *b1)
 }
 
 /*
-* compare_uint64t -- comparing function used for sorting
-*/
+ * compare_uint64t -- comparing function used for sorting
+ */
 static int
 compare_uint64t(const void *a1, const void *b1)
 {
@@ -1392,8 +1393,8 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 			}
 
 			if (!is_absolute_path_to_directory(args->fname)) {
-				fprintf(stderr, "path must be absolute and "
-						"point to a directory\n");
+				fprintf(stderr,
+					"path must be absolute and point to a directory\n");
 				goto out;
 			}
 		} else {
@@ -1401,8 +1402,8 @@ pmembench_run(struct pmembench *pb, struct benchmark *bench)
 				util_is_poolset_file(args->fname) == 1;
 			if (args->is_poolset) {
 				if (!bench->info->allow_poolset) {
-					fprintf(stderr, "poolset files not "
-							"supported\n");
+					fprintf(stderr,
+						"poolset files not supported\n");
 					goto out;
 				}
 				args->fsize = util_poolset_size(args->fname);

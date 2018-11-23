@@ -78,7 +78,7 @@ if [[ "$KEEP_CONTAINER" != "1" ]]; then
 	RM_SETTING=" --rm"
 fi
 
-imageName=pmem/pmdk:${OS}-${OS_VER}
+imageName=pmem/pmdk:1.5-${OS}-${OS_VER}
 containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 1 ]] ; then
@@ -115,7 +115,7 @@ docker run --privileged=true --name=$containerName -ti \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
-	--env CLANG_FORMAT=clang-format-3.8 \
+	--env CLANG_FORMAT=clang-format \
 	--env KEEP_TEST_CONFIG=$KEEP_TEST_CONFIG \
 	$ndctl_enable \
 	-v $HOST_WORKDIR:$WORKDIR \

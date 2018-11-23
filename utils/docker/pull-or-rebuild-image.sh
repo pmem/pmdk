@@ -116,11 +116,11 @@ for file in $files; do
 
 		# Check if the image has to be pushed to Docker Hub
 		# (i.e. the build is triggered by commits to the pmem/pmdk
-		# repository's master branch, and the Travis build is not
+		# repository's stable-1.5 branch, and the Travis build is not
 		# of the "pull_request" type). In that case, create the empty
 		# file.
 		if [[ $TRAVIS_REPO_SLUG == "pmem/pmdk" \
-			&& $TRAVIS_BRANCH == "master" \
+			&& $TRAVIS_BRANCH == "stable-1.5" \
 			&& $TRAVIS_EVENT_TYPE != "pull_request"
 			&& $PUSH_IMAGE == "1" ]]
 		then
@@ -141,4 +141,4 @@ done
 
 # Getting here means rebuilding the Docker image is not required.
 # Pull the image from Docker Hub.
-docker pull pmem/pmdk:${OS}-${OS_VER}
+docker pull pmem/pmdk:1.5-${OS}-${OS_VER}
