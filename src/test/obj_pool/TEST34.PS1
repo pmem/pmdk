@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,71 +28,28 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
-#              environment for building the PMDK project.
 #
 
-# Pull base image
-FROM ubuntu:16.04
-MAINTAINER marcin.slusarz@intel.com
+#
+# src/test/obj_pool/TEST34 -- unit test for pmemobj_create
+#
 
-# Update the Apt cache and install basic tools
-RUN apt-get update \
- && apt-get install -y software-properties-common \
-	asciidoc \
-	autoconf \
-	bc \
-	clang \
-	clang-format-3.8 \
-	cmake \
-	debhelper \
-	devscripts \
-	flake8 \
-	gcc \
-	gdb \
-	git \
-	libc6-dbg \
-	libfuse-dev \
-	libglib2.0-dev \
-	libjson-c-dev \
-	libkmod-dev \
-	libncurses5-dev \
-	libtool \
-	libudev-dev \
-	libunwind8-dev \
-	libuv1-dev \
-	pandoc \
-	pkg-config \
-	ruby \
-	ssh \
-	sudo \
-	uuid-dev \
-	whois \
- && rm -rf /var/lib/apt/lists/*
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-# Install valgrind
-COPY install-valgrind.sh install-valgrind.sh
-RUN ./install-valgrind.sh
+require_test_type long
 
-# Install libfabric
-COPY install-libfabric.sh install-libfabric.sh
-RUN ./install-libfabric.sh
+setup
 
-# Install libndctl
-COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh
+require_free_space 33G
 
-# Add user
-ENV USER pmdkuser
-ENV USERPASS pmdkpass
-RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
-USER $USER
+#
+# TEST0 non-existing file, poolsize > 0
+#
+expect_normal_exit $Env:EXE_DIR\obj_pool$Env:EXESUFFIX c $DIR\testfile test$Env:SUFFIX 32768 0600
 
-# Set required environment variables
-ENV OS ubuntu
-ENV OS_VER 16.04
-ENV START_SSH_COMMAND service ssh start
-ENV PACKAGE_MANAGER dpkg
-ENV NOTTY 1
+check_files $DIR\testfile
+
+check
+
+pass

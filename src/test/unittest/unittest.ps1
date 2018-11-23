@@ -135,7 +135,7 @@ function convert_to_bytes() {
         fatal "Error suspicious byte value to convert_to_bytes"
     }
 
-    return $size
+    return [Int64]$size
 }
 
 #
