@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -55,7 +55,7 @@ Do {
 	}
 
 	if (!(Get-Content $CONFIG_FILE | Select-String "#" -quiet)) {
-		$Env:PMEMOBJ_CONF = Get-Content $CONFIG_FILE -Raw
+		$Env:PMEMOBJ_CONF += Get-Content $CONFIG_FILE -Raw
 		expect_normal_exit $Env:EXE_DIR\obj_ctl_config$Env:EXESUFFIX $DIR\testfile
 		$Env:PMEMOBJ_CONF = ""
 		check
