@@ -108,7 +108,7 @@ docker run --rm --privileged=true --name=$containerName -ti \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env BUILD_PACKAGE_CHECK=$BUILD_PACKAGE_CHECK \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
-	--env CLANG_FORMAT=clang-format \
+	--env CLANG_FORMAT=clang-format-6.0 \
 	--env TRAVIS=$TRAVIS \
 	--env TRAVIS_COMMIT_RANGE=$TRAVIS_COMMIT_RANGE \
 	--env TRAVIS_COMMIT=$TRAVIS_COMMIT \
