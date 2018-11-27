@@ -298,7 +298,7 @@ alloc_leaf(struct critnib *__restrict c)
  *
  * Returns:
  *  • 0 on success
- *  • EINVAL if such a key already exists
+ *  • EEXIST if such a key already exists
  *  • ENOMEM if we're out of memory
  *
  * Takes a global write lock but doesn't stall any readers.
@@ -344,7 +344,7 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 		ASSERT(is_leaf(n));
 		free_leaf(c, to_leaf(kn));
 		/* fail instead of replacing */
-		return UNLOCK, EINVAL;
+		return UNLOCK, EEXIST;
 	}
 
 	/* and convert that to an index. */
