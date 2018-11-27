@@ -442,6 +442,7 @@ heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
 
 	if (ret == 0) {
 		b->active_memory_block->m = *m;
+		b->active_memory_block->bucket = b;
 		b->is_active = 1;
 	} else {
 		b->c_ops->rm_all(b->container);
@@ -719,6 +720,23 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 }
 
 /*
+ * heap_discard_run -- puts the memory block back into the global heap.
+ */
+void
+heap_discard_run(struct palloc_heap *heap, struct memory_block *m)
+{
+	if (heap_reclaim_run(heap, m)) {
+		struct bucket *defb =
+			heap_bucket_acquire(heap,
+			DEFAULT_ALLOC_CLASS_ID, 0);
+
+		heap_run_into_free_chunk(heap, defb, m);
+
+		heap_bucket_release(heap, defb);
+	}
+}
+
+/*
  * heap_ensure_run_bucket_filled -- (internal) refills the bucket if needed
  */
 static int
@@ -732,22 +750,10 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	if (b->is_active) {
 		b->c_ops->rm_all(b->container);
 		if (b->active_memory_block->nresv != 0) {
-			struct recycler *r = heap->rt->recyclers[b->aclass->id];
-			recycler_pending_put(r, b->active_memory_block);
 			b->active_memory_block =
 				Zalloc(sizeof(struct memory_block_reserved));
 		} else {
-			struct memory_block *m = &b->active_memory_block->m;
-			if (heap_reclaim_run(heap, m)) {
-				struct bucket *defb =
-					heap_bucket_acquire(heap,
-					DEFAULT_ALLOC_CLASS_ID,
-					HEAP_ARENA_PER_THREAD);
-
-				heap_run_into_free_chunk(heap, defb, m);
-
-				heap_bucket_release(heap, defb);
-			}
+			heap_discard_run(heap, &b->active_memory_block->m);
 		}
 		b->is_active = 0;
 	}
@@ -773,7 +779,6 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		HEAP_ARENA_PER_THREAD);
 	/* cannot reuse an existing run, create a new one */
 	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
-
 		ASSERTeq(m.block_off, 0);
 		if (heap_run_create(heap, b, &m) != 0) {
 			heap_bucket_release(heap, defb);
@@ -782,6 +787,7 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 
 		b->active_memory_block->m = m;
 		b->is_active = 1;
+		b->active_memory_block->bucket = b;
 
 		heap_bucket_release(heap, defb);
 

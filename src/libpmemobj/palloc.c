@@ -85,7 +85,7 @@ struct pobj_action_internal {
 			uint64_t offset;
 			enum memblock_state new_state;
 			struct memory_block m;
-			int *resvp;
+			struct memory_block_reserved *mresv;
 		};
 
 		/* valid only when type == POBJ_ACTION_TYPE_MEM */
@@ -258,8 +258,8 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 	 * The memory block cannot be put back into the global state unless
 	 * there are no active reservations.
 	 */
-	if ((out->resvp = bucket_current_resvp(b)) != NULL)
-		util_fetch_and_add64(out->resvp, 1);
+	if ((out->mresv = b->active_memory_block) != NULL)
+		util_fetch_and_add64(&out->mresv->nresv, 1);
 
 	out->lock = new_block->m_ops->get_lock(new_block);
 	out->new_state = MEMBLOCK_ALLOCATED;
@@ -334,22 +334,52 @@ palloc_mem_action_noop(struct palloc_heap *heap,
 }
 
 /*
+ * palloc_reservation_clear -- clears the reservation state of the block,
+ *	discards the associated memory block if possible
+ */
+static void
+palloc_reservation_clear(struct palloc_heap *heap,
+	struct pobj_action_internal *act, int publish)
+{
+	if (act->mresv == NULL)
+		return;
+
+	struct bucket *b = act->mresv->bucket;
+
+	os_mutex_lock(&b->lock);
+
+	int cleared = util_fetch_and_sub64(&act->mresv->nresv, 1) == 1;
+
+	if (b->active_memory_block == act->mresv) {
+		if (!publish)
+			bucket_insert_block(b, &act->m);
+		os_mutex_unlock(&b->lock);
+	} else {
+		os_mutex_unlock(&b->lock);
+		if (cleared) {
+			heap_discard_run(heap, &act->mresv->m);
+			Free(act->mresv);
+		}
+	}
+}
+
+/*
  * palloc_heap_action_on_cancel -- restores the state of the heap
  */
 static void
 palloc_heap_action_on_cancel(struct palloc_heap *heap,
 	struct pobj_action_internal *act)
 {
-	if (act->new_state == MEMBLOCK_ALLOCATED) {
-		VALGRIND_DO_MEMPOOL_FREE(heap->layout,
-			act->m.m_ops->get_user_data(&act->m));
+	if (act->new_state == MEMBLOCK_FREE)
+		return;
 
-		act->m.m_ops->invalidate(&act->m);
-		palloc_restore_free_chunk_state(heap, &act->m);
-	}
+	VALGRIND_DO_MEMPOOL_FREE(heap->layout,
+		act->m.m_ops->get_user_data(&act->m));
 
-	if (act->resvp)
-		util_fetch_and_sub64(act->resvp, 1);
+	act->m.m_ops->invalidate(&act->m);
+	palloc_restore_free_chunk_state(heap, &act->m);
+
+	palloc_reservation_clear(heap, act, 0 /* publish */);
 }
 
 /*
@@ -363,8 +393,6 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 	if (act->new_state == MEMBLOCK_ALLOCATED) {
 		STATS_INC(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));
-		if (act->resvp)
-			util_fetch_and_sub64(act->resvp, 1);
 	} else if (act->new_state == MEMBLOCK_FREE) {
 		if (On_valgrind) {
 			void *ptr = act->m.m_ops->get_user_data(&act->m);
@@ -401,7 +429,9 @@ static void
 palloc_heap_action_on_unlock(struct palloc_heap *heap,
 	struct pobj_action_internal *act)
 {
-	if (act->new_state == MEMBLOCK_FREE) {
+	if (act->new_state == MEMBLOCK_ALLOCATED) {
+		palloc_reservation_clear(heap, act, 1 /* publish */);
+	} else if (act->new_state == MEMBLOCK_FREE) {
 		palloc_restore_free_chunk_state(heap, &act->m);
 	}
 }
@@ -576,7 +606,7 @@ palloc_defer_free_create(struct palloc_heap *heap, uint64_t off,
 	 * metadata from being modified.
 	 */
 	out->lock = out->m.m_ops->get_lock(&out->m);
-	out->resvp = NULL;
+	out->mresv = NULL;
 	out->new_state = MEMBLOCK_FREE;
 }
 

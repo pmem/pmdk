@@ -92,7 +92,6 @@ struct recycler {
 	size_t recalc_threshold;
 
 	VEC(, struct recycler_element) recalc;
-	VEC(, struct memory_block_reserved *) pending;
 
 	os_mutex_t lock;
 };
@@ -119,7 +118,6 @@ recycler_new(struct palloc_heap *heap, size_t nallocs)
 	memset(&r->unaccounted_units, 0, sizeof(r->unaccounted_units));
 
 	VEC_INIT(&r->recalc);
-	VEC_INIT(&r->pending);
 
 	util_mutex_init(&r->lock);
 
@@ -139,11 +137,6 @@ recycler_delete(struct recycler *r)
 {
 	VEC_DELETE(&r->recalc);
 
-	struct memory_block_reserved *mr;
-	VEC_FOREACH(mr, &r->pending) {
-		Free(mr);
-	}
-	VEC_DELETE(&r->pending);
 	util_mutex_destroy(&r->lock);
 	ravl_delete(r->runs);
 	Free(r);
@@ -199,31 +192,6 @@ recycler_put(struct recycler *r, const struct memory_block *m,
 }
 
 /*
- * recycler_pending_check -- iterates through pending memory blocks, checks
- *	the reservation status, and puts it in the recycler if the there
- *	are no more unfulfilled reservations for the block.
- */
-static void
-recycler_pending_check(struct recycler *r)
-{
-	struct memory_block_reserved *mr = NULL;
-	size_t pos;
-	VEC_FOREACH_BY_POS(pos, &r->pending) {
-		mr = VEC_ARR(&r->pending)[pos];
-		if (mr->nresv == 0) {
-			struct recycler_element e = recycler_element_new(
-				r->heap, &mr->m);
-			if (ravl_emplace_copy(r->runs, &e) != 0) {
-				ERR("unable to track run %u due to OOM",
-					mr->m.chunk_id);
-			}
-			Free(mr);
-			VEC_ERASE_BY_POS(&r->pending, pos);
-		}
-	}
-}
-
-/*
  * recycler_get -- retrieves a chunk from the recycler
  */
 int
@@ -232,8 +200,6 @@ recycler_get(struct recycler *r, struct memory_block *m)
 	int ret = 0;
 
 	util_mutex_lock(&r->lock);
-
-	recycler_pending_check(r);
 
 	struct recycler_element e = { .max_free_block = m->size_idx, 0, 0, 0};
 	struct ravl_node *n = ravl_find(r->runs, &e,
@@ -258,19 +224,6 @@ out:
 	util_mutex_unlock(&r->lock);
 
 	return ret;
-}
-
-/*
- * recycler_pending_put -- places the memory block in the pending container
- */
-void
-recycler_pending_put(struct recycler *r,
-	struct memory_block_reserved *m)
-{
-	util_mutex_lock(&r->lock);
-	if (VEC_PUSH_BACK(&r->pending, m) != 0)
-		ASSERT(0); /* XXX: fix after refactoring */
-	util_mutex_unlock(&r->lock);
 }
 
 /*
