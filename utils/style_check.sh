@@ -39,6 +39,8 @@ CSTYLE_ARGS=()
 CLANG_ARGS=()
 CHECK_TYPE=$1
 
+[ -z "$clang_format_bin" ] && which clang-format-6.0 >/dev/null &&
+	clang_format_bin=clang-format-6.0
 [ -z "$clang_format_bin" ] && which clang-format >/dev/null &&
 	clang_format_bin=clang-format
 [ -z "$clang_format_bin" ] && clang_format_bin=clang-format

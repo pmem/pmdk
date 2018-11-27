@@ -115,7 +115,7 @@ docker run --privileged=true --name=$containerName -ti \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
-	--env CLANG_FORMAT=clang-format \
+	--env CLANG_FORMAT=clang-format-6.0 \
 	--env KEEP_TEST_CONFIG=$KEEP_TEST_CONFIG \
 	$ndctl_enable \
 	-v $HOST_WORKDIR:$WORKDIR \
