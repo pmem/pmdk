@@ -92,6 +92,9 @@ os_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 		uint32_t chunk_id);
 
 void
+heap_discard_run(struct palloc_heap *heap, struct memory_block *m);
+
+void
 heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m);
 
 int

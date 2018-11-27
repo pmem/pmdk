@@ -69,10 +69,6 @@ int recycler_put(struct recycler *r, const struct memory_block *m,
 
 int recycler_get(struct recycler *r, struct memory_block *m);
 
-void
-recycler_pending_put(struct recycler *r,
-	struct memory_block_reserved *m);
-
 struct empty_runs recycler_recalc(struct recycler *r, int force);
 
 void recycler_inc_unaccounted(struct recycler *r,

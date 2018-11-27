@@ -10,10 +10,10 @@
 ==$(N)== [0]    at 0x$(X): test_defer_free (obj_action.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_action.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
-==$(N)== [1]    at 0x$(X): main (obj_action.c:$(N))
-==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
-==$(N)== [2]    at 0x$(X): test_defer_free (obj_action.c:$(N))
+==$(N)== [1]    at 0x$(X): test_defer_free (obj_action.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_action.c:$(N))
+==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
+==$(N)== [2]    at 0x$(X): main (obj_action.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY
 ==$(N)== [3]    at 0x$(X): main (obj_action.c:$(N))
 ==$(N)== 	Address: 0x$(X)	size: 4	state: DIRTY

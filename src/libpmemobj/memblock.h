@@ -289,6 +289,7 @@ struct memory_block {
 struct memory_block_reserved {
 	struct memory_block m;
 
+	struct bucket *bucket;
 	/*
 	 * Number of reservations made from this run, the pointer to this value
 	 * is stored in a user facing pobj_action structure. Decremented once
