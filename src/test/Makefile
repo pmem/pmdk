@@ -75,6 +75,7 @@ OBJ_TESTS = \
 	obj_check\
 	obj_constructor\
 	obj_critnib\
+	obj_critnib_mt\
 	obj_ctl_alignment\
 	obj_ctl_alloc_class\
 	obj_ctl_alloc_class_config\
