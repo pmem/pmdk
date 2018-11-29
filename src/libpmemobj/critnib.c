@@ -83,6 +83,7 @@
 #include "critnib.h"
 #include "os_thread.h"
 #include "out.h"
+#include "valgrind_internal.h"
 
 /*
  * A node that has been deleted is left untouched for this many delete
@@ -268,6 +269,7 @@ free_node(struct critnib *__restrict c, struct critnib_node *__restrict n)
 	if (!n)
 		return;
 	ASSERT(!is_leaf(n));
+	VALGRIND_ANNOTATE_NEW_MEMORY(n, sizeof(*n));
 	n->child[0] = c->deleted_node;
 	c->deleted_node = n;
 }
@@ -295,6 +297,7 @@ free_leaf(struct critnib *__restrict c, struct critnib_leaf *__restrict k)
 {
 	if (!k)
 		return;
+	VALGRIND_ANNOTATE_NEW_MEMORY(k, sizeof(*k));
 	k->value = c->deleted_leaf;
 	c->deleted_leaf = k;
 }
