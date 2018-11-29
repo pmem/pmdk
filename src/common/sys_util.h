@@ -40,6 +40,7 @@
 #include <errno.h>
 
 #include "os_thread.h"
+#include "out.h"
 
 #ifdef __cplusplus
 extern "C" {
