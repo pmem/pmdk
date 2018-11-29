@@ -35,7 +35,7 @@
  */
 
 #include <errno.h>
-#include <valgrind/helgrind.h>
+#include <valgrind_internal.h>
 
 #include "critnib.h"
 #include "os_thread.h"
@@ -236,6 +236,8 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_critnib_mt");
+
+	util_init();
 
 	for (int i = 0; i < ARRAY_SIZE(the1024); i++)
 		the1024[i] = rnd64();
