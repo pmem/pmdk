@@ -1,0 +1,7 @@
+Persistent Memory Development Kit
+
+This is src/test/ex_pmreorder/README.
+
+This directory contains unit tests for pmreorder example.
+
+The unit tests utilizes examples from src/examples/pmreorder directory.
