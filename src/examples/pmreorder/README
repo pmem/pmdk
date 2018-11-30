@@ -14,6 +14,9 @@ To build these examples:
 This example can be built against an installed library using:
 	make LIBDIR=/usr/lib INCDIR=/usr/include
 
+To enable pmreorder API logs in the library:
+export PMREORDER_EMIT_LOG=1
+
 To generate store_log run:
 
 LD_LIBRARY_PATH=<path_to_libs> \
