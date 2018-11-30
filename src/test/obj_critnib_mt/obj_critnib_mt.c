@@ -70,6 +70,11 @@ static uint64_t rnd64()
 	return rnd16() << 48 | rnd16() << 32 | rnd16() << 16 | rnd16();
 }
 
+static uint64_t helgrind_count(uint64_t x)
+{
+	return x >> (6 * RUNNING_ON_VALGRIND);
+}
+
 /* 1024 random numbers, shared between threads. */
 static uint64_t the1024[1024];
 static struct critnib *c;
@@ -78,7 +83,8 @@ static struct critnib *c;
 
 static void *thread_read1(void *arg)
 {
-	for (uint64_t count = 0; count < NITER_FAST; count++) {
+	uint64_t niter = helgrind_count(NITER_FAST);
+	for (uint64_t count = 0; count < niter; count++) {
 		UT_ASSERTeq(critnib_get(c, K), (void *)K);
 	}
 	return NULL;
@@ -86,7 +92,8 @@ static void *thread_read1(void *arg)
 
 static void *thread_read1024(void *arg)
 {
-	for (uint64_t count = 0; count < NITER_FAST; count++) {
+	uint64_t niter = helgrind_count(NITER_FAST);
+	for (uint64_t count = 0; count < niter; count++) {
 		uint64_t v = the1024[count % ARRAY_SIZE(the1024)];
 		UT_ASSERTeq(critnib_get(c, v), (void *)v);
 	}
@@ -100,7 +107,8 @@ static void *thread_write1024(void *arg)
 	for (int i = 0; i < ARRAY_SIZE(w1024); i++)
 		w1024[i] = rnd_r64(&seed, arg);
 
-	for (uint64_t count = 0; count < NITER_SLOW; count++) {
+	uint64_t niter = helgrind_count(NITER_SLOW);
+	for (uint64_t count = 0; count < niter; count++) {
 		uint64_t v = w1024[count % ARRAY_SIZE(w1024)];
 		critnib_insert(c, v, (void *)v);
 		uint64_t r = (uint64_t)critnib_remove(c, v);
@@ -112,7 +120,8 @@ static void *thread_write1024(void *arg)
 static void *thread_read_write_remove(void *arg)
 {
 	unsigned seed = (unsigned)(uint64_t)arg;
-	for (uint64_t count = 0; count < NITER_SLOW; count++) {
+	uint64_t niter = helgrind_count(NITER_SLOW);
+	for (uint64_t count = 0; count < niter; count++) {
 		uint64_t r, v = rnd_r64(&seed, arg);
 		critnib_insert(c, v, (void *)v);
 		r = (uint64_t)critnib_get(c, v);
@@ -135,7 +144,8 @@ static uint64_t revbits(uint64_t x)
 
 static void *thread_le1(void *arg)
 {
-	for (uint64_t count = 0; count < NITER_MID; count++) {
+	uint64_t niter = helgrind_count(NITER_MID);
+	for (uint64_t count = 0; count < niter; count++) {
 		uint64_t y = revbits(count);
 		if (y < K)
 			UT_ASSERTeq(critnib_find_le(c, y), NULL);
@@ -147,7 +157,8 @@ static void *thread_le1(void *arg)
 
 static void *thread_le1024(void *arg)
 {
-	for (uint64_t count = 0; count < NITER_MID; count++) {
+	uint64_t niter = helgrind_count(NITER_MID);
+	for (uint64_t count = 0; count < niter; count++) {
 		uint64_t y = revbits(count);
 		critnib_find_le(c, y);
 	}
