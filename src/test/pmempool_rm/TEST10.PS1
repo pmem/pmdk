@@ -73,7 +73,7 @@ echo @"
 n
 N
 Y
-x
+N
 y
 "@ | &$PMEMPOOL rm `
 	$DIR\pool.set `
