@@ -3272,11 +3272,11 @@ function get_pmemcheck_version()
 #
 # require_pmemcheck_version_ge - check if pmemcheck API
 # version is greater or equal to required value
-#	usage: require_pmemcheck_version_ge <major> <minor>
+#	usage: require_pmemcheck_version_ge <major> <minor> [binary]
 #
 function require_pmemcheck_version_ge()
 {
-	require_valgrind_tool pmemcheck
+	require_valgrind_tool pmemcheck $3
 
 	REQUIRE_MAJOR=$1
 	REQUIRE_MINOR=$2
@@ -3306,11 +3306,11 @@ function require_pmemcheck_version_ge()
 #
 # require_pmemcheck_version_lt - check if pmemcheck API
 # version is less than required value
-#	usage: require_pmemcheck_version_lt <major> <minor>
+#	usage: require_pmemcheck_version_lt <major> <minor> [binary]
 #
 function require_pmemcheck_version_lt()
 {
-	require_valgrind_tool pmemcheck
+	require_valgrind_tool pmemcheck $3
 
 	REQUIRE_MAJOR=$1
 	REQUIRE_MINOR=$2
@@ -3361,14 +3361,15 @@ function require_python3()
 }
 
 #
-# require_pmreorder -- check all necessarily conditions to run pmreorder
+# require_pmreorder -- check all necessary conditions to run pmreorder
+# usage: require_pmreorder [binary]
 #
 function require_pmreorder()
 {
 	# python3 and valgrind are necessary
 	require_python3
 	# pmemcheck is required to generate store_log
-	configure_valgrind pmemcheck force-enable
+	configure_valgrind pmemcheck force-enable $1
 	# pmreorder tool does not support unicode yet
 	require_no_unicode
 }
