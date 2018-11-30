@@ -101,12 +101,16 @@ check_consistency(struct list_root *root)
 static void
 list_print(struct list_root *list)
 {
-	printf("List:\n");
+	FILE *fp;
+	fp = fopen("pmreorder_list.log", "w+");
+	fprintf(fp, "List:\n");
+
 	node_id n = list->head;
 	while (NODE_PTR(list, n)->value != 0) {
-		printf("Value: %d\n", NODE_PTR(list, n)->value);
+		fprintf(fp, "Value: %d\n", NODE_PTR(list, n)->value);
 		n = NODE_PTR(list, n)->next;
 	}
+	fclose(fp);
 }
 
 /*
