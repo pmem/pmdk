@@ -48,6 +48,8 @@ os_range_deep_common(uintptr_t addr, size_t len)
 {
 	LOG(3, "os_range_deep_common addr %p len %lu", addr, len);
 
+	if (len == 0)
+		return 0;
 	return pmem_msync((void *)addr, len);
 }
 
