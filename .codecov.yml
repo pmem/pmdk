@@ -3,6 +3,7 @@ ignore:
   - src/windows/
   - src/test/
   - src/common/valgrind/
+  - src/benchmarks/
 
 comment:
   layout: "diff"
