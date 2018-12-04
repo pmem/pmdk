@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include "util.h"
 
 #define MAXPRINT 8192
 
@@ -204,6 +205,7 @@ err:
 int
 wmain(int argc, const wchar_t *argv[])
 {
+	util_suppress_errmsg();
 	if (argc < 2) {
 		fwprintf(stderr, L"Usage: %s filename len\n", argv[0]);
 		exit(1);

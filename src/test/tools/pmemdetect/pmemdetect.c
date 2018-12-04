@@ -45,6 +45,7 @@
 #include "libpmem.h"
 #include "file.h"
 #include "os.h"
+#include "util.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -306,6 +307,7 @@ int
 main(int argc, char *argv[])
 {
 #ifdef _WIN32
+	util_suppress_errmsg();
 	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
 	for (int i = 0; i < argc; i++) {
 		argv[i] = util_toUTF8(wargv[i]);
