@@ -48,8 +48,11 @@ rm $LOG -Force -ea si
 rm $ERR -Force -ea si
 
 expect_normal_exit $PMEMPOOL create log $POOL
+
 &$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.checksum_gen()" >> $LOG
-expect_abnormal_exit $PMEMPOOL info $POOL >> $LOG 2>$ERR
+# this command is called in 'cmd' shell to avoid powershell stderror parsing
+expect_abnormal_exit cmd /c $PMEMPOOL info $POOL >> $LOG 2>$ERR
+
 &$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.checksum_gen()" >> $LOG
 expect_normal_exit $PMEMPOOL info $POOL >> $LOG
 
