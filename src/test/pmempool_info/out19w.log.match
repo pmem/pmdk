@@ -4,7 +4,7 @@ Part file:
 path                     : $(nW)file.pool
 type                     : regular file
 size                     : $(nW)
-checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'
+checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'error: Unable to retrieve badblock info
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x00
 $(nW)file.pool: spoil: pool_hdr.checksum_gen()
 Part file:
