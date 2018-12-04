@@ -40,10 +40,12 @@
 #include <stdio.h>
 #include <winnt.h>
 #include <imagehlp.h>
+#include "util.h"
 
 int
 main(int argc, char *argv[])
 {
+	util_suppress_errmsg();
 	if (argc < 2) {
 		fprintf(stderr, "usage: %s dllname\n", argv[0]);
 		exit(1);
