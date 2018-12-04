@@ -48,5 +48,5 @@ TESTCONFIG=$(TOP)/src/test/testconfig.sh
 
 all: max_dax_devices
 
-max_dax_devices: $(TESTCONFIG) check_max_mmap.sh
+max_dax_devices: $(TESTCONFIG) check_max_mmap.sh anonymous_mmap.static-nondebug
 	@./check_max_mmap.sh
