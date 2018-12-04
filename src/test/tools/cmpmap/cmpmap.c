@@ -121,10 +121,10 @@ parse_args(int argc, char *argv[])
 			break;
 		case 'h':
 			print_usage();
-			exit(EXIT_SUCCESS);
+			return 0;
 		default:
 			print_usage();
-			exit(EXIT_FAILURE);
+			return -1;
 		}
 	}
 
@@ -134,7 +134,7 @@ parse_args(int argc, char *argv[])
 			File2 = argv[optind + 1];
 	} else {
 		print_usage();
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 
 	return 0;
@@ -162,7 +162,7 @@ validate_args(void)
 static int
 do_cmpmap(void)
 {
-	int ret = EXIT_SUCCESS;
+	int ret = 0;
 	int fd1;
 	int fd2;
 	size_t size1;
@@ -171,13 +171,13 @@ do_cmpmap(void)
 	/* open the first file */
 	if ((fd1 = os_open(File1, O_RDONLY)) < 0) {
 		fprintf(stderr, "opening %s failed, errno %d\n", File1, errno);
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 	ssize_t size_tmp = util_file_get_size(File1);
 	if (size_tmp < 0) {
 		fprintf(stderr, "getting size of %s failed, errno %d\n", File1,
 				errno);
-		ret = EXIT_FAILURE;
+		ret = -1;
 		goto out_close1;
 	}
 	size1 = (size_t)size_tmp;
@@ -195,14 +195,14 @@ do_cmpmap(void)
 		if ((fd2 = os_open(File2, O_RDONLY)) < 0) {
 			fprintf(stderr, "opening %s failed, errno %d\n",
 					File2, errno);
-			ret = EXIT_FAILURE;
+			ret = -1;;
 			goto out_close1;
 		}
 		size_tmp = util_file_get_size(File2);
 		if (size_tmp < 0) {
 			fprintf(stderr, "getting size of %s failed, errno %d\n",
 					File2, errno);
-			ret = EXIT_FAILURE;
+			ret = -1;;
 			goto out_close2;
 		}
 		size2 = (size_t)size_tmp;
@@ -213,7 +213,7 @@ do_cmpmap(void)
 			if (size1 != size2) {
 				fprintf(stdout, "%s %s differ in size: %zu"
 					" %zu\n", File1, File2, size1, size2);
-				ret = EXIT_FAILURE;
+				ret = -1;;
 				goto out_close2;
 			} else {
 				Length = min_size - (size_t)Offset;
@@ -232,7 +232,7 @@ do_cmpmap(void)
 			1, 0, NULL)) == MAP_FAILED) {
 		fprintf(stderr, "mmap failed, file %s, length %zu, offset 0,"
 				" errno %d\n", File1, size1, errno);
-		ret = EXIT_FAILURE;
+		ret = -1;;
 		goto out_close2;
 	}
 
@@ -241,7 +241,7 @@ do_cmpmap(void)
 	if ((addr2 = util_map(fd2, size2, flag, 1, 0, NULL)) == MAP_FAILED) {
 		fprintf(stderr, "mmap failed, file %s, length %zu, errno %d\n",
 			File2 ? File2 : "(anonymous)", size2, errno);
-		ret = EXIT_FAILURE;
+		ret = -1;
 		goto out_unmap1;
 	}
 
@@ -252,7 +252,7 @@ do_cmpmap(void)
 			fprintf(stderr, "%s is not zeroed\n", File1);
 		else
 			fprintf(stderr, "%s %s differ\n", File1, File2);
-		ret = EXIT_FAILURE;
+		ret = -1;
 	}
 
 	munmap(addr2, size2);
@@ -265,18 +265,41 @@ out_close2:
 		(void) os_close(fd2);
 out_close1:
 	(void) os_close(fd1);
-	exit(ret);
+	return -1;
 }
 
 
 int
 main(int argc, char *argv[])
 {
+#ifdef _WIN32
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			fprintf(stderr, "Error during arguments conversion\n");
+			return 1;
+		}
+	}
+#endif
+	int ret = EXIT_FAILURE;
+
 	if (parse_args(argc, argv))
-		exit(EXIT_FAILURE);
+		goto end;
 
 	if (validate_args())
-		exit(EXIT_FAILURE);
+		goto end;
 
-	do_cmpmap();
+	if (do_cmpmap())
+		goto end;
+
+        ret = EXIT_SUCCESS;
+end:
+#ifdef _WIN32
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
+#endif
+	exit(ret);
 }
