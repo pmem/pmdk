@@ -16,6 +16,11 @@
   <ItemGroup>
     <ClCompile Include="dllview.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\common\libpmemcommon.vcxproj">
+      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{179BEB5A-2C90-44F5-A734-FA756A5E668C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

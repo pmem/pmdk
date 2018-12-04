@@ -252,3 +252,18 @@ util_getexecname(char *path, size_t pathlen)
 
 	return path;
 }
+
+/*
+ * util_suppress_errmsg -- suppreses "abort" window on Windows if env varaible
+ * is set, usesfull for automatic tests
+ */
+void
+util_suppress_errmsg(void)
+{
+	if (os_getenv("NO_ABORT_MSG") != NULL) {
+		DWORD err = GetErrorMode();
+		SetErrorMode(err | SEM_NOGPFAULTERRORBOX |
+			SEM_FAILCRITICALERRORS);
+		_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+	}
+}
