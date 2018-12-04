@@ -250,6 +250,7 @@ main(int argc, char *argv[])
 	int option_index;
 	int ret = 0;
 #ifdef _WIN32
+	util_suppress_errmsg();
 	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
 	for (int i = 0; i < argc; i++) {
 		argv[i] = util_toUTF8(wargv[i]);

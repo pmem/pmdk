@@ -17,6 +17,11 @@
     <None Include="README" />
     <None Include="TEST_SPARSE.ps1" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\common\libpmemcommon.vcxproj">
+      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3EC30D6A-BDA4-4971-879A-8814204EAE31}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

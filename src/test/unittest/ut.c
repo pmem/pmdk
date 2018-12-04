@@ -745,7 +745,7 @@ ut_start_common(const char *file, int line, const char *func,
 	GetSystemInfo(&si);
 	Ut_mmap_align = si.dwAllocationGranularity;
 
-	if (os_getenv("UNITTEST_NO_ABORT_MSG") != NULL) {
+	if (os_getenv("PMDK_NO_ABORT_MSG") != NULL) {
 		/* disable windows error message boxes */
 		ut_suppress_errmsg();
 	}

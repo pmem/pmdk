@@ -46,6 +46,7 @@
 #include "fcntl.h"
 #include "mmap.h"
 #include "os.h"
+#include "util.h"
 
 #define CMPMAP_ZERO (1<<0)
 
@@ -195,14 +196,14 @@ do_cmpmap(void)
 		if ((fd2 = os_open(File2, O_RDONLY)) < 0) {
 			fprintf(stderr, "opening %s failed, errno %d\n",
 					File2, errno);
-			ret = -1;;
+			ret = -1;
 			goto out_close1;
 		}
 		size_tmp = util_file_get_size(File2);
 		if (size_tmp < 0) {
 			fprintf(stderr, "getting size of %s failed, errno %d\n",
 					File2, errno);
-			ret = -1;;
+			ret = -1;
 			goto out_close2;
 		}
 		size2 = (size_t)size_tmp;
@@ -213,7 +214,7 @@ do_cmpmap(void)
 			if (size1 != size2) {
 				fprintf(stdout, "%s %s differ in size: %zu"
 					" %zu\n", File1, File2, size1, size2);
-				ret = -1;;
+				ret = -1;
 				goto out_close2;
 			} else {
 				Length = min_size - (size_t)Offset;
@@ -232,7 +233,7 @@ do_cmpmap(void)
 			1, 0, NULL)) == MAP_FAILED) {
 		fprintf(stderr, "mmap failed, file %s, length %zu, offset 0,"
 				" errno %d\n", File1, size1, errno);
-		ret = -1;;
+		ret = -1;
 		goto out_close2;
 	}
 
@@ -273,6 +274,7 @@ int
 main(int argc, char *argv[])
 {
 #ifdef _WIN32
+	util_suppress_errmsg();
 	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
 	for (int i = 0; i < argc; i++) {
 		argv[i] = util_toUTF8(wargv[i]);
@@ -295,7 +297,7 @@ main(int argc, char *argv[])
 	if (do_cmpmap())
 		goto end;
 
-        ret = EXIT_SUCCESS;
+	ret = EXIT_SUCCESS;
 end:
 #ifdef _WIN32
 	for (int i = argc; i > 0; i--)

@@ -53,7 +53,7 @@ test_script:
         echo "`$Env:NON_PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR = `"C:\temp`"" >> testconfig.ps1
         echo "`$Env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1
-        echo "`$Env:UNITTEST_NO_ABORT_MSG = `"1`"" >> testconfig.ps1
+        echo "`$Env:PMDK_NO_ABORT_MSG = `"1`"" >> testconfig.ps1
         echo "`$Env:TM = `"1`"" >> testconfig.ps1
         if ($Env:CONFIGURATION -eq "Debug") {
             ./RUNTESTS.ps1 -b debug -o 4m
