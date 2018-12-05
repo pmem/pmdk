@@ -142,210 +142,76 @@
     <ClCompile Include="..\common\ctl_fallocate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\src\common\out.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\common\util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\common\valgrind_internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\include\libpmemobj.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\bucket.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\critnib.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\ctl_debug.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\heap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\heap_layout.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\lane.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\list.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\memops.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\obj.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\palloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\pmalloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\pmemops.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\ravl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\libpmemobj\redo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\ctl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\ctl_global.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\dlsym.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\file.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\fs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\mmap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\os.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\os_auto_flush.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\os_deep.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\os_thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\pmemcommon.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\pool_hdr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\queue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\set.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\sys_util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\uuid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\action.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\action_base.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\atomic.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\atomic_base.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\base.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\iterator.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\iterator_base.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\lists_atomic.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\lists_atomic_base.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\pool.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\pool_base.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\thread.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\tx.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\tx_base.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\libpmemobj\types.h">
-      <Filter>Header Files\libpmemobj</Filter>
-    </ClInclude>
-    <ClInclude Include="alloc_class.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="container.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="container_ravl.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="container_seglists.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="memblock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="recycler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stats.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sync.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="tx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\alloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\fault_injection.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{73806be6-053a-4dfd-92de-956b0480b5d9}</UniqueIdentifier>
-      <Extensions>h</Extensions>
-    </Filter>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{60288a68-9214-4faa-b5c4-bf33b1020120}</UniqueIdentifier>
-      <Extensions>c;def</Extensions>
-    </Filter>
-    <Filter Include="Header Files\libpmemobj">
-      <UniqueIdentifier>{ab47d7d2-14e7-4ab2-af19-e7cf10e43fbf}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="libpmemobj.def">
+    <ClCompile Include="..\common\ctl_cow.c">
       <Filter>Source Files</Filter>
-    </None>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="libpmemobj.rc">
-      <Filter>Source Files</Filter>
-    </ResourceCompile>
+    <ClInclude Include="..\..\src\common\out.h" />
+    <ClInclude Include="..\..\src\common\util.h" />
+    <ClInclude Include="..\..\src\common\valgrind_internal.h" />
+    <ClInclude Include="..\..\src\include\libpmemobj.h" />
+    <ClInclude Include="..\..\src\libpmemobj\bucket.h" />
+    <ClInclude Include="..\..\src\libpmemobj\critnib.h" />
+    <ClInclude Include="..\..\src\libpmemobj\ctl_debug.h" />
+    <ClInclude Include="..\..\src\libpmemobj\heap.h" />
+    <ClInclude Include="..\..\src\libpmemobj\heap_layout.h" />
+    <ClInclude Include="..\..\src\libpmemobj\lane.h" />
+    <ClInclude Include="..\..\src\libpmemobj\list.h" />
+    <ClInclude Include="..\..\src\libpmemobj\memops.h" />
+    <ClInclude Include="..\..\src\libpmemobj\obj.h" />
+    <ClInclude Include="..\..\src\libpmemobj\palloc.h" />
+    <ClInclude Include="..\..\src\libpmemobj\pmalloc.h" />
+    <ClInclude Include="..\..\src\libpmemobj\pmemops.h" />
+    <ClInclude Include="..\..\src\libpmemobj\redo.h" />
+    <ClInclude Include="..\..\src\libpmemobj\ravl.h" />
+    <ClInclude Include="..\common\alloc.h" />
+    <ClInclude Include="..\common\ctl.h" />
+    <ClInclude Include="..\common\ctl_global.h" />
+    <ClInclude Include="..\common\dlsym.h" />
+    <ClInclude Include="..\common\fault_injection.h" />
+    <ClInclude Include="..\common\file.h" />
+    <ClInclude Include="..\common\fs.h" />
+    <ClInclude Include="..\common\mmap.h" />
+    <ClInclude Include="..\common\os.h" />
+    <ClInclude Include="..\common\os_auto_flush.h" />
+    <ClInclude Include="..\common\os_deep.h" />
+    <ClInclude Include="..\common\os_thread.h" />
+    <ClInclude Include="..\common\pmemcommon.h" />
+    <ClInclude Include="..\common\pool_hdr.h" />
+    <ClInclude Include="..\common\queue.h" />
+    <ClInclude Include="..\common\set.h" />
+    <ClInclude Include="..\common\sys_util.h" />
+    <ClInclude Include="..\common\uuid.h" />
+    <ClInclude Include="..\include\libpmemobj\action.h" />
+    <ClInclude Include="..\include\libpmemobj\action_base.h" />
+    <ClInclude Include="..\include\libpmemobj\atomic.h" />
+    <ClInclude Include="..\include\libpmemobj\atomic_base.h" />
+    <ClInclude Include="..\include\libpmemobj\base.h" />
+    <ClInclude Include="..\include\libpmemobj\iterator.h" />
+    <ClInclude Include="..\include\libpmemobj\iterator_base.h" />
+    <ClInclude Include="..\include\libpmemobj\lists_atomic.h" />
+    <ClInclude Include="..\include\libpmemobj\lists_atomic_base.h" />
+    <ClInclude Include="..\include\libpmemobj\pool.h" />
+    <ClInclude Include="..\include\libpmemobj\pool_base.h" />
+    <ClInclude Include="..\include\libpmemobj\thread.h" />
+    <ClInclude Include="..\include\libpmemobj\tx.h" />
+    <ClInclude Include="..\include\libpmemobj\tx_base.h" />
+    <ClInclude Include="..\include\libpmemobj\types.h" />
+    <ClInclude Include="alloc_class.h" />
+    <ClInclude Include="container.h" />
+    <ClInclude Include="container_ravl.h" />
+    <ClInclude Include="container_seglists.h" />
+    <ClInclude Include="memblock.h" />
+    <ClInclude Include="recycler.h" />
+    <ClInclude Include="stats.h" />
+    <ClInclude Include="sync.h" />
+    <ClInclude Include="tx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="libpmemobj.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="libpmemobj.def" />
   </ItemGroup>
 </Project>
