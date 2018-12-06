@@ -1,0 +1,69 @@
+#!./pmemobjcli -s
+# usage: ./classic3.posc <file>
+
+# print root object pointer
+pmemobj_direct r
+
+# allocate root object with specified size
+pmemobj_root 1024
+
+# print root object pointer after allocation
+pmemobj_direct r
+
+# print size of root object
+pmemobj_root_size
+
+# print usable size of root object
+pmemobj_alloc_usable_size r
+
+# print type number of root object
+pmemobj_type_num r
+
+# allocate four zeroed objects in root object
+# at positions 0, 1, 2 and 3
+pmemobj_zalloc r.0 4 8192
+pmemobj_zalloc r.1 2 256
+pmemobj_zalloc r.2 3 128
+pmemobj_zalloc r.3 3 128
+
+# duplicate 0 pattern in root object
+# at positions 4
+pmemobj_strdup r.4 0 5
+
+# allocate and add elements to both lists
+pmemobj_memset_persist r.0 0 0 32
+pmemobj_list_insert_new r.4 r.0 NULL 1 64 3
+pmemobj_list_insert_new r.5 r.1 NULL 1 64 3
+
+# add existing element to first list
+pmemobj_list_insert r.3 r.0 r.4 1
+
+# add existing element as a head of second list
+pmemobj_list_insert r.2 r.1 NULL 0
+
+# move all elements from first to second list
+pmemobj_list_move r.4 r.0 r.1 r.5 0
+pmemobj_list_move r.3 r.0 r.1 r.4 0
+
+# remove elements from first list
+pmemobj_list_remove r.2 r.1 0
+pmemobj_list_remove r.3 r.1 0
+
+# remove elements from second list
+pmemobj_list_remove r.4 r.1 1
+pmemobj_list_remove r.5 r.1 1
+
+# free allocated objects
+pmemobj_free r.0
+pmemobj_free r.1
+pmemobj_free r.2
+pmemobj_free r.3
+# can't free r.4 and r.5 with pmemobj_free, pmemobj_list_remove doesn't free objects and pmemobj_list_remove_free is not recognized
+
+# print pointer of freed object
+pmemobj_direct r.0
+pmemobj_direct r.1
+pmemobj_direct r.2
+pmemobj_direct r.3
+pmemobj_direct r.4
+pmemobj_direct r.5
