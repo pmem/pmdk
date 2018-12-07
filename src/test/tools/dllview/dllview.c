@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,10 +40,12 @@
 #include <stdio.h>
 #include <winnt.h>
 #include <imagehlp.h>
+#include "util.h"
 
 int
 main(int argc, char *argv[])
 {
+	util_suppress_errmsg();
 	if (argc < 2) {
 		fprintf(stderr, "usage: %s dllname\n", argv[0]);
 		exit(1);
