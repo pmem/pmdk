@@ -111,8 +111,8 @@ do
 		break
 	fi
 
-	((bytes = bytes + curr))
-	((max_devices++))
+	bytes=$((bytes + curr))
+	max_devices=$((max_devices + 1))
 done
 
 echo "$max_devices" > "$FILE_MAX_DAX_DEVICES"
