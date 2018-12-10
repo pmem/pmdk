@@ -43,7 +43,7 @@ require_fs_type pmem non-pmem
 
 setup
 
-export PMEM_LOG_LEVEL=15
+export PMEMOBJ_LOG_LEVEL=15
 
 create_poolset $DIR/testset1 16M:$DIR/testfile1 16M:$DIR/testfile2 r\
 	64M:$DIR/testfile3
@@ -51,8 +51,8 @@ create_poolset $DIR/testset1 16M:$DIR/testfile1 16M:$DIR/testfile2 r\
 DEEP_PERSIST_SIZE=$(convert_to_bytes 2M)
 expect_normal_exit ./pmem_deep_persist$EXESUFFIX $DIR/testset1 o $DEEP_PERSIST_SIZE 4096
 
-count_lines "<libpmem>: <3>.*part_deep_common.*" pmem$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
-count_lines "<libpmem>: <3>.*deep_flush_write.*" pmem$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <3>.*part_deep_common.*" pmemobj$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <3>.*deep_flush_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
 
 check
 
