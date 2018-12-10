@@ -290,7 +290,7 @@ typedef enum {
  * from the volatile value itself is expected to be atomic.
  *
  * The actual isnterface here:
- * #include <util.h>
+ * #include "util.h"
  * void util_atomic_load32(volatile A *object, A *destination);
  * void util_atomic_load64(volatile A *object, A *destination);
  * void util_atomic_load_explicit32(volatile A *object, A *destination,
