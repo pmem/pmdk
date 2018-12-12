@@ -61,10 +61,10 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <util.h>
 
 #include "benchmark_time.hpp"
 #include "os.h"
+#include "util.h"
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
