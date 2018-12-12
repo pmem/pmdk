@@ -81,6 +81,24 @@ typedef struct pmemobjpool PMEMobjpool;
 #define POBJ_XALLOC_NO_FLUSH	POBJ_FLAG_NO_FLUSH
 
 /*
+ * pmemobj_mem* flags
+ */
+#define PMEMOBJ_F_MEM_NODRAIN		(1U << 0)
+
+#define PMEMOBJ_F_MEM_NONTEMPORAL	(1U << 1)
+#define PMEMOBJ_F_MEM_TEMPORAL		(1U << 2)
+
+#define PMEMOBJ_F_MEM_WC		(1U << 3)
+#define PMEMOBJ_F_MEM_WB		(1U << 4)
+
+#define PMEMOBJ_F_MEM_NOFLUSH		(1U << 5)
+
+/*
+ * pmemobj_mem*, pmemobj_xflush & pmemobj_xpersist flags
+ */
+#define PMEMOBJ_F_RELAXED		(1U << 31)
+
+/*
  * Persistent memory object
  */
 
