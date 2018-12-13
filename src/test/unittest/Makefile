@@ -85,6 +85,8 @@ ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
 CFLAGS += -Wcast-function-type
 endif
 
+CFLAGS += -Wno-unused-value
+
 ifeq ($(USE_LIBUNWIND),y)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libunwind) -DUSE_LIBUNWIND
 endif

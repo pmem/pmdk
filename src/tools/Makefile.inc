@@ -85,6 +85,8 @@ ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
 CFLAGS += -Wcast-function-type
 endif
 
+CFLAGS += -Wno-unused-value
+
 ifeq ($(DEBUG),1)
 CFLAGS += -ggdb $(EXTRA_CFLAGS_DEBUG)
 else

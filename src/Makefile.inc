@@ -53,6 +53,7 @@ DEFAULT_CFLAGS += -Wmissing-prototypes
 DEFAULT_CFLAGS += -Wpointer-arith
 DEFAULT_CFLAGS += -Wsign-conversion
 DEFAULT_CFLAGS += -Wsign-compare
+DEFAULT_CFLAGS += -Wno-unused-value
 
 ifeq ($(WCONVERSION_AVAILABLE), y)
 DEFAULT_CFLAGS += -Wconversion
@@ -82,6 +83,8 @@ endif
 ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
 DEFAULT_CFLAGS += -Wcast-function-type
 endif
+
+DEFAULT_CFLAGS += -Wno-unused-value
 
 ifeq ($(WSTRINGOP_TRUNCATION_AVAILABLE), y)
 DEFAULT_CFLAGS += -DSTRINGOP_TRUNCATION_SUPPORTED

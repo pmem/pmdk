@@ -68,6 +68,8 @@ ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
 CFLAGS += -Wcast-function-type
 endif
 
+CFLAGS += -Wno-unused-value
+
 TARGET=check-license
 
 all: $(TARGET)
