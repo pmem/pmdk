@@ -266,7 +266,7 @@ out_close2:
 		(void) os_close(fd2);
 out_close1:
 	(void) os_close(fd1);
-	return -1;
+	return ret;
 }
 
 
