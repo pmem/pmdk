@@ -61,7 +61,6 @@ CFLAGS += -pthread
 CFLAGS += -fno-common
 
 ifeq ($(IS_ICC), n)
-CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
 endif
 
@@ -86,6 +85,7 @@ CFLAGS += -Wcast-function-type
 endif
 
 CFLAGS += -Wno-unused-value
+CFLAGS += -Wno-unused-macros
 
 ifeq ($(USE_LIBUNWIND),y)
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libunwind) -DUSE_LIBUNWIND

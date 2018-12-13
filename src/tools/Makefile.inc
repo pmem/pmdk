@@ -61,7 +61,6 @@ CFLAGS += -DSDS_ENABLED
 endif
 
 ifeq ($(IS_ICC), n)
-CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
 endif
 
@@ -86,6 +85,7 @@ CFLAGS += -Wcast-function-type
 endif
 
 CFLAGS += -Wno-unused-value
+CFLAGS += -Wno-unused-macros
 
 ifeq ($(DEBUG),1)
 CFLAGS += -ggdb $(EXTRA_CFLAGS_DEBUG)

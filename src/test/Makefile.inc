@@ -304,9 +304,6 @@ COMMON_FLAGS += -Wall
 COMMON_FLAGS += -Werror
 COMMON_FLAGS += -Wpointer-arith
 
-ifeq ($(IS_ICC), n)
-COMMON_FLAGS += -Wunused-macros
-endif
 COMMON_FLAGS += -fno-common
 
 CXXFLAGS  = -std=c++11
@@ -338,6 +335,8 @@ endif
 ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
 CFLAGS += -Wcast-function-type
 endif
+
+CFLAGS+= -Wno-unused-macros
 
 CFLAGS += $(EXTRA_CFLAGS)
 

@@ -37,7 +37,6 @@ CFLAGS += -Wall
 CFLAGS += -Werror
 CFLAGS += -Wmissing-prototypes
 CFLAGS += -Wpointer-arith
-CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
 CFLAGS += -Wsign-conversion
 CFLAGS += -Wsign-compare
@@ -69,6 +68,7 @@ CFLAGS += -Wcast-function-type
 endif
 
 CFLAGS += -Wno-unused-value
+CFLAGS += -Wno-unused-macros
 
 TARGET=check-license
 

@@ -54,13 +54,13 @@ DEFAULT_CFLAGS += -Wpointer-arith
 DEFAULT_CFLAGS += -Wsign-conversion
 DEFAULT_CFLAGS += -Wsign-compare
 DEFAULT_CFLAGS += -Wno-unused-value
+DEFAULT_CFLAGS += -Wno-unused-macros
 
 ifeq ($(WCONVERSION_AVAILABLE), y)
 DEFAULT_CFLAGS += -Wconversion
 endif
 
 ifeq ($(IS_ICC), n)
-DEFAULT_CFLAGS += -Wunused-macros
 DEFAULT_CFLAGS += -Wmissing-field-initializers
 endif
 

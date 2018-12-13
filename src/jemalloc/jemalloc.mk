@@ -63,7 +63,6 @@ endif
 CFLAGS_FILTER += -fno-common
 CFLAGS_FILTER += -Wmissing-prototypes
 CFLAGS_FILTER += -Wpointer-arith
-CFLAGS_FILTER += -Wunused-macros
 CFLAGS_FILTER += -Wmissing-field-initializers
 CFLAGS_FILTER += -Wunreachable-code-return
 CFLAGS_FILTER += -Wmissing-variable-declarations
@@ -83,6 +82,7 @@ CFLAGS_FILTER += -Wlanguage-extension-token
 CFLAGS_FILTER += -Wfloat-equal
 CFLAGS_FILTER += -Wswitch-default
 CFLAGS_FILTER += -Wno-unused-value
+CFLAGS_FILTER += -Wno-unused-macros
 CFLAGS_FILTER += -Wcast-function-type
 JEMALLOC_CFLAGS=$(filter-out $(CFLAGS_FILTER), $(CFLAGS))
 ifeq ($(shell uname -s),FreeBSD)
