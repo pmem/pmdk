@@ -34,6 +34,8 @@
  * pool.c -- pool processing functions
  */
 
+#include "queue.h" /* https://github.com/pmem/issues/issues/990 */
+
 #include <stdio.h>
 #include <stdint.h>
 #include <sys/mman.h>
