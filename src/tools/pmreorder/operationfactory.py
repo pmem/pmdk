@@ -142,7 +142,7 @@ class OperationFactory:
             if id_.endswith(OperationFactory.__suffix[0]):
                 # BEGIN defined by user
                 marker_name = id_.partition('.')[0]
-                if marker_name in markers:
+                if markers is not None and marker_name in markers:
                     engine = markers[marker_name]
                     try:
                         mem_ops = getattr(memoryoperations, engine)
