@@ -47,6 +47,9 @@
 extern "C" {
 #endif
 
+#include "alloc.h"
+#include "fault_injection.h"
+
 #define PMEMBLK_LOG_PREFIX "libpmemblk"
 #define PMEMBLK_LOG_LEVEL_VAR "PMEMBLK_LOG_LEVEL"
 #define PMEMBLK_LOG_FILE_VAR "PMEMBLK_LOG_FILE"
@@ -102,4 +105,10 @@ struct pmemblk {
 }
 #endif
 
+void
+pmemblk_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+pmemblk_fault_injection_enabled(void);
 #endif

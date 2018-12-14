@@ -36,6 +36,7 @@ LIBRARY_NAME = vmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE = libvmem.c vmem.c\
+	$(COMMON)/alloc.c\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
 	$(COMMON)/mmap.c\

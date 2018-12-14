@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,50 +30,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * vmem.h -- internal definitions for libvmem
- */
+#ifndef PMEM_ALLOC_H
+#define PMEM_ALLOC_H
 
-#ifndef VMEM_H
-#define VMEM_H 1
-
-#include <stddef.h>
-
-#include "pool_hdr.h"
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "alloc.h"
-#include "fault_injection.h"
+typedef void *(*Malloc_func)(size_t size);
+typedef void *(*Realloc_func)(void *ptr, size_t size);
 
-#define VMEM_LOG_PREFIX "libvmem"
-#define VMEM_LOG_LEVEL_VAR "VMEM_LOG_LEVEL"
-#define VMEM_LOG_FILE_VAR "VMEM_LOG_FILE"
+extern Malloc_func fn_malloc;
+extern Realloc_func fn_realloc;
 
-/* attributes of the vmem memory pool format for the pool header */
-#define VMEM_HDR_SIG "VMEM   "	/* must be 8 bytes including '\0' */
-#define VMEM_FORMAT_MAJOR 1
+#ifdef FAULT_INJECTION
+void *_flt_Malloc(size_t, const char *);
+void *_flt_Realloc(void *, size_t, const char *);
 
-struct vmem {
-	struct pool_hdr hdr;	/* memory pool header */
+#define Malloc(size) _flt_Malloc(size, __func__)
+#define Realloc(ptr, size) _flt_Realloc(ptr, size, __func__)
+#else
+void *_Malloc(size_t);
+void *_Realloc(void *, size_t);
 
-	void *addr;	/* mapped region */
-	size_t size;	/* size of mapped region */
-	int caller_mapped;
-};
+#define Malloc(size) _Malloc(size)
+#define Realloc(ptr, size) _Realloc(ptr, size)
+#endif
 
-void vmem_construct(void);
+void *set_func_malloc(void *(*malloc_func)(size_t size));
+void *set_func_realloc(void *(*realloc_func)(void *ptr, size_t size));
 
 #ifdef __cplusplus
 }
 #endif
-
-void
-vmem_inject_fault_at(enum pmem_allocation_type type, int nth,
-						const char *at);
-
-int
-vmem_fault_injection_enabled(void);
 #endif

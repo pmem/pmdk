@@ -32,6 +32,7 @@
 #
 
 SOURCE =\
+	$(COMMON)/alloc.c\
 	$(COMMON)/badblock_$(OS_DIMM).c\
 	$(COMMON)/badblock.c\
 	$(COMMON)/ctl.c\

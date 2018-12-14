@@ -52,6 +52,9 @@
 extern "C" {
 #endif
 
+#include "alloc.h"
+#include "fault_injection.h"
+
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
 #define PMEMOBJ_LOG_FILE_VAR "PMEMOBJ_LOG_FILE"
@@ -272,4 +275,10 @@ int obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 }
 #endif
 
+void
+pmemobj_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+pmemobj_fault_injection_enabled(void);
 #endif

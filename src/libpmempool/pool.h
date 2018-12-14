@@ -52,6 +52,9 @@
 extern "C" {
 #endif
 
+#include "alloc.h"
+#include "fault_injection.h"
+
 enum pool_type {
 	POOL_TYPE_UNKNOWN	= (1 << 0),
 	POOL_TYPE_LOG		= (1 << 1),
@@ -164,4 +167,10 @@ size_t pool_get_min_size(enum pool_type);
 }
 #endif
 
+void
+pmempool_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+pmempool_fault_injection_enabled(void);
 #endif

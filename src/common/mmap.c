@@ -47,6 +47,7 @@
 #include "mmap.h"
 #include "sys_util.h"
 #include "os.h"
+#include "alloc.h"
 
 int Mmap_no_random;
 void *Mmap_hint;

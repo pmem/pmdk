@@ -50,6 +50,8 @@
 #include <sys/stat.h>
 #include <sys/file.h>
 
+#include "alloc.h"
+#include "fault_injection.h"
 #include "file.h"
 #include "out.h"
 #include "os.h"

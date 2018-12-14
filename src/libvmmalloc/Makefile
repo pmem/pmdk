@@ -36,6 +36,7 @@ LIBRARY_NAME = vmmalloc
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE = libvmmalloc.c\
+	$(COMMON)/alloc.c\
 	$(COMMON)/file_posix.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_posix.c\

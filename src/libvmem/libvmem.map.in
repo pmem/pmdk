@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2014-2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,21 +30,27 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libpmempool.map -- linker map file for libpmempool
+# src/libvmem.map -- linker map file for libvmem
 #
-LIBPMEMPOOL_1.0 {
+LIBVMEM_1.0 {
 	global:
-		pmempool_errormsg;
-		pmempool_check_version;
-		pmempool_check_init;
-		pmempool_check;
-		pmempool_check_end;
-		pmempool_transform;
-		pmempool_sync;
-		pmempool_rm;
-		pmempool_feature_enable;
-		pmempool_feature_disable;
-		pmempool_feature_query;
+		vmem_create;
+		vmem_create_in_region;
+		vmem_delete;
+		vmem_check;
+		vmem_stats_print;
+		vmem_malloc;
+		vmem_free;
+		vmem_calloc;
+		vmem_realloc;
+		vmem_aligned_alloc;
+		vmem_strdup;
+		vmem_wcsdup;
+		vmem_malloc_usable_size;
+		vmem_check_version;
+		vmem_set_funcs;
+		vmem_errormsg;
+		fault_injection;
 	local:
 		*;
 };

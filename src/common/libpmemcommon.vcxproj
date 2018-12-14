@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="alloc.c" />
     <ClCompile Include="badblock_none.c" />
     <ClCompile Include="badblock.c" />
     <ClCompile Include="ctl.c" />
@@ -36,8 +37,10 @@
     <ClCompile Include="uuid_windows.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="alloc.h" />
     <ClInclude Include="ctl.h" />
     <ClInclude Include="ctl_global.h" />
+    <ClInclude Include="fault_injection.h" />
     <ClInclude Include="os_auto_flush_windows.h" />
     <ClInclude Include="os_badblock.h" />
     <ClInclude Include="badblock.h" />

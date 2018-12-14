@@ -40,6 +40,7 @@
 #include <errno.h>
 #include "out.h"
 #include "ravl.h"
+#include "alloc.h"
 
 #define RAVL_DEFAULT_DATA_SIZE (sizeof(void *))
 

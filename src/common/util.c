@@ -44,6 +44,7 @@
 
 #include "util.h"
 #include "valgrind_internal.h"
+#include "alloc.h"
 
 /* library-wide page size */
 unsigned long long Pagesize;
@@ -54,9 +55,7 @@ unsigned long long Mmap_align;
 /*
  * our versions of malloc & friends start off pointing to the libc versions
  */
-Malloc_func Malloc = malloc;
 Free_func Free = free;
-Realloc_func Realloc = realloc;
 Strdup_func Strdup = strdup;
 
 /*
@@ -231,9 +230,9 @@ util_set_alloc_funcs(void *(*malloc_func)(size_t size),
 		void *(*realloc_func)(void *ptr, size_t size),
 		char *(*strdup_func)(const char *s))
 {
-	Malloc = (malloc_func == NULL) ? malloc : malloc_func;
+	set_func_malloc(malloc_func);
 	Free = (free_func == NULL) ? free : free_func;
-	Realloc = (realloc_func == NULL) ? realloc : realloc_func;
+	set_func_realloc(realloc_func);
 	Strdup = (strdup_func == NULL) ? strdup : strdup_func;
 }
 

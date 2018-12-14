@@ -36,6 +36,9 @@
 
 #include <windows.h>
 #include <inttypes.h>
+
+#include "alloc.h"
+#include "fault_injection.h"
 #include "out.h"
 #include "os.h"
 #include "endian.h"

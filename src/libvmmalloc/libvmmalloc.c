@@ -775,3 +775,16 @@ libvmmalloc_fini(void)
 	common_fini();
 	Destructed = true;
 }
+
+void
+vmmalloc_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at)
+{
+	return common_inject_fault_at(type, nth, at);
+}
+
+int
+vmmalloc_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
+}

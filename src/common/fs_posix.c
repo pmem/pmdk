@@ -39,6 +39,7 @@
 #include "out.h"
 #include "vec.h"
 #include "fs.h"
+#include "alloc.h"
 
 struct fs {
 	FTS *ft;

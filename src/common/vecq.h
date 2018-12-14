@@ -40,6 +40,7 @@
 #include <stddef.h>
 #include "util.h"
 #include "out.h"
+#include "alloc.h"
 
 #ifdef __cplusplus
 extern "C" {

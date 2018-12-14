@@ -40,6 +40,7 @@
 #include "cuckoo.h"
 #include "util.h"
 #include "libpmemobj.h"
+#include "alloc.h"
 
 #define TEST_INSERTS 100
 #define TEST_VAL(x) ((void *)((uintptr_t)(x)))
@@ -158,7 +159,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_cuckoo");
 
-	Malloc = __wrap_malloc;
+	set_func_malloc(__wrap_malloc);
 
 	test_cuckoo_new_delete();
 	test_insert_get_remove();

@@ -50,6 +50,7 @@ CHECK_SHEBANG = $(TOP)/utils/check-shebang.sh
 CHECK_OS = $(TOP)/utils/check-os.sh
 OS_BANNED = $(TOP)/utils/os-banned
 COVERAGE = 0
+FAULT_INJECTION ?= 0
 
 PKG_CONFIG ?= pkg-config
 HEADERS = $(wildcard *.h) $(wildcard *.hpp)

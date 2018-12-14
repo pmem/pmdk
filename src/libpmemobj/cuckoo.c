@@ -40,6 +40,7 @@
 
 #include "cuckoo.h"
 #include "out.h"
+#include "alloc.h"
 
 #define MAX_HASH_FUNCS 2
 

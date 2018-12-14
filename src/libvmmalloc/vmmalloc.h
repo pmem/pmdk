@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2016, Intel Corporation
+ * Copyright 2014-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,6 +33,8 @@
 /*
  * vmmalloc.h -- internal definitions for libvmmalloc
  */
+#include "alloc.h"
+#include "fault_injection.h"
 
 #define VMMALLOC_LOG_PREFIX "libvmmalloc"
 #define VMMALLOC_LOG_LEVEL_VAR "VMMALLOC_LOG_LEVEL"
@@ -42,3 +44,10 @@
 #define VMMALLOC_POOL_DIR_VAR "VMMALLOC_POOL_DIR"
 #define VMMALLOC_POOL_SIZE_VAR "VMMALLOC_POOL_SIZE"
 #define VMMALLOC_FORK_VAR "VMMALLOC_FORK"
+
+void
+vmmalloc_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+vmmalloc_fault_injection_enabled(void);

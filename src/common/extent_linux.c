@@ -43,6 +43,7 @@
 #include "file.h"
 #include "out.h"
 #include "extent.h"
+#include "alloc.h"
 
 /*
  * os_extents_common -- (internal) common part of getting extents

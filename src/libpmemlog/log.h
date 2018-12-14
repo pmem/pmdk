@@ -50,6 +50,9 @@
 extern "C" {
 #endif
 
+#include "alloc.h"
+#include "fault_injection.h"
+
 #define PMEMLOG_LOG_PREFIX "libpmemlog"
 #define PMEMLOG_LOG_LEVEL_VAR "PMEMLOG_LOG_LEVEL"
 #define PMEMLOG_LOG_FILE_VAR "PMEMLOG_LOG_FILE"
@@ -115,4 +118,10 @@ log_convert2le(struct pmemlog *plp)
 }
 #endif
 
+void
+pmemlog_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+pmemlog_fault_injection_enabled(void);
 #endif

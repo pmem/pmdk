@@ -37,6 +37,9 @@
 #include <sys/locking.h>
 #include <errno.h>
 #include <pmemcompat.h>
+
+#include "alloc.h"
+#include "fault_injection.h"
 #include "util.h"
 #include "os.h"
 #include "out.h"

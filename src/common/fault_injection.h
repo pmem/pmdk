@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,50 +30,38 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * vmem.h -- internal definitions for libvmem
- */
-
-#ifndef VMEM_H
-#define VMEM_H 1
-
-#include <stddef.h>
-
-#include "pool_hdr.h"
+#ifndef PMEM_FAULT_INJECTION
+#define PMEM_FAULT_INJECTION
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "alloc.h"
-#include "fault_injection.h"
+enum pmem_allocation_type { PMEM_MALLOC, PMEM_REALLOC };
 
-#define VMEM_LOG_PREFIX "libvmem"
-#define VMEM_LOG_LEVEL_VAR "VMEM_LOG_LEVEL"
-#define VMEM_LOG_FILE_VAR "VMEM_LOG_FILE"
+#ifdef FAULT_INJECTION
+void common_inject_fault_at(enum pmem_allocation_type type,
+	int nth, const char *at);
 
-/* attributes of the vmem memory pool format for the pool header */
-#define VMEM_HDR_SIG "VMEM   "	/* must be 8 bytes including '\0' */
-#define VMEM_FORMAT_MAJOR 1
-
-struct vmem {
-	struct pool_hdr hdr;	/* memory pool header */
-
-	void *addr;	/* mapped region */
-	size_t size;	/* size of mapped region */
-	int caller_mapped;
-};
-
-void vmem_construct(void);
+int common_fault_injection_enabled(void);
+#endif
 
 #ifdef __cplusplus
 }
 #endif
 
-void
-vmem_inject_fault_at(enum pmem_allocation_type type, int nth,
-						const char *at);
+#ifndef FAULT_INJECTION
+static inline void
+common_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
+{
+	abort();
+}
 
-int
-vmem_fault_injection_enabled(void);
+static inline int
+common_fault_injection_enabled(void)
+{
+	return 0;
+}
+#endif
+
 #endif

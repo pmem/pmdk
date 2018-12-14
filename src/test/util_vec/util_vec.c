@@ -35,12 +35,7 @@
  */
 
 #include "unittest.h"
-
-#define Realloc REALLOC
-
 #include "vec.h"
-
-#define Free FREE
 
 struct test {
 	int foo;

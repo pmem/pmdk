@@ -3393,3 +3393,16 @@ pobj_emit_log(const char *func, int order)
 	util_emit_log("libpmemobj", func, order);
 }
 #endif
+
+void
+pmemobj_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at)
+{
+	common_inject_fault_at(type, nth, at);
+}
+
+int
+pmemobj_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
+}

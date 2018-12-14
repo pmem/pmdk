@@ -37,6 +37,9 @@
 #include <string.h>
 #include <tchar.h>
 #include <errno.h>
+
+#include "alloc.h"
+#include "fault_injection.h"
 #include "util.h"
 #include "out.h"
 #include "file.h"

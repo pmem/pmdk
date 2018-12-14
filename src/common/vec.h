@@ -41,6 +41,7 @@
 #include "valgrind_internal.h"
 #include "util.h"
 #include "out.h"
+#include "alloc.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -136,6 +136,7 @@
 #include "btt_layout.h"
 #include "sys_util.h"
 #include "util.h"
+#include "alloc.h"
 
 /*
  * The opaque btt handle containing state tracked by this module

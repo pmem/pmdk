@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,16 @@
 /*
  * rpmem.h -- internal definitions for librpmem
  */
+#include "alloc.h"
+#include "fault_injection.h"
 
 #define RPMEM_LOG_PREFIX "librpmem"
 #define RPMEM_LOG_LEVEL_VAR "RPMEM_LOG_LEVEL"
 #define RPMEM_LOG_FILE_VAR "RPMEM_LOG_FILE"
+
+void
+rpmem_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at);
+
+int
+rpmem_fault_injection_enabled(void);
