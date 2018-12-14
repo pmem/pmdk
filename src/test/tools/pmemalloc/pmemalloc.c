@@ -40,8 +40,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
-#include <libpmemobj.h>
-#include <util.h>
+
+#include "libpmemobj.h"
+#include "util.h"
 
 #define USAGE()\
 printf("usage: pmemalloc"\

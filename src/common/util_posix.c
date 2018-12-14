@@ -35,13 +35,13 @@
  */
 
 #include <string.h>
-#include <util.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include "os.h"
 #include "out.h"
+#include "util.h"
 
 /* pass through for Posix */
 void

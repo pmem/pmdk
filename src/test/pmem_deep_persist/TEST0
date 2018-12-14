@@ -43,7 +43,7 @@ require_fs_type pmem non-pmem
 
 setup
 
-export PMEM_LOG_LEVEL=15
+export PMEMOBJ_LOG_LEVEL=15
 
 truncate -s 2M $DIR/testfile1
 
@@ -51,8 +51,8 @@ DEEP_PERSIST_SIZE=$(convert_to_bytes 2M)
 
 expect_normal_exit ./pmem_deep_persist$EXESUFFIX $DIR/testfile1 p $DEEP_PERSIST_SIZE 0
 
-count_lines "<libpmem>: <15>.*pmem\.c.*pmem_msync.*" pmem$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
-count_lines "<libpmem>: <3>.*deep_flush_write.*" pmem$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <15>.*pmem\.c.*pmem_msync.*" pmemobj$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <3>.*deep_flush_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
 
 check
 

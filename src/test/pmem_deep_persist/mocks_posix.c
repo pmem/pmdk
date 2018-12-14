@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,25 +31,44 @@
  */
 
 /*
- * libpmemobj.h -- definitions of libpmemobj entry points
- *
- * This library provides support for programming with persistent memory (pmem).
- *
- * libpmemobj provides a pmem-resident transactional object store.
- *
- * See libpmemobj(3) for details.
+ * mocks_posix.c -- redefinitions of open/write functions (Posix implementation)
  */
 
-#ifndef LIBPMEMOBJ_H
-#define LIBPMEMOBJ_H 1
+#include "util.h"
+#include "os.h"
+#include "unittest.h"
 
-#include <libpmemobj/action.h>
-#include <libpmemobj/atomic.h>
-#include <libpmemobj/ctl.h>
-#include <libpmemobj/iterator.h>
-#include <libpmemobj/lists_atomic.h>
-#include <libpmemobj/pool.h>
-#include <libpmemobj/thread.h>
-#include <libpmemobj/tx.h>
+/*
+ * open -- open mock because of  Dev DAX without deep_flush
+ * sysfs file, eg. DAX on emulated pmem
+ */
+FUNC_MOCK(os_open, int, const char *path, int flags, ...)
+FUNC_MOCK_RUN_DEFAULT {
+	if (strstr(path, "/sys/bus/nd/devices/region") &&
+			strstr(path, "/deep_flush")) {
+		UT_OUT("mocked open, path %s", path);
+		if (access(path, R_OK))
+			return 999;
+	}
 
-#endif	/* libpmemobj.h */
+	va_list ap;
+	va_start(ap, flags);
+	int mode = va_arg(ap, int);
+	va_end(ap);
+
+	return _FUNC_REAL(os_open)(path, flags, mode);
+}
+FUNC_MOCK_END
+
+/*
+ * write  -- write mock
+ */
+FUNC_MOCK(write, int, int fd, const void *buffer, size_t count)
+FUNC_MOCK_RUN_DEFAULT {
+	if (fd == 999) {
+		UT_OUT("mocked write, path %d", fd);
+		return 1;
+	}
+	return _FUNC_REAL(write)(fd, buffer, count);
+}
+FUNC_MOCK_END

@@ -49,12 +49,16 @@
 #include "set.h"
 #include "obj.h"
 #include "valgrind_internal.h"
+#include "pmemcommon.h"
+#include "pmem.h"
 #define LAYOUT_NAME "deep_persist"
 
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "pmem_deep_persist");
+
+	pmem_init();
 
 	if (argc != 5)
 		UT_FATAL("usage: %s file type deep_persist_size offset",
@@ -88,6 +92,8 @@ main(int argc, char *argv[])
 				persist_size = mapped_len;
 			ret = pmem_deep_persist(addr + offset, persist_size);
 
+			pmem_unmap(addr, mapped_len);
+
 			break;
 		case 'm':
 		{
@@ -111,7 +117,6 @@ main(int argc, char *argv[])
 		case 'o':
 		{
 			PMEMobjpool *pop = NULL;
-
 			if ((pop = pmemobj_create(path, LAYOUT_NAME,
 					0, S_IWUSR | S_IRUSR)) == NULL)
 				UT_FATAL("!pmemobj_create: %s", path);
@@ -128,39 +133,13 @@ main(int argc, char *argv[])
 	UT_OUT("deep_persist %d", ret);
 
 	DONE(NULL);
+
 }
 
+#ifdef _MSC_VER
 /*
- * open -- open mock because of  Dev DAX without deep_flush
- * sysfs file, eg. DAX on emulated pmem
+ * Since libpmemobj is linked statically, we need to invoke its ctor/dtor.
  */
-FUNC_MOCK(os_open, int, const char *path, int flags, ...)
-FUNC_MOCK_RUN_DEFAULT {
-	if (strstr(path, "/sys/bus/nd/devices/region") &&
-			strstr(path, "/deep_flush")) {
-		UT_OUT("mocked open, path %s", path);
-		if (access(path, W_OK))
-			return 999;
-	}
-
-	va_list ap;
-	va_start(ap, flags);
-	int mode = va_arg(ap, int);
-	va_end(ap);
-
-	return _FUNC_REAL(os_open)(path, flags, mode);
-}
-FUNC_MOCK_END
-
-/*
- * write  -- write mock
- */
-FUNC_MOCK(write, int, int fd, const void *buffer, size_t count)
-FUNC_MOCK_RUN_DEFAULT {
-	if (fd == 999) {
-		UT_OUT("mocked write, path %d", fd);
-		return 1;
-	}
-	return _FUNC_REAL(write)(fd, buffer, count);
-}
-FUNC_MOCK_END
+MSVC_CONSTR(libpmemobj_init)
+MSVC_DESTR(libpmemobj_fini)
+#endif
