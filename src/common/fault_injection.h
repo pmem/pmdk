@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Intel Corporation
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,84 +30,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * fs_posix.c -- file system traversal Posix implementation
- */
+#ifndef PMEM_FAULT_INJECTION
+#define PMEM_FAULT_INJECTION
 
-#include <fts.h>
-#include "util.h"
-#include "out.h"
-#include "vec.h"
-#include "fs.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct fs {
-	FTS *ft;
-	struct fs_entry entry;
-};
+enum pmem_allocation_type { PMEM_MALLOC, PMEM_REALLOC };
 
-/*
- * fs_new -- creates fs traversal instance
- */
-struct fs *
-fs_new(const char *path)
+#if FAULT_INJECTION
+void common_inject_fault_at(enum pmem_allocation_type type,
+	int nth, const char *at);
+
+int common_fault_injection_enabled(void);
+
+#else
+static inline void
+common_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
 {
-	struct fs *f = Zalloc(sizeof(*f));
-	if (f == NULL)
-		goto error_fs_alloc;
-
-	const char *paths[2] = {path, NULL};
-	f->ft = fts_open((char * const *)paths, FTS_COMFOLLOW | FTS_XDEV, NULL);
-	if (f->ft == NULL)
-		goto error_fts_open;
-
-	return f;
-
-error_fts_open:
-	Free(f);
-error_fs_alloc:
-	return NULL;
+	abort();
 }
 
-/*
- * fs_read -- reads an entry from the fs path
- */
-struct fs_entry *
-fs_read(struct fs *f)
+static inline int
+common_fault_injection_enabled(void)
 {
-	FTSENT *entry = fts_read(f->ft);
-	if (entry == NULL)
-		return NULL;
-
-	switch (entry->fts_info) {
-	case FTS_D:
-		f->entry.type = FS_ENTRY_DIRECTORY;
-		break;
-	case FTS_F:
-		f->entry.type = FS_ENTRY_FILE;
-		break;
-	case FTS_SL:
-		f->entry.type = FS_ENTRY_SYMLINK;
-		break;
-	default:
-		f->entry.type = FS_ENTRY_OTHER;
-		break;
-	}
-
-	f->entry.name = entry->fts_name;
-	f->entry.namelen = entry->fts_namelen;
-	f->entry.path = entry->fts_path;
-	f->entry.pathlen = entry->fts_pathlen;
-	f->entry.level = entry->fts_level;
-
-	return &f->entry;
+	return 0;
 }
+#endif
 
-/*
- * fs_delete -- deletes a fs traversal instance
- */
-void
-fs_delete(struct fs *f)
-{
-	fts_close(f->ft);
-	Free(f);
+#ifdef __cplusplus
 }
+#endif
+
+#endif

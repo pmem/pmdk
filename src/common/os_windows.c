@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,8 @@
 #include <sys/locking.h>
 #include <errno.h>
 #include <pmemcompat.h>
+
+#include "alloc.h"
 #include "util.h"
 #include "os.h"
 #include "out.h"

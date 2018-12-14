@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,33 +30,27 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libpmem.map -- linker map file for libpmem
+# src/libpmemlog.map -- linker map file for libpmemlog
 #
-LIBPMEM_1.0 {
+LIBPMEMLOG_1.0 {
 	global:
-		pmem_map_file;
-		pmem_unmap;
-		pmem_is_pmem;
-		pmem_persist;
-		pmem_msync;
-		pmem_has_auto_flush;
-		pmem_deep_persist;
-		pmem_flush;
-		pmem_deep_flush;
-		pmem_deep_drain;
-		pmem_drain;
-		pmem_has_hw_drain;
-		pmem_check_version;
-		pmem_errormsg;
-		pmem_memmove_persist;
-		pmem_memcpy_persist;
-		pmem_memset_persist;
-		pmem_memmove_nodrain;
-		pmem_memcpy_nodrain;
-		pmem_memset_nodrain;
-		pmem_memmove;
-		pmem_memcpy;
-		pmem_memset;
+		pmemlog_check_version;
+		pmemlog_ctl_exec;
+		pmemlog_ctl_get;
+		pmemlog_ctl_set;
+		pmemlog_set_funcs;
+		pmemlog_errormsg;
+		pmemlog_create;
+		pmemlog_open;
+		pmemlog_close;
+		pmemlog_check;
+		pmemlog_nbyte;
+		pmemlog_append;
+		pmemlog_appendv;
+		pmemlog_tell;
+		pmemlog_rewind;
+		pmemlog_walk;
+		fault_injection;
 	local:
 		*;
 };

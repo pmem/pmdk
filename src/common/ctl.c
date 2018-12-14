@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
  */
 #include "ctl.h"
 #include "os.h"
+#include "alloc.h"
 
 #define CTL_MAX_ENTRIES 100
 

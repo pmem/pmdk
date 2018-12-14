@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,6 +51,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "alloc.h"
+#include "fault_injection.h"
 
 enum pool_type {
 	POOL_TYPE_UNKNOWN	= (1 << 0),
@@ -159,6 +162,28 @@ uint64_t pool_next_arena_offset(struct pool_data *pool, uint64_t header_offset);
 uint64_t pool_get_first_valid_btt(struct pool_data *pool,
 	struct btt_info *infop, uint64_t offset, bool *zeroed);
 size_t pool_get_min_size(enum pool_type);
+
+#if FAULT_INJECTION
+void
+pmempool_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+pmempool_fault_injection_enabled(void);
+#else
+static inline void
+pmempool_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at)
+{
+	abort();
+}
+
+static inline int
+pmempool_fault_injection_enabled(void)
+{
+	return 0;
+}
+#endif
 
 #ifdef __cplusplus
 }

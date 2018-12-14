@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 
 #include <errno.h>
 
+#include "alloc.h"
 #include "critnib.h"
 #include "unittest.h"
 #include "util.h"
@@ -364,7 +365,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_critnib");
 
-	Malloc = __wrap_malloc;
+	set_func_malloc(__wrap_malloc);
 
 	test_critnib_new_delete();
 	test_insert_get_remove();

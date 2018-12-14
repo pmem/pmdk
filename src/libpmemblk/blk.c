@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -959,5 +959,20 @@ pmemblk_ctl_execW(PMEMblkpool *pbp, const wchar_t *name, void *arg)
 	util_free_UTF8(uname);
 
 	return ret;
+}
+#endif
+
+#if FAULT_INJECTION
+void
+pmemblk_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at)
+{
+	common_inject_fault_at(type, nth, at);
+}
+
+int
+pmemblk_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
 }
 #endif

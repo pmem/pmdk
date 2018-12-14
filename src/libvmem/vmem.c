@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -487,3 +487,18 @@ vmem_malloc_usable_size(VMEM *vmp, void *ptr)
 	return je_vmem_pool_malloc_usable_size(
 			(pool_t *)((uintptr_t)vmp + Header_size), ptr);
 }
+
+#if FAULT_INJECTION
+void
+vmem_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at)
+{
+	common_inject_fault_at(type, nth, at);
+}
+
+int
+vmem_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
+}
+#endif

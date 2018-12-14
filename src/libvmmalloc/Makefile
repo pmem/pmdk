@@ -1,4 +1,4 @@
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@ LIBRARY_NAME = vmmalloc
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE = libvmmalloc.c\
+	$(COMMON)/alloc.c\
 	$(COMMON)/file_posix.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_posix.c\

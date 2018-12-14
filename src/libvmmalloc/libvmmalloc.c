@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -775,3 +775,18 @@ libvmmalloc_fini(void)
 	common_fini();
 	Destructed = true;
 }
+
+#if FAULT_INJECTION
+void
+vmmalloc_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at)
+{
+	return common_inject_fault_at(type, nth, at);
+}
+
+int
+vmmalloc_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
+}
+#endif

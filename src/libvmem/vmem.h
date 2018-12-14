@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,6 +45,9 @@
 extern "C" {
 #endif
 
+#include "alloc.h"
+#include "fault_injection.h"
+
 #define VMEM_LOG_PREFIX "libvmem"
 #define VMEM_LOG_LEVEL_VAR "VMEM_LOG_LEVEL"
 #define VMEM_LOG_FILE_VAR "VMEM_LOG_FILE"
@@ -62,6 +65,28 @@ struct vmem {
 };
 
 void vmem_construct(void);
+
+#if FAULT_INJECTION
+void
+vmem_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at);
+
+int
+vmem_fault_injection_enabled(void);
+#else
+static inline void
+vmem_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at)
+{
+	abort();
+}
+
+static inline int
+vmem_fault_injection_enabled(void)
+{
+	return 0;
+}
+#endif
 
 #ifdef __cplusplus
 }
