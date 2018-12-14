@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,6 +51,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "alloc.h"
+#include "fault_injection.h"
 
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
@@ -266,6 +269,28 @@ int obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 	_pobj_debug_notice(__func__, NULL, 0)
 #else
 #define _POBJ_DEBUG_NOTICE_IN_TX() do {} while (0)
+#endif
+
+#if FAULT_INJECTION
+void
+pmemobj_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+pmemobj_fault_injection_enabled(void);
+#else
+static inline void
+pmemobj_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at)
+{
+	abort();
+}
+
+static inline int
+pmemobj_fault_injection_enabled(void)
+{
+	return 0;
+}
 #endif
 
 #ifdef __cplusplus

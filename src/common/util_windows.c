@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,8 @@
 #include <string.h>
 #include <tchar.h>
 #include <errno.h>
+
+#include "alloc.h"
 #include "util.h"
 #include "out.h"
 #include "file.h"

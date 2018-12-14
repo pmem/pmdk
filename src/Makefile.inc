@@ -1,4 +1,4 @@
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -121,6 +121,11 @@ endif
 ifeq ($(VALGRIND),0)
 CFLAGS += -DVALGRIND_ENABLED=0
 CXXFLAGS += -DVALGRIND_ENABLED=0
+endif
+
+ifeq ($(FAULT_INJECTION),1)
+CFLAGS += -DFAULT_INJECTION=1
+CXXFLAGS += -DFAULT_INJECTION=1
 endif
 
 # On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
@@ -313,6 +318,7 @@ clobber: clean $(EXTRA_TARGETS_CLOBBER)
 ifneq ($(LIBRARY_NAME),)
 	$(RM) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
 	$(RM) -r $(objdir)/.deps
+	$(RM) -f *.map
 endif
 
 $(eval $(cstyle-rule))
@@ -333,3 +339,12 @@ $(objdir)/%.htmp: %.h
 .PHONY: all clean clobber install uninstall cstyle
 
 -include $(objdir)/.deps/*.P
+
+%.map: %.map.in
+	@cat $< > $@_temp
+ifeq ($(FAULT_INJECTION),1)
+	@sed -i 's/fault_injection;/$(LIBRARY_NAME)_inject_fault_at;\n\t\t$(LIBRARY_NAME)_fault_injection_enabled;/g' $@_temp
+else
+	@sed -i '/fault_injection;/d' $@_temp
+endif
+	@mv $@_temp $@

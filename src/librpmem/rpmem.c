@@ -45,6 +45,7 @@
 #include "os.h"
 #include "os_thread.h"
 #include "util.h"
+#include "rpmem.h"
 #include "rpmem_common.h"
 #include "rpmem_util.h"
 #include "rpmem_obc.h"
@@ -826,3 +827,18 @@ err_ssh_exec:
 err_target:
 	return -1;
 }
+
+#if FAULT_INJECTION
+void
+rpmem_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at)
+{
+	return common_inject_fault_at(type, nth, at);
+}
+
+int
+rpmem_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
+}
+#endif

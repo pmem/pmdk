@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -3368,5 +3368,20 @@ void
 pobj_emit_log(const char *func, int order)
 {
 	util_emit_log("libpmemobj", func, order);
+}
+#endif
+
+#if FAULT_INJECTION
+void
+pmemobj_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at)
+{
+	common_inject_fault_at(type, nth, at);
+}
+
+int
+pmemobj_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
 }
 #endif

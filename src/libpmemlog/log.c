@@ -907,3 +907,18 @@ pmemlog_ctl_execW(PMEMlogpool *plp, const wchar_t *name, void *arg)
 	return ret;
 }
 #endif
+
+#if FAULT_INJECTION
+void
+pmemlog_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at)
+{
+	common_inject_fault_at(type, nth, at);
+}
+
+int
+pmemlog_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
+}
+#endif
