@@ -79,6 +79,9 @@
     <ClCompile Include="..\common\ctl_sds.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\alloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\include\libpmemlog.h">
@@ -139,6 +142,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\ctl_global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\alloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\fault_injection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

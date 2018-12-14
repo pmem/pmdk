@@ -1,4 +1,4 @@
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,7 +39,8 @@ ifeq ($(BUILD_RPMEM),y)
 LIBRARY_NAME = rpmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
-SOURCE = $(COMMON)/os_posix.c\
+SOURCE = $(COMMON)/alloc.c\
+	$(COMMON)/os_posix.c\
 	$(COMMON)/os_thread_posix.c\
 	$(COMMON)/out.c\
 	$(COMMON)/util.c\

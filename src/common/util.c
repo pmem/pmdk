@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,32 +44,13 @@
 
 #include "util.h"
 #include "valgrind_internal.h"
+#include "alloc.h"
 
 /* library-wide page size */
 unsigned long long Pagesize;
 
 /* allocation/mmap granularity */
 unsigned long long Mmap_align;
-
-/*
- * our versions of malloc & friends start off pointing to the libc versions
- */
-Malloc_func Malloc = malloc;
-Free_func Free = free;
-Realloc_func Realloc = realloc;
-Strdup_func Strdup = strdup;
-
-/*
- * Zalloc -- allocate zeroed memory
- */
-void *
-Zalloc(size_t sz)
-{
-	void *ret = Malloc(sz);
-	if (!ret)
-		return NULL;
-	return memset(ret, 0, sz);
-}
 
 #if ANY_VG_TOOL_ENABLED
 /* initialized to true if the process is running inside Valgrind */
@@ -220,21 +201,6 @@ util_checksum_seq(const void *addr, size_t len, uint64_t csum)
 		hi32 += lo32;
 	}
 	return (uint64_t)hi32 << 32 | lo32;
-}
-
-/*
- * util_set_alloc_funcs -- allow one to override malloc, etc.
- */
-void
-util_set_alloc_funcs(void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr),
-		void *(*realloc_func)(void *ptr, size_t size),
-		char *(*strdup_func)(const char *s))
-{
-	Malloc = (malloc_func == NULL) ? malloc : malloc_func;
-	Free = (free_func == NULL) ? free : free_func;
-	Realloc = (realloc_func == NULL) ? realloc : realloc_func;
-	Strdup = (strdup_func == NULL) ? strdup : strdup_func;
 }
 
 /*

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Intel Corporation
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,76 +30,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * util_vec.c -- unit test for vec implementation
- */
+#ifndef COMMON_FAULT_INJECTION
+#define COMMON_FAULT_INJECTION
 
-#include "unittest.h"
-#include "vec.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct test {
-	int foo;
-	int bar;
-};
+enum pmem_allocation_type { PMEM_MALLOC, PMEM_REALLOC };
 
-static void
-vec_test()
+#if FAULT_INJECTION
+void common_inject_fault_at(enum pmem_allocation_type type,
+	int nth, const char *at);
+
+int common_fault_injection_enabled(void);
+
+#else
+static inline void
+common_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
 {
-	VEC(testvec, struct test) v = VEC_INITIALIZER;
-
-	UT_ASSERTeq(VEC_SIZE(&v), 0);
-
-	struct test t = {1, 2};
-	struct test t2 = {3, 4};
-
-	VEC_PUSH_BACK(&v, t);
-	VEC_PUSH_BACK(&v, t2);
-
-	UT_ASSERTeq(VEC_ARR(&v)[0].foo, 1);
-	UT_ASSERTeq(VEC_GET(&v, 1)->foo, 3);
-
-	UT_ASSERTeq(VEC_SIZE(&v), 2);
-
-	int n = 0;
-	VEC_FOREACH(t, &v) {
-		switch (n) {
-		case 0:
-			UT_ASSERTeq(t.foo, 1);
-			UT_ASSERTeq(t.bar, 2);
-			break;
-		case 1:
-			UT_ASSERTeq(t.foo, 3);
-			UT_ASSERTeq(t.bar, 4);
-			break;
-		}
-		n++;
-	}
-	UT_ASSERTeq(n, 2);
-	UT_ASSERTeq(VEC_SIZE(&v), n);
-
-	VEC_POP_BACK(&v);
-
-	n = 0;
-	VEC_FOREACH(t, &v) {
-		UT_ASSERTeq(t.foo, 1);
-		UT_ASSERTeq(t.bar, 2);
-		n++;
-	}
-	UT_ASSERTeq(n, 1);
-	UT_ASSERTeq(VEC_SIZE(&v), n);
-
-	VEC_CLEAR(&v);
-	UT_ASSERTeq(VEC_SIZE(&v), 0);
-
-	VEC_DELETE(&v);
+	abort();
 }
 
-int
-main(int argc, char *argv[])
+static inline int
+common_fault_injection_enabled(void)
 {
-	START(argc, argv, "util_vec");
-
-	vec_test();
-
-	DONE(NULL);
+	return 0;
 }
+#endif
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

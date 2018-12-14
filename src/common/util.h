@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -72,20 +72,6 @@ extern unsigned long long Mmap_align;
 
 #define util_alignof(t) offsetof(struct {char _util_c; t _util_m; }, _util_m)
 #define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
-
-/*
- * overridable names for malloc & friends used by this library
- */
-typedef void *(*Malloc_func)(size_t size);
-typedef void (*Free_func)(void *ptr);
-typedef void *(*Realloc_func)(void *ptr, size_t size);
-typedef char *(*Strdup_func)(const char *s);
-
-extern Malloc_func Malloc;
-extern Free_func Free;
-extern Realloc_func Realloc;
-extern Strdup_func Strdup;
-extern void *Zalloc(size_t sz);
 
 void util_init(void);
 int util_is_zeroed(const void *addr, size_t len);

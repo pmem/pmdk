@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "alloc.h"
+#include "fault_injection.h"
 
 #define PMEMBLK_LOG_PREFIX "libpmemblk"
 #define PMEMBLK_LOG_LEVEL_VAR "PMEMBLK_LOG_LEVEL"
@@ -97,6 +100,29 @@ struct pmemblk {
 
 /* data area starts at this alignment after the struct pmemblk above */
 #define BLK_FORMAT_DATA_ALIGN ((uintptr_t)4096)
+
+
+#if FAULT_INJECTION
+void
+pmemblk_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+pmemblk_fault_injection_enabled(void);
+#else
+static inline void
+pmemblk_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at)
+{
+	abort();
+}
+
+static inline int
+pmemblk_fault_injection_enabled(void)
+{
+	return 0;
+}
+#endif
 
 #ifdef __cplusplus
 }

@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\alloc.h" />
+    <ClInclude Include="..\common\fault_injection.h" />
     <ClInclude Include="..\common\file.h" />
     <ClInclude Include="..\common\fs.h" />
     <ClInclude Include="..\common\mmap.h" />
@@ -24,6 +26,7 @@
     <ClInclude Include="vmem.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\alloc.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\mmap.c" />

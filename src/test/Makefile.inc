@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -188,6 +188,7 @@ endif
 
 ifeq ($(LIBPMEMCOMMON), internal-nondebug)
 OBJS +=\
+	$(TOP)/src/nondebug/common/alloc.o\
 	$(TOP)/src/nondebug/common/badblock_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/common/badblock.o\
 	$(TOP)/src/nondebug/common/ctl.o\
@@ -218,6 +219,7 @@ endif
 
 ifeq ($(LIBPMEMCOMMON), internal-debug)
 OBJS +=\
+	$(TOP)/src/debug/common/alloc.o\
 	$(TOP)/src/debug/common/badblock_$(OS_DIMM).o\
 	$(TOP)/src/debug/common/badblock.o\
 	$(TOP)/src/debug/common/ctl.o\
@@ -350,6 +352,11 @@ endif
 ifeq ($(VALGRIND),0)
 CFLAGS += -DVALGRIND_ENABLED=0
 CXXFLAGS += -DVALGRIND_ENABLED=0
+endif
+
+ifeq ($(FAULT_INJECTION),1)
+CFLAGS += -DFAULT_INJECTION=1
+CXXFLAGS += -DFAULT_INJECTION=1
 endif
 
 ifneq ($(SANITIZE),)
