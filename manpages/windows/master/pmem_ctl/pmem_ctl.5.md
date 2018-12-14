@@ -44,7 +44,7 @@ date: pmem_ctl API version 1.4
 
 # NAME #
 
-ctl -- interface for examination and modification of the library's internal state.
+ctl - interface for examination and modification of the library's internal state.
 
 
 # DESCRIPTION #

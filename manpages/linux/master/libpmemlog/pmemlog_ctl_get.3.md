@@ -49,7 +49,7 @@ date: pmemlog API version 1.1
 **pmemlog_ctl_get**(),
 **pmemlog_ctl_set**(),
 **pmemlog_ctl_exec**()
--- Query and modify libpmemlog internal behavior (EXPERIMENTAL)
+- Query and modify libpmemlog internal behavior (EXPERIMENTAL)
 
 
 # SYNOPSIS #
