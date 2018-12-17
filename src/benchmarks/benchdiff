@@ -84,29 +84,33 @@ my %arrows = (
 
 scalar @ARGV==2 or die "Usage: benchdiff <result1> <result2>\n";
 open FA, "<", "$ARGV[0]" or die "Can't open ｢$ARGV[0]｣: $!\n";
-my $titleA = <FA>;
-my $headA = <FA>;
-my @dataA; { undef local $/; $_ = <FA>; @dataA = split /\n/ }
-close FA;
 open FB, "<", "$ARGV[1]" or die "Can't open ｢$ARGV[1]｣: $!\n";
-my $titleB = <FB>;
-my $headB = <FB>;
-my @dataB; { undef local $/; $_ = <FB>; @dataB = split /\n/ }
-close FB;
 
-$titleA eq $titleB or die "Titles don't match: ｢$titleA｣ vs ｢$titleB｣\n";
-$headA eq $headB or die "Headers don't match: ｢$titleA｣ vs ｢$titleB｣\n";
-$#dataA == $#dataB or die "Data lengths don't match!\n";
-chomp $headA;
-@head = split /;/, $headA;
-print $titleA;
-print join(colored(";", 'bright_black'),
-	map { "$_$head_colors{$dir{$_}//0}$arrows{$dir{$_}//0}" . color('reset') }
-	@head), "\n";
+my ($A, $B, @head);
+while (defined($A = <FA>)) {
+	defined ($B = <FB>) or die "Benchmarks have unequal length!\n";
 
-for (0..$#dataA) {
-	my @A = split /;/, $dataA[$_];
-	my @B = split /;/, $dataB[$_];
+	chomp $A;
+	chomp $B;
+	my @A = split /;/, $A;
+	my @B = split /;/, $B;
+
+	$#A == $#B or die "Different # of fields: ｢$A｣ vs ｢$B｣\n";
+
+	unless ($#A) {
+		$A eq $B or die "Title/error differs: ｢$A｣ vs ｢$B｣\n";
+		print "$A\n";
+		next;
+	}
+
+	if ($A[0] eq 'total-avg[sec]') {
+		$A eq $B or die "Header differs: ｢$A｣ vs ｢$B｣\n";
+		@head = @A;
+		print join(colored(";", 'bright_black'),
+			map { "$_$head_colors{$dir{$_}//0}$arrows{$dir{$_}//0}"
+			. color('reset') } @head), "\n";
+		next;
+	}
 
 	for (0..$#head) {
 		print colored(";", 'bright_black') if $_;
