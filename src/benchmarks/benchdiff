@@ -101,7 +101,7 @@ chomp $headA;
 @head = split /;/, $headA;
 print $titleA;
 print join(colored(";", 'bright_black'),
-	map { "$_$head_colors{$dir{$_}}$arrows{$dir{$_}}" . color('reset') }
+	map { "$_$head_colors{$dir{$_}//0}$arrows{$dir{$_}//0}" . color('reset') }
 	@head), "\n";
 
 for (0..$#dataA) {
@@ -111,6 +111,13 @@ for (0..$#dataA) {
 	for (0..$#head) {
 		print colored(";", 'bright_black') if $_;
 		my ($a, $b, $dir) = ($A[$_], $B[$_], $dir{$head[$_]});
+
+		unless (defined $dir) {
+			print STDERR colored("Unknown direction for ｢" . $head[$_]
+				. "｣\n", 'bright_red');
+			$dir = $dir{$head[$_]} = 0;
+		}
+
 		if ($dir) {
 			if (1.0 * ($dir > 0 ? $a : $b)) {
 				my $d = $dir > 0 ? $b / $a : $a / $b;
