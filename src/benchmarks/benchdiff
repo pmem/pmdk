@@ -99,7 +99,7 @@ while (defined($A = <FA>)) {
 
 	unless ($#A) {
 		$A eq $B or die "Title/error differs: ｢$A｣ vs ｢$B｣\n";
-		print "$A\n";
+		print colored("$A\n", "bright_cyan");
 		next;
 	}
 
