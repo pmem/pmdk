@@ -387,7 +387,7 @@ util_map_hdr(struct pool_set_part *part, int flags, int rdonly)
 		/* this is required only for Device DAX & memcheck */
 		addr = util_map_hint(hdrsize, hdrsize);
 		if (addr == MAP_FAILED) {
-			ERR("cannot find a contiguous region of given size");
+			LOG(1, "cannot find a contiguous region of given size");
 			/* there's nothing we can do */
 			return -1;
 		}
@@ -2673,7 +2673,7 @@ util_replica_map_local(struct pool_set *set, unsigned repidx, int flags)
 		/* determine a hint address for mmap() */
 		addr = util_map_hint(rep->resvsize, 0);
 		if (addr == MAP_FAILED) {
-			ERR("cannot find a contiguous region of given size");
+			LOG(1, "cannot find a contiguous region of given size");
 			return -1;
 		}
 
@@ -3403,7 +3403,7 @@ util_replica_open_local(struct pool_set *set, unsigned repidx, int flags)
 		if (addr == NULL)
 			addr = util_map_hint(rep->resvsize, 0);
 		if (addr == MAP_FAILED) {
-			ERR("cannot find a contiguous region of given size");
+			LOG(1, "cannot find a contiguous region of given size");
 			return -1;
 		}
 

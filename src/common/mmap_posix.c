@@ -120,7 +120,7 @@ util_map_hint_unused(void *minaddr, size_t len, size_t align)
 	 * space, but is not large enough. (very unlikely)
 	 */
 	if ((raddr != NULL) && (UINTPTR_MAX - (uintptr_t)raddr < len)) {
-		LOG(4, "end of address space reached");
+		ERR("end of address space reached");
 		raddr = MAP_FAILED;
 	}
 
@@ -170,7 +170,9 @@ util_map_hint(size_t len, size_t req_align)
 		 */
 		char *addr = mmap(NULL, len + align, PROT_READ,
 					MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-		if (addr != MAP_FAILED) {
+		if (addr == MAP_FAILED) {
+			ERR("!mmap MAP_ANONYMOUS");
+		} else {
 			LOG(4, "system choice %p", addr);
 			hint_addr = (char *)roundup((uintptr_t)addr, align);
 			munmap(addr, len + align);
