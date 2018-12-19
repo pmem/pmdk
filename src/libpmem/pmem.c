@@ -449,8 +449,8 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 			}
 			if (len != 0 && len != (size_t)actual_len) {
 				ERR("Device DAX length must be either 0 or "
-					"the exact size of the device %zu",
-					len);
+					"the exact size of the device: %zu",
+					actual_len);
 				errno = EINVAL;
 				return NULL;
 			}
