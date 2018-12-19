@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libpmemobj.map -- linker map file for libpmemobj
+# src/libpmemobj.link -- linker link file for libpmemobj
 #
 LIBPMEMOBJ_1.0 {
 	global:

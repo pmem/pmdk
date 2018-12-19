@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libvmmalloc.map -- linker map file for libvmmalloc
+# src/libvmmalloc.link -- linker link file for libvmmalloc
 #
 {
 	global:
