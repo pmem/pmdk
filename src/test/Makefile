@@ -157,6 +157,7 @@ OTHER_TESTS = \
 	checksum\
 	compat_incompat_features\
 	ctl_prefault\
+	ft_util_extent\
 	magic\
 	out_err\
 	out_err_mt\
