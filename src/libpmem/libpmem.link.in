@@ -30,26 +30,34 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libvmem.map -- linker map file for libvmem
+# src/libpmem.link -- linker link file for libpmem
 #
-LIBVMEM_1.0 {
+LIBPMEM_1.0 {
 	global:
-		vmem_create;
-		vmem_create_in_region;
-		vmem_delete;
-		vmem_check;
-		vmem_stats_print;
-		vmem_malloc;
-		vmem_free;
-		vmem_calloc;
-		vmem_realloc;
-		vmem_aligned_alloc;
-		vmem_strdup;
-		vmem_wcsdup;
-		vmem_malloc_usable_size;
-		vmem_check_version;
-		vmem_set_funcs;
-		vmem_errormsg;
+		pmem_map_file;
+		pmem_unmap;
+		pmem_is_pmem;
+		pmem_persist;
+		pmem_msync;
+		pmem_has_auto_flush;
+		pmem_deep_persist;
+		pmem_flush;
+		pmem_deep_flush;
+		pmem_deep_drain;
+		pmem_drain;
+		pmem_has_hw_drain;
+		pmem_check_version;
+		pmem_errormsg;
+		pmem_memmove_persist;
+		pmem_memcpy_persist;
+		pmem_memset_persist;
+		pmem_memmove_nodrain;
+		pmem_memcpy_nodrain;
+		pmem_memset_nodrain;
+		pmem_memmove;
+		pmem_memcpy;
+		pmem_memset;
+		fault_injection;
 	local:
 		*;
 };

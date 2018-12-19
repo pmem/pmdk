@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,26 +30,20 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libpmemlog.map -- linker map file for libpmemlog
+# src/librpmem/librpmem.link -- linker link file for librpmem
 #
-LIBPMEMLOG_1.0 {
+LIBRPMEM_1.0 {
 	global:
-		pmemlog_check_version;
-		pmemlog_ctl_exec;
-		pmemlog_ctl_get;
-		pmemlog_ctl_set;
-		pmemlog_set_funcs;
-		pmemlog_errormsg;
-		pmemlog_create;
-		pmemlog_open;
-		pmemlog_close;
-		pmemlog_check;
-		pmemlog_nbyte;
-		pmemlog_append;
-		pmemlog_appendv;
-		pmemlog_tell;
-		pmemlog_rewind;
-		pmemlog_walk;
+		rpmem_create;
+		rpmem_open;
+		rpmem_set_attr;
+		rpmem_close;
+		rpmem_remove;
+		rpmem_persist;
+		rpmem_deep_persist;
+		rpmem_read;
+		rpmem_check_version;
+		rpmem_errormsg;
 		fault_injection;
 	local:
 		*;

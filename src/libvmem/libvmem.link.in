@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,29 +30,26 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libvmmalloc.map -- linker map file for libvmmalloc
+# src/libvmem.link -- linker link file for libvmem
 #
-{
+LIBVMEM_1.0 {
 	global:
-		_malloc_prefork;
-		_malloc_postfork;
-		_malloc_thread_cleanup;
-		pthread_create;
-		malloc;
-		calloc;
-		realloc;
-		free;
-		memalign;
-		posix_memalign;
-		aligned_alloc;
-		valloc;
-		pvalloc;
-		cfree;
-		malloc_usable_size;
-		__malloc_hook;
-		__realloc_hook;
-		__memalign_hook;
-		__free_hook;
+		vmem_create;
+		vmem_create_in_region;
+		vmem_delete;
+		vmem_check;
+		vmem_stats_print;
+		vmem_malloc;
+		vmem_free;
+		vmem_calloc;
+		vmem_realloc;
+		vmem_aligned_alloc;
+		vmem_strdup;
+		vmem_wcsdup;
+		vmem_malloc_usable_size;
+		vmem_check_version;
+		vmem_set_funcs;
+		vmem_errormsg;
 	local:
 		*;
 };
