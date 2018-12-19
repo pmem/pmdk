@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,6 +40,7 @@
  */
 
 #include "unittest.h"
+#include "../libpmemlog/log.h"
 
 /*
  * do_nbyte -- call pmemlog_nbyte() & print result
@@ -202,6 +203,36 @@ do_walk(PMEMlogpool *plp)
 	UT_OUT("walk by 16");
 }
 
+/*
+ * do_create -- call pmemlog_create() and check if it was successful
+ */
+static PMEMlogpool *
+do_create(const char *path)
+{
+	PMEMlogpool *_plp;
+	if ((_plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemlog_create: %s", path);
+
+	return _plp;
+}
+
+/*
+ * do_fault_injection -- inject error in first Malloc() in pmemlog_create()
+ */
+static void
+do_fault_injection(PMEMlogpool *plp, const char *path)
+{
+	if (pmemlog_fault_injection_enabled()) {
+		ASSERT(unlink(path));
+		pmemlog_inject_fault_at(PMEM_MALLOC, 1,
+					"log_runtime_init");
+
+		plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR);
+		UT_ASSERTeq(plp, NULL);
+		UT_ASSERTeq(errno, ENOMEM);
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -211,21 +242,22 @@ main(int argc, char *argv[])
 	START(argc, argv, "log_basic");
 
 	if (argc < 3)
-		UT_FATAL("usage: %s file-name op:n|a|v|t|r|w", argv[0]);
+		UT_FATAL("usage: %s file-name op:f|c|n|a|v|t|r|w", argv[0]);
 
 	const char *path = argv[1];
-
-	if ((plp = pmemlog_create(path, 0, S_IWUSR | S_IRUSR)) == NULL)
-		UT_FATAL("!pmemlog_create: %s", path);
-
+	int op = 1;
 	/* go through all arguments one by one */
 	for (int arg = 2; arg < argc; arg++) {
 		/* Scan the character of each argument. */
-		if (strchr("navtrw", argv[arg][0]) == NULL ||
+		if (strchr("fcnavtrw", argv[arg][0]) == NULL ||
 				argv[arg][1] != '\0')
-			UT_FATAL("op must be n or a or v or t or r or w");
+			UT_FATAL(
+			"op must be f or c or n or a or v or t or r or w");
 
 		switch (argv[arg][0]) {
+		case 'c':
+			plp = do_create(path);
+			break;
 		case 'n':
 			do_nbyte(plp);
 			break;
@@ -249,17 +281,24 @@ main(int argc, char *argv[])
 		case 'w':
 			do_walk(plp);
 			break;
+
+		case 'f':
+			do_fault_injection(plp, path);
+			op = 0;
+			break;
 		}
 	}
 
-	pmemlog_close(plp);
+	if (op) {
+		pmemlog_close(plp);
 
-	/* check consistency again */
-	result = pmemlog_check(path);
-	if (result < 0)
-		UT_OUT("!%s: pmemlog_check", path);
-	else if (result == 0)
-		UT_OUT("%s: pmemlog_check: not consistent", path);
+		/* check consistency again */
+		result = pmemlog_check(path);
+		if (result < 0)
+			UT_OUT("!%s: pmemlog_check", path);
+		else if (result == 0)
+			UT_OUT("%s: pmemlog_check: not consistent", path);
+	}
 
 	DONE(NULL);
 }
