@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,8 @@ setup
 
 create_holey_file 2M $DIR\testfile1
 
-expect_normal_exit $Env:EXE_DIR\log_basic$Env:EXESUFFIX $DIR\testfile1 v n t w r t w
+expect_normal_exit $Env:EXE_DIR\log_basic$Env:EXESUFFIX $DIR\testfile1 `
+c v n t w r t w l h
 
 check_pool $DIR\testfile1
 

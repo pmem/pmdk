@@ -1,4 +1,4 @@
 log_basic$(nW)TEST5: START: log_basic
- $(nW)log_basic$(nW) $(nW)testset1 n
+ $(nW)log_basic$(nW) $(nW)testset1 c n l h
 usable size: 2088960
 log_basic$(nW)TEST5: DONE
