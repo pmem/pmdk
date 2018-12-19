@@ -74,6 +74,7 @@ RUN dnf update -y \
 	rpm-build \
 	rpm-build-libs \
 	rpmdevtools \
+	rsync \
 	sudo \
 	tar \
 	wget \
