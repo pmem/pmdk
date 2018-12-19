@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,26 +30,21 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libpmemblk.map -- linker map file for libpmemblk
+# src/libpmempool.link -- linker link file for libpmempool
 #
-LIBPMEMBLK_1.0 {
+LIBPMEMPOOL_1.0 {
 	global:
-		pmemblk_check_version;
-		pmemblk_set_funcs;
-		pmemblk_errormsg;
-		pmemblk_create;
-		pmemblk_open;
-		pmemblk_close;
-		pmemblk_check;
-		pmemblk_ctl_exec;
-		pmemblk_ctl_get;
-		pmemblk_ctl_set;
-		pmemblk_nblock;
-		pmemblk_read;
-		pmemblk_write;
-		pmemblk_set_zero;
-		pmemblk_set_error;
-		pmemblk_bsize;
+		pmempool_errormsg;
+		pmempool_check_version;
+		pmempool_check_init;
+		pmempool_check;
+		pmempool_check_end;
+		pmempool_transform;
+		pmempool_sync;
+		pmempool_rm;
+		pmempool_feature_enable;
+		pmempool_feature_disable;
+		pmempool_feature_query;
 		fault_injection;
 	local:
 		*;
