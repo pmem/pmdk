@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -448,6 +448,7 @@ pmembench_print_header(struct pmembench *pb, struct benchmark *bench,
 	if (bench->info->print_extra_headers)
 		bench->info->print_extra_headers();
 	printf("\n");
+	fflush(stdout);
 }
 
 /*
@@ -479,6 +480,7 @@ pmembench_print_results(struct benchmark *bench, struct benchmark_args *args,
 	if (bench->info->print_extra_values)
 		bench->info->print_extra_values(bench, args, res);
 	printf("\n");
+	fflush(stdout);
 }
 
 /*
