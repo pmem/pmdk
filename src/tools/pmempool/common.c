@@ -740,6 +740,12 @@ pmempool_ask_yes_no(char def_ans, const char *answers, const char *qbuff)
 	printf("] ");
 
 	char *line_of_answer = util_readline(stdin);
+
+	if (line_of_answer == NULL) {
+		outv_err("input is empty");
+		return '?';
+	}
+
 	char first_letter = line_of_answer[0];
 	line_of_answer[0] = (char)tolower(first_letter);
 
