@@ -19,8 +19,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpmemobj\cuckoo.c" />
-    <ClCompile Include="obj_cuckoo.c" />
+    <ClCompile Include="..\..\libpmemobj\critnib.c" />
+    <ClCompile Include="obj_critnib.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1" />
@@ -28,7 +28,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0CDCEB97-3270-4939-A290-EA2D3BE34B0C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>obj_cuckoo</RootNamespace>
+    <RootNamespace>obj_critnib</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

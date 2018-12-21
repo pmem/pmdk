@@ -31,20 +31,20 @@
 #
 
 #
-# src/test/obj_cuckoo/Makefile -- build obj_cuckoo unit test
+# src/test/obj_critnib/Makefile -- build obj_critnib unit test
 #
 TOP = ../../..
 
 vpath %.c $(TOP)/src/libpmemobj
 
-TARGET = obj_cuckoo
-OBJS = obj_cuckoo.o cuckoo.o
+TARGET = obj_critnib
+OBJS = obj_critnib.o critnib.o
 
 LIBPMEMCOMMON=y
 LIBPMEM=y
 
 include ../Makefile.inc
 
-LDFLAGS += $(call extract_funcs, obj_cuckoo.c)
+LDFLAGS += $(call extract_funcs, obj_critnib.c)
 
 INCS += -I$(TOP)/src/libpmemobj/

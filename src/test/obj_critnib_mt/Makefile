@@ -1,6 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,16 +31,20 @@
 #
 
 #
-# src/test/obj_cuckoo/TEST0 -- unit test for cuckoo hash table
+# src/test/obj_critnib_mt/Makefile -- build obj_critnib_mt unit test
 #
+TOP = ../../..
 
-# standard unit test setup
-. ..\unittest\unittest.ps1
+vpath %.c $(TOP)/src/libpmemobj
 
-require_test_type medium
+TARGET = obj_critnib_mt
+OBJS = obj_critnib_mt.o critnib.o
 
-setup
+LIBPMEMCOMMON=y
+LIBPMEM=y
 
-expect_normal_exit $Env:EXE_DIR\obj_cuckoo$Env:EXESUFFIX
+include ../Makefile.inc
 
-pass
+LDFLAGS += $(call extract_funcs, obj_critnib_mt.c)
+
+INCS += -I$(TOP)/src/libpmemobj/

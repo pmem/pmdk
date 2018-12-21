@@ -74,6 +74,8 @@ OBJ_TESTS = \
 	obj_bucket\
 	obj_check\
 	obj_constructor\
+	obj_critnib\
+	obj_critnib_mt\
 	obj_ctl_alignment\
 	obj_ctl_alloc_class\
 	obj_ctl_alloc_class_config\
@@ -81,7 +83,6 @@ OBJ_TESTS = \
 	obj_ctl_debug\
 	obj_ctl_heap_size\
 	obj_ctl_stats\
-	obj_cuckoo\
 	obj_debug\
 	obj_direct\
 	obj_direct_volatile\

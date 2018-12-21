@@ -11,45 +11,24 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\test\obj_memops\obj_memops.c" />
-    <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
-    <ClCompile Include="..\..\libpmemobj\bucket.c" />
-    <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
-    <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
-    <ClCompile Include="..\..\libpmemobj\ctl_debug.c" />
-    <ClCompile Include="..\..\libpmemobj\critnib.c" />
-    <ClCompile Include="..\..\libpmemobj\heap.c" />
-    <ClCompile Include="..\..\libpmemobj\lane.c" />
-    <ClCompile Include="..\..\libpmemobj\libpmemobj.c" />
-    <ClCompile Include="..\..\libpmemobj\libpmemobj_main.c" />
-    <ClCompile Include="..\..\libpmemobj\list.c" />
-    <ClCompile Include="..\..\libpmemobj\memblock.c" />
-    <ClCompile Include="..\..\libpmemobj\memops.c" />
-    <ClCompile Include="..\..\libpmemobj\obj.c" />
-    <ClCompile Include="..\..\libpmemobj\palloc.c" />
-    <ClCompile Include="..\..\libpmemobj\pmalloc.c" />
-    <ClCompile Include="..\..\libpmemobj\ravl.c" />
-    <ClCompile Include="..\..\libpmemobj\recycler.c" />
-    <ClCompile Include="..\..\libpmemobj\stats.c" />
-    <ClCompile Include="..\..\libpmemobj\sync.c" />
-    <ClCompile Include="..\..\libpmemobj\tx.c" />
-    <ClCompile Include="..\..\libpmemobj\ulog.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\libpmemobj\libpmemobj.vcxproj">
-      <Project>{1baa1617-93ae-4196-8a1a-bd492fb18aef}</Project>
+    <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
+      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
     </ProjectReference>
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\libpmemobj\critnib.c" />
+    <ClCompile Include="obj_critnib_mt.c" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="TEST0.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{740ED97D-005F-4F58-98B2-4EF5EF5776E8}</ProjectGuid>
+    <ProjectGuid>{7701627C-CFD9-48F6-942E-EAACC8D057FA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>obj_memops</RootNamespace>
+    <RootNamespace>obj_critnib_mt</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -77,21 +56,27 @@
     <Import Project="..\test_release.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile />
-    <Link />
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>Disabled</Optimization>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile />
-    <Link />
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <Optimization>MaxSpeed</Optimization>
       <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link />
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,4 +1,6 @@
-# Copyright 2014-2018, Intel Corporation
+#
+# Copyright 2015-2018, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,42 +29,19 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmemobj/Makefile -- Makefile for libpmemobj
 #
 
-LIBRARY_NAME = pmemobj
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
+#
+# src/test/obj_critnib/TEST0 -- unit test for critnib hash table
+#
 
-include ../common/pmemcommon.inc
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-SOURCE +=\
-	alloc_class.c\
-	bucket.c\
-	container_ravl.c\
-	container_seglists.c\
-	critnib.c\
-	ctl_debug.o\
-	heap.c\
-	lane.c\
-	libpmemobj.c\
-	list.c\
-	memblock.c\
-	memops.c\
-	obj.c\
-	palloc.c\
-	pmalloc.c\
-	ravl.c\
-	recycler.c\
-	sync.c\
-	tx.c\
-	stats.c\
-	ulog.c
+require_test_type medium
 
-include ../Makefile.inc
+setup
 
-CFLAGS += -DUSE_LIBDL -D_PMEMOBJ_INTRNL
+expect_normal_exit $Env:EXE_DIR\obj_critnib$Env:EXESUFFIX
 
-LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL)
+pass

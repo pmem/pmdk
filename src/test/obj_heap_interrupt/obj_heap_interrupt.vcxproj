@@ -19,7 +19,7 @@
     <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
     <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\ctl_debug.c" />
-    <ClCompile Include="..\..\libpmemobj\cuckoo.c" />
+    <ClCompile Include="..\..\libpmemobj\critnib.c" />
     <ClCompile Include="..\..\libpmemobj\heap.c" />
     <ClCompile Include="..\..\libpmemobj\lane.c" />
     <ClCompile Include="..\..\libpmemobj\libpmemobj.c" />

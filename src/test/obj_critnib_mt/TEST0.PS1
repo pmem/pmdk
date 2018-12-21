@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
 #
 # Copyright 2015-2018, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,16 +32,16 @@
 #
 
 #
-# src/test/obj_cuckoo/TEST0 -- unit test for cuckoo hash table
+# src/test/obj_critnib_mt/TEST0 -- multithreaded test for critnib
 #
 
 # standard unit test setup
-. ../unittest/unittest.sh
+. ..\unittest\unittest.ps1
 
 require_test_type medium
 
 setup
 
-expect_normal_exit ./obj_cuckoo$EXESUFFIX
+expect_normal_exit $Env:EXE_DIR\obj_critnib_mt$Env:EXESUFFIX
 
 pass

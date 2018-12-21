@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,11 +31,11 @@
  */
 
 /*
- * cuckoo.h -- internal definitions for cuckoo hash table
+ * critnib.h -- internal definitions for critnib tree
  */
 
-#ifndef LIBPMEMOBJ_CUCKOO_H
-#define LIBPMEMOBJ_CUCKOO_H 1
+#ifndef LIBPMEMOBJ_CRITNIB_H
+#define LIBPMEMOBJ_CRITNIB_H 1
 
 #include <stdint.h>
 
@@ -43,15 +43,15 @@
 extern "C" {
 #endif
 
-struct cuckoo;
+struct critnib;
 
-struct cuckoo *cuckoo_new(void);
-void cuckoo_delete(struct cuckoo *c);
+struct critnib *critnib_new(void);
+void critnib_delete(struct critnib *c);
 
-int cuckoo_insert(struct cuckoo *c, uint64_t key, void *value);
-void *cuckoo_remove(struct cuckoo *c, uint64_t key);
-void *cuckoo_get(struct cuckoo *c, uint64_t key);
-size_t cuckoo_get_size(struct cuckoo *c);
+int critnib_insert(struct critnib *c, uint64_t key, void *value);
+void *critnib_remove(struct critnib *c, uint64_t key);
+void *critnib_get(struct critnib *c, uint64_t key);
+void *critnib_find_le(struct critnib *c, uint64_t key);
 
 #ifdef __cplusplus
 }
