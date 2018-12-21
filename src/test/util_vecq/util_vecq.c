@@ -81,14 +81,17 @@ vecq_test_grow()
 	VECQ(testvec, int) v;
 	VECQ_INIT(&v);
 
-	for (int i = 1; i < 1000; ++i) {
-		int ret = VECQ_ENQUEUE(&v, i);
-		UT_ASSERTeq(ret, 0);
-	}
+	for (int j = 0; j < 100; ++j) {
+		int n = j * 100;
+		for (int i = 1; i < n; ++i) {
+			int ret = VECQ_ENQUEUE(&v, i);
+			UT_ASSERTeq(ret, 0);
+		}
 
-	for (int i = 1; i < 1000; ++i) {
-		int res = VECQ_DEQUEUE(&v);
-		UT_ASSERTeq(res, i);
+		for (int i = 1; i < n; ++i) {
+			int res = VECQ_DEQUEUE(&v);
+			UT_ASSERTeq(res, i);
+		}
 	}
 
 	VECQ_DELETE(&v);
