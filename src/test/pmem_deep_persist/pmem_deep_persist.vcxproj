@@ -24,7 +24,7 @@
     <ClCompile Include="..\..\libpmemobj\container_ravl.c" />
     <ClCompile Include="..\..\libpmemobj\container_seglists.c" />
     <ClCompile Include="..\..\libpmemobj\ctl_debug.c" />
-    <ClCompile Include="..\..\libpmemobj\cuckoo.c" />
+    <ClCompile Include="..\..\libpmemobj\critnib.c" />
     <ClCompile Include="..\..\libpmemobj\heap.c" />
     <ClCompile Include="..\..\libpmemobj\lane.c" />
     <ClCompile Include="..\..\libpmemobj\libpmemobj.c" />
@@ -78,7 +78,7 @@
     <ClInclude Include="..\..\libpmemobj\container_ravl.h" />
     <ClInclude Include="..\..\libpmemobj\container_seglists.h" />
     <ClInclude Include="..\..\libpmemobj\ctl_debug.h" />
-    <ClInclude Include="..\..\libpmemobj\cuckoo.h" />
+    <ClInclude Include="..\..\libpmemobj\critnib.h" />
     <ClInclude Include="..\..\libpmemobj\heap.h" />
     <ClInclude Include="..\..\libpmemobj\heap_layout.h" />
     <ClInclude Include="..\..\libpmemobj\lane.h" />
