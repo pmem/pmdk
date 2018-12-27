@@ -220,7 +220,6 @@ int util_check_memory(const uint8_t *buff, size_t len, uint8_t val);
 int util_parse_chunk_types(const char *str, uint64_t *types);
 int util_parse_lane_sections(const char *str, uint64_t *types);
 char ask(char op, char *answers, char def_ans, const char *fmt, va_list ap);
-char ask_yn(char op, char def_ans, const char *fmt, va_list ap);
 char ask_Yn(char op, const char *fmt, ...) FORMAT_PRINTF(2, 3);
 char ask_yN(char op, const char *fmt, ...) FORMAT_PRINTF(2, 3);
 unsigned util_heap_max_zone(size_t size);
