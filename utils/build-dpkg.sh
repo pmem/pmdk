@@ -277,7 +277,7 @@ Package: daxio
 Section: misc
 Architecture: any
 Priority: optional
-Depends: libpmem (=\${binary:Version}), libndctl (>= $NDCTL_MIN_VERSION), libdaxctl (>= $NDCTL_MIN_VERSION), \${shlibs:Depends}, \${misc:Depends}
+Depends: libpmem (=\${binary:Version}), libndctl6 (>= $NDCTL_MIN_VERSION), libdaxctl1 (>= $NDCTL_MIN_VERSION), \${shlibs:Depends}, \${misc:Depends}
 Description: daxio utility
  The daxio utility performs I/O on Device DAX devices or zero
  a Device DAX device.  Since the standard I/O APIs (read/write) cannot be used
