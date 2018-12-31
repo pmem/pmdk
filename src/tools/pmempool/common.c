@@ -802,18 +802,11 @@ ask(char op, char *answers, char def_ans, const char *fmt, va_list ap)
 }
 
 char
-ask_yn(char op, char def_ans, const char *fmt, va_list ap)
-{
-	char ret = ask(op, "yn", def_ans, fmt, ap);
-	return ret;
-}
-
-char
 ask_Yn(char op, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	char ret = ask_yn(op, 'y', fmt, ap);
+	char ret = ask(op, "yn", 'y', fmt, ap);
 	va_end(ap);
 	return ret;
 }
@@ -823,7 +816,7 @@ ask_yN(char op, const char *fmt, ...)
 {
 	va_list ap;
 	va_start(ap, fmt);
-	char ret = ask_yn(op, 'n', fmt, ap);
+	char ret = ask(op, "yn", 'n', fmt, ap);
 	va_end(ap);
 	return ret;
 }
