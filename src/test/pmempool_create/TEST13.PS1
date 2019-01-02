@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,6 +44,6 @@ setup
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create log $DIR\pool.log
 
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX create -M log $DIR\pool.log
-
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX create -M log $DIR\pool.log 2>&1 | `
+		select-String -Pattern "File|exists" > grep13w.log
 pass
