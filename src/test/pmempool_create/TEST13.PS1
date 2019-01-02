@@ -44,6 +44,6 @@ setup
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create log $DIR\pool.log
 
-expect_abnormal_exit $PMEMPOOL$EXESUFFIX create -M log $DIR\pool.log
+expect_abnormal_exit $PMEMPOOL$EXESUFFIX create -M log $DIR\pool.log 2> err13w.log
 
 pass
