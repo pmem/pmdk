@@ -99,8 +99,13 @@ vecq_grow(void *vec, size_t s)
 		ERR("!Realloc");
 		return -1;
 	}
-	vecp->buffer = tbuf;
+	memcpy((char *)tbuf + (s * vecp->capacity), (char *)tbuf,
+		(s * VECQ_FRONT_POS(vecp)));
+
+	vecp->front = VECQ_FRONT_POS(vecp);
+	vecp->back = vecp->front + vecp->capacity;
 	vecp->capacity = ncapacity;
+	vecp->buffer = tbuf;
 
 	return 0;
 }
