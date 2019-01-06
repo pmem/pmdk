@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,6 +45,9 @@
 #include <ndctl/libdaxctl.h>
 /* XXX: workaround for missing PAGE_SIZE - should be fixed in linux/ndctl.h */
 #include <sys/user.h>
+#ifndef PAGE_SIZE
+#define PAGE_SIZE 4096
+#endif
 #include <linux/ndctl.h>
 
 #include "out.h"
