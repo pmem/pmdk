@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -288,8 +288,7 @@ create_pattern(const char *path_license, char *pattern)
 	if (analyze_license(path_license, buffer, &license) == -1)
 		return -1;
 
-	memset(pattern, 0, LICENSE_MAX_LEN);
-	strncpy(pattern, license, strlen(license) + 1);
+	strncpy(pattern, license, LICENSE_MAX_LEN);
 
 	return 0;
 }
