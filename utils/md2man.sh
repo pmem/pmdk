@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -81,12 +81,15 @@ if [ "$WEB" == 1 ]; then
 	mkdir -p "$(dirname $outfile)"
 	m4 $OPTS macros.man $filename | sed -n -e '/---/,$p' > $outfile
 else
-	dt=$(date +"%F")
+	if [ -n "$SOURCE_DATE_EPOCH" ]; then
+		force_date="-u --date=@$SOURCE_DATE_EPOCH"
+	fi
+	dt=$(date +"%F" $force_date)
 	m4 $OPTS macros.man $filename | sed -n -e '/# NAME #/,$p' |\
 		pandoc -s -t man -o $outfile.tmp --template=$template \
 		-V title=$title -V section=$section \
 		-V date="$dt" -V version="$version" \
-		-V year=$(date +"%Y") |
+		-V year=$(date +"%Y" $force_date) |
 sed '/^\.IP/{
 N
 /\n\.nf/{
