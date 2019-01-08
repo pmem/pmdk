@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -911,6 +911,16 @@ heap_end(struct palloc_heap *h)
 	struct zone *last_zone = ZID_TO_ZONE(h->layout, h->rt->nzones - 1);
 
 	return &last_zone->chunks[last_zone->header.size_idx];
+}
+
+/*
+ * heap_rt_get_narenas -- returns the number of arenas from rt heap
+ */
+unsigned
+heap_rt_get_narenas(struct palloc_heap *heap)
+{
+	struct heap_rt *h = heap->rt;
+	return h->narenas;
 }
 
 /*
