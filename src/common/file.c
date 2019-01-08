@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,7 +53,6 @@
 #include "out.h"
 #include "mmap.h"
 
-#define DEVICE_DAX_PREFIX "/sys/class/dax"
 #define MAX_SIZE_LENGTH 64
 
 #define DEVICE_DAX_ZERO_LEN (2 * MEGABYTE)
@@ -180,7 +179,8 @@ get_file_type_internal(os_stat_t *st)
 		return OTHER_ERROR;
 	}
 
-	if (strcmp(DEVICE_DAX_PREFIX, rpath) != 0) {
+	char *basename = strrchr(rpath, '/');
+	if (!basename || strcmp("dax", basename + 1) != 0) {
 		LOG(3, "%s path does not match device dax prefix path", rpath);
 		errno = EINVAL;
 		return OTHER_ERROR;
