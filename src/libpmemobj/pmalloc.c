@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -519,6 +519,21 @@ CTL_WRITE_HANDLER(granularity)(void *ctx,
 
 static struct ctl_argument CTL_ARG(granularity) = CTL_ARG_LONG_LONG;
 
+/*
+ * CTL_READ_HANDLER(narenas) -- reads a number of the arenas
+ */
+static int
+CTL_READ_HANDLER(narenas)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned *narenas = arg;
+
+	*narenas = heap_get_narenas(&pop->heap);
+
+	return 0;
+}
+
 static const struct ctl_node CTL_NODE(size)[] = {
 	CTL_LEAF_RW(granularity),
 	CTL_LEAF_RUNNABLE(extend),
@@ -529,6 +544,7 @@ static const struct ctl_node CTL_NODE(size)[] = {
 static const struct ctl_node CTL_NODE(heap)[] = {
 	CTL_CHILD(alloc_class),
 	CTL_CHILD(size),
+	CTL_LEAF_RO(narenas),
 
 	CTL_NODE_END
 };

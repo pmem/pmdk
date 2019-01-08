@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -914,10 +914,20 @@ heap_end(struct palloc_heap *h)
 }
 
 /*
- * heap_get_narenas -- (internal) returns the number of arenas to create
+ * heap_get_narenas -- returns the number of arenas from rt heap
+ */
+unsigned
+heap_get_narenas(struct palloc_heap *heap)
+{
+	struct heap_rt *h = heap->rt;
+	return h->narenas;
+}
+
+/*
+ * heap_get_procs -- (internal) returns the number of arenas to create
  */
 static unsigned
-heap_get_narenas(void)
+heap_get_procs(void)
 {
 	long cpus = sysconf(_SC_NPROCESSORS_ONLN);
 	if (cpus < 1)
@@ -1106,7 +1116,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		goto error_alloc_classes_new;
 	}
 
-	h->narenas = heap_get_narenas();
+	h->narenas = heap_get_procs();
 	h->arenas = Malloc(sizeof(struct arena) * h->narenas);
 	if (h->arenas == NULL) {
 		err = ENOMEM;

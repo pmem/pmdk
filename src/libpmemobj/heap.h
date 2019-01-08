@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -104,6 +104,8 @@ void heap_foreach_object(struct palloc_heap *heap, object_callback cb,
 struct alloc_class_collection *heap_alloc_classes(struct palloc_heap *heap);
 
 void *heap_end(struct palloc_heap *heap);
+
+unsigned heap_get_narenas(struct palloc_heap *heap);
 
 void heap_vg_open(struct palloc_heap *heap, object_callback cb,
 		void *arg, int objects);
