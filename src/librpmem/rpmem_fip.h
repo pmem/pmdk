@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -65,8 +65,11 @@ void rpmem_fip_fini(struct rpmem_fip *fip);
 
 int rpmem_fip_connect(struct rpmem_fip *fip);
 int rpmem_fip_close(struct rpmem_fip *fip);
-int rpmem_fip_process_start(struct rpmem_fip *fip);
-int rpmem_fip_process_stop(struct rpmem_fip *fip);
+
+int rpmem_fip_flush(struct rpmem_fip *fip, size_t offset, size_t len,
+		unsigned lane, unsigned flags);
+
+int rpmem_fip_drain(struct rpmem_fip *fip, unsigned lane, unsigned flags);
 
 int rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 		unsigned lane, unsigned flags);
