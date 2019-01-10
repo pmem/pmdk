@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -229,6 +229,8 @@ struct rpmem_msg_close_resp {
  * are reserved for mode of persist
  */
 #define RPMEM_PERSIST_MASK	0x3U
+
+#define RPMEM_COMPLETION	0x4U	/* schedule op with a completion */
 
 /*
  * rpmem_msg_persist -- remote persist message
