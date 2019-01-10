@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -79,6 +79,7 @@ OBJ_TESTS = \
 	obj_ctl_alignment\
 	obj_ctl_alloc_class\
 	obj_ctl_alloc_class_config\
+	obj_ctl_arenas\
 	obj_ctl_config\
 	obj_ctl_debug\
 	obj_ctl_heap_size\
