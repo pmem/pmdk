@@ -199,6 +199,21 @@ heap_thread_arena(struct heap_rt *heap)
 }
 
 /*
+ * heap_get_thread_arena_id -- returns the arena id assigned to the current
+ *	thread
+ */
+unsigned
+heap_get_thread_arena_id(struct palloc_heap *heap)
+{
+	struct arena *arenap = heap_thread_arena(heap->rt);
+	unsigned arena_id =
+		(unsigned)(((uintptr_t)arenap - (uintptr_t)heap->rt->arenas) /
+		(sizeof(struct arena)));
+
+	return arena_id;
+}
+
+/*
  * heap_bucket_acquire_by_id -- fetches by id a bucket exclusive for the thread
  *	until heap_bucket_release is called
  */
@@ -921,6 +936,16 @@ heap_get_narenas(struct palloc_heap *heap)
 {
 	struct heap_rt *h = heap->rt;
 	return h->narenas;
+}
+
+/*
+ * heap_get_arena_buckets -- returns a pointer to buckets from the arena
+ */
+struct bucket **
+heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
+{
+	struct arena *a = &heap->rt->arenas[arena_id];
+	return a->buckets;
 }
 
 /*
