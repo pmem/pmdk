@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,11 @@ enum pobj_action_type {
 	POBJ_MAX_ACTION_TYPE
 };
 
+struct pobj_action_heap {
+	/* offset to the element being freed/allocated */
+	uint64_t offset;
+};
+
 struct pobj_action {
 	/*
 	 * These fields are internal for the implementation and are not
@@ -63,10 +68,7 @@ struct pobj_action {
 	enum pobj_action_type type;
 	uint32_t data[3];
 	union {
-		struct {
-			/* offset to the element being freed/allocated */
-			uint64_t offset;
-		} heap;
+		struct pobj_action_heap heap;
 		uint64_t data2[14];
 	};
 };
