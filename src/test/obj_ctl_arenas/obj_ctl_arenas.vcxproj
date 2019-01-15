@@ -26,6 +26,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1" />
+    <None Include="TEST1.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{019F5586-5558-4C87-B319-85906D4AE407}</ProjectGuid>
