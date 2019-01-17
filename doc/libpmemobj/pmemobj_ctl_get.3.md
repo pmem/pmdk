@@ -191,6 +191,20 @@ without contention.
 
 Always returns 0.
 
+heap.arena.[arena_id].size | r- | - | uint64_t | - | - | -
+
+Returns the total amount of memory in bytes which is currently exclusively
+owned by the arena. Large differences in this value between arenas might
+indicate an uneven scheduling of memory resources.
+
+Always returns 0.
+
+heap.thread.arena_id | r- | - | unsigned | - | - | -
+
+Returns the index of the arena assigned to the current thread.
+
+Always returns 0.
+
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 
