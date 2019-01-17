@@ -183,13 +183,21 @@ Always returns 0.
 
 heap.narenas | r- | - | unsigned | - | - | -
 
-Returns the number of arenas used in automatic scheduling of memory operations
+Reads the number of arenas used in automatic scheduling of memory operations
 for threads. By default, this value is equal to the number of available processors.
 An arena is a memory management structure which enables concurrency by taking
 exclusive ownership of parts of the heap and allowing associated threads to allocate
 without contention.
 
-Always returns 0.
+heap.arena.[arena_id].size | r- | - | uint64_t | - | - | -
+
+Reads the total amount of memory in bytes which is currently
+exclusively owned by the arena. Large differences in this value between
+arenas might indicate an uneven scheduling of memory resources.
+
+heap.thread.arena_id | r- | - | unsigned | - | - | -
+
+Reads the index of the arena assigned to the current thread.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
