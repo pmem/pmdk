@@ -191,6 +191,19 @@ without contention.
 
 Always returns 0.
 
+heap.arena.[arena_id].size | r- | - | uint64_t | - | - | -
+
+Returns the size used by the specified the arena. This size consists of
+all active buckets in one arena.
+
+Always returns 0.
+
+heap.thread.arena_id | r- | - | unsigned | - | - | -
+
+Returns the index of the arena assigned to the current thread.
+
+Always returns 0.
+
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 
