@@ -73,8 +73,8 @@ To use the pmem-resident transactional object store provided by
 with the _UW(pmemobj_create) function described below. Existing pools
 may be opened with the _UW(pmemobj_open) function.
 
-None of the three functions described below is thread-safe with respect
-to any other **libpmemobj**(7) functions. In other words, when creating,
+None of the three functions described below are thread-safe with respect
+to any other **libpmemobj**(7) function. In other words, when creating,
 opening or deleting a pool, nothing else in the library can happen in parallel,
 and therefore these functions should be called from the main thread.
 
