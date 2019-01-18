@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -68,11 +68,11 @@ chmod 400\
 	$DIR/pool.part1\
 	$DIR/pool.part2
 
-echo Y | expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.log
-echo n | expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.blk
-echo y | expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.obj
-echo N | expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.part1
-echo n | expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.part2
+echo Y | expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.log > out10.log
+echo n | expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.blk >> out10.log
+echo y | expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.obj >> out10.log
+echo N | expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.part1 >> out10.log
+echo n | expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.part2 >> out10.log
 
 check_files\
 	$DIR/pool.blk\
@@ -84,7 +84,7 @@ check_no_files\
 	$DIR/pool.log\
 	$DIR/pool.obj
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.set 2>&1 <<EOF
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/pool.set >> out10.log <<EOF
 y
 n
 EOF

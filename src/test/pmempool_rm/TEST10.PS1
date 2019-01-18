@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -79,7 +79,8 @@ y
 	$DIR\pool.set `
 	$DIR\pool.log `
 	$DIR\pool.blk `
-	$DIR\pool.obj
+	$DIR\pool.obj `
+	>> out10w.log
 
 check_no_files `
 	$DIR\pool.log `
@@ -93,7 +94,7 @@ check_files `
 echo @"
 n
 y
-"@ | &$PMEMPOOL rm $DIR\pool.set
+"@ | &$PMEMPOOL rm $DIR\pool.set >> out10w.log
 
 check_no_files $DIR\part2
 
