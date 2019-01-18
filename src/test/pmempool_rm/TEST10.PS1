@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,6 +40,8 @@ require_fs_type any
 
 setup
 
+$LOG="out$Env:UNITTEST_NUM.log"
+
 # Create pmemlog, pmemblk and pmemobj pools
 expect_normal_exit $PMEMPOOL create log $DIR\pool.log
 expect_normal_exit $PMEMPOOL create blk 512 $DIR\pool.blk
@@ -79,7 +81,8 @@ y
 	$DIR\pool.set `
 	$DIR\pool.log `
 	$DIR\pool.blk `
-	$DIR\pool.obj
+	$DIR\pool.obj `
+	> $LOG
 
 check_no_files `
 	$DIR\pool.log `
@@ -93,7 +96,7 @@ check_files `
 echo @"
 n
 y
-"@ | &$PMEMPOOL rm $DIR\pool.set
+"@ | &$PMEMPOOL rm $DIR\pool.set >> $LOG
 
 check_no_files $DIR\part2
 
