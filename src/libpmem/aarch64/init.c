@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -179,7 +179,7 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	else
 		FATAL("invalid deep flush function address");
 
-	if (funcs->deep_flush == flush_empty)
+	if (funcs->flush == flush_empty)
 		LOG(3, "not flushing CPU cache");
 	else if (funcs->flush != funcs->deep_flush)
 		FATAL("invalid flush function address");
