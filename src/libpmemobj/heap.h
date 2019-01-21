@@ -109,6 +109,8 @@ unsigned heap_get_narenas(struct palloc_heap *heap);
 
 unsigned heap_get_thread_arena_id(struct palloc_heap *heap);
 
+int heap_arena_create(struct palloc_heap *heap);
+
 struct bucket **
 heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id);
 
