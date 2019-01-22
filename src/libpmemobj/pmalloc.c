@@ -42,6 +42,7 @@
 #include "valgrind_internal.h"
 #include "heap.h"
 #include "lane.h"
+#include "memblock.h"
 #include "memops.h"
 #include "obj.h"
 #include "out.h"
@@ -534,6 +535,22 @@ CTL_READ_HANDLER(narenas)(void *ctx,
 	return 0;
 }
 
+/*
+ * CTL_READ_HANDLER(arena_id) -- reads the id of the arena
+ * assigned to the calling thread
+ */
+static int
+CTL_READ_HANDLER(arena_id)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned *arena_id = arg;
+
+	*arena_id = heap_get_thread_arena_id(&pop->heap);
+
+	return 0;
+}
+
 static const struct ctl_node CTL_NODE(size)[] = {
 	CTL_LEAF_RW(granularity),
 	CTL_LEAF_RUNNABLE(extend),
@@ -541,9 +558,74 @@ static const struct ctl_node CTL_NODE(size)[] = {
 	CTL_NODE_END
 };
 
+
+/*
+ * CTL_READ_HANDLER(size) -- reads usable size of specified arena
+ */
+static int
+CTL_READ_HANDLER(size)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned arena_id;
+	unsigned narenas;
+	size_t *arena_size = arg;
+
+	struct ctl_index *idx = SLIST_FIRST(indexes);
+	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
+
+	/* take index of arena */
+	arena_id = (unsigned)idx->value;
+	/* take number of arenas */
+	narenas = heap_get_narenas(&pop->heap);
+
+	/* check if index is not bigger than number of arenas */
+	if (arena_id >= narenas) {
+		ERR("arena id outside of the allowed range: <0,%u>",
+			narenas - 1);
+		errno = ERANGE;
+		return -1;
+	}
+
+	/* take buckets for arena */
+	struct bucket **buckets;
+	buckets = heap_get_arena_buckets(&pop->heap, arena_id);
+
+	/* calculate number of reservation for arena using buckets */
+	unsigned size = 0;
+	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
+		if (buckets[i] != NULL && buckets[i]->is_active)
+			size += buckets[i]->active_memory_block->m.size_idx;
+	}
+
+	*arena_size = size * CHUNKSIZE;
+
+	return 0;
+}
+
+static const struct ctl_node CTL_NODE(arena_id)[] = {
+	CTL_LEAF_RO(size),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(arena)[] = {
+	CTL_INDEXED(arena_id),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(thread)[] = {
+	CTL_LEAF_RO(arena_id),
+
+	CTL_NODE_END
+};
+
 static const struct ctl_node CTL_NODE(heap)[] = {
 	CTL_CHILD(alloc_class),
+	CTL_CHILD(arena),
 	CTL_CHILD(size),
+	CTL_CHILD(thread),
 	CTL_LEAF_RO(narenas),
 
 	CTL_NODE_END
