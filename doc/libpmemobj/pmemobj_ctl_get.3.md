@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.3
 ...
 
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -74,6 +74,19 @@ The _UW(pmemobj_ctl_get), _UW(pmemobj_ctl_set) and _UW(pmemobj_ctl_exec)
 functions provide a uniform interface for querying and modifying the internal
 behavior of **libpmemobj**(7) through the control (CTL) namespace.
 
+The *name* argument specifies an entry point as defined in the CTL namespace
+specification. The entry point description specifies whether the extra *arg* is
+required. Those two parameters together create a CTL query. The functions and
+the entry points are thread-safe unless
+indicated otherwise below. If there are special conditions for calling an entry
+point, they are explicitly stated in its description. The functions propagate
+the return value of the entry point. If either *name* or *arg* is invalid, -1
+is returned.
+
+If the provided ctl query is valid, the CTL functions will always return 0
+on success and -1 on failure, unless otherwise specified in the entry point
+description.
+
 See more in **pmem_ctl**(5) man page.
 
 
@@ -85,23 +98,17 @@ If set, every page of the pool will be touched and written to when the pool
 is created, in order to trigger page allocation and minimize the performance
 impact of pagefaults. Affects only the _UW(pmemobj_create) function.
 
-Always returns 0.
-
 prefault.at_open | rw | global | int | int | - | boolean
 
 If set, every page of the pool will be touched and written to when the pool
 is opened, in order to trigger page allocation and minimize the performance
 impact of pagefaults. Affects only the _UW(pmemobj_open) function.
 
-Always returns 0.
-
 sds.at_create | rw | global | int | int | - | boolean
 
 If set, force-enables or force-disables SDS feature during pool creation.
 Affects only the _UW(pmemobj_create) function. See **pmempool_feature_query**(3)
 for informations about SDS (SHUTDOWN_STATE) feature.
-
-Always returns 0.
 
 tx.debug.skip_expensive_checks | rw | - | int | int | - | boolean
 
@@ -116,70 +123,28 @@ frequency of persistent allocations is lower, but with higher fixed cost.
 This should be set to roughly the sum of sizes of the snapshotted regions in
 an average transaction in the pool.
 
-This value must be a in a range between 0 and **PMEMOBJ_MAX_ALLOC_SIZE**.
-
 This entry point is not thread safe and should not be modified if there are any
 transactions currently running.
 
-Returns 0 if successful, -1 otherwise.
+This value must be a in a range between 0 and **PMEMOBJ_MAX_ALLOC_SIZE**,
+otherwise this entry point will fail.
 
 tx.cache.threshold | rw | - | long long | long long | - | integer
 
 This entry point is deprecated.
 All snapshots, regardless of the size, use the transactional cache.
 
-Returns 0 if successful, -1 otherwise.
-
 tx.post_commit.queue_depth | rw | - | int | int | - | integer
 
-Controls the depth of the post-commit tasks queue. A post-commit task is the
-collection of work items that need to be performed on the persistent state after
-a successfully completed transaction. This includes freeing no longer needed
-objects and cleaning up various caches. By default, this queue does not exist
-and the post-commit task is executed synchronously in the same thread that
-ran the transaction. By changing this parameter, one can offload this task to
-a separate worker. If the queue is full, the algorithm, instead of waiting,
-performs the post-commit in the current thread.
-
-The task is performed on a finite resource (lanes, of which there are 1024),
-and if the worker threads that process this queue are unable to keep up with
-the demand, regular threads might start to block waiting for that resource.
-This will happen if the queue depth value is too large.
-
-As a general rule, this value should be set to approximately 1024 minus the
-average number of threads in the application (not counting the post-commit
-workers); however, this may vary from workload to workload.
-
-The queue depth value must also be a power of two.
-
-This entry point is not thread-safe and must be called when no transactions are
-currently being executed.
-
-Returns 0 if successful, -1 otherwise.
+This entry point is deprecated.
 
 tx.post_commit.worker | r- | - | void * | - | - | -
 
-The worker function launched in a thread to perform asynchronous processing
-of post-commit tasks. This function returns only after a stop entry point is
-called. There may be many worker threads at a time. If there is no work to be
-done, this function sleeps instead of polling.
-
-Always returns 0.
+This entry point is deprecated.
 
 tx.post_commit.stop | r- | - | void * | - | - | -
 
-This function forces all the post-commit worker functions to exit and return
-control back to the calling thread. This should be called before the application
-terminates and the post commit worker threads need to be shutdown.
-
-After the invocation of this entry point, the post-commit task queue can no
-longer be used. If worker threads must be restarted after a stop,
-the tx.post_commit.queue_depth needs to be set again.
-
-This entry point must be called when no transactions are currently being
-executed.
-
-Always returns 0.
+This entry point is deprecated.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
@@ -282,8 +247,8 @@ a compact header.
 For reading, function returns 0 if successful, if the allocation class does
 not exist it sets the errno to **ENOENT** and returns -1;
 
-For writing, function returns 0 if the allocation class has been successfully
-created, -1 otherwise.
+This entry point can fail if any of the parameters of the allocation class
+is invalid or if exactly the same class already exists.
 
 heap.alloc_class.new.desc | -w | - | - | `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 
@@ -297,9 +262,6 @@ naming in the application (e.g. when writing a library that uses libpmemobj).
 The required class identifier will be stored in the `class_id` field of the
 `struct pobj_alloc_class_desc`.
 
-This function returns 0 if the allocation class has been successfully created,
--1 otherwise.
-
 stats.enabled | rw | - | int | int | - | boolean
 
 Enables or disables runtime collection of statistics. Statistics are not
@@ -309,11 +271,9 @@ re-enabling will not be reflected in subsequent values.
 Statistics are disabled by default. Enabling them may have non-trivial
 performance impact.
 
-Always returns 0.
-
 stats.heap.curr_allocated | r- | - | int | - | - | -
 
-Returns the number of bytes currently allocated in the heap. If statistics were
+Reads the number of bytes currently allocated in the heap. If statistics were
 disabled at any time in the lifetime of the heap, this value may be
 inaccurate.
 
@@ -324,14 +284,15 @@ Valid only if the poolset has been defined with directories.
 
 A granularity of 0 specifies that the pool will not grow automatically.
 
-This function returns 0 if the granularity value is 0, or is larger than
-*PMEMOBJ_MIN_PART*, -1 otherwise.
+This entry point can fail if the granularity value is non-zero and smaller
+than *PMEMOBJ_MIN_PART*.
 
 heap.size.extend | --x | - | - | - | uint64_t | -
 
 Extends the heap by the given size. Must be larger than *PMEMOBJ_MIN_PART*.
 
-This function returns 0 if successful, -1 otherwise.
+This entry point can fail if the pool does not support extend functionality or
+if there's not enough space left on the device.
 
 debug.heap.alloc_pattern | rw | - | int | int | - | -
 
