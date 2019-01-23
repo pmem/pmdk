@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -121,7 +121,7 @@ recycler_new(struct palloc_heap *heap, size_t nallocs)
 	VEC_INIT(&r->recalc);
 	VEC_INIT(&r->pending);
 
-	os_mutex_init(&r->lock);
+	util_mutex_init(&r->lock);
 
 	return r;
 
@@ -144,7 +144,7 @@ recycler_delete(struct recycler *r)
 		Free(mr);
 	}
 	VEC_DELETE(&r->pending);
-	os_mutex_destroy(&r->lock);
+	util_mutex_destroy(&r->lock);
 	ravl_delete(r->runs);
 	Free(r);
 }
