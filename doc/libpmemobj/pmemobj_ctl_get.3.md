@@ -199,6 +199,10 @@ heap.thread.arena_id | r- | - | unsigned | - | - | -
 
 Reads the index of the arena assigned to the current thread.
 
+heap.arena.create | --x | - | - | - | - | -
+
+Create and initialize one new arena in the heap.
+
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
 
