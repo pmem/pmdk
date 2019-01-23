@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,7 +48,7 @@ extern "C" {
 /*
  * Type safety macros
  */
-#ifndef _MSC_VER
+#if !(defined _MSC_VER || defined __clang__)
 
 #define TOID_ASSIGN(o, value)(\
 {\
@@ -56,10 +56,13 @@ extern "C" {
 	(o); /* to avoid "error: statement with no effect" */\
 })
 
-#else /* _MSC_VER */
+#else /* _MSC_VER or __clang__ */
 
 #define TOID_ASSIGN(o, value) ((o).oid = value, (o))
 
+#endif
+
+#ifdef _MSC_VER
 /*
  * XXX - workaround for offsetof issue in VS 15.3
  */

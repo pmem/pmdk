@@ -7,7 +7,7 @@ header: PMDK
 date: pmemblk API version 1.1
 ...
 
-[comment]: <> (Copyright 2018, Intel Corporation)
+[comment]: <> (Copyright 2018-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -73,6 +73,19 @@ _UNICODE()
 The _UW(pmemblk_ctl_get), _UW(pmemblk_ctl_set) and _UW(pmemblk_ctl_exec)
 functions provide a uniform interface for querying and modifying the internal
 behavior of **libpmemblk**(7) through the control (CTL) namespace.
+
+The *name* argument specifies an entry point as defined in the CTL namespace
+specification. The entry point description specifies whether the extra *arg* is
+required. Those two parameters together create a CTL query. The functions and
+the entry points are thread-safe unless
+indicated otherwise below. If there are special conditions for calling an entry
+point, they are explicitly stated in its description. The functions propagate
+the return value of the entry point. If either *name* or *arg* is invalid, -1
+is returned.
+
+If the provided ctl query is valid, the CTL functions will always return 0
+on success and -1 on failure, unless otherwise specified in the entry point
+description.
 
 See more in **pmem_ctl**(5) man page.
 
