@@ -36,6 +36,7 @@
  * obj_ctl_arenas <file> n - test for heap.narenas
  * obj_ctl_arenas <file> s - test for heap.arena.[idx].size
  * and heap.thread.arena_id
+ * obj_ctl_arenas <file> c - test for heap.arena.create
  */
 
 #include <sched.h>
@@ -101,7 +102,6 @@ worker_arenas_size(void *arg)
 			os_cond_wait(&cond, &lock);
 	util_mutex_unlock(&lock);
 
-
 	ret = pmemobj_ctl_get(pop, "heap.thread.arena_id", &arena_id);
 	UT_ASSERTeq(ret, 0);
 
@@ -160,7 +160,26 @@ main(int argc, char *argv[])
 
 		util_mutex_destroy(&lock);
 		os_cond_destroy(&cond);
+	} else if (t == 'c') {
+		unsigned narenas_b = 0;
+		unsigned narenas_a = 0;
+		unsigned narenas_n = 4;
+		unsigned arena_id;
 
+		ret = pmemobj_ctl_get(pop, "heap.narenas", &narenas_b);
+		UT_ASSERTeq(ret, 0);
+
+		for (unsigned i = 0; i < narenas_n; i++) {
+			ret = pmemobj_ctl_exec(pop, "heap.arena.create",
+					&arena_id);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(arena_id, narenas_b + i);
+		}
+
+		ret = pmemobj_ctl_get(pop, "heap.narenas", &narenas_a);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(narenas_b + narenas_n, narenas_a);
+		// XXX: try to allocate from new arena
 	} else {
 		UT_ASSERT(0);
 	}
