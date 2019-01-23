@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -194,26 +194,6 @@ extern int _Pmreorder_emit;
 		VALGRIND_PMC_WRITE_STATS;\
 } while (0)
 
-#define VALGRIND_LOG_STORES do {\
-	if (On_valgrind)\
-		VALGRIND_PMC_LOG_STORES;\
-} while (0)
-
-#define VALGRIND_NO_LOG_STORES do {\
-	if (On_valgrind)\
-		VALGRIND_PMC_NO_LOG_STORES;\
-} while (0)
-
-#define VALGRIND_ADD_LOG_REGION(addr, len) do {\
-	if (On_valgrind)\
-		VALGRIND_PMC_ADD_LOG_REGION((addr), (len));\
-} while (0)
-
-#define VALGRIND_REMOVE_LOG_REGION(addr, len) do {\
-	if (On_valgrind)\ \
-		VALGRIND_PMC_REMOVE_LOG_REGION((addr), (len));\
-} while (0)
-
 #define VALGRIND_EMIT_LOG(emit_log) do {\
 	if (On_valgrind)\
 		VALGRIND_PMC_EMIT_LOG((emit_log));\
@@ -328,20 +308,6 @@ extern int _Pmreorder_emit;
 } while (0)
 
 #define VALGRIND_WRITE_STATS do {} while (0)
-
-#define VALGRIND_LOG_STORES do {} while (0)
-
-#define VALGRIND_NO_LOG_STORES do {} while (0)
-
-#define VALGRIND_ADD_LOG_REGION(addr, len) do {\
-	(void) (addr);\
-	(void) (len);\
-} while (0)
-
-#define VALGRIND_REMOVE_LOG_REGION(addr, len) do {\
-	(void) (addr);\
-	(void) (len);\
-} while (0)
 
 #define VALGRIND_EMIT_LOG(emit_log) do {\
 	(void) (emit_log);\
