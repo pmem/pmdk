@@ -603,6 +603,21 @@ CTL_READ_HANDLER(size)(void *ctx,
 	return 0;
 }
 
+/*
+ * CTL_RUNNABLE_HANDLER(create) -- create new arena in the heap
+ */
+static int
+CTL_RUNNABLE_HANDLER(create)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	struct palloc_heap *heap = &pop->heap;
+
+	int ret = heap_arena_create(heap);
+
+	return ret;
+}
+
 static const struct ctl_node CTL_NODE(arena_id)[] = {
 	CTL_LEAF_RO(size),
 
@@ -611,6 +626,7 @@ static const struct ctl_node CTL_NODE(arena_id)[] = {
 
 static const struct ctl_node CTL_NODE(arena)[] = {
 	CTL_INDEXED(arena_id),
+	CTL_LEAF_RUNNABLE(create),
 
 	CTL_NODE_END
 };
