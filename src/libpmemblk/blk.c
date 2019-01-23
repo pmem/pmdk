@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -640,13 +640,13 @@ pmemblk_close(PMEMblkpool *pbp)
 	btt_fini(pbp->bttp);
 	if (pbp->locks) {
 		for (unsigned i = 0; i < pbp->nlane; i++)
-			os_mutex_destroy(&pbp->locks[i]);
+			util_mutex_destroy(&pbp->locks[i]);
 		Free((void *)pbp->locks);
 	}
 
 #ifdef DEBUG
 	/* destroy debug lock */
-	os_mutex_destroy(&pbp->write_lock);
+	util_mutex_destroy(&pbp->write_lock);
 #endif
 
 	util_poolset_close(pbp->set, DO_NOT_DELETE_PARTS);

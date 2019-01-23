@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -60,7 +60,11 @@ truncate -s 2G $DIR/testfile1
 # Simple case, one write interrupted.  pmemblk_check() should note
 # that testfile1 is consistent (after recovery steps were taken).
 #
-expect_normal_exit ./blk_recovery$EXESUFFIX 4096 $DIR/testfile1 5 10
+expect_abnormal_exit ./blk_recovery$EXESUFFIX 4096 $DIR/testfile1 5 10 2>/dev/null
+mv out0.log interrupted0.log
+
+expect_normal_exit ./blk_recovery$EXESUFFIX 4096 $DIR/testfile1
+mv out0.log check0.log
 
 check_pool $DIR/testfile1
 

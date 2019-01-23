@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,88 +84,65 @@ ident(unsigned char *buf)
 	return descr;
 }
 
-static ut_jmp_buf_t Jmp;
-
-/*
- * signal_handler -- called on SIGSEGV
- */
-static void
-signal_handler(int sig)
-{
-	UT_OUT("signal: %s", os_strsignal(sig));
-
-	ut_siglongjmp(Jmp);
-}
-
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "blk_recovery");
 
-	if (argc != 5)
-		UT_FATAL("usage: %s bsize file first_lba lba", argv[0]);
+	if (argc != 5 && argc != 3)
+		UT_FATAL("usage: %s bsize file [first_lba lba]", argv[0]);
 
 	Bsize = strtoul(argv[1], NULL, 0);
 	const char *path = argv[2];
 
-	PMEMblkpool *handle;
-	if ((handle = pmemblk_create(path, Bsize, 0,
-			S_IWUSR | S_IRUSR)) == NULL)
-		UT_FATAL("!%s: pmemblk_create", path);
+	if (argc > 3) {
+		PMEMblkpool *handle;
+		if ((handle = pmemblk_create(path, Bsize, 0,
+				S_IWUSR | S_IRUSR)) == NULL)
+			UT_FATAL("!%s: pmemblk_create", path);
 
-	UT_OUT("%s block size %zu usable blocks %zu",
-			argv[1], Bsize, pmemblk_nblock(handle));
+		UT_OUT("%s block size %zu usable blocks %zu",
+				argv[1], Bsize, pmemblk_nblock(handle));
 
-	/* write the first lba */
-	os_off_t lba = STRTOL(argv[3], NULL, 0);
-	unsigned char *buf = MALLOC(Bsize);
+		/* write the first lba */
+		os_off_t lba = STRTOL(argv[3], NULL, 0);
+		unsigned char *buf = MALLOC(Bsize);
 
-	construct(buf);
-	if (pmemblk_write(handle, buf, lba) < 0)
-		UT_FATAL("!write     lba %zu", lba);
+		construct(buf);
+		if (pmemblk_write(handle, buf, lba) < 0)
+			UT_FATAL("!write     lba %zu", lba);
 
-	UT_OUT("write     lba %zu: %s", lba, ident(buf));
+		UT_OUT("write     lba %zu: %s", lba, ident(buf));
 
-	/* reach into the layout and write-protect the map */
-	struct btt_info *infop = (void *)((char *)handle +
-		roundup(sizeof(struct pmemblk), BLK_FORMAT_DATA_ALIGN));
+		/* reach into the layout and write-protect the map */
+		struct btt_info *infop = (void *)((char *)handle +
+			roundup(sizeof(struct pmemblk), BLK_FORMAT_DATA_ALIGN));
 
-	char *mapaddr = (char *)infop + le32toh(infop->mapoff);
-	char *flogaddr = (char *)infop + le32toh(infop->flogoff);
+		char *mapaddr = (char *)infop + le32toh(infop->mapoff);
+		char *flogaddr = (char *)infop + le32toh(infop->flogoff);
 
-	UT_OUT("write-protecting map, length %zu",
-			(size_t)(flogaddr - mapaddr));
-	MPROTECT(mapaddr, (size_t)(flogaddr - mapaddr), PROT_READ);
+		UT_OUT("write-protecting map, length %zu",
+				(size_t)(flogaddr - mapaddr));
+		MPROTECT(mapaddr, (size_t)(flogaddr - mapaddr), PROT_READ);
 
-	/* arrange to catch SEGV */
-	struct sigaction v;
-	sigemptyset(&v.sa_mask);
-	v.sa_flags = 0;
-	v.sa_handler = signal_handler;
-	SIGACTION(SIGSEGV, &v, NULL);
+		/* map each file argument with the given map type */
+		lba = STRTOL(argv[4], NULL, 0);
 
-	/* map each file argument with the given map type */
-	lba = STRTOL(argv[4], NULL, 0);
+		construct(buf);
 
-	construct(buf);
-
-	if (!ut_sigsetjmp(Jmp)) {
 		if (pmemblk_write(handle, buf, lba) < 0)
 			UT_FATAL("!write     lba %zu", lba);
 		else
 			UT_FATAL("write     lba %zu: %s", lba, ident(buf));
+	} else {
+		int result = pmemblk_check(path, Bsize);
+		if (result < 0)
+			UT_OUT("!%s: pmemblk_check", path);
+		else if (result == 0)
+			UT_OUT("%s: pmemblk_check: not consistent", path);
+		else
+			UT_OUT("%s: consistent", path);
 	}
-
-	pmemblk_close(handle);
-	FREE(buf);
-
-	int result = pmemblk_check(path, Bsize);
-	if (result < 0)
-		UT_OUT("!%s: pmemblk_check", path);
-	else if (result == 0)
-		UT_OUT("%s: pmemblk_check: not consistent", path);
-	else
-		UT_OUT("%s: consistent", path);
 
 	DONE(NULL);
 }
