@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,7 @@
  * phase.
  */
 #include "unittest.h"
+#include "sys_util.h"
 
 #define THREADS 8
 #define LOOPS 8
@@ -52,28 +53,28 @@ tx_alloc_free(void *arg)
 	for (int i = 0; i < LOOPS; ++i) {
 		locked = 0;
 		TX_BEGIN(pop) {
-			os_mutex_lock(&mtx);
+			util_mutex_lock(&mtx);
 			locked = 1;
 			tab = pmemobj_tx_zalloc(128, 1);
 		} TX_ONCOMMIT {
 			if (locked)
-				os_mutex_unlock(&mtx);
+				util_mutex_unlock(&mtx);
 		} TX_ONABORT {
 			if (locked)
-				os_mutex_unlock(&mtx);
+				util_mutex_unlock(&mtx);
 		} TX_END
 		locked = 0;
 		TX_BEGIN(pop) {
-			os_mutex_lock(&mtx);
+			util_mutex_lock(&mtx);
 			locked = 1;
 			pmemobj_tx_free(tab);
 			tab = OID_NULL;
 		} TX_ONCOMMIT {
 			if (locked)
-				os_mutex_unlock(&mtx);
+				util_mutex_unlock(&mtx);
 		} TX_ONABORT {
 			if (locked)
-				os_mutex_unlock(&mtx);
+				util_mutex_unlock(&mtx);
 		} TX_END
 	}
 	return NULL;
@@ -86,16 +87,16 @@ tx_snap(void *arg)
 	for (int i = 0; i < LOOPS; ++i) {
 		locked = 0;
 		TX_BEGIN(pop) {
-			os_mutex_lock(&mtx);
+			util_mutex_lock(&mtx);
 			locked = 1;
 			if (!OID_IS_NULL(tab))
 				pmemobj_tx_add_range(tab, 0, 8);
 		} TX_ONCOMMIT {
 			if (locked)
-				os_mutex_unlock(&mtx);
+				util_mutex_unlock(&mtx);
 		} TX_ONABORT {
 			if (locked)
-				os_mutex_unlock(&mtx);
+				util_mutex_unlock(&mtx);
 		} TX_END
 		locked = 0;
 	}
@@ -108,7 +109,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_tx_mt");
 
-	os_mutex_init(&mtx);
+	util_mutex_init(&mtx);
 
 	if (argc != 2)
 		UT_FATAL("usage: %s [file]", argv[0]);
@@ -130,7 +131,7 @@ main(int argc, char *argv[])
 
 	pmemobj_close(pop);
 
-	os_mutex_destroy(&mtx);
+	util_mutex_destroy(&mtx);
 
 	FREE(threads);
 

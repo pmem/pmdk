@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 #include "unittest.h"
 #include "lane.h"
 #include "obj.h"
+#include "sys_util.h"
 
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"
@@ -52,22 +53,22 @@ static PMEMoid thread_oid;
 static void *
 test_worker(void *arg)
 {
-	os_mutex_lock(&lock);
+	util_mutex_lock(&lock);
 	/* before pool is closed */
 	void *direct = pmemobj_direct(thread_oid);
 	UT_ASSERT(OID_EQUALS(thread_oid, pmemobj_oid(direct)));
 
 	flag = 0;
 	os_cond_signal(&cond);
-	os_mutex_unlock(&lock);
+	util_mutex_unlock(&lock);
 
-	os_mutex_lock(&lock);
+	util_mutex_lock(&lock);
 	while (flag == 0)
 		os_cond_wait(&cond, &lock);
 	/* after pool is closed */
 	UT_ASSERT(OID_IS_NULL(pmemobj_oid(direct)));
 
-	os_mutex_unlock(&lock);
+	util_mutex_unlock(&lock);
 
 	return NULL;
 }
@@ -80,7 +81,7 @@ main(int argc, char *argv[])
 	if (argc != 3)
 		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
 
-	os_mutex_init(&lock);
+	util_mutex_init(&lock);
 	os_cond_init(&cond);
 
 	unsigned npools = ATOU(argv[2]);
@@ -129,7 +130,7 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(r, 0);
 	UT_ASSERT(!OID_IS_NULL(pmemobj_oid(pmemobj_direct(thread_oid))));
 
-	os_mutex_lock(&lock);
+	util_mutex_lock(&lock);
 
 	os_thread_t t;
 	PTHREAD_CREATE(&t, NULL, test_worker, NULL);
@@ -151,7 +152,7 @@ main(int argc, char *argv[])
 	/* signal the waiting thread */
 	flag = 1;
 	os_cond_signal(&cond);
-	os_mutex_unlock(&lock);
+	util_mutex_unlock(&lock);
 
 	PTHREAD_JOIN(&t, NULL);
 
@@ -161,7 +162,7 @@ main(int argc, char *argv[])
 	FREE(pops);
 	FREE(allocated_memory);
 
-	os_mutex_destroy(&lock);
+	util_mutex_destroy(&lock);
 	os_cond_destroy(&cond);
 
 	DONE(NULL);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,8 +34,9 @@
  * obj_direct.c -- unit test for pmemobj_direct()
  */
 #include "obj.h"
-#include "unittest.h"
 #include "obj_direct.h"
+#include "sys_util.h"
+#include "unittest.h"
 
 #define MAX_PATH_LEN 255
 #define LAYOUT_NAME "direct"
@@ -62,16 +63,16 @@ test_worker(void *arg)
 {
 	/* check before pool is closed, then let main continue */
 	UT_ASSERTne(obj_direct(thread_oid), NULL);
-	os_mutex_lock(&lock1);
+	util_mutex_lock(&lock1);
 	cond1 = 1;
 	os_cond_signal(&sync_cond1);
-	os_mutex_unlock(&lock1);
+	util_mutex_unlock(&lock1);
 
 	/* wait for main thread to free & close, then check */
-	os_mutex_lock(&lock2);
+	util_mutex_lock(&lock2);
 	while (!cond2)
 		os_cond_wait(&sync_cond2, &lock2);
-	os_mutex_unlock(&lock2);
+	util_mutex_unlock(&lock2);
 	UT_ASSERTeq(obj_direct(thread_oid), NULL);
 	return NULL;
 }
@@ -88,8 +89,8 @@ main(int argc, char *argv[])
 	const char *dir = argv[1];
 	int r;
 
-	os_mutex_init(&lock1);
-	os_mutex_init(&lock2);
+	util_mutex_init(&lock1);
+	util_mutex_init(&lock2);
 	os_cond_init(&sync_cond1);
 	os_cond_init(&sync_cond2);
 	cond1 = cond2 = 0;
@@ -140,10 +141,10 @@ main(int argc, char *argv[])
 	PTHREAD_CREATE(&t, NULL, test_worker, NULL);
 
 	/* wait for the worker thread to perform the first check */
-	os_mutex_lock(&lock1);
+	util_mutex_lock(&lock1);
 	while (!cond1)
 		os_cond_wait(&sync_cond1, &lock1);
-	os_mutex_unlock(&lock1);
+	util_mutex_unlock(&lock1);
 
 	for (unsigned i = 0; i < npools; ++i) {
 		UT_ASSERTne(obj_direct(tmpoids[i]), NULL);
@@ -156,16 +157,16 @@ main(int argc, char *argv[])
 	}
 
 	/* signal the worker that we're free and closed */
-	os_mutex_lock(&lock2);
+	util_mutex_lock(&lock2);
 	cond2 = 1;
 	os_cond_signal(&sync_cond2);
-	os_mutex_unlock(&lock2);
+	util_mutex_unlock(&lock2);
 
 	PTHREAD_JOIN(&t, NULL);
 	os_cond_destroy(&sync_cond1);
 	os_cond_destroy(&sync_cond2);
-	os_mutex_destroy(&lock1);
-	os_mutex_destroy(&lock2);
+	util_mutex_destroy(&lock1);
+	util_mutex_destroy(&lock2);
 	FREE(pops);
 	FREE(tmpoids);
 	FREE(oids);
