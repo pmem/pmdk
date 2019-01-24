@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -66,7 +66,7 @@ CTL_READ_HANDLER(alloc_pattern)(void *ctx,
 	return 0;
 }
 
-static struct ctl_argument CTL_ARG(alloc_pattern) = CTL_ARG_LONG_LONG;
+static const struct ctl_argument CTL_ARG(alloc_pattern) = CTL_ARG_LONG_LONG;
 
 static const struct ctl_node CTL_NODE(heap)[] = {
 	CTL_LEAF_RW(alloc_pattern),

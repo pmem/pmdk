@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -117,9 +117,9 @@ struct ctl_node {
 	enum ctl_node_type type;
 
 	node_callback cb[MAX_CTL_QUERY_TYPE];
-	struct ctl_argument *arg;
+	const struct ctl_argument *arg;
 
-	struct ctl_node *children;
+	const struct ctl_node *children;
 };
 
 struct ctl *ctl_new(void);

@@ -420,7 +420,7 @@ CTL_READ_HANDLER(desc)(void *ctx,
 	return 0;
 }
 
-static struct ctl_argument CTL_ARG(desc) = {
+static const struct ctl_argument CTL_ARG(desc) = {
 	.dest_size = sizeof(struct pobj_alloc_class_desc),
 	.parsers = {
 		CTL_ARG_PARSER_STRUCT(struct pobj_alloc_class_desc,
@@ -518,7 +518,7 @@ CTL_WRITE_HANDLER(granularity)(void *ctx,
 	return 0;
 }
 
-static struct ctl_argument CTL_ARG(granularity) = CTL_ARG_LONG_LONG;
+static const struct ctl_argument CTL_ARG(granularity) = CTL_ARG_LONG_LONG;
 
 /*
  * CTL_READ_HANDLER(narenas) -- reads a number of the arenas

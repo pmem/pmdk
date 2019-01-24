@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -79,7 +79,7 @@ CTL_WRITE_HANDLER(enabled)(void *ctx,
 	return 0;
 }
 
-static struct ctl_argument CTL_ARG(enabled) = CTL_ARG_BOOLEAN;
+static const struct ctl_argument CTL_ARG(enabled) = CTL_ARG_BOOLEAN;
 
 static const struct ctl_node CTL_NODE(stats)[] = {
 	CTL_CHILD(heap),
