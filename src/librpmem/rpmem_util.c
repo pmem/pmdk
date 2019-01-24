@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,7 +46,7 @@
 #include "rpmem_common.h"
 #include "rpmem_util.h"
 
-static struct rpmem_err_str_errno {
+static const struct rpmem_err_str_errno {
 	int err;
 	const char *str;
 } rpmem_err_str_errno[MAX_RPMEM_ERR] = {
