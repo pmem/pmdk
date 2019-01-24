@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,7 +44,7 @@ extern "C" {
 #endif
 
 struct block_container {
-	struct block_container_ops *c_ops;
+	const struct block_container_ops *c_ops;
 	struct palloc_heap *heap;
 };
 
