@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -81,8 +81,8 @@
 #include <stdbool.h>
 
 #include "critnib.h"
-#include "os_thread.h"
 #include "out.h"
+#include "sys_util.h"
 #include "valgrind_internal.h"
 
 /*
@@ -219,7 +219,7 @@ critnib_new(void)
 	if (!c)
 		return NULL;
 
-	os_mutex_init(&c->mutex);
+	util_mutex_init(&c->mutex);
 
 	return c;
 }
@@ -251,7 +251,7 @@ critnib_delete(struct critnib *c)
 	if (c->root)
 		delete_node(c->root);
 
-	os_mutex_destroy(&c->mutex);
+	util_mutex_destroy(&c->mutex);
 
 	for (struct critnib_node *m = c->deleted_node; m; ) {
 		struct critnib_node *mm = m->child[0];
@@ -354,11 +354,11 @@ alloc_leaf(struct critnib *__restrict c)
 int
 critnib_insert(struct critnib *c, uint64_t key, void *value)
 {
-	os_mutex_lock(&c->mutex);
+	util_mutex_lock(&c->mutex);
 
 	struct critnib_leaf *k = alloc_leaf(c);
 	if (!k) {
-		os_mutex_unlock(&c->mutex);
+		util_mutex_unlock(&c->mutex);
 
 		return ENOMEM;
 	}
@@ -372,7 +372,7 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 	if (!n) {
 		c->root = kn;
 
-		os_mutex_unlock(&c->mutex);
+		util_mutex_unlock(&c->mutex);
 
 		return 0;
 	}
@@ -390,7 +390,7 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 		n = prev;
 		store(&n->child[slice_index(key, n->shift)], kn);
 
-		os_mutex_unlock(&c->mutex);
+		util_mutex_unlock(&c->mutex);
 
 		return 0;
 	}
@@ -403,7 +403,7 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 		free_leaf(c, to_leaf(kn));
 		/* fail instead of replacing */
 
-		os_mutex_unlock(&c->mutex);
+		util_mutex_unlock(&c->mutex);
 
 		return EEXIST;
 	}
@@ -415,7 +415,7 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 	if (!m) {
 		free_leaf(c, to_leaf(kn));
 
-		os_mutex_unlock(&c->mutex);
+		util_mutex_unlock(&c->mutex);
 
 		return ENOMEM;
 	}
@@ -429,7 +429,7 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 	m->path = key & path_mask(sh);
 	store(parent, m);
 
-	os_mutex_unlock(&c->mutex);
+	util_mutex_unlock(&c->mutex);
 
 	return 0;
 }
@@ -440,11 +440,11 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 void *
 critnib_remove(struct critnib *c, uint64_t key)
 {
-	os_mutex_lock(&c->mutex);
+	util_mutex_lock(&c->mutex);
 
 	struct critnib_node *n = c->root;
 	if (!n) {
-		os_mutex_unlock(&c->mutex);
+		util_mutex_unlock(&c->mutex);
 
 		return NULL;
 	}
@@ -462,12 +462,12 @@ critnib_remove(struct critnib *c, uint64_t key)
 			void *value = k->value;
 			c->pending_del_leaves[del] = k;
 
-			os_mutex_unlock(&c->mutex);
+			util_mutex_unlock(&c->mutex);
 
 			return value;
 		}
 
-		os_mutex_unlock(&c->mutex);
+		util_mutex_unlock(&c->mutex);
 
 		return NULL;
 	}
@@ -488,7 +488,7 @@ critnib_remove(struct critnib *c, uint64_t key)
 
 	struct critnib_leaf *k = to_leaf(kn);
 	if (k->key != key) {
-		os_mutex_unlock(&c->mutex);
+		util_mutex_unlock(&c->mutex);
 
 		return NULL;
 	}
@@ -503,7 +503,7 @@ critnib_remove(struct critnib *c, uint64_t key)
 				void *value = k->value;
 				c->pending_del_leaves[del] = k;
 
-				os_mutex_unlock(&c->mutex);
+				util_mutex_unlock(&c->mutex);
 
 				return value;
 			}
@@ -519,7 +519,7 @@ critnib_remove(struct critnib *c, uint64_t key)
 	c->pending_del_nodes[del] = n;
 	c->pending_del_leaves[del] = k;
 
-	os_mutex_unlock(&c->mutex);
+	util_mutex_unlock(&c->mutex);
 
 	return value;
 }

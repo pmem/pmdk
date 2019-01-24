@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
 #include <err.h>
 
 #include "benchmark_worker.hpp"
-#include "os_thread.h"
+#include "sys_util.h"
 
 /*
  * worker_state_wait_for_transition -- wait for transition from and to
@@ -75,7 +75,7 @@ thread_func(void *arg)
 	assert(arg != nullptr);
 	auto *worker = (struct benchmark_worker *)arg;
 
-	os_mutex_lock(&worker->lock);
+	util_mutex_lock(&worker->lock);
 
 	worker_state_wait_for_transition(worker, WORKER_STATE_IDLE,
 					 WORKER_STATE_INIT);
@@ -88,7 +88,7 @@ thread_func(void *arg)
 				WORKER_STATE_INITIALIZED);
 
 	if (worker->ret_init) {
-		os_mutex_unlock(&worker->lock);
+		util_mutex_unlock(&worker->lock);
 		return nullptr;
 	}
 
@@ -107,7 +107,7 @@ thread_func(void *arg)
 
 	worker_state_transition(worker, WORKER_STATE_EXIT, WORKER_STATE_DONE);
 
-	os_mutex_unlock(&worker->lock);
+	util_mutex_unlock(&worker->lock);
 	return nullptr;
 }
 
@@ -123,8 +123,7 @@ benchmark_worker_alloc(void)
 	if (!w)
 		return nullptr;
 
-	if (os_mutex_init(&w->lock))
-		goto err_free_worker;
+	util_mutex_init(&w->lock);
 
 	if (os_cond_init(&w->cond))
 		goto err_destroy_mutex;
@@ -137,8 +136,7 @@ benchmark_worker_alloc(void)
 err_destroy_cond:
 	os_cond_destroy(&w->cond);
 err_destroy_mutex:
-	os_mutex_destroy(&w->lock);
-err_free_worker:
+	util_mutex_destroy(&w->lock);
 	free(w);
 	return nullptr;
 }
@@ -151,7 +149,7 @@ benchmark_worker_free(struct benchmark_worker *w)
 {
 	os_thread_join(&w->thread, nullptr);
 	os_cond_destroy(&w->cond);
-	os_mutex_destroy(&w->lock);
+	util_mutex_destroy(&w->lock);
 	free(w);
 }
 
@@ -161,7 +159,7 @@ benchmark_worker_free(struct benchmark_worker *w)
 int
 benchmark_worker_init(struct benchmark_worker *worker)
 {
-	os_mutex_lock(&worker->lock);
+	util_mutex_lock(&worker->lock);
 
 	worker_state_transition(worker, WORKER_STATE_IDLE, WORKER_STATE_INIT);
 
@@ -170,7 +168,7 @@ benchmark_worker_init(struct benchmark_worker *worker)
 
 	int ret = worker->ret_init;
 
-	os_mutex_unlock(&worker->lock);
+	util_mutex_unlock(&worker->lock);
 
 	return ret;
 }
@@ -181,14 +179,14 @@ benchmark_worker_init(struct benchmark_worker *worker)
 void
 benchmark_worker_exit(struct benchmark_worker *worker)
 {
-	os_mutex_lock(&worker->lock);
+	util_mutex_lock(&worker->lock);
 
 	worker_state_transition(worker, WORKER_STATE_END, WORKER_STATE_EXIT);
 
 	worker_state_wait_for_transition(worker, WORKER_STATE_EXIT,
 					 WORKER_STATE_DONE);
 
-	os_mutex_unlock(&worker->lock);
+	util_mutex_unlock(&worker->lock);
 }
 
 /*
@@ -199,12 +197,12 @@ benchmark_worker_run(struct benchmark_worker *worker)
 {
 	int ret = 0;
 
-	os_mutex_lock(&worker->lock);
+	util_mutex_lock(&worker->lock);
 
 	worker_state_transition(worker, WORKER_STATE_INITIALIZED,
 				WORKER_STATE_RUN);
 
-	os_mutex_unlock(&worker->lock);
+	util_mutex_unlock(&worker->lock);
 
 	return ret;
 }
@@ -215,12 +213,12 @@ benchmark_worker_run(struct benchmark_worker *worker)
 int
 benchmark_worker_join(struct benchmark_worker *worker)
 {
-	os_mutex_lock(&worker->lock);
+	util_mutex_lock(&worker->lock);
 
 	worker_state_wait_for_transition(worker, WORKER_STATE_RUN,
 					 WORKER_STATE_END);
 
-	os_mutex_unlock(&worker->lock);
+	util_mutex_unlock(&worker->lock);
 
 	return 0;
 }

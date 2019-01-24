@@ -39,6 +39,7 @@
  */
 
 #include <sched.h>
+#include "sys_util.h"
 #include "unittest.h"
 #include "util.h"
 
@@ -91,14 +92,14 @@ worker_arenas_size(void *arg)
 	UT_ASSERTeq(ret, 0);
 
 	/* we need to test 2 arenas so 2 threads are needed here */
-	os_mutex_lock(&lock);
+	util_mutex_lock(&lock);
 	nth++;
 	if (nth == NTHREAD)
 		os_cond_broadcast(&cond);
 	else
 		while (nth < NTHREAD)
 			os_cond_wait(&cond, &lock);
-	os_mutex_unlock(&lock);
+	util_mutex_unlock(&lock);
 
 
 	ret = pmemobj_ctl_get(pop, "heap.thread.arena_id", &arena_id);
@@ -143,7 +144,7 @@ main(int argc, char *argv[])
 		UT_ASSERTne(narenas, 0);
 	} else if (t == 's') {
 		os_thread_t threads[NTHREAD];
-		os_mutex_init(&lock);
+		util_mutex_init(&lock);
 		os_cond_init(&cond);
 
 		for (int i = 0; i < NTHREAD; i++)
@@ -157,7 +158,7 @@ main(int argc, char *argv[])
 		POBJ_FOREACH_SAFE(pop, oid, oid2)
 			pmemobj_free(&oid);
 
-		os_mutex_destroy(&lock);
+		util_mutex_destroy(&lock);
 		os_cond_destroy(&cond);
 
 	} else {
