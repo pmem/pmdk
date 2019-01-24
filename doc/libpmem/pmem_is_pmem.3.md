@@ -7,7 +7,7 @@ header: PMDK
 date: pmem API version 1.1
 ...
 
-[comment]: <> (Copyright 2017, Intel Corporation)
+[comment]: <> (Copyright 2017-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -75,15 +75,16 @@ responsibility for flushing stores to persistence will find the
 functions described in this section to be the most commonly used.
 
 The **pmem_is_pmem**() function detects if the entire range
-\[*addr*, *addr*+*len*) consists of persistent memory.
-The implementation of **pmem_is_pmem**() requires a non-trivial amount
-of work to determine if the given range is entirely persistent memory.
-For this reason, it is better to call **pmem_is_pmem**() once when a
-range of memory is first encountered, save the result, and use the saved
-result to determine whether **pmem_persist**(3) or **msync**(2) is
-appropriate for flushing changes to persistence. Calling
-**pmem_is_pmem**() each time changes are flushed to persistence will
-not perform well.
+\[*addr*, *addr*+*len*) consists of persistent memory. Calling this function
+with a memory range that originates from a source different than
+**pmem_map_file()** is undefined. The implementation of **pmem_is_pmem**()
+requires a non-trivial amount of work to determine if the given range is
+entirely persistent memory. For this reason, it is better to call
+**pmem_is_pmem**() once when a range of memory is first encountered,
+save the result, and use the saved result to determine whether
+**pmem_persist**(3) or **msync**(2) is appropriate for flushing changes to
+persistence. Calling **pmem_is_pmem**() each time changes are flushed to
+persistence will not perform well.
 
 The _UW(pmem_map_file) function creates a new read/write mapping for a
 file. If **PMEM_FILE_CREATE** is not specified in *flags*, the entire existing
