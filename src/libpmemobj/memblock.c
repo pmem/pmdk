@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -324,7 +324,7 @@ memblock_header_none_reinit(const struct memory_block *m)
 	/* NOP */
 }
 
-static struct {
+static const struct {
 	/* determines the sizes of an object */
 	size_t (*get_size)(const struct memory_block *m);
 

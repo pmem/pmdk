@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -156,7 +156,7 @@ struct rpmem_fip {
 	void *mr_desc;	/* local memory descriptor */
 
 	enum rpmem_persist_method persist_method;
-	struct rpmem_fip_ops *ops;
+	const struct rpmem_fip_ops *ops;
 
 	unsigned nlanes;
 	size_t buff_size;
@@ -1229,7 +1229,8 @@ rpmem_fip_post_lanes_common(struct rpmem_fip *fip)
 /*
  * rpmem_fip_ops -- some operations specific for persistency method used
  */
-static struct rpmem_fip_ops rpmem_fip_ops[MAX_RPMEM_PROV][MAX_RPMEM_PM] = {
+static const struct rpmem_fip_ops
+rpmem_fip_ops[MAX_RPMEM_PROV][MAX_RPMEM_PM] = {
 	[RPMEM_PROV_LIBFABRIC_VERBS] = {
 		[RPMEM_PM_GPSPM] = {
 			.persist = rpmem_fip_persist_gpspm,

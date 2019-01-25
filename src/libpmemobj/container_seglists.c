@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -167,7 +167,7 @@ container_seglists_destroy(struct block_container *bc)
  * This container does not support retrieval of exact memory blocks, but other
  * than provides best-fit in O(1) time for unit sizes that do not exceed 64.
  */
-static struct block_container_ops container_seglists_ops = {
+static const struct block_container_ops container_seglists_ops = {
 	.insert = container_seglists_insert_block,
 	.get_rm_exact = NULL,
 	.get_rm_bestfit = container_seglists_get_rm_block_bestfit,

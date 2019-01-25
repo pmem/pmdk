@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -71,13 +71,13 @@ struct ctl {
  * The caller is responsible for freeing all of the allocated indexes,
  * regardless of the return value.
  */
-static struct ctl_node *
-ctl_find_node(struct ctl_node *nodes, const char *name,
+static const struct ctl_node *
+ctl_find_node(const struct ctl_node *nodes, const char *name,
 	struct ctl_indexes *indexes)
 {
 	LOG(3, "nodes %p name %s indexes %p", nodes, name, indexes);
 
-	struct ctl_node *n = NULL;
+	const struct ctl_node *n = NULL;
 	char *sptr = NULL;
 	char *parse_str = Strdup(name);
 	if (parse_str == NULL)
@@ -151,7 +151,7 @@ ctl_delete_indexes(struct ctl_indexes *indexes)
  *	structure
  */
 static void *
-ctl_parse_args(struct ctl_argument *arg_proto, char *arg)
+ctl_parse_args(const struct ctl_argument *arg_proto, char *arg)
 {
 	ASSERTne(arg, NULL);
 
@@ -161,7 +161,7 @@ ctl_parse_args(struct ctl_argument *arg_proto, char *arg)
 
 	char *sptr = NULL;
 	char *arg_sep = strtok_r(arg, CTL_VALUE_ARG_SEPARATOR, &sptr);
-	for (struct ctl_argument_parser *p = arg_proto->parsers;
+	for (const struct ctl_argument_parser *p = arg_proto->parsers;
 			p->parser != NULL; ++p) {
 		ASSERT(p->dest_offset + p->dest_size <= arg_proto->dest_size);
 		if (arg_sep == NULL)
@@ -186,7 +186,7 @@ error_parsing:
  *	structure as required by the node callback
  */
 static void *
-ctl_query_get_real_args(struct ctl_node *n, void *write_arg,
+ctl_query_get_real_args(const struct ctl_node *n, void *write_arg,
 	enum ctl_query_source source)
 {
 	void *real_arg = NULL;
@@ -210,7 +210,7 @@ ctl_query_get_real_args(struct ctl_node *n, void *write_arg,
  *	structures allocated as a result of the get_real_args call
  */
 static void
-ctl_query_cleanup_real_args(struct ctl_node *n, void *real_arg,
+ctl_query_cleanup_real_args(const struct ctl_node *n, void *real_arg,
 	enum ctl_query_source source)
 {
 	switch (source) {
@@ -229,7 +229,7 @@ ctl_query_cleanup_real_args(struct ctl_node *n, void *real_arg,
  * ctl_exec_query_read -- (internal) calls the read callback of a node
  */
 static int
-ctl_exec_query_read(void *ctx, struct ctl_node *n,
+ctl_exec_query_read(void *ctx, const struct ctl_node *n,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	if (arg == NULL) {
@@ -245,7 +245,7 @@ ctl_exec_query_read(void *ctx, struct ctl_node *n,
  * ctl_exec_query_write -- (internal) calls the write callback of a node
  */
 static int
-ctl_exec_query_write(void *ctx, struct ctl_node *n,
+ctl_exec_query_write(void *ctx, const struct ctl_node *n,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	if (arg == NULL) {
@@ -271,14 +271,14 @@ ctl_exec_query_write(void *ctx, struct ctl_node *n,
  * ctl_exec_query_runnable -- (internal) calls the run callback of a node
  */
 static int
-ctl_exec_query_runnable(void *ctx, struct ctl_node *n,
+ctl_exec_query_runnable(void *ctx, const struct ctl_node *n,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	return n->cb[CTL_QUERY_RUNNABLE](ctx, source, arg, indexes);
 }
 
 static int (*ctl_exec_query[MAX_CTL_QUERY_TYPE])(void *ctx,
-	struct ctl_node *n, enum ctl_query_source source, void *arg,
+	const struct ctl_node *n, enum ctl_query_source source, void *arg,
 	struct ctl_indexes *indexes) = {
 	ctl_exec_query_read,
 	ctl_exec_query_write,
@@ -312,7 +312,7 @@ ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
 
 	int ret = -1;
 
-	struct ctl_node *n = ctl_find_node(CTL_NODE(global),
+	const struct ctl_node *n = ctl_find_node(CTL_NODE(global),
 		name, &indexes);
 
 	if (n == NULL && ctl) {

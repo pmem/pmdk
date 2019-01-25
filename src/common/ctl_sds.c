@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,7 +60,7 @@ CTL_WRITE_HANDLER(at_create)(void *ctx, enum ctl_query_source source,
 	return 0;
 }
 
-static struct ctl_argument CTL_ARG(at_create) = CTL_ARG_BOOLEAN;
+static const struct ctl_argument CTL_ARG(at_create) = CTL_ARG_BOOLEAN;
 
 static const struct ctl_node CTL_NODE(sds)[] = {
 	CTL_LEAF_RW(at_create),

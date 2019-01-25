@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -415,7 +415,7 @@ palloc_mem_action_exec(struct palloc_heap *heap,
 	operation_add_entry(ctx, act->ptr, act->value, ULOG_OPERATION_SET);
 }
 
-static struct {
+static const struct {
 	/*
 	 * Translate action into some number of operation_entry'ies.
 	 */
