@@ -306,8 +306,6 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_lane");
 
-	obj_init();
-
 	if (argc != 2)
 		usage(argv[0]);
 
@@ -327,7 +325,6 @@ main(int argc, char *argv[])
 		usage(argv[0]);
 	}
 
-	obj_fini();
 	DONE(NULL);
 }
 

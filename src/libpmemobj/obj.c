@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -227,7 +227,7 @@ err:
 /*
  * obj_pool_init -- (internal) allocate global structs holding all opened pools
  *
- * This is invoked on a first call to pmemobj_open() or pmemobj_create().
+ * This is called by library's constructor.
  * Memory is released in library destructor.
  */
 static void
@@ -312,6 +312,8 @@ obj_init(void)
 		FATAL("error: %s", pmemobj_errormsg());
 
 	lane_info_boot();
+
+	obj_pool_init();
 
 	util_remote_init();
 }
@@ -1243,8 +1245,6 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 				(char *)pop + pop->set->poolsize - (char *)end);
 		}
 #endif
-
-		obj_pool_init();
 
 		if ((errno = critnib_insert(pools_ht, pop->uuid_lo, pop))) {
 			ERR("!critnib_insert to pools_ht");
