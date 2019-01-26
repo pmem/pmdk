@@ -986,7 +986,8 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 			break;
 	}
 
-	SLIST_INSERT_HEAD(&tx->tx_locks, txl, tx_lock);
+	if (retval == 0)
+		SLIST_INSERT_HEAD(&tx->tx_locks, txl, tx_lock);
 
 	return retval;
 }
