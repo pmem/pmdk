@@ -236,7 +236,7 @@ pmalloc_cleanup(PMEMobjpool *pop)
 }
 
 /*
- * CTL_WRITE_HANDLER(proto) -- creates a new allocation class
+ * CTL_WRITE_HANDLER(desc) -- creates a new allocation class
  */
 static int
 CTL_WRITE_HANDLER(desc)(void *ctx,
@@ -551,6 +551,53 @@ CTL_READ_HANDLER(arena_id)(void *ctx,
 	return 0;
 }
 
+/*
+ * CTL_WRITE_HANDLER(is_auto) -- updates is_auto status of the arena
+ */
+static int
+CTL_WRITE_HANDLER(is_auto)(void *ctx, enum ctl_query_source source,
+		void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	int arg_in = *(int *)arg;
+	unsigned arena_id;
+
+	struct ctl_index *idx = SLIST_FIRST(indexes);
+	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
+	arena_id = (unsigned)idx->value;
+
+	if (arg_in != 0 && arg_in != 1) {
+		ERR("incorrect arena state, must be 0 or 1");
+		return -1;
+	}
+
+	heap_set_arena_auto(&pop->heap, arena_id, arg_in);
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(is_auto) -- reads is_auto status of the arena
+ */
+static int
+CTL_READ_HANDLER(is_auto)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	int *arg_out = arg;
+	unsigned arena_id;
+
+	struct ctl_index *idx = SLIST_FIRST(indexes);
+	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
+	arena_id = (unsigned)idx->value;
+
+	*arg_out = heap_get_arena_auto(&pop->heap, arena_id);
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(is_auto) = CTL_ARG_BOOLEAN;
+
 static const struct ctl_node CTL_NODE(size)[] = {
 	CTL_LEAF_RW(granularity),
 	CTL_LEAF_RUNNABLE(extend),
@@ -625,6 +672,7 @@ CTL_RUNNABLE_HANDLER(create)(void *ctx,
 
 static const struct ctl_node CTL_NODE(arena_id)[] = {
 	CTL_LEAF_RO(size),
+	CTL_LEAF_RW(is_auto),
 
 	CTL_NODE_END
 };
