@@ -61,15 +61,19 @@
 #define HEAP_DEFAULT_GROW_SIZE (1 << 27) /* 128 megabytes */
 
 /*
- * Arenas store the collection of buckets for allocation classes. Each thread
- * is assigned an arena on its first allocator operation if arena is active.
+ * Arenas store the collection of buckets for allocation classes.
+ * Each thread is assigned an arena on its first allocator operation
+ * if arena is set to auto.
  */
 struct arena {
 	/* one bucket per allocation class */
 	struct bucket *buckets[MAX_ALLOCATION_CLASSES];
 
-	/* defines if the arena can be assign to the thread */
-	unsigned active;
+	/*
+	 * defines if the arena can be automatically
+	 * assign to the thread
+	 */
+	int is_auto;
 	size_t nthreads;
 };
 
@@ -121,7 +125,7 @@ heap_arena_delete(struct arena *arena)
  * heap_arena_new -- (internal) initializes arena instance
  */
 static struct arena *
-heap_arena_new(struct palloc_heap *heap, unsigned active)
+heap_arena_new(struct palloc_heap *heap, int is_auto)
 {
 	struct heap_rt *rt = heap->rt;
 
@@ -131,7 +135,7 @@ heap_arena_new(struct palloc_heap *heap, unsigned active)
 		return NULL;
 	}
 	arena->nthreads = 0;
-	arena->active = active;
+	arena->is_auto = is_auto;
 
 	for (uint8_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *ac =
@@ -195,7 +199,7 @@ heap_thread_arena_assign(struct heap_rt *heap)
 	VEC_FOREACH(a, &heap->arenas) {
 		if ((least_used == NULL ||
 			a->nthreads < least_used->nthreads)&&
-			a->active == 1)
+			a->is_auto == 1)
 			least_used = a;
 	}
 
@@ -1001,6 +1005,31 @@ heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 {
 	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
 	return a->buckets;
+}
+
+/*
+ * heap_get_arena_auto -- returns arena is_auto value
+ */
+int
+heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id)
+{
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	return a->is_auto;
+}
+
+/*
+ * heap_set_arena_auto -- sets arena is_auto value
+ */
+void
+heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
+		int is_auto)
+{
+	struct heap_rt *h = heap->rt;
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+
+	util_mutex_lock(&h->arenas_lock);
+	a->is_auto = is_auto;
+	util_mutex_unlock(&h->arenas_lock);
 }
 
 /*

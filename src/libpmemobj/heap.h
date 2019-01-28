@@ -94,6 +94,7 @@ os_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 
 void
 heap_memblock_on_free(struct palloc_heap *heap, const struct memory_block *m);
+
 int
 heap_free_chunk_reuse(struct palloc_heap *heap,
 	struct bucket *bucket, struct memory_block *m);
@@ -113,6 +114,11 @@ int heap_arena_create(struct palloc_heap *heap);
 
 struct bucket **
 heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id);
+
+int heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id);
+
+void heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
+		int is_auto);
 
 void heap_vg_open(struct palloc_heap *heap, object_callback cb,
 		void *arg, int objects);
