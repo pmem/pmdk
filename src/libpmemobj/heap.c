@@ -69,7 +69,7 @@ struct arena {
 	struct bucket *buckets[MAX_ALLOCATION_CLASSES];
 
 	/* defines if the arena can be assign to the thread */
-	unsigned active;
+	int active;
 	size_t nthreads;
 };
 
@@ -121,7 +121,7 @@ heap_arena_delete(struct arena *arena)
  * heap_arena_new -- (internal) initializes arena instance
  */
 static struct arena *
-heap_arena_new(struct palloc_heap *heap, unsigned active)
+heap_arena_new(struct palloc_heap *heap, int active)
 {
 	struct heap_rt *rt = heap->rt;
 
@@ -1001,6 +1001,31 @@ heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 {
 	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
 	return a->buckets;
+}
+
+/*
+ * heap_get_arena_active -- returns arena active value
+ */
+int
+heap_get_arena_active(struct palloc_heap *heap, unsigned arena_id)
+{
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	return a->active;
+}
+
+/*
+ * heap_set_arena_active -- sets arena active value
+ */
+void
+heap_set_arena_active(struct palloc_heap *heap, unsigned arena_id,
+		int active)
+{
+	struct heap_rt *h = heap->rt;
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+
+	util_mutex_lock(&h->arenas_lock);
+	a->active = active;
+	util_mutex_unlock(&h->arenas_lock);
 }
 
 /*
