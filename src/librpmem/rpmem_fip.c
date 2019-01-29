@@ -387,7 +387,8 @@ rpmem_fip_set_nlanes(struct rpmem_fip *fip, unsigned nlanes)
  */
 static int
 rpmem_fip_getinfo(struct rpmem_fip *fip, const char *node, const char *service,
-	enum rpmem_provider provider, enum rpmem_persist_method pm)
+	enum rpmem_provider provider, size_t max_tx_size,
+	enum rpmem_persist_method pm)
 {
 	int ret = -1;
 	struct fi_info *hints = rpmem_fip_get_hints(provider);
@@ -396,11 +397,22 @@ rpmem_fip_getinfo(struct rpmem_fip *fip, const char *node, const char *service,
 		goto err_hints;
 	}
 
-	hints->tx_attr->size = rpmem_fip_tx_size(pm, RPMEM_FIP_NODE_CLIENT);
+	/*
+	 * TX size is:
+	 * - >= size required by persist method (pm_tx_size)
+	 * - >= size forced by environment variable (Rpmem_tx_size)
+	 * - but it has to be <= max_tx_size reported by provider
+	 */
+	size_t pm_tx_size = rpmem_fip_tx_size(pm, RPMEM_FIP_NODE_CLIENT);
+	hints->tx_attr->size =
+			min(
+				max(pm_tx_size, Rpmem_tx_size),
+				max_tx_size);
+
 	hints->rx_attr->size = rpmem_fip_rx_size(pm, RPMEM_FIP_NODE_CLIENT);
 
-	ret = fi_getinfo(RPMEM_FIVERSION, node, service,
-			0, hints, &fip->fi);
+	/* get maximum available */
+	ret = fi_getinfo(RPMEM_FIVERSION, node, service, 0, hints, &fip->fi);
 	if (ret) {
 		RPMEM_FI_ERR(ret, "getting fabric interface information");
 		goto err_fi_getinfo;
@@ -1601,7 +1613,7 @@ rpmem_fip_init(const char *node, const char *service,
 	}
 
 	ret = rpmem_fip_getinfo(fip, node, service,
-		attr->provider, attr->persist_method);
+		attr->provider, attr->max_tx_size, attr->persist_method);
 	if (ret)
 		goto err_getinfo;
 

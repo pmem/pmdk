@@ -50,6 +50,7 @@ struct rpmem_fip;
 
 struct rpmem_fip_attr {
 	enum rpmem_provider provider;
+	size_t max_tx_size;
 	enum rpmem_persist_method persist_method;
 	void *laddr;
 	size_t size;
