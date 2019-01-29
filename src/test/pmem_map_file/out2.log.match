@@ -1,15 +1,81 @@
 pmem_map_file$(nW)TEST2: START: pmem_map_file$(nW)
- $(nW)pmem_map_file$(nW) $(nW) 0 D 0666 1 1 $(nW) 0 DSC 0666 1 1 $(nW) 0 DT 0666 1 1 $(nW) 0 DCE 0666 1 1 $(nW) 0 DC 0666 1 1 $(nW) 2097152 DC 0666 1 1
-$(nW) 0 D 666 1 1
-mapped_len $(N)
-$(nW) 0 DSC 666 1 1
-mapped_len $(N)
-$(nW) 0 DT 666 1 1
+ $(nW)pmem_map_file$(nW) $(*)
+ $(nW)pmem_map_file$(nW)testfile2 0 C 0666 0 0 0
+ $(nW)pmem_map_file$(nW)testfile3 4096 C 0666 1 1 0
+ $(nW)pmem_map_file$(nW)testfile4 0 E 0666 1 1 0
+ $(nW)pmem_map_file$(nW)testfile5 4096 E 0666 1 1 0
+ $(nW)pmem_map_file$(nW)testfile6 4096 CE 0666 1 1 0
+ $(nW)pmem_map_file$(nW)testfile7 4096 CES 0666 1 1 0
+ $(nW)pmem_map_file$(nW)testfile8 4096 CS 0666 1 1 0
+ $(nW)pmem_map_file$(nW)testfile9 -1 C 0666 1 1 0
+ $(nW)pmem_map_file$(nW)testfile10 4096 X 0666 1 1 0
+ $(nW)pmem_map_file$(nW)testfile11 4096 CX 0666 1 1 0
+ $(nW)pmem_map_file$(nW)testfile12 0x1FFFFFFFFFFFFFFF CE 0666 1 1 0
+ $(nW)pmem_map_file$(nW) 0 T 0666 1 1 0
+ $(nW)pmem_map_file$(nW) 4096 T 0666 1 1 0
+ $(nW)pmem_map_file$(nW) 4096 TC 0666 1 1 0
+ $(nW)pmem_map_file$(nW) 4096 TE 0666 1 1 0
+ $(nW)pmem_map_file$(nW) 4096 TS 0666 1 1 0
+ $(nW)pmem_map_file$(nW) 4096 TSE 0666 1 1 0
+ $(nW)pmem_map_file$(nW) 4096 TCE 0666 1 1 0
+ $(nW)pmem_map_file$(nW) 4096 TSEC 0666 1 1 0
+ \nul\nonexistingdir 4096 T 0666 1 1 0
+$(nW)testfile1 0 - 666 1 1 0
+pmem_map_file: No such file or directory
+$(nW)testfile2 0 C 666 0 0 0
 pmem_map_file: Invalid argument
-$(nW) 0 DCE 666 1 1
+$(nW)testfile3 4096 C 666 1 1 0
+ftruncate: len 4096
+posix_fallocate: off 0 len 4096
+mapped_len 4096
+unmap successful
+$(nW)testfile4 0 E 666 1 1 0
+pmem_map_file: No such file or directory
+$(nW)testfile5 4096 E 666 1 1 0
 pmem_map_file: Invalid argument
-$(nW) 0 DC 666 1 1
-mapped_len $(N)
-$(nW) 2097152 DC 666 1 1
+$(nW)testfile6 4096 CE 666 1 1 0
+ftruncate: len 4096
+posix_fallocate: off 0 len 4096
+mapped_len 4096
+unmap successful
+$(nW)testfile7 4096 CES 666 1 1 0
+ftruncate: len 4096
+mapped_len 4096
+unmap successful
+$(nW)testfile8 4096 CS 666 1 1 0
+ftruncate: len 4096
+mapped_len 4096
+unmap successful
+$(nW)testfile9 -1 C 666 1 1 0
 pmem_map_file: Invalid argument
-pmem_map_file$(nW)TEST2: DONE
+$(nW)testfile10 4096 X 666 1 1 0
+pmem_map_file: Invalid argument
+$(nW)testfile11 4096 CX 666 1 1 0
+pmem_map_file: Invalid argument
+$(nW)testfile12 2305843009213693951 CE 666 1 1 0
+ftruncate: len 2305843009213693951
+pmem_map_file: No space left on device
+$(nW) 0 T 666 1 1 0
+pmem_map_file: Invalid argument
+$(nW) 4096 T 666 1 1 0
+pmem_map_file: Invalid argument
+$(nW) 4096 TC 666 1 1 0
+ftruncate: len 4096
+posix_fallocate: off 0 len 4096
+mapped_len 4096
+$(nW) 4096 TE 666 1 1 0
+pmem_map_file: Invalid argument
+$(nW) 4096 TS 666 1 1 0
+pmem_map_file: Invalid argument
+$(nW) 4096 TSE 666 1 1 0
+pmem_map_file: Invalid argument
+$(nW) 4096 TCE 666 1 1 0
+ftruncate: len 4096
+posix_fallocate: off 0 len 4096
+mapped_len 4096
+$(nW) 4096 TSEC 666 1 1 0
+ftruncate: len 4096
+mapped_len 4096
+\nul\nonexistingdir 4096 T 666 1 1 0
+pmem_map_file: Invalid argument
+pmem_map_file/TEST2: DONE
