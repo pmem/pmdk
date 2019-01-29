@@ -225,26 +225,44 @@ rpmem_util_cmd_get(void)
 }
 
 /*
+ * rpmem_util_get_env_uint -- read the unsigned value from environment
+ */
+static void
+rpmem_util_get_env_uint(const char *env, unsigned *pval)
+{
+	char *env_val = os_getenv(env);
+	if (env_val && env_val[0] != '\0') {
+		char *endptr;
+		errno = 0;
+
+		long val = strtol(env_val, &endptr, 10);
+
+		if (endptr[0] != '\0' || val <= 0 ||
+			(errno == ERANGE &&
+			(val == LONG_MAX || val == LONG_MIN))) {
+			RPMEM_LOG(ERR, "%s variable must be a positive integer",
+					env);
+		} else {
+			*pval = val < UINT_MAX ? (unsigned)val: UINT_MAX;
+		}
+	}
+}
+
+/*
  * rpmem_util_get_env_max_nlanes -- read the maximum number of lanes from
  * RPMEM_MAX_NLANES
  */
 void
 rpmem_util_get_env_max_nlanes(unsigned *max_nlanes)
 {
-	char *env_nlanes = os_getenv(RPMEM_MAX_NLANES_ENV);
-	if (env_nlanes && env_nlanes[0] != '\0') {
-		char *endptr;
-		errno = 0;
+	rpmem_util_get_env_uint(RPMEM_MAX_NLANES_ENV, max_nlanes);
+}
 
-		long nlanes = strtol(env_nlanes, &endptr, 10);
-
-		if (endptr[0] != '\0' || nlanes <= 0 ||
-			(errno == ERANGE &&
-			(nlanes == LONG_MAX || nlanes == LONG_MIN))) {
-			RPMEM_LOG(ERR, "%s variable must be a positive integer",
-					RPMEM_MAX_NLANES_ENV);
-		} else {
-			*max_nlanes = (unsigned)nlanes;
-		}
-	}
+/*
+ * rpmem_util_get_env_wq_size -- read the required WQ size from env
+ */
+void
+rpmem_util_get_env_wq_size(unsigned *wq_size)
+{
+	rpmem_util_get_env_uint(RPMEM_WQ_SIZE_ENV, wq_size);
 }
