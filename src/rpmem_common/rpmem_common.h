@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,6 +48,7 @@
 #define RPMEM_PROV_SOCKET_ENV	"RPMEM_ENABLE_SOCKETS"
 #define RPMEM_PROV_VERBS_ENV	"RPMEM_ENABLE_VERBS"
 #define RPMEM_MAX_NLANES_ENV	"RPMEM_MAX_NLANES"
+#define RPMEM_WQ_SIZE_ENV	"RPMEM_WORK_QUEUE_SIZE"
 #define RPMEM_ACCEPT_TIMEOUT 30000
 #define RPMEM_CONNECT_TIMEOUT 30000
 #define RPMEM_MONITOR_TIMEOUT 1000
@@ -148,6 +149,7 @@ struct rpmem_target_info {
 };
 
 extern unsigned Rpmem_max_nlanes;
+extern unsigned Rpmem_wq_size;
 extern int Rpmem_fork_unsafe;
 
 int rpmem_b64_write(int sockfd, const void *buf, size_t len, int flags);

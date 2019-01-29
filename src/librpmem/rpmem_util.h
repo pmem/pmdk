@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -54,8 +54,8 @@ enum {
 #define RPMEM_FATAL(fmt, args...) FATAL(fmt, ## args)
 #define RPMEM_ASSERT(cond)	ASSERT(cond)
 
-#define RPMEM_FLAGS_ALL		RPMEM_PERSIST_RELAXED
-#define RPMEM_FLAGS_MASK	((unsigned)(~RPMEM_FLAGS_ALL))
+#define RPMEM_PERSIST_FLAGS_ALL		RPMEM_PERSIST_RELAXED
+#define RPMEM_PERSIST_FLAGS_MASK	((unsigned)(~RPMEM_PERSIST_FLAGS_ALL))
 
 const char *rpmem_util_proto_errstr(enum rpmem_err err);
 int rpmem_util_proto_errno(enum rpmem_err err);
@@ -64,6 +64,7 @@ void rpmem_util_cmds_init(void);
 void rpmem_util_cmds_fini(void);
 const char *rpmem_util_cmd_get(void);
 void rpmem_util_get_env_max_nlanes(unsigned *max_nlanes);
+void rpmem_util_get_env_wq_size(unsigned *wq_size);
 
 #ifdef __cplusplus
 }

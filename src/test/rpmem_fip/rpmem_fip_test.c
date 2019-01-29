@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -74,6 +74,14 @@ TEST_CASE_DECLARE(client_persist);
 TEST_CASE_DECLARE(client_persist_mt);
 TEST_CASE_DECLARE(client_read);
 
+struct fip_client {
+	enum rpmem_provider provider;
+	unsigned max_tx_size;
+	unsigned nlanes;
+};
+
+#define FIP_CLIENT_DEFAULT {RPMEM_PROV_UNKNOWN, 0, NLANES}
+
 /*
  * get_persist_method -- parse persist method
  */
@@ -91,8 +99,9 @@ get_persist_method(const char *pm)
 /*
  * get_provider -- get provider for given target
  */
-static enum rpmem_provider
-get_provider(const char *target, const char *prov_name, unsigned *nlanes)
+static void
+get_provider(const char *target, const char *prov_name,
+	struct fip_client *client)
 {
 	struct rpmem_fip_probe probe;
 	int ret;
@@ -105,31 +114,30 @@ get_provider(const char *target, const char *prov_name, unsigned *nlanes)
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERT(rpmem_fip_probe_any(probe));
 
-	enum rpmem_provider provider;
 	if (any) {
 		/* return verbs in first place */
 		if (rpmem_fip_probe(probe,
 				RPMEM_PROV_LIBFABRIC_VERBS))
-			provider = RPMEM_PROV_LIBFABRIC_VERBS;
+			client->provider = RPMEM_PROV_LIBFABRIC_VERBS;
 		else if (rpmem_fip_probe(probe,
 				RPMEM_PROV_LIBFABRIC_SOCKETS))
-			provider = RPMEM_PROV_LIBFABRIC_SOCKETS;
+			client->provider = RPMEM_PROV_LIBFABRIC_SOCKETS;
 		else
 			UT_ASSERT(0);
 	} else {
-		provider = rpmem_provider_from_str(prov_name);
-		UT_ASSERTne(provider, RPMEM_PROV_UNKNOWN);
-		UT_ASSERT(rpmem_fip_probe(probe, provider));
+		client->provider = rpmem_provider_from_str(prov_name);
+		UT_ASSERTne(client->provider, RPMEM_PROV_UNKNOWN);
+		UT_ASSERT(rpmem_fip_probe(probe, client->provider));
 	}
 
 	/*
 	 * Decrease number of lanes for socket provider because
 	 * the test may be too long.
 	 */
-	if (provider == RPMEM_PROV_LIBFABRIC_SOCKETS)
-		*nlanes = min(*nlanes, SOCK_NLANES);
+	if (client->provider == RPMEM_PROV_LIBFABRIC_SOCKETS)
+		client->nlanes = min(client->nlanes, SOCK_NLANES);
 
-	return provider;
+	client->max_tx_size = probe.max_tx_size[client->provider];
 }
 
 /*
@@ -207,16 +215,17 @@ client_init(const struct test_case *tc, int argc, char *argv[])
 	info = rpmem_target_parse(target);
 	UT_ASSERTne(info, NULL);
 
-	unsigned nlanes = NLANES;
-	enum rpmem_provider provider = get_provider(info->node,
-			prov_name, &nlanes);
+	struct fip_client fip_client = FIP_CLIENT_DEFAULT;
+	get_provider(info->node, prov_name, &fip_client);
 
 	client_t *client;
 	struct rpmem_resp_attr resp;
-	client = client_exchange(info, nlanes, provider, &resp);
+	client = client_exchange(info, fip_client.nlanes, fip_client.provider,
+			&resp);
 
 	struct rpmem_fip_attr attr = {
-		.provider = provider,
+		.provider = fip_client.provider,
+		.max_tx_size = fip_client.max_tx_size,
 		.persist_method = resp.persist_method,
 		.laddr = lpool,
 		.size = POOL_SIZE,
@@ -234,7 +243,8 @@ client_init(const struct test_case *tc, int argc, char *argv[])
 	rpmem_util_get_env_max_nlanes(&Rpmem_max_nlanes);
 
 	struct rpmem_fip *fip;
-	fip = rpmem_fip_init(info->node, fip_service, &attr, &nlanes);
+	fip = rpmem_fip_init(info->node, fip_service, &attr,
+			&fip_client.nlanes);
 	UT_ASSERTne(fip, NULL);
 
 	client_close_begin(client);
@@ -319,16 +329,17 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 	info = rpmem_target_parse(target);
 	UT_ASSERTne(info, NULL);
 
-	unsigned nlanes = NLANES;
-	enum rpmem_provider provider = get_provider(info->node,
-			prov_name, &nlanes);
+	struct fip_client fip_client = FIP_CLIENT_DEFAULT;
+	get_provider(info->node, prov_name, &fip_client);
 
 	client_t *client;
 	struct rpmem_resp_attr resp;
-	client = client_exchange(info, nlanes, provider, &resp);
+	client = client_exchange(info, fip_client.nlanes, fip_client.provider,
+			&resp);
 
 	struct rpmem_fip_attr attr = {
-		.provider = provider,
+		.provider = fip_client.provider,
+		.max_tx_size = fip_client.max_tx_size,
 		.persist_method = resp.persist_method,
 		.laddr = lpool,
 		.size = POOL_SIZE,
@@ -341,7 +352,8 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERT(sret > 0);
 
 	struct rpmem_fip *fip;
-	fip = rpmem_fip_init(info->node, fip_service, &attr, &nlanes);
+	fip = rpmem_fip_init(info->node, fip_service, &attr,
+			&fip_client.nlanes);
 	UT_ASSERTne(fip, NULL);
 
 	ret = rpmem_fip_connect(fip);
@@ -515,16 +527,17 @@ client_persist(const struct test_case *tc, int argc, char *argv[])
 	set_pool_data(lpool, 1);
 	set_pool_data(rpool, 1);
 
-	unsigned nlanes = NLANES;
-	enum rpmem_provider provider = get_provider(info->node,
-			prov_name, &nlanes);
+	struct fip_client fip_client = FIP_CLIENT_DEFAULT;
+	get_provider(info->node, prov_name, &fip_client);
 
 	client_t *client;
 	struct rpmem_resp_attr resp;
-	client = client_exchange(info, nlanes, provider, &resp);
+	client = client_exchange(info, fip_client.nlanes, fip_client.provider,
+			&resp);
 
 	struct rpmem_fip_attr attr = {
-		.provider = provider,
+		.provider = fip_client.provider,
+		.max_tx_size = fip_client.max_tx_size,
 		.persist_method = resp.persist_method,
 		.laddr = lpool,
 		.size = POOL_SIZE,
@@ -537,7 +550,8 @@ client_persist(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERT(sret > 0);
 
 	struct rpmem_fip *fip;
-	fip = rpmem_fip_init(info->node, fip_service, &attr, &nlanes);
+	fip = rpmem_fip_init(info->node, fip_service, &attr,
+			&fip_client.nlanes);
 	UT_ASSERTne(fip, NULL);
 
 	ret = rpmem_fip_connect(fip);
@@ -596,16 +610,17 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 	set_pool_data(lpool, 1);
 	set_pool_data(rpool, 1);
 
-	unsigned nlanes = NLANES;
-	enum rpmem_provider provider = get_provider(info->node,
-			prov_name, &nlanes);
+	struct fip_client fip_client = FIP_CLIENT_DEFAULT;
+	get_provider(info->node, prov_name, &fip_client);
 
 	client_t *client;
 	struct rpmem_resp_attr resp;
-	client = client_exchange(info, nlanes, provider, &resp);
+	client = client_exchange(info, fip_client.nlanes, fip_client.provider,
+			&resp);
 
 	struct rpmem_fip_attr attr = {
-		.provider = provider,
+		.provider = fip_client.provider,
+		.max_tx_size = fip_client.max_tx_size,
 		.persist_method = resp.persist_method,
 		.laddr = lpool,
 		.size = POOL_SIZE,
@@ -618,7 +633,8 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERT(sret > 0);
 
 	struct rpmem_fip *fip;
-	fip = rpmem_fip_init(info->node, fip_service, &attr, &nlanes);
+	fip = rpmem_fip_init(info->node, fip_service, &attr,
+			&fip_client.nlanes);
 	UT_ASSERTne(fip, NULL);
 
 	ret = rpmem_fip_connect(fip);
@@ -628,14 +644,14 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 	struct persist_arg *args = MALLOC(resp.nlanes *
 			sizeof(struct persist_arg));
 
-	for (unsigned i = 0; i < nlanes; i++) {
+	for (unsigned i = 0; i < fip_client.nlanes; i++) {
 		args[i].fip = fip;
 		args[i].lane = i;
 		PTHREAD_CREATE(&persist_thread[i], NULL,
 				client_persist_thread, &args[i]);
 	}
 
-	for (unsigned i = 0; i < nlanes; i++)
+	for (unsigned i = 0; i < fip_client.nlanes; i++)
 		PTHREAD_JOIN(&persist_thread[i], NULL);
 
 	ret = rpmem_fip_read(fip, rpool, POOL_SIZE, 0, 0);
@@ -687,16 +703,17 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 	set_pool_data(lpool, 0);
 	set_pool_data(rpool, 1);
 
-	unsigned nlanes = NLANES;
-	enum rpmem_provider provider = get_provider(info->node,
-			prov_name, &nlanes);
+	struct fip_client fip_client = FIP_CLIENT_DEFAULT;
+	get_provider(info->node, prov_name, &fip_client);
 
 	client_t *client;
 	struct rpmem_resp_attr resp;
-	client = client_exchange(info, nlanes, provider, &resp);
+	client = client_exchange(info, fip_client.nlanes, fip_client.provider,
+			&resp);
 
 	struct rpmem_fip_attr attr = {
-		.provider = provider,
+		.provider = fip_client.provider,
+		.max_tx_size = fip_client.max_tx_size,
 		.persist_method = resp.persist_method,
 		.laddr = lpool,
 		.size = POOL_SIZE,
@@ -709,7 +726,8 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERT(sret > 0);
 
 	struct rpmem_fip *fip;
-	fip = rpmem_fip_init(info->node, fip_service, &attr, &nlanes);
+	fip = rpmem_fip_init(info->node, fip_service, &attr,
+			&fip_client.nlanes);
 	UT_ASSERTne(fip, NULL);
 
 	ret = rpmem_fip_connect(fip);
