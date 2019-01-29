@@ -39,6 +39,8 @@ LIBRPMEM_1.0 {
 		rpmem_set_attr;
 		rpmem_close;
 		rpmem_remove;
+		rpmem_flush;
+		rpmem_drain;
 		rpmem_persist;
 		rpmem_deep_persist;
 		rpmem_read;

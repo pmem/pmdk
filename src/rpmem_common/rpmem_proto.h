@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -223,6 +223,8 @@ struct rpmem_msg_close_resp {
 #define RPMEM_PERSIST_SEND	2U	/* persist using RDMA SEND */
 
 #define RPMEM_PERSIST_MAX	2U	/* maximum valid value */
+
+#define RPMEM_COMPLETION	4U	/* schedule command with a completion */
 
 /*
  * the two least significant bits
