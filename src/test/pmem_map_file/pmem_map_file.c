@@ -160,18 +160,20 @@ main(int argc, char *argv[])
 	int *is_pmemp;
 	int use_mlen;
 	int use_is_pmem;
+	int err_code;
 
 	if (argc < 7)
 		UT_FATAL("usage: %s path len flags mode use_mlen "
 				"use_is_pmem ...", argv[0]);
 
-	for (int i = 1; i + 5 < argc; i += 6) {
+	for (int i = 1; i + 6 < argc; i += 7) {
 		path = argv[i];
 		len = strtoull(argv[i + 1], NULL, 0);
 		flags = parse_flags(argv[i + 2]);
 		mode = STRTOU(argv[i + 3], NULL, 8);
 		use_mlen = atoi(argv[i + 4]);
 		use_is_pmem = atoi(argv[i + 5]);
+		err_code = atoi(argv[i + 6]);
 
 		mlen = SIZE_MAX;
 		if (use_mlen)
@@ -184,11 +186,14 @@ main(int argc, char *argv[])
 		else
 			is_pmemp = NULL;
 
-		UT_OUT("%s %lld %s %o %d %d",
-			path, len, argv[i + 2], mode, use_mlen, use_is_pmem);
+		UT_OUT("%s %lld %s %o %d %d %d",
+		path, len, argv[i + 2], mode, use_mlen, use_is_pmem, err_code);
 
 		addr = pmem_map_file(path, len, flags, mode, mlenp, is_pmemp);
 		if (addr == NULL) {
+			if (err_code != 0) {
+				UT_ASSERTeq(errno, err_code);
+			}
 			UT_OUT("!pmem_map_file");
 			continue;
 		}

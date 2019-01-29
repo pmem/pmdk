@@ -65,7 +65,7 @@ expect_normal_exit $Env:EXE_DIR\pmem_map_file$Env:EXESUFFIX `
     $DIR 4096 TS 0666 1 1 0`
     $DIR 4096 TSE 0666 1 1 0`
     $DIR 4096 TCE 0666 1 1 0`
-    $DIR 4096 TSEC 0666 1 1 0 `
+    $DIR 4096 TSEC 0666 1 1 0`
     \nul\nonexistingdir 4096 T 0666 1 1 0
 
 check_files $DIR\testfile3 `
