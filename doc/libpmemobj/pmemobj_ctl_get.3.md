@@ -166,8 +166,17 @@ Reads the index of the arena assigned to the current thread.
 
 heap.arena.create | --x | - | - | - | unsigned | -
 
-Create and initialize one new arena in the heap.
-Reads an id of the new created arena.
+Creates and initialize one new arena in the heap.
+This entry point reads an id of the new created arena.
+
+Newly created arenas by this CTL are inactive, which means that
+the following threads won't associate to them.
+To activate arena please use heap.arena.[arena_id].active CTL.
+
+heap.arena.[arena_id].active | rw- | - | int | int | - | -
+
+Reads or modifies the active state of the arena.
+Set 1 to activate an arena or 0 otherwise.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
