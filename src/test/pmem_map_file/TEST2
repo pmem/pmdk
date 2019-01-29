@@ -53,12 +53,12 @@ export ASAN_OPTIONS=handle_segv=0
 
 # pass the file of zero length
 expect_normal_exit ./pmem_map_file$EXESUFFIX\
-    $DEVICE_DAX_PATH 0 D 0666 1 1\
-    $DEVICE_DAX_PATH 0 DSC 0666 1 1\
-    $DEVICE_DAX_PATH 0 DT 0666 1 1\
-    $DEVICE_DAX_PATH 0 DCE 0666 1 1\
-    $DEVICE_DAX_PATH 0 DC 0666 1 1\
-    $DEVICE_DAX_PATH 2097152 DC 0666 1 1\ # len != 0
+    $DEVICE_DAX_PATH 0 D 0666 1 1 0 \
+    $DEVICE_DAX_PATH 0 DSC 0666 1 1 0 \
+    $DEVICE_DAX_PATH 0 DT 0666 1 1 0 \
+    $DEVICE_DAX_PATH 0 DCE 0666 1 1 0 \
+    $DEVICE_DAX_PATH 0 DC 0666 1 1 0 \
+    $DEVICE_DAX_PATH 2097152 DC 0666 1 1 0 \ # len != 0
 
 check
 
