@@ -608,6 +608,85 @@ rpmem_close(RPMEMpool *rpp)
 }
 
 /*
+ * rpmem_flush -- flush to target node operation
+ *
+ * rpp           -- remote pool handle
+ * offset        -- offset in pool
+ * length        -- length of flush operation
+ * lane          -- lane number
+ * flags         -- additional flags
+ */
+int
+rpmem_flush(RPMEMpool *rpp, size_t offset, size_t length,
+	unsigned lane, unsigned flags)
+{
+	LOG(3, "rpp %p, offset %zu, length %zu, lane %d, flags 0x%x",
+			rpp, offset, length, lane, flags);
+
+	if (unlikely(rpp->error)) {
+		errno = rpp->error;
+		return -1;
+	}
+
+	if (flags != 0) {
+		ERR("invalid flags (0x%x)", flags);
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (rpp->no_headers == 0 && offset < RPMEM_HDR_SIZE) {
+		ERR("offset (%zu) in pool is less than %d bytes", offset,
+				RPMEM_HDR_SIZE);
+		errno = EINVAL;
+		return -1;
+	}
+
+	int ret = rpmem_fip_flush(rpp->fip, offset, length, lane);
+	if (unlikely(ret)) {
+		ERR("flush operation failed");
+		rpp->error = ret;
+		errno = rpp->error;
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * rpmem_drain -- drain on target node operation
+ *
+ * rpp           -- remote pool handle
+ * lane          -- lane number
+ * flags         -- additional flags
+ */
+int
+rpmem_drain(RPMEMpool *rpp, unsigned lane, unsigned flags)
+{
+	LOG(3, "rpp %p, lane %d, flags 0x%x", rpp, lane, flags);
+
+	if (unlikely(rpp->error)) {
+		errno = rpp->error;
+		return -1;
+	}
+
+	if (flags != 0) {
+		ERR("invalid flags (0x%x)", flags);
+		errno = EINVAL;
+		return -1;
+	}
+
+	int ret = rpmem_fip_drain(rpp->fip, lane);
+	if (unlikely(ret)) {
+		ERR("drain operation failed");
+		rpp->error = ret;
+		errno = rpp->error;
+		return -1;
+	}
+
+	return 0;
+}
+
+/*
  * rpmem_persist -- persist operation on target node
  *
  * rpp           -- remote pool handle
@@ -627,7 +706,7 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
 		return -1;
 	}
 
-	if (flags & RPMEM_FLAGS_MASK) {
+	if (flags & RPMEM_PERSIST_FLAGS_MASK) {
 		ERR("invalid flags (0x%x)", flags);
 		errno = EINVAL;
 		return -1;
