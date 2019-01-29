@@ -37,6 +37,7 @@
  * obj_ctl_arenas <file> s - test for heap.arena.[idx].size
  * and heap.thread.arena_id
  * obj_ctl_arenas <file> c - test for heap.arena.create
+ * and heap.arena.[idx].active
  */
 
 #include <sched.h>
@@ -160,25 +161,55 @@ main(int argc, char *argv[])
 		os_mutex_destroy(&lock);
 		os_cond_destroy(&cond);
 	} else if (t == 'c') {
+		char arena_idx_active[CTL_QUERY_LEN];
 		unsigned narenas_b = 0;
 		unsigned narenas_a = 0;
 		unsigned narenas_n = 4;
 		unsigned arena_id;
+		int is_ac;
 
 		ret = pmemobj_ctl_get(pop, "heap.narenas", &narenas_b);
 		UT_ASSERTeq(ret, 0);
 
+		/* XXX: handle arenas created by hand at the start */
+		/* all arenas created at the start should be active  */
+		for (unsigned i = 0; i < narenas_b; i++) {
+			ret = snprintf(arena_idx_active, CTL_QUERY_LEN,
+					"heap.arena.%u.active", i);
+			if (ret < 0 || ret >= CTL_QUERY_LEN)
+				UT_FATAL("!snprintf arena_idx_active");
+
+			ret = pmemobj_ctl_get(pop, arena_idx_active, &is_ac);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(is_ac, 1);
+		}
+
+		/* all arenas created by user should not be active  */
 		for (unsigned i = 0; i < narenas_n; i++) {
 			ret = pmemobj_ctl_exec(pop, "heap.arena.create",
 					&arena_id);
 			UT_ASSERTeq(ret, 0);
 			UT_ASSERTeq(arena_id, narenas_b + i);
+			ret = snprintf(arena_idx_active, CTL_QUERY_LEN,
+					"heap.arena.%u.active", arena_id);
+			if (ret < 0 || ret >= CTL_QUERY_LEN)
+				UT_FATAL("!snprintf arena_idx_active");
+			ret = pmemobj_ctl_get(pop, arena_idx_active, &is_ac);
+			UT_ASSERTeq(is_ac, 0);
+			/* change the state of created arena to active */
+			int activate = 1;
+			ret = pmemobj_ctl_set(pop, arena_idx_active,
+					&activate);
+			UT_ASSERTeq(ret, 0);
+			ret = pmemobj_ctl_get(pop, arena_idx_active, &is_ac);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(is_ac, 1);
 		}
 
 		ret = pmemobj_ctl_get(pop, "heap.narenas", &narenas_a);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(narenas_b + narenas_n, narenas_a);
-		// XXX: try to allocate from new arena
+		/* XXX: try to allocate from a new arena */
 	} else {
 		UT_ASSERT(0);
 	}
