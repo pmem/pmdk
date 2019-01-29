@@ -360,6 +360,7 @@ format  : TARGET = format
 check   : TARGET = check
 pcheck  : TARGET = pcheck
 sparse  : TARGET = sparse
+pycheck : TARGET = pycheck
 
 DIR_SYNC=$(TOP)/src/test/.sync-dir
 SYNC_EXT=synced
@@ -404,6 +405,10 @@ memcheck-summary-leaks:
 check:
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(LOCAL_TESTS)
 	$(MAKE) check-remote-quiet-conditional
+	@echo "No failures."
+
+pycheck:
+	@./RUNTESTS.py $(RUNTEST_OPTIONS)
 	@echo "No failures."
 
 check-remote-quiet-conditional:
@@ -503,6 +508,6 @@ endif
 
 .PHONY: all check clean clobber cstyle pcheck pcheck-blk pcheck-log pcheck-obj\
 	 pcheck-other pcheck-pmem pcheck-pmempool pcheck-vmem pcheck-vmmalloc\
-	 test unittest tools check-remote format pcheck-libpmempool\
+	 test unittest tools check-remote format pcheck-libpmempool pycheck\
 	 pcheck-rpmem pcheck-local pcheck-remote sync-remotes $(TESTS_BUILD)\
 	 require-rpmem check-remote-quiet check-remote-quiet-conditional
