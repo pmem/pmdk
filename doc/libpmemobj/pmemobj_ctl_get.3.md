@@ -166,8 +166,19 @@ Reads the index of the arena assigned to the current thread.
 
 heap.arena.create | --x | - | - | - | unsigned | -
 
-Create and initialize one new arena in the heap.
-Reads an id of the new created arena.
+Creates and initialize one new arena in the heap.
+This entry point reads an id of the new created arena.
+
+Newly created arenas by this CTL are inactive, which means that
+the arena will not be used in the automatic scheduling of
+memory requests. To activate arena please use heap.arena.[arena_id].is_auto CTL.
+
+heap.arena.[arena_id].is_auto | rw- | - | boolean | boolean | - | -
+
+Reads or modifies the state of the arena.
+If set, the arena is used in automatic scheduling of memory operations for threads.
+This should be set to false if the application wants to manually manage allocator
+scalability through explicitly assigning arenas to threads by using heap.thread.arena_id.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
