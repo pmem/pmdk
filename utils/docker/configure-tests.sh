@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -106,3 +106,15 @@ else
 	find /usr -name "libfabric.pc" 2>/dev/null
 	echo $USERPASS | sudo -S sh -c 'find /usr -name "libfabric.pc" -exec rm -f {} + 2>/dev/null'
 fi
+
+# Configure python tests
+	cat << EOF >> $WORKDIR/src/test/testconfig.py
+config = {
+	'unittest_log_level': 1,
+	'pmem_fs_dir': '/tmp',
+	'non_pmem_fs_dir': '/tmp',
+	'tm': True,
+	'build': ['debug', 'nondebug']
+   }
+EOF
+
