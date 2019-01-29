@@ -75,6 +75,7 @@ struct rpmem_pool {
 	struct rpmem_target_info *info;
 	char fip_service[NI_MAXSERV];
 	enum rpmem_provider provider;
+	size_t max_tx_size;		/* max tx size supported by provider */
 	os_thread_t monitor;
 	int closing;
 	int no_headers;
@@ -120,19 +121,19 @@ err:
 }
 
 /*
- * rpmem_get_provider -- returns provider based on node address and environment
+ * rpmem_get_provider -- set provider based on node address and environment
  */
-static enum rpmem_provider
-rpmem_get_provider(const char *node)
+static int
+rpmem_set_provider(RPMEMpool *rpp, const char *node)
 {
-	LOG(3, "node %s", node);
+	LOG(3, "rpp %p, node %s", rpp, node);
 
 	struct rpmem_fip_probe probe;
 	enum rpmem_provider prov = RPMEM_PROV_UNKNOWN;
 
 	int ret = rpmem_fip_probe_get(node, &probe);
 	if (ret)
-		return prov;
+		return 1;
 
 	/*
 	 * The sockets provider can be used only if specified environment
@@ -159,7 +160,13 @@ rpmem_get_provider(const char *node)
 			prov = RPMEM_PROV_LIBFABRIC_VERBS;
 	}
 
-	return prov;
+	if (prov == RPMEM_PROV_UNKNOWN)
+		return 1;
+
+	RPMEM_ASSERT(prov < MAX_RPMEM_PROV);
+	rpp->max_tx_size = probe.max_tx_size[prov];
+	rpp->provider = prov;
+	return 0;
 
 }
 
@@ -204,8 +211,8 @@ rpmem_common_init(const char *target)
 		goto err_target_split;
 	}
 
-	rpp->provider = rpmem_get_provider(rpp->info->node);
-	if (rpp->provider == RPMEM_PROV_UNKNOWN) {
+	ret = rpmem_set_provider(rpp, rpp->info->node);
+	if (ret) {
 		errno = ENOMEDIUM;
 		ERR("cannot find provider");
 		goto err_provider;
@@ -286,6 +293,7 @@ rpmem_common_fip_init(RPMEMpool *rpp, struct rpmem_req_attr *req,
 
 	struct rpmem_fip_attr fip_attr = {
 		.provider	= req->provider,
+		.max_tx_size	= rpp->max_tx_size,
 		.persist_method	= resp->persist_method,
 		.laddr		= pool_addr,
 		.size		= pool_size,

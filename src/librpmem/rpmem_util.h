@@ -64,6 +64,7 @@ void rpmem_util_cmds_init(void);
 void rpmem_util_cmds_fini(void);
 const char *rpmem_util_cmd_get(void);
 void rpmem_util_get_env_max_nlanes(unsigned *max_nlanes);
+void rpmem_util_get_env_tx_size(unsigned *tx_size);
 
 #ifdef __cplusplus
 }

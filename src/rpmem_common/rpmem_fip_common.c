@@ -139,6 +139,7 @@ rpmem_fip_probe_get(const char *target, struct rpmem_fip_probe *probe)
 			}
 
 			probe->providers |= (1U << p);
+			probe->max_tx_size[p] = prov->tx_attr->size;
 			prov = prov->next;
 		}
 	}
@@ -241,6 +242,7 @@ struct rpmem_fip_lane_attr {
 	size_t n_per_cq; /* number of entries per lane in completion queue */
 };
 
+/* queues size required by remote persist operation methods */
 static const struct rpmem_fip_lane_attr
 rpmem_fip_lane_attrs[MAX_RPMEM_FIP_NODE][MAX_RPMEM_PM] = {
 	[RPMEM_FIP_NODE_CLIENT][RPMEM_PM_GPSPM] = {
