@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libpmempool.map -- linker map file for libpmempool
+# src/libpmempool.link -- linker link file for libpmempool
 #
 LIBPMEMPOOL_1.0 {
 	global:
@@ -45,6 +45,7 @@ LIBPMEMPOOL_1.0 {
 		pmempool_feature_enable;
 		pmempool_feature_disable;
 		pmempool_feature_query;
+		fault_injection;
 	local:
 		*;
 };

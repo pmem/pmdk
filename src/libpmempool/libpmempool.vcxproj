@@ -11,7 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\common\alloc.h" />
     <ClInclude Include="..\common\dlsym.h" />
+    <ClInclude Include="..\common\fault_injection.h" />
     <ClInclude Include="..\common\file.h" />
     <ClInclude Include="..\common\fs.h" />
     <ClInclude Include="..\common\mmap.h" />
@@ -35,6 +37,7 @@
     <ClInclude Include="replica.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\common\alloc.c" />
     <ClCompile Include="..\common\badblock.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />

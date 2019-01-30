@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,26 +30,21 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libvmem.map -- linker map file for libvmem
+# src/librpmem/librpmem.link -- linker link file for librpmem
 #
-LIBVMEM_1.0 {
+LIBRPMEM_1.0 {
 	global:
-		vmem_create;
-		vmem_create_in_region;
-		vmem_delete;
-		vmem_check;
-		vmem_stats_print;
-		vmem_malloc;
-		vmem_free;
-		vmem_calloc;
-		vmem_realloc;
-		vmem_aligned_alloc;
-		vmem_strdup;
-		vmem_wcsdup;
-		vmem_malloc_usable_size;
-		vmem_check_version;
-		vmem_set_funcs;
-		vmem_errormsg;
+		rpmem_create;
+		rpmem_open;
+		rpmem_set_attr;
+		rpmem_close;
+		rpmem_remove;
+		rpmem_persist;
+		rpmem_deep_persist;
+		rpmem_read;
+		rpmem_check_version;
+		rpmem_errormsg;
+		fault_injection;
 	local:
 		*;
 };

@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,26 +30,34 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libpmemblk.map -- linker map file for libpmemblk
+# src/libpmem.link -- linker link file for libpmem
 #
-LIBPMEMBLK_1.0 {
+LIBPMEM_1.0 {
 	global:
-		pmemblk_check_version;
-		pmemblk_set_funcs;
-		pmemblk_errormsg;
-		pmemblk_create;
-		pmemblk_open;
-		pmemblk_close;
-		pmemblk_check;
-		pmemblk_ctl_exec;
-		pmemblk_ctl_get;
-		pmemblk_ctl_set;
-		pmemblk_nblock;
-		pmemblk_read;
-		pmemblk_write;
-		pmemblk_set_zero;
-		pmemblk_set_error;
-		pmemblk_bsize;
+		pmem_map_file;
+		pmem_unmap;
+		pmem_is_pmem;
+		pmem_persist;
+		pmem_msync;
+		pmem_has_auto_flush;
+		pmem_deep_persist;
+		pmem_flush;
+		pmem_deep_flush;
+		pmem_deep_drain;
+		pmem_drain;
+		pmem_has_hw_drain;
+		pmem_check_version;
+		pmem_errormsg;
+		pmem_memmove_persist;
+		pmem_memcpy_persist;
+		pmem_memset_persist;
+		pmem_memmove_nodrain;
+		pmem_memcpy_nodrain;
+		pmem_memset_nodrain;
+		pmem_memmove;
+		pmem_memcpy;
+		pmem_memset;
+		fault_injection;
 	local:
 		*;
 };

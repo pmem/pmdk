@@ -14,6 +14,7 @@
     <ClCompile Include="..\..\src\libpmemblk\blk.c" />
     <ClCompile Include="..\..\src\libpmemblk\btt.c" />
     <ClCompile Include="..\..\src\libpmemblk\libpmemblk.c" />
+    <ClCompile Include="..\common\alloc.c" />
     <ClCompile Include="..\common\badblock.c" />
     <ClCompile Include="..\common\ctl.c" />
     <ClCompile Include="..\common\ctl_prefault.c" />
@@ -47,9 +48,11 @@
     <ClInclude Include="..\..\src\libpmemblk\blk.h" />
     <ClInclude Include="..\..\src\libpmemblk\btt.h" />
     <ClInclude Include="..\..\src\libpmemblk\btt_layout.h" />
+    <ClInclude Include="..\common\alloc.h" />
     <ClInclude Include="..\common\ctl.h" />
     <ClInclude Include="..\common\ctl_global.h" />
     <ClInclude Include="..\common\dlsym.h" />
+    <ClInclude Include="..\common\fault_injection.h" />
     <ClInclude Include="..\common\file.h" />
     <ClInclude Include="..\common\fs.h" />
     <ClInclude Include="..\common\mmap.h" />

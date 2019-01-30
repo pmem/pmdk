@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,6 +49,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "alloc.h"
+#include "fault_injection.h"
 
 #define PMEMLOG_LOG_PREFIX "libpmemlog"
 #define PMEMLOG_LOG_LEVEL_VAR "PMEMLOG_LOG_LEVEL"
@@ -110,6 +113,28 @@ log_convert2le(struct pmemlog *plp)
 	plp->end_offset = htole64(plp->end_offset);
 	plp->write_offset = htole64(plp->write_offset);
 }
+
+#if FAULT_INJECTION
+void
+pmemlog_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+pmemlog_fault_injection_enabled(void);
+#else
+static inline void
+pmemlog_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at)
+{
+	abort();
+}
+
+static inline int
+pmemlog_fault_injection_enabled(void)
+{
+	return 0;
+}
+#endif
 
 #ifdef __cplusplus
 }

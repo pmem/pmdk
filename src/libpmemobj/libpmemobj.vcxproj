@@ -26,6 +26,7 @@
     <ClCompile Include="..\..\src\libpmemobj\ulog.c" />
     <ClCompile Include="..\..\src\libpmemobj\sync.c" />
     <ClCompile Include="..\..\src\libpmemobj\tx.c" />
+    <ClCompile Include="..\common\alloc.c" />
     <ClCompile Include="..\common\badblock.c" />
     <ClCompile Include="..\common\badblock_none.c" />
     <ClCompile Include="..\common\ctl.c" />
@@ -76,9 +77,11 @@
     <ClInclude Include="..\..\src\libpmemobj\pmemops.h" />
     <ClInclude Include="..\..\src\libpmemobj\redo.h" />
     <ClInclude Include="..\..\src\libpmemobj\ravl.h" />
+    <ClInclude Include="..\common\alloc.h" />
     <ClInclude Include="..\common\ctl.h" />
     <ClInclude Include="..\common\ctl_global.h" />
     <ClInclude Include="..\common\dlsym.h" />
+    <ClInclude Include="..\common\fault_injection.h" />
     <ClInclude Include="..\common\file.h" />
     <ClInclude Include="..\common\fs.h" />
     <ClInclude Include="..\common\mmap.h" />

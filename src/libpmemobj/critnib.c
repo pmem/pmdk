@@ -80,6 +80,7 @@
 #include <errno.h>
 #include <stdbool.h>
 
+#include "alloc.h"
 #include "critnib.h"
 #include "out.h"
 #include "sys_util.h"

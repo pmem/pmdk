@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Intel Corporation
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,76 +30,49 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifndef COMMON_ALLOC_H
+#define COMMON_ALLOC_H
+
+#include <stdlib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef void *(*Malloc_func)(size_t size);
+typedef void *(*Realloc_func)(void *ptr, size_t size);
+
+extern Malloc_func fn_malloc;
+extern Realloc_func fn_realloc;
+
+#if FAULT_INJECTION
+void *_flt_Malloc(size_t, const char *);
+void *_flt_Realloc(void *, size_t, const char *);
+
+#define Malloc(size) _flt_Malloc(size, __func__)
+#define Realloc(ptr, size) _flt_Realloc(ptr, size, __func__)
+#else
+void *_Malloc(size_t);
+void *_Realloc(void *, size_t);
+
+#define Malloc(size) _Malloc(size)
+#define Realloc(ptr, size) _Realloc(ptr, size)
+#endif
+
+void set_func_malloc(void *(*malloc_func)(size_t size));
+void set_func_realloc(void *(*realloc_func)(void *ptr, size_t size));
+
 /*
- * util_vec.c -- unit test for vec implementation
+ * overridable names for malloc & friends used by this library
  */
+typedef void (*Free_func)(void *ptr);
+typedef char *(*Strdup_func)(const char *s);
 
-#include "unittest.h"
-#include "vec.h"
+extern Free_func Free;
+extern Strdup_func Strdup;
+extern void *Zalloc(size_t sz);
 
-struct test {
-	int foo;
-	int bar;
-};
-
-static void
-vec_test()
-{
-	VEC(testvec, struct test) v = VEC_INITIALIZER;
-
-	UT_ASSERTeq(VEC_SIZE(&v), 0);
-
-	struct test t = {1, 2};
-	struct test t2 = {3, 4};
-
-	VEC_PUSH_BACK(&v, t);
-	VEC_PUSH_BACK(&v, t2);
-
-	UT_ASSERTeq(VEC_ARR(&v)[0].foo, 1);
-	UT_ASSERTeq(VEC_GET(&v, 1)->foo, 3);
-
-	UT_ASSERTeq(VEC_SIZE(&v), 2);
-
-	int n = 0;
-	VEC_FOREACH(t, &v) {
-		switch (n) {
-		case 0:
-			UT_ASSERTeq(t.foo, 1);
-			UT_ASSERTeq(t.bar, 2);
-			break;
-		case 1:
-			UT_ASSERTeq(t.foo, 3);
-			UT_ASSERTeq(t.bar, 4);
-			break;
-		}
-		n++;
-	}
-	UT_ASSERTeq(n, 2);
-	UT_ASSERTeq(VEC_SIZE(&v), n);
-
-	VEC_POP_BACK(&v);
-
-	n = 0;
-	VEC_FOREACH(t, &v) {
-		UT_ASSERTeq(t.foo, 1);
-		UT_ASSERTeq(t.bar, 2);
-		n++;
-	}
-	UT_ASSERTeq(n, 1);
-	UT_ASSERTeq(VEC_SIZE(&v), n);
-
-	VEC_CLEAR(&v);
-	UT_ASSERTeq(VEC_SIZE(&v), 0);
-
-	VEC_DELETE(&v);
+#ifdef __cplusplus
 }
-
-int
-main(int argc, char *argv[])
-{
-	START(argc, argv, "util_vec");
-
-	vec_test();
-
-	DONE(NULL);
-}
+#endif
+#endif

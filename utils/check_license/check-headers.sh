@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -128,7 +128,7 @@ fi
 
 FILES=$($GIT $GIT_COMMAND | ${SOURCE_ROOT}/utils/check_license/file-exceptions.sh | \
 	grep    -E -e '*\.[chs]$' -e '*\.[ch]pp$' -e '*\.sh$' \
-		   -e '*\.py$' -e '*\.map$' -e 'Makefile*' -e 'TEST*' \
+		   -e '*\.py$' -e '*\.link$' -e 'Makefile*' -e 'TEST*' \
 		   -e '/common.inc$' -e '/match$' -e '/check_whitespace$' \
 		   -e 'LICENSE$' -e 'CMakeLists.txt$' -e '*\.cmake$' | \
 	xargs)

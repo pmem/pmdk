@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -136,6 +136,7 @@
 #include "btt_layout.h"
 #include "sys_util.h"
 #include "util.h"
+#include "alloc.h"
 
 /*
  * The opaque btt handle containing state tracked by this module

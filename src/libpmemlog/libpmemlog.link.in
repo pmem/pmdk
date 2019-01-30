@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# src/libpmemlog.map -- linker map file for libpmemlog
+# src/libpmemlog.link -- linker link file for libpmemlog
 #
 LIBPMEMLOG_1.0 {
 	global:
@@ -50,6 +50,7 @@ LIBPMEMLOG_1.0 {
 		pmemlog_tell;
 		pmemlog_rewind;
 		pmemlog_walk;
+		fault_injection;
 	local:
 		*;
 };

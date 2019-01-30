@@ -80,6 +80,9 @@
     <ClCompile Include="ctl_sds.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="alloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ctl.h">
@@ -143,6 +146,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="valgrind_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="alloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fault_injection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
