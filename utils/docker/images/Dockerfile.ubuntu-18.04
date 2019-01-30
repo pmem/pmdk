@@ -41,7 +41,9 @@ MAINTAINER marcin.slusarz@intel.com
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common \
 	asciidoc \
+	asciidoctor \
 	autoconf \
+	bash-completion \
 	bc \
 	clang \
 	cmake \
@@ -80,7 +82,7 @@ RUN ./install-libfabric.sh
 
 # Install libndctl
 COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh
+RUN ./install-libndctl.sh tags/v64
 
 # Add user
 ENV USER pmdkuser
@@ -89,7 +91,7 @@ RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
 USER $USER
 
 # Set required environment variables
-ENV OS ubuntu
+ENV OS ubuntu_ndctl_v63
 ENV OS_VER 18.04
 ENV START_SSH_COMMAND service ssh start
 ENV PACKAGE_MANAGER dpkg
