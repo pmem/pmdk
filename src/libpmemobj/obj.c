@@ -229,22 +229,31 @@ err:
  *
  * This is invoked on a first call to pmemobj_open() or pmemobj_create().
  * Memory is released in library destructor.
+ *
+ * This function needs to be threadsafe.
  */
 static void
 obj_pool_init(void)
 {
 	LOG(3, NULL);
 
-	if (pools_ht)
-		return;
+	struct critnib *c;
 
-	pools_ht = critnib_new();
-	if (pools_ht == NULL)
-		FATAL("!critnib_new for pools_ht");
+	if (pools_ht == NULL) {
+		c = critnib_new();
+		if (c == NULL)
+			FATAL("!critnib_new for pools_ht");
+		if (!util_bool_compare_and_swap64(&pools_ht, NULL, c))
+			critnib_delete(c);
+	}
 
-	pools_tree = critnib_new();
-	if (pools_tree == NULL)
-		FATAL("!critnib_new for pools_tree");
+	if (pools_tree == NULL) {
+		c = critnib_new();
+		if (c == NULL)
+			FATAL("!critnib_new for pools_tree");
+		if (!util_bool_compare_and_swap64(&pools_tree, NULL, c))
+			critnib_delete(c);
+	}
 }
 
 /*
