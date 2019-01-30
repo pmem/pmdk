@@ -80,7 +80,7 @@ RUN ./install-libfabric.sh
 
 # Install libndctl
 COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh
+RUN ./install-libndctl.sh tags/v60.1
 
 # Add user
 ENV USER pmdkuser

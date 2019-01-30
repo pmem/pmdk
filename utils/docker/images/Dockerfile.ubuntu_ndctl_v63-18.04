@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,57 +30,69 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# install-libndctl.sh - installs libndctl
+# Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
+#              environment for building the PMDK project.
 #
 
-set -e
+# Pull base image
+FROM ubuntu:18.04
+MAINTAINER marcin.slusarz@intel.com
+# Update the Apt cache and install basic tools
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common \
+	asciidoc \
+	asciidoctor \
+	autoconf \
+	bash-completion \
+	bc \
+	clang \
+	cmake \
+	debhelper \
+	devscripts \
+	flake8 \
+	gcc \
+	gdb \
+	git \
+	libc6-dbg \
+	libfuse-dev \
+	libglib2.0-dev \
+	libjson-c-dev \
+	libkmod-dev \
+	libncurses5-dev \
+	libtool \
+	libudev-dev \
+	libunwind8-dev \
+	libuv1-dev \
+	pandoc \
+	pkg-config \
+	ruby \
+	ssh \
+	sudo \
+	uuid-dev \
+	whois \
+ && rm -rf /var/lib/apt/lists/*
 
-OS=$1
+# Install valgrind
+COPY install-valgrind.sh install-valgrind.sh
+RUN ./install-valgrind.sh
 
-echo "==== clone ndctl repo ===="
-git clone https://github.com/pmem/ndctl.git
-cd ndctl
-git checkout $1
+# Install libfabric
+COPY install-libfabric.sh install-libfabric.sh
+RUN ./install-libfabric.sh
 
-if [ "$OS" = "fedora" ]; then
+# Install libndctl
+COPY install-libndctl.sh install-libndctl.sh
+RUN ./install-libndctl.sh tags/v63
 
-echo "==== setup rpmbuild tree ===="
-rpmdev-setuptree
+# Add user
+ENV USER pmdkuser
+ENV USERPASS pmdkpass
+RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
+USER $USER
 
-RPMDIR=$HOME/rpmbuild/
-VERSION=$(./git-version)
-SPEC=./rhel/ndctl.spec
-
-echo "==== create source tarball ====="
-git archive --format=tar --prefix="ndctl-${VERSION}/" HEAD | gzip > "$RPMDIR/SOURCES/ndctl-${VERSION}.tar.gz"
-
-echo "==== build ndctl ===="
-./autogen.sh
-./configure
-make
-
-echo "==== build ndctl packages ===="
-rpmbuild -ba $SPEC
-
-echo "==== install ndctl packages ===="
-rpm -i $RPMDIR/RPMS/x86_64/*.rpm
-
-echo "==== cleanup ===="
-rm -rf $RPMDIR
-
-else
-
-echo "==== build ndctl ===="
-./autogen.sh
-./configure
-make
-
-echo "==== install ndctl ===="
-make install
-
-echo "==== cleanup ===="
-
-fi
-
-cd ..
-rm -rf ndctl
+# Set required environment variables
+ENV OS ubuntu
+ENV OS_VER 18.04
+ENV START_SSH_COMMAND service ssh start
+ENV PACKAGE_MANAGER dpkg
+ENV NOTTY 1

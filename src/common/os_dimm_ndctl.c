@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Intel Corporation
+ * Copyright 2017-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,14 +56,6 @@
 #include "os_badblock.h"
 #include "badblock.h"
 #include "vec.h"
-
-/*
- * http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
- * Table 3-2 SMART amd Health Data - Validity flags
- * Bit[5] – If set to 1, indicates that Unsafe Shutdown Count
- * field is valid
- */
-#define USC_VALID_FLAG (1 << 5)
 
 #define FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns)	\
 	ndctl_bus_foreach(ctx, bus)				\
@@ -292,6 +284,12 @@ os_dimm_usc(const char *path, uint64_t *usc)
 	struct ndctl_dimm *dimm;
 
 	ndctl_dimm_foreach_in_interleave_set(iset, dimm) {
+#ifdef NDCTL_NEW
+		long long dimm_usc = ndctl_dimm_get_dirty_shutdown(dimm);
+		if (dimm_usc < 0)
+			goto err;
+		*usc += dimm_usc;
+#else
 		struct ndctl_cmd *cmd = ndctl_dimm_cmd_new_smart(dimm);
 
 		if (cmd == NULL) {
@@ -303,12 +301,22 @@ os_dimm_usc(const char *path, uint64_t *usc)
 			ERR("!ndctl_cmd_submit");
 			goto err;
 		}
+		/*
+		 * http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
+		 * Table 3-2 SMART amd Health Data - Validity flags
+		 * Bit[5] – If set to 1, indicates that Unsafe Shutdown Count
+		 * field is valid
+		 */
+#define USC_VALID_FLAG (1 << 5)
 
 		if (!(ndctl_cmd_smart_get_flags(cmd) & USC_VALID_FLAG)) {
 			/* dimm doesn't support unsafe shutdown count */
 			continue;
 		}
+
 		*usc += ndctl_cmd_smart_get_shutdown_count(cmd);
+#endif
+
 	}
 out:
 	ret = 0;
