@@ -41,9 +41,7 @@ MAINTAINER marcin.slusarz@intel.com
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common \
 	asciidoc \
-	asciidoctor \
 	autoconf \
-	bash-completion \
 	bc \
 	clang \
 	cmake \
@@ -82,7 +80,7 @@ RUN ./install-libfabric.sh
 
 # Install libndctl
 COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh tags/v63
+RUN ./install-libndctl.sh tags/v60.1
 
 # Add user
 ENV USER pmdkuser
