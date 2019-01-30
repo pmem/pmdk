@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +32,35 @@
 #
 
 #
-# examples/Makefile -- build the Persistent Memory Development Kit examples
+# src/test/ex_pmreorder/TEST1 -- test for pmreorder list example
 #
 
-include ../common.inc
+. ../unittest/unittest.sh
 
-DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem libpmempool pmreorder
+LIBPMEM_SO=${TEST_LD_LIBRARY_PATH}/libpmem.so.1
 
-include Makefile.inc
+require_test_type medium
+require_build_type debug nondebug
+require_fs_type any
+require_pmemcheck_version_ge 1 0 $LIBPMEM_SO
+require_pmemcheck_version_lt 2 0 $LIBPMEM_SO
+require_pmreorder $LIBPMEM_SO
 
-rmtmp:
-	$(RM) $(TMP_HEADERS)
+setup
 
-clobber clean: rmtmp
+export PMREORDER_EMIT_LOG=1
+truncate -s 2M $DIR/testfile
+
+EX_PATH=../../examples/pmreorder
+BIN="$EX_PATH/pmreorder_list$EXESUFFIX"
+PMEMCHECK_CMD="$BIN b $DIR/testfile"
+PMREORDER_CMD="$BIN c"
+
+pmreorder_create_store_log $DIR/testfile "$PMEMCHECK_CMD"
+pmreorder_expect_failure ReorderReverseAccumulative \
+	"pmem_memset_persist=NoReorderNoCheck" \
+	"$PMREORDER_CMD"
+
+check
+
+pass

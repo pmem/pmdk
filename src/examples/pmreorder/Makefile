@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2018, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +31,13 @@
 #
 
 #
-# examples/Makefile -- build the Persistent Memory Development Kit examples
+# examples/pmreorder/Makefile -- build the pmreorder example
 #
 
-include ../common.inc
+PROGS = pmreorder_list
 
-DIRS = libpmem libpmemblk libpmemlog libpmemobj libvmem librpmem libpmempool pmreorder
+LIBS = -lpmem -pthread
 
-include Makefile.inc
+include ../Makefile.inc
 
-rmtmp:
-	$(RM) $(TMP_HEADERS)
-
-clobber clean: rmtmp
+pmreorder_list: pmreorder_list.o

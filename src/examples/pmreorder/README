@@ -1,0 +1,44 @@
+Persistent Memory Development Kit
+
+This is examples/pmreorder/README.
+
+This directory contains example for pmreorder tool.
+A detailed explanation of this tool can be found here:
+http://pmem.io/pmdk/manpages/linux/master/pmreorder/pmreorder.1.html
+
+pmreorder_list: simple list to check pmem consistency using pmreorder tool
+
+To build these examples:
+	make
+
+This example can be built against an installed library using:
+	make LIBDIR=/usr/lib INCDIR=/usr/include
+
+To enable pmreorder API logs in the library:
+export PMREORDER_EMIT_LOG=1
+
+To generate store_log run:
+
+LD_LIBRARY_PATH=<path_to_libs> \
+valgrind --tool=pmemcheck \
+-q --log-stores=yes \
+--log-file=store_log_pmreorder_list.log \
+--log-stores-stacktraces=yes \
+--log-stores-stacktraces-depth=2 \
+--expect-fence-after-clflush=yes \
+./pmreorder_list <g|b> <path>
+
+To check consistency run:
+
+LD_LIBRARY_PATH=<path_to_lib> \
+python3 \
+pmreorder.py \
+-l map_store.log \
+-o out_map_store_bad.log \
+-x pmem_memset_persist=NoReorderNoCheck \
+-r ReorderReverseAccumulative  \
+-p "./pmreorder_list c"
+
+If you're looking for documentation to get you started using PMDK,
+start here: http://pmem.io/pmdk and follow the links to examples and
+blog posts.
