@@ -33,11 +33,11 @@
 /*
  * obj_ctl_arenas.c -- tests for the ctl entry points
  * usage:
- * obj_ctl_arenas <file> n - test for heap.narenas
+ * obj_ctl_arenas <file> n - test for heap.narenas.total
  * obj_ctl_arenas <file> s - test for heap.arena.[idx].size
  * and heap.thread.arena_id
- * obj_ctl_arenas <file> c - test for heap.arena.create
- * and heap.arena.[idx].is_auto
+ * obj_ctl_arenas <file> c - test for heap.arena.create,
+ * heap.arena.[idx].automatic and heap.narenas.automatic
  */
 
 #include <sched.h>
@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 
 	if (t == 'n') {
 		unsigned narenas = 0;
-		ret = pmemobj_ctl_get(pop, "heap.narenas", &narenas);
+		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTne(narenas, 0);
 	} else if (t == 's') {
@@ -167,23 +167,27 @@ main(int argc, char *argv[])
 		unsigned narenas_a = 0;
 		unsigned narenas_n = 4;
 		unsigned arena_id;
-		int is_auto;
+		unsigned all_auto;
+		int automatic;
 
-		ret = pmemobj_ctl_get(pop, "heap.narenas", &narenas_b);
+		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas_b);
 		UT_ASSERTeq(ret, 0);
 
 		/* XXX: handle arenas created by hand at the start */
 		/* all arenas created at the start should be set to auto  */
 		for (unsigned i = 0; i < narenas_b; i++) {
 			ret = snprintf(arena_idx_auto, CTL_QUERY_LEN,
-					"heap.arena.%u.is_auto", i);
+					"heap.arena.%u.automatic", i);
 			if (ret < 0 || ret >= CTL_QUERY_LEN)
 				UT_FATAL("!snprintf arena_idx_auto");
 
-			ret = pmemobj_ctl_get(pop, arena_idx_auto, &is_auto);
+			ret = pmemobj_ctl_get(pop, arena_idx_auto, &automatic);
 			UT_ASSERTeq(ret, 0);
-			UT_ASSERTeq(is_auto, 1);
+			UT_ASSERTeq(automatic, 1);
 		}
+		ret = pmemobj_ctl_get(pop, "heap.narenas.automatic", &all_auto);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(narenas_b, all_auto);
 
 		/* all arenas created by user should not be auto  */
 		for (unsigned i = 0; i < narenas_n; i++) {
@@ -191,23 +195,40 @@ main(int argc, char *argv[])
 					&arena_id);
 			UT_ASSERTeq(ret, 0);
 			UT_ASSERTeq(arena_id, narenas_b + i);
+
 			ret = snprintf(arena_idx_auto, CTL_QUERY_LEN,
-					"heap.arena.%u.is_auto", arena_id);
+					"heap.arena.%u.automatic", arena_id);
 			if (ret < 0 || ret >= CTL_QUERY_LEN)
 				UT_FATAL("!snprintf arena_idx_auto");
-			ret = pmemobj_ctl_get(pop, arena_idx_auto, &is_auto);
-			UT_ASSERTeq(is_auto, 0);
+			ret = pmemobj_ctl_get(pop, arena_idx_auto, &automatic);
+			UT_ASSERTeq(automatic, 0);
+
+			/*
+			 * after creation, number of auto
+			 * arenas should be the same
+			 */
+			ret = pmemobj_ctl_get(pop, "heap.narenas.automatic",
+					&all_auto);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(narenas_b + i, all_auto);
+
 			/* change the state of created arena to auto */
 			int activate = 1;
 			ret = pmemobj_ctl_set(pop, arena_idx_auto,
 					&activate);
 			UT_ASSERTeq(ret, 0);
-			ret = pmemobj_ctl_get(pop, arena_idx_auto, &is_auto);
+			ret = pmemobj_ctl_get(pop, arena_idx_auto, &automatic);
 			UT_ASSERTeq(ret, 0);
-			UT_ASSERTeq(is_auto, 1);
+			UT_ASSERTeq(automatic, 1);
+
+			/* number of auto arenas should increase */
+			ret = pmemobj_ctl_get(pop, "heap.narenas.automatic",
+					&all_auto);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(narenas_b + i + 1, all_auto);
 		}
 
-		ret = pmemobj_ctl_get(pop, "heap.narenas", &narenas_a);
+		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas_a);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(narenas_b + narenas_n, narenas_a);
 		/* XXX: try to allocate from a new arena */
