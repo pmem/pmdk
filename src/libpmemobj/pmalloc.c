@@ -521,16 +521,31 @@ CTL_WRITE_HANDLER(granularity)(void *ctx,
 static const struct ctl_argument CTL_ARG(granularity) = CTL_ARG_LONG_LONG;
 
 /*
- * CTL_READ_HANDLER(narenas) -- reads a number of the arenas
+ * CTL_READ_HANDLER(total) -- reads a number of the arenas
  */
 static int
-CTL_READ_HANDLER(narenas)(void *ctx,
+CTL_READ_HANDLER(total)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	PMEMobjpool *pop = ctx;
 	unsigned *narenas = arg;
 
-	*narenas = heap_get_narenas(&pop->heap);
+	*narenas = heap_get_narenas_total(&pop->heap);
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(automatic) -- reads a number of the automatic arenas
+ */
+static int
+CTL_READ_HANDLER(automatic, count)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned *narenas = arg;
+
+	*narenas = heap_get_narenas_auto(&pop->heap);
 
 	return 0;
 }
@@ -552,10 +567,10 @@ CTL_READ_HANDLER(arena_id)(void *ctx,
 }
 
 /*
- * CTL_WRITE_HANDLER(is_auto) -- updates is_auto status of the arena
+ * CTL_WRITE_HANDLER(automatic) -- updates automatic status of the arena
  */
 static int
-CTL_WRITE_HANDLER(is_auto)(void *ctx, enum ctl_query_source source,
+CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 		void *arg, struct ctl_indexes *indexes)
 {
 	PMEMobjpool *pop = ctx;
@@ -577,10 +592,10 @@ CTL_WRITE_HANDLER(is_auto)(void *ctx, enum ctl_query_source source,
 }
 
 /*
- * CTL_READ_HANDLER(is_auto) -- reads is_auto status of the arena
+ * CTL_READ_HANDLER(automatic) -- reads automatic status of the arena
  */
 static int
-CTL_READ_HANDLER(is_auto)(void *ctx,
+CTL_READ_HANDLER(automatic)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	PMEMobjpool *pop = ctx;
@@ -596,7 +611,7 @@ CTL_READ_HANDLER(is_auto)(void *ctx,
 	return 0;
 }
 
-static struct ctl_argument CTL_ARG(is_auto) = CTL_ARG_BOOLEAN;
+static struct ctl_argument CTL_ARG(automatic) = CTL_ARG_BOOLEAN;
 
 static const struct ctl_node CTL_NODE(size)[] = {
 	CTL_LEAF_RW(granularity),
@@ -624,7 +639,7 @@ CTL_READ_HANDLER(size)(void *ctx,
 	/* take index of arena */
 	arena_id = (unsigned)idx->value;
 	/* take number of arenas */
-	narenas = heap_get_narenas(&pop->heap);
+	narenas = heap_get_narenas_total(&pop->heap);
 
 	/* check if index is not bigger than number of arenas */
 	if (arena_id >= narenas) {
@@ -672,7 +687,7 @@ CTL_RUNNABLE_HANDLER(create)(void *ctx,
 
 static const struct ctl_node CTL_NODE(arena_id)[] = {
 	CTL_LEAF_RO(size),
-	CTL_LEAF_RW(is_auto),
+	CTL_LEAF_RW(automatic),
 
 	CTL_NODE_END
 };
@@ -680,6 +695,13 @@ static const struct ctl_node CTL_NODE(arena_id)[] = {
 static const struct ctl_node CTL_NODE(arena)[] = {
 	CTL_INDEXED(arena_id),
 	CTL_LEAF_RUNNABLE(create),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(narenas)[] = {
+	CTL_LEAF_RO(automatic, count),
+	CTL_LEAF_RO(total),
 
 	CTL_NODE_END
 };
@@ -695,7 +717,7 @@ static const struct ctl_node CTL_NODE(heap)[] = {
 	CTL_CHILD(arena),
 	CTL_CHILD(size),
 	CTL_CHILD(thread),
-	CTL_LEAF_RO(narenas),
+	CTL_CHILD(narenas),
 
 	CTL_NODE_END
 };
