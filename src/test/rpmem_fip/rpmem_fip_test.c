@@ -70,13 +70,16 @@ TEST_CASE_DECLARE(server_init);
 TEST_CASE_DECLARE(client_connect);
 TEST_CASE_DECLARE(server_connect);
 TEST_CASE_DECLARE(server_process);
+TEST_CASE_DECLARE(client_flush);
+TEST_CASE_DECLARE(client_flush_mt);
 TEST_CASE_DECLARE(client_persist);
 TEST_CASE_DECLARE(client_persist_mt);
 TEST_CASE_DECLARE(client_read);
+TEST_CASE_DECLARE(client_wq_size);
 
 struct fip_client {
 	enum rpmem_provider provider;
-	unsigned max_tx_size;
+	unsigned max_wq_size;
 	unsigned nlanes;
 };
 
@@ -137,7 +140,7 @@ get_provider(const char *target, const char *prov_name,
 	if (client->provider == RPMEM_PROV_LIBFABRIC_SOCKETS)
 		client->nlanes = min(client->nlanes, SOCK_NLANES);
 
-	client->max_tx_size = probe.max_tx_size[client->provider];
+	client->max_wq_size = probe.max_wq_size[client->provider];
 }
 
 /*
@@ -159,12 +162,44 @@ set_pool_data(uint8_t *pool, int inverse)
 }
 
 /*
- * persist_arg -- arguments for client persist thread
+ * flush_arg -- arguments for client persist and flush / drain threads
  */
-struct persist_arg {
+struct flush_arg {
 	struct rpmem_fip *fip;
 	unsigned lane;
 };
+
+typedef void *(*flush_fn)(void *arg);
+
+/*
+ * client_flush_thread -- thread callback for flush / drain operation
+ */
+static void *
+client_flush_thread(void *arg)
+{
+	struct flush_arg *args = arg;
+	int ret;
+
+	/* persist with len == 0 should always succeed */
+	ret = rpmem_fip_flush(args->fip, args->lane * TOTAL_PER_LANE,
+			0, args->lane);
+	UT_ASSERTeq(ret, 0);
+
+	for (unsigned i = 0; i < COUNT_PER_LANE; i++) {
+		size_t offset = args->lane * TOTAL_PER_LANE + i * SIZE_PER_LANE;
+		unsigned val = args->lane + i;
+		memset(&lpool[offset], (int)val, SIZE_PER_LANE);
+
+		ret = rpmem_fip_flush(args->fip, offset,
+				SIZE_PER_LANE, args->lane);
+		UT_ASSERTeq(ret, 0);
+	}
+
+	ret = rpmem_fip_drain(args->fip, args->lane);
+	UT_ASSERTeq(ret, 0);
+
+	return NULL;
+}
 
 /*
  * client_persist_thread -- thread callback for persist operation
@@ -172,7 +207,7 @@ struct persist_arg {
 static void *
 client_persist_thread(void *arg)
 {
-	struct persist_arg *args = arg;
+	struct flush_arg *args = arg;
 	int ret;
 
 	/* persist with len == 0 should always succeed */
@@ -225,7 +260,7 @@ client_init(const struct test_case *tc, int argc, char *argv[])
 
 	struct rpmem_fip_attr attr = {
 		.provider = fip_client.provider,
-		.max_tx_size = fip_client.max_tx_size,
+		.max_wq_size = fip_client.max_wq_size,
 		.persist_method = resp.persist_method,
 		.laddr = lpool,
 		.size = POOL_SIZE,
@@ -339,7 +374,7 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 
 	struct rpmem_fip_attr attr = {
 		.provider = fip_client.provider,
-		.max_tx_size = fip_client.max_tx_size,
+		.max_wq_size = fip_client.max_wq_size,
 		.persist_method = resp.persist_method,
 		.laddr = lpool,
 		.size = POOL_SIZE,
@@ -501,19 +536,13 @@ server_process(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * client_persist -- test case for single-threaded persist operation
+ * flush_common -- common part for single-threaded persist and flush / drain
+ * test cases
  */
-int
-client_persist(const struct test_case *tc, int argc, char *argv[])
+static void
+flush_common(char *target, char *prov_name, char *persist_method,
+		flush_fn flush_func)
 {
-	if (argc < 3)
-		UT_FATAL("usage: %s <target> <provider> <persist method>",
-				tc->name);
-
-	char *target = argv[0];
-	char *prov_name = argv[1];
-	char *persist_method = argv[2];
-
 	set_rpmem_cmd("server_process %s", persist_method);
 
 	char fip_service[NI_MAXSERV];
@@ -537,7 +566,7 @@ client_persist(const struct test_case *tc, int argc, char *argv[])
 
 	struct rpmem_fip_attr attr = {
 		.provider = fip_client.provider,
-		.max_tx_size = fip_client.max_tx_size,
+		.max_wq_size = fip_client.max_wq_size,
 		.persist_method = resp.persist_method,
 		.laddr = lpool,
 		.size = POOL_SIZE,
@@ -557,12 +586,12 @@ client_persist(const struct test_case *tc, int argc, char *argv[])
 	ret = rpmem_fip_connect(fip);
 	UT_ASSERTeq(ret, 0);
 
-	struct persist_arg arg = {
+	struct flush_arg arg = {
 		.fip = fip,
 		.lane = 0,
 	};
 
-	client_persist_thread(&arg);
+	flush_func(&arg);
 
 	ret = rpmem_fip_read(fip, rpool, POOL_SIZE, 0, 0);
 	UT_ASSERTeq(ret, 0);
@@ -580,6 +609,147 @@ client_persist(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 
 	rpmem_target_free(info);
+}
+
+/*
+ * flush_common_mt -- common part for multi-threaded persist and flush / drain
+ * test cases
+ */
+static int
+flush_common_mt(char *target, char *prov_name, char *persist_method,
+		flush_fn flush_thread_func)
+{
+	set_rpmem_cmd("server_process %s", persist_method);
+
+	char fip_service[NI_MAXSERV];
+	struct rpmem_target_info *info;
+	int ret;
+
+	info = rpmem_target_parse(target);
+	UT_ASSERTne(info, NULL);
+
+	set_pool_data(lpool, 1);
+	set_pool_data(rpool, 1);
+
+	struct fip_client fip_client = FIP_CLIENT_DEFAULT;
+	get_provider(info->node, prov_name, &fip_client);
+
+	client_t *client;
+	struct rpmem_resp_attr resp;
+	client = client_exchange(info, fip_client.nlanes, fip_client.provider,
+			&resp);
+
+	struct rpmem_fip_attr attr = {
+		.provider = fip_client.provider,
+		.max_wq_size = fip_client.max_wq_size,
+		.persist_method = resp.persist_method,
+		.laddr = lpool,
+		.size = POOL_SIZE,
+		.nlanes = resp.nlanes,
+		.raddr = (void *)resp.raddr,
+		.rkey = resp.rkey,
+	};
+
+	ssize_t sret = snprintf(fip_service, NI_MAXSERV, "%u", resp.port);
+	UT_ASSERT(sret > 0);
+
+	struct rpmem_fip *fip;
+	fip = rpmem_fip_init(info->node, fip_service, &attr,
+			&fip_client.nlanes);
+	UT_ASSERTne(fip, NULL);
+
+	ret = rpmem_fip_connect(fip);
+	UT_ASSERTeq(ret, 0);
+
+	os_thread_t *flush_thread = MALLOC(resp.nlanes * sizeof(os_thread_t));
+	struct flush_arg *args = MALLOC(resp.nlanes * sizeof(struct flush_arg));
+
+	for (unsigned i = 0; i < fip_client.nlanes; i++) {
+		args[i].fip = fip;
+		args[i].lane = i;
+		PTHREAD_CREATE(&flush_thread[i], NULL,
+				flush_thread_func, &args[i]);
+	}
+
+	for (unsigned i = 0; i < fip_client.nlanes; i++)
+		PTHREAD_JOIN(&flush_thread[i], NULL);
+
+	ret = rpmem_fip_read(fip, rpool, POOL_SIZE, 0, 0);
+	UT_ASSERTeq(ret, 0);
+
+	client_close_begin(client);
+
+	ret = rpmem_fip_close(fip);
+	UT_ASSERTeq(ret, 0);
+
+	client_close_end(client);
+
+	rpmem_fip_fini(fip);
+
+	FREE(flush_thread);
+	FREE(args);
+
+	ret = memcmp(rpool, lpool, POOL_SIZE);
+	UT_ASSERTeq(ret, 0);
+
+	rpmem_target_free(info);
+
+	return 3;
+}
+
+/*
+ * client_flush -- test case for single-threaded flush / drain operation
+ */
+int
+client_flush(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 3)
+		UT_FATAL("usage: %s <target> <provider> <persist method>",
+				tc->name);
+
+	char *target = argv[0];
+	char *prov_name = argv[1];
+	char *persist_method = argv[2];
+
+	flush_common(target, prov_name, persist_method, client_flush_thread);
+
+	return 3;
+}
+
+/*
+ * client_flush_mt -- test case for multi-threaded flush / drain operation
+ */
+int
+client_flush_mt(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 3)
+		UT_FATAL("usage: %s <target> <provider> <persist method>",
+				tc->name);
+
+	char *target = argv[0];
+	char *prov_name = argv[1];
+	char *persist_method = argv[2];
+
+	flush_common_mt(target, prov_name, persist_method, client_flush_thread);
+
+	return 3;
+}
+
+/*
+ * client_persist -- test case for single-threaded persist operation
+ */
+int
+client_persist(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 3)
+		UT_FATAL("usage: %s <target> <provider> <persist method>",
+				tc->name);
+
+	char *target = argv[0];
+	char *prov_name = argv[1];
+	char *persist_method = argv[2];
+
+	flush_common(target, prov_name, persist_method, client_persist_thread);
 
 	return 3;
 }
@@ -598,81 +768,8 @@ client_persist_mt(const struct test_case *tc, int argc, char *argv[])
 	char *prov_name = argv[1];
 	char *persist_method = argv[2];
 
-	set_rpmem_cmd("server_process %s", persist_method);
-
-	char fip_service[NI_MAXSERV];
-	struct rpmem_target_info *info;
-	int ret;
-
-	info = rpmem_target_parse(target);
-	UT_ASSERTne(info, NULL);
-
-	set_pool_data(lpool, 1);
-	set_pool_data(rpool, 1);
-
-	struct fip_client fip_client = FIP_CLIENT_DEFAULT;
-	get_provider(info->node, prov_name, &fip_client);
-
-	client_t *client;
-	struct rpmem_resp_attr resp;
-	client = client_exchange(info, fip_client.nlanes, fip_client.provider,
-			&resp);
-
-	struct rpmem_fip_attr attr = {
-		.provider = fip_client.provider,
-		.max_tx_size = fip_client.max_tx_size,
-		.persist_method = resp.persist_method,
-		.laddr = lpool,
-		.size = POOL_SIZE,
-		.nlanes = resp.nlanes,
-		.raddr = (void *)resp.raddr,
-		.rkey = resp.rkey,
-	};
-
-	ssize_t sret = snprintf(fip_service, NI_MAXSERV, "%u", resp.port);
-	UT_ASSERT(sret > 0);
-
-	struct rpmem_fip *fip;
-	fip = rpmem_fip_init(info->node, fip_service, &attr,
-			&fip_client.nlanes);
-	UT_ASSERTne(fip, NULL);
-
-	ret = rpmem_fip_connect(fip);
-	UT_ASSERTeq(ret, 0);
-
-	os_thread_t *persist_thread = MALLOC(resp.nlanes * sizeof(os_thread_t));
-	struct persist_arg *args = MALLOC(resp.nlanes *
-			sizeof(struct persist_arg));
-
-	for (unsigned i = 0; i < fip_client.nlanes; i++) {
-		args[i].fip = fip;
-		args[i].lane = i;
-		PTHREAD_CREATE(&persist_thread[i], NULL,
-				client_persist_thread, &args[i]);
-	}
-
-	for (unsigned i = 0; i < fip_client.nlanes; i++)
-		PTHREAD_JOIN(&persist_thread[i], NULL);
-
-	ret = rpmem_fip_read(fip, rpool, POOL_SIZE, 0, 0);
-	UT_ASSERTeq(ret, 0);
-
-	client_close_begin(client);
-
-	ret = rpmem_fip_close(fip);
-	UT_ASSERTeq(ret, 0);
-
-	client_close_end(client);
-
-	rpmem_fip_fini(fip);
-
-	FREE(persist_thread);
-	FREE(args);
-
-	ret = memcmp(rpool, lpool, POOL_SIZE);
-	UT_ASSERTeq(ret, 0);
-
-	rpmem_target_free(info);
+	flush_common_mt(target, prov_name, persist_method,
+			client_persist_thread);
 
 	return 3;
 }
@@ -713,7 +810,7 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 
 	struct rpmem_fip_attr attr = {
 		.provider = fip_client.provider,
-		.max_tx_size = fip_client.max_tx_size,
+		.max_wq_size = fip_client.max_wq_size,
 		.persist_method = resp.persist_method,
 		.laddr = lpool,
 		.size = POOL_SIZE,
@@ -757,6 +854,122 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 	return 3;
 }
 
+#define LT_MAX_WQ_SIZE "LT_MAX_WQ_SIZE" /* < max_wq_size */
+#define EQ_MAX_WQ_SIZE "EQ_MAX_WQ_SIZE" /* == max_wq_size */
+#define GT_MAX_WQ_SIZE "GT_MAX_WQ_SIZE" /* > max_wq_size */
+
+/*
+ * client_wq_size -- test case for WQ size adjustment
+ */
+int
+client_wq_size(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 3)
+		UT_FATAL("usage: %s <target> <provider> <persist method>"
+				"<wq_size>", tc->name);
+
+	char *target = argv[0];
+	char *prov_name = argv[1];
+	char *persist_method = argv[2];
+	char *wq_size_env_str = argv[3];
+
+	set_rpmem_cmd("server_process %s", persist_method);
+
+	char fip_service[NI_MAXSERV];
+	struct rpmem_target_info *info;
+	int ret;
+
+	info = rpmem_target_parse(target);
+	UT_ASSERTne(info, NULL);
+
+	struct fip_client fip_client = FIP_CLIENT_DEFAULT;
+	get_provider(info->node, prov_name, &fip_client);
+	rpmem_util_get_env_max_nlanes(&fip_client.nlanes);
+
+	client_t *client;
+	struct rpmem_resp_attr resp;
+	client = client_exchange(info, fip_client.nlanes, fip_client.provider,
+			&resp);
+
+	struct rpmem_fip_attr attr = {
+		.provider = fip_client.provider,
+		.max_wq_size = fip_client.max_wq_size,
+		.persist_method = resp.persist_method,
+		.laddr = lpool,
+		.size = POOL_SIZE,
+		.nlanes = resp.nlanes,
+		.raddr = (void *)resp.raddr,
+		.rkey = resp.rkey,
+	};
+
+	ssize_t sret = snprintf(fip_service, NI_MAXSERV, "%u", resp.port);
+	UT_ASSERT(sret > 0);
+
+	/* check RPMEM_WORK_QUEUE_SIZE env processing */
+	unsigned wq_size_default = Rpmem_wq_size;
+	if (strcmp(wq_size_env_str, LT_MAX_WQ_SIZE) == 0) {
+		Rpmem_wq_size = fip_client.max_wq_size - 1;
+	} else if (strcmp(wq_size_env_str, EQ_MAX_WQ_SIZE) == 0) {
+		Rpmem_wq_size = fip_client.max_wq_size;
+	} else if (strcmp(wq_size_env_str, GT_MAX_WQ_SIZE) == 0) {
+		Rpmem_wq_size = fip_client.max_wq_size + 1;
+	} else {
+		long wq_size_env = STRTOL(wq_size_env_str, NULL, 10);
+		rpmem_util_get_env_wq_size(&Rpmem_wq_size);
+		if (wq_size_env > 0) {
+			if (wq_size_env < UINT_MAX)
+				UT_ASSERT(Rpmem_wq_size == wq_size_env);
+			else
+				UT_ASSERT(Rpmem_wq_size == UINT_MAX);
+		} else
+			UT_ASSERT(Rpmem_wq_size == wq_size_default);
+	}
+
+	struct rpmem_fip *fip;
+	fip = rpmem_fip_init(info->node, fip_service, &attr,
+			&fip_client.nlanes);
+	UT_ASSERTne(fip, NULL);
+
+	size_t req_wq_size = rpmem_fip_wq_size(
+			resp.persist_method, RPMEM_FIP_NODE_CLIENT);
+	size_t eff_wq_size = rpmem_fip_get_wq_size(fip);
+
+	/* max supported meets minimal requirements */
+	UT_ASSERT(fip_client.max_wq_size >= req_wq_size);
+	/* calculated meets minimal requirements */
+	UT_ASSERT(eff_wq_size >= req_wq_size);
+	/* calculated is supported */
+	UT_ASSERT(eff_wq_size <= fip_client.max_wq_size);
+
+	/* if forced by env meets minimal requirements */
+	if (Rpmem_wq_size > req_wq_size) {
+		/* and it is supported */
+		if (Rpmem_wq_size <= fip_client.max_wq_size) {
+			/* calculated is >= to forced */
+			UT_ASSERT(eff_wq_size >= Rpmem_wq_size);
+		} else {
+			/* calculated is clipped to max supported */
+			UT_ASSERT(eff_wq_size == fip_client.max_wq_size);
+		}
+	}
+
+	ret = rpmem_fip_connect(fip);
+	UT_ASSERTeq(ret, 0);
+
+	client_close_begin(client);
+
+	ret = rpmem_fip_close(fip);
+	UT_ASSERTeq(ret, 0);
+
+	client_close_end(client);
+
+	rpmem_fip_fini(fip);
+
+	rpmem_target_free(info);
+
+	return 4;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -765,10 +978,13 @@ static struct test_case test_cases[] = {
 	TEST_CASE(server_init),
 	TEST_CASE(client_connect),
 	TEST_CASE(server_connect),
+	TEST_CASE(client_flush),
+	TEST_CASE(client_flush_mt),
 	TEST_CASE(client_persist),
 	TEST_CASE(client_persist_mt),
 	TEST_CASE(server_process),
 	TEST_CASE(client_read),
+	TEST_CASE(client_wq_size)
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))
