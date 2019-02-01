@@ -70,10 +70,10 @@ struct arena {
 	struct bucket *buckets[MAX_ALLOCATION_CLASSES];
 
 	/*
-	 * defines if the arena can be automatically
-	 * assign to the thread
+	 * Decides whether the arena can be
+	 * automatically assigned to a thread.
 	 */
-	int is_auto;
+	int automatic;
 	size_t nthreads;
 };
 
@@ -97,7 +97,6 @@ struct heap_rt {
 
 	unsigned nzones;
 	unsigned zones_exhausted;
-	unsigned narenas;
 };
 
 /*
@@ -125,7 +124,7 @@ heap_arena_delete(struct arena *arena)
  * heap_arena_new -- (internal) initializes arena instance
  */
 static struct arena *
-heap_arena_new(struct palloc_heap *heap, int is_auto)
+heap_arena_new(struct palloc_heap *heap, int automatic)
 {
 	struct heap_rt *rt = heap->rt;
 
@@ -135,7 +134,7 @@ heap_arena_new(struct palloc_heap *heap, int is_auto)
 		return NULL;
 	}
 	arena->nthreads = 0;
-	arena->is_auto = is_auto;
+	arena->automatic = automatic;
 
 	for (uint8_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *ac =
@@ -193,13 +192,13 @@ heap_thread_arena_assign(struct heap_rt *heap)
 
 	struct arena *least_used = NULL;
 
-	ASSERTne(heap->narenas, 0);
+	ASSERTne(VEC_SIZE(&heap->arenas), 0);
 
 	struct arena *a;
 	VEC_FOREACH(a, &heap->arenas) {
 		if ((least_used == NULL ||
 			a->nthreads < least_used->nthreads)&&
-			a->is_auto == 1)
+			a->automatic == 1)
 			least_used = a;
 	}
 
@@ -972,29 +971,52 @@ int
 heap_arena_create(struct palloc_heap *heap)
 {
 	struct heap_rt *h = heap->rt;
+	int ret;
 
 	util_mutex_lock(&h->arenas_lock);
 
 	if (VEC_PUSH_BACK(&h->arenas, heap_arena_new(heap, 0))) {
-		alloc_class_collection_delete(h->alloc_classes);
-		return -1;
+		ret = -1;
+		goto out;
 	}
+	ret = (int)VEC_SIZE(&h->arenas) - 1;
 
-	h->narenas = (unsigned)VEC_SIZE(&h->arenas);
-
+out:
 	util_mutex_unlock(&h->arenas_lock);
 
-	return (int)VEC_SIZE(&h->arenas) - 1;
+	return ret;
 }
 
 /*
- * heap_get_narenas -- returns the number of arenas from rt heap
+ * heap_get_narenas_total -- returns the number of all arenas in the heap
  */
 unsigned
-heap_get_narenas(struct palloc_heap *heap)
+heap_get_narenas_total(struct palloc_heap *heap)
 {
 	struct heap_rt *h = heap->rt;
-	return h->narenas;
+	return (unsigned)VEC_SIZE(&h->arenas);
+}
+
+/*
+ * heap_get_narenas_auto -- returns the number of all automatic arenas
+ */
+unsigned
+heap_get_narenas_auto(struct palloc_heap *heap)
+{
+	struct heap_rt *h = heap->rt;
+	struct arena *arena;
+	unsigned narenas = 0;
+
+	util_mutex_lock(&h->arenas_lock);
+
+	VEC_FOREACH(arena, &h->arenas) {
+		if (arena->automatic)
+			narenas++;
+	}
+
+	util_mutex_unlock(&h->arenas_lock);
+
+	return narenas;
 }
 
 /*
@@ -1008,27 +1030,27 @@ heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 }
 
 /*
- * heap_get_arena_auto -- returns arena is_auto value
+ * heap_get_arena_auto -- returns arena automatic value
  */
 int
 heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id)
 {
 	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
-	return a->is_auto;
+	return a->automatic;
 }
 
 /*
- * heap_set_arena_auto -- sets arena is_auto value
+ * heap_set_arena_auto -- sets arena automatic value
  */
 void
 heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
-		int is_auto)
+		int automatic)
 {
 	struct heap_rt *h = heap->rt;
 	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
 
 	util_mutex_lock(&h->arenas_lock);
-	a->is_auto = is_auto;
+	a->automatic = automatic;
 	util_mutex_unlock(&h->arenas_lock);
 }
 
@@ -1229,7 +1251,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		goto error_alloc_classes_new;
 	}
 
-	h->narenas = heap_get_procs();
+	unsigned narenas_default = heap_get_procs();
 
 	util_mutex_init(&h->arenas_lock);
 	VEC_INIT(&h->arenas);
@@ -1255,7 +1277,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	heap->alloc_pattern = PALLOC_CTL_DEBUG_NO_PATTERN;
 	VALGRIND_DO_CREATE_MEMPOOL(heap->layout, 0, 0);
 
-	for (unsigned i = 0; i < h->narenas; ++i) {
+	for (unsigned i = 0; i < narenas_default; ++i) {
 		if (VEC_PUSH_BACK(&h->arenas, heap_arena_new(heap, 1))) {
 			err = ENOMEM;
 			goto error_arenas_malloc;
