@@ -1094,6 +1094,19 @@ rpmem_fip_wq_flush_check(struct rpmem_fip *fip, struct rpmem_fip_plane *lanep,
 }
 
 /*
+ * rpmem_fip_get_wq_size -- get WQ size (for validation purposes only)
+ */
+inline size_t
+rpmem_fip_get_wq_size(struct rpmem_fip *fip)
+{
+	RPMEM_ASSERT(fip);
+	RPMEM_ASSERT(fip->fi);
+	RPMEM_ASSERT(fip->fi->tx_attr);
+
+	return fip->fi->tx_attr->size;
+}
+
+/*
  * rpmem_fip_flush_raw -- (internal) perform flush operation using rma WRITE
  */
 static int

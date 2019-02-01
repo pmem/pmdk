@@ -81,6 +81,8 @@ int rpmem_fip_read(struct rpmem_fip *fip, void *buff,
 		size_t len, size_t off, unsigned lane);
 void rpmem_fip_probe_fork_safety(int *fork_unsafe);
 
+size_t rpmem_fip_get_wq_size(struct rpmem_fip *fip);
+
 #ifdef __cplusplus
 }
 #endif
