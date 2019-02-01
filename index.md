@@ -118,6 +118,14 @@ The **pmreorder** is an utility that performs a consistency check of a persisten
 
 See the [pmreorder page](pmreorder) for available commands and documentation.
 
+#### pmdk-convert
+
+The **pmdk-convert** tool performs conversion of the specified pool
+from the old layout versions to the newest one supported by this tool.
+
+See the [pmdk-convert](https://pmem.io/pmdk-convert/manpages/master/pmdk-convert.1.html)
+for current documentation.
+
 #### C++ bindings
 
 The C++ bindings aim at providing an easier to use, less error prone
