@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -97,6 +97,7 @@ stats_new(PMEMobjpool *pop)
 	struct stats *s = Malloc(sizeof(*s));
 	s->enabled = 0;
 	s->persistent = &pop->stats_persistent;
+	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(s->persistent, sizeof(*s->persistent));
 	s->transient = Zalloc(sizeof(struct stats_transient));
 	if (s->transient == NULL)
 		goto error_transient_alloc;
