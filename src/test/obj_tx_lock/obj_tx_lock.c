@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -141,6 +141,29 @@ do_tx_add_locks_nested_all(struct transaction_data *data)
 	return NULL;
 }
 
+/*
+ * do_tx_add_taken_lock -- (internal) verify that failed tx_lock doesn't add
+ * the lock to transaction
+ */
+static void *
+do_tx_add_taken_lock(struct transaction_data *data)
+{
+	/* wrlocks on Windows don't detect self-deadlocks */
+#ifdef _WIN32
+	(void) data;
+#else
+	UT_ASSERTeq(pmemobj_rwlock_wrlock(Pop, &data->rwlocks[0]), 0);
+
+	TX_BEGIN(Pop) {
+		UT_ASSERTne(pmemobj_tx_lock(TX_PARAM_RWLOCK, &data->rwlocks[0]),
+				0);
+	} TX_END
+
+	UT_ASSERTne(pmemobj_rwlock_trywrlock(Pop, &data->rwlocks[0]), 0);
+	UT_ASSERTeq(pmemobj_rwlock_unlock(Pop, &data->rwlocks[0]), 0);
+#endif
+	return NULL;
+}
 
 int
 main(int argc, char *argv[])
@@ -162,6 +185,7 @@ main(int argc, char *argv[])
 	do_tx_add_locks(test_obj);
 	do_tx_add_locks_nested(test_obj);
 	do_tx_add_locks_nested_all(test_obj);
+	do_tx_add_taken_lock(test_obj);
 
 	pmemobj_close(Pop);
 

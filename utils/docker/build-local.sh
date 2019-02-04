@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -115,7 +115,6 @@ docker run --privileged=true --name=$containerName -ti \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
-	--env CLANG_FORMAT=clang-format-6.0 \
 	--env KEEP_TEST_CONFIG=$KEEP_TEST_CONFIG \
 	$ndctl_enable \
 	-v $HOST_WORKDIR:$WORKDIR \

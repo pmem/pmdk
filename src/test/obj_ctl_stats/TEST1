@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,70 +29,18 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
-#              environment for building the PMDK project.
 #
 
-# Pull base image
-FROM ubuntu:18.04
-MAINTAINER marcin.slusarz@intel.com
-# Update the Apt cache and install basic tools
-RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common \
-	asciidoc \
-	autoconf \
-	bc \
-	clang \
-	clang-format \
-	cmake \
-	debhelper \
-	devscripts \
-	flake8 \
-	gcc \
-	gdb \
-	git \
-	libc6-dbg \
-	libfuse-dev \
-	libglib2.0-dev \
-	libjson-c-dev \
-	libkmod-dev \
-	libncurses5-dev \
-	libtool \
-	libudev-dev \
-	libunwind8-dev \
-	libuv1-dev \
-	pandoc \
-	pkg-config \
-	ruby \
-	ssh \
-	sudo \
-	uuid-dev \
-	whois \
- && rm -rf /var/lib/apt/lists/*
 
-# Install valgrind
-COPY install-valgrind.sh install-valgrind.sh
-RUN ./install-valgrind.sh
+# standard unit test setup
+. ../unittest/unittest.sh
 
-# Install libfabric
-COPY install-libfabric.sh install-libfabric.sh
-RUN ./install-libfabric.sh
+require_test_type short
+require_fs_type any
+configure_valgrind pmemcheck force-enable
 
-# Install libndctl
-COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh
+setup
 
-# Add user
-ENV USER pmdkuser
-ENV USERPASS pmdkpass
-RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
-USER $USER
+expect_normal_exit ./obj_ctl_stats$EXESUFFIX $DIR/testfile1
 
-# Set required environment variables
-ENV OS ubuntu
-ENV OS_VER 18.04
-ENV START_SSH_COMMAND service ssh start
-ENV PACKAGE_MANAGER dpkg
-ENV NOTTY 1
+pass
