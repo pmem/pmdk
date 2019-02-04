@@ -1,5 +1,5 @@
 /*
- * Copyright 2017, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -81,6 +81,16 @@ main(int argc, char *argv[])
 	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocated);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(allocated, 0);
+
+	TX_BEGIN(pop) {
+		oid = pmemobj_tx_alloc(1, 0);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+	oid_size = pmemobj_alloc_usable_size(oid) + 16;
+	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocated);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(allocated, oid_size);
 
 	pmemobj_close(pop);
 
