@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,6 +41,13 @@
 LOG=out${UNITTEST_NUM}.log
 
 UNITTEST_DIRNAME=$(echo $UNITTEST_NAME | cut -d'/' -f1)
+
+NDCTL_MAJOR_VER=$(ndctl --version | cut -d. -f1)
+#
+# The version from which ndctl allows unprivileged badblock iteration for
+# fsdax namespaces.
+#
+NDCTL_MAJOR_VER_MIN_UNPRIVILEGED=63
 
 COMMAND_MOUNTED_DIRS="\
 	mount | grep -e $UNITTEST_DIRNAME | cut -d' ' -f1 | xargs && true"
@@ -263,9 +270,10 @@ function ndctl_nfit_test_grant_access_node() {
 function ndctl_nfit_test_get_namespace_of_device() {
 	DEVICE=$1
 	NAMESPACE=$(ndctl list | grep -e "$DEVICE" -e namespace | grep -B1 -e "$DEVICE" | head -n1 | cut -d'"' -f4)
+	MODE=$(ndctl list -n "$NAMESPACE" | grep mode | cut -d'"' -f4)
 
-	# XXX needed by libndctl (it should be removed when it is not needed)
-	ndctl_nfit_test_grant_access $DEVICE
+	# device dax namespaces require additional permissions for badblock iteration
+	( [ "$MODE" != "fsdax" ] || [ "$NDCTL_MAJOR_VER" -lt "$NDCTL_MAJOR_VER_MIN_UNPRIVILEGED" ] ) && ndctl_nfit_test_grant_access $DEVICE
 
 	echo $NAMESPACE
 }
