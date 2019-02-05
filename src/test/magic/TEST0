@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,6 +43,8 @@ require_build_type nondebug
 # There is no point in testing the file command using memcheck
 # because even if it does report any problems we can't fix it
 configure_valgrind force-disable
+
+require_command file
 
 setup
 
