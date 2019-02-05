@@ -1102,6 +1102,30 @@ heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 }
 
 /*
+ * heap_set_arena_thread -- assign arena to the current thread
+ */
+int
+heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
+{
+	struct heap_rt *h = heap->rt;
+
+	util_mutex_lock(&h->arenas_lock);
+
+	if (arena_id < 0 || arena_id >= (unsigned)VEC_SIZE(&h->arenas))
+		return -1;
+
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	util_mutex_unlock(&h->arenas_lock);
+
+	if (a != NULL && a->nthreads < 1) {
+		util_fetch_and_add64(&a->nthreads, 1);
+		os_tls_set(h->thread_arena, a);
+	}
+
+	return 0;
+}
+
+/*
  * heap_get_procs -- (internal) returns the number of arenas to create
  */
 static unsigned
