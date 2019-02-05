@@ -35,7 +35,7 @@
  * usage:
  * obj_ctl_arenas <file> n - test for heap.narenas.total
  * obj_ctl_arenas <file> s - test for heap.arena.[idx].size
- * and heap.thread.arena_id
+ * and heap.thread.arena_id (RW)
  * obj_ctl_arenas <file> c - test for heap.arena.create,
  * heap.arena.[idx].automatic and heap.narenas.automatic
  */
@@ -77,9 +77,19 @@ worker_arenas_size(void *arg)
 	int idx = (int)(intptr_t)arg;
 	int off_idx = idx + 128;
 	unsigned arena_id;
+	unsigned arena_id_new;
 	size_t arena_size;
 	char arena_idx_size[CTL_QUERY_LEN];
 	char alloc_class_idx_desc[CTL_QUERY_LEN];
+
+	ret = pmemobj_ctl_exec(pop, "heap.arena.create",
+			&arena_id_new);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(arena_id_new > 1);
+
+	ret = pmemobj_ctl_set(pop, "heap.thread.arena_id",
+			&arena_id_new);
+	UT_ASSERTeq(ret, 0);
 
 	ret = snprintf(alloc_class_idx_desc, CTL_QUERY_LEN,
 			"heap.alloc_class.%d.desc", off_idx);
@@ -105,6 +115,7 @@ worker_arenas_size(void *arg)
 
 	ret = pmemobj_ctl_get(pop, "heap.thread.arena_id", &arena_id);
 	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(arena_id_new, arena_id);
 
 	ret = snprintf(arena_idx_size, CTL_QUERY_LEN,
 			"heap.arena.%u.size", arena_id);
@@ -173,7 +184,6 @@ main(int argc, char *argv[])
 		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas_b);
 		UT_ASSERTeq(ret, 0);
 
-		/* XXX: handle arenas created by hand at the start */
 		/* all arenas created at the start should be set to auto  */
 		for (unsigned i = 0; i < narenas_b; i++) {
 			ret = snprintf(arena_idx_auto, CTL_QUERY_LEN,
@@ -231,7 +241,6 @@ main(int argc, char *argv[])
 		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas_a);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(narenas_b + narenas_n, narenas_a);
-		/* XXX: try to allocate from a new arena */
 	} else {
 		UT_ASSERT(0);
 	}
