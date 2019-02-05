@@ -567,6 +567,24 @@ CTL_READ_HANDLER(arena_id)(void *ctx,
 }
 
 /*
+ * CTL_WRITE_HANDLER(arena_id) -- assigne the arena to the calling thread
+ */
+static int
+CTL_WRITE_HANDLER(arena_id)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned arena_id = *(unsigned *)arg;
+
+	heap_set_arena_thread(&pop->heap, arena_id);
+
+	return 0;
+}
+
+static const struct ctl_argument CTL_ARG(arena_id) = CTL_ARG_LONG_LONG;
+
+
+/*
  * CTL_WRITE_HANDLER(automatic) -- updates automatic status of the arena
  */
 static int
@@ -707,7 +725,7 @@ static const struct ctl_node CTL_NODE(narenas)[] = {
 };
 
 static const struct ctl_node CTL_NODE(thread)[] = {
-	CTL_LEAF_RO(arena_id),
+	CTL_LEAF_RW(arena_id),
 
 	CTL_NODE_END
 };
