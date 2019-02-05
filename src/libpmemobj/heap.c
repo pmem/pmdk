@@ -197,8 +197,8 @@ heap_thread_arena_assign(struct heap_rt *heap)
 	struct arena *a;
 	VEC_FOREACH(a, &heap->arenas) {
 		if ((least_used == NULL ||
-			a->nthreads < least_used->nthreads)&&
-			a->automatic == 1)
+			a->nthreads < least_used->nthreads) &&
+			a->automatic)
 			least_used = a;
 	}
 
@@ -994,7 +994,12 @@ unsigned
 heap_get_narenas_total(struct palloc_heap *heap)
 {
 	struct heap_rt *h = heap->rt;
-	return (unsigned)VEC_SIZE(&h->arenas);
+
+	util_mutex_lock(&h->arenas_lock);
+	unsigned total = (unsigned)VEC_SIZE(&h->arenas);
+	util_mutex_unlock(&h->arenas_lock);
+
+	return total;
 }
 
 /*
@@ -1035,7 +1040,12 @@ heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 int
 heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id)
 {
+	struct heap_rt *h = heap->rt;
+
+	util_mutex_lock(&h->arenas_lock);
 	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	util_mutex_unlock(&h->arenas_lock);
+
 	return a->automatic;
 }
 
@@ -1047,11 +1057,35 @@ heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 		int automatic)
 {
 	struct heap_rt *h = heap->rt;
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
 
 	util_mutex_lock(&h->arenas_lock);
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
 	a->automatic = automatic;
 	util_mutex_unlock(&h->arenas_lock);
+}
+
+/*
+ * heap_set_arena_thread -- assign arena to the current thread
+ */
+int
+heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
+{
+	struct heap_rt *h = heap->rt;
+
+	util_mutex_lock(&h->arenas_lock);
+
+	if (arena_id < 0 || arena_id >= (unsigned)VEC_SIZE(&h->arenas))
+		return -1;
+
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	util_mutex_unlock(&h->arenas_lock);
+
+	if (a != NULL && a->nthreads < 1) {
+		util_fetch_and_add64(&a->nthreads, 1);
+		os_tls_set(h->thread_arena, a);
+	}
+
+	return 0;
 }
 
 /*
