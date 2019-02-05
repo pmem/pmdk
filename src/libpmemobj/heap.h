@@ -122,6 +122,8 @@ int heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id);
 void heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 		int automatic);
 
+int heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id);
+
 void heap_vg_open(struct palloc_heap *heap, object_callback cb,
 		void *arg, int objects);
 
