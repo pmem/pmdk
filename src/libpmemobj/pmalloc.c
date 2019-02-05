@@ -567,6 +567,38 @@ CTL_READ_HANDLER(arena_id)(void *ctx,
 }
 
 /*
+ * CTL_WRITE_HANDLER(arena_id) -- assigne the arena to the calling thread
+ */
+static int
+CTL_WRITE_HANDLER(arena_id)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned arena_id = *(unsigned *)arg;
+
+	unsigned narenas = heap_get_narenas_total(&pop->heap);
+
+	/* check if index is not bigger than number of arenas */
+	if (arena_id >= narenas) {
+		ERR("arena id outside of the allowed range: <0,%u>",
+			narenas - 1);
+		errno = ERANGE;
+		return -1;
+	}
+
+	int ret = heap_set_arena_thread(&pop->heap, arena_id);
+	if (ret) {
+		ERR("arena with id: %u does not exist", arena_id);
+		return -1;
+	}
+
+	return 0;
+}
+
+static const struct ctl_argument CTL_ARG(arena_id) = CTL_ARG_LONG_LONG;
+
+
+/*
  * CTL_WRITE_HANDLER(automatic) -- updates automatic status of the arena
  */
 static int
@@ -580,6 +612,16 @@ CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 	struct ctl_index *idx = SLIST_FIRST(indexes);
 	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
 	arena_id = (unsigned)idx->value;
+
+	unsigned narenas = heap_get_narenas_total(&pop->heap);
+
+	/* check if index is not bigger than number of arenas */
+	if (arena_id >= narenas) {
+		ERR("arena id outside of the allowed range: <0,%u>",
+			narenas - 1);
+		errno = ERANGE;
+		return -1;
+	}
 
 	if (arg_in != 0 && arg_in != 1) {
 		ERR("incorrect arena state, must be 0 or 1");
@@ -605,6 +647,16 @@ CTL_READ_HANDLER(automatic)(void *ctx,
 	struct ctl_index *idx = SLIST_FIRST(indexes);
 	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
 	arena_id = (unsigned)idx->value;
+
+	unsigned narenas = heap_get_narenas_total(&pop->heap);
+
+	/* check if index is not bigger than number of arenas */
+	if (arena_id >= narenas) {
+		ERR("arena id outside of the allowed range: <0,%u>",
+			narenas - 1);
+		errno = ERANGE;
+		return -1;
+	}
 
 	*arg_out = heap_get_arena_auto(&pop->heap, arena_id);
 
@@ -677,7 +729,7 @@ CTL_RUNNABLE_HANDLER(create)(void *ctx,
 	struct palloc_heap *heap = &pop->heap;
 
 	int ret = heap_arena_create(heap);
-	if (ret <= 0)
+	if (ret < 0)
 		return -1;
 
 	*arena_id = (unsigned)ret;
@@ -707,7 +759,7 @@ static const struct ctl_node CTL_NODE(narenas)[] = {
 };
 
 static const struct ctl_node CTL_NODE(thread)[] = {
-	CTL_LEAF_RO(arena_id),
+	CTL_LEAF_RW(arena_id),
 
 	CTL_NODE_END
 };

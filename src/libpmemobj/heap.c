@@ -130,12 +130,13 @@ heap_arena_new(struct palloc_heap *heap, int automatic)
 
 	struct arena *arena = Malloc(sizeof(struct arena));
 	if (arena == NULL) {
-		ERR("heap: arena malloc error");
+		ERR("!heap: arena malloc error");
 		return NULL;
 	}
 	arena->nthreads = 0;
 	arena->automatic = automatic;
 
+	COMPILE_ERROR_ON(MAX_ALLOCATION_CLASSES > UINT8_MAX);
 	for (uint8_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *ac =
 			alloc_class_by_id(rt->alloc_classes, i);
@@ -196,9 +197,10 @@ heap_thread_arena_assign(struct heap_rt *heap)
 
 	struct arena *a;
 	VEC_FOREACH(a, &heap->arenas) {
-		if ((least_used == NULL ||
-			a->nthreads < least_used->nthreads)&&
-			a->automatic == 1)
+		if (!a->automatic)
+			continue;
+		if (least_used == NULL ||
+			a->nthreads < least_used->nthreads)
 			least_used = a;
 	}
 
@@ -994,7 +996,12 @@ unsigned
 heap_get_narenas_total(struct palloc_heap *heap)
 {
 	struct heap_rt *h = heap->rt;
-	return (unsigned)VEC_SIZE(&h->arenas);
+
+	util_mutex_lock(&h->arenas_lock);
+	unsigned total = (unsigned)VEC_SIZE(&h->arenas);
+	util_mutex_unlock(&h->arenas_lock);
+
+	return total;
 }
 
 /*
@@ -1035,7 +1042,12 @@ heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 int
 heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id)
 {
+	struct heap_rt *h = heap->rt;
+
+	util_mutex_lock(&h->arenas_lock);
 	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	util_mutex_unlock(&h->arenas_lock);
+
 	return a->automatic;
 }
 
@@ -1047,11 +1059,35 @@ heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 		int automatic)
 {
 	struct heap_rt *h = heap->rt;
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
 
 	util_mutex_lock(&h->arenas_lock);
-	a->automatic = automatic;
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
 	util_mutex_unlock(&h->arenas_lock);
+	a->automatic = automatic;
+}
+
+/*
+ * heap_set_arena_thread -- assign arena to the current thread
+ */
+int
+heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
+{
+	struct heap_rt *h = heap->rt;
+
+	util_mutex_lock(&h->arenas_lock);
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	util_mutex_unlock(&h->arenas_lock);
+
+	struct arena *thread_arena;
+	if ((thread_arena = os_tls_get(h->thread_arena)) != NULL)
+		util_fetch_and_sub64(&thread_arena->nthreads, 1);
+
+	if (a != NULL) {
+		util_fetch_and_add64(&a->nthreads, 1);
+		os_tls_set(h->thread_arena, a);
+	}
+
+	return 0;
 }
 
 /*
@@ -1279,7 +1315,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	for (unsigned i = 0; i < narenas_default; ++i) {
 		if (VEC_PUSH_BACK(&h->arenas, heap_arena_new(heap, 1))) {
-			err = ENOMEM;
+			err = errno;
 			goto error_arenas_malloc;
 		}
 	}
