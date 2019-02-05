@@ -320,6 +320,8 @@ pmembench_set_priv(struct benchmark *bench, void *priv)
 int
 pmembench_register(struct benchmark_info *bench_info)
 {
+	assert(bench_info->name && bench_info->brief);
+
 	struct benchmark *bench = (struct benchmark *)calloc(1, sizeof(*bench));
 	assert(bench != nullptr);
 
