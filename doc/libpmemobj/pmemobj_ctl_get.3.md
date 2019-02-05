@@ -165,9 +165,10 @@ Reads the total amount of memory in bytes which is currently
 exclusively owned by the arena. Large differences in this value between
 arenas might indicate an uneven scheduling of memory resources.
 
-heap.thread.arena_id | r- | - | unsigned | - | - | -
+heap.thread.arena_id | rw- | - | unsigned | unsigned | - | -
 
-Reads the index of the arena assigned to the current thread.
+Reads the index of the arena assigned to the current thread or
+assignes arena with specific id to the current thread.
 
 heap.arena.create | --x | - | - | - | unsigned | -
 
@@ -178,7 +179,7 @@ Newly created arenas by this CTL are inactive, which means that
 the arena will not be used in the automatic scheduling of
 memory requests. To activate the new arena, use heap.arena.[arena_id].automatic CTL.
 
-heap.arena.[arena_id].is_auto | rw- | - | boolean | boolean | - | -
+heap.arena.[arena_id].automatic | rw- | - | boolean | boolean | - | -
 
 Reads or modifies the state of the arena.
 If set, the arena is used in automatic scheduling of memory operations for threads.
