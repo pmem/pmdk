@@ -145,6 +145,10 @@ TM=1
 # and have to be explicitly enabled.
 # Enable them ONLY IF you are sure you know what you are doing.
 #
+# As of kernel 4.20, the nfit-test module causes kernel oops whenever a devdax
+# namespace is created and then accessed for the first time. This causes several
+# of badblock-related unit tests to fail.
+#
 #ENABLE_NFIT_TESTS=y
 
 #
