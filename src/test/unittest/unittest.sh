@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -828,7 +828,7 @@ function expect_normal_exit() {
 	disable_exit_on_error
 
 	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
-		$trace $*
+		$trace "$*"
 	ret=$?
 
 	if [ $REMOTE_VALGRIND_LOG -eq 1 ]; then
@@ -935,7 +935,7 @@ function expect_abnormal_exit() {
 
 	disable_exit_on_error
 	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" \
-		LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE $*
+		LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE "$*"
 	ret=$?
 	restore_exit_on_error
 
