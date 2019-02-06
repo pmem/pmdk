@@ -73,6 +73,7 @@ TEST_CASE_DECLARE(server_process);
 TEST_CASE_DECLARE(client_persist);
 TEST_CASE_DECLARE(client_persist_mt);
 TEST_CASE_DECLARE(client_read);
+TEST_CASE_DECLARE(client_tx_size);
 
 struct fip_client {
 	enum rpmem_provider provider;
@@ -757,6 +758,122 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 	return 3;
 }
 
+#define LT_MAX_TX_SIZE "LT_MAX_TX_SIZE" /* < max_tx_size */
+#define EQ_MAX_TX_SIZE "EQ_MAX_TX_SIZE" /* == max_tx_size */
+#define GT_MAX_TX_SIZE "GT_MAX_TX_SIZE" /* > max_tx_size */
+
+/*
+ * client_tx_size -- test case for TX size adjustment
+ */
+int
+client_tx_size(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 3)
+		UT_FATAL("usage: %s <target> <provider> <persist method>"
+				"<tx_size>", tc->name);
+
+	char *target = argv[0];
+	char *prov_name = argv[1];
+	char *persist_method = argv[2];
+	char *tx_size_env_str = argv[3];
+
+	set_rpmem_cmd("server_process %s", persist_method);
+
+	char fip_service[NI_MAXSERV];
+	struct rpmem_target_info *info;
+	int ret;
+
+	info = rpmem_target_parse(target);
+	UT_ASSERTne(info, NULL);
+
+	struct fip_client fip_client = FIP_CLIENT_DEFAULT;
+	get_provider(info->node, prov_name, &fip_client);
+	rpmem_util_get_env_max_nlanes(&fip_client.nlanes);
+
+	client_t *client;
+	struct rpmem_resp_attr resp;
+	client = client_exchange(info, fip_client.nlanes, fip_client.provider,
+			&resp);
+
+	struct rpmem_fip_attr attr = {
+		.provider = fip_client.provider,
+		.max_tx_size = fip_client.max_tx_size,
+		.persist_method = resp.persist_method,
+		.laddr = lpool,
+		.size = POOL_SIZE,
+		.nlanes = resp.nlanes,
+		.raddr = (void *)resp.raddr,
+		.rkey = resp.rkey,
+	};
+
+	ssize_t sret = snprintf(fip_service, NI_MAXSERV, "%u", resp.port);
+	UT_ASSERT(sret > 0);
+
+	/* check RPMEM_TX_SIZE env processing */
+	unsigned tx_size_default = Rpmem_tx_size;
+	if (strcmp(tx_size_env_str, LT_MAX_TX_SIZE) == 0) {
+		Rpmem_tx_size = fip_client.max_tx_size - 1;
+	} else if (strcmp(tx_size_env_str, EQ_MAX_TX_SIZE) == 0) {
+		Rpmem_tx_size = fip_client.max_tx_size;
+	} else if (strcmp(tx_size_env_str, GT_MAX_TX_SIZE) == 0) {
+		Rpmem_tx_size = fip_client.max_tx_size + 1;
+	} else {
+		long tx_size_env = STRTOL(tx_size_env_str, NULL, 10);
+		rpmem_util_get_env_tx_size(&Rpmem_tx_size);
+		if (tx_size_env > 0) {
+			if (tx_size_env < UINT_MAX)
+				UT_ASSERT(Rpmem_tx_size == tx_size_env);
+			else
+				UT_ASSERT(Rpmem_tx_size == UINT_MAX);
+		} else
+			UT_ASSERT(Rpmem_tx_size == tx_size_default);
+	}
+
+	struct rpmem_fip *fip;
+	fip = rpmem_fip_init(info->node, fip_service, &attr,
+			&fip_client.nlanes);
+	UT_ASSERTne(fip, NULL);
+
+	size_t req_tx_size = rpmem_fip_tx_size(
+			resp.persist_method, RPMEM_FIP_NODE_CLIENT);
+	size_t eff_tx_size = rpmem_fip_get_tx_size(fip);
+
+	/* max supported meets minimal requirements */
+	UT_ASSERT(fip_client.max_tx_size >= req_tx_size);
+	/* calculated meets minimal requirements */
+	UT_ASSERT(eff_tx_size >= req_tx_size);
+	/* calculated is supported */
+	UT_ASSERT(eff_tx_size <= fip_client.max_tx_size);
+
+	/* if forced by env meets minimal requirements */
+	if (Rpmem_tx_size > req_tx_size) {
+		/* and it is supported */
+		if (Rpmem_tx_size <= fip_client.max_tx_size) {
+			/* calculated is >= to forced */
+			UT_ASSERT(eff_tx_size >= Rpmem_tx_size);
+		} else {
+			/* calculated is clipped to max supported */
+			UT_ASSERT(eff_tx_size == fip_client.max_tx_size);
+		}
+	}
+
+	ret = rpmem_fip_connect(fip);
+	UT_ASSERTeq(ret, 0);
+
+	client_close_begin(client);
+
+	ret = rpmem_fip_close(fip);
+	UT_ASSERTeq(ret, 0);
+
+	client_close_end(client);
+
+	rpmem_fip_fini(fip);
+
+	rpmem_target_free(info);
+
+	return 4;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -769,6 +886,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(client_persist_mt),
 	TEST_CASE(server_process),
 	TEST_CASE(client_read),
+	TEST_CASE(client_tx_size)
 };
 
 #define NTESTS	(sizeof(test_cases) / sizeof(test_cases[0]))
