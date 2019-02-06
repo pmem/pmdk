@@ -1496,7 +1496,7 @@ function require_fs_name() {
 		fi
 	done
 
-	echo "$UNITTEST_NAME: SKIP file system $fsname ($* required)"
+	msg "$UNITTEST_NAME: SKIP file system $fsname ($* required)"
 	exit 0
 }
 
