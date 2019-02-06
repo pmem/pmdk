@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,7 +51,7 @@ rm -f $LOG_TEMP && touch $LOG_TEMP
 declare -A pool_args=(["log"]="log"
 	["blk"]="blk 512")
 
-for field in "${!pool_args[@]}";
+for field in log blk;
 do
 	echo "Pool type: ${field} Params: ${pool_args["$field"]}" >> $LOG_TEMP
 	expect_normal_exit $PMEMPOOL$EXESUFFIX create\
