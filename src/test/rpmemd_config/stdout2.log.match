@@ -3,13 +3,13 @@ Invalid config file line at $(*):1
 Invalid config file line at $(*):1
 ; invalid comment format
 Invalid config file line at $(*):1
-dir= 		 		# invalid dir path
+dir=  		  		# invalid dir path
 Invalid config file line at $(*):1
-dir= 		 		# invalid dir path
+dir=  		  		# invalid dir path
 Invalid config file line at $(*):1
-log-file= 		 		 # invalid log-file path
+log-file=  		  		 # invalid log-file path
 Invalid config file line at $(*):1
-log-file= 		 		 # invalid log-file path
+log-file=  		  		 # invalid log-file path
 Invalid config file line at $(*):1
 log-level=Invalid # invalid log-level
 Invalid config file line at $(*):1
