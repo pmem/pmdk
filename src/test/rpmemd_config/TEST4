@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,21 +54,19 @@ EMPTY_CONFIG=$DIR/empty.conf
 touch $EMPTY_CONFIG
 
 function check_user_home_dir {
-	HOME_STR=\\\$HOME
-
 	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG print_HOME_env
 	cat $LOG >> $LOG_TEMP
 
-	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir=$HOME_STR print_HOME_env
+	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir='\$HOME' print_HOME_env
 	cat $LOG >> $LOG_TEMP
 
-	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir=prefix$HOME_STR print_HOME_env
+	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir=prefix'\$HOME' print_HOME_env
 	cat $LOG >> $LOG_TEMP
 
-	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir=${HOME_STR}stickysuffix print_HOME_env
+	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir='\$HOME'stickysuffix print_HOME_env
 	cat $LOG >> $LOG_TEMP
 
-	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir=${HOME_STR}/suffix print_HOME_env
+	expect_normal_exit $RPMEMD -c $EMPTY_CONFIG --poolset-dir='\$HOME'/suffix print_HOME_env
 	cat $LOG >> $LOG_TEMP
 }
 
