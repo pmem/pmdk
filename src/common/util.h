@@ -432,14 +432,14 @@ util_mssb_index64(long long value)
 
 /* ISO C11 -- 7.17.7 Operations on atomic types */
 #define util_atomic_load32(object, dest)\
-	util_atomic_load_explicit32(object, dest, memory_order_seqcst)
+	util_atomic_load_explicit32(object, dest, memory_order_seq_cst)
 #define util_atomic_load64(object, dest)\
-	util_atomic_load_explicit64(object, dest, memory_order_seqcst)
+	util_atomic_load_explicit64(object, dest, memory_order_seq_cst)
 
 #define util_atomic_store32(object, desired)\
-	util_atomic_store_explicit32(object, desired, memory_order_seqcst)
+	util_atomic_store_explicit32(object, desired, memory_order_seq_cst)
 #define util_atomic_store64(object, desired)\
-	util_atomic_store_explicit64(object, desired, memory_order_seqcst)
+	util_atomic_store_explicit64(object, desired, memory_order_seq_cst)
 
 /*
  * util_get_printable_ascii -- convert non-printable ascii to dot '.'
