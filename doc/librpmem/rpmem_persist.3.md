@@ -118,6 +118,9 @@ waiting is required.
 
 The *flags* argument for **rpmem_flush**() and **rpmem_drain**() must be 0.
 
+The **rpmem_flush**() function performance is affected by **RPMEM_TX_SIZE**
+environment variable (see **librpmem**(7) for more details).
+
 The **rpmem_read**() function reads *length* bytes of data from a remote pool
 at *offset* and copies it to the buffer *buff*. The operation is performed on
 the specified *lane*. The lane must be less than the value returned by
