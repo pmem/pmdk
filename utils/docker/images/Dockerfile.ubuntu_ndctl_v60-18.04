@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2017, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,12 +41,9 @@ MAINTAINER marcin.slusarz@intel.com
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common \
 	asciidoc \
-	asciidoctor \
 	autoconf \
-	bash-completion \
 	bc \
 	clang \
-	clang-format \
 	cmake \
 	debhelper \
 	devscripts \
@@ -58,7 +55,6 @@ RUN apt-get update \
 	libfuse-dev \
 	libglib2.0-dev \
 	libjson-c-dev \
-	libkeyutils-dev \
 	libkmod-dev \
 	libncurses5-dev \
 	libtool \
@@ -84,7 +80,7 @@ RUN ./install-libfabric.sh
 
 # Install libndctl
 COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh tags/v64.1
+RUN ./install-libndctl.sh tags/v60.1
 
 # Add user
 ENV USER pmdkuser
