@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -167,7 +167,8 @@ test_oom_resrv(size_t size)
 
 	size_t count = 0;
 	for (;;) {
-		if (palloc_reserve(&mock_pop->heap, size, NULL, NULL, 0, 0, 0,
+		if (palloc_reserve(&mock_pop->heap, size,
+			NULL, NULL, 0, 0, 0, 0,
 			&resvs[count]) != 0)
 			break;
 
