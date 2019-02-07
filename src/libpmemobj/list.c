@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -497,7 +497,7 @@ list_insert_new(PMEMobjpool *pop,
 
 	struct pobj_action reserved;
 	if (palloc_reserve(&pop->heap, size, constructor, arg,
-		type_num, 0, 0, &reserved) != 0) {
+		type_num, 0, 0, 0, &reserved) != 0) {
 		ERR("!palloc_reserve");
 		ret = -1;
 		goto err_pmalloc;

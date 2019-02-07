@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -270,7 +270,7 @@ test_heap(void)
 	struct memory_block old_run = {0, 0, 1, 0};
 	struct memory_block new_run = {0, 0, 0, 0};
 	struct alloc_class *c_run = heap_get_best_class(heap, 1024);
-	struct bucket *b_run = heap_bucket_acquire(heap, c_run);
+	struct bucket *b_run = heap_bucket_acquire(heap, c_run, 0);
 
 	/*
 	 * Allocate blocks from a run until one run is exhausted.

@@ -56,6 +56,8 @@ extern "C" {
 
 #define BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
 
+#define ARENA_ID_FROM_FLAG(flag) ((uint16_t)((flag) >> 1))
+
 int heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		uint64_t *sizep,
 		void *base, struct pmem_ops *p_ops,
@@ -76,10 +78,11 @@ struct alloc_class *
 heap_get_best_class(struct palloc_heap *heap, size_t size);
 
 struct bucket *
-heap_bucket_acquire(struct palloc_heap *heap, struct alloc_class *c);
+heap_bucket_acquire_by_id(struct palloc_heap *heap, uint8_t class_id);
 
 struct bucket *
-heap_bucket_acquire_by_id(struct palloc_heap *heap, uint8_t class_id);
+heap_bucket_acquire_with_arena(struct palloc_heap *heap, uint8_t class_id,
+		uint16_t arena_id);
 
 void
 heap_bucket_release(struct palloc_heap *heap, struct bucket *b);

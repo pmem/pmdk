@@ -272,13 +272,30 @@ heap_bucket_acquire_by_id(struct palloc_heap *heap, uint8_t class_id)
 }
 
 /*
- * heap_bucket_acquire_by_id -- fetches by class a bucket exclusive for the
- *	thread until heap_bucket_release is called
+ * heap_bucket_acquire_with_arena -- fetches by arena a bucket exclusive
+ * for the thread until heap_bucket_release is called
  */
 struct bucket *
-heap_bucket_acquire(struct palloc_heap *heap, struct alloc_class *c)
+heap_bucket_acquire_with_arena(struct palloc_heap *heap, uint8_t class_id,
+		uint16_t arena_id)
 {
-	return heap_bucket_acquire_by_id(heap, c->id);
+	struct heap_rt *rt = heap->rt;
+	struct bucket *b;
+
+#ifdef DEBUG
+	util_mutex_lock(&rt->arenas_lock);
+	ASSERT(arena_id < VEC_SIZE(&rt->arenas));
+	util_mutex_unlock(&rt->arenas_lock);
+#endif
+
+	if (class_id == DEFAULT_ALLOC_CLASS_ID)
+		b = rt->default_bucket;
+	else
+		b = (VEC_ARR(&heap->rt->arenas)[arena_id])->buckets[class_id];
+
+	util_mutex_lock(&b->lock);
+
+	return b;
 }
 
 /*
@@ -1030,7 +1047,12 @@ heap_get_narenas_auto(struct palloc_heap *heap)
 struct bucket **
 heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 {
+	struct heap_rt *h = heap->rt;
+
+	util_mutex_lock(&h->arenas_lock);
 	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	util_mutex_unlock(&h->arenas_lock);
+
 	return a->buckets;
 }
 
@@ -1074,7 +1096,7 @@ heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 
 	util_mutex_lock(&h->arenas_lock);
 
-	if (arena_id < 0 || arena_id >= (unsigned)VEC_SIZE(&h->arenas))
+	if (arena_id >= (unsigned)VEC_SIZE(&h->arenas))
 		return -1;
 
 	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
@@ -1136,8 +1158,9 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 error_cache_bucket_new:
 	recycler_delete(h->recyclers[c->id]);
 
-	for (i -= 1; i >= 0; --i) {
-		bucket_delete(VEC_ARR(&h->arenas)[i]->buckets[c->id]);
+	int del = (int)i;
+	for (del -= 1; del >= 0; --del) {
+		bucket_delete(VEC_ARR(&h->arenas)[del]->buckets[c->id]);
 	}
 
 error_recycler_new:

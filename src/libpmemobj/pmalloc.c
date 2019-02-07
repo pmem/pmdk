@@ -126,7 +126,7 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
 	int ret = palloc_operation(&pop->heap, 0, off, size, NULL, NULL,
-		extra_field, object_flags, 0, ctx);
+		extra_field, object_flags, 0, 0, ctx);
 
 	pmalloc_operation_release(pop);
 
@@ -150,7 +150,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
 	int ret = palloc_operation(&pop->heap, 0, off, size, constructor, arg,
-			extra_field, object_flags, class_id, ctx);
+			extra_field, object_flags, class_id, 0, ctx);
 
 	pmalloc_operation_release(pop);
 
@@ -172,7 +172,7 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
 	int ret = palloc_operation(&pop->heap, *off, off, size, NULL, NULL,
-		extra_field, object_flags, 0, ctx);
+		extra_field, object_flags, 0, 0, ctx);
 
 	pmalloc_operation_release(pop);
 
@@ -193,7 +193,7 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
 	int ret = palloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
-		0, 0, 0, ctx);
+		0, 0, 0, 0, ctx);
 	ASSERTeq(ret, 0);
 
 	pmalloc_operation_release(pop);
