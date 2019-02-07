@@ -279,13 +279,30 @@ heap_bucket_acquire_by_id(struct palloc_heap *heap, uint8_t class_id)
 }
 
 /*
- * heap_bucket_acquire_by_id -- fetches by class a bucket exclusive for the
- *	thread until heap_bucket_release is called
+ * heap_bucket_acquire_with_arena -- fetches by arena a bucket exclusive
+ * for the thread until heap_bucket_release is called
  */
 struct bucket *
-heap_bucket_acquire(struct palloc_heap *heap, struct alloc_class *c)
+heap_bucket_acquire_with_arena(struct palloc_heap *heap, uint8_t class_id,
+		uint16_t arena_id)
 {
-	return heap_bucket_acquire_by_id(heap, c->id);
+	struct heap_rt *rt = heap->rt;
+	struct bucket *b;
+
+#ifdef DEBUG
+	util_mutex_lock(&rt->arenas_lock);
+	ASSERT(arena_id < VEC_SIZE(&rt->arenas));
+	util_mutex_unlock(&rt->arenas_lock);
+#endif
+
+	if (class_id == DEFAULT_ALLOC_CLASS_ID)
+		b = rt->default_bucket;
+	else
+		b = (VEC_ARR(&heap->rt->arenas)[arena_id])->buckets[class_id];
+
+	util_mutex_lock(&b->lock);
+
+	return b;
 }
 
 /*
@@ -1102,30 +1119,6 @@ heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 }
 
 /*
- * heap_set_arena_thread -- assign arena to the current thread
- */
-int
-heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
-{
-	struct heap_rt *h = heap->rt;
-
-	util_mutex_lock(&h->arenas_lock);
-
-	if (arena_id < 0 || arena_id >= (unsigned)VEC_SIZE(&h->arenas))
-		return -1;
-
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
-	util_mutex_unlock(&h->arenas_lock);
-
-	if (a != NULL && a->nthreads < 1) {
-		util_fetch_and_add64(&a->nthreads, 1);
-		os_tls_set(h->thread_arena, a);
-	}
-
-	return 0;
-}
-
-/*
  * heap_get_procs -- (internal) returns the number of arenas to create
  */
 static unsigned
@@ -1173,9 +1166,8 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 error_cache_bucket_new:
 	recycler_delete(h->recyclers[c->id]);
 
-	for (; i != 0; --i) {
+	for (; i != 0; --i)
 		bucket_delete(VEC_ARR(&h->arenas)[i - 1]->buckets[c->id]);
-	}
 
 error_recycler_new:
 	return -1;

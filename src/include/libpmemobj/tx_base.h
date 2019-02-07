@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -106,6 +106,7 @@ typedef void (*pmemobj_tx_callback)(PMEMobjpool *pop, enum pobj_tx_stage stage,
 
 #define POBJ_TX_XALLOC_VALID_FLAGS	(POBJ_XALLOC_ZERO |\
 	POBJ_XALLOC_NO_FLUSH |\
+	POBJ_XALLOC_ARENA_MASK |\
 	POBJ_XALLOC_CLASS_MASK)
 
 #define POBJ_XADD_NO_FLUSH	POBJ_FLAG_NO_FLUSH
