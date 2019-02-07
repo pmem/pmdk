@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -131,7 +131,8 @@ MANPAGES_3_MD += librpmem/rpmem_persist.3.md
 MANPAGES_1_MD += rpmemd/rpmemd.1.md
 MANPAGES_3_DUMMY += rpmem_open.3 rpmem_set_attr.3 rpmem_close.3 \
 		    rpmem_read.3 rpmem_remove.3 rpmem_check_version.3 \
-		    rpmem_errormsg.3 rpmem_deep_persist.3
+		    rpmem_errormsg.3 rpmem_deep_persist.3 rpmem_flush.3 \
+		    rpmem_drain.3
 endif
 
 ifeq ($(NDCTL_ENABLE),y)
