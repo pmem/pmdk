@@ -110,6 +110,9 @@ following values:
 + **POBJ_CLASS_ID(class_id)** - allocate the object from the allocation
 class with id equal to *class_id*
 
++ **POBJ_ARENA_ID(arena_id)** - allocate the object from arena specified by
+*arena_id*. The arena must exist, otherwise, the behavior is undefined.
+
 This function must be called during **TX_STAGE_WORK**.
 
 The **pmemobj_tx_realloc**() function transactionally resizes an existing
