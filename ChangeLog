@@ -1,3 +1,19 @@
+Fri Feb 08 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.5.1-rc1
+
+	This release fixes minor bugs and improves compatibility with newer
+	tool chains.
+
+	Notable bug fixes:
+	- common: make detection of device-dax instances more robust
+	- obj: fix pmemobj_check for pools with some sizes
+	- obj: don't use anon struct in an union (public header)
+	- obj: fix pmemobj_tx_lock error handling
+	- obj: don't use braces in an expression with clang (public header)
+	- obj: suppress pmemcheck warnings for statistics
+	- pmreorder: fix markers nontype issue
+
 Fri Oct 26 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.5
