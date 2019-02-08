@@ -1,0 +1,433 @@
+
+usage:
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	./colony <filename> create-colony <colony-name> <element-type> <block-capacity>
+
+failed to create pool
+
+unknown type: unknown_type
+
+alloc failed: requested size greater than PMEMOBJ_MAX_ALLOC_SIZE
+
+failed to create a colony
+
+usage:
+	./colony <filename> insert-int <colony-name> <item>
+
+colx doesn't exist
+
+wrong type
+
+usage:
+	./colony <filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+
+colx doesn't exist
+
+wrong type
+
+usage:
+	./colony <filename> insert-int-from-file <colony-name> <path>
+
+colx doesn't exist
+
+failed to open file
+
+usage:
+	./colony <filename> insert-PMEMoid-from-file <colony-name> <path>
+
+colx doesn't exist
+
+failed to open file
+
+usage:
+	./colony <filename> remove-item <colony-name> <index>
+
+colx doesn't exist
+
+usage:
+	./colony <filename> remove-range <colony-name> <index-from> <index-to>
+
+colx doesn't exist
+
+usage:
+	./colony <filename> print-content <colony-name>
+
+colx doesn't exist
+
+usage:
+	./colony <filename> print-colony <colony-name>
+
+colx doesn't exist
+
+usage:
+	./colony <filename> delete-free-blocks <colony-name>
+
+colx doesn't exist
+
+usage:
+	./colony <filename> delete-colony <colony-name>
+
+colx doesn't exist
+
+usage:
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+colony: block_capacity: 5
+colony: block_count: 0
+colony: colony_size: 0
+colony: colony_capacity: 0
+colony: free_idx_count: 0
+colony: free_block_count: 0
+
+
+colony: block_capacity: 5
+colony: block_count: 4
+colony: colony_size: 20
+colony: colony_capacity: 20
+colony: free_idx_count: 0
+colony: free_block_count: 0
+
+col_idx: 0		item: 77
+col_idx: 1		item: 99
+col_idx: 2		item: 40
+col_idx: 3		item: 98
+col_idx: 4		item: 95
+col_idx: 5		item: 9
+col_idx: 6		item: 88
+col_idx: 7		item: 28
+col_idx: 8		item: 66
+col_idx: 9		item: 87
+col_idx: 10		item: 75
+col_idx: 11		item: 21
+col_idx: 12		item: 73
+col_idx: 13		item: 62
+col_idx: 14		item: 12
+col_idx: 15		item: 29
+col_idx: 16		item: 86
+col_idx: 17		item: 37
+col_idx: 18		item: 69
+col_idx: 19		item: 99
+
+colony: block_capacity: 5
+colony: block_count: 4
+colony: colony_size: 16
+colony: colony_capacity: 20
+colony: free_idx_count: 4
+colony: free_block_count: 0
+
+col_idx: 0		item: 77
+col_idx: 1		item: 99
+col_idx: 2		item: 40
+col_idx: 3		item: 98
+col_idx: 4		item: 95
+col_idx: 5		item: 9
+col_idx: 6		item: 88
+col_idx: 7		item: 28
+col_idx: 8		item: 66
+col_idx: 9		item: 87
+col_idx: 10		item: 75
+col_idx: 11		item: 21
+col_idx: 16		item: 86
+col_idx: 17		item: 37
+col_idx: 18		item: 69
+col_idx: 19		item: 99
+
+the item from this index (14) does not exist
+
+the item from this index (15) does not exist
+
+this index (20) is out of range
+
+colony: block_capacity: 5
+colony: block_count: 4
+colony: colony_size: 6
+colony: colony_capacity: 20
+colony: free_idx_count: 4
+colony: free_block_count: 2
+
+col_idx: 0		item: 77
+col_idx: 1		item: 99
+col_idx: 2		item: 40
+col_idx: 3		item: 98
+col_idx: 4		item: 95
+col_idx: 11		item: 21
+
+colony: block_capacity: 5
+colony: block_count: 4
+colony: colony_size: 7
+colony: colony_capacity: 20
+colony: free_idx_count: 3
+colony: free_block_count: 2
+
+col_idx: 0		item: 77
+col_idx: 1		item: 99
+col_idx: 2		item: 40
+col_idx: 3		item: 98
+col_idx: 4		item: 95
+col_idx: 10		item: 183
+col_idx: 11		item: 21
+
+colony: block_capacity: 5
+colony: block_count: 2
+colony: colony_size: 7
+colony: colony_capacity: 10
+colony: free_idx_count: 3
+colony: free_block_count: 0
+
+col_idx: 0		item: 77
+col_idx: 1		item: 99
+col_idx: 2		item: 40
+col_idx: 3		item: 98
+col_idx: 4		item: 95
+col_idx: 5		item: 183
+col_idx: 6		item: 21
+
+colony: block_capacity: 5
+colony: block_count: 6
+colony: colony_size: 27
+colony: colony_capacity: 30
+colony: free_idx_count: 0
+colony: free_block_count: 0
+
+col_idx: 0		item: 77
+col_idx: 1		item: 99
+col_idx: 2		item: 40
+col_idx: 3		item: 98
+col_idx: 4		item: 95
+col_idx: 5		item: 183
+col_idx: 6		item: 21
+col_idx: 7		item: 77
+col_idx: 8		item: 40
+col_idx: 9		item: 99
+col_idx: 10		item: 98
+col_idx: 11		item: 95
+col_idx: 12		item: 9
+col_idx: 13		item: 88
+col_idx: 14		item: 28
+col_idx: 15		item: 66
+col_idx: 16		item: 87
+col_idx: 17		item: 75
+col_idx: 18		item: 21
+col_idx: 19		item: 73
+col_idx: 20		item: 62
+col_idx: 21		item: 12
+col_idx: 22		item: 29
+col_idx: 23		item: 86
+col_idx: 24		item: 37
+col_idx: 25		item: 69
+col_idx: 26		item: 99
+
+coli doesn't exist
+
+colony: block_capacity: 7
+colony: block_count: 3
+colony: colony_size: 20
+colony: colony_capacity: 21
+colony: free_idx_count: 0
+colony: free_block_count: 0
+
+col_idx: 0		uuid: 0		off: 784512555115
+col_idx: 1		uuid: 1174515228232		off: 612009852
+col_idx: 2		uuid: 1194410		off: 14589622336
+col_idx: 3		uuid: 2780027		off: 690606569
+col_idx: 4		uuid: 3654257878		off: 5
+col_idx: 5		uuid: 98799691429		off: 524478512669
+col_idx: 6		uuid: 251523698850		off: 64444444441
+col_idx: 7		uuid: 334447854545950		off: 771711455141
+col_idx: 8		uuid: 785874263310		off: 81444444868
+col_idx: 9		uuid: 120		off: 9454526850
+col_idx: 10		uuid: 445455410102010		off: 754435656841
+col_idx: 11		uuid: 10		off: 98674407335451616
+col_idx: 12		uuid: 1234540		off: 1000890123
+col_idx: 13		uuid: 4545454000		off: 8257113000059
+col_idx: 14		uuid: 3		off: 755454554584512
+col_idx: 15		uuid: 1454544512		off: 69852545410220
+col_idx: 16		uuid: 89454574546460		off: 1233645451
+col_idx: 17		uuid: 278545457		off: 6569445415454
+col_idx: 18		uuid: 78784111545522220		off: 54545121215
+col_idx: 19		uuid: 9454545454545559		off: 52025454278451
+
+colony: block_capacity: 7
+colony: block_count: 3
+colony: colony_size: 4
+colony: colony_capacity: 21
+colony: free_idx_count: 2
+colony: free_block_count: 2
+
+col_idx: 16		uuid: 89454574546460		off: 1233645451
+col_idx: 17		uuid: 278545457		off: 6569445415454
+col_idx: 18		uuid: 78784111545522220		off: 54545121215
+col_idx: 19		uuid: 9454545454545559		off: 52025454278451
+
+colony: block_capacity: 7
+colony: block_count: 1
+colony: colony_size: 4
+colony: colony_capacity: 7
+colony: free_idx_count: 2
+colony: free_block_count: 0
+
+col_idx: 2		uuid: 89454574546460		off: 1233645451
+col_idx: 3		uuid: 278545457		off: 6569445415454
+col_idx: 4		uuid: 78784111545522220		off: 54545121215
+col_idx: 5		uuid: 9454545454545559		off: 52025454278451
+
+colony: block_capacity: 7
+colony: block_count: 4
+colony: colony_size: 28
+colony: colony_capacity: 28
+colony: free_idx_count: 0
+colony: free_block_count: 0
+
+col_idx: 0		uuid: 1174515228232		off: 612009852
+col_idx: 1		uuid: 0		off: 784512555115
+col_idx: 2		uuid: 89454574546460		off: 1233645451
+col_idx: 3		uuid: 278545457		off: 6569445415454
+col_idx: 4		uuid: 78784111545522220		off: 54545121215
+col_idx: 5		uuid: 9454545454545559		off: 52025454278451
+col_idx: 6		uuid: 1194410		off: 14589622336
+col_idx: 7		uuid: 2780027		off: 690606569
+col_idx: 8		uuid: 3654257878		off: 5
+col_idx: 9		uuid: 98799691429		off: 524478512669
+col_idx: 10		uuid: 251523698850		off: 64444444441
+col_idx: 11		uuid: 334447854545950		off: 771711455141
+col_idx: 12		uuid: 785874263310		off: 81444444868
+col_idx: 13		uuid: 120		off: 9454526850
+col_idx: 14		uuid: 445455410102010		off: 754435656841
+col_idx: 15		uuid: 10		off: 98674407335451616
+col_idx: 16		uuid: 1234540		off: 1000890123
+col_idx: 17		uuid: 4545454000		off: 8257113000059
+col_idx: 18		uuid: 3		off: 755454554584512
+col_idx: 19		uuid: 1454544512		off: 69852545410220
+col_idx: 20		uuid: 89454574546460		off: 1233645451
+col_idx: 21		uuid: 278545457		off: 6569445415454
+col_idx: 22		uuid: 78784111545522220		off: 54545121215
+col_idx: 23		uuid: 9454545454545559		off: 52025454278451
+col_idx: 24		uuid: 40731435551616		off: 985633251211
+col_idx: 25		uuid: 35551698674407316		off: 14073705021046740
+col_idx: 26		uuid: 98674447107335551		off: 777441113705002
+col_idx: 27		uuid: 5858755551616		off: 425370962235
+
+colony: block_capacity: 7
+colony: block_count: 4
+colony: colony_size: 13
+colony: colony_capacity: 28
+colony: free_idx_count: 1
+colony: free_block_count: 2
+
+col_idx: 0		uuid: 1174515228232		off: 612009852
+col_idx: 1		uuid: 0		off: 784512555115
+col_idx: 2		uuid: 89454574546460		off: 1233645451
+col_idx: 3		uuid: 278545457		off: 6569445415454
+col_idx: 4		uuid: 78784111545522220		off: 54545121215
+col_idx: 5		uuid: 9454545454545559		off: 52025454278451
+col_idx: 6		uuid: 1194410		off: 14589622336
+col_idx: 7		uuid: 2780027		off: 690606569
+col_idx: 8		uuid: 3654257878		off: 5
+col_idx: 9		uuid: 98799691429		off: 524478512669
+col_idx: 10		uuid: 251523698850		off: 64444444441
+col_idx: 11		uuid: 334447854545950		off: 771711455141
+col_idx: 12		uuid: 785874263310		off: 81444444868
+
+colony: block_capacity: 7
+colony: block_count: 2
+colony: colony_size: 13
+colony: colony_capacity: 14
+colony: free_idx_count: 1
+colony: free_block_count: 0
+
+col_idx: 0		uuid: 1174515228232		off: 612009852
+col_idx: 1		uuid: 0		off: 784512555115
+col_idx: 2		uuid: 89454574546460		off: 1233645451
+col_idx: 3		uuid: 278545457		off: 6569445415454
+col_idx: 4		uuid: 78784111545522220		off: 54545121215
+col_idx: 5		uuid: 9454545454545559		off: 52025454278451
+col_idx: 6		uuid: 1194410		off: 14589622336
+col_idx: 7		uuid: 2780027		off: 690606569
+col_idx: 8		uuid: 3654257878		off: 5
+col_idx: 9		uuid: 98799691429		off: 524478512669
+col_idx: 10		uuid: 251523698850		off: 64444444441
+col_idx: 11		uuid: 334447854545950		off: 771711455141
+col_idx: 12		uuid: 785874263310		off: 81444444868
+
+colony: block_capacity: 7
+colony: block_count: 2
+colony: colony_size: 0
+colony: colony_capacity: 14
+colony: free_idx_count: 0
+colony: free_block_count: 2
+
+
+colony: block_capacity: 7
+colony: block_count: 3
+colony: colony_size: 21
+colony: colony_capacity: 21
+colony: free_idx_count: 0
+colony: free_block_count: 0
+
+col_idx: 0		uuid: 334447854545950		off: 771711455141
+col_idx: 1		uuid: 4545454000		off: 8257113000059
+col_idx: 2		uuid: 1234540		off: 1000890123
+col_idx: 3		uuid: 10		off: 98674407335451616
+col_idx: 4		uuid: 445455410102010		off: 754435656841
+col_idx: 5		uuid: 120		off: 9454526850
+col_idx: 6		uuid: 785874263310		off: 81444444868
+col_idx: 7		uuid: 0		off: 784512555115
+col_idx: 8		uuid: 251523698850		off: 64444444441
+col_idx: 9		uuid: 98799691429		off: 524478512669
+col_idx: 10		uuid: 3654257878		off: 5
+col_idx: 11		uuid: 2780027		off: 690606569
+col_idx: 12		uuid: 1194410		off: 14589622336
+col_idx: 13		uuid: 1174515228232		off: 612009852
+col_idx: 14		uuid: 3		off: 755454554584512
+col_idx: 15		uuid: 1454544512		off: 69852545410220
+col_idx: 16		uuid: 89454574546460		off: 1233645451
+col_idx: 17		uuid: 278545457		off: 6569445415454
+col_idx: 18		uuid: 78784111545522220		off: 54545121215
+col_idx: 19		uuid: 9454545454545559		off: 52025454278451
+col_idx: 20		uuid: 12596521616		off: 40000900235
+
+colony: block_capacity: 7
+colony: block_count: 3
+colony: colony_size: 3
+colony: colony_capacity: 21
+colony: free_idx_count: 4
+colony: free_block_count: 2
+
+col_idx: 10		uuid: 3654257878		off: 5
+col_idx: 11		uuid: 2780027		off: 690606569
+col_idx: 12		uuid: 1194410		off: 14589622336
+
+colony: block_capacity: 7
+colony: block_count: 1
+colony: colony_size: 3
+colony: colony_capacity: 7
+colony: free_idx_count: 4
+colony: free_block_count: 0
+
+col_idx: 3		uuid: 3654257878		off: 5
+col_idx: 4		uuid: 2780027		off: 690606569
+col_idx: 5		uuid: 1194410		off: 14589622336
+
+colp doesn't exist
