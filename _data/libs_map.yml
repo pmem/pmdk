@@ -142,7 +142,7 @@
   pmemobj_tx_wcsdup: pmemobj_tx_alloc.3
   pmemobj_tx_xadd_range: pmemobj_tx_add_range.3
   pmemobj_tx_xadd_range_direct: pmemobj_tx_add_range.3
-  pmemobj_tx_xalloc: pmemobj_tx_begin.3
+  pmemobj_tx_xalloc: pmemobj_tx_alloc.3
   pmemobj_tx_zalloc: pmemobj_tx_alloc.3
   pmemobj_tx_zrealloc: pmemobj_tx_alloc.3
   pmemobj_type_num: oid_is_null.3
