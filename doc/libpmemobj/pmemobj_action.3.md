@@ -117,6 +117,9 @@ additional *flags* argument that is a bitmask of the following values:
 + **POBJ_CLASS_ID(class_id)** - allocate the object from allocation class
 *class_id*. The class id cannot be 0.
 
++ **POBJ_ARENA_ID(arena_id)** - allocate the object from arena specified by
+*arena_id*. The arena must exist, otherwise, the behavior is undefined.
+
 **pmemobj_defer_free**() function creates a deferred free action, meaning that
 the provided object will be freed when the action is published. Calling this
 function with a NULL OID is invalid and causes undefined behavior.
