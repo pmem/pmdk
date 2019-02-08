@@ -541,7 +541,11 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 Summary: Remote Access to Persistent Memory library
 Group: __GROUP_SYS_LIBS__
 Requires: libfabric >= %{min_libfabric_ver}
+%if %{defined suse_version}
+Requires: openssh
+%else
 Requires: openssh-clients
+%endif
 %description -n librpmem__PKG_NAME_SUFFIX__
 The librpmem library provides low-level support for remote access
 to persistent memory utilizing RDMA-capable NICs. It can be used
