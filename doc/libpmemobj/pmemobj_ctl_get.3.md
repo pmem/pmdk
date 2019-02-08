@@ -179,6 +179,10 @@ Newly created arenas by this CTL are inactive, which means that
 the arena will not be used in the automatic scheduling of
 memory requests. To activate the new arena, use heap.arena.[arena_id].automatic CTL.
 
+Arena created using this CTL can be used for allocation by explicitly
+specifying the *arena_id* for **POBJ_ARENA_ID(id)** flag in
+**pmemobj_tx_xalloc**()/**pmemobj_xalloc**()/**pmemobj_xreserve()** functions.
+
 heap.arena.[arena_id].automatic | rw- | - | boolean | boolean | - | -
 
 Reads or modifies the state of the arena.
