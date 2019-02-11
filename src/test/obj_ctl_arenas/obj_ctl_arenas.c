@@ -34,10 +34,17 @@
  * obj_ctl_arenas.c -- tests for the ctl entry points
  * usage:
  * obj_ctl_arenas <file> n - test for heap.narenas.total
+ *
  * obj_ctl_arenas <file> s - test for heap.arena.[idx].size
  * and heap.thread.arena_id (RW)
+ *
  * obj_ctl_arenas <file> c - test for heap.arena.create,
  * heap.arena.[idx].automatic and heap.narenas.automatic
+ *
+ * obj_ctl_arenas <file> f - test for POBJ_ARENA_ID flag,
+ *
+ * obj_ctl_arenas <file> q - test for POBJ_ARENA_ID with
+ * non-exists arena id
  */
 
 #include <sched.h>
@@ -70,6 +77,26 @@ static struct pobj_alloc_class_desc alloc_class[] = {
 	},
 };
 
+static void
+check_arena_size(unsigned arena_id, unsigned class_id)
+{
+	int ret;
+	size_t arena_size;
+	char arena_idx_size[CTL_QUERY_LEN];
+
+	ret = snprintf(arena_idx_size, CTL_QUERY_LEN,
+			"heap.arena.%u.size", arena_id);
+	if (ret < 0 || ret >= CTL_QUERY_LEN)
+		UT_FATAL("!snprintf arena_idx_size");
+
+	ret = pmemobj_ctl_get(pop, arena_idx_size, &arena_size);
+	UT_ASSERTeq(ret, 0);
+
+	size_t test = ALIGN_UP(alloc_class[class_id].unit_size *
+			alloc_class[class_id].units_per_block, CHUNKSIZE);
+	UT_ASSERTeq(test, arena_size);
+}
+
 static void *
 worker_arenas_size(void *arg)
 {
@@ -78,8 +105,6 @@ worker_arenas_size(void *arg)
 	int off_idx = idx + 128;
 	unsigned arena_id;
 	unsigned arena_id_new;
-	size_t arena_size;
-	char arena_idx_size[CTL_QUERY_LEN];
 	char alloc_class_idx_desc[CTL_QUERY_LEN];
 
 	ret = pmemobj_ctl_exec(pop, "heap.arena.create",
@@ -117,20 +142,11 @@ worker_arenas_size(void *arg)
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(arena_id_new, arena_id);
 
-	ret = snprintf(arena_idx_size, CTL_QUERY_LEN,
-			"heap.arena.%u.size", arena_id);
-	if (ret < 0 || ret >= CTL_QUERY_LEN)
-		UT_FATAL("!snprintf arena_idx_size");
-
-	ret = pmemobj_ctl_get(pop, arena_idx_size, &arena_size);
-	UT_ASSERTeq(ret, 0);
-
-	size_t test = ALIGN_UP(alloc_class[idx].unit_size *
-			alloc_class[idx].units_per_block, CHUNKSIZE);
-	UT_ASSERTeq(test, arena_size);
+	check_arena_size(arena_id, (unsigned)idx);
 
 	return NULL;
 }
+
 
 int
 main(int argc, char *argv[])
@@ -242,6 +258,64 @@ main(int argc, char *argv[])
 		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas_a);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(narenas_b + narenas_n, narenas_a);
+	} else if (t == 'f') {
+		int ret;
+		ret = pmemobj_ctl_set(pop, "heap.alloc_class.128.desc",
+				&alloc_class[0]);
+		UT_ASSERTeq(ret, 0);
+		ret = pmemobj_ctl_set(pop, "heap.alloc_class.129.desc",
+				&alloc_class[1]);
+		UT_ASSERTeq(ret, 0);
+
+		unsigned total;
+		unsigned arena_id;
+		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &total);
+		UT_ASSERTeq(ret, 0);
+
+		for (unsigned i = total; i < 4; i++) {
+			ret = pmemobj_ctl_exec(pop, "heap.arena.create",
+					&arena_id);
+			UT_ASSERTeq(ret, 0);
+		}
+
+		/* test POBJ_ARENA_ID with pmemobj_xalloc */
+		for (unsigned i = 0; i < 2; i++) {
+			ret = pmemobj_xalloc(pop,
+					NULL, alloc_class[i].unit_size, 0,
+					POBJ_CLASS_ID(i + 128) | \
+					POBJ_ARENA_ID(i),
+					NULL, NULL);
+			UT_ASSERTeq(ret, 0);
+			check_arena_size(i, i);
+		}
+
+		/* test POBJ_ARENA_ID with pmemobj_xreserve */
+		struct pobj_action act[2];
+		uint64_t dest_value = 0;
+		PMEMoid oid = pmemobj_xreserve(pop, &act[0],
+				alloc_class[0].unit_size, 1,
+				POBJ_CLASS_ID(128) | POBJ_ARENA_ID(2));
+		pmemobj_set_value(pop, &act[1], &dest_value, 1);
+		pmemobj_publish(pop, act, 2);
+		UT_ASSERTeq(dest_value, 1);
+		check_arena_size(2, 0);
+		pmemobj_free(&oid);
+		UT_ASSERT(OID_IS_NULL(oid));
+
+		/* test POBJ_ARENA_ID with pmemobj_tx_xalloc */
+		TX_BEGIN(pop) {
+			pmemobj_tx_xalloc(alloc_class[1].unit_size, 0,
+					POBJ_CLASS_ID(129) | POBJ_ARENA_ID(3));
+		} TX_END
+		check_arena_size(3, 1);
+	} else if (t == 'q') {
+		unsigned total;
+		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &total);
+		UT_ASSERTeq(ret, 0);
+
+		ret = pmemobj_xalloc(pop, NULL, alloc_class[0].unit_size, 0,
+				POBJ_ARENA_ID(total), NULL, NULL);
+		UT_ASSERTne(ret, 0);
 	} else {
 		UT_ASSERT(0);
 	}
