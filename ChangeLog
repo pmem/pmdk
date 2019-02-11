@@ -1,6 +1,6 @@
-Fri Feb 08 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+Fri Feb 11 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.5.1-rc1
+	* Version 1.5.1-rc2
 
 	This release fixes minor bugs and improves compatibility with newer
 	tool chains.
@@ -36,9 +36,11 @@ Fri Oct 26 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 	- pmreorder: new tool for verification of persistent memory algorithms
 	- obj: new on media layout
 	- pmem/obj: new flexible memcpy|memmove|memset API
-	- obj: new flushing APIs: pmemobj_xpersist, pmemobj_xflush (PMEMOBJ_F_RELAXED)
+	- obj: new flushing APIs: pmemobj_xpersist, pmemobj_xflush
+	  (PMEMOBJ_F_RELAXED)
 	- rpmem: new flag RPMEM_PERSIST_RELAXED for rpmem_persist
-	- obj: lazily initialized volatile variables (pmemobj_volatile) (EXPERIMENTAL)
+	- obj: lazily initialized volatile variables (pmemobj_volatile)
+	  (EXPERIMENTAL)
 	- obj: allocation classes with alignment
 	- obj: new action APIs: pmemobj_defer_free, POBJ_XRESERVE_NEW,
 	  POBJ_XRESERVE_ALLOC
