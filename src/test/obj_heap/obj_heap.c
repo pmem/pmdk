@@ -270,7 +270,7 @@ test_heap(void)
 	struct memory_block old_run = {0, 0, 1, 0};
 	struct memory_block new_run = {0, 0, 0, 0};
 	struct alloc_class *c_run = heap_get_best_class(heap, 1024);
-	struct bucket *b_run = heap_bucket_acquire(heap, c_run, 0);
+	struct bucket *b_run = heap_bucket_acquire_by_id(heap, c_run->id);
 
 	/*
 	 * Allocate blocks from a run until one run is exhausted.
