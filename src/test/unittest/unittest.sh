@@ -1983,6 +1983,25 @@ function require_no_sds() {
 }
 
 #
+# is_ras_permission_fix -- check if binary is compiled with RAS
+#                           permission fixes
+#
+#	usage: is_ras_permission_fix <binary>
+#
+function is_ras_permission_fix() {
+	local binary=$1
+	local dir=.
+	if [ -z "$binary" ]; then
+		fatal "is_ras_permission_fix: error: no binary found"
+	fi
+
+	strings ${binary} 2>&1 | \
+		grep -q "with RAS permissions fixes" && true
+
+	echo $?
+}
+
+#
 # check_absolute_path -- continue script execution only if $DIR path is
 #                        an absolute path; do not resolve symlinks
 #
