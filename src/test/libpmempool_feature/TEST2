@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,8 +49,12 @@ require_usc_permission $DIR
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOL
 
-# PMEMPOOL_FEAT_SHUTDOWN_STATE is disabled by default
-libpmempool_feature_query SHUTDOWN_STATE
+# SHUTDOWN_STATE is disabled on Linux if PMDK is compiled with old ndctl
+if [ $sds_enabled -eq 1 ]; then
+	libpmempool_feature_query SHUTDOWN_STATE
+else
+	libpmempool_feature_disable SHUTDOWN_STATE
+fi
 
 # PMEMPOOL_FEAT_SHUTDOWN_STATE requires PMEMPOOL_FEAT_CHCKSUM_2K
 libpmempool_feature_disable CKSUM_2K

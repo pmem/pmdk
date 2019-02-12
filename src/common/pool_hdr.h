@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -227,13 +227,13 @@ static const features_t features_zero =
 #define POOL_FEAT_INCOMPAT_VALID \
 	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(NDCTL_GE_63)
 #define POOL_FEAT_INCOMPAT_DEFAULT \
 	(POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
 #else
 /*
- * shutdown state support on Linux requires root access
- * so it is disabled by default
+ * shutdown state support on Linux requires root access on kernel < 4.20 with
+ * ndctl < 63 so it is disabled by default
  */
 #define POOL_FEAT_INCOMPAT_DEFAULT \
 	(POOL_FEAT_CKSUM_2K)

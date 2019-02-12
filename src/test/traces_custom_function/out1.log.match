@@ -16,6 +16,8 @@ $(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with sup
 $(OPT)
 $(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with support for shutdown state
 $(OPT)
+$(OPT)CUSTOM_PRINT: <trace_func>: <1> [$(nW):$(N) out_init]$(W)compiled with libndctl 63+
+$(OPT)
 CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) util_mmap_init]$(W)
 
 CUSTOM_PRINT: <trace_func>: <3> [$(nW):$(N) out_set_vsnprintf_func]$(W)vsnprintf $(nW)$(X)

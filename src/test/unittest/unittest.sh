@@ -1983,6 +1983,24 @@ function require_no_sds() {
 }
 
 #
+# is_ndctl_ge_63 -- check if binary is compiled with libndctl 63+
+#
+#	usage: is_ndctl_ge_63 <binary>
+#
+function is_ndctl_ge_63() {
+	local binary=$1
+	local dir=.
+	if [ -z "$binary" ]; then
+		fatal "is_ndctl_ge_63: error: no binary found"
+	fi
+
+	strings ${binary} 2>&1 | \
+		grep -q "compiled with libndctl 63+" && true
+
+	echo $?
+}
+
+#
 # check_absolute_path -- continue script execution only if $DIR path is
 #                        an absolute path; do not resolve symlinks
 #
