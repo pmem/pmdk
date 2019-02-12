@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,6 +44,7 @@ QUERY_PATTERN="query"
 ERROR_PATTERN="<1> \\[feature.c:.*\\]"
 
 exit_func=expect_normal_exit
+sds_enabled=$(is_ndctl_ge_63 ./libpmempool_feature$EXESUFFIX)
 
 # libpmempool_feature_query_abnormal -- query feature with expected
 #	abnormal result
@@ -83,7 +84,7 @@ function libpmempool_feature_query() {
 #
 # usage: libpmempool_feature_enable <enum-pmempool_feature> [no-query]
 function libpmempool_feature_enable() {
-	$exit_func ./libpmempool_feature$EXESUFFIX $POOL e $1 &>> $LOG
+	$exit_func ./libpmempool_feature$EXESUFFIX $POOL e $1
 	if [ "$exit_func" == "expect_abnormal_exit" ]; then
 		if [ -f "$PMEMPOOL_LOG_FILE" ]; then
 			cat $PMEMPOOL_LOG_FILE | grep "$ERROR_PATTERN" >> $LOG
@@ -98,7 +99,7 @@ function libpmempool_feature_enable() {
 #
 # usage: libpmempool_feature_disable <enum-pmempool_feature> [no-query]
 function libpmempool_feature_disable() {
-	$exit_func ./libpmempool_feature$EXESUFFIX $POOL d $1 &>> $LOG
+	$exit_func ./libpmempool_feature$EXESUFFIX $POOL d $1
 	if [ "$exit_func" == "expect_abnormal_exit" ]; then
 		if [ -f "$PMEMPOOL_LOG_FILE" ]; then
 			cat $PMEMPOOL_LOG_FILE | grep "$ERROR_PATTERN" >> $LOG

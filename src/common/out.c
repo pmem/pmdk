@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -268,6 +268,11 @@ out_init(const char *log_prefix, const char *log_level_var,
 	static __attribute__((used)) const char *shutdown_state_msg =
 			"compiled with support for shutdown state";
 	LOG(1, "%s", shutdown_state_msg);
+#endif
+#if NDCTL_GE_63
+	static __attribute__((used)) const char *ndctl_ge_63_msg =
+		"compiled with libndctl 63+";
+	LOG(1, "%s", ndctl_ge_63_msg);
 #endif
 
 	Last_errormsg_key_alloc();
