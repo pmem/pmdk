@@ -859,26 +859,12 @@ function expect_normal_exit() {
 		else
 			echo -e "$UNITTEST_NAME $msg." >&2
 		fi
-		if [ "$CHECK_TYPE" != "none" -a -f $VALGRIND_LOG_FILE ]; then
-			dump_last_n_lines $VALGRIND_LOG_FILE
-		fi
 
 		# ignore Ctrl-C
 		if [ $ret != 130 ]; then
-			for f in $(get_files "node_.*${UNITTEST_NUM}\.log"); do
+			for f in $(get_files ".*[a-zA-Z_]${UNITTEST_NUM}\.log"); do
 				dump_last_n_lines $f
 			done
-
-			dump_last_n_lines $TRACE_LOG_FILE
-			dump_last_n_lines $PMEM_LOG_FILE
-			dump_last_n_lines $PMEMOBJ_LOG_FILE
-			dump_last_n_lines $PMEMLOG_LOG_FILE
-			dump_last_n_lines $PMEMBLK_LOG_FILE
-			dump_last_n_lines $PMEMPOOL_LOG_FILE
-			dump_last_n_lines $VMEM_LOG_FILE
-			dump_last_n_lines $VMMALLOC_LOG_FILE
-			dump_last_n_lines $RPMEM_LOG_FILE
-			dump_last_n_lines $RPMEMD_LOG_FILE
 		fi
 
 		[ $NODES_MAX -ge 0 ] && clean_all_remote_nodes
