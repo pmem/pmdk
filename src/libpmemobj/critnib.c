@@ -485,6 +485,12 @@ critnib_remove(struct critnib *c, uint64_t key)
 		n = kn;
 		k_parent = &kn->child[slice_index(key, kn->shift)];
 		kn = *k_parent;
+
+		if (!kn) {
+			os_mutex_unlock(&c->mutex);
+
+			return NULL;
+		}
 	}
 
 	struct critnib_leaf *k = to_leaf(kn);
