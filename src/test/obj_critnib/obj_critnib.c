@@ -360,6 +360,25 @@ test_same_two()
 	critnib_delete(c);
 }
 
+static void
+test_remove_nonexist()
+{
+	struct critnib *c = critnib_new();
+
+	/* root */
+	UT_ASSERTeq(critnib_remove(c, 1), NULL);
+
+	/* in a leaf node */
+	critnib_insert(c, 2, (void *)2);
+	UT_ASSERTeq(critnib_remove(c, 1), NULL);
+
+	/* in a non-leaf node */
+	critnib_insert(c, 3, (void *)3);
+	UT_ASSERTeq(critnib_remove(c, 1), NULL);
+
+	critnib_delete(c);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -381,6 +400,7 @@ main(int argc, char *argv[])
 	test_le_brute();
 	test_same_only();
 	test_same_two();
+	test_remove_nonexist();
 
 	DONE(NULL);
 }
