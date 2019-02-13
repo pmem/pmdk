@@ -441,14 +441,14 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 void *
 critnib_remove(struct critnib *c, uint64_t key)
 {
+	struct critnib_leaf *k;
+	void *value = NULL;
+
 	util_mutex_lock(&c->mutex);
 
 	struct critnib_node *n = c->root;
-	if (!n) {
-		util_mutex_unlock(&c->mutex);
-
-		return NULL;
-	}
+	if (!n)
+		goto not_found;
 
 	uint64_t del = util_fetch_and_add64(&c->remove_count, 1) % DELETED_LIFE;
 	free_node(c, c->pending_del_nodes[del]);
@@ -457,20 +457,13 @@ critnib_remove(struct critnib *c, uint64_t key)
 	c->pending_del_leaves[del] = NULL;
 
 	if (is_leaf(n)) {
-		struct critnib_leaf *k = to_leaf(n);
+		k = to_leaf(n);
 		if (k->key == key) {
 			store(&c->root, NULL);
-			void *value = k->value;
-			c->pending_del_leaves[del] = k;
-
-			util_mutex_unlock(&c->mutex);
-
-			return value;
+			goto del_leaf;
 		}
 
-		util_mutex_unlock(&c->mutex);
-
-		return NULL;
+		goto not_found;
 	}
 	/*
 	 * n and k are a parent:child pair (after the first iteration); k is the
@@ -486,19 +479,13 @@ critnib_remove(struct critnib *c, uint64_t key)
 		k_parent = &kn->child[slice_index(key, kn->shift)];
 		kn = *k_parent;
 
-		if (!kn) {
-			os_mutex_unlock(&c->mutex);
-
-			return NULL;
-		}
+		if (!kn)
+			goto not_found;
 	}
 
-	struct critnib_leaf *k = to_leaf(kn);
-	if (k->key != key) {
-		util_mutex_unlock(&c->mutex);
-
-		return NULL;
-	}
+	k = to_leaf(kn);
+	if (k->key != key)
+		goto not_found;
 
 	store(&n->child[slice_index(key, n->shift)], NULL);
 
@@ -506,14 +493,8 @@ critnib_remove(struct critnib *c, uint64_t key)
 	int ochild = -1;
 	for (int i = 0; i < SLNODES; i++) {
 		if (n->child[i]) {
-			if (ochild != -1) {
-				void *value = k->value;
-				c->pending_del_leaves[del] = k;
-
-				util_mutex_unlock(&c->mutex);
-
-				return value;
-			}
+			if (ochild != -1)
+				goto del_leaf;
 
 			ochild = i;
 		}
@@ -522,12 +503,14 @@ critnib_remove(struct critnib *c, uint64_t key)
 	ASSERTne(ochild, -1);
 
 	store(n_parent, n->child[ochild]);
-	void *value = k->value;
 	c->pending_del_nodes[del] = n;
+
+del_leaf:
+	value = k->value;
 	c->pending_del_leaves[del] = k;
 
+not_found:
 	util_mutex_unlock(&c->mutex);
-
 	return value;
 }
 
