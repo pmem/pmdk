@@ -183,6 +183,8 @@ Arena created using this CTL can be used for allocation by explicitly
 specifying the *arena_id* for **POBJ_ARENA_ID(id)** flag in
 **pmemobj_tx_xalloc**()/**pmemobj_xalloc**()/**pmemobj_xreserve()** functions.
 
+Number of arenas by default is limited to maximum of 1024.
+
 heap.arena.[arena_id].automatic | rw- | - | boolean | boolean | - | -
 
 Reads or modifies the state of the arena.
