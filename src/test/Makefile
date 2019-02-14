@@ -151,7 +151,8 @@ OBJ_REMOTE_DEPS = \
 OBJ_REMOTE_TESTS = \
 	obj_rpmem_basic_integration\
 	obj_rpmem_heap_interrupt\
-	obj_rpmem_heap_state
+	obj_rpmem_heap_state\
+	obj_check_remote
 
 OTHER_TESTS = \
 	arch_flags\
