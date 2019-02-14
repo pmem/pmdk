@@ -59,6 +59,7 @@
  * This is the value by which the heap might grow once we hit an OOM.
  */
 #define HEAP_DEFAULT_GROW_SIZE (1 << 27) /* 128 megabytes */
+#define MAX_DEFAULT_ARENAS (1 << 10) /* 1024 arenas */
 
 /*
  * Arenas store the collection of buckets for allocation classes.
@@ -83,6 +84,7 @@ struct heap_rt {
 	/* DON'T use these two variable directly! */
 	struct bucket *default_bucket;
 	VEC(, struct arena *) arenas;
+	size_t max_arenas;
 
 	/* protects assignment of arenas */
 	os_mutex_t arenas_lock;
@@ -1031,6 +1033,42 @@ heap_get_narenas_total(struct palloc_heap *heap)
 }
 
 /*
+ * heap_get_narenas_max -- returns the max number of arenas
+ */
+unsigned
+heap_get_narenas_max(struct palloc_heap *heap)
+{
+	struct heap_rt *h = heap->rt;
+
+	util_mutex_lock(&h->arenas_lock);
+	unsigned max = (unsigned)VEC_CAPACITY(&h->arenas);
+	util_mutex_unlock(&h->arenas_lock);
+
+	return max;
+}
+
+/*
+ * heap_set_narenas_max -- change the max number of arenas
+ */
+int
+heap_set_narenas_max(struct palloc_heap *heap, unsigned size)
+{
+	struct heap_rt *h = heap->rt;
+	int ret = -1;
+
+	util_mutex_lock(&h->arenas_lock);
+	if (size <= (unsigned)VEC_CAPACITY(&h->arenas)) {
+		LOG(2, "cannot decrease max number of arenas");
+		goto out;
+	}
+	ret = VEC_RESERVE(&h->arenas, size);
+
+out:
+	util_mutex_unlock(&h->arenas_lock);
+	return ret;
+}
+
+/*
  * heap_get_narenas_auto -- returns the number of all automatic arenas
  */
 unsigned
@@ -1302,7 +1340,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	}
 
 	struct heap_rt *h = Malloc(sizeof(*h));
-	int err;
+	int err = 0;
 	if (h == NULL) {
 		err = ENOMEM;
 		goto error_heap_malloc;
@@ -1315,9 +1353,14 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	}
 
 	unsigned narenas_default = heap_get_procs();
+	h->max_arenas = MAX_DEFAULT_ARENAS;
 
 	util_mutex_init(&h->arenas_lock);
 	VEC_INIT(&h->arenas);
+	if (VEC_RESERVE(&h->arenas, MAX_DEFAULT_ARENAS) == -1) {
+		err = errno;
+		goto error_vec_reserve;
+	}
 
 	h->nzones = heap_max_zone(heap_size);
 
@@ -1356,6 +1399,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 error_arenas_malloc:
 	alloc_class_collection_delete(h->alloc_classes);
+error_vec_reserve:
+	VEC_DELETE(&h->arenas);
 error_alloc_classes_new:
 	Free(h);
 	heap->rt = NULL;
