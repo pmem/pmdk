@@ -14,7 +14,9 @@ looking up the range.
 
 	usage: pmem_is_pmem_posix op addr len [op addr len]...
 
-op is one of: 'a' (add), 'r' (remove), 't' (test)
+op is one of: 'a' (add), 'r' (remove), 't' (test),
+'f' (fault_injection for util_range_register),
+'s' (fault_injection for util_range_split)
 addr is interpreted as a hex value, len as a decimal value unless it
 starts with 0x.  If op argument is 't', then addr/len pair is tested against
 the current list of memory regions.

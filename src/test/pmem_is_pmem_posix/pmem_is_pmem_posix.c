@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,13 +34,16 @@
  * pmem_is_pmem_posix.c -- Posix specific unit test for pmem_is_pmem()
  *
  * usage: pmem_is_pmem_posix op addr len [op addr len ...]
- * where op can be: 'a' (add), 'r' (remove), 't' (test)
+ * where op can be: 'a' (add), 'r' (remove), 't' (test),
+ * 'f' (fault_injection for util_range_register),
+ * 's' (fault_injection for util_range_split)
  */
 
 #include <stdlib.h>
 
 #include "unittest.h"
 #include "mmap.h"
+#include "../libpmem/pmem.h"
 
 static enum pmem_map_type
 str2type(char *str)
@@ -51,6 +54,32 @@ str2type(char *str)
 		return PMEM_MAP_SYNC;
 
 	FATAL("unknown type '%s'", str);
+}
+
+static void
+do_fault_injection_register(void *addr, size_t len, enum pmem_map_type type)
+{
+	if (!pmem_fault_injection_enabled())
+		return;
+
+	pmem_inject_fault_at(PMEM_MALLOC, 1, "util_range_register");
+
+	int ret = util_range_register(addr, len, "", type);
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
+do_fault_injection_split(void *addr, size_t len)
+{
+	if (!pmem_fault_injection_enabled())
+		return;
+
+	pmem_inject_fault_at(PMEM_MALLOC, 1, "util_range_split");
+
+	int ret = util_range_unregister(addr, len);
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
 }
 
 int
@@ -92,6 +121,15 @@ main(int argc, char *argv[])
 		case 't':
 			UT_OUT("addr %p len %zu is_pmem %d",
 					addr, len, pmem_is_pmem(addr, len));
+			i += 3;
+			break;
+		case 'f':
+			do_fault_injection_register(addr, len,
+					str2type(argv[i + 3]));
+			i += 4;
+			break;
+		case 's':
+			do_fault_injection_split(addr, len);
 			i += 3;
 			break;
 		default:
