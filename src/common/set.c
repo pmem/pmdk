@@ -3887,6 +3887,26 @@ util_read_compat_features(struct pool_set *set, uint32_t *compat_features)
 	return 0;
 }
 
+static int
+unlink_remote_replicas(struct pool_set *set)
+{
+	for (unsigned i = 0; i < set->nreplicas; i++) {
+		if (set->replica[i]->remote != NULL) {
+
+			util_replica_close(set, i);
+			int ret = util_replica_close_remote(set->replica[i], i,
+					DO_NOT_DELETE_PARTS);
+			if (ret != 0)
+				return ret;
+			size_t size = sizeof(set->replica[i]) *
+				(set->nreplicas - i - 1);
+			memmove(&set->replica[i], &set->replica[i + 1], size);
+			set->nreplicas--;
+		}
+	}
+	return 0;
+}
+
 /*
  * util_pool_open -- open a memory pool (set or a single file)
  *
@@ -4000,6 +4020,13 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	/* unmap all headers */
 	util_unmap_all_hdrs(set);
+
+	/* remove all remote replicas from poolset when cow */
+	if (cow && set->remote) {
+		ret = unlink_remote_replicas(set);
+		if (ret != 0)
+			goto err_replica;
+	}
 
 	return 0;
 
