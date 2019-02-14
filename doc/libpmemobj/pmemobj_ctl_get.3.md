@@ -159,6 +159,11 @@ heap.narenas.total | r- | - | unsigned | - | - | -
 Reads the number of all created arenas. It includes automatic arenas
 created by default and arenas created using heap.arena.create CTL.
 
+heap.narenas.max | rw- | - | unsigned | unsigned | - | -
+
+Reads the maximum number of an arenas that can be create.
+This limatation can be change by this CTL write.
+
 heap.arena.[arena_id].size | r- | - | uint64_t | - | - | -
 
 Reads the total amount of memory in bytes which is currently
