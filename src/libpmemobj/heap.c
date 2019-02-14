@@ -84,7 +84,6 @@ struct heap_rt {
 	/* DON'T use these two variable directly! */
 	struct bucket *default_bucket;
 	VEC(, struct arena *) arenas;
-	size_t max_arenas;
 
 	/* protects assignment of arenas */
 	os_mutex_t arenas_lock;
@@ -1033,6 +1032,42 @@ heap_get_narenas_total(struct palloc_heap *heap)
 }
 
 /*
+ * heap_get_narenas_max -- returns the max number of arenas
+ */
+unsigned
+heap_get_narenas_max(struct palloc_heap *heap)
+{
+	struct heap_rt *h = heap->rt;
+
+	util_mutex_lock(&h->arenas_lock);
+	unsigned max = (unsigned)VEC_CAPACITY(&h->arenas);
+	util_mutex_unlock(&h->arenas_lock);
+
+	return max;
+}
+
+/*
+ * heap_set_narenas_max -- change the max number of arenas
+ */
+int
+heap_set_narenas_max(struct palloc_heap *heap, unsigned size)
+{
+	struct heap_rt *h = heap->rt;
+	int ret = -1;
+
+	util_mutex_lock(&h->arenas_lock);
+	if (size <= (unsigned)VEC_CAPACITY(&h->arenas)) {
+		LOG(2, "cannot decrease max arenas limitation");
+		goto out;
+	}
+	ret = VEC_RESERVE(&h->arenas, size);
+
+out:
+	util_mutex_unlock(&h->arenas_lock);
+	return ret;
+}
+
+/*
  * heap_get_narenas_auto -- returns the number of all automatic arenas
  */
 unsigned
@@ -1319,11 +1354,10 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	}
 
 	unsigned narenas_default = heap_get_procs();
-	h->max_arenas = MAX_DEFAULT_ARENAS;
 
 	util_mutex_init(&h->arenas_lock);
 	VEC_INIT(&h->arenas);
-	VEC_RESERVE(&h->arenas, h->max_arenas);
+	VEC_RESERVE(&h->arenas, MAX_DEFAULT_ARENAS);
 
 	h->nzones = heap_max_zone(heap_size);
 
