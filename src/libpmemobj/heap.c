@@ -59,6 +59,7 @@
  * This is the value by which the heap might grow once we hit an OOM.
  */
 #define HEAP_DEFAULT_GROW_SIZE (1 << 27) /* 128 megabytes */
+#define MAX_DEFAULT_ARENAS (1 << 10) /* 1024 arenas */
 
 /*
  * Arenas store the collection of buckets for allocation classes.
@@ -83,6 +84,7 @@ struct heap_rt {
 	/* DON'T use these two variable directly! */
 	struct bucket *default_bucket;
 	VEC(, struct arena *) arenas;
+	size_t max_arenas;
 
 	/* protects assignment of arenas */
 	os_mutex_t arenas_lock;
@@ -988,9 +990,15 @@ int
 heap_arena_create(struct palloc_heap *heap)
 {
 	struct heap_rt *h = heap->rt;
-	int ret;
+	int ret = -1;
 
 	util_mutex_lock(&h->arenas_lock);
+
+	if (VEC_SIZE(&h->arenas) >= h->max_arenas) {
+		ERR("heap: max number of arenas: %lu, has been reached",
+				h->max_arenas);
+		goto out;
+	}
 
 	if (VEC_PUSH_BACK(&h->arenas, heap_arena_new(heap, 0))) {
 		ret = -1;
@@ -1309,9 +1317,11 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	}
 
 	unsigned narenas_default = heap_get_procs();
+	h->max_arenas = MAX_DEFAULT_ARENAS;
 
 	util_mutex_init(&h->arenas_lock);
 	VEC_INIT(&h->arenas);
+	VEC_RESERVE(&h->arenas, h->max_arenas);
 
 	h->nzones = heap_max_zone(heap_size);
 
