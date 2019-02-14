@@ -47,6 +47,8 @@
  *
  * obj_ctl_arenas <file> q - test for POBJ_ARENA_ID with
  * non-exists arena id
+ *
+ * obj_ctl_arenas <file> m - test for heap.narenas.max (RW)
  */
 
 #include <sched.h>
@@ -63,6 +65,7 @@
 #define ALLOC_CLASS_ARENA 2
 #define NTHREADX 16
 #define NARENAS 16
+#define DEFAULT_ARENAS_MAX (1 << 10)
 
 static os_mutex_t lock;
 static os_cond_t cond;
@@ -264,7 +267,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_ctl_arenas");
 
 	if (argc != 3)
-		UT_FATAL("usage: %s poolset [n|s|c|f|q|a]", argv[0]);
+		UT_FATAL("usage: %s poolset [n|s|c|f|q|m|a]", argv[0]);
 
 	const char *path = argv[1];
 	char t = argv[2][0];
@@ -423,6 +426,29 @@ main(int argc, char *argv[])
 		ret = pmemobj_xalloc(pop, NULL, alloc_class[0].unit_size, 0,
 				POBJ_ARENA_ID(total), NULL, NULL);
 		UT_ASSERTne(ret, 0);
+	} else if (t == 'm') {
+		unsigned max;
+		unsigned new_max;
+
+		ret = pmemobj_ctl_get(pop, "heap.narenas.max", &max);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(DEFAULT_ARENAS_MAX, max);
+
+		/* size should not decrease */
+		new_max = DEFAULT_ARENAS_MAX - 1;
+		ret = pmemobj_ctl_set(pop, "heap.narenas.max", &new_max);
+		UT_ASSERTne(ret, 0);
+		ret = pmemobj_ctl_get(pop, "heap.narenas.max", &max);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(DEFAULT_ARENAS_MAX, max);
+
+		/* size should increase */
+		new_max = DEFAULT_ARENAS_MAX + 1;
+		ret = pmemobj_ctl_set(pop, "heap.narenas.max", &new_max);
+		UT_ASSERTeq(ret, 0);
+		ret = pmemobj_ctl_get(pop, "heap.narenas.max", &max);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(DEFAULT_ARENAS_MAX + 1, max);
 	} else {
 		UT_ASSERT(0);
 	}

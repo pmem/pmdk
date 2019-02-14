@@ -159,6 +159,12 @@ heap.narenas.total | r- | - | unsigned | - | - | -
 Reads the number of all created arenas. It includes automatic arenas
 created by default and arenas created using heap.arena.create CTL.
 
+heap.narenas.max | rw- | - | unsigned | unsigned | - | -
+
+Reads or writes the maximum number of arenas that can be created.
+This entry point is not thread-safe with regards to heap
+operations (allocations, frees, reallocs).
+
 heap.arena.[arena_id].size | r- | - | uint64_t | - | - | -
 
 Reads the total amount of memory in bytes which is currently
@@ -183,7 +189,7 @@ Arena created using this CTL can be used for allocation by explicitly
 specifying the *arena_id* for **POBJ_ARENA_ID(id)** flag in
 **pmemobj_tx_xalloc**()/**pmemobj_xalloc**()/**pmemobj_xreserve()** functions.
 
-Number of arenas by default is limited to maximum of 1024.
+By default, the number of arenas is limited to 1024.
 
 heap.arena.[arena_id].automatic | rw- | - | boolean | boolean | - | -
 
