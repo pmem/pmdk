@@ -111,6 +111,10 @@ void *heap_end(struct palloc_heap *heap);
 
 unsigned heap_get_narenas_total(struct palloc_heap *heap);
 
+unsigned heap_get_narenas_max(struct palloc_heap *heap);
+
+int heap_set_narenas_max(struct palloc_heap *heap, unsigned size);
+
 unsigned heap_get_narenas_auto(struct palloc_heap *heap);
 
 unsigned heap_get_thread_arena_id(struct palloc_heap *heap);

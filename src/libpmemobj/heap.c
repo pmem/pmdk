@@ -84,7 +84,6 @@ struct heap_rt {
 	/* DON'T use these two variable directly! */
 	struct bucket *default_bucket;
 	VEC(, struct arena *) arenas;
-	size_t max_arenas;
 
 	/* protects assignment of arenas */
 	os_mutex_t arenas_lock;
@@ -1057,10 +1056,15 @@ heap_set_narenas_max(struct palloc_heap *heap, unsigned size)
 	int ret = -1;
 
 	util_mutex_lock(&h->arenas_lock);
-	if (size <= (unsigned)VEC_CAPACITY(&h->arenas)) {
+	unsigned capacity = (unsigned)VEC_CAPACITY(&h->arenas);
+	if (size < capacity) {
 		LOG(2, "cannot decrease max number of arenas");
 		goto out;
+	} else if (size == capacity) {
+		ret = 0;
+		goto out;
 	}
+
 	ret = VEC_RESERVE(&h->arenas, size);
 
 out:
@@ -1353,7 +1357,6 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	}
 
 	unsigned narenas_default = heap_get_procs();
-	h->max_arenas = MAX_DEFAULT_ARENAS;
 
 	util_mutex_init(&h->arenas_lock);
 	VEC_INIT(&h->arenas);

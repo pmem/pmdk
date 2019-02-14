@@ -536,6 +536,42 @@ CTL_READ_HANDLER(total)(void *ctx,
 }
 
 /*
+ * CTL_READ_HANDLER(max) -- reads a max number of the arenas
+ */
+static int
+CTL_READ_HANDLER(max)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned *max = arg;
+
+	*max = heap_get_narenas_max(&pop->heap);
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(max) -- write a max number of the arenas
+ */
+static int
+CTL_WRITE_HANDLER(max)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned size = *(unsigned *)arg;
+
+	int ret = heap_set_narenas_max(&pop->heap, size);
+	if (ret) {
+		LOG(1, "cannot change max arena number");
+		return -1;
+	}
+
+	return 0;
+}
+
+static const struct ctl_argument CTL_ARG(max) = CTL_ARG_LONG_LONG;
+
+/*
  * CTL_READ_HANDLER(automatic) -- reads a number of the automatic arenas
  */
 static int
@@ -592,7 +628,6 @@ CTL_WRITE_HANDLER(arena_id)(void *ctx,
 }
 
 static const struct ctl_argument CTL_ARG(arena_id) = CTL_ARG_LONG_LONG;
-
 
 /*
  * CTL_WRITE_HANDLER(automatic) -- updates automatic status of the arena
@@ -750,6 +785,7 @@ static const struct ctl_node CTL_NODE(arena)[] = {
 static const struct ctl_node CTL_NODE(narenas)[] = {
 	CTL_LEAF_RO(automatic, narenas),
 	CTL_LEAF_RO(total),
+	CTL_LEAF_RW(max),
 
 	CTL_NODE_END
 };
