@@ -1,0 +1,8 @@
+util_poolset$(nW)TEST8: START: util_poolset
+ ./util_poolset$(nW) o 134217728 $(nW)testset1 $(nW)testset2 $(nW)testset3 $(nW)testset4 $(nW)testset9
+$(nW)testset1: util_pool_open: No such file or directory
+$(nW)testset2: util_pool_open: No such file or directory
+$(nW)testset3: util_pool_open: No such file or directory
+$(nW)testset4: util_pool_open: No such file or directory
+$(nW)testset9: util_pool_open: No such file or directory
+util_poolset$(nW)TEST8: DONE
