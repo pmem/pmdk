@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -118,25 +118,22 @@ test_layout()
 #define POOL_FEAT_SDS_FINAL		0x0004U
 
 /* incompat features effective values */
-#ifdef _WIN32
+#if defined(_WIN32) || defined(NDCTL_GE_63)
 #ifdef SDS_ENABLED
 #define POOL_E_FEAT_SDS_FINAL		POOL_FEAT_SDS_FINAL
 #else
 #define POOL_E_FEAT_SDS_FINAL		0x0000U	/* empty */
 #endif
-#endif
-
-#ifdef _WIN32
-#define POOL_FEAT_INCOMPAT_DEFAULT_V1 \
-	(POOL_FEAT_CKSUM_2K_FINAL | POOL_E_FEAT_SDS_FINAL)
 #else
 /*
- * shutdown state support on Linux requires root access
- * so it is disabled by default
+ * shutdown state support on Linux requires root access on kernel < 4.20 with
+ * ndctl < 63 so it is disabled by default
  */
-#define POOL_FEAT_INCOMPAT_DEFAULT_V1 \
-	(POOL_FEAT_CKSUM_2K_FINAL)
+#define POOL_E_FEAT_SDS_FINAL		0x0000U	/* empty */
 #endif
+
+#define POOL_FEAT_INCOMPAT_DEFAULT_V1 \
+	(POOL_FEAT_CKSUM_2K_FINAL | POOL_E_FEAT_SDS_FINAL)
 
 #ifdef _WIN32
 #define SDS_AT_CREATE_EXPECTED 1

@@ -859,26 +859,12 @@ function expect_normal_exit() {
 		else
 			echo -e "$UNITTEST_NAME $msg." >&2
 		fi
-		if [ "$CHECK_TYPE" != "none" -a -f $VALGRIND_LOG_FILE ]; then
-			dump_last_n_lines $VALGRIND_LOG_FILE
-		fi
 
 		# ignore Ctrl-C
 		if [ $ret != 130 ]; then
-			for f in $(get_files "node_.*${UNITTEST_NUM}\.log"); do
+			for f in $(get_files ".*[a-zA-Z_]${UNITTEST_NUM}\.log"); do
 				dump_last_n_lines $f
 			done
-
-			dump_last_n_lines $TRACE_LOG_FILE
-			dump_last_n_lines $PMEM_LOG_FILE
-			dump_last_n_lines $PMEMOBJ_LOG_FILE
-			dump_last_n_lines $PMEMLOG_LOG_FILE
-			dump_last_n_lines $PMEMBLK_LOG_FILE
-			dump_last_n_lines $PMEMPOOL_LOG_FILE
-			dump_last_n_lines $VMEM_LOG_FILE
-			dump_last_n_lines $VMMALLOC_LOG_FILE
-			dump_last_n_lines $RPMEM_LOG_FILE
-			dump_last_n_lines $RPMEMD_LOG_FILE
 		fi
 
 		[ $NODES_MAX -ge 0 ] && clean_all_remote_nodes
@@ -1994,6 +1980,24 @@ function require_no_sds() {
 		exit 0
 	fi
 	return 0
+}
+
+#
+# is_ndctl_ge_63 -- check if binary is compiled with libndctl 63+
+#
+#	usage: is_ndctl_ge_63 <binary>
+#
+function is_ndctl_ge_63() {
+	local binary=$1
+	local dir=.
+	if [ -z "$binary" ]; then
+		fatal "is_ndctl_ge_63: error: no binary found"
+	fi
+
+	strings ${binary} 2>&1 | \
+		grep -q "compiled with libndctl 63+" && true
+
+	echo $?
 }
 
 #

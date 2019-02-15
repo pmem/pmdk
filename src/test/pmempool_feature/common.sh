@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,6 +48,7 @@ LOG=grep${UNITTEST_NUM}.log
 
 pmempool_exe=$PMEMPOOL$EXESUFFIX
 exit_func=expect_normal_exit
+sds_enabled=$(is_ndctl_ge_63 $pmempool_exe)
 
 # pmempool_feature_query -- query feature
 #
@@ -75,7 +76,7 @@ function pmempool_feature_enable() {
 #
 # usage: pmempool_feature_disable <feature> [no-query]
 function pmempool_feature_disable() {
-	$exit_func $pmempool_exe feature -d $1 $POOLSET &>> $LOG
+	$exit_func $pmempool_exe feature -d $1 $POOLSET '&>>' $LOG
 	if [ "x$2" != "xno-query" ]; then
 		pmempool_feature_query $1
 	fi
@@ -145,9 +146,11 @@ function pmempool_feature_test_CKSUM_2K() {
 	# PMEMPOOL_FEAT_CHCKSUM_2K is enabled by default
 	pmempool_feature_query "CKSUM_2K"
 
-	# SHUTDOWN_STATE is disabled by default on Linux
+	# SHUTDOWN_STATE is disabled on Linux if PMDK is compiled with old ndctl
 	# enable it to interfere toggling CKSUM_2K
-	pmempool_feature_enable SHUTDOWN_STATE "no-query"
+	if [ $sds_enabled -eq 1 ]; then
+		pmempool_feature_enable SHUTDOWN_STATE "no-query"
+	fi
 
 	# disable PMEMPOOL_FEAT_SHUTDOWN_STATE prior to success
 	exit_func=expect_abnormal_exit
@@ -161,8 +164,11 @@ function pmempool_feature_test_CKSUM_2K() {
 
 # pmempool_feature_test_SHUTDOWN_STATE -- test SHUTDOWN_STATE
 function pmempool_feature_test_SHUTDOWN_STATE() {
-	# PMEMPOOL_FEAT_SHUTDOWN_STATE is disabled by default
 	pmempool_feature_query "SHUTDOWN_STATE"
+
+	if [ $sds_enabled -eq 0 ]; then
+		pmempool_feature_disable SHUTDOWN_STATE
+	fi
 
 	# PMEMPOOL_FEAT_SHUTDOWN_STATE requires PMEMPOOL_FEAT_CHCKSUM_2K
 	pmempool_feature_disable "CKSUM_2K"

@@ -6,5 +6,6 @@ $(OPT)$(*) compiled with support for Valgrind helgrind
 $(OPT)$(*) compiled with support for Valgrind memcheck
 $(OPT)$(*) compiled with support for Valgrind drd
 $(OPT)$(*) compiled with support for shutdown state
+$(OPT)$(*) compiled with libndctl 63+
 $(*)Log level NONE
 $(*)Log level ERROR
