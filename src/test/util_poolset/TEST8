@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/util_poolset/TEST4 -- unit test for util_pool_open()
+# src/test/util_poolset/TEST8 -- unit test for util_pool_open()
 #
 
 # standard unit test setup
@@ -43,11 +43,10 @@ require_fs_type any
 
 setup
 
-RESVSIZE=$((4 * 1024 * 1024 * 1024)) # 4GiB
-MIN_POOL=$((128 * 1024 * 1024)) # 128MiB
-require_free_space $(( $MIN_POOL * 12 ))
+RESVSIZE=$(((128 + 4) * 1024 * 1024))
+MIN_POOL=$((128 * 1024 * 1024))
 
-export TEST_LOG_LEVEL=4
+export TEST_LOG_LEVEL=8
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
 # prepare pool sets
@@ -64,44 +63,17 @@ create_poolset $DIR/testset4\
 	$RESVSIZE:$DIR/testdir41:d $RESVSIZE:$DIR/testdir42:d\
 	R $RESVSIZE:$DIR/testdir43:d $RESVSIZE:$DIR/testdir44:d\
 	O SINGLEHDR # pass
+create_poolset $DIR/testset9\
+	$RESVSIZE:$DIR/testdir91:d R $RESVSIZE:$DIR/testdir91/testdir92:d\
+	O SINGLEHDR # pass
 
-# create pool sets
-expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
-
-# now check if pool sets may be opened
+# should fail to open
 expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 	$DIR/testset1\
 	$DIR/testset2\
 	$DIR/testset3\
-	$DIR/testset4
-
-expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
-
-expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
-
-expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
-
-expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
-	$DIR/testset1\
-	$DIR/testset2\
-	$DIR/testset3\
-	$DIR/testset4
+	$DIR/testset4\
+	$DIR/testset9
 
 $GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
 

@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,6 +49,9 @@ $MIN_POOL = 128 * 1024 * 1024 # 4MiB
 $MIN_POOL_STR = ${MIN_POOL}.toString() + "B" # 128MiB
 $RESVSIZE=260 * 1024 * 1024 # 260 MiB
 $RESVSIZE_STR = ${RESVSIZE}.toString() + "B" # 260 MiB
+
+$REQUIRE_POOL = ${MIN_POOL} * 8
+require_free_space "${REQUIRE_POOL}b"
 
 # prepare pool sets
 create_poolset $DIR\testset2 `
