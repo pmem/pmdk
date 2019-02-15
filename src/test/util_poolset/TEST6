@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,6 +45,8 @@ setup
 
 RESVSIZE=$((260 * 1024 * 1024)) # 264MiB (base part + 2 extends)
 MIN_POOL=$((128 * 1024 * 1024)) # 128MiB
+require_free_space $(( $MIN_POOL * 8 ))
+
 export TEST_LOG_LEVEL=4
 export TEST_LOG_FILE=./test$UNITTEST_NUM.log
 
