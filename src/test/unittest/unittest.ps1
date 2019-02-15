@@ -472,8 +472,8 @@ function expect_abnormal_exit {
     }
 
     # Suppress abort window
-    $prev_abort = $Env:UNITTEST_NO_ABORT_MSG
-    $Env:UNITTEST_NO_ABORT_MSG = 1
+    $prev_abort = $Env:PMDK_NO_ABORT_MSG
+    $Env:PMDK_NO_ABORT_MSG = 1
 
     # Set $LASTEXITCODE to the value indicating success. It should be
     # overwritten with the exit status of the invoked command.
@@ -482,7 +482,7 @@ function expect_abnormal_exit {
     # status of some other command executed before.
     $Global:LASTEXITCODE = 0
     Invoke-Expression "$command $params"
-    $Env:UNITTEST_NO_ABORT_MSG = $prev_abort
+    $Env:PMDK_NO_ABORT_MSG = $prev_abort
     if ($Global:LASTEXITCODE -eq 0) {
         fail "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
     }
