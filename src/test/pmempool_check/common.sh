@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -65,7 +65,8 @@ function pmempool_check_sds_init() {
 		local conf="sds.at_create=1"
 	fi
 
-	PMEMOBJ_CONF="$conf" expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
+	PMEMOBJ_CONF="${PMEMOBJ_CONF}$conf;"
+	expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
 }
 
 # pmempool_check_sds -- perform shutdown state unittest

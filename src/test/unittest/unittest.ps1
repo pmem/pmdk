@@ -1,5 +1,5 @@
 ﻿#
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -1069,6 +1069,10 @@ function setup {
         }
         $Env:Path = $Env:PMDK_LIB_PATH_DEBUG + ';' + $Env:Path
     }
+
+	$Env:PMEMBLK_CONF="fallocate.at_create=0;"
+	$Env:PMEMOBJ_CONF="fallocate.at_create=0;"
+	$Env:PMEMLOG_CONF="fallocate.at_create=0;"
 }
 
 #

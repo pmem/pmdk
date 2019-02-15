@@ -2626,6 +2626,10 @@ function setup() {
 	if [ "$DEVDAX_TO_LOCK" == 1 ]; then
 		lock_devdax
 	fi
+
+	export PMEMBLK_CONF="fallocate.at_create=0;"
+	export PMEMOBJ_CONF="fallocate.at_create=0;"
+	export PMEMLOG_CONF="fallocate.at_create=0;"
 }
 
 #
