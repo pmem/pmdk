@@ -55,11 +55,27 @@ test_script:
         echo "`$Env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1
         echo "`$Env:PMDK_NO_ABORT_MSG = `"1`"" >> testconfig.ps1
         echo "`$Env:TM = `"1`"" >> testconfig.ps1
+
+        write-output "config = {
+    'unittest_log_level': 1,
+    'pmem_fs_dir': 'C:\\temp',
+    'non_pmem_fs_dir': 'C:\\temp',
+    'tm': True,
+    'test_type': 'check',
+    'fs': 'all',
+    'fs_dir_force_pmem': 1,
+    'keep_going': False,
+    'timeout': '4m',
+    'build': 'debug'
+    }" | out-file "testconfig.py" -encoding utf8
+
         if ($Env:CONFIGURATION -eq "Debug") {
             ./RUNTESTS.ps1 -b debug -o 4m
+            ./RUNTESTS.py -b debug
         }
         if ($Env:CONFIGURATION -eq "Release") {
             ./RUNTESTS.ps1 -b nondebug -o 4m
+            ./RUNTESTS.py -b nondebug
         }
     }
 

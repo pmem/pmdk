@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,24 +28,21 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# run-build.sh - is called inside a Docker container; prepares the environment
-#                and starts a build of PMDK project.
 #
 
-set -e
+"""Test framework public interface"""
 
-# Prepare build environment
-./prepare-for-build.sh
+import sys
+from os import path
+sys.path.insert(1, path.abspath(path.join(path.dirname(__file__), 'unittest')))
 
-# Build all and run tests
-cd $WORKDIR
-make check-license
-make cstyle
-make -j2 USE_LIBUNWIND=1
-make -j2 test USE_LIBUNWIND=1
-make -j2 pcheck TEST_BUILD=$TEST_BUILD
-make -j2 pycheck
-make DESTDIR=/tmp source
+# flake8 issues silenced:
+# E402 - import statements not at the top of the file because of adding
+# directory to path
+# F401, F403 - testframework.py does not use imported names, only passes them
+# down and in most cases needs to pass down all of them - hence import with '*'
 
+from basetest import BaseTest, Any  # noqa: E402, F401
+from context import *  # noqa: E402, F401, F403
+from configurator import *  # noqa: E402, F401, F403
+from helpers import *  # noqa: E402, F401, F403

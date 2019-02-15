@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,24 +29,46 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
 #
-# run-build.sh - is called inside a Docker container; prepares the environment
-#                and starts a build of PMDK project.
-#
+"""
+Interpreter managing test group specific TESTS.py file execution.
+It parses test classes from interpreted file, handles command line arguments
+and executes tests using provided configuration.
+"""
 
-set -e
 
-# Prepare build environment
-./prepare-for-build.sh
+import importlib.util as importutil
+import os
+import sys
 
-# Build all and run tests
-cd $WORKDIR
-make check-license
-make cstyle
-make -j2 USE_LIBUNWIND=1
-make -j2 test USE_LIBUNWIND=1
-make -j2 pcheck TEST_BUILD=$TEST_BUILD
-make -j2 pycheck
-make DESTDIR=/tmp source
+from testframework import BaseTest, Configurator, run_tests_common
 
+
+def run_testcases():
+    """Parse user configuration, run test cases"""
+    config = Configurator().parse_config()
+    testcases = BaseTest.__subclasses__()
+    return run_tests_common(testcases, config)
+
+
+def main():
+    # Interpreter receives TESTS.py file as first argument
+    if len(sys.argv) < 2:
+        sys.exit('Provide test file to run')
+    testfile = sys.argv[1]
+
+    # Remove TESTS.py file from args, the rest of the args is parsed as a
+    # test configuration
+    sys.argv.pop(1)
+
+    # import TESTS.py as a module
+    testfile_dir = os.path.abspath(os.path.dirname(testfile))
+    spec = importutil.spec_from_file_location(testfile_dir, testfile)
+    module = importutil.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    sys.exit(run_testcases())
+
+
+if __name__ == '__main__':
+    main()

@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!../env.py
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,24 +29,27 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# run-build.sh - is called inside a Docker container; prepares the environment
-#                and starts a build of PMDK project.
 #
 
-set -e
 
-# Prepare build environment
-./prepare-for-build.sh
+import testframework as t
 
-# Build all and run tests
-cd $WORKDIR
-make check-license
-make cstyle
-make -j2 USE_LIBUNWIND=1
-make -j2 test USE_LIBUNWIND=1
-make -j2 pcheck TEST_BUILD=$TEST_BUILD
-make -j2 pycheck
-make DESTDIR=/tmp source
 
+class TEST0(t.BaseTest):
+    test_type = t.Medium
+
+    # TODO configure_valgrind memcheck force-disable
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        ctx.exec('obj_basic_integration', filepath)
+
+
+class TEST1(t.BaseTest):
+    test_type = t.Medium
+
+    # TODO configure_valgrind pmemcheck force-enable
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        ctx.exec('obj_basic_integration', filepath)
