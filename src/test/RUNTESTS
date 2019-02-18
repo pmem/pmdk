@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -306,7 +306,7 @@ runtest() {
 	runscripts=$testfile
 	if [ "$runscripts" = all ]; then
 		if [ "$testseq" = all ]; then
-			runscripts=`ls -1 TEST* | grep -v -i -e "\.ps1" | sort -V`
+			runscripts=`ls -1 TEST* | grep '^TEST[0-9]\+$' | sort -V`
 		else
 			# generate test sequence
 			seqs=(${testseq//,/ })
