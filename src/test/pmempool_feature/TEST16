@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 #
-# pmempool_feature/TEST12 -- unit test for CHECK_BAD_BLOCKS
+# pmempool_feature/TEST16 -- unit test for CHECK_BAD_BLOCKS
 #
 
 . ../unittest/unittest.sh
@@ -44,7 +44,7 @@ configure_valgrind force-disable
 
 setup
 . ./common.sh
-require_su_bb $PMEMPOOL$EXESUFFIX
+require_user_bb $PMEMPOOL$EXESUFFIX
 
 pmempool_feature_create_poolset "no_dax_device"
 pmempool_feature_test_CHECK_BAD_BLOCKS
