@@ -209,6 +209,15 @@ os_posix_fallocate(int fd, os_off_t offset, off_t len)
 #endif
 
 /*
+ *	First, try to alloc the whole thing in one go.  This allows ENOSPC to
+ *	fail immediately -- allocating piece by piece would fill the storage
+ *	just to abort halfway.
+ */
+	int err = posix_fallocate(fd, offset, len);
+	if (err != ENOMEM && err != EINTR)
+		return err;
+
+/*
  *	Workaround for a bug in tmpfs where it fails large but reasonable
  *	requests that exceed available DRAM but fit within swap space.  And
  *	even if a request fits within DRAM, tmpfs will evict other tasks
