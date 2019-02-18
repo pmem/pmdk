@@ -1,0 +1,3 @@
+query CHECK_BAD_BLOCKS result is 1
+query CHECK_BAD_BLOCKS result is 1
+query CHECK_BAD_BLOCKS result is 0

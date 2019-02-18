@@ -239,6 +239,14 @@ static const features_t features_zero =
 	(POOL_FEAT_CKSUM_2K)
 #endif
 
+#if defined(NDCTL_GE_63)
+#define POOL_FEAT_COMPAT_DEFAULT \
+	(POOL_FEAT_CHECK_BAD_BLOCKS)
+#else
+#define POOL_FEAT_COMPAT_DEFAULT \
+	(POOL_FEAT_ZERO)
+#endif
+
 #define FEAT_INCOMPAT(X) \
 	{POOL_FEAT_ZERO, POOL_FEAT_##X, POOL_FEAT_ZERO}
 
