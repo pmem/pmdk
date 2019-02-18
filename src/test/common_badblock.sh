@@ -42,13 +42,6 @@ LOG=out${UNITTEST_NUM}.log
 
 UNITTEST_DIRNAME=$(echo $UNITTEST_NAME | cut -d'/' -f1)
 
-NDCTL_MAJOR_VER=$(ndctl --version | cut -d. -f1)
-#
-# The version from which ndctl allows unprivileged badblock iteration for
-# fsdax namespaces.
-#
-NDCTL_MAJOR_VER_MIN_UNPRIVILEGED=63
-
 COMMAND_MOUNTED_DIRS="\
 	mount | grep -e $UNITTEST_DIRNAME | cut -d' ' -f1 | xargs && true"
 
@@ -273,7 +266,7 @@ function ndctl_nfit_test_get_namespace_of_device() {
 	MODE=$(ndctl list -n "$NAMESPACE" | grep mode | cut -d'"' -f4)
 
 	# device dax namespaces require additional permissions for badblock iteration
-	( [ "$MODE" != "fsdax" ] || [ "$NDCTL_MAJOR_VER" -lt "$NDCTL_MAJOR_VER_MIN_UNPRIVILEGED" ] ) && ndctl_nfit_test_grant_access $DEVICE
+	( [ "$MODE" != "fsdax" ] || [ "$BB_UNPRIVILEGED" -eq 0 ] ) && ndctl_nfit_test_grant_access $DEVICE
 
 	echo $NAMESPACE
 }

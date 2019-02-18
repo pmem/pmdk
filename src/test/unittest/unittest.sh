@@ -2000,6 +2000,37 @@ function is_ndctl_ge_63() {
 	echo $?
 }
 
+PMEMPOOL_EXE=$PMEMPOOL$EXESUFFIX
+BB_UNPRIVILEGED=$(is_ndctl_ge_63 $PMEMPOOL_EXE)
+
+#
+# require_unprivileged_bb -- checks if the binary has support for unprivileged
+#	bad block iteration
+#
+#	usage: require_unprivileged_bb <binary>
+#
+function require_unprivileged_bb() {
+	if [ $BB_UNPRIVILEGED -eq 1 ]; then
+		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration not supported"
+		exit 0
+	fi
+	return 0
+}
+
+#
+# require_unprivileged_bb -- checks if the binary does not have support for
+#	unprivileged bad block iteration
+#
+#	usage: require_unprivileged_bb <binary>
+#
+function require_no_unprivileged_bb() {
+	if [ $BB_UNPRIVILEGED -eq 0 ]; then
+		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration supported"
+		exit 0
+	fi
+	return 0
+}
+
 #
 # check_absolute_path -- continue script execution only if $DIR path is
 #                        an absolute path; do not resolve symlinks
