@@ -1,6 +1,6 @@
-Fri Feb 14 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+Tue Feb 19 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.5.1-rc3
+	* Version 1.5.1
 
 	This release fixes minor bugs and improves compatibility with newer
 	tool chains.
