@@ -128,7 +128,7 @@ heap_arena_new(struct palloc_heap *heap, int automatic)
 {
 	struct heap_rt *rt = heap->rt;
 
-	struct arena *arena = Malloc(sizeof(struct arena));
+	struct arena *arena = Zalloc(sizeof(struct arena));
 	if (arena == NULL) {
 		ERR("!heap: arena malloc error");
 		return NULL;
@@ -239,13 +239,18 @@ heap_get_thread_arena_id(struct palloc_heap *heap)
 	unsigned arena_id = 0;
 	struct arena *arenap = heap_thread_arena(heap->rt);
 	struct arena *arenav;
+	struct heap_rt *rt = heap->rt;
 
+	util_mutex_lock(&rt->arenas_lock);
 	VEC_FOREACH(arenav, &heap->rt->arenas) {
-		if (arenav == arenap)
+		if (arenav == arenap) {
+			util_mutex_unlock(&rt->arenas_lock);
 			return arena_id;
+		}
 		arena_id++;
 	}
 
+	util_mutex_unlock(&rt->arenas_lock);
 	ASSERT(0);
 	return arena_id;
 }
@@ -973,20 +978,24 @@ int
 heap_arena_create(struct palloc_heap *heap)
 {
 	struct heap_rt *h = heap->rt;
-	int ret;
+
+	struct arena *arena = heap_arena_new(heap, 0);
+	if (arena == NULL)
+		return -1;
 
 	util_mutex_lock(&h->arenas_lock);
 
-	if (VEC_PUSH_BACK(&h->arenas, heap_arena_new(heap, 0))) {
-		ret = -1;
-		goto out;
-	}
-	ret = (int)VEC_SIZE(&h->arenas) - 1;
+	if (VEC_PUSH_BACK(&h->arenas, arena))
+		goto err_push_back;
 
-out:
+	int ret = (int)VEC_SIZE(&h->arenas) - 1;
 	util_mutex_unlock(&h->arenas_lock);
-
 	return ret;
+
+err_push_back:
+	util_mutex_unlock(&h->arenas_lock);
+	heap_arena_delete(arena);
+	return -1;
 }
 
 /*
@@ -1074,7 +1083,7 @@ heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 /*
  * heap_set_arena_thread -- assign arena to the current thread
  */
-int
+void
 heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 {
 	struct heap_rt *h = heap->rt;
@@ -1083,16 +1092,13 @@ heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
 	util_mutex_unlock(&h->arenas_lock);
 
-	struct arena *thread_arena;
-	if ((thread_arena = os_tls_get(h->thread_arena)) != NULL)
+	struct arena *thread_arena = os_tls_get(h->thread_arena);
+	if (thread_arena)
 		util_fetch_and_sub64(&thread_arena->nthreads, 1);
 
-	if (a != NULL) {
-		util_fetch_and_add64(&a->nthreads, 1);
-		os_tls_set(h->thread_arena, a);
-	}
-
-	return 0;
+	ASSERTne(a, NULL);
+	util_fetch_and_add64(&a->nthreads, 1);
+	os_tls_set(h->thread_arena, a);
 }
 
 /*
