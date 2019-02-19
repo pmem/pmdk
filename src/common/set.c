@@ -1431,12 +1431,14 @@ util_poolset_directories_load(struct pool_set *set)
 	 */
 	struct pool_replica *rep;
 	struct pool_replica *mrep = set->replica[max_parts_rep];
+
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		if (set->replica[r]->nparts == mrep->nparts)
 			continue;
 
 		if (VEC_SIZE(&set->replica[r]->directory) == 0) {
-			ERR("no directories in replica");
+			errno = ENOENT;
+			ERR("!no directories in replica");
 			return -1;
 		}
 
@@ -3909,6 +3911,12 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 						flags & POOL_OPEN_IGNORE_SDS);
 	if (ret < 0) {
 		LOG(2, "cannot open pool set -- '%s'", path);
+		return -1;
+	}
+
+	if ((*setp)->replica[0]->nparts == 0) {
+		errno = ENOENT;
+		ERR("!no parts in replicas");
 		return -1;
 	}
 
