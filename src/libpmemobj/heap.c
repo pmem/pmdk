@@ -128,7 +128,7 @@ heap_arena_new(struct palloc_heap *heap, int automatic)
 {
 	struct heap_rt *rt = heap->rt;
 
-	struct arena *arena = Malloc(sizeof(struct arena));
+	struct arena *arena = Zalloc(sizeof(struct arena));
 	if (arena == NULL) {
 		ERR("!heap: arena malloc error");
 		return NULL;
