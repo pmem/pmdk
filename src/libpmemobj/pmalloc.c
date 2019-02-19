@@ -567,7 +567,7 @@ CTL_READ_HANDLER(arena_id)(void *ctx,
 }
 
 /*
- * CTL_WRITE_HANDLER(arena_id) -- assigne the arena to the calling thread
+ * CTL_WRITE_HANDLER(arena_id) -- assigns the arena to the calling thread
  */
 static int
 CTL_WRITE_HANDLER(arena_id)(void *ctx,
@@ -580,17 +580,13 @@ CTL_WRITE_HANDLER(arena_id)(void *ctx,
 
 	/* check if index is not bigger than number of arenas */
 	if (arena_id >= narenas) {
-		ERR("arena id outside of the allowed range: <0,%u>",
+		LOG(1, "arena id outside of the allowed range: <0,%u>",
 			narenas - 1);
 		errno = ERANGE;
 		return -1;
 	}
 
-	int ret = heap_set_arena_thread(&pop->heap, arena_id);
-	if (ret) {
-		ERR("arena with id: %u does not exist", arena_id);
-		return -1;
-	}
+	heap_set_arena_thread(&pop->heap, arena_id);
 
 	return 0;
 }
@@ -617,14 +613,14 @@ CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 
 	/* check if index is not bigger than number of arenas */
 	if (arena_id >= narenas) {
-		ERR("arena id outside of the allowed range: <0,%u>",
+		LOG(1, "arena id outside of the allowed range: <0,%u>",
 			narenas - 1);
 		errno = ERANGE;
 		return -1;
 	}
 
 	if (arg_in != 0 && arg_in != 1) {
-		ERR("incorrect arena state, must be 0 or 1");
+		LOG(1, "incorrect arena state, must be 0 or 1");
 		return -1;
 	}
 
@@ -652,7 +648,7 @@ CTL_READ_HANDLER(automatic)(void *ctx,
 
 	/* check if index is not bigger than number of arenas */
 	if (arena_id >= narenas) {
-		ERR("arena id outside of the allowed range: <0,%u>",
+		LOG(1, "arena id outside of the allowed range: <0,%u>",
 			narenas - 1);
 		errno = ERANGE;
 		return -1;
@@ -695,7 +691,7 @@ CTL_READ_HANDLER(size)(void *ctx,
 
 	/* check if index is not bigger than number of arenas */
 	if (arena_id >= narenas) {
-		ERR("arena id outside of the allowed range: <0,%u>",
+		LOG(1, "arena id outside of the allowed range: <0,%u>",
 			narenas - 1);
 		errno = ERANGE;
 		return -1;
