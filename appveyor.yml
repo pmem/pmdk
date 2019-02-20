@@ -71,11 +71,16 @@ test_script:
 
         if ($Env:CONFIGURATION -eq "Debug") {
             ./RUNTESTS.ps1 -b debug -o 4m
-            ./RUNTESTS.py -b debug
+            if ($?) {
+                ./RUNTESTS.py -b debug
+            }
+
         }
         if ($Env:CONFIGURATION -eq "Release") {
             ./RUNTESTS.ps1 -b nondebug -o 4m
-            ./RUNTESTS.py -b nondebug
+            if ($?) {
+                ./RUNTESTS.py -b nondebug
+            }
         }
     }
 
