@@ -38,6 +38,8 @@
  * and heap.thread.arena_id (RW)
  * obj_ctl_arenas <file> c - test for heap.arena.create,
  * heap.arena.[idx].automatic and heap.narenas.automatic
+ * obj_ctl_arenas <file> a - mt test for heap.arena.create
+ * and heap.thread.arena_id
  */
 
 #include <sched.h>
@@ -49,6 +51,9 @@
 #define LAYOUT "obj_ctl_arenas"
 #define CTL_QUERY_LEN 256
 #define NTHREAD 2
+#define NTHREAD_ARENA 32
+#define NOBJECT_THREAD 64
+#define ALLOC_CLASS_ARENA 2
 
 static os_mutex_t lock;
 static os_cond_t cond;
@@ -68,7 +73,20 @@ static struct pobj_alloc_class_desc alloc_class[] = {
 		.units_per_block = 1000,
 		.alignment = 0
 	},
+	{
+		.header_type = POBJ_HEADER_NONE,
+		.unit_size = 111,
+		.units_per_block = CHUNKSIZE / 111,
+		.alignment = 0
+	},
 };
+
+struct arena_alloc {
+	unsigned arena;
+	PMEMoid oid;
+};
+
+static struct arena_alloc ref;
 
 static void *
 worker_arenas_size(void *arg)
@@ -85,7 +103,7 @@ worker_arenas_size(void *arg)
 	ret = pmemobj_ctl_exec(pop, "heap.arena.create",
 			&arena_id_new);
 	UT_ASSERTeq(ret, 0);
-	UT_ASSERT(arena_id_new > 1);
+	UT_ASSERT(arena_id_new >= 1);
 
 	ret = pmemobj_ctl_set(pop, "heap.thread.arena_id",
 			&arena_id_new);
@@ -132,13 +150,59 @@ worker_arenas_size(void *arg)
 	return NULL;
 }
 
+static void *
+worker_arena_threads(void *arg)
+{
+	int ret = -1;
+	struct arena_alloc *ref = (struct arena_alloc *)arg;
+
+	ret = pmemobj_ctl_set(pop, "heap.thread.arena_id", &ref->arena);
+	UT_ASSERTeq(ret, 0);
+
+	PMEMoid oid[NOBJECT_THREAD];
+	unsigned d;
+
+	for (int i = 0; i < NOBJECT_THREAD; i++) {
+		ret = pmemobj_xalloc(pop, &oid[i],
+				alloc_class[ALLOC_CLASS_ARENA].unit_size,
+				0, POBJ_CLASS_ID(ALLOC_CLASS_ARENA + 128),
+				NULL, NULL);
+		UT_ASSERTeq(ret, 0);
+
+		d = labs((long)ref->oid.off - (long)oid[i].off);
+
+		/* objects are in the same block as the first one */
+		ASSERT(d <= alloc_class[ALLOC_CLASS_ARENA].unit_size *
+			(alloc_class[ALLOC_CLASS_ARENA].units_per_block - 1));
+	}
+
+	for (int i = 0; i < NOBJECT_THREAD; i++)
+		pmemobj_free(&oid[i]);
+
+	return NULL;
+}
+
+static void
+worker_arena_ref_obj(struct arena_alloc *ref)
+{
+	int ret = -1;
+
+	ret = pmemobj_ctl_set(pop, "heap.thread.arena_id", &ref->arena);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmemobj_xalloc(pop, &ref->oid,
+			alloc_class[ALLOC_CLASS_ARENA].unit_size,
+			0, POBJ_CLASS_ID(ALLOC_CLASS_ARENA + 128), NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_ctl_arenas");
 
 	if (argc != 3)
-		UT_FATAL("usage: %s poolset [n]", argv[0]);
+		UT_FATAL("usage: %s poolset [n|s|c|a]", argv[0]);
 
 	const char *path = argv[1];
 	char t = argv[2][0];
@@ -241,6 +305,38 @@ main(int argc, char *argv[])
 		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas_a);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(narenas_b + narenas_n, narenas_a);
+	} else if (t == 'a') {
+		int ret;
+		unsigned arena_id_new;
+		char alloc_class_idx_desc[CTL_QUERY_LEN];
+
+		ret = pmemobj_ctl_exec(pop, "heap.arena.create",
+				&arena_id_new);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERT(arena_id_new >= 1);
+
+		ret = snprintf(alloc_class_idx_desc, CTL_QUERY_LEN,
+				"heap.alloc_class.%d.desc",
+				ALLOC_CLASS_ARENA + 128);
+		if (ret < 0 || ret >= CTL_QUERY_LEN)
+			UT_FATAL("!snprintf alloc_class_idx_desc");
+
+		ret = pmemobj_ctl_set(pop, alloc_class_idx_desc,
+				&alloc_class[ALLOC_CLASS_ARENA]);
+		UT_ASSERTeq(ret, 0);
+
+		ref.arena = arena_id_new;
+		worker_arena_ref_obj(&ref);
+
+		os_thread_t threads[NTHREAD_ARENA];
+
+		for (int i = 0; i < NTHREAD_ARENA; i++) {
+			PTHREAD_CREATE(&threads[i], NULL, worker_arena_threads,
+					&ref);
+		}
+
+		for (int i = 0; i < NTHREAD_ARENA; i++)
+			PTHREAD_JOIN(&threads[i], NULL);
 	} else {
 		UT_ASSERT(0);
 	}
