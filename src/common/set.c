@@ -1806,7 +1806,7 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create_part)
 			return -1;
 		}
 
-		if (Fallocate_at_create && create_part) {
+		if (Fallocate_at_create && create_part && !part->is_dev_dax) {
 			int ret = os_posix_fallocate(part->fd, 0,
 					(os_off_t)size);
 			if (ret != 0) {
