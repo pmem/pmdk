@@ -53,6 +53,8 @@
       <Filter>pmemobj</Filter>
     </ClCompile>
     <ClCompile Include="..\libpmemobj\critnib.c">
+      <Filter>pmemobj</Filter>
+    </ClCompile>
     <ClCompile Include="..\libpmemobj\ctl_fallocate.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
