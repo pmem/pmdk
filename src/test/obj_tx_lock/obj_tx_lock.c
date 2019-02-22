@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -170,8 +170,8 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_tx_lock");
 
-	if (argc != 2)
-		UT_FATAL("usage: %s <file>", argv[0]);
+	if (argc < 3)
+		UT_FATAL("usage: %s <file> [l|n|a|t]", argv[0]);
 
 	if ((Pop = pmemobj_create(argv[1], LAYOUT_NAME,
 	    PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
@@ -182,11 +182,31 @@ main(int argc, char *argv[])
 	struct transaction_data *test_obj =
 			(struct transaction_data *)pmemobj_direct(root);
 
-	do_tx_add_locks(test_obj);
-	do_tx_add_locks_nested(test_obj);
-	do_tx_add_locks_nested_all(test_obj);
-	do_tx_add_taken_lock(test_obj);
+	/* go through all arguments one by one */
+	for (int arg = 2; arg < argc; arg++) {
+		/* Scan the character of each argument. */
+		if (strchr("lnat", argv[arg][0]) == NULL ||
+				argv[arg][1] != '\0')
+			UT_FATAL("op must be l or n or a or t");
 
+		switch (argv[arg][0]) {
+		case 'l':
+			do_tx_add_locks(test_obj);
+			break;
+
+		case 'n':
+			do_tx_add_locks_nested(test_obj);
+			break;
+
+		case 'a':
+			do_tx_add_locks_nested_all(test_obj);
+			break;
+
+		case 't':
+			do_tx_add_taken_lock(test_obj);
+			break;
+		}
+	}
 	pmemobj_close(Pop);
 
 	DONE(NULL);
