@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,21 +29,34 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/obj_tx_lock/TEST0 -- unit test for pmemobj_tx_lock()
-# with DRD disabled
+# src/libpmem.link -- linker link file for libpmem
 #
-
-# standard unit test setup
-. ../unittest/unittest.sh
-
-require_test_type medium
-
-configure_valgrind drd force-disable
-
-setup
-
-expect_normal_exit ./obj_tx_lock$EXESUFFIX $DIR/testfile1 l n a
-
-pass
+LIBPMEM_1.0 {
+	global:
+		pmem_map_file;
+		pmem_unmap;
+		pmem_is_pmem;
+		pmem_persist;
+		pmem_msync;
+		pmem_has_auto_flush;
+		pmem_deep_persist;
+		pmem_flush;
+		pmem_deep_flush;
+		pmem_deep_drain;
+		pmem_drain;
+		pmem_has_hw_drain;
+		pmem_check_version;
+		pmem_errormsg;
+		pmem_memmove_persist;
+		pmem_memcpy_persist;
+		pmem_memset_persist;
+		pmem_memmove_nodrain;
+		pmem_memcpy_nodrain;
+		pmem_memset_nodrain;
+		pmem_memmove;
+		pmem_memcpy;
+		pmem_memset;
+	local:
+		*;
+};
