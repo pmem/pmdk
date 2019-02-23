@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,14 +32,13 @@
 #
 
 #
-# src/test/obj_realloc/TEST0 -- unit test for pmemobj_realloc and
-# pmemobj_zrealloc
+# src/test/obj_alloc/TEST0 -- unit test for obj_alloc
 #
 
 # standard unit test setup
 . ../unittest/unittest.sh
 
-require_test_type any
+require_test_type medium
 require_fs_type any
 
 CHECK_TYPE="none"
@@ -47,11 +46,24 @@ configure_valgrind force-disable
 
 setup
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX\
-	create obj --layout realloc --size=512M $DIR/testfile1
+create_poolset $DIR/testset1 16M:$DIR/testfile1:x r 16M:$DIR/testfile2:x
 
-export PMEM_IS_PMEM_FORCE=1
-expect_normal_exit ./obj_realloc$EXESUFFIX $DIR/testfile1
+# <path> <size> <type_num> <is_oid_null> <zalooc> <expected_return_code> <expected_errno>
+
+expect_normal_exit ./obj_alloc$EXESUFFIX \
+   $DIR/testset1 O 0 1 1 0 0 \
+   $DIR/testset1 1 S 0 0 0 0 \
+   $DIR/testset1 1 0 0 0 0 0 \
+   $DIR/testset1 1 0 0 1 0 0 \
+   $DIR/testset1 O B 0 0 0 0 \
+   $DIR/testset1 O B 0 1 0 0 \
+   $DIR/testset1 O 0 0 1 0 0 \
+   $DIR/testset1 O 1 0 1 0 0 \
+   $DIR/testset1 O S 0 1 0 0 \
+   $DIR/testset1 0 0 0 0 -1 22 \
+   $DIR/testset1 0 0 0 1 -1 22 \
+   $DIR/testset1 B 0 0 0 -1 12 \
+   $DIR/testset1 B 0 0 1 -1 12
 
 check
 
