@@ -74,6 +74,9 @@
     <ClCompile Include="ctl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ctl_cow.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="ctl_prefault.c">
       <Filter>Source Files</Filter>
     </ClCompile>

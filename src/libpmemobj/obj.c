@@ -273,12 +273,6 @@ pmemobj_oid(const void *addr)
 }
 
 /*
- * User may decide to map all pools with MAP_PRIVATE flag using
- * PMEMOBJ_COW environment variable.
- */
-static int Open_cow;
-
-/*
  * obj_init -- initialization of obj
  *
  * Called by constructor.
@@ -301,11 +295,6 @@ obj_init(void)
 
 	COMPILE_ERROR_ON(PMEMOBJ_F_MEM_NOFLUSH != PMEM_F_MEM_NOFLUSH);
 
-#ifdef USE_COW_ENV
-	char *env = os_getenv("PMEMOBJ_COW");
-	if (env)
-		Open_cow = atoi(env);
-#endif
 
 #ifdef _WIN32
 	/* XXX - temporary implementation (see above) */
@@ -1821,7 +1810,8 @@ pmemobj_openU(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
-	return obj_open_common(path, layout, Open_cow ? POOL_OPEN_COW : 0, 1);
+	return obj_open_common(path, layout,
+			COW_at_open ? POOL_OPEN_COW : 0, 1);
 }
 
 #ifndef _WIN32

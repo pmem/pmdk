@@ -598,7 +598,7 @@ pmemblk_openU(const char *path, size_t bsize)
 {
 	LOG(3, "path %s bsize %zu", path, bsize);
 
-	return blk_open_common(path, bsize, 0);
+	return blk_open_common(path, bsize, COW_at_open ? POOL_OPEN_COW : 0);
 }
 
 #ifndef _WIN32

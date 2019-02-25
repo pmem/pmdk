@@ -142,6 +142,9 @@
     <ClCompile Include="..\common\ctl_fallocate.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\ctl_cow.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h">
