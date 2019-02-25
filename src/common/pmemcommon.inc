@@ -39,6 +39,7 @@ SOURCE =\
 	$(COMMON)/ctl_prefault.c\
 	$(COMMON)/ctl_sds.c\
 	$(COMMON)/ctl_fallocate.c\
+	$(COMMON)/ctl_cow.c\
 	$(call osdep, $(COMMON)/extent,.c)\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
