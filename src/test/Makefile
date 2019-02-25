@@ -160,6 +160,7 @@ OTHER_TESTS = \
 	checksum\
 	compat_incompat_features\
 	ctl_prefault\
+	ctl_cow\
 	magic\
 	out_err\
 	out_err_mt\

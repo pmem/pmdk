@@ -1,4 +1,5 @@
-# Copyright 2017-2019, Intel Corporation
+#
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,34 +29,41 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# src/pmemcommon.inc -- common SOURCE definitions for PMDK libraries
-#
+# src/test/ctl_cow/TEST0 -- unit test which check copy on write feature
+# for obj pools
 
-SOURCE =\
-	$(COMMON)/alloc.c\
-	$(COMMON)/badblock_$(OS_DIMM).c\
-	$(COMMON)/badblock.c\
-	$(COMMON)/ctl.c\
-	$(COMMON)/ctl_prefault.c\
-	$(COMMON)/ctl_sds.c\
-	$(COMMON)/ctl_fallocate.c\
-	$(COMMON)/ctl_cow.c\
-	$(call osdep, $(COMMON)/extent,.c)\
-	$(COMMON)/file.c\
-	$(COMMON)/file_posix.c\
-	$(COMMON)/fs_posix.c\
-	$(COMMON)/mmap.c\
-	$(COMMON)/mmap_posix.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
-	$(COMMON)/os_dimm_$(OS_DIMM).c\
-	$(COMMON)/os_deep_linux.c\
-	$(COMMON)/os_auto_flush_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/pool_hdr.c\
-	$(COMMON)/set.c\
-	$(COMMON)/shutdown_state.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
-	$(COMMON)/uuid.c\
-	$(call osdep, $(COMMON)/uuid,.c)
+# standard unit test setup
+. ..\unittest\unittest.ps1
+
+require_test_type medium
+require_fs_type any
+
+setup
+
+$POOL="$DIR\testfile"
+$REPLICA="$DIR\testfile_replica"
+$POOLSET="$DIR\pool0.set"
+
+create_poolset $POOLSET `
+    32M:$DIR\testfile:z `
+	R `
+    32M:$DIR\testfile_replica:z
+
+expect_normal_exit $PMEMPOOL create obj $POOLSET
+
+$POOL_BEFORE = $(Get-FileHash $POOL).hash
+$REPLICA_BEFORE = $(Get-FileHash $REPLICA).hash
+
+$Env:PMEMOBJ_CONF += "copy_on_write.at_open=1"
+
+expect_normal_exit $Env:EXE_DIR\ctl_cow$Env:EXESUFFIX $POOLSET obj
+
+$POOL_AFTER = $(Get-FileHash $POOL).hash
+$REPLICA_AFTER = $(Get-FileHash $REPLICA).hash
+
+if ($POOLSET_BEFORE -ne $POOLSET_AFTER -Or $REPLICA_BEFORE -ne $REPLICA_AFTER) {
+	fatal '$POOLSET_BEFORE -ne $POOLSET_AFTER -or $REPLICA_BEFORE -ne $REPLICA_AFTER'
+}
+check
+
+pass

@@ -15,6 +15,7 @@
     <ClCompile Include="badblock_none.c" />
     <ClCompile Include="badblock.c" />
     <ClCompile Include="ctl.c" />
+    <ClCompile Include="ctl_cow.c" />
     <ClCompile Include="ctl_prefault.c" />
     <ClCompile Include="ctl_sds.c" />
     <ClCompile Include="ctl_fallocate.c" />

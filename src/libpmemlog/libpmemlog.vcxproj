@@ -16,6 +16,7 @@
     <ClCompile Include="..\common\alloc.c" />
     <ClCompile Include="..\common\badblock.c" />
     <ClCompile Include="..\common\ctl.c" />
+    <ClCompile Include="..\common\ctl_cow.c" />
     <ClCompile Include="..\common\ctl_prefault.c" />
     <ClCompile Include="..\common\ctl_sds.c" />
     <ClCompile Include="..\common\ctl_fallocate.c" />
