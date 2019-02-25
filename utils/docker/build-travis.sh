@@ -69,7 +69,7 @@ if [[ -z "$TEST_BUILD" ]]; then
 	TEST_BUILD=all
 fi
 
-imageName=pmem/pmdk:1.5-${OS}-${OS_VER}
+imageName=${DOCKERHUB_REPO}:1.5-${OS}-${OS_VER}
 containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
@@ -116,6 +116,7 @@ docker run --rm --privileged=true --name=$containerName -ti \
 	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
 	--env COVERITY_SCAN_TOKEN=$COVERITY_SCAN_TOKEN \
 	--env COVERITY_SCAN_NOTIFICATION_EMAIL=$COVERITY_SCAN_NOTIFICATION_EMAIL \
+	--env GITHUB_REPO=$GITHUB_REPO \
 	$ndctl_enable \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
