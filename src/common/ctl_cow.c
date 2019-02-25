@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,32 +31,50 @@
  */
 
 /*
- * ctl_global.h -- definitions for the global CTL namespace
+ * ctl_cow.c -- implementation of the CTL copy on write namespace
  */
 
-#ifndef PMDK_CTL_GLOBAL_H
-#define PMDK_CTL_GLOBAL_H 1
+#include "ctl.h"
+#include "set.h"
+#include "out.h"
+#include "ctl_global.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-extern void ctl_prefault_register(void);
-extern void ctl_sds_register(void);
-extern void ctl_fallocate_register(void);
-extern void ctl_cow_register(void);
-
-static inline void
-ctl_global_register(void)
+/*
+ * CTL_READ_HANDLER(at_open) -- returns at_open field
+ */
+static int
+CTL_READ_HANDLER(at_open)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
-	ctl_prefault_register();
-	ctl_sds_register();
-	ctl_fallocate_register();
-	ctl_cow_register();
+	int *arg_out = arg;
+	*arg_out = COW_at_open;
+	return 0;
+}
+/*
+ * CTL_WRITE_HANDLER(at_open) -- sets the at_open field in copy_on_write
+ */
+static int
+CTL_WRITE_HANDLER(at_open)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	int arg_in = *(int *)arg;
+	COW_at_open = arg_in;
+	return 0;
 }
 
-#ifdef __cplusplus
-}
-#endif
+static struct ctl_argument CTL_ARG(at_open) = CTL_ARG_BOOLEAN;
 
-#endif
+static const struct ctl_node CTL_NODE(copy_on_write)[] = {
+	CTL_LEAF_RW(at_open),
+
+	CTL_NODE_END
+};
+
+/*
+ * cow_ctl_register -- registers ctl nodes for "copy_on_write" module
+ */
+void
+ctl_cow_register(void)
+{
+	CTL_REGISTER_MODULE(NULL, copy_on_write);
+}
