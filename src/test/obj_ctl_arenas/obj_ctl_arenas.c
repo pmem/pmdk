@@ -33,8 +33,12 @@
 /*
  * obj_ctl_arenas.c -- tests for the ctl entry points
  * usage:
- * obj_ctl_arenas <file> n - test for heap.narenas
+ * obj_ctl_arenas <file> n - test for heap.narenas.total
  * obj_ctl_arenas <file> s - test for heap.arena.[idx].size
+ * and heap.thread.arena_id (RW)
+ * obj_ctl_arenas <file> c - test for heap.arena.create,
+ * heap.arena.[idx].automatic and heap.narenas.automatic
+ * obj_ctl_arenas <file> a - mt test for heap.arena.create
  * and heap.thread.arena_id
  */
 
@@ -47,6 +51,9 @@
 #define LAYOUT "obj_ctl_arenas"
 #define CTL_QUERY_LEN 256
 #define NTHREAD 2
+#define NTHREAD_ARENA 32
+#define NOBJECT_THREAD 64
+#define ALLOC_CLASS_ARENA 2
 
 static os_mutex_t lock;
 static os_cond_t cond;
@@ -66,7 +73,20 @@ static struct pobj_alloc_class_desc alloc_class[] = {
 		.units_per_block = 1000,
 		.alignment = 0
 	},
+	{
+		.header_type = POBJ_HEADER_NONE,
+		.unit_size = 111,
+		.units_per_block = CHUNKSIZE / 111,
+		.alignment = 0
+	},
 };
+
+struct arena_alloc {
+	unsigned arena;
+	PMEMoid oid;
+};
+
+static struct arena_alloc ref;
 
 static void *
 worker_arenas_size(void *arg)
@@ -75,9 +95,19 @@ worker_arenas_size(void *arg)
 	int idx = (int)(intptr_t)arg;
 	int off_idx = idx + 128;
 	unsigned arena_id;
+	unsigned arena_id_new;
 	size_t arena_size;
 	char arena_idx_size[CTL_QUERY_LEN];
 	char alloc_class_idx_desc[CTL_QUERY_LEN];
+
+	ret = pmemobj_ctl_exec(pop, "heap.arena.create",
+			&arena_id_new);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(arena_id_new >= 1);
+
+	ret = pmemobj_ctl_set(pop, "heap.thread.arena_id",
+			&arena_id_new);
+	UT_ASSERTeq(ret, 0);
 
 	ret = snprintf(alloc_class_idx_desc, CTL_QUERY_LEN,
 			"heap.alloc_class.%d.desc", off_idx);
@@ -101,9 +131,9 @@ worker_arenas_size(void *arg)
 			os_cond_wait(&cond, &lock);
 	util_mutex_unlock(&lock);
 
-
 	ret = pmemobj_ctl_get(pop, "heap.thread.arena_id", &arena_id);
 	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(arena_id_new, arena_id);
 
 	ret = snprintf(arena_idx_size, CTL_QUERY_LEN,
 			"heap.arena.%u.size", arena_id);
@@ -120,13 +150,59 @@ worker_arenas_size(void *arg)
 	return NULL;
 }
 
+static void *
+worker_arena_threads(void *arg)
+{
+	int ret = -1;
+	struct arena_alloc *ref = (struct arena_alloc *)arg;
+
+	ret = pmemobj_ctl_set(pop, "heap.thread.arena_id", &ref->arena);
+	UT_ASSERTeq(ret, 0);
+
+	PMEMoid oid[NOBJECT_THREAD];
+	unsigned d;
+
+	for (int i = 0; i < NOBJECT_THREAD; i++) {
+		ret = pmemobj_xalloc(pop, &oid[i],
+				alloc_class[ALLOC_CLASS_ARENA].unit_size,
+				0, POBJ_CLASS_ID(ALLOC_CLASS_ARENA + 128),
+				NULL, NULL);
+		UT_ASSERTeq(ret, 0);
+
+		d = labs((long)ref->oid.off - (long)oid[i].off);
+
+		/* objects are in the same block as the first one */
+		ASSERT(d <= alloc_class[ALLOC_CLASS_ARENA].unit_size *
+			(alloc_class[ALLOC_CLASS_ARENA].units_per_block - 1));
+	}
+
+	for (int i = 0; i < NOBJECT_THREAD; i++)
+		pmemobj_free(&oid[i]);
+
+	return NULL;
+}
+
+static void
+worker_arena_ref_obj(struct arena_alloc *ref)
+{
+	int ret = -1;
+
+	ret = pmemobj_ctl_set(pop, "heap.thread.arena_id", &ref->arena);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmemobj_xalloc(pop, &ref->oid,
+			alloc_class[ALLOC_CLASS_ARENA].unit_size,
+			0, POBJ_CLASS_ID(ALLOC_CLASS_ARENA + 128), NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_ctl_arenas");
 
 	if (argc != 3)
-		UT_FATAL("usage: %s poolset [n]", argv[0]);
+		UT_FATAL("usage: %s poolset [n|s|c|a]", argv[0]);
 
 	const char *path = argv[1];
 	char t = argv[2][0];
@@ -139,7 +215,7 @@ main(int argc, char *argv[])
 
 	if (t == 'n') {
 		unsigned narenas = 0;
-		ret = pmemobj_ctl_get(pop, "heap.narenas", &narenas);
+		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTne(narenas, 0);
 	} else if (t == 's') {
@@ -160,7 +236,107 @@ main(int argc, char *argv[])
 
 		util_mutex_destroy(&lock);
 		os_cond_destroy(&cond);
+	} else if (t == 'c') {
+		char arena_idx_auto[CTL_QUERY_LEN];
+		unsigned narenas_b = 0;
+		unsigned narenas_a = 0;
+		unsigned narenas_n = 4;
+		unsigned arena_id;
+		unsigned all_auto;
+		int automatic;
 
+		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas_b);
+		UT_ASSERTeq(ret, 0);
+
+		/* all arenas created at the start should be set to auto  */
+		for (unsigned i = 0; i < narenas_b; i++) {
+			ret = snprintf(arena_idx_auto, CTL_QUERY_LEN,
+					"heap.arena.%u.automatic", i);
+			if (ret < 0 || ret >= CTL_QUERY_LEN)
+				UT_FATAL("!snprintf arena_idx_auto");
+
+			ret = pmemobj_ctl_get(pop, arena_idx_auto, &automatic);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(automatic, 1);
+		}
+		ret = pmemobj_ctl_get(pop, "heap.narenas.automatic", &all_auto);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(narenas_b, all_auto);
+
+		/* all arenas created by user should not be auto  */
+		for (unsigned i = 0; i < narenas_n; i++) {
+			ret = pmemobj_ctl_exec(pop, "heap.arena.create",
+					&arena_id);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(arena_id, narenas_b + i);
+
+			ret = snprintf(arena_idx_auto, CTL_QUERY_LEN,
+					"heap.arena.%u.automatic", arena_id);
+			if (ret < 0 || ret >= CTL_QUERY_LEN)
+				UT_FATAL("!snprintf arena_idx_auto");
+			ret = pmemobj_ctl_get(pop, arena_idx_auto, &automatic);
+			UT_ASSERTeq(automatic, 0);
+
+			/*
+			 * after creation, number of auto
+			 * arenas should be the same
+			 */
+			ret = pmemobj_ctl_get(pop, "heap.narenas.automatic",
+					&all_auto);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(narenas_b + i, all_auto);
+
+			/* change the state of created arena to auto */
+			int activate = 1;
+			ret = pmemobj_ctl_set(pop, arena_idx_auto,
+					&activate);
+			UT_ASSERTeq(ret, 0);
+			ret = pmemobj_ctl_get(pop, arena_idx_auto, &automatic);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(automatic, 1);
+
+			/* number of auto arenas should increase */
+			ret = pmemobj_ctl_get(pop, "heap.narenas.automatic",
+					&all_auto);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(narenas_b + i + 1, all_auto);
+		}
+
+		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas_a);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(narenas_b + narenas_n, narenas_a);
+	} else if (t == 'a') {
+		int ret;
+		unsigned arena_id_new;
+		char alloc_class_idx_desc[CTL_QUERY_LEN];
+
+		ret = pmemobj_ctl_exec(pop, "heap.arena.create",
+				&arena_id_new);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERT(arena_id_new >= 1);
+
+		ret = snprintf(alloc_class_idx_desc, CTL_QUERY_LEN,
+				"heap.alloc_class.%d.desc",
+				ALLOC_CLASS_ARENA + 128);
+		if (ret < 0 || ret >= CTL_QUERY_LEN)
+			UT_FATAL("!snprintf alloc_class_idx_desc");
+
+		ret = pmemobj_ctl_set(pop, alloc_class_idx_desc,
+				&alloc_class[ALLOC_CLASS_ARENA]);
+		UT_ASSERTeq(ret, 0);
+
+		ref.arena = arena_id_new;
+		worker_arena_ref_obj(&ref);
+
+		os_thread_t threads[NTHREAD_ARENA];
+
+		for (int i = 0; i < NTHREAD_ARENA; i++) {
+			PTHREAD_CREATE(&threads[i], NULL, worker_arena_threads,
+					&ref);
+		}
+
+		for (int i = 0; i < NTHREAD_ARENA; i++)
+			PTHREAD_JOIN(&threads[i], NULL);
 	} else {
 		UT_ASSERT(0);
 	}
