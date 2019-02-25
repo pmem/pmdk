@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -255,6 +255,23 @@ function ndctl_nfit_test_grant_access_node() {
 }
 
 #
+# ndctl_requires_extra_access -- checks whether ndctl will require extra
+#	file permissions for bad-block iteration
+#
+# Input argument:
+# 1) Mode of the namespace
+#
+function ndctl_requires_extra_access()
+{
+	# Tests require additional permissions for badblock iteration if they
+	# are ran on device dax or with ndctl version prior to v63.
+	if [ "$1" != "fsdax" ] || ! is_ndctl_ge_63 $PMEMPOOL$EXESUFFIX ; then
+		return 0
+	fi
+	return 1
+}
+
+#
 # ndctl_nfit_test_get_namespace_of_device -- get namespace of the pmem device
 #
 # Input argument:
@@ -263,9 +280,11 @@ function ndctl_nfit_test_grant_access_node() {
 function ndctl_nfit_test_get_namespace_of_device() {
 	DEVICE=$1
 	NAMESPACE=$(ndctl list | grep -e "$DEVICE" -e namespace | grep -B1 -e "$DEVICE" | head -n1 | cut -d'"' -f4)
+	MODE=$(ndctl list -n "$NAMESPACE" | grep mode | cut -d'"' -f4)
 
-	# XXX needed by libndctl (it should be removed when it is not needed)
-	ndctl_nfit_test_grant_access $DEVICE
+	if ndctl_requires_extra_access $MODE ; then
+		ndctl_nfit_test_grant_access $DEVICE
+	fi
 
 	echo $NAMESPACE
 }
@@ -280,9 +299,11 @@ function ndctl_nfit_test_get_namespace_of_device() {
 function ndctl_nfit_test_get_namespace_of_device_node() {
 	DEVICE=$2
 	NAMESPACE=$(expect_normal_exit run_on_node $1 ndctl list | grep -e "$DEVICE" -e namespace | grep -B1 -e "$DEVICE" | head -n1 | cut -d'"' -f4)
+	MODE=$(expect_normal_exit run_on_node $1 ndctl list -n "$NAMESPACE" | grep mode | cut -d'"' -f4)
 
-	# XXX needed by libndctl (it should be removed when it is not needed)
-	ndctl_nfit_test_grant_access_node $1 $DEVICE
+	if ndctl_requires_extra_access $MODE ; then
+		ndctl_nfit_test_grant_access_node $1 $DEVICE
+	fi
 
 	echo $NAMESPACE
 }

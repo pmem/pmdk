@@ -1997,7 +1997,36 @@ function is_ndctl_ge_63() {
 	strings ${binary} 2>&1 | \
 		grep -q "compiled with libndctl 63+" && true
 
-	echo $?
+	return $?
+}
+
+#
+# require_user_bb -- checks if the binary has support for unprivileged
+#	bad block iteration
+#
+#	usage: require_user_bb <binary>
+#
+function require_user_bb() {
+	if ! is_ndctl_ge_63 $1 &> /dev/null ; then
+		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration not supported"
+		exit 0
+	fi
+
+	return 0
+}
+
+#
+# require_su_bb -- checks if the binary does not have support for
+#	unprivileged bad block iteration
+#
+#	usage: require_su_bb <binary>
+#
+function require_su_bb() {
+	if is_ndctl_ge_63 $1 &> /dev/null ; then
+		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration supported"
+		exit 0
+	fi
+	return 0
 }
 
 #
