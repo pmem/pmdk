@@ -1149,8 +1149,8 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 error_cache_bucket_new:
 	recycler_delete(h->recyclers[c->id]);
 
-	for (i -= 1; i >= 0; --i) {
-		bucket_delete(VEC_ARR(&h->arenas)[i]->buckets[c->id]);
+	for (; i != 0; --i) {
+		bucket_delete(VEC_ARR(&h->arenas)[i - 1]->buckets[c->id]);
 	}
 
 error_recycler_new:
