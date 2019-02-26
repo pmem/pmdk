@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -62,8 +62,13 @@ if [[ ! -f "Dockerfile.$1" ]]; then
 	exit 1
 fi
 
-# Build a Docker image tagged with pmem/pmdk:OS-VER
-tag=pmem/pmdk:1.5-$1
+if [[ -z "${DOCKERHUB_REPO}" ]]; then
+	echo "DOCKERHUB_REPO environment variable is not set"
+	exit 1
+fi
+
+# Build a Docker image tagged with ${DOCKERHUB_REPO}:OS-VER
+tag=${DOCKERHUB_REPO}:1.5-$1
 docker build -t $tag \
 	--build-arg http_proxy=$http_proxy \
 	--build-arg https_proxy=$https_proxy \
