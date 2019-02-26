@@ -149,7 +149,7 @@ tx.post_commit.stop | r- | - | void * | - | - | -
 
 This entry point is deprecated.
 
-heap.narenas | r- | - | unsigned | - | - | -
+heap.narenas.automatic | r- | - | unsigned | - | - | -
 
 Reads the number of arenas used in automatic scheduling of memory operations
 for threads. By default, this value is equal to the number of available processors.
@@ -157,15 +157,37 @@ An arena is a memory management structure which enables concurrency by taking
 exclusive ownership of parts of the heap and allowing associated threads to allocate
 without contention.
 
+heap.narenas.total | r- | - | unsigned | - | - | -
+
+Reads the number of all created arenas. It includes automatic arenas
+created by default and arenas created using heap.arena.create CTL.
+
 heap.arena.[arena_id].size | r- | - | uint64_t | - | - | -
 
 Reads the total amount of memory in bytes which is currently
 exclusively owned by the arena. Large differences in this value between
 arenas might indicate an uneven scheduling of memory resources.
 
-heap.thread.arena_id | r- | - | unsigned | - | - | -
+heap.thread.arena_id | rw- | - | unsigned | unsigned | - | -
 
-Reads the index of the arena assigned to the current thread.
+Reads the index of the arena assigned to the current thread or
+assigns arena with specific id to the current thread.
+
+heap.arena.create | --x | - | - | - | unsigned | -
+
+Creates and initializes one new arena in the heap.
+This entry point reads an id of the new created arena.
+
+Newly created arenas by this CTL are inactive, which means that
+the arena will not be used in the automatic scheduling of
+memory requests. To activate the new arena, use heap.arena.[arena_id].automatic CTL.
+
+heap.arena.[arena_id].automatic | rw- | - | boolean | boolean | - | -
+
+Reads or modifies the state of the arena.
+If set, the arena is used in automatic scheduling of memory operations for threads.
+This should be set to false if the application wants to manually manage allocator
+scalability through explicitly assigning arenas to threads by using heap.thread.arena_id.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
