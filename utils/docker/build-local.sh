@@ -62,7 +62,8 @@ export PMDK_CC=${PMDK_CC:-gcc}
 export PMDK_CXX=${PMDK_CXX:-g++}
 export EXPERIMENTAL=${EXPERIMENTAL:-n}
 export VALGRIND=${VALGRIND:-1}
-
+export DOCKERHUB_REPO=${DOCKERHUB_REPO:-pmem/pmdk}
+export GITHUB_REPO=${GITHUB_REPO:-pmem/pmdk}
 
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
 	echo "ERROR: The variables OS and OS_VER have to be set " \
@@ -78,7 +79,7 @@ if [[ "$KEEP_CONTAINER" != "1" ]]; then
 	RM_SETTING=" --rm"
 fi
 
-imageName=pmem/pmdk:${OS}-${OS_VER}
+imageName=${DOCKERHUB_REPO}:${OS}-${OS_VER}
 containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 1 ]] ; then
