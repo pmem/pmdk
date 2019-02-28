@@ -219,7 +219,7 @@ struct pmemobjpool {
 #define CLASS_ID_FROM_FLAG(flag)\
 ((uint16_t)((flag) >> 48))
 
-#define ARENA_BITS_FROM_FLAG(flag)\
+#define ARENA_ID_FROM_FLAG(flag)\
 ((uint16_t)((flag) >> 32))
 
 /*

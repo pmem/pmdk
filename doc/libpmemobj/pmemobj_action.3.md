@@ -119,6 +119,7 @@ additional *flags* argument that is a bitmask of the following values:
 
 + **POBJ_ARENA_ID(arena_id)** - allocate an object from the arena specified by
 *arena_id*. The arena must exist, otherwise, the behavior is undefined.
+If *arena_id* is equal 0, then arena assigned to the current thread will be used.
 
 **pmemobj_defer_free**() function creates a deferred free action, meaning that
 the provided object will be freed when the action is published. Calling this

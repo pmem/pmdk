@@ -112,6 +112,7 @@ class with id equal to *class_id*
 
 + **POBJ_ARENA_ID(arena_id)** - allocate an object from the arena specified by
 *arena_id*. The arena must exist, otherwise, the behavior is undefined.
+If *arena_id* is equal 0, then arena assigned to the current thread will be used.
 
 This function must be called during **TX_STAGE_WORK**.
 

@@ -258,8 +258,8 @@ test_heap(void)
 		{0, 0, 1, 0}
 	};
 
-	struct bucket *b_def = heap_bucket_acquire_by_id(heap,
-		DEFAULT_ALLOC_CLASS_ID);
+	struct bucket *b_def = heap_bucket_acquire(heap,
+		DEFAULT_ALLOC_CLASS_ID, HEAP_ARENA_PER_THREAD);
 
 	for (int i = 0; i < MAX_BLOCKS; ++i) {
 		heap_get_bestfit_block(heap, b_def, &blocks[i]);
@@ -270,7 +270,8 @@ test_heap(void)
 	struct memory_block old_run = {0, 0, 1, 0};
 	struct memory_block new_run = {0, 0, 0, 0};
 	struct alloc_class *c_run = heap_get_best_class(heap, 1024);
-	struct bucket *b_run = heap_bucket_acquire_by_id(heap, c_run->id);
+	struct bucket *b_run = heap_bucket_acquire(heap, c_run->id,
+			HEAP_ARENA_PER_THREAD);
 
 	/*
 	 * Allocate blocks from a run until one run is exhausted.
@@ -337,8 +338,9 @@ test_recycler(void)
 	/* trigger heap bucket populate */
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.size_idx = 1;
-	struct bucket *b = heap_bucket_acquire_by_id(heap,
-		DEFAULT_ALLOC_CLASS_ID);
+	struct bucket *b = heap_bucket_acquire(heap,
+		DEFAULT_ALLOC_CLASS_ID,
+		HEAP_ARENA_PER_THREAD);
 	UT_ASSERT(heap_get_bestfit_block(heap, b, &m) == 0);
 	heap_bucket_release(heap, b);
 

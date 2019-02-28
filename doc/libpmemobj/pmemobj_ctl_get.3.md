@@ -170,11 +170,13 @@ heap.arena.[arena_id].size | r- | - | uint64_t | - | - | -
 Reads the total amount of memory in bytes which is currently
 exclusively owned by the arena. Large differences in this value between
 arenas might indicate an uneven scheduling of memory resources.
+The arena id cannot be 0.
 
 heap.thread.arena_id | rw- | - | unsigned | unsigned | - | -
 
 Reads the index of the arena assigned to the current thread or
 assigns arena with specific id to the current thread.
+The arena id cannot be 0.
 
 heap.arena.create | --x | - | - | - | unsigned | -
 
@@ -197,6 +199,7 @@ Reads or modifies the state of the arena.
 If set, the arena is used in automatic scheduling of memory operations for threads.
 This should be set to false if the application wants to manually manage allocator
 scalability through explicitly assigning arenas to threads by using heap.thread.arena_id.
+The arena id cannot be 0.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string

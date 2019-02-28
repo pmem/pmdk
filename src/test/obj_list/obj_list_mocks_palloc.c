@@ -177,7 +177,7 @@ FUNC_MOCK_END
 FUNC_MOCK(palloc_reserve, int, struct palloc_heap *heap, size_t size,
 	palloc_constr constructor, void *arg,
 	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
-	uint16_t arena_flag, struct pobj_action *act)
+	uint16_t arena_id, struct pobj_action *act)
 	FUNC_MOCK_RUN_DEFAULT {
 		struct pmem_ops *p_ops = &Pop->p_ops;
 		size = size + OOB_OFF + sizeof(uint64_t) * 2;

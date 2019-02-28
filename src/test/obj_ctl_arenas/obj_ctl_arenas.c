@@ -184,7 +184,10 @@ worker_arenas_flag(void *arg)
 		UT_ASSERTeq(ret, 0);
 	}
 
-	/* test POBJ_ARENA_ID with pmemobj_xalloc */
+	/*
+	 * Tests POBJ_ARENA_ID with pmemobj_xalloc.
+	 * All object are frees after pthread join.
+	 */
 	for (unsigned i = 0; i < 2; i++) {
 		ret = pmemobj_xalloc(pop,
 				NULL, alloc_class[i].unit_size, 0,
@@ -220,6 +223,11 @@ worker_arena_threads(void *arg)
 {
 	int ret = -1;
 	struct arena_alloc *ref = (struct arena_alloc *)arg;
+	unsigned arena_id;
+
+	ret = pmemobj_ctl_get(pop, "heap.thread.arena_id", &arena_id);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(arena_id != 0);
 
 	ret = pmemobj_ctl_set(pop, "heap.thread.arena_id", &ref->arena);
 	UT_ASSERTeq(ret, 0);
@@ -315,7 +323,7 @@ main(int argc, char *argv[])
 		UT_ASSERTeq(ret, 0);
 
 		/* all arenas created at the start should be set to auto  */
-		for (unsigned i = 0; i < narenas_b; i++) {
+		for (unsigned i = 1; i <= narenas_b; i++) {
 			ret = snprintf(arena_idx_auto, CTL_QUERY_LEN,
 					"heap.arena.%u.automatic", i);
 			if (ret < 0 || ret >= CTL_QUERY_LEN)
@@ -330,7 +338,7 @@ main(int argc, char *argv[])
 		UT_ASSERTeq(narenas_b, all_auto);
 
 		/* all arenas created by user should not be auto  */
-		for (unsigned i = 0; i < narenas_n; i++) {
+		for (unsigned i = 1; i <= narenas_n; i++) {
 			ret = pmemobj_ctl_exec(pop, "heap.arena.create",
 					&arena_id);
 			UT_ASSERTeq(ret, 0);
@@ -350,7 +358,7 @@ main(int argc, char *argv[])
 			ret = pmemobj_ctl_get(pop, "heap.narenas.automatic",
 					&all_auto);
 			UT_ASSERTeq(ret, 0);
-			UT_ASSERTeq(narenas_b + i, all_auto);
+			UT_ASSERTeq(narenas_b + i - 1, all_auto);
 
 			/* change the state of created arena to auto */
 			int activate = 1;
@@ -365,7 +373,7 @@ main(int argc, char *argv[])
 			ret = pmemobj_ctl_get(pop, "heap.narenas.automatic",
 					&all_auto);
 			UT_ASSERTeq(ret, 0);
-			UT_ASSERTeq(narenas_b + i + 1, all_auto);
+			UT_ASSERTeq(narenas_b + i, all_auto);
 		}
 
 		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas_a);
