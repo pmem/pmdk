@@ -111,7 +111,8 @@ following values:
 class with id equal to *class_id*
 
 + **POBJ_ARENA_ID(arena_id)** - allocate an object from the arena specified by
-*arena_id*. The arena must exist, otherwise, the behavior is undefined.
+*arena_id*. The arena id cannot be 0, and the arena must exist,
+otherwise, the behavior is undefined.
 
 This function must be called during **TX_STAGE_WORK**.
 

@@ -194,7 +194,7 @@ static int
 palloc_reservation_create(struct palloc_heap *heap, size_t size,
 	palloc_constr constructor, void *arg,
 	uint64_t extra_field, uint16_t object_flags,
-	uint16_t class_id, uint16_t arena_flag,
+	uint16_t class_id, uint16_t arena_id,
 	struct pobj_action_internal *out)
 {
 	int err = 0;
@@ -233,12 +233,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 	*new_block = MEMORY_BLOCK_NONE;
 	new_block->size_idx = (uint32_t)size_idx;
 
-	struct bucket *b;
-	if (arena_flag)
-		b = heap_bucket_acquire_with_arena(heap, c->id,
-				ARENA_ID_FROM_FLAG(arena_flag));
-	else
-		b = heap_bucket_acquire_by_id(heap, c->id);
+	struct bucket *b = heap_bucket_acquire(heap, c->id, arena_id);
 
 	err = heap_get_bestfit_block(heap, b, new_block);
 	if (err != 0)
@@ -313,8 +308,9 @@ palloc_restore_free_chunk_state(struct palloc_heap *heap,
 	struct memory_block *m)
 {
 	if (m->type == MEMORY_BLOCK_HUGE) {
-		struct bucket *b = heap_bucket_acquire_by_id(heap,
-			DEFAULT_ALLOC_CLASS_ID);
+		struct bucket *b = heap_bucket_acquire(heap,
+			DEFAULT_ALLOC_CLASS_ID,
+			HEAP_ARENA_PER_THREAD);
 		if (heap_free_chunk_reuse(heap, b, m) != 0) {
 			if (errno == EEXIST) {
 				FATAL(
@@ -550,14 +546,14 @@ int
 palloc_reserve(struct palloc_heap *heap, size_t size,
 	palloc_constr constructor, void *arg,
 	uint64_t extra_field, uint16_t object_flags,
-	uint16_t class_id, uint16_t arena_flag,
+	uint16_t class_id, uint16_t arena_id,
 	struct pobj_action *act)
 {
 	COMPILE_ERROR_ON(sizeof(struct pobj_action) !=
 		sizeof(struct pobj_action_internal));
 
 	return palloc_reservation_create(heap, size, constructor, arg,
-		extra_field, object_flags, class_id, arena_flag,
+		extra_field, object_flags, class_id, arena_id,
 		(struct pobj_action_internal *)act);
 }
 
@@ -662,7 +658,7 @@ palloc_operation(struct palloc_heap *heap,
 	uint64_t off, uint64_t *dest_off, size_t size,
 	palloc_constr constructor, void *arg,
 	uint64_t extra_field, uint16_t object_flags,
-	uint16_t class_id, uint16_t arena_flag,
+	uint16_t class_id, uint16_t arena_id,
 	struct operation_context *ctx)
 {
 	size_t user_size = 0;
@@ -693,7 +689,7 @@ palloc_operation(struct palloc_heap *heap,
 		alloc = &ops[nops++];
 		if (palloc_reservation_create(heap, size, constructor, arg,
 			extra_field, object_flags,
-			class_id, arena_flag, alloc) != 0) {
+			class_id, arena_id, alloc) != 0) {
 			operation_cancel(ctx);
 			return -1;
 		}

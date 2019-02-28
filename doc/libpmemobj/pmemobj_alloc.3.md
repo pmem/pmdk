@@ -138,7 +138,9 @@ additional *flags* argument that is a bitmask of the following values:
 *class_id*. The class id cannot be 0.
 
 + **POBJ_ARENA_ID(arena_id)** - allocate an object from the arena specified by
-*arena_id*. The arena must exist, otherwise, the behavior is undefined.
+*arena_id*. The arena id cannot be 0, and the arena must exist,
+otherwise, the behavior is undefined.
+
 
 The **pmemobj_zalloc**() function allocates a new zeroed object from
 the persistent memory heap associated with memory pool *pop*. The *PMEMoid*

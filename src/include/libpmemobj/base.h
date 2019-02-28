@@ -75,7 +75,7 @@ typedef struct pmemobjpool PMEMobjpool;
 #define POBJ_FLAG_NO_FLUSH	(((uint64_t)1) << 1)
 
 #define POBJ_CLASS_ID(id)	(((uint64_t)(id)) << 48)
-#define POBJ_ARENA_ID(id)	(((((uint64_t)(id)) << 1) | 1) << 32)
+#define POBJ_ARENA_ID(id)	(((uint64_t)(id)) << 32)
 
 #define POBJ_XALLOC_CLASS_MASK	((((uint64_t)1 << 16) - 1) << 48)
 #define POBJ_XALLOC_ARENA_MASK	((((uint64_t)1 << 16) - 1) << 32)

@@ -2190,7 +2190,7 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	int ret = palloc_operation(&pop->heap, 0,
 			oidp != NULL ? &oidp->off : NULL, size,
 			constructor_alloc, &carg, type_num, 0,
-			CLASS_ID_FROM_FLAG(flags), ARENA_BITS_FROM_FLAG(flags),
+			CLASS_ID_FROM_FLAG(flags), ARENA_ID_FROM_FLAG(flags),
 			ctx);
 
 	pmalloc_operation_release(pop);
@@ -3021,7 +3021,7 @@ pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 
 	if (palloc_reserve(&pop->heap, size, constructor_alloc, &carg,
 		type_num, 0, CLASS_ID_FROM_FLAG(flags),
-		ARENA_BITS_FROM_FLAG(flags), act) != 0) {
+		ARENA_ID_FROM_FLAG(flags), act) != 0) {
 		PMEMOBJ_API_END();
 		return oid;
 	}

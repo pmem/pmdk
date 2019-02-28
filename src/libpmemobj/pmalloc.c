@@ -471,8 +471,9 @@ CTL_RUNNABLE_HANDLER(extend)(void *ctx,
 	}
 
 	struct palloc_heap *heap = &pop->heap;
-	struct bucket *defb = heap_bucket_acquire_by_id(heap,
-		DEFAULT_ALLOC_CLASS_ID);
+	struct bucket *defb = heap_bucket_acquire(heap,
+		DEFAULT_ALLOC_CLASS_ID,
+		HEAP_ARENA_PER_THREAD);
 
 	int ret = heap_extend(heap, defb, (size_t)arg_in) < 0 ? -1 : 0;
 
@@ -614,10 +615,13 @@ CTL_WRITE_HANDLER(arena_id)(void *ctx,
 
 	unsigned narenas = heap_get_narenas_total(&pop->heap);
 
-	/* check if index is not bigger than number of arenas */
-	if (arena_id >= narenas) {
-		LOG(1, "arena id outside of the allowed range: <0,%u>",
-			narenas - 1);
+	/*
+	 * check if index is not bigger than number of arenas
+	 * or if it is not equal zero
+	 */
+	if (arena_id < 1 || arena_id > narenas) {
+		LOG(1, "arena id outside of the allowed range: <1,%u>",
+			narenas);
 		errno = ERANGE;
 		return -1;
 	}
@@ -646,10 +650,13 @@ CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 
 	unsigned narenas = heap_get_narenas_total(&pop->heap);
 
-	/* check if index is not bigger than number of arenas */
-	if (arena_id >= narenas) {
-		LOG(1, "arena id outside of the allowed range: <0,%u>",
-			narenas - 1);
+	/*
+	 * check if index is not bigger than number of arenas
+	 * or if it is not equal zero
+	 */
+	if (arena_id < 1 || arena_id > narenas) {
+		LOG(1, "arena id outside of the allowed range: <1,%u>",
+			narenas);
 		errno = ERANGE;
 		return -1;
 	}
@@ -681,10 +688,13 @@ CTL_READ_HANDLER(automatic)(void *ctx,
 
 	unsigned narenas = heap_get_narenas_total(&pop->heap);
 
-	/* check if index is not bigger than number of arenas */
-	if (arena_id >= narenas) {
-		LOG(1, "arena id outside of the allowed range: <0,%u>",
-			narenas - 1);
+	/*
+	 * check if index is not bigger than number of arenas
+	 * or if it is not equal zero
+	 */
+	if (arena_id < 1 || arena_id > narenas) {
+		LOG(1, "arena id outside of the allowed range: <1,%u>",
+			narenas);
 		errno = ERANGE;
 		return -1;
 	}
@@ -724,10 +734,13 @@ CTL_READ_HANDLER(size)(void *ctx,
 	/* take number of arenas */
 	narenas = heap_get_narenas_total(&pop->heap);
 
-	/* check if index is not bigger than number of arenas */
-	if (arena_id >= narenas) {
-		LOG(1, "arena id outside of the allowed range: <0,%u>",
-			narenas - 1);
+	/*
+	 * check if index is not bigger than number of arenas
+	 * or if it is not equal zero
+	 */
+	if (arena_id < 1 || arena_id > narenas) {
+		LOG(1, "arena id outside of the allowed range: <1,%u>",
+			narenas);
 		errno = ERANGE;
 		return -1;
 	}
