@@ -59,6 +59,7 @@
  * This is the value by which the heap might grow once we hit an OOM.
  */
 #define HEAP_DEFAULT_GROW_SIZE (1 << 27) /* 128 megabytes */
+#define MAX_DEFAULT_ARENAS (1 << 10) /* 1024 arenas */
 
 /*
  * Arenas store the collection of buckets for allocation classes.
@@ -236,7 +237,7 @@ heap_thread_arena(struct heap_rt *heap)
 unsigned
 heap_get_thread_arena_id(struct palloc_heap *heap)
 {
-	unsigned arena_id = 0;
+	unsigned arena_id = 1;
 	struct arena *arenap = heap_thread_arena(heap->rt);
 	struct arena *arenav;
 	struct heap_rt *rt = heap->rt;
@@ -256,36 +257,40 @@ heap_get_thread_arena_id(struct palloc_heap *heap)
 }
 
 /*
- * heap_bucket_acquire_by_id -- fetches by id a bucket exclusive for the thread
- *	until heap_bucket_release is called
+ * heap_bucket_acquire -- fetches by arena or by id a bucket exclusive
+ * for the thread until heap_bucket_release is called
  */
 struct bucket *
-heap_bucket_acquire_by_id(struct palloc_heap *heap, uint8_t class_id)
+heap_bucket_acquire(struct palloc_heap *heap, uint8_t class_id,
+		uint16_t arena_id)
 {
 	struct heap_rt *rt = heap->rt;
 	struct bucket *b;
 
+#ifdef DEBUG
+	util_mutex_lock(&rt->arenas_lock);
+	ASSERT(arena_id <= VEC_SIZE(&rt->arenas));
+	util_mutex_unlock(&rt->arenas_lock);
+#endif
+
 	if (class_id == DEFAULT_ALLOC_CLASS_ID) {
 		b = rt->default_bucket;
-	} else {
+		goto out;
+	}
+
+	if (arena_id == HEAP_ARENA_PER_THREAD) {
 		struct arena *arena = heap_thread_arena(heap->rt);
 		ASSERTne(arena->buckets, NULL);
 		b = arena->buckets[class_id];
+	} else {
+		b = (VEC_ARR(&heap->rt->arenas) \
+			[arena_id - 1])->buckets[class_id];
 	}
 
+out:
 	util_mutex_lock(&b->lock);
 
 	return b;
-}
-
-/*
- * heap_bucket_acquire_by_id -- fetches by class a bucket exclusive for the
- *	thread until heap_bucket_release is called
- */
-struct bucket *
-heap_bucket_acquire(struct palloc_heap *heap, struct alloc_class *c)
-{
-	return heap_bucket_acquire_by_id(heap, c->id);
 }
 
 /*
@@ -605,8 +610,8 @@ heap_recycle_unused(struct palloc_heap *heap, struct recycler *recycler,
 	if (VEC_SIZE(&r) == 0)
 		return ENOMEM;
 
-	struct bucket *nb = defb == NULL ? heap_bucket_acquire_by_id(heap,
-		DEFAULT_ALLOC_CLASS_ID) : NULL;
+	struct bucket *nb = defb == NULL ? heap_bucket_acquire(heap,
+		DEFAULT_ALLOC_CLASS_ID, HEAP_ARENA_PER_THREAD) : NULL;
 
 	ASSERT(defb != NULL || nb != NULL);
 
@@ -718,8 +723,9 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 			struct memory_block *m = &b->active_memory_block->m;
 			if (heap_reclaim_run(heap, m)) {
 				struct bucket *defb =
-					heap_bucket_acquire_by_id(heap,
-					DEFAULT_ALLOC_CLASS_ID);
+					heap_bucket_acquire(heap,
+					DEFAULT_ALLOC_CLASS_ID,
+					HEAP_ARENA_PER_THREAD);
 
 				heap_run_into_free_chunk(heap, defb, m);
 
@@ -733,8 +739,9 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		goto out;
 
 	/* search in the next zone before attempting to create a new run */
-	struct bucket *defb = heap_bucket_acquire_by_id(heap,
-		DEFAULT_ALLOC_CLASS_ID);
+	struct bucket *defb = heap_bucket_acquire(heap,
+		DEFAULT_ALLOC_CLASS_ID,
+		HEAP_ARENA_PER_THREAD);
 	heap_populate_bucket(heap, defb);
 	heap_bucket_release(heap, defb);
 
@@ -744,8 +751,9 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block m = MEMORY_BLOCK_NONE;
 	m.size_idx = b->aclass->run.size_idx;
 
-	defb = heap_bucket_acquire_by_id(heap,
-		DEFAULT_ALLOC_CLASS_ID);
+	defb = heap_bucket_acquire(heap,
+		DEFAULT_ALLOC_CLASS_ID,
+		HEAP_ARENA_PER_THREAD);
 	/* cannot reuse an existing run, create a new one */
 	if (heap_get_bestfit_block(heap, defb, &m) == 0) {
 
@@ -988,7 +996,7 @@ heap_arena_create(struct palloc_heap *heap)
 	if (VEC_PUSH_BACK(&h->arenas, arena))
 		goto err_push_back;
 
-	int ret = (int)VEC_SIZE(&h->arenas) - 1;
+	int ret = (int)VEC_SIZE(&h->arenas);
 	util_mutex_unlock(&h->arenas_lock);
 	return ret;
 
@@ -1011,6 +1019,47 @@ heap_get_narenas_total(struct palloc_heap *heap)
 	util_mutex_unlock(&h->arenas_lock);
 
 	return total;
+}
+
+/*
+ * heap_get_narenas_max -- returns the max number of arenas
+ */
+unsigned
+heap_get_narenas_max(struct palloc_heap *heap)
+{
+	struct heap_rt *h = heap->rt;
+
+	util_mutex_lock(&h->arenas_lock);
+	unsigned max = (unsigned)VEC_CAPACITY(&h->arenas);
+	util_mutex_unlock(&h->arenas_lock);
+
+	return max;
+}
+
+/*
+ * heap_set_narenas_max -- change the max number of arenas
+ */
+int
+heap_set_narenas_max(struct palloc_heap *heap, unsigned size)
+{
+	struct heap_rt *h = heap->rt;
+	int ret = -1;
+
+	util_mutex_lock(&h->arenas_lock);
+	unsigned capacity = (unsigned)VEC_CAPACITY(&h->arenas);
+	if (size < capacity) {
+		LOG(2, "cannot decrease max number of arenas");
+		goto out;
+	} else if (size == capacity) {
+		ret = 0;
+		goto out;
+	}
+
+	ret = VEC_RESERVE(&h->arenas, size);
+
+out:
+	util_mutex_unlock(&h->arenas_lock);
+	return ret;
 }
 
 /*
@@ -1044,7 +1093,7 @@ heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 	struct heap_rt *h = heap->rt;
 
 	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
 	util_mutex_unlock(&h->arenas_lock);
 
 	return a->buckets;
@@ -1059,7 +1108,7 @@ heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id)
 	struct heap_rt *h = heap->rt;
 
 	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
 	util_mutex_unlock(&h->arenas_lock);
 
 	return a->automatic;
@@ -1075,7 +1124,7 @@ heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 	struct heap_rt *h = heap->rt;
 
 	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
 	util_mutex_unlock(&h->arenas_lock);
 	a->automatic = automatic;
 }
@@ -1089,7 +1138,7 @@ heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 	struct heap_rt *h = heap->rt;
 
 	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id];
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
 	util_mutex_unlock(&h->arenas_lock);
 
 	struct arena *thread_arena = os_tls_get(h->thread_arena);
@@ -1149,9 +1198,8 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 error_cache_bucket_new:
 	recycler_delete(h->recyclers[c->id]);
 
-	for (; i != 0; --i) {
+	for (; i != 0; --i)
 		bucket_delete(VEC_ARR(&h->arenas)[i - 1]->buckets[c->id]);
-	}
 
 error_recycler_new:
 	return -1;
@@ -1302,6 +1350,10 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	util_mutex_init(&h->arenas_lock);
 	VEC_INIT(&h->arenas);
+	if (VEC_RESERVE(&h->arenas, MAX_DEFAULT_ARENAS) == -1) {
+		err = errno;
+		goto error_arenas_malloc;
+	}
 
 	h->nzones = heap_max_zone(heap_size);
 
@@ -1327,7 +1379,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	for (unsigned i = 0; i < narenas_default; ++i) {
 		if (VEC_PUSH_BACK(&h->arenas, heap_arena_new(heap, 1))) {
 			err = errno;
-			goto error_arenas_malloc;
+			goto error_vec_reserve;
 		}
 	}
 
@@ -1338,6 +1390,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	return 0;
 
+error_vec_reserve:
+	VEC_DELETE(&h->arenas);
 error_arenas_malloc:
 	alloc_class_collection_delete(h->alloc_classes);
 error_alloc_classes_new:

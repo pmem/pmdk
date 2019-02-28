@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -74,13 +74,15 @@ typedef int (*palloc_constr)(void *base, void *ptr,
 
 int palloc_operation(struct palloc_heap *heap, uint64_t off, uint64_t *dest_off,
 	size_t size, palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
+	uint64_t extra_field, uint16_t object_flags,
+	uint16_t class_id, uint16_t arena_id,
 	struct operation_context *ctx);
 
 int
 palloc_reserve(struct palloc_heap *heap, size_t size,
 	palloc_constr constructor, void *arg,
-	uint64_t extra_field, uint16_t object_flags, uint16_t class_id,
+	uint64_t extra_field, uint16_t object_flags,
+	uint16_t class_id, uint16_t arena_id,
 	struct pobj_action *act);
 
 void

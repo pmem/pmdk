@@ -219,6 +219,9 @@ struct pmemobjpool {
 #define CLASS_ID_FROM_FLAG(flag)\
 ((uint16_t)((flag) >> 48))
 
+#define ARENA_ID_FROM_FLAG(flag)\
+((uint16_t)((flag) >> 32))
+
 /*
  * pmemobj_get_uuid_lo -- (internal) evaluates XOR sum of least significant
  * 8 bytes with most significant 8 bytes.

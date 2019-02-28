@@ -28,6 +28,9 @@
     <None Include="TEST0.PS1" />
     <None Include="TEST1.PS1" />
     <None Include="TEST2.PS1" />
+    <None Include="TEST3.PS1" />
+    <None Include="TEST4.PS1" />
+    <None Include="TEST5.PS1" />
     <None Include="TEST6.PS1" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

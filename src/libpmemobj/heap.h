@@ -55,6 +55,7 @@ extern "C" {
 	((uintptr_t)(ptr) - (uintptr_t)((heap)->base))
 
 #define BIT_IS_CLR(a, i)	(!((a) & (1ULL << (i))))
+#define HEAP_ARENA_PER_THREAD (0)
 
 int heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		uint64_t *sizep,
@@ -76,10 +77,8 @@ struct alloc_class *
 heap_get_best_class(struct palloc_heap *heap, size_t size);
 
 struct bucket *
-heap_bucket_acquire(struct palloc_heap *heap, struct alloc_class *c);
-
-struct bucket *
-heap_bucket_acquire_by_id(struct palloc_heap *heap, uint8_t class_id);
+heap_bucket_acquire(struct palloc_heap *heap, uint8_t class_id,
+		uint16_t arena_id);
 
 void
 heap_bucket_release(struct palloc_heap *heap, struct bucket *b);
@@ -107,6 +106,10 @@ struct alloc_class_collection *heap_alloc_classes(struct palloc_heap *heap);
 void *heap_end(struct palloc_heap *heap);
 
 unsigned heap_get_narenas_total(struct palloc_heap *heap);
+
+unsigned heap_get_narenas_max(struct palloc_heap *heap);
+
+int heap_set_narenas_max(struct palloc_heap *heap, unsigned size);
 
 unsigned heap_get_narenas_auto(struct palloc_heap *heap);
 

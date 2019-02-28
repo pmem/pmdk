@@ -102,13 +102,17 @@ The **pmemobj_tx_xalloc**() function transactionally allocates a new object
 of given *size* and *type_num*. The *flags* argument is a bitmask of the
 following values:
 
-+ **POBJ_XALLOC_ZERO** - zero the object (equivalent of pmemobj_tx_zalloc)
++ **POBJ_XALLOC_ZERO** - zero the allocated object (equivalent of pmemobj_tx_zalloc)
 
 + **POBJ_XALLOC_NO_FLUSH** - skip flush on commit
 (when application deals with flushing or uses pmemobj_memcpy_persist)
 
-+ **POBJ_CLASS_ID(class_id)** - allocate the object from the allocation
++ **POBJ_CLASS_ID(class_id)** - allocate an object from the allocation
 class with id equal to *class_id*
+
++ **POBJ_ARENA_ID(arena_id)** - allocate an object from the arena specified by
+*arena_id*. The arena must exist, otherwise, the behavior is undefined.
+If *arena_id* is equal 0, then arena assigned to the current thread will be used.
 
 This function must be called during **TX_STAGE_WORK**.
 

@@ -159,16 +159,24 @@ heap.narenas.total | r- | - | unsigned | - | - | -
 Reads the number of all created arenas. It includes automatic arenas
 created by default and arenas created using heap.arena.create CTL.
 
+heap.narenas.max | rw- | - | unsigned | unsigned | - | -
+
+Reads or writes the maximum number of arenas that can be created.
+This entry point is not thread-safe with regards to heap
+operations (allocations, frees, reallocs).
+
 heap.arena.[arena_id].size | r- | - | uint64_t | - | - | -
 
 Reads the total amount of memory in bytes which is currently
 exclusively owned by the arena. Large differences in this value between
 arenas might indicate an uneven scheduling of memory resources.
+The arena id cannot be 0.
 
 heap.thread.arena_id | rw- | - | unsigned | unsigned | - | -
 
 Reads the index of the arena assigned to the current thread or
 assigns arena with specific id to the current thread.
+The arena id cannot be 0.
 
 heap.arena.create | --x | - | - | - | unsigned | -
 
@@ -179,12 +187,19 @@ Newly created arenas by this CTL are inactive, which means that
 the arena will not be used in the automatic scheduling of
 memory requests. To activate the new arena, use heap.arena.[arena_id].automatic CTL.
 
+Arena created using this CTL can be used for allocation by explicitly
+specifying the *arena_id* for **POBJ_ARENA_ID(id)** flag in
+**pmemobj_tx_xalloc**()/**pmemobj_xalloc**()/**pmemobj_xreserve()** functions.
+
+By default, the number of arenas is limited to 1024.
+
 heap.arena.[arena_id].automatic | rw- | - | boolean | boolean | - | -
 
 Reads or modifies the state of the arena.
 If set, the arena is used in automatic scheduling of memory operations for threads.
 This should be set to false if the application wants to manually manage allocator
 scalability through explicitly assigning arenas to threads by using heap.thread.arena_id.
+The arena id cannot be 0.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
