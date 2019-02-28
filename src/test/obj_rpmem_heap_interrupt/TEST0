@@ -88,7 +88,8 @@ expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX ${NODE_DIR[1]}$TEST_SET_LOCAL 
 expect_abnormal_exit wait_on_node 0 $PID_FILE
 expect_normal_exit run_on_node 1 ../pmempool rm -sf ${NODE_DIR[1]}$TEST_SET_LOCAL
 
-expect_normal_exit run_on_node 1 ../pmempool create --layout heap_interrupt obj ${NODE_DIR[1]}$TEST_SET_LOCAL
+expect_normal_exit run_on_node 1 ../pmempool create --layout heap_interrupt obj \
+	${NODE_DIR[1]}$TEST_SET_LOCAL
 expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX ${NODE_DIR[1]}$TEST_SET_LOCAL o 0
 
 # download pools and compare them
