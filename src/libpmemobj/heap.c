@@ -179,6 +179,21 @@ heap_thread_arena_destructor(void *arg)
 }
 
 /*
+ * heap_get_arena_by_id -- returns arena by id
+ */
+static struct arena *
+heap_get_arena_by_id(struct palloc_heap *heap, unsigned arena_id)
+{
+	struct heap_rt *h = heap->rt;
+
+	util_mutex_lock(&h->arenas_lock);
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
+	util_mutex_unlock(&h->arenas_lock);
+
+	return a;
+}
+
+/*
  * heap_thread_arena_assign -- (internal) assigns the least used arena
  *	to current thread
  *
@@ -1090,11 +1105,7 @@ heap_get_narenas_auto(struct palloc_heap *heap)
 struct bucket **
 heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 {
-	struct heap_rt *h = heap->rt;
-
-	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
-	util_mutex_unlock(&h->arenas_lock);
+	struct arena *a = heap_get_arena_by_id(heap, arena_id);
 
 	return a->buckets;
 }
@@ -1105,11 +1116,7 @@ heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 int
 heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id)
 {
-	struct heap_rt *h = heap->rt;
-
-	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
-	util_mutex_unlock(&h->arenas_lock);
+	struct arena *a = heap_get_arena_by_id(heap, arena_id);
 
 	return a->automatic;
 }
@@ -1121,11 +1128,8 @@ void
 heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 		int automatic)
 {
-	struct heap_rt *h = heap->rt;
+	struct arena *a = heap_get_arena_by_id(heap, arena_id);
 
-	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
-	util_mutex_unlock(&h->arenas_lock);
 	a->automatic = automatic;
 }
 
@@ -1137,10 +1141,7 @@ heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 {
 	struct heap_rt *h = heap->rt;
 
-	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
-	util_mutex_unlock(&h->arenas_lock);
-
+	struct arena *a = heap_get_arena_by_id(heap, arena_id);
 	struct arena *thread_arena = os_tls_get(h->thread_arena);
 	if (thread_arena)
 		util_fetch_and_sub64(&thread_arena->nthreads, 1);
