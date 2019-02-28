@@ -66,6 +66,7 @@ EOF
 #
 # command-line argument processing...
 #
+NDCTL_ENABLE="y"
 args=`getopt he:c:r:n:t:d:s:w:o:f: $*`
 [ $? != 0 ] && usage
 set -- $args
