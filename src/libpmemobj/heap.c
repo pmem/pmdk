@@ -1469,6 +1469,7 @@ heap_cleanup(struct palloc_heap *heap)
 
 	alloc_class_collection_delete(rt->alloc_classes);
 
+	os_tls_key_delete(rt->thread_arena);
 	bucket_delete(rt->default_bucket);
 
 	struct arena *arena;
@@ -1480,7 +1481,6 @@ heap_cleanup(struct palloc_heap *heap)
 
 	util_mutex_destroy(&rt->arenas_lock);
 
-	os_tls_key_delete(rt->thread_arena);
 
 	VEC_DELETE(&rt->arenas);
 
