@@ -60,6 +60,7 @@
  */
 #define HEAP_DEFAULT_GROW_SIZE (1 << 27) /* 128 megabytes */
 #define MAX_DEFAULT_ARENAS (1 << 10) /* 1024 arenas */
+#define IDX(a) (a - 1)
 
 /*
  * Arenas store the collection of buckets for allocation classes.
@@ -284,7 +285,7 @@ heap_bucket_acquire(struct palloc_heap *heap, uint8_t class_id,
 		b = arena->buckets[class_id];
 	} else {
 		b = (VEC_ARR(&heap->rt->arenas) \
-			[arena_id - 1])->buckets[class_id];
+			[IDX(arena_id)])->buckets[class_id];
 	}
 
 out:
@@ -1093,7 +1094,7 @@ heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 	struct heap_rt *h = heap->rt;
 
 	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[IDX(arena_id)];
 	util_mutex_unlock(&h->arenas_lock);
 
 	return a->buckets;
@@ -1108,7 +1109,7 @@ heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id)
 	struct heap_rt *h = heap->rt;
 
 	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[IDX(arena_id)];
 	util_mutex_unlock(&h->arenas_lock);
 
 	return a->automatic;
@@ -1124,7 +1125,7 @@ heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 	struct heap_rt *h = heap->rt;
 
 	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[IDX(arena_id)];
 	util_mutex_unlock(&h->arenas_lock);
 	a->automatic = automatic;
 }
@@ -1138,7 +1139,7 @@ heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 	struct heap_rt *h = heap->rt;
 
 	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
+	struct arena *a = VEC_ARR(&heap->rt->arenas)[IDX(arena_id)];
 	util_mutex_unlock(&h->arenas_lock);
 
 	struct arena *thread_arena = os_tls_get(h->thread_arena);
