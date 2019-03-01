@@ -113,6 +113,13 @@ If set, force-enables or force-disables SDS feature during pool creation.
 Affects only the **pmemobj_createU**()/**pmemobj_createW**() function. See **pmempool_feature_query**(3)
 for informations about SDS (SHUTDOWN_STATE) feature.
 
+copy_on_write.at_open | rw | global | int | int | - | boolean
+
+If set, pool is mapped in such a way that modifications don't reach the
+underlying medium. From the user's perspective this means that when the pool
+is closed all changes are reverted. This feature is not supported for pools
+located on Device DAX.
+
 tx.debug.skip_expensive_checks | rw | - | int | int | - | boolean
 
 Turns off some expensive checks performed by the transaction module in "debug"
