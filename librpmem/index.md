@@ -41,4 +41,4 @@ for current master documentation and examples or see older version:
 
 **More Detail Coming Soon**
 
-<code data-gist-id='krzycz/f8c6827b536fc42399db58cf30007e96' data-gist-file='manpage.c' data-gist-line='36-81' data-gist-highlight-line='39' data-gist-hide-footer='true'></code>
+<code data-gist-id='janekmi/47fa646ada72b27f77692672e9d7988e' data-gist-file='manpage.c' data-gist-line='36-96' data-gist-highlight-line='42' data-gist-hide-footer='true'></code>
