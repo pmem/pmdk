@@ -152,7 +152,7 @@ Reads the number of arenas used in automatic scheduling of memory operations
 for threads. By default, this value is equal to the number of available processors.
 An arena is a memory management structure which enables concurrency by taking
 exclusive ownership of parts of the heap and allowing associated threads to allocate
-without contention.
+without contention. At least one automatic arena must exist.
 
 heap.narenas.total | r- | - | unsigned | - | - | -
 

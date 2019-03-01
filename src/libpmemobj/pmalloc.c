@@ -666,6 +666,13 @@ CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 		return -1;
 	}
 
+	unsigned nautomatic = heap_auto_arenas_number(&pop->heap);
+
+	if (nautomatic <= 1) {
+		LOG(1, "at least one automatic arena must exist");
+		return -1;
+	}
+
 	heap_set_arena_auto(&pop->heap, arena_id, arg_in);
 
 	return 0;
