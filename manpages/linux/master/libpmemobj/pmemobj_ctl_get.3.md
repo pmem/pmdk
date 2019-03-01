@@ -203,7 +203,7 @@ Reads or modifies the state of the arena.
 If set, the arena is used in automatic scheduling of memory operations for threads.
 This should be set to false if the application wants to manually manage allocator
 scalability through explicitly assigning arenas to threads by using heap.thread.arena_id.
-The arena id cannot be 0.
+The arena id cannot be 0 and at least one automatic arena must exist.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
