@@ -666,9 +666,7 @@ CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 		return -1;
 	}
 
-	heap_set_arena_auto(&pop->heap, arena_id, arg_in);
-
-	return 0;
+	return heap_set_arena_auto(&pop->heap, arena_id, arg_in);
 }
 
 /*
