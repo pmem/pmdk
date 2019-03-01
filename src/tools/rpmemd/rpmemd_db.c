@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -383,7 +383,7 @@ rm_poolset_cb(struct part_file *pf, void *arg)
 		return -1;
 	}
 
-	int ret = util_unlink(pf->part->path);
+	int ret = util_unlink_flock(pf->part->path);
 	if (!args->force && ret) {
 		RPMEMD_LOG(ERR, "!unlink -- '%s'", pf->part->path);
 		args->ret = ret;
