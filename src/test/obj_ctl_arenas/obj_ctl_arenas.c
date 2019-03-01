@@ -379,6 +379,35 @@ main(int argc, char *argv[])
 		ret = pmemobj_ctl_get(pop, "heap.narenas.total", &narenas_a);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(narenas_b + narenas_n, narenas_a);
+
+		/* at least one automatic arena must exist */
+		for (unsigned i = 1; i <= narenas_a; i++) {
+			ret = snprintf(arena_idx_auto, CTL_QUERY_LEN,
+					"heap.arena.%u.automatic", i);
+			if (ret < 0 || ret >= CTL_QUERY_LEN)
+				UT_FATAL("!snprintf arena_idx_auto");
+
+			automatic = 0;
+			if (i < narenas_a) {
+				ret = pmemobj_ctl_set(pop, arena_idx_auto,
+						&automatic);
+				UT_ASSERTeq(ret, 0);
+			} else {
+				/*
+				 * last auto arena -
+				 * cannot change the state to 0...
+				 */
+				ret = pmemobj_ctl_set(pop, arena_idx_auto,
+						&automatic);
+				UT_ASSERTeq(ret, -1);
+
+				/* ...but can change (overwrite) to 1 */
+				automatic = 1;
+				ret = pmemobj_ctl_set(pop, arena_idx_auto,
+						&automatic);
+				UT_ASSERTeq(ret, 0);
+			}
+		}
 	} else if (t == 'a') {
 		int ret;
 		unsigned arena_id_new;

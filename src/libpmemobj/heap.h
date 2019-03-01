@@ -122,7 +122,7 @@ heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id);
 
 int heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id);
 
-void heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
+int heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 		int automatic);
 
 void heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id);

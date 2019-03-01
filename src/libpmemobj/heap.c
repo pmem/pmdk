@@ -222,6 +222,8 @@ heap_thread_arena_assign(struct heap_rt *heap)
 
 	LOG(4, "assigning %p arena to current thread", least_used);
 
+	/* at least one automatic arena must exist */
+	ASSERTne(least_used, NULL);
 	util_fetch_and_add64(&least_used->nthreads, 1);
 
 	util_mutex_unlock(&heap->arenas_lock);
@@ -1124,13 +1126,33 @@ heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id)
 /*
  * heap_set_arena_auto -- sets arena automatic value
  */
-void
+int
 heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 		int automatic)
 {
-	struct arena *a = heap_get_arena_by_id(heap, arena_id);
+	unsigned nautomatic = 0;
+	struct arena *a;
+	struct heap_rt *h = heap->rt;
+	int ret = 0;
 
+	util_mutex_lock(&h->arenas_lock);
+	VEC_FOREACH(a, &h->arenas)
+		if (a->automatic)
+			nautomatic++;
+
+	a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
+
+	if (!automatic && nautomatic <= 1 && a->automatic) {
+		ERR("at least one automatic arena must exist");
+		ret = -1;
+		goto out;
+	}
 	a->automatic = automatic;
+
+out:
+	util_mutex_unlock(&h->arenas_lock);
+	return ret;
+
 }
 
 /*
