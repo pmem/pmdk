@@ -104,6 +104,7 @@ int Prefault_at_open = 0;
 int Prefault_at_create = 0;
 int SDS_at_create = POOL_FEAT_INCOMPAT_DEFAULT & POOL_E_FEAT_SDS ? 1 : 0;
 int Fallocate_at_create = 1;
+int COW_at_open = 0;
 
 /* list of pool set option names and flags */
 static const struct pool_set_option Options[] = {

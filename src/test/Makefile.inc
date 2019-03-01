@@ -196,6 +196,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/common/ctl_prefault.o\
 	$(TOP)/src/nondebug/common/ctl_sds.o\
 	$(TOP)/src/nondebug/common/ctl_fallocate.o\
+	$(TOP)/src/nondebug/common/ctl_cow.o\
 	$(call osdep, $(TOP)/src/nondebug/common/extent,.o)\
 	$(TOP)/src/nondebug/common/file.o\
 	$(TOP)/src/nondebug/common/file_posix.o\
@@ -228,6 +229,7 @@ OBJS +=\
 	$(TOP)/src/debug/common/ctl_prefault.o\
 	$(TOP)/src/debug/common/ctl_sds.o\
 	$(TOP)/src/debug/common/ctl_fallocate.o\
+	$(TOP)/src/debug/common/ctl_cow.o\
 	$(call osdep, $(TOP)/src/debug/common/extent,.o)\
 	$(TOP)/src/debug/common/file.o\
 	$(TOP)/src/debug/common/file_posix.o\

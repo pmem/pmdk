@@ -39,7 +39,7 @@ an example of script written in *pmemobjcli* syntax.
 
 The *pmemobjcli* application was developed to help testing the libpmemobj
 library with AFL (American Fuzzy Lop) tool. For this purpose it is recommended
-to use a PMEMOBJ_COW=1 environment variable which causes each pool file
+to use a PMEMOBJ_CONF='copy_on_write.at_open=1' which causes each pool file
 to be mapped with MAP_PRIVATE flag set.
 
 If the script for pmemobjcli uses long commands ("pmemobj_root" instead

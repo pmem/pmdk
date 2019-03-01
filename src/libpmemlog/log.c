@@ -349,7 +349,7 @@ pmemlog_openU(const char *path)
 {
 	LOG(3, "path %s", path);
 
-	return log_open_common(path, 0);
+	return log_open_common(path, COW_at_open ? POOL_OPEN_COW : 0);
 }
 
 #ifndef _WIN32
