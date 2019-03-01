@@ -119,6 +119,15 @@ for informations about SDS (SHUTDOWN_STATE) feature.
 
 Always returns 0.
 
+copy_on_write.at_open | rw | global | int | int | - | boolean
+
+If set, pool is mapped in such a way that modifications don't reach the
+underlying medium. From the user's perspective this means that when the pool
+is closed all changes are reverted. This feature is not supported for pools
+located on Device DAX.
+
+Always returns 0.
+
 # CTL EXTERNAL CONFIGURATION #
 
 In addition to direct function call, each write entry point can also be set
