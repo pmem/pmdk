@@ -201,7 +201,7 @@ for threads.
 This should be set to false if the application wants to manually manage
 allocator scalability through explicitly assigning arenas to threads by
 using heap.thread.arena_id.
-The arena id cannot be 0.
+The arena id cannot be 0 and at least one automatic arena must exist.
 .PP
 heap.alloc_class.[class_id].desc | rw | \- |
 \f[C]struct\ pobj_alloc_class_desc\f[] |
