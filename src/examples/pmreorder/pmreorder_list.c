@@ -95,6 +95,11 @@ list_print(struct list_root *list)
 {
 	FILE *fp;
 	fp = fopen("pmreorder_list.log", "w+");
+	if (fp == NULL) {
+		perror("fopen pmreorder_list.log");
+		exit(1);
+	}
+
 	fprintf(fp, "List:\n");
 
 	struct list_node *node = NODE_PTR(list, list->head);
