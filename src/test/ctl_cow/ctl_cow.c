@@ -136,13 +136,24 @@ test_log(const char *path)
 	pmemlog_close(plp);
 }
 
+static void
+test_dax(const char *path)
+{
+	PMEMobjpool *pop = pmemobj_open(path, NULL);
+
+	if (pop == NULL)
+		UT_FATAL("!cannot open %s", path);
+	else
+		pmemobj_close(pop);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "ctl_cow");
 
 	if (argc < 3)
-		UT_FATAL("usage: %s filename obj|log|blk", argv[0]);
+		UT_FATAL("usage: %s filename obj|log|blk|dax", argv[0]);
 
 	const char *path = argv[1];
 	const char *action = argv[2];
@@ -155,6 +166,9 @@ main(int argc, char *argv[])
 
 	} else if (strcmp(action, "log") == 0) {
 		test_log(path);
+
+	} else if (strcmp(action, "dax") == 0) {
+		test_dax(path);
 
 	} else {
 		UT_FATAL("%s is not a valid action", action);
