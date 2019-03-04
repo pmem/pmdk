@@ -159,9 +159,9 @@ do_strdup_null_alloc(PMEMobjpool *pop)
 static void
 do_strdup_uint64_range(PMEMobjpool *pop)
 {
-	TOID(char) str1 = do_alloc(pop, TEST_STR_1, TYPE_SIMPLE_ALLOC_1);
+	TOID(char) str1;
 	TOID(char) str2 = do_alloc(pop, TEST_STR_2, TYPE_SIMPLE_ALLOC_1);
-	TOID(char) str3 = do_alloc(pop, TEST_STR_1, TYPE_SIMPLE_ALLOC_1);
+	TOID(char) str3;
 	TOID(char) str4 = do_alloc(pop, TEST_STR_2, TYPE_SIMPLE_ALLOC_1);
 	pmemobj_strdup(pop, &str1.oid, D_RO(str2), UINT64_MAX);
 	pmemobj_strdup(pop, &str3.oid, D_RO(str4), UINT64_MAX - 1);

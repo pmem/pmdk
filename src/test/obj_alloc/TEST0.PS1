@@ -44,7 +44,7 @@ setup
 
 create_poolset $DIR\testset1 16M:$DIR\testfile1:x r 16M:$DIR\testfile2:x
 
-# <path> <size> <type_num> <is_oid_null> <zalooc> <expected_return_code> <expected_errno>
+# <path> <size> <type_num> <is_oid_null> <flags> <expected_return_code> <expected_errno>
 
 expect_normal_exit $Env:EXE_DIR\obj_alloc$Env:EXESUFFIX `
    $DIR\testset1 O 0 1 1 0 0 `

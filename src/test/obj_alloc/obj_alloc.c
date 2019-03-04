@@ -83,7 +83,7 @@ main(int argc, char *argv[])
 	size_t size;
 	uint64_t type_num;
 	int is_oid_null;
-	int zaaloc;
+	uint64_t flags;
 	int expected_return_code;
 	int expected_errno;
 	int ret;
@@ -104,12 +104,12 @@ main(int argc, char *argv[])
 		size = (size_t)check_int(argv[i + 1]);
 		type_num = check_int(argv[i + 2]);
 		is_oid_null = atoi(argv[i + 3]);
-		zaaloc = atoi(argv[i + 4]);
+		flags = (uint64_t)strtoll(argv[i + 4], NULL, 10);
 		expected_return_code = atoi(argv[i + 5]);
 		expected_errno = atoi(argv[i + 6]);
 
-		UT_OUT("%s %zu %lu %d %d %d %d",	path, size, type_num,
-		is_oid_null, zaaloc, expected_return_code, expected_errno);
+		UT_OUT("%s %zu %lu %d %lu %d %d", path, size, type_num,
+		is_oid_null, flags, expected_return_code, expected_errno);
 
 		TOID(struct root) root = POBJ_ROOT(pop, struct root);
 
@@ -119,12 +119,8 @@ main(int argc, char *argv[])
 			oidp = &root.oid;
 		}
 
-		if (zaaloc) {
-			ret = pmemobj_zalloc(pop, oidp, size, type_num);
-		} else {
-			ret = pmemobj_alloc(pop, oidp, size, type_num,
-			    NULL, NULL);
-		}
+		ret = pmemobj_xalloc(
+			pop, oidp, size, type_num, flags, NULL, NULL);
 
 		UT_ASSERTeq(errno, expected_errno);
 		UT_ASSERTeq(ret, expected_return_code);
