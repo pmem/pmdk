@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,27 +29,20 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-#
-# src/libpmemlog.map -- linker map file for libpmemlog
-#
-LIBPMEMLOG_1.0 {
-	global:
-		pmemlog_check_version;
-		pmemlog_ctl_exec;
-		pmemlog_ctl_get;
-		pmemlog_ctl_set;
-		pmemlog_set_funcs;
-		pmemlog_errormsg;
-		pmemlog_create;
-		pmemlog_open;
-		pmemlog_close;
-		pmemlog_check;
-		pmemlog_nbyte;
-		pmemlog_append;
-		pmemlog_appendv;
-		pmemlog_tell;
-		pmemlog_rewind;
-		pmemlog_walk;
-	local:
-		*;
-};
+
+"""Test framework public interface"""
+
+import sys
+from os import path
+sys.path.insert(1, path.abspath(path.join(path.dirname(__file__), 'unittest')))
+
+# flake8 issues silenced:
+# E402 - import statements not at the top of the file because of adding
+# directory to path
+# F401, F403 - testframework.py does not use imported names, only passes them
+# down and in most cases needs to pass down all of them - hence import with '*'
+
+from basetest import BaseTest, Any  # noqa: E402, F401
+from context import *  # noqa: E402, F401, F403
+from configurator import *  # noqa: E402, F401, F403
+from helpers import *  # noqa: E402, F401, F403

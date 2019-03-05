@@ -598,7 +598,7 @@ pmemblk_openU(const char *path, size_t bsize)
 {
 	LOG(3, "path %s bsize %zu", path, bsize);
 
-	return blk_open_common(path, bsize, 0);
+	return blk_open_common(path, bsize, COW_at_open ? POOL_OPEN_COW : 0);
 }
 
 #ifndef _WIN32
@@ -959,5 +959,20 @@ pmemblk_ctl_execW(PMEMblkpool *pbp, const wchar_t *name, void *arg)
 	util_free_UTF8(uname);
 
 	return ret;
+}
+#endif
+
+#if FAULT_INJECTION
+void
+pmemblk_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at)
+{
+	common_inject_fault_at(type, nth, at);
+}
+
+int
+pmemblk_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
 }
 #endif

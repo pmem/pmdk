@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -62,7 +62,8 @@ export PMDK_CC=${PMDK_CC:-gcc}
 export PMDK_CXX=${PMDK_CXX:-g++}
 export EXPERIMENTAL=${EXPERIMENTAL:-n}
 export VALGRIND=${VALGRIND:-1}
-
+export DOCKERHUB_REPO=${DOCKERHUB_REPO:-pmem/pmdk}
+export GITHUB_REPO=${GITHUB_REPO:-pmem/pmdk}
 
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
 	echo "ERROR: The variables OS and OS_VER have to be set " \
@@ -78,7 +79,7 @@ if [[ "$KEEP_CONTAINER" != "1" ]]; then
 	RM_SETTING=" --rm"
 fi
 
-imageName=pmem/pmdk:${OS}-${OS_VER}
+imageName=${DOCKERHUB_REPO}:${OS}-${OS_VER}
 containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 1 ]] ; then
@@ -115,7 +116,6 @@ docker run --privileged=true --name=$containerName -ti \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
-	--env CLANG_FORMAT=clang-format-6.0 \
 	--env KEEP_TEST_CONFIG=$KEEP_TEST_CONFIG \
 	$ndctl_enable \
 	-v $HOST_WORKDIR:$WORKDIR \

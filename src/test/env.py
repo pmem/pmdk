@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,27 +30,45 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-#
-# src/libpmemblk.map -- linker map file for libpmemblk
-#
-LIBPMEMBLK_1.0 {
-	global:
-		pmemblk_check_version;
-		pmemblk_set_funcs;
-		pmemblk_errormsg;
-		pmemblk_create;
-		pmemblk_open;
-		pmemblk_close;
-		pmemblk_check;
-		pmemblk_ctl_exec;
-		pmemblk_ctl_get;
-		pmemblk_ctl_set;
-		pmemblk_nblock;
-		pmemblk_read;
-		pmemblk_write;
-		pmemblk_set_zero;
-		pmemblk_set_error;
-		pmemblk_bsize;
-	local:
-		*;
-};
+"""
+Interpreter managing test group specific TESTS.py file execution.
+It parses test classes from interpreted file, handles command line arguments
+and executes tests using provided configuration.
+"""
+
+
+import importlib.util as importutil
+import os
+import sys
+
+from testframework import BaseTest, Configurator, run_tests_common
+
+
+def run_testcases():
+    """Parse user configuration, run test cases"""
+    config = Configurator().parse_config()
+    testcases = BaseTest.__subclasses__()
+    return run_tests_common(testcases, config)
+
+
+def main():
+    # Interpreter receives TESTS.py file as first argument
+    if len(sys.argv) < 2:
+        sys.exit('Provide test file to run')
+    testfile = sys.argv[1]
+
+    # Remove TESTS.py file from args, the rest of the args is parsed as a
+    # test configuration
+    sys.argv.pop(1)
+
+    # import TESTS.py as a module
+    testfile_dir = os.path.abspath(os.path.dirname(testfile))
+    spec = importutil.spec_from_file_location(testfile_dir, testfile)
+    module = importutil.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    sys.exit(run_testcases())
+
+
+if __name__ == '__main__':
+    main()

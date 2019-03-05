@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -65,7 +65,7 @@ function check_tool() {
 }
 
 function get_version() {
-	echo -n $1
+	echo -n $1 | sed "s/-rc/~rc/"
 }
 
 function get_os() {

@@ -151,7 +151,8 @@ OBJ_REMOTE_DEPS = \
 OBJ_REMOTE_TESTS = \
 	obj_rpmem_basic_integration\
 	obj_rpmem_heap_interrupt\
-	obj_rpmem_heap_state
+	obj_rpmem_heap_state\
+	obj_check_remote
 
 OTHER_TESTS = \
 	arch_flags\
@@ -159,6 +160,7 @@ OTHER_TESTS = \
 	checksum\
 	compat_incompat_features\
 	ctl_prefault\
+	ctl_cow\
 	magic\
 	out_err\
 	out_err_mt\
@@ -360,6 +362,7 @@ format  : TARGET = format
 check   : TARGET = check
 pcheck  : TARGET = pcheck
 sparse  : TARGET = sparse
+pycheck : TARGET = pycheck
 
 DIR_SYNC=$(TOP)/src/test/.sync-dir
 SYNC_EXT=synced
@@ -404,6 +407,10 @@ memcheck-summary-leaks:
 check:
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(LOCAL_TESTS)
 	$(MAKE) check-remote-quiet-conditional
+	@echo "No failures."
+
+pycheck:
+	@./RUNTESTS.py $(RUNTEST_OPTIONS)
 	@echo "No failures."
 
 check-remote-quiet-conditional:
@@ -503,6 +510,6 @@ endif
 
 .PHONY: all check clean clobber cstyle pcheck pcheck-blk pcheck-log pcheck-obj\
 	 pcheck-other pcheck-pmem pcheck-pmempool pcheck-vmem pcheck-vmmalloc\
-	 test unittest tools check-remote format pcheck-libpmempool\
+	 test unittest tools check-remote format pcheck-libpmempool pycheck\
 	 pcheck-rpmem pcheck-local pcheck-remote sync-remotes $(TESTS_BUILD)\
 	 require-rpmem check-remote-quiet check-remote-quiet-conditional

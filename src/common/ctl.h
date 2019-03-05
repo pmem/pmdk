@@ -173,14 +173,14 @@ int ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
 {CTL_STR(name), CTL_NODE_INDEXED, {NULL, NULL, NULL}, NULL,\
 	(struct ctl_node *)CTL_NODE(name)}
 
-#define CTL_READ_HANDLER(name)\
-ctl_##name##_read
+#define CTL_READ_HANDLER(name, ...)\
+ctl_##__VA_ARGS__##_##name##_read
 
-#define CTL_WRITE_HANDLER(name)\
-ctl_##name##_write
+#define CTL_WRITE_HANDLER(name, ...)\
+ctl_##__VA_ARGS__##_##name##_write
 
-#define CTL_RUNNABLE_HANDLER(name)\
-ctl_##name##_runnable
+#define CTL_RUNNABLE_HANDLER(name, ...)\
+ctl_##__VA_ARGS__##_##name##_runnable
 
 #define CTL_ARG(name)\
 ctl_arg_##name
@@ -189,23 +189,26 @@ ctl_arg_##name
  * Declaration of a new read-only leaf. If used the corresponding read function
  * must be declared by CTL_READ_HANDLER macro.
  */
-#define CTL_LEAF_RO(name)\
-{CTL_STR(name), CTL_NODE_LEAF, {CTL_READ_HANDLER(name), NULL, NULL}, NULL, NULL}
+#define CTL_LEAF_RO(name, ...)\
+{CTL_STR(name), CTL_NODE_LEAF, \
+	{CTL_READ_HANDLER(name, __VA_ARGS__), NULL, NULL}, NULL, NULL}
 
 /*
  * Declaration of a new write-only leaf. If used the corresponding write
  * function must be declared by CTL_WRITE_HANDLER macro.
  */
-#define CTL_LEAF_WO(name)\
-{CTL_STR(name), CTL_NODE_LEAF, {NULL, CTL_WRITE_HANDLER(name), NULL},\
+#define CTL_LEAF_WO(name, ...)\
+{CTL_STR(name), CTL_NODE_LEAF, \
+	{NULL, CTL_WRITE_HANDLER(name, __VA_ARGS__), NULL},\
 	&CTL_ARG(name), NULL}
 
 /*
  * Declaration of a new runnable leaf. If used the corresponding run
  * function must be declared by CTL_RUNNABLE_HANDLER macro.
  */
-#define CTL_LEAF_RUNNABLE(name)\
-{CTL_STR(name), CTL_NODE_LEAF, {NULL, NULL, CTL_RUNNABLE_HANDLER(name)},\
+#define CTL_LEAF_RUNNABLE(name, ...)\
+{CTL_STR(name), CTL_NODE_LEAF, \
+	{NULL, NULL, CTL_RUNNABLE_HANDLER(name, __VA_ARGS__)},\
 	NULL, NULL}
 
 /*

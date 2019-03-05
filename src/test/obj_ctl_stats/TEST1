@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,34 +30,17 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-#
-# pmempool_feature/TEST2 -- unit test for SHUTDOWN_STATE
-#
 
-. ..\unittest\unittest.ps1
 
-require_test_type medium
+# standard unit test setup
+. ../unittest/unittest.sh
 
+require_test_type short
 require_fs_type any
+configure_valgrind pmemcheck force-enable
 
 setup
-. .\common.PS1
 
-expect_normal_exit $PMEMPOOL create obj $POOLSET
-
-# PMEMPOOL_FEAT_SHUTDOWN_STATE is enabled by default
-pmempool_feature_query "SHUTDOWN_STATE"
-
-pmempool_feature_disable "SHUTDOWN_STATE"
-
-# PMEMPOOL_FEAT_SHUTDOWN_STATE requires PMEMPOOL_FEAT_CHCKSUM_2K
-pmempool_feature_disable "CKSUM_2K"
-$exit_func="expect_abnormal_exit"
-pmempool_feature_enable "SHUTDOWN_STATE" # should fail
-$exit_func="expect_normal_exit"
-pmempool_feature_enable "CKSUM_2K"
-pmempool_feature_enable "SHUTDOWN_STATE" # should succeed
-
-check
+expect_normal_exit ./obj_ctl_stats$EXESUFFIX $DIR/testfile1
 
 pass

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -229,22 +229,31 @@ err:
  *
  * This is invoked on a first call to pmemobj_open() or pmemobj_create().
  * Memory is released in library destructor.
+ *
+ * This function needs to be threadsafe.
  */
 static void
 obj_pool_init(void)
 {
 	LOG(3, NULL);
 
-	if (pools_ht)
-		return;
+	struct critnib *c;
 
-	pools_ht = critnib_new();
-	if (pools_ht == NULL)
-		FATAL("!critnib_new for pools_ht");
+	if (pools_ht == NULL) {
+		c = critnib_new();
+		if (c == NULL)
+			FATAL("!critnib_new for pools_ht");
+		if (!util_bool_compare_and_swap64(&pools_ht, NULL, c))
+			critnib_delete(c);
+	}
 
-	pools_tree = critnib_new();
-	if (pools_tree == NULL)
-		FATAL("!critnib_new for pools_tree");
+	if (pools_tree == NULL) {
+		c = critnib_new();
+		if (c == NULL)
+			FATAL("!critnib_new for pools_tree");
+		if (!util_bool_compare_and_swap64(&pools_tree, NULL, c))
+			critnib_delete(c);
+	}
 }
 
 /*
@@ -262,12 +271,6 @@ pmemobj_oid(const void *addr)
 	PMEMoid oid = {pop->uuid_lo, (uintptr_t)addr - (uintptr_t)pop};
 	return oid;
 }
-
-/*
- * User may decide to map all pools with MAP_PRIVATE flag using
- * PMEMOBJ_COW environment variable.
- */
-static int Open_cow;
 
 /*
  * obj_init -- initialization of obj
@@ -292,11 +295,6 @@ obj_init(void)
 
 	COMPILE_ERROR_ON(PMEMOBJ_F_MEM_NOFLUSH != PMEM_F_MEM_NOFLUSH);
 
-#ifdef USE_COW_ENV
-	char *env = os_getenv("PMEMOBJ_COW");
-	if (env)
-		Open_cow = atoi(env);
-#endif
 
 #ifdef _WIN32
 	/* XXX - temporary implementation (see above) */
@@ -1812,7 +1810,8 @@ pmemobj_openU(const char *path, const char *layout)
 {
 	LOG(3, "path %s layout %s", path, layout);
 
-	return obj_open_common(path, layout, Open_cow ? POOL_OPEN_COW : 0, 1);
+	return obj_open_common(path, layout,
+			COW_at_open ? POOL_OPEN_COW : 0, 1);
 }
 
 #ifndef _WIN32
@@ -2181,7 +2180,7 @@ obj_alloc_construct(PMEMobjpool *pop, PMEMoid *oidp, size_t size,
 	int ret = palloc_operation(&pop->heap, 0,
 			oidp != NULL ? &oidp->off : NULL, size,
 			constructor_alloc, &carg, type_num, 0,
-			CLASS_ID_FROM_FLAG(flags),
+			CLASS_ID_FROM_FLAG(flags), ARENA_ID_FROM_FLAG(flags),
 			ctx);
 
 	pmalloc_operation_release(pop);
@@ -2306,7 +2305,7 @@ obj_free(PMEMobjpool *pop, PMEMoid *oidp)
 	operation_add_entry(ctx, &oidp->pool_uuid_lo, 0, ULOG_OPERATION_SET);
 
 	palloc_operation(&pop->heap, oidp->off, &oidp->off, 0, NULL, NULL,
-			0, 0, 0, ctx);
+			0, 0, 0, 0, ctx);
 
 	pmalloc_operation_release(pop);
 }
@@ -2381,7 +2380,8 @@ obj_realloc_common(PMEMobjpool *pop,
 	struct operation_context *ctx = pmalloc_operation_hold(pop);
 
 	int ret = palloc_operation(&pop->heap, oidp->off, &oidp->off,
-			size, constructor_realloc, &carg, type_num, 0, 0, ctx);
+			size, constructor_realloc, &carg, type_num,
+			0, 0, 0, ctx);
 
 	pmalloc_operation_release(pop);
 
@@ -2821,7 +2821,8 @@ obj_alloc_root(PMEMobjpool *pop, size_t size,
 	int ret = palloc_operation(&pop->heap, pop->root_offset,
 			&pop->root_offset, size,
 			constructor_zrealloc_root, &carg,
-			POBJ_ROOT_TYPE_NUM, OBJ_INTERNAL_OBJECT_MASK, 0, ctx);
+			POBJ_ROOT_TYPE_NUM, OBJ_INTERNAL_OBJECT_MASK,
+			0, 0, ctx);
 
 	pmalloc_operation_release(pop);
 
@@ -2969,7 +2970,7 @@ pmemobj_reserve(PMEMobjpool *pop, struct pobj_action *act,
 	PMEMoid oid = OID_NULL;
 
 	if (palloc_reserve(&pop->heap, size, NULL, NULL, type_num,
-		0, 0, act) != 0) {
+		0, 0, 0, act) != 0) {
 		PMEMOBJ_API_END();
 		return oid;
 	}
@@ -3009,7 +3010,8 @@ pmemobj_xreserve(PMEMobjpool *pop, struct pobj_action *act,
 	carg.arg = NULL;
 
 	if (palloc_reserve(&pop->heap, size, constructor_alloc, &carg,
-		type_num, 0, CLASS_ID_FROM_FLAG(flags), act) != 0) {
+		type_num, 0, CLASS_ID_FROM_FLAG(flags),
+		ARENA_ID_FROM_FLAG(flags), act) != 0) {
 		PMEMOBJ_API_END();
 		return oid;
 	}
@@ -3368,5 +3370,20 @@ void
 pobj_emit_log(const char *func, int order)
 {
 	util_emit_log("libpmemobj", func, order);
+}
+#endif
+
+#if FAULT_INJECTION
+void
+pmemobj_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at)
+{
+	common_inject_fault_at(type, nth, at);
+}
+
+int
+pmemobj_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
 }
 #endif

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,6 +51,9 @@ configure_valgrind helgrind force-disable
 configure_valgrind drd force-disable
 
 setup
+
+# VMMALLOC_POOL_SIZE * 2^argv[2]
+require_free_space 1G
 
 # Must be defined before require_preload
 export VMMALLOC_POOL_SIZE=$((64 * 1024 * 1024))

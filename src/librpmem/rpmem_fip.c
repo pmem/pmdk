@@ -84,9 +84,6 @@
 typedef ssize_t (*rpmem_fip_persist_fn)(struct rpmem_fip *fip, size_t offset,
 		size_t len, unsigned lane, unsigned flags);
 
-typedef int (*rpmem_fip_process_fn)(struct rpmem_fip *fip,
-		void *context, uint64_t flags);
-
 typedef int (*rpmem_fip_init_fn)(struct rpmem_fip *fip);
 typedef void (*rpmem_fip_fini_fn)(struct rpmem_fip *fip);
 
@@ -103,7 +100,6 @@ cq_read_infinite(struct fid_cq *cq, void *buf, size_t count)
  */
 struct rpmem_fip_ops {
 	rpmem_fip_persist_fn persist;
-	rpmem_fip_process_fn process;
 	rpmem_fip_init_fn lanes_init;
 	rpmem_fip_init_fn lanes_init_mem;
 	rpmem_fip_fini_fn lanes_fini;

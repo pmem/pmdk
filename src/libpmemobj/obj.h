@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,9 @@
 extern "C" {
 #endif
 
+#include "alloc.h"
+#include "fault_injection.h"
+
 #define PMEMOBJ_LOG_PREFIX "libpmemobj"
 #define PMEMOBJ_LOG_LEVEL_VAR "PMEMOBJ_LOG_LEVEL"
 #define PMEMOBJ_LOG_FILE_VAR "PMEMOBJ_LOG_FILE"
@@ -61,10 +64,10 @@ extern "C" {
 #define OBJ_FORMAT_MAJOR 5
 
 #define OBJ_FORMAT_FEAT_DEFAULT \
-	{0x0000, POOL_FEAT_INCOMPAT_DEFAULT, 0x0000}
+	{POOL_FEAT_COMPAT_DEFAULT, POOL_FEAT_INCOMPAT_DEFAULT, 0x0000}
 
 #define OBJ_FORMAT_FEAT_CHECK \
-	{0x0000, POOL_FEAT_INCOMPAT_VALID, 0x0000}
+	{POOL_FEAT_COMPAT_VALID, POOL_FEAT_INCOMPAT_VALID, 0x0000}
 
 static const features_t obj_format_feat_default = OBJ_FORMAT_FEAT_CHECK;
 
@@ -216,6 +219,9 @@ struct pmemobjpool {
 #define CLASS_ID_FROM_FLAG(flag)\
 ((uint16_t)((flag) >> 48))
 
+#define ARENA_ID_FROM_FLAG(flag)\
+((uint16_t)((flag) >> 32))
+
 /*
  * pmemobj_get_uuid_lo -- (internal) evaluates XOR sum of least significant
  * 8 bytes with most significant 8 bytes.
@@ -266,6 +272,28 @@ int obj_read_remote(void *ctx, uintptr_t base, void *dest, void *addr,
 	_pobj_debug_notice(__func__, NULL, 0)
 #else
 #define _POBJ_DEBUG_NOTICE_IN_TX() do {} while (0)
+#endif
+
+#if FAULT_INJECTION
+void
+pmemobj_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+pmemobj_fault_injection_enabled(void);
+#else
+static inline void
+pmemobj_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at)
+{
+	abort();
+}
+
+static inline int
+pmemobj_fault_injection_enabled(void)
+{
+	return 0;
+}
 #endif
 
 #ifdef __cplusplus

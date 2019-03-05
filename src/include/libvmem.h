@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,6 +41,9 @@
 #ifndef LIBVMEM_H
 #define LIBVMEM_H 1
 
+#include <sys/types.h>
+#include <stddef.h>
+
 #ifdef _WIN32
 #ifndef PMDK_UTF8_API
 #define vmem_create vmem_createW
@@ -56,9 +59,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <sys/types.h>
-#include <stddef.h>
 
 typedef struct vmem VMEM;	/* opaque type internal to libvmem */
 

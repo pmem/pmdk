@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,14 +41,14 @@
 #ifndef LIBVMMALLOC_H
 #define LIBVMMALLOC_H 1
 
+#include <sys/types.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #define VMMALLOC_MAJOR_VERSION 1
 #define VMMALLOC_MINOR_VERSION 1
-
-#include <sys/types.h>
 
 #define VMMALLOC_MIN_POOL ((size_t)(1024 * 1024 * 14)) /* min pool size: 14MB */
 

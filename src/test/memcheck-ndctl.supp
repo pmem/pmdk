@@ -1,0 +1,20 @@
+{
+   ndctl suppression
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   ...
+   fun:ndctl_pfn_get_first
+   fun:ndctl_namespace_get_pfn
+   ...
+}
+{
+   ndctl suppression
+   Memcheck:Leak
+   match-leak-kinds: definite
+   fun:realloc
+   ...
+   fun:ndctl_dax_get_first
+   fun:ndctl_namespace_get_dax
+   ...
+}

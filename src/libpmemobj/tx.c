@@ -511,7 +511,8 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 			break;
 	}
 
-	SLIST_INSERT_HEAD(&tx->tx_locks, txl, tx_lock);
+	if (retval == 0)
+		SLIST_INSERT_HEAD(&tx->tx_locks, txl, tx_lock);
 
 	return retval;
 }
@@ -585,7 +586,8 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 		return obj_tx_abort_null(ENOMEM);
 
 	if (palloc_reserve(&pop->heap, size, constructor, &args, type_num, 0,
-		CLASS_ID_FROM_FLAG(args.flags), action) != 0)
+		CLASS_ID_FROM_FLAG(args.flags),
+		ARENA_ID_FROM_FLAG(args.flags), action) != 0)
 		goto err_oom;
 
 	/* allocate object to undo log */

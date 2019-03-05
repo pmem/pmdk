@@ -1,5 +1,5 @@
 log_basic$(nW)TEST3: START: log_basic
- $(nW)log_basic$(nW) $(nW)testfile1 a n t w r t w v n t w r t w
+ $(nW)log_basic$(nW) $(nW)testfile1 c a n t w r t w v n t w r t w l h
 append   str[0] 1st test string
 
 append   str[1] 2nd test string

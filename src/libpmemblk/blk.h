@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,6 +47,9 @@
 extern "C" {
 #endif
 
+#include "alloc.h"
+#include "fault_injection.h"
+
 #define PMEMBLK_LOG_PREFIX "libpmemblk"
 #define PMEMBLK_LOG_LEVEL_VAR "PMEMBLK_LOG_LEVEL"
 #define PMEMBLK_LOG_FILE_VAR "PMEMBLK_LOG_FILE"
@@ -56,10 +59,10 @@ extern "C" {
 #define BLK_FORMAT_MAJOR 1
 
 #define BLK_FORMAT_FEAT_DEFAULT \
-	{0x0000, POOL_FEAT_INCOMPAT_DEFAULT, 0x0000}
+	{POOL_FEAT_COMPAT_DEFAULT, POOL_FEAT_INCOMPAT_DEFAULT, 0x0000}
 
 #define BLK_FORMAT_FEAT_CHECK \
-	{0x0000, POOL_FEAT_INCOMPAT_VALID, 0x0000}
+	{POOL_FEAT_COMPAT_VALID, POOL_FEAT_INCOMPAT_VALID, 0x0000}
 
 static const features_t blk_format_feat_default = BLK_FORMAT_FEAT_DEFAULT;
 
@@ -97,6 +100,29 @@ struct pmemblk {
 
 /* data area starts at this alignment after the struct pmemblk above */
 #define BLK_FORMAT_DATA_ALIGN ((uintptr_t)4096)
+
+
+#if FAULT_INJECTION
+void
+pmemblk_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at);
+
+int
+pmemblk_fault_injection_enabled(void);
+#else
+static inline void
+pmemblk_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at)
+{
+	abort();
+}
+
+static inline int
+pmemblk_fault_injection_enabled(void)
+{
+	return 0;
+}
+#endif
 
 #ifdef __cplusplus
 }

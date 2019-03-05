@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,10 @@
 #ifndef LIBPMEMPOOL_H
 #define LIBPMEMPOOL_H 1
 
+#include <stdint.h>
+#include <stddef.h>
+#include <limits.h>
+
 #ifdef _WIN32
 #include <pmemcompat.h>
 
@@ -77,11 +81,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdint.h>
-#include <stddef.h>
-#include <limits.h>
-
 
 /* PMEMPOOL CHECK */
 

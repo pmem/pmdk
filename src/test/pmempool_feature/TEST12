@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,6 +44,7 @@ configure_valgrind force-disable
 
 setup
 . ./common.sh
+require_su_bb $PMEMPOOL$EXESUFFIX
 
 pmempool_feature_create_poolset "no_dax_device"
 pmempool_feature_test_CHECK_BAD_BLOCKS

@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@ EX_LIBPMEM=$(EXAMPLES_DIR)/libpmem
 EX_LIBPMEMBLK=$(EXAMPLES_DIR)/libpmemblk
 EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
 EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
+EX_PMREORDER=$(EXAMPLES_DIR)/pmreorder
 
 UT = ../unittest/libut.a
 LIBS += $(UT) $(LIBUUID)
@@ -188,11 +189,14 @@ endif
 
 ifeq ($(LIBPMEMCOMMON), internal-nondebug)
 OBJS +=\
+	$(TOP)/src/nondebug/common/alloc.o\
 	$(TOP)/src/nondebug/common/badblock_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/common/badblock.o\
 	$(TOP)/src/nondebug/common/ctl.o\
 	$(TOP)/src/nondebug/common/ctl_prefault.o\
 	$(TOP)/src/nondebug/common/ctl_sds.o\
+	$(TOP)/src/nondebug/common/ctl_fallocate.o\
+	$(TOP)/src/nondebug/common/ctl_cow.o\
 	$(call osdep, $(TOP)/src/nondebug/common/extent,.o)\
 	$(TOP)/src/nondebug/common/file.o\
 	$(TOP)/src/nondebug/common/file_posix.o\
@@ -218,11 +222,14 @@ endif
 
 ifeq ($(LIBPMEMCOMMON), internal-debug)
 OBJS +=\
+	$(TOP)/src/debug/common/alloc.o\
 	$(TOP)/src/debug/common/badblock_$(OS_DIMM).o\
 	$(TOP)/src/debug/common/badblock.o\
 	$(TOP)/src/debug/common/ctl.o\
 	$(TOP)/src/debug/common/ctl_prefault.o\
 	$(TOP)/src/debug/common/ctl_sds.o\
+	$(TOP)/src/debug/common/ctl_fallocate.o\
+	$(TOP)/src/debug/common/ctl_cow.o\
 	$(call osdep, $(TOP)/src/debug/common/extent,.o)\
 	$(TOP)/src/debug/common/file.o\
 	$(TOP)/src/debug/common/file_posix.o\
@@ -337,6 +344,7 @@ CFLAGS += $(EXTRA_CFLAGS)
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
 
 ifeq ($(OS_DIMM),ndctl)
+CFLAGS += $(OS_DIMM_CFLAG)
 CFLAGS += -DSDS_ENABLED
 endif
 
@@ -350,6 +358,11 @@ endif
 ifeq ($(VALGRIND),0)
 CFLAGS += -DVALGRIND_ENABLED=0
 CXXFLAGS += -DVALGRIND_ENABLED=0
+endif
+
+ifeq ($(FAULT_INJECTION),1)
+CFLAGS += -DFAULT_INJECTION=1
+CXXFLAGS += -DFAULT_INJECTION=1
 endif
 
 ifneq ($(SANITIZE),)
@@ -456,7 +469,7 @@ endif
 sync-test: all $(SYNC_FILE) $(TESTCONFIG)
 
 TST=$(shell basename `pwd`)
-TSTCHECKS=$(shell ls -1 TEST* 2> /dev/null | grep -v -i -e "\.ps1" | sort -V)
+TSTCHECKS=$(shell ls -1 TEST* 2> /dev/null | grep '^TEST[0-9]\+$$' | sort -V)
 
 $(TSTCHECKS): sync-test
 	@cd .. && ./RUNTESTS ${TST} $(RUNTEST_OPTIONS) -s $@

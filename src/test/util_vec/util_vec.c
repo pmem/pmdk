@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,12 +35,7 @@
  */
 
 #include "unittest.h"
-
-#define Realloc REALLOC
-
 #include "vec.h"
-
-#define Free FREE
 
 struct test {
 	int foo;

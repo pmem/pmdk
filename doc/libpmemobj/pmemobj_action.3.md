@@ -112,10 +112,14 @@ of the object must be manually persisted, just like in the case of the atomic AP
 **pmemobj_xreserve**() is equivalent to **pmemobj_reserve**(), but with an
 additional *flags* argument that is a bitmask of the following values:
 
-+ **POBJ_XALLOC_ZERO** - zero the object (and persist it)
++ **POBJ_XALLOC_ZERO** - zero the allocated object (and persist it)
 
-+ **POBJ_CLASS_ID(class_id)** - allocate the object from allocation class
++ **POBJ_CLASS_ID(class_id)** - allocate an object from the allocation class
 *class_id*. The class id cannot be 0.
+
++ **POBJ_ARENA_ID(arena_id)** - allocate an object from the arena specified by
+*arena_id*. The arena must exist, otherwise, the behavior is undefined.
+If *arena_id* is equal 0, then arena assigned to the current thread will be used.
 
 **pmemobj_defer_free**() function creates a deferred free action, meaning that
 the provided object will be freed when the action is published. Calling this

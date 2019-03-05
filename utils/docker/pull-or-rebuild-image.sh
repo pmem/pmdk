@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -77,7 +77,7 @@ fi
 
 # TRAVIS_COMMIT_RANGE is usually invalid for force pushes - ignore such values
 # when used with non-upstream repository
-if [ -n "$TRAVIS_COMMIT_RANGE" -a $TRAVIS_REPO_SLUG != "pmem/pmdk" ]; then
+if [ -n "$TRAVIS_COMMIT_RANGE" -a $TRAVIS_REPO_SLUG != "$GITHUB_REPO" ]; then
 	if ! git rev-list $TRAVIS_COMMIT_RANGE; then
 		TRAVIS_COMMIT_RANGE=
 	fi
@@ -115,11 +115,11 @@ for file in $files; do
 		popd
 
 		# Check if the image has to be pushed to Docker Hub
-		# (i.e. the build is triggered by commits to the pmem/pmdk
+		# (i.e. the build is triggered by commits to the $GITHUB_REPO
 		# repository's master branch, and the Travis build is not
 		# of the "pull_request" type). In that case, create the empty
 		# file.
-		if [[ $TRAVIS_REPO_SLUG == "pmem/pmdk" \
+		if [[ $TRAVIS_REPO_SLUG == "$GITHUB_REPO" \
 			&& $TRAVIS_BRANCH == "master" \
 			&& $TRAVIS_EVENT_TYPE != "pull_request"
 			&& $PUSH_IMAGE == "1" ]]
@@ -141,4 +141,4 @@ done
 
 # Getting here means rebuilding the Docker image is not required.
 # Pull the image from Docker Hub.
-docker pull pmem/pmdk:${OS}-${OS_VER}
+docker pull ${DOCKERHUB_REPO}:${OS}-${OS_VER}

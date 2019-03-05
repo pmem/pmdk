@@ -36,6 +36,7 @@
  */
 #include "ctl.h"
 #include "os.h"
+#include "alloc.h"
 
 #define CTL_MAX_ENTRIES 100
 

@@ -349,7 +349,7 @@ pmemlog_openU(const char *path)
 {
 	LOG(3, "path %s", path);
 
-	return log_open_common(path, 0);
+	return log_open_common(path, COW_at_open ? POOL_OPEN_COW : 0);
 }
 
 #ifndef _WIN32
@@ -905,5 +905,20 @@ pmemlog_ctl_execW(PMEMlogpool *plp, const wchar_t *name, void *arg)
 	util_free_UTF8(uname);
 
 	return ret;
+}
+#endif
+
+#if FAULT_INJECTION
+void
+pmemlog_inject_fault_at(enum pmem_allocation_type type, int nth,
+							const char *at)
+{
+	common_inject_fault_at(type, nth, at);
+}
+
+int
+pmemlog_fault_injection_enabled(void)
+{
+	return common_fault_injection_enabled();
 }
 #endif

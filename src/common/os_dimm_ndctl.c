@@ -57,14 +57,6 @@
 #include "badblock.h"
 #include "vec.h"
 
-/*
- * http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
- * Table 3-2 SMART amd Health Data - Validity flags
- * Bit[5] – If set to 1, indicates that Unsafe Shutdown Count
- * field is valid
- */
-#define USC_VALID_FLAG (1 << 5)
-
 #define FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns)	\
 	ndctl_bus_foreach(ctx, bus)				\
 		ndctl_region_foreach(bus, region)		\
@@ -260,6 +252,48 @@ end:
 	return ret;
 }
 
+#ifdef NDCTL_GE_63
+static long long
+os_dimm_usc_dimm(struct ndctl_dimm *dimm)
+{
+	long long ret = ndctl_dimm_get_dirty_shutdown(dimm);
+	if (ret < 0)
+		ERR("!ndctl_dimm_get_dirty_shutdown");
+	return ret;
+}
+#else
+/*
+ * http://pmem.io/documents/NVDIMM_DSM_Interface-V1.6.pdf
+ * Table 3-2 SMART amd Health Data - Validity flags
+ * Bit[5] – If set to 1, indicates that Unsafe Shutdown Count
+ * field is valid
+ */
+#define USC_VALID_FLAG (1 << 5)
+
+static long long
+os_dimm_usc_dimm(struct ndctl_dimm *dimm)
+{
+	struct ndctl_cmd *cmd = ndctl_dimm_cmd_new_smart(dimm);
+
+	if (cmd == NULL) {
+		ERR("!ndctl_dimm_cmd_new_smart");
+		return -1;
+	}
+
+	if (ndctl_cmd_submit(cmd)) {
+		ERR("!ndctl_cmd_submit");
+		return -1;
+	}
+
+	if (!(ndctl_cmd_smart_get_flags(cmd) & USC_VALID_FLAG)) {
+		/* dimm doesn't support unsafe shutdown count */
+		return 0;
+	}
+
+	return ndctl_cmd_smart_get_shutdown_count(cmd);
+}
+#undef USC_VALID_FLAG
+#endif
 /*
  * os_dimm_usc -- returns unsafe shutdown count
  */
@@ -292,23 +326,10 @@ os_dimm_usc(const char *path, uint64_t *usc)
 	struct ndctl_dimm *dimm;
 
 	ndctl_dimm_foreach_in_interleave_set(iset, dimm) {
-		struct ndctl_cmd *cmd = ndctl_dimm_cmd_new_smart(dimm);
-
-		if (cmd == NULL) {
-			ERR("!ndctl_dimm_cmd_new_smart");
+		long long dimm_usc = os_dimm_usc_dimm(dimm);
+		if (dimm_usc < 0)
 			goto err;
-		}
-
-		if (ndctl_cmd_submit(cmd)) {
-			ERR("!ndctl_cmd_submit");
-			goto err;
-		}
-
-		if (!(ndctl_cmd_smart_get_flags(cmd) & USC_VALID_FLAG)) {
-			/* dimm doesn't support unsafe shutdown count */
-			continue;
-		}
-		*usc += ndctl_cmd_smart_get_shutdown_count(cmd);
+		*usc += (unsigned long long)dimm_usc;
 	}
 out:
 	ret = 0;
@@ -397,11 +418,15 @@ os_dimm_get_namespace_bounds(struct ndctl_region *region,
 }
 
 /*
- * os_dimm_namespace_get_badblocks -- (internal) returns bad blocks
- *                                    in the given namespace
+ * os_dimm_namespace_get_badblocks_by_region -- (internal) returns bad blocks
+ *                                    in the given namespace using the
+ *                                    universal region interface.
+ *
+ * This function works for all types of namespaces, but requires read access to
+ * privileged device information.
  */
 static int
-os_dimm_namespace_get_badblocks(struct ndctl_region *region,
+os_dimm_namespace_get_badblocks_by_region(struct ndctl_region *region,
 				struct ndctl_namespace *ndns,
 				struct badblocks *bbs)
 {
@@ -478,6 +503,64 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 	LOG(4, "number of bad blocks detected: %u", bbs->bb_cnt);
 
 	return 0;
+}
+
+#ifdef NDCTL_GE_63
+/*
+ * os_dimm_namespace_get_badblocks_by_namespace -- (internal) returns bad blocks
+ *                                    in the given namespace using the
+ *                                    block device badblocks interface.
+ *
+ * This function works only for fsdax, but does not require any special
+ * permissions.
+ */
+static int
+os_dimm_namespace_get_badblocks_by_namespace(struct ndctl_namespace *ndns,
+					struct badblocks *bbs)
+{
+	ASSERTeq(ndctl_namespace_get_mode(ndns), NDCTL_NS_MODE_FSDAX);
+
+	VEC(bbsvec, struct bad_block) bbv = VEC_INITIALIZER;
+	struct badblock *bb;
+	ndctl_namespace_badblock_foreach(ndns, bb) {
+		struct bad_block bbn;
+		bbn.offset = SEC2B(bb->offset);
+		bbn.length = (unsigned)SEC2B(bb->len);
+		bbn.nhealthy = NO_HEALTHY_REPLICA; /* unknown healthy replica */
+		if (VEC_PUSH_BACK(&bbv, bbn)) {
+			VEC_DELETE(&bbv);
+			return -1;
+		}
+	}
+
+	bbs->bb_cnt = (unsigned)VEC_SIZE(&bbv);
+	bbs->bbv = VEC_ARR(&bbv);
+	bbs->ns_resource = 0;
+
+	return 0;
+}
+#endif
+
+/*
+ * os_dimm_namespace_get_badblocks -- (internal) returns bad blocks in the given
+ *                                    namespace, using the least privileged
+ *                                    path.
+ */
+static int
+os_dimm_namespace_get_badblocks(struct ndctl_region *region,
+				struct ndctl_namespace *ndns,
+				struct badblocks *bbs)
+{
+#ifdef NDCTL_GE_63
+	/*
+	 * Only the new NDCTL versions have the namespace badblock iterator,
+	 * when compiled with older versions, the library needs to rely on the
+	 * old region interface.
+	 */
+	if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_FSDAX)
+		return os_dimm_namespace_get_badblocks_by_namespace(ndns, bbs);
+#endif
+	return os_dimm_namespace_get_badblocks_by_region(region, ndns, bbs);
 }
 
 /*

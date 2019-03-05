@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,6 +43,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include "alloc.h"
+#include "fault_injection.h"
 
 #define PMEM_LOG_PREFIX "libpmem"
 #define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
@@ -102,6 +105,28 @@ pmem_flush_flags(const void *addr, size_t len, unsigned flags)
 void *memmove_nodrain_generic(void *pmemdest, const void *src, size_t len,
 		unsigned flags);
 void *memset_nodrain_generic(void *pmemdest, int c, size_t len, unsigned flags);
+
+#if FAULT_INJECTION
+void
+pmem_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at);
+
+int
+pmem_fault_injection_enabled(void);
+#else
+static inline void
+pmem_inject_fault_at(enum pmem_allocation_type type, int nth,
+						const char *at)
+{
+	abort();
+}
+
+static inline int
+pmem_fault_injection_enabled(void)
+{
+	return 0;
+}
+#endif
 
 #ifdef __cplusplus
 }

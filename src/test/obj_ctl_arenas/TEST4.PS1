@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,21 +29,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/librpmem/librpmem.map -- linker map file for librpmem
+# src/test/obj_ctl_arenas/TEST4 -- unit test for POBJ_ARENA_ID flag
 #
-LIBRPMEM_1.0 {
-	global:
-		rpmem_create;
-		rpmem_open;
-		rpmem_set_attr;
-		rpmem_close;
-		rpmem_remove;
-		rpmem_persist;
-		rpmem_deep_persist;
-		rpmem_read;
-		rpmem_check_version;
-		rpmem_errormsg;
-	local:
-		*;
-};
+
+. ..\unittest\unittest.ps1
+
+require_test_type short
+require_fs_type any
+
+setup
+
+expect_abnormal_exit $Env:EXE_DIR\obj_ctl_arenas$Env:EXESUFFIX $DIR\testset1 q 2>$null
+
+pass

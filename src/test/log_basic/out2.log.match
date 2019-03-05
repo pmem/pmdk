@@ -1,5 +1,5 @@
 log_basic$(nW)TEST2: START: log_basic
- $(nW)log_basic$(nW) $(nW)testfile1 v n t w r t w
+ $(nW)log_basic$(nW) $(nW)testfile1 c v n t w r t w l h
 appendv
 usable size: 2088960
 tell 144

@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -127,7 +127,9 @@ $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
 # Portability
-VALGRIND_SUPP="--suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp"
+VALGRIND_SUPP="--suppressions=../ld.supp \
+	--suppressions=../memcheck-libunwind.supp \
+	--suppressions=../memcheck-ndctl.supp"
 if [ "$(uname -s)" = "FreeBSD" ]; then
 	DATE="gdate"
 	DD="gdd"
@@ -828,7 +830,7 @@ function expect_normal_exit() {
 	disable_exit_on_error
 
 	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
-		$trace $*
+		$trace "$*"
 	ret=$?
 
 	if [ $REMOTE_VALGRIND_LOG -eq 1 ]; then
@@ -859,26 +861,12 @@ function expect_normal_exit() {
 		else
 			echo -e "$UNITTEST_NAME $msg." >&2
 		fi
-		if [ "$CHECK_TYPE" != "none" -a -f $VALGRIND_LOG_FILE ]; then
-			dump_last_n_lines $VALGRIND_LOG_FILE
-		fi
 
 		# ignore Ctrl-C
 		if [ $ret != 130 ]; then
-			for f in $(get_files "node_.*${UNITTEST_NUM}\.log"); do
+			for f in $(get_files ".*[a-zA-Z_]${UNITTEST_NUM}\.log"); do
 				dump_last_n_lines $f
 			done
-
-			dump_last_n_lines $TRACE_LOG_FILE
-			dump_last_n_lines $PMEM_LOG_FILE
-			dump_last_n_lines $PMEMOBJ_LOG_FILE
-			dump_last_n_lines $PMEMLOG_LOG_FILE
-			dump_last_n_lines $PMEMBLK_LOG_FILE
-			dump_last_n_lines $PMEMPOOL_LOG_FILE
-			dump_last_n_lines $VMEM_LOG_FILE
-			dump_last_n_lines $VMMALLOC_LOG_FILE
-			dump_last_n_lines $RPMEM_LOG_FILE
-			dump_last_n_lines $RPMEMD_LOG_FILE
 		fi
 
 		[ $NODES_MAX -ge 0 ] && clean_all_remote_nodes
@@ -935,7 +923,7 @@ function expect_abnormal_exit() {
 
 	disable_exit_on_error
 	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" \
-		LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE $*
+		LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE "$*"
 	ret=$?
 	restore_exit_on_error
 
@@ -1497,7 +1485,7 @@ function require_fs_name() {
 		fi
 	done
 
-	echo "$UNITTEST_NAME: SKIP file system $fsname ($* required)"
+	msg "$UNITTEST_NAME: SKIP file system $fsname ($* required)"
 	exit 0
 }
 
@@ -1991,6 +1979,53 @@ function require_no_sds() {
 	set -e
 	if [ "$found" -ne "0" ]; then
 		msg "$UNITTEST_NAME: SKIP compiled with support for shutdown state"
+		exit 0
+	fi
+	return 0
+}
+
+#
+# is_ndctl_ge_63 -- check if binary is compiled with libndctl 63+
+#
+#	usage: is_ndctl_ge_63 <binary>
+#
+function is_ndctl_ge_63() {
+	local binary=$1
+	local dir=.
+	if [ -z "$binary" ]; then
+		fatal "is_ndctl_ge_63: error: no binary found"
+	fi
+
+	strings ${binary} 2>&1 | \
+		grep -q "compiled with libndctl 63+" && true
+
+	return $?
+}
+
+#
+# require_user_bb -- checks if the binary has support for unprivileged
+#	bad block iteration
+#
+#	usage: require_user_bb <binary>
+#
+function require_user_bb() {
+	if ! is_ndctl_ge_63 $1 &> /dev/null ; then
+		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration not supported"
+		exit 0
+	fi
+
+	return 0
+}
+
+#
+# require_su_bb -- checks if the binary does not have support for
+#	unprivileged bad block iteration
+#
+#	usage: require_su_bb <binary>
+#
+function require_su_bb() {
+	if is_ndctl_ge_63 $1 &> /dev/null ; then
+		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration supported"
 		exit 0
 	fi
 	return 0
@@ -2622,6 +2657,10 @@ function setup() {
 	if [ "$DEVDAX_TO_LOCK" == 1 ]; then
 		lock_devdax
 	fi
+
+	export PMEMBLK_CONF="fallocate.at_create=0;"
+	export PMEMOBJ_CONF="fallocate.at_create=0;"
+	export PMEMLOG_CONF="fallocate.at_create=0;"
 }
 
 #
@@ -3272,11 +3311,11 @@ function get_pmemcheck_version()
 #
 # require_pmemcheck_version_ge - check if pmemcheck API
 # version is greater or equal to required value
-#	usage: require_pmemcheck_version_ge <major> <minor>
+#	usage: require_pmemcheck_version_ge <major> <minor> [binary]
 #
 function require_pmemcheck_version_ge()
 {
-	require_valgrind_tool pmemcheck
+	require_valgrind_tool pmemcheck $3
 
 	REQUIRE_MAJOR=$1
 	REQUIRE_MINOR=$2
@@ -3306,11 +3345,11 @@ function require_pmemcheck_version_ge()
 #
 # require_pmemcheck_version_lt - check if pmemcheck API
 # version is less than required value
-#	usage: require_pmemcheck_version_lt <major> <minor>
+#	usage: require_pmemcheck_version_lt <major> <minor> [binary]
 #
 function require_pmemcheck_version_lt()
 {
-	require_valgrind_tool pmemcheck
+	require_valgrind_tool pmemcheck $3
 
 	REQUIRE_MAJOR=$1
 	REQUIRE_MINOR=$2
@@ -3361,14 +3400,15 @@ function require_python3()
 }
 
 #
-# require_pmreorder -- check all necessarily conditions to run pmreorder
+# require_pmreorder -- check all necessary conditions to run pmreorder
+# usage: require_pmreorder [binary]
 #
 function require_pmreorder()
 {
 	# python3 and valgrind are necessary
 	require_python3
 	# pmemcheck is required to generate store_log
-	configure_valgrind pmemcheck force-enable
+	configure_valgrind pmemcheck force-enable $1
 	# pmreorder tool does not support unicode yet
 	require_no_unicode
 }

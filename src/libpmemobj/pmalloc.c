@@ -126,7 +126,7 @@ pmalloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
 	int ret = palloc_operation(&pop->heap, 0, off, size, NULL, NULL,
-		extra_field, object_flags, 0, ctx);
+		extra_field, object_flags, 0, 0, ctx);
 
 	pmalloc_operation_release(pop);
 
@@ -150,7 +150,7 @@ pmalloc_construct(PMEMobjpool *pop, uint64_t *off, size_t size,
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
 	int ret = palloc_operation(&pop->heap, 0, off, size, constructor, arg,
-			extra_field, object_flags, class_id, ctx);
+			extra_field, object_flags, class_id, 0, ctx);
 
 	pmalloc_operation_release(pop);
 
@@ -172,7 +172,7 @@ prealloc(PMEMobjpool *pop, uint64_t *off, size_t size,
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
 	int ret = palloc_operation(&pop->heap, *off, off, size, NULL, NULL,
-		extra_field, object_flags, 0, ctx);
+		extra_field, object_flags, 0, 0, ctx);
 
 	pmalloc_operation_release(pop);
 
@@ -193,7 +193,7 @@ pfree(PMEMobjpool *pop, uint64_t *off)
 		pmalloc_operation_hold_type(pop, OPERATION_INTERNAL, 1);
 
 	int ret = palloc_operation(&pop->heap, *off, off, 0, NULL, NULL,
-		0, 0, 0, ctx);
+		0, 0, 0, 0, ctx);
 	ASSERTeq(ret, 0);
 
 	pmalloc_operation_release(pop);
@@ -236,7 +236,7 @@ pmalloc_cleanup(PMEMobjpool *pop)
 }
 
 /*
- * CTL_WRITE_HANDLER(proto) -- creates a new allocation class
+ * CTL_WRITE_HANDLER(desc) -- creates a new allocation class
  */
 static int
 CTL_WRITE_HANDLER(desc)(void *ctx,
@@ -471,8 +471,9 @@ CTL_RUNNABLE_HANDLER(extend)(void *ctx,
 	}
 
 	struct palloc_heap *heap = &pop->heap;
-	struct bucket *defb = heap_bucket_acquire_by_id(heap,
-		DEFAULT_ALLOC_CLASS_ID);
+	struct bucket *defb = heap_bucket_acquire(heap,
+		DEFAULT_ALLOC_CLASS_ID,
+		HEAP_ARENA_PER_THREAD);
 
 	int ret = heap_extend(heap, defb, (size_t)arg_in) < 0 ? -1 : 0;
 
@@ -521,16 +522,67 @@ CTL_WRITE_HANDLER(granularity)(void *ctx,
 static const struct ctl_argument CTL_ARG(granularity) = CTL_ARG_LONG_LONG;
 
 /*
- * CTL_READ_HANDLER(narenas) -- reads a number of the arenas
+ * CTL_READ_HANDLER(total) -- reads a number of the arenas
  */
 static int
-CTL_READ_HANDLER(narenas)(void *ctx,
+CTL_READ_HANDLER(total)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
 	PMEMobjpool *pop = ctx;
 	unsigned *narenas = arg;
 
-	*narenas = heap_get_narenas(&pop->heap);
+	*narenas = heap_get_narenas_total(&pop->heap);
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(max) -- reads a max number of the arenas
+ */
+static int
+CTL_READ_HANDLER(max)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned *max = arg;
+
+	*max = heap_get_narenas_max(&pop->heap);
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(max) -- write a max number of the arenas
+ */
+static int
+CTL_WRITE_HANDLER(max)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned size = *(unsigned *)arg;
+
+	int ret = heap_set_narenas_max(&pop->heap, size);
+	if (ret) {
+		LOG(1, "cannot change max arena number");
+		return -1;
+	}
+
+	return 0;
+}
+
+static const struct ctl_argument CTL_ARG(max) = CTL_ARG_LONG_LONG;
+
+/*
+ * CTL_READ_HANDLER(automatic) -- reads a number of the automatic arenas
+ */
+static int
+CTL_READ_HANDLER(automatic, narenas)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned *narenas = arg;
+
+	*narenas = heap_get_narenas_auto(&pop->heap);
 
 	return 0;
 }
@@ -550,6 +602,107 @@ CTL_READ_HANDLER(arena_id)(void *ctx,
 
 	return 0;
 }
+
+/*
+ * CTL_WRITE_HANDLER(arena_id) -- assigns the arena to the calling thread
+ */
+static int
+CTL_WRITE_HANDLER(arena_id)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned arena_id = *(unsigned *)arg;
+
+	unsigned narenas = heap_get_narenas_total(&pop->heap);
+
+	/*
+	 * check if index is not bigger than number of arenas
+	 * or if it is not equal zero
+	 */
+	if (arena_id < 1 || arena_id > narenas) {
+		LOG(1, "arena id outside of the allowed range: <1,%u>",
+			narenas);
+		errno = ERANGE;
+		return -1;
+	}
+
+	heap_set_arena_thread(&pop->heap, arena_id);
+
+	return 0;
+}
+
+static const struct ctl_argument CTL_ARG(arena_id) = CTL_ARG_LONG_LONG;
+
+/*
+ * CTL_WRITE_HANDLER(automatic) -- updates automatic status of the arena
+ */
+static int
+CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
+		void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	int arg_in = *(int *)arg;
+	unsigned arena_id;
+
+	struct ctl_index *idx = SLIST_FIRST(indexes);
+	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
+	arena_id = (unsigned)idx->value;
+
+	unsigned narenas = heap_get_narenas_total(&pop->heap);
+
+	/*
+	 * check if index is not bigger than number of arenas
+	 * or if it is not equal zero
+	 */
+	if (arena_id < 1 || arena_id > narenas) {
+		LOG(1, "arena id outside of the allowed range: <1,%u>",
+			narenas);
+		errno = ERANGE;
+		return -1;
+	}
+
+	if (arg_in != 0 && arg_in != 1) {
+		LOG(1, "incorrect arena state, must be 0 or 1");
+		return -1;
+	}
+
+	return heap_set_arena_auto(&pop->heap, arena_id, arg_in);
+}
+
+/*
+ * CTL_READ_HANDLER(automatic) -- reads automatic status of the arena
+ */
+static int
+CTL_READ_HANDLER(automatic)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	int *arg_out = arg;
+	unsigned arena_id;
+
+	struct ctl_index *idx = SLIST_FIRST(indexes);
+	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
+	arena_id = (unsigned)idx->value;
+
+	unsigned narenas = heap_get_narenas_total(&pop->heap);
+
+	/*
+	 * check if index is not bigger than number of arenas
+	 * or if it is not equal zero
+	 */
+	if (arena_id < 1 || arena_id > narenas) {
+		LOG(1, "arena id outside of the allowed range: <1,%u>",
+			narenas);
+		errno = ERANGE;
+		return -1;
+	}
+
+	*arg_out = heap_get_arena_auto(&pop->heap, arena_id);
+
+	return 0;
+}
+
+static struct ctl_argument CTL_ARG(automatic) = CTL_ARG_BOOLEAN;
 
 static const struct ctl_node CTL_NODE(size)[] = {
 	CTL_LEAF_RW(granularity),
@@ -577,12 +730,15 @@ CTL_READ_HANDLER(size)(void *ctx,
 	/* take index of arena */
 	arena_id = (unsigned)idx->value;
 	/* take number of arenas */
-	narenas = heap_get_narenas(&pop->heap);
+	narenas = heap_get_narenas_total(&pop->heap);
 
-	/* check if index is not bigger than number of arenas */
-	if (arena_id >= narenas) {
-		ERR("arena id outside of the allowed range: <0,%u>",
-			narenas - 1);
+	/*
+	 * check if index is not bigger than number of arenas
+	 * or if it is not equal zero
+	 */
+	if (arena_id < 1 || arena_id > narenas) {
+		LOG(1, "arena id outside of the allowed range: <1,%u>",
+			narenas);
 		errno = ERANGE;
 		return -1;
 	}
@@ -603,20 +759,50 @@ CTL_READ_HANDLER(size)(void *ctx,
 	return 0;
 }
 
+/*
+ * CTL_RUNNABLE_HANDLER(create) -- create new arena in the heap
+ */
+static int
+CTL_RUNNABLE_HANDLER(create)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+	unsigned *arena_id = arg;
+	struct palloc_heap *heap = &pop->heap;
+
+	int ret = heap_arena_create(heap);
+	if (ret < 0)
+		return -1;
+
+	*arena_id = (unsigned)ret;
+
+	return 0;
+}
+
 static const struct ctl_node CTL_NODE(arena_id)[] = {
 	CTL_LEAF_RO(size),
+	CTL_LEAF_RW(automatic),
 
 	CTL_NODE_END
 };
 
 static const struct ctl_node CTL_NODE(arena)[] = {
 	CTL_INDEXED(arena_id),
+	CTL_LEAF_RUNNABLE(create),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(narenas)[] = {
+	CTL_LEAF_RO(automatic, narenas),
+	CTL_LEAF_RO(total),
+	CTL_LEAF_RW(max),
 
 	CTL_NODE_END
 };
 
 static const struct ctl_node CTL_NODE(thread)[] = {
-	CTL_LEAF_RO(arena_id),
+	CTL_LEAF_RW(arena_id),
 
 	CTL_NODE_END
 };
@@ -626,7 +812,7 @@ static const struct ctl_node CTL_NODE(heap)[] = {
 	CTL_CHILD(arena),
 	CTL_CHILD(size),
 	CTL_CHILD(thread),
-	CTL_LEAF_RO(narenas),
+	CTL_CHILD(narenas),
 
 	CTL_NODE_END
 };

@@ -110,6 +110,13 @@ If set, force-enables or force-disables SDS feature during pool creation.
 Affects only the _UW(pmemobj_create) function. See **pmempool_feature_query**(3)
 for informations about SDS (SHUTDOWN_STATE) feature.
 
+copy_on_write.at_open | rw | global | int | int | - | boolean
+
+If set, pool is mapped in such a way that modifications don't reach the
+underlying medium. From the user's perspective this means that when the pool
+is closed all changes are reverted. This feature is not supported for pools
+located on Device DAX.
+
 tx.debug.skip_expensive_checks | rw | - | int | int | - | boolean
 
 Turns off some expensive checks performed by the transaction module in "debug"
@@ -146,7 +153,7 @@ tx.post_commit.stop | r- | - | void * | - | - | -
 
 This entry point is deprecated.
 
-heap.narenas | r- | - | unsigned | - | - | -
+heap.narenas.automatic | r- | - | unsigned | - | - | -
 
 Reads the number of arenas used in automatic scheduling of memory operations
 for threads. By default, this value is equal to the number of available processors.
@@ -154,15 +161,52 @@ An arena is a memory management structure which enables concurrency by taking
 exclusive ownership of parts of the heap and allowing associated threads to allocate
 without contention.
 
+heap.narenas.total | r- | - | unsigned | - | - | -
+
+Reads the number of all created arenas. It includes automatic arenas
+created by default and arenas created using heap.arena.create CTL.
+
+heap.narenas.max | rw- | - | unsigned | unsigned | - | -
+
+Reads or writes the maximum number of arenas that can be created.
+This entry point is not thread-safe with regards to heap
+operations (allocations, frees, reallocs).
+
 heap.arena.[arena_id].size | r- | - | uint64_t | - | - | -
 
 Reads the total amount of memory in bytes which is currently
 exclusively owned by the arena. Large differences in this value between
 arenas might indicate an uneven scheduling of memory resources.
+The arena id cannot be 0.
 
-heap.thread.arena_id | r- | - | unsigned | - | - | -
+heap.thread.arena_id | rw- | - | unsigned | unsigned | - | -
 
-Reads the index of the arena assigned to the current thread.
+Reads the index of the arena assigned to the current thread or
+assigns arena with specific id to the current thread.
+The arena id cannot be 0.
+
+heap.arena.create | --x | - | - | - | unsigned | -
+
+Creates and initializes one new arena in the heap.
+This entry point reads an id of the new created arena.
+
+Newly created arenas by this CTL are inactive, which means that
+the arena will not be used in the automatic scheduling of
+memory requests. To activate the new arena, use heap.arena.[arena_id].automatic CTL.
+
+Arena created using this CTL can be used for allocation by explicitly
+specifying the *arena_id* for **POBJ_ARENA_ID(id)** flag in
+**pmemobj_tx_xalloc**()/**pmemobj_xalloc**()/**pmemobj_xreserve()** functions.
+
+By default, the number of arenas is limited to 1024.
+
+heap.arena.[arena_id].automatic | rw- | - | boolean | boolean | - | -
+
+Reads or modifies the state of the arena.
+If set, the arena is used in automatic scheduling of memory operations for threads.
+This should be set to false if the application wants to manually manage allocator
+scalability through explicitly assigning arenas to threads by using heap.thread.arena_id.
+The arena id cannot be 0 and at least one automatic arena must exist.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -568,7 +568,7 @@ pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
 	ret = os_badblocks_get(file_name, bbs);
 	if (ret) {
 		if (errno == ENOTSUP) {
-			outv(v, BB_NOT_SUPP);
+			outv(v, BB_NOT_SUPP "\n");
 			ret = -1;
 			goto exit_free;
 		}

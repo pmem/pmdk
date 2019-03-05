@@ -132,10 +132,14 @@ associated with *type_num*.
 **pmemobj_xalloc**() is equivalent to **pmemobj_alloc**(), but with an
 additional *flags* argument that is a bitmask of the following values:
 
-+ **POBJ_XALLOC_ZERO** - zero the object (equivalent of **pmemobj_zalloc**())
++ **POBJ_XALLOC_ZERO** - zero the allocated object (equivalent of **pmemobj_zalloc**())
 
-+ **POBJ_CLASS_ID(class_id)** - allocate the object from allocation class
++ **POBJ_CLASS_ID(class_id)** - allocate an object from the allocation class
 *class_id*. The class id cannot be 0.
+
++ **POBJ_ARENA_ID(arena_id)** - allocate an object from the arena specified by
+*arena_id*. The arena must exist, otherwise, the behavior is undefined.
+If *arena_id* is equal 0, then arena assigned to the current thread will be used.
 
 The **pmemobj_zalloc**() function allocates a new zeroed object from
 the persistent memory heap associated with memory pool *pop*. The *PMEMoid*

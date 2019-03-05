@@ -5,5 +5,5 @@ Description: librpmem library from PMDK project
 Version: ${version}
 URL: http://pmem.io/pmdk
 Requires:
-Libs: -L${libdir} -lpmem
+Libs: -L${libdir} -lrpmem
 Cflags: -I${includedir}

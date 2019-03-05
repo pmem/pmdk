@@ -103,7 +103,8 @@ static void *Rpmem_handle_remote;
 int Prefault_at_open = 0;
 int Prefault_at_create = 0;
 int SDS_at_create = POOL_FEAT_INCOMPAT_DEFAULT & POOL_E_FEAT_SDS ? 1 : 0;
-
+int Fallocate_at_create = 1;
+int COW_at_open = 0;
 
 /* list of pool set option names and flags */
 static const struct pool_set_option Options[] = {
@@ -1431,12 +1432,14 @@ util_poolset_directories_load(struct pool_set *set)
 	 */
 	struct pool_replica *rep;
 	struct pool_replica *mrep = set->replica[max_parts_rep];
+
 	for (unsigned r = 0; r < set->nreplicas; r++) {
 		if (set->replica[r]->nparts == mrep->nparts)
 			continue;
 
 		if (VEC_SIZE(&set->replica[r]->directory) == 0) {
-			ERR("no directories in replica");
+			errno = ENOENT;
+			ERR("!no directories in replica");
 			return -1;
 		}
 
@@ -1773,19 +1776,21 @@ util_poolset_single(const char *path, size_t filesize, int create,
  * util_part_open -- open or create a single part file
  */
 int
-util_part_open(struct pool_set_part *part, size_t minsize, int create)
+util_part_open(struct pool_set_part *part, size_t minsize, int create_part)
 {
-	LOG(3, "part %p minsize %zu create %d", part, minsize, create);
+	LOG(3, "part %p minsize %zu create %d", part, minsize, create_part);
 
 	int exists = util_file_exists(part->path);
 	if (exists < 0)
 		return -1;
 
+	int create_file = create_part;
+
 	if (exists)
-		create = 0;
+		create_file = 0;
 
 	part->created = 0;
-	if (create) {
+	if (create_file) {
 		part->fd = util_file_create(part->path, part->filesize,
 				minsize);
 		if (part->fd == -1) {
@@ -1800,6 +1805,17 @@ util_part_open(struct pool_set_part *part, size_t minsize, int create)
 		if (part->fd == -1) {
 			LOG(2, "failed to open file: %s", part->path);
 			return -1;
+		}
+
+		if (Fallocate_at_create && create_part && !part->is_dev_dax) {
+			int ret = os_posix_fallocate(part->fd, 0,
+					(os_off_t)size);
+			if (ret != 0) {
+				errno = ret;
+				ERR("!posix_fallocate \"%s\", %zu", part->path,
+					size);
+				return -1;
+			}
 		}
 
 		/* check if filesize matches */
@@ -3873,6 +3889,38 @@ util_read_compat_features(struct pool_set *set, uint32_t *compat_features)
 }
 
 /*
+ * unlink_remote_replicas -- removes remote replicas from poolset
+ *
+ * It is necessary when COW flag is set because remote replicas
+ * cannot be mapped privately
+ */
+static int
+unlink_remote_replicas(struct pool_set *set)
+{
+	unsigned i = 0;
+	while (i < set->nreplicas) {
+		if (set->replica[i]->remote == NULL) {
+			i++;
+			continue;
+		}
+
+		util_replica_close(set, i);
+		int ret = util_replica_close_remote(set->replica[i], i,
+				DO_NOT_DELETE_PARTS);
+		if (ret != 0)
+			return ret;
+
+		size_t size = sizeof(set->replica[i]) *
+			(set->nreplicas - i - 1);
+		memmove(&set->replica[i], &set->replica[i + 1], size);
+		set->nreplicas--;
+	}
+
+	set->remote = 0;
+	return 0;
+}
+
+/*
  * util_pool_open -- open a memory pool (set or a single file)
  *
  * This routine does all the work, but takes a rdonly flag so internal
@@ -3896,6 +3944,12 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 						flags & POOL_OPEN_IGNORE_SDS);
 	if (ret < 0) {
 		LOG(2, "cannot open pool set -- '%s'", path);
+		return -1;
+	}
+
+	if ((*setp)->replica[0]->nparts == 0) {
+		errno = ENOENT;
+		ERR("!no parts in replicas");
 		return -1;
 	}
 
@@ -3979,6 +4033,13 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	/* unmap all headers */
 	util_unmap_all_hdrs(set);
+
+	/* remove all remote replicas from poolset when cow */
+	if (cow && set->remote) {
+		ret = unlink_remote_replicas(set);
+		if (ret != 0)
+			goto err_replica;
+	}
 
 	return 0;
 

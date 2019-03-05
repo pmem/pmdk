@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,27 +29,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/libvmem.map -- linker map file for libvmem
+# src/test/obj_ctl_arenas/TEST3 -- unit test for POBJ_ARENA_ID flag
 #
-LIBVMEM_1.0 {
-	global:
-		vmem_create;
-		vmem_create_in_region;
-		vmem_delete;
-		vmem_check;
-		vmem_stats_print;
-		vmem_malloc;
-		vmem_free;
-		vmem_calloc;
-		vmem_realloc;
-		vmem_aligned_alloc;
-		vmem_strdup;
-		vmem_wcsdup;
-		vmem_malloc_usable_size;
-		vmem_check_version;
-		vmem_set_funcs;
-		vmem_errormsg;
-	local:
-		*;
-};
+
+. ..\unittest\unittest.ps1
+
+require_test_type short
+require_fs_type any
+
+setup
+
+expect_normal_exit $Env:EXE_DIR\obj_ctl_arenas$Env:EXESUFFIX $DIR\testset1 f
+
+pass
