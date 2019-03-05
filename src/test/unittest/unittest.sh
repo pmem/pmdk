@@ -1985,19 +1985,19 @@ function require_no_sds() {
 }
 
 #
-# is_ndctl_ge_63 -- check if binary is compiled with libndctl 63+
+# is_ndctl_ge_64 -- check if binary is compiled with libndctl 64+
 #
-#	usage: is_ndctl_ge_63 <binary>
+#	usage: is_ndctl_ge_64 <binary>
 #
-function is_ndctl_ge_63() {
+function is_ndctl_ge_64() {
 	local binary=$1
 	local dir=.
 	if [ -z "$binary" ]; then
-		fatal "is_ndctl_ge_63: error: no binary found"
+		fatal "is_ndctl_ge_64: error: no binary found"
 	fi
 
 	strings ${binary} 2>&1 | \
-		grep -q "compiled with libndctl 63+" && true
+		grep -q "compiled with libndctl 64+" && true
 
 	return $?
 }
@@ -2009,7 +2009,7 @@ function is_ndctl_ge_63() {
 #	usage: require_user_bb <binary>
 #
 function require_user_bb() {
-	if ! is_ndctl_ge_63 $1 &> /dev/null ; then
+	if ! is_ndctl_ge_64 $1 &> /dev/null ; then
 		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration not supported"
 		exit 0
 	fi
@@ -2024,7 +2024,7 @@ function require_user_bb() {
 #	usage: require_su_bb <binary>
 #
 function require_su_bb() {
-	if is_ndctl_ge_63 $1 &> /dev/null ; then
+	if is_ndctl_ge_64 $1 &> /dev/null ; then
 		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration supported"
 		exit 0
 	fi

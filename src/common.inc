@@ -331,7 +331,7 @@ endif
 endif
 
 # unsafe shutdown count and badblock access without root (depends on kernel 4.20)
-NDCTL_MIN_VERSION_FIXED := 63
+NDCTL_MIN_VERSION_FIXED := 64
 
 NDCTL_MIN_VERSION := 60.1
 
@@ -376,7 +376,7 @@ ifeq ($(NDCTL_ENABLE),y)
     ifeq ($(LIBNDCTL),)
         HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION_FIXED))
         ifeq ($(HAS_NDCTL),y)
-            OS_DIMM_CFLAG=-DNDCTL_GE_63
+            OS_DIMM_CFLAG=-DNDCTL_GE_64
         else
             HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION))
             ifeq ($(HAS_NDCTL),n)

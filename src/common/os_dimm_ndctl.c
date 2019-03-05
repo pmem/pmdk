@@ -252,7 +252,7 @@ end:
 	return ret;
 }
 
-#ifdef NDCTL_GE_63
+#ifdef NDCTL_GE_64
 static long long
 os_dimm_usc_dimm(struct ndctl_dimm *dimm)
 {
@@ -505,7 +505,7 @@ os_dimm_namespace_get_badblocks_by_region(struct ndctl_region *region,
 	return 0;
 }
 
-#ifdef NDCTL_GE_63
+#ifdef NDCTL_GE_64
 /*
  * os_dimm_namespace_get_badblocks_by_namespace -- (internal) returns bad blocks
  *                                    in the given namespace using the
@@ -551,7 +551,7 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 				struct ndctl_namespace *ndns,
 				struct badblocks *bbs)
 {
-#ifdef NDCTL_GE_63
+#ifdef NDCTL_GE_64
 	/*
 	 * Only the new NDCTL versions have the namespace badblock iterator,
 	 * when compiled with older versions, the library needs to rely on the

@@ -118,7 +118,7 @@ test_layout()
 #define POOL_FEAT_SDS_FINAL		0x0004U
 
 /* incompat features effective values */
-#if defined(_WIN32) || defined(NDCTL_GE_63)
+#if defined(_WIN32) || defined(NDCTL_GE_64)
 #ifdef SDS_ENABLED
 #define POOL_E_FEAT_SDS_FINAL		POOL_FEAT_SDS_FINAL
 #else
@@ -127,7 +127,7 @@ test_layout()
 #else
 /*
  * shutdown state support on Linux requires root access on kernel < 4.20 with
- * ndctl < 63 so it is disabled by default
+ * ndctl < 64 so it is disabled by default
  */
 #define POOL_E_FEAT_SDS_FINAL		0x0000U	/* empty */
 #endif

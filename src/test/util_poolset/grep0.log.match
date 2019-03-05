@@ -6,7 +6,7 @@ $(OPT)compiled with support for Valgrind helgrind
 $(OPT)compiled with support for Valgrind memcheck
 $(OPT)compiled with support for Valgrind drd
 $(OPT)compiled with support for shutdown state
-$(OPT)compiled with libndctl 63+
+$(OPT)compiled with libndctl 64+
 open "$(nW)/testset0": No such file or directory
 size 1000000 smaller than 2097152
 size 1000000 smaller than 2097152

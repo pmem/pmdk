@@ -264,8 +264,8 @@ function ndctl_nfit_test_grant_access_node() {
 function ndctl_requires_extra_access()
 {
 	# Tests require additional permissions for badblock iteration if they
-	# are ran on device dax or with ndctl version prior to v63.
-	if [ "$1" != "fsdax" ] || ! is_ndctl_ge_63 $PMEMPOOL$EXESUFFIX ; then
+	# are ran on device dax or with ndctl version prior to v64.
+	if [ "$1" != "fsdax" ] || ! is_ndctl_ge_64 $PMEMPOOL$EXESUFFIX ; then
 		return 0
 	fi
 	return 1
