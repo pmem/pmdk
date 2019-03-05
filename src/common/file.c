@@ -152,11 +152,11 @@ util_file_exists(const char *path)
 }
 
 /*
- * get_file_type_internal -- (internal) checks whether stat structure describes
+ * util_stat_get_type -- checks whether stat structure describes
  *			 device dax or a normal file
  */
-static enum file_type
-get_file_type_internal(os_stat_t *st)
+enum file_type
+util_stat_get_type(const os_stat_t *st)
 {
 #ifdef _WIN32
 	return TYPE_NORMAL;
@@ -209,7 +209,7 @@ util_fd_get_type(int fd)
 		return OTHER_ERROR;
 	}
 
-	return get_file_type_internal(&st);
+	return util_stat_get_type(&st);
 #endif
 }
 
@@ -245,7 +245,7 @@ util_file_get_type(const char *path)
 		return OTHER_ERROR;
 	}
 
-	return get_file_type_internal(&st);
+	return util_stat_get_type(&st);
 #endif
 }
 
