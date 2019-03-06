@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -127,7 +127,7 @@ list_insert_consistent(struct list_root *root, node_id node, int value)
 
 	new->value = value;
 	new->next = root->head;
-	pmem_persist(new, sizeof(new));
+	pmem_persist(new, sizeof(*new));
 
 	root->head = node;
 	pmem_persist(&root->head, sizeof(root->head));
