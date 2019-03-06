@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -260,8 +260,10 @@ replica_free_poolset_health_status(struct poolset_health_status *set_hs)
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 
-		for (unsigned p = 0; p < rep_hs->nparts; ++p)
+		for (unsigned p = 0; p < rep_hs->nparts; ++p) {
 			Free(rep_hs->part[p].recovery_file_name);
+			Free(rep_hs->part[p].bbs.bbv);
+		}
 
 		Free(set_hs->replica[r]);
 	}
