@@ -260,8 +260,14 @@ replica_free_poolset_health_status(struct poolset_health_status *set_hs)
 	for (unsigned r = 0; r < set_hs->nreplicas; ++r) {
 		struct replica_health_status *rep_hs = set_hs->replica[r];
 
-		for (unsigned p = 0; p < rep_hs->nparts; ++p)
+		for (unsigned p = 0; p < rep_hs->nparts; ++p) {
 			Free(rep_hs->part[p].recovery_file_name);
+
+			if (rep_hs->part[p].bbs.bbv) {
+				Free(rep_hs->part[p].bbs.bbv);
+				rep_hs->part[p].bbs.bbv = NULL;
+			}
+		}
 
 		Free(set_hs->replica[r]);
 	}
