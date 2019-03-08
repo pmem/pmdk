@@ -41,6 +41,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/sysmacros.h>
+#include <fcntl.h>
 #include <ndctl/libndctl.h>
 #include <ndctl/libdaxctl.h>
 /* XXX: workaround for missing PAGE_SIZE - should be fixed in linux/ndctl.h */
@@ -50,6 +52,7 @@
 #endif
 #include <linux/ndctl.h>
 
+#include "file.h"
 #include "out.h"
 #include "os.h"
 #include "os_dimm.h"
@@ -64,12 +67,12 @@
 
 
 /*
- * os_dimm_match_device -- (internal) returns 1 if the device matches
+ * os_dimm_match_devdax -- (internal) returns 1 if the devdax matches
  *                         with the given file, 0 if it doesn't match,
  *                         and -1 in case of error.
  */
 static int
-os_dimm_match_device(const os_stat_t *st, const char *devname)
+os_dimm_match_devdax(const os_stat_t *st, const char *devname)
 {
 	LOG(3, "st %p devname %s", st, devname);
 
@@ -89,8 +92,76 @@ os_dimm_match_device(const os_stat_t *st, const char *devname)
 		return -1;
 	}
 
-	dev_t dev = S_ISCHR(st->st_mode) ? st->st_rdev : st->st_dev;
-	if (dev == stat.st_rdev) {
+	if (st->st_rdev == stat.st_rdev) {
+		LOG(4, "found matching device: %s", path);
+		return 1;
+	}
+
+	LOG(10, "skipping not matching device: %s", path);
+	return 0;
+}
+
+#define BUFF_LENGTH 64
+
+/*
+ * os_dimm_match_fsdax -- (internal) returns 1 if the device matches
+ *                         with the given file, 0 if it doesn't match,
+ *                         and -1 in case of error.
+ */
+static int
+os_dimm_match_fsdax(const os_stat_t *st, const char *devname)
+{
+	LOG(3, "st %p devname %s", st, devname);
+
+	if (*devname == '\0')
+		return 0;
+
+	char path[PATH_MAX];
+	char dev_id[BUFF_LENGTH];
+	int ret;
+
+	ret = snprintf(path, PATH_MAX, "/sys/block/%s/dev", devname);
+	if (ret < 0) {
+		ERR("snprintf: %d", ret);
+		return -1;
+	}
+
+	ret = snprintf(dev_id, BUFF_LENGTH, "%d:%d",
+			major(st->st_dev), minor(st->st_dev));
+	if (ret < 0) {
+		ERR("snprintf: %d", ret);
+		return -1;
+	}
+
+	int fd = os_open(path, O_RDONLY);
+	if (fd < 0) {
+		ERR("!open \"%s\"", path);
+		return -1;
+	}
+
+	char buff[BUFF_LENGTH];
+	ssize_t nread = read(fd, buff, BUFF_LENGTH);
+	if (nread < 0) {
+		ERR("!read");
+		os_close(fd);
+		return -1;
+	}
+
+	os_close(fd);
+
+	if (nread == 0) {
+		ERR("%s is empty", path);
+		return -1;
+	}
+
+	if (buff[nread - 1] != '\n') {
+		ERR("%s doesn't end with new line", path);
+		return -1;
+	}
+
+	buff[nread - 1] = '\0';
+
+	if (strcmp(buff, dev_id) == 0) {
 		LOG(4, "found matching device: %s", path);
 		return 1;
 	}
@@ -122,6 +193,10 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 	if (pndns)
 		*pndns = NULL;
 
+	enum file_type type = util_stat_get_type(st);
+	if (type == OTHER_ERROR)
+		return -1;
+
 	FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns) {
 		struct ndctl_btt *btt;
 		struct ndctl_dax *dax = NULL;
@@ -129,6 +204,10 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 		const char *devname;
 
 		if ((dax = ndctl_namespace_get_dax(ndns))) {
+			if (type == TYPE_NORMAL)
+				continue;
+			ASSERTeq(type, TYPE_DEVDAX);
+
 			struct daxctl_region *dax_region;
 			dax_region = ndctl_dax_get_daxctl_region(dax);
 			if (!dax_region) {
@@ -138,7 +217,7 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			struct daxctl_dev *dev;
 			daxctl_dev_foreach(dax_region, dev) {
 				devname = daxctl_dev_get_devname(dev);
-				int ret = os_dimm_match_device(st, devname);
+				int ret = os_dimm_match_devdax(st, devname);
 				if (ret < 0)
 					return ret;
 
@@ -152,6 +231,10 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			}
 
 		} else {
+			if (type == TYPE_DEVDAX)
+				continue;
+			ASSERTeq(type, TYPE_NORMAL);
+
 			if ((btt = ndctl_namespace_get_btt(ndns))) {
 				devname = ndctl_btt_get_block_device(btt);
 			} else if ((pfn = ndctl_namespace_get_pfn(ndns))) {
@@ -161,7 +244,7 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 					ndctl_namespace_get_block_device(ndns);
 			}
 
-			int ret = os_dimm_match_device(st, devname);
+			int ret = os_dimm_match_fsdax(st, devname);
 			if (ret < 0)
 				return ret;
 
