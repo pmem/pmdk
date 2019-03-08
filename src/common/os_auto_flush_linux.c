@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -75,7 +75,7 @@ check_cpu_cache(const char *domain_path)
 		cpu_cache = -1;
 		goto end;
 	} else if (len == 0) {
-		errno = ENODATA;
+		errno = EIO;
 		ERR("read(%d, %p, %d) empty string",
 			domain_fd, domain_value,
 			DOMAIN_VALUE_LEN);
