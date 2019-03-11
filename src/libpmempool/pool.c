@@ -43,10 +43,7 @@
 
 #ifndef _WIN32
 #include <sys/ioctl.h>
-#ifdef __FreeBSD__
-#include <sys/disk.h>
-#define BLKGETSIZE64 DIOCGMEDIASIZE
-#else
+#ifndef __FreeBSD__
 #include <linux/fs.h>
 #endif
 #endif
@@ -68,6 +65,15 @@
 #include "check_util.h"
 #include "util_pmem.h"
 #include "mmap.h"
+
+#ifdef __FreeBSD__
+/*
+ * This include is ordered last so that our local copy of queue.h
+ * will be found instead of the FreeBSD system copy.
+ */
+#include <sys/disk.h>
+#define BLKGETSIZE64 DIOCGMEDIASIZE
+#endif
 
 /* arbitrary size of a maximum file part being read / write at once */
 #define RW_BUFFERING_SIZE (128 * 1024 * 1024)
