@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,13 +33,6 @@
 /*
  * rpmemd_log.c -- rpmemd logging functions definitions
  */
-/* for GNU version of basename */
-/* XXX Consider changing to Posix basename for consistency */
-#ifdef __FreeBSD__
-#include <libgen.h>
-#else
-#define _GNU_SOURCE
-#endif
 #include <errno.h>
 #include <stdio.h>
 #include <syslog.h>
@@ -78,6 +71,24 @@ static int rpmemd_level2prio[MAX_RPD_LOG] = {
 	[RPD_LOG_INFO]		= LOG_INFO,
 	[_RPD_LOG_DBG]		= LOG_DEBUG,
 };
+
+/*
+ * rpmemd_log_basename -- similar to POSIX basename, but without handling for
+ * trailing slashes.
+ */
+static const char *
+rpmemd_log_basename(const char *fname)
+{
+	const char *s;
+
+	if (fname == NULL)
+		return "(null)";
+	s = strrchr(fname, '/');
+	if (s != NULL)
+		return s + 1;
+	else
+		return fname;
+}
 
 /*
  * rpmemd_log_level_from_str -- converts string to log level value
@@ -196,7 +207,7 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 	int ret;
 	if (fname) {
 		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
-				"[%s:%d] ", basename(fname), lineno);
+				"[%s:%d] ", rpmemd_log_basename(fname), lineno);
 		if (ret < 0)
 			RPMEMD_FATAL("snprintf failed: %d", ret);
 		if ((unsigned)ret >= RPMEMD_MAX_MSG - cnt)
