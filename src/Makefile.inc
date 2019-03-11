@@ -342,10 +342,9 @@ $(objdir)/%.htmp: %.h
 -include $(objdir)/.deps/*.P
 
 %.link: %.link.in
-	@cat $< > $@_temp
 ifeq ($(FAULT_INJECTION),1)
-	@sed -i 's/fault_injection;/$(LIBRARY_NAME)_inject_fault_at;\n\t\t$(LIBRARY_NAME)_fault_injection_enabled;/g' $@_temp
+	@sed 's/fault_injection;/$(LIBRARY_NAME)_inject_fault_at;\n\t\t$(LIBRARY_NAME)_fault_injection_enabled;/g' $< > $@_temp
 else
-	@sed -i '/fault_injection;/d' $@_temp
+	@sed '/fault_injection;/d' $< > $@_temp
 endif
 	@mv $@_temp $@
