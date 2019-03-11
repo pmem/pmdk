@@ -21,9 +21,11 @@ pmemobj_defer_free
 pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg
+$(OPT)pmemobj_fault_injection_enabled
 pmemobj_first
 pmemobj_flush
 pmemobj_free
+$(OPT)pmemobj_inject_fault_at
 pmemobj_list_insert
 pmemobj_list_insert_new
 pmemobj_list_move

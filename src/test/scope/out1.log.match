@@ -5,9 +5,11 @@ pmem_deep_flush
 pmem_deep_persist
 pmem_drain
 pmem_errormsg
+$(OPT)pmem_fault_injection_enabled
 pmem_flush
 pmem_has_auto_flush
 pmem_has_hw_drain
+$(OPT)pmem_inject_fault_at
 pmem_is_pmem
 pmem_map_file
 pmem_memcpy
