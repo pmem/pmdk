@@ -195,8 +195,11 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 	size_t cnt = 0;
 	int ret;
 	if (fname) {
+		char *basename_fname = strdup(fname);
+		basename_fname = basename(basename_fname);
 		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
-				"[%s:%d] ", basename(fname), lineno);
+				"[%s:%d] ", basename_fname, lineno);
+		free(basename_fname);
 		if (ret < 0)
 			RPMEMD_FATAL("snprintf failed: %d", ret);
 		if ((unsigned)ret >= RPMEMD_MAX_MSG - cnt)
