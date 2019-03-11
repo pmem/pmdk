@@ -1704,7 +1704,6 @@ function configure_valgrind() {
 #   for valgrind first
 #
 function valgrind_version_no_check() {
-	require_command bc
 	$VALGRINDEXE --version | sed "s/valgrind-\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc
 }
 
@@ -1713,6 +1712,8 @@ function valgrind_version_no_check() {
 #	valgrind package is installed
 #
 function require_valgrind() {
+	# bc is used inside valgrind_version_no_check
+	require_command bc
 	require_no_asan
 	disable_exit_on_error
 	VALGRINDEXE=`which valgrind 2>/dev/null`
