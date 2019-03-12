@@ -53,7 +53,7 @@ create_poolset $POOLSET 8M:$DIR/testfile0:z \
 			12M:$DIR/testfile3:z \
 			12M:$DIR/testfile4:z
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"

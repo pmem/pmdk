@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,18 +53,18 @@ rm -f $LOG && touch $LOG
 POOLSET=$DIR/testset1
 create_poolset $POOLSET AUTO:$DEVICE_DAX_PATH
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DEVICE_DAX_PATH
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $DEVICE_DAX_PATH
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DEVICE_DAX_PATH
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $DEVICE_DAX_PATH
 expect_normal_exit $PMEMPOOL$EXESUFFIX create log $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET &> /dev/null
 
 #remove the pools in the poolset while preserving the file itself
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm -s $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -fs $POOLSET
 #verify that the poolset still exists
 check_files $POOLSET
 

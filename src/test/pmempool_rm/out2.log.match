@@ -1,7 +1,4 @@
 error: cannot remove '$(*)pool.obj': No such file or directory
-error: cannot remove file '$(*)pool.part1': No such file or directory
-error: cannot remove file '$(*)pool.part2': No such file or directory
-error: cannot remove file '$(*)rep.part1': No such file or directory
-error: cannot remove file '$(*)rep.part2': No such file or directory
+error: cannot open file '$(*)pool.part1': No such file or directory
 error: removing '$(*)pool.set' failed: No such file or directory
 removed '$(*)pool.set'

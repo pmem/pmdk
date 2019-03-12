@@ -108,7 +108,7 @@ expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 
 $GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $DIR/testset9
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $DIR/testset9
 
 check
 
