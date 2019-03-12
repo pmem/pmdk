@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -110,6 +110,41 @@ do_tx_add_range_alloc_commit(PMEMobjpool *pop)
 	} TX_END
 
 	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+
+	for (size_t i = 0; i < DATA_SIZE; i++)
+		UT_ASSERTeq(D_RO(obj)->data[i], TEST_VALUE_2);
+}
+
+/*
+ * do_tx_add_range_alloc_with_size_0 -- call add_range_direct on object
+ * with size 0
+ */
+static void
+do_tx_add_range_alloc_with_size_0(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+		UT_ASSERT(!TOID_IS_NULL(obj));
+
+		char *ptr = (char *)pmemobj_direct(obj.oid);
+		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF, 0);
+		UT_ASSERTeq(ret, 0);
+
+		D_RW(obj)->value = TEST_VALUE_1;
+
+		ret = pmemobj_tx_add_range_direct(ptr + DATA_OFF, 0);
+		UT_ASSERTeq(ret, 0);
+
+		pmemobj_memset_persist(pop, D_RW(obj)->data, TEST_VALUE_2,
+			DATA_SIZE);
+
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+		UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 
 	size_t i;
 	for (i = 0; i < DATA_SIZE; i++)
@@ -649,6 +684,8 @@ main(int argc, char *argv[])
 	do_tx_add_range_lots_of_small_snapshots(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_add_cache_overflowing_range(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_add_range_alloc_with_size_0(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_xadd_range_commit(pop);
 
