@@ -191,6 +191,22 @@ STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmem.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmem.a
 endif
 
+ifeq ($(LIBRPMEM),y)
+ifeq ($(BUILD_RPMEM),y)
+MAKEFILE_DEPS=librpmem
+# XXX: replace with DYNAMIC_LIBS
+LIBS += -lrpmem
+LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
+CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+# XXX: set librpmem target in the right way
+# STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/librpmem.a
+# STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/librpmem.a
+else
+CFLAGS += -UUSE_RPMEM
+$(info NOTE: Skipping librpmem benchmark because $(BUILD_RPMEM_INFO))
+endif
+endif
+
 ifeq ($(LIBVMEM),y)
 DYNAMIC_LIBS += -lvmem
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libvmem.a
@@ -247,7 +263,7 @@ LDFLAGS += $(GCOV_LDFLAGS)
 LIBS += $(GCOV_LIBS)
 endif
 
-MAKEFILE_DEPS=$(TOP)/src/tools/Makefile.inc $(TOP)/src/common.inc
+MAKEFILE_DEPS += $(TOP)/src/tools/Makefile.inc $(TOP)/src/common.inc
 
 ifneq ($(TARGET),)
 all: $(TARGET) $(TARGET_STATIC_NONDEBUG) $(TARGET_STATIC_DEBUG)
@@ -309,6 +325,10 @@ $(TARGET):
 
 $(PMEMLOG_PRIV_OBJ):
 	$(MAKE) -C $(LIBSDIR) libpmemlog
+
+# XXX: set librpmem target in the right way
+librpmem:
+	$(MAKE) -C $(LIBSDIR) librpmem
 
 pmemlog_priv.o: $(PMEMLOG_PRIV_OBJ)
 	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMLOG_PRIV)) $< $@
