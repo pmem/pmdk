@@ -74,7 +74,6 @@ test_script:
             if ($?) {
                 ./RUNTESTS.py -b debug
             }
-
         }
         if ($Env:CONFIGURATION -eq "Release") {
             ./RUNTESTS.ps1 -b nondebug -o 4m
