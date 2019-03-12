@@ -131,6 +131,8 @@ OBJ_TESTS = \
 	obj_tx_alloc\
 	obj_tx_add_range\
 	obj_tx_add_range_direct\
+	obj_tx_xadd_range\
+	obj_tx_xadd_range_direct\
 	obj_tx_callbacks\
 	obj_tx_flow\
 	obj_tx_free\

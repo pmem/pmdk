@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -772,6 +772,39 @@ do_tx_alloc_many(PMEMobjpool *pop)
 #undef TX_ALLOC_COUNT
 }
 
+/*
+ * do_tx_xalloc_type_num_uint64 -- allocates object with type number equal to
+ * range of unsigned long long int
+ */
+static void
+do_tx_xalloc_type_num_uint64(PMEMobjpool *pop)
+{
+	/* xalloc 0 */
+	TOID(struct object) obj;
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(sizeof(struct object),
+			UINT64_MAX, 0));
+		D_RW(obj)->value = TEST_VALUE_1;
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(obj, OID_NULL);
+
+	/* xalloc ZERO */
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(sizeof(struct object),
+			UINT64_MAX, POBJ_XALLOC_ZERO));
+		D_RW(obj)->value = TEST_VALUE_1;
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -826,6 +859,9 @@ main(int argc, char *argv[])
 	VALGRIND_WRITE_STATS;
 
 	do_tx_xalloc_huge(pop);
+	VALGRIND_WRITE_STATS;
+
+	do_tx_xalloc_type_num_uint64(pop);
 	VALGRIND_WRITE_STATS;
 
 	/* alloc */

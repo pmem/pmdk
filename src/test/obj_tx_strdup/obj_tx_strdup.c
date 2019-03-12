@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -73,6 +73,9 @@ enum type_number {
 #define TEST_STR_2	"Test string 2"
 #define TEST_WCS_1	L"Test string 3"
 #define TEST_WCS_2	L"Test string 4"
+#define TEST_EMPTY	""
+#define TEST_WEMPTY	L""
+
 #define MAX_FUNC	2
 
 typedef void (*fn_tx_strdup)(TOID(char) *str, const char *s,
@@ -296,6 +299,30 @@ do_tx_strdup_commit_nested(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_strdup_empty -- duplicate empty string
+ */
+static void
+do_tx_strdup_empty(PMEMobjpool *pop)
+{
+	TOID(char) str;
+	TOID(wchar_t) wcs;
+	TX_BEGIN(pop) {
+		do_tx_strdup[counter](&str, TEST_EMPTY, TYPE_COMMIT);
+		do_tx_wcsdup[counter](&wcs, TEST_WEMPTY, TYPE_WCS_COMMIT);
+		UT_ASSERT(!TOID_IS_NULL(str));
+		UT_ASSERT(!TOID_IS_NULL(wcs));
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(str, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT));
+	TOID_ASSIGN(wcs, POBJ_FIRST_TYPE_NUM(pop, TYPE_WCS_COMMIT));
+	UT_ASSERT(!TOID_IS_NULL(str));
+	UT_ASSERT(!TOID_IS_NULL(wcs));
+}
+
+
+/*
  * do_tx_strdup_commit_abort -- duplicate two string  suing nested
  * transaction and abort the transaction
  */
@@ -387,6 +414,32 @@ do_tx_strdup_abort_after_nested(PMEMobjpool *pop)
 	UT_ASSERT(TOID_IS_NULL(wcs2));
 }
 
+/*
+ * do_tx_strdup_type_number_uint64 -- duplicate string with
+ * type number equal to UINT64_MAX
+ */
+static void
+do_tx_strdup_type_number_uint64(PMEMobjpool *pop)
+{
+	TOID(char) obj_str;
+	TOID(wchar_t) obj_wcs;
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj_str, pmemobj_tx_strdup(TEST_STR_1, UINT64_MAX));
+		TOID_ASSIGN(obj_wcs, pmemobj_tx_wcsdup(TEST_WCS_1, UINT64_MAX));
+
+		pmemobj_tx_strdup(TEST_STR_1, UINT64_MAX);
+		pmemobj_tx_wcsdup(TEST_WCS_1, UINT64_MAX);
+		UT_ASSERT(!TOID_IS_NULL(obj_str));
+		UT_ASSERT(!TOID_IS_NULL(obj_wcs));
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(strcmp(TEST_STR_1, D_RO(obj_str)), 0);
+	UT_ASSERTeq(wcscmp(TEST_WCS_1, D_RO(obj_wcs)), 0);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -407,8 +460,10 @@ main(int argc, char *argv[])
 		do_tx_strdup_free_commit(pop);
 		do_tx_strdup_free_abort(pop);
 		do_tx_strdup_commit_nested(pop);
+		do_tx_strdup_empty(pop);
 		do_tx_strdup_abort_nested(pop);
 		do_tx_strdup_abort_after_nested(pop);
+		do_tx_strdup_type_number_uint64(pop);
 	}
 	pmemobj_close(pop);
 

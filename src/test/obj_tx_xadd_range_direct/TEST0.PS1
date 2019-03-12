@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,11 +29,25 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# obj_tx_add_range/config.sh -- test configuration
+# src/test/obj_tx_xadd_range_direct/TEST0 -- unit test for pmemobj_tx_xadd_range_direct
 #
 
-# Extend timeout for this test, as it may take a few minutes
-# when run on a non-pmem file system.
+. ..\unittest\unittest.ps1
 
-CONF_GLOBAL_TIMEOUT='10m'
+require_test_type medium
+
+setup
+
+# <path> <size> <exp_errno>
+
+expect_normal_exit $ENV:EXE_DIR\obj_tx_xadd_range_direct$Env:EXESUFFIX `
+	$DIR\testfile1 0 0 `
+	$DIR\testfile1 1 0 `
+	$DIR\testfile1 B 22 `
+	$DIR\testfile1 S 22
+
+check
+
+pass
