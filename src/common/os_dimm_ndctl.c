@@ -777,37 +777,11 @@ os_dimm_devdax_clear_one_badblock(struct ndctl_bus *bus,
 		goto out_ars_cap;
 	}
 
-	struct ndctl_cmd *cmd_ars_start =
-		ndctl_bus_cmd_new_ars_start(cmd_ars_cap, ND_ARS_PERSISTENT);
-	if (cmd_ars_start == NULL) {
-		ERR("ndctl_bus_cmd_new_ars_start() failed");
+	struct ndctl_range range;
+	if (ndctl_cmd_ars_cap_get_range(cmd_ars_cap, &range)) {
+		ERR("failed to get ars_cap range\n");
 		goto out_ars_cap;
 	}
-
-	if ((ret = ndctl_cmd_submit(cmd_ars_start)) < 0) {
-		ERR("failed to submit cmd (bus '%s')",
-			ndctl_bus_get_provider(bus));
-		goto out_ars_start;
-	}
-
-	struct ndctl_cmd *cmd_ars_status;
-	do {
-		cmd_ars_status = ndctl_bus_cmd_new_ars_status(cmd_ars_cap);
-		if (cmd_ars_status == NULL) {
-			ERR("ndctl_bus_cmd_new_ars_status() failed");
-			goto out_ars_start;
-		}
-
-		if ((ret = ndctl_cmd_submit(cmd_ars_status)) < 0) {
-			ERR("failed to submit cmd (bus '%s')",
-				ndctl_bus_get_provider(bus));
-			goto out_ars_status;
-		}
-
-	} while (ndctl_cmd_ars_in_progress(cmd_ars_status));
-
-	struct ndctl_range range;
-	ndctl_cmd_ars_cap_get_range(cmd_ars_cap, &range);
 
 	struct ndctl_cmd *cmd_clear_error = ndctl_bus_cmd_new_clear_error(
 		range.address, range.length, cmd_ars_cap);
@@ -826,10 +800,6 @@ os_dimm_devdax_clear_one_badblock(struct ndctl_bus *bus,
 
 out_clear_error:
 	ndctl_cmd_unref(cmd_clear_error);
-out_ars_status:
-	ndctl_cmd_unref(cmd_ars_status);
-out_ars_start:
-	ndctl_cmd_unref(cmd_ars_start);
 out_ars_cap:
 	ndctl_cmd_unref(cmd_ars_cap);
 
