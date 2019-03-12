@@ -1,3 +1,2 @@
-error: cannot remove file '$(nW)pool2': No such file or directory
-error: cannot remove file '$(nW)pool3': No such file or directory
+error: cannot open file '$(nW)pool2': No such file or directory
 error: removing '$(nW)pool.set' failed: No such file or directory

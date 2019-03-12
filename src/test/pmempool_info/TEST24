@@ -63,7 +63,7 @@ rm -f $LOG && touch $LOG
 POOLSET=$DIR/testset1
 create_poolset $POOLSET AUTO:$FULLDEV:x
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 
 # inject bad block: OFF=11 LEN=1

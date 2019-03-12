@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -71,10 +71,10 @@ create_poolset $POOLSET2 \
 # Create a poolset
 expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET1
 cat $LOG >> $LOG_TEMP
-
+echo 1
 # Damage the replica
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm ${DEVICE_DAX_PATH[1]}
-
+echo 2
 # Try to synchronize replicas using the second poolset in dry-run mode
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX sync -d $POOLSET2 >> $LOG_TEMP 2>&1
 

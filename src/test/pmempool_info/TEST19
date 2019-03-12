@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -52,7 +52,7 @@ rm -f $LOG && touch $LOG
 POOLSET=$DIR/testset1
 create_poolset $POOLSET AUTO:${DEVICE_DAX_PATH[0]} AUTO:${DEVICE_DAX_PATH[1]}
 
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
+expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL$EXESUFFIX info ${DEVICE_DAX_PATH[0]} >> $LOG

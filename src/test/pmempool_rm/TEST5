@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -57,9 +57,9 @@ check_no_file $DIR/pool2 $DIR/pool3
 expect_abnormal_exit $PMEMPOOL$EXESUFFIX rm -a\
 	$DIR/pool.1 $DIR/pool.set $DIR/pool.2 2>log$UNITTEST_NUM.log
 
-check_no_files $DIR/pool1 $DIR/pool2 $DIR/pool3 $DIR/pool4\
+check_no_files $DIR/pool2 $DIR/pool3 \
 	$DIR/pool.1 $DIR/pool.2
-check_file $DIR/pool.set
+check_file $DIR/pool.set $DIR/pool1 $DIR/pool4
 
 check
 
