@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 #define TEST_VALUE_A 5
 #define TEST_VALUE_B 10
 #define TEST_VALUE_C 15
-#define OPS_NUM 8
+#define OPS_NUM 9
 TOID_DECLARE(struct test_obj, 1);
 
 struct test_obj {
@@ -49,6 +49,13 @@ struct test_obj {
 	int c;
 };
 
+static ut_jmp_buf_t Jmp;
+
+static void
+signal_handler(int sig)
+{
+	ut_siglongjmp(Jmp);
+}
 
 static void
 do_tx_macro_commit(PMEMobjpool *pop, TOID(struct test_obj) *obj)
@@ -213,6 +220,23 @@ do_tx_abort_nested(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 	pmemobj_tx_end();
 }
 
+static void
+do_tx_different_pointer(PMEMobjpool *pop, PMEMobjpool *pop2)
+{
+	TX_BEGIN(pop) {
+		TX_BEGIN(pop2) {
+		}TX_ONCOMMIT {
+			UT_ASSERT(0);
+		} TX_ONABORT {
+			UT_ASSERTeq(errno, EINVAL);
+		} TX_END
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_ONABORT {
+		UT_ASSERTeq(errno, EINVAL);
+	} TX_END
+}
+
 typedef void (*fn_op)(PMEMobjpool *pop, TOID(struct test_obj) *obj);
 static fn_op tx_op[OPS_NUM] = {do_tx_macro_commit, do_tx_macro_abort,
 			do_tx_macro_commit_nested, do_tx_macro_abort_nested,
@@ -256,17 +280,40 @@ do_tx_process_nested(PMEMobjpool *pop)
 	UT_ASSERT(pmemobj_tx_stage() == TX_STAGE_NONE);
 }
 
+static void
+do_tx_process_abort(PMEMobjpool *pop)
+{
+	struct sigaction v;
+	sigemptyset(&v.sa_mask);
+	v.sa_flags = 0;
+	v.sa_handler = signal_handler;
+	SIGACTION(SIGABRT, &v, NULL);
+
+	UT_ASSERT(pmemobj_tx_stage() == TX_STAGE_NONE);
+
+	if (!ut_sigsetjmp(Jmp)) {
+		pmemobj_tx_process();
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_tx_flow");
-
 	if (argc != 2)
 		UT_FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
-	    S_IWUSR | S_IRUSR)) == NULL)
+		S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemobj_create");
+
+	char *path = (char *)malloc(strlen(argv[1]) + 3);
+	sprintf(path, "%s_2", argv[1]);
+
+	PMEMobjpool *pop2;
+	if ((pop2 = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
+		S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 
 	TOID(struct test_obj) obj;
@@ -284,7 +331,11 @@ main(int argc, char *argv[])
 	}
 	do_tx_process(pop);
 	do_tx_process_nested(pop);
-	pmemobj_close(pop);
+	do_tx_different_pointer(pop, pop2);
 
+	do_tx_process_abort(pop);
+
+	pmemobj_close(pop);
+	pmemobj_close(pop2);
 	DONE(NULL);
 }
