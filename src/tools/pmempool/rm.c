@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -282,6 +282,17 @@ static int
 rm_poolset(const char *file)
 {
 	int error = 0;
+	if (!force) {
+		/* open poolset to check if all its parts exist */
+		struct pool_set_file *pfile = pool_set_file_open(file,
+				1 /* rdonly */, 1 /* check */);
+		if (!pfile) {
+			outv_err("%s\n", out_get_errormsg());
+			return -1;
+		}
+		pool_set_file_close(pfile);
+	}
+
 	int ret = util_poolset_foreach_part(file, rm_poolset_cb, &error);
 	if (ret == -1) {
 		outv_err("parsing poolset failed: %s\n",
