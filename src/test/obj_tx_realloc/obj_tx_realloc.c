@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -478,6 +478,120 @@ do_tx_realloc_free(PMEMobjpool *pop)
 	UT_ASSERT(TOID_IS_NULL(obj));
 }
 
+/*
+ * do_tx_realloc_null_oid -- reallocate an object with null oid
+ */
+static void
+do_tx_realloc_null_oid(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT, TEST_VALUE_1));
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, OID_NULL);
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid,
+			sizeof(struct object), TYPE_COMMIT));
+		UT_ASSERT(!TOID_IS_NULL(obj));
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT));
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= sizeof(struct object));
+}
+
+/*
+ * do_tx_zrealloc_null_oid -- reallocate an object with null oid
+ */
+static void
+do_tx_zrealloc_null_oid(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT, TEST_VALUE_1));
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, OID_NULL);
+		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
+			sizeof(struct object), TYPE_COMMIT));
+		UT_ASSERT(!TOID_IS_NULL(obj));
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT));
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >= sizeof(struct object));
+}
+
+static void
+do_tx_zrealloc_type_number_uint64(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT, TEST_VALUE_1));
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid,
+			sizeof(struct object), UINT64_MAX));
+		UT_ASSERT(!TOID_IS_NULL(obj));
+		UT_ASSERT(pmemobj_alloc_usable_size(obj.oid) >=
+			sizeof(struct object));
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
+/*
+ * do_tx_realloc_negative_size -- reallocate an object with size -1
+ */
+static void
+do_tx_realloc_negative_size(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT, TEST_VALUE_1));
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_realloc(obj.oid, (size_t)-1,
+			TYPE_COMMIT));
+		UT_ASSERT(0); /* should not get to this point */
+
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT));
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
+/*
+ *
+ * do_tx_zrealloc_negative_size -- reallocate an object with size -1
+ */
+static void
+do_tx_zrealloc_negative_size(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_COMMIT, TEST_VALUE_1));
+
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_zrealloc(obj.oid, (size_t)-1,
+			TYPE_COMMIT));
+		UT_ASSERT(0); /* should not get to this point */
+
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_COMMIT));
+	UT_ASSERT(!TOID_IS_NULL(obj));
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -504,7 +618,11 @@ main(int argc, char *argv[])
 	do_tx_realloc_alloc_commit(pop);
 	do_tx_realloc_alloc_abort(pop);
 	do_tx_realloc_free(pop);
-
+	do_tx_realloc_null_oid(pop);
+	do_tx_zrealloc_null_oid(pop);
+	do_tx_zrealloc_type_number_uint64(pop);
+	do_tx_realloc_negative_size(pop);
+	do_tx_zrealloc_negative_size(pop);
 	pmemobj_close(pop);
 
 	DONE(NULL);
