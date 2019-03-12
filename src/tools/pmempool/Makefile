@@ -1,4 +1,4 @@
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,16 +34,16 @@ SCP_TO_REMOTE_NODES = y
 
 vpath %.c ../../libpmemobj/
 vpath %.c ../../librpmem/
-vpath %.c ../../rpmem_common/
 
 TARGET = pmempool
 
 OBJS = pmempool.o\
        info.o info_blk.o info_log.o info_obj.o ulog.o\
        create.o dump.o check.o rm.o convert.o synchronize.o transform.o\
-       rpmem_ssh.o rpmem_cmd.o rpmem_util.o rpmem_common.o feature.o
+       rpmem_util.o feature.o
 
 LIBPMEM=y
+LIBRPMEM=y
 LIBPMEMBLK=y
 LIBPMEMOBJ=y
 LIBPMEMLOG=y
