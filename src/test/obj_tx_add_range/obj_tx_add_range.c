@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,11 +35,13 @@
  */
 #include <string.h>
 #include <stddef.h>
+#include <limits.h>
 
 #include "tx.h"
 #include "unittest.h"
 #include "util.h"
 #include "valgrind_internal.h"
+
 
 #define LAYOUT_NAME "tx_add_range"
 
@@ -635,6 +637,36 @@ do_tx_add_range_zero(PMEMobjpool *pop)
 	UT_ASSERTne(errno, 0);
 }
 
+static void
+do_tx_add_range_null_oid(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, OID_NULL);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_ONABORT {
+		UT_ASSERTeq(errno, EINVAL);
+	} TX_END
+}
+
+static void
+do_tx_add_range_offset_too_large(PMEMobjpool *pop)
+{
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_add_range(obj.oid, UINT_MAX, VALUE_SIZE);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_ONABORT {
+		UT_ASSERTeq(errno, EINVAL);
+	} TX_END
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -681,7 +713,12 @@ main(int argc, char *argv[])
 		VALGRIND_WRITE_STATS;
 		do_tx_add_range_zero(pop);
 		VALGRIND_WRITE_STATS;
+		do_tx_add_range_null_oid(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_offset_too_large(pop);
+		VALGRIND_WRITE_STATS;
 		do_tx_xadd_range_commit(pop);
+
 		pmemobj_close(pop);
 	}
 
