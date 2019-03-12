@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -72,7 +72,7 @@ expect_normal_exit $PMEMSPOIL $DIR\testfile1 "pool_hdr.uuid=0000000000000000" `
 expect_abnormal_exit $PMEMPOOL sync $POOLSET >> $LOG_TEMP 2>&1
 
 # Remove poolset
-expect_normal_exit $PMEMPOOL rm $POOLSET
+expect_normal_exit $PMEMPOOL rm -f $POOLSET
 
 # Create pmemlog poolset
 expect_normal_exit $PMEMPOOL create log $POOLSET
