@@ -1,2 +1,2 @@
-error: cannot remove 'testset_remote' on $(nW): $(S)
-error: removing '$(nW)testset_local' failed: $(S)
+error: opening poolset failed
+error: opening remote replica #1 failed
