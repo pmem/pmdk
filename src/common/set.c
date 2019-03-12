@@ -1941,6 +1941,27 @@ util_pool_close_remote(RPMEMpool *rpp)
 }
 
 /*
+ * util_poolset_remote_test -- open and close remote replica
+ */
+int util_poolset_remote_test(struct part_file *pf, void *pool_addr,
+		size_t pool_size, unsigned *nlanes,
+		struct rpmem_pool_attr *rpmem_attr)
+{
+	if (!Rpmem_handle_remote) {
+		return -1;
+	}
+
+	RPMEMpool *rpp = Rpmem_open(pf->remote->node_addr,
+			pf->remote->pool_desc, pool_addr, pool_size,
+			nlanes, rpmem_attr);
+	if (rpp == NULL) {
+		ERR("opening remote replica failed");
+		return 1;
+	}
+
+	return Rpmem_close(rpp);
+}
+/*
  * util_poolset_remote_open -- open or create a remote replica
  */
 int

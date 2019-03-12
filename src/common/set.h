@@ -406,6 +406,9 @@ void util_remote_destroy_lock(void);
 int util_pool_close_remote(RPMEMpool *rpp);
 void util_remote_unload(void);
 void util_replica_fdclose(struct pool_replica *rep);
+extern int util_poolset_remote_test(struct part_file *pf, void *pool_addr,
+		size_t pool_size, unsigned *nlanes,
+		struct rpmem_pool_attr *rpmem_attr);
 int util_poolset_remote_open(struct pool_replica *rep, unsigned repidx,
 	size_t minsize, int create, void *pool_addr,
 	size_t pool_size, unsigned *nlanes);
