@@ -1,4 +1,4 @@
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -76,7 +76,8 @@ LIBPMEMBLK_PRIV_FUNCS=btt_info_set btt_arena_datasize btt_flog_size\
 
 include ../Makefile.inc
 
-LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL)
+CFLAGS += $(LIBNDCTL_CFLAGS)
+LIBS += -pthread -lpmem $(LIBDL) $(LIBNDCTL_LIBS)
 CFLAGS += -DUSE_LIBDL
 CFLAGS += -DUSE_RPMEM
 
