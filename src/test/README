@@ -124,12 +124,6 @@ unit test framework also looks for several other variables:
 
 	TRACE is not supported for tests which are executed on remote nodes.
 
-	Override the LD_LIBRARY_PATH provided by the unit test framework.  This
-	is useful for running a test against another source tree or against the
-	libraries installed on the system:
-
-		$ TEST_LD_LIBRARY_PATH=/usr/lib ./TEST0
-
 	Run test under Valgrind/memcheck:
 
 		$ MEMCHECK=force-enable ./TEST0

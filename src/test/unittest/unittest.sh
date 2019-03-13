@@ -156,41 +156,30 @@ fi
 # array of lists of PID files to be cleaned in case of an error
 NODE_PID_FILES[0]=""
 
-#
-# The variable TEST_LD_LIBRARY_PATH is constructed so the test pulls in
-# the appropriate library from this source tree.  To override this behavior
-# (i.e. to force the test to use the libraries installed elsewhere on
-# the system), set TEST_LD_LIBRARY_PATH and this script will not override it.
-#
-# For example, in a test directory, run:
-#	TEST_LD_LIBRARY_PATH=/usr/lib ./TEST0
-#
-[ "$TEST_LD_LIBRARY_PATH" ] || {
-	case "$BUILD"
-	in
-	debug|static-debug)
-		if [ -z "$PMDK_LIB_PATH_DEBUG" ]; then
-			PMDK_LIB_PATH=../../debug
-			REMOTE_PMDK_LIB_PATH=../debug
-		else
-			PMDK_LIB_PATH=$PMDK_LIB_PATH_DEBUG
-			REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_DEBUG
-		fi
-		;;
-	nondebug|static-nondebug)
-		if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
-			PMDK_LIB_PATH=../../nondebug
-			REMOTE_PMDK_LIB_PATH=../nondebug
-		else
-			PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
-			REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
-		fi
-		;;
-	esac
+case "$BUILD"
+in
+debug|static-debug)
+	if [ -z "$PMDK_LIB_PATH_DEBUG" ]; then
+		PMDK_LIB_PATH=../../debug
+		REMOTE_PMDK_LIB_PATH=../debug
+	else
+		PMDK_LIB_PATH=$PMDK_LIB_PATH_DEBUG
+		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_DEBUG
+	fi
+	;;
+nondebug|static-nondebug)
+	if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
+		PMDK_LIB_PATH=../../nondebug
+		REMOTE_PMDK_LIB_PATH=../nondebug
+	else
+		PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
+		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
+	fi
+	;;
+esac
 
-	TEST_LD_LIBRARY_PATH=$PMDK_LIB_PATH:$LD_LIBRARY_PATH
-	REMOTE_LD_LIBRARY_PATH=$REMOTE_PMDK_LIB_PATH:\$LD_LIBRARY_PATH
-}
+export LD_LIBRARY_PATH=$PMDK_LIB_PATH:$LIBNDCTL_LD_LIBRARY_PATHS:$LD_LIBRARY_PATH
+export REMOTE_LD_LIBRARY_PATH=$REMOTE_PMDK_LIB_PATH:$LIBNDCTL_LD_LIBRARY_PATHS:\$LD_LIBRARY_PATH
 
 #
 # When running static binary tests, append the build type to the binary
@@ -832,8 +821,7 @@ function expect_normal_exit() {
 
 	disable_exit_on_error
 
-	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
-		$trace "$*"
+	eval $ECHO LD_PRELOAD=$TEST_LD_PRELOAD $trace "$*"
 	ret=$?
 
 	if [ $REMOTE_VALGRIND_LOG -eq 1 ]; then
@@ -926,7 +914,7 @@ function expect_abnormal_exit() {
 
 	disable_exit_on_error
 	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" \
-		LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE "$*"
+		LD_PRELOAD=$TEST_LD_PRELOAD $TRACE "$*"
 	ret=$?
 	restore_exit_on_error
 
@@ -990,7 +978,7 @@ function require_unlimited_vm() {
 function require_linked_with_ndctl() {
 	[ "$1" == "" -o ! -x "$1" ] && \
 		fatal "$UNITTEST_NAME: ERROR: require_linked_with_ndctl() requires one argument - an executable file"
-	local lddndctl=$(LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH ldd $1 | $GREP -ce "libndctl")
+	local lddndctl=$(ldd $1 | $GREP -ce "libndctl")
 	[ "$lddndctl" == "1" ] && return
 	msg "$UNITTEST_NAME: SKIP required: executable $1 linked with libndctl"
 	exit 0
@@ -1934,7 +1922,7 @@ function require_preload() {
 	shift
 	trap SIGABRT
 	disable_exit_on_error
-	ret=$(LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $* 2>&1 /dev/null)
+	ret=$(LD_PRELOAD=$TEST_LD_PRELOAD $* 2>&1 /dev/null)
 	ret=$?
 	restore_exit_on_error
 	if [ $ret == 134 ]; then
@@ -3431,7 +3419,7 @@ function pmreorder_run_tool()
 {
 	rm -f pmreorder$UNITTEST_NUM.log
 	disable_exit_on_error
-	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $PYTHON_EXE $PMREORDER \
+	$PYTHON_EXE $PMREORDER \
 		-l store_log$UNITTEST_NUM.log \
 		-o pmreorder$UNITTEST_NUM.log \
 		-r $1 \
@@ -3496,7 +3484,7 @@ function pmreorder_create_store_log()
 	cp $1 "$1.pmr"
 	rm -f store_log$UNITTEST_NUM.log
 
-	LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH $VALGRINDEXE \
+	$VALGRINDEXE \
 			--tool=pmemcheck -q \
 			--log-stores=yes \
 			--print-summary=no \
