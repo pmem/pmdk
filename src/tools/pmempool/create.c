@@ -531,6 +531,14 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 				return -1;
 			}
 		}
+
+		if (PMEM_POOL_TYPE_OBJ == pc.params.type) {
+			if (pc.layout != NULL) {
+				size_t len = sizeof(pc.params.obj.layout);
+				strncpy(pc.params.obj.layout, pc.layout, len);
+				pc.params.obj.layout[len - 1] = '\0';
+			}
+		}
 	} else if (pc.inherit_fname) {
 		pc.params.type = pc.inherit_params.type;
 	} else {
