@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@ setup
 $FALLOCATE 100M $DIR/testfile1
 
 ENV="\
-LD_LIBRARY_PATH=${TEST_LD_LIBRARY_PATH} \
+LD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
 UNITTEST_NUM=${UNITTEST_NUM} \
 UNITTEST_NAME=${UNITTEST_NAME} \
 UNITTEST_LOG_LEVEL=${UNITTEST_LOG_LEVEL}"
