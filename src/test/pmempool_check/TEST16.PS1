@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -68,6 +68,12 @@ $file.LastWriteTime=$past
 
 expect_abnormal_exit $PMEMPOOL check -v $POOLSET >> $LOG
 expect_abnormal_exit $PMEMPOOL check -vry $POOLSET >> $LOG
+
+# To achieve different checksum, file creation time and file modification time,
+# have to be different. The precision of file modification time equals 1 second
+# on Windows OS. File modification time is updated during execution
+# 'pmempool check' command. That is why the test waits for 1 second.
+Start-Sleep -s 1
 expect_normal_exit $PMEMPOOL check -vrya $POOLSET >> $LOG
 expect_normal_exit $PMEMPOOL info $POOLSET >> $null
 
