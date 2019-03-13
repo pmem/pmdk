@@ -37,7 +37,7 @@
 #ifndef PMDK_VALGRIND_INTERNAL_H
 #define PMDK_VALGRIND_INTERNAL_H 1
 
-#ifndef _WIN32
+#if !defined(_WIN32) && !defined(__FreeBSD__)
 #ifndef VALGRIND_ENABLED
 #define VALGRIND_ENABLED 1
 #endif
