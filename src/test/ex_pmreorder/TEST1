@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
 
 . ../unittest/unittest.sh
 
-LIBPMEM_SO=${TEST_LD_LIBRARY_PATH}/libpmem.so.1
+LIBPMEM_SO=${PMDK_LIB_PATH}/libpmem.so.1
 
 require_test_type medium
 require_build_type debug nondebug

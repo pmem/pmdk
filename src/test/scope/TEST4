@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,9 +54,9 @@ parse_lib() {
 }
 
 if [ "$BUILD" = "debug" -o "$BUILD" = "nondebug" ]; then
-	parse_lib -D $TEST_LD_LIBRARY_PATH/libpmemobj.so.1
+	parse_lib -D $PMDK_LIB_PATH/libpmemobj.so.1
 else
-	parse_lib -g $TEST_LD_LIBRARY_PATH/libpmemobj.a
+	parse_lib -g $PMDK_LIB_PATH/libpmemobj.a
 fi
 
 check

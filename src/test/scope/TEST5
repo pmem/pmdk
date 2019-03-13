@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -54,7 +54,7 @@ parse_lib() {
 
 }
 
-parse_lib -D $TEST_LD_LIBRARY_PATH/$VMMALLOC
+parse_lib -D $PMDK_LIB_PATH/$VMMALLOC
 
 check
 
