@@ -306,6 +306,7 @@ DAXIO_TESTS = \
 	daxio
 
 PMREORDER_TESTS = \
+	pmreorder_flushes\
 	pmreorder_simple\
 	pmreorder_stack
 
