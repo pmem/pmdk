@@ -535,6 +535,13 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 				return -1;
 			}
 		}
+
+		if (PMEM_POOL_TYPE_OBJ == pc.params.type) {
+			if (pc.layout != NULL) {
+				memcpy(pc.params.obj.layout, pc.layout,
+					sizeof(pc.params.obj.layout));
+			}
+		}
 	} else if (pc.inherit_fname) {
 		pc.params.type = pc.inherit_params.type;
 	} else {
