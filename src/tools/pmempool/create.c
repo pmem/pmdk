@@ -202,12 +202,6 @@ pmempool_create_blk(struct pmempool_create *pcp)
 {
 	int ret = 0;
 
-	if (pcp->params.blk.bsize == 0) {
-		outv(1, "No block size option passed"
-				" - picking minimum block size.\n");
-		pcp->params.blk.bsize = PMEMBLK_MIN_BLK;
-	}
-
 	PMEMblkpool *pbp = pmemblk_create(pcp->fname, pcp->params.blk.bsize,
 			pcp->params.size, pcp->params.mode);
 	if (!pbp) {
