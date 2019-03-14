@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -85,7 +85,11 @@ fi
 
 # Find all the commits for the current build
 if [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
-	commits=$(git rev-list $TRAVIS_COMMIT_RANGE)
+	# $TRAVIS_COMMIT_RANGE contains "..." instead of ".."
+	# https://github.com/travis-ci/travis-ci/issues/4596
+	PR_COMMIT_RANGE="${TRAVIS_COMMIT_RANGE/.../..}"
+
+	commits=$(git rev-list $PR_COMMIT_RANGE)
 else
 	commits=$TRAVIS_COMMIT
 fi
