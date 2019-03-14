@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1221,6 +1221,9 @@ pocli_pmemobj_list_remove(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (r != POCLI_RET_OK)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 					"pmemobj_list_remove() failed\n");
+
+	if (if_free)
+		*oid = OID_NULL;
 
 	pocli_printf(ctx, "%s(%p, %s, %u): off = 0x%jx uuid = 0x%jx\n",
 				args->argv[0], oidp, args->argv[2], if_free,
