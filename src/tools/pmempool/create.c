@@ -532,12 +532,19 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 			}
 		}
 
-		if (PMEM_POOL_TYPE_OBJ == pc.params.type) {
-			if (pc.layout != NULL) {
-				size_t len = sizeof(pc.params.obj.layout);
-				strncpy(pc.params.obj.layout, pc.layout, len);
-				pc.params.obj.layout[len - 1] = '\0';
+		if (PMEM_POOL_TYPE_OBJ == pc.params.type && pc.layout != NULL) {
+			size_t max_layout = PMEMOBJ_MAX_LAYOUT;
+
+			if (strlen(pc.layout) >= max_layout) {
+				outv_err(
+						"Layout name is too long, maximum number of characters (including the terminating null byte) is %zu\n",
+						max_layout);
+				return -1;
 			}
+
+			size_t len = sizeof(pc.params.obj.layout);
+			strncpy(pc.params.obj.layout, pc.layout, len);
+			pc.params.obj.layout[len - 1] = '\0';
 		}
 	} else if (pc.inherit_fname) {
 		pc.params.type = pc.inherit_params.type;
@@ -574,15 +581,6 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 	if (pc.params.size && pc.max_size) {
 		outv_err("-M|--max-size option cannot be used with -s|--size"
 				" option\n");
-		return -1;
-	}
-
-	size_t max_layout = PMEMOBJ_MAX_LAYOUT;
-
-	if (pc.layout && strlen(pc.layout) >= max_layout) {
-		outv_err("Layout name is too long, maximum number of characters"
-			" (including the terminating null byte) is %zu\n",
-			max_layout);
 		return -1;
 	}
 
