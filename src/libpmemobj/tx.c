@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -492,8 +492,8 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 			retval = pmemobj_mutex_lock(tx->pop,
 				txl->lock.mutex);
 			if (retval) {
-				errno = retval;
 				ERR("!pmemobj_mutex_lock");
+				goto err;
 			}
 			break;
 		case TX_PARAM_RWLOCK:
@@ -501,8 +501,8 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 			retval = pmemobj_rwlock_wrlock(tx->pop,
 				txl->lock.rwlock);
 			if (retval) {
-				errno = retval;
 				ERR("!pmemobj_rwlock_wrlock");
+				goto err;
 			}
 			break;
 		default:
@@ -511,8 +511,12 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 			break;
 	}
 
-	if (retval == 0)
-		SLIST_INSERT_HEAD(&tx->tx_locks, txl, tx_lock);
+	SLIST_INSERT_HEAD(&tx->tx_locks, txl, tx_lock);
+	return 0;
+
+err:
+	errno = retval;
+	Free(txl);
 
 	return retval;
 }
