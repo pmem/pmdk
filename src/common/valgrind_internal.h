@@ -110,6 +110,12 @@ extern unsigned _On_valgrind;
 	ANNOTATE_IGNORE_WRITES_END();\
 } while (0)
 
+/* Supported by both helgrind and drd. */
+#define VALGRIND_HG_DRD_DISABLE_CHECKING(addr, size) do {\
+	if (On_valgrind) \
+		VALGRIND_HG_DISABLE_CHECKING((addr), (size));\
+} while (0)
+
 #else
 
 #define VALGRIND_ANNOTATE_HAPPENS_BEFORE(obj) do { (void)(obj); } while (0)
@@ -128,6 +134,11 @@ extern unsigned _On_valgrind;
 #define VALGRIND_ANNOTATE_IGNORE_WRITES_BEGIN() do {} while (0)
 
 #define VALGRIND_ANNOTATE_IGNORE_WRITES_END() do {} while (0)
+
+#define VALGRIND_HG_DRD_DISABLE_CHECKING(addr, size) do {\
+	(void) (addr);\
+	(void) (size);\
+} while (0)
 
 #endif
 
