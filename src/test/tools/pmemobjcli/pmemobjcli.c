@@ -1659,6 +1659,8 @@ pocli_pmemobj_tx_free(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (r != POCLI_RET_OK)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 					"pmemobj_tx_free() failed\n");
+	else
+		*oidp = OID_NULL;
 
 	pocli_printf(ctx, "%s(%p): off = 0x%llx uuid = 0x%llx\n",
 				args->argv[0], oidp,
