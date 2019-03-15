@@ -61,6 +61,15 @@
 #define HEAP_DEFAULT_GROW_SIZE (1 << 27) /* 128 megabytes */
 #define MAX_DEFAULT_ARENAS (1 << 10) /* 1024 arenas */
 
+struct arenas {
+	VEC(, struct arena *) vec;
+	size_t nactive;
+	os_mutex_t lock;
+
+	/* stores a pointer to one of the arenas */
+	os_tls_key_t thread;
+};
+
 /*
  * Arenas store the collection of buckets for allocation classes.
  * Each thread is assigned an arena on its first allocator operation
@@ -76,6 +85,8 @@ struct arena {
 	 */
 	int automatic;
 	size_t nthreads;
+	size_t *arenas_active;
+	struct arenas *arenas;
 };
 
 struct heap_rt {
@@ -83,13 +94,8 @@ struct heap_rt {
 
 	/* DON'T use these two variable directly! */
 	struct bucket *default_bucket;
-	VEC(, struct arena *) arenas;
 
-	/* protects assignment of arenas */
-	os_mutex_t arenas_lock;
-
-	/* stores a pointer to one of the arenas */
-	os_tls_key_t thread_arena;
+	struct arenas arenas;
 
 	struct recycler *recyclers[MAX_ALLOCATION_CLASSES];
 
@@ -99,6 +105,31 @@ struct heap_rt {
 	unsigned nzones;
 	unsigned zones_exhausted;
 };
+
+/*
+ * heap_arenas_init - (internal) initialize generic arenas info
+ */
+static int
+heap_arenas_init(struct arenas *arenas)
+{
+	util_mutex_init(&arenas->lock);
+	VEC_INIT(&arenas->vec);
+	arenas->nactive = 0;
+
+	if (VEC_RESERVE(&arenas->vec, MAX_DEFAULT_ARENAS) == -1)
+		return -1;
+	return 0;
+}
+
+/*
+ * heap_arenas_fini - (internal) destroy generic arenas info
+ */
+static void
+heap_arenas_fini(struct arenas *arenas)
+{
+	util_mutex_destroy(&arenas->lock);
+	VEC_DELETE(&arenas->vec);
+}
 
 /*
  * heap_alloc_classes -- returns the allocation classes collection
@@ -136,6 +167,7 @@ heap_arena_new(struct palloc_heap *heap, int automatic)
 	}
 	arena->nthreads = 0;
 	arena->automatic = automatic;
+	arena->arenas = &heap->rt->arenas;
 
 	COMPILE_ERROR_ON(MAX_ALLOCATION_CLASSES > UINT8_MAX);
 	for (uint8_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
@@ -169,28 +201,60 @@ heap_get_best_class(struct palloc_heap *heap, size_t size)
 }
 
 /*
+ * heap_arena_thread_detach -- detaches arena from the current thread
+ *
+ * Must be called with arenas lock taken.
+ */
+static void
+heap_arena_thread_detach(struct arena *a)
+{
+	if ((--a->nthreads) == 0)
+		a->arenas->nactive -= 1;
+}
+
+/*
+ * heap_arena_thread_attach -- assign arena to the current thread
+ *
+ * Must be called with arenas lock taken.
+ */
+static void
+heap_arena_thread_attach(struct palloc_heap *heap, struct arena *a)
+{
+	struct heap_rt *h = heap->rt;
+
+	struct arena *thread_arena = os_tls_get(h->arenas.thread);
+	if (thread_arena)
+		heap_arena_thread_detach(thread_arena);
+
+	ASSERTne(a, NULL);
+
+	if ((a->nthreads++) == 0)
+		a->arenas->nactive += 1;
+
+	os_tls_set(h->arenas.thread, a);
+}
+
+/*
  * heap_thread_arena_destructor -- (internal) removes arena thread assignment
  */
 static void
 heap_thread_arena_destructor(void *arg)
 {
 	struct arena *a = arg;
-	util_fetch_and_sub64(&a->nthreads, 1);
+	os_mutex_lock(&a->arenas->lock);
+	heap_arena_thread_detach(a);
+	os_mutex_unlock(&a->arenas->lock);
 }
 
 /*
  * heap_get_arena_by_id -- returns arena by id
+ *
+ * Must be called with arenas lock taken.
  */
 static struct arena *
 heap_get_arena_by_id(struct palloc_heap *heap, unsigned arena_id)
 {
-	struct heap_rt *h = heap->rt;
-
-	util_mutex_lock(&h->arenas_lock);
-	struct arena *a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
-	util_mutex_unlock(&h->arenas_lock);
-
-	return a;
+	return VEC_ARR(&heap->rt->arenas.vec)[arena_id - 1];
 }
 
 /*
@@ -203,16 +267,16 @@ heap_get_arena_by_id(struct palloc_heap *heap, unsigned arena_id)
  * destructor of a thread, which also touches that variable.
  */
 static struct arena *
-heap_thread_arena_assign(struct heap_rt *heap)
+heap_thread_arena_assign(struct palloc_heap *heap)
 {
-	util_mutex_lock(&heap->arenas_lock);
+	util_mutex_lock(&heap->rt->arenas.lock);
 
 	struct arena *least_used = NULL;
 
-	ASSERTne(VEC_SIZE(&heap->arenas), 0);
+	ASSERTne(VEC_SIZE(&heap->rt->arenas.vec), 0);
 
 	struct arena *a;
-	VEC_FOREACH(a, &heap->arenas) {
+	VEC_FOREACH(a, &heap->rt->arenas.vec) {
 		if (!a->automatic)
 			continue;
 		if (least_used == NULL ||
@@ -224,11 +288,9 @@ heap_thread_arena_assign(struct heap_rt *heap)
 
 	/* at least one automatic arena must exist */
 	ASSERTne(least_used, NULL);
-	util_fetch_and_add64(&least_used->nthreads, 1);
+	heap_arena_thread_attach(heap, least_used);
 
-	util_mutex_unlock(&heap->arenas_lock);
-
-	os_tls_set(heap->thread_arena, least_used);
+	util_mutex_unlock(&heap->rt->arenas.lock);
 
 	return least_used;
 }
@@ -238,10 +300,10 @@ heap_thread_arena_assign(struct heap_rt *heap)
  *	thread
  */
 static struct arena *
-heap_thread_arena(struct heap_rt *heap)
+heap_thread_arena(struct palloc_heap *heap)
 {
 	struct arena *a;
-	if ((a = os_tls_get(heap->thread_arena)) == NULL)
+	if ((a = os_tls_get(heap->rt->arenas.thread)) == NULL)
 		a = heap_thread_arena_assign(heap);
 
 	return a;
@@ -255,20 +317,20 @@ unsigned
 heap_get_thread_arena_id(struct palloc_heap *heap)
 {
 	unsigned arena_id = 1;
-	struct arena *arenap = heap_thread_arena(heap->rt);
+	struct arena *arenap = heap_thread_arena(heap);
 	struct arena *arenav;
 	struct heap_rt *rt = heap->rt;
 
-	util_mutex_lock(&rt->arenas_lock);
-	VEC_FOREACH(arenav, &heap->rt->arenas) {
+	util_mutex_lock(&rt->arenas.lock);
+	VEC_FOREACH(arenav, &heap->rt->arenas.vec) {
 		if (arenav == arenap) {
-			util_mutex_unlock(&rt->arenas_lock);
+			util_mutex_unlock(&rt->arenas.lock);
 			return arena_id;
 		}
 		arena_id++;
 	}
 
-	util_mutex_unlock(&rt->arenas_lock);
+	util_mutex_unlock(&rt->arenas.lock);
 	ASSERT(0);
 	return arena_id;
 }
@@ -285,9 +347,9 @@ heap_bucket_acquire(struct palloc_heap *heap, uint8_t class_id,
 	struct bucket *b;
 
 #ifdef DEBUG
-	util_mutex_lock(&rt->arenas_lock);
-	ASSERT(arena_id <= VEC_SIZE(&rt->arenas));
-	util_mutex_unlock(&rt->arenas_lock);
+	util_mutex_lock(&rt->arenas.lock);
+	ASSERT(arena_id <= VEC_SIZE(&rt->arenas.vec));
+	util_mutex_unlock(&rt->arenas.lock);
 #endif
 
 	if (class_id == DEFAULT_ALLOC_CLASS_ID) {
@@ -296,11 +358,11 @@ heap_bucket_acquire(struct palloc_heap *heap, uint8_t class_id,
 	}
 
 	if (arena_id == HEAP_ARENA_PER_THREAD) {
-		struct arena *arena = heap_thread_arena(heap->rt);
+		struct arena *arena = heap_thread_arena(heap);
 		ASSERTne(arena->buckets, NULL);
 		b = arena->buckets[class_id];
 	} else {
-		b = (VEC_ARR(&heap->rt->arenas) \
+		b = (VEC_ARR(&heap->rt->arenas.vec)
 			[arena_id - 1])->buckets[class_id];
 	}
 
@@ -1016,17 +1078,18 @@ heap_arena_create(struct palloc_heap *heap)
 	if (arena == NULL)
 		return -1;
 
-	util_mutex_lock(&h->arenas_lock);
+	util_mutex_lock(&h->arenas.lock);
 
-	if (VEC_PUSH_BACK(&h->arenas, arena))
+	if (VEC_PUSH_BACK(&h->arenas.vec, arena))
 		goto err_push_back;
 
-	int ret = (int)VEC_SIZE(&h->arenas);
-	util_mutex_unlock(&h->arenas_lock);
+	int ret = (int)VEC_SIZE(&h->arenas.vec);
+	util_mutex_unlock(&h->arenas.lock);
+
 	return ret;
 
 err_push_back:
-	util_mutex_unlock(&h->arenas_lock);
+	util_mutex_unlock(&h->arenas.lock);
 	heap_arena_delete(arena);
 	return -1;
 }
@@ -1039,9 +1102,9 @@ heap_get_narenas_total(struct palloc_heap *heap)
 {
 	struct heap_rt *h = heap->rt;
 
-	util_mutex_lock(&h->arenas_lock);
-	unsigned total = (unsigned)VEC_SIZE(&h->arenas);
-	util_mutex_unlock(&h->arenas_lock);
+	util_mutex_lock(&h->arenas.lock);
+	unsigned total = (unsigned)VEC_SIZE(&h->arenas.vec);
+	util_mutex_unlock(&h->arenas.lock);
 
 	return total;
 }
@@ -1054,9 +1117,9 @@ heap_get_narenas_max(struct palloc_heap *heap)
 {
 	struct heap_rt *h = heap->rt;
 
-	util_mutex_lock(&h->arenas_lock);
-	unsigned max = (unsigned)VEC_CAPACITY(&h->arenas);
-	util_mutex_unlock(&h->arenas_lock);
+	util_mutex_lock(&h->arenas.lock);
+	unsigned max = (unsigned)VEC_CAPACITY(&h->arenas.vec);
+	util_mutex_unlock(&h->arenas.lock);
 
 	return max;
 }
@@ -1070,8 +1133,8 @@ heap_set_narenas_max(struct palloc_heap *heap, unsigned size)
 	struct heap_rt *h = heap->rt;
 	int ret = -1;
 
-	util_mutex_lock(&h->arenas_lock);
-	unsigned capacity = (unsigned)VEC_CAPACITY(&h->arenas);
+	util_mutex_lock(&h->arenas.lock);
+	unsigned capacity = (unsigned)VEC_CAPACITY(&h->arenas.vec);
 	if (size < capacity) {
 		LOG(2, "cannot decrease max number of arenas");
 		goto out;
@@ -1080,10 +1143,10 @@ heap_set_narenas_max(struct palloc_heap *heap, unsigned size)
 		goto out;
 	}
 
-	ret = VEC_RESERVE(&h->arenas, size);
+	ret = VEC_RESERVE(&h->arenas.vec, size);
 
 out:
-	util_mutex_unlock(&h->arenas_lock);
+	util_mutex_unlock(&h->arenas.lock);
 	return ret;
 }
 
@@ -1097,14 +1160,14 @@ heap_get_narenas_auto(struct palloc_heap *heap)
 	struct arena *arena;
 	unsigned narenas = 0;
 
-	util_mutex_lock(&h->arenas_lock);
+	util_mutex_lock(&h->arenas.lock);
 
-	VEC_FOREACH(arena, &h->arenas) {
+	VEC_FOREACH(arena, &h->arenas.vec) {
 		if (arena->automatic)
 			narenas++;
 	}
 
-	util_mutex_unlock(&h->arenas_lock);
+	util_mutex_unlock(&h->arenas.lock);
 
 	return narenas;
 }
@@ -1115,7 +1178,9 @@ heap_get_narenas_auto(struct palloc_heap *heap)
 struct bucket **
 heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 {
+	util_mutex_lock(&heap->rt->arenas.lock);
 	struct arena *a = heap_get_arena_by_id(heap, arena_id);
+	util_mutex_unlock(&heap->rt->arenas.lock);
 
 	return a->buckets;
 }
@@ -1126,7 +1191,9 @@ heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id)
 int
 heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id)
 {
+	util_mutex_lock(&heap->rt->arenas.lock);
 	struct arena *a = heap_get_arena_by_id(heap, arena_id);
+	util_mutex_unlock(&heap->rt->arenas.lock);
 
 	return a->automatic;
 }
@@ -1143,12 +1210,12 @@ heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 	struct heap_rt *h = heap->rt;
 	int ret = 0;
 
-	util_mutex_lock(&h->arenas_lock);
-	VEC_FOREACH(a, &h->arenas)
+	util_mutex_lock(&h->arenas.lock);
+	VEC_FOREACH(a, &h->arenas.vec)
 		if (a->automatic)
 			nautomatic++;
 
-	a = VEC_ARR(&heap->rt->arenas)[arena_id - 1];
+	a = VEC_ARR(&heap->rt->arenas.vec)[arena_id - 1];
 
 	if (!automatic && nautomatic <= 1 && a->automatic) {
 		ERR("at least one automatic arena must exist");
@@ -1158,27 +1225,20 @@ heap_set_arena_auto(struct palloc_heap *heap, unsigned arena_id,
 	a->automatic = automatic;
 
 out:
-	util_mutex_unlock(&h->arenas_lock);
+	util_mutex_unlock(&h->arenas.lock);
 	return ret;
 
 }
 
 /*
- * heap_set_arena_thread -- assign arena to the current thread
+ * heap_set_arena_thread -- assign arena with given id to the current thread
  */
 void
 heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 {
-	struct heap_rt *h = heap->rt;
-
-	struct arena *a = heap_get_arena_by_id(heap, arena_id);
-	struct arena *thread_arena = os_tls_get(h->thread_arena);
-	if (thread_arena)
-		util_fetch_and_sub64(&thread_arena->nthreads, 1);
-
-	ASSERTne(a, NULL);
-	util_fetch_and_add64(&a->nthreads, 1);
-	os_tls_set(h->thread_arena, a);
+	os_mutex_lock(&heap->rt->arenas.lock);
+	heap_arena_thread_attach(heap, heap_get_arena_by_id(heap, arena_id));
+	os_mutex_unlock(&heap->rt->arenas.lock);
 }
 
 /*
@@ -1208,15 +1268,16 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 	struct heap_rt *h = heap->rt;
 
 	if (c->type == CLASS_RUN) {
-		h->recyclers[c->id] = recycler_new(heap, c->run.nallocs);
+		h->recyclers[c->id] = recycler_new(heap, c->run.nallocs,
+			&heap->rt->arenas.nactive);
 		if (h->recyclers[c->id] == NULL)
 			goto error_recycler_new;
 	}
 
 	size_t i;
 	struct arena *arena;
-	VEC_FOREACH_BY_POS(i, &h->arenas) {
-		arena = VEC_ARR(&h->arenas)[i];
+	VEC_FOREACH_BY_POS(i, &h->arenas.vec) {
+		arena = VEC_ARR(&h->arenas.vec)[i];
 		if (arena->buckets[c->id] == NULL)
 			arena->buckets[c->id] = bucket_new(
 				container_new_seglists(heap), c);
@@ -1230,7 +1291,7 @@ error_cache_bucket_new:
 	recycler_delete(h->recyclers[c->id]);
 
 	for (; i != 0; --i)
-		bucket_delete(VEC_ARR(&h->arenas)[i - 1]->buckets[c->id]);
+		bucket_delete(VEC_ARR(&h->arenas.vec)[i - 1]->buckets[c->id]);
 
 error_recycler_new:
 	return -1;
@@ -1262,7 +1323,7 @@ heap_buckets_init(struct palloc_heap *heap)
 
 error_bucket_create: {
 		struct arena *arena;
-		VEC_FOREACH(arena, &h->arenas)
+		VEC_FOREACH(arena, &h->arenas.vec)
 			heap_arena_delete(arena);
 	}
 	return -1;
@@ -1379,9 +1440,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	unsigned narenas_default = heap_get_procs();
 
-	util_mutex_init(&h->arenas_lock);
-	VEC_INIT(&h->arenas);
-	if (VEC_RESERVE(&h->arenas, MAX_DEFAULT_ARENAS) == -1) {
+	if (heap_arenas_init(&h->arenas) != 0) {
 		err = errno;
 		goto error_arenas_malloc;
 	}
@@ -1394,7 +1453,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	for (unsigned i = 0; i < h->nlocks; ++i)
 		util_mutex_init(&h->run_locks[i]);
 
-	os_tls_key_create(&h->thread_arena, heap_thread_arena_destructor);
+	os_tls_key_create(&h->arenas.thread, heap_thread_arena_destructor);
 
 	heap->p_ops = *p_ops;
 	heap->layout = heap_start;
@@ -1408,7 +1467,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	VALGRIND_DO_CREATE_MEMPOOL(heap->layout, 0, 0);
 
 	for (unsigned i = 0; i < narenas_default; ++i) {
-		if (VEC_PUSH_BACK(&h->arenas, heap_arena_new(heap, 1))) {
+		if (VEC_PUSH_BACK(&h->arenas.vec, heap_arena_new(heap, 1))) {
 			err = errno;
 			goto error_vec_reserve;
 		}
@@ -1422,7 +1481,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	return 0;
 
 error_vec_reserve:
-	VEC_DELETE(&h->arenas);
+	heap_arenas_fini(&h->arenas);
 error_arenas_malloc:
 	alloc_class_collection_delete(h->alloc_classes);
 error_alloc_classes_new:
@@ -1500,20 +1559,17 @@ heap_cleanup(struct palloc_heap *heap)
 
 	alloc_class_collection_delete(rt->alloc_classes);
 
-	os_tls_key_delete(rt->thread_arena);
+	os_tls_key_delete(rt->arenas.thread);
 	bucket_delete(rt->default_bucket);
 
 	struct arena *arena;
-	VEC_FOREACH(arena, &rt->arenas)
+	VEC_FOREACH(arena, &rt->arenas.vec)
 		heap_arena_delete(arena);
 
 	for (unsigned i = 0; i < rt->nlocks; ++i)
 		util_mutex_destroy(&rt->run_locks[i]);
 
-	util_mutex_destroy(&rt->arenas_lock);
-
-
-	VEC_DELETE(&rt->arenas);
+	heap_arenas_fini(&rt->arenas);
 
 	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		if (heap->rt->recyclers[i] == NULL)

@@ -89,7 +89,7 @@ struct recycler {
 	size_t unaccounted_units[MAX_CHUNK];
 	size_t unaccounted_total;
 	size_t nallocs;
-	size_t recalc_threshold;
+	size_t *peak_arenas;
 
 	VEC(, struct recycler_element) recalc;
 
@@ -100,7 +100,7 @@ struct recycler {
  * recycler_new -- creates new recycler instance
  */
 struct recycler *
-recycler_new(struct palloc_heap *heap, size_t nallocs)
+recycler_new(struct palloc_heap *heap, size_t nallocs, size_t *peak_arenas)
 {
 	struct recycler *r = Malloc(sizeof(struct recycler));
 	if (r == NULL)
@@ -113,7 +113,7 @@ recycler_new(struct palloc_heap *heap, size_t nallocs)
 
 	r->heap = heap;
 	r->nallocs = nallocs;
-	r->recalc_threshold = nallocs * THRESHOLD_MUL;
+	r->peak_arenas = peak_arenas;
 	r->unaccounted_total = 0;
 	memset(&r->unaccounted_units, 0, sizeof(r->unaccounted_units));
 
@@ -237,8 +237,10 @@ recycler_recalc(struct recycler *r, int force)
 	VEC_INIT(&runs);
 
 	uint64_t units = r->unaccounted_total;
+	uint64_t recalc_threshold =
+		THRESHOLD_MUL * (*r->peak_arenas) * r->nallocs;
 
-	if (units == 0 || (!force && units < (r->recalc_threshold)))
+	if (units == 0 || (!force && units < recalc_threshold))
 		return runs;
 
 	if (util_mutex_trylock(&r->lock) != 0)

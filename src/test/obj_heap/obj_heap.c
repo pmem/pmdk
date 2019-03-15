@@ -455,7 +455,10 @@ test_recycler(void)
 
 	int ret;
 
-	struct recycler *r = recycler_new(&pop->heap, 10000 /* never recalc */);
+	size_t active_arenas = 1;
+	struct recycler *r = recycler_new(&pop->heap, 10000 /* never recalc */,
+		&active_arenas);
+
 	UT_ASSERTne(r, NULL);
 
 	init_run_with_score(pop->heap.layout, 0, 64);
