@@ -1,4 +1,4 @@
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,8 +44,8 @@ OBJS = daxio.o
 LIBPMEM=y
 LIBPMEMCOMMON=y
 
-LIBS += $(LIBNDCTL)
-LIBS += $(LIBDAXCTL)
+CFLAGS += $(LIBNDCTL_CFLAGS)
+LIBS += $(LIBNDCTL_LIBS)
 
 MANPAGES = $(TOP)/doc/daxio.1
 

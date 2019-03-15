@@ -1146,23 +1146,6 @@ $DLLVIEW="$Env:EXE_DIR\dllview$Env:EXESUFFIX"
 $Global:req_fs_type=0
 
 #
-# For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
-# constructed so the test pulls in the appropriate library from this
-# source tree.  To override this behavior (i.e. to force the test to
-# use the libraries installed elsewhere on the system), set
-# TEST_LD_LIBRARY_PATH and this script will not override it.
-#
-# For example, in a test directory, run:
-#	TEST_LD_LIBRARY_PATH=\usr\lib .\TEST0
-#
-if (-Not $Env:TEST_TYPE_LD_LIBRARY_PATH) {
-    switch -regex ($Env:BUILD) {
-        'debug' { $Env:TEST_TYPE_LD_LIBRARY_PATH = '..\..\debug' }
-        'nondebug' { $Env:TEST_TYPE_LD_LIBRARY_PATH = '..\..\nondebug' }
-    }
-}
-
-#
 # The variable DIR is constructed so the test uses that directory when
 # constructing test files.  DIR is chosen based on the fs-type for
 # this test, and if the appropriate fs-type doesn't have a directory
