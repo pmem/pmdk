@@ -370,12 +370,13 @@ LIBUTIL=
 LIBUUID=
 
 NDCTL_ENABLE ?= y
+NDCTL_USE_V63_API ?= y
 
 # Detect libndctl if not disabled.
 ifeq ($(NDCTL_ENABLE),y)
     ifeq ($(LIBNDCTL_LIBS),)
         HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION_FIXED))
-        ifeq ($(HAS_NDCTL),y)
+        ifeq ($(HAS_NDCTL)$(NDCTL_USE_V63_API),yy)
             OS_DIMM_CFLAG=-DNDCTL_GE_63
         else
             HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION))

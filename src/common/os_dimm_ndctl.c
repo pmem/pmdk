@@ -341,7 +341,8 @@ os_dimm_usc_dimm(struct ndctl_dimm *dimm)
 {
 	long long ret = ndctl_dimm_get_dirty_shutdown(dimm);
 	if (ret < 0)
-		ERR("!ndctl_dimm_get_dirty_shutdown");
+		ERR(
+			"Cannot read unsafe shutdown count. For more information please check https://github.com/pmem/issues/issues/1039");
 	return ret;
 }
 #else
