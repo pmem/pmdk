@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,7 +59,7 @@ struct recycler_element {
 };
 
 struct recycler *recycler_new(struct palloc_heap *layout,
-	size_t nallocs);
+	size_t nallocs, size_t *peak_arenas);
 void recycler_delete(struct recycler *r);
 struct recycler_element recycler_element_new(struct palloc_heap *heap,
 	const struct memory_block *m);

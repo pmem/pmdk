@@ -84,6 +84,7 @@ struct heap_rt {
 	/* DON'T use these two variable directly! */
 	struct bucket *default_bucket;
 	VEC(, struct arena *) arenas;
+	size_t arenas_active_peak;
 
 	/* protects assignment of arenas */
 	os_mutex_t arenas_lock;
@@ -224,7 +225,8 @@ heap_thread_arena_assign(struct heap_rt *heap)
 
 	/* at least one automatic arena must exist */
 	ASSERTne(least_used, NULL);
-	util_fetch_and_add64(&least_used->nthreads, 1);
+	if (util_fetch_and_add64(&least_used->nthreads, 1) == 0)
+		util_fetch_and_add64(&heap->arenas_active_peak, 1);
 
 	util_mutex_unlock(&heap->arenas_lock);
 
@@ -1179,7 +1181,9 @@ heap_set_arena_thread(struct palloc_heap *heap, unsigned arena_id)
 		util_fetch_and_sub64(&thread_arena->nthreads, 1);
 
 	ASSERTne(a, NULL);
-	util_fetch_and_add64(&a->nthreads, 1);
+	if (util_fetch_and_add64(&a->nthreads, 1) == 0)
+		util_fetch_and_add64(&heap->rt->arenas_active_peak, 1);
+
 	os_tls_set(h->thread_arena, a);
 }
 
@@ -1210,7 +1214,8 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 	struct heap_rt *h = heap->rt;
 
 	if (c->type == CLASS_RUN) {
-		h->recyclers[c->id] = recycler_new(heap, c->run.nallocs);
+		h->recyclers[c->id] = recycler_new(heap, c->run.nallocs,
+			&heap->rt->arenas_active_peak);
 		if (h->recyclers[c->id] == NULL)
 			goto error_recycler_new;
 	}
@@ -1383,6 +1388,8 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 
 	util_mutex_init(&h->arenas_lock);
 	VEC_INIT(&h->arenas);
+	h->arenas_active_peak = 0;
+
 	if (VEC_RESERVE(&h->arenas, MAX_DEFAULT_ARENAS) == -1) {
 		err = errno;
 		goto error_arenas_malloc;
