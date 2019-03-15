@@ -444,6 +444,7 @@ heap_run_reuse(struct palloc_heap *heap, struct bucket *b,
 		b->active_memory_block->m = *m;
 		b->active_memory_block->bucket = b;
 		b->is_active = 1;
+		util_fetch_and_add64(&b->active_memory_block->nresv, 1);
 	} else {
 		b->c_ops->rm_all(b->container);
 	}
@@ -749,11 +750,11 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	/* get rid of the active block in the bucket */
 	if (b->is_active) {
 		b->c_ops->rm_all(b->container);
-		if (b->active_memory_block->nresv != 0) {
-			b->active_memory_block =
-				Zalloc(sizeof(struct memory_block_reserved));
+		struct memory_block_reserved **active = &b->active_memory_block;
+		if (util_fetch_and_sub64(&(*active)->nresv, 1) == 1) {
+			heap_discard_run(heap, &(*active)->m);
 		} else {
-			heap_discard_run(heap, &b->active_memory_block->m);
+			*active = Zalloc(sizeof(struct memory_block_reserved));
 		}
 		b->is_active = 0;
 	}
@@ -788,6 +789,7 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		b->active_memory_block->m = m;
 		b->is_active = 1;
 		b->active_memory_block->bucket = b;
+		util_fetch_and_add64(&b->active_memory_block->nresv, 1);
 
 		heap_bucket_release(heap, defb);
 

@@ -269,7 +269,8 @@ do_fault_injection_recycler()
 
 	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "recycler_new");
 
-	struct recycler *r = recycler_new(NULL, 0);
+	size_t active_arenas = 1;
+	struct recycler *r = recycler_new(NULL, 0, &active_arenas);
 	UT_ASSERTeq(r, NULL);
 	UT_ASSERTeq(errno, ENOMEM);
 }

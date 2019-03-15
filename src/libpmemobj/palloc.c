@@ -345,21 +345,23 @@ palloc_reservation_clear(struct palloc_heap *heap,
 		return;
 
 	struct bucket *b = act->mresv->bucket;
+	struct memory_block_reserved *mresv = act->mresv;
 
-	os_mutex_lock(&b->lock);
+	if (!publish) {
+		util_mutex_lock(&b->lock);
+		struct memory_block *am = &b->active_memory_block->m;
 
-	int cleared = util_fetch_and_sub64(&act->mresv->nresv, 1) == 1;
-
-	if (b->active_memory_block == act->mresv) {
-		if (!publish)
+		if (am->chunk_id == act->m.chunk_id &&
+		    am->zone_id == act->m.zone_id) {
 			bucket_insert_block(b, &act->m);
-		os_mutex_unlock(&b->lock);
-	} else {
-		os_mutex_unlock(&b->lock);
-		if (cleared) {
-			heap_discard_run(heap, &act->mresv->m);
-			Free(act->mresv);
 		}
+
+		util_mutex_unlock(&b->lock);
+	}
+
+	if (util_fetch_and_sub64(&mresv->nresv, 1) == 1) {
+		heap_discard_run(heap, &mresv->m);
+		Free(mresv);
 	}
 }
 

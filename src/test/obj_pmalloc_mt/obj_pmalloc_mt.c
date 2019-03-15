@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,8 +53,15 @@ static unsigned Threads;
 static unsigned Ops_per_thread;
 static unsigned Tx_per_thread;
 
+struct action {
+	struct pobj_action pact;
+	os_mutex_t lock;
+	os_cond_t cond;
+};
+
 struct root {
 	uint64_t offs[MAX_THREADS][MAX_OPS_PER_THREAD];
+	struct action actions[MAX_THREADS][MAX_OPS_PER_THREAD];
 };
 
 struct worker_args {
@@ -219,6 +226,100 @@ tx2_worker(void *arg)
 	return NULL;
 }
 
+static void *
+action_cancel_worker(void *arg)
+{
+	struct worker_args *a = arg;
+
+	PMEMoid oid;
+	for (unsigned i = 0; i < Ops_per_thread; ++i) {
+		unsigned arr_id = a->idx / 2;
+		struct action *act = &a->r->actions[arr_id][i];
+		if (a->idx % 2 == 0) {
+			os_mutex_lock(&act->lock);
+			oid = pmemobj_reserve(a->pop,
+				&act->pact, ALLOC_SIZE, 0);
+			UT_ASSERT(!OID_IS_NULL(oid));
+			os_cond_signal(&act->cond);
+			os_mutex_unlock(&act->lock);
+		} else {
+			os_mutex_lock(&act->lock);
+			while (act->pact.heap.offset == 0)
+				os_cond_wait(&act->cond, &act->lock);
+			pmemobj_cancel(a->pop, &act->pact, 1);
+			os_mutex_unlock(&act->lock);
+		}
+	}
+
+	return NULL;
+}
+
+static void *
+action_publish_worker(void *arg)
+{
+	struct worker_args *a = arg;
+
+	PMEMoid oid;
+	for (unsigned i = 0; i < Ops_per_thread; ++i) {
+		unsigned arr_id = a->idx / 2;
+		struct action *act = &a->r->actions[arr_id][i];
+		if (a->idx % 2 == 0) {
+			os_mutex_lock(&act->lock);
+			oid = pmemobj_reserve(a->pop,
+				&act->pact, ALLOC_SIZE, 0);
+			UT_ASSERT(!OID_IS_NULL(oid));
+			os_cond_signal(&act->cond);
+			os_mutex_unlock(&act->lock);
+		} else {
+			os_mutex_lock(&act->lock);
+			while (act->pact.heap.offset == 0)
+				os_cond_wait(&act->cond, &act->lock);
+			pmemobj_publish(a->pop, &act->pact, 1);
+			os_mutex_unlock(&act->lock);
+		}
+	}
+
+	return NULL;
+}
+
+static void *
+action_mix_worker(void *arg)
+{
+	struct worker_args *a = arg;
+
+	PMEMoid oid;
+	for (unsigned i = 0; i < Ops_per_thread; ++i) {
+		unsigned arr_id = a->idx / 2;
+		unsigned publish = i % 2;
+		struct action *act = &a->r->actions[arr_id][i];
+		if (a->idx % 2 == 0) {
+			os_mutex_lock(&act->lock);
+			oid = pmemobj_reserve(a->pop,
+				&act->pact, ALLOC_SIZE, 0);
+			UT_ASSERT(!OID_IS_NULL(oid));
+			os_cond_signal(&act->cond);
+			os_mutex_unlock(&act->lock);
+		} else {
+			os_mutex_lock(&act->lock);
+			while (act->pact.heap.offset == 0)
+				os_cond_wait(&act->cond, &act->lock);
+			if (publish)
+				pmemobj_publish(a->pop, &act->pact, 1);
+			else
+				pmemobj_cancel(a->pop, &act->pact, 1);
+			os_mutex_unlock(&act->lock);
+		}
+	}
+
+	return NULL;
+}
+
+static void
+actions_clear(struct root *r)
+{
+	memset(r->actions, 0, sizeof(r->actions));
+}
+
 static void
 run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 {
@@ -277,6 +378,11 @@ main(int argc, char *argv[])
 		args[i].pop = pop;
 		args[i].r = r;
 		args[i].idx = i;
+		for (unsigned j = 0; j < Ops_per_thread; ++j) {
+			struct action *a = &r->actions[i][j];
+			os_mutex_init(&a->lock);
+			os_cond_init(&a->cond);
+		}
 	}
 
 	run_worker(alloc_worker, args);
@@ -284,6 +390,11 @@ main(int argc, char *argv[])
 	run_worker(free_worker, args);
 	run_worker(mix_worker, args);
 	run_worker(alloc_free_worker, args);
+	run_worker(action_cancel_worker, args);
+	actions_clear(r);
+	run_worker(action_publish_worker, args);
+	actions_clear(r);
+	run_worker(action_mix_worker, args);
 
 	/*
 	 * Reduce the number of lanes to a value smaller than the number of
