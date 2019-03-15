@@ -1,4 +1,4 @@
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,7 +40,11 @@ class State:
 
     :ivar _context: The reordering context.
     :type _context: opscontext.OpsContext
+    :ivar trans_stores: The list of unflushed stores.
+    :type trans_stores: list of :class:`memoryoperations.Store`
     """
+    trans_stores = []
+
     def __init__(self, context):
         """
         Default state constructor.
@@ -130,6 +134,7 @@ class CollectingState(State):
         """
         super(CollectingState, self).__init__(context)
         self._ops_list = []
+        self._ops_list += State.trans_stores
         self._inner_state = "init"
 
     def next(self, in_op):
@@ -268,6 +273,9 @@ class CollectingState(State):
         elif isinstance(in_op, memops.Fence) and \
                 self._inner_state is "flush":
             self._inner_state = "fence"
+        elif isinstance(in_op, memops.Flush) and \
+                self._inner_state is "init":
+            self._inner_state = "flush"
 
 
 class ReplayingState(State):
@@ -312,8 +320,19 @@ class ReplayingState(State):
         """
         # specifies consistency state of sequence
         consistency = True
+
         # consider only flushed stores
         flushed_stores = list(filter(lambda x: x.flushed, self._ops_list))
+
+        # already flushed stores should be removed from the transitive list
+        common_part = list(set(flushed_stores) & set(State.trans_stores))
+        State.trans_stores = list(set(State.trans_stores) - set(common_part))
+
+        # do not add redundant stores
+        State.trans_stores = list(set(State.trans_stores) |
+                                  set(list(filter(lambda x: x.flushed is False,
+                                      self._ops_list))))
+
         if self._context.test_on_barrier:
             for seq in self._context.reorder_engine.generate_sequence(
                                                               flushed_stores):
