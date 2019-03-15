@@ -3942,7 +3942,7 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 	if ((*setp)->replica[0]->nparts == 0) {
 		errno = ENOENT;
 		ERR("!no parts in replicas");
-		return -1;
+		goto err_poolset_free;
 	}
 
 	if (cow && (*setp)->replica[0]->part[0].is_dev_dax) {
