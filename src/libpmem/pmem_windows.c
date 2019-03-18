@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -134,7 +134,7 @@ is_pmem_detect(const void *addr, size_t len)
 	AcquireSRWLockShared(&FileMappingQLock);
 
 	PFILE_MAPPING_TRACKER mt;
-	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
+	PMDK_SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
 		if (mt->BaseAddress >= end) {
 			LOG(4, "ignoring all mapped ranges beyond given range");
 			break;

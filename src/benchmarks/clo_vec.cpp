@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,8 +48,8 @@ clo_vec_alloc(size_t size)
 	assert(clovec != nullptr);
 
 	/* init list of arguments and allocations */
-	TAILQ_INIT(&clovec->allocs);
-	TAILQ_INIT(&clovec->args);
+	PMDK_TAILQ_INIT(&clovec->allocs);
+	PMDK_TAILQ_INIT(&clovec->args);
 
 	clovec->nallocs = 0;
 
@@ -65,7 +65,7 @@ clo_vec_alloc(size_t size)
 	args->args = calloc(1, size);
 	assert(args->args != nullptr);
 
-	TAILQ_INSERT_TAIL(&clovec->args, args, next);
+	PMDK_TAILQ_INSERT_TAIL(&clovec->args, args, next);
 
 	clovec->nargs = 1;
 
@@ -81,17 +81,17 @@ clo_vec_free(struct clo_vec *clovec)
 	assert(clovec != nullptr);
 
 	/* free all allocations */
-	while (!TAILQ_EMPTY(&clovec->allocs)) {
-		struct clo_vec_alloc *alloc = TAILQ_FIRST(&clovec->allocs);
-		TAILQ_REMOVE(&clovec->allocs, alloc, next);
+	while (!PMDK_TAILQ_EMPTY(&clovec->allocs)) {
+		struct clo_vec_alloc *alloc = PMDK_TAILQ_FIRST(&clovec->allocs);
+		PMDK_TAILQ_REMOVE(&clovec->allocs, alloc, next);
 		free(alloc->ptr);
 		free(alloc);
 	}
 
 	/* free all arguments */
-	while (!TAILQ_EMPTY(&clovec->args)) {
-		struct clo_vec_args *args = TAILQ_FIRST(&clovec->args);
-		TAILQ_REMOVE(&clovec->args, args, next);
+	while (!PMDK_TAILQ_EMPTY(&clovec->args)) {
+		struct clo_vec_args *args = PMDK_TAILQ_FIRST(&clovec->args);
+		PMDK_TAILQ_REMOVE(&clovec->args, args, next);
 		free(args->args);
 		free(args);
 	}
@@ -109,7 +109,7 @@ clo_vec_get_args(struct clo_vec *clovec, size_t i)
 		return nullptr;
 	size_t c = 0;
 	struct clo_vec_args *args;
-	TAILQ_FOREACH(args, &clovec->args, next)
+	PMDK_TAILQ_FOREACH(args, &clovec->args, next)
 	{
 		if (c == i)
 			return args->args;
@@ -131,7 +131,7 @@ clo_vec_add_alloc(struct clo_vec *clovec, void *ptr)
 	assert(alloc != nullptr);
 
 	alloc->ptr = ptr;
-	TAILQ_INSERT_TAIL(&clovec->allocs, alloc, next);
+	PMDK_TAILQ_INSERT_TAIL(&clovec->allocs, alloc, next);
 	clovec->nallocs++;
 	return 0;
 }
@@ -151,7 +151,7 @@ clo_vec_grow(struct clo_vec *clovec, size_t new_len)
 
 		assert(args != nullptr);
 
-		TAILQ_INSERT_TAIL(&clovec->args, args, next);
+		PMDK_TAILQ_INSERT_TAIL(&clovec->args, args, next);
 
 		args->args = malloc(clovec->size);
 		assert(args->args != nullptr);
@@ -177,7 +177,7 @@ clo_vec_vlist_alloc(void)
 	assert(list != nullptr);
 
 	list->nvalues = 0;
-	TAILQ_INIT(&list->head);
+	PMDK_TAILQ_INIT(&list->head);
 
 	return list;
 }
@@ -190,9 +190,9 @@ clo_vec_vlist_free(struct clo_vec_vlist *list)
 {
 	assert(list != nullptr);
 
-	while (!TAILQ_EMPTY(&list->head)) {
-		struct clo_vec_value *val = TAILQ_FIRST(&list->head);
-		TAILQ_REMOVE(&list->head, val, next);
+	while (!PMDK_TAILQ_EMPTY(&list->head)) {
+		struct clo_vec_value *val = PMDK_TAILQ_FIRST(&list->head);
+		PMDK_TAILQ_REMOVE(&list->head, val, next);
 		free(val->ptr);
 		free(val);
 	}
@@ -214,7 +214,7 @@ clo_vec_vlist_add(struct clo_vec_vlist *list, void *ptr, size_t size)
 	assert(val->ptr != nullptr);
 
 	memcpy(val->ptr, ptr, size);
-	TAILQ_INSERT_TAIL(&list->head, val, next);
+	PMDK_TAILQ_INSERT_TAIL(&list->head, val, next);
 	list->nvalues++;
 }
 
@@ -265,7 +265,7 @@ clo_vec_memcpy_list(struct clo_vec *clovec, size_t off, size_t size,
 	size_t value_i = 0;
 	size_t i;
 
-	TAILQ_FOREACH(value, &list->head, next)
+	PMDK_TAILQ_FOREACH(value, &list->head, next)
 	{
 		for (i = value_i * len; i < (value_i + 1) * len; i++) {
 			auto *args = (char *)clo_vec_get_args(clovec, i);
