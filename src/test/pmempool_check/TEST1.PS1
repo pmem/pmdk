@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -47,11 +47,8 @@ $LOG="out$Env:UNITTEST_NUM.log"
 echo "PMEMLOG: pool_hdr" > $LOG
 expect_normal_exit $PMEMPOOL create log $POOL
 check_file $POOL
-# pool_hdr.features.incompat on Windows has to have SHUTDOWN_STATE feature enabled
-# otherwise pmempool check will fail because of dirty shutdown state structures
-# which are expected to be zeroed if SHUTDOWN_STATE feature is disabled
-# 0xfe == 0xfb | SHUTDOWN_STATE
-Invoke-Expression "$PMEMSPOIL -v $POOL pool_hdr.major=0x0 pool_hdr.features.compat=0xfe pool_hdr.features.incompat=0xfe pool_hdr.features.ro_compat=0xff pool_hdr.unused=ERROR >> $LOG"
+
+Invoke-Expression "$PMEMSPOIL -v $POOL pool_hdr.major=0x0 pool_hdr.features.compat=0xfe pool_hdr.features.incompat=0xfe pool_hdr.features.ro_compat=0xfb pool_hdr.shutdown_state.usc=0 pool_hdr.shutdown_state.uuid=0 'pool_hdr.shutdown_state.checksum_gen()' pool_hdr.unused=ERROR >> $LOG"
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 echo "PMEMLOG: pmemlog" >> $LOG
