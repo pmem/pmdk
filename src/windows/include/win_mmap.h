@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,7 +63,7 @@ typedef enum FILE_MAPPING_TRACKER_FLAGS {
  * this structure tracks the file mappings outstanding per file handle
  */
 typedef struct FILE_MAPPING_TRACKER {
-	SORTEDQ_ENTRY(FILE_MAPPING_TRACKER) ListEntry;
+	PMDK_SORTEDQ_ENTRY(FILE_MAPPING_TRACKER) ListEntry;
 	HANDLE FileHandle;
 	HANDLE FileMappingHandle;
 	void *BaseAddress;
@@ -75,6 +75,6 @@ typedef struct FILE_MAPPING_TRACKER {
 } FILE_MAPPING_TRACKER, *PFILE_MAPPING_TRACKER;
 
 extern SRWLOCK FileMappingQLock;
-extern SORTEDQ_HEAD(FMLHead, FILE_MAPPING_TRACKER) FileMappingQHead;
+extern PMDK_SORTEDQ_HEAD(FMLHead, FILE_MAPPING_TRACKER) FileMappingQHead;
 
 #endif /* WIN_MMAP_H */

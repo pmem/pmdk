@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -150,7 +150,7 @@ pmempool_dump_log_process_chunk(const void *buf, size_t len, void *arg)
 
 	struct range *curp = NULL;
 	if (pdp->chunksize) {
-		LIST_FOREACH(curp, &pdp->ranges.head, next) {
+		PMDK_LIST_FOREACH(curp, &pdp->ranges.head, next) {
 			if (pdp->chunkcnt >= curp->first &&
 			    pdp->chunkcnt <= curp->last &&
 			    pdp->chunksize <= len) {
@@ -168,7 +168,7 @@ pmempool_dump_log_process_chunk(const void *buf, size_t len, void *arg)
 		}
 		pdp->chunkcnt++;
 	} else {
-		LIST_FOREACH(curp, &pdp->ranges.head, next) {
+		PMDK_LIST_FOREACH(curp, &pdp->ranges.head, next) {
 			if (curp->first >= len)
 				continue;
 			uint8_t *ptr = (uint8_t *)buf + curp->first;
@@ -205,7 +205,7 @@ pmempool_dump_parse_range(struct pmempool_dump *pdp, size_t max)
 		return -1;
 	}
 
-	if (LIST_EMPTY(&pdp->ranges.head))
+	if (PMDK_LIST_EMPTY(&pdp->ranges.head))
 		util_ranges_add(&pdp->ranges, entire);
 
 	return 0;
@@ -272,7 +272,7 @@ pmempool_dump_blk(struct pmempool_dump *pdp)
 
 	uint64_t i;
 	struct range *curp = NULL;
-	LIST_FOREACH(curp, &pdp->ranges.head, next) {
+	PMDK_LIST_FOREACH(curp, &pdp->ranges.head, next) {
 		assert((os_off_t)curp->last >= 0);
 		for (i = curp->first; i <= curp->last; i++) {
 			if (pmemblk_read(pbp, buff, (os_off_t)i)) {
@@ -314,7 +314,7 @@ int
 pmempool_dump_func(const char *appname, int argc, char *argv[])
 {
 	struct pmempool_dump pd = pmempool_dump_default;
-	LIST_INIT(&pd.ranges.head);
+	PMDK_LIST_INIT(&pd.ranges.head);
 	out_set_vlevel(VERBOSE_DEFAULT);
 
 	struct options *opts = util_options_alloc(long_options,

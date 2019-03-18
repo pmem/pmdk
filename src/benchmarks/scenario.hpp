@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,28 +33,29 @@
  * scenario.hpp -- scenario module declaration
  */
 
+#include "queue.h"
 #include <cstdbool>
 
 struct kv {
-	TAILQ_ENTRY(kv) next;
+	PMDK_TAILQ_ENTRY(kv) next;
 	char *key;
 	char *value;
 };
 
 struct scenario {
-	TAILQ_ENTRY(scenario) next;
-	TAILQ_HEAD(scenariohead, kv) head;
+	PMDK_TAILQ_ENTRY(scenario) next;
+	PMDK_TAILQ_HEAD(scenariohead, kv) head;
 	char *name;
 	char *benchmark;
 	char *group;
 };
 
 struct scenarios {
-	TAILQ_HEAD(scenarioshead, scenario) head;
+	PMDK_TAILQ_HEAD(scenarioshead, scenario) head;
 };
 
-#define FOREACH_SCENARIO(s, ss) TAILQ_FOREACH((s), &(ss)->head, next)
-#define FOREACH_KV(kv, s) TAILQ_FOREACH((kv), &(s)->head, next)
+#define FOREACH_SCENARIO(s, ss) PMDK_TAILQ_FOREACH((s), &(ss)->head, next)
+#define FOREACH_KV(kv, s) PMDK_TAILQ_FOREACH((kv), &(s)->head, next)
 
 struct kv *kv_alloc(const char *key, const char *value);
 void kv_free(struct kv *kv);

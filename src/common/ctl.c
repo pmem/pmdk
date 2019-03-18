@@ -106,7 +106,7 @@ ctl_find_node(const struct ctl_node *nodes, const char *name,
 			if (index_entry == NULL)
 				goto error;
 			index_entry->value = index_value;
-			SLIST_INSERT_HEAD(indexes, index_entry, entry);
+			PMDK_SLIST_INSERT_HEAD(indexes, index_entry, entry);
 		}
 
 		for (n = &nodes[0]; n->name != NULL; ++n) {
@@ -140,9 +140,9 @@ error:
 static void
 ctl_delete_indexes(struct ctl_indexes *indexes)
 {
-	while (!SLIST_EMPTY(indexes)) {
-		struct ctl_index *index = SLIST_FIRST(indexes);
-		SLIST_REMOVE_HEAD(indexes, entry);
+	while (!PMDK_SLIST_EMPTY(indexes)) {
+		struct ctl_index *index = PMDK_SLIST_FIRST(indexes);
+		PMDK_SLIST_REMOVE_HEAD(indexes, entry);
 		Free(index);
 	}
 }
@@ -309,7 +309,7 @@ ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
 	 * query has been handled.
 	 */
 	struct ctl_indexes indexes;
-	SLIST_INIT(&indexes);
+	PMDK_SLIST_INIT(&indexes);
 
 	int ret = -1;
 
