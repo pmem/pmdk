@@ -39,6 +39,7 @@
 . ../unittest/unittest.sh
 
 require_test_type long
+require_fs_type none
 configure_valgrind drd force-enable
 
 setup
