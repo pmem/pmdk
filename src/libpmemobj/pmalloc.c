@@ -283,14 +283,14 @@ CTL_WRITE_HANDLER(desc)(void *ctx,
 			return -1;
 	}
 
-	if (SLIST_EMPTY(indexes)) {
+	if (PMDK_SLIST_EMPTY(indexes)) {
 		if (alloc_class_find_first_free_slot(ac, &id) != 0) {
 			ERR("no available free allocation class identifier");
 			errno = EINVAL;
 			return -1;
 		}
 	} else {
-		struct ctl_index *idx = SLIST_FIRST(indexes);
+		struct ctl_index *idx = PMDK_SLIST_FIRST(indexes);
 		ASSERTeq(strcmp(idx->name, "class_id"), 0);
 
 		if (idx->value < 0 || idx->value >= MAX_ALLOCATION_CLASSES) {
@@ -374,7 +374,7 @@ CTL_READ_HANDLER(desc)(void *ctx,
 	PMEMobjpool *pop = ctx;
 	uint8_t id;
 
-	struct ctl_index *idx = SLIST_FIRST(indexes);
+	struct ctl_index *idx = PMDK_SLIST_FIRST(indexes);
 	ASSERTeq(strcmp(idx->name, "class_id"), 0);
 
 	if (idx->value < 0 || idx->value >= MAX_ALLOCATION_CLASSES) {
@@ -644,7 +644,7 @@ CTL_WRITE_HANDLER(automatic)(void *ctx, enum ctl_query_source source,
 	int arg_in = *(int *)arg;
 	unsigned arena_id;
 
-	struct ctl_index *idx = SLIST_FIRST(indexes);
+	struct ctl_index *idx = PMDK_SLIST_FIRST(indexes);
 	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
 	arena_id = (unsigned)idx->value;
 
@@ -680,7 +680,7 @@ CTL_READ_HANDLER(automatic)(void *ctx,
 	int *arg_out = arg;
 	unsigned arena_id;
 
-	struct ctl_index *idx = SLIST_FIRST(indexes);
+	struct ctl_index *idx = PMDK_SLIST_FIRST(indexes);
 	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
 	arena_id = (unsigned)idx->value;
 
@@ -724,7 +724,7 @@ CTL_READ_HANDLER(size)(void *ctx,
 	unsigned narenas;
 	size_t *arena_size = arg;
 
-	struct ctl_index *idx = SLIST_FIRST(indexes);
+	struct ctl_index *idx = PMDK_SLIST_FIRST(indexes);
 	ASSERTeq(strcmp(idx->name, "arena_id"), 0);
 
 	/* take index of arena */

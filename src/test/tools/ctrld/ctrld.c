@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@
 #include <dirent.h>
 #include <signal.h>
 #include <limits.h>
-#include <sys/queue.h>
+#include <queue.h>
 #include <sys/types.h>
 #include <sys/file.h>
 #include <sys/types.h>
@@ -96,12 +96,12 @@ log_err(const char *file, int lineno, const char *fmt, ...)
 #define CTRLD_LOG(...) log_err(__FILE__, __LINE__, __VA_ARGS__)
 
 struct inode_item {
-	LIST_ENTRY(inode_item) next;
+	PMDK_LIST_ENTRY(inode_item) next;
 	unsigned long inode;
 };
 
 struct inodes {
-	LIST_HEAD(inode_items, inode_item) head;
+	PMDK_LIST_HEAD(inode_items, inode_item) head;
 };
 
 /*
@@ -370,7 +370,7 @@ static int
 contains_inode(struct inodes *inodes, unsigned long inode)
 {
 	struct inode_item *inode_item;
-	LIST_FOREACH(inode_item, &inodes->head, next) {
+	PMDK_LIST_FOREACH(inode_item, &inodes->head, next) {
 		if (inode_item->inode == inode)
 			return 1;
 	}
@@ -493,7 +493,7 @@ get_inodes(pid_t pid, struct inodes *inodes)
 		}
 
 		inode_item->inode = inode;
-		LIST_INSERT_HEAD(&inodes->head, inode_item, next);
+		PMDK_LIST_INSERT_HEAD(&inodes->head, inode_item, next);
 
 	}
 
@@ -509,9 +509,9 @@ out_dir:
 static void
 clear_inodes(struct inodes *inodes)
 {
-	while (!LIST_EMPTY(&inodes->head)) {
-		struct inode_item *inode_item = LIST_FIRST(&inodes->head);
-		LIST_REMOVE(inode_item, next);
+	while (!PMDK_LIST_EMPTY(&inodes->head)) {
+		struct inode_item *inode_item = PMDK_LIST_FIRST(&inodes->head);
+		PMDK_LIST_REMOVE(inode_item, next);
 		free(inode_item);
 	}
 }
@@ -529,7 +529,7 @@ has_port(pid_t pid, unsigned short port)
 	if (ret < 0)
 		return -1;
 
-	if (!LIST_EMPTY(&inodes.head)) {
+	if (!PMDK_LIST_EMPTY(&inodes.head)) {
 		ret = has_port_inode(port, &inodes);
 		clear_inodes(&inodes);
 	}

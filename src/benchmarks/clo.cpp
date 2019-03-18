@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -964,11 +964,13 @@ benchmark_override_clos_in_scenario(struct scenario *scenario, int argc,
 		} else { /* add a new param to the scenario */
 			if (optarg != nullptr && clo->type != CLO_TYPE_FLAG) {
 				kv = kv_alloc(clo->opt_long, optarg);
-				TAILQ_INSERT_TAIL(&scenario->head, kv, next);
+				PMDK_TAILQ_INSERT_TAIL(&scenario->head, kv,
+						       next);
 			} else if (optarg == nullptr &&
 				   clo->type == CLO_TYPE_FLAG) {
 				kv = kv_alloc(clo->opt_long, true_str);
-				TAILQ_INSERT_TAIL(&scenario->head, kv, next);
+				PMDK_TAILQ_INSERT_TAIL(&scenario->head, kv,
+						       next);
 			} else {
 				ret = -1;
 				goto out;
@@ -1040,7 +1042,8 @@ clo_get_scenarios(int argc, char *argv[], struct scenarios *available_scenarios,
 		struct scenario *new_scenario = clone_scenario(scenario);
 		assert(new_scenario != nullptr);
 
-		TAILQ_INSERT_TAIL(&found_scenarios->head, new_scenario, next);
+		PMDK_TAILQ_INSERT_TAIL(&found_scenarios->head, new_scenario,
+				       next);
 		tmp_argc--;
 		tmp_argv++;
 	} while (tmp_argc &&
