@@ -1004,6 +1004,13 @@ function require_short_path {
 }
 
 #
+# get_files -- returns all files in cwd with given pattern
+#
+function get_files {
+    dir |% {$_.Name} | select-string -Pattern $args[0]
+}
+
+#
 # setup -- print message that test setup is commencing
 #
 function setup {
@@ -1036,6 +1043,10 @@ function setup {
     }
 
     msg "${Env:UNITTEST_NAME}: SETUP ($Env:TYPE\$Global:REAL_FS\$Env:BUILD)"
+
+    foreach ($f in $(get_files "[a-zA-Z_]*${Env:UNITTEST_NUM}\.log$")) {
+        Remove-Item $f
+    }
 
     rm -Force check_pool_${Env:BUILD}_${Env:UNITTEST_NUM}.log -ErrorAction SilentlyContinue
 
