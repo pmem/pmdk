@@ -18,3 +18,12 @@
    fun:ndctl_namespace_get_dax
    ...
 }
+{
+   memory leak in ndctl 63
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   ...
+   fun:ndctl_namespace_get_first_badblock
+   ...
+}
