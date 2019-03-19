@@ -368,6 +368,8 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 		return ENOMEM;
 	}
 
+	VALGRIND_HG_DRD_DISABLE_CHECKING(k, sizeof(struct critnib_leaf));
+
 	k->key = key;
 	k->value = value;
 
@@ -424,6 +426,7 @@ critnib_insert(struct critnib *c, uint64_t key, void *value)
 
 		return ENOMEM;
 	}
+	VALGRIND_HG_DRD_DISABLE_CHECKING(m, sizeof(struct critnib_node));
 
 	for (int i = 0; i < SLNODES; i++)
 		m->child[i] = NULL;
@@ -545,10 +548,8 @@ critnib_get(struct critnib *c, uint64_t key)
 		 * each node's critical bit^H^H^Hnibble.  This means we risk
 		 * going wrong way if our path is missing, but that's ok...
 		 */
-		while (n && !is_leaf(n)) {
-			VALGRIND_HG_DRD_DISABLE_CHECKING(n, sizeof(*n));
+		while (n && !is_leaf(n))
 			load(&n->child[slice_index(key, n->shift)], &n);
-		}
 
 		/* ... as we check it at the end. */
 		struct critnib_leaf *k = to_leaf(n);
