@@ -4,10 +4,10 @@ Content-Style: 'text/css'
 title: LIBRPMEM
 collection: librpmem
 header: PMDK
-date: rpmem API version 1.2
+date: rpmem API version 1.3
 ...
 
-[comment]: <> (Copyright 2016-2017, Intel Corporation)
+[comment]: <> (Copyright 2016-2018, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -297,6 +297,16 @@ in-band RDMA connection. The *verbs* provider is enabled by default.
 
 Limit the maximum number of lanes to *num*. See **LANES**, in **rpmem_create**(3), for details.
 
+* **RPMEM_WORK_QUEUE_SIZE**=*size*
+
+Suggest the work queue size. The effective work queue size can be greater than
+suggested if **librpmem** requires it or it can be smaller if underlying hardware
+does not support the suggested size. The work queue size affects the performance
+of communication to the remote node.
+**rpmem_flush**(3) operations can be added to the work queue up to the size of
+this queue. When work queue is full any subsequent call has to wait till the work
+queue will be drained. **rpmem_drain**(3) and **rpmem_persist**(3) among other
+things also drain the work queue.
 
 # DEBUGGING AND ERROR HANDLING #
 
@@ -428,8 +438,8 @@ recommended by the SNIA NVM Programming Technical Work Group:
 # SEE ALSO #
 
 **rpmemd**(1), **ssh**(1), **fork**(2), **dlclose**(3), **dlopen**(3),
-**ibv_fork_init**(3), **rpmem_create**(3), **rpmem_open**(3),
-**rpmem_persist**(3), **strerror**(3), **limits.conf**(5), **fabric**(7),
-**fi_sockets**(7), **fi_verbs**(7), **libpmem**(7), **libpmemblk**(7),
+**ibv_fork_init**(3), **rpmem_create**(3), **rpmem_drain**(3), **rpmem_flush**(3),
+**rpmem_open**(3), **rpmem_persist**(3), **strerror**(3), **limits.conf**(5),
+**fabric**(7), **fi_sockets**(7), **fi_verbs**(7), **libpmem**(7), **libpmemblk**(7),
 **libpmemlog**(7), **libpmemobj**(7)
 and **<http://pmem.io>**
