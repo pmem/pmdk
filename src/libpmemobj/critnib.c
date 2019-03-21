@@ -222,6 +222,10 @@ critnib_new(void)
 
 	util_mutex_init(&c->mutex);
 
+	VALGRIND_HG_DRD_DISABLE_CHECKING(&c->root, sizeof(c->root));
+	VALGRIND_HG_DRD_DISABLE_CHECKING(&c->remove_count,
+					sizeof(c->remove_count));
+
 	return c;
 }
 
@@ -541,8 +545,10 @@ critnib_get(struct critnib *c, uint64_t key)
 		 * each node's critical bit^H^H^Hnibble.  This means we risk
 		 * going wrong way if our path is missing, but that's ok...
 		 */
-		while (n && !is_leaf(n))
+		while (n && !is_leaf(n)) {
+			VALGRIND_HG_DRD_DISABLE_CHECKING(n, sizeof(*n));
 			load(&n->child[slice_index(key, n->shift)], &n);
+		}
 
 		/* ... as we check it at the end. */
 		struct critnib_leaf *k = to_leaf(n);

@@ -8,6 +8,8 @@ pmemblk_ctl_exec
 pmemblk_ctl_get
 pmemblk_ctl_set
 pmemblk_errormsg
+$(OPT)pmemblk_fault_injection_enabled
+$(OPT)pmemblk_inject_fault_at
 pmemblk_nblock
 pmemblk_open
 pmemblk_read

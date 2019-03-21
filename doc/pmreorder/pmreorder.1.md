@@ -288,8 +288,8 @@ There are two ways to set macro options:
 + Using configuration file in .json format:
 ```
 {
-    "PMREORDER_MARKER_NAME1"="ReorderName1",
-    "PMREORDER_MARKER_NAME2"="ReorderName2"
+    "PMREORDER_MARKER_NAME1":"ReorderName1",
+    "PMREORDER_MARKER_NAME2":"ReorderName2"
 }
 ```
 
@@ -304,8 +304,8 @@ that allow to change reordering engine on library or function level:
 Example of configuration on function level:
 ```
 {
-    "pmemobj_open"="NoReorderNoCheck",
-    "pmemobj_memcpy_persist"="ReorderPartial"
+    "pmemobj_open":"NoReorderNoCheck",
+    "pmemobj_memcpy_persist":"ReorderPartial"
 }
 ```
 
@@ -313,7 +313,7 @@ Example of configuration on library level
 (affecting all library functions):
 ```
 {
-    "libpmemobj"="NoReorderNoCheck"
+    "libpmemobj":"NoReorderNoCheck"
 }
 ```
 

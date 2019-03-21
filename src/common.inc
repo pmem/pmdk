@@ -370,12 +370,13 @@ LIBUTIL=
 LIBUUID=
 
 NDCTL_ENABLE ?= y
+NDCTL_USE_V63_API ?= y
 
 # Detect libndctl if not disabled.
 ifeq ($(NDCTL_ENABLE),y)
-    ifeq ($(LIBNDCTL),)
+    ifeq ($(LIBNDCTL_LIBS),)
         HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION_FIXED))
-        ifeq ($(HAS_NDCTL),y)
+        ifeq ($(HAS_NDCTL)$(NDCTL_USE_V63_API),yy)
             OS_DIMM_CFLAG=-DNDCTL_GE_63
         else
             HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION))
@@ -388,14 +389,18 @@ ifeq ($(NDCTL_ENABLE),y)
         ifeq ($(HAS_DAXCTL),n)
             $(error libdaxctl(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
         endif
-        LIBNDCTL := $(shell $(PKG_CONFIG) --libs libndctl libdaxctl)
+        LIBNDCTL_CFLAGS := $(shell $(PKG_CONFIG) --cflags libndctl libdaxctl)
+        LIBNDCTL_LD_LIBRARY_PATHS := $(shell $(PKG_CONFIG) --variable=libdir libndctl libdaxctl | sed "s/ /:/")
+        LIBNDCTL_LIBS := $(shell $(PKG_CONFIG) --libs libndctl libdaxctl)
     endif
     OS_DIMM := ndctl
 else
     OS_DIMM := none
 endif
 export OS_DIMM
-export LIBNDCTL
+export LIBNDCTL_CFLAGS
+export LIBNDCTL_LD_LIBRARY_PATHS
+export LIBNDCTL_LIBS
 export OS_DIMM_CFLAG
 
 endif

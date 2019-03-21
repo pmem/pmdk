@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@ export PMEMOBJ_VG_CHECK_UNDEF=1
 export VALIDATE_VALGRIND_LOG=0
 export VALGRIND_OPTS="$VALGRIND_OPTS --show-reachable=yes"
 
-if ! eval LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE valgrind ./obj_memcheck$EXESUFFIX m 2>/dev/null; then
+if ! eval LD_PRELOAD=$TEST_LD_PRELOAD $TRACE valgrind ./obj_memcheck$EXESUFFIX m 2>/dev/null; then
 	echo "$UNITTEST_NAME: SKIP valgrind with bug"
 	exit 0
 fi

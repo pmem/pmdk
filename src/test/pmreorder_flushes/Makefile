@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,35 +31,13 @@
 #
 
 #
-# src/test/ex_pmreorder/TEST0 -- test for pmreorder list example
+# src/test/pmreorder_flushes/Makefile -- build pmreorder_flushes test
 #
 
-. ../unittest/unittest.sh
+TARGET = pmreorder_flushes
+OBJS = pmreorder_flushes.o
 
-LIBPMEM_SO=${PMDK_LIB_PATH}/libpmem.so.1
+LIBPMEM=y
+LIBPMEMCOMMON=y
 
-require_test_type medium
-require_build_type debug nondebug
-require_fs_type any
-require_pmemcheck_version_ge 1 0 $LIBPMEM_SO
-require_pmemcheck_version_lt 2 0 $LIBPMEM_SO
-require_pmreorder $LIBPMEM_SO
-
-setup
-
-export PMREORDER_EMIT_LOG=1
-truncate -s 2M $DIR/testfile
-
-EX_PATH=../../examples/pmreorder
-BIN="$EX_PATH/pmreorder_list$EXESUFFIX"
-PMEMCHECK_CMD="$BIN g $DIR/testfile"
-PMREORDER_CMD="$BIN c"
-
-pmreorder_create_store_log $DIR/testfile "$PMEMCHECK_CMD"
-pmreorder_expect_success ReorderReverseAccumulative \
-	"pmem_memset_persist=NoReorderNoCheck" \
-	"$PMREORDER_CMD"
-
-check
-
-pass
+include ../Makefile.inc

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2017, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -131,7 +131,7 @@ all: $(TMP_HEADERS)
 	$(call check-cstyle, $<, $@)
 
 $(PROGS): | $(TMP_HEADERS)
-	$(LINKER) -o $@ $^ $(LDFLAGS) $(LIBS)
+	LD_LIBRARY_PATH=$(LIBNDCTL_LD_LIBRARY_PATHS):$(LD_LIBRARY_PATH) $(LINKER) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 lib%.o:
 	$(LD) -o $@ -r $^

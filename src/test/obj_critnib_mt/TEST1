@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 . ../unittest/unittest.sh
 
 require_test_type long
+require_fs_type none
 configure_valgrind helgrind force-enable
 
 setup

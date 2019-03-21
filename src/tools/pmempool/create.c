@@ -200,13 +200,9 @@ pmempool_create_obj(struct pmempool_create *pcp)
 static int
 pmempool_create_blk(struct pmempool_create *pcp)
 {
-	int ret = 0;
+	ASSERTne(pcp->params.blk.bsize, 0);
 
-	if (pcp->params.blk.bsize == 0) {
-		outv(1, "No block size option passed"
-				" - picking minimum block size.\n");
-		pcp->params.blk.bsize = PMEMBLK_MIN_BLK;
-	}
+	int ret = 0;
 
 	PMEMblkpool *pbp = pmemblk_create(pcp->fname, pcp->params.blk.bsize,
 			pcp->params.size, pcp->params.mode);
@@ -576,7 +572,7 @@ pmempool_create_func(const char *appname, int argc, char *argv[])
 	size_t max_layout = PMEMOBJ_MAX_LAYOUT;
 
 	if (pc.layout && strlen(pc.layout) >= max_layout) {
-		outv_err("Layout name is to long, maximum number of characters"
+		outv_err("Layout name is too long, maximum number of characters"
 			" (including the terminating null byte) is %zu\n",
 			max_layout);
 		return -1;

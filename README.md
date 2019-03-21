@@ -121,13 +121,15 @@ You will need to install the following required packages on the build system:
 
 * **autoconf**
 * **pkg-config**
-* **libndctl-devel** (v60.1 or later)
+* **libndctl-devel** (v60.1 or later)<sup>1</sup>
 * **libdaxctl-devel** (v60.1 or later)
 
 The following packages are required only by selected PMDK components
 or features:
 
 * **libfabric** (v1.4.2 or later) -- required by **librpmem**
+
+><sup>1</sup> PMDK requires libndctl v63 or newer (to enable RAS features) by default. If you have such libndctl version but you don't want to depend on this API please bulid PMDK with NDCTL_USE_V63_API=n. For more information please check this issue pmem/issues#1039
 
 ### Windows
 

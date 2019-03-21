@@ -469,11 +469,13 @@ verbose_tests=
 [ -n "$KEEP_GOING" ] && keep_going=$KEEP_GOING
 [ -n "$VERBOSE_TESTS" ] && verbose_tests="$VERBOSE_TESTS"
 
-
 PMEMDETECT="tools/pmemdetect/pmemdetect.static-nondebug"
+pmemdetect() {
+	LD_LIBRARY_PATH=$LIBNDCTL_LD_LIBRARY_PATHS:$LD_LIBRARY_PATH $PMEMDETECT "$@"
+}
 
 if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ]; then
-	if $PMEMDETECT -s $PMEM_FS_DIR; then
+	if pmemdetect -s $PMEM_FS_DIR; then
 		echo "error: PMEM_FS_DIR_FORCE_PMEM variable is set but PMEM_FS_DIR [" $PMEM_FS_DIR  "] supports MAP_SYNC"
 		echo "Setting this flag prevents from testing an integration between pmem_map_file and pmem_is_pmem."
 		echo "If you want to ignore this error, please set PMEM_FS_DIR_FORCE_PMEM=2."
@@ -495,7 +497,7 @@ if [ -d "$PMEM_FS_DIR" ]; then
 	if [ "$PMEM_FS_DIR_FORCE_PMEM" = "1" ] || [ "$PMEM_FS_DIR_FORCE_PMEM" = "2" ]; then
 		PMEM_IS_PMEM=0
 	else
-		$PMEMDETECT "$PMEM_FS_DIR"
+		pmemdetect "$PMEM_FS_DIR"
 		PMEM_IS_PMEM=$?
 	fi
 
@@ -506,7 +508,7 @@ if [ -d "$PMEM_FS_DIR" ]; then
 fi
 
 if [ -d "$NON_PMEM_FS_DIR" ]; then
-	$PMEMDETECT "$NON_PMEM_FS_DIR"
+	pmemdetect "$NON_PMEM_FS_DIR"
 	NON_PMEM_IS_PMEM=$?
 	if [ $NON_PMEM_IS_PMEM -eq 0 ]; then
 		echo "error: NON_PMEM_FS_DIR=$NON_PMEM_FS_DIR does not point to a non-PMEM device"

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,34 +32,34 @@
 #
 
 #
-# src/test/ex_pmreorder/TEST0 -- test for pmreorder list example
+# src/test/ctl_cow/TEST3 -- unit test which checks if opening pool located
+# on Device DAX when copy_on_write.at_open=1 fails
 #
 
 . ../unittest/unittest.sh
 
-LIBPMEM_SO=${PMDK_LIB_PATH}/libpmem.so.1
-
 require_test_type medium
-require_build_type debug nondebug
-require_fs_type any
-require_pmemcheck_version_ge 1 0 $LIBPMEM_SO
-require_pmemcheck_version_lt 2 0 $LIBPMEM_SO
-require_pmreorder $LIBPMEM_SO
+require_dax_devices 1
+dax_device_zero
 
 setup
 
-export PMREORDER_EMIT_LOG=1
-truncate -s 2M $DIR/testfile
+POOL="$DIR/testfile"
+POOLSET_DAX="$DIR/dax.set"
 
-EX_PATH=../../examples/pmreorder
-BIN="$EX_PATH/pmreorder_list$EXESUFFIX"
-PMEMCHECK_CMD="$BIN g $DIR/testfile"
-PMREORDER_CMD="$BIN c"
+create_poolset $POOLSET_DAX AUTO:${DEVICE_DAX_PATH[0]} O SINGLEHDR
 
-pmreorder_create_store_log $DIR/testfile "$PMEMCHECK_CMD"
-pmreorder_expect_success ReorderReverseAccumulative \
-	"pmem_memset_persist=NoReorderNoCheck" \
-	"$PMREORDER_CMD"
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $POOLSET_DAX
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX create -s 32MB obj $POOL
+
+PMEMOBJ_CONF="copy_on_write.at_open=1;"
+
+# check if opening non-dax pool does not fail
+expect_normal_exit ./ctl_cow$EXESUFFIX $POOL dax
+
+# check if opening dax pool fails
+expect_abnormal_exit ./ctl_cow$EXESUFFIX $POOLSET_DAX dax
 
 check
 

@@ -4,9 +4,11 @@ pmempool_check_end
 pmempool_check_init
 pmempool_check_version
 pmempool_errormsg
+$(OPT)pmempool_fault_injection_enabled
 pmempool_feature_disable
 pmempool_feature_enable
 pmempool_feature_query
+$(OPT)pmempool_inject_fault_at
 pmempool_rm
 pmempool_sync
 pmempool_transform

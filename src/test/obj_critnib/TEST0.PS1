@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
 . ..\unittest\unittest.ps1
 
 require_test_type medium
+require_fs_type none
 
 setup
 
