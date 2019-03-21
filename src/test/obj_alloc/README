@@ -1,0 +1,18 @@
+Persistent Memory Development Kit
+
+This is src/test/obj_alloc/README.
+
+This directory contains a unit test for pmemobj_alloc and pmemobj_zalloc.
+
+The program in obj_alloc.c takes a path, size, type_num, is_oid_null, flags, expected_return_code and
+expected_errno.
+
+The accepted flags in 'size' and 'type_num' string are:
+'S' - SIZE_MAX
+'B' - SIZE_MAX-1
+'O' - sizeof(struct object)
+
+'flags' - determines usage of POBJ_FLAG_ZERO flag
+
+Example:
+$ obj_alloc /mnt/pmem/testfile O 0 0 1 0 0 ...

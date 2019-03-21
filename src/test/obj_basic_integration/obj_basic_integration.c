@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -152,6 +152,9 @@ test_alloc_api(PMEMobjpool *pop)
 			sizeof(struct dummy_node));
 
 	POBJ_FREE(&node_zeroed);
+
+	PMEMoid oid = OID_NULL;
+	POBJ_FREE(&oid);
 
 	int err = 0;
 
