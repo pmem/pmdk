@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: _MP(RPMEM_PERSIST, 3)
 collection: librpmem
 header: PMDK
-date: rpmem API version 1.2
+date: rpmem API version 1.3
 ...
 
 [comment]: <> (Copyright 2017-2018, Intel Corporation)
@@ -34,18 +34,20 @@ date: rpmem API version 1.2
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (rpmem_persist.3 -- man page for rpmem persist and read functions)
+[comment]: <> (rpmem_persist.3 -- man page for rpmem persist, flush, drain and read functions)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
 
 # NAME #
 
-**rpmem_persist**(), **rpmem_deep_persist**(), **rpmem_read**(),
+**rpmem_persist**(), **rpmem_deep_persist**(), **rpmem_flush**(),
+**rpmem_drain**(), **rpmem_read**()
 - functions to copy and read remote pools
 
 
@@ -58,6 +60,11 @@ int rpmem_persist(RPMEMpool *rpp, size_t offset,
 	size_t length, unsigned lane, unsigned flags);
 int rpmem_deep_persist(RPMEMpool *rpp, size_t offset,
 	size_t length, unsigned lane);
+
+int rpmem_flush(RPMEMpool *rpp, size_t offset,
+	size_t length, unsigned lane, unsigned flags);
+int rpmem_drain(RPMEMpool *rpp, unsigned lane, unsigned flags);
+
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
 	size_t length, unsigned lane);
 ```
@@ -91,6 +98,25 @@ The **rpmem_deep_persist**() function works in the same way as
 lowest possible persistency domain available from software.
 Please see **pmem_deep_persist**(3) for details.
 
+The **rpmem_flush**() and **rpmem_drain**() functions are two halves of the
+single **rpmem_persist**(). The **rpmem_persist**() copies data and makes it
+persistent in the one shot, where **rpmem_flush**() and **rpmem_drain**() split
+this operation into two stages. The **rpmem_flush**() copies data of given
+*length* at a given *offset* from the associated local memory pool to the
+remote node. The **rpmem_drain**() makes sure the data copied in all preceding
+**rpmem_flush**() calls is persistent on the remote node before the function
+returns. Data copied using **rpmem_flush**() can not be considered persistent
+on the remote node before return from following **rpmem_drain**().
+Single **rpmem_drain**() confirms persistence on the remote node of data copied
+by all **rpmem_flush**() functions called before it and using the same *lane*.
+The last **rpmem_flush**() + **rpmem_drain**() can be replaced with
+**rpmem_persist**() at no cost.
+
+The *flags* argument for **rpmem_flush**() and **rpmem_drain**() must be 0.
+
+The **rpmem_flush**() function performance is affected by **RPMEM_WORK_QUEUE_SIZE**
+environment variable (see **librpmem**(7) for more details).
+
 The **rpmem_read**() function reads *length* bytes of data from a remote pool
 at *offset* and copies it to the buffer *buff*. The operation is performed on
 the specified *lane*. The lane must be less than the value returned by
@@ -106,8 +132,23 @@ The **rpmem_persist**() function returns 0 if the entire memory area was
 made persistent on the remote node. Otherwise it returns a non-zero value
 and sets *errno* appropriately.
 
+The **rpmem_flush**() function returns 0 if duplication of the memory area to
+the remote node was initialized successfully. Otherwise, it returns a non-zero
+value and sets *errno* appropriately.
+
+The **rpmem_drain**() function returns 0 if the memory areas duplicated by all
+**rpmem_flush**() calls preceding the **rpmem_drain**() are made persistent
+on the remote node. Otherwise, it returns a non-zero value and sets *errno*
+appropriately.
+
 The **rpmem_read**() function returns 0 if the data was read entirely.
 Otherwise it returns a non-zero value and sets *errno* appropriately.
+
+
+# CAVEATS #
+
+Ordering of **rpmem_flush**() and **rpmem_persist**() operations which are using
+different *lane* values is not guaranteed.
 
 
 # SEE ALSO #

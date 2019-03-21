@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,7 @@ extern "C" {
 #define RPMEM_FIP_CQ_WAIT_MS	100
 
 #define min(a, b) ((a) < (b) ? (a) : (b))
+#define max(a, b) ((a) > (b) ? (a) : (b))
 
 /*
  * rpmem_fip_node -- client or server node type
@@ -68,6 +69,7 @@ enum rpmem_fip_node {
  */
 struct rpmem_fip_probe {
 	unsigned providers;
+	size_t max_wq_size[MAX_RPMEM_PROV];
 };
 
 /*
@@ -100,7 +102,7 @@ int rpmem_fip_read_eq(struct fid_eq *eq, struct fi_eq_cm_entry *entry,
 
 size_t rpmem_fip_cq_size(enum rpmem_persist_method pm,
 	enum rpmem_fip_node node);
-size_t rpmem_fip_tx_size(enum rpmem_persist_method pm,
+size_t rpmem_fip_wq_size(enum rpmem_persist_method pm,
 	enum rpmem_fip_node node);
 size_t rpmem_fip_rx_size(enum rpmem_persist_method pm,
 	enum rpmem_fip_node node);

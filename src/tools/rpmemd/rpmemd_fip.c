@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -353,7 +353,7 @@ rpmemd_fip_init_ep(struct rpmemd_fip *fip, struct fi_info *info,
 {
 	int ret;
 
-	info->tx_attr->size = rpmem_fip_tx_size(fip->persist_method,
+	info->tx_attr->size = rpmem_fip_wq_size(fip->persist_method,
 			RPMEM_FIP_NODE_SERVER);
 
 	info->rx_attr->size = rpmem_fip_rx_size(fip->persist_method,

@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,24 +30,51 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/librpmem/librpmem.link -- linker link file for librpmem
+# src/test/rpmem_fip/TEST5 -- test WQ size evaluation
 #
-LIBRPMEM_1.0 {
-	global:
-		rpmem_create;
-		rpmem_open;
-		rpmem_set_attr;
-		rpmem_close;
-		rpmem_remove;
-		rpmem_flush;
-		rpmem_drain;
-		rpmem_persist;
-		rpmem_deep_persist;
-		rpmem_read;
-		rpmem_check_version;
-		rpmem_errormsg;
-		fault_injection;
-	local:
-		*;
-};
+
+
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_test_type medium
+
+setup
+
+. setup.sh
+
+function rpmem_fip_test()
+{
+	local wq_size=$1
+	expect_normal_exit run_on_node 1 ./rpmem_fip$EXESUFFIX\
+		client_wq_size ${NODE_ADDR[0]} $RPMEM_PROVIDER $RPMEM_PM\
+		$wq_size
+}
+
+# WQ size is common for all lanes
+export RPMEM_WORK_QUEUE_SIZE=1
+export_vars_node 1 RPMEM_WORK_QUEUE_SIZE
+
+UINT_MAX=$((2**32))
+TOO_LARGE=$((UINT_MAX + 1))
+WQ_SIZE_VALUES=(8 -1 0 1 $TOO_LARGE)
+
+for wq_size in ${wq_SIZE_VALUES[@]}; do
+	# limit size of WQ queue
+	export RPMEM_WORK_QUEUE_SIZE=$wq_size
+	export_vars_node 1 RPMEM_WORK_QUEUE_SIZE
+
+	rpmem_fip_test $wq_size
+done
+
+# relative values
+WQ_SIZE_VALUES=("LT_MAX_WQ_SIZE" "EQ_MAX_WQ_SIZE" "GT_MAX_WQ_SIZE")
+
+for wq_size in ${WQ_SIZE_VALUES[@]}; do
+	# RPMEM_WORK_QUEUE_SIZE will be set according to maximum supported WQ size
+	rpmem_fip_test $wq_size
+done
+
+pass
