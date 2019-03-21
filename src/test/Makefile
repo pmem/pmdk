@@ -69,8 +69,8 @@ OBJ_TESTS = \
 	obj_many_size_allocs\
 	obj_realloc\
 	obj_sync\
-	\
 	obj_action\
+	obj_alloc\
 	obj_bucket\
 	obj_check\
 	obj_constructor\

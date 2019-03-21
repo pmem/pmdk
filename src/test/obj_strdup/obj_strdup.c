@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,6 +59,8 @@ enum type_number {
 #define TEST_STR_2	"Test string 2"
 #define TEST_WCS_1	L"Test string 3"
 #define TEST_WCS_2	L"Test string 4"
+#define TEST_STR_EMPTY ""
+#define TEST_WCS_EMPTY L""
 
 /*
  * do_strdup -- duplicate a string to not allocated toid using pmemobj_strdup
@@ -150,6 +152,39 @@ do_strdup_null_alloc(PMEMobjpool *pop)
 	UT_ASSERT(!TOID_IS_NULL(wcs1));
 }
 
+/*
+ * do_strdup_uint64_range -- duplicate string with
+ * type number equal to range of unsigned long long int
+ */
+static void
+do_strdup_uint64_range(PMEMobjpool *pop)
+{
+	TOID(char) str1;
+	TOID(char) str2 = do_alloc(pop, TEST_STR_2, TYPE_SIMPLE_ALLOC_1);
+	TOID(char) str3;
+	TOID(char) str4 = do_alloc(pop, TEST_STR_2, TYPE_SIMPLE_ALLOC_1);
+	pmemobj_strdup(pop, &str1.oid, D_RO(str2), UINT64_MAX);
+	pmemobj_strdup(pop, &str3.oid, D_RO(str4), UINT64_MAX - 1);
+	UT_ASSERTeq(strcmp(D_RO(str1), D_RO(str2)), 0);
+	UT_ASSERTeq(strcmp(D_RO(str3), D_RO(str4)), 0);
+}
+
+/*
+ * do_strdup_alloc_empty_string -- duplicate string to internal container
+ * associated with type number equal to range of unsigned long long int
+ * and unsigned long long int - 1
+ */
+static void
+do_strdup_alloc_empty_string(PMEMobjpool *pop)
+{
+	TOID(char) str1 = do_alloc(pop, TEST_STR_1, TYPE_SIMPLE_ALLOC_1);
+	TOID(wchar_t) wcs1 = do_wcs_alloc(pop, TEST_WCS_1, TYPE_SIMPLE_ALLOC_1);
+	pmemobj_strdup(pop, &str1.oid, TEST_STR_EMPTY, TYPE_SIMPLE_ALLOC);
+	pmemobj_wcsdup(pop, &wcs1.oid, TEST_WCS_EMPTY, TYPE_SIMPLE_ALLOC);
+	UT_ASSERTeq(strcmp(D_RO(str1), TEST_STR_EMPTY), 0);
+	UT_ASSERTeq(wcscmp(D_RO(wcs1), TEST_WCS_EMPTY), 0);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -167,6 +202,8 @@ main(int argc, char *argv[])
 	do_strdup_null(pop);
 	do_strdup_alloc(pop);
 	do_strdup_null_alloc(pop);
+	do_strdup_uint64_range(pop);
+	do_strdup_alloc_empty_string(pop);
 	pmemobj_close(pop);
 
 	DONE(NULL);

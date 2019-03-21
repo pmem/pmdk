@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,27 +31,17 @@
 #
 
 #
-# src/test/obj_realloc/TEST0 -- unit test for pmemobj_realloc and
-# pmemobj_zrealloc
+# src/test/obj_alloc/Makefile -- build obj_alloc() unit test
 #
+TARGET = obj_alloc
+OBJS = obj_alloc.o
 
-# standard unit test setup
-. ../unittest/unittest.sh
+LIBPMEMCOMMON=y
+LIBPMEM=y
+LIBPMEMOBJ=internal-debug
 
-require_test_type any
-require_fs_type any
+include ../Makefile.inc
 
-CHECK_TYPE="none"
-configure_valgrind force-disable
+LIBS += $(LIBDL)
 
-setup
-
-expect_normal_exit $PMEMPOOL$EXESUFFIX\
-	create obj --layout realloc --size=512M $DIR/testfile1
-
-export PMEM_IS_PMEM_FORCE=1
-expect_normal_exit ./obj_realloc$EXESUFFIX $DIR/testfile1
-
-check
-
-pass
+INCS += -I../../libpmemobj
