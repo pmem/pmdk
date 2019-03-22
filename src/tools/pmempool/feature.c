@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -146,7 +146,7 @@ feature_perform(struct feature_ctx *pfp)
 		printf("%d", ret);
 		return 0;
 	default:
-		ERR("Invalid option.");
+		outv_err("Invalid option.");
 		return -1;
 	}
 }
