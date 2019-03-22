@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,14 +32,25 @@
 #
 
 #
-# src/test/obj_recovery/Makefile -- build obj_recovery unit test
+# src/test/obj_recovery/TEST9 -- unit test for pool recovery
 #
 
-TARGET = obj_recovery
-OBJS = obj_recovery.o
+# standard unit test setup
+. ../unittest/unittest.sh
 
-LIBPMEM=y
-LIBPMEMOBJ=y
-LIBPMEMCOMMON=y
+require_test_type medium
+require_no_asan
 
-include ../Makefile.inc
+setup
+
+# exits in the middle of transaction, so pool cannot be closed
+export MEMCHECK_DONT_CHECK_LEAKS=1
+
+create_holey_file 16M $DIR/testfile
+
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile n c l
+expect_normal_exit ./obj_recovery$EXESUFFIX $DIR/testfile n o l
+
+check
+
+pass
