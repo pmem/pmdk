@@ -1,11 +1,13 @@
-Fri Mar 15 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+Mon Mar 25 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.6-rc2
+	* Version 1.6-rc3
 
 	This release:
 	- Enables unsafe shutdown and bad block detection on Linux
 	  on systems with libndctl >= 63. It is expected that systems with
 	  libndctl >= 63 has necessary kernel support (Linux >= 4.20).
+	  However, due to bugs in libndctl = 63 and Linux = 4.20, it is
+	  recommended to use libndctl >= 64.1 and Linux >= 5.0.4.
 	  On systems with libndctl < 63, PMDK uses old superuser-only
 	  interfaces. Support for old or new interfaces is chosen at BUILD
 	  time.
