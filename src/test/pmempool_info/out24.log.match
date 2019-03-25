@@ -17,7 +17,7 @@ POOL Header:
 Signature                : PMEMOBJ
 Major                    : $(nW)
 Mandatory features       : $(*)
-Not mandatory features   : 0x0
+Not mandatory features   : $(*)
 Forced RO                : 0x0
 Pool set UUID            : $(nW)
 UUID                     : $(nW)
