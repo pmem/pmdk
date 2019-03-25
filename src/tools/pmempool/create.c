@@ -115,7 +115,7 @@ static const char * const help_str =
 "  -M, --max-size       use maximum available space on file system\n"
 "  -m, --mode <octal>   set permissions to <octal> (the default is 0664)\n"
 "  -i, --inherit <file> take required parameters from specified pool file\n"
-"  -b, --clearbadblocks clear bad blocks in existing files\n"
+"  -b, --clear-bad-blocks clear bad blocks in existing files\n"
 "  -f, --force          remove the pool first\n"
 "  -v, --verbose        increase verbosity level\n"
 "  -h, --help           display this help and exit\n"
@@ -142,7 +142,7 @@ static const struct option long_options[] = {
 	{"write-layout", no_argument,		NULL,	'w' | OPT_BLK},
 	{"layout",	required_argument,	NULL,	'l' | OPT_OBJ},
 	{"force",	no_argument,		NULL,	'f' | OPT_ALL},
-	{"clearbadblocks", no_argument,		NULL,	'b' | OPT_ALL},
+	{"clear-bad-blocks", no_argument,		NULL,	'b' | OPT_ALL},
 	{NULL,		0,			NULL,	 0 },
 };
 
