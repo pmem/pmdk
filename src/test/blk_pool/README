@@ -8,6 +8,7 @@ The program in blk_pool.c takes: operation, path, bsize, poolsize, mode
 Operation can be:
     c - create
     o - open
+    f - do fault injection
 
 "poolsize and "mode" arguments are ignored if operation is "open".
 
@@ -22,7 +23,7 @@ Test cases:
 
 - pmemblk_create:
 
-TEST0 (pass)	non-existing file, poolsize >= min required size, bsize >= min blk size
+TEST0 (pass)	non-existing file, poolsize >= min required size, bsize >= min blk size, fault_injection == 1
 TEST1 (pass)	existing file, file length >= min required size, poolsize == 0, bsize >= min blk size
 TEST2 (fail)	non-existing file, poolsize == 0, bsize >= min blk size
 TEST3 (fail)	existing file, file length >= min required size, poolsize != 0, bsize >= min blk size

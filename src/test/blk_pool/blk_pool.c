@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,12 +38,27 @@
  * op can be:
  *   c - create
  *   o - open
+ *   f - do fault injection
  *
  * "poolsize" and "mode" arguments are ignored for "open"
  */
 #include "unittest.h"
+#include "../libpmemblk/blk.h"
 
 #define MB ((size_t)1 << 20)
+
+static void
+do_fault_injection(const char *path, size_t bsize,
+		size_t poolsize, unsigned mode)
+{
+	if (!pmemblk_fault_injection_enabled())
+		return;
+
+	pmemblk_inject_fault_at(PMEM_MALLOC, 1, "blk_runtime_init");
+	PMEMblkpool *pbp = pmemblk_create(path, bsize, poolsize, mode);
+	UT_ASSERTeq(pbp, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
 
 static void
 pool_create(const char *path, size_t bsize, size_t poolsize, unsigned mode)
@@ -108,6 +123,12 @@ main(int argc, char *argv[])
 
 	case 'o':
 		pool_open(argv[2], bsize);
+		break;
+	case 'f':
+		poolsize = strtoul(argv[4], NULL, 0) * MB; /* in megabytes */
+		mode = strtoul(argv[5], NULL, 8);
+
+		do_fault_injection(argv[2], bsize, poolsize, mode);
 		break;
 
 	default:
