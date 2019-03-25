@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,55 +29,44 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# Used to check whether all the commit messages in a pull request
-# follow the GIT/PMDK guidelines.
-#
-# usage: ./check-commit.sh
+# pmempool_create/TEST14 -- test pmemobj pool creation with default and custom layout
+# using increased verbosity level
 #
 
-if [[ $TRAVIS_REPO_SLUG != "$GITHUB_REPO" \
-	|| $TRAVIS_EVENT_TYPE != "pull_request" ]];
-then
-	echo "SKIP: $0 can only be executed for pull requests to $GITHUB_REPO"
-	exit 0
-fi
+. ../unittest/unittest.ps1
 
-# Find all the commits for the current build
-if [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
-	MERGE_BASE=$(echo $TRAVIS_COMMIT_RANGE | cut -d. -f1)
-	[ -z $MERGE_BASE ] && \
-		MERGE_BASE=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
-	commits=$(git log --pretty=%H $MERGE_BASE..$TRAVIS_COMMIT)
-else
-	commits=$TRAVIS_COMMIT
-fi
+require_test_type medium
 
-# valid area names
-AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmalloc\|jemalloc\|doc\|common\|daxio\|pmreorder"
+require_fs_type any
 
-# Check commit message
-for commit in $commits; do
-	subject=$(git log --format="%s" -n 1 $commit)
-	commit_len=$(git log --format="%s%n%b" -n 1 $commit | wc -L)
-	prefix=$(echo $subject | sed -n "s/^\($AREAS\)\:.*/\1/p")
+setup
 
-	if [[ $subject =~ ^Merge.* ]]; then
-		# skip
-		continue
-	fi
-	if [ "$prefix" = "" ]; then
-		echo "FAIL: subject line in commit message does not contain valid area name"
-		echo
-		./utils/check-area.sh $commit
-		exit 1
-	fi
+$LOG = "out${Env:UNITTEST_NUM}.log"
+$ERR_LOG = "err${Env:UNITTEST_NUM}.log"
 
-	if [ $commit_len -gt 73 ]; then
-		echo "FAIL: commit message exceeds 72 chars per line (commit_len)"
-		echo
-		git log -n 1 $commit
-		exit 1
-	fi
-done
+# test default layout
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj -v $DIR\pool.obj >> $LOG
+
+# test custom layout
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj -v --layout=moose $DIR\pool2.obj >> $LOG
+
+# test max layout
+
+# MAX_LAYOUT is equal to PMEMOBJ_MAX_LAYOUT (i.e. 1024) macro's value
+# reduced by 1 for terminating null byte
+$MAX_LAYOUT = 1023
+
+$LAYOUT = "x" * $MAX_LAYOUT
+
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj -v --layout=$LAYOUT $DIR/pool3.obj >> $LOG
+
+# test too long layout
+
+$INVALID_LAYOUT= "x" * ($MAX_LAYOUT + 1)
+
+expect_abnormal_exit cmd /c $PMEMPOOL$EXESUFFIX create obj -v --layout=$INVALID_LAYOUT $DIR/pool4.obj `>`> $LOG 2`>$ERR_LOG
+
+check
+
+pass
