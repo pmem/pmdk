@@ -3191,7 +3191,7 @@ util_pool_create_uuids(struct pool_set **setp, const char *path,
 							util_print_bad_files_cb,
 							NULL);
 			ERR(
-				"pool set contains bad blocks and cannot be created, run 'pmempool create --clearbadblocks' utility to clear bad blocks and create a pool");
+				"pool set contains bad blocks and cannot be created, run 'pmempool create --clear-bad-blocks' utility to clear bad blocks and create a pool");
 			errno = EIO;
 			goto err_poolset_free;
 		}
