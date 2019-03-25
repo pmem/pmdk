@@ -7,7 +7,7 @@ header: PMDK
 date: pmem Tools version 1.4
 ...
 
-[comment]: <> (Copyright 2016-2017, Intel Corporation)
+[comment]: <> (Copyright 2016-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -98,7 +98,7 @@ If the file already exist the permissions are not changed.
 
 Create a new pool of the same size and other properties as *\<file\>*.
 
-`-b, --clearbadblocks`
+`-b, --clear-bad-blocks`
 
 Clear bad blocks in existing files.
 

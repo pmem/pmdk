@@ -4,7 +4,7 @@ Content-Style: 'text/css'
 title: RPMEM_CREATE
 collection: librpmem
 header: PMDK
-date: rpmem API version 1.2
+date: rpmem API version 1.3
 ...
 
 [comment]: <> (Copyright 2017-2018, Intel Corporation)
