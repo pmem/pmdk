@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,6 +46,8 @@ POBJ_LAYOUT_ROOT(recovery, struct root);
 POBJ_LAYOUT_TOID(recovery, struct foo);
 POBJ_LAYOUT_END(recovery);
 
+#define MB (1 << 20)
+
 struct foo {
 	int bar;
 };
@@ -53,6 +55,7 @@ struct foo {
 struct root {
 	PMEMmutex lock;
 	TOID(struct foo) foo;
+	char large_data[MB];
 };
 
 #define BAR_VALUE 5
@@ -67,14 +70,14 @@ main(int argc, char *argv[])
 
 	if (argc != 5)
 		UT_FATAL("usage: %s [file] [lock: y/n] "
-			"[cmd: c/o] [type: n/f/s]",
+			"[cmd: c/o] [type: n/f/s/l]",
 			argv[0]);
 
 	const char *path = argv[1];
 
 	PMEMobjpool *pop = NULL;
 	int exists = argv[3][0] == 'o';
-	enum { TEST_NEW, TEST_FREE, TEST_SET } type;
+	enum { TEST_NEW, TEST_FREE, TEST_SET, TEST_LARGE } type;
 
 	if (argv[4][0] == 'n')
 		type = TEST_NEW;
@@ -82,6 +85,8 @@ main(int argc, char *argv[])
 		type = TEST_FREE;
 	else if (argv[4][0] == 's')
 		type = TEST_SET;
+	else if (argv[4][0] == 'l')
+		type = TEST_LARGE;
 	else
 		UT_FATAL("invalid type");
 
@@ -142,6 +147,28 @@ main(int argc, char *argv[])
 			} TX_END
 		} else {
 			UT_ASSERT(D_RW(D_RW(root)->foo)->bar == BAR_VALUE);
+		}
+	} else if (type == TEST_LARGE) {
+		if (!exists) {
+			TX_BEGIN(pop) {
+				TX_MEMSET(D_RW(root)->large_data, 0xc, MB);
+				pmemobj_persist(pop,
+					D_RW(root)->large_data, MB);
+				VALGRIND_PMEMCHECK_END_TX;
+
+				exit(0);
+			} TX_END
+		} else {
+			UT_ASSERT(util_is_zeroed(D_RW(root)->large_data, MB));
+
+			TX_BEGIN(pop) { /* we should be able to start TX */
+				TX_MEMSET(D_RW(root)->large_data, 0xc, MB);
+				pmemobj_persist(pop,
+					D_RW(root)->large_data, MB);
+				VALGRIND_PMEMCHECK_END_TX;
+
+				pmemobj_tx_abort(0);
+			} TX_END
 		}
 	} else if (type == TEST_NEW) {
 		if (!exists) {

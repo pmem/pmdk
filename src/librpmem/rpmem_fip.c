@@ -81,6 +81,11 @@
 #define RPMEM_RAW_BUFF_SIZE 4096
 #define RPMEM_RAW_SIZE 8
 
+typedef ssize_t (*rpmem_fip_flush_fn)(struct rpmem_fip *fip, size_t offset,
+		size_t len, unsigned lane);
+
+typedef int (*rpmem_fip_drain_fn)(struct rpmem_fip *fip, unsigned lane);
+
 typedef ssize_t (*rpmem_fip_persist_fn)(struct rpmem_fip *fip, size_t offset,
 		size_t len, unsigned lane, unsigned flags);
 
@@ -99,6 +104,8 @@ cq_read_infinite(struct fid_cq *cq, void *buf, size_t count)
  * rpmem_fip_ops -- operations specific for persistency method
  */
 struct rpmem_fip_ops {
+	rpmem_fip_flush_fn flush;
+	rpmem_fip_drain_fn drain;
 	rpmem_fip_persist_fn persist;
 	rpmem_fip_init_fn lanes_init;
 	rpmem_fip_init_fn lanes_init_mem;
@@ -110,9 +117,11 @@ struct rpmem_fip_ops {
  * rpmem_fip_lane -- base lane structure
  */
 struct rpmem_fip_lane {
-	struct fid_ep *ep;		/* endpoint */
-	struct fid_cq *cq;		/* completion queue */
+	struct fid_ep *ep;	/* endpoint */
+	struct fid_cq *cq;	/* completion queue */
 	uint64_t event;
+	size_t wq_elems;	/* # of elements in work queue */
+	int wq_is_flushing;	/* work queue is during flush */
 };
 
 /*
@@ -121,6 +130,7 @@ struct rpmem_fip_lane {
 struct rpmem_fip_plane {
 	struct rpmem_fip_lane base;	/* base lane structure */
 	struct rpmem_fip_rma write;	/* WRITE message */
+	struct rpmem_fip_rma write_cq;	/* WRITE message with completion */
 	struct rpmem_fip_rma read;	/* READ message */
 	struct rpmem_fip_msg send;	/* SEND message */
 	struct rpmem_fip_msg recv;	/* RECV message */
@@ -377,7 +387,8 @@ rpmem_fip_set_nlanes(struct rpmem_fip *fip, unsigned nlanes)
  */
 static int
 rpmem_fip_getinfo(struct rpmem_fip *fip, const char *node, const char *service,
-	enum rpmem_provider provider, enum rpmem_persist_method pm)
+	enum rpmem_provider provider, size_t max_wq_size,
+	enum rpmem_persist_method pm)
 {
 	int ret = -1;
 	struct fi_info *hints = rpmem_fip_get_hints(provider);
@@ -386,11 +397,22 @@ rpmem_fip_getinfo(struct rpmem_fip *fip, const char *node, const char *service,
 		goto err_hints;
 	}
 
-	hints->tx_attr->size = rpmem_fip_tx_size(pm, RPMEM_FIP_NODE_CLIENT);
+	/*
+	 * WQ size is:
+	 * - >= size required by persist method (pm_wq_size)
+	 * - >= size forced by environment variable (Rpmem_wq_size)
+	 * - but it has to be <= max_wq_size reported by provider
+	 */
+	size_t pm_wq_size = rpmem_fip_wq_size(pm, RPMEM_FIP_NODE_CLIENT);
+	hints->tx_attr->size =
+			min(
+				max(pm_wq_size, Rpmem_wq_size),
+				max_wq_size);
+
 	hints->rx_attr->size = rpmem_fip_rx_size(pm, RPMEM_FIP_NODE_CLIENT);
 
-	ret = fi_getinfo(RPMEM_FIVERSION, node, service,
-			0, hints, &fip->fi);
+	/* get maximum available */
+	ret = fi_getinfo(RPMEM_FIVERSION, node, service, 0, hints, &fip->fi);
 	if (ret) {
 		RPMEM_FI_ERR(ret, "getting fabric interface information");
 		goto err_fi_getinfo;
@@ -626,6 +648,20 @@ rpmem_fip_lanes_shutdown(struct rpmem_fip *fip)
 	return lret;
 }
 
+/*
+ * rpmem_fip_lane_prep_write -- (internal) choose right WRITE structure
+ * according to flags and prepare for collecting its completion
+ */
+static inline struct rpmem_fip_rma *
+rpmem_fip_lane_prep_write(struct rpmem_fip_plane *lanep, unsigned flags)
+{
+	if (flags & RPMEM_COMPLETION) {
+		rpmem_fip_lane_begin(&lanep->base, FI_WRITE);
+		return &lanep->write_cq;
+	}
+
+	return &lanep->write;
+}
 
 /*
  * rpmem_fip_monitor_thread -- (internal) monitor in-band connection
@@ -903,6 +939,13 @@ rpmem_fip_init_mem_lanes_apm(struct rpmem_fip *fip)
 				&fip->lanes[i],
 				0);
 
+		/* WRITE + FI_COMPLETION */
+		rpmem_fip_rma_init(&fip->lanes[i].write_cq,
+				fip->mr_desc, 0,
+				fip->rkey,
+				&fip->lanes[i],
+				FI_COMPLETION);
+
 		/* READ */
 		rpmem_fip_rma_init(&fip->lanes[i].read,
 				fip->raw_mr_desc, 0,
@@ -943,12 +986,132 @@ rpmem_fip_fini_lanes_apm(struct rpmem_fip *fip)
 }
 
 /*
- * rpmem_fip_persist_raw -- (internal) perform persist operation using
- * READ after WRITE mechanism
+ * rpmem_fip_wq_inc -- (internal) increment number of elements in WQ
+ */
+static inline void
+rpmem_fip_wq_inc(struct rpmem_fip_plane *lanep)
+{
+	++lanep->base.wq_elems;
+}
+
+/*
+ * rpmem_fip_wq_set_empty -- (internal) zero number of elements in WQ
+ */
+static inline void
+rpmem_fip_wq_set_empty(struct rpmem_fip_plane *lanep)
+{
+	RPMEM_ASSERT(!lanep->base.wq_is_flushing);
+	lanep->base.wq_elems = 0;
+}
+
+/*
+ * rpmem_fip_wq_require_flush -- (internal) is WQ almost full
+ */
+static inline int
+rpmem_fip_wq_require_flush(struct rpmem_fip *fip, struct rpmem_fip_plane *lanep)
+{
+	RPMEM_ASSERT(lanep->base.wq_elems < fip->fi->tx_attr->size);
+
+	return lanep->base.wq_elems + 1 == fip->fi->tx_attr->size;
+}
+
+/*
+ * rpmem_fip_wq_is_flushing -- (internal) is WQ flush started
+ */
+static inline int
+rpmem_fip_wq_is_flushing(struct rpmem_fip_plane *lanep)
+{
+	return lanep->base.wq_is_flushing;
+}
+
+/*
+ * rpmem_fip_wq_set_flushing -- (internal) mark WQ flush start
+ */
+static inline void
+rpmem_fip_wq_set_flushing(struct rpmem_fip_plane *lanep)
+{
+	lanep->base.wq_is_flushing = 1;
+}
+
+/*
+ * if WQ is almost full last WRITE has to report its completion
+ * otherwise it is unknown when subsequent commands can be posted
+ */
+#define RPMEM_FIP_WQ_FLUSH_REQ RPMEM_COMPLETION
+
+/*
+ * rpmem_fip_wq_flush_wait -- (internal) wait for WRITE completion
+ * to make sure WQ can accept subsequent commands
+ */
+static inline int
+rpmem_fip_wq_flush_wait(struct rpmem_fip *fip, struct rpmem_fip_plane *lanep)
+{
+	RPMEM_ASSERT(lanep->base.wq_elems == fip->fi->tx_attr->size);
+	RPMEM_ASSERT(lanep->base.wq_is_flushing);
+
+	/* wait for WRITE completion */
+	int ret = rpmem_fip_lane_wait(fip, &lanep->base, FI_WRITE);
+	if (unlikely(ret)) {
+		LOG(2, "waiting for WRITE completion failed");
+		return ret;
+	}
+
+	/* when WRITE completion is reaped WQ is empty */
+	lanep->base.wq_is_flushing = 0;
+	rpmem_fip_wq_set_empty(lanep);
+
+	return 0;
+}
+
+/*
+ * rpmem_fip_wq_inc_and_flush -- (internal) increment number of elements in WQ
+ * and flush it
+ */
+static inline int
+rpmem_fip_wq_inc_and_flush(struct rpmem_fip *fip, struct rpmem_fip_plane *lanep)
+{
+	rpmem_fip_wq_inc(lanep);
+	rpmem_fip_wq_set_flushing(lanep);
+
+	return rpmem_fip_wq_flush_wait(fip, lanep);
+}
+
+/*
+ * rpmem_fip_wq_flush_check -- (internal) check if WQ requires flush or it is
+ * during flushing and handle each case
+ */
+static inline int
+rpmem_fip_wq_flush_check(struct rpmem_fip *fip, struct rpmem_fip_plane *lanep,
+	unsigned *flags)
+{
+	if (rpmem_fip_wq_is_flushing(lanep))
+		return rpmem_fip_wq_flush_wait(fip, lanep);
+
+	if (rpmem_fip_wq_require_flush(fip, lanep))
+		*flags |= RPMEM_FIP_WQ_FLUSH_REQ;
+
+	return 0;
+}
+
+/*
+ * rpmem_fip_get_wq_size -- get WQ size (for validation purposes only)
+ */
+inline size_t
+rpmem_fip_get_wq_size(struct rpmem_fip *fip)
+{
+	RPMEM_ASSERT(fip);
+	RPMEM_ASSERT(fip->fi);
+	RPMEM_ASSERT(fip->fi->tx_attr);
+
+	return fip->fi->tx_attr->size;
+}
+
+/*
+ * rpmem_fip_flush_raw -- (internal) perform flush operation using rma WRITE
  */
 static int
-rpmem_fip_persist_raw(struct rpmem_fip *fip, size_t offset,
-	size_t len, unsigned lane)
+rpmem_fip_flush_raw(struct rpmem_fip *fip, size_t offset, size_t len,
+		unsigned lane, unsigned flags)
 {
 	struct rpmem_fip_plane *lanep = &fip->lanes[lane];
 
@@ -956,15 +1119,31 @@ rpmem_fip_persist_raw(struct rpmem_fip *fip, size_t offset,
 	void *laddr = (void *)((uintptr_t)fip->laddr + offset);
 	uint64_t raddr = fip->raddr + offset;
 
-	rpmem_fip_lane_begin(&lanep->base, FI_READ);
+	struct rpmem_fip_rma *write = rpmem_fip_lane_prep_write(lanep, flags);
 
 	/* WRITE for requested memory region */
-	ret = rpmem_fip_writemsg(lanep->base.ep,
-			&lanep->write, laddr, len, raddr);
+	ret = rpmem_fip_writemsg(lanep->base.ep, write, laddr, len, raddr);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR(ret, "RMA write");
 		return ret;
 	}
+
+	if (flags & RPMEM_FIP_WQ_FLUSH_REQ)
+		rpmem_fip_wq_set_flushing(lanep);
+
+	return 0;
+}
+
+/*
+ * rpmem_fip_drain_raw -- (internal) perform drain operation using rma READ
+ */
+static int
+rpmem_fip_drain_raw(struct rpmem_fip *fip, unsigned lane)
+{
+	struct rpmem_fip_plane *lanep = &fip->lanes[lane];
+	int ret;
+
+	rpmem_fip_lane_begin(&lanep->base, FI_READ);
 
 	/* READ to read-after-write buffer */
 	ret = rpmem_fip_readmsg(lanep->base.ep, &lanep->read, fip->raw_buff,
@@ -981,7 +1160,32 @@ rpmem_fip_persist_raw(struct rpmem_fip *fip, size_t offset,
 		return ret;
 	}
 
-	return ret;
+	return 0;
+}
+
+/*
+ * rpmem_fip_persist_raw -- (internal) perform persist operation using
+ * READ after WRITE mechanism
+ */
+static int
+rpmem_fip_persist_raw(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane, unsigned flags)
+{
+	int ret;
+
+	ret = rpmem_fip_flush_raw(fip, offset, len, lane, flags);
+	if (unlikely(ret))
+		return ret;
+
+	/* flush WQ prior to posting subsequent message */
+	if (flags & RPMEM_FIP_WQ_FLUSH_REQ) {
+		struct rpmem_fip_plane *lanep = &fip->lanes[lane];
+		ret = rpmem_fip_wq_inc_and_flush(fip, lanep);
+		if (unlikely(ret))
+			return ret;
+	}
+
+	return rpmem_fip_drain_raw(fip, lane);
 }
 
 /*
@@ -1020,19 +1224,27 @@ rpmem_fip_persist_saw(struct rpmem_fip *fip, size_t offset,
 		return ret;
 	}
 
-	rpmem_fip_lane_begin(&lanep->base, FI_RECV | FI_SEND);
+	struct rpmem_fip_rma *write = rpmem_fip_lane_prep_write(lanep, flags);
 
 	/* WRITE for requested memory region */
-	ret = rpmem_fip_writemsg(lanep->base.ep,
-			&lanep->write, laddr, len, raddr);
+	ret = rpmem_fip_writemsg(lanep->base.ep, write, laddr, len, raddr);
 	if (unlikely(ret)) {
 		RPMEM_FI_ERR((int)ret, "RMA write");
 		return ret;
 	}
 
+	/* flush WQ prior to posting subsequent message */
+	if (flags & RPMEM_FIP_WQ_FLUSH_REQ) {
+		ret = rpmem_fip_wq_inc_and_flush(fip, lanep);
+		if (unlikely(ret))
+			return ret;
+	}
+
+	rpmem_fip_lane_begin(&lanep->base, FI_RECV | FI_SEND);
+
 	/* SEND persist message */
 	msg = rpmem_fip_msg_get_pmsg(&lanep->send);
-	msg->flags = flags;
+	msg->flags = (flags & RPMEM_PERSIST_MASK);
 	msg->lane = lane;
 	msg->addr = raddr;
 	msg->size = len;
@@ -1128,12 +1340,19 @@ rpmem_fip_persist_gpspm_sockets(struct rpmem_fip *fip, size_t offset,
 	if (mode == RPMEM_PERSIST_SEND)
 		flags = (flags & ~RPMEM_PERSIST_MASK) | RPMEM_PERSIST_WRITE;
 
+	int ret = rpmem_fip_wq_flush_check(fip, &fip->lanes[lane], &flags);
+	if (unlikely(ret))
+		return -abs(ret);
+
 	/* Limit len to the max value of the return type. */
 	len = min(len, SSIZE_MAX);
 
-	int ret = rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+	ret = rpmem_fip_persist_saw(fip, offset, len, lane, flags);
 	if (ret)
 		return -abs(ret);
+
+	rpmem_fip_wq_set_empty(&fip->lanes[lane]);
+
 	return (ssize_t)len;
 }
 
@@ -1149,9 +1368,16 @@ rpmem_fip_persist_apm_sockets(struct rpmem_fip *fip, size_t offset,
 	/* Limit len to the max value of the return type. */
 	len = min(len, SSIZE_MAX);
 
-	int ret = rpmem_fip_persist_raw(fip, offset, len, lane);
-	if (ret)
+	int ret = rpmem_fip_wq_flush_check(fip, &fip->lanes[lane], &flags);
+	if (unlikely(ret))
 		return -abs(ret);
+
+	ret = rpmem_fip_persist_raw(fip, offset, len, lane, flags);
+	if (unlikely(ret))
+		return -abs(ret);
+
+	rpmem_fip_wq_set_empty(&fip->lanes[lane]);
+
 	return (ssize_t)len;
 }
 
@@ -1162,10 +1388,13 @@ static ssize_t
 rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 	size_t len, unsigned lane, unsigned flags)
 {
-	int ret;
 	/* Limit len to the max value of the return type. */
 	len = min(len, SSIZE_MAX);
 	unsigned mode = flags & RPMEM_PERSIST_MASK;
+
+	int ret = rpmem_fip_wq_flush_check(fip, &fip->lanes[lane], &flags);
+	if (unlikely(ret))
+		return -abs(ret);
 
 	if (mode == RPMEM_PERSIST_SEND) {
 		len = min(len, fip->buff_size);
@@ -1176,7 +1405,101 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 
 	if (ret)
 		return -abs(ret);
+
+	rpmem_fip_wq_set_empty(&fip->lanes[lane]);
+
 	return (ssize_t)len;
+}
+
+/*
+ * rpmem_fip_flush_gpspm -- (internal) perform flush operation for GPSPM
+ */
+static ssize_t
+rpmem_fip_flush_gpspm(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane)
+{
+	/* Limit len to the max value of the return type. */
+	len = min(len, SSIZE_MAX);
+
+	unsigned flags = 0;
+	int ret = rpmem_fip_wq_flush_check(fip, &fip->lanes[lane], &flags);
+	if (unlikely(ret))
+		return -abs(ret);
+
+	/*
+	 * Probably splitting Send-after-Write into two stages (flush + drain)
+	 * will give some performance gains also for GPSPM mode.
+	 * Since for now GPSPM mode is considered auxiliary and its performance
+	 * is not critical, the flush is emulated with a persist.
+	 */
+	ret = rpmem_fip_persist_saw(fip, offset, len, lane, flags);
+	if (ret)
+		return -abs(ret);
+
+	rpmem_fip_wq_set_empty(&fip->lanes[lane]);
+
+	return (ssize_t)len;
+}
+
+/*
+ * rpmem_fip_drain_nop -- (internal) perform drain operation as NOP
+ */
+static int
+rpmem_fip_drain_nop(struct rpmem_fip *fip, unsigned lane)
+{
+	(void) fip;
+	(void) lane;
+	return 0;
+}
+
+/*
+ * rpmem_fip_flush_apm -- (internal) perform flush operation for APM
+ */
+static ssize_t
+rpmem_fip_flush_apm(struct rpmem_fip *fip, size_t offset,
+	size_t len, unsigned lane)
+{
+	struct rpmem_fip_plane *lanep = &fip->lanes[lane];
+	int ret;
+
+	/* Limit len to the max value of the return type. */
+	len = min(len, SSIZE_MAX);
+
+	unsigned flags = 0;
+	ret = rpmem_fip_wq_flush_check(fip, lanep, &flags);
+	if (unlikely(ret))
+		return ret;
+
+	ret = rpmem_fip_flush_raw(fip, offset, len, lane, flags);
+	if (ret)
+		return -abs(ret);
+
+	rpmem_fip_wq_inc(lanep);
+
+	return (ssize_t)len;
+}
+
+/*
+ * rpmem_fip_drain_apm -- (internal) perform drain operation for APM
+ */
+static int
+rpmem_fip_drain_apm(struct rpmem_fip *fip, unsigned lane)
+{
+	struct rpmem_fip_plane *lanep = &fip->lanes[lane];
+	int ret;
+
+	if (unlikely(rpmem_fip_wq_is_flushing(lanep))) {
+		ret = rpmem_fip_wq_flush_wait(fip, lanep);
+		if (unlikely(ret))
+			return ret;
+	}
+
+	ret = rpmem_fip_drain_raw(fip, lane);
+	/* successful drain means WQ is empty */
+	if (likely(!ret))
+		rpmem_fip_wq_set_empty(lanep);
+
+	return ret;
 }
 
 /*
@@ -1186,10 +1509,13 @@ static ssize_t
 rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 	size_t len, unsigned lane, unsigned flags)
 {
-	int ret;
 	/* Limit len to the max value of the return type. */
 	len = min(len, SSIZE_MAX);
 	unsigned mode = flags & RPMEM_PERSIST_MASK;
+
+	int ret = rpmem_fip_wq_flush_check(fip, &fip->lanes[lane], &flags);
+	if (unlikely(ret))
+		return -abs(ret);
 
 	if (unlikely(mode == RPMEM_DEEP_PERSIST))
 		ret = rpmem_fip_persist_saw(fip, offset, len, lane, flags);
@@ -1197,11 +1523,14 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 		len = min(len, fip->buff_size);
 		ret = rpmem_fip_persist_send(fip, offset, len, lane, flags);
 	} else {
-		ret = rpmem_fip_persist_raw(fip, offset, len, lane);
+		ret = rpmem_fip_persist_raw(fip, offset, len, lane, flags);
 	}
 
-	if (ret)
+	if (unlikely(ret))
 		return -abs(ret);
+
+	rpmem_fip_wq_set_empty(&fip->lanes[lane]);
+
 	return (ssize_t)len;
 }
 
@@ -1229,6 +1558,8 @@ static const struct rpmem_fip_ops
 rpmem_fip_ops[MAX_RPMEM_PROV][MAX_RPMEM_PM] = {
 	[RPMEM_PROV_LIBFABRIC_VERBS] = {
 		[RPMEM_PM_GPSPM] = {
+			.flush = rpmem_fip_flush_gpspm,
+			.drain = rpmem_fip_drain_nop,
 			.persist = rpmem_fip_persist_gpspm,
 			.lanes_init = rpmem_fip_init_lanes_common,
 			.lanes_init_mem = rpmem_fip_init_mem_lanes_gpspm,
@@ -1236,6 +1567,8 @@ rpmem_fip_ops[MAX_RPMEM_PROV][MAX_RPMEM_PM] = {
 			.lanes_post = rpmem_fip_post_lanes_common,
 		},
 		[RPMEM_PM_APM] = {
+			.flush = rpmem_fip_flush_apm,
+			.drain = rpmem_fip_drain_apm,
 			.persist = rpmem_fip_persist_apm,
 			.lanes_init = rpmem_fip_init_lanes_apm,
 			.lanes_init_mem = rpmem_fip_init_mem_lanes_apm,
@@ -1245,6 +1578,8 @@ rpmem_fip_ops[MAX_RPMEM_PROV][MAX_RPMEM_PM] = {
 	},
 	[RPMEM_PROV_LIBFABRIC_SOCKETS] = {
 		[RPMEM_PM_GPSPM] = {
+			.flush = rpmem_fip_flush_gpspm,
+			.drain = rpmem_fip_drain_nop,
 			.persist = rpmem_fip_persist_gpspm_sockets,
 			.lanes_init = rpmem_fip_init_lanes_common,
 			.lanes_init_mem = rpmem_fip_init_mem_lanes_gpspm,
@@ -1252,6 +1587,8 @@ rpmem_fip_ops[MAX_RPMEM_PROV][MAX_RPMEM_PM] = {
 			.lanes_post = rpmem_fip_post_lanes_common,
 		},
 		[RPMEM_PM_APM] = {
+			.flush = rpmem_fip_flush_apm,
+			.drain = rpmem_fip_drain_apm,
 			.persist = rpmem_fip_persist_apm_sockets,
 			.lanes_init = rpmem_fip_init_lanes_apm,
 			.lanes_init_mem = rpmem_fip_init_mem_lanes_apm,
@@ -1299,7 +1636,7 @@ rpmem_fip_init(const char *node, const char *service,
 	}
 
 	ret = rpmem_fip_getinfo(fip, node, service,
-		attr->provider, attr->persist_method);
+		attr->provider, attr->max_wq_size, attr->persist_method);
 	if (ret)
 		goto err_getinfo;
 
@@ -1409,6 +1746,70 @@ close_monitor:
 }
 
 /*
+ * rpmem_fip_flush -- perform remote flush operation
+ */
+int
+rpmem_fip_flush(struct rpmem_fip *fip, size_t offset, size_t len,
+	unsigned lane)
+{
+	if (unlikely(rpmem_fip_is_closing(fip)))
+		return ECONNRESET; /* it will be passed to errno */
+
+	RPMEM_ASSERT(lane < fip->nlanes);
+	if (unlikely(lane >= fip->nlanes))
+		return EINVAL; /* it will be passed to errno */
+
+	if (unlikely(offset >= fip->size || offset + len > fip->size))
+		return EINVAL; /* it will be passed to errno */
+
+	if (unlikely(len == 0))
+		return 0;
+
+	int ret = 0;
+	while (len > 0) {
+		size_t tmplen = min(len, fip->fi->ep_attr->max_msg_size);
+
+		ssize_t r = fip->ops->flush(fip, offset, tmplen, lane);
+		if (r < 0) {
+			RPMEM_LOG(ERR, "flush operation failed");
+			ret = (int)r;
+			goto err;
+		}
+
+		tmplen = (size_t)r;
+
+		offset += tmplen;
+		len -= tmplen;
+	}
+err:
+	if (unlikely(rpmem_fip_is_closing(fip)))
+		return ECONNRESET; /* it will be passed to errno */
+
+	return ret;
+}
+
+/*
+ * rpmem_fip_drain -- perform remote drain operation
+ */
+int
+rpmem_fip_drain(struct rpmem_fip *fip, unsigned lane)
+{
+	if (unlikely(rpmem_fip_is_closing(fip)))
+		return ECONNRESET; /* it will be passed to errno */
+
+	RPMEM_ASSERT(lane < fip->nlanes);
+	if (unlikely(lane >= fip->nlanes))
+		return EINVAL; /* it will be passed to errno */
+
+	int ret = fip->ops->drain(fip, lane);
+
+	if (unlikely(rpmem_fip_is_closing(fip)))
+		return ECONNRESET; /* it will be passed to errno */
+
+	return ret;
+}
+
+/*
  * rpmem_fip_persist -- perform remote persist operation
  */
 int
@@ -1424,12 +1825,11 @@ rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 	if (unlikely(lane >= fip->nlanes))
 		return EINVAL; /* it will be passed to errno */
 
-	if (unlikely(offset > fip->size || offset + len > fip->size))
+	if (unlikely(offset >= fip->size || offset + len > fip->size))
 		return EINVAL; /* it will be passed to errno */
 
-	if (unlikely(len == 0)) {
+	if (unlikely(len == 0))
 		return 0;
-	}
 
 	int ret = 0;
 	while (len > 0) {

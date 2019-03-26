@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -402,24 +402,10 @@ lane_recover_and_section_boot(PMEMobjpool *pop)
 	 * a undo recovery might require deallocation of the next ulogs.
 	 */
 	for (i = 0; i < pop->nlanes; ++i) {
-		layout = lane_get_layout(pop, i);
-
-		struct ulog *undo = (struct ulog *)&layout->undo;
-
-		struct operation_context *ctx = operation_new(
-			undo,
-			LANE_UNDO_SIZE,
-			lane_undo_extend, (ulog_free_fn)pfree, &pop->p_ops,
-			LOG_TYPE_UNDO);
-		if (ctx == NULL) {
-			LOG(2, "undo recovery failed %" PRIu64 " %d",
-				i, err);
-			return err;
-		}
+		struct operation_context *ctx = pop->lanes_desc.lane[i].undo;
 		operation_resume(ctx);
 		operation_process(ctx);
 		operation_finish(ctx);
-		operation_delete(ctx);
 	}
 
 	return 0;

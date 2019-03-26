@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -50,6 +50,7 @@ struct rpmem_fip;
 
 struct rpmem_fip_attr {
 	enum rpmem_provider provider;
+	size_t max_wq_size;
 	enum rpmem_persist_method persist_method;
 	void *laddr;
 	size_t size;
@@ -68,12 +69,19 @@ int rpmem_fip_close(struct rpmem_fip *fip);
 int rpmem_fip_process_start(struct rpmem_fip *fip);
 int rpmem_fip_process_stop(struct rpmem_fip *fip);
 
+int rpmem_fip_flush(struct rpmem_fip *fip, size_t offset, size_t len,
+		unsigned lane);
+
+int rpmem_fip_drain(struct rpmem_fip *fip, unsigned lane);
+
 int rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 		unsigned lane, unsigned flags);
 
 int rpmem_fip_read(struct rpmem_fip *fip, void *buff,
 		size_t len, size_t off, unsigned lane);
 void rpmem_fip_probe_fork_safety(int *fork_unsafe);
+
+size_t rpmem_fip_get_wq_size(struct rpmem_fip *fip);
 
 #ifdef __cplusplus
 }

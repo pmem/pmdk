@@ -123,8 +123,7 @@ function pmempool_feature_create_poolset() {
 		;;
 	esac
 
-	# XXX: pmempool rm does not pass Valgrind memcheck pmem/issues#947
-	VALGRIND_DISABLED=y expect_normal_exit $pmempool_exe rm -f $POOLSET
+	expect_normal_exit $pmempool_exe rm -f $POOLSET
 
 	# create pool
 	# pmempool create under valgrind pmemcheck takes too long

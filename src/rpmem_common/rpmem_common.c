@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -53,6 +53,12 @@
 #include "os.h"
 
 unsigned Rpmem_max_nlanes = UINT_MAX;
+
+/*
+ * work queue of size 50 gives best performance of consecutive rpmem_flush
+ * operations with smallest used resources. Default value obtained empirically.
+ */
+unsigned Rpmem_wq_size = 50;
 
 /*
  * If set, indicates libfabric does not support fork() and consecutive calls to

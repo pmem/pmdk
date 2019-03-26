@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1417,7 +1417,8 @@ util_pool_clear_badblocks(const char *path, int create)
 	}
 
 	if (badblocks_clear_poolset(setp, create)) {
-		ERR("clearing bad blocks in the pool set failed -- '%s'", path);
+		outv_err("clearing bad blocks in the pool set failed -- '%s'",
+			path);
 		errno = EIO;
 		return -1;
 	}

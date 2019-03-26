@@ -385,8 +385,8 @@ parse_args(const char *appname, int argc, char *argv[],
 			} else if (strcmp(optarg, "yes") == 0) {
 				argsp->badblocks = PRINT_BAD_BLOCKS_YES;
 			} else {
-				ERR(
-					"'%s' -- invalid argument of the '--bad-blocks' option\n",
+				outv_err(
+					"'%s' -- invalid argument of the '-k/--bad-blocks' option\n",
 					optarg);
 				return -1;
 			}
