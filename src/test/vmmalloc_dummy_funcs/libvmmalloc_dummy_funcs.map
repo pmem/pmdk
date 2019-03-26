@@ -35,7 +35,13 @@
 #
 LIBVMMALLOC_DUMMY_FUNCS_1.0 {
 	global:
+		__free_hook;
+		__malloc_hook;
+		__memalign_hook;
+		__realloc_hook;
 		aligned_alloc;
+		memalign;
+		pvalloc;
 	local:
 		*;
 };
