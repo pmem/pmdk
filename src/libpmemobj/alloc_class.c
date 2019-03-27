@@ -43,6 +43,7 @@
 #include "out.h"
 #include "bucket.h"
 #include "critnib.h"
+#include "obj.h"
 
 #define RUN_CLASS_KEY_PACK(map_idx_s, flags_s, size_idx_s)\
 ((uint64_t)(map_idx_s) << 32 |\
@@ -529,7 +530,8 @@ alloc_class_collection_new()
 	return ac;
 
 error:
-	alloc_class_collection_delete(ac);
+	if (!pmemobj_fault_injection_enabled())
+		alloc_class_collection_delete(ac);
 
 	return NULL;
 }

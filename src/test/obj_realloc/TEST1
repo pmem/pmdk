@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 # pmemobj_zrealloc
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type long
@@ -56,7 +55,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX\
 # last parameter disables integrity tests, because they are veeeeeery slow
 # under pmemcheck (19 minutes vs 7 seconds)
 # XXX enable after pmemcheck optimization
-expect_normal_exit ./obj_realloc$EXESUFFIX $DIR/testfile1 0
+expect_normal_exit ./obj_realloc$EXESUFFIX t $DIR/testfile1 0
 
 check
 
