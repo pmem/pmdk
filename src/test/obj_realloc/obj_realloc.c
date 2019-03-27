@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -222,24 +222,36 @@ test_realloc_sizes(PMEMobjpool *pop, unsigned type_from,
 	}
 }
 
-int
-main(int argc, char *argv[])
+static void
+do_fault_injection_class_new(int i)
 {
-	START(argc, argv, "obj_realloc");
+	if (!pmemobj_fault_injection_enabled())
+		return;
 
-	/* root doesn't count */
-	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(realloc) != 1);
+	pmemobj_inject_fault_at(PMEM_MALLOC, i, "alloc_class_new");
 
-	if (argc < 2)
-		UT_FATAL("usage: %s file [check_integrity]", argv[0]);
+	struct alloc_class_collection *c = alloc_class_collection_new();
+	UT_ASSERTeq(c, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
 
-	PMEMobjpool *pop = pmemobj_open(argv[1], POBJ_LAYOUT_NAME(realloc));
-	if (!pop)
-		UT_FATAL("!pmemobj_open");
+static void
+do_fault_injection_class_collection_new()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
 
-	if (argc >= 3)
-		check_integrity = atoi(argv[2]);
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "alloc_class_collection_new");
 
+	struct alloc_class_collection *c = alloc_class_collection_new();
+	UT_ASSERTeq(c, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+
+static void
+do_test(PMEMobjpool *pop)
+{
 	alloc_classes = alloc_class_collection_new();
 
 	/* test alloc and free */
@@ -260,6 +272,42 @@ main(int argc, char *argv[])
 	alloc_class_collection_delete(alloc_classes);
 
 	pmemobj_close(pop);
+}
+
+int
+main(int argc, char *argv[])
+{
+	START(argc, argv, "obj_realloc");
+
+	/* root doesn't count */
+	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(realloc) != 1);
+
+	if (argc < 3)
+		UT_FATAL("usage: %s file [check_integrity]", argv[0]);
+
+	PMEMobjpool *pop = pmemobj_open(argv[2], POBJ_LAYOUT_NAME(realloc));
+	if (!pop)
+		UT_FATAL("!pmemobj_open");
+
+	if (argc >= 4)
+		check_integrity = atoi(argv[3]);
+
+	switch (argv[1][0]) {
+	case 't':
+		do_test(pop);
+		break;
+	case 'f':
+		/* first call alloc_class_new */
+		do_fault_injection_class_new(1);
+		/* second call alloc_class_new */
+		do_fault_injection_class_new(2);
+		break;
+	case 'c':
+		do_fault_injection_class_collection_new();
+		break;
+	default:
+		FATAL("invalid op '%c'", argv[1][0]);
+	}
 
 	DONE(NULL);
 }
