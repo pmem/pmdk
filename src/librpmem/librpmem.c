@@ -63,9 +63,6 @@ librpmem_init(void)
 
 	rpmem_util_get_env_max_nlanes(&Rpmem_max_nlanes);
 	rpmem_util_get_env_wq_size(&Rpmem_wq_size);
-	rpmem_fip_probe_fork_safety(&Rpmem_fork_unsafe);
-	RPMEM_LOG(NOTICE, "Libfabric is %sfork safe",
-		Rpmem_fork_unsafe ? "not " : "");
 }
 
 /*
