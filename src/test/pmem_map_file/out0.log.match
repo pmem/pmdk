@@ -1,42 +1,42 @@
 pmem_map_file$(nW)TEST0: START: pmem_map_file$(nW)
  $(nW)pmem_map_file$(nW) $(*)
-$(nW)testfile1 0 - 0 1 1
+$(nW)testfile1 0 - 0 1 1 0
 mapped_len 2147483648
 unmap successful
-$(nW)testfile1 -1 - 0 1 1
+$(nW)testfile1 -1 - 0 1 1 0
 pmem_map_file: Invalid argument
-$(nW)testfile1 0 - 0 0 0
+$(nW)testfile1 0 - 0 0 0 0
 unmap successful
-$(nW)testfile1 0 X 0 0 0
+$(nW)testfile1 0 X 0 0 0 0
 pmem_map_file: Invalid argument
-$(nW)testfile1 0 - 644 1 1
+$(nW)testfile1 0 - 644 1 1 0
 mapped_len 2147483648
 unmap successful
-$(nW)testfile1 1024 - 0 1 1
+$(nW)testfile1 1024 - 0 1 1 0
 pmem_map_file: Invalid argument
-$(nW)testfile1 0 C 0 1 1
+$(nW)testfile1 0 C 0 1 1 0
 pmem_map_file: Invalid argument
-$(nW)testfile1 0 E 0 1 1
+$(nW)testfile1 0 E 0 1 1 0
 mapped_len 2147483648
 unmap successful
-$(nW)testfile1 4096 T 644 1 1
+$(nW)testfile1 4096 T 644 1 1 0
 pmem_map_file: Invalid argument
-$(nW)testfile1 4096 E 644 1 1
+$(nW)testfile1 4096 E 644 1 1 0
 pmem_map_file: Invalid argument
-$(nW)testfile1 0 - 644 1 1
+$(nW)testfile1 0 - 644 1 1 0
 mapped_len 2147483648
 unmap successful
-$(nW)testfile1 4096 C 644 1 1
+$(nW)testfile1 4096 C 644 1 1 0
 ftruncate: len 4096
 posix_fallocate: off 0 len 4096
 mapped_len 4096
 unmap successful
-$(nW)testfile1 8192 C 644 1 1
+$(nW)testfile1 8192 C 644 1 1 0
 ftruncate: len 8192
 posix_fallocate: off 0 len 8192
 mapped_len 8192
 unmap successful
-$(nW)testfile1 4096 CS 644 1 1
+$(nW)testfile1 4096 CS 644 1 1 0
 ftruncate: len 4096
 mapped_len 4096
 unmap successful

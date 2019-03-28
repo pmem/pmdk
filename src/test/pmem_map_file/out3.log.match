@@ -1,0 +1,15 @@
+pmem_map_file$(nW)TEST3: START: pmem_map_file$(nW)
+ $(nW)pmem_map_file$(nW) $(*)
+$(nW)testfile1 0 0 666 0 0 0
+pmem_map_file: No such file or directory
+$(nW)testfile2 4096 CE 666 1 1 17
+pmem_map_file: File exists
+$(nW)testfile3 4096 CES 666 1 1 17
+pmem_map_file: File exists
+$(nW)sparsefile1 0 CS 666 1 1 0
+pmem_map_file: Invalid argument
+$(nW)nonexistingdir 0 0 666 1 1 2
+pmem_map_file: No such file or directory
+$(nW)nonexistingdir 4096 CET 666 1 1 2
+pmem_map_file: No such file or directory
+pmem_map_file$(nW)TEST3: DONE
