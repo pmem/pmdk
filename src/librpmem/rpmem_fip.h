@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -73,7 +73,7 @@ int rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 
 int rpmem_fip_read(struct rpmem_fip *fip, void *buff,
 		size_t len, size_t off, unsigned lane);
-void rpmem_fip_probe_fork_safety(int *fork_unsafe);
+void rpmem_fip_probe_fork_safety(void);
 
 #ifdef __cplusplus
 }
