@@ -1,6 +1,6 @@
-Mon Mar 25 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+Tue Mar 26 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.6-rc3
+	* Version 1.6
 
 	This release:
 	- Enables unsafe shutdown and bad block detection on Linux
