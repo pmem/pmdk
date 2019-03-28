@@ -1307,3 +1307,20 @@ function require_free_space() {
 		exit 0
 	}
 }
+
+#
+# require_free_physical_memory -- check if there is enough free physical memory
+# space to run the test
+# Example, checking if there is 1 GB of free physical memory space:
+# require_free_physical_memory 1G
+#
+function require_free_physical_memory() {
+	$req_free_physical_memory = (convert_to_bytes $args[0])
+	$free_physical_memory = (Get-CimInstance Win32_OperatingSystem | Select-Object -ExpandProperty FreePhysicalMemory) * 1024
+
+	if ($free_physical_memory -lt $req_free_physical_memory)
+	{
+		msg "${Env:UNITTEST_NAME}: SKIP not enough free physical memory ($Args[0] required, free: $free_physical_memory B)"
+		exit 0
+	}
+}
