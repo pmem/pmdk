@@ -7,7 +7,7 @@ header: PMDK
 date: pmem_ctl API version 1.4
 ...
 
-[comment]: <> (Copyright 2018, Intel Corporation)
+[comment]: <> (Copyright 2018-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -44,7 +44,7 @@ date: pmem_ctl API version 1.4
 
 # NAME #
 
-ctl -- interface for examination and modification of the library's internal state.
+ctl - interface for examination and modification of the library's internal state.
 
 
 # DESCRIPTION #
@@ -57,14 +57,6 @@ have string identifiers. Indexed nodes represent an abstract array index and
 have an associated string identifier. The index itself is provided by the user.
 A collection of indexes present on the path of an entry point is provided to
 the handler functions as name and index pairs.
-
-The *name* argument specifies an entry point as defined in the CTL namespace
-specification. The entry point description specifies whether the extra *arg* is
-required. Those two parameters together create a CTL query. The functions and the entry points are thread-safe unless
-indicated otherwise below. If there are special conditions for calling an entry
-point, they are explicitly stated in its description. The functions propagate
-the return value of the entry point. If either *name* or *arg* is invalid, -1
-is returned.
 
 Entry points are the leaves of the CTL namespace structure. Each entry point
 can read from the internal state, write to the internal state,
