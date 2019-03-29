@@ -38,6 +38,43 @@ export LC_ALL="C"
 
 . ../testconfig.sh
 
+if [ -t 1 ]; then
+	IS_TERMINAL_STDOUT=YES
+fi
+if [ -t 2 ]; then
+	IS_TERMINAL_STDERR=YES
+fi
+
+function is_terminal() {
+	local fd
+	fd=$1
+	case $(eval "echo \${IS_TERMINAL_${fd}}") in
+	YES) : ;;
+	*) false ;;
+	esac
+}
+
+function interactive_color() {
+	local color fd
+	color=$1
+	fd=$2
+	shift 2
+
+	if is_terminal ${fd} && command -v tput >/dev/null; then
+		echo "$(tput setaf $color || :)$*$(tput sgr0 || :)"
+	else
+		echo "$*"
+	fi
+}
+
+function interactive_red() {
+	interactive_color 1 "$@"
+}
+
+function interactive_green() {
+	interactive_color 2 "$@"
+}
+
 function verbose_msg() {
 	if [ "$UNITTEST_LOG_LEVEL" -ge 2 ]; then
 		echo "$*"
@@ -729,8 +766,7 @@ function validate_valgrind_log() {
 		-e "Bad mempool" \
 		$1 >/dev/null ;
 	then
-		msg="failed"
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR "failed")
 		echo -e "$UNITTEST_NAME $msg with Valgrind. See $1. Last 20 lines below." >&2
 		paste -d " " <(yes $UNITTEST_NAME $1 | head -n 20) <(tail -n 20 $1) >&2
 		false
@@ -840,7 +876,7 @@ function expect_normal_exit() {
 		else
 			msg="failed with exit code $ret"
 		fi
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR $msg)
 
 		if [ -f $ERR_LOG_FILE ]; then
 			if [ "$UNITTEST_LOG_LEVEL" -ge "1" ]; then
@@ -919,8 +955,7 @@ function expect_abnormal_exit() {
 	restore_exit_on_error
 
 	if [ "$ret" -eq "0" ]; then
-		msg="succeeded"
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR "succeeded")
 
 		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
 
@@ -2753,8 +2788,7 @@ function pass() {
 	else
 		tm=""
 	fi
-	msg="PASS"
-	[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 2)$msg$(tput sgr0)"
+	msg=$(interactive_green STDOUT "PASS")
 	if [ "$UNITTEST_LOG_LEVEL" -ge 1 ]; then
 		echo -e "$UNITTEST_NAME: $msg$tm"
 	fi
@@ -3439,8 +3473,7 @@ function pmreorder_expect_success()
 	ret=$(pmreorder_run_tool "$@")
 
 	if [ "$ret" -ne "0" ]; then
-		msg="failed with exit code $ret"
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR "failed with exit code $ret")
 
 		# exit code 130 - script terminated by user (Control-C)
 		if [ "$ret" -ne "130" ]; then
@@ -3462,8 +3495,7 @@ function pmreorder_expect_failure()
 	ret=$(pmreorder_run_tool "$@")
 
 	if [ "$ret" -eq "0" ]; then
-		msg="succeeded"
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR "succeeded")
 
 		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
 
