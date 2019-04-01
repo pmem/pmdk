@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -69,14 +69,14 @@ enum check_answer {
 
 /* queue of check statuses */
 struct check_status {
-	TAILQ_ENTRY(check_status) next;
+	PMDK_TAILQ_ENTRY(check_status) next;
 	struct pmempool_check_status status;
 	unsigned question;
 	enum check_answer answer;
 	char *msg;
 };
 
-TAILQ_HEAD(check_status_head, check_status);
+PMDK_TAILQ_HEAD(check_status_head, check_status);
 
 /* check control context */
 struct check_data {
@@ -105,9 +105,9 @@ check_data_alloc(void)
 		return NULL;
 	}
 
-	TAILQ_INIT(&data->infos);
-	TAILQ_INIT(&data->questions);
-	TAILQ_INIT(&data->answers);
+	PMDK_TAILQ_INIT(&data->infos);
+	PMDK_TAILQ_INIT(&data->questions);
+	PMDK_TAILQ_INIT(&data->answers);
 
 	return data;
 }
@@ -130,21 +130,21 @@ check_data_free(struct check_data *data)
 		data->check_status_cache = NULL;
 	}
 
-	while (!TAILQ_EMPTY(&data->infos)) {
-		struct check_status *statp = TAILQ_FIRST(&data->infos);
-		TAILQ_REMOVE(&data->infos, statp, next);
+	while (!PMDK_TAILQ_EMPTY(&data->infos)) {
+		struct check_status *statp = PMDK_TAILQ_FIRST(&data->infos);
+		PMDK_TAILQ_REMOVE(&data->infos, statp, next);
 		free(statp);
 	}
 
-	while (!TAILQ_EMPTY(&data->questions)) {
-		struct check_status *statp = TAILQ_FIRST(&data->questions);
-		TAILQ_REMOVE(&data->questions, statp, next);
+	while (!PMDK_TAILQ_EMPTY(&data->questions)) {
+		struct check_status *statp = PMDK_TAILQ_FIRST(&data->questions);
+		PMDK_TAILQ_REMOVE(&data->questions, statp, next);
 		free(statp);
 	}
 
-	while (!TAILQ_EMPTY(&data->answers)) {
-		struct check_status *statp = TAILQ_FIRST(&data->answers);
-		TAILQ_REMOVE(&data->answers, statp, next);
+	while (!PMDK_TAILQ_EMPTY(&data->answers)) {
+		struct check_status *statp = PMDK_TAILQ_FIRST(&data->answers);
+		PMDK_TAILQ_REMOVE(&data->answers, statp, next);
 		free(statp);
 	}
 
@@ -286,7 +286,7 @@ status_push(PMEMpoolcheck *ppc, struct check_status *st, uint32_t question)
 		return -1;
 	} else if (st->status.type == PMEMPOOL_CHECK_MSG_TYPE_INFO) {
 		if (CHECK_IS(ppc, VERBOSE))
-			TAILQ_INSERT_TAIL(&ppc->data->infos, st, next);
+			PMDK_TAILQ_INSERT_TAIL(&ppc->data->infos, st, next);
 		else
 			check_status_release(ppc, st);
 		return 0;
@@ -316,14 +316,14 @@ status_push(PMEMpoolcheck *ppc, struct check_status *st, uint32_t question)
 		st->question = question;
 		st->answer = PMEMPOOL_CHECK_ANSWER_YES;
 		st->status.type = PMEMPOOL_CHECK_MSG_TYPE_QUESTION;
-		TAILQ_INSERT_TAIL(&ppc->data->answers, st, next);
+		PMDK_TAILQ_INSERT_TAIL(&ppc->data->answers, st, next);
 	} else {
 		/* question message */
 		status_msg_info_and_question(st->msg);
 		st->question = question;
 		ppc->result = CHECK_RESULT_ASK_QUESTIONS;
 		st->answer = PMEMPOOL_CHECK_ANSWER_EMPTY;
-		TAILQ_INSERT_TAIL(&ppc->data->questions, st, next);
+		PMDK_TAILQ_INSERT_TAIL(&ppc->data->questions, st, next);
 	}
 
 	return 0;
@@ -392,10 +392,10 @@ check_status_release(PMEMpoolcheck *ppc, struct check_status *status)
 static struct check_status *
 pop_status(struct check_data *data, struct check_status_head *queue)
 {
-	if (!TAILQ_EMPTY(queue)) {
+	if (!PMDK_TAILQ_EMPTY(queue)) {
 		ASSERTeq(data->check_status_cache, NULL);
-		data->check_status_cache = TAILQ_FIRST(queue);
-		TAILQ_REMOVE(queue, data->check_status_cache, next);
+		data->check_status_cache = PMDK_TAILQ_FIRST(queue);
+		PMDK_TAILQ_REMOVE(queue, data->check_status_cache, next);
 		return data->check_status_cache;
 	}
 
@@ -503,7 +503,7 @@ static void
 status_answer_push(struct check_data *data, struct check_status *st)
 {
 	ASSERTeq(st->status.type, PMEMPOOL_CHECK_MSG_TYPE_QUESTION);
-	TAILQ_INSERT_TAIL(&data->answers, st, next);
+	PMDK_TAILQ_INSERT_TAIL(&data->answers, st, next);
 }
 
 /*
@@ -535,7 +535,7 @@ check_push_answer(PMEMpoolcheck *ppc)
 	}
 
 	/* push answer */
-	TAILQ_INSERT_TAIL(&ppc->data->answers,
+	PMDK_TAILQ_INSERT_TAIL(&ppc->data->answers,
 		ppc->data->check_status_cache, next);
 	ppc->data->check_status_cache = NULL;
 
@@ -556,7 +556,7 @@ check_has_error(struct check_data *data)
 bool
 check_has_answer(struct check_data *data)
 {
-	return !TAILQ_EMPTY(&data->answers);
+	return !PMDK_TAILQ_EMPTY(&data->answers);
 }
 
 /*
@@ -566,9 +566,9 @@ static struct check_status *
 pop_answer(struct check_data *data)
 {
 	struct check_status *ret = NULL;
-	if (!TAILQ_EMPTY(&data->answers)) {
-		ret = TAILQ_FIRST(&data->answers);
-		TAILQ_REMOVE(&data->answers, ret, next);
+	if (!PMDK_TAILQ_EMPTY(&data->answers)) {
+		ret = PMDK_TAILQ_FIRST(&data->answers);
+		PMDK_TAILQ_REMOVE(&data->answers, ret, next);
 	}
 	return ret;
 }
@@ -643,7 +643,7 @@ check_questions_sequence_validate(PMEMpoolcheck *ppc)
 		ppc->result == CHECK_RESULT_PROCESS_ANSWERS ||
 		ppc->result == CHECK_RESULT_REPAIRED);
 	if (ppc->result == CHECK_RESULT_ASK_QUESTIONS) {
-		ASSERT(!TAILQ_EMPTY(&ppc->data->questions));
+		ASSERT(!PMDK_TAILQ_EMPTY(&ppc->data->questions));
 		return -1;
 	}
 
@@ -693,6 +693,6 @@ check_get_uuid_str(uuid_t uuid)
 void
 check_insert_arena(PMEMpoolcheck *ppc, struct arena *arenap)
 {
-	TAILQ_INSERT_TAIL(&ppc->pool->arenas, arenap, next);
+	PMDK_TAILQ_INSERT_TAIL(&ppc->pool->arenas, arenap, next);
 	ppc->pool->narenas++;
 }

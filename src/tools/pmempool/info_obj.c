@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -97,7 +97,7 @@ pmem_obj_stats_get_type(struct pmem_obj_stats *stats, uint64_t type_num)
 {
 	struct pmem_obj_type_stats *type;
 	struct pmem_obj_type_stats *type_dest = NULL;
-	TAILQ_FOREACH(type, &stats->type_stats, next) {
+	PMDK_TAILQ_FOREACH(type, &stats->type_stats, next) {
 		if (type->type_num == type_num)
 			return type;
 
@@ -113,9 +113,9 @@ pmem_obj_stats_get_type(struct pmem_obj_stats *stats, uint64_t type_num)
 
 	type->type_num = type_num;
 	if (type_dest)
-		TAILQ_INSERT_BEFORE(type_dest, type, next);
+		PMDK_TAILQ_INSERT_BEFORE(type_dest, type, next);
 	else
-		TAILQ_INSERT_TAIL(&stats->type_stats, type, next);
+		PMDK_TAILQ_INSERT_TAIL(&stats->type_stats, type, next);
 
 	return type;
 }
@@ -690,7 +690,7 @@ info_obj_stats_objects(struct pmem_info *pip, int v,
 
 	outv_indent(v, 1);
 	struct pmem_obj_type_stats *type_stats;
-	TAILQ_FOREACH(type_stats, &pip->obj.stats.type_stats, next) {
+	PMDK_TAILQ_FOREACH(type_stats, &pip->obj.stats.type_stats, next) {
 		if (!type_stats->n_objects)
 			continue;
 

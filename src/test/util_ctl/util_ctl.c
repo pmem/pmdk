@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -166,7 +166,7 @@ CTL_READ_HANDLER(index_value)(void *ctx, enum ctl_query_source source,
 	UT_ASSERTeq(source, CTL_QUERY_PROGRAMMATIC);
 
 	long *index_value = arg;
-	struct ctl_index *idx = SLIST_FIRST(indexes);
+	struct ctl_index *idx = PMDK_SLIST_FIRST(indexes);
 	UT_ASSERT(strcmp(idx->name, "test_index") == 0);
 	*index_value = idx->value;
 

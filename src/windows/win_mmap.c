@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  * Copyright (c) 2015-2017, Microsoft Corporation. All rights reserved.
  * Copyright (c) 2016, Hewlett Packard Enterprise Development LP
  *
@@ -76,7 +76,7 @@ NtFreeVirtualMemory(_In_ HANDLE ProcessHandle, _Inout_ PVOID *BaseAddress,
  */
 SRWLOCK FileMappingQLock = SRWLOCK_INIT;
 struct FMLHead FileMappingQHead =
-	SORTEDQ_HEAD_INITIALIZER(FileMappingQHead);
+	PMDK_SORTEDQ_HEAD_INITIALIZER(FileMappingQHead);
 
 /*
  * mmap_file_mapping_comparer -- (internal) compares the two file mapping
@@ -100,9 +100,9 @@ mmap_info(void)
 	AcquireSRWLockShared(&FileMappingQLock);
 
 	PFILE_MAPPING_TRACKER mt;
-	for (mt = SORTEDQ_FIRST(&FileMappingQHead);
+	for (mt = PMDK_SORTEDQ_FIRST(&FileMappingQHead);
 		mt != (void *)&FileMappingQHead;
-		mt = SORTEDQ_NEXT(mt, ListEntry)) {
+		mt = PMDK_SORTEDQ_NEXT(mt, ListEntry)) {
 
 		LOG(4, "FH %08x FMH %08x AD %p-%p (%zu) "
 			"OF %08x FL %zu AC %d F %d",
@@ -199,7 +199,7 @@ void
 win_mmap_init(void)
 {
 	AcquireSRWLockExclusive(&FileMappingQLock);
-	SORTEDQ_INIT(&FileMappingQHead);
+	PMDK_SORTEDQ_INIT(&FileMappingQHead);
 	ReleaseSRWLockExclusive(&FileMappingQLock);
 }
 
@@ -215,11 +215,12 @@ win_mmap_fini(void)
 	 */
 	AcquireSRWLockExclusive(&FileMappingQLock);
 
-	while (!SORTEDQ_EMPTY(&FileMappingQHead)) {
+	while (!PMDK_SORTEDQ_EMPTY(&FileMappingQHead)) {
 		PFILE_MAPPING_TRACKER mt;
-		mt = (PFILE_MAPPING_TRACKER)SORTEDQ_FIRST(&FileMappingQHead);
+		mt = (PFILE_MAPPING_TRACKER)PMDK_SORTEDQ_FIRST(
+				&FileMappingQHead);
 
-		SORTEDQ_REMOVE(&FileMappingQHead, mt, ListEntry);
+		PMDK_SORTEDQ_REMOVE(&FileMappingQHead, mt, ListEntry);
 
 		if (mt->BaseAddress != NULL)
 			UnmapViewOfFile(mt->BaseAddress);
@@ -555,7 +556,7 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, os_off_t offset)
 
 	AcquireSRWLockExclusive(&FileMappingQLock);
 
-	SORTEDQ_INSERT(&FileMappingQHead, mt, ListEntry,
+	PMDK_SORTEDQ_INSERT(&FileMappingQHead, mt, ListEntry,
 			FILE_MAPPING_TRACKER, mmap_file_mapping_comparer);
 
 	ReleaseSRWLockExclusive(&FileMappingQLock);
@@ -695,7 +696,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 	/*
 	 * free entry for the original mapping
 	 */
-	SORTEDQ_REMOVE(&FileMappingQHead, mt, ListEntry);
+	PMDK_SORTEDQ_REMOVE(&FileMappingQHead, mt, ListEntry);
 	free(mt);
 
 	if (mtb) {
@@ -726,7 +727,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 			}
 		}
 
-		SORTEDQ_INSERT(&FileMappingQHead, mtb, ListEntry,
+		PMDK_SORTEDQ_INSERT(&FileMappingQHead, mtb, ListEntry,
 			FILE_MAPPING_TRACKER, mmap_file_mapping_comparer);
 	}
 
@@ -758,7 +759,7 @@ mmap_split(PFILE_MAPPING_TRACKER mt, void *begin, void *end)
 			}
 		}
 
-		SORTEDQ_INSERT(&FileMappingQHead, mte, ListEntry,
+		PMDK_SORTEDQ_INSERT(&FileMappingQHead, mte, ListEntry,
 			FILE_MAPPING_TRACKER, mmap_file_mapping_comparer);
 	}
 
@@ -831,7 +832,7 @@ munmap(void *addr, size_t len)
 
 	PFILE_MAPPING_TRACKER mt;
 	PFILE_MAPPING_TRACKER next;
-	for (mt = SORTEDQ_FIRST(&FileMappingQHead);
+	for (mt = PMDK_SORTEDQ_FIRST(&FileMappingQHead);
 		mt != (void *)&FileMappingQHead;
 		mt = next) {
 
@@ -839,7 +840,7 @@ munmap(void *addr, size_t len)
 		 * Pick the next entry before we split there by delete the
 		 * this one (NOTE: mmap_spilt could delete this entry).
 		 */
-		next = SORTEDQ_NEXT(mt, ListEntry);
+		next = PMDK_SORTEDQ_NEXT(mt, ListEntry);
 
 		if (mt->BaseAddress >= end) {
 			LOG(4, "ignoring all mapped ranges beyond given range");
@@ -949,7 +950,7 @@ msync(void *addr, size_t len, int flags)
 	AcquireSRWLockShared(&FileMappingQLock);
 
 	PFILE_MAPPING_TRACKER mt;
-	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
+	PMDK_SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
 		if (mt->BaseAddress >= end) {
 			LOG(4, "ignoring all mapped ranges beyond given range");
 			break;
@@ -1057,7 +1058,7 @@ mprotect(void *addr, size_t len, int prot)
 	AcquireSRWLockShared(&FileMappingQLock);
 
 	PFILE_MAPPING_TRACKER mt;
-	SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
+	PMDK_SORTEDQ_FOREACH(mt, &FileMappingQHead, ListEntry) {
 		if (mt->BaseAddress >= end) {
 			LOG(4, "ignoring all mapped ranges beyond given range");
 			break;

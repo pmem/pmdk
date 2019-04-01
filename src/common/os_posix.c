@@ -201,8 +201,13 @@ os_posix_fallocate(int fd, os_off_t offset, off_t len)
 			return errno;
 
 		size_t reqd_blocks =
-			(((size_t)len + (fsbuf.f_bsize - 1)) / fsbuf.f_bsize)
-				- (size_t)fbuf.st_blocks;
+			((size_t)len + (fsbuf.f_bsize - 1)) / fsbuf.f_bsize;
+		if (fbuf.st_blocks > 0) {
+			if (reqd_blocks >= (size_t)fbuf.st_blocks)
+				reqd_blocks -= (size_t)fbuf.st_blocks;
+			else
+				reqd_blocks = 0;
+		}
 		if (reqd_blocks > (size_t)fsbuf.f_bavail)
 			return ENOSPC;
 	}
