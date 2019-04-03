@@ -205,6 +205,53 @@ test_container(struct block_container *bc, struct palloc_heap *heap)
 }
 
 static void
+do_fault_injection_new_ravl()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "container_new_ravl");
+
+	struct block_container *bc = container_new_ravl(NULL);
+	UT_ASSERTeq(bc, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
+do_fault_injection_new_seglists()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "container_new_seglists");
+
+	struct block_container *bc = container_new_seglists(NULL);
+	UT_ASSERTeq(bc, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
+do_fault_injection_heap_boot()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	struct mock_pop *mpop = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE,
+			Ut_mmap_align);
+	PMEMobjpool *pop = &mpop->p;
+	pop->p_ops.persist = obj_heap_persist;
+	uint64_t heap_size = MOCK_POOL_SIZE - sizeof(PMEMobjpool);
+	struct pmem_ops *p_ops = &pop->p_ops;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "heap_boot");
+
+	int r = heap_boot(NULL, NULL, heap_size, &pop->heap_size, NULL, p_ops,
+			NULL, NULL);
+	UT_ASSERTne(r, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
 test_heap(void)
 {
 	struct mock_pop *mpop = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE,
@@ -299,6 +346,19 @@ test_heap(void)
 
 	FREE(pop->set);
 	MUNMAP_ANON_ALIGNED(mpop, MOCK_POOL_SIZE);
+}
+
+static void
+do_fault_injection_recycler()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "recycler_new");
+
+	struct recycler *r = recycler_new(NULL, 0);
+	UT_ASSERTeq(r, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
 }
 
 static void
@@ -457,8 +517,29 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_heap");
 
-	test_heap();
-	test_recycler();
+	if (argc < 2)
+		UT_FATAL("usage: %s path, op", argv[0]);
+
+	switch (argv[1][0]) {
+	case 't':
+		test_heap();
+		test_recycler();
+		break;
+	case 'b':
+		do_fault_injection_new_ravl();
+		break;
+	case 'r':
+		do_fault_injection_recycler();
+		break;
+	case 'c':
+		do_fault_injection_new_seglists();
+		break;
+	case 'h':
+		do_fault_injection_heap_boot();
+		break;
+	default:
+		UT_FATAL("unknown operation");
+	}
 
 	DONE(NULL);
 }

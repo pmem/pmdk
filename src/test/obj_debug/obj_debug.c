@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@
  *
  * usage: obj_debug file operation [op_index]:...
  *
- * operations are 'f' or 'l' or 'r' or 'a' or 'n' or 's'
+ * operations are 'f' or 'l' or 'a' or 'p' or 'n' or 's' or 'i'
  *
  */
 #include <stddef.h>
@@ -44,6 +44,7 @@
 
 #include "unittest.h"
 #include "libpmemobj.h"
+#include "../libpmemobj/obj.h"
 
 #define LAYOUT_NAME "layout_obj_debug"
 
@@ -352,6 +353,20 @@ test_sync_pop_check(unsigned long op_index)
 	to_test[op_index](pop, &stack_sync, &stack_cond);
 }
 
+static void
+test_fault_injection(const char *path)
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "tx_params_new");
+
+	PMEMobjpool *pop = pmemobj_create(path, LAYOUT_NAME,
+			PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR);
+	UT_ASSERTeq(pop, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -363,8 +378,8 @@ main(int argc, char *argv[])
 
 	const char *path = argv[1];
 
-	if (strchr("flrapns", argv[2][0]) == NULL || argv[2][1] != '\0')
-		UT_FATAL("op must be f or l or r or a or p or n or s");
+	if (strchr("flrapnsi", argv[2][0]) == NULL || argv[2][1] != '\0')
+		UT_FATAL("op must be f or l or a or p or n or s or i");
 
 	unsigned long op_index;
 	char *tailptr;
@@ -393,6 +408,9 @@ main(int argc, char *argv[])
 				UT_FATAL("Wrong op_index format");
 
 			test_sync_pop_check(op_index);
+			break;
+		case 'i':
+			test_fault_injection(path);
 			break;
 	}
 
