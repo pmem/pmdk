@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,22 +31,12 @@
 #
 
 #
-# examples/librpmem/Makefile -- build the librpmem examples
+# examples/librpmem/fibonacci/Makefile -- build the fibonacci example
 #
-TOP := ../../..
-include $(TOP)/src/common.inc
+PROGS = fibonacci
 
-ifeq ($(BUILD_RPMEM), y)
-PROGS = basic hello manpage
-DIRS = fibonacci
+LIBS = -lrpmem -lpmem -pthread
 
-LIBS = -lrpmem -pthread
-else
-$(info NOTE: Skipping librpmem examples because $(BUILD_RPMEM_INFO))
-endif
+include ../../Makefile.inc
 
-include ../Makefile.inc
-
-basic: basic.o
-hello: hello.o
-manpage: manpage.o
+fibonacci: fibonacci.o
