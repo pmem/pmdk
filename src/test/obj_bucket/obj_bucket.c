@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,7 @@
 #include "container_ravl.h"
 #include "util.h"
 #include "unittest.h"
+#include "obj.h"
 
 #define TEST_CHUNK_ID	10
 #define TEST_ZONE_ID	20
@@ -136,6 +137,19 @@ static const struct memory_block_ops mock_ops = {
 };
 
 static void
+test_fault_injection()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "bucket_new");
+
+	struct bucket *b = bucket_new(container_new_test(), NULL);
+	UT_ASSERTeq(b, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
 test_bucket_insert_get(void)
 {
 	struct bucket *b = bucket_new(container_new_test(), NULL);
@@ -185,6 +199,7 @@ main(int argc, char *argv[])
 
 	test_bucket_insert_get();
 	test_bucket_remove();
+	test_fault_injection();
 
 	DONE(NULL);
 }
