@@ -696,12 +696,19 @@ a device.
 # optimizations.
 CFLAGS="%{optflags}" \
 LDFLAGS="%{?__global_ldflags}" \
-make %{?_smp_mflags} __MAKE_FLAGS__
+make %{?_smp_mflags} \
+%if %{without ndctl}
+	NDCTL_ENABLE=n \
+%endif
+	__MAKE_FLAGS__
 
 
 # Override LIB_AR with empty string to skip installation of static libraries
 %install
 make install DESTDIR=%{buildroot} \
+%if %{without ndctl}
+        NDCTL_ENABLE=n \
+%endif
 	LIB_AR= \
 	prefix=%{_prefix} \
 	libdir=%{_libdir} \
@@ -727,7 +734,11 @@ __MAKE_INSTALL_FDUPES__
 		echo 'TEST_BUILD="debug nondebug"' >> src/test/testconfig.sh
 		echo 'TEST_FS="pmem any none"' >> src/test/testconfig.sh
 	%endif
-	make check
+	make \
+%if %{without ndctl}
+        NDCTL_ENABLE=n \
+%endif
+	check
 %endif
 
 %post   -n libpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
