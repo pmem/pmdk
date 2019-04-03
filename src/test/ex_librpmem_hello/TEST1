@@ -46,7 +46,9 @@ require_nodes 2
 require_node_libfabric 0 $RPMEM_PROVIDER
 require_node_libfabric 1 $RPMEM_PROVIDER
 
-init_rpmem_on_node 1 0
+PID_FILE=rpmemd.pid
+
+init_rpmem_on_node 1 0:$PID_FILE
 
 POOLSET=pool.set
 TEST_FILE_REMOTE="testfile_remote"
@@ -66,8 +68,10 @@ expect_normal_exit run_on_node 1 \""./hello ${NODE[0]} $POOLSET $SEED >> $LOG\""
 expect_normal_exit run_on_node 1 \""./hello ${NODE[0]} $POOLSET >> $LOG\""
 
 # opening pool with unknown signature
+wait_on_node 0 $PID_FILE
 run_on_node 0 ../pmemspoil ${NODE_DIR[0]}/$TEST_FILE_REMOTE \
 	pool_hdr.signature=ERROR "pool_hdr.checksum_gen\(\)"
+run_on_node 0 hexdump -C ${NODE_DIR[0]}/$TEST_FILE_REMOTE
 expect_abnormal_exit run_on_node 1 "\"./hello ${NODE[0]} $POOLSET &>> $LOG\""
 
 check
