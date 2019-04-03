@@ -2,6 +2,7 @@
 # rpmbuild options:
 #   --with | --without fabric
 #   --with | --without ndctl
+#   --with | --without rpmem
 #   --define _testconfig <path to custom testconfig.sh>
 #   --define _skip_check 1
 
@@ -25,6 +26,8 @@
 %endif
 
 %bcond_without ndctl
+
+%bcond_without rpmem
 
 %define min_libfabric_ver __LIBFABRIC_MIN_VER__
 %define min_ndctl_ver __NDCTL_MIN_VER__
@@ -539,7 +542,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
-%if %{with fabric}
+%if %{with fabric} && %{with rpmem}
 
 %package -n librpmem__PKG_NAME_SUFFIX__
 Summary: Remote Access to Persistent Memory library
@@ -696,12 +699,19 @@ a device.
 # optimizations.
 CFLAGS="%{optflags}" \
 LDFLAGS="%{?__global_ldflags}" \
-make %{?_smp_mflags} __MAKE_FLAGS__
+make %{?_smp_mflags} \
+%if %{without rpmem}
+	BUILD_RPMEM=n \
+%endif
+	__MAKE_FLAGS__
 
 
 # Override LIB_AR with empty string to skip installation of static libraries
 %install
 make install DESTDIR=%{buildroot} \
+%if %{without rpmem}
+	BUILD_RPMEM=n \
+%endif
 	LIB_AR= \
 	prefix=%{_prefix} \
 	libdir=%{_libdir} \
@@ -727,7 +737,11 @@ __MAKE_INSTALL_FDUPES__
 		echo 'TEST_BUILD="debug nondebug"' >> src/test/testconfig.sh
 		echo 'TEST_FS="pmem any none"' >> src/test/testconfig.sh
 	%endif
-	make check
+	make \
+%if %{without rpmem}
+	BUILD_RPMEM=n \
+%endif
+	check
 %endif
 
 %post   -n libpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
@@ -745,7 +759,7 @@ __MAKE_INSTALL_FDUPES__
 %post   -n libpmempool__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n libpmempool__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 
-%if %{with fabric}
+%if %{with fabric} && %{with rpmem}
 %post   -n librpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %postun -n librpmem__PKG_NAME_SUFFIX__ -p /sbin/ldconfig
 %endif
