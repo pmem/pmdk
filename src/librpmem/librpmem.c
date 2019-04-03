@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,9 +62,6 @@ librpmem_init(void)
 	rpmem_util_cmds_init();
 
 	rpmem_util_get_env_max_nlanes(&Rpmem_max_nlanes);
-	rpmem_fip_probe_fork_safety(&Rpmem_fork_unsafe);
-	RPMEM_LOG(NOTICE, "Libfabric is %sfork safe",
-		Rpmem_fork_unsafe ? "not " : "");
 }
 
 /*
