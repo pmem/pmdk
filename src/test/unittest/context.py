@@ -38,6 +38,7 @@ import itertools
 import subprocess as sp
 
 import helpers as hlp
+import valgrind as vg
 
 
 def expand(*classes):
@@ -48,16 +49,17 @@ def expand(*classes):
 class Context:
     """Manage test execution based on values from context classes"""
 
-    def __init__(self, test, conf, fs, build):
+    def __init__(self, test, conf, **kwargs):
         self.env = {}
-        for ctx in [fs, build]:
+        for ctx in [kwargs['fs'], kwargs['build']]:
             if hasattr(ctx, 'env'):
                 self.env.update(ctx.env)
         self.test = test
         self.conf = conf
-        self.build = build
+        self.build = kwargs['build']
+        self.fs = kwargs['fs']
+        self.valgrind = kwargs['valgrind']
         self.msg = hlp.Message(conf)
-        self.fs = fs
 
     @property
     def testdir(self):
@@ -76,23 +78,58 @@ class Context:
 
     def exec(self, cmd, args='', expected_exit=0):
         """Execute binary in current test context"""
+        if expected_exit == 0:
+            self._normal_exit_init()
+        else:
+            self._abnormal_exit_init()
+
         env = {**self.env, **os.environ.copy(), **self.test.utenv}
         if sys.platform == 'win32':
             env['PATH'] = self.build.libdir + os.pathsep + env.get('PATH', '')
             cmd = os.path.join(self.build.exedir, cmd) + '.exe'
         else:
+            env['LD_PRELOAD'] = env.get('LD_PRELOAD', '') + os.pathsep +\
+                self.test.ld_preload
             env['LD_LIBRARY_PATH'] = self.build.libdir + os.pathsep +\
-                                     env.get('LD_LIBRARY_PATH', '')
+                env.get('LD_LIBRARY_PATH', '')
             cmd = os.path.join(self.test.cwd, cmd) + self.build.exesuffix
+            cmd = '{} {}'.format(self.valgrind.cmd, cmd)
 
-        proc = sp.run([cmd, args], env=env, cwd=self.test.cwd,
-                      timeout=self.conf.timeout, stdout=sp.PIPE,
+        proc = sp.run('{} {}'.format(cmd, args), env=env, cwd=self.test.cwd,
+                      shell=True, timeout=self.conf.timeout, stdout=sp.PIPE,
                       stderr=sp.STDOUT, universal_newlines=True)
+
+        if expected_exit == 0 and not self.valgrind.validate_log():
+            self.test.fail(proc.stdout)
 
         if proc.returncode != expected_exit:
             self.test.fail(proc.stdout)
         else:
             self.msg.print_verbose(proc.stdout)
+
+    def _normal_exit_init(self):
+        """
+        Set configurations suitable for expecting normal exit from process
+        """
+        if self.valgrind.tool == vg._Tool.HELGRIND:
+            self.valgrind.add_suppression('helgrind-log.supp')
+        elif self.valgrind.tool == vg._Tool.MEMCHECK:
+            self.valgrind.add_suppression('memcheck-dlopen.supp')
+        elif self.valgrind.tool == vg._Tool.DRD:
+            self.valgrind.add_suppression('drd-log.supp')
+
+        if self.test.ld_preload:
+            self.valgrind.handle_ld_preload(self.test.ld_preload)
+
+    def _abnormal_exit_init(self):
+        """
+        Set configurations suitable for expecting abnormal exit from process
+        """
+        if self.valgrind.tool == vg._Tool.DRD:
+            self.valgrind.add_suppresssion('drd-log.supp')
+
+        if self.test.ld_preload:
+            self.valgrind.handle_ld_preload(self.test.ld_preload)
 
 
 class _CtxType(type):

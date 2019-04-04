@@ -89,5 +89,13 @@ config = {
     # support MAP_SYNC because it would prevent from testing the target
     # PMEM codepaths. If you want to ignore this error set the value to 2.
     #
-    'fs_dir_force_pmem': 0
+    'fs_dir_force_pmem': 0,
+
+    #
+    # Forcibly run tests with selected valgrind tool, unless the test
+    # explicitly disables it.
+    # Possible values: None (do not force), 'memcheck',
+    # 'pmemcheck', 'drd', 'helgrind'
+    #
+    'force_enable': None
 }
