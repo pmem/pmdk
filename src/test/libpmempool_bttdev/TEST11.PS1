@@ -41,6 +41,11 @@ require_fs_type any
 # For a large pool, util_map consumes so much memory.
 #
 require_free_physical_memory 3G
+#
+# Automatic page file size management eliminate the risk
+# of exceeding the available resources.
+#
+require_automatic_managed_pagefile
 
 setup
 

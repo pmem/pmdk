@@ -1324,3 +1324,14 @@ function require_free_physical_memory() {
 		exit 0
 	}
 }
+
+#
+# require_automatic_managed_pagefile -- check if system manages the page file size
+#
+function require_automatic_managed_pagefile() {
+	$c = Get-WmiObject Win32_computersystem -EnableAllPrivileges
+	if($c.AutomaticManagedPagefile -eq $false) {
+		msg "${Env:UNITTEST_NAME}: SKIP automatic page file management is disabled"
+		exit 0
+	}
+}
