@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@
  */
 
 #include "unittest.h"
+#include "rand.h"
 
 static size_t Bsize;
 /* all I/O below this LBA (increases collisions) */
@@ -84,15 +85,17 @@ check(unsigned char *buf)
 static void *
 worker(void *arg)
 {
-	long mytid = (long)(intptr_t)arg;
-	unsigned myseed = Seed + mytid;
+	uintptr_t mytid = (uintptr_t)arg;
 	unsigned char *buf = MALLOC(Bsize);
 	int ord = 1;
+	rng_t rng;
+
+	randomize_r(&rng, Seed + mytid);
 
 	for (unsigned i = 0; i < Nops; i++) {
-		os_off_t lba = os_rand_r(&myseed) % Nblock;
+		os_off_t lba = (os_off_t)(rnd64_r(&rng) % Nblock);
 
-		if (os_rand_r(&myseed) % 2) {
+		if (rnd64_r(&rng) % 2) {
 			/* read */
 			if (pmemblk_read(Handle, buf, lba) < 0)
 				UT_OUT("!read      lba %zu", lba);
