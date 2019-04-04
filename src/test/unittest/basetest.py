@@ -44,6 +44,7 @@ from os import listdir, makedirs, path, scandir
 import context as ctx
 import helpers as hlp
 from utils import Fail, fail, dump_n_lines
+import valgrind as vg
 
 
 if not hasattr(builtins, 'testcases'):
@@ -113,7 +114,11 @@ class _TestCase(type):
 class BaseTest(metaclass=_TestCase):
     """Every test case need to inherit from this class"""
     test_type = ctx.Medium
+    memcheck, pmemcheck, drd, helgrind = vg.AUTO, vg.AUTO, vg.AUTO, vg.AUTO
+    valgrind = None
+    memcheck_check_leaks = True
     match = True
+    ld_preload = ''
 
     def __repr__(self):
         return '{}/{}'.format(self.group, self.__class__.__name__)
@@ -152,6 +157,22 @@ class BaseTest(metaclass=_TestCase):
                 ctx_val = hlp.filter_contexts(conf_val, None)
             setattr(self, attr, base.factory(self.config, *ctx_val))
 
+        self._valgrind_init()
+
+    def _valgrind_init(self):
+        if sys.platform == 'win32':
+            return
+
+        vg_tool = vg.enabled_tool(self)
+
+        if self.config.force_enable:
+            if self.config.force_enable not in vg.disabled_tools(self):
+                vg_tool = self.config.force_enable
+            else:
+                vg_tool = None
+
+        self.valgrind = vg.Valgrind(vg_tool, self.cwd, self.testnum)
+
     def _get_contexts(self):
         """Initialize context classes used for each test run"""
         self._ctx_attrs_init()
@@ -163,7 +184,8 @@ class BaseTest(metaclass=_TestCase):
         # generate combination sets of context components
         ctx_sets = itertools.product(self.fs, self.build)
         for cs in ctx_sets:
-            ctxs.append(ctx.Context(self, self.config, fs=cs[0], build=cs[1]))
+            ctxs.append(ctx.Context(self, self.config, fs=cs[0], build=cs[1],
+                                    valgrind=self.valgrind))
 
         return ctxs
 
@@ -182,8 +204,10 @@ class BaseTest(metaclass=_TestCase):
         """
         failed = False
         for c in self.ctxs:
-            self.msg.print('{}: SETUP\t({}/{}/{})'
-                           .format(self, self.test_type, c.fs, c.build))
+            config_str = '{}/{}/{}'.format(self.test_type, c.fs, c.build)
+            if self.valgrind:
+                config_str = '{}/{}'.format(config_str, self.valgrind)
+            self.msg.print('{}: SETUP\t({})'.format(self, config_str))
 
             self.setup(c)
             start_time = datetime.now()
@@ -196,17 +220,15 @@ class BaseTest(metaclass=_TestCase):
                 failed = True
                 print(f)
                 self._print_log_files()
-                print('{}: {}FAILED{}\t({}/{}/{})'
-                      .format(self, hlp.Color.RED, hlp.Color.END,
-                              self.test_type, c.fs, c.build))
+                print('{}: {}FAILED{}\t({})'
+                      .format(self, hlp.Color.RED, hlp.Color.END, config_str))
                 if not self.config.keep_going:
                     sys.exit(1)
 
             except sp.TimeoutExpired:
                 failed = True
-                print('{}: {}TIMEOUT{}\t({}/{}/{})'
-                      .format(self, hlp.Color.RED, hlp.Color.END,
-                              self.test_type, c.fs, c.build))
+                print('{}: {}TIMEOUT{}\t({})'
+                      .format(self, hlp.Color.RED, hlp.Color.END, config_str))
                 if not self.config.keep_going:
                     sys.exit(1)
 

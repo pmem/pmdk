@@ -36,6 +36,9 @@ from os.path import join, abspath, dirname
 import sys
 
 
+# .so file names
+VMMALLOC = 'libvmmalloc.so.1'
+
 # Constant paths to repository elements
 ROOTDIR = abspath(join(dirname(__file__), '..'))
 
