@@ -1,4 +1,5 @@
-# Copyright 2018-2019, Intel Corporation
+#
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,34 +29,18 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for daxio
+
+#
+# src/test/ex_librpmem_hello/Makefile -- prepare hello librpmem example
+# unittest
 #
 
-TOP = ../../..
-include $(TOP)/src/common.inc
+include ../../common.inc
 
-ifeq ($(NDCTL_ENABLE),y)
-
+ifeq ($(BUILD_RPMEM), y)
 SCP_TO_REMOTE_NODES = y
-
-TARGET = daxio
-OBJS = daxio.o
-
-LIBPMEM=y
-LIBPMEMCOMMON=y
-
-CFLAGS += $(LIBNDCTL_CFLAGS)
-LIBS += $(LIBNDCTL_LIBS)
-
-MANPAGES = $(TOP)/doc/daxio.1
-
-# XXX: to be done
-# BASH_COMP_FILES = daxio.sh
-
-else
-$(info NOTE: Skipping daxio because ndctl is not available)
+SCP_TARGET = hello
+SCP_SRC_DIR = ../../examples/librpmem
 endif
 
 include ../Makefile.inc
-
-.PHONY: test check

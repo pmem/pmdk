@@ -289,6 +289,12 @@ EXAMPLES_TESTS = \
 	ex_libpmemobj\
 	ex_linkedlist
 
+RPMEM_EXAMPLES_TESTS = \
+	ex_librpmem_manpage\
+	ex_librpmem_basic\
+	ex_librpmem_hello\
+	ex_librpmem_fibonacci
+
 LIBPMEMPOOL_DEPS = \
 	libpmempool_api
 
@@ -333,6 +339,7 @@ LOCAL_TESTS = \
 REMOTE_TESTS = \
 	$(OBJ_REMOTE_TESTS)\
 	$(RPMEM_TESTS)\
+	$(RPMEM_EXAMPLES_TESTS)\
 	libpmempool_rm_remote\
 	remote_basic\
 	remote_obj_basic\

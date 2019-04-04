@@ -1,0 +1,10 @@
+F[0] = 0
+F[1] = 1
+broken local memory pool!
+F[2] = 1
+broken remote memory pool!
+F[3] = 2
+broken local memory pool!
+broken remote memory pool!
+F[0] = 0
+F[1] = 1

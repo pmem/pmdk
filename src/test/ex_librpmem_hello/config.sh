@@ -1,4 +1,6 @@
-# Copyright 2018-2019, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,34 +30,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- top Makefile for daxio
+#
+# ex_librpmem_hello/config.sh -- test configuration
 #
 
-TOP = ../../..
-include $(TOP)/src/common.inc
+# Filesystem-DAX cannot be used for RDMA
+# since it is missing support in Linux kernel
+CONF_GLOBAL_FS_TYPE=non-pmem
 
-ifeq ($(NDCTL_ENABLE),y)
+CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+CONF_GLOBAL_TEST_TYPE=short
 
-SCP_TO_REMOTE_NODES = y
-
-TARGET = daxio
-OBJS = daxio.o
-
-LIBPMEM=y
-LIBPMEMCOMMON=y
-
-CFLAGS += $(LIBNDCTL_CFLAGS)
-LIBS += $(LIBNDCTL_LIBS)
-
-MANPAGES = $(TOP)/doc/daxio.1
-
-# XXX: to be done
-# BASH_COMP_FILES = daxio.sh
-
-else
-$(info NOTE: Skipping daxio because ndctl is not available)
-endif
-
-include ../Makefile.inc
-
-.PHONY: test check
+CONF_GLOBAL_RPMEM_PROVIDER=all
+CONF_GLOBAL_RPMEM_PMETHOD=all
