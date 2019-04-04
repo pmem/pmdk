@@ -414,7 +414,7 @@ alloc_memory()
 	void *mem;
 	int ret = posix_memalign(&mem, pagesize, POOL_SIZE);
 	if (ret) {
-		fprintf(stderr, "posix_memaling: %s\n", strerror(ret));
+		fprintf(stderr, "posix_memalign: %s\n", strerror(ret));
 		exit(1);
 	}
 
