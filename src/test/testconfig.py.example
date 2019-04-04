@@ -97,4 +97,11 @@ config = {
     # not set default value is 30.
     #
     'dump_lines': 30,
+
+    # Forcibly run tests with selected Valgrind tool, unless the test
+    # explicitly disables it.
+    # Possible values: None (do not force), 'memcheck',
+    # 'pmemcheck', 'drd', 'helgrind'
+    #
+    'force_enable': None,
 }
