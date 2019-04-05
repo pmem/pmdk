@@ -2111,6 +2111,8 @@ function require_node_libfabric() {
 	local version=${3:-1.4.2}
 
 	require_pkg libfabric "$version"
+	# fi_info can be found in libfabric-bin
+	require_command fi_info
 	require_node_pkg $N libfabric "$version"
 	if [ "$RPMEM_DISABLE_LIBIBVERBS" != "y" ]; then
 		if ! fi_info --list | grep -q verbs; then
