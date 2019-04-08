@@ -2933,26 +2933,27 @@ pmemobj_next(PMEMoid oid)
 {
 	LOG(3, "oid.off 0x%016" PRIx64, oid.off);
 
-	if (oid.off == 0)
+	PMEMoid curr = oid;
+	PMEMobjpool *pop = pmemobj_pool_by_oid(curr);
+	ASSERTne(pop, NULL);
+
+	if (curr.off == 0)
 		return OID_NULL;
 
-	PMEMobjpool *pop = pmemobj_pool_by_oid(oid);
+	do {
+		ASSERT(OBJ_OID_IS_VALID(pop, curr));
+		uint64_t next_off = palloc_next(&pop->heap, curr.off);
 
-	ASSERTne(pop, NULL);
-	ASSERT(OBJ_OID_IS_VALID(pop, oid));
+		if (next_off == 0)
+			return OID_NULL;
 
-	PMEMoid ret = {0, 0};
-	uint64_t off = palloc_next(&pop->heap, oid.off);
-	if (off != 0) {
-		ret.off = off;
-		ret.pool_uuid_lo = pop->uuid_lo;
+		/* next object exists */
+		curr.off = next_off;
+		curr.pool_uuid_lo = pop->uuid_lo;
 
-		if (palloc_flags(&pop->heap, off) & OBJ_INTERNAL_OBJECT_MASK) {
-			return pmemobj_next(ret);
-		}
-	}
+	} while (palloc_flags(&pop->heap, curr.off) & OBJ_INTERNAL_OBJECT_MASK);
 
-	return ret;
+	return curr;
 }
 
 /*
