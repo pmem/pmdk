@@ -161,7 +161,10 @@ OTHER_TESTS = \
 	compat_incompat_features\
 	ctl_prefault\
 	ctl_cow\
+	win_getopt\
 	magic\
+	win_mmap\
+	win_mmap_fixed\
 	out_err\
 	out_err_mt\
 	pmemobjcli\
