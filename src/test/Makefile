@@ -320,6 +320,10 @@ PMREORDER_TESTS = \
 	pmreorder_simple\
 	pmreorder_stack
 
+WINDOWS_TESTS = \
+	win_getopt\
+	win_mmap_fixed
+
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
@@ -334,7 +338,8 @@ LOCAL_TESTS = \
 	$(LIBPMEMPOOL_TESTS)\
 	$(LIBPMEMPOOL_MOD_TESTS)\
 	$(DAXIO_TESTS)\
-	$(PMREORDER_TESTS)
+	$(PMREORDER_TESTS)\
+	$(WINDOWS_TESTS)
 
 REMOTE_TESTS = \
 	$(OBJ_REMOTE_TESTS)\
