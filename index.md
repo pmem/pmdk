@@ -105,6 +105,16 @@ environments.
 
 See the [librpmem page](librpmem) for documentation and examples.
 
+#### libvmemcache
+
+**libvmemcache** is an embeddable and lightweight in-memory caching solution.
+It's designed to fully take advantage of large capacity memory, such as
+persistent memory with DAX, through memory mapping in an efficient
+and scalable way.
+
+See the [libvmemcache](https://pmem.io/vmemcache/manpages/master/vmemcache.3.html)
+for current documentation.
+
 #### daxio
 
 The **daxio** is a utility that performs I/O on Device DAX devices or zero
