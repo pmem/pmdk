@@ -389,15 +389,17 @@ ifeq ($(NDCTL_ENABLE),y)
         ifeq ($(HAS_DAXCTL),n)
             $(error libdaxctl(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
         endif
-        LIBNDCTL_CFLAGS := $(shell $(PKG_CONFIG) --cflags libndctl libdaxctl)
-        LIBNDCTL_LD_LIBRARY_PATHS := $(shell $(PKG_CONFIG) --variable=libdir libndctl libdaxctl | sed "s/ /:/")
-        LIBNDCTL_LIBS := $(shell $(PKG_CONFIG) --libs libndctl libdaxctl)
+        LIBNDCTL_PKG_CONFIG_DEPS := libndctl libdaxctl
+        LIBNDCTL_CFLAGS := $(shell $(PKG_CONFIG) --cflags $(LIBNDCTL_PKG_CONFIG_DEPS))
+        LIBNDCTL_LD_LIBRARY_PATHS := $(shell $(PKG_CONFIG) --variable=libdir $(LIBNDCTL_PKG_CONFIG_DEPS) | sed "s/ /:/")
+        LIBNDCTL_LIBS := $(shell $(PKG_CONFIG) --libs $(LIBNDCTL_PKG_CONFIG_DEPS))
     endif
     OS_DIMM := ndctl
 else
     OS_DIMM := none
 endif
 export OS_DIMM
+export LIBNDCTL_PKG_CONFIG_DEPS
 export LIBNDCTL_CFLAGS
 export LIBNDCTL_LD_LIBRARY_PATHS
 export LIBNDCTL_LIBS
