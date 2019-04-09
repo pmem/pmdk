@@ -288,8 +288,12 @@ util_file_map_whole(const char *path)
 	int fd;
 	int olderrno;
 	void *addr = NULL;
+	int flags = O_RDWR;
+#ifdef _WIN32
+	flags |= O_BINARY;
+#endif
 
-	if ((fd = os_open(path, O_RDWR)) < 0) {
+	if ((fd = os_open(path, flags)) < 0) {
 		ERR("!open \"%s\"", path);
 		return NULL;
 	}
