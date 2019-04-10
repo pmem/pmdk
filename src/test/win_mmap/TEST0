@@ -42,6 +42,9 @@ require_test_type medium
 
 require_fs_type any
 
+# XXX disabled for now, to be fixed in pmem/issues#1053.
+exit 0
+
 setup
 
 touch $DIR/testfile
