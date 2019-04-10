@@ -42,6 +42,10 @@ require_test_type medium
 
 require_fs_type any
 
+# win_mmap is disabled on Linux, because of this test checks behavior, which
+# is not correct. Ref: pmem/issues#1053.
+exit 0
+
 setup
 
 touch $DIR/testfile
