@@ -246,7 +246,7 @@ provided engines.
 For this purpose, Valgrind's pmemcheck tool exposes a
 generic marker macro:
 
-+ **VALGRIND_EMIT_LOG(value)**
++ **VALGRIND_PMC_EMIT_LOG(value)**
 
 It emits log to *store_log* during pmemcheck processing.
 *value* is a user-defined marker name.
@@ -259,11 +259,11 @@ main.c
 .
 .
 .
-VALGRIND_EMIT_LOG("PMREORDER_MEMSET_PERSIST.BEGIN");
+VALGRIND_PMC_EMIT_LOG("PMREORDER_MEMSET_PERSIST.BEGIN");
 
 pmem_memset_persist(...);
 
-VALGRIND_EMIT_LOG("PMREORDER_MEMSET_PERSIST.END");
+VALGRIND_PMC_EMIT_LOG("PMREORDER_MEMSET_PERSIST.END");
 .
 .
 .
@@ -288,8 +288,8 @@ There are two ways to set macro options:
 + Using configuration file in .json format:
 ```
 {
-    "PMREORDER_MARKER_NAME1"="ReorderName1",
-    "PMREORDER_MARKER_NAME2"="ReorderName2"
+    "PMREORDER_MARKER_NAME1":"ReorderName1",
+    "PMREORDER_MARKER_NAME2":"ReorderName2"
 }
 ```
 
@@ -304,8 +304,8 @@ reordering engine on library or function level:
 Example of configuration on function level:
 ```
 {
-    "pmemobj_open"="NoReorderNoCheck",
-    "pmemobj_memcpy_persist"="ReorderPartial"
+    "pmemobj_open":"NoReorderNoCheck",
+    "pmemobj_memcpy_persist":"ReorderPartial"
 }
 ```
 
@@ -313,7 +313,7 @@ Example of configuration on library level
 (affecting all library functions):
 ```
 {
-    "libpmemobj"="NoReorderNoCheck"
+    "libpmemobj":"NoReorderNoCheck"
 }
 ```
 
