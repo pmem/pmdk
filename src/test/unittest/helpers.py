@@ -78,6 +78,7 @@ class Color:
 
 class Message:
     """Simple level based logger"""
+
     def __init__(self, config):
         self.config = config
 

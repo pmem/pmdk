@@ -38,6 +38,7 @@ import itertools
 import subprocess as sp
 
 import helpers as hlp
+from utils import fail
 
 
 def expand(*classes):
@@ -82,7 +83,7 @@ class Context:
             cmd = os.path.join(self.build.exedir, cmd) + '.exe'
         else:
             env['LD_LIBRARY_PATH'] = self.build.libdir + os.pathsep +\
-                                     env.get('LD_LIBRARY_PATH', '')
+                env.get('LD_LIBRARY_PATH', '')
             cmd = os.path.join(self.test.cwd, cmd) + self.build.exesuffix
 
         proc = sp.run([cmd, args], env=env, cwd=self.test.cwd,
@@ -90,7 +91,7 @@ class Context:
                       stderr=sp.STDOUT, universal_newlines=True)
 
         if proc.returncode != expected_exit:
-            self.test.fail(proc.stdout)
+            fail(proc.stdout, exit_code=proc.returncode)
         else:
             self.msg.print_verbose(proc.stdout)
 
@@ -191,6 +192,7 @@ class Pmem(_Fs):
 
 class Nonpmem(_Fs):
     """Set the context for nonpmem filesystem"""
+
     def __init__(self, conf):
         self.dir = os.path.abspath(conf.non_pmem_fs_dir)
 
