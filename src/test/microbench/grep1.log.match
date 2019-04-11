@@ -1,0 +1,9 @@
+
+Effective configuration:
+Micro-benchmark state: enabled
+do_bench	= yes
+inc     	= 1
+log_name	= stdout
+off_inc 	= 4096
+probe   	= workload
+repeat  	= 1
