@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * win_getopt.c -- test for windows getopt() implementation
+ * getopt.c -- test for windows getopt() implementation
  */
 
 #include <stdio.h>
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 	int opt;
 	int option_index;
 
-	START(argc, argv, "win_getopt");
+	START(argc, argv, "getopt");
 
 	while ((opt = getopt_long(argc, argv,
 			"abcdefghA:B:C:D:E:F:G::H1::2::3::4::5::6::7::8::",

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  */
 
 /*
- * win_mmap.c -- test memory mapping routines
+ * mmap.c -- test memory mapping routines
  *
  * This test is intended to be used for testing Windows implementation
  * of memory mapping routines - mmap(), munmap(), msync() and mprotect().
@@ -957,7 +957,7 @@ test_mprotect_anon(void)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "win_mmap");
+	START(argc, argv, "mmap");
 
 	if (argc !=  2)
 		UT_FATAL("usage: %s file", argv[0]);

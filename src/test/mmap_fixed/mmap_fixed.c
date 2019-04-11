@@ -31,7 +31,7 @@
  */
 
 /*
- * win_mmap_fixed.c -- test memory mapping with MAP_FIXED for various lengths
+ * mmap_fixed.c -- test memory mapping with MAP_FIXED for various lengths
  *
  * This test is intended to be used for testing Windows implementation
  * of memory mapping routines - mmap(), munmap(), msync() and mprotect().
@@ -91,7 +91,7 @@ test_mmap_fixed(const char *name1, const char *name2, size_t len1, size_t len2)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "win_mmap_fixed");
+	START(argc, argv, "mmap_fixed");
 
 	if (argc < 4)
 		UT_FATAL("usage: %s dirname len1 len2 ...", argv[0]);

@@ -10,7 +10,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="win_mmap.c">
+    <ClCompile Include="mmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

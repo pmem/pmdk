@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,24 +31,10 @@
 #
 
 #
-# src/test/win_mmap/TEST0 -- unit test for memory mapping routines
+# src/test/getopt/Makefile -- getopt unit test
 #
 
-# standard unit test setup
-. ../unittest/unittest.sh
+TARGET = getopt
+OBJS = getopt.o
 
-require_test_type medium
-
-require_fs_type any
-
-# win_mmap is disabled on Linux, because of this test checks behavior, which
-# is not correct. Ref: pmem/issues#1053.
-exit 0
-
-setup
-
-touch $DIR/testfile
-
-expect_normal_exit ./win_mmap$EXESUFFIX $DIR/testfile
-
-pass
+include ../Makefile.inc

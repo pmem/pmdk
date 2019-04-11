@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,10 +31,10 @@
 #
 
 #
-# src/test/win_mmap_fixed/Makefile -- build win_mmap_fixed unit test
+# src/test/mmap_fixed/Makefile -- build mmap_fixed unit test
 #
 
-TARGET = win_mmap_fixed
-OBJS = win_mmap_fixed.o
+TARGET = mmap_fixed
+OBJS = mmap_fixed.o
 
 include ../Makefile.inc

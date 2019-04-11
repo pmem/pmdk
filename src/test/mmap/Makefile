@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,10 +31,10 @@
 #
 
 #
-# src/test/win_getopt/Makefile -- win_getopt unit test
+# src/test/mmap/Makefile -- build mmap unit test
 #
 
-TARGET = win_getopt
-OBJS = win_getopt.o
+TARGET = mmap
+OBJS = mmap.o
 
 include ../Makefile.inc

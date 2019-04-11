@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="win_mmap.c" />
+    <ClCompile Include="mmap.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.ps1" />
@@ -25,8 +25,8 @@
     <ProjectGuid>{5580D11C-FDA6-4CF2-A0E8-1C2D3FBC11F1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
-    <ProjectName>win_mmap</ProjectName>
-    <RootNamespace>win_mmap</RootNamespace>
+    <ProjectName>mmap</ProjectName>
+    <RootNamespace>mmap</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
