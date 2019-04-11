@@ -165,6 +165,8 @@ OTHER_TESTS = \
 	magic\
 	mmap\
 	mmap_fixed\
+	microbench\
+	microbench_undefined\
 	out_err\
 	out_err_mt\
 	pmemobjcli\
