@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,12 +42,13 @@ POBJ_LAYOUT_END(heap_interrupt);
 
 
 static int exit_on_finish = 0;
-FUNC_MOCK(operation_finish, void, struct operation_context *ctx)
+FUNC_MOCK(operation_finish, void, struct operation_context *ctx,
+	unsigned flags)
 	FUNC_MOCK_RUN_DEFAULT {
 		if (exit_on_finish)
 			exit(0);
 		else
-			_FUNC_REAL(operation_finish)(ctx);
+			_FUNC_REAL(operation_finish)(ctx, flags);
 	}
 FUNC_MOCK_END
 
