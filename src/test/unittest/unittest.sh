@@ -1340,18 +1340,6 @@ function get_node_devdax_size() {
 }
 
 #
-# dax_get_alignment -- get the alignment of a device dax
-#
-function dax_get_alignment() {
-	major_hex=$(stat -c "%t" $1)
-	minor_hex=$(stat -c "%T" $1)
-	major_dec=$((16#$major_hex))
-	minor_dec=$((16#$minor_hex))
-	cat /sys/dev/char/$major_dec:$minor_dec/device/align
-}
-
-
-#
 # require_dax_device_node_alignments -- only allow script to continue if
 #    the internal Device DAX alignments on a remote nodes are as specified.
 # If necessary, it sorts DEVICE_DAX_PATH entries to match
