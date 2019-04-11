@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -73,6 +73,7 @@ struct operation_context {
 
 	size_t ulog_curr_offset; /* offset in the log for buffer stores */
 	size_t ulog_curr_capacity; /* capacity of the current log */
+	size_t ulog_curr_gen_num; /* transaction counter in the current log */
 	struct ulog *ulog_curr; /* current persistent log */
 	size_t total_logged; /* total amount of buffer stores in the logs */
 
@@ -383,6 +384,7 @@ operation_add_buffer(struct operation_context *ctx,
 
 	/* if there's no space left in the log, reserve some more */
 	if (ctx->ulog_curr_capacity == 0) {
+		ctx->ulog_curr_gen_num = ctx->ulog->gen_num;
 		if (operation_reserve(ctx, ctx->total_logged + real_size) != 0)
 			return -1;
 
@@ -399,6 +401,7 @@ operation_add_buffer(struct operation_context *ctx,
 	/* create a persistent log entry */
 	struct ulog_entry_buf *e = ulog_entry_buf_create(ctx->ulog_curr,
 		ctx->ulog_curr_offset,
+		ctx->ulog_curr_gen_num,
 		dest, src, data_size,
 		type, ctx->p_ops);
 	size_t entry_size = ALIGN_UP(curr_size, CACHELINE_SIZE);
@@ -461,7 +464,9 @@ operation_reserve(struct operation_context *ctx, size_t new_capacity)
 		}
 
 		if (ulog_reserve(ctx->ulog,
-		    ctx->ulog_base_nbytes, &new_capacity, ctx->extend,
+		    ctx->ulog_base_nbytes,
+		    ctx->ulog_curr_gen_num,
+		    &new_capacity, ctx->extend,
 		    &ctx->next, ctx->p_ops) != 0)
 			return -1;
 		ctx->ulog_capacity = new_capacity;
@@ -490,6 +495,7 @@ operation_init(struct operation_context *ctx)
 
 	ctx->ulog_curr_offset = 0;
 	ctx->ulog_curr_capacity = 0;
+	ctx->ulog_curr_gen_num = 0;
 	ctx->ulog_curr = NULL;
 	ctx->total_logged = 0;
 }
@@ -568,7 +574,7 @@ operation_process(struct operation_context *ctx)
  * operation_finish -- finalizes the operation
  */
 void
-operation_finish(struct operation_context *ctx)
+operation_finish(struct operation_context *ctx, unsigned flags)
 {
 	ASSERTeq(ctx->in_progress, 1);
 	ctx->in_progress = 0;
@@ -576,9 +582,15 @@ operation_finish(struct operation_context *ctx)
 	if (ctx->type == LOG_TYPE_REDO && ctx->pshadow_ops.offset != 0) {
 		operation_process(ctx);
 	} else if (ctx->type == LOG_TYPE_UNDO && ctx->total_logged != 0) {
-		ulog_clobber_data(ctx->ulog,
+		/*
+		 * It is not necessary to recalculate capacity
+		 * and rebuild vector if none of the ulogs have been freed.
+		 */
+		if (!ulog_clobber_data(ctx->ulog,
 			ctx->total_logged, ctx->ulog_base_nbytes,
-			&ctx->next, ctx->ulog_free, ctx->p_ops);
+			&ctx->next, ctx->ulog_free, ctx->p_ops, flags))
+			return;
+
 		/* clobbering might have shrunk the ulog */
 		ctx->ulog_capacity = ulog_capacity(ctx->ulog,
 			ctx->ulog_base_nbytes, ctx->p_ops);

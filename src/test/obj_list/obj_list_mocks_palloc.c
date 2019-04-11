@@ -213,7 +213,7 @@ FUNC_MOCK(palloc_publish, void, struct palloc_heap *heap,
 	struct pobj_action *actv, size_t actvcnt,
 	struct operation_context *ctx)
 	FUNC_MOCK_RUN_DEFAULT {
-		operation_finish(ctx);
+		operation_finish(ctx, 0);
 	}
 FUNC_MOCK_END
 
