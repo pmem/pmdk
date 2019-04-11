@@ -159,6 +159,7 @@ main(int argc, char *argv[])
 	ASSERT_ALIGNED_FIELD(struct ulog, checksum);
 	ASSERT_ALIGNED_FIELD(struct ulog, next);
 	ASSERT_ALIGNED_FIELD(struct ulog, capacity);
+	ASSERT_ALIGNED_FIELD(struct ulog, gen_num);
 	ASSERT_ALIGNED_FIELD(struct ulog, unused);
 	ASSERT_ALIGNED_CHECK(struct ulog);
 	UT_COMPILE_ERROR_ON(sizeof(struct ulog) !=
