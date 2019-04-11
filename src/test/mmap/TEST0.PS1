@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,12 +29,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-#
-# src/test/win_mmap/Makefile -- build win_mmap unit test
+# src/test/mmap/TEST0 -- unit test for memory mapping routines
 #
 
-TARGET = win_mmap
-OBJS = win_mmap.o
+# standard unit test setup
+. ..\unittest\unittest.ps1
 
-include ../Makefile.inc
+require_test_type medium
+
+require_fs_type any
+
+setup
+
+# create zero-length file
+touch $DIR\testfile
+
+expect_normal_exit $Env:EXE_DIR\mmap$Env:EXESUFFIX $DIR\testfile
+
+pass
