@@ -1,0 +1,8 @@
+
+Effective configuration:
+do_bench	= yes
+inc     	= 2
+log_name	= microbench2.log
+off_inc 	= 1024
+probe   	= workload
+repeat  	= 10
