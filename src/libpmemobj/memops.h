@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -87,7 +87,7 @@ int operation_add_typed_entry(struct operation_context *ctx,
 
 int operation_reserve(struct operation_context *ctx, size_t new_capacity);
 void operation_process(struct operation_context *ctx);
-void operation_finish(struct operation_context *ctx);
+void operation_finish(struct operation_context *ctx, unsigned flags);
 void operation_cancel(struct operation_context *ctx);
 
 #ifdef __cplusplus

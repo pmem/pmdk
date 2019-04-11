@@ -519,7 +519,7 @@ palloc_exec_actions(struct palloc_heap *heap,
 	pmemops_drain(&heap->p_ops);
 
 	/* perform all persistent memory operations */
-	operation_finish(ctx);
+	operation_finish(ctx, 0);
 
 	for (size_t i = 0; i < actvcnt; ++i) {
 		act = &actv[i];
