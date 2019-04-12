@@ -63,6 +63,21 @@ def fail(msg, exit_code=None):
     raise Fail(msg)
 
 
+class Skip(Exception):
+    """Thrown when test should be skipped"""
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
+def skip(msg):
+    raise Skip(msg)
+
+
 def dump_n_lines(file, n=None):
     """
     Prints last n lines of given log file. Number of line printed can be
