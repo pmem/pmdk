@@ -47,3 +47,4 @@ from context import *  # noqa: E402, F401, F403
 from configurator import *  # noqa: E402, F401, F403
 from helpers import *  # noqa: E402, F401, F403
 from valgrind import *  # noqa: E402, F401, F403
+from utils import *  # noqa: E402, F401, F403
