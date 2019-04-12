@@ -43,8 +43,9 @@ from os import listdir, makedirs, path, scandir
 
 import context as ctx
 import helpers as hlp
-from utils import Fail, fail, dump_n_lines
 import valgrind as vg
+from utils import Skip, Fail, fail, dump_n_lines
+
 
 
 if not hasattr(builtins, 'testcases'):
@@ -231,7 +232,8 @@ class BaseTest(metaclass=_TestCase):
                       .format(self, hlp.Color.RED, hlp.Color.END, config_str))
                 if not self.config.keep_going:
                     sys.exit(1)
-
+            except Skip as s:
+                print('{}:SKIP {}'.format(self, s))
             else:
                 self._test_passed()
 
