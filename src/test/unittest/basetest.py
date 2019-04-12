@@ -43,8 +43,9 @@ from os import listdir, makedirs, path, scandir
 
 import context as ctx
 import helpers as hlp
-from utils import Fail, fail, dump_n_lines
 import valgrind as vg
+from utils import Skip, Fail, fail, dump_n_lines
+
 
 
 if not hasattr(builtins, 'testcases'):
@@ -217,6 +218,7 @@ class BaseTest(metaclass=_TestCase):
                 self.check()
 
             except Fail as f:
+
                 failed = True
                 print(f)
                 self._print_log_files()
@@ -225,7 +227,12 @@ class BaseTest(metaclass=_TestCase):
                 if not self.config.keep_going:
                     sys.exit(1)
 
+            except Skip as s:
+
+                print('{}:SKIP {}'.format(self, s))
+
             except sp.TimeoutExpired:
+
                 failed = True
                 print('{}: {}TIMEOUT{}\t({})'
                       .format(self, hlp.Color.RED, hlp.Color.END, config_str))
