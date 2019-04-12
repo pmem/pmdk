@@ -34,6 +34,7 @@
 
 
 import sys
+import shutil
 
 import tools
 from helpers import MiB, KiB
@@ -44,6 +45,8 @@ try:
 except ImportError:
     sys.exit('Please add valid testconfig.py file - see testconfig.py.example')
 config = testconfig.config
+
+HEADER_SIZE = 4096
 
 
 class Fail(Exception):
@@ -137,3 +140,9 @@ def get_size(path):
     if int(proc.stdout) != 2**64 - 1:
         return int(proc.stdout)
     fail('Could not get size of the file, it is inaccessible or does not exist')
+
+
+def get_free_space():
+    """Returns free space for current file system"""
+    _, _, free = shutil.disk_usage(".")
+    return free
