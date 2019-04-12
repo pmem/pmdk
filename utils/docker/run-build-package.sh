@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,7 +43,7 @@ set -e
 # Create fake tag, so that package has proper 'version' field
 git config user.email "test@package.com"
 git config user.name "test package"
-git tag -a 1.4.99 -m "1.4" HEAD~1
+git tag -a 1.4.99 -m "1.4" HEAD~1 || true
 
 # Build all and run tests
 cd $WORKDIR

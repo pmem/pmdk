@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -181,8 +181,8 @@ create_sparse_file(const wchar_t *filename, size_t len)
 	LARGE_INTEGER llen;
 	llen.QuadPart = len;
 
-	DWORD ptr = SetFilePointerEx(fh, llen, NULL, FILE_BEGIN);
-	if (ptr == INVALID_SET_FILE_POINTER) {
+	ret = SetFilePointerEx(fh, llen, NULL, FILE_BEGIN);
+	if (ret == FALSE) {
 		out_err(L"SetFilePointerEx");
 		goto err;
 	}
