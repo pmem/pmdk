@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * win_mmap_fixed.c -- test memory mapping with MAP_FIXED for various lengths
+ * mmap_fixed.c -- test memory mapping with MAP_FIXED for various lengths
  *
  * This test is intended to be used for testing Windows implementation
  * of memory mapping routines - mmap(), munmap(), msync() and mprotect().
@@ -63,8 +63,8 @@ test_mmap_fixed(const char *name1, const char *name2, size_t len1, size_t len2)
 	int fd1 = OPEN(name1, O_CREAT|O_RDWR, S_IWUSR|S_IRUSR);
 	int fd2 = OPEN(name2, O_CREAT|O_RDWR, S_IWUSR|S_IRUSR);
 
-	POSIX_FALLOCATE(fd1, 0, len1);
-	POSIX_FALLOCATE(fd2, 0, len2);
+	POSIX_FALLOCATE(fd1, 0, (os_off_t)len1);
+	POSIX_FALLOCATE(fd2, 0, (os_off_t)len2);
 
 	char *ptr1 = mmap(NULL, len1_aligned + len2_aligned,
 		PROT_READ|PROT_WRITE, MAP_SHARED, fd1, 0);
@@ -91,12 +91,12 @@ test_mmap_fixed(const char *name1, const char *name2, size_t len1, size_t len2)
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "win_mmap_fixed");
+	START(argc, argv, "mmap_fixed");
 
 	if (argc < 4)
 		UT_FATAL("usage: %s dirname len1 len2 ...", argv[0]);
 
-	size_t *lengths = MALLOC(sizeof(size_t) * argc - 2);
+	size_t *lengths = MALLOC(sizeof(size_t) * (size_t)argc - 2);
 	UT_ASSERTne(lengths, NULL);
 
 	size_t appendix_length = 20; /* a file name length */
@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 	sprintf(name2, "%s\\testfile2", argv[1]);
 
 	for (int i = 0; i < argc - 2; i++)
-		lengths[i] = atoll(argv[i + 2]);
+		lengths[i] = ATOULL(argv[i + 2]);
 
 	for (int i = 0; i < argc - 2; i++)
 		for (int j = 0; j < argc - 2; j++)

@@ -10,24 +10,10 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="TEST0" />
-    <None Include="TEST0.ps1" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\unittest\libut.vcxproj">
-      <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="win_mmap_fixed.c" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{FEA09B48-34C2-4963-8A5A-F97BDA136D72}</ProjectGuid>
-    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{433F7840-C597-4950-84C9-E4FF7DF6A298}</ProjectGuid>
+    <RootNamespace>getopt</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
-    <ProjectName>win_mmap_fixed</ProjectName>
-    <RootNamespace>win_mmap_fixed</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -57,13 +43,38 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <ClCompile />
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)\windows\getopt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <Link />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile />
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)\windows\getopt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
     <Link />
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="getopt.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\windows\getopt\getopt.vcxproj">
+      <Project>{9186eac4-2f34-4f17-b940-6585d7869bcd}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\unittest\libut.vcxproj">
+      <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="out0.log.match" />
+    <None Include="out1.log.match" />
+    <None Include="stderr0.log.match" />
+    <None Include="stderr1.log.match" />
+    <None Include="TEST0.PS1" />
+    <None Include="TEST1.PS1" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

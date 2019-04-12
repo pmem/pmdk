@@ -13,7 +13,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="win_getopt.c">
+    <ClCompile Include="getopt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
