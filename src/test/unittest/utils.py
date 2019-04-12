@@ -33,9 +33,9 @@
 """Set of basic functions available to use in all test cases"""
 
 
-import os
 import sys
 
+import tools
 from helpers import MiB, KiB
 
 
@@ -104,10 +104,36 @@ def dump_n_lines(file, n=None):
             print(byte_file.read().decode('iso_8859_1'))
 
 
+def is_devdax(path):
+    """Checks if given path points to device dax"""
+    proc = tools.pmemdetect('-d', path)
+    if proc.returncode == tools.PMEMDETECT_ERROR:
+        fail(proc.stdout)
+    if proc.returncode == tools.PMEMDETECT_TRUE:
+        return True
+    if proc.returncode == tools.PMEMDETECT_FALSE:
+        return False
+    fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+
+
+def supports_map_sync(path):
+    """Checks if MAP_SYNC is supported on a filesystem from given path"""
+    proc = tools.pmemdetect('-s', path)
+    if proc.returncode == tools.PMEMDETECT_ERROR:
+        fail(proc.stdout)
+    if proc.returncode == tools.PMEMDETECT_TRUE:
+        return True
+    if proc.returncode == tools.PMEMDETECT_FALSE:
+        return False
+    fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+
+
 def get_size(path):
-    """Returns size of the file, does not work with dax devices"""
-    try:
-        statinfo = os.stat(path)
-        return statinfo.st_size
-    except OSError as err:
-        fail(err)
+    """
+    Returns size of the file or dax device.
+    Value "2**64 - 1" is checked because pmemdetect in case of error prints it.
+    """
+    proc = tools.pmemdetect('-z', path)
+    if int(proc.stdout) != 2**64 - 1:
+        return int(proc.stdout)
+    fail('Could not get size of the file, it is inaccessible or does not exist')

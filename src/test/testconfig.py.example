@@ -104,4 +104,10 @@ config = {
     # 'pmemcheck', 'drd', 'helgrind'
     #
     'force_enable': None,
+
+    # For tests that require raw dax devices without a file system, add paths to
+    # those devices to the list 'device_dax_path'. For most tests one device
+    # is enough, but some might require more
+    #
+    'device_dax_path' : [],
 }

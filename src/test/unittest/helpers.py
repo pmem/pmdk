@@ -55,6 +55,9 @@ else:
     DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
     NONDEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
 
+TOOLS_DIR = abspath(join(ROOTDIR, '..', 'tools'))
+TEST_TOOLS_DIR = abspath(join(ROOTDIR, 'tools'))
+
 #
 # KiB, MiB, GiB ... -- byte unit prefixes
 #
