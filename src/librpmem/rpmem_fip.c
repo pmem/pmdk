@@ -2021,8 +2021,8 @@ rpmem_fip_param_get(const char *var_name, int *value)
  * rpmem_fip_probe_fork_safety -- probe if libfabric is fork safe
  */
 void
-rpmem_fip_probe_fork_safety(int *fork_unsafe)
+rpmem_fip_probe_fork_safety(void)
 {
-	*fork_unsafe = 0; /* false by default */
+	int *fork_unsafe = &Rpmem_fork_unsafe; /* false by default */
 	rpmem_fip_param_get(LIBFABRIC_FORK_UNSAFE_VAR, fork_unsafe);
 }
