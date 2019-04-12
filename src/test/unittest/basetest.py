@@ -47,7 +47,6 @@ import valgrind as vg
 from utils import Skip, Fail, fail, dump_n_lines
 
 
-
 if not hasattr(builtins, 'testcases'):
     builtins.testcases = []
 
