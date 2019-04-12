@@ -35,6 +35,8 @@
 
 import sys
 
+import shutil
+
 from tools import pmemdetect
 from helpers import MiB, KiB
 
@@ -137,3 +139,9 @@ def get_size(path):
     if int(proc.stdout) != 2**64 - 1:
         return int(proc.stdout)
     fail('Could not get size of the file, it is inaccessible or does not exist')
+
+
+def get_free_space():
+    """Returns free space for current file system"""
+    _, _, free = shutil.disk_usage(".")
+    return free
