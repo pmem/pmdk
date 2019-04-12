@@ -38,7 +38,8 @@ import itertools
 import subprocess as sp
 
 import helpers as hlp
-from utils import fail
+from utils import fail, HEADER_SIZE
+from poolset import _Poolset
 
 try:
     import envconfig
@@ -75,13 +76,51 @@ class Context:
         # 'Non' fs. Hence it is implemented as a property.
         return os.path.join(self.fs.dir, self.test.testdir)
 
-    def create_holey_file(self, size, name):
+    def create_holey_file(self, size, path, mode=None):
         """Create a new file with the selected size and name"""
-        filepath = os.path.join(self.testdir, name)
+        filepath = os.path.join(self.testdir, path)
         with open(filepath, 'w') as f:
             f.seek(size)
             f.write('\0')
+        if mode is not None:
+            os.chmod(filepath, mode)
         return filepath
+
+    def create_non_zero_file(self, size, path, mode=None):
+        """Create a new non-zeroed file with the selected size and name"""
+        filepath = os.path.join(self.testdir, path)
+        with open(filepath, 'w') as f:
+            f.write('\132' * size)
+        if mode is not None:
+            os.chmod(filepath, mode)
+        return filepath
+
+    def create_zeroed_hdr_file(self, size, path, mode=None):
+        """
+        Create a new non-zeroed file with a zeroed header and the selected
+        size and name
+        """
+        filepath = os.path.join(self.testdir, path)
+        with open(filepath, 'w') as f:
+            f.write('\0' * HEADER_SIZE)
+            f.write('\132' * (size - HEADER_SIZE))
+        if mode is not None:
+            os.chmod(filepath, mode)
+        return filepath
+
+    def mkdirs(self, path, mode=None):
+        """
+        Creates directory along with all parent directories required. In the
+        case given path already exists do nothing.
+        """
+        dirpath = os.path.join(self.testdir, path)
+        if mode is None:
+            os.makedirs(dirpath, exist_ok=True)
+        else:
+            os.makedirs(dirpath, mode, exist_ok=True)
+
+    def new_poolset(self, path):
+        return _Poolset(path, self)
 
     def exec(self, cmd, args='', expected_exit=0):
         """Execute binary in current test context"""
