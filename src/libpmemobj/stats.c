@@ -95,16 +95,21 @@ struct stats *
 stats_new(PMEMobjpool *pop)
 {
 	struct stats *s = Malloc(sizeof(*s));
+	if (s == NULL) {
+		ERR("!Malloc");
+		goto error_alloc;
+	}
+
 	s->enabled = 0;
 	s->persistent = &pop->stats_persistent;
 	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(s->persistent, sizeof(*s->persistent));
 	s->transient = Zalloc(sizeof(struct stats_transient));
 	if (s->transient == NULL)
-		goto error_transient_alloc;
+		goto error_alloc;
 
 	return s;
 
-error_transient_alloc:
+error_alloc:
 	Free(s);
 	return NULL;
 }
