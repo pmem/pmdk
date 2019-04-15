@@ -39,6 +39,13 @@ import subprocess as sp
 
 import helpers as hlp
 
+try:
+    import envconfig
+    envconfig = envconfig.config
+except ImportError:
+    # if file doesn't exist create dummy object
+    envconfig = {'GLOBAL_LIB_PATH': ''}
+
 
 def expand(*classes):
     """Return flatten list of container classes with removed duplications"""
@@ -78,10 +85,14 @@ class Context:
         """Execute binary in current test context"""
         env = {**self.env, **os.environ.copy(), **self.test.utenv}
         if sys.platform == 'win32':
-            env['PATH'] = self.build.libdir + os.pathsep + env.get('PATH', '')
+            env['PATH'] = self.build.libdir + os.pathsep +\
+                          envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
+                          env.get('PATH', '')
             cmd = os.path.join(self.build.exedir, cmd) + '.exe'
         else:
             env['LD_LIBRARY_PATH'] = self.build.libdir + os.pathsep +\
+                                     envconfig['GLOBAL_LIB_PATH'] +\
+                                     os.pathsep +\
                                      env.get('LD_LIBRARY_PATH', '')
             cmd = os.path.join(self.test.cwd, cmd) + self.build.exesuffix
 
