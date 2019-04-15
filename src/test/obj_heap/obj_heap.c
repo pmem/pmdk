@@ -32,7 +32,14 @@
 
 /*
  * obj_heap.c -- unit test for heap
+ *
+ *
+ * operations are: 't', 's'
+ * t: do test_heap, test_recycler
+ * s: do fault injection in function stats_new
+ *
  */
+
 #include "libpmemobj.h"
 #include "palloc.h"
 #include "heap.h"
@@ -452,13 +459,37 @@ test_recycler(void)
 	MUNMAP_ANON_ALIGNED(mpop, MOCK_POOL_SIZE);
 }
 
+static void
+do_fault_injection_stats()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "stats_new");
+	struct stats *s = stats_new(NULL);
+	UT_ASSERTeq(s, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_heap");
 
-	test_heap();
-	test_recycler();
+	if (argc < 2)
+		UT_FATAL("usage: %s path, op:t|s", argv[0]);
+
+	switch (argv[1][0]) {
+	case 't':
+		test_heap();
+		test_recycler();
+		break;
+	case 's':
+		do_fault_injection_stats();
+		break;
+	default:
+		UT_FATAL("unknown operation");
+	}
 
 	DONE(NULL);
 }
