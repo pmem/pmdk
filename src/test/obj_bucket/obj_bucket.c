@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -94,7 +94,6 @@ static struct block_container_ops container_test_ops = {
 	.insert = container_test_insert,
 	.get_rm_exact = container_test_get_rm_exact,
 	.get_rm_bestfit = container_test_get_rm_bestfit,
-	.get_exact = NULL,
 	.is_empty = NULL,
 	.rm_all = NULL,
 	.destroy = container_test_destroy,
