@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,6 +48,7 @@
 #include "benchmark.hpp"
 #include "libpmem.h"
 #include "librpmem.h"
+#include "microbench.h"
 #include "os.h"
 #include "set.h"
 #include "util.h"
@@ -56,6 +57,8 @@
 #define MAX_OFFSET (CL_ALIGNMENT - 1)
 
 #define ALIGN_CL(x) (((x) + CL_ALIGNMENT - 1) & ~(CL_ALIGNMENT - 1))
+
+MBENCH_USING;
 
 /*
  * rpmem_args -- benchmark specific command line options
@@ -224,25 +227,50 @@ rpmem_op(struct benchmark *bench, struct operation_info *info)
 	size_t len = mb->pargs->chunk_size;
 
 	if (!mb->pargs->no_memset) {
-		void *dest = (char *)mb->pool + offset;
-		/* thread id on MS 4 bits and operation id on LS 4 bits */
-		int c = ((info->worker->index & 0xf) << 4) +
-			((0xf & info->index));
-		memset(dest, c, len);
+		MBENCH_START("pmembench_rpmem_memset")
+		{
+			void *dest = (char *)mb->pool + offset;
+			/*
+			 * thread id on MS 4 bits and operation id on LS 4 bits
+			 */
+			int c = ((info->worker->index & 0xf) << 4) +
+				((0xf & info->index));
+			memset(dest, c, len);
+#ifdef MBENCH_ENABLED
+			MBENCH_IF
+			{
+				MBENCH_INC(idx);
+				offset = mb->offsets[idx];
+			}
+#endif
+		}
+		MBENCH_STOP;
 	}
 
 	int ret = 0;
-	for (unsigned r = 0; r < mb->nreplicas; ++r) {
-		assert(info->worker->index < mb->nlanes[r]);
+	MBENCH_START("pmembench_rpmem_persist")
+	{
+		for (unsigned r = 0; r < mb->nreplicas; ++r) {
+			assert(info->worker->index < mb->nlanes[r]);
 
-		ret = rpmem_persist(mb->rpp[r], offset, len,
-				    info->worker->index, mb->flags);
-		if (ret) {
-			fprintf(stderr, "rpmem_persist replica #%u: %s\n", r,
-				rpmem_errormsg());
-			return ret;
+			ret = rpmem_persist(mb->rpp[r], offset, len,
+					    info->worker->index, mb->flags);
+			if (ret) {
+				fprintf(stderr,
+					"rpmem_persist replica #%u: %s\n", r,
+					rpmem_errormsg());
+				return ret;
+			}
 		}
+#ifdef MBENCH_ENABLED
+		MBENCH_IF
+		{
+			MBENCH_INC(idx);
+			offset = mb->offsets[idx];
+		}
+#endif
 	}
+	MBENCH_STOP;
 
 	return 0;
 }
@@ -426,6 +454,12 @@ rpmem_set_min_size(struct rpmem_bench *mb, enum operation_mode op_mode,
 {
 	mb->csize_align = ALIGN_CL(mb->pargs->chunk_size);
 
+#ifdef MBENCH_ENABLED
+	if (MBENCH_PROBE_STRSTR("pmembench_rpmem_")) {
+		args->n_ops_per_thread = MBENCH_GET_REPEAT;
+	}
+#endif
+
 	switch (op_mode) {
 		case OP_MODE_STAT:
 			mb->min_size = mb->csize_align * args->n_threads;
@@ -458,6 +492,8 @@ rpmem_init(struct benchmark *bench, struct benchmark_args *args)
 	assert(bench != nullptr);
 	assert(args != nullptr);
 	assert(args->opts != nullptr);
+
+	MBENCH_INIT;
 
 	auto *mb = (struct rpmem_bench *)malloc(sizeof(struct rpmem_bench));
 	if (!mb) {
@@ -520,6 +556,9 @@ rpmem_exit(struct benchmark *bench, struct benchmark_args *args)
 	rpmem_poolset_fini(mb);
 	free(mb->offsets);
 	free(mb);
+
+	MBENCH_FINI;
+
 	return 0;
 }
 
