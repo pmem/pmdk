@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,13 +38,10 @@ TOP = ../../..
 vpath %.c $(TOP)/src/libpmemobj
 
 TARGET = obj_critnib
-OBJS = obj_critnib.o critnib.o
+OBJS = obj_critnib.o
 
-LIBPMEMCOMMON=y
-LIBPMEM=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
 
 LDFLAGS += $(call extract_funcs, obj_critnib.c)
-
-INCS += -I$(TOP)/src/libpmemobj/
