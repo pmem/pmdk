@@ -6,4 +6,4 @@ task:
     autoconf bash binutils coreutils e2fsprogs-libuuid
     git gmake libunwind ncurses pkgconf
 
-  script: CFLAGS="-Wno-unused-value" gmake
+  script: gmake
