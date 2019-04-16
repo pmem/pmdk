@@ -303,8 +303,13 @@ free_node(struct critnib *__restrict c, struct critnib_node *__restrict n)
 static struct critnib_node *
 alloc_node(struct critnib *__restrict c)
 {
-	if (!c->deleted_node)
-		return Malloc(sizeof(struct critnib_node));
+	if (!c->deleted_node) {
+		struct critnib_node *n = Malloc(sizeof(struct critnib_node));
+		if (n == NULL)
+			ERR("!Malloc");
+
+		return n;
+	}
 
 	struct critnib_node *n = c->deleted_node;
 
@@ -335,8 +340,13 @@ free_leaf(struct critnib *__restrict c, struct critnib_leaf *__restrict k)
 static struct critnib_leaf *
 alloc_leaf(struct critnib *__restrict c)
 {
-	if (!c->deleted_leaf)
-		return Malloc(sizeof(struct critnib_leaf));
+	if (!c->deleted_leaf) {
+		struct critnib_leaf *k = Malloc(sizeof(struct critnib_leaf));
+		if (k == NULL)
+			ERR("!Malloc");
+
+		return k;
+	}
 
 	struct critnib_leaf *k = c->deleted_leaf;
 
