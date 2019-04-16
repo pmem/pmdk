@@ -372,10 +372,12 @@ main(int argc, char *argv[])
 	}
 
 	/* validate copies from local and remote */
-	if (fibo_recovery(rpp, pool, &fibo_r, &initialized)) {
+	ret = fibo_recovery(rpp, pool, &fibo_r, &initialized);
+	if (ret) {
 		fprintf(stderr, "recovery failed.\n");
 		goto err;
 	}
+
 	/* generate new number */
 	if (!initialized)
 		fibo_generate(&pool->fibo);
