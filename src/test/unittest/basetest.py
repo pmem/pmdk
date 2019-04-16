@@ -37,11 +37,13 @@ import itertools
 import shutil
 import subprocess as sp
 import sys
+import re
 from datetime import datetime
-from os import listdir, makedirs, path
+from os import listdir, makedirs, path, scandir
 
 import context as ctx
 import helpers as hlp
+from utils import Fail, fail, dump_n_lines
 
 
 if not hasattr(builtins, 'testcases'):
@@ -59,16 +61,6 @@ CTX_COMPONENTS = (
     ('build', ctx._Build),
     ('fs', ctx._Fs)
 )
-
-
-class Fail(Exception):
-    """Thrown when test fails"""
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
-
-    def __str__(self):
-        return self.message
 
 
 class Any:
@@ -203,6 +195,7 @@ class BaseTest(metaclass=_TestCase):
             except Fail as f:
                 failed = True
                 print(f)
+                self._print_log_files()
                 print('{}: {}FAILED{}\t({}/{}/{})'
                       .format(self, hlp.Color.RED, hlp.Color.END,
                               self.test_type, c.fs, c.build))
@@ -245,9 +238,6 @@ class BaseTest(metaclass=_TestCase):
         if self.match:
             self._run_match()
 
-    def fail(self, msg):
-        raise Fail(msg)
-
     def _run_match(self):
         """Match log files"""
         cwd_listdir = [path.join(self.cwd, f) for f in listdir(self.cwd)]
@@ -270,7 +260,7 @@ class BaseTest(metaclass=_TestCase):
             proc = sp.run(cmd.split(), stdout=sp.PIPE, cwd=self.cwd,
                           stderr=sp.STDOUT, universal_newlines=True)
             if proc.returncode != 0:
-                self.fail(proc.stdout)
+                fail(proc.stdout, exit_code=proc.returncode)
             else:
                 self.msg.print_verbose(proc.stdout)
 
@@ -287,3 +277,15 @@ class BaseTest(metaclass=_TestCase):
 
         self.msg.print('{}: {}PASS{} {}'
                        .format(self, hlp.Color.GREEN, hlp.Color.END, tm))
+
+    def _print_log_files(self):
+        """
+        Iterates over all log files created by framework and prints them.
+        """
+        with scandir(self.cwd) as files:
+            for file in files:
+                match = re.fullmatch(r'.*[a-zA-Z_]{}\.log'.format(self.testnum),
+                                     file.name)
+                if match:
+                    with open(file.name) as f:
+                        dump_n_lines(f)
