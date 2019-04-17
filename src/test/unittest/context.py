@@ -40,6 +40,13 @@ import subprocess as sp
 import helpers as hlp
 from utils import fail
 
+try:
+    import envconfig
+    envconfig = envconfig.config
+except ImportError:
+    # if file doesn't exist create dummy object
+    envconfig = {'GLOBAL_LIB_PATH': ''}
+
 
 def expand(*classes):
     """Return flatten list of container classes with removed duplications"""
@@ -82,7 +89,9 @@ class Context:
         env = {**self.env, **os.environ.copy(), **self.test.utenv}
 
         if sys.platform == 'win32':
-            env['PATH'] = self.build.libdir + os.pathsep + env.get('PATH', '')
+            env['PATH'] = self.build.libdir + os.pathsep +\
+                          envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
+                          env.get('PATH', '')
             cmd = os.path.join(self.build.exedir, cmd) + '.exe'
 
         else:
@@ -91,6 +100,7 @@ class Context:
                     self.test.ld_preload
                 self.valgrind.handle_ld_preload(self.test.ld_preload)
             env['LD_LIBRARY_PATH'] = self.build.libdir + os.pathsep +\
+                envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
                 env.get('LD_LIBRARY_PATH', '')
             cmd = os.path.join(self.test.cwd, cmd) + self.build.exesuffix
             cmd = '{} {}'.format(self.valgrind.cmd, cmd)
