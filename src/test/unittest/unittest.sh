@@ -37,6 +37,7 @@ export LC_ALL="C"
 #export LC_ALL="en_US.UTF-8"
 
 . ../testconfig.sh
+. ../envconfig.sh
 
 if [ -t 1 ]; then
 	IS_TERMINAL_STDOUT=YES
@@ -215,8 +216,8 @@ nondebug|static-nondebug)
 	;;
 esac
 
-export LD_LIBRARY_PATH=$PMDK_LIB_PATH:$LIBNDCTL_LD_LIBRARY_PATHS:$LD_LIBRARY_PATH
-export REMOTE_LD_LIBRARY_PATH=$REMOTE_PMDK_LIB_PATH:$LIBNDCTL_LD_LIBRARY_PATHS:\$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PMDK_LIB_PATH:$GLOBAL_LIB_PATH:$LD_LIBRARY_PATH
+export REMOTE_LD_LIBRARY_PATH=$REMOTE_PMDK_LIB_PATH:$GLOBAL_LIB_PATH:\$LD_LIBRARY_PATH
 
 #
 # When running static binary tests, append the build type to the binary
