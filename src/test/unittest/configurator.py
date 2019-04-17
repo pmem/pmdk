@@ -39,6 +39,7 @@ from datetime import timedelta
 from collections import namedtuple
 
 import context as ctx
+import valgrind as vg
 
 try:
     import testconfig
@@ -131,6 +132,11 @@ def _str2ctx(config):
     convert_internal('build', ctx._Build)
     convert_internal('test_type', ctx._TestType)
     convert_internal('fs', ctx._Fs)
+
+    if config['force_enable'] is not None:
+        config['force_enable'] = next(
+            t for t in vg.TOOLS
+            if t.name.lower() == config['force_enable'])
 
 
 class Configurator():
@@ -231,4 +237,9 @@ class Configurator():
                             'e.g.: 0-2,5 will execute TEST0, '
                             'TEST1, TEST2 and TEST5',
                             default='')
+
+        if sys.platform != 'win32':
+            parser.add_argument('--force-enable', choices=vg.TOOLS,
+                                default=None)
+
         return parser
