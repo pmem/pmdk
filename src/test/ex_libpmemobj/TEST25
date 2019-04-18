@@ -44,6 +44,7 @@ require_build_type debug nondebug
 
 setup
 
+
 touch txt_file_without_permissions.txt
 chmod 111 txt_file_without_permissions.txt
 
