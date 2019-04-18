@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,15 +33,9 @@
 #
 # src/test/obj_ravl/Makefile -- build ravl tree unit test
 #
-TOP = ../../..
-
-vpath %.c $(TOP)/src/libpmemobj
-
 TARGET = obj_ravl
-OBJS = obj_ravl.o ravl.o
+OBJS = obj_ravl.o
 
-LIBPMEMCOMMON=y
-LIBPMEM=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
-INCS += -I$(TOP)/src/libpmemobj/
