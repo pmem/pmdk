@@ -13,71 +13,210 @@ usage:
 	<filename> delete-colony <colony-name>
 
 usage:
-	./colony <filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
 
 failed to create pool
-
-unknown type: unknown_type
-
-alloc failed: requested size greater than PMEMOBJ_MAX_ALLOC_SIZE
 
 failed to create a colony
 
 usage:
-	./colony <filename> insert-int <colony-name> <item>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> insert-int <colony-name> <item>
 
 colx doesn't exist
 
-wrong type
+wrong type, only int can be put into this colony
 
 usage:
-	./colony <filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
 
 colx doesn't exist
 
-wrong type
+wrong type, only PMEMoid can be put into this colony
 
 usage:
-	./colony <filename> insert-int-from-file <colony-name> <path>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> insert-int-from-file <colony-name> <path>
 
 colx doesn't exist
 
 failed to open file
 
 usage:
-	./colony <filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
 
 colx doesn't exist
 
 failed to open file
 
 usage:
-	./colony <filename> remove-item <colony-name> <index>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> remove-item <colony-name> <index>
 
 colx doesn't exist
 
 usage:
-	./colony <filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> remove-range <colony-name> <index-from> <index-to>
 
 colx doesn't exist
 
 usage:
-	./colony <filename> print-content <colony-name>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> print-content <colony-name>
 
 colx doesn't exist
 
 usage:
-	./colony <filename> print-colony <colony-name>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> print-colony <colony-name>
 
 colx doesn't exist
 
 usage:
-	./colony <filename> delete-free-blocks <colony-name>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> delete-free-blocks <colony-name>
 
 colx doesn't exist
 
 usage:
-	./colony <filename> delete-colony <colony-name>
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> delete-colony <colony-name>
 
 colx doesn't exist
 
@@ -154,9 +293,9 @@ col_idx: 17		item: 37
 col_idx: 18		item: 69
 col_idx: 19		item: 99
 
-the item from this index (14) does not exist
+the item with this index (14) does not exist
 
-the item from this index (15) does not exist
+the item with this index (15) does not exist
 
 this index (20) is out of range
 
@@ -240,6 +379,14 @@ col_idx: 25		item: 69
 col_idx: 26		item: 99
 
 coli doesn't exist
+
+colony: block_capacity: 7
+colony: block_count: 0
+colony: colony_size: 0
+colony: colony_capacity: 0
+colony: free_idx_count: 0
+colony: free_block_count: 0
+
 
 colony: block_capacity: 7
 colony: block_count: 3

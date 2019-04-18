@@ -170,7 +170,8 @@ get_type(const char *type_name)
 			break;
 	}
 	if (type == UNKNOWN_ARRAY_TYPE)
-		fprintf(stderr, "\nunknown type: %s\n", type_name);
+		fprintf(stderr, "\nunknown type: %s\nsupported types: int and "
+							"PMEMoid", type_name);
 
 	return type;
 }
@@ -967,7 +968,7 @@ item_remove(PMEMobjpool *pop, TOID(struct colony) c, size_t colony_idx)
 
 	size_t block_idx = colony_idx % D_RO(c)->block_capacity;
 	if (D_RO(jumps)[block_idx] != 0) {
-		printf("\nthe item from this index (%zu) does not exist\n",
+		printf("\nthe item with this index (%zu) does not exist\n",
 								colony_idx);
 
 		return -1;
@@ -1409,30 +1410,49 @@ colony_op_parse(const char *str)
 	return UNKNOWN_COLONY_OP;
 }
 
+/*
+ * print_usage -- prints usage
+ */
+static void
+print_usage()
+{
+	printf("\nusage:\n\t"
+		"<filename> create-colony <colony-name> <element-type> "
+							"<block-capacity>\n\t"
+		"<filename> insert-int <colony-name> <item>\n\t"
+		"<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>"
+									"\n\t"
+		"<filename> insert-int-from-file <colony-name> <path>\n\t"
+		"<filename> insert-PMEMoid-from-file <colony-name> <path>\n\t"
+		"<filename> remove-item <colony-name> <index>\n\t"
+		"<filename> remove-range <colony-name> <index-from> <index-to>"
+									"\n\t"
+		"<filename> print-content <colony-name>\n\t"
+		"<filename> print-colony <colony-name>\n\t"
+		"<filename> delete-free-blocks <colony-name>\n\t"
+		"<filename> delete-colony <colony-name>\n");
+}
+
 int
 main(int argc, char *argv[])
 {
 	TOID(struct colony) col;
 	enum colony_op op;
 
-	if (argc < 3 || (op = colony_op_parse(argv[2])) == UNKNOWN_COLONY_OP) {
-		printf("\nusage:\n\t"
-			"<filename> create-colony <colony-name> <element-type> "
-							"<block-capacity>\n\t"
-			"<filename> insert-int <colony-name> <item>\n\t"
-			"<filename> insert-PMEMoid <colony-name> <item-uuid> "
-								"<item-off>\n\t"
-			"<filename> insert-int-from-file <colony-name> <path>"
-									"\n\t"
-			"<filename> insert-PMEMoid-from-file <colony-name> "
-								"<path>\n\t"
-			"<filename> remove-item <colony-name> <index>\n\t"
-			"<filename> remove-range <colony-name> <index-from>"
-							" <index-to>\n\t"
-			"<filename> print-content <colony-name>\n\t"
-			"<filename> print-colony <colony-name>\n\t"
-			"<filename> delete-free-blocks <colony-name>\n\t"
-			"<filename> delete-colony <colony-name>\n");
+	enum colony_op spr = colony_op_parse(argv[1]);
+	if (spr == COLONY_CREATE || spr == COLONY_INSERT_INT || spr ==
+		COLONY_INSERT_PMEMOID || spr == COLONY_INSERT_INT_FROM_FILE ||
+		spr == COLONY_INSERT_PMEMOID_FROM_FILE || spr ==
+		COLONY_REMOVE_ITEM || spr == COLONY_REMOVE_RANGE || spr ==
+		COLONY_PRINT_CONTENT || spr == COLONY_PRINT || spr ==
+		COLONY_DELETE_FREE_BLOCKS || spr == COLONY_DELETE) {
+		print_usage();
+
+		return 0;
+	}
+
+	if (argc < 4 || (op = colony_op_parse(argv[2])) == UNKNOWN_COLONY_OP) {
+		print_usage();
 
 		return 0;
 	}
@@ -1462,7 +1482,7 @@ main(int argc, char *argv[])
 	case COLONY_CREATE:
 	{
 		if (argc != 6) {
-			printf("\nusage:\n\t./colony <filename> create-colony "
+			printf("\nusage:\n\t<filename> create-colony "
 				"<colony-name> <element-type> <block-capacity>"
 									"\n");
 			break;
@@ -1481,8 +1501,8 @@ main(int argc, char *argv[])
 	case COLONY_INSERT_INT:
 	{
 		if (argc != 5) {
-			printf("\nusage:\n\t./colony <filename> insert-int "
-						"<colony-name> <item>\n");
+			printf("\nusage:\n\t<filename> insert-int <colony-name>"
+								" <item>\n");
 			break;
 		}
 		col = find_colony(pop, name);
@@ -1491,7 +1511,8 @@ main(int argc, char *argv[])
 			break;
 		}
 		if (D_RO(col)->element_type == PMEMOID_ARRAY_TYPE) {
-			printf("\nwrong type\n");
+			printf("\nwrong type, only PMEMoid can be put into this"
+								" colony\n");
 			break;
 		}
 
@@ -1503,7 +1524,7 @@ main(int argc, char *argv[])
 	case COLONY_INSERT_PMEMOID:
 	{
 		if (argc != 6) {
-			printf("\nusage:\n\t./colony <filename> insert-PMEMoid "
+			printf("\nusage:\n\t<filename> insert-PMEMoid "
 				"<colony-name> <item-uuid> <item-off>\n");
 			break;
 		}
@@ -1513,7 +1534,8 @@ main(int argc, char *argv[])
 			break;
 		}
 		if (D_RO(col)->element_type == INT_ARRAY_TYPE) {
-			printf("\nwrong type\n");
+			printf("\nwrong type, only int can be put into this"
+								" colony\n");
 			break;
 		}
 
@@ -1527,8 +1549,8 @@ main(int argc, char *argv[])
 	case COLONY_INSERT_INT_FROM_FILE:
 	{
 		if (argc != 5) {
-			printf("\nusage:\n\t./colony <filename> insert-int-from"
-						"-file <colony-name> <path>\n");
+			printf("\nusage:\n\t<filename> insert-int-from-file "
+						"<colony-name> <path>\n");
 			break;
 		}
 		col = find_colony(pop, name);
@@ -1552,8 +1574,8 @@ main(int argc, char *argv[])
 	case COLONY_INSERT_PMEMOID_FROM_FILE:
 	{
 		if (argc != 5) {
-			printf("\nusage:\n\t./colony <filename> insert-PMEMoid-"
-					"from-file <colony-name> <path>\n");
+			printf("\nusage:\n\t<filename> insert-PMEMoid-from-file"
+						" <colony-name> <path>\n");
 			break;
 		}
 		col = find_colony(pop, name);
@@ -1578,7 +1600,7 @@ main(int argc, char *argv[])
 	case COLONY_REMOVE_ITEM:
 	{
 		if (argc != 5) {
-			printf("\nusage:\n\t./colony <filename> remove-item "
+			printf("\nusage:\n\t<filename> remove-item "
 						"<colony-name> <index>\n");
 			break;
 		}
@@ -1595,7 +1617,7 @@ main(int argc, char *argv[])
 	case COLONY_REMOVE_RANGE:
 	{
 		if (argc != 6) {
-			printf("\nusage:\n\t./colony <filename> remove-range "
+			printf("\nusage:\n\t<filename> remove-range "
 				"<colony-name> <index-from> <index-to>\n");
 			break;
 		}
@@ -1614,7 +1636,7 @@ main(int argc, char *argv[])
 	case COLONY_PRINT_CONTENT:
 	{
 		if (argc != 4) {
-			printf("\nusage:\n\t./colony <filename> print-content "
+			printf("\nusage:\n\t<filename> print-content "
 							"<colony-name>\n");
 			break;
 		}
@@ -1630,7 +1652,7 @@ main(int argc, char *argv[])
 	case COLONY_PRINT:
 	{
 		if (argc != 4) {
-			printf("\nusage:\n\t./colony <filename> print-colony "
+			printf("\nusage:\n\t<filename> print-colony "
 							"<colony-name>\n");
 			break;
 		}
@@ -1646,8 +1668,8 @@ main(int argc, char *argv[])
 	case COLONY_DELETE_FREE_BLOCKS:
 	{
 		if (argc != 4) {
-			printf("\nusage:\n\t./colony <filename> delete-free-"
-						"blocks <colony-name>\n");
+			printf("\nusage:\n\t<filename> delete-free-blocks "
+							"<colony-name>\n");
 			break;
 		}
 		col = find_colony(pop, argv[3]);
@@ -1663,7 +1685,7 @@ main(int argc, char *argv[])
 	case COLONY_DELETE:
 	{
 		if (argc != 4) {
-			printf("\nusage:\n\t./colony <filename> delete-colony "
+			printf("\nusage:\n\t<filename> delete-colony "
 							"<colony-name>\n");
 			break;
 		}
