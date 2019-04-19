@@ -90,6 +90,7 @@ def disabled_tools(test):
 
 class Valgrind:
     """Valgrind management"""
+
     def __init__(self, tool, cwd, testnum, memcheck_check_leaks=True):
         if sys.platform == 'win32':
             raise NotImplementedError(

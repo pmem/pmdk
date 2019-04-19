@@ -304,10 +304,11 @@ class BaseTest(metaclass=_TestCase):
         """
         Iterates over all log files created by framework and prints them.
         """
+
+        pattern = r'.*[a-zA-Z_]{}\.log'
         with scandir(self.cwd) as files:
             for file in files:
-                match = re.fullmatch(r'.*[a-zA-Z_]{}\.log'.format(self.testnum),
-                                     file.name)
+                match = re.fullmatch(pattern.format(self.testnum), file.name)
                 if match:
                     with open(file.name) as f:
                         dump_n_lines(f)

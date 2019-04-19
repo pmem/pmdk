@@ -90,8 +90,8 @@ class Context:
 
         if sys.platform == 'win32':
             env['PATH'] = self.build.libdir + os.pathsep +\
-                          envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
-                          env.get('PATH', '')
+                envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
+                env.get('PATH', '')
             cmd = os.path.join(self.build.exedir, cmd) + '.exe'
 
         else:
