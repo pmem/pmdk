@@ -112,7 +112,9 @@ GitHub permissions work, you may need to ask a team member to assign it to you).
 Bugs for the PMDK project are tracked in our
 [GitHub Issues Database](https://github.com/pmem/issues/issues).
 
-When creating a bug report issue, please provide the following information:
+When reporting new bug, please use `New issue` button, pick proper template,
+follow its instructions and provide as much information as possible, especially
+product version:
 
 #### PMDK version
 
@@ -132,29 +134,20 @@ For RPMs, use `rpm -q pmdk` to display the name.
 For Deb packages, run `dpkg-query -W pmdk` and use the
 second (version) string.
 
-#### Milestone field
+#### Priority
 
-Optionally, assign the milestone the issue needs to be fixed before.
+Requested priority describes the urgency to resolve a defect and establishes
+the time frame for providing a verified resolution. Priorities are defined as:
 
-#### Type: Bug label
-
-Assign the `Type: Bug` label to the issue
-(see [GitHub Help](https://help.github.com/articles/applying-labels-to-issues-and-pull-requests) for details).
-
-#### Priority label
-
-Optionally, assign one of the Priority labels (P1, P2, ...).
-The Priority attribute describes the urgency to resolve a defect
-and establishes the time frame for providing a verified resolution.
-These Priority labels are defined as:
-
-* **P1**: Showstopper bug, requiring resolution before the next release of the library.
-* **P2**: High-priority bug, requiring resolution although it may be decided that the bug does not prevent the next release of the library.
-* **P3**: Medium-priority bug.  The expectation is that the bug will be evaluated and a plan will be made for when the bug will be resolved.
+* **P1**: Showstopper bug, requiring resolution before the next release of the
+library.
+* **P2**: High-priority bug, requiring resolution although it may be decided
+that the bug does not prevent the next release of the library.
+* **P3**: Medium-priority bug.  The expectation is that the bug will be
+evaluated and a plan will be made for when the bug will be resolved.
 * **P4**: Low-priority bug, the least urgent.  Fixed as resources are available.
 
-Then describe the bug in the comment fields.
+#### Feature template
 
-#### Type: Feature label
-
-Assign the `Type: Feature` label to the issue, then describe the feature request in comment fields.
+Other possible issue template to use is `Feature`.  It should help delivering
+meaningful description of a feature request.
