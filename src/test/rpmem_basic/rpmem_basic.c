@@ -328,7 +328,7 @@ test_create(const struct test_case *tc, int argc, char *argv[])
 		UT_ASSERTne(pool->nlanes, 0);
 		UT_OUT("%s: created", pool_set);
 	} else {
-		UT_OUT("!%s", pool_set);
+		UT_FATAL("!%s", pool_set);
 		free_pool(pool);
 	}
 
@@ -388,7 +388,7 @@ test_open(const struct test_case *tc, int argc, char *argv[])
 
 		UT_OUT("%s: opened", pool_set);
 	} else {
-		UT_OUT("!%s", pool_set);
+		UT_FATAL("!%s", pool_set);
 		free_pool(pool);
 	}
 
@@ -757,7 +757,7 @@ test_set_attr(const struct test_case *tc, int argc, char *argv[])
 	int ret = rpmem_set_attr(pool->rpp, rattr);
 
 	if (ret)
-		UT_OUT("set attributes failed (%s)", pool_attr_name);
+		UT_FATAL("set attributes failed (%s)", pool_attr_name);
 	else
 		UT_OUT("set attributes succeeded (%s)", pool_attr_name);
 
