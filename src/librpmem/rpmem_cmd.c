@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,6 +43,7 @@
 #include <sys/socket.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <errno.h>
 
 #include "util.h"
 #include "out.h"
@@ -239,11 +240,16 @@ err_pipe_in:
 int
 rpmem_cmd_wait(struct rpmem_cmd *cmd, int *status)
 {
-	if (cmd->pid <= 0)
+	if (cmd->pid <= 0) {
+		RPMEM_LOG(ERR, "wrong PID: %i", cmd->pid);
+		errno = EINVAL;
 		return -1;
+	}
 
-	if (waitpid(cmd->pid, status, 0) != cmd->pid)
+	if (waitpid(cmd->pid, status, 0) != cmd->pid) {
+		RPMEM_LOG(ERR, "!waitpid failed");
 		return -1;
+	}
 
 	return 0;
 }
@@ -259,5 +265,8 @@ rpmem_cmd_term(struct rpmem_cmd *cmd)
 	os_close(cmd->fd_err);
 
 	RPMEM_ASSERT(cmd->pid > 0);
-	return kill(cmd->pid, SIGINT);
+	int rv = kill(cmd->pid, SIGINT);
+	if (rv)
+		RPMEM_LOG(ERR, "!kill failed");
+	return rv;
 }
