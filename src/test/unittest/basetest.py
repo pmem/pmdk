@@ -38,6 +38,7 @@ import shutil
 import subprocess as sp
 import sys
 import re
+import os
 from datetime import datetime
 from os import listdir, makedirs, path, scandir
 
@@ -208,6 +209,7 @@ class BaseTest(metaclass=_TestCase):
             if self.valgrind:
                 config_str = '{}/{}'.format(config_str, self.valgrind)
             self.msg.print('{}: SETUP\t({})'.format(self, config_str))
+            self._remove_old_log_files()
 
             self.setup(c)
             start_time = datetime.now()
@@ -300,15 +302,33 @@ class BaseTest(metaclass=_TestCase):
         self.msg.print('{}: {}PASS{} {}'
                        .format(self, hlp.Color.GREEN, hlp.Color.END, tm))
 
-    def _print_log_files(self):
+    def get_log_files(self):
         """
-        Iterates over all log files created by framework and prints them.
+        Returns name of all log files for given test
         """
-
         pattern = r'.*[a-zA-Z_]{}\.log'
+        log_files = []
         with scandir(self.cwd) as files:
             for file in files:
                 match = re.fullmatch(pattern.format(self.testnum), file.name)
                 if match:
-                    with open(file.name) as f:
-                        dump_n_lines(f)
+                    log = os.path.abspath(os.path.join(self.cwd, file.name))
+                    log_files.append(log)
+        return log_files
+
+    def _print_log_files(self):
+        """
+        Iterates over all log files created by framework and prints them
+        """
+        log_files = self.get_log_files()
+        for file in log_files:
+            with open(file) as f:
+                dump_n_lines(f)
+
+    def _remove_old_log_files(self):
+        """
+        Removes old log files
+        """
+        log_files = self.get_log_files()
+        for file in log_files:
+            os.remove(file)
