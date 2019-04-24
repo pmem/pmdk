@@ -39,6 +39,13 @@ pmemobj_tx_stage
 # begin transaction without jmp_buf argument
 pmemobj_tx_begin
 
+# reserve two objects in root at g positions
+pmemobj_xreserve r.0 g.0 1 1024 1 0
+pmemobj_xreserve r.1 g.1 1 1024 1 0
+
+# publish reserved objects
+pmemobj_tx_publish g.0 g.1 2
+
 # commit current transaction
 pmemobj_tx_commit
 
