@@ -110,3 +110,19 @@ pmemobj_free r.3
 
 # print pointer of freed object
 pmemobj_direct r.0
+
+# reserve two objects in root at g positions
+pmemobj_reserve r.0 g.0 1 1024 
+pmemobj_reserve r.1 g.1 1 1024
+
+# publish reserved objects
+pmemobj_publish g.0 g.1 2
+
+# free published object
+pmemobj_defer_free r.0 g.0
+
+# modify the memory location
+pmemobj_set_value r.1 g.1 512 1024
+
+# invalidate all actions and release resources
+pmemobj_cancel g.0 g.1 2

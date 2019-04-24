@@ -58,7 +58,9 @@
 #define POCLI_CMD_DELIM		" "
 #define POCLI_CMD_PROMPT	"pmemobjcli $ "
 #define POCLI_INBUF_LEN		4096
+#define MAX_ACTS			1024
 struct pocli;
+static struct pobj_action g_acts[MAX_ACTS];
 
 TOID_DECLARE(struct item, 1);
 
@@ -389,6 +391,178 @@ parse_stage(void)
 		break;
 	}
 	return stage;
+}
+
+/*
+ * pocli_reserv_id -- parse object's descriptor from action object
+ */
+static enum pocli_ret
+pocli_reserv_id(struct pocli_ctx *ctx, char *in, struct pobj_action **actp)
+{
+	char *input = strdup(in);
+	if (!input)
+		return POCLI_ERR_MALLOC;
+
+	if (!actp)
+		return POCLI_ERR_PARS;
+
+	struct pocli_args *args = pocli_args_alloc(NULL, input, ".");
+	if (!args)
+		return POCLI_ERR_PARS;
+	enum pocli_ret ret = POCLI_RET_OK;
+
+	if (strcmp(args->argv[0], "g") != 0) {
+		ret = POCLI_ERR_PARS;
+		goto out;
+	}
+	for (int i = 1; i < args->argc; i++) {
+
+		unsigned ind;
+		char c;
+		int n = sscanf(args->argv[i], "%u%c", &ind, &c);
+		if (n != 1) {
+			ret = POCLI_ERR_PARS;
+			goto out;
+		}
+		if (ind >= MAX_ACTS) {
+			ret = POCLI_ERR_PARS;
+			goto out;
+		}
+		*actp = &g_acts[ind];
+	}
+out:
+	free(input);
+	free(args);
+	return ret;
+}
+
+/*
+ * pocli_args_action -- parse action
+ */
+static enum pocli_ret
+pocli_args_act(struct pocli_ctx *ctx, struct pocli_args *args, int arg,
+	struct pobj_action **actp)
+{
+	assert(args != NULL);
+	assert(arg >= 0 && arg < args->argc);
+	assert(actp != NULL);
+	assert(ctx != NULL);
+
+	char *acts = args->argv[arg];
+
+	if (strcmp(acts, "0") == 0) {
+		*actp = NULL;
+	} else if (strcmp(acts, "NULL") == 0) {
+		*actp = NULL;
+	} else if (acts[0] == 'g') {
+		return pocli_reserv_id(ctx, args->argv[arg], actp);
+	} else {
+		return pocli_err(ctx, POCLI_ERR_PARS,
+			"invalid object specified -- '%s'\n", acts);
+	}
+	return POCLI_RET_OK;
+}
+
+/*
+ * pocli_args_action_publish -- parse action for publish
+ */
+static enum pocli_ret
+pocli_args_act_pub(struct pocli_ctx *ctx, struct pocli_args *args, int arg,
+	struct pobj_action **actp_pub, unsigned *g_pub)
+{
+	assert(args != NULL);
+	assert(arg >= 0 && arg < args->argc);
+	assert(actp_pub != NULL);
+	assert(ctx != NULL);
+
+	enum pocli_ret ret = POCLI_RET_OK;
+
+	char *acts_p = args->argv[arg];
+
+	if (strcmp(acts_p, "0") == 0) {
+		*actp_pub = NULL;
+	} else if (strcmp(acts_p, "NULL") == 0) {
+		*actp_pub = NULL;
+	} else if (acts_p[0] == 'g') {
+		char *input = strdup(acts_p);
+		if (!input)
+			return POCLI_ERR_MALLOC;
+
+		struct pocli_args *args = pocli_args_alloc(NULL, input, ".");
+		if (!args)
+			return POCLI_ERR_PARS;
+
+		for (int i = 1; i < args->argc; i++) {
+
+			unsigned ind;
+			char c;
+			int n = sscanf(args->argv[i], "%u%c", &ind, &c);
+			if (n != 1) {
+				ret = POCLI_ERR_PARS;
+				goto out;
+			}
+			if (ind >= MAX_ACTS) {
+				ret = POCLI_ERR_PARS;
+				goto out;
+			}
+			if (arg == 1) {
+				g_pub[0] = ind;
+				*actp_pub = &g_acts[ind];
+			} else if (arg == 2) {
+				g_pub[1] = ind;
+				*actp_pub = &g_acts[ind];
+			} else {
+				goto out;
+			}
+		}
+	out:
+		free(input);
+		free(args);
+		return ret;
+	} else {
+		return pocli_err(ctx, POCLI_ERR_PARS,
+			"invalid object specified -- '%s'\n", acts_p);
+	}
+	return POCLI_RET_OK;
+}
+
+/*
+ * pocli_args_class_id -- parse type class_id
+ */
+static enum pocli_ret
+pocli_args_class_id(struct pocli_args *args, int arg, uint64_t *class_id)
+{
+	assert(args != NULL);
+	assert(arg >= 0 && arg < args->argc);
+	assert(class_id != NULL);
+
+	uint64_t cid;
+	int ret = sscanf(args->argv[arg], "%" SCNu64 "", &cid);
+	if (ret == 0)
+		return POCLI_ERR_PARS;
+
+	if (cid == 0)
+		return POCLI_ERR_ARGS;
+
+	*class_id = POBJ_CLASS_ID(cid);
+
+	return POCLI_RET_OK;
+}
+
+/*
+ * pocli_args_flag -- parse type xalloc_zero
+ */
+static enum pocli_ret
+pocli_args_flag(struct pocli_args *args, int arg, int *flag)
+{
+	assert(args != NULL);
+	assert(arg >= 0 && arg < args->argc);
+
+	int ret = sscanf(args->argv[arg], "%p", &flag);
+	if (ret == 0)
+		return POCLI_ERR_PARS;
+
+	return POCLI_RET_OK;
 }
 
 /*
@@ -1734,6 +1908,286 @@ pocli_pmemobj_tx_errno(struct pocli_ctx *ctx, struct pocli_args *args)
 }
 
 /*
+ * pocli_pmemobj_reserve -- pmemobj_reserve() command
+ */
+static enum pocli_ret
+pocli_pmemobj_reserve(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 5)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oidp = NULL;
+	struct pobj_action *actp = NULL;
+	uint64_t type_num = 0;
+	size_t size = 0;
+	enum pocli_ret ret;
+
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_act(ctx, args, 2, &actp);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_number(args, 3, &type_num);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_size(args, 4, &size);
+	if (ret)
+		return ret;
+
+	PMEMoid r = pmemobj_reserve(ctx->pop, actp, size, type_num);
+
+	if (oidp != NULL)
+		*oidp = r;
+
+	pocli_printf(ctx, "%s(%s, %s, %zu, %llu): %d\n", args->argv[0],
+		args->argv[1], args->argv[2], size, type_num, r);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_xreserve -- pmemobj_xreserve() command
+ */
+static enum pocli_ret
+pocli_pmemobj_xreserve(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 7)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oidp = NULL;
+	struct pobj_action *actp = NULL;
+	uint64_t type_num = 0;
+	uint64_t flags = 0;
+	size_t size = 0;
+	uint64_t class_id = 0;
+	int xalloc_zero = 0;
+	enum pocli_ret ret;
+
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_act(ctx, args, 2, &actp);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_number(args, 3, &type_num);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_size(args, 4, &size);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_class_id(args, 5, &class_id);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_flag(args, 6, &xalloc_zero);
+	if (ret)
+		return ret;
+
+	if (xalloc_zero != 0)
+		flags = class_id + 1;
+	else
+		flags = class_id;
+
+	PMEMoid r = pmemobj_xreserve(ctx->pop, actp, size, type_num, flags);
+
+	if (oidp != NULL)
+		*oidp = r;
+
+	pocli_printf(ctx, "%s(%s, %s, %zu, %llu, %x): %d\n", args->argv[0],
+		args->argv[1], args->argv[2], size, type_num, flags, r);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_defer_free -- pmemobj_defer_free() command
+ */
+static enum pocli_ret
+pocli_pmemobj_defer_free(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 3)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oidp = NULL;
+	struct pobj_action *actp = NULL;
+	enum pocli_ret ret;
+
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_act(ctx, args, 2, &actp);
+	if (ret)
+		return ret;
+
+	if (oidp == NULL)
+		return pocli_err(ctx, POCLI_ERR_ARGS, "NULL OID not allowed\n");
+
+	pmemobj_defer_free(ctx->pop, *oidp, actp);
+
+	pocli_printf(ctx, "%s(%s, %s)\n", args->argv[0], args->argv[1],
+		args->argv[2]);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_set_value -- pmemobj_set_value() command
+ */
+static enum pocli_ret
+pocli_pmemobj_set_value(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 5)
+		return POCLI_ERR_ARGS;
+
+	PMEMoid *oidp = NULL;
+	struct pobj_action *actp = NULL;
+	uint64_t *ptr;
+	uint64_t value;
+	enum pocli_ret ret;
+
+	ret = pocli_args_obj(ctx, args, 1, &oidp);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_act(ctx, args, 2, &actp);
+	if (ret)
+		return ret;
+	ret = pocli_args_number(args, 3, &value);
+	if (ret)
+		return ret;
+
+	ptr = (uint64_t *)pmemobj_direct(*oidp);
+
+	pmemobj_set_value(ctx->pop, actp, ptr, value);
+
+	pocli_printf(ctx, "%s(%s, %s, %llu, %llu)\n", args->argv[0],
+		args->argv[1], args->argv[2], ptr, value);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_publish -- pmemobj_publish() command
+ */
+static enum pocli_ret
+pocli_pmemobj_publish(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+
+	struct pobj_action *actp_pub = NULL;
+	size_t actcnt = 0;
+	enum pocli_ret ret;
+	unsigned g_pub[2];
+
+	ret = pocli_args_act_pub(ctx, args, 1, &actp_pub, g_pub);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_act_pub(ctx, args, 2, &actp_pub, g_pub);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_size(args, 3, &actcnt);
+	if (ret)
+		return ret;
+
+	if (g_pub[0] > g_pub[1])
+		return POCLI_ERR_ARGS;
+
+	int r = pmemobj_publish(ctx->pop, g_acts + g_pub[0],
+		(g_pub[1] - g_pub[0]) + 1);
+
+	pocli_printf(ctx, "%s(%s, %s, %zu): %d\n", args->argv[0], args->argv[1],
+		args->argv[2], actcnt, r);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_tx_publish -- pmemobj_tx_publish() command
+ */
+static enum pocli_ret
+pocli_pmemobj_tx_publish(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+
+	struct pobj_action *actp_pub = NULL;
+	size_t actcnt = 0;
+	enum pocli_ret ret;
+	unsigned g_pub[2];
+
+	ret = pocli_args_act_pub(ctx, args, 1, &actp_pub, g_pub);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_act_pub(ctx, args, 2, &actp_pub, g_pub);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_size(args, 3, &actcnt);
+	if (ret)
+		return ret;
+
+	if (g_pub[0] > g_pub[1])
+		return POCLI_ERR_ARGS;
+
+	pmemobj_tx_publish(g_acts + g_pub[0], (g_pub[1] - g_pub[0]) + 1);
+
+	pocli_printf(ctx, "%s(%s, %s, %zu)\n", args->argv[0], args->argv[1],
+		args->argv[2], actcnt);
+
+	return ret;
+}
+
+/*
+ * pocli_pmemobj_cancel -- pmemobj_cancel() command
+ */
+static enum pocli_ret
+pocli_pmemobj_cancel(struct pocli_ctx *ctx, struct pocli_args *args)
+{
+	if (args->argc != 4)
+		return POCLI_ERR_ARGS;
+
+	struct pobj_action *actp_pub = NULL;
+	size_t actcnt = 0;
+	enum pocli_ret ret;
+	unsigned g_pub[2];
+
+	ret = pocli_args_act_pub(ctx, args, 1, &actp_pub, g_pub);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_act_pub(ctx, args, 2, &actp_pub, g_pub);
+	if (ret)
+		return ret;
+
+	ret = pocli_args_size(args, 3, &actcnt);
+	if (ret)
+		return ret;
+
+	if (g_pub[0] > g_pub[1])
+		return POCLI_ERR_ARGS;
+
+	pmemobj_cancel(ctx->pop, g_acts + g_pub[0], (g_pub[1] - g_pub[0]) + 1);
+
+	pocli_printf(ctx, "%s(%s, %s, %zu)\n", args->argv[0], args->argv[1],
+		args->argv[2], actcnt);
+
+	return ret;
+}
+
+/*
  * pocli_get_cmd -- find command of given name
  */
 static const struct pocli_cmd *
@@ -2099,6 +2553,48 @@ static struct pocli_cmd pocli_commands[] = {
 		"srpr",
 		"<size> <size>",
 		pocli_str_root_print,
+	},
+	{
+		"pmemobj_reserve",
+		"pres",
+		"<obj> <act> <type_num> <size>",
+		pocli_pmemobj_reserve,
+	},
+	{
+		"pmemobj_xreserve",
+		"pxres",
+		"<obj> <act> <type_num> <size> <class_id> <xalloc>",
+		pocli_pmemobj_xreserve,
+	},
+	{
+		"pmemobj_defer_free",
+		"pdf",
+		"<obj> <act>",
+		pocli_pmemobj_defer_free,
+	},
+	{
+		"pmemobj_set_value",
+		"psv",
+		"<obj> <act> <ptr> <value>",
+		pocli_pmemobj_set_value,
+	},
+	{
+		"pmemobj_publish",
+		"ppub",
+		"<act_begin> <act_end> <actvcnt>",
+		pocli_pmemobj_publish,
+	},
+	{
+		"pmemobj_tx_publish",
+		"pxp",
+		"<act_begin> <act_end> <actvcnt>",
+		pocli_pmemobj_tx_publish,
+	},
+	{
+		"pmemobj_cancel",
+		"pca",
+		"<act_begin> <act_end> <actvcnt>",
+		pocli_pmemobj_cancel,
 	}
 };
 
