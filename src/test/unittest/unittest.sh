@@ -2063,12 +2063,8 @@ function check_absolute_path() {
 function run_command()
 {
 	local COMMAND="$*"
-	if [ "$VERBOSE" != "0" ]; then
-		echo "$ $COMMAND"
-		$COMMAND
-	else
-		$COMMAND
-	fi
+	[ "$VERBOSE" != "0" ] && echo "$ $COMMAND"
+	eval '$COMMAND'
 }
 
 
