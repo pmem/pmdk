@@ -29,23 +29,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+"""External tools integration"""
 
-"""Test framework public interface"""
 
-import sys
-from os import path
-sys.path.insert(1, path.abspath(path.join(path.dirname(__file__), 'unittest')))
+from os.path import join, abspath
+import subprocess as sp
 
-# flake8 issues silenced:
-# E402 - import statements not at the top of the file because of adding
-# directory to path
-# F401, F403 - testframework.py does not use imported names, only passes them
-# down and in most cases needs to pass down all of them - hence import with '*'
+import helpers as hlp
 
-from basetest import BaseTest, Any  # noqa: E402, F401
-from context import *  # noqa: E402, F401, F403
-from configurator import *  # noqa: E402, F401, F403
-from helpers import *  # noqa: E402, F401, F403
-from valgrind import *  # noqa: E402, F401, F403
-from utils import *  # noqa: E402, F401, F403
-from poolset import *  # noqa: E402, F401, F403
+PMEMDETECT_FALSE = 0
+PMEMDETECT_TRUE = 1
+PMEMDETECT_ERROR = 2
+
+
+def pmemdetect(*args):
+    exe = abspath(join(hlp.TEST_TOOLS_DIR, 'pmemdetect',
+                       'pmemdetect.static-nondebug'))
+    return sp.run([exe, *args], stdout=sp.PIPE,
+                  stderr=sp.STDOUT, universal_newlines=True)
