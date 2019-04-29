@@ -38,8 +38,9 @@ import shutil
 import subprocess as sp
 import sys
 import re
+import os
 from datetime import datetime
-from os import listdir, makedirs, path, scandir
+from os import path
 
 import context as ctx
 import helpers as hlp
@@ -209,6 +210,10 @@ class BaseTest(metaclass=_TestCase):
                 config_str = '{}/{}'.format(config_str, self.valgrind)
             self.msg.print('{}: SETUP\t({})'.format(self, config_str))
 
+            # removes old log files, to make sure that logs made by test
+            # are up to date
+            self.remove_log_files()
+
             self.setup(c)
             start_time = datetime.now()
             try:
@@ -248,7 +253,7 @@ class BaseTest(metaclass=_TestCase):
     def setup(self, ctx):
         """Test setup"""
         if not path.exists(ctx.testdir):
-            makedirs(ctx.testdir)
+            os.makedirs(ctx.testdir)
 
     def run(self, ctx):
         """
@@ -265,7 +270,7 @@ class BaseTest(metaclass=_TestCase):
 
     def _run_match(self):
         """Match log files"""
-        cwd_listdir = [path.join(self.cwd, f) for f in listdir(self.cwd)]
+        cwd_listdir = [path.join(self.cwd, f) for f in os.listdir(self.cwd)]
 
         suffix = '{}.log.match'.format(self.testnum)
 
@@ -303,15 +308,33 @@ class BaseTest(metaclass=_TestCase):
         self.msg.print('{}: {}PASS{} {}'
                        .format(self, hlp.Color.GREEN, hlp.Color.END, tm))
 
-    def _print_log_files(self):
+    def get_log_files(self):
         """
-        Iterates over all log files created by framework and prints them.
+        Returns names of all log files for given test
         """
-
         pattern = r'.*[a-zA-Z_]{}\.log'
-        with scandir(self.cwd) as files:
+        log_files = []
+        with os.scandir(self.cwd) as files:
             for file in files:
                 match = re.fullmatch(pattern.format(self.testnum), file.name)
                 if match:
-                    with open(file.name) as f:
-                        dump_n_lines(f)
+                    log = path.abspath(path.join(self.cwd, file.name))
+                    log_files.append(log)
+        return log_files
+
+    def _print_log_files(self):
+        """
+        Prints all log files for given test
+        """
+        log_files = self.get_log_files()
+        for file in log_files:
+            with open(file) as f:
+                dump_n_lines(f)
+
+    def remove_log_files(self):
+        """
+        Removes log files for given test
+        """
+        log_files = self.get_log_files()
+        for file in log_files:
+            os.remove(file)
