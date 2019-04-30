@@ -57,6 +57,7 @@ init_rpmem_on_node 1 0
 POOLSET=pool.set
 node_0_dax=$(get_node_devdax_path 0 0)
 node_1_dax=$(get_node_devdax_path 1 0)
+RAND_DATA=rand_data
 
 create_poolset $DIR/$POOLSET AUTO:$node_0_dax
 
@@ -78,14 +79,14 @@ fibonacci_next()
 
 corrupt_local()
 {
-	expect_normal_exit run_on_node 1 "openssl rand 8192 \| \
-		daxio -o $node_1_dax" &>> $PREP_LOG_FILE
+	expect_normal_exit run_on_node 1 "\"openssl rand 8192 > $RAND_DATA\""
+	expect_normal_exit run_on_node 1 "../daxio -o $node_1_dax -i $RAND_DATA -l 8192" &>> $PREP_LOG_FILE
 }
 
 corrupt_remote()
 {
-	expect_normal_exit run_on_node 0 "openssl rand 4096 \| \
-		daxio -o $node_0_dax --seek 4096" &>> $PREP_LOG_FILE
+	expect_normal_exit run_on_node 0 "\"openssl rand 4096 > $RAND_DATA\""
+	expect_normal_exit run_on_node 0 "../daxio -o $node_0_dax -i $RAND_DATA --seek 4096" &>> $PREP_LOG_FILE
 }
 
 # recover from local corruption
