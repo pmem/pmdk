@@ -293,8 +293,8 @@ static int
 test_create(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 6)
-		UT_FATAL("usage: test_create <id> <pool set> "
-				"<target> <pool> <size> <option>");
+		UT_FATAL(
+			"usage: test_create <id> <pool set> <target> <pool> <size> <option>");
 
 	const char *id_str = argv[0];
 	const char *pool_set = argv[1];
@@ -347,9 +347,8 @@ static int
 test_open(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 7)
-		UT_FATAL("usage: test_open <id> <pool set> "
-				"<target> <pool> <size> <pool attr name> "
-				"<option>");
+		UT_FATAL(
+			"usage: test_open <id> <pool set> <target> <pool> <size> <pool attr name> <option>");
 
 	const char *id_str = argv[0];
 	const char *pool_set = argv[1];
@@ -527,9 +526,9 @@ test_flush_imp(unsigned id, unsigned seed, unsigned nthreads, unsigned nops,
 static int
 test_persist(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 4)
-		UT_FATAL("usage: test_persist <id> <seed> <nthreads> "
-				"<nops> <relaxed>");
+	if (argc < 5)
+		UT_FATAL(
+			"usage: test_persist <id> <seed> <nthreads> <nops> <relaxed>");
 
 	unsigned id = ATOU(argv[0]);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
@@ -553,8 +552,8 @@ static int
 test_deep_persist(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 4)
-		UT_FATAL("usage: test_deep_persist <id> <seed> <nthreads> "
-				"<nops>");
+		UT_FATAL(
+			"usage: test_deep_persist <id> <seed> <nthreads> <nops>");
 
 	unsigned id = ATOU(argv[0]);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
@@ -574,8 +573,7 @@ static int
 test_flush(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 4)
-		UT_FATAL("usage: test_flush <id> <seed> <nthreads> "
-				"<nops>");
+		UT_FATAL("usage: test_flush <id> <seed> <nthreads> <nops>");
 
 	unsigned id = ATOU(argv[0]);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
@@ -700,8 +698,8 @@ static int
 test_remove(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 4)
-		UT_FATAL("usage: test_remove <target> <pool set> "
-			"<force> <rm pool set>");
+		UT_FATAL(
+			"usage: test_remove <target> <pool set> <force> <rm pool set>");
 
 	const char *target = argv[0];
 	const char *pool_set = argv[1];
@@ -790,8 +788,9 @@ check_range_imp(char *pool_set, size_t offset, size_t size)
 static int
 check_range(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 3)
-		UT_FATAL("usage: fill_pool <pool set> <seed> <offset> <size>");
+	if (argc < 4)
+		UT_FATAL(
+			"usage: check_range <pool set> <seed> <offset> <size>");
 
 	char *pool_set = argv[0];
 	srand(ATOU(argv[1]));
@@ -817,7 +816,7 @@ static int
 check_pool(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 3)
-		UT_FATAL("usage: fill_pool <pool set> <seed> <size>");
+		UT_FATAL("usage: check_pool <pool set> <seed> <size>");
 
 	char *pool_set = argv[0];
 	srand(ATOU(argv[1]));
@@ -868,8 +867,8 @@ fill_pool(const struct test_case *tc, int argc, char *argv[])
 static int
 buff_limit(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 2)
-		UT_FATAL("usage: buff_reset <id> <offset> <length>");
+	if (argc < 3)
+		UT_FATAL("usage: buff_limit <id> <offset> <length>");
 
 	unsigned id = ATOU(argv[0]);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
@@ -898,7 +897,7 @@ buff_limit(const struct test_case *tc, int argc, char *argv[])
 static int
 buff_reset(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 2)
+	if (argc < 1)
 		UT_FATAL("usage: buff_reset <id>");
 
 	unsigned id = ATOU(argv[0]);
@@ -1011,8 +1010,8 @@ static int
 rpmemd_terminate(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 3) {
-		UT_FATAL("usage: rpmemd_terminate <id> <pid file> "
-				"<wait|nowait>");
+		UT_FATAL(
+			"usage: rpmemd_terminate <id> <pid file> <wait|nowait>");
 	}
 
 	const char *id_str = argv[0];
@@ -1046,9 +1045,9 @@ rpmemd_terminate(const struct test_case *tc, int argc, char *argv[])
 static int
 test_persist_header(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 2)
-		UT_FATAL("usage: test_persist_header <id> "
-				"<hdr|nohdr> <relaxed>");
+	if (argc < 3)
+		UT_FATAL(
+			"usage: test_persist_header <id> <hdr|nohdr> <relaxed>");
 
 	int id = atoi(argv[0]);
 	const char *hdr_str = argv[1];
