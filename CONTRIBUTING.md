@@ -1,6 +1,6 @@
 # Contributing to the Persistent Memory Development Kit
 
-Here you'll find instructions on how to contribute to the
+Down below you'll find instructions on how to contribute to the
 Persistent Memory Development Kit.
 
 Your contributions are most welcome!  You'll find it is best to begin
@@ -14,8 +14,9 @@ or just begin a dialog about the Persistent Memory Development Kit:
 * Chat with members of the PMDK team real-time on the **#pmem** IRC channel on [OFTC](http://www.oftc.net)
 
 **NOTE: If you do decide to implement code changes and contribute them,
-please make sure you agree your contribution can be made available
-under the [BSD-style License used for the Persistent Memory Development Kit](https://github.com/pmem/pmdk/blob/master/LICENSE).**
+please make sure you consent to the
+[BSD-style License used for the Persistent Memory Development Kit](https://github.com/pmem/pmdk/blob/master/LICENSE)
+under which your contribution will be made open-source.**
 
 **NOTE: Submitting your changes also means that you certify the following:**
 
@@ -51,7 +52,7 @@ In case of any doubt, the gatekeeper may ask you to certify the above in writing
 i.e. via email or by including a `Signed-off-by:` line at the bottom
 of your commit comments.
 
-To improve tracking of who is the author of a contribution, we kindly ask you
+To improve tracking of who is the author of the contribution, we kindly ask you
 to use your real name (not an alias) when committing your changes to the
 Persistent Memory Development Kit:
 ```
@@ -104,17 +105,17 @@ for clang-format.  The plugin installer can be downloaded from
 
 If you are actively working on an PMDK feature, please let other
 developers know by [creating an issue](https://github.com/pmem/issues/issues).
-Use the label `Type: Feature` and assign it to yourself (due to the way
-GitHub permissions work, you may need to ask a team member to assign it to you).
+Use the template `Feature` and assign it to yourself (due to the way
+GitHub permissions work, you may have to ask a team member to assign it to you).
 
 ### Bug Reports
 
 Bugs for the PMDK project are tracked in our
 [GitHub Issues Database](https://github.com/pmem/issues/issues).
 
-When reporting new bug, please use `New issue` button, pick proper template,
-follow its instructions and provide as much information as possible, especially
-product version:
+When reporting a new bug, please use `New issue` button, pick proper template and 
+fill in all its fields. Provide as much information as possible, especially
+the product version:
 
 #### PMDK version
 
@@ -139,15 +140,17 @@ second (version) string.
 Requested priority describes the urgency to resolve a defect and establishes
 the time frame for providing a verified resolution. Priorities are defined as:
 
-* **P1**: Showstopper bug, requiring resolution before the next release of the
+* **P1**: Showstopper bug, requiring a resolution before the next release of the
 library.
-* **P2**: High-priority bug, requiring resolution although it may be decided
+* **P2**: High-priority bug, requiring a resolution although it may be decided
 that the bug does not prevent the next release of the library.
 * **P3**: Medium-priority bug.  The expectation is that the bug will be
 evaluated and a plan will be made for when the bug will be resolved.
-* **P4**: Low-priority bug, the least urgent.  Fixed as resources are available.
+* **P4**: Low-priority bug, the least urgent.  Fixed when the resources are available.
 
-#### Feature template
+### Other issues
 
-Other possible issue template to use is `Feature`.  It should help delivering
-meaningful description of a feature request.
+On our issues page we also gather feature requests and questions. Templates to use
+are accordingly `Feature` and `Question`.  They should help deliver a meaningful
+description of a feature or ask a question to us (remember though we have
+different means of communication, as described on top of the page).
