@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,7 +49,7 @@ export PARSER_LOG_FILE=./parser$UNITTEST_NUM.log
 
 POOLSETS=`ls -1 ./pool*[0-9].set | sort -V`
 
-expect_normal_exit ./util_poolset_parse$EXESUFFIX $POOLSETS
+expect_normal_exit ./util_poolset_parse$EXESUFFIX t $POOLSETS
 
 $GREP -e "<[14]>.*\[.*util_poolset_parse\]" ./parser$UNITTEST_NUM.log | \
 	sed -e "s/^.*util_poolset_parse][ ]*//g" > grep$UNITTEST_NUM.log
