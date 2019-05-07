@@ -77,7 +77,7 @@ fill_data_s(struct data_s *rec, uint64_t number)
 		rec->fill[i] = (uint32_t)rand();
 
 	util_checksum(rec, sizeof(*rec), &rec->checksum,
-			1 /* insert */, SKIP_OFFSET);
+			1 /* insert */, SKIP_OFFSET, 0);
 }
 
 static int
@@ -187,7 +187,7 @@ do_verify(const char *path, const char *layout)
 		TOID_ASSIGN(rec, oid);
 		if (!util_checksum(D_RW(rec), sizeof(*D_RW(rec)),
 					&D_RW(rec)->checksum,
-					0 /* verify */, SKIP_OFFSET)) {
+					0 /* verify */, SKIP_OFFSET, 0)) {
 			out("verify(%s): incorrect record: %s (#%lu)",
 				path, D_RW(rec)->signature, count);
 			error = 1;

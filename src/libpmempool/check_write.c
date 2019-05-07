@@ -174,7 +174,7 @@ btt_data_write(PMEMpoolcheck *ppc, location *loc)
 
 			util_checksum(&arenap->btt_info,
 					sizeof(arenap->btt_info),
-				&arenap->btt_info.checksum, 1, 0);
+				&arenap->btt_info.checksum, 1, 0, 0);
 		}
 
 		if (pool_write(ppc->pool, &arenap->btt_info,

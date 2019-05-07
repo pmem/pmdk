@@ -55,7 +55,7 @@ shutdown_state_checksum(struct shutdown_state *sds, struct pool_replica *rep)
 {
 	LOG(3, "sds %p", sds);
 
-	util_checksum(sds, sizeof(*sds), &sds->checksum, 1, 0);
+	util_checksum(sds, sizeof(*sds), &sds->checksum, 1, 0, 0);
 	FLUSH_SDS(sds, rep);
 }
 
@@ -118,7 +118,7 @@ shutdown_state_add_part(struct shutdown_state *sds, const char *path,
 	sds->usc = htole64(le64toh(sds->usc) + usc);
 
 	uint64_t tmp;
-	util_checksum(uid, len, &tmp, 1, 0);
+	util_checksum(uid, len, &tmp, 1, 0, 0);
 	sds->uuid = htole64(le64toh(sds->uuid) + tmp);
 
 	FLUSH_SDS(sds, rep);
@@ -205,7 +205,7 @@ shutdown_state_check(struct shutdown_state *curr_sds,
 		le64toh(pool_sds->uuid) == le64toh(curr_sds->uuid);
 
 	bool is_checksum_correct = util_checksum(pool_sds,
-		sizeof(*pool_sds), &pool_sds->checksum, 0, 0);
+		sizeof(*pool_sds), &pool_sds->checksum, 0, 0, 0);
 
 	int dirty = pool_sds->dirty;
 

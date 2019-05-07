@@ -1025,7 +1025,8 @@ pool_btt_info_valid(struct btt_info *infop)
 	if (memcmp(infop->sig, BTTINFO_SIG, BTTINFO_SIG_LEN) != 0)
 		return 0;
 
-	return util_checksum(infop, sizeof(*infop), &infop->checksum, 0, 0);
+	return (int)util_checksum(infop, sizeof(*infop),
+			&infop->checksum, 0, 0, 0);
 }
 
 /*

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -281,7 +281,7 @@ set_hdr(struct pool_set *set, unsigned rep, unsigned part, struct pool_hdr *src)
 	/* convert to little-endian and set new checksum */
 	const size_t skip_off = POOL_HDR_CSUM_END_OFF(src);
 	util_convert2le_hdr(src);
-	util_checksum(src, sizeof(*src), &src->checksum, 1, skip_off);
+	util_checksum(src, sizeof(*src), &src->checksum, 1, skip_off, 0);
 
 	/* write header */
 	struct pool_replica *replica = REP(set, rep);

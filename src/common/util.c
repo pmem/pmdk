@@ -136,11 +136,12 @@ util_is_zeroed(const void *addr, size_t len)
  * If insert is true, the calculated checksum is inserted into
  * the range at *csump.  Otherwise the calculated checksum is
  * checked against *csump and the result returned (true means
- * the range checksummed correctly).
+ * the range checksummed correctly). If nocheck is true, the new
+ * checksum is returned without check.
  */
-int
+uint64_t
 util_checksum(void *addr, size_t len, uint64_t *csump,
-	int insert, size_t skip_off)
+	int insert, size_t skip_off, size_t nocheck)
 {
 	if (len % 4 != 0)
 		abort();
@@ -172,13 +173,17 @@ util_checksum(void *addr, size_t len, uint64_t *csump,
 		}
 
 	csum = (uint64_t)hi32 << 32 | lo32;
+	csum = htole64(csum);
 
 	if (insert) {
-		*csump = htole64(csum);
+		*csump = csum;
 		return 1;
 	}
 
-	return *csump == htole64(csum);
+	if (nocheck)
+		return csum;
+
+	return *csump == csum;
 }
 
 /*

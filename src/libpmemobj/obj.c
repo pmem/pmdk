@@ -918,7 +918,7 @@ obj_descr_create(PMEMobjpool *pop, const char *layout, size_t poolsize)
 		return -1;
 	}
 
-	util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1, 0);
+	util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 1, 0, 0);
 
 	/*
 	 * store the persistent part of pool's descriptor (2kB)
@@ -970,7 +970,7 @@ obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 		}
 	}
 
-	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0, 0)) {
+	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop->checksum, 0, 0, 0)) {
 		ERR("invalid checksum of pool descriptor");
 		errno = EINVAL;
 		return -1;

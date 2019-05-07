@@ -103,14 +103,14 @@ main(int argc, char *argv[])
 			/*
 			 * calculate a checksum and have it installed
 			 */
-			util_checksum(addr, size, ptr, 1, 0);
+			util_checksum(addr, size, ptr, 1, 0, 0);
 
 			uint64_t csum = *ptr;
 
 			/*
 			 * verify inserted checksum checks out
 			 */
-			UT_ASSERT(util_checksum(addr, size, ptr, 0, 0));
+			UT_ASSERT(util_checksum(addr, size, ptr, 0, 0, 0));
 
 			/* put a zero where the checksum was installed */
 			*ptr = 0;
@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 			 * verify checksum now fails
 			 */
 			UT_ASSERT(!util_checksum(addr, size, ptr,
-					0, 0));
+					0, 0, 0));
 
 			/*
 			 * verify the checksum matched the gold version
@@ -150,7 +150,7 @@ main(int argc, char *argv[])
 		*addr2 = 0;
 		for (size_t i = size / 8 - 1; i > 0; i -= 1) {
 			/* calculate a checksum and have it installed */
-			util_checksum(addr, size, csum, 1, i * 8);
+			util_checksum(addr, size, csum, 1, i * 8, 0);
 
 			/*
 			 * put a zero in the second map where an ignored part is

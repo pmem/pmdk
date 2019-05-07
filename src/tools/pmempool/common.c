@@ -107,14 +107,14 @@ pmem_pool_checksum(const void *base_pool_addr)
 		void *sec_page_addr = (char *)base_pool_addr + DEFAULT_HDR_SIZE;
 		memcpy(&bttinfo, sec_page_addr, sizeof(bttinfo));
 		btt_info_convert2h(&bttinfo);
-		return util_checksum(&bttinfo, sizeof(bttinfo),
-			&bttinfo.checksum, 0, 0);
+		return (int)util_checksum(&bttinfo, sizeof(bttinfo),
+			&bttinfo.checksum, 0, 0, 0);
 	} else {
 		/* it's not btt device - first page contains header */
 		struct pool_hdr hdrp;
 		memcpy(&hdrp, base_pool_addr, sizeof(hdrp));
-		return util_checksum(&hdrp, sizeof(hdrp),
-			&hdrp.checksum, 0, POOL_HDR_CSUM_END_OFF(&hdrp));
+		return (int)util_checksum(&hdrp, sizeof(hdrp),
+			&hdrp.checksum, 0, POOL_HDR_CSUM_END_OFF(&hdrp), 0);
 	}
 }
 
@@ -161,10 +161,10 @@ util_validate_checksum(void *addr, size_t len, uint64_t *csum,
 	uint64_t skip_off)
 {
 	/* validate checksum */
-	int csum_valid = util_checksum(addr, len, csum, 0, skip_off);
+	int csum_valid = (int)util_checksum(addr, len, csum, 0, skip_off, 0);
 	/* get valid one */
 	if (!csum_valid)
-		util_checksum(addr, len, csum, 1, skip_off);
+		util_checksum(addr, len, csum, 1, skip_off, 0);
 	return csum_valid;
 }
 

@@ -287,8 +287,8 @@ ulog_reserve(struct ulog *ulog,
 static int
 ulog_checksum(struct ulog *ulog, size_t ulog_base_bytes, int insert)
 {
-	return util_checksum(ulog, SIZEOF_ULOG(ulog_base_bytes),
-		&ulog->checksum, insert, 0);
+	return (int)util_checksum(ulog, SIZEOF_ULOG(ulog_base_bytes),
+		&ulog->checksum, insert, 0, 0);
 }
 
 /*

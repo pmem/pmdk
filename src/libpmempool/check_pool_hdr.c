@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -93,7 +93,7 @@ pool_hdr_valid(struct pool_hdr *hdrp)
 {
 	return !util_is_zeroed((void *)hdrp, sizeof(*hdrp)) &&
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 0,
-			POOL_HDR_CSUM_END_OFF(hdrp));
+			POOL_HDR_CSUM_END_OFF(hdrp), 0);
 }
 
 /*
@@ -798,7 +798,7 @@ pool_hdr_checksum_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 	switch (question) {
 	case Q_CHECKSUM:
 		util_checksum(&loc->hdr, sizeof(loc->hdr), &loc->hdr.checksum,
-			1, POOL_HDR_CSUM_END_OFF(&loc->hdr));
+			1, POOL_HDR_CSUM_END_OFF(&loc->hdr), 0);
 		CHECK_INFO(ppc, "%ssetting pool_hdr.checksum to 0x%jx",
 			loc->prefix, le64toh(loc->hdr.checksum));
 		break;

@@ -2320,7 +2320,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	}
 
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
-		1, POOL_HDR_CSUM_END_OFF(hdrp));
+		1, POOL_HDR_CSUM_END_OFF(hdrp), 0);
 
 	/* store pool's header */
 	util_persist_auto(rep->is_pmem, hdrp, sizeof(*hdrp));
@@ -2396,7 +2396,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 		 * invalid checksum.
 		 */
 		if (!util_checksum(&hdr, sizeof(hdr), &hdr.checksum,
-				0, POOL_HDR_CSUM_END_OFF(&hdr))) {
+				0, POOL_HDR_CSUM_END_OFF(&hdr), 0)) {
 			ERR("invalid checksum of pool header");
 			errno = EINVAL;
 			return -1;
@@ -2521,7 +2521,7 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 	 * checksum.
 	 */
 	if (!util_checksum(&hdr, sizeof(hdr), &hdr.checksum,
-			0, POOL_HDR_CSUM_END_OFF(&hdr))) {
+			0, POOL_HDR_CSUM_END_OFF(&hdr), 0)) {
 		ERR("invalid checksum of pool header");
 		return -1;
 	}
@@ -3599,7 +3599,7 @@ util_replica_set_attr(struct pool_replica *rep,
 		util_convert2le_hdr(hdrp);
 
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
-			1, POOL_HDR_CSUM_END_OFF(hdrp));
+			1, POOL_HDR_CSUM_END_OFF(hdrp), 0);
 
 		/* store pool's header */
 		util_persist_auto(rep->is_pmem, hdrp, sizeof(*hdrp));

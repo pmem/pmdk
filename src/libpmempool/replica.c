@@ -534,7 +534,7 @@ replica_check_store_size(struct pool_set *set,
 	void *dscp = (void *)((uintptr_t)&pop + sizeof(pop.hdr));
 
 	if (!util_checksum(dscp, OBJ_DSC_P_SIZE, &pop.checksum, 0,
-			0)) {
+			0, 0)) {
 		set_hs->replica[repn]->flags |= IS_BROKEN;
 		return 0;
 	}
@@ -712,7 +712,7 @@ check_checksums_and_signatures(struct pool_set *set,
 			struct pool_hdr *hdr = HDR(rep, p);
 
 			if (!util_checksum(hdr, sizeof(*hdr), &hdr->checksum, 0,
-					POOL_HDR_CSUM_END_OFF(hdr))) {
+					POOL_HDR_CSUM_END_OFF(hdr), 0)) {
 				ERR("invalid checksum of pool header");
 				rep_hs->part[p].flags |= IS_BROKEN;
 			} else if (util_is_zeroed(hdr, sizeof(*hdr))) {

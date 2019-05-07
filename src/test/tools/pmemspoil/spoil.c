@@ -706,7 +706,7 @@ pmemspoil_process_checksum_gen(struct pmemspoil *psp,
 		struct pmemspoil_list *pfp, struct checksum_args args)
 {
 	util_checksum(args.ptr, args.len, (uint64_t *)args.checksum,
-		1, args.skip_off);
+		1, args.skip_off, 0);
 	return 0;
 }
 
