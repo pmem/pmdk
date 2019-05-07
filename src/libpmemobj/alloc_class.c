@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -550,7 +550,8 @@ alloc_class_collection_delete(struct alloc_class_collection *ac)
 		}
 	}
 
-	cuckoo_delete(ac->class_map_by_unit_size);
+	if (ac->class_map_by_unit_size)
+		cuckoo_delete(ac->class_map_by_unit_size);
 	Free(ac->class_map_by_alloc_size);
 	Free(ac);
 }
