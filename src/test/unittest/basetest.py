@@ -208,15 +208,18 @@ class BaseTest(metaclass=_TestCase):
             config_str = '{}/{}/{}'.format(self.test_type, c.fs, c.build)
             if self.valgrind:
                 config_str = '{}/{}'.format(config_str, self.valgrind)
-            self.msg.print('{}: SETUP\t({})'.format(self, config_str))
 
-            # removes old log files, to make sure that logs made by test
-            # are up to date
-            self.remove_log_files()
-
-            self.setup(c)
-            start_time = datetime.now()
             try:
+                if self.valgrind:
+                    self.valgrind.verify()
+
+                self.msg.print('{}: SETUP\t({})'.format(self, config_str))
+                # removes old log files, to make sure that logs made by test
+                # are up to date
+                self.remove_log_files()
+
+                self.setup(c)
+                start_time = datetime.now()
                 self.run(c)
                 self.elapsed = (datetime.now() - start_time).total_seconds()
                 self.check()
