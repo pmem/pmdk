@@ -231,7 +231,7 @@ class BaseTest(metaclass=_TestCase):
                     sys.exit(1)
 
             except Skip as s:
-                print('{}:SKIP {}'.format(self, s))
+                print('{}: SKIP {}'.format(self, s))
 
             except sp.TimeoutExpired:
                 failed = True

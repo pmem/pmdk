@@ -97,7 +97,7 @@ def dump_n_lines(file, n=None):
         if n > length:
             n = length
         lines = lines[-n:]
-        lines.insert(0, 'Last {} lines of {} below (whole file has {} lines).'
+        lines.insert(0, 'Last {} lines of {} below (whole file has {} lines):\n'
                         ''.format(n, file.name, length))
         for line in lines:
             print(line, end='')
