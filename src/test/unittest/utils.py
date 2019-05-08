@@ -33,6 +33,7 @@
 """Set of basic functions available to use in all test cases"""
 
 
+import os
 import sys
 import shutil
 
@@ -97,8 +98,8 @@ def dump_n_lines(file, n=None):
         if n > length:
             n = length
         lines = lines[-n:]
-        lines.insert(0, 'Last {} lines of {} below (whole file has {} lines).'
-                        ''.format(n, file.name, length))
+        lines.insert(0, 'Last {} lines of {} below (whole file has {} lines):{}'
+                        ''.format(n, file.name, length, os.linesep))
         for line in lines:
             print(line, end='')
     else:
