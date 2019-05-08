@@ -562,7 +562,7 @@ malloc_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 				uintmax_t val;
 				char buf[X2S_BUFSIZE];
 
-				GET_ARG_NUMERIC(val, 'p');
+				GET_ARG_NUMERIC(val, (size_t)'p');
 				s = x2s(val, true, false, buf, &slen);
 				APPEND_PADDED_S(s, slen, width, left_justify);
 				f++;
