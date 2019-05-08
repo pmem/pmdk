@@ -232,6 +232,7 @@ class BaseTest(metaclass=_TestCase):
 
             except Skip as s:
                 print('{}: SKIP {}'.format(self, s))
+                self.clean(c)
 
             except sp.TimeoutExpired:
                 failed = True
@@ -242,8 +243,6 @@ class BaseTest(metaclass=_TestCase):
 
             else:
                 self._test_passed()
-
-            finally:
                 self.clean(c)
 
         if failed:
