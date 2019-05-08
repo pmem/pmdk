@@ -102,7 +102,14 @@ class Valgrind:
 
         log_file_name = '{}{}.log'.format(self.tool.name.lower(), testnum)
         self.log_file = path.join(cwd, log_file_name)
-        self.valgrind_exe = self._get_valgrind_exe()
+
+        if tool is not None:
+            self.valgrind_exe = self._get_valgrind_exe()
+            if self.valgrind_exe is None:
+                return
+        else:
+            self.valgrind_exe = None
+
         self.opts = ''
         self.memcheck_check_leaks = memcheck_check_leaks
 
@@ -156,8 +163,12 @@ class Valgrind:
         The wrapper script does not work well with LD_PRELOAD so we want
         to call Valgrind directly
         """
-        out = sp.check_output('which valgrind', shell=True,
-                              universal_newlines=True)
+        try:
+            out = sp.check_output('which valgrind', shell=True,
+                                  universal_newlines=True)
+        except:
+            return None
+
         valgrind_bin = path.join(path.dirname(out), 'valgrind.bin')
         if path.isfile(valgrind_bin):
             return valgrind_bin
