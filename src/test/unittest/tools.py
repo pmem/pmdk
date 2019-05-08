@@ -33,9 +33,18 @@
 
 
 from os.path import join, abspath
+import os
+import sys
 import subprocess as sp
 
 import helpers as hlp
+
+try:
+    import envconfig
+    envconfig = envconfig.config
+except ImportError:
+    # if file doesn't exist create dummy object
+    envconfig = {'GLOBAL_LIB_PATH': ''}
 
 PMEMDETECT_FALSE = 0
 PMEMDETECT_TRUE = 1
@@ -43,7 +52,16 @@ PMEMDETECT_ERROR = 2
 
 
 def pmemdetect(*args):
+    env = os.environ.copy()
+
+    if sys.platform == 'win32':
+        env['PATH'] = envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
+            env.get('PATH', '')
+    else:
+        env['LD_LIBRARY_PATH'] = envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
+            env.get('LD_LIBRARY_PATH', '')
+
     exe = abspath(join(hlp.TEST_TOOLS_DIR, 'pmemdetect',
                        'pmemdetect.static-nondebug'))
-    return sp.run([exe, *args], stdout=sp.PIPE,
+    return sp.run([exe, *args], env=env, stdout=sp.PIPE,
                   stderr=sp.STDOUT, universal_newlines=True)
