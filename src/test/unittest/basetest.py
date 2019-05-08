@@ -313,12 +313,12 @@ class BaseTest(metaclass=_TestCase):
         """
         pattern = r'.*[a-zA-Z_]{}\.log'
         log_files = []
-        with os.scandir(self.cwd) as files:
-            for file in files:
-                match = re.fullmatch(pattern.format(self.testnum), file.name)
-                if match:
-                    log = path.abspath(path.join(self.cwd, file.name))
-                    log_files.append(log)
+        files = os.scandir(self.cwd)
+        for file in files:
+            match = re.fullmatch(pattern.format(self.testnum), file.name)
+            if match:
+                log = path.abspath(path.join(self.cwd, file.name))
+                log_files.append(log)
         return log_files
 
     def _print_log_files(self):
