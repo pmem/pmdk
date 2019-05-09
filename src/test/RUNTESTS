@@ -368,7 +368,8 @@ runtest() {
 		pmeths=$(intersection "$pmethod" "$req_pmethod" "GPSPM APM")
 
 		# skip remote test if required providers or persistency methods are missing
-		[[ ( -n "$provs" && -z "$pmeths" ) || ( -z "$provs" && -n "$pmeths" ) ]] && continue
+		# remote tests have req_provider != "none"
+		[[ ( "$req_provider" != "none" ) ]] && [[ ( -z "$pmeths" ) || ( -z "$provs" ) ]] && continue
 
 		# for each fs-type being tested...
 		for fs in $fss
@@ -406,7 +407,8 @@ runtest() {
 				# to not overwrite logs skip other tests from the group
 				# if KEEP_GOING=y and test fail
 				if [ "$keep_going_skip" == "n" ]; then
-					if [ -n "$provs" -a -n "$pmeths" ]; then
+					# remote tests have req_provider != "none"
+					if [ "$req_provider" != "none" ]; then
 						runtest_remote "$provs" "$pmeths"
 					else
 						runtest_local
