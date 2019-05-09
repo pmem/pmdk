@@ -78,19 +78,19 @@ enum array_types {
 };
 
 struct elements {
-	/* indicates the beginning of table of items */
+	/* indicates the beginning of the items' table */
 	PMEMoid items;
-	/* indicates the beginning of table of numbers of elements to skip */
+	/* indicates the beginning of table for the elements' numbers to skip */
 	PMEMoid jumps;
 };
 
 struct block {
-	/* pointer to table of elements */
+	/* pointer to the table of elements */
 	TOID(struct elements) table;
 
 	/* number of block in colony */
 	size_t block_nr;
-	/* index of last added element (idx in block) */
+	/* index of the last added element (idx in block) */
 	size_t idx_last;
 	/* number of free indexes in block */
 	size_t free_idx_count_block;
@@ -124,9 +124,9 @@ struct free_block {
 struct colony {
 	char name[MAX_BUFFLEN];
 
-	/* type of elements in colony */
+	/* element type in the colony */
 	enum array_types element_type;
-	/* number of occupied elements */
+	/* number of the occupied elements */
 	size_t colony_size;
 	/* total capacity = block_capacity * block_count */
 	size_t colony_capacity;
@@ -733,7 +733,7 @@ block_constructor(PMEMobjpool *pop, TOID(struct colony) c)
  *		holes) from the list of free blocks (LIFO), the rest of the
  *		addresses from this block is transferred to the list of free
  *		addresses (holes)
- *	- if it exists - a first unoccupied address in colony, unoccupied
+ *	- if it exists - a first unoccupied address in the colony, unoccupied
  *		address means one that has not been used (insertion, removal)
  *		before, it is always in the newest block
  *	- a new block is created (with a new table), the first unoccupied
@@ -914,7 +914,7 @@ free_block_add_to(PMEMobjpool *pop, TOID(struct colony) c, size_t block_nr)
 }
 
 /*
- * free_idx_add_to -- adds the free index (hole) on the end of the list of
+ * free_idx_add_to -- adds the free index (hole) to the end of the list of
  * free indexes; if all elements in block are removed moves the block to the
  * list of free blocks
  */
