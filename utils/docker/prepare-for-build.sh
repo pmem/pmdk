@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,6 +37,15 @@
 #
 
 set -e
+
+# Check the default shell
+shell=$(getent passwd $USER | cut -d: -f7)
+if [ "$(basename $shell)" != "bash" ]; then
+	echo "Tests require bash as the default shell ($shell found)"
+	exit 1
+else
+	echo "The default shell: $shell"
+fi
 
 # Mount filesystem for tests
 echo $USERPASS | sudo -S mount -t tmpfs none /tmp -osize=6G
