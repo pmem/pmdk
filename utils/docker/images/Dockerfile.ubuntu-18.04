@@ -90,6 +90,7 @@ RUN ./install-libndctl.sh tags/v64.1
 ENV USER pmdkuser
 ENV USERPASS pmdkpass
 RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
+RUN usermod --shell `which bash` $USER
 USER $USER
 
 # Set required environment variables
