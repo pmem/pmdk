@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,25 +30,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
-#
-PROGS = manpage btree pi lists setjmp
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist list_map slab_allocator queue colony
+PROGS = colony
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
+LIBS = -lpmemobj -lpmem
 
-include ../Makefile.inc
+include ../../Makefile.inc
 
-map: hashmap tree_map
-pmemobjfs: map
-
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-lists: lists.o
-
-setjmp: CFLAGS += -O2
-setjmp: setjmp.o
+colony: colony.o

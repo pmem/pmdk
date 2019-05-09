@@ -114,6 +114,12 @@ TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
 endif
 endif
 
+ifeq ($(COVERAGE),1)
+CFLAGS += $(GCOV_CFLAGS)
+LDFLAGS += $(GCOV_LDFLAGS)
+LIBS += $(GCOV_LIBS)
+endif
+
 all: $(TMP_HEADERS)
 
 %.o: %.c $(MAKEFILE_DEPS)
