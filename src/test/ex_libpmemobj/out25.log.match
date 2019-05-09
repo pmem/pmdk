@@ -1,0 +1,81 @@
+
+usage:
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+	<filename> insert-int <colony-name> <item>
+	<filename> insert-PMEMoid <colony-name> <item-uuid> <item-off>
+	<filename> insert-int-from-file <colony-name> <path>
+	<filename> insert-PMEMoid-from-file <colony-name> <path>
+	<filename> remove-item <colony-name> <index>
+	<filename> remove-range <colony-name> <index-from> <index-to>
+	<filename> print-content <colony-name>
+	<filename> print-colony <colony-name>
+	<filename> delete-free-blocks <colony-name>
+	<filename> delete-colony <colony-name>
+
+usage:
+	<filename> create-colony <colony-name> <element-type> <block-capacity>
+
+colony: block_capacity: 5
+colony: block_count: 4
+colony: colony_size: 14
+colony: colony_capacity: 20
+colony: free_idx_count: 6
+colony: free_block_count: 0
+
+col_idx: 0		item: 77
+col_idx: 1		item: 99
+col_idx: 2		item: 40
+col_idx: 3		item: 98
+col_idx: 4		item: 95
+col_idx: 7		item: 28
+col_idx: 8		item: 66
+col_idx: 9		item: 87
+col_idx: 10		item: 75
+col_idx: 11		item: 21
+col_idx: 16		item: 86
+col_idx: 17		item: 37
+col_idx: 18		item: 69
+col_idx: 19		item: 99
+
+the item with this index (14) does not exist
+
+the item with this index (15) does not exist
+
+this index (20) is out of range
+
+the item with this index (5) does not exist
+
+the item with this index (6) does not exist
+
+the item with this index (8) does not exist
+
+the item with this index (9) does not exist
+
+the item with this index (10) does not exist
+
+coli doesn't exist
+
+colony: block_capacity: 7
+colony: block_count: 3
+colony: colony_size: 4
+colony: colony_capacity: 21
+colony: free_idx_count: 2
+colony: free_block_count: 2
+
+col_idx: 16		uuid: 89454574546460		off: 1233645451
+col_idx: 17		uuid: 278545457		off: 6569445415454
+col_idx: 18		uuid: 78784111545522220		off: 54545121215
+col_idx: 19		uuid: 9454545454545559		off: 52025454278451

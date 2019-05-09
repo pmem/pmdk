@@ -24,6 +24,7 @@
     <None Include="out2.log.match" />
     <None Include="out20.log.match" />
     <None Include="out21.log.match" />
+    <None Include="out25.log.match" />
     <None Include="out3.log.match" />
     <None Include="out4.log.match" />
     <None Include="out5.log.match" />
@@ -45,6 +46,7 @@
     <None Include="TEST2.PS1" />
     <None Include="TEST20.PS1" />
     <None Include="TEST21.PS1" />
+    <None Include="TEST25.PS1" />
     <None Include="TEST3.PS1" />
     <None Include="TEST4.PS1" />
     <None Include="TEST5.PS1" />
@@ -59,6 +61,9 @@
     </ProjectReference>
     <ProjectReference Include="..\..\examples\libpmemobj\btree.vcxproj">
       <Project>{0fb8f0fd-276c-413b-97a8-67abe0c9043b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\examples\libpmemobj\colony\colony.vcxproj">
+      <Project>{cf2e941f-bae0-43e8-aa22-57139031ef00}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\examples\libpmemobj\lists.vcxproj">
       <Project>{2cd7408e-2f60-43c3-aceb-c7d58cdd8462}</Project>

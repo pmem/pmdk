@@ -1,0 +1,241 @@
+#!/usr/bin/env bash
+#
+# Copyright 2019, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+#
+# src/test/ex_libpmemobj/TEST25 -- unit test for libpmemobj colony example
+#
+
+. ../unittest/unittest.sh
+
+require_test_type medium
+
+require_build_type debug nondebug
+
+setup
+
+EX_PATH=../../examples/libpmemobj/colony
+
+cp ../../examples/libpmemobj/colony/ints.txt int.txt
+cp ../../examples/libpmemobj/colony/pmemoids.txt pmemoid.txt
+
+# create-colony: not enough args; print full usage
+expect_normal_exit $EX_PATH/colony create-colony not_enough_args_here > \
+out$UNITTEST_NUM.log
+# create-colony: unknown operation; print full usage
+expect_normal_exit $EX_PATH/colony $DIR/testfile create-colonyy coli int 27 >> \
+out$UNITTEST_NUM.log
+# create-colony: too many args; print short usage
+expect_normal_exit $EX_PATH/colony $DIR/testfile create-colony too many args \
+here >> out$UNITTEST_NUM.log
+# create-colony: unknown type; print unknown type and supported types
+expect_normal_exit $EX_PATH/colony $DIR/testfile create-colony colu \
+unknown_type 12 &> /dev/null
+
+# creation colony of ints (block capacity = 5)
+expect_normal_exit $EX_PATH/colony $DIR/testfile create-colony coli int 5 >> \
+out$UNITTEST_NUM.log
+
+# insertion 20 ints from the file, allocation of 4 blocks
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int-from-file coli \
+int.txt >> out$UNITTEST_NUM.log
+
+# insertion wrong type
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-PMEMoid coli 22378745 \
+47874446 &> /dev/null
+
+# 17x removal one item, 10x one insert, indexes go to the list of free indexes,
+# go back and go again, fourth block is freed and goes to the list of free
+# blocks
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 20 >> \
+out$UNITTEST_NUM.log
+
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 15 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int coli 183 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 15 >> \
+out$UNITTEST_NUM.log
+
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 19 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int coli 102368 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 19 >> \
+out$UNITTEST_NUM.log
+
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 11 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int coli 2 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 11 >> \
+out$UNITTEST_NUM.log
+
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 18 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int coli 451 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 18 >> \
+out$UNITTEST_NUM.log
+
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 10 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int coli 37753 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 10 >> \
+out$UNITTEST_NUM.log
+
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 16 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int coli 7 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 16 >> \
+out$UNITTEST_NUM.log
+
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 17 >> \
+out$UNITTEST_NUM.log
+
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 13 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item coli 14 >> \
+out$UNITTEST_NUM.log
+
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int coli 444 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int coli 589411 >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int coli 6 >> \
+out$UNITTEST_NUM.log
+
+# print metadana and colony elements
+expect_normal_exit $EX_PATH/colony $DIR/testfile print-content coli >> \
+out$UNITTEST_NUM.log
+expect_normal_exit $EX_PATH/colony $DIR/testfile print-colony coli >> \
+out$UNITTEST_NUM.log
+
+# removal range, indexes go to the list of free indexes, third block is freed
+# and goes to the list of free blocks
+expect_normal_exit $EX_PATH/colony $DIR/testfile remove-range coli 10 14 >> \
+out$UNITTEST_NUM.log
+
+# # deletion free blocks (2), third and fourth blocks are deleted
+# expect_normal_exit $EX_PATH/colony $DIR/testfile delete-free-blocks coli >> \
+# out$UNITTEST_NUM.log
+
+# # insertion 20 ints from the file, allocation of 4 blocks
+# expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int-from-file coli \
+# int.txt >> out$UNITTEST_NUM.log
+
+# # 2x removal range, indexes go to the list of free indexes then fourth and first
+# # blocks are freed and go to the list of free blocks, deletion free blocks (2),
+# # fourth and first blocks are deleted
+# expect_normal_exit $EX_PATH/colony $DIR/testfile remove-range coli 15 19 >> \
+# out$UNITTEST_NUM.log
+# expect_normal_exit $EX_PATH/colony $DIR/testfile remove-range coli 0 4 >> \
+# out$UNITTEST_NUM.log
+# expect_normal_exit $EX_PATH/colony $DIR/testfile delete-free-blocks coli >> \
+# out$UNITTEST_NUM.log
+
+# # removal range, indexes go to the list of free indexes, second block is freed
+# and goes to the list of free blocks
+# expect_normal_exit $EX_PATH/colony $DIR/testfile remove-range coli 1 9 >> \
+# out$UNITTEST_NUM.log
+
+# # deletion colony (deletion lists of: blocks, free indexes, free blocks), print
+# metadata
+# expect_normal_exit $EX_PATH/colony $DIR/testfile delete-colony coli >> \
+# out$UNITTEST_NUM.log
+# expect_normal_exit $EX_PATH/colony $DIR/testfile print-content coli >> \
+# out$UNITTEST_NUM.log
+
+# # creation colony of PMEMoids (block capacity = 7)
+# expect_normal_exit $EX_PATH/colony $DIR/testfile create-colony colp PMEMoid 7 \
+# >> out$UNITTEST_NUM.log
+
+# # insertion 20 PMEMoids from the file, allocation of 3 blocks
+# expect_normal_exit $EX_PATH/colony $DIR/testfile insert-PMEMoid-from-file colp \
+# pmemoid.txt >> out$UNITTEST_NUM.log
+
+# # insertion wrong type
+# expect_normal_exit $EX_PATH/colony $DIR/testfile insert-int colp 19 &> \
+# /dev/null
+
+# # removal range, removal one item, indexes go to the list of free indexes then
+# # second block is freed and goes to the list of free blocks
+# expect_normal_exit $EX_PATH/colony $DIR/testfile remove-range colp 6 13 >> \
+# out$UNITTEST_NUM.log
+# expect_normal_exit $EX_PATH/colony $DIR/testfile remove-item colp 14 >> \
+# out$UNITTEST_NUM.log
+
+# # print metadana and colony elements
+# expect_normal_exit $EX_PATH/colony $DIR/testfile print-content colp >> \
+# out$UNITTEST_NUM.log
+# expect_normal_exit $EX_PATH/colony $DIR/testfile print-colony colp >> \
+# out$UNITTEST_NUM.log
+
+# # 4x insertion PMEMoid, two indexes are taken from the list of free indexes and
+# # one block is taken from the list of free blocks
+# expect_normal_exit $EX_PATH/colony $DIR/testfile insert-PMEMoid colp \
+# 98674447107335551 777441113705002 >> out$UNITTEST_NUM.log
+# expect_normal_exit $EX_PATH/colony $DIR/testfile insert-PMEMoid colp \
+# 5858755551616 425370962235 >> out$UNITTEST_NUM.log
+# expect_normal_exit $EX_PATH/colony $DIR/testfile insert-PMEMoid colp \
+# 10244665656511 55584069 >> out$UNITTEST_NUM.log
+# expect_normal_exit $EX_PATH/colony $DIR/testfile insert-PMEMoid colp \
+# 78452360009 235 >> out$UNITTEST_NUM.log
+
+# # insertion 20 PMEMoids from the file, six indexes are taken from the list of
+# # free indexes and then allocation of 2 blocks
+# expect_normal_exit $EX_PATH/colony $DIR/testfile insert-PMEMoid-from-file colp \
+# pmemoid.txt >> out$UNITTEST_NUM.log
+
+# # 2x removal range, indexes go to the list of free indexes, first, second, third
+# # and fifth blocks are freed
+# expect_normal_exit $EX_PATH/colony $DIR/testfile remove-range colp 0 23 >> \
+# out$UNITTEST_NUM.log
+# expect_normal_exit $EX_PATH/colony $DIR/testfile remove-range colp 27 34 >> \
+# out$UNITTEST_NUM.log
+
+# # deletion free blocks (4), irst, second, third and fifth blocks are deleted
+# expect_normal_exit $EX_PATH/colony $DIR/testfile delete-free-blocks colp >> \
+# out$UNITTEST_NUM.log
+
+# # deletion colony (deletion lists of: blocks, free indexes)
+# expect_normal_exit $EX_PATH/colony $DIR/testfile delete-colony colp >> \
+# out$UNITTEST_NUM.log
+
+rm -f int.txt
+rm -f pmemoid.txt
+
+check
+
+pass
