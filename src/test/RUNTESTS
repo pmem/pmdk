@@ -420,6 +420,14 @@ runtest() {
 	cd ..
 }
 
+shell=$(getent passwd $USER | cut -d: -f7)
+[ "$(basename $shell)" != "bash" ] && {
+	cat >&2 <<EOF
+RUNTESTS: stopping because the default shell is not 'bash' ('$shell' found)
+EOF
+	exit 1
+}
+
 [ -f testconfig.sh ] || {
 	cat >&2 <<EOF
 RUNTESTS: stopping because no testconfig.sh is found.
