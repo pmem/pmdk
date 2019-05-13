@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -423,6 +423,9 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 	int open_flags = O_RDWR;
 	int delete_on_err = 0;
 	int file_type = util_file_get_type(path);
+#ifdef _WIN32
+	open_flags |= O_BINARY;
+#endif
 
 	if (file_type == OTHER_ERROR)
 		return NULL;
