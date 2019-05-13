@@ -550,7 +550,8 @@ alloc_class_collection_delete(struct alloc_class_collection *ac)
 		}
 	}
 
-	critnib_delete(ac->class_map_by_unit_size);
+	if (ac->class_map_by_unit_size)
+		critnib_delete(ac->class_map_by_unit_size);
 	Free(ac->class_map_by_alloc_size);
 	Free(ac);
 }
