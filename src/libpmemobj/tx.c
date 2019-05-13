@@ -1757,19 +1757,19 @@ static int
 CTL_READ_HANDLER(threshold)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
-	LOG(1, "tx.cache.threshold parameter is depracated");
+	LOG(1, "tx.cache.threshold parameter is deprecated");
 
 	return 0;
 }
 
 /*
- * CTL_WRITE_HANDLER(threshold) -- depracated
+ * CTL_WRITE_HANDLER(threshold) -- deprecated
  */
 static int
 CTL_WRITE_HANDLER(threshold)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
-	LOG(1, "tx.cache.threshold parameter is depracated");
+	LOG(1, "tx.cache.threshold parameter is deprecated");
 
 	return 0;
 }
