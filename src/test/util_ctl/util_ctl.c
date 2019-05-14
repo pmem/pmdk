@@ -38,6 +38,7 @@
 #include "ctl.h"
 #include "out.h"
 #include "pmemcommon.h"
+#include "fault_injection.h"
 
 #define LOG_PREFIX "ut"
 #define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
@@ -304,15 +305,12 @@ test_ctl_parser(struct pool *pop)
 
 	/* test methods set read to 0 and write to 1 if successful */
 
-
 	int arg_read = 1;
 	int arg_write = 0;
 
 	errno = 0;
 
-
 	/* correct name, wrong args */
-
 
 	ret = util_ctl_get(pop, "debug.test_rw", NULL);
 	UT_ASSERTne(ret, 0);
@@ -712,6 +710,22 @@ test_ctl_arg_parsers()
 	UT_ASSERT(strcmp(input, string) == 0);
 }
 
+static void
+test_fault_injection(struct pool *pop)
+{
+	if (!common_fault_injection_enabled())
+		return;
+
+	UT_ASSERTne(pop, NULL);
+	common_inject_fault_at(PMEM_MALLOC, 1, "ctl_parse_args");
+
+	test_config_written = 0;
+	int ret = ctl_load_config_from_string(pop->ctl, pop,
+		"debug.test_wo=333;debug.test_rw=444;");
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -739,6 +753,7 @@ main(int argc, char *argv[])
 
 	test_ctl_global_namespace(pop);
 
+	test_fault_injection(pop);
 	test_ctl_parser(pop);
 	test_string_config(pop);
 	test_file_config(pop);
