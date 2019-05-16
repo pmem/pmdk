@@ -41,22 +41,22 @@ ROOTDIR = abspath(join(dirname(__file__), '..'))
 WIN_DEBUG_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Debug'))
 WIN_DEBUG_EXEDIR = abspath(join(WIN_DEBUG_BUILDDIR, 'tests'))
 
-WIN_NONDEBUG_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Release'))
-WIN_NONDEBUG_EXEDIR = abspath(join(WIN_NONDEBUG_BUILDDIR, 'tests'))
+WIN_RELEASE_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Release'))
+WIN_RELEASE_EXEDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'tests'))
 
 if sys.platform == 'win32':
     DEBUG_LIBDIR = abspath(join(WIN_DEBUG_BUILDDIR, 'libs'))
-    NONDEBUG_LIBDIR = abspath(join(WIN_NONDEBUG_BUILDDIR, 'libs'))
+    RELEASE_LIBDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'libs'))
 else:
     DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
-    NONDEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
+    RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
 
 def get_tool_path(ctx, name):
     if sys.platform == 'win32':
         if ctx.build == 'debug':
             return abspath(join(WIN_DEBUG_BUILDDIR, 'libs', name + '.exe'))
         else:
-            return abspath(join(WIN_NONDEBUG_BUILDDIR, 'libs', name + '.exe'))
+            return abspath(join(WIN_RELEASE_BUILDDIR, 'libs', name + '.exe'))
     else:
         return abspath(join(ROOTDIR, '..', 'tools', name, name))
 
@@ -65,7 +65,7 @@ def get_test_tool_path(ctx, name):
         if ctx.build == 'debug':
             return abspath(join(WIN_DEBUG_BUILDDIR, 'tests', name + '.exe'))
         else:
-            return abspath(join(WIN_NONDEBUG_BUILDDIR, 'tests', name + '.exe'))
+            return abspath(join(WIN_RELEASE_BUILDDIR, 'tests', name + '.exe'))
     else:
         return abspath(join(ROOTDIR, 'tools', name, name))
 
