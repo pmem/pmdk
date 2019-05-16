@@ -35,11 +35,19 @@
 import os
 import sys
 import itertools
+import shutil
 import subprocess as sp
 
 import helpers as hlp
 from utils import fail, HEADER_SIZE
 from poolset import _Poolset
+import tools
+
+try:
+    import testconfig
+except ImportError:
+    sys.exit('Please add valid testconfig.py file - see testconfig.py.example')
+config = testconfig.config
 
 try:
     import envconfig
@@ -54,9 +62,8 @@ def expand(*classes):
     return list(set(itertools.chain(*classes)))
 
 
-class Context:
-    """Manage test execution based on values from context classes"""
-
+class ContextBase:
+    """ """
     def __init__(self, test, conf, **kwargs):
         self.env = {}
         for ctx in [kwargs['fs'], kwargs['build']]:
@@ -68,6 +75,75 @@ class Context:
         self.fs = kwargs['fs']
         self.valgrind = kwargs['valgrind']
         self.msg = hlp.Message(conf)
+
+    def dump_n_lines(self, file, n=None):
+        """
+        Prints last n lines of given log file. Number of line printed can be
+        modified locally by "n" argument or globally by "dump_lines" in
+        testconfig.py file. If none of this is provided, default value is 30.
+        """
+        if n is None:
+            n = config.get('dump_lines', 30)
+
+        file_size = self.get_size(file.name)
+        if file_size < 100 * hlp.MiB:
+            lines = list(file)
+            length = len(lines)
+            if n > length:
+                n = length
+            lines = lines[-n:]
+            lines.insert(0, 'Last {} lines of {} below (whole file has {} lines):{}'
+                            ''.format(n, file.name, length, os.linesep))
+            for line in lines:
+                print(line, end='')
+        else:
+            with open(file.name, 'br') as byte_file:
+                byte_file.seek(file_size - 10 * hlp.KiB)
+                print(byte_file.read().decode('iso_8859_1'))
+
+    def is_devdax(self, path):
+        """Checks if given path points to device dax"""
+        proc = tools.pmemdetect(self, '-d', path)
+        if proc.returncode == tools.PMEMDETECT_ERROR:
+            fail(proc.stdout)
+        if proc.returncode == tools.PMEMDETECT_TRUE:
+            return True
+        if proc.returncode == tools.PMEMDETECT_FALSE:
+            return False
+        fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+
+    def supports_map_sync(self, path):
+        """Checks if MAP_SYNC is supported on a filesystem from given path"""
+        proc = tools.pmemdetect(self, '-s', path)
+        if proc.returncode == tools.PMEMDETECT_ERROR:
+            fail(proc.stdout)
+        if proc.returncode == tools.PMEMDETECT_TRUE:
+            return True
+        if proc.returncode == tools.PMEMDETECT_FALSE:
+            return False
+        fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+
+    def get_size(self, path):
+        """
+        Returns size of the file or dax device.
+        Value "2**64 - 1" is checked because pmemdetect in case of error prints it.
+        """
+        proc = tools.pmemdetect(self, '-z', path)
+        if int(proc.stdout) != 2**64 - 1:
+            return int(proc.stdout)
+        fail('Could not get size of the file, it is inaccessible or does not exist')
+
+    def get_free_space(self):
+        """Returns free space for current file system"""
+        _, _, free = shutil.disk_usage(".")
+        return free
+
+
+class Context(ContextBase):
+    """Manage test execution based on values from context classes"""
+
+    def __init__(self, test, conf, **kwargs):
+        ContextBase.__init__(self, test, conf, **kwargs)
 
     @property
     def testdir(self):

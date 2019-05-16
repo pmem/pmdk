@@ -37,7 +37,7 @@ import sys
 import os
 
 from helpers import KiB, MiB, GiB, TiB
-from utils import get_size, is_devdax, get_free_space, fail
+from utils import fail
 
 POOL_MIN_SIZE = 8 * MiB
 PART_MIN_SIZE = 2 * MiB
@@ -67,7 +67,7 @@ class _Poolset:
     Example usage:
     poolset = ctx.new_poolset('poolset')
     poolset.set_parts(File('part0.pool', 10*MiB),
-                      DDax('daxpath'))
+                      DDax(ctx, 'daxpath'))
     poolset.add_replica(File('part0.rep1', 20*MiB),
                         File('part1.rep1', 5*MiB).Create(
                         t.CREATE.ZEROED,  100 * MiB))
@@ -133,7 +133,7 @@ class _Poolset:
         """
         self._check_pools_size()
         required_size = self._get_required_size()
-        free_space = get_free_space()
+        free_space = ctx.get_free_space()
         if required_size > free_space:
             fail('Not enough space available to create parts files. There is '
                  '{}, and poolset requires {}'.format(free_space,
@@ -274,11 +274,11 @@ class DDax(_Part):
     An interface to device dax parts creation
     """
 
-    def __init__(self, path):
-        if not is_devdax(path):
+    def __init__(self, ctx, path):
+        if not ctx.is_devdax(path):
             fail('Part with path "{}" does not point to dax device'
                  ''.format(path))
-        _Part.__init__(self, path, get_size(path))
+        _Part.__init__(self, path, ctx.get_size(path))
 
 
 class Dir(_Part):
