@@ -429,7 +429,7 @@ check:
 	@echo "No failures."
 
 pycheck:
-	@./RUNTESTS.py $(RUNTEST_OPTIONS)
+	@./RUNTESTS.py $(subst nondebug,release,$(RUNTEST_OPTIONS))
 	@echo "No failures."
 
 check-remote-quiet-conditional:

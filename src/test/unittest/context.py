@@ -289,8 +289,8 @@ class Debug(_Build):
         self.libdir = hlp.DEBUG_LIBDIR
 
 
-class Nondebug(_Build):
-    """Set the context for nondebug build"""
+class Release(_Build):
+    """Set the context for release build"""
     is_preferred = True
 
     def __init__(self, conf):
@@ -308,8 +308,8 @@ if sys.platform != 'win32':
             self.exesuffix = '.static-debug'
             self.libdir = hlp.DEBUG_LIBDIR
 
-    class Static_Nondebug(_Build):
-        """Sets the context for static_nondebug build"""
+    class Static_Release(_Build):
+        """Sets the context for static_release build"""
 
         def __init__(self, conf):
             self.exesuffix = '.static-nondebug'

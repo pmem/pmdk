@@ -79,7 +79,7 @@ test_script:
         if ($Env:CONFIGURATION -eq "Release") {
             ./RUNTESTS.ps1 -b nondebug -o 4m
             if ($?) {
-                ./RUNTESTS.py -b nondebug
+                ./RUNTESTS.py -b release
             }
         }
     }

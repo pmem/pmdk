@@ -52,7 +52,7 @@ config = {
 
     #
     # Set build type to be run:
-    # debug, nondebug, static-debug, static-nondebug, all
+    # debug, release, static-debug, static-release, all
     #
 
     'build': 'all',
