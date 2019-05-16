@@ -39,9 +39,9 @@ import shutil
 import subprocess as sp
 
 import helpers as hlp
-from utils import fail, HEADER_SIZE
 from poolset import _Poolset
 import tools
+from utils import KiB, MiB, GiB, TiB
 
 try:
     import testconfig
@@ -86,7 +86,7 @@ class ContextBase:
             n = config.get('dump_lines', 30)
 
         file_size = self.get_size(file.name)
-        if file_size < 100 * hlp.MiB:
+        if file_size < 100 * MiB:
             lines = list(file)
             length = len(lines)
             if n > length:
@@ -105,23 +105,23 @@ class ContextBase:
         """Checks if given path points to device dax"""
         proc = tools.pmemdetect(self, '-d', path)
         if proc.returncode == tools.PMEMDETECT_ERROR:
-            fail(proc.stdout)
+            hlp.fail(proc.stdout)
         if proc.returncode == tools.PMEMDETECT_TRUE:
             return True
         if proc.returncode == tools.PMEMDETECT_FALSE:
             return False
-        fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+        hlp.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
 
     def supports_map_sync(self, path):
         """Checks if MAP_SYNC is supported on a filesystem from given path"""
         proc = tools.pmemdetect(self, '-s', path)
         if proc.returncode == tools.PMEMDETECT_ERROR:
-            fail(proc.stdout)
+            hlp.fail(proc.stdout)
         if proc.returncode == tools.PMEMDETECT_TRUE:
             return True
         if proc.returncode == tools.PMEMDETECT_FALSE:
             return False
-        fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+        hlp.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
 
     def get_size(self, path):
         """
@@ -131,7 +131,7 @@ class ContextBase:
         proc = tools.pmemdetect(self, '-z', path)
         if int(proc.stdout) != 2**64 - 1:
             return int(proc.stdout)
-        fail('Could not get size of the file, it is inaccessible or does not exist')
+        hlp.fail('Could not get size of the file, it is inaccessible or does not exist')
 
     def get_free_space(self):
         """Returns free space for current file system"""
@@ -231,7 +231,7 @@ class Context(ContextBase):
             self.test.fail(proc.stdout)
 
         if proc.returncode != expected_exit:
-            fail(proc.stdout, exit_code=proc.returncode)
+            hlp.fail(proc.stdout, exit_code=proc.returncode)
         else:
             self.msg.print_verbose(proc.stdout)
 

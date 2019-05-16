@@ -35,10 +35,6 @@
 from os.path import join, abspath, dirname
 import sys
 
-
-# .so file names
-VMMALLOC = 'libvmmalloc.so.1'
-
 # Constant paths to repository elements
 ROOTDIR = abspath(join(dirname(__file__), '..'))
 
@@ -57,17 +53,6 @@ else:
 
 TOOLS_DIR = abspath(join(ROOTDIR, '..', 'tools'))
 TEST_TOOLS_DIR = abspath(join(ROOTDIR, 'tools'))
-
-#
-# KiB, MiB, GiB ... -- byte unit prefixes
-#
-
-KiB = 2 ** 10
-MiB = 2 ** 20
-GiB = 2 ** 30
-TiB = 2 ** 40
-PiB = 2 ** 50
-
 
 class Color:
     """
@@ -125,3 +110,34 @@ def run_tests_common(testcases, config):
     if any(results):  # if any test failed
         return 1
     return 0
+
+class Fail(Exception):
+    """Thrown when test fails"""
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
+def fail(msg, exit_code=None):
+    if exit_code is not None:
+        msg = '{}\nError {}'.format(msg, exit_code)
+    raise Fail(msg)
+
+
+class Skip(Exception):
+    """Thrown when test should be skipped"""
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
+def skip(msg):
+    raise Skip(msg)
