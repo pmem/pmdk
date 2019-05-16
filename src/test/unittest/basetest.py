@@ -45,7 +45,7 @@ from os import path
 import context as ctx
 import helpers as hlp
 import valgrind as vg
-from utils import Skip, Fail, fail, dump_n_lines
+from utils import Skip, Fail, fail
 
 
 if not hasattr(builtins, 'testcases'):
@@ -227,7 +227,7 @@ class BaseTest(metaclass=_TestCase):
             except Fail as f:
                 failed = True
                 print(f)
-                self._print_log_files()
+                self._print_log_files(c)
                 print('{}: {}FAILED{}\t({})'
                       .format(self, hlp.Color.RED, hlp.Color.END, config_str))
                 if not self.config.keep_going:
@@ -324,14 +324,14 @@ class BaseTest(metaclass=_TestCase):
                 log_files.append(log)
         return log_files
 
-    def _print_log_files(self):
+    def _print_log_files(self, ctx):
         """
         Prints all log files for given test
         """
         log_files = self.get_log_files()
         for file in log_files:
             with open(file) as f:
-                dump_n_lines(f)
+                ctx.dump_n_lines(f)
 
     def remove_log_files(self):
         """

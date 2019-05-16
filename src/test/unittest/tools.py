@@ -51,7 +51,7 @@ PMEMDETECT_TRUE = 1
 PMEMDETECT_ERROR = 2
 
 
-def pmemdetect(*args):
+def pmemdetect(ctx, *args):
     env = os.environ.copy()
 
     if sys.platform == 'win32':
