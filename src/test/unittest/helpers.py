@@ -51,8 +51,23 @@ else:
     DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
     NONDEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
 
-TOOLS_DIR = abspath(join(ROOTDIR, '..', 'tools'))
-TEST_TOOLS_DIR = abspath(join(ROOTDIR, 'tools'))
+def get_tool_path(ctx, name):
+    if sys.platform == 'win32':
+        if ctx.build == 'debug':
+            return abspath(join(WIN_DEBUG_BUILDDIR, 'libs', name + '.exe'))
+        else:
+            return abspath(join(WIN_NONDEBUG_BUILDDIR, 'libs', name + '.exe'))
+    else:
+        return abspath(join(ROOTDIR, '..', 'tools', name, name))
+
+def get_test_tool_path(ctx, name):
+    if sys.platform == 'win32':
+        if ctx.build == 'debug':
+            return abspath(join(WIN_DEBUG_BUILDDIR, 'tests', name + '.exe'))
+        else:
+            return abspath(join(WIN_NONDEBUG_BUILDDIR, 'tests', name + '.exe'))
+    else:
+        return abspath(join(ROOTDIR, 'tools', name, name))
 
 class Color:
     """

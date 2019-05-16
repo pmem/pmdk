@@ -56,12 +56,14 @@ def pmemdetect(ctx, *args):
 
     if sys.platform == 'win32':
         env['PATH'] = envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
+            ctx.build.libdir + os.pathsep +\
             env.get('PATH', '')
     else:
         env['LD_LIBRARY_PATH'] = envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
+            ctx.build.libdir + os.pathsep +\
             env.get('LD_LIBRARY_PATH', '')
 
-    exe = abspath(join(hlp.TEST_TOOLS_DIR, 'pmemdetect',
-                       'pmemdetect.static-nondebug'))
+    exe = hlp.get_test_tool_path(ctx, 'pmemdetect')
+
     return sp.run([exe, *args], env=env, stdout=sp.PIPE,
                   stderr=sp.STDOUT, universal_newlines=True)
