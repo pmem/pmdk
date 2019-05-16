@@ -33,39 +33,16 @@
 """Set of basic functions available to use in all test cases"""
 
 
-import os
-import sys
+# .so file names
+VMMALLOC = 'libvmmalloc.so.1'
 
 HEADER_SIZE = 4096
 
-
-class Fail(Exception):
-    """Thrown when test fails"""
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
-
-    def __str__(self):
-        return self.message
-
-
-def fail(msg, exit_code=None):
-    if exit_code is not None:
-        msg = '{}\nError {}'.format(msg, exit_code)
-    raise Fail(msg)
-
-
-class Skip(Exception):
-    """Thrown when test should be skipped"""
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
-
-    def __str__(self):
-        return self.message
-
-
-def skip(msg):
-    raise Skip(msg)
+#
+# KiB, MiB, GiB ... -- byte unit prefixes
+#
+KiB = 2 ** 10
+MiB = 2 ** 20
+GiB = 2 ** 30
+TiB = 2 ** 40
+PiB = 2 ** 50

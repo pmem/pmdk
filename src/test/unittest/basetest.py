@@ -45,7 +45,6 @@ from os import path
 import context as ctx
 import helpers as hlp
 import valgrind as vg
-from utils import Skip, Fail, fail
 
 
 if not hasattr(builtins, 'testcases'):
@@ -224,7 +223,7 @@ class BaseTest(metaclass=_TestCase):
                 self.elapsed = (datetime.now() - start_time).total_seconds()
                 self.check()
 
-            except Fail as f:
+            except hlp.Fail as f:
                 failed = True
                 print(f)
                 self._print_log_files(c)
@@ -233,7 +232,7 @@ class BaseTest(metaclass=_TestCase):
                 if not self.config.keep_going:
                     sys.exit(1)
 
-            except Skip as s:
+            except hlp.Skip as s:
                 print('{}: SKIP {}'.format(self, s))
                 self.clean(c)
 
@@ -292,7 +291,7 @@ class BaseTest(metaclass=_TestCase):
             proc = sp.run(cmd.split(), stdout=sp.PIPE, cwd=self.cwd,
                           stderr=sp.STDOUT, universal_newlines=True)
             if proc.returncode != 0:
-                fail(proc.stdout, exit_code=proc.returncode)
+                hlp.fail(proc.stdout, exit_code=proc.returncode)
             else:
                 self.msg.print_verbose(proc.stdout)
 
