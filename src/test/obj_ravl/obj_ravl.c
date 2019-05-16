@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 #include "ravl.h"
 #include "util.h"
 #include "unittest.h"
+#include "obj.h"
 
 static int
 cmpkey(const void *lhs, const void *rhs)
@@ -229,6 +230,34 @@ test_emplace(void)
 	ravl_delete(r);
 }
 
+static void
+test_fault_injection_ravl_sized()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "ravl_new_sized");
+	struct ravl *r = ravl_new_sized(NULL, 0);
+	UT_ASSERTeq(r, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
+test_fault_injection_ravl_node()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	struct foo a = {1, 2, 3};
+	struct ravl *r = ravl_new_sized(cmpfoo, sizeof(struct foo));
+	UT_ASSERTne(r, NULL);
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "ravl_new_node");
+	int ret = ravl_emplace_copy(r, &a);
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -238,6 +267,9 @@ main(int argc, char *argv[])
 	test_misc();
 	test_stress();
 	test_emplace();
+
+	test_fault_injection_ravl_sized();
+	test_fault_injection_ravl_node();
 
 	DONE(NULL);
 }
