@@ -295,8 +295,8 @@ class Nondebug(_Build):
 
     def __init__(self, conf):
         if sys.platform == 'win32':
-            self.exedir = hlp.WIN_NONDEBUG_EXEDIR
-        self.libdir = hlp.NONDEBUG_LIBDIR
+            self.exedir = hlp.WIN_RELEASE_EXEDIR
+        self.libdir = hlp.RELEASE_LIBDIR
 
 
 # Build types not available on Windows
@@ -313,7 +313,7 @@ if sys.platform != 'win32':
 
         def __init__(self, conf):
             self.exesuffix = '.static-nondebug'
-            self.libdir = hlp.NONDEBUG_LIBDIR
+            self.libdir = hlp.RELEASE_LIBDIR
 
 
 class _Fs(metaclass=_CtxType):
