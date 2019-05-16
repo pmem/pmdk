@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/obj_heap/TEST0 -- unit test for obj_heap interface
+# src/test/obj_heap/TEST1 -- unit test for inject fault malloc
 #
 
 # standard unit test setup
@@ -42,6 +42,12 @@ require_test_type medium
 
 setup
 
-expect_normal_exit ./obj_heap$EXESUFFIX t
+expect_normal_exit ./obj_heap$EXESUFFIX b
+expect_normal_exit ./obj_heap$EXESUFFIX r
+expect_normal_exit ./obj_heap$EXESUFFIX c
+expect_normal_exit ./obj_heap$EXESUFFIX h
+expect_normal_exit ./obj_heap$EXESUFFIX a
+expect_normal_exit ./obj_heap$EXESUFFIX n
+expect_normal_exit ./obj_heap$EXESUFFIX s
 
 pass
