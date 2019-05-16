@@ -119,7 +119,7 @@ config = {
 	'fs_dir_force_pmem': 0,
 	'keep_going': False,
 	'timeout': '3m',
-	'build': ['debug', 'nondebug'],
+	'build': ['debug', 'release'],
 	'force_enable': None,
    }
 EOF
