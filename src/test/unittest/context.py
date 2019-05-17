@@ -80,7 +80,7 @@ class Context:
         """Create a new file with the selected size and name"""
         filepath = os.path.join(self.testdir, path)
         with open(filepath, 'w') as f:
-            f.seek(size)
+            f.seek(size - 1)
             f.write('\0')
         if mode is not None:
             os.chmod(filepath, mode)

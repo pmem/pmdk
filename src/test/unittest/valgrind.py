@@ -38,6 +38,7 @@ from enum import Enum, unique
 from os import path
 
 from helpers import ROOTDIR, VMMALLOC
+from utils import Skip
 
 
 DISABLE = -1
@@ -102,7 +103,15 @@ class Valgrind:
 
         log_file_name = '{}{}.log'.format(self.tool.name.lower(), testnum)
         self.log_file = path.join(cwd, log_file_name)
-        self.valgrind_exe = self._get_valgrind_exe()
+
+        if tool is None:
+            self.valgrind_exe = None
+        else:
+            self.valgrind_exe = self._get_valgrind_exe()
+
+        if self.valgrind_exe is None:
+            return
+
         self.opts = ''
         self.memcheck_check_leaks = memcheck_check_leaks
 
@@ -156,8 +165,12 @@ class Valgrind:
         The wrapper script does not work well with LD_PRELOAD so we want
         to call Valgrind directly
         """
-        out = sp.check_output('which valgrind', shell=True,
-                              universal_newlines=True)
+        try:
+            out = sp.check_output('which valgrind', shell=True,
+                                  universal_newlines=True)
+        except sp.CalledProcessError:
+            return None
+
         valgrind_bin = path.join(path.dirname(out), 'valgrind.bin')
         if path.isfile(valgrind_bin):
             return valgrind_bin
@@ -216,3 +229,10 @@ class Valgrind:
             return False
 
         return True
+
+    def verify(self):
+        """
+        Checks that Valgrind can be used.
+        """
+        if self.valgrind_exe is None:
+            raise Skip('Valgrind not found')
