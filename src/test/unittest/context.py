@@ -122,8 +122,9 @@ class Context:
     def new_poolset(self, path):
         return _Poolset(path, self)
 
-    def exec(self, cmd, args='', expected_exit=0):
+    def exec(self, cmd, *args, expected_exit=0):
         """Execute binary in current test context"""
+        cmd_args = ' '.join(args) if args else ''
 
         env = {**self.env, **os.environ.copy(), **self.test.utenv}
 
@@ -144,8 +145,9 @@ class Context:
             cmd = os.path.join(self.test.cwd, cmd) + self.build.exesuffix
             cmd = '{} {}'.format(self.valgrind.cmd, cmd)
 
-        proc = sp.run('{} {}'.format(cmd, args), env=env, cwd=self.test.cwd,
-                      shell=True, timeout=self.conf.timeout, stdout=sp.PIPE,
+        cmd = '{} {}'.format(cmd, cmd_args)
+        proc = sp.run(cmd, env=env, cwd=self.test.cwd, shell=True,
+                      timeout=self.conf.timeout, stdout=sp.PIPE,
                       stderr=sp.STDOUT, universal_newlines=True)
 
         if sys.platform != 'win32' and expected_exit == 0 \
