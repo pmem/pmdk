@@ -140,7 +140,7 @@
     <ClCompile Include="clo.cpp" />
     <ClCompile Include="clo_vec.cpp" />
     <ClCompile Include="config_reader_win.cpp" />
-    <ClCompile Include="fragmentation.cpp" />
+    <ClCompile Include="obj_fragmentation.cpp" />
     <ClCompile Include="log.cpp" />
     <ClCompile Include="map_bench.cpp" />
     <ClCompile Include="obj_lanes.cpp" />

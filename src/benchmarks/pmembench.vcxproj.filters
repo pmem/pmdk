@@ -159,7 +159,7 @@
     </ClCompile>
     <ClCompile Include="..\common\ctl_sds.c">
       <Filter>pmemobj</Filter>
-    <ClCompile Include="fragmentation.cpp">
+    <ClCompile Include="obj_fragmentation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

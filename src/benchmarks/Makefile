@@ -74,14 +74,14 @@ SRC=pmembench.cpp\
     pmem_flush.cpp\
     pmemobj_gen.cpp\
     pmemobj_persist.cpp\
+    obj_fragmentation.cpp\
     obj_pmalloc.cpp\
     obj_locks.cpp\
     obj_lanes.cpp\
     map_bench.cpp\
     pmemobj_tx.cpp\
     pmemobj_atomic_lists.cpp\
-    poolset_util.cpp\
-    fragmentation.cpp
+    poolset_util.cpp
 
 # Configuration file without the .cfg extension
 CONFIGS=pmembench_log\
@@ -97,7 +97,8 @@ CONFIGS=pmembench_log\
 	pmembench_obj_lanes\
 	pmembench_map\
 	pmembench_tx\
-	pmembench_atomic_lists
+	pmembench_atomic_lists\
+	pmembench_fragmentation
 
 OBJS=$(SRC:.cpp=.o)
 ifneq ($(filter 1 2, $(CSTYLEON)),)
