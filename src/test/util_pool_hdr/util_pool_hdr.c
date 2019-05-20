@@ -116,6 +116,7 @@ test_layout()
 #define POOL_FEAT_SINGLEHDR_FINAL	0x0001U
 #define POOL_FEAT_CKSUM_2K_FINAL	0x0002U
 #define POOL_FEAT_SDS_FINAL		0x0004U
+#define POOL_FEAT_CKSUM_INVAL_FINAL	0x0008U
 
 /* incompat features effective values */
 #if defined(_WIN32) || defined(NDCTL_GE_63)
@@ -133,7 +134,9 @@ test_layout()
 #endif
 
 #define POOL_FEAT_INCOMPAT_DEFAULT_V1 \
-	(POOL_FEAT_CKSUM_2K_FINAL | POOL_E_FEAT_SDS_FINAL)
+	(POOL_FEAT_CKSUM_2K_FINAL | \
+	POOL_E_FEAT_SDS_FINAL | \
+	POOL_FEAT_CKSUM_INVAL_FINAL)
 
 #ifdef _WIN32
 #define SDS_AT_CREATE_EXPECTED 1

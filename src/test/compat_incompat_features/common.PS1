@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -63,7 +63,7 @@ $POOL_FEAT_CKSUM_2K = 0x0002
 $UNKNOWN_COMPAT = 2, 4, 8, 1024
 
 # Unknown incompat flags:
-$UNKNOWN_INCOMPAT = 8, 15, 1111
+$UNKNOWN_INCOMPAT = 16, 31, 1111
 
 # set compat flags in header
 function set_compat {
