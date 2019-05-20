@@ -103,6 +103,7 @@ struct arch_flags {
 /* possible values of the machine field in the above struct */
 #define PMDK_MACHINE_X86_64 62
 #define PMDK_MACHINE_AARCH64 183
+#define PMDK_MACHINE_PPC64 21
 
 /* possible values of the data field in the above struct */
 #define PMDK_DATA_LE 1 /* 2's complement, little endian */
