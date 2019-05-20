@@ -119,7 +119,9 @@ Print feature status.
 # COMPATIBILITY #
 
 Poolsets with features not defined in this document (e.g. enabled by the newer
-software version) are not supported.
+software version) are not supported. An example is **CKSUM_INVAL** feature which
+is available for all pools created with checksum invalidation feature, but
+it is not possible to enable/disable or query such flag.
 
 
 # DISCLAIMER #

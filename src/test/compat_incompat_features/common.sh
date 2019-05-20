@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -60,12 +60,13 @@ create_args[log]="log $POOLSET"
 let "POOL_FEAT_SINGLEHDR = 0x0001"
 let "POOL_FEAT_CKSUM_2K = 0x0002"
 let "POOL_FEAT_SDS = 0x0004"
+let "POOL_FEAT_CKSUM_INVAL = 0x0008"
 
 # Unknown compat flags:
 UNKNOWN_COMPAT=(2 4 8 1024)
 
 # Unknown incompat flags:
-UNKNOWN_INCOMPAT=(8 15 1111)
+UNKNOWN_INCOMPAT=(16 31 1111)
 
 # set compat flags in header
 set_compat() {

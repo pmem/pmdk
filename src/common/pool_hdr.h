@@ -208,9 +208,11 @@ static const features_t features_zero =
 #define POOL_FEAT_SINGLEHDR	0x0001U	/* pool header only in the first part */
 #define POOL_FEAT_CKSUM_2K	0x0002U	/* only first 2K of hdr checksummed */
 #define POOL_FEAT_SDS		0x0004U	/* check shutdown state */
+#define POOL_FEAT_CKSUM_INVAL	0x0008U	/* invalidate ulog checksum */
 
 #define POOL_FEAT_INCOMPAT_ALL \
-	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_FEAT_SDS)
+	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | \
+	POOL_FEAT_SDS | POOL_FEAT_CKSUM_INVAL)
 
 /*
  * incompat features effective values (if applicable)
@@ -225,18 +227,19 @@ static const features_t features_zero =
 	(POOL_FEAT_CHECK_BAD_BLOCKS)
 
 #define POOL_FEAT_INCOMPAT_VALID \
-	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
+	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | \
+	POOL_E_FEAT_SDS | POOL_FEAT_CKSUM_INVAL)
 
 #if defined(_WIN32) || defined(NDCTL_GE_63)
 #define POOL_FEAT_INCOMPAT_DEFAULT \
-	(POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
+	(POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS | POOL_FEAT_CKSUM_INVAL)
 #else
 /*
  * shutdown state support on Linux requires root access on kernel < 4.20 with
  * ndctl < 63 so it is disabled by default
  */
 #define POOL_FEAT_INCOMPAT_DEFAULT \
-	(POOL_FEAT_CKSUM_2K)
+	(POOL_FEAT_CKSUM_2K | POOL_FEAT_CKSUM_INVAL)
 #endif
 
 #if defined(NDCTL_GE_63)
