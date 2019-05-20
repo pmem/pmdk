@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -291,6 +291,7 @@ static const features_t feature_2_pmempool_feature_map[] = {
 	FEAT_INCOMPAT(CKSUM_2K),	/* PMEMPOOL_FEAT_CKSUM_2K */
 	FEAT_INCOMPAT(SDS),		/* PMEMPOOL_FEAT_SHUTDOWN_STATE */
 	FEAT_COMPAT(CHECK_BAD_BLOCKS),	/* PMEMPOOL_FEAT_CHECK_BAD_BLOCKS */
+	FEAT_INCOMPAT(CKSUM_INVAL),	/* PMEMPOOL_FEAT_CKSUM_INVAL */
 };
 
 #define FEAT_2_PMEMPOOL_FEATURE_MAP_SIZE \
@@ -301,6 +302,7 @@ static const char *str_2_pmempool_feature_map[] = {
 	"CKSUM_2K",
 	"SHUTDOWN_STATE",
 	"CHECK_BAD_BLOCKS",
+	"CKSUM_INVAL",
 };
 
 #define PMEMPOOL_FEATURE_2_STR_MAP_SIZE ARRAY_SIZE(str_2_pmempool_feature_map)
