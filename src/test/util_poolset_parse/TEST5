@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,12 +32,9 @@
 #
 
 #
-# src/test/util_poolset_parse/TEST4 -- unit test for parsing a pool set file
-#
-# Duplicate directories
+# src/test/util_poolset_parse/TEST5 -- unit test for inject error malloc
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
@@ -46,28 +43,17 @@ require_fs_type any
 
 setup
 
-export PARSER_LOG_LEVEL=4
-export PARSER_LOG_FILE=./parser$UNITTEST_NUM.log
-
-RESVSIZE=$((260 * 1024 * 1024)) # 264MiB (base part + 2 extends)
-MIN_POOL=$((128 * 1024 * 1024)) # 128MiB
-export TEST_LOG_LEVEL=4
-export TEST_LOG_FILE=./test$UNITTEST_NUM.log
-
 # prepare pool sets
-create_poolset $DIR/testset1\
-	$RESVSIZE:$DIR/testset11:d $RESVSIZE:$DIR/testset11:d\
-	O SINGLEHDR # fail
-create_poolset $DIR/testset2\
-	$RESVSIZE:$DIR/testset21:d R $RESVSIZE:$DIR/testset21:d\
-	O SINGLEHDR # fail
+create_poolset $DIR/pool.set\
+	32M:$DIR/pool:d R 32M:$DIR/rep:d\
+	O SINGLEHDR
 
-POOLSETS="$DIR/testset1 $DIR/testset2"
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/pool.set
 
-expect_normal_exit ./util_poolset_parse$EXESUFFIX t $POOLSETS
+# remove file from replica
+rm $DIR/rep/000000.pmem
 
-$GREP -e "<[14]>.*\[.*util_parse_add_directory\]" ./parser$UNITTEST_NUM.log | \
-	sed -e "s/^.*util_parse_add_directory][ ]*//g" > grep$UNITTEST_NUM.log
+expect_normal_exit ./util_poolset_parse$EXESUFFIX f $DIR/pool.set
 
 check
 

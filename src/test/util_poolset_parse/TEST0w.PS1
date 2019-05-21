@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -50,7 +50,7 @@ $Env:PARSER_LOG_FILE = ".\parser$Env:UNITTEST_NUM.log"
 
 $POOLSETS = ls -Name pool[0-9]*w.set | sort {$_ -replace "\D+" -as [Int]}
 
-expect_normal_exit $Env:EXE_DIR\util_poolset_parse$Env:EXESUFFIX $POOLSETS
+expect_normal_exit $Env:EXE_DIR\util_poolset_parse$Env:EXESUFFIX t $POOLSETS
 
 Get-Content .\parser$Env:UNITTEST_NUM.log | Select-String `
 	-Pattern "<[14]>.*\[.*util_poolset_parse\]" | %{[string]$_} `
