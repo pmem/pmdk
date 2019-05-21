@@ -43,7 +43,7 @@ import testframework as t
 
 class TEST0(t.BaseTest):
     test_type = t.Medium
-    memcheck = t.DISABLE
+    pmemcheck = t.DISABLE
 
     def run(self, ctx):
         testfile = path.join(ctx.testdir, 'testfile0')
