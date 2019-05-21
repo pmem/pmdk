@@ -1057,6 +1057,14 @@ vg_verify_initialized(PMEMobjpool *pop, const struct tx_range_def *def)
 static int
 pmemobj_tx_add_snapshot(struct tx *tx, struct tx_range_def *snapshot)
 {
+	void *ptr = OBJ_OFF_TO_PTR(tx->pop, snapshot->offset);
+
+	/* do nothing */
+	if (snapshot->flags & POBJ_XADD_NO_SNAPSHOT) {
+		VALGRIND_ADD_TO_TX(ptr, snapshot->size);
+		return 0;
+	}
+
 	vg_verify_initialized(tx->pop, snapshot);
 
 	/*
@@ -1082,7 +1090,6 @@ pmemobj_tx_add_snapshot(struct tx *tx, struct tx_range_def *snapshot)
 	 * Depending on the size of the block, either allocate an
 	 * entire new object or use cache.
 	 */
-	void *ptr = OBJ_OFF_TO_PTR(tx->pop, snapshot->offset);
 	VALGRIND_ADD_TO_TX(ptr, snapshot->size);
 
 	return operation_add_buffer(tx->lane->undo, ptr, ptr, snapshot->size,
