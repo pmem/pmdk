@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -422,10 +422,11 @@ do_tx_add_range_commit(PMEMobjpool *pop)
 }
 
 /*
- * do_tx_xadd_range_commit -- call pmemobj_tx_xadd_range and commit the tx
+ * do_tx_xadd_range_no_flush_commit -- call pmemobj_tx_xadd_range with
+ * POBJ_XADD_NO_FLUSH set and commit the tx
  */
 static void
-do_tx_xadd_range_commit(PMEMobjpool *pop)
+do_tx_xadd_range_no_flush_commit(PMEMobjpool *pop)
 {
 	int ret;
 	TOID(struct object) obj;
@@ -443,6 +444,96 @@ do_tx_xadd_range_commit(PMEMobjpool *pop)
 	} TX_END
 
 	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
+/*
+ * do_tx_xadd_range_no_snapshot_commit -- call pmemobj_tx_xadd_range with
+ * POBJ_XADD_NO_SNAPSHOT flag set and commit the tx
+ */
+static void
+do_tx_xadd_range_no_snapshot_commit(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+
+	TX_BEGIN(pop) {
+		ret = pmemobj_tx_xadd_range(obj.oid, VALUE_OFF, VALUE_SIZE,
+				POBJ_XADD_NO_SNAPSHOT);
+		UT_ASSERTeq(ret, 0);
+		D_RW(obj)->value = TEST_VALUE_1;
+		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+		UT_ASSERTeq(ret, 0);
+
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
+/*
+ * do_tx_xadd_range_no_snapshot_abort -- call pmemobj_tx_range with
+ * POBJ_XADD_NO_SNAPSHOT flag, modify the value inside aborted transaction
+ */
+static void
+do_tx_xadd_range_no_snapshot_abort(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+	D_RW(obj)->value = TEST_VALUE_1;
+
+	TX_BEGIN(pop) {
+		ret = pmemobj_tx_xadd_range(obj.oid, VALUE_OFF, VALUE_SIZE,
+				POBJ_XADD_NO_SNAPSHOT);
+		UT_ASSERTeq(ret, 0);
+		D_RW(obj)->value = TEST_VALUE_2;
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	/*
+	 * value added with NO_SNAPSHOT flag should NOT
+	 * be rolled back after abort
+	 */
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_2);
+}
+
+/*
+ * do_tx_xadd_range_no_snapshot_overlapping -- call pmemobj_tx_add_range
+ * with overlapping fields and NO_SNAPSHOT flag set
+ */
+static void
+do_tx_xadd_range_no_snapshot_overlapping(PMEMobjpool *pop)
+{
+	TOID(struct overlap_object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, 1));
+
+	char tmp[OVERLAP_SIZE];
+	memcpy(tmp, D_RO(obj)->data, OVERLAP_SIZE);
+	TX_BEGIN(pop) {
+		TX_XADD_FIELD(obj, data[1], POBJ_XADD_NO_SNAPSHOT);
+		D_RW(obj)->data[1] = 1;
+		tmp[1] = 1;
+
+		TX_ADD_FIELD(obj, data[3]);
+		D_RW(obj)->data[3] = 3;
+
+		TX_XADD_FIELD(obj, data[5], POBJ_XADD_NO_SNAPSHOT);
+		D_RW(obj)->data[5] = 5;
+		tmp[5] = 5;
+
+		TX_ADD_FIELD(obj, data[7]);
+		D_RW(obj)->data[7] = 7;
+
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(memcmp(D_RW(obj)->data, tmp, OVERLAP_SIZE), 0);
 }
 
 /*
@@ -681,7 +772,13 @@ main(int argc, char *argv[])
 		VALGRIND_WRITE_STATS;
 		do_tx_add_range_zero(pop);
 		VALGRIND_WRITE_STATS;
-		do_tx_xadd_range_commit(pop);
+		do_tx_xadd_range_no_snapshot_commit(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_xadd_range_no_snapshot_abort(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_xadd_range_no_snapshot_overlapping(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_xadd_range_no_flush_commit(pop);
 		pmemobj_close(pop);
 	}
 
