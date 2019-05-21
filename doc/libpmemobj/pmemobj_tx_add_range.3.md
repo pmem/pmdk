@@ -103,6 +103,10 @@ The **pmemobj_tx_xadd_range**() function behaves exactly the same as
 + **POBJ_XADD_NO_FLUSH** - skip flush on commit
 when application deals with flushing or uses pmemobj_memcpy_persist)
 
++ **POBJ_XADD_NO_SNAPSHOT** - added range will not be "snapshotted", i.e. any
+changes made within it during the transaction will not be rolled backed after
+abort
+
 **pmemobj_tx_add_range_direct**() behaves the same as
 **pmemobj_tx_add_range**() with the exception that it operates on virtual
 memory addresses and not persistent memory objects. It takes a "snapshot" of
