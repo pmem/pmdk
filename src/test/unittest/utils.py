@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-"""Set of basic functions available to use in all test cases"""
+"""Utilities for tests"""
 
 
 # .so file names

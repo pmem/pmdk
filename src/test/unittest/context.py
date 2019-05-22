@@ -38,7 +38,7 @@ import itertools
 import shutil
 import subprocess as sp
 
-import helpers as hlp
+import futils
 from poolset import _Poolset
 import tools
 from utils import KiB, MiB, GiB, TiB
@@ -74,7 +74,7 @@ class ContextBase:
         self.build = kwargs['build']
         self.fs = kwargs['fs']
         self.valgrind = kwargs['valgrind']
-        self.msg = hlp.Message(conf)
+        self.msg = futils.Message(conf)
 
     def dump_n_lines(self, file, n=None):
         """
@@ -98,30 +98,30 @@ class ContextBase:
                 print(line, end='')
         else:
             with open(file.name, 'br') as byte_file:
-                byte_file.seek(file_size - 10 * hlp.KiB)
+                byte_file.seek(file_size - 10 * KiB)
                 print(byte_file.read().decode('iso_8859_1'))
 
     def is_devdax(self, path):
         """Checks if given path points to device dax"""
         proc = tools.pmemdetect(self, '-d', path)
         if proc.returncode == tools.PMEMDETECT_ERROR:
-            hlp.fail(proc.stdout)
+            futils.fail(proc.stdout)
         if proc.returncode == tools.PMEMDETECT_TRUE:
             return True
         if proc.returncode == tools.PMEMDETECT_FALSE:
             return False
-        hlp.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+        futils.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
 
     def supports_map_sync(self, path):
         """Checks if MAP_SYNC is supported on a filesystem from given path"""
         proc = tools.pmemdetect(self, '-s', path)
         if proc.returncode == tools.PMEMDETECT_ERROR:
-            hlp.fail(proc.stdout)
+            futils.fail(proc.stdout)
         if proc.returncode == tools.PMEMDETECT_TRUE:
             return True
         if proc.returncode == tools.PMEMDETECT_FALSE:
             return False
-        hlp.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+        futils.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
 
     def get_size(self, path):
         """
@@ -131,7 +131,7 @@ class ContextBase:
         proc = tools.pmemdetect(self, '-z', path)
         if int(proc.stdout) != 2**64 - 1:
             return int(proc.stdout)
-        hlp.fail('Could not get size of the file, it is inaccessible or does not exist')
+        futils.fail('Could not get size of the file, it is inaccessible or does not exist')
 
     def get_free_space(self):
         """Returns free space for current file system"""
@@ -231,7 +231,7 @@ class Context(ContextBase):
             self.test.fail(proc.stdout)
 
         if proc.returncode != expected_exit:
-            hlp.fail(proc.stdout, exit_code=proc.returncode)
+            futils.fail(proc.stdout, exit_code=proc.returncode)
         else:
             self.msg.print_verbose(proc.stdout)
 
@@ -285,8 +285,8 @@ class Debug(_Build):
 
     def __init__(self, conf):
         if sys.platform == 'win32':
-            self.exedir = hlp.WIN_DEBUG_EXEDIR
-        self.libdir = hlp.DEBUG_LIBDIR
+            self.exedir = futils.WIN_DEBUG_EXEDIR
+        self.libdir = futils.DEBUG_LIBDIR
 
 
 class Release(_Build):
@@ -295,8 +295,8 @@ class Release(_Build):
 
     def __init__(self, conf):
         if sys.platform == 'win32':
-            self.exedir = hlp.WIN_RELEASE_EXEDIR
-        self.libdir = hlp.RELEASE_LIBDIR
+            self.exedir = futils.WIN_RELEASE_EXEDIR
+        self.libdir = futils.RELEASE_LIBDIR
 
 
 # Build types not available on Windows
@@ -306,14 +306,14 @@ if sys.platform != 'win32':
 
         def __init__(self, conf):
             self.exesuffix = '.static-debug'
-            self.libdir = hlp.DEBUG_LIBDIR
+            self.libdir = futils.DEBUG_LIBDIR
 
     class Static_Release(_Build):
         """Sets the context for static_release build"""
 
         def __init__(self, conf):
             self.exesuffix = '.static-nondebug'
-            self.libdir = hlp.RELEASE_LIBDIR
+            self.libdir = futils.RELEASE_LIBDIR
 
 
 class _Fs(metaclass=_CtxType):
