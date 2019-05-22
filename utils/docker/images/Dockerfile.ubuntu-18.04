@@ -39,21 +39,20 @@ FROM ubuntu:18.04
 MAINTAINER marcin.slusarz@intel.com
 # Update the Apt cache and install basic tools
 RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 	asciidoc \
 	asciidoctor \
 	autoconf \
 	bash-completion \
 	bc \
+	build-essential \
 	clang \
 	clang-format \
-	cmake \
 	debhelper \
 	devscripts \
+	fakeroot \
 	flake8 \
-	gcc \
 	gcc-6 \
-	g++ \
 	g++-6 \
 	gdb \
 	git \
@@ -66,14 +65,18 @@ RUN apt-get update \
 	libncurses5-dev \
 	libtool \
 	libudev-dev \
-	libunwind8-dev \
+	libunwind-dev \
 	libuv1-dev \
 	pandoc \
 	pkg-config \
 	ruby \
 	ssh \
+	strace \
 	sudo \
+	systemd \
+	unzip \
 	uuid-dev \
+	wget \
 	whois \
  && rm -rf /var/lib/apt/lists/*
 

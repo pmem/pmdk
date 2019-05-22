@@ -48,7 +48,6 @@ RUN dnf update -y \
 	bash-completion \
 	bc \
 	clang \
-	cmake \
 	file \
 	findutils \
 	fuse \
