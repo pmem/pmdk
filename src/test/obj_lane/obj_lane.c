@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -296,6 +296,21 @@ test_lane_cleanup_in_separate_thread(void)
 }
 
 static void
+test_fault_injection()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "lane_boot");
+
+	struct mock_pop *pop = MALLOC(sizeof(struct mock_pop));
+	pop->p.p_ops.base = pop;
+
+	int ret = lane_boot(&pop->p);
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
 usage(const char *app)
 {
 	UT_FATAL("usage: %s [scenario: s/m]", app);
@@ -322,6 +337,10 @@ main(int argc, char *argv[])
 		/* multithreaded scenarios */
 		test_lane_info_destroy_in_separate_thread();
 		test_lane_cleanup_in_separate_thread();
+		break;
+	case 'f':
+		/* fault injection */
+		test_fault_injection();
 		break;
 	default:
 		usage(argv[0]);
