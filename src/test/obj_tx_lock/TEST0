@@ -45,6 +45,8 @@ configure_valgrind drd force-disable
 
 setup
 
-expect_normal_exit ./obj_tx_lock$EXESUFFIX $DIR/testfile1 l n a
+expect_normal_exit ./obj_tx_lock$EXESUFFIX $DIR/testfile1 f
+
+expect_normal_exit ./obj_tx_lock$EXESUFFIX $DIR/testfile2 l n a
 
 pass
