@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,6 +34,7 @@
  * obj_tx_flow.c -- unit test for transaction flow
  */
 #include "unittest.h"
+#include "obj.h"
 
 #define LAYOUT_NAME "direct"
 
@@ -256,16 +257,27 @@ do_tx_process_nested(PMEMobjpool *pop)
 	UT_ASSERT(pmemobj_tx_stage() == TX_STAGE_NONE);
 }
 
+static void
+do_fault_injection(PMEMobjpool *pop)
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "pmemobj_tx_begin");
+	int ret = pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_tx_flow");
 
-	if (argc != 2)
+	if (argc != 3)
 		UT_FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
-	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
+	if ((pop = pmemobj_create(argv[2], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 	    S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 
@@ -282,8 +294,17 @@ main(int argc, char *argv[])
 		UT_ASSERT(D_RO(obj)->b == TEST_VALUE_B);
 		UT_ASSERT(D_RO(obj)->c == TEST_VALUE_C);
 	}
-	do_tx_process(pop);
-	do_tx_process_nested(pop);
+	switch (argv[1][0]) {
+	case 't':
+		do_tx_process(pop);
+		do_tx_process_nested(pop);
+		break;
+	case 'f':
+		do_fault_injection(pop);
+		break;
+	default:
+		UT_FATAL("usage: %s [t|f]", argv[0]);
+	}
 	pmemobj_close(pop);
 
 	DONE(NULL);
