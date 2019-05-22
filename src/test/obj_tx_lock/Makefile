@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,6 @@
 TARGET = obj_tx_lock
 OBJS = obj_tx_lock.o
 
-LIBPMEM=y
-LIBPMEMOBJ=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
