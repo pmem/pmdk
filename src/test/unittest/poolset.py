@@ -36,7 +36,7 @@ from enum import Enum, unique
 import sys
 import os
 
-import helpers as hlp
+import futils
 from utils import KiB, MiB, GiB, TiB
 
 POOL_MIN_SIZE = 8 * MiB
@@ -95,7 +95,7 @@ class _Poolset:
         if not self.parts:
             self.parts = list(parts)
         else:
-            hlp.fail('This function should not be called more than once.')
+            futils.fail('This function should not be called more than once.')
 
     def add_replica(self, *parts):
         """
@@ -135,7 +135,7 @@ class _Poolset:
         required_size = self._get_required_size()
         free_space = ctx.get_free_space()
         if required_size > free_space:
-            hlp.fail('Not enough space available to create parts files. There is '
+            futils.fail('Not enough space available to create parts files. There is '
                  '{}, and poolset requires {}'.format(free_space,
                                                       required_size))
 
@@ -176,13 +176,13 @@ class _Poolset:
         for part in self.parts:
             size += part.size
         if size < POOL_MIN_SIZE:
-            hlp.fail('The pool has to have at least 8 MiB')
+            futils.fail('The pool has to have at least 8 MiB')
         for replica in self.replicas:
             size = 0
             for part in replica:
                 size += part.size
             if size < POOL_MIN_SIZE:
-                hlp.fail('The pool has to have at least 8 MiB')
+                futils.fail('The pool has to have at least 8 MiB')
 
     def _get_required_size(self):
         """
@@ -206,7 +206,7 @@ class _Part:
 
     def __init__(self, path, size):
         if size < PART_MIN_SIZE:
-            hlp.fail('The part should have at least 2 MiB')
+            futils.fail('The part should have at least 2 MiB')
         self.size = size
         self.path = path
 
@@ -276,7 +276,7 @@ class DDax(_Part):
 
     def __init__(self, ctx, path):
         if not ctx.is_devdax(path):
-            hlp.fail('Part with path "{}" does not point to dax device'
+            futils.fail('Part with path "{}" does not point to dax device'
                  ''.format(path))
         _Part.__init__(self, path, ctx.get_size(path))
 

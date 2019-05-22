@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-"""Helper variables, functions and classes"""
+"""Test framework utililties"""
 
 from os.path import join, abspath, dirname
 import sys

@@ -37,7 +37,7 @@ import os
 import sys
 import subprocess as sp
 
-import helpers as hlp
+import futils
 
 try:
     import envconfig
@@ -63,7 +63,7 @@ def pmemdetect(ctx, *args):
             ctx.build.libdir + os.pathsep +\
             env.get('LD_LIBRARY_PATH', '')
 
-    exe = hlp.get_test_tool_path(ctx, 'pmemdetect')
+    exe = futils.get_test_tool_path(ctx, 'pmemdetect')
 
     return sp.run([exe, *args], env=env, stdout=sp.PIPE,
                   stderr=sp.STDOUT, universal_newlines=True)
