@@ -112,7 +112,9 @@ by all **rpmem_flush**() functions called before it and using the same *lane*.
 The last **rpmem_flush**() + **rpmem_drain**() can be replaced with
 **rpmem_persist**() at no cost.
 
-The *flags* argument for **rpmem_flush**() and **rpmem_drain**() must be 0.
+The *flags* argument for **rpmem_flush**() can be 0 or RPMEM_FLUSH_RELAXED
+which means the flush operation will be done without any guarantees regarding
+atomicity of memory transfer. The *flags* argument for **rpmem_drain**() must be 0.
 
 The **rpmem_flush**() function performance is affected by **RPMEM_WORK_QUEUE_SIZE**
 environment variable (see **librpmem**(7) for more details).
