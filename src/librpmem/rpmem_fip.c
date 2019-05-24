@@ -82,7 +82,7 @@
 #define RPMEM_RAW_SIZE 8
 
 typedef ssize_t (*rpmem_fip_flush_fn)(struct rpmem_fip *fip, size_t offset,
-		size_t len, unsigned lane);
+		size_t len, unsigned lane, unsigned flags);
 
 typedef int (*rpmem_fip_drain_fn)(struct rpmem_fip *fip, unsigned lane);
 
@@ -1244,7 +1244,7 @@ rpmem_fip_persist_saw(struct rpmem_fip *fip, size_t offset,
 
 	/* SEND persist message */
 	msg = rpmem_fip_msg_get_pmsg(&lanep->send);
-	msg->flags = (flags & RPMEM_PERSIST_MASK);
+	msg->flags = (flags & RPMEM_FLUSH_PERSIST_MASK);
 	msg->lane = lane;
 	msg->addr = raddr;
 	msg->size = len;
@@ -1336,9 +1336,9 @@ static ssize_t
 rpmem_fip_persist_gpspm_sockets(struct rpmem_fip *fip, size_t offset,
 	size_t len, unsigned lane, unsigned flags)
 {
-	unsigned mode = flags & RPMEM_PERSIST_MASK;
+	unsigned mode = flags & RPMEM_FLUSH_PERSIST_MASK;
 	if (mode == RPMEM_PERSIST_SEND)
-		flags = (flags & ~RPMEM_PERSIST_MASK) | RPMEM_PERSIST_WRITE;
+		flags = (flags & ~RPMEM_FLUSH_PERSIST_MASK) | RPMEM_FLUSH_WRITE;
 
 	int ret = rpmem_fip_wq_flush_check(fip, &fip->lanes[lane], &flags);
 	if (unlikely(ret))
@@ -1390,7 +1390,7 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 {
 	/* Limit len to the max value of the return type. */
 	len = min(len, SSIZE_MAX);
-	unsigned mode = flags & RPMEM_PERSIST_MASK;
+	unsigned mode = flags & RPMEM_FLUSH_PERSIST_MASK;
 
 	int ret = rpmem_fip_wq_flush_check(fip, &fip->lanes[lane], &flags);
 	if (unlikely(ret))
@@ -1416,12 +1416,11 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
  */
 static ssize_t
 rpmem_fip_flush_gpspm(struct rpmem_fip *fip, size_t offset,
-	size_t len, unsigned lane)
+	size_t len, unsigned lane, unsigned flags)
 {
 	/* Limit len to the max value of the return type. */
 	len = min(len, SSIZE_MAX);
 
-	unsigned flags = 0;
 	int ret = rpmem_fip_wq_flush_check(fip, &fip->lanes[lane], &flags);
 	if (unlikely(ret))
 		return -abs(ret);
@@ -1457,20 +1456,30 @@ rpmem_fip_drain_nop(struct rpmem_fip *fip, unsigned lane)
  */
 static ssize_t
 rpmem_fip_flush_apm(struct rpmem_fip *fip, size_t offset,
-	size_t len, unsigned lane)
+	size_t len, unsigned lane, unsigned flags)
 {
 	struct rpmem_fip_plane *lanep = &fip->lanes[lane];
 	int ret;
 
 	/* Limit len to the max value of the return type. */
 	len = min(len, SSIZE_MAX);
+	unsigned mode = flags & RPMEM_FLUSH_PERSIST_MASK;
 
-	unsigned flags = 0;
 	ret = rpmem_fip_wq_flush_check(fip, lanep, &flags);
 	if (unlikely(ret))
 		return ret;
 
-	ret = rpmem_fip_flush_raw(fip, offset, len, lane, flags);
+	if (mode == RPMEM_PERSIST_SEND) {
+		/*
+		 * XXX: Probably posting Send in the flush and waiting for the
+		 * response in the drain will give some performance gains.
+		 */
+		len = min(len, fip->buff_size);
+		ret = rpmem_fip_persist_send(fip, offset, len, lane, flags);
+	} else {
+		ret = rpmem_fip_flush_raw(fip, offset, len, lane, flags);
+	}
+
 	if (ret)
 		return -abs(ret);
 
@@ -1511,7 +1520,7 @@ rpmem_fip_persist_apm(struct rpmem_fip *fip, size_t offset,
 {
 	/* Limit len to the max value of the return type. */
 	len = min(len, SSIZE_MAX);
-	unsigned mode = flags & RPMEM_PERSIST_MASK;
+	unsigned mode = flags & RPMEM_FLUSH_PERSIST_MASK;
 
 	int ret = rpmem_fip_wq_flush_check(fip, &fip->lanes[lane], &flags);
 	if (unlikely(ret))
@@ -1750,8 +1759,11 @@ close_monitor:
  */
 int
 rpmem_fip_flush(struct rpmem_fip *fip, size_t offset, size_t len,
-	unsigned lane)
+	unsigned lane, unsigned flags)
 {
+	RPMEM_ASSERT((flags & RPMEM_FLUSH_PERSIST_MASK) <= RPMEM_PERSIST_MAX);
+	RPMEM_ASSERT(flags != RPMEM_DEEP_PERSIST);
+
 	if (unlikely(rpmem_fip_is_closing(fip)))
 		return ECONNRESET; /* it will be passed to errno */
 
@@ -1769,7 +1781,7 @@ rpmem_fip_flush(struct rpmem_fip *fip, size_t offset, size_t len,
 	while (len > 0) {
 		size_t tmplen = min(len, fip->fi->ep_attr->max_msg_size);
 
-		ssize_t r = fip->ops->flush(fip, offset, tmplen, lane);
+		ssize_t r = fip->ops->flush(fip, offset, tmplen, lane, flags);
 		if (r < 0) {
 			RPMEM_LOG(ERR, "flush operation failed");
 			ret = (int)r;
@@ -1816,7 +1828,7 @@ int
 rpmem_fip_persist(struct rpmem_fip *fip, size_t offset, size_t len,
 	unsigned lane, unsigned flags)
 {
-	RPMEM_ASSERT((flags & RPMEM_PERSIST_MASK) <= RPMEM_PERSIST_MAX);
+	RPMEM_ASSERT((flags & RPMEM_FLUSH_PERSIST_MASK) <= RPMEM_PERSIST_MAX);
 
 	if (unlikely(rpmem_fip_is_closing(fip)))
 		return ECONNRESET; /* it will be passed to errno */
