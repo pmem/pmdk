@@ -216,7 +216,9 @@ class Valgrind:
         # remove ignored warnings from log file
         with open(self.log_file, 'r+') as f:
             no_ignored = [l for l in f if not any(w in l for w in _IGNORED)]
+            f.seek(0)
             f.writelines(no_ignored)
+            f.truncate()
 
         if path.isfile(self.log_file + '.match'):
             # if there is a Valgrind log match file, do nothing - log file
