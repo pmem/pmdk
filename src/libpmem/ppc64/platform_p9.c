@@ -36,70 +36,70 @@
 #include "out.h"
 #include "pmem.h"
 #include "cpuinfo.h"
+#include "ppc64_ops.h"
 
-/* Holds current cpu context */
-static struct cpu_info cpuinfo;
-
-const struct ppc_platform *ppc_platforms[MAX_PPC_PLATFORMS] = { 0 };
-
-/*
- * Probe for valid ppc platforms via the 'ppc_platforms' array and perform its
- * initialization.
- */
-void
-pmem_init_funcs(struct pmem_funcs *funcs)
+static void ppc_predrain_fence(void)
 {
-	int index, ret;
-	/* platform that was probed */
-	const struct ppc_platform *platform = NULL;
-
-	LOG(3, "libpmem: PPC64 support");
-	LOG(3, "PMDK PPC64 support currently is for testing only");
-	LOG(3, "Please dont use this library in production environment");
-
-	LOG(3, "Detecting Platform");
-	ppc_populate_cpu_info(&cpuinfo);
-
+	LOG(15, NULL);
 	/*
-	 * Iterate over the list of supported ppc platforms and check if any of
-	 * them are supported.
+	 * Force a memory barrier to flush out all cache lines
 	 */
-	LOG(3, "Checking Platform");
-	for (index = 0; index < MAX_PPC_PLATFORMS; ++index) {
-		const struct ppc_platform *p = ppc_platforms[index];
+	asm volatile(
+		"lwsync"
+		: : : "memory");
+}
 
-		if (p == NULL)
-			continue;
+static void ppc_flush(const void *addr, size_t size)
+{
+	LOG(15, "addr %p len %zu", addr, size);
+	uintptr_t uptr = (uintptr_t)addr;
+	uintptr_t end = uptr + size;
 
-		LOG(3, "Probing: %s", p->name);
+	/* round down the address */
+	uptr &= ~(ppc_cpuinfo->d_cache_block_size - 1);
+	while (uptr < end) {
+		/* issue a dcbst instruction for the cache line */
+		asm volatile(
+			"dcbst 0,%0"
+			: :"r"(uptr) : "memory");
 
-		/* check if the probe/init functions are in place */
-		if (p->platform_probe == NULL ||
-		    p->platform_init == NULL)
-			continue;
-		ret = p->platform_probe(&cpuinfo);
-		if (ret) {
-			if (errno != EINVAL)
-				ERR("Unable to probe %s. Error=%d",
-				    p->name, errno);
-			continue;
-		}
+		uptr += ppc_cpuinfo->d_cache_block_size;
+	}
+}
 
-		/* Assign to most recently probed platform */
-		platform = p;
+const static struct pmem_funcs ppc_p9_pmem_funcs = {
+	.predrain_fence = ppc_predrain_fence,
+	.flush = ppc_flush,
+	.deep_flush = ppc_flush,
+
+	/* Use generic functions for rest of the callbacks */
+	.is_pmem = is_pmem_detect,
+	.memmove_nodrain = memmove_nodrain_generic,
+	.memset_nodrain = memset_nodrain_generic,
+};
+
+static int platform_init(struct pmem_funcs *funcs)
+{
+	LOG(3, "Initializing Power-9 Platform");
+
+	*funcs = ppc_p9_pmem_funcs;
+	return 0;
+}
+
+static int platform_probe(const struct cpu_info *cpuinfo)
+{
+	/* check the PVR for power9 */
+	if (PVR_VER(cpuinfo->pvr) == PVR_POWER9) {
+		LOG(3, "Detected Power-9 Platform");
+		errno = 0;
+	} else {
+		errno = EINVAL;
 	}
 
-	if (platform == NULL)
-		FATAL("Unable to find any valid platform");
-
-	/* initialize the global cpu pointer */
-	ppc_cpuinfo = &cpuinfo;
-
-	/* Init platform and to initilize the pmem funcs */
-	ret = platform->platform_init(funcs);
-	if (ret)
-		FATAL("Unable to init platform %s. Error=%d",
-			platform->name, errno);
-
-	LOG(3, "Probed platform '%s'.", platform->name);
+	return errno ? -1 : 0;
 }
+
+/* Define the platform */
+PPC_DEFINE_PLATFORM("POWER9",
+		    &platform_probe,
+		    &platform_init);
