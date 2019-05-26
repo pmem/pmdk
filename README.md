@@ -35,27 +35,27 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 
 ## Libraries and Utilities
 Available Libraries:
-- [​libpmem](http://pmem.io/pmdk/libpmem/):  provides low level persistent memory support
+- [libpmem](http://pmem.io/pmdk/libpmem/):  provides low level persistent memory support
 
-- [​libpmemobj](http://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
+- [libpmemobj](http://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
 
-- [​libpmemblk](http://pmem.io/pmdk/libpmemblk/):  supports arrays of pmem-resident blocks, all the same size, that are atomically updated.
+- [libpmemblk](http://pmem.io/pmdk/libpmemblk/):  supports arrays of pmem-resident blocks, all the same size, that are atomically updated.
 
-- [​libpmemlog](http://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file.
+- [libpmemlog](http://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file.
 
-- [​libvmem](http://pmem.io/pmdk/libvmem/):  turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API.
+- [libvmem](http://pmem.io/pmdk/libvmem/):  turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API.
 
-- [​libvmmalloc](http://pmem.io/pmdk/libvmmalloc/)<sup>1</sup>:  transparently converts all the dynamic memory allocations into persistent memory allocations.
+- [libvmmalloc](http://pmem.io/pmdk/libvmmalloc/)<sup>1</sup>:  transparently converts all the dynamic memory allocations into persistent memory allocations.
 
 - [libpmempool](http://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
 
-- [​librpmem](http://pmem.io/pmdk/librpmem/)<sup>1</sup>:  provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs.
+- [librpmem](http://pmem.io/pmdk/librpmem/)<sup>1</sup>:  provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs.
 
 Available Utilities:
 
-- [​pmempool](http://pmem.io/pmdk/pmempool/): Manage and analyze persistent memory pools with this stand-alone utility
+- [pmempool](http://pmem.io/pmdk/pmempool/): Manage and analyze persistent memory pools with this stand-alone utility
 
-- [​pmemcheck](http://pmem.io/2015/07/17/pmemcheck-basic.html): Use dynamic runtime analysis with an enhanced version of Valgrind for use with persistent memory.
+- [pmemcheck](http://pmem.io/2015/07/17/pmemcheck-basic.html): Use dynamic runtime analysis with an enhanced version of Valgrind for use with persistent memory.
 
 Currently these libraries only work on 64-bit Linux, Windows<sup>2</sup>, and 64-bit FreeBSD 11+<sup>3</sup>.
 For information on how these libraries are licensed, see our [LICENSE](LICENSE) file.
