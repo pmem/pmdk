@@ -29,27 +29,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#include "platform_generic.h"
 
 #include <libpmem.h>
 #include <errno.h>
 
+#include "util.h"
 #include "out.h"
 #include "pmem.h"
-#include "platform_generic.h"
 
-/*
- * Probe for valid ppc platforms via the 'ppc_platforms' array and perform its
- * initialization.
- */
-void
-pmem_init_funcs(struct pmem_funcs *funcs)
+static void
+ppc_predrain_fence(void)
 {
+	/*
+	 * Force a memory barrier to flush out all cache lines
+	 */
+	asm volatile(
+		"lwsync"
+		: : : "memory");
+}
 
-	LOG(3, "libpmem: PPC64 support");
-	LOG(3, "PMDK PPC64 support currently is for testing only");
-	LOG(3, "Please dont use this library in production environment");
+static void
+ppc_flush(const void *addr, size_t size)
+{
+	uintptr_t uptr = (uintptr_t)addr;
+	uintptr_t end = uptr + size;
 
-	/* Init platform and to initilize the pmem funcs */
-	if (platform_init(funcs))
-		FATAL("Unable to init platform");
+	/* round down the address */
+	uptr &= ~(CACHELINE_SIZE - 1);
+	while (uptr < end) {
+		/* issue a dcbst instruction for the cache line */
+		asm volatile(
+			"dcbst 0,%0"
+			: :"r"(uptr) : "memory");
+
+		uptr += CACHELINE_SIZE;
+	}
+}
+
+const static struct pmem_funcs ppc_pmem_funcs = {
+	.predrain_fence = ppc_predrain_fence,
+	.flush = ppc_flush,
+	.deep_flush = ppc_flush,
+
+	/* Use generic functions for rest of the callbacks */
+	.is_pmem = is_pmem_detect,
+	.memmove_nodrain = memmove_nodrain_generic,
+	.memset_nodrain = memset_nodrain_generic,
+};
+
+int
+platform_init(struct pmem_funcs *funcs)
+{
+	LOG(3, "Initializing Platform");
+
+	*funcs = ppc_pmem_funcs;
+	return 0;
 }
