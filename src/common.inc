@@ -95,7 +95,7 @@ endif
 ifeq ($(ARCH),arm64)
 override ARCH := aarch64
 endif
-ifneq ($(filter $(ARCH), powerpc64 powerpc64le ppc64 ppc64le),)
+ifneq ($(filter $(ARCH), powerpc64 powerpc64le ppc64 ppc64le powerpc),)
 override ARCH := ppc64
 endif
 
