@@ -29,27 +29,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef __PPC64__PLATFORM_GENERIC_H__
+#define __PPC64__PLATFORM_GENERIC_H__
 
-#include <libpmem.h>
-#include <errno.h>
-
-#include "out.h"
 #include "pmem.h"
-#include "platform_generic.h"
 
-/*
- * Probe for valid ppc platforms via the 'ppc_platforms' array and perform its
- * initialization.
- */
-void
-pmem_init_funcs(struct pmem_funcs *funcs)
-{
+int platform_init(struct pmem_funcs *funcs);
 
-	LOG(3, "libpmem: PPC64 support");
-	LOG(3, "PMDK PPC64 support currently is for testing only");
-	LOG(3, "Please dont use this library in production environment");
-
-	/* Init platform and to initilize the pmem funcs */
-	if (platform_init(funcs))
-		FATAL("Unable to init platform");
-}
+#endif  /* __PPC64__PLATFORM_GENERIC_H__ */
