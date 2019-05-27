@@ -35,24 +35,33 @@
 # Used to check whether all the commit messages in a pull request
 # follow the GIT/PMDK guidelines.
 #
-# usage: ./check-commit.sh
+# usage: ./check-commit.sh [commit]...
 #
 
-if [[ "$TRAVIS_REPO_SLUG" != "$GITHUB_REPO" \
-	|| $TRAVIS_EVENT_TYPE != "pull_request" ]];
-then
-	echo "SKIP: $0 can only be executed for pull requests to $GITHUB_REPO"
-	exit 0
-fi
+if [ -z "$1" ]; then
+	if [ -z "$TRAVIS_REPO_SLUG" -o -z "$GITHUB_REPO" -o -z "$TRAVIS_EVENT_TYPE" ]; then
+		echo "Usage: $0 [commit]..."
+		exit 1
+	fi
 
-# Find all the commits for the current build
-if [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
-	MERGE_BASE=$(echo $TRAVIS_COMMIT_RANGE | cut -d. -f1)
-	[ -z $MERGE_BASE ] && \
-		MERGE_BASE=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
-	commits=$(git log --pretty=%H $MERGE_BASE..$TRAVIS_COMMIT)
+	if [[ "$TRAVIS_REPO_SLUG" != "$GITHUB_REPO" \
+		|| $TRAVIS_EVENT_TYPE != "pull_request" ]];
+	then
+		echo "SKIP: $0 can only be executed for pull requests to $GITHUB_REPO"
+		exit 0
+	fi
+
+	# Find all the commits for the current build
+	if [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
+		MERGE_BASE=$(echo $TRAVIS_COMMIT_RANGE | cut -d. -f1)
+		[ -z $MERGE_BASE ] && \
+			MERGE_BASE=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
+		commits=$(git log --pretty=%H $MERGE_BASE..$TRAVIS_COMMIT)
+	else
+		commits=$TRAVIS_COMMIT
+	fi
 else
-	commits=$TRAVIS_COMMIT
+	commits="$*"
 fi
 
 # valid area names
@@ -71,7 +80,7 @@ for commit in $commits; do
 	if [ "$prefix" = "" ]; then
 		echo "FAIL: subject line in commit message does not contain valid area name"
 		echo
-		./utils/check-area.sh $commit
+		`dirname $0`/check-area.sh $commit
 		exit 1
 	fi
 
