@@ -84,7 +84,7 @@ categorize common    -e "^src/common/" \
 			-e ".gitattributes" \
 			-e ".gitignore" \
 			-e "^.mailmap\$" \
-			-e "^src/PMDK.sln\$" \
+			-e "^src/VMEM.sln\$" \
 			-e "Makefile\$" \
 			-e "^src/freebsd/" \
 			-e "^src/windows/" \

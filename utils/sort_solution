@@ -80,7 +80,7 @@ my $arg = $ARGV[0];
 if($arg ne "check" && $arg ne "sort") {
 	help;
 }
-my $filename = dirname(abs_path($0)).'/../src/PMDK.sln';
+my $filename = dirname(abs_path($0)).'/../src/VMEM.sln';
 my $tempfile = dirname(abs_path($0)).'/../src/temp.sln';
 
 open(my $temp_fh, '>', $tempfile)
@@ -145,7 +145,7 @@ if($arg eq "check") {
 		exit;
 	}
 
-	print "PMDK solution file is not sorted, " .
+	print "VMEM solution file is not sorted, " .
 		"please use sort_solution script before pushing your changes\n";
 	unlink $tempfile;
 	exit 1;
