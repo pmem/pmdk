@@ -128,19 +128,14 @@ util_is_zeroed(const void *addr, size_t len)
 }
 
 /*
- * util_checksum -- compute Fletcher64 checksum
+ * util_count_checksum -- compute Fletcher64 checksum
  *
  * csump points to where the checksum lives, so that location
  * is treated as zeros while calculating the checksum. The
  * checksummed data is assumed to be in little endian order.
- * If insert is true, the calculated checksum is inserted into
- * the range at *csump.  Otherwise the calculated checksum is
- * checked against *csump and the result returned (true means
- * the range checksummed correctly).
  */
-int
-util_checksum(void *addr, size_t len, uint64_t *csump,
-	int insert, size_t skip_off)
+uint64_t
+util_count_checksum(void *addr, size_t len, uint64_t *csump, size_t skip_off)
 {
 	if (len % 4 != 0)
 		abort();
@@ -171,7 +166,24 @@ util_checksum(void *addr, size_t len, uint64_t *csump,
 			hi32 += lo32;
 		}
 
-	csum = (uint64_t)hi32 << 32 | lo32;
+	return csum = (uint64_t)hi32 << 32 | lo32;
+}
+
+/*
+ * util_checksum -- compute Fletcher64 checksum
+ *
+ * If insert is true, the calculated checksum is inserted into
+ * the range at *csump.  Otherwise the calculated checksum is
+ * checked against *csump and the result returned (true means
+ * the range checksummed correctly).
+ */
+int
+util_checksum(void *addr, size_t len, uint64_t *csump,
+	int insert, size_t skip_off)
+{
+	uint64_t csum;
+
+	csum = util_count_checksum(addr, len, csump, skip_off);
 
 	if (insert) {
 		*csump = htole64(csum);
