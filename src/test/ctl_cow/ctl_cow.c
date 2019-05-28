@@ -38,6 +38,7 @@
 #include <stddef.h>
 #include "unittest.h"
 #include <string.h>
+#include "blk.h"
 
 struct test_st {
 	int x;
@@ -117,6 +118,46 @@ test_blk(const char *path)
 }
 
 static void
+test_fault_rtt(const char *path)
+{
+	if (!pmemblk_fault_injection_enabled())
+		return;
+
+	PMEMblkpool *pbp = pmemblk_open(path, 512);
+	if (pbp == NULL)
+		UT_FATAL("!cannot open %s", path);
+
+	pmemblk_inject_fault_at(PMEM_MALLOC, 1, "build_rtt");
+
+	char x[512] = "Test blk x";
+	int ret = pmemblk_write(pbp, &x, 1);
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+
+	pmemblk_close(pbp);
+}
+
+static void
+test_fault_map(const char *path)
+{
+	if (!pmemblk_fault_injection_enabled())
+		return;
+
+	PMEMblkpool *pbp = pmemblk_open(path, 512);
+	if (pbp == NULL)
+		UT_FATAL("!cannot open %s", path);
+
+	pmemblk_inject_fault_at(PMEM_MALLOC, 1, "build_map_locks");
+
+	char x[512] = "Test blk x";
+	int ret = pmemblk_write(pbp, &x, 1);
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+
+	pmemblk_close(pbp);
+}
+
+static void
 test_log(const char *path)
 {
 	PMEMlogpool *plp = pmemlog_open(path);
@@ -169,6 +210,12 @@ main(int argc, char *argv[])
 
 	} else if (strcmp(action, "dax") == 0) {
 		test_dax(path);
+
+	} else if (strcmp(action, "rtt") == 0) {
+		test_fault_rtt(path);
+
+	} else if (strcmp(action, "map") == 0) {
+		test_fault_map(path);
 
 	} else {
 		UT_FATAL("%s is not a valid action", action);
