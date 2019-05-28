@@ -75,7 +75,7 @@ extern unsigned long long Mmap_align;
 
 void util_init(void);
 int util_is_zeroed(const void *addr, size_t len);
-uint64_t util_count_checksum(void *addr, size_t len, uint64_t *csump,
+uint64_t util_checksum_compute(void *addr, size_t len, uint64_t *csump,
 		size_t skip_off);
 int util_checksum(void *addr, size_t len, uint64_t *csump,
 		int insert, size_t skip_off);
