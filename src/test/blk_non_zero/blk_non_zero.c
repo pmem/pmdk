@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,12 +31,13 @@
  */
 
 /*
- * blk_non_zero.c -- unit test for pmemblk_read/write/set_zero/set_error
+ * blk_non_zero.c -- unit test for pmemblk_read/write/set_zero/
+ * set_error/inject_fault
  *
  * usage: blk_non_zero bsize file func operation:lba...
  *
  * func is 'c' or 'o' (create or open)
- * operations are 'r' or 'w' or 'z' or 'e'
+ * operations are 'r' or 'w' or 'z' or 'e' or 't' ot 'm'
  *
  */
 #define _GNU_SOURCE
@@ -153,9 +154,9 @@ main(int argc, char *argv[])
 
 	/* map each file argument with the given map type */
 	for (; read_arg < argc; read_arg++) {
-		if (strchr("rwze", argv[read_arg][0]) == NULL ||
+		if (strchr("rwzetm", argv[read_arg][0]) == NULL ||
 				argv[read_arg][1] != ':')
-			UT_FATAL("op must be r: or w: or z: or e:");
+			UT_FATAL("op must be r: or w: or z: or e: or t: or m:");
 		os_off_t lba = STRTOL(&argv[read_arg][2], NULL, 0);
 
 		switch (argv[read_arg][0]) {
@@ -188,6 +189,26 @@ main(int argc, char *argv[])
 				UT_OUT("!set_error lba %zu", lba);
 			else
 				UT_OUT("set_error lba %zu", lba);
+			break;
+
+		case 't':
+			if (!pmemblk_fault_injection_enabled())
+				break;
+
+			pmemblk_inject_fault_at(PMEM_MALLOC, 1, "build_rtt");
+			int ret = pmemblk_set_error(handle, lba);
+			UT_ASSERTne(ret, 0);
+			UT_ASSERTeq(errno, ENOMEM);
+			break;
+		case 'm':
+			if (!pmemblk_fault_injection_enabled())
+				break;
+
+			pmemblk_inject_fault_at(PMEM_MALLOC, 1,
+					"build_map_locks");
+			ret = pmemblk_set_error(handle, lba);
+			UT_ASSERTne(ret, 0);
+			UT_ASSERTeq(errno, ENOMEM);
 			break;
 		}
 	}
