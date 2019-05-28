@@ -41,3 +41,4 @@ LIBPMEMLOG=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
+CFLAGS += -I../../libpmemblk

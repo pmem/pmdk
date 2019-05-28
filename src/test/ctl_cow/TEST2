@@ -47,6 +47,13 @@ POOL="testfile.blk"
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create -s 32MB blk 512 $DIR/$POOL
 
+expect_normal_exit ./ctl_cow$EXESUFFIX $DIR/$POOL rtt
+
+rm $DIR/$POOL
+expect_normal_exit $PMEMPOOL$EXESUFFIX create -s 32MB blk 512 $DIR/$POOL
+
+expect_normal_exit ./ctl_cow$EXESUFFIX $DIR/$POOL map
+
 POOL_BEFORE=`md5sum -b $DIR/$POOL`
 
 PMEMBLK_CONF="${PMEMBLK_CONF}copy_on_write.at_open=1"
