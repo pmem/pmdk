@@ -5,5 +5,4 @@
 ==$(N)== Parent PID: $(N)
 ==$(N)==$(W)
 ==$(N)==$(W)
-==$(N)== For counts of detected and suppressed errors, rerun with: -v
 ==$(N)== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: $(N) from $(N))

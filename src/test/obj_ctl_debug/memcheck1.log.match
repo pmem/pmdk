@@ -15,6 +15,5 @@
 ==$(N)== 
 ==$(N)== All heap blocks were freed -- no leaks are possible
 ==$(N)== 
-==$(N)== For counts of detected and suppressed errors, rerun with: -v
 ==$(N)== Use --track-origins=yes to see where uninitialised values come from
 ==$(N)== ERROR SUMMARY: $(N) errors from $(N) contexts (suppressed: $(N) from $(N))
