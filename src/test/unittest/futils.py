@@ -30,9 +30,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-"""Test framework utililties"""
+"""Test framework utilities"""
 
 from os.path import join, abspath, dirname
+import os
 import sys
 
 # Constant paths to repository elements
@@ -139,7 +140,7 @@ class Fail(Exception):
 
 def fail(msg, exit_code=None):
     if exit_code is not None:
-        msg = '{}\nError {}'.format(msg, exit_code)
+        msg = '{}{}Error {}'.format(msg, os.linesep, exit_code)
     raise Fail(msg)
 
 

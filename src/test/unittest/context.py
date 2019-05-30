@@ -63,7 +63,7 @@ def expand(*classes):
 
 
 class ContextBase:
-    """ """
+    """Low level context utils."""
     def __init__(self, test, conf, **kwargs):
         self.env = {}
         for ctx in [kwargs['fs'], kwargs['build']]:
@@ -78,14 +78,15 @@ class ContextBase:
 
     def dump_n_lines(self, file, n=None):
         """
-        Prints last n lines of given log file. Number of line printed can be
+        Prints last n lines of given log file. Number of lines printed can be
         modified locally by "n" argument or globally by "dump_lines" in
-        testconfig.py file. If none of this is provided, default value is 30.
+        testconfig.py file. If none of them are provided, default value is 30.
         """
         if n is None:
             n = config.get('dump_lines', 30)
 
         file_size = self.get_size(file.name)
+        # if file is small enough, read it whole and find last n lines
         if file_size < 100 * MiB:
             lines = list(file)
             length = len(lines)
@@ -97,6 +98,7 @@ class ContextBase:
             for line in lines:
                 print(line, end='')
         else:
+            # if file is really big, read the last 10KiB and forget about lines
             with open(file.name, 'br') as byte_file:
                 byte_file.seek(file_size - 10 * KiB)
                 print(byte_file.read().decode('iso_8859_1'))
