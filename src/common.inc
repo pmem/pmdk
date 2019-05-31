@@ -95,6 +95,12 @@ endif
 ifeq ($(ARCH),arm64)
 override ARCH := aarch64
 endif
+ifeq ($(ARCH),ppc64el)
+override ARCH := ppc64
+endif
+ifeq ($(ARCH),powerpc64le)
+override ARCH := ppc64
+endif
 
 ifeq ($(PKG_CONFIG_CHECKED),)
 ifeq ($(shell command -v $(PKG_CONFIG) && echo y || echo n), n)

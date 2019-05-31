@@ -180,7 +180,9 @@ endif
 
 ifneq ($(ARCH), x86_64)
 ifneq ($(ARCH), aarch64)
+ifneq ($(ARCH), ppc64)
 $(error unsupported architecture: $(ARCH))
+endif
 endif
 endif
 
