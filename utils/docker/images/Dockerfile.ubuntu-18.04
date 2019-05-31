@@ -52,6 +52,9 @@ RUN apt-get update \
 	devscripts \
 	flake8 \
 	gcc \
+	gcc-6 \
+	g++ \
+	g++-6 \
 	gdb \
 	git \
 	libc6-dbg \
