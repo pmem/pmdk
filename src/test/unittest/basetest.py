@@ -43,9 +43,8 @@ from datetime import datetime
 from os import path
 
 import context as ctx
-import helpers as hlp
+import futils
 import valgrind as vg
-from utils import Skip, Fail, fail, dump_n_lines
 
 
 if not hasattr(builtins, 'testcases'):
@@ -131,7 +130,7 @@ class BaseTest(metaclass=_TestCase):
             self.cwd = self.__module__
 
         self.config = config
-        self.msg = hlp.Message(config)
+        self.msg = futils.Message(config)
         self.group = path.basename(self.cwd)
 
         self.testdir = self.group + '_' + str(self.testnum)
@@ -153,9 +152,9 @@ class BaseTest(metaclass=_TestCase):
                 if test_val == Any:
                     ctx_val = Any.get(conf_val)
                 else:
-                    ctx_val = hlp.filter_contexts(conf_val, test_val)
+                    ctx_val = futils.filter_contexts(conf_val, test_val)
             else:
-                ctx_val = hlp.filter_contexts(conf_val, None)
+                ctx_val = futils.filter_contexts(conf_val, None)
             setattr(self, attr, base.factory(self.config, *ctx_val))
 
         self._valgrind_init()
@@ -224,23 +223,23 @@ class BaseTest(metaclass=_TestCase):
                 self.elapsed = (datetime.now() - start_time).total_seconds()
                 self.check()
 
-            except Fail as f:
+            except futils.Fail as f:
                 failed = True
                 print(f)
-                self._print_log_files()
+                self._print_log_files(c)
                 print('{}: {}FAILED{}\t({})'
-                      .format(self, hlp.Color.RED, hlp.Color.END, config_str))
+                      .format(self, futils.Color.RED, futils.Color.END, config_str))
                 if not self.config.keep_going:
                     sys.exit(1)
 
-            except Skip as s:
+            except futils.Skip as s:
                 print('{}: SKIP {}'.format(self, s))
                 self.clean(c)
 
             except sp.TimeoutExpired:
                 failed = True
                 print('{}: {}TIMEOUT{}\t({})'
-                      .format(self, hlp.Color.RED, hlp.Color.END, config_str))
+                      .format(self, futils.Color.RED, futils.Color.END, config_str))
                 if not self.config.keep_going:
                     sys.exit(1)
 
@@ -285,14 +284,14 @@ class BaseTest(metaclass=_TestCase):
 
         match_files = filter(is_matchfile, cwd_listdir)
         prefix = 'perl ' if sys.platform == 'win32' else ''
-        match_cmd = prefix + path.join(hlp.ROOTDIR, 'match')
+        match_cmd = prefix + path.join(futils.ROOTDIR, 'match')
 
         for mf in match_files:
             cmd = '{} {}'.format(match_cmd, mf)
             proc = sp.run(cmd.split(), stdout=sp.PIPE, cwd=self.cwd,
                           stderr=sp.STDOUT, universal_newlines=True)
             if proc.returncode != 0:
-                fail(proc.stdout, exit_code=proc.returncode)
+                futils.fail(proc.stdout, exit_code=proc.returncode)
             else:
                 self.msg.print_verbose(proc.stdout)
 
@@ -308,7 +307,7 @@ class BaseTest(metaclass=_TestCase):
             tm = ''
 
         self.msg.print('{}: {}PASS{} {}'
-                       .format(self, hlp.Color.GREEN, hlp.Color.END, tm))
+                       .format(self, futils.Color.GREEN, futils.Color.END, tm))
 
     def get_log_files(self):
         """
@@ -324,14 +323,14 @@ class BaseTest(metaclass=_TestCase):
                 log_files.append(log)
         return log_files
 
-    def _print_log_files(self):
+    def _print_log_files(self, ctx):
         """
         Prints all log files for given test
         """
         log_files = self.get_log_files()
         for file in log_files:
             with open(file) as f:
-                dump_n_lines(f)
+                ctx.dump_n_lines(f)
 
     def remove_log_files(self):
         """

@@ -35,11 +35,19 @@
 import os
 import sys
 import itertools
+import shutil
 import subprocess as sp
 
-import helpers as hlp
-from utils import fail, HEADER_SIZE
+import futils
 from poolset import _Poolset
+import tools
+from utils import KiB, MiB, GiB, TiB
+
+try:
+    import testconfig
+except ImportError:
+    sys.exit('Please add valid testconfig.py file - see testconfig.py.example')
+config = testconfig.config
 
 try:
     import envconfig
@@ -54,9 +62,8 @@ def expand(*classes):
     return list(set(itertools.chain(*classes)))
 
 
-class Context:
-    """Manage test execution based on values from context classes"""
-
+class ContextBase:
+    """Low level context utils."""
     def __init__(self, test, conf, **kwargs):
         self.env = {}
         for ctx in [kwargs['fs'], kwargs['build']]:
@@ -67,7 +74,78 @@ class Context:
         self.build = kwargs['build']
         self.fs = kwargs['fs']
         self.valgrind = kwargs['valgrind']
-        self.msg = hlp.Message(conf)
+        self.msg = futils.Message(conf)
+
+    def dump_n_lines(self, file, n=None):
+        """
+        Prints last n lines of given log file. Number of lines printed can be
+        modified locally by "n" argument or globally by "dump_lines" in
+        testconfig.py file. If none of them are provided, default value is 30.
+        """
+        if n is None:
+            n = config.get('dump_lines', 30)
+
+        file_size = self.get_size(file.name)
+        # if file is small enough, read it whole and find last n lines
+        if file_size < 100 * MiB:
+            lines = list(file)
+            length = len(lines)
+            if n > length:
+                n = length
+            lines = lines[-n:]
+            lines.insert(0, 'Last {} lines of {} below (whole file has {} lines):{}'
+                            ''.format(n, file.name, length, os.linesep))
+            for line in lines:
+                print(line, end='')
+        else:
+            # if file is really big, read the last 10KiB and forget about lines
+            with open(file.name, 'br') as byte_file:
+                byte_file.seek(file_size - 10 * KiB)
+                print(byte_file.read().decode('iso_8859_1'))
+
+    def is_devdax(self, path):
+        """Checks if given path points to device dax"""
+        proc = tools.pmemdetect(self, '-d', path)
+        if proc.returncode == tools.PMEMDETECT_ERROR:
+            futils.fail(proc.stdout)
+        if proc.returncode == tools.PMEMDETECT_TRUE:
+            return True
+        if proc.returncode == tools.PMEMDETECT_FALSE:
+            return False
+        futils.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+
+    def supports_map_sync(self, path):
+        """Checks if MAP_SYNC is supported on a filesystem from given path"""
+        proc = tools.pmemdetect(self, '-s', path)
+        if proc.returncode == tools.PMEMDETECT_ERROR:
+            futils.fail(proc.stdout)
+        if proc.returncode == tools.PMEMDETECT_TRUE:
+            return True
+        if proc.returncode == tools.PMEMDETECT_FALSE:
+            return False
+        futils.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+
+    def get_size(self, path):
+        """
+        Returns size of the file or dax device.
+        Value "2**64 - 1" is checked because pmemdetect in case of error prints it.
+        """
+        proc = tools.pmemdetect(self, '-z', path)
+        if int(proc.stdout) != 2**64 - 1:
+            return int(proc.stdout)
+        futils.fail('Could not get size of the file, it is inaccessible or does not exist')
+
+    def get_free_space(self):
+        """Returns free space for current file system"""
+        _, _, free = shutil.disk_usage(".")
+        return free
+
+
+class Context(ContextBase):
+    """Manage test execution based on values from context classes"""
+
+    def __init__(self, test, conf, **kwargs):
+        ContextBase.__init__(self, test, conf, **kwargs)
 
     @property
     def testdir(self):
@@ -155,7 +233,7 @@ class Context:
             self.test.fail(proc.stdout)
 
         if proc.returncode != expected_exit:
-            fail(proc.stdout, exit_code=proc.returncode)
+            futils.fail(proc.stdout, exit_code=proc.returncode)
         else:
             self.msg.print_verbose(proc.stdout)
 
@@ -209,18 +287,18 @@ class Debug(_Build):
 
     def __init__(self, conf):
         if sys.platform == 'win32':
-            self.exedir = hlp.WIN_DEBUG_EXEDIR
-        self.libdir = hlp.DEBUG_LIBDIR
+            self.exedir = futils.WIN_DEBUG_EXEDIR
+        self.libdir = futils.DEBUG_LIBDIR
 
 
-class Nondebug(_Build):
-    """Set the context for nondebug build"""
+class Release(_Build):
+    """Set the context for release build"""
     is_preferred = True
 
     def __init__(self, conf):
         if sys.platform == 'win32':
-            self.exedir = hlp.WIN_NONDEBUG_EXEDIR
-        self.libdir = hlp.NONDEBUG_LIBDIR
+            self.exedir = futils.WIN_RELEASE_EXEDIR
+        self.libdir = futils.RELEASE_LIBDIR
 
 
 # Build types not available on Windows
@@ -230,14 +308,14 @@ if sys.platform != 'win32':
 
         def __init__(self, conf):
             self.exesuffix = '.static-debug'
-            self.libdir = hlp.DEBUG_LIBDIR
+            self.libdir = futils.DEBUG_LIBDIR
 
-    class Static_Nondebug(_Build):
-        """Sets the context for static_nondebug build"""
+    class Static_Release(_Build):
+        """Sets the context for static_release build"""
 
         def __init__(self, conf):
             self.exesuffix = '.static-nondebug'
-            self.libdir = hlp.NONDEBUG_LIBDIR
+            self.libdir = futils.RELEASE_LIBDIR
 
 
 class _Fs(metaclass=_CtxType):

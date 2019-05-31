@@ -37,7 +37,7 @@ import os
 
 class TEST0(t.BaseTest):
     test_type = t.Short
-    build = [t.Debug, t.Nondebug]
+    build = [t.Debug, t.Release]
 
     def run(self, ctx):
         ctx.exec('pmem_map_file_trunc', os.path.join(ctx.testdir, 'testfile'))

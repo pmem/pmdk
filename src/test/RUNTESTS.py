@@ -44,7 +44,7 @@ sys.path.insert(1, path.abspath(path.join(path.dirname(__file__), 'unittest')))
 
 import importlib.util as importutil  # noqa E402
 
-import helpers  # noqa E402
+import futils  # noqa E402
 from basetest import get_testcases  # noqa E402
 from configurator import Configurator  # noqa E402
 
@@ -54,7 +54,7 @@ def _import_testfiles():
     Traverse through "src/test" directory, find all "TESTS.py" files and
     import them as modules. Set imported module name to file directory path.
     """
-    for root, _, files in os.walk(helpers.ROOTDIR):
+    for root, _, files in os.walk(futils.ROOTDIR):
         for name in files:
             if name == 'TESTS.py':
                 testfile = path.join(root, name)
@@ -77,7 +77,7 @@ def _run_tests(config):
             sys.exit('No testcases found for selected groups. '
                      'Provided group name may be invalid.')
 
-    return helpers.run_tests_common(testcases, config)
+    return futils.run_tests_common(testcases, config)
 
 
 def main():

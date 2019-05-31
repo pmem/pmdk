@@ -30,14 +30,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-"""Helper variables, functions and classes"""
+"""Test framework utilities"""
 
 from os.path import join, abspath, dirname
+import os
 import sys
-
-
-# .so file names
-VMMALLOC = 'libvmmalloc.so.1'
 
 # Constant paths to repository elements
 ROOTDIR = abspath(join(dirname(__file__), '..'))
@@ -45,29 +42,33 @@ ROOTDIR = abspath(join(dirname(__file__), '..'))
 WIN_DEBUG_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Debug'))
 WIN_DEBUG_EXEDIR = abspath(join(WIN_DEBUG_BUILDDIR, 'tests'))
 
-WIN_NONDEBUG_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Release'))
-WIN_NONDEBUG_EXEDIR = abspath(join(WIN_NONDEBUG_BUILDDIR, 'tests'))
+WIN_RELEASE_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Release'))
+WIN_RELEASE_EXEDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'tests'))
 
 if sys.platform == 'win32':
     DEBUG_LIBDIR = abspath(join(WIN_DEBUG_BUILDDIR, 'libs'))
-    NONDEBUG_LIBDIR = abspath(join(WIN_NONDEBUG_BUILDDIR, 'libs'))
+    RELEASE_LIBDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'libs'))
 else:
     DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
-    NONDEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
+    RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
 
-TOOLS_DIR = abspath(join(ROOTDIR, '..', 'tools'))
-TEST_TOOLS_DIR = abspath(join(ROOTDIR, 'tools'))
+def get_tool_path(ctx, name):
+    if sys.platform == 'win32':
+        if ctx.build == 'debug':
+            return abspath(join(WIN_DEBUG_BUILDDIR, 'libs', name + '.exe'))
+        else:
+            return abspath(join(WIN_RELEASE_BUILDDIR, 'libs', name + '.exe'))
+    else:
+        return abspath(join(ROOTDIR, '..', 'tools', name, name))
 
-#
-# KiB, MiB, GiB ... -- byte unit prefixes
-#
-
-KiB = 2 ** 10
-MiB = 2 ** 20
-GiB = 2 ** 30
-TiB = 2 ** 40
-PiB = 2 ** 50
-
+def get_test_tool_path(ctx, name):
+    if sys.platform == 'win32':
+        if ctx.build == 'debug':
+            return abspath(join(WIN_DEBUG_BUILDDIR, 'tests', name + '.exe'))
+        else:
+            return abspath(join(WIN_RELEASE_BUILDDIR, 'tests', name + '.exe'))
+    else:
+        return abspath(join(ROOTDIR, 'tools', name, name))
 
 class Color:
     """
@@ -125,3 +126,34 @@ def run_tests_common(testcases, config):
     if any(results):  # if any test failed
         return 1
     return 0
+
+class Fail(Exception):
+    """Thrown when test fails"""
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
+def fail(msg, exit_code=None):
+    if exit_code is not None:
+        msg = '{}{}Error {}'.format(msg, os.linesep, exit_code)
+    raise Fail(msg)
+
+
+class Skip(Exception):
+    """Thrown when test should be skipped"""
+
+    def __init__(self, message):
+        super().__init__(message)
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
+def skip(msg):
+    raise Skip(msg)

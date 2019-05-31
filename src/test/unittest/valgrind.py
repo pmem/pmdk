@@ -37,8 +37,7 @@ import subprocess as sp
 from enum import Enum, unique
 from os import path
 
-from helpers import ROOTDIR, VMMALLOC
-from utils import Skip
+import futils
 
 
 DISABLE = -1
@@ -202,7 +201,7 @@ class Valgrind:
         relative to tests root directory (pmdk/src/test)
         """
         self.opts = '{} --suppressions={}'.format(
-            self.opts, path.join(ROOTDIR, f))
+            self.opts, path.join(futils.ROOTDIR, f))
 
     def validate_log(self):
         """
@@ -237,4 +236,4 @@ class Valgrind:
         Checks that Valgrind can be used.
         """
         if self.valgrind_exe is None:
-            raise Skip('Valgrind not found')
+            raise futils.Skip('Valgrind not found')
