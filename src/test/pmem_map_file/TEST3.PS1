@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,10 +31,9 @@
 #
 
 #
-# src/test/pmem_map_file/TEST1 -- unit test for pmem_map_file
+# src/test/pmem_map_file/TEST3 -- unit test for pmem_map_file
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium
@@ -42,45 +41,30 @@ require_fs_type any
 
 setup
 
+function is_sparse(){
+	$file = $args[0]
+	$res = fsutil sparse queryflag $file
+
+	if ($res -match "This file is NOT set as sparse"){
+		fail "error: file is not sparse"
+	}
+}
+
+create_file 4K $DIR/testfile2
+create_file 4K $DIR/testfile3
+
+create_holey_file 4K $DIR/sparsefile1
+
 # <path> <size> <flags> <mode> <use_mlen> <use_is_pmem> <err_code>
-
-# pass the file of zero length
 expect_normal_exit $Env:EXE_DIR\pmem_map_file$Env:EXESUFFIX `
-    $DIR\testfile1 0 - 0666 1 1 0 `
-    $DIR\testfile2 0 C 0666 0 0 0 `
-    $DIR\testfile3 4096 C 0666 1 1 0 `
-    $DIR\testfile4 0 E 0666 1 1 0 `
-    $DIR\testfile5 4096 E 0666 1 1 0 `
-    $DIR\testfile6 4096 CE 0666 1 1 0 `
-    $DIR\testfile7 4096 CES 0666 1 1 0 `
-    $DIR\testfile8 4096 CS 0666 1 1 0 `
-    $DIR\testfile9 -1 C 0666 1 1 0 `
-    $DIR\testfile10 4096 X 0666 1 1 0 `
-    $DIR\testfile11 4096 CX 0666 1 1 0 `
-    $DIR\testfile12 0x1FFFFFFFFFFFFFFF CE 0666 1 1 0 `
-    $DIR 0 T 0666 1 1 0 `
-    $DIR 4096 T 0666 1 1 0 `
-    $DIR 4096 TC 0666 1 1 0 `
-    $DIR 4096 TE 0666 1 1 0 `
-    $DIR 4096 TS 0666 1 1 0 `
-    $DIR 4096 TSE 0666 1 1 0 `
-    $DIR 4096 TCE 0666 1 1 0 `
-    $DIR 4096 TSEC 0666 1 1 0 `
-    \nul\nonexistingdir 4096 T 0666 1 1 0
+	$DIR/testfile1 0 0 0666 nullptr nullptr 0 `
+	$DIR/testfile2 4096 CE 0666 1 1 EEXIST `
+	$DIR/testfile3 4096 CES 0666 1 1 EEXIST `
+	$DIR/sparsefile1 0 CS 0666 1 1 0 `
+	\nul\nonexistingdir 0 0 0666 1 1 ENOENT `
+	\nul\nonexistingdir 4096 CET 0666 1 1 ENOENT
 
-check_files $DIR\testfile3 `
-    $DIR\testfile6 `
-    $DIR\testfile7 `
-    $DIR\testfile8
-
-check_no_files $DIR\testfile1 `
-    $DIR\testfile2 `
-    $DIR\testfile4 `
-    $DIR\testfile5 `
-    $DIR\testfile9 `
-    $DIR\testfile10 `
-    $DIR\testfile11 `
-    $DIR\testfile12
+is_sparse $DIR/sparsefile1
 
 check
 

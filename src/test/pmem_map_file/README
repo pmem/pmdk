@@ -5,7 +5,7 @@ This is src/test/pmem_map_file/README.
 This directory contains a unit test for pmem_map_file().
 
 The program in pmem_map_file.c takes a path, file length, flags, mode,
-use_mapped_len and use_is_pmem flags.
+use_mapped_len, use_is_pmem flags and err_code.
 
 The accepted flags in 'flags' string are:
 'C' - PMEM_FILE_CREATE
@@ -18,7 +18,7 @@ The accepted flags in 'flags' string are:
 'mode' - an an octal number that specifies the file mode
 
 Example:
-$ pmem_map_file /mnt/pmem/testfile 4096 CTS 0644 1 1 ...
+$ pmem_map_file /mnt/pmem/testfile 4096 CTS 0644 1 1 0 ...
 
 If the file is successfully mapped to memory, and it is not a temporary file,
 then initially the first 4k of the file is populated with some pattern
