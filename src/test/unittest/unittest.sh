@@ -669,6 +669,21 @@ function valgrind_ignore_warnings() {
 }
 
 #
+# valgrind_ignore_messages -- cuts off Valgrind messages that are irrelevant
+#	to the correctness of the test, but changes during Valgrind rebase
+#	usage: valgrind_ignore_messages <log-file>
+#
+function valgrind_ignore_messages() {
+	if [ -e "$1.match" ]; then
+		cat $1 | grep -v \
+			-e "For lists of detected and suppressed errors, rerun with: -s" \
+			-e "For counts of detected and suppressed errors, rerun with: -v" \
+			>  $1.tmp
+		mv $1.tmp $1
+	fi
+}
+
+#
 # get_trace -- return tracing tool command line if applicable
 #	usage: get_trace <check type> <log file> [<node>]
 #
@@ -891,11 +906,13 @@ function expect_normal_exit() {
 			do
 				local log_file=node\_$node\_$VALGRIND_LOG_FILE
 				valgrind_ignore_warnings $new_log_file
+				valgrind_ignore_messages $new_log_file
 				validate_valgrind_log $new_log_file
 			done
 		else
 			if [ -f $VALGRIND_LOG_FILE ]; then
 				valgrind_ignore_warnings $VALGRIND_LOG_FILE
+				valgrind_ignore_messages $VALGRIND_LOG_FILE
 				validate_valgrind_log $VALGRIND_LOG_FILE
 			fi
 		fi
