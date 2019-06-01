@@ -366,6 +366,9 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 	util_mutex_init(&pbp->write_lock);
 #endif
 
+	/* the data area should be kept read-only for debug version */
+	RANGE_RO(pbp->data, pbp->datasize, pbp->is_dev_dax);
+
 	/*
 	 * If possible, turn off all permissions on the pool header page.
 	 *
@@ -374,8 +377,6 @@ blk_runtime_init(PMEMblkpool *pbp, size_t bsize, int rdonly)
 	 */
 	RANGE_NONE(pbp->addr, sizeof(struct pool_hdr), pbp->is_dev_dax);
 
-	/* the data area should be kept read-only for debug version */
-	RANGE_RO(pbp->data, pbp->datasize, pbp->is_dev_dax);
 
 	return 0;
 
