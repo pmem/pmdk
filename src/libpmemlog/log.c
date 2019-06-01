@@ -146,6 +146,10 @@ log_runtime_init(PMEMlogpool *plp, int rdonly)
 		return -1;
 	}
 
+	/* the rest should be kept read-only (debug version only) */
+	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
+		plp->size - sizeof(struct pool_hdr), plp->is_dev_dax);
+
 	/*
 	 * If possible, turn off all permissions on the pool header page.
 	 *
@@ -153,10 +157,6 @@ log_runtime_init(PMEMlogpool *plp, int rdonly)
 	 * use. It is not considered an error if this fails.
 	 */
 	RANGE_NONE(plp->addr, sizeof(struct pool_hdr), plp->is_dev_dax);
-
-	/* the rest should be kept read-only (debug version only) */
-	RANGE_RO((char *)plp->addr + sizeof(struct pool_hdr),
-			plp->size - sizeof(struct pool_hdr), plp->is_dev_dax);
 
 	return 0;
 }
