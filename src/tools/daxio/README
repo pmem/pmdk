@@ -17,7 +17,7 @@ or stdout respectively.
 No length specified will default to input file/device length or to the
 output file/device length, if input is a special char file or stdin.
 
-For a Device DAX device, daxio will attempts to clear badblocks within range
+For a Device DAX device, daxio will attempt to clear badblocks within range
 of writes before performing the I/O.
 
 3. Source code
