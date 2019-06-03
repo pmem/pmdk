@@ -5,26 +5,19 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
-    <Filter Include="TestScripts">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{c01d120f-0cb1-4d38-8eab-0fb965a987e4}</UniqueIdentifier>
       <Extensions>ps1</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST0.PS1">
-      <Filter>TestScripts</Filter>
-    </None>
-    <None Include="TEST0">
-      <Filter>TestScripts</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="obj_alloc.c">
+    <ClCompile Include="..\..\..\src\test\obj_alloc\obj_alloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TEST0.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
