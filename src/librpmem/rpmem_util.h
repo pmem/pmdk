@@ -57,6 +57,9 @@ enum {
 #define RPMEM_PERSIST_FLAGS_ALL		RPMEM_PERSIST_RELAXED
 #define RPMEM_PERSIST_FLAGS_MASK	((unsigned)(~RPMEM_PERSIST_FLAGS_ALL))
 
+#define RPMEM_FLUSH_FLAGS_ALL		RPMEM_FLUSH_RELAXED
+#define RPMEM_FLUSH_FLAGS_MASK		((unsigned)(~RPMEM_FLUSH_FLAGS_ALL))
+
 const char *rpmem_util_proto_errstr(enum rpmem_err err);
 int rpmem_util_proto_errno(enum rpmem_err err);
 

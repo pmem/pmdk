@@ -70,7 +70,7 @@ int rpmem_fip_process_start(struct rpmem_fip *fip);
 int rpmem_fip_process_stop(struct rpmem_fip *fip);
 
 int rpmem_fip_flush(struct rpmem_fip *fip, size_t offset, size_t len,
-		unsigned lane);
+		unsigned lane, unsigned flags);
 
 int rpmem_fip_drain(struct rpmem_fip *fip, unsigned lane);
 

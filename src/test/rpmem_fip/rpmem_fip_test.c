@@ -182,7 +182,7 @@ client_flush_thread(void *arg)
 
 	/* persist with len == 0 should always succeed */
 	ret = rpmem_fip_flush(args->fip, args->lane * TOTAL_PER_LANE,
-			0, args->lane);
+			0, args->lane, RPMEM_FLUSH_WRITE);
 	UT_ASSERTeq(ret, 0);
 
 	for (unsigned i = 0; i < COUNT_PER_LANE; i++) {
@@ -191,7 +191,7 @@ client_flush_thread(void *arg)
 		memset(&lpool[offset], (int)val, SIZE_PER_LANE);
 
 		ret = rpmem_fip_flush(args->fip, offset,
-				SIZE_PER_LANE, args->lane);
+				SIZE_PER_LANE, args->lane, RPMEM_FLUSH_WRITE);
 		UT_ASSERTeq(ret, 0);
 	}
 
@@ -212,7 +212,7 @@ client_persist_thread(void *arg)
 
 	/* persist with len == 0 should always succeed */
 	ret = rpmem_fip_persist(args->fip, args->lane * TOTAL_PER_LANE,
-			0, args->lane, RPMEM_PERSIST_WRITE);
+			0, args->lane, RPMEM_FLUSH_WRITE);
 	UT_ASSERTeq(ret, 0);
 
 	for (unsigned i = 0; i < COUNT_PER_LANE; i++) {
@@ -221,7 +221,7 @@ client_persist_thread(void *arg)
 		memset(&lpool[offset], (int)val, SIZE_PER_LANE);
 
 		ret = rpmem_fip_persist(args->fip, offset,
-				SIZE_PER_LANE, args->lane, RPMEM_PERSIST_WRITE);
+				SIZE_PER_LANE, args->lane, RPMEM_FLUSH_WRITE);
 		UT_ASSERTeq(ret, 0);
 	}
 

@@ -62,7 +62,7 @@ expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool0.set 1234
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_open 0 pool0.set ${NODE_ADDR[0]} pool 8M init none\
-	test_flush 0 4321 1 1\
+	test_flush 0 4321 1 1 1\
 	test_drain 0 1\
 	test_close 0
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
@@ -76,7 +76,7 @@ expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool1.set 1234
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_open 0 pool1.set ${NODE_ADDR[0]} pool 8M init singlehdr\
-	test_flush 0 4321 1 1\
+	test_flush 0 4321 1 1 1\
 	test_drain 0 1\
 	test_close 0
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
@@ -90,7 +90,7 @@ expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	fill_pool ${NODE_DIR[0]}$POOLS_DIR/pool2.set 1234
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 	test_open 0 pool2.set ${NODE_ADDR[0]} pool 8M init noattr\
-	test_flush 0 4321 1 1\
+	test_flush 0 4321 1 1 1\
 	test_drain 0 1\
 	test_close 0
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\

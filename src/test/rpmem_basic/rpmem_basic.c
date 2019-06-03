@@ -433,9 +433,15 @@ persist_normal(RPMEMpool *rpp, size_t off, size_t size, unsigned lane)
 }
 
 static int
-flush(RPMEMpool *rpp, size_t off, size_t size, unsigned lane)
+flush_relaxed(RPMEMpool *rpp, size_t off, size_t size, unsigned lane)
 {
-	return rpmem_flush(rpp, off, size, lane, 0 /* only valid value */);
+	return rpmem_flush(rpp, off, size, lane, RPMEM_FLUSH_RELAXED);
+}
+
+static int
+flush_normal(RPMEMpool *rpp, size_t off, size_t size, unsigned lane)
+{
+	return rpmem_flush(rpp, off, size, lane, 0);
 }
 
 /*
@@ -573,17 +579,22 @@ static int
 test_flush(const struct test_case *tc, int argc, char *argv[])
 {
 	if (argc < 4)
-		UT_FATAL("usage: test_flush <id> <seed> <nthreads> <nops>");
+		UT_FATAL("usage: test_flush <id> <seed> <nthreads> <nops> "
+				"<relaxed>");
 
 	unsigned id = ATOU(argv[0]);
 	UT_ASSERT(id >= 0 && id < MAX_IDS);
 	unsigned seed = ATOU(argv[1]);
 	unsigned nthreads = ATOU(argv[2]);
 	unsigned nops = ATOU(argv[3]);
+	unsigned relaxed = ATOU(argv[4]);
 
-	test_flush_imp(id, seed, nthreads, nops, flush);
+	if (relaxed)
+		test_flush_imp(id, seed, nthreads, nops, flush_relaxed);
+	else
+		test_flush_imp(id, seed, nthreads, nops, flush_normal);
 
-	return 4;
+	return 5;
 }
 
 /*

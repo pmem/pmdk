@@ -218,15 +218,15 @@ struct rpmem_msg_close_resp {
 	/* no more fields */
 } PACKED;
 
-#define RPMEM_PERSIST_WRITE	0U	/* persist using RDMA WRITE */
+#define RPMEM_FLUSH_WRITE	0U	/* flush / persist using RDMA WRITE */
 #define RPMEM_DEEP_PERSIST	1U	/* deep persist operation */
 #define RPMEM_PERSIST_SEND	2U	/* persist using RDMA SEND */
 #define RPMEM_COMPLETION	4U	/* schedule command with a completion */
 
 /* the two least significant bits are reserved for mode of persist */
-#define RPMEM_PERSIST_MASK	0x3U
+#define RPMEM_FLUSH_PERSIST_MASK	0x3U
 
-#define RPMEM_PERSIST_MAX	2U	/* maximum valid persist value */
+#define RPMEM_PERSIST_MAX		2U /* maximum valid persist value */
 
 /*
  * rpmem_msg_persist -- remote persist message

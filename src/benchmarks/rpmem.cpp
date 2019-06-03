@@ -65,12 +65,12 @@
  * rpmem_args -- benchmark specific command line options
  */
 struct rpmem_args {
-	char *mode;	    /* operation mode: stat, seq, rand */
-	bool no_warmup;	/* do not do warmup */
-	bool no_memset;	/* do not call memset before each persist */
-	size_t chunk_size;     /* elementary chunk size */
-	size_t dest_off;       /* destination address offset */
-	bool relaxed;	  /* use RPMEM_PERSIST_RELAXED flag */
+	char *mode;	/* operation mode: stat, seq, rand */
+	bool no_warmup;    /* do not do warmup */
+	bool no_memset;    /* do not call memset before each persist */
+	size_t chunk_size; /* elementary chunk size */
+	size_t dest_off;   /* destination address offset */
+	bool relaxed; /* use RPMEM_PERSIST_RELAXED / RPMEM_FLUSH_RELAXED flag */
 	char *workload;	/* workload */
 	int flushes_per_drain; /* # of flushes between drains */
 };
@@ -166,6 +166,7 @@ get_flushing_op_num(struct benchmark *bench, struct rpmem_bench *mb)
 	for (size_t i = 0; i < mb->workload_len; ++i) {
 		switch (mb->pargs->workload[i]) {
 			case 'f': /* rpmem_flush */
+			case 'g': /* rpmem_flush + RPMEM_FLUSH_RELAXED */
 			case 'p': /* rpmem_persist */
 			case 'r': /* rpmem_persist + RPMEM_PERSIST_RELAXED */
 				++num;
@@ -421,6 +422,10 @@ rpmem_mixed_op(struct benchmark *bench, struct operation_info *info)
 		char op = mb->pargs->workload[i];
 		mb->flags[info->worker->index] = 0;
 		switch (op) {
+			case 'g':
+				mb->flags[info->worker->index] =
+					RPMEM_FLUSH_RELAXED;
+				/* no break here */
 			case 'f':
 				ret |= rpmem_mixed_op_flush(mb, info);
 				break;
@@ -661,17 +666,20 @@ rpmem_flags_init(struct benchmark *bench, struct benchmark_args *args,
 		return -1;
 	}
 
-	if (strcmp(info->name, BENCH_RPMEM_PERSIST_NAME) == 0) {
-		unsigned flags = 0;
-		if (mb->pargs->relaxed)
-			flags = RPMEM_PERSIST_RELAXED;
-		/* for rpmem_persist benchmark all ops have the same flags */
+	unsigned relaxed_flag = 0;
+	if (strcmp(info->name, BENCH_RPMEM_PERSIST_NAME) == 0)
+		relaxed_flag = RPMEM_PERSIST_RELAXED;
+	else if (strcmp(info->name, BENCH_RPMEM_FLUSH_NAME) == 0)
+		relaxed_flag = RPMEM_FLUSH_RELAXED;
+	/* for rpmem_mixed benchmark flags are set during the benchmark */
+
+	/* for rpmem_persist and rpmem_flush_drain benchmark all ops have the
+	 * same flags */
+	if (mb->pargs->relaxed) {
 		for (unsigned i = 0; i < args->n_threads; ++i)
-			mb->flags[i] = flags;
+			mb->flags[i] = relaxed_flag;
 	}
 
-	/* for rpmem_flush_drain benchmark flags are always 0 */
-	/* for rpmem_mixed benchmark flags are set during the benchmark */
 	return 0;
 }
 
@@ -761,7 +769,7 @@ rpmem_exit(struct benchmark *bench, struct benchmark_args *args)
 	return 0;
 }
 
-static struct benchmark_clo rpmem_flush_clo[5];
+static struct benchmark_clo rpmem_flush_clo[6];
 static struct benchmark_clo rpmem_persist_clo[5];
 static struct benchmark_clo rpmem_mixed_clo[5];
 /* Stores information about benchmark. */
@@ -839,6 +847,13 @@ rpmem_constructor(void)
 	rpmem_flush_clo[4].type_int.min = -1;
 	rpmem_flush_clo[4].type_int.max = INT_MAX;
 
+	rpmem_flush_clo[5].opt_short = 0;
+	rpmem_flush_clo[5].opt_long = "flush-relaxed";
+	rpmem_flush_clo[5].descr = "Use RPMEM_FLUSH_RELAXED flag";
+	rpmem_flush_clo[5].def = "false";
+	rpmem_flush_clo[5].off = clo_field_offset(struct rpmem_args, relaxed);
+	rpmem_flush_clo[5].type = CLO_TYPE_FLAG;
+
 	memcpy(&rpmem_flush_info, &common_info, sizeof(common_info));
 	rpmem_flush_info.name = BENCH_RPMEM_FLUSH_NAME;
 	rpmem_flush_info.brief =
@@ -871,10 +886,12 @@ rpmem_constructor(void)
 	memcpy(rpmem_mixed_clo, common_clo, sizeof(common_clo));
 	rpmem_mixed_clo[4].opt_short = 0;
 	rpmem_mixed_clo[4].opt_long = "workload";
-	rpmem_mixed_clo[4].descr = "Workload e.g.: 'prfd' means "
+	rpmem_mixed_clo[4].descr = "Workload e.g.: 'prfgd' means "
 				   "rpmem_persist(), "
 				   "rpmem_persist() + RPMEM_PERSIST_RELAXED, "
-				   "rpmem_flush() and rpmem_drain()";
+				   "rpmem_flush(),"
+				   "rpmem_flush() + RPMEM_FLUSH_RELAXED "
+				   "and rpmem_drain()";
 	rpmem_mixed_clo[4].def = "fd";
 	rpmem_mixed_clo[4].off = clo_field_offset(struct rpmem_args, workload);
 	rpmem_mixed_clo[4].type = CLO_TYPE_STR;
