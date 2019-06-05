@@ -269,6 +269,7 @@ tx_remove_range(struct txr *tx_ranges, void *begin, void *end)
 		if (begin > txr->begin) {
 			struct tx_range_data *txrn = Malloc(sizeof(*txrn));
 			if (txrn == NULL)
+				/* we can't do it any other way */
 				FATAL("!Malloc");
 
 			txrn->begin = txr->begin;
@@ -280,6 +281,7 @@ tx_remove_range(struct txr *tx_ranges, void *begin, void *end)
 		if (end < txr->end) {
 			struct tx_range_data *txrn = Malloc(sizeof(*txrn));
 			if (txrn == NULL)
+				/* we can't do it any other way */
 				FATAL("!Malloc");
 
 			txrn->begin = end;
@@ -316,6 +318,7 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct ulog_entry_buf *range)
 	struct tx_range_data *txr;
 	txr = Malloc(sizeof(*txr));
 	if (txr == NULL) {
+		/* we can't do it any other way */
 		FATAL("!Malloc");
 	}
 
