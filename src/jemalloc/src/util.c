@@ -344,7 +344,7 @@ malloc_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 	}								\
 } while (0)
 #define	GET_ARG_NUMERIC(val, len) do {					\
-	switch (len) {							\
+	switch ((int)(len)) {						\
 	case '?':							\
 		val = va_arg(ap, int);					\
 		break;							\

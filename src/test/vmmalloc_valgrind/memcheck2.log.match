@@ -24,5 +24,4 @@ $(OPT)==$(N)==      possibly lost: 0 bytes in 0 blocks
 $(OPT)==$(N)==    still reachable: 0 bytes in 0 blocks
 $(OPT)==$(N)==         suppressed: $(NC) bytes in $(N) blocks
 $(OPT)==$(N)== 
-==$(N)== For counts of detected and suppressed errors, rerun with: -v
 ==$(N)== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: $(N) from $(N))
