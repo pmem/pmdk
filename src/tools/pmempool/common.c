@@ -154,21 +154,6 @@ pmem_pool_type_parse_str(const char *str)
 }
 
 /*
- * util_validate_checksum -- validate checksum and return valid one
- */
-int
-util_validate_checksum(void *addr, size_t len, uint64_t *csum,
-	uint64_t skip_off)
-{
-	/* validate checksum */
-	int csum_valid = util_checksum(addr, len, csum, 0, skip_off);
-	/* get valid one */
-	if (!csum_valid)
-		util_checksum(addr, len, csum, 1, skip_off);
-	return csum_valid;
-}
-
-/*
  * util_get_pool_type_second_page -- return type based on second page content
  */
 pmem_pool_type_t

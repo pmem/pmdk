@@ -206,8 +206,6 @@ void util_options_free(struct options *opts);
 int util_options_verify(const struct options *opts, pmem_pool_type_t type);
 int util_options_getopt(int argc, char *argv[], const char *optstr,
 		const struct options *opts);
-int util_validate_checksum(void *addr, size_t len, uint64_t *csum,
-		uint64_t skip_off);
 pmem_pool_type_t util_get_pool_type_second_page(const void *pool_base_addr);
 int util_parse_mode(const char *str, mode_t *mode);
 int util_parse_ranges(const char *str, struct ranges *rangesp,
