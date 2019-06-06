@@ -36,6 +36,6 @@
 TARGET = obj_basic_integration
 OBJS = obj_basic_integration.o
 
-LIBPMEMOBJ=y
+LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
