@@ -36,6 +36,10 @@ before_build:
         if ($LASTEXITCODE -ne 0) {
                 exit 1
         }
+        ./utils/check_sdk_version.py -d .
+        if ($LASTEXITCODE -ne 0) {
+                exit 1
+        }
     }
 
 build_script:
