@@ -75,6 +75,12 @@ copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$TEST_SET_LOCAL
 rm_files_from_node 0 ${NODE_DIR[0]}$TEST_FILE_REMOTE
 rm_files_from_node 1 ${NODE_DIR[1]}$TEST_FILE_LOCAL
 
+# execute test with fault_injection option
+expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX ${NODE_DIR[1]}$TEST_SET_LOCAL inject_fault
+
+rm_files_from_node 0 ${NODE_DIR[0]}$TEST_FILE_REMOTE
+rm_files_from_node 1 ${NODE_DIR[1]}$TEST_FILE_LOCAL
+
 # execute test
 expect_normal_exit run_on_node 1 ./$EXE$EXESUFFIX ${NODE_DIR[1]}$TEST_SET_LOCAL
 

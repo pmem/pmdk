@@ -1,5 +1,5 @@
 obj_rpmem_basic_integration/TEST0: START: obj_basic_integration
- ./obj_basic_integration$(nW) $(nW)testset_local
+ ./obj_basic_integration$(nW) $(nW)testset_local$(nW)
 alloc: 128, size: $(N)
 realloc: 128 => 655360, size: $(N)
 realloc: 655360 => 1, size: $(N)
