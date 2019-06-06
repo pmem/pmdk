@@ -39,3 +39,4 @@ OBJS = obj_basic_integration.o
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
+INCS += -I../../libpmemobj
