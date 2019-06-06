@@ -52,6 +52,7 @@ else:
     DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
     RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
 
+
 def get_tool_path(ctx, name):
     if sys.platform == 'win32':
         if ctx.build == 'debug':
@@ -61,6 +62,7 @@ def get_tool_path(ctx, name):
     else:
         return abspath(join(ROOTDIR, '..', 'tools', name, name))
 
+
 def get_test_tool_path(ctx, name):
     if sys.platform == 'win32':
         if ctx.build == 'debug':
@@ -69,6 +71,7 @@ def get_test_tool_path(ctx, name):
             return abspath(join(WIN_RELEASE_BUILDDIR, 'tests', name + '.exe'))
     else:
         return abspath(join(ROOTDIR, 'tools', name, name))
+
 
 class Color:
     """
@@ -122,10 +125,12 @@ def run_tests_common(testcases, config):
     if not testcases:
         sys.exit('No testcases to run found for selected configuration.')
 
-    results = [t(config)._execute() for t in testcases]
-    if any(results):  # if any test failed
-        return 1
+    for t in testcases:
+        t = t(config)
+        if t.enabled and t._execute():  # if test failed
+            return 1
     return 0
+
 
 class Fail(Exception):
     """Thrown when test fails"""

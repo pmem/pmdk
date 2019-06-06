@@ -118,6 +118,7 @@ class BaseTest(metaclass=_TestCase):
     valgrind = None
     memcheck_check_leaks = True
     match = True
+    enabled = True
     ld_preload = ''
 
     def __repr__(self):
@@ -160,10 +161,12 @@ class BaseTest(metaclass=_TestCase):
         self._valgrind_init()
 
     def _valgrind_init(self):
-        if sys.platform == 'win32':
-            return
-
         vg_tool = vg.enabled_tool(self)
+
+        if sys.platform == 'win32':
+            if vg_tool:
+                self.enabled = False
+            return
 
         if self.config.force_enable:
             if self.config.force_enable not in vg.disabled_tools(self):
