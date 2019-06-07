@@ -120,12 +120,12 @@ for file in $files; do
 
 		# Check if the image has to be pushed to Docker Hub
 		# (i.e. the build is triggered by commits to the $GITHUB_REPO
-		# repository's master branch, and the Travis build is not
+		# repository's stable-* or master branch, and the Travis build is not
 		# of the "pull_request" type). In that case, create the empty
 		# file.
 		if [[ "$TRAVIS_REPO_SLUG" == "$GITHUB_REPO" \
-			&& $TRAVIS_BRANCH == "master" \
-			&& $TRAVIS_EVENT_TYPE != "pull_request"
+			&& ($TRAVIS_BRANCH == stable-* || $TRAVIS_BRANCH == master) \
+			&& $TRAVIS_EVENT_TYPE != "pull_request" \
 			&& $PUSH_IMAGE == "1" ]]
 		then
 			echo "The image will be pushed to Docker Hub"
@@ -145,4 +145,4 @@ done
 
 # Getting here means rebuilding the Docker image is not required.
 # Pull the image from Docker Hub.
-docker pull ${DOCKERHUB_REPO}:${OS}-${OS_VER}
+docker pull ${DOCKERHUB_REPO}:1.6-${OS}-${OS_VER}
