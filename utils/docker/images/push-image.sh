@@ -73,4 +73,4 @@ fi
 docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD"
 
 # Push the image to the repository
-docker push ${DOCiKERHUB_REPO}:1.6-$1
+docker push ${DOCKERHUB_REPO}:1.6-$1
