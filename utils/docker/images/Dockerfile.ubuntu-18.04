@@ -103,6 +103,9 @@ ENV PACKAGING_DEPS "debhelper \
 	devscripts \
 	fakeroot"
 
+# CodeCov
+ENV CODECOV_DEPS curl
+
 # Coverity
 ENV COVERITY_DEPS ruby gcc-6 g++-6
 
@@ -124,6 +127,7 @@ RUN apt-get install -y --no-install-recommends \
 	$DOC_DEPS \
 	$TESTS_DEPS \
 	$PACKAGING_DEPS \
+	$CODECOV_DEPS \
 	$COVERITY_DEPS \
 	$MISC_DEPS
 
