@@ -1,0 +1,62 @@
+#!../pmemobjcli -s
+# This is a script for pmemobjcli application intended to be used with afl.
+# The script performs operations on a memory.
+# usage: ./mem.posc <file>
+
+# allocate root object with specified size
+pmemobj_root 1024
+
+# allocate three objects in root object
+# at positions 0, 1, 2
+# of 1, 2, 3 number type
+# and 512, 256, 128 size
+pmemobj_alloc r.0 1 512
+pmemobj_alloc r.1 2 256
+pmemobj_alloc r.2 3 128
+
+# set 3 at position 0 then 1 at positions 1 and
+# 0 at position 2 to root objects
+pmemobj_memset_persist r.0 0 3 512
+pmemobj_memset_persist r.1 0 1 256
+pmemobj_memset_persist r.2 0 0 128
+
+# copy 128 bytes from position 1 of root object to
+# position 2
+pmemobj_memcpy_persist r.2 0 r.1 0 128
+
+# perform pmemobj_persist on root object at position 2
+pmemobj_persist r.2 32 96
+
+# perform pmemobj_flush on root object at position 1
+pmemobj_flush r.1 96 156
+
+# perform pmemobj_drain on given pool
+pmemobj_drain
+
+# print uuid of pool containing root object
+pmemobj_pool_by_oid r
+
+# print uuid of pool containing address of
+# root object at position 2
+pmemobj_pool_by_ptr r.2 32
+
+# copy 128 bytes from position 2 and 256 bytes from
+# position 1 of root objects to position 0
+pmemobj_memcpy_persist r.0 0 r.2 0 128
+pmemobj_memcpy_persist r.0 256 r.1 0 256
+
+#zero the 32 bytes of r.0 from 128 position
+pmemobj_memset_persist r.0 128 0 32
+
+# perform pmemobj_persist on root object at position 0
+# and start from the beginning
+pmemobj_persist r.0 0 512
+
+# print uuid of pool containing address of
+# root object at position 0
+pmemobj_pool_by_ptr r.0 512
+
+# free allocated objects
+pmemobj_free r.0
+pmemobj_free r.1
+pmemobj_free r.2

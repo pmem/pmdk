@@ -1,0 +1,29 @@
+#!../pmemobjcli -s
+# This is a script for pmemobjcli application intended to be used with afl.
+# The script allocates, reallocates and frees objects within transaction.
+# usage: ./allocate_tx.posc <file>
+
+# allocate root object with specified size
+pmemobj_root 1024
+
+# begin transaction without jmp_buf argument
+pmemobj_tx_begin
+
+# allocate two zeroed objects in root object
+# at positions 0 and 1
+pmemobj_tx_zalloc r.0 256 1
+pmemobj_tx_zalloc r.1 128 2
+
+# reallocate two objects
+pmemobj_tx_realloc r.0 512 2
+pmemobj_tx_zrealloc r.1 256 3
+
+# free allocated objects
+pmemobj_tx_free r.0
+pmemobj_tx_free r.1
+
+# commit current transaction 
+pmemobj_tx_commit
+
+# end current transaction
+pmemobj_tx_end

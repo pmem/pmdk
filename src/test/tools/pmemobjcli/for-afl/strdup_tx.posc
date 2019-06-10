@@ -1,0 +1,40 @@
+#!../pmemobjcli -s
+# This is a script for pmemobjcli application intended to be use with afl.
+# The script duplicates pattern in an object within aborted transaction.
+# usage: ./strdup_tx.posc <file>
+
+# allocate root object with specified size
+pmemobj_root 256
+
+# allocate zeroed object in root object
+# at positions 0
+pmemobj_zalloc r.0 1 256
+
+# begin transaction with jmp_buf argument
+pmemobj_tx_begin jmp
+
+# create a snapshot of entire root object
+pmemobj_tx_add_range r 0 256
+
+# allocate an object using strdup at 1st position
+# in root object with 2 type number
+pmemobj_tx_strdup r.1 0 2
+
+# begin transaction without jmp_buf argument
+pmemobj_tx_begin
+
+# allocate an object using strdup at 2nd position
+# in root object with 3 type number
+pmemobj_tx_strdup r.2 0 3
+
+# move to the next stage
+pmemobj_tx_process
+
+# end current transaction
+pmemobj_tx_end
+
+# abort current transaction
+pmemobj_tx_abort -1
+
+# free allocated object
+pmemobj_free r.0
