@@ -107,7 +107,7 @@ ENV PACKAGING_DEPS "debhelper \
 ENV CODECOV_DEPS curl
 
 # Coverity
-ENV COVERITY_DEPS ruby gcc-6 g++-6
+ENV COVERITY_DEPS ruby gcc-6 g++-6 wget
 
 # misc
 ENV MISC_DEPS "clang \
@@ -156,7 +156,6 @@ RUN apt remove -y \
 	libudev-dev \
 	uuid-dev \
 	unzip \
-	wget \
 	whois
 
 RUN apt autoremove -y
