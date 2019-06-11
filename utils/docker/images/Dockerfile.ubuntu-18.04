@@ -160,6 +160,8 @@ RUN apt remove -y \
 
 RUN apt autoremove -y
 
+RUN apt-get clean
+
 RUN rm -rf /var/lib/apt/lists/*
 
 # switch user

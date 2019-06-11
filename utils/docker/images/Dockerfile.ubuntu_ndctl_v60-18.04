@@ -73,8 +73,11 @@ RUN apt-get update \
 	uuid-dev \
 	wget \
 	whois \
-	xmlto \
- && rm -rf /var/lib/apt/lists/*
+	xmlto
+
+RUN apt-get clean
+
+RUN rm -rf /var/lib/apt/lists/*
 
 # Install valgrind
 COPY install-valgrind.sh install-valgrind.sh
