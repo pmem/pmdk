@@ -97,7 +97,7 @@ struct pool_set_file {
 };
 
 struct arena {
-	TAILQ_ENTRY(arena) next;
+	PMDK_TAILQ_ENTRY(arena) next;
 	struct btt_info btt_info;
 	uint32_t id;
 	bool valid;
@@ -124,7 +124,7 @@ struct pool_data {
 		UUID_NOT_FROM_BTT,
 	} uuid_op;
 	struct arena bttc;
-	TAILQ_HEAD(arenashead, arena) arenas;
+	PMDK_TAILQ_HEAD(arenashead, arena) arenas;
 	uint32_t narenas;
 };
 

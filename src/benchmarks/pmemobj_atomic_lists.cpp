@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -140,7 +140,7 @@ static struct obj_bench {
  */
 struct item {
 	POBJ_LIST_ENTRY(struct item) field;
-	CIRCLEQ_ENTRY(item) fieldq;
+	PMDK_CIRCLEQ_ENTRY(item) fieldq;
 };
 
 /*
@@ -161,7 +161,7 @@ struct obj_worker {
 	POBJ_LIST_HEAD(plist, struct item) head;
 
 	/* head of the circular queue */
-	CIRCLEQ_HEAD(qlist, item) headq;
+	PMDK_CIRCLEQ_HEAD(qlist, item) headq;
 	TOID(struct item) * oids;    /* persistent pmemobj list elements */
 	struct item **items;	 /* volatile elements */
 	size_t n_elm;		     /* number of elements in array */
@@ -218,7 +218,7 @@ position_head(struct obj_worker *obj_worker, size_t op_idx)
 	if (!obj_bench.args->queue)
 		head.itemp = POBJ_LIST_FIRST(&obj_worker->head);
 	else
-		head.itemq = CIRCLEQ_FIRST(&obj_worker->headq);
+		head.itemq = PMDK_CIRCLEQ_FIRST(&obj_worker->headq);
 	return head;
 }
 
@@ -233,7 +233,7 @@ position_tail(struct obj_worker *obj_worker, size_t op_idx)
 	if (!obj_bench.args->queue)
 		tail.itemp = POBJ_LIST_LAST(&obj_worker->head, field);
 	else
-		tail.itemq = CIRCLEQ_LAST(&obj_worker->headq);
+		tail.itemq = PMDK_CIRCLEQ_LAST(&obj_worker->headq);
 	return tail;
 }
 
@@ -249,7 +249,7 @@ position_middle(struct obj_worker *obj_worker, size_t op_idx)
 	if (!obj_bench.args->queue)
 		elm.itemp = POBJ_LIST_NEXT(elm.itemp, field);
 	else
-		elm.itemq = CIRCLEQ_NEXT(elm.itemq, fieldq);
+		elm.itemq = PMDK_CIRCLEQ_NEXT(elm.itemq, fieldq);
 	return elm;
 }
 
@@ -394,7 +394,7 @@ queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 {
 	size_t i;
 	auto *obj_worker = (struct obj_worker *)worker->priv;
-	CIRCLEQ_INIT(&obj_worker->headq);
+	PMDK_CIRCLEQ_INIT(&obj_worker->headq);
 	obj_worker->items =
 		(struct item **)malloc(n_items * sizeof(struct item *));
 	if (obj_worker->items == nullptr) {
@@ -412,8 +412,8 @@ queue_init_list(struct worker_info *worker, size_t n_items, size_t list_len)
 	}
 
 	for (i = 0; i < list_len; i++)
-		CIRCLEQ_INSERT_TAIL(&obj_worker->headq, obj_worker->items[i],
-				    fieldq);
+		PMDK_CIRCLEQ_INSERT_TAIL(&obj_worker->headq,
+					 obj_worker->items[i], fieldq);
 
 	return 0;
 err:
@@ -430,9 +430,9 @@ err:
 static void
 queue_free_worker_list(struct obj_worker *obj_worker)
 {
-	while (!CIRCLEQ_EMPTY(&obj_worker->headq)) {
-		struct item *tmp = CIRCLEQ_LAST(&obj_worker->headq);
-		CIRCLEQ_REMOVE(&obj_worker->headq, tmp, fieldq);
+	while (!PMDK_CIRCLEQ_EMPTY(&obj_worker->headq)) {
+		struct item *tmp = PMDK_CIRCLEQ_LAST(&obj_worker->headq);
+		PMDK_CIRCLEQ_REMOVE(&obj_worker->headq, tmp, fieldq);
 		free(tmp);
 	}
 	free(obj_worker->items);
@@ -538,9 +538,9 @@ static int
 queue_insert_op(struct operation_info *info)
 {
 	auto *obj_worker = (struct obj_worker *)info->worker->priv;
-	CIRCLEQ_INSERT_AFTER(&obj_worker->headq, obj_worker->elm.itemq,
-			     obj_worker->items[info->index + obj_bench.min_len],
-			     fieldq);
+	PMDK_CIRCLEQ_INSERT_AFTER(
+		&obj_worker->headq, obj_worker->elm.itemq,
+		obj_worker->items[info->index + obj_bench.min_len], fieldq);
 	return 0;
 }
 
@@ -566,7 +566,7 @@ static int
 queue_remove_op(struct operation_info *info)
 {
 	auto *obj_worker = (struct obj_worker *)info->worker->priv;
-	CIRCLEQ_REMOVE(&obj_worker->headq, obj_worker->elm.itemq, fieldq);
+	PMDK_CIRCLEQ_REMOVE(&obj_worker->headq, obj_worker->elm.itemq, fieldq);
 	return 0;
 }
 

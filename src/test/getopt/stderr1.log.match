@@ -1,0 +1,3 @@
+$(nW)getopt$(nW): invalid option -- 'Z'
+$(nW)getopt$(nW): unrecognized option '--arg_Z'
+$(nW)getopt$(nW): option requires an argument -- 'A'

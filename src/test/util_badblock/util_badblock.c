@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@
 #include "os_dimm.h"
 #include "os_badblock.h"
 #include "badblock.h"
+#include "fault_injection.h"
 
 #define MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MiB */
 #define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
@@ -127,6 +128,19 @@ do_open(const char *path)
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 }
 
+
+static void
+do_fault_injection(const char *path)
+{
+	if (!common_fault_injection_enabled())
+		return;
+
+	common_inject_fault_at(PMEM_MALLOC, 1, "badblocks_recovery_file_alloc");
+	char *ret = badblocks_recovery_file_alloc(path, 0, 0);
+	UT_ASSERTeq(ret, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -161,7 +175,9 @@ main(int argc, char *argv[])
 		case 'o':
 			do_open(path);
 			break;
-
+		case 'f':
+			do_fault_injection(path);
+			break;
 		default:
 			UT_FATAL(
 				"op must be l, c, r or o (l=list, c=clear, r=create, o=open)");

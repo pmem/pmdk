@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,16 +37,16 @@ TOP := ../../..
 include $(TOP)/src/common.inc
 
 ifeq ($(BUILD_RPMEM), y)
-PROGS = basic manpage
+PROGS = basic hello manpage
+DIRS = fibonacci
 
-LIBS = -lrpmem -pthread $(shell $(PKG_CONFIG) --libs libfabric)
-
-CFLAGS = $(shell $(PKG_CONFIG) --cflags libfabric)
+LIBS = -lrpmem -pthread
 else
-$(info NOTE: Skipping librpmem because $(BUILD_RPMEM_INFO))
+$(info NOTE: Skipping librpmem examples because $(BUILD_RPMEM_INFO))
 endif
 
 include ../Makefile.inc
 
 basic: basic.o
+hello: hello.o
 manpage: manpage.o

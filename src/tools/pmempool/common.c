@@ -154,21 +154,6 @@ pmem_pool_type_parse_str(const char *str)
 }
 
 /*
- * util_validate_checksum -- validate checksum and return valid one
- */
-int
-util_validate_checksum(void *addr, size_t len, uint64_t *csum,
-	uint64_t skip_off)
-{
-	/* validate checksum */
-	int csum_valid = util_checksum(addr, len, csum, 0, skip_off);
-	/* get valid one */
-	if (!csum_valid)
-		util_checksum(addr, len, csum, 1, skip_off);
-	return csum_valid;
-}
-
-/*
  * util_get_pool_type_second_page -- return type based on second page content
  */
 pmem_pool_type_t
@@ -352,11 +337,11 @@ util_ranges_add(struct ranges *rangesp, struct range range)
 	uint64_t first = rangep->first;
 	uint64_t last = rangep->last;
 
-	curp = LIST_FIRST(&rangesp->head);
+	curp = PMDK_LIST_FIRST(&rangesp->head);
 	while (curp) {
-		next = LIST_NEXT(curp, next);
+		next = PMDK_LIST_NEXT(curp, next);
 		if (util_ranges_overlap(curp, rangep)) {
-			LIST_REMOVE(curp, next);
+			PMDK_LIST_REMOVE(curp, next);
 			if (curp->first < first)
 				first = curp->first;
 			if (curp->last > last)
@@ -369,14 +354,14 @@ util_ranges_add(struct ranges *rangesp, struct range range)
 	rangep->first = first;
 	rangep->last = last;
 
-	LIST_FOREACH(curp, &rangesp->head, next) {
+	PMDK_LIST_FOREACH(curp, &rangesp->head, next) {
 		if (curp->first < rangep->first) {
-			LIST_INSERT_AFTER(curp, rangep, next);
+			PMDK_LIST_INSERT_AFTER(curp, rangep, next);
 			return 0;
 		}
 	}
 
-	LIST_INSERT_HEAD(&rangesp->head, rangep, next);
+	PMDK_LIST_INSERT_HEAD(&rangesp->head, rangep, next);
 
 	return 0;
 }
@@ -388,7 +373,7 @@ int
 util_ranges_contain(const struct ranges *rangesp, uint64_t n)
 {
 	struct range *curp  = NULL;
-	LIST_FOREACH(curp, &rangesp->head, next) {
+	PMDK_LIST_FOREACH(curp, &rangesp->head, next) {
 		if (curp->first <= n && n <= curp->last)
 			return 1;
 	}
@@ -402,7 +387,7 @@ util_ranges_contain(const struct ranges *rangesp, uint64_t n)
 int
 util_ranges_empty(const struct ranges *rangesp)
 {
-	return LIST_EMPTY(&rangesp->head);
+	return PMDK_LIST_EMPTY(&rangesp->head);
 }
 
 /*
@@ -411,9 +396,9 @@ util_ranges_empty(const struct ranges *rangesp)
 void
 util_ranges_clear(struct ranges *rangesp)
 {
-	while (!LIST_EMPTY(&rangesp->head)) {
-		struct range *rangep = LIST_FIRST(&rangesp->head);
-		LIST_REMOVE(rangep, next);
+	while (!PMDK_LIST_EMPTY(&rangesp->head)) {
+		struct range *rangep = PMDK_LIST_FIRST(&rangesp->head);
+		PMDK_LIST_REMOVE(rangep, next);
 		free(rangep);
 	}
 }

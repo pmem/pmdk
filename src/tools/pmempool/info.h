@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -144,7 +144,7 @@ struct pmem_obj_zone_stats {
 };
 
 struct pmem_obj_type_stats {
-	TAILQ_ENTRY(pmem_obj_type_stats) next;
+	PMDK_TAILQ_ENTRY(pmem_obj_type_stats) next;
 	uint64_t type_num;
 	uint64_t n_objects;
 	uint64_t n_bytes;
@@ -156,7 +156,7 @@ struct pmem_obj_stats {
 	uint64_t n_zones;
 	uint64_t n_zones_used;
 	struct pmem_obj_zone_stats *zone_stats;
-	TAILQ_HEAD(obj_type_stats_head, pmem_obj_type_stats) type_stats;
+	PMDK_TAILQ_HEAD(obj_type_stats_head, pmem_obj_type_stats) type_stats;
 };
 
 /*

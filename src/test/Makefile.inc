@@ -482,6 +482,9 @@ pcheck: export NOTTY=1
 
 pcheck: $(TSTCHECKS)
 
+pycheck:
+	@./TESTS.py
+
 test: all
 
 TOOLS=../tools

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -165,7 +165,7 @@ btt_data_write(PMEMpoolcheck *ppc, location *loc)
 
 	struct arena *arenap;
 
-	TAILQ_FOREACH(arenap, &ppc->pool->arenas, next) {
+	PMDK_TAILQ_FOREACH(arenap, &ppc->pool->arenas, next) {
 
 		if (ppc->pool->uuid_op == UUID_NOT_FROM_BTT) {
 			memcpy(arenap->btt_info.parent_uuid,

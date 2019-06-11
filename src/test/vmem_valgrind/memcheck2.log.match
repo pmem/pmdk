@@ -21,5 +21,4 @@ $(OPT)==$(N)==    by 0x$(X): vmem_malloc $(*)
 ==$(N)==    still reachable: 0 bytes in 0 blocks
 ==$(N)==         suppressed: $(NC) bytes in $(N) blocks
 ==$(N)== 
-==$(N)== For counts of detected and suppressed errors, rerun with: -v
 ==$(N)== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: $(N) from $(N))

@@ -47,7 +47,7 @@
 #include "memops.h"
 
 struct tx_data {
-	SLIST_ENTRY(tx_data) tx_entry;
+	PMDK_SLIST_ENTRY(tx_data) tx_entry;
 	jmp_buf env;
 };
 
@@ -56,8 +56,8 @@ struct tx {
 	enum pobj_tx_stage stage;
 	int last_errnum;
 	struct lane *lane;
-	SLIST_HEAD(txl, tx_lock_data) tx_locks;
-	SLIST_HEAD(txd, tx_data) tx_entries;
+	PMDK_SLIST_HEAD(txl, tx_lock_data) tx_locks;
+	PMDK_SLIST_HEAD(txd, tx_data) tx_entries;
 
 	struct ravl *ranges;
 
@@ -87,7 +87,7 @@ struct tx_lock_data {
 		PMEMrwlock *rwlock;
 	} lock;
 	enum pobj_tx_param lock_type;
-	SLIST_ENTRY(tx_lock_data) tx_lock;
+	PMDK_SLIST_ENTRY(tx_lock_data) tx_lock;
 };
 
 struct tx_alloc_args {
@@ -242,10 +242,10 @@ constructor_tx_alloc(void *ctx, void *ptr, size_t usable_size, void *arg)
 struct tx_range_data {
 	void *begin;
 	void *end;
-	SLIST_ENTRY(tx_range_data) tx_range;
+	PMDK_SLIST_ENTRY(tx_range_data) tx_range;
 };
 
-SLIST_HEAD(txr, tx_range_data);
+PMDK_SLIST_HEAD(txr, tx_range_data);
 
 /*
  * tx_remove_range -- (internal) removes specified range from ranges list
@@ -253,11 +253,11 @@ SLIST_HEAD(txr, tx_range_data);
 static void
 tx_remove_range(struct txr *tx_ranges, void *begin, void *end)
 {
-	struct tx_range_data *txr = SLIST_FIRST(tx_ranges);
+	struct tx_range_data *txr = PMDK_SLIST_FIRST(tx_ranges);
 
 	while (txr) {
 		if (begin >= txr->end || end < txr->begin) {
-			txr = SLIST_NEXT(txr, tx_range);
+			txr = PMDK_SLIST_NEXT(txr, tx_range);
 			continue;
 		}
 
@@ -269,28 +269,30 @@ tx_remove_range(struct txr *tx_ranges, void *begin, void *end)
 		if (begin > txr->begin) {
 			struct tx_range_data *txrn = Malloc(sizeof(*txrn));
 			if (txrn == NULL)
+				/* we can't do it any other way */
 				FATAL("!Malloc");
 
 			txrn->begin = txr->begin;
 			txrn->end = begin;
 			LOG(4, "range split; %p-%p", txrn->begin, txrn->end);
-			SLIST_INSERT_HEAD(tx_ranges, txrn, tx_range);
+			PMDK_SLIST_INSERT_HEAD(tx_ranges, txrn, tx_range);
 		}
 
 		if (end < txr->end) {
 			struct tx_range_data *txrn = Malloc(sizeof(*txrn));
 			if (txrn == NULL)
+				/* we can't do it any other way */
 				FATAL("!Malloc");
 
 			txrn->begin = end;
 			txrn->end = txr->end;
 			LOG(4, "range split; %p-%p", txrn->begin, txrn->end);
-			SLIST_INSERT_HEAD(tx_ranges, txrn, tx_range);
+			PMDK_SLIST_INSERT_HEAD(tx_ranges, txrn, tx_range);
 		}
 
-		struct tx_range_data *next = SLIST_NEXT(txr, tx_range);
+		struct tx_range_data *next = PMDK_SLIST_NEXT(txr, tx_range);
 		/* remove the original range from the list */
-		SLIST_REMOVE(tx_ranges, txr, tx_range_data, tx_range);
+		PMDK_SLIST_REMOVE(tx_ranges, txr, tx_range_data, tx_range);
 		Free(txr);
 
 		txr = next;
@@ -311,11 +313,12 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct ulog_entry_buf *range)
 	COMPILE_ERROR_ON(sizeof(PMEMcond) != _POBJ_CL_SIZE);
 
 	struct txr tx_ranges;
-	SLIST_INIT(&tx_ranges);
+	PMDK_SLIST_INIT(&tx_ranges);
 
 	struct tx_range_data *txr;
 	txr = Malloc(sizeof(*txr));
 	if (txr == NULL) {
+		/* we can't do it any other way */
 		FATAL("!Malloc");
 	}
 
@@ -323,12 +326,12 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct ulog_entry_buf *range)
 
 	txr->begin = OBJ_OFF_TO_PTR(pop, range_offset);
 	txr->end = (char *)txr->begin + range->size;
-	SLIST_INSERT_HEAD(&tx_ranges, txr, tx_range);
+	PMDK_SLIST_INSERT_HEAD(&tx_ranges, txr, tx_range);
 
 	struct tx_lock_data *txl;
 
 	/* check if there are any locks within given memory range */
-	SLIST_FOREACH(txl, &tx->tx_locks, tx_lock) {
+	PMDK_SLIST_FOREACH(txl, &tx->tx_locks, tx_lock) {
 		void *lock_begin = txl->lock.mutex;
 		/* all PMEM locks have the same size */
 		void *lock_end = (char *)lock_begin + _POBJ_CL_SIZE;
@@ -336,13 +339,13 @@ tx_restore_range(PMEMobjpool *pop, struct tx *tx, struct ulog_entry_buf *range)
 		tx_remove_range(&tx_ranges, lock_begin, lock_end);
 	}
 
-	ASSERT(!SLIST_EMPTY(&tx_ranges));
+	ASSERT(!PMDK_SLIST_EMPTY(&tx_ranges));
 
 	void *dst_ptr = OBJ_OFF_TO_PTR(pop, range_offset);
 
-	while (!SLIST_EMPTY(&tx_ranges)) {
-		txr = SLIST_FIRST(&tx_ranges);
-		SLIST_REMOVE_HEAD(&tx_ranges, tx_range);
+	while (!PMDK_SLIST_EMPTY(&tx_ranges)) {
+		txr = PMDK_SLIST_FIRST(&tx_ranges);
+		PMDK_SLIST_REMOVE_HEAD(&tx_ranges, tx_range);
 		/* restore partial range data from snapshot */
 		ASSERT((char *)txr->begin >= (char *)dst_ptr);
 		uint8_t *src = &range->data[
@@ -476,7 +479,7 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 	int retval = 0;
 	struct tx_lock_data *txl;
 	/* check if the lock is already on the list */
-	SLIST_FOREACH(txl, &tx->tx_locks, tx_lock) {
+	PMDK_SLIST_FOREACH(txl, &tx->tx_locks, tx_lock) {
 		if (memcmp(&txl->lock, &lock, sizeof(lock)) == 0)
 			return 0;
 	}
@@ -511,7 +514,7 @@ add_to_tx_and_lock(struct tx *tx, enum pobj_tx_param type, void *lock)
 			break;
 	}
 
-	SLIST_INSERT_HEAD(&tx->tx_locks, txl, tx_lock);
+	PMDK_SLIST_INSERT_HEAD(&tx->tx_locks, txl, tx_lock);
 	return 0;
 
 err:
@@ -530,9 +533,9 @@ release_and_free_tx_locks(struct tx *tx)
 {
 	LOG(15, NULL);
 
-	while (!SLIST_EMPTY(&tx->tx_locks)) {
-		struct tx_lock_data *tx_lock = SLIST_FIRST(&tx->tx_locks);
-		SLIST_REMOVE_HEAD(&tx->tx_locks, tx_lock);
+	while (!PMDK_SLIST_EMPTY(&tx->tx_locks)) {
+		struct tx_lock_data *tx_lock = PMDK_SLIST_FIRST(&tx->tx_locks);
+		PMDK_SLIST_REMOVE_HEAD(&tx->tx_locks, tx_lock);
 		switch (tx_lock->lock_type) {
 			case TX_PARAM_MUTEX:
 				pmemobj_mutex_unlock(tx->pop,
@@ -691,8 +694,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		operation_start(tx->lane->undo);
 
 		VEC_INIT(&tx->actions);
-		SLIST_INIT(&tx->tx_entries);
-		SLIST_INIT(&tx->tx_locks);
+		PMDK_SLIST_INIT(&tx->tx_entries);
+		PMDK_SLIST_INIT(&tx->tx_locks);
 
 		tx->ranges = ravl_new_sized(tx_range_def_cmp,
 			sizeof(struct tx_range_def));
@@ -717,7 +720,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	else
 		memset(txd->env, 0, sizeof(jmp_buf));
 
-	SLIST_INSERT_HEAD(&tx->tx_entries, txd, tx_entry);
+	PMDK_SLIST_INSERT_HEAD(&tx->tx_entries, txd, tx_entry);
 
 	tx->stage = TX_STAGE_WORK;
 
@@ -788,10 +791,10 @@ obj_tx_callback(struct tx *tx)
 	if (!tx->stage_callback)
 		return;
 
-	struct tx_data *txd = SLIST_FIRST(&tx->tx_entries);
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
 
 	/* is this the outermost transaction? */
-	if (SLIST_NEXT(txd, tx_entry) == NULL)
+	if (PMDK_SLIST_NEXT(txd, tx_entry) == NULL)
 		tx->stage_callback(tx->pop, tx->stage, tx->stage_callback_arg);
 }
 
@@ -824,9 +827,9 @@ obj_tx_abort(int errnum, int user)
 		errnum = ECANCELED;
 
 	tx->stage = TX_STAGE_ONABORT;
-	struct tx_data *txd = SLIST_FIRST(&tx->tx_entries);
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
 
-	if (SLIST_NEXT(txd, tx_entry) == NULL) {
+	if (PMDK_SLIST_NEXT(txd, tx_entry) == NULL) {
 		/* this is the outermost transaction */
 
 		/* process the undo log */
@@ -899,9 +902,9 @@ pmemobj_tx_commit(void)
 
 	ASSERT(tx->lane != NULL);
 
-	struct tx_data *txd = SLIST_FIRST(&tx->tx_entries);
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
 
-	if (SLIST_NEXT(txd, tx_entry) == NULL) {
+	if (PMDK_SLIST_NEXT(txd, tx_entry) == NULL) {
 		/* this is the outermost transaction */
 
 		PMEMobjpool *pop = tx->pop;
@@ -952,14 +955,14 @@ pmemobj_tx_end(void)
 		obj_tx_callback(tx);
 	}
 
-	struct tx_data *txd = SLIST_FIRST(&tx->tx_entries);
-	SLIST_REMOVE_HEAD(&tx->tx_entries, tx_entry);
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+	PMDK_SLIST_REMOVE_HEAD(&tx->tx_entries, tx_entry);
 
 	Free(txd);
 
 	VALGRIND_END_TX;
 
-	if (SLIST_EMPTY(&tx->tx_entries)) {
+	if (PMDK_SLIST_EMPTY(&tx->tx_entries)) {
 		ASSERTeq(tx->lane, NULL);
 
 		release_and_free_tx_locks(tx);
@@ -1757,19 +1760,19 @@ static int
 CTL_READ_HANDLER(threshold)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
-	LOG(1, "tx.cache.threshold parameter is depracated");
+	LOG(1, "tx.cache.threshold parameter is deprecated");
 
 	return 0;
 }
 
 /*
- * CTL_WRITE_HANDLER(threshold) -- depracated
+ * CTL_WRITE_HANDLER(threshold) -- deprecated
  */
 static int
 CTL_WRITE_HANDLER(threshold)(void *ctx,
 	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
 {
-	LOG(1, "tx.cache.threshold parameter is depracated");
+	LOG(1, "tx.cache.threshold parameter is deprecated");
 
 	return 0;
 }

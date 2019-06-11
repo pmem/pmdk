@@ -81,7 +81,7 @@ to the *pool_addr* specified in the **rpmem_open**(3) or **rpmem_create**(3)
 call. If the remote pool was created using **rpmem_create**() with non-NULL
 *create_attr* argument, *offset* has to be greater or equal to 4096.
 In that case the first 4096 bytes of the pool is used for storing the pool
-matadata and cannot be overwritten.
+metadata and cannot be overwritten.
 If the pool was created with NULL *create_attr* argument, the pool metadata
 is not stored with the pool and *offset* can be any nonnegative number.
 The *offset* and *length* combined must not exceed the
@@ -112,7 +112,9 @@ by all **rpmem_flush**() functions called before it and using the same *lane*.
 The last **rpmem_flush**() + **rpmem_drain**() can be replaced with
 **rpmem_persist**() at no cost.
 
-The *flags* argument for **rpmem_flush**() and **rpmem_drain**() must be 0.
+The *flags* argument for **rpmem_flush**() can be 0 or RPMEM_FLUSH_RELAXED
+which means the flush operation will be done without any guarantees regarding
+atomicity of memory transfer. The *flags* argument for **rpmem_drain**() must be 0.
 
 The **rpmem_flush**() function performance is affected by **RPMEM_WORK_QUEUE_SIZE**
 environment variable (see **librpmem**(7) for more details).

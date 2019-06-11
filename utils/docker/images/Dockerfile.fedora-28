@@ -39,8 +39,9 @@ FROM fedora:28
 MAINTAINER marcin.slusarz@intel.com
 
 # Install basic tools
-RUN dnf update -y \
- && dnf install -y \
+RUN dnf update -y
+
+RUN dnf install -y \
 	asciidoc \
 	asciidoctor \
 	autoconf \
@@ -48,7 +49,6 @@ RUN dnf update -y \
 	bash-completion \
 	bc \
 	clang \
-	cmake \
 	file \
 	findutils \
 	fuse \
@@ -82,8 +82,9 @@ RUN dnf update -y \
 	tar \
 	wget \
 	which \
-	xmlto \
- && dnf clean all
+	xmlto
+
+RUN dnf clean all
 
 # Install libndctl
 COPY install-libndctl.sh install-libndctl.sh

@@ -201,7 +201,7 @@ The **pmemobj_tx_lock**() function acquires the lock *lockp* of type
 **TX_LOCK_MUTEX** or **TX_LOCK_RWLOCK**; *lockp* must be of type
 *PMEMmutex* or *PMEMrwlock*, respectively. If *lock_type* is **TX_LOCK_RWLOCK**
 the lock is acquired for writing. If the lock is not successfully
-acquired, the stage is changed to **TX_STAGE_ONABORT**. This function must be
+acquired, the function returns an error number. This function must be
 called during **TX_STAGE_WORK**.
 
 **pmemobj_tx_abort**() aborts the current transaction and causes a transition

@@ -66,6 +66,8 @@ if (Rpmem_fork_unsafe) {\
 }\
 } while (0)
 
+static os_once_t Rpmem_fork_unsafe_key_once = OS_ONCE_INIT;
+
 /*
  * rpmem_pool -- remote pool context
  */
@@ -456,6 +458,7 @@ rpmem_create(const char *target, const char *pool_set_name,
 			"nlanes %p, create_attr %p", target, pool_set_name,
 			pool_addr, pool_size, nlanes, create_attr);
 
+	os_once(&Rpmem_fork_unsafe_key_once, &rpmem_fip_probe_fork_safety);
 	RPMEM_CHECK_FORK();
 
 	rpmem_log_args("create", target, pool_set_name,
@@ -532,6 +535,7 @@ rpmem_open(const char *target, const char *pool_set_name,
 			"nlanes %p, create_attr %p", target, pool_set_name,
 			pool_addr, pool_size, nlanes, open_attr);
 
+	os_once(&Rpmem_fork_unsafe_key_once, &rpmem_fip_probe_fork_safety);
 	RPMEM_CHECK_FORK();
 
 	rpmem_log_args("open", target, pool_set_name,
@@ -636,7 +640,7 @@ rpmem_flush(RPMEMpool *rpp, size_t offset, size_t length,
 		return -1;
 	}
 
-	if (flags != 0) {
+	if (flags & RPMEM_FLUSH_FLAGS_MASK) {
 		ERR("invalid flags (0x%x)", flags);
 		errno = EINVAL;
 		return -1;
@@ -649,7 +653,15 @@ rpmem_flush(RPMEMpool *rpp, size_t offset, size_t length,
 		return -1;
 	}
 
-	int ret = rpmem_fip_flush(rpp->fip, offset, length, lane);
+	/*
+	 * By default use RDMA SEND flush mode which has atomicity
+	 * guarantees. For relaxed flush use RDMA WRITE.
+	 */
+	unsigned mode = RPMEM_PERSIST_SEND;
+	if (flags & RPMEM_FLUSH_RELAXED)
+		mode = RPMEM_FLUSH_WRITE;
+
+	int ret = rpmem_fip_flush(rpp->fip, offset, length, lane, mode);
 	if (unlikely(ret)) {
 		LOG(2, "flush operation failed");
 		rpp->error = ret;
@@ -733,7 +745,7 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
 	 */
 	unsigned mode = RPMEM_PERSIST_SEND;
 	if (flags & RPMEM_PERSIST_RELAXED)
-		mode = RPMEM_PERSIST_WRITE;
+		mode = RPMEM_FLUSH_WRITE;
 
 	int ret = rpmem_fip_persist(rpp->fip, offset, length,
 			lane, mode);

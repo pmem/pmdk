@@ -34,13 +34,14 @@
  * obj_tx_flow.c -- unit test for transaction flow
  */
 #include "unittest.h"
+#include "obj.h"
 
 #define LAYOUT_NAME "direct"
 
 #define TEST_VALUE_A 5
 #define TEST_VALUE_B 10
 #define TEST_VALUE_C 15
-#define OPS_NUM 9
+#define OPS_NUM 8
 TOID_DECLARE(struct test_obj, 1);
 
 struct test_obj {
@@ -237,11 +238,11 @@ do_tx_different_pointer(PMEMobjpool *pop, PMEMobjpool *pop2)
 	} TX_END
 }
 
-typedef void (*fn_op)(PMEMobjpool *pop, TOID(struct test_obj) *obj);
-static fn_op tx_op[OPS_NUM] = {do_tx_macro_commit, do_tx_macro_abort,
-			do_tx_macro_commit_nested, do_tx_macro_abort_nested,
-			do_tx_commit, do_tx_commit_nested, do_tx_abort,
-			do_tx_abort_nested};
+typedef void(*fn_op)(PMEMobjpool *pop, TOID(struct test_obj) *obj);
+static fn_op tx_op[OPS_NUM] = { do_tx_macro_commit, do_tx_macro_abort,
+do_tx_macro_commit_nested, do_tx_macro_abort_nested,
+do_tx_commit, do_tx_commit_nested, do_tx_abort,
+do_tx_abort_nested };
 
 static void
 do_tx_process(PMEMobjpool *pop)
@@ -296,20 +297,32 @@ do_tx_process_abort(PMEMobjpool *pop)
 	}
 }
 
+static void
+do_fault_injection(PMEMobjpool *pop)
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "pmemobj_tx_begin");
+	int ret = pmemobj_tx_begin(pop, NULL, TX_PARAM_NONE);
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_tx_flow");
-	if (argc != 2)
+
+	if (argc != 3)
 		UT_FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
-	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
+	if ((pop = pmemobj_create(argv[2], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 		S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 
-	char *path = (char *)malloc(strlen(argv[1]) + 3);
-	sprintf(path, "%s_2", argv[1]);
+	char *path = (char *)malloc(strlen(argv[2]) + 3);
+	sprintf(path, "%s_2", argv[2]);
 
 	PMEMobjpool *pop2;
 	if ((pop2 = pmemobj_create(path, LAYOUT_NAME, PMEMOBJ_MIN_POOL,
@@ -329,12 +342,20 @@ main(int argc, char *argv[])
 		UT_ASSERT(D_RO(obj)->b == TEST_VALUE_B);
 		UT_ASSERT(D_RO(obj)->c == TEST_VALUE_C);
 	}
-	do_tx_process(pop);
-	do_tx_process_nested(pop);
-	do_tx_different_pointer(pop, pop2);
 
-	do_tx_process_abort(pop);
-
+	switch (argv[1][0]) {
+	case 't':
+		do_tx_process(pop);
+		do_tx_process_nested(pop);
+		do_tx_different_pointer(pop, pop2);
+		do_tx_process_abort(pop);
+		break;
+	case 'f':
+		do_fault_injection(pop);
+		break;
+	default:
+		UT_FATAL("usage: %s [t|f]", argv[0]);
+	}
 	pmemobj_close(pop);
 	pmemobj_close(pop2);
 	DONE(NULL);

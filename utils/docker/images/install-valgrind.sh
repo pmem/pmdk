@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,8 +38,8 @@ set -e
 
 git clone https://github.com/pmem/valgrind.git
 cd valgrind
-# valgrind v3.14 with pmemcheck
-git checkout 332b3975989d9130486d09493a9571528d66eaf7
+# valgrind v3.15 with pmemcheck
+git checkout d2b085d0ef78a42780c21929edebb1a392279621
 ./autogen.sh
 ./configure
 make

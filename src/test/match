@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -86,6 +86,9 @@ use v5.16;
 select STDERR;
 binmode(STDOUT, ":utf8");
 binmode(STDERR, ":utf8");
+
+my ($color_ok, $color_bad, $color_end) =
+	-t STDOUT ? ("", "\e[31;1m", "\e[0m") : ('')x3;
 
 my $Me = $0;
 $Me =~ s,.*/,,;
@@ -254,7 +257,10 @@ sub match {
 				$line = "[EOF]";
 			}
 
-			printf("%s:%-3d %s%s:%-3d       %s\n", $mfile, $line_pat, $pat, $ofile, $line_out, $line);
+			printf("%s%s:%-3d %s%s:%-3d       %s%s\n",
+				($output =~ /^$_/) ? $color_ok : $color_bad,
+				$mfile, $line_pat, $pat, $ofile, $line_out, $line,
+				$color_end);
 		}
 
 		print " => /$_/\n" if $opt_d;

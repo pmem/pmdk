@@ -81,16 +81,20 @@ NFLUSHES[2]=$((RPMEM_WORK_QUEUE_SIZE)) # last WQ entry should trigger a WQ flush
 # create command sequence
 CMD=
 SEED=
-for i in ${!NFLUSHES[@]}; do
-	SEED=$((4321 + i))
-	nflushes=${NFLUSHES[$i]}
-	FLUSH_SIZE=$((FLUSH_OP_SIZE * nflushes))
+for persist_relaxed in 0 1; do
+	for flush_relaxed in 0 1; do
+		for i in ${!NFLUSHES[@]}; do
+			SEED=$((4321 + i))
+			nflushes=${NFLUSHES[$i]}
+			FLUSH_SIZE=$((FLUSH_OP_SIZE * nflushes))
 
-	CMD+="buff_limit 0 $FLUSH_OFF $FLUSH_SIZE "
-	CMD+="test_flush 0 $SEED 1 $nflushes "
-	CMD+="test_drain 0 1 "
-	CMD+="buff_limit 0 $PERSIST_OFF $PERSIST_SIZE "
-	CMD+="test_persist 0 $SEED 1 1 0 "
+			CMD+="buff_limit 0 $FLUSH_OFF $FLUSH_SIZE "
+			CMD+="test_flush 0 $SEED 1 $nflushes $flush_relaxed "
+			CMD+="test_drain 0 1 "
+			CMD+="buff_limit 0 $PERSIST_OFF $PERSIST_SIZE "
+			CMD+="test_persist 0 $SEED 1 1 $persist_relaxed "
+		done
+	done
 done
 
 expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\

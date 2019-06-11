@@ -1,5 +1,5 @@
 libpmempool_bttdev/TEST1: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) -r 1 -t btt $(nW)
+ $(nW)libpmempool_test$(nW) -r 1 -t btt $(nW)
 checking BTT Info headers
 can not find any valid BTT Info
 status = not consistent

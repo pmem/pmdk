@@ -1,5 +1,5 @@
 libpmempool_bttdev/TEST11: START: libpmempool_test
- ../libpmempool_api/libpmempool_test$(nW) -r 1 -t btt $(nW)
+ $(nW)libpmempool_test$(nW) -r 1 -t btt $(nW)
 checking BTT Info headers
 arena 0: BTT Info header checksum correct
 arena 1: BTT Info header checksum incorrect. Do you want to regenerate BTT Info?

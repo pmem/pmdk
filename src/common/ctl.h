@@ -50,10 +50,10 @@ struct ctl;
 struct ctl_index {
 	const char *name;
 	long value;
-	SLIST_ENTRY(ctl_index) entry;
+	PMDK_SLIST_ENTRY(ctl_index) entry;
 };
 
-SLIST_HEAD(ctl_indexes, ctl_index);
+PMDK_SLIST_HEAD(ctl_indexes, ctl_index);
 
 enum ctl_query_source {
 	CTL_UNKNOWN_QUERY_SOURCE,

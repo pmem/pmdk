@@ -89,7 +89,7 @@ struct pmembench {
  * struct benchmark -- benchmark's context
  */
 struct benchmark {
-	LIST_ENTRY(benchmark) next;
+	PMDK_LIST_ENTRY(benchmark) next;
 	struct benchmark_info *info;
 	void *priv;
 	struct benchmark_clo *clos;
@@ -101,7 +101,7 @@ struct benchmark {
  * struct bench_list -- list of available benchmarks
  */
 struct bench_list {
-	LIST_HEAD(benchmarks_head, benchmark) head;
+	PMDK_LIST_HEAD(benchmarks_head, benchmark) head;
 	bool initialized;
 };
 
@@ -328,11 +328,11 @@ pmembench_register(struct benchmark_info *bench_info)
 	bench->info = bench_info;
 
 	if (!benchmarks.initialized) {
-		LIST_INIT(&benchmarks.head);
+		PMDK_LIST_INIT(&benchmarks.head);
 		benchmarks.initialized = true;
 	}
 
-	LIST_INSERT_HEAD(&benchmarks.head, bench, next);
+	PMDK_LIST_INSERT_HEAD(&benchmarks.head, bench, next);
 
 	return 0;
 }
@@ -1026,7 +1026,7 @@ pmembench_print_help()
 
 	printf("\nAvaliable benchmarks:\n");
 	struct benchmark *bench = nullptr;
-	LIST_FOREACH(bench, &benchmarks.head, next)
+	PMDK_LIST_FOREACH(bench, &benchmarks.head, next)
 	printf("\t%-20s\t\t%s\n", bench->info->name, bench->info->brief);
 	printf("\n$ pmembench <benchmark> --help to print detailed information"
 	       " about benchmark arguments\n");
@@ -1040,7 +1040,7 @@ static struct benchmark *
 pmembench_get_bench(const char *name)
 {
 	struct benchmark *bench;
-	LIST_FOREACH(bench, &benchmarks.head, next)
+	PMDK_LIST_FOREACH(bench, &benchmarks.head, next)
 	{
 		if (strcmp(name, bench->info->name) == 0)
 			return bench;
@@ -1499,9 +1499,9 @@ out_release_clos:
  */
 static void __attribute__((destructor)) pmembench_free_benchmarks(void)
 {
-	while (!LIST_EMPTY(&benchmarks.head)) {
-		struct benchmark *bench = LIST_FIRST(&benchmarks.head);
-		LIST_REMOVE(bench, next);
+	while (!PMDK_LIST_EMPTY(&benchmarks.head)) {
+		struct benchmark *bench = PMDK_LIST_FIRST(&benchmarks.head);
+		PMDK_LIST_REMOVE(bench, next);
 		free(bench);
 	}
 }

@@ -36,10 +36,10 @@
 
 #include <errno.h>
 
-#include "alloc.h"
 #include "critnib.h"
 #include "unittest.h"
 #include "util.h"
+#include "../libpmemobj/obj.h"
 
 #define TEST_INSERTS 100
 #define TEST_VAL(x) ((void *)((uintptr_t)(x)))
@@ -379,6 +379,31 @@ test_remove_nonexist()
 	critnib_delete(c);
 }
 
+static void
+test_fault_injection()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	struct critnib *c = critnib_new();
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "alloc_node");
+
+	/*
+	 * The first critnib_insert() call should succeed
+	 * - it sets the critnib's root.
+	 */
+	int ret = critnib_insert(c, 1 /* any value */, NULL);
+	UT_ASSERTeq(ret, 0);
+	/*
+	 * The second critnib_insert() call should fail
+	 * in the alloc_node() function.
+	 */
+	ret = critnib_insert(c, 2 /* any value other than the previous one */,
+			NULL);
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -388,6 +413,8 @@ main(int argc, char *argv[])
 
 	test_critnib_new_delete();
 	test_insert_get_remove();
+
+	test_fault_injection();
 
 	test_smoke();
 	test_key0();

@@ -95,6 +95,11 @@ struct stats *
 stats_new(PMEMobjpool *pop)
 {
 	struct stats *s = Malloc(sizeof(*s));
+	if (s == NULL) {
+		ERR("!Malloc");
+		return NULL;
+	}
+
 	s->enabled = 0;
 	s->persistent = &pop->stats_persistent;
 	VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(s->persistent, sizeof(*s->persistent));

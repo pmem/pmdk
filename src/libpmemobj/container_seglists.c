@@ -171,7 +171,6 @@ static const struct block_container_ops container_seglists_ops = {
 	.insert = container_seglists_insert_block,
 	.get_rm_exact = NULL,
 	.get_rm_bestfit = container_seglists_get_rm_block_bestfit,
-	.get_exact = NULL,
 	.is_empty = container_seglists_is_empty,
 	.rm_all = container_seglists_rm_all,
 	.destroy = container_seglists_destroy,

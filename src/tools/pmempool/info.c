@@ -1001,12 +1001,12 @@ pmempool_info_alloc(void)
 				sizeof(long_options[0]),
 				option_requirements);
 
-		LIST_INIT(&pip->args.ranges.head);
-		LIST_INIT(&pip->args.obj.type_ranges.head);
-		LIST_INIT(&pip->args.obj.lane_ranges.head);
-		LIST_INIT(&pip->args.obj.zone_ranges.head);
-		LIST_INIT(&pip->args.obj.chunk_ranges.head);
-		TAILQ_INIT(&pip->obj.stats.type_stats);
+		PMDK_LIST_INIT(&pip->args.ranges.head);
+		PMDK_LIST_INIT(&pip->args.obj.type_ranges.head);
+		PMDK_LIST_INIT(&pip->args.obj.lane_ranges.head);
+		PMDK_LIST_INIT(&pip->args.obj.zone_ranges.head);
+		PMDK_LIST_INIT(&pip->args.obj.chunk_ranges.head);
+		PMDK_TAILQ_INIT(&pip->obj.stats.type_stats);
 	}
 
 	return pip;
@@ -1031,10 +1031,10 @@ pmempool_info_free(struct pmem_info *pip)
 	util_ranges_clear(&pip->args.obj.chunk_ranges);
 	util_ranges_clear(&pip->args.obj.lane_ranges);
 
-	while (!TAILQ_EMPTY(&pip->obj.stats.type_stats)) {
+	while (!PMDK_TAILQ_EMPTY(&pip->obj.stats.type_stats)) {
 		struct pmem_obj_type_stats *type =
-			TAILQ_FIRST(&pip->obj.stats.type_stats);
-		TAILQ_REMOVE(&pip->obj.stats.type_stats, type, next);
+			PMDK_TAILQ_FIRST(&pip->obj.stats.type_stats);
+		PMDK_TAILQ_REMOVE(&pip->obj.stats.type_stats, type, next);
 		free(type);
 	}
 

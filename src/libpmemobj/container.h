@@ -60,10 +60,6 @@ struct block_container_ops {
 	int (*get_rm_bestfit)(struct block_container *c,
 		struct memory_block *m);
 
-	/* finds exact match memory block */
-	int (*get_exact)(struct block_container *c,
-		const struct memory_block *m);
-
 	/* checks whether the container is empty */
 	int (*is_empty)(struct block_container *c);
 

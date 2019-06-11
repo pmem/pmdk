@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -78,7 +78,7 @@ scenario_alloc(const char *name, const char *bench)
 	struct scenario *s = (struct scenario *)malloc(sizeof(*s));
 	assert(s != nullptr);
 
-	TAILQ_INIT(&s->head);
+	PMDK_TAILQ_INIT(&s->head);
 	s->name = strdup(name);
 	assert(s->name != nullptr);
 
@@ -98,9 +98,9 @@ scenario_free(struct scenario *s)
 {
 	assert(s != nullptr);
 
-	while (!TAILQ_EMPTY(&s->head)) {
-		struct kv *kv = TAILQ_FIRST(&s->head);
-		TAILQ_REMOVE(&s->head, kv, next);
+	while (!PMDK_TAILQ_EMPTY(&s->head)) {
+		struct kv *kv = PMDK_TAILQ_FIRST(&s->head);
+		PMDK_TAILQ_REMOVE(&s->head, kv, next);
 		kv_free(kv);
 	}
 
@@ -130,7 +130,7 @@ scenarios_alloc(void)
 		(struct scenarios *)malloc(sizeof(*scenarios));
 	assert(nullptr != scenarios);
 
-	TAILQ_INIT(&scenarios->head);
+	PMDK_TAILQ_INIT(&scenarios->head);
 
 	return scenarios;
 }
@@ -142,9 +142,9 @@ void
 scenarios_free(struct scenarios *scenarios)
 {
 	assert(scenarios != nullptr);
-	while (!TAILQ_EMPTY(&scenarios->head)) {
-		struct scenario *sce = TAILQ_FIRST(&scenarios->head);
-		TAILQ_REMOVE(&scenarios->head, sce, next);
+	while (!PMDK_TAILQ_EMPTY(&scenarios->head)) {
+		struct scenario *sce = PMDK_TAILQ_FIRST(&scenarios->head);
+		PMDK_TAILQ_REMOVE(&scenarios->head, sce, next);
 		scenario_free(sce);
 	}
 
@@ -202,7 +202,7 @@ clone_scenario(struct scenario *src_scenario)
 		struct kv *new_kv = kv_alloc(src_kv->key, src_kv->value);
 		assert(new_kv != nullptr);
 
-		TAILQ_INSERT_TAIL(&new_scenario->head, new_kv, next);
+		PMDK_TAILQ_INSERT_TAIL(&new_scenario->head, new_kv, next);
 	}
 
 	return new_scenario;

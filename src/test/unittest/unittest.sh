@@ -37,6 +37,44 @@ export LC_ALL="C"
 #export LC_ALL="en_US.UTF-8"
 
 . ../testconfig.sh
+. ../envconfig.sh
+
+if [ -t 1 ]; then
+	IS_TERMINAL_STDOUT=YES
+fi
+if [ -t 2 ]; then
+	IS_TERMINAL_STDERR=YES
+fi
+
+function is_terminal() {
+	local fd
+	fd=$1
+	case $(eval "echo \${IS_TERMINAL_${fd}}") in
+	YES) : ;;
+	*) false ;;
+	esac
+}
+
+function interactive_color() {
+	local color fd
+	color=$1
+	fd=$2
+	shift 2
+
+	if is_terminal ${fd} && command -v tput >/dev/null; then
+		echo "$(tput setaf $color || :)$*$(tput sgr0 || :)"
+	else
+		echo "$*"
+	fi
+}
+
+function interactive_red() {
+	interactive_color 1 "$@"
+}
+
+function interactive_green() {
+	interactive_color 2 "$@"
+}
 
 function verbose_msg() {
 	if [ "$UNITTEST_LOG_LEVEL" -ge 2 ]; then
@@ -178,8 +216,8 @@ nondebug|static-nondebug)
 	;;
 esac
 
-export LD_LIBRARY_PATH=$PMDK_LIB_PATH:$LIBNDCTL_LD_LIBRARY_PATHS:$LD_LIBRARY_PATH
-export REMOTE_LD_LIBRARY_PATH=$REMOTE_PMDK_LIB_PATH:$LIBNDCTL_LD_LIBRARY_PATHS:\$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$PMDK_LIB_PATH:$GLOBAL_LIB_PATH:$LD_LIBRARY_PATH
+export REMOTE_LD_LIBRARY_PATH=$REMOTE_PMDK_LIB_PATH:$GLOBAL_LIB_PATH:\$LD_LIBRARY_PATH
 
 #
 # When running static binary tests, append the build type to the binary
@@ -663,6 +701,21 @@ function valgrind_ignore_warnings() {
 }
 
 #
+# valgrind_ignore_messages -- cuts off Valgrind messages that are irrelevant
+#	to the correctness of the test, but changes during Valgrind rebase
+#	usage: valgrind_ignore_messages <log-file>
+#
+function valgrind_ignore_messages() {
+	if [ -e "$1.match" ]; then
+		cat $1 | grep -v \
+			-e "For lists of detected and suppressed errors, rerun with: -s" \
+			-e "For counts of detected and suppressed errors, rerun with: -v" \
+			>  $1.tmp
+		mv $1.tmp $1
+	fi
+}
+
+#
 # get_trace -- return tracing tool command line if applicable
 #	usage: get_trace <check type> <log file> [<node>]
 #
@@ -729,8 +782,7 @@ function validate_valgrind_log() {
 		-e "Bad mempool" \
 		$1 >/dev/null ;
 	then
-		msg="failed"
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR "failed")
 		echo -e "$UNITTEST_NAME $msg with Valgrind. See $1. Last 20 lines below." >&2
 		paste -d " " <(yes $UNITTEST_NAME $1 | head -n 20) <(tail -n 20 $1) >&2
 		false
@@ -840,7 +892,7 @@ function expect_normal_exit() {
 		else
 			msg="failed with exit code $ret"
 		fi
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR $msg)
 
 		if [ -f $ERR_LOG_FILE ]; then
 			if [ "$UNITTEST_LOG_LEVEL" -ge "1" ]; then
@@ -870,11 +922,13 @@ function expect_normal_exit() {
 			do
 				local log_file=node\_$node\_$VALGRIND_LOG_FILE
 				valgrind_ignore_warnings $new_log_file
+				valgrind_ignore_messages $new_log_file
 				validate_valgrind_log $new_log_file
 			done
 		else
 			if [ -f $VALGRIND_LOG_FILE ]; then
 				valgrind_ignore_warnings $VALGRIND_LOG_FILE
+				valgrind_ignore_messages $VALGRIND_LOG_FILE
 				validate_valgrind_log $VALGRIND_LOG_FILE
 			fi
 		fi
@@ -919,8 +973,7 @@ function expect_abnormal_exit() {
 	restore_exit_on_error
 
 	if [ "$ret" -eq "0" ]; then
-		msg="succeeded"
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR "succeeded")
 
 		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
 
@@ -1303,18 +1356,6 @@ function get_node_devdax_size() {
 	fi
 	echo $out
 }
-
-#
-# dax_get_alignment -- get the alignment of a device dax
-#
-function dax_get_alignment() {
-	major_hex=$(stat -c "%t" $1)
-	minor_hex=$(stat -c "%T" $1)
-	major_dec=$((16#$major_hex))
-	minor_dec=$((16#$minor_hex))
-	cat /sys/dev/char/$major_dec:$minor_dec/device/align
-}
-
 
 #
 # require_dax_device_node_alignments -- only allow script to continue if
@@ -2139,7 +2180,10 @@ function require_node_libfabric() {
 	local version=${3:-1.4.2}
 
 	require_pkg libfabric "$version"
+	# fi_info can be found in libfabric-bin
+	require_command fi_info
 	require_node_pkg $N libfabric "$version"
+	require_command_node $N fi_info
 	if [ "$RPMEM_PROVIDER" == "verbs" ]; then
 		if ! fi_info --list | grep -q verbs; then
 			msg "$UNITTEST_NAME: SKIP libfabric not compiled with verbs provider"
@@ -2753,8 +2797,7 @@ function pass() {
 	else
 		tm=""
 	fi
-	msg="PASS"
-	[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 2)$msg$(tput sgr0)"
+	msg=$(interactive_green STDOUT "PASS")
 	if [ "$UNITTEST_LOG_LEVEL" -ge 1 ]; then
 		echo -e "$UNITTEST_NAME: $msg$tm"
 	fi
@@ -3439,8 +3482,7 @@ function pmreorder_expect_success()
 	ret=$(pmreorder_run_tool "$@")
 
 	if [ "$ret" -ne "0" ]; then
-		msg="failed with exit code $ret"
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR "failed with exit code $ret")
 
 		# exit code 130 - script terminated by user (Control-C)
 		if [ "$ret" -ne "130" ]; then
@@ -3462,8 +3504,7 @@ function pmreorder_expect_failure()
 	ret=$(pmreorder_run_tool "$@")
 
 	if [ "$ret" -eq "0" ]; then
-		msg="succeeded"
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR "succeeded")
 
 		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
 

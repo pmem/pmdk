@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -94,6 +94,52 @@ test_free(PMEMobjpool *pop)
 	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
 }
 
+/*
+ * test_huge_size -- test zrealloc with size greater than pool size
+ */
+static void
+test_huge_size(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
+
+	int ret;
+
+	ret = pmemobj_zrealloc(pop, &D_RW(root)->obj.oid,
+		PMEMOBJ_MAX_ALLOC_SIZE, TOID_TYPE_NUM(struct object));
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
+
+	ret = pmemobj_zrealloc(pop, &D_RW(root)->obj.oid, UINTMAX_MAX,
+		TOID_TYPE_NUM(struct object));
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
+
+	ret = pmemobj_zrealloc(pop, &D_RW(root)->obj.oid, UINTMAX_MAX - 1,
+		TOID_TYPE_NUM(struct object));
+	UT_ASSERTne(ret, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
+}
+
+/* test zrealloc passing PMEMoid that points to OID_NULL value */
+static void
+test_null_oid(PMEMobjpool *pop)
+{
+	TOID(struct root) root = POBJ_ROOT(pop, struct root);
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
+
+	int ret = pmemobj_zrealloc(pop, &D_RW(root)->obj.oid, 1024,
+		TOID_TYPE_NUM(struct object));
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
+
+	pmemobj_free(&D_RW(root)->obj.oid);
+	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
+}
+
 static int check_integrity = 1;
 
 /*
@@ -113,7 +159,7 @@ fill_buffer(unsigned char *buf, size_t size)
  */
 static void
 test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
-		unsigned type_from, unsigned type_to, int zrealloc)
+	uint64_t type_from, uint64_t type_to, int zrealloc)
 {
 	TOID(struct root) root = POBJ_ROOT(pop, struct root);
 	UT_ASSERT(TOID_IS_NULL(D_RO(root)->obj));
@@ -155,6 +201,7 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 	}
 
 	UT_ASSERTeq(ret, 0);
+
 	UT_ASSERT(!TOID_IS_NULL(D_RO(root)->obj));
 	size_t usable_size_to =
 			pmemobj_alloc_usable_size(D_RO(root)->obj.oid);
@@ -181,8 +228,8 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
  * test_realloc_sizes -- test reallocations from/to specified sizes
  */
 static void
-test_realloc_sizes(PMEMobjpool *pop, unsigned type_from,
-		unsigned type_to, int zrealloc, unsigned size_diff)
+test_realloc_sizes(PMEMobjpool *pop, uint64_t type_from,
+	uint64_t type_to, int zrealloc, unsigned size_diff)
 {
 	for (uint8_t i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
 		struct alloc_class *c = alloc_class_by_id(alloc_classes, i);
@@ -242,9 +289,15 @@ main(int argc, char *argv[])
 
 	alloc_classes = alloc_class_collection_new();
 
+	/* test huge size alloc */
+	test_huge_size(pop);
+
 	/* test alloc and free */
 	test_alloc(pop, 16);
 	test_free(pop);
+
+	/* test zrealloc passing PMEMoid that points to OID_NULL value */
+	test_null_oid(pop);
 
 	/* test realloc without changing type number */
 	test_realloc_sizes(pop, 0, 0, 0, 0);
@@ -256,6 +309,12 @@ main(int argc, char *argv[])
 	/* test zrealloc with changing type number... */
 	test_realloc_sizes(pop, 0, 1, 1, 8);
 	test_realloc_sizes(pop, 0, 1, 1, 0);
+	/* test realloc with type number equal to range of long long int */
+	test_realloc_sizes(pop, 0, UINT64_MAX, 0, 0);
+	test_realloc_sizes(pop, 0, UINT64_MAX - 1, 0, 0);
+	/* test zrealloc with type number equal to range of long long int */
+	test_realloc_sizes(pop, 0, UINT64_MAX, 1, 0);
+	test_realloc_sizes(pop, 0, (UINT64_MAX - 1), 1, 0);
 
 	alloc_class_collection_delete(alloc_classes);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,6 +57,26 @@ signal_handler(int sig)
 	(PMEM_FILE_CREATE|PMEM_FILE_EXCL|PMEM_FILE_SPARSE|PMEM_FILE_TMPFILE)
 
 static int is_dev_dax = 0;
+
+/*
+ * parse_err_code -- parse 'err_code' string
+ */
+static int
+parse_err_code(const char *err_str)
+{
+	int ret = 0;
+	if (strcmp(err_str, "ENOENT") == 0) {
+		ret = ENOENT;
+	} else if (strcmp(err_str, "EEXIST") == 0) {
+		ret = EEXIST;
+	} else if (strcmp(err_str, "0") == 0) {
+		ret = 0;
+	} else {
+		UT_FATAL("unknown err_code: %c", *err_str);
+	}
+
+	return ret;
+}
 
 /*
  * parse_flags -- parse 'flags' string
@@ -160,18 +180,20 @@ main(int argc, char *argv[])
 	int *is_pmemp;
 	int use_mlen;
 	int use_is_pmem;
+	int err_code;
 
-	if (argc < 7)
+	if (argc < 8)
 		UT_FATAL("usage: %s path len flags mode use_mlen "
-				"use_is_pmem ...", argv[0]);
+				"use_is_pmem err_code...", argv[0]);
 
-	for (int i = 1; i + 5 < argc; i += 6) {
+	for (int i = 1; i + 6 < argc; i += 7) {
 		path = argv[i];
 		len = strtoull(argv[i + 1], NULL, 0);
 		flags = parse_flags(argv[i + 2]);
 		mode = STRTOU(argv[i + 3], NULL, 8);
 		use_mlen = atoi(argv[i + 4]);
 		use_is_pmem = atoi(argv[i + 5]);
+		err_code = parse_err_code(argv[i + 6]);
 
 		mlen = SIZE_MAX;
 		if (use_mlen)
@@ -184,10 +206,16 @@ main(int argc, char *argv[])
 		else
 			is_pmemp = NULL;
 
-		UT_OUT("%s %lld %s %o %d %d",
-			path, len, argv[i + 2], mode, use_mlen, use_is_pmem);
+		UT_OUT("%s %lld %s %o %d %d %d",
+			path, len, argv[i + 2], mode, use_mlen,
+			use_is_pmem, err_code);
 
 		addr = pmem_map_file(path, len, flags, mode, mlenp, is_pmemp);
+
+		if (err_code != 0) {
+			UT_ASSERTeq(errno, err_code);
+		}
+
 		if (addr == NULL) {
 			UT_OUT("!pmem_map_file");
 			continue;

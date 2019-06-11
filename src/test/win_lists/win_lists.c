@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,21 +39,21 @@
 #include "queue.h"
 
 typedef struct TEST_LIST_NODE {
-	LIST_ENTRY(TEST_LIST_NODE) ListEntry;
+	PMDK_LIST_ENTRY(TEST_LIST_NODE) ListEntry;
 	int dummy;
 } *PTEST_LIST_NODE;
 
-LIST_HEAD(TestList, TEST_LIST_NODE);
+PMDK_LIST_HEAD(TestList, TEST_LIST_NODE);
 
 static void
 dump_list(struct TestList *head)
 {
 	PTEST_LIST_NODE pNode = NULL;
 
-	pNode = (PTEST_LIST_NODE)LIST_FIRST(head);
+	pNode = (PTEST_LIST_NODE)PMDK_LIST_FIRST(head);
 	while (pNode != NULL) {
 		UT_OUT("Node value: %d", pNode->dummy);
-		pNode = (PTEST_LIST_NODE)LIST_NEXT(pNode, ListEntry);
+		pNode = (PTEST_LIST_NODE)PMDK_LIST_NEXT(pNode, ListEntry);
 	}
 }
 
@@ -63,10 +63,10 @@ get_list_count(struct TestList *head)
 	PTEST_LIST_NODE pNode = NULL;
 	int listCount = 0;
 
-	pNode = (PTEST_LIST_NODE)LIST_FIRST(head);
+	pNode = (PTEST_LIST_NODE)PMDK_LIST_FIRST(head);
 	while (pNode != NULL) {
 		listCount++;
-		pNode = (PTEST_LIST_NODE)LIST_NEXT(pNode, ListEntry);
+		pNode = (PTEST_LIST_NODE)PMDK_LIST_NEXT(pNode, ListEntry);
 	}
 	return listCount;
 }
@@ -79,19 +79,19 @@ static void
 test_list(void)
 {
 	PTEST_LIST_NODE pNode = NULL;
-	struct TestList head = LIST_HEAD_INITIALIZER(head);
+	struct TestList head = PMDK_LIST_HEAD_INITIALIZER(head);
 
-	LIST_INIT(&head);
-	UT_ASSERT_rt(LIST_EMPTY(&head));
+	PMDK_LIST_INIT(&head);
+	UT_ASSERT_rt(PMDK_LIST_EMPTY(&head));
 
 	pNode = MALLOC(sizeof(struct TEST_LIST_NODE));
 	pNode->dummy = 0;
-	LIST_INSERT_HEAD(&head, pNode, ListEntry);
+	PMDK_LIST_INSERT_HEAD(&head, pNode, ListEntry);
 	UT_ASSERTeq_rt(1, get_list_count(&head));
 	dump_list(&head);
 
 	/* Remove one node */
-	LIST_REMOVE(pNode, ListEntry);
+	PMDK_LIST_REMOVE(pNode, ListEntry);
 	UT_ASSERTeq_rt(0, get_list_count(&head));
 	dump_list(&head);
 	free(pNode);
@@ -100,15 +100,15 @@ test_list(void)
 	for (int i = 1; i < 10; i++) {
 		pNode = MALLOC(sizeof(struct TEST_LIST_NODE));
 		pNode->dummy = i;
-		LIST_INSERT_HEAD(&head, pNode, ListEntry);
+		PMDK_LIST_INSERT_HEAD(&head, pNode, ListEntry);
 	}
 	UT_ASSERTeq_rt(9, get_list_count(&head));
 	dump_list(&head);
 
 	/* Remove all of them */
-	while (!LIST_EMPTY(&head)) {
-		pNode = (PTEST_LIST_NODE)LIST_FIRST(&head);
-		LIST_REMOVE(pNode, ListEntry);
+	while (!PMDK_LIST_EMPTY(&head)) {
+		pNode = (PTEST_LIST_NODE)PMDK_LIST_FIRST(&head);
+		PMDK_LIST_REMOVE(pNode, ListEntry);
 		free(pNode);
 	}
 	UT_ASSERTeq_rt(0, get_list_count(&head));
@@ -116,11 +116,11 @@ test_list(void)
 }
 
 typedef struct TEST_SORTEDQ_NODE {
-	SORTEDQ_ENTRY(TEST_SORTEDQ_NODE) queue_link;
+	PMDK_SORTEDQ_ENTRY(TEST_SORTEDQ_NODE) queue_link;
 	int dummy;
 } TEST_SORTEDQ_NODE, *PTEST_SORTEDQ_NODE;
 
-SORTEDQ_HEAD(TEST_SORTEDQ, TEST_SORTEDQ_NODE);
+PMDK_SORTEDQ_HEAD(TEST_SORTEDQ, TEST_SORTEDQ_NODE);
 
 static int
 sortedq_node_comparer(TEST_SORTEDQ_NODE *a, TEST_SORTEDQ_NODE *b)
@@ -141,7 +141,7 @@ void
 test_sortedq(void)
 {
 	PTEST_SORTEDQ_NODE node = NULL;
-	struct TEST_SORTEDQ head = SORTEDQ_HEAD_INITIALIZER(head);
+	struct TEST_SORTEDQ head = PMDK_SORTEDQ_HEAD_INITIALIZER(head);
 	struct TEST_DATA_SORTEDQ test_data[] = {
 		{5, {5, 7, 9, 100, 101}},
 		{7, {1, 2, 3, 4, 5, 6, 7}},
@@ -151,27 +151,27 @@ test_sortedq(void)
 		{5, {2, 2, 2, 2, 2}}
 	};
 
-	SORTEDQ_INIT(&head);
-	UT_ASSERT_rt(SORTEDQ_EMPTY(&head));
+	PMDK_SORTEDQ_INIT(&head);
+	UT_ASSERT_rt(PMDK_SORTEDQ_EMPTY(&head));
 
 	for (int i = 0; i < _countof(test_data); i++) {
 		for (int j = 0; j < test_data[i].count; j++) {
 			node = MALLOC(sizeof(TEST_SORTEDQ_NODE));
 			node->dummy = test_data[i].data[j];
-			SORTEDQ_INSERT(&head, node, queue_link,
+			PMDK_SORTEDQ_INSERT(&head, node, queue_link,
 				TEST_SORTEDQ_NODE, sortedq_node_comparer);
 		}
 		int prev = MININT;
 		int num_entries = 0;
-		SORTEDQ_FOREACH(node, &head, queue_link) {
+		PMDK_SORTEDQ_FOREACH(node, &head, queue_link) {
 			UT_ASSERT(prev <= node->dummy);
 			num_entries++;
 		}
 		UT_ASSERT(num_entries == test_data[i].count);
 
-		while (!SORTEDQ_EMPTY(&head)) {
-			node = SORTEDQ_FIRST(&head);
-			SORTEDQ_REMOVE(&head, node, queue_link);
+		while (!PMDK_SORTEDQ_EMPTY(&head)) {
+			node = PMDK_SORTEDQ_FIRST(&head);
+			PMDK_SORTEDQ_REMOVE(&head, node, queue_link);
 			FREE(node);
 		}
 	}

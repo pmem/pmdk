@@ -339,6 +339,7 @@ tar zcf $PACKAGE_TARBALL_ORIG $PACKAGE_SOURCE
 
 cd $PACKAGE_SOURCE
 
+rm -rf debian
 mkdir debian
 
 # Generate compat file

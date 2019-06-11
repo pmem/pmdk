@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@
 #include "set.h"
 #include <errno.h>
 #include "mocks.h"
+#include "fault_injection.h"
 
 #define LOG_PREFIX "ut"
 #define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
@@ -217,6 +218,22 @@ main(int argc, char *argv[])
 			else {
 				poolset_info(fname, set, 1);
 			}
+			util_poolset_close(set, DO_NOT_DELETE_PARTS);
+			break;
+		case 'f':
+			if (!common_fault_injection_enabled())
+				break;
+
+			attr.features.incompat = TEST_FORMAT_INCOMPAT_CHECK;
+			ret = util_pool_open(&set, fname, MIN_PART, &attr,
+					NULL, NULL, 0 /* flags */);
+			UT_ASSERTeq(ret, 0);
+			size_t fsize = Extend_size;
+			common_inject_fault_at(PMEM_MALLOC, 2,
+					"util_poolset_append_new_part");
+			void *fnptr = util_pool_extend(set, &fsize, MIN_PART);
+			UT_ASSERTeq(fnptr, NULL);
+			UT_ASSERTeq(errno, ENOMEM);
 			util_poolset_close(set, DO_NOT_DELETE_PARTS);
 			break;
 		}
