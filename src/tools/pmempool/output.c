@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -521,36 +521,16 @@ out_get_checksum(void *addr, size_t len, uint64_t *csump, size_t skip_off)
 {
 	static char str_buff[STR_MAX] = {0, };
 	int ret = 0;
-	/*
-	 * The memory range can be mapped with PROT_READ, so allocate a new
-	 * buffer for the checksum and calculate there.
-	 */
 
-	void *buf = Malloc(len);
-	if (buf == NULL) {
-		ret = snprintf(str_buff, STR_MAX, "failed");
-		if (ret < 0 || ret >= STR_MAX)
-			return "";
-		return str_buff;
-	}
-	memcpy(buf, addr, len);
-	uint64_t *ncsump = (uint64_t *)
-		((char *)buf + ((char *)csump - (char *)addr));
+	uint64_t csum = util_checksum_compute(addr, len, csump, skip_off);
 
-	uint64_t csum = *csump;
-
-	/* validate checksum and get correct one */
-	int valid = util_validate_checksum(buf, len, ncsump, skip_off);
-
-	if (valid)
+	if (*csump == htole64(csum))
 		ret = snprintf(str_buff, STR_MAX, "0x%" PRIx64" [OK]",
 			le64toh(csum));
 	else
 		ret = snprintf(str_buff, STR_MAX,
 			"0x%" PRIx64 " [wrong! should be: 0x%" PRIx64 "]",
-			le64toh(csum), le64toh(*ncsump));
-
-	Free(buf);
+			le64toh(*csump), le64toh(csum));
 
 	if (ret < 0 || ret >= STR_MAX)
 		return "";

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  * Copyright (c) 2015-2017, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -208,7 +208,7 @@ main(int argc, char *argv[])
 		mt->Offset = offset;
 
 		AcquireSRWLockExclusive(&FileMappingQLock);
-		SORTEDQ_INSERT(&FileMappingQHead, mt, ListEntry,
+		PMDK_SORTEDQ_INSERT(&FileMappingQHead, mt, ListEntry,
 			FILE_MAPPING_TRACKER,
 			mmap_file_mapping_comparer);
 		ReleaseSRWLockExclusive(&FileMappingQLock);

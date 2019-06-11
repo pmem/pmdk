@@ -81,6 +81,7 @@ int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 int rpmem_close(RPMEMpool *rpp);
 
 #define RPMEM_PERSIST_RELAXED	(1U << 0)
+#define RPMEM_FLUSH_RELAXED	(1U << 0)
 
 int rpmem_flush(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane,
 		unsigned flags);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -102,7 +102,9 @@ nswrite(void *ns, unsigned lane, const void *buf,
 		errno = EINVAL;
 		return -1;
 	}
+
 	memcpy((char *)nsc->addr + off, buf, count);
+
 	return 0;
 }
 
@@ -220,7 +222,6 @@ main(int argc, char *argv[])
 		}
 	}
 #endif
-
 	common_init("", "", "", 0, 0);
 
 	int opt;
@@ -391,6 +392,10 @@ main(int argc, char *argv[])
 
 error_btt:
 	btt_fini(bttp);
+	if (util_unmap(base, opts.poolsize) < 0) {
+		perror("!util_unmap");
+		res = -1;
+	}
 error_map:
 	common_fini();
 error:

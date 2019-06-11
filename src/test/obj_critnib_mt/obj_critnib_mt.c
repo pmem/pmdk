@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,9 +42,9 @@
 #include "util.h"
 #include "valgrind_internal.h"
 
-#define NITER_FAST 20000000
-#define NITER_MID   2000000
-#define NITER_SLOW   200000
+#define NITER_FAST 200000000
+#define NITER_MID   20000000
+#define NITER_SLOW   2000000
 
 #define MAXTHREADS 4096
 
@@ -77,6 +77,8 @@ rnd64()
 static uint64_t
 helgrind_count(uint64_t x)
 {
+	/* Convert total number of ops to per-thread. */
+	x /= (unsigned)nthreads;
 	/*
 	 * Reduce iteration count when running on foogrind, by a factor of 64.
 	 * Multiple instances of foogrind cause exponential slowdown, so handle

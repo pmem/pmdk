@@ -61,5 +61,4 @@ $(OPT)==$(N)==         suppressed: $(NC) bytes in $(N) blocks
 $(OPT)==$(N)== Reachable blocks (those to which a pointer was found) are not shown.
 $(OPT)==$(N)== To see them, rerun with: --leak-check=full --show-leak-kinds=all
 $(OPT)==$(N)== 
-==$(N)== For counts of detected and suppressed errors, rerun with: -v
 ==$(N)== ERROR SUMMARY: 2 errors from 2 contexts (suppressed: $(N) from $(N))

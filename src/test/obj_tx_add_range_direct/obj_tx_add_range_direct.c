@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2018, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -111,7 +111,8 @@ do_tx_add_range_alloc_commit(PMEMobjpool *pop)
 
 	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
 
-	for (size_t i = 0; i < DATA_SIZE; i++)
+	size_t i;
+	for (i = 0; i < DATA_SIZE; i++)
 		UT_ASSERTeq(D_RO(obj)->data[i], TEST_VALUE_2);
 }
 

@@ -17,3 +17,5 @@ libs.tar
 *.lock
 # ignore python modules cache
 __pycache__/
+/envconfig.sh
+/envconfig.py

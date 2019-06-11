@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,30 +36,30 @@
 #include <cstdlib>
 
 struct clo_vec_args {
-	TAILQ_ENTRY(clo_vec_args) next;
+	PMDK_TAILQ_ENTRY(clo_vec_args) next;
 	void *args;
 };
 
 struct clo_vec_alloc {
-	TAILQ_ENTRY(clo_vec_alloc) next;
+	PMDK_TAILQ_ENTRY(clo_vec_alloc) next;
 	void *ptr;
 };
 
 struct clo_vec_value {
-	TAILQ_ENTRY(clo_vec_value) next;
+	PMDK_TAILQ_ENTRY(clo_vec_value) next;
 	void *ptr;
 };
 
 struct clo_vec_vlist {
-	TAILQ_HEAD(valueshead, clo_vec_value) head;
+	PMDK_TAILQ_HEAD(valueshead, clo_vec_value) head;
 	size_t nvalues;
 };
 
 struct clo_vec {
 	size_t size;
-	TAILQ_HEAD(argshead, clo_vec_args) args;
+	PMDK_TAILQ_HEAD(argshead, clo_vec_args) args;
 	size_t nargs;
-	TAILQ_HEAD(allochead, clo_vec_alloc) allocs;
+	PMDK_TAILQ_HEAD(allochead, clo_vec_alloc) allocs;
 	size_t nallocs;
 };
 

@@ -35,9 +35,26 @@
 import os
 import sys
 import itertools
+import shutil
 import subprocess as sp
 
-import helpers as hlp
+import futils
+from poolset import _Poolset
+import tools
+from utils import KiB, MiB, GiB, TiB
+
+try:
+    import testconfig
+except ImportError:
+    sys.exit('Please add valid testconfig.py file - see testconfig.py.example')
+config = testconfig.config
+
+try:
+    import envconfig
+    envconfig = envconfig.config
+except ImportError:
+    # if file doesn't exist create dummy object
+    envconfig = {'GLOBAL_LIB_PATH': ''}
 
 
 def expand(*classes):
@@ -45,19 +62,90 @@ def expand(*classes):
     return list(set(itertools.chain(*classes)))
 
 
-class Context:
-    """Manage test execution based on values from context classes"""
-
-    def __init__(self, test, conf, fs, build):
+class ContextBase:
+    """Low level context utils."""
+    def __init__(self, test, conf, **kwargs):
         self.env = {}
-        for ctx in [fs, build]:
+        for ctx in [kwargs['fs'], kwargs['build']]:
             if hasattr(ctx, 'env'):
                 self.env.update(ctx.env)
         self.test = test
         self.conf = conf
-        self.build = build
-        self.msg = hlp.Message(conf)
-        self.fs = fs
+        self.build = kwargs['build']
+        self.fs = kwargs['fs']
+        self.valgrind = kwargs['valgrind']
+        self.msg = futils.Message(conf)
+
+    def dump_n_lines(self, file, n=None):
+        """
+        Prints last n lines of given log file. Number of lines printed can be
+        modified locally by "n" argument or globally by "dump_lines" in
+        testconfig.py file. If none of them are provided, default value is 30.
+        """
+        if n is None:
+            n = config.get('dump_lines', 30)
+
+        file_size = self.get_size(file.name)
+        # if file is small enough, read it whole and find last n lines
+        if file_size < 100 * MiB:
+            lines = list(file)
+            length = len(lines)
+            if n > length:
+                n = length
+            lines = lines[-n:]
+            lines.insert(0, 'Last {} lines of {} below (whole file has {} lines):{}'
+                            ''.format(n, file.name, length, os.linesep))
+            for line in lines:
+                print(line, end='')
+        else:
+            # if file is really big, read the last 10KiB and forget about lines
+            with open(file.name, 'br') as byte_file:
+                byte_file.seek(file_size - 10 * KiB)
+                print(byte_file.read().decode('iso_8859_1'))
+
+    def is_devdax(self, path):
+        """Checks if given path points to device dax"""
+        proc = tools.pmemdetect(self, '-d', path)
+        if proc.returncode == tools.PMEMDETECT_ERROR:
+            futils.fail(proc.stdout)
+        if proc.returncode == tools.PMEMDETECT_TRUE:
+            return True
+        if proc.returncode == tools.PMEMDETECT_FALSE:
+            return False
+        futils.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+
+    def supports_map_sync(self, path):
+        """Checks if MAP_SYNC is supported on a filesystem from given path"""
+        proc = tools.pmemdetect(self, '-s', path)
+        if proc.returncode == tools.PMEMDETECT_ERROR:
+            futils.fail(proc.stdout)
+        if proc.returncode == tools.PMEMDETECT_TRUE:
+            return True
+        if proc.returncode == tools.PMEMDETECT_FALSE:
+            return False
+        futils.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+
+    def get_size(self, path):
+        """
+        Returns size of the file or dax device.
+        Value "2**64 - 1" is checked because pmemdetect in case of error prints it.
+        """
+        proc = tools.pmemdetect(self, '-z', path)
+        if int(proc.stdout) != 2**64 - 1:
+            return int(proc.stdout)
+        futils.fail('Could not get size of the file, it is inaccessible or does not exist')
+
+    def get_free_space(self):
+        """Returns free space for current file system"""
+        _, _, free = shutil.disk_usage(".")
+        return free
+
+
+class Context(ContextBase):
+    """Manage test execution based on values from context classes"""
+
+    def __init__(self, test, conf, **kwargs):
+        ContextBase.__init__(self, test, conf, **kwargs)
 
     @property
     def testdir(self):
@@ -66,31 +154,86 @@ class Context:
         # 'Non' fs. Hence it is implemented as a property.
         return os.path.join(self.fs.dir, self.test.testdir)
 
-    def create_holey_file(self, size, name):
+    def create_holey_file(self, size, path, mode=None):
         """Create a new file with the selected size and name"""
-        filepath = os.path.join(self.testdir, name)
+        filepath = os.path.join(self.testdir, path)
         with open(filepath, 'w') as f:
-            f.seek(size)
+            f.seek(size - 1)
             f.write('\0')
+        if mode is not None:
+            os.chmod(filepath, mode)
         return filepath
 
-    def exec(self, cmd, args='', expected_exit=0):
-        """Execute binary in current test context"""
-        env = {**self.env, **os.environ.copy(), **self.test.utenv}
-        if sys.platform == 'win32':
-            env['PATH'] = self.build.libdir + os.pathsep + env.get('PATH', '')
-            cmd = os.path.join(self.build.exedir, cmd) + '.exe'
-        else:
-            env['LD_LIBRARY_PATH'] = self.build.libdir + os.pathsep +\
-                                     env.get('LD_LIBRARY_PATH', '')
-            cmd = os.path.join(self.test.cwd, cmd) + self.build.exesuffix
+    def create_non_zero_file(self, size, path, mode=None):
+        """Create a new non-zeroed file with the selected size and name"""
+        filepath = os.path.join(self.testdir, path)
+        with open(filepath, 'w') as f:
+            f.write('\132' * size)
+        if mode is not None:
+            os.chmod(filepath, mode)
+        return filepath
 
-        proc = sp.run([cmd, args], env=env, cwd=self.test.cwd,
+    def create_zeroed_hdr_file(self, size, path, mode=None):
+        """
+        Create a new non-zeroed file with a zeroed header and the selected
+        size and name
+        """
+        filepath = os.path.join(self.testdir, path)
+        with open(filepath, 'w') as f:
+            f.write('\0' * HEADER_SIZE)
+            f.write('\132' * (size - HEADER_SIZE))
+        if mode is not None:
+            os.chmod(filepath, mode)
+        return filepath
+
+    def mkdirs(self, path, mode=None):
+        """
+        Creates directory along with all parent directories required. In the
+        case given path already exists do nothing.
+        """
+        dirpath = os.path.join(self.testdir, path)
+        if mode is None:
+            os.makedirs(dirpath, exist_ok=True)
+        else:
+            os.makedirs(dirpath, mode, exist_ok=True)
+
+    def new_poolset(self, path):
+        return _Poolset(path, self)
+
+    def exec(self, cmd, *args, expected_exit=0):
+        """Execute binary in current test context"""
+        cmd_args = ' '.join(args) if args else ''
+
+        env = {**self.env, **os.environ.copy(), **self.test.utenv}
+
+        if sys.platform == 'win32':
+            env['PATH'] = self.build.libdir + os.pathsep +\
+                envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
+                env.get('PATH', '')
+            cmd = os.path.join(self.build.exedir, cmd) + '.exe'
+
+        else:
+            if self.test.ld_preload:
+                env['LD_PRELOAD'] = env.get('LD_PRELOAD', '') + os.pathsep +\
+                    self.test.ld_preload
+                self.valgrind.handle_ld_preload(self.test.ld_preload)
+            env['LD_LIBRARY_PATH'] = self.build.libdir + os.pathsep +\
+                envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
+                env.get('LD_LIBRARY_PATH', '')
+            cmd = os.path.join(self.test.cwd, cmd) + self.build.exesuffix
+            cmd = '{} {}'.format(self.valgrind.cmd, cmd)
+
+        cmd = '{} {}'.format(cmd, cmd_args)
+        proc = sp.run(cmd, env=env, cwd=self.test.cwd, shell=True,
                       timeout=self.conf.timeout, stdout=sp.PIPE,
                       stderr=sp.STDOUT, universal_newlines=True)
 
-        if proc.returncode != expected_exit:
+        if sys.platform != 'win32' and expected_exit == 0 \
+                and not self.valgrind.validate_log():
             self.test.fail(proc.stdout)
+
+        if proc.returncode != expected_exit:
+            futils.fail(proc.stdout, exit_code=proc.returncode)
         else:
             self.msg.print_verbose(proc.stdout)
 
@@ -144,18 +287,18 @@ class Debug(_Build):
 
     def __init__(self, conf):
         if sys.platform == 'win32':
-            self.exedir = hlp.WIN_DEBUG_EXEDIR
-        self.libdir = hlp.DEBUG_LIBDIR
+            self.exedir = futils.WIN_DEBUG_EXEDIR
+        self.libdir = futils.DEBUG_LIBDIR
 
 
-class Nondebug(_Build):
-    """Set the context for nondebug build"""
+class Release(_Build):
+    """Set the context for release build"""
     is_preferred = True
 
     def __init__(self, conf):
         if sys.platform == 'win32':
-            self.exedir = hlp.WIN_NONDEBUG_EXEDIR
-        self.libdir = hlp.NONDEBUG_LIBDIR
+            self.exedir = futils.WIN_RELEASE_EXEDIR
+        self.libdir = futils.RELEASE_LIBDIR
 
 
 # Build types not available on Windows
@@ -165,14 +308,14 @@ if sys.platform != 'win32':
 
         def __init__(self, conf):
             self.exesuffix = '.static-debug'
-            self.libdir = hlp.DEBUG_LIBDIR
+            self.libdir = futils.DEBUG_LIBDIR
 
-    class Static_Nondebug(_Build):
-        """Sets the context for static_nondebug build"""
+    class Static_Release(_Build):
+        """Sets the context for static_release build"""
 
         def __init__(self, conf):
             self.exesuffix = '.static-nondebug'
-            self.libdir = hlp.NONDEBUG_LIBDIR
+            self.libdir = futils.RELEASE_LIBDIR
 
 
 class _Fs(metaclass=_CtxType):
@@ -191,6 +334,7 @@ class Pmem(_Fs):
 
 class Nonpmem(_Fs):
     """Set the context for nonpmem filesystem"""
+
     def __init__(self, conf):
         self.dir = os.path.abspath(conf.non_pmem_fs_dir)
 

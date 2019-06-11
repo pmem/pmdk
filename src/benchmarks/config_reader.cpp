@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -231,7 +231,8 @@ config_reader_get_scenarios(struct config_reader *cr,
 					goto err_scenarios;
 				}
 
-				TAILQ_INSERT_TAIL(&scenario->head, kv, next);
+				PMDK_TAILQ_INSERT_TAIL(&scenario->head, kv,
+						       next);
 			}
 		}
 
@@ -284,12 +285,12 @@ config_reader_get_scenarios(struct config_reader *cr,
 				goto err_scenarios;
 			}
 
-			TAILQ_INSERT_TAIL(&scenario->head, kv, next);
+			PMDK_TAILQ_INSERT_TAIL(&scenario->head, kv, next);
 		}
 
 		g_strfreev(keys);
 
-		TAILQ_INSERT_TAIL(&s->head, scenario, next);
+		PMDK_TAILQ_INSERT_TAIL(&s->head, scenario, next);
 	}
 
 	g_strfreev(gkeys);

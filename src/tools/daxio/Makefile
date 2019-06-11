@@ -36,7 +36,7 @@ include $(TOP)/src/common.inc
 
 ifeq ($(NDCTL_ENABLE),y)
 
-#SCP_TO_REMOTE_NODES = y
+SCP_TO_REMOTE_NODES = y
 
 TARGET = daxio
 OBJS = daxio.o

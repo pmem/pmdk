@@ -74,8 +74,10 @@ struct ravl *
 ravl_new_sized(ravl_compare *compare, size_t data_size)
 {
 	struct ravl *r = Malloc(sizeof(*r));
-	if (r == NULL)
-		return NULL;
+	if (r == NULL) {
+		ERR("!Malloc");
+		return r;
+	}
 
 	r->compare = compare;
 	r->root = NULL;
@@ -175,8 +177,10 @@ static struct ravl_node *
 ravl_new_node(struct ravl *ravl, ravl_constr constr, const void *arg)
 {
 	struct ravl_node *n = Malloc(sizeof(*n) + ravl->data_size);
-	if (n == NULL)
-		return NULL;
+	if (n == NULL) {
+		ERR("!Malloc");
+		return n;
+	}
 
 	n->parent = NULL;
 	n->slots[RAVL_LEFT] = NULL;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -87,7 +87,7 @@
 #endif
 
 #define FOREACH_RANGE(range, ranges)\
-	LIST_FOREACH(range, &(ranges)->head, next)
+	PMDK_LIST_FOREACH(range, &(ranges)->head, next)
 
 #define PLIST_OFF_TO_PTR(pop, off)\
 ((off) == 0 ? NULL : (void *)((uintptr_t)(pop) + (off) - OBJ_OOB_SIZE))
@@ -183,13 +183,13 @@ void pool_set_file_persist(struct pool_set_file *file,
 		const void *addr, size_t len);
 
 struct range {
-	LIST_ENTRY(range) next;
+	PMDK_LIST_ENTRY(range) next;
 	uint64_t first;
 	uint64_t last;
 };
 
 struct ranges {
-	LIST_HEAD(rangeshead, range) head;
+	PMDK_LIST_HEAD(rangeshead, range) head;
 };
 
 pmem_pool_type_t pmem_pool_type_parse_hdr(const struct pool_hdr *hdrp);
@@ -206,8 +206,6 @@ void util_options_free(struct options *opts);
 int util_options_verify(const struct options *opts, pmem_pool_type_t type);
 int util_options_getopt(int argc, char *argv[], const char *optstr,
 		const struct options *opts);
-int util_validate_checksum(void *addr, size_t len, uint64_t *csum,
-		uint64_t skip_off);
 pmem_pool_type_t util_get_pool_type_second_page(const void *pool_base_addr);
 int util_parse_mode(const char *str, mode_t *mode);
 int util_parse_ranges(const char *str, struct ranges *rangesp,

@@ -1303,7 +1303,35 @@ function require_free_space() {
 	$free_space = (gwmi Win32_Volume -Filter $filter | select FreeSpace).freespace
 	if ([INT64]$free_space -lt [INT64]$req_free_space)
 	{
-		msg "${Env:UNITTEST_NAME}: SKIP not enough free space ($Args[0] required)"
+		msg "${Env:UNITTEST_NAME}: SKIP not enough free space ($args required)"
+		exit 0
+	}
+}
+
+#
+# require_free_physical_memory -- check if there is enough free physical memory
+# space to run the test
+# Example, checking if there is 1 GB of free physical memory space:
+# require_free_physical_memory 1G
+#
+function require_free_physical_memory() {
+	$req_free_physical_memory = (convert_to_bytes $args[0])
+	$free_physical_memory = (Get-CimInstance Win32_OperatingSystem | Select-Object -ExpandProperty FreePhysicalMemory) * 1024
+
+	if ($free_physical_memory -lt $req_free_physical_memory)
+	{
+		msg "${Env:UNITTEST_NAME}: SKIP not enough free physical memory ($args required, free: $free_physical_memory B)"
+		exit 0
+	}
+}
+
+#
+# require_automatic_managed_pagefile -- check if system manages the page file size
+#
+function require_automatic_managed_pagefile() {
+	$c = Get-WmiObject Win32_computersystem -EnableAllPrivileges
+	if($c.AutomaticManagedPagefile -eq $false) {
+		msg "${Env:UNITTEST_NAME}: SKIP automatic page file management is disabled"
 		exit 0
 	}
 }

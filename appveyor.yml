@@ -66,7 +66,8 @@ test_script:
     'fs_dir_force_pmem': 1,
     'keep_going': False,
     'timeout': '4m',
-    'build': 'debug'
+    'build': 'debug',
+    'force_enable': None,
     }" | out-file "testconfig.py" -encoding utf8
 
         if ($Env:CONFIGURATION -eq "Debug") {
@@ -74,12 +75,11 @@ test_script:
             if ($?) {
                 ./RUNTESTS.py -b debug
             }
-
         }
         if ($Env:CONFIGURATION -eq "Release") {
             ./RUNTESTS.ps1 -b nondebug -o 4m
             if ($?) {
-                ./RUNTESTS.py -b nondebug
+                ./RUNTESTS.py -b release
             }
         }
     }

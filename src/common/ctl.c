@@ -106,7 +106,7 @@ ctl_find_node(const struct ctl_node *nodes, const char *name,
 			if (index_entry == NULL)
 				goto error;
 			index_entry->value = index_value;
-			SLIST_INSERT_HEAD(indexes, index_entry, entry);
+			PMDK_SLIST_INSERT_HEAD(indexes, index_entry, entry);
 		}
 
 		for (n = &nodes[0]; n->name != NULL; ++n) {
@@ -140,9 +140,9 @@ error:
 static void
 ctl_delete_indexes(struct ctl_indexes *indexes)
 {
-	while (!SLIST_EMPTY(indexes)) {
-		struct ctl_index *index = SLIST_FIRST(indexes);
-		SLIST_REMOVE_HEAD(indexes, entry);
+	while (!PMDK_SLIST_EMPTY(indexes)) {
+		struct ctl_index *index = PMDK_SLIST_FIRST(indexes);
+		PMDK_SLIST_REMOVE_HEAD(indexes, entry);
 		Free(index);
 	}
 }
@@ -157,16 +157,20 @@ ctl_parse_args(const struct ctl_argument *arg_proto, char *arg)
 	ASSERTne(arg, NULL);
 
 	char *dest_arg = Malloc(arg_proto->dest_size);
-	if (dest_arg == NULL)
+	if (dest_arg == NULL) {
+		ERR("!Malloc");
 		return NULL;
+	}
 
 	char *sptr = NULL;
 	char *arg_sep = strtok_r(arg, CTL_VALUE_ARG_SEPARATOR, &sptr);
 	for (const struct ctl_argument_parser *p = arg_proto->parsers;
 			p->parser != NULL; ++p) {
 		ASSERT(p->dest_offset + p->dest_size <= arg_proto->dest_size);
-		if (arg_sep == NULL)
+		if (arg_sep == NULL) {
+			ERR("!strtok_r");
 			goto error_parsing;
+		}
 
 		if (p->parser(arg_sep, dest_arg + p->dest_offset,
 			p->dest_size) != 0)
@@ -257,8 +261,7 @@ ctl_exec_query_write(void *ctx, const struct ctl_node *n,
 
 	void *real_arg = ctl_query_get_real_args(n, arg, source);
 	if (real_arg == NULL) {
-		errno = EINVAL;
-		ERR("invalid arguments");
+		LOG(1, "Invalid arguments");
 		return -1;
 	}
 
@@ -309,7 +312,7 @@ ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
 	 * query has been handled.
 	 */
 	struct ctl_indexes indexes;
-	SLIST_INIT(&indexes);
+	PMDK_SLIST_INIT(&indexes);
 
 	int ret = -1;
 

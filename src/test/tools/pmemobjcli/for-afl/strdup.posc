@@ -1,0 +1,19 @@
+#!../pmemobjcli -s
+# This is a script for pmemobjcli application intended to be use with afl.
+# The script duplicates pattern in an object.
+# usage: ./strdup.posc <file>
+
+# allocate root object with specified size
+pmemobj_root 1024
+
+# allocate one object in root object
+# at positions 0
+pmemobj_alloc r.0 1 8192
+
+# duplicate 0 pattern in root object
+# at positions 1
+pmemobj_strdup r.1 0 5
+
+# free allocated objects
+pmemobj_free r.0
+pmemobj_free r.1

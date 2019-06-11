@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -161,9 +161,6 @@ int lane_check(PMEMobjpool *pop);
 
 unsigned lane_hold(PMEMobjpool *pop, struct lane **lane);
 void lane_release(PMEMobjpool *pop);
-
-void lane_attach(PMEMobjpool *pop, unsigned lane);
-unsigned lane_detach(PMEMobjpool *pop);
 
 #ifdef __cplusplus
 }

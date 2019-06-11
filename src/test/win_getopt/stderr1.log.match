@@ -1,3 +1,0 @@
-$(nW)win_getopt$(nW): invalid option -- 'Z'
-$(nW)win_getopt$(nW): unrecognized option '--arg_Z'
-$(nW)win_getopt$(nW): option requires an argument -- 'A'

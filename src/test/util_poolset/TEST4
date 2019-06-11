@@ -79,6 +79,9 @@ expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL\
 	$DIR/testset3\
 	$DIR/testset4
 
+expect_normal_exit ./util_poolset$EXESUFFIX f $MIN_POOL\
+	$DIR/testset4
+
 expect_normal_exit ./util_poolset$EXESUFFIX e $MIN_POOL\
 	$DIR/testset1\
 	$DIR/testset2\

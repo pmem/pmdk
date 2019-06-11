@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -66,7 +66,7 @@ info_log_data(struct pmem_info *pip, int v, struct pmemlog *plp)
 	if (pip->args.log.walk == 0) {
 		outv_title(v, "PMEMLOG data");
 		struct range *curp = NULL;
-		LIST_FOREACH(curp, &pip->args.ranges.head, next) {
+		PMDK_LIST_FOREACH(curp, &pip->args.ranges.head, next) {
 			uint8_t *ptr = addr + curp->first;
 			if (curp->last >= size_used)
 				curp->last = size_used - 1;
@@ -89,7 +89,7 @@ info_log_data(struct pmem_info *pip, int v, struct pmemlog *plp)
 				nchunks, pip->args.log.walk);
 
 		struct range *curp = NULL;
-		LIST_FOREACH(curp, &pip->args.ranges.head, next) {
+		PMDK_LIST_FOREACH(curp, &pip->args.ranges.head, next) {
 			uint64_t i;
 			for (i = curp->first; i <= curp->last &&
 					i < nchunks; i++) {

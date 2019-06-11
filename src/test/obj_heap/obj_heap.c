@@ -32,6 +32,16 @@
 
 /*
  * obj_heap.c -- unit test for heap
+ *
+ * operations are: 't', 'b', 'r', 'c', 'h', 'a', 'n', 's'
+ * t: do test_heap, test_recycler
+ * b: do fault_injection in function container_new_ravl
+ * r: do fault_injection in function recycler_new
+ * c: do fault_injection in function container_new_seglists
+ * h: do fault_injection in function heap_boot
+ * a: do fault_injection in function alloc_class_new
+ * n: do fault_injection in function alloc_class_collection_new
+ * s: do fault_injection in function stats_new
  */
 #include "libpmemobj.h"
 #include "palloc.h"
@@ -202,6 +212,104 @@ test_container(struct block_container *bc, struct palloc_heap *heap)
 	UT_ASSERTeq(ret, ENOMEM);
 
 	bc->c_ops->destroy(bc);
+}
+
+static void
+do_fault_injection_new_ravl()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "container_new_ravl");
+
+	struct block_container *bc = container_new_ravl(NULL);
+	UT_ASSERTeq(bc, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
+do_fault_injection_new_seglists()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "container_new_seglists");
+
+	struct block_container *bc = container_new_seglists(NULL);
+	UT_ASSERTeq(bc, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
+do_fault_injection_heap_boot()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	struct mock_pop *mpop = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE,
+			Ut_mmap_align);
+	PMEMobjpool *pop = &mpop->p;
+	pop->p_ops.persist = obj_heap_persist;
+	uint64_t heap_size = MOCK_POOL_SIZE - sizeof(PMEMobjpool);
+	struct pmem_ops *p_ops = &pop->p_ops;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "heap_boot");
+
+	int r = heap_boot(NULL, NULL, heap_size, &pop->heap_size, NULL, p_ops,
+			NULL, NULL);
+	UT_ASSERTne(r, 0);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
+do_fault_injection_recycler()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "recycler_new");
+
+	struct recycler *r = recycler_new(NULL, 0);
+	UT_ASSERTeq(r, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
+do_fault_injection_class_new(int i)
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, i, "alloc_class_new");
+
+	struct alloc_class_collection *c = alloc_class_collection_new();
+	UT_ASSERTeq(c, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
+do_fault_injection_class_collection_new()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "alloc_class_collection_new");
+
+	struct alloc_class_collection *c = alloc_class_collection_new();
+	UT_ASSERTeq(c, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
+static void
+do_fault_injection_stats()
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "stats_new");
+	struct stats *s = stats_new(NULL);
+	UT_ASSERTeq(s, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
 }
 
 static void
@@ -457,8 +565,41 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_heap");
 
-	test_heap();
-	test_recycler();
+	if (argc < 2)
+		UT_FATAL("usage: %s path <t|b|r|c|h|a|n|s>", argv[0]);
+
+	switch (argv[1][0]) {
+	case 't':
+		test_heap();
+		test_recycler();
+		break;
+	case 'b':
+		do_fault_injection_new_ravl();
+		break;
+	case 'r':
+		do_fault_injection_recycler();
+		break;
+	case 'c':
+		do_fault_injection_new_seglists();
+		break;
+	case 'h':
+		do_fault_injection_heap_boot();
+		break;
+	case 'a':
+		/* first call alloc_class_new */
+		do_fault_injection_class_new(1);
+		/* second call alloc_class_new */
+		do_fault_injection_class_new(2);
+		break;
+	case 'n':
+		do_fault_injection_class_collection_new();
+		break;
+	case 's':
+		do_fault_injection_stats();
+		break;
+	default:
+		UT_FATAL("unknown operation");
+	}
 
 	DONE(NULL);
 }

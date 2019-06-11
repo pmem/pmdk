@@ -367,8 +367,29 @@ runtest() {
 		provs=$(intersection "$provider" "$req_provider" "verbs sockets")
 		pmeths=$(intersection "$pmethod" "$req_pmethod" "GPSPM APM")
 
+		# remote tests require both providers and pmethods
+		# local tests require neither providers nor pmethods
+		# anything in between indicates invalid test configuration
+		[ "$req_provider" == "none" -a "$req_pmethod" != "none" ] ||
+			[ "$req_provider" != "none" -a "$req_pmethod" == "none" ] && {
+				echo "$UNITTEST_NAME: invalid test configuration"
+				echo "CONF_(GLOBAL_)RPMEM_PROVIDER ($req_provider) and " \
+					"CONF_(GLOBAL_)RPMEM_PMETHOD ($req_pmethod) have to be set both or neither"
+				exit 1
+			}
+
 		# skip remote test if required providers or persistency methods are missing
-		[[ ( -n "$provs" && -z "$pmeths" ) || ( -z "$provs" && -n "$pmeths" ) ]] && continue
+		# remote tests have req_provider != "none"
+		[ "$req_provider" != "none" ] && {
+			[ -z "$provs" ] && {
+				echo "$UNITTEST_NAME: SKIP: required providers ($req_provider) are missing"
+				continue
+			}
+			[ -z "$pmeths" ] && {
+				echo "$UNITTEST_NAME: SKIP: required pmethods ($req_pmethod) are missing"
+				continue
+			}
+		}
 
 		# for each fs-type being tested...
 		for fs in $fss
@@ -406,7 +427,8 @@ runtest() {
 				# to not overwrite logs skip other tests from the group
 				# if KEEP_GOING=y and test fail
 				if [ "$keep_going_skip" == "n" ]; then
-					if [ -n "$provs" -a -n "$pmeths" ]; then
+					# remote tests have req_provider != "none"
+					if [ "$req_provider" != "none" ]; then
 						runtest_remote "$provs" "$pmeths"
 					else
 						runtest_local

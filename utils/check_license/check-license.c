@@ -228,7 +228,7 @@ format_license(char *license, size_t length)
  * analyze_license -- check correctness of the license
  */
 static int
-analyze_license(const char *path_to_check,
+analyze_license(const char *name_to_print,
 		char *buffer,
 		char **license)
 {
@@ -241,11 +241,11 @@ analyze_license(const char *path_to_check,
 		if (!beg_str)
 			ERROR2("%s:1: error: incorrect license"
 				" (license should start with the string '%s')",
-				path_to_check, LICENSE_BEG);
+				name_to_print, LICENSE_BEG);
 		else
 			ERROR2("%s:1: error: incorrect license"
 				" (license should end with the string '%s')",
-				path_to_check, LICENSE_END);
+				name_to_print, LICENSE_END);
 		return -1;
 	}
 
@@ -347,7 +347,7 @@ verify_license(const char *path_to_check, char *pattern, const char *filename)
 		return -1;
 	}
 
-	if (analyze_license(path_to_check, buffer, &license) == -1)
+	if (analyze_license(name_to_print, buffer, &license) == -1)
 		return -1;
 
 	/* check the copyright notice */

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,6 +42,6 @@ require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_heap$Env:EXESUFFIX
+expect_normal_exit $Env:EXE_DIR\obj_heap$Env:EXESUFFIX t
 
 pass

@@ -108,7 +108,7 @@ sds.at_create | rw | global | int | int | - | boolean
 
 If set, force-enables or force-disables SDS feature during pool creation.
 Affects only the _UW(pmemobj_create) function. See **pmempool_feature_query**(3)
-for informations about SDS (SHUTDOWN_STATE) feature.
+for information about SDS (SHUTDOWN_STATE) feature.
 
 copy_on_write.at_open | rw | global | int | int | - | boolean
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -42,6 +42,7 @@
  * "poolsize" and "mode" arguments are ignored for "open"
  */
 #include "unittest.h"
+#include "../libpmemobj/obj.h"
 
 #define MB ((size_t)1 << 20)
 
@@ -84,6 +85,19 @@ pool_open(const char *path, const char *layout)
 	}
 }
 
+static void
+test_fault_injection(const char *path, const char *layout, size_t poolsize,
+		unsigned mode)
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "tx_params_new");
+	PMEMobjpool *pop = pmemobj_create(path, layout, poolsize, mode);
+	UT_ASSERTeq(pop, NULL);
+	UT_ASSERTeq(errno, ENOMEM);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -117,6 +131,12 @@ main(int argc, char *argv[])
 		pool_open(argv[2], layout);
 		os_unsetenv("PMEMOBJ_CONF");
 		pool_open(argv[2], layout);
+		break;
+	case 't':
+		poolsize = strtoull(argv[4], NULL, 0) * MB; /* in megabytes */
+		mode = strtoul(argv[5], NULL, 8);
+
+		test_fault_injection(argv[2], layout, poolsize, mode);
 		break;
 	default:
 		UT_FATAL("unknown operation");

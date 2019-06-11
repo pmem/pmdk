@@ -46,7 +46,7 @@ if [[ -z "$TRAVIS" ]]; then
 	exit 1
 fi
 
-if [[ $TRAVIS_REPO_SLUG != "$GITHUB_REPO" \
+if [[ "$TRAVIS_REPO_SLUG" != "$GITHUB_REPO" \
 	|| $TRAVIS_EVENT_TYPE != "pull_request" ]];
 then
 	echo "SKIP: $0 can only be executed for pull requests to ${GITHUB_REPO}"
@@ -55,7 +55,11 @@ fi
 
 # Find all the commits for the current build
 if [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
-	commits=$(git rev-list $TRAVIS_COMMIT_RANGE)
+	# $TRAVIS_COMMIT_RANGE contains "..." instead of ".."
+	# https://github.com/travis-ci/travis-ci/issues/4596
+	PR_COMMIT_RANGE="${TRAVIS_COMMIT_RANGE/.../..}"
+
+	commits=$(git rev-list $PR_COMMIT_RANGE)
 else
 	commits=$TRAVIS_COMMIT
 fi

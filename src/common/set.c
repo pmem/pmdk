@@ -3772,10 +3772,16 @@ util_pool_open_nocheck(struct pool_set *set, unsigned flags)
 
 	if (flags & POOL_OPEN_CHECK_BAD_BLOCKS) {
 		/* check if any bad block recovery file exists */
-		if (badblocks_recovery_file_exists(set)) {
+		int bfe = badblocks_recovery_file_exists(set);
+		if (bfe > 0) {
 			ERR(
 				"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
 			errno = EINVAL;
+			return -1;
+		}
+		if (bfe < 0) {
+			LOG(1,
+				"an error occurred when checking whether recovery file exists.");
 			return -1;
 		}
 
@@ -3972,10 +3978,17 @@ util_pool_open(struct pool_set **setp, const char *path, size_t minpartsize,
 
 	if (compat_features & POOL_FEAT_CHECK_BAD_BLOCKS) {
 		/* check if any bad block recovery file exists */
-		if (badblocks_recovery_file_exists(set)) {
+		int bfe = badblocks_recovery_file_exists(set);
+		if (bfe > 0) {
 			ERR(
 				"error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool");
 			errno = EINVAL;
+			goto err_poolset_free;
+		}
+
+		if (bfe < 0) {
+			LOG(1,
+				"an error occurred when checking whether recovery file exists.");
 			goto err_poolset_free;
 		}
 

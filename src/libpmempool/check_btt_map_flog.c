@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -125,7 +125,7 @@ error_malloc:
  * list_item -- item for simple list
  */
 struct list_item {
-	LIST_ENTRY(list_item) next;
+	PMDK_LIST_ENTRY(list_item) next;
 	uint32_t val;
 };
 
@@ -133,7 +133,7 @@ struct list_item {
  * list -- simple list for storing numbers
  */
 struct list {
-	LIST_HEAD(listhead, list_item) head;
+	PMDK_LIST_HEAD(listhead, list_item) head;
 	uint32_t count;
 };
 
@@ -148,7 +148,7 @@ list_alloc(void)
 		ERR("!malloc");
 		return NULL;
 	}
-	LIST_INIT(&list->head);
+	PMDK_LIST_INIT(&list->head);
 	list->count = 0;
 	return list;
 }
@@ -166,7 +166,7 @@ list_push(struct list *list, uint32_t val)
 	}
 	item->val = val;
 	list->count++;
-	LIST_INSERT_HEAD(&list->head, item, next);
+	PMDK_LIST_INSERT_HEAD(&list->head, item, next);
 	return item;
 }
 
@@ -176,9 +176,9 @@ list_push(struct list *list, uint32_t val)
 static int
 list_pop(struct list *list, uint32_t *valp)
 {
-	if (!LIST_EMPTY(&list->head)) {
-		struct list_item *i = LIST_FIRST(&list->head);
-		LIST_REMOVE(i, next);
+	if (!PMDK_LIST_EMPTY(&list->head)) {
+		struct list_item *i = PMDK_LIST_FIRST(&list->head);
+		PMDK_LIST_REMOVE(i, next);
 		if (valp)
 			*valp = i->val;
 		free(i);
@@ -688,7 +688,7 @@ check_btt_map_flog(PMEMpoolcheck *ppc)
 	if (!loc->arenap && loc->narena == 0 &&
 			ppc->result != CHECK_RESULT_PROCESS_ANSWERS) {
 		CHECK_INFO(ppc, "checking BTT Map and Flog");
-		loc->arenap = TAILQ_FIRST(&ppc->pool->arenas);
+		loc->arenap = PMDK_TAILQ_FIRST(&ppc->pool->arenas);
 		loc->narena = 0;
 	}
 
@@ -707,7 +707,7 @@ check_btt_map_flog(PMEMpoolcheck *ppc)
 		}
 
 		/* jump to next arena */
-		loc->arenap = TAILQ_NEXT(loc->arenap, next);
+		loc->arenap = PMDK_TAILQ_NEXT(loc->arenap, next);
 		loc->narena++;
 		loc->step = 0;
 	}

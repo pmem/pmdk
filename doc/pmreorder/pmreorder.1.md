@@ -246,7 +246,7 @@ provided engines.
 For this purpose, Valgrind's pmemcheck tool exposes a
 generic marker macro:
 
-+ **VALGRIND_EMIT_LOG(value)**
++ **VALGRIND_PMC_EMIT_LOG(value)**
 
 It emits log to *store_log* during pmemcheck processing.
 *value* is a user-defined marker name.
@@ -259,11 +259,11 @@ main.c
 .
 .
 .
-VALGRIND_EMIT_LOG("PMREORDER_MEMSET_PERSIST.BEGIN");
+VALGRIND_PMC_EMIT_LOG("PMREORDER_MEMSET_PERSIST.BEGIN");
 
 pmem_memset_persist(...);
 
-VALGRIND_EMIT_LOG("PMREORDER_MEMSET_PERSIST.END");
+VALGRIND_PMC_EMIT_LOG("PMREORDER_MEMSET_PERSIST.END");
 .
 .
 .

@@ -42,7 +42,6 @@
 #include "util.h"
 #include "valgrind_internal.h"
 
-
 #define LAYOUT_NAME "tx_add_range"
 
 #define OBJ_SIZE	1024

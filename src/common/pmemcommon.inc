@@ -50,7 +50,6 @@ SOURCE =\
 	$(COMMON)/os_thread_posix.c\
 	$(COMMON)/os_dimm_$(OS_DIMM).c\
 	$(COMMON)/os_deep_linux.c\
-	$(COMMON)/os_auto_flush_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/set.c\
@@ -59,3 +58,9 @@ SOURCE =\
 	$(COMMON)/util_posix.c\
 	$(COMMON)/uuid.c\
 	$(call osdep, $(COMMON)/uuid,.c)
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+SOURCE += $(COMMON)/os_auto_flush_linux.c
+else
+SOURCE += $(COMMON)/os_auto_flush_none.c
+endif

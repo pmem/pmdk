@@ -37,8 +37,7 @@ import testframework as t
 
 class TEST0(t.BaseTest):
     test_type = t.Medium
-
-    # TODO configure_valgrind memcheck force-disable
+    memcheck = t.DISABLE
 
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
@@ -47,8 +46,7 @@ class TEST0(t.BaseTest):
 
 class TEST1(t.BaseTest):
     test_type = t.Medium
-
-    # TODO configure_valgrind pmemcheck force-enable
+    pmemcheck = t.ENABLE
 
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')

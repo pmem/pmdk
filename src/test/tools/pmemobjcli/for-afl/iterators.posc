@@ -1,0 +1,25 @@
+#!../pmemobjcli -s
+# This is a script for pmemobjcli application intended to be used with afl.
+# The script iterates over allocated objects.
+# usage: ./iterators.posc <file>
+
+# allocate root object with specified size
+pmemobj_root 1024
+
+# allocate four zeroed objects in root object
+# at positions 0, 1, 2 and 3
+pmemobj_zalloc r.0 1 8192
+pmemobj_zalloc r.1 2 256
+pmemobj_zalloc r.2 3 128
+pmemobj_zalloc r.3 3 128
+
+# print first and next element on external list
+pmemobj_first
+pmemobj_next r.0
+pmemobj_next r.2
+
+# free allocated objects
+pmemobj_free r.0
+pmemobj_free r.1
+pmemobj_free r.2
+pmemobj_free r.3

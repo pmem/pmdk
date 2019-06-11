@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -64,7 +64,7 @@ create_poolset $DIR/testset2\
 
 POOLSETS="$DIR/testset1 $DIR/testset2"
 
-expect_normal_exit ./util_poolset_parse$EXESUFFIX $POOLSETS
+expect_normal_exit ./util_poolset_parse$EXESUFFIX t $POOLSETS
 
 $GREP -e "<[14]>.*\[.*util_parse_add_directory\]" ./parser$UNITTEST_NUM.log | \
 	sed -e "s/^.*util_parse_add_directory][ ]*//g" > grep$UNITTEST_NUM.log

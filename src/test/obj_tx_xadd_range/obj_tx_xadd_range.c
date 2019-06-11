@@ -128,14 +128,13 @@ do_tx_xadd_range_abort(PMEMobjpool *pop)
 		TOID_ASSIGN(obj, pmemobj_tx_zalloc(sizeof(struct object),
 			TYPE_OBJ));
 		UT_ASSERT(!TOID_IS_NULL(obj));
+	} TX_ONABORT {
+		UT_ASSERTeq(errno, EINVAL);
 	} TX_FINALLY {
-
 		if (!ut_sigsetjmp(Jmp)) {
 			pmemobj_tx_xadd_range(obj.oid, 0,
 				sizeof(struct object), POBJ_XADD_NO_FLUSH);
 		}
-	} TX_ONABORT {
-		UT_ASSERTeq(errno, EINVAL);
 	} TX_END
 
 }

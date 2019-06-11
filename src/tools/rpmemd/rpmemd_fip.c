@@ -673,7 +673,7 @@ rpmemd_fip_process_recv(struct rpmemd_fip *fip, struct rpmemd_fip_lane *lanep)
 	ret = rpmemd_fip_check_pmsg(fip, pmsg);
 	if (unlikely(ret))
 		goto err;
-	unsigned mode = pmsg->flags & RPMEM_PERSIST_MASK;
+	unsigned mode = pmsg->flags & RPMEM_FLUSH_PERSIST_MASK;
 
 	if (mode == RPMEM_DEEP_PERSIST) {
 		fip->deep_persist((void *)pmsg->addr, pmsg->size, fip->ctx);

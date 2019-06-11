@@ -52,7 +52,7 @@ config = {
 
     #
     # Set build type to be run:
-    # debug, nondebug, static-debug, static-nondebug, all
+    # debug, release, static-debug, static-release, all
     #
 
     'build': 'all',
@@ -89,5 +89,25 @@ config = {
     # support MAP_SYNC because it would prevent from testing the target
     # PMEM codepaths. If you want to ignore this error set the value to 2.
     #
-    'fs_dir_force_pmem': 0
+    'fs_dir_force_pmem': 0,
+
+    #
+    # In case of test fail all log files will be written. You can specify how
+    # many lines should be written by setting this variable. If 'dump_lines' is
+    # not set default value is 30.
+    #
+    'dump_lines': 30,
+
+    # Forcibly run tests with selected Valgrind tool, unless the test
+    # explicitly disables it.
+    # Possible values: None (do not force), 'memcheck',
+    # 'pmemcheck', 'drd', 'helgrind'
+    #
+    'force_enable': None,
+
+    # For tests that require raw dax devices without a file system, add paths to
+    # those devices to the list 'device_dax_path'. For most tests one device
+    # is enough, but some might require more
+    #
+    'device_dax_path' : [],
 }

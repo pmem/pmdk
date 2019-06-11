@@ -35,6 +35,7 @@
  */
 #include "unittest.h"
 #include "libpmemobj.h"
+#include "obj.h"
 
 #define LAYOUT_NAME "obj_tx_lock"
 
@@ -165,6 +166,27 @@ do_tx_add_taken_lock(struct transaction_data *data)
 	return NULL;
 }
 
+static void
+do_fault_injection(struct transaction_data *data)
+{
+	if (!pmemobj_fault_injection_enabled())
+		return;
+
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "add_to_tx_and_lock");
+
+	int ret;
+	IS_UNLOCKED(Pop, data->mutexes, data->rwlocks);
+	TX_BEGIN(Pop) {
+		int err = pmemobj_tx_lock(TX_PARAM_MUTEX, &data->mutexes[0]);
+		if (err)
+			pmemobj_tx_abort(err);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_ONABORT {
+		UT_ASSERTeq(errno, ENOMEM);
+	} TX_END
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -185,9 +207,9 @@ main(int argc, char *argv[])
 	/* go through all arguments one by one */
 	for (int arg = 2; arg < argc; arg++) {
 		/* Scan the character of each argument. */
-		if (strchr("lnat", argv[arg][0]) == NULL ||
+		if (strchr("lnatf", argv[arg][0]) == NULL ||
 				argv[arg][1] != '\0')
-			UT_FATAL("op must be l or n or a or t");
+			UT_FATAL("op must be l or n or a or t or f");
 
 		switch (argv[arg][0]) {
 		case 'l':
@@ -204,6 +226,9 @@ main(int argc, char *argv[])
 
 		case 't':
 			do_tx_add_taken_lock(test_obj);
+			break;
+		case 'f':
+			do_fault_injection(test_obj);
 			break;
 		}
 	}
