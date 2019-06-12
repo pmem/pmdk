@@ -74,20 +74,32 @@ enum pobj_tx_param {
 	TX_PARAM_CB,	 /* pmemobj_tx_callback cb, void *arg */
 };
 
-#if !defined(_has_deprecated_with_message) && defined(__clang__)
+#if !defined(pmdk_use_attr_deprec_with_msg) && defined(__COVERITY__)
+#define pmdk_use_attr_deprec_with_msg 0
+#endif
+
+#if !defined(pmdk_use_attr_deprec_with_msg) && defined(__clang__)
 #if __has_extension(attribute_deprecated_with_message)
-#define _has_deprecated_with_message
+#define pmdk_use_attr_deprec_with_msg 1
+#else
+#define pmdk_use_attr_deprec_with_msg 0
 #endif
 #endif
 
-#if !defined(_has_deprecated_with_message) && \
+#if !defined(pmdk_use_attr_deprec_with_msg) && \
 		defined(__GNUC__) && !defined(__INTEL_COMPILER)
 #if __GNUC__ * 100 + __GNUC_MINOR__ >= 601 /* 6.1 */
-#define _has_deprecated_with_message
+#define pmdk_use_attr_deprec_with_msg 1
+#else
+#define pmdk_use_attr_deprec_with_msg 0
 #endif
 #endif
 
-#ifdef _has_deprecated_with_message
+#if !defined(pmdk_use_attr_deprec_with_msg)
+#define pmdk_use_attr_deprec_with_msg 0
+#endif
+
+#if pmdk_use_attr_deprec_with_msg
 #define tx_lock_deprecated __attribute__((deprecated(\
 		"enum pobj_tx_lock is deprecated, use enum pobj_tx_param")))
 #else
