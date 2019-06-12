@@ -136,7 +136,10 @@ class BaseTest(metaclass=_TestCase):
 
         self.testdir = self.group + '_' + str(self.testnum)
         self.utenv = self._get_utenv()
-        self.ctxs = self._get_contexts()
+        self._ctx_attrs_init()
+
+        if self.test_type not in self.config.test_type:
+            self.enabled = False
 
     def _ctx_attrs_init(self):
         """
@@ -156,7 +159,7 @@ class BaseTest(metaclass=_TestCase):
                     ctx_val = futils.filter_contexts(conf_val, test_val)
             else:
                 ctx_val = futils.filter_contexts(conf_val, None)
-            setattr(self, attr, base.factory(self.config, *ctx_val))
+            setattr(self, attr, ctx.expand(*ctx_val))
 
         self._valgrind_init()
 
@@ -176,21 +179,12 @@ class BaseTest(metaclass=_TestCase):
 
         self.valgrind = vg.Valgrind(vg_tool, self.cwd, self.testnum)
 
-    def _get_contexts(self):
-        """Initialize context classes used for each test run"""
-        self._ctx_attrs_init()
-
-        ctxs = []
-        if self.test_type not in self.config.test_type:
-            return ctxs
-
-        # generate combination sets of context components
-        ctx_sets = itertools.product(self.fs, self.build)
-        for cs in ctx_sets:
-            ctxs.append(ctx.Context(self, self.config, fs=cs[0], build=cs[1],
-                                    valgrind=self.valgrind))
-
-        return ctxs
+    def _init_context(self, **ctx_params):
+        """Initialize context class using provided parameters"""
+        fs = ctx_params['fs'](self.config)
+        build = ctx_params['build'](self.config)
+        return ctx.Context(self, self.config, fs=fs, build=build,
+                           valgrind=self.valgrind)
 
     def _get_utenv(self):
         """Get environment variables values used by C test framework"""
@@ -206,16 +200,19 @@ class BaseTest(metaclass=_TestCase):
         one test failed
         """
         failed = False
-        for c in self.ctxs:
-            config_str = '{}/{}/{}'.format(self.test_type, c.fs, c.build)
+        ctx_params = itertools.product(self.fs, self.build)
+        for cp in ctx_params:
+            ctx_str = '{}/{}/{}'.format(self.test_type, cp[0], cp[1])
             if self.valgrind:
-                config_str = '{}/{}'.format(config_str, self.valgrind)
-
+                ctx_str = '{}/{}'.format(ctx_str, self.valgrind)
+            c = None
             try:
+                self.msg.print('{}: SETUP\t({})'.format(self, ctx_str))
+                c = self._init_context(fs=cp[0], build=cp[1])
+
                 if self.valgrind:
                     self.valgrind.verify()
 
-                self.msg.print('{}: SETUP\t({})'.format(self, config_str))
                 # removes old log files, to make sure that logs made by test
                 # are up to date
                 self.remove_log_files()
@@ -230,19 +227,21 @@ class BaseTest(metaclass=_TestCase):
                 failed = True
                 print(f)
                 self._print_log_files(c)
-                print('{}: {}FAILED{}\t({})'
-                      .format(self, futils.Color.RED, futils.Color.END, config_str))
+                print('{}: {}FAILED{}\t({})'.format(self, futils.Color.RED,
+                                                    futils.Color.END, ctx_str))
                 if not self.config.keep_going:
                     sys.exit(1)
 
             except futils.Skip as s:
-                print('{}: SKIP {}'.format(self, s))
-                self.clean(c)
+                print('{}: SKIP: {}'.format(self, s))
+                if c:
+                    self.clean(c)
 
             except sp.TimeoutExpired:
                 failed = True
-                print('{}: {}TIMEOUT{}\t({})'
-                      .format(self, futils.Color.RED, futils.Color.END, config_str))
+                print('{}: {}TIMEOUT{}\t({})'.format(self, futils.Color.RED,
+                                                     futils.Color.END,
+                                                     ctx_str))
                 if not self.config.keep_going:
                     sys.exit(1)
 

@@ -21,11 +21,11 @@ config = {
     #
     # For tests that require true persistent memory, set the path to
     # a directory on a PMEM-aware file system here.
-    # Comment this line out if there's no actual persistent memory
-    # available on this system.
+    # This line should be commented out if there's no actual persistent memory
+    # available on your system.
     #
 
-    'pmem_fs_dir': '/mnt/pmem',
+    # 'pmem_fs_dir': '/mnt/pmem',
 
     #
     # For tests that require true a non-persitent memory aware file system
