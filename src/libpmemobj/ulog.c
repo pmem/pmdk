@@ -405,8 +405,8 @@ ulog_entry_val_create(struct ulog *ulog, size_t offset, uint64_t *dest,
  */
 struct ulog_entry_buf *
 ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
-		uint64_t *dest, const void *src, uint64_t size,
-		ulog_operation_type type, const struct pmem_ops *p_ops)
+	uint64_t *dest,	const void *src, uint64_t size,
+	ulog_operation_type type, const struct pmem_ops *p_ops, int drain)
 {
 	struct ulog_entry_buf *e =
 		(struct ulog_entry_buf *)(ulog->data + offset);
@@ -486,7 +486,8 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
 		PMEMOBJ_F_MEM_NODRAIN | PMEMOBJ_F_MEM_NONTEMPORAL);
 	VALGRIND_REMOVE_FROM_TX(e, CACHELINE_SIZE);
 
-	pmemops_drain(p_ops);
+	if (drain)
+		pmemops_drain(p_ops);
 
 	ASSERT(ulog_entry_valid(ulog, &e->base));
 

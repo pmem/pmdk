@@ -45,6 +45,7 @@
 
 #define OBJ_SIZE	1024
 #define OVERLAP_SIZE	100
+#define NO_DRAIN_SIZE	10
 #define ROOT_TAB_SIZE\
 	(TX_DEFAULT_RANGE_CACHE_SIZE / sizeof(int))
 
@@ -57,6 +58,7 @@ enum type_number {
 
 TOID_DECLARE(struct object, 0);
 TOID_DECLARE(struct overlap_object, 1);
+TOID_DECLARE(struct no_drain_object, 2);
 TOID_DECLARE_ROOT(struct root);
 
 struct root {
@@ -71,6 +73,10 @@ struct object {
 
 struct overlap_object {
 	uint8_t data[OVERLAP_SIZE];
+};
+
+struct no_drain_object {
+	int data[NO_DRAIN_SIZE];
 };
 
 #define VALUE_OFF	(offsetof(struct object, value))
@@ -570,6 +576,75 @@ do_tx_xadd_range_no_snapshot_fields(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_xadd_range_no_drain_commit -- call pmemobj_tx_xadd_range with
+ * POBJ_XADD_NO_DRAIN flag set and commit the tx
+ */
+static void
+do_tx_xadd_range_no_drain_commit(PMEMobjpool *pop)
+{
+	TOID(struct no_drain_object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, 2));
+
+	int tmp[NO_DRAIN_SIZE];
+	memcpy(tmp, D_RO(obj)->data, NO_DRAIN_SIZE);
+	TX_BEGIN(pop) {
+		TX_XADD_FIELD(obj, data[1], POBJ_XADD_NO_DRAIN);
+		D_RW(obj)->data[1] = 1;
+		tmp[1] = 1;
+
+		TX_XADD_FIELD(obj, data[3], POBJ_XADD_NO_DRAIN);
+		D_RW(obj)->data[3] = 3;
+		tmp[3] = 3;
+
+		TX_XADD_FIELD(obj, data[5], POBJ_XADD_NO_DRAIN);
+		D_RW(obj)->data[5] = 5;
+		tmp[5] = 5;
+
+		TX_ADD_FIELD(obj, data[7]);
+		D_RW(obj)->data[7] = 7;
+		tmp[7] = 7;
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(memcmp(D_RO(obj)->data, tmp, NO_DRAIN_SIZE), 0);
+}
+
+/*
+ * do_tx_xadd_range_no_drain_abort -- call pmemobj_tx_xadd_range with
+ * POBJ_XADD_NO_DRAIN flag set and abort the tx
+ */
+static void
+do_tx_xadd_range_no_drain_abort(PMEMobjpool *pop)
+{
+	TOID(struct no_drain_object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, 2));
+
+	char tmp[NO_DRAIN_SIZE];
+	memcpy(tmp, D_RO(obj)->data, NO_DRAIN_SIZE);
+	TX_BEGIN(pop) {
+		TX_XADD_FIELD(obj, data[1], POBJ_XADD_NO_DRAIN);
+		D_RW(obj)->data[1] = 1;
+
+		TX_XADD_FIELD(obj, data[3], POBJ_XADD_NO_DRAIN);
+		D_RW(obj)->data[3] = 3;
+
+		TX_XADD_FIELD(obj, data[5], POBJ_XADD_NO_DRAIN);
+		D_RW(obj)->data[5] = 5;
+
+		TX_ADD_FIELD(obj, data[7]);
+		D_RW(obj)->data[7] = 7;
+
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(memcmp(D_RO(obj)->data, tmp, NO_DRAIN_SIZE), 0);
+}
+
+
+/*
  * do_tx_add_range_overlapping -- call pmemobj_tx_add_range with overlapping
  */
 static void
@@ -812,6 +887,10 @@ main(int argc, char *argv[])
 		do_tx_xadd_range_twice_no_snapshot_abort(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_xadd_range_no_snapshot_fields(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_xadd_range_no_drain_commit(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_xadd_range_no_drain_abort(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_xadd_range_no_flush_commit(pop);
 		pmemobj_close(pop);

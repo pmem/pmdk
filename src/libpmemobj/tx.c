@@ -1067,6 +1067,7 @@ pmemobj_tx_add_snapshot(struct tx *tx, struct tx_range_def *snapshot)
 	void *ptr = OBJ_OFF_TO_PTR(tx->pop, snapshot->offset);
 
 	VALGRIND_ADD_TO_TX(ptr, snapshot->size);
+	int drain = (int)~(snapshot->flags & POBJ_XADD_NO_DRAIN);
 
 	/* do nothing */
 	if (snapshot->flags & POBJ_XADD_NO_SNAPSHOT)
@@ -1092,7 +1093,7 @@ pmemobj_tx_add_snapshot(struct tx *tx, struct tx_range_def *snapshot)
 	}
 
 	return operation_add_buffer(tx->lane->undo, ptr, ptr, snapshot->size,
-		ULOG_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY, drain);
 }
 
 /*

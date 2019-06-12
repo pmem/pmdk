@@ -377,8 +377,8 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
  * operation_add_buffer -- adds a buffer operation to the log
  */
 int
-operation_add_buffer(struct operation_context *ctx,
-	void *dest, void *src, size_t size, ulog_operation_type type)
+operation_add_buffer(struct operation_context *ctx, void *dest,
+	void *src, size_t size, ulog_operation_type type, int drain)
 {
 	size_t real_size = size + sizeof(struct ulog_entry_buf);
 
@@ -403,7 +403,8 @@ operation_add_buffer(struct operation_context *ctx,
 		ctx->ulog_curr_offset,
 		ctx->ulog_curr_gen_num,
 		dest, src, data_size,
-		type, ctx->p_ops);
+		type, ctx->p_ops,
+		drain);
 	size_t entry_size = ALIGN_UP(curr_size, CACHELINE_SIZE);
 	ASSERT(entry_size == ulog_entry_size(&e->base));
 	ASSERT(entry_size <= ctx->ulog_curr_capacity);
@@ -419,7 +420,8 @@ operation_add_buffer(struct operation_context *ctx,
 	return size - data_size == 0 ? 0 : operation_add_buffer(ctx,
 			(char *)dest + data_size,
 			(char *)src + data_size,
-			size - data_size, type);
+			size - data_size, type,
+			drain);
 }
 
 /*

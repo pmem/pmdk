@@ -226,7 +226,7 @@ test_undo_small_single_copy(struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &object->values, sizeof(*object->values) * 2,
-		ULOG_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY, 1);
 
 	object->values[0] = 2;
 	object->values[1] = 1;
@@ -263,7 +263,7 @@ test_undo_small_single_set(struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &c, sizeof(*object->values) * 2,
-		ULOG_OPERATION_BUF_SET);
+		ULOG_OPERATION_BUF_SET, 1);
 
 	operation_process(ctx);
 
@@ -284,7 +284,7 @@ test_undo_large_single_copy(struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &object->values, sizeof(object->values),
-		ULOG_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY, 1);
 
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)
 		object->values[i] = i + 2;
@@ -308,7 +308,7 @@ test_undo_checksum_mismatch(PMEMobjpool *pop, struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &object->values, sizeof(*object->values) * 20,
-		ULOG_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY, 1);
 
 	for (uint64_t i = 0; i < 20; ++i)
 		object->values[i] = i + 2;
@@ -337,7 +337,7 @@ test_undo_large_copy(PMEMobjpool *pop, struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &object->values, sizeof(object->values),
-		ULOG_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY, 1);
 
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)
 		object->values[i] = i + 2;
@@ -357,7 +357,7 @@ test_undo_large_copy(PMEMobjpool *pop, struct operation_context *ctx,
 
 	operation_add_buffer(ctx,
 		&object->values, &object->values, sizeof(*object->values) * 26,
-		ULOG_OPERATION_BUF_CPY);
+		ULOG_OPERATION_BUF_CPY, 1);
 
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)
 		object->values[i] = i + 4;

@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+#
+# Copyright 2019, Intel Corporation
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in
+#       the documentation and/or other materials provided with the
+#       distribution.
+#
+#     * Neither the name of the copyright holder nor the names of its
+#       contributors may be used to endorse or promote products derived
+#       from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+
+#
+# src/test/pmreorder_xadd_range/TEST0 -- test for pmemobj_xadd_range
+# with NO_DRAIN flag
+#
+
+# standard unit test setup
+. ../unittest/unittest.sh
+
+require_fs_type pmem non-pmem
+require_build_type debug
+require_test_type long
+require_pmemcheck_version_ge 1 0
+require_pmemcheck_version_lt 2 0
+require_pmreorder
+
+setup
+
+export PMREORDER_EMIT_LOG=1
+
+POOL_SIZE=$((32*1024*1024))
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile -s $POOL_SIZE
+
+LOG_FILE=./pmreorder_xadd_range${UNITTEST_NUM}.log
+touch $LOG_FILE
+
+BIN="./pmreorder_xadd_range$EXESUFFIX"
+PMEMCHECK_CMD="$BIN g $DIR/testfile"
+PMREORDER_CMD="$BIN c"
+
+pmreorder_create_store_log $DIR/testfile "${PMEMCHECK_CMD}"
+pmreorder_expect_success NoReorderNoCheck pmreorder0.conf "${PMREORDER_CMD}"
+
+check
+
+pass

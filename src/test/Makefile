@@ -324,6 +324,7 @@ DAXIO_TESTS = \
 PMREORDER_TESTS = \
 	pmreorder_flushes\
 	pmreorder_simple\
+	pmreorder_xadd_range\
 	pmreorder_stack
 
 LOCAL_TESTS = \
