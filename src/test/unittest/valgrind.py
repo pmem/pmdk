@@ -237,3 +237,11 @@ class Valgrind:
         """
         if self.valgrind_exe is None:
             raise futils.Skip('Valgrind not found')
+
+        # verify tool
+        cmd = '{} --tool={} --help'.format(self.valgrind_exe, self.tool_name)
+        try:
+            sp.check_output(cmd, shell=True, stderr=sp.STDOUT)
+        except sp.CalledProcessError:
+            raise futils.Skip("Valgrind tool '{}' was not found"
+                              .format(self.tool_name))

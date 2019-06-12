@@ -228,14 +228,14 @@ class Context(ContextBase):
                       timeout=self.conf.timeout, stdout=sp.PIPE,
                       stderr=sp.STDOUT, universal_newlines=True)
 
-        if sys.platform != 'win32' and expected_exit == 0 \
-                and not self.valgrind.validate_log():
-            self.test.fail(proc.stdout)
-
         if proc.returncode != expected_exit:
             futils.fail(proc.stdout, exit_code=proc.returncode)
-        else:
-            self.msg.print_verbose(proc.stdout)
+
+        if sys.platform != 'win32' and expected_exit == 0 \
+                and not self.valgrind.validate_log():
+            futils.fail(proc.stdout)
+
+        self.msg.print_verbose(proc.stdout)
 
 
 class _CtxType(type):
