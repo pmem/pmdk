@@ -36,7 +36,6 @@ import os
 import string
 import sys
 from datetime import timedelta
-from collections import namedtuple
 
 import context as ctx
 import valgrind as vg
@@ -45,6 +44,20 @@ try:
     import testconfig
 except ImportError:
     sys.exit('Please add valid testconfig.py file - see testconfig.py.example')
+
+
+class _ConfigFromDict:
+    """
+    Class fields are created from provided dictionary. Used for creating
+    a final config object
+    """
+    def __init__(self, dict_):
+        for k, v in dict_.items():
+            setattr(self, k, v)
+
+    def __getattr__(self, name):
+        sys.exit('Provided test configuration may be invalid. '
+                 'No "{}" field found in configuration.'.format(name))
 
 
 def _str2list(config):
@@ -161,8 +174,8 @@ class Configurator():
 
             self._convert_to_usable_types(config)
 
-            # Remake dict into namedtuple for convenient fields acquisition
-            return namedtuple('Config', config.keys())(**config)
+            # Remake dict into class object for convenient fields acquisition
+            return _ConfigFromDict(config)
 
         except KeyError as e:
             sys.exit("No config field '{}' found. "
