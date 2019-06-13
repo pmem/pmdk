@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,12 +48,11 @@ flush_dcache_invalidate_opt_nolog(const void *addr, size_t len)
 {
 	uintptr_t uptr;
 
-	arm_data_memory_barrier();
 	for (uptr = (uintptr_t)addr & ~(FLUSH_ALIGN - 1);
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
 		arm_clean_and_invalidate_va_to_poc((char *)uptr);
 	}
-	arm_data_memory_barrier();
+	arm_store_memory_barrier();
 }
 
 /*

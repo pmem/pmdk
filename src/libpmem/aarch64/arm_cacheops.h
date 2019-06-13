@@ -82,9 +82,9 @@ arm_clean_va_to_poc(void const *p __attribute__((unused)))
 }
 
 static inline void
-arm_data_memory_barrier(void)
+arm_store_memory_barrier(void)
 {
-	asm volatile("dmb ish" : : : "memory");
+	asm volatile("dmb ishst" : : : "memory");
 }
 
 static inline void

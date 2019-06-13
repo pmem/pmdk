@@ -87,7 +87,7 @@ static void
 predrain_memory_barrier(void)
 {
 	LOG(15, NULL);
-	arm_data_memory_barrier();
+	arm_store_memory_barrier();
 }
 
 /*
