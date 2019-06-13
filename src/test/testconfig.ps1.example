@@ -19,7 +19,7 @@
 
 #
 # For tests that require true persistent memory, set the path to a directory
-# on a PMEM-aware file system here.  Comment this line out if there's no
+# on a PMEM-aware file system here. Uncomment this line if there's an
 # actual persistent memory available on this system.
 #
 #$Env:PMEM_FS_DIR = "\mnt\pmem"
@@ -29,7 +29,7 @@
 # to verify something works on traditional page-cache based memory-mapped
 # files) set the path to a directory on a normal file system here.
 #
-$Env:NON_PMEM_FS_DIR = "\temp"
+#$Env:NON_PMEM_FS_DIR = "\temp"
 
 #
 # If you don't have real PMEM or PMEM emulation set up, but still want to test

@@ -21,7 +21,7 @@ config = {
     #
     # For tests that require true persistent memory, set the path to
     # a directory on a PMEM-aware file system here.
-    # This line should be commented out if there's no actual persistent memory
+    # Uncomment this line if there's an actual persistent memory
     # available on your system.
     #
 
@@ -34,7 +34,7 @@ config = {
     # on a normal file system here.
     #
 
-    'non_pmem_fs_dir': '/tmp',
+    # 'non_pmem_fs_dir': '/tmp',
 
     #
     # To display execution time of each test
