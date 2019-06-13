@@ -35,7 +35,7 @@
 # to verify something works on traditional page-cache based memory-mapped
 # files) set the path to a directory on a normal file system here.
 #
-NON_PMEM_FS_DIR=/tmp
+#NON_PMEM_FS_DIR=/tmp
 
 #
 # If you don't have real PMEM or PMEM emulation set up and/or the filesystem

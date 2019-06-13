@@ -29,7 +29,7 @@
 # to verify something works on traditional page-cache based memory-mapped
 # files) set the path to a directory on a normal file system here.
 #
-$Env:NON_PMEM_FS_DIR = "\temp"
+#$Env:NON_PMEM_FS_DIR = "\temp"
 
 #
 # If you don't have real PMEM or PMEM emulation set up, but still want to test

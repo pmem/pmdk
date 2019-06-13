@@ -34,7 +34,7 @@ config = {
     # on a normal file system here.
     #
 
-    'non_pmem_fs_dir': '/tmp',
+    # 'non_pmem_fs_dir': '/tmp',
 
     #
     # To display execution time of each test
