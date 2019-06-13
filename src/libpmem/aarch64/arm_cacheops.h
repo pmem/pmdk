@@ -86,10 +86,4 @@ arm_store_memory_barrier(void)
 {
 	asm volatile("dmb ishst" : : : "memory");
 }
-
-static inline void
-arm_clean_and_invalidate_va_to_poc(const void *addr)
-{
-	asm volatile("dc civac, %0" : : "r" (addr) : "memory");
-}
 #endif

@@ -91,19 +91,6 @@ predrain_memory_barrier(void)
 }
 
 /*
- * flush_dcache_invalidate_opt -- (internal) flush the CPU cache,
- * using clflushopt for X86 and arm_clean_and_invalidate_va_to_poc
- * for aarch64 (see arm_cacheops.h) {DC CIVAC}
- */
-static void
-flush_dcache_invalidate_opt(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	flush_dcache_invalidate_opt_nolog(addr, len);
-}
-
-/*
  * flush_dcache -- (internal) flush the CPU cache, using clwb
  */
 static void
@@ -134,7 +121,7 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	LOG(3, NULL);
 
 	funcs->predrain_fence = predrain_fence_empty;
-	funcs->deep_flush = flush_dcache_invalidate_opt;
+	funcs->deep_flush = flush_dcache;
 	funcs->is_pmem = is_pmem_detect;
 	funcs->memmove_nodrain = memmove_nodrain_generic;
 	funcs->memset_nodrain = memset_nodrain_generic;
@@ -165,16 +152,13 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 		LOG(3, "Flushing CPU cache");
 	}
 
-	if (flush) {
+	if (flush)
 		funcs->flush = funcs->deep_flush;
-	} else {
+	else
 		funcs->flush = flush_empty;
-		funcs->predrain_fence = predrain_memory_barrier;
-	}
+	funcs->predrain_fence = predrain_memory_barrier;
 
 	if (funcs->deep_flush == flush_dcache)
-		LOG(3, "Using ARM invalidate");
-	else if (funcs->deep_flush == flush_dcache_invalidate_opt)
 		LOG(3, "Synchronize VA to poc for ARM");
 	else
 		FATAL("invalid deep flush function address");
