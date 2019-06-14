@@ -69,18 +69,6 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags)
 }
 
 /*
- * predrain_fence_empty -- (internal) issue the pre-drain fence instruction
- */
-static void
-predrain_fence_empty(void)
-{
-	LOG(15, NULL);
-
-	VALGRIND_DO_FENCE;
-	/* nothing to do (because CLFLUSH did it for us) */
-}
-
-/*
  * predrain_memory_barrier -- (internal) issue the pre-drain fence instruction
  */
 static void
@@ -120,7 +108,7 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 {
 	LOG(3, NULL);
 
-	funcs->predrain_fence = predrain_fence_empty;
+	funcs->predrain_fence = predrain_memory_barrier;
 	funcs->deep_flush = flush_dcache;
 	funcs->is_pmem = is_pmem_detect;
 	funcs->memmove_nodrain = memmove_nodrain_generic;
@@ -156,7 +144,6 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 		funcs->flush = funcs->deep_flush;
 	else
 		funcs->flush = flush_empty;
-	funcs->predrain_fence = predrain_memory_barrier;
 
 	if (funcs->deep_flush == flush_dcache)
 		LOG(3, "Synchronize VA to poc for ARM");
