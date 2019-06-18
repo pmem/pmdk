@@ -43,9 +43,9 @@ Available Libraries:
 
 - [libpmemlog](http://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file.
 
-- [libvmem](http://pmem.io/pmdk/libvmem/):  turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API.
+- [libvmem](http://pmem.io/pmdk/libvmem/):  turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API. It is not actively developed and is deprecated -- we recommended to use [libmemkind](https://github.com/memkind/memkind) in new code instead.
 
-- [libvmmalloc](http://pmem.io/pmdk/libvmmalloc/)<sup>1</sup>:  transparently converts all the dynamic memory allocations into persistent memory allocations.
+- [libvmmalloc](http://pmem.io/pmdk/libvmmalloc/)<sup>1</sup>:  transparently converts all the dynamic memory allocations into persistent memory allocations. Just like libvmem, it is no longer actively developed and is deprecated.
 
 - [libpmempool](http://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
 
