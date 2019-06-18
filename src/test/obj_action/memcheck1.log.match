@@ -22,7 +22,7 @@
 ==$(N)==  Address 0x$(X) is 0 bytes inside a block of size 112 free'd
 ==$(N)==    at 0x$(X): palloc_heap_action_on_process (palloc.c:$(N))
 ==$(N)==    by 0x$(X): palloc_exec_actions (palloc.c:$(N))
-==$(N)==    by 0x$(X): palloc_publish (palloc.c:$(N))
+$(OPT)==$(N)==    by 0x$(X): palloc_publish (palloc.c:$(N))
 ==$(N)==    by 0x$(X): pmemobj_publish (obj.c:$(N))
 ==$(N)==    by 0x$(X): test_defer_free (obj_action.c:$(N))
 ==$(N)==    by 0x$(X): main (obj_action.c:$(N))
