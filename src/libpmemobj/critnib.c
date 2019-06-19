@@ -207,7 +207,7 @@ path_mask(sh_t shift)
 static inline int
 slice_index(uint64_t key, sh_t shift)
 {
-	return (key >> shift) & NIB;
+	return (int)((key >> shift) & NIB);
 }
 
 /*
