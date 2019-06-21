@@ -66,7 +66,7 @@ struct ulog_entry_buf {
 };
 
 /*
- * This structure *must* be located at a cacheline boundry. To achieve this,
+ * This structure *must* be located at a cacheline boundary. To achieve this,
  * the next field is always allocated with extra padding, and then the offset
  * is additionally aligned.
  */

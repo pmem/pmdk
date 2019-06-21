@@ -403,7 +403,7 @@ replica_is_replica_healthy(unsigned repn, struct poolset_health_status *set_hs)
 }
 
 /*
- * replica_has_healthy_header -- (interal) check if replica has healthy headers
+ * replica_has_healthy_header -- (internal) check if replica has healthy headers
  */
 static int
 replica_has_healthy_header(unsigned repn, struct poolset_health_status *set_hs)
@@ -692,7 +692,7 @@ check_checksums_and_signatures(struct pool_set *set,
 
 		/*
 		 * Checksums and signatures of remote replicas are checked
-		 * during opening them on the remote side by the rpmem deamon.
+		 * during opening them on the remote side by the rpmem daemon.
 		 * The local version of remote headers does not contain
 		 * such data.
 		 */
@@ -902,7 +902,7 @@ replica_badblocks_recovery_files_check(struct pool_set *set,
 
 		if (rep->remote) {
 			/*
-			 * Bad blocks in remote replicas curently are fixed
+			 * Bad blocks in remote replicas currently are fixed
 			 * during opening by removing and recreating
 			 * the whole remote replica.
 			 */

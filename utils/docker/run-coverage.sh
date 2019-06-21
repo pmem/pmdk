@@ -43,7 +43,7 @@ set -e
 # Hush error messages, mainly from Valgrind
 export UT_DUMP_LINES=0
 
-# Skip printing mismached files for tests with Valgrind
+# Skip printing mismatched files for tests with Valgrind
 export UT_VALGRIND_SKIP_PRINT_MISMATCHED=1
 
 # Build all and run tests

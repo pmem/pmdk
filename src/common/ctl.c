@@ -497,7 +497,7 @@ error_file_parse:
 }
 
 /*
- * ctl_new -- allocates and initalizes ctl data structures
+ * ctl_new -- allocates and initializes ctl data structures
  */
 struct ctl *
 ctl_new(void)

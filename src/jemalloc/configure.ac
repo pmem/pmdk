@@ -1069,7 +1069,7 @@ CPPFLAGS="$CPPFLAGS -D_REENTRANT"
 dnl The force_lazy_lock, _malloc_thread_cleanup and _pthread_mutex_init_calloc_cb
 dnl checks for FreeBSD assume that jemalloc is being built as a libc malloc
 dnl replacement. If jemalloc is being built for a different purpose, these checks
-dnl can be ovverridden with --disable-bsd-malloc-hooks.
+dnl can be overridden with --disable-bsd-malloc-hooks.
 AC_ARG_ENABLE([bsd-malloc-hooks], [AS_HELP_STRING([--disable-bsd-malloc-hooks],
   [Disable force_lazy_lock, _malloc_thread_cleanup and _pthread_mutex_init_calloc_cb checks])],
 [if test "x$enable_bsd_malloc_hooks" = "xno" ; then

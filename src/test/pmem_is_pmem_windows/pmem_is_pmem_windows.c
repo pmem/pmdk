@@ -141,7 +141,7 @@ main(int argc, char *argv[])
 	chunk_length = Mmap_align;
 
 	/*
-	 * We dont' support too small a file size.
+	 * We don't support too small a file size.
 	 */
 	UT_ASSERT(Size / 8 > chunk_length);
 

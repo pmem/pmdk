@@ -109,7 +109,7 @@ struct ctl_argument {
 #define CTL_ARG_PARSER_END {0, 0, NULL}
 
 /*
- * CTL Tree node structure, do not use directly. All the necessery functionality
+ * CTL Tree node structure, do not use directly. All the necessary functionality
  * is provided by the included macros.
  */
 struct ctl_node {

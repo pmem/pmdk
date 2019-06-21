@@ -54,7 +54,7 @@ Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 -t version-tag		source version tag
 -s source-dir		source directory
 -w working-dir		working directory
--o output-dir		outut directory
+-o output-dir		output directory
 -e build-experimental	build experimental packages
 -c run-check		run package check
 -n with-ndctl		build with libndctl

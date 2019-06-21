@@ -235,7 +235,7 @@ TEST_BEGIN(test_mallctl_with_multiple_pools)
 
 	/*
 	 * This loop does not use local variable pools.
-	 * Moreover we ommit pool[0].
+	 * Moreover we omit pool[0].
 	 */
 	for (i = 1; i <= NPOOLS; ++i) {
 		unsigned narenas;
@@ -464,7 +464,7 @@ TEST_BEGIN(test_arenas_extend)
 
 	/*
 	 * This loop does not use local variable pools.
-	 * Moreover we ommit pool[0].
+	 * Moreover we omit pool[0].
 	 */
 	for (i = 1; i <= NPOOLS; ++i) {
 		mib_narenas[1] = i;

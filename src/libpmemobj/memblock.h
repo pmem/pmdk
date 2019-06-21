@@ -243,7 +243,7 @@ struct memory_block_ops {
 
 	/*
 	 * Initializes bitmap data for a run.
-	 * Do *not* use this function unless absolutely necessery, it breaks
+	 * Do *not* use this function unless absolutely necessary, it breaks
 	 * the abstraction layer by exposing implementation details.
 	 */
 	void (*get_bitmap)(const struct memory_block *m, struct run_bitmap *b);
