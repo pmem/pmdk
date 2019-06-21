@@ -61,7 +61,7 @@ main(int argc, char *argv[])
 		UT_ASSERTeq(ret, 0);
 
 		/*
-		 * Convert the the string to a uuid, convert generated
+		 * Convert the string to a uuid, convert generated
 		 * uuid back to a string and compare strings.
 		 */
 		ret = util_uuid_from_string(uu, (struct uuid *)&uuid);
