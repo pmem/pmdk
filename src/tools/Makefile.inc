@@ -149,7 +149,7 @@ LIBPMEMCOMMON=y
 endif
 
 ifeq ($(LIBPMEMCOMMON), y)
-DYNAMIC_LIBS += $(LIBSDIR_DEBUG)/libpmemcommon.a
+DYNAMIC_LIBS += -lpmemcommon
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemcommon.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemcommon.a
 CFLAGS += -I$(TOP)/src/common
