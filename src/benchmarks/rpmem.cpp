@@ -107,7 +107,7 @@ enum operation_mode {
 	OP_MODE_STAT,      /* always use the same chunk */
 	OP_MODE_SEQ,       /* use consecutive chunks */
 	OP_MODE_RAND,      /* use random chunks */
-	OP_MODE_SEQ_WRAP,  /* use consequtive chunks, but use file size */
+	OP_MODE_SEQ_WRAP,  /* use consecutive chunks, but use file size */
 	OP_MODE_RAND_WRAP, /* use random chunks, but use file size */
 };
 

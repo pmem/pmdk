@@ -45,10 +45,10 @@
 #include "os.h"
 
 #ifdef _WIN32
-static const char *delimeter = ";";
+static const char *delimiter = ";";
 static const char *convert_bin = "\\pmdk-convert.exe";
 #else
-static const char *delimeter = ":";
+static const char *delimiter = ":";
 static const char *convert_bin = "/pmdk-convert";
 #endif // _WIN32
 
@@ -61,7 +61,7 @@ pmempool_convert_get_path(char *p, size_t max_len)
 		return -1;
 	}
 
-	char *dir = strtok(path, delimeter);
+	char *dir = strtok(path, delimiter);
 
 	while (dir) {
 		size_t length = strlen(dir) + strlen(convert_bin) + 1;
@@ -78,7 +78,7 @@ pmempool_convert_get_path(char *p, size_t max_len)
 			return 0;
 		}
 
-		dir = strtok(NULL, delimeter);
+		dir = strtok(NULL, delimiter);
 	}
 
 	free(path);

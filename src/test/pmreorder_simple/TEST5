@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
 #
 # src/test/pmreorder_simple/TEST5 -- unit test for the reordering script
 # Tests positive case using full reorder engine for section marked as the most
-# critical and additionaly enables pmreorder logs in libpmem library to test
+# critical and additionally enables pmreorder logs in libpmem library to test
 # disabling reordering of API functions
 #
 

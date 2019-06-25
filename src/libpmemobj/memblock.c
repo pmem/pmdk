@@ -1070,7 +1070,7 @@ huge_iterate_used(const struct memory_block *m, object_callback cb, void *arg)
 }
 
 /*
- * huge_vg_init -- initalizes chunk metadata in memcheck state
+ * huge_vg_init -- initializes chunk metadata in memcheck state
  */
 static void
 huge_vg_init(const struct memory_block *m, int objects,
@@ -1099,7 +1099,7 @@ huge_vg_init(const struct memory_block *m, int objects,
 }
 
 /*
- * run_vg_init -- initalizes run metadata in memcheck state
+ * run_vg_init -- initializes run metadata in memcheck state
  */
 static void
 run_vg_init(const struct memory_block *m, int objects,

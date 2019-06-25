@@ -130,7 +130,7 @@ or features:
 
 * **libfabric** (v1.4.2 or later) -- required by **librpmem**
 
-><sup>1</sup> PMDK requires libndctl v63 or newer (to enable RAS features) by default. If you have such libndctl version but you don't want to depend on this API please bulid PMDK with NDCTL_USE_V63_API=n. For more information please check this issue pmem/issues#1039
+><sup>1</sup> PMDK requires libndctl v63 or newer (to enable RAS features) by default. If you have such libndctl version but you don't want to depend on this API please build PMDK with NDCTL_USE_V63_API=n. For more information please check this issue pmem/issues#1039
 
 ### Windows
 

@@ -212,7 +212,7 @@ rpmem_fip_set_closing(struct rpmem_fip *fip)
 }
 
 /*
- * rpmem_fip_lane_begin -- (internal) intialize list of events for lane
+ * rpmem_fip_lane_begin -- (internal) initialize list of events for lane
  */
 static inline void
 rpmem_fip_lane_begin(struct rpmem_fip_lane *lanep, uint64_t event)

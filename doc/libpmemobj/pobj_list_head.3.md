@@ -226,7 +226,7 @@ container associated with a type number which is retrieved from the typed
 The macro **POBJ_LIST_INSERT_NEW_TAIL**() atomically allocates a new
 object of size *size* and inserts it at the tail of the list referenced
 by *head*. The newly allocated object is also added to the internal object
-container associated with with a type number which is retrieved from
+container associated with a type number which is retrieved from
 the typed *OID* of the first element on list.
 
 The macro **POBJ_LIST_INSERT_NEW_AFTER**() atomically allocates a new

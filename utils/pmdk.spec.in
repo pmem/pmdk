@@ -692,7 +692,7 @@ a device.
 
 
 %build
-# For debug build default flags may be overriden to disable compiler
+# For debug build default flags may be overridden to disable compiler
 # optimizations.
 CFLAGS="%{optflags}" \
 LDFLAGS="%{?__global_ldflags}" \

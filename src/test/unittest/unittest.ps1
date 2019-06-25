@@ -231,7 +231,7 @@ function create_nonzeroed_file {
     [int64]$size = ((convert_to_bytes $args[0]) - $offset)
 
     [int64]$numz =  $size / 1024
-    [string] $z = "Z" * 1024 # using a 1K string to speed up writting
+    [string] $z = "Z" * 1024 # using a 1K string to speed up writing
     for ($i=2;$i -lt $args.count;$i++) {
         # create sparse file of offset length
         $file = new-object System.IO.FileStream $args[$i], Create, ReadWrite
@@ -318,7 +318,7 @@ function create_poolset {
 
         $cmd = $args[$i]
         # need to strip out a drive letter if included because we use :
-        # as a delimeter in the argument
+        # as a delimiter in the argument
 
         $driveLetter = ""
         if ($cmd -match ":([a-zA-Z]):\\") {

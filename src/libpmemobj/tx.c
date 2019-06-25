@@ -1187,7 +1187,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 			 * Existing ranges:
 			 *	+++---- (overlap on left)
 			 * or	---+--- (found snapshot is inside)
-			 * or	---+-++ (inside, and adjacent on the rigt)
+			 * or	---+-++ (inside, and adjacent on the right)
 			 * or	+++++-- (desired snapshot is inside)
 			 *
 			 */

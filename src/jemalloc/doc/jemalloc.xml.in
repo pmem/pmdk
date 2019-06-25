@@ -1177,7 +1177,7 @@ malloc_conf = "xmalloc:true";]]></programlisting>
           <literal>r-</literal>
           [<option>--enable-stats</option>]
         </term>
-        <listitem><para>Get a pointer to the the value that is returned by the
+        <listitem><para>Get a pointer to the value that is returned by the
         <link
         linkend="thread.allocated"><mallctl>thread.allocated</mallctl></link>
         mallctl.  This is useful for avoiding the overhead of repeated
@@ -1204,7 +1204,7 @@ malloc_conf = "xmalloc:true";]]></programlisting>
           <literal>r-</literal>
           [<option>--enable-stats</option>]
         </term>
-        <listitem><para>Get a pointer to the the value that is returned by the
+        <listitem><para>Get a pointer to the value that is returned by the
         <link
         linkend="thread.deallocated"><mallctl>thread.deallocated</mallctl></link>
         mallctl.  This is useful for avoiding the overhead of repeated

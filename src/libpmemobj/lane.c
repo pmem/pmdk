@@ -327,7 +327,7 @@ error_lanes_malloc:
 }
 
 /*
- * lane_init_data -- initalizes ulogs for all the lanes
+ * lane_init_data -- initializes ulogs for all the lanes
  */
 void
 lane_init_data(PMEMobjpool *pop)

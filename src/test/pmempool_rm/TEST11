@@ -92,7 +92,7 @@ check_no_files\
 	$DIR/rep.part2\
 	$DIR/pool.set
 
-# Test if behavior is proper when we type inproper input
+# Test if behavior is proper when we type improper input
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm -il\
 	$DIR/pool.log\
 	$DIR/pool.blk\

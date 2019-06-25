@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -309,8 +309,8 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
 	 * properly uses entry creation functions, this will zero-out the
 	 * potential leftovers of the previous log. Since all we really need
 	 * to zero is the offset, sizeof(struct redo_log_entry_base) is enough.
-	 * If the nbytes is aligned, an entire cacheline needs to be addtionally
-	 * zeroed.
+	 * If the nbytes is aligned, an entire cacheline needs to be
+	 * additionally zeroed.
 	 * But the checksum must be calculated based solely on actual data.
 	 */
 	size_t checksum_nbytes = MIN(ulog_base_nbytes, nbytes);

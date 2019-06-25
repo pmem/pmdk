@@ -37,7 +37,7 @@
  * usage: pmreorder_flushes g|c file
  *
  * g - write data in a specific manner - some flushes
- * of the stores are made in diffrent barriers,
+ * of the stores are made in different barriers,
  * c - check data consistency - stores should be applied only
  * after flush - no matter in which barrier the flush will happen
  *
