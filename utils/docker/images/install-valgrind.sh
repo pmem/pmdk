@@ -39,7 +39,7 @@ set -e
 git clone https://github.com/pmem/valgrind.git
 cd valgrind
 # valgrind v3.15 with pmemcheck
-git checkout d2b085d0ef78a42780c21929edebb1a392279621
+git checkout c27a8a2f973414934e63f1e94bc84c0a580e3840
 ./autogen.sh
 ./configure
 make
