@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!../env.py
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,24 +31,31 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_tx_add_range_direct/TEST0 -- unit test for
-# pmemobj_tx_add_range_direct
-#
+"""
+unit tests for pmemobj_tx_add_range_direct
+and pmemobj_tx_xadd_range_direct
+"""
 
-# standard unit test setup
-. ../unittest/unittest.sh
+from os import path
 
-require_test_type medium
+import testframework as t
 
-# Pmemcheck is disabled here. The next test case (TEST1) will run the same test
-# under pmemcheck
-configure_valgrind pmemcheck force-disable
 
-setup
+class TEST0(t.BaseTest):
+    test_type = t.Medium
+    memcheck = t.DISABLE
 
-expect_normal_exit ./obj_tx_add_range_direct$EXESUFFIX $DIR/testfile0
+    def run(self, ctx):
+        testfile = path.join(ctx.testdir, 'testfile0')
+        ctx.exec('obj_tx_add_range_direct', testfile)
 
-check
 
-pass
+class TEST1(t.BaseTest):
+    test_type = t.Medium
+    pmemcheck = t.ENABLE
+
+    def run(self, ctx):
+        self.valgrind.add_opt('--mult-stores=no')
+
+        testfile = path.join(ctx.testdir, 'testfile1')
+        ctx.exec('obj_tx_add_range_direct', testfile)
