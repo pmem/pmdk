@@ -42,6 +42,6 @@ require_test_type medium
 
 setup
 
-expect_normal_exit $ENV:EXE_DIR\obj_tx_add_range$Env:EXESUFFIX $DIR\testfile1 0
+expect_normal_exit $ENV:EXE_DIR\obj_tx_add_range$Env:EXESUFFIX $DIR\testfile0 0
 
 pass

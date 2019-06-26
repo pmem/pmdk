@@ -45,7 +45,7 @@ require_fs_type pmem
 
 setup
 
-expect_normal_exit $ENV:EXE_DIR\obj_tx_add_range_direct$Env:EXESUFFIX $DIR\testfile1
+expect_normal_exit $ENV:EXE_DIR\obj_tx_add_range_direct$Env:EXESUFFIX $DIR\testfile0
 
 check
 

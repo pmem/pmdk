@@ -46,7 +46,7 @@ class TEST0(t.BaseTest):
     memcheck = t.DISABLE
 
     def run(self, ctx):
-        testfile = path.join(ctx.testdir, 'testfile1')
+        testfile = path.join(ctx.testdir, 'testfile0')
         ctx.exec('obj_tx_add_range_direct', testfile)
 
 

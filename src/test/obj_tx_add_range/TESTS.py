@@ -43,7 +43,7 @@ class TEST0(t.BaseTest):
     memcheck = t.DISABLE
 
     def run(self, ctx):
-        testfile = path.join(ctx.testdir, 'testfile1')
+        testfile = path.join(ctx.testdir, 'testfile0')
         ctx.exec('obj_tx_add_range', testfile, '0')
 
 
@@ -64,5 +64,5 @@ class TEST2(t.BaseTest):
     fs = t.Pmem
 
     def run(self, ctx):
-        testfile = path.join(ctx.testdir, 'testfile1')
+        testfile = path.join(ctx.testdir, 'testfile2')
         ctx.exec('obj_tx_add_range', testfile, '1')
