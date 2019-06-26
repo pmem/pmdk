@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,6 @@ require_test_type medium
 
 setup
 
-expect_normal_exit $ENV:EXE_DIR\obj_tx_add_range$Env:EXESUFFIX $DIR\testfile1 0
+expect_normal_exit $ENV:EXE_DIR\obj_tx_add_range$Env:EXESUFFIX $DIR\testfile0 0
 
 pass
