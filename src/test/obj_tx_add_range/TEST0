@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,6 +46,6 @@ configure_valgrind pmemcheck force-disable
 
 setup
 
-expect_normal_exit ./obj_tx_add_range$EXESUFFIX $DIR/testfile1 0
+expect_normal_exit ./obj_tx_add_range$EXESUFFIX $DIR/testfile0 0
 
 pass
