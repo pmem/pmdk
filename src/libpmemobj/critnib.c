@@ -204,7 +204,7 @@ path_mask(sh_t shift)
 /*
  * internal: slice_index -- return index of child at the given nib
  */
-static inline int
+static inline unsigned
 slice_index(uint64_t key, sh_t shift)
 {
 	return (key >> shift) & NIB;
@@ -628,7 +628,7 @@ find_le(struct critnib_node *__restrict n, uint64_t key)
 		return NULL;
 	}
 
-	int nib = slice_index(key, n->shift);
+	unsigned nib = slice_index(key, n->shift);
 	/* recursive call: follow the path */
 	{
 		struct critnib_node *m;
@@ -643,9 +643,9 @@ find_le(struct critnib_node *__restrict n, uint64_t key)
 	 * thus need to search every subtree to our left in this node.  No
 	 * need to dive into any but the first non-null, though.
 	 */
-	for (nib--; nib >= 0; nib--) {
+	for (; nib > 0; nib--) {
 		struct critnib_node *m;
-		load(&n->child[nib], &m);
+		load(&n->child[nib - 1], &m);
 		if (m) {
 			n = m;
 			if (is_leaf(n))
