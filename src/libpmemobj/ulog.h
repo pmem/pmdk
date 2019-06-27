@@ -136,7 +136,7 @@ void ulog_store(struct ulog *dest,
 
 void ulog_clobber(struct ulog *dest, struct ulog_next *next,
 	const struct pmem_ops *p_ops);
-void ulog_clobber_data(struct ulog *dest,
+int ulog_clobber_data(struct ulog *dest,
 	size_t nbytes, size_t ulog_base_nbytes,
 	struct ulog_next *next, ulog_free_fn ulog_free,
 	const struct pmem_ops *p_ops, unsigned flags);

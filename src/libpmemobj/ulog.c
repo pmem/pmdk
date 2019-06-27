@@ -592,7 +592,7 @@ ulog_clobber(struct ulog *dest, struct ulog_next *next,
 /*
  * ulog_clobber_data -- zeroes out 'nbytes' of data in the logs
  */
-void
+int
 ulog_clobber_data(struct ulog *ulog_first,
 	size_t nbytes, size_t ulog_base_nbytes,
 	struct ulog_next *next, ulog_free_fn ulog_free,
@@ -614,7 +614,8 @@ ulog_clobber_data(struct ulog *ulog_first,
 	 * but rather increment the generation number to be consistent in the
 	 * first two ulogs.
 	 */
-	struct ulog *ulog_second = ulog_by_offset(ulog_first->next, p_ops);
+	size_t second_offset = VEC_SIZE(next) == 0 ? 0 : *VEC_GET(next, 0);
+	struct ulog *ulog_second = ulog_by_offset(second_offset, p_ops);
 	if (ulog_second && !(flags & ULOG_FREE_ALL)) {
 		VALGRIND_ADD_TO_TX(&ulog_second->gen_num, gns);
 		ulog_second->gen_num++;
@@ -634,7 +635,7 @@ ulog_clobber_data(struct ulog *ulog_first,
 	struct ulog *u = flags & ULOG_FREE_ALL ?
 		ulog_first : ulog_second;
 	if (u == NULL)
-		return;
+		return 0;
 
 	VEC(, uint64_t *) logs_past_first;
 	VEC_INIT(&logs_past_first);
@@ -656,6 +657,7 @@ ulog_clobber_data(struct ulog *ulog_first,
 
 out:
 	VEC_DELETE(&logs_past_first);
+	return 1;
 }
 
 /*

@@ -582,9 +582,11 @@ operation_finish(struct operation_context *ctx, unsigned flags)
 	if (ctx->type == LOG_TYPE_REDO && ctx->pshadow_ops.offset != 0) {
 		operation_process(ctx);
 	} else if (ctx->type == LOG_TYPE_UNDO && ctx->total_logged != 0) {
-		ulog_clobber_data(ctx->ulog,
+		if (!ulog_clobber_data(ctx->ulog,
 			ctx->total_logged, ctx->ulog_base_nbytes,
-			&ctx->next, ctx->ulog_free, ctx->p_ops, flags);
+			&ctx->next, ctx->ulog_free, ctx->p_ops, flags))
+			return;
+
 		/* clobbering might have shrunk the ulog */
 		ctx->ulog_capacity = ulog_capacity(ctx->ulog,
 			ctx->ulog_base_nbytes, ctx->p_ops);
