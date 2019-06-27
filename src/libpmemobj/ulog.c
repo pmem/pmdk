@@ -569,6 +569,24 @@ ulog_process_entry(struct ulog_entry_base *e, void *arg,
 
 	return 0;
 }
+/*
+ * ulog_inc_gen_num -- (internal) increments gen num in the ulog
+ */
+static void
+ulog_inc_gen_num(struct ulog *ulog, const struct pmem_ops *p_ops)
+{
+	size_t gns = sizeof(ulog->gen_num);
+
+	VALGRIND_ADD_TO_TX(&ulog->gen_num, gns);
+	ulog->gen_num++;
+
+	if (p_ops)
+		pmemops_persist(p_ops, &ulog->gen_num, gns);
+	else
+		VALGRIND_SET_CLEAN(&ulog->gen_num, gns);
+
+	VALGRIND_REMOVE_FROM_TX(&ulog->gen_num, gns);
+}
 
 /*
  * ulog_clobber -- zeroes the metadata of the ulog
@@ -592,7 +610,7 @@ ulog_clobber(struct ulog *dest, struct ulog_next *next,
 /*
  * ulog_clobber_data -- zeroes out 'nbytes' of data in the logs
  */
-void
+int
 ulog_clobber_data(struct ulog *ulog_first,
 	size_t nbytes, size_t ulog_base_nbytes,
 	struct ulog_next *next, ulog_free_fn ulog_free,
@@ -601,26 +619,18 @@ ulog_clobber_data(struct ulog *ulog_first,
 	ASSERTne(ulog_first, NULL);
 
 	/* In case of abort we need to increment counter in the first ulog. */
-	size_t gns = sizeof(ulog_first->gen_num);
-	if (flags & ULOG_INC_GEN_NUM) {
-		VALGRIND_ADD_TO_TX(&ulog_first->gen_num, gns);
-		ulog_first->gen_num++;
-		VALGRIND_SET_CLEAN(&ulog_first->gen_num, gns);
-		VALGRIND_REMOVE_FROM_TX(&ulog_first->gen_num, gns);
-	}
+	if (flags & ULOG_INC_GEN_NUM)
+		ulog_inc_gen_num(ulog_first, p_ops);
 
 	/*
 	 * In the case of abort or commit, we are not going to free all ulogs,
 	 * but rather increment the generation number to be consistent in the
 	 * first two ulogs.
 	 */
-	struct ulog *ulog_second = ulog_by_offset(ulog_first->next, p_ops);
-	if (ulog_second && !(flags & ULOG_FREE_ALL)) {
-		VALGRIND_ADD_TO_TX(&ulog_second->gen_num, gns);
-		ulog_second->gen_num++;
-		VALGRIND_SET_CLEAN(&ulog_second->gen_num, gns);
-		VALGRIND_REMOVE_FROM_TX(&ulog_second->gen_num, gns);
-	}
+	size_t second_offset = VEC_SIZE(next) == 0 ? 0 : *VEC_GET(next, 0);
+	struct ulog *ulog_second = ulog_by_offset(second_offset, p_ops);
+	if (ulog_second && !(flags & ULOG_FREE_ALL))
+		ulog_inc_gen_num(ulog_second, NULL);
 
 	/*
 	 * To make sure that transaction logs do not occupy too much of space,
@@ -634,7 +644,7 @@ ulog_clobber_data(struct ulog *ulog_first,
 	struct ulog *u = flags & ULOG_FREE_ALL ?
 		ulog_first : ulog_second;
 	if (u == NULL)
-		return;
+		return 0;
 
 	VEC(, uint64_t *) logs_past_first;
 	VEC_INIT(&logs_past_first);
@@ -656,6 +666,7 @@ ulog_clobber_data(struct ulog *ulog_first,
 
 out:
 	VEC_DELETE(&logs_past_first);
+	return 1;
 }
 
 /*
