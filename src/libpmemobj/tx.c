@@ -160,9 +160,10 @@ obj_tx_abort(int errnum, int user);
  * error code
  */
 static inline int
-obj_tx_abort_err(int errnum)
+obj_tx_abort_err(int errnum, uint64_t flags)
 {
-	obj_tx_abort(errnum, 0);
+	if ((flags & POBJ_FLAG_TX_NO_ABORT) == 0)
+		obj_tx_abort(errnum, 0);
 	return errnum;
 }
 
@@ -171,9 +172,10 @@ obj_tx_abort_err(int errnum)
  * null PMEMoid
  */
 static inline PMEMoid
-obj_tx_abort_null(int errnum)
+obj_tx_abort_null(int errnum, uint64_t flags)
 {
-	obj_tx_abort(errnum, 0);
+	if ((flags & POBJ_FLAG_TX_NO_ABORT) == 0)
+		obj_tx_abort(errnum, 0);
 	return OID_NULL;
 }
 
@@ -585,7 +587,6 @@ tx_lane_ranges_insert_def(PMEMobjpool *pop, struct tx *tx,
 	int ret = ravl_emplace_copy(tx->ranges, rdef);
 	if (ret && errno == EEXIST)
 		FATAL("invalid state of ranges tree");
-
 	return ret;
 }
 
@@ -600,14 +601,14 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
-		return obj_tx_abort_null(ENOMEM);
+		return obj_tx_abort_null(ENOMEM, args.flags);
 	}
 
 	PMEMobjpool *pop = tx->pop;
 
 	struct pobj_action *action = tx_action_add(tx);
 	if (action == NULL)
-		return obj_tx_abort_null(ENOMEM);
+		return obj_tx_abort_null(ENOMEM, args.flags);
 
 	if (palloc_reserve(&pop->heap, size, constructor, &args, type_num, 0,
 		CLASS_ID_FROM_FLAG(args.flags),
@@ -629,7 +630,7 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 err_oom:
 	tx_action_remove(tx);
 	ERR("out of memory");
-	return obj_tx_abort_null(ENOMEM);
+	return obj_tx_abort_null(ENOMEM, args.flags);
 }
 
 /*
@@ -645,7 +646,7 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 
 	if (size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("requested size too large");
-		return obj_tx_abort_null(ENOMEM);
+		return obj_tx_abort_null(ENOMEM, flags);
 	}
 
 	/* if oid is NULL just alloc */
@@ -731,7 +732,7 @@ tx_construct_user_buffer(struct tx *tx, void *addr, size_t size,
 	return 0;
 
 err:
-	return obj_tx_abort_err(EINVAL);
+	return obj_tx_abort_err(EINVAL, 0);
 }
 
 /*
@@ -749,7 +750,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		ASSERTne(tx->lane, NULL);
 		if (tx->pop != pop) {
 			ERR("nested transaction for different pool");
-			return obj_tx_abort_err(EINVAL);
+			return obj_tx_abort_err(EINVAL, 0);
 		}
 
 		VALGRIND_START_TX;
@@ -838,16 +839,35 @@ err_abort:
 }
 
 /*
+ * pmemobj_tx_xlock -- get lane from pool and add lock to transaction,
+ * with no_abort option
+ */
+int
+pmemobj_tx_xlock(enum pobj_tx_param type, void *lockp, uint64_t flags)
+{
+	if (flags & ~POBJ_XLOCK_VALID_FLAGS) {
+		ERR("unknown flags 0x%" PRIx64,
+				flags & ~POBJ_XLOCK_VALID_FLAGS);
+		return obj_tx_abort_err(EINVAL, flags);
+	}
+
+	struct tx *tx = get_tx();
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	int ret = add_to_tx_and_lock(tx, type, lockp);
+	if (ret)
+		return obj_tx_abort_err(ret, flags);
+	return 0;
+}
+
+/*
  * pmemobj_tx_lock -- get lane from pool and add lock to transaction.
  */
 int
 pmemobj_tx_lock(enum pobj_tx_param type, void *lockp)
 {
-	struct tx *tx = get_tx();
-	ASSERT_IN_TX(tx);
-	ASSERT_TX_STAGE_WORK(tx);
-
-	return add_to_tx_and_lock(tx, type, lockp);
+	return pmemobj_tx_xlock(type, lockp, POBJ_XLOCK_NO_ABORT);
 }
 
 /*
@@ -1196,14 +1216,14 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 
 	if (args->size > PMEMOBJ_MAX_ALLOC_SIZE) {
 		ERR("snapshot size too large");
-		return obj_tx_abort_err(EINVAL);
+		return obj_tx_abort_err(EINVAL, args->flags);
 	}
 
 	if (args->offset < tx->pop->heap_offset ||
 		(args->offset + args->size) >
 		(tx->pop->heap_offset + tx->pop->heap_size)) {
 		ERR("object outside of heap");
-		return obj_tx_abort_err(EINVAL);
+		return obj_tx_abort_err(EINVAL, args->flags);
 	}
 
 	int ret = 0;
@@ -1343,7 +1363,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 
 	if (ret != 0) {
 		ERR("out of memory");
-		return obj_tx_abort_err(ENOMEM);
+		return obj_tx_abort_err(ENOMEM, args->flags);
 	}
 
 	return 0;
@@ -1368,7 +1388,7 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 
 	if (!OBJ_PTR_FROM_POOL(pop, ptr)) {
 		ERR("object outside of pool");
-		int ret = obj_tx_abort_err(EINVAL);
+		int ret = obj_tx_abort_err(EINVAL, 0);
 		PMEMOBJ_API_END();
 		return ret;
 	}
@@ -1400,16 +1420,18 @@ pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 
 	PMEMOBJ_API_START();
 	int ret;
-	if (!OBJ_PTR_FROM_POOL(tx->pop, ptr)) {
-		ERR("object outside of pool");
-		ret = obj_tx_abort_err(EINVAL);
+
+	if (flags & ~POBJ_XADD_VALID_FLAGS) {
+		ERR("unknown flags 0x%" PRIx64, flags
+			& ~POBJ_XADD_VALID_FLAGS);
+		ret = obj_tx_abort_err(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return ret;
 	}
 
-	if (flags & ~POBJ_XADD_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64, flags & ~POBJ_XADD_VALID_FLAGS);
-		ret = obj_tx_abort_err(EINVAL);
+	if (!OBJ_PTR_FROM_POOL(tx->pop, ptr)) {
+		ERR("object outside of pool");
+		ret = obj_tx_abort_err(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return ret;
 	}
@@ -1442,7 +1464,7 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 
 	if (oid.pool_uuid_lo != tx->pop->uuid_lo) {
 		ERR("invalid pool uuid");
-		int ret = obj_tx_abort_err(EINVAL);
+		int ret = obj_tx_abort_err(EINVAL, 0);
 		PMEMOBJ_API_END();
 		return ret;
 	}
@@ -1475,20 +1497,22 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 	ASSERT_TX_STAGE_WORK(tx);
 
 	int ret;
+
+	if (flags & ~POBJ_XADD_VALID_FLAGS) {
+		ERR("unknown flags 0x%" PRIx64, flags
+			& ~POBJ_XADD_VALID_FLAGS);
+		ret = obj_tx_abort_err(EINVAL, flags);
+		PMEMOBJ_API_END();
+		return ret;
+	}
+
 	if (oid.pool_uuid_lo != tx->pop->uuid_lo) {
 		ERR("invalid pool uuid");
-		ret = obj_tx_abort_err(EINVAL);
+		ret = obj_tx_abort_err(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return ret;
 	}
 	ASSERT(OBJ_OID_IS_VALID(tx->pop, oid));
-
-	if (flags & ~POBJ_XADD_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64, flags & ~POBJ_XADD_VALID_FLAGS);
-		ret = obj_tx_abort_err(EINVAL);
-		PMEMOBJ_API_END();
-		return ret;
-	}
 
 	struct tx_range_def args = {
 		.offset = oid.off + hoff,
@@ -1518,7 +1542,7 @@ pmemobj_tx_alloc(size_t size, uint64_t type_num)
 	PMEMoid oid;
 	if (size == 0) {
 		ERR("allocation with size 0");
-		oid = obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL, 0);
 		PMEMOBJ_API_END();
 		return oid;
 	}
@@ -1546,7 +1570,7 @@ pmemobj_tx_zalloc(size_t size, uint64_t type_num)
 	PMEMoid oid;
 	if (size == 0) {
 		ERR("allocation with size 0");
-		oid = obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL, 0);
 		PMEMOBJ_API_END();
 		return oid;
 	}
@@ -1574,15 +1598,15 @@ pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags)
 	PMEMoid oid;
 	if (size == 0) {
 		ERR("allocation with size 0");
-		oid = obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return oid;
 	}
 
 	if (flags & ~POBJ_TX_XALLOC_VALID_FLAGS) {
-		ERR("unknown flags 0x%" PRIx64,
-				flags & ~POBJ_TX_XALLOC_VALID_FLAGS);
-		oid = obj_tx_abort_null(EINVAL);
+		ERR("unknown flags 0x%" PRIx64, flags
+			& ~(POBJ_TX_XALLOC_VALID_FLAGS));
+		oid = obj_tx_abort_null(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return oid;
 	}
@@ -1650,7 +1674,7 @@ pmemobj_tx_strdup(const char *s, uint64_t type_num)
 	PMEMoid oid;
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
-		oid = obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL, 0);
 		PMEMOBJ_API_END();
 		return oid;
 	}
@@ -1660,7 +1684,7 @@ pmemobj_tx_strdup(const char *s, uint64_t type_num)
 	if (len == 0) {
 		oid = tx_alloc_common(tx, sizeof(char), (type_num_t)type_num,
 				constructor_tx_alloc,
-				ALLOC_ARGS(POBJ_FLAG_ZERO));
+			ALLOC_ARGS(POBJ_FLAG_ZERO));
 		PMEMOBJ_API_END();
 		return oid;
 	}
@@ -1691,7 +1715,7 @@ pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num)
 	PMEMoid oid;
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
-		oid = obj_tx_abort_null(EINVAL);
+		oid = obj_tx_abort_null(EINVAL, 0);
 		PMEMOBJ_API_END();
 		return oid;
 	}
@@ -1716,12 +1740,19 @@ pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num)
 }
 
 /*
- * pmemobj_tx_free -- frees an existing object
+ * pmemobj_tx_xfree -- frees an existing object, with no_abort option
  */
 int
-pmemobj_tx_free(PMEMoid oid)
+pmemobj_tx_xfree(PMEMoid oid, uint64_t flags)
 {
 	LOG(3, NULL);
+
+	if (flags & ~POBJ_XFREE_VALID_FLAGS) {
+		ERR("unknown flags 0x%" PRIx64,
+				flags & ~POBJ_XFREE_VALID_FLAGS);
+		return obj_tx_abort_err(EINVAL, flags);
+	}
+
 	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
@@ -1730,13 +1761,13 @@ pmemobj_tx_free(PMEMoid oid)
 	if (OBJ_OID_IS_NULL(oid))
 		return 0;
 
-
 	PMEMobjpool *pop = tx->pop;
 
 	if (pop->uuid_lo != oid.pool_uuid_lo) {
 		ERR("invalid pool uuid");
-		return obj_tx_abort_err(EINVAL);
+		return obj_tx_abort_err(EINVAL, flags);
 	}
+
 	ASSERT(OBJ_OID_IS_VALID(pop, oid));
 
 	PMEMOBJ_API_START();
@@ -1770,7 +1801,7 @@ pmemobj_tx_free(PMEMoid oid)
 
 	action = tx_action_add(tx);
 	if (action == NULL) {
-		int ret = obj_tx_abort_err(errno);
+		int ret = obj_tx_abort_err(errno, flags);
 		PMEMOBJ_API_END();
 		return ret;
 	}
@@ -1782,17 +1813,33 @@ pmemobj_tx_free(PMEMoid oid)
 }
 
 /*
- * pmemobj_tx_publish -- publishes actions inside of a transaction
+ * pmemobj_tx_free -- frees an existing object
  */
 int
-pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
+pmemobj_tx_free(PMEMoid oid)
 {
+	return pmemobj_tx_xfree(oid, 0);
+}
+
+/*
+ * pmemobj_tx_xpublish -- publishes actions inside of a transaction,
+ * with no_abort option
+ */
+int
+pmemobj_tx_xpublish(struct pobj_action *actv, size_t actvcnt, uint64_t flags)
+{
+	if (flags & ~POBJ_XPUBLISH_VALID_FLAGS) {
+		ERR("unknown flags 0x%" PRIx64,
+				flags & ~POBJ_XPUBLISH_VALID_FLAGS);
+		return obj_tx_abort_err(EINVAL, flags);
+	}
+
 	struct tx *tx = get_tx();
 	ASSERT_TX_STAGE_WORK(tx);
 	PMEMOBJ_API_START();
 
 	if (tx_action_reserve(tx, actvcnt) != 0) {
-		int ret = obj_tx_abort_err(ENOMEM);
+		int ret = obj_tx_abort_err(ENOMEM, flags);
 		PMEMOBJ_API_END();
 		return ret;
 	}
@@ -1805,6 +1852,14 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 	return 0;
 }
 
+/*
+ * pmemobj_tx_publish -- publishes actions inside of a transaction
+ */
+int
+pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
+{
+	return pmemobj_tx_xpublish(actv, actvcnt, 0);
+}
 /*
  * pmemobj_tx_log_append_buffer -- append user allocated buffer to the ulog
  */
