@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -171,11 +171,20 @@ pmemobj_tx_xadd_range_direct(&(p)->field, sizeof((p)->field), flags)
 #define TX_STRDUP(s, type_num)\
 pmemobj_tx_strdup(s, type_num)
 
+#define TX_XSTRDUP(s, type_num, flags)\
+pmemobj_tx_xstrdup(s, type_num, flags)
+
 #define TX_WCSDUP(s, type_num)\
 pmemobj_tx_wcsdup(s, type_num)
 
+#define TX_XWCSDUP(s, type_num, flags)\
+pmemobj_tx_xwcsdup(s, type_num, flags)
+
 #define TX_FREE(o)\
 pmemobj_tx_free((o).oid)
+
+#define TX_XFREE(o, flags)\
+pmemobj_tx_xfree((o).oid, flags)
 
 #define TX_SET(o, field, value) (\
 	TX_ADD_FIELD(o, field),\
