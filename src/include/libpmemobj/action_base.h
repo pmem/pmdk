@@ -89,6 +89,8 @@ void pmemobj_defer_free(PMEMobjpool *pop, PMEMoid oid, struct pobj_action *act);
 int pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
 	size_t actvcnt);
 int pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt);
+int pmemobj_tx_xpublish(struct pobj_action *actv, size_t actvcnt,
+		uint64_t flags);
 
 void pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt);
 
