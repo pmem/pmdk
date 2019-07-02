@@ -1556,9 +1556,8 @@ obj_check_basic_remote(PMEMobjpool *pop, size_t mapped_size)
 
 	/* pop->heap_size can still be 0 at this point */
 	size_t heap_size = mapped_size - pop->heap_offset;
-	errno = palloc_heap_check_remote((char *)pop + pop->heap_offset,
-		heap_size, &pop->p_ops.remote);
-	if (errno != 0) {
+	if (palloc_heap_check_remote((char *)pop + pop->heap_offset,
+			heap_size, &pop->p_ops.remote)) {
 		LOG(2, "!heap_check_remote");
 		consistent = 0;
 	}
