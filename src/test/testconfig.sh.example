@@ -17,7 +17,7 @@
 # DIRSUFFIX="$LONGDIR/$LONGDIR/$LONGDIR/$LONGDIR/$LONGDIR"
 #
 # For tests that require true persistent memory, set the path to a directory
-# on a PMEM-aware file system here.  Comment this line out if there's no
+# on a PMEM-aware file system here. Uncomment this line if there's an
 # actual persistent memory available on this system.
 # Note that PMEM_FS_DIR is intended mostly to test codepaths where
 # pmem_persist() is used for flushing data to persistence.  For now, there is
@@ -35,7 +35,7 @@
 # to verify something works on traditional page-cache based memory-mapped
 # files) set the path to a directory on a normal file system here.
 #
-NON_PMEM_FS_DIR=/tmp
+#NON_PMEM_FS_DIR=/tmp
 
 #
 # If you don't have real PMEM or PMEM emulation set up and/or the filesystem
