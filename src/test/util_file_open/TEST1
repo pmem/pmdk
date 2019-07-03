@@ -57,7 +57,7 @@ expect_normal_exit ./util_file_open$EXESUFFIX $MIN_POOL \
     $DIR/testlink1\
     $DIR/testlink2\
     $DIR/testfile1\
-    $DIR/testfile2\
+    $DIR/testfile2 2> /dev/null
 
 check
 

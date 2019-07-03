@@ -3086,6 +3086,9 @@ function init_rpmem_on_node() {
 			CMD="$CMD --persist-apm"
 		fi
 
+		# XXX: temporary workaround, remove in pmem/pmdk#3615
+		CMD="$CMD 2>/dev/null"
+
 		if [ "$RPMEM_CMD" ]; then
 			RPMEM_CMD="$RPMEM_CMD$SEPARATOR$CMD"
 		else

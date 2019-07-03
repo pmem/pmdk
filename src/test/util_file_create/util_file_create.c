@@ -38,11 +38,21 @@
 
 #include "unittest.h"
 #include "file.h"
+#include "pmemcommon.h"
+
+#define LOG_PREFIX "ut"
+#define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
+#define LOG_FILE_VAR "TEST_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
 
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "util_file_create");
+
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+		MAJOR_VERSION, MINOR_VERSION);
 
 	if (argc < 3)
 		UT_FATAL("usage: %s minlen len:path...", argv[0]);

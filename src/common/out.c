@@ -59,6 +59,9 @@ static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
 static unsigned Log_alignment;
+static int Initialized;
+static os_mutex_t Out_lock;
+static os_once_t Out_lock_once = OS_ONCE_INIT;
 
 #ifndef NO_LIBPTHREAD
 #define MAXPRINT 8192	/* maximum expected log line */
@@ -162,6 +165,16 @@ Last_errormsg_get(void)
 #endif /* NO_LIBPTHREAD */
 
 /*
+ * out_lock_init - initialize lock which is used when out module
+ * is not initialized.
+ */
+static void
+out_lock_init(void)
+{
+	os_mutex_init(&Out_lock);
+}
+
+/*
  * out_init -- initialize the log
  *
  * This is called from the library initialization code.
@@ -201,7 +214,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 			int ret = snprintf(log_file_pid, PATH_MAX, "%s%d",
 				log_file, getpid());
 			if (ret < 0 || ret >= PATH_MAX) {
-				ERR("snprintf: %d", ret);
+				fprintf(stderr, "snprintf: %d\n", ret);
 				abort();
 			}
 			log_file = log_file_pid;
@@ -230,6 +243,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	else
 		setlinebuf(Out_fp);
 
+	Initialized = 1;
 #ifdef DEBUG
 	static char namepath[PATH_MAX];
 	LOG(1, "pid %d: program: %s", getpid(),
@@ -286,6 +300,9 @@ out_init(const char *log_prefix, const char *log_level_var,
 void
 out_fini(void)
 {
+	/* we don't know if this lock was used, so initialize it */
+	os_once(&Out_lock_once, &out_lock_init);
+	os_mutex_destroy(&Out_lock);
 	if (Out_fp != NULL && Out_fp != stderr) {
 		fclose(Out_fp);
 		Out_fp = stderr;
@@ -376,6 +393,9 @@ out_common(const char *file, int line, const char *func, int level,
 	const char *sep = "";
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
+	if (!Initialized)
+		goto end;
+
 	if (file) {
 		char *f = strrchr(file, OS_DIR_SEPARATOR);
 		if (f)
@@ -428,8 +448,17 @@ out_error(const char *file, int line, const char *func,
 	int ret;
 	const char *sep = "";
 	char errstr[UTIL_MAX_ERR_MSG] = "";
+	char *errormsg;
+	static char errorbuf[sizeof(struct errormsg)];
+	int initialized_cached = Initialized;
 
-	char *errormsg = (char *)out_get_errormsg();
+	if (initialized_cached) {
+		errormsg = (char *)out_get_errormsg();
+	} else {
+		os_once(&Out_lock_once, &out_lock_init);
+		os_mutex_lock(&Out_lock);
+		errormsg = errorbuf;
+	}
 
 	if (fmt) {
 		if (*fmt == '!') {
@@ -448,6 +477,12 @@ out_error(const char *file, int line, const char *func,
 	}
 
 #ifdef DEBUG
+	if (!Initialized) {
+		/* XXX: temporally workaround, remove ifdef in pmem/pmdk#3615 */
+		fprintf(stderr, "%s\n", errormsg);
+		goto end;
+	}
+
 	if (Log_level >= 1) {
 		char buf[MAXPRINT];
 		cc = 0;
@@ -460,7 +495,8 @@ out_error(const char *file, int line, const char *func,
 					"<%s>: <1> [%s:%d %s] ",
 					Log_prefix, file, line, func);
 			if (ret < 0) {
-				Print("out_snprintf failed");
+				fprintf(stderr,
+					"out_snprintf failed: %d\n", ret);
 				goto end;
 			}
 			cc += (unsigned)ret;
@@ -478,6 +514,8 @@ out_error(const char *file, int line, const char *func,
 #endif
 
 end:
+	if (!initialized_cached)
+		os_mutex_unlock(&Out_lock);
 	errno = oerrno;
 }
 

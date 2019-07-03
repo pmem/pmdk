@@ -52,7 +52,7 @@ mkdir $DIR\testdir1 > $null
 & icacls $DIR/testdir1 /deny ${Env:USERNAME}:W >$null
 
 expect_normal_exit $Env:EXE_DIR\util_file_create$Env:EXESUFFIX 0x4000 `
-    0x4000:$DIR\testdir1\testfile
+    0x4000:$DIR\testdir1\testfile 2> $null
 
 # grant full permissions so test code can cleanup
 & icacls $DIR/testdir1 /grant ${Env:USERNAME}:F >$null

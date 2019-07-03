@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
 #include "unittest.h"
 #include "util.h"
 #include "os.h"
+#include "pmemcommon.h"
 
 #define MAX_THREAD_NUM 200
 
@@ -50,6 +51,13 @@
 #define MAX_OPENS 5
 
 #define FATAL_USAGE() UT_FATAL("usage: obj_sync [mrc] <num_threads> <runs>\n")
+
+#define LOG_PREFIX "ut"
+#define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
+#define LOG_FILE_VAR "TEST_LOG_FILE"
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
+
 
 /* posix thread worker typedef */
 typedef void *(*worker)(void *);
@@ -319,7 +327,8 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_sync");
-	util_init();
+	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
+		MAJOR_VERSION, MINOR_VERSION);
 
 	if (argc < 4)
 		FATAL_USAGE();

@@ -96,7 +96,7 @@ WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
 # Run a container with
-#  - environme0nt variables set (--env)
+#  - environment variables set (--env)
 #  - host directory containing PMDK source mounted (-v)
 #  - working directory set (-w)
 docker run --rm --privileged=true --name=$containerName -ti \
