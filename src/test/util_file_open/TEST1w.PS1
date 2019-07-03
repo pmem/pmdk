@@ -57,7 +57,7 @@ create_holey_file 32K $DIR\testfile2
 
 expect_normal_exit $Env:EXE_DIR\util_file_open$Env:EXESUFFIX 0x4000 `
     $DIR\testfile1 `
-    $DIR\testfile2
+    $DIR\testfile2 2>$null
 
 # grant full permissions so test code can cleanup
 & icacls $DIR\testfile1 /grant ${Env:USERNAME}:F >$null

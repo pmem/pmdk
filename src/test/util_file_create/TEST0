@@ -61,7 +61,7 @@ expect_normal_exit ./util_file_create$EXESUFFIX $MIN_POOL \
     $MIN_POOL:$DIR/testlink4\
     $MIN_POOL:$DIR/testfile1\
     0x1000:$DIR/testfile2\
-    $MIN_POOL:$DIR/testfile3
+    $MIN_POOL:$DIR/testfile3 2> /dev/null
 
 check
 

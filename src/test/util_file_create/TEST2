@@ -47,7 +47,7 @@ require_native_fallocate $DIR/testfile1
 MIN_POOL=0x4000
 
 expect_normal_exit ./util_file_create$EXESUFFIX $MIN_POOL \
-    0x7FFFFFFFFFFFFFFF:$DIR/testfile
+    0x7FFFFFFFFFFFFFFF:$DIR/testfile 2> /dev/null
 
 check
 
