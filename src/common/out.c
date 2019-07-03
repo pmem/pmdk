@@ -59,6 +59,7 @@ static const char *Log_prefix;
 static int Log_level;
 static FILE *Out_fp;
 static unsigned Log_alignment;
+static int Initialized;
 
 #ifndef NO_LIBPTHREAD
 #define MAXPRINT 8192	/* maximum expected log line */
@@ -201,7 +202,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 			int ret = snprintf(log_file_pid, PATH_MAX, "%s%d",
 				log_file, getpid());
 			if (ret < 0 || ret >= PATH_MAX) {
-				ERR("snprintf: %d", ret);
+				fprintf(stderr, "snprintf: %d\n", ret);
 				abort();
 			}
 			log_file = log_file_pid;
@@ -230,6 +231,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 	else
 		setlinebuf(Out_fp);
 
+	Initialized = 1;
 #ifdef DEBUG
 	static char namepath[PATH_MAX];
 	LOG(1, "pid %d: program: %s", getpid(),
@@ -376,6 +378,10 @@ out_common(const char *file, int line, const char *func, int level,
 	const char *sep = "";
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
+
+	if (!Initialized)
+		goto end;
+
 	if (file) {
 		char *f = strrchr(file, OS_DIR_SEPARATOR);
 		if (f)
@@ -428,8 +434,13 @@ out_error(const char *file, int line, const char *func,
 	int ret;
 	const char *sep = "";
 	char errstr[UTIL_MAX_ERR_MSG] = "";
+	char *errormsg;
+	static char errorbuf[sizeof(struct errormsg)];
 
-	char *errormsg = (char *)out_get_errormsg();
+	if (Initialized)
+		errormsg = (char *)out_get_errormsg();
+	else
+		errormsg = errorbuf;
 
 	if (fmt) {
 		if (*fmt == '!') {
@@ -447,6 +458,11 @@ out_error(const char *file, int line, const char *func,
 				sep, errstr);
 	}
 
+	if (!Initialized) {
+		fprintf(stderr, "%s\n", errormsg);
+		goto end;
+	}
+
 #ifdef DEBUG
 	if (Log_level >= 1) {
 		char buf[MAXPRINT];
@@ -460,7 +476,7 @@ out_error(const char *file, int line, const char *func,
 					"<%s>: <1> [%s:%d %s] ",
 					Log_prefix, file, line, func);
 			if (ret < 0) {
-				Print("out_snprintf failed");
+				fputs("out_snprintf failed", stderr);
 				goto end;
 			}
 			cc += (unsigned)ret;
