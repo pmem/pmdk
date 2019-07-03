@@ -122,7 +122,8 @@ typedef void (*pmemobj_tx_callback)(PMEMobjpool *pop, enum pobj_tx_stage stage,
 	POBJ_XALLOC_CLASS_MASK)
 
 #define POBJ_XADD_NO_FLUSH	POBJ_FLAG_NO_FLUSH
-#define POBJ_XADD_VALID_FLAGS	POBJ_XADD_NO_FLUSH
+#define POBJ_XADD_NO_SNAPSHOT	POBJ_FLAG_NO_SNAPSHOT
+#define POBJ_XADD_VALID_FLAGS	(POBJ_XADD_NO_FLUSH | POBJ_XADD_NO_SNAPSHOT)
 
 /*
  * Starts a new transaction in the current thread.

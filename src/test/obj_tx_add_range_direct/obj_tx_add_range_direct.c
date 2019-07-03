@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -403,10 +403,11 @@ do_tx_add_range_commit(PMEMobjpool *pop)
 }
 
 /*
- * do_tx_xadd_range_commit -- call xadd_range_direct and commit tx
+ * do_tx_xadd_range_no_flush_commit -- call xadd_range_direct with
+ * POBJ_XADD_NO_FLUSH flag set and commit tx
  */
 static void
-do_tx_xadd_range_commit(PMEMobjpool *pop)
+do_tx_xadd_range_no_flush_commit(PMEMobjpool *pop)
 {
 	int ret;
 	TOID(struct object) obj;
@@ -425,6 +426,61 @@ do_tx_xadd_range_commit(PMEMobjpool *pop)
 	} TX_END
 
 	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
+/*
+ * do_tx_xadd_range_no_snapshot_commit -- call xadd_range_direct with
+ * POBJ_XADD_NO_SNAPSHOT flag, commit the transaction
+ */
+static void
+do_tx_xadd_range_no_snapshot_commit(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+
+	TX_BEGIN(pop) {
+		char *ptr = (char *)pmemobj_direct(obj.oid);
+		ret = pmemobj_tx_xadd_range_direct(ptr + VALUE_OFF,
+				VALUE_SIZE, POBJ_XADD_NO_SNAPSHOT);
+		UT_ASSERTeq(ret, 0);
+
+		D_RW(obj)->value = TEST_VALUE_1;
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
+/*
+ * do_tx_xadd_range_no_snapshot_abort -- call xadd_range_direct with
+ * POBJ_XADD_NO_SNAPSHOT flag, modify the value, abort the transaction
+ */
+static void
+do_tx_xadd_range_no_snapshot_abort(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+	D_RW(obj)->value = TEST_VALUE_1;
+
+	TX_BEGIN(pop) {
+		char *ptr = (char *)pmemobj_direct(obj.oid);
+		ret = pmemobj_tx_xadd_range_direct(ptr + VALUE_OFF, VALUE_SIZE,
+				POBJ_XADD_NO_SNAPSHOT);
+		UT_ASSERTeq(ret, 0);
+		D_RW(obj)->value = TEST_VALUE_2;
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	/*
+	 * value added with NO_SNAPSHOT flag should NOT be rolled back
+	 * after abort
+	 */
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_2);
 }
 
 /*
@@ -650,8 +706,11 @@ main(int argc, char *argv[])
 	VALGRIND_WRITE_STATS;
 	do_tx_add_cache_overflowing_range(pop);
 	VALGRIND_WRITE_STATS;
-	do_tx_xadd_range_commit(pop);
-
+	do_tx_xadd_range_no_snapshot_commit(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_xadd_range_no_snapshot_abort(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_xadd_range_no_flush_commit(pop);
 	pmemobj_close(pop);
 
 	DONE(NULL);

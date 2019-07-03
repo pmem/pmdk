@@ -1,8 +1,14 @@
 ==$(*)== pmemcheck$(*)
 ==$(*)== Copyright$(*)
 ==$(*)== Using Valgrind-$(*)
-==$(*)== Command: ./obj_tx_add_range_direct$(*)
+==$(*)== Command: $(*)/obj_tx_add_range_direct$(*)
 ==$(*)== Parent PID: $(*)
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
 ==$(*)== 
 ==$(*)== Number of stores not made persistent: 0
 ==$(*)== ERROR SUMMARY: 0 errors
@@ -52,7 +58,7 @@
 ==$(*)== 
 ==$(*)== Number of stores not made persistent: 1
 ==$(*)== Stores not made persistent properly:
-==$(*)== [0]    at 0x$(*): do_tx_xadd_range_commit (obj_tx_add_range_direct.c:$(*))
+==$(*)== [0]    at 0x$(*): do_tx_xadd_range_no_flush_commit (obj_tx_add_range_direct.c:$(*))
 ==$(*)==    by 0x$(*): main (obj_tx_add_range_direct.c:$(*))
 ==$(*)== 	Address: 0x$(*)	size: 8	state: DIRTY
 ==$(*)== Total memory not made persistent: 8
