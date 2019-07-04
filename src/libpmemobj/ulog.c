@@ -57,9 +57,9 @@
 	(((uintptr_t)(ptr) & (CACHELINE_SIZE - 1)) == 0)
 
 /*
- * ulog_by_offset -- (internal) calculates the ulog pointer
+ * ulog_by_offset -- calculates the ulog pointer
  */
-static struct ulog *
+struct ulog *
 ulog_by_offset(size_t offset, const struct pmem_ops *p_ops)
 {
 	if (offset == 0)
@@ -161,7 +161,7 @@ ulog_entry_valid(struct ulog *ulog, const struct ulog_entry_base *entry)
  */
 void
 ulog_construct(uint64_t offset, size_t capacity, uint64_t gen_num,
-		int flush, const struct pmem_ops *p_ops)
+		int flush, uint64_t flags, const struct pmem_ops *p_ops)
 {
 	struct ulog *ulog = ulog_by_offset(offset, p_ops);
 	ASSERTne(ulog, NULL);
@@ -172,6 +172,7 @@ ulog_construct(uint64_t offset, size_t capacity, uint64_t gen_num,
 	ulog->checksum = 0;
 	ulog->next = 0;
 	ulog->gen_num = gen_num;
+	ulog->flags = flags;
 	memset(ulog->unused, 0, sizeof(ulog->unused));
 
 	if (flush) {
@@ -190,6 +191,38 @@ ulog_construct(uint64_t offset, size_t capacity, uint64_t gen_num,
 	}
 
 	VALGRIND_REMOVE_FROM_TX(ulog, SIZEOF_ULOG(capacity));
+}
+
+/*
+ * ulog_flags_clear - clear specific flags in the pointed ulog
+ */
+static void
+ulog_flags_clear(struct ulog *ulog, const struct pmem_ops *ops, uint64_t flags)
+{
+	ulog->flags &= (~flags);
+	pmemops_persist(ops, &ulog->flags, sizeof(ulog->flags));
+}
+
+/*
+ * ulog_flags_set - set specific flags in the pointed ulog
+ */
+void
+ulog_flags_set(struct ulog *ulog, const struct pmem_ops *ops, uint64_t flags)
+{
+	ulog->flags |= flags;
+	pmemops_persist(ops, &ulog->flags, sizeof(ulog->flags));
+}
+
+/*
+ * ulog_flags_foreach_clear - clear specific flags in all of the ulogs
+ * starting from the pointed one
+ */
+void
+ulog_flags_foreach_clear(struct ulog *ulog, const struct pmem_ops *ops,
+		uint64_t flags)
+{
+	for (struct ulog *r = ulog; r != NULL; r = ulog_next(r, ops))
+		ulog_flags_clear(ulog, ops, flags);
 }
 
 /*
@@ -254,9 +287,15 @@ ulog_rebuild_next_vec(struct ulog *ulog, struct ulog_next *next,
 int
 ulog_reserve(struct ulog *ulog,
 	size_t ulog_base_nbytes, size_t gen_num,
-	size_t *new_capacity, ulog_extend_fn extend,
-	struct ulog_next *next, const struct pmem_ops *p_ops)
+	size_t auto_reserve, size_t *new_capacity,
+	ulog_extend_fn extend, struct ulog_next *next,
+	const struct pmem_ops *p_ops)
 {
+	if (!auto_reserve) {
+		LOG(1, "cannot auto reserve next ulog");
+		return -1;
+	}
+
 	size_t capacity = ulog_base_nbytes;
 
 	uint64_t offset;
@@ -589,6 +628,58 @@ ulog_inc_gen_num(struct ulog *ulog, const struct pmem_ops *p_ops)
 }
 
 /*
+ * ulog_free_by_ptr_next -- free all ulogs starting from the indicated one.
+ * Function returns 1 if any ulog have been freed or unpinned, 0 otherwise.
+ */
+int
+ulog_free_by_ptr_next(struct ulog *u, const struct pmem_ops *p_ops,
+		ulog_free_fn ulog_free)
+{
+	VEC(, uint64_t *) logs_past_first;
+	VEC_INIT(&logs_past_first);
+	int ret = 0;
+	struct ulog *ulog_head = u;
+
+	size_t next_offset;
+	while (u != NULL && ((next_offset = u->next) != 0)) {
+		if (VEC_PUSH_BACK(&logs_past_first, &u->next) != 0) {
+			/* this is fine, it will just use more pmem */
+			LOG(1, "unable to free transaction logs memory");
+			goto out;
+		}
+		u = ulog_by_offset(u->next, p_ops);
+	}
+
+	uint64_t *ulog_ptr;
+	int next_zero = 0;
+	VEC_FOREACH_REVERSE(ulog_ptr, &logs_past_first) {
+		u = ulog_by_offset(*ulog_ptr, p_ops);
+		next_zero = 0;
+
+		/* ulogs preallocated by user should not be freed */
+		if (u->flags & ULOG_PREALLOCATED) {
+			next_zero = 1;
+#ifdef DEBUG
+			/* set ULOG_CURRENTLY_USED flag to zero */
+			ulog_flags_clear(u, p_ops, ULOG_CURRENTLY_USED);
+#endif
+		} else {
+			ulog_free(p_ops->base, ulog_ptr);
+		}
+		ret = 1;
+	}
+
+	if (next_zero)
+		/* XXX: flags? */
+		pmemops_memset(p_ops, &ulog_head->next, 0,
+				sizeof(ulog_head->next), 0);
+
+out:
+	VEC_DELETE(&logs_past_first);
+	return ret;
+}
+
+/*
  * ulog_clobber -- zeroes the metadata of the ulog
  */
 void
@@ -683,27 +774,16 @@ ulog_clobber_data(struct ulog *ulog_first,
 	if (u == NULL)
 		return 0;
 
-	VEC(, uint64_t *) logs_past_first;
-	VEC_INIT(&logs_past_first);
+	/*
+	 * only if there was any prealocation it make sense to check
+	 * if the second ulog is preallocated
+	 */
+	if ((flags & ULOG_ANY_PREALLOCATION) &&
+		(ulog_second->flags & ULOG_PREALLOCATED))
+		/* unpin starting from second */
+		u = ulog_first;
 
-	size_t next_offset;
-	while (u != NULL && ((next_offset = u->next) != 0)) {
-		if (VEC_PUSH_BACK(&logs_past_first, &u->next) != 0) {
-			/* this is fine, it will just use more pmem */
-			LOG(1, "unable to free transaction logs memory");
-			goto out;
-		}
-		u = ulog_by_offset(u->next, p_ops);
-	}
-
-	uint64_t *ulog_ptr;
-	VEC_FOREACH_REVERSE(ulog_ptr, &logs_past_first) {
-		ulog_free(p_ops->base, ulog_ptr);
-	}
-
-out:
-	VEC_DELETE(&logs_past_first);
-	return 1;
+	return ulog_free_by_ptr_next(u, p_ops, ulog_free);
 }
 
 /*
