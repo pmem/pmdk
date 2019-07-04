@@ -669,6 +669,42 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 }
 
 /*
+ * tx_construct_prealloc -- add user preallocated buffer to the ulog
+ */
+static int
+tx_construct_prealloc(struct tx *tx, void *addr, size_t size, uint64_t type,
+		uint64_t outer_tx, size_t first_prealloc)
+{
+	if (tx->pop != pmemobj_pool_by_ptr(addr)) {
+		ERR("Allocation from different pool");
+		goto err;
+	}
+
+	switch (type) {
+	case TX_PARAM_PREALLOC_REDO:
+		if (operation_add_extend(tx->lane->external, addr, size))
+			goto err;
+		break;
+	case TX_PARAM_PREALLOC_UNDO:
+		if (outer_tx && first_prealloc)
+			/* free all logs except first */
+			operation_free_logs(tx->lane->undo);
+		if (operation_add_extend(tx->lane->undo, addr, size))
+			goto err;
+		break;
+	default:
+		ERR("Unrecognized prealloc type");
+		ASSERT(0);
+		break;
+	}
+
+	return 0;
+
+err:
+	return obj_tx_abort_err(EINVAL);
+}
+
+/*
  * pmemobj_tx_begin -- initializes new transaction
  */
 int
@@ -729,6 +765,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	va_start(argp, env);
 	enum pobj_tx_param param_type;
 
+	size_t first_prealloc = 1;
+
 	while ((param_type = va_arg(argp, enum pobj_tx_param)) !=
 			TX_PARAM_NONE) {
 		if (param_type == TX_PARAM_CB) {
@@ -747,6 +785,26 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 			tx->stage_callback = cb;
 			tx->stage_callback_arg = arg;
+		} else if (param_type == TX_PARAM_PREALLOC_UNDO ||
+				param_type == TX_PARAM_PREALLOC_REDO) {
+
+			void *addr =  va_arg(argp, void *);
+			size_t size =  va_arg(argp, size_t);
+
+			struct tx_data *td = PMDK_SLIST_FIRST(&tx->tx_entries);
+			err = tx_construct_prealloc(tx, addr, size, param_type,
+					PMDK_SLIST_NEXT(td, tx_entry) == NULL,
+					first_prealloc);
+
+			if (err) {
+				va_end(argp);
+				goto err_abort;
+			}
+
+			first_prealloc = 0;
+		} else if (param_type == TX_PARAM_DO_NOT_AUTO_RESERVE) {
+			operation_set_auto_reserve(tx->lane->undo, 0);
+			operation_set_auto_reserve(tx->lane->external, 0);
 		} else {
 			err = add_to_tx_and_lock(tx, param_type,
 				va_arg(argp, void *));
@@ -756,6 +814,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 			}
 		}
 	}
+
 	va_end(argp);
 
 	ASSERT(err == 0);
@@ -763,7 +822,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 
 err_abort:
 	if (tx->stage == TX_STAGE_WORK)
-		obj_tx_abort(err, 0);
+		obj_tx_abort_err(err);
 	else
 		tx->stage = TX_STAGE_ONABORT;
 	return err;

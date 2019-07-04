@@ -69,9 +69,12 @@ enum pobj_tx_stage pmemobj_tx_stage(void);
 
 enum pobj_tx_param {
 	TX_PARAM_NONE,
-	TX_PARAM_MUTEX,	 /* PMEMmutex */
-	TX_PARAM_RWLOCK, /* PMEMrwlock */
-	TX_PARAM_CB,	 /* pmemobj_tx_callback cb, void *arg */
+	TX_PARAM_MUTEX,			/* PMEMmutex */
+	TX_PARAM_RWLOCK,		/* PMEMrwlock */
+	TX_PARAM_CB,			/* pmemobj_tx_callback cb, void *arg */
+	TX_PARAM_PREALLOC_UNDO,		/* void *addr, size_t size */
+	TX_PARAM_PREALLOC_REDO,		/* void *addr, size_t size */
+	TX_PARAM_DO_NOT_AUTO_RESERVE,	/* no params */
 };
 
 #if !defined(pmdk_use_attr_deprec_with_msg) && defined(__COVERITY__)

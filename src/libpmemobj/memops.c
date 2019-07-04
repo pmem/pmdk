@@ -80,6 +80,8 @@ struct operation_context {
 	struct ulog *ulog; /* pointer to the persistent ulog log */
 	size_t ulog_base_nbytes; /* available bytes in initial ulog log */
 	size_t ulog_capacity; /* sum of capacity, incl all next ulog logs */
+	size_t ulog_auto_reserve; /* allow or not to next ulog reservation */
+	size_t ulog_any_prealloc; /* set if any prealloc occured */
 
 	struct ulog_next next; /* vector of 'next' fields of persistent ulog */
 
@@ -191,6 +193,7 @@ operation_new(struct ulog *ulog, size_t ulog_base_nbytes,
 	ulog_rebuild_next_vec(ulog, &ctx->next, p_ops);
 	ctx->p_ops = p_ops;
 	ctx->type = type;
+	ctx->ulog_any_prealloc = 0;
 
 	ctx->ulog_curr_offset = 0;
 	ctx->ulog_curr_capacity = 0;
@@ -232,6 +235,24 @@ operation_delete(struct operation_context *ctx)
 	Free(ctx->pshadow_ops.ulog);
 	Free(ctx->transient_ops.ulog);
 	Free(ctx);
+}
+
+/*
+ * operation_free_logs -- free all logs except first
+ */
+void
+operation_free_logs(struct operation_context *ctx)
+{
+	int freed = ulog_free_by_ptr_next(ctx->ulog, ctx->p_ops,
+			ctx->ulog_free);
+	if (freed) {
+		ctx->ulog_capacity = ulog_capacity(ctx->ulog,
+			ctx->ulog_base_nbytes, ctx->p_ops);
+		VEC_CLEAR(&ctx->next);
+		ulog_rebuild_next_vec(ctx->ulog, &ctx->next, ctx->p_ops);
+	}
+
+	ASSERTeq(VEC_SIZE(&ctx->next), 0);
 }
 
 /*
@@ -423,6 +444,60 @@ operation_add_buffer(struct operation_context *ctx,
 }
 
 /*
+ * operation_add_extend -- add preallocated memory to the ulog
+ */
+int
+operation_add_extend(struct operation_context *ctx,
+		void *addr, size_t size)
+{
+	uint64_t extend_offset = OBJ_PTR_TO_OFF(ctx->p_ops->base, addr);
+	struct ulog *new_log = ulog_by_offset(extend_offset, ctx->p_ops);
+
+	if (new_log->flags & ULOG_CURRENTLY_USED) {
+		ERR("Allocation currently used");
+		return -1;
+	}
+
+	size_t extend_capacity = ALIGN_DOWN(size - sizeof(struct ulog),
+			CACHELINE_SIZE);
+
+	ulog_construct(extend_offset, extend_capacity, ctx->ulog->gen_num,
+			1, ULOG_PREALLOCATED, ctx->p_ops);
+
+	struct ulog *last_log;
+	/* if there is only one log */
+	if (!VEC_SIZE(&ctx->next))
+		last_log = ctx->ulog;
+	else
+		/* get last element from vector */
+		last_log = ulog_by_offset(VEC_BACK(&ctx->next), ctx->p_ops);
+
+	last_log->next = extend_offset;
+	pmemops_persist(ctx->p_ops, &last_log->next, sizeof(last_log->next));
+
+	VEC_PUSH_BACK(&ctx->next, extend_offset);
+	ctx->ulog_capacity += extend_capacity;
+	ctx->ulog_any_prealloc = 1;
+
+#ifdef DEBUG
+	ASSERT(new_log->flags & ULOG_PREALLOCATED);
+	new_log->flags |= ULOG_CURRENTLY_USED;
+	pmemops_persist(ctx->p_ops, &last_log->flags, sizeof(last_log->flags));
+#endif
+
+	return 0;
+}
+
+/*
+ * operation_set_auto_reserve -- set auto reserve value for contexts
+ */
+void
+operation_set_auto_reserve(struct operation_context *ctx, size_t auto_reserve)
+{
+	ctx->ulog_auto_reserve = auto_reserve;
+}
+
+/*
  * operation_process_persistent_redo -- (internal) process using ulog
  */
 static void
@@ -466,6 +541,7 @@ operation_reserve(struct operation_context *ctx, size_t new_capacity)
 		if (ulog_reserve(ctx->ulog,
 		    ctx->ulog_base_nbytes,
 		    ctx->ulog_curr_gen_num,
+		    ctx->ulog_auto_reserve,
 		    &new_capacity, ctx->extend,
 		    &ctx->next, ctx->p_ops) != 0)
 			return -1;
@@ -498,6 +574,7 @@ operation_init(struct operation_context *ctx)
 	ctx->ulog_curr_gen_num = 0;
 	ctx->ulog_curr = NULL;
 	ctx->total_logged = 0;
+	ctx->ulog_auto_reserve = 1;
 }
 
 /*
@@ -578,6 +655,9 @@ operation_finish(struct operation_context *ctx, unsigned flags)
 {
 	ASSERTeq(ctx->in_progress, 1);
 	ctx->in_progress = 0;
+
+	if (ctx->ulog_any_prealloc)
+		flags |= ULOG_ANY_PREALLOCATION;
 
 	if (ctx->type == LOG_TYPE_REDO && ctx->pshadow_ops.offset != 0) {
 		operation_process(ctx);
