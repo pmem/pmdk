@@ -54,8 +54,13 @@ enum fail_types {
 
 struct test_object {
 	uint8_t padding[CACHELINE_SIZE - 16]; /* align to a cacheline */
-	struct ULOG(TEST_ENTRIES) redo;
-	struct ULOG(TEST_ENTRIES) undo;
+
+	struct ulog redo;
+	uint8_t redo_data[TEST_ENTRIES];
+
+	struct ulog undo;
+	uint8_t values_data[TEST_ENTRIES];
+
 	uint64_t values[TEST_VALUES];
 };
 
@@ -113,7 +118,7 @@ test_set_entries(PMEMobjpool *pop,
 					&object->redo.next, 0);
 			break;
 			case FAIL_MODIFY_VALUE:
-				object->redo.data[16] += 8;
+				ulog_data(&object->redo)[16] += 8;
 			break;
 			default:
 				UT_ASSERT(0);
@@ -315,7 +320,7 @@ test_undo_checksum_mismatch(PMEMobjpool *pop, struct operation_context *ctx,
 
 	pmemobj_persist(pop, &object->values, sizeof(*object->values) * 20);
 
-	log->data[100] += 1; /* corrupt the log somewhere */
+	ulog_data(log)[100] += 1; /* corrupt the log somewhere */
 
 	operation_process(ctx);
 

@@ -87,17 +87,22 @@ struct lane_layout {
 	 * Redo log for self-contained and 'one-shot' allocator operations.
 	 * Cannot be extended.
 	 */
-	struct ULOG(LANE_REDO_INTERNAL_SIZE) internal;
+	struct ulog internal;
+	uint8_t internal_data[LANE_REDO_INTERNAL_SIZE];
+
 	/*
 	 * Redo log for large operations/transactions.
 	 * Can be extended by the use of internal ulog.
 	 */
-	struct ULOG(LANE_REDO_EXTERNAL_SIZE) external;
+	struct ulog external;
+	uint8_t external_data[LANE_REDO_EXTERNAL_SIZE];
+
 	/*
 	 * Undo log for snapshots done in a transaction.
 	 * Can be extended/shrunk by the use of internal ulog.
 	 */
-	struct ULOG(LANE_UNDO_SIZE) undo;
+	struct ulog undo;
+	uint8_t undo_data[LANE_UNDO_SIZE];
 };
 
 struct lane {

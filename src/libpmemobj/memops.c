@@ -550,8 +550,8 @@ operation_process(struct operation_context *ctx)
 		ctx->pshadow_ops.offset != 0;
 	if (redo_process &&
 	    ctx->pshadow_ops.offset == sizeof(struct ulog_entry_val)) {
-		struct ulog_entry_base *e = (struct ulog_entry_base *)
-			ctx->pshadow_ops.ulog->data;
+		struct ulog_entry_base *e =
+				(void *)ulog_data(ctx->pshadow_ops.ulog);
 		ulog_operation_type t = ulog_entry_type(e);
 		if (t == ULOG_OPERATION_SET || t == ULOG_OPERATION_AND ||
 		    t == ULOG_OPERATION_OR) {
