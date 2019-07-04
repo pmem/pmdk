@@ -76,12 +76,20 @@ struct ulog_entry_buf {
 	uint64_t next; /* offset of ulog extension */\
 	uint64_t capacity; /* capacity of this ulog in bytes */\
 	uint64_t gen_num; /* generation counter */\
-	uint64_t unused[4]; /* must be 0 */\
+	uint64_t flags; /* ulog flags */\
+	uint64_t unused[3]; /* must be 0 */\
 	uint8_t data[capacity_bytes]; /* N bytes of data */\
 }\
 
 #define SIZEOF_ULOG(base_capacity)\
 (sizeof(struct ulog) + base_capacity)
+
+/*
+ * Ulog buffer allocated by the user must be marked by this flag.
+ * It is important to not free it at the end:
+ * what user has allocated - user should free himself.
+ */
+#define ULOG_USER_OWNED (1U << 0)
 
 /* use this for allocations of aligned ulog extensions */
 #define SIZEOF_ALIGNED_ULOG(base_capacity)\
@@ -105,17 +113,20 @@ typedef uint64_t ulog_operation_type;
 #define ULOG_FREE_AFTER_FIRST (1U << 0)
 /* increments gen_num of the first, preallocated, ulog */
 #define ULOG_INC_FIRST_GEN_NUM (1U << 1)
+/* informs if there was any buffer allocated by user in the tx  */
+#define ULOG_ANY_USER_BUFFER (1U << 2)
 
 typedef int (*ulog_check_offset_fn)(void *ctx, uint64_t offset);
 typedef int (*ulog_extend_fn)(void *, uint64_t *, uint64_t);
 typedef int (*ulog_entry_cb)(struct ulog_entry_base *e, void *arg,
 	const struct pmem_ops *p_ops);
 typedef void (*ulog_free_fn)(void *base, uint64_t *next);
+typedef int (*ulog_rm_user_buffer_fn)(void *, void *addr);
 
 struct ulog *ulog_next(struct ulog *ulog, const struct pmem_ops *p_ops);
 
 void ulog_construct(uint64_t offset, size_t capacity, uint64_t gen_num,
-		int flush, const struct pmem_ops *p_ops);
+		int flush, uint64_t flags, const struct pmem_ops *p_ops);
 
 size_t ulog_capacity(struct ulog *ulog, size_t ulog_base_bytes,
 	const struct pmem_ops *p_ops);
@@ -127,18 +138,23 @@ int ulog_foreach_entry(struct ulog *ulog,
 
 int ulog_reserve(struct ulog *ulog,
 	size_t ulog_base_nbytes, size_t gen_num,
-	size_t *new_capacity_bytes, ulog_extend_fn extend,
-	struct ulog_next *next, const struct pmem_ops *p_ops);
+	int auto_reserve, size_t *new_capacity_bytes,
+	ulog_extend_fn extend, struct ulog_next *next,
+	const struct pmem_ops *p_ops);
 
 void ulog_store(struct ulog *dest,
 	struct ulog *src, size_t nbytes, size_t ulog_base_nbytes,
 	struct ulog_next *next, const struct pmem_ops *p_ops);
 
+int ulog_free_next(struct ulog *u, const struct pmem_ops *p_ops,
+		ulog_free_fn ulog_free, ulog_rm_user_buffer_fn user_buff_remove,
+		uint64_t flags);
 void ulog_clobber(struct ulog *dest, struct ulog_next *next,
 	const struct pmem_ops *p_ops);
 int ulog_clobber_data(struct ulog *dest,
 	size_t nbytes, size_t ulog_base_nbytes,
 	struct ulog_next *next, ulog_free_fn ulog_free,
+	ulog_rm_user_buffer_fn user_buff_remove,
 	const struct pmem_ops *p_ops, unsigned flags);
 void ulog_clobber_entry(const struct ulog_entry_base *e,
 	const struct pmem_ops *p_ops);
@@ -148,6 +164,7 @@ void ulog_process(struct ulog *ulog, ulog_check_offset_fn check,
 
 size_t ulog_base_nbytes(struct ulog *ulog);
 int ulog_recovery_needed(struct ulog *ulog, int verify_checksum);
+struct ulog *ulog_by_offset(size_t offset, const struct pmem_ops *p_ops);
 
 uint64_t ulog_entry_offset(const struct ulog_entry_base *entry);
 ulog_operation_type ulog_entry_type(

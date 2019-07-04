@@ -74,6 +74,11 @@ enum pobj_tx_param {
 	TX_PARAM_CB,	 /* pmemobj_tx_callback cb, void *arg */
 };
 
+enum pobj_log_type {
+	TX_LOG_TYPE_SNAPSHOT,
+	TX_LOG_TYPE_INTENT,
+};
+
 #if !defined(pmdk_use_attr_deprec_with_msg) && defined(__COVERITY__)
 #define pmdk_use_attr_deprec_with_msg 0
 #endif
@@ -314,6 +319,37 @@ PMEMoid pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num);
  * This function must be called during TX_STAGE_WORK.
  */
 int pmemobj_tx_free(PMEMoid oid);
+
+/*
+ * Append user allocated buffer to the ulog.
+ *
+ * If successful, returns zero.
+ * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
+ */
+int pmemobj_tx_log_append_buffer(enum pobj_log_type type,
+	void *addr, size_t size);
+
+/*
+ * Enables or disables automatic ulog allocations.
+ *
+ * If successful, returns zero.
+ * Otherwise, state changes to TX_STAGE_ONABORT and an error number is returned.
+ *
+ * This function must be called during TX_STAGE_WORK.
+ */
+int pmemobj_tx_log_auto_alloc(enum pobj_log_type type, int on_off);
+
+/*
+ * Calculates and returns size for user buffers for snapshots.
+ */
+size_t pmemobj_tx_log_snapshot_max_size(size_t *sizes, size_t nsizes);
+
+/*
+ * Calculates and returns size for user buffers for intents.
+ */
+size_t pmemobj_tx_log_intent_max_size(size_t nintents);
 
 #ifdef __cplusplus
 }
