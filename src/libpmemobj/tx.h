@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,14 @@ extern "C" {
 #define TX_RANGE_MASK_LEGACY (32ULL - 1)
 
 #define TX_ALIGN_SIZE(s, amask) (((s) + (amask)) & ~(amask))
+
+#define TX_SNAPSHOT_LOG_ENTRY_ALIGNMENT CACHELINE_SIZE
+#define TX_SNAPSHOT_LOG_BUFFER_OVERHEAD sizeof(struct ulog)
+#define TX_SNAPSHOT_LOG_ENTRY_OVERHEAD sizeof(struct ulog_entry_buf)
+
+#define TX_INTENT_LOG_BUFFER_ALIGNMENT CACHELINE_SIZE
+#define TX_INTENT_LOG_BUFFER_OVERHEAD sizeof(struct ulog)
+#define TX_INTENT_LOG_ENTRY_OVERHEAD sizeof(struct ulog_entry_val)
 
 struct tx_parameters {
 	size_t cache_size;
