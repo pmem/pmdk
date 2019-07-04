@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1197,11 +1197,11 @@ pmemspoil_process_lane(struct pmemspoil *psp, struct pmemspoil_list *pfp,
 		struct lane_layout *lane)
 {
 	PROCESS_BEGIN(psp, pfp) {
-		PROCESS_FIELD_ARRAY(lane, undo.data,
+		PROCESS_FIELD_ARRAY(lane, undo_data,
 			uint8_t, LANE_UNDO_SIZE);
-		PROCESS_FIELD_ARRAY(lane, internal.data,
+		PROCESS_FIELD_ARRAY(lane, internal_data,
 			uint8_t, LANE_REDO_INTERNAL_SIZE);
-		PROCESS_FIELD_ARRAY(lane, external.data,
+		PROCESS_FIELD_ARRAY(lane, external_data,
 			uint8_t, LANE_REDO_EXTERNAL_SIZE);
 	} PROCESS_END
 

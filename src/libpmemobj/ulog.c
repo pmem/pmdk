@@ -177,7 +177,7 @@ ulog_construct(uint64_t offset, size_t capacity, uint64_t gen_num,
 	if (flush) {
 		pmemops_xflush(p_ops, ulog, sizeof(*ulog),
 			PMEMOBJ_F_RELAXED);
-		pmemops_memset(p_ops, ulog->data, 0, capacity,
+		pmemops_memset(p_ops, ulog_data(ulog), 0, capacity,
 			PMEMOBJ_F_MEM_NONTEMPORAL |
 			PMEMOBJ_F_MEM_NODRAIN |
 			PMEMOBJ_F_RELAXED);
@@ -186,7 +186,7 @@ ulog_construct(uint64_t offset, size_t capacity, uint64_t gen_num,
 		 * We want to avoid replicating zeroes for every ulog of every
 		 * lane, to do that, we need to use plain old memset.
 		 */
-		memset(ulog->data, 0, capacity);
+		memset(ulog_data(ulog), 0, capacity);
 	}
 
 	VALGRIND_REMOVE_FROM_TX(ulog, SIZEOF_ULOG(capacity));
@@ -204,7 +204,7 @@ ulog_foreach_entry(struct ulog *ulog,
 
 	for (struct ulog *r = ulog; r != NULL; r = ulog_next(r, ops)) {
 		for (size_t offset = 0; offset < r->capacity; ) {
-			e = (struct ulog_entry_base *)(r->data + offset);
+			e = (struct ulog_entry_base *)(ulog_data(r) + offset);
 			if (!ulog_entry_valid(ulog, e))
 				return ret;
 
@@ -335,17 +335,18 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
 		size_t copy_nbytes = MIN(next_nbytes, ulog->capacity);
 		next_nbytes -= copy_nbytes;
 
-		ASSERT(IS_CACHELINE_ALIGNED(ulog->data));
+		uint8_t *dst_data = ulog_data(ulog);
+		ASSERT(IS_CACHELINE_ALIGNED(dst_data));
 
-		VALGRIND_ADD_TO_TX(ulog->data, copy_nbytes);
+		VALGRIND_ADD_TO_TX(dst_data, copy_nbytes);
 		pmemops_memcpy(p_ops,
-			ulog->data,
-			src->data + offset,
+			dst_data,
+			ulog_data(src) + offset,
 			copy_nbytes,
 			PMEMOBJ_F_MEM_WC |
 			PMEMOBJ_F_MEM_NODRAIN |
 			PMEMOBJ_F_RELAXED);
-		VALGRIND_REMOVE_FROM_TX(ulog->data, copy_nbytes);
+		VALGRIND_REMOVE_FROM_TX(dst_data, copy_nbytes);
 		offset += copy_nbytes;
 	}
 
@@ -376,7 +377,7 @@ ulog_entry_val_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 	const struct pmem_ops *p_ops)
 {
 	struct ulog_entry_val *e =
-		(struct ulog_entry_val *)(ulog->data + offset);
+		(struct ulog_entry_val *)(ulog_data(ulog) + offset);
 
 	struct {
 		struct ulog_entry_val v;
@@ -409,7 +410,7 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
 		ulog_operation_type type, const struct pmem_ops *p_ops)
 {
 	struct ulog_entry_buf *e =
-		(struct ulog_entry_buf *)(ulog->data + offset);
+		(struct ulog_entry_buf *)(ulog_data(ulog) + offset);
 
 	/*
 	 * Depending on the size of the source buffer, we might need to perform
@@ -705,7 +706,7 @@ ulog_base_nbytes(struct ulog *ulog)
 	struct ulog_entry_base *e;
 
 	for (offset = 0; offset < ulog->capacity; ) {
-		e = (struct ulog_entry_base *)(ulog->data + offset);
+		e = (struct ulog_entry_base *)(ulog_data(ulog) + offset);
 		if (!ulog_entry_valid(ulog, e))
 			break;
 
