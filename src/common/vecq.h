@@ -89,7 +89,7 @@ struct name {\
 #define VECQ_SIZE(vec)\
 ((vec)->back - (vec)->front)
 
-static inline int
+static int __attribute((noinline))
 vecq_grow(void *vec, size_t s)
 {
 	VECQ(vvec, void) *vecp = (struct vvec *)vec;
