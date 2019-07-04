@@ -193,7 +193,7 @@ lane_ulog_constructor(void *base, void *ptr, size_t usable_size, void *arg)
 
 	uint64_t gen_num = *(uint64_t *)arg;
 	ulog_construct(OBJ_PTR_TO_OFF(base, ptr), capacity,
-			gen_num, 1, p_ops);
+			gen_num, 1, 0, p_ops);
 
 	return 0;
 }
@@ -339,11 +339,11 @@ lane_init_data(PMEMobjpool *pop)
 	for (uint64_t i = 0; i < pop->nlanes; ++i) {
 		layout = lane_get_layout(pop, i);
 		ulog_construct(OBJ_PTR_TO_OFF(pop, &layout->internal),
-			LANE_REDO_INTERNAL_SIZE, 0, 0, &pop->p_ops);
+			LANE_REDO_INTERNAL_SIZE, 0, 0, 0, &pop->p_ops);
 		ulog_construct(OBJ_PTR_TO_OFF(pop, &layout->external),
-			LANE_REDO_EXTERNAL_SIZE, 0, 0, &pop->p_ops);
+			LANE_REDO_EXTERNAL_SIZE, 0, 0, 0, &pop->p_ops);
 		ulog_construct(OBJ_PTR_TO_OFF(pop, &layout->undo),
-			LANE_UNDO_SIZE, 0, 0, &pop->p_ops);
+			LANE_UNDO_SIZE, 0, 0, 0, &pop->p_ops);
 	}
 	layout = lane_get_layout(pop, 0);
 	pmemops_xpersist(&pop->p_ops, layout,
@@ -394,6 +394,10 @@ lane_recover_and_section_boot(PMEMobjpool *pop)
 			OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
 		ulog_recover((struct ulog *)&layout->external,
 			OBJ_OFF_IS_VALID_FROM_CTX, &pop->p_ops);
+
+		ulog_flags_foreach_clear((struct ulog *)&layout->external,
+				&pop->p_ops, ULOG_USED,
+				ULOG_USER_OWNED);
 	}
 
 	if ((err = pmalloc_boot(pop)) != 0)
@@ -404,6 +408,10 @@ lane_recover_and_section_boot(PMEMobjpool *pop)
 	 * a undo recovery might require deallocation of the next ulogs.
 	 */
 	for (i = 0; i < pop->nlanes; ++i) {
+		layout = lane_get_layout(pop, i);
+		struct ulog *u = (struct ulog *)&layout->undo;
+		ASSERTeq(u->flags & ULOG_USED, 0);
+
 		struct operation_context *ctx = pop->lanes_desc.lane[i].undo;
 		operation_resume(ctx);
 		operation_process(ctx);

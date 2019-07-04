@@ -669,6 +669,38 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 }
 
 /*
+ * tx_construct_user_buffer -- add user preallocated buffer to the ulog
+ */
+static int
+tx_construct_user_buffer(struct tx *tx, void *addr, size_t size,
+		enum pobj_log_type type, int outer_tx)
+{
+	if (tx->pop != pmemobj_pool_by_ptr(addr)) {
+		ERR("Allocation from different pool");
+		goto err;
+	}
+
+	/*
+	 * We want to extend a log of a specified type, but if it is
+	 * outer transaction and first user preallocation we need to
+	 * free all logs except first at the beginning.
+	 */
+	struct operation_context *ctx =	type == TX_LOG_TYPE_INTENT ?
+		tx->lane->external : tx->lane->undo;
+
+	if (outer_tx && !operation_get_any_user_buffer(ctx))
+		operation_free_logs(ctx, ULOG_ANY_USER_BUFFER);
+
+	if (operation_add_user_buffer(ctx, addr, size))
+		goto err;
+
+	return 0;
+
+err:
+	return obj_tx_abort_err(EINVAL);
+}
+
+/*
  * pmemobj_tx_begin -- initializes new transaction
  */
 int
@@ -1717,6 +1749,95 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 }
 
 /*
+ * pmemobj_tx_log_append_buffer -- append user allocated buffer to the ulog
+ */
+int
+pmemobj_tx_log_append_buffer(enum pobj_log_type type, void *addr, size_t size)
+{
+	struct tx *tx = get_tx();
+	ASSERT_TX_STAGE_WORK(tx);
+	PMEMOBJ_API_START();
+	int err = 0;
+
+	struct tx_data *td = PMDK_SLIST_FIRST(&tx->tx_entries);
+	err = tx_construct_user_buffer(tx, addr, size, type,
+			PMDK_SLIST_NEXT(td, tx_entry) == NULL);
+
+	if (err)
+		goto err_abort;
+
+	PMEMOBJ_API_END();
+	return 0;
+
+err_abort:
+	if (tx->stage == TX_STAGE_WORK)
+		err = obj_tx_abort_err(err);
+	else
+		tx->stage = TX_STAGE_ONABORT;
+
+	PMEMOBJ_API_END();
+	return err;
+}
+
+/*
+ * pmemobj_tx_log_auto_alloc -- enable/disable automatic ulog allocation
+ */
+int
+pmemobj_tx_log_auto_alloc(enum pobj_log_type type, int on_off)
+{
+	struct tx *tx = get_tx();
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct operation_context *ctx =	type == TX_LOG_TYPE_INTENT ?
+		tx->lane->external : tx->lane->undo;
+
+	operation_set_auto_reserve(ctx, on_off);
+
+	return 0;
+}
+
+/*
+ * pmemobj_tx_log_snapshot_max_size -- calculates the maximum
+ * size of a buffer which will be able to hold n snapshots,
+ * each of size from sizes array
+ */
+size_t
+pmemobj_tx_log_snapshot_max_size(size_t *sizes, size_t nsizes)
+{
+	LOG(3, NULL);
+
+	size_t entry_overhead = TX_SNAPSHOT_LOG_ENTRY_ALIGNMENT;
+	size_t entry_alignment = TX_SNAPSHOT_LOG_ENTRY_ALIGNMENT;
+	size_t buffer_overhead = TX_SNAPSHOT_LOG_BUFFER_OVERHEAD;
+
+	size_t result = buffer_overhead;
+	for (size_t i = 0; i < nsizes; ++i)
+		result += ALIGN_UP(sizes[i] + entry_overhead,
+				entry_alignment);
+
+	return result;
+}
+
+/*
+ * pmemobj_tx_log_intent_max_size -- calculates the maximum size of a buffer
+ * which will be able to hold nintents
+ */
+size_t
+pmemobj_tx_log_intent_max_size(size_t nintents)
+{
+	LOG(3, NULL);
+
+	size_t entry_overhead = TX_INTENT_LOG_ENTRY_OVERHEAD;
+	size_t buffer_alignment = TX_INTENT_LOG_BUFFER_ALIGNMENT;
+	size_t buffer_overhead = TX_INTENT_LOG_BUFFER_OVERHEAD;
+
+	size_t result = buffer_overhead + ALIGN_UP(nintents * entry_overhead,
+					buffer_alignment);
+
+	return result;
+}
+
+/*
  * CTL_READ_HANDLER(size) -- gets the cache size transaction parameter
  */
 static int
@@ -1834,7 +1955,7 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 };
 
 /*
- * CTL_WRITE_HANDLER(queue_depth) -- returns the depth of the post commit queue
+ * CTL_READ_HANDLER(queue_depth) -- returns the depth of the post commit queue
  */
 static int
 CTL_READ_HANDLER(queue_depth)(void *ctx, enum ctl_query_source source,
