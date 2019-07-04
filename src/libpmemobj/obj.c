@@ -46,6 +46,7 @@
 #include "mmap.h"
 #include "obj.h"
 #include "ctl_global.h"
+#include "ravl.h"
 
 #include "heap_layout.h"
 #include "os.h"
@@ -1260,6 +1261,17 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		goto err_ctl;
 	}
 
+	util_mutex_init(&pop->ulog_user_buffers.lock);
+	pop->ulog_user_buffers.map = ravl_new_sized(
+		operation_user_buffer_range_cmp,
+		sizeof(struct user_buffer_def));
+	if (pop->ulog_user_buffers.map == NULL) {
+		ERR("!ravl_new_sized");
+		goto err_user_buffers_map;
+	}
+	ASSERTne(pop->ulog_user_buffers.map, NULL);
+	pop->ulog_user_buffers.verify = 0;
+
 	/*
 	 * If possible, turn off all permissions on the pool header page.
 	 *
@@ -1270,6 +1282,9 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 
 	return 0;
 
+err_user_buffers_map:
+	util_mutex_destroy(&pop->ulog_user_buffers.lock);
+	ctl_delete(pop->ctl);
 err_ctl:;
 	void *n = critnib_remove(pools_tree, (uint64_t)pop);
 	ASSERTne(n, NULL);
@@ -1928,6 +1943,9 @@ static void
 obj_pool_cleanup(PMEMobjpool *pop)
 {
 	LOG(3, "pop %p", pop);
+
+	ravl_delete(pop->ulog_user_buffers.map);
+	util_mutex_destroy(&pop->ulog_user_buffers.lock);
 
 	stats_delete(pop, pop->stats);
 	tx_params_delete(pop->tx_params);
