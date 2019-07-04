@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -89,29 +89,29 @@ struct name {\
 ((vec)->back - (vec)->front)
 
 static inline int
-vecq_grow(void *vec, size_t s)
+realloc_set(void **buf, size_t s)
 {
-	VECQ(vvec, void) *vecp = (struct vvec *)vec;
-	size_t ncapacity = vecp->capacity == 0 ?
-		VECQ_INIT_SIZE : vecp->capacity * 2;
-	void *tbuf = Realloc(vecp->buffer, s * ncapacity);
+	void *tbuf = Realloc(*buf, s);
 	if (tbuf == NULL) {
 		ERR("!Realloc");
 		return -1;
 	}
-	memcpy((char *)tbuf + (s * vecp->capacity), (char *)tbuf,
-		(s * VECQ_FRONT_POS(vecp)));
-
-	vecp->front = VECQ_FRONT_POS(vecp);
-	vecp->back = vecp->front + vecp->capacity;
-	vecp->capacity = ncapacity;
-	vecp->buffer = tbuf;
-
+	*buf = tbuf;
 	return 0;
 }
 
+#define VECQ_NCAPACITY(vec)\
+((vec)->capacity == 0 ? VECQ_INIT_SIZE : (vec)->capacity * 2)
 #define VECQ_GROW(vec)\
-vecq_grow((void *)vec, sizeof(*(vec)->buffer))
+(realloc_set((void **)&(vec)->buffer,\
+		VECQ_NCAPACITY(vec) * sizeof(*(vec)->buffer)) ? -1 :\
+	(memcpy((vec)->buffer + (vec)->capacity, (vec)->buffer,\
+		VECQ_FRONT_POS(vec) * sizeof(*(vec)->buffer)),\
+	(vec)->front = VECQ_FRONT_POS(vec),\
+	(vec)->back = (vec)->front + (vec)->capacity,\
+	(vec)->capacity = VECQ_NCAPACITY(vec),\
+	0\
+))
 
 #define VECQ_INSERT(vec, element)\
 (VECQ_BACK(vec) = element, (vec)->back += 1, 0)
