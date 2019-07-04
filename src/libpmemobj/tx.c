@@ -669,6 +669,39 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 }
 
 /*
+ * tx_construct_prealloc -- add user preallocated buffer to the ulog
+ */
+static int
+tx_construct_prealloc(struct tx *tx, void *addr, size_t size,
+		enum pobj_log_type type, uint64_t outer_tx)
+{
+	if (tx->pop != pmemobj_pool_by_ptr(addr)) {
+		ERR("Allocation from different pool");
+		goto err;
+	}
+
+	/*
+	 * We want to extend a log of a specified type, but if it is
+	 * outer transaction and first user preallocation we need to
+	 * free all logs except first at the beginning.
+	 */
+	struct operation_context *ctx =	type == TX_LOG_TYPE_INTENT ?
+		tx->lane->external : tx->lane->undo;
+
+	if (outer_tx && operation_get_first_prealloc(ctx))
+		operation_free_logs(ctx, ULOG_ANY_PREALLOCATION);
+
+	if (operation_add_extend(ctx, addr, size))
+		goto err;
+
+	operation_set_first_prealloc(ctx, 0);
+	return 0;
+
+err:
+	return obj_tx_abort_err(EINVAL);
+}
+
+/*
  * pmemobj_tx_begin -- initializes new transaction
  */
 int
@@ -1716,6 +1749,54 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 }
 
 /*
+ * pmemobj_tx_log_append_buffer -- append user allocated buffer to the ulog
+ */
+int
+pmemobj_tx_log_append_buffer(enum pobj_log_type type, void *addr, size_t size)
+{
+	struct tx *tx = get_tx();
+	ASSERT_TX_STAGE_WORK(tx);
+	PMEMOBJ_API_START();
+	int err = 0;
+
+	struct tx_data *td = PMDK_SLIST_FIRST(&tx->tx_entries);
+	err = tx_construct_prealloc(tx, addr, size, type,
+			PMDK_SLIST_NEXT(td, tx_entry) == NULL);
+
+	if (err)
+		goto err_abort;
+
+	PMEMOBJ_API_END();
+	return 0;
+
+err_abort:
+	if (tx->stage == TX_STAGE_WORK)
+		err = obj_tx_abort_err(err);
+	else
+		tx->stage = TX_STAGE_ONABORT;
+
+	PMEMOBJ_API_END();
+	return err;
+}
+
+/*
+ * pmemobj_tx_log_auto_alloc -- enable/disable automatic ulog allocation
+ */
+int
+pmemobj_tx_log_auto_alloc(enum pobj_log_type type, size_t on_off)
+{
+	struct tx *tx = get_tx();
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct operation_context *ctx =	type == TX_LOG_TYPE_INTENT ?
+		tx->lane->external : tx->lane->undo;
+
+	operation_set_auto_reserve(ctx, on_off);
+
+	return 0;
+}
+
+/*
  * CTL_READ_HANDLER(size) -- gets the cache size transaction parameter
  */
 static int
@@ -1833,7 +1914,95 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 };
 
 /*
- * CTL_WRITE_HANDLER(queue_depth) -- returns the depth of the post commit queue
+ * CTL_READ_HANDLER(alignment, snapshot) -- returns the undo log alignment
+ */
+static int
+CTL_READ_HANDLER(alignment, snapshot)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	unsigned *alignment = arg;
+
+	*alignment = TX_SNAPSHOT_ALIGNMENT;
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(alignment, intent) -- returns the redo log alignment
+ */
+static int
+CTL_READ_HANDLER(alignment, intent)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	unsigned *alignment = arg;
+
+	*alignment = TX_INTENT_ALIGNMENT;
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(entry_overhead, snapshot) -- returns the snapshot entry
+ * overhead
+ */
+static int
+CTL_READ_HANDLER(entry_overhead, snapshot)(void *ctx, enum ctl_query_source
+	source, void *arg, struct ctl_indexes *indexes)
+{
+	unsigned *entry_overhead = arg;
+
+	*entry_overhead = TX_SNAPSHOT_LOG_ENTRY_OVERHEAD;
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(buffer_overhead, snapshot) -- returns the snapshot
+ * buffer overhead
+ */
+static int
+CTL_READ_HANDLER(buffer_overhead, snapshot)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	unsigned *buffer_overhead = arg;
+
+	*buffer_overhead = TX_SNAPSHOT_LOG_BUFFER_OVERHEAD;
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(entry_overhead, intent) -- returns the redo log entry
+ * overhead
+ */
+static int
+CTL_READ_HANDLER(entry_overhead, intent)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	unsigned *entry_overhead = arg;
+
+	*entry_overhead = TX_INTENT_LOG_ENTRY_OVERHEAD;
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(buffer_overhead, intent) -- returns the redo log buffer
+ * overhead
+ */
+static int
+CTL_READ_HANDLER(buffer_overhead, intent)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	unsigned *buffer_overhead = arg;
+
+	*buffer_overhead = TX_INTENT_LOG_BUFFER_OVERHEAD;
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(queue_depth) -- returns the depth of the post commit queue
  */
 static int
 CTL_READ_HANDLER(queue_depth)(void *ctx, enum ctl_query_source source,
@@ -1882,10 +2051,40 @@ static const struct ctl_node CTL_NODE(post_commit)[] = {
 	CTL_NODE_END
 };
 
+static const struct ctl_node CTL_NODE(log, intent)[] = {
+	CTL_LEAF_RO(entry_overhead, intent),
+	CTL_LEAF_RO(buffer_overhead, intent),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(log, snapshot)[] = {
+	CTL_LEAF_RO(entry_overhead, snapshot),
+	CTL_LEAF_RO(buffer_overhead, snapshot),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(snapshot)[] = {
+	CTL_CHILD(log, snapshot),
+	CTL_LEAF_RO(alignment, snapshot),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(intent)[] = {
+	CTL_CHILD(log, intent),
+	CTL_LEAF_RO(alignment, intent),
+
+	CTL_NODE_END
+};
+
 static const struct ctl_node CTL_NODE(tx)[] = {
 	CTL_CHILD(debug),
 	CTL_CHILD(cache),
 	CTL_CHILD(post_commit),
+	CTL_CHILD(snapshot),
+	CTL_CHILD(intent),
 
 	CTL_NODE_END
 };
