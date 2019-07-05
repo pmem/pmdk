@@ -127,7 +127,7 @@ ulog_entry_size(const struct ulog_entry_base *entry)
  * Returns 1 if the range is valid, otherwise 0 is returned.
  */
 static int
-ulog_entry_valid(const struct ulog_entry_base *entry)
+ulog_entry_valid(struct ulog *ulog, const struct ulog_entry_base *entry)
 {
 	if (entry->offset == 0)
 		return 0;
@@ -140,7 +140,13 @@ ulog_entry_valid(const struct ulog_entry_base *entry)
 		case ULOG_OPERATION_BUF_SET:
 			size = ulog_entry_size(entry);
 			b = (struct ulog_entry_buf *)entry;
-			if (!util_checksum(b, size, &b->checksum, 0, 0))
+
+			uint64_t csum = util_checksum_compute(b, size,
+					&b->checksum, 0);
+			csum = util_checksum_seq(&ulog->gen_num,
+					sizeof(ulog->gen_num), csum);
+
+			if (b->checksum != csum)
 				return 0;
 			break;
 		default:
@@ -154,8 +160,8 @@ ulog_entry_valid(const struct ulog_entry_base *entry)
  * ulog_construct -- initializes the ulog structure
  */
 void
-ulog_construct(uint64_t offset, size_t capacity, int flush,
-	const struct pmem_ops *p_ops)
+ulog_construct(uint64_t offset, size_t capacity, uint64_t gen_num,
+		int flush, const struct pmem_ops *p_ops)
 {
 	struct ulog *ulog = ulog_by_offset(offset, p_ops);
 	ASSERTne(ulog, NULL);
@@ -165,6 +171,7 @@ ulog_construct(uint64_t offset, size_t capacity, int flush,
 	ulog->capacity = capacity;
 	ulog->checksum = 0;
 	ulog->next = 0;
+	ulog->gen_num = gen_num;
 	memset(ulog->unused, 0, sizeof(ulog->unused));
 
 	if (flush) {
@@ -198,7 +205,7 @@ ulog_foreach_entry(struct ulog *ulog,
 	for (struct ulog *r = ulog; r != NULL; r = ulog_next(r, ops)) {
 		for (size_t offset = 0; offset < r->capacity; ) {
 			e = (struct ulog_entry_base *)(r->data + offset);
-			if (!ulog_entry_valid(e))
+			if (!ulog_entry_valid(ulog, e))
 				return ret;
 
 			if ((ret = cb(e, arg, ops)) != 0)
@@ -246,9 +253,9 @@ ulog_rebuild_next_vec(struct ulog *ulog, struct ulog_next *next,
  */
 int
 ulog_reserve(struct ulog *ulog,
-	size_t ulog_base_nbytes, size_t *new_capacity, ulog_extend_fn extend,
-	struct ulog_next *next,
-	const struct pmem_ops *p_ops)
+	size_t ulog_base_nbytes, size_t gen_num,
+	size_t *new_capacity, ulog_extend_fn extend,
+	struct ulog_next *next, const struct pmem_ops *p_ops)
 {
 	size_t capacity = ulog_base_nbytes;
 
@@ -261,7 +268,7 @@ ulog_reserve(struct ulog *ulog,
 	}
 
 	while (capacity < *new_capacity) {
-		if (extend(p_ops->base, &ulog->next) != 0)
+		if (extend(p_ops->base, &ulog->next, gen_num) != 0)
 			return -1;
 		VEC_PUSH_BACK(next, ulog->next);
 		ulog = ulog_next(ulog, p_ops);
@@ -397,9 +404,9 @@ ulog_entry_val_create(struct ulog *ulog, size_t offset, uint64_t *dest,
  * ulog_entry_buf_create -- atomically creates a buffer entry in the log
  */
 struct ulog_entry_buf *
-ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t *dest,
-	const void *src, uint64_t size,
-	ulog_operation_type type, const struct pmem_ops *p_ops)
+ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
+		uint64_t *dest, const void *src, uint64_t size,
+		ulog_operation_type type, const struct pmem_ops *p_ops)
 {
 	struct ulog_entry_buf *e =
 		(struct ulog_entry_buf *)(ulog->data + offset);
@@ -469,6 +476,9 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 		b->checksum = util_checksum_seq(last_cacheline,
 			CACHELINE_SIZE, b->checksum);
 
+	b->checksum = util_checksum_seq(&gen_num, sizeof(gen_num),
+			b->checksum);
+
 	ASSERT(IS_CACHELINE_ALIGNED(e));
 
 	VALGRIND_ADD_TO_TX(e, CACHELINE_SIZE);
@@ -478,7 +488,7 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 
 	pmemops_drain(p_ops);
 
-	ASSERT(ulog_entry_valid(&e->base));
+	ASSERT(ulog_entry_valid(ulog, &e->base));
 
 	return e;
 }
@@ -559,6 +569,24 @@ ulog_process_entry(struct ulog_entry_base *e, void *arg,
 
 	return 0;
 }
+/*
+ * ulog_inc_gen_num -- (internal) increments gen num in the ulog
+ */
+static void
+ulog_inc_gen_num(struct ulog *ulog, const struct pmem_ops *p_ops)
+{
+	size_t gns = sizeof(ulog->gen_num);
+
+	VALGRIND_ADD_TO_TX(&ulog->gen_num, gns);
+	ulog->gen_num++;
+
+	if (p_ops)
+		pmemops_persist(p_ops, &ulog->gen_num, gns);
+	else
+		VALGRIND_SET_CLEAN(&ulog->gen_num, gns);
+
+	VALGRIND_REMOVE_FROM_TX(&ulog->gen_num, gns);
+}
 
 /*
  * ulog_clobber -- zeroes the metadata of the ulog
@@ -582,33 +610,35 @@ ulog_clobber(struct ulog *dest, struct ulog_next *next,
 /*
  * ulog_clobber_data -- zeroes out 'nbytes' of data in the logs
  */
-void
-ulog_clobber_data(struct ulog *dest,
+int
+ulog_clobber_data(struct ulog *ulog_first,
 	size_t nbytes, size_t ulog_base_nbytes,
 	struct ulog_next *next, ulog_free_fn ulog_free,
-	const struct pmem_ops *p_ops)
+	const struct pmem_ops *p_ops, unsigned flags)
 {
-	size_t rcapacity = ulog_base_nbytes;
-	size_t nlog = 0;
-	ASSERTne(dest, NULL);
+	ASSERTne(ulog_first, NULL);
 
-	for (struct ulog *r = dest; r != NULL; ) {
-		size_t nzero = MIN(nbytes, rcapacity);
-		VALGRIND_ADD_TO_TX(r->data, nzero);
-		pmemops_memset(p_ops, r->data, 0, nzero, PMEMOBJ_F_MEM_WC);
-		VALGRIND_ADD_TO_TX(r->data, nzero);
-		nbytes -= nzero;
+	/* In case of abort we need to increment counter in the first ulog. */
+	if (flags & ULOG_INC_FIRST_GEN_NUM)
+		ulog_inc_gen_num(ulog_first, p_ops);
 
-		if (nbytes == 0)
-			break;
-
-		r = ulog_by_offset(VEC_ARR(next)[nlog++], p_ops);
-		if (nlog > 1)
-			break;
-
-		ASSERTne(r, NULL);
-		rcapacity = r->capacity;
-	}
+	/*
+	 * In the case of abort or commit, we are not going to free all ulogs,
+	 * but rather increment the generation number to be consistent in the
+	 * first two ulogs.
+	 */
+	size_t second_offset = VEC_SIZE(next) == 0 ? 0 : *VEC_GET(next, 0);
+	struct ulog *ulog_second = ulog_by_offset(second_offset, p_ops);
+	if (ulog_second && !(flags & ULOG_FREE_AFTER_FIRST))
+		/*
+		 * We want to keep gen_nums consistent between ulogs.
+		 * If the transaction will commit successfully we'll reuse the
+		 * second buffer (third and next ones will be freed anyway).
+		 * If the application will crash we'll free 2nd ulog on
+		 * recovery, which means we'll never read gen_num of the
+		 * second ulog in case of an ungraceful shutdown.
+		 */
+		ulog_inc_gen_num(ulog_second, NULL);
 
 	/*
 	 * To make sure that transaction logs do not occupy too much of space,
@@ -619,9 +649,10 @@ ulog_clobber_data(struct ulog *dest,
 	 * buffer for each transaction is an acceptable overhead for the average
 	 * case.
 	 */
-	struct ulog *u = ulog_by_offset(dest->next, p_ops);
+	struct ulog *u = flags & ULOG_FREE_AFTER_FIRST ?
+		ulog_first : ulog_second;
 	if (u == NULL)
-		return;
+		return 0;
 
 	VEC(, uint64_t *) logs_past_first;
 	VEC_INIT(&logs_past_first);
@@ -643,6 +674,7 @@ ulog_clobber_data(struct ulog *dest,
 
 out:
 	VEC_DELETE(&logs_past_first);
+	return 1;
 }
 
 /*
@@ -674,7 +706,7 @@ ulog_base_nbytes(struct ulog *ulog)
 
 	for (offset = 0; offset < ulog->capacity; ) {
 		e = (struct ulog_entry_base *)(ulog->data + offset);
-		if (!ulog_entry_valid(e))
+		if (!ulog_entry_valid(ulog, e))
 			break;
 
 		offset += ulog_entry_size(e);

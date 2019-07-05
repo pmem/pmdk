@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -71,18 +71,19 @@ redo_log_constructor(void *ctx, void *ptr, size_t usable_size, void *arg)
 	PMEMobjpool *pop = ctx;
 	const struct pmem_ops *p_ops = &pop->p_ops;
 
-	ulog_construct(OBJ_PTR_TO_OFF(ctx, ptr), TEST_ENTRIES, 1, p_ops);
+	ulog_construct(OBJ_PTR_TO_OFF(ctx, ptr), TEST_ENTRIES,
+			*(uint64_t *)arg, 1, p_ops);
 
 	return 0;
 }
 
 static int
-pmalloc_redo_extend(void *base, uint64_t *redo)
+pmalloc_redo_extend(void *base, uint64_t *redo, uint64_t gen_num)
 {
 	size_t s = SIZEOF_ULOG(TEST_ENTRIES);
 
-	return pmalloc_construct(base, redo, s, redo_log_constructor, NULL, 0,
-		OBJ_INTERNAL_OBJECT_MASK, 0);
+	return pmalloc_construct(base, redo, s, redo_log_constructor, &gen_num,
+		0, OBJ_INTERNAL_OBJECT_MASK, 0);
 }
 
 static void
@@ -109,7 +110,7 @@ test_set_entries(PMEMobjpool *pop,
 			break;
 			case FAIL_MODIFY_NEXT:
 				pmalloc_redo_extend(pop,
-					&object->redo.next);
+					&object->redo.next, 0);
 			break;
 			case FAIL_MODIFY_VALUE:
 				object->redo.data[16] += 8;
@@ -124,7 +125,7 @@ test_set_entries(PMEMobjpool *pop,
 		for (size_t i = 0; i < nentries; ++i)
 			UT_ASSERTeq(object->values[i], 0);
 	} else {
-		operation_finish(ctx);
+		operation_finish(ctx, 0);
 
 		for (size_t i = 0; i < nentries; ++i)
 			UT_ASSERTeq(object->values[i], i + 1);
@@ -152,7 +153,7 @@ test_merge_op(struct operation_context *ctx, struct test_object *object)
 		&object->values[0], 0b01,
 		ULOG_OPERATION_OR, LOG_PERSISTENT);
 
-	operation_finish(ctx);
+	operation_finish(ctx, 0);
 
 	UT_ASSERTeq(object->values[0], 0b01);
 }
@@ -231,7 +232,7 @@ test_undo_small_single_copy(struct operation_context *ctx,
 	object->values[1] = 1;
 
 	operation_process(ctx);
-	operation_finish(ctx);
+	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
 
 	operation_start(ctx);
 
@@ -246,7 +247,7 @@ test_undo_small_single_copy(struct operation_context *ctx,
 	UT_ASSERTeq(object->values[0], 2);
 	UT_ASSERTeq(object->values[1], 1);
 
-	operation_finish(ctx);
+	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
 }
 
 static void
@@ -269,7 +270,7 @@ test_undo_small_single_set(struct operation_context *ctx,
 	UT_ASSERTeq(object->values[0], 0);
 	UT_ASSERTeq(object->values[1], 0);
 
-	operation_finish(ctx);
+	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
 }
 
 static void
@@ -293,7 +294,7 @@ test_undo_large_single_copy(struct operation_context *ctx,
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)
 		UT_ASSERTeq(object->values[i], i + 1);
 
-	operation_finish(ctx);
+	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
 }
 
 static void
@@ -322,7 +323,7 @@ test_undo_checksum_mismatch(PMEMobjpool *pop, struct operation_context *ctx,
 	for (uint64_t i = 0; i < 20; ++i)
 		UT_ASSERTeq(object->values[i], i + 2);
 
-	operation_finish(ctx);
+	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
 }
 
 static void
@@ -347,7 +348,7 @@ test_undo_large_copy(PMEMobjpool *pop, struct operation_context *ctx,
 		UT_ASSERTeq(object->values[i], i + 1);
 
 
-	operation_finish(ctx);
+	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
 
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)
 		object->values[i] = i + 3;
@@ -371,7 +372,7 @@ test_undo_large_copy(PMEMobjpool *pop, struct operation_context *ctx,
 	for (uint64_t i = 26; i < TEST_VALUES; ++i)
 		UT_ASSERTeq(object->values[i], i + 4);
 
-	operation_finish(ctx);
+	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
 }
 
 static void
@@ -419,7 +420,7 @@ main(int argc, char *argv[])
 		pmemobj_direct(pmemobj_root(pop, sizeof(struct test_object)));
 	UT_ASSERTne(object, NULL);
 	ulog_construct(OBJ_PTR_TO_OFF(pop, &object->undo),
-		TEST_ENTRIES, 1, &pop->p_ops);
+		TEST_ENTRIES, 0, 0, &pop->p_ops);
 
 	test_redo(pop, object);
 	test_undo(pop, object);

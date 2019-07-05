@@ -393,7 +393,7 @@ tx_abort_set(PMEMobjpool *pop, struct lane *lane)
 
 	ulog_foreach_entry((struct ulog *)&lane->layout->undo,
 		tx_undo_entry_apply, NULL, &pop->p_ops);
-	operation_finish(lane->undo);
+	operation_finish(lane->undo, ULOG_INC_FIRST_GEN_NUM);
 }
 
 /*
@@ -878,7 +878,7 @@ pmemobj_tx_errno(void)
 static void
 tx_post_commit(struct tx *tx)
 {
-	operation_finish(tx->lane->undo);
+	operation_finish(tx->lane->undo, 0);
 
 	VEC_CLEAR(&tx->actions);
 }
@@ -1076,7 +1076,7 @@ pmemobj_tx_add_snapshot(struct tx *tx, struct tx_range_def *snapshot)
 
 	/*
 	 * If we are creating the first snapshot, setup a redo log action to
-	 * clear the first entry so that the undo log becomes
+	 * increment counter in the undo log, so that the log becomes
 	 * invalid once the redo log is processed.
 	 */
 	if (tx->first_snapshot) {
@@ -1084,11 +1084,9 @@ pmemobj_tx_add_snapshot(struct tx *tx, struct tx_range_def *snapshot)
 		if (action == NULL)
 			return -1;
 
-		/* first entry of the first ulog */
-		struct ulog_entry_base *e =
-			(struct ulog_entry_base *)tx->lane->layout->undo.data;
+		uint64_t *n = &tx->lane->layout->undo.gen_num;
 		palloc_set_value(&tx->pop->heap, action,
-			&e->offset, 0);
+			n, *n + 1);
 
 		tx->first_snapshot = 0;
 	}
