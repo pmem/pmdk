@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,6 @@
  */
 
 #include "unittest.h"
-#include "util.h"
 #include "valgrind_internal.h"
 
 #define LAYOUT_NAME "intro_1"
@@ -94,8 +93,6 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_reorder_basic");
 
-	util_init();
-
 	if (argc != 3 || strchr("wc", argv[1][0]) == 0 || argv[1][1] != '\0')
 		UT_FATAL("usage: %s w|c file", argv[0]);
 
@@ -103,7 +100,7 @@ main(int argc, char *argv[])
 	UT_ASSERT(pop != NULL);
 
 	char opt = argv[1][0];
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_WRITE.BEGIN");
+	VALGRIND_PMC_EMIT_LOG("PMREORDER_MARKER_WRITE.BEGIN");
 	switch (opt) {
 		case 'w':
 		{
@@ -119,7 +116,7 @@ main(int argc, char *argv[])
 		default:
 			UT_FATAL("Unrecognized option %c", opt);
 	}
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_WRITE.END");
+	VALGRIND_PMC_EMIT_LOG("PMREORDER_MARKER_WRITE.END");
 
 	pmemobj_close(pop);
 	DONE(NULL);

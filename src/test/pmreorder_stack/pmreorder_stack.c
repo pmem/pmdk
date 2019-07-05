@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,6 @@
  */
 
 #include "unittest.h"
-#include "util.h"
 #include "valgrind_internal.h"
 
 /*
@@ -69,9 +68,9 @@ struct fields {
 static void
 write_fields(struct fields *fieldsp)
 {
-	VALGRIND_EMIT_LOG("FIELDS_PACK_TWO.BEGIN");
+	VALGRIND_PMC_EMIT_LOG("FIELDS_PACK_TWO.BEGIN");
 
-	VALGRIND_EMIT_LOG("FIELDS_PACK_ONE.BEGIN");
+	VALGRIND_PMC_EMIT_LOG("FIELDS_PACK_ONE.BEGIN");
 
 	fieldsp->a = 1;
 	fieldsp->b = 1;
@@ -79,7 +78,7 @@ write_fields(struct fields *fieldsp)
 	fieldsp->d = 1;
 	pmem_persist(&fieldsp->a, sizeof(int) * 4);
 
-	VALGRIND_EMIT_LOG("FIELDS_PACK_ONE.END");
+	VALGRIND_PMC_EMIT_LOG("FIELDS_PACK_ONE.END");
 
 	fieldsp->e = 1;
 	fieldsp->f = 1;
@@ -87,7 +86,7 @@ write_fields(struct fields *fieldsp)
 	fieldsp->h = 1;
 	pmem_persist(&fieldsp->e, sizeof(int) * 4);
 
-	VALGRIND_EMIT_LOG("FIELDS_PACK_TWO.END");
+	VALGRIND_PMC_EMIT_LOG("FIELDS_PACK_TWO.END");
 
 	fieldsp->i = 1;
 	fieldsp->j = 1;
@@ -114,8 +113,7 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "pmreorder_stack");
 
-	VALGRIND_EMIT_LOG("NOT_DEFINED_BY_USER.END");
-	util_init();
+	VALGRIND_PMC_EMIT_LOG("NOT_DEFINED_BY_USER.END");
 
 	if ((argc != 3) || (strchr("wc", argv[1][0]) == NULL) ||
 			argv[1][1] != '\0')

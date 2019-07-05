@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,7 +44,6 @@
  */
 
 #include "unittest.h"
-#include "util.h"
 #include "valgrind_internal.h"
 
 /*
@@ -103,8 +102,6 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "pmreorder_simple");
 
-	util_init();
-
 	if ((argc != 3) || (strchr("gbcm", argv[1][0]) == NULL) ||
 			argv[1][1] != '\0')
 		UT_FATAL("usage: %s g|b|c|m file", argv[0]);
@@ -132,7 +129,7 @@ main(int argc, char *argv[])
 	}
 
 	/* verify that DEFAULT_REORDER restores default engine */
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_CHANGE.BEGIN");
+	VALGRIND_PMC_EMIT_LOG("PMREORDER_MARKER_CHANGE.BEGIN");
 
 	switch (opt) {
 		case 'g':
@@ -149,11 +146,11 @@ main(int argc, char *argv[])
 		default:
 			UT_FATAL("Unrecognized option %c", opt);
 	}
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_CHANGE.END");
+	VALGRIND_PMC_EMIT_LOG("PMREORDER_MARKER_CHANGE.END");
 
 	/* check if undefined marker will not cause an issue */
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_UNDEFINED.BEGIN");
-	VALGRIND_EMIT_LOG("PMREORDER_MARKER_UNDEFINED.END");
+	VALGRIND_PMC_EMIT_LOG("PMREORDER_MARKER_UNDEFINED.BEGIN");
+	VALGRIND_PMC_EMIT_LOG("PMREORDER_MARKER_UNDEFINED.END");
 
 	CLOSE(fd);
 
