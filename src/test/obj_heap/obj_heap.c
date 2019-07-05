@@ -269,7 +269,8 @@ do_fault_injection_recycler()
 
 	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "recycler_new");
 
-	struct recycler *r = recycler_new(NULL, 0);
+	size_t active_arenas = 1;
+	struct recycler *r = recycler_new(NULL, 0, &active_arenas);
 	UT_ASSERTeq(r, NULL);
 	UT_ASSERTeq(errno, ENOMEM);
 }
@@ -454,7 +455,10 @@ test_recycler(void)
 
 	int ret;
 
-	struct recycler *r = recycler_new(&pop->heap, 10000 /* never recalc */);
+	size_t active_arenas = 1;
+	struct recycler *r = recycler_new(&pop->heap, 10000 /* never recalc */,
+		&active_arenas);
+
 	UT_ASSERTne(r, NULL);
 
 	init_run_with_score(pop->heap.layout, 0, 64);

@@ -89,10 +89,9 @@ struct recycler {
 	size_t unaccounted_units[MAX_CHUNK];
 	size_t unaccounted_total;
 	size_t nallocs;
-	size_t recalc_threshold;
+	size_t *peak_arenas;
 
 	VEC(, struct recycler_element) recalc;
-	VEC(, struct memory_block_reserved *) pending;
 
 	os_mutex_t lock;
 };
@@ -101,7 +100,7 @@ struct recycler {
  * recycler_new -- creates new recycler instance
  */
 struct recycler *
-recycler_new(struct palloc_heap *heap, size_t nallocs)
+recycler_new(struct palloc_heap *heap, size_t nallocs, size_t *peak_arenas)
 {
 	struct recycler *r = Malloc(sizeof(struct recycler));
 	if (r == NULL)
@@ -114,12 +113,11 @@ recycler_new(struct palloc_heap *heap, size_t nallocs)
 
 	r->heap = heap;
 	r->nallocs = nallocs;
-	r->recalc_threshold = nallocs * THRESHOLD_MUL;
+	r->peak_arenas = peak_arenas;
 	r->unaccounted_total = 0;
 	memset(&r->unaccounted_units, 0, sizeof(r->unaccounted_units));
 
 	VEC_INIT(&r->recalc);
-	VEC_INIT(&r->pending);
 
 	util_mutex_init(&r->lock);
 
@@ -139,11 +137,6 @@ recycler_delete(struct recycler *r)
 {
 	VEC_DELETE(&r->recalc);
 
-	struct memory_block_reserved *mr;
-	VEC_FOREACH(mr, &r->pending) {
-		Free(mr);
-	}
-	VEC_DELETE(&r->pending);
 	util_mutex_destroy(&r->lock);
 	ravl_delete(r->runs);
 	Free(r);
@@ -199,31 +192,6 @@ recycler_put(struct recycler *r, const struct memory_block *m,
 }
 
 /*
- * recycler_pending_check -- iterates through pending memory blocks, checks
- *	the reservation status, and puts it in the recycler if the there
- *	are no more unfulfilled reservations for the block.
- */
-static void
-recycler_pending_check(struct recycler *r)
-{
-	struct memory_block_reserved *mr = NULL;
-	size_t pos;
-	VEC_FOREACH_BY_POS(pos, &r->pending) {
-		mr = VEC_ARR(&r->pending)[pos];
-		if (mr->nresv == 0) {
-			struct recycler_element e = recycler_element_new(
-				r->heap, &mr->m);
-			if (ravl_emplace_copy(r->runs, &e) != 0) {
-				ERR("unable to track run %u due to OOM",
-					mr->m.chunk_id);
-			}
-			Free(mr);
-			VEC_ERASE_BY_POS(&r->pending, pos);
-		}
-	}
-}
-
-/*
  * recycler_get -- retrieves a chunk from the recycler
  */
 int
@@ -232,8 +200,6 @@ recycler_get(struct recycler *r, struct memory_block *m)
 	int ret = 0;
 
 	util_mutex_lock(&r->lock);
-
-	recycler_pending_check(r);
 
 	struct recycler_element e = { .max_free_block = m->size_idx, 0, 0, 0};
 	struct ravl_node *n = ravl_find(r->runs, &e,
@@ -261,19 +227,6 @@ out:
 }
 
 /*
- * recycler_pending_put -- places the memory block in the pending container
- */
-void
-recycler_pending_put(struct recycler *r,
-	struct memory_block_reserved *m)
-{
-	util_mutex_lock(&r->lock);
-	if (VEC_PUSH_BACK(&r->pending, m) != 0)
-		ASSERT(0); /* XXX: fix after refactoring */
-	util_mutex_unlock(&r->lock);
-}
-
-/*
  * recycler_recalc -- recalculates the scores of runs in the recycler to match
  *	the updated persistent state
  */
@@ -284,8 +237,10 @@ recycler_recalc(struct recycler *r, int force)
 	VEC_INIT(&runs);
 
 	uint64_t units = r->unaccounted_total;
+	uint64_t recalc_threshold =
+		THRESHOLD_MUL * (*r->peak_arenas) * r->nallocs;
 
-	if (units == 0 || (!force && units < (r->recalc_threshold)))
+	if (units == 0 || (!force && units < recalc_threshold))
 		return runs;
 
 	if (util_mutex_trylock(&r->lock) != 0)
