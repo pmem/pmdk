@@ -35,34 +35,27 @@
 # Used to check whether all the commit messages in a pull request
 # follow the GIT/PMDK guidelines.
 #
-# usage: ./check-commit.sh [commit]...
+# usage: ./check-commit.sh [range]
 #
 
 if [ -z "$1" ]; then
-	if [ -z "$TRAVIS_REPO_SLUG" -o -z "$GITHUB_REPO" -o -z "$TRAVIS_EVENT_TYPE" ]; then
-		echo "Usage: $0 [commit]..."
-		exit 1
+	# on Travis run this check only for pull requests
+	if [ -n "$TRAVIS_REPO_SLUG" ]; then
+		if [[ "$TRAVIS_REPO_SLUG" != "$GITHUB_REPO" \
+			|| $TRAVIS_EVENT_TYPE != "pull_request" ]];
+		then
+			echo "SKIP: $0 can only be executed for pull requests to $GITHUB_REPO"
+			exit 0
+		fi
 	fi
 
-	if [[ "$TRAVIS_REPO_SLUG" != "$GITHUB_REPO" \
-		|| $TRAVIS_EVENT_TYPE != "pull_request" ]];
-	then
-		echo "SKIP: $0 can only be executed for pull requests to $GITHUB_REPO"
-		exit 0
-	fi
-
-	# Find all the commits for the current build
-	if [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
-		MERGE_BASE=$(echo $TRAVIS_COMMIT_RANGE | cut -d. -f1)
-		[ -z $MERGE_BASE ] && \
-			MERGE_BASE=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
-		commits=$(git log --pretty=%H $MERGE_BASE..$TRAVIS_COMMIT)
-	else
-		commits=$TRAVIS_COMMIT
-	fi
+	last_merge=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
+	range=${last_merge}..HEAD
 else
-	commits="$*"
+	range="$1"
 fi
+
+commits=$(git log --pretty=%H $range)
 
 # valid area names
 AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmalloc\|jemalloc\|doc\|common\|daxio\|pmreorder"
