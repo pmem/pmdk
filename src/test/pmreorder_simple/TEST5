@@ -38,7 +38,6 @@
 # disabling reordering of API functions
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem

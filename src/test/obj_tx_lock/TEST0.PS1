@@ -35,7 +35,6 @@
 # src/test/obj_tx_lock/TEST0 -- unit test for pmemobj_tx_lock()
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

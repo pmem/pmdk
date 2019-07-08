@@ -48,7 +48,6 @@
 # with 2M alignment. Expected success, as pool is created with SINGLEHDR option.
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

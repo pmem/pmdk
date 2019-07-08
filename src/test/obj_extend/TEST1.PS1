@@ -34,7 +34,6 @@
 # src/test/obj_extend/TEST1 -- unit test for extending the pool
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

@@ -35,7 +35,6 @@
 # src/test/obj_critnib_mt/TEST0 -- multithreaded test for critnib
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

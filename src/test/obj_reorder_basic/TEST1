@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 # with PMREORDER_EMIT_LOG flag enabled
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 # it doesn't make sense to run in local directory

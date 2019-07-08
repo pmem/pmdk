@@ -35,7 +35,6 @@
 # src/test/obj_critnib/TEST1 -- multithreaded test for critnib
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type long

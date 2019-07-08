@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,6 @@
 # src/test/blk_rw_mt/TEST2 -- unit test for MT I/O on blk pool
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 # this is the long version of the test

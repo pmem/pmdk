@@ -35,7 +35,6 @@
 # src/test/scope/TEST2 -- scope test to check libpmemlog symbols
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

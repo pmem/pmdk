@@ -36,7 +36,6 @@
 # with device dax
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

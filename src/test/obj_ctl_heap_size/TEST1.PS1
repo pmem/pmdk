@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,6 @@
 # src/test/obj_ctl_heap_size/TEST1 -- unit test for obj_ctl_heap_size()
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type short

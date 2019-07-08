@@ -37,7 +37,6 @@
 # variable can be overwrite in the next barrier and then persisted properly.
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_fs_type pmem non-pmem

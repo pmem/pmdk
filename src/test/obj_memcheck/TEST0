@@ -35,7 +35,6 @@
 # src/test/obj_memcheck/TEST0 -- unit test for obj_memcheck
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

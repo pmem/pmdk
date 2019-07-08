@@ -35,7 +35,6 @@
 # src/test/obj_recovery/TEST9 -- unit test for pool recovery
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

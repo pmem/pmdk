@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,7 +33,6 @@
 # src\test\util_poolset_size\TEST0 -- unit test for util_poolset_size
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

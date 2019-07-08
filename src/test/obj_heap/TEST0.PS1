@@ -34,7 +34,6 @@
 # src/test/obj_heap/TEST0 -- unit test for obj_heap interface
 #
 
-# standard unit test setup
 
 . ..\unittest\unittest.ps1
 

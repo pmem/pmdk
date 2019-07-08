@@ -34,7 +34,6 @@
 # src/test/util_poolset/TEST6w -- unit test for util_pool_open()
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

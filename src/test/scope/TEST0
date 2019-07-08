@@ -35,7 +35,6 @@
 # src/test/scope/TEST0 -- scope test to check libvmem symbols
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

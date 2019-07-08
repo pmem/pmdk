@@ -35,7 +35,6 @@
 # src/test/vmmalloc_init/TEST16 -- unit test for vmmalloc_init
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
