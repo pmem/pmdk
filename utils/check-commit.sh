@@ -87,7 +87,7 @@ for commit in $commits; do
 	if [ $commit_len -gt 73 ]; then
 		echo "FAIL: commit message exceeds 72 chars per line (commit_len)"
 		echo
-		git log -n 1 $commit
+		git log -n 1 $commit | cat
 		exit 1
 	fi
 done
