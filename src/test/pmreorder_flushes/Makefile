@@ -38,6 +38,8 @@ TARGET = pmreorder_flushes
 OBJS = pmreorder_flushes.o
 
 LIBPMEM=y
+
+# included for VALGRIND_EMIT_LOG
 LIBPMEMCOMMON=y
 
 include ../Makefile.inc
