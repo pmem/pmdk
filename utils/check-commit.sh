@@ -52,6 +52,11 @@ if [[ $subject =~ ^Merge.* ]]; then
 	exit 0
 fi
 
+if [[ $subject =~ ^Revert.* ]]; then
+	# skip
+	exit 0
+fi
+
 # valid area names
 AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmalloc\|jemalloc\|doc\|common\|daxio\|pmreorder"
 
