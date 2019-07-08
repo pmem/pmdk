@@ -110,7 +110,7 @@ test check pcheck pycheck: all
 	$(MAKE) -C src $@
 
 cstyle:
-	test -d .git && utils/check-commit.sh
+	test -d .git && utils/check-commits.sh
 	$(MAKE) -C src $@
 	$(MAKE) -C utils $@
 	@echo Checking files for whitespace issues...
