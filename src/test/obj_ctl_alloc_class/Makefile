@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 TARGET = obj_ctl_alloc_class
 OBJS = obj_ctl_alloc_class.o
 
-LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc

@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 TARGET = util_ctl
 OBJS = util_ctl.o
 
-LIBPMEM=y
 LIBPMEMCOMMON=y
 
 include ../Makefile.inc

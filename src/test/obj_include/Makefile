@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,7 +40,6 @@ OBJS = obj_atomic_base_include.o obj_atomic_include.o \
        obj_pool_base_include.o obj_pool_include.o obj_thread_include.o \
        obj_tx_base_include.o obj_tx_include.o obj_types_include.o
 
-LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc

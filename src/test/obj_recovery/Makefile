@@ -37,7 +37,6 @@
 TARGET = obj_recovery
 OBJS = obj_recovery.o
 
-LIBPMEM=y
 LIBPMEMOBJ=y
 LIBPMEMCOMMON=y
 

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,7 +38,6 @@ vpath %.c ../../libpmemobj
 TARGET = obj_direct
 OBJS = obj_direct.o obj_direct_inline.o obj_direct_non_inline.o
 
-LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc

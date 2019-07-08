@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,7 +42,6 @@ TARGET = rpmemd_util
 OBJS = rpmemd_util_test.o rpmem_common.o rpmemd_log.o rpmemd_util.o
 
 LIBPMEM=y
-LIBPMEMCOMMON=y
 
 include ../Makefile.inc
 

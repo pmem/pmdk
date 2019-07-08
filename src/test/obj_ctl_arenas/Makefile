@@ -36,7 +36,6 @@
 TARGET = obj_ctl_arenas
 OBJS = obj_ctl_arenas.o
 
-LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc

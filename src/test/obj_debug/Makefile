@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 TARGET = obj_debug
 OBJS = obj_debug.o
 
-LIBPMEM=y
 LIBPMEMOBJ=y
 
 BUILD_STATIC_NONDEBUG=n

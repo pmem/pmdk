@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,6 @@ TARGET = util_poolset
 OBJS = util_poolset.o mocks_posix.o
 
 LIBPMEMCOMMON=y
-LIBPMEM=y
 
 USE_PMEMSPOIL=y
 

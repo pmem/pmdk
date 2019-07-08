@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 TARGET = blk_non_zero
 OBJS = blk_non_zero.o
 
-LIBPMEM=y
 LIBPMEMBLK=y
 
 include ../Makefile.inc
