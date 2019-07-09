@@ -38,7 +38,6 @@
 # for all replicas but it have never worked for remote ones)
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

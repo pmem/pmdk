@@ -35,7 +35,6 @@
 # src\test\blk_recovery\TEST0 -- unit test for pmemblk recovery
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

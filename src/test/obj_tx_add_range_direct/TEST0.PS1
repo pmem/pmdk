@@ -36,7 +36,6 @@
 # pmemobj_tx_add_range_direct
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

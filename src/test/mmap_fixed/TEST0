@@ -35,7 +35,6 @@
 # src/test/mmap_fixed/TEST0 -- unit test for memory mapping routines
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

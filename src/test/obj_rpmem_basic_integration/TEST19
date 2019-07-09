@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,6 @@
 # obj_rpmem_basic_integration/TEST19 -- minimal pool parts size
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

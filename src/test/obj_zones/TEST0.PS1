@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,6 @@
 # from a very large pool (exceeding 1 zone)
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 # too large

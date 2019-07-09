@@ -32,7 +32,6 @@
 # src/test/ctl_cow/TEST0 -- unit test which check copy on write feature
 # for obj pools
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

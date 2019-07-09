@@ -36,7 +36,6 @@
 # (rpmem_flush, rpmem_drain and rpmem_persist)
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

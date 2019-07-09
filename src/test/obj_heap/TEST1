@@ -35,7 +35,6 @@
 # src/test/obj_heap/TEST1 -- unit test for inject fault malloc
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

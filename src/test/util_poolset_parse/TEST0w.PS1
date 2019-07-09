@@ -35,7 +35,6 @@
 # src\test\util_poolset_parse\TEST0 -- unit test for parsing a pool set file
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

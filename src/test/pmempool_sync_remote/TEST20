@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,6 @@
 # pmempool_sync_remote/TEST20 -- pmempool sync with remote replication
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

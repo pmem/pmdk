@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,6 @@
 # src/test/obj_lane/TEST1 -- multithreaded unit test for lanes
 #
 
-# standard unit test setup
 
 . ..\unittest\unittest.ps1
 

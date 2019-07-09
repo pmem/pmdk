@@ -37,7 +37,6 @@
 # case: negative test for local poolsets with the NOHDRS option
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

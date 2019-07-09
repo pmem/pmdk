@@ -35,7 +35,6 @@
 # src/test/scope/TEST1 -- scope test to check libpmem symbols
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

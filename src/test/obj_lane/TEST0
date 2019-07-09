@@ -35,7 +35,6 @@
 # src/test/obj_lane/TEST0 -- single thread unit test for lanes
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

@@ -35,7 +35,6 @@
 # src/test/obj_tx_flow/TEST0 -- unit test for transaction flow
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

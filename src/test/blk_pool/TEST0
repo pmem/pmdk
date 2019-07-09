@@ -35,7 +35,6 @@
 # src/test/blk_pool/TEST0 -- unit test for pmemblk_create
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

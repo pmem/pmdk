@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -44,7 +44,6 @@
 #                           replica #2 part #0: blocks: offset: 8000 length: 24
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

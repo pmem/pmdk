@@ -36,7 +36,6 @@
 #
 export VALGRIND_OPTS="--suppressions=excluded-errors.supp --leak-check=full\
 	--show-reachable=yes"
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

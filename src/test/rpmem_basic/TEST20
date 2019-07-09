@@ -35,7 +35,6 @@
 # src/test/rpmem_basic/TEST20 -- unit test for rpmem_flush and rpmem_drain
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

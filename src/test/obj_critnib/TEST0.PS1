@@ -35,7 +35,6 @@
 # src/test/obj_critnib/TEST0 -- unit test for critnib hash table
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_test_type medium

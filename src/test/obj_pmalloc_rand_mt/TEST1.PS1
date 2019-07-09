@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,6 @@
 # src/test/obj_pmalloc_rand_mt/TEST1 -- multithreaded allocator test
 #
 
-# standard unit test setup
 . ..\unittest\unittest.ps1
 
 require_fs_type pmem

@@ -47,7 +47,6 @@
 # Same as TEST1, but run on a single Device DAX device.
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

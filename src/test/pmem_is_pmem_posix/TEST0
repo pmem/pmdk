@@ -35,7 +35,6 @@
 # src/test/pmem_is_pmem_posix/TEST0 -- unit test for pmem_is_pmem
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

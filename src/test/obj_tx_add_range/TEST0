@@ -35,7 +35,6 @@
 # src/test/obj_tx_add_range/TEST0 -- unit test for pmemobj_tx_add_range
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

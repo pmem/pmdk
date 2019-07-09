@@ -35,7 +35,6 @@
 # src/test/vmmalloc_fork/TEST1 -- unit test for libvmmalloc fork() support
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

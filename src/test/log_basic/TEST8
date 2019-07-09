@@ -48,7 +48,6 @@
 # with 4K alignment.
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium

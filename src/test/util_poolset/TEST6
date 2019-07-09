@@ -35,7 +35,6 @@
 # src/test/util_poolset/TEST6 -- unit test for util_pool_open()
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
