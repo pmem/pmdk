@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@ fi
 
 files=`git show $1 | grep -e "^--- a/" -e "^+++ b/" | grep -v /dev/null | sed "s/^--- a\///" | sed "s/^+++ b\///" | uniq`
 
-git show -q $1
+git show -q $1 | cat
 
 echo
 echo "Modified files:"
