@@ -32,7 +32,7 @@
 
 set -e
 
-source valid-branches.sh
+source `dirname $0`/valid-branches.sh
 
 BOT_NAME="pmem-bot"
 USER_NAME="pmem"
