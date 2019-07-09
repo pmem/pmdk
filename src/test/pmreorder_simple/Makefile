@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,6 +39,8 @@ TARGET = pmreorder_simple
 OBJS = pmreorder_simple.o
 
 LIBPMEM=y
+
+# included for VALGRIND_EMIT_LOG
 LIBPMEMCOMMON=y
 
 include ../Makefile.inc

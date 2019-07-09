@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -114,7 +114,6 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "pmreorder_stack");
 
-	VALGRIND_EMIT_LOG("NOT_DEFINED_BY_USER.END");
 	util_init();
 
 	if ((argc != 3) || (strchr("wc", argv[1][0]) == NULL) ||
