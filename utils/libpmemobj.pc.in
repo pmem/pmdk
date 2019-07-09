@@ -4,8 +4,7 @@ Name: libpmemobj
 Description: libpmemobj library from PMDK project
 Version: ${version}
 URL: http://pmem.io/pmdk
-Requires.private: libpmem
-Requires.private: ${rasdeps}
+Requires.private: libpmem, ${rasdeps}
 Libs: -L${libdir} -lpmemobj
 Libs.private: -ldl
 Cflags: -I${includedir}
