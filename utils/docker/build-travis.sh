@@ -39,7 +39,7 @@
 
 set -e
 
-source valid-branches.sh
+source `dirname $0`/valid-branches.sh
 
 if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$TRAVIS_BRANCH" != "coverity_scan" \
 	&& "$COVERITY" -eq 1 ]]; then
