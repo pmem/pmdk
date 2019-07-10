@@ -50,3 +50,8 @@ make -j2 pcheck TEST_BUILD=$TEST_BUILD
 make -j2 pycheck
 make DESTDIR=/tmp source
 
+# Create PR with generated docs
+if [[ "$AUTO_DOC_UPDATE" == "1" ]]; then
+	echo "Running auto doc update"
+	./utils/docker/run-doc-update.sh
+fi
