@@ -115,7 +115,7 @@ sds.at_create | rw | global | int | int | - | boolean
 
 If set, force-enables or force-disables SDS feature during pool creation.
 Affects only the **pmemlog_createU**()/**pmemlog_createW**() function. See **pmempool_feature_query**(3)
-for informations about SDS (SHUTDOWN_STATE) feature.
+for information about SDS (SHUTDOWN_STATE) feature.
 
 Always returns 0.
 

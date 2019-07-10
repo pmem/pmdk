@@ -168,7 +168,7 @@ The **pmemobj_type_num**() function returns the type number of the object
 represented by *oid*.
 
 The **pmemobj_pool_by_oid**() function returns a handle to the pool that
-contains the object represented by *oid*. If the the pool is not open or
+contains the object represented by *oid*. If the pool is not open or
 *oid* is **OID_NULL**, **pmemobj_pool_by_oid**() returns NULL.
 
 The **pmemobj_pool_by_ptr**() function returns a handle to the pool that

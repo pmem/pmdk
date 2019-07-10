@@ -163,7 +163,7 @@ the most reliable persistence domain available to software rather than depending
 automatic WPQ (write pending queue) flush on power failure (ADR).
 
 The **pmem_deep_flush**() and **pmem_deep_drain**() functions provide
-partial varsions of **pmem_deep_persist**() function.
+partial versions of **pmem_deep_persist**() function.
 **pmem_deep_persist**() can be thought of as this:
 
 ```
