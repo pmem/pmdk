@@ -213,8 +213,8 @@ of type \f[I]lock_type\f[] and adds it to the current transaction.
 \f[I]PMEMmutex\f[] or \f[I]PMEMrwlock\f[], respectively.
 If \f[I]lock_type\f[] is \f[B]TX_LOCK_RWLOCK\f[] the lock is acquired
 for writing.
-If the lock is not successfully acquired, the stage is changed to
-\f[B]TX_STAGE_ONABORT\f[].
+If the lock is not successfully acquired, the function returns an error
+number.
 This function must be called during \f[B]TX_STAGE_WORK\f[].
 .PP
 \f[B]pmemobj_tx_abort\f[]() aborts the current transaction and causes a
