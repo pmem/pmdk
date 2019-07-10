@@ -39,7 +39,7 @@
 #
 
 directory=doc/generated
-allowed_user="Generic builder <nvml-bot@intel.com>"
+allowed_user="pmem-bot <pmem-bot@intel.com>"
 
 if [[ -z "$TRAVIS" ]]; then
 	echo "ERROR: $0 can only be executed on Travis CI."
