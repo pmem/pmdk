@@ -139,7 +139,7 @@ libpmemblk libpmemlog libpmemobj: libpmem
 benchmarks test tools: common
 
 pkg-cfg-common:
-	@printf "version=%s\nlibdir=%s\nprefix=%s\nrasdeps=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" "$(LIBNDCTL_PKG_CONFIG_DEPS)" > $(PKG_CONFIG_COMMON)
+	@printf "version=%s\nlibdir=%s\nprefix=%s\nrasdeps=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" "$(LIBNDCTL_PKG_CONFIG_DEPS_VAR)" > $(PKG_CONFIG_COMMON)
 
 $(PKG_CONFIG_COMMON): pkg-cfg-common
 

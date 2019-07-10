@@ -390,6 +390,7 @@ ifeq ($(NDCTL_ENABLE),y)
             $(error libdaxctl(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
         endif
         LIBNDCTL_PKG_CONFIG_DEPS := libndctl libdaxctl
+        LIBNDCTL_PKG_CONFIG_DEPS_VAR := ,libndctl,libdaxctl
         LIBNDCTL_CFLAGS := $(shell $(PKG_CONFIG) --cflags $(LIBNDCTL_PKG_CONFIG_DEPS))
         LIBNDCTL_LD_LIBRARY_PATHS := $(shell $(PKG_CONFIG) --variable=libdir $(LIBNDCTL_PKG_CONFIG_DEPS) | sed "s/ /:/")
         LIBNDCTL_LIBS := $(shell $(PKG_CONFIG) --libs $(LIBNDCTL_PKG_CONFIG_DEPS))
@@ -400,6 +401,7 @@ else
 endif
 export OS_DIMM
 export LIBNDCTL_PKG_CONFIG_DEPS
+export LIBNDCTL_PKG_CONFIG_DEPS_VAR
 export LIBNDCTL_CFLAGS
 export LIBNDCTL_LD_LIBRARY_PATHS
 export LIBNDCTL_LIBS
