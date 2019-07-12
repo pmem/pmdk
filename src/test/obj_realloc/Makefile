@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,10 +36,6 @@
 TARGET = obj_realloc
 OBJS = obj_realloc.o
 
-LIBPMEMCOMMON=y
-LIBPMEM=y
 LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc
-
-CFLAGS += -I$(TOP)/src/libpmemobj

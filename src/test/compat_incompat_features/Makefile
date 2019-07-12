@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,6 @@
 TARGET = pool_open
 OBJS = pool_open.o
 
-LIBPMEM=y
 LIBPMEMOBJ=y
 LIBPMEMBLK=y
 LIBPMEMLOG=y

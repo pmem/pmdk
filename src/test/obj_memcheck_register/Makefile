@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 TARGET = obj_memcheck_register
 OBJS = obj_memcheck_register.o
 
-LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc

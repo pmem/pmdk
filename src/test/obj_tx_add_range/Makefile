@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,7 +39,6 @@ TARGET = obj_tx_add_range
 OBJS = obj_tx_add_range.o
 
 LIBPMEMCOMMON=y
-LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc

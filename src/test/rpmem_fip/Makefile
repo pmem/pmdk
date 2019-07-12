@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -62,7 +62,6 @@ BUILD_STATIC_DEBUG=n
 BUILD_STATIC_NONDEBUG=n
 
 LIBPMEMCOMMON=y
-LIBPMEM=y
 
 include ../Makefile.inc
 

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,7 +39,6 @@ OBJS = obj_list.o obj_list_mocks.o obj_list_mocks_palloc.o
 BUILD_STATIC_DEBUG=n
 BUILD_STATIC_NONDEBUG=n
 
-LIBPMEM=y
 LIBPMEMOBJ=internal-debug
 
 include ../Makefile.inc

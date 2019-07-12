@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,8 +34,6 @@
 # src/test/pmempool_transform/Makefile -- build pmempool transform test
 #
 
-LIBPMEM=y
-LIBPMEMPOOL=y
 USE_PMEMOBJCLI=y
 USE_DDMAP=y
 

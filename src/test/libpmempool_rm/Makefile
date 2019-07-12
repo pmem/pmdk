@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 TARGET = libpmempool_rm
 OBJS = libpmempool_rm.o
 
-LIBPMEM=y
 LIBPMEMOBJ=y
 LIBPMEMPOOL=y
 

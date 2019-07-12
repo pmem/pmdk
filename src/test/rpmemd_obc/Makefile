@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,8 +38,6 @@ SCP_TO_REMOTE_NODES = y
 vpath %.c ../../tools/rpmemd
 vpath %.c ../../rpmem_common
 vpath %.c ../../librpmem
-
-LIBPMEM=y
 
 TARGET = rpmemd_obc
 OBJS = rpmemd_obc_test.o\

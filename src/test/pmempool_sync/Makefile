@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,8 +34,6 @@
 # src/test/pmempool_sync/Makefile -- build pmempool sync test
 #
 
-LIBPMEM=y
-LIBPMEMPOOL=y
 USE_DDMAP=y
 USE_PMEMOBJCLI=y
 USE_PMEMSPOIL=y

@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,6 @@ TARGET = obj_tx_alloc
 OBJS = obj_tx_alloc.o
 
 LIBPMEMCOMMON=y
-LIBPMEM=y
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
