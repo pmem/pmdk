@@ -814,8 +814,10 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		b->c_ops->rm_all(b->container);
 		struct memory_block_reserved **active = &b->active_memory_block;
 		if (util_fetch_and_sub64(&(*active)->nresv, 1) == 1) {
+			VALGRIND_ANNOTATE_HAPPENS_AFTER(&(*active)->nresv);
 			heap_discard_run(heap, &(*active)->m);
 		} else {
+			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&(*active)->nresv);
 			*active = Zalloc(sizeof(struct memory_block_reserved));
 		}
 		b->is_active = 0;
