@@ -618,6 +618,35 @@ ulog_clobber_data(struct ulog *ulog_first,
 {
 	ASSERTne(ulog_first, NULL);
 
+	/* --------------- */
+	/*
+	 * This is a quick workaround for issue injected in commit:
+	 * 2ab13304664b353b82730f49b78fc67eea33b25b (ulog-invalidation).
+	 * This patrt of the code for sure impact performance,
+	 * and needs to be removed when proper fix will be implemented.
+	 */
+	size_t rcapacity = ulog_base_nbytes;
+	size_t numlog = 0;
+
+	for (struct ulog *r = ulog_first; r != NULL; ) {
+		size_t nzero = MIN(nbytes, rcapacity);
+		VALGRIND_ADD_TO_TX(r->data, nzero);
+		pmemops_memset(p_ops, r->data, 0, nzero, PMEMOBJ_F_MEM_WC);
+		VALGRIND_ADD_TO_TX(r->data, nzero);
+		nbytes -= nzero;
+
+		if (nbytes == 0)
+			break;
+
+		r = ulog_by_offset(VEC_ARR(next)[numlog++], p_ops);
+		if (numlog > 1)
+			break;
+
+		ASSERTne(r, NULL);
+		rcapacity = r->capacity;
+	}
+	/* -------------- */
+
 	/* In case of abort we need to increment counter in the first ulog. */
 	if (flags & ULOG_INC_FIRST_GEN_NUM)
 		ulog_inc_gen_num(ulog_first, p_ops);
