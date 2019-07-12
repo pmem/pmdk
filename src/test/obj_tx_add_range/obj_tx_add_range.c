@@ -310,6 +310,67 @@ do_tx_add_range_abort_nested(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_add_range_abort_after_commit -- call pmemobj_tx_add_range with
+ * non-zero data, commit first tx, and abort second tx
+ *
+ * This is the test for issue injected in commit:
+ * 2ab13304664b353b82730f49b78fc67eea33b25b (ulog-invalidation).
+ */
+static void
+do_tx_add_range_abort_after_commit(PMEMobjpool *pop)
+{
+	int ret;
+	size_t i;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+
+	/* 1. Set data to non-zero value. */
+	pmemobj_memset_persist(pop, D_RW(obj)->data,
+		TEST_VALUE_1, DATA_SIZE);
+	for (i = 0; i < DATA_SIZE; i++)
+		UT_ASSERTeq(D_RO(obj)->data[i], TEST_VALUE_1);
+
+
+	/* 2. Do the snapshot using non-zero value. */
+	TX_BEGIN(pop) {
+		ret = pmemobj_tx_add_range(obj.oid,
+				DATA_OFF, DATA_SIZE);
+		UT_ASSERTeq(ret, 0);
+		/*
+		 * You can modify data here, but it is not necessary
+		 * to reproduce abort/apply ulog issue.
+		 */
+		pmemobj_memset_persist(pop, D_RW(obj)->data,
+			TEST_VALUE_2, DATA_SIZE);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	for (i = 0; i < DATA_SIZE; i++)
+		UT_ASSERTeq(D_RO(obj)->data[i], TEST_VALUE_2);
+
+	/*
+	 * 3. Do the second snapshot and then abort the transaction.
+	 */
+	for (i = 0; i < DATA_SIZE; i++)
+		UT_ASSERTeq(D_RO(obj)->data[i], TEST_VALUE_2);
+
+	TX_BEGIN(pop) {
+		ret = pmemobj_tx_add_range(obj.oid, VALUE_OFF, VALUE_SIZE);
+		UT_ASSERTeq(ret, 0);
+
+		D_RW(obj)->value = TEST_VALUE_1;
+
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	/* 4. All data must be recovered after tx abort. */
+	UT_ASSERTeq(D_RO(obj)->value, 0);
+}
+
+/*
  * do_tx_add_range_commit_nested -- call pmemobj_tx_add_range and commit the tx
  */
 static void
@@ -788,6 +849,8 @@ main(int argc, char *argv[])
 		do_tx_add_range_abort_nested(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_add_range_abort_after_nested(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_abort_after_commit(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_add_range_twice_commit(pop);
 		VALGRIND_WRITE_STATS;
