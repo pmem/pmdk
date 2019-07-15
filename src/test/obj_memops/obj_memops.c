@@ -274,6 +274,32 @@ test_undo_small_single_set(struct operation_context *ctx,
 }
 
 static void
+test_undo_small_multiple_set(struct operation_context *ctx,
+	struct test_object *object)
+{
+	operation_start(ctx);
+
+	object->values[0] = 1;
+	object->values[1] = 2;
+
+	int c = 0;
+
+	operation_add_buffer(ctx,
+		&object->values[0], &c, sizeof(*object->values),
+		ULOG_OPERATION_BUF_SET);
+	operation_add_buffer(ctx,
+		&object->values[1], &c, sizeof(*object->values),
+		ULOG_OPERATION_BUF_SET);
+
+	operation_process(ctx);
+
+	UT_ASSERTeq(object->values[0], 0);
+	UT_ASSERTeq(object->values[1], 0);
+
+	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
+}
+
+static void
 test_undo_large_single_copy(struct operation_context *ctx,
 	struct test_object *object)
 {
@@ -316,6 +342,7 @@ test_undo_checksum_mismatch(PMEMobjpool *pop, struct operation_context *ctx,
 	pmemobj_persist(pop, &object->values, sizeof(*object->values) * 20);
 
 	log->data[100] += 1; /* corrupt the log somewhere */
+	pmemobj_persist(pop, &log->data[100], sizeof(log->data[100]));
 
 	operation_process(ctx);
 
@@ -375,6 +402,135 @@ test_undo_large_copy(PMEMobjpool *pop, struct operation_context *ctx,
 	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
 }
 
+static int
+test_undo_foreach(struct ulog_entry_base *e, void *arg,
+	const struct pmem_ops *p_ops)
+{
+	size_t *nentries = arg;
+	++(*nentries);
+
+	return 0;
+}
+
+/*
+ * drain_empty -- drain for pmem_ops
+ */
+static void
+drain_empty(void *ctx)
+{
+	/* do nothing */
+}
+
+/*
+ * persist_empty -- persist for pmem_ops
+ */
+static int
+persist_empty(void *ctx, const void *addr, size_t len, unsigned flags)
+{
+	return 0;
+}
+
+/*
+ * flush_empty -- flush for pmem_ops
+ */
+static int
+flush_empty(void *ctx, const void *addr, size_t len, unsigned flags)
+{
+	return 0;
+}
+
+/*
+ * memcpy_libc -- memcpy for pmem_ops
+ */
+static void *
+memcpy_libc(void *ctx, void *dest, const void *src, size_t len, unsigned flags)
+{
+	return memcpy(dest, src, len);
+}
+
+/*
+ * memset_libc -- memset for pmem_ops
+ */
+static void *
+memset_libc(void *ctx, void *ptr, int c, size_t sz, unsigned flags)
+{
+	return memset(ptr, c, sz);
+}
+
+/*
+ * test_undo_log_reuse -- test for correct reuse of log space
+ */
+static void
+test_undo_log_reuse()
+{
+#define ULOG_SIZE 1024
+	struct pmem_ops ops = {
+		.persist = persist_empty,
+		.flush = flush_empty,
+		.drain = drain_empty,
+		.memcpy = memcpy_libc,
+		.memmove = NULL,
+		.memset = memset_libc,
+		.base = NULL,
+	};
+	struct ULOG(ULOG_SIZE) *first = util_aligned_malloc(64,
+		SIZEOF_ULOG(ULOG_SIZE));
+	struct ULOG(ULOG_SIZE) *second = util_aligned_malloc(64,
+		SIZEOF_ULOG(ULOG_SIZE));
+	ulog_construct((uint64_t)(first), ULOG_SIZE, 0, 0, &ops);
+	ulog_construct((uint64_t)(second), ULOG_SIZE, 0, 0, &ops);
+
+	first->next = (uint64_t)(second);
+
+	struct operation_context *ctx = operation_new(
+		(struct ulog *)first, ULOG_SIZE,
+		NULL, NULL,
+		&ops, LOG_TYPE_UNDO);
+
+	size_t nentries = 0;
+	ulog_foreach_entry((struct ulog *)first,
+		test_undo_foreach, &nentries, &ops);
+	UT_ASSERTeq(nentries, 0);
+
+	/* first, let's populate the log with some valid entries */
+
+	size_t entry_size = (ULOG_SIZE / 2) - sizeof(struct ulog_entry_buf);
+	size_t total_entries = ((ULOG_SIZE * 2) / entry_size);
+	char *data = MALLOC(entry_size);
+	memset(data, 0xc, entry_size); /* fill it with something */
+
+	for (size_t i = 0; i < total_entries; ++i) {
+		operation_add_buffer(ctx, (void *)0x123, data,
+			entry_size,
+			ULOG_OPERATION_BUF_CPY);
+
+		nentries = 0;
+		ulog_foreach_entry((struct ulog *)first,
+			test_undo_foreach, &nentries, &ops);
+		UT_ASSERTeq(nentries, i + 1);
+	}
+
+	operation_init(ctx); /* initialize a new operation */
+
+	/* let's overwrite old entries and see if they are no longer visible */
+	for (size_t i = 0; i < total_entries; ++i) {
+		operation_add_buffer(ctx, (void *)0x123, data,
+			entry_size,
+			ULOG_OPERATION_BUF_CPY);
+
+		nentries = 0;
+		ulog_foreach_entry((struct ulog *)first,
+			test_undo_foreach, &nentries, &ops);
+		UT_ASSERTeq(nentries, i + 1);
+	}
+
+	FREE(data);
+	operation_delete(ctx);
+	util_aligned_free(first);
+	util_aligned_free(second);
+#undef ULOG_SIZE
+}
+
 static void
 test_undo(PMEMobjpool *pop, struct test_object *object)
 {
@@ -385,6 +541,7 @@ test_undo(PMEMobjpool *pop, struct test_object *object)
 
 	test_undo_small_single_copy(ctx, object);
 	test_undo_small_single_set(ctx, object);
+	test_undo_small_multiple_set(ctx, object);
 	test_undo_large_single_copy(ctx, object);
 	test_undo_large_copy(pop, ctx, object);
 	test_undo_checksum_mismatch(pop, ctx, object,
@@ -424,6 +581,7 @@ main(int argc, char *argv[])
 
 	test_redo(pop, object);
 	test_undo(pop, object);
+	test_undo_log_reuse();
 
 	pmemobj_close(pop);
 
