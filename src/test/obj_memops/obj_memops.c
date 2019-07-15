@@ -274,6 +274,32 @@ test_undo_small_single_set(struct operation_context *ctx,
 }
 
 static void
+test_undo_small_multiple_set(struct operation_context *ctx,
+	struct test_object *object)
+{
+	operation_start(ctx);
+
+	object->values[0] = 1;
+	object->values[1] = 2;
+
+	int c = 0;
+
+	operation_add_buffer(ctx,
+		&object->values[0], &c, sizeof(*object->values),
+		ULOG_OPERATION_BUF_SET);
+	operation_add_buffer(ctx,
+		&object->values[1], &c, sizeof(*object->values),
+		ULOG_OPERATION_BUF_SET);
+
+	operation_process(ctx);
+
+	UT_ASSERTeq(object->values[0], 0);
+	UT_ASSERTeq(object->values[1], 0);
+
+	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
+}
+
+static void
 test_undo_large_single_copy(struct operation_context *ctx,
 	struct test_object *object)
 {
@@ -385,6 +411,7 @@ test_undo(PMEMobjpool *pop, struct test_object *object)
 
 	test_undo_small_single_copy(ctx, object);
 	test_undo_small_single_set(ctx, object);
+	test_undo_small_multiple_set(ctx, object);
 	test_undo_large_single_copy(ctx, object);
 	test_undo_large_copy(pop, ctx, object);
 	test_undo_checksum_mismatch(pop, ctx, object,
