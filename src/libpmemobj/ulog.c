@@ -401,6 +401,19 @@ ulog_entry_val_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 }
 
 /*
+ * ulog_clobber_entry -- zeroes out a single log entry header
+ */
+void
+ulog_clobber_entry(const struct ulog_entry_base *e,
+	const struct pmem_ops *p_ops)
+{
+	VALGRIND_ADD_TO_TX(e, CACHELINE_SIZE);
+	pmemops_memset(p_ops, (char *)e, 0, CACHELINE_SIZE,
+		PMEMOBJ_F_MEM_NONTEMPORAL);
+	VALGRIND_REMOVE_FROM_TX(e, CACHELINE_SIZE);
+}
+
+/*
  * ulog_entry_buf_create -- atomically creates a buffer entry in the log
  */
 struct ulog_entry_buf *
