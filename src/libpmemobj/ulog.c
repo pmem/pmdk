@@ -174,10 +174,13 @@ ulog_construct(uint64_t offset, size_t capacity, uint64_t gen_num,
 	ulog->gen_num = gen_num;
 	memset(ulog->unused, 0, sizeof(ulog->unused));
 
+	/* we only need to zero out the header of ulog's first entry */
+	size_t zeroed_data = CACHELINE_ALIGN(sizeof(struct ulog_entry_base));
+
 	if (flush) {
 		pmemops_xflush(p_ops, ulog, sizeof(*ulog),
 			PMEMOBJ_F_RELAXED);
-		pmemops_memset(p_ops, ulog->data, 0, capacity,
+		pmemops_memset(p_ops, ulog->data, 0, zeroed_data,
 			PMEMOBJ_F_MEM_NONTEMPORAL |
 			PMEMOBJ_F_MEM_NODRAIN |
 			PMEMOBJ_F_RELAXED);
@@ -186,7 +189,7 @@ ulog_construct(uint64_t offset, size_t capacity, uint64_t gen_num,
 		 * We want to avoid replicating zeroes for every ulog of every
 		 * lane, to do that, we need to use plain old memset.
 		 */
-		memset(ulog->data, 0, capacity);
+		memset(ulog->data, 0, zeroed_data);
 	}
 
 	VALGRIND_REMOVE_FROM_TX(ulog, SIZEOF_ULOG(capacity));
@@ -398,6 +401,22 @@ ulog_entry_val_create(struct ulog *ulog, size_t offset, uint64_t *dest,
 		PMEMOBJ_F_MEM_NOFLUSH | PMEMOBJ_F_RELAXED);
 
 	return e;
+}
+
+/*
+ * ulog_clobber_entry -- zeroes out a single log entry header
+ */
+void
+ulog_clobber_entry(const struct ulog_entry_base *e,
+	const struct pmem_ops *p_ops)
+{
+	static const size_t aligned_entry_size =
+		CACHELINE_ALIGN(sizeof(struct ulog_entry_base));
+
+	VALGRIND_ADD_TO_TX(e, aligned_entry_size);
+	pmemops_memset(p_ops, (char *)e, 0, aligned_entry_size,
+		PMEMOBJ_F_MEM_NONTEMPORAL);
+	VALGRIND_REMOVE_FROM_TX(e, aligned_entry_size);
 }
 
 /*

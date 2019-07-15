@@ -11,10 +11,10 @@ tx_alloc       193     3          0            3          0          0          
 tx_alloc_next  193     3          0            3          0          0          0               0                 0               0                 193                    
 tx_free        64      1          0            1          0          0          0               0                 0               0                 64                     
 tx_free_next   64      1          0            1          0          0          0               0                 0               0                 64                     
-tx_add         129     2          0            2          0          0          0               0                 0               0                 129                    
-tx_add_next    129     2          0            2          0          0          0               0                 0               0                 129                    
-tx_add_large   2535    19         0            19         0          0          0               0                 0               0                 2535                   
-tx_add_lnext   673     6          0            6          0          0          0               0                 0               0                 673                    
+tx_add         194     3          0            3          0          0          0               0                 0               0                 194                    
+tx_add_next    194     3          0            3          0          0          0               0                 0               0                 194                    
+tx_add_large   1640    21         0            21         0          0          0               0                 0               0                 1640                   
+tx_add_lnext   803     8          0            8          0          0          0               0                 0               0                 803                    
 pmalloc        324     5          0            5          0          0          0               0                 0               0                 324                    
 pfree          259     4          0            4          0          0          0               0                 0               0                 259                    
 pmalloc_stack  129     2          0            2          0          0          0               0                 0               0                 129                    
