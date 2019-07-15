@@ -397,6 +397,25 @@ operation_add_buffer(struct operation_context *ctx,
 
 	size_t curr_size = MIN(real_size, ctx->ulog_curr_capacity);
 	size_t data_size = curr_size - sizeof(struct ulog_entry_buf);
+	size_t entry_size = ALIGN_UP(curr_size, CACHELINE_SIZE);
+
+	/*
+	 * To make sure that the log is consistent and contiguous, we need
+	 * make sure that the header of the entry that would be located
+	 * immediately after this one is zeroed.
+	 */
+	struct ulog_entry_base *next_entry = NULL;
+	if (entry_size == ctx->ulog_curr_capacity) {
+		struct ulog *u = ulog_next(ctx->ulog_curr, ctx->p_ops);
+		if (u != NULL)
+			next_entry = (struct ulog_entry_base *)u->data;
+	} else {
+		size_t next_entry_offset = ctx->ulog_curr_offset + entry_size;
+		next_entry = (struct ulog_entry_base *)(ctx->ulog_curr->data +
+			next_entry_offset);
+	}
+	if (next_entry != NULL)
+		ulog_clobber_entry(next_entry, ctx->p_ops);
 
 	/* create a persistent log entry */
 	struct ulog_entry_buf *e = ulog_entry_buf_create(ctx->ulog_curr,
@@ -404,7 +423,6 @@ operation_add_buffer(struct operation_context *ctx,
 		ctx->ulog_curr_gen_num,
 		dest, src, data_size,
 		type, ctx->p_ops);
-	size_t entry_size = ALIGN_UP(curr_size, CACHELINE_SIZE);
 	ASSERT(entry_size == ulog_entry_size(&e->base));
 	ASSERT(entry_size <= ctx->ulog_curr_capacity);
 
