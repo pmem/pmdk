@@ -812,7 +812,7 @@ pocli_pmemobj_next(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 2)
 		return POCLI_ERR_ARGS;
 
-	PMEMoid *oidp;
+	PMEMoid *oidp = NULL;
 	PMEMoid oidp_next;
 	enum pocli_ret ret;
 	ret = pocli_args_obj(ctx, args, 1, &oidp);
@@ -841,7 +841,7 @@ pocli_pmemobj_memcpy_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 6)
 		return POCLI_ERR_ARGS;
 
-	PMEMoid *dest;
+	PMEMoid *dest = NULL;
 	PMEMoid *src;
 	enum pocli_ret ret;
 	uint64_t offset;
@@ -891,7 +891,7 @@ pocli_pmemobj_memset_persist(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 5)
 		return POCLI_ERR_ARGS;
 
-	PMEMoid *oid;
+	PMEMoid *oid = NULL;
 	enum pocli_ret ret;
 	uint64_t offset;
 	uint64_t len;
@@ -937,7 +937,7 @@ pocli_pmemobj_do_persist(struct pocli_ctx *ctx, struct pocli_args *args,
 	if (args->argc != 4)
 		return POCLI_ERR_ARGS;
 
-	PMEMoid *oid;
+	PMEMoid *oid = NULL;
 	enum pocli_ret ret;
 	uint64_t offset;
 	uint64_t len;
@@ -1008,7 +1008,7 @@ pocli_pmemobj_pool_by_ptr(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 3)
 		return POCLI_ERR_ARGS;
 
-	PMEMoid *oid;
+	PMEMoid *oid = NULL;
 	enum pocli_ret ret;
 	uint64_t offset;
 
@@ -1042,7 +1042,7 @@ pocli_pmemobj_pool_by_oid(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 2)
 		return POCLI_ERR_ARGS;
 
-	PMEMoid *oid;
+	PMEMoid *oid = NULL;
 	enum pocli_ret ret;
 
 	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
@@ -1070,7 +1070,7 @@ pocli_pmemobj_list_insert(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	PMEMoid nulloid = OID_NULL;
 	PMEMoid *dest;
-	PMEMoid *oid;
+	PMEMoid *oid = NULL;
 	PMEMoid *head_oid;
 	enum pocli_ret ret;
 	uint64_t before;
@@ -1125,7 +1125,7 @@ pocli_pmemobj_list_insert_new(struct pocli_ctx *ctx, struct pocli_args *args)
 
 	PMEMoid nulloid = OID_NULL;
 	PMEMoid *dest;
-	PMEMoid *oid;
+	PMEMoid *oid = NULL;
 	PMEMoid *head_oid;
 	enum pocli_ret ret;
 	uint64_t before;
@@ -1189,7 +1189,7 @@ pocli_pmemobj_list_remove(struct pocli_ctx *ctx, struct pocli_args *args)
 		return POCLI_ERR_ARGS;
 
 	PMEMoid *oid;
-	PMEMoid *head_oid;
+	PMEMoid *head_oid = NULL;
 	enum pocli_ret ret;
 	uint64_t if_free;
 
@@ -1441,7 +1441,7 @@ pocli_pmemobj_tx_add_range(struct pocli_ctx *ctx, struct pocli_args *args)
 	if (args->argc != 4)
 		return POCLI_ERR_ARGS;
 
-	PMEMoid *oidp;
+	PMEMoid *oidp = NULL;
 	size_t offset = 0;
 	size_t size = 0;
 	enum pocli_ret ret;
@@ -1480,7 +1480,7 @@ pocli_pmemobj_tx_add_range_direct(struct pocli_ctx *ctx,
 	if (args->argc != 4)
 		return POCLI_ERR_ARGS;
 
-	PMEMoid *oidp;
+	PMEMoid *oidp = NULL;
 	size_t off = 0;
 	size_t size = 0;
 	enum pocli_ret ret;
