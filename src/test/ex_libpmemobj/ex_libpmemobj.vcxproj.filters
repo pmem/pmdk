@@ -130,5 +130,17 @@
     <None Include="TEST10w.PS1">
       <Filter>Test Scripts</Filter>
     </None>
+    <None Include="TEST22.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST23.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST24.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="TEST25.PS1">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
