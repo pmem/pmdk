@@ -237,8 +237,12 @@ recycler_recalc(struct recycler *r, int force)
 	VEC_INIT(&runs);
 
 	uint64_t units = r->unaccounted_total;
+
+	size_t peak_arenas;
+	util_atomic_load64(r->peak_arenas, &peak_arenas);
+
 	uint64_t recalc_threshold =
-		THRESHOLD_MUL * (*r->peak_arenas) * r->nallocs;
+		THRESHOLD_MUL * peak_arenas * r->nallocs;
 
 	if (units == 0 || (!force && units < recalc_threshold))
 		return runs;
