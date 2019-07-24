@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -96,6 +96,7 @@ int util_compare_file_inodes(const char *path1, const char *path2);
 void *util_aligned_malloc(size_t alignment, size_t size);
 void util_aligned_free(void *ptr);
 struct tm *util_localtime(const time_t *timep);
+int util_safe_strcpy(char *dst, const char *src, size_t max_length);
 
 #ifdef _WIN32
 char *util_toUTF8(const wchar_t *wstr);
