@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -295,3 +295,31 @@ util_localtime(const time_t *timep)
 
 	return tm;
 }
+
+/*
+ * util_safe_strcpy -- copies string from src to dst, returns -1
+ * when length of source string (including null-terminator)
+ * is greater than max_length, 0 otherwise
+ *
+ * For gcc (found in version 8.1.1) calling this function with
+ * max_length equal to dst size produces -Wstringop-truncation warning
+ *
+ * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=85902
+ */
+#ifdef STRINGOP_TRUNCATION_SUPPORTED
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif
+int
+util_safe_strcpy(char *dst, const char *src, size_t max_length)
+{
+	if (max_length == 0)
+		return -1;
+
+	strncpy(dst, src, max_length);
+
+	return dst[max_length - 1] == '\0' ? 0 : -1;
+}
+#ifdef STRINGOP_TRUNCATION_SUPPORTED
+#pragma GCC diagnostic pop
+#endif
