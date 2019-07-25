@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -2377,8 +2377,8 @@ pmemobjfs_tx_ioctl(const char *dir, int req)
 	if (!path)
 		return -1;
 
-	strncpy(path, dir, dirlen);
-	strncat(path, PMEMOBJFS_TMP_TEMPLATE, tmpllen);
+	memcpy(path, dir, dirlen);
+	strcpy(path + dirlen, PMEMOBJFS_TMP_TEMPLATE);
 
 	/* create temporary file */
 	mode_t prev_umask = umask(S_IRWXG | S_IRWXO);
