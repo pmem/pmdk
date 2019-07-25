@@ -344,8 +344,8 @@ palloc_reservation_clear(struct palloc_heap *heap,
 	if (act->mresv == NULL)
 		return;
 
-	struct bucket *b = act->mresv->bucket;
 	struct memory_block_reserved *mresv = act->mresv;
+	struct bucket *b = mresv->bucket;
 
 	if (!publish) {
 		util_mutex_lock(&b->lock);
@@ -360,8 +360,11 @@ palloc_reservation_clear(struct palloc_heap *heap,
 	}
 
 	if (util_fetch_and_sub64(&mresv->nresv, 1) == 1) {
+		VALGRIND_ANNOTATE_HAPPENS_AFTER(&mresv->nresv);
 		heap_discard_run(heap, &mresv->m);
 		Free(mresv);
+	} else {
+		VALGRIND_ANNOTATE_HAPPENS_BEFORE(&mresv->nresv);
 	}
 }
 
