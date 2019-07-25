@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -78,8 +78,8 @@ if [[ "$KEEP_CONTAINER" != "1" ]]; then
 	RM_SETTING=" --rm"
 fi
 
-imageName=pmem/nvml:${OS}-${OS_VER}
-containerName=nvml-${OS}-${OS_VER}
+imageName=pmem/pmdk:1.3-${OS}-${OS_VER}
+containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 1 ]] ; then
 	command="./run-build-package.sh"
