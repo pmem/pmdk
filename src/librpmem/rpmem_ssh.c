@@ -334,10 +334,7 @@ rpmem_ssh_close(struct rpmem_ssh *rps)
 {
 	int ret, rv;
 
-	rv = rpmem_cmd_term(rps->cmd);
-	if (rv)
-		return rv;
-
+	rpmem_cmd_term(rps->cmd);
 	rv = rpmem_cmd_wait(rps->cmd, &ret);
 	if (rv)
 		return rv;
