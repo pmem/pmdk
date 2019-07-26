@@ -254,7 +254,6 @@ VMEM_TESTS = \
 	vmem_create_error\
 	vmem_create_in_region\
 	vmem_custom_alloc\
-	vmem_delete\
 	vmem_malloc\
 	vmem_malloc_usable_size\
 	vmem_mix_allocations\

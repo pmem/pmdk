@@ -1,4 +1,6 @@
-# Copyright 2016-2019, Intel Corporation
+#!/usr/bin/env bash
+#
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,18 +31,22 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/vmem_delete/TEST0.PS1 -- unit test for vmem_delete
-#
+. ../unittest/unittest.sh
 
-. ..\unittest\unittest.ps1
+# too large
+configure_valgrind force-disable
 
 require_test_type medium
-require_fs_type none
+
+# runs too long on debug builds
+require_build_type nondebug
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\vmem_delete$Env:EXESUFFIX h f m c r a s d
+create_holey_file 64G $DIR/testfile1
+
+PMEM_IS_PMEM_FORCE=1 PMEM_NO_FLUSH=1 expect_normal_exit\
+	./obj_zones$EXESUFFIX $DIR/testfile1 f
 
 check
 
