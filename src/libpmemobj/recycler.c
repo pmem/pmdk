@@ -285,7 +285,7 @@ recycler_recalc(struct recycler *r, int force)
 
 	uint64_t units = r->unaccounted_total;
 
-	if (units == 0 || (!force && units < (r->recalc_threshold)))
+	if (!force && units < r->recalc_threshold)
 		return runs;
 
 	if (util_mutex_trylock(&r->lock) != 0)

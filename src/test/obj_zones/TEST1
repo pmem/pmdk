@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,12 +31,24 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/vmem_delete/Makefile -- build vmem_delete unit test
-#
-TARGET = vmem_delete
-OBJS = vmem_delete.o
 
-LIBVMEM=y
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+# too large
+configure_valgrind force-disable
+
+require_test_type medium
+
+# runs too long on debug builds
+require_build_type nondebug
+
+setup
+
+create_holey_file 64G $DIR/testfile1
+
+PMEM_IS_PMEM_FORCE=1 PMEM_NO_FLUSH=1 expect_normal_exit\
+	./obj_zones$EXESUFFIX $DIR/testfile1 f
+
+check
+
+pass
