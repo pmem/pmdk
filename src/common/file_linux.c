@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -176,75 +176,103 @@ util_file_dir_remove(const char *path)
 static size_t
 device_dax_alignment(const char *path)
 {
-	LOG(3, "path \"%s\"", path);
-
+	char spath[PATH_MAX];
+	size_t size = 0;
+	char *daxpath;
 	os_stat_t st;
 	int olderrno;
+
+	LOG(3, "path \"%s\"", path);
 
 	if (os_stat(path, &st) < 0) {
 		ERR("!stat \"%s\"", path);
 		return 0;
 	}
 
-	char spath[PATH_MAX];
-	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d/device/align",
+	snprintf(spath, PATH_MAX, "/sys/dev/char/%d:%d",
 		major(st.st_rdev), minor(st.st_rdev));
 
-	LOG(4, "device align path \"%s\"", spath);
-
-	int fd = os_open(spath, O_RDONLY);
-	if (fd < 0) {
-		ERR("!open \"%s\"", spath);
+	daxpath = realpath(spath, NULL);
+	if (!daxpath) {
+		ERR("!realpath \"%s\"", spath);
 		return 0;
 	}
 
-	size_t size = 0;
-
-	char sizebuf[MAX_SIZE_LENGTH + 1];
-	ssize_t nread;
-	if ((nread = read(fd, sizebuf, MAX_SIZE_LENGTH)) < 0) {
-		ERR("!read");
-		goto out;
+	if (util_safe_strcpy(spath, daxpath, sizeof(spath))) {
+		ERR("util_safe_strcpy failed");
+		free(daxpath);
+		return 0;
 	}
 
-	sizebuf[nread] = 0; /* null termination */
+	free(daxpath);
 
-	char *endptr;
+	while (spath[0] != '\0') {
+		char sizebuf[MAX_SIZE_LENGTH + 1];
+		char *pos = strrchr(spath, '/');
+		char *endptr;
+		size_t len;
+		ssize_t rc;
+		int fd;
 
-	olderrno = errno;
-	errno = 0;
+		if (strcmp(spath, "/sys/devices") == 0)
+			break;
 
-	/* 'align' is in decimal format */
-	size = strtoull(sizebuf, &endptr, 10);
-	if (endptr == sizebuf || *endptr != '\n' ||
-	    (size == ULLONG_MAX && errno == ERANGE)) {
-		ERR("invalid device alignment %s", sizebuf);
-		size = 0;
-		goto out;
-	}
+		if (!pos)
+			break;
 
-	/*
-	 * If the alignment value is not a power of two, try with
-	 * hex format, as this is how it was printed in older kernels.
-	 * Just in case someone is using kernel <4.9.
-	 */
-	if ((size & (size - 1)) != 0) {
-		size = strtoull(sizebuf, &endptr, 16);
+		*pos = '\0';
+		len = strlen(spath);
+
+		snprintf(&spath[len], sizeof(spath) - len, "/dax_region/align");
+		fd = os_open(spath, O_RDONLY);
+		*pos = '\0';
+
+		if (fd < 0)
+			continue;
+
+		LOG(4, "device align path \"%s\"", spath);
+
+		rc = read(fd, sizebuf, MAX_SIZE_LENGTH);
+		os_close(fd);
+
+		if (rc < 0) {
+			ERR("!read");
+			return 0;
+		}
+
+		sizebuf[rc] = 0; /* null termination */
+
+		olderrno = errno;
+		errno = 0;
+
+		/* 'align' is in decimal format */
+		size = strtoull(sizebuf, &endptr, 10);
 		if (endptr == sizebuf || *endptr != '\n' ||
-		    (size == ULLONG_MAX && errno == ERANGE)) {
+				(size == ULLONG_MAX && errno == ERANGE)) {
 			ERR("invalid device alignment %s", sizebuf);
 			size = 0;
-			goto out;
+			errno = olderrno;
+			break;
 		}
+
+		/*
+		 * If the alignment value is not a power of two, try with
+		 * hex format, as this is how it was printed in older kernels.
+		 * Just in case someone is using kernel <4.9.
+		 */
+		if ((size & (size - 1)) != 0) {
+			size = strtoull(sizebuf, &endptr, 16);
+			if (endptr == sizebuf || *endptr != '\n' ||
+					(size == ULLONG_MAX &&
+					errno == ERANGE)) {
+				ERR("invalid device alignment %s", sizebuf);
+				size = 0;
+			}
+		}
+
+		errno = olderrno;
+		break;
 	}
-
-	errno = olderrno;
-
-out:
-	olderrno = errno;
-	(void) os_close(fd);
-	errno = olderrno;
-
 	LOG(4, "device alignment %zu", size);
 	return size;
 }
