@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -92,6 +92,46 @@ test_open(const char *path)
 	pmemobj_close(pop);
 }
 
+/*
+ * test_malloc_free -- test if alloc until OOM/free/alloc until OOM sequence
+ *	produces the same number of allocations for the second alloc loop.
+ */
+static void
+test_malloc_free(const char *path)
+{
+	PMEMobjpool *pop = NULL;
+	if ((pop = pmemobj_create(path, LAYOUT_NAME,
+			0, S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemobj_create: %s", path);
+
+	size_t alloc_size = 128 * 1024;
+	size_t max_allocs = 1000000;
+	PMEMoid *oid = MALLOC(sizeof(PMEMoid) * max_allocs);
+	size_t n = 0;
+	while (1) {
+		if (pmemobj_alloc(pop, &oid[n], alloc_size, 0, NULL, NULL) != 0)
+			break;
+		n++;
+		UT_ASSERTne(n, max_allocs);
+	}
+	size_t first_run_allocated = n;
+
+	for (size_t i = 0; i < n; ++i) {
+		pmemobj_free(&oid[i]);
+	}
+
+	n = 0;
+	while (1) {
+		if (pmemobj_alloc(pop, &oid[n], alloc_size, 0, NULL, NULL) != 0)
+			break;
+		n++;
+	}
+	UT_ASSERTeq(first_run_allocated, n);
+
+	pmemobj_close(pop);
+	FREE(oid);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -106,6 +146,8 @@ main(int argc, char *argv[])
 		test_create(path);
 	else if (op == 'o')
 		test_open(path);
+	else if (op == 'f')
+		test_malloc_free(path);
 	else
 		UT_FATAL("invalid operation");
 
