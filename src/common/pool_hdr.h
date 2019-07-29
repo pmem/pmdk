@@ -155,7 +155,7 @@ struct pool_hdr {
 
 #define POOL_HDR_SIZE	(sizeof(struct pool_hdr))
 
-#define POOL_DESC_SIZE 4096
+#define POOL_DESC_SIZE PMEM_PAGESIZE
 
 void util_convert2le_hdr(struct pool_hdr *hdrp);
 void util_convert2h_hdr_nocheck(struct pool_hdr *hdrp);
