@@ -43,8 +43,13 @@
 #include "pool_hdr.h"
 
 #define POOL_HDR_SIG_LEN_V1 (8)
+#if defined(__PPC64__)
+#define POOL_HDR_UNUSED_LEN_V1 (32624)
+#define POOL_HDR_UNUSED2_LEN_V1 (32696)
+#else
 #define POOL_HDR_UNUSED_LEN_V1 (1904)
 #define POOL_HDR_UNUSED2_LEN_V1 (1976)
+#endif
 #define POOL_HDR_2K_CHECKPOINT (2048UL)
 
 #define FEATURES_T_SIZE_V1 (12)
