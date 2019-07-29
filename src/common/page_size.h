@@ -1,0 +1,20 @@
+
+
+#ifndef PMDK_PAGE_SIZE_H
+#define PMDK_PAGE_SIZE_H
+
+#if defined(__x86_64) || defined(_M_X64) || defined(__aarch64__)
+
+#define PMEM_PAGESIZE 4096
+
+#elif defined(__PPC64__)
+
+#define PMEM_PAGESIZE 65536
+
+#else
+
+#error unable to recognize ISA at compile time
+
+#endif
+
+#endif  /* PMDK_PAGE_SIZE_H */
