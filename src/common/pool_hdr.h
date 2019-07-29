@@ -265,12 +265,13 @@ static const features_t features_zero =
  * POOL_FEAT_CKSUM_2K incompat feature is set.
  */
 #define POOL_HDR_CSUM_END_OFF(hdrp) \
-	((hdrp)->features.incompat & POOL_FEAT_CKSUM_2K) \
+	(le32toh((hdrp)->features.incompat) & POOL_FEAT_CKSUM_2K) \
 		? POOL_HDR_CSUM_2K_END_OFF : POOL_HDR_CSUM_4K_END_OFF
 
 /* ignore shutdown state if incompat feature is disabled */
 #define IGNORE_SDS(hdrp) \
-	(((hdrp) != NULL) && (((hdrp)->features.incompat & POOL_FEAT_SDS) == 0))
+	(((hdrp) != NULL) && \
+	((le32toh((hdrp)->features.incompat) & POOL_FEAT_SDS) == 0))
 
 #ifdef __cplusplus
 }

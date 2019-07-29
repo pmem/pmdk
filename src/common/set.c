@@ -2303,8 +2303,6 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 	if (arch_is_zeroed)
 		util_get_arch_flags(&hdrp->arch_flags);
 
-	util_convert2le_hdr(hdrp);
-
 	if (!arch_is_zeroed) {
 		memcpy(&hdrp->arch_flags, attr->arch_flags, POOL_HDR_ARCH_LEN);
 	}
@@ -2321,6 +2319,8 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 
 	util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum,
 		1, POOL_HDR_CSUM_END_OFF(hdrp));
+
+	util_convert2le_hdr(hdrp);
 
 	/* store pool's header */
 	util_persist_auto(rep->is_pmem, hdrp, sizeof(*hdrp));
@@ -2348,9 +2348,7 @@ util_header_check(struct pool_set *set, unsigned repidx, unsigned partidx,
 
 	memcpy(&hdr, hdrp, sizeof(hdr));
 
-	/* local copy of a remote header does not need to be converted */
-	if (rep->remote == NULL)
-		util_convert2h_hdr_nocheck(&hdr);
+	util_convert2h_hdr_nocheck(&hdr);
 
 	/* to be valid, a header must have a major version of at least 1 */
 	if (hdr.major == 0) {
