@@ -68,7 +68,7 @@ if [[ -z "$HOST_WORKDIR" ]]; then
 fi
 
 if [[ -z "$TEST_BUILD" ]]; then
-	TEST_BUILD=all
+	TEST_BUILD="debug nondebug"
 fi
 
 imageName=${DOCKERHUB_REPO}:1.7-${OS}-${OS_VER}
@@ -96,7 +96,7 @@ WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
 # Run a container with
-#  - environment variables set (--env)
+#  - environme0nt variables set (--env)
 #  - host directory containing PMDK source mounted (-v)
 #  - working directory set (-w)
 docker run --rm --privileged=true --name=$containerName -ti \
@@ -111,7 +111,7 @@ docker run --rm --privileged=true --name=$containerName -ti \
 	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
 	--env EXTRA_CXXFLAGS=$EXTRA_CXXFLAGS \
 	--env REMOTE_TESTS=$REMOTE_TESTS \
-	--env TEST_BUILD=$TEST_BUILD \
+	--env TEST_BUILD="$TEST_BUILD" \
 	--env WORKDIR=$WORKDIR \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env BUILD_PACKAGE_CHECK=$BUILD_PACKAGE_CHECK \
