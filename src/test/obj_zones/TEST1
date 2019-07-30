@@ -44,6 +44,7 @@ require_build_type nondebug
 
 setup
 
+require_free_space 64G
 create_holey_file 64G $DIR/testfile1
 
 PMEM_IS_PMEM_FORCE=1 PMEM_NO_FLUSH=1 expect_normal_exit\
