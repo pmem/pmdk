@@ -53,7 +53,6 @@
 #include "out.h"
 #include "mmap.h"
 
-#define DEVICE_DAX_PREFIX "/sys/class/dax"
 #define MAX_SIZE_LENGTH 64
 
 #define DEVICE_DAX_ZERO_LEN (2 * MEGABYTE)
@@ -167,7 +166,12 @@ util_fd_is_device_dax(int fd)
 		goto out;
 	}
 
-	ret = strcmp(DEVICE_DAX_PREFIX, rpath) == 0;
+	char *basename = strrchr(rpath, '/');
+	if (!basename || strcmp("dax", basename + 1) != 0) {
+		LOG(3, "%s path does not match device dax prefix path", rpath);
+		goto out;
+	}
+	ret = 1;
 
 out:
 	errno = olderrno;
