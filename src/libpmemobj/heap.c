@@ -85,7 +85,6 @@ struct arena {
 	 */
 	int automatic;
 	size_t nthreads;
-	size_t *arenas_active;
 	struct arenas *arenas;
 };
 
@@ -208,8 +207,13 @@ heap_get_best_class(struct palloc_heap *heap, size_t size)
 static void
 heap_arena_thread_detach(struct arena *a)
 {
+	/*
+	 * Even though this is under a lock, nactive variable can also be read
+	 * concurrently from the recycler (without the arenas lock).
+	 * That's why we are using an atomic operation.
+	 */
 	if ((--a->nthreads) == 0)
-		a->arenas->nactive -= 1;
+		util_fetch_and_sub64(&a->arenas->nactive, 1);
 }
 
 /*
@@ -228,8 +232,13 @@ heap_arena_thread_attach(struct palloc_heap *heap, struct arena *a)
 
 	ASSERTne(a, NULL);
 
+	/*
+	 * Even though this is under a lock, nactive variable can also be read
+	 * concurrently from the recycler (without the arenas lock).
+	 * That's why we are using an atomic operation.
+	 */
 	if ((a->nthreads++) == 0)
-		a->arenas->nactive += 1;
+		util_fetch_and_add64(&a->arenas->nactive, 1);
 
 	os_tls_set(h->arenas.thread, a);
 }
