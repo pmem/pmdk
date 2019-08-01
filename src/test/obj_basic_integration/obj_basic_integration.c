@@ -38,6 +38,7 @@
 #include <stddef.h>
 
 #include "unittest.h"
+#include "obj.h"
 
 #define TEST_STR "abcdefgh"
 #define TEST_STR_LEN 8
@@ -655,11 +656,11 @@ main(int argc, char *argv[])
 	/* root doesn't count */
 	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(basic) != 2);
 
-	if (argc != 2)
-		UT_FATAL("usage: %s file-name", argv[0]);
+	if (argc < 2 && argc > 3)
+		UT_FATAL("usage: %s file-name [inject_fault]", argv[0]);
 
 	const char *path = argv[1];
-
+	const char *opt = argv[2];
 	PMEMobjpool *pop = NULL;
 
 	if ((pop = pmemobj_create(path, POBJ_LAYOUT_NAME(basic),
@@ -676,6 +677,17 @@ main(int argc, char *argv[])
 	test_layout();
 
 	pmemobj_close(pop);
+
+	/* fault injection */
+	if (argc == 3 && strcmp(opt, "inject_fault") == 0) {
+		if (pmemobj_fault_injection_enabled()) {
+			pmemobj_inject_fault_at(PMEM_MALLOC, 1,
+					"heap_check_remote");
+			pop = pmemobj_open(path, POBJ_LAYOUT_NAME(basic));
+			UT_ASSERTeq(pop, NULL);
+			UT_ASSERTeq(errno, ENOMEM);
+		}
+	}
 
 	if ((pop = pmemobj_open(path, POBJ_LAYOUT_NAME(basic))) == NULL)
 		UT_FATAL("!pmemobj_open: %s", path);
