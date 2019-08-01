@@ -386,7 +386,6 @@ test_heap(void)
 	 * Allocate blocks from a run until one run is exhausted.
 	 */
 	UT_ASSERTne(heap_get_bestfit_block(heap, b_run, &old_run), ENOMEM);
-	int *nresv = bucket_current_resvp(b_run);
 
 	do {
 		new_run.chunk_id = 0;
@@ -395,9 +394,7 @@ test_heap(void)
 		UT_ASSERTne(heap_get_bestfit_block(heap, b_run, &new_run),
 			ENOMEM);
 		UT_ASSERTne(new_run.size_idx, 0);
-		*nresv = 0;
 	} while (old_run.block_off != new_run.block_off);
-	*nresv = 0;
 
 	heap_bucket_release(heap, b_run);
 
