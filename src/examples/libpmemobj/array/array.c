@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -471,7 +471,7 @@ do_alloc(int argc, char *argv[])
 		POBJ_FREE(&array_info);
 	POBJ_ZNEW(pop, &array_info, struct array_info);
 	struct array_info *info = D_RW(array_info);
-	strncpy(info->name, argv[0], MAX_BUFFLEN);
+	strncpy(info->name, argv[0], MAX_BUFFLEN - 1);
 	info->name[MAX_BUFFLEN - 1] = '\0';
 	info->size = size;
 	info->type = type;
