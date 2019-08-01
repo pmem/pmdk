@@ -96,6 +96,7 @@ OBJ_TESTS = \
 	obj_pool\
 	obj_pool_lock\
 	obj_pool_lookup\
+	obj_pool_open_mt\
 	obj_recovery\
 	obj_recreate\
 	obj_root\
