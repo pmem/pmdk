@@ -46,7 +46,7 @@ $LOG = "out${Env:UNITTEST_NUM}.log"
 $ERR_LOG = "err${Env:UNITTEST_NUM}.log"
 
 # test default layout
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj -v $DIR\pool.obj >> $LOG
+expect_normal_exit $PMEMPOOL$EXESUFFIX create obj -v $DIR\pool.obj > $LOG
 
 # test custom layout
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj -v --layout=moose $DIR\pool2.obj >> $LOG
