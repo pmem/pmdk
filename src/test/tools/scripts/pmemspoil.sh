@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,58 +32,29 @@
 #
 
 #
-# src/test/tools/Makefile -- build unit test helpers
+# src/test/tools/scripts/pmemspoil.sh -- tool script for pmemspoil tool
 #
 
-TOP = ../../..
+pool=$1
+shift
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
-
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip\
-       ddmap\
-       cmpmap\
-       extents\
-       fallocate_detect\
-       obj_verify\
-       usc_permission_check\
-       anonymous_mmap\
-       scripts
-
-REMOTE_TOOLS = \
-	ctrld\
-	extents\
-	fip\
-	obj_verify\
-	pmemobjcli\
-	pmemspoil\
-	pmemdetect\
-	scripts
-
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
-sparse  : TARGET = sparse
-
-all test cstyle clean clobber format sparse: $(DIRS)
-
-$(TESTCONFIG):
-
-sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-check pcheck: all
-
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+for op in $*; do
+	case "$op" in
+		hdr_inv_signature_and_checksum_gen)
+			../pmemspoil $pool pool_hdr.signature=ERROR \
+				"pool_hdr.checksum_gen()"
+			;;
+		hdr_inv_checksum)
+			../pmemspoil $pool pool_hdr.checksum=0
+			;;
+		sds_set_dirty)
+			../pmemspoil $pool pool_hdr.shutdown_state.usc=999 \
+				pool_hdr.shutdown_state.dirty=1 \
+				"pool_hdr.shutdown_state.checksum_gen()"
+			;;
+		hdr_enable_sds_and_checksum_gen)
+			../pmemspoil $pool pool_hdr.features.incompat=0x0006 \
+				"pool_hdr.checksum_gen()"
+			;;
+	esac
+done

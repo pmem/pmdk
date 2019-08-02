@@ -348,7 +348,11 @@ sync-remotes: all $(SYNC_FILE)
 
 $(SYNC_FILE): $(TARGET) $(TESTCONFIG)
 ifeq ($(SCP_TO_REMOTE_NODES), y)
+ifneq ($(TARGET),)
 	cp $(TARGET) $(DIR_SYNC)
+else
+	cp $(SCP_FILES) $(DIR_SYNC)
+endif
 	@touch $(SYNC_FILE)
 endif
 

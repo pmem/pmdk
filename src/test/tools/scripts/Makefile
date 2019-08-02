@@ -1,5 +1,4 @@
-#
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,60 +28,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
-#
-# src/test/tools/Makefile -- build unit test helpers
+# Makefile -- Makefile for tools scripts
 #
 
-TOP = ../../..
+TOP=../../../..
 
-TESTCONFIG=$(TOP)/src/test/testconfig.sh
+SCP_TO_REMOTE_NODES = y
 
-DIRS = \
-       pmemspoil\
-       pmemwrite\
-       pmemalloc\
-       pmemobjcli\
-       pmemdetect\
-       ctrld\
-       bttcreate\
-       fip\
-       ddmap\
-       cmpmap\
-       extents\
-       fallocate_detect\
-       obj_verify\
-       usc_permission_check\
-       anonymous_mmap\
-       scripts
+SCP_FILES = pmemspoil.sh
 
-REMOTE_TOOLS = \
-	ctrld\
-	extents\
-	fip\
-	obj_verify\
-	pmemobjcli\
-	pmemspoil\
-	pmemdetect\
-	scripts
-
-all     : TARGET = all
-clean   : TARGET = clean
-clobber : TARGET = clobber
-cstyle  : TARGET = cstyle
-format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
-sparse  : TARGET = sparse
-
-all test cstyle clean clobber format sparse: $(DIRS)
-
-$(TESTCONFIG):
-
-sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
-
-$(DIRS):
-	$(MAKE) -C $@ $(TARGET)
-
-check pcheck: all
-
-.PHONY: all clean clobber cstyle format check pcheck $(DIRS)
+include $(TOP)/src/tools/Makefile.inc
