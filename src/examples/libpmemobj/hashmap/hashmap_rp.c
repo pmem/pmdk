@@ -201,7 +201,7 @@ hashmap_create(PMEMobjpool *pop, TOID(struct hashmap_rp) *hashmap_p,
 		goto reserve_err;
 	actv_cnt++;
 
-	pmemobj_persist(pop, D_RW(hashmap), sizeof(hashmap));
+	pmemobj_persist(pop, D_RW(hashmap), sizeof(struct hashmap_rp));
 
 	pmemobj_set_value(pop, &actv[actv_cnt++], &hashmap_p->oid.pool_uuid_lo,
 		hashmap.oid.pool_uuid_lo);
