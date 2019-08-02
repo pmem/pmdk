@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -60,8 +60,8 @@ if [[ ! -f "Dockerfile.$1" ]]; then
 	exit 1
 fi
 
-# Build a Docker image tagged with pmem/nvml:OS-VER
-tag=pmem/nvml:$1
+# Build a Docker image tagged with pmem/pmdk:OS-VER
+tag=pmem/pmdk:1.2-$1
 sudo docker build -t $tag \
 	--build-arg http_proxy=$http_proxy \
 	--build-arg https_proxy=$https_proxy \

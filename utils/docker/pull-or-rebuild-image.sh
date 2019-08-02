@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -91,12 +91,12 @@ for file in $files; do
 		popd
 
 		# Check if the image has to be pushed to Docker Hub
-		# (i.e. the build is triggered by commits to the pmem/nvml
-		# repository's master branch, and the Travis build is not
+		# (i.e. the build is triggered by commits to the pmem/pmdk
+		# repository's stable-1.2 branch, and the Travis build is not
 		# of the "pull_request" type). In that case, create the empty
 		# file.
-		if [[ $TRAVIS_REPO_SLUG == "pmem/nvml" \
-			&& $TRAVIS_BRANCH == "master" \
+		if [[ $TRAVIS_REPO_SLUG == "pmem/pmdk" \
+			&& $TRAVIS_BRANCH == "stable-1.2" \
 			&& $TRAVIS_EVENT_TYPE != "pull_request" ]]
 		then
 			echo "The image will be pushed to Docker Hub"
@@ -110,5 +110,4 @@ done
 
 # Getting here means rebuilding the Docker image is not required.
 # Pull the image from Docker Hub.
-sudo docker pull pmem/nvml:${OS}-${OS_VER}
-
+sudo docker pull pmem/pmdk:1.2-${OS}-${OS_VER}

@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,8 +51,8 @@ if [[ -z "$TEST_BUILD" ]]; then
 	TEST_BUILD=all
 fi
 
-imageName=pmem/nvml:${OS}-${OS_VER}
-containerName=nvml-${OS}-${OS_VER}
+imageName=pmem/pmdk:1.2-${OS}-${OS_VER}
+containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $CC == "clang" ]]; then export CXX="clang++"; else export CXX="g++"; fi
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
@@ -60,7 +60,7 @@ if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 
-WORKDIR=/nvml
+WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
 # Run a container with

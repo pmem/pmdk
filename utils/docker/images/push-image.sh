@@ -1,6 +1,6 @@
 #!/bin/bash -e
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,8 +53,8 @@ if [[ -z "$1" ]]; then
 	exit 1
 fi
 
-# Check if the image tagged with nvml/OS-VER exists locally
-if [[ ! $(sudo docker images -a | awk -v pattern="^pmem/nvml:$1\$" \
+# Check if the image tagged with pmdk/OS-VER exists locally
+if [[ ! $(sudo docker images -a | awk -v pattern="^pmem/pmdk:1.2-$1\$" \
 	'$1":"$2 ~ pattern') ]]
 then
 	echo "ERROR: wrong argument."
@@ -66,5 +66,4 @@ fi
 sudo docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD"
 
 # Push the image to the repository
-sudo docker push pmem/nvml:$1
-
+sudo docker push pmem/pmdk:1.2-$1
