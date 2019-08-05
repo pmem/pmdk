@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -59,7 +59,7 @@ create_poolset $DIR/pool2.set 8M:$PART_DIR/pool2.part0 8M:$PART_DIR/pool2.part1 
 expect_normal_exit run_on_node 0 rm -rf $PART_DIR
 expect_normal_exit run_on_node 0 mkdir -p ${RPMEM_POOLSET_DIR[0]}
 expect_normal_exit run_on_node 0 mkdir -p $PART_DIR
-expect_normal_exit copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/{pool0.set,pool1.set,pool2.set}
+copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/{pool0.set,pool1.set,pool2.set}
 
 expect_abnormal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool0.set"
 expect_abnormal_exit run_on_node 1 ssh ${NODE_ADDR[0]} "\$RPMEM_CMD --remove pool1.set"
