@@ -67,8 +67,8 @@ for i in `seq 1 2`; do
 done
 
 # opening pool with unknown signature
-run_on_node 0 ../pmemspoil ${NODE_DIR[0]}/$TEST_FILE_REMOTE \
-	pool_hdr.signature=ERROR "pool_hdr.checksum_gen\(\)"
+run_on_node 0 ../pmemspoil.sh ${NODE_DIR[0]}/$TEST_FILE_REMOTE \
+	hdr_inv_signature_and_checksum_gen
 expect_abnormal_exit run_on_node 1 "\"./hello ${NODE_ADDR[0]} $POOLSET 2>>$LOG\""
 
 check

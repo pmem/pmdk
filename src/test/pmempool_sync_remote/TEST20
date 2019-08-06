@@ -47,27 +47,19 @@ configure_poolsets 0 1
 
 # XXX: we are using pmemspoil to turn on shutdown state
 
-run_on_node 1 ../pmemspoil  ${NODE_DIR[1]}pool.part.1 \
-				   pool_hdr.shutdown_state.usc=999 \
-				   pool_hdr.shutdown_state.dirty=1 \
-				   "pool_hdr.shutdown_state.checksum_gen\(\)" \
-				   pool_hdr.features.incompat=0x0006 \
-				   "pool_hdr.checksum_gen\(\)"
+run_on_node 1 ../pmemspoil.sh  ${NODE_DIR[1]}pool.part.1 \
+				   sds_set_dirty \
+				   hdr_enable_sds_and_checksum_gen
 
-run_on_node 1 ../pmemspoil  ${NODE_DIR[1]}pool.part.2 \
-				   pool_hdr.features.incompat=0x0006 \
-				   "pool_hdr.checksum_gen\(\)"
+run_on_node 1 ../pmemspoil.sh  ${NODE_DIR[1]}pool.part.2 \
+				   hdr_enable_sds_and_checksum_gen
 
-run_on_node 0 ../pmemspoil ${NODE_DIR[0]}remote.0.part.1 \
-				   pool_hdr.shutdown_state.usc=999 \
-				   pool_hdr.shutdown_state.dirty=1 \
-				   "pool_hdr.shutdown_state.checksum_gen\(\)" \
-				   pool_hdr.features.incompat=0x0006 \
-				   "pool_hdr.checksum_gen\(\)"
+run_on_node 0 ../pmemspoil.sh ${NODE_DIR[0]}remote.0.part.1 \
+				   sds_set_dirty \
+				   hdr_enable_sds_and_checksum_gen
 
-run_on_node 0 ../pmemspoil ${NODE_DIR[0]}remote.0.part.2 \
-				   pool_hdr.features.incompat=0x0006 \
-				   "pool_hdr.checksum_gen\(\)"
+run_on_node 0 ../pmemspoil.sh ${NODE_DIR[0]}remote.0.part.2 \
+				   hdr_enable_sds_and_checksum_gen
 
 expect_abnormal_exit run_on_node 1 "../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL 2> /dev/null"
 expect_abnormal_exit run_on_node 1 "../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL 2> /dev/null"

@@ -64,8 +64,8 @@ rm_files_from_node 1 ${NODE_DIR[1]}/../$LOG
 expect_normal_exit run_on_node 1 ./basic create ${NODE_ADDR[0]} $POOLSET
 
 # opening pool with unknown signature
-run_on_node 0 ../pmemspoil ${NODE_DIR[0]}/$TEST_FILE_REMOTE \
-	pool_hdr.signature=ERROR "pool_hdr.checksum_gen\(\)"
+run_on_node 0 ../pmemspoil.sh ${NODE_DIR[0]}/$TEST_FILE_REMOTE \
+	hdr_inv_signature_and_checksum_gen
 expect_abnormal_exit run_on_node 1 "\"./basic open ${NODE_ADDR[0]} $POOLSET 2>>$LOG\""
 
 check

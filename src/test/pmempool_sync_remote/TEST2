@@ -47,7 +47,8 @@ dump_info_log 1 0 ${NODE_DIR[1]}$POOLSET_LOCAL before.0.log
 dump_info_log 1 1 ${NODE_DIR[1]}$POOLSET_LOCAL before.1.log
 
 expect_normal_exit run_on_node 1 rm ${NODE_DIR[1]}pool.part.2
-expect_normal_exit run_on_node 1 ../pmemspoil ${NODE_DIR[1]}pool.0.part.2 pool_hdr.checksum=0
+expect_normal_exit run_on_node 1 ../pmemspoil.sh ${NODE_DIR[1]}pool.0.part.2 \
+	hdr_inv_checksum
 expect_normal_exit run_on_node 1 ../pmempool sync ${NODE_DIR[1]}$POOLSET_LOCAL
 dump_info_log 1 0 ${NODE_DIR[1]}$POOLSET_LOCAL after.0.2.log
 dump_info_log 1 1 ${NODE_DIR[1]}$POOLSET_LOCAL after.1.2.log
