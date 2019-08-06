@@ -11,3 +11,11 @@
    fun:_dl_open
    ...
 }
+{
+   <dlopen suppression, pmem/issues#1098>
+   Memcheck:Leak
+   ...
+   fun:_dlerror_run
+   fun:dlopen@@GLIBC*
+   ...
+}

@@ -62,7 +62,7 @@ create_poolset $DIR/pool2.set AUTO:$(get_node_devdax_path 0 0) O NOHDRS
 expect_normal_exit run_on_node 0 rm -rf $PART_DIR
 expect_normal_exit run_on_node 0 mkdir -p ${RPMEM_POOLSET_DIR[0]}
 expect_normal_exit run_on_node 0 mkdir -p $PART_DIR
-expect_normal_exit copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/{pool0.set,pool1.set,pool2.set}
+copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/{pool0.set,pool1.set,pool2.set}
 
 expect_normal_exit run_on_node 0 ../pmempool rm -sf ${RPMEM_POOLSET_DIR[0]}/{pool0.set,pool1.set,pool2.set}
 expect_normal_exit run_on_node 1 ../pmempool rm -sf $(get_node_devdax_path 0 0)
