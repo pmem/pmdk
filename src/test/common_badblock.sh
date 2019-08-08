@@ -55,6 +55,33 @@ COMMAND_NDCTL_NFIT_TEST_FINI="\
 	sudo ndctl disable-region all &>>$PREP_LOG_FILE && \
 	sudo modprobe -r nfit_test &>>$PREP_LOG_FILE"
 
+
+#
+# badblock_test_init -- initialize badblock test based on underlying hardware
+#
+function badblock_test_init() {
+	case "$1"
+	in
+	dax_device|block_device)
+		;;
+	*)
+		usage "bad test-type: $1"
+		;;
+	esac
+
+	ndctl_nfit_test_init
+
+	if [ "$1" == "dax_device" ]; then
+		DEVICE=$(ndctl_nfit_test_get_dax_device)
+		# XXX needed by libndctl (it should be removed when it is not needed)
+		ndctl_nfit_test_grant_access $DEVICE
+	elif [ "$1" == "block_device" ]; then
+		DEVICE=$(ndctl_nfit_test_get_block_device)
+	fi
+	NAMESPACE=$(ndctl_nfit_test_get_namespace_of_device $DEVICE)
+	FULLDEV="/dev/$DEVICE"
+}
+
 #
 # ndctl_nfit_test_init -- reset all regions and reload the nfit_test module
 #

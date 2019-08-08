@@ -3616,6 +3616,9 @@ function require_nfit_tests_enabled() {
 		msg "$UNITTEST_NAME: SKIP: tests using the nfit_test kernel module are not enabled in testconfig.sh (ENABLE_NFIT_TESTS)"
 		exit 0
 	fi
+	require_sudo_allowed
+	require_kernel_module nfit_test
+	require_command ndctl
 }
 
 #
