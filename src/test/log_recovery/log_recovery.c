@@ -43,6 +43,8 @@
 #include "unittest.h"
 #include "log.h"
 
+unsigned long long Pagesize;
+
 /*
  * do_append -- call pmemlog_append() & print result
  */
@@ -201,6 +203,8 @@ main(int argc, char *argv[])
 	const char *path = argv[1];
 
 	int fd = OPEN(path, O_RDWR);
+
+	Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);
 
 	/* pre-allocate 2MB of persistent memory */
 	POSIX_FALLOCATE(fd, (os_off_t)0, (size_t)(2 * 1024 * 1024));

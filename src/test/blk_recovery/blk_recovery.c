@@ -46,6 +46,7 @@
 #include "btt_layout.h"
 #include <endian.h>
 
+unsigned long long Pagesize;
 static size_t Bsize;
 
 /*
@@ -92,6 +93,7 @@ main(int argc, char *argv[])
 	if (argc != 5 && argc != 3)
 		UT_FATAL("usage: %s bsize file [first_lba lba]", argv[0]);
 
+	Pagesize = (unsigned long) sysconf(_SC_PAGESIZE);
 	Bsize = strtoul(argv[1], NULL, 0);
 	const char *path = argv[2];
 
