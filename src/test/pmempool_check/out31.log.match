@@ -1,6 +1,6 @@
     "badblock_count":1,
         "offset":$(N),
-        "length":1,
+        "length":1
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 3 part(s):
@@ -55,12 +55,12 @@ Checksum                 : $(*)
 Root offset              : $(nW)
     "badblock_count":1,
         "offset":$(N),
-        "length":1,
+        "length":1
 poolset contains bad blocks, use 'pmempool info --bad-blocks=yes' to print or 'pmempool sync --bad-blocks' to clear them
 $(nW)/testset1: cannot repair
     "badblock_count":1,
         "offset":$(N),
-        "length":1,
+        "length":1
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 3 part(s):
@@ -115,4 +115,4 @@ Checksum                 : $(*)
 Root offset              : $(nW)
     "badblock_count":1,
         "offset":$(N),
-        "length":1,
+        "length":1
