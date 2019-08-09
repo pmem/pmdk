@@ -1,3 +1,46 @@
+Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.5.2-rc1
+
+	This release fixes possible pool corruptions on Windows
+	(see https://github.com/pmem/pmdk/pull/3728 for details),
+	improves compatibility with newer Linux kernels with
+	respect to Device DAX detection, fixes pmemobj space management
+	for large pools, improves compatibility with newer toolchains
+	and fixes a number of smaller bugs.
+
+	Detailed list of bug fixes:
+	- common: (win) fix possible pool file coruption (#972, #715, #603)
+	- common: implement correct / robust device_dax_alignment (#1071)
+	- obj: fix crash after large undo log recovery
+	- obj: fix recycler not locating unused chunks
+	- doc: update pmemobj_tx_lock documentation wrt behavior on fail
+	- common: fix build of rpm packages on suse (#1023)
+	- common: fix persistent domain detection (#1093)
+	- common: vecq: fix a pointer-to-struct aliasing violation
+	  (crash on arm64)
+	- rpmem: lock file prior to unlink (#833)
+	- common: fix for pool_set error handling (#1036)
+	- pmreorder: fix handling of store drain flush drain pattern
+	- common: fix bug in badblock file error handling
+	- obj: fix handling of malloc failures
+	- common: fix handling of malloc failures (ctl)
+	- jemalloc: fix build with gcc 9
+	- obj: don't overwrite errno when palloc_heap_check_remote fails
+	- doc: fix typos in pmreorder configuration
+	- doc: fix pmreorder emit log macro
+	- tools: link with release variant of pmemcommon
+	- test: support Valgrind 3.15
+	- test: skip if fi_info is missing
+	- test: split test obj_tx_lock into two test cases (#1027)
+	- test: (win) fix sparsefile error handling
+	- test: fix libpmempool_feature tests that match logs
+	- test: remove vmem_delete test (#1074)
+	- test: adjust matchfiles in vmem_valgrind_region test (#1087)
+	- test: remove old log files for windows (#1013)
+	- test: remove invalid expect_normal_exit (#1092)
+	- test: suppress ld leak (#1098)
+
 Tue Feb 19 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.5.1
