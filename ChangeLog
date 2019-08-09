@@ -1,3 +1,23 @@
+Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.4.3-rc1
+
+	This release fixes possible pool corruptions on Windows
+	(see https://github.com/pmem/pmdk/pull/3728 for details)
+	and improves compatibility with newer Linux kernels with
+	respect to Device DAX detection.
+
+	Bug fixes:
+	- common: (win) fix possible pool file coruption (#972, #715, #603)
+	- common: implement correct / robust device_dax_alignment (#1071)
+	- common: fix device dax detection
+	- obj: fix pmemobj_check for pools with some sizes (#975)
+	- obj: fix type numbers for pmemobj_list_insert_new
+	- obj: fix pmemobj_tx_lock error handling
+	- common: fix ctl_load_config during libpmemobj initialization (#917)
+	- common: win: fix getopt returning "option is ambiguous"
+	- common: fix persistent domain detection (#1093)
+
 Thu Aug 16 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.4.2
