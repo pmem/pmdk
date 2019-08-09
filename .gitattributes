@@ -2,4 +2,4 @@
 *.jpg binary
 *.png binary
 *.gif binary
-GIT_VERSION export-subst
+#GIT_VERSION export-subst

@@ -1,8 +1,10 @@
+Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-Tue Mar 06 2018 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
-
-	* Version 1.3.2
+	* Version 1.3.3-rc1
 	Bug fixes:
+	- pmem: fix clflush bit position
+	- common: implement correct / robust device_dax_alignment
+	- common: fix device dax detection
 	- common: fix library dependencies (#767)
 	- common: use rpm-config CFLAGS/LDFLAGS when building packages (#768)
 	- test: fix vmmalloc_malloc_hooks (#773)
@@ -11,6 +13,9 @@ Tue Mar 06 2018 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	- common: generate pkg-config files on make install (#610)
 	- common: fix dependencies for Debian's dev packages
 	- test: add missing include in unittest.h
+	- common: (win) fix timed locks
+	- common: provide src version in GitHub tarballs
+	- common: fix free function in tls
 
 Wed Dec 20 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 

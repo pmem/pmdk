@@ -6,6 +6,7 @@
 !.mailmap
 !.cstyleignore
 !.codecov.yml
+!.version
 
 *~
 *.swp
