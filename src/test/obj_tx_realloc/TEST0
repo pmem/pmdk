@@ -42,7 +42,9 @@ require_test_type medium
 
 setup
 
-create_nonzeroed_file 8M 8K $DIR/testfile1
+SIZE=$(obj_pool_desc_size)
+
+create_nonzeroed_file 8M ${SIZE} $DIR/testfile1
 
 expect_normal_exit ./obj_tx_realloc$EXESUFFIX $DIR/testfile1
 
