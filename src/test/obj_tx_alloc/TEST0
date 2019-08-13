@@ -46,7 +46,9 @@ configure_valgrind pmemcheck force-disable
 
 setup
 
-create_nonzeroed_file 16M 8K $DIR/testfile1
+PAGE_SIZE=$(getconf PAGESIZE)
+
+create_nonzeroed_file 16M $(expr $PAGE_SIZE / 512)k $DIR/testfile1
 
 expect_normal_exit ./obj_tx_alloc$EXESUFFIX $DIR/testfile1
 
