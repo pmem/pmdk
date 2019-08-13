@@ -196,7 +196,7 @@ static int Force_quiet;		/* set by UNITTEST_FORCE_QUIET env variable */
 static char *Testname;		/* set by UNITTEST_NAME env variable */
 
 /* set by UNITTEST_CHECK_OPEN_FILES_IGNORE_BADBLOCKS env variable */
-static const char *Ignore_bb;
+static int Ignore_bb;
 
 unsigned long Ut_pagesize;
 unsigned long long Ut_mmap_align;
@@ -759,7 +759,11 @@ ut_start_common(const char *file, int line, const char *func,
 	os_mutex_init(&Sigactions_lock);
 #else
 	Ut_mmap_align = Ut_pagesize;
-	Ignore_bb = os_getenv("UNITTEST_CHECK_OPEN_FILES_IGNORE_BADBLOCKS");
+	char *ignore_bb =
+		os_getenv("UNITTEST_CHECK_OPEN_FILES_IGNORE_BADBLOCKS");
+
+	if (ignore_bb && *ignore_bb)
+		Ignore_bb = 1;
 #endif
 	if (os_getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
 		ut_register_sighandlers();
