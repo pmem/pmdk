@@ -43,7 +43,9 @@ require_test_type medium
 setup
 umask 0
 
-create_nonzeroed_file 8M 8K $DIR/testfile
+PAGE_SIZE=$(getconf PAGESIZE)
+
+create_nonzeroed_file 8M $(expr $PAGE_SIZE / 512)k $DIR/testfile
 chmod 0600 $DIR/testfile
 
 #
