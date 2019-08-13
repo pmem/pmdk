@@ -8,7 +8,6 @@ $(OPT)<librpmem>: <1> [$(*)] compiled with support for Valgrind drd
 $(OPT)<librpmem>: <1> [$(*)] compiled with support for shutdown state
 $(OPT)<librpmem>: <1> [$(*)] compiled with libndctl 63+
 <librpmem>: <3> [$(*)] 
-<librpmem>: <3> [$(*)] Libfabric is fork safe
 $(OPT)<librpmem>: <3> [$(*)] $(*)
 $(OPT)<librpmem>: <3> [$(*)] $(*)
 <librpmem>: <3> [$(*)] create request:
