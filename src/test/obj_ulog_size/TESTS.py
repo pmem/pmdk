@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../env.py
 #
 # Copyright 2019, Intel Corporation
 #
@@ -31,21 +31,24 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_ulog_size/TEST1 -- unit test for pmemobj_tx_publish abort
-#
 
-. ../unittest/unittest.sh
+import testframework as t
 
-require_test_type medium
-configure_valgrind memcheck force-enable
+class BASE(t.BaseTest):
+    test_type = t.Medium
+    build = [t.Debug, t.Release]
 
-setup
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
+        filepath1 = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        ctx.exec('obj_ulog_size', filepath, filepath1)
 
-create_holey_file 16M $DIR/testfile
+class TEST0(BASE):
+    memcheck = t.DISABLE
+    pmemcheck = t.DISABLE
 
-expect_normal_exit ./obj_ulog_size$EXESUFFIX $DIR/testfile
+class TEST1(BASE):
+    memcheck = t.ENABLE
 
-check
-
-pass
+class TEST2(BASE):
+    pmemcheck = t.ENABLE
