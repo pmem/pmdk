@@ -32,7 +32,7 @@
 
 /*
  * obj_ulog_size.c -- unit tests for pmemobj_action API and
- *		redo, undo logs
+ * redo, undo logs
  */
 #include <sys/param.h>
 #include <string.h>
@@ -41,23 +41,33 @@
 #include "unittest.h"
 
 /*
- * lane.h -- needed for LANE_REDO_EXTERNAL_SIZE
+ * tx.h -- needed for TX_SNAPSHOT_LOG_ENTRY_ALIGNMENT,
+ * TX_SNAPSHOT_LOG_BUFFER_OVERHEAD, TX_SNAPSHOT_LOG_ENTRY_OVERHEAD,
+ * TX_INTENT_LOG_BUFFER_ALIGNMENT, TX_INTENT_LOG_BUFFER_OVERHEAD,
+ * TX_INTENT_LOG_ENTRY_OVERHEAD
  */
-#include "lane.h"
+#include "tx.h"
 
-/*
- * TX_INTENT_LOG_ENTRY_OVERHEAD -- sizeof(struct ulog_entry_val)
- */
-#define TX_INTENT_LOG_ENTRY_OVERHEAD (0b01ULL << 4) /* 16 bytes */
+/* needed for LANE_REDO_EXTERNAL_SIZE and LANE_UNDO_SIZE */
+#include "lane.h"
 
 #define LAYOUT_NAME "obj_ulog_size"
 
 #define MIN_ALLOC 64
 #define MAX_ALLOC (1024 * 1024)
+#define HALF_OF_DEFAULT_UNDO_SIZE (LANE_UNDO_SIZE / 2)
+#define ARRAY_SIZE_COMMON 3
+
+/* the ranges of indices are describing the use of some allocations */
+#define LOG_BUFFER 0
+#define LOG_BUFFER_NUM 6
+#define RANGE (LOG_BUFFER + LOG_BUFFER_NUM)
+#define RANGE_NUM 6
+#define MIN_NOIDS (RANGE + RANGE_NUM)
 
 /*
  * REDO_OVERFLOW -- size for trigger out of memory
- *     during redo log extension
+ * during redo log extension
  */
 #define REDO_OVERFLOW ((size_t)((LANE_REDO_EXTERNAL_SIZE\
 		/ TX_INTENT_LOG_ENTRY_OVERHEAD) + 1))
@@ -102,8 +112,8 @@ fill_pool(PMEMobjpool *pop, size_t *noids)
 				(*noids)++;
 			if (*noids == oids_size) {
 				oids_size *= 2;
-				oids = (PMEMoid *)REALLOC(oids, oids_size
-					* sizeof(PMEMoid));
+				oids = (PMEMoid *)REALLOC(oids, oids_size *
+					sizeof(PMEMoid));
 			}
 		}
 	}
@@ -112,7 +122,7 @@ fill_pool(PMEMobjpool *pop, size_t *noids)
 
 /*
  * do_tx_max_alloc_tx_publish_abort -- fills the pool and then tries
- *		to overfill redo log - transaction abort expected
+ * to overfill redo log - transaction abort expected
  */
 static void
 do_tx_max_alloc_tx_publish_abort(PMEMobjpool *pop)
@@ -129,18 +139,358 @@ do_tx_max_alloc_tx_publish_abort(PMEMobjpool *pop)
 	}
 
 	allocated = fill_pool(pop, &nallocated);
+	UT_ASSERT(nallocated >= MIN_NOIDS);
 
 	/* it should abort - cannot extend redo log */
 	TX_BEGIN(pop) {
 		pmemobj_tx_publish(act, REDO_OVERFLOW);
 	} TX_ONABORT {
-		UT_OUT("!Cannot publish");
+		UT_OUT("!Cannot extend redo log - the pool is full");
 	} TX_ONCOMMIT {
-		UT_FATAL("Can publish");
+		UT_FATAL("Can extend redo log despite the pool is full");
 	} TX_END
 
 	free_pool(allocated, nallocated);
 	pmemobj_cancel(pop, act, REDO_OVERFLOW);
+}
+
+/*
+ * do_tx_max_alloc_no_user_alloc_snap -- fills the pool and tries to do
+ * snapshot which is bigger than ulog size
+ */
+static void
+do_tx_max_alloc_no_user_alloc_snap(PMEMobjpool *pop)
+{
+	UT_OUT("do_tx_max_alloc_no_user_alloc_snap");
+	size_t nallocated = 0;
+	PMEMoid *allocated = fill_pool(pop, &nallocated);
+	UT_ASSERT(nallocated >= MIN_NOIDS);
+
+	size_t range_size = pmemobj_alloc_usable_size(allocated[LOG_BUFFER]);
+	UT_ASSERT(range_size > LANE_UNDO_SIZE);
+
+	void *range_addr = pmemobj_direct(allocated[LOG_BUFFER]);
+	pmemobj_memset(pop, range_addr, 0, range_size, 0);
+
+	TX_BEGIN(pop) {
+		/* it should abort - cannot extend undo log */
+		pmemobj_tx_add_range(allocated[LOG_BUFFER], 0, range_size);
+	} TX_ONABORT {
+		UT_OUT("!Cannot extend undo log - the pool is full");
+	} TX_ONCOMMIT {
+		UT_FATAL("Can extend undo log despite the pool is full");
+	} TX_END
+
+	free_pool(allocated, nallocated);
+}
+
+/*
+ * do_tx_max_alloc_user_alloc_snap -- fills the pool, appends allocated
+ * buffer and tries to do snapshot which is bigger than ulog size
+ */
+static void
+do_tx_max_alloc_user_alloc_snap(PMEMobjpool *pop)
+{
+	UT_OUT("do_tx_max_alloc_user_alloc_snap");
+	size_t nallocated = 0;
+	PMEMoid *allocated = fill_pool(pop, &nallocated);
+	UT_ASSERT(nallocated >= MIN_NOIDS);
+
+	size_t buff_size = pmemobj_alloc_usable_size(allocated[LOG_BUFFER]);
+	void *buff_addr = pmemobj_direct(allocated[LOG_BUFFER]);
+	size_t range_size = pmemobj_alloc_usable_size(allocated[RANGE]);
+	UT_ASSERT(range_size > LANE_UNDO_SIZE);
+
+	void *range_addr = pmemobj_direct(allocated[RANGE]);
+	pmemobj_memset(pop, range_addr, 0, range_size, 0);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addr, buff_size);
+		pmemobj_tx_add_range(allocated[RANGE], 0, range_size);
+	} TX_ONABORT {
+		UT_FATAL("!Cannot use the user appended undo log buffer");
+	} TX_ONCOMMIT {
+		UT_OUT("Can use the user appended undo log buffer");
+	} TX_END
+
+	free_pool(allocated, nallocated);
+}
+
+/*
+ * do_tx_max_alloc_user_alloc_nested -- example of buffer appending
+ * allocated by the user in a nested transaction
+ */
+static void
+do_tx_max_alloc_user_alloc_nested(PMEMobjpool *pop)
+{
+	UT_OUT("do_tx_max_alloc_user_alloc_nested");
+	size_t nallocated = 0;
+	PMEMoid *allocated = fill_pool(pop, &nallocated);
+	UT_ASSERT(nallocated >= MIN_NOIDS);
+
+	size_t buff_size = pmemobj_alloc_usable_size(allocated[LOG_BUFFER]);
+	void *buff_addr = pmemobj_direct(allocated[LOG_BUFFER]);
+	size_t range_size = pmemobj_alloc_usable_size(allocated[RANGE]);
+
+	void *range_addr = pmemobj_direct(allocated[RANGE]);
+	pmemobj_memset(pop, range_addr, 0, range_size, 0);
+
+	TX_BEGIN(pop) {
+		TX_BEGIN(pop) {
+			pmemobj_tx_log_append_buffer(
+				TX_LOG_TYPE_SNAPSHOT, buff_addr, buff_size);
+			pmemobj_tx_add_range(allocated[RANGE], 0, range_size);
+		} TX_ONABORT {
+			UT_FATAL("Cannot use the undo log appended by the user "
+				"in a nested transaction");
+		} TX_ONCOMMIT {
+			UT_OUT("Can use the undo log appended by the user in "
+				"a nested transaction");
+		} TX_END
+	} TX_END
+
+	free_pool(allocated, nallocated);
+}
+
+/*
+ * do_tx_max_alloc_user_alloc_snap_multi -- appending of many buffers
+ * in one transaction
+ */
+static void
+do_tx_max_alloc_user_alloc_snap_multi(PMEMobjpool *pop)
+{
+	UT_OUT("do_tx_max_alloc_user_alloc_snap_multi");
+	size_t nallocated = 0;
+	PMEMoid *allocated = fill_pool(pop, &nallocated);
+	UT_ASSERT(nallocated >= MIN_NOIDS);
+
+	size_t buff_sizes[ARRAY_SIZE_COMMON];
+	void *buff_addrs[ARRAY_SIZE_COMMON];
+	size_t range_sizes[ARRAY_SIZE_COMMON];
+	void *range_addrs[ARRAY_SIZE_COMMON];
+
+	UT_COMPILE_ERROR_ON((ARRAY_SIZE_COMMON - 1) * 2 >= LOG_BUFFER_NUM);
+	UT_COMPILE_ERROR_ON((ARRAY_SIZE_COMMON - 1) * 2 >= RANGE_NUM);
+
+	for (unsigned long i = 0; i < ARRAY_SIZE_COMMON; i++) {
+		/* we multiply the value to not use continuous memory blocks */
+		buff_sizes[i] = pmemobj_alloc_usable_size(
+			allocated[LOG_BUFFER + (i *2)]);
+		buff_addrs[i] = pmemobj_direct(
+			allocated[LOG_BUFFER + (i * 2)]);
+		range_sizes[i] = pmemobj_alloc_usable_size(
+			allocated[RANGE + (i * 2)]);
+		range_addrs[i] = pmemobj_direct(allocated[RANGE + (i * 2)]);
+
+		pmemobj_memset(pop, range_addrs[i], 0, range_sizes[i], 0);
+	}
+
+	errno = 0;
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addrs[0], buff_sizes[0]);
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addrs[1], buff_sizes[1]);
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addrs[2], buff_sizes[1]);
+
+		for (unsigned long i = 0; i < ARRAY_SIZE_COMMON; i++) {
+			pmemobj_tx_add_range(allocated[RANGE + (i * 2)], 0,
+			range_sizes[i]);
+		}
+	} TX_ONABORT {
+		UT_FATAL("!Cannot use multiple user appended undo log buffers");
+	} TX_ONCOMMIT {
+		UT_OUT("Can use multiple user appended undo log buffers");
+	} TX_END
+
+	/* check if all user allocated buffers are used */
+	errno = 0;
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addrs[0], buff_sizes[0]);
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addrs[1], buff_sizes[1]);
+		/*
+		 * do not append last buffer to make sure it is needed for this
+		 * transaction to succeed
+		 */
+		pmemobj_tx_add_range(allocated[RANGE + 0], 0, range_sizes[0]);
+		pmemobj_tx_add_range(allocated[RANGE + 2], 0, range_sizes[1]);
+		pmemobj_tx_add_range(allocated[RANGE + 4], 0, range_sizes[2]);
+	} TX_ONABORT {
+		UT_OUT("!All user appended undo log buffers are used");
+	} TX_ONCOMMIT {
+		UT_FATAL("Not all user appended undo log buffers are required "
+			"- too small ranges");
+	} TX_END
+
+	free_pool(allocated, nallocated);
+}
+
+/*
+ * do_tx_auto_alloc_disabled -- blocking of automatic expansion
+ * of ulog. When auto expansion of ulog is off, snapshot with size
+ * of default undo log is going to fail, because of buffer overhead
+ * (size of internal undo log and header size).
+ */
+static void
+do_tx_auto_alloc_disabled(PMEMobjpool *pop)
+{
+	UT_OUT("do_tx_auto_alloc_disabled");
+	PMEMoid oid0, oid1;
+
+	int ret = pmemobj_zalloc(pop, &oid0, HALF_OF_DEFAULT_UNDO_SIZE, 0);
+	UT_ASSERTeq(ret, 0);
+	ret = pmemobj_zalloc(pop, &oid1, HALF_OF_DEFAULT_UNDO_SIZE, 0);
+	UT_ASSERTeq(ret, 0);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_auto_alloc(TX_LOG_TYPE_SNAPSHOT, 0);
+		pmemobj_tx_add_range(oid0, 0, HALF_OF_DEFAULT_UNDO_SIZE);
+		/* it should abort - cannot extend ulog (first entry is full) */
+		pmemobj_tx_add_range(oid1, 0, HALF_OF_DEFAULT_UNDO_SIZE);
+	} TX_ONABORT {
+		UT_OUT("!Cannot add to undo log the range bigger than the undo "
+			"log default size - the auto alloc is disabled");
+	} TX_ONCOMMIT {
+		UT_FATAL("!Can add to undo log the range bigger than the undo "
+			"log default size despite the auto alloc is disabled");
+	} TX_END
+
+	pmemobj_free(&oid0);
+	pmemobj_free(&oid1);
+}
+
+/*
+ * do_tx_max_alloc_wrong_pop_addr -- allocates two pools and tries to
+ * do transaction with the first pool and address from the second
+ * pool. Abort expected - cannot allocate from different pool.
+ */
+static void
+do_tx_max_alloc_wrong_pop_addr(PMEMobjpool *pop, PMEMobjpool *pop2)
+{
+	UT_OUT("do_tx_max_alloc_wrong_pop_addr");
+	size_t nallocated = 0;
+	PMEMoid *allocated = fill_pool(pop, &nallocated);
+	UT_ASSERT(nallocated >= MIN_NOIDS);
+	PMEMoid oid2;
+
+	int ret = pmemobj_alloc(pop2, &oid2, MAX_ALLOC, 0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	/* pools are allocated now, let's try to get address from wrong pool */
+	size_t buff2_size = pmemobj_alloc_usable_size(oid2);
+	void *buff2_addr = pmemobj_direct(oid2);
+
+	/* abort expected - cannot allocate from different pool */
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff2_addr, buff2_size);
+	} TX_ONABORT {
+		UT_OUT("!Cannot append an undo log buffer from a different "
+			"memory pool");
+	} TX_ONCOMMIT {
+		UT_FATAL("Can append an undo log buffer from a different "
+			"memory pool");
+	} TX_END
+
+	free_pool(allocated, nallocated);
+	pmemobj_free(&oid2);
+}
+
+/*
+ * do_tx_buffer_currently_used -- the same buffer cannot be used
+ * twice in the same time.
+ */
+static void
+do_tx_buffer_currently_used(PMEMobjpool *pop)
+{
+	UT_OUT("do_tx_buffer_currently_used");
+
+	PMEMoid oid_buff;
+	int verify_user_buffers = 1;
+
+	/* by default verify_user_buffers should be 0 */
+	int ret = pmemobj_ctl_get(pop, "tx.debug.verify_user_buffers",
+					&verify_user_buffers);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(verify_user_buffers, 0);
+
+	int err = pmemobj_alloc(pop, &oid_buff, MAX_ALLOC, 0, NULL, NULL);
+	UT_ASSERTeq(err, 0);
+	/* this buffer we will try to use twice */
+	size_t buff_size = pmemobj_alloc_usable_size(oid_buff);
+	void *buff_addr = pmemobj_direct(oid_buff);
+
+	/* changes verify_user_buffers value */
+	verify_user_buffers = 1;
+	ret = pmemobj_ctl_set(pop, "tx.debug.verify_user_buffers",
+			&verify_user_buffers);
+	UT_ASSERTeq(ret, 0);
+
+	verify_user_buffers = 99;
+	/* check if verify_user_buffers has changed */
+	ret = pmemobj_ctl_get(pop, "tx.debug.verify_user_buffers",
+					&verify_user_buffers);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(verify_user_buffers, 1);
+
+	/* if verify_user_buffers is set we should abort tx */
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addr, buff_size);
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addr, buff_size);
+	} TX_ONABORT {
+		UT_OUT("!User cannot append the same undo log buffer twice");
+	} TX_ONCOMMIT {
+		UT_FATAL("User can append the same undo log buffer twice");
+	} TX_END
+
+	pmemobj_free(&oid_buff);
+}
+
+/*
+ * do_tx_max_alloc_tx_publish -- fills the pool and then tries
+ * to overfill redo log with appended buffer
+ */
+static void
+do_tx_max_alloc_tx_publish(PMEMobjpool *pop)
+{
+	UT_OUT("do_tx_max_alloc_tx_publish");
+	PMEMoid *allocated = NULL;
+	PMEMoid reservations[REDO_OVERFLOW];
+	size_t nallocated = 0;
+	struct pobj_action act[REDO_OVERFLOW];
+
+	for (int i = 0; i < REDO_OVERFLOW; i++) {
+		reservations[i] = pmemobj_reserve(pop, &act[i], MIN_ALLOC, 0);
+		UT_ASSERT(!OID_IS_NULL(reservations[i]));
+	}
+
+	allocated = fill_pool(pop, &nallocated);
+	UT_ASSERT(nallocated >= MIN_NOIDS);
+
+	size_t buff_size = pmemobj_alloc_usable_size(allocated[LOG_BUFFER]);
+	void *buff_addr = pmemobj_direct(allocated[LOG_BUFFER]);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_INTENT, buff_addr, buff_size);
+		pmemobj_tx_publish(act, REDO_OVERFLOW);
+	} TX_ONABORT {
+		UT_FATAL("!Cannot extend redo log despite appended buffer");
+	} TX_ONCOMMIT {
+		UT_OUT("Can extend redo log with appended buffer");
+	} TX_END
+
+	free_pool(allocated, nallocated);
+
+	for (int i = 0; i < REDO_OVERFLOW; ++i) {
+		pmemobj_free(&reservations[i]);
+	}
 }
 
 int
@@ -148,8 +498,8 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_ulog_size");
 
-	if (argc != 2)
-		UT_FATAL("usage: %s [file]", argv[0]);
+	if (argc != 3)
+		UT_FATAL("usage: %s [file] [file1]", argv[0]);
 
 	PMEMobjpool *pop = pmemobj_create(argv[1], LAYOUT_NAME, 0,
 		S_IWUSR | S_IRUSR);
@@ -157,20 +507,24 @@ main(int argc, char *argv[])
 	if (pop == NULL)
 		UT_FATAL("!pmemobj_create");
 
+	PMEMobjpool *pop2 = pmemobj_create(argv[2], LAYOUT_NAME, 0,
+		S_IWUSR | S_IRUSR);
+
+	if (pop2 == NULL)
+		UT_FATAL("!pmemobj_create");
+
+	do_tx_max_alloc_no_user_alloc_snap(pop);
+	do_tx_max_alloc_user_alloc_snap(pop);
+	do_tx_max_alloc_user_alloc_nested(pop);
+	do_tx_max_alloc_user_alloc_snap_multi(pop);
+	do_tx_auto_alloc_disabled(pop);
+	do_tx_max_alloc_wrong_pop_addr(pop, pop2);
 	do_tx_max_alloc_tx_publish_abort(pop);
+	do_tx_buffer_currently_used(pop);
+	do_tx_max_alloc_tx_publish(pop);
 
 	pmemobj_close(pop);
+	pmemobj_close(pop2);
 
 	DONE(NULL);
 }
-
-#ifdef _MSC_VER
-extern "C" {
-	/*
-	 * Since libpmemobj is linked statically,
-	 * we need to invoke its ctor/dtor.
-	 */
-	MSVC_CONSTR(libpmemobj_init)
-	MSVC_DESTR(libpmemobj_fini)
-}
-#endif

@@ -33,9 +33,13 @@
 #
 # src/test/obj_ulog_size/Makefile -- build obj_ulog_size unit test
 #
+
+TOP = ../../..
+
 TARGET = obj_ulog_size
 OBJS = obj_ulog_size.o
 
-LIBPMEMOBJ=internal-debug
+LIBPMEMOBJ=y
 
 include ../Makefile.inc
+CFLAGS += -I$(TOP)/src/libpmemobj/
