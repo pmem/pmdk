@@ -8,7 +8,7 @@ Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 1 part(s):
 part 0:
-path                     : /dev/dax$(N).0
+path                     : /dev/dax$(N).$(N)
 type                     : device dax
 size                     : $(N)
 alignment                : 4096
@@ -71,7 +71,7 @@ Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 1 part(s):
 part 0:
-path                     : /dev/dax$(N).0
+path                     : /dev/dax$(N).$(N)
 type                     : device dax
 size                     : $(N)
 alignment                : 4096
