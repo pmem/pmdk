@@ -1,3 +1,4 @@
+#!../env.py
 #
 # Copyright 2019, Intel Corporation
 #
@@ -30,20 +31,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_ulog_size/TEST0 -- unit test for pmemobj_tx_publish abort
-#
 
-. ..\unittest\unittest.ps1
+import testframework as t
 
-require_test_type medium
 
-setup
+class TEST0(t.BaseTest):
+    test_type = t.Medium
+    memcheck = t.DISABLE
 
-create_holey_file 16M $DIR\testfile
-
-expect_normal_exit $Env:EXE_DIR\obj_ulog_size$Env:EXESUFFIX $DIR\testfile
-
-check
-
-pass
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
+        filepath1 = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        ctx.exec('obj_ulog_size', filepath, filepath1)
