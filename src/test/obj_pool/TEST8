@@ -43,7 +43,10 @@ require_test_type medium
 setup
 umask 0
 
-create_nonzeroed_file 8M 8K $DIR/testfile
+SIZE=$(obj_pool_desc_size)
+
+create_nonzeroed_file 8M "${SIZE}" $DIR/testfile
+
 chmod 0600 $DIR/testfile
 
 #

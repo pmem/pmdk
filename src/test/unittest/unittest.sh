@@ -2530,6 +2530,17 @@ function kill_on_node() {
 }
 
 #
+# obj_pool_desc_size -- returns the obj_pool_desc_size macro value
+# in bytes wich is two times the actual pagesize.
+#
+# This should be use to calculate the minimum zero size for pool
+# creation on some tests.
+#
+function obj_pool_desc_size() {
+	echo "$(expr $(getconf PAGESIZE) \* 2)"
+}
+
+#
 # create_holey_file_on_node -- create holey files of a given length
 #   usage: create_holey_file_on_node <node> <size>
 #
