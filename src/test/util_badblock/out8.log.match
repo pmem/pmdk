@@ -1,2 +1,2 @@
 util_badblock$(nW)TEST8: START: util_badblock
- $(nW)util_badblock$(nW) /dev/dax$(nW) o
+ $(nW)util_badblock$(nW) /dev/dax$(N).$(N) o
