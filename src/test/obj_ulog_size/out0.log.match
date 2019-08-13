@@ -1,5 +1,17 @@
 obj_ulog_size$(nW)TEST0: START: obj_ulog_size
- $(nW)obj_ulog_size$(nW) $(nW)testfile
+ $(nW)obj_ulog_size$(nW) $(nW)testfile $(nW)testfile1
+no_prealloc_snap
+Cannot add snapshot: ${Cannot allocate memory|Not enough space}
+prealloc_snap
+Can add snapshot
+prealloc_nested
+Can add snapshot
+prealloc_snap_multi
+Can add snapshot
+do_not_auto_reserve
+Cannot reserve more: ${Cannot allocate memory|Not enough space}
+wrong_pop_addr
+Allocation from different pool: Invalid argument
 do_tx_max_alloc_tx_publish_abort
 Cannot publish: ${Cannot allocate memory|Not enough space}
 obj_ulog_size$(nW)TEST0: DONE
