@@ -1887,7 +1887,37 @@ static const struct ctl_node CTL_NODE(debug)[] = {
 };
 
 /*
- * CTL_WRITE_HANDLER(queue_depth) -- returns the depth of the post commit queue
+ * CTL_READ_HANDLER(max_overhead, undo) -- returns the maximum value of
+ * preallocation undo overhead
+ */
+static int
+CTL_READ_HANDLER(max_overhead, undo)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	unsigned *max_overhead = arg;
+
+	*max_overhead = TX_ULOG_MAX_OVERHEAD;
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(max_overhead, redo) -- returns the maximum value of
+ * preallocation redo overhead
+ */
+static int
+CTL_READ_HANDLER(max_overhead, redo)(void *ctx, enum ctl_query_source source,
+	void *arg, struct ctl_indexes *indexes)
+{
+	unsigned *max_overhead = arg;
+
+	*max_overhead = TX_ULOG_MAX_OVERHEAD;
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(queue_depth) -- returns the depth of the post commit queue
  */
 static int
 CTL_READ_HANDLER(queue_depth)(void *ctx, enum ctl_query_source source,
@@ -1936,10 +1966,24 @@ static const struct ctl_node CTL_NODE(post_commit)[] = {
 	CTL_NODE_END
 };
 
+static const struct ctl_node CTL_NODE(undo)[] = {
+	CTL_LEAF_RO(max_overhead, undo),
+
+	CTL_NODE_END
+};
+
+static const struct ctl_node CTL_NODE(redo)[] = {
+	CTL_LEAF_RO(max_overhead, redo),
+
+	CTL_NODE_END
+};
+
 static const struct ctl_node CTL_NODE(tx)[] = {
 	CTL_CHILD(debug),
 	CTL_CHILD(cache),
 	CTL_CHILD(post_commit),
+	CTL_CHILD(undo),
+	CTL_CHILD(redo),
 
 	CTL_NODE_END
 };

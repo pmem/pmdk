@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,6 +52,8 @@ extern "C" {
 #define TX_RANGE_MASK_LEGACY (32ULL - 1)
 
 #define TX_ALIGN_SIZE(s, amask) (((s) + (amask)) & ~(amask))
+
+#define TX_ULOG_MAX_OVERHEAD 64
 
 struct tx_parameters {
 	size_t cache_size;
