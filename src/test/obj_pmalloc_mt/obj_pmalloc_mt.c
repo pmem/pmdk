@@ -317,7 +317,14 @@ action_mix_worker(void *arg)
 static void
 actions_clear(struct root *r)
 {
-	memset(r->actions, 0, sizeof(r->actions));
+	for (unsigned i = 0; i < Threads; ++i) {
+		for (unsigned j = 0; j < Ops_per_thread; ++j) {
+			struct action *a = &r->actions[i][j];
+			os_mutex_init(&a->lock);
+			os_cond_init(&a->cond);
+			memset(&a->pact, 0, sizeof(a->pact));
+		}
+	}
 }
 
 static void
