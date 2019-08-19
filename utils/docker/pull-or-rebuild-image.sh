@@ -75,11 +75,22 @@ if [[ -z "$HOST_WORKDIR" ]]; then
 	exit 1
 fi
 
-# TRAVIS_COMMIT_RANGE is usually invalid for force pushes - ignore such values
-# when used with non-upstream repository
+# TRAVIS_COMMIT_RANGE is usually invalid for force pushes - fix it when used
+# with non-upstream repository
 if [ -n "$TRAVIS_COMMIT_RANGE" -a "$TRAVIS_REPO_SLUG" != "$GITHUB_REPO" ]; then
 	if ! git rev-list $TRAVIS_COMMIT_RANGE; then
-		TRAVIS_COMMIT_RANGE=
+		# get commit id of the last merge
+		LAST_MERGE=$(git log --merges --pretty=%H -1)
+		if [ "$LAST_MERGE" == "" ]; then
+			# possible in case of shallow clones
+			TRAVIS_COMMIT_RANGE=""
+		else
+			TRAVIS_COMMIT_RANGE="$LAST_MERGE..HEAD"
+			# make sure it works now
+			if ! git rev-list $TRAVIS_COMMIT_RANGE; then
+				TRAVIS_COMMIT_RANGE=""
+			fi
+		fi
 	fi
 fi
 
