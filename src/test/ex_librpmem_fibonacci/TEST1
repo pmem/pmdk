@@ -111,7 +111,7 @@ run_on_node 1 "mv $OUT_LOG_FILE $TEMP"
 # F[10] = ...
 # broken remote memory pool!
 # ...
-run_on_node 1 "cat $TEMP | grep '\(F\[\|broken\)' > $OUT_LOG_FILE"
+run_on_node 1 "cat $TEMP | grep -vwE '(Fibonacci|initializing)' > $OUT_LOG_FILE"
 
 check
 
