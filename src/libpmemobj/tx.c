@@ -1894,9 +1894,9 @@ static int
 CTL_READ_HANDLER(max_overhead, undo)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
-	unsigned *max_overhead = arg;
+	size_t *max_overhead = arg;
 
-	*max_overhead = TX_ULOG_MAX_OVERHEAD;
+	*max_overhead = (size_t)TX_ULOG_MAX_OVERHEAD;
 
 	return 0;
 }
@@ -1909,9 +1909,9 @@ static int
 CTL_READ_HANDLER(max_overhead, redo)(void *ctx, enum ctl_query_source source,
 	void *arg, struct ctl_indexes *indexes)
 {
-	unsigned *max_overhead = arg;
+	size_t *max_overhead = arg;
 
-	*max_overhead = TX_ULOG_MAX_OVERHEAD;
+	*max_overhead = (size_t)TX_ULOG_MAX_OVERHEAD;
 
 	return 0;
 }

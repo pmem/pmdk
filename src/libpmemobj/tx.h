@@ -53,7 +53,7 @@ extern "C" {
 
 #define TX_ALIGN_SIZE(s, amask) (((s) + (amask)) & ~(amask))
 
-#define TX_ULOG_MAX_OVERHEAD 64
+#define TX_ULOG_MAX_OVERHEAD 64ULL
 
 struct tx_parameters {
 	size_t cache_size;

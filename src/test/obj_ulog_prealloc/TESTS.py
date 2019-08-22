@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!../env.py
 #
 # Copyright 2019, Intel Corporation
 #
@@ -31,21 +31,14 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_ulog_prealloc/TEST0 -- unit test for pmemobj_ulog_prealloc
-#
 
-# standard unit test setup
-. ../unittest/unittest.sh
+import testframework as t
 
-require_test_type medium
 
-setup
+class TEST0(t.BaseTest):
+    test_type = t.Medium
+    memcheck = t.DISABLE
 
-create_nonzeroed_file 16M 8K $DIR/testfile
-
-expect_normal_exit ./obj_ulog_prealloc$EXESUFFIX $DIR/testfile
-
-check
-
-pass
+    def run(self, ctx):
+        filepath = ctx.create_zeroed_hdr_file(16 * t.MiB, 'testfile')
+        ctx.exec('obj_ulog_prealloc', filepath)

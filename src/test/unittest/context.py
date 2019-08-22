@@ -41,7 +41,7 @@ import subprocess as sp
 import futils
 from poolset import _Poolset
 import tools
-from utils import KiB, MiB, GiB, TiB
+from utils import KiB, MiB, GiB, TiB, HEADER_SIZE
 
 try:
     import testconfig
