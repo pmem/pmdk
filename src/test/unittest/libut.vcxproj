@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -64,13 +64,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <GenerateManifest>false</GenerateManifest>
     <TargetExt>.lib</TargetExt>
     <IncludePath>$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <GenerateManifest>false</GenerateManifest>
     <TargetExt>.lib</TargetExt>
     <IncludePath>$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
