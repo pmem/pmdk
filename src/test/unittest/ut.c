@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1003,3 +1003,35 @@ ut_toUTF16(const char *wstr)
 	return str;
 }
 #endif
+
+/*
+ * ut_strtoull -- a strtoul call that cannot return error
+ */
+unsigned long long
+ut_strtoull(const char *file, int line, const char *func,
+	const char *nptr, char **endptr, int base)
+{
+	unsigned long long retval;
+	errno = 0;
+	if (*nptr == '\0') {
+		errno = EINVAL;
+		goto fatal;
+	}
+
+	if (endptr != NULL) {
+		retval = strtoull(nptr, endptr, base);
+	} else {
+		char *end;
+		retval = strtoull(nptr, &end, base);
+		if (*end != '\0')
+			goto fatal;
+	}
+	if (errno != 0)
+		goto fatal;
+
+	return retval;
+fatal:
+	ut_fatal(file, line, func,
+		"!strtoull: nptr=%s, endptr=%s, base=%d",
+		nptr, endptr ? *endptr : "NULL", base);
+}
