@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -426,6 +426,11 @@ int ut_mprotect(const char *file, int line, const char *func, void *addr,
 int ut_ftruncate(const char *file, int line, const char *func,
     int fd, os_off_t length);
 
+unsigned long long ut_strtoull(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+long long ut_strtoll(const char *file, int line, const char *func,
+    const char *nptr, char **endptr, int base);
+
 /* an open() that can't return < 0 */
 #define OPEN(path, ...)\
     ut_open(__FILE__, __LINE__, __func__, path, __VA_ARGS__)
@@ -488,6 +493,14 @@ int ut_ftruncate(const char *file, int line, const char *func,
 
 #define FTRUNCATE(fd, length)\
     ut_ftruncate(__FILE__, __LINE__, __func__, fd, length)
+
+#define ATOULL(nptr) STRTOULL(nptr, NULL, 10)
+#define ATOLL(nptr) STRTOLL(nptr, NULL, 10)
+
+#define STRTOULL(nptr, endptr, base)\
+    ut_strtoull(__FILE__, __LINE__, __func__, nptr, endptr, base)
+#define STRTOLL(nptr, endptr, base)\
+    ut_strtoll(__FILE__, __LINE__, __func__, nptr, endptr, base)
 
 #ifndef _WIN32
 #define ut_jmp_buf_t sigjmp_buf
