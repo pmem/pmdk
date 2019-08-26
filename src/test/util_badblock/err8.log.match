@@ -1,1 +1,1 @@
-{util_badblock.c:$(N) do_open} util_badblock/TEST8: Error: util_pool_open: /dev/dax$(N).0: Input/output error
+{util_badblock.c:$(N) do_open} util_badblock/TEST8: Error: util_pool_open: /dev/dax$(N).$(N): Input/output error
