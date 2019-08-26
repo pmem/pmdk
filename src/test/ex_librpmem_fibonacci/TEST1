@@ -80,13 +80,13 @@ fibonacci_next()
 corrupt_local()
 {
 	expect_normal_exit run_on_node 1 "\"openssl rand 8192 > $RAND_DATA\""
-	expect_normal_exit run_on_node 1 "../daxio -o $node_1_dax -i $RAND_DATA -l 8192" &>> $PREP_LOG_FILE
+	expect_normal_exit run_on_node 1 "../daxio $DAXIO_OPTS -o $node_1_dax -i $RAND_DATA -l 8192" &>> $PREP_LOG_FILE
 }
 
 corrupt_remote()
 {
 	expect_normal_exit run_on_node 0 "\"openssl rand 4096 > $RAND_DATA\""
-	expect_normal_exit run_on_node 0 "../daxio -o $node_0_dax -i $RAND_DATA --seek 4096" &>> $PREP_LOG_FILE
+	expect_normal_exit run_on_node 0 "../daxio $DAXIO_OPTS -o $node_0_dax -i $RAND_DATA --seek 4096" &>> $PREP_LOG_FILE
 }
 
 # recover from local corruption
