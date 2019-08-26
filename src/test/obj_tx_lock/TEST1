@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,8 +32,8 @@
 #
 
 #
-# src/test/obj_tx_lock/TEST0 -- unit test for pmemobj_tx_lock()
-#                               with DRD disabled
+# src/test/obj_tx_lock/TEST1 -- unit test for pmemobj_tx_lock() with DRD
+#                               and Helgrind disabled
 #
 
 # standard unit test setup
@@ -42,9 +42,10 @@
 require_test_type medium
 
 configure_valgrind drd force-disable
+configure_valgrind helgrind force-disable
 
 setup
 
-expect_normal_exit ./obj_tx_lock$EXESUFFIX $DIR/testfile1 l n a
+expect_normal_exit ./obj_tx_lock$EXESUFFIX $DIR/testfile1 t
 
 pass
