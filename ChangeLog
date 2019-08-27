@@ -1,6 +1,6 @@
-Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+Tue Aug 27 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.6.1-rc1
+	* Version 1.6.1
 
 	This release fixes possible pool corruptions on Windows
 	(see https://github.com/pmem/pmdk/pull/3728 for details),
@@ -49,6 +49,9 @@ Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 	- test: avoid obj_critnib_mt taking very long on many-core machines
 	- test: deal with libndctl's path without build system
 	- test: overwrite old log in pmempool_create/TEST14.PS1
+	- test: fix match files in tests which use dax devices
+	- test: fix match file in rpmem_addr_ext test
+	- test: fix pmempool_check test
 
 Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
