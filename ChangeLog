@@ -1,6 +1,6 @@
-Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+Tue Aug 27 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.2.4-rc1
+	* Version 1.2.4
 	Bug fixes:
 	- common: fix device dax detection (compatibility with newer kernels)
 
