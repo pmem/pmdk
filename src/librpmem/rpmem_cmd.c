@@ -255,9 +255,9 @@ rpmem_cmd_wait(struct rpmem_cmd *cmd, int *status)
 }
 
 /*
- * rpmem_cmd_term -- terminate process by sending SIGINT signal
+ * rpmem_cmd_term -- close child process's unix sockets
  */
-int
+void
 rpmem_cmd_term(struct rpmem_cmd *cmd)
 {
 	os_close(cmd->fd_in);
@@ -265,8 +265,4 @@ rpmem_cmd_term(struct rpmem_cmd *cmd)
 	os_close(cmd->fd_err);
 
 	RPMEM_ASSERT(cmd->pid > 0);
-	int rv = kill(cmd->pid, SIGINT);
-	if (rv)
-		RPMEM_LOG(ERR, "!kill failed");
-	return rv;
 }

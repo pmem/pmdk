@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,7 +57,7 @@ struct rpmem_cmd {
 struct rpmem_cmd *rpmem_cmd_init(void);
 int rpmem_cmd_push(struct rpmem_cmd *cmd, const char *arg);
 int rpmem_cmd_run(struct rpmem_cmd *cmd);
-int rpmem_cmd_term(struct rpmem_cmd *cmd);
+void rpmem_cmd_term(struct rpmem_cmd *cmd);
 int rpmem_cmd_wait(struct rpmem_cmd *cmd, int *status);
 void rpmem_cmd_fini(struct rpmem_cmd *cmd);
 
