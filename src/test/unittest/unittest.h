@@ -157,7 +157,7 @@ void ut_done(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)))
 	__attribute__((noreturn));
-void ut_fatal(const char *file, int line, const char *func,
+void NORETURN ut_fatal(const char *file, int line, const char *func,
 	const char *fmt, ...)
 	__attribute__((format(printf, 4, 5)))
 	__attribute__((noreturn));
