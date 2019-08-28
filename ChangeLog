@@ -53,9 +53,9 @@ Tue Aug 27 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 	- test: fix match file in rpmem_addr_ext test
 	- test: fix pmempool_check test
 
-Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+Wed Aug 28 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.5.2-rc1
+	* Version 1.5.2
 
 	This release fixes possible pool corruptions on Windows
 	(see https://github.com/pmem/pmdk/pull/3728 for details),
@@ -77,6 +77,8 @@ Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 	- rpmem: lock file prior to unlink (#833)
 	- common: fix for pool_set error handling (#1036)
 	- pmreorder: fix handling of store drain flush drain pattern
+	- obj: fix possible memory leak in tx_add_lock
+	- pool: free bad_block vector
 	- common: fix bug in badblock file error handling
 	- obj: fix handling of malloc failures
 	- common: fix handling of malloc failures (ctl)
@@ -95,6 +97,9 @@ Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 	- test: remove old log files for windows (#1013)
 	- test: remove invalid expect_normal_exit (#1092)
 	- test: suppress ld leak (#1098)
+	- test: fix failing pmemdetect on Windows
+	- test: fix match files in tests which use dax devices
+	- test: fix pmempool_check test
 
 Tue Mar 26 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
