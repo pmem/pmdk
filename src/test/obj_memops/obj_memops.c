@@ -53,7 +53,7 @@ enum fail_types {
 };
 
 struct test_object {
-	uint8_t padding[CACHELINE_SIZE - 16]; /* align to a cacheline */
+	uint8_t padding[48]; /* align to a cacheline */
 	struct ULOG(TEST_ENTRIES) redo;
 	struct ULOG(TEST_ENTRIES) undo;
 	uint64_t values[TEST_VALUES];
@@ -480,9 +480,9 @@ test_undo_log_reuse()
 		.memset = memset_libc,
 		.base = NULL,
 	};
-	struct ULOG(ULOG_SIZE) *first = util_aligned_malloc(64,
+	struct ULOG(ULOG_SIZE) *first = util_aligned_malloc(CACHELINE_SIZE,
 		SIZEOF_ULOG(ULOG_SIZE));
-	struct ULOG(ULOG_SIZE) *second = util_aligned_malloc(64,
+	struct ULOG(ULOG_SIZE) *second = util_aligned_malloc(CACHELINE_SIZE,
 		SIZEOF_ULOG(ULOG_SIZE));
 	ulog_construct((uint64_t)(first), ULOG_SIZE, 0, 0, 0, &ops);
 	ulog_construct((uint64_t)(second), ULOG_SIZE, 0, 0, 0, &ops);

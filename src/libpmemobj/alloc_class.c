@@ -83,7 +83,7 @@
 /*
  * The granularity of the allocation class generation algorithm.
  */
-#define ALLOC_BLOCK_SIZE_GEN 64
+#define ALLOC_BLOCK_SIZE_GEN CACHELINE_SIZE
 
 /*
  * The first predefined allocation class size
