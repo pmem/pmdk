@@ -1,5 +1,5 @@
 obj_ulog_prealloc$(nW)TEST0: START: obj_ulog_prealloc
- $(nW)obj_ulog_prealloc$(nW) $(nW)testfile
+ $(nW)obj_ulog_prealloc$(nW) $(nW)testfile $(nW)testfile1
 no_prealloc_snap
 Cannot add snapshot: ${Cannot allocate memory|Not enough space}
 prealloc_snap
@@ -10,4 +10,6 @@ prealloc_snap_multi
 Can add snapshot
 do_not_auto_reserve
 Cannot reserve more: ${Cannot allocate memory|Not enough space}
+wrong_pop_addr
+Allocation from different pool: Invalid argument
 obj_ulog_prealloc$(nW)TEST0: DONE

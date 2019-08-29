@@ -264,17 +264,54 @@ do_tx_do_not_auto_reserve(PMEMobjpool *pop)
 	pmemobj_free(&oid1);
 }
 
+/*
+ * do_tx_max_alloc_wrong_pop_addr -- allocates two pools and tries to
+ * do transaction with the first pool and address from the second pool.
+ * Abort expected - cannot allocate from different pool.
+ */
+static void
+do_tx_max_alloc_wrong_pop_addr(PMEMobjpool *pop, PMEMobjpool *pop2)
+{
+	UT_OUT("wrong_pop_addr");
+	PMEMoid oid[MAX_OBJECTS];
+	PMEMoid oid2;
+
+	fill_pool(pop, oid);
+	pmemobj_zalloc(pop2, &oid2, MB, 0);
+
+	/* pools are allocated now, let's try to get address from wrong pool */
+	size_t snap_size = pmemobj_alloc_usable_size(oid2);
+	void *addr2 = pmemobj_direct(oid2);
+
+	/* abort expected - cannot allocate from different pool */
+	TX_BEGIN_PARAM(pop, TX_PARAM_SNAPSHOT_BUFFER, addr2,
+			snap_size,  TX_PARAM_NONE) {
+		pmemobj_tx_add_range(oid[0], 0, snap_size);
+	} TX_ONABORT {
+		UT_OUT("!Allocation from different pool");
+	} TX_ONCOMMIT {
+		UT_OUT("Can add snapshot");
+	} TX_END
+
+	free_pool(oid);
+	pmemobj_free(&oid2);
+}
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_ulog_prealloc");
-	util_init();
 
-	if (argc != 2)
+	if (argc != 3)
 		UT_FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, 0,
+		S_IWUSR | S_IRUSR)) == NULL)
+		UT_FATAL("!pmemobj_create");
+
+	PMEMobjpool *pop2;
+	if ((pop2 = pmemobj_create(argv[2], LAYOUT_NAME, 0,
 		S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 
@@ -284,8 +321,10 @@ main(int argc, char *argv[])
 	do_tx_max_alloc_prealloc_nested(pop);
 	do_tx_max_alloc_prealloc_snap_multi(pop);
 	do_tx_do_not_auto_reserve(pop);
+	do_tx_max_alloc_wrong_pop_addr(pop, pop2);
 
 	pmemobj_close(pop);
+	pmemobj_close(pop2);
 
 	DONE(NULL);
 }

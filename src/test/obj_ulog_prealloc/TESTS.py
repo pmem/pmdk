@@ -41,4 +41,5 @@ class TEST0(t.BaseTest):
 
     def run(self, ctx):
         filepath = ctx.create_zeroed_hdr_file(16 * t.MiB, 'testfile')
-        ctx.exec('obj_ulog_prealloc', filepath)
+        filepath1 = ctx.create_zeroed_hdr_file(16 * t.MiB, 'testfile1')
+        ctx.exec('obj_ulog_prealloc', filepath, filepath1)
