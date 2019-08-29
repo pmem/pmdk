@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -709,12 +709,17 @@ update_uuids(struct pool_set *set, unsigned repn)
 				POOL_HDR_UUID_LEN);
 		memcpy(hdrp->prev_part_uuid, PARTP(rep, p)->uuid,
 				POOL_HDR_UUID_LEN);
-		memcpy(hdrp->next_repl_uuid, hdr0->next_repl_uuid,
-				POOL_HDR_UUID_LEN);
-		memcpy(hdrp->prev_repl_uuid, hdr0->prev_repl_uuid,
-				POOL_HDR_UUID_LEN);
-		memcpy(hdrp->poolset_uuid, hdr0->poolset_uuid,
-				POOL_HDR_UUID_LEN);
+
+		/* Avoid calling memcpy() on identical regions */
+		if (p != 0) {
+			memcpy(hdrp->next_repl_uuid, hdr0->next_repl_uuid,
+					POOL_HDR_UUID_LEN);
+			memcpy(hdrp->prev_repl_uuid, hdr0->prev_repl_uuid,
+					POOL_HDR_UUID_LEN);
+			memcpy(hdrp->poolset_uuid, hdr0->poolset_uuid,
+					POOL_HDR_UUID_LEN);
+		}
+
 		util_checksum(hdrp, sizeof(*hdrp), &hdrp->checksum, 1,
 			POOL_HDR_CSUM_END_OFF(hdrp));
 		util_persist(PART(rep, p)->is_dev_dax, hdrp, sizeof(*hdrp));
