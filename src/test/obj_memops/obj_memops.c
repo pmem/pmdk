@@ -36,10 +36,13 @@
  */
 
 #include <stddef.h>
+#include <libpmemobj.h>
 #include "obj.h"
 #include "memops.h"
 #include "ulog.h"
 #include "unittest.h"
+#include "alloc_class.h"
+#include "heap.h"
 
 #define TEST_ENTRIES 256
 
@@ -53,7 +56,6 @@ enum fail_types {
 };
 
 struct test_object {
-	uint8_t padding[CACHELINE_SIZE - 16]; /* align to a cacheline */
 	struct ULOG(TEST_ENTRIES) redo;
 	struct ULOG(TEST_ENTRIES) undo;
 	uint64_t values[TEST_VALUES];
@@ -479,9 +481,9 @@ test_undo_log_reuse()
 		.memset = memset_libc,
 		.base = NULL,
 	};
-	struct ULOG(ULOG_SIZE) *first = util_aligned_malloc(64,
+	struct ULOG(ULOG_SIZE) *first = util_aligned_malloc(CACHELINE_SIZE,
 		SIZEOF_ULOG(ULOG_SIZE));
-	struct ULOG(ULOG_SIZE) *second = util_aligned_malloc(64,
+	struct ULOG(ULOG_SIZE) *second = util_aligned_malloc(CACHELINE_SIZE,
 		SIZEOF_ULOG(ULOG_SIZE));
 	ulog_construct((uint64_t)(first), ULOG_SIZE, 0, 0, 0, &ops);
 	ulog_construct((uint64_t)(second), ULOG_SIZE, 0, 0, 0, &ops);
@@ -569,7 +571,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_memops");
 
 	if (argc != 2)
-		UT_FATAL("usage: %s file-name", argv[0]);
+	UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -579,11 +581,29 @@ main(int argc, char *argv[])
 			PMEMOBJ_MIN_POOL * 10, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
-	struct test_object *object =
-		pmemobj_direct(pmemobj_root(pop, sizeof(struct test_object)));
+	/*
+	 * The ulog api is cacheline aligned dependent. Here is created a
+	 * cacheline aligned new allocation classe to properly test the
+	 * ulog api. Then heap_create_alloc_class_buckets is called to
+	 * create buckets for this allocation class. A properly aligned
+	 * object can then be allocated using pmemobj_xalloc.
+	 */
+	struct alloc_class *ac =
+		alloc_class_new(-1, heap_alloc_classes(&pop->heap), CLASS_RUN,
+				POBJ_HEADER_NONE, sizeof(struct test_object),
+				CACHELINE_SIZE, 1);
+
+	heap_create_alloc_class_buckets(&pop->heap, ac);
+
+	PMEMoid pobject;
+	pmemobj_xalloc(pop, &pobject, sizeof(struct test_object), 0,
+			((uint64_t)ac->id << 48), NULL, NULL);
+
+	struct test_object *object = pmemobj_direct(pobject);
+
 	UT_ASSERTne(object, NULL);
 	ulog_construct(OBJ_PTR_TO_OFF(pop, &object->undo),
-		TEST_ENTRIES, 0, 0, 0, &pop->p_ops);
+			TEST_ENTRIES, 0, 0, 0, &pop->p_ops);
 
 	test_redo(pop, object);
 	test_undo(pop, object);
