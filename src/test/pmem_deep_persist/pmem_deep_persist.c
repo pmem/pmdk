@@ -62,7 +62,7 @@ main(int argc, char *argv[])
 
 	char *addr;
 	size_t mapped_len;
-	ssize_t persist_size;
+	size_t persist_size;
 	size_t offset;
 	const char *path;
 	int is_pmem;
