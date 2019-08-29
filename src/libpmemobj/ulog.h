@@ -65,6 +65,7 @@ struct ulog_entry_buf {
 	uint8_t data[]; /* content to fill in */
 };
 
+#define ULOG_UNUSED (CACHELINE_SIZE - 32) / 8
 /*
  * This structure *must* be located at a cacheline boundary. To achieve this,
  * the next field is always allocated with extra padding, and then the offset
@@ -76,7 +77,7 @@ struct ulog_entry_buf {
 	uint64_t next; /* offset of ulog extension */\
 	uint64_t capacity; /* capacity of this ulog in bytes */\
 	uint64_t gen_num; /* generation counter */\
-	uint64_t unused[4]; /* must be 0 */\
+	uint64_t unused[ULOG_UNUSED]; /* must be 0 */\
 	uint8_t data[capacity_bytes]; /* N bytes of data */\
 }\
 
