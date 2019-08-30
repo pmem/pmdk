@@ -51,19 +51,19 @@ PiB = 2 ** 50
 
 def _os_only(tc, os_name):
     """
-    Enable test case (TEST[number] class) only on specific OS.
+    Disable test case (TEST[number] class) if NOT run on selected OS.
+    Otherwise, the test is not reenabled if it was already disabled
+    elsewhere.
     Internal helper function.
     """
-    if sys.platform.startswith(os_name):
-        tc.enabled = True
-    else:
+    if not sys.platform.startswith(os_name):
         tc.enabled = False
     return tc
 
 
 def _os_exclude(tc, os_name):
     """
-    Disable test case (TEST[number] class) on specific OS.
+    Disable test case (TEST[number] class) on selected OS.
     Internal helper function.
     """
     if sys.platform.startswith(os_name):
@@ -73,7 +73,7 @@ def _os_exclude(tc, os_name):
 
 def windows_only(tc):
     """
-    Enable test case (TEST[number] class) only on Windows.
+    Disable test case (TEST[number] class) if NOT run on Windows.
     Use it as a class decorator.
     """
     return _os_only(tc, 'win32')
@@ -81,7 +81,7 @@ def windows_only(tc):
 
 def linux_only(tc):
     """
-    Enable test case (TEST[number] class) only on Linux.
+    Disable test case (TEST[number] class) if NOT run on Linux.
     Use it as a class decorator.
     """
     return _os_only(tc, 'linux')
@@ -89,7 +89,7 @@ def linux_only(tc):
 
 def freebsd_only(tc):
     """
-    Enable test case (TEST[number] class) only on FreeBSD.
+    Disable test case (TEST[number] class) if NOT run on FreeBSD.
     Use it as a class decorator.
     """
     return _os_only(tc, 'freebsd')
