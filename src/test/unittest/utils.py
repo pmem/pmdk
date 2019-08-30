@@ -32,6 +32,7 @@
 
 """Utilities for tests"""
 
+import sys
 
 # .so file names
 VMMALLOC = 'libvmmalloc.so.1'
@@ -46,3 +47,23 @@ MiB = 2 ** 20
 GiB = 2 ** 30
 TiB = 2 ** 40
 PiB = 2 ** 50
+
+
+def windows_only(tc):
+    """
+    Run test case (TEST[number] class) only on Windows.
+    Use it as a class decorator.
+    """
+    if sys.platform != 'win32':
+        tc.enabled = False
+    return tc
+
+
+def linux_only(tc):
+    """
+    Run test case (TEST[number] class) only on Linux.
+    Use it as a class decorator.
+    """
+    if sys.platform != 'linux':
+        tc.enabled = False
+    return tc
