@@ -37,13 +37,3 @@ with the following exceptions:
 
 * js/jquery.min.js released under the MIT license
   (see: http://jquery.org/license)
-
-* cpp_obj/cpp_html/jquery.js dual licensed under the MIT
-  or GPL Version 2 license (see: http://jquery.org/license)
-
-* sizzle.js (included in cpp_obj/cpp_html/jquery.js) released under
-  the MIT, BSD and GPL licenses (see: http://sizzle.com)
-
-* cpp_obj/cpp_html/search/search.js licensed under the GPL
-
-* cpp_obj/cpp_html/dynsections.js licensed under the GPL
