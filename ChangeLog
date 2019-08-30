@@ -1,6 +1,6 @@
-Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+Fri Aug 30 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.4.3-rc1
+	* Version 1.4.3
 
 	This release fixes possible pool corruptions on Windows
 	(see https://github.com/pmem/pmdk/pull/3728 for details)
@@ -14,9 +14,17 @@ Fri Aug 09 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 	- obj: fix pmemobj_check for pools with some sizes (#975)
 	- obj: fix type numbers for pmemobj_list_insert_new
 	- obj: fix pmemobj_tx_lock error handling
+	- obj: fix possible memory leak in tx_add_lock
 	- common: fix ctl_load_config during libpmemobj initialization (#917)
 	- common: win: fix getopt returning "option is ambiguous"
 	- common: fix persistent domain detection (#1093)
+	- pool: do not copy same regions in update_uuids
+	- test: split test obj_tx_lock into two test cases
+	- test: remove checking errno in obj_tx_add_range_direct
+	- test: remove invalid expect_normal_exit
+	- test: fix int overflow in pmem_deep_persist test
+	- test: fix pmempool_check test
+	- test: (win) fix a few issues related to long paths
 
 Thu Aug 16 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 
