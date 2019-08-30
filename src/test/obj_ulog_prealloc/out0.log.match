@@ -1,7 +1,7 @@
 obj_ulog_prealloc$(nW)TEST0: START: obj_ulog_prealloc
  $(nW)obj_ulog_prealloc$(nW) $(nW)testfile
 no_prealloc_snap
-Cannot add snapshot: Cannot allocate memory
+Cannot add snapshot: ${Cannot allocate memory|Not enough space}
 prealloc_snap
 Can add snapshot
 prealloc_nested
@@ -9,5 +9,5 @@ Can add snapshot
 prealloc_snap_multi
 Can add snapshot
 do_not_auto_reserve
-Cannot reserve more: Cannot allocate memory
+Cannot reserve more: ${Cannot allocate memory|Not enough space}
 obj_ulog_prealloc$(nW)TEST0: DONE

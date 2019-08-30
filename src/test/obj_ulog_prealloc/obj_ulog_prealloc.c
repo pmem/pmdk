@@ -39,11 +39,6 @@
 
 #include "unittest.h"
 #include "util.h"
-#include "obj.h"
-#include "memops.h"
-#include "ulog.h"
-#include "lane.h"
-#include "vec.h"
 
 #define TX_SNAPSHOT_ALIGNMENT CACHELINE_SIZE
 #define TX_SNAPSHOT_LOG_BUFFER_OVERHEAD 64ULL
@@ -273,15 +268,15 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_ulog_prealloc");
+	util_init();
 
 	if (argc != 2)
 		UT_FATAL("usage: %s [file]", argv[0]);
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, 0,
-				S_IWUSR | S_IRUSR)) == NULL)
+		S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
-
 
 	do_clt_overhead_test(pop);
 	do_tx_max_alloc_no_prealloc_snap(pop);
@@ -294,3 +289,14 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+extern "C" {
+/*
+ * Since libpmemobj is linked statically,
+ * we need to invoke its ctor/dtor.
+ */
+	MSVC_CONSTR(libpmemobj_init)
+	MSVC_DESTR(libpmemobj_fini)
+}
+#endif
