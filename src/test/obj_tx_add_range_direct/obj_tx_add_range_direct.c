@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -569,8 +569,6 @@ do_tx_add_range_lots_of_small_snapshots(PMEMobjpool *pop)
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END
-
-	UT_ASSERTeq(errno, 0);
 }
 
 static void
