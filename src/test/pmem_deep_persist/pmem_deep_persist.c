@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,15 +62,20 @@ main(int argc, char *argv[])
 
 	char *addr;
 	size_t mapped_len;
-	ssize_t persist_size;
+	size_t persist_size;
 	size_t offset;
 	const char *path;
 	int is_pmem;
 	int ret = -1;
 
 	path = argv[1];
-	persist_size = (size_t)atoi(argv[3]);
-	offset = (size_t)atoi(argv[4]);
+	ssize_t tmp = ATOLL(argv[3]);
+	if (tmp < 0)
+		persist_size = UINT64_MAX;
+	else
+		persist_size = (size_t)tmp;
+
+	offset = ATOULL(argv[4]);
 
 	switch (*argv[2]) {
 		case 'p':
@@ -79,7 +84,7 @@ main(int argc, char *argv[])
 				UT_FATAL("!pmem_map_file");
 			}
 
-			if (persist_size == -1)
+			if (persist_size == UINT64_MAX)
 				persist_size = mapped_len;
 			ret = pmem_deep_persist(addr + offset, persist_size);
 
@@ -94,7 +99,7 @@ main(int argc, char *argv[])
 			UT_ASSERTne(addr, MAP_FAILED);
 			CLOSE(fd);
 
-			if (persist_size == -1)
+			if (persist_size == UINT64_MAX)
 				persist_size = file_size;
 			ret = pmem_deep_persist(addr + offset, persist_size);
 
