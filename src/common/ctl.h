@@ -157,21 +157,21 @@ int ctl_arg_string(const void *arg, void *dest, size_t dest_size);
 
 #define CTL_NODE_END {NULL, CTL_NODE_UNKNOWN, {NULL, NULL, NULL}, NULL, NULL}
 
-#define CTL_NODE(name)\
-ctl_node_##name
+#define CTL_NODE(name, ...)\
+ctl_node_##__VA_ARGS__##_##name
 
 int ctl_query(struct ctl *ctl, void *ctx, enum ctl_query_source source,
 		const char *name, enum ctl_query_type type, void *arg);
 
 /* Declaration of a new child node */
-#define CTL_CHILD(name)\
+#define CTL_CHILD(name, ...)\
 {CTL_STR(name), CTL_NODE_NAMED, {NULL, NULL, NULL}, NULL,\
-	(struct ctl_node *)CTL_NODE(name)}
+	(struct ctl_node *)CTL_NODE(name, __VA_ARGS__)}
 
 /* Declaration of a new indexed node */
-#define CTL_INDEXED(name)\
+#define CTL_INDEXED(name, ...)\
 {CTL_STR(name), CTL_NODE_INDEXED, {NULL, NULL, NULL}, NULL,\
-	(struct ctl_node *)CTL_NODE(name)}
+	(struct ctl_node *)CTL_NODE(name, __VA_ARGS__)}
 
 #define CTL_READ_HANDLER(name, ...)\
 ctl_##__VA_ARGS__##_##name##_read
