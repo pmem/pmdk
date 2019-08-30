@@ -32,6 +32,7 @@
 
 """Utilities for tests"""
 
+import sys
 
 # .so file names
 VMMALLOC = 'libvmmalloc.so.1'
@@ -46,3 +47,73 @@ MiB = 2 ** 20
 GiB = 2 ** 30
 TiB = 2 ** 40
 PiB = 2 ** 50
+
+
+def _os_only(tc, os_name):
+    """
+    Enable test case (TEST[number] class) only on specific OS.
+    Internal helper function.
+    """
+    if sys.platform.startswith(os_name):
+        tc.enabled = True
+    else:
+        tc.enabled = False
+    return tc
+
+
+def _os_exclude(tc, os_name):
+    """
+    Disable test case (TEST[number] class) on specific OS.
+    Internal helper function.
+    """
+    if sys.platform.startswith(os_name):
+        tc.enabled = False
+    return tc
+
+
+def windows_only(tc):
+    """
+    Enable test case (TEST[number] class) only on Windows.
+    Use it as a class decorator.
+    """
+    return _os_only(tc, 'win32')
+
+
+def linux_only(tc):
+    """
+    Enable test case (TEST[number] class) only on Linux.
+    Use it as a class decorator.
+    """
+    return _os_only(tc, 'linux')
+
+
+def freebsd_only(tc):
+    """
+    Enable test case (TEST[number] class) only on FreeBSD.
+    Use it as a class decorator.
+    """
+    return _os_only(tc, 'freebsd')
+
+
+def windows_exclude(tc):
+    """
+    Disable test case (TEST[number] class) on Windows.
+    Use it as a class decorator.
+    """
+    return _os_exclude(tc, 'win32')
+
+
+def linux_exclude(tc):
+    """
+    Disable test case (TEST[number] class) on Linux.
+    Use it as a class decorator.
+    """
+    return _os_exclude(tc, 'linux')
+
+
+def freebsd_exclude(tc):
+    """
+    Disable test case (TEST[number] class) on FreeBSD.
+    Use it as a class decorator.
+    """
+    return _os_exclude(tc, 'freebsd')
