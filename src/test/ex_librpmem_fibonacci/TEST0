@@ -74,7 +74,7 @@ done
 
 TEMP=temp.log
 run_on_node 1 "mv $OUT_LOG_FILE $TEMP"
-run_on_node 1 "cat $TEMP | grep '\F\[' > $OUT_LOG_FILE"
+run_on_node 1 "cat $TEMP | grep -vwE '(Fibonacci|initializing)' > $OUT_LOG_FILE"
 
 check
 
