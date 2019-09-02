@@ -1,0 +1,5 @@
+obj_ulog_size$(nW)TEST0: START: obj_ulog_size
+ $(nW)obj_ulog_size$(nW) $(nW)testfile
+do_tx_max_alloc_tx_publish_abort
+Cannot publish: ${Cannot allocate memory|Not enough space}
+obj_ulog_size$(nW)TEST0: DONE
