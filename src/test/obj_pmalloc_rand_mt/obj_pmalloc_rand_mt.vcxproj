@@ -58,6 +58,7 @@
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\rand.c" />
     <ClCompile Include="obj_pmalloc_rand_mt.c" />
   </ItemGroup>
   <ItemGroup>
