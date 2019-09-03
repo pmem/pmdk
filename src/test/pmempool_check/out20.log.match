@@ -1,10 +1,10 @@
 PMEMLOG: pmemlog
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x01
-$(nW)file.pool: spoil: pool_hdr.checksum_gen()
+$(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'
 $(nW)file.pool: cannot repair
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x00
-$(nW)file.pool: spoil: pool_hdr.checksum_gen()
+$(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -14,11 +14,11 @@ pmemlog header correct
 $(nW)file.pool: consistent
 PMEMBLK: pmemblk
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x01
-$(nW)file.pool: spoil: pool_hdr.checksum_gen()
+$(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'
 $(nW)file.pool: cannot repair
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x00
-$(nW)file.pool: spoil: pool_hdr.checksum_gen()
+$(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 checking shutdown state
 shutdown state correct
 checking pool header
@@ -32,11 +32,11 @@ arena 0: checking BTT Map and Flog
 $(nW)file.pool: consistent
 PMEMLOG: pmemobj
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x01
-$(nW)file.pool: spoil: pool_hdr.checksum_gen()
+$(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'
 $(nW)file.pool: cannot repair
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x00
-$(nW)file.pool: spoil: pool_hdr.checksum_gen()
+$(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 checking shutdown state
 shutdown state correct
 checking pool header

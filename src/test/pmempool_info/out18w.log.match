@@ -1,12 +1,12 @@
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x01
-$(nW)file.pool: spoil: pool_hdr.checksum_gen()
+$(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 Part file:
 path                     : $(nW)file.pool
 type                     : regular file
 size                     : $(nW)
 checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x00
-$(nW)file.pool: spoil: pool_hdr.checksum_gen()
+$(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 Part file:
 path                     : $(nW)file.pool
 type                     : regular file

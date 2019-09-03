@@ -10,7 +10,7 @@ $(OPX)$(nW)file.pool: spoil: pool_hdr.features.incompat=0xfe
 $(nW)file.pool: spoil: pool_hdr.features.ro_compat=0xff
 $(nW): spoil: pool_hdr.shutdown_state.usc=0
 $(nW): spoil: pool_hdr.shutdown_state.uuid=0
-$(nW): spoil: pool_hdr.shutdown_state.checksum_gen()
+$(nW): spoil: pool_hdr.shutdown_state.f:checksum_gen
 $(nW)file.pool: spoil: pool_hdr.unused=ERROR
 checking shutdown state
 shutdown state correct
