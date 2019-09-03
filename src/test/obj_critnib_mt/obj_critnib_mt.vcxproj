@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libpmemobj\critnib.c" />
+    <ClCompile Include="..\..\common\rand.c" />
     <ClCompile Include="obj_critnib_mt.c" />
   </ItemGroup>
   <ItemGroup>

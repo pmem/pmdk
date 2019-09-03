@@ -37,6 +37,7 @@
 #include <errno.h>
 
 #include "critnib.h"
+#include "rand.h"
 #include "os_thread.h"
 #include "unittest.h"
 #include "util.h"
@@ -60,18 +61,6 @@ rnd_thid_r64(unsigned *seedp, void *arg)
 	r = (r & 0xffff) | (r & 0xffff0000) << 32;
 	r |= ((uint64_t)arg) << 16;
 	return r;
-}
-
-static uint64_t
-rnd16()
-{
-	return rand() & 0xffff;
-}
-
-static uint64_t
-rnd64()
-{
-	return rnd16() << 48 | rnd16() << 32 | rnd16() << 16 | rnd16();
 }
 
 static uint64_t
@@ -262,6 +251,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_critnib_mt");
 
 	util_init();
+	randomize(1); /* use a fixed reproducible seed */
 
 	for (int i = 0; i < ARRAY_SIZE(the1024); i++)
 		the1024[i] = rnd64();
