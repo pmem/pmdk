@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,6 +41,7 @@
  */
 
 #include <stdlib.h>
+#include "rand.h"
 #include "unittest.h"
 
 #define LAYOUT_NAME "obj_fragmentation"
@@ -48,8 +49,8 @@
 #define MEGABYTE (1UL << 20)
 #define GIGABYTE (1UL << 30)
 
-#define RRAND(seed, max, min)\
-((min) == (max) ? (min) : (os_rand_r(&(seed)) % ((max) - (min)) + (min)))
+#define RRAND(max, min)\
+((min) == (max) ? (min) : (rnd64() % ((max) - (min)) + (min)))
 
 static uint64_t *objects;
 static size_t nobjects;
@@ -62,15 +63,13 @@ static size_t allocated_current;
 
 #define DEFAULT_FILE_SIZE (3 * GIGABYTE)
 
-static unsigned seed;
-
 static void
 shuffle_objects(size_t start, size_t end)
 {
 	uint64_t tmp;
 	size_t dest;
 	for (size_t n = start; n < end; ++n) {
-		dest = RRAND(seed, nobjects - 1, 0);
+		dest = RRAND(nobjects - 1, 0);
 		tmp = objects[n];
 		objects[n] = objects[dest];
 		objects[dest] = tmp;
@@ -98,7 +97,7 @@ allocate_objects(PMEMobjpool *pop, size_t size_min, size_t size_max)
 	uint64_t uuid_lo = oid.pool_uuid_lo;
 
 	while (allocated_total < ALLOC_TOTAL) {
-		size_t s = RRAND(seed, size_max, size_min);
+		size_t s = RRAND(size_max, size_min);
 		pmemobj_alloc(pop, &oid, s, 0, NULL, NULL);
 		s = pmemobj_alloc_usable_size(oid);
 
@@ -217,9 +216,9 @@ main(int argc, char *argv[])
 	int w = atoi(argv[2]);
 
 	if (argc > 3)
-		seed = (unsigned)atoi(argv[3]);
+		randomize((unsigned)atoi(argv[3]));
 	else
-		seed = ((unsigned)time(NULL));
+		randomize(0);
 
 	objects = ZALLOC(sizeof(uint64_t) * MAX_OBJECTS);
 	UT_ASSERTne(objects, NULL);
