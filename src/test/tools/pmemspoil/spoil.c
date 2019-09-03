@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,6 +59,8 @@
 #include "btt.h"
 #include "set.h"
 #include "util.h"
+
+#define FUN_CHECKSUM_GEN	"checksum_gen"
 
 #define STR(x)	#x
 
@@ -359,7 +361,6 @@ static char *
 pmemspoil_parse_field(char *str, struct field *fieldp)
 {
 	fieldp->is_func = 0;
-
 	if (!str)
 		return NULL;
 
@@ -367,9 +368,12 @@ pmemspoil_parse_field(char *str, struct field *fieldp)
 	if (!f)
 		f = strchr(str, '=');
 	if (!f) {
-		f = strchr(str, '(');
-		if (f && f[1] == ')')
+		f = strstr(str, FUN_CHECKSUM_GEN);
+		if (f) {
 			fieldp->is_func = 1;
+			fieldp->name = str;
+			return f + strlen(FUN_CHECKSUM_GEN);
+		}
 	}
 	fieldp->index = 0;
 	fieldp->name = NULL;
@@ -390,8 +394,6 @@ pmemspoil_parse_field(char *str, struct field *fieldp)
 
 		fieldp->name = str;
 		free(secstr);
-		if (fieldp->is_func)
-			return f + 2;
 		return f + 1;
 	}
 
