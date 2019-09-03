@@ -48,7 +48,7 @@ echo "PMEMLOG: pool_hdr" > $LOG
 expect_normal_exit $PMEMPOOL create log $POOL
 check_file $POOL
 
-Invoke-Expression "$PMEMSPOIL -v $POOL pool_hdr.major=0x0 pool_hdr.features.compat=0xfe pool_hdr.features.incompat=0xfe pool_hdr.features.ro_compat=0xfb pool_hdr.shutdown_state.usc=0 pool_hdr.shutdown_state.uuid=0 'pool_hdr.shutdown_state.checksum_gen()' pool_hdr.unused=ERROR >> $LOG"
+Invoke-Expression "$PMEMSPOIL -v $POOL pool_hdr.major=0x0 pool_hdr.features.compat=0xfe pool_hdr.features.incompat=0xfe pool_hdr.features.ro_compat=0xfb pool_hdr.shutdown_state.usc=0 pool_hdr.shutdown_state.uuid=0 'pool_hdr.shutdown_state.f:checksum_gen' pool_hdr.unused=ERROR >> $LOG"
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 echo "PMEMLOG: pmemlog" >> $LOG

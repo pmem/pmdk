@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,27 +49,27 @@ echo "PMEMLOG: pmemlog" >> $LOG
 rm $POOL -Force -ea si
 expect_normal_exit $PMEMPOOL create log $POOL
 check_file $POOL
-&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.checksum_gen()" >> $LOG
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.f:checksum_gen" >> $LOG
 expect_abnormal_exit $PMEMPOOL check -vry $POOL >> $LOG
-&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.checksum_gen()" >> $LOG
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.f:checksum_gen" >> $LOG
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 echo "PMEMBLK: pmemblk" >> $LOG
 rm $POOL -Force -ea si
 expect_normal_exit $PMEMPOOL create -w blk 512 $POOL
 check_file $POOL
-&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.checksum_gen()" >> $LOG
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.f:checksum_gen" >> $LOG
 expect_abnormal_exit $PMEMPOOL check -vry $POOL >> $LOG
-&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.checksum_gen()" >> $LOG
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.f:checksum_gen" >> $LOG
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 echo "PMEMLOG: pmemobj" >> $LOG
 rm $POOL -Force -ea si
 expect_normal_exit $PMEMPOOL create obj $POOL
 check_file $POOL
-&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.checksum_gen()" >> $LOG
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x01" "pool_hdr.f:checksum_gen" >> $LOG
 expect_abnormal_exit $PMEMPOOL check -vry $POOL >> $LOG
-&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.checksum_gen()" >> $LOG
+&$PMEMSPOIL -v $POOL "pool_hdr.features.compat=0x00" "pool_hdr.f:checksum_gen" >> $LOG
 expect_normal_exit $PMEMPOOL check -vry $POOL >> $LOG
 
 check

@@ -55,14 +55,14 @@ $PMEMSPOIL $DIR/testfile1 pool_hdr.uuid=1111111111111111 \
 	pool_hdr.prev_part_uuid=1111111111111111 \
 	pool_hdr.next_repl_uuid=2222222222222222 \
 	pool_hdr.prev_repl_uuid=2222222222222222 \
-	"pool_hdr.checksum_gen()"
+	"pool_hdr.f:checksum_gen"
 
 $PMEMSPOIL $DIR/testfile2 pool_hdr.uuid=2222222222222222 \
 	pool_hdr.next_part_uuid=2222222222222222 \
 	pool_hdr.prev_part_uuid=2222222222222222 \
 	pool_hdr.next_repl_uuid=1111111111111111 \
 	pool_hdr.prev_repl_uuid=1111111111111111 \
-	"pool_hdr.checksum_gen()"
+	"pool_hdr.f:checksum_gen"
 
 create_poolset $DIR/testset 20M:$DIR/testfile1 R 20M:$DIR/testfile2
 

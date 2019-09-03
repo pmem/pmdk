@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,7 +49,7 @@ setup
 expect_normal_exit $PMEMPOOL create obj $POOL
 expect_normal_exit $PMEMSPOIL -v $POOL `
 	pool_hdr.features.compat=0xfe `
-	"pool_hdr.checksum_gen()" >> $LOG
+	"pool_hdr.f:checksum_gen" >> $LOG
 
 libpmempool_feature_query_abnormal "CKSUM_2K"
 
@@ -69,14 +69,14 @@ create_poolset $POOLSET `
 expect_normal_exit $PMEMPOOL create obj $POOLSET
 expect_normal_exit $PMEMSPOIL -v $TARGET_PART1 `
 	pool_hdr.features.incompat=0xfe `
-	"pool_hdr.checksum_gen()" >> $LOG
+	"pool_hdr.f:checksum_gen" >> $LOG
 
 libpmempool_feature_query_abnormal "CKSUM_2K"
 
 # test invalid rocompat features in first of its part
 expect_normal_exit $PMEMSPOIL -v $TARGET_PART2 `
 	pool_hdr.features.ro_compat=0xfe `
-	"pool_hdr.checksum_gen()" >> $LOG
+	"pool_hdr.f:checksum_gen" >> $LOG
 
 libpmempool_feature_query_abnormal "CKSUM_2K"
 

@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -65,7 +65,7 @@ cat $LOG
 
 # Corrupt metadata in primary replica, recalculate checksum
 expect_normal_exit $PMEMSPOIL $DIR\testfile1 "pool_hdr.uuid=0000000000000000" `
-    "pool_hdr.checksum_gen()"
+    "pool_hdr.f:checksum_gen"
 
 # Try to synchronize replicas
 expect_abnormal_exit $PMEMPOOL sync $POOLSET 2>$null

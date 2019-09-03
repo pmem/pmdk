@@ -48,7 +48,7 @@ function pmemspoil_corrupt_replica_sds() {
 	expect_normal_exit $PMEMSPOIL --replica $replica $POOLSET \
 		pool_hdr.shutdown_state.usc=999 \
 		pool_hdr.shutdown_state.dirty=1 \
-		"pool_hdr.shutdown_state.checksum_gen\(\)"
+		"pool_hdr.shutdown_state.f:checksum_gen"
 }
 
 # pmempool_check_sds_init -- shutdown state unittest init

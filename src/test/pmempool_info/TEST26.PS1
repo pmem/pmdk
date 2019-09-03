@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -47,7 +47,7 @@ rm $LOG -Force -ea si
 
 expect_normal_exit $PMEMPOOL create --layout pmempool$Env:SUFFIX obj $POOL
 &$PMEMSPOIL $POOL pool_hdr.shutdown_state.dirty=1 `
-					"pool_hdr.shutdown_state.checksum_gen()"
+					"pool_hdr.shutdown_state.f:checksum_gen"
 expect_normal_exit $PMEMPOOL info $POOL >> $LOG
 
 check

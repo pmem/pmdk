@@ -73,17 +73,17 @@ expect_normal_exit ./util_poolset$EXESUFFIX c $MIN_POOL \
 
 # inject some errors
 $PMEMSPOIL $DIR/testfile22 pool_hdr.checksum=0
-$PMEMSPOIL $DIR/testfile32 pool_hdr.signature="ERROR" "pool_hdr.checksum_gen()"
-$PMEMSPOIL $DIR/testfile42 pool_hdr.major=99 "pool_hdr.checksum_gen()"
-$PMEMSPOIL $DIR/testfile52 pool_hdr.arch_flags="0000000000000000" "pool_hdr.checksum_gen()"
-$PMEMSPOIL $DIR/testfile62 pool_hdr.features.compat=0x12345678 "pool_hdr.checksum_gen()"
-$PMEMSPOIL $DIR/testfile72 pool_hdr.features.compat=0x12345678 "pool_hdr.checksum_gen()"
-$PMEMSPOIL $DIR/testfile82 pool_hdr.features.compat=0x12345678 "pool_hdr.checksum_gen()"
-$PMEMSPOIL $DIR/testfile91 pool_hdr.poolset_uuid="0123456789012345" "pool_hdr.checksum_gen()"
-$PMEMSPOIL $DIR/testfile101 pool_hdr.next_part_uuid="0123456789012345" "pool_hdr.checksum_gen()"
+$PMEMSPOIL $DIR/testfile32 pool_hdr.signature="ERROR" "pool_hdr.f:checksum_gen"
+$PMEMSPOIL $DIR/testfile42 pool_hdr.major=99 "pool_hdr.f:checksum_gen"
+$PMEMSPOIL $DIR/testfile52 pool_hdr.arch_flags="0000000000000000" "pool_hdr.f:checksum_gen"
+$PMEMSPOIL $DIR/testfile62 pool_hdr.features.compat=0x12345678 "pool_hdr.f:checksum_gen"
+$PMEMSPOIL $DIR/testfile72 pool_hdr.features.compat=0x12345678 "pool_hdr.f:checksum_gen"
+$PMEMSPOIL $DIR/testfile82 pool_hdr.features.compat=0x12345678 "pool_hdr.f:checksum_gen"
+$PMEMSPOIL $DIR/testfile91 pool_hdr.poolset_uuid="0123456789012345" "pool_hdr.f:checksum_gen"
+$PMEMSPOIL $DIR/testfile101 pool_hdr.next_part_uuid="0123456789012345" "pool_hdr.f:checksum_gen"
 $PMEMSPOIL $DIR/testfile111 pool_hdr.prev_part_uuid="0123456789012345" \
-	pool_hdr.next_part_uuid="0123456789012345" "pool_hdr.checksum_gen()"
-$PMEMSPOIL $DIR/testfile121 pool_hdr.next_repl_uuid="0123456789012345" "pool_hdr.checksum_gen()"
+	pool_hdr.next_part_uuid="0123456789012345" "pool_hdr.f:checksum_gen"
+$PMEMSPOIL $DIR/testfile121 pool_hdr.next_repl_uuid="0123456789012345" "pool_hdr.f:checksum_gen"
 
 # now check if pool sets may be opened
 expect_normal_exit ./util_poolset$EXESUFFIX o $MIN_POOL $MIN_PART\

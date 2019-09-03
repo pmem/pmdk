@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -72,7 +72,7 @@ set_compat() {
 	local part=$1
 	local flag=$2
 	expect_normal_exit $PMEMSPOIL $part pool_hdr.features.compat=$flag \
-		"pool_hdr.checksum_gen\(\)"
+		"pool_hdr.f:checksum_gen"
 }
 
 # set incompat flags in header
@@ -80,5 +80,5 @@ set_incompat() {
 	local part=$1
 	local flag=$2
 	expect_normal_exit $PMEMSPOIL $part pool_hdr.features.incompat=$flag \
-		"pool_hdr.checksum_gen\(\)"
+		"pool_hdr.f:checksum_gen"
 }
