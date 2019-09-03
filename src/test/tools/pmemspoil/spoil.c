@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -359,7 +359,6 @@ static char *
 pmemspoil_parse_field(char *str, struct field *fieldp)
 {
 	fieldp->is_func = 0;
-
 	if (!str)
 		return NULL;
 
@@ -367,14 +366,19 @@ pmemspoil_parse_field(char *str, struct field *fieldp)
 	if (!f)
 		f = strchr(str, '=');
 	if (!f) {
-		f = strchr(str, '(');
-		if (f && f[1] == ')')
+		if (str[0] == 'f' && str[1] == ':') {
+			f = str + 2;
 			fieldp->is_func = 1;
+		}
+
 	}
 	fieldp->index = 0;
 	fieldp->name = NULL;
 	if (f) {
-		*f = '\0';
+		if (fieldp->is_func)
+			str = f;
+		else
+			*f = '\0';
 		size_t len = 0;
 		ssize_t ret;
 		char *secstr = malloc(strlen(str) + 1);
@@ -391,7 +395,7 @@ pmemspoil_parse_field(char *str, struct field *fieldp)
 		fieldp->name = str;
 		free(secstr);
 		if (fieldp->is_func)
-			return f + 2;
+			return str + strlen(str);
 		return f + 1;
 	}
 
