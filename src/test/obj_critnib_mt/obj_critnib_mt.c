@@ -54,11 +54,15 @@ static int nrthreads; /* in mixed tests, read threads */
 static int nwthreads; /* ... and write threads */
 
 static uint64_t
-rnd_thid_r64(unsigned *seedp, void *arg)
+rnd_thid_r64(rng_t *seedp, void *arg)
 {
-	/* stick arg (thread index) in the middle */
-	uint64_t r = os_rand_r(seedp);
-	r = (r & 0xffff) | (r & 0xffff0000) << 32;
+	/*
+	 * Stick arg (thread index) onto bits 16..31, to make it impossible for
+	 * two worker threads to write the same value, while keeping both ends
+	 * pseudo-random.
+	 */
+	uint64_t r = rnd64_r(seedp);
+	r &= ~0xffff0000ULL;
 	r |= ((uint64_t)arg) << 16;
 	return r;
 }
@@ -109,7 +113,8 @@ thread_read1024(void *arg)
 static void *
 thread_write1024(void *arg)
 {
-	unsigned seed = (unsigned)(uint64_t)arg;
+	rng_t seed;
+	randomize_r(&seed, (uintptr_t)arg);
 	uint64_t w1024[1024];
 
 	for (int i = 0; i < ARRAY_SIZE(w1024); i++)
@@ -130,7 +135,8 @@ thread_write1024(void *arg)
 static void *
 thread_read_write_remove(void *arg)
 {
-	unsigned seed = (unsigned)(uint64_t)arg;
+	rng_t seed;
+	randomize_r(&seed, (uintptr_t)arg);
 	uint64_t niter = helgrind_count(NITER_SLOW);
 
 	for (uint64_t count = 0; count < niter; count++) {
