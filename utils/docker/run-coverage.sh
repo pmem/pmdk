@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -58,5 +58,6 @@ make -j2 test USE_LIBUNWIND=1 COVERAGE=1
 cd src/test
 make -kj2 pcheck-local-quiet TEST_BUILD=debug || true
 make check-remote-quiet TEST_BUILD=debug || true
+make -j2 pycheck TEST_BUILD=debug || true
 cd ../..
 bash <(curl -s https://codecov.io/bash)
