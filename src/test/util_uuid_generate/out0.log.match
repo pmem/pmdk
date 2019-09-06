@@ -1,3 +1,0 @@
-util_uuid_generate$(nW)TEST0: START: util_uuid_generate
- $(nW)util_uuid_generate$(nW)
-util_uuid_generate$(nW)TEST0: DONE

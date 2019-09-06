@@ -1,3 +1,0 @@
-util_uuid_generate$(nW)TEST1: START: util_uuid_generate
- $(nW)util_uuid_generate$(nW) 563bb872-0d1d-441e-ac28-579c463be0a5 valid
-util_uuid_generate$(nW)TEST1: DONE

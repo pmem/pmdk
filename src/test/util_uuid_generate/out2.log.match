@@ -1,4 +1,0 @@
-util_uuid_generate$(nW)TEST2: START: util_uuid_generate
- $(nW)util_uuid_generate$(nW) sarah invalid
-util_uuid_generate: invalid uuid string
-util_uuid_generate$(nW)TEST2: DONE

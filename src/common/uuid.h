@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -63,7 +63,6 @@ struct uuid {
 
 typedef unsigned char uuid_t[POOL_HDR_UUID_LEN]; /* 16 byte binary uuid value */
 
-int util_uuid_generate(uuid_t uuid);
 int util_uuid_to_string(const uuid_t u, char *buf);
 int util_uuid_from_string(const char uuid[POOL_HDR_UUID_STR_LEN],
 	struct uuid *ud);
