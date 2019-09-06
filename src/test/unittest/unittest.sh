@@ -482,7 +482,7 @@ function create_file() {
 	shift
 	for file in $*
 	do
-		$DD if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes >> $PREP_LOG_FILE
+		$DD if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes status=none >> $PREP_LOG_FILE
 	done
 }
 
