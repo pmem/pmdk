@@ -71,15 +71,8 @@ New-Item -ItemType directory -Path ( $zipdir) -Force | Out-Null
 New-Item -ItemType directory -Path ( $zipdir + "\bin\") -Force | Out-Null
 New-Item -ItemType directory -Path ( $zipdir + "\lib\") -Force | Out-Null
 
-$libs = @("libpmem", "libpmemblk", "libpmemlog", "libpmemobj", "libpmempool",
-    "libvmem")
-$apps = @("pmempool")
-$apps_extended =  @("pmempool", "pmemalloc", "pmemdetect", "pmemspoil", "pmemwrite")
+$libs = @("libvmem")
 $exp_types = @("*.c", "*.h", "*.cpp", "*.hpp", "*.props", "*.sln", "*.vcxproj", "*.vcxproj.filters", "README")
-
-if ($extended -eq "1") {
-    $apps = $apps_extended
-}
 
 foreach ($lib in $libs) {
     Copy-Item ($builddir + $build + "\libs\" + $lib + ".dll") ($zipdir + "\bin\")
@@ -87,20 +80,9 @@ foreach ($lib in $libs) {
         Copy-Item ($builddir + $build + "\libs\" + $lib + $ex) ($zipdir + "\lib\")
     }
 }
-foreach ($app in $apps) {
-	if ($app -eq "pmempool") {
-		Copy-Item ($builddir + $build + "\libs\" + $app + ".exe") ($zipdir + "\bin\")
-		Copy-Item ($builddir + $build + "\libs\" + $app + ".pdb") ($zipdir + "\lib\")
-	} else {
-		Copy-Item ($builddir + $build + "\tests\" + $app + ".exe") ($zipdir + "\bin\")
-		Copy-Item ($builddir + $build + "\tests\" + $app + ".pdb") ($zipdir + "\lib\")
-	}
-}
 
 Copy-Item -Recurse ($rootdir + "src\include") ($zipdir)
-Remove-Item -Force ($zipdir + "include\.cstyleignore")
 Remove-Item -Force ($zipdir + "include\README")
-Remove-Item -Force ($zipdir + "include\librpmem.h")
 Remove-Item -Force ($zipdir + "include\libvmmalloc.h")
 Copy-Item ($rootdir + "README.md") ($zipdir)
 Copy-Item ($rootdir + "LICENSE") ($zipdir)
