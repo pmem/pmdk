@@ -7,7 +7,7 @@ header: PMDK
 date: pmem Tools version 1.4
 ...
 
-[comment]: <> (Copyright 2016-2018, Intel Corporation)
+[comment]: <> (Copyright 2016-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -98,7 +98,7 @@ Creates a pool of specified type with additional properties specific for this ty
 + **pmempool-dump**(1) -
 Dumps usable data from pool in hexadecimal or binary format.
 
-+ **pmempool-rm**(1)
++ **pmempool-rm**(1) -
 Removes pool file or all pool files listed in pool set configuration file.
 
 + **pmempool-convert**(1) -
