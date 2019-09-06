@@ -1085,7 +1085,7 @@ function require_no_unicode() {
 dax_device_zero() {
 	for path in ${DEVICE_DAX_PATH[@]}
 	do
-		${PMEMPOOL}.static-debug rm -f $path
+		pmempool rm -f $path
 	done
 }
 
