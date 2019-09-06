@@ -58,18 +58,6 @@
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\libpmemblk\libpmemblk.vcxproj">
-      <Project>{f7c6c6b6-4142-4c82-8699-4a9d8183181b}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmemlog\libpmemlog.vcxproj">
-      <Project>{0b1818eb-bdc8-4865-964f-db8bf05cfd86}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmemobj\libpmemobj.vcxproj">
-      <Project>{1baa1617-93ae-4196-8a1a-bd492fb18aef}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
-      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\libvmem\libvmem.vcxproj">
       <Project>{08762559-e9df-475b-ba99-49f4b5a1d80b}</Project>
     </ProjectReference>

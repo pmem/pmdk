@@ -57,9 +57,6 @@
     <ClCompile Include="traces_custom_function.c" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
-      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>

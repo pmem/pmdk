@@ -61,21 +61,6 @@
     <None Include="TEST0.PS1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
-      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmemblk\libpmemblk.vcxproj">
-      <Project>{f7c6c6b6-4142-4c82-8699-4a9d8183181b}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmemlog\libpmemlog.vcxproj">
-      <Project>{0b1818eb-bdc8-4865-964f-db8bf05cfd86}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmemobj\libpmemobj.vcxproj">
-      <Project>{1baa1617-93ae-4196-8a1a-bd492fb18aef}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmempool\libpmempool.vcxproj">
-      <Project>{cf9a0883-6334-44c7-ac29-349468c78e27}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\libvmem\libvmem.vcxproj">
       <Project>{08762559-e9df-475b-ba99-49f4b5a1d80b}</Project>
     </ProjectReference>

@@ -55,5 +55,10 @@
       <Project>{08762559-e9df-475b-ba99-49f4b5a1d80b}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\libvmem\libvmem.vcxproj">
+      <Project>{08762559-e9df-475b-ba99-49f4b5a1d80b}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -68,9 +68,6 @@
     <ClCompile Include="..\common\mmap_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\fs_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\out.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -80,12 +77,10 @@
     <ClCompile Include="..\common\util_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\os_windows.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libvmem.def">

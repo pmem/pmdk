@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -11,8 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\file.c" />
+    <ClCompile Include="..\..\common\file_windows.c" />
+    <ClCompile Include="..\..\common\mmap.c" />
+    <ClCompile Include="..\..\common\mmap_windows.c" />
     <ClCompile Include="..\..\common\os_thread_windows.c" />
     <ClCompile Include="..\..\common\os_windows.c" />
+    <ClCompile Include="..\..\common\out.c" />
+    <ClCompile Include="..\..\common\util.c" />
+    <ClCompile Include="..\..\common\util_windows.c" />
+    <ClCompile Include="..\..\windows\win_mmap.c" />
     <ClCompile Include="..\unittest\ut.c" />
     <ClCompile Include="..\unittest\ut_alloc.c" />
     <ClCompile Include="..\unittest\ut_file.c" />
@@ -22,14 +30,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\unittest\unittest.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
-      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
-      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
-    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}</ProjectGuid>
