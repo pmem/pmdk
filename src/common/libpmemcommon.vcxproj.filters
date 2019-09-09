@@ -86,6 +86,9 @@
     <ClCompile Include="..\libpmem2\usc_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="rand.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ctl.h">

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2018, Intel Corporation */
+/* Copyright 2015-2019, Intel Corporation */
 
 /*
  * obj_pmalloc.cpp -- pmalloc benchmarks definition
@@ -246,7 +246,7 @@ pmalloc_op(struct benchmark *bench, struct operation_info *info)
 struct pmix_worker {
 	size_t nobjects;
 	size_t shuffle_start;
-	unsigned seed;
+	rng_t seed;
 };
 
 /*
@@ -261,7 +261,7 @@ pmix_worker_init(struct benchmark *bench, struct benchmark_args *args,
 	if (w == nullptr)
 		return -1;
 
-	w->seed = ob->pa->seed;
+	randomize_r(&w->seed, ob->pa->seed);
 
 	worker->priv = w;
 
@@ -288,7 +288,7 @@ pmix_worker_fini(struct benchmark *bench, struct benchmark_args *args,
  */
 static void
 shuffle_objects(uint64_t *objects, size_t start, size_t nobjects,
-		unsigned *seed)
+		rng_t *seed)
 {
 	uint64_t tmp;
 	size_t dest;

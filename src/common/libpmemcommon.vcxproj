@@ -27,6 +27,7 @@
     <ClCompile Include="os_deep_windows.c" />
     <ClCompile Include="os_dimm_windows.c" />
     <ClCompile Include="pool_hdr.c" />
+    <ClCompile Include="rand.c" />
     <ClCompile Include="set.c" />
     <ClCompile Include="shutdown_state.c" />
     <ClCompile Include="uuid.c" />
