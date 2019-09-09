@@ -37,6 +37,7 @@
 #include <errno.h>
 
 #include "critnib.h"
+#include "rand.h"
 #include "os_thread.h"
 #include "unittest.h"
 #include "util.h"
@@ -53,25 +54,17 @@ static int nrthreads; /* in mixed tests, read threads */
 static int nwthreads; /* ... and write threads */
 
 static uint64_t
-rnd_thid_r64(unsigned *seedp, void *arg)
+rnd_thid_r64(rng_t *seedp, uint16_t thid)
 {
-	/* stick arg (thread index) in the middle */
-	uint64_t r = os_rand_r(seedp);
-	r = (r & 0xffff) | (r & 0xffff0000) << 32;
-	r |= ((uint64_t)arg) << 16;
+	/*
+	 * Stick arg (thread index) onto bits 16..31, to make it impossible for
+	 * two worker threads to write the same value, while keeping both ends
+	 * pseudo-random.
+	 */
+	uint64_t r = rnd64_r(seedp);
+	r &= ~0xffff0000ULL;
+	r |= ((uint64_t)thid) << 16;
 	return r;
-}
-
-static uint64_t
-rnd16()
-{
-	return rand() & 0xffff;
-}
-
-static uint64_t
-rnd64()
-{
-	return rnd16() << 48 | rnd16() << 32 | rnd16() << 16 | rnd16();
 }
 
 static uint64_t
@@ -120,11 +113,12 @@ thread_read1024(void *arg)
 static void *
 thread_write1024(void *arg)
 {
-	unsigned seed = (unsigned)(uint64_t)arg;
+	rng_t seed;
+	randomize_r(&seed, (uintptr_t)arg);
 	uint64_t w1024[1024];
 
 	for (int i = 0; i < ARRAY_SIZE(w1024); i++)
-		w1024[i] = rnd_thid_r64(&seed, arg);
+		w1024[i] = rnd_thid_r64(&seed, (uint16_t)(uintptr_t)arg);
 
 	uint64_t niter = helgrind_count(NITER_SLOW);
 
@@ -141,11 +135,12 @@ thread_write1024(void *arg)
 static void *
 thread_read_write_remove(void *arg)
 {
-	unsigned seed = (unsigned)(uint64_t)arg;
+	rng_t seed;
+	randomize_r(&seed, (uintptr_t)arg);
 	uint64_t niter = helgrind_count(NITER_SLOW);
 
 	for (uint64_t count = 0; count < niter; count++) {
-		uint64_t r, v = rnd_thid_r64(&seed, arg);
+		uint64_t r, v = rnd_thid_r64(&seed, (uint16_t)(uintptr_t)arg);
 		critnib_insert(c, v, (void *)v);
 		r = (uint64_t)critnib_get(c, v);
 		UT_ASSERTeq(r, v);
@@ -262,6 +257,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_critnib_mt");
 
 	util_init();
+	randomize(1); /* use a fixed reproducible seed */
 
 	for (int i = 0; i < ARRAY_SIZE(the1024); i++)
 		the1024[i] = rnd64();

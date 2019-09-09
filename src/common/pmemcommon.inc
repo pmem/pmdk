@@ -52,6 +52,7 @@ SOURCE =\
 	$(COMMON)/os_deep_linux.c\
 	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
+	$(COMMON)/rand.c\
 	$(COMMON)/set.c\
 	$(COMMON)/shutdown_state.c\
 	$(COMMON)/util.c\

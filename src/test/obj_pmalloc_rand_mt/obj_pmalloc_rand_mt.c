@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,9 +36,10 @@
 #include <stdint.h>
 
 #include "file.h"
+#include "rand.h"
 #include "unittest.h"
 
-#define RRAND(seed, max, min) (os_rand_r(&(seed)) % ((max) - (min)) + (min))
+#define RRAND(seed, max, min) (rnd64_r(&(seed)) % ((max) - (min)) + (min))
 
 static size_t object_size;
 static unsigned nobjects;
@@ -54,7 +55,8 @@ test_worker(void *arg)
 	unsigned fill = 0;
 
 	int ret;
-	unsigned myseed = seed;
+	rng_t myseed;
+	randomize_r(&myseed, seed);
 
 	for (unsigned i = 0; i < iterations; ++i) {
 		unsigned fill_ratio = (fill * 100) / nobjects;
@@ -100,7 +102,7 @@ main(int argc, char *argv[])
 	if (argc > 6)
 		seed = ATOU(argv[6]);
 	else
-		seed = (unsigned)time(NULL);
+		seed = 0;
 
 	PMEMobjpool *pop;
 
