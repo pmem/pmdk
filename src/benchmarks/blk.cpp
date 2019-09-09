@@ -12,6 +12,7 @@
 #include "libpmempool.h"
 #include "os.h"
 #include "poolset_util.hpp"
+#include "rand.h"
 #include <cassert>
 #include <cerrno>
 #include <cstdint>
@@ -81,7 +82,7 @@ struct blk_bench {
 struct blk_worker {
 	os_off_t *blocks; /* array with block numbers */
 	char *buff;       /* buffer for read/write */
-	unsigned seed;    /* worker seed */
+	rng_t rng;        /* worker RNG state */
 };
 
 /*
@@ -285,7 +286,7 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	auto *bb = (struct blk_bench *)pmembench_get_priv(bench);
 	auto *bargs = (struct blk_args *)args->opts;
 
-	bworker->seed = os_rand_r(&bargs->seed);
+	randomize_r(&bworker->rng, bargs->seed);
 
 	bworker->buff = (char *)malloc(args->dsize);
 	if (!bworker->buff) {
@@ -294,7 +295,7 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 	}
 
 	/* fill buffer with some random data */
-	memset(bworker->buff, bworker->seed, args->dsize);
+	memset(bworker->buff, (char)rnd64_r(&bworker->rng), args->dsize);
 
 	assert(args->n_ops_per_thread != 0);
 	bworker->blocks = (os_off_t *)malloc(sizeof(*bworker->blocks) *
@@ -309,7 +310,7 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 			for (size_t i = 0; i < args->n_ops_per_thread; i++) {
 				bworker->blocks[i] =
 					worker->index * bb->blocks_per_thread +
-					os_rand_r(&bworker->seed) %
+					rnd64_r(&bworker->rng) %
 						bb->blocks_per_thread;
 			}
 			break;
