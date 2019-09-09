@@ -59,7 +59,7 @@ struct obj_bench {
 	uint64_t nranges;	  /* number of ranges */
 	uint64_t nallocs;	  /* number of allocations */
 	bool shuffle_objs;	 /* shuffles array of ranges */
-	unsigned seed;		   /* PRNG seed */
+	rng_t rng;		/* PRNG */
 };
 
 /*
@@ -67,13 +67,13 @@ struct obj_bench {
  * to avoid sequential pattern in the transaction loop
  */
 static void
-shuffle_ranges(struct ranged_obj *ranged, uint64_t nranges, unsigned *seed)
+shuffle_ranges(struct ranged_obj *ranged, uint64_t nranges, rng_t *rng)
 {
 	struct ranged_obj tmp;
 	uint64_t dest;
 
 	for (uint64_t n = 0; n < nranges; ++n) {
-		dest = RRAND_R(seed, nranges - 1, 0);
+		dest = RRAND_R(rng, nranges - 1, 0);
 		tmp = ranged[n];
 		ranged[n] = ranged[dest];
 		ranged[dest] = tmp;
@@ -115,7 +115,7 @@ init_ranges(struct obj_bench *ob)
 	}
 
 	if (ob->shuffle_objs == true)
-		shuffle_ranges(ob->ranges, ob->nranges, &ob->seed);
+		shuffle_ranges(ob->ranges, ob->nranges, &ob->rng);
 
 	return 0;
 
@@ -172,7 +172,7 @@ tx_add_range_init(struct benchmark *bench, struct benchmark_args *args)
 	ob->nranges = bargs->nranges;
 	ob->obj_size = args->dsize;
 	ob->shuffle_objs = bargs->shuffle_objs;
-	ob->seed = args->seed;
+	randomize_r(&ob->rng, args->seed);
 
 	if (init_ranges(ob))
 		goto err_pop_close;
