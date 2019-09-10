@@ -1,4 +1,4 @@
-# **PMDK: Persistent Memory Development Kit**
+# **VMDK: Volatile Memory Development Kit**
 
 [![Build Status](https://travis-ci.org/pmem/pmdk.svg?branch=master)](https://travis-ci.org/pmem/pmdk)
 [![Build status](https://ci.appveyor.com/api/projects/status/u2l1db7ucl5ktq10/branch/master?svg=true&pr=false)](https://ci.appveyor.com/project/pmem/pmdk/branch/master)
@@ -6,9 +6,16 @@
 [![PMDK release version](https://img.shields.io/github/release/pmem/pmdk.svg)](https://github.com/pmem/pmdk/releases/latest)
 [![Coverage Status](https://codecov.io/github/pmem/pmdk/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk/branch/master)
 
-The **Persistent Memory Development Kit (PMDK)** is a collection of libraries and tools for System Administrators and Application Developers to simplify managing and accessing persistent memory devices. For more information, see http://pmem.io.
+The **Volatile Memory Development Kit (VMDK)** are a couple of libraries for
+using persistent memory for malloc-like volatile uses.  They have
+historically been a part of [PMDK](https://pmem.io/pmdk) despite being
+solely for volatile uses.
 
-To install PMDK libraries, either install pre-built packages, which we build for every stable release, or clone the tree and build it yourself. **Pre-built** packages can be found in popular Linux distribution package repositories, or you can check out our recent stable releases on our [github release page](https://github.com/pmem/pmdk/releases). Specific installation instructions are outlined below.
+Both of these libraries are considered code-complete and mature.  You may
+want consider using [memkind](https://github.com/memkind/memkind) in code
+that benefits from extra features like NUMA awareness.
+
+To install VMDK libraries, either install pre-built packages, which we build for every stable release, or clone the tree and build it yourself. **Pre-built** packages can be found in popular Linux distribution package repositories, or you can check out our recent stable releases on our [github release page](https://github.com/pmem/pmdk/releases). Specific installation instructions are outlined below.
 
 Bugs and feature requests for this repo are tracked in our [GitHub Issues Database](https://github.com/pmem/issues/issues).
 
@@ -21,7 +28,7 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 	* [Linux](#linux)
 	* [Windows](#windows)
 	* [FreeBSD](#freebsd)
-6. [Building PMDK on Linux or FreeBSD](#building-pmdk-on-linux-or-freebsd)
+6. [Building VMDK on Linux or FreeBSD](#building-pmdk-on-linux-or-freebsd)
 	* [Make Options](#make-options)
 	* [Testing Libraries](#testing-libraries-on-linux-and-freebsd)
 	* [Memory Management Tools](#memory-management-tools)
@@ -34,61 +41,25 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 
 ## Libraries and Utilities
 Available Libraries:
-- [​libpmem](http://pmem.io/pmdk/libpmem/):  provides low level persistent memory support
+- [libvmem](http://pmem.io/pmdk/libvmem/):  turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API.
 
-- [​libpmemobj](http://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
-
-- [​libpmemblk](http://pmem.io/pmdk/libpmemblk/):  supports arrays of pmem-resident blocks, all the same size, that are atomically updated.
-
-- [​libpmemlog](http://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file.
-
-- [​libvmem](http://pmem.io/pmdk/libvmem/):  turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API.
-
-- [​libvmmalloc](http://pmem.io/pmdk/libvmmalloc/)<sup>1</sup>:  transparently converts all the dynamic memory allocations into persistent memory allocations.
-
-- [libpmempool](http://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
-
-- [​librpmem](http://pmem.io/pmdk/librpmem/)<sup>1</sup>:  provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs.
-
-Available Utilities:
-
-- [​pmempool](http://pmem.io/pmdk/pmempool/): Manage and analyze persistent memory pools with this stand-alone utility
-
-- [​pmemcheck](http://pmem.io/2015/07/17/pmemcheck-basic.html): Use dynamic runtime analysis with an enhanced version of Valgrind for use with persistent memory.
+- [libvmmalloc](http://pmem.io/pmdk/libvmmalloc/)<sup>1</sup>:  transparently converts all the dynamic memory allocations into persistent memory allocations.
 
 Currently these libraries only work on 64-bit Linux, Windows<sup>2</sup>, and 64-bit FreeBSD 11+<sup>3</sup>.
 For information on how these libraries are licensed, see our [LICENSE](LICENSE) file.
 
 ><sup>1</sup> Not supported on Windows.
 >
-><sup>2</sup> PMDK for Windows is feature complete, but not yet considered production quality.
+><sup>2</sup> VMDK for Windows is feature complete, but not yet considered production quality.
 >
-><sup>3</sup> DAX and **libfabric** are not yet supported in FreeBSD, so at this time PMDK is available as a technical preview release for development purposes.
+><sup>3</sup> DAX is not yet supported in FreeBSD, so at this time VMDK is available as a technical preview release for development purposes.
 
-## Getting Started
-
-Getting Started with Persistent Memory Programming is a tutorial series created by Intel Architect, Andy Rudoff. In this tutorial, you will be introduced to persistent memory programming and learn how to apply it to your applications.
-- Part 1: [What is Persistent Memory?](https://software.intel.com/en-us/persistent-memory/get-started/series)
-- Part 2: [Describing The SNIA Programming Model](https://software.intel.com/en-us/videos/the-nvm-programming-model-persistent-memory-programming-series)
-- Part 3: [Introduction to PMDK Libraries](https://software.intel.com/en-us/videos/intro-to-the-nvm-libraries-persistent-memory-programming-series)
-- Part 4: [Thinking Transactionally](https://software.intel.com/en-us/videos/thinking-transactionally-persistent-memory-programming-series)
-- Part 5: [A C++ Example](https://software.intel.com/en-us/videos/a-c-example-persistent-memory-programming-series)
-
-
-Additionally, we recommend reading [Introduction to Programming with Persistent Memory from Intel](https://software.intel.com/en-us/articles/introduction-to-programming-with-persistent-memory-from-intel)
-
-
-## Version Conventions
-
-- **Builds** are tagged something like `0.2+b1`, which means _Build 1 on top of version 0.2_
-- **Release Candidates** have a '-rc{version}' tag, e.g. `0.2-rc3, meaning _Release Candidate 3 for version 0.2_
-- **Stable Releases** use a _major.minor_ tag like `0.2`
 
 ## Pre-Built Packages for Windows
 
-The recommended and easiest way to install PMDK on Windows is to use Microsoft vcpkg. Vcpkg is an open source tool and ecosystem created for library management.
+The recommended and easiest way to install VMDK on Windows is to use Microsoft vcpkg. Vcpkg is an open source tool and ecosystem created for library management.
 
-To install the latest PMDK release and link it to your Visual Studio solution you first need to clone and set up vcpkg on your machine as described on the [vcpkg github page](https://github.com/Microsoft/vcpkg) in **Quick Start** section.
+To install the latest VMDK release and link it to your Visual Studio solution you first need to clone and set up vcpkg on your machine as described on the [vcpkg github page](https://github.com/Microsoft/vcpkg) in **Quick Start** section.
 
 In brief:
 
@@ -100,7 +71,7 @@ In brief:
 	> .\vcpkg install pmdk:x64-windows
 ```
 
-The last command can take a while - it is PMDK building and installation time.
+The last command can take a while - it is VMDK building and installation time.
 
 After a successful completion of all of the above steps, the libraries are ready
 to be used in Visual Studio and no additional configuration is required.
@@ -112,7 +83,7 @@ Just open VS with your already existing project or create a new one
 Required packages for each supported OS are listed below. It is important to note that some tests and example applications require additional packages, but they do not interrupt building if they are missing. An appropriate message is displayed instead. For details please read the DEPENDENCIES section in the appropriate README file.
 
 See our **[Dockerfiles](utils/docker/images)**
-to get an idea what packages are required to build the entire PMDK,
+to get an idea what packages are required to build the entire VMDK,
 with all the tests and examples on the _Travis-CI_ system.
 
 ### Linux
@@ -121,11 +92,6 @@ You will need to install the following required packages on the build system:
 
 * **autoconf**
 * **pkg-config**
-
-The following packages are required only by selected PMDK components
-or features:
-
-* **libfabric** (v1.4.2 or later) -- required by **librpmem**
 
 ### Windows
 
@@ -149,7 +115,7 @@ or features:
 ><sup>4</sup> The pkg version of ncurses is required for proper operation; the base version included in FreeBSD is not sufficient.
 
 
-## Building PMDK on Linux or FreeBSD
+## Building VMDK on Linux or FreeBSD
 
 To build from source, clone this tree:
 ```
@@ -278,7 +244,7 @@ run different types of tests.
 
 ### Memory Management Tools
 
-The PMDK libraries support standard Valgrind DRD, Helgrind and Memcheck, as well as a PM-aware version of [Valgrind](https://github.com/pmem/valgrind) (not yet available for FreeBSD). By default, support for all tools is enabled. If you wish to disable it, supply the compiler with **VG_\<TOOL\>_ENABLED** flag set to 0, for example:
+The VMDK libraries support standard Valgrind DRD, Helgrind and Memcheck, as well as a PM-aware version of [Valgrind](https://github.com/pmem/valgrind) (not yet available for FreeBSD). By default, support for all tools is enabled. If you wish to disable it, supply the compiler with **VG_\<TOOL\>_ENABLED** flag set to 0, for example:
 ```
 	$ make EXTRA_CFLAGS=-DVG_MEMCHECK_ENABLED=0
 ```
@@ -295,13 +261,13 @@ and UndefinedBehaviorSanitizer, run:
 
 The address sanitizer is not supported for libvmmalloc on FreeBSD and will be ignored.
 
-## Building PMDK on Windows
+## Building VMDK on Windows
 
-Clone the PMDK tree and open the solution:
+Clone the VMDK tree and open the solution:
 ```
 	> git clone https://github.com/pmem/pmdk
 	> cd pmdk/src
-	> devenv PMDK.sln
+	> devenv VMDK.sln
 ```
 
 Select the desired configuration (Debug or Release) and build the solution
@@ -340,39 +306,10 @@ To **display all the possible options**, run:
 
 Please refer to the **[src/test/README](src/test/README)** for more details on how to run different types of tests.
 
-## Experimental Packages
+### Experimental Support for 64-bit non-x86 architectures
 
-Some components in the source tree are treated as experimental. By default,
-those components are built but not installed (and thus not included in
-packages).
-
-If you want to build/install experimental packages run:
-```
-	$ make EXPERIMENTAL=y [install,rpm,dpkg]
-```
-
-### The librpmem and rpmemd packages
-
-**NOTE:**
-The **libfabric** package required to build the **librpmem** and **rpmemd** is
-not yet available on stable Debian-based distributions. This makes it
-impossible to create Debian packages.
-
-If you want to build Debian packages of **librpmem** and **rpmemd** run:
-```
-	$ make RPMEM_DPKG=y dpkg
-```
-
-### Experimental Support for 64-bit ARM
-
-There is an initial support for 64-bit ARM processors provided,
-currently only for aarch64.  All the PMDK libraries except **librpmem**
-can be built for 64-bit ARM.  The examples, tools and benchmarks
-are not ported yet and may not get built on ARM cores.
-
-**NOTE:**
-The support for ARM processors is highly experimental. The libraries
-are only validated to "early access" quality with Cortex-A53 processor.
+There's generally no architecture-specific parts anywhere in these
+libraries, but they have received no real testing outside of 64-bit x86.
 
 ## Contact Us
 
