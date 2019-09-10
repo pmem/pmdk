@@ -84,14 +84,6 @@ for **pmemlog** and **pmemblk** memory pools, and for BTT devices.
 
 See the [libpmempool page](libpmempool) for documentation and examples.
 
-#### pmempool
-
-**pmempool** is a management tool for persistent memory pool files created
-by the PMDK libraries. It may be useful for system administrators as well
-as for software developers for troubleshooting and debugging.
-
-See the [pmempool page](pmempool) for available commands and documentation.
-
 #### librpmem
 
 The **librpmem** provides low-level support for remote access to
@@ -105,15 +97,14 @@ environments.
 
 See the [librpmem page](librpmem) for documentation and examples.
 
-#### libvmemcache
 
-**libvmemcache** is an embeddable and lightweight in-memory caching solution.
-It's designed to fully take advantage of large capacity memory, such as
-persistent memory with DAX, through memory mapping in an efficient
-and scalable way.
+#### pmempool
 
-See the [libvmemcache](https://pmem.io/vmemcache/manpages/master/vmemcache.3.html)
-for current documentation.
+**pmempool** is a management tool for persistent memory pool files created
+by the PMDK libraries. It may be useful for system administrators as well
+as for software developers for troubleshooting and debugging.
+
+See the [pmempool page](pmempool) for available commands and documentation.
 
 #### daxio
 
@@ -127,27 +118,3 @@ See the [daxio page](daxio) for available commands and documentation.
 The **pmreorder** is an utility that performs a consistency check of a persistent program.
 
 See the [pmreorder page](pmreorder) for available commands and documentation.
-
-#### pmdk-convert
-
-The **pmdk-convert** tool performs conversion of the specified pool
-from the old layout versions to the newest one supported by this tool.
-
-See the [pmdk-convert](https://pmem.io/pmdk-convert/manpages/master/pmdk-convert.1.html)
-for current documentation.
-
-#### C++ bindings
-
-The C++ bindings aim at providing an easier to use, less error prone
-implementation of **libpmemobj**. The C++ implementation requires a compiler
-compliant with C++11 and one feature requires C++17.
-
-See the [C++ bindings page](cpp_obj) for documentation and examples.
-
-#### pmemkv
-
-**pmemkv** is a local/embedded key-value datastore optimized for persistent memory.
-Rather than being tied to a single language or backing implementation,
-**pmemkv** provides different options for language bindings and storage engines.
-
-See the [pmemkv page](http://pmem.io/pmemkv/index.html) for available documentation.
