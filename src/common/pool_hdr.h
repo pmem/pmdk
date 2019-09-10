@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,56 +46,6 @@
 extern "C" {
 #endif
 
-/*
- * Number of bits per type in alignment descriptor
- */
-#define ALIGNMENT_DESC_BITS		4
-
-/*
- * architecture identification flags
- *
- * These flags allow to unambiguously determine the architecture
- * on which the pool was created.
- *
- * The alignment_desc field contains information about alignment
- * of the following basic types:
- * - char
- * - short
- * - int
- * - long
- * - long long
- * - size_t
- * - os_off_t
- * - float
- * - double
- * - long double
- * - void *
- *
- * The alignment of each type is computed as an offset of field
- * of specific type in the following structure:
- * struct {
- *	char byte;
- *	type field;
- * };
- *
- * The value is decremented by 1 and masked by 4 bits.
- * Multiple alignments are stored on consecutive 4 bits of each
- * type in the order specified above.
- *
- * The values used in the machine, and machine_class fields are in
- * principle independent of operating systems, and object formats.
- * In practice they happen to match constants used in ELF object headers.
- */
-struct arch_flags {
-	uint64_t alignment_desc;	/* alignment descriptor */
-	uint8_t machine_class;		/* address size -- 64 bit or 32 bit */
-	uint8_t data;			/* data encoding -- LE or BE */
-	uint8_t reserved[4];
-	uint16_t machine;		/* required architecture */
-};
-
-#define POOL_HDR_ARCH_LEN sizeof(struct arch_flags)
-
 /* possible values of the machine class field in the above struct */
 #define PMDK_MACHINE_CLASS_64 2 /* 64 bit pointers, 64 bit size_t */
 
@@ -135,8 +85,7 @@ struct pool_hdr {
 	uuid_t prev_repl_uuid;		/* prev replica */
 	uuid_t next_repl_uuid;		/* next replica */
 	uint64_t crtime;		/* when created (seconds since epoch) */
-	struct arch_flags arch_flags;	/* architecture identification flags */
-	unsigned char unused[1904];	/* must be zero */
+	unsigned char unused[1920];	/* must be zero */
 	/* not checksumed */
 	unsigned char unused2[1976];	/* must be zero */
 	uint64_t padding[8];		/* !shutdown status */
@@ -149,9 +98,6 @@ struct pool_hdr {
 
 void util_convert2le_hdr(struct pool_hdr *hdrp);
 void util_convert2h_hdr_nocheck(struct pool_hdr *hdrp);
-
-void util_get_arch_flags(struct arch_flags *arch_flags);
-int util_check_arch_flags(const struct arch_flags *arch_flags);
 
 /*
  * set of macros for determining the alignment descriptor
