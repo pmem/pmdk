@@ -143,3 +143,11 @@ implementation of **libpmemobj**. The C++ implementation requires a compiler
 compliant with C++11 and one feature requires C++17.
 
 See the [C++ bindings page](cpp_obj) for documentation and examples.
+
+#### pmemkv
+
+**pmemkv** is a local/embedded key-value datastore optimized for persistent memory.
+Rather than being tied to a single language or backing implementation,
+**pmemkv** provides different options for language bindings and storage engines.
+
+See the [pmemkv page](http://pmem.io/pmemkv/index.html) for available documentation.
