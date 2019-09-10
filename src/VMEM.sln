@@ -51,8 +51,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sparsefile", "test\tools\sp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_malloc", "test\vmem_malloc\vmem_malloc.vcxproj", "{40DC66AD-F66D-4194-B9A4-A3A2222516FE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_getopt", "test\win_getopt\win_getopt.vcxproj", "{433F7840-C597-4950-84C9-E4FF7DF6A298}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sys", "sys", "{45027FC5-4A32-47BD-AC5B-66CC7616B1D2}"
 	ProjectSection(SolutionItems) = preProject
 		windows\include\sys\file.h = windows\include\sys\file.h
@@ -74,11 +72,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_custom_alloc", "test\vmem_custom_alloc\vmem_custom_alloc.vcxproj", "{4ED1E400-CF16-48C2-B176-2BF186E73531}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_mix_allocations", "test\vmem_mix_allocations\vmem_mix_allocations.vcxproj", "{537F759B-B617-48D9-A2F3-7FB769A8F9B7}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_mmap", "test\win_mmap\win_mmap.vcxproj", "{5580D11C-FDA6-4CF2-A0E8-1C2D3FBC11F1}"
-	ProjectSection(ProjectDependencies) = postProject
-		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_common", "test\win_common\win_common.vcxproj", "{6AE1B8BE-D46A-4E99-87A2-F160FB950DCA}"
 EndProject
@@ -201,8 +194,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Utils", "Utils", "{F8CCA5AE
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "util_is_zeroed", "test\util_is_zeroed\util_is_zeroed.vcxproj", "{FD726AA3-D4FA-4597-B435-08CC7752888D}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "win_mmap_fixed", "test\win_mmap_fixed\win_mmap_fixed.vcxproj", "{FEA09B48-34C2-4963-8A5A-F97BDA136D72}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vmem_check", "test\vmem_check\vmem_check.vcxproj", "{FF374D62-CBCF-401E-9A02-1D3DB8BE16E4}"
 EndProject
