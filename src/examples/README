@@ -14,30 +14,6 @@ man pages.  Developers new to PMDK are probably looking for libpmemobj.
 Many of the examples in this directory are described in more detail
 on the above web site.
 
-libpmem(7) -- low-level persistent memory support
-    Example programs are in the libpmem directory.
-    More documentation: http://pmem.io/pmdk/libpmem
-
-libpmemblk(7) -- pmem-resident arrays of blocks
-    Example programs are in the libpmemblk directory.
-    More documentation: http://pmem.io/pmdk/libpmemblk
-
-libpmemlog(7) -- pmem-resident log files
-    Example programs are in the libpmemlog directory.
-    More documentation: http://pmem.io/pmdk/libpmemlog
-
-libpmemobj(7) -- transactional object store
-    Example programs are in the libpmemobj directory.
-    More documentation: http://pmem.io/pmdk/libpmemobj
-
-libpmempool(7) -- pool management, diagnostics and repair
-    Example programs are in the libpmempool directory.
-    More documentation: http://pmem.io/pmdk/libpmempool
-
-librpmem(7) -- remote access to persistent memory
-    Example programs are in the librpmem directory.
-    More documentation: http://pmem.io/pmdk/librpmem
-
 libvmem(7) -- volatile memory allocation library
     Example programs are in the libvmem directory.
     More documentation: http://pmem.io/pmdk/libvmem

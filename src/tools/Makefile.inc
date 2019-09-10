@@ -1,4 +1,4 @@
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -151,40 +151,6 @@ CFLAGS += -I$(TOP)/src/common
 LIBS += $(LIBNDCTL)
 endif
 
-ifeq ($(LIBPMEMPOOL), y)
-LIBPMEM=y
-DYNAMIC_LIBS += -lpmempool
-STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmempool.a
-STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmempool.a
-endif
-
-ifeq ($(LIBPMEMBLK), y)
-LIBPMEM=y
-DYNAMIC_LIBS += -lpmemblk
-STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemblk.a
-STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemblk.a
-endif
-
-ifeq ($(LIBPMEMLOG), y)
-LIBPMEM=y
-DYNAMIC_LIBS += -lpmemlog
-STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemlog.a
-STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemlog.a
-endif
-
-ifeq ($(LIBPMEMOBJ), y)
-LIBPMEM=y
-DYNAMIC_LIBS += -lpmemobj
-STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemobj.a
-STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemobj.a
-endif
-
-ifeq ($(LIBPMEM),y)
-DYNAMIC_LIBS += -lpmem
-STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmem.a
-STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmem.a
-endif
-
 ifeq ($(LIBVMEM),y)
 DYNAMIC_LIBS += -lvmem
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libvmem.a
@@ -193,40 +159,23 @@ endif
 
 
 # If any of these libraries is required, we need to link libpthread
-ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBVMEM),)
+ifneq ($(LIBPMEMCOMMON)$(LIBVMEM),)
 LIBS += -pthread
 endif
 
 # If any of these libraries is required, we need to link libdl
-ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMOBJ),)
+ifneq ($(LIBPMEMCOMMON),)
 LIBS += $(LIBDL)
 endif
 
 
 ifeq ($(TOOLS_COMMON), y)
-vpath %.c $(TOP)/src/tools/pmempool
 
 OBJS += common.o output.o
 
 CFLAGS += -I$(TOP)/src/common
-CFLAGS += -I$(TOP)/src/libpmemlog
-CFLAGS += -I$(TOP)/src/libpmemblk
-CFLAGS += -I$(TOP)/src/libpmemobj
-CFLAGS += -I$(TOP)/src/tools/pmempool
 CFLAGS += $(UNIX98_CFLAGS)
 
-endif
-
-ifneq ($(LIBPMEMLOG_PRIV),)
-OBJS += pmemlog_priv.o
-endif
-
-ifneq ($(LIBPMEMOBJ_PRIV),)
-OBJS += pmemobj_priv.o
-endif
-
-ifneq ($(LIBPMEMBLK_PRIV),)
-OBJS += pmemblk_priv.o
 endif
 
 ifneq ($(HEADERS),)
