@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -52,7 +52,7 @@ usage()
 	cat >&2 <<EOF
 Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 	[ -d distro ] [ -e build-experimental ] [ -c run-check ]
-	[ -r build-rpmem ] [ -n with-ndctl ] [ -f testconfig-file ]
+	[ -f testconfig-file ]
 
 -h			print this help message
 -t version-tag		source version tag
@@ -63,7 +63,6 @@ Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 -e build-experimental	build experimental packages
 -c run-check		run package check
 -r build-rpmem		build librpmem and rpmemd packages
--n with-ndctl		build with libndctl
 -f testconfig-file	custom testconfig.sh
 EOF
 	exit 1
@@ -234,22 +233,6 @@ if [ "${EXPERIMENTAL}" = "y" ]
 then
 	# no experimental features for now
 	RPMBUILD_OPTS+=( )
-fi
-
-# librpmem & rpmemd
-if [ "${BUILD_RPMEM}" = "y" ]
-then
-	RPMBUILD_OPTS+=(--with fabric)
-else
-	RPMBUILD_OPTS+=(--without fabric)
-fi
-
-# daxio & RAS
-if [ "${NDCTL_ENABLE}" = "n" ]
-then
-	RPMBUILD_OPTS+=(--without ndctl)
-else
-	RPMBUILD_OPTS+=(--with ndctl)
 fi
 
 # use specified testconfig file or default

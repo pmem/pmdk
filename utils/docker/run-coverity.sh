@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,9 +43,6 @@ set -e
 echo -n | openssl s_client -connect scan.coverity.com:443 | \
 	sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | \
 	sudo tee -a /etc/ssl/certs/ca-;
-
-# Build librpmem even if libfabric is not compiled with ibverbs
-export RPMEM_DISABLE_LIBIBVERBS=y
 
 export COVERITY_SCAN_PROJECT_NAME="$TRAVIS_REPO_SLUG"
 [[ "$TRAVIS_EVENT_TYPE" == "cron" ]] \

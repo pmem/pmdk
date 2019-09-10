@@ -1,4 +1,4 @@
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -317,20 +317,6 @@ export pkgconfigdir := $(libdir)/pkgconfig
 export bindir := $(exec_prefix)/bin
 export bashcompdir := $(sysconfdir)/bash_completion.d
 
-LIBFABRIC_MIN_VERSION := 1.4.2
-
-# Keep in sync with requirements in src/test/unittest/unittest.sh and
-# utils/docker/images/install-libfabric.sh.
-ifeq ($(BUILD_RPMEM),)
-export BUILD_RPMEM := $(call check_package, libfabric --atleast-version=$(LIBFABRIC_MIN_VERSION))
-ifneq ($(BUILD_RPMEM),y)
-export BUILD_RPMEM_INFO := libfabric (version >= $(LIBFABRIC_MIN_VERSION)) is missing -- \
-see src/librpmem/README for details.
-endif
-endif
-
-NDCTL_MIN_VERSION := 60.1
-
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
 ifeq ($(USE_LIBUNWIND),)
@@ -352,8 +338,6 @@ OS_LIBS=-L/usr/local/lib
 LIBDL=
 LIBUTIL=-lutil
 LIBUUID=-luuid
-LIBNDCTL=
-OS_DIMM=none
 
 else
 
@@ -363,27 +347,5 @@ OS_INCS=
 OS_LIBS=
 LIBDL=-ldl
 LIBUTIL=
-LIBUUID=
-
-NDCTL_ENABLE ?= y
-
-# Detect libndctl if not disabled.
-ifeq ($(NDCTL_ENABLE),y)
-ifeq ($(LIBNDCTL),)
-HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION))
-HAS_DAXCTL := $(call check_package, libdaxctl --atleast-version $(NDCTL_MIN_VERSION))
-ifeq ($(HAS_NDCTL),n)
-$(error libndctl(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
-endif
-ifeq ($(HAS_DAXCTL),n)
-$(error libdaxctl(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
-endif
-LIBNDCTL := $(shell $(PKG_CONFIG) --libs libndctl libdaxctl)
-endif
-export OS_DIMM := ndctl
-else
-export OS_DIMM := none
-endif
-export LIBNDCTL
 
 endif

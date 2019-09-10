@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -174,10 +174,6 @@ endif
 CFLAGS += $(EXTRA_CFLAGS)
 
 LDFLAGS = -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
-
-ifeq ($(OS_DIMM),ndctl)
-CFLAGS += -DSDS_ENABLED
-endif
 
 ifeq ($(COVERAGE),1)
 CFLAGS += $(GCOV_CFLAGS)

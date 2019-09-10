@@ -56,10 +56,6 @@ CFLAGS += -fno-common
 
 CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
-ifeq ($(OS_DIMM),ndctl)
-CFLAGS += -DSDS_ENABLED
-endif
-
 ifeq ($(IS_ICC), n)
 CFLAGS += -Wunused-macros
 CFLAGS += -Wmissing-field-initializers
@@ -148,7 +144,6 @@ DYNAMIC_LIBS += -lpmemcommon
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemcommon.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemcommon.a
 CFLAGS += -I$(TOP)/src/common
-LIBS += $(LIBNDCTL)
 endif
 
 ifeq ($(LIBVMEM),y)
@@ -156,7 +151,6 @@ DYNAMIC_LIBS += -lvmem
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libvmem.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libvmem.a
 endif
-
 
 # If any of these libraries is required, we need to link libpthread
 ifneq ($(LIBPMEMCOMMON)$(LIBVMEM),)

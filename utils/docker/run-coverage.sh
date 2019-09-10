@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,9 +39,6 @@ set -e
 
 # Get and prepare PMDK source
 ./prepare-for-build.sh
-
-# Build librpmem even if libfabric is not compiled with ibverbs
-export RPMEM_DISABLE_LIBIBVERBS=y
 
 # Hush error messages, mainly from Valgrind
 export UT_DUMP_LINES=0
