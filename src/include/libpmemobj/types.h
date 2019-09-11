@@ -75,7 +75,8 @@ extern "C" {
 #else
 #ifdef _CRT_USE_BUILTIN_OFFSETOF
 #error "Invalid definition of offsetof() macro - see: \
-https://developercommunity.visualstudio.com/content/problem/96174/. \
+https://developercommunity.visualstudio.com/content/problem/96174/\
+offsetof-macro-is-broken-for-nested-objects.html \
 Please upgrade your VS, fix offsetof as described under the link or define \
 PMEMOBJ_OFFSETOF_WA to enable workaround in libpmemobj.h"
 #endif
