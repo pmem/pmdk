@@ -139,6 +139,7 @@ OBJ_TESTS = \
 	obj_tx_mt\
 	obj_tx_realloc\
 	obj_tx_strdup\
+	obj_ulog_size\
 	obj_zones
 
 OBJ_REMOTE_DEPS = \
