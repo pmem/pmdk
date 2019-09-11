@@ -1222,8 +1222,10 @@ pocli_pmemobj_list_remove(struct pocli_ctx *ctx, struct pocli_args *args)
 		return pocli_err(ctx, POCLI_ERR_ARGS,
 					"pmemobj_list_remove() failed\n");
 
-	if (if_free)
+	if (if_free) {
 		*oid = OID_NULL;
+		pmemobj_persist(ctx->pop, oid, sizeof(PMEMoid));
+	}
 
 	pocli_printf(ctx, "%s(%p, %s, %u): off = 0x%jx uuid = 0x%jx\n",
 				args->argv[0], oidp, args->argv[2], if_free,
