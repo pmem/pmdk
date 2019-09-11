@@ -43,6 +43,8 @@
 #
 # Use "make check-remote" to run only remote unit tests.
 #
+# Use "make pcheck-check" to check completeness of "make pcheck" target.
+#
 # Use "make clean" to delete all intermediate files (*.o, etc).
 #
 # Use "make clobber" to delete everything re-buildable (binaries, etc.).
@@ -107,6 +109,9 @@ check-remote: require-rpmem all
 	$(MAKE) -C src $@
 
 test check pcheck pycheck: all
+	$(MAKE) -C src $@
+
+pcheck-check:
 	$(MAKE) -C src $@
 
 cstyle:

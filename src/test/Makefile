@@ -515,8 +515,11 @@ ifneq ($(SKIP_SYNC_REMOTES),y)
 	@rm -rf $(DIR_SYNC)
 endif
 
+pcheck-check:
+	@echo $(TESTS) | ./$(TOP)/src/test/tools/make-pcheck-check.py $(TOP)/src/test
+
 .PHONY: all check clean clobber cstyle pcheck pcheck-blk pcheck-log pcheck-obj\
 	 pcheck-other pcheck-pmem pcheck-pmempool pcheck-vmem pcheck-vmmalloc\
 	 test unittest tools check-remote format pcheck-libpmempool pycheck\
 	 pcheck-rpmem pcheck-local pcheck-remote sync-remotes $(TESTS_BUILD)\
-	 require-rpmem check-remote-quiet check-remote-quiet-conditional
+	 require-rpmem check-remote-quiet check-remote-quiet-conditional pcheck-check

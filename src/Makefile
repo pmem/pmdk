@@ -175,6 +175,9 @@ test: all jemalloc-test
 check pcheck pycheck: test jemalloc-check
 	$(MAKE) -C test $@
 
+pcheck-check:
+	$(MAKE) -C test $@
+
 require-rpmem:
 ifneq ($(BUILD_RPMEM),y)
 	$(error ERROR: cannot run remote tests because $(BUILD_RPMEM_INFO))
