@@ -239,11 +239,13 @@ realloc_int(PMEMoid *info, size_t prev_size, size_t size)
 	TOID_ASSIGN(array, *info);
 
 	POBJ_REALLOC(pop, &array, int, size * sizeof(int));
-	for (size_t i = prev_size; i < size; i++)
-			D_RW(array)[i] = (int)i;
-	pmemobj_persist(pop,
-		D_RW(array) + prev_size,
-		(size - prev_size) * sizeof(*D_RW(array)));
+	if (size > prev_size) {
+		for (size_t i = prev_size; i < size; i++)
+				D_RW(array)[i] = (int)i;
+		pmemobj_persist(pop,
+			D_RW(array) + prev_size,
+			(size - prev_size) * sizeof(*D_RW(array)));
+	}
 	return array.oid;
 }
 
