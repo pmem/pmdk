@@ -320,7 +320,9 @@ actions_clear(struct root *r)
 	for (unsigned i = 0; i < Threads; ++i) {
 		for (unsigned j = 0; j < Ops_per_thread; ++j) {
 			struct action *a = &r->actions[i][j];
+			os_mutex_destroy(&a->lock);
 			os_mutex_init(&a->lock);
+			os_cond_destroy(&a->cond);
 			os_cond_init(&a->cond);
 			memset(&a->pact, 0, sizeof(a->pact));
 		}
