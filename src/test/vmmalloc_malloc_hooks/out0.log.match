@@ -1,5 +1,0 @@
-vmmalloc_malloc_hooks/TEST0: START: vmmalloc_malloc_hooks
- ./vmmalloc_malloc_hooks$(nW)
-installing hooks
-malloc 3 realloc 1 memalign 1 free 4
-vmmalloc_malloc_hooks/TEST0: DONE

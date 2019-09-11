@@ -1,3 +1,0 @@
-vmem_custom_alloc$(nW)TEST3: START: vmem_custom_alloc
- $(nW)vmem_custom_alloc$(nW) 0 $(nW)
-vmem_custom_alloc$(nW)TEST3: DONE

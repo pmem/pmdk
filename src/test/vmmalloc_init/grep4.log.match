@@ -1,2 +1,0 @@
-$(OPT)<libvmmalloc>: <1> [$(*) util_tmpfile_mkstemp]$(W)mkstemp: $(*)
-$(OPX)<libvmmalloc>: <1> [$(*) util_tmpfile]$(W)open: $(*)

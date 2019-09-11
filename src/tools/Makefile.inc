@@ -191,15 +191,9 @@ STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmem.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmem.a
 endif
 
-ifeq ($(LIBVMEM),y)
-DYNAMIC_LIBS += -lvmem
-STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libvmem.a
-STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libvmem.a
-endif
-
 
 # If any of these libraries is required, we need to link libpthread
-ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBVMEM),)
+ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ),)
 LIBS += -pthread
 endif
 

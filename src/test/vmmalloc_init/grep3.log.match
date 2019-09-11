@@ -1,2 +1,0 @@
-$(OPT)<libvmmalloc>: <1> [$(*) util_tmpfile_mkstemp]$(W)mkstemp: No such file or directory
-$(OPX)<libvmmalloc>: <1> [$(*) util_tmpfile]$(W)open: No such file or directory

@@ -76,9 +76,6 @@ ENV BASE_DEPS "build-essential \
 	git \
 	pkg-config"
 
-# jemalloc
-ENV JEMALLOC_DEPS autoconf
-
 # benchmarks (optional)
 ENV BENCH_DEPS libglib2.0-dev
 
@@ -121,7 +118,6 @@ RUN apt-get install -y --no-install-recommends \
 	$FABRIC_DEPS \
 	$VALGRIND_DEPS \
 	$BASE_DEPS \
-	$JEMALLOC_DEPS \
 	$BENCH_DEPS \
 	$EXAMPLES_DEPS \
 	$DOC_DEPS \

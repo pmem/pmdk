@@ -119,7 +119,6 @@ fi
 
 export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
 
-VMMALLOC=libvmmalloc.so.1
 TOOLS=../tools
 LIB_TOOLS="../../tools"
 # Paths to some useful tools
@@ -311,8 +310,6 @@ fi
 # The default is to turn on library logging to level 3 and save it to local files.
 # Tests that don't want it on, should override these environment variables.
 #
-export VMEM_LOG_LEVEL=3
-export VMEM_LOG_FILE=vmem$UNITTEST_NUM.log
 export PMEM_LOG_LEVEL=3
 export PMEM_LOG_FILE=pmem$UNITTEST_NUM.log
 export PMEMBLK_LOG_LEVEL=3
@@ -324,10 +321,6 @@ export PMEMOBJ_LOG_FILE=pmemobj$UNITTEST_NUM.log
 export PMEMPOOL_LOG_LEVEL=3
 export PMEMPOOL_LOG_FILE=pmempool$UNITTEST_NUM.log
 export PMREORDER_LOG_FILE=pmreorder$UNITTEST_NUM.log
-
-export VMMALLOC_POOL_SIZE=$((16 * 1024 * 1024))
-export VMMALLOC_LOG_LEVEL=3
-export VMMALLOC_LOG_FILE=vmmalloc$UNITTEST_NUM.log
 
 export OUT_LOG_FILE=out$UNITTEST_NUM.log
 export ERR_LOG_FILE=err$UNITTEST_NUM.log
@@ -841,16 +834,6 @@ function expect_normal_exit() {
 		export VALGRIND_OPTS="$VALGRIND_OPTS --suppressions=../memcheck-dlopen.supp"
 	fi
 
-	# in case of preloading libvmmalloc.so.1 force valgrind to not override malloc
-	if [ -n "$VALGRINDEXE" -a -n "$TEST_LD_PRELOAD" ]; then
-		if [ $(valgrind_version) -ge 312 ]; then
-			preload=`basename $TEST_LD_PRELOAD`
-		fi
-		if [ "$preload" == "$VMMALLOC" ]; then
-			export VALGRIND_OPTS="$VALGRIND_OPTS --soname-synonyms=somalloc=nouserintercepts"
-		fi
-	fi
-
 	local REMOTE_VALGRIND_LOG=0
 	if [ "$CHECK_TYPE" != "none" ]; then
 	        case "$1"
@@ -955,16 +938,6 @@ function expect_abnormal_exit() {
 			msg "$UNITTEST_NAME: SKIP: TRACE is not supported if test is executed on remote nodes"
 			exit 0
 		esac
-	fi
-
-	# in case of preloading libvmmalloc.so.1 force valgrind to not override malloc
-	if [ -n "$VALGRINDEXE" -a -n "$TEST_LD_PRELOAD" ]; then
-		if [ $(valgrind_version) -ge 312 ]; then
-			preload=`basename $TEST_LD_PRELOAD`
-		fi
-		if [ "$preload" == "$VMMALLOC" ]; then
-			export VALGRIND_OPTS="$VALGRIND_OPTS --soname-synonyms=somalloc=nouserintercepts"
-		fi
 	fi
 
 	if [ "$CHECK_TYPE" = "drd" ]; then
@@ -2635,7 +2608,6 @@ function require_mmap_under_valgrind() {
 function setup() {
 
 	DIR=$DIR$SUFFIX
-	export VMMALLOC_POOL_DIR="$DIR"
 
 	# writes test working directory to temporary file
 	# that allows read location of data after test failure

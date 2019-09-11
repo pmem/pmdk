@@ -1,4 +1,0 @@
-vmem_multiple_pools$(nW)TEST0: START: vmem_multiple_pools
- $(nW)vmem_multiple_pools$(nW) $(nW) 128 1
-create 128 pools in 1 thread(s)
-vmem_multiple_pools$(nW)TEST0: DONE

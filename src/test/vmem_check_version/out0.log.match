@@ -1,5 +1,0 @@
-vmem_check_version$(nW)TEST0: START: vmem_check_version
- $(nW)vmem_check_version$(nW)
-compile-time libvmem version is 1.1
-for major version 2, vmem_check_version returned: libvmem major version mismatch (need 2, found 1)
-vmem_check_version$(nW)TEST0: DONE

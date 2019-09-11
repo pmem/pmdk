@@ -38,7 +38,6 @@ from enum import Enum, unique
 from os import path
 
 import futils
-from utils import VMMALLOC
 
 
 DISABLE = -1
@@ -198,12 +197,6 @@ class Valgrind:
         version = out.split('valgrind-')[1]
         version_as_int = int(version.rsplit('.', 1)[0].replace('.', ''))
         return version_as_int
-
-    def handle_ld_preload(self, ld_preload):
-        """Handle Valgrind setup for given LD_PRELOAD value"""
-        if self._get_version() >= 312 and \
-           path.basename(ld_preload) == VMMALLOC:
-            self.add_opt('--soname-synonyms=somalloc=nouserintercepts')
 
     def add_suppression(self, f):
         """

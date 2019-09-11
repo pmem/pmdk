@@ -1,2 +1,0 @@
-$(OPT)<libvmmalloc>: <3> [$(*) util_tmpfile_mkstemp] unlinked file is $(*)
-<libvmmalloc>: <4> [$(*) malloc]$(W)size 4321

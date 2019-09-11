@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -102,17 +102,6 @@ function list_pages {
 		man_child+=($(ls direct_*.3))
 		man_child+=($(ls d_r*.3))
 		man_child+=($(ls tx_*.3))
-		echo -n "- $parent: " >> $map_file
-		echo "${man_child[@]}" >> $map_file
-	fi
-
-	if [ "$parent" == "libvmmalloc" ]; then
-		man_child=($(ls vmmalloc_*.3 2>/dev/null))
-		echo -n "- $parent: " >> $map_file
-	fi
-
-	if [ "$parent" == "libvmem" ]; then
-		man_child=($(ls vmem_*.3))
 		echo -n "- $parent: " >> $map_file
 		echo "${man_child[@]}" >> $map_file
 	fi

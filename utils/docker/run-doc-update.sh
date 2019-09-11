@@ -89,7 +89,7 @@ git clean -dfx
 
 rsync -a ../web_linux/ ./manpages/linux/${VERSION}/
 rsync -a ../web_windows/ ./manpages/windows/${VERSION}/ \
-	--exclude='libvmmalloc' --exclude='librpmem'	\
+	--exclude='librpmem'	\
 	--exclude='rpmemd' --exclude='pmreorder'	\
 	--exclude='daxio'
 
