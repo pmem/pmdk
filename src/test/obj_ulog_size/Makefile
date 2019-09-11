@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,36 +31,11 @@
 #
 
 #
-# src/test/util_badblock/TEST5 -- unit test for util_badblock
-#                                 - regular file with no bad blocks
-#                                 - only list bad blocks
+# src/test/obj_ulog_size/Makefile -- build obj_ulog_size unit test
 #
+TARGET = obj_ulog_size
+OBJS = obj_ulog_size.o
 
-. ../unittest/unittest.sh
+LIBPMEMOBJ=internal-debug
 
-require_test_type medium
-require_fs_type non-pmem
-
-require_nfit_tests_enabled
-require_linked_with_ndctl ./util_badblock$EXESUFFIX
-
-setup
-
-. ../common_badblock.sh
-
-badblock_test_init block_device
-
-MOUNT_DIR="$DIR/mnt-pmem"
-
-ndctl_nfit_test_mount_pmem $FULLDEV $MOUNT_DIR
-
-FILE="$MOUNT_DIR/file"
-fallocate -l 1M $FILE
-
-expect_normal_exit ./util_badblock$EXESUFFIX $FILE l
-
-ndctl_nfit_test_fini $MOUNT_DIR
-
-check
-
-pass
+include ../Makefile.inc

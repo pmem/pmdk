@@ -40,24 +40,16 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type non-pmem
-require_linked_with_ndctl ./util_badblock$EXESUFFIX
+require_fs_type none
 
 require_nfit_tests_enabled
-require_sudo_allowed
-require_kernel_module nfit_test
 require_linked_with_ndctl ./util_badblock$EXESUFFIX
-require_command ndctl
 
 setup
 
 . ../common_badblock.sh
 
-ndctl_nfit_test_init
-
-DEVICE=$(ndctl_nfit_test_get_dax_device)
-NAMESPACE=$(ndctl_nfit_test_get_namespace_of_device $DEVICE)
-FULLDEV="/dev/$DEVICE"
+badblock_test_init dax_device
 
 # inject bad block: OFF=11 LEN=1
 ndctl_inject_error $NAMESPACE 11 1

@@ -1702,8 +1702,9 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 		sizeof(struct ulog_entry_val);
 
 	if (operation_reserve(tx->lane->external, entries_size) != 0) {
+		int ret = obj_tx_abort_err(ENOMEM);
 		PMEMOBJ_API_END();
-		return -1;
+		return ret;
 	}
 
 	for (size_t i = 0; i < actvcnt; ++i) {
