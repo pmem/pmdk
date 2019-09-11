@@ -49,7 +49,7 @@ require_command clang
 SRC=../..
 HEADERS_DIR=$SRC/include
 INC_DIR=$SRC/include/libpmemobj
-EXC_PATT="set_funcs|strdup|rpmem|vmem_stats_print"
+EXC_PATT="set_funcs|strdup|rpmem"
 FAILED=0
 DEF_COL=6
 
@@ -67,7 +67,7 @@ function check_file {
 	local pat=$3
 
 	local funcs=$(clang -Xclang -ast-dump -I$HEADERS_DIR $file -fno-color-diagnostics 2> /dev/null |\
-		grep "FunctionDecl.*\(vmem\|pmem\).*char \*" | cut -d " " -f $DEF_COL)
+		grep "FunctionDecl.*pmem.*char \*" | cut -d " " -f $DEF_COL)
 	for func in $funcs
 	do
 		local good=1	# Not starting at 0 allows set -e

@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -126,7 +126,6 @@ sub check_whitespace_with_exc {
 
 	$_ = $full;
 
-	return 0 if /^[.\/]*src\/jemalloc.*/;
 	return 0 if /^[.\/]*src\/common\/queue\.h/;
 	return 0 if /^[.\/]*src\/common\/valgrind\/.*\.h/;
 
@@ -197,7 +196,6 @@ foreach my $arg (@ARGV) {
 
 			if (!$force &&
 			   ($full eq './.git' ||
-			    $full eq './src/jemalloc' ||
 			    $full eq './src/debug' ||
 			    $full eq './src/nondebug' ||
 			    $full eq './rpmbuild' ||

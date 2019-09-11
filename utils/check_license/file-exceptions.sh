@@ -33,4 +33,4 @@
 
 # file-exceptions.sh - filter out files not checked for copyright and license
 
-grep -v -E -e 'src/jemalloc/' -e 'src/windows/jemalloc_gen/' -e '/queue.h$' -e '/getopt.h$' -e '/getopt.c$' -e 'src/common/valgrind/' -e '/testconfig\...$'
+grep -v -E -e '/queue.h$' -e '/getopt.h$' -e '/getopt.c$' -e 'src/common/valgrind/' -e '/testconfig\...$'

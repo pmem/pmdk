@@ -76,9 +76,6 @@
     <ProjectReference Include="..\..\libpmempool\libpmempool.vcxproj">
       <Project>{cf9a0883-6334-44c7-ac29-349468c78e27}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\libvmem\libvmem.vcxproj">
-      <Project>{08762559-e9df-475b-ba99-49f4b5a1d80b}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>

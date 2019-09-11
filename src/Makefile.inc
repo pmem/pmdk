@@ -129,18 +129,7 @@ CFLAGS += -DFAULT_INJECTION=1
 CXXFLAGS += -DFAULT_INJECTION=1
 endif
 
-# On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
-tsanitize := $(SANITIZE)
-ifeq ($(OS_KERNEL_NAME),FreeBSD)
-ifeq ($(JEMALLOC_PMDKDIR),libvmmalloc)
-hasaddrcomma := address,
-tsanitize := $(subst address,,$(subst $(hasaddrcomma),,$(SANITIZE)))
-ifneq ($(tsanitize),$(SANITIZE))
-$(info SANITIZE=address not supported for libvmmalloc, ignored)
-endif
-endif
-endif
-ifneq ($(tsanitize),)
+ifneq ($(SANITIZE),)
 CFLAGS += -fsanitize=$(tsanitize)
 LDFLAGS += -fsanitize=$(tsanitize)
 endif

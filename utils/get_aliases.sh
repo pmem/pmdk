@@ -112,17 +112,6 @@ function list_pages {
 		echo "${man_child[@]}" >> $map_file
 	fi
 
-	if [ "$parent" == "libvmmalloc" ]; then
-		man_child=($(ls vmmalloc_*.3 2>/dev/null))
-		echo -n "- $parent: " >> $map_file
-	fi
-
-	if [ "$parent" == "libvmem" ]; then
-		man_child=($(ls vmem_*.3))
-		echo -n "- $parent: " >> $map_file
-		echo "${man_child[@]}" >> $map_file
-	fi
-
 	if [ "$parent" == "libpmempool" ]; then
 		man_child=($(ls pmempool_*.3))
 		echo -n "- $parent: " >> $map_file

@@ -91,9 +91,6 @@
     <ClCompile Include="scenario.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vmem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="benchmark_time.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

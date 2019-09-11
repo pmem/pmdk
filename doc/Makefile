@@ -37,8 +37,7 @@
 include ../src/common.inc
 
 MANPAGES_7_MD = libpmem/libpmem.7.md libpmemblk/libpmemblk.7.md libpmemlog/libpmemlog.7.md \
-		libpmemobj/libpmemobj.7.md libpmempool/libpmempool.7.md libvmem/libvmem.7.md \
-		libvmmalloc/libvmmalloc.7.md libpmem2/libpmem2.7.md
+		libpmemobj/libpmemobj.7.md libpmempool/libpmempool.7.md libpmem2/libpmem2.7.md
 
 MANPAGES_5_MD = poolset/poolset.5.md pmem_ctl/pmem_ctl.5.md
 
@@ -50,7 +49,6 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
 		libpmemobj/pmemobj_tx_alloc.3.md libpmemobj/pobj_layout_begin.3.md libpmemobj/pobj_list_head.3.md libpmemobj/toid_declare.3.md \
 		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_feature_query.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md \
-		libvmem/vmem_create.3.md libvmem/vmem_malloc.3.md \
 		libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config.3.md libpmem2/pmem2_mapping.3.md
 
 
@@ -80,9 +78,6 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmempool_feature_enable.3 pmempool_feature_disable.3 \
 		   pmempool_transform.3 \
 		   pmempool_check_version.3 pmempool_errormsg.3 \
-		   vmem_create_in_region.3 vmem_delete.3 vmem_check.3 vmem_stats_print.3 \
-		   vmem_calloc.3 vmem_realloc.3 vmem_free.3 vmem_aligned_alloc.3 vmem_strdup.3 vmem_wcsdup.3 vmem_malloc_usable_size.3 \
-		   vmem_check_version.3 vmem_errormsg.3 vmem_set_funcs.3 \
 		   oid_equals.3 pmemobj_direct.3 pmemobj_oid.3 pmemobj_type_num.3 pmemobj_pool_by_oid.3 pmemobj_pool_by_ptr.3 pmemobj_volatile.3\
 		   pmemobj_zalloc.3 pmemobj_xalloc.3 pmemobj_free.3 pmemobj_realloc.3 pmemobj_zrealloc.3 pmemobj_strdup.3 pmemobj_wcsdup.3 pmemobj_alloc_usable_size.3 \
 		   pobj_new.3 pobj_alloc.3 pobj_znew.3 pobj_zalloc.3 pobj_realloc.3 pobj_zrealloc.3 pobj_free.3 \

@@ -1,9 +1,0 @@
-includedir=${prefix}/include
-
-Name: libvmmalloc
-Description: libvmmalloc library from PMDK project
-Version: ${version}
-URL: http://pmem.io/pmdk
-Requires:
-Libs: -L${libdir} -lvmmalloc
-Cflags: -I${includedir}

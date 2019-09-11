@@ -198,7 +198,6 @@ produce:
 	out0.log	log of stdout
 	trace0.log	trace points from unittest library
 	pmem0.log	trace from libpmem (PMEM_LOG_FILE points here)
-	vmem0.log	trace from libvmem (VMEM_LOG_FILE points here)
 
 Although the above log files are the common case, the TEST* scripts are free to
 create any files.  It is recommended, however, that the script creates files

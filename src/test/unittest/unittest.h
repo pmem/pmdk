@@ -90,7 +90,6 @@
 #include <libpmemlog.h>
 #include <libpmemobj.h>
 #include <libpmempool.h>
-#include <libvmem.h>
 
 #ifdef __cplusplus
 extern "C" {

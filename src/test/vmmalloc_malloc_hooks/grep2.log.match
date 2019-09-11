@@ -1,4 +1,0 @@
-<libvmmalloc>: <4> [$(*) malloc]$(W)size 4321
-<libvmmalloc>: <4> [$(*) calloc]$(W)nmemb 1, size 4321
-<libvmmalloc>: <4> [$(*) realloc]$(W)ptr 0x$(X), size 4321
-<libvmmalloc>: <4> [$(*) memalign]$(W)boundary 16  size 4321
