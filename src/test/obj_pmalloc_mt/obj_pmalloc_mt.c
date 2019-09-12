@@ -299,6 +299,7 @@ action_mix_worker(void *arg)
 			UT_ASSERT(!OID_IS_NULL(oid));
 			os_cond_signal(&act->cond);
 			os_mutex_unlock(&act->lock);
+			pmemobj_persist(a->pop, act, sizeof(*act));
 		} else {
 			os_mutex_lock(&act->lock);
 			while (act->pact.heap.offset == 0)
@@ -315,7 +316,7 @@ action_mix_worker(void *arg)
 }
 
 static void
-actions_clear(struct root *r)
+actions_clear(PMEMobjpool *pop, struct root *r)
 {
 	for (unsigned i = 0; i < Threads; ++i) {
 		for (unsigned j = 0; j < Ops_per_thread; ++j) {
@@ -325,6 +326,7 @@ actions_clear(struct root *r)
 			os_cond_destroy(&a->cond);
 			os_cond_init(&a->cond);
 			memset(&a->pact, 0, sizeof(a->pact));
+			pmemobj_persist(pop, a, sizeof(*a));
 		}
 	}
 }
@@ -400,9 +402,9 @@ main(int argc, char *argv[])
 	run_worker(mix_worker, args);
 	run_worker(alloc_free_worker, args);
 	run_worker(action_cancel_worker, args);
-	actions_clear(r);
+	actions_clear(pop, r);
 	run_worker(action_publish_worker, args);
-	actions_clear(r);
+	actions_clear(pop, r);
 	run_worker(action_mix_worker, args);
 
 	/*
