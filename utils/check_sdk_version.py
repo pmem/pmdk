@@ -43,7 +43,7 @@ VALID_SDK_VERSION = '10.0.16299.0'
 def get_modified_files(root_dir, ignored):
     """Get a list of changed ".vcxproj" files under PMDK directory."""
     to_format = []
-    command = 'git diff --name-only --no-renames HEAD master'
+    command = 'git ls-tree -r --name-only HEAD'
     try:
         output = check_output(command, shell=True,
                               cwd=root_dir).decode("UTF-8")
