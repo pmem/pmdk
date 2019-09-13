@@ -488,6 +488,18 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
 
 	pmemops_drain(p_ops);
 
+	/*
+	 * Allow having uninitialized data in the buffer - this requires marking
+	 * data as defined so that comparing checksums is not reported as an
+	 * error by memcheck.
+	 */
+#if VG_MEMCHECK_ENABLED
+	if (On_valgrind) {
+		VALGRIND_MAKE_MEM_DEFINED(e->data, ncopy + rcopy + lcopy);
+		VALGRIND_MAKE_MEM_DEFINED(&e->checksum, sizeof(e->checksum));
+	}
+#endif
+
 	ASSERT(ulog_entry_valid(ulog, &e->base));
 
 	return e;
