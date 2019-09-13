@@ -140,14 +140,18 @@ TM=1
 
 #
 # Enable and select the type of tests for code handling bad blocks.
-# Options: nfit_test, none (do not run, default)
+# Options: nfit_test, real_pmem, none (do not run, default).
 #
-# Running tests on emulated memory requires 'nfit_test' kernel module to be
-# present in the system: see https://github.com/pmem/ndctl#unit-tests
+# Running tests on emulated memory ('nfit test' option) requires 'nfit_test'
+# kernel module to be present in the system.
+# See https://github.com/pmem/ndctl#unit-tests
 #
-# The tests use 'sudo' command many times and insert the 'nfit_test'
-# kernel module, so they can be considered as POTENTIALLY DANGEROUS
-# and have to be explicitly enabled.
+# If the 'real_pmem' option is enabled, tests are run on real hardware
+# provided through PMEM_FS_DIR or DEVICE_DAX_PATH config fields.
+#
+# The tests use 'sudo' command many times and, in case of tests on
+# emulated memory, insert the 'nfit_test' kernel module, so they can be
+# considered as POTENTIALLY DANGEROUS and have to be explicitly enabled.
 # Enable them ONLY IF you are sure you know what you are doing.
 #
 # As of kernel 4.20, the nfit-test module causes kernel oops whenever a devdax
