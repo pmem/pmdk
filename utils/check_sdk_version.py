@@ -34,25 +34,26 @@ import argparse
 import os
 from subprocess import check_output, CalledProcessError
 import sys
+import shlex
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
 
 VALID_SDK_VERSION = '10.0.16299.0'
 
 
-def get_modified_files(root_dir, ignored):
-    """Get a list of changed ".vcxproj" files under PMDK directory."""
+def get_vcxproj_files(root_dir, ignored):
+    """Get a list ".vcxproj" files under PMDK directory."""
     to_format = []
-    command = 'git diff --name-only --no-renames HEAD master'
+    command = 'git ls-files *.vcxproj'
     try:
-        output = check_output(command, shell=True,
+        output = check_output(shlex.split(command),
                               cwd=root_dir).decode("UTF-8")
     except CalledProcessError as e:
         sys.exit('Error: "' + command + '" failed with returncode: ' +
                  str(e.returncode))
 
     for line in output.splitlines():
-        if not line or not line.endswith('.vcxproj'):
+        if not line:
             continue
         file_path = os.path.join(root_dir, line)
         if os.path.isfile(file_path):
@@ -89,7 +90,7 @@ def main():
     if not os.path.isdir(current_directory):
         sys.exit('"' + current_directory + '" is not a directory.')
 
-    files = get_modified_files(current_directory, '')
+    files = get_vcxproj_files(current_directory, '')
     if not files:
         sys.exit(0)
     for file in files:
