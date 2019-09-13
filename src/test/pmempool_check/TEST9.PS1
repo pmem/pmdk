@@ -55,7 +55,7 @@ expect_normal_exit $PMEMPOOL check -vyr $POOL >> $LOG
 	pool_hdr.features.ro_compat=0xff `
 	pool_hdr.shutdown_state.usc=0 `
 	pool_hdr.shutdown_state.uuid=0 `
-	'pool_hdr.shutdown_state.checksum_gen()' `
+	'pool_hdr.shutdown_state.f:checksum_gen' `
 	pool_hdr.unused=ERROR `
 	>> $LOG
 

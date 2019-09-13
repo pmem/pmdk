@@ -49,7 +49,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout "pmempool$SUFFIX" obj\
   $POOL
 expect_normal_exit $PMEMSPOIL $POOL \
 				   "pool_hdr.shutdown_state.dirty=1 \
-				   pool_hdr.shutdown_state.checksum_gen\(\)"
+				   pool_hdr.shutdown_state.f:checksum_gen"
 expect_normal_exit $PMEMPOOL$EXESUFFIX info $POOL >> $LOG
 
 check

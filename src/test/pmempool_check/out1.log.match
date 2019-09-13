@@ -5,7 +5,7 @@ $(nW): spoil: pool_hdr.features.incompat=$(*)
 $(nW): spoil: pool_hdr.features.ro_compat=$(*)
 $(nW): spoil: pool_hdr.shutdown_state.usc=0
 $(nW): spoil: pool_hdr.shutdown_state.uuid=0
-$(nW): spoil: pool_hdr.shutdown_state.checksum_gen()
+$(nW): spoil: pool_hdr.shutdown_state.f:checksum_gen
 $(nW): spoil: pool_hdr.unused=$(*)
 checking shutdown state
 shutdown state correct

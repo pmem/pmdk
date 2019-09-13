@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -75,7 +75,7 @@ function set_compat {
 
     )
     expect_normal_exit $PMEMSPOIL $part "pool_hdr.features.compat=$flag" `
-        "pool_hdr.checksum_gen()"
+        "pool_hdr.f:checksum_gen"
 }
 
 # set incompat flags in header
@@ -88,5 +88,5 @@ function set_incompat {
 
     )
     expect_normal_exit $PMEMSPOIL $part "pool_hdr.features.incompat=$flag" `
-        "pool_hdr.checksum_gen()"
+        "pool_hdr.f:checksum_gen"
 }
