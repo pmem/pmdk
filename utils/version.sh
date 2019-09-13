@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -85,7 +85,7 @@ fi
 cd - >/dev/null
 
 # If nothing works, try to get version from directory name
-VER=$(basename `realpath "$1"` | sed 's/pmdk[-]*\([0-9a-z.+-]*\).*/\1/')
+VER=$(basename `realpath "$1"` | sed 's/vmem[-]*\([0-9a-z.+-]*\).*/\1/')
 if [ -n "$VER" ]; then
 	echo "$VER"
 	exit 0

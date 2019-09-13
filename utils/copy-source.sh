@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# utils/copy-source.sh -- copy source files (from HEAD) to 'path_to_dir/pmdk'
+# utils/copy-source.sh -- copy source files (from HEAD) to 'path_to_dir/vmem'
 # directory whether in git repository or not.
 #
 # usage: ./copy-source.sh [path_to_dir] [srcversion]
@@ -50,15 +50,15 @@ else
 	echo "Warning: You are not in git repository, working directory might be dirty."
 fi
 
-mkdir -p "$DESTDIR"/pmdk
-echo -n $SRCVERSION > "$DESTDIR"/pmdk/.version
+mkdir -p "$DESTDIR"/vmem
+echo -n $SRCVERSION > "$DESTDIR"/vmem/.version
 
 if [ -d .git ]; then
-	git archive HEAD | tar -x -C "$DESTDIR"/pmdk
+	git archive HEAD | tar -x -C "$DESTDIR"/vmem
 else
 	find . \
 	-maxdepth 1 \
 	-not -name $(basename "$DESTDIR") \
 	-not -name . \
-	-exec cp -r "{}" "$DESTDIR"/pmdk \;
+	-exec cp -r "{}" "$DESTDIR"/vmem \;
 fi

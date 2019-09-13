@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Name of package
-PACKAGE_NAME="pmdk"
+PACKAGE_NAME="vmem"
 
 # Name and email of package maintainer
 PACKAGE_MAINTAINER="Krzysztof Czurylo <krzysztof.czurylo@intel.com>"
