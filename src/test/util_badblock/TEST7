@@ -42,9 +42,8 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type non-pmem
 
-require_badblock_tests_enabled
+require_badblock_tests_enabled block_device
 require_linked_with_ndctl ./util_badblock$EXESUFFIX
 
 setup

@@ -45,7 +45,6 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type non-pmem
 
 # must be non-static debug release of the binary because the test relies on the
 # gdb ability to interrupt the program at a static method inside
@@ -53,7 +52,7 @@ require_fs_type non-pmem
 require_build_type debug
 require_command gdb
 
-require_badblock_tests_enabled
+require_badblock_tests_enabled block_device
 require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
 
 setup
@@ -111,6 +110,7 @@ expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
+ndctl_uninject_error $FULLDEV $NAMESPACE $FIRST_SECTOR 1
 badblock_test_fini $MOUNT_DIR
 
 check
