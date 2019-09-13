@@ -1,0 +1,34 @@
+==$(*)== Memcheck$(*)
+==$(*)== Copyright$(*)
+==$(*)== Using Valgrind-$(*)
+==$(*)== Command: $(*)/obj_tx_add_range$(*)
+==$(*)== Parent PID: $(*)
+==$(*)== 
+**$(*)** Snapshotting uninitialized data in range <0x$(*),0x$(*)> (<offset:0x$(*),size:0x3f8>)
+==$(*)== Uninitialised byte(s) found during client check request
+==$(*)==    at $(*): vg_verify_initialized ($(*))
+==$(*)==    by $(*): pmemobj_tx_add_snapshot ($(*))
+==$(*)==    by $(*): pmemobj_tx_add_common ($(*))
+==$(*)==    by $(*): pmemobj_tx_add_range_direct ($(*))
+==$(*)==    by $(*): do_tx_add_range_no_uninit_check_commit_no_flag (obj_tx_add_range_direct.c:$(*))
+==$(*)==    by $(*): main (obj_tx_add_range_direct.c:$(*))
+==$(*)==  Address $(*) is 8 bytes inside a block of size $(*) client-defined
+==$(*)==    at $(*): alloc_prep_block ($(*))
+==$(*)==    by $(*): palloc_reservation_create ($(*))
+==$(*)==    by $(*): palloc_reserve ($(*))
+==$(*)==    by $(*): tx_alloc_common ($(*))
+==$(*)==    by $(*): pmemobj_tx_alloc ($(*))
+==$(*)==    by $(*): do_tx_alloc ($(*))
+==$(*)==    by $(*): do_tx_add_range_no_uninit_check_commit_no_flag (obj_tx_add_range_direct.c:$(*))
+==$(*)==    by $(*): main (obj_tx_add_range_direct.c:$(*))
+==$(*)== 
+==$(*)== 
+==$(*)== HEAP SUMMARY:
+==$(*)==     in use at exit: 0 bytes in 0 blocks
+==$(*)==   total heap usage: $(*) allocs, $(*) frees, $(*) bytes allocated
+==$(*)== 
+==$(*)== All heap blocks were freed -- no leaks are possible
+==$(*)== 
+==$(*)== Use --track-origins=yes to see where uninitialised values come from
+$(OPT)==$(*)== For lists of detected and suppressed errors, rerun with: -s
+==$(*)== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)

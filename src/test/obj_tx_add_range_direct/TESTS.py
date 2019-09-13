@@ -59,3 +59,13 @@ class TEST1(t.BaseTest):
 
         testfile = path.join(ctx.testdir, 'testfile1')
         ctx.exec('obj_tx_add_range_direct', testfile)
+
+
+class TEST2(t.BaseTest):
+    test_type = t.Medium
+    memcheck = t.ENABLE
+    build = t.Debug
+
+    def run(self, ctx):
+        testfile = path.join(ctx.testdir, 'testfile2')
+        ctx.exec('obj_tx_add_range_direct', testfile)
