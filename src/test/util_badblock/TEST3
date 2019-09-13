@@ -41,9 +41,8 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type none
 
-require_badblock_tests_enabled
+require_badblock_tests_enabled dax_device
 require_linked_with_ndctl ./util_badblock$EXESUFFIX
 
 setup
@@ -58,6 +57,8 @@ ndctl_inject_error $NAMESPACE 11 1
 expect_bad_blocks
 
 expect_normal_exit ./util_badblock$EXESUFFIX $FULLDEV l
+
+ndctl_uninject_error $FULLDEV $NAMESPACE 11 1
 
 badblock_test_fini
 
