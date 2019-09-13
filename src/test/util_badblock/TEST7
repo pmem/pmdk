@@ -44,18 +44,15 @@
 require_test_type medium
 require_fs_type non-pmem
 
-require_nfit_tests_enabled
+require_badblock_tests_enabled
 require_linked_with_ndctl ./util_badblock$EXESUFFIX
 
 setup
 
 . ../common_badblock.sh
 
-badblock_test_init block_device
-
 MOUNT_DIR="$DIR/mnt-pmem"
-
-ndctl_nfit_test_mount_pmem $FULLDEV $MOUNT_DIR
+badblock_test_init block_device $MOUNT_DIR
 
 FILE="$MOUNT_DIR/file"
 fallocate -l 1M $FILE
@@ -78,7 +75,7 @@ dd if=/dev/zero of=$FILE count=1 status=none
 
 expect_normal_exit ./util_badblock$EXESUFFIX $FILE l
 
-ndctl_nfit_test_fini $MOUNT_DIR
+badblock_test_fini $MOUNT_DIR
 
 check
 
