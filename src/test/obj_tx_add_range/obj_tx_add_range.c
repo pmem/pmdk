@@ -575,6 +575,87 @@ do_tx_add_range_overlapping(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_add_range_flag_merge_right -- call pmemobj_tx_add_range with
+ * overlapping ranges, but different flags
+ */
+static void
+do_tx_add_range_flag_merge_right(PMEMobjpool *pop)
+{
+	TOID(struct overlap_object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, 1));
+
+	/*
+	 * ++++--------
+	 * --++++++++--
+	 */
+	TX_BEGIN(pop) {
+		pmemobj_tx_xadd_range(obj.oid, 0, 4, POBJ_XADD_NO_FLUSH);
+		memset(D_RW(obj)->data, 1, 4);
+
+		pmemobj_tx_add_range(obj.oid, 2, 8);
+		memset(D_RW(obj)->data + 2, 3, 8);
+
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+}
+
+/*
+ * do_tx_add_range_flag_merge_left -- call pmemobj_tx_add_range with
+ * overlapping ranges, but different flags
+ */
+static void
+do_tx_add_range_flag_merge_left(PMEMobjpool *pop)
+{
+	TOID(struct overlap_object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, 1));
+
+	/*
+	 * --------++++
+	 * --++++++++--
+	 */
+	TX_BEGIN(pop) {
+		pmemobj_tx_xadd_range(obj.oid, 8, 4, POBJ_XADD_NO_FLUSH);
+		memset(D_RW(obj)->data + 8, 2, 4);
+
+		pmemobj_tx_add_range(obj.oid, 2, 8);
+		memset(D_RW(obj)->data + 2, 3, 8);
+
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+}
+
+/*
+ * do_tx_add_range_flag_merge_middle -- call pmemobj_tx_add_range with
+ * three adjacent ranges, but different flags
+ */
+static void
+do_tx_add_range_flag_merge_middle(PMEMobjpool *pop)
+{
+	TOID(struct overlap_object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, 1));
+
+	/*
+	 * ++++----++++
+	 * ----++++----
+	 */
+	TX_BEGIN(pop) {
+		pmemobj_tx_xadd_range(obj.oid, 0, 4, POBJ_XADD_NO_FLUSH);
+		memset(D_RW(obj)->data, 1, 4);
+
+		pmemobj_tx_xadd_range(obj.oid, 8, 4, POBJ_XADD_NO_FLUSH);
+		memset(D_RW(obj)->data + 8, 2, 4);
+
+		pmemobj_tx_add_range(obj.oid, 4, 4);
+		memset(D_RW(obj)->data + 4, 3, 4);
+
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+}
+
+/*
  * do_tx_add_range_reopen -- check for persistent memory leak in undo log set
  */
 static void
@@ -680,6 +761,12 @@ main(int argc, char *argv[])
 		do_tx_add_huge_range_abort(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_add_range_zero(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_flag_merge_left(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_flag_merge_right(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_flag_merge_middle(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_xadd_range_commit(pop);
 		pmemobj_close(pop);
