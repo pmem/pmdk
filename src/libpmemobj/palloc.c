@@ -351,8 +351,16 @@ palloc_reservation_clear(struct palloc_heap *heap,
 		util_mutex_lock(&b->lock);
 		struct memory_block *am = &b->active_memory_block->m;
 
-		if (am->chunk_id == act->m.chunk_id &&
+		/*
+		 * If a memory block used for the action is the currently active
+		 * memory block of the bucket it can be inserted back to the
+		 * bucket. This way it will be available for future allocation
+		 * requests, improving performance.
+		 */
+		if (b->is_active &&
+		    am->chunk_id == act->m.chunk_id &&
 		    am->zone_id == act->m.zone_id) {
+			ASSERTeq(b->active_memory_block, mresv);
 			bucket_insert_block(b, &act->m);
 		}
 
@@ -361,6 +369,11 @@ palloc_reservation_clear(struct palloc_heap *heap,
 
 	if (util_fetch_and_sub64(&mresv->nresv, 1) == 1) {
 		VALGRIND_ANNOTATE_HAPPENS_AFTER(&mresv->nresv);
+		/*
+		 * If the memory block used for the action is not currently used
+		 * in any bucket nor action it can be discarded (given back to
+		 * the heap).
+		 */
 		heap_discard_run(heap, &mresv->m);
 		Free(mresv);
 	} else {
