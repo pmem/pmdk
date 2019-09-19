@@ -299,7 +299,6 @@ action_mix_worker(void *arg)
 			UT_ASSERT(!OID_IS_NULL(oid));
 			os_cond_signal(&act->cond);
 			os_mutex_unlock(&act->lock);
-			pmemobj_persist(a->pop, act, sizeof(*act));
 		} else {
 			os_mutex_lock(&act->lock);
 			while (act->pact.heap.offset == 0)
@@ -310,6 +309,7 @@ action_mix_worker(void *arg)
 				pmemobj_cancel(a->pop, &act->pact, 1);
 			os_mutex_unlock(&act->lock);
 		}
+		pmemobj_persist(a->pop, act, sizeof(*act));
 	}
 
 	return NULL;
