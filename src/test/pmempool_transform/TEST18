@@ -48,6 +48,9 @@ require_fs_type any
 require_dax_device_alignments $SIZE_4KB $SIZE_4KB
 require_max_devdax_size 0 $PMEMOBJ_MAX_ALLOC_SIZE
 
+# the test takes too long under pmemcheck
+configure_valgrind pmemcheck force-disable
+
 setup
 
 # test requires at least (size of device DAX #0 + 1G) of free space in $DIR
