@@ -71,9 +71,10 @@ typedef struct pmemobjpool PMEMobjpool;
 /*
  * allocation functions flags
  */
-#define POBJ_FLAG_ZERO		(((uint64_t)1) << 0)
-#define POBJ_FLAG_NO_FLUSH	(((uint64_t)1) << 1)
-#define POBJ_FLAG_NO_SNAPSHOT	(((uint64_t)1) << 2)
+#define POBJ_FLAG_ZERO			(((uint64_t)1) << 0)
+#define POBJ_FLAG_NO_FLUSH		(((uint64_t)1) << 1)
+#define POBJ_FLAG_NO_SNAPSHOT		(((uint64_t)1) << 2)
+#define POBJ_FLAG_ASSUME_INITIALIZED	(((uint64_t)1) << 3)
 
 #define POBJ_CLASS_ID(id)	(((uint64_t)(id)) << 48)
 #define POBJ_ARENA_ID(id)	(((uint64_t)(id)) << 32)

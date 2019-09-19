@@ -65,7 +65,7 @@ struct object {
 #define TEST_VALUE_2	2
 
 /*
- * do_tx_alloc -- do tx allocation with specified type number
+ * do_tx_zalloc -- do tx allocation with specified type number
  */
 static PMEMoid
 do_tx_zalloc(PMEMobjpool *pop, unsigned type_num)
@@ -74,6 +74,22 @@ do_tx_zalloc(PMEMobjpool *pop, unsigned type_num)
 
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_zalloc(sizeof(struct object), type_num);
+	} TX_END
+
+	return ret;
+}
+
+/*
+ * do_tx_alloc -- do tx allocation and initialize first num bytes
+ */
+static PMEMoid
+do_tx_alloc(PMEMobjpool *pop, uint64_t type_num, uint64_t init_num)
+{
+	PMEMoid ret = OID_NULL;
+
+	TX_BEGIN(pop) {
+		ret = pmemobj_tx_alloc(sizeof(struct object), type_num);
+		pmemobj_memset(pop, pmemobj_direct(ret), 0, init_num, 0);
 	} TX_END
 
 	return ret;
@@ -484,6 +500,154 @@ do_tx_xadd_range_no_snapshot_abort(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_xadd_range_no_uninit_check -- call xdd_range_direct for
+ * initialized memory with POBJ_XADD_ASSUME_INITIALIZED flag set and commit the
+ * tx
+ */
+static void
+do_tx_xadd_range_no_uninit_check_commit(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
+
+	TX_BEGIN(pop) {
+		char *ptr = (char *)pmemobj_direct(obj.oid);
+		ret = pmemobj_tx_xadd_range_direct(ptr + VALUE_OFF, VALUE_SIZE,
+				POBJ_XADD_ASSUME_INITIALIZED);
+		UT_ASSERTeq(ret, 0);
+		D_RW(obj)->value = TEST_VALUE_1;
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+}
+
+/*
+ * do_tx_xadd_range_no_uninit_check -- call xadd_range_direct for
+ * uninitialized memory with POBJ_XADD_ASSUME_INITIALIZED flag set and commit
+ * the tx
+ */
+static void
+do_tx_xadd_range_no_uninit_check_commit_uninit(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_OBJ, 0));
+
+	TX_BEGIN(pop) {
+		char *ptr = (char *)pmemobj_direct(obj.oid);
+		ret = pmemobj_tx_xadd_range_direct(ptr + VALUE_OFF, VALUE_SIZE,
+				POBJ_XADD_ASSUME_INITIALIZED);
+		UT_ASSERTeq(ret, 0);
+
+		ret = pmemobj_tx_xadd_range_direct(ptr + DATA_OFF, DATA_SIZE,
+				POBJ_XADD_ASSUME_INITIALIZED);
+		UT_ASSERTeq(ret, 0);
+
+		D_RW(obj)->value = TEST_VALUE_1;
+		D_RW(obj)->data[256] = TEST_VALUE_2;
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERTeq(D_RO(obj)->data[256], TEST_VALUE_2);
+}
+
+/*
+ * do_tx_xadd_range_no_uninit_check -- call xadd_range_direct for
+ * partially uninitialized memory with POBJ_XADD_ASSUME_INITIALIZED flag set
+ * only for uninitialized part and commit the tx
+ */
+static void
+do_tx_xadd_range_no_uninit_check_commit_part_uninit(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_OBJ, VALUE_SIZE));
+
+	TX_BEGIN(pop) {
+		char *ptr = (char *)pmemobj_direct(obj.oid);
+		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF, VALUE_SIZE);
+		UT_ASSERTeq(ret, 0);
+
+		ret = pmemobj_tx_xadd_range_direct(ptr + DATA_OFF, DATA_SIZE,
+				POBJ_XADD_ASSUME_INITIALIZED);
+		UT_ASSERTeq(ret, 0);
+
+		D_RW(obj)->value = TEST_VALUE_1;
+		D_RW(obj)->data[256] = TEST_VALUE_2;
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERTeq(D_RO(obj)->data[256], TEST_VALUE_2);
+}
+
+/*
+ * do_tx_add_range_no_uninit_check -- call add_range_direct for
+ * partially uninitialized memory.
+ */
+static void
+do_tx_add_range_no_uninit_check_commit_no_flag(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_OBJ, VALUE_SIZE));
+
+	TX_BEGIN(pop) {
+		char *ptr = (char *)pmemobj_direct(obj.oid);
+		ret = pmemobj_tx_add_range_direct(ptr + VALUE_OFF, VALUE_SIZE);
+		UT_ASSERTeq(ret, 0);
+
+		ret = pmemobj_tx_add_range_direct(ptr + DATA_OFF, DATA_SIZE);
+		UT_ASSERTeq(ret, 0);
+
+		D_RW(obj)->value = TEST_VALUE_1;
+		D_RW(obj)->data[256] = TEST_VALUE_2;
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(D_RO(obj)->value, TEST_VALUE_1);
+	UT_ASSERTeq(D_RO(obj)->data[256], TEST_VALUE_2);
+}
+
+
+/*
+ * do_tx_xadd_range_no_uninit_check_abort -- call pmemobj_tx_range with
+ * POBJ_XADD_ASSUME_INITIALIZED flag, modify the value inside aborted
+ * transaction
+ */
+static void
+do_tx_xadd_range_no_uninit_check_abort(PMEMobjpool *pop)
+{
+	int ret;
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, do_tx_alloc(pop, TYPE_OBJ, 0));
+
+	TX_BEGIN(pop) {
+		char *ptr = (char *)pmemobj_direct(obj.oid);
+		ret = pmemobj_tx_xadd_range_direct(ptr + VALUE_OFF, VALUE_SIZE,
+				POBJ_XADD_ASSUME_INITIALIZED);
+		UT_ASSERTeq(ret, 0);
+
+		ret = pmemobj_tx_xadd_range_direct(ptr + DATA_OFF, DATA_SIZE,
+				POBJ_XADD_ASSUME_INITIALIZED);
+		UT_ASSERTeq(ret, 0);
+
+		D_RW(obj)->value = TEST_VALUE_1;
+		D_RW(obj)->data[256] = TEST_VALUE_2;
+		pmemobj_tx_abort(-1);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+}
+
+/*
  * do_tx_commit_and_abort -- use range cache, commit and then abort to make
  *	sure that it won't affect previously modified data.
  */
@@ -709,6 +873,16 @@ main(int argc, char *argv[])
 	do_tx_xadd_range_no_snapshot_commit(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_xadd_range_no_snapshot_abort(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_xadd_range_no_uninit_check_commit(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_xadd_range_no_uninit_check_commit_uninit(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_xadd_range_no_uninit_check_commit_part_uninit(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_xadd_range_no_uninit_check_abort(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_add_range_no_uninit_check_commit_no_flag(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_xadd_range_no_flush_commit(pop);
 	pmemobj_close(pop);

@@ -107,6 +107,10 @@ when application deals with flushing or uses pmemobj_memcpy_persist)
 changes made within it during the transaction will not be rolled backed after
 abort
 
++ **POBJ_XADD_ASSUME_INITIALIZED** - added range is assumed to be initialized.
+If this flag is not specified, passing uninitialized memory will result in an
+error when run under Valgrind memcheck.
+
 **pmemobj_tx_add_range_direct**() behaves the same as
 **pmemobj_tx_add_range**() with the exception that it operates on virtual
 memory addresses and not persistent memory objects. It takes a "snapshot" of

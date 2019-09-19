@@ -1072,7 +1072,8 @@ pmemobj_tx_add_snapshot(struct tx *tx, struct tx_range_def *snapshot)
 	if (snapshot->flags & POBJ_XADD_NO_SNAPSHOT)
 		return 0;
 
-	vg_verify_initialized(tx->pop, snapshot);
+	if (!(snapshot->flags & POBJ_XADD_ASSUME_INITIALIZED))
+		vg_verify_initialized(tx->pop, snapshot);
 
 	/*
 	 * If we are creating the first snapshot, setup a redo log action to
