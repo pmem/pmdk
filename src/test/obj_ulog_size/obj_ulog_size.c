@@ -53,9 +53,7 @@
 #define LAYOUT_NAME "obj_ulog_size"
 
 #define MIN_ALLOC 64
-#define MB (1024 * 1024)
-#define MAX_OBJECTS (16 * MB / MIN_ALLOC)
-#define DIVIDER 2
+#define MAX_ALLOC (1024 * 1024)
 
 /*
  * REDO_OVERFLOW -- size for trigger out of memory
@@ -64,41 +62,52 @@
 #define REDO_OVERFLOW ((size_t)((LANE_REDO_EXTERNAL_SIZE\
 		/ TX_INTENT_LOG_ENTRY_OVERHEAD) + 1))
 
-static int nobj;
-
 /*
  * free_pool -- frees the pool from all allocated objects
+ * and releases oids dynamic array
  */
 static void
-free_pool(PMEMoid *oid)
+free_pool(PMEMoid *oids, size_t noids)
 {
-	for (int i = 0; i < nobj; i++) {
-		pmemobj_free(&oid[i]);
-		UT_ASSERT(OID_IS_NULL(oid[i]));
+	for (int i = 0; i < noids; i++) {
+		pmemobj_free(&oids[i]);
+		UT_ASSERT(OID_IS_NULL(oids[i]));
 	}
+
+	FREE(oids);
 }
 
 /*
- * fill_pool -- fills the pool with maximum amount of objects.
- *		It tries to fill the pool with object with size of MB.
- *		When it fails, it divides size of the object by DIVIDER,
- *		and tries to fill the pool with object with new smaller size.
+ * fill_pool -- fills provided pmemobj pool with as many allocations
+ * as possible. Returns array of PMEMoids allocated from the
+ * provided pool. The number of valid allocation stored in the
+ * returned array is stored in the noids output argument.
  */
-static void
-fill_pool(PMEMobjpool *pop, PMEMoid *oid)
+static PMEMoid *
+fill_pool(PMEMobjpool *pop, size_t *noids)
 {
-	nobj = 0;
+	size_t oids_size = 2048; /* let's start with something big enough */
+	PMEMoid *oids = (PMEMoid *)MALLOC(oids_size * sizeof(PMEMoid));
+
+	*noids = 0;
 	int ret;
 	/* alloc as much space as possible */
-	for (size_t size = MB; size >= MIN_ALLOC; size /= DIVIDER) {
+	for (size_t size = MAX_ALLOC; size >= MIN_ALLOC; size /= 2) {
 		ret = 0;
-		while (ret == 0 && nobj < MAX_OBJECTS) {
-			ret = pmemobj_alloc(pop, &oid[nobj], size,
+
+		while (ret == 0) {
+			ret = pmemobj_alloc(pop, &oids[*noids], size,
 				0, NULL, NULL);
 			if (!ret)
-				nobj++;
+				(*noids)++;
+			if (*noids == oids_size) {
+				oids_size *= 2;
+				oids = (PMEMoid *)REALLOC(oids, oids_size
+					* sizeof(PMEMoid));
+			}
 		}
 	}
+	return oids;
 }
 
 /*
@@ -109,17 +118,17 @@ static void
 do_tx_max_alloc_tx_publish_abort(PMEMobjpool *pop)
 {
 	UT_OUT("do_tx_max_alloc_tx_publish_abort");
-	PMEMoid oid[MAX_OBJECTS];
-	PMEMoid oid2[REDO_OVERFLOW];
+	PMEMoid *allocated = NULL;
+	PMEMoid reservations[REDO_OVERFLOW];
+	size_t nallocated = 0;
 	struct pobj_action act[REDO_OVERFLOW];
 
 	for (int i = 0; i < REDO_OVERFLOW; i++) {
-		/* size is 64 - it can be any size */
-		oid2[i] = pmemobj_reserve(pop, &act[i], 64, 0);
-		UT_ASSERT(!OID_IS_NULL(oid2[i]));
+		reservations[i] = pmemobj_reserve(pop, &act[i], MIN_ALLOC, 0);
+		UT_ASSERT(!OID_IS_NULL(reservations[i]));
 	}
 
-	fill_pool(pop, oid);
+	allocated = fill_pool(pop, &nallocated);
 
 	/* it should abort - cannot extend redo log */
 	TX_BEGIN(pop) {
@@ -130,7 +139,7 @@ do_tx_max_alloc_tx_publish_abort(PMEMobjpool *pop)
 		UT_FATAL("Can publish");
 	} TX_END
 
-	free_pool(oid);
+	free_pool(allocated, nallocated);
 	pmemobj_cancel(pop, act, REDO_OVERFLOW);
 }
 
