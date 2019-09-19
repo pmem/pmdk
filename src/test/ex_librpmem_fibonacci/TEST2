@@ -69,7 +69,7 @@ rm_files_from_node 1 ${NODE_DIR[1]}/../$OUT_LOG_FILE
 # happy day scenario
 for i in `seq 1 100`; do
 	expect_normal_exit run_on_node 1 "\"./fibonacci \
-		${NODE_ADDR[0]} $POOLSET $node_1_dax &>> $OUT_LOG_FILE\""
+		${NODE_ADDR[0]} $POOLSET $node_1_dax >> $OUT_LOG_FILE 2>&1\""
 done
 
 TEMP=temp.log

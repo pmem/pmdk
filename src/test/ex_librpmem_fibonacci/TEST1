@@ -74,7 +74,7 @@ fibonacci_next()
 {
 	expect_normal_exit run_on_node 1 "\"./fibonacci \
 		${NODE_ADDR[0]} $POOLSET $node_1_dax \
-		&>> $OUT_LOG_FILE\""
+		>> $OUT_LOG_FILE 2>&1\""
 }
 
 corrupt_local()
