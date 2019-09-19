@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
 PACKAGE_NAME="pmdk"
 
 # Name and email of package maintainer
-PACKAGE_MAINTAINER="Krzysztof Czurylo <krzysztof.czurylo@intel.com>"
+PACKAGE_MAINTAINER="Marcin Slusarz <marcin.slusarz@intel.com>"
 
 # Brief description of the package
 PACKAGE_SUMMARY="Persistent Memory Development Kit"
