@@ -47,8 +47,7 @@ usage()
 	[ "$1" ] && echo Error: $1
 	cat >&2 <<EOF
 Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
-	[ -e build-experimental ] [ -c run-check ]
-	[ -n with-ndctl ] [ -f testconfig-file ]
+	[ -e build-experimental ] [ -c run-check ] [ -f testconfig-file ]
 
 -h			print this help message
 -t version-tag		source version tag
@@ -57,7 +56,6 @@ Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 -o output-dir		outut directory
 -e build-experimental	build experimental packages
 -c run-check		run package check
--n with-ndctl		build with libndctl
 -f testconfig-file	custom testconfig.sh
 EOF
 	exit 1
@@ -266,7 +264,7 @@ Package: $PACKAGE_NAME-dbg
 Section: debug
 Priority: optional
 Architecture: any
-Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), libpmem (=\${binary:Version}), libpmemblk (=\${binary:Version}), libpmemlog (=\${binary:Version}), libpmemobj (=\${binary:Version}), libpmempool (=\${binary:Version}), \${misc:Depends}
+Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), \${misc:Depends}
 Description: Debug symbols for PMDK libraries
  Debug symbols for all PMDK libraries.
 
@@ -282,10 +280,10 @@ override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
 override_dh_auto_build:
-	dh_auto_build -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc bashcompdir=/usr/share/bash-completion/completions NORPATH=1 ${pass_ndctl_enable} SRCVERSION=$SRCVERSION
+	dh_auto_build -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR SRCVERSION=$SRCVERSION
 
 override_dh_auto_install:
-	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc bashcompdir=/usr/share/bash-completion/completions NORPATH=1 ${pass_ndctl_enable} SRCVERSION=$SRCVERSION
+	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR SRCVERSION=$SRCVERSION
 	find -path './debian/*usr/share/man/man*/*.gz' -exec gunzip {} \;
 
 override_dh_install:
@@ -400,7 +398,6 @@ debuild --preserve-envvar=EXTRA_CFLAGS_RELEASE \
 	--preserve-envvar=EXTRA_CFLAGS \
 	--preserve-envvar=EXTRA_CXXFLAGS \
 	--preserve-envvar=EXTRA_LDFLAGS \
-	--preserve-envvar=NDCTL_ENABLE \
 	-us -uc
 
 cd $OLD_DIR
