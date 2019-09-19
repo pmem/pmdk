@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,18 +29,23 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
-# Name of package
-PACKAGE_NAME="pmdk"
+#
+# src/test/obj_ulog_size/TEST1 -- unit test for pmemobj_tx_publish abort
+#
 
-# Name and email of package maintainer
-PACKAGE_MAINTAINER="Marcin Slusarz <marcin.slusarz@intel.com>"
+. ../unittest/unittest.sh
 
-# Brief description of the package
-PACKAGE_SUMMARY="Persistent Memory Development Kit"
+require_test_type medium
+configure_valgrind memcheck force-enable
 
-# Full description of the package
-PACKAGE_DESCRIPTION="The collection of libraries and utilities for Persistent Memory Programming"
+setup
 
-# Website
-PACKAGE_URL="http://pmem.io/pmdk"
+create_holey_file 16M $DIR/testfile
+
+expect_normal_exit ./obj_ulog_size$EXESUFFIX $DIR/testfile
+
+check
+
+pass

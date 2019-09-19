@@ -134,8 +134,9 @@ sparse: $(SPARSE_TARGETS:=-sparse)
 custom_build = $(DEBUG)$(OBJDIR)
 
 libvmmalloc libvmem: jemalloc
-tools: libpmem libpmemblk libpmemlog libpmemobj
+tools: libpmem libpmemblk libpmemlog libpmemobj libpmempool
 libpmemblk libpmemlog libpmemobj: libpmem
+libpmempool: libpmemblk
 benchmarks test tools: common
 
 pkg-cfg-common:
