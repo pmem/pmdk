@@ -24,11 +24,17 @@
 ==$(*)== 
 ==$(*)== 
 ==$(*)== HEAP SUMMARY:
-==$(*)==     in use at exit: 0 bytes in 0 blocks
+==$(*)==     in use at exit: $(*) bytes in $(*) blocks
 ==$(*)==   total heap usage: $(*) allocs, $(*) frees, $(*) bytes allocated
 ==$(*)== 
-==$(*)== All heap blocks were freed -- no leaks are possible
+$(OPT)==$(*)== All heap blocks were freed -- no leaks are possible
+$(OPX)==$(*)== LEAK SUMMARY:
+$(OPT)==$(*)==    definitely lost: 0 bytes in 0 blocks
+$(OPT)==$(*)==    indirectly lost: 0 bytes in 0 blocks
+$(OPT)==$(*)==      possibly lost: 0 bytes in 0 blocks
+$(OPT)==$(*)==    still reachable: 0 bytes in 0 blocks
+$(OPT)==$(*)==         suppressed: $(*) bytes in $(*) blocks
 ==$(*)== 
 ==$(*)== Use --track-origins=yes to see where uninitialised values come from
 $(OPT)==$(*)== For lists of detected and suppressed errors, rerun with: -s
-==$(*)== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+==$(*)== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: $(*) from $(*))
