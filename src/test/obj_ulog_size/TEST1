@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,67 +30,21 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# pmempool_sync/TEST30 -- test for sync command with badblocks
-#                         - bad blocks in the regular file
-#                           blocks: offset: 1000 length: 1
+# src/test/obj_ulog_size/TEST1 -- unit test for pmemobj_tx_publish abort
 #
 
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type non-pmem
-require_build_type debug nondebug
-
-require_badblock_tests_enabled
-require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
+configure_valgrind memcheck force-enable
 
 setup
 
-. ../common_badblock.sh
+create_holey_file 16M $DIR/testfile
 
-MOUNT_DIR="$DIR/mnt-pmem"
-badblock_test_init block_device $MOUNT_DIR
-
-LOG=out${UNITTEST_NUM}.log
-rm -f $LOG && touch $LOG
-
-POOLSET=$DIR/testset1
-create_poolset $POOLSET \
-	8M:$DIR/testfile0:z \
-	8M:$MOUNT_DIR/testfile1:z \
-	8M:$DIR/testfile2:z \
-	R \
-	24M:$DIR/testfile3:z
-
-expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
-expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
-
-expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
-
-turn_on_checking_bad_blocks $POOLSET
-
-# inject bad block:
-FIRST_SECTOR=$(expect_normal_exit $EXTENTS $MOUNT_DIR/testfile1 -l 1000)
-ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1
-
-expect_bad_blocks
-
-expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
-
-expect_bad_blocks
-
-expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null"
-
-expect_bad_blocks
-
-expect_normal_exit "$PMEMPOOL$EXESUFFIX sync -b -v $POOLSET >> $LOG"
-expect_normal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"
-expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
-
-expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
-
-badblock_test_fini $MOUNT_DIR
+expect_normal_exit ./obj_ulog_size$EXESUFFIX $DIR/testfile
 
 check
 

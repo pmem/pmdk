@@ -42,24 +42,15 @@ require_test_type medium
 require_fs_type non-pmem
 require_build_type debug nondebug
 
-require_nfit_tests_enabled
-require_sudo_allowed
-require_kernel_module nfit_test
+require_badblock_tests_enabled
 require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
-require_command ndctl
 
 setup
 
 . ../common_badblock.sh
 
-ndctl_nfit_test_init
-
-DEVICE=$(ndctl_nfit_test_get_block_device)
-NAMESPACE=$(ndctl_nfit_test_get_namespace_of_device $DEVICE)
-FULLDEV="/dev/$DEVICE"
 MOUNT_DIR="$DIR/mnt-pmem"
-
-ndctl_nfit_test_mount_pmem $FULLDEV $MOUNT_DIR
+badblock_test_init block_device $MOUNT_DIR
 
 LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
@@ -99,7 +90,7 @@ expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
-ndctl_nfit_test_fini $MOUNT_DIR
+badblock_test_fini $MOUNT_DIR
 
 check
 

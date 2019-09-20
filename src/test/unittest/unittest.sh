@@ -2088,12 +2088,10 @@ function run_command()
 	fi
 }
 
-
 #
 # validate_node_number -- validate a node number
 #
 function validate_node_number() {
-
 	[ $1 -gt $NODES_MAX ] \
 		&& fatal "error: node number ($1) greater than maximum allowed node number ($NODES_MAX)"
 	return 0
@@ -3597,11 +3595,30 @@ function require_max_devdax_size() {
 }
 
 #
-# require_nfit_tests_enabled - check if tests using the nfit_test kernel module are not enabled
+# require_badblock_tests_enabled - check if tests for bad block support are not enabled
 #
-function require_nfit_tests_enabled() {
-	if [ "$ENABLE_NFIT_TESTS" != "y" ]; then
-		msg "$UNITTEST_NAME: SKIP: tests using the nfit_test kernel module are not enabled in testconfig.sh (ENABLE_NFIT_TESTS)"
+function require_badblock_tests_enabled() {
+	require_sudo_allowed
+	require_command ndctl
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		require_kernel_module nfit_test
+	else
+		msg "$UNITTEST_NAME: SKIP: bad block tests are not enabled in testconfig.sh"
+		exit 0
+	fi
+}
+
+#
+# require_badblock_tests_enabled_node - check if tests for bad block support are not enabled
+# on given remote node
+#
+function require_badblock_tests_enabled_node() {
+	require_sudo_allowed_node $1
+	require_command_node $1 ndctl
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		require_kernel_module_node $1 nfit_test
+	else
+		msg "$UNITTEST_NAME: SKIP: bad block tests are not enabled in testconfig.sh"
 		exit 0
 	fi
 	require_sudo_allowed

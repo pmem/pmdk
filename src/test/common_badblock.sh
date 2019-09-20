@@ -59,27 +59,147 @@ COMMAND_NDCTL_NFIT_TEST_FINI="\
 #
 # badblock_test_init -- initialize badblock test based on underlying hardware
 #
+# Input arguments:
+# 1) device type (dax_device|block_device)
+# 2) mount directory (in case of block device type)
+#
 function badblock_test_init() {
 	case "$1"
 	in
 	dax_device|block_device)
 		;;
 	*)
-		usage "bad test-type: $1"
+		usage "bad device type: $1"
 		;;
 	esac
 
-	ndctl_nfit_test_init
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		ndctl_nfit_test_init
+	else
+		echo "Invalid BADBLOCK_TEST_TYPE value: "$BADBLOCK_TEST_TYPE"" &>> $PREP_LOG_FILE
+		exit 1
+	fi
 
 	if [ "$1" == "dax_device" ]; then
-		DEVICE=$(ndctl_nfit_test_get_dax_device)
-		# XXX needed by libndctl (it should be removed when it is not needed)
-		ndctl_nfit_test_grant_access $DEVICE
+		DEVICE=$(badblock_test_get_dax_device)
 	elif [ "$1" == "block_device" ]; then
+		DEVICE=$(badblock_test_get_block_device)
+		prepare_mount_dir $DEVICE $2
+	fi
+	NAMESPACE=$(ndctl_get_namespace_of_device $DEVICE)
+	FULLDEV="/dev/$DEVICE"
+}
+
+#
+# badblock_test_init_node -- initialize badblock test based on underlying
+# hardware on a remote node
+#
+# Input arguments:
+# 1) remote node number
+# 2) device type (dax_device|block_device)
+# 3) mount directory (in case of block device type)
+#
+function badblock_test_init_node() {
+	case "$2"
+	in
+	dax_device|block_device)
+		;;
+	*)
+		usage "bad device type: $2"
+		;;
+	esac
+
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		ndctl_nfit_test_init_node $1
+	else
+		echo "Invalid BADBLOCK_TEST_TYPE value: "$BADBLOCK_TEST_TYPE"" &>> $PREP_LOG_FILE
+		exit 1
+	fi
+
+	if [ "$2" == "dax_device" ]; then
+		DEVICE=$(badblock_test_get_dax_device_node $1)
+	elif [ "$2" == "block_device" ]; then
+		DEVICE=$(badblock_test_get_block_device_node $1)
+		prepare_mount_dir_node $1 $DEVICE $3
+	fi
+	NAMESPACE=$(ndctl_get_namespace_of_device_node $1 $DEVICE)
+	FULLDEV="/dev/$DEVICE"
+}
+
+#
+# badblock_test_get_dax_device -- get name of the dax device
+#
+function badblock_test_get_dax_device() {
+	DEVICE=""
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		DEVICE=$(ndctl_nfit_test_get_dax_device)
+	fi
+	echo $DEVICE
+}
+
+#
+# badblock_test_get_dax_device_node -- get name of the dax device on a given
+#                                      remote node
+#
+function badblock_test_get_dax_device_node() {
+	DEVICE=""
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		DEVICE=$(ndctl_nfit_test_get_dax_device_node $1)
+	fi
+	echo $DEVICE
+}
+
+#
+# badblock_test_get_block_device -- get name of the block device
+#
+function badblock_test_get_block_device() {
+	DEVICE=""
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		DEVICE=$(ndctl_nfit_test_get_block_device)
 	fi
-	NAMESPACE=$(ndctl_nfit_test_get_namespace_of_device $DEVICE)
-	FULLDEV="/dev/$DEVICE"
+	echo "$DEVICE"
+}
+
+#
+# badblock_test_get_block_device_node -- get name of the block device on a given
+#                                        remote node
+#
+function badblock_test_get_block_device_node() {
+	DEVICE=""
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		DEVICE=$(ndctl_nfit_test_get_block_device_node $1)
+	fi
+	echo "$DEVICE"
+}
+
+#
+# prepare_mount_dir -- prepare the mount directory for provided device
+#
+# Input arguments:
+# 1) device name
+# 2) mount directory
+#
+function prepare_mount_dir() {
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		local FULLDEV="/dev/$1"
+		ndctl_nfit_test_mount_pmem $FULLDEV $2
+	fi
+}
+
+#
+# prepare_mount_dir_node -- prepare the mount directory for provided device
+#                           on a given remote node
+#
+# Input arguments:
+# 1) remote node number
+# 2) device name
+# 3) mount directory
+#
+function prepare_mount_dir_node() {
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		local FULLDEV="/dev/$2"
+		ndctl_nfit_test_mount_pmem_node $1 $FULLDEV $3
+    fi
 }
 
 #
@@ -97,7 +217,8 @@ function ndctl_nfit_test_init() {
 }
 
 #
-# ndctl_nfit_test_init_node -- reset all regions and reload the nfit_test module on a remote node
+# ndctl_nfit_test_init_node -- reset all regions and reload the nfit_test
+#                              module on a remote node
 #
 function ndctl_nfit_test_init_node() {
 	run_on_node $1 "sudo ndctl disable-region all &>>$PREP_LOG_FILE"
@@ -112,16 +233,37 @@ function ndctl_nfit_test_init_node() {
 }
 
 #
-# ndctl_nfit_test_fini -- disable all regions, remove the nfit_test module
-#                         and (optionally) umount the pmem block device
+# badblock_test_fini -- clean badblock test based on underlying hardware
 #
-# Input argument:
-# 1) pmem mount directory to be umounted
+# Input arguments:
+# 1) pmem mount directory to be umounted (optional)
+#
+function badblock_test_fini() {
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		ndctl_nfit_test_fini $1
+	fi
+}
+
+#
+# badblock_test_fini_node() -- clean badblock test based on underlying hardware
+#
+# Input arguments:
+# 1) node number
+# 2) pmem mount directory to be umounted (optional)
+#
+function badblock_test_fini_node() {
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+		ndctl_nfit_test_fini_node $1 $2
+	fi
+}
+
+#
+# ndctl_nfit_test_fini -- clean badblock test ran on nfit_test based on underlying hardware
 #
 function ndctl_nfit_test_fini() {
-	MOUNT_DIR=$1
-	[ $MOUNT_DIR ] && sudo umount $MOUNT_DIR &>> $PREP_LOG_FILE
-	expect_normal_exit $COMMAND_NDCTL_NFIT_TEST_FINI
+       MOUNT_DIR=$1
+       [ $MOUNT_DIR ] && sudo umount $MOUNT_DIR &>> $PREP_LOG_FILE
+       expect_normal_exit $COMMAND_NDCTL_NFIT_TEST_FINI
 }
 
 #
@@ -228,6 +370,16 @@ function ndctl_nfit_test_get_dax_device() {
 }
 
 #
+# ndctl_nfit_test_get_dax_device_node -- create a namespace and get name of
+#                                        the pmem dax device of the nfit_test
+#                                        module on a remote node
+#
+function ndctl_nfit_test_get_dax_device_node() {
+	DEVICE=$(ndctl_nfit_test_get_device_node $1 devdax)
+	echo $DEVICE
+}
+
+#
 # ndctl_nfit_test_get_block_device -- create a namespace and get name of the pmem block device
 #                                     of the nfit_test module
 #
@@ -237,8 +389,9 @@ function ndctl_nfit_test_get_block_device() {
 }
 
 #
-# ndctl_nfit_test_get_block_device_node -- create a namespace and get name of the pmem block device
-#                                          of the nfit_test module on a remote node
+# ndctl_nfit_test_get_block_device_node -- create a namespace and get name of
+#                                          the pmem block device of the nfit_test
+#                                          module on a remote node
 #
 function ndctl_nfit_test_get_block_device_node() {
 	DEVICE=$(ndctl_nfit_test_get_device_node $1 fsdax)
@@ -304,16 +457,17 @@ function ndctl_requires_extra_access()
 # Input argument:
 # 1) a name of pmem device
 #
-function ndctl_nfit_test_get_namespace_of_device() {
-	DEVICE=$1
+function ndctl_get_namespace_of_device() {
+	local DEVICE=$1
+
 	NAMESPACE=$(ndctl list | grep -e "$DEVICE" -e namespace | grep -B1 -e "$DEVICE" | head -n1 | cut -d'"' -f4)
 	MODE=$(ndctl list -n "$NAMESPACE" | grep mode | cut -d'"' -f4)
 
-	if ndctl_requires_extra_access $MODE ; then
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ] && ndctl_requires_extra_access $MODE; then
 		ndctl_nfit_test_grant_access $DEVICE
 	fi
 
-	echo $NAMESPACE
+	echo "$NAMESPACE"
 }
 
 #
@@ -323,12 +477,12 @@ function ndctl_nfit_test_get_namespace_of_device() {
 # 1) node number
 # 2) name of pmem device
 #
-function ndctl_nfit_test_get_namespace_of_device_node() {
-	DEVICE=$2
+function ndctl_get_namespace_of_device_node() {
+	local DEVICE=$2
 	NAMESPACE=$(expect_normal_exit run_on_node $1 ndctl list | grep -e "$DEVICE" -e namespace | grep -B1 -e "$DEVICE" | head -n1 | cut -d'"' -f4)
 	MODE=$(expect_normal_exit run_on_node $1 ndctl list -n "$NAMESPACE" | grep mode | cut -d'"' -f4)
 
-	if ndctl_requires_extra_access $MODE ; then
+	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ] && ndctl_requires_extra_access $MODE; then
 		ndctl_nfit_test_grant_access_node $1 $DEVICE
 	fi
 

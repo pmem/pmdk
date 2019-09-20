@@ -139,9 +139,14 @@ TM=1
 #ENABLE_SUDO_TESTS=y
 
 #
-# The 'nfit' tests test the code handling bad blocks.
-# They use the 'sudo' command many times and insert the 'nfit_test' kernel
-# module, so they can be considered as POTENTIALLY DANGEROUS
+# Enable and select the type of tests for code handling bad blocks.
+# Options: nfit_test, none (do not run, default)
+#
+# Running tests on emulated memory requires 'nfit_test' kernel module to be
+# present in the system: see https://github.com/pmem/ndctl#unit-tests
+#
+# The tests use 'sudo' command many times and insert the 'nfit_test'
+# kernel module, so they can be considered as POTENTIALLY DANGEROUS
 # and have to be explicitly enabled.
 # Enable them ONLY IF you are sure you know what you are doing.
 #
@@ -149,7 +154,7 @@ TM=1
 # namespace is created and then accessed for the first time. This causes several
 # of badblock-related unit tests to fail.
 #
-#ENABLE_NFIT_TESTS=y
+# BADBLOCK_TEST_TYPE=none
 
 #
 # 2) *** REMOTE CONFIGURATION ***

@@ -54,9 +54,6 @@
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link />
-    <Link>
-      <StackReserveSize>8000000</StackReserveSize>
-    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -66,9 +63,6 @@
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link />
-    <Link>
-      <StackReserveSize>8000000</StackReserveSize>
-    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\ctl.c">

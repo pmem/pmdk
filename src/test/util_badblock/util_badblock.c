@@ -55,6 +55,10 @@ do_list(const char *path)
 {
 	int ret;
 
+	struct stat st;
+	if (os_stat(path, &st) < 0)
+		UT_FATAL("!stat %s", path);
+
 	struct badblocks *bbs = badblocks_new();
 	if (bbs == NULL)
 		UT_FATAL("!badblocks_new");
@@ -73,8 +77,10 @@ do_list(const char *path)
 	unsigned b;
 	for (b = 0; b < bbs->bb_cnt; b++) {
 		UT_OUT("%llu %u",
+			/* offset is printed in 512b sectors  */
 			bbs->bbv[b].offset >> 9,
-			bbs->bbv[b].length >> 9);
+			/* length is printed in blocks */
+			bbs->bbv[b].length / (unsigned)st.st_blksize);
 	}
 
 exit_free:
