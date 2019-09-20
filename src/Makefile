@@ -40,6 +40,7 @@ TARGETS = libpmem libvmem libpmemblk libpmemlog libpmemobj libpmempool\
 ALL_TARGETS = $(TARGETS) common librpmem
 
 SCOPE_DIRS = $(TARGETS) common librpmem rpmem_common
+POSSIBLE_TARGETS = $(SCOPE_DIRS) examples benchmarks
 
 DEBUG_RELEASE_TARGETS = common libpmem libvmem libpmemblk libpmemlog libpmemobj\
 	libpmempool libvmmalloc librpmem
@@ -55,13 +56,13 @@ ifneq ($(BUILD_BENCHMARKS),n)
 	RELEASE_TARGETS += benchmarks
 endif
 
-CLEAN_NO_JE_TARGETS = $(ALL_TARGETS) rpmem_common test
-CLEAN_TARGETS = $(CLEAN_NO_JE_TARGETS) jemalloc examples benchmarks
-CLOBBER_NO_JE_TARGETS = $(ALL_TARGETS) rpmem_common test
-CLOBBER_TARGETS = $(CLOBBER_NO_JE_TARGETS) jemalloc examples benchmarks
-CSTYLE_TARGETS = $(ALL_TARGETS) test rpmem_common examples benchmarks
+CLEAN_NO_JE_TARGETS = $(POSSIBLE_TARGETS)
+CLEAN_TARGETS = $(CLEAN_NO_JE_TARGETS) jemalloc
+CLOBBER_NO_JE_TARGETS = $(POSSIBLE_TARGETS)
+CLOBBER_TARGETS = $(CLOBBER_NO_JE_TARGETS) jemalloc
+CSTYLE_TARGETS = $(POSSIBLE_TARGETS)
 INSTALL_TARGETS = $(TARGETS)
-SPARSE_TARGETS = $(ALL_TARGETS) test rpmem_common examples benchmarks
+SPARSE_TARGETS = $(POSSIBLE_TARGETS)
 
 HEADERS_DESTDIR = $(DESTDIR)$(includedir)
 HEADERS_INSTALL = include/libpmem.h include/libvmem.h\
