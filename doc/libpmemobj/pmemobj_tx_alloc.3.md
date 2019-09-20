@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.3
 ...
 
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -49,12 +49,14 @@ date: pmemobj API version 2.3
 **pmemobj_tx_xalloc**(), **pmemobj_tx_realloc**(),
 **pmemobj_tx_zrealloc**(), **pmemobj_tx_strdup**(),
 **pmemobj_tx_wcsdup**(), **pmemobj_tx_free**(),
+**pmemobj_tx_xfree**()
 
 **TX_NEW**(), **TX_ALLOC**(),
 **TX_ZNEW**(), **TX_ZALLOC**(),
 **TX_XALLOC**(), **TX_REALLOC**(),
 **TX_ZREALLOC**(), **TX_STRDUP**(),
-**TX_WCSDUP**(), **TX_FREE**()
+**TX_WCSDUP**(), **TX_FREE**(),
+**TX_XFREE**()
 - transactional object manipulation
 
 
@@ -71,6 +73,7 @@ PMEMoid pmemobj_tx_zrealloc(PMEMoid oid, size_t size, uint64_t type_num);
 PMEMoid pmemobj_tx_strdup(const char *s, uint64_t type_num);
 PMEMoid pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num);
 int pmemobj_tx_free(PMEMoid oid);
+int pmemobj_tx_xfree(PMEMoid oid, uint64_t flags);
 
 TX_NEW(TYPE)
 TX_ALLOC(TYPE, size_t size)
@@ -82,6 +85,7 @@ TX_ZREALLOC(TOID o, size_t size)
 TX_STRDUP(const char *s, uint64_t type_num)
 TX_WCSDUP(const wchar_t *s, uint64_t type_num)
 TX_FREE(TOID o)
+TX_XFREE(TOID o, uint64_t flags)
 ```
 
 
@@ -114,15 +118,18 @@ class with id equal to *class_id*
 *arena_id*. The arena must exist, otherwise, the behavior is undefined.
 If *arena_id* is equal 0, then arena assigned to the current thread will be used.
 
++ **POBJ_XALLOC_NO_ABORT** - if the function ends incorrectly, return error
+number instead of aborting the transaction.
+
 This function must be called during **TX_STAGE_WORK**.
 
 The **pmemobj_tx_realloc**() function transactionally resizes an existing
 object to the given *size* and changes its type to *type_num*. If *oid* is
-**OID_NULL**, then the call is equivalent to *pmemobj_tx_alloc(pop, size,
-type_num)*. If *size* is equal to zero and *oid* is not **OID_NULL**, then
-the call is equivalent to *pmemobj_tx_free(oid)*. If the new size is larger
-than the old size, the added memory will *not* be initialized. This function
-must be called during **TX_STAGE_WORK**.
+**OID_NULL**, then the call is equivalent to *pmemobj_tx_alloc(pop, size, type_num)*.
+If *size* is equal to zero and *oid* is not **OID_NULL**, then the call
+is equivalent to *pmemobj_tx_free(oid)*. If the new size is larger than the old size,
+the added memory will *not* be initialized. This function must be called
+during **TX_STAGE_WORK**.
 
 The **pmemobj_tx_zrealloc**() function transactionally resizes an existing
 object to the given *size* and changes its type to *type_num*. If the new
@@ -139,6 +146,15 @@ containing a duplicate of the wide character string *s* and assigns it a type
 
 The **pmemobj_tx_free**() function transactionally frees an existing object
 referenced by *oid*. This function must be called during **TX_STAGE_WORK**.
+
+The **pmemobj_tx_xfree**() function behaves exactly the same as
+**pmemobj_tx_free**() when *flags* equals zero.
+*flags* is a bitmask of the following value:
+
++ **POBJ_XFREE_NO_ABORT** - if the function ends incorrectly, return error
+number instead of aborting the transaction.
+
+This function must be called during **TX_STAGE_WORK**.
 
 The **TX_NEW**() macro transactionally allocates a new object of given *TYPE*
 and assigns it a type number read from the typed *OID*. The allocation size is
@@ -173,8 +189,9 @@ The **TX_XALLOC**() macro transactionally allocates a new object of given
 size is passed by *size* argument. The *flags* argument is a bitmask of values
 described in **pmemobj_tx_xalloc** section. If successful and called during
 **TX_STAGE_WORK** it returns a handle to the newly allocated object. Otherwise,
-the stage is changed to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and
-*errno* is set appropriately.
+when the **POBJ_XALLOC_NO_ABORT** flag is enabled the **OID_NULL** is returned,
+otherwise when the flag is disabled, the stage is changed to **TX_STAGE_ONABORT**,
+**OID_NULL** is returned, and *errno* is set appropriately.
 
 The **TX_REALLOC**() macro transactionally resizes an existing object
 referenced by a handle *o* to the given *size*. If successful and called during
@@ -207,15 +224,24 @@ successful and called during **TX_STAGE_WORK**, **TX_FREE**() returns 0.
 Otherwise, the stage is changed to **TX_STAGE_ONABORT** and an error number is
 returned.
 
+The **TX_XFREE**() macro transactionally frees the memory space represented by
+an objcet handle *o*. If *o* is **OID_NULL**, no operation is performed.
+The *flags* argument is a bitmask of values described in **pmemobj_tx_xfree**
+section. If successful and called during **TX_STAGE_WORK**, **TX_FREE**()
+returns 0. Otherwise, when the **POBJ_XFREE_NO_ABORT** flag is enabled the
+error code is returned, when the flag is disabled the stage is changed to
+**TX_STAGE_ONABORT** and an error number is returned.
+
 
 # RETURN VALUE #
 
-On success, the **pmemobj_tx_alloc**() ,**pmemobj_tx_zalloc**(),
+On success, the **pmemobj_tx_alloc**(), **pmemobj_tx_zalloc**(),
 **pmemobj_tx_xalloc**(), **pmemobj_tx_strdup**() and **pmemobj_tx_wcsdup**()
 functions return a handle to the newly allocated object. Otherwise, the stage
 is changed to **TX_STAGE_ONABORT**, **OID_NULL** is returned, and *errno* is
 set appropriately. If *size* equals 0, **OID_NULL** is returned and *errno* is
-set appropriately.
+set appropriately. If *flag* **POBJ_XALLOC_NO_ABORT** is enabled **OID_NULL**
+is returned and *errno* is set appropriately.
 
 On success, **pmemobj_tx_realloc**() and **pmemobj_tx_zrealloc**() return
 a handle to the resized object. Otherwise, the stage is changed to
@@ -223,11 +249,13 @@ a handle to the resized object. Otherwise, the stage is changed to
 appropriately. Note that the object handle value may change as a result of
 reallocation.
 
-On success, **pmemobj_tx_free**() returns 0. Otherwise, the stage is set
-to **TX_STAGE_ONABORT** and an error number is returned.
+On success, **pmemobj_tx_free**(), **pmemobj_tx_xfree**() returns 0. Otherwise,
+if *flag* **POBJ_XFREE_NO_ABORT** is enabled error number is returned,
+elseif *flag* is disabled the stage is set to **TX_STAGE_ONABORT**
+and an error number is returned.
 
 
 # SEE ALSO #
 
-**pmemobj_tx_add_range**(3), **pmemobj_tx_begin*(3),
+**pmemobj_tx_add_range**(3), **pmemobj_tx_begin**(3),
 **libpmemobj**(7) and **<http://pmem.io>**
