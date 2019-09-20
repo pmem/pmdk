@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.3
 ...
 
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -48,8 +48,8 @@ date: pmemobj API version 2.3
 
 **pmemobj_reserve**(), **pmemobj_xreserve**(), **pmemobj_defer_free**(),
 **pmemobj_set_value**(), **pmemobj_publish**(), **pmemobj_tx_publish**(),
-**pmemobj_cancel**(), **POBJ_RESERVE_NEW**(), **POBJ_RESERVE_ALLOC**(),
-**POBJ_XRESERVE_NEW**(),**POBJ_XRESERVE_ALLOC**()
+**pmemobj_tx_xpublish**(), **pmemobj_cancel**(), **POBJ_RESERVE_NEW**(),
+**POBJ_RESERVE_ALLOC**(), **POBJ_XRESERVE_NEW**(),**POBJ_XRESERVE_ALLOC**()
 - Delayed atomicity actions (EXPERIMENTAL)
 
 
@@ -68,6 +68,7 @@ void pmemobj_set_value(PMEMobjpool *pop, struct pobj_action *act,
 int pmemobj_publish(PMEMobjpool *pop, struct pobj_action *actv,
 	size_t actvcnt); (EXPERIMENTAL)
 int pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt); (EXPERIMENTAL)
+int pmemobj_tx_xpublish(struct pobj_action *actv, size_t actvcnt, uint64_t flags); (EXPERIMENTAL)
 void pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv,
 	size_t actvcnt); (EXPERIMENTAL)
 
@@ -137,6 +138,13 @@ the transaction in which it is called. Only object reservations are supported
 in transactional publish. Once done, the reserved objects will follow normal
 transactional semantics. Can only be called during *TX_STAGE_WORK*.
 
+The **pmemobj_tx_xpublish**() function behaves exactly the same as
+**pmemobj_tx_publish**() when *flags* equals zero. *flags* is a
+bitmask of the following values:
+
++ **POBJ_XPUBLISH_NO_ABORT** - if the function does not end successfully,
+do not abort the transaction.
+
 The **pmemobj_cancel** function releases any resources held by the provided
 set of actions and invalidates all actions.
 
@@ -189,12 +197,17 @@ pmemobj_publish(pop, actv, 4);
 # RETURN VALUE #
 
 On success, **pmemobj_reserve**() functions return a handle to the newly
-reserved object, otherwise an *OID_NULL* is returned.
+reserved object. Otherwise an *OID_NULL* is returned.
 
-On success, **pmemobj_tx_publish**() returns 0, otherwise,
-stage changes to *TX_STAGE_ONABORT* and *errno* is set appropriately
+On success, **pmemobj_tx_publish**() returns 0. Otherwise,
+the transaction is aborted, the stage is changed to *TX_STAGE_ONABORT*
+and *errno* is set appropriately.
 
-On success, **pmemobj_publish**() returns 0, otherwise, returns -1 and *errno*
+On success, **pmemobj_tx_xpublish**() returns 0. Otherwise, the error number
+is returned, **errno** is set and when flags do not contain **POBJ_XPUBLISH_NO_ABORT**,
+the transaction is aborted.
+
+On success, **pmemobj_publish**() returns 0. Otherwise, returns -1 and *errno*
 is set appropriately.
 
 # SEE ALSO #
