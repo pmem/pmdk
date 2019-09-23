@@ -281,6 +281,24 @@ do_tx_max_alloc_user_alloc_snap_multi(PMEMobjpool *pop)
 		pmemobj_memset(pop, range_addrs[i], 0, range_sizes[i], 0);
 	}
 
+	errno = 0;
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addrs[0], buff_sizes[0]);
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addrs[1], buff_sizes[1]);
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_SNAPSHOT, buff_addrs[2], buff_sizes[1]);
+
+		pmemobj_tx_add_range(allocated[RANGE + 0], 0, range_sizes[0]);
+		pmemobj_tx_add_range(allocated[RANGE + 1], 0, range_sizes[1]);
+		pmemobj_tx_add_range(allocated[RANGE + 2], 0, range_sizes[2]);
+	} TX_ONABORT {
+		UT_FATAL("!Cannot use multiple user appended undo log buffers");
+	} TX_ONCOMMIT {
+		UT_OUT("Can use multiple user appended undo log buffers");
+	} TX_END
+
 	/* check if all user allocated buffers are used */
 	errno = 0;
 	TX_BEGIN(pop) {
