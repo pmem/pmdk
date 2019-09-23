@@ -34,20 +34,15 @@
 
 import testframework as t
 
-
-class TEST0(t.BaseTest):
+class BASIC(t.BaseTest):
     test_type = t.Medium
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        ctx.exec('obj_basic_integration', filepath)
+
+class TEST0(BASIC):
     memcheck = t.DISABLE
 
-    def run(self, ctx):
-        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
-        ctx.exec('obj_basic_integration', filepath)
-
-
-class TEST1(t.BaseTest):
-    test_type = t.Medium
+class TEST1(BASIC):
     pmemcheck = t.ENABLE
-
-    def run(self, ctx):
-        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
-        ctx.exec('obj_basic_integration', filepath)

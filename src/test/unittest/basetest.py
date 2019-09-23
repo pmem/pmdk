@@ -87,12 +87,10 @@ class _TestCase(type):
     def __init__(cls, name, bases, dct):
         type.__init__(cls, name, bases, dct)
 
-        # only classes deriving from BaseTest are meant to be used
-        if cls.__base__.__name__ != 'BaseTest':
-            return
-
         # globally register class as test case
-        builtins.testcases.append(cls)
+        # only classes whose names start with 'TEST' are meant to be run
+        if cls.__name__.startswith('TEST'):
+            builtins.testcases.append(cls)
 
         # expand values of context classes attributes
         for attr, _ in CTX_COMPONENTS:
@@ -103,12 +101,7 @@ class _TestCase(type):
                 setattr(cls, attr, val)
 
         cls.name = cls.__name__
-        try:
-            cls.testnum = int(cls.__name__.replace('TEST', ''))
-        except ValueError as e:
-            print('Invalid test class name {}, should be "TEST[number]"'
-                  .format(cls.__name__))
-            raise e
+        cls._testnum = cls.__name__.replace('TEST', '')
 
 
 class BaseTest(metaclass=_TestCase):
@@ -140,6 +133,15 @@ class BaseTest(metaclass=_TestCase):
 
         if self.test_type not in self.config.test_type:
             self.enabled = False
+
+    @property
+    def testnum(self):
+        try:
+            return int(self._testnum)
+        except ValueError as e:
+            print('Invalid test class name {}, should be "TEST[number]"'
+                  .format(self.name))
+            raise e
 
     def _ctx_attrs_init(self):
         """
