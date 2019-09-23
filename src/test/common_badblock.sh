@@ -72,17 +72,15 @@ function badblock_test_init() {
 		usage "bad device type: $1"
 		;;
 	esac
+	DEVTYPE=$1
 
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		ndctl_nfit_test_init
-	else
-		echo "Invalid BADBLOCK_TEST_TYPE value: "$BADBLOCK_TEST_TYPE"" &>> $PREP_LOG_FILE
-		exit 1
 	fi
 
-	if [ "$1" == "dax_device" ]; then
+	if [ "$DEVTYPE" == "dax_device" ]; then
 		DEVICE=$(badblock_test_get_dax_device)
-	elif [ "$1" == "block_device" ]; then
+	elif [ "$DEVTYPE" == "block_device" ]; then
 		DEVICE=$(badblock_test_get_block_device)
 		prepare_mount_dir $DEVICE $2
 	fi
@@ -97,7 +95,8 @@ function badblock_test_init() {
 # Input arguments:
 # 1) remote node number
 # 2) device type (dax_device|block_device)
-# 3) mount directory (in case of block device type)
+# 3) for block device: mount directory
+#    for dax device on real pmem: dax device index on a given node
 #
 function badblock_test_init_node() {
 	case "$2"
@@ -108,17 +107,15 @@ function badblock_test_init_node() {
 		usage "bad device type: $2"
 		;;
 	esac
+	DEVTYPE=$2
 
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		ndctl_nfit_test_init_node $1
-	else
-		echo "Invalid BADBLOCK_TEST_TYPE value: "$BADBLOCK_TEST_TYPE"" &>> $PREP_LOG_FILE
-		exit 1
 	fi
 
-	if [ "$2" == "dax_device" ]; then
-		DEVICE=$(badblock_test_get_dax_device_node $1)
-	elif [ "$2" == "block_device" ]; then
+	if [ "$DEVTYPE" == "dax_device" ]; then
+		DEVICE=$(badblock_test_get_dax_device_node $1 $3)
+	elif [ "$DEVTYPE" == "block_device" ]; then
 		DEVICE=$(badblock_test_get_block_device_node $1)
 		prepare_mount_dir_node $1 $DEVICE $3
 	fi
@@ -133,6 +130,8 @@ function badblock_test_get_dax_device() {
 	DEVICE=""
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		DEVICE=$(ndctl_nfit_test_get_dax_device)
+	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
+		DEVICE=$(real_pmem_get_dax_device)
 	fi
 	echo $DEVICE
 }
@@ -140,11 +139,16 @@ function badblock_test_get_dax_device() {
 #
 # badblock_test_get_dax_device_node -- get name of the dax device on a given
 #                                      remote node
+# Input arguments:
+# 1) remote node number
+# 2) For real pmem: device dax index on a given node
 #
 function badblock_test_get_dax_device_node() {
 	DEVICE=""
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		DEVICE=$(ndctl_nfit_test_get_dax_device_node $1)
+	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
+		DEVICE=$(real_pmem_get_dax_device_node $1 $2)
 	fi
 	echo $DEVICE
 }
@@ -156,6 +160,8 @@ function badblock_test_get_block_device() {
 	DEVICE=""
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		DEVICE=$(ndctl_nfit_test_get_block_device)
+	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
+		DEVICE=$(real_pmem_get_block_device)
 	fi
 	echo "$DEVICE"
 }
@@ -168,6 +174,8 @@ function badblock_test_get_block_device_node() {
 	DEVICE=""
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		DEVICE=$(ndctl_nfit_test_get_block_device_node $1)
+	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
+		DEVICE=$(real_pmem_get_block_device_node $1)
 	fi
 	echo "$DEVICE"
 }
@@ -183,6 +191,10 @@ function prepare_mount_dir() {
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		local FULLDEV="/dev/$1"
 		ndctl_nfit_test_mount_pmem $FULLDEV $2
+	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
+		if [ ! -d $2 ]; then
+			mkdir -p $2
+		fi
 	fi
 }
 
@@ -199,7 +211,60 @@ function prepare_mount_dir_node() {
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		local FULLDEV="/dev/$2"
 		ndctl_nfit_test_mount_pmem_node $1 $FULLDEV $3
-    fi
+	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
+		if [ ! -d $3 ]; then
+			run_on_node $1 "mkdir -p $3"
+		fi
+	fi
+}
+
+
+#
+# real_pmem_get_dax_device -- get real pmem dax device name
+#
+function real_pmem_get_dax_device() {
+	local FULLDEV=${DEVICE_DAX_PATH[0]}
+	DEVICE=${FULLDEV##*/}
+	echo $DEVICE
+}
+
+#
+# real_pmem_get_dax_device_node -- get real pmem dax device name on a given
+#                                  remote node
+#
+# Input arguments:
+# 1) remote node number
+# 2) device dax index number
+#
+function real_pmem_get_dax_device_node() {
+	local node=$1
+	local devdax_index=$2
+
+	local device_dax_path=(${NODE_DEVICE_DAX_PATH[$node]})
+
+	local FULLDEV=${device_dax_path[$devdax_index]}
+
+	DEVICE=${FULLDEV##*/}
+	echo $DEVICE
+}
+
+#
+# real_pmem_get_block_device -- get real pmem block device name
+#
+function real_pmem_get_block_device() {
+	local FULL_DEV=$(mount | grep $PMEM_FS_DIR | cut -f 1 -d" ")
+	DEVICE=${FULL_DEV##*/}
+	echo $DEVICE
+}
+
+#
+# real_pmem_get_block_device_node -- get real pmem block device name on a given
+#                                    remote node
+#
+function real_pmem_get_block_device_node() {
+	local FULL_DEV=$(expect_normal_exit run_on_node $1 mount | grep $PMEM_FS_DIR | cut -f 1 -d" ")
+	DEVICE=${FULL_DEV##*/}
+	echo $DEVICE
 }
 
 #
@@ -246,6 +311,7 @@ function badblock_test_fini() {
 
 #
 # badblock_test_fini_node() -- clean badblock test based on underlying hardware
+#                              on a given remote node
 #
 # Input arguments:
 # 1) node number
@@ -498,20 +564,105 @@ function ndctl_get_namespace_of_device_node() {
 # 3) number of bad blocks
 #
 function ndctl_inject_error() {
-	local NAMESPACE=$1
-	local BLOCK=$2
-	local COUNT=$3
+	local namespace=$1
+	local block=$2
+	local count=$3
 
-	echo "# sudo ndctl inject-error --block=$BLOCK --count=$COUNT $NAMESPACE" >> $PREP_LOG_FILE
-	sudo ndctl inject-error --block=$BLOCK --count=$COUNT $NAMESPACE  &>> $PREP_LOG_FILE
+	echo "# sudo ndctl inject-error --block=$block --count=$count $namespace" >> $PREP_LOG_FILE
+	expect_normal_exit "sudo ndctl inject-error --block=$block --count=$count $namespace"  &>> $PREP_LOG_FILE
 
 	echo "# sudo ndctl start-scrub" >> $PREP_LOG_FILE
-	sudo ndctl start-scrub &>> $PREP_LOG_FILE
+	expect_normal_exit "sudo ndctl start-scrub" &>> $PREP_LOG_FILE
 
 	echo "# sudo ndctl wait-scrub" >> $PREP_LOG_FILE
-	sudo ndctl wait-scrub &>> $PREP_LOG_FILE
+	expect_normal_exit "sudo ndctl wait-scrub" &>> $PREP_LOG_FILE
 
 	echo "(done: ndctl wait-scrub)" >> $PREP_LOG_FILE
+}
+
+#
+# ndctl_inject_error_node -- inject error (bad blocks) to the namespace on
+#                            a given remote node
+#
+# Input arguments:
+# 1) node
+# 2) namespace
+# 3) the first bad block
+# 4) number of bad blocks
+#
+function ndctl_inject_error_node() {
+	local node=$1
+	local namespace=$2
+	local block=$3
+	local count=$4
+
+	echo "# sudo ndctl inject-error --block=$block --count=$count $namespace" >> $PREP_LOG_FILE
+	expect_normal_exit run_on_node $node "sudo ndctl inject-error --block=$block --count=$count $namespace"  &>> $PREP_LOG_FILE
+
+	echo "# sudo ndctl start-scrub" >> $PREP_LOG_FILE
+	expect_normal_exit run_on_node $node "sudo ndctl start-scrub" &>> $PREP_LOG_FILE
+
+	echo "# sudo ndctl wait-scrub" >> $PREP_LOG_FILE
+	expect_normal_exit run_on_node $node "sudo ndctl wait-scrub" &>> $PREP_LOG_FILE
+
+	echo "(done: ndctl wait-scrub)" >> $PREP_LOG_FILE
+}
+
+#
+# ndctl_uninject_error -- clear bad block error present in the namespace
+#
+# Input arguments:
+# 1) full device name (error clearing process requires writing to device)
+# 2) namespace
+# 3) the first bad block
+# 4) number of bad blocks
+#
+function ndctl_uninject_error() {
+	# explicit uninjection is not required on nfit_test since any error
+	# injections made during the tests are eventually cleaned up in _fini
+	# function by reloading the whole namespace
+	if [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
+		local fulldev=$1
+		local namespace=$2
+		local block=$3
+		local count=$4
+		expect_normal_exit "sudo ndctl inject-error --uninject --block=$block --count=$count $namespace &>/dev/null"
+		if [ "$DEVTYPE" == "block_device" ]; then
+			expect_normal_exit "sudo dd if=/dev/zero of="$fulldev" bs=512 seek="$block" count="$count" oflag=direct &>/dev/null"
+		elif [ "$DEVTYPE" == "dax_device" ]; then
+			expect_normal_exit "$DAXIO$EXESUFFIX -i /dev/zero -o "$fulldev" -s "$block" -l "$count" &>/dev/null"
+		fi
+	fi
+}
+
+#
+# ndctl_uninject_error_node -- clear bad block error present in the
+#                              namespace on a given remote node
+#
+# Input arguments:
+# 1) node
+# 2) full device name (error clearing process requires writing to device)
+# 3) namespace
+# 4) the first bad block
+# 5) number of bad blocks
+#
+function ndctl_uninject_error_node() {
+	# explicit uninjection is not required on nfit_test since any error
+	# injections made during the tests are eventually cleaned up in _fini
+	# function by reloading the whole namespace
+	if [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
+		local node=$1
+		local fulldev=$2
+		local namespace=$3
+		local block=$4
+		local count=$5
+		expect_normal_exit run_on_node $node "sudo ndctl inject-error --uninject --block=$block --count=$count $namespace &>/dev/null"
+		if [ "$DEVTYPE" == "block_device" ]; then
+			expect_normal_exit run_on_node $node "sudo dd if=/dev/zero of="$fulldev" bs=512 seek="$block" count="$count" oflag=direct &>/dev/null"
+		elif [ "$DEVTYPE" == "dax_device" ]; then
+			expect_normal_exit run_on_node $node "$DAXIO$EXESUFFIX -i /dev/zero -o "$fulldev" -s "$block" -l "$count" &>/dev/null"
+		fi
+	fi
 }
 
 #

@@ -111,17 +111,14 @@ turn_on_checking_bad_blocks_node 1 ${NODE_DIR[1]}/${POOLSET_REMOTE}
 ###############################################################################
 
 # inject bad block in the part #0
-FILE=${MOUNT_DIR}/pool.local.part.0
-FIRST_SECTOR=$(expect_normal_exit run_on_node 0 ../extents $FILE -l 1000)
-expect_normal_exit run_on_node 0 "sudo ndctl inject-error --block=$FIRST_SECTOR --count=1 $NAMESPACE &>> $PREP_LOG_FILE"
+FILE_0=${MOUNT_DIR}/pool.local.part.0
+FIRST_SECTOR_0=$(expect_normal_exit run_on_node 0 ../extents $FILE_0 -l 1000)
+ndctl_inject_error_node 0 $NAMESPACE $FIRST_SECTOR_0 1
 
 # inject bad block in the part #1
-FILE=${MOUNT_DIR}/pool.local.part.1
-FIRST_SECTOR=$(expect_normal_exit run_on_node 0 ../extents $FILE -l 1000)
-expect_normal_exit run_on_node 0 "sudo ndctl inject-error --block=$FIRST_SECTOR --count=1 $NAMESPACE &>> $PREP_LOG_FILE"
-
-expect_normal_exit run_on_node 0 "sudo ndctl start-scrub &>> $PREP_LOG_FILE"
-expect_normal_exit run_on_node 0 "sudo ndctl wait-scrub &>> $PREP_LOG_FILE"
+FILE_1=${MOUNT_DIR}/pool.local.part.1
+FIRST_SECTOR_1=$(expect_normal_exit run_on_node 0 ../extents $FILE_1 -l 1000)
+ndctl_inject_error_node 0 $NAMESPACE $FIRST_SECTOR_1 1
 
 expect_bad_blocks_node 0
 
@@ -132,6 +129,8 @@ expect_bad_blocks_node 0
 expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
 expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
 
+ndctl_uninject_error_node 0 $NAMESPACE $FIRST_SECTOR_0 1
+ndctl_uninject_error_node 0 $NAMESPACE $FIRST_SECTOR_1 1
 badblock_test_fini_node 0 $MOUNT_DIR
 
 pass

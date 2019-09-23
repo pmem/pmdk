@@ -40,9 +40,8 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type non-pmem
 
-require_badblock_tests_enabled
+require_badblock_tests_enabled dax_device
 require_linked_with_ndctl ./util_badblock$EXESUFFIX
 
 setup
@@ -63,6 +62,8 @@ expect_bad_blocks
 
 # open a pool with bad blocks
 expect_abnormal_exit ./util_badblock$EXESUFFIX $FULLDEV o
+
+ndctl_uninject_error $FULLDEV $NAMESPACE 11 1
 
 badblock_test_fini
 

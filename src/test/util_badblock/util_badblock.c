@@ -43,6 +43,7 @@
 #include "os_badblock.h"
 #include "badblock.h"
 #include "fault_injection.h"
+#include "file.h"
 
 #define MIN_POOL ((size_t)(1024 * 1024 * 8)) /* 8 MiB */
 #define MIN_PART ((size_t)(1024 * 1024 * 2)) /* 2 MiB */
@@ -72,6 +73,10 @@ do_list(const char *path)
 		goto exit_free;
 	}
 
+	int file_type = util_file_get_type(path);
+	if (file_type < 0)
+		UT_FATAL("!Cannot read type of the file");
+
 	UT_OUT("Found %u bad block(s):", bbs->bb_cnt);
 
 	unsigned b;
@@ -79,8 +84,14 @@ do_list(const char *path)
 		UT_OUT("%llu %u",
 			/* offset is printed in 512b sectors  */
 			bbs->bbv[b].offset >> 9,
-			/* length is printed in blocks */
-			bbs->bbv[b].length / (unsigned)st.st_blksize);
+			/*
+			 * length is printed in:
+			 * - 512b sectors in case of DAX devices,
+			 * - blocks in case of regular files.
+			 */
+			(file_type == TYPE_DEVDAX) ?
+				bbs->bbv[b].length >> 9 :
+				bbs->bbv[b].length / (unsigned)st.st_blksize);
 	}
 
 exit_free:
