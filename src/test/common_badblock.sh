@@ -86,6 +86,7 @@ function badblock_test_init() {
 	fi
 	NAMESPACE=$(ndctl_get_namespace_of_device $DEVICE)
 	FULLDEV="/dev/$DEVICE"
+	require_max_block_size $FULLDEV 4096
 }
 
 #

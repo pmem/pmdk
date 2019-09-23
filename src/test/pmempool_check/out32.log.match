@@ -11,7 +11,7 @@ size                     : $(N)
 alignment                : 4096
 bad blocks:
 	offset		length
-	11		1
+	11		8
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1
@@ -64,7 +64,7 @@ size                     : $(N)
 alignment                : 4096
 bad blocks:
 	offset		length
-	11		1
+	11		8
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1

@@ -13,7 +13,7 @@ type                     : regular file
 size                     : $(N)
 bad blocks:
 	offset		length
-	8000		2
+	8000		8
 part 1:
 path                     : $(nW)/testfile1
 type                     : regular file

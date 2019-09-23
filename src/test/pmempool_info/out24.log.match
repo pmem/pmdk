@@ -11,7 +11,7 @@ size                     : $(nW)
 alignment                : 4096
 bad blocks:
 	offset		length
-	11		1
+	11		8
 
 POOL Header:
 Signature                : PMEMOBJ
