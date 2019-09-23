@@ -39,10 +39,9 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_fs_type non-pmem
 require_build_type debug nondebug
 
-require_badblock_tests_enabled
+require_badblock_tests_enabled dax_device
 require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
 
 setup
@@ -92,6 +91,8 @@ expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
 print_bad_blocks
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
+
+ndctl_uninject_error $FULLDEV $NAMESPACE 1000 1
 
 badblock_test_fini
 

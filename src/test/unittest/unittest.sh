@@ -3596,12 +3596,40 @@ function require_max_devdax_size() {
 
 #
 # require_badblock_tests_enabled - check if tests for bad block support are not enabled
+# Input arguments:
+# 1) test device type
 #
 function require_badblock_tests_enabled() {
 	require_sudo_allowed
 	require_command ndctl
+
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
+
 		require_kernel_module nfit_test
+
+		# nfit_test dax device is created by the test and is
+		# used directly - no file system path nor device dax path
+		# needs to be provided by the user
+		if [ $1 == "dax_device" ]; then
+			require_fs_type none
+
+		# nfit_test block device is created by the test and mounted on
+		# a filesystem of any type provided by the user
+		elif [ $1 == "block_device" ]; then
+			require_fs_type any
+		fi
+
+	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
+
+		if [ $1 == "dax_device" ]; then
+			require fs_type none
+			require_dax_devices 1
+			require_binary $DAXIO$EXESUFFIX
+
+		elif [ $1 == "block_device" ]; then
+			require_fs_type pmem
+		fi
+
 	else
 		msg "$UNITTEST_NAME: SKIP: bad block tests are not enabled in testconfig.sh"
 		exit 0
@@ -3617,6 +3645,8 @@ function require_badblock_tests_enabled_node() {
 	require_command_node $1 ndctl
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		require_kernel_module_node $1 nfit_test
+	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
+		:
 	else
 		msg "$UNITTEST_NAME: SKIP: bad block tests are not enabled in testconfig.sh"
 		exit 0
