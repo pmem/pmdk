@@ -669,6 +669,38 @@ tx_realloc_common(struct tx *tx, PMEMoid oid, size_t size, uint64_t type_num,
 }
 
 /*
+ * tx_construct_user_buffer -- add user buffer to the ulog
+ */
+static int
+tx_construct_user_buffer(struct tx *tx, void *addr, size_t size,
+		enum pobj_log_type type, int outer_tx)
+{
+	if (tx->pop != pmemobj_pool_by_ptr(addr)) {
+		ERR("Buffer from a different pool");
+		goto err;
+	}
+
+	/*
+	 * We want to extend a log of a specified type, but if it is
+	 * an outer transaction and the first user buffer we need to
+	 * free all logs except the first at the beginning.
+	 */
+	struct operation_context *ctx = type == TX_LOG_TYPE_INTENT ?
+		tx->lane->external : tx->lane->undo;
+
+	if (outer_tx && !operation_get_any_user_buffer(ctx))
+		operation_free_logs(ctx, ULOG_ANY_USER_BUFFER);
+
+	if (operation_add_user_buffer(ctx, addr, size))
+		goto err;
+
+	return 0;
+
+err:
+	return obj_tx_abort_err(EINVAL);
+}
+
+/*
  * pmemobj_tx_begin -- initializes new transaction
  */
 int
@@ -1717,6 +1749,156 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 }
 
 /*
+ * pmemobj_tx_log_append_buffer -- append user allocated buffer to the ulog
+ */
+int
+pmemobj_tx_log_append_buffer(enum pobj_log_type type, void *addr, size_t size)
+{
+	struct tx *tx = get_tx();
+	ASSERT_TX_STAGE_WORK(tx);
+	PMEMOBJ_API_START();
+	int err;
+
+	struct tx_data *td = PMDK_SLIST_FIRST(&tx->tx_entries);
+	err = tx_construct_user_buffer(tx, addr, size, type,
+			PMDK_SLIST_NEXT(td, tx_entry) == NULL);
+
+	if (err)
+		goto err_abort;
+
+	PMEMOBJ_API_END();
+	return 0;
+
+err_abort:
+	if (tx->stage == TX_STAGE_WORK)
+		err = obj_tx_abort_err(err);
+	else
+		tx->stage = TX_STAGE_ONABORT;
+
+	PMEMOBJ_API_END();
+	return err;
+}
+
+/*
+ * pmemobj_tx_log_auto_alloc -- enable/disable automatic ulog allocation
+ */
+int
+pmemobj_tx_log_auto_alloc(enum pobj_log_type type, int on_off)
+{
+	struct tx *tx = get_tx();
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct operation_context *ctx = type == TX_LOG_TYPE_INTENT ?
+		tx->lane->external : tx->lane->undo;
+
+	operation_set_auto_reserve(ctx, on_off);
+
+	return 0;
+}
+
+/*
+ * pmemobj_tx_log_snapshot_max_size -- calculates the maximum
+ * size of a buffer which will be able to hold nsizes snapshots,
+ * each of size from sizes array
+ */
+size_t
+pmemobj_tx_log_snapshot_max_size(size_t *sizes, size_t nsizes)
+{
+	LOG(3, NULL);
+
+	/* each buffer has its header */
+	size_t result = TX_SNAPSHOT_LOG_BUFFER_OVERHEAD;
+	for (size_t i = 0; i < nsizes; ++i) {
+		/* check for overflow */
+		if (sizes[i] + TX_SNAPSHOT_LOG_ENTRY_OVERHEAD +
+				TX_SNAPSHOT_LOG_ENTRY_ALIGNMENT < sizes[i])
+			goto err_overflow;
+		/* each entry has its header */
+		size_t size =
+			ALIGN_UP(sizes[i] + TX_SNAPSHOT_LOG_ENTRY_OVERHEAD,
+				TX_SNAPSHOT_LOG_ENTRY_ALIGNMENT);
+		/* check for overflow */
+		if (result + size < result)
+			goto err_overflow;
+		/* sum up */
+		result += size;
+	}
+
+	/*
+	 * if the result is bigger than a single allocation it must be divided
+	 * into multiple allocations where each of them will have its own buffer
+	 * header and entry header
+	 */
+	size_t allocs_overhead = (result / PMEMOBJ_MAX_ALLOC_SIZE) *
+	    (TX_SNAPSHOT_LOG_BUFFER_OVERHEAD + TX_SNAPSHOT_LOG_ENTRY_OVERHEAD);
+	/* check for overflow */
+	if (result + allocs_overhead < result)
+		goto err_overflow;
+	result += allocs_overhead;
+
+	/* SIZE_MAX is a special value */
+	if (result == SIZE_MAX)
+		goto err_overflow;
+
+	return result;
+
+err_overflow:
+	errno = EOVERFLOW;
+	return SIZE_MAX;
+}
+
+/*
+ * pmemobj_tx_log_intent_max_size -- calculates the maximum size of a buffer
+ * which will be able to hold nintents
+ */
+size_t
+pmemobj_tx_log_intent_max_size(size_t nintents)
+{
+	LOG(3, NULL);
+
+	/* check for overflow */
+	if (nintents > SIZE_MAX / TX_INTENT_LOG_ENTRY_OVERHEAD)
+		goto err_overflow;
+	/* each entry has its header */
+	size_t entries_overhead = nintents * TX_INTENT_LOG_ENTRY_OVERHEAD;
+	/* check for overflow */
+	if (entries_overhead + TX_INTENT_LOG_BUFFER_ALIGNMENT
+			< entries_overhead)
+		goto err_overflow;
+	/* the whole buffer is aligned */
+	size_t result =
+		ALIGN_UP(entries_overhead, TX_INTENT_LOG_BUFFER_ALIGNMENT);
+
+	/* check for overflow */
+	if (result + TX_INTENT_LOG_BUFFER_OVERHEAD < result)
+		goto err_overflow;
+	/* add a buffer overhead */
+	result += TX_INTENT_LOG_BUFFER_OVERHEAD;
+
+	/*
+	 * if the result is bigger than a single allocation it must be divided
+	 * into multiple allocations where each of them will have its own buffer
+	 * header and entry header
+	 */
+	size_t allocs_overhead = (result / PMEMOBJ_MAX_ALLOC_SIZE) *
+	    (TX_INTENT_LOG_BUFFER_OVERHEAD + TX_INTENT_LOG_ENTRY_OVERHEAD);
+	/* check for overflow */
+	if (result + allocs_overhead < result)
+		goto err_overflow;
+	result += allocs_overhead;
+
+	/* SIZE_MAX is a special value */
+	if (result == SIZE_MAX)
+		goto err_overflow;
+
+	return result;
+
+err_overflow:
+	errno = EOVERFLOW;
+	return SIZE_MAX;
+}
+
+/*
  * CTL_READ_HANDLER(size) -- gets the cache size transaction parameter
  */
 static int
@@ -1827,14 +2009,51 @@ CTL_WRITE_HANDLER(skip_expensive_checks)(void *ctx,
 static const struct ctl_argument CTL_ARG(skip_expensive_checks) =
 		CTL_ARG_BOOLEAN;
 
+/*
+ * CTL_READ_HANDLER(verify_user_buffers) -- returns "ulog_user_buffers.verify"
+ * variable from the pool
+ */
+static int
+CTL_READ_HANDLER(verify_user_buffers)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+
+	int *arg_out = arg;
+
+	*arg_out = pop->ulog_user_buffers.verify;
+
+	return 0;
+}
+
+/*
+ * CTL_WRITE_HANDLER(verify_user_buffers) -- sets "ulog_user_buffers.verify"
+ * variable in the pool
+ */
+static int
+CTL_WRITE_HANDLER(verify_user_buffers)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	PMEMobjpool *pop = ctx;
+
+	int arg_in = *(int *)arg;
+
+	pop->ulog_user_buffers.verify = arg_in;
+	return 0;
+}
+
+static const struct ctl_argument CTL_ARG(verify_user_buffers) =
+		CTL_ARG_BOOLEAN;
+
 static const struct ctl_node CTL_NODE(debug)[] = {
 	CTL_LEAF_RW(skip_expensive_checks),
+	CTL_LEAF_RW(verify_user_buffers),
 
 	CTL_NODE_END
 };
 
 /*
- * CTL_WRITE_HANDLER(queue_depth) -- returns the depth of the post commit queue
+ * CTL_READ_HANDLER(queue_depth) -- returns the depth of the post commit queue
  */
 static int
 CTL_READ_HANDLER(queue_depth)(void *ctx, enum ctl_query_source source,

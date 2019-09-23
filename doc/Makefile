@@ -95,6 +95,7 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmemobj_tx_stage.3 pmemobj_tx_lock.3 pmemobj_tx_abort.3 pmemobj_tx_commit.3 pmemobj_tx_end.3 pmemobj_tx_errno.3 \
 		   pmemobj_tx_process.3 pmemobj_tx_add_range_direct.3 pmemobj_tx_xadd_range.3 pmemobj_tx_xadd_range_direct.3 \
 		   pmemobj_tx_zalloc.3 pmemobj_tx_xalloc.3 pmemobj_tx_realloc.3 pmemobj_tx_zrealloc.3 pmemobj_tx_strdup.3 pmemobj_tx_wcsdup.3 pmemobj_tx_free.3 \
+		   pmemobj_tx_log_append_buffer.3 pmemobj_tx_log_auto_alloc.3 pmemobj_tx_log_snapshots_max_size.3 pmemobj_tx_log_intents_max_size.3 \
 		   tx_begin_param.3 tx_begin_cb.3 tx_begin.3 tx_onabort.3 tx_oncommit.3 tx_finally.3 tx_end.3 \
 		   tx_add.3 tx_add_field.3 tx_add_direct.3 tx_add_field_direct.3 tx_xadd.3 tx_xadd_field.3 tx_xadd_direct.3 tx_xadd_field_direct.3 \
 		   tx_new.3 tx_alloc.3 tx_znew.3 tx_zalloc.3 tx_xalloc.3 tx_realloc.3 tx_zrealloc.3 tx_strdup.3 tx_wcsdup.3 tx_free.3 tx_set.3 tx_set_direct.3 tx_memcpy.3 tx_memset.3 \
