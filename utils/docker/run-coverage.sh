@@ -48,8 +48,8 @@ export UT_VALGRIND_SKIP_PRINT_MISMATCHED=1
 
 # Build all and run tests
 cd $WORKDIR
-make -j2 USE_LIBUNWIND=1 COVERAGE=1
-make -j2 test USE_LIBUNWIND=1 COVERAGE=1
+make -j2 COVERAGE=1
+make -j2 test COVERAGE=1
 
 # XXX: unfortunately valgrind raports issues in coverage instrumentation
 # which we have to ignore (-k flag), also there is dependency between
