@@ -27,4 +27,10 @@ Overlap not detected
 Overlap detected
 Overlap detected
 Overlap detected
+do_log_intent_max_size_limits
+do_log_intent_max_size
+Estimated intent log buffer size is sufficient
+do_log_snapshot_max_size_limits
+do_log_snapshot_max_size
+Estimated snapshot log buffer size is sufficient
 obj_ulog_size$(nW)TEST0: DONE
