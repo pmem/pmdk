@@ -3634,7 +3634,7 @@ function require_badblock_tests_enabled() {
 	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
 
 		if [ $1 == "dax_device" ]; then
-			require fs_type none
+			require_fs_type none
 			require_dax_devices 1
 			require_binary $DAXIO$EXESUFFIX
 
