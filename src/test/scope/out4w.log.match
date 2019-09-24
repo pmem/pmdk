@@ -81,8 +81,8 @@ pmemobj_tx_free
 pmemobj_tx_lock
 pmemobj_tx_log_append_buffer
 pmemobj_tx_log_auto_alloc
-pmemobj_tx_log_intent_max_size
-pmemobj_tx_log_snapshot_max_size
+pmemobj_tx_log_intents_max_size
+pmemobj_tx_log_snapshots_max_size
 pmemobj_tx_process
 pmemobj_tx_publish
 pmemobj_tx_realloc
