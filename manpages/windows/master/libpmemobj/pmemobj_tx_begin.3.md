@@ -55,7 +55,10 @@ date: pmemobj API version 2.3
 
 **TX_BEGIN_PARAM**(), **TX_BEGIN_CB**(),
 **TX_BEGIN**(), **TX_ONABORT**,
-**TX_ONCOMMIT**, **TX_FINALLY**, **TX_END**
+**TX_ONCOMMIT**, **TX_FINALLY**, **TX_END**,
+
+**pmemobj_tx_log_append_buffer**(), **pmemobj_tx_log_auto_alloc**(),
+**pmemobj_tx_log_snapshots_max_size**(), **pmemobj_tx_log_intents_max_size**()
 - transactional object manipulation
 
 
@@ -81,6 +84,11 @@ TX_ONABORT
 TX_ONCOMMIT
 TX_FINALLY
 TX_END
+
+int pmemobj_tx_log_append_buffer(enum pobj_log_type type, void *addr, size_t size);
+int pmemobj_tx_log_auto_alloc(enum pobj_log_type type, int on_off);
+size_t pmemobj_tx_log_snapshots_max_size(size_t *sizes, size_t nsizes);
+size_t pmemobj_tx_log_intents_max_size(size_t nintents);
 ```
 
 
@@ -315,6 +323,85 @@ The **TX_END** macro cleans up and closes the transaction started by the
 It is mandatory to terminate each transaction with this macro. If the transaction
 was aborted, *errno* is set appropriately.
 
+## TRANSACTION LOG TUNING ##
+
+From libpmemobj implementation perspective there are two types of operations
+in a transaction:
+
++ **snapshots**, where action must be persisted immediately,
++ **intents**, where action can be persisted at the transaction commit phase
+
+**pmemobj_tx_add_range**(3) and all its variants belong to the **snapshots**
+group.
+
+**pmemobj_tx_alloc**(3) (with its variants), **pmemobj_tx_free**(3),
+**pmemobj_tx_realloc**(3) (with its variants) and **pmemobj_tx_publish**(3)
+belong to the **intents** group. Even though **pmemobj_tx_alloc**() allocates
+memory immediately, it modifies only the runtime state and postpones persistent
+memory modifications to the commit phase. **pmemobj_tx_free**(3) cannot free
+the object immediately, because of possible transaction rollback, so it
+postpones both the action and persistent memory modifications to the commit
+phase. **pmemobj_tx_realloc**(3) is just a combination of those two.
+**pmemobj_tx_publish**(3) postpones reservations and deferred frees to
+the commit phase.
+
+Those two types of operations (snapshots and intents) require that libpmemobj
+builds a persistent log of operations. Intent log (also known as a "redo log")
+is applied on commit and snapshot log (also known as an "undo log")
+is applied on abort.
+
+When libpmemobj transaction starts, it's not possible to predict how much
+persistent memory space will be needed for those logs. This means that libpmemobj
+must internally allocate this space whenever it's needed. This has two downsides:
+
++ when transaction snapshots a lot of memory or does a lot of allocations,
+  libpmemobj may need to do many internal allocations, which must be freed when
+  transaction ends, adding time overhead when big transactions are frequent,
++ transactions can start to fail due to not enough space for logs - this can
+  be especially problematic for transactions that want to **deallocate**
+  objects, as those might also fail
+
+To solve both of these problems libpmemobj exposes the following functions:
+
++ **pmemobj_tx_log_append_buffer**(),
++ **pmemobj_tx_log_auto_alloc**()
+
+**pmemobj_tx_log_append_buffer**() appends a given range of memory
+[*addr*, *addr* + *size*) to the log *type* of the current transaction.
+*type* can be one of the two values (with meanings described above):
+
++ **TX_LOG_TYPE_SNAPSHOT**,
++ **TX_LOG_TYPE_INTENT**
+
+The range of memory **must** belong to the same pool the transaction is on and
+**must not** be used by more than one thread at the same time. The latter
+condition can be verified with tx.debug.verify_user_buffers ctl (see
+**pmemobj_ctl_get**(3)).
+
+**pmemobj_tx_log_snapshots_max_size** calculates the **maximum** size of
+a buffer which will be able to hold *nsizes* snapshots, each of size *sizes[i]*.
+Application should not expect this function to return the same value between
+restarts. In future versions of libpmemobj this function can return smaller
+(because of better accuracy or space optimizations) or higher (because
+of higher alignment required for better performance) value. This function
+is independent of transaction stage and can be called both inside and outside
+of transaction. If the returned value S is greater than
+**PMEMOBJ_MAX_ALLOC_SIZE**, the buffer should be split into N chunks of size
+**PMEMOBJ_MAX_ALLOC_SIZE**, where N is equal to (S / **PMEMOBJ_MAX_ALLOC_SIZE**)
+(rounded down) and the last chunk of size (S - (N * **PMEMOBJ_MAX_ALLOC_SIZE**)).
+
+**pmemobj_tx_log_intents_max_size** calculates the **maximum** size of
+a buffer which will be able to hold *nintents* intents.
+Just like with **pmemobj_tx_log_snapshots_max_size**, application should not
+expect this function to return the same value between restarts, for the same
+reasons. This function is independent of transaction stage and can be called
+both inside and outside of transaction.
+
+**pmemobj_tx_log_auto_alloc**() disables (*on_off* set to 0) or enables
+(*on_off* set to 1) automatic allocation of internal logs of given *type*.
+It can be used to verify that the buffer set with
+**pmemobj_tx_log_append_buffer**() is big enough to hold the log, without
+reaching out-of-space scenario.
 
 # RETURN VALUE #
 
@@ -338,6 +425,17 @@ The **pmemobj_tx_errno**() function returns the error code of the last transacti
 
 The **pmemobj_tx_process**() function returns no value.
 
+On success, **pmemobj_tx_log_append_buffer**() returns 0. Otherwise,
+the transaction is aborted and an error number is returned.
+
+On success, **pmemobj_tx_log_auto_alloc**() returns 0. Otherwise,
+the transaction is aborted and an error number is returned.
+
+On success, **pmemobj_tx_log_snapshots_max_size**() returns size of the buffer.
+On failure it returns *SIZE_MAX* and sets *errno* appropriately.
+
+On success, **pmemobj_tx_log_intents_max_size**() returns size of the buffer.
+On failure it returns *SIZE_MAX* and sets *errno* appropriately.
 
 # CAVEATS #
 
