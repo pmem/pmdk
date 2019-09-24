@@ -1817,12 +1817,12 @@ pmemobj_tx_log_auto_alloc(enum pobj_log_type type, int on_off)
 }
 
 /*
- * pmemobj_tx_log_snapshot_max_size -- calculates the maximum
+ * pmemobj_tx_log_snapshots_max_size -- calculates the maximum
  * size of a buffer which will be able to hold nsizes snapshots,
  * each of size from sizes array
  */
 size_t
-pmemobj_tx_log_snapshot_max_size(size_t *sizes, size_t nsizes)
+pmemobj_tx_log_snapshots_max_size(size_t *sizes, size_t nsizes)
 {
 	LOG(3, NULL);
 
@@ -1868,11 +1868,11 @@ err_overflow:
 }
 
 /*
- * pmemobj_tx_log_intent_max_size -- calculates the maximum size of a buffer
+ * pmemobj_tx_log_intents_max_size -- calculates the maximum size of a buffer
  * which will be able to hold nintents
  */
 size_t
-pmemobj_tx_log_intent_max_size(size_t nintents)
+pmemobj_tx_log_intents_max_size(size_t nintents)
 {
 	LOG(3, NULL);
 
