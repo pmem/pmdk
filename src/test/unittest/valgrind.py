@@ -38,6 +38,7 @@ from enum import Enum, unique
 from os import path
 
 import futils
+from utils import VMMALLOC
 
 
 DISABLE = -1
@@ -69,6 +70,12 @@ class _Tool(Enum):
 
 TOOLS = tuple(t for t in _Tool if t != _Tool.NONE)
 
+MEMCHECK = _Tool.MEMCHECK
+PMEMCHECK = _Tool.PMEMCHECK
+HELGRIND = _Tool.HELGRIND
+DRD = _Tool.DRD
+NONE = _Tool.NONE
+
 
 def enabled_tool(test):
     """Get Valgrind tool enabled by test"""
@@ -84,7 +91,7 @@ def enabled_tool(test):
 
 def disabled_tools(test):
     """Get Valgrind tools disabled by test"""
-    disabled = [t for t in _Tool if getattr(test, t.name.lower()) == DISABLE]
+    disabled = [t for t in TOOLS if getattr(test, t.name.lower()) == DISABLE]
     return disabled
 
 
@@ -96,7 +103,7 @@ class Valgrind:
             raise NotImplementedError(
                 'Valgrind class should not be used on Windows')
 
-        self.tool = _Tool.NONE if tool is None else tool
+        self.tool = NONE if tool is None else tool
         self.tool_name = self.tool.name.lower()
         self.cwd = cwd
 
@@ -119,7 +126,7 @@ class Valgrind:
         if 'freebsd' in sys.platform:
             self.add_suppression('freebsd.supp')
 
-        if tool == _Tool.MEMCHECK:
+        if tool == MEMCHECK:
             self.add_suppression('memcheck-libunwind.supp')
             self.add_suppression('memcheck-ndctl.supp')
             self.add_suppression('memcheck-dlopen.supp')
@@ -134,25 +141,25 @@ class Valgrind:
         # VALGRIND_PMC_DO_FENCE client request, used by pmem_drain) after
         # clflush and makes pmemcheck output the same on pre-Skylake and
         # post-Skylake CPUs.
-        elif tool == _Tool.PMEMCHECK:
+        elif tool == PMEMCHECK:
             self.add_opt('--expect-fence-after-clflush=yes')
 
-        elif tool == _Tool.HELGRIND:
+        elif tool == HELGRIND:
             self.add_suppression('helgrind-log.supp')
 
-        elif tool == _Tool.DRD:
+        elif tool == DRD:
             self.add_suppression('drd-log.supp')
 
     def __str__(self):
         return self.tool.name.lower()
 
     def __bool__(self):
-        return self.tool != _Tool.NONE
+        return self.tool != NONE
 
     @property
     def cmd(self):
         """Get Valgrind command with specified arguments"""
-        if self.tool == _Tool.NONE:
+        if self.tool == NONE:
             return ''
         return '{} --tool={} --log-file={} {} '.format(
             self.valgrind_exe, self.tool_name, self.log_file, self.opts)
@@ -175,9 +182,10 @@ class Valgrind:
             return valgrind_bin
         return 'valgrind'
 
-    def add_opt(self, opt):
+    def add_opt(self, opt, tool=None):
         """Add option to Valgrind command"""
-        self.opts = '{} {}'.format(self.opts, opt)
+        if tool is None or tool == self.tool:
+            self.opts = '{} {}'.format(self.opts, opt)
 
     def _get_version(self):
         """
@@ -208,7 +216,7 @@ class Valgrind:
         Check Valgrind test result based on Valgrind log file.
         Return True if passed, False otherwise
         """
-        if self.tool == _Tool.NONE or sys.platform == 'win32':
+        if self.tool == NONE or sys.platform == 'win32':
             return True
 
         no_ignored = []
