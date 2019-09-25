@@ -3620,10 +3620,11 @@ function require_badblock_tests_enabled() {
 		require_kernel_module nfit_test
 
 		# nfit_test dax device is created by the test and is
-		# used directly - no file system path nor device dax path
-		# needs to be provided by the user
+		# used directly - no device dax path is needed to be provided by the
+		# user. Some tests though may use an additional filesystem for the
+		# pool replica - hence 'any' filesystem is required.
 		if [ $1 == "dax_device" ]; then
-			require_fs_type none
+			require_fs_type any
 
 		# nfit_test block device is created by the test and mounted on
 		# a filesystem of any type provided by the user
@@ -3634,7 +3635,7 @@ function require_badblock_tests_enabled() {
 	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
 
 		if [ $1 == "dax_device" ]; then
-			require_fs_type none
+			require_fs_type any
 			require_dax_devices 1
 			require_binary $DAXIO$EXESUFFIX
 
