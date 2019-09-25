@@ -53,6 +53,7 @@
 enum type_number {
 	TYPE_OBJ,
 	TYPE_OBJ_ABORT,
+	TYPE_OBJ_WRONG_UUID,
 };
 
 TOID_DECLARE(struct object, 0);
@@ -1060,6 +1061,33 @@ do_tx_add_range_zero(PMEMobjpool *pop)
 	UT_ASSERTne(errno, 0);
 }
 
+/*
+ * do_tx_add_range_wrong_uuid -- call pmemobj_tx_xadd_range with
+ * POBJ_TX_NO_ABORT flag and wrong uuid
+ */
+static void
+do_tx_add_range_wrong_uuid(PMEMobjpool *pop)
+{
+	PMEMoid oid = do_tx_alloc(pop, TYPE_OBJ_WRONG_UUID, 0);
+	oid.pool_uuid_lo = ~oid.pool_uuid_lo;
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_xadd_range(oid, 0, 0, 0);
+	}TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(errno, EINVAL);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_xadd_range(oid, 0, 0, POBJ_XADD_NO_ABORT);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(errno, EINVAL);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -1125,6 +1153,8 @@ main(int argc, char *argv[])
 		do_tx_xadd_range_no_uninit_check_abort(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_add_range_no_uninit_check_commit_no_flag(pop);
+		VALGRIND_WRITE_STATS;
+		do_tx_add_range_wrong_uuid(pop);
 		VALGRIND_WRITE_STATS;
 		do_tx_add_range_flag_merge_left(pop);
 		VALGRIND_WRITE_STATS;
