@@ -6,6 +6,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\tests\</OutDir>
+    <ExecutablePath>$(FrameworkSDKdir)bin\$(TargetPlatformVersion)\$(Platform);$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
