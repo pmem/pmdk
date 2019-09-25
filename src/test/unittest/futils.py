@@ -126,9 +126,13 @@ def run_tests_common(testcases, config):
         sys.exit('No testcases to run found for selected configuration.')
 
     for t in testcases:
-        t = t(config)
-        if t.enabled and t._execute():  # if test failed
-            return 1
+        try:
+            t = t(config)
+        except Skip as s:
+            print(s)
+        else:
+            if t.enabled and t._execute():  # if test failed
+                return 1
     return 0
 
 
