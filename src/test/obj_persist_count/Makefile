@@ -39,7 +39,7 @@ OBJS = obj_persist_count.o
 LIBPMEMOBJ=internal-debug
 
 BUILD_STATIC_DEBUG=n
-BUILD_STATIC_NONDEBUG=n
+BUILD_STATIC_RELEASE=n
 
 include ../Makefile.inc
 

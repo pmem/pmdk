@@ -297,10 +297,10 @@ function runtest {
                 $Env:EXAMPLES_DIR = $(get_build_dirs $build)[1]
 
                 if ($Env:BUILD -eq 'release') {
-                    if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
+                    if (-Not $Env:PMDK_LIB_PATH_RELEASE) {
                         $Env:LIBS_DIR = $(get_build_dirs $build)[2]
                     } else {
-                        $Env:LIBS_DIR = $Env:PMDK_LIB_PATH_NONDEBUG
+                        $Env:LIBS_DIR = $Env:PMDK_LIB_PATH_RELEASE
                     }
                 } elseif ($Env:BUILD -eq 'debug') {
                     if (-Not $Env:PMDK_LIB_PATH_DEBUG) {

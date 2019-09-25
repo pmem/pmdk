@@ -37,7 +37,7 @@ TARGET = obj_list
 OBJS = obj_list.o obj_list_mocks.o obj_list_mocks_palloc.o
 
 BUILD_STATIC_DEBUG=n
-BUILD_STATIC_NONDEBUG=n
+BUILD_STATIC_RELEASE=n
 
 LIBPMEMOBJ=internal-debug
 

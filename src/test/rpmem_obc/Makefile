@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,7 +51,7 @@ OBJS = rpmem_obc_test.o\
        rpmem_ssh.o rpmem_cmd.o
 
 BUILD_STATIC_DEBUG=n
-BUILD_STATIC_NONDEBUG=n
+BUILD_STATIC_RELEASE=n
 
 LIBPMEMCOMMON=y
 include ../Makefile.inc

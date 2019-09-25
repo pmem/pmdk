@@ -206,12 +206,12 @@ debug|static-debug)
 	fi
 	;;
 release|static-release)
-	if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
+	if [ -z "$PMDK_LIB_PATH_RELEASE" ]; then
 		PMDK_LIB_PATH=../../release
 		REMOTE_PMDK_LIB_PATH=../release
 	else
-		PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
-		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
+		PMDK_LIB_PATH=$PMDK_LIB_PATH_RELEASE
+		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_RELEASE
 	fi
 	;;
 esac

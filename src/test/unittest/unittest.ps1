@@ -1070,10 +1070,10 @@ function setup {
     $RELEASE_DIR = '..\..\x64\Release'
 
     if ($Env:BUILD -eq 'release') {
-        if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
-            $Env:PMDK_LIB_PATH_NONDEBUG = $RELEASE_DIR + '\libs\'
+        if (-Not $Env:PMDK_LIB_PATH_RELEASE) {
+            $Env:PMDK_LIB_PATH_RELEASE = $RELEASE_DIR + '\libs\'
         }
-        $Env:Path = $Env:PMDK_LIB_PATH_NONDEBUG + ';' + $Env:Path
+        $Env:Path = $Env:PMDK_LIB_PATH_RELEASE + ';' + $Env:Path
     } elseif ($Env:BUILD -eq 'debug') {
         if (-Not $Env:PMDK_LIB_PATH_DEBUG) {
             $Env:PMDK_LIB_PATH_DEBUG = $DEBUG_DIR + '\libs\'
@@ -1131,10 +1131,10 @@ if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠏⠍⠙⠅ɗPMDKӜ⥺🙋"}
 if (-Not $Env:DIRSUFFIX) { $Env:DIRSUFFIX = ""}
 
 if ($Env:BUILD -eq 'release') {
-    if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
+    if (-Not $Env:PMDK_LIB_PATH_RELEASE) {
         $PMEMPOOL = $RELEASE_DIR + "\libs\pmempool$Env:EXESUFFIX"
     } else {
-        $PMEMPOOL = "$Env:PMDK_LIB_PATH_NONDEBUG\pmempool$Env:EXESUFFIX"
+        $PMEMPOOL = "$Env:PMDK_LIB_PATH_RELEASE\pmempool$Env:EXESUFFIX"
     }
 } elseif ($Env:BUILD -eq 'debug') {
     if (-Not $Env:PMDK_LIB_PATH_DEBUG) {

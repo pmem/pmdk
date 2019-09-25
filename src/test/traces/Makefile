@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2016, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@ TARGET = traces
 OBJS = traces.o
 
 BUILD_STATIC_DEBUG=n
-BUILD_STATIC_NONDEBUG=n
+BUILD_STATIC_RELEASE=n
 
 LIBPMEMCOMMON=y
 include ../Makefile.inc

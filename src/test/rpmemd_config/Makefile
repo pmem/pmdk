@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@ TARGET = rpmemd_config
 OBJS = rpmemd_config_test.o rpmemd_config.o rpmemd_log.o
 
 BUILD_STATIC_DEBUG=n
-BUILD_STATIC_NONDEBUG=n
+BUILD_STATIC_RELEASE=n
 
 LIBPMEMCOMMON=y
 

@@ -56,7 +56,7 @@ OBJS = rpmemd_obc_test.o\
        rpmemd_obc_test_close.o
 
 BIULD_STATIC_DEBUG=n
-BUILD_STATIC_NONDEBUG=n
+BUILD_STATIC_RELEASE=n
 
 LIBPMEMCOMMON=y
 include ../Makefile.inc

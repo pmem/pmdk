@@ -129,7 +129,7 @@ TM=1
 # Note that these variable won't affect tests that link statically. You should
 # disabled them using TEST_BUILD variable.
 #
-#PMDK_LIB_PATH_NONDEBUG=/usr/lib/x86_64-linux-gnu/
+#PMDK_LIB_PATH_RELEASE=/usr/lib/x86_64-linux-gnu/
 #PMDK_LIB_PATH_DEBUG=/usr/lib/x86_64-linux-gnu/pmdk_dbg
 
 #

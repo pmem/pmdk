@@ -70,7 +70,7 @@ ifeq ($(LIBPMEMPOOL), y)
 LIBPMEM=y
 DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libpmempool.a
+STATIC_RELEASE_LIBS += $(LIBS_DIR)/release/libpmempool.a
 CFLAGS += -DUSE_LIBDL
 endif
 
@@ -78,21 +78,21 @@ ifeq ($(LIBPMEMBLK), y)
 LIBPMEM=y
 DYNAMIC_LIBS += -lpmemblk
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemblk.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libpmemblk.a
+STATIC_RELEASE_LIBS += $(LIBS_DIR)/release/libpmemblk.a
 endif
 
 ifeq ($(LIBPMEMLOG), y)
 LIBPMEM=y
 DYNAMIC_LIBS += -lpmemlog
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemlog.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libpmemlog.a
+STATIC_RELEASE_LIBS += $(LIBS_DIR)/release/libpmemlog.a
 endif
 
 ifeq ($(LIBPMEMOBJ), y)
 LIBPMEM=y
 DYNAMIC_LIBS += -lpmemobj
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemobj.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libpmemobj.a
+STATIC_RELEASE_LIBS += $(LIBS_DIR)/release/libpmemobj.a
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-debug)
@@ -256,19 +256,19 @@ endif
 ifeq ($(LIBPMEM),y)
 DYNAMIC_LIBS += -lpmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libpmem.a
+STATIC_RELEASE_LIBS += $(LIBS_DIR)/release/libpmem.a
 endif
 
 ifeq ($(LIBRPMEM),y)
 DYNAMIC_LIBS += -lrpmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/librpmem.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/librpmem.a
+STATIC_RELEASE_LIBS += $(LIBS_DIR)/release/librpmem.a
 endif
 
 ifeq ($(LIBVMEM),y)
 DYNAMIC_LIBS += -lvmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libvmem.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libvmem.a
+STATIC_RELEASE_LIBS += $(LIBS_DIR)/release/libvmem.a
 endif
 
 ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBVMEM)$(LIBRPMEM),)
@@ -382,7 +382,7 @@ SCP_TARGET=$(TARGET)
 SCP_SRC_DIR=.
 #
 # By default debug and non-debug static versions are built.
-# It can be changed by setting BUILD_STATIC_DEBUG, BUILD_STATIC_NONDEBUG
+# It can be changed by setting BUILD_STATIC_DEBUG, BUILD_STATIC_RELEASE
 # or BUILD_STATIC (for both of them) to 'n'.
 #
 ifneq ($(BUILD_STATIC),n)
@@ -390,10 +390,10 @@ ifneq ($(BUILD_STATIC_DEBUG),n)
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
 SCP_TARGET_STATIC_DEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-debug
 endif
-ifneq ($(BUILD_STATIC_NONDEBUG),n)
+ifneq ($(BUILD_STATIC_RELEASE),n)
 ifneq ($(DEBUG),1)
-TARGET_STATIC_NONDEBUG=$(TARGET).static-release
-SCP_TARGET_STATIC_NONDEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-release
+TARGET_STATIC_RELEASE=$(TARGET).static-release
+SCP_TARGET_STATIC_RELEASE=$(SCP_SRC_DIR)/$(SCP_TARGET).static-release
 endif
 endif
 endif
@@ -411,7 +411,7 @@ TMP_HEADERS := $(addsuffix tmp, $(HEADERS))
 endif
 endif
 
-all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
+all: $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_RELEASE)
 
 $(UT):
 	$(MAKE) -C ../unittest
@@ -419,8 +419,8 @@ $(UT):
 $(TARGET_STATIC_DEBUG): $(TMP_HEADERS) $(OBJS) $(UT) $(STATIC_DEBUG_LIBS) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
 	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_DEBUG_LIBS) $(LIBS)
 
-$(TARGET_STATIC_NONDEBUG): $(TMP_HEADERS) $(OBJS) $(UT) $(STATIC_NONDEBUG_LIBS) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
-	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_NONDEBUG_LIBS) $(LIBS)
+$(TARGET_STATIC_RELEASE): $(TMP_HEADERS) $(OBJS) $(UT) $(STATIC_RELEASE_LIBS) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
+	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(STATIC_RELEASE_LIBS) $(LIBS)
 
 $(TARGET): $(TMP_HEADERS) $(OBJS) $(UT) $(EXTRA_DEPS) $(MAKEFILE_DEPS)
 	$(LINKER) -o $@ $(LDFLAGS) $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
@@ -448,7 +448,7 @@ clean:
 	$(RM) *.o */*.o core *.core a.out *.log testfile* $(SYNC_FILE) $(TMP_HEADERS)
 
 clobber: clean
-	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
+	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_RELEASE)
 	$(RM) -r .deps
 
 $(TESTCONFIG):
@@ -462,7 +462,7 @@ ifeq ($(SCP_SRC_DIR),)
 $(error SCP_SRC_DIR is not set)
 endif
 	$(SCP) common
-	$(SCP) test $(SCP_SRC_DIR)/$(SCP_TARGET) $(SCP_TARGET_STATIC_DEBUG) $(SCP_TARGET_STATIC_NONDEBUG)
+	$(SCP) test $(SCP_SRC_DIR)/$(SCP_TARGET) $(SCP_TARGET_STATIC_DEBUG) $(SCP_TARGET_STATIC_RELEASE)
 endif
 	@touch $(SYNC_FILE)
 endif

@@ -74,7 +74,7 @@ $Env:TM = "1"
 # Note that these variable won't affect tests that link statically. You should
 # disabled them using TEST_BUILD variable.
 #
-# $Env:PMDK_LIB_PATH_NONDEBUG = "C:\vcpkg\buildtrees\pmdk\src\1.4.1-0ecc9f7f1f\src\x64\Release"
+# $Env:PMDK_LIB_PATH_RELEASE = "C:\vcpkg\buildtrees\pmdk\src\1.4.1-0ecc9f7f1f\src\x64\Release"
 # $Env:PMDK_LIB_PATH_DEBUG = "C:\vcpkg\buildtrees\pmdk\src\1.4.1-0ecc9f7f1f\src\x64\Debug"
 
 #
