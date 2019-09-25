@@ -1863,7 +1863,7 @@ pmemobj_tx_log_snapshots_max_size(size_t *sizes, size_t nsizes)
 	return result;
 
 err_overflow:
-	errno = EOVERFLOW;
+	errno = ERANGE;
 	return SIZE_MAX;
 }
 
@@ -1914,7 +1914,7 @@ pmemobj_tx_log_intents_max_size(size_t nintents)
 	return result;
 
 err_overflow:
-	errno = EOVERFLOW;
+	errno = ERANGE;
 	return SIZE_MAX;
 }
 
