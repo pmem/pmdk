@@ -671,7 +671,7 @@ function ndctl_uninject_error_node() {
 #
 function print_bad_blocks {
 	# XXX sudo should be removed when it is not needed
-	sudo ndctl list -M | \
+	sudo ndctl list -M -n $1 | \
 		grep -e "badblock_count" -e "offset" -e "length" >> $LOG \
 		|| echo "No bad blocks found" >> $LOG
 }
