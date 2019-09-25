@@ -90,8 +90,10 @@ int operation_add_entry(struct operation_context *ctx,
 int operation_add_typed_entry(struct operation_context *ctx,
 	void *ptr, uint64_t value,
 	ulog_operation_type type, enum operation_log_type log_type);
+int operation_user_buffer_verify_align(struct operation_context *ctx,
+		struct user_buffer_def *userbuf);
 int operation_add_user_buffer(struct operation_context *ctx,
-		void *addr, size_t size);
+		struct user_buffer_def *userbuf);
 void operation_set_auto_reserve(struct operation_context *ctx,
 		int auto_reserve);
 void operation_set_any_user_buffer(struct operation_context *ctx,

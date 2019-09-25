@@ -62,6 +62,7 @@ struct tx {
 	struct ravl *ranges;
 
 	VEC(, struct pobj_action) actions;
+	VEC(, struct user_buffer_def) redo_user_buffers;
 
 	pmemobj_tx_callback stage_callback;
 	void *stage_callback_arg;
@@ -195,6 +196,9 @@ tx_action_add(struct tx *tx)
 {
 	size_t entries_size = (VEC_SIZE(&tx->actions) + 1) *
 		sizeof(struct ulog_entry_val);
+
+	entries_size -= tx->user_provided_actions;
+
 	if (operation_reserve(tx->lane->external, entries_size) != 0)
 		return NULL;
 
@@ -691,8 +695,23 @@ tx_construct_user_buffer(struct tx *tx, void *addr, size_t size,
 	if (outer_tx && !operation_get_any_user_buffer(ctx))
 		operation_free_logs(ctx, ULOG_ANY_USER_BUFFER);
 
-	if (operation_add_user_buffer(ctx, addr, size))
+	struct user_buffer_def userbuf = {addr, size};
+	if (operation_user_buffer_verify_align(ctx, &userbuf) != 0)
 		goto err;
+
+	if (type == TX_LOG_TYPE_INTENT) {
+		/*
+		 * Redo log context is not used until transaction commit and
+		 * cannot be used until then, and so the user buffers have to
+		 * be stored and added the operation at commit time.
+		 * This is because atomic operations can executed independently
+		 * in the same lane as a running transaction.
+		 */
+		if (VEC_PUSH_BACK(&tx->redo_user_buffers, userbuf) != 0)
+			goto err;
+	} else {
+		operation_add_user_buffer(ctx, &userbuf);
+	}
 
 	return 0;
 
@@ -726,6 +745,7 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		operation_start(tx->lane->undo);
 
 		VEC_INIT(&tx->actions);
+		VEC_INIT(&tx->redo_user_buffers);
 		PMDK_SLIST_INIT(&tx->tx_entries);
 		PMDK_SLIST_INIT(&tx->tx_locks);
 
@@ -913,6 +933,7 @@ tx_post_commit(struct tx *tx)
 	operation_finish(tx->lane->undo, 0);
 
 	VEC_CLEAR(&tx->actions);
+	VEC_CLEAR(&tx->redo_user_buffers);
 }
 
 /*
@@ -947,6 +968,11 @@ pmemobj_tx_commit(void)
 		pmemops_drain(&pop->p_ops);
 
 		operation_start(tx->lane->external);
+
+		struct user_buffer_def *userbuf;
+		VEC_FOREACH_BY_PTR(userbuf, &tx->redo_user_buffers)
+			operation_add_user_buffer(tx->lane->external, userbuf);
+
 		palloc_publish(&pop->heap, VEC_ARR(&tx->actions),
 			VEC_SIZE(&tx->actions), tx->lane->external);
 
