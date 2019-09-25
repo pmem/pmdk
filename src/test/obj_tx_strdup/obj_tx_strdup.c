@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -67,6 +67,8 @@ enum type_number {
 	TYPE_WCS_ABORT_AFTER_NESTED1,
 	TYPE_ABORT_AFTER_NESTED2,
 	TYPE_WCS_ABORT_AFTER_NESTED2,
+	TYPE_NOFLUSH,
+	TYPE_WCS_NOFLUSH,
 };
 
 #define TEST_STR_1	"Test string 1"
@@ -189,6 +191,14 @@ do_tx_strdup_null(PMEMobjpool *pop)
 	TOID_ASSIGN(wcs, POBJ_FIRST_TYPE_NUM(pop, TYPE_WCS_ABORT));
 	UT_ASSERT(TOID_IS_NULL(str));
 	UT_ASSERT(TOID_IS_NULL(wcs));
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_xstrdup(NULL, TYPE_ABORT, POBJ_XALLOC_NO_ABORT);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(errno, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
 }
 
 /*
@@ -387,6 +397,25 @@ do_tx_strdup_abort_after_nested(PMEMobjpool *pop)
 	UT_ASSERT(TOID_IS_NULL(wcs2));
 }
 
+/*
+ * do_tx_strdup_noflush -- allocates zeroed object
+ */
+static void
+do_tx_strdup_noflush(PMEMobjpool *pop)
+{
+	TX_BEGIN(pop) {
+		errno = 0;
+		pmemobj_tx_xstrdup(TEST_STR_1, TYPE_NOFLUSH,
+				POBJ_XALLOC_NO_FLUSH);
+		pmemobj_tx_xwcsdup(TEST_WCS_1, TYPE_WCS_NOFLUSH,
+				POBJ_XALLOC_NO_FLUSH);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(errno, 0);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -410,6 +439,9 @@ main(int argc, char *argv[])
 		do_tx_strdup_abort_nested(pop);
 		do_tx_strdup_abort_after_nested(pop);
 	}
+
+	do_tx_strdup_noflush(pop);
+
 	pmemobj_close(pop);
 
 	DONE(NULL);
