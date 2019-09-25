@@ -533,7 +533,7 @@ operation_user_buffer_try_insert(PMEMobjpool *pop, void *addr, size_t size)
 		struct user_buffer_def *r = ravl_data(n);
 		void *r_end = (char *)r->addr + r->size;
 
-		if (r_end >= addr && r->addr <= addr_end) {
+		if (r_end > userbuf->addr && r->addr < addr_end) {
 			/* what was found overlaps with what is being added */
 			ret = -1;
 			goto out;
