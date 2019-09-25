@@ -563,7 +563,7 @@ tx_lane_ranges_insert_def(PMEMobjpool *pop, struct tx *tx,
 		rdef->offset, rdef->size);
 
 	int ret = ravl_emplace_copy(tx->ranges, rdef);
-	if (ret == EEXIST)
+	if (ret && errno == EEXIST)
 		FATAL("invalid state of ranges tree");
 
 	return ret;
