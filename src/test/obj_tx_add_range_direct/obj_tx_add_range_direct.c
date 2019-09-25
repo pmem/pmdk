@@ -760,15 +760,30 @@ do_tx_add_range_too_large(PMEMobjpool *pop)
 {
 	TOID(struct object) obj;
 	TOID_ASSIGN(obj, do_tx_zalloc(pop, TYPE_OBJ));
-
+	int ret = 0;
 	TX_BEGIN(pop) {
-		pmemobj_tx_add_range_direct(pmemobj_direct(obj.oid),
+		ret = pmemobj_tx_add_range_direct(pmemobj_direct(obj.oid),
 			PMEMOBJ_MAX_ALLOC_SIZE + 1);
 	} TX_ONCOMMIT {
 		UT_ASSERT(0);
+	} TX_ONABORT {
+		UT_ASSERTeq(errno, EINVAL);
+		UT_ASSERTeq(ret, 0);
 	} TX_END
 
-	UT_ASSERTne(errno, 0);
+	errno = 0;
+	ret = 0;
+
+	TX_BEGIN(pop) {
+		ret = pmemobj_tx_xadd_range_direct(pmemobj_direct(obj.oid),
+				PMEMOBJ_MAX_ALLOC_SIZE + 1, POBJ_XADD_NO_ABORT);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(errno, EINVAL);
+		UT_ASSERTeq(ret, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
 	errno = 0;
 }
 
