@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -62,50 +62,50 @@ dd if=/dev/zero bs=1k count=2 2>> prep$UNITTEST_NUM.log | tr '\0' '1' > $DATA2
 dd if=/dev/zero bs=1k count=2 2>> prep$UNITTEST_NUM.log | tr '\0' '2' >> $DATA2
 
 # fill up Device DAX with some random data (len in hex)
-expect_normal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -l 16KiB < /dev/urandom 2>$LOG
+expect_normal_exit "$DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -l 16KiB < /dev/urandom 2>$LOG"
 
 # check if not zeroed
-expect_abnormal_exit $CMPMAP$EXESUFFIX -z -l 16384 ${DEVICE_DAX_PATH[0]} &>>$LOG
+expect_abnormal_exit "$CMPMAP$EXESUFFIX -z -l 16384 ${DEVICE_DAX_PATH[0]} &>>$LOG"
 
 # zero device (len in dec)
-expect_normal_exit $DAXIO$EXESUFFIX -z -o ${DEVICE_DAX_PATH[0]} -l 16K 2>>$LOG
+expect_normal_exit "$DAXIO$EXESUFFIX -z -o ${DEVICE_DAX_PATH[0]} -l 16K 2>>$LOG"
 
 # check if zeroed
-expect_normal_exit $CMPMAP$EXESUFFIX -z -l 16384 ${DEVICE_DAX_PATH[0]} &>>$LOG
+expect_normal_exit "$CMPMAP$EXESUFFIX -z -l 16384 ${DEVICE_DAX_PATH[0]} &>>$LOG"
 
 # write data from files to Device DAX with various offsets/lengths
 # offset = 0 (default), len = length of input (4K)
 # 2K * 'x' + 2K * 'o'
-expect_normal_exit $DAXIO$EXESUFFIX -i $DATA1 -o ${DEVICE_DAX_PATH[0]} 2>>$LOG
+expect_normal_exit "$DAXIO$EXESUFFIX -i $DATA1 -o ${DEVICE_DAX_PATH[0]} 2>>$LOG"
 
 # offset = 4K, skip = 2K, len = length of remaining part of input (2K)
 # 2K * '2' + 2K * '\0'
-expect_normal_exit $DAXIO$EXESUFFIX -i $DATA2 -o ${DEVICE_DAX_PATH[0]} -k 2KiB -s 4KiB 2>>$LOG
+expect_normal_exit "$DAXIO$EXESUFFIX -i $DATA2 -o ${DEVICE_DAX_PATH[0]} -k 2KiB -s 4KiB 2>>$LOG"
 
 # offset = 8K, skip = 1K, len = 2K
 # 1K * '1' + 1K * '2'
-expect_normal_exit $DAXIO$EXESUFFIX -i $DATA2 -o ${DEVICE_DAX_PATH[0]} -k 1K -s 8K -l 2K 2>>$LOG
+expect_normal_exit "$DAXIO$EXESUFFIX -i $DATA2 -o ${DEVICE_DAX_PATH[0]} -k 1K -s 8K -l 2K 2>>$LOG"
 
 # offset = 10K
 # 8 * 'a'
 echo -n "aaaaaaaa" > $STDIN_TMP
-expect_normal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -s 10K 2>>$LOG < $STDIN_TMP
+expect_normal_exit "$DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -s 10K 2>>$LOG < $STDIN_TMP"
 rm $STDIN_TMP
 
 # zero some fragments
-expect_normal_exit $DAXIO$EXESUFFIX -z -o ${DEVICE_DAX_PATH[0]} -l 256B 2>>$LOG
-expect_normal_exit $DAXIO$EXESUFFIX -z -o ${DEVICE_DAX_PATH[0]} -s 3K -l 128 2>>$LOG
+expect_normal_exit "$DAXIO$EXESUFFIX -z -o ${DEVICE_DAX_PATH[0]} -l 256B 2>>$LOG"
+expect_normal_exit "$DAXIO$EXESUFFIX -z -o ${DEVICE_DAX_PATH[0]} -s 3K -l 128 2>>$LOG"
 
 # dump data to file
-expect_normal_exit $DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o $DATAOUT1 -l 16384 2>>$LOG
+expect_normal_exit "$DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o $DATAOUT1 -l 16384 2>>$LOG"
 
 # dump data to stdout
-expect_normal_exit $DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -l 16384 > $DATAOUT2 2>>$LOG
+expect_normal_exit "$DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -l 16384 > $DATAOUT2 2>>$LOG"
 
 # check content
-expect_normal_exit $DDMAP$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -b 1 -n 16384 -r > $DATALOG
-expect_normal_exit $DDMAP$EXESUFFIX -i $DATAOUT1 -b 1 -n 16384 -r >> $DATALOG
-expect_normal_exit $DDMAP$EXESUFFIX -i $DATAOUT2 -b 1 -n 16384 -r >> $DATALOG
+expect_normal_exit "$DDMAP$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -b 1 -n 16384 -r > $DATALOG"
+expect_normal_exit "$DDMAP$EXESUFFIX -i $DATAOUT1 -b 1 -n 16384 -r >> $DATALOG"
+expect_normal_exit "$DDMAP$EXESUFFIX -i $DATAOUT2 -b 1 -n 16384 -r >> $DATALOG"
 
 check
 
