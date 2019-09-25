@@ -85,6 +85,12 @@ pmemobj_tx_wcsdup
 pmemobj_tx_xadd_range
 pmemobj_tx_xadd_range_direct
 pmemobj_tx_xalloc
+pmemobj_tx_xfree
+pmemobj_tx_xlock
+pmemobj_tx_xlog_append_buffer
+pmemobj_tx_xpublish
+pmemobj_tx_xstrdup
+pmemobj_tx_xwcsdup
 pmemobj_tx_zalloc
 pmemobj_tx_zrealloc
 pmemobj_type_num

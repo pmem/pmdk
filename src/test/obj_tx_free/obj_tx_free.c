@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -101,6 +101,15 @@ do_tx_free_wrong_uuid(PMEMobjpool *pop)
 	} TX_END
 
 	UT_ASSERTeq(ret, -1);
+
+	/* POBJ_XFREE_NO_ABORT flag is set */
+	TX_BEGIN(pop) {
+		ret = pmemobj_tx_xfree(oid, POBJ_XFREE_NO_ABORT);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(ret, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_END
 
 	TOID(struct object) obj;
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_FREE_WRONG_UUID));

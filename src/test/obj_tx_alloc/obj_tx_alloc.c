@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -564,6 +564,18 @@ do_tx_xalloc_zerolen(PMEMobjpool *pop)
 
 	UT_ASSERT(TOID_IS_NULL(obj));
 
+	/* xalloc 0 with POBJ_XALLOC_NO_ABORT flag */
+	TX_BEGIN(pop) {
+		TOID_ASSIGN(obj, pmemobj_tx_xalloc(0, TYPE_XABORT,
+				POBJ_XALLOC_NO_ABORT));
+	} TX_ONCOMMIT {
+		TOID_ASSIGN(obj, OID_NULL);
+	} TX_ONABORT {
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_END
+
+	UT_ASSERT(TOID_IS_NULL(obj));
+
 	TOID(struct object) first;
 	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XABORT));
 	UT_ASSERT(TOID_IS_NULL(first));
@@ -624,6 +636,38 @@ do_tx_xalloc_huge(PMEMobjpool *pop)
 
 	TOID_ASSIGN(first, POBJ_FIRST_TYPE_NUM(pop, TYPE_XZEROED_ABORT));
 	UT_ASSERT(TOID_IS_NULL(first));
+
+	/*
+	 * do xalloc until overfilled and then
+	 * free last successful allocation
+	 */
+	uint64_t tot_allocated = 0, alloc_size = (5 * 1024 *1024);
+	int rc = 0;
+	PMEMoid oid, prev_oid;
+	POBJ_FOREACH_SAFE(pop, oid, prev_oid) {
+		pmemobj_free(&oid);
+	}
+	TOID_ASSIGN(first, pmemobj_first(pop));
+	UT_ASSERT(TOID_IS_NULL(first));
+
+	TX_BEGIN(pop) {
+		while (rc == 0) {
+			oid = pmemobj_tx_xalloc(alloc_size, 0,
+					POBJ_XALLOC_NO_ABORT);
+			if (oid.off == 0)
+				rc = -1;
+			else {
+				tot_allocated += alloc_size;
+				prev_oid = oid;
+			}
+		}
+		rc = pmemobj_tx_free(prev_oid);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(errno, ENOMEM);
+		UT_ASSERTeq(rc, 0);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
 }
 
 /*
