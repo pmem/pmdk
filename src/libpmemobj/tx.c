@@ -62,7 +62,8 @@ struct tx {
 	struct ravl *ranges;
 
 	VEC(, struct pobj_action) actions;
-	VEC(, struct user_buffer_def) redo_user_buffers;
+	VEC(, struct user_buffer_def) redo_userbufs;
+	size_t redo_userbufs_capacity;
 
 	pmemobj_tx_callback stage_callback;
 	void *stage_callback_arg;
@@ -189,17 +190,30 @@ obj_tx_abort_null(int errnum)
 } while (0)
 
 /*
+ * tx_action_reserve -- (internal) reserve space for the given number of actions
+ */
+static int
+tx_action_reserve(struct tx *tx, size_t n)
+{
+	size_t entries_size = (VEC_SIZE(&tx->actions) + n) *
+		sizeof(struct ulog_entry_val);
+
+	/* take the provided user buffers into account when reserving */
+	entries_size -= MIN(tx->redo_userbufs_capacity, entries_size);
+
+	if (operation_reserve(tx->lane->external, entries_size) != 0)
+		return -1;
+
+	return 0;
+}
+
+/*
  * tx_action_add -- (internal) reserve space and add a new tx action
  */
 static struct pobj_action *
 tx_action_add(struct tx *tx)
 {
-	size_t entries_size = (VEC_SIZE(&tx->actions) + 1) *
-		sizeof(struct ulog_entry_val);
-
-	entries_size -= tx->user_provided_actions;
-
-	if (operation_reserve(tx->lane->external, entries_size) != 0)
+	if (tx_action_reserve(tx, 1) != 0)
 		return NULL;
 
 	VEC_INC_BACK(&tx->actions);
@@ -458,7 +472,6 @@ tx_abort(PMEMobjpool *pop, struct lane *lane)
 	ravl_delete_cb(tx->ranges, tx_clean_range, pop);
 	palloc_cancel(&pop->heap,
 		VEC_ARR(&tx->actions), VEC_SIZE(&tx->actions));
-	VEC_CLEAR(&tx->actions);
 	tx->ranges = NULL;
 }
 
@@ -707,8 +720,10 @@ tx_construct_user_buffer(struct tx *tx, void *addr, size_t size,
 		 * This is because atomic operations can executed independently
 		 * in the same lane as a running transaction.
 		 */
-		if (VEC_PUSH_BACK(&tx->redo_user_buffers, userbuf) != 0)
+		if (VEC_PUSH_BACK(&tx->redo_userbufs, userbuf) != 0)
 			goto err;
+		tx->redo_userbufs_capacity +=
+			userbuf.size - TX_INTENT_LOG_BUFFER_OVERHEAD;
 	} else {
 		operation_add_user_buffer(ctx, &userbuf);
 	}
@@ -745,7 +760,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		operation_start(tx->lane->undo);
 
 		VEC_INIT(&tx->actions);
-		VEC_INIT(&tx->redo_user_buffers);
+		VEC_INIT(&tx->redo_userbufs);
+		tx->redo_userbufs_capacity = 0;
 		PMDK_SLIST_INIT(&tx->tx_entries);
 		PMDK_SLIST_INIT(&tx->tx_locks);
 
@@ -931,9 +947,6 @@ static void
 tx_post_commit(struct tx *tx)
 {
 	operation_finish(tx->lane->undo, 0);
-
-	VEC_CLEAR(&tx->actions);
-	VEC_CLEAR(&tx->redo_user_buffers);
 }
 
 /*
@@ -970,7 +983,7 @@ pmemobj_tx_commit(void)
 		operation_start(tx->lane->external);
 
 		struct user_buffer_def *userbuf;
-		VEC_FOREACH_BY_PTR(userbuf, &tx->redo_user_buffers)
+		VEC_FOREACH_BY_PTR(userbuf, &tx->redo_userbufs)
 			operation_add_user_buffer(tx->lane->external, userbuf);
 
 		palloc_publish(&pop->heap, VEC_ARR(&tx->actions),
@@ -1027,6 +1040,7 @@ pmemobj_tx_end(void)
 		tx->pop = NULL;
 		tx->stage = TX_STAGE_NONE;
 		VEC_DELETE(&tx->actions);
+		VEC_DELETE(&tx->redo_userbufs);
 
 		if (tx->stage_callback) {
 			pmemobj_tx_callback cb = tx->stage_callback;
@@ -1777,10 +1791,7 @@ pmemobj_tx_publish(struct pobj_action *actv, size_t actvcnt)
 	ASSERT_TX_STAGE_WORK(tx);
 	PMEMOBJ_API_START();
 
-	size_t entries_size = (VEC_SIZE(&tx->actions) + actvcnt) *
-		sizeof(struct ulog_entry_val);
-
-	if (operation_reserve(tx->lane->external, entries_size) != 0) {
+	if (tx_action_reserve(tx, actvcnt) != 0) {
 		int ret = obj_tx_abort_err(ENOMEM);
 		PMEMOBJ_API_END();
 		return ret;

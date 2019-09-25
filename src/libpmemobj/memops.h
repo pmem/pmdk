@@ -92,7 +92,7 @@ int operation_add_typed_entry(struct operation_context *ctx,
 	ulog_operation_type type, enum operation_log_type log_type);
 int operation_user_buffer_verify_align(struct operation_context *ctx,
 		struct user_buffer_def *userbuf);
-int operation_add_user_buffer(struct operation_context *ctx,
+void operation_add_user_buffer(struct operation_context *ctx,
 		struct user_buffer_def *userbuf);
 void operation_set_auto_reserve(struct operation_context *ctx,
 		int auto_reserve);
