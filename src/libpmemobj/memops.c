@@ -597,6 +597,7 @@ operation_add_user_buffer(struct operation_context *ctx,
 	else /* get last element from vector */
 		last_log = ulog_by_offset(VEC_BACK(&ctx->next), ctx->p_ops);
 
+	ASSERTne(last_log, NULL);
 	size_t next_size = sizeof(last_log->next);
 	VALGRIND_ADD_TO_TX(&last_log->next, next_size);
 	last_log->next = buffer_offset;
