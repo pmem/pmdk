@@ -153,6 +153,16 @@ do_tx_max_alloc_tx_publish_abort(PMEMobjpool *pop)
 		UT_FATAL("Can extend redo log despite the pool is full");
 	} TX_END
 
+	/* it should fail without abort transaction */
+	TX_BEGIN(pop) {
+		pmemobj_tx_xpublish(act, REDO_OVERFLOW, POBJ_XPUBLISH_NO_ABORT);
+	} TX_ONABORT {
+		ASSERT(0);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(errno, ENOMEM);
+		UT_OUT("!Cannot extend redo log - the pool is full");
+	} TX_END
+
 	free_pool(allocated, nallocated);
 	pmemobj_cancel(pop, act, REDO_OVERFLOW);
 }
