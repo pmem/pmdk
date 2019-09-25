@@ -39,7 +39,7 @@
 require_test_type medium
 
 require_fs_type pmem non-pmem
-require_build_type nondebug debug
+require_build_type release debug
 
 configure_valgrind memcheck force-enable $PMDK_LIB_PATH/libpmemobj.so
 export PMEMOBJ_VG_CHECK_UNDEF=1

@@ -40,7 +40,7 @@
 LIBPMEM_SO=${PMDK_LIB_PATH}/libpmem.so.1
 
 require_test_type medium
-require_build_type debug nondebug
+require_build_type debug release
 require_fs_type any
 require_pmemcheck_version_ge 1 0 $LIBPMEM_SO
 require_pmemcheck_version_lt 2 0 $LIBPMEM_SO

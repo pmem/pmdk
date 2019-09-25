@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@ include ../Makefile.inc
 
 INCS += -I../../jemalloc/include/
 ifneq ($(DEBUG),1)
-INCS += -I../../nondebug/libvmem/jemalloc/include/
+INCS += -I../../release/libvmem/jemalloc/include/
 else
 INCS += -I../../debug/libvmem/jemalloc/include/
 endif

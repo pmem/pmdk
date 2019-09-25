@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,7 +39,7 @@
 
 DIR_CHECK_MAX_MMAP="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 FILE_MAX_DAX_DEVICES="$DIR_CHECK_MAX_MMAP/max_dax_devices"
-ANONYMOUS_MMAP="$DIR_CHECK_MAX_MMAP/anonymous_mmap.static-nondebug"
+ANONYMOUS_MMAP="$DIR_CHECK_MAX_MMAP/anonymous_mmap.static-release"
 
 source "$DIR_CHECK_MAX_MMAP/../../testconfig.sh"
 

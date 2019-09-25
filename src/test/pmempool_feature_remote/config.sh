@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@
 #
 
 CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+CONF_GLOBAL_BUILD_TYPE="debug release"
 
 # pmempool feature does not support poolsets with remote replicas
 # unittest contains only negative scenarios so no point to loop over

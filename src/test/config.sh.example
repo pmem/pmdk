@@ -51,7 +51,7 @@
 
 # The same for any other global requirements:
 #	CONF_FS_TYPE[<num>]=any
-#	CONF_BUILD_TYPE[<num>]="debug nondebug"
+#	CONF_BUILD_TYPE[<num>]="debug release"
 #	CONF_RPMEM_PROVIDER[<num>]=verbs
 #	CONF_RPMEM_PMETHOD[<num>]=GPSPM
 #	CONF_RPMEM_VALGRIND[<num>]=y

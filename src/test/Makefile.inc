@@ -70,7 +70,7 @@ ifeq ($(LIBPMEMPOOL), y)
 LIBPMEM=y
 DYNAMIC_LIBS += -lpmempool
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmempool.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmempool.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libpmempool.a
 CFLAGS += -DUSE_LIBDL
 endif
 
@@ -78,21 +78,21 @@ ifeq ($(LIBPMEMBLK), y)
 LIBPMEM=y
 DYNAMIC_LIBS += -lpmemblk
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemblk.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemblk.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libpmemblk.a
 endif
 
 ifeq ($(LIBPMEMLOG), y)
 LIBPMEM=y
 DYNAMIC_LIBS += -lpmemlog
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemlog.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemlog.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libpmemlog.a
 endif
 
 ifeq ($(LIBPMEMOBJ), y)
 LIBPMEM=y
 DYNAMIC_LIBS += -lpmemobj
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemobj.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemobj.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libpmemobj.a
 endif
 
 ifeq ($(LIBPMEMOBJ), internal-debug)
@@ -123,44 +123,44 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 INCS += -I$(TOP)/src/libpmemobj
 endif
 
-ifeq ($(LIBPMEMOBJ), internal-nondebug)
+ifeq ($(LIBPMEMOBJ), internal-release)
 LIBPMEM=y
-LIBPMEMCOMMON=internal-nondebug
-OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
-	$(TOP)/src/nondebug/libpmemobj/bucket.o\
-	$(TOP)/src/nondebug/libpmemobj/container_ravl.o\
-	$(TOP)/src/nondebug/libpmemobj/container_seglists.o\
-	$(TOP)/src/nondebug/libpmemobj/critnib.o\
-	$(TOP)/src/nondebug/libpmemobj/ctl_debug.o\
-	$(TOP)/src/nondebug/libpmemobj/heap.o\
-	$(TOP)/src/nondebug/libpmemobj/lane.o\
-	$(TOP)/src/nondebug/libpmemobj/libpmemobj.o\
-	$(TOP)/src/nondebug/libpmemobj/list.o\
-	$(TOP)/src/nondebug/libpmemobj/memblock.o\
-	$(TOP)/src/nondebug/libpmemobj/memops.o\
-	$(TOP)/src/nondebug/libpmemobj/obj.o\
-	$(TOP)/src/nondebug/libpmemobj/palloc.o\
-	$(TOP)/src/nondebug/libpmemobj/pmalloc.o\
-	$(TOP)/src/nondebug/libpmemobj/ravl.o\
-	$(TOP)/src/nondebug/libpmemobj/recycler.o\
-	$(TOP)/src/nondebug/libpmemobj/ulog.o\
-	$(TOP)/src/nondebug/libpmemobj/sync.o\
-	$(TOP)/src/nondebug/libpmemobj/tx.o\
-	$(TOP)/src/nondebug/libpmemobj/stats.o
+LIBPMEMCOMMON=internal-release
+OBJS += $(TOP)/src/release/libpmemobj/alloc_class.o\
+	$(TOP)/src/release/libpmemobj/bucket.o\
+	$(TOP)/src/release/libpmemobj/container_ravl.o\
+	$(TOP)/src/release/libpmemobj/container_seglists.o\
+	$(TOP)/src/release/libpmemobj/critnib.o\
+	$(TOP)/src/release/libpmemobj/ctl_debug.o\
+	$(TOP)/src/release/libpmemobj/heap.o\
+	$(TOP)/src/release/libpmemobj/lane.o\
+	$(TOP)/src/release/libpmemobj/libpmemobj.o\
+	$(TOP)/src/release/libpmemobj/list.o\
+	$(TOP)/src/release/libpmemobj/memblock.o\
+	$(TOP)/src/release/libpmemobj/memops.o\
+	$(TOP)/src/release/libpmemobj/obj.o\
+	$(TOP)/src/release/libpmemobj/palloc.o\
+	$(TOP)/src/release/libpmemobj/pmalloc.o\
+	$(TOP)/src/release/libpmemobj/ravl.o\
+	$(TOP)/src/release/libpmemobj/recycler.o\
+	$(TOP)/src/release/libpmemobj/ulog.o\
+	$(TOP)/src/release/libpmemobj/sync.o\
+	$(TOP)/src/release/libpmemobj/tx.o\
+	$(TOP)/src/release/libpmemobj/stats.o
 
 INCS += -I$(TOP)/src/libpmemobj
 endif
 
-ifeq ($(LIBPMEM), internal-nondebug)
+ifeq ($(LIBPMEM), internal-release)
 OBJS +=\
-	$(TOP)/src/nondebug/libpmem/libpmem.o\
-	$(TOP)/src/nondebug/libpmem/memops_generic.o\
-	$(TOP)/src/nondebug/libpmem/pmem.o\
-	$(TOP)/src/nondebug/libpmem/pmem_posix.o
+	$(TOP)/src/release/libpmem/libpmem.o\
+	$(TOP)/src/release/libpmem/memops_generic.o\
+	$(TOP)/src/release/libpmem/pmem.o\
+	$(TOP)/src/release/libpmem/pmem_posix.o
 
 include $(TOP)/src/libpmem/$(ARCH)/sources.inc
 OBJS_MEM = $(LIBPMEM_ARCH_SOURCE:.c=.o)
-OBJS += $(addprefix $(TOP)/src/nondebug/libpmem/, ${OBJS_MEM})
+OBJS += $(addprefix $(TOP)/src/release/libpmem/, ${OBJS_MEM})
 
 INCS += -I$(TOP)/src/libpmem
 INCS += -I$(TOP)/src/libpmem/$(ARCH)
@@ -187,35 +187,35 @@ OBJS += $(LIBS_DIR)/debug/libpmemcommon.a
 INCS += -I$(TOP)/src/common
 endif
 
-ifeq ($(LIBPMEMCOMMON), internal-nondebug)
+ifeq ($(LIBPMEMCOMMON), internal-release)
 OBJS +=\
-	$(TOP)/src/nondebug/common/alloc.o\
-	$(TOP)/src/nondebug/common/badblock_$(OS_DIMM).o\
-	$(TOP)/src/nondebug/common/badblock.o\
-	$(TOP)/src/nondebug/common/ctl.o\
-	$(TOP)/src/nondebug/common/ctl_prefault.o\
-	$(TOP)/src/nondebug/common/ctl_sds.o\
-	$(TOP)/src/nondebug/common/ctl_fallocate.o\
-	$(TOP)/src/nondebug/common/ctl_cow.o\
-	$(call osdep, $(TOP)/src/nondebug/common/extent,.o)\
-	$(TOP)/src/nondebug/common/file.o\
-	$(TOP)/src/nondebug/common/file_posix.o\
-	$(TOP)/src/nondebug/common/fs_posix.o\
-	$(TOP)/src/nondebug/common/mmap.o\
-	$(TOP)/src/nondebug/common/mmap_posix.o\
-	$(TOP)/src/nondebug/common/os_posix.o\
-	$(TOP)/src/nondebug/common/os_thread_posix.o\
-	$(TOP)/src/nondebug/common/os_deep_linux.o\
-	$(TOP)/src/nondebug/common/os_auto_flush_linux.o\
-	$(TOP)/src/nondebug/common/os_dimm_$(OS_DIMM).o\
-	$(TOP)/src/nondebug/common/out.o\
-	$(TOP)/src/nondebug/common/pool_hdr.o\
-	$(TOP)/src/nondebug/common/set.o\
-	$(TOP)/src/nondebug/common/shutdown_state.o\
-	$(TOP)/src/nondebug/common/util.o\
-	$(TOP)/src/nondebug/common/util_posix.o\
-	$(TOP)/src/nondebug/common/uuid.o\
-	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)
+	$(TOP)/src/release/common/alloc.o\
+	$(TOP)/src/release/common/badblock_$(OS_DIMM).o\
+	$(TOP)/src/release/common/badblock.o\
+	$(TOP)/src/release/common/ctl.o\
+	$(TOP)/src/release/common/ctl_prefault.o\
+	$(TOP)/src/release/common/ctl_sds.o\
+	$(TOP)/src/release/common/ctl_fallocate.o\
+	$(TOP)/src/release/common/ctl_cow.o\
+	$(call osdep, $(TOP)/src/release/common/extent,.o)\
+	$(TOP)/src/release/common/file.o\
+	$(TOP)/src/release/common/file_posix.o\
+	$(TOP)/src/release/common/fs_posix.o\
+	$(TOP)/src/release/common/mmap.o\
+	$(TOP)/src/release/common/mmap_posix.o\
+	$(TOP)/src/release/common/os_posix.o\
+	$(TOP)/src/release/common/os_thread_posix.o\
+	$(TOP)/src/release/common/os_deep_linux.o\
+	$(TOP)/src/release/common/os_auto_flush_linux.o\
+	$(TOP)/src/release/common/os_dimm_$(OS_DIMM).o\
+	$(TOP)/src/release/common/out.o\
+	$(TOP)/src/release/common/pool_hdr.o\
+	$(TOP)/src/release/common/set.o\
+	$(TOP)/src/release/common/shutdown_state.o\
+	$(TOP)/src/release/common/util.o\
+	$(TOP)/src/release/common/util_posix.o\
+	$(TOP)/src/release/common/uuid.o\
+	$(call osdep, $(TOP)/src/release/common/uuid,.o)
 
 INCS += -I$(TOP)/src/common
 endif
@@ -256,19 +256,19 @@ endif
 ifeq ($(LIBPMEM),y)
 DYNAMIC_LIBS += -lpmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libpmem.a
 endif
 
 ifeq ($(LIBRPMEM),y)
 DYNAMIC_LIBS += -lrpmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/librpmem.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/librpmem.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/librpmem.a
 endif
 
 ifeq ($(LIBVMEM),y)
 DYNAMIC_LIBS += -lvmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libvmem.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libvmem.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/release/libvmem.a
 endif
 
 ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ)$(LIBVMEM)$(LIBRPMEM),)
@@ -392,8 +392,8 @@ SCP_TARGET_STATIC_DEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-debug
 endif
 ifneq ($(BUILD_STATIC_NONDEBUG),n)
 ifneq ($(DEBUG),1)
-TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
-SCP_TARGET_STATIC_NONDEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-nondebug
+TARGET_STATIC_NONDEBUG=$(TARGET).static-release
+SCP_TARGET_STATIC_NONDEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-release
 endif
 endif
 endif
@@ -545,10 +545,10 @@ ifeq ($(USE_OBJ_VERIFY), y)
 all: $(TOOLS)/obj_verify/obj_verify
 endif
 
-$(TOOLS)/pmemdetect/pmemdetect.static-nondebug:
+$(TOOLS)/pmemdetect/pmemdetect.static-release:
 	$(MAKE) -C $(TOOLS)/pmemdetect all
 
-all: $(TOOLS)/pmemdetect/pmemdetect.static-nondebug
+all: $(TOOLS)/pmemdetect/pmemdetect.static-release
 
 sparse:
 	$(if $(TARGET), $(sparse-c))

@@ -113,20 +113,20 @@ LDFLAGS += -Wl,-z,relro -Wl,--warn-common -Wl,--fatal-warnings $(EXTRA_LDFLAGS)
 ifeq ($(DEBUG),1)
 LDFLAGS += -L$(TOP)/src/debug
 else
-LDFLAGS += -L$(TOP)/src/nondebug
+LDFLAGS += -L$(TOP)/src/release
 endif
 TARGET_DIR=$(DESTDIR)$(bindir)
 BASH_COMP_FILES ?=
 BASH_COMP_DESTDIR = $(DESTDIR)$(bashcompdir)
 
 ifneq ($(DEBUG),1)
-TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
+TARGET_STATIC_NONDEBUG=$(TARGET).static-release
 endif
 TARGET_STATIC_DEBUG=$(TARGET).static-debug
 
 LIBSDIR=$(TOP)/src
 LIBSDIR_DEBUG=$(LIBSDIR)/debug
-LIBSDIR_NONDEBUG=$(LIBSDIR)/nondebug
+LIBSDIR_NONDEBUG=$(LIBSDIR)/release
 
 ifneq ($(DEBUG),)
 LIBSDIR_PRIV=$(LIBSDIR_DEBUG)

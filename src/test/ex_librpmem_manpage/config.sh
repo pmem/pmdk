@@ -38,7 +38,7 @@
 # since it is missing support in Linux kernel
 CONF_GLOBAL_FS_TYPE=non-pmem
 
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+CONF_GLOBAL_BUILD_TYPE="debug release"
 CONF_GLOBAL_TEST_TYPE=short
 
 CONF_GLOBAL_RPMEM_PROVIDER=all

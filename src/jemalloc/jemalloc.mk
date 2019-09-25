@@ -1,4 +1,4 @@
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@
 ifeq ($(DEBUG),1)
 OBJDIR = debug
 else
-OBJDIR = nondebug
+OBJDIR = release
 endif
 
 JEMALLOC_DIR = $(realpath ../jemalloc)

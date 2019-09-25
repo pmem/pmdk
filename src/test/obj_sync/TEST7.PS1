@@ -39,7 +39,7 @@
 
 require_test_type medium
 require_fs_type none
-require_build_type debug nondebug
+require_build_type debug release
 
 setup
 

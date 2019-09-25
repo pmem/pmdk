@@ -37,7 +37,7 @@
 
 . ../unittest/unittest.sh
 
-require_build_type debug nondebug
+require_build_type debug release
 require_test_type medium
 
 setup

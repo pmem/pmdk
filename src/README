@@ -12,9 +12,9 @@ The subdirectory "include" contains header files that get delivered
 along with the libraries.  Everything else is internal to the libraries
 and lives in this directory.
 
-Two versions of the libraries are built, a debug version and a nondebug
+Two versions of the libraries are built, a debug version and a release
 version.  The object files and the libraries themselves end up in the
-subdirectories "debug" and "nondebug".
+subdirectories "debug" and "release".
 
 See the top-level README for build, test, and installation instructions.
 The basic "make" and "make test" targets also work from this directory.

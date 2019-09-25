@@ -63,8 +63,8 @@ create_poolset $ROOT_DIR/pool1.set\
 	8M:$PART_DIR/pool1.part.2:x\
 	8M:$PART_DIR/pool1.part.3:x
 
-expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/pool0.set
-expect_normal_exit $PMEMPOOL.static-nondebug rm -f -s $ROOT_DIR/pool1.set
+expect_normal_exit $PMEMPOOL.static-release rm -f -s $ROOT_DIR/pool0.set
+expect_normal_exit $PMEMPOOL.static-release rm -f -s $ROOT_DIR/pool1.set
 
 expect_normal_exit ./rpmemd_db$EXESUFFIX $LOG_FILE $ROOT_DIR \
 				pool0.set pool1.set

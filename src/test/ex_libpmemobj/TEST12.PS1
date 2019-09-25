@@ -36,7 +36,7 @@
 
 . ..\unittest\unittest.PS1
 
-require_build_type debug nondebug
+require_build_type debug release
 require_test_type medium
 require_no_unicode
 

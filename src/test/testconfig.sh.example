@@ -80,7 +80,7 @@
 
 #
 # Overwrite available build types:
-# debug, nondebug, static-debug, static-nondebug, all (default)
+# debug, release, static-debug, static-release, all (default)
 #
 #TEST_BUILD=all
 

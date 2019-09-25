@@ -50,7 +50,7 @@ if sys.platform == 'win32':
     RELEASE_LIBDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'libs'))
 else:
     DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
-    RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
+    RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'release'))
 
 
 def get_tool_path(ctx, name):

@@ -39,7 +39,7 @@
 
 require_test_type medium
 
-require_build_type nondebug static-nondebug
+require_build_type release static-release
 
 setup
 

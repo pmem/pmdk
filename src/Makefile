@@ -100,10 +100,10 @@ SCOPE_HDR_DIRS = $(SCOPE_DIRS) include jemalloc/src\
 		debug/libvmmalloc/jemalloc/include/jemalloc\
 		debug/libvmem/jemalloc/include/jemalloc/internal\
 		debug/libvmmalloc/jemalloc/include/jemalloc/internal\
-		nondebug/libvmem/jemalloc/include/jemalloc\
-		nondebug/libvmmalloc/jemalloc/include/jemalloc\
-		nondebug/libvmem/jemalloc/include/jemalloc/internal\
-		nondebug/libvmmalloc/jemalloc/include/jemalloc/internal
+		release/libvmem/jemalloc/include/jemalloc\
+		release/libvmmalloc/jemalloc/include/jemalloc\
+		release/libvmem/jemalloc/include/jemalloc/internal\
+		release/libvmmalloc/jemalloc/include/jemalloc/internal
 
 SCOPE_SRC_FILES = $(foreach d, $(SCOPE_SRC_DIRS), $(wildcard $(d)/*.c))
 SCOPE_HDR_FILES = $(foreach d, $(SCOPE_HDR_DIRS), $(wildcard $(D)/*.h))

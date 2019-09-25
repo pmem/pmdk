@@ -39,7 +39,7 @@ configure_valgrind force-disable
 require_test_type medium
 
 # runs too long on debug builds
-require_build_type nondebug
+require_build_type release
 
 setup
 

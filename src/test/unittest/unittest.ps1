@@ -1069,7 +1069,7 @@ function setup {
     $DEBUG_DIR = '..\..\x64\Debug'
     $RELEASE_DIR = '..\..\x64\Release'
 
-    if ($Env:BUILD -eq 'nondebug') {
+    if ($Env:BUILD -eq 'release') {
         if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
             $Env:PMDK_LIB_PATH_NONDEBUG = $RELEASE_DIR + '\libs\'
         }
@@ -1130,7 +1130,7 @@ if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
 if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠏⠍⠙⠅ɗPMDKӜ⥺🙋"}
 if (-Not $Env:DIRSUFFIX) { $Env:DIRSUFFIX = ""}
 
-if ($Env:BUILD -eq 'nondebug') {
+if ($Env:BUILD -eq 'release') {
     if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
         $PMEMPOOL = $RELEASE_DIR + "\libs\pmempool$Env:EXESUFFIX"
     } else {

@@ -120,21 +120,21 @@ LIB_TOOLS="../../tools"
 # Paths to some useful tools
 [ "$PMEMPOOL" ] || PMEMPOOL=$LIB_TOOLS/pmempool/pmempool
 [ "$DAXIO" ] || DAXIO=$LIB_TOOLS/daxio/daxio
-[ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-nondebug
-[ "$BTTCREATE" ] || BTTCREATE=$TOOLS/bttcreate/bttcreate.static-nondebug
+[ "$PMEMSPOIL" ] || PMEMSPOIL=$TOOLS/pmemspoil/pmemspoil.static-release
+[ "$BTTCREATE" ] || BTTCREATE=$TOOLS/bttcreate/bttcreate.static-release
 [ "$PMEMWRITE" ] || PMEMWRITE=$TOOLS/pmemwrite/pmemwrite
 [ "$PMEMALLOC" ] || PMEMALLOC=$TOOLS/pmemalloc/pmemalloc
 [ "$PMEMOBJCLI" ] || PMEMOBJCLI=$TOOLS/pmemobjcli/pmemobjcli
-[ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-nondebug
+[ "$PMEMDETECT" ] || PMEMDETECT=$TOOLS/pmemdetect/pmemdetect.static-release
 [ "$PMREORDER" ] || PMREORDER=$LIB_TOOLS/pmreorder/pmreorder.py
 [ "$FIP" ] || FIP=$TOOLS/fip/fip
 [ "$DDMAP" ] || DDMAP=$TOOLS/ddmap/ddmap
 [ "$CMPMAP" ] || CMPMAP=$TOOLS/cmpmap/cmpmap
 [ "$EXTENTS" ] || EXTENTS=$TOOLS/extents/extents
-[ "$FALLOCATE_DETECT" ] || FALLOCATE_DETECT=$TOOLS/fallocate_detect/fallocate_detect.static-nondebug
+[ "$FALLOCATE_DETECT" ] || FALLOCATE_DETECT=$TOOLS/fallocate_detect/fallocate_detect.static-release
 [ "$OBJ_VERIFY" ] || OBJ_VERIFY=$TOOLS/obj_verify/obj_verify
-[ "$USC_PERMISSION" ] || USC_PERMISSION=$TOOLS/usc_permission_check/usc_permission_check.static-nondebug
-[ "$ANONYMOUS_MMAP" ] || ANONYMOUS_MMAP=$TOOLS/anonymous_mmap/anonymous_mmap.static-nondebug
+[ "$USC_PERMISSION" ] || USC_PERMISSION=$TOOLS/usc_permission_check/usc_permission_check.static-release
+[ "$ANONYMOUS_MMAP" ] || ANONYMOUS_MMAP=$TOOLS/anonymous_mmap/anonymous_mmap.static-release
 
 # force globs to fail if they don't match
 shopt -s failglob
@@ -205,10 +205,10 @@ debug|static-debug)
 		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_DEBUG
 	fi
 	;;
-nondebug|static-nondebug)
+release|static-release)
 	if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
-		PMDK_LIB_PATH=../../nondebug
-		REMOTE_PMDK_LIB_PATH=../nondebug
+		PMDK_LIB_PATH=../../release
+		REMOTE_PMDK_LIB_PATH=../release
 	else
 		PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
 		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
@@ -993,7 +993,7 @@ function check_pool() {
 		then
 			echo "$UNITTEST_NAME: checking consistency of pool ${1}"
 		fi
-		${PMEMPOOL}.static-nondebug check $1 2>&1 1>>$CHECK_POOL_LOG_FILE
+		${PMEMPOOL}.static-release check $1 2>&1 1>>$CHECK_POOL_LOG_FILE
 	fi
 }
 
@@ -1911,14 +1911,14 @@ function require_no_asan() {
 	debug)
 		require_no_asan_for ../../debug/libpmem.so
 		;;
-	nondebug)
-		require_no_asan_for ../../nondebug/libpmem.so
+	release)
+		require_no_asan_for ../../release/libpmem.so
 		;;
 	static-debug)
 		require_no_asan_for ../../debug/libpmem.a
 		;;
-	static-nondebug)
-		require_no_asan_for ../../nondebug/libpmem.a
+	static-release)
+		require_no_asan_for ../../release/libpmem.a
 		;;
 	esac
 }
@@ -2977,7 +2977,7 @@ check_arena()
 #
 function dump_pool_info() {
 	# ignore selected header fields that differ by definition
-	${PMEMPOOL}.static-nondebug info $* | sed -e "/^UUID/,/^Checksum/d"
+	${PMEMPOOL}.static-release info $* | sed -e "/^UUID/,/^Checksum/d"
 }
 
 #
@@ -3171,7 +3171,7 @@ function is_valgrind_enabled_on_node() {
 function pack_all_libs() {
 	local LIBS_TAR_DIR=$(pwd)/$1
 	cd $DIR_SRC
-	tar -cf $LIBS_TAR_DIR ./debug/*.so* ./nondebug/*.so*
+	tar -cf $LIBS_TAR_DIR ./debug/*.so* ./release/*.so*
 	cd - > /dev/null
 }
 

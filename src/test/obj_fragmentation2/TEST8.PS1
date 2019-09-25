@@ -40,7 +40,7 @@
 require_test_type long
 
 require_fs_type pmem
-require_build_type nondebug
+require_build_type release
 
 setup
 

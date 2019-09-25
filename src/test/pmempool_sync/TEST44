@@ -44,7 +44,7 @@
 
 require_test_type medium
 require_fs_type non-pmem
-require_build_type debug nondebug
+require_build_type debug release
 require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
 
 setup

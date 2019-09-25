@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -199,7 +199,7 @@ foreach my $arg (@ARGV) {
 			   ($full eq './.git' ||
 			    $full eq './src/jemalloc' ||
 			    $full eq './src/debug' ||
-			    $full eq './src/nondebug' ||
+			    $full eq './src/release' ||
 			    $full eq './rpmbuild' ||
 			    $full eq './dpkgbuild')) {
 				$File::Find::prune = 1;

@@ -1,5 +1,5 @@
 ﻿#
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -105,7 +105,7 @@ class Config {
     #
     setBuildtype([string]$buildtype) {
         if ($buildtype -eq "all") {
-            $this.buildtype = "debug nondebug"
+            $this.buildtype = "debug release"
         } else {
             $this.buildtype = $buildtype
         }
@@ -141,7 +141,7 @@ Write-Host "Usage: $name [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-typ
     -v      be verbose
     -i test-dir run test(s) from this test directory (default is all)
     -b build-type   run only specified build type
-            build-type: debug, nondebug, all (default)
+            build-type: debug, release, all (default)
     -t test-type    run only specified test type
             test-type: check (default), short, medium, long, all
             where: check = short + medium; all = short + medium + long
@@ -163,14 +163,14 @@ Write-Host "Usage: $name [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-typ
 # get_build_dirs -- returns the directories to pick the test binaries from
 #
 # example, to get release build dirs
-#	get_build_dirs "nondebug"
+#	get_build_dirs "release"
 #
 $DEBUG_DIR = '..\..\x64\Debug'
 $RELEASE_DIR = '..\..\x64\Release'
 
 function get_build_dirs() {
     param(
-        [ValidateSet("debug", "nondebug")]
+        [ValidateSet("debug", "release")]
         [string]$build
     )
 	$build_dirs = @()
@@ -296,7 +296,7 @@ function runtest {
                 $Env:EXE_DIR = $(get_build_dirs $build)[0]
                 $Env:EXAMPLES_DIR = $(get_build_dirs $build)[1]
 
-                if ($Env:BUILD -eq 'nondebug') {
+                if ($Env:BUILD -eq 'release') {
                     if (-Not $Env:PMDK_LIB_PATH_NONDEBUG) {
                         $Env:LIBS_DIR = $(get_build_dirs $build)[2]
                     } else {

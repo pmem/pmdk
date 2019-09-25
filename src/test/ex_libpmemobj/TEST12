@@ -45,7 +45,7 @@ configure_valgrind pmemcheck force-disable $EX_PATH
 
 require_test_type medium
 
-require_build_type debug nondebug
+require_build_type debug release
 
 setup
 

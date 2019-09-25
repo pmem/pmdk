@@ -1,5 +1,5 @@
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,5 +48,5 @@ TESTCONFIG=$(TOP)/src/test/testconfig.sh
 
 all: max_dax_devices
 
-max_dax_devices: $(TESTCONFIG) check_max_mmap.sh anonymous_mmap.static-nondebug
+max_dax_devices: $(TESTCONFIG) check_max_mmap.sh anonymous_mmap.static-release
 	@./check_max_mmap.sh

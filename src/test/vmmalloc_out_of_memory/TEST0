@@ -42,7 +42,7 @@ require_test_type medium
 
 require_fs_type any
 # there's no point in testing statically linked builds
-require_build_type debug nondebug
+require_build_type debug release
 require_no_asan
 
 setup

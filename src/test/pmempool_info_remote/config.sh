@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,7 @@
 set -e
 
 CONF_GLOBAL_FS_TYPE=any
-CONF_GLOBAL_BUILD_TYPE="debug nondebug"
+CONF_GLOBAL_BUILD_TYPE="debug release"
 
 CONF_GLOBAL_RPMEM_PROVIDER=sockets
 CONF_GLOBAL_RPMEM_PMETHOD=GPSPM

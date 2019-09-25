@@ -51,7 +51,7 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 -n			dry run
 -v			be verbose
 -b build-type		run only specified build type
-			build-type: debug, nondebug, static-debug, static-nondebug, all (default)
+			build-type: debug, release, static-debug, static-release, all (default)
 -t test-type		run only specified test type
 			test-type: check (default), short, medium, long, all
 			where: check = short + medium; all = short + medium + long
@@ -363,7 +363,7 @@ runtest() {
 		}
 
 		fss=$(intersection "$fstype" "$req_fstype" "none pmem non-pmem any")
-		builds=$(intersection "$buildtype" "$req_buildtype" "debug nondebug static-debug static-nondebug")
+		builds=$(intersection "$buildtype" "$req_buildtype" "debug release static-debug static-release")
 		provs=$(intersection "$provider" "$req_provider" "verbs sockets")
 		pmeths=$(intersection "$pmethod" "$req_pmethod" "GPSPM APM")
 
@@ -491,7 +491,7 @@ verbose_tests=
 [ -n "$KEEP_GOING" ] && keep_going=$KEEP_GOING
 [ -n "$VERBOSE_TESTS" ] && verbose_tests="$VERBOSE_TESTS"
 
-PMEMDETECT="tools/pmemdetect/pmemdetect.static-nondebug"
+PMEMDETECT="tools/pmemdetect/pmemdetect.static-release"
 pmemdetect() {
 	LD_LIBRARY_PATH=$LIBNDCTL_LD_LIBRARY_PATHS:$LD_LIBRARY_PATH $PMEMDETECT "$@"
 }
@@ -565,7 +565,7 @@ do
 		buildtype="$buildtype $2"
 		case "$2"
 		in
-		debug|nondebug|static-debug|static-nondebug|all)
+		debug|release|static-debug|static-release|all)
 			;;
 		*)
 			usage "bad build-type: $buildtype"

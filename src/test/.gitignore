@@ -9,7 +9,7 @@ testconfig.py
 testfile*
 # ignore static binaries generated for testing
 *.static-debug
-*.static-nondebug
+*.static-release
 libs.tar
 *.synced
 .sync-dir

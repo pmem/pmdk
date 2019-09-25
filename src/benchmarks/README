@@ -9,7 +9,7 @@ Benchmarks may be built and run from this directory using:
 	$ make run
 
 See how to run benchmarks manually using:
-	$ LD_LIBRARY_PATH=../nondebug ./pmembench --help
+	$ LD_LIBRARY_PATH=../release ./pmembench --help
 
 ** DEPENDENCIES: **
 In order to build benchmarks you need to install glib-2.0 development

@@ -52,7 +52,7 @@ parse_lib() {
 
 }
 
-if [ "$BUILD" = "debug" -o "$BUILD" = "nondebug" ]; then
+if [ "$BUILD" = "debug" -o "$BUILD" = "release" ]; then
 	parse_lib -D $PMDK_LIB_PATH/libpmemlog.so.1
 else
 	parse_lib -g $PMDK_LIB_PATH/libpmemlog.a

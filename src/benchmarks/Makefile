@@ -106,7 +106,7 @@ LDFLAGS = -L$(LIBS_PATH) $(OS_LIBS)
 LDFLAGS += -L../examples/libpmemobj/map
 LDFLAGS += $(EXTRA_LDFLAGS)
 ifeq ($(DEBUG),)
-LIBS += ../nondebug/libpmemcommon.a
+LIBS += ../release/libpmemcommon.a
 else
 LIBS += ../debug/libpmemcommon.a
 endif
@@ -169,7 +169,7 @@ OBJS += pmemobj.o
 
 ifeq ($(DEBUG),)
 CXXFLAGS += -O3
-LIBS_PATH=../nondebug
+LIBS_PATH=../release
 else
 CXXFLAGS += -ggdb
 LIBS_PATH=../debug

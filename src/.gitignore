@@ -8,7 +8,7 @@ cscope.in.out
 cscope.out
 cscope.po.out
 debug/
-nondebug/
+release/
 *.sdf
 *.opensdf
 *.opendb

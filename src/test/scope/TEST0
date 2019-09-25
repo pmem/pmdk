@@ -51,7 +51,7 @@ parse_lib() {
 		sort >> out$UNITTEST_NUM.log) 2>&1
 }
 
-if [ "$BUILD" = "debug" -o "$BUILD" = "nondebug" ]; then
+if [ "$BUILD" = "debug" -o "$BUILD" = "release" ]; then
 	parse_lib -D $PMDK_LIB_PATH/libvmem.so.1
 else
 	parse_lib -g $PMDK_LIB_PATH/libvmem.a

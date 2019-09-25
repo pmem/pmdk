@@ -18,7 +18,7 @@
 /lib/
 
 /debug/
-/nondebug/
+/release/
 
 /include/jemalloc/internal/jemalloc_internal.h
 /include/jemalloc/internal/jemalloc_internal_defs.h

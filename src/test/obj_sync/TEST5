@@ -40,7 +40,7 @@
 require_test_type medium
 
 require_fs_type none
-require_build_type debug nondebug
+require_build_type debug release
 require_valgrind 3.10
 configure_valgrind drd force-enable
 setup

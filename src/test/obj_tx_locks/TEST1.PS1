@@ -44,7 +44,7 @@ $Env:PMEMOBJ_LOG_LEVEL = ""
 $Env:PMEMOBJ_LOG_FILE = ""
 
 require_fs_type any
-require_build_type debug nondebug
+require_build_type debug release
 
 setup
 

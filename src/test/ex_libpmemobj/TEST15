@@ -39,7 +39,7 @@
 
 require_test_type medium
 
-require_build_type debug nondebug
+require_build_type debug release
 require_fs_type pmem
 require_pkg ncurses
 require_tty

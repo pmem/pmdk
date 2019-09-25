@@ -97,7 +97,7 @@ OBJDIR = debug
 else
 DEFAULT_CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2
 LIB_SUBDIR =
-OBJDIR = nondebug
+OBJDIR = release
 endif
 
 # use defaults, if system or user-defined CFLAGS are not specified

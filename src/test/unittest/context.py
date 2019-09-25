@@ -314,7 +314,7 @@ if sys.platform != 'win32':
         """Sets the context for static_release build"""
 
         def __init__(self, conf):
-            self.exesuffix = '.static-nondebug'
+            self.exesuffix = '.static-release'
             self.libdir = futils.RELEASE_LIBDIR
 
 

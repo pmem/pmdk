@@ -38,7 +38,7 @@
 
 require_test_type medium
 
-require_build_type nondebug
+require_build_type release
 
 # There is no point in testing the file command using memcheck
 # because even if it does report any problems we can't fix it

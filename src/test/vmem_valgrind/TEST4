@@ -41,7 +41,7 @@ export VALGRIND_OPTS="--suppressions=excluded-errors.supp --leak-check=full\
 require_test_type medium
 
 require_fs_type any
-require_build_type debug nondebug
+require_build_type debug release
 require_valgrind 3.8
 configure_valgrind memcheck force-enable
 setup

@@ -38,7 +38,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_build_type debug nondebug
+require_build_type debug release
 
 require_badblock_tests_enabled dax_device
 require_linked_with_ndctl $PMEMPOOL$EXESUFFIX
