@@ -79,7 +79,7 @@
 static void
 free_pool(PMEMoid *oids, size_t noids)
 {
-	for (int i = 0; i < noids; i++) {
+	for (size_t i = 0; i < noids; i++) {
 		pmemobj_free(&oids[i]);
 		UT_ASSERT(OID_IS_NULL(oids[i]));
 	}
@@ -139,7 +139,10 @@ do_tx_max_alloc_tx_publish_abort(PMEMobjpool *pop)
 	}
 
 	allocated = fill_pool(pop, &nallocated);
-	UT_ASSERT(nallocated >= MIN_NOIDS);
+	/*
+	 * number of allocated buffers is not important
+	 * they are not used anyway
+	 */
 
 	/* it should abort - cannot extend redo log */
 	TX_BEGIN(pop) {
@@ -270,6 +273,13 @@ do_tx_max_alloc_user_alloc_snap_multi(PMEMobjpool *pop)
 	size_t range_sizes[ARRAY_SIZE_COMMON];
 	void *range_addrs[ARRAY_SIZE_COMMON];
 
+	/*
+	 * The maximum value of offset used in the for-loop below is
+	 * i_max == (ARRAY_SIZE_COMMON - 1) * 2.
+	 * It will cause using LOG_BUFFER + i_max and RANGE + i_max indices so
+	 * i_max has to be less than LOG_BUFFER_NUM and
+	 * i_max has to be less than RANGE_NUM.
+	 */
 	UT_COMPILE_ERROR_ON((ARRAY_SIZE_COMMON - 1) * 2 >= LOG_BUFFER_NUM);
 	UT_COMPILE_ERROR_ON((ARRAY_SIZE_COMMON - 1) * 2 >= RANGE_NUM);
 
@@ -374,9 +384,12 @@ do_tx_max_alloc_wrong_pop_addr(PMEMobjpool *pop, PMEMobjpool *pop2)
 	UT_OUT("do_tx_max_alloc_wrong_pop_addr");
 	size_t nallocated = 0;
 	PMEMoid *allocated = fill_pool(pop, &nallocated);
-	UT_ASSERT(nallocated >= MIN_NOIDS);
-	PMEMoid oid2;
+	/*
+	 * number of allocated buffers is not important
+	 * they are not used anyway
+	 */
 
+	PMEMoid oid2;
 	int ret = pmemobj_alloc(pop2, &oid2, MAX_ALLOC, 0, NULL, NULL);
 	UT_ASSERTeq(ret, 0);
 
@@ -450,6 +463,18 @@ do_tx_buffer_currently_used(PMEMobjpool *pop)
 	} TX_END
 
 	pmemobj_free(&oid_buff);
+
+	/* restore the default and verify */
+	verify_user_buffers = 0;
+	ret = pmemobj_ctl_set(pop, "tx.debug.verify_user_buffers",
+			&verify_user_buffers);
+	UT_ASSERTeq(ret, 0);
+	verify_user_buffers = 99;
+	ret = pmemobj_ctl_get(pop, "tx.debug.verify_user_buffers",
+					&verify_user_buffers);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(verify_user_buffers, 0);
+
 }
 
 /*
