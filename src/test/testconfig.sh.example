@@ -69,7 +69,7 @@
 #
 # Note: some tests require write access to '/sys/bus/nd/devices/region*/deep_flush'.
 #
-#DEVICE_DAX_PATH=(/dev/dax0.0)
+#DEVICE_DAX_PATH=(/dev/dax0.0 /dev/dax1.0)
 
 #
 # Overwrite default test type:

@@ -108,7 +108,8 @@ config = {
 
     # For tests that require raw dax devices without a file system, add paths to
     # those devices to the list 'device_dax_path'. For most tests one device
-    # is enough, but some might require more
+    # is enough, but some might require more.
+    # Eg. ['/dev/dax0.0', '/dev/dax1.0']
     #
     'device_dax_path' : [],
 }
