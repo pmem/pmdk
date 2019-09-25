@@ -19,6 +19,8 @@ do_tx_buffer_currently_used
 User cannot append the same undo log buffer twice: Invalid argument
 do_tx_max_alloc_tx_publish
 Can extend redo log with appended buffer
+do_tx_user_buffer_atomic_alloc
+The transaction state is consistent after atomic allocation
 do_tx_buffer_overlapping
 Overlap not detected
 Overlap not detected

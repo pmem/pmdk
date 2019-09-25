@@ -519,6 +519,61 @@ do_tx_max_alloc_tx_publish(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_user_buffer_atomic_alloc -- checks if finish of atomic
+ * allocation inside transaction will not break state of the ulog
+ * with appended user buffer
+ */
+static void
+do_tx_user_buffer_atomic_alloc(PMEMobjpool *pop)
+{
+	UT_OUT("do_tx_user_buffer_atomic_alloc");
+
+	PMEMoid user_buffer_oid;
+	PMEMoid atomic_alloc_oid;
+	PMEMoid reservations[REDO_OVERFLOW];
+	struct pobj_action act[REDO_OVERFLOW];
+	/*
+	 * we have to fill out first ulog in the redo log
+	 * to make sure that the user buffer will be needed
+	 * to proceed
+	 */
+	for (int i = 0; i < REDO_OVERFLOW; i++) {
+		reservations[i] = pmemobj_reserve(pop, &act[i], MIN_ALLOC, 0);
+		UT_ASSERT(!OID_IS_NULL(reservations[i]));
+	}
+
+	/* allocs some space for intent user buffer */
+	int ret = pmemobj_alloc(pop, &user_buffer_oid, MAX_ALLOC,
+				0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	size_t buff_size = pmemobj_alloc_usable_size(user_buffer_oid);
+	void *buff_addr = pmemobj_direct(user_buffer_oid);
+
+	TX_BEGIN(pop) {
+		/* disable automatic ulog reservation and add user buffer */
+		pmemobj_tx_log_auto_alloc(TX_LOG_TYPE_INTENT, 0);
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+				buff_addr, buff_size);
+
+		/* perform atomic allocation in the middle of transaction */
+		pmemobj_alloc(pop, &atomic_alloc_oid, MAX_ALLOC,
+			0, NULL, NULL);
+
+		/* user buffer should be sill valid, so we try to use it */
+		pmemobj_tx_publish(act, REDO_OVERFLOW);
+	} TX_ONCOMMIT {
+		UT_OUT("The transaction state is consistent after atomic "
+			"allocation");
+	} TX_ONABORT {
+		UT_FATAL("The transaction state is consistent after atomic "
+			"allocation");
+	} TX_END
+
+	pmemobj_free(&user_buffer_oid);
+}
+
+/*
  * do_tx_buffer_overlapping -- checks if user buffer overlap detection works
  */
 static void
@@ -630,6 +685,7 @@ main(int argc, char *argv[])
 	do_tx_max_alloc_tx_publish_abort(pop);
 	do_tx_buffer_currently_used(pop);
 	do_tx_max_alloc_tx_publish(pop);
+	do_tx_user_buffer_atomic_alloc(pop);
 	do_tx_buffer_overlapping(pop);
 
 	pmemobj_close(pop);
