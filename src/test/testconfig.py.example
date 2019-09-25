@@ -53,6 +53,7 @@ config = {
     #
     # Set build type to be run:
     # debug, release, static-debug, static-release, all
+    # Can be a string or a list: ['debug', 'release']
     #
 
     'build': 'all',
