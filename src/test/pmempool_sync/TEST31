@@ -69,15 +69,15 @@ turn_on_checking_bad_blocks $POOLSET
 # inject bad block: OFF=1000 LEN=1
 ndctl_inject_error $NAMESPACE 1000 1
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null"
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 expect_normal_exit "$PMEMPOOL$EXESUFFIX sync -b -v $POOLSET >> $LOG"
 

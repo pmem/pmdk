@@ -60,7 +60,7 @@ fallocate -l 1M $FILE
 FIRST_SECTOR=$(expect_normal_exit $EXTENTS $FILE -l 0)
 ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 enable_log_append
 
