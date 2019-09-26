@@ -667,11 +667,15 @@ function ndctl_uninject_error_node() {
 
 #
 # print_bad_blocks -- print all bad blocks (count, offset and length)
-#                     or "No bad blocks found" if there are no bad blocks
+#                     in the given namespace or "No bad blocks found"
+#                     if there are no bad blocks
+#
+# Input arguments:
+# 1) namespace
 #
 function print_bad_blocks {
 	# XXX sudo should be removed when it is not needed
-	sudo ndctl list -M | \
+	sudo ndctl list -M -n $1 | \
 		grep -e "badblock_count" -e "offset" -e "length" >> $LOG \
 		|| echo "No bad blocks found" >> $LOG
 }
