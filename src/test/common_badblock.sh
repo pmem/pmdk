@@ -86,6 +86,8 @@ function badblock_test_init() {
 	fi
 	NAMESPACE=$(ndctl_get_namespace_of_device $DEVICE)
 	FULLDEV="/dev/$DEVICE"
+	# current unit tests support only block sizes less or equal 4096 bytes
+	require_max_block_size $FULLDEV 4096
 }
 
 #

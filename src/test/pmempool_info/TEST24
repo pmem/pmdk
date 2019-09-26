@@ -59,8 +59,8 @@ create_poolset $POOLSET AUTO:$FULLDEV:x
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 
-# inject bad block: OFF=11 LEN=1
-ndctl_inject_error $NAMESPACE 11 1
+# inject bad block: OFF=11 LEN=8
+ndctl_inject_error $NAMESPACE 11 8
 
 expect_bad_blocks $NAMESPACE
 
