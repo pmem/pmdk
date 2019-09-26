@@ -64,7 +64,7 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOL
 FIRST_SECTOR=$(expect_normal_exit $EXTENTS $MOUNT_DIR/testfile1 -l 0)
 ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG
 

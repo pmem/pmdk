@@ -107,11 +107,11 @@ FILE=${MOUNT_DIR}/pool.local
 FIRST_SECTOR=$(expect_normal_exit run_on_node 0 ../extents $FILE -l 1000)
 ndctl_inject_error_node 0 $NAMESPACE $FIRST_SECTOR 1
 
-expect_bad_blocks_node 0
+expect_bad_blocks_node 0 $NAMESPACE
 
 expect_abnormal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
 
-expect_bad_blocks_node 0
+expect_bad_blocks_node 0 $NAMESPACE
 
 expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
 expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
