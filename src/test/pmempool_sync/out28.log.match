@@ -26,7 +26,7 @@ part 0:
 path                     : /dev/dax$(N).$(N)
 type                     : device dax
 size                     : $(N)
-alignment                : 4096
+alignment                : $(N)
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1
