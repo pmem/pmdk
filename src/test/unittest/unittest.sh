@@ -2036,14 +2036,14 @@ function is_ndctl_ge_63() {
 }
 
 #
-# require_user_bb -- checks if the binary has support for unprivileged
-#	bad block iteration
+# require_bb_enabled_by_default -- check if the binary has bad block
+#                                     checking feature enabled by default
 #
-#	usage: require_user_bb <binary>
+#	usage: require_bb_enabled_by_default <binary>
 #
-function require_user_bb() {
+function require_bb_enabled_by_default() {
 	if ! is_ndctl_ge_63 $1 &> /dev/null ; then
-		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration not supported"
+		msg "$UNITTEST_NAME: SKIP bad block checking feature disabled by default"
 		exit 0
 	fi
 
@@ -2051,14 +2051,14 @@ function require_user_bb() {
 }
 
 #
-# require_su_bb -- checks if the binary does not have support for
-#	unprivileged bad block iteration
+# require_bb_disabled_by_default -- check if the binary does not have bad
+#                                      block checking feature enabled by default
 #
-#	usage: require_su_bb <binary>
+#	usage: require_bb_disabled_by_default <binary>
 #
-function require_su_bb() {
+function require_bb_disabled_by_default() {
 	if is_ndctl_ge_63 $1 &> /dev/null ; then
-		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration supported"
+		msg "$UNITTEST_NAME: SKIP bad block checking feature enabled by default"
 		exit 0
 	fi
 	return 0
@@ -3595,6 +3595,20 @@ function require_max_devdax_size() {
 }
 
 #
+# require_max_block_size -- checks that block size is smaller or equal than requested
+#
+# usage: require_max_block_size <file> <max-block-size>
+#
+function require_max_block_size() {
+	cur_sz=$(stat --file-system --format=%S $1)
+	max_size=$2
+	if [ $cur_sz -gt $max_size ]; then
+		msg "$UNITTEST_NAME: SKIP: block size of $1 is too big for this test (max $2 required)"
+		exit 0
+	fi
+}
+
+#
 # require_badblock_tests_enabled - check if tests for bad block support are not enabled
 # Input arguments:
 # 1) test device type
@@ -3602,16 +3616,18 @@ function require_max_devdax_size() {
 function require_badblock_tests_enabled() {
 	require_sudo_allowed
 	require_command ndctl
+	require_bb_enabled_by_default $PMEMPOOL$EXESUFFIX
 
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 
 		require_kernel_module nfit_test
 
 		# nfit_test dax device is created by the test and is
-		# used directly - no file system path nor device dax path
-		# needs to be provided by the user
+		# used directly - no device dax path is needed to be provided by the
+		# user. Some tests though may use an additional filesystem for the
+		# pool replica - hence 'any' filesystem is required.
 		if [ $1 == "dax_device" ]; then
-			require_fs_type none
+			require_fs_type any
 
 		# nfit_test block device is created by the test and mounted on
 		# a filesystem of any type provided by the user
@@ -3622,7 +3638,7 @@ function require_badblock_tests_enabled() {
 	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
 
 		if [ $1 == "dax_device" ]; then
-			require fs_type none
+			require_fs_type any
 			require_dax_devices 1
 			require_binary $DAXIO$EXESUFFIX
 
@@ -3643,6 +3659,8 @@ function require_badblock_tests_enabled() {
 function require_badblock_tests_enabled_node() {
 	require_sudo_allowed_node $1
 	require_command_node $1 ndctl
+	require_bb_enabled_by_default $PMEMPOOL$EXESUFFIX
+
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		require_kernel_module_node $1 nfit_test
 	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then

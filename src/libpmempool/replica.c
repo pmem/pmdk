@@ -2022,23 +2022,44 @@ replica_check_poolset_health(struct pool_set *set,
 	}
 
 	features_t features;
+	int check_bad_blks;
+	int fix_bad_blks = called_from_sync && fix_bad_blocks(flags);
 
-	if (replica_read_features(set, set_hs, &features)) {
+	if (fix_bad_blks) {
+		/*
+		 * We will fix bad blocks, so we cannot read features here,
+		 * because reading could fail, because of bad blocks.
+		 * We will read features after having bad blocks fixed.
+		 *
+		 * Fixing bad blocks implies checking bad blocks.
+		 */
+		check_bad_blks = 1;
+	} else {
+		/*
+		 * We will not fix bad blocks, so we have to read features here.
+		 */
+		if (replica_read_features(set, set_hs, &features)) {
+			LOG(1, "reading features failed");
+			goto err;
+		}
+		check_bad_blks = features.compat & POOL_FEAT_CHECK_BAD_BLOCKS;
+	}
+
+	/* check for bad blocks when in dry run or clear them otherwise */
+	if (replica_badblocks_check_or_clear(set, set_hs, is_dry_run(flags),
+			called_from_sync, check_bad_blks, fix_bad_blks)) {
+		LOG(1, "replica bad_blocks check failed");
+		goto err;
+	}
+
+	/* read features after fixing bad blocks */
+	if (fix_bad_blks && replica_read_features(set, set_hs, &features)) {
 		LOG(1, "reading features failed");
 		goto err;
 	}
 
 	/* set ignore_sds flag basing on features read from the header */
 	set->ignore_sds = !(features.incompat & POOL_FEAT_SDS);
-
-	/* check for bad blocks when in dry run or clear them otherwise */
-	if (replica_badblocks_check_or_clear(set, set_hs, is_dry_run(flags),
-			called_from_sync,
-			features.compat & POOL_FEAT_CHECK_BAD_BLOCKS,
-			called_from_sync && fix_bad_blocks(flags))) {
-		LOG(1, "replica bad_blocks check failed");
-		goto err;
-	}
 
 	/* map all headers */
 	map_all_unbroken_headers(set, set_hs);

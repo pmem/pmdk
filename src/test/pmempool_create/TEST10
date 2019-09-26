@@ -60,13 +60,9 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 # inject bad block: OFF=11 LEN=1
 ndctl_inject_error $NAMESPACE 11 1
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
-#
-# When the compat feature POOL_FEAT_CHECK_BAD_BLOCKS is enabled by default,
-# 'expect_normal_exit' should be replaced with 'expect_abnormal_exit'.
-#
-expect_normal_exit "$PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET &>> $LOG"
+expect_abnormal_exit "$PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET &>> $LOG"
 
 ndctl_uninject_error $FULLDEV $NAMESPACE 11 1
 badblock_test_fini

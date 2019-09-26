@@ -1,9 +1,9 @@
 create($(nW)/testset1): allocating records in the pool ...
 create($(nW)/testset1): allocated $(N) records (of size $(N))
 verify($(nW)/testset1): pool file successfully verified ($(N) records of size $(N))
-    "badblock_count":1,
+    "badblock_count":8,
         "offset":$(N),
-        "length":1,
+        "length":8,
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 3 part(s):
@@ -17,7 +17,7 @@ type                     : regular file
 size                     : $(N)
 bad blocks:
 	offset		length
-	1000		2
+	1000		8
 part 2:
 path                     : $(nW)/testfile2
 type                     : regular file
@@ -56,12 +56,12 @@ Heap offset              : $(nW)
 Heap size                : $(nW)
 Checksum                 : $(*)
 Root offset              : $(nW)
-    "badblock_count":1,
+    "badblock_count":8,
         "offset":$(N),
-        "length":1,
-    "badblock_count":1,
+        "length":8,
+    "badblock_count":8,
         "offset":$(N),
-        "length":1,
+        "length":8,
 $(nW)/testset1: pmemobj_open: error: a bad block recovery file exists, run 'pmempool sync --bad-blocks' utility to try to recover the pool: Invalid argument
 $(nW)/testset1: synchronized
 replica 0: checking shutdown state

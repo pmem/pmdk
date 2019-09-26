@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,39 +48,39 @@ require_binary $DAXIO$EXESUFFIX
 LOG=out$UNITTEST_NUM.log
 
 # invalid offset/length
-expect_abnormal_exit $DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -k 0x1234abzz &>$LOG
-expect_abnormal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -s foo &>>$LOG
-expect_abnormal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -l 20xxx &>>$LOG
+expect_abnormal_exit "$DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -k 0x1234abzz &>$LOG"
+expect_abnormal_exit "$DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -s foo &>>$LOG"
+expect_abnormal_exit "$DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -l 20xxx &>>$LOG"
 
 # zero flag w/o output
-expect_abnormal_exit $DAXIO$EXESUFFIX -z &>>$LOG
+expect_abnormal_exit "$DAXIO$EXESUFFIX -z &>>$LOG"
 
 # no input/output
-expect_abnormal_exit $DAXIO$EXESUFFIX -l 100 &>>$LOG
+expect_abnormal_exit "$DAXIO$EXESUFFIX -l 100 &>>$LOG"
 
 # offset w/o input or output
-expect_abnormal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -k 100 &>>$LOG
-expect_abnormal_exit $DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -s 100 &>>$LOG
+expect_abnormal_exit "$DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -k 100 &>>$LOG"
+expect_abnormal_exit "$DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -s 100 &>>$LOG"
 
 # neither input or output is device dax
-expect_abnormal_exit $DAXIO$EXESUFFIX -i /dev/zero -o $DIR/dummy -l 16384 &>>$LOG
+expect_abnormal_exit "$DAXIO$EXESUFFIX -i /dev/zero -o $DIR/dummy -l 16384 &>>$LOG"
 
 # requested size larger than source - no error, but will copy less than requested
 create_holey_file 4KB $DIR/dummy
-expect_normal_exit $DAXIO$EXESUFFIX -i $DIR/dummy -o ${DEVICE_DAX_PATH[0]} -l 8192 &>>$LOG
+expect_normal_exit "$DAXIO$EXESUFFIX -i $DIR/dummy -o ${DEVICE_DAX_PATH[0]} -l 8192 &>>$LOG"
 
 # offset/length beyond device size
 DEVSIZE=`$PMEMDETECT -z ${DEVICE_DAX_PATH[0]}`
 
-expect_abnormal_exit $DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o /dev/null -k $(($DEVSIZE + 100)) &>>$LOG
-expect_abnormal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -s $(($DEVSIZE + 1)) &>>$LOG
+expect_abnormal_exit "$DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o /dev/null -k $(($DEVSIZE + 100)) &>>$LOG"
+expect_abnormal_exit "$DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -s $(($DEVSIZE + 1)) &>>$LOG"
 
 # these succeed, but copy less bytes than requested
-expect_normal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -l $(($DEVSIZE + 1000)) &>>$LOG
-expect_normal_exit $DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o /dev/null -k $(($DEVSIZE / 2)) -l $DEVSIZE &>>$LOG
-expect_normal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -s $(($DEVSIZE - 100)) -l $DEVSIZE &>>$LOG
-expect_normal_exit $DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o $DIR/dummy_out -k $(($DEVSIZE - 100)) -l $DEVSIZE &>>$LOG
-expect_normal_exit $DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i $DIR/dummy -s $(($DEVSIZE - 100)) -l $DEVSIZE &>>$LOG
+expect_normal_exit "$DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -l $(($DEVSIZE + 1000)) &>>$LOG"
+expect_normal_exit "$DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o /dev/null -k $(($DEVSIZE / 2)) -l $DEVSIZE &>>$LOG"
+expect_normal_exit "$DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i /dev/zero -s $(($DEVSIZE - 100)) -l $DEVSIZE &>>$LOG"
+expect_normal_exit "$DAXIO$EXESUFFIX -i ${DEVICE_DAX_PATH[0]} -o $DIR/dummy_out -k $(($DEVSIZE - 100)) -l $DEVSIZE &>>$LOG"
+expect_normal_exit "$DAXIO$EXESUFFIX -o ${DEVICE_DAX_PATH[0]} -i $DIR/dummy -s $(($DEVSIZE - 100)) -l $DEVSIZE &>>$LOG"
 
 check
 

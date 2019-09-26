@@ -61,7 +61,7 @@ expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 # zero blocks
 zero_blocks $DIR/testfile1 0 100
 
-expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null"
+expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v" > /dev/null 2>&1
 expect_abnormal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"
 expect_normal_exit "$PMEMPOOL$EXESUFFIX sync -v $POOLSET >> $LOG"
 expect_normal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"

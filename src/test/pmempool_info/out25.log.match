@@ -1,6 +1,6 @@
-    "badblock_count":1,
+    "badblock_count":8,
         "offset":$(N),
-        "length":1,
+        "length":8,
 Poolset structure:
 Number of replicas       : 1
 Replica 0 (master) - local, 3 part(s):
@@ -14,7 +14,7 @@ type                     : regular file
 size                     : 10485760
 bad blocks:
 	offset		length
-	0		2
+	16		8
 part 2:
 path                     : $(nW)/testfile2
 type                     : regular file
