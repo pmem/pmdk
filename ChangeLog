@@ -1,8 +1,33 @@
-Mon Sep 23 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+Thu Sep 26 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.7-rc1
+	* Version 1.7-rc2
 
-	TBD
+	This release:
+	- Introduces new APIs in libpmemobj for managing space used by transactions.
+	  (see pmemobj_tx_log_append_buffer man page for details)
+	- Introduces new APIs in librpmem, splitting rpmem_persist into rpmem_flush
+	  and rpmem_drain, allowing applications to use the flush + drain model
+	  used by libpmem and libpmemobj.
+	- Optimizes large libpmemobj transactions by significantly reducing
+	  the amount of memory modified at the commit phase.
+	- Optimizes tracking of libpmemobj reservations.
+	- Adds new flags for libpmemobj's pmemobj_tx_xadd_range[_direct] API:
+	  POBJ_XADD_NO_SNAPSHOT and POBJ_XADD_ASSUME_INITIALIZED, allowing
+	  applications to optimize how memory is tracked by the library.
+
+	To support some of the above changes the libpmemobj on-media layout had
+	to be changed, which means that old pools have to be converted using
+	pmdk-convert >= 1.7.
+
+	Other changes:
+	- obj: fix merging of ranges when NOFLUSH flag is used (#1100)
+	- rpmem: fix closing of ssh connection (#995, #1060)
+
+	Internal changes:
+	- test: fault injection tests for pmemblk, pmemlog, and pmemobj
+	- test: improved Python testing framework
+	- test: support real pmem in bad blocks tests
+	- common: allow not building examples and benchmarks
 
 Tue Aug 27 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
