@@ -81,15 +81,15 @@ expect_bad_blocks
 
 expect_normal_exit "$PMEMPOOL$EXESUFFIX sync -b -v $POOLSET >> $LOG"
 
-print_bad_blocks
+print_bad_blocks $NAMESPACE
 
 expect_normal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"
 
-print_bad_blocks
+print_bad_blocks $NAMESPACE
 
 expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
 
-print_bad_blocks
+print_bad_blocks $NAMESPACE
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
