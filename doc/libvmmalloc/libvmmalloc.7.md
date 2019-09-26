@@ -7,7 +7,7 @@ header: PMDK
 date: vmmalloc API version 1.1
 ...
 
-[comment]: <> (Copyright 2016-2018, Intel Corporation)
+[comment]: <> (Copyright 2016-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -105,6 +105,10 @@ attributes, depending on the file system containing the memory-mapped file.
 In particular, **libvmmalloc** is part of the *Persistent Memory Development Kit*
 because it is sometimes useful to use non-volatile memory as a volatile
 memory pool, leveraging its capacity, cost, or performance characteristics.
+
+This library is no longer actively developed, and is in maintenance mode,
+same as its underlying code backend (**libvmem**).  It is mature, and is
+expected to be supported for foreseable future.
 
 **libvmmalloc** may be also linked to the program, by providing the
 **-lvmmalloc* argument to the linker. Then it becomes the default memory
