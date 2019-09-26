@@ -1,8 +1,8 @@
-    "badblock_count":1,
+    "badblock_count":8,
         "offset":$(N),
-        "length":1
+        "length":8,
 poolset contains bad blocks, use 'pmempool info --bad-blocks=yes' to print or 'pmempool sync --bad-blocks' to clear them
 $(nW)/testset1: cannot repair
-    "badblock_count":1,
+    "badblock_count":8,
         "offset":$(N),
-        "length":1
+        "length":8,
