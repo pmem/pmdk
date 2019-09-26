@@ -62,17 +62,10 @@ AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmall
 for commit in $commits; do
 	subject=$(git log --format="%s" -n 1 $commit)
 	commit_len=$(git log --format="%s%n%b" -n 1 $commit | wc -L)
-	prefix=$(echo $subject | sed -n "s/^\($AREAS\)\:.*/\1/p")
 
 	if [[ $subject =~ ^Merge.* ]]; then
 		# skip
 		continue
-	fi
-	if [ "$prefix" = "" ]; then
-		echo "FAIL: subject line in commit message does not contain valid area name"
-		echo
-		./utils/check-area.sh $commit
-		exit 1
 	fi
 
 	if [ $commit_len -gt 73 ]; then
