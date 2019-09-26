@@ -749,6 +749,11 @@ ulog_clobber_data(struct ulog *ulog_first,
 		 */
 		ulog_inc_gen_num(ulog_second, NULL);
 
+	/*
+	 * if (flags & ULOG_ANY_USER_BUFFER) then ASSERTne(ulog_second, NULL)
+	 */
+	ASSERT((!(flags & ULOG_ANY_USER_BUFFER)) || (ulog_second != NULL));
+
 	struct ulog *u;
 	/*
 	 * only if there was any user buffer it make sense to check
