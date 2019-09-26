@@ -64,7 +64,7 @@ turn_on_checking_bad_blocks $FILE
 FIRST_SECTOR=$(expect_normal_exit $EXTENTS $FILE -l 0)
 ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 # open a pool with bad blocks
 expect_abnormal_exit ./util_badblock$EXESUFFIX $FILE o

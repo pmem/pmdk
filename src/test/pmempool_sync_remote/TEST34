@@ -111,12 +111,12 @@ FIRST_SECTOR=$(expect_normal_exit run_on_node 1 ../extents $FILE -l 0)
 
 ndctl_inject_error_node 1 $NAMESPACE $FIRST_SECTOR 1
 
-expect_bad_blocks_node 1
+expect_bad_blocks_node 1 $NAMESPACE
 
 # verification should fail
 expect_abnormal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}/$POOLSET_LOCAL $LAYOUT v &>> $LOG"
 
-expect_bad_blocks_node 1
+expect_bad_blocks_node 1 $NAMESPACE
 
 # the remote replica contains bad blocks, so it cannot be opened and will be recreated
 expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}/$POOLSET_LOCAL &>> $LOG"

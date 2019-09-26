@@ -67,7 +67,7 @@ create_poolset $POOLSET 10M:$DIR/testfile1:x 10M:$FILE:x 10M:$DIR/testfile2:x
 SECTOR=$(expect_normal_exit $EXTENTS $FILE -l 100)
 ndctl_inject_error $NAMESPACE $SECTOR 1
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 #
 # When the compat feature POOL_FEAT_CHECK_BAD_BLOCKS is enabled by default,

@@ -667,22 +667,29 @@ function ndctl_uninject_error_node() {
 
 #
 # print_bad_blocks -- print all bad blocks (count, offset and length)
-#                     or "No bad blocks found" if there are no bad blocks
+#                     in the given namespace or "No bad blocks found"
+#                     if there are no bad blocks
+#
+# Input arguments:
+# 1) namespace
 #
 function print_bad_blocks {
 	# XXX sudo should be removed when it is not needed
-	sudo ndctl list -M | \
+	sudo ndctl list -M -n $1 | \
 		grep -e "badblock_count" -e "offset" -e "length" >> $LOG \
 		|| echo "No bad blocks found" >> $LOG
 }
 
 #
 # expect_bad_blocks -- verify if there are required bad blocks
-#                      and fail if they are not there
+#                      in the given namespace and fail if they are not there
+#
+# Input arguments:
+# 1) namespace
 #
 function expect_bad_blocks {
 	# XXX sudo should be removed when it is not needed
-	sudo ndctl list -M | grep -e "badblock_count" -e "offset" -e "length" >> $LOG && true
+	sudo ndctl list -M -n $1 | grep -e "badblock_count" -e "offset" -e "length" >> $LOG && true
 	if [ $? -ne 0 ]; then
 		# XXX sudo should be removed when it is not needed
 		sudo ndctl list -M &>> $PREP_LOG_FILE && true
@@ -697,12 +704,17 @@ function expect_bad_blocks {
 }
 
 #
-# expect_bad_blocks -- verify if there are required bad blocks
-#                      and fail if they are not there
+# expect_bad_blocks_node -- verify if there are required bad blocks
+#                           in the given namespace on the given node
+#                           and fail if they are not there
+#
+# Input arguments:
+# 1) node number
+# 2) namespace
 #
 function expect_bad_blocks_node {
 	# XXX sudo should be removed when it is not needed
-	expect_normal_exit run_on_node $1 sudo ndctl list -M | \
+	expect_normal_exit run_on_node $1 sudo ndctl list -M -n $2 | \
 		grep -e "badblock_count" -e "offset" -e "length" >> $LOG \
 		|| fatal "Error: ndctl failed to inject or retain bad blocks (node $1)"
 }
