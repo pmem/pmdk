@@ -749,6 +749,10 @@ ulog_clobber_data(struct ulog *ulog_first,
 		 */
 		ulog_inc_gen_num(ulog_second, NULL);
 
+	/* The ULOG_ANY_USER_BUFFER flag indicates more than one ulog exist */
+	if (flags & ULOG_ANY_USER_BUFFER)
+		ASSERTne(ulog_second, NULL);
+
 	struct ulog *u;
 	/*
 	 * only if there was any user buffer it make sense to check
