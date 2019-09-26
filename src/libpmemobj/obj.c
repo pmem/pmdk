@@ -1269,7 +1269,6 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 		ERR("!ravl_new_sized");
 		goto err_user_buffers_map;
 	}
-	ASSERTne(pop->ulog_user_buffers.map, NULL);
 	pop->ulog_user_buffers.verify = 0;
 
 	/*
