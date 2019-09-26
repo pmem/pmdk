@@ -84,15 +84,15 @@ turn_on_checking_bad_blocks $POOLSET
 FIRST_SECTOR=$(expect_normal_exit $EXTENTS $MOUNT_DIR/testfile1 -l 1000)
 ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> /dev/null"
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 # run sync and break it after clearing bad blocks and before recovering data using gdb
 expect_normal_exit gdb --batch \

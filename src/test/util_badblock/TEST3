@@ -54,7 +54,7 @@ badblock_test_init dax_device
 # inject bad block: OFF=11 LEN=1
 ndctl_inject_error $NAMESPACE 11 1
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 expect_normal_exit ./util_badblock$EXESUFFIX $FULLDEV l
 

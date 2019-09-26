@@ -65,19 +65,19 @@ turn_on_checking_bad_blocks $POOLSET
 # inject bad block: OFF=11 LEN=1
 ndctl_inject_error $NAMESPACE 11 1
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 expect_abnormal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
 
-expect_bad_blocks
+expect_bad_blocks $NAMESPACE
 
 ndctl_uninject_error $FULLDEV $NAMESPACE 11 1
 
