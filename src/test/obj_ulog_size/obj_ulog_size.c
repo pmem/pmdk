@@ -245,11 +245,11 @@ do_tx_max_alloc_user_alloc_nested(PMEMobjpool *pop)
 				TX_LOG_TYPE_SNAPSHOT, buff_addr, buff_size);
 			pmemobj_tx_add_range(allocated[RANGE], 0, range_size);
 		} TX_ONABORT {
-			UT_FATAL("Cannot use the undo log appended by the user "
-				"in a nested transaction");
+			UT_FATAL(
+				"Cannot use the undo log appended by the user in a nested transaction");
 		} TX_ONCOMMIT {
-			UT_OUT("Can use the undo log appended by the user in "
-				"a nested transaction");
+			UT_OUT(
+				"Can use the undo log appended by the user in a nested transaction");
 		} TX_END
 	} TX_END
 
@@ -332,8 +332,8 @@ do_tx_max_alloc_user_alloc_snap_multi(PMEMobjpool *pop)
 	} TX_ONABORT {
 		UT_OUT("!All user appended undo log buffers are used");
 	} TX_ONCOMMIT {
-		UT_FATAL("Not all user appended undo log buffers are required "
-			"- too small ranges");
+		UT_FATAL(
+			"Not all user appended undo log buffers are required - too small ranges");
 	} TX_END
 
 	free_pool(allocated, nallocated);
@@ -362,11 +362,10 @@ do_tx_auto_alloc_disabled(PMEMobjpool *pop)
 		/* it should abort - cannot extend ulog (first entry is full) */
 		pmemobj_tx_add_range(oid1, 0, HALF_OF_DEFAULT_UNDO_SIZE);
 	} TX_ONABORT {
-		UT_OUT("!Cannot add to undo log the range bigger than the undo "
-			"log default size - the auto alloc is disabled");
+		UT_OUT("!Disabled auto alloc prevented the undo log grow");
 	} TX_ONCOMMIT {
-		UT_FATAL("!Can add to undo log the range bigger than the undo "
-			"log default size despite the auto alloc is disabled");
+		UT_FATAL(
+			"Disabled auto alloc did not prevent the undo log grow");
 	} TX_END
 
 	pmemobj_free(&oid0);
@@ -402,11 +401,11 @@ do_tx_max_alloc_wrong_pop_addr(PMEMobjpool *pop, PMEMobjpool *pop2)
 		pmemobj_tx_log_append_buffer(
 			TX_LOG_TYPE_SNAPSHOT, buff2_addr, buff2_size);
 	} TX_ONABORT {
-		UT_OUT("!Cannot append an undo log buffer from a different "
-			"memory pool");
+		UT_OUT(
+			"!Cannot append an undo log buffer from a different memory pool");
 	} TX_ONCOMMIT {
-		UT_FATAL("Can append an undo log buffer from a different "
-			"memory pool");
+		UT_FATAL(
+			"Can append an undo log buffer from a different memory pool");
 	} TX_END
 
 	free_pool(allocated, nallocated);
@@ -519,6 +518,61 @@ do_tx_max_alloc_tx_publish(PMEMobjpool *pop)
 }
 
 /*
+ * do_tx_user_buffer_atomic_alloc -- checks if finish of atomic
+ * allocation inside transaction will not break state of the ulog
+ * with appended user buffer
+ */
+static void
+do_tx_user_buffer_atomic_alloc(PMEMobjpool *pop)
+{
+	UT_OUT("do_tx_user_buffer_atomic_alloc");
+
+	PMEMoid user_buffer_oid;
+	PMEMoid atomic_alloc_oid;
+	PMEMoid reservations[REDO_OVERFLOW];
+	struct pobj_action act[REDO_OVERFLOW];
+	/*
+	 * we have to fill out first ulog in the redo log
+	 * to make sure that the user buffer will be needed
+	 * to proceed
+	 */
+	for (int i = 0; i < REDO_OVERFLOW; i++) {
+		reservations[i] = pmemobj_reserve(pop, &act[i], MIN_ALLOC, 0);
+		UT_ASSERT(!OID_IS_NULL(reservations[i]));
+	}
+
+	/* allocs some space for intent user buffer */
+	int ret = pmemobj_alloc(pop, &user_buffer_oid, MAX_ALLOC,
+				0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	size_t buff_size = pmemobj_alloc_usable_size(user_buffer_oid);
+	void *buff_addr = pmemobj_direct(user_buffer_oid);
+
+	TX_BEGIN(pop) {
+		/* disable automatic ulog reservation and add user buffer */
+		pmemobj_tx_log_auto_alloc(TX_LOG_TYPE_INTENT, 0);
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+				buff_addr, buff_size);
+
+		/* perform atomic allocation in the middle of transaction */
+		pmemobj_alloc(pop, &atomic_alloc_oid, MAX_ALLOC,
+			0, NULL, NULL);
+
+		/* user buffer should be sill valid, so we try to use it */
+		pmemobj_tx_publish(act, REDO_OVERFLOW);
+	} TX_ONCOMMIT {
+		UT_OUT(
+			"The transaction state is consistent after atomic allocation");
+	} TX_ONABORT {
+		UT_FATAL(
+			"The transaction state is consistent after atomic allocation");
+	} TX_END
+
+	pmemobj_free(&user_buffer_oid);
+}
+
+/*
  * do_tx_buffer_overlapping -- checks if user buffer overlap detection works
  */
 static void
@@ -601,6 +655,189 @@ do_tx_buffer_overlapping(PMEMobjpool *pop)
 	UT_ASSERTeq(ret, 0);
 }
 
+/*
+ * do_log_intents_max_size_limits -- test the pmemobj_tx_log_intents_max_size
+ * function argument processing
+ */
+static void
+do_log_intents_max_size_limits(void)
+{
+	UT_OUT("do_log_intent_max_size_limits");
+
+	size_t size = 0;
+
+	/* 1st case */
+	size = pmemobj_tx_log_intents_max_size(0);
+	UT_ASSERT(size > 0);
+	UT_ASSERTne(size, SIZE_MAX);
+
+	/* 2nd case */
+	size = pmemobj_tx_log_intents_max_size(
+		SIZE_MAX / TX_INTENT_LOG_ENTRY_OVERHEAD);
+	UT_ASSERTeq(size, SIZE_MAX);
+	UT_ASSERTeq(errno, ERANGE);
+
+	/* 3rd case */
+	const size_t toobign =
+			(SIZE_MAX - TX_INTENT_LOG_BUFFER_OVERHEAD)
+			/ TX_INTENT_LOG_ENTRY_OVERHEAD + 1;
+	size = pmemobj_tx_log_intents_max_size(toobign);
+	UT_ASSERTeq(size, SIZE_MAX);
+	UT_ASSERTeq(errno, ERANGE);
+}
+
+/*
+ * do_log_intents_max_size -- verify pmemobj_tx_log_intents_max_size reported
+ * size is sufficient
+ */
+static void
+do_log_intents_max_size(PMEMobjpool *pop)
+{
+	UT_OUT("do_log_intent_max_size");
+
+	const size_t nintents = 15; /* an arbitrarily picked number */
+
+	/* query a required log size */
+	size_t req_buff_size = pmemobj_tx_log_intents_max_size(nintents);
+	UT_ASSERTne(req_buff_size, SIZE_MAX);
+
+	/* alloc the intent buffer */
+	PMEMoid buff_oid = OID_NULL;
+	int ret = pmemobj_alloc(pop, &buff_oid, req_buff_size, 0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+	void *buff_addr = pmemobj_direct(buff_oid);
+	size_t buff_size = pmemobj_alloc_usable_size(buff_oid);
+	UT_ASSERT(buff_size >= req_buff_size);
+
+	/* make an assumed number of reservations */
+	PMEMoid reservations[nintents];
+	struct pobj_action act[nintents];
+	for (size_t i = 0; i < nintents; i++) {
+		reservations[i] = pmemobj_reserve(pop, &act[i], MIN_ALLOC, 0);
+		UT_ASSERT(!OID_IS_NULL(reservations[i]));
+	}
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_auto_alloc(TX_LOG_TYPE_INTENT, 0);
+		pmemobj_tx_log_append_buffer(
+			TX_LOG_TYPE_INTENT, buff_addr, buff_size);
+		pmemobj_tx_publish(act, nintents);
+	} TX_ONABORT {
+		UT_FATAL("!Estimated intent log buffer size is too small");
+	} TX_ONCOMMIT {
+		UT_OUT("Estimated intent log buffer size is sufficient");
+	} TX_END
+
+	/* release all allocated resources */
+	for (size_t i = 0; i < nintents; ++i) {
+		pmemobj_free(&reservations[i]);
+		UT_ASSERT(OID_IS_NULL(reservations[i]));
+	}
+	pmemobj_free(&buff_oid);
+	UT_ASSERT(OID_IS_NULL(buff_oid));
+}
+
+/*
+ * do_log_snapshots_max_size_limits -- test the
+ * pmemobj_tx_log_snapshots_max_size function argument processing
+ */
+static void
+do_log_snapshots_max_size_limits(void)
+{
+	UT_OUT("do_log_snapshot_max_size_limits");
+
+	const size_t nsizes = 1024; /* an arbitrarily picked number */
+
+	/* prepare array of big sizes */
+	size_t *sizes = (size_t *)MALLOC(sizeof(size_t) * nsizes);
+	for (size_t i = 0, size = MAX_ALLOC; i < nsizes; ++i) {
+		sizes[i] = size;
+
+		if (size < SIZE_MAX / 2)
+			size *= 2;
+	}
+
+	size_t size = 0;
+
+	size = pmemobj_tx_log_snapshots_max_size(sizes, nsizes);
+	UT_ASSERTeq(size, SIZE_MAX);
+	UT_ASSERTeq(errno, ERANGE);
+
+	/* release allocated resources */
+	FREE(sizes);
+}
+
+/*
+ * do_log_snapshots_max_size -- verify pmemobj_tx_log_snapshots_max_size
+ * reported size is sufficient
+ */
+static void
+do_log_snapshots_max_size(PMEMobjpool *pop)
+{
+	UT_OUT("do_log_snapshot_max_size");
+
+	size_t nsizes_max = 15; /* an arbitrarily picked number */
+	size_t *sizes = (size_t *)MALLOC(nsizes_max * sizeof(size_t));
+
+	/* fill up the pool */
+	size_t nallocated = 0;
+	PMEMoid *allocated = fill_pool(pop, &nallocated);
+	UT_ASSERT(nallocated > LOG_BUFFER);
+
+	/* the first allocation will be used for as a snapshot log buffer */
+	void *buff_addr = pmemobj_direct(allocated[LOG_BUFFER]);
+	size_t max_buff_size = pmemobj_alloc_usable_size(allocated[LOG_BUFFER]);
+	size_t req_buff_size = 0;
+
+	/* how many ranges fit into the buffer */
+	size_t nsizes_valid = 0;
+	for (size_t i = nallocated - 1; i > LOG_BUFFER; --i) {
+		/* initialize the range */
+		size_t range_size = pmemobj_alloc_usable_size(allocated[i]);
+		void *range_addr = pmemobj_direct(allocated[i]);
+		pmemobj_memset(pop, range_addr, 0, range_size, 0);
+
+		/* append to the list of sizes */
+		sizes[nsizes_valid]  = range_size;
+		++nsizes_valid;
+		if (nsizes_valid == nsizes_max) {
+			nsizes_max *= 2;
+			sizes = (size_t *)REALLOC(sizes,
+					nsizes_max * sizeof(size_t));
+		}
+
+		/* estimate a required buffer size for snapshots */
+		req_buff_size = pmemobj_tx_log_snapshots_max_size(
+				sizes, nsizes_valid);
+		UT_ASSERTne(req_buff_size, SIZE_MAX);
+		if (req_buff_size > max_buff_size) {
+			/* if it is too much we have to use one less */
+			--nsizes_valid;
+			UT_ASSERTne(nsizes_valid, 0);
+			req_buff_size = pmemobj_tx_log_snapshots_max_size(
+					sizes, nsizes_valid);
+			break;
+		}
+	}
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_SNAPSHOT, buff_addr,
+				req_buff_size);
+		for (size_t i = 0; i < nsizes_valid; i++) {
+			pmemobj_tx_add_range(allocated[nallocated - i - 1], 0,
+					sizes[i]);
+		}
+	} TX_ONABORT {
+		UT_FATAL("!Estimated snapshot log buffer size is too small");
+	} TX_ONCOMMIT {
+		UT_OUT("Estimated snapshot log buffer size is sufficient");
+	} TX_END
+
+	/* release all allocated resources */
+	free_pool(allocated, nallocated);
+	FREE(sizes);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -630,7 +867,13 @@ main(int argc, char *argv[])
 	do_tx_max_alloc_tx_publish_abort(pop);
 	do_tx_buffer_currently_used(pop);
 	do_tx_max_alloc_tx_publish(pop);
+	do_tx_user_buffer_atomic_alloc(pop);
 	do_tx_buffer_overlapping(pop);
+
+	do_log_intents_max_size_limits();
+	do_log_intents_max_size(pop);
+	do_log_snapshots_max_size_limits();
+	do_log_snapshots_max_size(pop);
 
 	pmemobj_close(pop);
 	pmemobj_close(pop2);

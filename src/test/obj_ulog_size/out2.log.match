@@ -10,7 +10,7 @@ do_tx_max_alloc_user_alloc_snap_multi
 Can use multiple user appended undo log buffers
 All user appended undo log buffers are used: ${Cannot allocate memory|Not enough space}
 do_tx_auto_alloc_disabled
-Cannot add to undo log the range bigger than the undo log default size - the auto alloc is disabled: ${Cannot allocate memory|Not enough space}
+Disabled auto alloc prevented the undo log grow: ${Cannot allocate memory|Not enough space}
 do_tx_max_alloc_wrong_pop_addr
 Cannot append an undo log buffer from a different memory pool: Invalid argument
 do_tx_max_alloc_tx_publish_abort
@@ -19,10 +19,18 @@ do_tx_buffer_currently_used
 User cannot append the same undo log buffer twice: Invalid argument
 do_tx_max_alloc_tx_publish
 Can extend redo log with appended buffer
+do_tx_user_buffer_atomic_alloc
+The transaction state is consistent after atomic allocation
 do_tx_buffer_overlapping
 Overlap not detected
 Overlap not detected
 Overlap detected
 Overlap detected
 Overlap detected
+do_log_intent_max_size_limits
+do_log_intent_max_size
+Estimated intent log buffer size is sufficient
+do_log_snapshot_max_size_limits
+do_log_snapshot_max_size
+Estimated snapshot log buffer size is sufficient
 obj_ulog_size$(nW)TEST2: DONE
