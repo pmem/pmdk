@@ -44,7 +44,7 @@ configure_valgrind force-disable
 
 setup
 . ./common.sh
-require_user_bb $PMEMPOOL$EXESUFFIX
+require_bb_enabled_by_default $PMEMPOOL$EXESUFFIX
 
 pmempool_feature_create_poolset "no_dax_device"
 pmempool_feature_test_CHECK_BAD_BLOCKS

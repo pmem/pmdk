@@ -1,3 +1,5 @@
     "badblock_count":1,
         "offset":$(N),
         "length":1,
+error: '$(nW)/testset1' -- pool set contains bad blocks and cannot be created, run 'pmempool create --clear-bad-blocks' utility to clear bad blocks and create a pool
+error: creating pool file failed

@@ -2048,14 +2048,14 @@ function is_ndctl_ge_63() {
 }
 
 #
-# require_user_bb -- checks if the binary has support for unprivileged
-#	bad block iteration
+# require_bb_enabled_by_default -- check if the binary has bad block
+#                                     checking feature enabled by default
 #
-#	usage: require_user_bb <binary>
+#	usage: require_bb_enabled_by_default <binary>
 #
-function require_user_bb() {
+function require_bb_enabled_by_default() {
 	if ! is_ndctl_ge_63 $1 &> /dev/null ; then
-		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration not supported"
+		msg "$UNITTEST_NAME: SKIP bad block checking feature disabled by default"
 		exit 0
 	fi
 
@@ -2063,14 +2063,14 @@ function require_user_bb() {
 }
 
 #
-# require_su_bb -- checks if the binary does not have support for
-#	unprivileged bad block iteration
+# require_bb_disabled_by_default -- check if the binary does not have bad
+#                                      block checking feature enabled by default
 #
-#	usage: require_su_bb <binary>
+#	usage: require_bb_disabled_by_default <binary>
 #
-function require_su_bb() {
+function require_bb_disabled_by_default() {
 	if is_ndctl_ge_63 $1 &> /dev/null ; then
-		msg "$UNITTEST_NAME: SKIP unprivileged bad block iteration supported"
+		msg "$UNITTEST_NAME: SKIP bad block checking feature enabled by default"
 		exit 0
 	fi
 	return 0
@@ -3628,6 +3628,7 @@ function require_max_block_size() {
 function require_badblock_tests_enabled() {
 	require_sudo_allowed
 	require_command ndctl
+	require_bb_enabled_by_default $PMEMPOOL$EXESUFFIX
 
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 
@@ -3670,6 +3671,8 @@ function require_badblock_tests_enabled() {
 function require_badblock_tests_enabled_node() {
 	require_sudo_allowed_node $1
 	require_command_node $1 ndctl
+	require_bb_enabled_by_default $PMEMPOOL$EXESUFFIX
+
 	if [ "$BADBLOCK_TEST_TYPE" == "nfit_test" ]; then
 		require_kernel_module_node $1 nfit_test
 	elif [ "$BADBLOCK_TEST_TYPE" == "real_pmem" ]; then
