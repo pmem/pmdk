@@ -245,11 +245,11 @@ do_tx_max_alloc_user_alloc_nested(PMEMobjpool *pop)
 				TX_LOG_TYPE_SNAPSHOT, buff_addr, buff_size);
 			pmemobj_tx_add_range(allocated[RANGE], 0, range_size);
 		} TX_ONABORT {
-			UT_FATAL("Cannot use the undo log appended by the user "
-				"in a nested transaction");
+			UT_FATAL(
+				"Cannot use the undo log appended by the user in a nested transaction");
 		} TX_ONCOMMIT {
-			UT_OUT("Can use the undo log appended by the user in "
-				"a nested transaction");
+			UT_OUT(
+				"Can use the undo log appended by the user in a nested transaction");
 		} TX_END
 	} TX_END
 
@@ -332,8 +332,8 @@ do_tx_max_alloc_user_alloc_snap_multi(PMEMobjpool *pop)
 	} TX_ONABORT {
 		UT_OUT("!All user appended undo log buffers are used");
 	} TX_ONCOMMIT {
-		UT_FATAL("Not all user appended undo log buffers are required "
-			"- too small ranges");
+		UT_FATAL(
+			"Not all user appended undo log buffers are required - too small ranges");
 	} TX_END
 
 	free_pool(allocated, nallocated);
@@ -362,11 +362,10 @@ do_tx_auto_alloc_disabled(PMEMobjpool *pop)
 		/* it should abort - cannot extend ulog (first entry is full) */
 		pmemobj_tx_add_range(oid1, 0, HALF_OF_DEFAULT_UNDO_SIZE);
 	} TX_ONABORT {
-		UT_OUT("!Cannot add to undo log the range bigger than the undo "
-			"log default size - the auto alloc is disabled");
+		UT_OUT("!Disabled auto alloc prevented the undo log grow");
 	} TX_ONCOMMIT {
-		UT_FATAL("!Can add to undo log the range bigger than the undo "
-			"log default size despite the auto alloc is disabled");
+		UT_FATAL(
+			"Disabled auto alloc did not prevent the undo log grow");
 	} TX_END
 
 	pmemobj_free(&oid0);
@@ -402,11 +401,11 @@ do_tx_max_alloc_wrong_pop_addr(PMEMobjpool *pop, PMEMobjpool *pop2)
 		pmemobj_tx_log_append_buffer(
 			TX_LOG_TYPE_SNAPSHOT, buff2_addr, buff2_size);
 	} TX_ONABORT {
-		UT_OUT("!Cannot append an undo log buffer from a different "
-			"memory pool");
+		UT_OUT(
+			"!Cannot append an undo log buffer from a different memory pool");
 	} TX_ONCOMMIT {
-		UT_FATAL("Can append an undo log buffer from a different "
-			"memory pool");
+		UT_FATAL(
+			"Can append an undo log buffer from a different memory pool");
 	} TX_END
 
 	free_pool(allocated, nallocated);
@@ -563,11 +562,11 @@ do_tx_user_buffer_atomic_alloc(PMEMobjpool *pop)
 		/* user buffer should be sill valid, so we try to use it */
 		pmemobj_tx_publish(act, REDO_OVERFLOW);
 	} TX_ONCOMMIT {
-		UT_OUT("The transaction state is consistent after atomic "
-			"allocation");
+		UT_OUT(
+			"The transaction state is consistent after atomic allocation");
 	} TX_ONABORT {
-		UT_FATAL("The transaction state is consistent after atomic "
-			"allocation");
+		UT_FATAL(
+			"The transaction state is consistent after atomic allocation");
 	} TX_END
 
 	pmemobj_free(&user_buffer_oid);

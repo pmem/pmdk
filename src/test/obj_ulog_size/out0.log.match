@@ -10,7 +10,7 @@ do_tx_max_alloc_user_alloc_snap_multi
 Can use multiple user appended undo log buffers
 All user appended undo log buffers are used: ${Cannot allocate memory|Not enough space}
 do_tx_auto_alloc_disabled
-Cannot add to undo log the range bigger than the undo log default size - the auto alloc is disabled: ${Cannot allocate memory|Not enough space}
+Disabled auto alloc prevented the undo log grow: ${Cannot allocate memory|Not enough space}
 do_tx_max_alloc_wrong_pop_addr
 Cannot append an undo log buffer from a different memory pool: Invalid argument
 do_tx_max_alloc_tx_publish_abort
