@@ -518,6 +518,89 @@ do_tx_max_alloc_tx_publish(PMEMobjpool *pop)
 	}
 }
 
+/*
+ * do_tx_buffer_overlapping -- checks if user buffer overlap detection works
+ */
+static void
+do_tx_buffer_overlapping(PMEMobjpool *pop)
+{
+	UT_OUT("do_tx_buffer_overlapping");
+
+	/* changes verify_user_buffers value */
+	int verify_user_buffers = 1;
+	int ret = pmemobj_ctl_set(pop, "tx.debug.verify_user_buffers",
+			&verify_user_buffers);
+	UT_ASSERTeq(ret, 0);
+
+	PMEMoid oid = OID_NULL;
+	pmemobj_alloc(pop, &oid, MAX_ALLOC, 0, NULL, NULL);
+	UT_ASSERT(!OID_IS_NULL(oid));
+
+	char *ptr = (char *)pmemobj_direct(oid);
+	ptr = (char *)ALIGN_UP((size_t)ptr, CACHELINE_SIZE);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+			ptr + 256, 256);
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+			ptr, 256);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_ONCOMMIT {
+		UT_OUT("Overlap not detected");
+	} TX_END
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+			ptr, 256);
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+			ptr + 256, 256);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_ONCOMMIT {
+		UT_OUT("Overlap not detected");
+	} TX_END
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+			ptr, 256);
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+			ptr, 256);
+	} TX_ONABORT {
+		UT_OUT("Overlap detected");
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+			ptr, 256);
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+			ptr + 128, 256);
+	} TX_ONABORT {
+		UT_OUT("Overlap detected");
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+			ptr + 128, 256);
+		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
+			ptr, 256);
+	} TX_ONABORT {
+		UT_OUT("Overlap detected");
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+
+	pmemobj_free(&oid);
+	verify_user_buffers = 0;
+	ret = pmemobj_ctl_set(pop, "tx.debug.verify_user_buffers",
+		&verify_user_buffers);
+	UT_ASSERTeq(ret, 0);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -547,6 +630,7 @@ main(int argc, char *argv[])
 	do_tx_max_alloc_tx_publish_abort(pop);
 	do_tx_buffer_currently_used(pop);
 	do_tx_max_alloc_tx_publish(pop);
+	do_tx_buffer_overlapping(pop);
 
 	pmemobj_close(pop);
 	pmemobj_close(pop2);

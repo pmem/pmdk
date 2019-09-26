@@ -87,6 +87,12 @@ pmalloc_redo_extend(void *base, uint64_t *redo, uint64_t gen_num)
 }
 
 static void
+test_free_entry(void *base, uint64_t *next)
+{
+	/* noop for fake ulog entries */
+}
+
+static void
 test_set_entries(PMEMobjpool *pop,
 	struct operation_context *ctx, struct test_object *object,
 	size_t nentries, enum fail_types fail)
@@ -177,7 +183,8 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 {
 	struct operation_context *ctx = operation_new(
 		(struct ulog *)&object->redo, TEST_ENTRIES,
-		pmalloc_redo_extend, NULL, &pop->p_ops, LOG_TYPE_REDO);
+		pmalloc_redo_extend, (ulog_free_fn)pfree,
+		&pop->p_ops, LOG_TYPE_REDO);
 
 	test_set_entries(pop, ctx, object, 10, FAIL_NONE);
 	clear_test_values(object);
@@ -201,7 +208,7 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 	/* verify that rebuilding redo_next works */
 	ctx = operation_new(
 		(struct ulog *)&object->redo, TEST_ENTRIES,
-		NULL, NULL, &pop->p_ops, LOG_TYPE_REDO);
+		NULL, test_free_entry, &pop->p_ops, LOG_TYPE_REDO);
 
 	test_set_entries(pop, ctx, object, 100, 0);
 	clear_test_values(object);
@@ -484,7 +491,7 @@ test_undo_log_reuse()
 
 	struct operation_context *ctx = operation_new(
 		(struct ulog *)first, ULOG_SIZE,
-		NULL, NULL,
+		NULL, test_free_entry,
 		&ops, LOG_TYPE_UNDO);
 
 	size_t nentries = 0;

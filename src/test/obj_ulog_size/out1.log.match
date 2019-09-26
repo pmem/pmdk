@@ -19,4 +19,10 @@ do_tx_buffer_currently_used
 User cannot append the same undo log buffer twice: Invalid argument
 do_tx_max_alloc_tx_publish
 Can extend redo log with appended buffer
+do_tx_buffer_overlapping
+Overlap not detected
+Overlap not detected
+Overlap detected
+Overlap detected
+Overlap detected
 obj_ulog_size$(nW)TEST1: DONE
