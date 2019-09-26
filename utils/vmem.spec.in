@@ -37,18 +37,8 @@ BuildRequires:	gdb
 # Debug variants of the libraries should be filtered out of the provides.
 %global __provides_exclude_from ^%{_libdir}/vmem_debug/.*\\.so.*$
 
-# By design, PMDK does not support any 32-bit architecture.
-# Due to dependency on xmmintrin.h and some inline assembly, it can be
-# compiled only for x86_64 at the moment.
-# Other 64-bit architectures could also be supported, if only there is
-# a request for that, and if somebody provides the arch-specific
-# implementation of the low-level routines for flushing to persistent
-# memory.
-
-# https://bugzilla.redhat.com/show_bug.cgi?id=1340634
-# https://bugzilla.redhat.com/show_bug.cgi?id=1340635
-# https://bugzilla.redhat.com/show_bug.cgi?id=1340636
-# https://bugzilla.redhat.com/show_bug.cgi?id=1340637
+# By design, vmem does not support any 32-bit architecture.  It has not
+# been validated on any architecture other than x86_64.
 
 ExclusiveArch: x86_64
 

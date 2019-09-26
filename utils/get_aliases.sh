@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
 #
 # get_aliases.sh -- generate map of manuals functions and libraries
 #
-# usage: run from /pmdk/doc/generated location without parameters:
+# usage: run from /vmem/doc/generated location without parameters:
 # ./../../utils/get_aliases.sh
 #
 # This script searches manpages from section 7 then

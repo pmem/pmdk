@@ -1,13 +1,7 @@
-Persistent Memory Development Kit
-
 This is doc/README.
 
-Subdirectories of this directory contain source for the man pages for the
-Persistent Memory Development Kit in markdown format (.md files).
-If you're looking for documentation to
-get you started using PMDK, start here: http://pmem.io/pmdk and follow the
-links to examples and man pages. Developers new to PMDK are probably looking
-for libpmemobj.
+Subdirectories of this directory contain source for the man pages for vmem
+and vmmalloc in markdown format (.md files).
 
 To generate web-based documentation or Linux/FreeBSD man pages, you need to
 have groff and pandoc installed. m4 macros are used in the document
@@ -20,17 +14,8 @@ by the pmdk-bot. **DO NOT MODIFY THE FILES IN THAT DIRECTORY**. All changes to
 the documentation must be made by modifying the *.md files in the following
 document subdirectories:
 
-libpmem -- low-level persistent memory support
-libpmemblk -- pmem-resident arrays of blocks
-libpmemlog -- pmem-resident log files
-libpmemobj -- transactional object store
 libvmem -- volatile memory allocation library
 libvmmalloc -- general purpose volatile memory allocation library
-libpmempool -- persistent memory pool management library
-pmempool -- Persistent Memory Pool Management Tool
-librpmem -- remote access to persistent memory (EXPERIMENTAL)
-rpmemd -- remote persistent memory daemon (EXPERIMENTAL)
-daxio -- perform I/O on Device DAX device
 
 These man pages provide the API specification for the corresponding libraries
 and commands in this source tree, so any updates to one should be tested,

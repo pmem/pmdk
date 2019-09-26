@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# Makefile -- top-level Makefile for PMDK
+# Makefile -- top-level Makefile for VMEM
 #
 # Use "make" to build the library.
 #
@@ -56,7 +56,7 @@
 # Use "make dpkg" to build dpkg packages
 #
 # Use "make source DESTDIR=path_to_dir" to copy source files
-# from HEAD to 'path_to_dir/pmdk' directory.
+# from HEAD to 'path_to_dir/vmem' directory.
 #
 # As root, use "make install" to install the library in the usual
 # locations (/usr/local/lib, /usr/local/include, and /usr/local/share/man).
@@ -134,7 +134,7 @@ pkg-clean:
 
 rpm dpkg: pkg-clean
 	$(MAKE) source DESTDIR="$(DESTDIR)"
-	+utils/build-$@.sh -t $(SRCVERSION) -s "$(DESTDIR)"/pmdk -w "$(DESTDIR)" -o $(CURDIR)/$@\
+	+utils/build-$@.sh -t $(SRCVERSION) -s "$(DESTDIR)"/vmem -w "$(DESTDIR)" -o $(CURDIR)/$@\
 			-e $(EXPERIMENTAL) -c $(BUILD_PACKAGE_CHECK)
 			-f $(TEST_CONFIG_FILE)
 

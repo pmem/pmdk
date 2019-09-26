@@ -1,26 +1,23 @@
-# **VMDK: Volatile Memory Development Kit**
+# **libvmem and libvmmalloc: malloc-like volatile allocations**
 
-[![Build Status](https://travis-ci.org/pmem/pmdk.svg?branch=master)](https://travis-ci.org/pmem/pmdk)
-[![Build status](https://ci.appveyor.com/api/projects/status/u2l1db7ucl5ktq10/branch/master?svg=true&pr=false)](https://ci.appveyor.com/project/pmem/pmdk/branch/master)
-[![Coverity Scan Build Status](https://img.shields.io/coverity/scan/3015.svg)](https://scan.coverity.com/projects/pmem-pmdk)
-[![PMDK release version](https://img.shields.io/github/release/pmem/pmdk.svg)](https://github.com/pmem/pmdk/releases/latest)
-[![Coverage Status](https://codecov.io/github/pmem/pmdk/coverage.svg?branch=master)](https://codecov.io/gh/pmem/pmdk/branch/master)
-
-The **Volatile Memory Development Kit (VMDK)** are a couple of libraries for
+**libvmem** and **libvmmalloc** are a couple of libraries for
 using persistent memory for malloc-like volatile uses.  They have
 historically been a part of [PMDK](https://pmem.io/pmdk) despite being
 solely for volatile uses.
 
 Both of these libraries are considered code-complete and mature.  You may
-want consider using [memkind](https://github.com/memkind/memkind) in code
-that benefits from extra features like NUMA awareness.
+want consider using [memkind](https://github.com/memkind/memkind) instead
+in code that benefits from extra features like NUMA awareness.
 
-To install VMDK libraries, either install pre-built packages, which we build for every stable release, or clone the tree and build it yourself. **Pre-built** packages can be found in popular Linux distribution package repositories, or you can check out our recent stable releases on our [github release page](https://github.com/pmem/pmdk/releases). Specific installation instructions are outlined below.
-
-Bugs and feature requests for this repo are tracked in our [GitHub Issues Database](https://github.com/pmem/issues/issues).
+To install vmem libraries, either install pre-built packages, which we build
+for every stable release, or clone the tree and build it yourself.
+**Pre-built** packages can be found in popular Linux distribution package
+repositories, or you can check out our recent stable releases on our [github
+release page](https://github.com/pmem/vmem/releases).  Specific installation
+instructions are outlined below.
 
 ## Contents
-1. [Libraries and Utilities](#libraries-and-utilities)
+1. [Libraries](#libraries)
 2. [Getting Started](#getting-started)
 3. [Version Conventions](#version-conventions)
 4. [Pre-Built Packages for Windows](#pre-built-packages-for-windows)
@@ -28,38 +25,35 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 	* [Linux](#linux)
 	* [Windows](#windows)
 	* [FreeBSD](#freebsd)
-6. [Building VMDK on Linux or FreeBSD](#building-pmdk-on-linux-or-freebsd)
+6. [Building vmem on Linux or FreeBSD](#building-vmem-on-linux-or-freebsd)
 	* [Make Options](#make-options)
 	* [Testing Libraries](#testing-libraries-on-linux-and-freebsd)
 	* [Memory Management Tools](#memory-management-tools)
-7. [Building PMDK on Windows](#building-pmdk-on-windows)
+7. [Building vmem on Windows](#building-vmem-on-windows)
 	* [Testing Libraries](#testing-libraries-on-windows)
 8. [Experimental Packages](#experimental-packages)
-	* [librpmem and rpmemd packages](#the-librpmem-and-rpmemd-packages)
 	* [Experimental support for 64-bit ARM](#experimental-support-for-64-bit-arm)
 9. [Contact Us](#contact-us)
 
-## Libraries and Utilities
+## Libraries
 Available Libraries:
 - [libvmem](http://pmem.io/pmdk/libvmem/):  turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API.
 
 - [libvmmalloc](http://pmem.io/pmdk/libvmmalloc/)<sup>1</sup>:  transparently converts all the dynamic memory allocations into persistent memory allocations.
 
-Currently these libraries only work on 64-bit Linux, Windows<sup>2</sup>, and 64-bit FreeBSD 11+<sup>3</sup>.
+Currently these libraries only work on 64-bit Linux, Windows<sup>2</sup>, and 64-bit FreeBSD 11+.
 For information on how these libraries are licensed, see our [LICENSE](LICENSE) file.
 
 ><sup>1</sup> Not supported on Windows.
 >
-><sup>2</sup> VMDK for Windows is feature complete, but not yet considered production quality.
->
-><sup>3</sup> DAX is not yet supported in FreeBSD, so at this time VMDK is available as a technical preview release for development purposes.
+><sup>2</sup> VMEM for Windows is feature complete, but not yet considered production quality.
 
 
 ## Pre-Built Packages for Windows
 
-The recommended and easiest way to install VMDK on Windows is to use Microsoft vcpkg. Vcpkg is an open source tool and ecosystem created for library management.
+The recommended and easiest way to install VMEM on Windows is to use Microsoft vcpkg. Vcpkg is an open source tool and ecosystem created for library management.
 
-To install the latest VMDK release and link it to your Visual Studio solution you first need to clone and set up vcpkg on your machine as described on the [vcpkg github page](https://github.com/Microsoft/vcpkg) in **Quick Start** section.
+To install the latest VMEM release and link it to your Visual Studio solution you first need to clone and set up vcpkg on your machine as described on the [vcpkg github page](https://github.com/Microsoft/vcpkg) in **Quick Start** section.
 
 In brief:
 
@@ -68,10 +62,10 @@ In brief:
 	> cd vcpkg
 	> .\bootstrap-vcpkg.bat
 	> .\vcpkg integrate install
-	> .\vcpkg install pmdk:x64-windows
+	> .\vcpkg install vmem:x64-windows
 ```
 
-The last command can take a while - it is VMDK building and installation time.
+The last command can take a while - it is VMEM building and installation time.
 
 After a successful completion of all of the above steps, the libraries are ready
 to be used in Visual Studio and no additional configuration is required.
@@ -80,11 +74,7 @@ Just open VS with your already existing project or create a new one
 
 ## Dependencies
 
-Required packages for each supported OS are listed below. It is important to note that some tests and example applications require additional packages, but they do not interrupt building if they are missing. An appropriate message is displayed instead. For details please read the DEPENDENCIES section in the appropriate README file.
-
-See our **[Dockerfiles](utils/docker/images)**
-to get an idea what packages are required to build the entire VMDK,
-with all the tests and examples on the _Travis-CI_ system.
+Required packages for each supported OS are listed below.
 
 ### Linux
 
@@ -115,15 +105,15 @@ You will need to install the following required packages on the build system:
 ><sup>4</sup> The pkg version of ncurses is required for proper operation; the base version included in FreeBSD is not sufficient.
 
 
-## Building VMDK on Linux or FreeBSD
+## Building vmem on Linux or FreeBSD
 
 To build from source, clone this tree:
 ```
-	$ git clone https://github.com/pmem/pmdk
-	$ cd pmdk
+	$ git clone https://github.com/pmem/vmem
+	$ cd vmem
 ```
 
-For a stable version, checkout a [release tag](https://github.com/pmem/pmdk/releases) as follows. Otherwise skip this step to build the latest development release.
+For a stable version, checkout a [release tag](https://github.com/pmem/vmem/releases) as follows. Otherwise skip this step to build the latest development release.
 ```
 	$ git checkout tags/1.4.2
 ```
@@ -261,13 +251,13 @@ and UndefinedBehaviorSanitizer, run:
 
 The address sanitizer is not supported for libvmmalloc on FreeBSD and will be ignored.
 
-## Building VMDK on Windows
+## Building vmem on Windows
 
-Clone the VMDK tree and open the solution:
+Clone the vmem tree and open the solution:
 ```
-	> git clone https://github.com/pmem/pmdk
-	> cd pmdk/src
-	> devenv VMDK.sln
+	> git clone https://github.com/pmem/vmem
+	> cd vmem/src
+	> devenv VMEM.sln
 ```
 
 Select the desired configuration (Debug or Release) and build the solution
@@ -279,7 +269,7 @@ Before running the tests, you may need to prepare a test configuration file (src
 
 To **run the unit tests**, open the PowerShell console and type:
 ```
-	> cd pmdk/src/test
+	> cd vmem/src/test
 	> RUNTESTS.ps1
 ```
 
