@@ -1820,18 +1820,6 @@ pmemobj_tx_log_append_buffer(enum pobj_log_type type, void *addr, size_t size)
 	err = tx_construct_user_buffer(tx, addr, size, type,
 			PMDK_SLIST_NEXT(td, tx_entry) == NULL);
 
-	if (err)
-		goto err_abort;
-
-	PMEMOBJ_API_END();
-	return 0;
-
-err_abort:
-	if (tx->stage == TX_STAGE_WORK)
-		err = obj_tx_abort_err(err);
-	else
-		tx->stage = TX_STAGE_ONABORT;
-
 	PMEMOBJ_API_END();
 	return err;
 }
