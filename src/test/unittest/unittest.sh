@@ -3607,6 +3607,20 @@ function require_max_devdax_size() {
 }
 
 #
+# require_max_block_size -- checks that block size is smaller or equal than requested
+#
+# usage: require_max_block_size <file> <max-block-size>
+#
+function require_max_block_size() {
+	cur_sz=$(stat --file-system --format=%S $1)
+	max_size=$2
+	if [ $cur_sz -gt $max_size ]; then
+		msg "$UNITTEST_NAME: SKIP: block size of $1 is too big for this test (max $2 required)"
+		exit 0
+	fi
+}
+
+#
 # require_badblock_tests_enabled - check if tests for bad block support are not enabled
 # Input arguments:
 # 1) test device type

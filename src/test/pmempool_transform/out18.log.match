@@ -29,12 +29,12 @@ part 0:
 path                     : $(nW)
 type                     : device dax
 size                     : $(nW)
-alignment                : 4096
+alignment                : $(N)
 part 1:
 path                     : $(nW)
 type                     : device dax
 size                     : $(nW)
-alignment                : 4096
+alignment                : $(N)
 Replica 1 - local, 2 part(s):
 part 0:
 path                     : $(nW)part00

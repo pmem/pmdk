@@ -1,9 +1,9 @@
 create($(nW)/testset1): allocating records in the pool ...
 create($(nW)/testset1): allocated $(N) records (of size $(N))
 verify($(nW)/testset1): pool file successfully verified ($(N) records of size $(N))
-    "badblock_count":1,
+    "badblock_count":8,
         "offset":$(N),
-        "length":1,
+        "length":8,
 Poolset structure:
 Number of replicas       : 2
 Replica 0 (master) - local, 1 part(s):
@@ -11,10 +11,10 @@ part 0:
 path                     : /dev/dax$(N).$(N)
 type                     : device dax
 size                     : $(N)
-alignment                : 4096
+alignment                : $(N)
 bad blocks:
 	offset		length
-	1000		1
+	1000		8
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1
@@ -49,12 +49,12 @@ Heap offset              : $(nW)
 Heap size                : $(nW)
 Checksum                 : $(*)
 Root offset              : $(nW)
-    "badblock_count":1,
+    "badblock_count":8,
         "offset":$(N),
-        "length":1,
-    "badblock_count":1,
+        "length":8,
+    "badblock_count":8,
         "offset":$(N),
-        "length":1,
+        "length":8,
 $(nW)/testset1: synchronized
 No bad blocks found
 replica 0: checking shutdown state
@@ -74,7 +74,7 @@ part 0:
 path                     : /dev/dax$(N).$(N)
 type                     : device dax
 size                     : $(N)
-alignment                : 4096
+alignment                : $(N)
 Replica 1 - local, 1 part(s):
 part 0:
 path                     : $(nW)/testfile1

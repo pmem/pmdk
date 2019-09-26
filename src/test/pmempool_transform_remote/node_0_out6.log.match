@@ -2,7 +2,7 @@ Part file:
 path                     : $(nW)
 type                     : device dax
 size                     : $(nW)
-alignment                : 4096
+alignment                : $(N)
 
 POOL Header:
 Signature                : PMEMOBJ [part file]

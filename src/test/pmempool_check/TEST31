@@ -65,11 +65,7 @@ turn_on_checking_bad_blocks $POOLSET
 
 # inject bad block:
 FIRST_SECTOR=$(expect_normal_exit $EXTENTS $MOUNT_DIR/testfile1 -l 0)
-ndctl_inject_error $NAMESPACE $FIRST_SECTOR 1
-
-expect_bad_blocks $NAMESPACE
-
-expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
+ndctl_inject_error $NAMESPACE $FIRST_SECTOR 8
 
 expect_bad_blocks $NAMESPACE
 
@@ -77,11 +73,7 @@ expect_abnormal_exit "$PMEMPOOL$EXESUFFIX check -v $POOLSET >> $LOG"
 
 expect_bad_blocks $NAMESPACE
 
-expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
-
-expect_bad_blocks $NAMESPACE
-
-ndctl_uninject_error $FULLDEV $NAMESPACE $FIRST_SECTOR 1
+ndctl_uninject_error $FULLDEV $NAMESPACE $FIRST_SECTOR 8
 
 badblock_test_fini $MOUNT_DIR
 
