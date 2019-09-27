@@ -1,0 +1,322 @@
+/*
+ * Copyright 2019, Intel Corporation
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ *      * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *
+ *      * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in
+ *       the documentation and/or other materials provided with the
+ *       distribution.
+ *
+ *      * Neither the name of the copyright holder nor the names of its
+ *        contributors may be used to endorse or promote products derived
+ *        from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/*
+ * pmemobj_tx_add_range.cpp -- pmemobj_tx_add_range benchmarks definition
+ */
+
+#include <cassert>
+#include <cerrno>
+#include <cstddef>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fcntl.h>
+#include <sys/file.h>
+#include <sys/mman.h>
+#include <unistd.h>
+
+#include "benchmark.hpp"
+#include "file.h"
+#include "libpmemobj.h"
+
+#define LAYOUT_NAME "tx_add_range_benchmark"
+
+/*
+ * RANGE_COEFFICIENT -- pool has to hold every allocated object with
+ * its snapshot (1 + 1), plus 0.5 because of fragmentation
+ */
+#define RANGE_COEFFICIENT (1 + 1 + 0.5)
+
+/*
+ * MAX_ALLOC_SIZE -- maximum size of one allocation (128 MiB)
+ */
+#define MAX_ALLOC_SIZE (1024 * 1024 * 128)
+
+/*
+ * ranged_obj -- ranged object
+ */
+struct ranged_obj {
+	void *ptr;   /* address of allocated object */
+	size_t size; /* size of allocated object */
+};
+
+/*
+ * obj_bench_args -- benchmark specific command line options
+ */
+struct obj_bench_args {
+	uint64_t nranged;  /* number of allocated objects */
+	bool shuffle_objs; /* shuffles array of allocated objects */
+	unsigned seed;     /* PRNG seed */
+};
+
+/*
+ * obj_bench -- benchmark context
+ */
+struct obj_bench {
+	PMEMobjpool *pop;	  /* persistent pool handle */
+	struct ranged_obj *ranged; /* array of allocated objects */
+	size_t obj_size;	   /* size of allocated object */
+	uint64_t nranged;	  /* number of allocated objects */
+	uint64_t nallocs;	  /* number of allocations */
+	bool shuffle_objs;	 /* shuffles array of allocated objects */
+	unsigned seed;		   /* PRNG seed */
+};
+
+/*
+ * shuffle_objects -- randomly shuffles elements in an array
+ * to avoid sequential pattern in the transaction loop
+ */
+static void
+shuffle_objects(struct ranged_obj *ranged, uint64_t nranged, unsigned *seed)
+{
+	struct ranged_obj tmp;
+	uint64_t dest;
+
+	for (uint64_t n = 0; n < nranged; ++n) {
+		dest = RRAND_R(seed, nranged - 1, 0);
+		tmp = ranged[n];
+		ranged[n] = ranged[dest];
+		ranged[dest] = tmp;
+	}
+}
+
+/*
+ * init_objects -- allocate persistent objects
+ */
+static int
+init_objects(struct obj_bench *ob)
+{
+	assert(ob->nranged != 0);
+	ob->ranged = (struct ranged_obj *)malloc((ob->nranged) *
+						 sizeof(struct ranged_obj));
+
+	if (!ob->ranged) {
+		perror("malloc");
+		return -1;
+	}
+
+	/* let's calculate number of allocations */
+	ob->nallocs = (ob->obj_size * ob->nranged / MAX_ALLOC_SIZE) + 1;
+
+	PMEMoid *oid = (PMEMoid *)malloc(ob->nallocs * sizeof(PMEMoid));
+
+	if (oid == nullptr) {
+		perror("malloc");
+		return -1;
+	}
+	size_t nranged_per_object = MAX_ALLOC_SIZE / ob->obj_size;
+
+	size_t n = 0;
+	for (size_t i = 0; n < ob->nranged && i < ob->nallocs; i++) {
+
+		if (pmemobj_alloc(ob->pop, &oid[i], MAX_ALLOC_SIZE, 0, nullptr,
+				  nullptr)) {
+			perror("pmemobj_alloc");
+			return -1;
+		}
+
+		for (size_t j = 0; j < nranged_per_object; j++) {
+			void *ptr = (PMEMoid *)pmemobj_direct(oid[i]) +
+				(j * ob->obj_size);
+			struct ranged_obj range = {ptr, ob->obj_size};
+			ob->ranged[n++] = range;
+			if (n == ob->nranged)
+				break;
+		}
+	}
+
+	if (ob->shuffle_objs == true)
+		shuffle_objects(ob->ranged, ob->nranged, &ob->seed);
+
+	return 0;
+}
+
+/*
+ * tx_add_range_init -- initialization function
+ */
+static int
+tx_add_range_init(struct benchmark *bench, struct benchmark_args *args)
+{
+	assert(bench != nullptr);
+	assert(args != nullptr);
+	assert(args->opts != nullptr);
+
+	struct obj_bench_args *bargs = (struct obj_bench_args *)args->opts;
+
+	enum file_type type = util_file_get_type(args->fname);
+	if (type == OTHER_ERROR) {
+		fprintf(stderr, "could not check type of file %s\n",
+			args->fname);
+		return -1;
+	}
+
+	auto *ob = (struct obj_bench *)malloc(sizeof(struct obj_bench));
+	if (ob == nullptr) {
+		perror("malloc");
+		return -1;
+	}
+	pmembench_set_priv(bench, ob);
+
+	size_t psize;
+
+	if (args->is_poolset || type == TYPE_DEVDAX)
+		psize = 0;
+	else {
+		psize = ((args->dsize * bargs->nranged / MAX_ALLOC_SIZE) + 1) *
+			MAX_ALLOC_SIZE * RANGE_COEFFICIENT;
+	}
+
+	/* create pmemobj pool */
+	ob->pop = pmemobj_create(args->fname, LAYOUT_NAME, psize, args->fmode);
+	if (ob->pop == nullptr) {
+		fprintf(stderr, "%s\n", pmemobj_errormsg());
+		goto err;
+	}
+
+	ob->nranged = bargs->nranged;
+	ob->obj_size = args->dsize;
+	ob->shuffle_objs = bargs->shuffle_objs;
+	ob->seed = bargs->seed;
+
+	if (init_objects(ob))
+		goto err_pop_close;
+
+	return 0;
+
+err_pop_close:
+	pmemobj_close(ob->pop);
+err:
+	free(ob);
+	return -1;
+}
+
+/*
+ * tx_add_range_op -- actual benchmark operation
+ */
+static int
+tx_add_range_op(struct benchmark *bench, struct operation_info *info)
+{
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
+	int ret = 0;
+
+	TX_BEGIN(ob->pop)
+	{
+		for (size_t i = 0; i < ob->nranged; i++) {
+			struct ranged_obj *r = &ob->ranged[i];
+			pmemobj_tx_add_range_direct(r->ptr, r->size);
+		}
+	}
+	TX_ONABORT
+	{
+		fprintf(stderr, "transaction failed\n");
+		ret = -1;
+	}
+	TX_END
+
+	return ret;
+}
+
+/*
+ * tx_add_range_exit -- benchmark cleanup function
+ */
+static int
+tx_add_range_exit(struct benchmark *bench, struct benchmark_args *args)
+{
+	auto *ob = (struct obj_bench *)pmembench_get_priv(bench);
+
+	pmemobj_close(ob->pop);
+	free(ob->ranged);
+	free(ob);
+
+	return 0;
+}
+
+static struct benchmark_clo tx_add_range_clo[3];
+
+/* Stores information about benchmark. */
+static struct benchmark_info tx_add_range_info;
+CONSTRUCTOR(tx_add_range_constructor)
+void
+tx_add_range_constructor(void)
+{
+	tx_add_range_clo[0].opt_short = 0;
+	tx_add_range_clo[0].opt_long = "num-of-ranges";
+	tx_add_range_clo[0].descr = "Number of ranges";
+	tx_add_range_clo[0].def = "1000";
+	tx_add_range_clo[0].off =
+		clo_field_offset(struct obj_bench_args, nranged);
+	tx_add_range_clo[0].type = CLO_TYPE_UINT;
+	tx_add_range_clo[0].type_uint.size =
+		clo_field_size(struct obj_bench_args, nranged);
+	tx_add_range_clo[0].type_uint.base = CLO_INT_BASE_DEC;
+	tx_add_range_clo[0].type_uint.min = 1;
+	tx_add_range_clo[0].type_uint.max = ULONG_MAX;
+
+	tx_add_range_clo[1].opt_short = 's';
+	tx_add_range_clo[1].opt_long = "shuffle";
+	tx_add_range_clo[1].descr =
+		"Use shuffle objects - "
+		"randomly shuffles array of allocated objects";
+	tx_add_range_clo[1].def = "false";
+	tx_add_range_clo[1].off =
+		clo_field_offset(struct obj_bench_args, shuffle_objs);
+	tx_add_range_clo[1].type = CLO_TYPE_FLAG;
+
+	tx_add_range_clo[2].opt_short = 'S';
+	tx_add_range_clo[2].opt_long = "seed";
+	tx_add_range_clo[2].descr = "Random mode seed value";
+	tx_add_range_clo[2].off = clo_field_offset(struct obj_bench_args, seed);
+	tx_add_range_clo[2].def = "1";
+	tx_add_range_clo[2].type = CLO_TYPE_UINT;
+	tx_add_range_clo[2].type_uint.size =
+		clo_field_size(struct obj_bench_args, seed);
+	tx_add_range_clo[2].type_uint.base = CLO_INT_BASE_DEC;
+	tx_add_range_clo[2].type_uint.min = 1;
+	tx_add_range_clo[2].type_uint.max = UINT_MAX;
+
+	tx_add_range_info.name = "pmemobj_tx_add_range";
+	tx_add_range_info.brief = "Benchmark for pmemobj_tx_add_range() "
+				  "operation";
+	tx_add_range_info.init = tx_add_range_init;
+	tx_add_range_info.exit = tx_add_range_exit;
+	tx_add_range_info.multithread = true;
+	tx_add_range_info.multiops = true;
+	tx_add_range_info.operation = tx_add_range_op;
+	tx_add_range_info.measure_time = true;
+	tx_add_range_info.clos = tx_add_range_clo;
+	tx_add_range_info.nclos = ARRAY_SIZE(tx_add_range_clo);
+	tx_add_range_info.opts_size = sizeof(struct obj_bench_args);
+	tx_add_range_info.rm_file = true;
+	tx_add_range_info.allow_poolset = true;
+	REGISTER_BENCHMARK(tx_add_range_info);
+};
