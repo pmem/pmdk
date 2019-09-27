@@ -32,8 +32,11 @@
 #
 #
 # pmempool_sync/TEST27 -- test for sync command with badblocks
-#                         - bad blocks in the regular file
-#                           blocks: offset: 0 length: 8
+#                         - bad blocks in a regular file
+#                         - blocks: offset: 0 length: 16
+#
+# This test verifies whether pmempool-sync is able to fix bad blocks
+# in the first 8kB of the pool (in the pool header) located in a regular file.
 #
 
 . ../unittest/unittest.sh
@@ -69,9 +72,10 @@ expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
 turn_on_checking_bad_blocks $POOLSET
 
-# inject bad block:
+# inject bad block at offset 0 (the pool header)
+# DO NOT CHANGE THIS OFFSET! IT HAS TO BE EQUAL 0!
 FIRST_SECTOR=$(expect_normal_exit $EXTENTS $MOUNT_DIR/testfile1 -l 0)
-ndctl_inject_error $NAMESPACE $FIRST_SECTOR 8
+ndctl_inject_error $NAMESPACE $FIRST_SECTOR 16
 
 expect_bad_blocks $NAMESPACE
 
@@ -85,7 +89,7 @@ expect_normal_exit "$PMEMPOOL$EXESUFFIX info --bad-blocks=yes $POOLSET >> $LOG"
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
-ndctl_uninject_error $FULLDEV $NAMESPACE $FIRST_SECTOR 8
+ndctl_uninject_error $FULLDEV $NAMESPACE $FIRST_SECTOR 16
 badblock_test_fini $MOUNT_DIR
 
 check
