@@ -63,7 +63,7 @@ git checkout -B ${TARGET_BRANCH} upstream/${TARGET_BRANCH}
 make doc
 
 # Build & PR groff
-git add -A
+git add -A ./doc
 git commit -m "doc: automatic $TARGET_BRANCH docs update" && true
 git push -f ${ORIGIN} ${TARGET_BRANCH}
 
@@ -80,6 +80,7 @@ cd ..
 
 mv ./doc/web_linux ../
 mv ./doc/web_windows ../
+mv ./doc/generated/libs_map.yml ../
 
 # Checkout gh-pages and copy docs
 GH_PAGES_NAME="gh-pages-for-${TARGET_BRANCH}"
@@ -94,6 +95,11 @@ rsync -a ../web_windows/ ./manpages/windows/${VERSION}/ \
 
 rm -r ../web_linux
 rm -r ../web_windows
+
+if [ $TARGET_BRANCH = "master" ]; then
+	[ ! -d _data ] && mkdir _data
+	cp ../libs_map.yml _data
+fi
 
 # Add and push changes.
 # git commit command may fail if there is nothing to commit.
