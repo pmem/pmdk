@@ -47,6 +47,11 @@
     <ClInclude Include="uuid.h" />
     <ClInclude Include="valgrind_internal.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\windows\srcversion\srcversion.vcxproj">
+      <Project>{901f04db-e1a5-4a41-8b81-9d31c19acd59}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{492BAA3D-0D5D-478E-9765-500463AE69AA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

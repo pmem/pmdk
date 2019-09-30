@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\alloc.c" />
     <ClCompile Include="..\..\common\file.c" />
     <ClCompile Include="..\..\common\file_windows.c" />
     <ClCompile Include="..\..\common\mmap.c" />
@@ -30,6 +31,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\unittest\unittest.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
+      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}</ProjectGuid>
