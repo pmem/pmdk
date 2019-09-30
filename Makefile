@@ -106,7 +106,7 @@ endif
 check-remote: require-rpmem all
 	$(MAKE) -C src $@
 
-test check pcheck pycheck: all
+test check pcheck: all
 	$(MAKE) -C src $@
 
 cstyle:
