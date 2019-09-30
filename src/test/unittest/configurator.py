@@ -260,7 +260,7 @@ class Configurator():
                             default='')
 
         if sys.platform != 'win32':
-            fe_choices = [t.name.lower() for t in vg.TOOLS]
+            fe_choices = [str(t) for t in vg.TOOLS]
             parser.add_argument('--force-enable', choices=fe_choices,
                                 default=None)
 

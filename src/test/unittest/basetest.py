@@ -170,12 +170,19 @@ class BaseTest(metaclass=_TestCase):
             return
 
         if self.config.force_enable:
-            if self.config.force_enable not in vg.disabled_tools(self):
-                vg_tool = self.config.force_enable
-            else:
+            if vg_tool and vg_tool != self.config.force_enable:
                 raise futils.Skip(
-                      '{}: SKIP: forced Valgrind tool is disabled by test'
-                      .format(self))
+                    "{}: SKIP: test enables the '{}' Valgrind tool while "
+                    "execution configuration forces '{}'"
+                    .format(self, vg_tool, self.config.force_enable))
+
+            elif self.config.force_enable in vg.disabled_tools(self):
+                raise futils.Skip(
+                      "{}: SKIP: forced Valgrind tool '{}' is disabled by test"
+                      .format(self, self.config.force_enable))
+
+            else:
+                vg_tool = self.config.force_enable
 
         self.valgrind = vg.Valgrind(vg_tool, self.cwd, self.testnum)
 
