@@ -155,8 +155,8 @@ then
 CHECK_CMD="
 override_dh_auto_test:
 	dh_auto_test
-	if [ -f $TEST_CONFIG_FILE ]; then\
-		cp $TEST_CONFIG_FILE src/test/testconfig.sh;\
+	if [ -n "$TEST_CONFIG_FILE" -a -f "$TEST_CONFIG_FILE" ]; then\
+		cp "$TEST_CONFIG_FILE" src/test/testconfig.sh;\
 	else\
 		echo 'PMEM_FS_DIR=/tmp' > src/test/testconfig.sh; \
 		echo 'PMEM_FS_DIR_FORCE_PMEM=1' >> src/test/testconfig.sh; \
@@ -214,7 +214,7 @@ Section: libs
 Priority: optional
 Standards-version: 4.1.4
 Build-Depends: debhelper (>= 9)
-Homepage: http://pmem.io/pmdk/
+Homepage: http://pmem.io/vmem/
 
 Package: libvmem
 Architecture: any
@@ -268,6 +268,7 @@ Architecture: any
 Depends: libvmem (=\${binary:Version}), libvmmalloc (=\${binary:Version}), \${misc:Depends}
 Description: Debug symbols for PMDK libraries
  Debug symbols for all PMDK libraries.
+EOF
 
 cp LICENSE debian/copyright
 

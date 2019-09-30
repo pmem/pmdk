@@ -1,4 +1,4 @@
-g
+
 # rpmbuild options:
 #   --define _testconfig <path to custom testconfig.sh>
 #   --define _skip_check 1
@@ -59,7 +59,7 @@ its own malloc-style API.
 %defattr(-,root,root,-)
 %{_libdir}/libvmem.so.*
 %license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
+%doc ChangeLog README.md
 
 
 %package -n libvmem-devel
@@ -82,7 +82,7 @@ applications that want to make use of libvmem.
 %{_mandir}/man7/libvmem.7.gz
 %{_mandir}/man3/vmem_*.3.gz
 %license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
+%doc ChangeLog README.md
 
 
 %package -n libvmem-debug
@@ -105,7 +105,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %{_libdir}/vmem_debug/libvmem.so
 %{_libdir}/vmem_debug/libvmem.so.*
 %license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
+%doc ChangeLog README.md
 
 
 %package -n libvmmalloc__PKG_NAME_SUFFIX__
@@ -124,7 +124,7 @@ environment variable.
 %defattr(-,root,root,-)
 %{_libdir}/libvmmalloc.so.*
 %license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
+%doc ChangeLog README.md
 
 
 %package -n libvmmalloc-devel
@@ -147,7 +147,7 @@ applications that want to specifically make use of libvmmalloc.
 %{_includedir}/libvmmalloc.h
 %{_mandir}/man7/libvmmalloc.7.gz
 %license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
+%doc ChangeLog README.md
 
 
 %package -n libvmmalloc-debug
@@ -171,7 +171,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %{_libdir}/vmem_debug/libvmmalloc.so
 %{_libdir}/vmem_debug/libvmmalloc.so.*
 %license LICENSE
-%doc ChangeLog CONTRIBUTING.md README.md
+%doc ChangeLog README.md
 
 
 %prep

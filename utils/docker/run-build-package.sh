@@ -58,8 +58,3 @@ else
 	cd $PACKAGE_MANAGER/x86_64
 	echo $USERPASS | sudo -S rpm --install *.rpm
 fi
-
-# Compile and run standalone test
-cd $WORKDIR/utils/docker/test_package
-make LIBPMEMOBJ_MIN_VERSION=1.4
-./test_package testfile1

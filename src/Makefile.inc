@@ -92,7 +92,7 @@ ifeq ($(DEBUG),1)
 # user-defined CFLAGS as it conflicts with -O0.
 DEBUG_CFLAGS += -Wp,-U_FORTIFY_SOURCE
 DEBUG_CFLAGS += -O0 -ggdb -DDEBUG
-LIB_SUBDIR = /pmdk_debug
+LIB_SUBDIR = /vmem_debug
 OBJDIR = debug
 else
 DEFAULT_CFLAGS += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2

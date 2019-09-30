@@ -1,5 +1,5 @@
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -98,10 +98,10 @@ changequote(=q=,=e=)
 changecom()
 define(_BSDWX, ifdef(=q=FREEBSD=e=,$1,$2))
 define(_DEBUGLIBPATH, ifdef(=q=WIN32=e=,**/pmdk/src/x64/Debug**,
-ifdef(=q=FREEBSD=e=,**/usr/local/lib/pmdk_debug**, **/usr/lib/pmdk_debug**)))
+ifdef(=q=FREEBSD=e=,**/usr/local/lib/vmem_debug**, **/usr/lib/vmem_debug**)))
 define(_LDLIBPATH, ifdef(=q=WIN32=e=,**/pmdk/src/x64/Debug**,
-ifdef(=q=FREEBSD=e=,**/usr/local/lib/pmdk_debug**,
-=q==q==q=**/usr/lib/pmdk_debug** or **/usr/lib64/pmdk_debug**, as appropriate=e==e==e=)))
+ifdef(=q=FREEBSD=e=,**/usr/local/lib/vmem_debug**,
+=q==q==q=**/usr/lib/vmem_debug** or **/usr/lib64/vmem_debug**, as appropriate=e==e==e=)))
 define(_MP, ifdef(=q=WEB=e=,$1,$1($2)))
 define(_UNICODE, ifdef(=q=WIN32=e=,=q==q=
 >NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is

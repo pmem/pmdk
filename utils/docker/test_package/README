@@ -1,6 +1,0 @@
-Persistent Memory Development Kit
-
-This is utils/docker/test_package/README.
-
-This directory contains simple application which uses libpmemobj.
-It can be used to test whether libpmemobj was installed properly.
