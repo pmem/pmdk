@@ -131,7 +131,7 @@ all: $(TMP_HEADERS)
 	$(call check-cstyle, $<, $@)
 
 $(PROGS): | $(TMP_HEADERS)
-	LD_LIBRARY_PATH=$(LIBNDCTL_LD_LIBRARY_PATHS):$(LD_LIBRARY_PATH) $(LINKER) -o $@ $^ $(LDFLAGS) $(LIBS)
+	$(LINKER) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 lib%.o:
 	$(LD) -o $@ -r $^

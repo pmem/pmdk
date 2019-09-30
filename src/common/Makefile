@@ -38,5 +38,4 @@ include pmemcommon.inc
 
 include ../Makefile.inc
 
-CFLAGS += $(LIBNDCTL_CFLAGS)
 CFLAGS += -DUSE_LIBDL

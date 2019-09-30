@@ -150,8 +150,7 @@ $DIR_SRC/test/tools/fip/fip"
 
 # Portability
 VALGRIND_SUPP="--suppressions=../ld.supp \
-	--suppressions=../memcheck-libunwind.supp \
-	--suppressions=../memcheck-ndctl.supp"
+	--suppressions=../memcheck-libunwind.supp"
 if [ "$(uname -s)" = "FreeBSD" ]; then
 	DATE="gdate"
 	DD="gdd"
@@ -713,10 +712,8 @@ function get_trace() {
 			;;
 		helgrind)
 			opts="$opts --suppressions=../helgrind-cxgb4.supp"
-			opts="$opts --suppressions=../helgrind-libfabric.supp"
 			;;
 		drd)
-			opts="$opts --suppressions=../drd-libfabric.supp"
 			;;
 		esac
 	fi

@@ -151,7 +151,7 @@ endif
 LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
 
 ifneq ($(NORPATH),1)
-LDFLAGS += -Wl,-rpath=$(libdir)$(LIB_SUBDIR):$(LIBNDCTL_LD_LIBRARY_PATHS)
+LDFLAGS += -Wl,-rpath=$(libdir)$(LIB_SUBDIR)
 endif
 
 ifeq ($(LIBRT_NEEDED), y)

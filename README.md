@@ -83,8 +83,6 @@ You will need to install the following required packages on the build system:
 * **autoconf**
 * **pkg-config**
 
-><sup>1</sup> PMDK requires libndctl v63 or newer (to enable RAS features) by default. If you have such libndctl version but you don't want to depend on this API please build PMDK with NDCTL_USE_V63_API=n. For more information please check this issue pmem/issues#1039
-
 ### Windows
 
 * **MS Visual Studio 2015**

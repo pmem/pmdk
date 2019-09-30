@@ -43,29 +43,6 @@ ENV DEBIAN_FRONTEND noninteractive
 # Update the Apt cache and install basic tools
 RUN apt-get update && apt-get dist-upgrade -y
 
-# ndctl (optional if libndctl-dev and libdaxctl-dev >= 60.1, 64.1 preferred)
-ENV NDCTL_DEPS "asciidoctor \
-	automake \
-	bash-completion \
-	build-essential \
-	git \
-	libjson-c-dev \
-	libkeyutils-dev \
-	libkmod-dev \
-	libtool \
-	libudev-dev \
-	pkg-config \
-	systemd \
-	uuid-dev"
-
-# libfabric (optional if libfabric-dev >= 1.4.2 is installed)
-ENV FABRIC_DEPS "autoconf \
-	automake \
-	build-essential \
-	libtool \
-	unzip \
-	wget"
-
 ENV VALGRIND_DEPS "autoconf \
 	automake \
 	build-essential \
@@ -117,8 +94,6 @@ ENV MISC_DEPS "clang \
 	whois"
 
 RUN apt-get install -y --no-install-recommends \
-	$NDCTL_DEPS \
-	$FABRIC_DEPS \
 	$VALGRIND_DEPS \
 	$BASE_DEPS \
 	$JEMALLOC_DEPS \

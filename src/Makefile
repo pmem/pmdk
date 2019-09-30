@@ -130,7 +130,7 @@ libvmmalloc libvmem: jemalloc
 test: common
 
 pkg-cfg-common:
-	@printf "version=%s\nlibdir=%s\nprefix=%s\nrasdeps=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" "$(LIBNDCTL_PKG_CONFIG_DEPS_VAR)" > $(PKG_CONFIG_COMMON)
+	@printf "version=%s\nlibdir=%s\nprefix=%s\nrasdeps=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" > $(PKG_CONFIG_COMMON)
 
 $(PKG_CONFIG_COMMON): pkg-cfg-common
 

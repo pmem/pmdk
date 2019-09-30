@@ -128,7 +128,6 @@ class Valgrind:
 
         if tool == MEMCHECK:
             self.add_suppression('memcheck-libunwind.supp')
-            self.add_suppression('memcheck-ndctl.supp')
             self.add_suppression('memcheck-dlopen.supp')
             if memcheck_check_leaks:
                 self.add_opt('--leak-check=full')

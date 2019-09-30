@@ -83,10 +83,6 @@ Usage: $0 [ -hnv ] [ -b build-type ] [ -t test-type ] [ -f fs-type ]
 			force-enable (enable when test does not require drd, but
 			obey test's explicit drd disable)
 -c			check pool files with pmempool check utility
--q provider		run test only with specified fabric provider
-			provider: verbs, sockets, all (default)
--r persistency-method	run tests only with specified persistency method
-			persistency-method: GPSPM, APM, all (default)
 EOF
 	exit 1
 }
