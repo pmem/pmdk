@@ -1,13 +1,13 @@
-Thu Sep 26 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+Mon Sep 30 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.7-rc2
+	* Version 1.7
 
 	This release:
 	- Introduces new APIs in libpmemobj for managing space used by transactions.
 	  (see pmemobj_tx_log_append_buffer man page for details)
 	- Introduces new APIs in librpmem, splitting rpmem_persist into rpmem_flush
 	  and rpmem_drain, allowing applications to use the flush + drain model
-	  used by libpmem and libpmemobj.
+	  already known from libpmem. (libpmemobj does not use this feature yet)
 	- Optimizes large libpmemobj transactions by significantly reducing
 	  the amount of memory modified at the commit phase.
 	- Optimizes tracking of libpmemobj reservations.
@@ -22,6 +22,7 @@ Thu Sep 26 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 	Other changes:
 	- obj: fix merging of ranges when NOFLUSH flag is used (#1100)
 	- rpmem: fix closing of ssh connection (#995, #1060)
+	- obj: abort transaction on pmemobj_tx_publish failure
 
 	Internal changes:
 	- test: fault injection tests for pmemblk, pmemlog, and pmemobj
