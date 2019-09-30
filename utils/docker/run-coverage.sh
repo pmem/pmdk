@@ -57,6 +57,5 @@ make -j2 test COVERAGE=1
 # run local and remote tests separately
 cd src/test
 make -kj2 pcheck-local-quiet TEST_BUILD=debug || true
-make check-remote-quiet TEST_BUILD=debug || true
 cd ../..
 bash <(curl -s https://codecov.io/bash)

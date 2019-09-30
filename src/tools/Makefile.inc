@@ -130,10 +130,6 @@ else
 LIBSDIR_PRIV=$(LIBSDIR_NONDEBUG)
 endif
 
-PMEMLOG_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemlog/libpmemlog_unscoped.o
-PMEMOBJ_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemobj/libpmemobj_unscoped.o
-PMEMBLK_PRIV_OBJ=$(LIBSDIR_PRIV)/libpmemblk/libpmemblk_unscoped.o
-
 LIBS += $(LIBUUID)
 
 ifeq ($(LIBRT_NEEDED), y)
@@ -248,24 +244,6 @@ $(TARGET_STATIC_NONDEBUG): $(STATIC_NONDEBUG_LIBS)
 
 $(TARGET):
 	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(DYNAMIC_LIBS) $(LIBS)
-
-$(PMEMLOG_PRIV_OBJ):
-	$(MAKE) -C $(LIBSDIR) libpmemlog
-
-pmemlog_priv.o: $(PMEMLOG_PRIV_OBJ)
-	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMLOG_PRIV)) $< $@
-
-$(PMEMOBJ_PRIV_OBJ):
-	$(MAKE) -C $(LIBSDIR) libpmemobj
-
-pmemobj_priv.o: $(PMEMOBJ_PRIV_OBJ)
-	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMOBJ_PRIV)) $< $@
-
-$(PMEMBLK_PRIV_OBJ):
-	$(MAKE) -C $(LIBSDIR) libpmemblk
-
-pmemblk_priv.o: $(PMEMBLK_PRIV_OBJ)
-	$(OBJCOPY) --localize-hidden $(addprefix -G, $(LIBPMEMBLK_PRIV)) $< $@
 
 objdir=.
 

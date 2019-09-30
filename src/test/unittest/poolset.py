@@ -105,15 +105,6 @@ class _Poolset:
         """
         self.replicas.append(parts)
 
-    def add_remote(self, path, node):
-        """
-        Adds remote poolset file. A path should be relative to
-        the rpmemd poolset-dir. For details please see the
-        rpmemd(1) manual page.Each function call create new
-        remote replica.
-        """
-        self.remote.append((path, node))
-
     def set_singlehdr(self):
         """
         If called, poolset will be created with SINGLEHDR option.

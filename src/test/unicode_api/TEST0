@@ -48,7 +48,7 @@ require_command clang
 
 SRC=../..
 HEADERS_DIR=$SRC/include
-EXC_PATT="set_funcs|strdup|rpmem|vmem_stats_print"
+EXC_PATT="set_funcs|strdup|vmem_stats_print"
 FAILED=0
 DEF_COL=6
 

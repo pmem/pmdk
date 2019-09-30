@@ -4,7 +4,7 @@
 #   --define _skip_check 1
 
 # do not terminate build if files in the $RPM_BUILD_ROOT
-# directory are not found in the %files (without rpmem case)
+# directory are not found in the %files
 %define _unpackaged_files_terminate_build 0
 
 # disable 'make check' on suse

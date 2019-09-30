@@ -122,8 +122,6 @@ unit test framework also looks for several other variables:
 
 		$ TRACE=strace ./TEST0
 
-	TRACE is not supported for tests which are executed on remote nodes.
-
 	Run test under Valgrind/memcheck:
 
 		$ MEMCHECK=force-enable ./TEST0

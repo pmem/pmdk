@@ -65,11 +65,6 @@ OBJ_HEADERS_INSTALL =
 PKG_CONFIG_DESTDIR = $(DESTDIR)$(pkgconfigdir)
 PKG_CONFIG_COMMON = common.pc
 PKG_CONFIG_FILES = libvmem.pc libvmmalloc.pc
-PMREORDER_BIN = $(DESTDIR)$(bindir)
-PMREORDER_SRC =
-PMREORDER_FILES =
-PMREORDER_DESTDIR = $(DESTDIR)$(datarootdir)/pmreorder
-PMREORDER_ROOTDIR = $(datarootdir)/pmreorder
 
 rwildcard=$(strip $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2)\
 	$(filter $(subst *,%,$2),$d)))
@@ -166,14 +161,6 @@ test: all jemalloc-test
 check pcheck: test jemalloc-check
 	$(MAKE) -C test $@
 
-require-rpmem:
-ifneq ($(BUILD_RPMEM),y)
-	$(error ERROR: cannot run remote tests because $(BUILD_RPMEM_INFO))
-endif
-
-check-remote: require-rpmem test
-	$(MAKE) -C test $@
-
 jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
 	$(MAKE) -C jemalloc -f Makefile.libvmem     $@ EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common"
 	$(MAKE) -C jemalloc -f Makefile.libvmmalloc $@ EXTRA_CFLAGS="$(EXTRA_CFLAGS) -I$(abspath $(TOP))/src/common"
@@ -218,4 +205,4 @@ clobber: clean-here
 
 .PHONY: all install uninstall clean clobber cstyle format test check pcheck\
 	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)\
-	pkg-config check-remote clean-here pkg-cfg-common require-rpmem
+	pkg-config clean-here pkg-cfg-common

@@ -141,7 +141,6 @@ SCP_OPTS="-o BatchMode=yes -r -p"
 DIR_SRC="../.."
 FILES_COMMON_DIR="\
 $DIR_SRC/test/*.supp \
-$DIR_SRC/tools/rpmemd/rpmemd \
 $DIR_SRC/tools/pmempool/pmempool \
 $DIR_SRC/test/tools/extents/extents \
 $DIR_SRC/test/tools/obj_verify/obj_verify \

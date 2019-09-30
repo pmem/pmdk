@@ -153,20 +153,6 @@ runtest_local() {
 }
 
 #
-# runtest_remote -- add remote persistency parameters and run a test
-#	usage: runtest_remote <provider> <persistency-method>
-#
-runtest_remote() {
-	local params="$RUNTEST_PARAMS"
-	for prov in $1; do
-		for pm in $2; do
-			export RUNTEST_PARAMS="$params RPMEM_PROVIDER=$prov RPMEM_PM=$pm"
-			runtest_local
-		done
-	done
-}
-
-#
 # load_default_global_test_configuration -- load a default global configuration
 #
 load_default_global_test_configuration() {
@@ -175,7 +161,6 @@ load_default_global_test_configuration() {
 	global_req_buildtype=all
 	global_req_provider=none
 	global_req_pmethod=none
-	global_req_rpmem_valgrind=n
 	global_req_timeout='3m'
 
 	return 0
@@ -220,7 +205,6 @@ read_global_test_configuration() {
 	[ -n "$CONF_GLOBAL_BUILD_TYPE" ] && global_req_buildtype=$CONF_GLOBAL_BUILD_TYPE
 	[ -n "$CONF_GLOBAL_RPMEM_PROVIDER" ] && global_req_provider=$CONF_GLOBAL_RPMEM_PROVIDER
 	[ -n "$CONF_GLOBAL_RPMEM_PMETHOD" ] && global_req_pmethod=$CONF_GLOBAL_RPMEM_PMETHOD
-	[ -n "$CONF_GLOBAL_RPMEM_VALGRIND" ] && global_req_rpmem_valgrind=$CONF_GLOBAL_RPMEM_VALGRIND
 	[ -n "$CONF_GLOBAL_TIMEOUT" ] && global_req_timeout=$CONF_GLOBAL_TIMEOUT
 
 	return 0
@@ -237,7 +221,6 @@ read_test_configuration() {
 	req_buildtype=$global_req_buildtype
 	req_provider=$global_req_provider
 	req_pmethod=$global_req_pmethod
-	req_rpmem_valgrind=$global_req_rpmem_valgrind
 	req_timeout=$global_req_timeout
 
 	[ -n "${CONF_TEST_TYPE[$1]}" ] && req_testtype=${CONF_TEST_TYPE[$1]}
@@ -245,7 +228,6 @@ read_test_configuration() {
 	[ -n "${CONF_BUILD_TYPE[$1]}" ] && req_buildtype=${CONF_BUILD_TYPE[$1]}
 	[ -n "${CONF_RPMEM_PROVIDER[$1]}" ] && req_provider=${CONF_RPMEM_PROVIDER[$1]}
 	[ -n "${CONF_RPMEM_PMETHOD[$1]}" ] && req_pmethod=${CONF_RPMEM_PMETHOD[$1]}
-	[ -n "${CONF_RPMEM_VALGRIND[$1]}" ] && req_rpmem_valgrind=${CONF_RPMEM_VALGRIND[$1]}
 	if [ -n "$runtest_timeout" ]; then
 		req_timeout="$runtest_timeout"
 	else
@@ -353,39 +335,10 @@ runtest() {
 			exit 1
 		}
 
-		[ "$req_rpmem_valgrind" == "y" -a "$RPMEM_VALGRIND_ENABLED" != "y" ] && {
-			echo "$UNITTEST_NAME: SKIP: remote valgrind tests disabled"
-			continue
-		}
-
 		fss=$(intersection "$fstype" "$req_fstype" "none pmem non-pmem any")
 		builds=$(intersection "$buildtype" "$req_buildtype" "debug nondebug static-debug static-nondebug")
 		provs=$(intersection "$provider" "$req_provider" "verbs sockets")
 		pmeths=$(intersection "$pmethod" "$req_pmethod" "GPSPM APM")
-
-		# remote tests require both providers and pmethods
-		# local tests require neither providers nor pmethods
-		# anything in between indicates invalid test configuration
-		[ "$req_provider" == "none" -a "$req_pmethod" != "none" ] ||
-			[ "$req_provider" != "none" -a "$req_pmethod" == "none" ] && {
-				echo "$UNITTEST_NAME: invalid test configuration"
-				echo "CONF_(GLOBAL_)RPMEM_PROVIDER ($req_provider) and " \
-					"CONF_(GLOBAL_)RPMEM_PMETHOD ($req_pmethod) have to be set both or neither"
-				exit 1
-			}
-
-		# skip remote test if required providers or persistency methods are missing
-		# remote tests have req_provider != "none"
-		[ "$req_provider" != "none" ] && {
-			[ -z "$provs" ] && {
-				echo "$UNITTEST_NAME: SKIP: required providers ($req_provider) are missing"
-				continue
-			}
-			[ -z "$pmeths" ] && {
-				echo "$UNITTEST_NAME: SKIP: required pmethods ($req_pmethod) are missing"
-				continue
-			}
-		}
 
 		# for each fs-type being tested...
 		for fs in $fss
@@ -423,12 +376,7 @@ runtest() {
 				# to not overwrite logs skip other tests from the group
 				# if KEEP_GOING=y and test fail
 				if [ "$keep_going_skip" == "n" ]; then
-					# remote tests have req_provider != "none"
-					if [ "$req_provider" != "none" ]; then
-						runtest_remote "$provs" "$pmeths"
-					else
-						runtest_local
-					fi
+					runtest_local
 				fi
 			done
 		done

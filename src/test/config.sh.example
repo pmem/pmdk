@@ -31,10 +31,6 @@
 # Test can also require custom timeout:
 	CONF_GLOBAL_TIMEOUT=5m
 
-# If remote test requires Valgrind support it must explicitly set this
-# requirement:
-	CONF_GLOBAL_RPMEM_VALGRIND=y
-
 
 # PER TEST<num> REQUIREMENTS
 

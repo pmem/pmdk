@@ -225,7 +225,6 @@ endif
 endif
 endif
 
-SCP=../sync-remotes/copy-to-remote-nodes.sh
 TESTCONFIG=../testconfig.sh
 SYNC_FILE=.synced
 
