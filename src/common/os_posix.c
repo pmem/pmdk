@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -201,14 +201,73 @@ os_posix_fallocate(int fd, os_off_t offset, off_t len)
 			return errno;
 
 		size_t reqd_blocks =
-			(((size_t)len + (fsbuf.f_bsize - 1)) / fsbuf.f_bsize)
-				- (size_t)fbuf.st_blocks;
+			((size_t)len + (fsbuf.f_bsize - 1)) / fsbuf.f_bsize;
+		if (fbuf.st_blocks > 0) {
+			if (reqd_blocks >= (size_t)fbuf.st_blocks)
+				reqd_blocks -= (size_t)fbuf.st_blocks;
+			else
+				reqd_blocks = 0;
+		}
 		if (reqd_blocks > (size_t)fsbuf.f_bavail)
 			return ENOSPC;
 	}
 #endif
 
-	return posix_fallocate(fd, offset, len);
+/*
+ *	First, try to alloc the whole thing in one go.  This allows ENOSPC to
+ *	fail immediately -- allocating piece by piece would fill the storage
+ *	just to abort halfway.
+ */
+	int err = posix_fallocate(fd, offset, len);
+	if (err != ENOMEM && err != EINTR)
+		return err;
+
+/*
+ *	Workaround for a bug in tmpfs where it fails large but reasonable
+ *	requests that exceed available DRAM but fit within swap space.  And
+ *	even if a request fits within DRAM, tmpfs will evict other tasks
+ *	just to reserve space.
+ *
+ *	We also want to survive random unrelated signals.  Profilers spam
+ *	the program with SIGVTALRM/SIGPROF, anything run from a terminal can
+ *	receive SIGNWINCH, etc.  As fallocate is a long-running syscall,
+ *	let's restart it, but in a way that avoids infinite loops.
+ *
+ *	Thus:
+ *	* limit a single syscall to 1GB
+ *	* ignore sporadic signals
+ *	* on repeated failures, start reducing syscall size
+ *	* ... but not below 1MB
+ */
+	os_off_t chunk = 1LL << 30; /* 1GB */
+	int tries = 0;
+
+	while (len) {
+		if (chunk > len)
+			chunk = len;
+
+		int err = posix_fallocate(fd, offset, chunk);
+		if (!err) {
+			offset += chunk;
+			len -= chunk;
+			tries = 0;
+		} else if (err != ENOMEM && err != EINTR) {
+			return err;
+		} else if (++tries == 5) {
+			tries = 0;
+			chunk /= 2;
+
+			/*
+			 * Within memory pressure or a signal storm, small
+			 * allocs are more likely to get through, but once we
+			 * get this small, something is badly wrong.
+			 */
+			if (chunk < 1LL << 20) /* 1MB */
+				return err;
+		}
+	}
+
+	return 0;
 }
 
 /*

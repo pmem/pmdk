@@ -7,7 +7,7 @@ header: PMDK
 date: vmem API version 1.1
 ...
 
-[comment]: <> (Copyright 2016-2017, Intel Corporation)
+[comment]: <> (Copyright 2016-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -102,6 +102,11 @@ depending on the file system containing the memory-mapped files.
 In particular, **libvmem** is part of the *Persistent Memory Development Kit*
 because it is sometimes useful to use non-volatile memory as a volatile memory
 pool, leveraging its capacity, cost, or performance characteristics.
+
+It is recommended that new code uses **memkind**(3) instead of **libvmem**, as
+this library is no longer actively developed and lacks certain features of
+**memkind** such as NUMA awareness.  Nevertheless, it is mature, and is
+expected to be maintained for foreseable future.
 
 **libvmem** uses the **mmap**(2) system call to create a pool of volatile
 memory. The library is most useful when used with *Direct Access* storage

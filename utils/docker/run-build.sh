@@ -44,9 +44,10 @@ set -e
 cd $WORKDIR
 make check-license
 make cstyle
-make -j2 USE_LIBUNWIND=1
-make -j2 test USE_LIBUNWIND=1
+make -j2
+make -j2 test
 make -j2 pcheck TEST_BUILD=$TEST_BUILD
+make -j2 pycheck
 make DESTDIR=/tmp source
 
 # Create PR with generated docs

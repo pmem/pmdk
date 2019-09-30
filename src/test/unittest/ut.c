@@ -194,6 +194,10 @@ static FILE *Tracefp;
 static int LogLevel;		/* set by UNITTEST_LOG_LEVEL env variable */
 static int Force_quiet;		/* set by UNITTEST_FORCE_QUIET env variable */
 static char *Testname;		/* set by UNITTEST_NAME env variable */
+
+/* set by UNITTEST_CHECK_OPEN_FILES_IGNORE_BADBLOCKS env variable */
+static int Ignore_bb;
+
 unsigned long Ut_pagesize;
 unsigned long long Ut_mmap_align;
 os_mutex_t Sigactions_lock;
@@ -342,8 +346,11 @@ static void
 open_file_remove(struct fd_lut *root, int fdnum, const char *fdfile)
 {
 	if (root == NULL) {
-		UT_ERR("unexpected open file: fd %d => \"%s\"", fdnum, fdfile);
-		Fd_errcount++;
+		if (!Ignore_bb || strstr(fdfile, "badblocks") == NULL) {
+			UT_ERR("unexpected open file: fd %d => \"%s\"",
+				fdnum, fdfile);
+			Fd_errcount++;
+		}
 	} else if (root->fdnum == fdnum) {
 		if (root->fdfile == NULL) {
 			UT_ERR("open file dup: fd %d => \"%s\"", fdnum, fdfile);
@@ -746,13 +753,18 @@ ut_start_common(const char *file, int line, const char *func,
 	GetSystemInfo(&si);
 	Ut_mmap_align = si.dwAllocationGranularity;
 
-	if (os_getenv("UNITTEST_NO_ABORT_MSG") != NULL) {
+	if (os_getenv("PMDK_NO_ABORT_MSG") != NULL) {
 		/* disable windows error message boxes */
 		ut_suppress_errmsg();
 	}
 	os_mutex_init(&Sigactions_lock);
 #else
 	Ut_mmap_align = Ut_pagesize;
+	char *ignore_bb =
+		os_getenv("UNITTEST_CHECK_OPEN_FILES_IGNORE_BADBLOCKS");
+
+	if (ignore_bb && *ignore_bb)
+		Ignore_bb = 1;
 #endif
 	if (os_getenv("UNITTEST_NO_SIGHANDLERS") == NULL)
 		ut_register_sighandlers();

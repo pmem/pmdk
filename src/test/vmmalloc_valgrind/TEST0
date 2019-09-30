@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,6 @@
 #
 export VALGRIND_OPTS="--suppressions=excluded-errors.supp --leak-check=full\
 	--show-reachable=yes"
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
@@ -46,7 +45,7 @@ require_fs_type any
 require_build_type debug nondebug
 require_valgrind 3.7
 set_valgrind_exe_name
-configure_valgrind memcheck force-enable $TEST_LD_LIBRARY_PATH/$VMMALLOC
+configure_valgrind memcheck force-enable $PMDK_LIB_PATH/$VMMALLOC
 setup
 
 unset VMMALLOC_LOG_LEVEL

@@ -37,39 +37,99 @@
 # Pull base image
 FROM ubuntu:18.04
 MAINTAINER marcin.slusarz@intel.com
+
+ENV DEBIAN_FRONTEND noninteractive
+
 # Update the Apt cache and install basic tools
-RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common \
-	asciidoc \
-	autoconf \
-	bc \
-	clang \
-	clang-format \
-	cmake \
-	debhelper \
-	devscripts \
-	flake8 \
-	gcc \
-	gdb \
+RUN apt-get update && apt-get dist-upgrade -y
+
+# ndctl (optional if libndctl-dev and libdaxctl-dev >= 60.1, 64.1 preferred)
+ENV NDCTL_DEPS "asciidoctor \
+	automake \
+	bash-completion \
+	build-essential \
 	git \
-	libc6-dbg \
-	libfuse-dev \
-	libglib2.0-dev \
 	libjson-c-dev \
+	libkeyutils-dev \
 	libkmod-dev \
-	libncurses5-dev \
 	libtool \
 	libudev-dev \
-	libunwind8-dev \
-	libuv1-dev \
-	pandoc \
 	pkg-config \
-	ruby \
+	systemd \
+	uuid-dev"
+
+# libfabric (optional if libfabric-dev >= 1.4.2 is installed)
+ENV FABRIC_DEPS "autoconf \
+	automake \
+	build-essential \
+	libtool \
+	unzip \
+	wget"
+
+ENV VALGRIND_DEPS "autoconf \
+	automake \
+	build-essential \
+	git"
+
+# pmdk base
+ENV BASE_DEPS "build-essential \
+	git \
+	pkg-config"
+
+# jemalloc
+ENV JEMALLOC_DEPS autoconf
+
+# benchmarks (optional)
+ENV BENCH_DEPS libglib2.0-dev
+
+# examples (optional)
+ENV EXAMPLES_DEPS "libfuse-dev \
+	libncurses5-dev \
+	libuv1-dev"
+
+# documentation (optional)
+ENV DOC_DEPS pandoc
+
+# tests
+ENV TESTS_DEPS "bc \
+	libc6-dbg \
+	libunwind-dev \
+	python3 \
 	ssh \
+	strace"
+
+# packaging
+ENV PACKAGING_DEPS "debhelper \
+	devscripts \
+	fakeroot"
+
+# CodeCov
+ENV CODECOV_DEPS curl
+
+# Coverity
+ENV COVERITY_DEPS ruby gcc-6 g++-6 wget
+
+# misc
+ENV MISC_DEPS "clang \
+	clang-format \
+	flake8 \
 	sudo \
-	uuid-dev \
-	whois \
- && rm -rf /var/lib/apt/lists/*
+	whois"
+
+RUN apt-get install -y --no-install-recommends \
+	$NDCTL_DEPS \
+	$FABRIC_DEPS \
+	$VALGRIND_DEPS \
+	$BASE_DEPS \
+	$JEMALLOC_DEPS \
+	$BENCH_DEPS \
+	$EXAMPLES_DEPS \
+	$DOC_DEPS \
+	$TESTS_DEPS \
+	$PACKAGING_DEPS \
+	$CODECOV_DEPS \
+	$COVERITY_DEPS \
+	$MISC_DEPS
 
 # Install valgrind
 COPY install-valgrind.sh install-valgrind.sh
@@ -79,6 +139,24 @@ RUN ./install-valgrind.sh
 ENV USER pmdkuser
 ENV USERPASS pmdkpass
 RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
+
+# remove stuff no longer needed
+RUN apt remove -y \
+	libjson-c-dev \
+	libkeyutils-dev \
+	libkmod-dev \
+	libudev-dev \
+	uuid-dev \
+	unzip \
+	whois
+
+RUN apt autoremove -y
+
+RUN apt-get clean
+
+RUN rm -rf /var/lib/apt/lists/*
+
+# switch user
 USER $USER
 
 # Set required environment variables

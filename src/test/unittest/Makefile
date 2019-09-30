@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,7 +42,7 @@ vpath %.h $(TOP)/src/common
 
 TARGET = libut.a
 OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
-	os_posix.o os_thread_posix.o
+	os_posix.o os_thread_posix.o rand.o alloc.o
 CFLAGS = -I$(TOP)/src/include
 CFLAGS += -I$(TOP)/src/common
 CFLAGS += $(OS_INCS)

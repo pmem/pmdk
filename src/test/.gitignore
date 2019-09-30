@@ -3,6 +3,7 @@
 # of the source tree is being tested.
 testconfig.sh
 testconfig.ps1
+testconfig.py
 # ignore files generated during test runs (left around for analysis)
 *.log
 testfile*
@@ -14,3 +15,7 @@ libs.tar
 .sync-dir
 # ignore lock files
 *.lock
+# ignore python modules cache
+__pycache__/
+/envconfig.sh
+/envconfig.py

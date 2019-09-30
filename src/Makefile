@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,19 +37,25 @@ include $(TOP)/src/common.inc
 
 TARGETS = libvmem libvmmalloc
 ALL_TARGETS = $(TARGETS) common examples
+POSSIBLE_TARGETS = $(TARGETS) common examples
 
 SCOPE_DIRS = $(TARGETS) common
 
 DEBUG_RELEASE_TARGETS = common libvmem libvmmalloc
 RELEASE_TARGETS = examples
 
-CLEAN_NO_JE_TARGETS = $(ALL_TARGETS) test
+ifneq ($(BUILD_EXAMPLES),n)
+	ALL_TARGETS += examples
+	RELEASE_TARGETS += examples
+endif
+
+CLEAN_NO_JE_TARGETS = $(POSSIBLE_TARGETS)
 CLEAN_TARGETS = $(CLEAN_NO_JE_TARGETS) jemalloc
-CLOBBER_NO_JE_TARGETS = $(ALL_TARGETS) test
+CLOBBER_NO_JE_TARGETS = $(POSSIBLE_TARGETS)
 CLOBBER_TARGETS = $(CLOBBER_NO_JE_TARGETS) jemalloc
-CSTYLE_TARGETS = $(ALL_TARGETS) test
+CSTYLE_TARGETS = $(POSSIBLE_TARGETS)
 INSTALL_TARGETS = $(TARGETS)
-SPARSE_TARGETS = $(ALL_TARGETS) test
+SPARSE_TARGETS = $(POSSIBLE_TARGETS)
 
 HEADERS_DESTDIR = $(DESTDIR)$(includedir)
 HEADERS_INSTALL = include/libvmem.h include/libvmmalloc.h
@@ -124,7 +130,7 @@ libvmmalloc libvmem: jemalloc
 test: common
 
 pkg-cfg-common:
-	@printf "version=%s\nlibdir=%s\nprefix=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" > $(PKG_CONFIG_COMMON)
+	@printf "version=%s\nlibdir=%s\nprefix=%s\nrasdeps=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" "$(LIBNDCTL_PKG_CONFIG_DEPS_VAR)" > $(PKG_CONFIG_COMMON)
 
 $(PKG_CONFIG_COMMON): pkg-cfg-common
 
@@ -157,10 +163,15 @@ jemalloc-check: jemalloc-test
 test: all jemalloc-test
 	$(MAKE) -C test test
 
-check pcheck: test jemalloc-check
+check pcheck pycheck: test jemalloc-check
 	$(MAKE) -C test $@
 
-check-remote: test
+require-rpmem:
+ifneq ($(BUILD_RPMEM),y)
+	$(error ERROR: cannot run remote tests because $(BUILD_RPMEM_INFO))
+endif
+
+check-remote: require-rpmem test
 	$(MAKE) -C test $@
 
 jemalloc jemalloc-clean jemalloc-clobber jemalloc-test jemalloc-check:
@@ -207,4 +218,4 @@ clobber: clean-here
 
 .PHONY: all install uninstall clean clobber cstyle format test check pcheck\
 	jemalloc jemalloc-clean jemalloc-test jemalloc-check cscope $(ALL_TARGETS)\
-	pkg-config check-remote clean-here pkg-cfg-common
+	pkg-config check-remote clean-here pkg-cfg-common require-rpmem

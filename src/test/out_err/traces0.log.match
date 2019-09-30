@@ -6,6 +6,7 @@ $(OPT)<trace>: <1> [out.c:$(N) out_init]$(W)compiled with support for Valgrind h
 $(OPT)<trace>: <1> [out.c:$(N) out_init]$(W)compiled with support for Valgrind memcheck
 $(OPT)<trace>: <1> [out.c:$(N) out_init]$(W)compiled with support for Valgrind drd
 $(OPT)<trace>: <1> [out.c:$(N) out_init]$(W)compiled with support for shutdown state
+$(OPT)<trace>: <1> [out.c:$(N) out_init]$(W)compiled with libndctl 63+
 <trace>: <1> [out_err$(nW).c:$(N) $(nW)main]$(W)ERR #1
 $(OPT)<trace>: <1> [out_err$(nW).c:$(N) $(nW)main]$(W)ERR #2: Success
 $(OPX)<trace>: <1> [out_err$(nW).c:$(N) $(nW)main]$(W)ERR #2: No error: 0

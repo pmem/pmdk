@@ -184,7 +184,8 @@ format_license(char *license, size_t length)
 	/* is there any comment? */
 	if (comment + 1 != license) {
 		/* separate out a comment */
-		strncpy(comment_str, comment, COMMENT_STR_LEN);
+		strncpy(comment_str, comment, COMMENT_STR_LEN - 1);
+		comment_str[COMMENT_STR_LEN - 1] = 0;
 		comment = comment_str + 1;
 		while (isspace(*comment))
 			comment++;
@@ -288,8 +289,7 @@ create_pattern(const char *path_license, char *pattern)
 	if (analyze_license(path_license, buffer, &license) == -1)
 		return -1;
 
-	memset(pattern, 0, LICENSE_MAX_LEN);
-	strncpy(pattern, license, strlen(license) + 1);
+	strncpy(pattern, license, LICENSE_MAX_LEN);
 
 	return 0;
 }

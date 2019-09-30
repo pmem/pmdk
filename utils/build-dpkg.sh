@@ -53,7 +53,7 @@ Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 -t version-tag		source version tag
 -s source-dir		source directory
 -w working-dir		working directory
--o output-dir		outut directory
+-o output-dir		output directory
 -e build-experimental	build experimental packages
 -c run-check		run package check
 -f testconfig-file	custom testconfig.sh
@@ -198,6 +198,7 @@ tar zcf $PACKAGE_TARBALL_ORIG $PACKAGE_SOURCE
 
 cd $PACKAGE_SOURCE
 
+rm -rf debian
 mkdir debian
 
 # Generate compat file

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -110,7 +110,7 @@ enum pmem_map_type {
  * this structure tracks the file mappings outstanding per file handle
  */
 struct map_tracker {
-	SORTEDQ_ENTRY(map_tracker) entry;
+	PMDK_SORTEDQ_ENTRY(map_tracker) entry;
 	uintptr_t base_addr;
 	uintptr_t end_addr;
 	int region_id;

@@ -53,10 +53,10 @@
 
 /**
  * This function represents the recursion formula.
- * @param a a 128-bit part of the interal state array
- * @param b a 128-bit part of the interal state array
- * @param c a 128-bit part of the interal state array
- * @param d a 128-bit part of the interal state array
+ * @param a a 128-bit part of the internal state array
+ * @param b a 128-bit part of the internal state array
+ * @param c a 128-bit part of the internal state array
+ * @param d a 128-bit part of the internal state array
  * @param mask 128-bit mask
  * @return output
  */

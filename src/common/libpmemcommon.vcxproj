@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="alloc.c" />
     <ClCompile Include="file.c" />
     <ClCompile Include="file_windows.c" />
     <ClCompile Include="mmap.c" />
@@ -22,8 +23,10 @@
     <ClCompile Include="util_windows.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="alloc.h" />
     <ClInclude Include="ctl.h" />
     <ClInclude Include="ctl_global.h" />
+    <ClInclude Include="fault_injection.h" />
     <ClInclude Include="os_auto_flush_windows.h" />
     <ClInclude Include="os_badblock.h" />
     <ClInclude Include="badblock.h" />

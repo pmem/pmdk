@@ -37,6 +37,44 @@ export LC_ALL="C"
 #export LC_ALL="en_US.UTF-8"
 
 . ../testconfig.sh
+. ../envconfig.sh
+
+if [ -t 1 ]; then
+	IS_TERMINAL_STDOUT=YES
+fi
+if [ -t 2 ]; then
+	IS_TERMINAL_STDERR=YES
+fi
+
+function is_terminal() {
+	local fd
+	fd=$1
+	case $(eval "echo \${IS_TERMINAL_${fd}}") in
+	YES) : ;;
+	*) false ;;
+	esac
+}
+
+function interactive_color() {
+	local color fd
+	color=$1
+	fd=$2
+	shift 2
+
+	if is_terminal ${fd} && command -v tput >/dev/null; then
+		echo "$(tput setaf $color || :)$*$(tput sgr0 || :)"
+	else
+		echo "$*"
+	fi
+}
+
+function interactive_red() {
+	interactive_color 1 "$@"
+}
+
+function interactive_green() {
+	interactive_color 2 "$@"
+}
 
 function verbose_msg() {
 	if [ "$UNITTEST_LOG_LEVEL" -ge 2 ]; then
@@ -72,7 +110,7 @@ fi
 [ "$CHECK_TYPE" ] || CHECK_TYPE=auto
 [ "$CHECK_POOL" ] || CHECK_POOL=0
 [ "$VERBOSE" ] || VERBOSE=0
-[ -n "${SUFFIX+x}" ] || SUFFIX="😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋"
+[ -n "${SUFFIX+x}" ] || SUFFIX="😘⠏⠍⠙⠅ɗPMDKӜ⥺🙋"
 
 export UNITTEST_LOG_LEVEL GREP TEST FS BUILD CHECK_TYPE CHECK_POOL VERBOSE SUFFIX
 
@@ -111,7 +149,9 @@ $DIR_SRC/test/tools/ctrld/ctrld \
 $DIR_SRC/test/tools/fip/fip"
 
 # Portability
-VALGRIND_SUPP="--suppressions=../ld.supp --suppressions=../memcheck-libunwind.supp"
+VALGRIND_SUPP="--suppressions=../ld.supp \
+	--suppressions=../memcheck-libunwind.supp \
+	--suppressions=../memcheck-ndctl.supp"
 if [ "$(uname -s)" = "FreeBSD" ]; then
 	DATE="gdate"
 	DD="gdd"
@@ -138,38 +178,30 @@ fi
 # array of lists of PID files to be cleaned in case of an error
 NODE_PID_FILES[0]=""
 
-#
-# The variable TEST_LD_LIBRARY_PATH is constructed so the test pulls in
-# the appropriate library from this source tree.  To override this behavior
-# (i.e. to force the test to use the libraries installed elsewhere on
-# the system), set TEST_LD_LIBRARY_PATH and this script will not override it.
-#
-# For example, in a test directory, run:
-#	TEST_LD_LIBRARY_PATH=/usr/lib ./TEST0
-#
-[ "$TEST_LD_LIBRARY_PATH" ] || {
-	case "$BUILD"
-	in
-	debug|static-debug)
-		if [ -z "$PMDK_LIB_PATH_DEBUG" ]; then
-			TEST_LD_LIBRARY_PATH=../../debug
-			REMOTE_LD_LIBRARY_PATH=../debug
-		else
-			TEST_LD_LIBRARY_PATH=$PMDK_LIB_PATH_DEBUG
-			REMOTE_LD_LIBRARY_PATH=$PMDK_LIB_PATH_DEBUG
-		fi
-		;;
-	nondebug|static-nondebug)
-		if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
-			TEST_LD_LIBRARY_PATH=../../nondebug
-			REMOTE_LD_LIBRARY_PATH=../nondebug
-		else
-			TEST_LD_LIBRARY_PATH=$PMDK_LIB_PATH_NONDEBUG
-			REMOTE_LD_LIBRARY_PATH=$PMDK_LIB_PATH_NONDEBUG
-		fi
-		;;
-	esac
-}
+case "$BUILD"
+in
+debug|static-debug)
+	if [ -z "$PMDK_LIB_PATH_DEBUG" ]; then
+		PMDK_LIB_PATH=../../debug
+		REMOTE_PMDK_LIB_PATH=../debug
+	else
+		PMDK_LIB_PATH=$PMDK_LIB_PATH_DEBUG
+		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_DEBUG
+	fi
+	;;
+nondebug|static-nondebug)
+	if [ -z "$PMDK_LIB_PATH_NONDEBUG" ]; then
+		PMDK_LIB_PATH=../../nondebug
+		REMOTE_PMDK_LIB_PATH=../nondebug
+	else
+		PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
+		REMOTE_PMDK_LIB_PATH=$PMDK_LIB_PATH_NONDEBUG
+	fi
+	;;
+esac
+
+export LD_LIBRARY_PATH=$PMDK_LIB_PATH:$GLOBAL_LIB_PATH:$LD_LIBRARY_PATH
+export REMOTE_LD_LIBRARY_PATH=$REMOTE_PMDK_LIB_PATH:$GLOBAL_LIB_PATH:\$LD_LIBRARY_PATH
 
 #
 # When running static binary tests, append the build type to the binary
@@ -313,7 +345,6 @@ function disable_exit_on_error() {
 	set +e
 }
 
-
 #
 # get_files -- print list of files in the current directory matching the given regex to stdout
 #
@@ -407,7 +438,7 @@ function create_file() {
 	shift
 	for file in $*
 	do
-		$DD if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes >> $PREP_LOG_FILE
+		$DD if=/dev/zero of=$file bs=1M count=$size iflag=count_bytes status=none >> $PREP_LOG_FILE
 	done
 }
 
@@ -707,8 +738,7 @@ function validate_valgrind_log() {
 		-e "Bad mempool" \
 		$1 >/dev/null ;
 	then
-		msg="failed"
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR "failed")
 		echo -e "$UNITTEST_NAME $msg with Valgrind. See $1. Last 20 lines below." >&2
 		paste -d " " <(yes $UNITTEST_NAME $1 | head -n 20) <(tail -n 20 $1) >&2
 		false
@@ -799,8 +829,7 @@ function expect_normal_exit() {
 
 	disable_exit_on_error
 
-	eval $ECHO LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD \
-		$trace "$*"
+	eval $ECHO LD_PRELOAD=$TEST_LD_PRELOAD $trace "$*"
 	ret=$?
 
 	if [ $REMOTE_VALGRIND_LOG -eq 1 ]; then
@@ -819,7 +848,7 @@ function expect_normal_exit() {
 		else
 			msg="failed with exit code $ret"
 		fi
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR $msg)
 
 		if [ -f $ERR_LOG_FILE ]; then
 			if [ "$UNITTEST_LOG_LEVEL" -ge "1" ]; then
@@ -831,19 +860,12 @@ function expect_normal_exit() {
 		else
 			echo -e "$UNITTEST_NAME $msg." >&2
 		fi
-		if [ "$CHECK_TYPE" != "none" -a -f $VALGRIND_LOG_FILE ]; then
-			dump_last_n_lines $VALGRIND_LOG_FILE
-		fi
 
 		# ignore Ctrl-C
 		if [ $ret != 130 ]; then
-			for f in $(get_files "node_.*${UNITTEST_NUM}\.log"); do
+			for f in $(get_files ".*[a-zA-Z_]${UNITTEST_NUM}\.log"); do
 				dump_last_n_lines $f
 			done
-
-			dump_last_n_lines $TRACE_LOG_FILE
-			dump_last_n_lines $VMEM_LOG_FILE
-			dump_last_n_lines $VMMALLOC_LOG_FILE
 		fi
 
 		[ $NODES_MAX -ge 0 ] && clean_all_remote_nodes
@@ -902,13 +924,12 @@ function expect_abnormal_exit() {
 
 	disable_exit_on_error
 	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" \
-		LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $TRACE "$*"
+		LD_PRELOAD=$TEST_LD_PRELOAD $TRACE "$*"
 	ret=$?
 	restore_exit_on_error
 
 	if [ "$ret" -eq "0" ]; then
-		msg="succeeded"
-		[ -t 2 ] && command -v tput >/dev/null && msg="$(tput setaf 1)$msg$(tput sgr0)"
+		msg=$(interactive_red STDERR "succeeded")
 
 		echo -e "$UNITTEST_NAME command $msg unexpectedly." >&2
 
@@ -1166,7 +1187,7 @@ function require_native_fallocate() {
 }
 
 #
-# require_usc_persmission -- verify if usc can be read with current persmission
+# require_usc_permission -- verify if usc can be read with current permissions
 #
 function require_usc_permission() {
 	set +e
@@ -1302,7 +1323,6 @@ function configure_valgrind() {
 #   for valgrind first
 #
 function valgrind_version_no_check() {
-	require_command bc
 	$VALGRINDEXE --version | sed "s/valgrind-\([0-9]*\)\.\([0-9]*\).*/\1*100+\2/" | bc
 }
 
@@ -1311,6 +1331,8 @@ function valgrind_version_no_check() {
 #	valgrind package is installed
 #
 function require_valgrind() {
+	# bc is used inside valgrind_version_no_check
+	require_command bc
 	require_no_asan
 	disable_exit_on_error
 	VALGRINDEXE=`which valgrind 2>/dev/null`
@@ -1499,7 +1521,7 @@ function require_preload() {
 	shift
 	trap SIGABRT
 	disable_exit_on_error
-	ret=$(LD_LIBRARY_PATH=$TEST_LD_LIBRARY_PATH LD_PRELOAD=$TEST_LD_PRELOAD $* 2>&1 /dev/null)
+	ret=$(LD_PRELOAD=$TEST_LD_PRELOAD $* 2>&1 /dev/null)
 	ret=$?
 	restore_exit_on_error
 	if [ $ret == 134 ]; then
@@ -1556,6 +1578,31 @@ function create_holey_file_on_node() {
 }
 
 #
+# require_mmap_under_valgrind -- only allow script to continue if mapping is
+#				possible under Valgrind with required length
+#				(sum of required DAX devices size).
+#				This function is being called internally in
+#				setup() function.
+#
+function require_mmap_under_valgrind() {
+
+	local FILE_MAX_DAX_DEVICES="../tools/anonymous_mmap/max_dax_devices"
+
+	if [ -z "$REQUIRE_DAX_DEVICES" ]; then
+		return
+	fi
+
+	if [ ! -f "$FILE_MAX_DAX_DEVICES" ]; then
+		fatal "$FILE_MAX_DAX_DEVICES not found. Run make test."
+	fi
+
+	if [ "$REQUIRE_DAX_DEVICES" -gt "$(< $FILE_MAX_DAX_DEVICES)" ]; then
+		msg "$UNITTEST_NAME: SKIP: anonymous mmap under Valgrind not possible for $REQUIRE_DAX_DEVICES DAX device(s)."
+		exit 0
+	fi
+}
+
+#
 # setup -- print message that test setup is commencing
 #
 function setup() {
@@ -1586,6 +1633,10 @@ function setup() {
 
 	if [ "$CHECK_TYPE" != "none" ]; then
 		require_valgrind
+
+		# detect possible Valgrind mmap issues and skip uncertain tests
+		require_mmap_under_valgrind
+
 		export VALGRIND_LOG_FILE=$CHECK_TYPE${UNITTEST_NUM}.log
 		MCSTR="/$CHECK_TYPE"
 	else
@@ -1618,6 +1669,10 @@ function setup() {
 	if [ "$DEVDAX_TO_LOCK" == 1 ]; then
 		lock_devdax
 	fi
+
+	export PMEMBLK_CONF="fallocate.at_create=0;"
+	export PMEMOBJ_CONF="fallocate.at_create=0;"
+	export PMEMLOG_CONF="fallocate.at_create=0;"
 }
 
 #
@@ -1718,8 +1773,7 @@ function pass() {
 	else
 		tm=""
 	fi
-	msg="PASS"
-	[ -t 1 ] && command -v tput >/dev/null && msg="$(tput setaf 2)$msg$(tput sgr0)"
+	msg=$(interactive_green STDOUT "PASS")
 	if [ "$UNITTEST_LOG_LEVEL" -ge 1 ]; then
 		echo -e "$UNITTEST_NAME: $msg$tm"
 	fi
@@ -1974,11 +2028,11 @@ function get_pmemcheck_version()
 #
 # require_pmemcheck_version_ge - check if pmemcheck API
 # version is greater or equal to required value
-#	usage: require_pmemcheck_version_ge <major> <minor>
+#	usage: require_pmemcheck_version_ge <major> <minor> [binary]
 #
 function require_pmemcheck_version_ge()
 {
-	require_valgrind_tool pmemcheck
+	require_valgrind_tool pmemcheck $3
 
 	REQUIRE_MAJOR=$1
 	REQUIRE_MINOR=$2
@@ -2008,11 +2062,11 @@ function require_pmemcheck_version_ge()
 #
 # require_pmemcheck_version_lt - check if pmemcheck API
 # version is less than required value
-#	usage: require_pmemcheck_version_lt <major> <minor>
+#	usage: require_pmemcheck_version_lt <major> <minor> [binary]
 #
 function require_pmemcheck_version_lt()
 {
-	require_valgrind_tool pmemcheck
+	require_valgrind_tool pmemcheck $3
 
 	REQUIRE_MAJOR=$1
 	REQUIRE_MINOR=$2

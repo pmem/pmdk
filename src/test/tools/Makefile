@@ -40,21 +40,16 @@ TESTCONFIG=$(TOP)/src/test/testconfig.sh
 
 DIRS = fallocate_detect
 
-REMOTE_TOOLS =
-
 all     : TARGET = all
 clean   : TARGET = clean
 clobber : TARGET = clobber
 cstyle  : TARGET = cstyle
 format  : TARGET = format
-sync-remotes : TARGET = sync-remotes
 sparse  : TARGET = sparse
 
 all test cstyle clean clobber format sparse: $(DIRS)
 
 $(TESTCONFIG):
-
-sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
 
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)

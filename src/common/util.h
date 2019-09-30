@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -73,22 +73,10 @@ extern unsigned long long Mmap_align;
 #define util_alignof(t) offsetof(struct {char _util_c; t _util_m; }, _util_m)
 #define FORMAT_PRINTF(a, b) __attribute__((__format__(__printf__, (a), (b))))
 
-/*
- * overridable names for malloc & friends used by this library
- */
-typedef void *(*Malloc_func)(size_t size);
-typedef void (*Free_func)(void *ptr);
-typedef void *(*Realloc_func)(void *ptr, size_t size);
-typedef char *(*Strdup_func)(const char *s);
-
-extern Malloc_func Malloc;
-extern Free_func Free;
-extern Realloc_func Realloc;
-extern Strdup_func Strdup;
-extern void *Zalloc(size_t sz);
-
 void util_init(void);
 int util_is_zeroed(const void *addr, size_t len);
+uint64_t util_checksum_compute(void *addr, size_t len, uint64_t *csump,
+		size_t skip_off);
 int util_checksum(void *addr, size_t len, uint64_t *csump,
 		int insert, size_t skip_off);
 uint64_t util_checksum_seq(const void *addr, size_t len, uint64_t csum);
@@ -102,6 +90,7 @@ void util_aligned_free(void *ptr);
 struct tm *util_localtime(const time_t *timep);
 int util_safe_strcpy(char *dst, const char *src, size_t max_length);
 void util_emit_log(const char *lib, const char *func, int order);
+char *util_readline(FILE *fh);
 
 #ifdef _WIN32
 char *util_toUTF8(const wchar_t *wstr);
@@ -110,6 +99,7 @@ void util_free_UTF8(char *str);
 void util_free_UTF16(wchar_t *str);
 int util_toUTF16_buff(const char *in, wchar_t *out, size_t out_size);
 int util_toUTF8_buff(const wchar_t *in, char *out, size_t out_size);
+void util_suppress_errmsg(void);
 #endif
 
 #define UTIL_MAX_ERR_MSG 128
@@ -444,14 +434,14 @@ util_mssb_index64(long long value)
 
 /* ISO C11 -- 7.17.7 Operations on atomic types */
 #define util_atomic_load32(object, dest)\
-	util_atomic_load_explicit32(object, dest, memory_order_seqcst)
+	util_atomic_load_explicit32(object, dest, memory_order_seq_cst)
 #define util_atomic_load64(object, dest)\
-	util_atomic_load_explicit64(object, dest, memory_order_seqcst)
+	util_atomic_load_explicit64(object, dest, memory_order_seq_cst)
 
 #define util_atomic_store32(object, desired)\
-	util_atomic_store_explicit32(object, desired, memory_order_seqcst)
+	util_atomic_store_explicit32(object, desired, memory_order_seq_cst)
 #define util_atomic_store64(object, desired)\
-	util_atomic_store_explicit64(object, desired, memory_order_seqcst)
+	util_atomic_store_explicit64(object, desired, memory_order_seq_cst)
 
 /*
  * util_get_printable_ascii -- convert non-printable ascii to dot '.'

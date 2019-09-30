@@ -54,10 +54,10 @@
 
 /**
  * This function represents the recursion formula in AltiVec and BIG ENDIAN.
- * @param a a 128-bit part of the interal state array
- * @param b a 128-bit part of the interal state array
- * @param c a 128-bit part of the interal state array
- * @param d a 128-bit part of the interal state array
+ * @param a a 128-bit part of the internal state array
+ * @param b a 128-bit part of the internal state array
+ * @param c a 128-bit part of the internal state array
+ * @param d a 128-bit part of the internal state array
  * @return output
  */
 JEMALLOC_ALWAYS_INLINE
@@ -170,7 +170,7 @@ JEMALLOC_INLINE void gen_rand_array(sfmt_t *ctx, w128_t *array, int size) {
  * This function swaps high and low 32-bit of 64-bit integers in user
  * specified array.
  *
- * @param array an 128-bit array to be swaped.
+ * @param array an 128-bit array to be swapped.
  * @param size size of 128-bit array.
  */
 JEMALLOC_INLINE void swap(w128_t *array, int size) {

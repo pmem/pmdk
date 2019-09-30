@@ -61,7 +61,7 @@ if [[ -z "${DOCKERHUB_REPO}" ]]; then
 fi
 
 # Check if the image tagged with pmdk/OS-VER exists locally
-if [[ ! $(docker images -a | awk -v pattern="^${DOCKERHUB_REPO}:1.5-$1\$" \
+if [[ ! $(docker images -a | awk -v pattern="^${DOCKERHUB_REPO}:1.7-$1\$" \
 	'$1":"$2 ~ pattern') ]]
 then
 	echo "ERROR: wrong argument."
@@ -73,4 +73,4 @@ fi
 docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD"
 
 # Push the image to the repository
-docker push ${DOCKERHUB_REPO}:1.5-$1
+docker push ${DOCKERHUB_REPO}:1.7-$1

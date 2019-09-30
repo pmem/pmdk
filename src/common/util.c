@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,32 +44,13 @@
 
 #include "util.h"
 #include "valgrind_internal.h"
+#include "alloc.h"
 
 /* library-wide page size */
 unsigned long long Pagesize;
 
 /* allocation/mmap granularity */
 unsigned long long Mmap_align;
-
-/*
- * our versions of malloc & friends start off pointing to the libc versions
- */
-Malloc_func Malloc = malloc;
-Free_func Free = free;
-Realloc_func Realloc = realloc;
-Strdup_func Strdup = strdup;
-
-/*
- * Zalloc -- allocate zeroed memory
- */
-void *
-Zalloc(size_t sz)
-{
-	void *ret = Malloc(sz);
-	if (!ret)
-		return NULL;
-	return memset(ret, 0, sz);
-}
 
 #if ANY_VG_TOOL_ENABLED
 /* initialized to true if the process is running inside Valgrind */
@@ -147,19 +128,14 @@ util_is_zeroed(const void *addr, size_t len)
 }
 
 /*
- * util_checksum -- compute Fletcher64 checksum
+ * util_checksum_compute -- compute Fletcher64 checksum
  *
  * csump points to where the checksum lives, so that location
  * is treated as zeros while calculating the checksum. The
  * checksummed data is assumed to be in little endian order.
- * If insert is true, the calculated checksum is inserted into
- * the range at *csump.  Otherwise the calculated checksum is
- * checked against *csump and the result returned (true means
- * the range checksummed correctly).
  */
-int
-util_checksum(void *addr, size_t len, uint64_t *csump,
-	int insert, size_t skip_off)
+uint64_t
+util_checksum_compute(void *addr, size_t len, uint64_t *csump, size_t skip_off)
 {
 	if (len % 4 != 0)
 		abort();
@@ -169,7 +145,6 @@ util_checksum(void *addr, size_t len, uint64_t *csump,
 	uint32_t *skip;
 	uint32_t lo32 = 0;
 	uint32_t hi32 = 0;
-	uint64_t csum;
 
 	if (skip_off)
 		skip = (uint32_t *)((char *)addr + skip_off);
@@ -190,7 +165,24 @@ util_checksum(void *addr, size_t len, uint64_t *csump,
 			hi32 += lo32;
 		}
 
-	csum = (uint64_t)hi32 << 32 | lo32;
+	return (uint64_t)hi32 << 32 | lo32;
+}
+
+/*
+ * util_checksum -- compute Fletcher64 checksum
+ *
+ * csump points to where the checksum lives, so that location
+ * is treated as zeros while calculating the checksum.
+ * If insert is true, the calculated checksum is inserted into
+ * the range at *csump.  Otherwise the calculated checksum is
+ * checked against *csump and the result returned (true means
+ * the range checksummed correctly).
+ */
+int
+util_checksum(void *addr, size_t len, uint64_t *csump,
+		int insert, size_t skip_off)
+{
+	uint64_t csum = util_checksum_compute(addr, len, csump, skip_off);
 
 	if (insert) {
 		*csump = htole64(csum);
@@ -199,7 +191,6 @@ util_checksum(void *addr, size_t len, uint64_t *csump,
 
 	return *csump == htole64(csum);
 }
-
 
 /*
  * util_checksum_seq -- compute sequential Fletcher64 checksum
@@ -221,21 +212,6 @@ util_checksum_seq(const void *addr, size_t len, uint64_t csum)
 		hi32 += lo32;
 	}
 	return (uint64_t)hi32 << 32 | lo32;
-}
-
-/*
- * util_set_alloc_funcs -- allow one to override malloc, etc.
- */
-void
-util_set_alloc_funcs(void *(*malloc_func)(size_t size),
-		void (*free_func)(void *ptr),
-		void *(*realloc_func)(void *ptr, size_t size),
-		char *(*strdup_func)(const char *s))
-{
-	Malloc = (malloc_func == NULL) ? malloc : malloc_func;
-	Free = (free_func == NULL) ? free : free_func;
-	Realloc = (realloc_func == NULL) ? realloc : realloc_func;
-	Strdup = (strdup_func == NULL) ? strdup : strdup_func;
 }
 
 /*
@@ -412,3 +388,37 @@ util_safe_strcpy(char *dst, const char *src, size_t max_length)
 #ifdef STRINGOP_TRUNCATION_SUPPORTED
 #pragma GCC diagnostic pop
 #endif
+
+#define PARSER_MAX_LINE (PATH_MAX + 1024)
+
+/*
+ * util_readline -- read line from stream
+ */
+char *
+util_readline(FILE *fh)
+{
+	size_t bufsize = PARSER_MAX_LINE;
+	size_t position = 0;
+	char *buffer = NULL;
+
+	do {
+		char *tmp = buffer;
+		buffer = Realloc(buffer, bufsize);
+		if (buffer == NULL) {
+			Free(tmp);
+			return NULL;
+		}
+
+		/* ensure if we can cast bufsize to int */
+		char *s = util_fgets(buffer + position, (int)bufsize / 2, fh);
+		if (s == NULL) {
+			Free(buffer);
+			return NULL;
+		}
+
+		position = strlen(buffer);
+		bufsize *= 2;
+	} while (!feof(fh) && buffer[position - 1] != '\n');
+
+	return buffer;
+}

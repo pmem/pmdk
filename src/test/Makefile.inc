@@ -187,6 +187,11 @@ CFLAGS += -DVALGRIND_ENABLED=0
 CXXFLAGS += -DVALGRIND_ENABLED=0
 endif
 
+ifeq ($(FAULT_INJECTION),1)
+CFLAGS += -DFAULT_INJECTION=1
+CXXFLAGS += -DFAULT_INJECTION=1
+endif
+
 ifneq ($(SANITIZE),)
 CFLAGS += -fsanitize=$(SANITIZE)
 CXXFLAGS += -fsanitize=$(SANITIZE)
@@ -291,7 +296,7 @@ endif
 sync-test: all $(SYNC_FILE) $(TESTCONFIG)
 
 TST=$(shell basename `pwd`)
-TSTCHECKS=$(shell ls -1 TEST* 2> /dev/null | grep -v -i -e "\.ps1" | sort -V)
+TSTCHECKS=$(shell ls -1 TEST* 2> /dev/null | grep '^TEST[0-9]\+$$' | sort -V)
 
 $(TSTCHECKS): sync-test
 	@cd .. && ./RUNTESTS ${TST} $(RUNTEST_OPTIONS) -s $@
@@ -302,6 +307,9 @@ check: sync-test
 pcheck: export NOTTY=1
 
 pcheck: $(TSTCHECKS)
+
+pycheck:
+	@./TESTS.py
 
 test: all
 

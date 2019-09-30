@@ -52,7 +52,7 @@ out=$(
 
 [[ ! -z $out ]] &&
 	echo -e "`pwd`/$3:1: non wrapped function(s):\n$out\nplease use os wrappers" &&
-	rm -f $2 && # remove .o file as it don't match requirments
+	rm -f $2 && # remove .o file as it don't match requirements
 	exit 1
 
 exit 0

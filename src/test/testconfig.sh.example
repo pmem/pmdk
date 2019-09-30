@@ -15,7 +15,7 @@
 # DIRSUFFIX="$LONGDIR/$LONGDIR/$LONGDIR/$LONGDIR/$LONGDIR"
 #
 # For tests that require true persistent memory, set the path to a directory
-# on a PMEM-aware file system here.  Comment this line out if there's no
+# on a PMEM-aware file system here. Uncomment this line if there's an
 # actual persistent memory available on this system.
 # Note that PMEM_FS_DIR is intended mostly to test codepaths where
 # pmem_persist() is used for flushing data to persistence.  For now, there is
@@ -33,7 +33,7 @@
 # to verify something works on traditional page-cache based memory-mapped
 # files) set the path to a directory on a normal file system here.
 #
-NON_PMEM_FS_DIR=/tmp
+#NON_PMEM_FS_DIR=/tmp
 
 #
 # If you don't have real PMEM or PMEM emulation set up and/or the filesystem
@@ -53,6 +53,11 @@ NON_PMEM_FS_DIR=/tmp
 # those devices in an array format. For most tests one device is enough, but
 # some might require more.
 #
+# For big sizes of DAX devices, some tests ran against Valgrind might fail due
+# to length of anonymous mmap and Valgrind limitations. Maximum possible length
+# is being calculated each time testconfig.sh changes. Tests which require more
+# than detected maximum possible length are skipped.
+#
 # It is required to have R/W access to these devices and at least RO access
 # to all of the following resource files (containing physical addresses)
 # of NVDIMM devices (only root can read them by default):
@@ -62,7 +67,7 @@ NON_PMEM_FS_DIR=/tmp
 #
 # Note: some tests require write access to '/sys/bus/nd/devices/region*/deep_flush'.
 #
-#DEVICE_DAX_PATH=(/dev/dax0.0)
+#DEVICE_DAX_PATH=(/dev/dax0.0 /dev/dax1.0)
 
 #
 # Overwrite default test type:

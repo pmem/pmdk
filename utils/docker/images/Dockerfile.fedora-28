@@ -39,15 +39,16 @@ FROM fedora:28
 MAINTAINER marcin.slusarz@intel.com
 
 # Install basic tools
-RUN dnf update -y \
- && dnf install -y \
+RUN dnf update -y
+
+RUN dnf install -y \
 	asciidoc \
+	asciidoctor \
 	autoconf \
 	automake \
 	bash-completion \
 	bc \
 	clang \
-	cmake \
 	file \
 	findutils \
 	fuse \
@@ -58,6 +59,7 @@ RUN dnf update -y \
 	glib2-devel \
 	hub \
 	json-c-devel \
+	keyutils-libs-devel \
 	kmod-devel \
 	lbzip2 \
 	libtool \
@@ -80,8 +82,9 @@ RUN dnf update -y \
 	tar \
 	wget \
 	which \
-	xmlto \
- && dnf clean all
+	xmlto
+
+RUN dnf clean all
 
 # Install valgrind
 COPY install-valgrind.sh install-valgrind.sh

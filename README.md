@@ -83,11 +83,13 @@ You will need to install the following required packages on the build system:
 * **autoconf**
 * **pkg-config**
 
+><sup>1</sup> PMDK requires libndctl v63 or newer (to enable RAS features) by default. If you have such libndctl version but you don't want to depend on this API please build PMDK with NDCTL_USE_V63_API=n. For more information please check this issue pmem/issues#1039
+
 ### Windows
 
 * **MS Visual Studio 2015**
 * [Windows SDK 10.0.16299.15](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
-* **perl** (i.e. [ActivePerl](http://www.activestate.com/activeperl/downloads))
+* **perl** (i.e. [StrawberryPerl](http://strawberryperl.com/))
 * **PowerShell 5**
 
 ### FreeBSD
@@ -115,7 +117,7 @@ To build from source, clone this tree:
 
 For a stable version, checkout a [release tag](https://github.com/pmem/vmem/releases) as follows. Otherwise skip this step to build the latest development release.
 ```
-	$ git checkout tags/1.4.2
+	$ git checkout tags/1.6.1
 ```
 
 Once the build system is setup, the Persistent Memory Development Kit is built using the `make` command at the top level:

@@ -1,4 +1,4 @@
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -119,6 +119,11 @@ CFLAGS += -DVALGRIND_ENABLED=0
 CXXFLAGS += -DVALGRIND_ENABLED=0
 endif
 
+ifeq ($(FAULT_INJECTION),1)
+CFLAGS += -DFAULT_INJECTION=1
+CXXFLAGS += -DFAULT_INJECTION=1
+endif
+
 # On FreeBSD libvmmalloc defines pthread_create, which conflicts with asan
 tsanitize := $(SANITIZE)
 ifeq ($(OS_KERNEL_NAME),FreeBSD)
@@ -146,7 +151,7 @@ endif
 LDFLAGS += -Wl,-z,relro -Wl,--fatal-warnings -Wl,--warn-common $(EXTRA_LDFLAGS)
 
 ifneq ($(NORPATH),1)
-LDFLAGS += -Wl,-rpath=$(libdir)$(LIB_SUBDIR)
+LDFLAGS += -Wl,-rpath=$(libdir)$(LIB_SUBDIR):$(LIBNDCTL_LD_LIBRARY_PATHS)
 endif
 
 ifeq ($(LIBRT_NEEDED), y)
@@ -208,7 +213,7 @@ LIB_NAME = lib$(LIBRARY_NAME)
 endif
 
 ifneq ($(LIBRARY_SO_VERSION),)
-LIB_MAP = $(LIB_NAME).map
+LIB_LINK = $(LIB_NAME).link
 LIB_SONAME = $(LIB_NAME).so.$(LIBRARY_SO_VERSION)
 LIB_SO = $(LIB_OUTDIR)/$(LIB_NAME).so
 
@@ -254,8 +259,8 @@ all: $(objdir) $(LIB_OUTDIR) $(EXTRA_TARGETS) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_S
 $(objdir) $(LIB_OUTDIR):
 	$(MKDIR) -p $@
 
-$(LIB_SO_REAL): $(OBJS) $(EXTRA_OBJS) $(LIB_MAP) $(MAKEFILE_DEPS)
-	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(LIB_MAP),-soname,$(LIB_SONAME) -o $@ $(OBJS) $(EXTRA_OBJS) $(LIBS)
+$(LIB_SO_REAL): $(OBJS) $(EXTRA_OBJS) $(LIB_LINK) $(MAKEFILE_DEPS)
+	$(CC) $(LDFLAGS) -shared -Wl,--version-script=$(LIB_LINK),-soname,$(LIB_SONAME) -o $@ $(OBJS) $(EXTRA_OBJS) $(LIBS)
 
 $(LIB_SO_SONAME): $(LIB_SO_REAL) $(MAKEFILE_DEPS)
 	$(LN) -sf $(shell basename $<) $@
@@ -266,12 +271,12 @@ $(LIB_SO): $(LIB_SO_SONAME) $(MAKEFILE_DEPS)
 $(LIB_AR_UNSCOPED): $(OBJS) $(EXTRA_OBJS) $(MAKEFILE_DEPS)
 	$(LD) -o $@ -r $(OBJS) $(EXTRA_OBJS)
 
-ifeq ($(LIB_MAP),)
+ifeq ($(LIB_LINK),)
 $(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(MAKEFILE_DEPS)
 	$(OBJCOPY) $< $@
 else
-$(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(LIB_MAP) $(MAKEFILE_DEPS)
-	$(OBJCOPY) --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(LIB_MAP)` $< $@
+$(LIB_AR_ALL): $(LIB_AR_UNSCOPED) $(LIB_LINK) $(MAKEFILE_DEPS)
+	$(OBJCOPY) --localize-hidden `sed -n 's/^	*\([a-zA-Z0-9_]*\);$$/-G \1/p' $(LIB_LINK)` $< $@
 endif
 
 $(LIB_AR): $(LIB_AR_ALL) $(MAKEFILE_DEPS)
@@ -303,6 +308,7 @@ clobber: clean $(EXTRA_TARGETS_CLOBBER)
 ifneq ($(LIBRARY_NAME),)
 	$(RM) $(LIB_AR) $(LIB_SO_SONAME) $(LIB_SO_REAL) $(LIB_SO)
 	$(RM) -r $(objdir)/.deps
+	$(RM) -f *.link
 endif
 
 $(eval $(cstyle-rule))
@@ -323,3 +329,11 @@ $(objdir)/%.htmp: %.h
 .PHONY: all clean clobber install uninstall cstyle
 
 -include $(objdir)/.deps/*.P
+
+%.link: %.link.in
+ifeq ($(FAULT_INJECTION),1)
+	@sed 's/fault_injection;/$(LIBRARY_NAME)_inject_fault_at;\n\t\t$(LIBRARY_NAME)_fault_injection_enabled;/g' $< > $@_temp
+else
+	@sed '/fault_injection;/d' $< > $@_temp
+endif
+	@mv $@_temp $@

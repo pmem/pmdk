@@ -1,6 +1,7 @@
 .*
 !.gitignore
 !.gitattributes
+!.cirrus.yml
 !.clang-format
 !.travis.yml
 !.mailmap
@@ -26,3 +27,4 @@ nbproject/
 *.hpptmp
 *.aps
 tags
+*.link

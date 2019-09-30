@@ -57,16 +57,16 @@ typedef
        VG_USERREQ__PMC_PRINT_PMEM_MAPPINGS,
        VG_USERREQ__PMC_DO_FLUSH,
        VG_USERREQ__PMC_DO_FENCE,
-       VG_USERREQ__PMC_DO_COMMIT,
+       VG_USERREQ__PMC_RESERVED1,  /* Do not use. */
        VG_USERREQ__PMC_WRITE_STATS,
-       VG_USERREQ__PMC_LOG_STORES,
-       VG_USERREQ__PMC_NO_LOG_STORES,
-       VG_USERREQ__PMC_ADD_LOG_REGION,
-       VG_USERREQ__PMC_REMOVE_LOG_REGION,
-       VG_USERREQ__PMC_FULL_REORDED,
-       VG_USERREQ__PMC_PARTIAL_REORDER,
-       VG_USERREQ__PMC_ONLY_FAULT,
-       VG_USERREQ__PMC_STOP_REORDER_FAULT,
+       VG_USERREQ__PMC_RESERVED2,  /* Do not use. */
+       VG_USERREQ__PMC_RESERVED3,  /* Do not use. */
+       VG_USERREQ__PMC_RESERVED4,  /* Do not use. */
+       VG_USERREQ__PMC_RESERVED5,  /* Do not use. */
+       VG_USERREQ__PMC_RESERVED7,  /* Do not use. */
+       VG_USERREQ__PMC_RESERVED8,  /* Do not use. */
+       VG_USERREQ__PMC_RESERVED9,  /* Do not use. */
+       VG_USERREQ__PMC_RESERVED10, /* Do not use. */
        VG_USERREQ__PMC_SET_CLEAN,
        /* transaction support */
        VG_USERREQ__PMC_START_TX,
@@ -80,7 +80,7 @@ typedef
        VG_USERREQ__PMC_ADD_THREAD_TO_TX_N,
        VG_USERREQ__PMC_REMOVE_THREAD_FROM_TX_N,
        VG_USERREQ__PMC_ADD_TO_GLOBAL_TX_IGNORE,
-       VG_USERREQ__PMC_DEFAULT_REORDER,
+       VG_USERREQ__PMC_RESERVED6,  /* Do not use. */
        VG_USERREQ__PMC_EMIT_LOG,
    } Vg_PMemCheckClientRequest;
 
@@ -130,73 +130,22 @@ typedef
     VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DO_FENCE,               \
                                     0, 0, 0, 0, 0)
 
-/** Register a PCOMMIT (DEPRECATED, DO NOT USE) */
-#define VALGRIND_PMC_DO_COMMIT                                              \
-    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DO_COMMIT,              \
-                                    0, 0, 0, 0, 0)
-
 /** Write tool stats */
 #define VALGRIND_PMC_WRITE_STATS                                            \
     VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_WRITE_STATS,            \
                                     0, 0, 0, 0, 0)
-
-/** Start logging memory operations */
-#define VALGRIND_PMC_LOG_STORES                                             \
-    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_LOG_STORES,             \
-                                    0, 0, 0, 0, 0)
-
-/** Stop logging memory operations */
-#define VALGRIND_PMC_NO_LOG_STORES                                          \
-    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_NO_LOG_STORES,          \
-                                    0, 0, 0, 0, 0)
-
-/** Add a region of persistent memory, for which all operations will be
-* logged */
-#define VALGRIND_PMC_ADD_LOG_REGION(_qzz_addr,_qzz_len)                     \
-    VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,                 \
-                            VG_USERREQ__PMC_ADD_LOG_REGION,                 \
-                            (_qzz_addr), (_qzz_len), 0, 0, 0)
-
-/** Remove the loggable persistent memory region */
-#define VALGRIND_PMC_REMOVE_LOG_REGION(_qzz_addr,_qzz_len)                  \
-    VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,                 \
-                            VG_USERREQ__PMC_REMOVE_LOG_REGION,              \
-                            (_qzz_addr), (_qzz_len), 0, 0, 0)
-
-/** Issue a full reorder log */
-#define VALGRIND_PMC_FULL_REORDER                                           \
-    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_FULL_REORDED,           \
-                                    0, 0, 0, 0, 0)
-/** Issue a partial reorder log */
-#define VALGRIND_PMC_PARTIAL_REORDER                                        \
-    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_PARTIAL_REORDER,        \
-                                    0, 0, 0, 0, 0)
-/** Issue a log to disable reordering */
-#define VALGRIND_PMC_ONLY_FAULT                                             \
-    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_ONLY_FAULT,             \
-                                    0, 0, 0, 0, 0)
-
-/** Issue a log to disable reordering and faults */
-#define VALGRIND_PMC_STOP_REORDER_FAULT                                     \
-    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_STOP_REORDER_FAULT,     \
-                                    0, 0, 0, 0, 0)
-
-/** Issue a log to set the default reorder engine */
-#define VALGRIND_PMC_DEFAULT_REORDER                                    \
-    VALGRIND_DO_CLIENT_REQUEST_STMT(VG_USERREQ__PMC_DEFAULT_REORDER,     \
-                                    0, 0, 0, 0, 0)
-
-/** Set a region of persistent memory as clean */
-#define VALGRIND_PMC_SET_CLEAN(_qzz_addr,_qzz_len)                          \
-    VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,                 \
-                            VG_USERREQ__PMC_SET_CLEAN,                      \
-                            (_qzz_addr), (_qzz_len), 0, 0, 0)
 
 /** Emit user log */
 #define VALGRIND_PMC_EMIT_LOG(_qzz_emit_log)                                \
     VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,                 \
                             VG_USERREQ__PMC_EMIT_LOG,                       \
                             (_qzz_emit_log), 0, 0, 0, 0)
+
+/** Set a region of persistent memory as clean */
+#define VALGRIND_PMC_SET_CLEAN(_qzz_addr,_qzz_len)                          \
+    VALGRIND_DO_CLIENT_REQUEST_EXPR(0 /* default return */,                 \
+                            VG_USERREQ__PMC_SET_CLEAN,                      \
+                            (_qzz_addr), (_qzz_len), 0, 0, 0)
 
 /** Support for transactions */
 

@@ -1,3 +1,89 @@
+Thu Sep 26 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.7-rc2
+
+	This release:
+	- Introduces new APIs in libpmemobj for managing space used by transactions.
+	  (see pmemobj_tx_log_append_buffer man page for details)
+	- Introduces new APIs in librpmem, splitting rpmem_persist into rpmem_flush
+	  and rpmem_drain, allowing applications to use the flush + drain model
+	  used by libpmem and libpmemobj.
+	- Optimizes large libpmemobj transactions by significantly reducing
+	  the amount of memory modified at the commit phase.
+	- Optimizes tracking of libpmemobj reservations.
+	- Adds new flags for libpmemobj's pmemobj_tx_xadd_range[_direct] API:
+	  POBJ_XADD_NO_SNAPSHOT and POBJ_XADD_ASSUME_INITIALIZED, allowing
+	  applications to optimize how memory is tracked by the library.
+
+	To support some of the above changes the libpmemobj on-media layout had
+	to be changed, which means that old pools have to be converted using
+	pmdk-convert >= 1.7.
+
+	Other changes:
+	- obj: fix merging of ranges when NOFLUSH flag is used (#1100)
+	- rpmem: fix closing of ssh connection (#995, #1060)
+
+	Internal changes:
+	- test: fault injection tests for pmemblk, pmemlog, and pmemobj
+	- test: improved Python testing framework
+	- test: support real pmem in bad blocks tests
+	- common: allow not building examples and benchmarks
+
+Tue Aug 27 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.6.1
+
+	This release fixes possible pool corruptions on Windows
+	(see https://github.com/pmem/pmdk/pull/3728 for details),
+	improves compatibility with newer Linux kernels with
+	respect to Device DAX detection, fixes pmemobj space management
+	for large pools, improves compatibility with newer toolchains,
+	incorporates build fixes for FreeBSD and fixes a number of
+	smaller bugs.
+
+	Detailed list of bug fixes:
+	- common: (win) fix possible pool file coruption (#972, #715, #603)
+	- common: implement correct / robust device_dax_alignment (#1071)
+	- obj: fix recycler not locating unused chunks
+	- doc: update pmemobj_tx_lock documentation wrt behavior on fail
+	- common: fix persistent domain detection (#1093)
+	- common: vecq: fix a pointer-to-struct aliasing violation
+	  (crash on arm64)
+	- common: fix minor issues related to ndctl linking
+	- obj: drop recursion from pmemobj_next
+	- common: fix bug in badblock file error handling
+	- obj: fix handling of malloc failures
+	- common: fix handling of malloc failures (ctl)
+	- jemalloc: fix build with gcc 9
+	- obj: don't overwrite errno when palloc_heap_check_remote fails
+	- doc: fix pmreorder emit log macro
+	- rpmem: change order of rpmem init (#1043)
+	- common: Fix build failure due to unused macro PAGE_SIZE
+	- common: support older versions of pkg-config
+	- tools: link with release variant of pmemcommon
+	- common: add PMDK prefix to local copy of queue.h (#990)
+	- rpmem: switch to using an open coded basename (FreeBSD)
+	- common: posix_fallocate: guard against integer underflow in
+	  check (FreeBSD)
+	- test: support Valgrind 3.15
+	- test: skip if fi_info is missing
+	- test: (win) fix sparsefile error handling
+	- test: fix libpmempool_feature tests that match logs
+	- test: remove vmem_delete test (#1074)
+	- test: adjust matchfiles in vmem_valgrind_region test (#1087)
+	- test: remove old log files for windows (#1013)
+	- test: remove invalid expect_normal_exit (#1092)
+	- test: suppress ld leak (#1098)
+	- test: Expose necessary symbols in libvmmalloc_dummy_funcs
+	  (FreeBSD)
+	- test: fix tests failing because `tput` fails (FreeBSD)
+	- test: avoid obj_critnib_mt taking very long on many-core machines
+	- test: deal with libndctl's path without build system
+	- test: overwrite old log in pmempool_create/TEST14.PS1
+	- test: fix match files in tests which use dax devices
+	- test: fix match file in rpmem_addr_ext test
+	- test: fix pmempool_check test
+
 Wed Aug 28 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.5.2
@@ -46,7 +132,93 @@ Wed Aug 28 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 	- test: fix match files in tests which use dax devices
 	- test: fix pmempool_check test
 
-Tue Feb 19 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
+Fri Aug 30 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.4.3
+
+	This release fixes possible pool corruptions on Windows
+	(see https://github.com/pmem/pmdk/pull/3728 for details)
+	and improves compatibility with newer Linux kernels with
+	respect to Device DAX detection.
+
+	Bug fixes:
+	- common: (win) fix possible pool file coruption (#972, #715, #603)
+	- common: implement correct / robust device_dax_alignment (#1071)
+	- common: fix device dax detection
+	- obj: fix pmemobj_check for pools with some sizes (#975)
+	- obj: fix type numbers for pmemobj_list_insert_new
+	- obj: fix pmemobj_tx_lock error handling
+	- obj: fix possible memory leak in tx_add_lock
+	- common: fix ctl_load_config during libpmemobj initialization (#917)
+	- common: win: fix getopt returning "option is ambiguous"
+	- common: fix persistent domain detection (#1093)
+	- pool: do not copy same regions in update_uuids
+	- test: split test obj_tx_lock into two test cases
+	- test: remove checking errno in obj_tx_add_range_direct
+	- test: remove invalid expect_normal_exit
+	- test: fix int overflow in pmem_deep_persist test
+	- test: fix pmempool_check test
+	- test: (win) fix a few issues related to long paths
+
+Tue Aug 27 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.3.3
+	Bug fixes:
+	- pmem: fix clflush bit position
+	- common: implement correct / robust device_dax_alignment
+	- common: fix device dax detection
+	- common: fix library dependencies (#767)
+	- common: use rpm-config CFLAGS/LDFLAGS when building packages (#768)
+	- test: fix vmmalloc_malloc_hooks (#773)
+	- test: fix compilation with clang-5.0 (#783)
+	- pool: fix set convert of v3 -> v4
+	- common: generate pkg-config files on make install (#610)
+	- common: fix dependencies for Debian's dev packages
+	- test: add missing include in unittest.h
+	- common: (win) fix timed locks
+	- common: provide src version in GitHub tarballs
+	- common: fix free function in tls
+
+Tue Aug 27 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.2.4
+	Bug fixes:
+	- common: fix device dax detection (compatibility with newer kernels)
+
+Tue Mar 26 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
+
+	* Version 1.6
+
+	This release:
+	- Enables unsafe shutdown and bad block detection on Linux
+	  on systems with libndctl >= 63. It is expected that systems with
+	  libndctl >= 63 has necessary kernel support (Linux >= 4.20).
+	  However, due to bugs in libndctl = 63 and Linux = 4.20, it is
+	  recommended to use libndctl >= 64.1 and Linux >= 5.0.4.
+	  On systems with libndctl < 63, PMDK uses old superuser-only
+	  interfaces. Support for old or new interfaces is chosen at BUILD
+	  time.
+	- Introduces arena control interface in pmemobj, allowing applications
+	  to tweak performance and scalability of heap operations. See
+	  pmemobj_ctl_get man page ("heap" namespace) for details.
+	- Introduces copy_on_write mode, which allows testing applications
+	  using pmemobj with pmreorder. See pmemobj_ctl_get man page
+	  ("copy_on_write" namespace) for details.
+
+	Other changes:
+	- allocate file space when creating a pool on existing file
+	  (pmem/issues#167)
+	- initial support for testing using fault injection
+	- initial Python test framework
+	- improve performance of pmemobj_pool_by_ptr
+
+	Bug fixes:
+	- common: work around tmpfs bug during pool creation
+	  (pmem/issues#1018)
+	- pool: race-free pmempool create --max-size
+	- obj: don't modify remote pools in pmemobj_check
+
+Tue Feb 19 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.5.1
 

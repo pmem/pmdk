@@ -1,5 +1,5 @@
 ﻿#
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -231,7 +231,7 @@ function create_nonzeroed_file {
     [int64]$size = ((convert_to_bytes $args[0]) - $offset)
 
     [int64]$numz =  $size / 1024
-    [string] $z = "Z" * 1024 # using a 1K string to speed up writting
+    [string] $z = "Z" * 1024 # using a 1K string to speed up writing
     for ($i=2;$i -lt $args.count;$i++) {
         # create sparse file of offset length
         $file = new-object System.IO.FileStream $args[$i], Create, ReadWrite
@@ -318,7 +318,7 @@ function create_poolset {
 
         $cmd = $args[$i]
         # need to strip out a drive letter if included because we use :
-        # as a delimeter in the argument
+        # as a delimiter in the argument
 
         $driveLetter = ""
         if ($cmd -match ":([a-zA-Z]):\\") {
@@ -472,8 +472,8 @@ function expect_abnormal_exit {
     }
 
     # Suppress abort window
-    $prev_abort = $Env:UNITTEST_NO_ABORT_MSG
-    $Env:UNITTEST_NO_ABORT_MSG = 1
+    $prev_abort = $Env:PMDK_NO_ABORT_MSG
+    $Env:PMDK_NO_ABORT_MSG = 1
 
     # Set $LASTEXITCODE to the value indicating success. It should be
     # overwritten with the exit status of the invoked command.
@@ -482,7 +482,7 @@ function expect_abnormal_exit {
     # status of some other command executed before.
     $Global:LASTEXITCODE = 0
     Invoke-Expression "$command $params"
-    $Env:UNITTEST_NO_ABORT_MSG = $prev_abort
+    $Env:PMDK_NO_ABORT_MSG = $prev_abort
     if ($Global:LASTEXITCODE -eq 0) {
         fail "${Env:UNITTEST_NAME}: command succeeded unexpectedly."
     }
@@ -1080,6 +1080,10 @@ function setup {
         }
         $Env:Path = $Env:PMDK_LIB_PATH_DEBUG + ';' + $Env:Path
     }
+
+	$Env:PMEMBLK_CONF="fallocate.at_create=0;"
+	$Env:PMEMOBJ_CONF="fallocate.at_create=0;"
+	$Env:PMEMLOG_CONF="fallocate.at_create=0;"
 }
 
 #
@@ -1123,7 +1127,7 @@ if (-Not $Env:FS) { $Env:FS = 'any'}
 if (-Not $Env:BUILD) { $Env:BUILD = 'debug'}
 if (-Not $Env:CHECK_POOL) { $Env:CHECK_POOL = '0'}
 if (-Not $Env:EXESUFFIX) { $Env:EXESUFFIX = ".exe"}
-if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋"}
+if (-Not $Env:SUFFIX) { $Env:SUFFIX = "😘⠏⠍⠙⠅ɗPMDKӜ⥺🙋"}
 if (-Not $Env:DIRSUFFIX) { $Env:DIRSUFFIX = ""}
 
 if ($Env:BUILD -eq 'nondebug') {
@@ -1151,23 +1155,6 @@ $SPARSEFILE="$Env:EXE_DIR\sparsefile$Env:EXESUFFIX"
 $DLLVIEW="$Env:EXE_DIR\dllview$Env:EXESUFFIX"
 
 $Global:req_fs_type=0
-
-#
-# For non-static build testing, the variable TEST_LD_LIBRARY_PATH is
-# constructed so the test pulls in the appropriate library from this
-# source tree.  To override this behavior (i.e. to force the test to
-# use the libraries installed elsewhere on the system), set
-# TEST_LD_LIBRARY_PATH and this script will not override it.
-#
-# For example, in a test directory, run:
-#	TEST_LD_LIBRARY_PATH=\usr\lib .\TEST0
-#
-if (-Not $Env:TEST_TYPE_LD_LIBRARY_PATH) {
-    switch -regex ($Env:BUILD) {
-        'debug' { $Env:TEST_TYPE_LD_LIBRARY_PATH = '..\..\debug' }
-        'nondebug' { $Env:TEST_TYPE_LD_LIBRARY_PATH = '..\..\nondebug' }
-    }
-}
 
 #
 # The variable DIR is constructed so the test uses that directory when
@@ -1316,7 +1303,35 @@ function require_free_space() {
 	$free_space = (gwmi Win32_Volume -Filter $filter | select FreeSpace).freespace
 	if ([INT64]$free_space -lt [INT64]$req_free_space)
 	{
-		msg "${Env:UNITTEST_NAME}: SKIP not enough free space ($Args[0] required)"
+		msg "${Env:UNITTEST_NAME}: SKIP not enough free space ($args required)"
+		exit 0
+	}
+}
+
+#
+# require_free_physical_memory -- check if there is enough free physical memory
+# space to run the test
+# Example, checking if there is 1 GB of free physical memory space:
+# require_free_physical_memory 1G
+#
+function require_free_physical_memory() {
+	$req_free_physical_memory = (convert_to_bytes $args[0])
+	$free_physical_memory = (Get-CimInstance Win32_OperatingSystem | Select-Object -ExpandProperty FreePhysicalMemory) * 1024
+
+	if ($free_physical_memory -lt $req_free_physical_memory)
+	{
+		msg "${Env:UNITTEST_NAME}: SKIP not enough free physical memory ($args required, free: $free_physical_memory B)"
+		exit 0
+	}
+}
+
+#
+# require_automatic_managed_pagefile -- check if system manages the page file size
+#
+function require_automatic_managed_pagefile() {
+	$c = Get-WmiObject Win32_computersystem -EnableAllPrivileges
+	if($c.AutomaticManagedPagefile -eq $false) {
+		msg "${Env:UNITTEST_NAME}: SKIP automatic page file management is disabled"
 		exit 0
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,13 +47,14 @@
 #include "mmap.h"
 #include "sys_util.h"
 #include "os.h"
+#include "alloc.h"
 
 int Mmap_no_random;
 void *Mmap_hint;
 static os_rwlock_t Mmap_list_lock;
 
-static SORTEDQ_HEAD(map_list_head, map_tracker) Mmap_list =
-		SORTEDQ_HEAD_INITIALIZER(Mmap_list);
+static PMDK_SORTEDQ_HEAD(map_list_head, map_tracker) Mmap_list =
+		PMDK_SORTEDQ_HEAD_INITIALIZER(Mmap_list);
 
 /*
  * util_mmap_init -- initialize the mmap utils
@@ -323,7 +324,7 @@ util_range_find_unlocked(uintptr_t addr, size_t len)
 
 	struct map_tracker *mt;
 
-	SORTEDQ_FOREACH(mt, &Mmap_list, entry) {
+	PMDK_SORTEDQ_FOREACH(mt, &Mmap_list, entry) {
 		if (addr < mt->end_addr &&
 		    (addr >= mt->base_addr || end > mt->base_addr))
 			goto out;
@@ -388,7 +389,7 @@ util_range_register(const void *addr, size_t len, const char *path,
 
 	util_rwlock_wrlock(&Mmap_list_lock);
 
-	SORTEDQ_INSERT(&Mmap_list, mt, entry, struct map_tracker,
+	PMDK_SORTEDQ_INSERT(&Mmap_list, mt, entry, struct map_tracker,
 			util_range_comparer);
 
 	util_rwlock_unlock(&Mmap_list_lock);
@@ -457,15 +458,15 @@ util_range_split(struct map_tracker *mt, const void *addrp, const void *endp)
 		mte->type = mt->type;
 	}
 
-	SORTEDQ_REMOVE(&Mmap_list, mt, entry);
+	PMDK_SORTEDQ_REMOVE(&Mmap_list, mt, entry);
 
 	if (mtb) {
-		SORTEDQ_INSERT(&Mmap_list, mtb, entry,
+		PMDK_SORTEDQ_INSERT(&Mmap_list, mtb, entry,
 				struct map_tracker, util_range_comparer);
 	}
 
 	if (mte) {
-		SORTEDQ_INSERT(&Mmap_list, mte, entry,
+		PMDK_SORTEDQ_INSERT(&Mmap_list, mte, entry,
 				struct map_tracker, util_range_comparer);
 	}
 

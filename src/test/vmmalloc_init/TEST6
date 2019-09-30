@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,6 @@
 # src/test/vmmalloc_init/TEST6 -- unit test for vmmalloc_init
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
@@ -48,9 +47,9 @@ require_no_freebsd
 
 # Valgrind does not call vmmalloc's malloc implementation from library
 # loaded with RTLD_DEEPBIND.
-configure_valgrind memcheck force-disable $TEST_LD_LIBRARY_PATH/$VMMALLOC
-configure_valgrind helgrind force-disable $TEST_LD_LIBRARY_PATH/$VMMALLOC
-configure_valgrind drd force-disable $TEST_LD_LIBRARY_PATH/$VMMALLOC
+configure_valgrind memcheck force-disable $PMDK_LIB_PATH/$VMMALLOC
+configure_valgrind helgrind force-disable $PMDK_LIB_PATH/$VMMALLOC
+configure_valgrind drd force-disable $PMDK_LIB_PATH/$VMMALLOC
 
 setup
 

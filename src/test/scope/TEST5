@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,6 @@
 # src/test/scope/TEST5 -- scope test to check libvmmalloc symbols
 #
 
-# standard unit test setup
 . ../unittest/unittest.sh
 
 require_test_type medium
@@ -54,7 +53,7 @@ parse_lib() {
 
 }
 
-parse_lib -D $TEST_LD_LIBRARY_PATH/$VMMALLOC
+parse_lib -D $PMDK_LIB_PATH/$VMMALLOC
 
 check
 

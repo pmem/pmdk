@@ -43,13 +43,13 @@ set -e
 # Hush error messages, mainly from Valgrind
 export UT_DUMP_LINES=0
 
-# Skip printing mismached files for tests with Valgrind
+# Skip printing mismatched files for tests with Valgrind
 export UT_VALGRIND_SKIP_PRINT_MISMATCHED=1
 
 # Build all and run tests
 cd $WORKDIR
-make -j2 USE_LIBUNWIND=1 COVERAGE=1
-make -j2 test USE_LIBUNWIND=1 COVERAGE=1
+make -j2 COVERAGE=1
+make -j2 test COVERAGE=1
 
 # XXX: unfortunately valgrind raports issues in coverage instrumentation
 # which we have to ignore (-k flag), also there is dependency between
@@ -58,5 +58,6 @@ make -j2 test USE_LIBUNWIND=1 COVERAGE=1
 cd src/test
 make -kj2 pcheck-local-quiet TEST_BUILD=debug || true
 make check-remote-quiet TEST_BUILD=debug || true
+make -j2 pycheck TEST_BUILD=debug || true
 cd ../..
 bash <(curl -s https://codecov.io/bash)

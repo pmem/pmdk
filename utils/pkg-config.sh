@@ -33,7 +33,7 @@
 PACKAGE_NAME="vmem"
 
 # Name and email of package maintainer
-PACKAGE_MAINTAINER="Krzysztof Czurylo <krzysztof.czurylo@intel.com>"
+PACKAGE_MAINTAINER="Marcin Slusarz <marcin.slusarz@intel.com>"
 
 # Brief description of the package
 PACKAGE_SUMMARY="Persistent Memory Development Kit"

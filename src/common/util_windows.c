@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,8 @@
 #include <string.h>
 #include <tchar.h>
 #include <errno.h>
+
+#include "alloc.h"
 #include "util.h"
 #include "out.h"
 #include "file.h"
@@ -251,4 +253,19 @@ util_getexecname(char *path, size_t pathlen)
 		path[cc] = '\0';
 
 	return path;
+}
+
+/*
+ * util_suppress_errmsg -- suppresses "abort" window on Windows if env variable
+ * is set, useful for automatic tests
+ */
+void
+util_suppress_errmsg(void)
+{
+	if (os_getenv("PMDK_NO_ABORT_MSG") != NULL) {
+		DWORD err = GetErrorMode();
+		SetErrorMode(err | SEM_NOGPFAULTERRORBOX |
+			SEM_FAILCRITICALERRORS);
+		_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+	}
 }
