@@ -159,7 +159,7 @@ The **pmemblk_check_version**() function is used to determine whether the
 installed **libpmemblk** supports the version of the library API required
 by an application. The easiest way to do this is for the application to
 supply the compile-time version information, supplied by defines in
-**\<ibpmemblk.h\>**, like this:
+**\<libpmemblk.h\>**, like this:
 
 ```c
 reason = pmemblk_check_version(PMEMBLK_MAJOR_VERSION,

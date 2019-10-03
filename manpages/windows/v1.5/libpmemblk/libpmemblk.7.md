@@ -166,7 +166,7 @@ The **pmemblk_check_versionU**()/**pmemblk_check_versionW**() function is used t
 installed **libpmemblk** supports the version of the library API required
 by an application. The easiest way to do this is for the application to
 supply the compile-time version information, supplied by defines in
-**\<ibpmemblk.h\>**, like this:
+**\<libpmemblk.h\>**, like this:
 
 ```c
 reason = pmemblk_check_versionU(PMEMBLK_MAJOR_VERSION,
