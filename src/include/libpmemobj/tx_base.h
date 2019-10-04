@@ -225,6 +225,8 @@ int pmemobj_tx_add_range_direct(const void *ptr, size_t size);
  * Behaves exactly the same as pmemobj_tx_add_range when 'flags' equals 0.
  * 'Flags' is a bitmask of the following values:
  *  - POBJ_XADD_NO_FLUSH - skips flush on commit
+ *  - POBJ_XADD_NO_SNAPSHOT - added range will not be snapshotted
+ *  - POBJ_XADD_ASSUME_INITIALIZED - added range is assumed to be initialized
  */
 int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size,
 		uint64_t flags);
@@ -233,6 +235,8 @@ int pmemobj_tx_xadd_range(PMEMoid oid, uint64_t off, size_t size,
  * Behaves exactly the same as pmemobj_tx_add_range_direct when 'flags' equals
  * 0. 'Flags' is a bitmask of the following values:
  *  - POBJ_XADD_NO_FLUSH - skips flush on commit
+ *  - POBJ_XADD_NO_SNAPSHOT - added range will not be snapshotted
+ *  - POBJ_XADD_ASSUME_INITIALIZED - added range is assumed to be initialized
  */
 int pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags);
 
