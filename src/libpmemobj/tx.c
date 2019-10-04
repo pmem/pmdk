@@ -1607,7 +1607,7 @@ pmemobj_tx_wcsdup(const wchar_t *s, uint64_t type_num)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	PMEMOBJ_API_END();
+	PMEMOBJ_API_START();
 	PMEMoid oid;
 	if (NULL == s) {
 		ERR("cannot duplicate NULL string");
