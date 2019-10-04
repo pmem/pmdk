@@ -142,7 +142,7 @@ The C++ bindings aim at providing an easier to use, less error prone
 implementation of **libpmemobj**. The C++ implementation requires a compiler
 compliant with C++11 and one feature requires C++17.
 
-See the [C++ bindings page](cpp_obj) for documentation and examples.
+See the [C++ bindings page](http://pmem.io/libpmemobj-cpp/index.html) for documentation and examples.
 
 #### pmemkv
 
