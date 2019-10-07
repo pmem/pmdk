@@ -357,6 +357,23 @@ Standards-version: 4.1.4
 Build-Depends: debhelper (>= 9)
 Homepage: http://pmem.io/pmdk/
 
+Package: libpmem2
+Architecture: any
+Depends: \${shlibs:Depends}, \${misc:Depends}
+Description: Persistent Memory low level support library
+ libpmem2 provides low level persistent memory support. In particular, support
+ for the persistent memory instructions for flushing changes to pmem is
+ provided. (EXPERIMENTAL)
+
+Package: libpmem2-dev
+Section: libdevel
+Architecture: any
+Depends: libpmem2 (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for libpmem2
+ libpmem2 provides low level persistent memory support. In particular, support
+ for the persistent memory instructions for flushing changes to pmem is
+ provided. (EXPERIMENTAL)
+
 Package: libpmem
 Architecture: any
 Depends: \${shlibs:Depends}, \${misc:Depends}
