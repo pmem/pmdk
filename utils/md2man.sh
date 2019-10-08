@@ -55,7 +55,7 @@ set -o pipefail
 filename=$1
 template=$2
 outfile=$3
-title=`sed -n 's/^title:\ _MP(*\([A-Za-z_-]*\).*$/\1/p' $filename`
+title=`sed -n 's/^title:\ _MP(*\([A-Za-z0-9_-]*\).*$/\1/p' $filename`
 section=`sed -n 's/^title:.*\([0-9]\))$/\1/p' $filename`
 version=`sed -n 's/^date:\ *\(.*\)$/\1/p' $filename`
 
