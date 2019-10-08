@@ -11,8 +11,8 @@ which allows applications to access persistent memory as _memory-mapped files_,
 as described in the
 [SNIA NVM Programming Model](https://www.snia.org/sites/default/files/technical_work/final/NVMProgrammingModel_v1.2.pdf).
 
-The source for PMDK is in this
-[GitHub repository](https://github.com/pmem/pmdk/).
+The source of PMDK libraries
+[can be found on GitHub](//pmem.io/repoindex).
 
 The following libraries are part of PMDK:
 
