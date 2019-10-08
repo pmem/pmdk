@@ -82,15 +82,14 @@ if [ "$WEB" == 1 ]; then
 	m4 $OPTS macros.man $filename | sed -n -e '/---/,$p' > $outfile
 else
 	SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH:-$(date +%s)}"
-	YEAR=$(date -u -d "@$SOURCE_DATE_EPOCH" +%Y 2>/dev/null ||
-		date -u -r "$SOURCE_DATE_EPOCH" +%Y 2>/dev/null || date -u +%Y)
+	YEARS=$(grep -rnwI "Copyright" $filename | cut -d" " -f4 | sed s/,//)
 	dt=$(date -u -d "@$SOURCE_DATE_EPOCH" +%F 2>/dev/null ||
 		date -u -r "$SOURCE_DATE_EPOCH" +%F 2>/dev/null || date -u +%F)
 	m4 $OPTS macros.man $filename | sed -n -e '/# NAME #/,$p' |\
 		pandoc -s -t man -o $outfile.tmp --template=$template \
 		-V title=$title -V section=$section \
 		-V date="$dt" -V version="$version" \
-		-V year="$YEAR" |
+		-V years="$YEARS" |
 sed '/^\.IP/{
 N
 /\n\.nf/{
