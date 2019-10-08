@@ -38,7 +38,7 @@ include ../src/common.inc
 
 MANPAGES_7_MD = libpmem/libpmem.7.md libpmemblk/libpmemblk.7.md libpmemlog/libpmemlog.7.md \
 		libpmemobj/libpmemobj.7.md libpmempool/libpmempool.7.md libvmem/libvmem.7.md \
-		libvmmalloc/libvmmalloc.7.md
+		libvmmalloc/libvmmalloc.7.md libpmem2/libpmem2.7.md
 
 MANPAGES_5_MD = poolset/poolset.5.md pmem_ctl/pmem_ctl.5.md
 

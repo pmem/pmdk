@@ -21,6 +21,7 @@ the documentation must be made by modifying the *.md files in the following
 document subdirectories:
 
 libpmem -- low-level persistent memory support
+libpmem2 -- low-level persistent memory support (EXPERIMENTAL)
 libpmemblk -- pmem-resident arrays of blocks
 libpmemlog -- pmem-resident log files
 libpmemobj -- transactional object store
