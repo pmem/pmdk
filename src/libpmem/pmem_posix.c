@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -68,14 +68,13 @@ is_pmem_detect(const void *addr, size_t len)
  * pmem_map_register -- memory map file and register mapping
  */
 void *
-pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax)
+pmem_map_register(int fd, os_off_t off, size_t len, int is_dev_dax)
 {
-	LOG(3, "fd %d len %zu path %s id_dev_dax %d",
-			fd, len, path, is_dev_dax);
+	LOG(3, "fd %d len %zu id_dev_dax %d", fd, len, is_dev_dax);
 
 	void *addr;
 	int map_sync;
-	addr = util_map(fd, len, MAP_SHARED, 0, 0, &map_sync);
+	addr = util_map(fd, off, len, MAP_SHARED, 0, 0, &map_sync);
 	if (!addr)
 		return NULL;
 
@@ -86,7 +85,7 @@ pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax)
 		type = PMEM_MAP_SYNC;
 
 	if (type != MAX_PMEM_TYPE) {
-		if (util_range_register(addr, len, path, type)) {
+		if (util_range_register(fd, addr, len, type)) {
 			LOG(1, "can't track mapped region");
 			goto err_unmap;
 		}

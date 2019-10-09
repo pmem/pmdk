@@ -64,7 +64,7 @@ do_fault_injection_register(void *addr, size_t len, enum pmem_map_type type)
 
 	pmem_inject_fault_at(PMEM_MALLOC, 1, "util_range_register");
 
-	int ret = util_range_register(addr, len, "", type);
+	int ret = util_range_register(-1, addr, len, type);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTeq(errno, ENOMEM);
 }
@@ -107,7 +107,7 @@ main(int argc, char *argv[])
 
 		switch (argv[i][0]) {
 		case 'a':
-			ret = util_range_register(addr, len, "",
+			ret = util_range_register(-1, addr, len,
 					str2type(argv[i + 3]));
 			if (ret != 0)
 				UT_OUT("%s", pmem_errormsg());

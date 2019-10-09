@@ -34,14 +34,17 @@
 
 include ../common.inc
 
+vpath %.c ../libpmem
+
 LIBRARY_NAME = pmem2
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
 	libpmem2.c\
-	pmem2.c
+	pmem2.c\
+	pmem.c
 
 include ../Makefile.inc
 
-CFLAGS += -I.
+CFLAGS += -I. -I../libpmem
 LIBS += -pthread

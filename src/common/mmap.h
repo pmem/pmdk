@@ -58,7 +58,7 @@ extern char *Mmap_mapfile;
 
 void *util_map_sync(void *addr, size_t len, int proto, int flags, int fd,
 	os_off_t offset, int *map_sync);
-void *util_map(int fd, size_t len, int flags, int rdonly,
+void *util_map(int fd, os_off_t off, size_t len, int flags, int rdonly,
 		size_t req_align, int *map_sync);
 int util_unmap(void *addr, size_t len);
 
@@ -160,7 +160,7 @@ util_map_hint_align(size_t len, size_t req_align)
 	return align;
 }
 
-int util_range_register(const void *addr, size_t len, const char *path,
+int util_range_register(int fd, const void *addr, size_t len,
 		enum pmem_map_type type);
 int util_range_unregister(const void *addr, size_t len);
 struct map_tracker *util_range_find(uintptr_t addr, size_t len);

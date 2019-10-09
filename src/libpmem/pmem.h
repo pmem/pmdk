@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include "libpmem.h"
 #include "util.h"
+#include "os.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -73,7 +74,7 @@ void pmem_os_init(void);
 void pmem_init_funcs(struct pmem_funcs *funcs);
 
 int is_pmem_detect(const void *addr, size_t len);
-void *pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax);
+void *pmem_map_register(int fd, os_off_t off, size_t len, int is_dev_dax);
 
 /*
  * flush_empty_nolog -- (internal) do not flush the CPU cache
