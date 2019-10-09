@@ -3,7 +3,7 @@ title: PMDK
 layout: pmdk
 ---
 The Persistent Memory Development Kit (PMDK),
-formerly known as [NVML](http://pmem.io/2017/12/11/NVML-is-now-PMDK.html),
+formerly known as [NVML](../2017/12/11/NVML-is-now-PMDK.html),
 is a growing collection of libraries and tools.
 Tuned and validated on both Linux and Windows, the libraries build on
 the DAX feature of those operating systems (short for _Direct Access_)
@@ -112,7 +112,7 @@ It's designed to fully take advantage of large capacity memory, such as
 persistent memory with DAX, through memory mapping in an efficient
 and scalable way.
 
-See the [libvmemcache](https://pmem.io/vmemcache/manpages/master/vmemcache.3.html)
+See the [libvmemcache](../vmemcache/manpages/master/vmemcache.3.html)
 for current documentation.
 
 #### daxio
@@ -133,7 +133,7 @@ See the [pmreorder page](pmreorder) for available commands and documentation.
 The **pmdk-convert** tool performs conversion of the specified pool
 from the old layout versions to the newest one supported by this tool.
 
-See the [pmdk-convert](https://pmem.io/pmdk-convert/manpages/master/pmdk-convert.1.html)
+See the [pmdk-convert](../pmdk-convert/manpages/master/pmdk-convert.1.html)
 for current documentation.
 
 #### C++ bindings
@@ -142,7 +142,7 @@ The C++ bindings aim at providing an easier to use, less error prone
 implementation of **libpmemobj**. The C++ implementation requires a compiler
 compliant with C++11 and one feature requires C++17.
 
-See the [C++ bindings page](cpp_obj) for documentation and examples.
+See the [C++ bindings page](../libpmemobj-cpp/) for documentation and examples.
 
 #### pmemkv
 
@@ -150,4 +150,4 @@ See the [C++ bindings page](cpp_obj) for documentation and examples.
 Rather than being tied to a single language or backing implementation,
 **pmemkv** provides different options for language bindings and storage engines.
 
-See the [pmemkv page](http://pmem.io/pmemkv/index.html) for available documentation.
+See the [pmemkv page](../pmemkv/) for available documentation.
