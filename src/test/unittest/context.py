@@ -276,6 +276,9 @@ class _CtxType(type):
     def __repr__(cls):
         return cls.__name__.lower()
 
+    def __str__(cls):
+        return cls.__name__.lower()
+
     def __iter__(cls):
         for c in cls.includes:
             yield c

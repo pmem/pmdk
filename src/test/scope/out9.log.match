@@ -1,12 +1,10 @@
-scope/TEST2w:
-$(*)\libpmemlog.dll:
 DllMain
 pmemlog_append
 pmemlog_appendv
-pmemlog_check_versionU
-pmemlog_check_versionW
 pmemlog_checkU
 pmemlog_checkW
+pmemlog_check_versionU
+pmemlog_check_versionW
 pmemlog_close
 pmemlog_createU
 pmemlog_createW
