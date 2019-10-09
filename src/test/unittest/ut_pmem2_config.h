@@ -31,51 +31,31 @@
  */
 
 /*
- * libpmem2.h -- definitions of libpmem2 entry points (EXPERIMENTAL)
- *
- * This library provides support for programming with persistent memory (pmem).
- *
- * libpmem2 provides support for using raw pmem directly.
- *
- * See libpmem2(7) for details.
+ * ut_pmem2_config.h -- utility helper functions for libpmem2 config tests
  */
 
-#ifndef LIBPMEM2_H
-#define LIBPMEM2_H 1
+#ifndef UT_PMEM2_CONFIG_H
+#define UT_PMEM2_CONFIG_H 1
 
-#ifdef _WIN32
-#include <pmemcompat.h>
+/* a pmem2_config_new() that can't return NULL */
+#define PMEM2_CONFIG_NEW(cfg)						\
+	ut_pmem2_config_new(__FILE__, __LINE__, __func__, cfg)
 
-#ifndef PMDK_UTF8_API
-#define pmem2_errormsg pmem2_errormsgW
-#else
-#define pmem2_errormsg pmem2_errormsgU
+/* a pmem2_config_set_fd() that can't return NULL */
+#define PMEM2_CONFIG_SET_FD(cfg, fd)					\
+	ut_pmem2_config_set_fd(__FILE__, __LINE__, __func__, cfg, fd)
+
+/* a pmem2_config_delete() that can't return NULL */
+#define PMEM2_CONFIG_DELETE(cfg)					\
+	ut_pmem2_config_delete(__FILE__, __LINE__, __func__, cfg)
+
+void ut_pmem2_config_new(const char *file, int line, const char *func,
+	struct pmem2_config **cfg);
+
+void ut_pmem2_config_set_fd(const char *file, int line, const char *func,
+	struct pmem2_config *cfg, int fd);
+
+void ut_pmem2_config_delete(const char *file, int line, const char *func,
+	struct pmem2_config **cfg);
+
 #endif
-
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define PMEM2_E_EXTERNAL 1
-#define PMEM2_E_INVALID_ARG 2
-#define PMEM2_E_INVALID_HANDLE 3
-#define PMEM2_E_NOMEM 4
-
-struct pmem2_config;
-int pmem2_config_new(struct pmem2_config **cfg);
-int pmem2_config_set_fd(struct pmem2_config *cfg, int fd);
-int pmem2_config_delete(struct pmem2_config **cfg);
-
-#ifndef _WIN32
-const char *pmem2_errormsg(void);
-#else
-const char *pmem2_errormsgU(void);
-const wchar_t *pmem2_errormsgW(void);
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-#endif	/* libpmem2.h */

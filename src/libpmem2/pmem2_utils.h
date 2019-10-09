@@ -31,51 +31,12 @@
  */
 
 /*
- * libpmem2.h -- definitions of libpmem2 entry points (EXPERIMENTAL)
- *
- * This library provides support for programming with persistent memory (pmem).
- *
- * libpmem2 provides support for using raw pmem directly.
- *
- * See libpmem2(7) for details.
+ * pmem2_utils.h -- libpmem2 utilities functions
  */
 
-#ifndef LIBPMEM2_H
-#define LIBPMEM2_H 1
+#ifndef PMEM2_UTILS_H
+#define PMEM2_UTILS_H 1
 
-#ifdef _WIN32
-#include <pmemcompat.h>
-
-#ifndef PMDK_UTF8_API
-#define pmem2_errormsg pmem2_errormsgW
-#else
-#define pmem2_errormsg pmem2_errormsgU
-#endif
+void *pmem2_zalloc(size_t size, int *err);
 
 #endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define PMEM2_E_EXTERNAL 1
-#define PMEM2_E_INVALID_ARG 2
-#define PMEM2_E_INVALID_HANDLE 3
-#define PMEM2_E_NOMEM 4
-
-struct pmem2_config;
-int pmem2_config_new(struct pmem2_config **cfg);
-int pmem2_config_set_fd(struct pmem2_config *cfg, int fd);
-int pmem2_config_delete(struct pmem2_config **cfg);
-
-#ifndef _WIN32
-const char *pmem2_errormsg(void);
-#else
-const char *pmem2_errormsgU(void);
-const wchar_t *pmem2_errormsgW(void);
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-#endif	/* libpmem2.h */
