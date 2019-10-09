@@ -13,11 +13,17 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\libpmem2\libpmem2.c" />
     <ClCompile Include="..\..\src\libpmem2\pmem2.c" />
-    <ClCompile Include="..\libpmem2\libpmem2_main.c" />
+    <ClCompile Include="..\..\src\libpmem2\libpmem2_main.c" />
+    <ClInclude Include="..\..\src\libpmem\pmem.c" />
+    <ClInclude Include="..\..\src\libpmem\pmem_windows.c" />
+    <ClInclude Include="..\..\src\common\file.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\include\libpmem2.h" />
     <ClInclude Include="..\..\src\libpmem2\pmem2.h" />
+    <ClInclude Include="..\..\src\libpmem\pmem.h" />
+    <ClInclude Include="..\..\src\common\file.h" />
+    <ClInclude Include="..\..\src\common\valgrind_internal.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmem2.def" />
@@ -61,8 +67,16 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="..\windows\libs_release.props" />
   </ImportGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

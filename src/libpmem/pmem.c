@@ -174,7 +174,6 @@
 #include "libpmem.h"
 #include "pmem.h"
 #include "out.h"
-#include "os.h"
 #include "mmap.h"
 #include "file.h"
 #include "valgrind_internal.h"
@@ -535,7 +534,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 		len = (size_t)actual_size;
 	}
 
-	void *addr = pmem_map_register(fd, len, path, file_type == TYPE_DEVDAX);
+	void *addr = pmem_map_register(fd, 0, len, file_type == TYPE_DEVDAX);
 	if (addr == NULL)
 		goto err;
 

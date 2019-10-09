@@ -189,12 +189,12 @@ is_pmem_detect(const void *addr, size_t len)
  * pmem_map_register -- memory map file and register mapping
  */
 void *
-pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax)
+pmem_map_register(int fd, os_off_t off, size_t len, int is_dev_dax)
 {
 	/* there is no device dax on windows */
 	ASSERTeq(is_dev_dax, 0);
 
-	return util_map(fd, len, MAP_SHARED, 0, 0, NULL);
+	return util_map(fd, off, len, MAP_SHARED, 0, 0, NULL);
 }
 
 /*

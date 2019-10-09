@@ -17,18 +17,33 @@
     <ClCompile Include="..\..\src\libpmem2\pmem2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pmem_windows.c">
+    <ClCompile Include="..\..\src\libpmem2\libpmem2_main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\libpmem2\libpmem2_main.c">
+    <ClInclude Include="..\..\src\libpmem\pmem.c">
       <Filter>Source Files</Filter>
-    </ClCompile>
+    </ClInclude>
+    <ClInclude Include="..\..\src\libpmem\pmem_windows.c">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\file.c">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\libpmem\pmem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\src\libpmem2\pmem2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\include\libpmem2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\valgrind_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

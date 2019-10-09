@@ -322,24 +322,16 @@ util_file_device_dax_alignment(const char *path)
 }
 
 /*
- * util_ddax_region_find -- returns Device DAX region id
+ * util_ddax_region_find_by_stat -- returns Device DAX region id by
+ * given stat_t structure
  */
-int
-util_ddax_region_find(const char *path)
+static int
+util_ddax_region_find_by_stat(os_stat_t st)
 {
-	LOG(3, "path \"%s\"", path);
-
 	int dax_reg_id_fd;
 	char dax_region_path[PATH_MAX];
 	char reg_id[DAX_REGION_ID_LEN];
 	char *end_addr;
-	os_stat_t st;
-
-	ASSERTne(path, NULL);
-	if (os_stat(path, &st) < 0) {
-		ERR("!stat \"%s\"", path);
-		return -1;
-	}
 
 	dev_t dev_id = st.st_rdev;
 
@@ -401,4 +393,42 @@ util_ddax_region_find(const char *path)
 err:
 	os_close(dax_reg_id_fd);
 	return -1;
+}
+
+/*
+ * util_ddax_region_find_by_fd -- returns Device DAX region id
+ * by file descriptor
+ */
+int
+util_ddax_region_find_by_fd(int fd)
+{
+	LOG(3, "fd %d", fd);
+
+	os_stat_t st;
+
+	if (os_fstat(fd, &st) < 0) {
+		ERR("!fstat");
+		return -1;
+	}
+
+	return util_ddax_region_find_by_stat(st);
+}
+
+/*
+ * util_ddax_region_find -- returns Device DAX region id
+ */
+int
+util_ddax_region_find(const char *path)
+{
+	LOG(3, "path \"%s\"", path);
+
+	os_stat_t st;
+
+	ASSERTne(path, NULL);
+	if (os_stat(path, &st) < 0) {
+		ERR("!stat \"%s\"", path);
+		return -1;
+	}
+
+	return util_ddax_region_find_by_stat(st);
 }

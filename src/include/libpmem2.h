@@ -47,7 +47,18 @@
 extern "C" {
 #endif
 
-/* XXX placeholder */
+#define PMEM2_E_OK 0
+#define PMEM2_E_MAP_RANGE 0
+#define PMEM2_E_INV_FSIZE 0
+#define PMEM2_E_UNKNOWN_FILETYPE 0
+#define PMEM2_E_MAP_FAILED 0
+#define PMEM2_E_NOMEM 0
+#define PMEM2_E_UNKNOWN 0
+
+struct pmem2_config;
+struct pmem2_map;
+
+int pmem2_map(struct pmem2_config *cfg, struct pmem2_map **map);
 
 #ifdef __cplusplus
 }
