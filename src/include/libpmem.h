@@ -37,7 +37,7 @@
  *
  * libpmem provides support for using raw pmem directly.
  *
- * See libpmem(3) for details.
+ * See libpmem(7) for details.
  */
 
 #ifndef LIBPMEM_H

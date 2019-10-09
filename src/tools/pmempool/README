@@ -145,7 +145,7 @@ All features are described below.
 
  * It is possible to walk through the usable data using fixed data chunk size.
    This feature uses similar approach as pmemlog_walk() function. For details
-   please refer to libpmemlog(3).
+   please refer to libpmemlog(7).
 
 ** Features for *blk* pool type
 
