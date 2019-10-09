@@ -31,51 +31,28 @@
  */
 
 /*
- * libpmem2.h -- definitions of libpmem2 entry points (EXPERIMENTAL)
- *
- * This library provides support for programming with persistent memory (pmem).
- *
- * libpmem2 provides support for using raw pmem directly.
- *
- * See libpmem2(7) for details.
+ * ut_pmem2_config.c -- utility helper functions for libpmem2 tests
  */
 
-#ifndef LIBPMEM2_H
-#define LIBPMEM2_H 1
+#include "unittest.h"
+#include "ut_pmem2_common.h"
 
-#ifdef _WIN32
-#include <pmemcompat.h>
+/*
+ * ut_pmem2_expect_error -- veryfies error code and prints appropriate
+ *	error message in case of error
+ */
+void ut_pmem2_expect_error(const char *file, int line, const char *func,
+	int err, int expected)
+{
+	if (err != expected) {
+		if (err == 0)
+			ut_fatal(file, line, func,
+				"unexpected error code (expected:%d, got %d instead): succeeded",
+				err, expected);
+		else
+			ut_fatal(file, line, func,
+				"unexpected error code (expected:%d, got %d instead): %s",
+				err, expected, pmem2_errormsg());
+	}
 
-#ifndef PMDK_UTF8_API
-#define pmem2_errormsg pmem2_errormsgW
-#else
-#define pmem2_errormsg pmem2_errormsgU
-#endif
-
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define PMEM2_E_EXTERNAL 1
-#define PMEM2_E_INVALID_ARG 2
-#define PMEM2_E_INVALID_HANDLE 3
-#define PMEM2_E_NOMEM 4
-
-struct pmem2_config;
-int pmem2_config_new(struct pmem2_config **cfg);
-int pmem2_config_set_fd(struct pmem2_config *cfg, int fd);
-int pmem2_config_delete(struct pmem2_config **cfg);
-
-#ifndef _WIN32
-const char *pmem2_errormsg(void);
-#else
-const char *pmem2_errormsgU(void);
-const wchar_t *pmem2_errormsgW(void);
-#endif
-
-#ifdef __cplusplus
 }
-#endif
-#endif	/* libpmem2.h */

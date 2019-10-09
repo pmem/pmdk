@@ -85,6 +85,7 @@
 #define _UNITTEST_H 1
 
 #include <libpmem.h>
+#include <libpmem2.h>
 #include <libpmemblk.h>
 #include <libpmemlog.h>
 #include <libpmemobj.h>
