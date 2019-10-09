@@ -63,6 +63,7 @@ echo
 echo "Areas computed basing on the list of modified files: (see utils/check-area.sh for full algorithm)"
 
 categorize pmem      -e "^src/libpmem/"     -e "^src/include/libpmem.h"
+categorize pmem2     -e "^src/libpmem2/"    -e "^src/include/libpmem2.h"
 categorize rpmem     -e "^src/librpmem/"    -e "^src/include/librpmem.h" -e "^src/tools/rpmemd/" -e "^src/rpmem_common/"
 categorize log       -e "^src/libpmemlog/"  -e "^src/include/libpmemlog.h"
 categorize blk       -e "^src/libpmemblk/"  -e "^src/include/libpmemblk.h"
