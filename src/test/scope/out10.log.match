@@ -1,11 +1,9 @@
-scope/TEST3w:
-$(*)\libpmemblk.dll:
 DllMain
 pmemblk_bsize
-pmemblk_check_versionU
-pmemblk_check_versionW
 pmemblk_checkU
 pmemblk_checkW
+pmemblk_check_versionU
+pmemblk_check_versionW
 pmemblk_close
 pmemblk_createU
 pmemblk_createW

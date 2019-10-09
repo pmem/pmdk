@@ -45,7 +45,6 @@ setup
 
 parse_lib() {
 	local lib_path=$2
-	echo "$lib_path:" >> out$UNITTEST_NUM.log
 	(nm $1 $lib_path |\
 		perl -ne 'print if s/^[0-9a-z]+ T (\w+)/$1/' |\
 		sort >> out$UNITTEST_NUM.log) 2>&1

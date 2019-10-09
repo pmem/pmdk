@@ -1,4 +1,4 @@
-scope/TEST0w:
+scope/TEST7w:
 $(*)\libvmem.dll:
 DllMain
 vmem_aligned_alloc

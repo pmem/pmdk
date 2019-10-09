@@ -31,7 +31,7 @@
 #
 
 #
-# src/test/scope/TEST1 -- scope test to check libpmem symbols
+# src/test/scope/TEST7 -- scope test to check libvmem symbols
 #
 
 . ..\unittest\unittest.ps1
@@ -49,7 +49,7 @@ function parse_lib {
 }
 
 echo "${Env:UNITTEST_NAME}:" > out$Env:UNITTEST_NUM.log
-parse_lib "$Env:LIBS_DIR\libpmem.dll"
+parse_lib "$Env:LIBS_DIR\libvmem.dll"
 
 check
 

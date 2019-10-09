@@ -1,13 +1,11 @@
-scope/TEST6w:
-$(*)\libpmempool.dll:
 DllMain
+pmempool_checkU
+pmempool_checkW
 pmempool_check_end
 pmempool_check_initU
 pmempool_check_initW
 pmempool_check_versionU
 pmempool_check_versionW
-pmempool_checkU
-pmempool_checkW
 pmempool_errormsgU
 pmempool_errormsgW
 pmempool_feature_disableU
