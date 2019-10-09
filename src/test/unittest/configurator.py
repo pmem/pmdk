@@ -259,6 +259,17 @@ class Configurator():
                             'TEST1, TEST2 and TEST5',
                             default='')
 
+        tracers = parser.add_mutually_exclusive_group()
+        tracers.add_argument('--tracer', dest='tracer', help='run C binary '
+                             'with provided tracer command. With this option '
+                             'stdout and stderr are not redirected, enabling '
+                             'interactive sessions.',
+                             default='')
+        tracers.add_argument('--gdb', dest='tracer', action='store_const',
+                             const='gdb --args', help='run gdb as a tracer')
+        tracers.add_argument('--cgdb', dest='tracer', action='store_const',
+                             const='cgdb --args', help='run cgdb as a tracer')
+
         if sys.platform != 'win32':
             fe_choices = [t.name.lower() for t in vg.TOOLS]
             parser.add_argument('--force-enable', choices=fe_choices,

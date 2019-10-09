@@ -224,9 +224,17 @@ class Context(ContextBase):
             cmd = '{} {}'.format(self.valgrind.cmd, cmd)
 
         cmd = '{} {}'.format(cmd, cmd_args)
-        proc = sp.run(cmd, env=env, cwd=self.test.cwd, shell=True,
-                      timeout=self.conf.timeout, stdout=sp.PIPE,
-                      stderr=sp.STDOUT, universal_newlines=True)
+
+        if self.conf.tracer:
+            cmd = '{} {}'.format(self.conf.tracer, cmd)
+
+            # process stdout and stderr are not redirected - this lets running
+            # tracer command in interactive session
+            proc = sp.run(cmd, env=env, cwd=self.test.cwd, shell=True)
+        else:
+            proc = sp.run(cmd, env=env, cwd=self.test.cwd, shell=True,
+                          timeout=self.conf.timeout, stdout=sp.PIPE,
+                          stderr=sp.STDOUT, universal_newlines=True)
 
         if proc.returncode != expected_exit:
             futils.fail(proc.stdout, exit_code=proc.returncode)
