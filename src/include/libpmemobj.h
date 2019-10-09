@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
  *
  * libpmemobj provides a pmem-resident transactional object store.
  *
- * See libpmemobj(3) for details.
+ * See libpmemobj(7) for details.
  */
 
 #ifndef LIBPMEMOBJ_H

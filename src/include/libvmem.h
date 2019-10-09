@@ -35,7 +35,7 @@
  *
  * This library exposes memory-mapped files as volatile memory (a la malloc)
  *
- * See libvmem(3) for details.
+ * See libvmem(7) for details.
  */
 
 #ifndef LIBVMEM_H
