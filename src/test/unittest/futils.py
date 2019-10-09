@@ -73,6 +73,13 @@ def get_test_tool_path(ctx, name):
         return abspath(join(ROOTDIR, 'tools', name, name))
 
 
+def get_lib_dir(ctx):
+    if ctx.build == 'debug':
+        return DEBUG_LIBDIR
+    else:
+        return RELEASE_LIBDIR
+
+
 class Color:
     """
     Set the font color. This functionality relies on ANSI espace sequences

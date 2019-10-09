@@ -1,4 +1,3 @@
-$(*)
 pmempool_check
 pmempool_check_end
 pmempool_check_init

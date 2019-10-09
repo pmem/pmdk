@@ -1,4 +1,3 @@
-$(*)
 pmemblk_bsize
 pmemblk_check
 pmemblk_check_version

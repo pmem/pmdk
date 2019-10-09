@@ -1,4 +1,3 @@
-$(*)
 $(OPT)_malloc_postfork
 $(OPT)_malloc_prefork
 $(OPT)_malloc_thread_cleanup

@@ -1,4 +1,3 @@
-$(*)
 _pobj_cache_invalidate
 _pobj_cached_pool
 _pobj_debug_notice

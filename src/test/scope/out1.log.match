@@ -1,4 +1,3 @@
-$(*)
 pmem_check_version
 pmem_deep_drain
 pmem_deep_flush

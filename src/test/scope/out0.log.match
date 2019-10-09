@@ -1,4 +1,3 @@
-$(*)
 vmem_aligned_alloc
 vmem_calloc
 vmem_check

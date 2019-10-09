@@ -1,4 +1,3 @@
-$(*)
 pmemlog_append
 pmemlog_appendv
 pmemlog_check
