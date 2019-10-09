@@ -58,6 +58,16 @@
 extern "C" {
 #endif
 
+#define PMEM2_E_SYSERROR 1
+#define PMEM2_E_INVAL 2
+#define PMEM2_E_INVALID_HANDLE 3
+#define PMEM2_E_NOMEM 4
+
+struct pmem2_config;
+int pmem2_config_new(struct pmem2_config **cfg);
+int pmem2_config_set_fd(struct pmem2_config *cfg, int fd);
+int pmem2_config_delete(struct pmem2_config **cfg);
+
 #ifndef _WIN32
 const char *pmem2_errormsg(void);
 #else

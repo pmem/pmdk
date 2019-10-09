@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,48 +31,14 @@
 #
 
 #
-# Used to check whether all the commit messages in a pull request
-# follow the GIT/PMDK guidelines.
+# src/test/pmem2_config/Makefile -- build pmem2_config unit test
 #
-# usage: ./check-commit.sh commit
-#
+TOP = ../../..
 
-if [ -z "$1" ]; then
-	echo "Usage: check-commit.sh commit-id"
-	exit 1
-fi
+vpath %.c $(TOP)/src/libpmem2
+INCS += -I$(TOP)/src/libpmem2
+TARGET = pmem2_config
+OBJS = pmem2_config.o config.o libpmem2.o
 
-echo "Checking $1"
-
-subject=$(git log --format="%s" -n 1 $1)
-
-if [[ $subject =~ ^Merge.* ]]; then
-	# skip
-	exit 0
-fi
-
-if [[ $subject =~ ^Revert.* ]]; then
-	# skip
-	exit 0
-fi
-
-# valid area names
-AREAS="pmem\|pmem2\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmalloc\|jemalloc\|doc\|common\|daxio\|pmreorder"
-
-prefix=$(echo $subject | sed -n "s/^\($AREAS\)\:.*/\1/p")
-
-if [ "$prefix" = "" ]; then
-	echo "FAIL: subject line in commit message does not contain valid area name"
-	echo
-	`dirname $0`/check-area.sh $1
-	exit 1
-fi
-
-commit_len=$(git log --format="%s%n%b" -n 1 $1 | wc -L)
-
-if [ $commit_len -gt 73 ]; then
-	echo "FAIL: commit message exceeds 72 chars per line (commit_len)"
-	echo
-	git log -n 1 $1 | cat
-	exit 1
-fi
+LIBPMEMCOMMON=y
+include ../Makefile.inc

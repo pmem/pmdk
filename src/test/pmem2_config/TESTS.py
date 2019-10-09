@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!../env.py
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,49 +31,46 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# Used to check whether all the commit messages in a pull request
-# follow the GIT/PMDK guidelines.
-#
-# usage: ./check-commit.sh commit
-#
 
-if [ -z "$1" ]; then
-	echo "Usage: check-commit.sh commit-id"
-	exit 1
-fi
+import testframework as t
 
-echo "Checking $1"
+# XXX: temporally disable tests on windows
+@t.linux_only
+class PMEM2_CONFIG(t.BaseTest):
+    test_type = t.Short
 
-subject=$(git log --format="%s" -n 1 $1)
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        ctx.exec('pmem2_config', filepath, self.test_case)
 
-if [[ $subject =~ ^Merge.* ]]; then
-	# skip
-	exit 0
-fi
+class TEST0(PMEM2_CONFIG):
+    """alloc_cfg"""
+    test_case = "alloc_cfg"
 
-if [[ $subject =~ ^Revert.* ]]; then
-	# skip
-	exit 0
-fi
+class TEST1(PMEM2_CONFIG):
+    """set_rw_fd"""
+    test_case = "set_rw_fd"
 
-# valid area names
-AREAS="pmem\|pmem2\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmalloc\|jemalloc\|doc\|common\|daxio\|pmreorder"
+class TEST2(PMEM2_CONFIG):
+    """set_ro_fd"""
+    test_case = "set_ro_fd"
 
-prefix=$(echo $subject | sed -n "s/^\($AREAS\)\:.*/\1/p")
+class TEST3(PMEM2_CONFIG):
+    """set_negative_fd"""
+    test_case = "set_negative_fd"
 
-if [ "$prefix" = "" ]; then
-	echo "FAIL: subject line in commit message does not contain valid area name"
-	echo
-	`dirname $0`/check-area.sh $1
-	exit 1
-fi
+class TEST4(PMEM2_CONFIG):
+    """set_invalid_fd"""
+    test_case = "set_invalid_fd"
 
-commit_len=$(git log --format="%s%n%b" -n 1 $1 | wc -L)
+class TEST5(PMEM2_CONFIG):
+    """set_wronly_fd"""
+    test_case = "set_wronly_fd"
 
-if [ $commit_len -gt 73 ]; then
-	echo "FAIL: commit message exceeds 72 chars per line (commit_len)"
-	echo
-	git log -n 1 $1 | cat
-	exit 1
-fi
+class TEST6(PMEM2_CONFIG):
+    """alloc_cfg_enomem"""
+    test_case = "alloc_cfg_enomem"
+
+class TEST7(PMEM2_CONFIG):
+    """delete_null_config"""
+    test_case = "delete_null_config"

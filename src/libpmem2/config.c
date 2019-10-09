@@ -30,38 +30,80 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef COMMON_FAULT_INJECTION
-#define COMMON_FAULT_INJECTION
-#include <stdlib.h>
+/*
+ * config.c -- pmem2_config implementation
+ */
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include "libpmem2.h"
+#include "pmem2_utils.h"
+#include "alloc.h"
+#include "out.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define INVALID_FD (-1)
 
-enum pmem_allocation_type { PMEM_MALLOC, PMEM_REALLOC };
+struct pmem2_config {
+	int fd;
+};
 
-#if FAULT_INJECTION
-void common_inject_fault_at(enum pmem_allocation_type type,
-	int nth, const char *at);
-
-int common_fault_injection_enabled(void);
-
-#else
-static inline void
-common_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
+/*
+ * pmem2_config_new -- allocates and initialize cfg structure.
+ */
+int
+pmem2_config_new(struct pmem2_config **cfg)
 {
-	abort();
-}
+	int ret;
+	*cfg = pmem2_zalloc(&ret, sizeof(**cfg));
 
-static inline int
-common_fault_injection_enabled(void)
-{
+	if (ret)
+		return ret;
+
+	ASSERTne(cfg, NULL);
+
+	(*cfg)->fd = INVALID_FD;
 	return 0;
 }
-#endif
 
-#ifdef __cplusplus
+/*
+ * pmem2_config_set_fd -- sets fd in config struct
+ */
+int
+pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
+{
+	if (fd < 0) {
+		cfg->fd = INVALID_FD;
+		return 0;
+	}
+
+	/* XXX: fdup()? an user can use F_SETFD to change flags */
+	int flags = fcntl(fd, F_GETFL);
+
+	if (flags == -1) {
+		if (errno == EBADF) {
+			ERR("fd is not open file descriptor");
+			return PMEM2_E_INVAL;
+		} else {
+			ERR("!fcntl");
+			return PMEM2_E_SYSERROR;
+		}
+	}
+
+	if ((flags & O_WRONLY) == O_WRONLY) {
+		ERR("fd must be open with O_RDONLY or O_RDRW");
+		return PMEM2_E_INVALID_HANDLE;
+	}
+
+	return 0;
 }
-#endif
 
-#endif
+/*
+ * pmem2_config_delete -- dealocate cfg structure.
+ */
+int
+pmem2_config_delete(struct pmem2_config **cfg)
+{
+	Free(*cfg);
+	*cfg = NULL;
+	return 0;
+}
