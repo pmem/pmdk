@@ -31,51 +31,79 @@
  */
 
 /*
- * libpmem2.h -- definitions of libpmem2 entry points (EXPERIMENTAL)
- *
- * This library provides support for programming with persistent memory (pmem).
- *
- * libpmem2 provides support for using raw pmem directly.
- *
- * See libpmem2(7) for details.
+ * config.c -- pmem2_config implementation
  */
 
-#ifndef LIBPMEM2_H
-#define LIBPMEM2_H 1
+#include <errno.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include "alloc.h"
+#include "libpmem2.h"
+#include "out.h"
+#include "pmem2_utils.h"
 
-#ifdef _WIN32
-#include <pmemcompat.h>
+#define INVALID_FD (-1)
 
-#ifndef PMDK_UTF8_API
-#define pmem2_errormsg pmem2_errormsgW
-#else
-#define pmem2_errormsg pmem2_errormsgU
-#endif
+struct pmem2_config {
+	int fd;
+};
 
-#endif
+/*
+ * pmem2_config_new -- allocates and initialize cfg structure.
+ */
+int
+pmem2_config_new(struct pmem2_config **cfg)
+{
+	int ret;
+	*cfg = pmem2_zalloc(&ret, sizeof(**cfg));
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+	if (ret)
+		return ret;
 
-#define PMEM2_E_EXTERNAL 1
-#define PMEM2_E_INVALID_ARG 2
-#define PMEM2_E_INVALID_HANDLE 3
-#define PMEM2_E_NOMEM 4
+	ASSERTne(cfg, NULL);
 
-struct pmem2_config;
-int pmem2_config_new(struct pmem2_config **cfg);
-int pmem2_config_set_fd(struct pmem2_config *cfg, int fd);
-int pmem2_config_delete(struct pmem2_config **cfg);
-
-#ifndef _WIN32
-const char *pmem2_errormsg(void);
-#else
-const char *pmem2_errormsgU(void);
-const wchar_t *pmem2_errormsgW(void);
-#endif
-
-#ifdef __cplusplus
+	(*cfg)->fd = INVALID_FD;
+	return 0;
 }
-#endif
-#endif	/* libpmem2.h */
+
+/*
+ * pmem2_config_set_fd -- sets fd in config struct
+ */
+int
+pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
+{
+	if (fd < 0) {
+		cfg->fd = INVALID_FD;
+		return 0;
+	}
+
+	int flags = fcntl(fd, F_GETFL);
+
+	if (flags == -1) {
+		if (errno == EBADF) {
+			ERR("fd is not open file descriptor");
+			return PMEM2_E_INVALID_ARG;
+		} else {
+			ERR("!fcntl");
+			return PMEM2_E_EXTERNAL;
+		}
+	}
+
+	if ((flags & O_ACCMODE) == O_WRONLY) {
+		ERR("fd must be open with O_RDONLY or O_RDRW");
+		return PMEM2_E_INVALID_HANDLE;
+	}
+
+	return 0;
+}
+
+/*
+ * pmem2_config_delete -- dealocate cfg structure.
+ */
+int
+pmem2_config_delete(struct pmem2_config **cfg)
+{
+	Free(*cfg);
+	*cfg = NULL;
+	return 0;
+}
