@@ -31,36 +31,32 @@
  */
 
 /*
- * pmem2.h -- internal definitions for libpmem2
+ * pmem2_utils.c -- libpmem2 utilities functions
  */
-#ifndef PMEM2_H
-#define PMEM2_H
 
+#include <errno.h>
+#include "alloc.h"
 #include "libpmem2.h"
+#include "out.h"
+#include "pmem2_utils.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*
+ * pmem2_zalloc -- allocate zeroed buffer and handle error
+ */
+void *
+pmem2_zalloc(size_t size, int *err)
+{
+	void *ptr = Zalloc(size);
+	*err = 0;
 
-#define PMEM2_MAJOR_VERSION 0
-#define PMEM2_MINOR_VERSION 0
+	if (ptr == NULL) {
+		ERR("!malloc(%zu)", size);
 
-#define PMEM2_LOG_PREFIX "libpmem2"
-#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
-#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
+		if (errno == ENOMEM)
+			*err = PMEM2_E_NOMEM;
+		else
+			*err = PMEM2_E_EXTERNAL;
+	}
 
-#define INVALID_FD (-1)
-
-struct pmem2_config {
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	int fd;
-#endif
-};
-
-#ifdef __cplusplus
+	return ptr;
 }
-#endif
-
-#endif

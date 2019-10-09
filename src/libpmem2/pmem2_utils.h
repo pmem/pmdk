@@ -31,36 +31,12 @@
  */
 
 /*
- * pmem2.h -- internal definitions for libpmem2
+ * pmem2_utils.h -- libpmem2 utilities functions
  */
-#ifndef PMEM2_H
-#define PMEM2_H
 
-#include "libpmem2.h"
+#ifndef PMEM2_UTILS_H
+#define PMEM2_UTILS_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define PMEM2_MAJOR_VERSION 0
-#define PMEM2_MINOR_VERSION 0
-
-#define PMEM2_LOG_PREFIX "libpmem2"
-#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
-#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
-
-#define INVALID_FD (-1)
-
-struct pmem2_config {
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	int fd;
-#endif
-};
-
-#ifdef __cplusplus
-}
-#endif
+void *pmem2_zalloc(size_t size, int *err);
 
 #endif
