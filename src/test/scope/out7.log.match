@@ -1,14 +1,12 @@
-scope/TEST0w:
-$(*)\libvmem.dll:
 DllMain
 vmem_aligned_alloc
 vmem_calloc
 vmem_check
 vmem_check_versionU
 vmem_check_versionW
-vmem_create_in_region
 vmem_createU
 vmem_createW
+vmem_create_in_region
 vmem_delete
 vmem_errormsgU
 vmem_errormsgW

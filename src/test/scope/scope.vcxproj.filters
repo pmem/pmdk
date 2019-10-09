@@ -1,56 +1,33 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Test Scripts">
-      <UniqueIdentifier>{dac6c718-f0f8-43a0-ba38-bd72ab98e456}</UniqueIdentifier>
-      <Extensions>ps1</Extensions>
-    </Filter>
     <Filter Include="Match Files">
-      <UniqueIdentifier>{822d02f2-ed7a-4f61-9773-b579384486f5}</UniqueIdentifier>
-      <Extensions>match</Extensions>
+      <UniqueIdentifier>{f75855c4-915b-477a-a6ef-d6e89c61cf93}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{83997a01-c24d-41c0-8bd6-c87344c1023f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="out0w.log.match">
+    <None Include="out7.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out1w.log.match">
+    <None Include="out8.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out2w.log.match">
+    <None Include="out9.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out3w.log.match">
+    <None Include="out10.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out4w.log.match">
+    <None Include="out11.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out5w.log.match">
+    <None Include="out12.log.match">
       <Filter>Match Files</Filter>
     </None>
-    <None Include="out6w.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="TEST0w.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST1w.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST2w.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST3w.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST4w.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST5w.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST6w.PS1">
+    <None Include="TESTS.py">
       <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>
