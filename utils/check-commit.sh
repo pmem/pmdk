@@ -58,7 +58,7 @@ if [[ $subject =~ ^Revert.* ]]; then
 fi
 
 # valid area names
-AREAS="pmem\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmalloc\|jemalloc\|doc\|common\|daxio\|pmreorder"
+AREAS="pmem\|pmem2\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|vmem\|vmmalloc\|jemalloc\|doc\|common\|daxio\|pmreorder"
 
 prefix=$(echo $subject | sed -n "s/^\($AREAS\)\:.*/\1/p")
 

@@ -30,38 +30,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef COMMON_FAULT_INJECTION
-#define COMMON_FAULT_INJECTION
-#include <stdlib.h>
+/*
+ * ut_pmem2.h -- utility helper functions for libpmem2 tests
+ */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-enum pmem_allocation_type { PMEM_MALLOC, PMEM_REALLOC };
-
-#if FAULT_INJECTION
-void common_inject_fault_at(enum pmem_allocation_type type,
-	int nth, const char *at);
-
-int common_fault_injection_enabled(void);
-
-#else
-static inline void
-common_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
+/*
+ * ut_pmem2_alloc_cfg -- allocates cfg with error handling
+ */
+static void
+ut_pmem2_alloc_cfg(struct pmem2_config **cfg)
 {
-	abort();
+	if (pmem2_config_new(cfg)) {
+		/* XXX: return pmem2_error */
+		UT_FATAL("!pmem2_config_new");
+	}
+	UT_ASSERTne(*cfg, NULL);
 }
 
-static inline int
-common_fault_injection_enabled(void)
+/*
+ * ut_pmem2_set_fd -- sets fd with error handling
+ */
+static void
+ut_pmem2_set_fd(struct pmem2_config *cfg, int fd)
 {
-	return 0;
+	if (pmem2_config_set_fd(cfg, fd)) {
+		/* XXX: use pmem2_error */
+		UT_FATAL("!pmem2_config_set_fd");
+	}
 }
-#endif
 
-#ifdef __cplusplus
+/*
+ * ut_pmem2_delete_cfg -- deallocates cfg with error handling
+ */
+static void
+ut_pmem2_delete_cfg(struct pmem2_config **cfg)
+{
+	if (pmem2_config_delete(cfg)) {
+		/* XXX: use pmem2_error */
+		UT_FATAL("!pmem2_config_delete");
+	}
+
+	UT_ASSERTeq(*cfg, NULL);
 }
-#endif
-
-#endif

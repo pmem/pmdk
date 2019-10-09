@@ -1,3 +1,4 @@
+#
 # Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,22 +28,17 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmem2/Makefile -- Makefile for libpmem2
 #
 
-include ../common.inc
+#
+# src/test/pmem2_config/Makefile -- build pmem2_config unit test
+#
+TOP = ../../..
 
-LIBRARY_NAME = pmem2
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE =\
-	libpmem2.c\
-	config.c\
-	pmem2.c
+vpath %.c $(TOP)/src/libpmem2
+INCS += -I$(TOP)/src/libpmem2
+TARGET = pmem2_config
+OBJS = pmem2_config.o config.o
 
+LIBPMEMCOMMON=y
 include ../Makefile.inc
-
-CFLAGS += -I.
-LIBS += -pthread
