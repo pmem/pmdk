@@ -33,6 +33,8 @@
 #ifndef COMMON_FAULT_INJECTION
 #define COMMON_FAULT_INJECTION
 
+#include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
