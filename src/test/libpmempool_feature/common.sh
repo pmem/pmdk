@@ -44,7 +44,7 @@ QUERY_PATTERN="query"
 ERROR_PATTERN="<1> \\[feature.c:.*\\]"
 
 exit_func=expect_normal_exit
-sds_enabled=$(is_ndctl_ge_63 ./libpmempool_feature$EXESUFFIX; echo $?)
+sds_enabled=$(is_ndctl_enabled ./libpmempool_feature$EXESUFFIX; echo $?)
 
 # libpmempool_feature_query_abnormal -- query feature with expected
 #	abnormal result

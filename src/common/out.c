@@ -269,7 +269,7 @@ out_init(const char *log_prefix, const char *log_level_var,
 			"compiled with support for shutdown state";
 	LOG(1, "%s", shutdown_state_msg);
 #endif
-#if NDCTL_GE_63
+#if NDCTL_ENABLED
 	static __attribute__((used)) const char *ndctl_ge_63_msg =
 		"compiled with libndctl 63+";
 	LOG(1, "%s", ndctl_ge_63_msg);

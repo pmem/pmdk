@@ -227,7 +227,7 @@ static const features_t features_zero =
 #define POOL_FEAT_INCOMPAT_VALID \
 	(POOL_FEAT_SINGLEHDR | POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
 
-#if defined(_WIN32) || defined(NDCTL_GE_63)
+#if defined(_WIN32) || NDCTL_ENABLED
 #define POOL_FEAT_INCOMPAT_DEFAULT \
 	(POOL_FEAT_CKSUM_2K | POOL_E_FEAT_SDS)
 #else
@@ -239,7 +239,7 @@ static const features_t features_zero =
 	(POOL_FEAT_CKSUM_2K)
 #endif
 
-#if defined(NDCTL_GE_63)
+#if NDCTL_ENABLED
 #define POOL_FEAT_COMPAT_DEFAULT \
 	(POOL_FEAT_CHECK_BAD_BLOCKS)
 #else
