@@ -188,7 +188,7 @@ REPLICA [<user>@]<hostname> [<relative-path>/]<remote-pool-set-file>
 client
 
 + *pathname* is relative to the root config directory on the target
-node - see **librpmem**(3)
+node - see **librpmem**(7)
 
 There are no other lines in the remote replica section - the REPLICA line
 defines a remote replica entirely.
@@ -294,11 +294,11 @@ be done with the **pmemobj_create**(3), **pmemblk_create**(3) or
 
 Restoring data from a local or remote replica can be done by using the
 **pmempool-sync**(1) command or the **pmempool_sync**() API from the
-**libpmempool**(3) library.
+**libpmempool**(7) library.
 
 Modifications of a pool set file configuration can be done by using the
 **pmempool-transform**(1) command or the **pmempool_transform**() API from the
-**libpmempool**(3) library.
+**libpmempool**(7) library.
 
 When creating a pool set consisting of multiple files, or when creating
 a replicated pool set, the *path* argument passed to **pmemobj_create**(3),
