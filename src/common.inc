@@ -331,9 +331,7 @@ endif
 endif
 
 # unsafe shutdown count and badblock access without root (depends on kernel 4.20)
-NDCTL_MIN_VERSION_FIXED := 63
-
-NDCTL_MIN_VERSION := 60.1
+NDCTL_MIN_VERSION := 63
 
 sparse-c = $(shell for c in *.c; do sparse -Wsparse-all -Wno-declaration-after-statement $(CFLAGS) $(INCS) $$c || true; done)
 
@@ -370,24 +368,19 @@ LIBUTIL=
 LIBUUID=
 
 NDCTL_ENABLE ?= y
-NDCTL_USE_V63_API ?= y
 
 # Detect libndctl if not disabled.
 ifeq ($(NDCTL_ENABLE),y)
     ifeq ($(LIBNDCTL_LIBS),)
-        HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION_FIXED))
-        ifeq ($(HAS_NDCTL)$(NDCTL_USE_V63_API),yy)
-            OS_DIMM_CFLAG=-DNDCTL_GE_63
+        HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION))
+        ifeq ($(HAS_NDCTL),y)
+            OS_DIMM_CFLAG=-DNDCTL_ENABLED=1
         else
-            HAS_NDCTL :=  $(call check_package, libndctl --atleast-version $(NDCTL_MIN_VERSION))
-            ifeq ($(HAS_NDCTL),n)
-                $(error libndctl(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
-            endif
-            $(info WARNING: LIBNDCTL without permission fixes, some RAS features will be disabled)
+            $(error Please install libndctl-dev/libndctl-devel >= $(NDCTL_MIN_VERSION))
         endif
         HAS_DAXCTL := $(call check_package, libdaxctl --atleast-version $(NDCTL_MIN_VERSION))
         ifeq ($(HAS_DAXCTL),n)
-            $(error libdaxctl(version >= $(NDCTL_MIN_VERSION)) is missing -- see README)
+            $(error Please install libdaxctl-dev/libdaxctl-devel >= $(NDCTL_MIN_VERSION))
         endif
         LIBNDCTL_PKG_CONFIG_DEPS := libndctl libdaxctl
         LIBNDCTL_PKG_CONFIG_DEPS_VAR := ,libndctl,libdaxctl
