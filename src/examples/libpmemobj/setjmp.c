@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
 /*
  * setjmp.c -- example illustrating an issue with indeterminate value
  * of non-volatile automatic variables after transaction abort.
- * See libpmemobj(3) for details.
+ * See libpmemobj(7) for details.
  *
  * NOTE: To observe the problem (likely segfault on a second call to free()),
  * the example program should be compiled with optimizations enabled (-O2).

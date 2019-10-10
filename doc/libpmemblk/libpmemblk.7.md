@@ -112,7 +112,7 @@ type of file system results in the load/store, non-paged access to pmem.
 This library is for applications that need a potentially large array of blocks,
 all the same size, where any given block is updated atomically (the update
 cannot be *torn* by program interruption such as power failures). This library
-builds on the low-level pmem support provided by **libpmem**(3), handling the
+builds on the low-level pmem support provided by **libpmem**(7), handling the
 transactional update of the blocks, flushing to persistence, and recovery for
 the application. **libpmemblk** is one of a collection of persistent memory
 libraries available, the others are:
