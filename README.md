@@ -122,15 +122,20 @@ You will need to install the following required packages on the build system:
 
 * **autoconf**
 * **pkg-config**
-* **libndctl-devel** (v60.1 or later)<sup>1</sup>
-* **libdaxctl-devel** (v60.1 or later)
+* **libndctl-devel** (v63 or later)<sup>1</sup>
+* **libdaxctl-devel** (v63 or later)
 
 The following packages are required only by selected PMDK components
 or features:
 
 * **libfabric** (v1.4.2 or later) -- required by **librpmem**
 
-><sup>1</sup> PMDK requires libndctl v63 or newer (to enable RAS features) by default. If you have such libndctl version but you don't want to depend on this API please build PMDK with NDCTL_USE_V63_API=n. For more information please check this issue pmem/issues#1039
+><sup>1</sup> PMDK depends on libndctl to support RAS features. It is possible
+to disable this support by passing NDCTL_ENABLE=n to "make", but we strongly
+discourage users from doing that. Disabling NDCTL strips PMDK from ability to
+detect hardware failures, which may lead to silent data corruption.
+For information how to disable RAS at runtime for kernels prior to 5.0.4 please
+see https://github.com/pmem/issues/issues/1039.
 
 ### Windows
 

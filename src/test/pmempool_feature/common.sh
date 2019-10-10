@@ -48,7 +48,7 @@ LOG=grep${UNITTEST_NUM}.log
 
 pmempool_exe=$PMEMPOOL$EXESUFFIX
 exit_func=expect_normal_exit
-sds_enabled=$(is_ndctl_ge_63 $pmempool_exe; echo $?)
+sds_enabled=$(is_ndctl_enabled $pmempool_exe; echo $?)
 
 # pmempool_feature_query -- query feature
 #

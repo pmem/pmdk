@@ -2018,19 +2018,19 @@ function require_no_sds() {
 }
 
 #
-# is_ndctl_ge_63 -- check if binary is compiled with libndctl 63+
+# is_ndctl_enabled -- check if binary is compiled with libndctl
 #
-#	usage: is_ndctl_ge_63 <binary>
+#	usage: is_ndctl_enabled <binary>
 #
-function is_ndctl_ge_63() {
+function is_ndctl_enabled() {
 	local binary=$1
 	local dir=.
 	if [ -z "$binary" ]; then
-		fatal "is_ndctl_ge_63: error: no binary found"
+		fatal "is_ndctl_enabled: error: no binary found"
 	fi
 
 	strings ${binary} 2>&1 | \
-		grep -q "compiled with libndctl 63+" && true
+		grep -q "compiled with libndctl" && true
 
 	return $?
 }
@@ -2042,7 +2042,7 @@ function is_ndctl_ge_63() {
 #	usage: require_bb_enabled_by_default <binary>
 #
 function require_bb_enabled_by_default() {
-	if ! is_ndctl_ge_63 $1 &> /dev/null ; then
+	if ! is_ndctl_enabled $1 &> /dev/null ; then
 		msg "$UNITTEST_NAME: SKIP bad block checking feature disabled by default"
 		exit 0
 	fi
@@ -2057,7 +2057,7 @@ function require_bb_enabled_by_default() {
 #	usage: require_bb_disabled_by_default <binary>
 #
 function require_bb_disabled_by_default() {
-	if is_ndctl_ge_63 $1 &> /dev/null ; then
+	if is_ndctl_enabled $1 &> /dev/null ; then
 		msg "$UNITTEST_NAME: SKIP bad block checking feature enabled by default"
 		exit 0
 	fi
