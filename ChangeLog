@@ -433,7 +433,7 @@ Tue Feb 21 2017 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	The pmem_is_pmem() function will now return true only if the entire
 	range is mapped directly from Device DAX (/dev/daxX.Y) without an
 	intervening file system, and only if the corresponding file mapping
-	was created with pmem_map_file().  See libpmem(3) for details.
+	was created with pmem_map_file().  See libpmem(7) for details.
 
 	Bug fixes:
 	- jemalloc: fix test compilation on Fedora 26 (rawhide)

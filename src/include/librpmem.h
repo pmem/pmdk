@@ -36,7 +36,7 @@
  * This library provides low-level support for remote access to persistent
  * memory utilizing RDMA-capable RNICs.
  *
- * See librpmem(3) for details.
+ * See librpmem(7) for details.
  */
 
 #ifndef LIBRPMEM_H

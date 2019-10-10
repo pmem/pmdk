@@ -37,7 +37,7 @@
  *
  * libpmemlog provides support for pmem-resident log files.
  *
- * See libpmemlog(3) for details.
+ * See libpmemlog(7) for details.
  */
 
 #ifndef LIBPMEMLOG_H
