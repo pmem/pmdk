@@ -90,7 +90,7 @@ On error, they return -1 and set *errno* appropriately.
 
 # NOTES #
 
-Since **libpmemlog**(3) is designed as a low-latency code path,
+Since **libpmemlog**(7) is designed as a low-latency code path,
 many of the checks routinely done by the operating system for **writev**(2)
 are not practical in the library's implementation of **pmemlog_appendv**().
 No attempt is made to detect NULL or incorrect pointers, for example.

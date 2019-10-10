@@ -33,7 +33,7 @@
 /*
  * libpmempool.h -- definitions of libpmempool entry points
  *
- * See libpmempool(3) for details.
+ * See libpmempool(7) for details.
  */
 
 #ifndef LIBPMEMPOOL_H

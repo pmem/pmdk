@@ -37,7 +37,7 @@
  *
  * libpmemblk provides support for arrays of atomically-writable blocks.
  *
- * See libpmemblk(3) for details.
+ * See libpmemblk(7) for details.
  */
 
 #ifndef LIBPMEMBLK_H

@@ -91,6 +91,3 @@ test_script:
 artifacts:
 - path: 'src\x64\*.zip'
   name: PMDK
-
-- path: '*examples*.zip'
-  name: PMDK_examples
