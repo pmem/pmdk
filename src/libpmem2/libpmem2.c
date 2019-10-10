@@ -51,8 +51,11 @@ ATTR_CONSTRUCTOR
 void
 libpmem2_init(void)
 {
-	/* XXX common_init placeholder */
-	/* XXX LOG(3, NULL); placeholder */
+	util_init();
+	out_init(PMEM2_LOG_PREFIX, PMEM2_LOG_LEVEL_VAR, PMEM2_LOG_FILE_VAR,
+			PMEM2_MAJOR_VERSION, PMEM2_MINOR_VERSION);
+
+	LOG(3, NULL);
 	/* XXX possible pmem2_init placeholder */
 }
 
@@ -65,6 +68,39 @@ ATTR_DESTRUCTOR
 void
 libpmem2_fini(void)
 {
-	/* XXX LOG(3, NULL); placeholder */
-	/* XXX common_fini placeholder */
+	LOG(3, NULL);
+
+	out_fini();
 }
+
+/*
+ * pmem2_errormsgU -- return last error message
+ */
+#ifndef _WIN32
+static inline
+#endif
+const char *
+pmem2_errormsgU(void)
+{
+	return out_get_errormsg();
+}
+
+#ifndef _WIN32
+/*
+ * pmem2_errormsg -- return last error message
+ */
+const char *
+pmem2_errormsg(void)
+{
+	return pmem2_errormsgU();
+}
+#else
+/*
+ * pmem2_errormsgW -- return last error message as wchar_t
+ */
+const wchar_t *
+pmem2_errormsgW(void)
+{
+	return out_get_errormsgW();
+}
+#endif

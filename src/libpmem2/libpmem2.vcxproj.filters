@@ -11,25 +11,46 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\libpmem2\libpmem2.c">
+    <ClCompile Include="..\libpmem2\libpmem2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\pmem2.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="pmem_windows.c">
+    <ClCompile Include="..\libpmem2\pmem2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\libpmem2\libpmem2_main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\alloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\os_thread_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\out.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\util.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\util_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\os_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\common\file_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\libpmem2\pmem2.h">
+    <ClInclude Include="..\libpmem2\pmem2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\include\libpmem2.h">
+    <ClInclude Include="..\include\libpmem2.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\os_thread.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

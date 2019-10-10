@@ -33,7 +33,8 @@
 # src/libpmem2.link -- linker link file for libpmem2
 #
 LIBPMEM2_1.0 {
-	# XXX global: placeholder
+	global:
+		pmem2_errormsg;
 	local:
 		*;
 };

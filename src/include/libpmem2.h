@@ -43,11 +43,27 @@
 #ifndef LIBPMEM2_H
 #define LIBPMEM2_H 1
 
+#ifdef _WIN32
+#include <pmemcompat.h>
+
+#ifndef PMDK_UTF8_API
+#define pmem2_errormsg pmem2_errormsgW
+#else
+#define pmem2_errormsg pmem2_errormsgU
+#endif
+
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-/* XXX placeholder */
+#ifndef _WIN32
+const char *pmem2_errormsg(void);
+#else
+const char *pmem2_errormsgU(void);
+const wchar_t *pmem2_errormsgW(void);
+#endif
 
 #ifdef __cplusplus
 }
