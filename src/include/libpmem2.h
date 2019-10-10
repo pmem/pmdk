@@ -58,7 +58,8 @@
 extern "C" {
 #endif
 
-/* XXX placeholder */
+#define PMEM2_MAJOR_VERSION 0
+#define PMEM2_MINOR_VERSION 0
 
 #ifndef _WIN32
 const char *pmem2_errormsg(void);

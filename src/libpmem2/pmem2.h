@@ -42,7 +42,9 @@
 extern "C" {
 #endif
 
-/* placeholder for pmem2.h function declarations */
+#define PMEM2_LOG_PREFIX "libpmem2"
+#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
+#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
 
 #ifdef __cplusplus
 }
