@@ -14,6 +14,7 @@
     <ClCompile Include="..\libpmem2\libpmem2.c" />
     <ClCompile Include="..\libpmem2\pmem2.c" />
     <ClCompile Include="..\common\alloc.c" />
+    <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\os_thread_windows.c" />
     <ClCompile Include="..\common\os_windows.c" />
     <ClCompile Include="..\common\out.c" />
