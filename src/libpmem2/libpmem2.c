@@ -55,7 +55,7 @@ libpmem2_init(void)
 	out_init(PMEM2_LOG_PREFIX, PMEM2_LOG_LEVEL_VAR, PMEM2_LOG_FILE_VAR,
 			PMEM2_MAJOR_VERSION, PMEM2_MINOR_VERSION);
 
-	/* XXX LOG(3, NULL); placeholder */
+	LOG(3, NULL);
 	/* XXX possible pmem2_init placeholder */
 }
 
@@ -68,7 +68,7 @@ ATTR_DESTRUCTOR
 void
 libpmem2_fini(void)
 {
-	/* XXX LOG(3, NULL); placeholder */
+	LOG(3, NULL);
 
 	out_fini();
 }
