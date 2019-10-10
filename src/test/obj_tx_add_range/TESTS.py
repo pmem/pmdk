@@ -53,7 +53,7 @@ class TEST1(t.BaseTest):
     pmemcheck = t.ENABLE
 
     def run(self, ctx):
-        self.valgrind.add_opt('--mult-stores=no', t.PMEMCHECK)
+        self.valgrind.add_opt('--mult-stores=no')
 
         testfile = path.join(ctx.testdir, 'testfile1')
         ctx.exec('obj_tx_add_range', testfile, '0')
