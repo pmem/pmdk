@@ -47,6 +47,9 @@ Available Libraries:
 
 - [librpmem](http://pmem.io/pmdk/librpmem/)<sup>1</sup>:  provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs.
 
+If you're looking for *libvmem* and *libvmmalloc*, they have been moved to a
+[separate repository](https://github.com/pmem/vmem).
+
 Available Utilities:
 
 - [pmempool](http://pmem.io/pmdk/pmempool/): Manage and analyze persistent memory pools with this stand-alone utility
