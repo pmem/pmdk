@@ -274,11 +274,11 @@ be done with the **pmemobj_create**(3), **pmemblk_create**(3) or
 
 Restoring data from a local  replica can be done by using the
 **pmempool-sync**(1) command or the **pmempool_syncU**()/**pmempool_syncW**() API from the
-**libpmempool**(3) library.
+**libpmempool**(7) library.
 
 Modifications of a pool set file configuration can be done by using the
 **pmempool-transform**(1) command or the **pmempool_transformU**()/**pmempool_transformW**() API from the
-**libpmempool**(3) library.
+**libpmempool**(7) library.
 
 When creating a pool set consisting of multiple files, or when creating
 a replicated pool set, the *path* argument passed to **pmemobj_create**(3),
