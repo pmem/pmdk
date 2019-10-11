@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -92,7 +92,7 @@ static const char * const help_str =
 "Common options:\n"
 "  -r, --repair         try to repair a pool file if possible\n"
 "  -y, --yes            answer yes to all questions\n"
-"  -N, --no-exec        don't execute, just show what would be done\n"
+"  -d, --dry-run        don't execute, just show what would be done\n"
 "  -b, --backup <file>  create backup of a pool file before executing\n"
 "  -a, --advanced       perform advanced repairs\n"
 "  -q, --quiet          be quiet and don't print any messages\n"
@@ -108,7 +108,8 @@ static const char * const help_str =
 static const struct option long_options[] = {
 	{"repair",	no_argument,		NULL,	'r'},
 	{"yes",		no_argument,		NULL,	'y'},
-	{"no-exec",	no_argument,		NULL,	'N'},
+	{"dry-run",	no_argument,		NULL,	'd'},
+	{"no-exec",	no_argument,		NULL,	'N'}, /* deprecated */
 	{"backup",	required_argument,	NULL,	'b'},
 	{"advanced",	no_argument,		NULL,	'a'},
 	{"quiet",	no_argument,		NULL,	'q'},
@@ -154,7 +155,7 @@ pmempool_check_parse_args(struct pmempool_check_context *pcp,
 		const char *appname, int argc, char *argv[])
 {
 	int opt;
-	while ((opt = getopt_long(argc, argv, "ahvrNb:qy",
+	while ((opt = getopt_long(argc, argv, "ahvrdNb:qy",
 			long_options, NULL)) != -1) {
 		switch (opt) {
 		case 'r':
@@ -163,6 +164,7 @@ pmempool_check_parse_args(struct pmempool_check_context *pcp,
 		case 'y':
 			pcp->ans = 'y';
 			break;
+		case 'd':
 		case 'N':
 			pcp->exec = false;
 			break;
