@@ -36,6 +36,11 @@ set -e
 export LC_ALL="C"
 #export LC_ALL="en_US.UTF-8"
 
+if ! [ -f ../envconfig.sh ]; then
+	echo >&2 "envconfig.sh is missing -- is the tree built?"
+	exit 1
+fi
+
 . ../testconfig.sh
 . ../envconfig.sh
 

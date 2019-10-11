@@ -89,7 +89,7 @@ The \f[B]pmemobj_tx_xadd_range\f[]() function behaves exactly the same
 as \f[B]pmemobj_tx_add_range\f[]() when \f[I]flags\f[] equals zero.
 \f[I]flags\f[] is a bitmask of the following values:
 .IP \[bu] 2
-\f[B]POBJ_XADD_NO_FLUSH\f[] \- skip flush on commit when application
+\f[B]POBJ_XADD_NO_FLUSH\f[] \- skip flush on commit (when application
 deals with flushing or uses pmemobj_memcpy_persist)
 .IP \[bu] 2
 \f[B]POBJ_XADD_NO_SNAPSHOT\f[] \- added range will not be
@@ -122,6 +122,15 @@ equals zero.
 .IP \[bu] 2
 \f[B]POBJ_XADD_NO_FLUSH\f[] \- skip flush on commit (when application
 deals with flushing or uses pmemobj_memcpy_persist)
+.IP \[bu] 2
+\f[B]POBJ_XADD_NO_SNAPSHOT\f[] \- added range will not be
+\[lq]snapshotted\[rq], i.e.\ any changes made within it during the
+transaction will not be rolled backed after abort
+.IP \[bu] 2
+\f[B]POBJ_XADD_ASSUME_INITIALIZED\f[] \- added range is assumed to be
+initialized.
+If this flag is not specified, passing uninitialized memory will result
+in an error when run under Valgrind memcheck.
 .PP
 Similarly to the macros controlling the transaction flow,
 \f[B]libpmemobj\f[] defines a set of macros that simplify the

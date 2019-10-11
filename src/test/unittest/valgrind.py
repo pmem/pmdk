@@ -67,6 +67,9 @@ class _Tool(Enum):
     DRD = 4
     NONE = 5
 
+    def __str__(self):
+        return self.name.lower()
+
 
 TOOLS = tuple(t for t in _Tool if t != _Tool.NONE)
 
@@ -182,10 +185,9 @@ class Valgrind:
             return valgrind_bin
         return 'valgrind'
 
-    def add_opt(self, opt, tool=None):
+    def add_opt(self, opt):
         """Add option to Valgrind command"""
-        if tool is None or tool == self.tool:
-            self.opts = '{} {}'.format(self.opts, opt)
+        self.opts = '{} {}'.format(self.opts, opt)
 
     def _get_version(self):
         """
