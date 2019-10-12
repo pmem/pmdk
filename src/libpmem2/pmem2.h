@@ -36,6 +36,8 @@
 #ifndef PMEM2_H
 #define PMEM2_H
 
+#include <stdlib.h>
+
 #include "libpmem2.h"
 
 #ifdef __cplusplus
@@ -48,6 +50,12 @@ extern "C" {
 #define PMEM2_LOG_PREFIX "libpmem2"
 #define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
 #define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
+
+struct pmem2_map {
+	struct pmem2_config *cfg;
+	void *addr;
+	int sync;
+};
 
 #ifdef __cplusplus
 }
