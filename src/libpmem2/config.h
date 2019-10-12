@@ -46,10 +46,13 @@ struct pmem2_config {
 #ifdef _WIN32
 	HANDLE handle;
 #else
-	int fd;
+	int fd; /* a source file descriptor for the designed mapping */
 #endif
 	/* indicates fd / handle is owned by the user */
 	bool user_owned_fd;
+	/* offset from the beginning of the file */
+	size_t offset;
+	size_t length; /* length of the mapping */
 };
 
 void pmem2_config_init(struct pmem2_config *cfg);
