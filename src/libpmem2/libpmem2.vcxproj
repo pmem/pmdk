@@ -13,7 +13,9 @@
   <ItemGroup>
     <ClCompile Include="..\libpmem2\libpmem2.c" />
     <ClCompile Include="..\libpmem2\pmem2.c" />
+    <ClCompile Include="..\libpmem2\pmem2_windows.c" />
     <ClCompile Include="..\common\alloc.c" />
+    <ClInclude Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\os_thread_windows.c" />
     <ClCompile Include="..\common\os_windows.c" />
@@ -29,6 +31,8 @@
     <ClInclude Include="..\include\libpmem2.h" />
     <ClInclude Include="..\libpmem2\pmem2.h" />
     <ClInclude Include="..\common\os_thread.h" />
+    <ClInclude Include="..\common\file.h" />
+    <ClInclude Include="..\common\valgrind_internal.h" />
     <ClInclude Include="pmem2_utils.h" />
   </ItemGroup>
   <ItemGroup>
