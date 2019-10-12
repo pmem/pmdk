@@ -36,6 +36,7 @@
 #ifndef PMEM2_MAP_H
 #define PMEM2_MAP_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include "libpmem2.h"
 
