@@ -36,6 +36,10 @@
 #ifndef PMEM2_H
 #define PMEM2_H
 
+#include <stdlib.h>
+
+#include "file.h"
+
 #include "libpmem2.h"
 
 #ifdef __cplusplus
@@ -48,6 +52,14 @@ extern "C" {
 #define PMEM2_LOG_PREFIX "libpmem2"
 #define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
 #define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
+
+struct pmem2_map {
+	enum file_type file_type; /* TYPE_NORMAL or TYPE_DEVDAX */
+	int map_sync; /* if mapping is MAP_SYNC */
+	void *addr; /* base address */
+	size_t length; /* effective length of the mapping */
+	size_t alignment;
+};
 
 #ifdef __cplusplus
 }

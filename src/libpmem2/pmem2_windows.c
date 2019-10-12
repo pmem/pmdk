@@ -31,27 +31,18 @@
  */
 
 /*
- * config.h -- internal definitions for pmem2_config
+ * pmem2_windows.c -- pmem2 entry points for libpmem2 (Windows)
  */
-#ifndef PMEM2_CONFIG_H
-#define PMEM2_CONFIG_H
 
 #include "libpmem2.h"
+#include "pmem2.h"
 
-#define INVALID_FD (-1)
-
-struct pmem2_config {
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	int fd; /* a source file descriptor for the designed mapping */
-#endif
-	/* offset from the beginning of the file */
-	size_t offset;
-	size_t length; /* length of the mapping */
-	size_t alignment; /* required alignment of the mapping */
-};
-
-void config_init(struct pmem2_config *cfg);
-
-#endif /* PMEM2_CONFIG_H */
+/*
+ * pmem2_map -- XXX
+ */
+int
+pmem2_map(struct pmem2_config *cfg, struct pmem2_map **mapp)
+{
+	/* XXX placeholder */
+	return PMEM2_E_NOSUPP;
+}
