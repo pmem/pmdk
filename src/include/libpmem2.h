@@ -73,6 +73,9 @@ extern "C" {
 #define PMEM2_E_UNKNOWN_FILETYPE	7
 #define PMEM2_E_MAP_FAILED		8
 #define PMEM2_E_NOSUPP			9
+#define PMEM2_E_MAPPING_EXISTS		10
+#define PMEM2_E_DUP_FAILED		11
+#define PMEM2_E_NOENT		12
 
 /* config setup */
 

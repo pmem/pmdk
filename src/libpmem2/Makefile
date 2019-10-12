@@ -39,6 +39,10 @@ LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
 	$(COMMON)/alloc.c\
+	$(COMMON)/file.c\
+	$(COMMON)/file_posix.c\
+	$(COMMON)/mmap.c\
+	$(COMMON)/mmap_posix.c\
 	$(COMMON)/os_posix.c\
 	$(COMMON)/os_thread_posix.c\
 	$(COMMON)/out.c\
@@ -48,6 +52,7 @@ SOURCE =\
 	config.c\
 	config_posix.c\
 	pmem2.c\
+	pmem2_posix.c\
 	pmem2_utils.c
 
 include ../Makefile.inc
