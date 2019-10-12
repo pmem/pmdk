@@ -31,30 +31,18 @@
  */
 
 /*
- * map.h -- internal definitions for libpmem2
+ * pmem2_windows.c -- pmem2 entry points for libpmem2 (Windows)
  */
-#ifndef PMEM2_MAP_H
-#define PMEM2_MAP_H
 
-#include <stddef.h>
 #include "libpmem2.h"
+#include "pmem2.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct pmem2_map {
-	void *addr; /* base address */
-	size_t length; /* effective length of the mapping */
-	/* effective persistence granularity */
-	enum pmem2_granularity effective_granularity;
-};
-
-int pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
-		size_t *length);
-
-#ifdef __cplusplus
+/*
+ * pmem2_map -- XXX
+ */
+int
+pmem2_map(struct pmem2_config *cfg, struct pmem2_map **mapp)
+{
+	/* XXX placeholder */
+	return PMEM2_E_NOSUPP;
 }
-#endif
-
-#endif /* map.h */
