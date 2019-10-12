@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -415,7 +415,8 @@ libvmmalloc_create(const char *dir, size_t size)
 	}
 
 	void *addr;
-	if ((addr = util_map(Fd, size, MAP_SHARED, 0, 4 << 20, NULL)) == NULL) {
+	if ((addr = util_map(Fd, 0, size, MAP_SHARED, 0, 4 << 20, NULL))
+			== NULL) {
 		(void) os_close(Fd);
 		return NULL;
 	}

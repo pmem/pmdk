@@ -59,21 +59,12 @@
 
 #ifndef _WIN32
 /*
- * device_dax_size -- (internal) checks the size of a given dax device
+ * device_dax_stat_size -- (internal) checks the size of a given
+ * dax device from given stat structure
  */
 static ssize_t
-device_dax_size(const char *path)
+device_dax_stat_size(os_stat_t st)
 {
-	LOG(3, "path \"%s\"", path);
-
-	os_stat_t st;
-	int olderrno;
-
-	if (os_stat(path, &st) < 0) {
-		ERR("!stat \"%s\"", path);
-		return -1;
-	}
-
 	char spath[PATH_MAX];
 	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/size",
 		os_major(st.st_rdev), os_minor(st.st_rdev));
@@ -99,7 +90,7 @@ device_dax_size(const char *path)
 
 	char *endptr;
 
-	olderrno = errno;
+	int olderrno = errno;
 	errno = 0;
 
 	size = strtoll(sizebuf, &endptr, 0);
@@ -119,6 +110,24 @@ out:
 
 	LOG(4, "device size %zu", size);
 	return size;
+}
+
+/*
+ * device_dax_file_size -- (internal) checks the size of a given dax device
+ */
+static ssize_t
+device_dax_file_size(const char *path)
+{
+	LOG(3, "path \"%s\"", path);
+
+	os_stat_t st;
+
+	if (os_stat(path, &st) < 0) {
+		ERR("!stat \"%s\"", path);
+		return -1;
+	}
+
+	return device_dax_stat_size(st);
 }
 #endif
 
@@ -263,7 +272,7 @@ util_file_get_size(const char *path)
 
 #ifndef _WIN32
 	if (file_type == TYPE_DEVDAX) {
-		return device_dax_size(path);
+		return device_dax_file_size(path);
 	}
 #endif
 
@@ -275,6 +284,35 @@ util_file_get_size(const char *path)
 
 	LOG(4, "file length %zu", stbuf.st_size);
 	return stbuf.st_size;
+}
+
+/*
+ * util_fd_get_size -- returns size of a file behind a given file descriptor
+ */
+ssize_t
+util_fd_get_size(int fd)
+{
+	LOG(3, "fd %d", fd);
+
+	os_stat_t st;
+
+	if (os_fstat(fd, &st) < 0) {
+		ERR("!fstat");
+		return OTHER_ERROR;
+	}
+
+	int file_type = util_stat_get_type(&st);
+	if (file_type < 0)
+		return -1;
+
+#ifndef _WIN32
+	if (file_type == TYPE_DEVDAX) {
+		return device_dax_stat_size(st);
+	}
+#endif
+
+	LOG(4, "file length %zu", st.st_size);
+	return st.st_size;
 }
 
 /*
@@ -304,7 +342,7 @@ util_file_map_whole(const char *path)
 		goto out;
 	}
 
-	addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0, NULL);
+	addr = util_map(fd, 0, (size_t)size, MAP_SHARED, 0, 0, NULL);
 	if (addr == NULL) {
 		LOG(2, "failed to map entire file \"%s\"", path);
 		goto out;
@@ -359,7 +397,7 @@ util_file_zero(const char *path, os_off_t off, size_t len)
 		len = (size_t)(size - off);
 	}
 
-	void *addr = util_map(fd, (size_t)size, MAP_SHARED, 0, 0, NULL);
+	void *addr = util_map(fd, 0, (size_t)size, MAP_SHARED, 0, 0, NULL);
 	if (addr == NULL) {
 		LOG(2, "failed to map entire file \"%s\"", path);
 		ret = -1;

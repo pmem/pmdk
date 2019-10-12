@@ -58,7 +58,7 @@ extern char *Mmap_mapfile;
 
 void *util_map_sync(void *addr, size_t len, int proto, int flags, int fd,
 	os_off_t offset, int *map_sync);
-void *util_map(int fd, size_t len, int flags, int rdonly,
+void *util_map(int fd, os_off_t off, size_t len, int flags, int rdonly,
 		size_t req_align, int *map_sync);
 int util_unmap(void *addr, size_t len);
 
