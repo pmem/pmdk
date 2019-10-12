@@ -31,30 +31,18 @@
  */
 
 /*
- * pmem2.h -- internal definitions for libpmem2
+ * pmem2_windows.c -- pmem2 entry points for libpmem2 (Windows)
  */
-#ifndef PMEM2_H
-#define PMEM2_H
-
-#include <stdlib.h>
-
-#include "file.h"
 
 #include "libpmem2.h"
+#include "pmem2.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define PMEM2_MAJOR_VERSION 0
-#define PMEM2_MINOR_VERSION 0
-
-#define PMEM2_LOG_PREFIX "libpmem2"
-#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
-#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
-
-#ifdef __cplusplus
+/*
+ * pmem2_map -- XXX
+ */
+int
+pmem2_map(struct pmem2_config *cfg, struct pmem2_map **mapp)
+{
+	/* XXX placeholder */
+	return PMEM2_E_NOSUPP;
 }
-#endif
-
-#endif
