@@ -81,12 +81,6 @@ pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 }
 
 int
-pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map)
-{
-	return PMEM2_E_NOSUPP;
-}
-
-int
 pmem2_unmap(struct pmem2_map **map)
 {
 	return PMEM2_E_NOSUPP;

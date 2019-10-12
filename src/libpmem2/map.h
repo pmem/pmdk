@@ -36,6 +36,7 @@
 #ifndef PMEM2_MAP_H
 #define PMEM2_MAP_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #ifdef __cplusplus
@@ -45,6 +46,7 @@ extern "C" {
 struct pmem2_map {
 	void *addr; /* base address */
 	size_t length; /* effective length of the mapping */
+	bool requires_msync; /* mapping requires msync(3) for flushing */
 };
 
 #ifdef __cplusplus
