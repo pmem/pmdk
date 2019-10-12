@@ -20,6 +20,9 @@
     <ClCompile Include="..\libpmem2\pmem2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\libpmem2\pmem2_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\libpmem2\libpmem2_main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -29,6 +32,9 @@
     <ClCompile Include="..\common\alloc.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
+    <ClInclude Include="..\common\file.c">
+      <Filter>Source Files\common</Filter>
+    </ClInclude>
     <ClCompile Include="..\common\file_windows.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
@@ -49,7 +55,10 @@
     </ClCompile>
     <ClCompile Include="config_windows.c">
       <Filter>Source Files</Filter>
-    </ClCompile>
+    </ClInclude>
+    <ClInclude Include="pmem2_windows.c">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libpmem2\pmem2.h">
@@ -62,6 +71,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\os_thread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\valgrind_internal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\common\file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

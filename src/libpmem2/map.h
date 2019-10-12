@@ -36,6 +36,7 @@
 #ifndef PMEM2_MAP_H
 #define PMEM2_MAP_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include "libpmem2.h"
 
@@ -49,6 +50,9 @@ struct pmem2_map {
 	/* effective persistence granularity */
 	enum pmem2_granularity effective_granularity;
 };
+
+int pmem2_verify_range(const struct pmem2_config *cfg, size_t file_len,
+		size_t *length);
 
 #ifdef __cplusplus
 }

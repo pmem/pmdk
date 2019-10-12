@@ -31,30 +31,38 @@
  */
 
 /*
- * pmem2.h -- internal definitions for libpmem2
+ * map.c -- pmem2_map (common)
  */
-#ifndef PMEM2_H
-#define PMEM2_H
 
-#include <stdlib.h>
+#include "out.h"
 
-#include "file.h"
+#include "config.h"
+#include "map.h"
 
-#include "libpmem2.h"
+#include <libpmem2.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*
+ * pmem2_verify_range -- verify a range against the file length
+ */
+int
+pmem2_verify_range(const struct pmem2_config *cfg, size_t file_len,
+		size_t *length)
+{
+	ASSERTne(length, NULL);
 
-#define PMEM2_MAJOR_VERSION 0
-#define PMEM2_MINOR_VERSION 0
+	/* overflow check */
+	const size_t end = cfg->offset + cfg->length;
+	if (end < cfg->offset)
+		return PMEM2_E_MAP_RANGE;
 
-#define PMEM2_LOG_PREFIX "libpmem2"
-#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
-#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
+	/* validate mapping fit into the file */
+	if (end > file_len)
+		return PMEM2_E_MAP_RANGE;
 
-#ifdef __cplusplus
+	/* without user-provided length map to the end of the file */
+	*length = cfg->length;
+	if (!*length)
+		*length = file_len - cfg->offset;
+
+	return PMEM2_E_OK;
 }
-#endif
-
-#endif
