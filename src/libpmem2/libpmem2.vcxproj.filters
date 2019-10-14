@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Header Files">
@@ -20,9 +20,6 @@
     <ClCompile Include="..\libpmem2\pmem2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\libpmem2\pmem2_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\libpmem2\libpmem2_main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -32,9 +29,6 @@
     <ClCompile Include="..\common\alloc.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClInclude Include="..\common\file.c">
-      <Filter>Source Files\common</Filter>
-    </ClInclude>
     <ClCompile Include="..\common\file_windows.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
@@ -53,15 +47,12 @@
     <ClCompile Include="..\common\os_thread_windows.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="config_windows.c">
+    <ClCompile Include="map_windows.c">
       <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pmem2_windows.c">
-      <Filter>Source Files</Filter>
-    </ClInclude>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\libpmem2\pmem2.h">
+    <ClInclude Include="..\libpmem2\map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\libpmem2.h">
@@ -71,12 +62,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\os_thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\common\valgrind_internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\common\file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
