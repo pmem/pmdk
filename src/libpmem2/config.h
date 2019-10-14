@@ -44,10 +44,11 @@
 #define PMEM2_TRUE (1)
 
 struct pmem2_config {
+	/* a source file descriptor / handle for the designed mapping */
 #ifdef _WIN32
 	HANDLE handle;
 #else
-	int fd; /* a source file descriptor for the designed mapping */
+	int fd;
 #endif
 	/* indicates fd / handle is duplicated so it has to be closed */
 	int is_duplicate;
