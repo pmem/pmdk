@@ -110,8 +110,8 @@ util_mmap_fini(void)
  * appropriate arguments and includes our trace points.
  */
 void *
-util_map(int fd, size_t len, int flags, int rdonly, size_t req_align,
-	int *map_sync)
+util_map(int fd, os_off_t off, size_t len, int flags, int rdonly,
+	size_t req_align, int *map_sync)
 {
 	LOG(3, "fd %d len %zu flags %d rdonly %d req_align %zu map_sync %p",
 			fd, len, flags, rdonly, req_align, map_sync);
@@ -127,7 +127,7 @@ util_map(int fd, size_t len, int flags, int rdonly, size_t req_align,
 		ASSERTeq((uintptr_t)addr % req_align, 0);
 
 	int proto = rdonly ? PROT_READ : PROT_READ|PROT_WRITE;
-	base = util_map_sync(addr, len, proto, flags, fd, 0, map_sync);
+	base = util_map_sync(addr, len, proto, flags, fd, off, map_sync);
 	if (base == MAP_FAILED) {
 		ERR("!mmap %zu bytes", len);
 		return NULL;
@@ -194,7 +194,7 @@ util_map_tmpfile(const char *dir, size_t size, size_t req_align)
 	}
 
 	void *base;
-	if ((base = util_map(fd, size, MAP_SHARED,
+	if ((base = util_map(fd, 0, size, MAP_SHARED,
 			0, req_align, NULL)) == NULL) {
 		LOG(2, "cannot mmap temporary file");
 		goto err;

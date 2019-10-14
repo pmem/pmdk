@@ -194,7 +194,7 @@ pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax)
 	/* there is no device dax on windows */
 	ASSERTeq(is_dev_dax, 0);
 
-	return util_map(fd, len, MAP_SHARED, 0, 0, NULL);
+	return util_map(fd, 0, len, MAP_SHARED, 0, 0, NULL);
 }
 
 /*

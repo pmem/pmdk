@@ -84,6 +84,7 @@ enum file_type util_fd_get_type(int fd);
 enum file_type util_file_get_type(const char *path);
 int util_ddax_region_find(const char *path);
 ssize_t util_file_get_size(const char *path);
+ssize_t util_fd_get_size(int fd);
 size_t util_file_device_dax_alignment(const char *path);
 void *util_file_map_whole(const char *path);
 int util_file_zero(const char *path, os_off_t off, size_t len);
