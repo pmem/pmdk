@@ -284,6 +284,12 @@ CFLAGS += $(LIBNDCTL_CFLAGS)
 LIBS += $(LIBNDCTL_LIBS)
 endif
 
+ifeq ($(LIBPMEM2),y)
+DYNAMIC_LIBS += -lpmem2
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem2.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem2.a
+endif
+
 
 #
 # This is a helper function to be combined with usage of macros available
