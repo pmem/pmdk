@@ -36,6 +36,7 @@
 
 use strict;
 use warnings;
+# install libtext-diff-perl or perl-Text-Diff
 use Text::Diff;
 
 use Cwd 'abs_path';
