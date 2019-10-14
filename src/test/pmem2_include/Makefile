@@ -29,40 +29,13 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+
 #
-# src/libpmem2.link -- linker link file for libpmem2
+# src/test/pmem2_include/Makefile -- compilation test for libpmem2
 #
-LIBPMEM2_1.0 {
-	global:
-		pmem2_config_new;
-		pmem2_config_set_fd;
-		pmem2_config_delete;
-		pmem2_config_set_offset;
-		pmem2_config_set_length;
-		pmem2_config_set_sharing;
-		pmem2_config_set_protection;
-		pmem2_config_use_anonymous_mapping;
-		pmem2_config_set_address;
-		pmem2_config_set_required_store_granularity;
-		pmem2_map;
-		pmem2_get_config;
-		pmem2_unmap;
-		pmem2_map_get_address;
-		pmem2_map_get_size;
-		pmem2_map_get_store_granularity;
-		pmem2_get_persist_fn;
-		pmem2_get_flush_fn;
-		pmem2_get_drain_fn;
-		pmem2_get_memmove_fn;
-		pmem2_get_memcpy_fn;
-		pmem2_get_memset_fn;
-		pmem2_get_device_id;
-		pmem2_get_device_usc;
-		pmem2_badblock_iterator_new;
-		pmem2_badblock_next;
-		pmem2_badblock_iterator_delete;
-		pmem2_badblock_clear;
-		pmem2_errormsg;
-	local:
-		*;
-};
+TARGET = pmem2_include
+OBJS = pmem2_include.o
+
+LIBPMEM2=y
+
+include ../Makefile.inc
