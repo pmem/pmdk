@@ -43,6 +43,7 @@ require_test_type medium
 # Pmemcheck is disabled here. The next test case (TEST1) will run the same test
 # under pmemcheck
 configure_valgrind pmemcheck force-disable
+configure_valgrind memcheck force-disable
 
 setup
 
