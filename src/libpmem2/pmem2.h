@@ -52,7 +52,13 @@ extern "C" {
 #define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
 
 struct pmem2_config {
-	int fd; /* a source file descriptor for the designed mapping */
+	/* a source file descriptor / handle for the designed mapping */
+#ifdef _WIN32
+	HANDLE handle;
+#else
+	int fd;
+#endif
+
 	/* offset from the beginning of the file to the designed mapping */
 	size_t offset;
 	size_t length; /* length of the designed mapping */
