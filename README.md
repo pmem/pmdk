@@ -97,8 +97,8 @@ In brief:
 	> git clone https://github.com/Microsoft/vcpkg
 	> cd vcpkg
 	> .\bootstrap-vcpkg.bat
-	> .\vcpkg integrate install
 	> .\vcpkg install pmdk:x64-windows
+	> .\vcpkg integrate install
 ```
 
 The last command can take a while - it is PMDK building and installation time.
