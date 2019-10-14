@@ -41,10 +41,11 @@
 #define INVALID_FD (-1)
 
 struct pmem2_config {
+	/* a source file descriptor / handle for the designed mapping */
 #ifdef _WIN32
 	HANDLE handle;
 #else
-	int fd; /* a source file descriptor for the designed mapping */
+	int fd;
 #endif
 	/* offset from the beginning of the file */
 	size_t offset;
