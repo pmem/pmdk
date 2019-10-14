@@ -35,14 +35,108 @@
  */
 
 #include "libpmem2.h"
+#include "out.h"
+#include "config.h"
 #include "pmem2.h"
+#include "pmem2_utils.h"
+
+#define HIDWORD(x) ((DWORD)((x) >> 32))
+#define LODWORD(x) ((DWORD)((x) & 0xFFFFFFFF))
 
 /*
- * pmem2_map -- XXX
+ * create_mapping -- creates file mapping object for a file
+ */
+HANDLE
+create_mapping(const struct pmem2_config *cfg, DWORD protect, int *err)
+{
+	size_t max_size = cfg->length + cfg->offset;
+	HANDLE mh = CreateFileMapping(cfg->handle,
+		NULL, /* security attributes */
+		protect,
+		HIDWORD(max_size),
+		LODWORD(max_size),
+		NULL);
+
+	*err = GetLastError();
+	if (!mh || *err == ERROR_ALREADY_EXISTS)
+		ERR("CreateFileMapping, error: 0x%08x", err);
+
+	return mh;
+}
+
+/*
+ * pmem2_map -- map memory according to provided config
  */
 int
-pmem2_map(struct pmem2_config *cfg, struct pmem2_map **mapp)
+pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **mapp)
 {
-	/* XXX placeholder */
-	return PMEM2_E_NOSUPP;
+	int ret = PMEM2_E_OK;
+	int err = 0;
+
+	/* create a file mapping handle */
+	DWORD access = FILE_MAP_ALL_ACCESS;
+	HANDLE mh = create_mapping(cfg, PAGE_READWRITE, &err);
+	if (err == ERROR_ACCESS_DENIED) {
+		mh = create_mapping(cfg, PAGE_READONLY, &err);
+		access = FILE_MAP_READ;
+	}
+
+	if (!mh) {
+		ret = PMEM2_E_EXTERNAL;
+		return ret;
+	}
+
+	if (err == ERROR_ALREADY_EXISTS) {
+		ret = PMEM2_E_MAPPING_EXISTS;
+		goto err_close_mapping_handle;
+	}
+
+	/* obtain a pointer to the mapping view */
+	void *base = MapViewOfFileEx(mh,
+		access,
+		HIDWORD(cfg->offset),
+		LODWORD(cfg->offset),
+		cfg->length,
+		NULL); /* hint address */
+
+	if (base == NULL) {
+		ERR("MapViewOfFileEx, error: 0x%08x", GetLastError());
+		ret = PMEM2_E_MAP_FAILED;
+		goto err_close_mapping_handle;
+	}
+
+	if (!CloseHandle(mh)) {
+		ERR("MapViewOfFileEx, error: 0x%08x", GetLastError());
+		ret = PMEM2_E_EXTERNAL;
+		mh = NULL;
+		goto err_unmap_base;
+	}
+
+	/* prepare pmem2_map structure */
+	struct pmem2_map *map;
+	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
+	if (!map)
+		goto err_unmap_base;
+	ret = pmem2_config_dup(&map->cfg, cfg);
+	if (ret)
+		goto err_free_map;
+
+	map->addr = base;
+	map->file_type = TYPE_NORMAL;
+	map->map_sync = 0; /* no MAP_SYNC on Windows */
+
+	/* return a pointer to the pmem2_map structure */
+	*mapp = map;
+
+	return ret;
+
+err_free_map:
+	Free(map);
+err_unmap_base:
+	UnmapViewOfFile(base);
+err_close_mapping_handle:
+	if (mh)
+		CloseHandle(mh);
+
+	return ret;
 }
