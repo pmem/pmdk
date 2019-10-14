@@ -219,6 +219,9 @@ PMEM_TESTS = \
 	pmem_valgr_simple\
 	pmem_unmap
 
+PMEM2_TESTS = \
+	pmem2_include
+
 PMEMPOOL_TESTS = \
 	pmempool_check\
 	pmempool_create\
@@ -332,6 +335,7 @@ LOCAL_TESTS = \
 	$(LOG_TESTS)\
 	$(OTHER_TESTS)\
 	$(PMEM_TESTS)\
+	$(PMEM2_TESTS)\
 	$(PMEMPOOL_TESTS)\
 	$(VMEM_TESTS)\
 	$(VMMALLOC_DUMMY_FUNCS_TESTS)\
