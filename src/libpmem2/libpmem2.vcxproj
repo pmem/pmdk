@@ -21,11 +21,13 @@
     <ClCompile Include="..\common\util.c" />
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\libpmem2\libpmem2_main.c" />
+    <ClCompile Include="pmem2_utils.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\libpmem2.h" />
     <ClInclude Include="..\libpmem2\pmem2.h" />
     <ClInclude Include="..\common\os_thread.h" />
+    <ClInclude Include="pmem2_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmem2.def" />
