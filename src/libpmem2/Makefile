@@ -41,7 +41,10 @@ SOURCE =\
 	$(COMMON)/alloc.c\
 	$(COMMON)/os_posix.c\
 	$(COMMON)/os_thread_posix.c\
+	$(COMMON)/file_posix.c\
 	$(COMMON)/out.c\
+	$(COMMON)/mmap.c\
+	$(COMMON)/mmap_posix.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\
 	libpmem2.c\
