@@ -83,9 +83,13 @@ Try to repair a pool file if possible.
 
 Answer yes on all questions.
 
-`-N, --no-exec`
+`-d, --dry-run`
 
 Don't execute, just show what would be done. Not supported on Device DAX.
+
+`-N, --no-exec`
+
+Deprecated alias for `dry-run`.
 
 `-b, --backup <file>`
 
