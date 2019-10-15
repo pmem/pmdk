@@ -31,36 +31,31 @@
  */
 
 /*
- * pmem2.h -- internal definitions for libpmem2
+ * ut_pmem2_config.h -- utility helper functions for libpmem2 config tests
  */
-#ifndef PMEM2_H
-#define PMEM2_H
 
-#include "libpmem2.h"
+#ifndef UT_PMEM2_CONFIG_H
+#define UT_PMEM2_CONFIG_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* a pmem2_config_new() that can't return NULL */
+#define PMEM2_CONFIG_NEW(cfg)						\
+	ut_pmem2_config_new(__FILE__, __LINE__, __func__, cfg)
 
-#define PMEM2_MAJOR_VERSION 0
-#define PMEM2_MINOR_VERSION 0
+/* a pmem2_config_set_fd() that can't return NULL */
+#define PMEM2_CONFIG_SET_FD(cfg, fd)					\
+	ut_pmem2_config_set_fd(__FILE__, __LINE__, __func__, cfg, fd)
 
-#define PMEM2_LOG_PREFIX "libpmem2"
-#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
-#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
+/* a pmem2_config_delete() that can't return NULL */
+#define PMEM2_CONFIG_DELETE(cfg)					\
+	ut_pmem2_config_delete(__FILE__, __LINE__, __func__, cfg)
 
-#define INVALID_FD (-1)
+void ut_pmem2_config_new(const char *file, int line, const char *func,
+	struct pmem2_config **cfg);
 
-struct pmem2_config {
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	int fd;
-#endif
-};
+void ut_pmem2_config_set_fd(const char *file, int line, const char *func,
+	struct pmem2_config *cfg, int fd);
 
-#ifdef __cplusplus
-}
-#endif
+void ut_pmem2_config_delete(const char *file, int line, const char *func,
+	struct pmem2_config **cfg);
 
 #endif

@@ -21,6 +21,8 @@
     <ClCompile Include="..\common\util.c" />
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\libpmem2\libpmem2_main.c" />
+    <ClCompile Include="config.c" />
+    <ClCompile Include="config_windows.c" />
     <ClCompile Include="pmem2_utils.c" />
   </ItemGroup>
   <ItemGroup>
