@@ -40,9 +40,13 @@ include $(TOP)/src/common.inc
 vpath %.c $(TOP)/src/common
 vpath %.h $(TOP)/src/common
 
-TARGET = libut.a
-OBJS = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
+TARGET_UT = libut.a
+OBJS_UT = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
 	os_posix.o os_thread_posix.o rand.o
+
+TARGET_UT_PMEM2 = ut_pmem2.a
+OBJS_UT_PMEM2 = ut_pmem2_config.o ut_pmem2_utils.o
+
 CFLAGS = -I$(TOP)/src/include
 CFLAGS += -I$(TOP)/src/common
 CFLAGS += $(OS_INCS)
@@ -99,10 +103,13 @@ CFLAGS += $(EXTRA_CFLAGS)
 
 LIBS += $(LIBUTIL)
 
-all test: $(TARGET)
+all test: $(TARGET_UT) $(TARGET_UT_PMEM2)
 
-$(TARGET): $(OBJS)
-	$(AR) rv $@ $(OBJS)
+$(TARGET_UT): $(OBJS_UT)
+	$(AR) rv $@ $(OBJS_UT)
+
+$(TARGET_UT_PMEM2): $(OBJS_UT_PMEM2)
+	$(AR) rv $@ $(OBJS_UT_PMEM2)
 
 ifneq ($(CSTYLEON),0)
 $(TARGET): unittest.htmp
@@ -123,7 +130,7 @@ clean:
 	$(RM) *.o core a.out unittest.htmp
 
 clobber: clean
-	$(RM) $(TARGET)
+	$(RM) $(TARGET_UT) $(TARGET_UT_PMEM2)
 	$(RM) -r .deps
 
 test check pcheck: all

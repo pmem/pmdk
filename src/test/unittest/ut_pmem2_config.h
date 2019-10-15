@@ -31,12 +31,31 @@
  */
 
 /*
- * pmem2_utils.h -- libpmem2 utilities functions
+ * ut_pmem2_config.h -- utility helper functions for libpmem2 config tests
  */
 
-#ifndef PMEM2_UTILS_H
-#define PMEM2_UTILS_H 1
+#ifndef UT_PMEM2_CONFIG_H
+#define UT_PMEM2_CONFIG_H 1
 
-void *pmem2_malloc(size_t size, int *err);
+/* a pmem2_config_new() that can't return NULL */
+#define PMEM2_CONFIG_NEW(cfg)						\
+	ut_pmem2_config_new(__FILE__, __LINE__, __func__, cfg)
 
-#endif /* PMEM2_UTILS_H */
+/* a pmem2_config_set_fd() that can't return NULL */
+#define PMEM2_CONFIG_SET_FD(cfg, fd)					\
+	ut_pmem2_config_set_fd(__FILE__, __LINE__, __func__, cfg, fd)
+
+/* a pmem2_config_delete() that can't return NULL */
+#define PMEM2_CONFIG_DELETE(cfg)					\
+	ut_pmem2_config_delete(__FILE__, __LINE__, __func__, cfg)
+
+void ut_pmem2_config_new(const char *file, int line, const char *func,
+	struct pmem2_config **cfg);
+
+void ut_pmem2_config_set_fd(const char *file, int line, const char *func,
+	struct pmem2_config *cfg, int fd);
+
+void ut_pmem2_config_delete(const char *file, int line, const char *func,
+	struct pmem2_config **cfg);
+
+#endif /* UT_PMEM2_CONFIG_H */
