@@ -31,36 +31,46 @@
  */
 
 /*
- * pmem2.h -- internal definitions for libpmem2
+ * ut_pmem2_config.h -- utility helper functions for libpmem2 config tests
  */
-#ifndef PMEM2_H
-#define PMEM2_H
 
-#include "libpmem2.h"
+#include <libpmem2.h>
+#include "unittest.h"
+#include "ut_pmem2_common.h"
+#include "ut_pmem2_config.h"
+/*
+ * ut_pmem2_config_new -- allocates cfg (cannot fail)
+ */
+void
+ut_pmem2_config_new(const char *file, int line, const char *func,
+	struct pmem2_config **cfg)
+{
+	int ret = pmem2_config_new(cfg);
+	ut_pmem2_expect_return(file, line, func, ret, 0);
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define PMEM2_MAJOR_VERSION 0
-#define PMEM2_MINOR_VERSION 0
-
-#define PMEM2_LOG_PREFIX "libpmem2"
-#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
-#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
-
-#define INVALID_FD (-1)
-
-struct pmem2_config {
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	int fd;
-#endif
-};
-
-#ifdef __cplusplus
+	UT_ASSERTne(*cfg, NULL);
 }
-#endif
 
-#endif
+/*
+ * ut_pmem2_config_set_fd -- sets fd (cannot fail)
+ */
+void
+ut_pmem2_config_set_fd(const char *file, int line, const char *func,
+	struct pmem2_config *cfg, int fd)
+{
+	int ret = pmem2_config_set_fd(cfg, fd);
+	ut_pmem2_expect_return(file, line, func, ret, 0);
+}
+
+/*
+ * ut_pmem2_config_delete -- deallocates cfg (cannot fail)
+ */
+void
+ut_pmem2_config_delete(const char *file, int line, const char *func,
+	struct pmem2_config **cfg)
+{
+	int ret = pmem2_config_delete(cfg);
+	ut_pmem2_expect_return(file, line, func, ret, 0);
+
+	UT_ASSERTeq(*cfg, NULL);
+}
