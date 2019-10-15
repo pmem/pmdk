@@ -31,36 +31,45 @@
  */
 
 /*
- * pmem2.h -- internal definitions for libpmem2
+ * config.c -- pmem2_config implementation
  */
-#ifndef PMEM2_H
-#define PMEM2_H
 
+#include <unistd.h>
+#include "alloc.h"
 #include "libpmem2.h"
+#include "out.h"
+#include "pmem2.h"
+#include "pmem2_utils.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*
+ * pmem2_config_new -- allocates and initialize cfg structure.
+ */
+int
+pmem2_config_new(struct pmem2_config **cfg)
+{
+	int ret;
+	*cfg = pmem2_zalloc(sizeof(**cfg), &ret);
 
-#define PMEM2_MAJOR_VERSION 0
-#define PMEM2_MINOR_VERSION 0
+	if (ret)
+		return ret;
 
-#define PMEM2_LOG_PREFIX "libpmem2"
-#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
-#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
-
-#define INVALID_FD (-1)
-
-struct pmem2_config {
+	ASSERTne(cfg, NULL);
 #ifdef _WIN32
-	HANDLE handle;
+	(*cfg)->handle = INVALID_HANDLE_VALUE;
 #else
-	int fd;
+	(*cfg)->fd = INVALID_FD;
 #endif
-};
 
-#ifdef __cplusplus
+	return 0;
 }
-#endif
 
-#endif
+/*
+ * pmem2_config_delete -- dealocate cfg structure.
+ */
+int
+pmem2_config_delete(struct pmem2_config **cfg)
+{
+	Free(*cfg);
+	*cfg = NULL;
+	return 0;
+}

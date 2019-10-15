@@ -86,7 +86,7 @@ int pmem2_config_set_fd(struct pmem2_config *cfg, int fd);
 int pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle);
 #endif
 
-int pmem2_config_delete(struct pmem2_config *cfg);
+int pmem2_config_delete(struct pmem2_config **cfg);
 
 int pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset);
 

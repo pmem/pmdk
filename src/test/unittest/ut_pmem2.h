@@ -31,36 +31,13 @@
  */
 
 /*
- * pmem2.h -- internal definitions for libpmem2
+ * ut_pmem2.h -- utility helper functions for libpmem tests
  */
-#ifndef PMEM2_H
-#define PMEM2_H
 
-#include "libpmem2.h"
+#ifndef UT_PMEM2_H
+#define UT_PMEM2_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#define PMEM2_MAJOR_VERSION 0
-#define PMEM2_MINOR_VERSION 0
-
-#define PMEM2_LOG_PREFIX "libpmem2"
-#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
-#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
-
-#define INVALID_FD (-1)
-
-struct pmem2_config {
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	int fd;
-#endif
-};
-
-#ifdef __cplusplus
-}
-#endif
+#include "ut_pmem2_config.h"
+#include "ut_pmem2_utils.h"
 
 #endif

@@ -31,36 +31,18 @@
  */
 
 /*
- * pmem2.h -- internal definitions for libpmem2
+ * ut_pmem2_utils.h -- utility helper functions for libpmem2 tests
  */
-#ifndef PMEM2_H
-#define PMEM2_H
 
-#include "libpmem2.h"
+#ifndef UT_PMEM2_UTILS_H
+#define UT_PMEM2_UTILS_H 1
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* veryfies error code and prints appropriate error message in case of error */
+#define UT_PMEM2_EXPECT_RETURN(value, expected)				\
+	ut_pmem2_expect_return(__FILE__, __LINE__, __func__,		\
+		value, expected)
 
-#define PMEM2_MAJOR_VERSION 0
-#define PMEM2_MINOR_VERSION 0
-
-#define PMEM2_LOG_PREFIX "libpmem2"
-#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
-#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
-
-#define INVALID_FD (-1)
-
-struct pmem2_config {
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	int fd;
-#endif
-};
-
-#ifdef __cplusplus
-}
-#endif
+void ut_pmem2_expect_return(const char *file, int line, const char *func,
+	int value, int expected);
 
 #endif

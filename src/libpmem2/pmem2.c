@@ -38,32 +38,6 @@
 #include "pmem2.h"
 
 int
-pmem2_config_new(struct pmem2_config **cfg)
-{
-	return PMEM2_E_NOSUPP;
-}
-
-int
-pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
-{
-	return PMEM2_E_NOSUPP;
-}
-
-#ifdef _WIN32
-int
-pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
-{
-	return PMEM2_E_NOSUPP;
-}
-#endif
-
-int
-pmem2_config_delete(struct pmem2_config *cfg)
-{
-	return PMEM2_E_NOSUPP;
-}
-
-int
 pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
 {
 	return PMEM2_E_NOSUPP;

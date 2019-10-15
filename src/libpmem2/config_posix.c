@@ -31,36 +31,41 @@
  */
 
 /*
- * pmem2.h -- internal definitions for libpmem2
+ * config_linux.c -- linux specific pmem2_config implementation
  */
-#ifndef PMEM2_H
-#define PMEM2_H
+#include <errno.h>
+#include <fcntl.h>
+#include "out.h"
+#include "pmem2.h"
 
-#include "libpmem2.h"
+/*
+ * pmem2_config_set_fd -- sets fd in config struct
+ */
+int
+pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
+{
+	if (fd < 0) {
+		cfg->fd = INVALID_FD;
+		return 0;
+	}
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+	int flags = fcntl(fd, F_GETFL);
 
-#define PMEM2_MAJOR_VERSION 0
-#define PMEM2_MINOR_VERSION 0
+	if (flags == -1) {
+		if (errno == EBADF) {
+			ERR("fd is not open file descriptor");
+			return PMEM2_E_INVALID_ARG;
+		} else {
+			ERR("!fcntl");
+			return PMEM2_E_EXTERNAL;
+		}
+	}
 
-#define PMEM2_LOG_PREFIX "libpmem2"
-#define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
-#define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
+	if ((flags & O_ACCMODE) == O_WRONLY) {
+		ERR("fd must be open with O_RDONLY or O_RDRW");
+		return PMEM2_E_INVALID_HANDLE;
+	}
 
-#define INVALID_FD (-1)
-
-struct pmem2_config {
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	int fd;
-#endif
-};
-
-#ifdef __cplusplus
+	cfg->fd = fd;
+	return 0;
 }
-#endif
-
-#endif
