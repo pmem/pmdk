@@ -63,25 +63,18 @@
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <None Include="out0w.log.match" />
-    <None Include="out1w.log.match" />
-    <None Include="out2w.log.match" />
-    <None Include="out3w.log.match" />
-    <None Include="out4w.log.match" />
-    <None Include="out5w.log.match" />
-    <None Include="out6w.log.match" />
-    <None Include="TEST0w.PS1" />
-    <None Include="TEST1w.PS1" />
-    <None Include="TEST2w.PS1" />
-    <None Include="TEST3w.PS1" />
-    <None Include="TEST4w.PS1" />
-    <None Include="TEST5w.PS1" />
-    <None Include="TEST6w.PS1" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\tools\dllview\dllview.vcxproj">
       <Project>{179beb5a-2c90-44f5-a734-fa756a5e668c}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="out10.log.match" />
+    <None Include="out11.log.match" />
+    <None Include="out12.log.match" />
+    <None Include="out7.log.match" />
+    <None Include="out8.log.match" />
+    <None Include="out9.log.match" />
+    <None Include="TESTS.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,14 +1,12 @@
-scope/TEST4w:
-$(*)\libpmemobj.dll:
-_pobj_debug_notice
 DllMain
+_pobj_debug_notice
 pmemobj_alloc
 pmemobj_alloc_usable_size
 pmemobj_cancel
-pmemobj_check_versionU
-pmemobj_check_versionW
 pmemobj_checkU
 pmemobj_checkW
+pmemobj_check_versionU
+pmemobj_check_versionW
 pmemobj_close
 pmemobj_cond_broadcast
 pmemobj_cond_signal

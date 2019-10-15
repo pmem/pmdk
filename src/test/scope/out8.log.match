@@ -1,5 +1,3 @@
-scope/TEST1w:
-$(*)\libpmem.dll:
 DllMain
 mmap
 mprotect
