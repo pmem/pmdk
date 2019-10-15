@@ -31,12 +31,18 @@
  */
 
 /*
- * pmem2_utils.h -- libpmem2 utilities functions
+ * ut_pmem2_utils.h -- utility helper functions for libpmem2 tests
  */
 
-#ifndef PMEM2_UTILS_H
-#define PMEM2_UTILS_H 1
+#ifndef UT_PMEM2_UTILS_H
+#define UT_PMEM2_UTILS_H 1
 
-void *pmem2_malloc(size_t size, int *err);
+/* veryfies error code and prints appropriate error message in case of error */
+#define UT_PMEM2_EXPECT_RETURN(value, expected)				\
+	ut_pmem2_expect_return(__FILE__, __LINE__, __func__,		\
+		value, expected)
 
-#endif /* PMEM2_UTILS_H */
+void ut_pmem2_expect_return(const char *file, int line, const char *func,
+	int value, int expected);
+
+#endif /* UT_PMEM2_UTILS_H */

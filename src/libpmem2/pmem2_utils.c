@@ -41,12 +41,12 @@
 #include "pmem2_utils.h"
 
 /*
- * pmem2_zalloc -- allocate zeroed buffer and handle error
+ * pmem2_malloc -- allocate buffer and handle error
  */
 void *
-pmem2_zalloc(size_t size, int *err)
+pmem2_malloc(size_t size, int *err)
 {
-	void *ptr = Zalloc(size);
+	void *ptr = Malloc(size);
 	*err = 0;
 
 	if (ptr == NULL) {
