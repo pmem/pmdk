@@ -52,7 +52,6 @@ else:
     DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
     RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
 
-
 def get_tool_path(ctx, name):
     if sys.platform == 'win32':
         if str(ctx.build) == 'debug':
@@ -78,6 +77,15 @@ def get_lib_dir(ctx):
         return DEBUG_LIBDIR
     else:
         return RELEASE_LIBDIR
+
+def get_examples_dir(ctx):
+    if sys.platform == 'win32':
+        if str(ctx.build) == 'debug':
+            return abspath(join(WIN_DEBUG_BUILDDIR, 'examples'))
+        else:
+            return abspath(join(WIN_RELEASE_BUILDDIR, 'examples'))
+    else:
+        return abspath(join(ROOTDIR, '..', 'examples'))
 
 
 class Color:

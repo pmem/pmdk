@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +31,12 @@
 #
 
 #
-# examples/Makefile -- build the Persistent Memory Development Kit examples
+# src/test/ex_libpmem2/Makefile -- build ex_libpmem2 unittest
 #
 
-include ../common.inc
+all: $(EXAMPLES)
+	$(MAKE) -C $(EX_LIBPMEM2)
 
-DIRS = libpmem libpmemblk libpmemlog libpmemobj librpmem libpmempool pmreorder libpmem2
+include ../Makefile.inc
 
-include Makefile.inc
-
-rmtmp:
-	$(RM) $(TMP_HEADERS)
-
-clobber clean: rmtmp
+EXAMPLES=$(EX_LIBPMEM2)/basic

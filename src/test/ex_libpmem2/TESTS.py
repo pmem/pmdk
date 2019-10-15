@@ -1,5 +1,6 @@
+#!../env.py
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,18 +30,30 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+from os import path
+from pathlib import Path
+import futils
 
-#
-# examples/Makefile -- build the Persistent Memory Development Kit examples
-#
+import testframework as t
 
-include ../common.inc
+class EX_LIBPMEM2(t.BaseTest):
+    test_type = t.Medium
+    build = [t.Debug, t.Release]
 
-DIRS = libpmem libpmemblk libpmemlog libpmemobj librpmem libpmempool pmreorder libpmem2
+    def get_path(self, ctx, file_name):
+        path = futils.get_examples_dir(ctx)
+        filepath = ctx.create_non_zero_file(16 * t.MiB , Path(ctx.testdir, file_name))
+        return path, filepath
 
-include Makefile.inc
 
-rmtmp:
-	$(RM) $(TMP_HEADERS)
+@t.windows_exclude
+class TEST0(EX_LIBPMEM2):
+    def run(self, ctx):
+        test_path, file_path = self.get_path(ctx, 'testfile0')
+        ctx.exec(path.join(test_path, 'libpmem2', 'basic'), file_path)
 
-clobber clean: rmtmp
+@t.windows_only
+class TEST1(EX_LIBPMEM2):
+    def run(self, ctx):
+        test_path, file_path = self.get_path(ctx, 'testfile1')
+        ctx.exec(path.join(test_path, 'ex_pmem2_basic'), file_path)
