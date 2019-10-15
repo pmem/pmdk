@@ -45,7 +45,8 @@ SOURCE =\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\
 	libpmem2.c\
-	pmem2.c
+	pmem2.c\
+	pmem2_utils.c
 
 include ../Makefile.inc
 

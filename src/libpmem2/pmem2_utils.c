@@ -30,39 +30,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef COMMON_FAULT_INJECTION
-#define COMMON_FAULT_INJECTION
+/*
+ * pmem2_utils.c -- libpmem2 utilities functions
+ */
 
-#include <stdlib.h>
+#include <errno.h>
+#include "alloc.h"
+#include "libpmem2.h"
+#include "out.h"
+#include "pmem2_utils.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-enum pmem_allocation_type { PMEM_MALLOC, PMEM_REALLOC };
-
-#if FAULT_INJECTION
-void common_inject_fault_at(enum pmem_allocation_type type,
-	int nth, const char *at);
-
-int common_fault_injection_enabled(void);
-
-#else
-static inline void
-common_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
+/*
+ * pmem2_zalloc -- allocate zeroed buffer and handle error
+ */
+void *
+pmem2_zalloc(size_t size, int *err)
 {
-	abort();
-}
+	void *ptr = Zalloc(size);
+	*err = 0;
 
-static inline int
-common_fault_injection_enabled(void)
-{
-	return 0;
-}
-#endif
+	if (ptr == NULL) {
+		ERR("!malloc(%zu)", size);
 
-#ifdef __cplusplus
-}
-#endif
+		if (errno == ENOMEM)
+			*err = PMEM2_E_NOMEM;
+		else
+			*err = PMEM2_E_EXTERNAL;
+	}
 
-#endif
+	return ptr;
+}
