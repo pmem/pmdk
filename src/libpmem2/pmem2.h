@@ -49,6 +49,16 @@ extern "C" {
 #define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
 #define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
 
+#define INVALID_FD (-1)
+
+struct pmem2_config {
+#ifdef _WIN32
+	HANDLE handle;
+#else
+	int fd;
+#endif
+};
+
 #ifdef __cplusplus
 }
 #endif

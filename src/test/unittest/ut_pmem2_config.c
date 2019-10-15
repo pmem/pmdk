@@ -31,12 +31,46 @@
  */
 
 /*
- * pmem2_utils.h -- libpmem2 utilities functions
+ * ut_pmem2_config.h -- utility helper functions for libpmem2 config tests
  */
 
-#ifndef PMEM2_UTILS_H
-#define PMEM2_UTILS_H 1
+#include <libpmem2.h>
+#include "unittest.h"
+#include "ut_pmem2_config.h"
+#include "ut_pmem2_utils.h"
+/*
+ * ut_pmem2_config_new -- allocates cfg (cannot fail)
+ */
+void
+ut_pmem2_config_new(const char *file, int line, const char *func,
+	struct pmem2_config **cfg)
+{
+	int ret = pmem2_config_new(cfg);
+	ut_pmem2_expect_return(file, line, func, ret, 0);
 
-void *pmem2_malloc(size_t size, int *err);
+	UT_ASSERTne(*cfg, NULL);
+}
 
-#endif /* PMEM2_UTILS_H */
+/*
+ * ut_pmem2_config_set_fd -- sets fd (cannot fail)
+ */
+void
+ut_pmem2_config_set_fd(const char *file, int line, const char *func,
+	struct pmem2_config *cfg, int fd)
+{
+	int ret = pmem2_config_set_fd(cfg, fd);
+	ut_pmem2_expect_return(file, line, func, ret, 0);
+}
+
+/*
+ * ut_pmem2_config_delete -- deallocates cfg (cannot fail)
+ */
+void
+ut_pmem2_config_delete(const char *file, int line, const char *func,
+	struct pmem2_config **cfg)
+{
+	int ret = pmem2_config_delete(cfg);
+	ut_pmem2_expect_return(file, line, func, ret, 0);
+
+	UT_ASSERTeq(*cfg, NULL);
+}

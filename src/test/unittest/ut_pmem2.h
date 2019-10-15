@@ -31,12 +31,13 @@
  */
 
 /*
- * pmem2_utils.h -- libpmem2 utilities functions
+ * ut_pmem2.h -- utility helper functions for libpmem tests
  */
 
-#ifndef PMEM2_UTILS_H
-#define PMEM2_UTILS_H 1
+#ifndef UT_PMEM2_H
+#define UT_PMEM2_H 1
 
-void *pmem2_malloc(size_t size, int *err);
+#include "ut_pmem2_config.h"
+#include "ut_pmem2_utils.h"
 
-#endif /* PMEM2_UTILS_H */
+#endif /* UT_PMEM2_H */
