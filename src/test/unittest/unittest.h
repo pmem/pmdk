@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -85,6 +85,7 @@
 #define _UNITTEST_H 1
 
 #include <libpmem.h>
+#include <libpmem2.h>
 #include <libpmemblk.h>
 #include <libpmemlog.h>
 #include <libpmemobj.h>
