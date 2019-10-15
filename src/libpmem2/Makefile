@@ -40,6 +40,8 @@ LIBRARY_VERSION = 0.0
 SOURCE =\
 	$(COMMON)/alloc.c\
 	$(COMMON)/file.c\
+	$(COMMON)/os_thread_posix.c\
+	$(COMMON)/os_posix.c\
 	$(COMMON)/file_posix.c\
 	$(COMMON)/out.c\
 	$(COMMON)/mmap.c\
