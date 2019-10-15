@@ -63,11 +63,11 @@
  * dax device from given stat structure
  */
 static ssize_t
-device_dax_stat_size(os_stat_t st)
+device_dax_stat_size(os_stat_t *st)
 {
 	char spath[PATH_MAX];
 	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/size",
-		os_major(st.st_rdev), os_minor(st.st_rdev));
+		os_major(st->st_rdev), os_minor(st->st_rdev));
 
 	LOG(4, "device size path \"%s\"", spath);
 
@@ -127,7 +127,7 @@ device_dax_file_size(const char *path)
 		return -1;
 	}
 
-	return device_dax_stat_size(st);
+	return device_dax_stat_size(&st);
 }
 #endif
 
@@ -307,7 +307,7 @@ util_fd_get_size(int fd)
 
 #ifndef _WIN32
 	if (file_type == TYPE_DEVDAX) {
-		return device_dax_stat_size(st);
+		return device_dax_stat_size(&st);
 	}
 #endif
 
