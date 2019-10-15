@@ -1,3 +1,5 @@
+#!../env.py
+#
 # Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,30 +29,47 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmem2/Makefile -- Makefile for libpmem2
 #
 
-include ../common.inc
 
-LIBRARY_NAME = pmem2
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE =\
-	$(COMMON)/alloc.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
-	$(COMMON)/out.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
-	libpmem2.c\
-	config.c\
-	config_posix.c\
-	pmem2.c\
-	pmem2_utils.c
+import testframework as t
 
-include ../Makefile.inc
+class PMEM2_CONFIG(t.BaseTest):
+    test_type = t.Short
 
-CFLAGS += -I.
-LIBS += -pthread
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        ctx.exec('pmem2_config', self.test_case, filepath)
+
+class TEST0(PMEM2_CONFIG):
+    """allocation and dealocation of pmem2_config"""
+    test_case = "cfg_create_and_delete_valid"
+
+class TEST1(PMEM2_CONFIG):
+    """setting a read + write file descriptor in pmem2_config"""
+    test_case = "set_rw_fd"
+
+class TEST2(PMEM2_CONFIG):
+    """setting a read only file descriptor in pmem2_config"""
+    test_case = "set_ro_fd"
+
+class TEST3(PMEM2_CONFIG):
+    """resetting file descriptor in pmem2_config"""
+    test_case = "set_negative_fd"
+
+@t.windows_exclude
+class TEST4(PMEM2_CONFIG):
+    """setting invalid (closed) file descriptor in pmem2_config"""
+    test_case = "set_invalid_fd"
+
+class TEST5(PMEM2_CONFIG):
+    """setting a write only file descriptor in pmem2_config"""
+    test_case = "set_wronly_fd"
+
+class TEST6(PMEM2_CONFIG):
+    """allocation of pmem2_config in case of missing memory in system"""
+    test_case = "alloc_cfg_enomem"
+
+class TEST7(PMEM2_CONFIG):
+    """deleting null pmem2_config"""
+    test_case = "delete_null_config"

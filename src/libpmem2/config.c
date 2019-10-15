@@ -31,12 +31,55 @@
  */
 
 /*
- * pmem2_utils.h -- libpmem2 utilities functions
+ * config.c -- pmem2_config implementation
  */
 
-#ifndef PMEM2_UTILS_H
-#define PMEM2_UTILS_H 1
+#include <unistd.h>
+#include "alloc.h"
+#include "config.h"
+#include "libpmem2.h"
+#include "out.h"
+#include "pmem2.h"
+#include "pmem2_utils.h"
 
-void *pmem2_malloc(size_t size, int *err);
+/*
+ * config_init -- (internal) initialize cfg structure.
+ */
+void
+config_init(struct pmem2_config *cfg)
+{
+#ifdef _WIN32
+	cfg->handle = INVALID_HANDLE_VALUE;
+#else
+	cfg->fd = INVALID_FD;
+#endif
+}
 
-#endif /* PMEM2_UTILS_H */
+/*
+ * pmem2_config_new -- allocates and initialize cfg structure.
+ */
+int
+pmem2_config_new(struct pmem2_config **cfg)
+{
+	int ret;
+	*cfg = pmem2_malloc(sizeof(**cfg), &ret);
+
+	if (ret)
+		return ret;
+
+	ASSERTne(cfg, NULL);
+
+	config_init(*cfg);
+	return 0;
+}
+
+/*
+ * pmem2_config_delete -- dealocate cfg structure.
+ */
+int
+pmem2_config_delete(struct pmem2_config **cfg)
+{
+	Free(*cfg);
+	*cfg = NULL;
+	return 0;
+}
