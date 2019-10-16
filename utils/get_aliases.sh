@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -78,6 +78,12 @@ function list_pages {
 
 	if [ "$parent" == "libpmem" ]; then
 		man_child=($(ls pmem_*.3))
+		echo -n "- $parent: " >> $map_file
+		echo "${man_child[@]}" >> $map_file
+	fi
+
+	if [ "$parent" == "libpmem2" ]; then
+		man_child=($(ls pmem2_*.3))
 		echo -n "- $parent: " >> $map_file
 		echo "${man_child[@]}" >> $map_file
 	fi
