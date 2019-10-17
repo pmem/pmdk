@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 		if ((pop = pmemobj_create(path, "LAYOUT", 0, 0600)) == NULL) {
 			UT_FATAL("!%s: pmemobj_create", path);
 		}
-#if !defined(_WIN32) && !defined(NDCTL_GE_63)
+#if !defined(_WIN32) && !NDCTL_ENABLED
 		pmemobj_close(pop);
 		pmempool_feature_enable(path, PMEMPOOL_FEAT_SHUTDOWN_STATE, 0);
 		if ((pop = pmemobj_open(path, "LAYOUT")) == NULL) {

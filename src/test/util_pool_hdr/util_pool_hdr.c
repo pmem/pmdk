@@ -118,7 +118,7 @@ test_layout()
 #define POOL_FEAT_SDS_FINAL		0x0004U
 
 /* incompat features effective values */
-#if defined(_WIN32) || defined(NDCTL_GE_63)
+#if defined(_WIN32) || NDCTL_ENABLED
 #ifdef SDS_ENABLED
 #define POOL_E_FEAT_SDS_FINAL		POOL_FEAT_SDS_FINAL
 #else
