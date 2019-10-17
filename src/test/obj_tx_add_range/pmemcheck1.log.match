@@ -82,6 +82,9 @@
 ==$(*)== Number of stores not made persistent: 0
 ==$(*)== ERROR SUMMARY: 0 errors
 ==$(*)== 
+==$(*)== Number of stores not made persistent: 0
+==$(*)== ERROR SUMMARY: 0 errors
+==$(*)== 
 ==$(*)== 
 ==$(*)== Number of stores not made persistent: 1
 ==$(*)== Stores not made persistent properly:

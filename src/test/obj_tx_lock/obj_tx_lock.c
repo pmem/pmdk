@@ -166,6 +166,42 @@ do_tx_add_taken_lock(struct transaction_data *data)
 	return NULL;
 }
 
+/*
+ * do_tx_lock_fail -- call pmemobj_tx_lock with POBJ_TX_NO_ABORT flag
+ * and taken lock
+ */
+static void *
+do_tx_lock_fail(struct transaction_data *data)
+{
+	/* wrlocks on Windows don't detect self-deadlocks */
+#ifdef _WIN32
+	(void) data;
+#else
+	UT_ASSERTeq(pmemobj_rwlock_wrlock(Pop, &data->rwlocks[0]), 0);
+	int ret = 0;
+	/* return errno and abort transaction */
+	TX_BEGIN(Pop) {
+		pmemobj_tx_xlock(TX_PARAM_RWLOCK, &data->rwlocks[0], 0);
+	} TX_ONABORT {
+		UT_ASSERTne(errno, 0);
+		UT_ASSERTeq(pmemobj_rwlock_unlock(Pop, &data->rwlocks[0]), 0);
+	} TX_ONCOMMIT {
+		UT_ASSERT(0);
+	} TX_END
+	/* return ret without abort transaction */
+	UT_ASSERTeq(pmemobj_rwlock_wrlock(Pop, &data->rwlocks[0]), 0);
+	TX_BEGIN(Pop) {
+		ret = pmemobj_tx_xlock(TX_PARAM_RWLOCK, &data->rwlocks[0],
+				POBJ_XLOCK_NO_ABORT);
+	} TX_ONCOMMIT {
+		UT_ASSERTne(ret, 0);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+#endif
+	return NULL;
+}
+
 static void
 do_fault_injection(struct transaction_data *data)
 {
@@ -193,7 +229,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_tx_lock");
 
 	if (argc < 3)
-		UT_FATAL("usage: %s <file> [l|n|a|t]", argv[0]);
+		UT_FATAL("usage: %s <file> [l|n|a|t|f|w]", argv[0]);
 
 	if ((Pop = pmemobj_create(argv[1], LAYOUT_NAME,
 	    PMEMOBJ_MIN_POOL, S_IWUSR | S_IRUSR)) == NULL)
@@ -207,9 +243,9 @@ main(int argc, char *argv[])
 	/* go through all arguments one by one */
 	for (int arg = 2; arg < argc; arg++) {
 		/* Scan the character of each argument. */
-		if (strchr("lnatf", argv[arg][0]) == NULL ||
+		if (strchr("lnatfw", argv[arg][0]) == NULL ||
 				argv[arg][1] != '\0')
-			UT_FATAL("op must be l or n or a or t or f");
+			UT_FATAL("op must be l or n or a or t or f or w");
 
 		switch (argv[arg][0]) {
 		case 'l':
@@ -229,6 +265,9 @@ main(int argc, char *argv[])
 			break;
 		case 'f':
 			do_fault_injection(test_obj);
+			break;
+		case 'w':
+			do_tx_lock_fail(test_obj);
 			break;
 		}
 	}

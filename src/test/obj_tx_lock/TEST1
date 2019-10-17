@@ -45,6 +45,6 @@ configure_valgrind helgrind force-disable
 
 setup
 
-expect_normal_exit ./obj_tx_lock$EXESUFFIX $DIR/testfile1 t
+expect_normal_exit ./obj_tx_lock$EXESUFFIX $DIR/testfile1 t w
 
 pass

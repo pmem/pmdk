@@ -93,10 +93,10 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   toid_declare_root.3 toid.3 toid_type_num.3 toid_type_num_of.3 toid_valid.3 oid_instanceof.3 toid_assign.3 toid_is_null.3 toid_equals.3 toid_typeof.3 toid_offsetof.3 direct_rw.3 d_rw.3 direct_ro.3 d_ro.3 \
 		   pmemobj_memcpy.3 pmemobj_memmove.3 pmemobj_memset.3 \
 		   pmemobj_memset_persist.3 pmemobj_persist.3 pmemobj_xpersist.3 pmemobj_flush.3 pmemobj_xflush.3 pmemobj_drain.3 \
-		   pmemobj_tx_stage.3 pmemobj_tx_lock.3 pmemobj_tx_abort.3 pmemobj_tx_commit.3 pmemobj_tx_end.3 pmemobj_tx_errno.3 \
+		   pmemobj_tx_stage.3 pmemobj_tx_lock.3 pmemobj_tx_xlock.3 pmemobj_tx_abort.3 pmemobj_tx_commit.3 pmemobj_tx_end.3 pmemobj_tx_errno.3 \
 		   pmemobj_tx_process.3 pmemobj_tx_add_range_direct.3 pmemobj_tx_xadd_range.3 pmemobj_tx_xadd_range_direct.3 \
-		   pmemobj_tx_zalloc.3 pmemobj_tx_xalloc.3 pmemobj_tx_realloc.3 pmemobj_tx_zrealloc.3 pmemobj_tx_strdup.3 pmemobj_tx_wcsdup.3 pmemobj_tx_free.3 \
-		   pmemobj_tx_log_append_buffer.3 pmemobj_tx_log_auto_alloc.3 pmemobj_tx_log_snapshots_max_size.3 pmemobj_tx_log_intents_max_size.3 \
+		   pmemobj_tx_zalloc.3 pmemobj_tx_xalloc.3 pmemobj_tx_realloc.3 pmemobj_tx_zrealloc.3 pmemobj_tx_strdup.3 pmemobj_tx_xstrdup.3 pmemobj_tx_wcsdup.3 pmemobj_tx_xwcsdup.3 pmemobj_tx_free.3 pmemobj_tx_xfree.3\
+		   pmemobj_tx_log_append_buffer.3 pmemobj_tx_xlog_append_buffer.3 pmemobj_tx_log_auto_alloc.3 pmemobj_tx_log_snapshots_max_size.3 pmemobj_tx_log_intents_max_size.3 \
 		   tx_begin_param.3 tx_begin_cb.3 tx_begin.3 tx_onabort.3 tx_oncommit.3 tx_finally.3 tx_end.3 \
 		   tx_add.3 tx_add_field.3 tx_add_direct.3 tx_add_field_direct.3 tx_xadd.3 tx_xadd_field.3 tx_xadd_direct.3 tx_xadd_field_direct.3 \
 		   tx_new.3 tx_alloc.3 tx_znew.3 tx_zalloc.3 tx_xalloc.3 tx_realloc.3 tx_zrealloc.3 tx_strdup.3 tx_wcsdup.3 tx_free.3 tx_set.3 tx_set_direct.3 tx_memcpy.3 tx_memset.3 \
@@ -111,7 +111,7 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmemobj_next.3 pobj_first_type_num.3 pobj_first.3 pobj_next_type_num.3 pobj_next.3 pobj_foreach.3 pobj_foreach_safe.3 pobj_foreach_type.3 pobj_foreach_safe_type.3 \
 		   pmemobj_root_construct.3 pobj_root.3 pmemobj_root_size.3 \
 		   pmemobj_check_version.3 pmemobj_check.3 pmemobj_errormsg.3 pmemobj_set_funcs.3 \
-		   pmemobj_reserve.3 pmemobj_xreserve.3 pmemobj_defer_free.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3 pobj_xreserve_new.3 pobj_xreserve_alloc.3
+		   pmemobj_reserve.3 pmemobj_xreserve.3 pmemobj_defer_free.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_tx_xpublish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3 pobj_xreserve_new.3 pobj_xreserve_alloc.3
 
 
 MANPAGES_BUILDDIR = generated
