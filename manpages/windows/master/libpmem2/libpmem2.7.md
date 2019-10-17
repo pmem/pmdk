@@ -41,7 +41,7 @@ date: pmem2 API version 1.0
 [DESCRIPTION](#description)<br />
 [CAVEATS](#caveats)<br />
 [ENVIRONMENT](#environment)<br />
-[DEBUGGING AND ERROR HANDLING](#debugging-and-error-handling)<br />
+[DEBUGGING](#debugging)<br />
 [EXAMPLE](#example)<br />
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
@@ -65,6 +65,53 @@ cc ... -lpmem2
 # CAVEATS #
 
 # ENVIRONMENT #
+
+
+# DEBUGGING #
+
+Two versions of **libpmem2** are typically available on a development
+system. The normal version, accessed when a program is linked using the
+**-lpmem2** option, is optimized for performance. That version skips checks
+that impact performance and never logs any trace information or performs any
+run-time assertions.
+
+A second version of **libpmem2**, accessed when a program uses the libraries
+under **/pmdk/src/x64/Debug**, contains run-time assertions and trace points. The
+typical way to access the debug version is to set the environment variable
+**LD_LIBRARY_PATH** to **/pmdk/src/x64/Debug**. Debugging output is
+controlled using the following environment variables. These variables have
+no effect on the non-debug version of the library.
+
++ **PMEM2_LOG_LEVEL**
+
+The value of **PMEM2_LOG_LEVEL** enables trace points in the debug version
+of the library, as follows:
+
++ **0** - This is the default level when **PMEM2_LOG_LEVEL** is not set.
+No log messages are emitted at this level.
+
++ **1** - Additional details on any errors detected are logged, in addition
+to returning the *errno*-based errors as usual. The same information
+may be retrieved using **pmem2_errormsgU**()/**pmem2_errormsgW**().
+
++ **2** - A trace of basic operations is logged.
+
++ **3** - Enables a very verbose amount of function call tracing in the
+library.
+
++ **4** - Enables voluminous and fairly obscure tracing
+information that is likely only useful to the **libpmem2** developers.
+
+Unless **PMEM2_LOG_FILE** is set, debugging output is written to *stderr*.
+
++ **PMEM2_LOG_FILE**
+
+Specifies the name of a file where
+all logging information should be written. If the last character in the name
+is "-", the *PID* of the current process will be appended to the file name when
+the log file is created. If **PMEM2_LOG_FILE** is not set, output is
+written to *stderr*.
+
 
 # EXAMPLE #
 
