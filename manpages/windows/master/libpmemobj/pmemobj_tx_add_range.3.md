@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.3
 ...
 
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2019, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -111,6 +111,9 @@ abort
 If this flag is not specified, passing uninitialized memory will result in an
 error when run under Valgrind memcheck.
 
++ **POBJ_XADD_NO_ABORT** - if the function does not end successfully,
+do not abort the transaction.
+
 **pmemobj_tx_add_range_direct**() behaves the same as
 **pmemobj_tx_add_range**() with the exception that it operates on virtual
 memory addresses and not persistent memory objects. It takes a "snapshot" of
@@ -135,6 +138,9 @@ abort
 + **POBJ_XADD_ASSUME_INITIALIZED** - added range is assumed to be initialized.
 If this flag is not specified, passing uninitialized memory will result in an
 error when run under Valgrind memcheck.
+
++ **POBJ_XADD_NO_ABORT** - if the function does not end successfully,
+do not abort the transaction.
 
 Similarly to the macros controlling the transaction flow, **libpmemobj**
 defines a set of macros that simplify the transactional operations on
@@ -201,10 +207,13 @@ restored.
 
 # RETURN VALUE #
 
-On success, **pmemobj_tx_add_range**(), **pmemobj_tx_xadd_range**(),
-**pmemobj_tx_add_range_direct**() and **pmemobj_tx_xadd_range_direct**()
-return 0. Otherwise, the stage is changed to **TX_STAGE_ONABORT** and an error
-number is returned.
+On success, **pmemobj_tx_add_range**() and **pmemobj_tx_add_range_direct**()
+return 0. Otherwise, the stage is changed to **TX_STAGE_ONABORT**,
+**errno** is set appropriately and transaction is aborted.
+
+On success, **pmemobj_tx_xadd_range**() and **pmemobj_tx_xadd_range_direct**()
+returns 0. Otherwise, the error number is returned, **errno** is set and
+when flags do not contain **POBJ_XADD_NO_ABORT**, the transaction is aborted.
 
 
 # SEE ALSO #
