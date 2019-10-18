@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,10 +29,24 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# check-manpages -- a tool to test against some manpage errors
+for m in "$@"; do
+	dir="$(dirname $m)"
+	file="$(basename $m)"
+	# system-installed version is preferred otherwise for .so links
+	[ -n "$dir" ] && pushd "$dir" >/dev/null
+	err=$(MANWIDTH=80 man --warnings -E UTF-8 -l -Tutf8 -Z "$file" 2>&1 >/dev/null)
+	[ -z "$err" ] || {
+		echo >&2 "$file: $err"
+		FAILED=1
+	}
 
-MANS="$*"
-[ -n "$MANS" ] || MANS="$(find doc -name '*.1' -o -name '*.3' -o -name '*.5' -o -name '*.7')"
-[ -n "$MANS" ] || { echo >&2 "No man pages given, and none found in doc/"; exit 1;}
+	if grep -q '^\.SH NAME' "$file"; then
+		if ! lexgrog "$file" >/dev/null; then
+			echo 2>&1 "lexgrog failed on $file"
+			FAILED=1
+		fi
+	fi
+	popd >/dev/null 2>/dev/null
+done
 
-echo "$MANS"|xargs -P `nproc` -n1 -- utils/check-manpage
+exit $FAILED
