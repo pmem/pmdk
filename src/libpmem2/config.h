@@ -40,14 +40,25 @@
 
 #define INVALID_FD (-1)
 
+#define PMEM2_FALSE (0)
+#define PMEM2_TRUE (1)
+
 struct pmem2_config {
 #ifdef _WIN32
 	HANDLE handle;
 #else
 	int fd;
 #endif
+	/* indicates fd / handle is duplicated so it has to be closed */
+	int is_duplicate;
 };
 
-void config_init(struct pmem2_config *cfg);
+void pmem2_config_init(struct pmem2_config *cfg);
+
+int pmem2_config_file_dup(struct pmem2_config *dst,
+		const struct pmem2_config *src);
+int pmem2_config_file_dup_close(struct pmem2_config *cfg);
+
+int pmem2_config_dup(struct pmem2_config **dst, const struct pmem2_config *src);
 
 #endif /* PMEM2_CONFIG_H */

@@ -35,6 +35,8 @@
  */
 #include <errno.h>
 #include <fcntl.h>
+#include <unistd.h>
+
 #include "out.h"
 #include "config.h"
 
@@ -68,4 +70,47 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 
 	cfg->fd = fd;
 	return 0;
+}
+
+/*
+ * pmem2_config_file_dup -- duplicate the file descriptor from src to dst
+ */
+int
+pmem2_config_file_dup(struct pmem2_config *dst, const struct pmem2_config *src)
+{
+	/* do not duplicate an invalid file descriptor */
+	if (src->fd == INVALID_FD) {
+		dst->fd = INVALID_FD;
+		return PMEM2_E_OK;
+	}
+
+	int newfd = dup(src->fd);
+
+	if (newfd == INVALID_FD) {
+		ERR("!dup");
+		return PMEM2_E_EXTERNAL;
+	}
+
+	dst->fd = newfd;
+
+	return PMEM2_E_OK;
+}
+
+/*
+ * pmem2_config_file_dup_close - close the duplicated file descriptor
+ */
+int
+pmem2_config_file_dup_close(struct pmem2_config *cfg)
+{
+	if (cfg->fd == INVALID_FD)
+		return PMEM2_E_OK;
+
+	if (close(cfg->fd)) {
+		ERR("!close");
+		return PMEM2_E_EXTERNAL;
+	}
+
+	cfg->fd = INVALID_FD;
+
+	return PMEM2_E_OK;
 }
