@@ -44,18 +44,15 @@ date: pmem Tools version 1.4
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool-feature** - toggle or query pool set features
-
 
 # SYNOPSIS #
 
 ```
 $ pmempool feature (-e|-d|-q feature-name) [options] <file>
 ```
-
 
 # DESCRIPTION #
 
@@ -115,17 +112,14 @@ Disable feature for pool set.
 
 Print feature status.
 
-
 # COMPATIBILITY #
 
 Poolsets with features not defined in this document (e.g. enabled by the newer
 software version) are not supported.
 
-
 # DISCLAIMER #
 
 ```pmempool feature``` command is not fail safe.
-
 
 # EXAMPLE #
 
@@ -147,7 +141,6 @@ $ pmempool feature --query CHECKSUM_2K pool.set
 ```
 
 Prints POOL_FEAT_CKSUM_2K incompat feature flag value.
-
 
 # SEE ALSO #
 

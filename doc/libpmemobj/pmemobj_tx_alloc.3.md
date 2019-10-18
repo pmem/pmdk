@@ -42,7 +42,6 @@ date: pmemobj API version 2.3
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_tx_alloc**(), **pmemobj_tx_zalloc**(),
@@ -60,7 +59,6 @@ date: pmemobj API version 2.3
 **TX_XWCSDUP**(), **TX_FREE**(),
 **TX_XFREE**()
 - transactional object manipulation
-
 
 # SYNOPSIS #
 
@@ -89,7 +87,6 @@ TX_WCSDUP(const wchar_t *s, uint64_t type_num)
 TX_FREE(TOID o)
 TX_XFREE(TOID o, uint64_t flags)
 ```
-
 
 # DESCRIPTION #
 
@@ -252,7 +249,6 @@ The *flags* argument is a bitmask of values described in **pmemobj_tx_xfree**
 section. If successful and called during **TX_STAGE_WORK**, **TX_FREE**()
 returns 0. Otherwise, the error number is returned, **errno** is set and when
 flags do not contain **POBJ_XFREE_NO_ABORT**, the transaction is aborted.
-
 
 # RETURN VALUE #
 

@@ -43,18 +43,15 @@ date: daxio version 1.4
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **daxio** - Perform I/O on Device DAX devices or zero a Device DAX device
-
 
 # SYNOPSIS #
 
 ```
 $ daxio [<options>]
 ```
-
 
 # DESCRIPTION #
 
@@ -75,7 +72,6 @@ output file/device length, if input is a special char file or stdin.
 For a Device DAX device, **daxio** will attempt to clear bad blocks within
 the range of writes before performing the I/O (it can be turned off using
 the '--clear-bad-blocks=no' option).
-
 
 # OPTIONS #
 
@@ -117,7 +113,6 @@ Prints the version of **daxio**.
 `-h, --help`
 
 Prints synopsis and list of options.
-
 
 # EXAMPLE #
 

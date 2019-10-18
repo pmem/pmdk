@@ -43,14 +43,12 @@ date: pmemblk API version 1.1
 [CTL EXTERNAL CONFIGURATION](#ctl-external-configuration)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 _UW(pmemblk_ctl_get),
 _UW(pmemblk_ctl_set),
 _UW(pmemblk_ctl_exec)
 - Query and modify libpmemblk internal behavior (EXPERIMENTAL)
-
 
 # SYNOPSIS #
 
@@ -66,7 +64,6 @@ _UWFUNCR2(int, pmemblk_ctl_exec, PMEMblkpool *pbp, *name, void *arg,
 ```
 
 _UNICODE()
-
 
 # DESCRIPTION #
 
@@ -88,7 +85,6 @@ on success and -1 on failure, unless otherwise specified in the entry point
 description.
 
 See more in **pmem_ctl**(5) man page.
-
 
 # CTL NAMESPACE #
 
@@ -138,7 +134,6 @@ The second method of loading an external configuration is to set the
 a sequence of ctl queries.
 
 See more in **pmem_ctl**(5) man page.
-
 
 # SEE ALSO #
 

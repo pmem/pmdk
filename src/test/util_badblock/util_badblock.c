@@ -145,7 +145,6 @@ do_open(const char *path)
 	util_poolset_close(set, DO_NOT_DELETE_PARTS);
 }
 
-
 static void
 do_fault_injection(const char *path)
 {

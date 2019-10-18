@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -253,7 +253,6 @@ main(int argc, char *argv[])
 		else
 			args.seed = (uint32_t)time(NULL);
 		srand(args.seed);
-
 
 		mapc = map_ctx_init(ops, pop);
 		if (!mapc) {

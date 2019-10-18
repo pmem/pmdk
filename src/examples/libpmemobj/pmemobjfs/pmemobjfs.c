@@ -761,7 +761,6 @@ pmemobjfs_read(struct pmemobjfs *objfs, TOID(struct objfs_inode) inode,
 			memcpy(buff, &D_RW(block)[block_off], block_size);
 		}
 
-
 		buff += block_size;
 		off += block_size;
 		sz -= block_size;
@@ -916,7 +915,6 @@ pmemobjfs_remove_dir_entry_name(struct pmemobjfs *objfs,
 	} TX_END
 }
 
-
 /*
  * pmemobjfs_add_dir_entry -- add new directory entry
  */
@@ -1030,7 +1028,6 @@ pmemobjfs_mkdir(struct pmemobjfs *objfs, TOID(struct objfs_inode) inode,
 
 	return ret;
 }
-
 
 /*
  * pmemobjfs_remove_dir -- remove directory from directory
@@ -2446,7 +2443,6 @@ main(int argc, char *argv[])
 
 	log("\n\n\nPMEMOBJFS\n");
 #endif
-
 
 	const char *fname = argv[argc - 2];
 	struct pmemobjfs *objfs = calloc(1, sizeof(*objfs));

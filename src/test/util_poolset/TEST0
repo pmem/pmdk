@@ -150,7 +150,6 @@ check_no_files $DIR/testfile41 $DIR/testfile42\
 	$DIR/testfile231\
 	$DIR/testfile252
 
-
 $GREP "<1>" $TEST_LOG_FILE | sed -e "s/^.*\][ ]*//g" > ./grep$UNITTEST_NUM.log
 
 check

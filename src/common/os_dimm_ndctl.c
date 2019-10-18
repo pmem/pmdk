@@ -59,7 +59,6 @@
 		ndctl_region_foreach(bus, region)		\
 			ndctl_namespace_foreach(region, ndns)	\
 
-
 /*
  * os_dimm_match_devdax -- (internal) returns 1 if the devdax matches
  *                         with the given file, 0 if it doesn't match,

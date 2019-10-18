@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -63,5 +63,3 @@ else
 $(info NOTE: Skipping pminvaders test because ncurses is missing \
 -- see src/examples/libpmemobj/pminvaders/README for details.)
 endif
-
-

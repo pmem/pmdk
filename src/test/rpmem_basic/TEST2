@@ -88,5 +88,4 @@ expect_normal_exit run_on_node 1 ./rpmem_basic$EXESUFFIX\
 expect_normal_exit run_on_node 0 ./rpmem_basic$EXESUFFIX\
 	check_pool ${NODE_DIR[0]}$POOLS_DIR/pool1.set 1234 8M
 
-
 pass

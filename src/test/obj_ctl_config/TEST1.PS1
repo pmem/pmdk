@@ -36,7 +36,6 @@
 $Env:UNITTEST_NAME = "obj_ctl_config/TEST1"
 $Env:UNITTEST_NUM = "100" # TEST0 poses as different test numbers
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type short

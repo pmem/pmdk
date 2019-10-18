@@ -38,7 +38,6 @@
 # single-threaded in TEST6
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

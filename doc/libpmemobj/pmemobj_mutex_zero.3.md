@@ -42,7 +42,6 @@ date: pmemobj API version 2.3
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_mutex_zero**(), **pmemobj_mutex_lock**(), **pmemobj_mutex_timedlock**(),
@@ -55,7 +54,6 @@ date: pmemobj API version 2.3
 **pmemobj_cond_zero**(), **pmemobj_cond_broadcast**(), **pmemobj_cond_signal**(),
 **pmemobj_cond_timedwait**(), **pmemobj_cond_wait**()
 - pmemobj synchronization primitives
-
 
 # SYNOPSIS #
 
@@ -88,7 +86,6 @@ int pmemobj_cond_timedwait(PMEMobjpool *pop, PMEMcond *restrict condp,
 int pmemobj_cond_wait(PMEMobjpool *pop, PMEMcond *restrict condp,
 	PMEMmutex *restrict mutexp);
 ```
-
 
 # DESCRIPTION #
 
@@ -212,7 +209,6 @@ has released it, then a subsequent call to **pmemobj_cond_broadcast**() or
 after the about-to-block thread has blocked. Upon successful return, the mutex
 will be locked and owned by the calling thread.
 
-
 # RETURN VALUE #
 
 The **pmemobj_mutex_zero**(), **pmemobj_rwlock_zero**()
@@ -220,7 +216,6 @@ and **pmemobj_cond_zero**() functions return no value.
 
 Other locking functions return 0 on success.  Otherwise, an error
 number will be returned to indicate the error.
-
 
 # SEE ALSO #
 

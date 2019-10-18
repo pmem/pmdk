@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,7 +32,6 @@
 
 #ifndef PMDK_OS_AUTO_FLUSH_WINDOWS_H
 #define PMDK_OS_AUTO_FLUSH_WINDOWS_H 1
-
 
 #define ACPI_SIGNATURE 0x41435049 /* hex value of ACPI signature */
 #define NFIT_REV_SIGNATURE 0x5449464e /* hex value of htonl(NFIT) signature */

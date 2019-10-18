@@ -47,19 +47,16 @@ date: pmreorder version 1.5
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmreorder** - performs a persistent consistency check
 		 using a store reordering mechanism
-
 
 # SYNOPSIS #
 
 ```
 $ python pmreorder <options>
 ```
-
 
 # DESCRIPTION #
 
@@ -76,7 +73,6 @@ consistent state.
 Considering that logging, replaying and reordering of operations
 are very time consuming, it is recommended to use as few stores as
 possible in test workloads.
-
 
 # OPTIONS #
 
@@ -140,7 +136,6 @@ Set the initial reorder engine. Default value is `NoReorderNoCheck`.
 `-x <cli_macros|config_file>, --extended-macros <cli_macros|config_file>`
 
 Assign an engine types to the defined marker.
-
 
 # ENGINES #
 
@@ -234,7 +229,6 @@ Additionally, the `-x` parameter can be used to switch engines
 separately for any marked code sections.
 For more details about `-x` extended macros functionality see section
 INSTRUMENTATION below.
-
 
 # INSTRUMENTATION #
 
@@ -380,7 +374,6 @@ pmem_memcpy_persist
 pmem_memset_persist
 ```
 
-
 # PMEMCHECK STORE LOG #
 
 To generate *store_log* for **pmreorder** run pmemcheck
@@ -401,14 +394,12 @@ valgrind \
 
 For further details of pmemcheck parameters see [pmemcheck documentation](https://github.com/pmem/valgrind/blob/pmem-3.13/pmemcheck/docs/pmc-manual.xml)
 
-
 # ENVIRONMENT #
 
 By default all logging from PMDK libraries is disabled.
 To enable API macros logging set environment variable:
 
 + **PMREORDER_EMIT_LOG**=1
-
 
 # EXAMPLE #
 
@@ -426,7 +417,6 @@ Checker binary will be used to run consistency checks on
 "store_log.log", output of pmemcheck tool. Any inconsistent
 stores found during **pmreorder** analysis will be logged
 to `pmreorder_out.log`.
-
 
 # SEE ALSO #
 

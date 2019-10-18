@@ -209,7 +209,6 @@ error:
 	return -1;
 }
 
-
 struct step {
 	int (*func)(PMEMpoolcheck *, location *loc);
 	enum pool_type type;

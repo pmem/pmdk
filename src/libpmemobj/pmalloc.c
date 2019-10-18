@@ -711,7 +711,6 @@ static const struct ctl_node CTL_NODE(size)[] = {
 	CTL_NODE_END
 };
 
-
 /*
  * CTL_READ_HANDLER(size) -- reads usable size of specified arena
  */

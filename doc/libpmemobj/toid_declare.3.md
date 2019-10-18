@@ -41,7 +41,6 @@ date: pmemobj API version 2.3
 [DESCRIPTION](#description)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **TOID_DECLARE**(), **TOID_DECLARE_ROOT**(), **TOID**(),
@@ -50,7 +49,6 @@ date: pmemobj API version 2.3
 **TOID_EQUALS**(), **TOID_TYPEOF**(), **TOID_OFFSETOF**(),
 **DIRECT_RW**(), **D_RW**(), **DIRECT_RO**(),
 **D_RO**() - libpmemobj type safety mechanism
-
 
 # SYNOPSIS #
 
@@ -74,7 +72,6 @@ D_RW(TOID oid)
 DIRECT_RO(TOID oid)
 D_RO(TOID oid)
 ```
-
 
 # DESCRIPTION #
 
@@ -129,7 +126,6 @@ write pointer (*TYPE\**) to an object represented by *oid*. If *oid* is
 The **DIRECT_RO**() macro and its shortened form **D_RO**() return a typed
 read-only (const) pointer (*TYPE\**) to an object represented by *oid*. If
 *oid* is **OID_NULL**, the macro evaluates to NULL.
-
 
 # SEE ALSO #
 

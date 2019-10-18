@@ -35,7 +35,6 @@
 # src/test/rpmem_obc/TEST3 -- unit test for rpmem_obc_create function
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

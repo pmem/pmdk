@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -234,7 +234,6 @@ test(PMEMobjpool *pop, TOID(struct pmem_root) root)
 		UT_OUT("finally 6");
 	} TX_END
 	UT_OUT("end of tx 6\n");
-
 
 	UT_OUT("start of tx 7");
 	if (pmemobj_tx_begin(pop, NULL, TX_PARAM_CB, log_stages, NULL,

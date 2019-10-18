@@ -35,7 +35,6 @@
 # src/test/rpmemd_dbg/TEST2 -- unit test for rpmemd_log module
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

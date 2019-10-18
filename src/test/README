@@ -13,7 +13,6 @@ testconfig.sh.example provides more detail.  The script RUNTESTS, when run with
 no arguments, will run all unit tests through all the combinations of fs-types
 and build-types, running the "check" level test.
 
-
 DETAILS ON HOW TO RUN UNIT TESTS
 
 See the top-level README for instructions on building, installing, running
@@ -130,7 +129,6 @@ unit test framework also looks for several other variables:
 
 	Display test run times:
 		$ TM=1 ./TEST0
-
 
 DETAILS ON HOW TO WRITE UNIT TESTS
 

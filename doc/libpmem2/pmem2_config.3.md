@@ -42,12 +42,10 @@ date: pmem2 API version 1.0
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmem2_config_new**(), **pmem2_config_delete**(),
 **pmem2_config_set_fd**(), **pmem2_config_set_handle**()
-
 
 # SYNOPSIS #
 
@@ -62,9 +60,7 @@ int pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle); (XXX: WIND
 
 # DESCRIPTION #
 
-
 # RETURN VALUE #
-
 
 # SEE ALSO #
 

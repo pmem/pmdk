@@ -42,11 +42,9 @@ date: pmempool API version 1.3
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 _UW(pmempool_rm) - remove persistent memory pool
-
 
 # SYNOPSIS #
 
@@ -57,7 +55,6 @@ _UWFUNCR1(int, pmempool_rm, *path, int flags)
 ```
 
 _UNICODE()
-
 
 # DESCRIPTION #
 
@@ -78,12 +75,10 @@ local _WINUX(,or remote )replicas.
 _WINUX(,
 + **PMEMPOOL_RM_POOLSET_REMOTE** - Also remove remote pool set file.)
 
-
 # RETURN VALUE #
 
 On success, _UW(pmempool_rm) returns 0. On error, it returns -1 and sets
 *errno* accordingly.
-
 
 # SEE ALSO #
 

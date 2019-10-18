@@ -46,7 +46,6 @@ setup
 # mix writes with set_zero and set_error and check results
 truncate -s 128M $DIR/testfile1
 
-
 expect_normal_exit ./blk_rw$EXESUFFIX 512 $DIR/testfile1 c\
 		e:1 r:1\
 		e:2 w:2 r:2\

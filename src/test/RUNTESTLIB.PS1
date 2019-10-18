@@ -1,5 +1,5 @@
 ﻿#
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -386,7 +386,6 @@ Start-Job -Name $name -Args $PSScriptRoot -ScriptBlock {
     } else {
         $Env:Path =  "..\x64\Debug\libs;" + $Env:Path
     }
-
 
     if (isDir($Env:PMEM_FS_DIR)) {
         if ($Env:PMEM_FS_DIR_FORCE_PMEM -eq "1") {

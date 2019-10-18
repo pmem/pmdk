@@ -1,5 +1,5 @@
 /*
- * Copyright 2016, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -68,7 +68,6 @@ main(int argc, char *argv[])
 		prov_str = argv[2];
 
 	struct rpmem_target_info *info;
-
 
 	info = rpmem_target_parse(addr);
 	if (!info) {

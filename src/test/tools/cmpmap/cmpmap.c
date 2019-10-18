@@ -269,7 +269,6 @@ out_close1:
 	return ret;
 }
 
-
 int
 main(int argc, char *argv[])
 {

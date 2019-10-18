@@ -35,7 +35,6 @@
 # src/test/obj_list_macro/TEST1 -- unit test for list API
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

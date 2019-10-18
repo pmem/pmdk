@@ -40,7 +40,6 @@
 # in multiply stores to the same field. This is not en error considering
 # the transactional nature of the test.
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

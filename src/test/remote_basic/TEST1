@@ -35,7 +35,6 @@
 # src/test/remote_basic/TEST1 -- unit test for remote tests support
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

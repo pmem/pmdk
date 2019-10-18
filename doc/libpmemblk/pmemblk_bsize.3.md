@@ -42,12 +42,10 @@ date: pmemblk API version 1.1
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemblk_bsize**(), **pmemblk_nblock**() - check number of available blocks or
 usable space in block memory pool
-
 
 # SYNOPSIS #
 
@@ -57,7 +55,6 @@ usable space in block memory pool
 size_t pmemblk_bsize(PMEMblkpool *pbp);
 size_t pmemblk_nblock(PMEMblkpool *pbp);
 ```
-
 
 # DESCRIPTION #
 
@@ -70,7 +67,6 @@ The **pmemblk_nblock**() function returns the usable space in the block memory
 pool. *pbp* must be a block memory pool handle as returned by
 **pmemblk_open**(3) or **pmemblk_create**(3).
 
-
 # RETURN VALUE #
 
 The **pmemblk_bsize**() function returns the block size of the specified block
@@ -78,7 +74,6 @@ memory pool.
 
 The **pmemblk_nblock**() function returns the usable space in the block memory
 pool, expressed as the number of blocks available.
-
 
 # SEE ALSO #
 

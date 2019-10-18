@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -54,7 +54,6 @@ struct rpmemd_obc {
 	int fd_in;
 	int fd_out;
 };
-
 
 /*
  * rpmemd_obc_check_proto_ver -- check protocol version
@@ -438,7 +437,6 @@ rpmemd_obc_fini(struct rpmemd_obc *obc)
 {
 	free(obc);
 }
-
 
 /*
  * rpmemd_obc_status -- sends initial status to the client

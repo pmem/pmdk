@@ -1,5 +1,5 @@
 ﻿#
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -97,7 +97,6 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
 
 . .\RUNTESTLIB.PS1
 
-
 if($help) {
     usage $MyInvocation.MyCommand.Name
 }
@@ -109,7 +108,6 @@ Write-Verbose "    fs-type: $fstype"
 Write-Verbose "    check-pool: $(if ($check_pool -eq "1") {"yes"} else {"no"})"
 
 $config = New-Object Config
-
 
 $config.setBuildtype($buildtype)
 $config.setFstype($fstype)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -275,7 +275,6 @@ main(int argc, char *argv[])
 	UT_ASSERT(test_obj->a == TEST_VALUE_B);
 	UT_ASSERT(test_obj->b == TEST_VALUE_A);
 	UT_ASSERT(test_obj->c == TEST_VALUE_C);
-
 
 	/* test that deprecated macros still work */
 	UT_COMPILE_ERROR_ON((int)TX_LOCK_NONE != (int)TX_PARAM_NONE);

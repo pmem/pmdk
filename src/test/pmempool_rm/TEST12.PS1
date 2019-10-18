@@ -34,7 +34,6 @@
 # a write-protected part file by answering with invalid response
 #
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type medium

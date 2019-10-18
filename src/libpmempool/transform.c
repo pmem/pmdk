@@ -377,7 +377,6 @@ check_compare_poolsets_options(struct pool_set *set_in,
 	return 0;
 }
 
-
 /*
  * compare_poolsets -- (internal) compare two poolsets; for each replica which
  *                     has a counterpart in the other poolset store the other

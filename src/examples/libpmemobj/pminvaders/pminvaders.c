@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -110,7 +110,6 @@ POBJ_LAYOUT_TOID(pminvaders, struct player);
 POBJ_LAYOUT_TOID(pminvaders, struct alien);
 POBJ_LAYOUT_TOID(pminvaders, struct bullet);
 POBJ_LAYOUT_END(pminvaders);
-
 
 static PMEMobjpool *pop;
 static struct game_state *gstate;

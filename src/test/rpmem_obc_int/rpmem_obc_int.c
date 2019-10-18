@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -228,7 +228,6 @@ client_set_attr(const struct test_case *tc, int argc, char *argv[])
 	struct rpmem_target_info *info;
 	const struct rpmem_pool_attr pool_attr = POOL_ATTR_ALT;
 
-
 	info = rpmem_target_parse(target);
 	UT_ASSERTne(info, NULL);
 
@@ -370,7 +369,6 @@ server(const struct test_case *tc, int argc, char *argv[])
 
 	ret = rpmemd_obc_status(obc, 0);
 	UT_ASSERTeq(ret, 0);
-
 
 	while (1) {
 		ret = rpmemd_obc_process(obc, &REQ, &arg);

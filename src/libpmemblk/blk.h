@@ -101,7 +101,6 @@ struct pmemblk {
 /* data area starts at this alignment after the struct pmemblk above */
 #define BLK_FORMAT_DATA_ALIGN ((uintptr_t)4096)
 
-
 #if FAULT_INJECTION
 void
 pmemblk_inject_fault_at(enum pmem_allocation_type type, int nth,

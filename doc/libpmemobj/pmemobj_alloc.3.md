@@ -42,7 +42,6 @@ date: pmemobj API version 2.3
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_alloc**(), **pmemobj_xalloc**(), **pmemobj_zalloc**(),
@@ -51,7 +50,6 @@ date: pmemobj API version 2.3
 **POBJ_NEW**(), **POBJ_ALLOC**(), **POBJ_ZNEW**(), **POBJ_ZALLOC**(),
 **POBJ_REALLOC**(), **POBJ_ZREALLOC**(), **POBJ_FREE**()
 - non-transactional atomic allocations
-
 
 # SYNOPSIS #
 
@@ -87,7 +85,6 @@ POBJ_REALLOC(PMEMobjpool *pop, TOID *oidp, TYPE, size_t size)
 POBJ_ZREALLOC(PMEMobjpool *pop, TOID *oidp, TYPE, size_t size)
 POBJ_FREE(TOID *oidp)
 ```
-
 
 # DESCRIPTION #
 
@@ -235,7 +232,6 @@ typed *OID* of type name *TYPE*, and passes the type number from the typed
 The **POBJ_FREE**() macro is a wrapper around the **pmemobj_free**() function
 which takes a pointer to the typed *OID* instead of to *PMEMoid*.
 
-
 # RETURN VALUE #
 
 On success, **pmemobj_alloc**() and **pmemobj_xalloc** return 0. If *oidp*
@@ -265,7 +261,6 @@ appropriately.
 
 The **pmemobj_alloc_usable_size**() function returns the number of usable bytes
 in the object represented by *oid*. If *oid* is **OID_NULL**, it returns 0.
-
 
 # SEE ALSO #
 

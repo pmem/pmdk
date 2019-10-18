@@ -34,7 +34,6 @@
 # src/test/obj_pmalloc_oom_mt/TEST0 -- unit test for pmalloc interface
 #
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type medium

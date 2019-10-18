@@ -42,18 +42,15 @@ date: pmem Tools version 1.4
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool-create** - create a persistent memory pool
-
 
 # SYNOPSIS #
 
 ```
 $ pmempool create [<options>] [<type>] [<bsize>] <file>
 ```
-
 
 # DESCRIPTION #
 
@@ -114,7 +111,6 @@ Increase verbosity level.
 
 Display help message and exit.
 
-
 ##### Options for PMEMBLK: #####
 
 By default when creating a pmem **blk** pool, the **BTT** layout is *not*
@@ -127,7 +123,6 @@ is performed to block number 0. Please refer to **libpmemblk**(7) for details.
 
 Force writing the **BTT** layout by performing *write operation* to block number zero.
 
-
 ##### Options for PMEMOBJ: #####
 
 By default when creating a pmem **obj** pool, the layout name provided to
@@ -137,7 +132,6 @@ the **libpmemobj** library is an empty string. Please refer to
 `-l, --layout <layout>`
 
 Layout name of the **pmemobj** pool.
-
 
 # EXAMPLE #
 
@@ -170,7 +164,6 @@ $ pmempool create --inherit=pool.log new_pool.log
 ```
 
 Create a pool file based on pool.log file
-
 
 # SEE ALSO #
 

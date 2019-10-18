@@ -42,12 +42,10 @@ date: pmemlog API version 1.1
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemlog_tell**(), **pmemlog_rewind**(),
 **pmemlog_walk**() - checks current write point for the log or walks through the log
-
 
 # SYNOPSIS #
 
@@ -85,14 +83,12 @@ function is called while holding **libpmemlog**(7) internal locks that make
 calls atomic, so the callback function must not try to append to the log itself
 or deadlock will occur.
 
-
 # RETURN VALUE #
 
 On success, **pmemlog_tell**() returns the current write point for the log.
 On error, it returns -1 and sets *errno* appropriately.
 
 The **pmemlog_rewind**() and **pmemlog_walk**() functions return no value.
-
 
 # SEE ALSO #
 

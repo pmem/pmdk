@@ -232,7 +232,6 @@ main(int argc, char *argv[])
 	UT_COMPILE_ERROR_ON(sizeof(struct lane_layout) !=
 		SIZEOF_LANE_V3);
 
-
 	DONE(NULL);
 }
 

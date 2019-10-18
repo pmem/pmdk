@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -53,7 +53,6 @@ check_files $DIR/pool.set1 $DIR/pool.obj1
 chmod -r $DIR/pool.set1
 
 expect_normal_exit ./libpmempool_rm$EXESUFFIX $DIR/pool.set1
-
 
 check
 

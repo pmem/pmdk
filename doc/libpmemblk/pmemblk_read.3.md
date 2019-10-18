@@ -42,12 +42,10 @@ date: pmemblk API version 1.1
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemblk_read**(), **pmemblk_write**() - read or write a block from a block
 memory pool
-
 
 # SYNOPSIS #
 
@@ -57,7 +55,6 @@ memory pool
 int pmemblk_read(PMEMblkpool *pbp, void *buf, long long blockno);
 int pmemblk_write(PMEMblkpool *pbp, const void *buf, long long blockno);
 ```
-
 
 # DESCRIPTION #
 
@@ -70,7 +67,6 @@ The **pmemblk_write**() function writes a block from *buf* to block number
 reads and writes. In addition, the write cannot be torn by program failure or
 system crash; on recovery the block is guaranteed to contain either the old
 data or the new data, never a mixture of both.
-
 
 # RETURN VALUE #
 

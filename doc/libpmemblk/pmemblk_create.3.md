@@ -42,13 +42,11 @@ date: pmemblk API version 1.1
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 _UW(pmemblk_create), _UW(pmemblk_open),
 **pmemblk_close**(), _UW(pmemblk_check)
 - create, open, close and validate block pool
-
 
 # SYNOPSIS #
 
@@ -63,7 +61,6 @@ _UWFUNCR1(int, pmemblk_check, *path, size_t bsize)
 ```
 
 _UNICODE()
-
 
 # DESCRIPTION #
 
@@ -141,7 +138,6 @@ HANDLING** section in **libpmemblk**(7). _UW(pmemblk_check) opens the given
 *path* read-only so it never makes any changes to the file. This function is
 not supported on Device DAX.
 
-
 # RETURN VALUE #
 
 On success, _UW(pmemblk_create) returns a *PMEMblkpool\** handle to the block
@@ -170,12 +166,10 @@ and does not match the block size given when the pool was created. If the
 consistency check cannot be performed, _UW(pmemblk_check) returns -1 and sets
 *errno* appropriately.
 
-
 # CAVEATS #
 
 Not all file systems support **posix_fallocate**(3). _UW(pmemblk_create) will
 fail if the underlying file system does not support **posix_fallocate**(3).
-
 
 # SEE ALSO #
 **pmempool**(1), **creat**(2), **pmemblk_nblock**(3),

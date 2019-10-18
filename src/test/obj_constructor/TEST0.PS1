@@ -35,7 +35,6 @@
 # obj_constructor/TEST0 -- test for obj_constructor
 #
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type medium

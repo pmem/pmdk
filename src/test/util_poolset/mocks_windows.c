@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -90,7 +90,6 @@ FUNC_MOCK_RUN_DEFAULT {
 	return _FUNC_REAL(pmem_is_pmem)(addr, len);
 }
 FUNC_MOCK_END
-
 
 /*
  * On Windows libpmem is statically linked to util_poolset test, but we

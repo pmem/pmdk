@@ -46,11 +46,9 @@ date: rpmemd version 1.4
 [PERSISTENCY METHODS](#persistency-methods)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **rpmemd** - librpmem target node process (EXPERIMENTAL)
-
 
 # SYNOPSIS #
 
@@ -58,13 +56,11 @@ date: rpmemd version 1.4
 $ rpmemd [--help] [--version] [<args>]
 ```
 
-
 # DESCRIPTION #
 
 The **rpmemd** process is executed on target node by **librpmem**(7) library over
 **ssh**(1) and facilitates access to persistent memory over RDMA. The **rpmemd**
 should not be run manually under normal conditions.
-
 
 # OPTIONS #
 
@@ -157,7 +153,6 @@ The allowed options are:
 The **$HOME** sub-string in the *poolset-dir* path is replaced with the current user
 home directory.
 
-
 # EXAMPLE #
 
 Example of the configuration file:
@@ -172,7 +167,6 @@ use-syslog = no # Use log file instead of syslog
 log-level = info
 ```
 
-
 # DEFAULT CONFIGURATION #
 
 The **rpmemd** default configuration is equivalent of the following
@@ -186,7 +180,6 @@ persist-general = yes
 use-syslog = yes
 log-level = err
 ```
-
 
 # PERSISTENCY METHODS #
 
@@ -229,7 +222,6 @@ If the pool set is NOT stored in the persistent momory it will use
 **pmem_msync**(3).
 
 See **pmem_persist**(3) and **pmem_msync**(3) for more details.
-
 
 # SEE ALSO #
 

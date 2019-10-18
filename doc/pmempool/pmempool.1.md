@@ -43,11 +43,9 @@ date: pmem Tools version 1.4
 [COMMANDS](#commands)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool** - Persistent Memory Pool Management Tool
-
 
 # SYNOPSIS #
 
@@ -70,7 +68,6 @@ The **pmempool** may be useful for troubleshooting by system administrators
 and for software developers who work on applications based on **PMDK**.
 The latter may find these tools useful for testing and debugging purposes also.
 
-
 # OPTIONS #
 
 `-V, --version`
@@ -80,7 +77,6 @@ Prints the version of **pmempool**.
 `-h, --help`
 
 Prints synopsis and list of commands.
-
 
 # COMMANDS #
 
@@ -114,7 +110,6 @@ Modifies internal structure of a poolset.
 Toggle or query a poolset features.
 
 In order to get more information about specific *command* you can use **pmempool help <command>.**
-
 
 # SEE ALSO #
 

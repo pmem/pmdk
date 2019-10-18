@@ -1072,7 +1072,6 @@ pmemspoil_process_bttdevice(struct pmemspoil *psp,
 	return PROCESS_RET;
 }
 
-
 /*
  * pmemspoil_process_pmemlog -- process pmemlog fields
  */

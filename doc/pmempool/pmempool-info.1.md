@@ -44,18 +44,15 @@ date: pmem Tools version 1.4
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool-info** - show information about persistent memory pool
-
 
 # SYNOPSIS #
 
 ```
 $ pmempool info [<options>] <file>
 ```
-
 
 # DESCRIPTION #
 
@@ -152,14 +149,12 @@ Print bad blocks found in the pool.
 
 Display help message and exit.
 
-
 ##### Options for PMEMLOG: #####
 
 `-w, --walk <size>`
 
 Use this option to walk through used data with fixed data chunk size.
 See **pmemlog_walk**(3) in **libpmemlog**(7) for details.
-
 
 ##### Options for PMEMBLK: #####
 
@@ -201,7 +196,6 @@ Skip blocks marked with *error* flag.
 `-u, --skip-no-flag`
 
 Skip blocks *not* marked with any flag.
-
 
 ##### Options for PMEMOBJ: #####
 
@@ -287,7 +281,6 @@ This option requires **-H, --heap** and **-C, --chunks** options.
 
 Print information from *\<num\>* replica. The 0 value means the master pool file.
 
-
 # RANGE #
 
 Using **-r, --range** option it is possible to dump only a range of user data.
@@ -311,7 +304,6 @@ All blocks/bytes/data chunks starting from *\<first\>* will be dumped.
 
 Only *\<number\>* block/byte/data chunk will be dumped.
 
-
 # STATISTICS #
 
 Below is the description of statistical measures for specific pool types.
@@ -321,7 +313,6 @@ Below is the description of statistical measures for specific pool types.
 + **Total** - Total space in pool.
 + **Available** - Size and percentage of available space.
 + **Used** - Size and percentage of used space.
-
 
 ##### PMEMBLK #####
 
@@ -334,7 +325,6 @@ Below is the description of statistical measures for specific pool types.
 In case of pmemblk, statistics are evaluated for blocks which meet requirements regarding:
 *range* of blocks (**-r** option),
 *skipped* types of blocks (**-z**, **-e**, **-u** options).
-
 
 ##### PMEMOBJ #####
 
@@ -362,7 +352,6 @@ In case of pmemblk, statistics are evaluated for blocks which meet requirements 
   + **Total bytes** - Total number of bytes of all classes.
   + **Total used bytes** - Total number of used bytes of all classes.
 
-
 # EXAMPLE #
 
 ```
@@ -389,7 +378,6 @@ $ pmempool info -d -r10-100 -eu ./pmemblk
 
 Print information from "pmemblk" file. Dump data blocks from 10 to 100,
 skip blocks marked with error flag and not marked with any flag.
-
 
 # SEE ALSO #
 

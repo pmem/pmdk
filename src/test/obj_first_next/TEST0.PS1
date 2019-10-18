@@ -34,7 +34,6 @@
 # src/test/obj_first_next/TEST0 -- unit test for POBJ_NEXT macro
 #
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type medium

@@ -43,7 +43,6 @@ date: pmemobj API version 2.3
 [EXAMPLES](#examples)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_reserve**(), **pmemobj_xreserve**(), **pmemobj_defer_free**(),
@@ -51,7 +50,6 @@ date: pmemobj API version 2.3
 **pmemobj_tx_xpublish**(), **pmemobj_cancel**(), **POBJ_RESERVE_NEW**(),
 **POBJ_RESERVE_ALLOC**(), **POBJ_XRESERVE_NEW**(),**POBJ_XRESERVE_ALLOC**()
 - Delayed atomicity actions (EXPERIMENTAL)
-
 
 # SYNOPSIS #
 

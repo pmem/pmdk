@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -355,7 +355,6 @@ main(int argc, char *argv[])
 		fprintf(stderr, "usage: %s [o,c] file [val...]\n", argv[0]);
 		return 1;
 	}
-
 
 	if (plp == NULL) {
 		perror("pmemlog_create/pmemlog_open");

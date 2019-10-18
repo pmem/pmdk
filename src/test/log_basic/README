@@ -14,7 +14,6 @@ This directory contains a unit test for:
 - pmemlog_check
 - fault injection
 
-
 The program in pmemlog.c takes a file name and a list of
 operations encoded as characters as arguments. For example:
 
@@ -33,7 +32,3 @@ as described in the table below:
 	r - pmemlog_rewind
 	w - pmemlog_walk
 	n - pmemlog_nbyte
-
-
-
-

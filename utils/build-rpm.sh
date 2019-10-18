@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -127,7 +127,6 @@ do
 	esac
 done
 
-
 # check for mandatory arguments
 if [ -z "$PACKAGE_VERSION_TAG" -o -z "$SOURCE" -o -z "$WORKING_DIR" -o -z "$OUT_DIR" ]
 then
@@ -149,7 +148,6 @@ then
 	fi
 fi
 
-
 if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 	export EXTRA_CFLAGS_RELEASE="-ggdb -fno-omit-frame-pointer"
 fi
@@ -165,7 +163,6 @@ then
 	error "Can not parse version from '${PACKAGE_VERSION_TAG}'"
 	exit 1
 fi
-
 
 PACKAGE_SOURCE=${PACKAGE_NAME}-${PACKAGE_VERSION}
 SOURCE=$PACKAGE_NAME

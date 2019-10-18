@@ -46,11 +46,9 @@ date: pmemobj API version 2.3
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **libpmemobj** - persistent memory transactional object store
-
 
 # SYNOPSIS #
 
@@ -149,7 +147,6 @@ cause the process to exit. The only exception to this is the debugging
 information, when enabled, as described under **DEBUGGING AND ERROR HANDLING**,
 below.
 
-
 # LIBRARY API VERSIONING #
 
 This section describes how the library API is versioned,
@@ -183,7 +180,6 @@ the section of this manual describing the feature.
 On success, _UW(pmemobj_check_version) returns NULL. Otherwise, the return
 value is a static string describing the reason the version check failed. The
 string returned by _UW(pmemobj_check_version) must not be modified or freed.
-
 
 # MANAGING LIBRARY BEHAVIOR #
 
@@ -258,18 +254,15 @@ be appended to the file name when the log file is created. If
 See also **libpmem**(7) to get information
 about other environment variables affecting **libpmemobj** behavior.
 
-
 # EXAMPLE #
 
 See <http://pmem.io/pmdk/libpmemobj> for examples using the **libpmemobj** API.
-
 
 # ACKNOWLEDGEMENTS #
 
 **libpmemobj** builds on the persistent memory programming model recommended
 by the SNIA NVM Programming Technical Work Group:
 <http://snia.org/nvmp>
-
 
 # SEE ALSO #
 

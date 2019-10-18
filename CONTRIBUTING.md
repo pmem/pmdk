@@ -101,7 +101,6 @@ To check or format C++ files, you may use a standalone Visual Studio plugin
 for clang-format.  The plugin installer can be downloaded from
 [LLVM Builds](http://llvm.org/builds) page.
 
-
 If you are actively working on an PMDK feature, please let other
 developers know by [creating an issue](https://github.com/pmem/issues/issues).
 Use the template `Feature` and assign it to yourself (due to the way

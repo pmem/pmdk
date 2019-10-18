@@ -381,7 +381,6 @@ test_undo_large_copy(PMEMobjpool *pop, struct operation_context *ctx,
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)
 		UT_ASSERTeq(object->values[i], i + 1);
 
-
 	operation_finish(ctx, ULOG_INC_FIRST_GEN_NUM);
 
 	for (uint64_t i = 0; i < TEST_VALUES; ++i)

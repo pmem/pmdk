@@ -177,7 +177,6 @@ tx3_worker(void *arg)
 	return NULL;
 }
 
-
 static void *
 alloc_free_worker(void *arg)
 {

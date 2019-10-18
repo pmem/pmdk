@@ -106,7 +106,6 @@ There is a set of common features for all pool types and a set of features
 specific for particular pool type.
 All features are described below.
 
-
 ** Common features
 
  * The basic function of *info* command is to print information about the

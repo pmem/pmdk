@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,7 +48,6 @@ struct tree_map_node_item {
 	uint64_t key;
 	PMEMoid value;
 };
-
 
 struct tree_map_node {
 	int n; /* number of occupied slots */
@@ -101,7 +100,6 @@ btree_map_clear_node(TOID(struct tree_map_node) node)
 	TX_FREE(node);
 }
 
-
 /*
  * btree_map_clear -- removes all elements from the map
  */
@@ -121,7 +119,6 @@ btree_map_clear(PMEMobjpool *pop, TOID(struct btree_map) map)
 
 	return ret;
 }
-
 
 /*
  * btree_map_destroy -- cleanups and frees btree instance

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2017, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,7 +41,6 @@
 #include <stdbool.h>
 
 #include "rtree_map.h"
-
 
 TOID_DECLARE(struct tree_map_node, RTREE_MAP_TYPE_OFFSET + 1);
 
@@ -95,7 +94,6 @@ rtree_map_clear_node(TOID(struct tree_map_node) node)
 	TX_FREE(node);
 }
 
-
 /*
  * rtree_map_clear -- removes all elements from the map
  */
@@ -115,7 +113,6 @@ rtree_map_clear(PMEMobjpool *pop, TOID(struct rtree_map) map)
 
 	return ret;
 }
-
 
 /*
  * rtree_map_destroy -- cleanups and frees rtree instance

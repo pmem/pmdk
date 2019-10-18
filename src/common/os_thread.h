@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -167,7 +167,6 @@ int os_thread_setaffinity_np(os_thread_t *thread, size_t set_size,
 
 int os_thread_atfork(void (*prepare)(void), void (*parent)(void),
 	void (*child)(void));
-
 
 int os_semaphore_init(os_semaphore_t *sem, unsigned value);
 int os_semaphore_destroy(os_semaphore_t *sem);

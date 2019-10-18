@@ -43,13 +43,11 @@ date: rpmem API version 1.3
 [CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **rpmem_persist**(), **rpmem_deep_persist**(), **rpmem_flush**(),
 **rpmem_drain**(), **rpmem_read**()
 - functions to copy and read remote pools
-
 
 # SYNOPSIS #
 
@@ -68,7 +66,6 @@ int rpmem_drain(RPMEMpool *rpp, unsigned lane, unsigned flags);
 int rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
 	size_t length, unsigned lane);
 ```
-
 
 # DESCRIPTION #
 
@@ -127,7 +124,6 @@ the specified *lane*. The lane must be less than the value returned by
 remote pool opened or created previously by **rpmem_open**(3) or
 **rpmem_create**(3).
 
-
 # RETURN VALUE #
 
 The **rpmem_persist**() function returns 0 if the entire memory area was
@@ -146,12 +142,10 @@ appropriately.
 The **rpmem_read**() function returns 0 if the data was read entirely.
 Otherwise it returns a non-zero value and sets *errno* appropriately.
 
-
 # CAVEATS #
 
 Ordering of **rpmem_flush**() and **rpmem_persist**() operations which are using
 different *lane* values is not guaranteed.
-
 
 # SEE ALSO #
 

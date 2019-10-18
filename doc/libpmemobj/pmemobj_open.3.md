@@ -43,13 +43,11 @@ date: pmemobj API version 2.3
 [CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 _UW(pmemobj_open), _UW(pmemobj_create),
 **pmemobj_close**(), _UW(pmemobj_check)
 - create, open, close and validate persistent memory transactional object store
-
 
 # SYNOPSIS #
 
@@ -64,7 +62,6 @@ _UWFUNCR1(int, pmemobj_check, *path, const char *layout)
 ```
 
 _UNICODE()
-
 
 # DESCRIPTION #
 
@@ -178,12 +175,10 @@ as described in the **DEBUGGING AND ERROR HANDLING** section in
 **libpmemobj**(7). _UW(pmemobj_check) returns -1 and sets *errno* if it cannot
 perform the consistency check due to other errors.
 
-
 # CAVEATS #
 
 Not all file systems support **posix_fallocate**(3). _UW(pmemobj_create) will
 fail if the underlying file system does not support **posix_fallocate**(3).
-
 
 # SEE ALSO #
 

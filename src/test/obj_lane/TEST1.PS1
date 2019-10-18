@@ -34,7 +34,6 @@
 # src/test/obj_lane/TEST1 -- multithreaded unit test for lanes
 #
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type medium

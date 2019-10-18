@@ -43,13 +43,11 @@ date: rpmem API version 1.3
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **rpmem_create**(), **rpmem_open**(),
 **rpmem_set_attr**(), **rpmem_close**(), **rpmem_remove**()
 - most commonly used functions for remote access to *persistent memory*
-
 
 # SYNOPSIS #
 
@@ -66,7 +64,6 @@ int rpmem_set_attr(RPMEMpool *rpp, const struct rpmem_pool_attr *attr);
 int rpmem_close(RPMEMpool *rpp);
 int rpmem_remove(const char *target, const char *pool_set_name, int flags);
 ```
-
 
 # DESCRIPTION #
 
@@ -131,7 +128,6 @@ removed.
 + **RPMEM_REMOVE_POOL_SET** - Remove the pool *set* file after removing the
 pool described by this pool set.
 
-
 # RETURN VALUE #
 
 On success, **rpmem_create**() returns an opaque handle to the remote pool
@@ -156,7 +152,6 @@ and sets *errno* appropriately.
 On success, **rpmem_remove**() returns 0. On error, it returns a non-zero value
 and sets *errno* appropriately.
 
-
 # NOTES #
 
 ## REMOTE POOL SIZE ##
@@ -175,7 +170,6 @@ contains internal metadata. For other consequences of using the *SINGLEHDR* and
 **RPMEM_MIN_PART** and **RPMEM_MIN_POOL** in **\<librpmem.h\>** define
 the minimum size allowed by **librpmem** for a part file and a remote pool,
 respectively.
-
 
 ## LANES ##
 The term *lane* means an isolated path of execution. The underlying hardware
@@ -196,7 +190,6 @@ Each lane requires a separate connection, represented by a file descriptor.
 If the system runs out of free file descriptors during **rpmem_create**() or
 **rpmem_open**(), these functions will fail. See **nofile** in
 **limits.conf**(5) for more details.
-
 
 # SEE ALSO #
 

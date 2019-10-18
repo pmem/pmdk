@@ -50,7 +50,6 @@ struct test_obj {
 	int c;
 };
 
-
 static void
 do_tx_macro_commit(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 {

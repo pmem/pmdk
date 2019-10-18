@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -579,7 +579,6 @@ rpmem_obc_open(struct rpmem_obc *rpc,
 	RPMEM_LOG(NOTICE, "open request response received");
 
 	rpmem_ntoh_msg_open_resp(&resp);
-
 
 	if (rpmem_obc_check_open_resp(&resp))
 		goto err_msg_resp;

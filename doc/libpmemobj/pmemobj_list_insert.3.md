@@ -42,13 +42,11 @@ date: pmemobj API version 2.3
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_list_insert**(), **pmemobj_list_insert_new**(),
 **pmemobj_list_move**(), **pmemobj_list_remove**()
 - non-transactional persistent atomic lists functions
-
 
 # SYNOPSIS #
 
@@ -70,7 +68,6 @@ int pmemobj_list_move(PMEMobjpool *pop,
 int pmemobj_list_remove(PMEMobjpool *pop, size_t pe_offset,
 	void *head, PMEMoid oid, int free);
 ```
-
 
 # DESCRIPTION #
 
@@ -173,7 +170,6 @@ memory space. *pe_offset* specifies the offset of the structure that connects
 the elements in the list. Both *head* and *oid* must point to objects allocated
 from memory pool *pop* and cannot be **OID_NULL**.
 
-
 # RETURN VALUE #
 
 On success, **pmemobj_list_insert**(), **pmemobj_list_remove**() and
@@ -184,7 +180,6 @@ On success, **pmemobj_list_insert_new**() returns a handle to the newly
 allocated object. If the constructor returns a non-zero value, the allocation
 is canceled, -1 is returned, and *errno* is set to **ECANCELED**.
 On other errors, **OID_NULL** is returned and *errno* is set appropriately.
-
 
 # SEE ALSO #
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,7 +76,6 @@ main(int argc, char *argv[])
 			FATAL_USAGE(argv[0]);
 		}
 	}
-
 
 	for (int i = optind; i < argc; i++) {
 		const char *path = argv[i];

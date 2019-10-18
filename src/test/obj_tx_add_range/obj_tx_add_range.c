@@ -81,7 +81,6 @@ struct overlap_object {
 #define TEST_VALUE_1	1
 #define TEST_VALUE_2	2
 
-
 /*
  * do_tx_zalloc -- do tx allocation with specified type number
  */
@@ -347,7 +346,6 @@ do_tx_add_range_abort_after_commit(PMEMobjpool *pop)
 	for (i = 0; i < DATA_SIZE; i++)
 		UT_ASSERTeq(D_RO(obj)->data[i], TEST_VALUE_1);
 
-
 	/* 2. Do the snapshot using non-zero value. */
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_add_range(obj.oid,
@@ -449,8 +447,6 @@ do_tx_add_range_abort(PMEMobjpool *pop)
 
 	UT_ASSERTeq(D_RO(obj)->value, 0);
 }
-
-
 
 /*
  * do_tx_add_huge_range_abort -- call pmemobj_tx_add_range on a huge range and

@@ -64,5 +64,4 @@ expect_abnormal_exit ./obj_sds 1 1 $POOLSET\
 expect_abnormal_exit ./obj_sds 0 0 $POOLSET\
 					 5 0 7 0 9 0 11 0 121 0
 
-
 pass

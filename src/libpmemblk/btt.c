@@ -2004,7 +2004,6 @@ check_arena(struct btt *bttp, struct arena *arenap)
 			consistent = 0;
 		}
 
-
 	Free(bitmap);
 
 	return consistent;

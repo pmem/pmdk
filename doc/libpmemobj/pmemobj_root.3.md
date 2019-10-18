@@ -42,12 +42,10 @@ date: pmemobj API version 2.3
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_root**(), **pmemobj_root_construct**()
 **POBJ_ROOT**(), **pmemobj_root_size**() - root object management
-
 
 # SYNOPSIS #
 
@@ -60,7 +58,6 @@ PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
 POBJ_ROOT(PMEMobjpool *pop, TYPE)
 size_t pmemobj_root_size(PMEMobjpool *pop);
 ```
-
 
 # DESCRIPTION #
 
@@ -95,7 +92,6 @@ except it returns a typed *OID* value.
 The **pmemobj_root_size**() function returns the current size of the root object
 associated with the persistent memory pool *pop*.
 
-
 # RETURN VALUE #
 
 Upon success, **pmemobj_root**() returns a handle to the root object associated
@@ -119,7 +115,6 @@ The **pmemobj_root_size**() function returns the current size of the root object
 associated with the persistent memory pool *pop*. The returned size is the
 largest value requested by any of the earlier **pmemobj_root**() calls. If the
 root object has not been allocated yet, **pmemobj_root_size**() returns 0.
-
 
 # SEE ALSO #
 

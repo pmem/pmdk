@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -229,7 +229,6 @@ wmain(int argc, wchar_t *argv[])
 
 	DONEW(NULL);
 }
-
 
 /*
  * Since libpmem is linked statically, we need to invoke its ctor/dtor.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -248,7 +248,6 @@ req_cb_set_attr(struct rpmemd_obc *obc, void *arg,
 	return ret;
 }
 
-
 /*
  * REQ_CB -- request callbacks
  */
@@ -333,7 +332,6 @@ server_msg_args(struct rpmemd_obc *rpdc, enum conn_wait_close conn,
 	int ret;
 	unsigned long long types = args->types;
 	args->types = 0;
-
 
 	ret = rpmemd_obc_process(rpdc, &REQ_CB, args);
 	UT_ASSERTeq(ret, args->ret);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -161,7 +161,6 @@ do_create(const char *path, const char *layout)
 
 	pmemobj_close(pop);
 }
-
 
 /*
  * do_verify -- (internal) verify a poolset

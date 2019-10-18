@@ -42,14 +42,12 @@ date: pmem API version 1.1
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmem_memmove**(), **pmem_memcpy**(), **pmem_memset**(),
 **pmem_memmove_persist**(), **pmem_memcpy_persist**(), **pmem_memset_persist**(),
 **pmem_memmove_nodrain**(), **pmem_memcpy_nodrain**(), **pmem_memset_nodrain**()
 - functions that provide optimized copying to persistent memory
-
 
 # SYNOPSIS #
 
@@ -66,7 +64,6 @@ void *pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len);
 void *pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len);
 void *pmem_memset_nodrain(void *pmemdest, int c, size_t len);
 ```
-
 
 # DESCRIPTION #
 
@@ -162,7 +159,6 @@ details.
 
 All of the above functions return address of the destination buffer.
 
-
 # CAVEATS #
 After calling any of the functions with **PMEM_F_MEM_NODRAIN** flag you
 should not expect memory to be visible to other threads before calling
@@ -170,7 +166,6 @@ should not expect memory to be visible to other threads before calling
 x86\_64 those functions may use non-temporal store instructions, which are
 weakly ordered. See "Intel 64 and IA-32 Architectures Software Developer's Manual",
 Volume 1, "Caching of Temporal vs. Non-Temporal Data" section for details.
-
 
 # SEE ALSO #
 

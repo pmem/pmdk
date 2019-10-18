@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -105,7 +105,6 @@ obj_drain(void *ctx)
 	PMEMobjpool *pop = (PMEMobjpool *)ctx;
 	pop->drain_local();
 }
-
 
 static void *
 obj_memcpy(void *ctx, void *dest, const void *src, size_t len,
