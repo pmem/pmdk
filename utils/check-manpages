@@ -6,21 +6,6 @@
 
 MANS="$*"
 [ -n "$MANS" ] || MANS="$(find doc -name '*.1' -o -name '*.3' -o -name '*.5' -o -name '*.7')"
-[ -n "$MANS" ] || echo >&2 "No man pages given, and none found in doc/"
+[ -n "$MANS" ] || { echo >&2 "No man pages given, and none found in doc/"; exit 1;}
 
-for m in $MANS; do
-	if grep -q '^\.SH NAME' "$m"; then
-		if ! lexgrog "$m" >/dev/null; then
-			echo 2>&1 "lexgrog failed on $m"
-			FAILED=1
-		fi
-	fi
-
-	err=`MANWIDTH=80 man --warnings -E UTF-8 -l -Tutf8 -Z "$m" 2>&1 >/dev/null`
-	[ -z "$err" ] || {
-		echo "$err" >&2
-		FAILED=1
-	}
-done
-
-exit $FAILED
+echo "$MANS"|xargs -P `nproc` -n1 -- utils/check-manpage

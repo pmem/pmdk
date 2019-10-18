@@ -1,0 +1,25 @@
+#!/bin/bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2019, Intel Corporation
+
+for m in "$@"; do
+	dir="$(dirname $m)"
+	file="$(basename $m)"
+	# system-installed version is preferred otherwise for .so links
+	[ -n "$dir" ] && pushd "$dir" >/dev/null
+	err=$(MANWIDTH=80 man --warnings -E UTF-8 -l -Tutf8 -Z "$file" 2>&1 >/dev/null)
+	[ -z "$err" ] || {
+		echo >&2 "$file: $err"
+		FAILED=1
+	}
+
+	if grep -q '^\.SH NAME' "$file"; then
+		if ! lexgrog "$file" >/dev/null; then
+			echo 2>&1 "lexgrog failed on $file"
+			FAILED=1
+		fi
+	fi
+	popd >/dev/null 2>/dev/null
+done
+
+exit $FAILED
