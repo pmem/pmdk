@@ -31,12 +31,23 @@
  */
 
 /*
- * pmem2_utils.h -- libpmem2 utilities functions
+ * config.h -- internal definitions for pmem2_config
  */
+#ifndef PMEM2_CONFIG_H
+#define PMEM2_CONFIG_H
 
-#ifndef PMEM2_UTILS_H
-#define PMEM2_UTILS_H 1
+#include "libpmem2.h"
 
-void *pmem2_malloc(size_t size, int *err);
+#define INVALID_FD (-1)
 
-#endif /* PMEM2_UTILS_H */
+struct pmem2_config {
+#ifdef _WIN32
+	HANDLE handle;
+#else
+	int fd;
+#endif
+};
+
+void config_init(struct pmem2_config *cfg);
+
+#endif /* PMEM2_CONFIG_H */

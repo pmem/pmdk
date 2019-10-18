@@ -31,12 +31,41 @@
  */
 
 /*
- * pmem2_utils.h -- libpmem2 utilities functions
+ * config_linux.c -- linux specific pmem2_config implementation
  */
+#include <errno.h>
+#include <fcntl.h>
+#include "out.h"
+#include "config.h"
 
-#ifndef PMEM2_UTILS_H
-#define PMEM2_UTILS_H 1
+/*
+ * pmem2_config_set_fd -- sets fd in config struct
+ */
+int
+pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
+{
+	if (fd < 0) {
+		cfg->fd = INVALID_FD;
+		return 0;
+	}
 
-void *pmem2_malloc(size_t size, int *err);
+	int flags = fcntl(fd, F_GETFL);
 
-#endif /* PMEM2_UTILS_H */
+	if (flags == -1) {
+		if (errno == EBADF) {
+			ERR("fd is not open file descriptor");
+			return PMEM2_E_INVALID_ARG;
+		} else {
+			ERR("!fcntl");
+			return PMEM2_E_EXTERNAL;
+		}
+	}
+
+	if ((flags & O_ACCMODE) == O_WRONLY) {
+		ERR("fd must be open with O_RDONLY or O_RDRW");
+		return PMEM2_E_INVALID_HANDLE;
+	}
+
+	cfg->fd = fd;
+	return 0;
+}

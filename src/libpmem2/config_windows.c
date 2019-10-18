@@ -31,12 +31,51 @@
  */
 
 /*
- * pmem2_utils.h -- libpmem2 utilities functions
+ * config_windows.c -- windows specific pmem2_config implementation
  */
 
-#ifndef PMEM2_UTILS_H
-#define PMEM2_UTILS_H 1
+#include <Windows.h>
+#include "libpmem2.h"
+#include "out.h"
+#include "config.h"
 
-void *pmem2_malloc(size_t size, int *err);
+/*
+ * pmem2_config_set_fd -- sets fd in config struct
+ */
+int
+pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
+{
+	if (fd < 0) {
+		cfg->handle = INVALID_HANDLE_VALUE;
+		return 0;
+	}
+	HANDLE handle = (HANDLE)_get_osfhandle(fd);
 
-#endif /* PMEM2_UTILS_H */
+	if (handle == INVALID_HANDLE_VALUE) {
+		ERR("fd is not open file descriptor");
+		return PMEM2_E_INVALID_ARG;
+	}
+
+	return pmem2_config_set_handle(cfg, handle);
+}
+
+/*
+ * pmem2_config_set_handle -- convert fd to handle
+ */
+int
+pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
+{
+	if (handle == INVALID_HANDLE_VALUE) {
+		cfg->handle = INVALID_HANDLE_VALUE;
+		return 0;
+	}
+
+	BY_HANDLE_FILE_INFORMATION not_used;
+	if (!GetFileInformationByHandle(handle, &not_used)) {
+		ERR("HANDLE is invalid");
+		return PMEM2_E_INVALID_ARG;
+	}
+	/* XXX: winapi doesn't provide option to get open flags from HANDLE */
+	cfg->handle = handle;
+	return 0;
+}
