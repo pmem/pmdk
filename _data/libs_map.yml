@@ -22,8 +22,15 @@
   pmem_msync: pmem_flush.3
   pmem_persist: pmem_flush.3
   pmem_unmap: pmem_is_pmem.3
-- libpmem2: pmem2_errormsg.3
+- libpmem2: pmem2_config.3 pmem2_config_delete.3 pmem2_config_new.3 pmem2_config_set_fd.3 pmem2_config_set_handle.3 pmem2_errormsg.3 pmem2_map.3 pmem2_mapping.3
+  pmem2_config: pmem2_config.3
+  pmem2_config_delete: pmem2_config.3
+  pmem2_config_new: pmem2_config.3
+  pmem2_config_set_fd: pmem2_config.3
+  pmem2_config_set_handle: pmem2_config.3
   pmem2_errormsg: pmem2_errormsg.3
+  pmem2_map: pmem2_mapping.3
+  pmem2_mapping: pmem2_mapping.3
 - libpmemblk: pmemblk_bsize.3 pmemblk_check.3 pmemblk_check_version.3 pmemblk_close.3 pmemblk_create.3 pmemblk_ctl_exec.3 pmemblk_ctl_get.3 pmemblk_ctl_set.3 pmemblk_errormsg.3 pmemblk_nblock.3 pmemblk_open.3 pmemblk_read.3 pmemblk_set_error.3 pmemblk_set_funcs.3 pmemblk_set_zero.3 pmemblk_write.3
   pmemblk_bsize: pmemblk_bsize.3
   pmemblk_check: pmemblk_create.3
