@@ -36,6 +36,8 @@
 #ifndef PMEM2_CONFIG_H
 #define PMEM2_CONFIG_H
 
+#include <stdbool.h>
+
 #include "libpmem2.h"
 
 #define INVALID_FD (-1)
@@ -46,8 +48,16 @@ struct pmem2_config {
 #else
 	int fd;
 #endif
+	/* indicates fd / handle is owned by the user */
+	bool user_owned_fd;
 };
 
-void config_init(struct pmem2_config *cfg);
+void pmem2_config_init(struct pmem2_config *cfg);
+
+int pmem2_config_fd_dup(struct pmem2_config *dst,
+		const struct pmem2_config *src);
+int pmem2_config_fd_close(struct pmem2_config *cfg);
+
+int pmem2_config_dup(struct pmem2_config **dst, const struct pmem2_config *src);
 
 #endif /* PMEM2_CONFIG_H */

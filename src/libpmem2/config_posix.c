@@ -35,6 +35,9 @@
  */
 #include <errno.h>
 #include <fcntl.h>
+#include <stdbool.h>
+#include <unistd.h>
+
 #include "out.h"
 #include "config.h"
 
@@ -68,4 +71,55 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 
 	cfg->fd = fd;
 	return 0;
+}
+
+/*
+ * pmem2_config_fd_dup -- duplicate the file descriptor from src to dst
+ */
+int
+pmem2_config_fd_dup(struct pmem2_config *dst, const struct pmem2_config *src)
+{
+	/* the destination fd has to be invalid */
+	ASSERTeq(dst->fd, INVALID_FD);
+
+	/* do not duplicate an invalid file descriptor */
+	if (src->fd == INVALID_FD) {
+		dst->fd = INVALID_FD;
+		return PMEM2_E_OK;
+	}
+
+	int newfd = dup(src->fd);
+
+	if (newfd == -1) {
+		ERR("!dup");
+		return PMEM2_E_EXTERNAL;
+	}
+
+	dst->fd = newfd;
+	dst->user_owned_fd = false;
+
+	return PMEM2_E_OK;
+}
+
+/*
+ * pmem2_config_fd_close - close the duplicated file descriptor
+ * For the user-owned file descriptor, it is NOP.
+ */
+int
+pmem2_config_fd_close(struct pmem2_config *cfg)
+{
+	if (cfg->user_owned_fd)
+		return PMEM2_E_OK;
+
+	if (cfg->fd == INVALID_FD)
+		return PMEM2_E_OK;
+
+	if (close(cfg->fd)) {
+		ERR("!close");
+		return PMEM2_E_EXTERNAL;
+	}
+
+	cfg->fd = INVALID_FD;
+
+	return PMEM2_E_OK;
 }

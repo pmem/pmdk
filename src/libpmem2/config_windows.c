@@ -35,6 +35,8 @@
  */
 
 #include <Windows.h>
+#include <stdbool.h>
+
 #include "libpmem2.h"
 #include "out.h"
 #include "config.h"
@@ -78,4 +80,62 @@ pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
 	/* XXX: winapi doesn't provide option to get open flags from HANDLE */
 	cfg->handle = handle;
 	return 0;
+}
+
+/*
+ * pmem2_config_fd_dup -- duplicate the file handle from src to dst
+ */
+int
+pmem2_config_fd_dup(struct pmem2_config *dst, const struct pmem2_config *src)
+{
+	/* the destination handle has to be invalid */
+	ASSERTeq(dst->handle, INVALID_HANDLE_VALUE);
+
+	/* do not duplicate an invalid file handle */
+	if (src->handle == INVALID_HANDLE_VALUE) {
+		dst->handle = INVALID_HANDLE_VALUE;
+		return PMEM2_E_OK;
+	}
+
+	HANDLE newfh;
+
+	HANDLE ph = GetCurrentProcess();
+	BOOL succeeded = DuplicateHandle(ph,
+		src->handle,
+		ph,
+		&newfh,
+		0,
+		FALSE,
+		DUPLICATE_SAME_ACCESS);
+
+	if (!succeeded) {
+		ERR("DuplicateHandle, error: 0x%08x", GetLastError());
+		return PMEM2_E_EXTERNAL;
+	}
+
+	dst->handle = newfh;
+	dst->user_owned_fd = false;
+
+	return PMEM2_E_OK;
+}
+
+/*
+ * pmem2_config_fd_close - close the duplicated file handle
+ * For the user-owned file descriptor, it is NOP.
+ */
+int
+pmem2_config_fd_close(struct pmem2_config *cfg)
+{
+	if (cfg->user_owned_fd)
+		return PMEM2_E_OK;
+
+	if (cfg->handle == INVALID_HANDLE_VALUE)
+		return PMEM2_E_OK;
+
+	if (!CloseHandle(cfg->handle)) {
+		ERR("CloseHandle, error: 0x%08x", GetLastError());
+		return PMEM2_E_EXTERNAL;
+	}
+
+	return PMEM2_E_OK;
 }
