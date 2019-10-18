@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -149,7 +149,6 @@ main(int argc, char *argv[])
 	common_fini();
 	DONE(NULL);
 }
-
 
 FUNC_MOCK(os_dimm_uid, int, const char *path, char *uid, size_t *len, ...)
 FUNC_MOCK_RUN_DEFAULT {

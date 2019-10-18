@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -262,7 +262,6 @@ test_many_sets(PMEMobjpool *pop, size_t n)
 	pmemobj_free(&oid);
 	FREE(act);
 }
-
 
 int
 main(int argc, char *argv[])

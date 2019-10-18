@@ -1,6 +1,7 @@
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
  * Copyright 2012, Armon Dadgar. All rights reserved.
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -190,7 +191,6 @@ typedef struct _cb_data {
     D_RW(_obj)->len = _len; \
     TX_MEMCPY(D_RW(_obj)->s, _blob, _len); \
     D_RW(_obj)->s[(_len) - 1] = '\0';
-
 
 typedef int(*art_callback)(void *data,
 		const unsigned char *key, uint32_t key_len,

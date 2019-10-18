@@ -628,7 +628,6 @@ pmemblk_openW(const wchar_t *path, size_t bsize)
 }
 #endif
 
-
 /*
  * pmemblk_close -- close a block memory pool
  */

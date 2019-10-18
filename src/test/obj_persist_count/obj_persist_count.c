@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -381,7 +381,6 @@ main(int argc, char *argv[])
 		"pmem_memset_drain",
 		"potential_cache_misses");
 
-
 	print_reset_counters("pool_create", 0);
 
 	/* allocate one structure to create a run */
@@ -479,7 +478,6 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
-
 
 #ifdef _MSC_VER
 /*

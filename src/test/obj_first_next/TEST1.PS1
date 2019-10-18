@@ -36,7 +36,6 @@
 # Returns first object on the proper list
 #
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type medium

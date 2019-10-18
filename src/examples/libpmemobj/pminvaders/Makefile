@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2016, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -52,7 +52,6 @@ LIBS += $(shell $(PKG_CONFIG) --libs ncurses)
 endif
 
 include ../../Makefile.inc
-
 
 pminvaders: pminvaders.o
 pminvaders2: pminvaders2.o

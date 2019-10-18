@@ -1042,7 +1042,6 @@ ut_toUTF16(const char *wstr)
 }
 #endif
 
-
 /*
  * ut_strtoi -- a strtoi call that cannot return error
  */

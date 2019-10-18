@@ -143,7 +143,6 @@ pmemobj_tx_xadd_range_direct(p, sizeof(*(p)), flags)
 #define TX_XADD_FIELD_DIRECT(p, field, flags)\
 pmemobj_tx_xadd_range_direct(&(p)->field, sizeof((p)->field), flags)
 
-
 #define TX_NEW(t)\
 ((TOID(t))pmemobj_tx_alloc(sizeof(t), TOID_TYPE_NUM(t)))
 

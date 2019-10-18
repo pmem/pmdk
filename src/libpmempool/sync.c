@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1371,7 +1371,6 @@ update_remote_headers(struct pool_set *set)
 	return 0;
 }
 
-
 /*
  * update_uuids -- (internal) set all uuids that might have changed or be unset
  *                 after recreating parts
@@ -1494,7 +1493,6 @@ create_remote_replicas(struct pool_set *set,
 
 	return 0;
 }
-
 
 /*
  * sync_replica -- synchronize data across replicas within a poolset

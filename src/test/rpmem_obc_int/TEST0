@@ -36,7 +36,6 @@
 # rpmemd_obc modules
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

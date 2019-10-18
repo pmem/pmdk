@@ -41,7 +41,6 @@ date: pmemobj API version 2.3
 [DESCRIPTION](#description)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_first**(), **pmemobj_next**(),
@@ -50,7 +49,6 @@ date: pmemobj API version 2.3
 **POBJ_FOREACH**(), **POBJ_FOREACH_SAFE**(),
 **POBJ_FOREACH_TYPE**(), **POBJ_FOREACH_SAFE_TYPE**()
 - pmemobj container operations
-
 
 # SYNOPSIS #
 
@@ -70,7 +68,6 @@ POBJ_FOREACH_SAFE(PMEMobjpool *pop, PMEMoid varoid, PMEMoid nvaroid)
 POBJ_FOREACH_TYPE(PMEMobjpool *pop, TOID var)
 POBJ_FOREACH_SAFE_TYPE(PMEMobjpool *pop, TOID var, TOID nvar)
 ```
-
 
 # DESCRIPTION #
 
@@ -124,7 +121,6 @@ is empty, **OID_NULL**.
 **pmemobj_next**() returns the next object from the pool. If the object
 referenced by *oid* is the last object in the collection, or if *oid*
 is *OID_NULL*, **pmemobj_next**() returns **OID_NULL**.
-
 
 # SEE ALSO #
 

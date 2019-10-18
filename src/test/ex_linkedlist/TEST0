@@ -35,7 +35,6 @@
 # src/test/ex_linkedlist/TEST0 -- unit test for linkedlist example
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

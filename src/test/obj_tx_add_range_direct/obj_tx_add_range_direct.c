@@ -616,7 +616,6 @@ do_tx_add_range_no_uninit_check_commit_no_flag(PMEMobjpool *pop)
 	UT_ASSERTeq(D_RO(obj)->data[256], TEST_VALUE_2);
 }
 
-
 /*
  * do_tx_xadd_range_no_uninit_check_abort -- call pmemobj_tx_range with
  * POBJ_XADD_ASSUME_INITIALIZED flag, modify the value inside aborted

@@ -56,7 +56,6 @@
 #include "libpmemlog.h"
 #include "libpmempool.h"
 
-
 #define DEFAULT_MODE	0664
 /*
  * pmempool_create -- context and args for create command

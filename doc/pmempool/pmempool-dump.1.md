@@ -43,18 +43,15 @@ date: pmem Tools version 1.4
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool-dump** - dump user data from persistent memory pool
-
 
 # SYNOPSIS #
 
 ```
 $ pmempool dump [<options>] <file>
 ```
-
 
 # DESCRIPTION #
 
@@ -92,7 +89,6 @@ Name of output file.
 
 Display help message and exit.
 
-
 # RANGE #
 
 Using **-r**, **--range** option it is possible to dump only a range of user data.
@@ -116,7 +112,6 @@ All blocks/bytes/data chunks starting from *\<first\>* will be dumped.
 
 Only *\<number\>* block/byte/data chunk will be dumped.
 
-
 # EXAMPLE #
 
 ```
@@ -137,7 +132,6 @@ $ pmempool dump -r 1K-2K pool.bin
 ```
 
 Dump data form 1K to 2K from pool.bin file.
-
 
 # SEE ALSO #
 

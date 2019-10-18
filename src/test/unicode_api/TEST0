@@ -35,7 +35,6 @@
 # src/test/unicode_api/TEST0 -- unicode C API check
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

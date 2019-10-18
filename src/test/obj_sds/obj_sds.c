@@ -89,7 +89,6 @@ main(int argc, char *argv[])
 		}
 	}
 
-
 	if (!fail)
 		pmemobj_close(pop);
 

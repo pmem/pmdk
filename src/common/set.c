@@ -1133,7 +1133,6 @@ util_replica_check_map_sync(struct pool_set *set, unsigned repidx,
 
 	int map_sync = rep->part[0].map_sync;
 
-
 	for (unsigned p = 1; p < rep->nparts; p++) {
 		if (map_sync != rep->part[p].map_sync) {
 			ERR("replica #%u part %u %smapped with MAP_SYNC",
@@ -2588,7 +2587,6 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 
 		shutdown_state_set_dirty(&hdrp->sds, rep);
 	}
-
 
 	rep->part[partidx].rdonly = 0;
 

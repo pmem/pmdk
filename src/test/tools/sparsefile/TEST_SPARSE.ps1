@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -124,7 +124,6 @@ function create_holey_file3 {
 	Write-Host -NoNewline "."
 }
 
-
 $start = epoch
 for ($i=1;$i -lt $count;$i++) {
 	remove_file $path
@@ -134,7 +133,6 @@ $end = epoch
 $t = ($end - $start) / 1000
 Write-Host "`nsparsefile: $t seconds"
 
-
 $start = epoch
 for ($i=1;$i -lt $count;$i++) {
 	remove_file $path
@@ -143,7 +141,6 @@ for ($i=1;$i -lt $count;$i++) {
 $end = epoch
 $t = ($end - $start) / 1000
 Write-Host "`npowershell + fsutil: $t seconds"
-
 
 $start = epoch
 for ($i=1;$i -lt $count;$i++) {

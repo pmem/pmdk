@@ -34,7 +34,6 @@
 # src/test/obj_ctl_config/TEST0 -- unit test for ctl configuration
 #
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type short

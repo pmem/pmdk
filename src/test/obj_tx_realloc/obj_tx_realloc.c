@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -246,7 +246,6 @@ do_tx_zrealloc_commit(PMEMobjpool *pop)
 	void *new_ptr = (void *)((uintptr_t)D_RW(obj) + old_size);
 	UT_ASSERT(util_is_zeroed(new_ptr, new_size - old_size));
 
-
 	TOID_ASSIGN(obj, POBJ_NEXT_TYPE_NUM(obj.oid));
 	UT_ASSERT(TOID_IS_NULL(obj));
 }
@@ -432,7 +431,6 @@ do_tx_realloc_alloc_abort(PMEMobjpool *pop)
 	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_ABORT_ALLOC));
 	UT_ASSERT(TOID_IS_NULL(obj));
 }
-
 
 /*
  * do_tx_root_realloc -- retrieve root inside of transaction

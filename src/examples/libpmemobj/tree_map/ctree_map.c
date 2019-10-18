@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -106,7 +106,6 @@ ctree_map_clear_node(PMEMoid p)
 	pmemobj_tx_free(p);
 }
 
-
 /*
  * ctree_map_clear -- removes all elements from the map
  */
@@ -197,7 +196,6 @@ ctree_map_insert_new(PMEMobjpool *pop, TOID(struct ctree_map) map,
 
 	return ret;
 }
-
 
 /*
  * ctree_map_insert -- inserts a new key-value pair into the map

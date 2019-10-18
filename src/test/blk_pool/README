@@ -73,7 +73,6 @@ TEST30 (fail)	existing file, file length >= min required size, bsize == 300
 		bsize matches the value from pool header
 		pool set with replica section
 
-
 - each case outputs:
 	- error, if error happened
 	- resulting file size, nblocks, mode, consistency check results

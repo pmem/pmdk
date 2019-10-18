@@ -51,12 +51,10 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_feature_query.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md \
 		libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config.3.md libpmem2/pmem2_mapping.3.md
 
-
 MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmempool-create.1.md \
 		pmempool/pmempool-check.1.md pmempool/pmempool-dump.1.md pmempool/pmempool-rm.1.md \
 		pmempool/pmempool-convert.1.md pmempool/pmempool-sync.1.md pmempool/pmempool-transform.1.md \
 		pmempool/pmempool-feature.1.md pmreorder/pmreorder.1.md
-
 
 MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmem_persist.3 pmem_msync.3 pmem_map_file.3 pmem_deep_persist.3 pmem_deep_flush.3 pmem_deep_drain.3 pmem_unmap.3 \
@@ -110,11 +108,9 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmem2_config_new.3 pmem2_config_delete.3 pmem2_config_set_fd.3 pmem2_config_set_handle.3 \
 		   pmem2_map.3
 
-
 MANPAGES_BUILDDIR = generated
 MANPAGES_WEBDIR_LINUX = web_linux
 MANPAGES_WEBDIR_WINDOWS = web_windows
-
 
 # experimental
 MANPAGES_3_MD_EXP =

@@ -203,7 +203,6 @@ main(int argc, char *argv[])
 	DONE(NULL);
 }
 
-
 #ifdef _MSC_VER
 /*
  * Since libpmemobj is linked statically, we need to invoke its ctor/dtor.

@@ -1012,7 +1012,6 @@ pocli_pmemobj_pool_by_ptr(struct pocli_ctx *ctx, struct pocli_args *args)
 	enum pocli_ret ret;
 	uint64_t offset;
 
-
 	if ((ret = pocli_args_obj(ctx, args, 1, &oid)))
 		return ret;
 	if ((ret = pocli_args_number(args, 2, &offset)))
@@ -2387,7 +2386,6 @@ main(int argc, char *argv[])
 				perror(optarg);
 				goto out;
 			}
-
 
 			break;
 		case 'p':

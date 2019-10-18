@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,6 @@
 #include <libpmemobj.h>
 #include "hashmap_tx.h"
 #include "hashmap_internal.h"
-
 
 /* layout definition */
 TOID_DECLARE(struct buckets, HASHMAP_TX_TYPE_OFFSET + 1);

@@ -294,7 +294,6 @@ out:
 	return ret;
 }
 
-
 /*
  * os_posix_fallocate -- allocate file space
  */
@@ -490,7 +489,6 @@ os_clock_gettime(int id, struct timespec *ts)
 
 	return 0;
 }
-
 
 /*
  * os_setenv -- change or add an environment variable

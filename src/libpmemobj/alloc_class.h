@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -103,7 +103,6 @@ alloc_class_new(int id, struct alloc_class_collection *ac,
 
 void alloc_class_delete(struct alloc_class_collection *ac,
 	struct alloc_class *c);
-
 
 #ifdef __cplusplus
 }

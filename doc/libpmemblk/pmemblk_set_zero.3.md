@@ -36,18 +36,15 @@ date: pmemblk API version 1.1
 
 [comment]: <> (pmemblk_set_zero.3 -- man page for block management functions)
 
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemblk_set_zero**(), **pmemblk_set_error**() - block management functions
-
 
 # SYNOPSIS #
 
@@ -57,7 +54,6 @@ date: pmemblk API version 1.1
 int pmemblk_set_zero(PMEMblkpool *pbp, long long blockno);
 int pmemblk_set_error(PMEMblkpool *pbp, long long blockno);
 ```
-
 
 # DESCRIPTION #
 
@@ -75,7 +71,6 @@ Writing the block clears the error state and returns the block to normal use.
 
 On success,  **pmemblk_set_zero**() and **pmemblk_set_error**() return 0.
 On error, they return -1 and set *errno* appropriately.
-
 
 # SEE ALSO #
 

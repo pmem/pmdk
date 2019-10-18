@@ -1024,7 +1024,6 @@ function setup {
 
     $Script:DIR = $DIR + "\" + $Env:DIRSUFFIX + "\" + $curtestdir + $Env:UNITTEST_NUM + $Env:SUFFIX
 
-
     # test type must be explicitly specified
     if ($req_test_type -ne "1") {
         fatal "error: required test type is not specified"
@@ -1170,7 +1169,6 @@ if (-Not $Env:UNITTEST_NAME) {
 
 $Global:REAL_FS = $Env:FS
 
-
 # choose based on FS env variable
 switch ($Env:FS) {
     'pmem' {
@@ -1214,7 +1212,6 @@ switch ($Env:FS) {
         fatal "${Env:UNITTEST_NAME}: SKIP fs-type $Env:FS (not configured)"
     }
 } # switch
-
 
 # Length of pool file's signature
 sv -Name SIG_LEN 8

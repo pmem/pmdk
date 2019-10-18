@@ -40,7 +40,6 @@
  * cause latency (ie, better worst case behaviour).
  */
 
-
 /*
  * STRUCTURE DESCRIPTION
  *

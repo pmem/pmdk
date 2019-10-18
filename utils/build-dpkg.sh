@@ -117,14 +117,12 @@ do
 	esac
 done
 
-
 # check for mandatory arguments
 if [ -z "$PACKAGE_VERSION_TAG" -o -z "$SOURCE" -o -z "$WORKING_DIR" -o -z "$OUT_DIR" ]
 then
 	error "Mandatory arguments missing"
 	usage
 fi
-
 
 PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
@@ -287,7 +285,6 @@ Description: daxio utility
  a device.
 EOF
 }
-
 
 if [ "${BUILD_PACKAGE_CHECK}" == "y" ]
 then
@@ -777,7 +774,6 @@ then
 	append_daxio_control;
 	daxio_install_triggers_overrides;
 fi
-
 
 # Convert ChangeLog to debian format
 CHANGELOG_TMP=changelog.tmp

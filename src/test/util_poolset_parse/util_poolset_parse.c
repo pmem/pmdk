@@ -91,8 +91,6 @@ main(int argc, char *argv[])
 		CLOSE(fd);
 	}
 
-
-
 	common_fini();
 
 	DONE(NULL);

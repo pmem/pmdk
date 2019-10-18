@@ -35,7 +35,6 @@
 # src/test/rpmem_fip/TEST2 -- tests for rpmem_fip and rpmemd_fip modules
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium
