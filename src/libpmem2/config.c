@@ -34,6 +34,7 @@
  * config.c -- pmem2_config implementation
  */
 
+#include <stdbool.h>
 #include <unistd.h>
 #include "alloc.h"
 #include "config.h"
@@ -43,43 +44,96 @@
 #include "pmem2_utils.h"
 
 /*
- * config_init -- (internal) initialize cfg structure.
+ * pmem2_config_malloc -- (internal) allocates cfg structure
+ */
+static struct pmem2_config *
+pmem2_config_malloc(int *ret)
+{
+	struct pmem2_config *cfg = pmem2_malloc(sizeof(*cfg), ret);
+	if (*ret)
+		return NULL;
+
+	ASSERTne(cfg, NULL);
+
+	return cfg;
+}
+
+/*
+ * pmem2_config_init -- initialize cfg structure
  */
 void
-config_init(struct pmem2_config *cfg)
+pmem2_config_init(struct pmem2_config *cfg)
 {
 #ifdef _WIN32
 	cfg->handle = INVALID_HANDLE_VALUE;
 #else
 	cfg->fd = INVALID_FD;
 #endif
+	cfg->user_owned_fd = true;
 }
 
 /*
- * pmem2_config_new -- allocates and initialize cfg structure.
+ * pmem2_config_new -- allocates and initialize cfg structure
  */
 int
 pmem2_config_new(struct pmem2_config **cfg)
 {
 	int ret;
-	*cfg = pmem2_malloc(sizeof(**cfg), &ret);
-
+	*cfg = pmem2_config_malloc(&ret);
 	if (ret)
 		return ret;
 
-	ASSERTne(cfg, NULL);
+	pmem2_config_init(*cfg);
 
-	config_init(*cfg);
 	return 0;
 }
 
 /*
- * pmem2_config_delete -- dealocate cfg structure.
+ * pmem2_config_delete -- deallocate cfg structure
  */
 int
 pmem2_config_delete(struct pmem2_config **cfg)
 {
+	if (cfg && (*cfg) && (!(*cfg)->user_owned_fd)) {
+		int ret = pmem2_config_fd_close(*cfg);
+		if (ret)
+			return ret;
+	}
+
 	Free(*cfg);
 	*cfg = NULL;
+
 	return 0;
+}
+
+/*
+ * pmem2_config_dup -- duplicates cfg structure
+ */
+int
+pmem2_config_dup(struct pmem2_config **dst, const struct pmem2_config *src)
+{
+	int ret;
+	struct pmem2_config *cfg = pmem2_config_malloc(&ret);
+	if (ret)
+		goto err_malloc;
+
+	/* initialize */
+	pmem2_config_init(cfg);
+
+	/* copy the content here */
+
+	/* duplicate fd / file handle */
+	ret = pmem2_config_fd_dup(cfg, src);
+	if (ret)
+		goto err_file_dup;
+
+	*dst = cfg;
+
+	return 0;
+
+err_file_dup:
+	free(cfg);
+err_malloc:
+	*dst = NULL;
+	return ret;
 }
