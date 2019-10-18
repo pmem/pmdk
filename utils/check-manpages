@@ -12,8 +12,15 @@ for m in $MANS; do
 	if grep -q '^\.SH NAME' "$m"; then
 		if ! lexgrog "$m" >/dev/null; then
 			echo 2>&1 "lexgrog failed on $m"
+			FAILED=1
 		fi
 	fi
 
-	MANWIDTH=80 man --warnings -E UTF-8 -l -Tutf8 -Z "$m" >/dev/null
+	err=`MANWIDTH=80 man --warnings -E UTF-8 -l -Tutf8 -Z "$m" 2>&1 >/dev/null`
+	[ -z "$err" ] || {
+		echo "$err" >&2
+		FAILED=1
+	}
 done
+
+exit $FAILED
