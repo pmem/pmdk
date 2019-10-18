@@ -48,6 +48,14 @@ struct pmem2_config {
 #endif
 };
 
-void config_init(struct pmem2_config *cfg);
+void pmem2_config_init(struct pmem2_config *cfg);
+
+int pmem2_config_file_dup(struct pmem2_config *dst,
+		const struct pmem2_config *src);
+int pmem2_config_file_dup_close(struct pmem2_config *cfg);
+
+int pmem2_config_dup(struct pmem2_config **dst, const struct pmem2_config *src);
+int pmem2_config_dup_delete(struct pmem2_config **cfg);
+
 
 #endif /* PMEM2_CONFIG_H */

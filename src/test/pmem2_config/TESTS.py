@@ -73,3 +73,11 @@ class TEST6(PMEM2_CONFIG):
 class TEST7(PMEM2_CONFIG):
     """deleting null pmem2_config"""
     test_case = "delete_null_config"
+
+class TEST8(PMEM2_CONFIG):
+    """duplicate an empty pmem2_config"""
+    test_case = "duplicate_empty_config"
+
+class TEST9(PMEM2_CONFIG):
+    """duplicate a valid pmem2_config"""
+    test_case = "duplicate_valid_config"

@@ -54,6 +54,39 @@ verify_fd(struct pmem2_config *cfg, int fd)
 }
 
 /*
+ * fd_cmp -- compare fd / handles
+ */
+static void
+fd_cmp(struct pmem2_config *a, struct pmem2_config *b)
+{
+#ifdef WIN32
+	if (a->handle == INVALID_HANDLE_VALUE)
+		UT_ASSERTeq(a->handle, b->handle);
+	else
+		UT_ASSERT(CompareObjectHandles(a->handle, b->handle) == TRUE);
+#else
+	struct stat a_stat, b_stat;
+	if (a->fd == INVALID_FD)
+		UT_ASSERTeq(a->fd, b->fd);
+	else {
+		UT_ASSERTeq(fstat(a->fd, &a_stat), 0);
+		UT_ASSERTeq(fstat(b->fd, &b_stat), 0);
+		UT_ASSERTeq(a_stat.st_dev, b_stat.st_dev);
+		UT_ASSERTeq(a_stat.st_ino, b_stat.st_ino);
+	}
+#endif
+}
+
+/*
+ * config_cmp -- verify if a and b are duplicates
+ */
+static void
+config_cmp(struct pmem2_config *a, struct pmem2_config *b)
+{
+	fd_cmp(a, b);
+}
+
+/*
  * test_cfg_create_and_delete_valid - test pmem2_config allocation
  */
 static void
@@ -62,12 +95,12 @@ test_cfg_create_and_delete_valid(const char *unused)
 	struct pmem2_config *cfg;
 
 	int ret = pmem2_config_new(&cfg);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	UT_ASSERTne(cfg, NULL);
 	verify_fd(cfg, INVALID_FD);
 
 	ret = pmem2_config_delete(&cfg);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	UT_ASSERTeq(cfg, NULL);
 
 }
@@ -79,11 +112,11 @@ static void
 test_set_rw_fd(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	int fd = OPEN(file, O_RDWR);
 
 	int ret = pmem2_config_set_fd(&cfg, fd);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	verify_fd(&cfg, fd);
 
 	CLOSE(fd);
@@ -96,11 +129,11 @@ static void
 test_set_ro_fd(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	int fd = OPEN(file, O_RDONLY);
 
 	int ret = pmem2_config_set_fd(&cfg, fd);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	verify_fd(&cfg, fd);
 
 	CLOSE(fd);
@@ -113,10 +146,10 @@ static void
 test_set_negative_fd(const char *unused)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	/* randomly picked negative number */
 	int ret = pmem2_config_set_fd(&cfg, -42);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	verify_fd(&cfg, INVALID_FD);
 }
 
@@ -127,7 +160,7 @@ static void
 test_set_invalid_fd(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	/* open and close the file to get invalid fd */
 	int fd = OPEN(file, O_WRONLY);
 	CLOSE(fd);
@@ -144,13 +177,13 @@ static void
 test_set_wronly_fd(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	int fd = OPEN(file, O_WRONLY);
 
 	int ret = pmem2_config_set_fd(&cfg, fd);
 #ifdef _WIN32
 	/* windows doesn't validate open flags */
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	verify_fd(&cfg, fd);
 #else
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_HANDLE);
@@ -186,8 +219,56 @@ test_delete_null_config(const char *unused)
 	struct pmem2_config *cfg = NULL;
 	/* should not crash */
 	int ret = pmem2_config_delete(&cfg);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	UT_ASSERTeq(cfg, NULL);
+}
+
+/*
+ * test_duplicate_empty_config -- test pmem2_config_dup on empty config
+ */
+static void
+test_duplicate_empty_config(const char *unused)
+{
+	struct pmem2_config src, *dup;
+	pmem2_config_init(&src);
+
+	int ret = pmem2_config_dup(&dup, &src);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+
+	config_cmp(dup, &src);
+
+	ret = pmem2_config_dup_delete(&dup);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_ASSERTeq(dup, NULL);
+}
+
+/*
+ * test_duplicate_valid_config -- test pmem2_config_dup on valid config
+ */
+static void
+test_duplicate_valid_config(const char *file)
+{
+	struct pmem2_config src, *dup;
+	pmem2_config_init(&src);
+	int fd = OPEN(file, O_RDWR);
+
+	/* define a valid config with fd */
+	int ret = pmem2_config_set_fd(&src, fd);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+
+	/* duplicate the valid config */
+	ret = pmem2_config_dup(&dup, &src);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+
+	/* verify the duplication process outcome */
+	config_cmp(dup, &src);
+
+	/* cleanup */
+	ret = pmem2_config_dup_delete(&dup);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_ASSERTeq(dup, NULL);
+
+	CLOSE(fd);
 }
 
 typedef void (*test_fun)(const char *file);
@@ -204,6 +285,8 @@ static struct test_list {
 	{"set_wronly_fd", test_set_wronly_fd},
 	{"alloc_cfg_enomem", test_alloc_cfg_enomem},
 	{"delete_null_config", test_delete_null_config},
+	{"duplicate_empty_config", test_duplicate_empty_config},
+	{"duplicate_valid_config", test_duplicate_valid_config},
 };
 
 int
