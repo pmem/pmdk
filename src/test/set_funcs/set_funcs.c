@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,9 +44,6 @@
 #define OBJ 0
 #define BLK 1
 #define LOG 2
-#define VMEM_ 3
-
-#define VMEM_POOLS 4
 
 
 static struct counters {
@@ -207,38 +204,6 @@ log_strdup(const char *s)
 	return test_strdup(s);
 }
 
-static void *
-_vmem_malloc(size_t size)
-{
-	cnt[VMEM_].mallocs++;
-	return test_malloc(size);
-}
-
-static void
-_vmem_free(void *ptr)
-{
-	if (ptr)
-		cnt[VMEM_].frees++;
-	test_free(ptr);
-}
-
-static void *
-_vmem_realloc(void *ptr, size_t size)
-{
-	if (ptr == NULL)
-		cnt[VMEM_].reallocs_null++;
-	else
-		cnt[VMEM_].reallocs++;
-	return test_realloc(ptr, size);
-}
-
-static char *
-_vmem_strdup(const char *s)
-{
-	cnt[VMEM_].strdups++;
-	return test_strdup(s);
-}
-
 /*
  * There are a few allocations made at first call to pmemobj_open() or
  * pmemobj_create().  They are related to some global structures
@@ -391,55 +356,6 @@ test_log(const char *path)
 	UNLINK(path);
 }
 
-static void
-test_vmem(const char *dir)
-{
-	vmem_set_funcs(_vmem_malloc, _vmem_free, _vmem_realloc, _vmem_strdup,
-			NULL);
-
-	/*
-	 * Generate ERR() call, that calls malloc() once,
-	 * but only when it is called for the first time
-	 * (free() is called in the destructor of the library).
-	 */
-	vmem_create(EXISTING_FILE, 0);
-
-	memset(cnt, 0, sizeof(cnt));
-
-	VMEM *v[VMEM_POOLS];
-	void *ptr[VMEM_POOLS];
-
-	for (int i = 0; i < VMEM_POOLS; i++) {
-		v[i] = vmem_create(dir, VMEM_MIN_POOL);
-		ptr[i] = vmem_malloc(v[i], 64);
-		vmem_free(v[i], ptr[i]);
-	}
-
-	for (int i = 0; i < VMEM_POOLS; i++)
-		vmem_delete(v[i]);
-
-	UT_OUT("vmem_mallocs: %d", cnt[VMEM_].mallocs);
-	UT_OUT("vmem_frees: %d", cnt[VMEM_].frees);
-	UT_OUT("vmem_reallocs: %d", cnt[VMEM_].reallocs);
-	UT_OUT("vmem_reallocs_null: %d", cnt[VMEM_].reallocs_null);
-	UT_OUT("vmem_strdups: %d", cnt[VMEM_].strdups);
-
-	if (cnt[VMEM_].mallocs == 0 && cnt[VMEM_].frees == 0)
-		UT_FATAL("VMEM mallocs: %d, frees: %d", cnt[VMEM_].mallocs,
-				cnt[VMEM_].frees);
-
-	for (int i = 0; i < 5; ++i) {
-		if (i == VMEM_)
-			continue;
-		if (cnt[i].mallocs || cnt[i].frees)
-			UT_FATAL("VMEM allocation used %d functions", i);
-	}
-
-	if (cnt[VMEM_].mallocs + cnt[VMEM_].strdups + cnt[VMEM_].reallocs_null
-					> cnt[VMEM_].frees + 4)
-		UT_FATAL("VMEM memory leak");
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -451,7 +367,6 @@ main(int argc, char *argv[])
 	test_obj(argv[1]);
 	test_blk(argv[1]);
 	test_log(argv[1]);
-	test_vmem(argv[2]);
 
 	DONE(NULL);
 }

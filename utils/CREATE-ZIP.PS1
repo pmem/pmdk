@@ -68,8 +68,7 @@ New-Item -ItemType directory -Path ( $zipdir) -Force | Out-Null
 New-Item -ItemType directory -Path ( $zipdir + "\bin\") -Force | Out-Null
 New-Item -ItemType directory -Path ( $zipdir + "\lib\") -Force | Out-Null
 
-$libs = @("libpmem", "libpmemblk", "libpmemlog", "libpmemobj", "libpmempool",
-    "libvmem")
+$libs = @("libpmem", "libpmemblk", "libpmemlog", "libpmemobj", "libpmempool")
 $apps = @("pmempool")
 $apps_extended =  @("pmempool", "pmemalloc", "pmemdetect", "pmemspoil", "pmemwrite")
 
@@ -97,7 +96,6 @@ Copy-Item -Recurse ($rootdir + "src\include") ($zipdir)
 Remove-Item -Force ($zipdir + "include\.cstyleignore")
 Remove-Item -Force ($zipdir + "include\README")
 Remove-Item -Force ($zipdir + "include\librpmem.h")
-Remove-Item -Force ($zipdir + "include\libvmmalloc.h")
 Copy-Item ($rootdir + "README.md") ($zipdir)
 Copy-Item ($rootdir + "LICENSE") ($zipdir)
 Copy-Item ($rootdir + "ChangeLog") ($zipdir)

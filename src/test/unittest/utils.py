@@ -34,9 +34,6 @@
 
 import sys
 
-# .so file names
-VMMALLOC = 'libvmmalloc.so.1'
-
 HEADER_SIZE = 4096
 
 #

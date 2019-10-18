@@ -1,4 +1,4 @@
-Copyright 2014-2018, Intel Corporation
+Copyright 2014-2019, Intel Corporation
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -31,9 +31,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 Everything in this source tree is covered by the previous license
 with the following exceptions:
-
-* src/jemalloc has its own (somewhat similar) license contained in
-  src/jemalloc/COPYING.
 
 * src/common/valgrind/valgrind.h, src/common/valgrind/memcheck.h,
   src/common/valgrind/helgrind.h, src/common/valgrind/drd.h are covered by

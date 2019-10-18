@@ -133,9 +133,6 @@ FILES=$($GIT $GIT_COMMAND | ${SOURCE_ROOT}/utils/check_license/file-exceptions.s
 		   -e 'LICENSE$' -e 'CMakeLists.txt$' -e '*\.cmake$' | \
 	xargs)
 
-# jemalloc.mk has to be checked always, because of the grep rules above
-FILES="$FILES src/jemalloc/jemalloc.mk"
-
 # create a license pattern file
 $CHECK_LICENSE create $LICENSE $PATTERN
 [ $? -ne 0 ] && exit 1

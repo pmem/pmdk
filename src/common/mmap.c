@@ -167,51 +167,6 @@ util_unmap(void *addr, size_t len)
 }
 
 /*
- * util_map_tmpfile -- reserve space in an unlinked file and memory-map it
- *
- * size must be multiple of page size.
- */
-void *
-util_map_tmpfile(const char *dir, size_t size, size_t req_align)
-{
-	int oerrno;
-
-	if (((os_off_t)size) < 0) {
-		ERR("invalid size (%zu) for os_off_t", size);
-		errno = EFBIG;
-		return NULL;
-	}
-
-	int fd = util_tmpfile(dir, OS_DIR_SEP_STR "vmem.XXXXXX", O_EXCL);
-	if (fd == -1) {
-		LOG(2, "cannot create temporary file in dir %s", dir);
-		goto err;
-	}
-
-	if ((errno = os_posix_fallocate(fd, 0, (os_off_t)size)) != 0) {
-		ERR("!posix_fallocate");
-		goto err;
-	}
-
-	void *base;
-	if ((base = util_map(fd, 0, size, MAP_SHARED,
-			0, req_align, NULL)) == NULL) {
-		LOG(2, "cannot mmap temporary file");
-		goto err;
-	}
-
-	(void) os_close(fd);
-	return base;
-
-err:
-	oerrno = errno;
-	if (fd != -1)
-		(void) os_close(fd);
-	errno = oerrno;
-	return NULL;
-}
-
-/*
  * util_range_ro -- set a memory range read-only
  */
 int

@@ -43,13 +43,12 @@ Available Libraries:
 
 - [libpmemlog](http://pmem.io/pmdk/libpmemlog/):  provides a pmem-resident log file.
 
-- [libvmem](http://pmem.io/pmdk/libvmem/):  turns a pool of persistent memory into a volatile memory pool, similar to the system heap but kept separate and with its own malloc-style API. It is not actively developed and is deprecated -- we recommended to use [libmemkind](https://github.com/memkind/memkind) in new code instead.
-
-- [libvmmalloc](http://pmem.io/pmdk/libvmmalloc/)<sup>1</sup>:  transparently converts all the dynamic memory allocations into persistent memory allocations. Just like libvmem, it is no longer actively developed and is deprecated.
-
 - [libpmempool](http://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
 
 - [librpmem](http://pmem.io/pmdk/librpmem/)<sup>1</sup>:  provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs.
+
+If you're looking for *libvmem* and *libvmmalloc*, they have been moved to a
+[separate repository](https://github.com/pmem/vmem).
 
 Available Utilities:
 
@@ -302,8 +301,6 @@ and UndefinedBehaviorSanitizer, run:
 ```
 	$ make SANITIZE=address,undefined clobber check
 ```
-
-The address sanitizer is not supported for libvmmalloc on FreeBSD and will be ignored.
 
 ## Building PMDK on Windows
 

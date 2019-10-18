@@ -1,4 +1,0 @@
-$(OPT)vmmalloc_fork/TEST4: START: vmmalloc_fork
-$(OPT) ./vmmalloc_fork$(nW) e 4 2
-$(OPT)vmmalloc_fork/TEST4: DONE
-$(OPX)Error (libvmmalloc): VMMALLOC_FORK value 2 not supported on FreeBSD
