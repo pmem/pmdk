@@ -1841,8 +1841,6 @@ check_uuids_between_replicas(struct pool_set *set,
 					r);
 				return -1;
 			}
-
-
 		}
 	}
 	return 0;

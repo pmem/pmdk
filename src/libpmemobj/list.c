@@ -203,7 +203,6 @@ list_set_oid_redo_log(PMEMobjpool *pop,
 	return 0;
 }
 
-
 /*
  * list_update_head -- (internal) update pe_first entry in list head
  */

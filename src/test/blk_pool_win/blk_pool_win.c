@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,7 +62,6 @@ pool_create(const wchar_t *path, size_t bsize, size_t poolsize, unsigned mode)
 				upath, stbuf.st_size,
 				pmemblk_nblock(pbp),
 				stbuf.st_mode & 0777);
-
 
 		pmemblk_close(pbp);
 

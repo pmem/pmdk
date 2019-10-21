@@ -42,11 +42,9 @@ date: pmem2 API version 1.0
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 _UW(pmem2_errormsg) - returns last error message
-
 
 # SYNOPSIS #
 
@@ -57,7 +55,6 @@ _UWFUNC(pmem2_errormsg, void)
 ```
 
 _UNICODE()
-
 
 # DESCRIPTION #
 
@@ -71,14 +68,12 @@ call to a **libpmem2**(7) function indicated an error.
 The application must not modify or free the error message string.
 Subsequent calls to other library functions may modify the previous message.
 
-
 # RETURN VALUE #
 
 The _UW(pmem2_errormsg) function returns a pointer to a static buffer
 containing the last error message logged for the current thread. If *errno*
 was set, the error message may include a description of the corresponding
 error code as returned by **strerror**(3).
-
 
 # SEE ALSO #
 

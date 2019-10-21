@@ -39,7 +39,6 @@
 
 require_test_type medium
 
-
 setup
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj $DIR/testfile

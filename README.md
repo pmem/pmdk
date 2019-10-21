@@ -74,9 +74,7 @@ Getting Started with Persistent Memory Programming is a tutorial series created 
 - Part 4: [Thinking Transactionally](https://software.intel.com/en-us/videos/thinking-transactionally-persistent-memory-programming-series)
 - Part 5: [A C++ Example](https://software.intel.com/en-us/videos/a-c-example-persistent-memory-programming-series)
 
-
 Additionally, we recommend reading [Introduction to Programming with Persistent Memory from Intel](https://software.intel.com/en-us/articles/introduction-to-programming-with-persistent-memory-from-intel)
-
 
 ## Version Conventions
 
@@ -157,7 +155,6 @@ see https://github.com/pmem/issues/issues/1039.
 
 ><sup>4</sup> The pkg version of ncurses is required for proper operation; the base version included in FreeBSD is not sufficient.
 
-
 ## Building PMDK on Linux or FreeBSD
 
 To build from source, clone this tree:
@@ -207,7 +204,6 @@ For example:
 ```
 Once make completes, all the libraries and examples are built. You can play with the library within the build tree, or install it locally on your machine. For information about running different types of tests, please refer to the [src/test/README](src/test/README).
 
-
 **Installing the library** is convenient since it installs man pages and libraries in the standard system locations:
 ```
 	(as root...)
@@ -232,7 +228,6 @@ This will install files to /tmp/usr/lib, /tmp/usr/include /tmp/usr/share/man.
 ```
 This call requires the following dependencies: **pandoc**. Pandoc is provided by the hs-pandoc package on FreeBSD.
 
-
 **Install copy of source tree** can be done by specifying the path where you want it installed.
 ```
 	$ make source DESTDIR=some_path
@@ -249,7 +244,6 @@ To build rpm packages without running tests:
 	$ make BUILD_PACKAGE_CHECK=n rpm
 ```
 This requires **rpmbuild** to be installed.
-
 
 **Build dpkg packages** on Debian-based distributions is done by:
 ```

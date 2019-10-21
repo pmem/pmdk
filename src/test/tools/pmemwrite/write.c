@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,7 +57,6 @@ struct pmemwrite
 	int nargs;	/* number of arguments */
 	char **args;	/* list of arguments */
 };
-
 
 static struct pmemwrite pmemwrite = {
 	.fname = NULL,

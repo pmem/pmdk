@@ -312,7 +312,6 @@ typedef enum {
 		_ReadWriteBarrier();\
 	} while (0)
 
-
 #define util_atomic_load_explicit32 util_atomic_load_explicit
 #define util_atomic_load_explicit64 util_atomic_load_explicit
 

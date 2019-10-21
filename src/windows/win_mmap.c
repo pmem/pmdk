@@ -283,7 +283,6 @@ mmap(void *addr, size_t len, int prot, int flags, int fd, os_off_t offset)
 		return MAP_FAILED;
 	}
 
-
 	/* XXX shall we use SEC_LARGE_PAGES flag? */
 	DWORD protect = 0;
 	DWORD access = 0;

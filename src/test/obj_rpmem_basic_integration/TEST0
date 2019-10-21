@@ -95,6 +95,4 @@ compare_replicas "-soOaAb -l -Z -H -C" \
 
 check_local
 
-
-
 pass

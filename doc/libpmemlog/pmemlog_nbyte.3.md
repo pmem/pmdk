@@ -42,11 +42,9 @@ date: pmemlog API version 1.1
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemlog_nbyte**() - checks the amount of usable space in the log pool.
-
 
 # SYNOPSIS #
 
@@ -62,11 +60,9 @@ The **pmemlog_nbyte**() function checks the amount of usable space in the log *p
 This function may be used on a log to determine how much usable space is
 available after **libpmemlog**(7) has added its metadata to the memory pool.
 
-
 # RETURN VALUE #
 
 The **pmemlog_nbyte**() function returns the amount of usable space in the log *plp*.
-
 
 # SEE ALSO #
 

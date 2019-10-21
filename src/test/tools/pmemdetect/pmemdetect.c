@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -298,7 +298,6 @@ supports_map_sync(const char *path)
 
 	if (flags & PMEM_FILE_CREATE && !(flags & PMEM_FILE_TMPFILE))
 		util_unlink(path);
-
 
 	return ret;
 }

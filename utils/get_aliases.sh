@@ -46,7 +46,6 @@
 # to handle functions and their aliases
 #
 
-
 list=("$@")
 man_child=("$@")
 

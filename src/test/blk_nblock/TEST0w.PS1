@@ -33,7 +33,6 @@
 # src/test/blk_nblock/TEST0 -- unit test for pmemblk_nblock
 #
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type medium

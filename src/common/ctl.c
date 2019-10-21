@@ -338,8 +338,6 @@ out:
 	return ret;
 }
 
-
-
 /*
  * ctl_register_module_node -- adds a new node to the CTL tree root.
  */

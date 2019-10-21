@@ -43,13 +43,11 @@ date: pmemlog API version 1.1
 [CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 _UW(pmemlog_create), _UW(pmemlog_open),
 **pmemlog_close**(), _UW(pmemlog_check)
 - create, open, close and validate persistent memory resident log file
-
 
 # SYNOPSIS #
 
@@ -63,7 +61,6 @@ _UWFUNCR(int, pmemlog_check, *path)
 ```
 
 _UNICODE()
-
 
 # DESCRIPTION #
 
@@ -130,7 +127,6 @@ indicated by *path*. _UW(pmemlog_check) opens the given *path* read-only so
 it never makes any changes to the file. This function is not supported on
 Device DAX.
 
-
 # RETURN VALUE #
 
 On success, _UW(pmemlog_create) returns a *PMEMlogpool\** handle to the
@@ -157,12 +153,10 @@ as described in the **DEBUGGING AND ERROR HANDLING** section in
 **libpmemlog**(7). _UW(pmemlog_check) will return -1 and set *errno* if it
 cannot perform the consistency check due to other errors.
 
-
 # CAVEATS #
 
 Not all file systems support **posix_fallocate**(3). _UW(pmemlog_create) will
 fail if the underlying file system does not support **posix_fallocate**(3).
-
 
 # SEE ALSO #
 

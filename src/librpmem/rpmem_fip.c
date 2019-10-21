@@ -318,7 +318,6 @@ rpmem_fip_lane_fini(struct rpmem_fip_lane *lanep)
 	if (ret)
 		lret = ret;
 
-
 	return lret;
 }
 
@@ -871,7 +870,6 @@ rpmem_fip_fini_lanes_common(struct rpmem_fip *fip)
 	free(fip->pmsg);
 	free(fip->pres);
 }
-
 
 /*
  * rpmem_fip_init_lanes_apm -- (internal) initialize lanes for APM

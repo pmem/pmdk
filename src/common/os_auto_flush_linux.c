@@ -158,7 +158,6 @@ end:
 	return cpu_cache;
 }
 
-
 /*
  * os_auto_flush -- check if platform supports auto flush for all regions
  *

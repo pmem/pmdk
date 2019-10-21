@@ -242,7 +242,6 @@ rpmem_ssh_execv(const struct rpmem_target_info *info, const char **argv)
 	if (ret)
 		goto err_run;
 
-
 	free(user_at_node);
 	free(cmd);
 

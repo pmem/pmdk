@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -52,7 +52,6 @@
 #include <libpmem.h>
 #include <libpmemobj.h>
 
-
 /*
  * Layout definition
  */
@@ -64,7 +63,6 @@ POBJ_LAYOUT_TOID(pminvaders2, struct player);
 POBJ_LAYOUT_TOID(pminvaders2, struct bullet);
 POBJ_LAYOUT_TOID(pminvaders2, struct star);
 POBJ_LAYOUT_END(pminvaders2);
-
 
 #define POOL_SIZE	(100 * 1024 * 1024) /* 100 megabytes */
 
@@ -88,7 +86,6 @@ POBJ_LAYOUT_END(pminvaders2);
 #define MAX_BULLET_TIMER 500
 #define MAX_STAR1_TIMER 200
 #define MAX_STAR2_TIMER 100
-
 
 enum game_event {
 	EVENT_NOP,

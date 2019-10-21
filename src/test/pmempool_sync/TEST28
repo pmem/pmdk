@@ -39,7 +39,6 @@
 # in the first 8kB of the pool (in the pool header) located in a DAX device.
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

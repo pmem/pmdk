@@ -34,7 +34,6 @@
 # src/test/obj_heap/TEST0 -- unit test for obj_heap interface
 #
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type medium

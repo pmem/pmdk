@@ -41,11 +41,9 @@ date: pmem_ctl API version 1.4
 [CTL EXTERNAL CONFIGURATION](#ctl-external-configuration)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 ctl - interface for examination and modification of the library's internal state.
-
 
 # DESCRIPTION #
 

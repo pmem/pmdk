@@ -34,7 +34,6 @@ The pmemspoil supports the following structures:
 	- btt_map		- BTT Map entries, see btt_layout.h for details
 	- bttdevice		- analogical to pmemblk but for BTT device
 
-
 Examples:
 
 In order to change pool_hdr's signature and start offset of pmemlog pool:

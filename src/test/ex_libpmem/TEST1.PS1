@@ -34,7 +34,6 @@
 # src/test/ex_libpmem/TEST1 -- unit test for libpmem examples
 #
 
-
 . ..\unittest\unittest.ps1
 
 require_test_type medium

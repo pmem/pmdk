@@ -43,14 +43,12 @@ date: pmemobj API version 2.3
 [EXAMPLES](#examples)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_persist**(), **pmemobj_xpersist**(), **pmemobj_flush**(),
 **pmemobj_xflush**(), **pmemobj_drain**(), **pmemobj_memcpy**(),
 **pmemobj_memmove**(), **pmemobj_memset**(), **pmemobj_memcpy_persist**(),
 **pmemobj_memset_persist**() - low-level memory manipulation functions
-
 
 # SYNOPSIS #
 
@@ -80,7 +78,6 @@ void *pmemobj_memcpy_persist(PMEMobjpool *pop, void *dest,
 void *pmemobj_memset_persist(PMEMobjpool *pop, void *dest,
 	int c, size_t len);
 ```
-
 
 # DESCRIPTION #
 
@@ -204,7 +201,6 @@ pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len)
 	pmemobj_drain(pop);
 }
 ```
-
 
 # SEE ALSO #
 

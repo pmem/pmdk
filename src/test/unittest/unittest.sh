@@ -1419,7 +1419,6 @@ require_dax_device_alignments() {
 	require_node_dax_device_alignments -1 $*
 }
 
-
 #
 # require_fs_type -- only allow script to continue for a certain fs type
 #
@@ -1435,7 +1434,6 @@ function require_fs_type() {
 	verbose_msg "$UNITTEST_NAME: SKIP fs-type $FS ($* required)"
 	exit 0
 }
-
 
 #
 # require_native_fallocate -- verify if filesystem supports fallocate

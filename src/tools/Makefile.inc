@@ -191,7 +191,6 @@ STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmem.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmem.a
 endif
 
-
 # If any of these libraries is required, we need to link libpthread
 ifneq ($(LIBPMEMCOMMON)$(LIBPMEM)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ),)
 LIBS += -pthread
@@ -201,7 +200,6 @@ endif
 ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMOBJ),)
 LIBS += $(LIBDL)
 endif
-
 
 ifeq ($(TOOLS_COMMON), y)
 vpath %.c $(TOP)/src/tools/pmempool

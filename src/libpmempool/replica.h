@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -224,7 +224,6 @@ int replica_check_part_sizes(struct pool_set *set, size_t min_size);
 int replica_check_part_dirs(struct pool_set *set);
 int replica_check_local_part_dir(struct pool_set *set, unsigned repn,
 		unsigned partn);
-
 
 int replica_open_replica_part_files(struct pool_set *set, unsigned repn);
 int replica_open_poolset_part_files(struct pool_set *set);

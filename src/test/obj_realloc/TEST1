@@ -40,7 +40,6 @@
 
 require_test_type long
 
-
 # XXX reduce the number of reallocs performed under pmemcheck so that the
 # execution time is reasonable and within the time limit (5 minutes) on both
 # pmem and non-pmem fs types.

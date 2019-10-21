@@ -44,11 +44,9 @@ date: pmempool API version 1.3
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 _UW(pmempool_sync), _UW(pmempool_transform) - pool set synchronization and transformation
-
 
 # SYNOPSIS #
 
@@ -62,7 +60,6 @@ _UWFUNCR12(int, pmempool_transform, *poolset_file_src,
 ```
 
 _UNICODE()
-
 
 # DESCRIPTION #
 
@@ -101,7 +98,6 @@ the internal metadata of each replica is limited to the beginning of the first
 part in the replica. If the option *NOHDRS* is used, replicas contain no
 internal metadata. In both cases, only the missing parts or the ones which
 cannot be opened are recreated with the _UW(pmempool_sync) function.=e=)
-
 
 _UW(pmempool_transform) modifies the internal structure of a pool set.
 It supports the following operations:
@@ -166,12 +162,10 @@ metadata.=e=)
 **libpmemobj**(7) pools, so _UW(pmempool_transform) cannot be used with other
 pool types (**libpmemlog**(7), **libpmemblk**(7)).
 
-
 # RETURN VALUE #
 
 _UW(pmempool_sync) and _UW(pmempool_transform) return 0 on success.
 Otherwise, they return -1 and set *errno* appropriately.
-
 
 # ERRORS #
 
@@ -193,7 +187,6 @@ Otherwise, they return -1 and set *errno* appropriately.
 **ENOTSUP** The pool set contains a remote replica, but remote replication
   is not supported (**librpmem**(7) is not available).
 
-
 # NOTES #
 
 The _UW(pmempool_sync) API is experimental and it may change in future
@@ -201,7 +194,6 @@ versions of the library.
 
 The _UW(pmempool_transform) API is experimental and it may change in future
 versions of the library.
-
 
 # SEE ALSO #
 

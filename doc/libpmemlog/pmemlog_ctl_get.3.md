@@ -43,14 +43,12 @@ date: pmemlog API version 1.1
 [CTL EXTERNAL CONFIGURATION](#ctl-external-configuration)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 _UW(pmemlog_ctl_get),
 _UW(pmemlog_ctl_set),
 _UW(pmemlog_ctl_exec)
 - Query and modify libpmemlog internal behavior (EXPERIMENTAL)
-
 
 # SYNOPSIS #
 
@@ -66,7 +64,6 @@ _UWFUNCR2(int, pmemlog_ctl_exec, PMEMlogpool *plp, *name, void *arg,
 ```
 
 _UNICODE()
-
 
 # DESCRIPTION #
 
@@ -88,7 +85,6 @@ on success and -1 on failure, unless otherwise specified in the entry point
 description.
 
 See more in **pmem_ctl**(5) man page.
-
 
 # CTL NAMESPACE #
 

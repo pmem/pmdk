@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -143,7 +143,6 @@ rbtree_map_clear_node(TOID(struct rbtree_map) map, TOID(struct tree_map_node) p)
 	TX_FREE(p);
 }
 
-
 /*
  * rbtree_map_clear -- removes all elements from the map
  */
@@ -163,7 +162,6 @@ rbtree_map_clear(PMEMobjpool *pop, TOID(struct rbtree_map) map)
 
 	return 0;
 }
-
 
 /*
  * rbtree_map_destroy -- cleanups and frees red-black tree instance

@@ -297,7 +297,6 @@ const wchar_t *pmemobj_check_versionW(unsigned major_required,
 	unsigned minor_required);
 #endif
 
-
 /*
  * Passing NULL to pmemobj_set_funcs() tells libpmemobj to continue to use the
  * default for that function.  The replacement functions must not make calls

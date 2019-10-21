@@ -260,7 +260,6 @@ constructor_tx_alloc(void *ctx, void *ptr, size_t usable_size, void *arg)
 	return 0;
 }
 
-
 struct tx_range_data {
 	void *begin;
 	void *end;
@@ -459,7 +458,6 @@ tx_pre_commit(struct tx *tx)
 	ravl_delete_cb(tx->ranges, tx_flush_range, tx->pop);
 	tx->ranges = NULL;
 }
-
 
 /*
  * tx_abort -- (internal) abort all allocated objects
@@ -1639,7 +1637,6 @@ pmemobj_tx_realloc(PMEMoid oid, size_t size, uint64_t type_num)
 	return ret;
 }
 
-
 /*
  * pmemobj_zrealloc -- resizes an existing object, any new space is zeroed.
  */
@@ -1920,7 +1917,6 @@ pmemobj_tx_xlog_append_buffer(enum pobj_log_type type, void *addr, size_t size,
 	PMEMOBJ_API_END();
 	return err;
 }
-
 
 /*
  * pmemobj_tx_log_append_buffer -- append user allocated buffer to the ulog

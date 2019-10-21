@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,7 +49,6 @@ setup
 create_poolset $POOLSET \
 	20M:$DIR/part0:x \
 	20M:$DIR/part1:x
-
 
 for type in ${POOL_TYPES[@]}; do
 	expect_normal_exit $PMEMPOOL$EXESUFFIX rm -f $POOLSET >> $LOG_TEMP

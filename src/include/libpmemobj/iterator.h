@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -67,7 +67,6 @@ POBJ_NEXT_TYPE_NUM(PMEMoid o)
 			pmemobj_type_num(_pobj_ret) != pmemobj_type_num(o));
 	return _pobj_ret;
 }
-
 
 #define POBJ_FIRST(pop, t) ((TOID(t))POBJ_FIRST_TYPE_NUM(pop, TOID_TYPE_NUM(t)))
 

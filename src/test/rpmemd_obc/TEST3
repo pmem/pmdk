@@ -35,7 +35,6 @@
 # src/test/rpmemd_obc/TEST3 -- unit test for rpmemd_obc_process
 #
 
-
 . ../unittest/unittest.sh
 
 require_test_type medium

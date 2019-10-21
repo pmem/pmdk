@@ -40,7 +40,6 @@
 POBJ_LAYOUT_BEGIN(heap_interrupt);
 POBJ_LAYOUT_END(heap_interrupt);
 
-
 static int exit_on_finish = 0;
 FUNC_MOCK(operation_finish, void, struct operation_context *ctx,
 	unsigned flags)
@@ -125,7 +124,6 @@ main(int argc, char *argv[])
 
 	DONE(NULL);
 }
-
 
 #ifdef _MSC_VER
 /*

@@ -43,12 +43,10 @@ date: pmemlog API version 1.1
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemlog_append**(), **pmemlog_appendv**() - append bytes to the persistent
 memory resident log file
-
 
 # SYNOPSIS #
 
@@ -72,12 +70,10 @@ similar to **writev**(2). The entire list of buffers is appended atomically,
 as if the buffers in *iov* were concatenated in order.
 The append is atomic and cannot be torn by a program failure or system crash.
 
-
 # RETURN VALUE #
 
 On success, **pmemlog_append**() and **pmemlog_appendv**() return 0.
 On error, they return -1 and set *errno* appropriately.
-
 
 # ERRORS #
 
@@ -87,14 +83,12 @@ On error, they return -1 and set *errno* appropriately.
 
 **EROFS** The log file is open in read-only mode.
 
-
 # NOTES #
 
 Since **libpmemlog**(7) is designed as a low-latency code path,
 many of the checks routinely done by the operating system for **writev**(2)
 are not practical in the library's implementation of **pmemlog_appendv**().
 No attempt is made to detect NULL or incorrect pointers, for example.
-
 
 # SEE ALSO #
 

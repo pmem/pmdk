@@ -42,7 +42,6 @@ date: pmem Tools version 1.4
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool-convert** - this is a wrapper around pmdk-convert tool. More information

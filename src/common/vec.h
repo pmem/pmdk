@@ -74,7 +74,6 @@ struct name {\
 	(vecr)->capacity = 0;\
 } while (0)
 
-
 #define VEC_REINIT(vec) do {\
 	VALGRIND_ANNOTATE_NEW_MEMORY((vec), sizeof(*vec));\
 	VALGRIND_ANNOTATE_NEW_MEMORY((vec)->buffer,\

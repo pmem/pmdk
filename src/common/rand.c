@@ -143,7 +143,6 @@ rnd64(void)
 	return rnd64_r(&global_rng);
 }
 
-
 /*
  * randomize -- initialize global RNG
  */

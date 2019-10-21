@@ -45,7 +45,6 @@
 #define BLK 1
 #define LOG 2
 
-
 static struct counters {
 	int mallocs;
 	int frees;
@@ -53,7 +52,6 @@ static struct counters {
 	int reallocs_null;
 	int strdups;
 } cnt[5];
-
 
 static void *
 test_malloc(size_t size)
@@ -138,7 +136,6 @@ obj_strdup(const char *s)
 	cnt[OBJ].strdups++;
 	return test_strdup(s);
 }
-
 
 static void *
 blk_malloc(size_t size)

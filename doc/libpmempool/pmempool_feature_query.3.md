@@ -45,12 +45,10 @@ set features)
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 _UW(pmempool_feature_query), _UW(pmempool_feature_enable),
 _UW(pmempool_feature_disable) - toggle or query pool set features
-
 
 # SYNOPSIS #
 
@@ -65,7 +63,6 @@ _UWFUNCR1(int, pmempool_feature_disable, *path, =q=enum pmempool_feature feature
 ```
 
 _UNICODE()
-
 
 # DESCRIPTION #
 
