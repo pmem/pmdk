@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -103,6 +103,17 @@ int pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s,
  * Frees an existing object.
  */
 void pmemobj_free(PMEMoid *oidp);
+
+struct pobj_defrag_result {
+	size_t total; /* number of processed objects */
+	size_t relocated; /* number of relocated objects */
+};
+
+/*
+ * Performs defragmentation on the provided array of objects.
+ */
+int pmemobj_defrag(PMEMobjpool *pop, PMEMoid **oidv, size_t oidcnt,
+	struct pobj_defrag_result *result);
 
 #ifdef __cplusplus
 }
