@@ -1228,6 +1228,37 @@ run_calc_free(const struct memory_block *m,
 	}
 }
 
+/*
+ * huge_fill_pct -- huge blocks by definition use the entirety of a chunk
+ */
+static unsigned
+huge_fill_pct(const struct memory_block *m)
+{
+	return 100;
+}
+
+/*
+ * run_fill_pct -- calculates the percentage of allocated units inside of a run
+ */
+static unsigned
+run_fill_pct(const struct memory_block *m)
+{
+	struct run_bitmap b;
+	run_get_bitmap(m, &b);
+	unsigned clearbits = 0;
+	for (unsigned i = 0; i < b.nvalues; ++i) {
+		uint64_t value = ~b.values[i];
+		if (value == 0)
+			continue;
+
+		clearbits += util_popcount64(value);
+	}
+	ASSERT(b.nbits >= clearbits);
+	unsigned setbits = b.nbits - clearbits;
+
+	return (100 * setbits) / b.nbits;
+}
+
 static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 	[MEMORY_BLOCK_HUGE] = {
 		.block_size = huge_block_size,
@@ -1250,6 +1281,7 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.reinit_chunk = huge_reinit_chunk,
 		.calc_free = NULL,
 		.get_bitmap = NULL,
+		.fill_pct = huge_fill_pct,
 	},
 	[MEMORY_BLOCK_RUN] = {
 		.block_size = run_block_size,
@@ -1272,6 +1304,7 @@ static const struct memory_block_ops mb_ops[MAX_MEMORY_BLOCK] = {
 		.reinit_chunk = run_reinit_chunk,
 		.calc_free = run_calc_free,
 		.get_bitmap = run_get_bitmap,
+		.fill_pct = run_fill_pct,
 	}
 };
 
