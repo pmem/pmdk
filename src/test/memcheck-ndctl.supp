@@ -15,7 +15,6 @@
    fun:realloc
    ...
    fun:ndctl_dax_get_first
-   fun:ndctl_namespace_get_dax
    ...
 }
 {
