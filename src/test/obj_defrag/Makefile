@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +30,12 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-. ../unittest/unittest.sh
+#
+# src/test/obj_defrag/Makefile -- build obj_defrag unit test
+#
+TARGET = obj_defrag
+OBJS = obj_defrag.o
 
-require_test_type long
+LIBPMEMOBJ=internal-debug
 
-require_fs_type pmem
-require_build_type static-nondebug
-
-setup
-
-PMEM_IS_PMEM_FORCE=1 PMEM_NO_FLUSH=1 expect_normal_exit\
-	./obj_fragmentation2$EXESUFFIX $DIR/testfile1 2 12345
-
-pass
+include ../Makefile.inc

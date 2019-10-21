@@ -1,5 +1,6 @@
+#!../env.py
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,23 +31,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/obj_fragmentation2/TEST0 -- unit test measures average heap
-# external fragmentation.
-#
+from os import path
+import testframework as t
 
-. ..\unittest\unittest.ps1
+class BASE(t.BaseTest):
+    test_type = t.Medium
 
-require_test_type long
+    def run(self, ctx):
+        testfile = path.join(ctx.testdir, 'testfile0')
+        ctx.exec('obj_defrag', testfile)
 
-require_fs_type pmem
-require_build_type nondebug
-
-setup
-
-# this test is extremely long otherwise
-$Env:PMEM_IS_PMEM_FORCE=1
-$Env:PMEM_NO_FLUSH=1
-expect_normal_exit $Env:EXE_DIR\obj_fragmentation2$Env:EXESUFFIX $DIR\testfile1 0 12345
-
-pass
+class TEST0(BASE):
+    pmemcheck = t.DISABLE

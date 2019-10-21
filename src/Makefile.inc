@@ -91,7 +91,7 @@ ifeq ($(DEBUG),1)
 # Undefine _FORTIFY_SOURCE in case it's set in system-default or
 # user-defined CFLAGS as it conflicts with -O0.
 DEBUG_CFLAGS += -Wp,-U_FORTIFY_SOURCE
-DEBUG_CFLAGS += -O0 -ggdb -DDEBUG
+DEBUG_CFLAGS += -O0 -ggdb
 LIB_SUBDIR = /pmdk_debug
 OBJDIR = debug
 else
