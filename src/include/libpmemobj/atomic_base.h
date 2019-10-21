@@ -104,6 +104,8 @@ int pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s,
  */
 void pmemobj_free(PMEMoid *oidp);
 
+int pmemobj_defrag(PMEMobjpool *pop, PMEMoid **oidv, size_t oidcnt);
+
 #ifdef __cplusplus
 }
 #endif

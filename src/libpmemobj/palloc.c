@@ -777,6 +777,89 @@ palloc_operation(struct palloc_heap *heap,
 	return 0;
 }
 
+static int
+palloc_offset_compare(const void *lhs, const void *rhs)
+{
+	const uint64_t * const * mlhs = lhs;
+	const uint64_t * const * mrhs = rhs;
+	uintptr_t vlhs = **mlhs;
+	uintptr_t vrhs = **mrhs;
+
+	if (vlhs < vrhs)
+		return 1;
+	if (vlhs > vrhs)
+		return -1;
+
+	return 0;
+}
+
+/*
+ * palloc_defrag -- forces recycling of all available memory, and reallocates
+ *	provided objects so that they have lowest possible address.
+ */
+int
+palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
+	struct operation_context *ctx)
+{
+	qsort(objv, objcnt, sizeof(struct uint64_t *), palloc_offset_compare);
+	heap_force_recycle(heap);
+
+	struct pobj_action *actv =
+		Malloc(sizeof(struct pobj_action) * objcnt * 3);
+	size_t actcnt = 0;
+	for (size_t i = 0; i < objcnt; ++i) {
+		uint64_t *offsetp = objv[i];
+		struct pobj_action *set = &actv[actcnt];
+		struct pobj_action *reserve = set + 1;
+		struct pobj_action *dfree = reserve + 1;
+
+		if (i != 0 && *offsetp == *objv[i - 1]) {
+			struct pobj_action *prev_reserve = reserve - 3;
+			palloc_set_value(heap, set,
+				offsetp, prev_reserve->heap.offset);
+			actcnt += 1;
+			continue;
+		}
+
+		struct memory_block m = memblock_from_offset(heap, *offsetp);
+		size_t user_size = m.m_ops->get_user_size(&m);
+		if (palloc_reservation_create(heap, user_size,
+		    NULL, NULL,
+		    m.m_ops->get_extra(&m), m.m_ops->get_flags(&m),
+		    0, HEAP_ARENA_PER_THREAD,
+		    (struct pobj_action_internal *)reserve) != 0)
+			continue;
+		uint64_t new_offset = reserve->heap.offset;
+		if (new_offset > *offsetp) {
+			palloc_cancel(heap, (struct pobj_action *)reserve, 1);
+			continue;
+		}
+
+		palloc_set_value(heap, set, offsetp, new_offset);
+		palloc_defer_free(heap, *offsetp, dfree);
+
+		VALGRIND_ADD_TO_TX(
+			HEAP_OFF_TO_PTR(heap, new_offset),
+			user_size);
+		pmemops_memcpy(&heap->p_ops,
+			HEAP_OFF_TO_PTR(heap, new_offset),
+			HEAP_OFF_TO_PTR(heap, *offsetp),
+			user_size,
+			0);
+		VALGRIND_REMOVE_FROM_TX(
+			HEAP_OFF_TO_PTR(heap, new_offset),
+			user_size);
+
+		actcnt += 3;
+	}
+
+	palloc_publish(heap, (struct pobj_action *)actv, actcnt, ctx);
+
+	Free(actv);
+
+	return 0;
+}
+
 /*
  * palloc_usable_size -- returns the number of bytes in the memory block
  */
@@ -787,6 +870,7 @@ palloc_usable_size(struct palloc_heap *heap, uint64_t off)
 
 	return m.m_ops->get_user_size(&m);
 }
+
 
 /*
  * palloc_extra -- returns allocation extra field

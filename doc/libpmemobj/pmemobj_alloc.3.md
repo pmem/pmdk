@@ -74,6 +74,7 @@ int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 int pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s,
 	uint64_t type_num);
 size_t pmemobj_alloc_usable_size(PMEMoid oid);
+int pmemobj_defrag(PMEMobjpool *pop, PMEMoid **oidv, size_t oidcnt);
 
 POBJ_NEW(PMEMobjpool *pop, TOID *oidp, TYPE, pmemobj_constr constructor,
 	void *arg)
@@ -231,6 +232,11 @@ typed *OID* of type name *TYPE*, and passes the type number from the typed
 
 The **POBJ_FREE**() macro is a wrapper around the **pmemobj_free**() function
 which takes a pointer to the typed *OID* instead of to *PMEMoid*.
+
+The **pmemobj_defrag**() function relocates provided objects so that
+fragmentation is minimized. This function will atomically update provided
+pointers. It's critically important to provide the function with all pointers
+to the same object.
 
 # RETURN VALUE #
 
