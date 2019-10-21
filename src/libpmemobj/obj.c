@@ -3120,6 +3120,52 @@ pmemobj_cancel(PMEMobjpool *pop, struct pobj_action *actv, size_t actvcnt)
 }
 
 /*
+ * pmemobj_defrag -- reallocates provided PMEMoids so that the underlying memory
+ *	is efficiently arranged.
+ */
+int
+pmemobj_defrag(PMEMobjpool *pop, PMEMoid **oidv, size_t oidcnt,
+	struct pobj_defrag_result *result)
+{
+	PMEMOBJ_API_START();
+
+	if (result) {
+		result->relocated = 0;
+		result->total = 0;
+	}
+
+	uint64_t **objv = Malloc(sizeof(uint64_t *) * oidcnt);
+	if (objv == NULL)
+		return -1;
+
+	int ret = 0;
+
+	size_t j = 0;
+	for (size_t i = 0; i < oidcnt; ++i) {
+		if (OID_IS_NULL(*oidv[i]))
+			continue;
+		if (oidv[i]->pool_uuid_lo != pop->uuid_lo) {
+			ret = -1;
+			ERR("Not all PMEMoids belong to the provided pool");
+			goto out;
+		}
+		objv[j++] = &oidv[i]->off;
+	}
+
+	struct operation_context *ctx = pmalloc_operation_hold(pop);
+
+	ret = palloc_defrag(&pop->heap, objv, j, ctx, result);
+
+	pmalloc_operation_release(pop);
+
+out:
+	Free(objv);
+
+	PMEMOBJ_API_END();
+	return ret;
+}
+
+/*
  * pmemobj_list_insert -- adds object to a list
  */
 int

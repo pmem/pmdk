@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -64,6 +64,11 @@
 struct arenas {
 	VEC(, struct arena *) vec;
 	size_t nactive;
+
+	/*
+	 * When nesting with other locks, this one must be acquired first,
+	 * prior to locking any buckets or memory blocks.
+	 */
 	os_mutex_t lock;
 
 	/* stores a pointer to one of the arenas */
@@ -354,12 +359,6 @@ heap_bucket_acquire(struct palloc_heap *heap, uint8_t class_id,
 {
 	struct heap_rt *rt = heap->rt;
 	struct bucket *b;
-
-#ifdef DEBUG
-	util_mutex_lock(&rt->arenas.lock);
-	ASSERT(arena_id <= VEC_SIZE(&rt->arenas.vec));
-	util_mutex_unlock(&rt->arenas.lock);
-#endif
 
 	if (class_id == DEFAULT_ALLOC_CLASS_ID) {
 		b = rt->default_bucket;
@@ -769,6 +768,63 @@ heap_ensure_huge_bucket_filled(struct palloc_heap *heap, struct bucket *bucket)
 }
 
 /*
+ * heap_bucket_deref_active -- detaches active blocks from the bucket
+ */
+static int
+heap_bucket_deref_active(struct palloc_heap *heap, struct bucket *b)
+{
+	/* get rid of the active block in the bucket */
+	struct memory_block_reserved **active = &b->active_memory_block;
+
+	if (b->is_active) {
+		b->c_ops->rm_all(b->container);
+		if (util_fetch_and_sub64(&(*active)->nresv, 1) == 1) {
+			VALGRIND_ANNOTATE_HAPPENS_AFTER(&(*active)->nresv);
+			heap_discard_run(heap, &(*active)->m);
+		} else {
+			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&(*active)->nresv);
+			*active = NULL;
+		}
+		b->is_active = 0;
+	}
+
+	if (*active == NULL) {
+		*active = Zalloc(sizeof(struct memory_block_reserved));
+		if (*active == NULL)
+			return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * heap_force_recycle -- detaches all memory from arenas, and forces global
+ *	recycling of all memory blocks
+ */
+void
+heap_force_recycle(struct palloc_heap *heap)
+{
+	util_mutex_lock(&heap->rt->arenas.lock);
+	struct arena *arenap;
+	VEC_FOREACH(arenap, &heap->rt->arenas.vec) {
+		for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
+			struct bucket *b = arenap->buckets[i];
+			if (b == NULL)
+				continue;
+			util_mutex_lock(&b->lock);
+			/*
+			 * There's no need to check if this fails, as that
+			 * will not prevent progress in this function.
+			 */
+			heap_bucket_deref_active(heap, b);
+			util_mutex_unlock(&b->lock);
+		}
+	}
+	util_mutex_unlock(&heap->rt->arenas.lock);
+	heap_reclaim_garbage(heap, NULL);
+}
+
+/*
  * heap_reuse_from_recycler -- (internal) try reusing runs that are currently
  *	in the recycler
  */
@@ -818,19 +874,8 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	ASSERTeq(b->aclass->type, CLASS_RUN);
 	int ret = 0;
 
-	/* get rid of the active block in the bucket */
-	if (b->is_active) {
-		b->c_ops->rm_all(b->container);
-		struct memory_block_reserved **active = &b->active_memory_block;
-		if (util_fetch_and_sub64(&(*active)->nresv, 1) == 1) {
-			VALGRIND_ANNOTATE_HAPPENS_AFTER(&(*active)->nresv);
-			heap_discard_run(heap, &(*active)->m);
-		} else {
-			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&(*active)->nresv);
-			*active = Zalloc(sizeof(struct memory_block_reserved));
-		}
-		b->is_active = 0;
-	}
+	if (heap_bucket_deref_active(heap, b) != 0)
+		return ENOMEM;
 
 	if (heap_reuse_from_recycler(heap, b, units, 0) == 0)
 		goto out;
