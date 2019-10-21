@@ -212,7 +212,6 @@ main(int argc, char **argv)
 	START(argc, argv, "pmem2_config");
 	if (argc != 3)
 		UT_FATAL("usage: %s test_case file", argv[0]);
-
 	char *test_case = argv[1];
 	char *file = argv[2];
 
