@@ -46,13 +46,11 @@ date: pmem Tools version 1.4
 
 **pmempool-transform** - Modify internal structure of a pool set.
 
-
 # SYNOPSIS #
 
 ```
 pmempool transform [options] <poolset_file_src> <poolset_file_dst>
 ```
-
 
 # DESCRIPTION #
 
@@ -73,7 +71,6 @@ Only one of the above operations can be performed at a time.
 Currently adding and removing replicas are allowed only for **pmemobj** pools
 (see **libpmemobj**(7)).
 
-
 The *poolset_file_src* argument provides the source pool set to be changed.
 
 The *poolset_file_dst* argument points to the target pool set.
@@ -87,7 +84,6 @@ the pool size. Otherwise the whole operation fails and no changes are applied.
 Effective size of a replica is the sum of sizes of all its part files decreased
 by 4096 bytes per each part file. The 4096 bytes of each part file is
 utilized for storing internal metadata of the pool part files.
-
 
 
 
@@ -105,7 +101,6 @@ viability of the operation is performed.
 `-h, --help`
 
 : Display help message and exit.
-
 
 # EXAMPLES #
 
@@ -171,7 +166,6 @@ Then
 
 deletes the second replica from the pool set. The first replica remains
 unchanged and the size of the pool is still 60M.
-
 
 # SEE ALSO #
 

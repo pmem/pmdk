@@ -46,11 +46,9 @@ date: pmem2 API version 1.0
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
 
-
 # NAME #
 
 **libpmem2** - persistent memory support library (EXPERIMENTAL)
-
 
 # SYNOPSIS #
 
@@ -59,13 +57,11 @@ date: pmem2 API version 1.0
 cc ... -lpmem2
 ```
 
-
 # DESCRIPTION #
 
 # CAVEATS #
 
 # ENVIRONMENT #
-
 
 # DEBUGGING #
 
@@ -112,7 +108,6 @@ is "-", the *PID* of the current process will be appended to the file name when
 the log file is created. If **PMEM2_LOG_FILE** is not set, output is
 written to *stderr*.
 
-
 # EXAMPLE #
 
 # ACKNOWLEDGEMENTS #
@@ -120,7 +115,6 @@ written to *stderr*.
 **libpmem2** builds on the persistent memory programming model recommended
 by the SNIA NVM Programming Technical Work Group:
 <http://snia.org/nvmp>
-
 
 # SEE ALSO #
 

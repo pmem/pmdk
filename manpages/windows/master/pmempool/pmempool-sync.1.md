@@ -46,7 +46,6 @@ date: pmem Tools version 1.4
 
 **pmempool-sync** - Synchronize replicas or their parts within a pool set.
 
-
 # SYNOPSIS #
 
 ```
@@ -109,7 +108,6 @@ viability of synchronization.
 `-h, --help`
 
 : Display help message and exit.
-
 
 # SEE ALSO #
 

@@ -44,18 +44,15 @@ date: poolset API version 1.0
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 poolset - persistent memory pool configuration file format
-
 
 # SYNOPSIS #
 
 ```c
 mypool.set
 ```
-
 
 # DESCRIPTION #
 
@@ -200,7 +197,6 @@ $ pmempool create --layout="mylayout" obj myobjpool.set
 
 
 
-
 # POOL SET OPTIONS #
 
 Pool set options can appear anywhere after the line with *PMEMPOOLSET* string.
@@ -234,7 +230,6 @@ as well as to every single remote pool set file.
 Using the *SINGLEHDR* and *NOHDRS* options has important implications for data
 integrity checking and recoverability in case of a pool set damage.
 See **pmempool_syncU**()/**pmempool_syncW**() API for more information about pool set recovery.
-
 
 # DIRECTORIES #
 
@@ -290,7 +285,6 @@ When opening a pool set consisting of multiple files, or when opening a
 replicated pool set, the *path* argument passed to **pmemobj_open**(3),
 **pmemblk_open**(3) or **pmemlog_open**(3) must point to the same *set* file
 that was used for pool set creation.
-
 
 # SEE ALSO #
 

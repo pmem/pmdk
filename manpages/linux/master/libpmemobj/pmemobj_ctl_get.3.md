@@ -43,14 +43,12 @@ date: pmemobj API version 2.3
 [CTL EXTERNAL CONFIGURATION](#ctl-external-configuration)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_ctl_get**(),
 **pmemobj_ctl_set**(),
 **pmemobj_ctl_exec**()
 - Query and modify libpmemobj internal behavior (EXPERIMENTAL)
-
 
 # SYNOPSIS #
 
@@ -61,7 +59,6 @@ int pmemobj_ctl_get(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTA
 int pmemobj_ctl_set(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
 int pmemobj_ctl_exec(PMEMobjpool *pop, const char *name, void *arg); (EXPERIMENTAL)
 ```
-
 
 
 
@@ -85,7 +82,6 @@ on success and -1 on failure, unless otherwise specified in the entry point
 description.
 
 See more in **pmem_ctl**(5) man page.
-
 
 # CTL NAMESPACE #
 
@@ -380,7 +376,6 @@ The second method of loading an external configuration is to set the
 a sequence of ctl queries.
 
 See more in **pmem_ctl**(5) man page.
-
 
 # SEE ALSO #
 

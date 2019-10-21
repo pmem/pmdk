@@ -45,12 +45,10 @@ date: pmem API version 1.1
 [BUGS](#bugs)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmem_is_pmem**(), **pmem_map_fileU**()/**pmem_map_fileW**(),
 **pmem_unmap**() - check persistency, create and delete mappings
-
 
 # SYNOPSIS #
 
@@ -151,7 +149,6 @@ address specified by the parameter *addr*, where *addr* must be a
 previously mapped region. **pmem_unmap**() will delete the mappings
 using **munmap**(2).
 
-
 # RETURN VALUE #
 
 The **pmem_is_pmem**() function returns true only if the entire range
@@ -168,7 +165,6 @@ On error, it returns NULL, sets *errno* appropriately, and does not modify
 On success, **pmem_unmap**() returns 0. On error, it returns -1 and sets
 *errno* appropriately.
 
-
 # NOTES #
 
 On Linux, **pmem_is_pmem**() returns true only if the entire range
@@ -176,7 +172,6 @@ is mapped directly from Device DAX (/dev/daxX.Y) without an intervening
 file system.  In the future, as file systems become available that support
 flushing with **pmem_persist**(3), **pmem_is_pmem**() will return true
 as appropriate.
-
 
 # CAVEATS #
 
@@ -188,7 +183,6 @@ returns false, even if the queried range is entirely persistent memory.
 Not all file systems support **posix_fallocate**(3). **pmem_map_fileU**()/**pmem_map_fileW**() will
 fail if **PMEM_FILE_CREATE** is specified without **PMEM_FILE_SPARSE** and
 the underlying file system does not support **posix_fallocate**(3).
-
 
 # SEE ALSO #
 

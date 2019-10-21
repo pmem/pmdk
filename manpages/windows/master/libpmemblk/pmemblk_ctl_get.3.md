@@ -43,14 +43,12 @@ date: pmemblk API version 1.1
 [CTL EXTERNAL CONFIGURATION](#ctl-external-configuration)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemblk_ctl_getU**()/**pmemblk_ctl_getW**(),
 **pmemblk_ctl_setU**()/**pmemblk_ctl_setW**(),
 **pmemblk_ctl_execU**()/**pmemblk_ctl_execW**()
 - Query and modify libpmemblk internal behavior (EXPERIMENTAL)
-
 
 # SYNOPSIS #
 
@@ -69,7 +67,6 @@ int pmemblk_ctl_execW(PMEMblkpool *pbp, const wchar_t *name, void *arg); (EXPERI
 >NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
-
 
 # DESCRIPTION #
 
@@ -91,7 +88,6 @@ on success and -1 on failure, unless otherwise specified in the entry point
 description.
 
 See more in **pmem_ctl**(5) man page.
-
 
 # CTL NAMESPACE #
 
@@ -141,7 +137,6 @@ The second method of loading an external configuration is to set the
 a sequence of ctl queries.
 
 See more in **pmem_ctl**(5) man page.
-
 
 # SEE ALSO #
 

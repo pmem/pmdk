@@ -44,12 +44,10 @@ date: pmempool API version 1.3
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool_check_init**(), **pmempool_check**(),
 **pmempool_check_end**() - checks pmempool health
-
 
 # SYNOPSIS #
 
@@ -61,7 +59,6 @@ PMEMpoolcheck *pmempool_check_init(struct pmempool_check_args *args,
 struct pmempool_check_status *pmempool_check(PMEMpoolcheck *ppc);
 enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 ```
-
 
 
 
@@ -86,7 +83,6 @@ must be finalized using **pmempool_check_end**(), which returns an
 **pmempool_check_init**() initializes the check context. *args* describes
 parameters of the check context. *args_size* should be equal to the size of
 the *struct pmempool_check_args*. *struct pmempool_check_args* is defined as follows:
-
 
 
 ```c
@@ -176,7 +172,6 @@ After calling **pmempool_check**() again, the previously provided
 The **pmempool_check_end**() function finalizes the check and releases all
 related resources. *ppc* is invalid after calling **pmempool_check_end**().
 
-
 # RETURN VALUE #
 
 **pmempool_check_init**() returns an opaque handle of type *PMEMpoolcheck\**.
@@ -241,12 +236,10 @@ The **PMEMPOOL_CHECK_FORMAT_STR** flag indicates string
 format statuses (*struct pmempool_check_status*).
 Currently this is the only supported status format so this flag is required.
 
-
 # NOTES #
 
 Currently, checking the consistency of a *pmemobj* pool is
 **not** supported.
-
 
 # SEE ALSO #
 

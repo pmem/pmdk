@@ -42,18 +42,15 @@ date: pmem Tools version 1.4
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool-rm** - remove a persistent memory pool
-
 
 # SYNOPSIS #
 
 ```
 $ pmempool rm [<options>] <file>..
 ```
-
 
 # DESCRIPTION #
 
@@ -103,14 +100,12 @@ Remove all specified files, ignore nonexistent files, never prompt.
 
 Prompt before removing every single file or remote pool.
 
-
 # REMOTE REPLICATION #
 
 A remote pool is removed using **rpmem_remove**(3) function if **librpmem**(7)
 library is available. If a pool set file contains remote replication but
 **librpmem**(7) is not available, the **pmempool rm** command terminates with
 an error code, unless the **-f, --force** option is specified.
-
 
 # EXAMPLE #
 
@@ -132,7 +127,6 @@ $ pmempool rm -a pool.set
 
 Remove all pool files from the "pool.set", remove the local pool set file and all
 remote pool set files.
-
 
 # SEE ALSO #
 

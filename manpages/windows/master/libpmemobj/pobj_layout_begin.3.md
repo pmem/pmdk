@@ -42,14 +42,12 @@ date: pmemobj API version 2.3
 [EXAMPLE](#example)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **POBJ_LAYOUT_BEGIN**(), **POBJ_LAYOUT_TOID**(),
 **POBJ_LAYOUT_ROOT**(), **POBJ_LAYOUT_NAME**(),
 **POBJ_LAYOUT_END**(), **POBJ_LAYOUT_TYPES_NUM**()
 - persistent memory transactional object store layout
-
 
 # SYNOPSIS #
 
@@ -63,7 +61,6 @@ POBJ_LAYOUT_NAME(layout)
 POBJ_LAYOUT_END(layout)
 POBJ_LAYOUT_TYPES_NUM(layout)
 ```
-
 
 # DESCRIPTION #
 
@@ -96,7 +93,6 @@ The **POBJ_LAYOUT_NAME**() macro returns the name of layout as a null-terminated
 The **POBJ_LAYOUT_TYPES_NUM**() macro returns number of types declared using the **POBJ_LAYOUT_TOID**()
 macro within the layout declaration.
 
-
 # EXAMPLE #
 
 This is an example of layout declaration:
@@ -126,7 +122,6 @@ The name of layout and the number of declared types can be retrieved using the f
 const char *layout_name = POBJ_LAYOUT_NAME(mylayout);
 int num_of_types = POBJ_LAYOUT_TYPES_NUM(mylayout);
 ```
-
 
 # SEE ALSO #
 

@@ -42,13 +42,11 @@ date: pmemblk API version 1.1
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemblk_createU**()/**pmemblk_createW**(), **pmemblk_openU**()/**pmemblk_openW**(),
 **pmemblk_close**(), **pmemblk_checkU**()/**pmemblk_checkW**()
 - create, open, close and validate block pool
-
 
 # SYNOPSIS #
 
@@ -70,7 +68,6 @@ int pmemblk_checkW(const wchar_t *path, size_t bsize);
 >NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
-
 
 # DESCRIPTION #
 
@@ -148,7 +145,6 @@ HANDLING** section in **libpmemblk**(7). **pmemblk_checkU**()/**pmemblk_checkW**
 *path* read-only so it never makes any changes to the file. This function is
 not supported on Device DAX.
 
-
 # RETURN VALUE #
 
 On success, **pmemblk_createU**()/**pmemblk_createW**() returns a *PMEMblkpool\** handle to the block
@@ -177,12 +173,10 @@ and does not match the block size given when the pool was created. If the
 consistency check cannot be performed, **pmemblk_checkU**()/**pmemblk_checkW**() returns -1 and sets
 *errno* appropriately.
 
-
 # CAVEATS #
 
 Not all file systems support **posix_fallocate**(3). **pmemblk_createU**()/**pmemblk_createW**() will
 fail if the underlying file system does not support **posix_fallocate**(3).
-
 
 # SEE ALSO #
 **pmempool**(1), **creat**(2), **pmemblk_nblock**(3),

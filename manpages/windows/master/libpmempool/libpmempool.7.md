@@ -45,11 +45,9 @@ date: pmempool API version 1.3
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **libpmempool** - persistent memory pool management library
-
 
 # SYNOPSIS #
 
@@ -94,7 +92,6 @@ manual pages:
 
 + toggle or query pool set features: **pmempool_feature_query**(3)
 
-
 # DESCRIPTION #
 
 **libpmempool**
@@ -113,7 +110,6 @@ purposes also.
 
 **libpmempool** introduces functionality of pool set health check,
 synchronization, transformation and removal.
-
 
 # CAVEATS #
 
@@ -161,7 +157,6 @@ is successful, the return value is NULL. Otherwise the
 return value is a static string describing the reason for
 failing the version check. The string returned by
 **pmempool_check_versionU**()/**pmempool_check_versionW**() must not be modified or freed.
-
 
 # DEBUGGING AND ERROR HANDLING #
 
@@ -219,7 +214,6 @@ all logging information should be written. If the last character in the name
 is "-", the *PID* of the current process will be appended to the file name when
 the log file is created. If **PMEMPOOL_LOG_FILE** is not set, output is
 written to *stderr*.
-
 
 # EXAMPLE #
 
@@ -292,13 +286,11 @@ main(int argc, char *argv[])
 See <http://pmem.io/pmdk/libpmempool> for more examples using the
 **libpmempool** API.
 
-
 # ACKNOWLEDGEMENTS #
 
 **libpmempool** builds on the persistent memory programming model
 recommended by the SNIA NVM Programming Technical Work Group:
 <http://snia.org/nvmp>
-
 
 # SEE ALSO #
 

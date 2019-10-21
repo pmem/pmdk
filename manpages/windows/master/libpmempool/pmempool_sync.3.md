@@ -44,11 +44,9 @@ date: pmempool API version 1.3
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool_syncU**()/**pmempool_syncW**(), **pmempool_transformU**()/**pmempool_transformW**() - pool set synchronization and transformation
-
 
 # SYNOPSIS #
 
@@ -69,7 +67,6 @@ int pmempool_transformW(const wchar_t *poolset_file_src,
 >NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
-
 
 # DESCRIPTION #
 
@@ -102,7 +99,6 @@ synchronization.
 a pool set is consistent, i.e. all parts are healthy, and if any of them is
 not, the corrupted or missing parts are recreated and filled with data from
 one of the healthy replicas.
-
 
 
 
@@ -147,12 +143,10 @@ file is utilized for storing internal metadata of the pool part files.
 **libpmemobj**(7) pools, so **pmempool_transformU**()/**pmempool_transformW**() cannot be used with other
 pool types (**libpmemlog**(7), **libpmemblk**(7)).
 
-
 # RETURN VALUE #
 
 **pmempool_syncU**()/**pmempool_syncW**() and **pmempool_transformU**()/**pmempool_transformW**() return 0 on success.
 Otherwise, they return -1 and set *errno* appropriately.
-
 
 # ERRORS #
 
@@ -174,7 +168,6 @@ Otherwise, they return -1 and set *errno* appropriately.
 **ENOTSUP** The pool set contains a remote replica, but remote replication
   is not supported (**librpmem**(7) is not available).
 
-
 # NOTES #
 
 The **pmempool_syncU**()/**pmempool_syncW**() API is experimental and it may change in future
@@ -182,7 +175,6 @@ versions of the library.
 
 The **pmempool_transformU**()/**pmempool_transformW**() API is experimental and it may change in future
 versions of the library.
-
 
 # SEE ALSO #
 

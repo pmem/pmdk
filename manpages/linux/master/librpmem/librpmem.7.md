@@ -36,7 +36,6 @@ date: rpmem API version 1.3
 
 [comment]: <> (librpmem.7 -- man page for librpmem)
 
-
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
@@ -52,11 +51,9 @@ date: rpmem API version 1.3
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
 
-
 # NAME #
 
 **librpmem** - remote persistent memory support library (EXPERIMENTAL)
-
 
 # SYNOPSIS #
 
@@ -86,7 +83,6 @@ manual pages:
 
 + **rpmem_create**(3), **rpmem_persist**(3)
 
-
 # DESCRIPTION #
 
 **librpmem** provides low-level support for remote access to
@@ -109,7 +105,6 @@ available and are recommended for most applications, see:
 + **libpmemobj**(7), a general use persistent memory API, providing memory
 allocation and transactional operations on variable-sized objects.
 
-
 # TARGET NODE ADDRESS FORMAT #
 
 ```
@@ -121,7 +116,6 @@ connects to, with an optional *user* name. The user must be authorized
 to authenticate to the remote machine without querying for password/passphrase.
 The optional *port* number is used to establish the SSH connection. The default
 port number is 22.
-
 
 # REMOTE POOL ATTRIBUTES #
 
@@ -177,7 +171,6 @@ pools in a list.
 
 The *user_flags* field is a 16-byte user-defined flags.
 
-
 # SSH #
 
 **librpmem** utilizes the **ssh**(1) client to login and execute the
@@ -188,7 +181,6 @@ For debugging purposes, both the ssh client and the commands executed
 on the remote node may be overridden by setting the **RPMEM_SSH** and
 **RPMEM_CMD** environment variables, respectively. See **ENVIRONMENT**
 for details.
-
 
 # FORK #
 The **ssh**(1) client is executed
@@ -202,7 +194,6 @@ If **fork**(2) support is not enabled in **libibverbs**,
 By default, **fabric**(7) initializes **libibverbs** with **fork**(2) support
 by calling the **ibv_fork_init**(3) function. See **fi_verbs**(7) for more
 details.
-
 
 # CAVEATS #
 
@@ -253,13 +244,11 @@ static string describing the reason for failing the version check. The
 string returned by **rpmem_check_version**() must not be modified or
 freed.
 
-
 # ENVIRONMENT #
 
 **librpmem** can change its default behavior based on the following
 environment variables. These are largely intended for testing and are
 not normally required.
-
 
 + **RPMEM_SSH**=*ssh_client*
 
@@ -364,7 +353,6 @@ Specifies the name of a file where all logging information should be written.
 If the last character in the name is "-", the *PID* of the current process will
 be appended to the file name when the log file is created. If
 **RPMEM_LOG_FILE** is not set, logging output is written to *stderr*.
-
 
 # EXAMPLE #
 
@@ -480,7 +468,6 @@ compatibility will be preserved.
 **librpmem** builds on the persistent memory programming model
 recommended by the SNIA NVM Programming Technical Work Group:
 <http://snia.org/nvmp>
-
 
 # SEE ALSO #
 

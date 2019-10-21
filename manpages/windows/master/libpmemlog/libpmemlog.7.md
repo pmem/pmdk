@@ -48,11 +48,9 @@ date: pmemlog API version 1.1
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
 
-
 # NAME #
 
 **libpmemlog** - persistent memory resident log file
-
 
 # SYNOPSIS #
 
@@ -103,7 +101,6 @@ manual pages:
 **pmemlog_ctl_get**(3), **pmemlog_ctl_set**(3), **pmemlog_nbyte**(3),
 **pmemlog_tell**(3)
 
-
 # DESCRIPTION #
 
 **libpmemlog**
@@ -152,14 +149,12 @@ or a regular file (see the **pmem_is_pmem**(3) function in **libpmem**(7)
 for more information). There is no need for applications to flush
 changes directly when using the log memory API provided by **libpmemlog**.
 
-
 # CAVEATS #
 
 **libpmemlog** relies on the library destructor being called from the main
 thread. For this reason, all functions that might trigger destruction (e.g.
 **dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
-
 
 # LIBRARY API VERSIONING #
 
@@ -195,7 +190,6 @@ On success, **pmemlog_check_versionU**()/**pmemlog_check_versionW**() returns NU
 value is a static string describing the reason the version check failed. The
 string returned by **pmemlog_check_versionU**()/**pmemlog_check_versionW**() must not be modified or freed.
 
-
 # MANAGING LIBRARY BEHAVIOR #
 
 The **pmemlog_set_funcs**() function allows an application to override
@@ -204,7 +198,6 @@ Passing in NULL for any of the handlers will cause the
 **libpmemlog** default function to be used. The library does not make
 heavy use of the system malloc functions, but it does
 allocate approximately 4-8 kilobytes for each memory pool in use.
-
 
 # DEBUGGING AND ERROR HANDLING #
 
@@ -262,7 +255,6 @@ process will be appended to the file name when the log file is created. If
 
 See also **libpmem**(7) for information about other environment
 variables affecting **libpmemlog** behavior.
-
 
 # EXAMPLE #
 
@@ -336,19 +328,16 @@ main(int argc, char *argv[])
 See <http://pmem.io/pmdk/libpmemlog>
 for more examples using the **libpmemlog** API.
 
-
 # BUGS #
 
 Unlike **libpmemobj**(7), data replication is not supported in **libpmemlog**.
 Thus, specifying replica sections in pool set files is not allowed.
-
 
 # ACKNOWLEDGEMENTS #
 
 **libpmemlog** builds on the persistent memory programming model recommended
 by the SNIA NVM Programming Technical Work Group:
 <http://snia.org/nvmp>
-
 
 # SEE ALSO #
 

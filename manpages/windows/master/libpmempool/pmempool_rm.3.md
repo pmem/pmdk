@@ -42,11 +42,9 @@ date: pmempool API version 1.3
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool_rmU**()/**pmempool_rmW**() - remove persistent memory pool
-
 
 # SYNOPSIS #
 
@@ -61,7 +59,6 @@ int pmempool_rmW(const wchar_t *path, int flags);
 >NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
-
 
 # DESCRIPTION #
 
@@ -80,12 +77,10 @@ local replicas.
 
 
 
-
 # RETURN VALUE #
 
 On success, **pmempool_rmU**()/**pmempool_rmW**() returns 0. On error, it returns -1 and sets
 *errno* accordingly.
-
 
 # SEE ALSO #
 

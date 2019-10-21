@@ -43,13 +43,11 @@ date: pmemobj API version 2.3
 [CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_open**(), **pmemobj_create**(),
 **pmemobj_close**(), **pmemobj_check**()
 - create, open, close and validate persistent memory transactional object store
-
 
 # SYNOPSIS #
 
@@ -62,7 +60,6 @@ PMEMobjpool *pmemobj_create(const char *path, const char *layout,
 void pmemobj_close(PMEMobjpool *pop);
 int pmemobj_check(const char *path, const char *layout);
 ```
-
 
 
 
@@ -178,12 +175,10 @@ as described in the **DEBUGGING AND ERROR HANDLING** section in
 **libpmemobj**(7). **pmemobj_check**() returns -1 and sets *errno* if it cannot
 perform the consistency check due to other errors.
 
-
 # CAVEATS #
 
 Not all file systems support **posix_fallocate**(3). **pmemobj_create**() will
 fail if the underlying file system does not support **posix_fallocate**(3).
-
 
 # SEE ALSO #
 

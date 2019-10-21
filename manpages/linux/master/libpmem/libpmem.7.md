@@ -47,11 +47,9 @@ date: pmem API version 1.1
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)
 
-
 # NAME #
 
 **libpmem** - persistent memory support library
-
 
 # SYNOPSIS #
 
@@ -87,7 +85,6 @@ manual pages:
 
 + copying to persistent memory: **pmem_memmove_persist**(3)
 
-
 # DESCRIPTION #
 
 **libpmem** provides low-level *persistent memory* (pmem) support for
@@ -117,14 +114,12 @@ intentionally cause the process to exit.
 The only exception to this is the debugging information, when enabled,
 as described under **DEBUGGING AND ERROR HANDLING** below.
 
-
 # CAVEATS #
 
 **libpmem** relies on the library destructor being called from the main thread.
 For this reason, all functions that might trigger destruction (e.g.
 **dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
-
 
 # LIBRARY API VERSIONING #
 
@@ -162,7 +157,6 @@ successful, the return value is NULL. Otherwise the return value is a
 static string describing the reason for failing the version check. The
 string returned by **pmem_check_version**() must not be modified or
 freed.
-
 
 # ENVIRONMENT #
 
@@ -261,7 +255,6 @@ affects all the PMDK libraries,** disabling mapping address randomization
 and causing the specified address to be used as a hint about where to
 place the mapping.
 
-
 # DEBUGGING AND ERROR HANDLING #
 
 If an error is detected during the call to a **libpmem** function, the
@@ -319,7 +312,6 @@ all logging information should be written. If the last character in the name
 is "-", the *PID* of the current process will be appended to the file name when
 the log file is created. If **PMEM_LOG_FILE** is not set, output is
 written to *stderr*.
-
 
 # EXAMPLE #
 
@@ -384,13 +376,11 @@ main(int argc, char *argv[])
 See <http://pmem.io/pmdk/libpmem>
 for more examples using the **libpmem** API.
 
-
 # ACKNOWLEDGEMENTS #
 
 **libpmem** builds on the persistent memory programming model
 recommended by the SNIA NVM Programming Technical Work Group:
 <http://snia.org/nvmp>
-
 
 # SEE ALSO #
 

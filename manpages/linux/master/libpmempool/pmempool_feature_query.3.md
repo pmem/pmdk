@@ -45,12 +45,10 @@ set features)
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool_feature_query**(), **pmempool_feature_enable**(),
 **pmempool_feature_disable**() - toggle or query pool set features
-
 
 # SYNOPSIS #
 
@@ -63,7 +61,6 @@ int pmempool_feature_enable(const char *path, enum pmempool_feature feature, uns
 
 int pmempool_feature_disable(const char *path, enum pmempool_feature feature, unsigned flags);
 ```
-
 
 
 

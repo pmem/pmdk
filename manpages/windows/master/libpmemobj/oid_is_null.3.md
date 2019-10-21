@@ -43,7 +43,6 @@ date: pmemobj API version 2.3
 
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **OID_IS_NULL**(), **OID_EQUALS**(),
@@ -51,7 +50,6 @@ date: pmemobj API version 2.3
 **pmemobj_type_num**(), **pmemobj_pool_by_oid**(),
 **pmemobj_pool_by_ptr**() - functions that allow mapping
 operations between object addresses, object handles, oids or type numbers
-
 
 # SYNOPSIS #
 
@@ -70,7 +68,6 @@ void *pmemobj_volatile(PMEMobjpool *pop, struct pmemvlt *vlt,
 	size_t size, void *ptr,
 	int (*constr)(void *ptr, void *arg), void *arg); (EXPERIMENTAL)
 ```
-
 
 # DESCRIPTION #
 
