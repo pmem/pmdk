@@ -146,5 +146,6 @@ EXPORTS
 	pmemobj_cancel
 	pmemobj_set_user_data
 	pmemobj_get_user_data
+	pmemobj_defrag
 	_pobj_debug_notice
 	DllMain
