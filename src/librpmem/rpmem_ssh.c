@@ -447,11 +447,15 @@ rpmem_ssh_strerror(struct rpmem_ssh *rps, int oerrno)
 		if (oerrno) {
 			char buff[UTIL_MAX_ERR_MSG];
 			util_strerror(oerrno, buff, UTIL_MAX_ERR_MSG);
-			snprintf(error_str, ERR_BUFF_LEN,
+			ret = snprintf(error_str, ERR_BUFF_LEN,
 				"%s", buff);
+			if (ret < 0)
+				return "reading error string failed";
 		} else {
-			snprintf(error_str, ERR_BUFF_LEN,
+			ret = snprintf(error_str, ERR_BUFF_LEN,
 				"unknown error");
+			if (ret < 0)
+				return "reading error string failed";
 		}
 	} else {
 		/* get rid of new line and carriage return chars */

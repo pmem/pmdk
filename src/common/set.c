@@ -1459,10 +1459,14 @@ util_poolset_directories_load(struct pool_set *set)
 				return -1;
 			}
 
-			snprintf((char *)p->path, path_len,
+			int ret = snprintf((char *)p->path, path_len,
 					"%s" OS_DIR_SEP_STR "%0*u%s",
 					d->path, PMEM_FILE_PADDING,
 					pidx, PMEM_EXT);
+			if (ret < 0) {
+				ERR("!snprintf");
+				return -1;
+			}
 		}
 		rep->nparts = mrep->nparts;
 	}
@@ -2954,8 +2958,12 @@ util_poolset_append_new_part(struct pool_set *set, size_t size)
 			goto err_part_init;
 		}
 
-		snprintf(path, path_len, "%s" OS_DIR_SEP_STR "%0*u%s",
+		int ret = snprintf(path, path_len, "%s" OS_DIR_SEP_STR "%0*u%s",
 			d->path, PMEM_FILE_PADDING, set->next_id, PMEM_EXT);
+		if (ret < 0) {
+			ERR("!snprintf");
+			goto err_part_init;
+		}
 
 		if (util_replica_add_part(&set->replica[r], path, size) != 0)
 			FATAL("cannot add a new part to the replica info");

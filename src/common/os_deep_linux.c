@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -58,8 +58,12 @@ os_deep_flush_write(int region_id)
 	char deep_flush_path[PATH_MAX];
 	int deep_flush_fd;
 
-	snprintf(deep_flush_path, PATH_MAX,
+	int ret = snprintf(deep_flush_path, PATH_MAX,
 		"/sys/bus/nd/devices/region%d/deep_flush", region_id);
+	if (ret < 0) {
+		LOG(1, "!snprintf");
+		return -1;
+	}
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
 		LOG(1, "!os_open(\"%s\", O_WRONLY)", deep_flush_path);

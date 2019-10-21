@@ -222,8 +222,12 @@ device_dax_alignment(const char *path)
 		return 0;
 	}
 
-	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u",
+	int ret = snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u",
 		os_major(st.st_rdev), os_minor(st.st_rdev));
+	if (ret < 0) {
+		ERR("!snprintf");
+		return 0;
+	}
 
 	daxpath = realpath(spath, NULL);
 	if (!daxpath) {
