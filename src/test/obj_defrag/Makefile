@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,21 +31,11 @@
 #
 
 #
-# src/test/obj_fragmentation2/TEST8 -- unit test measures average heap
-# external fragmentation.
+# src/test/obj_defrag/Makefile -- build obj_defrag unit test
 #
+TARGET = obj_defrag
+OBJS = obj_defrag.o
 
-. ..\unittest\unittest.ps1
+LIBPMEMOBJ=internal-debug
 
-require_test_type long
-
-require_fs_type pmem
-require_build_type nondebug
-
-setup
-
-$Env:PMEM_IS_PMEM_FORCE=1
-$Env:PMEM_NO_FLUSH=1
-expect_normal_exit $Env:EXE_DIR\obj_fragmentation2$Env:EXESUFFIX $DIR\testfile1 8 12345
-
-pass
+include ../Makefile.inc

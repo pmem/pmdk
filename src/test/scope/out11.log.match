@@ -22,6 +22,7 @@ pmemobj_ctl_getW
 pmemobj_ctl_setU
 pmemobj_ctl_setW
 pmemobj_defer_free
+pmemobj_defrag
 pmemobj_direct
 pmemobj_drain
 pmemobj_errormsgU
