@@ -58,7 +58,7 @@ The **libvmem** library turns a pool of persistent memory into a
 volatile memory pool, similar to the system heap but kept separate
 and with its own malloc-style API.
 
-See the [libvmem page](libvmem) for documentation and examples.
+See the [libvmem page](https://pmem.io/vmem/libvmem/) for documentation and examples.
 
 >NOTE:
 Since persistent memory support
@@ -74,7 +74,7 @@ memory allocations into persistent memory allocations.  This allows the use
 of persistent memory as volatile memory without modifying the target
 application.
 
-See the [libvmmalloc page](libvmmalloc) for documentation and examples.
+See the [libvmmalloc page](https://pmem.io/vmem/libvmmalloc/) for documentation and examples.
 
 #### libpmempool
 
