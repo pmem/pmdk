@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,6 +39,9 @@
 . ../unittest/unittest.sh
 
 require_test_type long
+
+# the test takes too long under pmemcheck
+configure_valgrind pmemcheck force-disable
 
 setup
 
