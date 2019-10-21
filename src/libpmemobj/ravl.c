@@ -97,20 +97,21 @@ ravl_new(ravl_compare *compare)
 
 /*
  * ravl_clear_node -- (internal) recursively clears the given subtree,
- *	calls callback in an in-order fashion. Frees the given node.
+ *	calls callback in an in-order fashion. Optionally frees the given node.
  */
 static void
-ravl_clear_node(struct ravl_node *n, ravl_cb cb, void *arg)
+ravl_foreach_node(struct ravl_node *n, ravl_cb cb, void *arg, int free_node)
 {
 	if (n == NULL)
 		return;
 
-	ravl_clear_node(n->slots[RAVL_LEFT], cb, arg);
+	ravl_foreach_node(n->slots[RAVL_LEFT], cb, arg, free_node);
 	if (cb)
 		cb((void *)n->data, arg);
-	ravl_clear_node(n->slots[RAVL_RIGHT], cb, arg);
+	ravl_foreach_node(n->slots[RAVL_RIGHT], cb, arg, free_node);
 
-	Free(n);
+	if (free_node)
+		Free(n);
 }
 
 /*
@@ -119,7 +120,7 @@ ravl_clear_node(struct ravl_node *n, ravl_cb cb, void *arg)
 void
 ravl_clear(struct ravl *ravl)
 {
-	ravl_clear_node(ravl->root, NULL, NULL);
+	ravl_foreach_node(ravl->root, NULL, NULL, 1);
 	ravl->root = NULL;
 }
 
@@ -129,7 +130,7 @@ ravl_clear(struct ravl *ravl)
 void
 ravl_delete_cb(struct ravl *ravl, ravl_cb cb, void *arg)
 {
-	ravl_clear_node(ravl->root, cb, arg);
+	ravl_foreach_node(ravl->root, cb, arg, 1);
 	Free(ravl);
 }
 
@@ -140,6 +141,15 @@ void
 ravl_delete(struct ravl *ravl)
 {
 	ravl_delete_cb(ravl, NULL, NULL);
+}
+
+/*
+ * ravl_foreach -- traverses the entire tree, calling callback for every node
+ */
+void
+ravl_foreach(struct ravl *ravl, ravl_cb cb, void *arg)
+{
+	ravl_foreach_node(ravl->root, cb, arg, 0);
 }
 
 /*
