@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -247,6 +247,9 @@ struct memory_block_ops {
 	 * the abstraction layer by exposing implementation details.
 	 */
 	void (*get_bitmap)(const struct memory_block *m, struct run_bitmap *b);
+
+	/* calculates the ratio between occupied and unoccupied space */
+	unsigned (*fill_pct)(const struct memory_block *m);
 };
 
 struct memory_block {
