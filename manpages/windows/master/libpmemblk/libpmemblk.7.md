@@ -47,11 +47,9 @@ date: pmemblk API version 1.1
 [ACKNOWLEDGEMENTS](#acknowledgements)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **libpmemblk** - persistent memory resident array of blocks
-
 
 # SYNOPSIS #
 
@@ -102,7 +100,6 @@ manual pages:
 **pmemblk_ctl_exec**(3), **pmemblk_ctl_get**(3), **pmemblk_ctl_set**(3),
 **pmemblk_read**(3), **pmemblk_set_zero**(3),
 
-
 # DESCRIPTION #
 
 **libpmemblk**
@@ -148,14 +145,12 @@ on whether the memory pool appears to be persistent memory or a regular file
 There is no need for applications to flush changes directly when using the
 block memory API provided by **libpmemblk**.
 
-
 # CAVEATS #
 
 **libpmemblk** relies on the library destructor being called from the main
 thread. For this reason, all functions that might trigger destruction (e.g.
 **dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
-
 
 # LIBRARY API VERSIONING #
 
@@ -192,7 +187,6 @@ the return value is NULL. Otherwise the return value is a static string
 describing the reason for failing the version check. The string returned by
 **pmemblk_check_versionU**()/**pmemblk_check_versionW**() must not be modified or freed.
 
-
 # MANAGING LIBRARY BEHAVIOR #
 
 The **pmemblk_set_funcs**() function allows an application to override memory
@@ -201,7 +195,6 @@ Passing in NULL for any of the handlers will cause
 the **libpmemblk** default function to be used.
 The library does not make heavy use of the system malloc functions,
 but it does allocate approximately 4-8 kilobytes for each memory pool in use.
-
 
 # DEBUGGING AND ERROR HANDLING #
 
@@ -263,7 +256,6 @@ output is written to *stderr*.
 
 See also **libpmem**(7) for information on other environment variables
 that may affect **libpmemblk** behavior.
-
 
 # EXAMPLE #
 
@@ -333,19 +325,16 @@ main(int argc, char *argv[])
 
 See <http://pmem.io/pmdk/libpmemblk> for more examples using the **libpmemblk** API.
 
-
 # BUGS #
 
 Unlike **libpmemobj**(7), data replication is not supported in **libpmemblk**.
 Thus, specifying replica sections in pool set files is not allowed.
-
 
 # ACKNOWLEDGEMENTS #
 
 **libpmemblk** builds on the persistent memory programming model recommended
 by the SNIA NVM Programming Technical Work Group:
 <http://snia.org/nvmp>
-
 
 # SEE ALSO #
 

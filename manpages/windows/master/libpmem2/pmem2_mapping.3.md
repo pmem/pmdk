@@ -42,11 +42,9 @@ date: pmem2 API version 1.0
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmem2_map**() - create mapping on the file
-
 
 # SYNOPSIS #
 
@@ -58,9 +56,7 @@ int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr);
 
 # DESCRIPTION #
 
-
 # RETURN VALUE #
-
 
 # SEE ALSO #
 

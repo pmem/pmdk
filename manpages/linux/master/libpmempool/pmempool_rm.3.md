@@ -42,11 +42,9 @@ date: pmempool API version 1.3
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool_rm**() - remove persistent memory pool
-
 
 # SYNOPSIS #
 
@@ -55,7 +53,6 @@ date: pmempool API version 1.3
 
 int pmempool_rm(const char *path, int flags);
 ```
-
 
 
 
@@ -77,12 +74,10 @@ local or remote replicas.
 
 + **PMEMPOOL_RM_POOLSET_REMOTE** - Also remove remote pool set file.
 
-
 # RETURN VALUE #
 
 On success, **pmempool_rm**() returns 0. On error, it returns -1 and sets
 *errno* accordingly.
-
 
 # SEE ALSO #
 

@@ -44,12 +44,10 @@ date: pmempool API version 1.3
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool_check_initU**()/**pmempool_check_initW**(), **pmempool_checkU**()/**pmempool_checkW**(),
 **pmempool_check_end**() - checks pmempool health
-
 
 # SYNOPSIS #
 
@@ -69,7 +67,6 @@ enum pmempool_check_result pmempool_check_end(PMEMpoolcheck *ppc);
 >NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
-
 
 # DESCRIPTION #
 
@@ -92,7 +89,6 @@ must be finalized using **pmempool_check_end**(), which returns an
 **pmempool_check_initU**()/**pmempool_check_initW**() initializes the check context. *args* describes
 parameters of the check context. *args_size* should be equal to the size of
 the *struct pmempool_check_argsU*/*struct pmempool_check_argsW*. *struct pmempool_check_argsU*/*struct pmempool_check_argsW* is defined as follows:
-
 
 
 ```c
@@ -208,7 +204,6 @@ After calling **pmempool_checkU**()/**pmempool_checkW**() again, the previously 
 The **pmempool_check_end**() function finalizes the check and releases all
 related resources. *ppc* is invalid after calling **pmempool_check_end**().
 
-
 # RETURN VALUE #
 
 **pmempool_check_initU**()/**pmempool_check_initW**() returns an opaque handle of type *PMEMpoolcheck\**.
@@ -273,12 +268,10 @@ The **PMEMPOOL_CHECK_FORMAT_STR** flag indicates string
 format statuses (*struct pmempool_check_status*).
 Currently this is the only supported status format so this flag is required.
 
-
 # NOTES #
 
 Currently, checking the consistency of a *pmemobj* pool is
 **not** supported.
-
 
 # SEE ALSO #
 

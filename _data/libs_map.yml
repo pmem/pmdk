@@ -293,21 +293,5 @@
   rpmem_read: rpmem_persist.3
   rpmem_remove: rpmem_open.3
   rpmem_set_attr: rpmem_create.3
-- libvmem: vmem_aligned_alloc.3 vmem_calloc.3 vmem_check.3 vmem_check_version.3 vmem_create.3 vmem_create_in_region.3 vmem_delete.3 vmem_errormsg.3 vmem_free.3 vmem_malloc.3 vmem_malloc_usable_size.3 vmem_realloc.3 vmem_set_funcs.3 vmem_stats_print.3 vmem_strdup.3 vmem_wcsdup.3
-  vmem_aligned_alloc: vmem_malloc.3
-  vmem_calloc: vmem_malloc.3
-  vmem_check: vmem_create.3
-  vmem_check_version: libvmem.7
-  vmem_create: vmem_create.3
-  vmem_create_in_region: vmem_create.3
-  vmem_delete: vmem_create.3
-  vmem_errormsg: libvmem.7
-  vmem_free: vmem_malloc.3
-  vmem_malloc: vmem_malloc.3
-  vmem_malloc_usable_size: vmem_malloc.3
-  vmem_realloc: vmem_malloc.3
-  vmem_set_funcs: libvmem.7
-  vmem_stats_print: vmem_create.3
-  vmem_strdup: vmem_malloc.3
-  vmem_wcsdup: vmem_malloc.3
-- libvmmalloc: 
+  libvmem: libvmem.7
+  libvmmalloc: libvmmalloc.7

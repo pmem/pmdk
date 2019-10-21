@@ -42,13 +42,11 @@ date: pmemblk API version 1.1
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemblk_create**(), **pmemblk_open**(),
 **pmemblk_close**(), **pmemblk_check**()
 - create, open, close and validate block pool
-
 
 # SYNOPSIS #
 
@@ -61,7 +59,6 @@ PMEMblkpool *pmemblk_open(const char *path, size_t bsize);
 void pmemblk_close(PMEMblkpool *pbp);
 int pmemblk_check(const char *path, size_t bsize);
 ```
-
 
 
 
@@ -141,7 +138,6 @@ HANDLING** section in **libpmemblk**(7). **pmemblk_check**() opens the given
 *path* read-only so it never makes any changes to the file. This function is
 not supported on Device DAX.
 
-
 # RETURN VALUE #
 
 On success, **pmemblk_create**() returns a *PMEMblkpool\** handle to the block
@@ -170,12 +166,10 @@ and does not match the block size given when the pool was created. If the
 consistency check cannot be performed, **pmemblk_check**() returns -1 and sets
 *errno* appropriately.
 
-
 # CAVEATS #
 
 Not all file systems support **posix_fallocate**(3). **pmemblk_create**() will
 fail if the underlying file system does not support **posix_fallocate**(3).
-
 
 # SEE ALSO #
 **pmempool**(1), **creat**(2), **pmemblk_nblock**(3),

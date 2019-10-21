@@ -43,14 +43,12 @@ date: pmemlog API version 1.1
 [CTL EXTERNAL CONFIGURATION](#ctl-external-configuration)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemlog_ctl_get**(),
 **pmemlog_ctl_set**(),
 **pmemlog_ctl_exec**()
 - Query and modify libpmemlog internal behavior (EXPERIMENTAL)
-
 
 # SYNOPSIS #
 
@@ -61,7 +59,6 @@ int pmemlog_ctl_get(PMEMlogpool *plp, const char *name, void *arg); (EXPERIMENTA
 int pmemlog_ctl_set(PMEMlogpool *plp, const char *name, void *arg); (EXPERIMENTAL)
 int pmemlog_ctl_exec(PMEMlogpool *plp, const char *name, void *arg); (EXPERIMENTAL)
 ```
-
 
 
 
@@ -85,7 +82,6 @@ on success and -1 on failure, unless otherwise specified in the entry point
 description.
 
 See more in **pmem_ctl**(5) man page.
-
 
 # CTL NAMESPACE #
 

@@ -43,13 +43,11 @@ date: pmemlog API version 1.1
 [CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemlog_create**(), **pmemlog_open**(),
 **pmemlog_close**(), **pmemlog_check**()
 - create, open, close and validate persistent memory resident log file
-
 
 # SYNOPSIS #
 
@@ -61,7 +59,6 @@ PMEMlogpool *pmemlog_create(const char *path, size_t poolsize, mode_t mode);
 void pmemlog_close(PMEMlogpool *plp);
 int pmemlog_check(const char *path);
 ```
-
 
 
 
@@ -130,7 +127,6 @@ indicated by *path*. **pmemlog_check**() opens the given *path* read-only so
 it never makes any changes to the file. This function is not supported on
 Device DAX.
 
-
 # RETURN VALUE #
 
 On success, **pmemlog_create**() returns a *PMEMlogpool\** handle to the
@@ -157,12 +153,10 @@ as described in the **DEBUGGING AND ERROR HANDLING** section in
 **libpmemlog**(7). **pmemlog_check**() will return -1 and set *errno* if it
 cannot perform the consistency check due to other errors.
 
-
 # CAVEATS #
 
 Not all file systems support **posix_fallocate**(3). **pmemlog_create**() will
 fail if the underlying file system does not support **posix_fallocate**(3).
-
 
 # SEE ALSO #
 

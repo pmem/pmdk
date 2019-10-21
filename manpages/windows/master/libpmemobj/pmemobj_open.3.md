@@ -43,13 +43,11 @@ date: pmemobj API version 2.3
 [CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_openU**()/**pmemobj_openW**(), **pmemobj_createU**()/**pmemobj_createW**(),
 **pmemobj_close**(), **pmemobj_checkU**()/**pmemobj_checkW**()
 - create, open, close and validate persistent memory transactional object store
-
 
 # SYNOPSIS #
 
@@ -71,7 +69,6 @@ int pmemobj_checkW(const wchar_t *path, const char *layout);
 >NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
-
 
 # DESCRIPTION #
 
@@ -184,12 +181,10 @@ as described in the **DEBUGGING AND ERROR HANDLING** section in
 **libpmemobj**(7). **pmemobj_checkU**()/**pmemobj_checkW**() returns -1 and sets *errno* if it cannot
 perform the consistency check due to other errors.
 
-
 # CAVEATS #
 
 Not all file systems support **posix_fallocate**(3). **pmemobj_createU**()/**pmemobj_createW**() will
 fail if the underlying file system does not support **posix_fallocate**(3).
-
 
 # SEE ALSO #
 

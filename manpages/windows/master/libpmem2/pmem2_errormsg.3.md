@@ -42,11 +42,9 @@ date: pmem2 API version 1.0
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmem2_errormsgU**()/**pmem2_errormsgW**() - returns last error message
-
 
 # SYNOPSIS #
 
@@ -62,7 +60,6 @@ const wchar_t *pmem2_errormsgW(void);
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
 
-
 # DESCRIPTION #
 
 If an error is detected during the call to a **libpmem2**(7) function, the
@@ -75,14 +72,12 @@ call to a **libpmem2**(7) function indicated an error.
 The application must not modify or free the error message string.
 Subsequent calls to other library functions may modify the previous message.
 
-
 # RETURN VALUE #
 
 The **pmem2_errormsgU**()/**pmem2_errormsgW**() function returns a pointer to a static buffer
 containing the last error message logged for the current thread. If *errno*
 was set, the error message may include a description of the corresponding
 error code as returned by **strerror**(3).
-
 
 # SEE ALSO #
 

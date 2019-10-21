@@ -43,7 +43,6 @@ date: pmemobj API version 2.3
 [CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_tx_stage**(),
@@ -61,7 +60,6 @@ date: pmemobj API version 2.3
 **pmemobj_tx_log_auto_alloc**(), **pmemobj_tx_log_snapshots_max_size**(),
 **pmemobj_tx_log_intents_max_size**()
 - transactional object manipulation
-
 
 # SYNOPSIS #
 
@@ -93,7 +91,6 @@ int pmemobj_tx_log_auto_alloc(enum pobj_log_type type, int on_off);
 size_t pmemobj_tx_log_snapshots_max_size(size_t *sizes, size_t nsizes);
 size_t pmemobj_tx_log_intents_max_size(size_t nintents);
 ```
-
 
 # DESCRIPTION #
 
@@ -534,7 +531,6 @@ internally may call functions that are specified as cancellation points in POSIX
 thread. For this reason, all functions that might trigger destruction (e.g.
 **dlclose**(3)) should be called in the main thread. Otherwise some of the
 resources associated with that thread might not be cleaned up properly.
-
 
 # SEE ALSO #
 

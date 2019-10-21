@@ -42,7 +42,6 @@ date: pmemobj API version 2.3
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemobj_tx_add_range**(), **pmemobj_tx_add_range_direct**(),
@@ -57,7 +56,6 @@ date: pmemobj API version 2.3
 **TX_SET**(), **TX_SET_DIRECT**(),
 **TX_MEMCPY**(), **TX_MEMSET**()
 - transactional object manipulation
-
 
 # SYNOPSIS #
 
@@ -84,7 +82,6 @@ TX_SET_DIRECT(TYPE *p, FIELD, VALUE)
 TX_MEMCPY(void *dest, const void *src, size_t num)
 TX_MEMSET(void *dest, int c, size_t num)
 ```
-
 
 # DESCRIPTION #
 
@@ -204,7 +201,6 @@ undo log and then fills the first *num* bytes of its memory area with the
 constant byte *c*. In case of a failure or abort, the saved value will be
 restored.
 
-
 # RETURN VALUE #
 
 On success, **pmemobj_tx_add_range**() and **pmemobj_tx_add_range_direct**()
@@ -214,7 +210,6 @@ return 0. Otherwise, the stage is changed to **TX_STAGE_ONABORT**,
 On success, **pmemobj_tx_xadd_range**() and **pmemobj_tx_xadd_range_direct**()
 returns 0. Otherwise, the error number is returned, **errno** is set and
 when flags do not contain **POBJ_XADD_NO_ABORT**, the transaction is aborted.
-
 
 # SEE ALSO #
 

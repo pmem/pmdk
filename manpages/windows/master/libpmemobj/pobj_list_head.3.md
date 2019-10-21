@@ -41,7 +41,6 @@ date: pmemobj API version 2.3
 [DESCRIPTION](#description)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **POBJ_LIST_HEAD**(),
@@ -72,7 +71,6 @@ date: pmemobj API version 2.3
 **POBJ_LIST_MOVE_ELEMENT_AFTER**(),
 **POBJ_LIST_MOVE_ELEMENT_BEFORE**()
 - type-safe non-transactional persistent atomic lists
-
 
 # SYNOPSIS #
 
@@ -129,7 +127,6 @@ POBJ_LIST_MOVE_ELEMENT_BEFORE(PMEMobjpool *pop, POBJ_LIST_HEAD *head,
 	POBJ_LIST_HEAD *head_new, TOID listelm, TOID elm,
 	POBJ_LIST_ENTRY FIELD, POBJ_LIST_ENTRY field_new)
 ```
-
 
 # DESCRIPTION #
 
@@ -272,7 +269,6 @@ by *head_new* before the element *listelm*. If *listelm* value is **TOID_NULL**,
 the object is inserted at the head of the list. The *field* and *field_new*
 arguments are the names of the fields of type *POBJ_LIST_ENTRY* in the element
 structure that are used to connect the elements in both lists.
-
 
 # SEE ALSO #
 

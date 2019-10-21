@@ -43,13 +43,11 @@ date: pmemlog API version 1.1
 [CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmemlog_createU**()/**pmemlog_createW**(), **pmemlog_openU**()/**pmemlog_openW**(),
 **pmemlog_close**(), **pmemlog_checkU**()/**pmemlog_checkW**()
 - create, open, close and validate persistent memory resident log file
-
 
 # SYNOPSIS #
 
@@ -69,7 +67,6 @@ int pmemlog_checkW(const wchar_t *path);
 >NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
-
 
 # DESCRIPTION #
 
@@ -136,7 +133,6 @@ indicated by *path*. **pmemlog_checkU**()/**pmemlog_checkW**() opens the given *
 it never makes any changes to the file. This function is not supported on
 Device DAX.
 
-
 # RETURN VALUE #
 
 On success, **pmemlog_createU**()/**pmemlog_createW**() returns a *PMEMlogpool\** handle to the
@@ -163,12 +159,10 @@ as described in the **DEBUGGING AND ERROR HANDLING** section in
 **libpmemlog**(7). **pmemlog_checkU**()/**pmemlog_checkW**() will return -1 and set *errno* if it
 cannot perform the consistency check due to other errors.
 
-
 # CAVEATS #
 
 Not all file systems support **posix_fallocate**(3). **pmemlog_createU**()/**pmemlog_createW**() will
 fail if the underlying file system does not support **posix_fallocate**(3).
-
 
 # SEE ALSO #
 

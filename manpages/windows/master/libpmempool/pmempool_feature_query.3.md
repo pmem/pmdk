@@ -45,12 +45,10 @@ set features)
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool_feature_queryU**()/**pmempool_feature_queryW**(), **pmempool_feature_enableU**()/**pmempool_feature_enableW**(),
 **pmempool_feature_disableU**()/**pmempool_feature_disableW**() - toggle or query pool set features
-
 
 # SYNOPSIS #
 
@@ -71,7 +69,6 @@ int pmempool_feature_disableW(const wchar_t *path, enum pmempool_feature feature
 >NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
 defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
 Otherwise they are expanded to the UNICODE API with postfix *W*.
-
 
 # DESCRIPTION #
 

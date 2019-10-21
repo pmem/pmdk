@@ -44,11 +44,9 @@ date: pmempool API version 1.3
 [NOTES](#notes)<br />
 [SEE ALSO](#see-also)<br />
 
-
 # NAME #
 
 **pmempool_sync**(), **pmempool_transform**() - pool set synchronization and transformation
-
 
 # SYNOPSIS #
 
@@ -60,7 +58,6 @@ int pmempool_sync(const char *poolset_file,
 int pmempool_transform(const char *poolset_file_src,
 	const char *poolset_file_dst, unsigned flags); (EXPERIMENTAL)
 ```
-
 
 
 
@@ -101,7 +98,6 @@ the internal metadata of each replica is limited to the beginning of the first
 part in the replica. If the option *NOHDRS* is used, replicas contain no
 internal metadata. In both cases, only the missing parts or the ones which
 cannot be opened are recreated with the **pmempool_sync**() function.
-
 
 **pmempool_transform**() modifies the internal structure of a pool set.
 It supports the following operations:
@@ -158,12 +154,10 @@ metadata.
 **libpmemobj**(7) pools, so **pmempool_transform**() cannot be used with other
 pool types (**libpmemlog**(7), **libpmemblk**(7)).
 
-
 # RETURN VALUE #
 
 **pmempool_sync**() and **pmempool_transform**() return 0 on success.
 Otherwise, they return -1 and set *errno* appropriately.
-
 
 # ERRORS #
 
@@ -185,7 +179,6 @@ Otherwise, they return -1 and set *errno* appropriately.
 **ENOTSUP** The pool set contains a remote replica, but remote replication
   is not supported (**librpmem**(7) is not available).
 
-
 # NOTES #
 
 The **pmempool_sync**() API is experimental and it may change in future
@@ -193,7 +186,6 @@ versions of the library.
 
 The **pmempool_transform**() API is experimental and it may change in future
 versions of the library.
-
 
 # SEE ALSO #
 
