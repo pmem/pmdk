@@ -782,6 +782,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mmap_fixed", "test\mmap_fix
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_list_remove", "test\obj_list_remove\obj_list_remove.vcxproj", "{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_defrag", "test\obj_defrag\obj_defrag.vcxproj", "{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -1737,6 +1739,10 @@ Global
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Debug|x64.Build.0 = Debug|x64
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Release|x64.ActiveCfg = Release|x64
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79}.Release|x64.Build.0 = Release|x64
+		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80}.Debug|x64.ActiveCfg = Debug|x64
+		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80}.Debug|x64.Build.0 = Debug|x64
+		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80}.Release|x64.ActiveCfg = Release|x64
+		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -2013,6 +2019,7 @@ Global
 		{FD726AA3-D4FA-4597-B435-08CC7752888E} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
 		{FEA09B48-34C2-4963-8A5A-F97BDA136D72} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
 		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA79} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
+		{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {5E690324-2D48-486A-8D3C-DCB520D3F693}

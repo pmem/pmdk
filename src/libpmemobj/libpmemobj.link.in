@@ -137,6 +137,7 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_cancel;
 		pmemobj_set_user_data;
 		pmemobj_get_user_data;
+		pmemobj_defrag;
 		_pobj_cached_pool;
 		_pobj_cache_invalidate;
 		_pobj_debug_notice;
