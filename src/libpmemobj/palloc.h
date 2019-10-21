@@ -125,6 +125,9 @@ int palloc_heap_check_remote(void *heap_start, uint64_t heap_size,
 void palloc_heap_cleanup(struct palloc_heap *heap);
 size_t palloc_heap(void *heap_start);
 
+int palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
+	struct operation_context *ctx, struct pobj_defrag_result *result);
+
 /* foreach callback, terminates iteration if return value is non-zero */
 typedef int (*object_callback)(const struct memory_block *m, void *arg);
 

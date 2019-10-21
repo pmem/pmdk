@@ -17,6 +17,7 @@ pmemobj_ctl_exec
 pmemobj_ctl_get
 pmemobj_ctl_set
 pmemobj_defer_free
+pmemobj_defrag
 pmemobj_direct
 pmemobj_drain
 pmemobj_errormsg

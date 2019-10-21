@@ -133,6 +133,7 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_tx_publish;
 		pmemobj_tx_xpublish;
 		pmemobj_cancel;
+		pmemobj_defrag;
 		_pobj_cached_pool;
 		_pobj_cache_invalidate;
 		_pobj_debug_notice;

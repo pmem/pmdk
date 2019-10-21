@@ -74,6 +74,8 @@ int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 int pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s,
 	uint64_t type_num);
 size_t pmemobj_alloc_usable_size(PMEMoid oid);
+int pmemobj_defrag(PMEMobjpool *pop, PMEMoid **oidv, size_t oidcnt,
+	struct pobj_defrag_result *result);
 
 POBJ_NEW(PMEMobjpool *pop, TOID *oidp, TYPE, pmemobj_constr constructor,
 	void *arg)
@@ -232,6 +234,28 @@ typed *OID* of type name *TYPE*, and passes the type number from the typed
 The **POBJ_FREE**() macro is a wrapper around the **pmemobj_free**() function
 which takes a pointer to the typed *OID* instead of to *PMEMoid*.
 
+The **pmemobj_defrag**() function performs defragmentation on the
+objects provided through the array of pointers to PMEMoids *oidv* with size *oidcnt*.
+If an object from the provided array is selected to be moved to a
+better location in the heap, it is reallocated and all provided pointers to
+that objects are atomically updated.
+To maintain data structure consistency, applications should always provide
+all pointers for an object to **pmemobj_defrag** method. This ensures that,
+even in presence of failures, all pointers to an object will either point to
+old or new location.
+All objects and pointers to object should belong to the pool *pop*, or, in
+case of pointers, should reside on volatile memory. Defragmentation across
+pools is not supported.
+Objects in the array that are *OID_NULL* are skipped over and no operation
+is performed on them.
+The *result* variable, if not NULL, is an instance of *struct pobj_defrag_result*
+that can be used to read *total*, the number of objects found that
+were processed, and *relocated*, the number of objects that were
+relocated during defragmentation. These variables are set, and can be
+non-zero, even if the **pmemobj_defrag**() return value indicated failure. This
+is because the failure might have occured after some objects were already
+processed.
+
 # RETURN VALUE #
 
 On success, **pmemobj_alloc**() and **pmemobj_xalloc** return 0. If *oidp*
@@ -261,6 +285,10 @@ appropriately.
 
 The **pmemobj_alloc_usable_size**() function returns the number of usable bytes
 in the object represented by *oid*. If *oid* is **OID_NULL**, it returns 0.
+
+On success, **pmemobj_defrag**() returns 0. If defragmentation was
+unsuccessful or only partially successful (i.e., if it was aborted halfway
+through due to lack of resources), -1 is returned.
 
 # SEE ALSO #
 
