@@ -41,6 +41,7 @@
 #include "config.h"
 #include "map.h"
 #include "pmem2_utils.h"
+#include "alloc.h"
 
 #define HIDWORD(x) ((DWORD)((x) >> 32))
 #define LODWORD(x) ((DWORD)((x) & 0xFFFFFFFF))
@@ -170,4 +171,25 @@ err_close_mapping_handle:
 		CloseHandle(mh);
 
 	return ret;
+}
+
+/*
+ * pmem2_unmap -- unmap the specified region
+ */
+int
+pmem2_unmap(struct pmem2_map **map_ptr)
+{
+	LOG(3, "mapp %p", map_ptr);
+
+	struct pmem2_map *map = *map_ptr;
+
+	if (UnmapViewOfFile(map->addr) != 0) {
+		ERR("!!UnmapViewOfFile");
+		return PMEM2_E_UNKNOWN; /* XXX */
+	}
+
+	Free(map);
+	*map_ptr = NULL;
+
+	return PMEM2_E_OK;
 }
