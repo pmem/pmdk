@@ -137,3 +137,26 @@ err_close_mapping_handle:
 
 	return ret;
 }
+
+/*
+ * pmem2_unmap -- unmap the specified region
+ */
+int
+pmem2_unmap(struct pmem2_map **mapp)
+{
+	LOG(3, "mapp %p", mapp);
+
+	int ret = PMEM2_E_OK;
+	struct pmem2_map *map = &mapp;
+	struct pmem2_config *cfg = map->cfg;
+
+	if (util_range_unregister(map->addr, cfg->length))
+		ERR("!util_range_unregister");
+
+	pmem2_config_delete(&cfg);
+
+	Free(map);
+	map = NULL;
+
+	return ret;
+}

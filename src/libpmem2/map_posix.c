@@ -281,3 +281,28 @@ err_unmap:
 	unmap(addr, length);
 	return ret;
 }
+
+/*
+ * pmem2_unmap -- unmap the specified region
+ */
+int
+pmem2_unmap(struct pmem2_map **map_ptr)
+{
+	LOG(3, "map_ptr %p", map_ptr);
+
+	int ret = PMEM2_E_OK;
+	struct pmem2_map *map = *map_ptr;
+	struct pmem2_config *cfg = map->cfg;
+
+	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, cfg->length);
+
+	if (util_unmap(map->addr, cfg->length))
+		ERR("!util_unmap");
+
+	pmem2_config_delete(&cfg);
+
+	Free(map);
+	map = NULL;
+
+	return ret;
+}
