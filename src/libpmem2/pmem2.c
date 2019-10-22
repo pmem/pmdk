@@ -73,12 +73,6 @@ pmem2_config_set_address(struct pmem2_config *cfg, unsigned type, void *addr)
 	return PMEM2_E_NOSUPP;
 }
 
-int
-pmem2_unmap(struct pmem2_map **map)
-{
-	return PMEM2_E_NOSUPP;
-}
-
 void *
 pmem2_map_get_address(struct pmem2_map *map)
 {
