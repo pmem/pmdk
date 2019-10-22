@@ -166,3 +166,24 @@ err_close_mapping_handle:
 	CloseHandle(mh);
 	return ret;
 }
+
+/*
+ * pmem2_unmap -- unmap the specified region
+ */
+int
+pmem2_unmap(struct pmem2_map **map_ptr)
+{
+	LOG(3, "mapp %p", map_ptr);
+
+	struct pmem2_map *map = *map_ptr;
+
+	if (!UnmapViewOfFile(map->addr)) {
+		ERR("!!UnmapViewOfFile");
+		return pmem2_lasterror_to_err();
+	}
+
+	Free(map);
+	*map_ptr = NULL;
+
+	return PMEM2_E_OK;
+}

@@ -42,6 +42,7 @@
 #include "valgrind_internal.h"
 
 #include "libpmem2.h"
+#include "alloc.h"
 #include "out.h"
 #include "file.h"
 #include "config.h"
@@ -312,6 +313,29 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 
 	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->length);
 	VALGRIND_REGISTER_PMEM_FILE(cfg->fd, map->addr, map->length, 0);
+
+	return ret;
+}
+
+/*
+ * pmem2_unmap -- unmap the specified mapping
+ */
+int
+pmem2_unmap(struct pmem2_map **map_ptr)
+{
+	LOG(3, "map_ptr %p", map_ptr);
+
+	int ret = PMEM2_E_OK;
+	struct pmem2_map *map = *map_ptr;
+
+	ret = unmap(map->addr, map->length);
+	if (ret)
+		return ret;
+
+	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->length);
+
+	Free(map);
+	*map_ptr = NULL;
 
 	return ret;
 }
