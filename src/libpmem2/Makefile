@@ -48,7 +48,8 @@ SOURCE =\
 	config.c\
 	config_posix.c\
 	pmem2.c\
-	pmem2_utils.c
+	pmem2_utils.c\
+	pmem2_utils_posix.c
 
 include ../Makefile.inc
 

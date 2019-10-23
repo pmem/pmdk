@@ -40,50 +40,50 @@
 int
 pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 int
 pmem2_config_set_length(struct pmem2_config *cfg, size_t length)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 int
 pmem2_config_set_sharing(struct pmem2_config *cfg, unsigned type)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 int
 pmem2_config_set_protection(struct pmem2_config *cfg, unsigned flag)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 int
 pmem2_config_use_anonymous_mapping(struct pmem2_config *cfg, unsigned on)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 int
 pmem2_config_set_address(struct pmem2_config *cfg, unsigned type, void *addr)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 int
 pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 		enum pmem2_granularity g)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 int
 pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 struct pmem2_config *
@@ -95,7 +95,7 @@ pmem2_get_config(struct pmem2_map *map)
 int
 pmem2_unmap(struct pmem2_map **map)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 void *
@@ -113,7 +113,7 @@ pmem2_map_get_size(struct pmem2_map *map)
 enum pmem2_granularity
 pmem2_map_get_store_granularity(struct pmem2_map *map)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 pmem2_persist_fn *
@@ -156,40 +156,40 @@ pmem2_get_memset_fn(struct pmem2_map *map)
 int
 pmem2_get_device_id(const struct pmem2_config *cfg, char *id, size_t *len)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 #else
 int
 pmem2_get_device_idW(const struct pmem2_config *cfg, wchar_t *id, size_t *len)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 int
 pmem2_get_device_idU(const struct pmem2_config *cfg, char *id, size_t *len)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 #endif
 
 int
 pmem2_get_device_usc(const struct pmem2_config *cfg, uint64_t *usc)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 int
 pmem2_badblock_iterator_new(const struct pmem2_config *cfg,
 		struct pmem2_badblock_iterator **pbb)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 int
 pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
 		struct pmem2_badblock *bb)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
 
 void pmem2_badblock_iterator_delete(
@@ -201,5 +201,5 @@ int
 pmem2_badblock_clear(const struct pmem2_config *cfg,
 		const struct pmem2_badblock *bb)
 {
-	return PMEM2_E_NOSUPP;
+	return PMEM2_E_NOT_SUPPORTED;
 }

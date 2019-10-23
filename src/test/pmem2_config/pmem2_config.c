@@ -133,7 +133,7 @@ test_set_invalid_fd(const char *file)
 	CLOSE(fd);
 
 	int ret = pmem2_config_set_fd(&cfg, fd);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ARG);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ARGUMENT);
 	verify_fd(&cfg, INVALID_FD);
 }
 
@@ -172,7 +172,7 @@ test_alloc_cfg_enomem(const char *unused)
 	common_inject_fault_at(PMEM_MALLOC, 1, "pmem2_malloc");
 
 	int ret = pmem2_config_new(&cfg);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_NOMEM);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OUT_OF_MEMORY);
 
 	UT_ASSERTeq(cfg, NULL);
 }

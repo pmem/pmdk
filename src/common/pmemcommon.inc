@@ -58,7 +58,8 @@ SOURCE =\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\
 	$(COMMON)/uuid.c\
-	$(call osdep, $(COMMON)/uuid,.c)
+	$(call osdep, $(COMMON)/uuid,.c)\
+	$(PMEM2)/pmem2_utils_posix.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE += $(COMMON)/os_auto_flush_linux.c

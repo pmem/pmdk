@@ -54,7 +54,8 @@ SOURCE =\
 	libpmem.c\
 	memops_generic.c\
 	pmem.c\
-	pmem_posix.c
+	pmem_posix.c\
+	$(PMEM2)/pmem2_utils_posix.c
 
 include $(ARCH)/sources.inc
 
