@@ -86,12 +86,6 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map)
 	return PMEM2_E_NOSUPP;
 }
 
-struct pmem2_config *
-pmem2_get_config(struct pmem2_map *map)
-{
-	return NULL;
-}
-
 int
 pmem2_unmap(struct pmem2_map **map)
 {

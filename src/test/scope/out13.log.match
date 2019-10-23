@@ -13,7 +13,6 @@ pmem2_config_set_required_store_granularity
 pmem2_config_set_sharing
 pmem2_config_use_anonymous_mapping
 pmem2_errormsg
-pmem2_get_config
 pmem2_get_device_id
 pmem2_get_device_usc
 pmem2_get_drain_fn
