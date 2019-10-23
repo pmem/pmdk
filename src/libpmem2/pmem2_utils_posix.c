@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,33 +30,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * pmem2_utils.c -- libpmem2 utilities functions
- */
-
 #include <errno.h>
-#include "alloc.h"
+
+#include "pmem2_utils_posix.h"
 #include "libpmem2.h"
-#include "out.h"
-#include "pmem2_utils.h"
 
-/*
- * pmem2_malloc -- allocate buffer and handle error
- */
-void *
-pmem2_malloc(size_t size, int *err)
+int
+pmem2_errno_to_err(void)
 {
-	void *ptr = Malloc(size);
-	*err = 0;
+	/* XXX convert it to an array */
+	if (errno == EIO)
+		return PMEM2_E_IO;
+	if (errno == ELOOP)
+		return PMEM2_E_LOOP;
+	if (errno == ENAMETOOLONG)
+		return PMEM2_E_NAME_TOO_LONG;
+	if (errno == ENOTDIR)
+		return PMEM2_E_NOT_DIR;
+	if (errno == ENOMEM)
+		return PMEM2_E_OUT_OF_MEMORY;
+	if (errno == ENOENT)
+		return PMEM2_E_NO_ENTRY;
+	if (errno == EACCES)
+		return PMEM2_E_ACCESS;
+	if (errno == ENFILE)
+		return PMEM2_E_NFILE;
+	if (errno == EMFILE)
+		return PMEM2_E_MFILE;
+	if (errno == EPERM)
+		return PMEM2_E_PERM;
+	if (errno == ERANGE)
+		return PMEM2_E_RANGE;
 
-	if (ptr == NULL) {
-		ERR("!malloc(%zu)", size);
-
-		if (errno == ENOMEM)
-			*err = PMEM2_E_OUT_OF_MEMORY;
-		else
-			*err = PMEM2_E_EXTERNAL;
-	}
-
-	return ptr;
+	return PMEM2_E_UNKNOWN;
 }

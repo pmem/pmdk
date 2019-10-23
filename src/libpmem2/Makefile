@@ -48,7 +48,14 @@ SOURCE =\
 	config.c\
 	config_posix.c\
 	pmem2.c\
-	pmem2_utils.c
+	pmem2_utils.c\
+	pmem2_utils_posix.c
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+SOURCE += $(PMEM2)/pmem2_utils_linux.c
+else ifeq ($(OS_KERNEL_NAME),FreeBSD)
+SOURCE += $(PMEM2)/pmem2_utils_freebsd.c
+endif
 
 include ../Makefile.inc
 

@@ -54,7 +54,14 @@ SOURCE =\
 	libpmem.c\
 	memops_generic.c\
 	pmem.c\
-	pmem_posix.c
+	pmem_posix.c\
+	$(PMEM2)/pmem2_utils_posix.c
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+SOURCE += $(PMEM2)/pmem2_utils_linux.c
+else ifeq ($(OS_KERNEL_NAME),FreeBSD)
+SOURCE += $(PMEM2)/pmem2_utils_freebsd.c
+endif
 
 include $(ARCH)/sources.inc
 

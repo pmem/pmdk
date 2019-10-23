@@ -53,7 +53,7 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 
 	if (handle == INVALID_HANDLE_VALUE) {
 		ERR("fd is not open file descriptor");
-		return PMEM2_E_INVALID_ARG;
+		return PMEM2_E_INVALID_ARGUMENT;
 	}
 
 	return pmem2_config_set_handle(cfg, handle);
@@ -73,7 +73,7 @@ pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
 	BY_HANDLE_FILE_INFORMATION not_used;
 	if (!GetFileInformationByHandle(handle, &not_used)) {
 		ERR("HANDLE is invalid");
-		return PMEM2_E_INVALID_ARG;
+		return PMEM2_E_INVALID_ARGUMENT;
 	}
 	/* XXX: winapi doesn't provide option to get open flags from HANDLE */
 	cfg->handle = handle;

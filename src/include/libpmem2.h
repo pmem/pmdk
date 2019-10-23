@@ -65,14 +65,26 @@ extern "C" {
 
 #define PMEM2_E_OK			0
 #define PMEM2_E_EXTERNAL		1
-#define PMEM2_E_INVALID_ARG		2
+#define PMEM2_E_INVALID_ARGUMENT	2
 #define PMEM2_E_INVALID_HANDLE		3
-#define PMEM2_E_NOMEM			4
-#define PMEM2_E_MAP_RANGE		5
-#define PMEM2_E_INV_FSIZE		6
-#define PMEM2_E_UNKNOWN_FILETYPE	7
-#define PMEM2_E_MAP_FAILED		8
-#define PMEM2_E_NOSUPP			9
+#define PMEM2_E_MAP_RANGE		4
+#define PMEM2_E_INVALID_FILE_TYPE	5
+#define PMEM2_E_MAP_FAILED		6
+#define PMEM2_E_NOT_SUPPORTED		7
+
+#define PMEM2_E_OUT_OF_MEMORY		100
+#define PMEM2_E_IO			101
+#define PMEM2_E_LOOP			102
+#define PMEM2_E_NAME_TOO_LONG		103
+#define PMEM2_E_NOT_DIR			104
+#define PMEM2_E_NO_ENTRY		105
+#define PMEM2_E_ACCESS			106
+#define PMEM2_E_NFILE			107
+#define PMEM2_E_MFILE			108
+#define PMEM2_E_PERM			109
+#define PMEM2_E_RANGE			110
+
+#define PMEM2_E_UNKNOWN			999
 
 /* config setup */
 

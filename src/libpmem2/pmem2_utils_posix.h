@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,33 +30,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * pmem2_utils.c -- libpmem2 utilities functions
- */
+#ifndef PMEM2_UTILS_POSIX_H
+#define PMEM2_UTILS_POSIX_H
 
-#include <errno.h>
-#include "alloc.h"
-#include "libpmem2.h"
-#include "out.h"
-#include "pmem2_utils.h"
+#include "os.h"
 
-/*
- * pmem2_malloc -- allocate buffer and handle error
- */
-void *
-pmem2_malloc(size_t size, int *err)
-{
-	void *ptr = Malloc(size);
-	*err = 0;
+enum pmem2_file_type {
+	FTYPE_REG = 1,
+	FTYPE_DEVDAX = 2,
+	FTYPE_DIR = 3,
+};
 
-	if (ptr == NULL) {
-		ERR("!malloc(%zu)", size);
+int pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type);
+int pmem2_device_dax_size_from_stat(const os_stat_t *st, ssize_t *size);
+int pmem2_errno_to_err(void);
 
-		if (errno == ENOMEM)
-			*err = PMEM2_E_OUT_OF_MEMORY;
-		else
-			*err = PMEM2_E_EXTERNAL;
-	}
-
-	return ptr;
-}
+#endif

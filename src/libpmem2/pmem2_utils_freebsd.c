@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,33 +30,40 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * pmem2_utils.c -- libpmem2 utilities functions
- */
-
 #include <errno.h>
-#include "alloc.h"
+#include <sys/stat.h>
+
 #include "libpmem2.h"
 #include "out.h"
-#include "pmem2_utils.h"
+#include "pmem2_utils_posix.h"
 
-/*
- * pmem2_malloc -- allocate buffer and handle error
- */
-void *
-pmem2_malloc(size_t size, int *err)
+int
+pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 {
-	void *ptr = Malloc(size);
-	*err = 0;
-
-	if (ptr == NULL) {
-		ERR("!malloc(%zu)", size);
-
-		if (errno == ENOMEM)
-			*err = PMEM2_E_OUT_OF_MEMORY;
-		else
-			*err = PMEM2_E_EXTERNAL;
+	if (S_ISREG(st->st_mode)) {
+		*type = FTYPE_REG;
+		return 0;
 	}
 
-	return ptr;
+	if (S_ISDIR(st->st_mode)) {
+		*type = FTYPE_DIR;
+		return 0;
+	}
+
+	ERR("file type 0%o not supported", st->st_mode & S_IFMT);
+	errno = EINVAL;
+	return PMEM2_E_INVALID_FILE_TYPE;
+}
+
+/*
+ * pmem2_device_dax_size_from_stat -- (internal) checks the size of a given
+ * dax device from given stat structure
+ */
+int
+pmem2_device_dax_size_from_stat(const os_stat_t *st, ssize_t *size)
+{
+	ERR("BUG: pmem2_device_dax_size_from_stat called on FreeBSD");
+	ASSERTinfo(0, "pmem2_device_dax_size_from_stat called on FreeBSD");
+	errno = ENOTSUP;
+	return PMEM2_E_NOT_SUPPORTED;
 }
