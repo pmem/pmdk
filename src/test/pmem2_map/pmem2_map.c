@@ -35,15 +35,460 @@
  */
 
 #include "config.h"
+#include "map.h"
 #include "out.h"
 #include "pmem2.h"
 #include "unittest.h"
-#include "ut_pmem2_config.h"
 #include "ut_pmem2_utils.h"
 
-static int
-test_empty(const struct test_case *tc, int argc, char *argv[])
+#define KILOBYTE (1 << 10)
+#define MEGABYTE (1 << 20)
+
+/*
+ * get_size -- get a file size
+ */
+static size_t
+get_size(const char *file)
 {
+	os_stat_t stbuf;
+	STAT(file, &stbuf);
+
+	return (size_t)stbuf.st_size;
+}
+
+/*
+ * prepare_config -- fill pmem2_config
+ */
+static void
+prepare_config(struct pmem2_config *cfg, const char *file, size_t length,
+		size_t offset, int access)
+{
+	int fd = OPEN(file, access);
+
+	config_init(cfg);
+	cfg->offset = offset;
+	cfg->length = length;
+#ifdef WIN32
+	cfg->handle = (HANDLE)_get_osfhandle(fd);
+#else
+	cfg->fd = fd;
+#endif
+}
+
+
+#ifdef WIN32
+/*
+ * prepare_map -- map accordingly to the config
+ *
+ * XXX it is assumed pmem2_config contains exact arguments e.g.
+ * length won't be altered by the file size.
+ */
+static void
+prepare_map(struct pmem2_map **map_ptr, struct pmem2_config *cfg)
+{
+	struct pmem2_map *map = malloc(sizeof(*map));
+	UT_ASSERTne(map, NULL);
+
+	size_t max_size = cfg->length + cfg->offset;
+	HANDLE mh = CreateFileMapping(cfg->handle,
+		NULL,
+		PAGE_READWRITE,
+		HIDWORD(max_size),
+		LODWORD(max_size),
+		NULL);
+	UT_ASSERTne(mh, NULL);
+	UT_ASSERTne(GetLastError(), ERROR_ALREADY_EXISTS);
+
+	map->addr = MapViewOfFileEx(mh,
+		FILE_MAP_ALL_ACCESS,
+		HIDWORD(cfg->offset),
+		LODWORD(cfg->offset),
+		cfg->length,
+		NULL);
+	UT_ASSERTne(map->addr, NULL);
+
+	UT_ASSERTne(CloseHandle(mh), 0);
+
+	map->length = cfg->length;
+	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
+
+	*map_ptr = map;
+}
+#else
+/*
+ * prepare_map -- map accordingly to the config
+ *
+ * XXX this function currently calls mmap(3) without MAP_SYNC so the only
+ * mapping granularity is PMEM2_GRANULARITY_PAGE.
+ *
+ * XXX it is assumed pmem2_config contains exact mmap(3) arguments e.g.
+ * length won't be altered by the file size.
+ */
+static void
+prepare_map(struct pmem2_map **map_ptr, struct pmem2_config *cfg)
+{
+	int flags = MAP_SHARED;
+	int proto = PROT_READ | PROT_WRITE;
+
+	off_t offset = (off_t)cfg->offset;
+	UT_ASSERTeq((size_t)offset, cfg->offset);
+
+	struct pmem2_map *map = malloc(sizeof(*map));
+	UT_ASSERTne(map, NULL);
+
+	map->addr = mmap(NULL, cfg->length, proto, flags, cfg->fd, offset);
+	UT_ASSERTne(map->addr, MAP_FAILED);
+
+	map->length = cfg->length;
+	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
+
+	*map_ptr = map;
+}
+#endif
+
+/*
+ * unmap_map -- unmap the mapping according to pmem2_map struct
+ */
+static void
+unmap_map(struct pmem2_map *map)
+{
+#ifdef WIN32
+	UT_ASSERTne(UnmapViewOfFile(map->addr), 0);
+#else
+	UT_ASSERTeq(munmap(map->addr, map->length), 0);
+#endif
+}
+
+/*
+ * config_close_file -- close the pmem2_config file handle
+ */
+static void
+config_close_file(struct pmem2_config *cfg)
+{
+#ifdef WIN32
+	CloseHandle(cfg->handle);
+#else
+	CLOSE(cfg->fd);
+#endif
+}
+
+/*
+ * test_map_rdrw_file - map a O_RDWR file
+ */
+static int
+test_map_rdrw_file(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_rdrw_file <file>", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	prepare_config(&cfg, file, 0, 0, O_RDWR);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	config_close_file(&cfg);
+
+	return 1;
+}
+
+/*
+ * test_map_rdonly_file - map a O_RDONLY file
+ */
+static int
+test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_rdonly_file <file>", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	prepare_config(&cfg, file, 0, 0, O_RDONLY);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+
+	config_close_file(&cfg);
+
+	return 1;
+}
+
+/*
+ * test_map_wronly_file - map a O_WRONLY file
+ */
+static int
+test_map_wronly_file(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_wronly_file <file>", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	prepare_config(&cfg, file, 0, 0, O_WRONLY);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, -EACCES);
+	config_close_file(&cfg);
+
+	return 1;
+}
+
+/*
+ * map_valid_ranges_common -- map valid range and validate its length
+ * Includes cleanup.
+ */
+static void
+map_valid_ranges_common(const char *file, size_t offset, size_t length,
+		size_t val_length)
+{
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	int ret = 0;
+
+	prepare_config(&cfg, file, length, offset, O_RDWR);
+	ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_ASSERTeq(map->length, val_length);
+
+	unmap_map(map);
+	config_close_file(&cfg);
+}
+
+/*
+ * test_map_valid_ranges - map valid memory ranges
+ */
+static int
+test_map_valid_ranges(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_valid_ranges <file>", argv[0]);
+
+	char *file = argv[0];
+	size_t size = get_size(file);
+	size_t size2 = size / 2;
+
+	/* the config WITHOUT provided length allows mapping the whole file */
+	map_valid_ranges_common(file, 0, 0, size);
+
+	/* the config WITH provided length allows mapping the whole file */
+	map_valid_ranges_common(file, 0, size, size);
+
+	/* the config with provided length different than the file length */
+	map_valid_ranges_common(file, 0, size2, size2);
+
+	/* verify the config with provided length and a valid offset */
+	map_valid_ranges_common(file, 2 * MEGABYTE, size2, size2);
+
+	return 1;
+}
+
+/*
+ * test_map_invalid_ranges - map invalid memory ranges
+ */
+static int
+test_map_invalid_ranges(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_invalid_ranges <file>", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	size_t size = get_size(file);
+	struct pmem2_map *map;
+	int ret = 0;
+
+	/* the mapping size (unaligned) > the file size */
+	prepare_config(&cfg, file, size + 1, 0, O_RDWR);
+	ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
+	config_close_file(&cfg);
+
+	/* the mapping + the offset > the file size */
+	UT_ASSERT(size / 2 < 10 * MEGABYTE);
+	prepare_config(&cfg, file, size / 2, 10 * MEGABYTE, O_RDWR);
+	ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
+	config_close_file(&cfg);
+
+	/* the mapping size (aligned) > the file size */
+	UT_ASSERT(size < 20 * MEGABYTE);
+	prepare_config(&cfg, file, 0, 20 * MEGABYTE, O_RDWR);
+	ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
+	config_close_file(&cfg);
+
+	return 1;
+}
+
+/*
+ * test_map_invalid_alignment - map using invalid alignment in the offset
+ */
+static int
+test_map_invalid_alignment(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_invalid_args <file>", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	size_t length = get_size(file) / 2;
+	struct pmem2_map *map;
+
+	prepare_config(&cfg, file, length, KILOBYTE, O_RDWR);
+	int ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, -EINVAL);
+	config_close_file(&cfg);
+
+	return 1;
+}
+
+/*
+ * test_map_invalid_fd - map using a invalid file descriptor
+ */
+static int
+test_map_invalid_fd(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_invalid_args <file>", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	size_t length = get_size(file) / 2;
+	struct pmem2_map *map;
+
+	/* the invalid file descriptor */
+	prepare_config(&cfg, file, length, 0, O_RDWR);
+	config_close_file(&cfg);
+	int ret = pmem2_map(&cfg, &map);
+#ifdef WIN32
+	UT_PMEM2_EXPECT_RETURN(ret, -EINVAL);
+#else
+	UT_PMEM2_EXPECT_RETURN(ret, -EBADF);
+#endif
+
+	return 1;
+}
+
+/*
+ * test_map_empty_config - map using an empty config
+ */
+static int
+test_map_empty_config(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_invalid_args <file>", argv[0]);
+
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+
+	config_init(&cfg);
+	int ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
+
+	return 1;
+}
+
+/*
+ * test_unmap_valid - unmap valid pmem2 mapping
+ */
+static int
+test_unmap_valid(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_unmap_valid <file>", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	struct pmem2_map *map = NULL;
+
+	prepare_config(&cfg, file, get_size(file), 0, O_RDWR);
+	prepare_map(&map, &cfg);
+
+	/* unmap the valid mapping */
+	int ret = pmem2_unmap(&map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_ASSERTeq(map, NULL);
+
+	config_close_file(&cfg);
+
+	return 1;
+}
+
+typedef void (*spoil_func)(struct pmem2_map *map);
+
+/*
+ * unmap_invalid_common - unmap an invalid pmem2 mapping
+ */
+static int
+unmap_invalid_common(const char *file, spoil_func spoil)
+{
+	struct pmem2_config cfg;
+	struct pmem2_map *map = NULL;
+	struct pmem2_map map_copy;
+
+	prepare_config(&cfg, file, get_size(file), 0, O_RDWR);
+	prepare_map(&map, &cfg);
+
+	/* backup the map and spoil it */
+	memcpy(&map_copy, map, sizeof(*map));
+	spoil(map);
+
+	/* unmap the invalid mapping */
+	int ret = pmem2_unmap(&map);
+	UT_PMEM2_EXPECT_RETURN(ret, -EINVAL);
+
+	/* cleanup */
+	unmap_map(&map_copy);
+
+	free(map);
+	config_close_file(&cfg);
+
+	return 1;
+}
+
+static void
+map_spoil_set_zero_length(struct pmem2_map *map)
+{
+	map->length = 0;
+}
+
+static void
+map_spoil_set_unaligned_addr(struct pmem2_map *map)
+{
+	map->addr = (void *)((uintptr_t)map->addr + 1);
+	map->length -= 1;
+}
+
+/*
+ * test_unmap_zero_length - unmap a pmem2 mapping with an invalid length
+ */
+static int
+test_unmap_zero_length(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_unmap_invalid_length <file>", argv[0]);
+
+	char *file = argv[0];
+	unmap_invalid_common(file, map_spoil_set_zero_length);
+
+	return 1;
+}
+
+/*
+ * test_unmap_unaligned_addr - unmap a pmem2 mapping with an unaligned address
+ */
+static int
+test_unmap_unaligned_addr(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_unmap_invalid_length <file>", argv[0]);
+
+	char *file = argv[0];
+	unmap_invalid_common(file, map_spoil_set_unaligned_addr);
+
 	return 1;
 }
 
@@ -51,7 +496,17 @@ test_empty(const struct test_case *tc, int argc, char *argv[])
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
-	TEST_CASE(test_empty),
+	TEST_CASE(test_map_rdrw_file),
+	TEST_CASE(test_map_rdonly_file),
+	TEST_CASE(test_map_wronly_file),
+	TEST_CASE(test_map_valid_ranges),
+	TEST_CASE(test_map_invalid_ranges),
+	TEST_CASE(test_map_invalid_alignment),
+	TEST_CASE(test_map_invalid_fd),
+	TEST_CASE(test_map_empty_config),
+	TEST_CASE(test_unmap_valid),
+	TEST_CASE(test_unmap_zero_length),
+	TEST_CASE(test_unmap_unaligned_addr),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
