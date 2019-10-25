@@ -31,27 +31,29 @@
  */
 
 /*
- * config.h -- internal definitions for pmem2_config
+ * map.h -- internal definitions for libpmem2
  */
-#ifndef PMEM2_CONFIG_H
-#define PMEM2_CONFIG_H
+#ifndef PMEM2_MAP_H
+#define PMEM2_MAP_H
 
-#include "libpmem2.h"
+#include <stdlib.h>
 
-#define INVALID_FD (-1)
+#include "file.h"
 
-struct pmem2_config {
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	int fd; /* a source file descriptor for the designed mapping */
+#ifdef __cplusplus
+extern "C" {
 #endif
-	/* offset from the beginning of the file */
-	size_t offset;
-	size_t length; /* length of the mapping */
-	size_t alignment; /* required alignment of the mapping */
+
+struct pmem2_map {
+	enum file_type file_type; /* TYPE_NORMAL or TYPE_DEVDAX */
+	int map_sync; /* if mapping is MAP_SYNC */
+	void *addr; /* base address */
+	size_t length; /* effective length of the mapping */
+	size_t alignment;
 };
 
-void config_init(struct pmem2_config *cfg);
+#ifdef __cplusplus
+}
+#endif
 
-#endif /* PMEM2_CONFIG_H */
+#endif
