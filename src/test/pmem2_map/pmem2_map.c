@@ -41,9 +41,90 @@
 #include "ut_pmem2_config.h"
 #include "ut_pmem2_utils.h"
 
-static int
-test_empty(const struct test_case *tc, int argc, char *argv[])
+static size_t
+get_size(char *file)
 {
+	os_stat_t stbuf;
+	STAT(file, &stbuf);
+
+	return (size_t)stbuf.st_size;
+}
+
+static void
+close_file(struct pmem2_config *cfg)
+{
+#ifdef WIN32
+	CloseHandle(cfg->handle);
+#else
+	CLOSE(cfg->fd);
+#endif
+}
+
+static void
+test_prepare_config(struct pmem2_config **cfg, char *file, int access)
+{
+	size_t size = get_size(file);
+	int fd = OPEN(file, access);
+
+	int ret = (pmem2_config_new(cfg));
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+
+	(*cfg)->offset = 0;
+	(*cfg)->length = size;
+#ifdef WIN32
+	(*cfg)->handle = (HANDLE)_get_osfhandle(fd);
+#else
+	(*cfg)->fd = fd;
+#endif
+}
+
+/*
+ * test_map_get_size -- check pmem2_map_get_address func
+ */
+static int
+test_map_get_address(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_case file", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config *cfg;
+	test_prepare_config(&cfg, file, O_RDWR);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+
+	void *addr = pmem2_map_get_address(map);
+	UT_ASSERTeq(addr, map->addr);
+
+	close_file(cfg);
+
+	return 1;
+}
+
+/*
+ * test_map_get_size -- check pmem2_map_get_size func
+ */
+static int
+test_map_get_size(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_case file", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config *cfg;
+	test_prepare_config(&cfg, file, O_RDWR);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+
+	size_t size = pmem2_map_get_size(map);
+	UT_ASSERTeq(size, get_size(file));
+
+	close_file(cfg);
+
 	return 1;
 }
 
@@ -51,7 +132,8 @@ test_empty(const struct test_case *tc, int argc, char *argv[])
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
-	TEST_CASE(test_empty),
+	TEST_CASE(test_map_get_address),
+	TEST_CASE(test_map_get_size),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

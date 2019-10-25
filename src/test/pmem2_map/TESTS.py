@@ -42,5 +42,9 @@ class PMEM2_MAP(t.BaseTest):
         ctx.exec('pmem2_map', self.test_case, filepath)
 
 class TEST0(PMEM2_MAP):
-    """template test for pmem2_map"""
-    test_case = "test_empty"
+    """test for pmem2_map_get_address"""
+    test_case = "test_map_get_address"
+
+class TEST0(PMEM2_MAP):
+    """test for pmem2_map_get_address"""
+    test_case = "test_map_get_size"

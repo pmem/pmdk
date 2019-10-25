@@ -50,6 +50,15 @@
     <ClCompile Include="map_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="config_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="map.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\libpmem2\map.h">
