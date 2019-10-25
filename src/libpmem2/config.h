@@ -44,8 +44,12 @@ struct pmem2_config {
 #ifdef _WIN32
 	HANDLE handle;
 #else
-	int fd;
+	int fd; /* a source file descriptor for the designed mapping */
 #endif
+	/* offset from the beginning of the file */
+	size_t offset;
+	size_t length; /* length of the mapping */
+	size_t alignment; /* required alignment of the mapping */
 };
 
 void config_init(struct pmem2_config *cfg);
