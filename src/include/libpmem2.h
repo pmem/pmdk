@@ -128,8 +128,6 @@ struct pmem2_map;
 
 int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map);
 
-struct pmem2_config *pmem2_get_config(struct pmem2_map *map);
-
 int pmem2_unmap(struct pmem2_map **map);
 
 void *pmem2_map_get_address(struct pmem2_map *map);
