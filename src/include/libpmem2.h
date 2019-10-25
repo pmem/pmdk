@@ -76,6 +76,7 @@ extern "C" {
 #define PMEM2_E_MAPPING_EXISTS		10
 #define PMEM2_E_DUP_FAILED		11
 #define PMEM2_E_NOENT		12
+#define PMEM2_E_INVALID_FD		13
 
 /* config setup */
 

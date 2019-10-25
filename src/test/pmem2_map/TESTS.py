@@ -34,13 +34,35 @@
 
 import testframework as t
 
+
 class PMEM2_MAP(t.BaseTest):
     test_type = t.Short
-
     def run(self, ctx):
-        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile',)
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1',)
         ctx.exec('pmem2_map', self.test_case, filepath)
 
+
 class TEST0(PMEM2_MAP):
-    """template test for pmem2_map"""
-    test_case = "test_empty"
+    """mapping file in read/write mode"""
+    test_case = "test_map_rdrw_file"
+
+class TEST1(PMEM2_MAP):
+    """mapping file in read mode"""
+    test_case = "test_map_rdonly_file"
+
+@t.windows_exclude
+class TEST2(PMEM2_MAP):
+    """mapping file in access mode"""
+    test_case = "test_map_accmode_file"
+
+class TEST3(PMEM2_MAP):
+    """ mapping file valid memory range"""
+    test_case = "test_map_valid_range_map"
+
+class TEST4(PMEM2_MAP):
+    """mapping file beyond valid memory range"""
+    test_case = "test_map_invalid_range_map"
+
+class TEST5(PMEM2_MAP):
+    """try to mapping file using invalid arguments"""
+    test_case = "test_map_invalid_args"
