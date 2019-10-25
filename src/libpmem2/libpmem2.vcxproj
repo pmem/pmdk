@@ -23,6 +23,7 @@
     <ClCompile Include="..\libpmem2\libpmem2_main.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="config_windows.c" />
+    <ClCompile Include="map.c" />
     <ClCompile Include="pmem2_utils.c" />
     <ClCompile Include="map_windows.c" />
   </ItemGroup>

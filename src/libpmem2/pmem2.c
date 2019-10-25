@@ -85,18 +85,6 @@ pmem2_unmap(struct pmem2_map **map)
 	return PMEM2_E_NOSUPP;
 }
 
-void *
-pmem2_map_get_address(struct pmem2_map *map)
-{
-	return NULL;
-}
-
-size_t
-pmem2_map_get_size(struct pmem2_map *map)
-{
-	return 0;
-}
-
 enum pmem2_granularity
 pmem2_map_get_store_granularity(struct pmem2_map *map)
 {

@@ -41,9 +41,83 @@
 #include "ut_pmem2_config.h"
 #include "ut_pmem2_utils.h"
 
-static int
-test_empty(const struct test_case *tc, int argc, char *argv[])
+static size_t
+get_size(char *file)
 {
+	os_stat_t stbuf;
+	STAT(file, &stbuf);
+
+	return (size_t)stbuf.st_size;
+}
+
+static void
+close_file(struct pmem2_config **cfg)
+{
+#ifdef WIN32
+	CloseHandle((*cfg)->handle);
+#else
+	CLOSE((*cfg)->fd);
+#endif
+}
+
+static void
+prepare_config(struct pmem2_config **cfg, char *file, size_t length,
+			size_t addr, int access)
+{
+	int fd = OPEN(file, access);
+
+	int ret = pmem2_config_new(cfg);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+
+	(*cfg)->offset = addr;
+	(*cfg)->length = length;
+#ifdef WIN32
+	(*cfg)->handle = (HANDLE)_get_osfhandle(fd);
+#else
+	(*cfg)->fd = fd;
+#endif
+}
+
+static void
+cleanup(struct pmem2_config **cfg)
+{
+	close_file(cfg);
+	pmem2_config_delete(cfg);
+}
+
+/*
+ * test_map_get_size -- check pmem2_map_get_address func
+ */
+static int
+test_map_get_address(const struct test_case *tc, int argc, char *argv[])
+{
+	void *ret_addr = NULL;
+	void *reF_addr = (void *)0x12345;
+
+	struct pmem2_map map;
+	map.addr = reF_addr;
+
+	ret_addr = pmem2_map_get_address(&map);
+	UT_ASSERTeq(ret_addr, reF_addr);
+
+	return 1;
+}
+
+/*
+ * test_map_get_size -- check pmem2_map_get_size func
+ */
+static int
+test_map_get_size(const struct test_case *tc, int argc, char *argv[])
+{
+	size_t ret_size = 0;
+	size_t ref_size = 16384;
+
+	struct pmem2_map map;
+	map.length = ref_size;
+
+	ret_size = pmem2_map_get_size(&map);
+	UT_ASSERTeq(ret_size, ref_size);
+
 	return 1;
 }
 
@@ -51,7 +125,8 @@ test_empty(const struct test_case *tc, int argc, char *argv[])
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
-	TEST_CASE(test_empty),
+	TEST_CASE(test_map_get_address),
+	TEST_CASE(test_map_get_size),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

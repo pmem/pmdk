@@ -42,9 +42,13 @@ date: pmem2 API version 1.0
 [RETURN VALUE](#return-value)<br />
 [SEE ALSO](#see-also)<br />
 
+
 # NAME #
 
-**pmem2_map**() - create mapping on the file
+**pmem2_map**(), **pmem2_map_get_address**(),
+**pmem2_map_get_size**() - create mapping on the file and
+read information about mapping
+
 
 # SYNOPSIS #
 
@@ -52,11 +56,26 @@ date: pmem2 API version 1.0
 #include <libpmem2.h>
 
 int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr);
+
+void *pmem2_map_get_address(struct pmem2_map **map_ptr);
+size_t *pmem2_map_get_size(struct pmem2_map **map_ptr);
 ```
 
 # DESCRIPTION #
+The **pmem2_map_get_address**() function reads address of created mapping.
+Parameter *map_ptr* points to the structure describing mapping created using
+the **pmem2_map**() function.
+
+The **pmem2_map_get_size**() function reads size of created mapping.
+Parameter *map_ptr* points to the structure describing mapping created using
+the **pmem2_map**() function.
+
 
 # RETURN VALUE #
+
+The **pmem2_map_get_address**() function returns a pointer to the mapped area.
+The **pmem2_map_get_size**() function returns a size of the mapped area.
+
 
 # SEE ALSO #
 

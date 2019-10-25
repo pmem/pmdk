@@ -51,6 +51,7 @@ SOURCE =\
 	config_posix.c\
 	pmem2.c\
 	map_posix.c\
+	map.c\
 	pmem2_utils.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
