@@ -2,19 +2,31 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2019, Intel Corporation
 
+# check-manpage -- a tool to check a single man page against errors
+#
+# While it can handle multiple files, it's recommended to use
+# check-manpages instead.
+
 for m in "$@"; do
 	dir="$(dirname $m)"
 	file="$(basename $m)"
-	# system-installed version is preferred otherwise for .so links
+	# Same-dir files have priority over system-installed versions, thus cd.
 	[ -n "$dir" ] && pushd "$dir" >/dev/null
+
+	# man can emit warnings and errors.  Even non-fatal errors are normally
+	# suppressed if a pager is in use (ie, all interactive usage).  Common
+	# messages include an unknown macro, an unbreakable line, etc.
 	err=$(MANWIDTH=80 man --warnings -E UTF-8 -l -Tutf8 -Z "$file" 2>&1 >/dev/null)
 	[ -z "$err" ] || {
 		echo >&2 "$file: $err"
 		FAILED=1
 	}
 
+	# If a "NAME" section exists, call lexgrog to see if it's properly
+	# formatted.
 	if grep -q '^\.SH NAME' "$file"; then
 		if ! lexgrog "$file" >/dev/null; then
+			# lexgrog doesn't give any interesting messages.
 			echo 2>&1 "lexgrog failed on $file"
 			FAILED=1
 		fi
