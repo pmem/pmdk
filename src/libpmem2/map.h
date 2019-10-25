@@ -36,19 +36,24 @@
 #ifndef PMEM2_MAP_H
 #define PMEM2_MAP_H
 
-#include <stddef.h>
+#include <stdlib.h>
+
+#include "file.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct pmem2_map {
+	enum file_type file_type; /* TYPE_NORMAL or TYPE_DEVDAX */
+	int map_sync; /* if mapping is MAP_SYNC */
 	void *addr; /* base address */
 	size_t length; /* effective length of the mapping */
+	size_t alignment;
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* map.h */
+#endif
