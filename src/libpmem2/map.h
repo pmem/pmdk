@@ -36,6 +36,7 @@
 #ifndef PMEM2_MAP_H
 #define PMEM2_MAP_H
 
+#include <stdbool>
 #include <stddef.h>
 #include "libpmem2.h"
 
@@ -44,14 +45,17 @@ extern "C" {
 #endif
 
 struct pmem2_map {
+	enum file_type file_type; /* TYPE_NORMAL or TYPE_DEVDAX */
+	int map_sync; /* if mapping is MAP_SYNC */
 	void *addr; /* base address */
 	size_t length; /* effective length of the mapping */
 	/* effective persistence granularity */
 	enum pmem2_granularity effective_granularity;
+	bool requires_msync; /* mapping requires msync(3) for flushing */
 };
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* map.h */
+#endif
