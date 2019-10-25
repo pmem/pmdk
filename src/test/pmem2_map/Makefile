@@ -41,9 +41,12 @@ vpath %.c $(TOP)/src/libpmem2
 INCS += -I$(TOP)/src/libpmem2
 TARGET = pmem2_map
 OBJS += libpmem2.o\
+	map_posix.o\
+	map.o\
 	pmem2_map.o\
 	ut_pmem2_config.o\
 	ut_pmem2_utils.o
 
 LIBPMEMCOMMON=y
+
 include ../Makefile.inc
