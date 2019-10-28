@@ -287,6 +287,58 @@ test_map_invalid_args(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_unmap_success - test tries to check if pmem2_unmap was successfull
+ */
+static int
+test_unmap_success(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_case file", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config *cfg;
+	size_t size = get_size(file);
+
+	prepare_config(&cfg, file, size, 0, O_RDONLY);
+	struct pmem2_map *map;
+	pmem2_map(cfg, &map);
+
+	int ret = pmem2_unmap(&map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+
+	cleanup(&cfg);
+
+	return 1;
+}
+
+/*
+ * test_unmap_unmapped_region - test tries to unmap unmapped region
+ */
+static int
+test_unmap_unmapped_region(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_case file", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config *cfg;
+	size_t size = get_size(file);
+
+	prepare_config(&cfg, file, size, 0, O_RDONLY);
+	struct pmem2_map *map;
+	pmem2_map(cfg, &map);
+	pmem2_unmap(&map);
+
+	/* let's try to unmap unmapped region, fail expected */
+	int ret = pmem2_unmap(&map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_UNMAP_FAILED);
+
+	cleanup(&cfg);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -296,6 +348,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_map_valid_range_map),
 	TEST_CASE(test_map_invalid_range_map),
 	TEST_CASE(test_map_invalid_args),
+	TEST_CASE(test_unmap_success),
+	TEST_CASE(test_unmap_unmapped_region),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

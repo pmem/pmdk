@@ -66,3 +66,11 @@ class TEST4(PMEM2_MAP):
 class TEST5(PMEM2_MAP):
     """try to mapping file using invalid arguments"""
     test_case = "test_map_invalid_args"
+
+class TEST6(PMEM2_MAP):
+    """tries to check if pmem2_unmap was successfull"""
+    test_case = "test_unmap_success"
+
+class TEST7(PMEM2_MAP):
+    """test tries to unmap unmapped region"""
+    test_case = "test_unmap_unmapped_region"
