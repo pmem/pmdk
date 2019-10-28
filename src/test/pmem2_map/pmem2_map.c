@@ -187,28 +187,28 @@ test_map_valid_range_map(const struct test_case *tc, int argc, char *argv[])
 	ret = pmem2_map(cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	UT_ASSERTeq(map->length, size);
-	// pmem2_unmap(&map);
+	pmem2_unmap(&map);
 	cleanup(&cfg);
 
 	prepare_config(&cfg, file, size, 0, O_RDWR);
 	ret = pmem2_map(cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	UT_ASSERTeq(map->length, size);
-	// pmem2_unmap(&map);
+	pmem2_unmap(&map);
 	cleanup(&cfg);
 
 	prepare_config(&cfg, file, size / 2, 0, O_RDWR);
 	ret = pmem2_map(cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	UT_ASSERTeq(map->length, size / 2);
-	// pmem2_unmap(&map);
+	pmem2_unmap(&map);
 	cleanup(&cfg);
 
 	prepare_config(&cfg, file, size / 2, 2 * MEGABYTE, O_RDWR);
 	ret = pmem2_map(cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	UT_ASSERTeq(map->length, size / 2);
-	// pmem2_unmap(&map);
+	pmem2_unmap(&map);
 	cleanup(&cfg);
 
 	return 1;
@@ -232,19 +232,16 @@ test_map_invalid_range_map(const struct test_case *tc, int argc, char *argv[])
 	prepare_config(&cfg, file, size + 1, 0, O_RDWR);
 	ret = pmem2_map(cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
-	// pmem2_unmap(&map);
 	cleanup(&cfg);
 
 	prepare_config(&cfg, file, size / 2, 10 * MEGABYTE, O_RDWR);
 	ret = pmem2_map(cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
-	// pmem2_unmap(&map);
 	cleanup(&cfg);
 
 	prepare_config(&cfg, file, 0, 20 * MEGABYTE, O_RDWR);
 	ret = pmem2_map(cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
-	// pmem2_unmap(&map);
 	cleanup(&cfg);
 
 	return 1;
@@ -269,7 +266,6 @@ test_map_invalid_args(const struct test_case *tc, int argc, char *argv[])
 	prepare_config(&cfg, file, length, KILOBYTE, O_RDWR);
 	ret = pmem2_map(cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_FAILED);
-	// pmem2_unmap(&map);
 	cleanup(&cfg);
 
 	/* invalid file descriptor */
@@ -277,7 +273,6 @@ test_map_invalid_args(const struct test_case *tc, int argc, char *argv[])
 	close_file(&cfg);
 	ret = pmem2_map(cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_UNKNOWN_FILETYPE);
-	// pmem2_unmap(&map);
 	pmem2_config_delete(&cfg);
 
 	/* empty config */
@@ -286,7 +281,6 @@ test_map_invalid_args(const struct test_case *tc, int argc, char *argv[])
 
 	ret = pmem2_map(cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_UNKNOWN_FILETYPE);
-	// pmem2_unmap(&map);
 	pmem2_config_delete(&cfg);
 
 	return 1;
