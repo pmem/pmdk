@@ -37,6 +37,10 @@
     <ClCompile Include="util_windows.c" />
     <ClCompile Include="uuid.c" />
     <ClCompile Include="uuid_windows.c" />
+    <ClCompile Include="..\libpmem2\config.c" />
+    <ClCompile Include="..\libpmem2\config_windows.c" />
+    <ClCompile Include="..\libpmem2\pmem2_utils.c" />
+    <ClCompile Include="..\libpmem2\pmem2_utils_other.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="alloc.h" />
@@ -62,6 +66,8 @@
     <ClInclude Include="util.h" />
     <ClInclude Include="uuid.h" />
     <ClInclude Include="valgrind_internal.h" />
+    <ClInclude Include="..\libpmem2\config.h" />
+    <ClInclude Include="..\libpmem2\pmem2_utils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{492BAA3D-0D5D-478E-9765-500463AE69AA}</ProjectGuid>
@@ -97,12 +103,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);.;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);.;</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

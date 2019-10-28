@@ -1,3 +1,5 @@
+#!../env.py
+#
 # Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,36 +29,52 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmem2/Makefile -- Makefile for libpmem2
 #
 
-include ../common.inc
 
-LIBRARY_NAME = pmem2
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE =\
-	$(COMMON)/alloc.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
-	$(COMMON)/out.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
-	libpmem2.c\
-	config.c\
-	config_posix.c\
-	pmem2.c\
-	pmem2_utils.c
+import testframework as t
 
-ifeq ($(OS_KERNEL_NAME),Linux)
-SOURCE += $(PMEM2)/pmem2_utils_linux.c
-else
-SOURCE += $(PMEM2)/pmem2_utils_other.c
-endif
+class TEST0(t.BaseTest):
+    test_type = t.Short
 
-include ../Makefile.inc
+    def run(self, ctx):
+        ctx.exec('pmem2_config_get_file_size', 'notset_fd', 'x', '0')
 
-CFLAGS += -I.
-LIBS += -pthread
+class TEST1(t.BaseTest):
+    test_type = t.Short
+
+    def run(self, ctx):
+        size = 0
+        filepath = ctx.create_holey_file(size, 'testfile')
+        ctx.exec('pmem2_config_get_file_size', 'normal_file', filepath, str(size))
+
+class TEST2(t.BaseTest):
+    test_type = t.Short
+
+    def run(self, ctx):
+        size = 16 * t.MiB
+        filepath = ctx.create_holey_file(size, 'testfile')
+        ctx.exec('pmem2_config_get_file_size', 'normal_file', filepath, str(size))
+
+# "open" fails for directories
+@t.windows_exclude
+class TEST3(t.BaseTest):
+    test_type = t.Short
+
+    def run(self, ctx):
+        ctx.exec('pmem2_config_get_file_size', 'directory', ctx.testdir, '0')
+
+@t.linux_only
+class TEST4(t.BaseTest):
+    test_type = t.Short
+
+    def run(self, ctx):
+        ctx.exec('pmem2_config_get_file_size', 'tmp_file', ctx.testdir, str(16 * t.MiB))
+
+# XXX implement support for Device DAX
+#@t.linux_only
+#class TEST99(t.BaseTest):
+#    test_type = t.Short
+#
+#    def run(self, ctx):
+#        ctx.exec('pmem2_config_get_file_size', 'normal_file', ctx.ddax, ddaxsize)

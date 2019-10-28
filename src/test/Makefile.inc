@@ -216,6 +216,15 @@ OBJS +=\
 	$(TOP)/src/nondebug/common/util_posix.o\
 	$(TOP)/src/nondebug/common/uuid.o\
 	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/nondebug/libpmem2/config.o\
+	$(TOP)/src/nondebug/libpmem2/config_posix.o
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+OBJS += $(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o
+else
+OBJS += $(TOP)/src/nondebug/libpmem2/pmem2_utils_other.o
+endif
 
 INCS += -I$(TOP)/src/common
 endif
@@ -248,7 +257,16 @@ OBJS +=\
 	$(TOP)/src/debug/common/util.o\
 	$(TOP)/src/debug/common/util_posix.o\
 	$(TOP)/src/debug/common/uuid.o\
-	$(call osdep, $(TOP)/src/debug/common/uuid,.o)
+	$(call osdep, $(TOP)/src/debug/common/uuid,.o)\
+	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/debug/libpmem2/config.o\
+	$(TOP)/src/debug/libpmem2/config_posix.o
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+OBJS += $(TOP)/src/debug/libpmem2/pmem2_utils_linux.o
+else
+OBJS += $(TOP)/src/debug/libpmem2/pmem2_utils_other.o
+endif
 
 INCS += -I$(TOP)/src/common
 endif

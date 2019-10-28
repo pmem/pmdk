@@ -1,7 +1,6 @@
 util_file_open$(nW)TEST0w: START: util_file_open
- $(nW)util_file_open$(nW) 0x4000 $(nW)testdir1 $(nW)NUL $(nW)testfile0 $(nW)testfile1 $(nW)testfile2
+ $(nW)util_file_open$(nW) 0x4000 $(nW)testdir1 $(nW)testfile0 $(nW)testfile1 $(nW)testfile2
 $(nW)testdir1: util_file_open: $(*)
-NUL: util_file_open: $(*)
 $(nW)testfile0: util_file_open: No such file or directory
 $(nW)testfile1: util_file_open: Invalid argument
 $(nW)testfile2: open, len 32768

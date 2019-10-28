@@ -40,14 +40,10 @@ vpath %.c $(TOP)/src/libpmem2
 
 INCS += -I$(TOP)/src/libpmem2
 TARGET = pmem2_map
-OBJS += config.o\
-	config_posix.o\
-	libpmem2.o\
+OBJS += libpmem2.o\
 	pmem2_map.o\
-	pmem2_utils.o\
 	ut_pmem2_config.o\
 	ut_pmem2_utils.o
-
 
 LIBPMEMCOMMON=y
 include ../Makefile.inc

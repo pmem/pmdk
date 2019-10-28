@@ -35,6 +35,8 @@
     <ClInclude Include="pmempool.h" />
     <ClInclude Include="pool.h" />
     <ClInclude Include="replica.h" />
+    <ClInclude Include="..\libpmem2\config.h" />
+    <ClInclude Include="..\libpmem2\pmem2_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\common\alloc.c" />
@@ -78,6 +80,10 @@
     <ClCompile Include="rm.c" />
     <ClCompile Include="sync.c" />
     <ClCompile Include="transform.c" />
+    <ClCompile Include="..\libpmem2\config.c" />
+    <ClCompile Include="..\libpmem2\config_windows.c" />
+    <ClCompile Include="..\libpmem2\pmem2_utils.c" />
+    <ClCompile Include="..\libpmem2\pmem2_utils_other.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmempool.def" />
