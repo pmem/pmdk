@@ -54,7 +54,16 @@ SOURCE =\
 	libpmem.c\
 	memops_generic.c\
 	pmem.c\
-	pmem_posix.c
+	pmem_posix.c\
+	$(PMEM2)/pmem2_utils.c\
+	$(PMEM2)/config.c\
+	$(PMEM2)/config_posix.c
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+SOURCE += $(PMEM2)/pmem2_utils_linux.c
+else
+SOURCE += $(PMEM2)/pmem2_utils_other.c
+endif
 
 include $(ARCH)/sources.inc
 

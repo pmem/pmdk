@@ -37,6 +37,7 @@ LIBPMEM2_1.0 {
 		pmem2_config_new;
 		pmem2_config_set_fd;
 		pmem2_config_delete;
+		pmem2_config_get_file_size;
 		pmem2_config_set_offset;
 		pmem2_config_set_length;
 		pmem2_config_set_sharing;

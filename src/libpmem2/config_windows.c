@@ -90,3 +90,32 @@ pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
 	cfg->handle = handle;
 	return 0;
 }
+
+int
+pmem2_config_get_file_size(struct pmem2_config *cfg, size_t *size)
+{
+	LOG(3, "handle %p", cfg->handle);
+
+	if (cfg->handle == INVALID_HANDLE_VALUE) {
+		ERR("cannot check size for invalid file handle");
+		return PMEM2_E_INVALID_FILE_HANDLE;
+	}
+
+	BY_HANDLE_FILE_INFORMATION info;
+	if (!GetFileInformationByHandle(cfg->handle, &info)) {
+		ERR("!!GetFileInformationByHandle");
+		return pmem2_lasterror_to_err();
+	}
+
+	if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+		ERR(
+			"asking for size of a directory doesn't make any sense in context of pmem");
+		return PMEM2_E_INVALID_FILE_HANDLE;
+	}
+
+	*size = ((size_t)info.nFileSizeHigh << 32) | info.nFileSizeLow;
+
+	LOG(4, "file length %zu", *size);
+
+	return 0;
+}

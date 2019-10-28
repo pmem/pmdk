@@ -43,6 +43,9 @@ vpath %.c $(RPMEM_COMMON)
 COMMON = $(TOP)/src/common
 vpath %.c $(COMMON)
 
+PMEM2 = $(TOP)/src/libpmem2
+vpath %.c $(PMEM2)
+
 INCS += -I../include -I../common/ $(OS_INCS)
 
 # default CFLAGS
@@ -197,7 +200,8 @@ endif
 ifneq ($(SOURCE),)
 _OBJS = $(SOURCE:.c=.o)
 _OBJS_COMMON = $(patsubst $(COMMON)/%, %, $(_OBJS))
-_OBJS_RPMEM_COMMON = $(patsubst $(RPMEM_COMMON)/%, %, $(_OBJS_COMMON))
+_OBJS_PMEM2 = $(patsubst $(PMEM2)/%, %, $(_OBJS_COMMON))
+_OBJS_RPMEM_COMMON = $(patsubst $(RPMEM_COMMON)/%, %, $(_OBJS_PMEM2))
 OBJS += $(addprefix $(objdir)/, $(_OBJS_RPMEM_COMMON))
 endif
 
