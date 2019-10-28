@@ -52,13 +52,8 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 	int flags = fcntl(fd, F_GETFL);
 
 	if (flags == -1) {
-		if (errno == EBADF) {
-			ERR("fd is not open file descriptor");
-			return PMEM2_E_INVALID_ARG;
-		} else {
-			ERR("!fcntl");
-			return PMEM2_E_EXTERNAL;
-		}
+		ERR("!fcntl");
+		return -errno;
 	}
 
 	if ((flags & O_ACCMODE) == O_WRONLY) {

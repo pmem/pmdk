@@ -51,11 +51,7 @@ pmem2_malloc(size_t size, int *err)
 
 	if (ptr == NULL) {
 		ERR("!malloc(%zu)", size);
-
-		if (errno == ENOMEM)
-			*err = PMEM2_E_NOMEM;
-		else
-			*err = PMEM2_E_EXTERNAL;
+		*err = -errno;
 	}
 
 	return ptr;

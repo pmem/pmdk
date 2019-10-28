@@ -433,10 +433,17 @@ out_error(const char *file, int line, const char *func,
 
 	if (fmt) {
 		if (*fmt == '!') {
-			fmt++;
 			sep = ": ";
-			util_strerror(errno, errstr, UTIL_MAX_ERR_MSG);
+			fmt++;
+			if (*fmt == '!') {
+				fmt++;
+				/* it will abort on non Windows OS */
+				util_strwinerror(errstr, UTIL_MAX_ERR_MSG);
+			} else {
+				util_strerror(errno, errstr, UTIL_MAX_ERR_MSG);
+			}
 		}
+
 		ret = Vsnprintf(&errormsg[cc], MAXPRINT, fmt, ap);
 		if (ret < 0) {
 			strcpy(errormsg, "Vsnprintf failed");
