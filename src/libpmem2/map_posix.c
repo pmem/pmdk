@@ -45,6 +45,7 @@
 #include "config.h"
 #include "map.h"
 #include "pmem2_utils.h"
+#include "alloc.h"
 
 #ifndef MAP_SYNC
 #define MAP_SYNC 0x80000
@@ -292,14 +293,14 @@ pmem2_unmap(struct pmem2_map **map_ptr)
 
 	int ret = PMEM2_E_OK;
 	struct pmem2_map *map = *map_ptr;
-	struct pmem2_config *cfg = map->cfg;
 
-	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, cfg->length);
+	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->length);
 
-	if (util_unmap(map->addr, cfg->length))
+	if (unmap(map->addr, map->length) != 0) {
 		ERR("!util_unmap");
-
-	pmem2_config_delete(&cfg);
+		ret = PMEM2_E_UNMAP_FAILED;
+		return ret;
+	}
 
 	Free(map);
 	map = NULL;
