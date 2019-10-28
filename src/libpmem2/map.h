@@ -31,58 +31,24 @@
  */
 
 /*
- * config.c -- pmem2_config implementation
+ * map.h -- internal definitions for libpmem2
  */
+#ifndef PMEM2_MAP_H
+#define PMEM2_MAP_H
 
-#include <unistd.h>
-#include "alloc.h"
-#include "config.h"
-#include "libpmem2.h"
-#include "out.h"
-#include "pmem2.h"
-#include "pmem2_utils.h"
+#include <stddef.h>
 
-/*
- * config_init -- (internal) initialize cfg structure.
- */
-void
-config_init(struct pmem2_config *cfg)
-{
-#ifdef _WIN32
-	cfg->handle = INVALID_HANDLE_VALUE;
-#else
-	cfg->fd = INVALID_FD;
+#ifdef __cplusplus
+extern "C" {
 #endif
-	cfg->offset = 0;
-	cfg->length = 0;
-	cfg->alignment = 0;
+
+struct pmem2_map {
+	void *addr; /* base address */
+	size_t length; /* effective length of the mapping */
+};
+
+#ifdef __cplusplus
 }
+#endif
 
-/*
- * pmem2_config_new -- allocates and initialize cfg structure.
- */
-int
-pmem2_config_new(struct pmem2_config **cfg)
-{
-	int ret;
-	*cfg = pmem2_malloc(sizeof(**cfg), &ret);
-
-	if (ret)
-		return ret;
-
-	ASSERTne(cfg, NULL);
-
-	config_init(*cfg);
-	return 0;
-}
-
-/*
- * pmem2_config_delete -- dealocate cfg structure.
- */
-int
-pmem2_config_delete(struct pmem2_config **cfg)
-{
-	Free(*cfg);
-	*cfg = NULL;
-	return 0;
-}
+#endif /* map.h */
