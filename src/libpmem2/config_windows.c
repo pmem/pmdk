@@ -49,11 +49,19 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 		cfg->handle = INVALID_HANDLE_VALUE;
 		return 0;
 	}
+
 	HANDLE handle = (HANDLE)_get_osfhandle(fd);
 
 	if (handle == INVALID_HANDLE_VALUE) {
-		ERR("fd is not open file descriptor");
-		return PMEM2_E_INVALID_ARG;
+		/*
+		 * _get_osfhandle aborts in an error case, so technically
+		 * this is dead code. But according to MSDN it is
+		 * setting an errno on failure, so we can return it in case of
+		 * "windows magic" happen and this function "accidentally"
+		 * will not abort.
+		 */
+		ERR("!_get_osfhandle");
+		return -errno;
 	}
 
 	return pmem2_config_set_handle(cfg, handle);
@@ -72,7 +80,8 @@ pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
 
 	BY_HANDLE_FILE_INFORMATION not_used;
 	if (!GetFileInformationByHandle(handle, &not_used)) {
-		ERR("HANDLE is invalid");
+		ERR("!!GetFileInformationByHandle");
+		/* XXX: convert last error to errno */
 		return PMEM2_E_INVALID_ARG;
 	}
 	/* XXX: winapi doesn't provide option to get open flags from HANDLE */

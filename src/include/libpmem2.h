@@ -63,16 +63,11 @@
 extern "C" {
 #endif
 
-#define PMEM2_E_OK			0
-#define PMEM2_E_EXTERNAL		1
-#define PMEM2_E_INVALID_ARG		2
-#define PMEM2_E_INVALID_HANDLE		3
-#define PMEM2_E_NOMEM			4
-#define PMEM2_E_MAP_RANGE		5
-#define PMEM2_E_INV_FSIZE		6
-#define PMEM2_E_UNKNOWN_FILETYPE	7
-#define PMEM2_E_MAP_FAILED		8
-#define PMEM2_E_NOSUPP			9
+#define PMEM2_E_OK			(0)
+#define PMEM2_E_UNKNOWN			(-100000)
+#define PMEM2_E_NOSUPP			(-100001)
+#define PMEM2_E_INVALID_ARG		(-100002)
+#define PMEM2_E_INVALID_HANDLE		(-100003)
 
 /* config setup */
 

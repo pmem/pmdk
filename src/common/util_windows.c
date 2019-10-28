@@ -34,9 +34,10 @@
  * util_windows.c -- misc utilities with OS-specific implementation
  */
 
-#include <string.h>
-#include <tchar.h>
 #include <errno.h>
+#include <string.h>
+#include <stdio.h>
+#include <tchar.h>
 
 #include "alloc.h"
 #include "util.h"
@@ -74,6 +75,37 @@ util_strerror(int errnum, char *buff, size_t bufflen)
 		if (strerror_s(buff, bufflen, errnum))
 			strcpy_s(buff, bufflen, UNMAPPED_STR);
 	}
+}
+
+
+/*
+ * util_strwinerror -- return string describing windows error codes
+ */
+void
+util_strwinerror(char *buff, size_t bufflen)
+{
+	wchar_t *error_str;
+	unsigned long err = GetLastError();
+
+	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+			FORMAT_MESSAGE_FROM_SYSTEM |
+			FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			err,
+			0,
+			(LPWSTR)&error_str,
+			0, NULL) == 0) {
+		sprintf_s(buff, bufflen, "GetLastError() ==  %lu", err);
+		return;
+	}
+
+	if (util_toUTF8_buff(error_str, buff, bufflen)) {
+		LocalFree(error_str);
+		sprintf_s(buff, bufflen, "GetLastError() ==  %lu", err);
+		return;
+	}
+
+	LocalFree(error_str);
 }
 
 /*
