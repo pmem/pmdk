@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -48,6 +48,15 @@ void
 util_strerror(int errnum, char *buff, size_t bufflen)
 {
 	strerror_r(errnum, buff, bufflen);
+}
+
+/*
+ * util_strwinerror -- should never be called on posix OS - abort()
+ */
+void
+util_strwinerror(char *buff, size_t bufflen)
+{
+	abort();
 }
 
 /*
