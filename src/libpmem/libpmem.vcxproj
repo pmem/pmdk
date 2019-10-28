@@ -119,6 +119,10 @@
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
+    <ClCompile Include="..\libpmem2\config.c" />
+    <ClCompile Include="..\libpmem2\config_windows.c" />
+    <ClCompile Include="..\libpmem2\pmem2_utils.c" />
+    <ClCompile Include="..\libpmem2\pmem2_utils_other.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h" />
@@ -163,6 +167,8 @@
     <ClInclude Include="x86_64\memset\memset_t_avx.h" />
     <ClInclude Include="x86_64\memset\memset_t_avx512f.h" />
     <ClInclude Include="x86_64\memset\memset_t_sse2.h" />
+    <ClInclude Include="..\libpmem2\config.h" />
+    <ClInclude Include="..\libpmem2\pmem2_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmem.def" />

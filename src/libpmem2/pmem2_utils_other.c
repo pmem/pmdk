@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,94 +30,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * config_linux.c -- linux specific pmem2_config implementation
- */
 #include <errno.h>
-#include <fcntl.h>
-#include "os.h"
+#include <sys/stat.h>
+
+#include "libpmem2.h"
 #include "out.h"
-#include "config.h"
 #include "pmem2_utils.h"
 
-/*
- * pmem2_config_set_fd -- sets fd in config struct
- */
+#ifdef _WIN32
+#define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
+#define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)
+#endif
+
 int
-pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
+pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 {
-	if (fd < 0) {
-		cfg->fd = INVALID_FD;
+	if (S_ISREG(st->st_mode)) {
+		*type = FTYPE_REG;
 		return 0;
 	}
 
-	int flags = fcntl(fd, F_GETFL);
-
-	if (flags == -1) {
-		ERR("!fcntl");
-		return -errno;
+	if (S_ISDIR(st->st_mode)) {
+		*type = FTYPE_DIR;
+		return 0;
 	}
 
-	if ((flags & O_ACCMODE) == O_WRONLY) {
-		ERR("fd must be open with O_RDONLY or O_RDRW");
-		return PMEM2_E_INVALID_HANDLE;
-	}
-
-	cfg->fd = fd;
-	return 0;
+	ERR("file type 0%o not supported", st->st_mode & S_IFMT);
+	return PMEM2_E_INVALID_FILE_TYPE;
 }
 
+/*
+ * pmem2_device_dax_size_from_stat -- (internal) checks the size of a given
+ * dax device from given stat structure
+ */
 int
-pmem2_config_get_file_size(struct pmem2_config *cfg, size_t *size)
+pmem2_device_dax_size_from_stat(const os_stat_t *st, ssize_t *size)
 {
-	LOG(3, "fd %d", cfg->fd);
-
-	if (cfg->fd == INVALID_FD) {
-		ERR("cannot check size for invalid file descriptor");
-		return -EBADF;
-	}
-
-	os_stat_t st;
-
-	if (os_fstat(cfg->fd, &st) < 0) {
-		ERR("!fstat");
-		return -errno;
-	}
-
-	enum pmem2_file_type type;
-	int ret = pmem2_get_type_from_stat(&st, &type);
-	if (ret)
-		return ret;
-
-	switch (type) {
-		case FTYPE_DIR:
-			ERR("cannot determine size of a directory");
-			return -EISDIR;
-		case FTYPE_DEVDAX: {
-			ssize_t ssize;
-			int ret = pmem2_device_dax_size_from_stat(&st, &ssize);
-			if (ret)
-				return ret;
-			st.st_size = ssize;
-			break;
-		}
-		case FTYPE_REG:
-			if (st.st_size < 0) {
-				ERR(
-					"kernel says size of regular file is negative (%ld)",
-					st.st_size);
-				return -EIO;
-			}
-			break;
-		default:
-			FATAL(
-				"BUG: unhandled file type in pmem2_config_get_file_size");
-	}
-
-	LOG(4, "file length %zu", st.st_size);
-
-	/* at this point size is not negative */
-	ASSERT(st.st_size >= 0);
-	*size = (size_t)st.st_size;
-	return 0;
+	const char *err =
+		"BUG: pmem2_device_dax_size_from_stat should never be called on this OS";
+	ERR(err);
+	ASSERTinfo(0, err);
+	return PMEM2_E_NOSUPP;
 }

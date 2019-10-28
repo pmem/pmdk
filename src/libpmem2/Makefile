@@ -50,6 +50,12 @@ SOURCE =\
 	pmem2.c\
 	pmem2_utils.c
 
+ifeq ($(OS_KERNEL_NAME),Linux)
+SOURCE += $(PMEM2)/pmem2_utils_linux.c
+else
+SOURCE += $(PMEM2)/pmem2_utils_other.c
+endif
+
 include ../Makefile.inc
 
 CFLAGS += -I.

@@ -37,6 +37,17 @@
 #ifndef PMEM2_UTILS_H
 #define PMEM2_UTILS_H 1
 
+#include "os.h"
+
 void *pmem2_malloc(size_t size, int *err);
+
+enum pmem2_file_type {
+	FTYPE_REG = 1,
+	FTYPE_DEVDAX = 2,
+	FTYPE_DIR = 3,
+};
+
+int pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type);
+int pmem2_device_dax_size_from_stat(const os_stat_t *st, ssize_t *size);
 
 #endif /* PMEM2_UTILS_H */

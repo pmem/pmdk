@@ -435,6 +435,10 @@ pcheck-pmem: TARGET = pcheck
 pcheck-pmem: $(PMEM_TESTS)
 	@echo "No failures."
 
+pcheck-pmem2: TARGET = pcheck
+pcheck-pmem2: $(PMEM2_TESTS)
+	@echo "No failures."
+
 pcheck-rpmem: TARGET = pcheck
 pcheck-rpmem: $(RPMEM_TESTS)
 	@echo "No failures."
