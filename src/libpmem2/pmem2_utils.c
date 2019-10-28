@@ -56,3 +56,16 @@ pmem2_malloc(size_t size, int *err)
 
 	return ptr;
 }
+
+int
+pmem2_err_to_errno(int err)
+{
+	if (err > 0)
+		FATAL("positive error code is a bug in libpmem2");
+
+	err = -err;
+	if (err < PMEM2_E_UNKNOWN)
+		return err;
+
+	return EINVAL;
+}

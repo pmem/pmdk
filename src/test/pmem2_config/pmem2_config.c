@@ -153,7 +153,7 @@ test_set_wronly_fd(const char *file)
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	verify_fd(&cfg, fd);
 #else
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_HANDLE);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
 	verify_fd(&cfg, INVALID_FD);
 #endif
 	CLOSE(fd);

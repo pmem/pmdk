@@ -67,7 +67,8 @@ extern "C" {
 #define PMEM2_E_UNKNOWN			(-100000)
 #define PMEM2_E_NOSUPP			(-100001)
 #define PMEM2_E_INVALID_ARG		(-100002)
-#define PMEM2_E_INVALID_HANDLE		(-100003)
+#define PMEM2_E_INVALID_FILE_HANDLE	(-100003)
+#define PMEM2_E_INVALID_FILE_TYPE	(-100004)
 
 /* config setup */
 
@@ -116,6 +117,8 @@ enum pmem2_granularity {
 
 int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 	enum pmem2_granularity g);
+
+int pmem2_config_get_file_size(struct pmem2_config *cfg, size_t *size);
 
 /* mapping */
 
@@ -209,7 +212,7 @@ void pmem2_badblock_iterator_delete(
 int pmem2_badblock_clear(const struct pmem2_config *cfg,
 		const struct pmem2_badblock *bb);
 
-/* error messages */
+/* error handling */
 
 #ifndef _WIN32
 const char *pmem2_errormsg(void);
@@ -218,6 +221,8 @@ const char *pmem2_errormsgU(void);
 
 const wchar_t *pmem2_errormsgW(void);
 #endif
+
+int pmem2_err_to_errno(int);
 
 #ifdef __cplusplus
 }
