@@ -35,8 +35,9 @@
  */
 #include <errno.h>
 #include <fcntl.h>
-#include "out.h"
 #include "config.h"
+#include "out.h"
+#include "pmem2_utils.h"
 
 /*
  * pmem2_config_set_fd -- sets fd in config struct
@@ -53,7 +54,7 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 
 	if (flags == -1) {
 		ERR("!fcntl");
-		return -errno;
+		return PMEM2_E_ERRNO;
 	}
 
 	if ((flags & O_ACCMODE) == O_WRONLY) {

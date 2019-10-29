@@ -36,8 +36,9 @@
 
 #include <Windows.h>
 #include "libpmem2.h"
-#include "out.h"
 #include "config.h"
+#include "out.h"
+#include "pmem2_utils.h"
 
 /*
  * pmem2_config_set_fd -- sets fd in config struct
@@ -61,7 +62,7 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 		 * will not abort.
 		 */
 		ERR("!_get_osfhandle");
-		return -errno;
+		return PMEM2_E_ERRNO;
 	}
 
 	return pmem2_config_set_handle(cfg, handle);
