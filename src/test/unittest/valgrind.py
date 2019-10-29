@@ -100,7 +100,7 @@ def disabled_tools(test):
 class Valgrind:
     """Valgrind management"""
 
-    def __init__(self, tool, cwd, testnum, memcheck_check_leaks=True):
+    def __init__(self, tool, cwd, testnum):
         if sys.platform == 'win32':
             raise NotImplementedError(
                 'Valgrind class should not be used on Windows')
@@ -120,8 +120,9 @@ class Valgrind:
         if self.valgrind_exe is None:
             return
 
+        self.verify()
+
         self.opts = ''
-        self.memcheck_check_leaks = memcheck_check_leaks
 
         self.add_suppression('ld.supp')
 
@@ -132,8 +133,6 @@ class Valgrind:
             self.add_suppression('memcheck-libunwind.supp')
             self.add_suppression('memcheck-ndctl.supp')
             self.add_suppression('memcheck-dlopen.supp')
-            if memcheck_check_leaks:
-                self.add_opt('--leak-check=full')
 
         # Before Skylake, Intel CPUs did not have clflushopt instruction, so
         # pmem_flush and pmem_persist both translated to clflush.
@@ -165,6 +164,14 @@ class Valgrind:
             return ''
         return '{} --tool={} --log-file={} {} '.format(
             self.valgrind_exe, self.tool_name, self.log_file, self.opts)
+
+    def setup(self, memcheck_check_leaks=True):
+        if self.tool == MEMCHECK and memcheck_check_leaks:
+            self.add_opt('--leak-check=full')
+        self.verify()
+
+    def check(self):
+        self.validate_log()
 
     def _get_valgrind_exe(self):
         """
@@ -225,14 +232,12 @@ class Valgrind:
         if path.isfile(self.log_file + '.match'):
             # if there is a Valgrind log match file, do nothing - log file
             # will be checked by 'match' tool
-            return True
+            return
 
         non_zero_errors = 'ERROR SUMMARY: [^0]'
         errors_found = any(re.search(non_zero_errors, l) for l in no_ignored)
         if any('Bad pmempool' in l for l in no_ignored) or errors_found:
-            return False
-
-        return True
+            raise futils.Fail('Valgrind log validation failed')
 
     def verify(self):
         """

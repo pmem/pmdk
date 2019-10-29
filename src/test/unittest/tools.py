@@ -60,7 +60,7 @@ def pmemdetect(ctx, *args):
             env.get('PATH', '')
     else:
         env['LD_LIBRARY_PATH'] = envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
-            ctx.build.libdir + os.pathsep +\
+            ctx.libdir + os.pathsep +\
             env.get('LD_LIBRARY_PATH', '')
 
     exe = futils.get_test_tool_path(ctx, 'pmemdetect')

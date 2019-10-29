@@ -41,31 +41,30 @@ from os import path
 import testframework as t
 
 
-class TEST0(t.BaseTest):
+@t.require_valgrind_disabled(['pmemcheck', 'memcheck'])
+class TEST0(t.Test):
     test_type = t.Medium
-    pmemcheck = t.DISABLE
-    memcheck = t.DISABLE
 
     def run(self, ctx):
         testfile = path.join(ctx.testdir, 'testfile0')
         ctx.exec('obj_tx_add_range_direct', testfile)
 
 
-class TEST1(t.BaseTest):
+@t.require_valgrind_enabled('pmemcheck')
+class TEST1(t.Test):
     test_type = t.Medium
-    pmemcheck = t.ENABLE
 
     def run(self, ctx):
-        self.valgrind.add_opt('--mult-stores=no')
+        ctx.valgrind.add_opt('--mult-stores=no')
 
         testfile = path.join(ctx.testdir, 'testfile1')
         ctx.exec('obj_tx_add_range_direct', testfile)
 
 
-class TEST2(t.BaseTest):
+@t.require_valgrind_enabled('memcheck')
+@t.require_build('debug')
+class TEST2(t.Test):
     test_type = t.Medium
-    memcheck = t.ENABLE
-    build = t.Debug
 
     def run(self, ctx):
         testfile = path.join(ctx.testdir, 'testfile2')
