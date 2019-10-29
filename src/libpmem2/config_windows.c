@@ -61,7 +61,7 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 		 * will not abort.
 		 */
 		ERR("!_get_osfhandle");
-		return -errno;
+		return PMEM2_E_ERRNO;
 	}
 
 	return pmem2_config_set_handle(cfg, handle);
