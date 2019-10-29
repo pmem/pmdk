@@ -37,8 +37,8 @@ import string
 import sys
 from datetime import timedelta
 
-import context as ctx
 import futils
+import context as ctx
 import valgrind as vg
 
 try:
@@ -160,11 +160,11 @@ def _str2ctx(config):
             if t.name.lower() == config['force_enable'])
 
 
-class Configurator():
+class Configurator(metaclass=futils.Cached):
     """Parser for user test configuration"""
 
     def __init__(self):
-        self.argparser = self._init_argparser()
+        self.config = self.parse_config()
 
     def parse_config(self):
         """
@@ -172,6 +172,7 @@ class Configurator():
         composed from 2 config values - values from testconfig.py file
         and values provided by command line args.
         """
+        self.argparser = self._init_argparser()
         try:
             args_config = self._get_args_config()
 

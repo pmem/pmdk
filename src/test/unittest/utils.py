@@ -46,6 +46,21 @@ TiB = 2 ** 40
 PiB = 2 ** 50
 
 
+def assert_success(proc):
+    if proc.returncode != 0:
+        pass
+
+
+def assert_failure(proc):
+    if proc.returncode == 0:
+        pass
+
+
+def assert_returns(proc, returncode):
+    if proc.returncode != returncode:
+        pass
+
+
 def _os_only(tc, os_name):
     """
     Disable test case (TEST[number] class) if NOT run on selected OS.
