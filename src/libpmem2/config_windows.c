@@ -35,9 +35,11 @@
  */
 
 #include <Windows.h>
+#include "config.h"
 #include "libpmem2.h"
 #include "out.h"
-#include "config.h"
+#include "pmem2_utils.h"
+#include "util.h"
 
 /*
  * pmem2_config_set_fd -- sets fd in config struct
@@ -81,8 +83,7 @@ pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
 	BY_HANDLE_FILE_INFORMATION not_used;
 	if (!GetFileInformationByHandle(handle, &not_used)) {
 		ERR("!!GetFileInformationByHandle");
-		/* XXX: convert last error to errno */
-		return PMEM2_E_INVALID_ARG;
+		return pmem2_lasterror_to_err();
 	}
 	/* XXX: winapi doesn't provide option to get open flags from HANDLE */
 	cfg->handle = handle;

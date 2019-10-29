@@ -100,6 +100,7 @@ void util_free_UTF16(wchar_t *str);
 int util_toUTF16_buff(const char *in, wchar_t *out, size_t out_size);
 int util_toUTF8_buff(const wchar_t *in, char *out, size_t out_size);
 void util_suppress_errmsg(void);
+int util_lasterror_to_errno(unsigned long err);
 #endif
 
 #define UTIL_MAX_ERR_MSG 128

@@ -39,6 +39,7 @@
 #include "libpmem2.h"
 #include "out.h"
 #include "pmem2_utils.h"
+#include "util.h"
 
 /*
  * pmem2_malloc -- allocate buffer and handle error
@@ -56,3 +57,19 @@ pmem2_malloc(size_t size, int *err)
 
 	return ptr;
 }
+
+#ifdef _WIN32
+/*
+ * converts windows error codes to pmem2 error
+ */
+int
+pmem2_lasterror_to_err()
+{
+	int err = util_lasterror_to_errno(GetLastError());
+
+	if (err == -1)
+		return PMEM2_E_UNKNOWN;
+
+	return -err;
+}
+#endif
