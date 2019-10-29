@@ -93,25 +93,17 @@ def parse_lib_win(ctx, lib, static):
     return '\n'.join(out) + '\n'
 
 
-class Common(t.BaseTest):
+@t.require_fs('non')
+class Common(t.Test):
     test_type = t.Medium
-    fs = t.Non
 
     checked_lib = ''
-
-    def setup(self, ctx):
-        """no test specific setup is made for the test using no filesystem"""
-        pass
-
-    def clean(self, ctx):
-        """no test specific cleanup is made for the test using no filesystem"""
-        pass
 
     def run(self, ctx):
         static = False
         if sys.platform == 'win32':
             lib = '{}.dll'.format(self.checked_lib)
-        elif str(ctx.build) == 'debug' or str(ctx.build) == 'release':
+        elif str(self.ctx.build) in ['debug', 'release']:
             lib = '{}.so.1'.format(self.checked_lib)
         else:
             static = True

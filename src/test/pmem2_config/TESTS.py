@@ -34,48 +34,59 @@
 
 import testframework as t
 
-class PMEM2_CONFIG(t.BaseTest):
+
+class PMEM2_CONFIG(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
         ctx.exec('pmem2_config', self.test_case, filepath)
 
+
 class TEST0(PMEM2_CONFIG):
     """allocation and dealocation of pmem2_config"""
     test_case = "cfg_create_and_delete_valid"
+
 
 class TEST1(PMEM2_CONFIG):
     """setting a read + write file descriptor in pmem2_config"""
     test_case = "set_rw_fd"
 
+
 class TEST2(PMEM2_CONFIG):
     """setting a read only file descriptor in pmem2_config"""
     test_case = "set_ro_fd"
+
 
 class TEST3(PMEM2_CONFIG):
     """resetting file descriptor in pmem2_config"""
     test_case = "set_negative_fd"
 
+
 class TEST4(PMEM2_CONFIG):
     """setting invalid (closed) file descriptor in pmem2_config"""
     test_case = "set_invalid_fd"
+
 
 class TEST5(PMEM2_CONFIG):
     """setting a write only file descriptor in pmem2_config"""
     test_case = "set_wronly_fd"
 
+
 class TEST6(PMEM2_CONFIG):
     """allocation of pmem2_config in case of missing memory in system"""
     test_case = "alloc_cfg_enomem"
+
 
 class TEST7(PMEM2_CONFIG):
     """deleting null pmem2_config"""
     test_case = "delete_null_config"
 
+
 class TEST8(PMEM2_CONFIG):
     """set valid granularity in the config"""
     test_case = "config_set_granularity_valid"
+
 
 class TEST9(PMEM2_CONFIG):
     """set invalid granularity in the config"""

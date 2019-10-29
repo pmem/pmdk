@@ -32,7 +32,6 @@
 """External tools integration"""
 
 
-from os.path import join, abspath
 import os
 import sys
 import subprocess as sp
@@ -60,7 +59,7 @@ def pmemdetect(ctx, *args):
             env.get('PATH', '')
     else:
         env['LD_LIBRARY_PATH'] = envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
-            ctx.build.libdir + os.pathsep +\
+            ctx.libdir + os.pathsep +\
             env.get('LD_LIBRARY_PATH', '')
 
     exe = futils.get_test_tool_path(ctx, 'pmemdetect')
