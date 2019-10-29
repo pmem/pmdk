@@ -51,7 +51,7 @@ pmem2_malloc(size_t size, int *err)
 
 	if (ptr == NULL) {
 		ERR("!malloc(%zu)", size);
-		*err = -errno;
+		*err = PMEM2_E_ERRNO;
 	}
 
 	return ptr;
