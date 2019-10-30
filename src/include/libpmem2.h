@@ -109,6 +109,7 @@ int pmem2_config_set_address(struct pmem2_config *cfg, unsigned type,
 	void *addr);
 
 enum pmem2_granularity {
+	PMEM2_GRANULARITY_INVALID,
 	PMEM2_GRANULARITY_BYTE,
 	PMEM2_GRANULARITY_CACHE_LINE,
 	PMEM2_GRANULARITY_PAGE,
