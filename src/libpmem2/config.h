@@ -50,6 +50,7 @@ struct pmem2_config {
 	size_t offset;
 	size_t length; /* length of the mapping */
 	size_t alignment; /* required alignment of the mapping */
+	enum pmem2_granularity granularity; /* persistence granularity */
 };
 
 void config_init(struct pmem2_config *cfg);
