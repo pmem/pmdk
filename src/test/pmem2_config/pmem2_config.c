@@ -69,7 +69,6 @@ test_cfg_create_and_delete_valid(const char *unused)
 	ret = pmem2_config_delete(&cfg);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(cfg, NULL);
-
 }
 
 /*
@@ -190,6 +189,57 @@ test_delete_null_config(const char *unused)
 	UT_ASSERTeq(cfg, NULL);
 }
 
+/*
+ * test_config_set_granularity_valid - check valid granularity values
+ */
+static void
+test_config_set_granularity_valid(const char *unused)
+{
+	struct pmem2_config cfg;
+	config_init(&cfg);
+
+	/* check default granularity */
+	enum pmem2_granularity g = PMEM2_GRANULARITY_CACHE_LINE;
+	UT_ASSERTeq(cfg.granularity, g);
+
+	/* change default granularity */
+	int ret = -1;
+	g = PMEM2_GRANULARITY_BYTE;
+	ret = pmem2_config_set_required_store_granularity(&cfg, g);
+	UT_ASSERTeq(cfg.granularity, g);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	/* set granularity once more */
+	ret = -1;
+	g = PMEM2_GRANULARITY_PAGE;
+	ret = pmem2_config_set_required_store_granularity(&cfg, g);
+	UT_ASSERTeq(cfg.granularity, g);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+}
+
+/*
+ * test_config_set_granularity_invalid - check invalid granularity values
+ */
+static void
+test_config_set_granularity_invalid(const char *unused)
+{
+	struct pmem2_config *cfg_inval = NULL;
+
+	/* pass invalid cfg and valid granularity */
+	int ret = 0;
+	enum pmem2_granularity g_valid = PMEM2_GRANULARITY_PAGE;
+	ret = pmem2_config_set_required_store_granularity(cfg_inval, g_valid);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ARG);
+
+	/* pass valid cfg and invalid granularity */
+	ret = 0;
+	enum pmem2_granularity g_inval = -1;
+	struct pmem2_config cfg_valid;
+	config_init(&cfg_valid);
+	ret = pmem2_config_set_required_store_granularity(&cfg_valid, g_inval);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ARG);
+}
+
 typedef void (*test_fun)(const char *file);
 
 static struct test_list {
@@ -204,6 +254,8 @@ static struct test_list {
 	{"set_wronly_fd", test_set_wronly_fd},
 	{"alloc_cfg_enomem", test_alloc_cfg_enomem},
 	{"delete_null_config", test_delete_null_config},
+	{"config_set_granularity_valid", test_config_set_granularity_valid},
+	{"config_set_granularity_invalid", test_config_set_granularity_invalid},
 };
 
 int

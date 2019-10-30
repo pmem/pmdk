@@ -56,6 +56,7 @@ config_init(struct pmem2_config *cfg)
 	cfg->offset = 0;
 	cfg->length = 0;
 	cfg->alignment = 0;
+	cfg->granularity = PMEM2_GRANULARITY_CACHE_LINE;
 }
 
 /*
@@ -84,5 +85,33 @@ pmem2_config_delete(struct pmem2_config **cfg)
 {
 	Free(*cfg);
 	*cfg = NULL;
+	return 0;
+}
+
+/*
+ * pmem2_config_set_required_store_granularity -- set granularity
+ * requested by user in the pmem2_config structure
+ */
+int
+pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
+		enum pmem2_granularity g)
+{
+	if (!cfg) {
+		ERR("cfg is uninitialized");
+		return PMEM2_E_INVALID_ARG;
+	}
+
+	switch (g) {
+		case PMEM2_GRANULARITY_BYTE:
+		case PMEM2_GRANULARITY_CACHE_LINE:
+		case PMEM2_GRANULARITY_PAGE:
+			break;
+		default:
+			ERR("unknown granularity value");
+			return PMEM2_E_INVALID_ARG;
+	}
+
+	cfg->granularity = g;
+
 	return 0;
 }
