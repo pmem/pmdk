@@ -222,6 +222,7 @@ PMEM_TESTS = \
 PMEM2_TESTS = \
 	pmem2_config\
 	pmem2_map\
+	pmem2_mapping\
 	pmem2_include
 
 PMEMPOOL_TESTS = \
