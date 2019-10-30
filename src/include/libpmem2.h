@@ -112,6 +112,7 @@ enum pmem2_granularity {
 	PMEM2_GRANULARITY_BYTE,
 	PMEM2_GRANULARITY_CACHE_LINE,
 	PMEM2_GRANULARITY_PAGE,
+	PMEM2_GRANULARITY_INVALID,
 };
 
 int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
