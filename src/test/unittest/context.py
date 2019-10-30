@@ -158,8 +158,9 @@ class Context(ContextBase):
         """Create a new file with the selected size and name"""
         filepath = os.path.join(self.testdir, path)
         with open(filepath, 'w') as f:
-            f.seek(size - 1)
-            f.write('\0')
+            if size > 0:
+                f.seek(size - 1)
+                f.write('\0')
         if mode is not None:
             os.chmod(filepath, mode)
         return filepath
