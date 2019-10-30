@@ -74,13 +74,6 @@ pmem2_config_set_address(struct pmem2_config *cfg, unsigned type, void *addr)
 }
 
 int
-pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
-		enum pmem2_granularity g)
-{
-	return PMEM2_E_NOSUPP;
-}
-
-int
 pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map)
 {
 	return PMEM2_E_NOSUPP;
