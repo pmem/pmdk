@@ -37,6 +37,7 @@
 #define PMEM2_MAP_H
 
 #include <stddef.h>
+#include "libpmem2.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,6 +46,7 @@ extern "C" {
 struct pmem2_map {
 	void *addr; /* base address */
 	size_t length; /* effective length of the mapping */
+	enum pmem2_granularity granularity; /* persistence granularity */
 };
 
 #ifdef __cplusplus
