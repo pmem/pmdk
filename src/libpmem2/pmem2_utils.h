@@ -43,4 +43,8 @@
 
 void *pmem2_malloc(size_t size, int *err);
 
+#ifdef _WIN32
+int pmem2_lasterror_to_err();
+#endif
+
 #endif /* PMEM2_UTILS_H */

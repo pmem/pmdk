@@ -301,3 +301,40 @@ util_suppress_errmsg(void)
 		_set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
 	}
 }
+
+static int Lasterror_to_errno[16000] = {
+	[ERROR_ACCESS_DENIED] = EACCES,
+	[ERROR_FILE_NOT_FOUND] = ENOENT,
+	[ERROR_INVALID_ACCESS] = EACCES,
+	[ERROR_INVALID_FUNCTION] = EINVAL,
+	[ERROR_INVALID_HANDLE] = EINVAL,
+	[ERROR_INVALID_PARAMETER] = EINVAL,
+	[ERROR_LOCK_FAILED] = EACCES,
+	[ERROR_NOT_ENOUGH_MEMORY] = ENOMEM,
+	[ERROR_NOT_SUPPORTED] = ENOTSUP,
+	[ERROR_OUTOFMEMORY] = ENOMEM,
+	[ERROR_PATH_NOT_FOUND] = ENOENT,
+	[ERROR_TOO_MANY_OPEN_FILES] = EMFILE,
+};
+
+/*
+ * util_lasterror_to_errno - converts windows error codes to errno
+ */
+int
+util_lasterror_to_errno(unsigned long err)
+{
+	if (err >= ARRAY_SIZE(Lasterror_to_errno))
+		return -1;
+
+	/* no error */
+	if (err == 0)
+		return 0;
+
+	int ret = Lasterror_to_errno[err];
+
+	/* 0 is used to signalize missing entry in Lasterror_to_errno array */
+	if (ret == 0)
+		return -1;
+
+	return ret;
+}
