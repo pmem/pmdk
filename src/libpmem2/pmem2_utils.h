@@ -37,6 +37,10 @@
 #ifndef PMEM2_UTILS_H
 #define PMEM2_UTILS_H 1
 
+#include <errno.h>
+
+#define PMEM2_E_ERRNO (-errno)
+
 void *pmem2_malloc(size_t size, int *err);
 
 #ifdef _WIN32
