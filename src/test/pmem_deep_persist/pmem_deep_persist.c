@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -98,9 +98,9 @@ main(int argc, char *argv[])
 		case 'm':
 		{
 			int fd = OPEN(path, O_RDWR);
-			ssize_t size = util_file_get_size(path);
+			ssize_t size = util_fd_get_size(fd);
 			if (size < 0)
-				UT_FATAL("!util_file_get_size: %s", path);
+				UT_FATAL("!util_fd_get_size: %s", path);
 			size_t file_size = (size_t)size;
 			/* XXX: add MAP_SYNC flag */
 			addr = MMAP(NULL, file_size, PROT_READ|PROT_WRITE,

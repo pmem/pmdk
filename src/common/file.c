@@ -336,7 +336,7 @@ util_file_map_whole(const char *path)
 		return NULL;
 	}
 
-	ssize_t size = util_file_get_size(path);
+	ssize_t size = util_fd_get_size(fd);
 	if (size < 0) {
 		LOG(2, "cannot determine file length \"%s\"", path);
 		goto out;
@@ -377,7 +377,7 @@ util_file_zero(const char *path, os_off_t off, size_t len)
 		return -1;
 	}
 
-	ssize_t size = util_file_get_size(path);
+	ssize_t size = util_fd_get_size(fd);
 	if (size < 0) {
 		LOG(2, "cannot determine file length \"%s\"", path);
 		ret = -1;
@@ -618,7 +618,7 @@ util_file_open(const char *path, size_t *size, size_t minsize, int flags)
 		if (size)
 			ASSERTeq(*size, 0);
 
-		ssize_t actual_size = util_file_get_size(path);
+		ssize_t actual_size = util_fd_get_size(fd);
 		if (actual_size < 0) {
 			ERR("stat \"%s\": negative size", path);
 			errno = EINVAL;

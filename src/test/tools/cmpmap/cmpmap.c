@@ -174,7 +174,7 @@ do_cmpmap(void)
 		fprintf(stderr, "opening %s failed, errno %d\n", File1, errno);
 		return -1;
 	}
-	ssize_t size_tmp = util_file_get_size(File1);
+	ssize_t size_tmp = util_fd_get_size(fd1);
 	if (size_tmp < 0) {
 		fprintf(stderr, "getting size of %s failed, errno %d\n", File1,
 				errno);
@@ -199,7 +199,7 @@ do_cmpmap(void)
 			ret = -1;
 			goto out_close1;
 		}
-		size_tmp = util_file_get_size(File2);
+		size_tmp = util_fd_get_size(fd2);
 		if (size_tmp < 0) {
 			fprintf(stderr, "getting size of %s failed, errno %d\n",
 					File2, errno);

@@ -525,7 +525,7 @@ pmem_map_fileU(const char *path, size_t len, int flags,
 			}
 		}
 	} else {
-		ssize_t actual_size = util_file_get_size(path);
+		ssize_t actual_size = util_fd_get_size(fd);
 		if (actual_size < 0) {
 			ERR("stat %s: negative size", path);
 			errno = EINVAL;
