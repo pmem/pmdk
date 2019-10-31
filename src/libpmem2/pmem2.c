@@ -38,18 +38,6 @@
 #include "pmem2.h"
 
 int
-pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
-{
-	return PMEM2_E_NOSUPP;
-}
-
-int
-pmem2_config_set_length(struct pmem2_config *cfg, size_t length)
-{
-	return PMEM2_E_NOSUPP;
-}
-
-int
 pmem2_config_set_sharing(struct pmem2_config *cfg, unsigned type)
 {
 	return PMEM2_E_NOSUPP;

@@ -233,6 +233,94 @@ test_config_set_granularity_invalid(const char *unused)
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ARG);
 }
 
+/*
+ * test_set_offset_too_large - test tries to set the offset which
+ * is too large
+ */
+static void
+test_set_offset_too_large(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to set the offset which is too large */
+	size_t offset = (size_t)INT64_MAX + 1;
+	int ret = pmem2_config_set_offset(&cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_RANGE);
+}
+
+/*
+ * test_set_offset_no_multiple - test tries to set the offset which is not
+ * a multiple of Pagesize
+ */
+static void
+test_set_offset_no_multiple(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to set the offset which is not a multiple of Pagesize */
+	size_t offset = Pagesize + 1;
+	int ret = pmem2_config_set_offset(&cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_UNALIGNED);
+}
+
+/*
+ * test_set_offset_success - test tries to successfully set the offset
+ */
+static void
+test_set_offset_success(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to successfully set the offset */
+	size_t offset = Pagesize;
+	int ret = pmem2_config_set_offset(&cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+}
+
+/*
+ * test_set_length_too_large - test tries to set the length which
+ * is too large
+ */
+static void
+test_set_length_too_large(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to set the length which is too large */
+	size_t length = (size_t)INT64_MAX + 1;
+	int ret = pmem2_config_set_offset(&cfg, length);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_RANGE);
+}
+
+/*
+ * test_set_length_no_multiple - test tries to set the length which is not
+ * a multiple of Pagesize
+ */
+static void
+test_set_length_no_multiple(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to set the length which is not a multiple of Pagesize */
+	size_t length = Pagesize + 1;
+	int ret = pmem2_config_set_offset(&cfg, length);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_UNALIGNED);
+}
+
+/*
+ * test_set_length_success - test tries to successfully set the length
+ */
+static void
+test_set_length_success(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to successfully set the offset */
+	size_t length = Pagesize;
+	int ret = pmem2_config_set_offset(&cfg, length);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+}
+
 typedef void (*test_fun)(const char *file);
 
 static struct test_list {
@@ -249,6 +337,12 @@ static struct test_list {
 	{"delete_null_config", test_delete_null_config},
 	{"config_set_granularity_valid", test_config_set_granularity_valid},
 	{"config_set_granularity_invalid", test_config_set_granularity_invalid},
+	{"set_offset_too_large", test_set_offset_too_large},
+	{"set_offset_no_multiple", test_set_offset_no_multiple},
+	{"set_offset_success", test_set_offset_success},
+	{"set_length_too_large", test_set_length_too_large},
+	{"set_length_no_multiple", test_set_length_no_multiple},
+	{"set_length_success", test_set_length_success},
 };
 
 int
@@ -260,6 +354,8 @@ main(int argc, char **argv)
 
 	char *test_case = argv[1];
 	char *file = argv[2];
+
+	util_init();
 
 	for (int i = 0; i < ARRAY_SIZE(list); i++) {
 		if (strcmp(list[i].name, test_case) == 0) {
