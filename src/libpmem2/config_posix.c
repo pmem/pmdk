@@ -67,8 +67,12 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 	return 0;
 }
 
+/*
+ * pmem2_config_get_file_size -- get a file size of the file handle stored in
+ * the provided config
+ */
 int
-pmem2_config_get_file_size(struct pmem2_config *cfg, size_t *size)
+pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size)
 {
 	LOG(3, "fd %d", cfg->fd);
 

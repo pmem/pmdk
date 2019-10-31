@@ -119,7 +119,7 @@ enum pmem2_granularity {
 int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 	enum pmem2_granularity g);
 
-int pmem2_config_get_file_size(struct pmem2_config *cfg, size_t *size);
+int pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size);
 
 /* mapping */
 
