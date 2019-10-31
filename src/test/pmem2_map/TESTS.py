@@ -103,3 +103,7 @@ class TEST12(PMEM2_MAP):
 class TEST13(PMEM2_MAP):
     """test for pmem2_map_get_size"""
     test_case = "test_map_get_size"
+
+class TEST14(PMEM2_MAP):
+    """simply get the previously stored value of granularity"""
+    test_case = "test_get_granularity_simple"

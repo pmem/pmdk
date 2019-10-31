@@ -39,6 +39,7 @@ date: pmem2 API version 1.0
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
+[GRANULARITY](#granularity)<br />
 [CAVEATS](#caveats)<br />
 [ENVIRONMENT](#environment)<br />
 [DEBUGGING](#debugging)<br />
@@ -58,6 +59,10 @@ cc ... -lpmem2
 ```
 
 # DESCRIPTION #
+
+# GRANULARITY #
+
+XXX: explain the concept of the granularity
 
 # CAVEATS #
 
