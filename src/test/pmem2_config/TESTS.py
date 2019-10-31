@@ -73,3 +73,35 @@ class TEST6(PMEM2_CONFIG):
 class TEST7(PMEM2_CONFIG):
     """deleting null pmem2_config"""
     test_case = "delete_null_config"
+
+class TEST8(PMEM2_CONFIG):
+    """setting offset when config is unitialized"""
+    test_case = "set_offset_uninit"
+
+class TEST9(PMEM2_CONFIG):
+    """setting offset which is too large"""
+    test_case = "set_offset_too_large"
+
+class TEST10(PMEM2_CONFIG):
+    """setting offset which is not a multiple of PAGE_SIZE"""
+    test_case = "set_offset_no_multiple"
+
+class TEST11(PMEM2_CONFIG):
+    """setting proper offset"""
+    test_case = "set_offset_success"
+
+class TEST12(PMEM2_CONFIG):
+    """setting length when config is unitialized"""
+    test_case = "set_length_uninit"
+
+class TEST13(PMEM2_CONFIG):
+    """setting length which is too large"""
+    test_case = "set_length_too_large"
+
+class TEST14(PMEM2_CONFIG):
+    """setting length which is not a multiple of PAGE_SIZE"""
+    test_case = "set_length_no_multiple"
+
+class TEST15(PMEM2_CONFIG):
+    """setting proper length"""
+    test_case = "set_length_success"

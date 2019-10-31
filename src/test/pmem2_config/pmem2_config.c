@@ -190,6 +190,126 @@ test_delete_null_config(const char *unused)
 	UT_ASSERTeq(cfg, NULL);
 }
 
+/*
+ * test_set_offset_uninit - test tries to set the offset when config is
+ * unitialized
+ */
+static void
+test_set_offset_uninit(const char *unused)
+{
+	struct pmem2_config *cfg = NULL;
+
+	size_t offset = PAGE_SIZE;
+	/* let's try to set the offset when cfg is uninitialized */
+	int ret = pmem2_config_set_offset(cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ARG);
+	UT_ASSERTeq(cfg, NULL);
+}
+
+/*
+ * test_set_offset_too_large - test tries to set the offset which
+ * is too large
+ */
+static void
+test_set_offset_too_large(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to set the offset which is too large */
+	size_t offset = (size_t)INT64_MAX + 1;
+	int ret = pmem2_config_set_offset(&cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_RANGE);
+}
+
+/*
+ * test_set_offset_no_multiple - test tries to set the offset which is not
+ * a multiple of PAGE_SIZE
+ */
+static void
+test_set_offset_no_multiple(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to set the offset which is not a multiple of PAGE_SIZE */
+	size_t offset = PAGE_SIZE + 1;
+	int ret = pmem2_config_set_offset(&cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_UNALIGNED);
+}
+
+/*
+ * test_set_offset_success - test tries to successfully set the offset
+ */
+static void
+test_set_offset_success(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to successfully set the offset */
+	size_t offset = PAGE_SIZE;
+	int ret = pmem2_config_set_offset(&cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+}
+
+/*
+ * test_set_length_uninit - test tries to set the length when config is
+ * unitialized
+ */
+static void
+test_set_length_uninit(const char *unused)
+{
+	struct pmem2_config *cfg = NULL;
+
+	size_t length = PAGE_SIZE;
+	/* let's try to set the offset when cfg is uninitialized */
+	int ret = pmem2_config_set_offset(cfg, length);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ARG);
+	UT_ASSERTeq(cfg, NULL);
+}
+
+/*
+ * test_set_length_too_large - test tries to set the length which
+ * is too large
+ */
+static void
+test_set_length_too_large(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to set the length which is too large */
+	size_t length = (size_t)INT64_MAX + 1;
+	int ret = pmem2_config_set_offset(&cfg, length);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_RANGE);
+}
+
+/*
+ * test_set_length_no_multiple - test tries to set the length which is not
+ * a multiple of PAGE_SIZE
+ */
+static void
+test_set_length_no_multiple(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to set the length which is not a multiple of PAGE_SIZE */
+	size_t length = PAGE_SIZE + 1;
+	int ret = pmem2_config_set_offset(&cfg, length);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_UNALIGNED);
+}
+
+/*
+ * test_set_length_success - test tries to successfully set the length
+ */
+static void
+test_set_length_success(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to successfully set the offset */
+	size_t length = PAGE_SIZE;
+	int ret = pmem2_config_set_offset(&cfg, length);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+}
+
 typedef void (*test_fun)(const char *file);
 
 static struct test_list {
@@ -204,6 +324,14 @@ static struct test_list {
 	{"set_wronly_fd", test_set_wronly_fd},
 	{"alloc_cfg_enomem", test_alloc_cfg_enomem},
 	{"delete_null_config", test_delete_null_config},
+	{"set_offset_uninit", test_set_offset_uninit},
+	{"set_offset_too_large", test_set_offset_too_large},
+	{"set_offset_no_multiple", test_set_offset_no_multiple},
+	{"set_offset_success", test_set_offset_success},
+	{"set_length_uninit", test_set_length_uninit},
+	{"set_length_too_large", test_set_length_too_large},
+	{"set_length_no_multiple", test_set_length_no_multiple},
+	{"set_length_success", test_set_length_success},
 };
 
 int

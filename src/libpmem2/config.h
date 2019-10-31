@@ -39,6 +39,7 @@
 #include "libpmem2.h"
 
 #define INVALID_FD (-1)
+#define PAGE_SIZE 4096
 
 struct pmem2_config {
 	/* a source file descriptor / handle for the designed mapping */

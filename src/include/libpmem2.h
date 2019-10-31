@@ -73,6 +73,8 @@ extern "C" {
 #define PMEM2_E_MAP_RANGE		(-100006)
 #define PMEM2_E_MAPPING_EXISTS		(-100007)
 #define PMEM2_E_MAP_FAILED		(-100008)
+#define PMEM2_E_RANGE 		(-100009)
+#define PMEM2_E_UNALIGNED 		(-100010)
 
 /* config setup */
 

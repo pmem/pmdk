@@ -86,3 +86,55 @@ pmem2_config_delete(struct pmem2_config **cfg)
 	*cfg = NULL;
 	return 0;
 }
+
+/*
+ * pmem2_config_set_offset -- sets the offset of the config
+ */
+int
+pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
+{
+	if (!cfg) {
+		ERR("cfg is uninitialized");
+		return PMEM2_E_INVALID_ARG;
+	}
+
+	if (offset > INT64_MAX) {
+		ERR("offset is larger than INT64_MAX");
+		return PMEM2_E_RANGE;
+	}
+
+	if ((offset % PAGE_SIZE) != 0) {
+		ERR("offset if not a multiple of PAGE_SIZE");
+		return PMEM2_E_UNALIGNED;
+	}
+
+	cfg->offset = offset;
+
+	return 0;
+}
+
+/*
+ * pmem2_config_set_length -- sets the length of the config
+ */
+int
+pmem2_config_set_length(struct pmem2_config *cfg, size_t length)
+{
+	if (!cfg) {
+		ERR("cfg is uninitialized");
+		return PMEM2_E_INVALID_ARG;
+	}
+
+	if (length > INT64_MAX) {
+		ERR("length is larger than INT64_MAX");
+		return PMEM2_E_RANGE;
+	}
+
+	if ((length % PAGE_SIZE) != 0) {
+		ERR("length if not a multiple of PAGE_SIZE");
+		return PMEM2_E_UNALIGNED;
+	}
+
+	cfg->length = length;
+
+	return 0;
+}
