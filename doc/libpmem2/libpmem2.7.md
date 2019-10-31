@@ -56,6 +56,9 @@ date: pmem2 API version 1.0
 #include <libpmem2.h>
 cc ... -lpmem2
 ```
+# GRANULARITY #
+
+XXX: explain the concept of the granularity
 
 # DESCRIPTION #
 
