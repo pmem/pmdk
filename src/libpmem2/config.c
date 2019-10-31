@@ -110,3 +110,45 @@ pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 
 	return 0;
 }
+
+/*
+ * pmem2_config_set_offset -- sets the offset of the config
+ */
+int
+pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
+{
+	if (offset > INT64_MAX) {
+		ERR("offset is greater than INT64_MAX");
+		return PMEM2_E_RANGE;
+	}
+
+	if ((offset % Pagesize) != 0) {
+		ERR("offset is not a multiple of Pagesize");
+		return PMEM2_E_UNALIGNED;
+	}
+
+	cfg->offset = offset;
+
+	return 0;
+}
+
+/*
+ * pmem2_config_set_length -- sets the length of the config
+ */
+int
+pmem2_config_set_length(struct pmem2_config *cfg, size_t length)
+{
+	if (length > INT64_MAX) {
+		ERR("length is greater than INT64_MAX");
+		return PMEM2_E_RANGE;
+	}
+
+	if ((length % Pagesize) != 0) {
+		ERR("length is not a multiple of Pagesize");
+		return PMEM2_E_UNALIGNED;
+	}
+
+	cfg->length = length;
+
+	return 0;
+}

@@ -114,3 +114,35 @@ class TEST15(PMEM2_CONFIG):
     test_case = "set_directory_fd"
     def run(self, ctx):
        ctx.exec('pmem2_config', self.test_case, ctx.testdir)
+
+class TEST16(PMEM2_CONFIG):
+    """setting offset which is too large"""
+    test_case = "set_offset_too_large"
+
+class TEST17(PMEM2_CONFIG):
+    """setting offset which is not a multiple of Pagesize"""
+    test_case = "set_offset_no_multiple"
+
+class TEST18(PMEM2_CONFIG):
+    """setting proper offset"""
+    test_case = "set_offset_success"
+
+class TEST19(PMEM2_CONFIG):
+    """setting length which is too large"""
+    test_case = "set_length_too_large"
+
+class TEST20(PMEM2_CONFIG):
+    """setting length which is not a multiple of Pagesize"""
+    test_case = "set_length_no_multiple"
+
+class TEST21(PMEM2_CONFIG):
+    """setting proper length"""
+    test_case = "set_length_success"
+
+class TEST22(PMEM2_CONFIG):
+    """setting maximum possible length"""
+    test_case = "set_length_max"
+
+class TEST23(PMEM2_CONFIG):
+    """setting maximum possible offset"""
+    test_case = "set_offset_max"
