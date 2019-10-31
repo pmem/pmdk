@@ -44,3 +44,7 @@ class PMEM2_MAP(t.BaseTest):
 class TEST0(PMEM2_MAP):
     """template test for pmem2_map"""
     test_case = "test_empty"
+
+class TEST1(PMEM2_MAP):
+    """template test for test_get_granularity"""
+    test_case = "test_get_granularity"

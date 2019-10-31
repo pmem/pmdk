@@ -45,6 +45,7 @@ date: pmem2 API version 1.0
 # NAME #
 
 **pmem2_map**() - create mapping on the file
+**pmem2_map_get_store_granularity**() - returns granularity of the mapped file
 
 # SYNOPSIS #
 
@@ -52,11 +53,18 @@ date: pmem2 API version 1.0
 #include <libpmem2.h>
 
 int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr);
+enum pmem2_granularity pmem2_map_get_store_granularity(struct pmem2_map *map);
 ```
 
 # DESCRIPTION #
 
+The **pmem2_map_get_store_granularity**() function returns granularity of the mapped
+file.
+
 # RETURN VALUE #
+
+The **pmem2_map_get_store_granularity**() function returns granularity of the mapped
+file.
 
 # SEE ALSO #
 

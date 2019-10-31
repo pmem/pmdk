@@ -37,6 +37,12 @@
 #include "libpmem2.h"
 #include "pmem2.h"
 
+/*
+ * map.h and out.h -- will be deleted from this file after merging #4073
+ */
+#include "map.h"
+#include "out.h"
+
 int
 pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
 {
@@ -104,10 +110,18 @@ pmem2_map_get_size(struct pmem2_map *map)
 	return 0;
 }
 
+/*
+ * pmem2_map_get_store_granularity -- this function goes to the
+ * map.c file after merging #4073
+ */
 enum pmem2_granularity
 pmem2_map_get_store_granularity(struct pmem2_map *map)
 {
-	return PMEM2_GRANULARITY_PAGE;
+	LOG(3, "map %p", map);
+
+	enum pmem2_granularity granularity = map->effective_granularity;
+
+	return granularity;
 }
 
 pmem2_persist_fn *

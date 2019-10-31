@@ -35,11 +35,32 @@
  */
 
 #include "config.h"
+#include "map.h"
 #include "out.h"
 #include "pmem2.h"
 #include "unittest.h"
-#include "ut_pmem2_config.h"
 #include "ut_pmem2_utils.h"
+
+/*
+ * pmem2.c -- will be deleted from this file after merging #4073
+ */
+#include "pmem2.c"
+
+/*
+ * test_get_granularity - test sets granularity and checks if
+ * pmem2_map_get_store_granularity returns the same value as it was set
+ */
+static int
+test_get_granularity(const struct test_case *tc, int argc, char *argv[])
+{
+	struct pmem2_map map;
+
+	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
+	enum pmem2_granularity ret = pmem2_map_get_store_granularity(&map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_GRANULARITY_BYTE);
+
+	return 1;
+}
 
 static int
 test_empty(const struct test_case *tc, int argc, char *argv[])
@@ -52,6 +73,7 @@ test_empty(const struct test_case *tc, int argc, char *argv[])
  */
 static struct test_case test_cases[] = {
 	TEST_CASE(test_empty),
+	TEST_CASE(test_get_granularity),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
