@@ -48,88 +48,14 @@
 #include <sys/sysmacros.h>
 #endif
 
+#include "../libpmem2/config.h"
+#include "../libpmem2/pmem2_utils.h"
 #include "file.h"
 #include "os.h"
 #include "out.h"
 #include "mmap.h"
 
-#define MAX_SIZE_LENGTH 64
-
 #define DEVICE_DAX_ZERO_LEN (2 * MEGABYTE)
-
-#ifndef _WIN32
-/*
- * device_dax_stat_size -- (internal) checks the size of a given
- * dax device from given stat structure
- */
-static ssize_t
-device_dax_stat_size(os_stat_t *st)
-{
-	char spath[PATH_MAX];
-	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/size",
-		os_major(st->st_rdev), os_minor(st->st_rdev));
-
-	LOG(4, "device size path \"%s\"", spath);
-
-	int fd = os_open(spath, O_RDONLY);
-	if (fd < 0) {
-		ERR("!open \"%s\"", spath);
-		return -1;
-	}
-
-	ssize_t size = -1;
-
-	char sizebuf[MAX_SIZE_LENGTH + 1];
-	ssize_t nread;
-	if ((nread = read(fd, sizebuf, MAX_SIZE_LENGTH)) < 0) {
-		ERR("!read");
-		goto out;
-	}
-
-	sizebuf[nread] = 0; /* null termination */
-
-	char *endptr;
-
-	int olderrno = errno;
-	errno = 0;
-
-	size = strtoll(sizebuf, &endptr, 0);
-	if (endptr == sizebuf || *endptr != '\n' ||
-	    ((size == LLONG_MAX || size == LLONG_MIN) && errno == ERANGE)) {
-		ERR("invalid device size %s", sizebuf);
-		size = -1;
-		goto out;
-	}
-
-	errno = olderrno;
-
-out:
-	olderrno = errno;
-	(void) os_close(fd);
-	errno = olderrno;
-
-	LOG(4, "device size %zu", size);
-	return size;
-}
-
-/*
- * device_dax_file_size -- (internal) checks the size of a given dax device
- */
-static ssize_t
-device_dax_file_size(const char *path)
-{
-	LOG(3, "path \"%s\"", path);
-
-	os_stat_t st;
-
-	if (os_stat(path, &st) < 0) {
-		ERR("!stat \"%s\"", path);
-		return -1;
-	}
-
-	return device_dax_stat_size(&st);
-}
-#endif
 
 /*
  * util_file_exists -- checks whether file exists
@@ -167,36 +93,22 @@ util_file_exists(const char *path)
 enum file_type
 util_stat_get_type(const os_stat_t *st)
 {
-#ifdef _WIN32
-	return TYPE_NORMAL;
-#else
-	if (!S_ISCHR(st->st_mode)) {
-		LOG(4, "not a character device");
+	enum pmem2_file_type type;
+
+	int ret = pmem2_get_type_from_stat(st, &type);
+	if (ret) {
+		errno = pmem2_err_to_errno(ret);
+		return OTHER_ERROR;
+	}
+
+	if (type == PMEM2_FTYPE_REG || type == PMEM2_FTYPE_DIR)
 		return TYPE_NORMAL;
-	}
 
-	char spath[PATH_MAX];
-	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/subsystem",
-		os_major(st->st_rdev), os_minor(st->st_rdev));
+	if (type == PMEM2_FTYPE_DEVDAX)
+		return TYPE_DEVDAX;
 
-	LOG(4, "device subsystem path \"%s\"", spath);
-
-	char npath[PATH_MAX];
-	char *rpath = realpath(spath, npath);
-	if (rpath == NULL) {
-		ERR("!realpath \"%s\"", spath);
-		return OTHER_ERROR;
-	}
-
-	char *basename = strrchr(rpath, '/');
-	if (!basename || strcmp("dax", basename + 1) != 0) {
-		LOG(3, "%s path does not match device dax prefix path", rpath);
-		errno = EINVAL;
-		return OTHER_ERROR;
-	}
-
-	return TYPE_DEVDAX;
-#endif
+	ASSERTinfo(0, "unhandled file type in util_stat_get_type");
+	return OTHER_ERROR;
 }
 
 /*
@@ -266,24 +178,16 @@ util_file_get_size(const char *path)
 {
 	LOG(3, "path \"%s\"", path);
 
-	int file_type = util_file_get_type(path);
-	if (file_type < 0)
-		return -1;
-
-#ifndef _WIN32
-	if (file_type == TYPE_DEVDAX) {
-		return device_dax_file_size(path);
-	}
-#endif
-
-	os_stat_t stbuf;
-	if (os_stat(path, &stbuf) < 0) {
-		ERR("!stat \"%s\"", path);
+	int fd = os_open(path, O_RDONLY);
+	if (fd < 0) {
+		ERR("!open");
 		return -1;
 	}
 
-	LOG(4, "file length %zu", stbuf.st_size);
-	return stbuf.st_size;
+	ssize_t size = util_fd_get_size(fd);
+	(void) close(fd);
+
+	return size;
 }
 
 /*
@@ -294,25 +198,34 @@ util_fd_get_size(int fd)
 {
 	LOG(3, "fd %d", fd);
 
-	os_stat_t st;
+	struct pmem2_config cfg;
+	size_t size;
+	int ret;
 
-	if (os_fstat(fd, &st) < 0) {
-		ERR("!fstat");
-		return OTHER_ERROR;
-	}
-
-	int file_type = util_stat_get_type(&st);
-	if (file_type < 0)
+	config_init(&cfg);
+	ret = pmem2_config_set_fd(&cfg, fd);
+	if (ret) {
+		errno = pmem2_err_to_errno(ret);
 		return -1;
-
-#ifndef _WIN32
-	if (file_type == TYPE_DEVDAX) {
-		return device_dax_stat_size(&st);
 	}
-#endif
 
-	LOG(4, "file length %zu", st.st_size);
-	return st.st_size;
+	ret = pmem2_config_get_file_size(&cfg, &size);
+	if (ret) {
+		errno = pmem2_err_to_errno(ret);
+		return -1;
+	}
+
+	/* size is unsigned, this function returns signed */
+	if (size >= INT64_MAX) {
+		errno = ERANGE;
+		ERR(
+			"file size (%ld) too big to be represented in 64-bit signed integer",
+			size);
+		return -1;
+	}
+
+	LOG(4, "file length %zu", size);
+	return (ssize_t)size;
 }
 
 /*

@@ -221,6 +221,7 @@ PMEM_TESTS = \
 
 PMEM2_TESTS = \
 	pmem2_config\
+	pmem2_config_get_file_size\
 	pmem2_map\
 	pmem2_include
 
@@ -433,6 +434,10 @@ pcheck-other: $(OTHER_TESTS)
 
 pcheck-pmem: TARGET = pcheck
 pcheck-pmem: $(PMEM_TESTS)
+	@echo "No failures."
+
+pcheck-pmem2: TARGET = pcheck
+pcheck-pmem2: $(PMEM2_TESTS)
 	@echo "No failures."
 
 pcheck-rpmem: TARGET = pcheck

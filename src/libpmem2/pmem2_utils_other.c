@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,59 +30,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * pmem2_utils.c -- libpmem2 utilities functions
- */
-
 #include <errno.h>
-#include "alloc.h"
+#include <sys/stat.h>
+
 #include "libpmem2.h"
 #include "out.h"
 #include "pmem2_utils.h"
-#include "util.h"
-
-/*
- * pmem2_malloc -- allocate buffer and handle error
- */
-void *
-pmem2_malloc(size_t size, int *err)
-{
-	void *ptr = Malloc(size);
-	*err = 0;
-
-	if (ptr == NULL) {
-		ERR("!malloc(%zu)", size);
-		*err = PMEM2_E_ERRNO;
-	}
-
-	return ptr;
-}
-
-int
-pmem2_err_to_errno(int err)
-{
-	if (err > 0)
-		FATAL("positive error code is a bug in libpmem2");
-
-	err = -err;
-	if (err < PMEM2_E_UNKNOWN)
-		return err;
-
-	return EINVAL;
-}
 
 #ifdef _WIN32
+#define S_ISREG(m)	(((m) & S_IFMT) == S_IFREG)
+#define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)
+#endif
+
+int
+pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
+{
+	if (S_ISREG(st->st_mode)) {
+		*type = PMEM2_FTYPE_REG;
+		return 0;
+	}
+
+	if (S_ISDIR(st->st_mode)) {
+		*type = PMEM2_FTYPE_DIR;
+		return 0;
+	}
+
+	ERR("file type 0%o not supported", st->st_mode & S_IFMT);
+	return PMEM2_E_INVALID_FILE_TYPE;
+}
+
 /*
- * converts windows error codes to pmem2 error
+ * pmem2_device_dax_size_from_stat -- (internal) checks the size of a given
+ * dax device from given stat structure
  */
 int
-pmem2_lasterror_to_err()
+pmem2_device_dax_size_from_stat(const os_stat_t *st, size_t *size)
 {
-	int err = util_lasterror_to_errno(GetLastError());
-
-	if (err == -1)
-		return PMEM2_E_UNKNOWN;
-
-	return -err;
+	const char *err =
+		"BUG: pmem2_device_dax_size_from_stat should never be called on this OS";
+	ERR("%s", err);
+	ASSERTinfo(0, err);
+	return PMEM2_E_NOSUPP;
 }
-#endif

@@ -3,6 +3,7 @@ pmem2_badblock_iterator_delete
 pmem2_badblock_iterator_new
 pmem2_badblock_next
 pmem2_config_delete
+pmem2_config_get_file_size
 pmem2_config_new
 pmem2_config_set_address
 pmem2_config_set_fd

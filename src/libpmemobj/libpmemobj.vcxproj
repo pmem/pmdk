@@ -59,6 +59,10 @@
     <ClCompile Include="memblock.c" />
     <ClCompile Include="recycler.c" />
     <ClCompile Include="stats.c" />
+    <ClCompile Include="..\libpmem2\config.c" />
+    <ClCompile Include="..\libpmem2\config_windows.c" />
+    <ClCompile Include="..\libpmem2\pmem2_utils.c" />
+    <ClCompile Include="..\libpmem2\pmem2_utils_other.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\common\out.h" />
@@ -121,6 +125,8 @@
     <ClInclude Include="stats.h" />
     <ClInclude Include="sync.h" />
     <ClInclude Include="tx.h" />
+    <ClInclude Include="..\libpmem2\config.h" />
+    <ClInclude Include="..\libpmem2\pmem2_utils.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmemobj.def" />

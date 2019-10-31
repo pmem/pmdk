@@ -36,6 +36,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include "config.h"
+#include "os.h"
 #include "out.h"
 #include "pmem2_utils.h"
 
@@ -59,9 +60,60 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 
 	if ((flags & O_ACCMODE) == O_WRONLY) {
 		ERR("fd must be open with O_RDONLY or O_RDRW");
-		return PMEM2_E_INVALID_HANDLE;
+		return PMEM2_E_INVALID_FILE_HANDLE;
 	}
 
 	cfg->fd = fd;
+	return 0;
+}
+
+int
+pmem2_config_get_file_size(struct pmem2_config *cfg, size_t *size)
+{
+	LOG(3, "fd %d", cfg->fd);
+
+	if (cfg->fd == INVALID_FD) {
+		ERR("cannot check size for invalid file descriptor");
+		return PMEM2_E_INVALID_FILE_HANDLE;
+	}
+
+	os_stat_t st;
+
+	if (os_fstat(cfg->fd, &st) < 0) {
+		ERR("!fstat");
+		return PMEM2_E_ERRNO;
+	}
+
+	enum pmem2_file_type type;
+	int ret = pmem2_get_type_from_stat(&st, &type);
+	if (ret)
+		return ret;
+
+	switch (type) {
+		case PMEM2_FTYPE_DIR:
+			ERR(
+				"asking for size of a directory doesn't make any sense in context of pmem");
+			return PMEM2_E_INVALID_FILE_HANDLE;
+		case PMEM2_FTYPE_DEVDAX: {
+			int ret = pmem2_device_dax_size_from_stat(&st, size);
+			if (ret)
+				return ret;
+			break;
+		}
+		case PMEM2_FTYPE_REG:
+			if (st.st_size < 0) {
+				ERR(
+					"kernel says size of regular file is negative (%ld)",
+					st.st_size);
+				return PMEM2_E_INVALID_FILE_HANDLE;
+			}
+			*size = (size_t)st.st_size;
+			break;
+		default:
+			FATAL(
+				"BUG: unhandled file type in pmem2_config_get_file_size");
+	}
+
+	LOG(4, "file length %zu", *size);
 	return 0;
 }
