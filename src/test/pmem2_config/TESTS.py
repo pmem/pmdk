@@ -80,3 +80,27 @@ class TEST8(PMEM2_CONFIG):
 class TEST9(PMEM2_CONFIG):
     """set invalid granularity in the config"""
     test_case = "config_set_granularity_invalid"
+
+class TEST10(PMEM2_CONFIG):
+    """setting offset which is too large"""
+    test_case = "set_offset_too_large"
+
+class TEST11(PMEM2_CONFIG):
+    """setting offset which is not a multiple of PAGE_SIZE"""
+    test_case = "set_offset_no_multiple"
+
+class TEST12(PMEM2_CONFIG):
+    """setting proper offset"""
+    test_case = "set_offset_success"
+
+class TEST13(PMEM2_CONFIG):
+    """setting length which is too large"""
+    test_case = "set_length_too_large"
+
+class TEST14(PMEM2_CONFIG):
+    """setting length which is not a multiple of PAGE_SIZE"""
+    test_case = "set_length_no_multiple"
+
+class TEST15(PMEM2_CONFIG):
+    """setting proper length"""
+    test_case = "set_length_success"

@@ -45,7 +45,8 @@ date: pmem2 API version 1.0
 # NAME #
 
 **pmem2_config_new**(), **pmem2_config_delete**(),
-**pmem2_config_set_fd**(), **pmem2_config_set_handle**()
+**pmem2_config_set_fd**(), **pmem2_config_set_handle**(),
+**pmem2_config_set_offset**(), **pmem2_config_set_length**()
 
 # SYNOPSIS #
 
@@ -56,11 +57,31 @@ int pmem2_config_new(struct pmem2_config **cfg);
 int pmem2_config_delete(struct pmem2_config **cfg);
 int pmem2_config_set_fd(struct pmem2_config *cfg, int fd);
 int pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle); (XXX: WINDOWS ONLY)
+int pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset);
+int pmem2_config_set_length(struct pmem2_config *cfg, size_t length);
 ```
 
 # DESCRIPTION #
 
+The **pmem2_config_set_offset**() function sets offset of the config. *\*cfg* should be
+initialized, *\offset* smaller or equal to **INT64_MAX** and a multiple of **PAGE_SIZE**.
+
+The **pmem2_config_set_length**() function sets length of the config. *\*cfg* should be
+initialized, *\length* smaller or equal to **INT64_MAX** and a multiple of **PAGE_SIZE**.
+
 # RETURN VALUE #
+
+The **pmem2_config_set_offset**() function returns 0 on success or one of the error
+values listed in the next session.
+
+The **pmem2_config_set_length**() function returns 0 on success or one of the error
+values listed in the next session.
+
+# ERRORS #
+
+**PMEM2_E_INVALID_ARG** invalid argument.
+**PMEM2_E_RANGE** argument out of range.
+**PMEM2_E_UNALIGNED** argument unaligned.
 
 # SEE ALSO #
 

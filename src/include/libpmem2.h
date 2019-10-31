@@ -71,6 +71,8 @@ extern "C" {
 #define PMEM2_E_INVALID_FILE_TYPE	(-100004)
 #define PMEM2_E_MAP_RANGE		(-100005)
 #define PMEM2_E_MAPPING_EXISTS		(-100006)
+#define PMEM2_E_RANGE		(-100007)
+#define PMEM2_E_UNALIGNED		(-100008)
 
 /* config setup */
 
