@@ -95,3 +95,7 @@ class TEST10(PMEM2_MAP):
 class TEST11(PMEM2_MAP):
     """double unmap a pmem2 mapping"""
     test_case = "test_unmap_unmapped"
+
+class TEST12(PMEM2_MAP):
+    """template test for test_get_granularity"""
+    test_case = "test_get_granularity"

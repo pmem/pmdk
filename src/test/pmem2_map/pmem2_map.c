@@ -524,6 +524,22 @@ test_unmap_unmapped(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_get_granularity - test sets granularity and checks if
+ * pmem2_map_get_store_granularity returns the same value as it was set
+ */
+static int
+test_get_granularity(const struct test_case *tc, int argc, char *argv[])
+{
+	struct pmem2_map map;
+
+	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
+	enum pmem2_granularity ret = pmem2_map_get_store_granularity(&map);
+	UT_PMEM2_EXPECT_RETURN((int)ret, (int)PMEM2_GRANULARITY_BYTE);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -539,6 +555,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_unmap_zero_length),
 	TEST_CASE(test_unmap_unaligned_addr),
 	TEST_CASE(test_unmap_unmapped),
+	TEST_CASE(test_get_granularity),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

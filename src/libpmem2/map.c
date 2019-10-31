@@ -68,3 +68,17 @@ pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
 
 	return PMEM2_E_OK;
 }
+
+/*
+ * pmem2_map_get_store_granularity -- returns granularity of the mapped
+ * file
+ */
+enum pmem2_granularity
+pmem2_map_get_store_granularity(struct pmem2_map *map)
+{
+	LOG(3, "map %p", map);
+
+	enum pmem2_granularity granularity = map->effective_granularity;
+
+	return granularity;
+}

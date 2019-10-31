@@ -85,12 +85,6 @@ pmem2_map_get_size(struct pmem2_map *map)
 	return 0;
 }
 
-enum pmem2_granularity
-pmem2_map_get_store_granularity(struct pmem2_map *map)
-{
-	return PMEM2_GRANULARITY_PAGE;
-}
-
 pmem2_persist_fn *
 pmem2_get_persist_fn(struct pmem2_map *map)
 {
