@@ -87,3 +87,26 @@ pmem2_config_delete(struct pmem2_config **cfg)
 	*cfg = NULL;
 	return 0;
 }
+
+/*
+ * pmem2_config_set_required_store_granularity -- set granularity
+ * requested by user in the pmem2_config structure
+ */
+int
+pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
+		enum pmem2_granularity g)
+{
+	switch (g) {
+		case PMEM2_GRANULARITY_BYTE:
+		case PMEM2_GRANULARITY_CACHE_LINE:
+		case PMEM2_GRANULARITY_PAGE:
+			break;
+		default:
+			ERR("unknown granularity value %d", g);
+			return PMEM2_E_INVALID_ARG;
+	}
+
+	cfg->requested_max_granularity = g;
+
+	return 0;
+}

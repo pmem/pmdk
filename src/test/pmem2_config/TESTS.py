@@ -73,3 +73,11 @@ class TEST6(PMEM2_CONFIG):
 class TEST7(PMEM2_CONFIG):
     """deleting null pmem2_config"""
     test_case = "delete_null_config"
+
+class TEST8(PMEM2_CONFIG):
+    """set valid granularity in the config"""
+    test_case = "config_set_granularity_valid"
+
+class TEST9(PMEM2_CONFIG):
+    """set invalid granularity in the config"""
+    test_case = "config_set_granularity_invalid"
