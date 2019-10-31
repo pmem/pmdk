@@ -32,6 +32,7 @@
 """Valgrind handling tools"""
 
 import sys
+import shlex
 import re
 import subprocess as sp
 from enum import Enum, unique
@@ -164,8 +165,9 @@ class Valgrind:
         """Get Valgrind command with specified arguments"""
         if self.tool == NONE:
             return ''
-        return '{} --tool={} --log-file={} {} '.format(
+        cmd =  '{} --tool={} --log-file={} {} '.format(
             self.valgrind_exe, self.tool_name, self.log_file, self.opts)
+        return shlex.split(cmd)
 
     def _get_valgrind_exe(self):
         """
