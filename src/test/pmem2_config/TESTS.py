@@ -80,3 +80,11 @@ class TEST8(PMEM2_CONFIG):
 class TEST9(PMEM2_CONFIG):
     """set invalid granularity in the config"""
     test_case = "config_set_granularity_invalid"
+    
+class TEST10(PMEM2_CONFIG):
+    """set invalid granularity in the config"""
+    test_case = "set_handle"
+    
+class TEST11(PMEM2_CONFIG):
+    """set invalid granularity in the config"""
+    test_case = "set_null_handle"

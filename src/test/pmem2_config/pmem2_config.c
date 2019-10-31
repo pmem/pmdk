@@ -233,6 +233,31 @@ test_config_set_granularity_invalid(const char *unused)
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ARG);
 }
 
+#ifdef WIN32
+static void
+test_config_set_handle(const char *file) {
+	struct pmem2_config cfg;
+	config_init(&cfg);
+	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
+		0, NULL, OPEN_ALWAYS, 0, NULL);
+
+	HANDLE x = h;
+	__debugbreak();
+	CloseHandle(h);
+	int ret = pmem2_config_set_handle(&cfg, x);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+}
+
+static void
+test_config_set_null_handle(const char *file) {
+	struct pmem2_config cfg;
+	config_init(&cfg);
+
+	int ret = pmem2_config_set_handle(&cfg, INVALID_HANDLE_VALUE);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+}
+#endif
+
 typedef void (*test_fun)(const char *file);
 
 static struct test_list {
@@ -249,6 +274,8 @@ static struct test_list {
 	{"delete_null_config", test_delete_null_config},
 	{"config_set_granularity_valid", test_config_set_granularity_valid},
 	{"config_set_granularity_invalid", test_config_set_granularity_invalid},
+	{"set_handle", test_config_set_handle},
+	{"set_null_handle", test_config_set_null_handle }
 };
 
 int
