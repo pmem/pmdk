@@ -560,6 +560,21 @@ test_map_get_size(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_get_granularity_simple - simply get the previously stored value
+ */
+static int
+test_get_granularity_simple(const struct test_case *tc, int argc, char *argv[])
+{
+	struct pmem2_map map;
+
+	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
+	enum pmem2_granularity ret = pmem2_map_get_store_granularity(&map);
+	UT_ASSERTeq(ret, PMEM2_GRANULARITY_BYTE);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -577,6 +592,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_unmap_unmapped),
 	TEST_CASE(test_map_get_address),
 	TEST_CASE(test_map_get_size),
+	TEST_CASE(test_get_granularity_simple),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
