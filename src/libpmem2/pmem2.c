@@ -73,12 +73,6 @@ pmem2_config_set_address(struct pmem2_config *cfg, unsigned type, void *addr)
 	return PMEM2_E_NOSUPP;
 }
 
-enum pmem2_granularity
-pmem2_map_get_store_granularity(struct pmem2_map *map)
-{
-	return PMEM2_GRANULARITY_PAGE;
-}
-
 pmem2_persist_fn
 pmem2_get_persist_fn(struct pmem2_map *map)
 {
