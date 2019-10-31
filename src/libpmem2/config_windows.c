@@ -83,6 +83,7 @@ pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
 
 	BY_HANDLE_FILE_INFORMATION not_used;
 	if (!GetFileInformationByHandle(handle, &not_used)) {
+		unsigned err = GetLastError();
 		ERR("!!GetFileInformationByHandle");
 		return pmem2_lasterror_to_err();
 	}
