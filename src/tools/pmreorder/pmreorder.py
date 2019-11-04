@@ -1,6 +1,6 @@
 #!/usr/bin/python
 #
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,6 +42,18 @@ import reorderengines
 
 
 def main():
+    # current version of the pmreorder without pmreorder installed
+    pmreorder_version = "unknown"
+    # list of all supported flags
+    argument_list = ["-l", "--logfile", "-c", "--checker", "-p",
+                     "--path", "-n", "--name", "-o", "--output", "-e",
+                     "--output-level", "-x", "--extended-macros",  "-v",
+                     "--version", "-r", "--default-engine", "-h",
+                     "--help"]
+    # let's check if user is using installed pmreorder
+    if sys.argv[1] not in argument_list:
+        pmreorder_version = sys.argv[1]
+
     # TODO unicode support
     # TODO parameterize reorder engine type
     parser = argparse.ArgumentParser(description="Store reordering tool")
@@ -67,6 +79,10 @@ def main():
     parser.add_argument("-x", "--extended-macros",
                         help="list of pairs MARKER=ENGINE or " +
                         "json config file")
+    parser.add_argument("-v", "--version",
+                        help="prints version of the pmreorder",
+                        action="version",
+                        version='%(prog)s (' + pmreorder_version + ')')
     engines_keys = list(reorderengines.engines.keys())
     parser.add_argument("-r", "--default-engine",
                         help="set default reorder engine " +
