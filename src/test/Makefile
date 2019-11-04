@@ -321,7 +321,7 @@ endif
 
 ifeq ($(EXPERIMENTAL),y)
 	LOCAL_TESTS += $(PMEM2_TESTS)
-	EXAMPLES_TESTS += ex_libpmem2
+	#EXAMPLES_TESTS += ex_libpmem2
 endif
 
 TESTS = \
