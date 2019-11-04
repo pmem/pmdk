@@ -105,7 +105,7 @@ int util_lasterror_to_errno(unsigned long err);
 
 #define UTIL_MAX_ERR_MSG 128
 void util_strerror(int errnum, char *buff, size_t bufflen);
-void util_strwinerror(char *buff, size_t bufflen);
+void util_strwinerror(unsigned long err, char *buff, size_t bufflen);
 
 void util_set_alloc_funcs(
 		void *(*malloc_func)(size_t size),
