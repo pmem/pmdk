@@ -39,6 +39,9 @@
 
 require_test_type long
 
+# the test takes too long under pmemcheck
+configure_valgrind pmemcheck force-disable
+
 setup
 
 # required free space is larger than file size, to be sure that the test
