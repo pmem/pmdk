@@ -49,6 +49,8 @@
 
 set -e
 
+source $(dirname $0)/set-vars.sh
+
 if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$TRAVIS_BRANCH" != "coverity_scan" \
 	&& "$COVERITY" -eq 1 ]]; then
 	echo "INFO: Skip Coverity scan job if build is triggered neither by " \
@@ -140,7 +142,7 @@ for file in $files; do
 			&& $PUSH_IMAGE == "1" ]]
 		then
 			echo "The image will be pushed to Docker Hub"
-			touch push_image_to_repo_flag
+			touch $CI_FILE_PUSH_IMAGE_TO_REPO
 		else
 			echo "Skip pushing the image to Docker Hub"
 		fi
@@ -148,7 +150,7 @@ for file in $files; do
 		if [[ $PUSH_IMAGE == "1" ]]
 		then
 			echo "Skip build package check if image has to be pushed"
-			touch skip_build_package_check
+			touch $CI_FILE_SKIP_BUILD_PKG_CHECK
 		fi
 		exit 0
 	fi

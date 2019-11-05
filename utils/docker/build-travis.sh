@@ -39,7 +39,8 @@
 
 set -e
 
-source `dirname $0`/valid-branches.sh
+source $(dirname $0)/set-vars.sh
+source $(dirname $0)/valid-branches.sh
 
 if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$TRAVIS_BRANCH" != "coverity_scan" \
 	&& "$COVERITY" -eq 1 ]]; then
@@ -84,7 +85,7 @@ if [[ ( "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" )\
 fi
 
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
-if [[ $SKIP_CHECK -eq 1 ]]; then BUILD_PACKAGE_CHECK=n; else BUILD_PACKAGE_CHECK=y; fi
+if [[ -f $CI_FILE_SKIP_BUILD_PKG_CHECK ]]; then BUILD_PACKAGE_CHECK=n; else BUILD_PACKAGE_CHECK=y; fi
 if [ -z "$NDCTL_ENABLE" ]; then ndctl_enable=; else ndctl_enable="--env NDCTL_ENABLE=$NDCTL_ENABLE"; fi
 
 # Only run doc update on $GITHUB_REPO master or stable branch
