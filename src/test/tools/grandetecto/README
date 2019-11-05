@@ -1,0 +1,22 @@
+Persistent Memory Development Kit
+
+This is src/test/tools/grandetecto/README.
+
+Long-time ago in the Wild West, cowboys solved their problems using revolvers.
+So far, pmemdetect efficiently defended PMDK users from persistent robbers,
+but new enemies: ADR and eADR beat him. Now, we have grandetecto. This 'grande'
+tool detects supported granularity by given 'path' argument. For example, if we
+want to check availability to requested staore granularity equal cache line we
+should use grandetecto as follow: grandetecto -p /mnt/pmem.
+
+It's used as a 'smoked test' before running RUNTESTS.
+
+Usage:
+	$ grandetecto <-b|-c|-p|-h> <path>
+
+Available options:
+ -b     -- check if given path has byte granularity
+ -c     -- check if given path has cache line granularity
+ -p     -- check if given path has page granularity
+ -h     -- print usage info
+
