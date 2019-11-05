@@ -1,0 +1,23 @@
+Persistent Memory Development Kit
+
+This is src/test/tools/gran_detecto/README.
+
+Long-time ago in the Wild West, cowboys solved their problems using revolvers.
+So far, pmemdetect efficiently defended PMDK users from persistency robbers,
+but newcomers: ADR and eADR beat him. Luckily, gran_detecto enters the game.
+This 'grande' tool detects supported granularity by given 'path' argument.
+For example, if we want to check if cache line granularity is available we
+should use gran_detecto as follow: gran_detecto -p /mnt/pmem.
+
+It's used as a 'smoke test' before running the tests.
+
+Usage:
+	$ gran_detecto -h
+	$ gran_detecto <-b|-c|-d|-p> <path>
+
+Available options:
+ -b, --byte          - check if <path> has byte granularity
+ -c, --cache-line    - check if <path> has cache line granularity
+ -d, --detect        - detect the smallest available granularity for <path>
+ -p, --page          - check if <path> has page granularity
+ -h, --help          - print this usage info
