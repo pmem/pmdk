@@ -20,7 +20,6 @@
     <ClCompile Include="..\common\mmap.c" />
     <ClCompile Include="..\common\mmap_windows.c" />
     <ClCompile Include="..\common\fs_windows.c" />
-    <ClCompile Include="..\common\os_auto_flush_windows.c" />
     <ClCompile Include="..\common\badblock_none.c" />
     <ClCompile Include="..\common\os_deep_windows.c" />
     <ClCompile Include="..\common\os_dimm_windows.c" />
@@ -33,6 +32,7 @@
     <ClCompile Include="..\common\util.c" />
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
+    <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="..\libpmem\libpmem_main.c" />
     <ClCompile Include="..\windows\win_mmap.c" />
     <ClCompile Include="..\..\src\libpmem\x86_64\cpu.c" />
@@ -137,13 +137,14 @@
     <ClInclude Include="..\common\fs.h" />
     <ClInclude Include="..\common\mmap.h" />
     <ClInclude Include="..\common\os.h" />
-    <ClInclude Include="..\common\os_auto_flush.h" />
     <ClInclude Include="..\common\os_deep.h" />
     <ClInclude Include="..\common\os_thread.h" />
     <ClInclude Include="..\common\pool_hdr.h" />
     <ClInclude Include="..\common\set.h" />
     <ClInclude Include="..\common\sys_util.h" />
     <ClInclude Include="..\common\uuid.h" />
+    <ClInclude Include="..\libpmem2\auto_flush.h" />
+    <ClInclude Include="..\libpmem2\auto_flush_windows.h" />
     <ClInclude Include="..\windows\include\win_mmap.h" />
     <ClInclude Include="..\..\src\libpmem\x86_64\cpu.h" />
     <ClInclude Include="x86_64\avx.h" />
@@ -218,8 +219,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\src\libpmem\x86_64\</IncludePath>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)libpmem2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)libpmem2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

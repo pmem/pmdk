@@ -179,7 +179,7 @@
 #include "file.h"
 #include "valgrind_internal.h"
 #include "os_deep.h"
-#include "os_auto_flush.h"
+#include "auto_flush.h"
 
 static struct pmem_funcs Funcs;
 
@@ -215,7 +215,7 @@ pmem_has_auto_flush()
 {
 	LOG(3, NULL);
 
-	return os_auto_flush();
+	return pmem2_auto_flush();
 }
 
 /*

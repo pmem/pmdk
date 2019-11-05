@@ -206,7 +206,6 @@ OBJS +=\
 	$(TOP)/src/nondebug/common/os_posix.o\
 	$(TOP)/src/nondebug/common/os_thread_posix.o\
 	$(TOP)/src/nondebug/common/os_deep_linux.o\
-	$(TOP)/src/nondebug/common/os_auto_flush_linux.o\
 	$(TOP)/src/nondebug/common/os_dimm_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/common/out.o\
 	$(TOP)/src/nondebug/common/pool_hdr.o\
@@ -221,9 +220,11 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/config_posix.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
-OBJS += $(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o
+OBJS += $(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o\
+	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o
 else
-OBJS += $(TOP)/src/nondebug/libpmem2/pmem2_utils_other.o
+OBJS += $(TOP)/src/nondebug/libpmem2/pmem2_utils_other.o\
+	$(TOP)/src/nondebug/libpmem2/auto_flush_none.o
 endif
 
 INCS += -I$(TOP)/src/common
@@ -248,7 +249,6 @@ OBJS +=\
 	$(TOP)/src/debug/common/os_posix.o\
 	$(TOP)/src/debug/common/os_thread_posix.o\
 	$(TOP)/src/debug/common/os_deep_linux.o\
-	$(TOP)/src/debug/common/os_auto_flush_linux.o\
 	$(TOP)/src/debug/common/os_dimm_$(OS_DIMM).o\
 	$(TOP)/src/debug/common/out.o\
 	$(TOP)/src/debug/common/pool_hdr.o\
@@ -263,9 +263,11 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/config_posix.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
-OBJS += $(TOP)/src/debug/libpmem2/pmem2_utils_linux.o
+OBJS += $(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\
+	$(TOP)/src/debug/libpmem2/auto_flush_linux.o
 else
-OBJS += $(TOP)/src/debug/libpmem2/pmem2_utils_other.o
+OBJS += $(TOP)/src/debug/libpmem2/pmem2_utils_other.o\
+	$(TOP)/src/debug/libpmem2/auto_flush_none.o
 endif
 
 INCS += -I$(TOP)/src/common

@@ -31,7 +31,7 @@
  */
 
 /*
- * os_auto_flush_windows.c -- Windows abstraction layer for auto flush detection
+ * auto_flush_windows.c -- Windows auto flush detection
  */
 
 #include <windows.h>
@@ -41,7 +41,7 @@
 #include "out.h"
 #include "os.h"
 #include "endian.h"
-#include "os_auto_flush_windows.h"
+#include "auto_flush_windows.h"
 
 /*
  * is_nfit_available -- (internal) check if platform supports NFIT table.
@@ -153,10 +153,10 @@ parse_nfit_buffer(const unsigned char *nfit_buffer, unsigned long buffer_size)
 }
 
 /*
- * os_auto_flush -- check if platform supports auto flush.
+ * pmem2_auto_flush -- check if platform supports auto flush.
  */
 int
-os_auto_flush(void)
+pmem2_auto_flush(void)
 {
 	LOG(3, NULL);
 
