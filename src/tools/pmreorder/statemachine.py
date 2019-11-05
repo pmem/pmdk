@@ -147,7 +147,7 @@ class CollectingState(State):
         :rtype: subclass of :class:`State`
         """
         if isinstance(in_op, memops.Fence) and \
-                self._inner_state is "flush":
+                self._inner_state == "flush":
             return ReplayingState(self._ops_list, self._context)
         else:
             return self
@@ -265,16 +265,16 @@ class CollectingState(State):
         :return: None
         """
         if isinstance(in_op, memops.Store) and \
-                self._inner_state is "init":
+                self._inner_state == "init":
             self._inner_state = "dirty"
         elif isinstance(in_op, memops.FlushBase) and \
-                self._inner_state is "dirty":
+                self._inner_state == "dirty":
             self._inner_state = "flush"
         elif isinstance(in_op, memops.Fence) and \
-                self._inner_state is "flush":
+                self._inner_state == "flush":
             self._inner_state = "fence"
         elif isinstance(in_op, memops.Flush) and \
-                self._inner_state is "init":
+                self._inner_state == "init":
             self._inner_state = "flush"
 
 
