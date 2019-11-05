@@ -85,7 +85,7 @@
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
       <ForcedIncludeFiles>mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
   </ItemDefinitionGroup>
@@ -94,7 +94,7 @@
     <Link />
     <ClCompile>
       <ForcedIncludeFiles>mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

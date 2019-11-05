@@ -31,7 +31,7 @@
  */
 
 /*
- * os_auto_flush_linux.c -- Linux abstraction layer for auto flush detection
+ * auto_flush_linux.c -- Linux auto flush detection
  */
 
 #define _GNU_SOURCE
@@ -44,7 +44,7 @@
 #include "out.h"
 #include "os.h"
 #include "fs.h"
-#include "os_auto_flush.h"
+#include "auto_flush.h"
 
 #define BUS_DEVICE_PATH "/sys/bus/nd/devices"
 #define PERSISTENCE_DOMAIN "persistence_domain"
@@ -159,7 +159,7 @@ end:
 }
 
 /*
- * os_auto_flush -- check if platform supports auto flush for all regions
+ * pmem2_auto_flush -- check if platform supports auto flush for all regions
  *
  * Traverse "/sys/bus/nd/devices" path to find all the nvdimm regions,
  * then for each region checks if "persistence_domain" file exists and
@@ -168,7 +168,7 @@ end:
  * context is not as expected, assume eADR is not available on this platform.
  */
 int
-os_auto_flush(void)
+pmem2_auto_flush(void)
 {
 	LOG(15, NULL);
 

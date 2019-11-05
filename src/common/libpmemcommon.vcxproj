@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="alloc.c" />
     <ClCompile Include="badblock_none.c" />
     <ClCompile Include="badblock.c" />
@@ -24,7 +25,6 @@
     <ClCompile Include="mmap.c" />
     <ClCompile Include="mmap_windows.c" />
     <ClCompile Include="fs_windows.c" />
-    <ClCompile Include="os_auto_flush_windows.c" />
     <ClCompile Include="os_deep_windows.c" />
     <ClCompile Include="os_dimm_windows.c" />
     <ClCompile Include="os_thread_windows.c" />
@@ -43,11 +43,12 @@
     <ClCompile Include="..\libpmem2\pmem2_utils_other.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\libpmem2\auto_flush.h" />
+    <ClInclude Include="..\libpmem2\auto_flush_windows.h" />
     <ClInclude Include="alloc.h" />
     <ClInclude Include="ctl.h" />
     <ClInclude Include="ctl_global.h" />
     <ClInclude Include="fault_injection.h" />
-    <ClInclude Include="os_auto_flush_windows.h" />
     <ClInclude Include="os_badblock.h" />
     <ClInclude Include="badblock.h" />
     <ClInclude Include="dlsym.h" />
@@ -55,7 +56,6 @@
     <ClInclude Include="mmap.h" />
     <ClInclude Include="fs.h" />
     <ClInclude Include="os.h" />
-    <ClInclude Include="os_auto_flush.h" />
     <ClInclude Include="os_deep.h" />
     <ClInclude Include="os_thread.h" />
     <ClInclude Include="out.h" />

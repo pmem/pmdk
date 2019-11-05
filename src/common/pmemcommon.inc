@@ -64,12 +64,11 @@ SOURCE =\
 	$(PMEM2)/config_posix.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
-SOURCE += $(COMMON)/os_auto_flush_linux.c
-SOURCE += $(PMEM2)/pmem2_utils_linux.c
-else ifeq ($(OS_KERNEL_NAME),FreeBSD)
-SOURCE += $(COMMON)/os_auto_flush_none.c
-SOURCE += $(PMEM2)/pmem2_utils_other.c
+SOURCE +=\
+	$(PMEM2)/pmem2_utils_linux.c\
+	$(PMEM2)/auto_flush_linux.c
 else
-SOURCE += $(COMMON)/os_auto_flush_none.c
-SOURCE += $(PMEM2)/pmem2_utils_other.c
+SOURCE +=\
+	$(PMEM2)/auto_flush_none.c\
+	$(PMEM2)/pmem2_utils_other.c
 endif

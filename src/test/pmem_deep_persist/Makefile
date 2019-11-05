@@ -1,5 +1,5 @@
 #
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -59,5 +59,6 @@ include ../Makefile.inc
 
 CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
 CFLAGS += -I$(TOP)/src/libpmem
+CFLAGS += -I$(TOP)/src/libpmem2
 CFLAGS += -I$(TOP)/src/libpmemobj/
 LDFLAGS += $(call extract_funcs, mocks_posix.c)
