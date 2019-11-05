@@ -170,10 +170,19 @@ $(RELEASE_TARGETS):
 
 jemalloc-check: jemalloc-test
 
+df:
+	@echo ====================================================================================
+	@if [ -e test/testconfig.sh ]; then \
+		bash -c '. test/testconfig.sh; \
+		if [ -n "$$PMEM_FS_DIR" ]; then df -h "$$PMEM_FS_DIR"; stat -f "$$PMEM_FS_DIR"; fi; \
+		if [ -n "$$NON_PMEM_FS_DIR" ]; then df -h "$$NON_PMEM_FS_DIR"; stat -f "$$NON_PMEM_FS_DIR";fi'; \
+	fi
+	@echo ====================================================================================
+
 test: all jemalloc-test
 	$(MAKE) -C test test
 
-check pcheck: test jemalloc-check
+check pcheck: test jemalloc-check df
 	$(MAKE) -C test $@
 
 check-remote: test
