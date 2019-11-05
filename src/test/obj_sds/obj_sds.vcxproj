@@ -74,7 +74,6 @@
     <ClCompile Include="..\..\common\fs_windows.c" />
     <ClCompile Include="..\..\common\mmap.c" />
     <ClCompile Include="..\..\common\mmap_windows.c" />
-    <ClCompile Include="..\..\common\os_auto_flush_windows.c" />
     <ClCompile Include="..\..\common\os_deep_windows.c" />
     <ClCompile Include="..\..\common\os_thread_windows.c" />
     <ClCompile Include="..\..\common\os_windows.c" />
@@ -86,6 +85,7 @@
     <ClCompile Include="..\..\common\util_windows.c" />
     <ClCompile Include="..\..\common\uuid.c" />
     <ClCompile Include="..\..\common\uuid_windows.c" />
+    <ClCompile Include="..\..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="..\..\libpmemobj\alloc_class.c" />
     <ClCompile Include="..\..\libpmemobj\bucket.c" />
     <ClCompile Include="..\..\libpmemobj\container_ravl.c" />

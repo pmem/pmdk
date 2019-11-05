@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -57,3 +57,4 @@ include ../Makefile.inc
 CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
 CFLAGS += -I$(TOP)/src/libpmem
 CFLAGS += -I$(TOP)/src/libpmem/$(ARCH)
+CFLAGS += -I$(TOP)/src/libpmem2

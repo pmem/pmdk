@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,7 +40,7 @@
 
 #include "set.h"
 #include "pmemcommon.h"
-#include "os_auto_flush_windows.h"
+#include "auto_flush_windows.h"
 #include "pmem_has_auto_flush_win.h"
 #include <errno.h>
 
