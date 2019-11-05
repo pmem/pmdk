@@ -55,11 +55,6 @@ SPEC=./rhel/ndctl.spec
 echo "==== create source tarball ====="
 git archive --format=tar --prefix="ndctl-${VERSION}/" HEAD | gzip > "$RPMDIR/SOURCES/ndctl-${VERSION}.tar.gz"
 
-echo "==== build ndctl ===="
-./autogen.sh
-./configure
-make
-
 echo "==== build ndctl packages ===="
 rpmbuild -ba $SPEC
 
@@ -73,7 +68,7 @@ else
 
 echo "==== build ndctl ===="
 ./autogen.sh
-./configure
+./configure --disable-docs
 make
 
 echo "==== install ndctl ===="
