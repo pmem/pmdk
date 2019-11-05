@@ -43,7 +43,6 @@ RUN dnf update -y
 
 RUN dnf install -y \
 	asciidoc \
-	asciidoctor \
 	autoconf \
 	automake \
 	bash-completion \
