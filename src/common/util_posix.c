@@ -54,7 +54,7 @@ util_strerror(int errnum, char *buff, size_t bufflen)
  * util_strwinerror -- should never be called on posix OS - abort()
  */
 void
-util_strwinerror(char *buff, size_t bufflen)
+util_strwinerror(unsigned long err, char *buff, size_t bufflen)
 {
 	abort();
 }

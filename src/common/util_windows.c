@@ -82,10 +82,9 @@ util_strerror(int errnum, char *buff, size_t bufflen)
  * util_strwinerror -- return string describing windows error codes
  */
 void
-util_strwinerror(char *buff, size_t bufflen)
+util_strwinerror(unsigned long err, char *buff, size_t bufflen)
 {
 	wchar_t *error_str;
-	unsigned long err = GetLastError();
 
 	if (FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER |
 			FORMAT_MESSAGE_FROM_SYSTEM |

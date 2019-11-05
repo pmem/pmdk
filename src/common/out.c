@@ -424,6 +424,10 @@ out_error(const char *file, int line, const char *func,
 		const char *suffix, const char *fmt, va_list ap)
 {
 	int oerrno = errno;
+	unsigned long olast_error = 0;
+#ifdef _WIN32
+	olast_error = GetLastError();
+#endif
 	unsigned cc = 0;
 	int ret;
 	const char *sep = "";
@@ -438,9 +442,10 @@ out_error(const char *file, int line, const char *func,
 			if (*fmt == '!') {
 				fmt++;
 				/* it will abort on non Windows OS */
-				util_strwinerror(errstr, UTIL_MAX_ERR_MSG);
+				util_strwinerror(olast_error, errstr,
+					UTIL_MAX_ERR_MSG);
 			} else {
-				util_strerror(errno, errstr, UTIL_MAX_ERR_MSG);
+				util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
 			}
 		}
 
@@ -486,6 +491,9 @@ out_error(const char *file, int line, const char *func,
 
 end:
 	errno = oerrno;
+#ifdef _WIN32
+	SetLastError(olast_error);
+#endif
 }
 
 /*
