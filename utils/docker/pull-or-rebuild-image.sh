@@ -140,7 +140,7 @@ for file in $files; do
 			&& $PUSH_IMAGE == "1" ]]
 		then
 			echo "The image will be pushed to Docker Hub"
-			touch push_image_to_repo_flag
+			touch /tmp/push_image_to_repo_flag
 		else
 			echo "Skip pushing the image to Docker Hub"
 		fi
@@ -148,7 +148,7 @@ for file in $files; do
 		if [[ $PUSH_IMAGE == "1" ]]
 		then
 			echo "Skip build package check if image has to be pushed"
-			touch skip_build_package_check
+			touch /tmp/skip_build_package_check
 		fi
 		exit 0
 	fi

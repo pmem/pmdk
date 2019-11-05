@@ -39,12 +39,9 @@ before_install:
   - export DOCKERHUB_REPO=pmem/pmdk
   - cd utils/docker
   - ./pull-or-rebuild-image.sh
-  - if [[ -f push_image_to_repo_flag ]]; then PUSH_THE_IMAGE=1; fi
-  - if [[ -f skip_build_package_check ]]; then export SKIP_CHECK=1; fi
-  - rm -f push_image_to_repo_flag skip_build_package_check
 
 script:
   - ./build-travis.sh
 
 after_success:
-  - if [[ $PUSH_THE_IMAGE -eq 1 ]]; then images/push-image.sh $OS-$OS_VER; fi
+  - if [[ -f /tmp/push_image_to_repo_flag ]]; then ./images/push-image.sh $OS-$OS_VER; fi
