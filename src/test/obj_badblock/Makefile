@@ -1,6 +1,5 @@
-#!/usr/bin/env bash
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,24 +31,11 @@
 #
 
 #
-# src/test/obj_root/TEST1 -- unit test for pmemobj_root
+# src/test/obj_badblock/Makefile -- build obj_badblock test
 #
+TARGET = obj_badblock
+OBJS = obj_badblock.o
 
-. ../unittest/unittest.sh
+LIBPMEMOBJ=y
 
-require_test_type long
-
-# the test takes too long under pmemcheck
-configure_valgrind pmemcheck force-disable
-
-setup
-
-# required free space is larger than file size, to be sure that the test
-# will run
-require_free_space 18G
-
-create_holey_file 17G $DIR/testfile
-
-expect_normal_exit ./obj_root$EXESUFFIX $DIR/testfile l
-
-pass
+include ../Makefile.inc

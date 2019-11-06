@@ -72,6 +72,7 @@ OBJ_TESTS = \
 	\
 	obj_action\
 	obj_alloc\
+	obj_badblock\
 	obj_bucket\
 	obj_check\
 	obj_constructor\

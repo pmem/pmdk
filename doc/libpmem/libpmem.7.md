@@ -258,7 +258,7 @@ place the mapping.
 # DEBUGGING AND ERROR HANDLING #
 
 If an error is detected during the call to a **libpmem** function, the
-application may retrieve an error message describing the reason for the failure
+application may retrieve an error message describing the reason of the failure
 from _UW(pmem_errormsg). This function returns a pointer to a static buffer
 containing the last error message logged for the current thread. If *errno*
 was set, the error message may include a description of the corresponding
@@ -266,9 +266,9 @@ error code as returned by **strerror**(3). The error message buffer is
 thread-local; errors encountered in one thread do not affect its value in
 other threads. The buffer is never cleared by any library function; its
 content is significant only when the return value of the immediately preceding
-call to a **libpmem** function indicated an error, or if *errno* was set.
-The application must not modify or free the error message string, but it may
-be modified by subsequent calls to other library functions.
+call to a **libpmem** function indicated an error.
+The application must not modify or free the error message string.
+Subsequent calls to other library functions may modify the previous message.
 
 Two versions of **libpmem** are typically available on a development
 system. The normal version, accessed when a program is linked using the
