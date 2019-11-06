@@ -862,7 +862,15 @@ ut_start_common(const char *file, int line, const char *func,
 	prefix(file, line, func, 0);
 	vout(OF_NAME, "START", fmt, ap);
 
-#ifdef __FreeBSD__
+#ifdef _WIN32
+	/*
+	 * XXX To generate error string Windows will silently load
+	 * KernelBase.dll.mui. To prevent counting it as an opened file, it is
+	 * loaded here by force.
+	 */
+	char buff[1000];
+	util_strwinerror(1, buff, 1000);
+#elif __FreeBSD__
 	/* XXX Record the fd that will be leaked by uuid_generate */
 	uuid_t u;
 	uuid_generate(u);
