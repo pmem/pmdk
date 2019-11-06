@@ -39,15 +39,19 @@ LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
 	$(COMMON)/alloc.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
+	$(COMMON)/file.c\
+	$(COMMON)/file_posix.c\
 	$(COMMON)/out.c\
+	$(COMMON)/mmap.c\
+	$(COMMON)/mmap_posix.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\
 	libpmem2.c\
 	config.c\
 	config_posix.c\
 	pmem2.c\
+	map.c\
+	map_posix.c\
 	pmem2_utils.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)

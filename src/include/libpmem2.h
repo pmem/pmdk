@@ -69,6 +69,8 @@ extern "C" {
 #define PMEM2_E_INVALID_ARG		(-100002)
 #define PMEM2_E_INVALID_FILE_HANDLE	(-100003)
 #define PMEM2_E_INVALID_FILE_TYPE	(-100004)
+#define PMEM2_E_MAP_RANGE		(-100005)
+#define PMEM2_E_MAPPING_EXISTS		(-100006)
 
 /* config setup */
 

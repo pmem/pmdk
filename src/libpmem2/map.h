@@ -50,6 +50,9 @@ struct pmem2_map {
 	enum pmem2_granularity effective_granularity;
 };
 
+int pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
+		size_t *length);
+
 #ifdef __cplusplus
 }
 #endif

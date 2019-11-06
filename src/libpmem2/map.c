@@ -31,30 +31,40 @@
  */
 
 /*
- * config.h -- internal definitions for pmem2_config
+ * map.c -- pmem2_map (common)
  */
-#ifndef PMEM2_CONFIG_H
-#define PMEM2_CONFIG_H
 
-#include "libpmem2.h"
+#include "out.h"
 
-#define INVALID_FD (-1)
+#include "config.h"
+#include "map.h"
 
-struct pmem2_config {
-	/* a source file descriptor / handle for the designed mapping */
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	int fd;
-#endif
-	/* offset from the beginning of the file */
-	size_t offset;
-	size_t length; /* length of the mapping */
-	size_t alignment; /* required alignment of the mapping */
-	/* persistence granularity requested by user */
-	enum pmem2_granularity requested_max_granularity;
-};
+#include <libpmem2.h>
 
-void config_init(struct pmem2_config *cfg);
+/*
+ * pmem2_get_length -- verify a range against the file length
+ * If length is not set in pmem2_config its value is set to cover everything
+ * up to the end of the file.
+ */
+int
+pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
+		size_t *length)
+{
+	ASSERTne(length, NULL);
 
-#endif /* PMEM2_CONFIG_H */
+	/* overflow check */
+	const size_t end = cfg->offset + cfg->length;
+	if (end < cfg->offset)
+		return PMEM2_E_MAP_RANGE;
+
+	/* validate mapping fit into the file */
+	if (end > file_len)
+		return PMEM2_E_MAP_RANGE;
+
+	/* without user-provided length map to the end of the file */
+	*length = cfg->length;
+	if (!(*length))
+		*length = file_len - cfg->offset;
+
+	return PMEM2_E_OK;
+}

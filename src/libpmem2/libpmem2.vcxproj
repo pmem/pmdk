@@ -24,9 +24,12 @@
     <ClCompile Include="config.c" />
     <ClCompile Include="config_windows.c" />
     <ClCompile Include="pmem2_utils.c" />
+	<ClCompile Include="map.c" />
+    <ClCompile Include="map_windows.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\libpmem2.h" />
+    <ClInclude Include="..\libpmem2\map.h" />
     <ClInclude Include="..\libpmem2\pmem2.h" />
     <ClInclude Include="..\common\os_thread.h" />
     <ClInclude Include="pmem2_utils.h" />
