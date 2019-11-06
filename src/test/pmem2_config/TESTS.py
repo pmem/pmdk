@@ -57,7 +57,6 @@ class TEST3(PMEM2_CONFIG):
     """resetting file descriptor in pmem2_config"""
     test_case = "set_negative_fd"
 
-@t.windows_exclude
 class TEST4(PMEM2_CONFIG):
     """setting invalid (closed) file descriptor in pmem2_config"""
     test_case = "set_invalid_fd"

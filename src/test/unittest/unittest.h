@@ -542,12 +542,11 @@ unsigned ut_strtou(const char *file, int line, const char *func,
 #define ut_jmp_buf_t jmp_buf
 #define ut_siglongjmp(b) longjmp(b, 1)
 #define ut_sigsetjmp(b) setjmp(b)
-static DWORD ErrMode;
-static BOOL Suppressed = FALSE;
-static UINT AbortBehave;
 #endif
 void ut_suppress_errmsg(void);
 void ut_unsuppress_errmsg(void);
+void ut_suppress_crt_assert(void);
+void ut_unsuppress_crt_assert(void);
 /*
  * signals...
  */

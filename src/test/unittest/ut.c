@@ -77,8 +77,16 @@ ut_strerror(int errnum, char *buff, size_t bufflen)
 }
 void ut_suppress_errmsg(void) {}
 void ut_unsuppress_errmsg(void) {}
+void ut_suppress_crt_assert(void) {}
+void ut_unsuppress_crt_assert(void) {}
 #else
+#include <crtdbg.h>
+
 #pragma comment(lib, "rpcrt4.lib")
+
+static DWORD ErrMode;
+static BOOL Err_suppressed = FALSE;
+static UINT AbortBehave;
 
 void
 ut_suppress_errmsg(void)
@@ -88,17 +96,54 @@ ut_suppress_errmsg(void)
 		SEM_FAILCRITICALERRORS);
 	AbortBehave = _set_abort_behavior(0, _WRITE_ABORT_MSG |
 		_CALL_REPORTFAULT);
-	Suppressed = TRUE;
+	Err_suppressed = TRUE;
 }
 
 void
 ut_unsuppress_errmsg(void)
 {
-	if (Suppressed) {
+	if (Err_suppressed) {
 		SetErrorMode(ErrMode);
 		_set_abort_behavior(AbortBehave, _WRITE_ABORT_MSG |
 			_CALL_REPORTFAULT);
-		Suppressed = FALSE;
+		Err_suppressed = FALSE;
+	}
+}
+
+static _invalid_parameter_handler OldHandler;
+static BOOL Crt_suppressed = FALSE;
+static int Old_crt_assert_mode;
+
+/*
+ * empty_parameter_handler -- empty, non aborting invalid parameter handler
+ */
+static void
+empty_parameter_handler(const wchar_t *expression, const wchar_t *function,
+	const wchar_t *file, unsigned line, uintptr_t pReserved)
+{
+}
+
+/*
+ * ut_suppress_crt_assert -- suppress crt raport message box
+ */
+void
+ut_suppress_crt_assert(void)
+{
+	OldHandler = _set_invalid_parameter_handler(empty_parameter_handler);
+	Old_crt_assert_mode = _CrtSetReportMode(_CRT_ASSERT, 0);
+	Crt_suppressed = TRUE;
+}
+
+/*
+ * ut_suppress_crt_assert -- unsuppress crt raport message box
+ */
+void
+ut_unsuppress_crt_assert(void)
+{
+	if (Crt_suppressed) {
+		_set_invalid_parameter_handler(OldHandler);
+		_CrtSetReportMode(_CRT_ASSERT, Old_crt_assert_mode);
+		Crt_suppressed = FALSE;
 	}
 }
 

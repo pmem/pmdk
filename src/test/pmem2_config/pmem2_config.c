@@ -130,8 +130,9 @@ test_set_invalid_fd(const char *file)
 	/* open and close the file to get invalid fd */
 	int fd = OPEN(file, O_WRONLY);
 	CLOSE(fd);
-
+	ut_suppress_crt_assert();
 	int ret = pmem2_config_set_fd(&cfg, fd);
+	ut_unsuppress_crt_assert();
 	UT_PMEM2_EXPECT_RETURN(ret, -EBADF);
 	verify_fd(&cfg, INVALID_FD);
 }
