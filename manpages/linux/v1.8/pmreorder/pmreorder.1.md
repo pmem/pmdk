@@ -277,7 +277,9 @@ through the **pmreorder** tool using the `-x` parameter.
 There are two ways to set macro options:
 
 + Using command line interface in format:
-```PMREORDER_MARKER_NAME1=ReorderName1,PMREORDER_MARKER_NAME2=ReorderName2```
+```
+PMREORDER_MARKER_NAME1=ReorderName1,PMREORDER_MARKER_NAME2=ReorderName2
+```
 
 + Using configuration file in .json format:
 ```
