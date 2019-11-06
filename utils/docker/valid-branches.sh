@@ -30,10 +30,12 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-VALID_BRANCHES=("master" "stable-1.5" "stable-1.6" "stable-1.7")
+VALID_BRANCHES=("master" "stable-1.5" "stable-1.6" "stable-1.7" "devel-1.8")
 
 declare -A TARGET_BRANCHES=(		\
 		["master"]="master"	\
 		["stable-1.5"]="v1.5"	\
 		["stable-1.6"]="v1.6"	\
-		["stable-1.7"]="v1.7")
+		["stable-1.7"]="v1.7"	\
+		["devel-1.8"]="v1.8"	\
+	)
