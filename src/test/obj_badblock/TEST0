@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,26 +30,39 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 #
-# src/test/obj_root/TEST1 -- unit test for pmemobj_root
+# obj_badblock/TEST0 -- test for inserting bad blocks into an obj pool
 #
-
 . ../unittest/unittest.sh
-
-require_test_type long
-
-# the test takes too long under pmemcheck
-configure_valgrind pmemcheck force-disable
+require_test_type medium
+require_badblock_tests_enabled block_device
 
 setup
 
-# required free space is larger than file size, to be sure that the test
-# will run
-require_free_space 18G
+. ../common_badblock.sh
+MOUNT_DIR="$DIR/mnt-pmem"
+badblock_test_init block_device $MOUNT_DIR
 
-create_holey_file 17G $DIR/testfile
+POOLSET=$MOUNT_DIR/testset1
+RESVSIZE=$((4 * 1024 * 1024 * 1024)) # 4GiB
 
-expect_normal_exit ./obj_root$EXESUFFIX $DIR/testfile l
+create_poolset $POOLSET\
+	$RESVSIZE:$MOUNT_DIR/testdir11:d\
+	O SINGLEHDR
+
+# create pool and allocate some amount of data
+expect_normal_exit ./obj_badblock$EXESUFFIX $POOLSET c
+
+# inject bad block into one of files created in pool directory during
+# allocation
+FIRST_SECTOR=$(expect_normal_exit $EXTENTS $MOUNT_DIR/testdir11/000010.pmem -l 0)
+ndctl_inject_error $NAMESPACE $FIRST_SECTOR 8
+
+expect_bad_blocks $NAMESPACE
+
+expect_abnormal_exit ./obj_badblock$EXESUFFIX $POOLSET o
+
+ndctl_uninject_error $FULLDEV $NAMESPACE $FIRST_SECTOR 8
+badblock_test_fini $MOUNT_DIR
 
 pass
