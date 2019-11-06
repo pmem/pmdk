@@ -35,7 +35,7 @@
 #
 
 # Pull base image
-FROM fedora:28
+FROM fedora:31
 MAINTAINER marcin.slusarz@intel.com
 
 # Install basic tools
@@ -72,12 +72,12 @@ RUN dnf install -y \
 	ncurses-devel \
 	openssh-server \
 	pandoc \
-	passwd \
 	pkgconfig \
 	rpm-build \
 	rpm-build-libs \
 	rpmdevtools \
 	rsync \
+	shadow-utils \
 	sudo \
 	tar \
 	wget \
@@ -102,13 +102,13 @@ RUN ./install-libfabric.sh fedora
 ENV USER pmdkuser
 ENV USERPASS pmdkpass
 RUN useradd -m $USER
-RUN echo $USERPASS | passwd $USER --stdin
+RUN echo "$USER:$USERPASS" | chpasswd
 RUN gpasswd wheel -a $USER
 USER $USER
 
 # Set required environment variables
 ENV OS fedora
-ENV OS_VER 28
+ENV OS_VER 31
 ENV START_SSH_COMMAND /usr/sbin/sshd
 ENV PACKAGE_MANAGER rpm
 ENV NOTTY 1
