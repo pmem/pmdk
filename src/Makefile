@@ -167,10 +167,19 @@ endif
 $(RELEASE_TARGETS):
 	$(MAKE) -C $@
 
+df:
+	@echo ====================================================================================
+	@if [ -e test/testconfig.sh ]; then \
+		bash -c '. test/testconfig.sh; \
+		if [ -n "$$PMEM_FS_DIR" ]; then df -h "$$PMEM_FS_DIR"; stat -f "$$PMEM_FS_DIR"; fi; \
+		if [ -n "$$NON_PMEM_FS_DIR" ]; then df -h "$$NON_PMEM_FS_DIR"; stat -f "$$NON_PMEM_FS_DIR";fi'; \
+	fi
+	@echo ====================================================================================
+
 test: all
 	$(MAKE) -C test test
 
-check pcheck pycheck: test
+check pcheck pycheck: test df
 	$(MAKE) -C test $@
 
 require-rpmem:
