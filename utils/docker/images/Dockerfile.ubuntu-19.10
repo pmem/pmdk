@@ -35,7 +35,7 @@
 #
 
 # Pull base image
-FROM ubuntu:18.04
+FROM ubuntu:19.10
 MAINTAINER marcin.slusarz@intel.com
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -104,7 +104,7 @@ ENV PACKAGING_DEPS "debhelper \
 ENV CODECOV_DEPS curl
 
 # Coverity
-ENV COVERITY_DEPS ruby gcc-6 g++-6 wget
+ENV COVERITY_DEPS ruby gcc g++ wget
 
 # misc
 ENV MISC_DEPS "clang \
@@ -165,7 +165,7 @@ USER $USER
 
 # Set required environment variables
 ENV OS ubuntu
-ENV OS_VER 18.04
+ENV OS_VER 19.10
 ENV START_SSH_COMMAND service ssh start
 ENV PACKAGE_MANAGER dpkg
 ENV NOTTY 1
