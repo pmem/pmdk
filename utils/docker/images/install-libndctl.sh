@@ -57,7 +57,7 @@ git archive --format=tar --prefix="ndctl-${VERSION}/" HEAD | gzip > "$RPMDIR/SOU
 
 echo "==== build ndctl ===="
 ./autogen.sh
-./configure
+./configure --disable-docs
 make
 
 echo "==== build ndctl packages ===="
@@ -73,7 +73,7 @@ else
 
 echo "==== build ndctl ===="
 ./autogen.sh
-./configure
+./configure --disable-docs
 make
 
 echo "==== install ndctl ===="
