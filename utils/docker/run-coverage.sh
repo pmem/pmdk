@@ -48,16 +48,18 @@ export UT_VALGRIND_SKIP_PRINT_MISMATCHED=1
 
 # Build all and run tests
 cd $WORKDIR
-make -j2 COVERAGE=1
-make -j2 test COVERAGE=1
+make -j$(nproc) COVERAGE=1
+make -j$(nproc) test COVERAGE=1
 
 # XXX: unfortunately valgrind raports issues in coverage instrumentation
 # which we have to ignore (-k flag), also there is dependency between
 # local and remote tests (which cannot be easily removed) we have to
 # run local and remote tests separately
 cd src/test
+# do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
 make -kj2 pcheck-local-quiet TEST_BUILD=debug || true
 make check-remote-quiet TEST_BUILD=debug || true
+# do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
 make -j2 pycheck TEST_BUILD=debug || true
 cd ../..
 bash <(curl -s https://codecov.io/bash)
