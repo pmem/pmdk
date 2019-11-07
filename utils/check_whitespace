@@ -124,17 +124,19 @@ sub check_whitespace {
 sub check_whitespace_with_exc {
 	my ($full) = @_;
 
+	# skip if file is empty, if binary, or if on blacklist (regexps for path or filename)
 	$_ = $full;
 	return 0 if -z;
 	return 0 if -B;
 	return 0 if /^[.\/]*src\/common\/queue\.h/;
 	return 0 if /^[.\/]*src\/common\/valgrind\/.*\.h/;
+	return 0 if /^[.\/]*src\/test\/rpmemd_config\/in1\.conf/;
+	return 0 if /^[.\/]*src\/test\/util_poolset_parse\/pool32[w]*\.set/;
 
 	$_ = basename($full);
+	return 0 if /^(GIT_VERSION|.*\.(vcxproj|filters|props|manifest|rc|match))$/;
 
-	return 0 unless /^(README.*|LICENSE.*|Makefile.*|CMakeLists.txt|.gitignore|TEST.*|RUNTESTS|check_whitespace|.*\.([chp13s]|sh|map|cpp|hpp|inc|PS1|ps1|py|md|cmake))$/;
-	return 0 if -z;
-
+	# otherwise check the file
 	check_whitespace($full, $_);
 	return 1;
 }
