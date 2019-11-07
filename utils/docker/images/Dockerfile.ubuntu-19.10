@@ -43,21 +43,6 @@ ENV DEBIAN_FRONTEND noninteractive
 # Update the Apt cache and install basic tools
 RUN apt-get update && apt-get dist-upgrade -y
 
-# ndctl (optional if libndctl-dev and libdaxctl-dev >= 60.1, 64.1 preferred)
-ENV NDCTL_DEPS "\
-	automake \
-	bash-completion \
-	build-essential \
-	git \
-	libjson-c-dev \
-	libkeyutils-dev \
-	libkmod-dev \
-	libtool \
-	libudev-dev \
-	pkg-config \
-	systemd \
-	uuid-dev"
-
 # libfabric (optional if libfabric-dev >= 1.4.2 is installed)
 ENV FABRIC_DEPS "autoconf \
 	automake \
@@ -74,6 +59,8 @@ ENV VALGRIND_DEPS "autoconf \
 # pmdk base
 ENV BASE_DEPS "build-essential \
 	git \
+	libdaxctl-dev \
+	libndctl-dev \
 	pkg-config"
 
 # benchmarks (optional)
@@ -114,7 +101,6 @@ ENV MISC_DEPS "clang \
 	whois"
 
 RUN apt-get install -y --no-install-recommends \
-	$NDCTL_DEPS \
 	$FABRIC_DEPS \
 	$VALGRIND_DEPS \
 	$BASE_DEPS \
@@ -135,10 +121,6 @@ RUN ./install-valgrind.sh
 COPY install-libfabric.sh install-libfabric.sh
 RUN ./install-libfabric.sh
 
-# Install libndctl
-COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh tags/v64.1
-
 # Add user
 ENV USER pmdkuser
 ENV USERPASS pmdkpass
@@ -146,11 +128,6 @@ RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
 
 # remove stuff no longer needed
 RUN apt remove -y \
-	libjson-c-dev \
-	libkeyutils-dev \
-	libkmod-dev \
-	libudev-dev \
-	uuid-dev \
 	unzip \
 	whois
 
