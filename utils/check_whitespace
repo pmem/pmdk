@@ -88,7 +88,7 @@ sub decode_file_as_string {
 		}
 	}
 
-	die "$Me: ERROR: Unknown file encoding";
+	die "$full: Unknown file encoding.";
 }
 
 #
@@ -117,8 +117,8 @@ sub check_whitespace {
 		}
 	}
 
-	err("$full:$line: .nf without .fi") if $nf;
-	err("$full:$line: noeol") unless $eol;
+	err("$full:$line: ERROR: .nf without .fi") if $nf;
+	err("$full:$line: ERROR: noeol") unless $eol;
 }
 
 sub check_whitespace_with_exc {
