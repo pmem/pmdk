@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_MAPPING, 3)
+title: _MP(PMEM2_MAP_GET_ADDRESS, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_mapping.3 -- man page for libpmem2 mapping operations
+[comment]: <> (pmem2_map_get_address.3 -- man page for libpmem2 mapping operations
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,20 +44,26 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_map**() - create mapping on the file
+**pmem2_map_get_address**() - reads mapping address
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr);
+void *pmem2_map_get_address(struct pmem2_map **map_ptr);
 ```
 
 # DESCRIPTION #
 
+The **pmem2_map_get_address**() function reads address of created mapping.
+Parameter *map_ptr* points to the structure describing mapping created using
+the **pmem2_map**(3) function.
+
 # RETURN VALUE #
+
+The **pmem2_map_get_address**() function returns a pointer to the mapped area.
 
 # SEE ALSO #
 
-**libpmem2**(7) and **<http://pmem.io>**
+**pmem2_map**(3), **libpmem2**(7) and **<http://pmem.io>**
