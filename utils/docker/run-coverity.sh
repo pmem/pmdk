@@ -60,7 +60,7 @@ export COVERITY_SCAN_PROJECT_NAME="$TRAVIS_REPO_SLUG"
 [[ "$TRAVIS_EVENT_TYPE" == "cron" ]] \
 	&& export COVERITY_SCAN_BRANCH_PATTERN="master" \
 	|| export COVERITY_SCAN_BRANCH_PATTERN="coverity_scan"
-export COVERITY_SCAN_BUILD_COMMAND="make all"
+export COVERITY_SCAN_BUILD_COMMAND="make -j$(nproc) all"
 
 cd $WORKDIR
 

@@ -60,7 +60,7 @@ git config --local user.email "pmem-bot@intel.com"
 git remote update
 git checkout -B ${TARGET_BRANCH} upstream/${TARGET_BRANCH}
 
-make doc
+make -j$(nproc) doc
 
 # Build & PR groff
 git add -A ./doc
@@ -75,7 +75,7 @@ git clean -dfx
 
 # Copy man & PR web md
 cd  ./doc
-make web
+make -j$(nproc) web
 cd ..
 
 mv ./doc/web_linux ../
