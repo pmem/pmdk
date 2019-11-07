@@ -68,3 +68,25 @@ pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
 
 	return PMEM2_E_OK;
 }
+
+/*
+ * pmem2_map_get_address -- get mapping address
+ */
+void *
+pmem2_map_get_address(struct pmem2_map *map)
+{
+	LOG(3, "map %p", map);
+
+	return map->addr;
+}
+
+/*
+ * pmem2_map_get_size -- get mapping size
+ */
+size_t
+pmem2_map_get_size(struct pmem2_map *map)
+{
+	LOG(3, "map %p", map);
+
+	return map->length;
+}

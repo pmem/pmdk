@@ -524,6 +524,42 @@ test_unmap_unmapped(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_map_get_address -- check pmem2_map_get_address func
+ */
+static int
+test_map_get_address(const struct test_case *tc, int argc, char *argv[])
+{
+	void *ret_addr;
+	void *ref_addr = (void *)0x12345;
+
+	struct pmem2_map map;
+	map.addr = ref_addr;
+
+	ret_addr = pmem2_map_get_address(&map);
+	UT_ASSERTeq(ret_addr, ref_addr);
+
+	return 1;
+}
+
+/*
+ * test_map_get_size -- check pmem2_map_get_size func
+ */
+static int
+test_map_get_size(const struct test_case *tc, int argc, char *argv[])
+{
+	size_t ret_size;
+	size_t ref_size = 16384;
+
+	struct pmem2_map map;
+	map.length = ref_size;
+
+	ret_size = pmem2_map_get_size(&map);
+	UT_ASSERTeq(ret_size, ref_size);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -539,6 +575,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_unmap_zero_length),
 	TEST_CASE(test_unmap_unaligned_addr),
 	TEST_CASE(test_unmap_unmapped),
+	TEST_CASE(test_map_get_address),
+	TEST_CASE(test_map_get_size),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
