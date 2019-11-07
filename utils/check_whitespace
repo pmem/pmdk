@@ -125,7 +125,8 @@ sub check_whitespace_with_exc {
 	my ($full) = @_;
 
 	$_ = $full;
-
+	return 0 if -z;
+	return 0 if -B;
 	return 0 if /^[.\/]*src\/common\/queue\.h/;
 	return 0 if /^[.\/]*src\/common\/valgrind\/.*\.h/;
 
