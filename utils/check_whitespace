@@ -178,8 +178,8 @@ foreach my $arg (@ARGV) {
 		next;
 	}
 	if ($arg eq '-g') {
-		@files = `git ls-tree -r --name-only HEAD`;
-		chomp(@files);
+		$_ = `git ls-tree -r -z --name-only HEAD`;
+		@files = split(/\0/);
 		next;
 	}
 	if ($arg eq '-h') {
