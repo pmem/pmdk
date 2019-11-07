@@ -11,7 +11,7 @@ The **Persistent Memory Development Kit (PMDK)** is a collection of libraries an
 
 To install PMDK libraries, either install pre-built packages, which we build for every stable release, or clone the tree and build it yourself. **Pre-built** packages can be found in popular Linux distribution package repositories, or you can check out our recent stable releases on our [github release page](https://github.com/pmem/pmdk/releases). Specific installation instructions are outlined below.
 
-Bugs and feature requests for this repo are tracked in our [GitHub Issues Database](https://github.com/pmem/issues/issues).
+Bugs and feature requests for this repo are tracked in our [GitHub Issues Database](https://github.com/pmem/pmdk/issues).
 
 ## Contents
 1. [Libraries and Utilities](#libraries-and-utilities)
@@ -132,7 +132,7 @@ to disable this support by passing NDCTL_ENABLE=n to "make", but we strongly
 discourage users from doing that. Disabling NDCTL strips PMDK from ability to
 detect hardware failures, which may lead to silent data corruption.
 For information how to disable RAS at runtime for kernels prior to 5.0.4 please
-see https://github.com/pmem/issues/issues/1039.
+see https://github.com/pmem/pmdk/issues/4207.
 
 ### Windows
 

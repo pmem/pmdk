@@ -9,7 +9,7 @@ of code and contributing it out of the blue.
 There are several good ways to suggest new features, offer to add a feature,
 or just begin a dialog about the Persistent Memory Development Kit:
 
-* Open an issue in our [GitHub Issues Database](https://github.com/pmem/issues/issues)
+* Open an issue in our [GitHub Issues Database](https://github.com/pmem/pmdk/issues)
 * Suggest a feature, ask a question, start a discussion, etc. in our [pmem Google group](http://groups.google.com/group/pmem)
 * Chat with members of the PMDK team real-time on the **#pmem** IRC channel on [OFTC](http://www.oftc.net)
 
@@ -102,14 +102,14 @@ for clang-format.  The plugin installer can be downloaded from
 [LLVM Builds](http://llvm.org/builds) page.
 
 If you are actively working on an PMDK feature, please let other
-developers know by [creating an issue](https://github.com/pmem/issues/issues).
+developers know by [creating an issue](https://github.com/pmem/pmdk/issues).
 Use the template `Feature` and assign it to yourself (due to the way
 GitHub permissions work, you may have to ask a team member to assign it to you).
 
 ### Bug Reports
 
 Bugs for the PMDK project are tracked in our
-[GitHub Issues Database](https://github.com/pmem/issues/issues).
+[GitHub Issues Database](https://github.com/pmem/pmdk/issues).
 
 When reporting a new bug, please use `New issue` button, pick proper template and fill
 in all fields. Provide as much information as possible, including the product version:
