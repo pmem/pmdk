@@ -21,6 +21,7 @@
     <ClCompile Include="..\common\util.c" />
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\libpmem2\libpmem2_main.c" />
+    <ClCompile Include="auto_flush_windows.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="config_windows.c" />
     <ClCompile Include="pmem2_utils.c" />
@@ -32,6 +33,8 @@
     <ClInclude Include="..\libpmem2\map.h" />
     <ClInclude Include="..\libpmem2\pmem2.h" />
     <ClInclude Include="..\common\os_thread.h" />
+    <ClInclude Include="auto_flush.h" />
+    <ClInclude Include="auto_flush_windows.h" />
     <ClInclude Include="pmem2_utils.h" />
   </ItemGroup>
   <ItemGroup>

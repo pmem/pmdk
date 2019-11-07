@@ -18,7 +18,6 @@
     <ClInclude Include="..\common\fs.h" />
     <ClInclude Include="..\common\mmap.h" />
     <ClInclude Include="..\common\os.h" />
-    <ClInclude Include="..\common\os_auto_flush.h" />
     <ClInclude Include="..\common\os_deep.h" />
     <ClInclude Include="..\common\out.h" />
     <ClInclude Include="..\common\pmemcommon.h" />
@@ -29,6 +28,8 @@
     <ClInclude Include="..\common\uuid.h" />
     <ClInclude Include="..\common\valgrind_internal.h" />
     <ClInclude Include="..\include\libpmempool.h" />
+    <ClInclude Include="..\libpmem2\auto_flush.h" />
+    <ClInclude Include="..\libpmem2\auto_flush_windows.h" />
     <ClInclude Include="..\libpmemblk\btt.h" />
     <ClInclude Include="check.h" />
     <ClInclude Include="check_util.h" />
@@ -46,7 +47,6 @@
     <ClCompile Include="..\common\mmap.c" />
     <ClCompile Include="..\common\mmap_windows.c" />
     <ClCompile Include="..\common\fs_windows.c" />
-    <ClCompile Include="..\common\os_auto_flush_windows.c" />
     <ClCompile Include="..\common\badblock_none.c" />
     <ClCompile Include="..\common\os_deep_windows.c" />
     <ClCompile Include="..\common\os_dimm_windows.c" />
@@ -60,6 +60,7 @@
     <ClCompile Include="..\common\util_windows.c" />
     <ClCompile Include="..\common\uuid.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
+    <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="..\libpmemblk\btt.c" />
     <ClCompile Include="check.c" />
     <ClCompile Include="check_bad_blocks.c" />

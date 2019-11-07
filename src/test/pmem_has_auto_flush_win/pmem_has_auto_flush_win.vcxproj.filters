@@ -31,7 +31,10 @@
     <ClInclude Include="pmem_has_auto_flush_win.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\os_auto_flush_windows.h">
+    <ClInclude Include="..\..\libpmem2\auto_flush.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libpmem2\auto_flush_windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -63,7 +66,7 @@
     <ClCompile Include="pmem_has_auto_flush_win.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\os_auto_flush_windows.c">
+    <ClCompile Include="..\..\libpmem2\auto_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

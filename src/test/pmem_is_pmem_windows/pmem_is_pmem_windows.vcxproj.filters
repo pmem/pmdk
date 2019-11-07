@@ -13,6 +13,9 @@
       <UniqueIdentifier>{79cb81e3-cffe-4198-bbba-ab4956e04fa6}</UniqueIdentifier>
       <Extensions>ps1</Extensions>
     </Filter>
+    <Filter Include="Header files">
+      <UniqueIdentifier>{c02bbce0-b885-4fed-8edf-2d0688725bac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libpmem\pmem_windows.c">
@@ -37,6 +40,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem\pmem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmem2\auto_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -84,5 +90,13 @@
       <Filter>Match Files</Filter>
     </None>
     <None Include="README" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\libpmem2\auto_flush.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libpmem2\auto_flush_windows.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

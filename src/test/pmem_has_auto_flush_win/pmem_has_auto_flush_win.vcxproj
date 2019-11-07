@@ -48,7 +48,7 @@
     <ClCompile />
     <Link />
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <PreprocessorDefinitions>SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>
@@ -59,7 +59,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <CompileAs />
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>mocks_windows.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <PreprocessorDefinitions>SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
@@ -71,7 +71,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\common\os_auto_flush_windows.h" />
+    <ClInclude Include="..\..\libpmem2\auto_flush.h" />
+    <ClInclude Include="..\..\libpmem2\auto_flush_windows.h" />
     <ClInclude Include="..\..\libpmem\pmem.h" />
     <ClInclude Include="..\..\libpmem\x86_64\cpu.h" />
     <ClInclude Include="pmem_has_auto_flush_win.h" />
@@ -79,7 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\file.c" />
-    <ClCompile Include="..\..\common\os_auto_flush_windows.c" />
+    <ClCompile Include="..\..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="..\..\libpmem\pmem.c" />
     <ClCompile Include="..\..\libpmem\pmem_windows.c" />
     <ClCompile Include="..\..\libpmem\memops_generic.c" />

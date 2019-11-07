@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,16 +30,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "os_auto_flush.h"
-#include "out.h"
-
 /*
- * os_auto_flush -- check if platform supports auto flush for all regions
+ * auto_flush.h -- auto flush detection functionality
  */
-int
-os_auto_flush(void)
-{
-	LOG(15, NULL);
 
-	return 0;
+#ifndef PMEM2_AUTO_FLUSH_H
+#define PMEM2_AUTO_FLUSH_H 1
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int pmem2_auto_flush(void);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif

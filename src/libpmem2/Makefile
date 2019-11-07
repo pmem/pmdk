@@ -46,6 +46,7 @@ SOURCE =\
 	$(COMMON)/mmap_posix.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\
+	$(COMMON)/fs_posix.c\
 	libpmem2.c\
 	config.c\
 	config_posix.c\
@@ -55,9 +56,13 @@ SOURCE =\
 	pmem2_utils.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
-SOURCE += $(PMEM2)/pmem2_utils_linux.c
+SOURCE +=\
+	pmem2_utils_linux.c\
+	auto_flush_linux.c
 else
-SOURCE += $(PMEM2)/pmem2_utils_other.c
+SOURCE +=\
+	pmem2_utils_other.c\
+	auto_flush_none.c
 endif
 
 include ../Makefile.inc

@@ -112,9 +112,6 @@
     <ClCompile Include="..\common\os_deep_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_auto_flush_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\badblock.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -122,6 +119,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\alloc.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmem2\auto_flush_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmem2\config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmem2\config_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmem2\pmem2_utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmem2\pmem2_utils_other.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -189,13 +201,22 @@
     <ClInclude Include="..\common\os_deep.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\os_auto_flush.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\alloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\fault_injection.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libpmem2\auto_flush.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libpmem2\auto_flush_windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libpmem2\config.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libpmem2\pmem2_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
