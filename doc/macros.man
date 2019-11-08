@@ -54,7 +54,7 @@
 #		Inserts a standard note regarding UNICODE support if WIN32.
 #	_U(func_name):
 #		Append "U" to func_name if WIN32.
-# 	_UW(func_name):
+#	_UW(func_name):
 #		Emit **func_nameU**()/**func_nameW**() if WIN32.
 #	_UWFUNC(func_name, args):
 #		Define U and W prototypes of char/wchar_t *func_name if WIN32.
