@@ -42,13 +42,15 @@ set -e
 
 # Build all and run tests
 cd $WORKDIR
-make check-license
-make cstyle
-make -j2
-make -j2 test
+make -j$(nproc) check-license
+make -j$(nproc) cstyle
+make -j$(nproc)
+make -j$(nproc) test
+# do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
 make -j2 pcheck TEST_BUILD=$TEST_BUILD
+# do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
 make -j2 pycheck
-make DESTDIR=/tmp source
+make -j$(nproc) DESTDIR=/tmp source
 
 # Create PR with generated docs
 if [[ "$AUTO_DOC_UPDATE" == "1" ]]; then

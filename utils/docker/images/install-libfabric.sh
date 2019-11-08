@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,8 +49,8 @@ unzip $libfabric_tarball
 cd $libfabric_dir
 ./autogen.sh
 ./configure --prefix=/usr --enable-sockets
-make -j2
-make install
+make -j$(nproc)
+make -j$(nproc) install
 
 cd ..
 rm -f ${libfabric_tarball}
