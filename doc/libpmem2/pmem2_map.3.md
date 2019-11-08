@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_MAPPING, 3)
+title: _MP(PMEM2_MAP, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_mapping.3 -- man page for libpmem2 mapping operations
+[comment]: <> (pmem2_map.3 -- man page for libpmem2 mapping operation
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -56,7 +56,11 @@ int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr);
 
 # DESCRIPTION #
 
+XXX: pmem2_map description
+
 # RETURN VALUE #
+
+XXX: pmem2_map ret value
 
 # SEE ALSO #
 
