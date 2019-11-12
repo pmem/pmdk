@@ -82,6 +82,7 @@ class ContextBase:
         modified locally by "n" argument or globally by "dump_lines" in
         testconfig.py file. If none of them are provided, default value is 30.
         """
+        print(file.name)
         if n is None:
             n = config.get('dump_lines', 30)
 
@@ -131,6 +132,7 @@ class ContextBase:
         Value "2**64 - 1" is checked because pmemdetect in case of error prints it.
         """
         proc = tools.pmemdetect(self, '-z', path)
+        print(proc.stdout)
         if int(proc.stdout) != 2**64 - 1:
             return int(proc.stdout)
         futils.fail('Could not get size of the file, it is inaccessible or does not exist')

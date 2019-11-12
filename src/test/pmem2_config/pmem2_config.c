@@ -234,27 +234,110 @@ test_config_set_granularity_invalid(const char *unused)
 }
 
 #ifdef WIN32
+/*
+ * test_config_set_handle - test setting valid handle
+ */
 static void
-test_config_set_handle(const char *file) {
+test_config_set_handle(const char *file)
+{
 	struct pmem2_config cfg;
 	config_init(&cfg);
 	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
 		0, NULL, OPEN_ALWAYS, 0, NULL);
 
-	HANDLE x = h;
-	__debugbreak();
-	CloseHandle(h);
-	int ret = pmem2_config_set_handle(&cfg, x);
+	int ret = pmem2_config_set_handle(&cfg, h);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(cfg.handle, h);
+
+	CloseHandle(h);
 }
 
+/*
+ * test_config_set_null_handle - test reseting handle
+ */
 static void
-test_config_set_null_handle(const char *file) {
+test_config_set_null_handle(const char *file)
+{
 	struct pmem2_config cfg;
 	config_init(&cfg);
 
 	int ret = pmem2_config_set_handle(&cfg, INVALID_HANDLE_VALUE);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(cfg.handle, INVALID_HANDLE_VALUE);
+
+}
+
+/*
+ * test_config_set_invalid_handle - test setting invalid handle
+ */
+static void
+test_config_set_invalid_handle(const char *file)
+{
+	struct pmem2_config cfg;
+	config_init(&cfg);
+	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
+		0, NULL, OPEN_ALWAYS, 0, NULL);
+
+	CloseHandle(h);
+
+	int ret = pmem2_config_set_handle(&cfg, h);
+	UT_PMEM2_EXPECT_RETURN(ret, -EINVAL);
+	UT_ASSERTeq(cfg.handle, INVALID_HANDLE_VALUE);
+}
+
+/*
+ * test_config_set_directory_handle - test setting directory handle
+ */
+static void
+test_config_set_directory_handle(const char *file)
+{
+	struct pmem2_config cfg;
+	config_init(&cfg);
+
+	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
+		0, NULL, OPEN_ALWAYS, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+
+	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
+
+	int ret = pmem2_config_set_handle(&cfg, h);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
+	UT_ASSERTeq(cfg.handle, INVALID_HANDLE_VALUE);
+	CloseHandle(h);
+}
+
+/*
+ * test_config_set_directory_handle - test setting mutex handle
+ */
+static void
+test_config_set_mutex_handle(const char *unused)
+{
+	struct pmem2_config cfg;
+	config_init(&cfg);
+
+	HANDLE h = CreateMutex(NULL, FALSE, NULL);
+	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
+
+	int ret = pmem2_config_set_handle(&cfg, h);
+	UT_PMEM2_EXPECT_RETURN(ret, -EINVAL);
+	UT_ASSERTeq(cfg.handle, INVALID_HANDLE_VALUE);
+	CloseHandle(h);
+}
+#else
+/*
+ * test_config_set_directory_handle - test setting fd to directory
+ */
+static void
+test_config_set_directory_fd(const char *file)
+{
+	struct pmem2_config cfg;
+	config_init(&cfg);
+
+	int fd = OPEN(file, O_RDONLY);
+
+	int ret = pmem2_config_set_fd(&cfg, fd);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
+
+	CLOSE(fd);
 }
 #endif
 
@@ -274,8 +357,15 @@ static struct test_list {
 	{"delete_null_config", test_delete_null_config},
 	{"config_set_granularity_valid", test_config_set_granularity_valid},
 	{"config_set_granularity_invalid", test_config_set_granularity_invalid},
+#ifdef _WIN32
 	{"set_handle", test_config_set_handle},
-	{"set_null_handle", test_config_set_null_handle }
+	{"set_null_handle", test_config_set_null_handle},
+	{"set_invalid_handle", test_config_set_invalid_handle},
+	{"set_directory_handle", test_config_set_directory_handle},
+	{"set_mutex_handle", test_config_set_mutex_handle},
+#else
+	{"set_directory_fd", test_config_set_directory_fd},
+#endif
 };
 
 int
