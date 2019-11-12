@@ -1,5 +1,5 @@
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,65 +30,88 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# Dockerfile - a 'recipe' for Docker to build an image of fedora-based
+# Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
 #              environment for building the PMDK project.
 #
 
 # Pull base image
-FROM fedora:28
+FROM ubuntu:19.10
 MAINTAINER marcin.slusarz@intel.com
 
-# Install basic tools
-RUN dnf update -y
+ENV DEBIAN_FRONTEND noninteractive
 
-RUN dnf install -y \
-	asciidoc \
-	asciidoctor \
-	autoconf \
+# Update the Apt cache and install basic tools
+RUN apt-get update && apt-get dist-upgrade -y
+
+# libfabric (optional if libfabric-dev >= 1.4.2 is installed)
+ENV FABRIC_DEPS "autoconf \
 	automake \
-	bash-completion \
-	bc \
-	clang \
-	file \
-	findutils \
-	fuse \
-	fuse-devel \
-	gcc \
-	gdb \
-	git \
-	glib2-devel \
-	hub \
-	json-c-devel \
-	keyutils-libs-devel \
-	kmod-devel \
-	lbzip2 \
+	build-essential \
 	libtool \
-	libudev-devel \
-	libunwind-devel \
-	libuuid-devel \
-	libuv-devel \
-	make \
-	man \
-	ncurses-devel \
-	openssh-server \
-	pandoc \
-	passwd \
-	pkgconfig \
-	rpm-build \
-	rpm-build-libs \
-	rpmdevtools \
-	rsync \
+	unzip \
+	wget"
+
+ENV VALGRIND_DEPS "autoconf \
+	automake \
+	build-essential \
+	git"
+
+# pmdk base
+ENV BASE_DEPS "build-essential \
+	git \
+	libdaxctl-dev \
+	libndctl-dev \
+	pkg-config"
+
+# benchmarks (optional)
+ENV BENCH_DEPS libglib2.0-dev
+
+# examples (optional)
+ENV EXAMPLES_DEPS "libfuse-dev \
+	libncurses5-dev \
+	libuv1-dev"
+
+# documentation (optional)
+ENV DOC_DEPS pandoc
+
+# tests
+ENV TESTS_DEPS "bc \
+	libc6-dbg \
+	libunwind-dev \
+	python3 \
+	ssh \
+	strace"
+
+# packaging
+ENV PACKAGING_DEPS "debhelper \
+	devscripts \
+	fakeroot"
+
+# CodeCov
+ENV CODECOV_DEPS curl
+
+# Coverity
+ENV COVERITY_DEPS ruby gcc g++ wget
+
+# misc
+ENV MISC_DEPS "clang \
+	clang-format \
+	flake8 \
 	sudo \
-	tar \
-	wget \
-	which \
-	xmlto
+	whois"
 
-RUN dnf clean all
-
-# Install libndctl
-COPY install-libndctl.sh install-libndctl.sh
-RUN ./install-libndctl.sh tags/v64.1 fedora
+RUN apt-get install -y --no-install-recommends \
+	$FABRIC_DEPS \
+	$VALGRIND_DEPS \
+	$BASE_DEPS \
+	$BENCH_DEPS \
+	$EXAMPLES_DEPS \
+	$DOC_DEPS \
+	$TESTS_DEPS \
+	$PACKAGING_DEPS \
+	$CODECOV_DEPS \
+	$COVERITY_DEPS \
+	$MISC_DEPS
 
 # Install valgrind
 COPY install-valgrind.sh install-valgrind.sh
@@ -96,20 +119,30 @@ RUN ./install-valgrind.sh
 
 # Install libfabric
 COPY install-libfabric.sh install-libfabric.sh
-RUN ./install-libfabric.sh fedora
+RUN ./install-libfabric.sh
 
 # Add user
 ENV USER pmdkuser
 ENV USERPASS pmdkpass
-RUN useradd -m $USER
-RUN echo $USERPASS | passwd $USER --stdin
-RUN gpasswd wheel -a $USER
+RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
+
+# remove stuff no longer needed
+RUN apt remove -y \
+	unzip \
+	whois
+
+RUN apt autoremove -y
+
+RUN apt-get clean
+
+RUN rm -rf /var/lib/apt/lists/*
+
+# switch user
 USER $USER
 
 # Set required environment variables
-ENV OS fedora
-ENV OS_VER 28
-ENV START_SSH_COMMAND /usr/sbin/sshd
-ENV PACKAGE_MANAGER rpm
+ENV OS ubuntu
+ENV OS_VER 19.10
+ENV START_SSH_COMMAND service ssh start
+ENV PACKAGE_MANAGER dpkg
 ENV NOTTY 1
-
