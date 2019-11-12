@@ -58,18 +58,18 @@ int pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle); /* Windows
 
 # DESCRIPTION #
 
-On Linux the **pmem2_config_set_fd**() function validates and stores a file descriptor in pmem2_config. 
+On Linux the **pmem2_config_set_fd**() function validates and stores a file descriptor in pmem2_config.
 
-On Windows the **pmem2_config_set_fd**() function converts a file descriptor to a file handle (using **\_get_osfhandle**()), and passes it to **pmem2_config_set_handle**(). 
-By default **\_get_osfhandle**() calls abort() in case of invalid file descriptor, but this behavior can be suppressed by **\_set_abort_behavior**() and **SetErrorMode**() functions. 
+On Windows the **pmem2_config_set_fd**() function converts a file descriptor to a file handle (using **\_get_osfhandle**()), and passes it to **pmem2_config_set_handle**().
+By default **\_get_osfhandle**() calls abort() in case of invalid file descriptor, but this behavior can be suppressed by **\_set_abort_behavior**() and **SetErrorMode**() functions.
 Please check MSDN documentation for more information about Windows CRT error handling.
 
 *fd* must be opened with *O_RDONLY* or *O_RDWR* mode, but on Windows it is not validated.
 
-if *fd* is negative file descriptor (or handle on Windows) in *cfg) is set to default, uninitialized value.
+If *fd* is negative file descriptor (or handle on Windows) in *cfg) is set to default, uninitialized value.
 
 The **pmem2_config_set_handle**() function validates and stores a file handle in pmem2_config.
-if *handle* is INVALID_HANDLE_VALUE handle in pmem2_config struct is set to default, uninitialized value.
+If *handle* is INVALID_HANDLE_VALUE handle in pmem2_config struct is set to default, uninitialized value.
 
 # RETURN VALUE #
 
