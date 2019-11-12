@@ -145,11 +145,11 @@ typedef void (*pmem2_flush_fn)(void *ptr, size_t size);
 
 typedef void (*pmem2_drain_fn)(void);
 
-pmem2_persist_fn *pmem2_get_persist_fn(struct pmem2_map *map);
+pmem2_persist_fn pmem2_get_persist_fn(struct pmem2_map *map);
 
-pmem2_flush_fn *pmem2_get_flush_fn(struct pmem2_map *map);
+pmem2_flush_fn pmem2_get_flush_fn(struct pmem2_map *map);
 
-pmem2_drain_fn *pmem2_get_drain_fn(struct pmem2_map *map);
+pmem2_drain_fn pmem2_get_drain_fn(struct pmem2_map *map);
 
 #define PMEM2_F_MEM_NODRAIN	(1U << 0)
 
@@ -177,11 +177,11 @@ typedef void (*pmem2_memcpy_fn)(void *pmemdest, const void *src, size_t len,
 typedef void (*pmem2_memset_fn)(void *pmemdest, int c, size_t len,
 		unsigned flags);
 
-pmem2_memmove_fn *pmem2_get_memmove_fn(struct pmem2_map *map);
+pmem2_memmove_fn pmem2_get_memmove_fn(struct pmem2_map *map);
 
-pmem2_memcpy_fn *pmem2_get_memcpy_fn(struct pmem2_map *map);
+pmem2_memcpy_fn pmem2_get_memcpy_fn(struct pmem2_map *map);
 
-pmem2_memset_fn *pmem2_get_memset_fn(struct pmem2_map *map);
+pmem2_memset_fn pmem2_get_memset_fn(struct pmem2_map *map);
 
 /* RAS */
 

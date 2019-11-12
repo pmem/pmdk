@@ -79,37 +79,37 @@ pmem2_map_get_store_granularity(struct pmem2_map *map)
 	return PMEM2_GRANULARITY_PAGE;
 }
 
-pmem2_persist_fn *
+pmem2_persist_fn
 pmem2_get_persist_fn(struct pmem2_map *map)
 {
 	return NULL;
 }
 
-pmem2_flush_fn *
+pmem2_flush_fn
 pmem2_get_flush_fn(struct pmem2_map *map)
 {
 	return NULL;
 }
 
-pmem2_drain_fn *
+pmem2_drain_fn
 pmem2_get_drain_fn(struct pmem2_map *map)
 {
 	return NULL;
 }
 
-pmem2_memmove_fn *
+pmem2_memmove_fn
 pmem2_get_memmove_fn(struct pmem2_map *map)
 {
 	return NULL;
 }
 
-pmem2_memcpy_fn *
+pmem2_memcpy_fn
 pmem2_get_memcpy_fn(struct pmem2_map *map)
 {
 	return NULL;
 }
 
-pmem2_memset_fn *
+pmem2_memset_fn
 pmem2_get_memset_fn(struct pmem2_map *map)
 {
 	return NULL;
