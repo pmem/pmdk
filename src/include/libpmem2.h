@@ -127,9 +127,9 @@ int pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size);
 
 struct pmem2_map;
 
-int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map);
+int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr);
 
-int pmem2_unmap(struct pmem2_map **map);
+int pmem2_unmap(struct pmem2_map **map_ptr);
 
 void *pmem2_map_get_address(struct pmem2_map *map);
 

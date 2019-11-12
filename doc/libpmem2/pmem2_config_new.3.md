@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_config_new.3 -- man page for pmem2_config_new and pmem2_config_delete
+[comment]: <> (pmem2_config_new.3 -- man page for pmem2_config_new and pmem2_config_delete)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />

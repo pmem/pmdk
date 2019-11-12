@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_errormsg.3 -- man page for error handling in libpmem2
+[comment]: <> (pmem2_errormsg.3 -- man page for error handling in libpmem2)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
