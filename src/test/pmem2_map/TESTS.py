@@ -34,6 +34,7 @@
 
 import testframework as t
 
+@t.experimental
 class PMEM2_MAP(t.BaseTest):
     test_type = t.Short
 

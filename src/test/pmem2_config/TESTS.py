@@ -34,6 +34,7 @@
 
 import testframework as t
 
+@t.experimental
 class PMEM2_CONFIG(t.BaseTest):
     test_type = t.Short
 

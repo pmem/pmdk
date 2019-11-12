@@ -33,6 +33,7 @@
 """Utilities for tests"""
 
 import sys
+import testconfig
 
 HEADER_SIZE = 4096
 
@@ -114,3 +115,13 @@ def freebsd_exclude(tc):
     Use it as a class decorator.
     """
     return _os_exclude(tc, 'freebsd')
+
+def experimental(tc):
+    """
+    Disable test case (TEST[number] class) if EXPERIMENTAL flag is equel false.
+    Use it as a class decorator.
+    """
+    if not sys.platform.startswith('win32'):
+        if testconfig.config['experimental'] == False:
+            tc.enabled = False
+    return tc

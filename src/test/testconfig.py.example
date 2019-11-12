@@ -17,7 +17,6 @@ config = {
     #
 
     'unittest_log_level': 1,
-
     #
     # For tests that require true persistent memory, set the path to
     # a directory on a PMEM-aware file system here.
@@ -112,4 +111,6 @@ config = {
     # Eg. ['/dev/dax0.0', '/dev/dax1.0']
     #
     'device_dax_path' : [],
+
+    'experimental': True
 }

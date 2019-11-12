@@ -186,6 +186,7 @@ class TEST12(Common):
 
 
 @t.windows_exclude
+@t.experimental
 class TEST13(Common):
     """Check scope of libpmem2 library (*nix)"""
     checked_lib = 'libpmem2'
