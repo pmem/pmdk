@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_map.3 -- man page for libpmem2 mapping operation
+[comment]: <> (pmem2_map.3 -- man page for libpmem2 mapping operation)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -51,7 +51,7 @@ date: pmem2 API version 1.0
 ```c
 #include <libpmem2.h>
 
-int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr);
+int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map);
 ```
 
 # DESCRIPTION #
