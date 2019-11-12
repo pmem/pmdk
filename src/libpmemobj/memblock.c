@@ -449,7 +449,8 @@ memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
 		 * Then, align the number of values up, so that the cacheline
 		 * alignment is preserved.
 		 */
-		b->nvalues = ALIGN_UP(b->nvalues + RUN_BASE_METADATA_VALUES, 8U)
+		b->nvalues = ALIGN_UP(b->nvalues + RUN_BASE_METADATA_VALUES,
+			(unsigned)(CACHELINE_SIZE / sizeof(*b->values)))
 			- RUN_BASE_METADATA_VALUES;
 
 		/*
