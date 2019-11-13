@@ -37,6 +37,7 @@
 #include "unittest.h"
 #include "ut_pmem2_utils.h"
 
+
 /*
  * prepare_config -- fill pmem2_config in minimal scope
  */
@@ -50,6 +51,10 @@ prepare_config(struct pmem2_config **cfg, int fd)
 		ret = pmem2_config_set_fd(*cfg, fd);
 		UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 	}
+
+	enum pmem2_granularity g = PMEM2_GRANULARITY_PAGE;
+	ret = pmem2_config_set_required_store_granularity(*cfg, g);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
 }
 
 /*
