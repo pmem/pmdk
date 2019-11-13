@@ -50,6 +50,10 @@ prepare_config(struct pmem2_config **cfg, int fd)
 		ret = pmem2_config_set_fd(*cfg, fd);
 		UT_PMEM2_EXPECT_RETURN(ret, 0);
 	}
+
+	ret = pmem2_config_set_required_store_granularity(*cfg,
+		PMEM2_GRANULARITY_PAGE);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 }
 
 /*
