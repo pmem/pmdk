@@ -56,7 +56,8 @@ config_init(struct pmem2_config *cfg)
 	cfg->offset = 0;
 	cfg->length = 0;
 	cfg->alignment = 0;
-	cfg->requested_max_granularity = PMEM2_GRANULARITY_INVALID;
+	cfg->requested_max_granularity =
+		(enum pmem2_granularity)PMEM2_GRANULARITY_INVALID;
 }
 
 /*

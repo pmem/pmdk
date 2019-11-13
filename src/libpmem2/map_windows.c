@@ -37,6 +37,7 @@
 #include <stdbool.h>
 
 #include "libpmem2.h"
+#include "auto_flush.h"
 #include "out.h"
 #include "config.h"
 #include "map.h"
@@ -46,6 +47,28 @@
 
 #define HIDWORD(x) ((DWORD)((x) >> 32))
 #define LODWORD(x) ((DWORD)((x) & 0xFFFFFFFF))
+
+/* requested CACHE_LINE, available PAGE */
+#define REQ_CL_AVAIL_PG \
+	"requested granularity not available because specified volume is not a direct access (DAX) volume"
+
+/* requested BYTE, available PAGE */
+#define REQ_BY_AVAIL_PG REQ_CL_AVAIL_PG
+
+/* requested BYTE, available CACHE_LINE */
+#define REQ_BY_AVAIL_CL \
+	"requested granularity not available because the platform doesn't support eADR"
+
+/* indicates the cases in which the error cannot occur */
+#define GRAN_IMPOSSIBLE "impossible"
+static const char *granularity_err_msg[3][3] = {
+/*		requested granularity / available granularity		*/
+/* -------------------------------------------------------------------- */
+/*		BYTE		CACHE_LINE		PAGE		*/
+/* -------------------------------------------------------------------- */
+/* BYTE */ {GRAN_IMPOSSIBLE,	REQ_BY_AVAIL_CL,	REQ_BY_AVAIL_PG},
+/* CL	*/ {GRAN_IMPOSSIBLE,	GRAN_IMPOSSIBLE,	REQ_CL_AVAIL_PG},
+/* PAGE */ {GRAN_IMPOSSIBLE,	GRAN_IMPOSSIBLE,	GRAN_IMPOSSIBLE}};
 
 /*
  * create_mapping -- creates file mapping object for a file
@@ -81,6 +104,28 @@ create_mapping(HANDLE hfile, size_t offset, size_t length, DWORD protect,
 }
 
 /*
+ * is_direct_access -- check if the specified volume is a
+ * direct access (DAX) volume
+ */
+static int
+is_direct_access(HANDLE fh)
+{
+	DWORD filesystemFlags;
+
+	if (!GetVolumeInformationByHandleW(fh, NULL, 0, NULL,
+			NULL, &filesystemFlags, NULL, 0)) {
+		ERR("!!GetVolumeInformationByHandleW");
+		/* always return a negative value */
+		return pmem2_lasterror_to_err();
+	}
+
+	if (filesystemFlags & FILE_DAX_VOLUME)
+			return 1;
+
+	return 0;
+}
+
+/*
  * pmem2_map -- map memory according to provided config
  */
 int
@@ -96,6 +141,13 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	if (cfg->handle == INVALID_HANDLE_VALUE) {
 		ERR("file handle was not set");
 		return PMEM2_E_FILE_HANDLE_NOT_SET;
+	}
+
+	if ((int)cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
+		ERR(
+			"please define the max granularity requested for the mapping");
+
+		return PMEM2_E_GRANULARITY_NOT_SET;
 	}
 
 	ret = pmem2_config_get_file_size(cfg, &file_size);
@@ -144,6 +196,31 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 		goto err_unmap_base;
 	}
 
+	int direct_access = is_direct_access(cfg->handle);
+	if (direct_access < 0) {
+		ret = direct_access;
+		goto err_unmap_base;
+	}
+
+	bool eADR = (pmem2_auto_flush() == 1);
+	enum pmem2_granularity available_min_granularity =
+		get_min_granularity(eADR, direct_access);
+
+	if (available_min_granularity > cfg->requested_max_granularity) {
+		const char *err = granularity_err_msg
+			[cfg->requested_max_granularity]
+			[available_min_granularity];
+		if (strcmp(err, GRAN_IMPOSSIBLE) == 0)
+			FATAL(
+				"unhandled granularity error: available_min_granularity: %d" \
+				"requested_max_granularity: %d",
+				available_min_granularity,
+				cfg->requested_max_granularity);
+		ERR("%s", err);
+		ret = PMEM2_E_GRANULARITY_NOT_SUPPORTED;
+		goto err_unmap_base;
+	}
+
 	/* prepare pmem2_map structure */
 	struct pmem2_map *map;
 	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
@@ -152,8 +229,8 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 
 	map->addr = base;
 	map->length = length;
-	/* XXX require eADR detection to set PMEM2_GRANULARITY_BYTE */
-	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
+	map->effective_granularity = available_min_granularity;
+
 	/* return a pointer to the pmem2_map structure */
 	*map_ptr = map;
 

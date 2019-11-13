@@ -37,6 +37,7 @@
 #define PMEM2_MAP_H
 
 #include <stddef.h>
+#include <stdbool.h>
 #include "libpmem2.h"
 
 #ifdef __cplusplus
@@ -52,6 +53,8 @@ struct pmem2_map {
 
 int pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
 		size_t *length);
+
+enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem);
 
 #ifdef __cplusplus
 }
