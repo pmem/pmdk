@@ -73,6 +73,10 @@ export CLANG_FORMAT ?= clang-format
 endif
 endif
 
+ifeq ($(FLAKE8),)
+export FLAKE8 ?= flake8
+endif
+
 GCOV_CFLAGS=-fprofile-arcs -ftest-coverage --coverage
 GCOV_LDFLAGS=-fprofile-arcs -ftest-coverage
 GCOV_LIBS=-lgcov
@@ -224,6 +228,7 @@ export man5dir := $(mandir)/man5
 export man7dir := $(mandir)/man7
 export cstyle_bin := $(CSTYLE)
 export clang_format_bin := $(CLANG_FORMAT)
+export flake8_bin := $(FLAKE8)
 
 ifneq ($(wildcard $(exec_prefix)/x86_64-linux-gnu),)
 LIB_PREFIX ?= x86_64-linux-gnu/lib
@@ -238,7 +243,7 @@ LIB_PREFIX ?= lib
 all:
 
 cstyle-%:
-	$(STYLE_CHECK) $* $(wildcard *.[ch]) $(wildcard *.[ch]pp)
+	$(STYLE_CHECK) $* $(wildcard *.[ch]) $(wildcard *.[ch]pp) $(wildcard *.py)
 
 cstyle: cstyle-check
 
