@@ -53,7 +53,6 @@ date: pmem2 API version 1.0
 #include <libpmem2.h>
 
 enum pmem2_granularity {
-	PMEM2_GRANULARITY_INVALID,
 	PMEM2_GRANULARITY_BYTE,
 	PMEM2_GRANULARITY_CACHE_LINE,
 	PMEM2_GRANULARITY_PAGE,
@@ -71,7 +70,7 @@ using the **pmem2_map**(3) function. Concept of the granularity is described in
 # RETURN VALUE #
 
 The **pmem2_map_get_store_granularity**() function returns a granularity of the mapped
-area. Function never returns **PMEM2_GRANULARITY_INVALID**.
+area.
 
 # SEE ALSO #
 
