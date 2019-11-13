@@ -70,6 +70,7 @@ prepare_config(struct pmem2_config *cfg, int *fd, const char *file,
 	config_init(cfg);
 	cfg->offset = offset;
 	cfg->length = length;
+	cfg->requested_max_granularity = PMEM2_GRANULARITY_PAGE;
 #ifdef _WIN32
 	cfg->handle = (HANDLE)_get_osfhandle(*fd);
 #else

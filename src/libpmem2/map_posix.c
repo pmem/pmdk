@@ -43,6 +43,7 @@
 
 #include "libpmem2.h"
 #include "alloc.h"
+#include "auto_flush.h"
 #include "out.h"
 #include "file.h"
 #include "config.h"
@@ -212,6 +213,24 @@ unmap(void *addr, size_t len)
 
 	return PMEM2_E_OK;
 }
+/*
+ * get_min_granularity -- (internal) checks min available granularity
+ */
+static enum pmem2_granularity
+get_min_granularity(int eADR, bool map_sync)
+{
+	enum pmem2_granularity available_min_granularity = \
+		PMEM2_GRANULARITY_PAGE;
+
+	if (!map_sync)
+		available_min_granularity = PMEM2_GRANULARITY_PAGE;
+	if (map_sync && (eADR != 1))
+		available_min_granularity = PMEM2_GRANULARITY_CACHE_LINE;
+	if (map_sync && (eADR == 1))
+		available_min_granularity = PMEM2_GRANULARITY_BYTE;
+
+	return available_min_granularity;
+}
 
 /*
  * pmem2_map -- map memory according to provided config
@@ -227,6 +246,11 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	if (cfg->fd == INVALID_FD) {
 		ERR("the provided file descriptor is invalid");
 		return PMEM2_E_INVALID_FILE_HANDLE;
+	}
+
+	if ((int)cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
+		ERR("the provided granularity value is invalid");
+		return PMEM2_E_GRANULARITY;
 	}
 
 	os_off_t off = (os_off_t)cfg->offset;
@@ -305,10 +329,19 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	}
 
 	map->addr = addr;
-	/* XXX require eADR detection to set PMEM2_GRANULARITY_BYTE */
-	map->effective_granularity = map_sync ? PMEM2_GRANULARITY_CACHE_LINE :
-			PMEM2_GRANULARITY_PAGE;
 	map->length = length;
+
+	int eADR = pmem2_auto_flush();
+	enum pmem2_granularity available_min_granularity = \
+		get_min_granularity(eADR, map_sync);
+
+	if (available_min_granularity <= cfg->requested_max_granularity) {
+		map->effective_granularity = available_min_granularity;
+	} else {
+		ERR("the requested level of granularity is not available");
+		return PMEM2_E_GRANULARITY;
+	}
+
 	*map_ptr = map;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->length);

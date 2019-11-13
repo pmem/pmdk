@@ -74,6 +74,12 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
+	if (pmem2_config_set_required_store_granularity(cfg,
+			PMEM2_GRANULARITY_PAGE)) {
+		fprintf(stderr, "%s", pmem2_errormsg());
+		exit(1);
+	}
+
 	if (pmem2_map(cfg, &map)) {
 		fprintf(stderr, "%s", pmem2_errormsg());
 		exit(1);
