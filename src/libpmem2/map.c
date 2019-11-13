@@ -102,3 +102,17 @@ pmem2_map_get_store_granularity(struct pmem2_map *map)
 
 	return map->effective_granularity;
 }
+
+/*
+ * get_min_granularity -- checks min available granularity
+ */
+enum pmem2_granularity
+get_min_granularity(bool eADR, bool is_pmem)
+{
+	if (!is_pmem)
+		return PMEM2_GRANULARITY_PAGE;
+	if (!eADR)
+		return PMEM2_GRANULARITY_CACHE_LINE;
+
+	return PMEM2_GRANULARITY_BYTE;
+}
