@@ -43,6 +43,7 @@
 
 #include "libpmem2.h"
 #include "alloc.h"
+#include "auto_flush.h"
 #include "out.h"
 #include "file.h"
 #include "config.h"
@@ -231,6 +232,13 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 		return PMEM2_E_INVALID_FILE_HANDLE;
 	}
 
+	if ((int)cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
+		ERR(
+			"please define the max granularity requested for the mapping");
+
+		return PMEM2_E_GRANULARITY_NOT_SET;
+	}
+
 	os_off_t off = (os_off_t)cfg->offset;
 	ASSERTeq((size_t)off, cfg->offset);
 
@@ -299,6 +307,34 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 
 	LOG(3, "mapped at %p", addr);
 
+	bool eADR = (pmem2_auto_flush() == 1);
+	enum pmem2_granularity available_min_granularity =
+		get_min_granularity(eADR, map_sync);
+
+	if (available_min_granularity > cfg->requested_max_granularity) {
+		/* requested CACHE_LINE, available PAGE */
+		if (cfg->requested_max_granularity ==
+				PMEM2_GRANULARITY_CACHE_LINE)
+			ERR(
+				"CACHE_LINE granularity not available because fd %d doesn't point to DAX-enabled file "
+				"or kernel doesn't support MAP_SYNC flag (Linux >= 4.15)",
+				cfg->fd);
+		if (cfg->requested_max_granularity == PMEM2_GRANULARITY_BYTE) {
+			/* requested BYTE, available PAGE */
+			if (available_min_granularity == PMEM2_GRANULARITY_PAGE)
+				ERR(
+					"BYTE granularity not available because the platform doesn't support eADR "
+					"or fd %d doesn't point to DAX-enabled file or kernel doesn't support MAP_SYNC flag (Linux >= 4.15)",
+					cfg->fd);
+			/* requested BYTE, available CACHE_LINE */
+			if (available_min_granularity ==
+					PMEM2_GRANULARITY_CACHE_LINE)
+				ERR(
+					"BYTE granularity not available because the platform doesn't support eADR");
+		}
+		return PMEM2_E_GRANULARITY_NOT_SUPPORTED;
+	}
+
 	/* prepare pmem2_map structure */
 	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
 	if (!map) {
@@ -307,10 +343,9 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	}
 
 	map->addr = addr;
-	/* XXX require eADR detection to set PMEM2_GRANULARITY_BYTE */
-	map->effective_granularity = map_sync ? PMEM2_GRANULARITY_CACHE_LINE :
-			PMEM2_GRANULARITY_PAGE;
 	map->length = length;
+	map->effective_granularity = available_min_granularity;
+
 	*map_ptr = map;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->length);

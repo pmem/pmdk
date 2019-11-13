@@ -63,14 +63,16 @@
 extern "C" {
 #endif
 
-#define PMEM2_E_OK			(0)
-#define PMEM2_E_UNKNOWN			(-100000)
-#define PMEM2_E_NOSUPP			(-100001)
-#define PMEM2_E_INVALID_ARG		(-100002)
-#define PMEM2_E_INVALID_FILE_HANDLE	(-100003)
-#define PMEM2_E_INVALID_FILE_TYPE	(-100004)
-#define PMEM2_E_MAP_RANGE		(-100005)
-#define PMEM2_E_MAPPING_EXISTS		(-100006)
+#define PMEM2_E_OK				(0)
+#define PMEM2_E_UNKNOWN				(-100000)
+#define PMEM2_E_NOSUPP				(-100001)
+#define PMEM2_E_INVALID_ARG			(-100002)
+#define PMEM2_E_INVALID_FILE_HANDLE		(-100003)
+#define PMEM2_E_INVALID_FILE_TYPE		(-100004)
+#define PMEM2_E_MAP_RANGE			(-100005)
+#define PMEM2_E_MAPPING_EXISTS			(-100006)
+#define PMEM2_E_GRANULARITY_NOT_SET		(-100007)
+#define PMEM2_E_GRANULARITY_NOT_SUPPORTED	(-100008)
 
 /* config setup */
 
@@ -112,7 +114,6 @@ int pmem2_config_set_address(struct pmem2_config *cfg, unsigned type,
 	void *addr);
 
 enum pmem2_granularity {
-	PMEM2_GRANULARITY_INVALID,
 	PMEM2_GRANULARITY_BYTE,
 	PMEM2_GRANULARITY_CACHE_LINE,
 	PMEM2_GRANULARITY_PAGE,
