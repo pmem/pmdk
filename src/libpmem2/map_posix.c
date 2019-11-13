@@ -43,6 +43,7 @@
 
 #include "libpmem2.h"
 #include "alloc.h"
+#include "auto_flush.h"
 #include "out.h"
 #include "file.h"
 #include "config.h"
@@ -229,6 +230,13 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 		return PMEM2_E_INVALID_FILE_HANDLE;
 	}
 
+	if ((int)cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
+		ERR("the provided granularity value is invalid, "
+			"granularity must be set by user in the pmem2_config structure");
+
+		return PMEM2_E_GRANULARITY_NOT_SET;
+	}
+
 	os_off_t off = (os_off_t)cfg->offset;
 	ASSERTeq((size_t)off, cfg->offset);
 
@@ -305,10 +313,22 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	}
 
 	map->addr = addr;
-	/* XXX require eADR detection to set PMEM2_GRANULARITY_BYTE */
-	map->effective_granularity = map_sync ? PMEM2_GRANULARITY_CACHE_LINE :
-			PMEM2_GRANULARITY_PAGE;
 	map->length = length;
+
+	int eADR = pmem2_auto_flush();
+	enum pmem2_granularity available_min_granularity = \
+		get_min_granularity(eADR, map_sync);
+
+	if (available_min_granularity <= cfg->requested_max_granularity) {
+		map->effective_granularity = available_min_granularity;
+	} else {
+		ERR("the requested level of granularity is not available, "
+			"only more granularity operations are supported with "
+			"your current setup");
+
+		return PMEM2_E_GRANULARITY_NOT_SUPPORTED;
+	}
+
 	*map_ptr = map;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->length);

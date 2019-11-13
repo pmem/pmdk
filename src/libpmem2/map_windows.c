@@ -37,6 +37,7 @@
 #include <stdbool.h>
 
 #include "libpmem2.h"
+#include "auto_flush.h"
 #include "out.h"
 #include "config.h"
 #include "map.h"
@@ -81,6 +82,28 @@ create_mapping(HANDLE hfile, size_t offset, size_t length, DWORD protect,
 }
 
 /*
+ * is_direct_access -- check if the specified volume is a
+ * direct access (DAX) volume
+ */
+static int
+is_direct_access(HANDLE fh)
+{
+	int direct_mapped = 0;
+	DWORD filesystemFlags;
+
+	if (GetVolumeInformationByHandleW(fh, NULL, 0, NULL,
+			NULL, &filesystemFlags, NULL, 0)) {
+		if (filesystemFlags & FILE_DAX_VOLUME)
+			direct_mapped = 1;
+	} else {
+		ERR("!!GetVolumeInformationByHandleW");
+		return pmem2_lasterror_to_err();
+	}
+
+	return direct_mapped;
+}
+
+/*
  * pmem2_map -- map memory according to provided config
  */
 int
@@ -95,6 +118,13 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	if (cfg->handle == INVALID_HANDLE_VALUE) {
 		ERR("the provided file handle is invalid");
 		return PMEM2_E_INVALID_FILE_HANDLE;
+	}
+
+	if ((int)cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
+		ERR("the provided granularity value is invalid, "
+			"granularity must be set by user in the pmem2_config structure");
+
+		return PMEM2_E_GRANULARITY_NOT_SET;
 	}
 
 	ret = pmem2_config_get_file_size(cfg, &file_size);
@@ -151,8 +181,28 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 
 	map->addr = base;
 	map->length = length;
-	/* XXX require eADR detection to set PMEM2_GRANULARITY_BYTE */
-	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
+
+	int direct_access = is_direct_access(cfg->handle);
+	if (direct_access < 0) {
+		ret = direct_access;
+		goto err_unmap_base;
+	}
+
+	int eADR = pmem2_auto_flush();
+
+	enum pmem2_granularity available_min_granularity = \
+		get_min_granularity(eADR, direct_access);
+
+	if (available_min_granularity <= cfg->requested_max_granularity) {
+		map->effective_granularity = available_min_granularity;
+	} else {
+		ERR("the requested level of granularity is not available, "
+			"only more granularity operations are supported with "
+			"your current setup");
+
+		return PMEM2_E_GRANULARITY_NOT_SUPPORTED;
+	}
+
 	/* return a pointer to the pmem2_map structure */
 	*map_ptr = map;
 
