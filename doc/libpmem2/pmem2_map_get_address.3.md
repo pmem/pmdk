@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_map_get_address.3 -- man page for libpmem2 mapping operations
+[comment]: <> (pmem2_map_get_address.3 -- man page for libpmem2 mapping operations)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -51,13 +51,13 @@ date: pmem2 API version 1.0
 ```c
 #include <libpmem2.h>
 
-void *pmem2_map_get_address(struct pmem2_map **map_ptr);
+void *pmem2_map_get_address(struct pmem2_map *map);
 ```
 
 # DESCRIPTION #
 
 The **pmem2_map_get_address**() function reads address of the created mapping.
-The *map_ptr* parameter points to the structure describing mapping created using
+The *map* parameter points to the structure describing mapping created using
 the **pmem2_map**(3) function.
 
 # RETURN VALUE #
