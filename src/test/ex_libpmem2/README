@@ -1,0 +1,7 @@
+Persistent Memory Development Kit
+
+This is src/test/ex_libpmem2/README.
+
+This directory contains unit tests for libpmem2 examples.
+
+The unit tests utilizes examples from src/examples/libpmem2 directory.

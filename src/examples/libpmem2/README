@@ -1,0 +1,17 @@
+Persistent Memory Development Kit
+
+This is examples/libpmem2/README.
+
+This directory contains examples for libpmem2, the library containing
+low-level persistent memory support.  A detailed explanation of these
+examples can be found here: http://pmem.io/pmdk/libpmem2
+
+To build these examples:
+	make
+
+These examples can be built against an installed system using:
+	make LIBDIR=/usr/lib INCDIR=/usr/include
+
+If you're looking for documentation to get you started using PMDK,
+start here: http://pmem.io/pmdk and follow the links to examples and
+man pages.

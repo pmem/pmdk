@@ -37,3 +37,7 @@ libpmempool(7) -- pool management, diagnostics and repair
 librpmem(7) -- remote access to persistent memory
     Example programs are in the librpmem directory.
     More documentation: http://pmem.io/pmdk/librpmem
+
+libpmem2(7) -- low-level persistent memory support
+    Example programs are in the libpmem2 directory.
+    More documentation: http://pmem.io/pmdk/libpmem2
