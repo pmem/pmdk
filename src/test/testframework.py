@@ -48,4 +48,4 @@ from configurator import *  # noqa: E402, F401, F403
 from valgrind import *  # noqa: E402, F401, F403
 from utils import *  # noqa: E402, F401, F403
 from poolset import *  # noqa: E402, F401, F403
-from futils import run_tests_common
+from futils import run_tests_common  # noqa: E402, F401

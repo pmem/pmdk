@@ -41,7 +41,7 @@ import importlib.util as importutil
 import os
 import sys
 
-from testframework import BaseTest, Configurator, run_tests_common
+from testframework import Configurator, run_tests_common
 
 
 def run_testcases():

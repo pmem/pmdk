@@ -32,7 +32,6 @@
 """External tools integration"""
 
 
-from os.path import join, abspath
 import os
 import sys
 import subprocess as sp

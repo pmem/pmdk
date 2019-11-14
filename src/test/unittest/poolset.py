@@ -33,14 +33,14 @@
 
 
 from enum import Enum, unique
-import sys
 import os
 
 import futils
-from utils import KiB, MiB, GiB, TiB
+from utils import KiB, MiB, GiB
 
 POOL_MIN_SIZE = 8 * MiB
 PART_MIN_SIZE = 2 * MiB
+
 
 @unique
 class CREATE(Enum):
@@ -133,11 +133,11 @@ class _Poolset:
         """
         self._check_pools_size()
         required_size = self._get_required_size()
-        free_space = ctx.get_free_space()
+        free_space = self.ctx.get_free_space()
         if required_size > free_space:
-            futils.fail('Not enough space available to create parts files. There is '
-                 '{}, and poolset requires {}'.format(free_space,
-                                                      required_size))
+            futils.fail('Not enough space available to create parts '
+                        'files. There is {}, and poolset requires {}'
+                        .format(free_space, required_size))
 
         for part in self.parts:
             part._process(self.ctx)
@@ -277,7 +277,7 @@ class DDax(_Part):
     def __init__(self, ctx, path):
         if not ctx.is_devdax(path):
             futils.fail('Part with path "{}" does not point to dax device'
-                 ''.format(path))
+                        .format(path))
         _Part.__init__(self, path, ctx.get_size(path))
 
 

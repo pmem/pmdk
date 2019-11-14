@@ -36,24 +36,29 @@ import futils
 
 import testframework as t
 
+
 class EX_LIBPMEM2(t.BaseTest):
     test_type = t.Medium
     build = [t.Debug, t.Release]
 
     def get_path(self, ctx, file_name):
         path = futils.get_examples_dir(ctx)
-        filepath = ctx.create_non_zero_file(16 * t.MiB , Path(ctx.testdir, file_name))
+        filepath = ctx.create_non_zero_file(16 * t.MiB,
+                                            Path(ctx.testdir, file_name))
         return path, filepath
 
 
 @t.windows_exclude
 class TEST0(EX_LIBPMEM2):
+
     def run(self, ctx):
         test_path, file_path = self.get_path(ctx, 'testfile0')
         ctx.exec(path.join(test_path, 'libpmem2', 'basic'), file_path)
 
+
 @t.windows_only
 class TEST1(EX_LIBPMEM2):
+
     def run(self, ctx):
         test_path, file_path = self.get_path(ctx, 'testfile1')
         ctx.exec(path.join(test_path, 'ex_pmem2_basic'), file_path)

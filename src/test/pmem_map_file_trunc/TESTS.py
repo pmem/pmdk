@@ -35,6 +35,7 @@
 import testframework as t
 import os
 
+
 class TEST0(t.BaseTest):
     test_type = t.Short
     build = [t.Debug, t.Release]
