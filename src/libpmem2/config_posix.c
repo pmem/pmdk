@@ -59,7 +59,24 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 	}
 
 	if ((flags & O_ACCMODE) == O_WRONLY) {
-		ERR("fd must be open with O_RDONLY or O_RDRW");
+		ERR("fd must be open with O_RDONLY or O_RDWR");
+		return PMEM2_E_INVALID_FILE_HANDLE;
+	}
+
+	os_stat_t st;
+
+	if (os_fstat(fd, &st) < 0) {
+		ERR("!fstat");
+		return PMEM2_E_ERRNO;
+	}
+
+	enum pmem2_file_type type;
+	int ret = pmem2_get_type_from_stat(&st, &type);
+	if (ret)
+		return ret;
+
+	if (type == PMEM2_FTYPE_DIR) {
+		ERR("cannot set fd to directory in pmem2_config");
 		return PMEM2_E_INVALID_FILE_HANDLE;
 	}
 
