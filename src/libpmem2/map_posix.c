@@ -220,6 +220,7 @@ int
 pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 {
 	LOG(3, "cfg %p map_ptr %p", cfg, map_ptr);
+	*map_ptr = NULL;
 	int ret = PMEM2_E_OK;
 	struct pmem2_map *map;
 	size_t file_len;
