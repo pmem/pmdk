@@ -56,7 +56,7 @@ export PMEMOBJ_VG_CHECK_UNDEF=1
 export VALIDATE_VALGRIND_LOG=0
 export VALGRIND_OPTS="$VALGRIND_OPTS --show-reachable=yes"
 
-if ! eval LD_PRELOAD=$TEST_LD_PRELOAD $TRACE valgrind ./obj_memcheck$EXESUFFIX m 2>/dev/null; then
+if ! eval $TRACE valgrind ./obj_memcheck$EXESUFFIX m 2>/dev/null; then
 	echo "$UNITTEST_NAME: SKIP valgrind with bug"
 	exit 0
 fi
