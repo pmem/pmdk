@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_MAP, 3)
+title: _MP(PMEM2_UNMAP, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_map.3 -- man page for libpmem2 pmem2_map operation)
+[comment]: <> (pmem2_unmap.3 -- man page for libpmem2 pmem2_unmap operation)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,31 +44,28 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_map**() - creates a mapping
+**pmem2_unmap**() - releases a mapping
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-int pmem2_map(const struct pmem2_config *config, struct pmem2_map **map_ptr);
+int pmem2_unmap(struct pmem2_map **map_ptr);
 ```
 
 # DESCRIPTION #
 
-The **pmem2_map**() function maps a file to the process virtual address space.
-It uses the arguments, stored in the *config* object, as parameters describing
-how to perform the mapping.
+The **pmem2_unmap**() function allows releasing the mapping objects created via
+the **pmem2_map**() function. For details on creating the mapping objects
+please see **pmem2_map**(3) manual page.
 
-If the mapping succeeds a mapping object is created. The pointer to this newly
-created object is stored in the user-provided variable passed via the *map_ptr*
-pointer. If the mapping fails the variable pointed by *map_ptr* will contain a
-NULL value and appropriate error value will be returned. For a list of possible
-return values please see [RETURN VALUE](#return-value).
-
-All mapping objects created via the **pmem2_map**() function have to be released
-using the **pmem2_unmap**() function. For details please see **pmem2_umap**(3)
-manual page.
+The **pmem2_unmap**() function accepts a pointer to the variable, *map_ptr*,
+pointing the mapping object. If **pmem2_umap**() succeed the variable pointed
+by the *map_ptr* will contain a NULL value. If the function failed the variable
+pointed by *map_ptr* won't change its value and appropriate error value will be
+returned. For a list of possible return values please see
+[RETURN VALUE](#return-value).
 
 # RETURN VALUE #
 
@@ -79,4 +76,4 @@ one of the following error values:
 
 # SEE ALSO #
 
-**pmem2_umap**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_map(3)**, **libpmem2**(7) and **<http://pmem.io>**
