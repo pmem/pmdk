@@ -254,6 +254,7 @@ RPMEM_TESTS = \
 
 EXAMPLES_TESTS = \
 	ex_libpmem\
+	ex_libpmem2\
 	ex_libpmemblk\
 	ex_libpmemlog\
 	ex_libpmemobj\
