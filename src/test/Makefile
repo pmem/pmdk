@@ -223,8 +223,9 @@ PMEM_TESTS = \
 PMEM2_TESTS = \
 	pmem2_config\
 	pmem2_config_get_file_size\
-	pmem2_map\
-	pmem2_include
+	pmem2_include\
+	pmem2_integration\
+	pmem2_map
 
 PMEMPOOL_TESTS = \
 	pmempool_check\
