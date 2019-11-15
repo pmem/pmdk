@@ -67,6 +67,7 @@ RUN dnf install -y \
 	openssh-server \
 	pandoc \
 	pkgconfig \
+	python3-flake8 \
 	rpm-build \
 	rpm-build-libs \
 	rpmdevtools \
