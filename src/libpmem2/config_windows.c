@@ -81,10 +81,19 @@ pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
 		return 0;
 	}
 
-	BY_HANDLE_FILE_INFORMATION not_used;
-	if (!GetFileInformationByHandle(handle, &not_used)) {
+	BY_HANDLE_FILE_INFORMATION file_info;
+	if (!GetFileInformationByHandle(handle, &file_info)) {
 		ERR("!!GetFileInformationByHandle");
-		return pmem2_lasterror_to_err();
+
+		if (GetLastError() == ERROR_INVALID_HANDLE)
+			return PMEM2_E_INVALID_FILE_HANDLE;
+		else
+			return pmem2_lasterror_to_err();
+	}
+
+	if (file_info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+		ERR("cannot set directory handle in pmem2_config");
+		return PMEM2_E_INVALID_FILE_HANDLE;
 	}
 	/* XXX: winapi doesn't provide option to get open flags from HANDLE */
 	cfg->handle = handle;

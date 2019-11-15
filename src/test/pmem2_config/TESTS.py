@@ -80,3 +80,37 @@ class TEST8(PMEM2_CONFIG):
 class TEST9(PMEM2_CONFIG):
     """set invalid granularity in the config"""
     test_case = "config_set_granularity_invalid"
+
+@t.windows_only
+class TEST10(PMEM2_CONFIG):
+    """set handle in the config"""
+    test_case = "set_handle"
+
+@t.windows_only
+class TEST11(PMEM2_CONFIG):
+    """set INVALID_HANLE_VALUE in the config"""
+    test_case = "set_null_handle"
+
+@t.windows_only
+class TEST12(PMEM2_CONFIG):
+    """set invalid handle in the config"""
+    test_case = "set_invalid_handle"
+
+@t.windows_only
+class TEST13(PMEM2_CONFIG):
+    """set handle to a directory in the config"""
+    test_case = "set_directory_handle"
+    def run(self, ctx):
+        ctx.exec('pmem2_config', self.test_case, ctx.testdir)
+
+@t.windows_only
+class TEST14(PMEM2_CONFIG):
+    """set handle to a mutex in the config"""
+    test_case = "set_mutex_handle"
+
+@t.windows_exclude
+class TEST15(PMEM2_CONFIG):
+    """set directory's fd in the config"""
+    test_case = "set_directory_fd"
+    def run(self, ctx):
+       ctx.exec('pmem2_config', self.test_case, ctx.testdir)
