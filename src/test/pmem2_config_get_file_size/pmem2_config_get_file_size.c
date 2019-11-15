@@ -61,7 +61,7 @@ test_notset_fd(const char *ignored_path, os_off_t ignored_size)
 	size_t size;
 	int ret = pmem2_config_get_file_size(&cfg, &size);
 
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_FILE_HANDLE_NOT_SET);
 }
 
 static void
@@ -132,7 +132,7 @@ test_directory(const char *dir, os_off_t ignored)
 	size_t size;
 	int ret = pmem2_config_get_file_size(&cfg, &size);
 
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_TYPE);
 
 	CLOSE(fd);
 }

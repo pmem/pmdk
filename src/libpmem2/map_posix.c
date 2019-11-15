@@ -227,8 +227,8 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	*map_ptr = NULL;
 
 	if (cfg->fd == INVALID_FD) {
-		ERR("the provided file descriptor is invalid");
-		return PMEM2_E_INVALID_FILE_HANDLE;
+		ERR("file handle was not set");
+		return PMEM2_E_FILE_HANDLE_NOT_SET;
 	}
 
 	os_off_t off = (os_off_t)cfg->offset;
