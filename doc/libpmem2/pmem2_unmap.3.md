@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_MAP, 3)
+title: _MP(PMEM2_UNMAP, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_map.3 -- man page for libpmem2 pmem2_map operation)
+[comment]: <> (pmem2_unmap.3 -- man page for libpmem2 pmem2_unmap operation)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,70 +44,36 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_map**() - creates a mapping
+**pmem2_unmap**() - releases a mapping
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-int pmem2_map(const struct pmem2_config *config, struct pmem2_map **map_ptr);
+int pmem2_unmap(struct pmem2_map **map_ptr);
 ```
 
 # DESCRIPTION #
 
-The **pmem2_map**() function maps a file to the process virtual address space.
-It uses the values, stored in the *config* object, as parameters describing
-how to perform the mapping:
+The **pmem2_unmap**() function releases the mapping objects created via
+the **pmem2_map**() function. For details on creating the mapping objects
+please see **pmem2_map**(3) manual page.
 
-* *handle* - points a file to map (Windows only)
-
-* *file descriptor* - points a file to map (other systems). Note on Windows a
-file descriptor passed to **pmem2_config_set_fd**(3) is converted to
-corresponding *handle*. For details please see **pmem2_config_set_fd**(3)
-manual page.
-
-If the mapping succeeds a mapping object is created. The pointer to this newly
-created object is stored in the user-provided variable passed via the *map_ptr*
-pointer. If the mapping fails the variable pointed by *map_ptr* will contain a
-NULL value and appropriate error value will be returned. For a list of possible
-return values please see [RETURN VALUE](#return-value).
-
-All mapping objects created via the **pmem2_map**() function have to be released
-using the **pmem2_unmap**() function. For details please see **pmem2_unmap**(3)
-manual page.
+The **pmem2_unmap**() function accepts a pointer to the variable, *map_ptr*,
+pointing to the mapping object. If **pmem2_unmap**() succeeds the variable pointed
+by the *map_ptr* will contain a NULL value. If the function failed the variable
+pointed by *map_ptr* won't change its value and appropriate error value will be
+returned. For a list of possible return values please see
+[RETURN VALUE](#return-value).
 
 # RETURN VALUE #
 
 When **pmem2_map**() succeeds it returns **PMEM2_E_OK**. Otherwise, it returns
 one of the following error values:
 
-* **PMEM2_E_INVALID_FILE_HANDLE** - invalid *file descriptor* value in *config*
-
-* **PMEM2_E_INVALID_FILE_TYPE** - cannot determine a file type or it is not
-supported e.g. it is a directory
-
-* **PMEM2_E_MAP_RANGE** - *offset* + *length* is too big to represent it using
-*size_t* data type
-
-* **PMEM2_E_MAP_RANGE** - end of the mapping (*offset* + *length*) is outside
-of the file. The file is too small.
-
-* **PMEM2_E_MAPPING_EXISTS** - if the object exists before the function call.
-For details please see **CreateFileMappingA**() manual pages. (Windows only)
-
-It can also return **-EACCES**, **-EAGAIN**, **-EBADF**, **-ENFILE**,
-**-ENODEV**, **-ENOMEM**, **-EPERM**, **-ETXTBSY** from the underlying
-**mmap**(2) function. It is used with and without **MAP_ANONYMOUS**.
-
-**-EACCES** may be returned only if the file descriptor points to an
-append-only file. XXX
-
-It can also return all errors from the underlying
-**pmem2_config_get_file_size**() function.
+* **-EINVAL** - if the mapping object was already unmapped (Windows only)
 
 # SEE ALSO #
 
-**pmem2_unmap**(3), **pmem2_config_set_fd**(3),
-**pmem2_config_get_file_size**(3), **libpmem2**(7), **mmap**(2) and
-**<http://pmem.io>**
+**pmem2_map(3)**, **libpmem2**(7) and **<http://pmem.io>**
