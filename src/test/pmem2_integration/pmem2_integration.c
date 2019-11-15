@@ -166,7 +166,7 @@ test_default_fd(const struct test_case *tc, int argc, char *argv[])
 	/* set invalid file descriptor in config */
 	prepare_config(&cfg, -1);
 
-	map_invalid(cfg, PMEM2_E_INVALID_FILE_HANDLE);
+	map_invalid(cfg, PMEM2_E_FILE_HANDLE_NOT_SET);
 
 	/* cleanup after the test */
 	pmem2_config_delete(&cfg);

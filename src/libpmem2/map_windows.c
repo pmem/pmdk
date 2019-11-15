@@ -94,8 +94,8 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	*map_ptr = NULL;
 
 	if (cfg->handle == INVALID_HANDLE_VALUE) {
-		ERR("the provided file handle is invalid");
-		return PMEM2_E_INVALID_FILE_HANDLE;
+		ERR("file handle was not set");
+		return PMEM2_E_FILE_HANDLE_NOT_SET;
 	}
 
 	ret = pmem2_config_get_file_size(cfg, &file_size);

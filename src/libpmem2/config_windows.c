@@ -64,10 +64,35 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 		 * will not abort.
 		 */
 		ERR("!_get_osfhandle");
+		if (errno == EBADF)
+			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;
 	}
 
 	return pmem2_config_set_handle(cfg, handle);
+}
+
+/*
+ * pmem2_win_stat -- retrieve information about handle
+ */
+static int
+pmem2_win_stat(HANDLE handle, BY_HANDLE_FILE_INFORMATION *info)
+{
+	if (!GetFileInformationByHandle(handle, info)) {
+		ERR("!!GetFileInformationByHandle");
+		if (GetLastError() == ERROR_INVALID_HANDLE)
+			return PMEM2_E_INVALID_FILE_HANDLE;
+		else
+			return pmem2_lasterror_to_err();
+	}
+
+	if (info->dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+		ERR(
+			"using directory doesn't make any sense in context of pmem2");
+		return PMEM2_E_INVALID_FILE_TYPE;
+	}
+
+	return 0;
 }
 
 /*
@@ -82,19 +107,10 @@ pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
 	}
 
 	BY_HANDLE_FILE_INFORMATION file_info;
-	if (!GetFileInformationByHandle(handle, &file_info)) {
-		ERR("!!GetFileInformationByHandle");
+	int ret = pmem2_win_stat(handle, &file_info);
+	if (ret)
+		return ret;
 
-		if (GetLastError() == ERROR_INVALID_HANDLE)
-			return PMEM2_E_INVALID_FILE_HANDLE;
-		else
-			return pmem2_lasterror_to_err();
-	}
-
-	if (file_info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-		ERR("cannot set directory handle in pmem2_config");
-		return PMEM2_E_INVALID_FILE_HANDLE;
-	}
 	/* XXX: winapi doesn't provide option to get open flags from HANDLE */
 	cfg->handle = handle;
 	return 0;
@@ -111,20 +127,13 @@ pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size)
 
 	if (cfg->handle == INVALID_HANDLE_VALUE) {
 		ERR("cannot check size for invalid file handle");
-		return PMEM2_E_INVALID_FILE_HANDLE;
+		return PMEM2_E_FILE_HANDLE_NOT_SET;
 	}
 
 	BY_HANDLE_FILE_INFORMATION info;
-	if (!GetFileInformationByHandle(cfg->handle, &info)) {
-		ERR("!!GetFileInformationByHandle");
-		return pmem2_lasterror_to_err();
-	}
-
-	if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
-		ERR(
-			"asking for size of a directory doesn't make any sense in context of pmem");
-		return PMEM2_E_INVALID_FILE_HANDLE;
-	}
+	int ret = pmem2_win_stat(cfg->handle, &info);
+	if (ret)
+		return ret;
 
 	*size = ((size_t)info.nFileSizeHigh << 32) | info.nFileSizeLow;
 

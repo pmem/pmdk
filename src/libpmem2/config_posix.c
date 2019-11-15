@@ -55,6 +55,8 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 
 	if (flags == -1) {
 		ERR("!fcntl");
+		if (errno == EBADF)
+			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;
 	}
 
@@ -74,6 +76,8 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 
 	if (os_fstat(fd, &st) < 0) {
 		ERR("!fstat");
+		if (errno == EBADF)
+			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;
 	}
 
@@ -84,7 +88,7 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 
 	if (type == PMEM2_FTYPE_DIR) {
 		ERR("cannot set fd to directory in pmem2_config");
-		return PMEM2_E_INVALID_FILE_HANDLE;
+		return PMEM2_E_INVALID_FILE_TYPE;
 	}
 
 	cfg->fd = fd;
@@ -102,13 +106,15 @@ pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size)
 
 	if (cfg->fd == INVALID_FD) {
 		ERR("cannot check size for invalid file descriptor");
-		return PMEM2_E_INVALID_FILE_HANDLE;
+		return PMEM2_E_FILE_HANDLE_NOT_SET;
 	}
 
 	os_stat_t st;
 
 	if (os_fstat(cfg->fd, &st) < 0) {
 		ERR("!fstat");
+		if (errno == EBADF)
+			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;
 	}
 
@@ -121,7 +127,7 @@ pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size)
 		case PMEM2_FTYPE_DIR:
 			ERR(
 				"asking for size of a directory doesn't make any sense in context of pmem");
-			return PMEM2_E_INVALID_FILE_HANDLE;
+			return PMEM2_E_INVALID_FILE_TYPE;
 		case PMEM2_FTYPE_DEVDAX: {
 			int ret = pmem2_device_dax_size_from_stat(&st, size);
 			if (ret)

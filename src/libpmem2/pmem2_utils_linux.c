@@ -157,9 +157,10 @@ pmem2_device_dax_size_from_stat(const os_stat_t *st, size_t *size)
 
 	errno = 0;
 
-	*size = strtoull(sizebuf, &endptr, 0);
+	unsigned long long tmpsize;
+	tmpsize = strtoull(sizebuf, &endptr, 0);
 	if (endptr == sizebuf || *endptr != '\n' ||
-	    (*size == ULLONG_MAX && errno == ERANGE)) {
+	    (tmpsize == ULLONG_MAX && errno == ERANGE)) {
 		ERR("invalid device size '%s'", sizebuf);
 		errno = olderrno;
 		return -ERANGE;
@@ -167,6 +168,7 @@ pmem2_device_dax_size_from_stat(const os_stat_t *st, size_t *size)
 
 	errno = olderrno;
 
+	*size = tmpsize;
 	LOG(4, "device size %zu", *size);
 	return 0;
 }

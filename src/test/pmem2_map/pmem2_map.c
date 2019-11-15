@@ -369,11 +369,7 @@ test_map_invalid_fd(const struct test_case *tc, int argc, char *argv[])
 	prepare_config(&cfg, &fd, file, length, 0, O_RDWR);
 	CLOSE(fd);
 	int ret = pmem2_map(&cfg, &map);
-#ifdef _WIN32
-	UT_PMEM2_EXPECT_RETURN(ret, -EINVAL);
-#else
-	UT_PMEM2_EXPECT_RETURN(ret, -EBADF);
-#endif
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
 
 	return 1;
 }
@@ -392,7 +388,7 @@ test_map_empty_config(const struct test_case *tc, int argc, char *argv[])
 
 	config_init(&cfg);
 	int ret = pmem2_map(&cfg, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_FILE_HANDLE_NOT_SET);
 
 	return 1;
 }
