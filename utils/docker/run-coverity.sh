@@ -39,18 +39,6 @@ set -e
 # Prepare build environment
 ./prepare-for-build.sh
 
-# Coverity doesn't support gcc 7+, because of newly introduced _Float* types.
-# It manifests as number of "compilation units ready for analysis"
-# below 85% threshold and compile errors like these in cov-int/build-log.txt:
-#"/usr/include/math.h", line 381: error #20: identifier "_Float32" is undefined
-#  # define _Mdouble_		_Float32
-# Work around this by replacing gcc symlink with gcc-6. Setting CC/CXX
-# environment variables is unfortunately not enough.
-sudo rm /usr/bin/gcc
-sudo rm /usr/bin/g++
-sudo ln -s gcc-6 /usr/bin/gcc
-sudo ln -s g++-6 /usr/bin/g++
-
 # Download Coverity certificate
 echo -n | openssl s_client -connect scan.coverity.com:443 | \
 	sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | \
