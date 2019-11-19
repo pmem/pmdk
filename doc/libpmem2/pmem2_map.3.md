@@ -71,7 +71,7 @@ For details please see the **open**(3), **pmem2_config_set_fd**(3) and
 
     * Similarly, the handle has to be created with an access mode of
 *GENERIC_READ* or *(GENERIC_READ | GENERIC_WRITE)* and passed via
-**pmem2_config_set_handle**(3). For details please see the **CreateFileA**() and
+**pmem2_config_set_handle**(3). For details please see the **CreateFile**() and
 **pmem2_config_set_handle**(3) manual pages. (Windows only)
 
     The above functions are mutually exclusive, and only the last source set
