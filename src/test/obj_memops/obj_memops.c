@@ -36,6 +36,7 @@
  */
 
 #include <stddef.h>
+#include <libpmemobj.h>
 #include "obj.h"
 #include "memops.h"
 #include "ulog.h"
@@ -53,7 +54,6 @@ enum fail_types {
 };
 
 struct test_object {
-	uint8_t padding[CACHELINE_SIZE - 16]; /* align to a cacheline */
 	struct ULOG(TEST_ENTRIES) redo;
 	struct ULOG(TEST_ENTRIES) undo;
 	uint64_t values[TEST_VALUES];
@@ -80,7 +80,7 @@ redo_log_constructor(void *ctx, void *ptr, size_t usable_size, void *arg)
 static int
 pmalloc_redo_extend(void *base, uint64_t *redo, uint64_t gen_num)
 {
-	size_t s = SIZEOF_ULOG(TEST_ENTRIES);
+	size_t s = SIZEOF_ALIGNED_ULOG(TEST_ENTRIES);
 
 	return pmalloc_construct(base, redo, s, redo_log_constructor, &gen_num,
 		0, OBJ_INTERNAL_OBJECT_MASK, 0);
@@ -479,9 +479,9 @@ test_undo_log_reuse()
 		.memset = memset_libc,
 		.base = NULL,
 	};
-	struct ULOG(ULOG_SIZE) *first = util_aligned_malloc(64,
+	struct ULOG(ULOG_SIZE) *first = util_aligned_malloc(CACHELINE_SIZE,
 		SIZEOF_ULOG(ULOG_SIZE));
-	struct ULOG(ULOG_SIZE) *second = util_aligned_malloc(64,
+	struct ULOG(ULOG_SIZE) *second = util_aligned_malloc(CACHELINE_SIZE,
 		SIZEOF_ULOG(ULOG_SIZE));
 	ulog_construct((uint64_t)(first), ULOG_SIZE, 0, 0, 0, &ops);
 	ulog_construct((uint64_t)(second), ULOG_SIZE, 0, 0, 0, &ops);
@@ -569,7 +569,7 @@ main(int argc, char *argv[])
 	START(argc, argv, "obj_memops");
 
 	if (argc != 2)
-		UT_FATAL("usage: %s file-name", argv[0]);
+	UT_FATAL("usage: %s file-name", argv[0]);
 
 	const char *path = argv[1];
 
@@ -579,11 +579,31 @@ main(int argc, char *argv[])
 			PMEMOBJ_MIN_POOL * 10, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
-	struct test_object *object =
-		pmemobj_direct(pmemobj_root(pop, sizeof(struct test_object)));
+	/*
+	 * The ulog api is cacheline aligned dependent. Here is created a
+	 * cacheline aligned new allocation class to properly test the
+	 * ulog api. A properly aligned object can then be allocated using
+	 * pmemobj_xalloc.
+	 */
+	struct pobj_alloc_class_desc new_ac = {
+		.unit_size = sizeof(struct test_object),
+		.alignment = CACHELINE_SIZE,
+		.units_per_block = 1,
+		.header_type = POBJ_HEADER_NONE,
+	};
+	if (pmemobj_ctl_set(pop, "heap.alloc_class.new.desc", &new_ac) == -1)
+		UT_FATAL("Fail to set allocation class");
+
+	PMEMoid pobject;
+	if (pmemobj_xalloc(pop, &pobject, sizeof(struct test_object), 0,
+		POBJ_CLASS_ID(new_ac.class_id), NULL, NULL) == -1)
+		UT_FATAL("Fail to allocate object");
+
+	struct test_object *object = pmemobj_direct(pobject);
+
 	UT_ASSERTne(object, NULL);
 	ulog_construct(OBJ_PTR_TO_OFF(pop, &object->undo),
-		TEST_ENTRIES, 0, 0, 0, &pop->p_ops);
+			TEST_ENTRIES, 0, 0, 0, &pop->p_ops);
 
 	test_redo(pop, object);
 	test_undo(pop, object);
