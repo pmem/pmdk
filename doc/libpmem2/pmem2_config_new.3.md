@@ -80,5 +80,6 @@ Please see **libpmem2**(7) for detailed description of libpmem2 error codes.
 
 # SEE ALSO #
 
-**errno**(3), **pmem2_map**(3), _WINUX(=q=**pmem2_set_handle**(3), =e=)**pmem2_set_fd**(3), **libpmem2**(7)
-and **<http://pmem.io>**
+**errno**(3), **pmem2_map**(3), **pmem2_config_set_handle**(3),
+**pmem2_config_set_fd**(3), **pmem2_config_get_file_size**(3),
+**libpmem2**(7) and **<http://pmem.io>**
