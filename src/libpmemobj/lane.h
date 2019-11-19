@@ -78,9 +78,14 @@ extern "C" {
  * Thanks to this distribution, all small and medium transactions should be
  * entirely performed without allocating any additional metadata.
  */
-#define LANE_UNDO_SIZE 2048
-#define LANE_REDO_EXTERNAL_SIZE 640
-#define LANE_REDO_INTERNAL_SIZE 192
+#define LANE_UNDO_SIZE (LANE_TOTAL_SIZE \
+			- LANE_REDO_EXTERNAL_SIZE \
+			- LANE_REDO_INTERNAL_SIZE \
+			- 3 * sizeof(struct ulog))
+#define LANE_REDO_EXTERNAL_SIZE ALIGN_UP(704 - sizeof(struct ulog), \
+					CACHELINE_SIZE)
+#define LANE_REDO_INTERNAL_SIZE ALIGN_UP(256 - sizeof(struct ulog), \
+					CACHELINE_SIZE)
 
 struct lane_layout {
 	/*
