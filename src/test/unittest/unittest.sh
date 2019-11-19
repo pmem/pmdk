@@ -861,7 +861,7 @@ function expect_normal_exit() {
 
 	disable_exit_on_error
 
-	eval $ECHO LD_PRELOAD=$TEST_LD_PRELOAD $trace "$*"
+	eval $ECHO $trace "$*"
 	ret=$?
 
 	if [ $REMOTE_VALGRIND_LOG -eq 1 ]; then
@@ -945,8 +945,7 @@ function expect_abnormal_exit() {
 	fi
 
 	disable_exit_on_error
-	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" \
-		LD_PRELOAD=$TEST_LD_PRELOAD $TRACE "$*"
+	eval $ECHO ASAN_OPTIONS="detect_leaks=0 ${ASAN_OPTIONS}" $TRACE "$*"
 	ret=$?
 	restore_exit_on_error
 
@@ -1924,29 +1923,6 @@ function require_binary() {
 	fi
 
 	return
-}
-
-#
-# require_preload - continue script execution only if supplied
-#	executable does not generate SIGABRT
-#
-#	Used to check that LD_PRELOAD of, e.g., libvmmalloc is possible
-#
-#	usage: require_preload <errorstr> <executable> [<exec_args>]
-#
-function require_preload() {
-	msg=$1
-	shift
-	trap SIGABRT
-	disable_exit_on_error
-	ret=$(LD_PRELOAD=$TEST_LD_PRELOAD $* 2>&1 /dev/null)
-	ret=$?
-	restore_exit_on_error
-	if [ $ret == 134 ]; then
-		msg "$UNITTEST_NAME: SKIP: $msg not supported"
-		rm -f $1.core
-		exit 0
-	fi
 }
 
 #
