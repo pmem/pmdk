@@ -63,6 +63,13 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 		return PMEM2_E_INVALID_FILE_HANDLE;
 	}
 
+	/*
+	 * XXX Files opened as O_APPEND should also generate an error.
+	 * If it is possible to filter them out pmem2_map would not generate
+	 * -EACCESS trying to map them. Please update pmem2_map.3 when it will
+	 * be fixed.
+	 */
+
 	os_stat_t st;
 
 	if (os_fstat(fd, &st) < 0) {
