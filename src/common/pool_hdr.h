@@ -42,6 +42,8 @@
 #include <unistd.h>
 #include "uuid.h"
 #include "shutdown_state.h"
+#include "util.h"
+#include "page_size.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -125,7 +127,9 @@ typedef struct {
  * below are stored in little-endian byte order.
  */
 #define POOL_HDR_SIG_LEN 8
-
+#define POOL_HDR_UNUSED_SIZE 1904
+#define POOL_HDR_UNUSED2_SIZE 1976
+#define POOL_HDR_ALIGN_PAD (PMEM_PAGESIZE - 4096)
 struct pool_hdr {
 	char signature[POOL_HDR_SIG_LEN];
 	uint32_t major;			/* format major version number */
@@ -138,11 +142,15 @@ struct pool_hdr {
 	uuid_t next_repl_uuid;		/* next replica */
 	uint64_t crtime;		/* when created (seconds since epoch) */
 	struct arch_flags arch_flags;	/* architecture identification flags */
-	unsigned char unused[1904];	/* must be zero */
+	unsigned char unused[POOL_HDR_UNUSED_SIZE];	/* must be zero */
 	/* not checksumed */
-	unsigned char unused2[1976];	/* must be zero */
+	unsigned char unused2[POOL_HDR_UNUSED2_SIZE];	/* must be zero */
 	struct shutdown_state sds;	/* shutdown status */
 	uint64_t checksum;		/* checksum of above fields */
+
+#if PMEM_PAGESIZE > 4096 /* prevent zero size array */
+	unsigned char align_pad[POOL_HDR_ALIGN_PAD];	/* alignment pad */
+#endif
 };
 
 #define POOL_HDR_SIZE	(sizeof(struct pool_hdr))
