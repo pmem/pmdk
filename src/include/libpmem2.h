@@ -63,7 +63,6 @@
 extern "C" {
 #endif
 
-#define PMEM2_E_OK			(0)
 #define PMEM2_E_UNKNOWN			(-100000)
 #define PMEM2_E_NOSUPP			(-100001)
 #define PMEM2_E_INVALID_ARG		(-100002)

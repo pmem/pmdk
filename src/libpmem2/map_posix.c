@@ -144,7 +144,7 @@ map_reserve(size_t len, size_t alignment, void **reserv)
 			return PMEM2_E_ERRNO;
 		}
 
-	return PMEM2_E_OK;
+	return 0;
 }
 
 /*
@@ -171,7 +171,7 @@ file_map(void *reserv, size_t len, int proto, int flags,
 	if (*base != MAP_FAILED) {
 		LOG(4, "mmap with MAP_SYNC succeeded");
 		*map_sync = true;
-		return PMEM2_E_OK;
+		return 0;
 	}
 
 	/* try to mmap with MAP_SHARED flag (without MAP_SYNC) */
@@ -181,7 +181,7 @@ file_map(void *reserv, size_t len, int proto, int flags,
 				offset);
 		if (*base != MAP_FAILED) {
 			*map_sync = false;
-			return PMEM2_E_OK;
+			return 0;
 		}
 	}
 
@@ -210,7 +210,7 @@ unmap(void *addr, size_t len)
 		return PMEM2_E_ERRNO;
 	}
 
-	return PMEM2_E_OK;
+	return 0;
 }
 
 /*
@@ -221,7 +221,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 {
 	LOG(3, "cfg %p map_ptr %p", cfg, map_ptr);
 
-	int ret = PMEM2_E_OK;
+	int ret = 0;
 	struct pmem2_map *map;
 	size_t file_len;
 	*map_ptr = NULL;
@@ -277,7 +277,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	/* find a hint for the mapping */
 	void *reserv = NULL;
 	ret = map_reserve(length, alignment, &reserv);
-	if (ret != PMEM2_E_OK) {
+	if (ret != 0) {
 		LOG(1, "cannot find a contiguous region of given size");
 		return ret;
 	}
@@ -327,7 +327,7 @@ pmem2_unmap(struct pmem2_map **map_ptr)
 {
 	LOG(3, "map_ptr %p", map_ptr);
 
-	int ret = PMEM2_E_OK;
+	int ret = 0;
 	struct pmem2_map *map = *map_ptr;
 
 	ret = unmap(map->addr, map->length);

@@ -88,7 +88,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 {
 	LOG(3, "cfg %p map_ptr %p", cfg, map_ptr);
 
-	int ret = PMEM2_E_OK;
+	int ret = 0;
 	unsigned long err = 0;
 	size_t file_size;
 	*map_ptr = NULL;
@@ -186,5 +186,5 @@ pmem2_unmap(struct pmem2_map **map_ptr)
 	Free(map);
 	*map_ptr = NULL;
 
-	return PMEM2_E_OK;
+	return 0;
 }

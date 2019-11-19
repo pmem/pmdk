@@ -91,7 +91,7 @@ be destroyed using the **pmem2_unmap**() function. For details please see
 
 # RETURN VALUE #
 
-When **pmem2_map**() succeeds it returns **PMEM2_E_OK**. Otherwise, it returns
+When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
 one of the following error values:
 
 * **PMEM2_E_INVALID_FILE_HANDLE** - invalid *file descriptor* value in *config*

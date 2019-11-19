@@ -181,7 +181,7 @@ test_map_rdrw_file(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_map *map;
 	int ret = pmem2_map(&cfg, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	unmap_map(map);
 	FREE(map);
@@ -206,7 +206,7 @@ test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_map *map;
 	int ret = pmem2_map(&cfg, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	unmap_map(map);
 	FREE(map);
@@ -253,7 +253,7 @@ map_valid_ranges_common(const char *file, size_t offset, size_t length,
 
 	prepare_config(&cfg, &fd, file, length, offset, O_RDWR);
 	ret = pmem2_map(&cfg, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(map->length, val_length);
 
 	unmap_map(map);
@@ -416,7 +416,7 @@ test_unmap_valid(const struct test_case *tc, int argc, char *argv[])
 
 	/* unmap the valid mapping */
 	int ret = pmem2_unmap(&map);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(map, NULL);
 	CLOSE(fd);
 

@@ -66,7 +66,7 @@ pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
 	if (!(*length))
 		*length = file_len - cfg->offset;
 
-	return PMEM2_E_OK;
+	return 0;
 }
 
 /*
