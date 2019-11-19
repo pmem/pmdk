@@ -76,17 +76,29 @@ If *handle* is INVALID_HANDLE_VALUE, file descriptor (or handle on Windows) in *
 **pmem2_config_set_fd**() and **pmem2_config_set_handle**() functions return 0 on success or one of the error values listed in the next section.
 
 # ERRORS #
-The **pmem2_config_set_fd**() function can return following errors:
+The **pmem2_config_set_fd**() function can return the following errors:
 
- * **-EBADF** - *fd* is not an open file descriptor. On Windows the function can **abort**() on this failure based on CRT's abort() behavior.
+ * **PMEM2_E_INVALID_FILE_HANDLE** - *fd* is not an open file descriptor. On Windows the function can **abort**() on this failure based on CRT's abort() behavior.
 
  * **PMEM2_E_INVALID_FILE_HANDLE** - *fd* is opened in O_WRONLY mode.
 
-On Windows it can return all errors from the underlying **pmem2_config_set_handle**() function.
+On Linux:
 
-The **pmem2_config_set_handle**() can return following errors:
+ * **PMEM2\_E\_INVALID\_FILE\_TYPE** - *fd* points to a directory, block device, pipe, or socket.
 
- * **PMEM2_E_INVALID_FILE_HANDLE** - *handle* is not a file handle.
+ * **PMEM2\_E\_INVALID\_FILE\_TYPE** - *fd* points to a character device other than Device DAX.
+
+On Windows:
+
+ * **PMEM2\_E\_INVALID\_FILE\_TYPE** - *handle* points to a resource that is not a regular file.
+
+On Windows **pmem2_config_set_fd**() can return all errors from the underlying **pmem2_config_set_handle**() function.
+
+The **pmem2_config_set_handle**() can return the following errors:
+
+ * **PMEM2\_E\_INVALID\_FILE\_HANDLE** - *handle* points to a resource that is not a file.
+
+ * **PMEM2\_E\_INVALID\_FILE\_TYPE** - *handle* points to a directory.
 
 # SEE ALSO #
 **errno**(3), **pmem2_map**(3), **libpmem2**(7)
