@@ -49,6 +49,52 @@
 #include "util.h"
 
 /*
+ * cpy128 -- (internal) copy 128 bytes from src to dst
+ */
+static force_inline void
+cpy128(uint64_t *dst, const uint64_t *src)
+{
+	/*
+	 * We use atomics here just to be sure compiler will not split stores.
+	 * Order of stores doesn't matter.
+	 */
+	uint64_t tmp[16];
+	util_atomic_load_explicit64(&src[0], &tmp[0], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[1], &tmp[1], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[2], &tmp[2], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[3], &tmp[3], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[4], &tmp[4], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[5], &tmp[5], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[6], &tmp[6], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[7], &tmp[7], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[8], &tmp[8], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[9], &tmp[9], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[10], &tmp[10], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[11], &tmp[11], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[12], &tmp[12], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[13], &tmp[13], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[14], &tmp[14], memory_order_relaxed);
+	util_atomic_load_explicit64(&src[15], &tmp[15], memory_order_relaxed);
+
+	util_atomic_store_explicit64(&dst[0], tmp[0], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[1], tmp[1], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[2], tmp[2], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[3], tmp[3], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[4], tmp[4], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[5], tmp[5], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[6], tmp[6], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[7], tmp[7], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[8], tmp[8], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[9], tmp[9], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[10], tmp[10], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[11], tmp[11], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[12], tmp[12], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[13], tmp[13], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[14], tmp[14], memory_order_relaxed);
+	util_atomic_store_explicit64(&dst[15], tmp[15], memory_order_relaxed);
+}
+
+/*
  * cpy64 -- (internal) copy 64 bytes from src to dst
  */
 static force_inline void
@@ -133,6 +179,14 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 		uint64_t *dst8 = (uint64_t *)cdst;
 		const uint64_t *src8 = (const uint64_t *)csrc;
 
+		while (len >= 128 && CACHELINE_SIZE == 128) {
+			cpy128(dst8, src8);
+			pmem_flush_flags(dst8, 128, flags);
+			len -= 128;
+			dst8 += 16;
+			src8 += 16;
+		}
+
 		while (len >= 64) {
 			cpy64(dst8, src8);
 			pmem_flush_flags(dst8, 64, flags);
@@ -177,6 +231,14 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 
 		uint64_t *dst8 = (uint64_t *)cdst;
 		const uint64_t *src8 = (const uint64_t *)csrc;
+
+		while (len >= 128 && CACHELINE_SIZE == 128) {
+			dst8 -= 16;
+			src8 -= 16;
+			cpy128(dst8, src8);
+			pmem_flush_flags(dst8, 128, flags);
+			len -= 128;
+		}
 
 		while (len >= 64) {
 			dst8 -= 8;
