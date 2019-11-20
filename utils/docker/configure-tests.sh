@@ -103,7 +103,7 @@ else
 	echo "Skipping remote tests"
 	echo
 	echo "Removing all libfabric.pc files in order to simulate that libfabric is not installed:"
-	find /usr -name "libfabric.pc" 2>/dev/null
+	find /usr -name "libfabric.pc" 2>/dev/null || true
 	echo $USERPASS | sudo -S sh -c 'find /usr -name "libfabric.pc" -exec rm -f {} + 2>/dev/null'
 fi
 
