@@ -32,50 +32,28 @@
 #
 
 #
-# src/test/pmem_movnt_align/TEST1 -- unit test for pmem_memcpy_persist
-# with valgrind pmemcheck tool
+# src/test/pmem_movnt_align/TEST0 -- unit test for pmem_memcpy_persist
 #
 
 . ../unittest/unittest.sh
 
 require_test_type medium
-require_x86_64
 
 require_fs_type pmem non-pmem
-require_build_type debug nondebug
-configure_valgrind pmemcheck force-enable
-export VALGRIND_OPTS="--mult-stores=yes"
+require_build_type debug static-debug
+
 setup
 
-export PMEM_LOG_LEVEL=15
+export PMEM_LOG_LEVEL=4
 
 function test() {
-	expect_normal_exit ./pmem_movnt_align$EXESUFFIX C 0
-	expect_normal_exit ./pmem_movnt_align$EXESUFFIX F 0
-	expect_normal_exit ./pmem_movnt_align$EXESUFFIX B 0
-	expect_normal_exit ./pmem_movnt_align$EXESUFFIX S 0
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX C 1
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX F 1
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX B 1
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX S 1
 }
 
-function test_all() {
-	unset PMEM_MOVNT_THRESHOLD
-	test
-
-	export PMEM_MOVNT_THRESHOLD=0
-	test
-
-	export PMEM_MOVNT_THRESHOLD=99999
-	test
-}
-
-test_all
-
-export PMEM_AVX512F=1
-
-test_all
-
-export PMEM_AVX=1
-
-test_all
+test
 
 export PMEM_NO_MOVNT=1
 export PMEM_NO_GENERIC_MEMCPY=1
