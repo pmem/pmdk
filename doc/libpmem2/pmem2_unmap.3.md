@@ -67,7 +67,7 @@ return values please see [RETURN VALUE](#return-value).
 
 # RETURN VALUE #
 
-When **pmem2_map**() succeeds it returns **PMEM2_E_OK**. Otherwise, it returns
+When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
 one of the following error values:
 
 * **-EINVAL** - if the mapping object was already unmapped (Windows only)

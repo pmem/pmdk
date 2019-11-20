@@ -44,11 +44,11 @@ static void
 prepare_config(struct pmem2_config **cfg, int fd)
 {
 	int ret = pmem2_config_new(cfg);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	if (fd != -1) {
 		ret = pmem2_config_set_fd(*cfg, fd);
-		UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+		UT_PMEM2_EXPECT_RETURN(ret, 0);
 	}
 }
 
@@ -72,7 +72,7 @@ map_valid(struct pmem2_config *cfg, size_t size)
 {
 	struct pmem2_map *map = NULL;
 	int ret = pmem2_map(cfg, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map, NULL);
 	UT_ASSERTeq(pmem2_map_get_size(map), size);
 
@@ -135,7 +135,7 @@ test_reuse_cfg_with_diff_fd(const struct test_case *tc, int argc, char *argv[])
 
 	/* set another valid file descriptor in config */
 	int ret = pmem2_config_set_fd(cfg, fd2);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OK);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	size_t size2;
 	UT_ASSERTeq(pmem2_config_get_file_size(cfg, &size2), 0);
