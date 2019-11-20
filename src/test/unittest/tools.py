@@ -31,8 +31,6 @@
 #
 """External tools integration"""
 
-
-import os
 import sys
 import subprocess as sp
 
@@ -45,24 +43,30 @@ except ImportError:
     # if file doesn't exist create dummy object
     envconfig = {'GLOBAL_LIB_PATH': ''}
 
-PMEMDETECT_FALSE = 0
-PMEMDETECT_TRUE = 1
-PMEMDETECT_ERROR = 2
 
+class Tools:
+    PMEMDETECT_FALSE = 0
+    PMEMDETECT_TRUE = 1
+    PMEMDETECT_ERROR = 2
 
-def pmemdetect(ctx, *args):
-    env = os.environ.copy()
+    def __init__(self, env, build):
+        self.env = env
+        self.build = build
+        global_lib_path = envconfig['GLOBAL_LIB_PATH']
 
-    if sys.platform == 'win32':
-        env['PATH'] = envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
-            ctx.build.libdir + os.pathsep +\
-            env.get('PATH', '')
-    else:
-        env['LD_LIBRARY_PATH'] = envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
-            ctx.build.libdir + os.pathsep +\
-            env.get('LD_LIBRARY_PATH', '')
+        if sys.platform == 'win32':
+            futils.add_env_common(self.env, {'PATH': build.libdir})
+            futils.add_env_common(self.env, {'PATH': global_lib_path})
+        else:
+            futils.add_env_common(self.env, {'LD_LIBRARY_PATH': build.libdir})
+            futils.add_env_common(self.env,
+                                  {'LD_LIBRARY_PATH': global_lib_path})
 
-    exe = futils.get_test_tool_path(ctx, 'pmemdetect')
+    def _run_test_tool(self, name, *args):
+        exe = futils.get_test_tool_path(self.build, name)
 
-    return sp.run([exe, *args], env=env, stdout=sp.PIPE,
-                  stderr=sp.STDOUT, universal_newlines=True)
+        return sp.run([exe, *args], env=self.env, stdout=sp.PIPE,
+                      stderr=sp.STDOUT, universal_newlines=True)
+
+    def pmemdetect(self, *args):
+        return self._run_test_tool('pmemdetect', *args)

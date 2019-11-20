@@ -37,9 +37,9 @@ import futils
 import testframework as t
 
 
-class EX_LIBPMEM2(t.BaseTest):
+@t.require_build(['debug', 'release'])
+class EX_LIBPMEM2(t.Test):
     test_type = t.Medium
-    build = [t.Debug, t.Release]
 
     def get_path(self, ctx, file_name):
         path = futils.get_examples_dir(ctx)

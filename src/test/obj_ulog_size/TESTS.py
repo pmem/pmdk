@@ -35,9 +35,9 @@
 import testframework as t
 
 
-class BASE(t.BaseTest):
+@t.require_build(['debug', 'release'])
+class BASE(t.Test):
     test_type = t.Medium
-    build = [t.Debug, t.Release]
 
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
@@ -45,14 +45,16 @@ class BASE(t.BaseTest):
         ctx.exec('obj_ulog_size', filepath, filepath1)
 
 
+@t.require_valgrind_disabled(['memcheck', 'pmemcheck'])
 class TEST0(BASE):
-    memcheck = t.DISABLE
-    pmemcheck = t.DISABLE
+    pass
 
 
+@t.require_valgrind_enabled('memcheck')
 class TEST1(BASE):
-    memcheck = t.ENABLE
+    pass
 
 
+@t.require_valgrind_enabled('pmemcheck')
 class TEST2(BASE):
-    pmemcheck = t.ENABLE
+    pass

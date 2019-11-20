@@ -33,8 +33,6 @@
 """Base tests class and its functionalities"""
 
 import builtins
-import itertools
-import shutil
 import subprocess as sp
 import sys
 import re
@@ -42,9 +40,9 @@ import os
 from datetime import datetime
 from os import path
 
-import context as ctx
+from configurator import Configurator
 import futils
-import valgrind as vg
+import test_types
 
 
 if not hasattr(builtins, 'testcases'):
@@ -56,12 +54,13 @@ def get_testcases():
     return builtins.testcases
 
 
-# test case attributes that refer to selected context classes, their
-# respective config field names and context base classes
-CTX_COMPONENTS = (
-    ('build', ctx._Build),
-    ('fs', ctx._Fs)
-)
+def _test_string_repr(cls):
+    """
+    Implementation of __str__ method for the test class. Needs to be available
+    both for initialized (as a BaseTest instance method)
+    as well as uninitialized object (as a _TestCase metaclass method)
+    """
+    return '{}/{}'.format(cls.group, cls.name)
 
 
 class Any:
@@ -89,109 +88,118 @@ class _TestCase(type):
 
         # globally register class as test case
         # only classes whose names start with 'TEST' are meant to be run
-        if cls.__name__.startswith('TEST'):
+        cls.name = cls.__name__
+        if cls.name.startswith('TEST'):
             builtins.testcases.append(cls)
             try:
-                cls.testnum = int(cls.__name__.replace('TEST', ''))
+                cls.testnum = int(cls.name.replace('TEST', ''))
             except ValueError as e:
                 print('Invalid test class name {}, should be "TEST[number]"'
                       .format(cls.name))
                 raise e
 
-        # expand values of context classes attributes
-        for attr, _ in CTX_COMPONENTS:
-            if hasattr(cls, attr):
-                val = getattr(cls, attr)
-                if isinstance(val, list):
-                    val = ctx.expand(*val)
-                setattr(cls, attr, val)
+            if cls.__module__ == '__main__':
+                cls.cwd = path.dirname(path.abspath(sys.argv[0]))
+            else:
+                cls.cwd = cls.__module__
 
-        cls.name = cls.__name__
+            cls.group = path.basename(cls.cwd)
+            cls.tc_dirname = cls.group + '_' + str(cls.testnum)
+
+    def __str__(cls):
+        return _test_string_repr(cls)
 
 
 class BaseTest(metaclass=_TestCase):
-    """Every test case need to inherit from this class"""
-    test_type = ctx.Medium
-    memcheck, pmemcheck, drd, helgrind = vg.AUTO, vg.AUTO, vg.AUTO, vg.AUTO
-    valgrind = None
+    """
+    Framework base test class. Every test case needs to (directly or
+    indirectly) inherit from this class. Since this class implements only
+    very abstract test behaviour, it is advised for particular test cases
+    to use Test class inheriting from it.
+    """
+    enabled = True
+
+    def __init__(self):
+        self.ctx = None
+
+    def __str__(self):
+        return _test_string_repr(self)
+
+    def _execute(self, c):
+        """
+        Implementation of basic single contextualized test execution workflow.
+        Called by the test runner.
+        """
+        self.ctx = c
+
+        try:
+            self.ctx.setup()
+            self.setup()
+
+            start_time = datetime.now()
+            self.run(c)
+            self.elapsed = (datetime.now() - start_time).total_seconds()
+
+            self.ctx.check()
+            self.check()
+
+        except futils.Fail:
+            self._on_fail()
+            raise
+
+        except futils.Skip:
+            self.ctx.clean()
+            self.clean()
+            raise
+
+        except sp.TimeoutExpired:
+            msg = '{}: {}TIMEOUT{}\t({})'.format(self, futils.Color.RED,
+                                                 futils.Color.END,
+                                                 self.ctx)
+            raise futils.Fail(msg)
+
+        else:
+            self.ctx.clean()
+            self.clean()
+
+    def setup(self):
+        """Test setup - not implemented by BaseTest"""
+        pass
+
+    def run(self, ctx):
+        """
+        Main test body, run with specific context provided through
+        Context class instance. Needs to be implemented by each test
+        """
+        raise NotImplementedError('{} does not implement run() method'.format(
+            self.__class__))
+
+    def check(self):
+        """Run additional test checks - not implemented by BaseTest"""
+        pass
+
+    def clean(self):
+        """Test cleanup - not implemented by BaseTest"""
+        pass
+
+    def _on_fail(self):
+        """Custom behaviour on test fail - not implemented by BaseTest"""
+        pass
+
+
+class Test(BaseTest):
+    """
+    Generic implementation of BaseTest scaffolding used by particular test
+    case classes as a base.
+    """
+    test_type = test_types.Medium
     memcheck_check_leaks = True
     match = True
-    enabled = True
-    ld_preload = ''
 
-    def __repr__(self):
-        return '{}/{}'.format(self.group, self.__class__.__name__)
-
-    def __init__(self, config):
-        if self.__module__ == '__main__':
-            self.cwd = path.dirname(path.abspath(sys.argv[0]))
-        else:
-            self.cwd = self.__module__
-
-        self.config = config
-        self.msg = futils.Message(config)
-        self.group = path.basename(self.cwd)
-
-        self.testdir = self.group + '_' + str(self.testnum)
-        self.utenv = self._get_utenv()
-        self._ctx_attrs_init()
-
-        if self.test_type not in self.config.test_type:
-            self.enabled = False
-
-    def _ctx_attrs_init(self):
-        """
-        Initialize test class attributes referring to selected context
-        parameters (like build, fs). If attribute was not set by subclassing
-        test, its value is set to respective config value. If it was set,
-        it is filtered through config values.
-        """
-
-        for attr, base in CTX_COMPONENTS:
-            conf_val = getattr(self.config, attr)
-            if hasattr(self, attr):
-                test_val = getattr(self, attr)
-                if test_val == Any:
-                    ctx_val = Any.get(conf_val)
-                else:
-                    ctx_val = futils.filter_contexts(conf_val, test_val)
-            else:
-                ctx_val = futils.filter_contexts(conf_val, None)
-            setattr(self, attr, ctx.expand(*ctx_val))
-
-        self._valgrind_init()
-
-    def _valgrind_init(self):
-        vg_tool = vg.enabled_tool(self)
-
-        if sys.platform == 'win32':
-            if vg_tool:
-                self.enabled = False
-            return
-
-        if self.config.force_enable:
-            if vg_tool and vg_tool != self.config.force_enable:
-                raise futils.Skip(
-                    "{}: SKIP: test enables the '{}' Valgrind tool while "
-                    "execution configuration forces '{}'"
-                    .format(self, vg_tool, self.config.force_enable))
-
-            elif self.config.force_enable in vg.disabled_tools(self):
-                raise futils.Skip(
-                      "{}: SKIP: forced Valgrind tool '{}' is disabled by test"
-                      .format(self, self.config.force_enable))
-
-            else:
-                vg_tool = self.config.force_enable
-
-        self.valgrind = vg.Valgrind(vg_tool, self.cwd, self.testnum)
-
-    def _init_context(self, **ctx_params):
-        """Initialize context class using provided parameters"""
-        fs = ctx_params['fs'](self.config)
-        build = ctx_params['build'](self.config)
-        return ctx.Context(self, self.config, fs=fs, build=build,
-                           valgrind=self.valgrind)
+    def __init__(self):
+        super().__init__()
+        self.config = Configurator().config
+        self.msg = futils.Message(self.config.unittest_log_level)
 
     def _get_utenv(self):
         """Get environment variables values used by C test framework"""
@@ -201,78 +209,47 @@ class BaseTest(metaclass=_TestCase):
             'UNITTEST_NUM': str(self.testnum)
         }
 
-    def _execute(self):
+    def get_log_files(self):
         """
-        Execute test for each context, return 1 if at least
-        one test failed
+        Returns names of all log files for given test
         """
-        failed = False
-        ctx_params = itertools.product(self.fs, self.build)
-        for cp in ctx_params:
-            ctx_str = '{}/{}/{}'.format(self.test_type, cp[0], cp[1])
-            if self.valgrind:
-                ctx_str = '{}/{}'.format(ctx_str, self.valgrind)
-            c = None
-            try:
-                self.msg.print('{}: SETUP\t({})'.format(self, ctx_str))
-                c = self._init_context(fs=cp[0], build=cp[1])
+        pattern = r'.*[a-zA-Z_]{}\.log'
+        log_files = []
+        files = os.scandir(self.cwd)
+        for file in files:
+            match = re.fullmatch(pattern.format(self.testnum), file.name)
+            if match:
+                log = path.abspath(path.join(self.cwd, file.name))
+                log_files.append(log)
+        return log_files
 
-                if self.valgrind:
-                    self.valgrind.verify()
+    def _print_log_files(self):
+        """
+        Prints all log files for given test
+        """
+        log_files = self.get_log_files()
+        for file in log_files:
+            with open(file) as f:
+                self.ctx.dump_n_lines(f)
 
-                # removes old log files, to make sure that logs made by test
-                # are up to date
-                self.remove_log_files()
-                self.clean(c)
+    def remove_log_files(self):
+        """
+        Removes log files for given test
+        """
+        log_files = self.get_log_files()
+        for file in log_files:
+            os.remove(file)
 
-                self.setup(c)
-                start_time = datetime.now()
-                self.run(c)
-                self.elapsed = (datetime.now() - start_time).total_seconds()
-                self.check()
-
-            except futils.Fail as f:
-                failed = True
-                print(f)
-                self._print_log_files(c)
-                print('{}: {}FAILED{}\t({})'.format(self, futils.Color.RED,
-                                                    futils.Color.END, ctx_str))
-                if not self.config.keep_going:
-                    sys.exit(1)
-
-            except futils.Skip as s:
-                print('{}: SKIP: {}'.format(self, s))
-                if c:
-                    self.clean(c)
-
-            except sp.TimeoutExpired:
-                failed = True
-                print('{}: {}TIMEOUT{}\t({})'.format(self, futils.Color.RED,
-                                                     futils.Color.END,
-                                                     ctx_str))
-                if not self.config.keep_going:
-                    sys.exit(1)
-
-            else:
-                self._test_passed()
-                self.clean(c)
-
-        if failed:
-            return 1
-        return 0
-
-    def setup(self, ctx):
+    def setup(self):
         """Test setup"""
-        if not path.exists(ctx.testdir):
-            os.makedirs(ctx.testdir)
+        self.env = {}
+        self.env.update(self._get_utenv())
+        self.ctx.add_env(self.env)
 
-    def run(self, ctx):
-        """
-        Main test body, run with specific context provided through
-        Context class instance. Needs to be implemented by each test
-        """
-        raise NotImplementedError('{} does not implement run() method'.format(
-            self.__class__))
+        self.remove_log_files()
+
+    def _on_fail(self):
+        self._print_log_files()
 
     def check(self):
         """Run additional test checks"""
@@ -304,48 +281,3 @@ class BaseTest(metaclass=_TestCase):
                 futils.fail(proc.stdout, exit_code=proc.returncode)
             else:
                 self.msg.print_verbose(proc.stdout)
-
-    def clean(self, ctx):
-        """Remove directory, even if it is not empty"""
-        shutil.rmtree(ctx.testdir, ignore_errors=True)
-
-    def _test_passed(self):
-        """Print message specific for passed test"""
-        if self.config.tm:
-            tm = '\t\t\t[{:06.3F} s]'.format(self.elapsed)
-        else:
-            tm = ''
-
-        self.msg.print('{}: {}PASS{} {}'
-                       .format(self, futils.Color.GREEN, futils.Color.END, tm))
-
-    def get_log_files(self):
-        """
-        Returns names of all log files for given test
-        """
-        pattern = r'.*[a-zA-Z_]{}\.log'
-        log_files = []
-        files = os.scandir(self.cwd)
-        for file in files:
-            match = re.fullmatch(pattern.format(self.testnum), file.name)
-            if match:
-                log = path.abspath(path.join(self.cwd, file.name))
-                log_files.append(log)
-        return log_files
-
-    def _print_log_files(self, ctx):
-        """
-        Prints all log files for given test
-        """
-        log_files = self.get_log_files()
-        for file in log_files:
-            with open(file) as f:
-                ctx.dump_n_lines(f)
-
-    def remove_log_files(self):
-        """
-        Removes log files for given test
-        """
-        log_files = self.get_log_files()
-        for file in log_files:
-            os.remove(file)

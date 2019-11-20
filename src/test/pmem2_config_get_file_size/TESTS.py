@@ -35,14 +35,14 @@
 import testframework as t
 
 
-class TEST0(t.BaseTest):
+class TEST0(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
         ctx.exec('pmem2_config_get_file_size', 'notset_fd', 'x', '0')
 
 
-class TEST1(t.BaseTest):
+class TEST1(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
@@ -52,7 +52,7 @@ class TEST1(t.BaseTest):
                  filepath, str(size))
 
 
-class TEST2(t.BaseTest):
+class TEST2(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
@@ -64,7 +64,7 @@ class TEST2(t.BaseTest):
 
 # "open" fails for directories
 @t.windows_exclude
-class TEST3(t.BaseTest):
+class TEST3(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
@@ -72,7 +72,7 @@ class TEST3(t.BaseTest):
 
 
 @t.linux_only
-class TEST4(t.BaseTest):
+class TEST4(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
@@ -82,7 +82,7 @@ class TEST4(t.BaseTest):
 
 # XXX implement support for Device DAX
 # @t.linux_only
-# class TEST99(t.BaseTest):
+# class TEST99(t.Test):
 #     test_type = t.Short
 #
 #     def run(self, ctx):
