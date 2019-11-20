@@ -194,7 +194,7 @@ util_file_dir_close(struct dir_handle *handle)
 }
 
 /*
- * util_file_dir_close -- remove directory
+ * util_file_dir_remove -- remove directory
  */
 int
 util_file_dir_remove(const char *path)
