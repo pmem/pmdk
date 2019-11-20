@@ -41,12 +41,13 @@ import importlib.util as importutil
 import os
 import sys
 
-from testframework import Configurator, run_tests_common
+from testframework import Configurator
+from RUNTESTS import run_tests_common
 
 
 def run_testcases():
     """Parse user configuration, run test cases"""
-    config = Configurator().parse_config()
+    config = Configurator().config
     testcases = builtins.testcases
     return run_tests_common(testcases, config)
 

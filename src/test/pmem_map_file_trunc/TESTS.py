@@ -36,9 +36,9 @@ import testframework as t
 import os
 
 
-class TEST0(t.BaseTest):
+@t.require_build(['debug', 'release'])
+class TEST0(t.Test):
     test_type = t.Short
-    build = [t.Debug, t.Release]
 
     def run(self, ctx):
         ctx.exec('pmem_map_file_trunc', os.path.join(ctx.testdir, 'testfile'))

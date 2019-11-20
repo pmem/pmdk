@@ -35,7 +35,7 @@
 import testframework as t
 
 
-class BASIC(t.BaseTest):
+class BASIC(t.Test):
     test_type = t.Medium
 
     def run(self, ctx):
@@ -43,9 +43,11 @@ class BASIC(t.BaseTest):
         ctx.exec('obj_basic_integration', filepath)
 
 
+@t.require_valgrind_disabled('memcheck')
 class TEST0(BASIC):
-    memcheck = t.DISABLE
+    pass
 
 
+@t.require_valgrind_enabled('pmemcheck')
 class TEST1(BASIC):
-    pmemcheck = t.ENABLE
+    pass
