@@ -35,7 +35,7 @@
 import testframework as t
 
 
-class PMEM2_INTEGRATION(t.BaseTest):
+class PMEM2_INTEGRATION(t.Test):
     test_type = t.Medium
 
     def run(self, ctx):
@@ -79,7 +79,7 @@ class TEST3(PMEM2_INTEGRATION):
         ctx.exec('pmem2_integration', self.test_case, filepath1, filepath2)
 
 
+@t.require_valgrind_enabled('pmemcheck')
 class TEST4(PMEM2_INTEGRATION):
     """check if Valgrind registers data writing on pmem"""
     test_case = "test_register_pmem"
-    pmemcheck = t.ENABLE

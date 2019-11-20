@@ -37,8 +37,11 @@ import string
 import sys
 from datetime import timedelta
 
+import builds
 import context as ctx
+import filesystems
 import futils
+import test_types
 import valgrind as vg
 
 try:
@@ -150,9 +153,9 @@ def _str2ctx(config):
             classes = [class_from_string(cl, base) for cl in config[key]]
             config[key] = ctx.expand(*classes)
 
-    convert_internal('build', ctx._Build)
-    convert_internal('test_type', ctx._TestType)
-    convert_internal('fs', ctx._Fs)
+    convert_internal('build', builds.Build)
+    convert_internal('test_type', test_types._TestType)
+    convert_internal('fs', filesystems.Fs)
 
     if config['force_enable'] is not None:
         config['force_enable'] = next(
@@ -164,7 +167,7 @@ class Configurator():
     """Parser for user test configuration"""
 
     def __init__(self):
-        self.argparser = self._init_argparser()
+        self.config = self.parse_config()
 
     def parse_config(self):
         """
@@ -172,6 +175,7 @@ class Configurator():
         composed from 2 config values - values from testconfig.py file
         and values provided by command line args.
         """
+        self.argparser = self._init_argparser()
         try:
             args_config = self._get_args_config()
 
@@ -241,14 +245,15 @@ class Configurator():
                             help='continue execution despite test fails')
         parser.add_argument('-b', dest='build',
                             help='run only specified build type',
-                            choices=ctx_choices(ctx._Build), nargs='*')
+                            choices=ctx_choices(builds.Build), nargs='*')
         parser.add_argument('-f', dest='fs',
-                            choices=ctx_choices(ctx._Fs), nargs='*',
+                            choices=ctx_choices(filesystems.Fs), nargs='*',
                             help='run tests on specified filesystem types.')
         parser.add_argument('-t', dest='test_type',
                             help='run only specified test type where'
                             'check = short + medium',
-                            choices=ctx_choices(ctx._TestType), nargs='*')
+                            choices=ctx_choices(test_types._TestType),
+                            nargs='*')
         parser.add_argument('-o', dest='timeout',
                             help="set timeout for test execution timeout:"
                             "integer with an optional suffix:''s' for seconds,"
