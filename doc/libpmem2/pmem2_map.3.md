@@ -106,7 +106,7 @@ supported e.g. it is a directory
 of the file. The file is too small.
 
 * **PMEM2_E_MAPPING_EXISTS** - if the object exists before the function call.
-For details please see **CreateFileMappingA**() manual pages. (Windows only)
+For details please see **CreateFileMapping**() manual pages. (Windows only)
 
 It can also return **-EACCES**, **-EAGAIN**, **-EBADF**, **-ENFILE**,
 **-ENODEV**, **-ENOMEM**, **-EPERM**, **-ETXTBSY** from the underlying
