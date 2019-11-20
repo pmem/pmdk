@@ -47,6 +47,7 @@ import importlib.util as importutil  # noqa E402
 import futils  # noqa E402
 from basetest import get_testcases  # noqa E402
 from configurator import Configurator  # noqa E402
+from ctx_filter import CtxFilter  # noqa E402
 
 
 def _import_testfiles():
@@ -77,11 +78,77 @@ def _run_tests(config):
             sys.exit('No testcases found for selected groups. '
                      'Provided group name may be invalid.')
 
-    return futils.run_tests_common(testcases, config)
+    return run_tests_common(testcases, config)
+
+
+def run_tests_common(testcases, config):
+    """
+    Common implementation for running tests - used by RUNTESTS.py and
+    single test case interpreter
+    """
+    if config.test_sequence:
+        # filter test cases from sequence
+        testcases = [t for t in testcases if t.testnum in config.test_sequence]
+        # sort testcases so their sequence matches provided test sequence
+        testcases.sort(key=lambda tc: config.test_sequence.index(tc.testnum))
+
+    if not testcases:
+        sys.exit('No testcases to run found for selected configuration.')
+
+    msg = futils.Message(config.unittest_log_level)
+    for tc in testcases:
+
+        # TODO handle test type inside custom decorator
+        if tc.test_type not in config.test_type:
+            tc.enabled = False
+
+        if not tc.enabled:
+            continue
+
+        cf = CtxFilter(config, tc)
+
+        try:
+            for c in cf.get_contexts():
+                try:
+                    t = tc()
+                    if t.enabled:
+                        msg.print('{}: SETUP\t({}/{})'
+                                  .format(t, t.test_type, c))
+                        t._execute(c)
+                    else:
+                        continue
+
+                except futils.Skip as s:
+                    msg.print_verbose('{}: SKIP: {}'.format(t, s))
+
+                except futils.Fail as f:
+                    msg.print(f)
+                    msg.print('{}: {}FAILED{}\t({}/{})'
+                              .format(t, futils.Color.RED,
+                                      futils.Color.END, t.test_type, c))
+
+                    if not config.keep_going:
+                        return 1
+                else:
+                    _test_passed(config, t, msg)
+
+        except futils.Skip as s:
+            msg.print_verbose('{}: SKIP: {}'.format(tc, s))
+
+
+def _test_passed(config, tc, msg):
+    """Print message specific for passed test"""
+    if config.tm:
+        tm = '\t\t\t[{:06.3F} s]'.format(tc.elapsed)
+    else:
+        tm = ''
+
+    msg.print('{}: {}PASS{} {}'
+              .format(tc, futils.Color.GREEN, futils.Color.END, tm))
 
 
 def main():
-    config = Configurator().parse_config()
+    config = Configurator().config
     _import_testfiles()
     sys.exit(_run_tests(config))
 

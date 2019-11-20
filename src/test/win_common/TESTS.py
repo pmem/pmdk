@@ -36,7 +36,7 @@ import testframework as t
 
 
 @t.windows_only
-class TEST0(t.BaseTest):
+class TEST0(t.Test):
     test_type = t.Medium
 
     def run(self, ctx):
