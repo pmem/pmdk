@@ -203,7 +203,7 @@ install: all pkg-config
 	install -d $(PMREORDER_DESTDIR)
 	install -p -m 0644 $(PMREORDER_FILES) $(PMREORDER_DESTDIR)
 	@echo "#!/bin/sh" > $(PMREORDER_SRC)/pmreorder
-	@echo "exec python3 $(PMREORDER_ROOTDIR)/pmreorder.py \$$*" >> $(PMREORDER_SRC)/pmreorder
+	@echo "exec python3 $(PMREORDER_ROOTDIR)/pmreorder.py $(SRCVERSION) \$$*" >> $(PMREORDER_SRC)/pmreorder
 	install -d $(PMREORDER_BIN)
 	install -p $(PMREORDER_SRC)/pmreorder $(PMREORDER_BIN)
 	$(RM) $(PKG_CONFIG_FILES)
