@@ -223,6 +223,7 @@ class BaseTest(metaclass=_TestCase):
                 # removes old log files, to make sure that logs made by test
                 # are up to date
                 self.remove_log_files()
+                self.clean(c)
 
                 self.setup(c)
                 start_time = datetime.now()
