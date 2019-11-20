@@ -274,6 +274,76 @@ endif
 INCS += -I$(TOP)/src/common
 endif
 
+ifeq ($(LIBPMEM2), internal-debug)
+OBJS +=\
+	$(TOP)/src/debug/libpmem2/libpmem2.o\
+	$(TOP)/src/debug/libpmem2/config.o\
+	$(TOP)/src/debug/libpmem2/config_posix.o\
+	$(TOP)/src/debug/libpmem2/pmem2.o\
+	$(TOP)/src/debug/libpmem2/map.o\
+	$(TOP)/src/debug/libpmem2/map_posix.o\
+	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/debug/common/alloc.o\
+	$(TOP)/src/debug/common/file.o\
+	$(TOP)/src/debug/common/file_posix.o\
+	$(TOP)/src/debug/common/os_posix.o\
+	$(TOP)/src/debug/common/os_thread_posix.o\
+	$(TOP)/src/debug/common/util.o\
+	$(TOP)/src/debug/common/mmap.o\
+	$(TOP)/src/debug/common/mmap_posix.o\
+	$(TOP)/src/debug/common/util_posix.o\
+	$(TOP)/src/debug/common/fs_posix.o\
+	$(TOP)/src/debug/common/out.o
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+OBJS +=\
+	$(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\
+	$(TOP)/src/debug/libpmem2/auto_flush_linux.o
+else
+OBJS +=\
+	$(TOP)/src/debug/libpmem2/pmem2_utils_other.o\
+	$(TOP)/src/debug/libpmem2/auto_flush_none.o
+endif
+
+INCS += -I$(TOP)/src/common
+INCS += -I$(TOP)/src/libpmem2
+endif
+
+ifeq ($(LIBPMEM2), internal-nondebug)
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem2/libpmem2.o\
+	$(TOP)/src/nondebug/libpmem2/config.o\
+	$(TOP)/src/nondebug/libpmem2/config_posix.o\
+	$(TOP)/src/nondebug/libpmem2/pmem2.o\
+	$(TOP)/src/nondebug/libpmem2/map.o\
+	$(TOP)/src/nondebug/libpmem2/map_posix.o\
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/nondebug/common/alloc.o\
+	$(TOP)/src/nondebug/common/file.o\
+	$(TOP)/src/nondebug/common/file_posix.o\
+	$(TOP)/src/nondebug/common/os_posix.o\
+	$(TOP)/src/nondebug/common/os_thread_posix.o\
+	$(TOP)/src/nondebug/common/util.o\
+	$(TOP)/src/nondebug/common/mmap.o\
+	$(TOP)/src/nondebug/common/mmap_posix.o\
+	$(TOP)/src/nondebug/common/util_posix.o\
+	$(TOP)/src/nondebug/common/fs_posix.o\
+	$(TOP)/src/nondebug/common/out.o
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o\
+	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o
+else
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils_other.o\
+	$(TOP)/src/nondebug/libpmem2/auto_flush_none.o
+endif
+
+INCS += -I$(TOP)/src/common
+INCS += -I$(TOP)/src/libpmem2
+endif
+
 ifeq ($(LIBPMEM),y)
 DYNAMIC_LIBS += -lpmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
