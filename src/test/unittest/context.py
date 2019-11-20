@@ -41,7 +41,7 @@ import subprocess as sp
 import futils
 from poolset import _Poolset
 import tools
-from utils import KiB, MiB, GiB, TiB
+from utils import KiB, MiB, HEADER_SIZE
 
 try:
     import testconfig
@@ -76,13 +76,13 @@ class ContextBase:
         self.valgrind = kwargs['valgrind']
         self.msg = futils.Message(conf)
 
-    def dump_n_lines(self, file, n=None):
+    def dump_n_lines(self, file, n=-1):
         """
         Prints last n lines of given log file. Number of lines printed can be
         modified locally by "n" argument or globally by "dump_lines" in
         testconfig.py file. If none of them are provided, default value is 30.
         """
-        if n is None:
+        if n < 0:
             n = config.get('dump_lines', 30)
 
         file_size = self.get_size(file.name)
@@ -93,8 +93,9 @@ class ContextBase:
             if n > length:
                 n = length
             lines = lines[-n:]
-            lines.insert(0, 'Last {} lines of {} below (whole file has {} lines):{}'
-                            ''.format(n, file.name, length, os.linesep))
+            lines.insert(0, 'Last {} lines of {} below '
+                         '(whole file has {} lines):{}'
+                         .format(n, file.name, length, os.linesep))
             for line in lines:
                 print(line, end='')
         else:
@@ -112,7 +113,8 @@ class ContextBase:
             return True
         if proc.returncode == tools.PMEMDETECT_FALSE:
             return False
-        futils.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+        futils.fail('Unknown value {} returned by pmemdetect'
+                    .format(proc.returncode))
 
     def supports_map_sync(self, path):
         """Checks if MAP_SYNC is supported on a filesystem from given path"""
@@ -123,17 +125,20 @@ class ContextBase:
             return True
         if proc.returncode == tools.PMEMDETECT_FALSE:
             return False
-        futils.fail('Unknown value {} returned by pmemdetect'.format(proc.returncode))
+        futils.fail('Unknown value {} returned by pmemdetect'
+                    .format(proc.returncode))
 
     def get_size(self, path):
         """
         Returns size of the file or dax device.
-        Value "2**64 - 1" is checked because pmemdetect in case of error prints it.
+        Value "2**64 - 1" is checked because pmemdetect
+        prints it in case of error.
         """
         proc = tools.pmemdetect(self, '-z', path)
         if int(proc.stdout) != 2**64 - 1:
             return int(proc.stdout)
-        futils.fail('Could not get size of the file, it is inaccessible or does not exist')
+        futils.fail('Could not get size of the file, '
+                    'it is inaccessible or does not exist')
 
     def get_free_space(self):
         """Returns free space for current file system"""

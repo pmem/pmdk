@@ -34,6 +34,7 @@
 
 import testframework as t
 
+
 class PMEM2_INTEGRATION(t.BaseTest):
     test_type = t.Medium
 
@@ -41,23 +42,29 @@ class PMEM2_INTEGRATION(t.BaseTest):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
         ctx.exec('pmem2_integration', self.test_case, filepath)
 
+
 class TEST0(PMEM2_INTEGRATION):
     """map twice using the same config"""
     test_case = "test_reuse_cfg"
 
+
 class TEST1(PMEM2_INTEGRATION):
     """map using the same config with changed file descriptor"""
     test_case = "test_reuse_cfg_with_diff_fd"
+
     def run(self, ctx):
         filepath1 = ctx.create_holey_file(16 * t.MiB, 'testfile1')
         filepath2 = ctx.create_holey_file(16 * t.MiB, 'testfile2')
         ctx.exec('pmem2_integration', self.test_case, filepath1, filepath2)
 
+
 class TEST2(PMEM2_INTEGRATION):
     """map using the config with default file descriptor"""
     test_case = "test_default_fd"
+
     def run(self, ctx):
         ctx.exec('pmem2_integration', self.test_case)
+
 
 # pmem2_config_fd_set does not verify file descriptor mode, because Windows
 # does not provide API to do that.
@@ -65,10 +72,12 @@ class TEST2(PMEM2_INTEGRATION):
 class TEST3(PMEM2_INTEGRATION):
     """try to change config with file descriptor in write-only mode"""
     test_case = "test_invalid_fd"
+
     def run(self, ctx):
         filepath1 = ctx.create_holey_file(16 * t.MiB, 'testfile1')
         filepath2 = ctx.create_holey_file(16 * t.MiB, 'testfile2')
         ctx.exec('pmem2_integration', self.test_case, filepath1, filepath2)
+
 
 class TEST4(PMEM2_INTEGRATION):
     """check if Valgrind registers data writing on pmem"""

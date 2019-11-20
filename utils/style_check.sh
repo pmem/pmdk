@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,6 +37,7 @@ set -e
 ARGS=("$@")
 CSTYLE_ARGS=()
 CLANG_ARGS=()
+FLAKE8_ARGS=()
 CHECK_TYPE=$1
 
 [ -z "$clang_format_bin" ] && which clang-format-6.0 >/dev/null &&
@@ -109,6 +110,13 @@ function run_clang_format() {
 	${clang_format_bin} -style=file -i $@
 }
 
+function run_flake8() {
+	if [ $# -eq 0 ]; then
+		return
+	fi
+	${flake8_bin} --exclude=testconfig.py $@
+}
+
 for ((i=1; i<$#; i++)) {
 
 	IGNORE="$(dirname ${ARGS[$i]})/.cstyleignore"
@@ -127,6 +135,10 @@ for ((i=1; i<$#; i++)) {
 			CSTYLE_ARGS+="${ARGS[$i]} "
 			;;
 
+		*.py)
+			FLAKE8_ARGS+="${ARGS[$i]} "
+			;;
+
 		*)
 			echo "Unknown argument"
 			exit 1
@@ -138,6 +150,7 @@ case $CHECK_TYPE in
 	check)
 		run_cstyle ${CSTYLE_ARGS}
 		run_clang_check ${CLANG_ARGS}
+		run_flake8 ${FLAKE8_ARGS}
 		;;
 
 	format)

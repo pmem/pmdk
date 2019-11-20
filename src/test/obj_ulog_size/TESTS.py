@@ -34,6 +34,7 @@
 
 import testframework as t
 
+
 class BASE(t.BaseTest):
     test_type = t.Medium
     build = [t.Debug, t.Release]
@@ -43,12 +44,15 @@ class BASE(t.BaseTest):
         filepath1 = ctx.create_holey_file(16 * t.MiB, 'testfile1')
         ctx.exec('obj_ulog_size', filepath, filepath1)
 
+
 class TEST0(BASE):
     memcheck = t.DISABLE
     pmemcheck = t.DISABLE
 
+
 class TEST1(BASE):
     memcheck = t.ENABLE
+
 
 class TEST2(BASE):
     pmemcheck = t.ENABLE
