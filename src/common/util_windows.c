@@ -77,7 +77,6 @@ util_strerror(int errnum, char *buff, size_t bufflen)
 	}
 }
 
-
 /*
  * util_strwinerror -- return string describing windows error codes
  */

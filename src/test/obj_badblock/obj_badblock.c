@@ -44,7 +44,6 @@
 #define TEST_EXTEND_COUNT 32
 #define EXTEND_SIZE (1024 * 1024 * 10)
 
-
 static void
 do_create_and_extend(const char *path)
 {
