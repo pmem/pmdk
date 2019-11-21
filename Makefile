@@ -73,6 +73,7 @@ EXPERIMENTAL ?= n
 BUILD_PACKAGE_CHECK ?= y
 BUILD_RPMEM ?= y
 TEST_CONFIG_FILE ?= "$(CURDIR)"/src/test/testconfig.sh
+PMEM2_INSTALL ?= n
 
 rpm : override DESTDIR="$(CURDIR)/$(RPM_BUILDDIR)"
 dpkg: override DESTDIR="$(CURDIR)/$(DPKG_BUILDDIR)"
