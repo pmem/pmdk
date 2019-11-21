@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -70,8 +70,8 @@ le32:
 	/* 9..16 */
 	uint64_t d8 = m256_get8b(ymm);
 
-	*(uint64_t *)dest = d8;
-	*(uint64_t *)(dest + len - 8) = d8;
+	*(ua_uint64_t *)dest = d8;
+	*(ua_uint64_t *)(dest + len - 8) = d8;
 	return;
 
 le8:
@@ -82,23 +82,23 @@ le8:
 		/* 5..8 */
 		uint32_t d = m256_get4b(ymm);
 
-		*(uint32_t *)dest = d;
-		*(uint32_t *)(dest + len - 4) = d;
+		*(ua_uint32_t *)dest = d;
+		*(ua_uint32_t *)(dest + len - 4) = d;
 		return;
 	}
 
 	/* 3..4 */
 	uint16_t d2 = m256_get2b(ymm);
 
-	*(uint16_t *)dest = d2;
-	*(uint16_t *)(dest + len - 2) = d2;
+	*(ua_uint16_t *)dest = d2;
+	*(ua_uint16_t *)(dest + len - 2) = d2;
 	return;
 
 le2:
 	if (len == 2) {
 		uint16_t d2 = m256_get2b(ymm);
 
-		*(uint16_t *)dest = d2;
+		*(ua_uint16_t *)dest = d2;
 		return;
 	}
 
