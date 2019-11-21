@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -106,9 +106,33 @@ int util_write_all(int fd, const char *buf, size_t count);
 #define util_read	read
 #define util_write	write
 #else
-/* XXX - consider adding an assertion on (count <= UINT_MAX) */
-#define util_read(fd, buf, count)	read(fd, buf, (unsigned)(count))
-#define util_write(fd, buf, count)	write(fd, buf, (unsigned)(count))
+static inline ssize_t
+util_read(int fd, void *buf, size_t count)
+{
+	/*
+	 * Simulate short read, because Windows' _read uses "unsigned" as
+	 * a type of the last argument and "int" as a return type.
+	 * We have to limit "count" to what _read can return as a success,
+	 * not what it can accept.
+	 */
+	if (count > INT_MAX)
+		count = INT_MAX;
+	return _read(fd, buf, (unsigned)count);
+}
+
+static inline ssize_t
+util_write(int fd, const void *buf, size_t count)
+{
+	/*
+	 * Simulate short write, because Windows' _write uses "unsigned" as
+	 * a type of the last argument and "int" as a return type.
+	 * We have to limit "count" to what _write can return as a success,
+	 * not what it can accept.
+	 */
+	if (count > INT_MAX)
+		count = INT_MAX;
+	return _write(fd, buf, (unsigned)count);
+}
 #define S_ISCHR(m)	(((m) & S_IFMT) == S_IFCHR)
 #define S_ISDIR(m)	(((m) & S_IFMT) == S_IFDIR)
 #endif
