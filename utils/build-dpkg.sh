@@ -49,6 +49,7 @@ usage()
 Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 	[ -e build-experimental ] [ -c run-check ]
 	[ -n with-ndctl ] [ -f testconfig-file ]
+	[ -p build-libpmem2 ]
 
 -h			print this help message
 -t version-tag		source version tag
@@ -59,6 +60,7 @@ Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 -c run-check		run package check
 -n with-ndctl		build with libndctl
 -f testconfig-file	custom testconfig.sh
+-p build-libpmem2	build libpmem2 packages
 EOF
 	exit 1
 }
@@ -66,7 +68,7 @@ EOF
 #
 # command-line argument processing...
 #
-args=`getopt he:c:r:n:t:d:s:w:o:f: $*`
+args=`getopt he:c:r:n:t:d:s:w:o:f:p: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -108,6 +110,10 @@ do
 		;;
 	-o)
 		OUT_DIR="$2"
+		shift 2
+		;;
+	-p)
+		PMEM2_INSTALL="$2"
 		shift 2
 		;;
 	--)
@@ -252,6 +258,66 @@ Description: rpmem daemon
 EOF
 }
 
+function libpmem2_install_triggers_overrides() {
+cat << EOF > debian/libpmem2.install
+$LIB_DIR/libpmem2.so.*
+EOF
+
+cat << EOF > debian/libpmem2.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+libpmem2: package-name-doesnt-match-sonames
+EOF
+
+cat << EOF > debian/libpmem2-dev.install
+$LIB_DIR/pmdk_debug/libpmem2.a $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmem2.so $LIB_DIR/pmdk_dbg/
+$LIB_DIR/pmdk_debug/libpmem2.so.* $LIB_DIR/pmdk_dbg/
+$LIB_DIR/libpmem2.so
+$LIB_DIR/pkgconfig/libpmem2.pc
+$INC_DIR/libpmem2.h
+$MAN7_DIR/libpmem2.7
+$MAN3_DIR/pmem2_*.3
+EOF
+
+cat << EOF > debian/libpmem2-dev.triggers
+interest man-db
+EOF
+
+cat << EOF > debian/libpmem2-dev.lintian-overrides
+$ITP_BUG_EXCUSE
+new-package-should-close-itp-bug
+# The following warnings are triggered by a bug in debhelper:
+# http://bugs.debian.org/204975
+postinst-has-useless-call-to-ldconfig
+postrm-has-useless-call-to-ldconfig
+# We do not want to compile with -O2 for debug version
+hardening-no-fortify-functions $LIB_DIR/pmdk_dbg/*
+EOF
+}
+
+function append_libpmem2_control() {
+cat << EOF >> $CONTROL_FILE
+
+Package: libpmem2
+Architecture: any
+Depends: \${shlibs:Depends}, \${misc:Depends}
+Description: Persistent Memory low level support library
+ libpmem2 provides low level persistent memory support. In particular, support
+ for the persistent memory instructions for flushing changes to pmem is
+ provided. (EXPERIMENTAL)
+
+Package: libpmem2-dev
+Section: libdevel
+Architecture: any
+Depends: libpmem2 (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
+Description: Development files for libpmem2
+ libpmem2 provides low level persistent memory support. In particular, support
+ for the persistent memory instructions for flushing changes to pmem is
+ provided. (EXPERIMENTAL)
+EOF
+}
+
 function daxio_install_triggers_overrides() {
 cat << EOF > debian/daxio.install
 usr/bin/daxio
@@ -353,23 +419,6 @@ Priority: optional
 Standards-version: 4.1.4
 Build-Depends: debhelper (>= 9)
 Homepage: http://pmem.io/pmdk/
-
-Package: libpmem2
-Architecture: any
-Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: Persistent Memory low level support library
- libpmem2 provides low level persistent memory support. In particular, support
- for the persistent memory instructions for flushing changes to pmem is
- provided. (EXPERIMENTAL)
-
-Package: libpmem2-dev
-Section: libdevel
-Architecture: any
-Depends: libpmem2 (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: Development files for libpmem2
- libpmem2 provides low level persistent memory support. In particular, support
- for the persistent memory instructions for flushing changes to pmem is
- provided. (EXPERIMENTAL)
 
 Package: libpmem
 Architecture: any
@@ -510,10 +559,10 @@ override_dh_strip:
 	dh_strip --dbg-package=$PACKAGE_NAME-dbg
 
 override_dh_auto_build:
-	dh_auto_build -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc bashcompdir=/usr/share/bash-completion/completions NORPATH=1 ${pass_ndctl_enable} SRCVERSION=$SRCVERSION
+	dh_auto_build -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc bashcompdir=/usr/share/bash-completion/completions NORPATH=1 ${pass_ndctl_enable} SRCVERSION=$SRCVERSION PMEM2_INSTALL=${PMEM2_INSTALL}
 
 override_dh_auto_install:
-	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc bashcompdir=/usr/share/bash-completion/completions NORPATH=1 ${pass_ndctl_enable} SRCVERSION=$SRCVERSION
+	dh_auto_install -- EXPERIMENTAL=${EXPERIMENTAL} prefix=/$PREFIX libdir=/$LIB_DIR includedir=/$INC_DIR docdir=/$DOC_DIR man1dir=/$MAN1_DIR man3dir=/$MAN3_DIR man5dir=/$MAN5_DIR man7dir=/$MAN7_DIR sysconfdir=/etc bashcompdir=/usr/share/bash-completion/completions NORPATH=1 ${pass_ndctl_enable} SRCVERSION=$SRCVERSION PMEM2_INSTALL=${PMEM2_INSTALL}
 	find -path './debian/*usr/share/man/man*/*.gz' -exec gunzip {} \;
 
 override_dh_install:
@@ -766,6 +815,13 @@ if [ "${BUILD_RPMEM}" = "y" -a "${RPMEM_DPKG}" = "y" ]
 then
 	append_rpmem_control;
 	rpmem_install_triggers_overrides;
+fi
+
+# libpmem2
+if [ "${PMEM2_INSTALL}" == "y" ]
+then
+	append_libpmem2_control;
+	libpmem2_install_triggers_overrides;
 fi
 
 # daxio

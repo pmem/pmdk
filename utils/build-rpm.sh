@@ -53,6 +53,7 @@ usage()
 Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 	[ -d distro ] [ -e build-experimental ] [ -c run-check ]
 	[ -r build-rpmem ] [ -n with-ndctl ] [ -f testconfig-file ]
+	[ -p build-libpmem2 ]
 
 -h			print this help message
 -t version-tag		source version tag
@@ -65,6 +66,7 @@ Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 -r build-rpmem		build librpmem and rpmemd packages
 -n with-ndctl		build with libndctl
 -f testconfig-file	custom testconfig.sh
+-p build-libpmem2	build libpmem2 packages
 EOF
 	exit 1
 }
@@ -72,7 +74,7 @@ EOF
 #
 # command-line argument processing...
 #
-args=`getopt he:c:r:n:t:d:s:w:o:f: $*`
+args=`getopt he:c:r:n:t:d:s:w:o:f:p: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -118,6 +120,10 @@ do
 		;;
 	-d)
 		DISTRO="$2"
+		shift 2
+		;;
+	-p)
+		PMEM2_INSTALL="$2"
 		shift 2
 		;;
 	--)
@@ -231,6 +237,12 @@ if [ "${EXPERIMENTAL}" = "y" ]
 then
 	# no experimental features for now
 	RPMBUILD_OPTS+=( )
+fi
+
+# libpmem2
+if [ "${PMEM2_INSTALL}" == "y" ]
+then
+	RPMBUILD_OPTS+=(--define "_pmem2_install 1")
 fi
 
 # librpmem & rpmemd
