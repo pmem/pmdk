@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_CONFIG_NEW, 3)
+title: _MP(PMEM2\_CONFIG\_GET\_FILE\_SIZE, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_config_new.3 -- man page for pmem2_config_new and pmem2_config_delete)
+[comment]: <> (pmem2_config_get_file_size.3 -- man page for pmem2_config_get_file_size)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,8 +44,7 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_config_new**(), **pmem2_config_delete**() - allocate and free a
-configuration for a libpmem2 mapping
+**pmem2_config_get_file_size**() - query a file size
 
 # SYNOPSIS #
 
@@ -53,33 +52,66 @@ configuration for a libpmem2 mapping
 #include <libpmem2.h>
 
 struct pmem2_config;
-int pmem2_config_new(struct pmem2_config **cfg);
-int pmem2_config_delete(struct pmem2_config **cfg);
+int pmem2_config_get_file_size(const struct pmem2_config *config, size_t *size);
 ```
 
 # DESCRIPTION #
 
-The **pmem2_config_new**() function instantiates a new (opaque) configuration structure, *pmem2_config*, which is used to define mapping parameters for a **pmem2_map**() function, and returns it through the pointer in *\*cfg*.
+The **pmem2_config_get_file_size**() function retrieves the size of the file
+in bytes pointed by file descriptor or handle stored in the *config* and puts
+it in *\*size*.
 
-New configuration is always initialized with default values for all possible parameters, which are specified alongside the corresponding setter function.
-
-The **pmem2_config_delete**() function frees *\*cfg* returned by **pmem2_config_new**() and sets *\*cfg* to NULL.
+This function is a portable replacement for OS-specific APIs.
+On Linux, it hides the quirkiness of Device DAX size detection.
 
 # RETURN VALUE #
 
-The **pmem2_config_new**() function returns 0 on success or a negative error code on failure.
-**pmem2_config_new**() does set *\*cfg* to NULL on failure.
+The **pmem2_config_get_file_size**() function returns 0 on success.
+If the function fails, the *\*size* variable is left unmodified, and one of
+the following errors is returned:
 
-The **pmem2_config_delete**() function returns 0.
+On all systems:
 
-Please see **libpmem2**(7) for detailed description of libpmem2 error codes.
+* **PMEM2\_E\_FILE\_HANDLE\_NOT\_SET** - config doesn't contain the file handle
+(see **pmem2_config_set_fd**(3), **pmem2_config_set_handle**(3)).
 
-# ERRORS #
-**pmem2_config_new**() can fail with the following error:
-- **-ENOMEM** - out of memory
+* **PMEM2\_E\_INVALID\_FILE\_HANDLE** - config contains an invalid file handle.
+
+On Windows:
+
+* **PMEM2\_E\_INVALID\_FILE\_TYPE** - handle points to a resource that is not
+a regular file.
+
+On Linux:
+
+* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a directory,
+block device, pipe, or socket.
+
+* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a character
+device other than Device DAX.
+
+* -**errno** set by failing **fstat**(2), while trying to validate the file
+descriptor.
+
+* -**errno** set by failing **realpath**(3), while trying to determine whether
+fd points to a Device DAX.
+
+* -**errno** set by failing **open**(2), while trying to determine Device DAX's
+size.
+
+* -**errno** set by failing **strtoull**(3), while trying to determine
+Device DAX's size.
+
+On FreeBSD:
+
+* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a directory,
+block device, pipe, socket, or character device.
+
+* -**errno** set by failing **fstat**(2), while trying to validate the file
+descriptor.
 
 # SEE ALSO #
 
-**errno**(3), **pmem2_map**(3), **pmem2_config_set_handle**(3),
-**pmem2_config_set_fd**(3), **pmem2_config_get_file_size**(3),
-**libpmem2**(7) and **<http://pmem.io>**
+**errno**(3),  **fstat**(2), **realpath**(3), **open**(2), **strtoull**(3),
+**pmem2_config_new**(3), **pmem2_config_set_handle**(3),
+**pmem2_config_set_fd**(3), **libpmem2**(7) and **<http://pmem.io>**

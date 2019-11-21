@@ -94,10 +94,10 @@ be destroyed using the **pmem2_unmap**() function. For details please see
 When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
 one of the following error values:
 
-* **PMEM2_E_INVALID_FILE_HANDLE** - invalid *file descriptor* value in *config*
+* **PMEM2_E_FILE_HANDLE_NOT_SET** - config doesn't contain a file descriptor or
+file handle (Windows)
 
-* **PMEM2_E_INVALID_FILE_TYPE** - cannot determine a file type or it is not
-supported e.g. it is a directory
+* **PMEM2_E_INVALID_FILE_HANDLE** - invalid *file descriptor* value in *config*
 
 * **PMEM2_E_MAP_RANGE** - *offset* + *length* is too big to represent it using
 *size_t* data type

@@ -133,7 +133,7 @@ test_set_invalid_fd(const char *file)
 	ut_suppress_crt_assert();
 	int ret = pmem2_config_set_fd(&cfg, fd);
 	ut_unsuppress_crt_assert();
-	UT_PMEM2_EXPECT_RETURN(ret, -EBADF);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
 	verify_fd(&cfg, INVALID_FD);
 }
 
@@ -305,7 +305,7 @@ test_set_directory_handle(const char *file)
 	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
 
 	int ret = pmem2_config_set_handle(&cfg, h);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_TYPE);
 	UT_ASSERTeq(cfg.handle, INVALID_HANDLE_VALUE);
 	CloseHandle(h);
 }
@@ -340,7 +340,7 @@ test_set_directory_fd(const char *file)
 	int fd = OPEN(file, O_RDONLY);
 
 	int ret = pmem2_config_set_fd(&cfg, fd);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_TYPE);
 
 	CLOSE(fd);
 }
