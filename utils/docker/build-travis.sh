@@ -95,11 +95,13 @@ fi
 WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
+[ ! $GITHUB_ACTIONS ] && TTY='-t' || TTY=''
+
 # Run a container with
 #  - environment variables set (--env)
 #  - host directory containing PMDK source mounted (-v)
 #  - working directory set (-w)
-docker run --rm --privileged=true --name=$containerName -ti \
+docker run --rm --privileged=true --name=$containerName -i $TTY \
 	$DNS_SETTING \
 	$ci_env \
 	--env http_proxy=$http_proxy \
