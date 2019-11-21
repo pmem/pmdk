@@ -128,6 +128,16 @@ void util_set_alloc_funcs(
 #define NORETURN __attribute__((noreturn))
 #endif
 
+#ifdef _MSC_VER
+typedef UNALIGNED uint64_t ua_uint64_t;
+typedef UNALIGNED uint32_t ua_uint32_t;
+typedef UNALIGNED uint16_t ua_uint16_t;
+#else
+typedef uint64_t ua_uint64_t __attribute__((aligned(1)));
+typedef uint32_t ua_uint32_t __attribute__((aligned(1)));
+typedef uint16_t ua_uint16_t __attribute__((aligned(1)));
+#endif
+
 #define util_get_not_masked_bits(x, mask) ((x) & ~(mask))
 
 /*
