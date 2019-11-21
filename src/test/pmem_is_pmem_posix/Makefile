@@ -43,11 +43,17 @@ OBJS = pmem_is_pmem_posix.o\
 	libpmem.o\
 	pmem.o\
 	pmem_posix.o\
-	memops_generic.o\
-	init.o
+	memops_generic.o
 
+ifeq ($(ARCH), aarch64)
+OBJS += init.o
+endif
 ifeq ($(ARCH), x86_64)
-OBJS += cpu.o
+OBJS += init.o cpu.o
+endif
+ifeq ($(ARCH), ppc64)
+include $(TOP)/src/libpmem/$(ARCH)/sources.inc
+OBJS += $(LIBPMEM_ARCH_SOURCE:%.c=%.o)
 endif
 
 LIBPMEMCOMMON=y

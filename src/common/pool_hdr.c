@@ -53,6 +53,10 @@
 #define PMDK_MACHINE PMDK_MACHINE_AARCH64
 #define PMDK_MACHINE_CLASS PMDK_MACHINE_CLASS_64
 
+#elif defined(__PPC64__)
+#define PMDK_MACHINE PMDK_MACHINE_PPC64
+#define PMDK_MACHINE_CLASS PMDK_MACHINE_CLASS_64
+
 #else
 /* add appropriate definitions here when porting PMDK to another ISA */
 #error unable to recognize ISA at compile time
