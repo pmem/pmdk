@@ -540,8 +540,9 @@ palloc_exec_actions(struct palloc_heap *heap,
 	 * The operations array is sorted so that proper lock ordering is
 	 * ensured.
 	 */
-	qsort(actv, actvcnt, sizeof(struct pobj_action_internal),
-		palloc_action_compare);
+	if (actv)
+		qsort(actv, actvcnt, sizeof(struct pobj_action_internal),
+			palloc_action_compare);
 
 	struct pobj_action_internal *act;
 	for (size_t i = 0; i < actvcnt; ++i) {
