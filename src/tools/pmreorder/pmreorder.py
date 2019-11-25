@@ -44,12 +44,14 @@ def main():
     pmreorder_version = "unknown"
 
     '''
-    Argv[1] should be given in order to use -v or --version flag. Argv[1]
-    is passed from the installed script. We must check whether argv[1]
-    was given since it is always a version of pmreorder.
+    Argv[1] should be given in order to use -v or --version flag. It is passed
+    from the installed script. We check whether argv[1] was given and if it's
+    not any of regular parameters we use it as a version of pmreorder and
+    remove it from the arguments list.
     '''
     if len(sys.argv) > 1 and sys.argv[1][0] != "-":
         pmreorder_version = sys.argv[1]
+        del sys.argv[1]
 
     # TODO unicode support
     # TODO parameterize reorder engine type
