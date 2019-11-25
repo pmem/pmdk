@@ -61,9 +61,21 @@ class CtxFilter:
         Return contexts that should be used in execution based on
         contexts provided by config and test case
         """
-        if not test_ctx:
+        if test_ctx:
+            return [c for c in config_ctx if c in test_ctx]
+        else:
             return [c for c in config_ctx if not c.explicit]
-        return [c for c in config_ctx if c in test_ctx]
+
+    def init_contexts_common(self, ctxs, **kwargs):
+        """Common implementation of initializing context elements classes"""
+        initialized = []
+        for c in ctxs:
+            try:
+                initialized.append(c(**kwargs))
+            except futils.Skip as s:
+                self.msg.print_verbose('{}: SKIP: {}'.format(self.tc, s))
+
+        return initialized
 
     def get_contexts(self):
         """
@@ -90,9 +102,10 @@ class CtxFilter:
         params = {}
 
         params['build'] = self.filter_build()
-        params['fs'] = self.filter_fs()
         if sys.platform != 'win32':
             params['valgrind'] = self.filter_valgrind()
+        params['granularity'] = self.filter_granularity()
+
         return params
 
     def filter_build(self):
@@ -100,35 +113,9 @@ class CtxFilter:
         Acquire build type for the test to be run based on configuration
         and test requirements
         """
-        kwargs = self.reqs.build_kwargs
-        builds = []
-        for b in self.filter_contexts(self.config.build, self.reqs.build):
-            try:
-                builds.append(b(**kwargs))
-            except futils.Skip as s:
-                self.msg.print_verbose('{}: SKIP: {}'.format(self.tc, s))
-
-        return builds
-
-    def filter_fs(self):
-        """
-        Acquire file system for the test to be run based on configuration
-        and test requirements
-        """
-        kwargs = self.reqs.fs_kwargs
-        kwargs['tc_dirname'] = self.tc.tc_dirname
-
-        if self.reqs.fs == ctx.Non:
-            return [ctx.Non(**kwargs), ]
-        else:
-            fss = []
-            for f in self.filter_contexts(self.config.fs, self.reqs.fs):
-                try:
-                    fss.append(f(**kwargs))
-                except futils.Skip as s:
-                    self.msg.print_verbose('{}: SKIP: {}'.format(self.tc, s))
-
-            return fss
+        builds = self.filter_contexts(self.config.build, self.reqs.build)
+        
+        return self.init_contexts_common(builds, **self.reqs.build_kwargs)
 
     def filter_valgrind(self):
         """
@@ -154,3 +141,36 @@ class CtxFilter:
                 vg_tool = self.config.force_enable
 
         return [vg.Valgrind(vg_tool, self.tc.cwd, self.tc.testnum, **kwargs), ]
+
+    def filter_granularity(self):
+        """
+        Acquire file system granularity for the test to be run
+        based on configuration and test requirements
+        """
+
+        if self.reqs.granularity == ctx.Non:
+            return [ctx.Non(**self.reqs.granularity_kwargs), ]
+
+        if self.reqs.granularity == requirements.CACHELINE_OR_LESS:
+            req_granularity = [ctx.Byte, ctx.CacheLine]
+        else:
+            req_granularity = self.reqs.granularity
+    
+        grans = self.filter_contexts(self.config.granularity,
+                                  req_granularity)
+
+        if self.reqs.granularity == requirements.CACHELINE_OR_LESS:
+            if ctx.Byte in grans:
+                grans = [ctx.Byte, ]
+            elif ctx.CacheLine in grans:
+                grans = [ctx.CacheLine, ]
+            else:
+                return []
+
+        kwargs = self.reqs.granularity_kwargs.copy()
+        kwargs['tc_dirname'] = self.tc.tc_dirname
+        kwargs['force_page'] = self.config.force_page
+        kwargs['force_cacheline'] = self.config.force_cacheline
+        kwargs['force_byte'] = self.config.force_byte
+
+        return self.init_contexts_common(grans, **kwargs)

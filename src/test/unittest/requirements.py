@@ -38,6 +38,10 @@ import context as ctx
 import valgrind as vg
 
 
+# special kind of granularity requirement
+CACHELINE_OR_LESS = 'cacheline_or_less'
+
+
 def _str_to_ctx_common(val, ctx_base_type):
     def class_from_string(name, base):
         if name == 'all':
@@ -114,6 +118,49 @@ def require_fs(fs, **kwargs):
     return wrapped
 
 
+def require_page_granularity(**kwargs):
+    def wrapped(tc):
+        tc._required_gran = [ctx.Page, ]
+        tc._required_gran_kwargs = kwargs
+
+        return tc
+    return wrapped
+
+
+def require_cacheline_granularity(**kwargs):
+    def wrapped(tc):
+        tc._required_gran = [ctx.CacheLine, ]
+        tc._required_gran_kwargs = kwargs
+        return tc
+    return wrapped
+
+
+def require_byte_granularity(**kwargs):
+    def wrapped(tc):
+        tc._required_gran = [ctx.Byte, ]
+        tc._required_gran_kwargs = kwargs
+        return tc
+    return wrapped
+
+
+
+def require_cl_or_less_granularity(**kwargs):
+    def wrapped(tc):
+        tc._required_gran = CACHELINE_OR_LESS
+        tc._required_gran_kwargs = kwargs
+        return tc
+    return wrapped
+
+
+def require_non_granularity(**kwargs):
+    """The test uses no filesystem"""
+    def wrapped(tc):
+        tc._required_gran = ctx.Non
+        tc._required_gran_kwargs = kwargs
+        return tc
+    return wrapped
+
+
 def get_requirements(tc):
     rqs = {}
 
@@ -122,6 +169,9 @@ def get_requirements(tc):
 
     rqs['fs'] = getattr(tc, '_required_fs', None)
     rqs['fs_kwargs'] = getattr(tc, '_required_fs_kwargs', {})
+
+    rqs['granularity'] = getattr(tc, '_required_gran', None)
+    rqs['granularity_kwargs'] = getattr(tc, '_required_gran_kwargs', {})
 
     rqs['enabled_valgrind'] = getattr(tc, '_required_enabled_valgrind',
                                       vg._Tool.NONE)
@@ -132,5 +182,4 @@ def get_requirements(tc):
                                        [vg._Tool.NONE, ])
     rqs['disabled_valgrind_kwargs'] = \
         getattr(tc, '_required_disabled_valgrind_kwargs', {})
-
     return namedtuple('Requirements', rqs.keys())(*rqs.values())

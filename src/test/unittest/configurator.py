@@ -63,8 +63,17 @@ class _ConfigFromDict:
             raise futils.Skip('No PMEM test directory provided')
         if name == 'non_pmem_fs_dir':
             raise futils.Skip('No non-PMEM test directory provided')
+        if name == 'page_fs_dir':
+            raise futils.Skip('No page granularity test directory provided')
 
-        sys.exit('Provided test configuration may be invalid. '
+        if name == 'cacheline_fs_dir':
+            raise futils.Skip('No cache line granularity test '
+                              'directory provided')
+
+        if name == 'byte_fs_dir':
+            raise futils.Skip('No byte granularity test directory provided')
+
+        raise AttributeError('Provided test configuration may be invalid. '
                  'No "{}" field found in configuration.'.format(name))
 
 
@@ -152,7 +161,7 @@ def _str2ctx(config):
 
     convert_internal('build', ctx._Build)
     convert_internal('test_type', ctx._TestType)
-    convert_internal('fs', ctx._Fs)
+    convert_internal('granularity', ctx._Granularity)
 
     if config['force_enable'] is not None:
         config['force_enable'] = next(
@@ -187,8 +196,9 @@ class Configurator():
             return _ConfigFromDict(config)
 
         except KeyError as e:
-            sys.exit("No config field '{}' found. "
+            print("No config field '{}' found. "
                      "testconfig.py file may be invalid.".format(e.args[0]))
+            raise
 
     def _convert_to_usable_types(self, config):
         """
@@ -243,9 +253,6 @@ class Configurator():
         parser.add_argument('-b', dest='build',
                             help='run only specified build type',
                             choices=ctx_choices(ctx._Build), nargs='*')
-        parser.add_argument('-f', dest='fs',
-                            choices=ctx_choices(ctx._Fs), nargs='*',
-                            help='run tests on specified filesystem types.')
         parser.add_argument('-t', dest='test_type',
                             help='run only specified test type where'
                             'check = short + medium',

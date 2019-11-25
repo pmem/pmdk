@@ -41,7 +41,7 @@ import subprocess as sp
 import configurator
 import futils
 from poolset import _Poolset
-import tools
+from tools import Tools
 from utils import KiB, MiB, HEADER_SIZE
 
 try:
@@ -119,11 +119,12 @@ class ContextBase:
     def __str__(self):
         """
         Context string representation is a concatenation (separated by '/') of
-        of all its elements string representations.
+        all its elements string representations.
         """
         s = ''
         for e in self._elems:
-            s = s + str(e) + '/'
+            if e:
+                s = s + str(e) + '/'
         s = s[:-1]
         return s
 
@@ -150,8 +151,15 @@ class ContextBase:
         implemented
         """
         for e in self._elems:
+            kw = kwargs.copy()
             try:
-                e.setup(*args, **kwargs)
+                if isinstance(e, _Granularity):
+                    try:
+                        kw['tools'] = self.tools
+                    except AttributeError:
+                        futils.Skip('granularity needs tools for setup')
+
+                e.setup(*args, **kw)
             except AttributeError:
                 pass
 
@@ -176,6 +184,13 @@ class ContextBase:
                 e.clean(*args, **kwargs)
             except AttributeError:
                 pass
+
+    @property
+    def tools(self):
+        if hasattr(self, 'build'):
+            return Tools(self.env, self.build)
+        else:
+            futils.Skip('could not use tools without build')
 
     @property
     def env(self):
@@ -211,24 +226,24 @@ class ContextBase:
 
     def is_devdax(self, path):
         """Checks if given path points to device dax"""
-        proc = tools.pmemdetect(self, '-d', path)
-        if proc.returncode == tools.PMEMDETECT_ERROR:
+        proc = self.tools.pmemdetect('-d', path)
+        if proc.returncode == self.tools.PMEMDETECT_ERROR:
             futils.fail(proc.stdout)
-        if proc.returncode == tools.PMEMDETECT_TRUE:
+        if proc.returncode == self.tools.PMEMDETECT_TRUE:
             return True
-        if proc.returncode == tools.PMEMDETECT_FALSE:
+        if proc.returncode == self.tools.PMEMDETECT_FALSE:
             return False
         futils.fail('Unknown value {} returned by pmemdetect'
                     .format(proc.returncode))
 
     def supports_map_sync(self, path):
         """Checks if MAP_SYNC is supported on a filesystem from given path"""
-        proc = tools.pmemdetect(self, '-s', path)
-        if proc.returncode == tools.PMEMDETECT_ERROR:
+        proc = self.tools.pmemdetect(self, '-s', path)
+        if proc.returncode == self.tools.PMEMDETECT_ERROR:
             futils.fail(proc.stdout)
-        if proc.returncode == tools.PMEMDETECT_TRUE:
+        if proc.returncode == self.tools.PMEMDETECT_TRUE:
             return True
-        if proc.returncode == tools.PMEMDETECT_FALSE:
+        if proc.returncode == self.tools.PMEMDETECT_FALSE:
             return False
         futils.fail('Unknown value {} returned by pmemdetect'
                     .format(proc.returncode))
@@ -239,7 +254,7 @@ class ContextBase:
         Value "2**64 - 1" is checked because pmemdetect
         prints it in case of error.
         """
-        proc = tools.pmemdetect(self, '-z', path)
+        proc = self.tools.pmemdetect('-z', path)
         if int(proc.stdout) != 2**64 - 1:
             return int(proc.stdout)
         futils.fail('Could not get size of the file, '
@@ -380,6 +395,23 @@ class _CtxType(type):
         return [c(conf) for c in expand(*classes)]
 
 
+class Any:
+    """
+    Test context attribute signifying that specific context value is not
+    relevant for the test outcome and it should be run only once in some
+    viable context
+    """
+    @classmethod
+    def get(cls, conf_ctx):
+        """Get specific context value to be run"""
+        for c in conf_ctx:
+            if c.is_preferred:
+                # pick preferred if found
+                return c
+        # if no preferred is found, pick the first one
+        return conf_ctx[0]
+
+
 class _Build(metaclass=_CtxType):
     """Base and factory class for standard build classes"""
     exesuffix = ''
@@ -433,67 +465,6 @@ if sys.platform != 'win32':
             self.libdir = futils.RELEASE_LIBDIR
 
 
-class _Fs(metaclass=_CtxType):
-    """Base class for filesystem classes"""
-
-    def __init__(self, **kwargs):
-        futils.set_kwargs_attrs(self, kwargs)
-        self.conf = configurator.Configurator().config
-
-    def setup(self):
-        if not os.path.exists(self.testdir):
-            os.makedirs(self.testdir)
-
-    def clean(self):
-        shutil.rmtree(self.testdir, ignore_errors=True)
-
-
-class Pmem(_Fs):
-    """Set the context for pmem filesystem"""
-    is_preferred = True
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.dir = os.path.abspath(self.conf.pmem_fs_dir)
-        self.testdir = os.path.join(self.dir, self.tc_dirname)
-
-        if self.conf.fs_dir_force_pmem == 1:
-            self.env = {'PMEM_IS_PMEM_FORCE': '1'}
-
-
-class Nonpmem(_Fs):
-    """Set the context for nonpmem filesystem"""
-    pass
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.dir = os.path.abspath(self.conf.non_pmem_fs_dir)
-        self.testdir = os.path.join(self.dir, self.tc_dirname)
-
-
-class Non(_Fs):
-    """
-    No filesystem is used. Accessing some fields of this class is prohibited.
-    """
-    explicit = True
-
-    def __init__(self, **kwargs):
-        pass
-
-    def setup(self):
-        pass
-
-    def cleanup(self):
-        pass
-
-    def __getattribute__(self, name):
-        if name in ('dir',):
-            raise AttributeError("fs '{}' attribute cannot be used for '{}' fs"
-                                 .format(name, self))
-        else:
-            return super().__getattribute__(name)
-
-
 class _TestType(metaclass=_CtxType):
     """Base class for test duration"""
 
@@ -514,9 +485,84 @@ class Check(_TestType):
     includes = [Short, Medium]
 
 
+class _Granularity(metaclass=_CtxType):
+    gran_detecto_arg = None
+
+    def __init__(self, **kwargs):
+        futils.set_kwargs_attrs(self, kwargs)
+        self.config = configurator.Configurator().config
+        self.force = False
+
+    def setup(self, tools=None):
+        if not os.path.exists(self.testdir):
+            os.makedirs(self.testdir)
+
+        check_page = tools.gran_detecto(self.testdir, self.gran_detecto_arg)
+        if not self.force and check_page.returncode != 0:
+            msg = check_page.stdout
+            detect = tools.gran_detecto(self.testdir, '-d')
+            msg = '{}{}{}'.format(os.linesep, msg, detect.stdout)
+            raise futils.Fail('Granularity check for {} failed: {}'
+                              .format(self.testdir, msg))
+
+    def clean(self):
+        shutil.rmtree(self.testdir, ignore_errors=True)
+
+
+class Page(_Granularity):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.gran_detecto_arg = '-p'
+        self.dir = os.path.abspath(self.config.page_fs_dir)
+        self.testdir = os.path.join(self.dir, self.tc_dirname)
+        self.force = kwargs['force_page']
+
+
+class CacheLine(_Granularity):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.gran_detecto_arg = '-c'
+        self.dir = os.path.abspath(self.config.cacheline_fs_dir)
+        self.testdir = os.path.join(self.dir, self.tc_dirname)
+        self.force = kwargs['force_cacheline']
+
+
+class Byte(_Granularity):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.gran_detecto_arg = '-b'
+        self.dir = os.path.abspath(self.config.byte_fs_dir)
+        self.testdir = os.path.join(self.dir, self.tc_dirname)
+        self.force = kwargs['force_byte']
+
+
+class Non(_Granularity):
+    """
+    No filesystem is used. Accessing some fields of this class is prohibited.
+    """
+    explicit = True
+
+    def __init__(self, **kwargs):
+        pass
+
+    def setup(self, tools=None):
+        pass
+
+    def cleanup(self):
+        pass
+
+    def __getattribute__(self, name):
+        if name in ('dir',):
+            raise AttributeError("'{}' attribute cannot be used if the test "
+                                 "is meant to not use any filesystem"
+                                 .format(name, self))
+        else:
+            return super().__getattribute__(name)
+
+
 # test case attributes that refer to selected context classes, their
 # respective config field names and context base classes
 CTX_COMPONENTS = (
     ('build', _Build),
-    ('fs', _Fs)
+    ('granularity', _Granularity)
 )

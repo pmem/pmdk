@@ -54,14 +54,6 @@ def get_testcases():
     return builtins.testcases
 
 
-# test case attributes that refer to selected context classes, their
-# respective config field names and context base classes
-CTX_COMPONENTS = (
-    ('build', ctx._Build),
-    ('fs', ctx._Fs)
-)
-
-
 def _test_string_repr(cls):
     """
     Implementation of __str__ method for the test class. Needs to be available
@@ -69,23 +61,6 @@ def _test_string_repr(cls):
     as well as uninitialized object (as a _TestCase metaclass method)
     """
     return '{}/{}'.format(cls.group, cls.name)
-
-
-class Any:
-    """
-    Test context attribute signifying that specific context value is not
-    relevant for the test outcome and it should be run only once in some
-    viable context
-    """
-    @classmethod
-    def get(cls, conf_ctx):
-        """Get specific context value to be run"""
-        for c in conf_ctx:
-            if c.is_preferred:
-                # pick preferred if found
-                return c
-        # if no preferred is found, pick the first one
-        return conf_ctx[0]
 
 
 class _TestCase(type):
@@ -97,6 +72,13 @@ class _TestCase(type):
         # globally register class as test case
         # only classes whose names start with 'TEST' are meant to be run
         cls.name = cls.__name__
+        if cls.__module__ == '__main__':
+            cls.cwd = path.dirname(path.abspath(sys.argv[0]))
+        else:
+            cls.cwd = cls.__module__
+
+        cls.group = path.basename(cls.cwd)
+                
         if cls.name.startswith('TEST'):
             builtins.testcases.append(cls)
             try:
@@ -106,13 +88,8 @@ class _TestCase(type):
                       .format(cls.name))
                 raise e
 
-            if cls.__module__ == '__main__':
-                cls.cwd = path.dirname(path.abspath(sys.argv[0]))
-            else:
-                cls.cwd = cls.__module__
-
-            cls.group = path.basename(cls.cwd)
             cls.tc_dirname = cls.group + '_' + str(cls.testnum)
+
 
     def __str__(cls):
         return _test_string_repr(cls)

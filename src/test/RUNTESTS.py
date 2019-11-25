@@ -55,12 +55,13 @@ def _import_testfiles():
     Traverse through "src/test" directory, find all "TESTS.py" files and
     import them as modules. Set imported module name to file directory path.
     """
+    config = Configurator().config
     for root, _, files in os.walk(futils.ROOTDIR):
         for name in files:
             if name == 'TESTS.py':
                 testfile = path.join(root, name)
-                spec = importutil.spec_from_file_location(
-                    path.dirname(testfile), testfile)
+                module_name = path.dirname(testfile)
+                spec = importutil.spec_from_file_location(module_name, testfile)
                 module = importutil.module_from_spec(spec)
                 spec.loader.exec_module(module)
 

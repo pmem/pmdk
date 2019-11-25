@@ -45,24 +45,24 @@ except ImportError:
     # if file doesn't exist create dummy object
     envconfig = {'GLOBAL_LIB_PATH': ''}
 
-PMEMDETECT_FALSE = 0
-PMEMDETECT_TRUE = 1
-PMEMDETECT_ERROR = 2
 
+class Tools:
+    PMEMDETECT_FALSE = 0
+    PMEMDETECT_TRUE = 1
+    PMEMDETECT_ERROR = 2
 
-def pmemdetect(ctx, *args):
-    env = os.environ.copy()
+    def __init__(self, env, build):
+        self.env = env
+        self.build = build
 
-    if sys.platform == 'win32':
-        env['PATH'] = envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
-            ctx.build.libdir + os.pathsep +\
-            env.get('PATH', '')
-    else:
-        env['LD_LIBRARY_PATH'] = envconfig['GLOBAL_LIB_PATH'] + os.pathsep +\
-            ctx.libdir + os.pathsep +\
-            env.get('LD_LIBRARY_PATH', '')
+    def _run_test_tool(self, name, *args):
+        exe = futils.get_test_tool_path(self.build, name)
 
-    exe = futils.get_test_tool_path(ctx, 'pmemdetect')
+        return sp.run([exe, *args], env=self.env, stdout=sp.PIPE,
+                    stderr=sp.STDOUT, universal_newlines=True)
 
-    return sp.run([exe, *args], env=env, stdout=sp.PIPE,
-                  stderr=sp.STDOUT, universal_newlines=True)
+    def pmemdetect(self, *args):
+        return self._run_test_tool('pmemdetect', *args)
+
+    def gran_detecto(self, *args):
+        return self._run_test_tool('gran_detecto', *args)
