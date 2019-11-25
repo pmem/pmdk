@@ -81,7 +81,7 @@ def main():
     parser.add_argument("-v", "--version",
                         help="print version of the pmreorder",
                         action="version",
-                        version="%(prog)s (" + pmreorder_version + ")")
+                        version="%(prog)s " + pmreorder_version)
     engines_keys = list(reorderengines.engines.keys())
     parser.add_argument("-r", "--default-engine",
                         help="set default reorder engine " +
