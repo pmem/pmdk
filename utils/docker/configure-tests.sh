@@ -111,11 +111,15 @@ fi
 	cat << EOF >> $WORKDIR/src/test/testconfig.py
 config = {
 	'unittest_log_level': 1,
-	'pmem_fs_dir': '/tmp',
-	'non_pmem_fs_dir': '/tmp',
+	'cacheline_fs_dir': '/tmp',
+	'force_cacheline': True,
+	'page_fs_dir': '/tmp',
+	'force_page': False,
+	'byte_fs_dir': '/tmp',
+	'force_byte': True,
 	'tm': True,
 	'test_type': 'check',
-	'fs': 'all',
+	'granularity': 'all',
 	'fs_dir_force_pmem': 0,
 	'keep_going': False,
 	'timeout': '3m',

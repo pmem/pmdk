@@ -39,7 +39,7 @@ from datetime import timedelta
 
 import builds
 import context as ctx
-import filesystems
+import granularity
 import futils
 import test_types
 import valgrind as vg
@@ -62,13 +62,25 @@ class _ConfigFromDict:
     # special method triggered if class attribute was not found
     # https://docs.python.org/3.5/reference/datamodel.html#object.__getattr__
     def __getattr__(self, name):
-        if name == 'pmem_fs_dir':
-            raise futils.Skip('No PMEM test directory provided')
-        if name == 'non_pmem_fs_dir':
-            raise futils.Skip('No non-PMEM test directory provided')
+        if name == 'page_fs_dir':
+            raise futils.Skip('Configuration field "{}" not found. '
+                              'No page granularity test directory '
+                              'provided'.format(name))
 
-        sys.exit('Provided test configuration may be invalid. '
-                 'No "{}" field found in configuration.'.format(name))
+        if name == 'cacheline_fs_dir':
+            raise futils.Skip('Configuration field "{}" not found. '
+                              'No cache line granularity test '
+                              'directory provided'.format(name))
+
+        if name == 'byte_fs_dir':
+            raise futils.Skip('Configuration field "{}" not found. '
+                              'No byte granularity test directory '
+                              'provided'.format(name))
+
+        raise AttributeError('Provided test configuration may be '
+                             'invalid. No "{}" field found in '
+                             'configuration.'
+                             .format(name))
 
 
 def _str2list(config):
@@ -155,7 +167,7 @@ def _str2ctx(config):
 
     convert_internal('build', builds.Build)
     convert_internal('test_type', test_types._TestType)
-    convert_internal('fs', filesystems.Fs)
+    convert_internal('granularity', granularity.Granularity)
 
     if config['force_enable'] is not None:
         config['force_enable'] = next(
@@ -190,8 +202,9 @@ class Configurator():
             return _ConfigFromDict(config)
 
         except KeyError as e:
-            sys.exit("No config field '{}' found. "
-                     "testconfig.py file may be invalid.".format(e.args[0]))
+            print("No config field '{}' found. "
+                  "testconfig.py file may be invalid.".format(e.args[0]))
+            raise
 
     def _convert_to_usable_types(self, config):
         """
@@ -246,9 +259,10 @@ class Configurator():
         parser.add_argument('-b', dest='build',
                             help='run only specified build type',
                             choices=ctx_choices(builds.Build), nargs='*')
-        parser.add_argument('-f', dest='fs',
-                            choices=ctx_choices(filesystems.Fs), nargs='*',
-                            help='run tests on specified filesystem types.')
+        parser.add_argument('-g', dest='granularity',
+                            choices=ctx_choices(granularity.Granularity),
+                            nargs='*', help='run tests on a filesystem'
+                            ' with specified granularity types.')
         parser.add_argument('-t', dest='test_type',
                             help='run only specified test type where'
                             'check = short + medium',
