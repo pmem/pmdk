@@ -40,14 +40,15 @@ import itertools
 
 import builds
 import futils
-import filesystems
+import granularity
+
 import context as ctx
 import valgrind as vg
 
 if sys.platform != 'win32':
-    CTX_TYPES = (vg.Valgrind, filesystems.Fs)
+    CTX_TYPES = (vg.Valgrind, granularity.Granularity)
 else:
-    CTX_TYPES = (filesystems.Fs, )
+    CTX_TYPES = (granularity.Granularity, )
 
 
 class CtxFilter:
