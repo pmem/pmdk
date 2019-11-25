@@ -452,7 +452,7 @@ def get_requirement(tc, attr, default):
 
 class Any:
     """
-    Test context attribute signifying that specific context value is not
+    The test context attribute signifying that specific context value is not
     relevant for the test outcome and it should be run only once in some
     viable context
     """
