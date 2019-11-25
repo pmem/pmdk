@@ -48,6 +48,7 @@ mkdir $DIR\testdir1 > $null
 
 expect_normal_exit $Env:EXE_DIR\util_file_open$Env:EXESUFFIX 0x4000 `
     $DIR\testdir1 `
+    NUL `
     $DIR\testfile0 `
     $DIR\testfile1 `
     $DIR\testfile2
