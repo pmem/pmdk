@@ -45,7 +45,8 @@ date: pmem2 API version 1.0
 # NAME #
 
 **pmem2_config_new**(), **pmem2_config_delete**(),
-**pmem2_config_set_fd**(), **pmem2_config_set_handle**()
+**pmem2_config_set_fd**(), **pmem2_config_set_handle**() - manipulate pmem2
+	config object
 
 # SYNOPSIS #
 
