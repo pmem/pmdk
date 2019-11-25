@@ -65,8 +65,13 @@ class Tools:
     def _run_test_tool(self, name, *args):
         exe = futils.get_test_tool_path(self.build, name)
 
+        print('exe:', exe, args)
+
         return sp.run([exe, *args], env=self.env, stdout=sp.PIPE,
                       stderr=sp.STDOUT, universal_newlines=True)
 
     def pmemdetect(self, *args):
         return self._run_test_tool('pmemdetect', *args)
+
+    def gran_detecto(self, *args):
+        return self._run_test_tool('gran_detecto', *args)

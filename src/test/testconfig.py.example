@@ -19,22 +19,33 @@ config = {
     'unittest_log_level': 1,
 
     #
-    # For tests that require true persistent memory, set the path to
-    # a directory on a PMEM-aware file system here.
-    # Uncomment this line if there's an actual persistent memory
+    # For tests that require filesystem with page granularity, set the
+    # path to a directory on a filesystem with such granularity.
+    # This line may stay commented out if there's no such filesystem
+    # for tests to be run on.
+    #
+
+    # 'page_fs_dir': '/tmp',
+
+    #
+    # For tests that require filesystem with cacheline granularity, set
+    # the path to a directory on a filesystem with such granularity.
+    # This line may stay commented out if there's no such filesystem
+    # for tests to be run on.
     # available on your system.
     #
 
-    # 'pmem_fs_dir': '/mnt/pmem',
+    # 'cacheline_fs_dir': '/mnt/pmem',
 
     #
-    # For tests that require true a non-persitent memory aware file system
-    # (i.e. to verify something works on traditional page-cache based
-    # memory-mapped files) set the path to a directory
-    # on a normal file system here.
+    # For tests that require filesystem with byte granularity, set
+    # the path to a directory on a filesystem with such granularity.
+    # This line may stay commented out if there's no such filesystem
+    # for tests to be run on.
+    # available on your system.
     #
 
-    # 'non_pmem_fs_dir': '/tmp',
+    # 'byte_fs_dir': '/mnt/pmem',
 
     #
     # To display execution time of each test
@@ -64,6 +75,27 @@ config = {
     #
 
     'fs': 'all',
+
+    #
+    # Set filesystem granularity to be run:
+    # page, cacheline, byte, none, all (default)
+    #
+
+    'granularity': 'all',
+
+    #
+    # Enforce that the library will act in accordace with
+    # page/cacheline/byte granularity, even if underlying filesystem
+    # is not page/cacheline/byte granular.
+    # XXX: currently this enforcement does nothing more than omitting
+    # the test directory granularity check.
+    #
+
+    'force_page': False,
+
+    'force_cacheline': False,
+
+    'force_byte': False,
 
     #
     # If keep_going is set to True, execution continues despite test failures.

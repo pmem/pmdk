@@ -44,6 +44,7 @@ class BASIC(t.Test):
 
 
 @t.require_valgrind_disabled('memcheck')
+@t.require_page_granularity()
 class TEST0(BASIC):
     pass
 
