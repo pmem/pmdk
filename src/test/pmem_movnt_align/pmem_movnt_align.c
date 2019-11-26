@@ -225,9 +225,9 @@ main(int argc, char *argv[])
 
 	char type = argv[1][0];
 	Heavy = argv[2][0] == '1';
-	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
-	const char *avx = getenv("PMEM_AVX");
-	const char *avx512f = getenv("PMEM_AVX512F");
+	const char *thr = os_getenv("PMEM_MOVNT_THRESHOLD");
+	const char *avx = os_getenv("PMEM_AVX");
+	const char *avx512f = os_getenv("PMEM_AVX512F");
 
 	START(argc, argv, "pmem_movnt_align %c %s %savx %savx512f", type,
 			thr ? thr : "default",
