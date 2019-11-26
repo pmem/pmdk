@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,9 +45,9 @@ main(int argc, char *argv[])
 	char *dst;
 	char *src;
 
-	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
-	const char *avx = getenv("PMEM_AVX");
-	const char *avx512f = getenv("PMEM_AVX512F");
+	const char *thr = os_getenv("PMEM_MOVNT_THRESHOLD");
+	const char *avx = os_getenv("PMEM_AVX");
+	const char *avx512f = os_getenv("PMEM_AVX512F");
 
 	START(argc, argv, "pmem_movnt %s %savx %savx512f",
 			thr ? thr : "default",

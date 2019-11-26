@@ -58,7 +58,7 @@ os_extents_common(const char *path, struct extents *exts,
 {
 	LOG(3, "path %s exts %p pfd %p pfmap %p", path, exts, pfd, pfmap);
 
-	int fd = open(path, O_RDONLY);
+	int fd = os_open(path, O_RDONLY);
 	if (fd == -1) {
 		ERR("!open %s", path);
 		return -1;

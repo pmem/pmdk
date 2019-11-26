@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017, Intel Corporation
+# Copyright 2017-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,7 @@
 #
 # usage: ./check-os.sh [os.h path] [.o file] [.c file]
 
-EXCLUDE="os_linux|os_thread_linux"
+EXCLUDE="os_posix|os_thread_posix"
 if [[ $2 =~ $EXCLUDE ]]; then
 	echo "skip $2"
 	exit 0
@@ -44,10 +44,11 @@ fi
 
 symbols=$(nm --demangle --undefined-only --format=posix $2 | sed 's/ U *//g')
 functions=$(cat $1 | tr '\n' '|')
+functions=${functions%?} # remove trailing | character
 out=$(
 	for sym in $symbols
 	do
-		grep -w $functions <<<"$sym"
+		grep -wE $functions <<<"$sym"
 	done | sed 's/$/\(\)/g')
 
 [[ ! -z $out ]] &&
