@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -198,9 +198,9 @@ main(int argc, char *argv[])
 	if (argc != 5)
 		UT_FATAL("usage: %s file srcoff destoff length", argv[0]);
 
-	const char *thr = getenv("PMEM_MOVNT_THRESHOLD");
-	const char *avx = getenv("PMEM_AVX");
-	const char *avx512f = getenv("PMEM_AVX512F");
+	const char *thr = os_getenv("PMEM_MOVNT_THRESHOLD");
+	const char *avx = os_getenv("PMEM_AVX");
+	const char *avx512f = os_getenv("PMEM_AVX512F");
 
 	START(argc, argv, "pmem_memcpy %s %s %s %s %savx %savx512f",
 			argv[2], argv[3], argv[4], thr ? thr : "default",

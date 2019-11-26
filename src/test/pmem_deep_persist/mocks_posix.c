@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,7 +47,7 @@ FUNC_MOCK_RUN_DEFAULT {
 	if (strstr(path, "/sys/bus/nd/devices/region") &&
 			strstr(path, "/deep_flush")) {
 		UT_OUT("mocked open, path %s", path);
-		if (access(path, R_OK))
+		if (os_access(path, R_OK))
 			return 999;
 	}
 

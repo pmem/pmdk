@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -54,6 +54,7 @@
 #include <libpmem.h>
 
 #include "util.h"
+#include "os.h"
 #include "os_dimm.h"
 
 #define ALIGN_UP(size, align) (((size) + (align) - 1) & ~((align) - 1))
@@ -352,14 +353,14 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst,
 	}
 
 	/* try to open file/device (if exists) */
-	dev->fd = open(dev->path, flags, S_IRUSR|S_IWUSR);
+	dev->fd = os_open(dev->path, flags, S_IRUSR|S_IWUSR);
 	if (dev->fd == -1) {
 		ret = errno;
 		if (ret == ENOENT && is_dst) {
 			/* file does not exist - create it */
 			flags = O_CREAT|O_WRONLY|O_TRUNC;
 			dev->size = SIZE_MAX;
-			dev->fd = open(dev->path, flags, S_IRUSR|S_IWUSR);
+			dev->fd = os_open(dev->path, flags, S_IRUSR|S_IWUSR);
 			if (dev->fd == -1) {
 				FAIL("open");
 				return -1;
