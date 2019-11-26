@@ -55,6 +55,6 @@ struct pmem2_config {
 	enum pmem2_granularity requested_max_granularity;
 };
 
-void config_init(struct pmem2_config *cfg);
+void pmem2_config_init(struct pmem2_config *cfg);
 
 #endif /* PMEM2_CONFIG_H */

@@ -202,7 +202,7 @@ util_fd_get_size(int fd)
 	size_t size;
 	int ret;
 
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	ret = pmem2_config_set_fd(&cfg, fd);
 	if (ret) {
 		errno = pmem2_err_to_errno(ret);

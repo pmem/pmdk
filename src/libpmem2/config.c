@@ -43,10 +43,10 @@
 #include "pmem2_utils.h"
 
 /*
- * config_init -- (internal) initialize cfg structure.
+ * pmem2_config_init -- initialize cfg structure.
  */
 void
-config_init(struct pmem2_config *cfg)
+pmem2_config_init(struct pmem2_config *cfg)
 {
 #ifdef _WIN32
 	cfg->handle = INVALID_HANDLE_VALUE;
@@ -73,7 +73,7 @@ pmem2_config_new(struct pmem2_config **cfg)
 
 	ASSERTne(cfg, NULL);
 
-	config_init(*cfg);
+	pmem2_config_init(*cfg);
 	return 0;
 }
 
