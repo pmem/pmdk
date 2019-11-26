@@ -43,6 +43,7 @@
 #include <time.h>
 
 #include "util.h"
+#include "os.h"
 #include "valgrind_internal.h"
 #include "alloc.h"
 
@@ -318,7 +319,7 @@ util_init(void)
 
 #if VG_PMEMCHECK_ENABLED
 	if (On_valgrind) {
-		char *pmreorder_env = getenv("PMREORDER_EMIT_LOG");
+		char *pmreorder_env = os_getenv("PMREORDER_EMIT_LOG");
 		if (pmreorder_env)
 			_Pmreorder_emit = atoi(pmreorder_env);
 	} else {

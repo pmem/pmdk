@@ -155,7 +155,7 @@ main(int argc, char *argv[])
 			write_consistent(sf);
 			break;
 		case 'c':
-			fp = fopen(argv[3], "a");
+			fp = os_fopen(argv[3], "a");
 			if (fp == NULL)
 				UT_FATAL("!fopen");
 			int ret;

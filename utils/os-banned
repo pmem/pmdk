@@ -35,6 +35,13 @@ cpu_zero
 cpu_set
 pthread_setaffinity_np
 pthread_atfork
+sem_init
+sem_destroy
+sem_wait
+sem_trywait
+sem_post
+fsync
+fsync_dir
 open
 stat
 unlink
@@ -53,3 +60,4 @@ unsetenv
 setenv
 getenv
 strsignal
+execv
