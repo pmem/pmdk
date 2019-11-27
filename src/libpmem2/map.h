@@ -46,7 +46,9 @@ extern "C" {
 
 struct pmem2_map {
 	void *addr; /* base address */
-	size_t length; /* effective length of the mapping */
+	size_t reserved_length; /* length of the mapping reservation */
+	size_t content_length; /* length of the mapped content */
+	/* space between content_length and reserved_length is MAP_ANONYMOUS */
 	/* effective persistence granularity */
 	enum pmem2_granularity effective_granularity;
 };

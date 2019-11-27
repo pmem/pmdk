@@ -88,7 +88,7 @@ pmem2_map_get_size(struct pmem2_map *map)
 {
 	LOG(3, "map %p", map);
 
-	return map->length;
+	return map->content_length;
 }
 
 /*
