@@ -328,7 +328,7 @@ main(int argc, char *argv[])
 		}
 	}
 #endif
-	struct tool_ctx ctx = {0};
+	struct tool_ctx ctx;
 	int ret = 0;
 	if (parse_args(argc, argv, &ctx)) {
 		ret = 1;
