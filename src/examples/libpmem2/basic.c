@@ -99,4 +99,6 @@ main(int argc, char *argv[])
 	pmem2_unmap(&map);
 	pmem2_config_delete(&cfg);
 	close(fd);
+
+	return 0;
 }
