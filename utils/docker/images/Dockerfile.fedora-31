@@ -41,6 +41,12 @@ MAINTAINER marcin.slusarz@intel.com
 # Install basic tools
 RUN dnf update -y
 
+# tests
+ENV TESTS_DEPS "bc \
+	gdb \
+	ndctl \
+	strace"
+
 RUN dnf install -y \
 	autoconf \
 	automake \
@@ -77,7 +83,8 @@ RUN dnf install -y \
 	tar \
 	wget \
 	which \
-	xmlto
+	xmlto \
+	$TESTS_DEPS
 
 RUN dnf clean all
 
