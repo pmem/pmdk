@@ -67,7 +67,7 @@ prepare_config(struct pmem2_config *cfg, int *fd, const char *file,
 {
 	*fd = OPEN(file, access);
 
-	config_init(cfg);
+	pmem2_config_init(cfg);
 	cfg->offset = offset;
 	cfg->length = length;
 #ifdef _WIN32
@@ -386,7 +386,7 @@ test_map_empty_config(const struct test_case *tc, int argc, char *argv[])
 	struct pmem2_config cfg;
 	struct pmem2_map *map;
 
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	int ret = pmem2_map(&cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_FILE_HANDLE_NOT_SET);
 

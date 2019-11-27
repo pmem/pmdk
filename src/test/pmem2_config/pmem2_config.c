@@ -78,7 +78,7 @@ static void
 test_set_rw_fd(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	int fd = OPEN(file, O_RDWR);
 
 	int ret = pmem2_config_set_fd(&cfg, fd);
@@ -95,7 +95,7 @@ static void
 test_set_ro_fd(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	int fd = OPEN(file, O_RDONLY);
 
 	int ret = pmem2_config_set_fd(&cfg, fd);
@@ -112,7 +112,7 @@ static void
 test_set_negative_fd(const char *unused)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	/* randomly picked negative number */
 	int ret = pmem2_config_set_fd(&cfg, -42);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
@@ -126,7 +126,7 @@ static void
 test_set_invalid_fd(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	/* open and close the file to get invalid fd */
 	int fd = OPEN(file, O_WRONLY);
 	CLOSE(fd);
@@ -144,7 +144,7 @@ static void
 test_set_wronly_fd(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	int fd = OPEN(file, O_WRONLY);
 
 	int ret = pmem2_config_set_fd(&cfg, fd);
@@ -197,7 +197,7 @@ static void
 test_config_set_granularity_valid(const char *unused)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 
 	/* check default granularity */
 	enum pmem2_granularity g = PMEM2_GRANULARITY_INVALID;
@@ -228,7 +228,7 @@ test_config_set_granularity_invalid(const char *unused)
 	int ret = 0;
 	enum pmem2_granularity g_inval = 999;
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	ret = pmem2_config_set_required_store_granularity(&cfg, g_inval);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ARG);
 }
@@ -241,7 +241,7 @@ static void
 test_set_handle(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
 		0, NULL, OPEN_ALWAYS, 0, NULL);
 	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
@@ -260,7 +260,7 @@ static void
 test_set_null_handle(const char *unused)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 
 	/* set the handle to something different than INVALID_HANDLE_VALUE */
 	cfg.handle = NULL;
@@ -278,7 +278,7 @@ static void
 test_set_invalid_handle(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
 		0, NULL, OPEN_ALWAYS, 0, NULL);
 	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
@@ -297,7 +297,7 @@ static void
 test_set_directory_handle(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 
 	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
 		0, NULL, OPEN_ALWAYS, FILE_FLAG_BACKUP_SEMANTICS, NULL);
@@ -317,7 +317,7 @@ static void
 test_set_mutex_handle(const char *unused)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 
 	HANDLE h = CreateMutex(NULL, FALSE, NULL);
 	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
@@ -335,7 +335,7 @@ static void
 test_set_directory_fd(const char *file)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 
 	int fd = OPEN(file, O_RDONLY);
 

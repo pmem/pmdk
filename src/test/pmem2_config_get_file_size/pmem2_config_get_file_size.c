@@ -57,7 +57,7 @@ static void
 test_notset_fd(const char *ignored_path, os_off_t ignored_size)
 {
 	struct pmem2_config cfg;
-	config_init(&cfg);
+	pmem2_config_init(&cfg);
 	size_t size;
 	int ret = pmem2_config_get_file_size(&cfg, &size);
 
@@ -67,7 +67,7 @@ test_notset_fd(const char *ignored_path, os_off_t ignored_size)
 static void
 init_cfg(struct pmem2_config *cfg, int fd)
 {
-	config_init(cfg);
+	pmem2_config_init(cfg);
 #ifdef _WIN32
 	cfg->handle = (HANDLE)_get_osfhandle(fd);
 #else
