@@ -567,7 +567,7 @@ palloc_exec_actions(struct palloc_heap *heap,
 	pmemops_drain(&heap->p_ops);
 
 	/* perform all persistent memory operations */
-	operation_finish(ctx, 0);
+	operation_process(ctx);
 
 	for (size_t i = 0; i < actvcnt; ++i) {
 		act = &actv[i];
@@ -585,6 +585,8 @@ palloc_exec_actions(struct palloc_heap *heap,
 
 		action_funcs[act->type].on_unlock(heap, act);
 	}
+
+	operation_finish(ctx, 0);
 }
 
 /*
