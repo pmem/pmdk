@@ -49,7 +49,7 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
 		libpmemobj/pmemobj_tx_alloc.3.md libpmemobj/pobj_layout_begin.3.md libpmemobj/pobj_list_head.3.md libpmemobj/toid_declare.3.md \
 		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_feature_query.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md \
-		libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config.3.md libpmem2/pmem2_config_new.3.md libpmem2/pmem2_map.3.md \
+		libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.md libpmem2/pmem2_map.3.md \
 		libpmem2/pmem2_unmap.3.md libpmem2/pmem2_map_get_address.3.md libpmem2/pmem2_map_get_size.3.md \
 		libpmem2/pmem2_config_set_fd.3.md libpmem2/pmem2_config_set_required_store_granularity.3.md libpmem2/pmem2_config_get_file_size.3.md
 

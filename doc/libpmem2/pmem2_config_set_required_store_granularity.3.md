@@ -84,5 +84,5 @@ Otherwise, it returns one of the following error values:
  * **PMEM2_E_INVALID_ARG** - granularity *g* is not a valid value.
 
 # SEE ALSO #
-**pmem2_config**(3), **libpmem2**(7)
+**pmem2_config_new**(3), **libpmem2**(7)
 and **<http://pmem.io>**
