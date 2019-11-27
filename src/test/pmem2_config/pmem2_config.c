@@ -200,7 +200,8 @@ test_config_set_granularity_valid(const char *unused)
 	pmem2_config_init(&cfg);
 
 	/* check default granularity */
-	enum pmem2_granularity g = PMEM2_GRANULARITY_INVALID;
+	enum pmem2_granularity g =
+		(enum pmem2_granularity)PMEM2_GRANULARITY_INVALID;
 	UT_ASSERTeq(cfg.requested_max_granularity, g);
 
 	/* change default granularity */

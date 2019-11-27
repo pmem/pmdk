@@ -65,17 +65,23 @@ main(int argc, char *argv[])
 	}
 
 	if (pmem2_config_new(&cfg)) {
-		fprintf(stderr, "%s", pmem2_errormsg());
+		fprintf(stderr, "%s\n", pmem2_errormsg());
 		exit(1);
 	}
 
 	if (pmem2_config_set_fd(cfg, fd)) {
-		fprintf(stderr, "%s", pmem2_errormsg());
+		fprintf(stderr, "%s\n", pmem2_errormsg());
+		exit(1);
+	}
+
+	if (pmem2_config_set_required_store_granularity(cfg,
+			PMEM2_GRANULARITY_PAGE)) {
+		fprintf(stderr, "%s\n", pmem2_errormsg());
 		exit(1);
 	}
 
 	if (pmem2_map(cfg, &map)) {
-		fprintf(stderr, "%s", pmem2_errormsg());
+		fprintf(stderr, "%s\n", pmem2_errormsg());
 		exit(1);
 	}
 

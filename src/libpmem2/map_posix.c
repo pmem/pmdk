@@ -43,6 +43,7 @@
 
 #include "libpmem2.h"
 #include "alloc.h"
+#include "auto_flush.h"
 #include "out.h"
 #include "file.h"
 #include "config.h"
@@ -59,6 +60,48 @@
 
 #define MEGABYTE ((uintptr_t)1 << 20)
 #define GIGABYTE ((uintptr_t)1 << 30)
+
+/* indicates the cases in which the error cannot occur */
+#define GRAN_IMPOSSIBLE "impossible"
+#ifdef __linux__
+	/* requested CACHE_LINE, available PAGE */
+#define REQ_CL_AVAIL_PG \
+	"requested granularity not available because fd doesn't point to DAX-enabled file " \
+	"or kernel doesn't support MAP_SYNC flag (Linux >= 4.15)"
+
+/* requested BYTE, available PAGE */
+#define REQ_BY_AVAIL_PG REQ_CL_AVAIL_PG
+
+/* requested BYTE, available CACHE_LINE */
+#define REQ_BY_AVAIL_CL \
+	"requested granularity not available because the platform doesn't support eADR"
+
+static const char *granularity_err_msg[3][3] = {
+/*		requested granularity / available granularity		*/
+/* -------------------------------------------------------------------- */
+/*		BYTE		CACHE_LINE		PAGE		*/
+/* -------------------------------------------------------------------- */
+/* BYTE */ {GRAN_IMPOSSIBLE,	REQ_BY_AVAIL_CL,	REQ_BY_AVAIL_PG},
+/* CL	*/ {GRAN_IMPOSSIBLE,	GRAN_IMPOSSIBLE,	REQ_CL_AVAIL_PG},
+/* PAGE */ {GRAN_IMPOSSIBLE,	GRAN_IMPOSSIBLE,	GRAN_IMPOSSIBLE}};
+#else
+/* requested CACHE_LINE, available PAGE */
+#define REQ_CL_AVAIL_PG \
+	"the operating system doesn't provide a method of detecting granularity"
+
+/* requested BYTE, available PAGE */
+#define REQ_BY_AVAIL_PG \
+	"the operating system doesn't provide a method of detecting whether the platform supports eADR"
+
+static const char *granularity_err_msg[3][3] = {
+/*		requested granularity / available granularity		*/
+/* -------------------------------------------------------------------- */
+/*		BYTE		CACHE_LINE		PAGE		*/
+/* -------------------------------------------------------------------- */
+/* BYTE */ {GRAN_IMPOSSIBLE,	GRAN_IMPOSSIBLE,	REQ_BY_AVAIL_PG},
+/* CL	*/ {GRAN_IMPOSSIBLE,	GRAN_IMPOSSIBLE,	REQ_CL_AVAIL_PG},
+/* PAGE */ {GRAN_IMPOSSIBLE,	GRAN_IMPOSSIBLE,	GRAN_IMPOSSIBLE}};
+#endif
 
 /*
  * get_map_alignment -- (internal) choose the desired mapping alignment
@@ -227,8 +270,15 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	*map_ptr = NULL;
 
 	if (cfg->fd == INVALID_FD) {
-		ERR("file handle was not set");
+		ERR("the provided file descriptor is invalid");
 		return PMEM2_E_FILE_HANDLE_NOT_SET;
+	}
+
+	if ((int)cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
+		ERR(
+			"please define the max granularity requested for the mapping");
+
+		return PMEM2_E_GRANULARITY_NOT_SET;
 	}
 
 	os_off_t off = (os_off_t)cfg->offset;
@@ -299,6 +349,24 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 
 	LOG(3, "mapped at %p", addr);
 
+	bool eADR = (pmem2_auto_flush() == 1);
+	enum pmem2_granularity available_min_granularity =
+		get_min_granularity(eADR, map_sync);
+
+	if (available_min_granularity > cfg->requested_max_granularity) {
+		const char *err = granularity_err_msg
+			[cfg->requested_max_granularity]
+			[available_min_granularity];
+		if (strcmp(err, GRAN_IMPOSSIBLE) == 0)
+			FATAL(
+				"unhandled granularity error: available_min_granularity: %d" \
+				"requested_max_granularity: %d",
+				available_min_granularity,
+				cfg->requested_max_granularity);
+		ERR("%s", err);
+		return PMEM2_E_GRANULARITY_NOT_SUPPORTED;
+	}
+
 	/* prepare pmem2_map structure */
 	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
 	if (!map) {
@@ -307,10 +375,9 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	}
 
 	map->addr = addr;
-	/* XXX require eADR detection to set PMEM2_GRANULARITY_BYTE */
-	map->effective_granularity = map_sync ? PMEM2_GRANULARITY_CACHE_LINE :
-			PMEM2_GRANULARITY_PAGE;
 	map->length = length;
+	map->effective_granularity = available_min_granularity;
+
 	*map_ptr = map;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->length);
