@@ -8,7 +8,7 @@
 #
 
 name: PMDK
-on: [push]
+on: [push, pull_request]
 
 env:
     GITHUB_REPO:    pmem/pmdk
