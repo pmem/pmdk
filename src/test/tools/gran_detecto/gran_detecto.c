@@ -284,6 +284,15 @@ gran_detecto(struct tool_ctx *ctx)
 		goto free_config;
 	}
 
+	if (pmem2_config_set_required_store_granularity(cfg,
+			PMEM2_GRANULARITY_PAGE)) {
+		fprintf(stderr,
+			"pmem2_config_set_required_store_granularity failed: %s\n",
+			pmem2_errormsg());
+		ret = 1;
+		goto free_config;
+	}
+
 	struct pmem2_map *map;
 	if (pmem2_map(cfg, &map)) {
 		fprintf(stderr, "pmem2_map failed: %s\n", pmem2_errormsg());
