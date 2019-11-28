@@ -35,7 +35,6 @@
  */
 
 #include "libpmem2.h"
-#include "pmem2.h"
 
 int
 pmem2_config_set_sharing(struct pmem2_config *cfg, unsigned type)
