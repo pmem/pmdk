@@ -226,6 +226,7 @@ PMEM2_TESTS = \
 	pmem2_granularity\
 	pmem2_include\
 	pmem2_integration\
+	pmem2_granularity_detection\
 	pmem2_map
 
 PMEMPOOL_TESTS = \

@@ -38,6 +38,8 @@
 
 #include "config.h"
 #include "map.h"
+#include "os.h"
+#include "pmem2.h"
 
 #include <libpmem2.h>
 
@@ -104,11 +106,41 @@ pmem2_map_get_store_granularity(struct pmem2_map *map)
 }
 
 /*
+ * parse_force_granularity -- parse PMEM2_FORCE_GRANULARITY environment variable
+ */
+static enum pmem2_granularity
+parse_force_granularity()
+{
+	char *ptr = os_getenv("PMEM2_FORCE_GRANULARITY");
+	if (ptr) {
+		char *s = ptr;
+		while (*s) {
+			*s = (char)toupper((char)*s);
+			s++;
+		}
+
+		if (strcmp(ptr, "BYTE") == 0) {
+			return PMEM2_GRANULARITY_BYTE;
+		} else if (strcmp(ptr, "CACHE_LINE") == 0) {
+			return PMEM2_GRANULARITY_CACHE_LINE;
+		} else if (strcmp(ptr, "CACHELINE") == 0) {
+			return PMEM2_GRANULARITY_CACHE_LINE;
+		} else if (strcmp(ptr, "PAGE") == 0) {
+			return PMEM2_GRANULARITY_PAGE;
+		}
+	}
+	return PMEM2_GRANULARITY_INVALID;
+}
+
+/*
  * get_min_granularity -- checks min available granularity
  */
 enum pmem2_granularity
 get_min_granularity(bool eADR, bool is_pmem)
 {
+	enum pmem2_granularity force = parse_force_granularity();
+	if (force != PMEM2_GRANULARITY_INVALID)
+		return force;
 	if (!is_pmem)
 		return PMEM2_GRANULARITY_PAGE;
 	if (!eADR)

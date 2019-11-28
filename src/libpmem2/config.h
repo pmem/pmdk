@@ -39,7 +39,7 @@
 #include "libpmem2.h"
 
 #define INVALID_FD (-1)
-#define PMEM2_GRANULARITY_INVALID (-1)
+#define PMEM2_GRANULARITY_INVALID ((enum pmem2_granularity) (-1))
 
 struct pmem2_config {
 	/* a source file descriptor / handle for the designed mapping */
