@@ -45,6 +45,10 @@
     <None Include="TEST2.PS1" />
     <None Include="TEST20.PS1" />
     <None Include="TEST21.PS1" />
+    <None Include="TEST22.PS1" />
+    <None Include="TEST23.PS1" />
+    <None Include="TEST24.PS1" />
+    <None Include="TEST25.PS1" />
     <None Include="TEST3.PS1" />
     <None Include="TEST4.PS1" />
     <None Include="TEST5.PS1" />

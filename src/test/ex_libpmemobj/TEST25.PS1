@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,25 +31,21 @@
 #
 
 #
-# examples/libpmemobj/Makefile -- build the libpmemobj examples
+# src/test/ex_libpmemobj/TEST25 -- unit test for libpmemobj examples
 #
-PROGS = manpage btree pi lists setjmp buffons_needle_problem
-DIRS = pminvaders pmemlog pmemblk string_store string_store_tx\
-	string_store_tx_type hashmap tree_map pmemobjfs map libart array\
-	linkedlist list_map slab_allocator queue
 
-LIBS = -lpmemobj -lpmem -pthread -lm -pthread
+. ..\unittest\unittest.PS1
 
-include ../Makefile.inc
+require_test_type medium
+require_build_type debug nondebug
+require_no_unicode
 
-map: hashmap tree_map
-pmemobjfs: map
+setup
 
-manpage: manpage.o
-btree: btree.o
-pi: pi.o
-lists: lists.o
-buffons_needle_problem: buffons_needle_problem.o
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_buffons_needle_problem $DIR\testfile 100 > out$Env:UNITTEST_NUM.log 2>&1
 
-setjmp: CFLAGS += -O2
-setjmp: setjmp.o
+expect_normal_exit $Env:EXAMPLES_DIR\ex_pmemobj_buffons_needle_problem $DIR\testfile >> out$Env:UNITTEST_NUM.log 2>&1
+
+check
+
+pass
