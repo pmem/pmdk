@@ -1,3 +1,4 @@
+#!../env.py
 #
 # Copyright 2019, Intel Corporation
 #
@@ -30,22 +31,45 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/pmem2_config_get_file_size/Makefile -- build
-# pmem2_config_get_file_size unit test
-#
-TOP = ../../..
 
-vpath %.c $(TOP)/src/test/unittest
-vpath %.c $(TOP)/src/libpmem2
+import testframework as t
+import futils as f
 
-INCS += -I$(TOP)/src/libpmem2
-TARGET = pmem2_config_get_file_size
-OBJS += libpmem2.o\
-	pmem2.o\
-	pmem2_config_get_file_size.o\
-	ut_pmem2_config.o\
-	ut_pmem2_utils.o
 
-LIBPMEMCOMMON=y
-include ../Makefile.inc
+class PMEM2_CONFIG(t.BaseTest):
+    test_type = t.Short
+
+
+class TEST0(PMEM2_CONFIG):
+    """test granularity detection with PMEM2_FORCE_GRANULARITY set to page"""
+    def run(self, ctx):
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = "page"
+        ctx.exec(f.get_test_tool_path(ctx, "gran_detecto"), ' -p', ctx.testdir)
+
+
+class TEST1(PMEM2_CONFIG):
+    """test granularity detection with PMEM2_FORCE_GRANULARITY set to cache_line"""
+    def run(self, ctx):
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = "cache_line"
+        ctx.exec(f.get_test_tool_path(ctx, "gran_detecto"), ' -c', ctx.testdir)
+
+
+class TEST2(PMEM2_CONFIG):
+    """test granularity detection with PMEM2_FORCE_GRANULARITY set to byte"""
+    def run(self, ctx):
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = "byte"
+        ctx.exec(f.get_test_tool_path(ctx, "gran_detecto"), ' -b', ctx.testdir)
+
+
+class TEST3(PMEM2_CONFIG):
+    """test granularity detection with PMEM2_FORCE_GRANULARITY set to CaCHe_Line"""
+    def run(self, ctx):
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = "CaCHe_Line"
+        ctx.exec(f.get_test_tool_path(ctx, "gran_detecto"), ' -c', ctx.testdir)
+
+
+class TEST4(PMEM2_CONFIG):
+    """test granularity detection with PMEM2_FORCE_GRANULARITY set to CACHELINE"""
+    def run(self, ctx):
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = "CACHELINE"
+        ctx.exec(f.get_test_tool_path(ctx, "gran_detecto"), ' -c', ctx.testdir)
