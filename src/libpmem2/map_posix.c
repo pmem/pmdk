@@ -289,7 +289,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 		return PMEM2_E_FILE_HANDLE_NOT_SET;
 	}
 
-	if ((int)cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
+	if (cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
 		ERR(
 			"please define the max granularity requested for the mapping");
 
