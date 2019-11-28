@@ -116,7 +116,7 @@ prepare_map(struct pmem2_map **map_ptr, struct pmem2_config *cfg)
 
 	UT_ASSERTne(CloseHandle(mh), 0);
 
-	map->length = cfg->length;
+	map->reserved_length = map->content_length = cfg->length;
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
 
 	*map_ptr = map;
@@ -146,7 +146,7 @@ prepare_map(struct pmem2_map **map_ptr, struct pmem2_config *cfg)
 	map->addr = mmap(NULL, cfg->length, proto, flags, cfg->fd, offset);
 	UT_ASSERTne(map->addr, MAP_FAILED);
 
-	map->length = cfg->length;
+	map->reserved_length = map->content_length = cfg->length;
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
 
 	*map_ptr = map;
@@ -162,7 +162,7 @@ unmap_map(struct pmem2_map *map)
 #ifdef _WIN32
 	UT_ASSERTne(UnmapViewOfFile(map->addr), 0);
 #else
-	UT_ASSERTeq(munmap(map->addr, map->length), 0);
+	UT_ASSERTeq(munmap(map->addr, map->reserved_length), 0);
 #endif
 }
 
@@ -255,9 +255,10 @@ map_valid_ranges_common(const char *file, size_t offset, size_t length,
 	prepare_config(&cfg, &fd, file, length, offset, O_RDWR);
 	ret = pmem2_map(&cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	UT_ASSERTeq(map->length, val_length);
+	UT_ASSERTeq(map->content_length, val_length);
 
 	unmap_map(map);
+	FREE(map);
 	CLOSE(fd);
 }
 
@@ -395,6 +396,32 @@ test_map_empty_config(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_map_unaligned_length - map a file of length which is not page-aligned
+ */
+static int
+test_map_unaligned_length(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_unaligned_length <file>", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	size_t length = get_size(file);
+	struct pmem2_map *map;
+	int fd;
+
+	prepare_config(&cfg, &fd, file, length, 0, O_RDWR);
+	int ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	unmap_map(map);
+	FREE(map);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_unmap_valid - unmap valid pmem2 mapping
  */
 static int
@@ -449,7 +476,7 @@ unmap_invalid_common(const char *file, spoil_func spoil, int exp_ret)
 	if (unmap_required)
 		unmap_map(&map_copy);
 
-	free(map);
+	FREE(map);
 	CLOSE(fd);
 
 	return 1;
@@ -458,14 +485,15 @@ unmap_invalid_common(const char *file, spoil_func spoil, int exp_ret)
 static void
 map_spoil_set_zero_length(struct pmem2_map *map, bool *unmap_rquired)
 {
-	map->length = 0;
+	map->reserved_length = 0;
+	map->content_length = 0;
 }
 
 static void
 map_spoil_set_unaligned_addr(struct pmem2_map *map, bool *unused)
 {
 	map->addr = (void *)((uintptr_t)map->addr + 1);
-	map->length -= 1;
+	map->reserved_length -= 1;
 }
 
 static void
@@ -548,7 +576,7 @@ test_map_get_size(const struct test_case *tc, int argc, char *argv[])
 	size_t ref_size = 16384;
 
 	struct pmem2_map map;
-	map.length = ref_size;
+	map.content_length = ref_size;
 
 	ret_size = pmem2_map_get_size(&map);
 	UT_ASSERTeq(ret_size, ref_size);
@@ -583,6 +611,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_map_invalid_alignment),
 	TEST_CASE(test_map_invalid_fd),
 	TEST_CASE(test_map_empty_config),
+	TEST_CASE(test_map_unaligned_length),
 	TEST_CASE(test_unmap_valid),
 	TEST_CASE(test_unmap_zero_length),
 	TEST_CASE(test_unmap_unaligned_addr),

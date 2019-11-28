@@ -122,3 +122,12 @@ class TEST13(PMEM2_MAP):
 class TEST14(PMEM2_MAP):
     """simply get the previously stored value of granularity"""
     test_case = "test_get_granularity_simple"
+
+
+class TEST15(PMEM2_MAP):
+    """map a file of length which is not page-aligned"""
+    test_case = "test_map_unaligned_length"
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(3 * t.KiB, 'testfile',)
+        ctx.exec('pmem2_map', self.test_case, filepath)

@@ -228,7 +228,12 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 		goto err_unmap_base;
 
 	map->addr = base;
-	map->length = length;
+	/*
+	 * XXX probably in some cases the reserved length > the content length.
+	 * Maybe it is worth to do the research.
+	 */
+	map->reserved_length = length;
+	map->content_length = length;
 	map->effective_granularity = available_min_granularity;
 
 	/* return a pointer to the pmem2_map structure */

@@ -134,7 +134,7 @@ get_map_alignment(size_t len, size_t req_align)
  * 1GB alignment, it results in 1024 possible locations.
  */
 static int
-map_reserve(size_t len, size_t alignment, void **reserv)
+map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen)
 {
 	ASSERTne(reserv, NULL);
 
@@ -156,17 +156,32 @@ map_reserve(size_t len, size_t alignment, void **reserv)
 
 	LOG(4, "system choice %p", daddr);
 	*reserv = (void *)roundup((uintptr_t)daddr, alignment);
+	/*
+	 * since the last part of the reservation from (reserv + reslen == end)
+	 * will be unmapped, the 'end' address has to be page-aligned.
+	 * 'reserv' is already page-aligned (or even aligned to multiple of page
+	 * size) so it is enough to page-align the 'reslen' value.
+	 */
+	*reslen = roundup(len, Pagesize);
 	LOG(4, "hint %p", *reserv);
 
 	/*
 	 * The placeholder mapping is divided into few parts:
 	 *
-	 * daddr  reserv    (reserv + len)    (daddr + dlength)
-	 * |......|uuuuuuuuu|.................|
+	 * 1      2         3   4                 5
+	 * |......|uuuuuuuuu|rrr|.................|
+	 *
+	 * Addresses:
+	 * 1 == daddr
+	 * 2 == reserv
+	 * 3 == reserv + len
+	 * 4 == reserv + reslen == end (has to be page-aligned)
+	 * 5 == daddr + dlength
 	 *
 	 * Key:
 	 * - '.' is an unused part of the placeholder
 	 * - 'u' is where the actual mapping lies
+	 * - 'r' is what reserved as padding
 	 */
 
 	/* unmap the placeholder before the actual mapping */
@@ -179,8 +194,8 @@ map_reserve(size_t len, size_t alignment, void **reserv)
 	}
 
 	/* unmap the placeholder after the actual mapping */
-	const size_t after = dlength - len - before;
-	void *end = (void *)((uintptr_t)(*reserv) + (uintptr_t)len);
+	const size_t after = dlength - *reslen - before;
+	void *end = (void *)((uintptr_t)(*reserv) + (uintptr_t)*reslen);
 	if (after)
 		if (munmap(end, after)) {
 			ERR("!munmap");
@@ -317,33 +332,34 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 
 	ASSERT(file_type == PMEM2_FTYPE_REG || file_type == PMEM2_FTYPE_DEVDAX);
 
-	size_t length;
-	ret = pmem2_get_length(cfg, file_len, &length);
+	size_t content_length, reserved_length = 0;
+	ret = pmem2_get_length(cfg, file_len, &content_length);
 	if (ret)
 		return ret;
 
-	const size_t alignment = get_map_alignment(length, cfg->alignment);
+	const size_t alignment = get_map_alignment(content_length,
+			cfg->alignment);
 
 	/* find a hint for the mapping */
 	void *reserv = NULL;
-	ret = map_reserve(length, alignment, &reserv);
+	ret = map_reserve(content_length, alignment, &reserv, &reserved_length);
 	if (ret != 0) {
 		LOG(1, "cannot find a contiguous region of given size");
 		return ret;
 	}
 	ASSERTne(reserv, NULL);
 
-	ret = file_map(reserv, length, proto, flags, cfg->fd, off, &map_sync,
-			&addr);
+	ret = file_map(reserv, content_length, proto, flags, cfg->fd, off,
+			&map_sync, &addr);
 	if (ret == -EACCES) {
 		proto = PROT_READ;
-		ret = file_map(reserv, length, proto, flags, cfg->fd, off,
-				&map_sync, &addr);
+		ret = file_map(reserv, content_length, proto, flags, cfg->fd,
+				off, &map_sync, &addr);
 	}
 
 	if (ret) {
 		/* unmap the reservation mapping */
-		munmap(reserv, length);
+		munmap(reserv, reserved_length);
 		return ret;
 	}
 
@@ -370,18 +386,19 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	/* prepare pmem2_map structure */
 	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
 	if (!map) {
-		unmap(addr, length);
+		unmap(addr, reserved_length);
 		return ret;
 	}
 
 	map->addr = addr;
-	map->length = length;
+	map->reserved_length = reserved_length;
+	map->content_length = content_length;
 	map->effective_granularity = available_min_granularity;
 
 	*map_ptr = map;
 
-	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->length);
-	VALGRIND_REGISTER_PMEM_FILE(cfg->fd, map->addr, map->length, 0);
+	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->content_length);
+	VALGRIND_REGISTER_PMEM_FILE(cfg->fd, map->addr, map->content_length, 0);
 
 	return ret;
 }
@@ -397,11 +414,11 @@ pmem2_unmap(struct pmem2_map **map_ptr)
 	int ret = 0;
 	struct pmem2_map *map = *map_ptr;
 
-	ret = unmap(map->addr, map->length);
+	ret = unmap(map->addr, map->reserved_length);
 	if (ret)
 		return ret;
 
-	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->length);
+	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->content_length);
 
 	Free(map);
 	*map_ptr = NULL;
