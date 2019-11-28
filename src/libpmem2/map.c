@@ -38,6 +38,7 @@
 
 #include "config.h"
 #include "map.h"
+#include "pmem2.h"
 
 #include <libpmem2.h>
 
@@ -109,6 +110,8 @@ pmem2_map_get_store_granularity(struct pmem2_map *map)
 enum pmem2_granularity
 get_min_granularity(bool eADR, bool is_pmem)
 {
+	if (Force_granularity) /* user overrode granularity detection */
+		return Force_granularity;
 	if (!is_pmem)
 		return PMEM2_GRANULARITY_PAGE;
 	if (!eADR)

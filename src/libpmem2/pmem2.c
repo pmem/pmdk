@@ -34,8 +34,13 @@
  * pmem2.c -- pmem2 entry points for libpmem2
  */
 
+#include <ctype.h>
+#include <string.h>
 #include "libpmem2.h"
 #include "pmem2.h"
+#include "os.h"
+
+enum pmem2_granularity Force_granularity;
 
 int
 pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
@@ -159,4 +164,29 @@ pmem2_badblock_clear(const struct pmem2_config *cfg,
 		const struct pmem2_badblock *bb)
 {
 	return PMEM2_E_NOSUPP;
+}
+
+/*
+ * pmem2_init - load-time initialization for pmem2.c
+ */
+void
+pmem2_init()
+{
+	char *ptr = os_getenv("PMEM2_FORCE_GRANULARITY");
+	if (ptr) {
+		char *s = ptr;
+		while (*s) {
+			*s = (char)toupper((char)*s);
+			s++;
+		}
+
+		if (strcmp(ptr, "BYTE") == 0) {
+			Force_granularity = PMEM2_GRANULARITY_BYTE;
+		} else if (strcmp(ptr, "CACHE_LINE") == 0) {
+			Force_granularity = PMEM2_GRANULARITY_CACHE_LINE;
+		} else if (strcmp(ptr, "PAGE") == 0) {
+			Force_granularity = PMEM2_GRANULARITY_PAGE;
+		}
+	}
+
 }
