@@ -284,7 +284,8 @@ gran_detecto(struct tool_ctx *ctx)
 		goto free_config;
 	}
 
-	if (pmem2_config_set_required_store_granularity(cfg, PMEM2_GRANULARITY_PAGE)) {
+	if (pmem2_config_set_required_store_granularity(cfg,
+			PMEM2_GRANULARITY_PAGE)) {
 		fprintf(stderr, "pmem2_config_set_fd failed: %s\n",
 			pmem2_errormsg());
 		ret = 1;
@@ -313,9 +314,9 @@ cleanup_file:
 	return ret;
 }
 
-static const char *PMEM2_GRANULARITIES[] = {"byte granularity",
-					    "cache line granularity",
-					    "page granularity"};
+static const char *PMEM2_GRANULARITIES[] = {	"byte",
+						"cache line",
+						"page"};
 
 int
 main(int argc, char *argv[])
