@@ -4,6 +4,7 @@
 #   --with | --without ndctl
 #   --define _testconfig <path to custom testconfig.sh>
 #   --define _skip_check 1
+#   --define _pmem2_install 1
 
 # do not terminate build if files in the $RPM_BUILD_ROOT
 # directory are not found in the %files (without rpmem case)
@@ -91,6 +92,8 @@ The Persistent Memory Development Kit is a collection of libraries for
 using memory-mapped persistence, optimized specifically for persistent memory.
 
 
+%if 0%{?_pmem2_install} == 1
+
 %package -n libpmem2__PKG_NAME_SUFFIX__
 Summary: Low-level persistent memory support library (EXPERIMENTAL)
 Group: __GROUP_SYS_LIBS__
@@ -154,6 +157,7 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %{_libdir}/pmdk_debug/libpmem2.so.*
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
+%endif #_pmem2_install
 
 
 %package -n libpmem__PKG_NAME_SUFFIX__
@@ -628,7 +632,6 @@ a device.
 %doc ChangeLog CONTRIBUTING.md README.md
 
 %endif # _with_ndctl
-
 
 %prep
 %setup -q -n %{name}-%{version}

@@ -37,7 +37,7 @@
 include ../src/common.inc
 
 MANPAGES_7_MD = libpmem/libpmem.7.md libpmemblk/libpmemblk.7.md libpmemlog/libpmemlog.7.md \
-		libpmemobj/libpmemobj.7.md libpmempool/libpmempool.7.md libpmem2/libpmem2.7.md
+		libpmemobj/libpmemobj.7.md libpmempool/libpmempool.7.md
 
 MANPAGES_5_MD = poolset/poolset.5.md pmem_ctl/pmem_ctl.5.md
 
@@ -48,8 +48,7 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 		libpmemobj/pmemobj_list_insert.3.md libpmemobj/pmemobj_memcpy_persist.3.md libpmemobj/pmemobj_mutex_zero.3.md \
 		libpmemobj/pmemobj_open.3.md libpmemobj/pmemobj_root.3.md libpmemobj/pmemobj_tx_begin.3.md libpmemobj/pmemobj_tx_add_range.3.md \
 		libpmemobj/pmemobj_tx_alloc.3.md libpmemobj/pobj_layout_begin.3.md libpmemobj/pobj_list_head.3.md libpmemobj/toid_declare.3.md \
-		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_feature_query.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md \
-		libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config.3.md libpmem2/pmem2_mapping.3.md
+		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_feature_query.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md
 
 MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmempool-create.1.md \
 		pmempool/pmempool-check.1.md pmempool/pmempool-dump.1.md pmempool/pmempool-rm.1.md \
@@ -104,20 +103,30 @@ MANPAGES_3_DUMMY = pmem_drain.3 pmem_has_hw_drain.3 pmem_has_auto_flush.3 \
 		   pmemobj_next.3 pobj_first_type_num.3 pobj_first.3 pobj_next_type_num.3 pobj_next.3 pobj_foreach.3 pobj_foreach_safe.3 pobj_foreach_type.3 pobj_foreach_safe_type.3 \
 		   pmemobj_root_construct.3 pobj_root.3 pmemobj_root_size.3 \
 		   pmemobj_check_version.3 pmemobj_check.3 pmemobj_errormsg.3 pmemobj_set_funcs.3 \
-		   pmemobj_reserve.3 pmemobj_xreserve.3 pmemobj_defer_free.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_tx_xpublish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3 pobj_xreserve_new.3 pobj_xreserve_alloc.3 \
-		   pmem2_config_new.3 pmem2_config_delete.3 pmem2_config_set_fd.3 pmem2_config_set_handle.3 \
-		   pmem2_map.3
+		   pmemobj_reserve.3 pmemobj_xreserve.3 pmemobj_defer_free.3 pmemobj_set_value.3 pmemobj_publish.3 pmemobj_tx_publish.3 pmemobj_tx_xpublish.3 pmemobj_cancel.3 pobj_reserve_new.3 pobj_reserve_alloc.3 pobj_xreserve_new.3 pobj_xreserve_alloc.3
 
 MANPAGES_BUILDDIR = generated
 MANPAGES_WEBDIR_LINUX = web_linux
 MANPAGES_WEBDIR_WINDOWS = web_windows
 
 # experimental
+MANPAGES_7_MD_EXP =
+MANPAGES_5_MD_EXP =
 MANPAGES_3_MD_EXP =
 MANPAGES_1_MD_EXP =
 
-MANPAGES_3_MD_DUMMY_EXP =
-MANPAGES_1_MD_DUMMY_EXP =
+MANPAGES_3_DUMMY_EXP =
+MANPAGES_1_DUMMY_EXP =
+
+# libpmem2
+MANPAGES_7_MD_PMEM2 = libpmem2/libpmem2.7.md
+MANPAGES_5_MD_PMEM2 =
+MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config.3.md libpmem2/pmem2_mapping.3.md
+MANPAGES_1_MD_PMEM2 =
+ifeq ($(PMEM2_INSTALL),y)
+MANPAGES_3_DUMMY += pmem2_config_new.3 pmem2_config_delete.3 pmem2_config_set_fd.3 pmem2_config_set_handle.3 \
+		   pmem2_map.3
+endif
 
 ifeq ($(BUILD_RPMEM),y)
 MANPAGES_7_MD += librpmem/librpmem.7.md
@@ -139,21 +148,38 @@ MANPAGES_5_GROFF = $(MANPAGES_5_MD:.5.md=.5)
 MANPAGES_3_GROFF = $(MANPAGES_3_MD:.3.md=.3)
 MANPAGES_1_GROFF = $(MANPAGES_1_MD:.1.md=.1)
 
-MANPAGES_7_GROFF_EXP = $(MANPAGES_7_MD_EXP:.3.md=.7)
-MANPAGES_5_GROFF_EXP = $(MANPAGES_5_MD_EXP:.3.md=.5)
+MANPAGES_7_GROFF_EXP = $(MANPAGES_7_MD_EXP:.7.md=.7)
+MANPAGES_5_GROFF_EXP = $(MANPAGES_5_MD_EXP:.5.md=.5)
 MANPAGES_3_GROFF_EXP = $(MANPAGES_3_MD_EXP:.3.md=.3)
 MANPAGES_1_GROFF_EXP = $(MANPAGES_1_MD_EXP:.1.md=.1)
 
+MANPAGES_7_GROFF_PMEM2 = $(MANPAGES_7_MD_PMEM2:.7.md=.7)
+MANPAGES_5_GROFF_PMEM2 = $(MANPAGES_5_MD_PMEM2:.5.md=.5)
+MANPAGES_3_GROFF_PMEM2 = $(MANPAGES_3_MD_PMEM2:.3.md=.3)
+MANPAGES_1_GROFF_PMEM2 = $(MANPAGES_1_MD_PMEM2:.1.md=.1)
+
 ifeq ($(EXPERIMENTAL),y)
-$(MANPAGES_7_GROFF) += $(MANPAGES_7_GROFF_EXP)
-$(MANPAGES_5_GROFF) += $(MANPAGES_5_GROFF_EXP)
-$(MANPAGES_3_GROFF) += $(MANPAGES_3_GROFF_EXP)
-$(MANPAGES_1_GROFF) += $(MANPAGES_1_GROFF_EXP)
+MANPAGES_7_GROFF += $(MANPAGES_7_GROFF_EXP)
+MANPAGES_5_GROFF += $(MANPAGES_5_GROFF_EXP)
+MANPAGES_3_GROFF += $(MANPAGES_3_GROFF_EXP)
+MANPAGES_1_GROFF += $(MANPAGES_1_GROFF_EXP)
 else
 MANPAGES_7_NOINSTALL += $(MANPAGES_7_GROFF_EXP)
 MANPAGES_5_NOINSTALL += $(MANPAGES_5_GROFF_EXP)
 MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_EXP)
 MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_EXP)
+endif
+
+ifeq ($(PMEM2_INSTALL),y)
+MANPAGES_7_GROFF += $(MANPAGES_7_GROFF_PMEM2)
+MANPAGES_5_GROFF += $(MANPAGES_5_GROFF_PMEM2)
+MANPAGES_3_GROFF += $(MANPAGES_3_GROFF_PMEM2)
+MANPAGES_1_GROFF += $(MANPAGES_1_GROFF_PMEM2)
+else
+MANPAGES_7_NOINSTALL += $(MANPAGES_7_GROFF_PMEM2)
+MANPAGES_5_NOINSTALL += $(MANPAGES_5_GROFF_PMEM2)
+MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_PMEM2)
+MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_PMEM2)
 endif
 
 MANPAGES = $(MANPAGES_7_GROFF) $(MANPAGES_5_GROFF) $(MANPAGES_3_GROFF) $(MANPAGES_1_GROFF) \
