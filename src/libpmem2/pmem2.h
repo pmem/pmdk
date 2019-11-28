@@ -49,6 +49,10 @@ extern "C" {
 #define PMEM2_LOG_LEVEL_VAR "PMEM2_LOG_LEVEL"
 #define PMEM2_LOG_FILE_VAR "PMEM2_LOG_FILE"
 
+void pmem2_init(void);
+
+extern enum pmem2_granularity Force_granularity;
+
 #ifdef __cplusplus
 }
 #endif
