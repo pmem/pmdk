@@ -59,6 +59,7 @@ fi
 if [ -n "$DNS_SERVER" ]; then DNS_SETTING=" --dns=$DNS_SERVER "; fi
 if [[ -f $CI_FILE_SKIP_BUILD_PKG_CHECK ]]; then BUILD_PACKAGE_CHECK=n; else BUILD_PACKAGE_CHECK=y; fi
 if [ -z "$NDCTL_ENABLE" ]; then ndctl_enable=; else ndctl_enable="--env NDCTL_ENABLE=$NDCTL_ENABLE"; fi
+if [[ $UBSAN -eq 1 ]]; then for x in C CPP LD;do declare EXTRA_${x}FLAGS=-fsanitize=undefined; done; fi
 
 # Only run doc update on $GITHUB_REPO master or stable branch
 if [[ -z "${TRAVIS_BRANCH}" || -z "${TARGET_BRANCHES[${TRAVIS_BRANCH}]}" || "$TRAVIS_PULL_REQUEST" != "false" || "$TRAVIS_REPO_SLUG" != "${GITHUB_REPO}" ]]; then

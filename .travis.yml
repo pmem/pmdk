@@ -24,7 +24,7 @@ env:
   matrix:
     - COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug
     - FAULT_INJECTION=1 TEST_BUILD=debug
-    - FAULT_INJECTION=1 TEST_BUILD=nondebug
+    - FAULT_INJECTION=1 TEST_BUILD=nondebug UBSAN=1
     - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
     - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug
     - OS=fedora OS_VER=31 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
