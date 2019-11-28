@@ -24,7 +24,7 @@ jobs:
     strategy:
       matrix:
         CONFIG: ["N=1 OS=ubuntu OS_VER=19.10 FAULT_INJECTION=1 TEST_BUILD=debug",
-                 "N=2 OS=ubuntu OS_VER=19.10 FAULT_INJECTION=1 TEST_BUILD=nondebug",
+                 "N=2 OS=ubuntu OS_VER=19.10 FAULT_INJECTION=1 TEST_BUILD=nondebug UBSAN=1",
                  "N=3 OS=ubuntu OS_VER=19.10 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug",
                  "N=4 OS=ubuntu OS_VER=19.10 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug",
                  "N=5 OS=fedora OS_VER=31    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug",
