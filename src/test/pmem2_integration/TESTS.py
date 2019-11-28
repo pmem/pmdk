@@ -83,3 +83,11 @@ class TEST4(PMEM2_INTEGRATION):
     """check if Valgrind registers data writing on pmem"""
     test_case = "test_register_pmem"
     pmemcheck = t.ENABLE
+
+
+class TEST5(PMEM2_INTEGRATION):
+    """create multiple mappings with different offsets and lengths"""
+    test_case = "test_set_len_and_offset"
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(1 * t.MiB, 'testfile1')
+        ctx.exec('pmem2_integration', self.test_case, filepath)

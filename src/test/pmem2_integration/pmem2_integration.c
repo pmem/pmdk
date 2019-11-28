@@ -252,6 +252,56 @@ test_register_pmem(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_set_len_and_offset -- test
+ */
+static int
+test_set_len_and_offset(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: test_set_len_and_offset <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	prepare_config(&cfg, fd);
+
+	size_t size;
+	UT_ASSERTeq(pmem2_config_get_file_size(cfg, &size), 0);
+
+	struct pmem2_map *map = map_valid(cfg, size);
+	char *base = pmem2_map_get_address(map);
+	size_t len = pmem2_map_get_size(map);
+
+	unsigned seed = 13; /* arbitrary chosen value */
+	for (int i = 0; i < len; i++) {
+		base[i] = os_rand_r(&seed);
+	}
+
+	for (size_t l = len; l > 0; l -= Ut_mmap_align) {
+		for (size_t off = 0; off < l; off += Ut_mmap_align) {
+			size_t len2 = l - off;
+			int ret = pmem2_config_set_length(cfg, len2);
+			UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+			ret = pmem2_config_set_offset(cfg, off);
+			UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+			struct pmem2_map *map2 = map_valid(cfg, len2);
+			char *ptr = pmem2_map_get_address(map2);
+
+			UT_ASSERTeq(ret = memcmp(base + off, ptr, len2), 0);
+			pmem2_unmap(&map2);
+		}
+	}
+	pmem2_unmap(&map);
+	pmem2_config_delete(&cfg);
+	CLOSE(fd);
+	return 1;
+}
+
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -260,6 +310,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_default_fd),
 	TEST_CASE(test_invalid_fd),
 	TEST_CASE(test_register_pmem),
+	TEST_CASE(test_set_len_and_offset),
+
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
