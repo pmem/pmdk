@@ -56,7 +56,7 @@ libpmem2_init(void)
 			PMEM2_MAJOR_VERSION, PMEM2_MINOR_VERSION);
 
 	LOG(3, NULL);
-	/* XXX possible pmem2_init placeholder */
+	pmem2_init();
 }
 
 /*

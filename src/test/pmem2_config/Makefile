@@ -41,6 +41,7 @@ vpath %.c $(TOP)/src/libpmem2
 INCS += -I$(TOP)/src/libpmem2
 TARGET = pmem2_config
 OBJS += libpmem2.o\
+	pmem2.o \
 	pmem2_config.o\
 	ut_pmem2_config.o\
 	ut_pmem2_utils.o
