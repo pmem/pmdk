@@ -34,7 +34,6 @@
  * mocks_windows.c -- mocked functions used in auto_flush_windows.c
  */
 
-#include "pmem.h"
 #include "util.h"
 #include "unittest.h"
 
@@ -101,14 +100,3 @@ FUNC_MOCK_RUN_DEFAULT {
 	return BufferSize;
 }
 FUNC_MOCK_END
-
-/*
- * libpmem_init -- load-time initialization for libpmem
- * Called automatically by the run-time loader.
- */
-CONSTRUCTOR(libpmem_init)
-void
-libpmem_init(void)
-{
-	pmem_init();
-}
