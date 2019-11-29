@@ -36,13 +36,80 @@ import testframework as t
 
 class PMEM2_GRANULARITY(t.BaseTest):
     test_type = t.Short
+    IS_EADR = '1'
+    IS_PMEM = '1'
 
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        ctx.env['IS_EADR'] = self.IS_EADR
+        ctx.env['IS_PMEM'] = self.IS_PMEM
         ctx.exec('pmem2_granularity', self.test_case, filepath)
 
 
-@t.windows_exclude
+# XXX TBD
+@t.windows_only
 class TEST0(PMEM2_GRANULARITY):
-    """pass invalid granularity value"""
-    test_case = "test_granularity_inval"
+    """pass byte granularity, available byte granularity"""
+    test_case = "test_granularity_req_byte_avail_byte"
+
+
+# XXX TBD
+@t.windows_only
+class TEST1(PMEM2_GRANULARITY):
+    """pass byte granularity, available cache line granularity"""
+    IS_EADR = '0'
+    test_case = "test_granularity_req_byte_avail_cl"
+
+
+# XXX TBD
+@t.windows_only
+class TEST2(PMEM2_GRANULARITY):
+    """pass byte granularity, available page granularity"""
+    IS_PMEM = '0'
+    test_case = "test_granularity_req_byte_avail_page"
+
+
+# XXX TBD
+@t.windows_only
+class TEST3(PMEM2_GRANULARITY):
+    """pass cache line granularity, available byte granularity"""
+    test_case = "test_granularity_req_cl_avail_byte"
+
+
+# XXX TBD
+@t.windows_only
+class TEST4(PMEM2_GRANULARITY):
+    """pass cache line granularity, available cache line granularity"""
+    IS_EADR = '0'
+    test_case = "test_granularity_req_cl_avail_cl"
+
+
+# XXX TBD
+@t.windows_only
+class TEST5(PMEM2_GRANULARITY):
+    """pass cache line granularity, available page granularity"""
+    IS_PMEM = '0'
+    test_case = "test_granularity_req_cl_avail_page"
+
+
+# XXX TBD
+@t.windows_only
+class TEST6(PMEM2_GRANULARITY):
+    """pass page granularity, available byte granularity"""
+    test_case = "test_granularity_req_page_avail_byte"
+
+
+# XXX TBD
+@t.windows_only
+class TEST7(PMEM2_GRANULARITY):
+    """pass page granularity, available cache line granularity"""
+    IS_EADR = '0'
+    test_case = "test_granularity_req_page_avail_cl"
+
+
+# XXX TBD
+@t.windows_only
+class TEST8(PMEM2_GRANULARITY):
+    """pass page granularity, available page granularity"""
+    IS_PMEM = '0'
+    test_case = "test_granularity_req_page_avail_page"
