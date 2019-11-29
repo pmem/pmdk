@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,40 +32,32 @@
 #
 
 #
-# src/test/pmem_deep_persist/Makefile -- build pmem_deep_persist test
+# src/test/pmem_movnt_align/TEST0 -- unit test for pmem_memcpy_persist
 #
-include ../../common.inc
 
-TOP = ../../..
-vpath %.c $(TOP)/src/libpmem
-vpath %.c $(TOP)/src/libpmem/$(ARCH)
-vpath %.c $(TOP)/src/libpmemobj
+. ../unittest/unittest.sh
 
-TARGET = pmem_deep_persist
+require_test_type medium
 
-OBJS = pmem_deep_persist.o\
-	pmem.o\
-	pmem_posix.o\
-	memops_generic.o\
-	mocks_posix.o
+require_fs_type pmem non-pmem
+require_build_type debug static-debug
 
-ifeq ($(ARCH), aarch64)
-OBJS += init.o
-endif
-ifeq ($(ARCH), x86_64)
-OBJS += init.o cpu.o
-endif
-ifeq ($(ARCH), ppc64)
-include $(TOP)/src/libpmem/$(ARCH)/sources.inc
-OBJS += $(LIBPMEM_ARCH_SOURCE:%.c=%.o)
-endif
+setup
 
-LIBPMEMOBJ=internal-debug
+export PMEM_LOG_LEVEL=4
 
-include ../Makefile.inc
+function test() {
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX C 1
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX F 1
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX B 1
+	expect_normal_exit ./pmem_movnt_align$EXESUFFIX S 1
+}
 
-CFLAGS += -DSRCVERSION="" -DDEBUG -DAVX512F_AVAILABLE=0 -DAVX_AVAILABLE=0 -DSSE2_AVAILABLE=0
-CFLAGS += -I$(TOP)/src/libpmem
-CFLAGS += -I$(TOP)/src/libpmem2
-CFLAGS += -I$(TOP)/src/libpmemobj/
-LDFLAGS += $(call extract_funcs, mocks_posix.c)
+test
+
+export PMEM_NO_MOVNT=1
+export PMEM_NO_GENERIC_MEMCPY=1
+
+test
+
+pass

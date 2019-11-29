@@ -38,6 +38,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+require_x86_64
 
 require_fs_type pmem non-pmem
 require_build_type debug static-debug
