@@ -315,9 +315,10 @@ cleanup_file:
 	return ret;
 }
 
-static const char *PMEM2_GRANULARITIES[] = {"byte granularity",
-					    "cache line granularity",
-					    "page granularity"};
+static const char *PMEM2_GRANULARITIES[] = {
+						"byte",
+						"cache line",
+						"page"};
 
 int
 main(int argc, char *argv[])
