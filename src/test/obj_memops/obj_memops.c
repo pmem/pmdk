@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -88,14 +88,14 @@ pmalloc_redo_extend(void *base, uint64_t *redo)
 static void
 test_set_entries(PMEMobjpool *pop,
 	struct operation_context *ctx, struct test_object *object,
-	size_t nentries, enum fail_types fail)
+	size_t nentries, enum fail_types fail, enum operation_log_type type)
 {
 	operation_start(ctx);
 
 	for (size_t i = 0; i < nentries; ++i) {
 		operation_add_typed_entry(ctx,
 			&object->values[i], i + 1,
-			ULOG_OPERATION_SET, LOG_PERSISTENT);
+			ULOG_OPERATION_SET, type);
 	}
 
 	operation_reserve(ctx, nentries * 16);
@@ -169,6 +169,7 @@ test_same_twice(struct operation_context *ctx, struct test_object *object)
 		ULOG_OPERATION_SET, LOG_PERSISTENT);
 	operation_process(ctx);
 	UT_ASSERTeq(object->values[0], 10);
+	operation_cancel(ctx);
 }
 
 static void
@@ -178,21 +179,25 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 		(struct ulog *)&object->redo, TEST_ENTRIES,
 		pmalloc_redo_extend, NULL, &pop->p_ops, LOG_TYPE_REDO);
 
-	test_set_entries(pop, ctx, object, 10, FAIL_NONE);
+	test_set_entries(pop, ctx, object, 10, FAIL_NONE, LOG_PERSISTENT);
 	clear_test_values(object);
 	test_merge_op(ctx, object);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 100, FAIL_NONE);
+	test_set_entries(pop, ctx, object, 100, FAIL_NONE, LOG_PERSISTENT);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 100, FAIL_CHECKSUM);
+	test_set_entries(pop, ctx, object, 100, FAIL_CHECKSUM, LOG_PERSISTENT);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 10, FAIL_CHECKSUM);
+	test_set_entries(pop, ctx, object, 10, FAIL_CHECKSUM, LOG_PERSISTENT);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_VALUE);
+	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_VALUE,
+		LOG_PERSISTENT);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_VALUE);
+	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_VALUE,
+		LOG_PERSISTENT);
 	clear_test_values(object);
 	test_same_twice(ctx, object);
+	clear_test_values(object);
+	test_set_entries(pop, ctx, object, 100, FAIL_NONE, LOG_TRANSIENT);
 	clear_test_values(object);
 
 	operation_delete(ctx);
@@ -202,13 +207,15 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 		(struct ulog *)&object->redo, TEST_ENTRIES,
 		NULL, NULL, &pop->p_ops, LOG_TYPE_REDO);
 
-	test_set_entries(pop, ctx, object, 100, 0);
+	test_set_entries(pop, ctx, object, 100, 0, LOG_PERSISTENT);
 	clear_test_values(object);
 
 	/* FAIL_MODIFY_NEXT tests can only happen after redo_next test */
-	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_NEXT);
+	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_NEXT,
+		LOG_PERSISTENT);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_NEXT);
+	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_NEXT,
+		LOG_PERSISTENT);
 	clear_test_values(object);
 
 	operation_delete(ctx);
