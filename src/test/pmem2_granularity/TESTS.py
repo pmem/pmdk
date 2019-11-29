@@ -31,18 +31,99 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+
+from enum import Enum
 import testframework as t
+
+
+class AVAILABLE_GRANULARITY(Enum):
+    BYTE = 1
+    CACHE_LINE = 2
+    PAGE = 3
 
 
 class PMEM2_GRANULARITY(t.BaseTest):
     test_type = t.Short
+    granularity = AVAILABLE_GRANULARITY.PAGE
 
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        if self.granularity is AVAILABLE_GRANULARITY.BYTE:
+            ctx.env['IS_EADR'] = '1'
+            ctx.env['IS_PMEM'] = '1'
+        elif self.granularity is AVAILABLE_GRANULARITY.CACHE_LINE:
+            ctx.env['IS_EADR'] = '0'
+            ctx.env['IS_PMEM'] = '1'
+        elif self.granularity is AVAILABLE_GRANULARITY.PAGE:
+            ctx.env['IS_EADR'] = '0'
+            ctx.env['IS_PMEM'] = '0'
         ctx.exec('pmem2_granularity', self.test_case, filepath)
 
 
-@t.windows_exclude
+# XXX Linux version TBD
+@t.windows_only
 class TEST0(PMEM2_GRANULARITY):
-    """pass invalid granularity value"""
-    test_case = "test_granularity_inval"
+    """pass byte granularity, available byte granularity"""
+    test_case = "test_granularity_req_byte_avail_byte"
+    granularity = AVAILABLE_GRANULARITY.BYTE
+
+
+# XXX Linux version TBD
+@t.windows_only
+class TEST1(PMEM2_GRANULARITY):
+    """pass byte granularity, available cache line granularity"""
+    test_case = "test_granularity_req_byte_avail_cl"
+    granularity = AVAILABLE_GRANULARITY.CACHE_LINE
+
+
+# XXX Linux version TBD
+@t.windows_only
+class TEST2(PMEM2_GRANULARITY):
+    """pass byte granularity, available page granularity"""
+    test_case = "test_granularity_req_byte_avail_page"
+
+
+# XXX Linux version TBD
+@t.windows_only
+class TEST3(PMEM2_GRANULARITY):
+    """pass cache line granularity, available byte granularity"""
+    test_case = "test_granularity_req_cl_avail_byte"
+    granularity = AVAILABLE_GRANULARITY.BYTE
+
+
+# XXX Linux version TBD
+@t.windows_only
+class TEST4(PMEM2_GRANULARITY):
+    """pass cache line granularity, available cache line granularity"""
+    test_case = "test_granularity_req_cl_avail_cl"
+    granularity = AVAILABLE_GRANULARITY.CACHE_LINE
+
+
+# XXX Linux version TBD
+@t.windows_only
+class TEST5(PMEM2_GRANULARITY):
+    """pass cache line granularity, available page granularity"""
+    test_case = "test_granularity_req_cl_avail_page"
+
+
+# XXX Linux version TBD
+@t.windows_only
+class TEST6(PMEM2_GRANULARITY):
+    """pass page granularity, available byte granularity"""
+    test_case = "test_granularity_req_page_avail_byte"
+    granularity = AVAILABLE_GRANULARITY.BYTE
+
+
+# XXX Linux version TBD
+@t.windows_only
+class TEST7(PMEM2_GRANULARITY):
+    """pass page granularity, available cache line granularity"""
+    test_case = "test_granularity_req_page_avail_cl"
+    granularity = AVAILABLE_GRANULARITY.CACHE_LINE
+
+
+# XXX Linux version TBD
+@t.windows_only
+class TEST8(PMEM2_GRANULARITY):
+    """pass page granularity, available page granularity"""
+    test_case = "test_granularity_req_page_avail_page"
