@@ -43,12 +43,13 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "libpmem.h"
 #include "unittest.h"
 
 #define CACHELINE 64
-#define N_BYTES 8192
+#define N_BYTES (Ut_pagesize * 2)
 
 typedef void *(*mem_fn)(void *, const void *, size_t);
 
@@ -234,6 +235,7 @@ main(int argc, char *argv[])
 			avx ? "" : "!",
 			avx512f ? "" : "!");
 
+	size_t page_size = Ut_pagesize;
 	size_t s;
 	switch (type) {
 	case 'C': /* memcpy */
@@ -267,8 +269,8 @@ main(int argc, char *argv[])
 		break;
 	case 'B': /* memmove backward */
 		/* mmap with guard pages */
-		Src = MMAP_ANON_ALIGNED(2 * N_BYTES - 4096, 0);
-		Dst = Src + N_BYTES - 4096;
+		Src = MMAP_ANON_ALIGNED(2 * N_BYTES - page_size, 0);
+		Dst = Src + N_BYTES - page_size;
 		if (Src == NULL)
 			UT_FATAL("!mmap");
 
@@ -290,12 +292,12 @@ main(int argc, char *argv[])
 		for (s = 0; s < CACHELINE; s++)
 			check_memmove_variants(s, s, N_BYTES - 2 * s);
 
-		MUNMAP_ANON_ALIGNED(Src, 2 * N_BYTES - 4096);
+		MUNMAP_ANON_ALIGNED(Src, 2 * N_BYTES - page_size);
 		break;
 	case 'F': /* memmove forward */
 		/* mmap with guard pages */
-		Dst = MMAP_ANON_ALIGNED(2 * N_BYTES - 4096, 0);
-		Src = Dst + N_BYTES - 4096;
+		Dst = MMAP_ANON_ALIGNED(2 * N_BYTES - page_size, 0);
+		Src = Dst + N_BYTES - page_size;
 		if (Src == NULL)
 			UT_FATAL("!mmap");
 
@@ -317,7 +319,7 @@ main(int argc, char *argv[])
 		for (s = 0; s < CACHELINE; s++)
 			check_memmove_variants(s, s, N_BYTES - 2 * s);
 
-		MUNMAP_ANON_ALIGNED(Dst, 2 * N_BYTES - 4096);
+		MUNMAP_ANON_ALIGNED(Dst, 2 * N_BYTES - page_size);
 
 		break;
 	case 'S': /* memset */
