@@ -31,40 +31,66 @@
  */
 
 /*
- * ut_pmem2_config.h -- utility helper functions for libpmem2 config tests
+ * ut_fh.h -- OS-independent file handle / file descriptor interface
  */
 
-#ifndef UT_PMEM2_CONFIG_H
-#define UT_PMEM2_CONFIG_H 1
+#ifndef UT_FH_H
+#define UT_FH_H
 
-#include "ut_fh.h"
+#include "os.h"
 
-/* a pmem2_config_new() that can't return NULL */
-#define PMEM2_CONFIG_NEW(cfg)						\
-	ut_pmem2_config_new(__FILE__, __LINE__, __func__, cfg)
+struct FHandle;
 
-/* a pmem2_config_set_fd() that can't return NULL */
-#define PMEM2_CONFIG_SET_FD(cfg, fd)					\
-	ut_pmem2_config_set_fd(__FILE__, __LINE__, __func__, cfg, fd)
+enum file_handle_type { FH_FD, FH_HANDLE };
 
-/* a pmem2_config_delete() that can't return NULL */
-#define PMEM2_CONFIG_DELETE(cfg)					\
-	ut_pmem2_config_delete(__FILE__, __LINE__, __func__, cfg)
+#define FH_ACCMODE	(3)
+#define FH_RDONLY	(0)
+#define FH_WRONLY	(1)
+#define FH_RDWR		(2)
 
-/* generic pmem2_config_set_fd/handle() for FHandles */
-#define PMEM2_CONFIG_SET_FHANDLE(cfg, fh)				\
-	ut_pmem2_config_set_fhandle(__FILE__, __LINE__, __func__, cfg, fh)
+#define FH_CREAT	(1 << 2)
+#define FH_EXCL		(1 << 3)
+#define FH_TRUNC	(1 << 4)
 
-void ut_pmem2_config_new(const char *file, int line, const char *func,
-	struct pmem2_config **cfg);
+/* needs directory, on Windows it creates publicly visible file */
+#define FH_TMPFILE	(1 << 5)
 
-void ut_pmem2_config_set_fd(const char *file, int line, const char *func,
-	struct pmem2_config *cfg, int fd);
+#define FH_DIRECTORY	(1 << 6)
 
-void ut_pmem2_config_delete(const char *file, int line, const char *func,
-	struct pmem2_config **cfg);
+#define UT_FH_OPEN(type, path, flags, ...)				\
+	ut_fh_open(__FILE__, __LINE__, __func__, type, path,		\
+			flags, ##__VA_ARGS__)
 
-void ut_pmem2_config_set_fhandle(const char *file, int line, const char *func,
-		struct pmem2_config *cfg, struct FHandle *f);
+#define UT_FH_TRUNCATE(fhandle, size)					\
+	ut_fh_truncate(__FILE__, __LINE__, __func__, fhandle, size)
 
-#endif /* UT_PMEM2_CONFIG_H */
+#define UT_FH_GET_FD(fhandle)						\
+	ut_fh_get_fd(__FILE__, __LINE__, __func__, fhandle)
+
+#ifdef _WIN32
+#define UT_FH_GET_HANDLE(fhandle)					\
+	ut_fh_get_handle(__FILE__, __LINE__, __func__, fhandle)
+#endif
+
+#define UT_FH_CLOSE(fhandle)						\
+	ut_fh_close(__FILE__, __LINE__, __func__, fhandle)
+
+struct FHandle *ut_fh_open(const char *file, int line, const char *func,
+		enum file_handle_type type, const char *path, int flags, ...);
+
+void ut_fh_truncate(const char *file, int line, const char *func,
+		struct FHandle *f, os_off_t length);
+
+void ut_fh_close(const char *file, int line, const char *func,
+		struct FHandle *f);
+
+enum file_handle_type ut_fh_get_handle_type(struct FHandle *fh);
+
+int ut_fh_get_fd(const char *file, int line, const char *func,
+		struct FHandle *f);
+#ifdef _WIN32
+HANDLE ut_fh_get_handle(const char *file, int line, const char *func,
+		struct FHandle *f);
+#endif
+
+#endif

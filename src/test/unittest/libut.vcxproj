@@ -19,6 +19,7 @@
     <ClCompile Include="ut_backtrace.c" />
     <ClCompile Include="ut_signal.c" />
     <ClCompile Include="ut_pthread.c" />
+    <ClCompile Include="ut_fh.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\unittest\unittest.h" />
