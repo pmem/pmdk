@@ -95,14 +95,14 @@ test_free_entry(void *base, uint64_t *next)
 static void
 test_set_entries(PMEMobjpool *pop,
 	struct operation_context *ctx, struct test_object *object,
-	size_t nentries, enum fail_types fail)
+	size_t nentries, enum fail_types fail, enum operation_log_type type)
 {
 	operation_start(ctx);
 
 	for (size_t i = 0; i < nentries; ++i) {
 		operation_add_typed_entry(ctx,
 			&object->values[i], i + 1,
-			ULOG_OPERATION_SET, LOG_PERSISTENT);
+			ULOG_OPERATION_SET, type);
 	}
 
 	operation_reserve(ctx, nentries * 16);
@@ -131,6 +131,7 @@ test_set_entries(PMEMobjpool *pop,
 		for (size_t i = 0; i < nentries; ++i)
 			UT_ASSERTeq(object->values[i], 0);
 	} else {
+		operation_process(ctx);
 		operation_finish(ctx, 0);
 
 		for (size_t i = 0; i < nentries; ++i)
@@ -159,6 +160,7 @@ test_merge_op(struct operation_context *ctx, struct test_object *object)
 		&object->values[0], 0b01,
 		ULOG_OPERATION_OR, LOG_PERSISTENT);
 
+	operation_process(ctx);
 	operation_finish(ctx, 0);
 
 	UT_ASSERTeq(object->values[0], 0b01);
@@ -176,6 +178,7 @@ test_same_twice(struct operation_context *ctx, struct test_object *object)
 		ULOG_OPERATION_SET, LOG_PERSISTENT);
 	operation_process(ctx);
 	UT_ASSERTeq(object->values[0], 10);
+	operation_cancel(ctx);
 }
 
 static void
@@ -186,37 +189,46 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 		pmalloc_redo_extend, (ulog_free_fn)pfree,
 		&pop->p_ops, LOG_TYPE_REDO);
 
-	test_set_entries(pop, ctx, object, 10, FAIL_NONE);
+	test_set_entries(pop, ctx, object, 100, FAIL_NONE, LOG_TRANSIENT);
+	clear_test_values(object);
+	test_set_entries(pop, ctx, object, 10, FAIL_NONE, LOG_PERSISTENT);
 	clear_test_values(object);
 	test_merge_op(ctx, object);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 100, FAIL_NONE);
+	test_set_entries(pop, ctx, object, 100, FAIL_NONE, LOG_PERSISTENT);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 100, FAIL_CHECKSUM);
+	test_set_entries(pop, ctx, object, 100, FAIL_CHECKSUM, LOG_PERSISTENT);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 10, FAIL_CHECKSUM);
+	test_set_entries(pop, ctx, object, 10, FAIL_CHECKSUM, LOG_PERSISTENT);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_VALUE);
+	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_VALUE,
+		LOG_PERSISTENT);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_VALUE);
+	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_VALUE,
+		LOG_PERSISTENT);
 	clear_test_values(object);
 	test_same_twice(ctx, object);
 	clear_test_values(object);
-
 	operation_delete(ctx);
 
-	/* verify that rebuilding redo_next works */
+	/*
+	 * Verify that rebuilding redo_next works. This requires that
+	 * object->redo->next is != 0 - to achieve that, this test must
+	 * be preceded by a test that fails to finish the ulog's operation.
+	 */
 	ctx = operation_new(
 		(struct ulog *)&object->redo, TEST_ENTRIES,
 		NULL, test_free_entry, &pop->p_ops, LOG_TYPE_REDO);
 
-	test_set_entries(pop, ctx, object, 100, 0);
+	test_set_entries(pop, ctx, object, 100, 0, LOG_PERSISTENT);
 	clear_test_values(object);
 
 	/* FAIL_MODIFY_NEXT tests can only happen after redo_next test */
-	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_NEXT);
+	test_set_entries(pop, ctx, object, 100, FAIL_MODIFY_NEXT,
+		LOG_PERSISTENT);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_NEXT);
+	test_set_entries(pop, ctx, object, 10, FAIL_MODIFY_NEXT,
+		LOG_PERSISTENT);
 	clear_test_values(object);
 
 	operation_delete(ctx);
@@ -537,6 +549,38 @@ test_undo_log_reuse()
 #undef ULOG_SIZE
 }
 
+/*
+ * test_undo_log_reuse -- test for correct reuse of log space
+ */
+static void
+test_redo_cleanup_same_size(PMEMobjpool *pop, struct test_object *object)
+{
+#define ULOG_SIZE 1024
+	struct operation_context *ctx = operation_new(
+		(struct ulog *)&object->redo, TEST_ENTRIES,
+		pmalloc_redo_extend, (ulog_free_fn)pfree,
+		&pop->p_ops, LOG_TYPE_REDO);
+
+	int ret = pmalloc(pop, &object->redo.next, ULOG_SIZE, 0, 0);
+	UT_ASSERTeq(ret, 0);
+
+	/* undo logs are clobbered at the end, which shrinks their size */
+	size_t capacity = ulog_capacity((struct ulog *)&object->undo,
+		TEST_ENTRIES, &pop->p_ops);
+
+	/* builtin log + one next */
+	UT_ASSERTeq(capacity, TEST_ENTRIES * 2);
+
+	operation_start(ctx); /* initialize a new operation */
+
+	struct pobj_action act;
+	pmemobj_reserve(pop, &act, ULOG_SIZE, 0);
+	palloc_publish(&pop->heap, &act, 1, ctx);
+
+	operation_delete(ctx);
+#undef ULOG_SIZE
+}
+
 static void
 test_undo(PMEMobjpool *pop, struct test_object *object)
 {
@@ -587,6 +631,7 @@ main(int argc, char *argv[])
 
 	test_redo(pop, object);
 	test_undo(pop, object);
+	test_redo_cleanup_same_size(pop, object);
 	test_undo_log_reuse();
 
 	pmemobj_close(pop);

@@ -120,7 +120,7 @@ class Valgrind:
         if self.valgrind_exe is None:
             return
 
-        self.opts = ''
+        self.opts = []
         self.memcheck_check_leaks = memcheck_check_leaks
 
         self.add_suppression('ld.supp')
@@ -162,9 +162,11 @@ class Valgrind:
     def cmd(self):
         """Get Valgrind command with specified arguments"""
         if self.tool == NONE:
-            return ''
-        return '{} --tool={} --log-file={} {} '.format(
-            self.valgrind_exe, self.tool_name, self.log_file, self.opts)
+            return []
+
+        cmd = [self.valgrind_exe, '--tool={}'.format(self.tool_name),
+               '--log-file={}'.format(self.log_file)] + self.opts
+        return cmd
 
     def _get_valgrind_exe(self):
         """
@@ -186,7 +188,7 @@ class Valgrind:
 
     def add_opt(self, opt):
         """Add option to Valgrind command"""
-        self.opts = '{} {}'.format(self.opts, opt)
+        self.opts.append(opt)
 
     def _get_version(self):
         """
@@ -203,8 +205,8 @@ class Valgrind:
         Add suppression file. Provided file path is
         relative to tests root directory (pmdk/src/test)
         """
-        self.opts = '{} --suppressions={}'.format(
-            self.opts, path.join(futils.ROOTDIR, f))
+        self.opts.append('--suppressions={}'
+                         .format(path.join(futils.ROOTDIR, f)))
 
     def validate_log(self):
         """
