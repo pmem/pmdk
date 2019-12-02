@@ -187,6 +187,8 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 		pmalloc_redo_extend, (ulog_free_fn)pfree,
 		&pop->p_ops, LOG_TYPE_REDO);
 
+	test_set_entries(pop, ctx, object, 100, FAIL_NONE, LOG_TRANSIENT);
+	clear_test_values(object);
 	test_set_entries(pop, ctx, object, 10, FAIL_NONE, LOG_PERSISTENT);
 	clear_test_values(object);
 	test_merge_op(ctx, object);
@@ -205,12 +207,13 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 	clear_test_values(object);
 	test_same_twice(ctx, object);
 	clear_test_values(object);
-	test_set_entries(pop, ctx, object, 100, FAIL_NONE, LOG_TRANSIENT);
-	clear_test_values(object);
-
 	operation_delete(ctx);
 
-	/* verify that rebuilding redo_next works */
+	/*
+	 * Verify that rebuilding redo_next works. This requires that
+	 * object->redo->next is != 0 - to achieve that, this test must
+	 * be preceded by a test that fails to finish the ulog's operation.
+	 */
 	ctx = operation_new(
 		(struct ulog *)&object->redo, TEST_ENTRIES,
 		NULL, test_free_entry, &pop->p_ops, LOG_TYPE_REDO);
