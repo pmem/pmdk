@@ -94,7 +94,7 @@ struct ulog_entry_buf {
 
 /* use this for allocations of aligned ulog extensions */
 #define SIZEOF_ALIGNED_ULOG(base_capacity)\
-ALIGN_UP(SIZEOF_ULOG(base_capacity + CACHELINE_SIZE), CACHELINE_SIZE)
+ALIGN_UP(SIZEOF_ULOG(base_capacity + (2 * CACHELINE_SIZE)), CACHELINE_SIZE)
 
 struct ulog ULOG(0);
 
