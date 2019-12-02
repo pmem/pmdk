@@ -46,13 +46,48 @@
 #endif
 #include <libpmem2.h>
 
+/* XXX in the future, you will need to use pmem2_config_get_align function */
+#ifdef _WIN32
+#define ALIGNMENT (16 * 1024)	// 16 KiB
+#else
+#define ALIGNMENT (4 * 1024)	// 4 KiB
+#endif
+
+static void
+map_the_file(struct pmem2_config *cfg, struct pmem2_map *map,
+		size_t offset, size_t length)
+{
+	if ((offset % ALIGNMENT) != 0) {
+		fprintf(stderr, "offset is not multiple of %d\n", ALIGNMENT);
+		exit(1);
+	}
+
+	if (pmem2_config_set_offset(cfg, offset)) {
+		fprintf(stderr, "%s\n", pmem2_errormsg());
+		exit(1);
+	}
+
+	if (pmem2_config_set_length(cfg, length)) {
+		fprintf(stderr, "%s\n", pmem2_errormsg());
+		exit(1);
+	}
+
+	if (pmem2_map(cfg, &map)) {
+		fprintf(stderr, "%s\n", pmem2_errormsg());
+		exit(1);
+	}
+}
+
 int
 main(int argc, char *argv[])
 {
 	int fd;
 	struct pmem2_config *cfg;
-	struct pmem2_map *map;
+	struct pmem2_map *map = NULL;
 	pmem2_persist_fn persist;
+	size_t size;
+	size_t offset;
+	size_t length;
 
 	if (argc != 2) {
 		fprintf(stderr, "usage: %s file\n", argv[0]);
@@ -80,13 +115,38 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
+	if (pmem2_config_get_file_size(cfg, &size)) {
+		fprintf(stderr, "%s\n", pmem2_errormsg());
+		exit(1);
+	}
+
+	offset = size / 2;
+	length = size - offset;
+
+	map_the_file(cfg, map, offset, length);
+
+	offset = 0;
+	length = size;
+
+	map_the_file(cfg, map, offset, length);
+
+	if (pmem2_config_set_offset(cfg, offset)) {
+		fprintf(stderr, "%s\n", pmem2_errormsg());
+		exit(1);
+	}
+
+	if (pmem2_config_set_length(cfg, length)) {
+		fprintf(stderr, "%s\n", pmem2_errormsg());
+		exit(1);
+	}
+
 	if (pmem2_map(cfg, &map)) {
 		fprintf(stderr, "%s\n", pmem2_errormsg());
 		exit(1);
 	}
 
 	char *addr = pmem2_map_get_address(map);
-	size_t size = pmem2_map_get_size(map);
+	size_t mapping_size = pmem2_map_get_size(map);
 
 	strcpy(addr, "hello, persistent memory");
 
@@ -94,7 +154,7 @@ main(int argc, char *argv[])
 
 	/* remove the condition after adding a function implementation */
 	if (0)
-		persist(addr, size);
+		persist(addr, mapping_size);
 
 	pmem2_unmap(&map);
 	pmem2_config_delete(&cfg);
