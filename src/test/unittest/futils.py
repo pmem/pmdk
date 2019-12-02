@@ -142,6 +142,7 @@ def run_tests_common(testcases, config):
     if not testcases:
         sys.exit('No testcases to run found for selected configuration.')
 
+    ret = 0
     for t in testcases:
         try:
             t = t(config)
@@ -149,8 +150,10 @@ def run_tests_common(testcases, config):
             print(s)
         else:
             if t.enabled and t._execute():  # if test failed
-                return 1
-    return 0
+                ret = 1
+                if not config.keep_going:
+                    return ret
+    return ret
 
 
 class Fail(Exception):

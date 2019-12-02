@@ -54,6 +54,12 @@
 #define ULOG_BASE_SIZE 1024
 #define OP_MERGE_SEARCH 64
 
+enum operation_state {
+	OPERATION_IDLE,
+	OPERATION_IN_PROGRESS,
+	OPERATION_CLEANUP,
+};
+
 struct operation_log {
 	size_t capacity; /* capacity of the ulog log */
 	size_t offset; /* data offset inside of the log */
@@ -87,7 +93,7 @@ struct operation_context {
 
 	struct ulog_next next; /* vector of 'next' fields of persistent ulog */
 
-	int in_progress; /* operation sanity check */
+	enum operation_state state; /* operation sanity check */
 
 	struct operation_log pshadow_ops; /* shadow copy of persistent ulog */
 	struct operation_log transient_ops; /* log of transient changes */
@@ -190,7 +196,7 @@ operation_new(struct ulog *ulog, size_t ulog_base_nbytes,
 		ulog_base_nbytes, p_ops);
 	ctx->extend = extend;
 	ctx->ulog_free = ulog_free;
-	ctx->in_progress = 0;
+	ctx->state = OPERATION_IDLE;
 	VEC_INIT(&ctx->next);
 	ulog_rebuild_next_vec(ulog, &ctx->next, p_ops);
 	ctx->p_ops = p_ops;
@@ -382,6 +388,7 @@ operation_add_typed_entry(struct operation_context *ctx,
 			return -1;
 		oplog->capacity += ULOG_BASE_SIZE;
 		oplog->ulog = ulog;
+		oplog->ulog->capacity = oplog->capacity;
 
 		/*
 		 * Realloc invalidated the ulog entries that are inside of this
@@ -738,16 +745,14 @@ void
 operation_start(struct operation_context *ctx)
 {
 	operation_init(ctx);
-	ASSERTeq(ctx->in_progress, 0);
-	ctx->in_progress = 1;
+	ASSERTeq(ctx->state, OPERATION_IDLE);
+	ctx->state = OPERATION_IN_PROGRESS;
 }
 
 void
 operation_resume(struct operation_context *ctx)
 {
-	operation_init(ctx);
-	ASSERTeq(ctx->in_progress, 0);
-	ctx->in_progress = 1;
+	operation_start(ctx);
 	ctx->total_logged = ulog_base_nbytes(ctx->ulog);
 }
 
@@ -757,8 +762,8 @@ operation_resume(struct operation_context *ctx)
 void
 operation_cancel(struct operation_context *ctx)
 {
-	ASSERTeq(ctx->in_progress, 1);
-	ctx->in_progress = 0;
+	ASSERTeq(ctx->state, OPERATION_IN_PROGRESS);
+	ctx->state = OPERATION_IDLE;
 }
 
 /*
@@ -791,10 +796,13 @@ operation_process(struct operation_context *ctx)
 		}
 	}
 
-	if (redo_process)
+	if (redo_process) {
 		operation_process_persistent_redo(ctx);
-	else if (ctx->type == LOG_TYPE_UNDO)
+		ctx->state = OPERATION_CLEANUP;
+	} else if (ctx->type == LOG_TYPE_UNDO && ctx->total_logged != 0) {
 		operation_process_persistent_undo(ctx);
+		ctx->state = OPERATION_CLEANUP;
+	}
 
 	/* process transient entries with transient memory ops */
 	if (ctx->transient_ops.offset != 0)
@@ -807,31 +815,18 @@ operation_process(struct operation_context *ctx)
 void
 operation_finish(struct operation_context *ctx, unsigned flags)
 {
-	ASSERTeq(ctx->in_progress, 1);
-	ctx->in_progress = 0;
+	ASSERTne(ctx->state, OPERATION_IDLE);
 
-	/*
-	 * Cleanup of the ulogs is only necessary when either any user logs
-	 * has been appended, so now it needs to be removed, or the log has
-	 * been written to.
-	 */
-	int cleanup = 0;
+	if (ctx->type == LOG_TYPE_UNDO && ctx->total_logged != 0)
+		ctx->state = OPERATION_CLEANUP;
 
 	if (ctx->ulog_any_user_buffer) {
 		flags |= ULOG_ANY_USER_BUFFER;
-		cleanup = 1;
+		ctx->state = OPERATION_CLEANUP;
 	}
 
-	if (ctx->type == LOG_TYPE_REDO && ctx->pshadow_ops.offset != 0) {
-		operation_process(ctx);
-		cleanup = 1;
-	}
-
-	if (ctx->type == LOG_TYPE_UNDO && ctx->total_logged != 0)
-		cleanup = 1;
-
-	if (!cleanup)
-		return;
+	if (ctx->state != OPERATION_CLEANUP)
+		goto out;
 
 	if (ctx->type == LOG_TYPE_UNDO) {
 		int ret = ulog_clobber_data(ctx->ulog,
@@ -840,13 +835,13 @@ operation_finish(struct operation_context *ctx, unsigned flags)
 			operation_user_buffer_remove,
 			ctx->p_ops, flags);
 		if (ret == 0)
-			return;
+			goto out;
 	} else if (ctx->type == LOG_TYPE_REDO) {
 		int ret = ulog_free_next(ctx->ulog, ctx->p_ops,
 			ctx->ulog_free, operation_user_buffer_remove,
 			flags);
 		if (ret == 0)
-			return;
+			goto out;
 	}
 
 	/* clobbering shrunk the ulog */
@@ -854,4 +849,7 @@ operation_finish(struct operation_context *ctx, unsigned flags)
 		ctx->ulog_base_nbytes, ctx->p_ops);
 	VEC_CLEAR(&ctx->next);
 	ulog_rebuild_next_vec(ctx->ulog, &ctx->next, ctx->p_ops);
+
+out:
+	ctx->state = OPERATION_IDLE;
 }

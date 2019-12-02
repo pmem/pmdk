@@ -244,8 +244,8 @@ prepare_file(struct tool_ctx *ctx)
 
 	const char *message =
 			"This file was created by gran_detecto. It can be safely removed.";
-	ret = util_write(ctx->fd, message, strlen(message));
-	if (ret == -1) {
+	ssize_t sret = util_write(ctx->fd, message, strlen(message));
+	if (sret == -1) {
 		perror("util_write failed");
 		goto cleanup_file;
 	}
