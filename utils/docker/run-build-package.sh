@@ -63,3 +63,12 @@ fi
 cd $WORKDIR/utils/docker/test_package
 make -j$(nproc) LIBPMEMOBJ_MIN_VERSION=1.4
 ./test_package testfile1
+
+# Use pmreorder installed in the system
+pmreorder_version="$(pmreorder -v)"
+pmreorder_pattern="pmreorder\.py .+$"
+(echo "$pmreorder_version" | grep -Ev "$pmreorder_pattern") && echo "pmreorder version failed" && exit 1
+
+touch testfile2
+touch logfile1
+pmreorder -p testfile2 -l logfile1
