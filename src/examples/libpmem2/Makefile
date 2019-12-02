@@ -34,10 +34,12 @@
 # examples/libpmem2/Makefile -- build the libpmem2 examples
 #
 
-PROGS = basic
+PROGS = basic advanced
 
 LIBS = -lpmem2
 
 include ../Makefile.inc
 
 basic: basic.o
+
+advanced: advanced.o
