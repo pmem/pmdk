@@ -43,48 +43,79 @@ class TEST0(t.Test):
         ctx.exec('pmem2_config_get_file_size', 'notset_fd', 'x', '0')
 
 
-class TEST1(t.Test):
+class NormalFile(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        size = 0
-        filepath = ctx.create_holey_file(size, 'testfile')
-        ctx.exec('pmem2_config_get_file_size', 'normal_file',
-                 filepath, str(size))
+        filepath = ctx.create_holey_file(self.size, 'testfile')
+        ctx.exec('pmem2_config_get_file_size', self.test_case,
+                 filepath, str(self.size))
 
 
-class TEST2(t.Test):
-    test_type = t.Short
-
-    def run(self, ctx):
-        size = 16 * t.MiB
-        filepath = ctx.create_holey_file(size, 'testfile')
-        ctx.exec('pmem2_config_get_file_size', 'normal_file',
-                 filepath, str(size))
+class TEST1(NormalFile):
+    test_case = 'normal_file_fd'
+    size = 0
 
 
-# "open" fails for directories
-@t.windows_exclude
+@t.windows_only
+class TEST2(NormalFile):
+    test_case = 'normal_file_handle'
+    size = 0
+
+
+class TEST3(NormalFile):
+    test_case = 'normal_file_fd'
+    size = 16 * t.MiB
+
+
+@t.windows_only
+class TEST4(NormalFile):
+    test_case = 'normal_file_handle'
+    size = 16 * t.MiB
+
+
 @t.require_granularity(t.ANY)
-class TEST3(t.Test):
+@t.windows_exclude
+class TEST5(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_file_size', 'directory', ctx.testdir, '0')
+        ctx.exec('pmem2_config_get_file_size', 'directory_fd', ctx.testdir,
+                 '0')
 
 
+@t.windows_only
+class TEST6(t.Test):
+    test_type = t.Short
+
+    def run(self, ctx):
+        ctx.exec('pmem2_config_get_file_size', 'directory_handle', ctx.testdir,
+                 '0')
+
+
+# On Windows fd interface doesn't support temporary files
+# FreeBSD doesn't support O_TMPFILE
 @t.linux_only
-class TEST4(t.Test):
+class TEST7(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_file_size', 'tmp_file',
+        ctx.exec('pmem2_config_get_file_size', 'tmp_file_fd',
+                 ctx.testdir, str(16 * t.MiB))
+
+
+@t.windows_only
+class TEST8(t.Test):
+    test_type = t.Short
+
+    def run(self, ctx):
+        ctx.exec('pmem2_config_get_file_size', 'tmp_file_handle',
                  ctx.testdir, str(16 * t.MiB))
 
 
 @t.windows_exclude
 @t.require_devdax(t.DevDax('devdax1'))
-class TEST5(t.Test):
+class TEST9(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
