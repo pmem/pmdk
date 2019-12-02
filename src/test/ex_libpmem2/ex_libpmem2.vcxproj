@@ -11,6 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\examples\libpmem2\advanced.vcxproj">
+      <Project>{d2964b88-eb05-4ebf-acda-44596fbfecb6}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\examples\libpmem2\basic.vcxproj">
       <Project>{0287c3dc-ae03-4714-aaff-c52f062eca6f}</Project>
     </ProjectReference>
