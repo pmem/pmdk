@@ -380,15 +380,14 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 				available_min_granularity,
 				cfg->requested_max_granularity);
 		ERR("%s", err);
-		return PMEM2_E_GRANULARITY_NOT_SUPPORTED;
+		ret = PMEM2_E_GRANULARITY_NOT_SUPPORTED;
+		goto err;
 	}
 
 	/* prepare pmem2_map structure */
 	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
-	if (!map) {
-		unmap(addr, reserved_length);
-		return ret;
-	}
+	if (!map)
+		goto err;
 
 	map->addr = addr;
 	map->reserved_length = reserved_length;
@@ -401,6 +400,11 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	VALGRIND_REGISTER_PMEM_FILE(cfg->fd, map->addr, map->content_length, 0);
 
 	return ret;
+
+err:
+	unmap(addr, reserved_length);
+	return ret;
+
 }
 
 /*
