@@ -366,12 +366,16 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
 	 * Then, calculate the checksum and store the first part of the
 	 * ulog.
 	 */
+	size_t old_capacity = src->capacity;
+	src->capacity = base_nbytes;
 	src->next = VEC_SIZE(next) == 0 ? 0 : VEC_FRONT(next);
 	ulog_checksum(src, checksum_nbytes, 1);
 
 	pmemops_memcpy(p_ops, dest, src,
 		SIZEOF_ULOG(base_nbytes),
 		PMEMOBJ_F_MEM_WC);
+
+	src->capacity = old_capacity;
 }
 
 /*

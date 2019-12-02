@@ -382,6 +382,7 @@ operation_add_typed_entry(struct operation_context *ctx,
 			return -1;
 		oplog->capacity += ULOG_BASE_SIZE;
 		oplog->ulog = ulog;
+		oplog->ulog->capacity = oplog->capacity;
 
 		/*
 		 * Realloc invalidated the ulog entries that are inside of this
@@ -822,7 +823,8 @@ operation_finish(struct operation_context *ctx, unsigned flags)
 		cleanup = 1;
 	}
 
-	if (ctx->type == LOG_TYPE_REDO && ctx->pshadow_ops.offset != 0) {
+	if (ctx->type == LOG_TYPE_REDO && (ctx->pshadow_ops.offset != 0 ||
+	    ctx->transient_ops.offset != 0)) {
 		operation_process(ctx);
 		cleanup = 1;
 	}
