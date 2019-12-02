@@ -78,7 +78,6 @@ prepare_config(struct pmem2_config *cfg, int *fd, const char *file,
 #endif
 }
 
-
 #ifdef _WIN32
 
 #define HIDWORD(x) ((DWORD)((x) >> 32))

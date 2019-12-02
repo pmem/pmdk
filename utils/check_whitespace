@@ -101,9 +101,20 @@ sub check_whitespace {
 	my $eol;
 	my $nf = 0;
 	my $fstr = decode_file_as_string($full, $file);
+	my $empty = 0;
+	my $is_python = $full =~ /\.py$/;
 
 	for (split /^/, $fstr) {
 		$line++;
+		if (!$is_python && /^$/) {
+			$empty++;
+			if ($empty > 1) {
+				err("$full:$line: ERROR duplicated empty line");
+			}
+		} else {
+			$empty = 0;
+		}
+
 		$eol = /[\n]/s;
 		if (/^\.nf$/) {
 			err("$full:$line: ERROR: nested .nf") if $nf;
