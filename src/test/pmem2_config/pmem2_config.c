@@ -347,6 +347,80 @@ test_set_directory_fd(const char *file)
 }
 #endif
 
+/*
+ * test_set_offset_too_large - setting offset which is too large
+ */
+static void
+test_set_offset_too_large(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to set the offset which is too large */
+	size_t offset = (size_t)INT64_MAX + 1;
+	int ret = pmem2_config_set_offset(&cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OFFSET_OUT_OF_RANGE);
+}
+
+/*
+ * test_set_offset_not_aligned - setting offset which is not a multiple
+ * of Mmap_align, which is memory allocation granularity for Windows or
+ * page size for Linux
+ */
+static void
+test_set_offset_not_aligned(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to set the offset which is not a multiple of Mmap_align */
+	size_t offset = Ut_mmap_align + 1;
+	int ret = pmem2_config_set_offset(&cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OFFSET_UNALIGNED);
+}
+
+/*
+ * test_set_offset_success - setting proper offset
+ */
+static void
+test_set_offset_success(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to successfully set the offset */
+	size_t offset = Ut_mmap_align;
+	int ret = pmem2_config_set_offset(&cfg, offset);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(cfg.offset, offset);
+}
+
+/*
+ * test_set_length_success - setting proper length
+ */
+static void
+test_set_length_success(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to successfully set the length, can be any length */
+	size_t length = Ut_mmap_align;
+	int ret = pmem2_config_set_length(&cfg, length);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(cfg.length, length);
+}
+
+/*
+ * test_set_offset_max - setting maximum possible offset
+ */
+static void
+test_set_offset_max(const char *unused)
+{
+	struct pmem2_config cfg;
+
+	/* let's try to successfully set maximum possible offset */
+	size_t offset = (INT64_MAX / Ut_mmap_align) * Ut_mmap_align;
+	int ret = pmem2_config_set_offset(&cfg, offset);
+	UT_ASSERTeq(ret, 0);
+}
+
 typedef void (*test_fun)(const char *file);
 
 static struct test_list {
@@ -372,6 +446,11 @@ static struct test_list {
 #else
 	{"set_directory_fd", test_set_directory_fd},
 #endif
+	{"set_offset_too_large", test_set_offset_too_large},
+	{"set_offset_not_aligned", test_set_offset_not_aligned},
+	{"set_offset_success", test_set_offset_success},
+	{"set_length_success", test_set_length_success},
+	{"set_offset_max", test_set_offset_max},
 };
 
 int
@@ -383,6 +462,8 @@ main(int argc, char **argv)
 
 	char *test_case = argv[1];
 	char *file = argv[2];
+
+	util_init();
 
 	for (int i = 0; i < ARRAY_SIZE(list); i++) {
 		if (strcmp(list[i].name, test_case) == 0) {

@@ -69,6 +69,7 @@ extern unsigned long long Mmap_align;
 #define PAGE_ALIGNED_UP_SIZE(size)\
 	PAGE_ALIGNED_DOWN_SIZE((size) + (Pagesize - 1))
 #define IS_PAGE_ALIGNED(size) (((size) & (Pagesize - 1)) == 0)
+#define IS_MMAP_ALIGNED(size) (((size) & (Mmap_align - 1)) == 0)
 #define PAGE_ALIGN_UP(addr) ((void *)PAGE_ALIGNED_UP_SIZE((uintptr_t)(addr)))
 
 #define ALIGN_UP(size, align) (((size) + (align) - 1) & ~((align) - 1))
