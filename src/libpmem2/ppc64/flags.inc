@@ -29,8 +29,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Add ppc64 directory to the gnu-make search path
-vpath %.c $(TOP)/src/libpmem/ppc64
-vpath %.h $(TOP)/src/libpmem/ppc64
+vpath %.c $(TOP)/src/libpmem2/ppc64
+vpath %.h $(TOP)/src/libpmem2/ppc64
 
 # Include the ppc64 directory in gcc include search path
 CFLAGS += -Ippc64
