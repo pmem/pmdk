@@ -166,8 +166,10 @@ rpmemd_log_close(void)
 	} else {
 		if (rpmemd_log_file != RPMEMD_DEFAULT_FH)
 			fclose(rpmemd_log_file);
+		rpmemd_log_file = NULL;
 
 		free(rpmemd_ident);
+		rpmemd_ident = NULL;
 	}
 }
 
