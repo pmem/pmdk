@@ -143,6 +143,8 @@ rpmemd_log_init(const char *ident, const char *fname, int use_syslog)
 			rpmemd_log_file = os_fopen(fname, "a");
 			if (!rpmemd_log_file) {
 				perror(fname);
+				free(rpmemd_ident);
+				rpmemd_ident = NULL;
 				return -1;
 			}
 		} else {
