@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -430,7 +430,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	if (pmb->rand_offsets == nullptr) {
 		perror("malloc");
 		ret = -1;
-		goto err_free_pmb;
+		goto err_free_pmb_buf;
 	}
 
 	for (size_t i = 0; i < pmb->n_rand_offsets; ++i)
@@ -447,7 +447,7 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 	if (pmb->pmem_addr == nullptr) {
 		perror(args->fname);
 		ret = -1;
-		goto err_free_buf;
+		goto err_free_pmb_rand_offsets;
 	}
 
 	if (op_type == OP_TYPE_READ) {
@@ -494,7 +494,9 @@ pmem_memcpy_init(struct benchmark *bench, struct benchmark_args *args)
 
 err_unmap:
 	pmem_unmap(pmb->pmem_addr, pmb->fsize);
-err_free_buf:
+err_free_pmb_rand_offsets:
+	free(pmb->rand_offsets);
+err_free_pmb_buf:
 	util_aligned_free(pmb->buf);
 err_free_pmb:
 	free(pmb);
