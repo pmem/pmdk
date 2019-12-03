@@ -1,5 +1,6 @@
 /*
  * Copyright 2019, IBM Corporation
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,11 +31,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <libpmem.h>
 #include <errno.h>
 
 #include "out.h"
-#include "pmem.h"
+#include "pmem2_arch.h"
 #include "platform_generic.h"
 
 /*
@@ -42,12 +42,11 @@
  * initialization.
  */
 void
-pmem_init_funcs(struct pmem_funcs *funcs)
+pmem2_arch_init(struct pmem2_arch_funcs *funcs)
 {
-
-	LOG(3, "libpmem: PPC64 support");
+	LOG(3, "libpmem*: PPC64 support");
 	LOG(3, "PMDK PPC64 support currently is for testing only");
-	LOG(3, "Please dont use this library in production environment");
+	LOG(3, "Please don't use this library in production environment");
 
 	/* Init platform and to initilize the pmem funcs */
 	if (platform_init(funcs))

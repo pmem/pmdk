@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -108,6 +108,14 @@ flush_clwb_nolog(const void *addr, size_t len)
 		uptr < (uintptr_t)addr + len; uptr += FLUSH_ALIGN) {
 		pmem_clwb((char *)uptr);
 	}
+}
+
+/*
+ * flush64b_empty -- (internal) do not flush the CPU cache
+ */
+static force_inline void
+flush64b_empty(const char *addr)
+{
 }
 
 #endif

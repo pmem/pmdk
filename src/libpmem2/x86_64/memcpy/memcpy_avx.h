@@ -30,14 +30,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PMEM_MEMCPY_AVX_H
-#define PMEM_MEMCPY_AVX_H
+#ifndef PMEM2_MEMCPY_AVX_H
+#define PMEM2_MEMCPY_AVX_H
 
 #include <immintrin.h>
 #include <stddef.h>
 #include <stdint.h>
 
-#include "libpmem.h"
 #include "out.h"
 
 static force_inline void

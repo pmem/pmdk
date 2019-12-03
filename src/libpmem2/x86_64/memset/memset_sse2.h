@@ -30,15 +30,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PMEM_MEMSET_SSE2_H
-#define PMEM_MEMSET_SSE2_H
+#ifndef PMEM2_MEMSET_SSE2_H
+#define PMEM2_MEMSET_SSE2_H
 
 #include <xmmintrin.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
 
-#include "libpmem.h"
 #include "out.h"
 
 static force_inline void

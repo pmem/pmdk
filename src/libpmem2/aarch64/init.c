@@ -31,12 +31,12 @@
  */
 
 #include <string.h>
-#include "libpmem.h"
 
+#include "auto_flush.h"
 #include "flush.h"
 #include "os.h"
 #include "out.h"
-#include "pmem.h"
+#include "pmem2_arch.h"
 #include "valgrind_internal.h"
 
 /*
@@ -44,13 +44,13 @@
  */
 static void *
 memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
-		unsigned flags)
+		unsigned flags, struct pmem2_arch_funcs *funcs)
 {
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
 			flags);
 
 	memmove(pmemdest, src, len);
-	pmem_flush_flags(pmemdest, len, flags);
+	pmem2_flush_flags(pmemdest, len, flags, funcs);
 	return pmemdest;
 }
 
@@ -58,13 +58,14 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
  * memset_nodrain_libc -- (internal) memset to pmem without hw drain
  */
 static void *
-memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags)
+memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
+		struct pmem2_arch_funcs *funcs)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
 			flags);
 
 	memset(pmemdest, c, len);
-	pmem_flush_flags(pmemdest, len, flags);
+	pmem2_flush_flags(pmemdest, len, flags, funcs);
 	return pmemdest;
 }
 
@@ -101,16 +102,15 @@ flush_empty(const void *addr, size_t len)
 }
 
 /*
- * pmem_init_funcs -- initialize architecture-specific list of pmem operations
+ * pmem2_arch_init -- initialize architecture-specific list of pmem operations
  */
 void
-pmem_init_funcs(struct pmem_funcs *funcs)
+pmem2_arch_init(struct pmem2_arch_funcs *funcs)
 {
 	LOG(3, NULL);
 
 	funcs->predrain_fence = predrain_memory_barrier;
 	funcs->deep_flush = flush_dcache;
-	funcs->is_pmem = is_pmem_detect;
 	funcs->memmove_nodrain = memmove_nodrain_generic;
 	funcs->memset_nodrain = memset_nodrain_generic;
 
@@ -132,7 +132,7 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	} else if (e && (strcmp(e, "0") == 0)) {
 		flush = 1;
 		LOG(3, "Forced flushing CPU_cache");
-	} else if (pmem_has_auto_flush() == 1) {
+	} else if (pmem2_auto_flush() == 1) {
 		flush = 0;
 		LOG(3, "Not flushing CPU_cache, eADR detected");
 	} else {

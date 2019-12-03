@@ -29,10 +29,10 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# src/libpmem/x86_64/sources.inc -- list of files for libpmem/x86_64
+# src/libpmem2/x86_64/sources.inc -- list of files for libpmem2/x86_64
 #
 
-LIBPMEM_ARCH_SOURCE = init.c\
+LIBPMEM2_ARCH_SOURCE = init.c\
 	cpu.c\
 	memcpy_nt_avx_clflush.c\
 	memcpy_nt_avx_clflushopt.c\
@@ -72,7 +72,7 @@ AVX512F_AVAILABLE := $(shell printf $(AVX512F_PROG) |\
 	$(CC) $(CFLAGS) -x c -mavx512f -o /dev/null - 2>/dev/null && echo y || echo n)
 
 ifeq ($(AVX512F_AVAILABLE), y)
-LIBPMEM_ARCH_SOURCE += memcpy_nt_avx512f_clflush.c\
+LIBPMEM2_ARCH_SOURCE += memcpy_nt_avx512f_clflush.c\
 	memcpy_nt_avx512f_clflushopt.c\
 	memcpy_nt_avx512f_clwb.c\
 	memcpy_nt_avx512f_empty.c\

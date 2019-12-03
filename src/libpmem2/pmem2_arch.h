@@ -31,53 +31,62 @@
  */
 
 /*
- * pmem.h -- internal definitions for libpmem
+ * pmem2_arch.h -- core-arch interface
  */
-#ifndef PMEM_H
-#define PMEM_H
+#ifndef PMEM2_ARCH_H
+#define PMEM2_ARCH_H
 
 #include <stddef.h>
-#include "alloc.h"
-#include "fault_injection.h"
+#include "libpmem2.h"
 #include "util.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define PMEM_LOG_PREFIX "libpmem"
-#define PMEM_LOG_LEVEL_VAR "PMEM_LOG_LEVEL"
-#define PMEM_LOG_FILE_VAR "PMEM_LOG_FILE"
+struct pmem2_arch_funcs;
 
-typedef int (*is_pmem_func)(const void *addr, size_t len);
+typedef void (*predrain_fence_func)(void);
+typedef void (*flush_func)(const void *, size_t);
+typedef void *(*memmove_nodrain_func)(void *pmemdest, const void *src,
+		size_t len, unsigned flags, struct pmem2_arch_funcs *funcs);
+typedef void *(*memset_nodrain_func)(void *pmemdest, int c, size_t len,
+		unsigned flags, struct pmem2_arch_funcs *funcs);
 
-void pmem_init(void);
-void pmem_os_init(is_pmem_func *func);
+struct pmem2_arch_funcs {
+	predrain_fence_func predrain_fence;
+	flush_func flush;
+	memmove_nodrain_func memmove_nodrain;
+	memset_nodrain_func memset_nodrain;
+	flush_func deep_flush;
+};
 
-int is_pmem_detect(const void *addr, size_t len);
-void *pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax);
+void pmem2_arch_init(struct pmem2_arch_funcs *funcs);
 
-#if FAULT_INJECTION
-void
-pmem_inject_fault_at(enum pmem_allocation_type type, int nth,
-						const char *at);
+/*
+ * flush_empty_nolog -- (internal) do not flush the CPU cache
+ */
+static force_inline void
+flush_empty_nolog(const void *addr, size_t len)
+{
+	/* NOP */
+}
 
-int
-pmem_fault_injection_enabled(void);
-#else
+/*
+ * pmem2_flush_flags -- internal wrapper around pmem_flush
+ */
 static inline void
-pmem_inject_fault_at(enum pmem_allocation_type type, int nth,
-						const char *at)
+pmem2_flush_flags(const void *addr, size_t len, unsigned flags,
+		struct pmem2_arch_funcs *funcs)
 {
-	abort();
+	if (!(flags & PMEM2_F_MEM_NOFLUSH))
+		funcs->flush(addr, len);
 }
 
-static inline int
-pmem_fault_injection_enabled(void)
-{
-	return 0;
-}
-#endif
+void *memmove_nodrain_generic(void *pmemdest, const void *src, size_t len,
+		unsigned flags, struct pmem2_arch_funcs *funcs);
+void *memset_nodrain_generic(void *pmemdest, int c, size_t len, unsigned flags,
+		struct pmem2_arch_funcs *funcs);
 
 #ifdef __cplusplus
 }

@@ -102,7 +102,9 @@ err_unmap:
  * pmem_os_init -- os-dependent part of pmem initialization
  */
 void
-pmem_os_init(void)
+pmem_os_init(is_pmem_func *func)
 {
 	LOG(3, NULL);
+
+	*func = is_pmem_detect;
 }

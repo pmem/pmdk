@@ -36,7 +36,8 @@
 include ../../common.inc
 TOP = ../../..
 vpath %.c $(TOP)/src/libpmem
-vpath %.c $(TOP)/src/libpmem/$(ARCH)
+vpath %.c $(TOP)/src/libpmem2
+vpath %.c $(TOP)/src/libpmem2/$(ARCH)
 
 TARGET = pmem_is_pmem_posix
 OBJS = pmem_is_pmem_posix.o\
@@ -52,8 +53,8 @@ ifeq ($(ARCH), x86_64)
 OBJS += init.o cpu.o
 endif
 ifeq ($(ARCH), ppc64)
-include $(TOP)/src/libpmem/$(ARCH)/sources.inc
-OBJS += $(LIBPMEM_ARCH_SOURCE:%.c=%.o)
+include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
+OBJS += $(LIBPMEM2_ARCH_SOURCE:%.c=%.o)
 endif
 
 LIBPMEMCOMMON=y

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,14 +32,14 @@
 
 #include <string.h>
 #include <xmmintrin.h>
-#include "libpmem.h"
 
+#include "auto_flush.h"
 #include "cpu.h"
 #include "flush.h"
 #include "memcpy_memset.h"
 #include "os.h"
 #include "out.h"
-#include "pmem.h"
+#include "pmem2_arch.h"
 #include "valgrind_internal.h"
 
 #define MOVNT_THRESHOLD	256
@@ -113,22 +113,22 @@ flush_empty(const void *addr, size_t len)
 }
 
 #if SSE2_AVAILABLE || AVX_AVAILABLE || AVX512F_AVAILABLE
-#define PMEM_F_MEM_MOVNT (PMEM_F_MEM_WC | PMEM_F_MEM_NONTEMPORAL)
-#define PMEM_F_MEM_MOV   (PMEM_F_MEM_WB | PMEM_F_MEM_TEMPORAL)
+#define PMEM2_F_MEM_MOVNT (PMEM2_F_MEM_WC | PMEM2_F_MEM_NONTEMPORAL)
+#define PMEM2_F_MEM_MOV   (PMEM2_F_MEM_WB | PMEM2_F_MEM_TEMPORAL)
 
 #define MEMCPY_TEMPLATE(isa, flush) \
 static void *\
 memmove_nodrain_##isa##_##flush(void *dest, const void *src, size_t len, \
-		unsigned flags)\
+		unsigned flags, struct pmem2_arch_funcs *funcs)\
 {\
 	if (len == 0 || src == dest)\
 		return dest;\
 \
-	if (flags & PMEM_F_MEM_NOFLUSH) \
+	if (flags & PMEM2_F_MEM_NOFLUSH) \
 		memmove_mov_##isa##_empty(dest, src, len); \
-	else if (flags & PMEM_F_MEM_MOVNT)\
+	else if (flags & PMEM2_F_MEM_MOVNT)\
 		memmove_movnt_##isa ##_##flush(dest, src, len);\
-	else if (flags & PMEM_F_MEM_MOV)\
+	else if (flags & PMEM2_F_MEM_MOV)\
 		memmove_mov_##isa##_##flush(dest, src, len);\
 	else if (len < Movnt_threshold)\
 		memmove_mov_##isa##_##flush(dest, src, len);\
@@ -140,16 +140,17 @@ memmove_nodrain_##isa##_##flush(void *dest, const void *src, size_t len, \
 
 #define MEMSET_TEMPLATE(isa, flush)\
 static void *\
-memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags)\
+memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags,\
+		struct pmem2_arch_funcs *funcs)\
 {\
 	if (len == 0)\
 		return dest;\
 \
-	if (flags & PMEM_F_MEM_NOFLUSH) \
+	if (flags & PMEM2_F_MEM_NOFLUSH) \
 		memset_mov_##isa##_empty(dest, c, len); \
-	else if (flags & PMEM_F_MEM_MOVNT)\
+	else if (flags & PMEM2_F_MEM_MOVNT)\
 		memset_movnt_##isa##_##flush(dest, c, len);\
-	else if (flags & PMEM_F_MEM_MOV)\
+	else if (flags & PMEM2_F_MEM_MOV)\
 		memset_mov_##isa##_##flush(dest, c, len);\
 	else if (len < Movnt_threshold)\
 		memset_mov_##isa##_##flush(dest, c, len);\
@@ -201,14 +202,14 @@ MEMSET_TEMPLATE(avx512f, empty)
  */
 static void *
 memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
-		unsigned flags)
+		unsigned flags, struct pmem2_arch_funcs *funcs)
 {
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
 			flags);
 	(void) flags;
 
 	memmove(pmemdest, src, len);
-	pmem_flush_flags(pmemdest, len, flags);
+	pmem2_flush_flags(pmemdest, len, flags, funcs);
 	return pmemdest;
 }
 
@@ -216,14 +217,15 @@ memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
  * memset_nodrain_libc -- (internal) memset to pmem using libc
  */
 static void *
-memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags)
+memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
+		struct pmem2_arch_funcs *funcs)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
 			flags);
 	(void) flags;
 
 	memset(pmemdest, c, len);
-	pmem_flush_flags(pmemdest, len, flags);
+	pmem2_flush_flags(pmemdest, len, flags, funcs);
 	return pmemdest;
 }
 
@@ -240,7 +242,7 @@ enum memcpy_impl {
  * use_sse2_memcpy_memset -- (internal) SSE2 detected, use it if possible
  */
 static void
-use_sse2_memcpy_memset(struct pmem_funcs *funcs, enum memcpy_impl *impl)
+use_sse2_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 {
 #if SSE2_AVAILABLE
 	*impl = MEMCPY_SSE2;
@@ -275,7 +277,7 @@ use_sse2_memcpy_memset(struct pmem_funcs *funcs, enum memcpy_impl *impl)
  * use_avx_memcpy_memset -- (internal) AVX detected, use it if possible
  */
 static void
-use_avx_memcpy_memset(struct pmem_funcs *funcs, enum memcpy_impl *impl)
+use_avx_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 {
 #if AVX_AVAILABLE
 	LOG(3, "avx supported");
@@ -319,7 +321,8 @@ use_avx_memcpy_memset(struct pmem_funcs *funcs, enum memcpy_impl *impl)
  * use_avx512f_memcpy_memset -- (internal) AVX512F detected, use it if possible
  */
 static void
-use_avx512f_memcpy_memset(struct pmem_funcs *funcs, enum memcpy_impl *impl)
+use_avx512f_memcpy_memset(struct pmem2_arch_funcs *funcs,
+		enum memcpy_impl *impl)
 {
 #if AVX512F_AVAILABLE
 	LOG(3, "avx512f supported");
@@ -363,13 +366,15 @@ use_avx512f_memcpy_memset(struct pmem_funcs *funcs, enum memcpy_impl *impl)
  * pmem_get_cpuinfo -- configure libpmem based on CPUID
  */
 static void
-pmem_cpuinfo_to_funcs(struct pmem_funcs *funcs, enum memcpy_impl *impl)
+pmem_cpuinfo_to_funcs(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 {
 	LOG(3, NULL);
 
 	if (is_cpu_clflush_present()) {
-		funcs->is_pmem = is_pmem_detect;
 		LOG(3, "clflush supported");
+
+		funcs->deep_flush = flush_clflush;
+		funcs->predrain_fence = predrain_fence_empty;
 	}
 
 	if (is_cpu_clflushopt_present()) {
@@ -411,16 +416,13 @@ pmem_cpuinfo_to_funcs(struct pmem_funcs *funcs, enum memcpy_impl *impl)
 }
 
 /*
- * pmem_init_funcs -- initialize architecture-specific list of pmem operations
+ * pmem2_arch_init -- initialize architecture-specific list of pmem operations
  */
 void
-pmem_init_funcs(struct pmem_funcs *funcs)
+pmem2_arch_init(struct pmem2_arch_funcs *funcs)
 {
 	LOG(3, NULL);
 
-	funcs->predrain_fence = predrain_fence_empty;
-	funcs->deep_flush = flush_clflush;
-	funcs->is_pmem = NULL;
 	funcs->memmove_nodrain = memmove_nodrain_generic;
 	funcs->memset_nodrain = memset_nodrain_generic;
 	enum memcpy_impl impl = MEMCPY_GENERIC;
@@ -464,7 +466,7 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	} else if (e && (strcmp(e, "0") == 0)) {
 		flush = 1;
 		LOG(3, "Forced flushing CPU_cache");
-	} else if (pmem_has_auto_flush() == 1) {
+	} else if (pmem2_auto_flush() == 1) {
 		flush = 0;
 		LOG(3, "Not flushing CPU_cache, eADR detected");
 	} else {

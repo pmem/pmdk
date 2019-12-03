@@ -52,6 +52,7 @@ SOURCE =\
 	libpmem2.c\
 	config.c\
 	config_posix.c\
+	memops_generic.c\
 	pmem2.c\
 	map.c\
 	map_posix.c\
@@ -67,7 +68,13 @@ SOURCE +=\
 	auto_flush_none.c
 endif
 
+include $(ARCH)/sources.inc
+
+SOURCE += $(LIBPMEM2_ARCH_SOURCE)
+
 include ../Makefile.inc
+
+include $(PMEM2)/$(ARCH)/flags.inc
 
 CFLAGS += -I.
 LIBS += -pthread

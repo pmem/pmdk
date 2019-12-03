@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -34,10 +34,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "pmem.h"
+#include "pmem2_arch.h"
 #include "avx.h"
 #include "flush.h"
-#include "libpmem.h"
 #include "memcpy_memset.h"
 #include "memset_avx512f.h"
 #include "out.h"

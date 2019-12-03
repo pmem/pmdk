@@ -29,13 +29,13 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# src/libpmem/x86_64/flags.inc -- flags for libpmem/x86_64
+# src/libpmem2/x86_64/flags.inc -- flags for libpmem2/x86_64
 #
 
-vpath %.c $(TOP)/src/libpmem/x86_64
-vpath %.h $(TOP)/src/libpmem/x86_64
-vpath %.c $(TOP)/src/libpmem/x86_64/memcpy
-vpath %.c $(TOP)/src/libpmem/x86_64/memset
+vpath %.c $(TOP)/src/libpmem2/x86_64
+vpath %.h $(TOP)/src/libpmem2/x86_64
+vpath %.c $(TOP)/src/libpmem2/x86_64/memcpy
+vpath %.c $(TOP)/src/libpmem2/x86_64/memset
 
 $(objdir)/memcpy_nt_avx512f_clflush.o: CFLAGS += -mavx512f
 $(objdir)/memcpy_nt_avx512f_clflushopt.o: CFLAGS += -mavx512f
@@ -71,7 +71,7 @@ $(objdir)/memset_t_avx_clflushopt.o: CFLAGS += -mavx
 $(objdir)/memset_t_avx_clwb.o: CFLAGS += -mavx
 $(objdir)/memset_t_avx_empty.o: CFLAGS += -mavx
 
-CFLAGS += -Ix86_64
+CFLAGS += -I$(TOP)/src/libpmem2/x86_64
 
 ifeq ($(AVX512F_AVAILABLE), y)
 CFLAGS += -DAVX512F_AVAILABLE=1

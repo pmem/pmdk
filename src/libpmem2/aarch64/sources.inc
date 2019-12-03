@@ -29,7 +29,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #
-# src/libpmem/aarch64/sources.inc -- list of files for libpmem/arm64
+# src/libpmem2/aarch64/sources.inc -- list of files for libpmem2/arm64
 #
 
-LIBPMEM_ARCH_SOURCE = init.c
+LIBPMEM2_ARCH_SOURCE = init.c

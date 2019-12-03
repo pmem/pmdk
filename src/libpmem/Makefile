@@ -70,13 +70,13 @@ endif
 
 INCS += -I$(TOP)/src/libpmem2
 
-include $(ARCH)/sources.inc
+include ../libpmem2/$(ARCH)/sources.inc
 
-SOURCE += $(LIBPMEM_ARCH_SOURCE)
+SOURCE += $(LIBPMEM2_ARCH_SOURCE)
 
 include ../Makefile.inc
 
-include $(ARCH)/flags.inc
+include $(PMEM2)/$(ARCH)/flags.inc
 
 CFLAGS += -I.
 LIBS += -pthread
