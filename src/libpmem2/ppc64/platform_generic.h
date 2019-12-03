@@ -1,5 +1,6 @@
 /*
  * Copyright 2019, IBM Corporation
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,8 +33,8 @@
 #ifndef __PPC64__PLATFORM_GENERIC_H__
 #define __PPC64__PLATFORM_GENERIC_H__
 
-#include "pmem.h"
+#include "pmem2_arch.h"
 
-int platform_init(struct pmem_funcs *funcs);
+int platform_init(struct pmem2_arch_funcs *funcs);
 
 #endif  /* __PPC64__PLATFORM_GENERIC_H__ */

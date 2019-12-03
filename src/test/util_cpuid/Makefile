@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2018, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
 #
 # src/test/util_cpuid/Makefile -- build util_cpu unit test
 #
-vpath %.c ../../libpmem/x86_64
+vpath %.c ../../libpmem2/x86_64
 
 TARGET = util_cpuid
 OBJS = util_cpuid.o cpu.o
@@ -41,4 +41,4 @@ OBJS = util_cpuid.o cpu.o
 LIBPMEMCOMMON=y
 include ../Makefile.inc
 
-INCS += -I../../libpmem/x86_64
+INCS += -I../../libpmem2/x86_64

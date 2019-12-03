@@ -44,8 +44,7 @@
 #include <stddef.h>
 
 #include "out.h"
-#include "pmem.h"
-#include "libpmem.h"
+#include "pmem2_arch.h"
 #include "util.h"
 
 /*
@@ -149,7 +148,7 @@ store8(uint64_t *dst, uint64_t c)
  */
 void *
 memmove_nodrain_generic(void *dst, const void *src, size_t len,
-		unsigned flags)
+		unsigned flags, struct pmem2_arch_funcs *funcs)
 {
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", dst, src, len,
 			flags);
@@ -169,7 +168,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 			for (size_t i = 0; i < cnt; ++i)
 				cdst[i] = csrc[i];
 
-			pmem_flush_flags(cdst, cnt, flags);
+			pmem2_flush_flags(cdst, cnt, flags, funcs);
 
 			cdst += cnt;
 			csrc += cnt;
@@ -181,7 +180,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 
 		while (len >= 128 && CACHELINE_SIZE == 128) {
 			cpy128(dst8, src8);
-			pmem_flush_flags(dst8, 128, flags);
+			pmem2_flush_flags(dst8, 128, flags, funcs);
 			len -= 128;
 			dst8 += 16;
 			src8 += 16;
@@ -189,7 +188,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 
 		while (len >= 64) {
 			cpy64(dst8, src8);
-			pmem_flush_flags(dst8, 64, flags);
+			pmem2_flush_flags(dst8, 64, flags, funcs);
 			len -= 64;
 			dst8 += 8;
 			src8 += 8;
@@ -210,7 +209,8 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 			*cdst++ = *csrc++;
 
 		if (remaining)
-			pmem_flush_flags(cdst - remaining, remaining, flags);
+			pmem2_flush_flags(cdst - remaining, remaining, flags,
+					funcs);
 	} else {
 		cdst += len;
 		csrc += len;
@@ -226,7 +226,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 
 			for (size_t i = cnt; i > 0; --i)
 				cdst[i - 1] = csrc[i - 1];
-			pmem_flush_flags(cdst, cnt, flags);
+			pmem2_flush_flags(cdst, cnt, flags, funcs);
 		}
 
 		uint64_t *dst8 = (uint64_t *)cdst;
@@ -236,7 +236,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 			dst8 -= 16;
 			src8 -= 16;
 			cpy128(dst8, src8);
-			pmem_flush_flags(dst8, 128, flags);
+			pmem2_flush_flags(dst8, 128, flags, funcs);
 			len -= 128;
 		}
 
@@ -244,7 +244,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 			dst8 -= 8;
 			src8 -= 8;
 			cpy64(dst8, src8);
-			pmem_flush_flags(dst8, 64, flags);
+			pmem2_flush_flags(dst8, 64, flags, funcs);
 			len -= 64;
 		}
 
@@ -263,7 +263,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 			*--cdst = *--csrc;
 
 		if (remaining)
-			pmem_flush_flags(cdst, remaining, flags);
+			pmem2_flush_flags(cdst, remaining, flags, funcs);
 	}
 
 	return dst;
@@ -273,7 +273,8 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
  * memset_nodrain_generic -- generic memset to pmem without hw drain
  */
 void *
-memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags)
+memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags,
+		struct pmem2_arch_funcs *funcs)
 {
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", dst, c, len,
 			flags);
@@ -289,7 +290,7 @@ memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags)
 
 		for (size_t i = 0; i < cnt; ++i)
 			cdst[i] = (char)c;
-		pmem_flush_flags(cdst, cnt, flags);
+		pmem2_flush_flags(cdst, cnt, flags, funcs);
 
 		cdst += cnt;
 		len -= cnt;
@@ -310,7 +311,7 @@ memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags)
 		store8(&dst8[5], tmp);
 		store8(&dst8[6], tmp);
 		store8(&dst8[7], tmp);
-		pmem_flush_flags(dst8, 64, flags);
+		pmem2_flush_flags(dst8, 64, flags, funcs);
 		len -= 64;
 		dst8 += 8;
 	}
@@ -328,6 +329,6 @@ memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags)
 		*cdst++ = (char)c;
 
 	if (remaining)
-		pmem_flush_flags(cdst - remaining, remaining, flags);
+		pmem2_flush_flags(cdst - remaining, remaining, flags, funcs);
 	return dst;
 }

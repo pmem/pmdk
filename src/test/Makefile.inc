@@ -159,12 +159,13 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem/pmem.o\
 	$(TOP)/src/nondebug/libpmem/pmem_posix.o
 
-include $(TOP)/src/libpmem/$(ARCH)/sources.inc
-OBJS_MEM = $(LIBPMEM_ARCH_SOURCE:.c=.o)
+include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
+OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
 OBJS += $(addprefix $(TOP)/src/nondebug/libpmem/, ${OBJS_MEM})
 
 INCS += -I$(TOP)/src/libpmem
-INCS += -I$(TOP)/src/libpmem/$(ARCH)
+INCS += -I$(TOP)/src/libpmem2
+INCS += -I$(TOP)/src/libpmem2/$(ARCH)
 endif
 
 ifeq ($(LIBPMEM), internal-debug)
@@ -174,12 +175,13 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem/pmem.o\
 	$(TOP)/src/debug/libpmem/pmem_posix.o
 
-include $(TOP)/src/libpmem/$(ARCH)/sources.inc
-OBJS_MEM = $(LIBPMEM_ARCH_SOURCE:.c=.o)
+include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
+OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
 OBJS += $(addprefix $(TOP)/src/debug/libpmem/, ${OBJS_MEM})
 
 INCS += -I$(TOP)/src/libpmem
-INCS += -I$(TOP)/src/libpmem/$(ARCH)
+INCS += -I$(TOP)/src/libpmem2
+INCS += -I$(TOP)/src/libpmem2/$(ARCH)
 endif
 
 ifeq ($(LIBPMEMCOMMON), y)
@@ -281,6 +283,7 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/config_posix.o\
 	$(TOP)/src/debug/libpmem2/pmem2.o\
 	$(TOP)/src/debug/libpmem2/map.o\
+	$(TOP)/src/debug/libpmem2/memops_generic.o\
 	$(TOP)/src/debug/libpmem2/map_posix.o\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/debug/common/alloc.o\
@@ -305,8 +308,13 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/auto_flush_none.o
 endif
 
+include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
+OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
+OBJS += $(addprefix $(TOP)/src/nondebug/libpmem2/, ${OBJS_MEM})
+
 INCS += -I$(TOP)/src/common
 INCS += -I$(TOP)/src/libpmem2
+INCS += -I$(TOP)/src/libpmem2/$(ARCH)
 endif
 
 ifeq ($(LIBPMEM2), internal-nondebug)
@@ -317,6 +325,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/pmem2.o\
 	$(TOP)/src/nondebug/libpmem2/map.o\
 	$(TOP)/src/nondebug/libpmem2/map_posix.o\
+	$(TOP)/src/nondebug/libpmem2/memops_generic.o\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/nondebug/common/alloc.o\
 	$(TOP)/src/nondebug/common/file.o\
@@ -340,8 +349,13 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/auto_flush_none.o
 endif
 
+include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
+OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
+OBJS += $(addprefix $(TOP)/src/debug/libpmem2/, ${OBJS_MEM})
+
 INCS += -I$(TOP)/src/common
 INCS += -I$(TOP)/src/libpmem2
+INCS += -I$(TOP)/src/libpmem2/$(ARCH)
 endif
 
 ifeq ($(LIBPMEM),y)

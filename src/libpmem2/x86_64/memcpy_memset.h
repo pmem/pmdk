@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2018, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@
 
 #include <stddef.h>
 #include <xmmintrin.h>
-#include "pmem.h"
+#include "pmem2_arch.h"
 
 static inline void
 barrier_after_ntstores(void)

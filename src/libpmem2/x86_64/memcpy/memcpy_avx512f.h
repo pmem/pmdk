@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,8 +30,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef PMEM_MEMCPY_AVX512F_H
-#define PMEM_MEMCPY_AVX512F_H
+#ifndef PMEM2_MEMCPY_AVX512F_H
+#define PMEM2_MEMCPY_AVX512F_H
 
 #include <stddef.h>
 
