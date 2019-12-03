@@ -13,7 +13,7 @@
     <ClCompile Include="util_cpuid.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem\x86_64\cpu.c">
+    <ClCompile Include="..\..\libpmem2\x86_64\cpu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
