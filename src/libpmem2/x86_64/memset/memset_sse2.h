@@ -38,7 +38,6 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "libpmem.h"
 #include "out.h"
 
 static force_inline void

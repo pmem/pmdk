@@ -1,5 +1,6 @@
 /*
  * Copyright 2019, IBM Corporation
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,12 +32,11 @@
  */
 #include "platform_generic.h"
 
-#include <libpmem.h>
 #include <errno.h>
 
 #include "util.h"
 #include "out.h"
-#include "pmem.h"
+#include "pmem2_arch.h"
 #include "os.h"
 
 static void
@@ -80,21 +80,18 @@ ppc_flush_empty(const void *addr, size_t size)
 	flush_empty_nolog(addr, size);
 }
 
-static struct pmem_funcs ppc_pmem_funcs = {
-	.predrain_fence = ppc_predrain_fence,
-	.flush = ppc_flush,
-	.deep_flush = ppc_flush,
-
-	/* Use generic functions for rest of the callbacks */
-	.is_pmem = is_pmem_detect,
-	.memmove_nodrain = memmove_nodrain_generic,
-	.memset_nodrain = memset_nodrain_generic,
-};
-
 int
-platform_init(struct pmem_funcs *funcs)
+platform_init(struct pmem2_arch_funcs *funcs)
 {
 	LOG(3, "Initializing Platform");
+
+	funcs->predrain_fence = ppc_predrain_fence;
+	funcs->flush = ppc_flush;
+	funcs->deep_flush = ppc_flush;
+
+	/* Use generic functions for rest of the callbacks */
+	funcs->memmove_nodrain = memmove_nodrain_generic;
+	funcs->memset_nodrain = memset_nodrain_generic;
 
 	/*
 	 * Check for no flush options
@@ -102,10 +99,9 @@ platform_init(struct pmem_funcs *funcs)
 	 */
 	char *no_flush = os_getenv("PMEM_NO_FLUSH");
 	if (no_flush && strncmp(no_flush, "1", 1) == 0) {
-		ppc_pmem_funcs.flush = ppc_flush_empty;
+		funcs->flush = ppc_flush_empty;
 		LOG(3, "Forced not flushing CPU_cache");
 	}
 
-	*funcs = ppc_pmem_funcs;
 	return 0;
 }
