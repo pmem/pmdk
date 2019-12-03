@@ -41,6 +41,7 @@ require_test_type medium
 
 require_fs_type pmem
 require_build_type debug nondebug
+exclude_ppc64
 
 # Pmemcheck would complain about making a store without adding to transaction
 # in this test. As the test counts the exact number of pmem_persist calls for
