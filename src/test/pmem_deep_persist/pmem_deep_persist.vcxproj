@@ -41,12 +41,12 @@
     <ClCompile Include="..\..\libpmemobj\tx.c" />
     <ClCompile Include="..\..\libpmemobj\ulog.c" />
     <ClCompile Include="..\..\libpmem\pmem_windows.c" />
-    <ClCompile Include="..\..\libpmem\x86_64\cpu.c" />
-    <ClCompile Include="..\..\libpmem\x86_64\init.c">
+    <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
+    <ClCompile Include="..\..\libpmem2\x86_64\init.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">SSE2_AVAILABLE=0;AVX_AVAILABLE=0;AVX512F_AVAILABLE=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem\memops_generic.c" />
+    <ClCompile Include="..\..\libpmem2\memops_generic.c" />
     <ClCompile Include="..\..\libpmem\pmem.c" />
     <ClCompile Include="..\..\windows\win_mmap.c" />
     <ClCompile Include="pmem_deep_persist.c" />
@@ -95,7 +95,7 @@
     <ClInclude Include="..\..\libpmemobj\sync.h" />
     <ClInclude Include="..\..\libpmemobj\tx.h" />
     <ClInclude Include="..\..\libpmemobj\ulog.h" />
-    <ClInclude Include="..\..\libpmem\x86_64\cpu.h" />
+    <ClInclude Include="..\..\libpmem2\x86_64\cpu.h" />
     <ClInclude Include="..\..\windows\include\win_mmap.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -139,7 +139,7 @@
     <ClCompile>
       <DisableSpecificWarnings>
       </DisableSpecificWarnings>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;$(SolutionDir)\libpmem2\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
   </ItemDefinitionGroup>
@@ -147,7 +147,7 @@
     <ClCompile />
     <Link />
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;$(SolutionDir)\libpmem;$(SolutionDir)\libpmem2\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

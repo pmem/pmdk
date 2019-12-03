@@ -27,16 +27,16 @@
     <ClCompile Include="..\..\windows\win_mmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem\x86_64\cpu.c">
+    <ClCompile Include="..\..\libpmem2\x86_64\cpu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem\x86_64\init.c">
+    <ClCompile Include="..\..\libpmem2\x86_64\init.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem\libpmem.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem\memops_generic.c">
+    <ClCompile Include="..\..\libpmem2\memops_generic.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem\pmem.c">
