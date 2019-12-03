@@ -571,7 +571,7 @@ test_redo_cleanup_same_size(PMEMobjpool *pop, struct test_object *object)
 		TEST_ENTRIES, &pop->p_ops);
 
 	/* builtin log + one next */
-	UT_ASSERTeq(capacity, TEST_ENTRIES * 2);
+	UT_ASSERTeq(capacity, TEST_ENTRIES * 2 + CACHELINE_SIZE);
 
 	operation_start(ctx); /* initialize a new operation */
 
@@ -604,7 +604,7 @@ test_undo(PMEMobjpool *pop, struct test_object *object)
 		TEST_ENTRIES, &pop->p_ops);
 
 	/* builtin log + one next */
-	UT_ASSERTeq(capacity, TEST_ENTRIES * 2);
+	UT_ASSERTeq(capacity, TEST_ENTRIES * 2 + CACHELINE_SIZE);
 
 	operation_delete(ctx);
 }
