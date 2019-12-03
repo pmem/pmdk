@@ -125,22 +125,16 @@ init_ranges(struct obj_bench *ob)
 
 	size_t nranges_per_object = MAX_ALLOC_SIZE / ob->obj_size;
 
-	PMEMoid *oid = (PMEMoid *)malloc(ob->nallocs * sizeof(PMEMoid));
-	if (oid == nullptr) {
-		perror("malloc");
-		goto err;
-	}
-
 	for (size_t i = 0, n = 0; n < ob->nranges && i < ob->nallocs; i++) {
-
-		if (pmemobj_alloc(ob->pop, &oid[i], MAX_ALLOC_SIZE, 0, nullptr,
+		PMEMoid oid;
+		if (pmemobj_alloc(ob->pop, &oid, MAX_ALLOC_SIZE, 0, nullptr,
 				  nullptr)) {
 			perror("pmemobj_alloc");
 			goto err;
 		}
 
 		for (size_t j = 0; j < nranges_per_object; j++) {
-			void *ptr = (char *)pmemobj_direct(oid[i]) +
+			void *ptr = (char *)pmemobj_direct(oid) +
 				(j * ob->obj_size);
 			struct ranged_obj range = {ptr, ob->obj_size};
 			ob->ranges[n++] = range;
@@ -155,7 +149,6 @@ init_ranges(struct obj_bench *ob)
 	return 0;
 
 err:
-	free(oid);
 	free(ob->ranges);
 	return -1;
 }
