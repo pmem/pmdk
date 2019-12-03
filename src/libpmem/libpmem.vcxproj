@@ -35,87 +35,87 @@
     <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="..\libpmem\libpmem_main.c" />
     <ClCompile Include="..\windows\win_mmap.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\cpu.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\init.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\cpu.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\init.c" />
     <ClCompile Include="pmem_windows.c" />
-    <ClCompile Include="..\libpmem\memops_generic.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clflush.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clflushopt.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_clwb.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_sse2_empty.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_avx_clflush.c">
+    <ClCompile Include="..\libpmem2\memops_generic.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2_clflush.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2_clflushopt.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2_clwb.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2_empty.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_avx_clflush.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_avx_clflushopt.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_avx_clflushopt.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_avx_clwb.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_avx_clwb.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_nt_avx_empty.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_avx_empty.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_t_sse2_clflush.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_t_sse2_clflushopt.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_t_sse2_clwb.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_t_sse2_empty.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_t_avx_clflush.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_sse2_clflush.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_sse2_clflushopt.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_sse2_clwb.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_sse2_empty.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_avx_clflush.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_t_avx_clflushopt.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_avx_clflushopt.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_t_avx_clwb.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_avx_clwb.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memcpy\memcpy_t_avx_empty.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_avx_empty.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_nt_sse2_clflush.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_nt_sse2_clflushopt.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_nt_sse2_clwb.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_nt_sse2_empty.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_nt_avx_clflush.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_sse2_clflush.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_sse2_clflushopt.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_sse2_clwb.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_sse2_empty.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_avx_clflush.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_nt_avx_clflushopt.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_avx_clflushopt.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_nt_avx_clwb.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_avx_clwb.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_nt_avx_empty.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_avx_empty.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_t_sse2_clflush.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_t_sse2_clflushopt.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_t_sse2_clwb.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_t_sse2_empty.c" />
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_t_avx_clflush.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_sse2_clflush.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_sse2_clflushopt.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_sse2_clwb.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_sse2_empty.c" />
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_avx_clflush.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_t_avx_clflushopt.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_avx_clflushopt.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_t_avx_clwb.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_avx_clwb.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem\x86_64\memset\memset_t_avx_empty.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_avx_empty.c">
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
@@ -145,29 +145,30 @@
     <ClInclude Include="..\common\uuid.h" />
     <ClInclude Include="..\libpmem2\auto_flush.h" />
     <ClInclude Include="..\libpmem2\auto_flush_windows.h" />
+    <ClInclude Include="..\libpmem2\pmem2_arch.h" />
     <ClInclude Include="..\windows\include\win_mmap.h" />
-    <ClInclude Include="..\..\src\libpmem\x86_64\cpu.h" />
-    <ClInclude Include="x86_64\avx.h" />
-    <ClInclude Include="x86_64\flush.h" />
-    <ClInclude Include="x86_64\memcpy\memcpy_avx.h" />
-    <ClInclude Include="x86_64\memcpy\memcpy_avx512f.h" />
-    <ClInclude Include="x86_64\memcpy\memcpy_nt_avx.h" />
-    <ClInclude Include="x86_64\memcpy\memcpy_nt_avx512f.h" />
-    <ClInclude Include="x86_64\memcpy\memcpy_nt_sse2.h" />
-    <ClInclude Include="x86_64\memcpy\memcpy_sse2.h" />
-    <ClInclude Include="x86_64\memcpy\memcpy_t_avx.h" />
-    <ClInclude Include="x86_64\memcpy\memcpy_t_avx512f.h" />
-    <ClInclude Include="x86_64\memcpy\memcpy_t_sse2.h" />
-    <ClInclude Include="x86_64\memcpy_memset.h" />
-    <ClInclude Include="x86_64\memset\memset_avx.h" />
-    <ClInclude Include="x86_64\memset\memset_avx512f.h" />
-    <ClInclude Include="x86_64\memset\memset_nt_avx.h" />
-    <ClInclude Include="x86_64\memset\memset_nt_avx512f.h" />
-    <ClInclude Include="x86_64\memset\memset_nt_sse2.h" />
-    <ClInclude Include="x86_64\memset\memset_sse2.h" />
-    <ClInclude Include="x86_64\memset\memset_t_avx.h" />
-    <ClInclude Include="x86_64\memset\memset_t_avx512f.h" />
-    <ClInclude Include="x86_64\memset\memset_t_sse2.h" />
+    <ClInclude Include="..\libpmem2\x86_64\cpu.h" />
+    <ClInclude Include="..\libpmem2\x86_64\avx.h" />
+    <ClInclude Include="..\libpmem2\x86_64\flush.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_avx.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_avx512f.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_nt_avx.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_nt_avx512f.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_nt_sse2.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_sse2.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_t_avx.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_t_avx512f.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_t_sse2.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memcpy_memset.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memset\memset_avx.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memset\memset_avx512f.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memset\memset_nt_avx.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memset\memset_nt_avx512f.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memset\memset_nt_sse2.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memset\memset_sse2.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memset\memset_t_avx.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memset\memset_t_avx512f.h" />
+    <ClInclude Include="..\libpmem2\x86_64\memset\memset_t_sse2.h" />
     <ClInclude Include="..\libpmem2\config.h" />
     <ClInclude Include="..\libpmem2\pmem2_utils.h" />
   </ItemGroup>
@@ -214,10 +215,10 @@
     <Import Project="..\windows\libs_release.props" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\src\libpmem\x86_64\</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\src\libpmem2\x86_64\</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\src\libpmem\x86_64\</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);..\..\src\libpmem2\x86_64\</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

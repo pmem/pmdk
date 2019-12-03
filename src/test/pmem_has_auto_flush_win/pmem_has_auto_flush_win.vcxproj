@@ -74,7 +74,7 @@
     <ClInclude Include="..\..\libpmem2\auto_flush.h" />
     <ClInclude Include="..\..\libpmem2\auto_flush_windows.h" />
     <ClInclude Include="..\..\libpmem\pmem.h" />
-    <ClInclude Include="..\..\libpmem\x86_64\cpu.h" />
+    <ClInclude Include="..\..\libpmem2\x86_64\cpu.h" />
     <ClInclude Include="pmem_has_auto_flush_win.h" />
     <ClInclude Include="mocks_windows.h" />
   </ItemGroup>
@@ -83,9 +83,9 @@
     <ClCompile Include="..\..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="..\..\libpmem\pmem.c" />
     <ClCompile Include="..\..\libpmem\pmem_windows.c" />
-    <ClCompile Include="..\..\libpmem\memops_generic.c" />
-    <ClCompile Include="..\..\libpmem\x86_64\cpu.c" />
-    <ClCompile Include="..\..\libpmem\x86_64\init.c" />
+    <ClCompile Include="..\..\libpmem2\memops_generic.c" />
+    <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
+    <ClCompile Include="..\..\libpmem2\x86_64\init.c" />
     <ClCompile Include="..\..\windows\win_mmap.c" />
     <ClCompile Include="mocks_windows.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">_DEBUG;_CONSOLE;%(PreprocessorDefinitions);WRAP_REAL</PreprocessorDefinitions>
