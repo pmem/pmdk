@@ -35,6 +35,6 @@
 
 #include "pmem2_arch.h"
 
-int platform_init(struct pmem2_arch_funcs *funcs);
+int platform_init(struct pmem2_arch_info *info);
 
 #endif  /* __PPC64__PLATFORM_GENERIC_H__ */

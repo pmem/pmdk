@@ -34,40 +34,8 @@
 
 #include "auto_flush.h"
 #include "flush.h"
-#include "os.h"
 #include "out.h"
 #include "pmem2_arch.h"
-#include "valgrind_internal.h"
-
-/*
- * memmove_nodrain_libc -- (internal) memmove to pmem without hw drain
- */
-static void *
-memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
-		unsigned flags, struct pmem2_arch_funcs *funcs)
-{
-	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
-			flags);
-
-	memmove(pmemdest, src, len);
-	pmem2_flush_flags(pmemdest, len, flags, funcs);
-	return pmemdest;
-}
-
-/*
- * memset_nodrain_libc -- (internal) memset to pmem without hw drain
- */
-static void *
-memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
-		struct pmem2_arch_funcs *funcs)
-{
-	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
-			flags);
-
-	memset(pmemdest, c, len);
-	pmem2_flush_flags(pmemdest, len, flags, funcs);
-	return pmemdest;
-}
 
 /*
  * memory_barrier -- (internal) issue the fence instruction
@@ -80,7 +48,7 @@ memory_barrier(void)
 }
 
 /*
- * flush_dcache -- (internal) flush the CPU cache, using clwb
+ * flush_dcache -- (internal) flush the CPU cache
  */
 static void
 flush_dcache(const void *addr, size_t len)
@@ -91,74 +59,18 @@ flush_dcache(const void *addr, size_t len)
 }
 
 /*
- * flush_empty -- (internal) do not flush the CPU cache
- */
-static void
-flush_empty(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	flush_empty_nolog(addr, len);
-}
-
-/*
  * pmem2_arch_init -- initialize architecture-specific list of pmem operations
  */
 void
-pmem2_arch_init(struct pmem2_arch_funcs *funcs)
+pmem2_arch_init(struct pmem2_arch_info *info)
 {
 	LOG(3, NULL);
 
-	funcs->fence = memory_barrier;
-	funcs->deep_flush = flush_dcache;
-	funcs->memmove_nodrain = memmove_nodrain_generic;
-	funcs->memset_nodrain = memset_nodrain_generic;
+	info->fence = memory_barrier;
+	info->deep_flush = flush_dcache;
 
-	char *ptr = os_getenv("PMEM_NO_GENERIC_MEMCPY");
-	if (ptr) {
-		long long val = atoll(ptr);
-
-		if (val) {
-			funcs->memmove_nodrain = memmove_nodrain_libc;
-			funcs->memset_nodrain = memset_nodrain_libc;
-		}
-	}
-
-	int flush;
-	char *e = os_getenv("PMEM_NO_FLUSH");
-	if (e && (strcmp(e, "1") == 0)) {
-		flush = 0;
-		LOG(3, "Forced not flushing CPU_cache");
-	} else if (e && (strcmp(e, "0") == 0)) {
-		flush = 1;
-		LOG(3, "Forced flushing CPU_cache");
-	} else if (pmem2_auto_flush() == 1) {
-		flush = 0;
-		LOG(3, "Not flushing CPU_cache, eADR detected");
-	} else {
-		flush = 1;
-		LOG(3, "Flushing CPU cache");
-	}
-
-	if (flush)
-		funcs->flush = funcs->deep_flush;
-	else
-		funcs->flush = flush_empty;
-
-	if (funcs->deep_flush == flush_dcache)
+	if (info->deep_flush == flush_dcache)
 		LOG(3, "Synchronize VA to poc for ARM");
 	else
 		FATAL("invalid deep flush function address");
-
-	if (funcs->flush == flush_empty)
-		LOG(3, "not flushing CPU cache");
-	else if (funcs->flush != funcs->deep_flush)
-		FATAL("invalid flush function address");
-
-	if (funcs->memmove_nodrain == memmove_nodrain_generic)
-		LOG(3, "using generic memmove");
-	else if (funcs->memmove_nodrain == memmove_nodrain_libc)
-		LOG(3, "using libc memmove");
-	else
-		FATAL("invalid memove_nodrain function address");
 }

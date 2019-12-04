@@ -47,18 +47,6 @@
 size_t Movnt_threshold = MOVNT_THRESHOLD;
 
 /*
- * fence_empty -- (internal) issue the fence instruction
- */
-static void
-fence_empty(void)
-{
-	LOG(15, NULL);
-
-	VALGRIND_DO_FENCE;
-	/* nothing to do (because CLFLUSH did it for us) */
-}
-
-/*
  * memory_barrier -- (internal) issue the fence instruction
  */
 static void
@@ -101,17 +89,6 @@ flush_clwb(const void *addr, size_t len)
 	flush_clwb_nolog(addr, len);
 }
 
-/*
- * flush_empty -- (internal) do not flush the CPU cache
- */
-static void
-flush_empty(const void *addr, size_t len)
-{
-	LOG(15, "addr %p len %zu", addr, len);
-
-	flush_empty_nolog(addr, len);
-}
-
 #if SSE2_AVAILABLE || AVX_AVAILABLE || AVX512F_AVAILABLE
 #define PMEM2_F_MEM_MOVNT (PMEM2_F_MEM_WC | PMEM2_F_MEM_NONTEMPORAL)
 #define PMEM2_F_MEM_MOV   (PMEM2_F_MEM_WB | PMEM2_F_MEM_TEMPORAL)
@@ -119,7 +96,7 @@ flush_empty(const void *addr, size_t len)
 #define MEMCPY_TEMPLATE(isa, flush) \
 static void *\
 memmove_nodrain_##isa##_##flush(void *dest, const void *src, size_t len, \
-		unsigned flags, struct pmem2_arch_funcs *funcs)\
+		unsigned flags, flush_func flushf)\
 {\
 	if (len == 0 || src == dest)\
 		return dest;\
@@ -141,7 +118,7 @@ memmove_nodrain_##isa##_##flush(void *dest, const void *src, size_t len, \
 #define MEMSET_TEMPLATE(isa, flush)\
 static void *\
 memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags,\
-		struct pmem2_arch_funcs *funcs)\
+		flush_func flushf)\
 {\
 	if (len == 0)\
 		return dest;\
@@ -191,42 +168,8 @@ MEMSET_TEMPLATE(avx512f, clflushopt)
 MEMSET_TEMPLATE(avx512f, clwb)
 #endif
 
-/*
- * memmove_nodrain_libc -- (internal) memmove to pmem using libc
- */
-static void *
-memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
-		unsigned flags, struct pmem2_arch_funcs *funcs)
-{
-	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
-			flags);
-	(void) flags;
-
-	memmove(pmemdest, src, len);
-	pmem2_flush_flags(pmemdest, len, flags, funcs);
-	return pmemdest;
-}
-
-/*
- * memset_nodrain_libc -- (internal) memset to pmem using libc
- */
-static void *
-memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
-		struct pmem2_arch_funcs *funcs)
-{
-	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
-			flags);
-	(void) flags;
-
-	memset(pmemdest, c, len);
-	pmem2_flush_flags(pmemdest, len, flags, funcs);
-	return pmemdest;
-}
-
 enum memcpy_impl {
 	MEMCPY_INVALID,
-	MEMCPY_LIBC,
-	MEMCPY_GENERIC,
 	MEMCPY_SSE2,
 	MEMCPY_AVX,
 	MEMCPY_AVX512F
@@ -236,25 +179,25 @@ enum memcpy_impl {
  * use_sse2_memcpy_memset -- (internal) SSE2 detected, use it if possible
  */
 static void
-use_sse2_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
+use_sse2_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 {
 #if SSE2_AVAILABLE
 	*impl = MEMCPY_SSE2;
-	if (funcs->deep_flush == flush_clflush)
-		funcs->memmove_nodrain = memmove_nodrain_sse2_clflush;
-	else if (funcs->deep_flush == flush_clflushopt)
-		funcs->memmove_nodrain = memmove_nodrain_sse2_clflushopt;
-	else if (funcs->deep_flush == flush_clwb)
-		funcs->memmove_nodrain = memmove_nodrain_sse2_clwb;
+	if (info->deep_flush == flush_clflush)
+		info->memmove_nodrain = memmove_nodrain_sse2_clflush;
+	else if (info->deep_flush == flush_clflushopt)
+		info->memmove_nodrain = memmove_nodrain_sse2_clflushopt;
+	else if (info->deep_flush == flush_clwb)
+		info->memmove_nodrain = memmove_nodrain_sse2_clwb;
 	else
 		ASSERT(0);
 
-	if (funcs->deep_flush == flush_clflush)
-		funcs->memset_nodrain = memset_nodrain_sse2_clflush;
-	else if (funcs->deep_flush == flush_clflushopt)
-		funcs->memset_nodrain = memset_nodrain_sse2_clflushopt;
-	else if (funcs->deep_flush == flush_clwb)
-		funcs->memset_nodrain = memset_nodrain_sse2_clwb;
+	if (info->deep_flush == flush_clflush)
+		info->memset_nodrain = memset_nodrain_sse2_clflush;
+	else if (info->deep_flush == flush_clflushopt)
+		info->memset_nodrain = memset_nodrain_sse2_clflushopt;
+	else if (info->deep_flush == flush_clwb)
+		info->memset_nodrain = memset_nodrain_sse2_clwb;
 	else
 		ASSERT(0);
 #else
@@ -267,7 +210,7 @@ use_sse2_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
  * use_avx_memcpy_memset -- (internal) AVX detected, use it if possible
  */
 static void
-use_avx_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
+use_avx_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 {
 #if AVX_AVAILABLE
 	LOG(3, "avx supported");
@@ -281,21 +224,21 @@ use_avx_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 	LOG(3, "PMEM_AVX enabled");
 	*impl = MEMCPY_AVX;
 
-	if (funcs->deep_flush == flush_clflush)
-		funcs->memmove_nodrain = memmove_nodrain_avx_clflush;
-	else if (funcs->deep_flush == flush_clflushopt)
-		funcs->memmove_nodrain = memmove_nodrain_avx_clflushopt;
-	else if (funcs->deep_flush == flush_clwb)
-		funcs->memmove_nodrain = memmove_nodrain_avx_clwb;
+	if (info->deep_flush == flush_clflush)
+		info->memmove_nodrain = memmove_nodrain_avx_clflush;
+	else if (info->deep_flush == flush_clflushopt)
+		info->memmove_nodrain = memmove_nodrain_avx_clflushopt;
+	else if (info->deep_flush == flush_clwb)
+		info->memmove_nodrain = memmove_nodrain_avx_clwb;
 	else
 		ASSERT(0);
 
-	if (funcs->deep_flush == flush_clflush)
-		funcs->memset_nodrain = memset_nodrain_avx_clflush;
-	else if (funcs->deep_flush == flush_clflushopt)
-		funcs->memset_nodrain = memset_nodrain_avx_clflushopt;
-	else if (funcs->deep_flush == flush_clwb)
-		funcs->memset_nodrain = memset_nodrain_avx_clwb;
+	if (info->deep_flush == flush_clflush)
+		info->memset_nodrain = memset_nodrain_avx_clflush;
+	else if (info->deep_flush == flush_clflushopt)
+		info->memset_nodrain = memset_nodrain_avx_clflushopt;
+	else if (info->deep_flush == flush_clwb)
+		info->memset_nodrain = memset_nodrain_avx_clwb;
 	else
 		ASSERT(0);
 #else
@@ -307,7 +250,7 @@ use_avx_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
  * use_avx512f_memcpy_memset -- (internal) AVX512F detected, use it if possible
  */
 static void
-use_avx512f_memcpy_memset(struct pmem2_arch_funcs *funcs,
+use_avx512f_memcpy_memset(struct pmem2_arch_info *info,
 		enum memcpy_impl *impl)
 {
 #if AVX512F_AVAILABLE
@@ -322,21 +265,21 @@ use_avx512f_memcpy_memset(struct pmem2_arch_funcs *funcs,
 	LOG(3, "PMEM_AVX512F enabled");
 	*impl = MEMCPY_AVX512F;
 
-	if (funcs->deep_flush == flush_clflush)
-		funcs->memmove_nodrain = memmove_nodrain_avx512f_clflush;
-	else if (funcs->deep_flush == flush_clflushopt)
-		funcs->memmove_nodrain = memmove_nodrain_avx512f_clflushopt;
-	else if (funcs->deep_flush == flush_clwb)
-		funcs->memmove_nodrain = memmove_nodrain_avx512f_clwb;
+	if (info->deep_flush == flush_clflush)
+		info->memmove_nodrain = memmove_nodrain_avx512f_clflush;
+	else if (info->deep_flush == flush_clflushopt)
+		info->memmove_nodrain = memmove_nodrain_avx512f_clflushopt;
+	else if (info->deep_flush == flush_clwb)
+		info->memmove_nodrain = memmove_nodrain_avx512f_clwb;
 	else
 		ASSERT(0);
 
-	if (funcs->deep_flush == flush_clflush)
-		funcs->memset_nodrain = memset_nodrain_avx512f_clflush;
-	else if (funcs->deep_flush == flush_clflushopt)
-		funcs->memset_nodrain = memset_nodrain_avx512f_clflushopt;
-	else if (funcs->deep_flush == flush_clwb)
-		funcs->memset_nodrain = memset_nodrain_avx512f_clwb;
+	if (info->deep_flush == flush_clflush)
+		info->memset_nodrain = memset_nodrain_avx512f_clflush;
+	else if (info->deep_flush == flush_clflushopt)
+		info->memset_nodrain = memset_nodrain_avx512f_clflushopt;
+	else if (info->deep_flush == flush_clwb)
+		info->memset_nodrain = memset_nodrain_avx512f_clwb;
 	else
 		ASSERT(0);
 #else
@@ -348,15 +291,16 @@ use_avx512f_memcpy_memset(struct pmem2_arch_funcs *funcs,
  * pmem_get_cpuinfo -- configure libpmem based on CPUID
  */
 static void
-pmem_cpuinfo_to_funcs(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
+pmem_cpuinfo_to_funcs(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 {
 	LOG(3, NULL);
 
 	if (is_cpu_clflush_present()) {
 		LOG(3, "clflush supported");
 
-		funcs->deep_flush = flush_clflush;
-		funcs->fence = fence_empty;
+		info->deep_flush = flush_clflush;
+		info->deep_flush_has_builtin_fence = 1;
+		info->fence = memory_barrier;
 	}
 
 	if (is_cpu_clflushopt_present()) {
@@ -366,8 +310,9 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 		if (e && strcmp(e, "1") == 0) {
 			LOG(3, "PMEM_NO_CLFLUSHOPT forced no clflushopt");
 		} else {
-			funcs->deep_flush = flush_clflushopt;
-			funcs->fence = memory_barrier;
+			info->deep_flush = flush_clflushopt;
+			info->deep_flush_has_builtin_fence = 0;
+			info->fence = memory_barrier;
 		}
 	}
 
@@ -378,8 +323,9 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 		if (e && strcmp(e, "1") == 0) {
 			LOG(3, "PMEM_NO_CLWB forced no clwb");
 		} else {
-			funcs->deep_flush = flush_clwb;
-			funcs->fence = memory_barrier;
+			info->deep_flush = flush_clwb;
+			info->deep_flush_has_builtin_fence = 0;
+			info->fence = memory_barrier;
 		}
 	}
 
@@ -387,13 +333,13 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 	if (ptr && strcmp(ptr, "1") == 0) {
 		LOG(3, "PMEM_NO_MOVNT forced no movnt");
 	} else {
-		use_sse2_memcpy_memset(funcs, impl);
+		use_sse2_memcpy_memset(info, impl);
 
 		if (is_cpu_avx_present())
-			use_avx_memcpy_memset(funcs, impl);
+			use_avx_memcpy_memset(info, impl);
 
 		if (is_cpu_avx512f_present())
-			use_avx512f_memcpy_memset(funcs, impl);
+			use_avx512f_memcpy_memset(info, impl);
 	}
 }
 
@@ -401,26 +347,12 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
  * pmem2_arch_init -- initialize architecture-specific list of pmem operations
  */
 void
-pmem2_arch_init(struct pmem2_arch_funcs *funcs)
+pmem2_arch_init(struct pmem2_arch_info *info)
 {
 	LOG(3, NULL);
+	enum memcpy_impl impl = MEMCPY_INVALID;
 
-	funcs->memmove_nodrain = memmove_nodrain_generic;
-	funcs->memset_nodrain = memset_nodrain_generic;
-	enum memcpy_impl impl = MEMCPY_GENERIC;
-
-	char *ptr = os_getenv("PMEM_NO_GENERIC_MEMCPY");
-	if (ptr) {
-		long long val = atoll(ptr);
-
-		if (val) {
-			funcs->memmove_nodrain = memmove_nodrain_libc;
-			funcs->memset_nodrain = memset_nodrain_libc;
-			impl = MEMCPY_LIBC;
-		}
-	}
-
-	pmem_cpuinfo_to_funcs(funcs, &impl);
+	pmem_cpuinfo_to_funcs(info, &impl);
 
 	/*
 	 * For testing, allow overriding the default threshold
@@ -428,7 +360,7 @@ pmem2_arch_init(struct pmem2_arch_funcs *funcs)
 	 * and pmem_memset_*().
 	 * It has no effect if movnt is not supported or disabled.
 	 */
-	ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
+	const char *ptr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	if (ptr) {
 		long long val = atoll(ptr);
 
@@ -440,42 +372,14 @@ pmem2_arch_init(struct pmem2_arch_funcs *funcs)
 		}
 	}
 
-	int flush;
-	char *e = os_getenv("PMEM_NO_FLUSH");
-	if (e && (strcmp(e, "1") == 0)) {
-		flush = 0;
-		LOG(3, "Forced not flushing CPU_cache");
-	} else if (e && (strcmp(e, "0") == 0)) {
-		flush = 1;
-		LOG(3, "Forced flushing CPU_cache");
-	} else if (pmem2_auto_flush() == 1) {
-		flush = 0;
-		LOG(3, "Not flushing CPU_cache, eADR detected");
-	} else {
-		flush = 1;
-		LOG(3, "Flushing CPU cache");
-	}
-
-	if (flush) {
-		funcs->flush = funcs->deep_flush;
-	} else {
-		funcs->flush = flush_empty;
-		funcs->fence = memory_barrier;
-	}
-
-	if (funcs->deep_flush == flush_clwb)
+	if (info->deep_flush == flush_clwb)
 		LOG(3, "using clwb");
-	else if (funcs->deep_flush == flush_clflushopt)
+	else if (info->deep_flush == flush_clflushopt)
 		LOG(3, "using clflushopt");
-	else if (funcs->deep_flush == flush_clflush)
+	else if (info->deep_flush == flush_clflush)
 		LOG(3, "using clflush");
 	else
 		FATAL("invalid deep flush function address");
-
-	if (funcs->flush == flush_empty)
-		LOG(3, "not flushing CPU cache");
-	else if (funcs->flush != funcs->deep_flush)
-		FATAL("invalid flush function address");
 
 	if (impl == MEMCPY_AVX512F)
 		LOG(3, "using movnt AVX512F");
@@ -483,10 +387,4 @@ pmem2_arch_init(struct pmem2_arch_funcs *funcs)
 		LOG(3, "using movnt AVX");
 	else if (impl == MEMCPY_SSE2)
 		LOG(3, "using movnt SSE2");
-	else if (impl == MEMCPY_LIBC)
-		LOG(3, "using libc memmove");
-	else if (impl == MEMCPY_GENERIC)
-		LOG(3, "using generic memmove");
-	else
-		FATAL("invalid memcpy impl");
 }
