@@ -50,8 +50,8 @@
 #include "os.h"
 #include "file.h"
 #include "out.h"
+#include "../libpmem2/pmem2_utils.h"
 
-#define MAX_SIZE_LENGTH 64
 #define DAX_REGION_ID_LEN 6 /* 5 digits + \0 */
 
 /*
@@ -209,11 +209,8 @@ util_file_dir_remove(const char *path)
 static size_t
 device_dax_alignment(const char *path)
 {
-	char spath[PATH_MAX];
 	size_t size = 0;
-	char *daxpath;
 	os_stat_t st;
-	int olderrno;
 
 	LOG(3, "path \"%s\"", path);
 
@@ -222,91 +219,10 @@ device_dax_alignment(const char *path)
 		return 0;
 	}
 
-	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u",
-		os_major(st.st_rdev), os_minor(st.st_rdev));
-
-	daxpath = realpath(spath, NULL);
-	if (!daxpath) {
-		ERR("!realpath \"%s\"", spath);
+	int ret = pmem2_device_dax_alignment_from_stat(&st, &size);
+	if (ret)
 		return 0;
-	}
 
-	if (util_safe_strcpy(spath, daxpath, sizeof(spath))) {
-		ERR("util_safe_strcpy failed");
-		free(daxpath);
-		return 0;
-	}
-
-	free(daxpath);
-
-	while (spath[0] != '\0') {
-		char sizebuf[MAX_SIZE_LENGTH + 1];
-		char *pos = strrchr(spath, '/');
-		char *endptr;
-		size_t len;
-		ssize_t rc;
-		int fd;
-
-		if (strcmp(spath, "/sys/devices") == 0)
-			break;
-
-		if (!pos)
-			break;
-
-		*pos = '\0';
-		len = strlen(spath);
-
-		snprintf(&spath[len], sizeof(spath) - len, "/dax_region/align");
-		fd = os_open(spath, O_RDONLY);
-		*pos = '\0';
-
-		if (fd < 0)
-			continue;
-
-		LOG(4, "device align path \"%s\"", spath);
-
-		rc = read(fd, sizebuf, MAX_SIZE_LENGTH);
-		os_close(fd);
-
-		if (rc < 0) {
-			ERR("!read");
-			return 0;
-		}
-
-		sizebuf[rc] = 0; /* null termination */
-
-		olderrno = errno;
-		errno = 0;
-
-		/* 'align' is in decimal format */
-		size = strtoull(sizebuf, &endptr, 10);
-		if (endptr == sizebuf || *endptr != '\n' ||
-				(size == ULLONG_MAX && errno == ERANGE)) {
-			ERR("invalid device alignment %s", sizebuf);
-			size = 0;
-			errno = olderrno;
-			break;
-		}
-
-		/*
-		 * If the alignment value is not a power of two, try with
-		 * hex format, as this is how it was printed in older kernels.
-		 * Just in case someone is using kernel <4.9.
-		 */
-		if ((size & (size - 1)) != 0) {
-			size = strtoull(sizebuf, &endptr, 16);
-			if (endptr == sizebuf || *endptr != '\n' ||
-					(size == ULLONG_MAX &&
-					errno == ERANGE)) {
-				ERR("invalid device alignment %s", sizebuf);
-				size = 0;
-			}
-		}
-
-		errno = olderrno;
-		break;
-	}
-	LOG(4, "device alignment %zu", size);
 	return size;
 }
 
