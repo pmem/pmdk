@@ -130,8 +130,8 @@ convenient.
 %{_libdir}/libpmem2.so
 %{_libdir}/pkgconfig/libpmem2.pc
 %{_includedir}/libpmem2.h
-# %{_mandir}/man7/libpmem2.7.gz XXX placeholder
-%{_mandir}/man3/pmem_*.3.gz
+%{_mandir}/man7/libpmem2.7.gz
+%{_mandir}/man3/pmem2_*.3.gz
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
