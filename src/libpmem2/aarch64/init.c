@@ -70,10 +70,10 @@ memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
 }
 
 /*
- * predrain_memory_barrier -- (internal) issue the pre-drain fence instruction
+ * memory_barrier -- (internal) issue the fence instruction
  */
 static void
-predrain_memory_barrier(void)
+memory_barrier(void)
 {
 	LOG(15, NULL);
 	arm_store_memory_barrier();
@@ -109,7 +109,7 @@ pmem2_arch_init(struct pmem2_arch_funcs *funcs)
 {
 	LOG(3, NULL);
 
-	funcs->predrain_fence = predrain_memory_barrier;
+	funcs->fence = memory_barrier;
 	funcs->deep_flush = flush_dcache;
 	funcs->memmove_nodrain = memmove_nodrain_generic;
 	funcs->memset_nodrain = memset_nodrain_generic;
