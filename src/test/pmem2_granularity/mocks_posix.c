@@ -38,12 +38,32 @@
 #include "fs.h"
 #include "unittest.h"
 
+#define BUS_DEVICE_PATH "/sys/bus/nd/devices"
+
+#ifndef MAP_SYNC
+#define MAP_SYNC 0x80000
+#endif
+
+#ifndef MAP_SHARED_VALIDATE
+#define MAP_SHARED_VALIDATE 0x03
+#endif
+
 /*
  * mmap - mock mmap
  */
 FUNC_MOCK(mmap, void *, void *addr, size_t len, int prot,
 		int flags, int fd, __off_t offset)
 FUNC_MOCK_RUN_DEFAULT {
+	char *str_map_sync = os_getenv("IS_PMEM");
+	if (str_map_sync && atoi(str_map_sync) == 1) {
+		if ((~flags & (MAP_SYNC | MAP_SHARED_VALIDATE)) == 0)
+			return mmap(addr, len, prot, MAP_FIXED | MAP_SHARED,
+				fd, offset);
+	} else if ((~flags & (MAP_SYNC | MAP_SHARED_VALIDATE)) == 0) {
+		errno = EINVAL;
+		return MAP_FAILED;
+	}
+
 	return _FUNC_REAL(mmap)(addr, len, prot, flags, fd, offset);
 }
 FUNC_MOCK_END
@@ -58,7 +78,12 @@ FUNC_MOCK_RUN_DEFAULT {
 	int mode = va_arg(ap, int);
 	va_end(ap);
 
-	return _FUNC_REAL(open)(path, flags, mode);
+	if (!strstr(path, BUS_DEVICE_PATH) ||
+		(strstr(path, BUS_DEVICE_PATH) && strstr(path, "region")))
+		return _FUNC_REAL(open)(path, flags, mode);
+
+	const char *mock_path = os_getenv("BUS_DEVICE_PATH");
+	return _FUNC_REAL(open)(mock_path, flags, mode);
 }
 FUNC_MOCK_END
 
@@ -72,7 +97,12 @@ struct fs {
  */
 FUNC_MOCK(fs_new, struct fs *, const char *path)
 FUNC_MOCK_RUN_DEFAULT {
-	return _FUNC_REAL(fs_new)(path);
+	if (!strstr(path, BUS_DEVICE_PATH) ||
+		(strstr(path, BUS_DEVICE_PATH) && strstr(path, "region")))
+		return _FUNC_REAL(fs_new)(path);
+
+	const char *mock_path = os_getenv("BUS_DEVICE_PATH");
+	return _FUNC_REAL(fs_new)(mock_path);
 }
 FUNC_MOCK_END
 
@@ -81,6 +111,11 @@ FUNC_MOCK_END
  */
 FUNC_MOCK(os_stat, int, const char *path, os_stat_t *buf)
 FUNC_MOCK_RUN_DEFAULT {
-	return _FUNC_REAL(os_stat)(path, buf);
+	if (!strstr(path, BUS_DEVICE_PATH) ||
+		(strstr(path, BUS_DEVICE_PATH) && strstr(path, "region")))
+		return _FUNC_REAL(os_stat)(path, buf);
+
+	const char *mock_path = os_getenv("BUS_DEVICE_PATH");
+	return _FUNC_REAL(os_stat)(mock_path, buf);
 }
 FUNC_MOCK_END
