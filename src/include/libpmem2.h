@@ -126,6 +126,9 @@ int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 
 int pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size);
 
+int pmem2_config_get_alignment(const struct pmem2_config *cfg,
+		size_t *alignment);
+
 /* mapping */
 
 struct pmem2_map;
