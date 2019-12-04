@@ -141,3 +141,19 @@ pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size)
 
 	return 0;
 }
+
+/*
+ * pmem2_config_get_alignment -- get alignment from the system info
+ */
+int
+pmem2_config_get_alignment(const struct pmem2_config *cfg, size_t *alignment)
+{
+	SYSTEM_INFO info;
+	GetSystemInfo(&info);
+
+	*alignment = (size_t)info.dwAllocationGranularity;
+
+	LOG(4, "alignment %zu", *alignment);
+
+	return 0;
+}
