@@ -75,6 +75,7 @@ extern "C" {
 #define PMEM2_E_GRANULARITY_NOT_SUPPORTED	(-100009)
 #define PMEM2_E_OFFSET_OUT_OF_RANGE		(-100010)
 #define PMEM2_E_OFFSET_UNALIGNED		(-100011)
+#define PMEM2_E_INVALID_ALIGNMENT_FORMAT		(-100012)
 
 /* config setup */
 
@@ -125,6 +126,9 @@ int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 	enum pmem2_granularity g);
 
 int pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size);
+
+int pmem2_config_get_alignment(const struct pmem2_config *cfg,
+		size_t *alignment);
 
 /* mapping */
 

@@ -57,5 +57,7 @@ enum pmem2_file_type {
 
 int pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type);
 int pmem2_device_dax_size_from_stat(const os_stat_t *st, size_t *size);
+int pmem2_device_dax_alignment_from_stat(const os_stat_t *st,
+		size_t *alignment);
 
 #endif /* PMEM2_UTILS_H */
