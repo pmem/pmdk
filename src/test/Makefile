@@ -223,6 +223,7 @@ PMEM_TESTS = \
 PMEM2_TESTS = \
 	pmem2_compat\
 	pmem2_config\
+	pmem2_config_get_alignment\
 	pmem2_config_get_file_size\
 	pmem2_granularity\
 	pmem2_include\
