@@ -36,6 +36,7 @@ from os.path import join, abspath, dirname
 import os
 import sys
 
+
 # Constant paths to repository elements
 ROOTDIR = abspath(join(dirname(__file__), '..'))
 
@@ -106,65 +107,29 @@ class Color:
 class Message:
     """Simple level based logger"""
 
-    def __init__(self, config):
-        self.config = config
+    def __init__(self, level):
+        self.level = level
 
     def print(self, msg):
-        if self.config.unittest_log_level >= 1:
+        if self.level >= 1:
             print(msg)
 
     def print_verbose(self, msg):
-        if self.config.unittest_log_level >= 2:
+        if self.level >= 2:
             print(msg)
-
-
-def filter_contexts(config_ctx, test_ctx):
-    """
-    Return contexts that should be used in execution based on
-    contexts provided by config and test case
-    """
-    if not test_ctx:
-        return [c for c in config_ctx if not c.explicit]
-    return [c for c in config_ctx if c in test_ctx]
-
-
-def run_tests_common(testcases, config):
-    """
-    Common implementation for running tests - used by RUNTESTS.py and
-    single test case interpreter
-    """
-    if config.test_sequence:
-        # filter test cases from sequence
-        testcases = [t for t in testcases if t.testnum in config.test_sequence]
-        # sort testcases so their sequence matches provided test sequence
-        testcases.sort(key=lambda tc: config.test_sequence.index(tc.testnum))
-
-    if not testcases:
-        sys.exit('No testcases to run found for selected configuration.')
-
-    ret = 0
-    for t in testcases:
-        try:
-            t = t(config)
-        except Skip as s:
-            print(s)
-        else:
-            if t.enabled and t._execute():  # if test failed
-                ret = 1
-                if not config.keep_going:
-                    return ret
-    return ret
 
 
 class Fail(Exception):
     """Thrown when test fails"""
 
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
+    def __init__(self, msg):
+        super().__init__(msg)
+        self.messages = []
+        self.messages.append(msg)
 
     def __str__(self):
-        return self.message
+        ret = '\n'.join(self.messages)
+        return ret
 
 
 def fail(msg, exit_code=None):
@@ -175,14 +140,33 @@ def fail(msg, exit_code=None):
 
 class Skip(Exception):
     """Thrown when test should be skipped"""
-
-    def __init__(self, message):
-        super().__init__(message)
-        self.message = message
+    def __init__(self, msg):
+        super().__init__(msg)
+        self.messages = []
+        self.messages.append(msg)
 
     def __str__(self):
-        return self.message
+        ret = '\n'.join(self.messages)
+        return ret
 
 
 def skip(msg):
     raise Skip(msg)
+
+
+def set_kwargs_attrs(cls, kwargs):
+    for k, v in kwargs.items():
+        setattr(cls, '{}'.format(k), v)
+
+
+def add_env_common(src, added):
+    """
+    A common implementation of adding an environment variable
+    to the 'src' environment variables dictionary - taking into account
+    that the variable may or may be not already defined.
+    """
+    for k, v in added.items():
+        if k in src:
+            src[k] = v + os.pathsep + src[k]
+        else:
+            src.update({k: v})

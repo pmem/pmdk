@@ -1,4 +1,3 @@
-#!../env.py
 #
 # Copyright 2019, Intel Corporation
 #
@@ -30,24 +29,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+"""Test type context classes"""
+
+import context as ctx
 
 
-import testframework as t
+class _TestType(metaclass=ctx.CtxType):
+    """Base class for a test duration"""
 
 
-class BASIC(t.Test):
-    test_type = t.Medium
-
-    def run(self, ctx):
-        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
-        ctx.exec('obj_basic_integration', filepath)
-
-
-@t.require_valgrind_disabled('memcheck')
-class TEST0(BASIC):
+class Short(_TestType):
     pass
 
 
-@t.require_valgrind_enabled('pmemcheck')
-class TEST1(BASIC):
+class Medium(_TestType):
     pass
+
+
+class Long(_TestType):
+    pass
+
+
+class Check(_TestType):
+    includes = [Short, Medium]

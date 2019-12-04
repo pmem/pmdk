@@ -36,19 +36,20 @@ It parses test classes from interpreted file, handles command line arguments
 and executes tests using provided configuration.
 """
 
-import builtins
 import importlib.util as importutil
 import os
 import sys
 
-from testframework import Configurator, run_tests_common
+from testframework import Configurator, get_testcases
+from RUNTESTS import TestRunner
 
 
 def run_testcases():
     """Parse user configuration, run test cases"""
-    config = Configurator().parse_config()
-    testcases = builtins.testcases
-    return run_tests_common(testcases, config)
+    config = Configurator().config
+    testcases = get_testcases()
+    runner = TestRunner(config, testcases)
+    return runner.run_tests()
 
 
 def main():

@@ -35,7 +35,7 @@
 import testframework as t
 
 
-class PMEM2_MAP(t.BaseTest):
+class PMEM2_MAP(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
