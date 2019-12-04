@@ -165,36 +165,30 @@ memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags,\
 MEMCPY_TEMPLATE(sse2, clflush)
 MEMCPY_TEMPLATE(sse2, clflushopt)
 MEMCPY_TEMPLATE(sse2, clwb)
-MEMCPY_TEMPLATE(sse2, empty)
 
 MEMSET_TEMPLATE(sse2, clflush)
 MEMSET_TEMPLATE(sse2, clflushopt)
 MEMSET_TEMPLATE(sse2, clwb)
-MEMSET_TEMPLATE(sse2, empty)
 #endif
 
 #if AVX_AVAILABLE
 MEMCPY_TEMPLATE(avx, clflush)
 MEMCPY_TEMPLATE(avx, clflushopt)
 MEMCPY_TEMPLATE(avx, clwb)
-MEMCPY_TEMPLATE(avx, empty)
 
 MEMSET_TEMPLATE(avx, clflush)
 MEMSET_TEMPLATE(avx, clflushopt)
 MEMSET_TEMPLATE(avx, clwb)
-MEMSET_TEMPLATE(avx, empty)
 #endif
 
 #if AVX512F_AVAILABLE
 MEMCPY_TEMPLATE(avx512f, clflush)
 MEMCPY_TEMPLATE(avx512f, clflushopt)
 MEMCPY_TEMPLATE(avx512f, clwb)
-MEMCPY_TEMPLATE(avx512f, empty)
 
 MEMSET_TEMPLATE(avx512f, clflush)
 MEMSET_TEMPLATE(avx512f, clflushopt)
 MEMSET_TEMPLATE(avx512f, clwb)
-MEMSET_TEMPLATE(avx512f, empty)
 #endif
 
 /*
@@ -252,8 +246,6 @@ use_sse2_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 		funcs->memmove_nodrain = memmove_nodrain_sse2_clflushopt;
 	else if (funcs->deep_flush == flush_clwb)
 		funcs->memmove_nodrain = memmove_nodrain_sse2_clwb;
-	else if (funcs->deep_flush == flush_empty)
-		funcs->memmove_nodrain = memmove_nodrain_sse2_empty;
 	else
 		ASSERT(0);
 
@@ -263,8 +255,6 @@ use_sse2_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 		funcs->memset_nodrain = memset_nodrain_sse2_clflushopt;
 	else if (funcs->deep_flush == flush_clwb)
 		funcs->memset_nodrain = memset_nodrain_sse2_clwb;
-	else if (funcs->deep_flush == flush_empty)
-		funcs->memset_nodrain = memset_nodrain_sse2_empty;
 	else
 		ASSERT(0);
 #else
@@ -297,8 +287,6 @@ use_avx_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 		funcs->memmove_nodrain = memmove_nodrain_avx_clflushopt;
 	else if (funcs->deep_flush == flush_clwb)
 		funcs->memmove_nodrain = memmove_nodrain_avx_clwb;
-	else if (funcs->deep_flush == flush_empty)
-		funcs->memmove_nodrain = memmove_nodrain_avx_empty;
 	else
 		ASSERT(0);
 
@@ -308,8 +296,6 @@ use_avx_memcpy_memset(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 		funcs->memset_nodrain = memset_nodrain_avx_clflushopt;
 	else if (funcs->deep_flush == flush_clwb)
 		funcs->memset_nodrain = memset_nodrain_avx_clwb;
-	else if (funcs->deep_flush == flush_empty)
-		funcs->memset_nodrain = memset_nodrain_avx_empty;
 	else
 		ASSERT(0);
 #else
@@ -342,8 +328,6 @@ use_avx512f_memcpy_memset(struct pmem2_arch_funcs *funcs,
 		funcs->memmove_nodrain = memmove_nodrain_avx512f_clflushopt;
 	else if (funcs->deep_flush == flush_clwb)
 		funcs->memmove_nodrain = memmove_nodrain_avx512f_clwb;
-	else if (funcs->deep_flush == flush_empty)
-		funcs->memmove_nodrain = memmove_nodrain_avx512f_empty;
 	else
 		ASSERT(0);
 
@@ -353,8 +337,6 @@ use_avx512f_memcpy_memset(struct pmem2_arch_funcs *funcs,
 		funcs->memset_nodrain = memset_nodrain_avx512f_clflushopt;
 	else if (funcs->deep_flush == flush_clwb)
 		funcs->memset_nodrain = memset_nodrain_avx512f_clwb;
-	else if (funcs->deep_flush == flush_empty)
-		funcs->memset_nodrain = memset_nodrain_avx512f_empty;
 	else
 		ASSERT(0);
 #else
