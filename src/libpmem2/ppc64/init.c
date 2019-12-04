@@ -42,13 +42,13 @@
  * initialization.
  */
 void
-pmem2_arch_init(struct pmem2_arch_funcs *funcs)
+pmem2_arch_init(struct pmem2_arch_info *info)
 {
 	LOG(3, "libpmem*: PPC64 support");
 	LOG(3, "PMDK PPC64 support currently is for testing only");
 	LOG(3, "Please don't use this library in production environment");
 
 	/* Init platform and to initilize the pmem funcs */
-	if (platform_init(funcs))
+	if (platform_init(info))
 		FATAL("Unable to init platform");
 }

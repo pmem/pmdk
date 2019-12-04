@@ -44,24 +44,24 @@
 extern "C" {
 #endif
 
-struct pmem2_arch_funcs;
+struct pmem2_arch_info;
 
 typedef void (*fence_func)(void);
 typedef void (*flush_func)(const void *, size_t);
 typedef void *(*memmove_nodrain_func)(void *pmemdest, const void *src,
-		size_t len, unsigned flags, struct pmem2_arch_funcs *funcs);
+		size_t len, unsigned flags, flush_func flush);
 typedef void *(*memset_nodrain_func)(void *pmemdest, int c, size_t len,
-		unsigned flags, struct pmem2_arch_funcs *funcs);
+		unsigned flags, flush_func flush);
 
-struct pmem2_arch_funcs {
-	fence_func fence;
-	flush_func flush;
+struct pmem2_arch_info {
 	memmove_nodrain_func memmove_nodrain;
 	memset_nodrain_func memset_nodrain;
 	flush_func deep_flush;
+	fence_func fence;
+	int deep_flush_has_builtin_fence;
 };
 
-void pmem2_arch_init(struct pmem2_arch_funcs *funcs);
+void pmem2_arch_init(struct pmem2_arch_info *info);
 
 /*
  * flush_empty_nolog -- (internal) do not flush the CPU cache
@@ -72,21 +72,10 @@ flush_empty_nolog(const void *addr, size_t len)
 	/* NOP */
 }
 
-/*
- * pmem2_flush_flags -- internal wrapper around pmem_flush
- */
-static inline void
-pmem2_flush_flags(const void *addr, size_t len, unsigned flags,
-		struct pmem2_arch_funcs *funcs)
-{
-	if (!(flags & PMEM2_F_MEM_NOFLUSH))
-		funcs->flush(addr, len);
-}
-
 void *memmove_nodrain_generic(void *pmemdest, const void *src, size_t len,
-		unsigned flags, struct pmem2_arch_funcs *funcs);
+		unsigned flags, flush_func flush);
 void *memset_nodrain_generic(void *pmemdest, int c, size_t len, unsigned flags,
-		struct pmem2_arch_funcs *funcs);
+		flush_func flush);
 
 #ifdef __cplusplus
 }

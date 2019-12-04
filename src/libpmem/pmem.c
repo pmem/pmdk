@@ -182,7 +182,16 @@
 #include "os_deep.h"
 #include "auto_flush.h"
 
-static struct pmem2_arch_funcs Funcs;
+struct pmem_funcs {
+	memmove_nodrain_func memmove_nodrain;
+	memset_nodrain_func memset_nodrain;
+
+	flush_func deep_flush;
+	flush_func flush;
+	fence_func fence;
+};
+
+static struct pmem_funcs Funcs;
 static is_pmem_func Is_pmem = NULL;
 
 /*
@@ -623,7 +632,7 @@ pmem_memmove(void *pmemdest, const void *src, size_t len, unsigned flags)
 #endif
 	PMEM_API_START();
 	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN,
-			&Funcs);
+			Funcs.flush);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
@@ -647,7 +656,7 @@ pmem_memcpy(void *pmemdest, const void *src, size_t len, unsigned flags)
 #endif
 	PMEM_API_START();
 	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN,
-			&Funcs);
+			Funcs.flush);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
@@ -672,7 +681,7 @@ pmem_memset(void *pmemdest, int c, size_t len, unsigned flags)
 
 	PMEM_API_START();
 	Funcs.memset_nodrain(pmemdest, c, len, flags & ~PMEM_F_MEM_NODRAIN,
-			&Funcs);
+			Funcs.flush);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
@@ -691,7 +700,7 @@ pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0, &Funcs);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush);
 
 	PMEM_API_END();
 	return pmemdest;
@@ -707,7 +716,7 @@ pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0, &Funcs);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush);
 
 	PMEM_API_END();
 	return pmemdest;
@@ -723,7 +732,7 @@ pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0, &Funcs);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush);
 	pmem_drain();
 
 	PMEM_API_END();
@@ -740,7 +749,7 @@ pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0, &Funcs);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, Funcs.flush);
 	pmem_drain();
 
 	PMEM_API_END();
@@ -757,7 +766,7 @@ pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memset_nodrain(pmemdest, c, len, 0, &Funcs);
+	Funcs.memset_nodrain(pmemdest, c, len, 0, Funcs.flush);
 
 	PMEM_API_END();
 	return pmemdest;
@@ -773,11 +782,69 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memset_nodrain(pmemdest, c, len, 0, &Funcs);
+	Funcs.memset_nodrain(pmemdest, c, len, 0, Funcs.flush);
 	pmem_drain();
 
 	PMEM_API_END();
 	return pmemdest;
+}
+
+/*
+ * memmove_nodrain_libc -- (internal) memmove to pmem using libc
+ */
+static void *
+memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
+		unsigned flags, flush_func flush)
+{
+	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", pmemdest, src, len,
+			flags);
+
+	memmove(pmemdest, src, len);
+
+	if (!(flags & PMEM_F_MEM_NOFLUSH))
+		flush(pmemdest, len);
+
+	return pmemdest;
+}
+
+/*
+ * memset_nodrain_libc -- (internal) memset to pmem using libc
+ */
+static void *
+memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
+		flush_func flush)
+{
+	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", pmemdest, c, len,
+			flags);
+
+	memset(pmemdest, c, len);
+
+	if (!(flags & PMEM_F_MEM_NOFLUSH))
+		flush(pmemdest, len);
+
+	return pmemdest;
+}
+
+/*
+ * flush_empty -- (internal) do not flush the CPU cache
+ */
+static void
+flush_empty(const void *addr, size_t len)
+{
+	LOG(15, "addr %p len %zu", addr, len);
+
+	flush_empty_nolog(addr, len);
+}
+
+/*
+ * fence_empty -- (internal) issue the fence instruction
+ */
+static void
+fence_empty(void)
+{
+	LOG(15, NULL);
+
+	VALGRIND_DO_FENCE;
 }
 
 /*
@@ -788,8 +855,76 @@ pmem_init(void)
 {
 	LOG(3, NULL);
 
-	memset(&Funcs, 0, sizeof(Funcs));
-	pmem2_arch_init(&Funcs);
+	struct pmem2_arch_info info;
+	info.memmove_nodrain = NULL;
+	info.memset_nodrain = NULL;
+	info.deep_flush = NULL;
+	info.fence = NULL;
+	info.deep_flush_has_builtin_fence = 0;
+
+	pmem2_arch_init(&info);
+
+	char *ptr = os_getenv("PMEM_NO_GENERIC_MEMCPY");
+	long long no_generic = 0;
+	if (ptr)
+		no_generic = atoll(ptr);
+
+	if (info.memmove_nodrain == NULL) {
+		if (no_generic) {
+			Funcs.memmove_nodrain = memmove_nodrain_libc;
+			LOG(3, "using libc memmove");
+		} else {
+			Funcs.memmove_nodrain = memmove_nodrain_generic;
+			LOG(3, "using generic memmove");
+		}
+	} else {
+		Funcs.memmove_nodrain = info.memmove_nodrain;
+	}
+
+	if (info.memset_nodrain == NULL) {
+		if (no_generic) {
+			Funcs.memset_nodrain = memset_nodrain_libc;
+			LOG(3, "using libc memset");
+		} else {
+			Funcs.memset_nodrain = memset_nodrain_generic;
+			LOG(3, "using generic memset");
+		}
+	} else {
+		Funcs.memset_nodrain = info.memset_nodrain;
+	}
+
+	int flush;
+	char *e = os_getenv("PMEM_NO_FLUSH");
+	if (e && (strcmp(e, "1") == 0)) {
+		flush = 0;
+		LOG(3, "Forced not flushing CPU_cache");
+	} else if (e && (strcmp(e, "0") == 0)) {
+		flush = 1;
+		LOG(3, "Forced flushing CPU_cache");
+	} else if (pmem2_auto_flush() == 1) {
+		flush = 0;
+		LOG(3, "Not flushing CPU_cache, eADR detected");
+	} else {
+		flush = 1;
+		LOG(3, "Flushing CPU cache");
+	}
+
+	Funcs.deep_flush = info.deep_flush;
+	if (flush) {
+		Funcs.flush = info.deep_flush;
+		if (info.deep_flush_has_builtin_fence)
+			Funcs.fence = fence_empty;
+		else
+			Funcs.fence = info.fence;
+	} else {
+		Funcs.flush = flush_empty;
+		Funcs.fence = info.fence;
+	}
+
+	if (Funcs.flush == flush_empty)
+		LOG(3, "not flushing CPU cache");
+	else if (Funcs.flush != Funcs.deep_flush)
+		FATAL("invalid flush function address");
 
 	pmem_os_init(&Is_pmem);
 }
