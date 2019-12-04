@@ -151,3 +151,57 @@ pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size)
 	LOG(4, "file length %zu", *size);
 	return 0;
 }
+
+/*
+ * pmem2_config_get_alignment -- get alignment from the file handle stored in
+ * the provided config
+ */
+int
+pmem2_config_get_alignment(const struct pmem2_config *cfg, size_t *alignment)
+{
+	LOG(3, "fd %d", cfg->fd);
+
+	if (cfg->fd == INVALID_FD) {
+		ERR(
+			"cannot determine the alignment if a file descriptor is not set");
+		return PMEM2_E_FILE_HANDLE_NOT_SET;
+	}
+
+	os_stat_t st;
+
+	if (os_fstat(cfg->fd, &st) < 0) {
+		ERR("!fstat");
+		if (errno == EBADF)
+			return PMEM2_E_INVALID_FILE_HANDLE;
+		return PMEM2_E_ERRNO;
+	}
+
+	enum pmem2_file_type type;
+	int ret = pmem2_get_type_from_stat(&st, &type);
+	if (ret)
+		return ret;
+
+	switch (type) {
+			case PMEM2_FTYPE_DIR:
+				ERR(
+					"asking for alignment of a directory doesn't make any sense");
+				return PMEM2_E_INVALID_FILE_TYPE;
+			case PMEM2_FTYPE_DEVDAX: {
+				int ret = pmem2_device_dax_alignment_from_stat(
+						&st, alignment);
+				if (ret)
+					return ret;
+				break;
+			}
+			case PMEM2_FTYPE_REG:
+				*alignment = Pagesize;
+				break;
+			default:
+				FATAL(
+					"BUG: unhandled file type in pmem2_config_get_alignment");
+		}
+
+	LOG(4, "alignment %zu", *alignment);
+
+	return 0;
+}

@@ -72,3 +72,17 @@ pmem2_device_dax_size_from_stat(const os_stat_t *st, size_t *size)
 	ASSERTinfo(0, err);
 	return PMEM2_E_NOSUPP;
 }
+
+/*
+ * pmem2_device_dax_alignment_from_stat -- checks the alignment of a given
+ * dax device from given stat structure
+ */
+int
+pmem2_device_dax_alignment_from_stat(const os_stat_t *st, size_t *alignment)
+{
+	const char *err =
+		"BUG: pmem2_device_dax_alignment_from_stat should never be called on this OS";
+	ERR("%s", err);
+	ASSERTinfo(0, err);
+	return PMEM2_E_NOSUPP;
+}

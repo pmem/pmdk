@@ -172,3 +172,123 @@ pmem2_device_dax_size_from_stat(const os_stat_t *st, size_t *size)
 	LOG(4, "device size %zu", *size);
 	return 0;
 }
+
+/*
+ * pmem2_device_dax_alignment_from_stat -- checks the alignment of a given
+ * dax device from given stat structure
+ */
+int
+pmem2_device_dax_alignment_from_stat(const os_stat_t *st, size_t *alignment)
+{
+	char spath[PATH_MAX];
+	size_t size = 0;
+	char *daxpath;
+	int olderrno;
+	int ret = 0;
+
+	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u",
+		os_major(st->st_rdev), os_minor(st->st_rdev));
+
+	daxpath = realpath(spath, NULL);
+	if (!daxpath) {
+		ERR("!realpath \"%s\"", spath);
+		return PMEM2_E_ERRNO;
+	}
+
+	if (util_safe_strcpy(spath, daxpath, sizeof(spath))) {
+		ERR("util_safe_strcpy failed");
+		free(daxpath);
+		return -EINVAL;
+	}
+
+	free(daxpath);
+
+	while (spath[0] != '\0') {
+		char sizebuf[MAX_SIZE_LENGTH + 1];
+		char *pos = strrchr(spath, '/');
+		char *endptr;
+		size_t len;
+		ssize_t rc;
+		int fd;
+
+		if (strcmp(spath, "/sys/devices") == 0)
+			break;
+
+		if (!pos)
+			break;
+
+		*pos = '\0';
+		len = strlen(spath);
+
+		snprintf(&spath[len], sizeof(spath) - len, "/dax_region/align");
+		fd = os_open(spath, O_RDONLY);
+		*pos = '\0';
+
+		if (fd < 0)
+			continue;
+
+		LOG(4, "device align path \"%s\"", spath);
+
+		rc = read(fd, sizebuf, MAX_SIZE_LENGTH);
+		if (rc < 0) {
+			ERR("!read");
+			ret = PMEM2_E_ERRNO;
+			os_close(fd);
+			return ret;
+		}
+
+		os_close(fd);
+
+		sizebuf[rc] = 0; /* null termination */
+
+		olderrno = errno;
+		errno = 0;
+
+		/* 'align' is in decimal format */
+		size = strtoull(sizebuf, &endptr, 10);
+		if (endptr == sizebuf || *endptr != '\n') {
+			ERR("invalid device alignment format %s", sizebuf);
+			errno = olderrno;
+			return PMEM2_E_INVALID_ALIGNMENT_FORMAT;
+		}
+
+		if (size == ULLONG_MAX && errno == ERANGE) {
+			ret = PMEM2_E_ERRNO;
+			ERR("invalid device alignment %s", sizebuf);
+			errno = olderrno;
+			return ret;
+		}
+
+		/*
+		 * If the alignment value is not a power of two, try with
+		 * hex format, as this is how it was printed in older kernels.
+		 * Just in case someone is using kernel <4.9.
+		 */
+		if ((size & (size - 1)) != 0) {
+			size = strtoull(sizebuf, &endptr, 16);
+			if (endptr == sizebuf || *endptr != '\n') {
+				ERR("invalid device alignment format %s",
+						sizebuf);
+				errno = olderrno;
+				return PMEM2_E_INVALID_ALIGNMENT_FORMAT;
+			}
+
+			if (size == ULLONG_MAX && errno == ERANGE) {
+				ret = PMEM2_E_ERRNO;
+				ERR("invalid device alignment %s", sizebuf);
+				errno = olderrno;
+				return ret;
+			}
+		}
+
+		errno = olderrno;
+		break;
+	}
+
+	if (!ret) {
+		*alignment = size;
+		LOG(4, "device alignment %zu", *alignment);
+	}
+
+	return ret;
+}
