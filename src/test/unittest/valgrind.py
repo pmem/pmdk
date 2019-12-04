@@ -116,7 +116,7 @@ class Valgrind:
         log_file_name = '{}{}.log'.format(self.tool.name.lower(), testnum)
         self.log_file = path.join(cwd, log_file_name)
 
-        if tool is None:
+        if self.tool == NONE:
             self.valgrind_exe = None
         else:
             self.valgrind_exe = self._get_valgrind_exe()
@@ -200,7 +200,6 @@ class Valgrind:
     def setup(self, memcheck_check_leaks=True, **kwargs):
         if self.tool == MEMCHECK and memcheck_check_leaks:
             self.add_opt('--leak-check=full')
-        self.verify()
 
     def check(self, **kwargs):
         self.validate_log()
@@ -216,7 +215,7 @@ class Valgrind:
             out = sp.check_output('which valgrind', shell=True,
                                   universal_newlines=True)
         except sp.CalledProcessError:
-            return None
+            raise futils.Skip('Valgrind not found')
 
         valgrind_bin = path.join(path.dirname(out), 'valgrind.bin')
         if path.isfile(valgrind_bin):
