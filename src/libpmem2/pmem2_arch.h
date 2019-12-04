@@ -46,7 +46,7 @@ extern "C" {
 
 struct pmem2_arch_funcs;
 
-typedef void (*predrain_fence_func)(void);
+typedef void (*fence_func)(void);
 typedef void (*flush_func)(const void *, size_t);
 typedef void *(*memmove_nodrain_func)(void *pmemdest, const void *src,
 		size_t len, unsigned flags, struct pmem2_arch_funcs *funcs);
@@ -54,7 +54,7 @@ typedef void *(*memset_nodrain_func)(void *pmemdest, int c, size_t len,
 		unsigned flags, struct pmem2_arch_funcs *funcs);
 
 struct pmem2_arch_funcs {
-	predrain_fence_func predrain_fence;
+	fence_func fence;
 	flush_func flush;
 	memmove_nodrain_func memmove_nodrain;
 	memset_nodrain_func memset_nodrain;

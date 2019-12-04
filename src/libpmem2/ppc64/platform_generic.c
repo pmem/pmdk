@@ -40,7 +40,7 @@
 #include "os.h"
 
 static void
-ppc_predrain_fence(void)
+ppc_fence(void)
 {
 	LOG(15, NULL);
 
@@ -85,7 +85,7 @@ platform_init(struct pmem2_arch_funcs *funcs)
 {
 	LOG(3, "Initializing Platform");
 
-	funcs->predrain_fence = ppc_predrain_fence;
+	funcs->fence = ppc_fence;
 	funcs->flush = ppc_flush;
 	funcs->deep_flush = ppc_flush;
 

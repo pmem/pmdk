@@ -142,9 +142,9 @@
  * initialization time.  This is achieved using function pointers that are
  * setup by pmem_init() when the library loads.
  *
- *	Func_predrain_fence is used by pmem_drain() to call one of:
- *		predrain_fence_empty()
- *		predrain_memory_barrier()
+ *	Func_fence is used by pmem_drain() to call one of:
+ *		fence_empty()
+ *		memory_barrier()
  *
  *	Func_flush is used by pmem_flush() to call one of:
  *		flush_dcache()
@@ -206,7 +206,7 @@ pmem_drain(void)
 {
 	LOG(15, NULL);
 
-	Funcs.predrain_fence();
+	Funcs.fence();
 }
 
 /*

@@ -47,10 +47,10 @@
 size_t Movnt_threshold = MOVNT_THRESHOLD;
 
 /*
- * predrain_fence_empty -- (internal) issue the pre-drain fence instruction
+ * fence_empty -- (internal) issue the fence instruction
  */
 static void
-predrain_fence_empty(void)
+fence_empty(void)
 {
 	LOG(15, NULL);
 
@@ -59,10 +59,10 @@ predrain_fence_empty(void)
 }
 
 /*
- * predrain_memory_barrier -- (internal) issue the pre-drain fence instruction
+ * memory_barrier -- (internal) issue the fence instruction
  */
 static void
-predrain_memory_barrier(void)
+memory_barrier(void)
 {
 	LOG(15, NULL);
 	_mm_sfence();	/* ensure CLWB or CLFLUSHOPT completes */
@@ -374,7 +374,7 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 		LOG(3, "clflush supported");
 
 		funcs->deep_flush = flush_clflush;
-		funcs->predrain_fence = predrain_fence_empty;
+		funcs->fence = fence_empty;
 	}
 
 	if (is_cpu_clflushopt_present()) {
@@ -385,7 +385,7 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 			LOG(3, "PMEM_NO_CLFLUSHOPT forced no clflushopt");
 		} else {
 			funcs->deep_flush = flush_clflushopt;
-			funcs->predrain_fence = predrain_memory_barrier;
+			funcs->fence = memory_barrier;
 		}
 	}
 
@@ -397,7 +397,7 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_funcs *funcs, enum memcpy_impl *impl)
 			LOG(3, "PMEM_NO_CLWB forced no clwb");
 		} else {
 			funcs->deep_flush = flush_clwb;
-			funcs->predrain_fence = predrain_memory_barrier;
+			funcs->fence = memory_barrier;
 		}
 	}
 
@@ -478,7 +478,7 @@ pmem2_arch_init(struct pmem2_arch_funcs *funcs)
 		funcs->flush = funcs->deep_flush;
 	} else {
 		funcs->flush = flush_empty;
-		funcs->predrain_fence = predrain_memory_barrier;
+		funcs->fence = memory_barrier;
 	}
 
 	if (funcs->deep_flush == flush_clwb)
