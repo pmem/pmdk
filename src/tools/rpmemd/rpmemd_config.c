@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -634,17 +634,24 @@ rpmemd_config_read(struct rpmemd_config *config, int argc, char *argv[])
 	parse_cl_args(argc, argv, config, &cl_config_file, &cl_options);
 
 	if (cl_config_file) {
-		if (parse_config_file(cl_config_file, config, cl_options, 1))
+		if (parse_config_file(cl_config_file, config, cl_options, 1)) {
+			rpmemd_config_free(config);
 			return 1;
+		}
 	} else {
 		if (parse_config_file(RPMEMD_GLOBAL_CONFIG_FILE, config,
-				cl_options, 0))
+				cl_options, 0)) {
+			rpmemd_config_free(config);
 			return 1;
+		}
 
 		concat_dir_and_file_name(user_config_file, PATH_MAX, home_dir,
 			RPMEMD_USER_CONFIG_FILE);
-		if (parse_config_file(user_config_file, config, cl_options, 0))
+		if (parse_config_file(user_config_file, config, cl_options,
+				0)) {
+			rpmemd_config_free(config);
 			return 1;
+		}
 	}
 
 	config->poolset_dir = str_replace_home(config->poolset_dir, home_dir);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -133,7 +133,8 @@ main(int argc, char *argv[])
 	}
 
 	rpmemd_log_close();
-	rpmemd_config_free(&config);
+	if (!ret)
+		rpmemd_config_free(&config);
 
 	DONE(NULL);
 }

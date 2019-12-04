@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -352,11 +352,14 @@ blk_init_worker(struct benchmark *bench, struct benchmark_args *args,
 			break;
 		default:
 			perror("unknown mode");
-			goto err_blocks;
+			goto err_mode;
 	}
 
 	worker->priv = bworker;
 	return 0;
+
+err_mode:
+	free(bworker->blocks);
 err_blocks:
 	free(bworker->buff);
 err_buff:
