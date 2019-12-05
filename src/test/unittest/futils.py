@@ -57,9 +57,9 @@ else:
 def get_tool_path(ctx, name):
     if sys.platform == 'win32':
         if str(ctx.build) == 'debug':
-            return abspath(join(WIN_DEBUG_BUILDDIR, 'libs', name + '.exe'))
+            return abspath(join(WIN_DEBUG_BUILDDIR, 'libs', name))
         else:
-            return abspath(join(WIN_RELEASE_BUILDDIR, 'libs', name + '.exe'))
+            return abspath(join(WIN_RELEASE_BUILDDIR, 'libs', name))
     else:
         return abspath(join(ROOTDIR, '..', 'tools', name, name))
 
@@ -67,9 +67,9 @@ def get_tool_path(ctx, name):
 def get_test_tool_path(ctx, name):
     if sys.platform == 'win32':
         if str(ctx.build) == 'debug':
-            return abspath(join(WIN_DEBUG_BUILDDIR, 'tests', name + '.exe'))
+            return abspath(join(WIN_DEBUG_BUILDDIR, 'tests', name))
         else:
-            return abspath(join(WIN_RELEASE_BUILDDIR, 'tests', name + '.exe'))
+            return abspath(join(WIN_RELEASE_BUILDDIR, 'tests', name))
     else:
         return abspath(join(ROOTDIR, 'tools', name, name))
 

@@ -64,6 +64,8 @@ class Tools:
 
     def _run_test_tool(self, name, *args):
         exe = futils.get_test_tool_path(self.build, name)
+        if sys.platform == 'win32':
+            exe += '.exe'
 
         return sp.run([exe, *args], env=self.env, stdout=sp.PIPE,
                       stderr=sp.STDOUT, universal_newlines=True)
