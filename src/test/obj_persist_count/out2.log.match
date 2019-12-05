@@ -1,0 +1,21 @@
+obj_persist_count$(nW)TEST2: START: obj_persist_count
+ $(nW)obj_persist_count$(nW) $(nW)testfile
+task           cl(all) drain(all) pmem_persist pmem_msync pmem_flush pmem_drain pmem_memcpy_cls pmem_memcpy_drain pmem_memset_cls pmem_memset_drain potential_cache_misses 
+pool_create    62475   14         0            14         0          0          0               0                 0               0                 62475                  
+root_alloc     7178    7          0            7          0          0          0               0                 0               0                 7178                   
+atomic_alloc   2050    2          0            2          0          0          0               0                 0               0                 2050                   
+atomic_free    1024    1          0            1          0          0          0               0                 0               0                 1024                   
+tx_begin_end   0       0          0            0          0          0          0               0                 0               0                 0                      
+tx_alloc       3074    3          0            3          0          0          0               0                 0               0                 3074                   
+tx_alloc_next  3074    3          0            3          0          0          0               0                 0               0                 3074                   
+tx_free        1024    1          0            1          0          0          0               0                 0               0                 1024                   
+tx_free_next   1024    1          0            1          0          0          0               0                 0               0                 1024                   
+tx_add         3076    3          0            3          0          0          0               0                 0               0                 3076                   
+tx_add_next    3076    3          0            3          0          0          0               0                 0               0                 3076                   
+tx_add_large   21680   21         0            21         0          0          0               0                 0               0                 21680                  
+tx_add_lnext   8358    8          0            8          0          0          0               0                 0               0                 8358                   
+pmalloc        5128    5          0            5          0          0          0               0                 0               0                 5128                   
+pfree          4102    4          0            4          0          0          0               0                 0               0                 4102                   
+pmalloc_stack  2050    2          0            2          0          0          0               0                 0               0                 2050                   
+pfree_stack    1024    1          0            1          0          0          0               0                 0               0                 1024                   
+obj_persist_count$(nW)TEST2: DONE
