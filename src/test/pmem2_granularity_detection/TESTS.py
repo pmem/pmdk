@@ -1,3 +1,4 @@
+#!../env.py
 #
 # Copyright 2019, Intel Corporation
 #
@@ -29,46 +30,49 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-"""External tools integration"""
-
-import sys
-import subprocess as sp
-
-import futils
-
-try:
-    import envconfig
-    envconfig = envconfig.config
-except ImportError:
-    # if file doesn't exist create dummy object
-    envconfig = {'GLOBAL_LIB_PATH': ''}
 
 
-class Tools:
-    PMEMDETECT_FALSE = 0
-    PMEMDETECT_TRUE = 1
-    PMEMDETECT_ERROR = 2
+import testframework as t
+import futils as f
 
-    def __init__(self, env, build):
-        self.env = env
-        self.build = build
-        global_lib_path = envconfig['GLOBAL_LIB_PATH']
 
-        if sys.platform == 'win32':
-            futils.add_env_common(self.env, {'PATH': build.libdir})
-            futils.add_env_common(self.env, {'PATH': global_lib_path})
-        else:
-            futils.add_env_common(self.env, {'LD_LIBRARY_PATH': build.libdir})
-            futils.add_env_common(self.env,
-                                  {'LD_LIBRARY_PATH': global_lib_path})
+class PMEM2_CONFIG(t.BaseTest):
+    test_type = t.Short
 
-    def _run_test_tool(self, name, *args):
-        exe = futils.get_test_tool_path(self.build, name)
-        if sys.platform == 'win32':
-            exe += '.exe'
 
-        return sp.run([exe, *args], env=self.env, stdout=sp.PIPE,
-                      stderr=sp.STDOUT, universal_newlines=True)
+class TEST0(PMEM2_CONFIG):
+    """test granularity detection with PMEM2_FORCE_GRANULARITY set to page"""
+    def run(self, ctx):
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = "page"
+        ctx.exec(f.get_test_tool_path(ctx, "gran_detecto"), '-p', ctx.testdir)
 
-    def pmemdetect(self, *args):
-        return self._run_test_tool('pmemdetect', *args)
+
+class TEST1(PMEM2_CONFIG):
+    """test granularity detection with PMEM2_FORCE_GRANULARITY
+    set to cache_line"""
+    def run(self, ctx):
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = "cache_line"
+        ctx.exec(f.get_test_tool_path(ctx, "gran_detecto"), '-c', ctx.testdir)
+
+
+class TEST2(PMEM2_CONFIG):
+    """test granularity detection with PMEM2_FORCE_GRANULARITY set to byte"""
+    def run(self, ctx):
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = "byte"
+        ctx.exec(f.get_test_tool_path(ctx, "gran_detecto"), '-b', ctx.testdir)
+
+
+class TEST3(PMEM2_CONFIG):
+    """test granularity detection with PMEM2_FORCE_GRANULARITY
+    set to CaCHe_Line"""
+    def run(self, ctx):
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = "CaCHe_Line"
+        ctx.exec(f.get_test_tool_path(ctx, "gran_detecto"), '-c', ctx.testdir)
+
+
+class TEST4(PMEM2_CONFIG):
+    """test granularity detection with PMEM2_FORCE_GRANULARITY
+    set to CACHELINE"""
+    def run(self, ctx):
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = "CACHELINE"
+        ctx.exec(f.get_test_tool_path(ctx, "gran_detecto"), '-c', ctx.testdir)

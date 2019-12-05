@@ -29,46 +29,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-"""External tools integration"""
 
-import sys
-import subprocess as sp
+#
+# src/test/pmem2_granularity_detection/Makefile -- granularity detection test
+#
 
-import futils
-
-try:
-    import envconfig
-    envconfig = envconfig.config
-except ImportError:
-    # if file doesn't exist create dummy object
-    envconfig = {'GLOBAL_LIB_PATH': ''}
-
-
-class Tools:
-    PMEMDETECT_FALSE = 0
-    PMEMDETECT_TRUE = 1
-    PMEMDETECT_ERROR = 2
-
-    def __init__(self, env, build):
-        self.env = env
-        self.build = build
-        global_lib_path = envconfig['GLOBAL_LIB_PATH']
-
-        if sys.platform == 'win32':
-            futils.add_env_common(self.env, {'PATH': build.libdir})
-            futils.add_env_common(self.env, {'PATH': global_lib_path})
-        else:
-            futils.add_env_common(self.env, {'LD_LIBRARY_PATH': build.libdir})
-            futils.add_env_common(self.env,
-                                  {'LD_LIBRARY_PATH': global_lib_path})
-
-    def _run_test_tool(self, name, *args):
-        exe = futils.get_test_tool_path(self.build, name)
-        if sys.platform == 'win32':
-            exe += '.exe'
-
-        return sp.run([exe, *args], env=self.env, stdout=sp.PIPE,
-                      stderr=sp.STDOUT, universal_newlines=True)
-
-    def pmemdetect(self, *args):
-        return self._run_test_tool('pmemdetect', *args)
+include ../Makefile.inc
