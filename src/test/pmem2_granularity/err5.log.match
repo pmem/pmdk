@@ -1,1 +1,1 @@
-$(*)requested granularity not available because specified volume is not a direct access (DAX) volume
+$(*)the operating system doesn't provide a method of detecting whether the platform supports eADR
