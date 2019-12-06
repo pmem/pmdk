@@ -35,8 +35,15 @@
 import testframework as t
 
 
+class Granularity(str):
+    BYTE = '0'
+    CACHE_LINE = '1'
+    PAGE = '2'
+
+
 class PMEM2_INTEGRATION(t.Test):
     test_type = t.Medium
+    available_granularity = None
 
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
@@ -92,3 +99,42 @@ class TEST5(PMEM2_INTEGRATION):
     def run(self, ctx):
         filepath = ctx.create_holey_file(1 * t.MiB, 'testfile1')
         ctx.exec('pmem2_integration', self.test_case, filepath)
+
+
+@t.require_page_granularity()
+class TEST6(PMEM2_INTEGRATION):
+    """test granularity with available page granularity and multiple expected
+    granularities"""
+    test_case = "test_granularity_use_misc_value"
+    available_granularity = Granularity.PAGE
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
+        ctx.exec('pmem2_integration', self.test_case, filepath,
+                 self.available_granularity)
+
+
+@t.require_cacheline_granularity()
+class TEST7(PMEM2_INTEGRATION):
+    """test granularity with available cache line granularity and multiple
+    expected granularities"""
+    test_case = "test_granularity_use_misc_value"
+    available_granularity = Granularity.CACHE_LINE
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
+        ctx.exec('pmem2_integration', self.test_case, filepath,
+                 self.available_granularity)
+
+
+@t.require_byte_granularity()
+class TEST8(PMEM2_INTEGRATION):
+    """test granularity with available byte granularity and multiple expected
+    granularities"""
+    test_case = "test_granularity_use_misc_value"
+    available_granularity = Granularity.BYTE
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
+        ctx.exec('pmem2_integration', self.test_case, filepath,
+                 self.available_granularity)
