@@ -219,7 +219,7 @@ cat << EOF >> $CONTROL_FILE
 
 Package: librpmem
 Architecture: any
-Depends: libfabric (>= $LIBFABRIC_MIN_VERSION), \${shlibs:Depends}, \${misc:Depends}
+Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: Persistent Memory remote access support library
  librpmem provides low-level support for remote access to persistent memory
  (pmem) utilizing RDMA-capable RNICs. The library can be used to replicate
@@ -248,7 +248,7 @@ Package: rpmemd
 Section: misc
 Architecture: any
 Priority: optional
-Depends: libfabric (>= $LIBFABRIC_MIN_VERSION), \${shlibs:Depends}, \${misc:Depends}
+Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: rpmem daemon
  Daemon for Remote Persistent Memory support
 EOF
