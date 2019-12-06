@@ -173,6 +173,7 @@
 
 #include "libpmem.h"
 #include "pmem.h"
+#include "pmem2_arch.h"
 #include "out.h"
 #include "os.h"
 #include "mmap.h"
@@ -181,7 +182,8 @@
 #include "os_deep.h"
 #include "auto_flush.h"
 
-static struct pmem_funcs Funcs;
+static struct pmem2_arch_funcs Funcs;
+static is_pmem_func Is_pmem = NULL;
 
 /*
  * pmem_has_hw_drain -- return whether or not HW drain was found
@@ -362,17 +364,17 @@ pmem_is_pmem_init(void)
 			int val = atoi(ptr);
 
 			if (val == 0)
-				Funcs.is_pmem = is_pmem_never;
+				Is_pmem = is_pmem_never;
 			else if (val == 1)
-				Funcs.is_pmem = is_pmem_always;
+				Is_pmem = is_pmem_always;
 
-			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Funcs.is_pmem);
+			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&Is_pmem);
 
 			LOG(4, "PMEM_IS_PMEM_FORCE=%d", val);
 		}
 
-		if (Funcs.is_pmem == NULL)
-			Funcs.is_pmem = is_pmem_never;
+		if (Funcs.deep_flush == NULL)
+			Is_pmem = is_pmem_never;
 
 		if (!util_bool_compare_and_swap32(&init, 1, 2))
 			FATAL("util_bool_compare_and_swap32");
@@ -395,8 +397,8 @@ pmem_is_pmem(const void *addr, size_t len)
 		util_fetch_and_add32(&once, 1);
 	}
 
-	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Funcs.is_pmem);
-	return Funcs.is_pmem(addr, len);
+	VALGRIND_ANNOTATE_HAPPENS_AFTER(&Is_pmem);
+	return Is_pmem(addr, len);
 }
 
 #define PMEM_FILE_ALL_FLAGS\
@@ -620,7 +622,8 @@ pmem_memmove(void *pmemdest, const void *src, size_t len, unsigned flags)
 		ERR("invalid flags 0x%x", flags);
 #endif
 	PMEM_API_START();
-	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN);
+	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN,
+			&Funcs);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
@@ -643,7 +646,8 @@ pmem_memcpy(void *pmemdest, const void *src, size_t len, unsigned flags)
 		ERR("invalid flags 0x%x", flags);
 #endif
 	PMEM_API_START();
-	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN);
+	Funcs.memmove_nodrain(pmemdest, src, len, flags & ~PMEM_F_MEM_NODRAIN,
+			&Funcs);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
@@ -667,7 +671,8 @@ pmem_memset(void *pmemdest, int c, size_t len, unsigned flags)
 #endif
 
 	PMEM_API_START();
-	Funcs.memset_nodrain(pmemdest, c, len, flags & ~PMEM_F_MEM_NODRAIN);
+	Funcs.memset_nodrain(pmemdest, c, len, flags & ~PMEM_F_MEM_NODRAIN,
+			&Funcs);
 
 	if ((flags & (PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH)) == 0)
 		pmem_drain();
@@ -686,7 +691,7 @@ pmem_memmove_nodrain(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, &Funcs);
 
 	PMEM_API_END();
 	return pmemdest;
@@ -702,7 +707,7 @@ pmem_memcpy_nodrain(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, &Funcs);
 
 	PMEM_API_END();
 	return pmemdest;
@@ -718,7 +723,7 @@ pmem_memmove_persist(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, &Funcs);
 	pmem_drain();
 
 	PMEM_API_END();
@@ -735,7 +740,7 @@ pmem_memcpy_persist(void *pmemdest, const void *src, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memmove_nodrain(pmemdest, src, len, 0);
+	Funcs.memmove_nodrain(pmemdest, src, len, 0, &Funcs);
 	pmem_drain();
 
 	PMEM_API_END();
@@ -752,7 +757,7 @@ pmem_memset_nodrain(void *pmemdest, int c, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memset_nodrain(pmemdest, c, len, 0);
+	Funcs.memset_nodrain(pmemdest, c, len, 0, &Funcs);
 
 	PMEM_API_END();
 	return pmemdest;
@@ -768,7 +773,7 @@ pmem_memset_persist(void *pmemdest, int c, size_t len)
 
 	PMEM_API_START();
 
-	Funcs.memset_nodrain(pmemdest, c, len, 0);
+	Funcs.memset_nodrain(pmemdest, c, len, 0, &Funcs);
 	pmem_drain();
 
 	PMEM_API_END();
@@ -783,8 +788,10 @@ pmem_init(void)
 {
 	LOG(3, NULL);
 
-	pmem_init_funcs(&Funcs);
-	pmem_os_init();
+	memset(&Funcs, 0, sizeof(Funcs));
+	pmem2_arch_init(&Funcs);
+
+	pmem_os_init(&Is_pmem);
 }
 
 /*

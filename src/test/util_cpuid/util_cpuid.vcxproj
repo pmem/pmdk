@@ -47,18 +47,18 @@
     <ClCompile />
     <Link />
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;$(SolutionDir)\libpmem2\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <CompileAs />
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;$(SolutionDir)\libpmem\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem;$(SolutionDir)\libpmem2\x86_64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpmem\x86_64\cpu.c" />
+    <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
     <ClCompile Include="util_cpuid.c" />
   </ItemGroup>
   <ItemGroup>
