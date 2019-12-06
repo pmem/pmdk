@@ -37,11 +37,14 @@
 #include "unittest.h"
 #include "ut_pmem2_utils.h"
 
+#define N_GRANULARITIES 3 /* BYTE, CACHE_LINE, PAGE */
+
 /*
  * prepare_config -- fill pmem2_config in minimal scope
  */
 static void
-prepare_config(struct pmem2_config **cfg, int fd)
+prepare_config(struct pmem2_config **cfg, int fd,
+		enum pmem2_granularity granularity)
 {
 	int ret = pmem2_config_new(cfg);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
@@ -51,8 +54,7 @@ prepare_config(struct pmem2_config **cfg, int fd)
 		UT_PMEM2_EXPECT_RETURN(ret, 0);
 	}
 
-	ret = pmem2_config_set_required_store_granularity(*cfg,
-		PMEM2_GRANULARITY_PAGE);
+	ret = pmem2_config_set_required_store_granularity(*cfg, granularity);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 }
 
@@ -96,7 +98,7 @@ test_reuse_cfg(const struct test_case *tc, int argc, char *argv[])
 	int fd = OPEN(file, O_RDWR);
 
 	struct pmem2_config *cfg;
-	prepare_config(&cfg, fd);
+	prepare_config(&cfg, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t size;
 	UT_ASSERTeq(pmem2_config_get_file_size(cfg, &size), 0);
@@ -127,7 +129,7 @@ test_reuse_cfg_with_diff_fd(const struct test_case *tc, int argc, char *argv[])
 	int fd1 = OPEN(file1, O_RDWR);
 
 	struct pmem2_config *cfg;
-	prepare_config(&cfg, fd1);
+	prepare_config(&cfg, fd1, PMEM2_GRANULARITY_PAGE);
 
 	size_t size1;
 	UT_ASSERTeq(pmem2_config_get_file_size(cfg, &size1), 0);
@@ -168,7 +170,7 @@ test_default_fd(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	/* set invalid file descriptor in config */
-	prepare_config(&cfg, -1);
+	prepare_config(&cfg, -1, PMEM2_GRANULARITY_PAGE);
 
 	map_invalid(cfg, PMEM2_E_FILE_HANDLE_NOT_SET);
 
@@ -192,7 +194,7 @@ test_invalid_fd(const struct test_case *tc, int argc, char *argv[])
 	int fd1 = OPEN(file1, O_RDWR);
 
 	struct pmem2_config *cfg;
-	prepare_config(&cfg, fd1);
+	prepare_config(&cfg, fd1, PMEM2_GRANULARITY_PAGE);
 
 	size_t size1;
 	UT_ASSERTeq(pmem2_config_get_file_size(cfg, &size1), 0);
@@ -231,7 +233,7 @@ test_register_pmem(const struct test_case *tc, int argc, char *argv[])
 	char *word = "XXXXXXXX";
 
 	struct pmem2_config *cfg;
-	prepare_config(&cfg, fd);
+	prepare_config(&cfg, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t size;
 	UT_ASSERTeq(pmem2_config_get_file_size(cfg, &size), 0);
@@ -265,7 +267,7 @@ test_use_misc_lens_and_offsets(const struct test_case *tc,
 	int fd = OPEN(file, O_RDWR);
 
 	struct pmem2_config *cfg;
-	prepare_config(&cfg, fd);
+	prepare_config(&cfg, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len;
 	UT_ASSERTeq(pmem2_config_get_file_size(cfg, &len), 0);
@@ -300,6 +302,110 @@ test_use_misc_lens_and_offsets(const struct test_case *tc,
 	return 1;
 }
 
+struct gran_test_ctx;
+
+typedef void(*map_func)(struct pmem2_config *cfg, struct gran_test_ctx *ctx);
+
+/*
+ * gran_test_ctx -- essential parameters used by granularity test
+ */
+struct gran_test_ctx {
+	map_func map_with_expected_gran;
+	enum pmem2_granularity expected_granularity;
+};
+
+/*
+ * map_with_avail_gran -- map the range with valid granularity,
+ * includes cleanup
+ */
+static void
+map_with_avail_gran(struct pmem2_config *cfg, struct gran_test_ctx *ctx)
+{
+	struct pmem2_map *map;
+	int ret = pmem2_map(cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(map, NULL);
+	UT_ASSERTeq(ctx->expected_granularity,
+			pmem2_map_get_store_granularity(map));
+
+	/* cleanup after the test */
+	pmem2_unmap(&map);
+}
+
+/*
+ * map_with_unavail_gran -- map the range with invalid granularity
+ * (unsuccessful)
+ */
+static void
+map_with_unavail_gran(struct pmem2_config *cfg, struct gran_test_ctx *unused)
+{
+	struct pmem2_map *map;
+	int ret = pmem2_map(cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_GRANULARITY_NOT_SUPPORTED);
+	UT_ERR("%s", pmem2_errormsg());
+	UT_ASSERTeq(map, NULL);
+}
+
+static const map_func map_with_gran[N_GRANULARITIES][N_GRANULARITIES] = {
+/*		requested granularity / available granularity		*/
+/* -------------------------------------------------------------------- */
+/*		BYTE		CACHE_LINE		PAGE		*/
+/* -------------------------------------------------------------------- */
+/* BYTE */ {map_with_avail_gran, map_with_unavail_gran, map_with_unavail_gran},
+/* CL	*/ {map_with_avail_gran, map_with_avail_gran,   map_with_unavail_gran},
+/* PAGE */ {map_with_avail_gran, map_with_avail_gran,   map_with_avail_gran}};
+
+static const enum pmem2_granularity gran_id2granularity[N_GRANULARITIES] = {
+						PMEM2_GRANULARITY_BYTE,
+						PMEM2_GRANULARITY_CACHE_LINE,
+						PMEM2_GRANULARITY_PAGE};
+
+/*
+ * str2gran_id -- reads granularity id from the provided string
+ */
+static int
+str2gran_id(const char *in)
+{
+	int gran = atoi(in);
+	UT_ASSERT(gran >= 0 && gran < N_GRANULARITIES);
+
+	return gran;
+}
+
+/*
+ * test_granularity -- performs pmem2_map with certain expected granularity
+ * in context of certain available granularity
+ */
+static int
+test_granularity(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc != 3)
+		UT_FATAL(
+		"usage: test_granularity <file>"
+				" <available_granularity> <requested_granularity>");
+
+	struct gran_test_ctx ctx;
+
+	int avail_gran_id = str2gran_id(argv[1]);
+	int req_gran_id = str2gran_id(argv[2]);
+
+	ctx.expected_granularity = gran_id2granularity[avail_gran_id];
+	ctx.map_with_expected_gran = map_with_gran[req_gran_id][avail_gran_id];
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	prepare_config(&cfg, fd, gran_id2granularity[req_gran_id]);
+
+	ctx.map_with_expected_gran(cfg, &ctx);
+
+	pmem2_config_delete(&cfg);
+	CLOSE(fd);
+
+	return 3;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -310,6 +416,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_invalid_fd),
 	TEST_CASE(test_register_pmem),
 	TEST_CASE(test_use_misc_lens_and_offsets),
+	TEST_CASE(test_granularity),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

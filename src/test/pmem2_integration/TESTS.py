@@ -35,12 +35,30 @@
 import testframework as t
 
 
+class Granularity(str):
+    BYTE = '0'
+    CACHE_LINE = '1'
+    PAGE = '2'
+
+
 class PMEM2_INTEGRATION(t.Test):
     test_type = t.Medium
 
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
         ctx.exec('pmem2_integration', self.test_case, filepath)
+
+
+class PMEM2_GRANULARITY(t.Test):
+    test_type = t.Medium
+    test_case = 'test_granularity'
+    available_granularity = None
+    requested_granularity = None
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
+        ctx.exec('pmem2_integration', self.test_case, filepath,
+                 self.available_granularity, self.requested_granularity)
 
 
 class TEST0(PMEM2_INTEGRATION):
@@ -92,3 +110,75 @@ class TEST5(PMEM2_INTEGRATION):
     def run(self, ctx):
         filepath = ctx.create_holey_file(1 * t.MiB, 'testfile1')
         ctx.exec('pmem2_integration', self.test_case, filepath)
+
+
+@t.require_granularity(t.PAGE)
+class TEST6(PMEM2_GRANULARITY):
+    """test granularity with available page granularity and expected page
+    granularity"""
+    available_granularity = Granularity.PAGE
+    requested_granularity = Granularity.PAGE
+
+
+@t.require_granularity(t.PAGE)
+class TEST7(PMEM2_GRANULARITY):
+    """test granularity with available page granularity and expected cache
+    line granularity"""
+    available_granularity = Granularity.PAGE
+    requested_granularity = Granularity.CACHE_LINE
+
+
+@t.require_granularity(t.PAGE)
+class TEST8(PMEM2_GRANULARITY):
+    """test granularity with available page granularity and expected byte
+    granularity"""
+    available_granularity = Granularity.PAGE
+    requested_granularity = Granularity.BYTE
+
+
+@t.require_granularity(t.CACHELINE)
+class TEST9(PMEM2_GRANULARITY):
+    """test granularity with available cache line granularity and expected
+    page granularity"""
+    available_granularity = Granularity.CACHE_LINE
+    requested_granularity = Granularity.PAGE
+
+
+@t.require_granularity(t.CACHELINE)
+class TEST10(PMEM2_GRANULARITY):
+    """test granularity with available cache line granularity and expected
+    cache line granularity"""
+    available_granularity = Granularity.CACHE_LINE
+    requested_granularity = Granularity.CACHE_LINE
+
+
+@t.require_granularity(t.CACHELINE)
+class TEST11(PMEM2_GRANULARITY):
+    """test granularity with available cache line granularity and expected
+    byte granularity"""
+    available_granularity = Granularity.CACHE_LINE
+    requested_granularity = Granularity.BYTE
+
+
+@t.require_granularity(t.BYTE)
+class TEST12(PMEM2_GRANULARITY):
+    """test granularity with available byte granularity and expected page
+    granularity"""
+    available_granularity = Granularity.BYTE
+    requested_granularity = Granularity.PAGE
+
+
+@t.require_granularity(t.BYTE)
+class TEST13(PMEM2_GRANULARITY):
+    """test granularity with available byte granularity and expected cache
+    line granularity"""
+    available_granularity = Granularity.BYTE
+    requested_granularity = Granularity.CACHE_LINE
+
+
+@t.require_granularity(t.BYTE)
+class TEST14(PMEM2_GRANULARITY):
+    """test granularity with available byte granularity and expected byte
+    granularity"""
+    available_granularity = Granularity.BYTE
+    requested_granularity = Granularity.BYTE
