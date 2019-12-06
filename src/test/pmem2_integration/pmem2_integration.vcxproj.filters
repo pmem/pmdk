@@ -9,6 +9,12 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{4c1dd0a5-269b-43ca-aadb-69c54b295dc2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Match Files">
+      <UniqueIdentifier>{92f1ac35-e06e-4934-8606-adae8fb61b52}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\unittest\ut_pmem2_utils.c">
@@ -25,5 +31,13 @@
     <ClInclude Include="..\unittest\unittest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TESTS.py">
+      <Filter>Test Scripts</Filter>
+    </None>
+    <None Include="pmemcheck4.log.match">
+      <Filter>Match Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
