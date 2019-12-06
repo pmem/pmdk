@@ -83,6 +83,10 @@
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="pmemcheck4.log.match" />
+    <None Include="TESTS.py" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
