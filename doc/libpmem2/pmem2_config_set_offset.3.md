@@ -59,11 +59,9 @@ int pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset);
 
 The **pmem2_config_set_offset**() function configures the offset which will be used
 to map the contents from the specified location of the source. *\*cfg* should be
-already initialized, please see **pmem2_config_new**(3) for details. *\offset*
-should be less than or equal to **INT64_MAX**. For Linux, *\offset* must be a multiple
-of **PAGESIZE** (see **sysconf**(3)). For Windows, *\offset* must match the memory
-allocation granularity of the system - the offset must be a multiple of the allocation
-granularity.
+already initialized, please see **pmem2_config_new**(3) for details. For Linux,
+*\offset* must be a multiple of **PAGESIZE** (see **sysconf**(3)). For Windows,
+*\offset* must be a multiple of system's memory allocation granularity.
 
 # RETURN VALUE #
 

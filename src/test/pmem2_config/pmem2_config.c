@@ -378,7 +378,7 @@ test_set_offset_not_aligned(const char *unused)
 }
 
 /*
- * test_set_offset_success - setting proper offset
+ * test_set_offset_success - setting a valid offset
  */
 static void
 test_set_offset_success(const char *unused)
@@ -393,7 +393,7 @@ test_set_offset_success(const char *unused)
 }
 
 /*
- * test_set_length_success - setting proper length
+ * test_set_length_success - setting a valid length
  */
 static void
 test_set_length_success(const char *unused)

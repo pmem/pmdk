@@ -149,12 +149,12 @@ class TEST17(PMEM2_CONFIG):
 
 
 class TEST18(PMEM2_CONFIG):
-    """setting proper offset"""
+    """setting a valid offset"""
     test_case = "set_offset_success"
 
 
 class TEST19(PMEM2_CONFIG):
-    """setting proper length"""
+    """setting a valid length"""
     test_case = "set_length_success"
 
 
