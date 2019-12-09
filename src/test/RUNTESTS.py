@@ -137,8 +137,9 @@ def _import_testfiles():
         for name in files:
             if name == 'TESTS.py':
                 testfile = path.join(root, name)
-                spec = importutil.spec_from_file_location(
-                    path.dirname(testfile), testfile)
+                module_name = path.dirname(testfile)
+                spec = importutil.spec_from_file_location(module_name,
+                                                          testfile)
                 module = importutil.module_from_spec(spec)
                 spec.loader.exec_module(module)
 

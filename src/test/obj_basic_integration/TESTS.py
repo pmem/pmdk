@@ -35,6 +35,7 @@
 import testframework as t
 
 
+@t.require_granularity(t.CL_OR_LESS)
 class BASIC(t.Test):
     test_type = t.Medium
 

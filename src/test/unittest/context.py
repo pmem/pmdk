@@ -448,3 +448,20 @@ def get_requirement(tc, attr, default):
         pass
 
     return ret_val, ret_kwargs
+
+
+class Any:
+    """
+    The test context attribute signifying that specific context value is not
+    relevant for the test outcome and it should be run only once in some
+    viable context
+    """
+    @classmethod
+    def get(cls, conf_ctx):
+        """Get specific context value to be run"""
+        for c in conf_ctx:
+            if c.is_preferred:
+                # pick preferred if found
+                return c
+        # if no preferred is found, pick the first one
+        return conf_ctx[0]

@@ -93,7 +93,7 @@ def parse_lib_win(ctx, lib, static):
     return '\n'.join(out) + '\n'
 
 
-@t.require_fs('non')
+@t.no_testdir()
 class Common(t.Test):
     test_type = t.Medium
 

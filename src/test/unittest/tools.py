@@ -72,3 +72,6 @@ class Tools:
 
     def pmemdetect(self, *args):
         return self._run_test_tool('pmemdetect', *args)
+
+    def gran_detecto(self, *args):
+        return self._run_test_tool('gran_detecto', *args)

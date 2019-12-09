@@ -62,11 +62,15 @@ test_script:
 
         write-output "config = {
     'unittest_log_level': 1,
-    'pmem_fs_dir': 'C:\\temp',
-    'non_pmem_fs_dir': 'C:\\temp',
+    'cacheline_fs_dir': 'C:\\temp',
+    'force_cacheline': True,
+    'page_fs_dir': 'C:\\temp',
+    'force_page': False,
+    'byte_fs_dir': 'C:\\temp',
+    'force_byte': True,
     'tm': True,
     'test_type': 'check',
-    'fs': 'all',
+    'granularity': 'all',
     'fs_dir_force_pmem': 1,
     'keep_going': False,
     'timeout': '4m',
