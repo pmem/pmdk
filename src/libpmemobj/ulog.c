@@ -39,6 +39,7 @@
 
 #include "libpmemobj.h"
 #include "ulog.h"
+#include "obj.h"
 #include "out.h"
 #include "util.h"
 #include "valgrind_internal.h"
@@ -165,6 +166,10 @@ ulog_construct(uint64_t offset, size_t capacity, uint64_t gen_num,
 {
 	struct ulog *ulog = ulog_by_offset(offset, p_ops);
 	ASSERTne(ulog, NULL);
+
+	size_t diff = OBJ_PTR_TO_OFF(p_ops->base, ulog) - offset;
+	if (diff > 0)
+		capacity = ALIGN_DOWN(capacity - diff, CACHELINE_SIZE);
 
 	VALGRIND_ADD_TO_TX(ulog, SIZEOF_ULOG(capacity));
 
