@@ -139,7 +139,7 @@ clean: $(CLEAN_TARGETS:=-clean)
 clobber: $(CLOBBER_TARGETS:=-clobber)
 cstyle: $(CSTYLE_TARGETS:=-cstyle)
 format: $(CSTYLE_TARGETS:=-format)
-examples benchmarks: $(TARGETS)
+examples benchmarks: $(ALL_TARGETS)
 benchmarks: examples
 sparse: $(SPARSE_TARGETS:=-sparse)
 
