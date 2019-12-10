@@ -13,16 +13,16 @@
   <ItemGroup>
     <ClCompile Include="..\..\common\os_thread_windows.c" />
     <ClCompile Include="..\..\common\os_windows.c" />
-    <ClCompile Include="..\unittest\ut.c" />
-    <ClCompile Include="..\unittest\ut_alloc.c" />
-    <ClCompile Include="..\unittest\ut_file.c" />
+    <ClCompile Include="ut.c" />
+    <ClCompile Include="ut_alloc.c" />
+    <ClCompile Include="ut_file.c" />
     <ClCompile Include="ut_backtrace.c" />
     <ClCompile Include="ut_signal.c" />
     <ClCompile Include="ut_pthread.c" />
     <ClCompile Include="ut_fh.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\unittest\unittest.h" />
+    <ClInclude Include="unittest.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
