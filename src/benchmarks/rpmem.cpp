@@ -613,6 +613,7 @@ rpmem_poolset_fini(struct rpmem_bench *mb)
 	for (unsigned r = 0; r < mb->nreplicas; ++r) {
 		rpmem_close(mb->rpp[r]);
 	}
+	free(mb->rpp);
 
 	rpmem_unmap_file(mb);
 }
