@@ -47,6 +47,7 @@
 #include "sync.h"
 #include "stats.h"
 #include "ctl_debug.h"
+#include "page_size.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,12 +72,12 @@ extern "C" {
 
 static const features_t obj_format_feat_default = OBJ_FORMAT_FEAT_CHECK;
 
-/* size of the persistent part of PMEMOBJ pool descriptor (2kB) */
+/* size of the persistent part of PMEMOBJ pool descriptor */
 #define OBJ_DSC_P_SIZE		2048
 /* size of unused part of the persistent part of PMEMOBJ pool descriptor */
 #define OBJ_DSC_P_UNUSED	(OBJ_DSC_P_SIZE - PMEMOBJ_MAX_LAYOUT - 40)
 
-#define OBJ_LANES_OFFSET	8192	/* lanes offset (8kB) */
+#define OBJ_LANES_OFFSET	(sizeof(struct pmemobjpool)) /* lanes offset */
 #define OBJ_NLANES		1024	/* number of lanes */
 
 #define OBJ_OFF_TO_PTR(pop, off) ((void *)((uintptr_t)(pop) + (off)))
@@ -121,6 +122,12 @@ typedef int (*persist_remote_fn)(PMEMobjpool *pop, const void *addr,
 typedef uint64_t type_num_t;
 
 #define CONVERSION_FLAG_OLD_SET_CACHE ((1ULL) << 0)
+
+/* PMEM_OBJ_POOL_HEAD_SIZE Without the unused and unused2 arrays */
+#define PMEM_OBJ_POOL_HEAD_SIZE 2188
+#define PMEM_OBJ_POOL_UNUSED2_SIZE (PMEM_PAGESIZE \
+					- OBJ_DSC_P_UNUSED\
+					- PMEM_OBJ_POOL_HEAD_SIZE)
 
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
@@ -212,7 +219,7 @@ struct pmemobjpool {
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
-	char unused2[924];
+	char unused2[PMEM_OBJ_POOL_UNUSED2_SIZE];
 };
 
 /*

@@ -50,7 +50,6 @@ struct root {
 };
 
 #define LAYOUT_NAME "obj_recreate"
-#define ZEROLEN 4096
 #define N PMEMOBJ_MIN_POOL
 
 int
@@ -90,10 +89,11 @@ main(int argc, char *argv[])
 		FTRUNCATE(fd, N);
 	}
 
-	/* zero first 4kB */
-	void *p = MMAP(NULL, ZEROLEN, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-	memset(p, 0, ZEROLEN);
-	MUNMAP(p, ZEROLEN);
+	size_t zero_len = Ut_pagesize;
+	/* zero first page */
+	void *p = MMAP(NULL, zero_len, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+	memset(p, 0, zero_len);
+	MUNMAP(p, zero_len);
 	CLOSE(fd);
 
 	/* create pool on existing file */

@@ -75,7 +75,7 @@
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\win_mmap\win_mmap.vcxproj">
+    <ProjectReference Include="..\mmap\mmap.vcxproj">
       <Project>{5580d11c-fda6-4cf2-a0e8-1c2d3fbc11f1}</Project>
     </ProjectReference>
   </ItemGroup>

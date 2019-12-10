@@ -93,4 +93,5 @@ main(int argc, const char *argv[])
 	free(bad_example_3); /* undefined behavior */
 
 	pmemobj_close(pop);
+	return 0;
 }
