@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # Copyright 2015-2019, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,19 +35,16 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
-exclude_ppc64
+require_ppc64
 
 setup
 
 export PMEM_IS_PMEM_FORCE=1
 
-create_poolset $DIR/testset1 16M:$DIR/testfile1 r 16M:$DIR/testfile2
+create_holey_file 16M $DIR/testfile1
 
 expect_normal_exit\
-	./obj_heap_state$EXESUFFIX $DIR/testset1
-
-compare_replicas "-soOaAbd -l -Z -H -C" \
-	$DIR/testfile1 $DIR/testfile2 > diff$UNITTEST_NUM.log
+	./obj_heap_state$EXESUFFIX $DIR/testfile1
 
 check
 
