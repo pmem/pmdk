@@ -849,7 +849,7 @@ debuild --preserve-envvar=EXTRA_CFLAGS_RELEASE \
 	--preserve-envvar=EXTRA_CXXFLAGS \
 	--preserve-envvar=EXTRA_LDFLAGS \
 	--preserve-envvar=NDCTL_ENABLE \
-	-us -uc
+	-us -uc -b
 
 cd $OLD_DIR
 
