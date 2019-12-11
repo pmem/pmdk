@@ -183,20 +183,20 @@ use_sse2_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 {
 #if SSE2_AVAILABLE
 	*impl = MEMCPY_SSE2;
-	if (info->deep_flush == flush_clflush)
+	if (info->flush == flush_clflush)
 		info->memmove_nodrain = memmove_nodrain_sse2_clflush;
-	else if (info->deep_flush == flush_clflushopt)
+	else if (info->flush == flush_clflushopt)
 		info->memmove_nodrain = memmove_nodrain_sse2_clflushopt;
-	else if (info->deep_flush == flush_clwb)
+	else if (info->flush == flush_clwb)
 		info->memmove_nodrain = memmove_nodrain_sse2_clwb;
 	else
 		ASSERT(0);
 
-	if (info->deep_flush == flush_clflush)
+	if (info->flush == flush_clflush)
 		info->memset_nodrain = memset_nodrain_sse2_clflush;
-	else if (info->deep_flush == flush_clflushopt)
+	else if (info->flush == flush_clflushopt)
 		info->memset_nodrain = memset_nodrain_sse2_clflushopt;
-	else if (info->deep_flush == flush_clwb)
+	else if (info->flush == flush_clwb)
 		info->memset_nodrain = memset_nodrain_sse2_clwb;
 	else
 		ASSERT(0);
@@ -224,20 +224,20 @@ use_avx_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 	LOG(3, "PMEM_AVX enabled");
 	*impl = MEMCPY_AVX;
 
-	if (info->deep_flush == flush_clflush)
+	if (info->flush == flush_clflush)
 		info->memmove_nodrain = memmove_nodrain_avx_clflush;
-	else if (info->deep_flush == flush_clflushopt)
+	else if (info->flush == flush_clflushopt)
 		info->memmove_nodrain = memmove_nodrain_avx_clflushopt;
-	else if (info->deep_flush == flush_clwb)
+	else if (info->flush == flush_clwb)
 		info->memmove_nodrain = memmove_nodrain_avx_clwb;
 	else
 		ASSERT(0);
 
-	if (info->deep_flush == flush_clflush)
+	if (info->flush == flush_clflush)
 		info->memset_nodrain = memset_nodrain_avx_clflush;
-	else if (info->deep_flush == flush_clflushopt)
+	else if (info->flush == flush_clflushopt)
 		info->memset_nodrain = memset_nodrain_avx_clflushopt;
-	else if (info->deep_flush == flush_clwb)
+	else if (info->flush == flush_clwb)
 		info->memset_nodrain = memset_nodrain_avx_clwb;
 	else
 		ASSERT(0);
@@ -265,20 +265,20 @@ use_avx512f_memcpy_memset(struct pmem2_arch_info *info,
 	LOG(3, "PMEM_AVX512F enabled");
 	*impl = MEMCPY_AVX512F;
 
-	if (info->deep_flush == flush_clflush)
+	if (info->flush == flush_clflush)
 		info->memmove_nodrain = memmove_nodrain_avx512f_clflush;
-	else if (info->deep_flush == flush_clflushopt)
+	else if (info->flush == flush_clflushopt)
 		info->memmove_nodrain = memmove_nodrain_avx512f_clflushopt;
-	else if (info->deep_flush == flush_clwb)
+	else if (info->flush == flush_clwb)
 		info->memmove_nodrain = memmove_nodrain_avx512f_clwb;
 	else
 		ASSERT(0);
 
-	if (info->deep_flush == flush_clflush)
+	if (info->flush == flush_clflush)
 		info->memset_nodrain = memset_nodrain_avx512f_clflush;
-	else if (info->deep_flush == flush_clflushopt)
+	else if (info->flush == flush_clflushopt)
 		info->memset_nodrain = memset_nodrain_avx512f_clflushopt;
-	else if (info->deep_flush == flush_clwb)
+	else if (info->flush == flush_clwb)
 		info->memset_nodrain = memset_nodrain_avx512f_clwb;
 	else
 		ASSERT(0);
@@ -298,8 +298,8 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 	if (is_cpu_clflush_present()) {
 		LOG(3, "clflush supported");
 
-		info->deep_flush = flush_clflush;
-		info->deep_flush_has_builtin_fence = 1;
+		info->flush = flush_clflush;
+		info->flush_has_builtin_fence = 1;
 		info->fence = memory_barrier;
 	}
 
@@ -310,8 +310,8 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 		if (e && strcmp(e, "1") == 0) {
 			LOG(3, "PMEM_NO_CLFLUSHOPT forced no clflushopt");
 		} else {
-			info->deep_flush = flush_clflushopt;
-			info->deep_flush_has_builtin_fence = 0;
+			info->flush = flush_clflushopt;
+			info->flush_has_builtin_fence = 0;
 			info->fence = memory_barrier;
 		}
 	}
@@ -323,8 +323,8 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 		if (e && strcmp(e, "1") == 0) {
 			LOG(3, "PMEM_NO_CLWB forced no clwb");
 		} else {
-			info->deep_flush = flush_clwb;
-			info->deep_flush_has_builtin_fence = 0;
+			info->flush = flush_clwb;
+			info->flush_has_builtin_fence = 0;
 			info->fence = memory_barrier;
 		}
 	}
@@ -372,11 +372,11 @@ pmem2_arch_init(struct pmem2_arch_info *info)
 		}
 	}
 
-	if (info->deep_flush == flush_clwb)
+	if (info->flush == flush_clwb)
 		LOG(3, "using clwb");
-	else if (info->deep_flush == flush_clflushopt)
+	else if (info->flush == flush_clflushopt)
 		LOG(3, "using clflushopt");
-	else if (info->deep_flush == flush_clflush)
+	else if (info->flush == flush_clflush)
 		LOG(3, "using clflush");
 	else
 		FATAL("invalid deep flush function address");
