@@ -32,15 +32,12 @@
  */
 #include "platform_generic.h"
 
-#include <errno.h>
-
 #include "util.h"
 #include "out.h"
 #include "pmem2_arch.h"
-#include "os.h"
 
 static void
-ppc_predrain_fence(void)
+ppc_fence(void)
 {
 	LOG(15, NULL);
 
@@ -72,36 +69,13 @@ ppc_flush(const void *addr, size_t size)
 	}
 }
 
-static void
-ppc_flush_empty(const void *addr, size_t size)
-{
-	LOG(15, "addr %p size %zu", addr, size);
-
-	flush_empty_nolog(addr, size);
-}
-
 int
-platform_init(struct pmem2_arch_funcs *funcs)
+platform_init(struct pmem2_arch_info *info)
 {
 	LOG(3, "Initializing Platform");
 
-	funcs->predrain_fence = ppc_predrain_fence;
-	funcs->flush = ppc_flush;
-	funcs->deep_flush = ppc_flush;
-
-	/* Use generic functions for rest of the callbacks */
-	funcs->memmove_nodrain = memmove_nodrain_generic;
-	funcs->memset_nodrain = memset_nodrain_generic;
-
-	/*
-	 * Check for no flush options
-	 * ppc64 does not have eADR support so it will not even be checked here
-	 */
-	char *no_flush = os_getenv("PMEM_NO_FLUSH");
-	if (no_flush && strncmp(no_flush, "1", 1) == 0) {
-		funcs->flush = ppc_flush_empty;
-		LOG(3, "Forced not flushing CPU_cache");
-	}
+	info->fence = ppc_fence;
+	info->deep_flush = ppc_flush;
 
 	return 0;
 }

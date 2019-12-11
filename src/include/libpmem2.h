@@ -146,9 +146,9 @@ enum pmem2_granularity pmem2_map_get_store_granularity(struct pmem2_map *map);
 
 /* flushing */
 
-typedef void (*pmem2_persist_fn)(void *ptr, size_t size);
+typedef void (*pmem2_persist_fn)(const void *ptr, size_t size);
 
-typedef void (*pmem2_flush_fn)(void *ptr, size_t size);
+typedef void (*pmem2_flush_fn)(const void *ptr, size_t size);
 
 typedef void (*pmem2_drain_fn)(void);
 
