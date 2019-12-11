@@ -39,16 +39,17 @@
 #include <string.h>
 #include <sys/mman.h>
 
-#include "valgrind_internal.h"
-
 #include "libpmem2.h"
+
 #include "alloc.h"
 #include "auto_flush.h"
-#include "out.h"
-#include "file.h"
 #include "config.h"
+#include "file.h"
 #include "map.h"
+#include "out.h"
+#include "persist.h"
 #include "pmem2_utils.h"
+#include "valgrind_internal.h"
 
 #ifndef MAP_SYNC
 #define MAP_SYNC 0x80000
@@ -405,14 +406,21 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	map->reserved_length = reserved_length;
 	map->content_length = content_length;
 	map->effective_granularity = available_min_granularity;
+	pmem2_set_flush_fns(map);
+
+	ret = pmem2_register_mapping(map);
+	if (ret)
+		goto err_register;
 
 	*map_ptr = map;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->content_length);
 	VALGRIND_REGISTER_PMEM_FILE(cfg->fd, map->addr, map->content_length, 0);
 
-	return ret;
+	return 0;
 
+err_register:
+	free(map);
 err:
 	unmap(addr, reserved_length);
 	return ret;
@@ -429,6 +437,10 @@ pmem2_unmap(struct pmem2_map **map_ptr)
 
 	int ret = 0;
 	struct pmem2_map *map = *map_ptr;
+
+	ret = pmem2_unregister_mapping(map);
+	if (ret)
+		return ret;
 
 	ret = unmap(map->addr, map->reserved_length);
 	if (ret)

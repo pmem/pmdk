@@ -60,24 +60,6 @@ pmem2_config_set_address(struct pmem2_config *cfg, unsigned type, void *addr)
 	return PMEM2_E_NOSUPP;
 }
 
-pmem2_persist_fn
-pmem2_get_persist_fn(struct pmem2_map *map)
-{
-	return NULL;
-}
-
-pmem2_flush_fn
-pmem2_get_flush_fn(struct pmem2_map *map)
-{
-	return NULL;
-}
-
-pmem2_drain_fn
-pmem2_get_drain_fn(struct pmem2_map *map)
-{
-	return NULL;
-}
-
 pmem2_memmove_fn
 pmem2_get_memmove_fn(struct pmem2_map *map)
 {

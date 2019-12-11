@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,8 +36,10 @@
 
 #include "libpmem2.h"
 
-#include "pmem2.h"
+#include "map.h"
 #include "out.h"
+#include "persist.h"
+#include "pmem2.h"
 #include "util.h"
 
 /*
@@ -54,6 +56,9 @@ libpmem2_init(void)
 			PMEM2_MAJOR_VERSION, PMEM2_MINOR_VERSION);
 
 	LOG(3, NULL);
+
+	pmem2_map_init();
+	pmem2_persist_init();
 }
 
 /*
@@ -67,5 +72,6 @@ libpmem2_fini(void)
 {
 	LOG(3, NULL);
 
+	pmem2_map_fini();
 	out_fini();
 }

@@ -107,6 +107,8 @@ prepare_map(struct pmem2_map **map_ptr, struct pmem2_config *cfg)
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
 
 	*map_ptr = map;
+
+	UT_ASSERTeq(pmem2_register_mapping(map), 0);
 }
 #else
 /*
@@ -137,6 +139,8 @@ prepare_map(struct pmem2_map **map_ptr, struct pmem2_config *cfg)
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
 
 	*map_ptr = map;
+
+	UT_ASSERTeq(pmem2_register_mapping(map), 0);
 }
 #endif
 
@@ -151,6 +155,7 @@ unmap_map(struct pmem2_map *map)
 #else
 	UT_ASSERTeq(munmap(map->addr, map->reserved_length), 0);
 #endif
+	UT_ASSERTeq(pmem2_unregister_mapping(map), 0);
 }
 
 /*
@@ -429,7 +434,7 @@ test_unmap_valid(const struct test_case *tc, int argc, char *argv[])
 	return 2;
 }
 
-typedef void (*spoil_func)(struct pmem2_map *map, bool *unmap_required);
+typedef void (*spoil_func)(struct pmem2_map *map);
 
 /*
  * unmap_invalid_common - unmap an invalid pmem2 mapping
@@ -441,7 +446,6 @@ unmap_invalid_common(const char *file, size_t size,
 	struct pmem2_config cfg;
 	struct pmem2_map *map = NULL;
 	struct pmem2_map map_copy;
-	bool unmap_required = true;
 	int fd;
 
 	prepare_config(&cfg, &fd, file, size, 0, O_RDWR);
@@ -449,15 +453,11 @@ unmap_invalid_common(const char *file, size_t size,
 
 	/* backup the map and spoil it */
 	memcpy(&map_copy, map, sizeof(*map));
-	spoil(map, &unmap_required);
+	spoil(map);
 
 	/* unmap the invalid mapping */
 	int ret = pmem2_unmap(&map);
 	UT_PMEM2_EXPECT_RETURN(ret, exp_ret);
-
-	/* cleanup */
-	if (unmap_required)
-		unmap_map(&map_copy);
 
 	FREE(map);
 	CLOSE(fd);
@@ -466,24 +466,23 @@ unmap_invalid_common(const char *file, size_t size,
 }
 
 static void
-map_spoil_set_zero_length(struct pmem2_map *map, bool *unmap_rquired)
+map_spoil_set_zero_length(struct pmem2_map *map)
 {
 	map->reserved_length = 0;
 	map->content_length = 0;
 }
 
 static void
-map_spoil_set_unaligned_addr(struct pmem2_map *map, bool *unused)
+map_spoil_set_unaligned_addr(struct pmem2_map *map)
 {
 	map->addr = (void *)((uintptr_t)map->addr + 1);
 	map->reserved_length -= 1;
 }
 
 static void
-map_spoil_by_unmap(struct pmem2_map *map, bool *unmap_required)
+map_spoil_by_unmap(struct pmem2_map *map)
 {
 	unmap_map(map);
-	*unmap_required = false;
 }
 
 /*
@@ -529,7 +528,8 @@ test_unmap_unmapped(const struct test_case *tc, int argc, char *argv[])
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
-	unmap_invalid_common(file, size, map_spoil_by_unmap, -EINVAL);
+	unmap_invalid_common(file, size, map_spoil_by_unmap,
+			PMEM2_E_MAPPING_NOT_FOUND);
 
 	return 2;
 }
@@ -658,3 +658,8 @@ main(int argc, char *argv[])
 	out_fini();
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmem2_init)
+MSVC_DESTR(libpmem2_fini)
+#endif
