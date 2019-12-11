@@ -59,7 +59,11 @@ int pmem2_config_set_length(struct pmem2_config *cfg, size_t length);
 
 The **pmem2_config_set_length**() function configures the length which will be used
 for mapping. *\*cfg* should be already initialized, please see **pmem2_config_new**(3)
-for details.
+for details. For Linux, *\length* must be a multiple of **PAGESIZE**
+(see **sysconf**(3)). For Windows, *\length* must be a multiple of system's memory
+allocation granularity. This is needed for **pmem2_map**(3) to succeed. To retrieve
+**PAGESIZE** or system's memory allocation granularity please see
+**pmem2_config_get_alignment**(3).
 
 # RETURN VALUE #
 
@@ -67,4 +71,5 @@ The **pmem2_config_set_length**() function always returns 0.
 
 # SEE ALSO #
 
-**libpmem2**(7), **pmem2_config_new**(3) and **<http://pmem.io>**
+**libpmem2**(7), **pmem2_map**(3), **pmem2_config_get_alignment**(3),
+**pmem2_config_new**(3), **sysconf**(3) and **<http://pmem.io>**

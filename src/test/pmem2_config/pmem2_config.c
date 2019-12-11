@@ -362,22 +362,6 @@ test_set_offset_too_large(const char *unused)
 }
 
 /*
- * test_set_offset_not_aligned - setting offset which is not a multiple
- * of Mmap_align, which is memory allocation granularity for Windows or
- * page size for Linux
- */
-static void
-test_set_offset_not_aligned(const char *unused)
-{
-	struct pmem2_config cfg;
-
-	/* let's try to set the offset which is not a multiple of Mmap_align */
-	size_t offset = Ut_mmap_align + 1;
-	int ret = pmem2_config_set_offset(&cfg, offset);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OFFSET_UNALIGNED);
-}
-
-/*
  * test_set_offset_success - setting a valid offset
  */
 static void
@@ -447,7 +431,6 @@ static struct test_list {
 	{"set_directory_fd", test_set_directory_fd},
 #endif
 	{"set_offset_too_large", test_set_offset_too_large},
-	{"set_offset_not_aligned", test_set_offset_not_aligned},
 	{"set_offset_success", test_set_offset_success},
 	{"set_length_success", test_set_length_success},
 	{"set_offset_max", test_set_offset_max},
