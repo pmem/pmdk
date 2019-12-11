@@ -56,6 +56,8 @@ SOURCE =\
 	pmem2.c\
 	map.c\
 	map_posix.c\
+	persist.c\
+	persist_posix.c\
 	pmem2_utils.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
