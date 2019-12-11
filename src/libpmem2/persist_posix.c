@@ -31,50 +31,49 @@
  */
 
 /*
- * map.h -- internal definitions for libpmem2
+ * persist_posix.c -- POSIX-specific part of persist implementation
  */
-#ifndef PMEM2_MAP_H
-#define PMEM2_MAP_H
 
-#include <stddef.h>
-#include <stdbool.h>
-#include "libpmem2.h"
+#include <errno.h>
+#include <stdint.h>
+#include <sys/mman.h>
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include "out.h"
+#include "persist.h"
+#include "pmem2_utils.h"
+#include "valgrind_internal.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/*
+ * pmem2_flush_file_buffers_os -- flush CPU and OS file caches for the given
+ * range
+ */
+int
+pmem2_flush_file_buffers_os(struct pmem2_map *map, const void *addr, size_t len,
+		int autorestart)
+{
+	/*
+	 * msync accepts addresses aligned to the page boundary, so we may sync
+	 * more and part of it may have been marked as undefined/inaccessible.
+	 * Msyncing such memory is not a bug, so as a workaround temporarily
+	 * disable error reporting.
+	 */
+	VALGRIND_DO_DISABLE_ERROR_REPORTING;
+	int ret;
+	do {
+		ret = msync((void *)addr, len, MS_SYNC);
 
-struct pmem2_map {
-	void *addr; /* base address */
-	size_t reserved_length; /* length of the mapping reservation */
-	size_t content_length; /* length of the mapped content */
-	/* effective persistence granularity */
-	enum pmem2_granularity effective_granularity;
+		if (ret < 0) {
+			ERR("!msync");
+		} else {
+			/* full flush */
+			VALGRIND_DO_PERSIST((uintptr_t)addr, len);
+		}
+	} while (autorestart && ret < 0 && errno == EINTR);
 
-	pmem2_persist_fn persist_fn;
-	pmem2_flush_fn flush_fn;
-	pmem2_drain_fn drain_fn;
+	VALGRIND_DO_ENABLE_ERROR_REPORTING;
 
-#ifdef _WIN32
-	HANDLE handle;
-#endif
-};
+	if (ret)
+		return PMEM2_E_ERRNO;
 
-enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem);
-struct pmem2_map *pmem2_map_find(const void *addr, size_t len);
-int pmem2_register_mapping(struct pmem2_map *map);
-int pmem2_unregister_mapping(struct pmem2_map *map);
-void pmem2_map_init(void);
-void pmem2_map_fini(void);
-
-int pmem2_validate_offset(const struct pmem2_config *cfg, size_t *offset);
-
-#ifdef __cplusplus
+	return 0;
 }
-#endif
-
-#endif /* map.h */

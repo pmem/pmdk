@@ -31,50 +31,27 @@
  */
 
 /*
- * map.h -- internal definitions for libpmem2
+ * persist.h -- internal definitions for libpmem2 persist module
  */
-#ifndef PMEM2_MAP_H
-#define PMEM2_MAP_H
+#ifndef PMEM2_PERSIST_H
+#define PMEM2_PERSIST_H
 
 #include <stddef.h>
-#include <stdbool.h>
-#include "libpmem2.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include "map.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct pmem2_map {
-	void *addr; /* base address */
-	size_t reserved_length; /* length of the mapping reservation */
-	size_t content_length; /* length of the mapped content */
-	/* effective persistence granularity */
-	enum pmem2_granularity effective_granularity;
+void pmem2_persist_init(void);
 
-	pmem2_persist_fn persist_fn;
-	pmem2_flush_fn flush_fn;
-	pmem2_drain_fn drain_fn;
-
-#ifdef _WIN32
-	HANDLE handle;
-#endif
-};
-
-enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem);
-struct pmem2_map *pmem2_map_find(const void *addr, size_t len);
-int pmem2_register_mapping(struct pmem2_map *map);
-int pmem2_unregister_mapping(struct pmem2_map *map);
-void pmem2_map_init(void);
-void pmem2_map_fini(void);
-
-int pmem2_validate_offset(const struct pmem2_config *cfg, size_t *offset);
+int pmem2_flush_file_buffers_os(struct pmem2_map *map, const void *addr,
+		size_t len, int autorestart);
+void pmem2_set_flush_fns(struct pmem2_map *map);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* map.h */
+#endif

@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -283,10 +283,13 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/config_posix.o\
 	$(TOP)/src/debug/libpmem2/errormsg.o\
 	$(TOP)/src/debug/libpmem2/map.o\
-	$(TOP)/src/debug/libpmem2/memops_generic.o\
 	$(TOP)/src/debug/libpmem2/map_posix.o\
+	$(TOP)/src/debug/libpmem2/memops_generic.o\
+	$(TOP)/src/debug/libpmem2/persist.o\
+	$(TOP)/src/debug/libpmem2/persist_posix.o\
 	$(TOP)/src/debug/libpmem2/pmem2.o\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/debug/libpmem2/ravl.o\
 	$(TOP)/src/debug/common/alloc.o\
 	$(TOP)/src/debug/common/fs_posix.o\
 	$(TOP)/src/debug/common/os_posix.o\
@@ -323,8 +326,11 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/map.o\
 	$(TOP)/src/nondebug/libpmem2/map_posix.o\
 	$(TOP)/src/nondebug/libpmem2/memops_generic.o\
+	$(TOP)/src/nondebug/libpmem2/persist.o\
+	$(TOP)/src/nondebug/libpmem2/persist_posix.o\
 	$(TOP)/src/nondebug/libpmem2/pmem2.o\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/nondebug/libpmem2/ravl.o\
 	$(TOP)/src/nondebug/common/alloc.o\
 	$(TOP)/src/nondebug/common/fs_posix.o\
 	$(TOP)/src/nondebug/common/os_posix.o\

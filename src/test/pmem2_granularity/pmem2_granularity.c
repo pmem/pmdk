@@ -337,3 +337,8 @@ main(int argc, char *argv[])
 	out_fini();
 	DONE(NULL);
 }
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmem2_init)
+MSVC_DESTR(libpmem2_fini)
+#endif

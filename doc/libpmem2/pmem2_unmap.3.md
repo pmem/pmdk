@@ -7,7 +7,7 @@ header: PMDK
 date: pmem2 API version 1.0
 ...
 
-[comment]: <> (Copyright 2019, Intel Corporation)
+[comment]: <> (Copyright 2019-2020, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -67,10 +67,14 @@ return values please see [RETURN VALUE](#return-value).
 
 # RETURN VALUE #
 
-When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
+When **pmem2_unmap**() succeeds it returns 0. Otherwise, it returns
 one of the following error values:
 
-* **-EINVAL** - if the mapping object was already unmapped (Windows only)
+* **PMEM2_E_MAPPING_NOT_FOUND** - mapping was not found (it was already
+unmapped or pmem2_map state was corrupted)
+
+On systems other than Windows it can also return **-EINVAL** from the underlying
+**munmap**(2) function.
 
 # SEE ALSO #
 
