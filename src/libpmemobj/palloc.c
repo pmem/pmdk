@@ -418,6 +418,10 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 	if (act->new_state == MEMBLOCK_ALLOCATED) {
 		STATS_INC(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));
+		if (act->m.type == MEMORY_BLOCK_RUN) {
+			STATS_INC(heap->stats, transient, heap_run_allocated,
+				act->m.m_ops->get_real_size(&act->m));
+		}
 	} else if (act->new_state == MEMBLOCK_FREE) {
 		if (On_valgrind) {
 			void *ptr = act->m.m_ops->get_user_data(&act->m);
@@ -442,6 +446,10 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 
 		STATS_SUB(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));
+		if (act->m.type == MEMORY_BLOCK_RUN) {
+			STATS_SUB(heap->stats, transient, heap_run_allocated,
+				act->m.m_ops->get_real_size(&act->m));
+		}
 		heap_memblock_on_free(heap, &act->m);
 	}
 }
@@ -945,9 +953,8 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 			if (operation_reserve(ctx, entries_size) != 0)
 				goto err;
 
-			palloc_publish(heap,
-				VEC_ARR(&actv),
-				VEC_SIZE(&actv), ctx);
+			palloc_publish(heap, VEC_ARR(&actv), VEC_SIZE(&actv),
+				ctx);
 
 			operation_start(ctx);
 			VEC_CLEAR(&actv);

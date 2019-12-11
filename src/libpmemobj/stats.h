@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -44,7 +44,8 @@ extern "C" {
 #endif
 
 struct stats_transient {
-	int unused;
+	uint64_t heap_run_allocated;
+	uint64_t heap_run_active;
 };
 
 struct stats_persistent {
