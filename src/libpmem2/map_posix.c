@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -400,13 +400,19 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	map->content_length = content_length;
 	map->effective_granularity = available_min_granularity;
 
+	ret = pmem2_register_mapping(map);
+	if (ret)
+		goto err_register;
+
 	*map_ptr = map;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->content_length);
 	VALGRIND_REGISTER_PMEM_FILE(cfg->fd, map->addr, map->content_length, 0);
 
-	return ret;
+	return 0;
 
+err_register:
+	free(map);
 err:
 	unmap(addr, reserved_length);
 	return ret;
@@ -423,6 +429,10 @@ pmem2_unmap(struct pmem2_map **map_ptr)
 
 	int ret = 0;
 	struct pmem2_map *map = *map_ptr;
+
+	ret = pmem2_unregister_mapping(map);
+	if (ret)
+		return ret;
 
 	ret = unmap(map->addr, map->reserved_length);
 	if (ret)
