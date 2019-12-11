@@ -52,29 +52,25 @@ date: pmem2 API version 1.0
 #include <libpmem2.h>
 
 struct pmem2_config;
-int pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset);
+int pmem2_config_set_offset(struct pmem2_config *config, size_t offset);
 ```
 
 # DESCRIPTION #
 
 The **pmem2_config_set_offset**() function configures the offset which will be used
-to map the contents from the specified location of the source. *\*cfg* should be
-already initialized, please see **pmem2_config_new**(3) for details. For Linux,
-*\offset* must be a multiple of **PAGESIZE** (see **sysconf**(3)). For Windows,
-*\offset* must be a multiple of system's memory allocation granularity.
+to map the contents from the specified location of the source. *\*config* should be
+already initialized, please see **pmem2_config_new**(3) for details. The *\offset*
+must be a multiple of the alignment required for the config. To retrieve the alignment
+required for specific *\*config* please use **pmem2_config_get_alignment**(3).
 
 # RETURN VALUE #
 
-The **pmem2_config_set_offset**() function returns 0 on success. Otherwise, it returns
-one of the following error values:
+The **pmem2_config_set_offset**() function returns 0 on success. Otherwise, it returns:
 
-* **PMEM2_E_OFFSET_OUT_OF_RANGE** - argument out of range, offset is greater than
-**INT64_MAX**
-
-* **PMEM2_E_OFFSET_UNALIGNED** - argument unaligned, offset is not a multiple of
-**PAGESIZE** (see **sysconf**(3)) for Linux or is not a multiple of the allocation
-granularity for Windows
+* **PMEM2\_E\_OFFSET\_OUT\_OF\_RANGE** - argument out of range, offset is greater than
+**INT64\_MAX**
 
 # SEE ALSO #
 
-**libpmem2**(7), **pmem2_config_new**(3), **sysconf**(3) and **<http://pmem.io>**
+**libpmem2**(7), **pmem2_config_get_alignment**(3), **pmem2_config_new**(3),
+**pmem2_map**(3), **sysconf**(3) and **<http://pmem.io>**

@@ -150,23 +150,15 @@ class TEST16(PMEM2_CONFIG_NO_DIR):
 
 
 class TEST17(PMEM2_CONFIG_NO_DIR):
-    """
-    setting offset which is not a multiple of Mmap_align, which is
-    memory allocation granularity for Windows or page size for Linux
-    """
-    test_case = "set_offset_not_aligned"
-
-
-class TEST18(PMEM2_CONFIG_NO_DIR):
     """setting a valid offset"""
     test_case = "set_offset_success"
 
 
-class TEST19(PMEM2_CONFIG_NO_DIR):
+class TEST18(PMEM2_CONFIG_NO_DIR):
     """setting a valid length"""
     test_case = "set_length_success"
 
 
-class TEST20(PMEM2_CONFIG_NO_DIR):
+class TEST19(PMEM2_CONFIG_NO_DIR):
     """setting maximum possible offset"""
     test_case = "set_offset_max"

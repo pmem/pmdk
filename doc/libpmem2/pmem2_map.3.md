@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_MAP, 3)
+title: _MP(PMEM2\_MAP, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -51,6 +51,8 @@ date: pmem2 API version 1.0
 ```c
 #include <libpmem2.h>
 
+struct pmem2_config;
+struct pmem2_map;
 int pmem2_map(const struct pmem2_config *config, struct pmem2_map **map_ptr);
 ```
 
@@ -94,23 +96,31 @@ be destroyed using the **pmem2_unmap**() function. For details please see
 When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
 one of the following error values:
 
-* **PMEM2_E_FILE_HANDLE_NOT_SET** - config doesn't contain a file descriptor or
+* **PMEM2\_E\_FILE\_HANDLE\_NOT\_SET** - config doesn't contain a file descriptor or
 file handle (Windows)
 
-* **PMEM2_E_INVALID_FILE_HANDLE** - invalid *file descriptor* value in *config*
+* **PMEM2\_E\_INVALID\_FILE\_HANDLE** - invalid *file descriptor* value in *config*
 
-* **PMEM2_E_MAP_RANGE** - *offset* + *length* is too big to represent it using
+* **PMEM2\_E\_MAP\_RANGE** - *offset* + *length* is too big to represent it using
 *size_t* data type
 
-* **PMEM2_E_MAP_RANGE** - end of the mapping (*offset* + *length*) is outside
+* **PMEM2\_E\_MAP\_RANGE** - end of the mapping (*offset* + *length*) is outside
 of the file. The file is too small.
 
-* **PMEM2_E_MAPPING_EXISTS** - if the object exists before the function call.
+* **PMEM2\_E\_MAPPING\_EXISTS** - if the object exists before the function call.
 For details please see **CreateFileMapping**() manual pages. (Windows only)
+
+* **PMEM2\_E\_OFFSET\_UNALIGNED** - argument unaligned, offset is not a multiple of
+the alignment required for specific *\*config*. Please see
+**pmem2_config_get_alignement**(3).
+
+* **PMEM2\_E\_LENGTH\_UNALIGNED** - argument unaligned, length is not a multiple of
+the alignment required for specific *\*config*. Please see
+**pmem2_config_get_alignement**(3).
 
 It can also return **-EACCES**, **-EAGAIN**, **-EBADF**, **-ENFILE**,
 **-ENODEV**, **-ENOMEM**, **-EPERM**, **-ETXTBSY** from the underlying
-**mmap**(2) function. It is used with and without **MAP_ANONYMOUS**.
+**mmap**(2) function. It is used with and without **MAP\_ANONYMOUS**.
 
 **-EACCES** may be returned only if the file descriptor points to an
 append-only file.

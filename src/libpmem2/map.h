@@ -57,6 +57,8 @@ int pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
 
 enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem);
 
+int pmem2_validate_offset(const struct pmem2_config *cfg, size_t *offset);
+
 #ifdef __cplusplus
 }
 #endif
