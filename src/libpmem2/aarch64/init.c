@@ -67,9 +67,9 @@ pmem2_arch_init(struct pmem2_arch_info *info)
 	LOG(3, NULL);
 
 	info->fence = memory_barrier;
-	info->deep_flush = flush_dcache;
+	info->flush = flush_dcache;
 
-	if (info->deep_flush == flush_dcache)
+	if (info->flush == flush_dcache)
 		LOG(3, "Synchronize VA to poc for ARM");
 	else
 		FATAL("invalid deep flush function address");
