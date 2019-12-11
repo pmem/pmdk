@@ -52,14 +52,16 @@ date: pmem2 API version 1.0
 #include <libpmem2.h>
 
 struct pmem2_config;
-int pmem2_config_set_length(struct pmem2_config *cfg, size_t length);
+int pmem2_config_set_length(struct pmem2_config *config, size_t length);
 ```
 
 # DESCRIPTION #
 
 The **pmem2_config_set_length**() function configures the length which will be used
-for mapping. *\*cfg* should be already initialized, please see **pmem2_config_new**(3)
-for details.
+for mapping. *\*config* should be already initialized, please see **pmem2_config_new**(3)
+for details. The *\length* must be a multiple of the alignment required for the config.
+To retrieve the alignment required for specific *\*config* please use
+**pmem2_config_get_alignment**(3).
 
 # RETURN VALUE #
 
@@ -67,4 +69,5 @@ The **pmem2_config_set_length**() function always returns 0.
 
 # SEE ALSO #
 
-**libpmem2**(7), **pmem2_config_new**(3) and **<http://pmem.io>**
+**libpmem2**(7), **pmem2_map**(3), **pmem2_config_get_alignment**(3),
+**pmem2_config_new**(3), **sysconf**(3) and **<http://pmem.io>**

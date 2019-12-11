@@ -159,12 +159,17 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	if (ret)
 		return ret;
 
+	size_t offset;
+	ret = pmem2_validate_offset(cfg, &offset);
+	if (ret)
+		return ret;
+
 	/* create a file mapping handle */
 	DWORD access = FILE_MAP_ALL_ACCESS;
-	HANDLE mh = create_mapping(cfg->handle, cfg->offset, length,
+	HANDLE mh = create_mapping(cfg->handle, offset, length,
 			PAGE_READWRITE, &err);
 	if (err == ERROR_ACCESS_DENIED) {
-		mh = create_mapping(cfg->handle, cfg->offset, length,
+		mh = create_mapping(cfg->handle, offset, length,
 				PAGE_READONLY, &err);
 		access = FILE_MAP_READ;
 	}
@@ -179,8 +184,8 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	/* obtain a pointer to the mapping view */
 	void *base = MapViewOfFileEx(mh,
 		access,
-		HIDWORD(cfg->offset),
-		LODWORD(cfg->offset),
+		HIDWORD(offset),
+		LODWORD(offset),
 		length,
 		NULL); /* hint address */
 
