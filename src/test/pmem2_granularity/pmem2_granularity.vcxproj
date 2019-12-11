@@ -75,6 +75,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\ravl.c" />
     <ClCompile Include="..\..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="..\..\libpmem2\errormsg.c" />
     <ClCompile Include="..\..\libpmem2\libpmem2.c" />

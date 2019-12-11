@@ -36,17 +36,13 @@
 TOP = ../../..
 
 vpath %.c $(TOP)/src/test/unittest
-vpath %.c $(TOP)/src/libpmem2
 
 INCS += -I$(TOP)/src/libpmem2
 TARGET = pmem2_map
-OBJS += errormsg.o\
-	map_posix.o\
-	map.o\
-	pmem2_map.o\
+OBJS += pmem2_map.o\
 	ut_pmem2_config.o\
 	ut_pmem2_utils.o
 
-LIBPMEMCOMMON=y
+LIBPMEM2=internal-debug
 
 include ../Makefile.inc

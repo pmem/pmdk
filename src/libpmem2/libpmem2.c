@@ -36,6 +36,7 @@
 
 #include "libpmem2.h"
 
+#include "map.h"
 #include "pmem2.h"
 #include "out.h"
 #include "util.h"
@@ -54,6 +55,8 @@ libpmem2_init(void)
 			PMEM2_MAJOR_VERSION, PMEM2_MINOR_VERSION);
 
 	LOG(3, NULL);
+
+	pmem2_map_init();
 }
 
 /*
@@ -67,5 +70,6 @@ libpmem2_fini(void)
 {
 	LOG(3, NULL);
 
+	pmem2_map_fini();
 	out_fini();
 }

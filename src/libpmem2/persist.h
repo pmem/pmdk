@@ -31,46 +31,26 @@
  */
 
 /*
- * map.h -- internal definitions for libpmem2
+ * persist.h -- internal definitions for libpmem2 persist module
  */
-#ifndef PMEM2_MAP_H
-#define PMEM2_MAP_H
+#ifndef PMEM2_PERSIST_H
+#define PMEM2_PERSIST_H
 
 #include <stddef.h>
-#include <stdbool.h>
-#include "libpmem2.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
+#include "map.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-struct pmem2_map {
-	void *addr; /* base address */
-	size_t reserved_length; /* length of the mapping reservation */
-	size_t content_length; /* length of the mapped content */
-	/* effective persistence granularity */
-	enum pmem2_granularity effective_granularity;
-#ifdef _WIN32
-	HANDLE handle;
-#endif
-};
+void pmem2_persist_init(void);
 
-int pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
-		size_t *length);
-
-enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem);
-struct pmem2_map *pmem2_get_mapping(const void *addr, size_t len);
-int pmem2_register_mapping(struct pmem2_map *map);
-int pmem2_unregister_mapping(struct pmem2_map *map);
-void pmem2_map_init(void);
-void pmem2_map_fini(void);
+int os_flush_file_buffers(struct pmem2_map *map, const void *addr,
+		size_t len, int autorestart);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* map.h */
+#endif

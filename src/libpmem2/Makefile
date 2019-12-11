@@ -43,6 +43,7 @@ SOURCE =\
 	$(COMMON)/os_posix.c\
 	$(COMMON)/os_thread_posix.c\
 	$(COMMON)/out.c\
+	$(COMMON)/ravl.c\
 	$(COMMON)/util.c\
 	$(COMMON)/util_posix.c\
 	libpmem2.c\
@@ -53,6 +54,8 @@ SOURCE =\
 	pmem2.c\
 	map.c\
 	map_posix.c\
+	persist.c\
+	persist_posix.c\
 	pmem2_utils.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)

@@ -235,11 +235,19 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	map->reserved_length = length;
 	map->content_length = length;
 	map->effective_granularity = available_min_granularity;
+	map->handle = cfg->handle;
+
+	ret = pmem2_register_mapping(map);
+	if (ret)
+		goto err_register;
 
 	/* return a pointer to the pmem2_map structure */
 	*map_ptr = map;
 
 	return ret;
+
+err_register:
+	free(map);
 
 err_unmap_base:
 	UnmapViewOfFile(base);
@@ -259,6 +267,10 @@ pmem2_unmap(struct pmem2_map **map_ptr)
 	LOG(3, "mapp %p", map_ptr);
 
 	struct pmem2_map *map = *map_ptr;
+
+	int ret = pmem2_unregister_mapping(map);
+	if (ret)
+		return ret;
 
 	if (!UnmapViewOfFile(map->addr)) {
 		ERR("!!UnmapViewOfFile");

@@ -119,6 +119,8 @@ prepare_map(struct pmem2_map **map_ptr, struct pmem2_config *cfg)
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
 
 	*map_ptr = map;
+
+	UT_ASSERTeq(pmem2_register_mapping(map), 0);
 }
 #else
 /*
@@ -149,6 +151,8 @@ prepare_map(struct pmem2_map **map_ptr, struct pmem2_config *cfg)
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
 
 	*map_ptr = map;
+
+	UT_ASSERTeq(pmem2_register_mapping(map), 0);
 }
 #endif
 
@@ -163,6 +167,7 @@ unmap_map(struct pmem2_map *map)
 #else
 	UT_ASSERTeq(munmap(map->addr, map->reserved_length), 0);
 #endif
+	UT_ASSERTeq(pmem2_unregister_mapping(map), 0);
 }
 
 /*
@@ -486,13 +491,15 @@ map_spoil_set_zero_length(struct pmem2_map *map, bool *unmap_rquired)
 {
 	map->reserved_length = 0;
 	map->content_length = 0;
+	*unmap_rquired = false;
 }
 
 static void
-map_spoil_set_unaligned_addr(struct pmem2_map *map, bool *unused)
+map_spoil_set_unaligned_addr(struct pmem2_map *map, bool *unmap_rquired)
 {
 	map->addr = (void *)((uintptr_t)map->addr + 1);
 	map->reserved_length -= 1;
+	*unmap_rquired = false;
 }
 
 static void

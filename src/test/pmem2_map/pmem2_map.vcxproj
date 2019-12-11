@@ -76,9 +76,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\common\ravl.c" />
     <ClCompile Include="..\..\libpmem2\config.c" />
     <ClCompile Include="..\..\libpmem2\errormsg.c" />
-	<ClCompile Include="..\..\libpmem2\map.c" />
+    <ClCompile Include="..\..\libpmem2\map.c" />
     <ClCompile Include="..\..\libpmem2\map_windows.c" />
     <ClCompile Include="..\..\libpmem2\pmem2_utils.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />

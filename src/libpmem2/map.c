@@ -39,7 +39,11 @@
 #include "config.h"
 #include "map.h"
 #include "os.h"
+#include "os_thread.h"
 #include "pmem2.h"
+#include "pmem2_utils.h"
+#include "ravl.h"
+#include "sys_util.h"
 
 #include <libpmem2.h>
 
@@ -156,4 +160,156 @@ get_min_granularity(bool eADR, bool is_pmem)
 		return PMEM2_GRANULARITY_CACHE_LINE;
 
 	return PMEM2_GRANULARITY_BYTE;
+}
+
+static struct ravl *Mappings;
+static os_rwlock_t Mappings_lock;
+
+/*
+ * mappings_compare -- compares pmem2_maps by starting address
+ */
+static int
+mappings_compare(const void *lhs, const void *rhs)
+{
+	const struct pmem2_map *l = lhs;
+	const struct pmem2_map *r = rhs;
+
+	if (l->addr < r->addr)
+		return -1;
+	if (l->addr > r->addr)
+		return 1;
+	return 0;
+}
+
+/*
+ * pmem2_map_init -- initializes map module
+ */
+void
+pmem2_map_init(void)
+{
+	os_rwlock_init(&Mappings_lock);
+	Mappings = ravl_new(mappings_compare);
+	if (!Mappings)
+		abort();
+}
+
+/*
+ * pmem2_map_fini -- finalizes map module
+ */
+void
+pmem2_map_fini(void)
+{
+	ravl_delete(Mappings);
+	Mappings = NULL;
+	os_rwlock_destroy(&Mappings_lock);
+}
+
+/*
+ * pmem2_register_mapping -- registers mapping in the mappings tree
+ */
+int
+pmem2_register_mapping(struct pmem2_map *map)
+{
+	int ret;
+
+	util_rwlock_wrlock(&Mappings_lock);
+	ret = ravl_insert(Mappings, map);
+	util_rwlock_unlock(&Mappings_lock);
+
+	if (ret)
+		return PMEM2_E_ERRNO;
+
+	return 0;
+}
+
+/*
+ * pmem2_unregister_mapping -- unregisters mapping from the mappings tree
+ */
+int
+pmem2_unregister_mapping(struct pmem2_map *map)
+{
+	int ret = 0;
+	util_rwlock_wrlock(&Mappings_lock);
+	struct ravl_node *n = ravl_find(Mappings, map, RAVL_PREDICATE_EQUAL);
+	if (n)
+		ravl_remove(Mappings, n);
+	else
+		ret = -EINVAL;
+	util_rwlock_unlock(&Mappings_lock);
+
+	return ret;
+}
+
+/*
+ * find_lt -- find overlapping mapping starting prior to the current one
+ */
+static struct pmem2_map *
+find_lt(struct pmem2_map *cur)
+{
+	struct ravl_node *n;
+	struct pmem2_map *map;
+
+	n = ravl_find(Mappings, cur, RAVL_PREDICATE_LESS_EQUAL);
+	if (!n)
+		return NULL;
+
+	map = ravl_data(n);
+
+	/*
+	 * If the end of the found mapping is below the searched address, then
+	 * this is not our mapping.
+	 */
+	if ((char *)map->addr + map->reserved_length < (char *)cur->addr)
+		return NULL;
+
+	return map;
+}
+
+/*
+ * find_gt -- find overlapping mapping starting later than the current one
+ */
+static struct pmem2_map *
+find_gt(struct pmem2_map *cur)
+{
+	struct ravl_node *n;
+	struct pmem2_map *map;
+
+	n = ravl_find(Mappings, cur, RAVL_PREDICATE_GREATER);
+	if (!n)
+		return NULL;
+
+	map = ravl_data(n);
+
+	/*
+	 * If the beginning of the found mapping is above the end of
+	 * the searched range, then this is not our mapping.
+	 */
+	if ((char *)map->addr > (char *)cur->addr + cur->reserved_length)
+		return NULL;
+
+	return map;
+}
+
+/*
+ * pmem2_get_mapping -- finds the earliest mapping overlapping with
+ * [addr, addr+size) range
+ */
+struct pmem2_map *
+pmem2_get_mapping(const void *addr, size_t len)
+{
+	struct pmem2_map cur;
+	struct pmem2_map *map;
+
+	util_rwlock_rdlock(&Mappings_lock);
+
+	cur.addr = (void *)addr;
+	cur.reserved_length = len;
+
+	map = find_lt(&cur);
+	if (!map)
+		map = find_gt(&cur);
+
+	util_rwlock_unlock(&Mappings_lock);
+
+	return map;
 }
