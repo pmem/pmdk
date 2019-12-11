@@ -305,20 +305,15 @@ test_map_invalid_ranges(const struct test_case *tc, int argc, char *argv[])
 	int ret = 0;
 	int fd;
 
-	/* the mapping size (unaligned) > the file size */
-	prepare_config(&cfg, &fd, file, size + 1, 0, O_RDWR);
-	ret = pmem2_map(&cfg, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
-	CLOSE(fd);
-
 	/* the mapping + the offset > the file size */
 	UT_ASSERT(size / 2 < 10 * MEGABYTE);
-	prepare_config(&cfg, &fd, file, size / 2, 10 * MEGABYTE, O_RDWR);
+	prepare_config(&cfg, &fd, file, size / 2,
+			10 * MEGABYTE, O_RDWR);
 	ret = pmem2_map(&cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
 	CLOSE(fd);
 
-	/* the mapping size (aligned) > the file size */
+	/* the mapping size > the file size */
 	UT_ASSERT(size < 20 * MEGABYTE);
 	prepare_config(&cfg, &fd, file, 0, 20 * MEGABYTE, O_RDWR);
 	ret = pmem2_map(&cfg, &map);
@@ -345,7 +340,7 @@ test_map_invalid_alignment(const struct test_case *tc, int argc, char *argv[])
 
 	prepare_config(&cfg, &fd, file, length, KILOBYTE, O_RDWR);
 	int ret = pmem2_map(&cfg, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, -EINVAL);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OFFSET_UNALIGNED);
 	CLOSE(fd);
 
 	return 1;
@@ -411,10 +406,7 @@ test_map_unaligned_length(const struct test_case *tc, int argc, char *argv[])
 
 	prepare_config(&cfg, &fd, file, length, 0, O_RDWR);
 	int ret = pmem2_map(&cfg, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-
-	unmap_map(map);
-	FREE(map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_LENGTH_UNALIGNED);
 	CLOSE(fd);
 
 	return 1;
@@ -599,6 +591,36 @@ test_get_granularity_simple(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_map_larger_than_unaligned_file_size - map a file which size is not
+ * aligned
+ */
+static int
+test_map_larger_than_unaligned_file_size(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_larger_than_unaligned_file_size"
+			" <file>", argv[0]);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	/* file size is 1 B less than 16 MiB */
+	size_t length = get_size(file);
+	struct pmem2_map *map;
+	int fd;
+
+	prepare_config(&cfg, &fd, file, length + 1, 0, O_RDWR);
+	int ret = pmem2_map(&cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	unmap_map(map);
+	FREE(map);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -618,6 +640,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_map_get_address),
 	TEST_CASE(test_map_get_size),
 	TEST_CASE(test_get_granularity_simple),
+	TEST_CASE(test_map_larger_than_unaligned_file_size),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
