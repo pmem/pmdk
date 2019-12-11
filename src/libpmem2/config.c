@@ -123,11 +123,6 @@ pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
 		return PMEM2_E_OFFSET_OUT_OF_RANGE;
 	}
 
-	if (!IS_MMAP_ALIGNED(offset)) {
-		ERR("offset is not a multiple of %llu", Mmap_align);
-		return PMEM2_E_OFFSET_UNALIGNED;
-	}
-
 	cfg->offset = offset;
 
 	return 0;
