@@ -489,6 +489,9 @@ heap_run_create(struct palloc_heap *heap, struct bucket *b,
 		return -1;
 	}
 
+	STATS_INC(heap->stats, transient, heap_run_active,
+		m->size_idx * CHUNKSIZE);
+
 	return 0;
 }
 
@@ -558,6 +561,9 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
 	m->block_off = 0;
 	m->size_idx = hdr->size_idx;
 
+	STATS_SUB(heap->stats, transient, heap_run_active,
+		m->size_idx * CHUNKSIZE);
+
 	/*
 	 * The only thing this could race with is heap_memblock_on_free()
 	 * because that function is called after processing the operation,
@@ -582,7 +588,7 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
  * Returns 1 if reclaimed chunk, 0 otherwise.
  */
 static int
-heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
+heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 {
 	struct chunk_run *run = heap_get_chunk_run(heap, m);
 	struct chunk_header *hdr = heap_get_chunk_hdr(heap, m);
@@ -604,6 +610,13 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 
 	if (e.free_space == c->run.nallocs)
 		return 1;
+
+	if (startup) {
+		STATS_INC(heap->stats, transient, heap_run_active,
+			m->size_idx * CHUNKSIZE);
+		STATS_INC(heap->stats, transient, heap_run_allocated,
+			c->run.nallocs - e.free_space);
+	}
 
 	if (recycler_put(heap->rt->recyclers[c->id], m, e) < 0)
 		ERR("lost runtime tracking info of %u run due to OOM", c->id);
@@ -634,10 +647,9 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 
 		switch (hdr->type) {
 			case CHUNK_TYPE_RUN:
-				if (heap_reclaim_run(heap, &m) != 0) {
+				if (heap_reclaim_run(heap, &m, 1) != 0)
 					heap_run_into_free_chunk(heap, bucket,
 						&m);
-				}
 				break;
 			case CHUNK_TYPE_FREE:
 				heap_free_chunk_reuse(heap, bucket, &m);
@@ -853,7 +865,7 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 void
 heap_discard_run(struct palloc_heap *heap, struct memory_block *m)
 {
-	if (heap_reclaim_run(heap, m)) {
+	if (heap_reclaim_run(heap, m, 0)) {
 		struct bucket *defb =
 			heap_bucket_acquire(heap,
 			DEFAULT_ALLOC_CLASS_ID, 0);

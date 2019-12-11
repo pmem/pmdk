@@ -76,11 +76,21 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(allocated, oid_size);
 
+	size_t run_allocated = 0;
+	ret = pmemobj_ctl_get(pop, "stats.heap.run_allocated", &run_allocated);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(allocated, run_allocated);
+
 	pmemobj_free(&oid);
 
 	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocated);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(allocated, 0);
+
+	allocated = 0;
+	ret = pmemobj_ctl_get(pop, "stats.heap.run_allocated", &run_allocated);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(allocated, run_allocated);
 
 	TX_BEGIN(pop) {
 		oid = pmemobj_tx_alloc(1, 0);

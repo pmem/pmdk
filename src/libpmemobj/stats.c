@@ -39,8 +39,13 @@
 
 STATS_CTL_HANDLER(persistent, curr_allocated, heap_curr_allocated);
 
+STATS_CTL_HANDLER(transient, run_allocated, heap_run_allocated);
+STATS_CTL_HANDLER(transient, run_active, heap_run_active);
+
 static const struct ctl_node CTL_NODE(heap)[] = {
 	STATS_CTL_LEAF(persistent, curr_allocated),
+	STATS_CTL_LEAF(transient, run_allocated),
+	STATS_CTL_LEAF(transient, run_active),
 
 	CTL_NODE_END
 };
