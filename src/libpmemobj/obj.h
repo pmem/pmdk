@@ -124,7 +124,7 @@ typedef uint64_t type_num_t;
 #define CONVERSION_FLAG_OLD_SET_CACHE ((1ULL) << 0)
 
 /* PMEM_OBJ_POOL_HEAD_SIZE Without the unused and unused2 arrays */
-#define PMEM_OBJ_POOL_HEAD_SIZE 2188
+#define PMEM_OBJ_POOL_HEAD_SIZE 2196
 #define PMEM_OBJ_POOL_UNUSED2_SIZE (PMEM_PAGESIZE \
 					- OBJ_DSC_P_UNUSED\
 					- PMEM_OBJ_POOL_HEAD_SIZE)
@@ -216,6 +216,8 @@ struct pmemobjpool {
 		os_mutex_t lock;
 		int verify;
 	} ulog_user_buffers;
+
+	void *user_data;
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */
