@@ -76,6 +76,7 @@ static const features_t obj_format_feat_default = OBJ_FORMAT_FEAT_CHECK;
 #define OBJ_DSC_P_SIZE		2048
 /* size of unused part of the persistent part of PMEMOBJ pool descriptor */
 #define OBJ_DSC_P_UNUSED	(OBJ_DSC_P_SIZE - PMEMOBJ_MAX_LAYOUT - 40)
+#define OBJ_USER_DATA_SIZE	sizeof(void *)
 
 #define OBJ_LANES_OFFSET	(sizeof(struct pmemobjpool)) /* lanes offset */
 #define OBJ_NLANES		1024	/* number of lanes */
@@ -127,7 +128,8 @@ typedef uint64_t type_num_t;
 #define PMEM_OBJ_POOL_HEAD_SIZE 2188
 #define PMEM_OBJ_POOL_UNUSED2_SIZE (PMEM_PAGESIZE \
 					- OBJ_DSC_P_UNUSED\
-					- PMEM_OBJ_POOL_HEAD_SIZE)
+					- PMEM_OBJ_POOL_HEAD_SIZE\
+					- OBJ_USER_DATA_SIZE)
 
 struct pmemobjpool {
 	struct pool_hdr hdr;	/* memory pool header */
@@ -216,6 +218,8 @@ struct pmemobjpool {
 		os_mutex_t lock;
 		int verify;
 	} ulog_user_buffers;
+
+	void *user_data;
 
 	/* padding to align size of this structure to page boundary */
 	/* sizeof(unused2) == 8192 - offsetof(struct pmemobjpool, unused2) */

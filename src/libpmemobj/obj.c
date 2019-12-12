@@ -2134,6 +2134,26 @@ pmemobj_pool_by_ptr(const void *addr)
 	return pop;
 }
 
+/*
+ * pmemobj_set_user_data -- sets volatile pointer to the user data for specified
+ * pool
+ */
+void
+pmemobj_set_user_data(PMEMobjpool *pop, void *data)
+{
+	pop->user_data = data;
+}
+
+/*
+ * pmemobj_get_user_data -- gets volatile pointer to the user data for specified
+ * pool
+ */
+void *
+pmemobj_get_user_data(PMEMobjpool *pop)
+{
+	return pop->user_data;
+}
+
 /* arguments for constructor_alloc */
 struct constr_args {
 	int zero_init;

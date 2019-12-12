@@ -47,6 +47,7 @@ date: pmemobj API version 2.3
 
 _UW(pmemobj_open), _UW(pmemobj_create),
 **pmemobj_close**(), _UW(pmemobj_check)
+**pmemobj_set_user_data**(), **pmemobj_get_user_data**()
 - create, open, close and validate persistent memory transactional object store
 
 # SYNOPSIS #
@@ -59,6 +60,9 @@ _UWFUNCR1(PMEMobjpool, *pmemobj_create, *path, =q=const char *layout,
 	size_t poolsize, mode_t mode=e=)
 void pmemobj_close(PMEMobjpool *pop);
 _UWFUNCR1(int, pmemobj_check, *path, const char *layout)
+
+void pmemobj_set_user_data(PMEMobjpool *pop, void *data);
+void *pmemobj_get_user_data(PMEMobjpool *pop);
 ```
 
 _UNICODE()
@@ -152,6 +156,10 @@ The _UW(pmemobj_check) function performs a consistency check of the file
 indicated by *path*. _UW(pmemobj_check) opens the given *path* read-only so
 it never makes any changes to the file. This function is not supported on
 Device DAX.
+
+The **pmemobj_set_user_data**() function allows to associate volatile pointer to
+user data with PMEMobjpool object. This pointer can be later obtained using
+ **pmemobj_get_user_data**() function.
 
 # RETURN VALUE #
 
