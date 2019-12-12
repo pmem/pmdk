@@ -42,21 +42,26 @@ import futils
 
 
 class Granularity(metaclass=ctx.CtxType):
-    gran_detecto_arg, config_dir_field, force_key = None, None, None
+    gran_detecto_arg = None
+    config_dir_field = None
+    config_force_field = None
+    force_env = None
 
     def __init__(self, **kwargs):
         futils.set_kwargs_attrs(self, kwargs)
         self.config = configurator.Configurator().config
-        self.dir = os.path.abspath(getattr(self.config, self.config_dir_field))
-        self.testdir = os.path.join(self.dir, self.tc_dirname)
-        self.force = kwargs[self.force_key]
+        dir_ = os.path.abspath(getattr(self.config, self.config_dir_field))
+        self.testdir = os.path.join(dir_, self.tc_dirname)
+        force = getattr(self.config, self.config_force_field)
+        if force:
+            self.env = {'PMEM2_FORCE_GRANULARITY': self.force_env}
 
     def setup(self, tools=None):
         if not os.path.exists(self.testdir):
             os.makedirs(self.testdir)
 
         check_page = tools.gran_detecto(self.testdir, self.gran_detecto_arg)
-        if not self.force and check_page.returncode != 0:
+        if check_page.returncode != 0:
             msg = check_page.stdout
             detect = tools.gran_detecto(self.testdir, '-d')
             msg = '{}{}{}'.format(os.linesep, msg, detect.stdout)
@@ -106,9 +111,6 @@ class Granularity(metaclass=ctx.CtxType):
         filtered = [f for f in filtered if f.testdir_defined(config)]
 
         kwargs['tc_dirname'] = tc.tc_dirname
-        kwargs['force_page'] = config.force_page
-        kwargs['force_cacheline'] = config.force_cacheline
-        kwargs['force_byte'] = config.force_byte
 
         if len(filtered) > 1 and req_gran == _CACHELINE_OR_LESS or \
            req_gran == _PAGE_OR_LESS:
@@ -133,19 +135,22 @@ class Granularity(metaclass=ctx.CtxType):
 
 class Page(Granularity):
     config_dir_field = 'page_fs_dir'
-    force_key = 'force_page'
+    config_force_field = 'force_page'
+    force_env = 'PAGE'
     gran_detecto_arg = '-p'
 
 
 class CacheLine(Granularity):
     config_dir_field = 'cacheline_fs_dir'
-    force_key = 'force_cacheline'
+    config_force_field = 'force_cacheline'
+    force_env = 'CACHE_LINE'
     gran_detecto_arg = '-c'
 
 
 class Byte(Granularity):
     config_dir_field = 'byte_fs_dir'
-    force_key = 'force_byte'
+    config_force_field = 'force_byte'
+    force_env = 'BYTE'
     gran_detecto_arg = '-b'
 
 
