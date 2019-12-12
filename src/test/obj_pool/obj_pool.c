@@ -46,6 +46,8 @@
 
 #define MB ((size_t)1 << 20)
 
+#define USER_DATA_V 123456789ULL
+
 static void
 pool_create(const char *path, const char *layout, size_t poolsize,
 	unsigned mode)
@@ -55,6 +57,10 @@ pool_create(const char *path, const char *layout, size_t poolsize,
 	if (pop == NULL)
 		UT_OUT("!%s: pmemobj_create: %s", path, pmemobj_errormsg());
 	else {
+		/* Test pmemobj_(get/set)_user data */
+		pmemobj_set_user_data(pop, (void *) USER_DATA_V);
+		UT_ASSERT((void *) USER_DATA_V == pmemobj_get_user_data(pop));
+
 		os_stat_t stbuf;
 		STAT(path, &stbuf);
 

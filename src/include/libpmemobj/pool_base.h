@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2017, Intel Corporation
+ * Copyright 2014-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -117,6 +117,16 @@ PMEMoid pmemobj_root_construct(PMEMobjpool *pop, size_t size,
  * size.
  */
 size_t pmemobj_root_size(PMEMobjpool *pop);
+
+/*
+ * Sets volatile pointer to the user data for specified pool.
+ */
+void pmemobj_set_user_data(PMEMobjpool *pop, void *data);
+
+/*
+ * Gets volatile pointer to the user data for specified pool.
+ */
+void *pmemobj_get_user_data(PMEMobjpool *pop);
 
 #ifdef __cplusplus
 }

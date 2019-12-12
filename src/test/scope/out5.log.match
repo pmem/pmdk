@@ -24,6 +24,7 @@ $(OPT)pmemobj_fault_injection_enabled
 pmemobj_first
 pmemobj_flush
 pmemobj_free
+pmemobj_get_user_data
 $(OPT)pmemobj_inject_fault_at
 pmemobj_list_insert
 pmemobj_list_insert_new
@@ -60,6 +61,7 @@ pmemobj_rwlock_unlock
 pmemobj_rwlock_wrlock
 pmemobj_rwlock_zero
 pmemobj_set_funcs
+pmemobj_set_user_data
 pmemobj_set_value
 pmemobj_strdup
 pmemobj_tx_abort
