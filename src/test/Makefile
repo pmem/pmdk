@@ -143,6 +143,7 @@ OBJ_TESTS = \
 	obj_tx_mt\
 	obj_tx_realloc\
 	obj_tx_strdup\
+	obj_tx_user_data\
 	obj_ulog_size\
 	obj_zones
 
