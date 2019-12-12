@@ -159,11 +159,17 @@ pmem2_device_dax_size_from_stat(const os_stat_t *st, size_t *size)
 
 	unsigned long long tmpsize;
 	tmpsize = strtoull(sizebuf, &endptr, 0);
-	if (endptr == sizebuf || *endptr != '\n' ||
-	    (tmpsize == ULLONG_MAX && errno == ERANGE)) {
+	if (endptr == sizebuf || *endptr != '\n') {
+		ERR("invalid device size format '%s'", sizebuf);
+		errno = olderrno;
+		return PMEM2_E_INVALID_SIZE_FORMAT;
+	}
+
+	if (tmpsize == ULLONG_MAX && errno == ERANGE) {
+		ret = PMEM2_E_ERRNO;
 		ERR("invalid device size '%s'", sizebuf);
 		errno = olderrno;
-		return -ERANGE;
+		return ret;
 	}
 
 	errno = olderrno;

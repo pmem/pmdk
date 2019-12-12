@@ -90,6 +90,9 @@ block device, pipe, or socket.
 * **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a character
 device other than Device DAX.
 
+* **PMEM2\_E\_INVALID\_SIZE\_FORMAT** - kernel query for Device DAX size
+returned data in invalid format.
+
 * -**errno** set by failing **fstat**(2), while trying to validate the file
 descriptor.
 
