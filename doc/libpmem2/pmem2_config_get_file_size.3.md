@@ -52,7 +52,7 @@ date: pmem2 API version 1.0
 #include <libpmem2.h>
 
 struct pmem2_config;
-int pmem2_config_get_file_size(const struct pmem2_config *config, size_t *size);
+int pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size);
 ```
 
 # DESCRIPTION #
@@ -89,6 +89,9 @@ block device, pipe, or socket.
 
 * **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a character
 device other than Device DAX.
+
+* **PMEM2\_E\_INVALID\_SIZE\_FORMAT** - kernel query for Device DAX size
+returned data in invalid format.
 
 * -**errno** set by failing **fstat**(2), while trying to validate the file
 descriptor.
