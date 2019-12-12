@@ -1795,6 +1795,8 @@ obj_open_common(const char *path, const char *layout, unsigned flags, int boot)
 		obj_vg_boot(pop);
 #endif
 
+	pop->user_data = NULL;
+
 	util_poolset_fdclose(set);
 
 	LOG(3, "pop %p", pop);
@@ -2132,6 +2134,30 @@ pmemobj_pool_by_ptr(const void *addr)
 		return NULL;
 
 	return pop;
+}
+
+/*
+ * pmemobj_set_user_data -- sets volatile pointer to the user data for specified
+ * pool
+ */
+void
+pmemobj_set_user_data(PMEMobjpool *pop, void *data)
+{
+	LOG(3, NULL);
+
+	pop->user_data = data;
+}
+
+/*
+ * pmemobj_get_user_data -- gets volatile pointer to the user data for specified
+ * pool
+ */
+void *
+pmemobj_get_user_data(PMEMobjpool *pop)
+{
+	LOG(3, NULL);
+
+	return pop->user_data;
 }
 
 /* arguments for constructor_alloc */
