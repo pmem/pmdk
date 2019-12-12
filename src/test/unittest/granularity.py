@@ -42,7 +42,9 @@ import futils
 
 
 class Granularity(metaclass=ctx.CtxType):
-    gran_detecto_arg, config_dir_field, force_key = None, None, None
+    gran_detecto_arg = None
+    config_dir_field = None
+    force_key, force_env = None, None
 
     def __init__(self, **kwargs):
         futils.set_kwargs_attrs(self, kwargs)
@@ -50,13 +52,15 @@ class Granularity(metaclass=ctx.CtxType):
         self.dir = os.path.abspath(getattr(self.config, self.config_dir_field))
         self.testdir = os.path.join(self.dir, self.tc_dirname)
         self.force = kwargs[self.force_key]
+        if self.force:
+            self.env = {'PMEM2_FORCE_GRANULARITY': self.force_env}
 
     def setup(self, tools=None):
         if not os.path.exists(self.testdir):
             os.makedirs(self.testdir)
 
         check_page = tools.gran_detecto(self.testdir, self.gran_detecto_arg)
-        if not self.force and check_page.returncode != 0:
+        if check_page.returncode != 0:
             msg = check_page.stdout
             detect = tools.gran_detecto(self.testdir, '-d')
             msg = '{}{}{}'.format(os.linesep, msg, detect.stdout)
@@ -134,18 +138,21 @@ class Granularity(metaclass=ctx.CtxType):
 class Page(Granularity):
     config_dir_field = 'page_fs_dir'
     force_key = 'force_page'
+    force_env = 'PAGE'
     gran_detecto_arg = '-p'
 
 
 class CacheLine(Granularity):
     config_dir_field = 'cacheline_fs_dir'
     force_key = 'force_cacheline'
+    force_env = 'CACHE_LINE'
     gran_detecto_arg = '-c'
 
 
 class Byte(Granularity):
     config_dir_field = 'byte_fs_dir'
     force_key = 'force_byte'
+    force_env = 'BYTE'
     gran_detecto_arg = '-b'
 
 

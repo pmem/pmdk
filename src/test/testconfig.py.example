@@ -31,8 +31,6 @@ config = {
     # Enforce that the library will act in accordance with
     # page granularity, even if the underlying filesystem is not page
     # granular.
-    # XXX: currently, this enforcement does nothing more than omitting
-    # the test directory granularity check.
     #
 
     'force_page': False,
@@ -50,8 +48,6 @@ config = {
     # Enforce that the library will act in accordance with
     # cache line granularity, even if the underlying filesystem is not
     # cache line granular.
-    # XXX: currently, this enforcement does nothing more than omitting
-    # the test directory granularity check.
     #
 
     'force_cacheline': False,
@@ -69,8 +65,6 @@ config = {
     # Enforce that the library will act in accordance with
     # byte granularity, even if the underlying filesystem is not byte
     # granular.
-    # XXX: currently, this enforcement does nothing more than omitting
-    # the test directory granularity check.
     #
 
     'force_byte': False,
