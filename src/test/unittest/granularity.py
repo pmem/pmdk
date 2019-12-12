@@ -96,6 +96,8 @@ class Granularity(metaclass=ctx.CtxType):
             tmp_req_gran = [Byte, CacheLine]
         elif req_gran == _PAGE_OR_LESS:
             tmp_req_gran = [Byte, CacheLine, Page]
+        elif req_gran == ctx.Any:
+            tmp_req_gran = [ctx.Any.get(config.granularity), ]
         else:
             tmp_req_gran = req_gran
 
@@ -188,6 +190,7 @@ class _Granularity(Enum):
     BYTE = [Byte, ]
     CL_OR_LESS = _CACHELINE_OR_LESS
     PAGE_OR_LESS = _PAGE_OR_LESS
+    ANY = ctx.Any
 
 
 PAGE = _Granularity.PAGE
@@ -195,6 +198,7 @@ CACHELINE = _Granularity.CACHELINE
 BYTE = _Granularity.BYTE
 CL_OR_LESS = _Granularity.CL_OR_LESS
 PAGE_OR_LESS = _Granularity.PAGE_OR_LESS
+ANY = _Granularity.ANY
 
 
 def require_granularity(granularity, **kwargs):
