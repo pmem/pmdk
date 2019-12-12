@@ -90,6 +90,9 @@ int pmemobj_tx_xlog_append_buffer(enum pobj_log_type type, void *addr, size_t si
 int pmemobj_tx_log_auto_alloc(enum pobj_log_type type, int on_off);
 size_t pmemobj_tx_log_snapshots_max_size(size_t *sizes, size_t nsizes);
 size_t pmemobj_tx_log_intents_max_size(size_t nintents);
+
+void pmemobj_tx_set_user_data(void *data);
+void *pmemobj_tx_get_user_data(void);
 ```
 
 # DESCRIPTION #
@@ -421,6 +424,10 @@ both inside and outside of transaction.
 It can be used to verify that the buffer set with
 **pmemobj_tx_log_append_buffer**() is big enough to hold the log, without
 reaching out-of-space scenario.
+
+**pmemobj_tx_set_user_data**() sets pointer to user data for the current
+transaction. This pointer can be later obtained by calling
+**pmemobj_tx_get_user_data**()
 
 # RETURN VALUE #
 
