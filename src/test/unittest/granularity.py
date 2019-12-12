@@ -42,12 +42,14 @@ import futils
 
 
 class Granularity(metaclass=ctx.CtxType):
-    gran_detecto_arg = None
+    gran_detecto_arg, config_dir_field, force_key = None, None, None
 
     def __init__(self, **kwargs):
         futils.set_kwargs_attrs(self, kwargs)
         self.config = configurator.Configurator().config
-        self.force = False
+        self.dir = os.path.abspath(getattr(self.config, self.config_dir_field))
+        self.testdir = os.path.join(self.dir, self.tc_dirname)
+        self.force = kwargs[self.force_key]
 
     def setup(self, tools=None):
         if not os.path.exists(self.testdir):
@@ -63,6 +65,21 @@ class Granularity(metaclass=ctx.CtxType):
 
     def clean(self, *args, **kwargs):
         shutil.rmtree(self.testdir, ignore_errors=True)
+
+    @classmethod
+    def testdir_defined(cls, config):
+        """
+        Check if test directory used by specific granularity setup
+        is defined by test configuration
+        """
+        try:
+            getattr(config, cls.config_dir_field)
+        except futils.Skip as s:
+            msg = futils.Message(config.unittest_log_level)
+            msg.print_verbose(s)
+            return False
+        else:
+            return True
 
     @classmethod
     def filter(cls, config, msg, tc):
@@ -84,6 +101,15 @@ class Granularity(metaclass=ctx.CtxType):
 
         filtered = ctx.filter_contexts(config.granularity, tmp_req_gran)
 
+        # remove granularities if respective test directories in
+        # test config are not defined
+        filtered = [f for f in filtered if f.testdir_defined(config)]
+
+        kwargs['tc_dirname'] = tc.tc_dirname
+        kwargs['force_page'] = config.force_page
+        kwargs['force_cacheline'] = config.force_cacheline
+        kwargs['force_byte'] = config.force_byte
+
         if len(filtered) > 1 and req_gran == _CACHELINE_OR_LESS or \
            req_gran == _PAGE_OR_LESS:
 
@@ -94,11 +120,6 @@ class Granularity(metaclass=ctx.CtxType):
             # take the smallest available granularity
             filtered.sort(key=order_by_smallest)
             filtered = [filtered[0], ]
-
-        kwargs['tc_dirname'] = tc.tc_dirname
-        kwargs['force_page'] = config.force_page
-        kwargs['force_cacheline'] = config.force_cacheline
-        kwargs['force_byte'] = config.force_byte
 
         gs = []
         for g in filtered:
@@ -111,30 +132,21 @@ class Granularity(metaclass=ctx.CtxType):
 
 
 class Page(Granularity):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.gran_detecto_arg = '-p'
-        self.dir = os.path.abspath(self.config.page_fs_dir)
-        self.testdir = os.path.join(self.dir, self.tc_dirname)
-        self.force = kwargs['force_page']
+    config_dir_field = 'page_fs_dir'
+    force_key = 'force_page'
+    gran_detecto_arg = '-p'
 
 
 class CacheLine(Granularity):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.gran_detecto_arg = '-c'
-        self.dir = os.path.abspath(self.config.cacheline_fs_dir)
-        self.testdir = os.path.join(self.dir, self.tc_dirname)
-        self.force = kwargs['force_cacheline']
+    config_dir_field = 'cacheline_fs_dir'
+    force_key = 'force_cacheline'
+    gran_detecto_arg = '-c'
 
 
 class Byte(Granularity):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.gran_detecto_arg = '-b'
-        self.dir = os.path.abspath(self.config.byte_fs_dir)
-        self.testdir = os.path.join(self.dir, self.tc_dirname)
-        self.force = kwargs['force_byte']
+    config_dir_field = 'byte_fs_dir'
+    force_key = 'force_byte'
+    gran_detecto_arg = '-b'
 
 
 class Non(Granularity):
@@ -144,6 +156,9 @@ class Non(Granularity):
     accessing some fields of this class is prohibited.
     """
     explicit = True
+
+    def __init__(self, **kwargs):
+        pass
 
     def setup(self, tools=None):
         pass
