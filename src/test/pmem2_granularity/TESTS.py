@@ -57,6 +57,12 @@ class PMEM2_GRANULARITY(t.BaseTest):
             self.cwd,
             "linux_eadr_paths/eadr_available/sys/bus/nd/devices/")
 
+        # Testframework may set this variable to emulate the certain type of
+        # granularity.
+        # This test mocks all granularity checks but they are skipped if
+        # granularity is forced so this test requires unforced granularity.
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = '0'
+
         if self.available_granularity == Granularity.BYTE:
             ctx.env['IS_EADR'] = '1'
             ctx.env['IS_PMEM'] = '1'
