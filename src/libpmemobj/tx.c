@@ -69,6 +69,8 @@ struct tx {
 	void *stage_callback_arg;
 
 	int first_snapshot;
+
+	void *user_data;
 };
 
 /*
@@ -2044,6 +2046,34 @@ pmemobj_tx_log_intents_max_size(size_t nintents)
 err_overflow:
 	errno = ERANGE;
 	return SIZE_MAX;
+}
+
+/*
+ * pmemobj_tx_set_user_data -- sets pointer to the user data
+ */
+void
+pmemobj_tx_set_user_data(void *data)
+{
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	tx->user_data = data;
+}
+
+/*
+ * pmemobj_tx_get_user_data -- gets pointer to the user data
+ */
+void *
+pmemobj_tx_get_user_data(void)
+{
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	return tx->user_data;
 }
 
 /*
