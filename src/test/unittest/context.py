@@ -415,23 +415,18 @@ def str_to_ctx_common(val, ctx_base_type):
         return expand(class_from_string(val, ctx_base_type))
 
 
-class _Requirements:
+def _req_prefix(attr):
     """
-    The class used for storing requirements for the test case. Should be
-    referred to through 'add_requirement()' and 'get_requirement()'
-    rather than directly.
+    Add prefix to requirement attribute name. Used to mitigate the risk
+    of name clashes.
     """
-    pass
+    return '_require{}'.format(attr)
 
 
 def add_requirement(tc, attr, value, **kwargs):
     """Add requirement to the test"""
-    if not hasattr(tc, '_requirements'):
-        # initialize new requirements storage class if not present
-        tc._requirements = _Requirements()
-
-    setattr(tc._requirements, attr, value)
-    setattr(tc._requirements, '{}_kwargs'.format(attr), kwargs)
+    setattr(tc, _req_prefix(attr), value)
+    setattr(tc, _req_prefix('{}_kwargs'.format(attr)), kwargs)
 
 
 def get_requirement(tc, attr, default):
@@ -442,8 +437,8 @@ def get_requirement(tc, attr, default):
     ret_val = default
     ret_kwargs = {}
     try:
-        ret_val = getattr(tc._requirements, attr)
-        ret_kwargs = getattr(tc._requirements, '{}_kwargs'.format(attr))
+        ret_val = getattr(tc, _req_prefix(attr))
+        ret_kwargs = getattr(tc, _req_prefix('{}_kwargs'.format(attr)))
     except AttributeError:
         pass
 
