@@ -59,7 +59,6 @@ class TEST1(t.Test):
 
 
 @t.require_valgrind_disabled('memcheck')
-@t.require_granularity(t.CL_OR_LESS)
 class TEST2(t.Test):
     test_type = t.Medium
 
