@@ -41,6 +41,9 @@
     <ClCompile Include="..\pmem_has_auto_flush_win\mocks_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem2\errormsg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\unittest\ut_pmem2_utils.h">

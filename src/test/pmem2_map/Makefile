@@ -40,7 +40,7 @@ vpath %.c $(TOP)/src/libpmem2
 
 INCS += -I$(TOP)/src/libpmem2
 TARGET = pmem2_map
-OBJS += libpmem2.o\
+OBJS += errormsg.o\
 	map_posix.o\
 	map.o\
 	pmem2_map.o\

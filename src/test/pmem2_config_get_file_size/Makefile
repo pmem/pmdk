@@ -41,7 +41,7 @@ vpath %.c $(TOP)/src/libpmem2
 
 INCS += -I$(TOP)/src/libpmem2
 TARGET = pmem2_config_get_file_size
-OBJS += libpmem2.o\
+OBJS += errormsg.o\
 	pmem2_config_get_file_size.o\
 	ut_pmem2_config.o\
 	ut_pmem2_utils.o
