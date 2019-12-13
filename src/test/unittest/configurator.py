@@ -277,6 +277,8 @@ class Configurator():
                             'e.g.: 0-2,5 will execute TEST0, '
                             'TEST1, TEST2 and TEST5',
                             default='')
+        parser.add_argument('-ls', dest='list_tests', help='list tests with '
+                            'possible configurations', action='store_true')
 
         tracers = parser.add_mutually_exclusive_group()
         tracers.add_argument('--tracer', dest='tracer', help='run C binary '

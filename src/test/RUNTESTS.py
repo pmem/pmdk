@@ -89,6 +89,8 @@ class TestRunner:
                         if t.enabled:
                             self.msg.print('{}: SETUP\t({}/{})'
                                            .format(t, t.test_type, c))
+                            if self.config.list_tests:
+                                continue
                             t._execute(c)
                         else:
                             continue
