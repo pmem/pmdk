@@ -43,6 +43,7 @@ class Granularity(Enum):
     PAGE = 3
 
 
+@t.require_granularity(t.ANY)
 class PMEM2_GRANULARITY(t.BaseTest):
     test_type = t.Short
     available_granularity = None
@@ -56,6 +57,12 @@ class PMEM2_GRANULARITY(t.BaseTest):
         bus_dev_path_with_eADR = os.path.join(
             self.cwd,
             "linux_eadr_paths/eadr_available/sys/bus/nd/devices/")
+
+        # Testframework may set this variable to emulate the certain type of
+        # granularity.
+        # This test mocks all granularity checks but they are skipped if
+        # granularity is forced so this test requires unforced granularity.
+        ctx.env['PMEM2_FORCE_GRANULARITY'] = '0'
 
         if self.available_granularity == Granularity.BYTE:
             ctx.env['IS_EADR'] = '1'

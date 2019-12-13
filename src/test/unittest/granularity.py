@@ -43,18 +43,25 @@ import futils
 
 class Granularity(metaclass=ctx.CtxType):
     gran_detecto_arg = None
+    config_dir_field = None
+    config_force_field = None
+    force_env = None
 
     def __init__(self, **kwargs):
         futils.set_kwargs_attrs(self, kwargs)
         self.config = configurator.Configurator().config
-        self.force = False
+        dir_ = os.path.abspath(getattr(self.config, self.config_dir_field))
+        self.testdir = os.path.join(dir_, self.tc_dirname)
+        force = getattr(self.config, self.config_force_field)
+        if force:
+            self.env = {'PMEM2_FORCE_GRANULARITY': self.force_env}
 
     def setup(self, tools=None):
         if not os.path.exists(self.testdir):
             os.makedirs(self.testdir)
 
         check_page = tools.gran_detecto(self.testdir, self.gran_detecto_arg)
-        if not self.force and check_page.returncode != 0:
+        if check_page.returncode != 0:
             msg = check_page.stdout
             detect = tools.gran_detecto(self.testdir, '-d')
             msg = '{}{}{}'.format(os.linesep, msg, detect.stdout)
@@ -63,6 +70,21 @@ class Granularity(metaclass=ctx.CtxType):
 
     def clean(self, *args, **kwargs):
         shutil.rmtree(self.testdir, ignore_errors=True)
+
+    @classmethod
+    def testdir_defined(cls, config):
+        """
+        Check if test directory used by specific granularity setup
+        is defined by test configuration
+        """
+        try:
+            getattr(config, cls.config_dir_field)
+        except futils.Skip as s:
+            msg = futils.Message(config.unittest_log_level)
+            msg.print_verbose(s)
+            return False
+        else:
+            return True
 
     @classmethod
     def filter(cls, config, msg, tc):
@@ -79,10 +101,18 @@ class Granularity(metaclass=ctx.CtxType):
             tmp_req_gran = [Byte, CacheLine]
         elif req_gran == _PAGE_OR_LESS:
             tmp_req_gran = [Byte, CacheLine, Page]
+        elif req_gran == ctx.Any:
+            tmp_req_gran = [ctx.Any.get(config.granularity), ]
         else:
             tmp_req_gran = req_gran
 
         filtered = ctx.filter_contexts(config.granularity, tmp_req_gran)
+
+        # remove granularities if respective test directories in
+        # test config are not defined
+        filtered = [f for f in filtered if f.testdir_defined(config)]
+
+        kwargs['tc_dirname'] = tc.tc_dirname
 
         if len(filtered) > 1 and req_gran == _CACHELINE_OR_LESS or \
            req_gran == _PAGE_OR_LESS:
@@ -95,11 +125,6 @@ class Granularity(metaclass=ctx.CtxType):
             filtered.sort(key=order_by_smallest)
             filtered = [filtered[0], ]
 
-        kwargs['tc_dirname'] = tc.tc_dirname
-        kwargs['force_page'] = config.force_page
-        kwargs['force_cacheline'] = config.force_cacheline
-        kwargs['force_byte'] = config.force_byte
-
         gs = []
         for g in filtered:
             try:
@@ -111,30 +136,24 @@ class Granularity(metaclass=ctx.CtxType):
 
 
 class Page(Granularity):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.gran_detecto_arg = '-p'
-        self.dir = os.path.abspath(self.config.page_fs_dir)
-        self.testdir = os.path.join(self.dir, self.tc_dirname)
-        self.force = kwargs['force_page']
+    config_dir_field = 'page_fs_dir'
+    config_force_field = 'force_page'
+    force_env = 'PAGE'
+    gran_detecto_arg = '-p'
 
 
 class CacheLine(Granularity):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.gran_detecto_arg = '-c'
-        self.dir = os.path.abspath(self.config.cacheline_fs_dir)
-        self.testdir = os.path.join(self.dir, self.tc_dirname)
-        self.force = kwargs['force_cacheline']
+    config_dir_field = 'cacheline_fs_dir'
+    config_force_field = 'force_cacheline'
+    force_env = 'CACHE_LINE'
+    gran_detecto_arg = '-c'
 
 
 class Byte(Granularity):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.gran_detecto_arg = '-b'
-        self.dir = os.path.abspath(self.config.byte_fs_dir)
-        self.testdir = os.path.join(self.dir, self.tc_dirname)
-        self.force = kwargs['force_byte']
+    config_dir_field = 'byte_fs_dir'
+    config_force_field = 'force_byte'
+    force_env = 'BYTE'
+    gran_detecto_arg = '-b'
 
 
 class Non(Granularity):
@@ -144,6 +163,9 @@ class Non(Granularity):
     accessing some fields of this class is prohibited.
     """
     explicit = True
+
+    def __init__(self, **kwargs):
+        pass
 
     def setup(self, tools=None):
         pass
@@ -173,6 +195,7 @@ class _Granularity(Enum):
     BYTE = [Byte, ]
     CL_OR_LESS = _CACHELINE_OR_LESS
     PAGE_OR_LESS = _PAGE_OR_LESS
+    ANY = ctx.Any
 
 
 PAGE = _Granularity.PAGE
@@ -180,6 +203,7 @@ CACHELINE = _Granularity.CACHELINE
 BYTE = _Granularity.BYTE
 CL_OR_LESS = _Granularity.CL_OR_LESS
 PAGE_OR_LESS = _Granularity.PAGE_OR_LESS
+ANY = _Granularity.ANY
 
 
 def require_granularity(granularity, **kwargs):

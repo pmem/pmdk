@@ -463,5 +463,12 @@ class Any:
             if c.is_preferred:
                 # pick preferred if found
                 return c
-        # if no preferred is found, pick the first one
-        return conf_ctx[0]
+        # if no preferred is found, pick the first non-explicit one
+        ret = [c for c in conf_ctx if not c.explicit]
+        if ret:
+            return ret[0]
+        else:
+            config = configurator.Configurator().config
+            msg = futils.Message(config.unittest_log_level)
+            msg.print_verbose('No valid "Any" context found')
+            return None
