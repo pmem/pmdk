@@ -14,7 +14,7 @@
     <ClCompile Include="..\..\..\src\test\obj_memops\obj_memops.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ravl.c">
+    <ClCompile Include="..\..\common\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\recycler.c">
