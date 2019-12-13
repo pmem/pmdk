@@ -35,6 +35,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+exclude_ppc64
 
 setup
 
