@@ -277,6 +277,9 @@ class Configurator():
                             'e.g.: 0-2,5 will execute TEST0, '
                             'TEST1, TEST2 and TEST5',
                             default='')
+        parser.add_argument('--list-tests', dest='list_tests', help='list'
+                            ' tests including configurations with which tests'
+                            ' will be run', action='store_true')
 
         tracers = parser.add_mutually_exclusive_group()
         tracers.add_argument('--tracer', dest='tracer', help='run C binary '
