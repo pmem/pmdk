@@ -117,6 +117,10 @@ class BaseTest(metaclass=_TestCase):
         self.ctx = c
 
         try:
+            # pre-execution cleanup
+            self.ctx.clean()
+            self.clean()
+
             self.ctx.setup()
             self.setup()
 
