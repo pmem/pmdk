@@ -76,6 +76,7 @@ test_script:
     'timeout': '4m',
     'build': 'debug',
     'force_enable': None,
+    'device_dax_path': []
     }" | out-file "testconfig.py" -encoding utf8
 
         if ($Env:CONFIGURATION -eq "Debug") {
