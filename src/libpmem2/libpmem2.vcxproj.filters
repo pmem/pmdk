@@ -29,9 +29,6 @@
     <ClCompile Include="..\common\alloc.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\file_windows.c">
-      <Filter>Source Files\common</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\util.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>

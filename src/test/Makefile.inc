@@ -287,16 +287,12 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/map_posix.o\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/debug/common/alloc.o\
-	$(TOP)/src/debug/common/file.o\
-	$(TOP)/src/debug/common/file_posix.o\
+	$(TOP)/src/debug/common/fs_posix.o\
 	$(TOP)/src/debug/common/os_posix.o\
 	$(TOP)/src/debug/common/os_thread_posix.o\
+	$(TOP)/src/debug/common/out.o\
 	$(TOP)/src/debug/common/util.o\
-	$(TOP)/src/debug/common/mmap.o\
-	$(TOP)/src/debug/common/mmap_posix.o\
-	$(TOP)/src/debug/common/util_posix.o\
-	$(TOP)/src/debug/common/fs_posix.o\
-	$(TOP)/src/debug/common/out.o
+	$(TOP)/src/debug/common/util_posix.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
@@ -328,16 +324,12 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/memops_generic.o\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/nondebug/common/alloc.o\
-	$(TOP)/src/nondebug/common/file.o\
-	$(TOP)/src/nondebug/common/file_posix.o\
+	$(TOP)/src/nondebug/common/fs_posix.o\
 	$(TOP)/src/nondebug/common/os_posix.o\
 	$(TOP)/src/nondebug/common/os_thread_posix.o\
+	$(TOP)/src/nondebug/common/out.o\
 	$(TOP)/src/nondebug/common/util.o\
-	$(TOP)/src/nondebug/common/mmap.o\
-	$(TOP)/src/nondebug/common/mmap_posix.o\
-	$(TOP)/src/nondebug/common/util_posix.o\
-	$(TOP)/src/nondebug/common/fs_posix.o\
-	$(TOP)/src/nondebug/common/out.o
+	$(TOP)/src/nondebug/common/util_posix.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
