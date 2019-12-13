@@ -376,6 +376,12 @@ out_common(const char *file, int line, const char *func, int level,
 	const char *sep = "";
 	char errstr[UTIL_MAX_ERR_MSG] = "";
 
+	unsigned long last_error = 0;
+#ifdef _WIN32
+	if (fmt && fmt[0] == '!' && fmt[1] == '!')
+		last_error = GetLastError();
+#endif
+
 	if (file) {
 		char *f = strrchr(file, OS_DIR_SEPARATOR);
 		if (f)
@@ -396,9 +402,17 @@ out_common(const char *file, int line, const char *func, int level,
 
 	if (fmt) {
 		if (*fmt == '!') {
-			fmt++;
 			sep = ": ";
-			util_strerror(errno, errstr, UTIL_MAX_ERR_MSG);
+			fmt++;
+			if (*fmt == '!') {
+				fmt++;
+				/* it will abort on non Windows OS */
+				util_strwinerror(last_error, errstr,
+					UTIL_MAX_ERR_MSG);
+			} else {
+				util_strerror(oerrno, errstr, UTIL_MAX_ERR_MSG);
+			}
+
 		}
 		ret = Vsnprintf(&buf[cc], MAXPRINT - cc, fmt, ap);
 		if (ret < 0) {
