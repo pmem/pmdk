@@ -87,6 +87,10 @@ class TestRunner:
                     try:
                         t = tc()
                         if t.enabled:
+                            if self.config.list_tests:
+                                self.msg.print('{}:\t({}/{})'
+                                               .format(t, t.test_type, c))
+                                continue
                             self.msg.print('{}: SETUP\t({}/{})'
                                            .format(t, t.test_type, c))
                             t._execute(c)
