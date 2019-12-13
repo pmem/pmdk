@@ -48,6 +48,7 @@ SOURCE =\
 	libpmem2.c\
 	config.c\
 	config_posix.c\
+	errormsg.c\
 	memops_generic.c\
 	pmem2.c\
 	map.c\

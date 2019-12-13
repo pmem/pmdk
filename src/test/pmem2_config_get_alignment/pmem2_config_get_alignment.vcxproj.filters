@@ -14,7 +14,7 @@
     <ClCompile Include="pmem2_config_get_alignment.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem2\libpmem2.c">
+    <ClCompile Include="..\..\libpmem2\errormsg.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem2\config.c">

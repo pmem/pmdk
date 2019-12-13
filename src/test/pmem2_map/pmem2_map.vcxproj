@@ -77,7 +77,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\libpmem2\config.c" />
-    <ClCompile Include="..\..\libpmem2\libpmem2.c" />
+    <ClCompile Include="..\..\libpmem2\errormsg.c" />
 	<ClCompile Include="..\..\libpmem2\map.c" />
     <ClCompile Include="..\..\libpmem2\map_windows.c" />
     <ClCompile Include="..\..\libpmem2\pmem2_utils.c" />
