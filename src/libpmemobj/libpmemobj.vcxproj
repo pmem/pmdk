@@ -22,7 +22,7 @@
     <ClCompile Include="..\..\src\libpmemobj\obj.c" />
     <ClCompile Include="..\..\src\libpmemobj\palloc.c" />
     <ClCompile Include="..\..\src\libpmemobj\pmalloc.c" />
-    <ClCompile Include="..\..\src\libpmemobj\ravl.c" />
+    <ClCompile Include="..\common\ravl.c" />
     <ClCompile Include="..\..\src\libpmemobj\ulog.c" />
     <ClCompile Include="..\..\src\libpmemobj\sync.c" />
     <ClCompile Include="..\..\src\libpmemobj\tx.c" />
@@ -82,7 +82,7 @@
     <ClInclude Include="..\..\src\libpmemobj\pmalloc.h" />
     <ClInclude Include="..\..\src\libpmemobj\pmemops.h" />
     <ClInclude Include="..\..\src\libpmemobj\redo.h" />
-    <ClInclude Include="..\..\src\libpmemobj\ravl.h" />
+    <ClInclude Include="..\common\ravl.h" />
     <ClInclude Include="..\common\alloc.h" />
     <ClInclude Include="..\common\ctl.h" />
     <ClInclude Include="..\common\ctl_global.h" />

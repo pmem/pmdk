@@ -75,7 +75,7 @@
     <ClCompile Include="..\..\libpmemobj\pmalloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemobj\ravl.c">
+    <ClCompile Include="..\..\common\ravl.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemobj\recycler.c">
@@ -208,7 +208,7 @@
     <ClInclude Include="..\..\libpmemobj\pmemops.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libpmemobj\ravl.h">
+    <ClInclude Include="..\..\common\ravl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libpmemobj\recycler.h">
