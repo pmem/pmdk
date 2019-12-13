@@ -34,6 +34,8 @@
 
 from os.path import join, abspath, dirname
 import os
+import json
+import subprocess as sp
 import sys
 
 
@@ -89,6 +91,64 @@ def get_examples_dir(ctx):
             return abspath(join(WIN_RELEASE_BUILDDIR, 'examples'))
     else:
         return abspath(join(ROOTDIR, '..', 'examples'))
+
+
+class Ndctl:
+    """ndctl CLI handle"""
+    def __init__(self):
+        self.version = self._get_ndctl_version()
+        self.ndctl_list_output = self._get_ndctl_list_output()
+
+    def _get_ndctl_version(self):
+        proc = sp.run(['ndctl', '--version'], stdout=sp.PIPE, stderr=sp.STDOUT)
+        if proc.returncode != 0:
+            raise Fail('checking if ndctl exists failed:{}{}'
+                       .format(os.linesep, proc.stdout))
+
+        version = proc.stdout.strip()
+        return version
+
+    def _get_ndctl_list_output(self):
+        proc = sp.run(['ndctl', 'list'], stdout=sp.PIPE, stderr=sp.STDOUT)
+        if proc.returncode != 0:
+            raise Fail('ndctl list failed:{}{}'.format(os.linesep,
+                                                       proc.stdout))
+
+        ndctl_list_out = json.loads(proc.stdout)
+        return ndctl_list_out
+
+    def _get_dev_info(self, dev_path):
+        dev = None
+        for d in self.ndctl_list_output:
+            if 'chardev' in d and join('/dev', d['chardev']) == dev_path:
+                dev = d
+            elif 'blockdev' in d and \
+                 join('/dev', d['blockdev']) == dev_path:
+                dev = d
+
+        if not dev:
+            raise Fail('Could not found device "{}" with ndctl'
+                       .format(dev_path))
+        return dev
+
+    def _get_dev_param(self, dev_path, param):
+        dev = self._get_dev_info(dev_path)
+        return dev[param]
+
+    def get_dev_size(self, dev_path):
+        return int(self._get_dev_param(dev_path, 'size'))
+
+    def get_dev_alignment(self, dev_path):
+        return int(self._get_dev_param(dev_path, 'align'))
+
+    def get_dev_mode(self, dev_path):
+        return self._get_dev_param(dev_path, 'mode')
+
+    def is_devdax(self, dev_path):
+        return self.get_dev_mode(dev_path) == 'devdax'
+
+    def is_fsdax(self, dev_path):
+        return self.get_dev_mode(dev_path) == 'fsdax'
 
 
 class Color:
@@ -170,3 +230,16 @@ def add_env_common(src, added):
             src[k] = v + os.pathsep + src[k]
         else:
             src.update({k: v})
+
+
+def to_list(var, *types):
+    """
+    Some variables may be provided by the user either as a single instance of
+    a type or a sequence of instances (e. g. a string or list of strings).
+    To be convienently treated by the framework code, their types
+    should be unified - casted to lists.
+    """
+    if isinstance(var, tuple(types)):
+        return [var, ]
+    else:
+        return var
