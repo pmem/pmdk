@@ -61,7 +61,7 @@
     <ClCompile Include="..\libpmemobj\cuckoo.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\libpmemobj\ravl.c">
+    <ClCompile Include="..\common\ravl.c">
       <Filter>pmemobj</Filter>
     </ClCompile>
     <ClCompile Include="..\libpmemobj\bucket.c">

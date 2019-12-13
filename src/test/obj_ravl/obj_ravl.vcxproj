@@ -61,7 +61,7 @@
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpmemobj\ravl.c" />
+    <ClCompile Include="..\..\common\ravl.c" />
     <ClCompile Include="obj_ravl.c" />
   </ItemGroup>
   <ItemGroup>
