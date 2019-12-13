@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2019, IBM Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,22 +31,26 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+#
+# src/test/obj_persist_count/TEST2 -- unit test for persist count
+#
+
 . ../unittest/unittest.sh
 
 require_test_type medium
-exclude_ppc64
+
+require_fs_type non-pmem
+require_build_type debug nondebug
+require_ppc64
+
+# Pmemcheck would complain about making a store without adding to transaction
+# in this test. As the test counts the exact number of pmem_msync calls for
+# sheer transactions, pmemcheck is disabled.
+configure_valgrind pmemcheck force-disable
 
 setup
 
-export PMEM_IS_PMEM_FORCE=1
-
-create_poolset $DIR/testset1 16M:$DIR/testfile1 r 16M:$DIR/testfile2
-
-expect_normal_exit\
-	./obj_heap_state$EXESUFFIX $DIR/testset1
-
-compare_replicas "-soOaAbd -l -Z -H -C" \
-	$DIR/testfile1 $DIR/testfile2 > diff$UNITTEST_NUM.log
+expect_normal_exit ./obj_persist_count$EXESUFFIX $DIR/testfile
 
 check
 
