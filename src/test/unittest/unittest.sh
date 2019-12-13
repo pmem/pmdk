@@ -1076,14 +1076,50 @@ function require_procfs() {
 	exit 0
 }
 
-function get_arch() {
-	gcc -dumpmachine | awk -F'[/-]' '{print $1}'
+#
+# require_arch -- Skip tests if the running platform not matches
+# any of the input list.
+#
+function require_arch() {
+	for i in "$@"; do
+		[[ "$(arch)" == "$i" ]] && return
+	done
+	msg "$UNITTEST_NAME: SKIP: Only supported on $1"
+	exit 0
 }
 
+#
+# exclude_arch -- Skip tests if the running platform matches
+# any of the input list.
+#
+function exclude_arch() {
+	for i in "$@"; do
+		if [[ "$(arch)" == "$i" ]]; then
+			msg "$UNITTEST_NAME: SKIP: Not supported on $1"
+			exit 0
+		fi
+	done
+}
+
+#
+# require_x86_64 -- Skip tests if the running platform is not x86_64
+#
 function require_x86_64() {
-	[ $(get_arch) = "x86_64" ] && return
-	msg "$UNITTEST_NAME: SKIP: Not supported on arch != x86_64"
-	exit 0
+	require_arch x86_64
+}
+
+#
+# require_ppc64 -- Skip tests if the running platform is not ppc64 or ppc64le
+#
+function require_ppc64() {
+	require_arch "ppc64" "ppc64le" "ppc64el"
+}
+
+#
+# exclude_ppc64 -- Skip tests if the running platform is ppc64 or ppc64le
+#
+function exclude_ppc64() {
+	exclude_arch "ppc64" "ppc64le" "ppc64el"
 }
 
 #

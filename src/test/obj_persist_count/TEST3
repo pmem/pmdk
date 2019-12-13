@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2019, IBM Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +32,7 @@
 #
 
 #
-# src/test/obj_persist_count/TEST1 -- unit test for persist count
+# src/test/obj_persist_count/TEST3 -- unit test for persist count
 #
 
 . ../unittest/unittest.sh
@@ -41,7 +41,7 @@ require_test_type medium
 
 require_fs_type pmem
 require_build_type debug nondebug
-exclude_ppc64
+require_ppc64
 
 # Pmemcheck would complain about making a store without adding to transaction
 # in this test. As the test counts the exact number of pmem_persist calls for
