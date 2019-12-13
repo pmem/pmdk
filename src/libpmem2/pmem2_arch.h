@@ -56,9 +56,9 @@ typedef void *(*memset_nodrain_func)(void *pmemdest, int c, size_t len,
 struct pmem2_arch_info {
 	memmove_nodrain_func memmove_nodrain;
 	memset_nodrain_func memset_nodrain;
-	flush_func deep_flush;
+	flush_func flush;
 	fence_func fence;
-	int deep_flush_has_builtin_fence;
+	int flush_has_builtin_fence;
 };
 
 void pmem2_arch_init(struct pmem2_arch_info *info);

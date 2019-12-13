@@ -75,7 +75,7 @@ platform_init(struct pmem2_arch_info *info)
 	LOG(3, "Initializing Platform");
 
 	info->fence = ppc_fence;
-	info->deep_flush = ppc_flush;
+	info->flush = ppc_flush;
 
 	return 0;
 }

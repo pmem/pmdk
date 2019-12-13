@@ -858,9 +858,9 @@ pmem_init(void)
 	struct pmem2_arch_info info;
 	info.memmove_nodrain = NULL;
 	info.memset_nodrain = NULL;
-	info.deep_flush = NULL;
+	info.flush = NULL;
 	info.fence = NULL;
-	info.deep_flush_has_builtin_fence = 0;
+	info.flush_has_builtin_fence = 0;
 
 	pmem2_arch_init(&info);
 
@@ -909,10 +909,10 @@ pmem_init(void)
 		LOG(3, "Flushing CPU cache");
 	}
 
-	Funcs.deep_flush = info.deep_flush;
+	Funcs.deep_flush = info.flush;
 	if (flush) {
-		Funcs.flush = info.deep_flush;
-		if (info.deep_flush_has_builtin_fence)
+		Funcs.flush = info.flush;
+		if (info.flush_has_builtin_fence)
 			Funcs.fence = fence_empty;
 		else
 			Funcs.fence = info.fence;
