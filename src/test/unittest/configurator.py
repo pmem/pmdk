@@ -199,7 +199,15 @@ class Configurator():
             self._convert_to_usable_types(config)
 
             # Remake dict into class object for convenient fields acquisition
-            return _ConfigFromDict(config)
+            config = _ConfigFromDict(config)
+
+            # device_dax_path may be either a single string with path
+            # or a sequence of paths
+            if sys.platform != 'win32':
+                config.device_dax_path = futils.to_list(config.device_dax_path,
+                                                        str)
+
+            return config
 
         except KeyError as e:
             print("No config field '{}' found. "

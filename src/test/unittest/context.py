@@ -37,6 +37,7 @@ import sys
 import itertools
 import shutil
 import subprocess as sp
+import collections
 
 import configurator
 import futils
@@ -467,3 +468,20 @@ class Any:
             msg = futils.Message(config.unittest_log_level)
             msg.print_verbose('No valid "Any" context found')
             return None
+
+
+class _NoContext(collections.UserList):
+    """
+    May be safely returned by context element class 'filter' method if
+    its items are not required during test execution
+    (e. g. no dax devices required by test)
+    """
+    def __init__(self):
+        self.data = []
+        self.data.append(False)
+
+    def __bool__(self):
+        return False
+
+
+NO_CONTEXT = _NoContext()
