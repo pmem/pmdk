@@ -35,6 +35,7 @@
 import testframework as t
 
 
+@t.no_testdir()
 class TEST0(t.BaseTest):
     test_type = t.Short
 
@@ -53,6 +54,7 @@ class TEST1(t.BaseTest):
 
 
 @t.windows_exclude
+@t.require_granularity(t.ANY)
 class TEST2(t.BaseTest):
     test_type = t.Short
 

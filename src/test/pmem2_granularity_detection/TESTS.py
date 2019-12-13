@@ -36,6 +36,7 @@ import testframework as t
 import futils as f
 
 
+@t.require_granularity(t.ANY)
 class PMEM2_CONFIG(t.BaseTest):
     test_type = t.Short
 

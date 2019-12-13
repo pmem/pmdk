@@ -35,6 +35,7 @@
 import testframework as t
 
 
+@t.no_testdir()
 class TEST0(t.Test):
     test_type = t.Short
 
@@ -64,6 +65,7 @@ class TEST2(t.Test):
 
 # "open" fails for directories
 @t.windows_exclude
+@t.require_granularity(t.ANY)
 class TEST3(t.Test):
     test_type = t.Short
 
