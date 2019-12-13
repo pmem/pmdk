@@ -81,7 +81,7 @@ def parse_lib_linux(ctx, lib, static):
 
 
 def parse_lib_win(ctx, lib, static):
-    dllview = ft.get_test_tool_path(ctx, 'dllview') + '.exe'
+    dllview = ft.get_test_tool_path(ctx.build, 'dllview') + '.exe'
     cmd = [dllview, lib]
     proc = sp.run(cmd, universal_newlines=True,
                   stdout=sp.PIPE, stderr=sp.STDOUT)

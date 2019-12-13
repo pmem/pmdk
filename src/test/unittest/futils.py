@@ -64,9 +64,9 @@ def get_tool_path(ctx, name):
         return abspath(join(ROOTDIR, '..', 'tools', name, name))
 
 
-def get_test_tool_path(ctx, name):
+def get_test_tool_path(build, name):
     if sys.platform == 'win32':
-        if str(ctx.build) == 'debug':
+        if str(build) == 'debug':
             return abspath(join(WIN_DEBUG_BUILDDIR, 'tests', name))
         else:
             return abspath(join(WIN_RELEASE_BUILDDIR, 'tests', name))
