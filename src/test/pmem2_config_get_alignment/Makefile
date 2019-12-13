@@ -41,7 +41,7 @@ vpath %.c $(TOP)/src/libpmem2
 
 INCS += -I$(TOP)/src/libpmem2
 TARGET = pmem2_config_get_alignment
-OBJS += libpmem2.o\
+OBJS += errormsg.o\
 	pmem2_config_get_alignment.o\
 	ut_pmem2_config.o\
 	ut_pmem2_utils.o

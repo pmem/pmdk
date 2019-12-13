@@ -31,41 +31,40 @@
  */
 
 /*
- * libpmem2.c -- pmem2 library constructor & destructor
+ * errormsg.c -- pmem2_errormsg* implementation
  */
 
 #include "libpmem2.h"
-
-#include "pmem2.h"
 #include "out.h"
-#include "util.h"
 
 /*
- * libpmem2_init -- load-time initialization for libpmem2
- *
- * Called automatically by the run-time loader.
+ * pmem2_errormsgU -- return last error message
  */
-ATTR_CONSTRUCTOR
-void
-libpmem2_init(void)
+#ifndef _WIN32
+static inline
+#endif
+const char *
+pmem2_errormsgU(void)
 {
-	util_init();
-	out_init(PMEM2_LOG_PREFIX, PMEM2_LOG_LEVEL_VAR, PMEM2_LOG_FILE_VAR,
-			PMEM2_MAJOR_VERSION, PMEM2_MINOR_VERSION);
-
-	LOG(3, NULL);
+	return out_get_errormsg();
 }
 
+#ifndef _WIN32
 /*
- * libpmem2_fini -- libpmem2 cleanup routine
- *
- * Called automatically when the process terminates.
+ * pmem2_errormsg -- return last error message
  */
-ATTR_DESTRUCTOR
-void
-libpmem2_fini(void)
+const char *
+pmem2_errormsg(void)
 {
-	LOG(3, NULL);
-
-	out_fini();
+	return pmem2_errormsgU();
 }
+#else
+/*
+ * pmem2_errormsgW -- return last error message as wchar_t
+ */
+const wchar_t *
+pmem2_errormsgW(void)
+{
+	return out_get_errormsgW();
+}
+#endif

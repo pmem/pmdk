@@ -23,6 +23,7 @@
     <ClCompile Include="auto_flush_windows.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="config_windows.c" />
+    <ClCompile Include="errormsg.c" />
     <ClCompile Include="pmem2_utils.c" />
 	<ClCompile Include="map.c" />
     <ClCompile Include="map_windows.c" />
