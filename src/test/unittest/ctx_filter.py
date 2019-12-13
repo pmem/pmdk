@@ -41,12 +41,13 @@ import itertools
 import builds
 import futils
 import granularity
+import devdax
 
 import context as ctx
 import valgrind as vg
 
 if sys.platform != 'win32':
-    CTX_TYPES = (vg.Valgrind, granularity.Granularity)
+    CTX_TYPES = (vg.Valgrind, granularity.Granularity, devdax.DevDaxes)
 else:
     CTX_TYPES = (granularity.Granularity, )
 

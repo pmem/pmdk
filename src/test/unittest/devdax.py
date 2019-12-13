@@ -30,25 +30,52 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-"""Test framework public interface"""
+"""Device dax context classes and utilities"""
 
-import sys
-from os import path
-sys.path.insert(1, path.abspath(path.join(path.dirname(__file__), 'unittest')))
+import context as ctx
+import futils
 
-# flake8 issues silenced:
-# E402 - import statements not at the top of the file because of adding
-# directory to path
-# F401, F403 - testframework.py does not use imported names, only passes them
-# down and in most cases needs to pass down all of them - hence import with '*'
 
-from basetest import BaseTest, Test, get_testcases  # noqa: E402, F401
-from context import *  # noqa: E402, F401, F403
-from configurator import *  # noqa: E402, F401, F403
-from valgrind import *  # noqa: E402, F401, F403
-from utils import *  # noqa: E402, F401, F403
-from poolset import *  # noqa: E402, F401, F403
-from builds import *  # noqa: E402, F401, F403
-from granularity import *  # noqa: E402, F401, F403
-from devdax import *  # noqa: E402, F401, F403
-from test_types import *  # noqa: E402, F401, F403
+class DevDax():
+    def __init__(self, name):
+        self.name = name
+        self.path = None
+
+    def __str__(self):
+        return self.name
+
+
+class DevDaxes():
+    def __init__(self, *dax_devices):
+        for dd in dax_devices:
+            setattr(self, dd.name, dd)
+
+    def __str__(self):
+        return 'devdax'
+
+    @classmethod
+    def filter(cls, config, msg, tc):
+
+        dax_devices, _ = ctx.get_requirement(tc, 'devdax', ())
+        if not dax_devices:
+            return ctx.NO_CONTEXT
+
+        if not config.device_dax_path:
+            raise futils.Skip('No dax devices defined in testconfig')
+
+        if len(dax_devices) > len(config.device_dax_path):
+            raise futils.Skip('Not enough dax devices defined in testconfig '
+                              '({} needed)'.format(len(dax_devices)))
+
+        for dd, cddp in zip(dax_devices, config.device_dax_path):
+            dd.path = cddp
+
+        return [DevDaxes(*dax_devices), ]
+
+
+def require_devdax(*dax_devices, **kwargs):
+
+    def wrapped(tc):
+        ctx.add_requirement(tc, 'devdax', tuple(dax_devices), **kwargs)
+        return tc
+    return wrapped
