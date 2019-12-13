@@ -170,3 +170,16 @@ def add_env_common(src, added):
             src[k] = v + os.pathsep + src[k]
         else:
             src.update({k: v})
+
+
+def to_list(var, *types):
+    """
+    Some variables may be provided by the user either as a single instance of
+    a type or a sequence of instances (e. g. a string or list of strings).
+    To be conveniently treated by the framework code, their types
+    should be unified - casted to lists.
+    """
+    if isinstance(var, tuple(types)):
+        return [var, ]
+    else:
+        return var
