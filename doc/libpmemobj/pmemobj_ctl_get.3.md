@@ -328,20 +328,25 @@ naming in the application (e.g. when writing a library that uses libpmemobj).
 The required class identifier will be stored in the `class_id` field of the
 `struct pobj_alloc_class_desc`.
 
-stats.enabled | rw | - | int | int | - | boolean
+stats.enabled | rw | - | enum pobj_stats_enabled | enum pobj_stats_enabled | - |
+string
 
-Enables or disables runtime collection of statistics. Statistics are not
-recalculated after enabling; any operations that occur between disabling and
-re-enabling will not be reflected in subsequent values.
+Enables or disables runtime collection of statistics. There are two types of
+statistics: persistent and transient ones. Persistent statistics survive pool
+restarts, whereas transient ones don't. Statistics are not recalculated after
+enabling; any operations that occur between disabling and re-enabling will not
+be reflected in subsequent values.
 
-Statistics are disabled by default. Enabling them may have non-trivial
-performance impact.
+Only transient statistics are enabled by default. Enabling persistent statistics
+may have non-trivial performance impact.
 
 stats.heap.curr_allocated | r- | - | uint64_t | - | - | -
 
 Reads the number of bytes currently allocated in the heap. If statistics were
 disabled at any time in the lifetime of the heap, this value may be
 inaccurate.
+
+This is a persistent statistic.
 
 stats.heap.run_allocated | r- | - | uint64_t | - | - | -
 
@@ -354,9 +359,9 @@ This is a transient statistic and is rebuilt every time the pool is opened.
 
 stats.heap.run_active | r- | - | uint64_t | - | - | -
 
-Reads the number of bytes currently occupied by all memory blocks occupied by
-runs, including both allocated and free space, i.e., all space that's not
-occupied by huge blocks.
+Reads the number of bytes currently occupied by all run memory blocks, including
+both allocated and free space, i.e., this is all the all space that's not
+occupied by huge allocations.
 
 This value is a sum of all allocated and free run memory. In systems where
 memory is efficiently used, `run_active` should closely track

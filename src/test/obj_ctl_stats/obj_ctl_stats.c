@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 	size_t run_allocated = 0;
 	ret = pmemobj_ctl_get(pop, "stats.heap.run_allocated", &run_allocated);
 	UT_ASSERTeq(ret, 0);
-	UT_ASSERTeq(allocated, run_allocated);
+	UT_ASSERT(run_allocated /* 2 allocs */ > allocated /* 1 alloc */);
 
 	pmemobj_free(&oid);
 
@@ -87,10 +87,9 @@ main(int argc, char *argv[])
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(allocated, 0);
 
-	allocated = 0;
 	ret = pmemobj_ctl_get(pop, "stats.heap.run_allocated", &run_allocated);
 	UT_ASSERTeq(ret, 0);
-	UT_ASSERTeq(allocated, run_allocated);
+	UT_ASSERT(run_allocated /* 2 allocs */ > allocated /* 1 alloc */);
 
 	TX_BEGIN(pop) {
 		oid = pmemobj_tx_alloc(1, 0);
@@ -101,6 +100,27 @@ main(int argc, char *argv[])
 	ret = pmemobj_ctl_get(pop, "stats.heap.curr_allocated", &allocated);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(allocated, oid_size);
+
+	enum pobj_stats_enabled enum_enabled;
+	ret = pmemobj_ctl_get(pop, "stats.enabled", &enum_enabled);
+	UT_ASSERTeq(enabled, POBJ_STATS_ENABLED_BOTH);
+	UT_ASSERTeq(ret, 0);
+
+	run_allocated = 0;
+	ret = pmemobj_ctl_get(pop, "stats.heap.run_allocated", &run_allocated);
+	UT_ASSERTeq(ret, 0);
+
+	enum_enabled = POBJ_STATS_ENABLED_PERSISTENT; /* transient disabled */
+	ret = pmemobj_ctl_set(pop, "stats.enabled", &enum_enabled);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmemobj_alloc(pop, &oid, 1, 0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	size_t tmp = 0;
+	ret = pmemobj_ctl_get(pop, "stats.heap.run_allocated", &tmp);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(tmp, run_allocated); /* shouldn't change */
 
 	pmemobj_close(pop);
 
