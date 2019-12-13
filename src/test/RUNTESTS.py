@@ -126,6 +126,35 @@ class TestRunner:
         self.msg.print('{}: {}PASS{} {}'
                        .format(tc, futils.Color.GREEN, futils.Color.END, tm))
 
+    def list_tests(self):
+        """print all possible tests to run (including context parameters)"""
+        for tc in self.testcases:
+
+            # TODO handle test type inside custom decorator
+            if tc.test_type not in self.config.test_type:
+                continue
+
+            if not tc.enabled:
+                continue
+
+            cf = CtxFilter(self.config, tc)
+
+            try:
+                for c in cf.get_contexts():
+                    try:
+                        t = tc()
+                        if t.enabled:
+                            self.msg.print('{}:\t({}/{})'
+                                           .format(t, t.test_type, c))
+                        else:
+                            continue
+
+                    except futils.Skip as s:
+                        self.msg.print_verbose('{}: SKIP: {}'.format(t, s))
+
+            except futils.Skip as s:
+                self.msg.print_verbose('{}: SKIP: {}'.format(tc, s))
+
 
 def _import_testfiles():
     """
@@ -155,7 +184,11 @@ def main():
                      if path.basename(t.__module__) in config.group]
 
     runner = TestRunner(config, testcases)
-    sys.exit(runner.run_tests())
+
+    if config.list_tests:
+        sys.exit(runner.list_tests())
+    else:
+        sys.exit(runner.run_tests())
 
 
 if __name__ == "__main__":
