@@ -236,9 +236,6 @@ main(int argc, char *argv[])
 	objects = ZALLOC(sizeof(PMEMoid) * MAX_OBJECTS);
 	UT_ASSERTne(objects, NULL);
 
-	int enabled = 1;
-	pmemobj_ctl_set(pop, "stats.enabled", &enabled);
-
 	workloads[w](pop);
 
 	/* this is to trigger global recycling */
