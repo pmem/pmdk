@@ -88,6 +88,7 @@ OBJ_TESTS = \
 	obj_ctl_stats\
 	obj_debug\
 	obj_defrag\
+	obj_defrag_advanced\
 	obj_direct\
 	obj_direct_volatile\
 	obj_extend\
