@@ -9,7 +9,7 @@
       <UniqueIdentifier>{410b2da7-b0a0-4cde-9074-fe5a2223083e}</UniqueIdentifier>
       <Extensions>match</Extensions>
     </Filter>
-    <Filter Include="Test Scripts">
+    <Filter>Test Files</Filter>
       <UniqueIdentifier>{e0bdbab6-d3b6-4139-8bf0-5f4b9de0df8b}</UniqueIdentifier>
       <Extensions>py</Extensions>
     </Filter>
@@ -21,7 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TESTS.py">
-      <Filter>Test Files</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>
 </Project>
