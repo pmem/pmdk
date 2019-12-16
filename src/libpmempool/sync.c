@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1179,7 +1179,9 @@ grant_created_parts_perm(struct pool_set *set, unsigned src_repn,
 	/* get permissions of the first part of the source replica */
 	mode_t src_mode;
 	os_stat_t sb;
-	if (os_stat(PART(REP(set, src_repn), 0)->path, &sb) != 0) {
+	if (REP(set, src_repn)->remote) {
+		src_mode = def_mode;
+	} else if (os_stat(PART(REP(set, src_repn), 0)->path, &sb) != 0) {
 		ERR("cannot check file permissions of %s (replica %u, part %u)",
 				PART(REP(set, src_repn), 0)->path, src_repn, 0);
 		src_mode = def_mode;
