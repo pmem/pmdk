@@ -198,7 +198,7 @@ static inline unsigned
 REPidx(const struct pool_set *set, unsigned r)
 {
 	ASSERTne(set->nreplicas, 0);
-	return (set->nreplicas + r) % set->nreplicas;
+	return r % set->nreplicas;
 }
 
 /* get index of the (r + 1)th replica */
@@ -206,7 +206,7 @@ static inline unsigned
 REPNidx(const struct pool_set *set, unsigned r)
 {
 	ASSERTne(set->nreplicas, 0);
-	return (set->nreplicas + r + 1) % set->nreplicas;
+	return (r + 1) % set->nreplicas;
 }
 
 /* get index of the (r - 1)th replica */
@@ -222,7 +222,7 @@ static inline unsigned
 PARTidx(const struct pool_replica *rep, unsigned p)
 {
 	ASSERTne(rep->nparts, 0);
-	return (rep->nparts + p) % rep->nparts;
+	return p % rep->nparts;
 }
 
 /* get index of the (r + 1)th part */
@@ -230,7 +230,7 @@ static inline unsigned
 PARTNidx(const struct pool_replica *rep, unsigned p)
 {
 	ASSERTne(rep->nparts, 0);
-	return (rep->nparts + p + 1) % rep->nparts;
+	return (p + 1) % rep->nparts;
 }
 
 /* get index of the (r - 1)th part */
@@ -246,7 +246,7 @@ static inline unsigned
 HDRidx(const struct pool_replica *rep, unsigned p)
 {
 	ASSERTne(rep->nhdrs, 0);
-	return (rep->nhdrs + p) % rep->nhdrs;
+	return p % rep->nhdrs;
 }
 
 /* get index of the (r + 1)th part */
@@ -254,7 +254,7 @@ static inline unsigned
 HDRNidx(const struct pool_replica *rep, unsigned p)
 {
 	ASSERTne(rep->nhdrs, 0);
-	return (rep->nhdrs + p + 1) % rep->nhdrs;
+	return (p + 1) % rep->nhdrs;
 }
 
 /* get index of the (r - 1)th part */
