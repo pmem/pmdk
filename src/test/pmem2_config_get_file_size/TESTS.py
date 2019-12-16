@@ -80,11 +80,12 @@ class TEST4(t.Test):
                  ctx.testdir, str(16 * t.MiB))
 
 
-# XXX implement support for Device DAX
-# @t.linux_only
-# class TEST99(t.Test):
-#     test_type = t.Short
-#
-#     def run(self, ctx):
-#         ctx.exec('pmem2_config_get_file_size',
-#                  'normal_file', ctx.ddax, ddaxsize)
+@t.windows_exclude
+@t.require_devdax(t.DevDax('devdax1'))
+class TEST5(t.Test):
+    test_type = t.Short
+
+    def run(self, ctx):
+        dd = ctx.devdaxes.devdax1
+        ctx.exec('pmem2_config_get_file_size',
+                 'normal_file', dd.path, str(dd.size))
