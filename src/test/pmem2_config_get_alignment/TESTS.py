@@ -61,12 +61,14 @@ class TEST2(t.BaseTest):
                  ctx.testdir)
 
 
-# XXX implement support for Device DAX
-# @t.linux_only
-# class TEST99(t.BaseTest):
-#     test_type = t.Short
-#
-#     def run(self, ctx):
-#         ctx.exec('pmem2_config_get_alignment',
-#                  'get_alignment_success', ctx.ddax, ctx.ddax_alignment)
-# We need to know ddax_alignment for that test
+# XXX must be divided into separate requirements (alignment 4k and 2M)
+# at this moment, it can cover only 50% of cases
+@t.windows_exclude
+@t.require_devdax(t.DevDax('devdax1'))
+class TEST3(t.BaseTest):
+    test_type = t.Short
+
+    def run(self, ctx):
+        dd = ctx.devdaxes.devdax1
+        ctx.exec('pmem2_config_get_alignment',
+                 'get_alignment_success', dd.path, str(dd.alignment))
