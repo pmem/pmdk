@@ -44,13 +44,13 @@
 #include "ut_pmem2_config.h"
 #include "config.h"
 
-typedef void (*test_fun)(const char *path);
+typedef void (*test_fun)(const char *path, size_t ref_alignment);
 
 /*
  * test_notset_fd - tests what happens when file descriptor was not set
  */
 static void
-test_notset_fd(const char *ignored_path)
+test_notset_fd(const char *ignored_path, size_t unused)
 {
 	struct pmem2_config cfg;
 	pmem2_config_init(&cfg);
@@ -75,7 +75,7 @@ init_cfg(struct pmem2_config *cfg, int fd)
  * test_get_alignment_success - simply checks returned value
  */
 static void
-test_get_alignment_success(const char *path)
+test_get_alignment_success(const char *path, size_t ref_alignment)
 {
 	int fd = OPEN(path, O_RDWR);
 
@@ -86,7 +86,7 @@ test_get_alignment_success(const char *path)
 	int ret = pmem2_config_get_alignment(&cfg, &alignment);
 
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	UT_ASSERTeq(Ut_mmap_align, alignment);
+	UT_ASSERTeq(ref_alignment, alignment);
 
 	CLOSE(fd);
 }
@@ -95,7 +95,7 @@ test_get_alignment_success(const char *path)
  * test_directory - tests directory path
  */
 static void
-test_directory(const char *dir)
+test_directory(const char *dir, size_t unused)
 {
 	int fd = OPEN(dir, O_RDONLY);
 
@@ -123,17 +123,21 @@ int
 main(int argc, char **argv)
 {
 	START(argc, argv, "pmem2_config_get_alignment");
-	if (argc != 3)
-		UT_FATAL("usage: %s test_case path", argv[0]);
+	if (argc < 3 && argc > 4)
+		UT_FATAL("usage: %s test_case path [alignment]", argv[0]);
 
 	util_init();
 
 	char *test_case = argv[1];
 	char *path = argv[2];
+	size_t ref_alignment = Ut_mmap_align;
+
+	if (argc == 4)
+		ref_alignment = ATOUL(argv[3]);
 
 	for (int i = 0; i < ARRAY_SIZE(list); i++) {
 		if (strcmp(list[i].name, test_case) == 0) {
-			list[i].test(path);
+			list[i].test(path, ref_alignment);
 			goto end;
 		}
 	}
