@@ -78,6 +78,8 @@ class Granularity(metaclass=ctx.CtxType):
         is defined by test configuration
         """
         try:
+            if not cls.config_dir_field:
+                return False
             getattr(config, cls.config_dir_field)
         except futils.Skip as s:
             msg = futils.Message(config.unittest_log_level)
@@ -94,6 +96,11 @@ class Granularity(metaclass=ctx.CtxType):
         """
         req_gran, kwargs = ctx.get_requirement(tc, 'granularity', None)
 
+        # remove granularities if respective test directories in
+        # test config are not defined
+        conf_defined = [c for c in config.granularity
+                        if c.testdir_defined(config)]
+
         if req_gran == Non:
             return [Non(**kwargs), ]
 
@@ -102,15 +109,11 @@ class Granularity(metaclass=ctx.CtxType):
         elif req_gran == _PAGE_OR_LESS:
             tmp_req_gran = [Byte, CacheLine, Page]
         elif req_gran == ctx.Any:
-            tmp_req_gran = [ctx.Any.get(config.granularity), ]
+            tmp_req_gran = [ctx.Any.get(conf_defined), ]
         else:
             tmp_req_gran = req_gran
 
-        filtered = ctx.filter_contexts(config.granularity, tmp_req_gran)
-
-        # remove granularities if respective test directories in
-        # test config are not defined
-        filtered = [f for f in filtered if f.testdir_defined(config)]
+        filtered = ctx.filter_contexts(conf_defined, tmp_req_gran)
 
         kwargs['tc_dirname'] = tc.tc_dirname
 
