@@ -38,6 +38,7 @@ VERSION 1.0
 
 EXPORTS
 	pmem2_config_new
+	pmem2_config_get_alignment
 	pmem2_config_get_file_size
 	pmem2_config_set_fd
 	pmem2_config_set_handle
