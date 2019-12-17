@@ -43,11 +43,13 @@ require_test_type medium
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
+exclude_ppc64
 
 setup
 
+SIZE=$(blk_pool_desc_size)
 # single arena and minimum pmemblk pool file case
-create_nonzeroed_file 17M 8K $DIR/testfile1
+create_nonzeroed_file 17M ${SIZE} $DIR/testfile1
 
 #
 # All reads to an unwritten block pool should return zeros.

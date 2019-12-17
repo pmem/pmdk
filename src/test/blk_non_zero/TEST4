@@ -42,6 +42,7 @@
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
 require_test_type long
+exclude_ppc64
 
 setup
 
