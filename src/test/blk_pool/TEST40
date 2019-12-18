@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # Copyright 2017-2019, Intel Corporation
+# Copyright 2019, IBM Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,20 +33,22 @@
 #
 
 #
-# src/test/blk_pool/TEST33 -- create a pool with the smallest parts
+# src/test/blk_pool/TEST40 -- create a pool with the smallest parts
 # possible
+#
+# This test is equivalent of TEST33 for ppc64le platform.
 #
 
 . ../unittest/unittest.sh
 
 require_test_type medium
-exclude_ppc64
+require_ppc64
 
 setup
 umask 0
 
 #
-# TEST33 non-existing file, poolsize >= min required size, bsize > min bsize
+# TEST40 non-existing file, poolsize >= min required size, bsize > min bsize
 #        part size == min part size (pool set)
 #
 CMD="$DIR/testset"

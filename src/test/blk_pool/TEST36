@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
+# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2019, IBM Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,34 +34,29 @@
 #
 
 #
-# src/test/blk_pool/TEST33 -- create a pool with the smallest parts
-# possible
+# src/test/blk_pool/TEST36 -- unit test for pmemblk_create
+#
+# This test is equivalent of TEST8 for ppc64le platform
 #
 
 . ../unittest/unittest.sh
 
 require_test_type medium
-exclude_ppc64
+require_ppc64
 
 setup
 umask 0
 
-#
-# TEST33 non-existing file, poolsize >= min required size, bsize > min bsize
-#        part size == min part size (pool set)
-#
-CMD="$DIR/testset"
-MIN_PART=$((2 * 1024 * 1024)) # 2MiB
-for i in {1..9}; do
-	CMD="$CMD $MIN_PART:$DIR/testfile$i:x"
-done
-create_poolset $CMD
+create_nonzeroed_file 17M 8K $DIR/testfile
+chmod 0600 $DIR/testfile
 
-expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/testset 100 0 0640
+#
+# TEST36 existing file, file length >= min required size, poolsize == 0
+#       (file contains garbage, except for header)
+#
+expect_normal_exit ./blk_pool$EXESUFFIX c $DIR/testfile 4096 0 0600
 
-check_files $DIR/testset $DIR/testfile1 $DIR/testfile2 $DIR/testfile3 \
-    $DIR/testfile4 $DIR/testfile5 $DIR/testfile6 $DIR/testfile7 $DIR/testfile8 \
-    $DIR/testfile9
+check_files $DIR/testfile
 
 check
 
