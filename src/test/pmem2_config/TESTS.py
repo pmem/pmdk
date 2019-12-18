@@ -43,121 +43,126 @@ class PMEM2_CONFIG(t.Test):
         ctx.exec('pmem2_config', self.test_case, filepath)
 
 
-class TEST0(PMEM2_CONFIG):
+class PMEM2_CONFIG_NO_FILE(PMEM2_CONFIG):
+    def run(self, ctx):
+        ctx.exec('pmem2_config', self.test_case)
+
+
+class TEST0(PMEM2_CONFIG_NO_FILE):
     """allocation and dealocation of pmem2_config"""
-    test_case = "cfg_create_and_delete_valid"
+    test_case = "test_cfg_create_and_delete_valid"
 
 
 class TEST1(PMEM2_CONFIG):
     """setting a read + write file descriptor in pmem2_config"""
-    test_case = "set_rw_fd"
+    test_case = "test_set_rw_fd"
 
 
 class TEST2(PMEM2_CONFIG):
     """setting a read only file descriptor in pmem2_config"""
-    test_case = "set_ro_fd"
+    test_case = "test_set_ro_fd"
 
 
-class TEST3(PMEM2_CONFIG):
+class TEST3(PMEM2_CONFIG_NO_FILE):
     """resetting file descriptor in pmem2_config"""
-    test_case = "set_negative_fd"
+    test_case = "test_set_negative_fd"
 
 
 class TEST4(PMEM2_CONFIG):
     """setting invalid (closed) file descriptor in pmem2_config"""
-    test_case = "set_invalid_fd"
+    test_case = "test_set_invalid_fd"
 
 
 class TEST5(PMEM2_CONFIG):
     """setting a write only file descriptor in pmem2_config"""
-    test_case = "set_wronly_fd"
+    test_case = "test_set_wronly_fd"
 
 
-class TEST6(PMEM2_CONFIG):
+class TEST6(PMEM2_CONFIG_NO_FILE):
     """allocation of pmem2_config in case of missing memory in system"""
-    test_case = "alloc_cfg_enomem"
+    test_case = "test_alloc_cfg_enomem"
 
 
-class TEST7(PMEM2_CONFIG):
+class TEST7(PMEM2_CONFIG_NO_FILE):
     """deleting null pmem2_config"""
-    test_case = "delete_null_config"
+    test_case = "test_delete_null_config"
 
 
-class TEST8(PMEM2_CONFIG):
+class TEST8(PMEM2_CONFIG_NO_FILE):
     """set valid granularity in the config"""
-    test_case = "config_set_granularity_valid"
+    test_case = "test_config_set_granularity_valid"
 
 
-class TEST9(PMEM2_CONFIG):
+class TEST9(PMEM2_CONFIG_NO_FILE):
     """set invalid granularity in the config"""
-    test_case = "config_set_granularity_invalid"
+    test_case = "test_config_set_granularity_invalid"
 
 
 @t.windows_only
 class TEST10(PMEM2_CONFIG):
     """set handle in the config"""
-    test_case = "set_handle"
+    test_case = "test_set_handle"
 
 
 @t.windows_only
-class TEST11(PMEM2_CONFIG):
+class TEST11(PMEM2_CONFIG_NO_FILE):
     """set INVALID_HANLE_VALUE in the config"""
-    test_case = "set_null_handle"
+    test_case = "test_set_null_handle"
 
 
 @t.windows_only
 class TEST12(PMEM2_CONFIG):
     """set invalid handle in the config"""
-    test_case = "set_invalid_handle"
+    test_case = "test_set_invalid_handle"
 
 
 @t.windows_only
 class TEST13(PMEM2_CONFIG):
     """set handle to a directory in the config"""
-    test_case = "set_directory_handle"
+    test_case = "test_set_directory_handle"
 
     def run(self, ctx):
         ctx.exec('pmem2_config', self.test_case, ctx.testdir)
 
 
 @t.windows_only
-class TEST14(PMEM2_CONFIG):
+class TEST14(PMEM2_CONFIG_NO_FILE):
     """set handle to a mutex in the config"""
-    test_case = "set_mutex_handle"
+    test_case = "test_set_mutex_handle"
 
 
 @t.windows_exclude
 class TEST15(PMEM2_CONFIG):
     """set directory's fd in the config"""
-    test_case = "set_directory_fd"
+    test_case = "test_set_directory_fd"
 
     def run(self, ctx):
         ctx.exec('pmem2_config', self.test_case, ctx.testdir)
 
 
-class TEST16(PMEM2_CONFIG):
+class TEST16(PMEM2_CONFIG_NO_FILE):
     """setting offset which is too large"""
-    test_case = "set_offset_too_large"
+    test_case = "test_set_offset_too_large"
 
 
-class TEST17(PMEM2_CONFIG):
+class TEST17(PMEM2_CONFIG_NO_FILE):
     """
     setting offset which is not a multiple of Mmap_align, which is
     memory allocation granularity for Windows or page size for Linux
     """
-    test_case = "set_offset_not_aligned"
+    test_case = "test_set_offset_not_aligned"
 
 
-class TEST18(PMEM2_CONFIG):
+class TEST18(PMEM2_CONFIG_NO_FILE):
     """setting a valid offset"""
-    test_case = "set_offset_success"
+    test_case = "test_set_offset_success"
 
 
-class TEST19(PMEM2_CONFIG):
+class TEST19(PMEM2_CONFIG_NO_FILE):
     """setting a valid length"""
-    test_case = "set_length_success"
+    test_case = "test_set_length_success"
 
 
-class TEST20(PMEM2_CONFIG):
+class TEST20(PMEM2_CONFIG_NO_FILE):
     """setting maximum possible offset"""
-    test_case = "set_offset_max"
+    test_case = "test_set_offset_max"

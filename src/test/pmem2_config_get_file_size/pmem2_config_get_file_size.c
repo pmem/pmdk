@@ -47,21 +47,28 @@
 #include "ut_pmem2_utils.h"
 #include "ut_pmem2_config.h"
 #include "config.h"
+#include "out.h"
 
 typedef void (*test_fun)(const char *path, os_off_t size);
 
 /*
  * test_notset_fd - tests what happens when file descriptor was not set
  */
-static void
-test_notset_fd(const char *ignored_path, os_off_t ignored_size)
+static int
+test_notset_fd(const struct test_case *tc, int argc, char *argv[])
 {
+	if (argc != 1)
+		UT_FATAL("usage: %s test_notset_fd <file>",
+				argv[0]);
+
 	struct pmem2_config cfg;
 	pmem2_config_init(&cfg);
 	size_t size;
 	int ret = pmem2_config_get_file_size(&cfg, &size);
 
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_FILE_HANDLE_NOT_SET);
+
+	return 1;
 }
 
 static void
@@ -78,9 +85,15 @@ init_cfg(struct pmem2_config *cfg, int fd)
 /*
  * test_normal_file - tests normal file
  */
-static void
-test_normal_file(const char *path, os_off_t expected_size)
+static int
+test_normal_file(const struct test_case *tc, int argc, char *argv[])
 {
+	if (argc != 2)
+		UT_FATAL("usage: %s test_normal_file <file> <expected_size>",
+				argv[0]);
+
+	char *path = argv[0];
+	os_off_t expected_size = ATOLL(argv[1]);
 	int fd = OPEN(path, O_RDWR);
 
 	struct pmem2_config cfg;
@@ -93,15 +106,23 @@ test_normal_file(const char *path, os_off_t expected_size)
 	UT_ASSERTeq(size, expected_size);
 
 	CLOSE(fd);
+
+	return 3;
 }
 
 #ifdef O_TMPFILE
 /*
  * test_tmpfile - tests temporary file
  */
-static void
-test_tmpfile(const char *dir, os_off_t requested_size)
+static int
+test_tmpfile(const struct test_case *tc, int argc, char *argv[])
 {
+	if (argc != 2)
+		UT_FATAL("usage: %s test_tmpfile <file> <requested_size>",
+				argv[0]);
+
+	char *dir = argv[0];
+	os_off_t requested_size = ATOLL(argv[1]);
 	int fd = OPEN(dir, O_RDWR | O_TMPFILE);
 	FTRUNCATE(fd, requested_size);
 
@@ -115,15 +136,21 @@ test_tmpfile(const char *dir, os_off_t requested_size)
 	UT_ASSERTeq(size, requested_size);
 
 	CLOSE(fd);
+
+	return 2;
 }
 #endif
 
 /*
  * test_directory - tests directory path
  */
-static void
-test_directory(const char *dir, os_off_t ignored)
+static int
+test_directory(const struct test_case *tc, int argc, char *argv[])
 {
+	if (argc != 1)
+		UT_FATAL("usage: %s test_tmpfile <file>", argv[0]);
+
+	char *dir = argv[0];
 	int fd = OPEN(dir, O_RDONLY);
 
 	struct pmem2_config cfg;
@@ -135,38 +162,34 @@ test_directory(const char *dir, os_off_t ignored)
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_TYPE);
 
 	CLOSE(fd);
+
+	return 1;
 }
 
-static struct test_list {
-	const char *name;
-	test_fun test;
-} list[] = {
-	{"notset_fd", test_notset_fd},
-	{"normal_file", test_normal_file},
+/*
+ * test_cases -- available test cases
+ */
+static struct test_case test_cases[] = {
+	TEST_CASE(test_notset_fd),
+	TEST_CASE(test_normal_file),
 #ifdef O_TMPFILE
-	{"tmp_file", test_tmpfile},
+	TEST_CASE(test_tmpfile),
 #endif
-	{"directory", test_directory},
+	TEST_CASE(test_directory),
 };
+
+#define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
 
 int
 main(int argc, char **argv)
 {
 	START(argc, argv, "pmem2_config_get_file_size");
-	if (argc != 4)
-		UT_FATAL("usage: %s test_case path size", argv[0]);
 
-	char *test_case = argv[1];
-	char *path = argv[2];
-	os_off_t size = ATOLL(argv[3]);
+	util_init();
+	out_init("pmem2_config_get_file_size", "TEST_LOG_LEVEL",
+			"TEST_LOG_FILE", 0, 0);
+	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
+	out_fini();
 
-	for (int i = 0; i < ARRAY_SIZE(list); i++) {
-		if (strcmp(list[i].name, test_case) == 0) {
-			list[i].test(path, size);
-			goto end;
-		}
-	}
-	UT_FATAL("test: %s doesn't exist", test_case);
-end:
 	DONE(NULL);
 }

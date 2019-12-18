@@ -35,29 +35,32 @@
 import testframework as t
 
 
-class TEST0(t.BaseTest):
+class PMEM2_CONFIG_GET_ALIGNMENT(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_alignment', 'notset_fd', 'x')
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile',)
+        ctx.exec('pmem2_config_get_alignment', self.test_case, filepath)
 
 
-class TEST1(t.BaseTest):
-    test_type = t.Short
+class TEST0(PMEM2_CONFIG_GET_ALIGNMENT):
+    test_case = 'test_notset_fd'
 
     def run(self, ctx):
-        size = 16 * t.MiB
-        filepath = ctx.create_holey_file(size, 'testfile')
-        ctx.exec('pmem2_config_get_alignment', 'get_alignment_success',
-                 filepath)
+        filepath = 'x'
+        ctx.exec('pmem2_config_get_alignment', self.test_case, filepath)
+
+
+class TEST1(PMEM2_CONFIG_GET_ALIGNMENT):
+    test_case = 'test_get_alignment_success'
 
 
 @t.windows_exclude
-class TEST2(t.BaseTest):
-    test_type = t.Short
+class TEST2(PMEM2_CONFIG_GET_ALIGNMENT):
+    test_case = 'test_directory'
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_alignment', 'directory',
+        ctx.exec('pmem2_config_get_alignment', self.test_case,
                  ctx.testdir)
 
 
@@ -65,10 +68,10 @@ class TEST2(t.BaseTest):
 # at this moment, it can cover only 50% of cases
 @t.windows_exclude
 @t.require_devdax(t.DevDax('devdax1'))
-class TEST3(t.BaseTest):
-    test_type = t.Short
+class TEST3(PMEM2_CONFIG_GET_ALIGNMENT):
+    test_case = 'test_get_alignment_success'
 
     def run(self, ctx):
         dd = ctx.devdaxes.devdax1
         ctx.exec('pmem2_config_get_alignment',
-                 'get_alignment_success', dd.path, str(dd.alignment))
+                 self.test_case, dd.path, str(dd.alignment))

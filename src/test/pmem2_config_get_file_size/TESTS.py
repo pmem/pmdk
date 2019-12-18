@@ -39,17 +39,16 @@ class TEST0(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_file_size', 'notset_fd', 'x', '0')
+        ctx.exec('pmem2_config_get_file_size', 'test_notset_fd', 'x')
 
 
 class TEST1(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        size = 0
-        filepath = ctx.create_holey_file(size, 'testfile')
-        ctx.exec('pmem2_config_get_file_size', 'normal_file',
-                 filepath, str(size))
+        filepath = ctx.create_holey_file(0, 'testfile')
+        ctx.exec('pmem2_config_get_file_size', 'test_notset_fd',
+                 filepath)
 
 
 class TEST2(t.Test):
@@ -58,7 +57,7 @@ class TEST2(t.Test):
     def run(self, ctx):
         size = 16 * t.MiB
         filepath = ctx.create_holey_file(size, 'testfile')
-        ctx.exec('pmem2_config_get_file_size', 'normal_file',
+        ctx.exec('pmem2_config_get_file_size', 'test_normal_file',
                  filepath, str(size))
 
 
@@ -68,7 +67,8 @@ class TEST3(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_file_size', 'directory', ctx.testdir, '0')
+        ctx.exec('pmem2_config_get_file_size', 'test_directory',
+                 ctx.testdir)
 
 
 @t.linux_only
@@ -76,7 +76,7 @@ class TEST4(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_file_size', 'tmp_file',
+        ctx.exec('pmem2_config_get_file_size', 'test_tmpfile',
                  ctx.testdir, str(16 * t.MiB))
 
 
@@ -88,4 +88,4 @@ class TEST5(t.Test):
     def run(self, ctx):
         dd = ctx.devdaxes.devdax1
         ctx.exec('pmem2_config_get_file_size',
-                 'normal_file', dd.path, str(dd.size))
+                 'test_normal_file', dd.path, str(dd.size))
