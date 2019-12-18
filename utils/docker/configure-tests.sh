@@ -125,6 +125,7 @@ config = {
 	'timeout': '3m',
 	'build': ['debug', 'release'],
 	'force_enable': None,
+	'device_dax_path': []
    }
 EOF
 
