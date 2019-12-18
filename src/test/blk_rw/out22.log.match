@@ -1,0 +1,10 @@
+blk_rw$(nW)TEST22: START: blk_rw
+ $(nW)blk_rw$(nW) 512 $(nW)testset1 c w:0 w:1 r:1 r:0 w:4161096 r:4161096
+512 block size 512 usable blocks 4161097
+write     lba 0: {1}
+write     lba 1: {2}
+read      lba 1: {2}
+read      lba 0: {1}
+write     lba 4161096: {3}
+read      lba 4161096: {3}
+blk_rw$(nW)TEST22: DONE

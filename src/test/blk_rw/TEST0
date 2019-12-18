@@ -39,6 +39,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+exclude_ppc64
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem

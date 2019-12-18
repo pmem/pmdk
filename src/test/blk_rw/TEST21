@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2015-2019, Intel Corporation
+# Copyright 2019, IBM Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,21 +33,23 @@
 #
 
 #
-# src/test/blk_rw/TEST6 -- unit test for pmemblk_read/write/set_zero/set_error
+# src/test/blk_rw/TEST21 -- unit test for pmemblk_read/write/set_zero/set_error
+#
+# This test is equivalent of TEST7 for ppc64le platform.
 #
 
 . ../unittest/unittest.sh
 
-require_test_type medium
-exclude_ppc64
-
-# doesn't make sense to run in local directory
-require_fs_type pmem non-pmem
-
+# long test, run only on pmem
+require_ppc64
+require_fs_type pmem
+require_test_type long
+configure_valgrind pmemcheck force-enable
 setup
 
 # mix writes with set_zero and set_error and check results
-truncate -s 1G $DIR/testfile1
+truncate -s 128M $DIR/testfile1
+
 expect_normal_exit ./blk_rw$EXESUFFIX 512 $DIR/testfile1 c\
 		e:1 r:1\
 		e:2 w:2 r:2\

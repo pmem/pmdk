@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # Copyright 2014-2019, Intel Corporation
+# Copyright 2019, IBM Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,28 +33,34 @@
 #
 
 #
-# src/test/blk_rw/TEST6 -- unit test for pmemblk_read/write/set_zero/set_error
+# src/test/blk_rw/TEST15 -- unit test for pmemblk_read/write/set_zero/set_error
+#
+# This test is equivalent of TEST1 for ppc64le platform.
 #
 
 . ../unittest/unittest.sh
 
 require_test_type medium
-exclude_ppc64
+require_ppc64
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
+require_unlimited_vm
+
+# this test creates huge file
+configure_valgrind force-disable
 
 setup
 
-# mix writes with set_zero and set_error and check results
-truncate -s 1G $DIR/testfile1
+# multi-arena case
+truncate -s 1026G $DIR/testfile1
+#
+# All reads to an unwritten block pool should return zeros.
+# Block 2134997374 is out of range and should return EINVAL.
+# Attempts to zero uninitialized blocks are nops (should succeed).
+#
 expect_normal_exit ./blk_rw$EXESUFFIX 512 $DIR/testfile1 c\
-		e:1 r:1\
-		e:2 w:2 r:2\
-		z:3 e:3 r:3\
-		e:4 z:4 r:4\
-		w:5 e:5 z:5 r:5\
-		w:6 z:6 e:6 r:6
+	r:0 r:1 r:4161480 r:2134997087 r:2134997088 z:0 z:4161480
 
 check_pool $DIR/testfile1
 
