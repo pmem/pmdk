@@ -69,6 +69,8 @@ struct tx {
 	void *stage_callback_arg;
 
 	int first_snapshot;
+
+	void *user_data;
 };
 
 /*
@@ -772,6 +774,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		tx->pop = pop;
 
 		tx->first_snapshot = 1;
+
+		tx->user_data = NULL;
 	} else {
 		FATAL("Invalid stage %d to begin new transaction", tx->stage);
 	}
@@ -2044,6 +2048,38 @@ pmemobj_tx_log_intents_max_size(size_t nintents)
 err_overflow:
 	errno = ERANGE;
 	return SIZE_MAX;
+}
+
+/*
+ * pmemobj_tx_set_user_data -- sets volatile pointer to the user data for the
+ * current transaction
+ */
+void
+pmemobj_tx_set_user_data(void *data)
+{
+	LOG(3, "data %p", data);
+
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+
+	tx->user_data = data;
+}
+
+/*
+ * pmemobj_tx_get_user_data -- gets volatile pointer to the user data associated
+ * with the current transaction
+ */
+void *
+pmemobj_tx_get_user_data(void)
+{
+	LOG(3, NULL);
+
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+
+	return tx->user_data;
 }
 
 /*
