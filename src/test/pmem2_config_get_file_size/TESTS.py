@@ -40,7 +40,7 @@ class TEST0(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_file_size', 'notset_fd', 'x', '0')
+        ctx.exec('pmem2_config_get_file_size', 'test_notset_fd')
 
 
 class NormalFile(t.Test):
@@ -53,24 +53,24 @@ class NormalFile(t.Test):
 
 
 class TEST1(NormalFile):
-    test_case = 'normal_file_fd'
+    test_case = 'test_normal_file_fd'
     size = 0
 
 
 @t.windows_only
 class TEST2(NormalFile):
-    test_case = 'normal_file_handle'
+    test_case = 'test_normal_file_handle'
     size = 0
 
 
 class TEST3(NormalFile):
-    test_case = 'normal_file_fd'
+    test_case = 'test_normal_file_fd'
     size = 16 * t.MiB
 
 
 @t.windows_only
 class TEST4(NormalFile):
-    test_case = 'normal_file_handle'
+    test_case = 'test_normal_file_handle'
     size = 16 * t.MiB
 
 
@@ -80,8 +80,8 @@ class TEST5(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_file_size', 'directory_fd', ctx.testdir,
-                 '0')
+        ctx.exec('pmem2_config_get_file_size', 'test_directory_fd',
+                 ctx.testdir)
 
 
 @t.windows_only
@@ -89,9 +89,8 @@ class TEST6(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_file_size', 'directory_handle', ctx.testdir,
-                 '0')
-
+        ctx.exec('pmem2_config_get_file_size', 'test_directory_handle',
+                 ctx.testdir)
 
 # On Windows fd interface doesn't support temporary files
 # FreeBSD doesn't support O_TMPFILE
@@ -100,7 +99,7 @@ class TEST7(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_file_size', 'tmp_file_fd',
+        ctx.exec('pmem2_config_get_file_size', 'test_tmpfile_fd',
                  ctx.testdir, str(16 * t.MiB))
 
 
@@ -122,4 +121,4 @@ class TEST9(t.Test):
     def run(self, ctx):
         dd = ctx.devdaxes.devdax1
         ctx.exec('pmem2_config_get_file_size',
-                 'normal_file_fd', dd.path, str(dd.size))
+                 'test_normal_file_fd', dd.path, str(dd.size))
