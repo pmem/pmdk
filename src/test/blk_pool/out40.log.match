@@ -1,0 +1,4 @@
+blk_pool$(nW)TEST40: START: blk_pool
+ $(nW)blk_pool$(nW) c $(nW)testset 100 0 0640
+$(nW)testset: file size 768 usable blocks 34996 mode 0666
+blk_pool$(nW)TEST40: DONE

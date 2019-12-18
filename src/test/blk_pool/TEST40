@@ -32,14 +32,16 @@
 #
 
 #
-# src/test/blk_pool/TEST33 -- create a pool with the smallest parts
+# src/test/blk_pool/TEST40 -- create a pool with the smallest parts
 # possible
+#
+# This test is equivalent of TEST33 for ppc64le platform.
 #
 
 . ../unittest/unittest.sh
 
 require_test_type medium
-exclude_ppc64
+require_ppc64
 
 setup
 umask 0
