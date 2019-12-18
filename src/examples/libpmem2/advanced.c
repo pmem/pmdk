@@ -50,13 +50,6 @@
 #include <io.h>
 #endif
 
-/* XXX please remove this when pmem2_config_get_alignment will be ready */
-#ifdef _WIN32
-#define ALIGNMENT (64 * 1024)	/* 64 KiB */
-#else
-#define ALIGNMENT (4 * 1024)	/* 4 KiB */
-#endif
-
 int
 main(int argc, char *argv[])
 {
@@ -95,17 +88,25 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	size_t offset_align = offset % ALIGNMENT;
+	size_t alignment;
+
+	if (pmem2_config_get_alignment(cfg, &alignment)) {
+		fprintf(stderr, "pmem2_config_get_alignment: %s\n",
+				pmem2_errormsg());
+		exit(1);
+	}
+
+	size_t offset_align = offset % alignment;
 
 	if (offset_align != 0) {
 		offset = offset - offset_align;
 		length += offset_align;
 	}
 
-	size_t len_align = length % ALIGNMENT;
+	size_t len_align = length % alignment;
 
 	if (len_align != 0)
-		length += (ALIGNMENT - len_align);
+		length += (alignment - len_align);
 
 	if (pmem2_config_set_offset(cfg, offset)) {
 		fprintf(stderr, "pmem2_config_set_offset: %s\n",
