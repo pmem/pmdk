@@ -32,13 +32,15 @@
 #
 
 #
-# src/test/blk_rw/TEST6 -- unit test for pmemblk_read/write/set_zero/set_error
+# src/test/blk_rw/TEST20 -- unit test for pmemblk_read/write/set_zero/set_error
+#
+# This test is equivalent of TEST6 for ppc64le platform.
 #
 
 . ../unittest/unittest.sh
 
 require_test_type medium
-exclude_ppc64
+require_ppc64
 
 # doesn't make sense to run in local directory
 require_fs_type pmem non-pmem
