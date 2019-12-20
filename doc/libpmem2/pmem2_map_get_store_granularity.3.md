@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_MAP_GET_STORE_GRANULARITY, 3)
+title: _MP(PMEM2\_MAP\_GET\_STORE\_GRANULARITY, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -52,6 +52,7 @@ date: pmem2 API version 1.0
 ```c
 #include <libpmem2.h>
 
+struct pmem2_map;
 enum pmem2_granularity {
 	PMEM2_GRANULARITY_BYTE,
 	PMEM2_GRANULARITY_CACHE_LINE,

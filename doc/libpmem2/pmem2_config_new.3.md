@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_CONFIG_NEW, 3)
+title: _MP(PMEM2\_CONFIG\_NEW, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -53,28 +53,29 @@ configuration for a libpmem2 mapping
 #include <libpmem2.h>
 
 struct pmem2_config;
-int pmem2_config_new(struct pmem2_config **cfg);
-int pmem2_config_delete(struct pmem2_config **cfg);
+int pmem2_config_new(struct pmem2_config **config);
+int pmem2_config_delete(struct pmem2_config **config);
 ```
 
 # DESCRIPTION #
 
-The **pmem2_config_new**() function instantiates a new (opaque) configuration structure, *pmem2_config*, which is used to define mapping parameters for a **pmem2_map**() function, and returns it through the pointer in *\*cfg*.
+The **pmem2_config_new**() function instantiates a new (opaque) configuration structure, *pmem2_config*, which is used to define mapping parameters for a **pmem2_map**() function, and returns it through the pointer in *\*config*.
 
 New configuration is always initialized with default values for all possible parameters, which are specified alongside the corresponding setter function.
 
-The **pmem2_config_delete**() function frees *\*cfg* returned by **pmem2_config_new**() and sets *\*cfg* to NULL.
+The **pmem2_config_delete**() function frees *\*config* returned by **pmem2_config_new**() and sets *\*config* to NULL.
 
 # RETURN VALUE #
 
 The **pmem2_config_new**() function returns 0 on success or a negative error code on failure.
-**pmem2_config_new**() does set *\*cfg* to NULL on failure.
+**pmem2_config_new**() does set *\*config* to NULL on failure.
 
 The **pmem2_config_delete**() function returns 0.
 
 Please see **libpmem2**(7) for detailed description of libpmem2 error codes.
 
 # ERRORS #
+
 **pmem2_config_new**() can fail with the following error:
 - **-ENOMEM** - out of memory
 

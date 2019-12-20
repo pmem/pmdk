@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_ERRORMSG, 3)
+title: _MP(PMEM2\_ERRORMSG, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0

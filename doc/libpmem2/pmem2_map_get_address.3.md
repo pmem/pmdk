@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_MAP_GET_ADDRESS, 3)
+title: _MP(PMEM2\_MAP\_GET\_ADDRESS, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -51,6 +51,7 @@ date: pmem2 API version 1.0
 ```c
 #include <libpmem2.h>
 
+struct pmem2_map;
 void *pmem2_map_get_address(struct pmem2_map *map);
 ```
 

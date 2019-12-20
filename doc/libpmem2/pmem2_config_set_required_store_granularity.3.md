@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_CONFIG_SET_REQUIRED_STORE_GRANULARITY, 3)
+title: _MP(PMEM2\_CONFIG\_SET\_REQUIRED\_STORE\_GRANULARITY, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -52,12 +52,13 @@ in pmem2_config structure.
 ```c
 #include <libpmem2.h>
 
+struct pmem2_config;
 enum pmem2_granularity {
 	PMEM2_GRANULARITY_BYTE,
 	PMEM2_GRANULARITY_CACHE_LINE,
 	PMEM2_GRANULARITY_PAGE,
 };
-int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
+int pmem2_config_set_required_store_granularity(struct pmem2_config *config,
 		enum pmem2_granularity g);
 ```
 
@@ -68,11 +69,11 @@ granularity *g* requested by user in the *pmem2_config* structure.
 
 Granularity must be one of the following values:
 
- * **PMEM2_GRANULARITY_BYTE**
+ * **PMEM2\_\GRANULARITY\_BYTE**
 
- * **PMEM2_GRANULARITY_CACHE_LINE**
+ * **PMEM2\_GRANULARITY\_CACHE\_LINE**
 
- * **PMEM2_GRANULARITY_PAGE**
+ * **PMEM2\_GRANULARITY\_PAGE**
 
 A description of the granularity concept can be found in **libpmem2**(7) manpage.
 
@@ -81,8 +82,9 @@ A description of the granularity concept can be found in **libpmem2**(7) manpage
 **pmem2_config_set_required_store_granularity**() function returns 0 on success.
 Otherwise, it returns one of the following error values:
 
- * **PMEM2_E_INVALID_ARG** - granularity *g* is not a valid value.
+ * **PMEM2\_E\_INVALID\_ARG** - granularity *g* is not a valid value.
 
 # SEE ALSO #
+
 **pmem2_config_new**(3), **libpmem2**(7)
 and **<http://pmem.io>**

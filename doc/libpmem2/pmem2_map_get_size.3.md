@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_MAP_GET_SIZE, 3)
+title: _MP(PMEM2\_MAP\_GET\_SIZE, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -51,6 +51,7 @@ date: pmem2 API version 1.0
 ```c
 #include <libpmem2.h>
 
+struct pmem2_map;
 size_t pmem2_map_get_size(struct pmem2_map *map);
 ```
 

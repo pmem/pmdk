@@ -79,16 +79,16 @@ run-time assertions.
 A second version of **libpmem2**, accessed when a program uses the libraries
 under _DEBUGLIBPATH(), contains run-time assertions and trace points. The
 typical way to access the debug version is to set the environment variable
-**LD_LIBRARY_PATH** to _LDLIBPATH(). Debugging output is
+**LD\_LIBRARY\_PATH** to _LDLIBPATH(). Debugging output is
 controlled using the following environment variables. These variables have
 no effect on the non-debug version of the library.
 
-+ **PMEM2_LOG_LEVEL**
++ **PMEM2\_LOG\_LEVEL**
 
 The value of **PMEM2_LOG_LEVEL** enables trace points in the debug version
 of the library, as follows:
 
-+ **0** - This is the default level when **PMEM2_LOG_LEVEL** is not set.
++ **0** - This is the default level when **PMEM2\_LOG\_LEVEL** is not set.
 No log messages are emitted at this level.
 
 + **1** - Additional details on any errors detected are logged, in addition
@@ -103,14 +103,14 @@ library.
 + **4** - Enables voluminous and fairly obscure tracing
 information that is likely only useful to the **libpmem2** developers.
 
-Unless **PMEM2_LOG_FILE** is set, debugging output is written to *stderr*.
+Unless **PMEM2\_LOG\_FILE** is set, debugging output is written to *stderr*.
 
-+ **PMEM2_LOG_FILE**
++ **PMEM2\_LOG\_FILE**
 
 Specifies the name of a file where
 all logging information should be written. If the last character in the name
 is "-", the *PID* of the current process will be appended to the file name when
-the log file is created. If **PMEM2_LOG_FILE** is not set, output is
+the log file is created. If **PMEM2\_LOG\_FILE** is not set, output is
 written to *stderr*.
 
 # EXAMPLE #

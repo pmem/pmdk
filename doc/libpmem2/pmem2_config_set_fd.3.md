@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_CONFIG_SET_FD, 3)
+title: _MP(PMEM2\_CONFIG\_SET\_FD, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -52,8 +52,9 @@ date: pmem2 API version 1.0
 ```c
 #include <libpmem2.h>
 
-int pmem2_config_set_fd(struct pmem2_config *cfg, int fd);
-int pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle); /* Windows only */
+struct pmem2_config;
+int pmem2_config_set_fd(struct pmem2_config *config, int fd);
+int pmem2_config_set_handle(struct pmem2_config *config, HANDLE handle); /* Windows only */
 ```
 
 # DESCRIPTION #
@@ -66,21 +67,22 @@ Please check MSDN documentation for more information about Windows CRT error han
 
 *fd* must be opened with *O_RDONLY* or *O_RDWR* mode, but on Windows it is not validated.
 
-If *fd* is negative, then file descriptor (or handle on Windows) in *cfg is set to default, uninitialized value.
+If *fd* is negative, then file descriptor (or handle on Windows) in *config is set to default, uninitialized value.
 
 The **pmem2_config_set_handle**() function validates and stores a file handle in pmem2_config.
-If *handle* is INVALID_HANDLE_VALUE, file descriptor (or handle on Windows) in *cfg is set to default, uninitialized value.
+If *handle* is INVALID_HANDLE_VALUE, file descriptor (or handle on Windows) in *config is set to default, uninitialized value.
 
 # RETURN VALUE #
 
 **pmem2_config_set_fd**() and **pmem2_config_set_handle**() functions return 0 on success or one of the error values listed in the next section.
 
 # ERRORS #
+
 The **pmem2_config_set_fd**() function can return the following errors:
 
- * **PMEM2_E_INVALID_FILE_HANDLE** - *fd* is not an open file descriptor. On Windows the function can **abort**() on this failure based on CRT's abort() behavior.
+ * **PMEM2\_E\_INVALID\_FILE\_HANDLE** - *fd* is not an open file descriptor. On Windows the function can **abort**() on this failure based on CRT's abort() behavior.
 
- * **PMEM2_E_INVALID_FILE_HANDLE** - *fd* is opened in O_WRONLY mode.
+ * **PMEM2\_E\_INVALID\_FILE\_HANDLE** - *fd* is opened in O_WRONLY mode.
 
 On Linux:
 
@@ -101,5 +103,6 @@ The **pmem2_config_set_handle**() can return the following errors:
  * **PMEM2\_E\_INVALID\_FILE\_TYPE** - *handle* points to a directory.
 
 # SEE ALSO #
+
 **errno**(3), **pmem2_map**(3), **libpmem2**(7)
 and **<http://pmem.io>**
