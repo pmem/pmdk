@@ -104,7 +104,19 @@ class TEST4(PMEM2_INTEGRATION):
     test_case = "test_register_pmem"
 
 
+@t.require_valgrind_enabled('pmemcheck')
+@t.require_devdax(t.DevDax('devdax1'))
+@t.windows_exclude
 class TEST5(PMEM2_INTEGRATION):
+    """check if Valgrind registers data writing on DevDax"""
+    test_case = "test_register_pmem"
+
+    def run(self, ctx):
+        dd = ctx.devdaxes.devdax1
+        ctx.exec('pmem2_integration', self.test_case, dd.path)
+
+
+class TEST6(PMEM2_INTEGRATION):
     """create multiple mappings with different offsets and lengths"""
     test_case = "test_use_misc_lens_and_offsets"
 
@@ -114,7 +126,7 @@ class TEST5(PMEM2_INTEGRATION):
 
 
 @t.require_granularity(t.PAGE)
-class TEST6(PMEM2_GRANULARITY):
+class TEST7(PMEM2_GRANULARITY):
     """test granularity with available page granularity and expected page
     granularity"""
     available_granularity = Granularity.PAGE
@@ -122,7 +134,7 @@ class TEST6(PMEM2_GRANULARITY):
 
 
 @t.require_granularity(t.PAGE)
-class TEST7(PMEM2_GRANULARITY):
+class TEST8(PMEM2_GRANULARITY):
     """test granularity with available page granularity and expected cache
     line granularity"""
     available_granularity = Granularity.PAGE
@@ -130,7 +142,7 @@ class TEST7(PMEM2_GRANULARITY):
 
 
 @t.require_granularity(t.PAGE)
-class TEST8(PMEM2_GRANULARITY):
+class TEST9(PMEM2_GRANULARITY):
     """test granularity with available page granularity and expected byte
     granularity"""
     available_granularity = Granularity.PAGE
@@ -138,7 +150,7 @@ class TEST8(PMEM2_GRANULARITY):
 
 
 @t.require_granularity(t.CACHELINE)
-class TEST9(PMEM2_GRANULARITY):
+class TEST10(PMEM2_GRANULARITY):
     """test granularity with available cache line granularity and expected
     page granularity"""
     available_granularity = Granularity.CACHE_LINE
@@ -146,7 +158,7 @@ class TEST9(PMEM2_GRANULARITY):
 
 
 @t.require_granularity(t.CACHELINE)
-class TEST10(PMEM2_GRANULARITY):
+class TEST11(PMEM2_GRANULARITY):
     """test granularity with available cache line granularity and expected
     cache line granularity"""
     available_granularity = Granularity.CACHE_LINE
@@ -154,7 +166,7 @@ class TEST10(PMEM2_GRANULARITY):
 
 
 @t.require_granularity(t.CACHELINE)
-class TEST11(PMEM2_GRANULARITY):
+class TEST12(PMEM2_GRANULARITY):
     """test granularity with available cache line granularity and expected
     byte granularity"""
     available_granularity = Granularity.CACHE_LINE
@@ -162,7 +174,7 @@ class TEST11(PMEM2_GRANULARITY):
 
 
 @t.require_granularity(t.BYTE)
-class TEST12(PMEM2_GRANULARITY):
+class TEST13(PMEM2_GRANULARITY):
     """test granularity with available byte granularity and expected page
     granularity"""
     available_granularity = Granularity.BYTE
@@ -170,7 +182,7 @@ class TEST12(PMEM2_GRANULARITY):
 
 
 @t.require_granularity(t.BYTE)
-class TEST13(PMEM2_GRANULARITY):
+class TEST14(PMEM2_GRANULARITY):
     """test granularity with available byte granularity and expected cache
     line granularity"""
     available_granularity = Granularity.BYTE
@@ -178,7 +190,7 @@ class TEST13(PMEM2_GRANULARITY):
 
 
 @t.require_granularity(t.BYTE)
-class TEST14(PMEM2_GRANULARITY):
+class TEST15(PMEM2_GRANULARITY):
     """test granularity with available byte granularity and expected byte
     granularity"""
     available_granularity = Granularity.BYTE
