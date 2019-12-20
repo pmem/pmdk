@@ -31,58 +31,73 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import os
 
 import testframework as t
-import os
 
 
 class PMEM2_MAP(t.Test):
     test_type = t.Short
+    filesize = 16 * t.MiB
+    with_size = True
 
     def run(self, ctx):
-        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile',)
-        ctx.exec('pmem2_map', self.test_case, filepath,
-                 str(os.stat(filepath).st_size))
+        filepath = ctx.create_holey_file(self.filesize, 'testfile',)
+        if self.with_size:
+            filesize = str(os.stat(filepath).st_size)
+            ctx.exec('pmem2_map', self.test_case, filepath, filesize)
+        else:
+            ctx.exec('pmem2_map', self.test_case, filepath)
 
 
 @t.windows_exclude
 @t.require_devdax(t.DevDax('devdax1'))
 class PMEM2_MAP_DEVDAX(t.Test):
     test_type = t.Short
+    with_size = True
 
     def run(self, ctx):
         dd = ctx.devdaxes.devdax1
-        ctx.exec('pmem2_map', self.test_case, dd.path, str(dd.size))
+        if self.with_size:
+            ctx.exec('pmem2_map', self.test_case, dd.path, str(dd.size))
+        else:
+            ctx.exec('pmem2_map', self.test_case, dd.path)
 
 
 class TEST0(PMEM2_MAP):
     """map a O_RDWR file"""
     test_case = "test_map_rdrw_file"
+    with_size = False
 
 
 class TEST1(PMEM2_MAP_DEVDAX):
     """DevDax map a O_RDWR file"""
     test_case = "test_map_rdrw_file"
+    with_size = False
 
 
 class TEST2(PMEM2_MAP):
     """map a O_RDONLY file"""
     test_case = "test_map_rdonly_file"
+    with_size = False
 
 
 class TEST3(PMEM2_MAP_DEVDAX):
     """DevDax map a O_RDONLY file"""
     test_case = "test_map_rdonly_file"
+    with_size = False
 
 
 class TEST4(PMEM2_MAP):
     """map a O_WRONLY file"""
     test_case = "test_map_wronly_file"
+    with_size = False
 
 
 class TEST5(PMEM2_MAP_DEVDAX):
     """DevDax map a O_WRONLY file"""
     test_case = "test_map_wronly_file"
+    with_size = False
 
 
 class TEST6(PMEM2_MAP):
@@ -123,6 +138,7 @@ class TEST12(PMEM2_MAP):
 class TEST13(PMEM2_MAP):
     """map using an empty config"""
     test_case = "test_map_empty_config"
+    with_size = False
 
 
 class TEST14(PMEM2_MAP):
@@ -169,23 +185,22 @@ class TEST20(PMEM2_MAP):
 class TEST21(PMEM2_MAP):
     """test for pmem2_map_get_address"""
     test_case = "test_map_get_address"
+    with_size = False
 
 
 class TEST22(PMEM2_MAP):
     """test for pmem2_map_get_size"""
     test_case = "test_map_get_size"
+    with_size = False
 
 
 class TEST23(PMEM2_MAP):
     """simply get the previously stored value of granularity"""
     test_case = "test_get_granularity_simple"
+    with_size = False
 
 
 class TEST24(PMEM2_MAP):
     """map a file of length which is not page-aligned"""
     test_case = "test_map_unaligned_length"
-
-    def run(self, ctx):
-        filepath = ctx.create_holey_file(3 * t.KiB, 'testfile',)
-        ctx.exec('pmem2_map', self.test_case, filepath,
-                 str(os.stat(filepath).st_size))
+    filesize = 3 * t.KiB
