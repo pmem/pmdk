@@ -31,16 +31,17 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import os
 
 import testframework as t
-import os
 
 
 class PMEM2_MAP(t.Test):
     test_type = t.Short
+    filesize = 16 * t.MiB
 
     def run(self, ctx):
-        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile',)
+        filepath = ctx.create_holey_file(self.filesize, 'testfile',)
         ctx.exec('pmem2_map', self.test_case, filepath,
                  str(os.stat(filepath).st_size))
 
@@ -184,8 +185,4 @@ class TEST23(PMEM2_MAP):
 class TEST24(PMEM2_MAP):
     """map a file of length which is not page-aligned"""
     test_case = "test_map_unaligned_length"
-
-    def run(self, ctx):
-        filepath = ctx.create_holey_file(3 * t.KiB, 'testfile',)
-        ctx.exec('pmem2_map', self.test_case, filepath,
-                 str(os.stat(filepath).st_size))
+    filesize = 3 * t.KiB
