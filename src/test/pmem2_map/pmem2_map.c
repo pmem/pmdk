@@ -159,8 +159,8 @@ unmap_map(struct pmem2_map *map)
 static int
 test_map_rdrw_file(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_map_rdrw_file <file> <size>", argv[0]);
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_rdrw_file <file>", argv[0]);
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
@@ -175,7 +175,7 @@ test_map_rdrw_file(const struct test_case *tc, int argc, char *argv[])
 	FREE(map);
 	CLOSE(fd);
 
-	return 2;
+	return 1;
 }
 
 /*
@@ -184,9 +184,8 @@ test_map_rdrw_file(const struct test_case *tc, int argc, char *argv[])
 static int
 test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_map_rdonly_file <file> <size>",
-			argv[0]);
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_rdonly_file <file>", argv[0]);
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
@@ -201,7 +200,7 @@ test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
 	FREE(map);
 	CLOSE(fd);
 
-	return 2;
+	return 1;
 }
 
 /*
@@ -210,9 +209,8 @@ test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
 static int
 test_map_wronly_file(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_map_wronly_file <file> <size>",
-			argv[0]);
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_wronly_file <file>", argv[0]);
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
@@ -225,7 +223,7 @@ test_map_wronly_file(const struct test_case *tc, int argc, char *argv[])
 
 	CLOSE(fd);
 
-	return 2;
+	return 1;
 }
 
 /*
@@ -378,9 +376,8 @@ test_map_invalid_fd(const struct test_case *tc, int argc, char *argv[])
 static int
 test_map_empty_config(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_map_invalid_args <file> <size>",
-			argv[0]);
+	if (argc != 1)
+		UT_FATAL("usage: %s test_map_invalid_args <file>", argv[0]);
 
 	struct pmem2_config cfg;
 	struct pmem2_map *map;
@@ -389,7 +386,7 @@ test_map_empty_config(const struct test_case *tc, int argc, char *argv[])
 	int ret = pmem2_map(&cfg, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_FILE_HANDLE_NOT_SET);
 
-	return 2;
+	return 1;
 }
 
 /*
@@ -570,7 +567,7 @@ test_map_get_address(const struct test_case *tc, int argc, char *argv[])
 	ret_addr = pmem2_map_get_address(&map);
 	UT_ASSERTeq(ret_addr, ref_addr);
 
-	return 2;
+	return 1;
 }
 
 /*
@@ -588,7 +585,7 @@ test_map_get_size(const struct test_case *tc, int argc, char *argv[])
 	ret_size = pmem2_map_get_size(&map);
 	UT_ASSERTeq(ret_size, ref_size);
 
-	return 2;
+	return 1;
 }
 
 /*
@@ -603,7 +600,7 @@ test_get_granularity_simple(const struct test_case *tc, int argc, char *argv[])
 	enum pmem2_granularity ret = pmem2_map_get_store_granularity(&map);
 	UT_ASSERTeq(ret, PMEM2_GRANULARITY_BYTE);
 
-	return 2;
+	return 1;
 }
 
 /*
