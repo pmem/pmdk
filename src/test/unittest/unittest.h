@@ -713,7 +713,11 @@ TEST_CASE_PROCESS(int argc, char *argv[],
 		if (!tc)
 			UT_FATAL("unknown test case -- '%s'", str_test);
 
-		i += tc->func(tc, argc - args_off, &argv[args_off]);
+		int ret = tc->func(tc, argc - args_off, &argv[args_off]);
+		if (ret < 0)
+			UT_FATAL("test return value cannot be negative");
+
+		i += ret;
 	}
 }
 
