@@ -36,6 +36,7 @@ from os.path import join, abspath, dirname
 import os
 import sys
 
+import configurator
 
 # Constant paths to repository elements
 ROOTDIR = abspath(join(dirname(__file__), '..'))
@@ -142,6 +143,10 @@ class Skip(Exception):
     """Thrown when test should be skipped"""
     def __init__(self, msg):
         super().__init__(msg)
+        config = configurator.Configurator().config
+        if config.fail_on_skip:
+            raise Fail(msg)
+
         self.messages = []
         self.messages.append(msg)
 
