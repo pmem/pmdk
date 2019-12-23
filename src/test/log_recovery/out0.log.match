@@ -13,7 +13,8 @@ append   str[4] 5th append string
 append   str[5] 6th append string
 
 tell 108
-write-protecting the metadata, length 8192
+$(OPT)write-protecting the metadata, length 8192
+$(OPX)write-protecting the metadata, length 131072
 signal: Segmentation fault
 $(nW)testfile1: consistent
 tell 108

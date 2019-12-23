@@ -2,7 +2,8 @@ log_recovery$(nW)TEST1: START: log_recovery
  $(nW)log_recovery$(nW) $(nW)testfile1 v
 appendv
 tell 171
-write-protecting the metadata, length 8192
+$(OPT)write-protecting the metadata, length 8192
+$(OPX)write-protecting the metadata, length 131072
 signal: Segmentation fault
 $(nW)testfile1: consistent
 tell 171
