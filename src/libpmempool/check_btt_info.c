@@ -39,6 +39,7 @@
 #include <endian.h>
 
 #include "out.h"
+#include "util.h"
 #include "btt.h"
 #include "libpmempool.h"
 #include "pmempool.h"
@@ -490,9 +491,11 @@ check_btt_info(PMEMpoolcheck *ppc)
 	/* initialize check */
 	if (!loc->offset) {
 		CHECK_INFO(ppc, "checking BTT Info headers");
-		loc->offset = BTT_ALIGNMENT;
+		loc->offset = sizeof(struct pool_hdr);
 		if (ppc->pool->params.type == POOL_TYPE_BLK)
-			loc->offset += BTT_ALIGNMENT;
+			loc->offset += ALIGN_UP(sizeof(struct pmemblk) -
+					sizeof(struct pool_hdr),
+					BLK_FORMAT_DATA_ALIGN);
 
 		loc->pool_valid.btti_offset = pool_get_first_valid_btt(
 			ppc->pool, &loc->pool_valid.btti, loc->offset, NULL);
