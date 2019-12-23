@@ -99,8 +99,11 @@ class Ndctl:
         if proc.returncode != 0:
             raise futils.Fail('ndctl list failed:{}{}'.format(os.linesep,
                                                               proc.stdout))
-
-        ndctl_list_out = json.loads(proc.stdout)
+        try:
+            ndctl_list_out = json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            raise futils.Fail('Invalid "ndctl list" output (could '
+                              'not read as JSON): {}'.format(proc.stdout))
         return ndctl_list_out
 
     def _get_dev_info(self, dev_path):
