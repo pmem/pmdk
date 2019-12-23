@@ -154,7 +154,10 @@ $(PKG_CONFIG_COMMON): pkg-cfg-common
 
 pkg-config: $(PKG_CONFIG_FILES)
 
-$(eval $(call sub-target,$(INSTALL_TARGETS),install,y))
+%-install: %
+	$(MAKE) -C $^ install
+	$(MAKE) -C $^ install DEBUG=1
+
 $(eval $(call sub-target,$(INSTALL_TARGETS),uninstall,y))
 $(eval $(call sub-target,$(CLEAN_TARGETS),clean,y))
 $(eval $(call sub-target,$(CLOBBER_TARGETS),clobber,y))
