@@ -142,6 +142,11 @@ class Skip(Exception):
     """Thrown when test should be skipped"""
     def __init__(self, msg):
         super().__init__(msg)
+        import configurator
+        config = configurator.Configurator().config
+        if config.fail_on_skip:
+            raise Fail(msg)
+
         self.messages = []
         self.messages.append(msg)
 
