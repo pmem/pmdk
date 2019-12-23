@@ -105,6 +105,12 @@ config = {
     'keep_going': False,
 
     #
+    # Skips will be treated as Fails if set to True
+    #
+
+    'fail_on_skip': False,
+
+    #
     # Set timeout
     # (floating point number with an optional suffix: 's' for seconds,
     # 'm' for minutes, 'h' for hours or 'd' for days)
