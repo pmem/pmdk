@@ -34,6 +34,19 @@
 
 import testframework as t
 
+# definitions of DevDaxes
+devdax1 = t.DevDax('devdax1', alignment=2 * t.MiB)
+devdax2 = t.DevDax('devdax2', alignment=4 * t.KiB)
+
+
+class PMEM2_CONFIG_DEV_DAXES(t.Test):
+    test_type = t.Short
+    test_case = "get_alignment_success"
+
+    def run(self, ctx):
+        ctx.exec('pmem2_config_get_alignment',
+                 self.test_case, self.dd.path, str(self.dd.alignment))
+
 
 class TEST0(t.BaseTest):
     test_type = t.Short
@@ -61,14 +74,17 @@ class TEST2(t.BaseTest):
                  ctx.testdir)
 
 
-# XXX must be divided into separate requirements (alignment 4k and 2M)
-# at this moment, it can cover only 50% of cases
 @t.windows_exclude
-@t.require_devdax(t.DevDax('devdax1'))
-class TEST3(t.BaseTest):
-    test_type = t.Short
-
+@t.require_devdax(devdax1)
+class TEST3(PMEM2_CONFIG_DEV_DAXES):
     def run(self, ctx):
-        dd = ctx.devdaxes.devdax1
-        ctx.exec('pmem2_config_get_alignment',
-                 'get_alignment_success', dd.path, str(dd.alignment))
+        self.dd = ctx.devdaxes.devdax1
+        super().run(ctx)
+
+
+@t.windows_exclude
+@t.require_devdax(devdax2)
+class TEST4(PMEM2_CONFIG_DEV_DAXES):
+    def run(self, ctx):
+        self.dd = ctx.devdaxes.devdax2
+        super().run(ctx)
