@@ -1044,7 +1044,8 @@ pmemspoil_process_pmemblk(struct pmemspoil *psp,
 
 		PROCESS(arena,
 			pmemspoil_get_arena_offset(psp, PROCESS_INDEX,
-				2 * BTT_ALIGNMENT),
+				ALIGN_UP(sizeof(struct pmemblk),
+					BLK_FORMAT_DATA_ALIGN)),
 			UINT32_MAX, uint64_t);
 	} PROCESS_END
 
