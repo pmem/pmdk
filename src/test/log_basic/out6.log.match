@@ -1,4 +1,5 @@
 log_basic$(nW)TEST6: START: log_basic
  $(nW)log_basic$(nW) $(nW)testset1 c n l h
-usable size: 4182016
+$(OPT)usable size: 4182016
+$(OPX)usable size: 3997696
 log_basic$(nW)TEST6: DONE
