@@ -123,7 +123,10 @@ MANPAGES_7_MD_PMEM2 = libpmem2/libpmem2.7.md
 MANPAGES_5_MD_PMEM2 =
 MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.md libpmem2/pmem2_map.3.md \
 		libpmem2/pmem2_unmap.3.md libpmem2/pmem2_map_get_address.3.md libpmem2/pmem2_map_get_size.3.md \
-		libpmem2/pmem2_config_set_fd.3.md libpmem2/pmem2_config_set_required_store_granularity.3.md libpmem2/pmem2_config_get_file_size.3.md
+		libpmem2/pmem2_config_set_fd.3.md libpmem2/pmem2_config_set_required_store_granularity.3.md \
+		libpmem2/pmem2_config_get_file_size.3.md libpmem2/pmem2_config_get_alignment.3.md \
+		libpmem2/pmem2_config_set_length.3.md libpmem2/pmem2_config_set_offset.3.md \
+		libpmem2/pmem2_map_get_store_granularity.3.md
 MANPAGES_1_MD_PMEM2 =
 ifeq ($(PMEM2_INSTALL),y)
 MANPAGES_3_DUMMY += pmem2_config_delete.3 pmem2_config_set_handle.3
@@ -182,6 +185,11 @@ MANPAGES_5_NOINSTALL += $(MANPAGES_5_GROFF_PMEM2)
 MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_PMEM2)
 MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_PMEM2)
 endif
+
+MANPAGES_7_MD += $(MANPAGES_7_MD_PMEM2)
+MANPAGES_5_MD += $(MANPAGES_5_MD_PMEM2)
+MANPAGES_3_MD += $(MANPAGES_3_MD_PMEM2)
+MANPAGES_1_MD += $(MANPAGES_1_MD_PMEM2)
 
 MANPAGES = $(MANPAGES_7_GROFF) $(MANPAGES_5_GROFF) $(MANPAGES_3_GROFF) $(MANPAGES_1_GROFF) \
 	   $(MANPAGES_7_NOINSTALL) $(MANPAGES_5_NOINSTALL) $(MANPAGES_3_NOINSTALL) $(MANPAGES_1_NOINSTALL)
