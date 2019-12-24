@@ -296,9 +296,6 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 		return PMEM2_E_GRANULARITY_NOT_SET;
 	}
 
-	os_off_t off = (os_off_t)cfg->offset;
-	ASSERTeq((size_t)off, cfg->offset);
-
 	/* get file size */
 	ret = pmem2_config_get_file_size(cfg, &file_len);
 	if (ret)
@@ -314,6 +311,15 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	ret = pmem2_get_type_from_stat(&st, &file_type);
 	if (ret)
 		return ret;
+
+	/* get offset */
+	size_t offset;
+	ret = pmem2_validate_offset(cfg, &offset);
+	if (ret)
+		return ret;
+	os_off_t off = (os_off_t)offset;
+
+	ASSERTeq((size_t)off, cfg->offset);
 
 	/* map input and output variables */
 	bool map_sync;

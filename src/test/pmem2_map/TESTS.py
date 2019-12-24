@@ -131,3 +131,12 @@ class TEST15(PMEM2_MAP):
     def run(self, ctx):
         filepath = ctx.create_holey_file(3 * t.KiB, 'testfile',)
         ctx.exec('pmem2_map', self.test_case, filepath)
+
+
+class TEST16(PMEM2_MAP):
+    """map a file which size is not aligned"""
+    test_case = "test_map_larger_than_unaligned_file_size"
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB - 1, 'testfile',)
+        ctx.exec('pmem2_map', self.test_case, filepath)
