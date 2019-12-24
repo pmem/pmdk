@@ -1,4 +1,5 @@
 log_pool$(nW)TEST11: START: log_pool$(nW)
  $(nW)log_pool$(nW) c $(nW)testset 0 0600
-$(nW)testset: file size $(N) usable space 41930752 mode 0666
+$(OPT)$(nW)testset: file size $(N) usable space 41930752 mode 0666
+$(OPX)$(nW)testset: file size $(N) usable space 41746432 mode 0666
 log_pool$(nW)TEST11: DONE
