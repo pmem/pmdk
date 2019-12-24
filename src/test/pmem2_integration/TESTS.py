@@ -76,6 +76,7 @@ class TEST1(PMEM2_INTEGRATION):
         ctx.exec('pmem2_integration', self.test_case, filepath1, filepath2)
 
 
+@t.no_testdir()
 class TEST2(PMEM2_INTEGRATION):
     """map using the config with default file descriptor"""
     test_case = "test_default_fd"
