@@ -76,6 +76,7 @@ test_script:
     'timeout': '4m',
     'build': 'debug',
     'force_enable': None,
+    'fail_on_skip': False,
     }" | out-file "testconfig.py" -encoding utf8
 
         if ($Env:CONFIGURATION -eq "Debug") {

@@ -104,14 +104,17 @@ class TestRunner:
 
             except futils.Skip as s:
                 self.msg.print_verbose('{}: SKIP: {}'.format(tc, s))
+            except futils.Fail as f:
+                self._test_failed(tc, c, f)
+                ret = 1
 
         return ret
 
     def _test_failed(self, tc, ctx, fail):
-        self.msg.print(fail)
         self.msg.print('{}: {}FAILED{}\t({}/{})'
                        .format(tc, futils.Color.RED,
                                futils.Color.END, tc.test_type, ctx))
+        self.msg.print(fail)
 
         if not self.config.keep_going:
             sys.exit(1)
