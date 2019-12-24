@@ -1,6 +1,7 @@
 log_basic$(nW)TEST0: START: log_basic
  $(nW)log_basic$(nW) $(nW)testfile1 c n t w r l h
-usable size: 2088960
+$(OPT)usable size: 2088960
+$(OPX)usable size: 1966080
 tell 0
 
 walk all at once
