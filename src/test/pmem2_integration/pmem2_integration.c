@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -407,6 +407,164 @@ test_granularity(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_len_not_aligned -- try to use unaligned length
+ */
+static int
+test_len_not_aligned(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_len_not_aligned <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	prepare_config(&cfg, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len, alignment;
+	int ret = pmem2_config_get_file_size(cfg, &len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_config_get_alignment(cfg, &alignment);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	UT_ASSERT(len > alignment);
+	size_t aligned_len = ALIGN_DOWN(len, alignment);
+	size_t unaligned_len = aligned_len - 1;
+
+	ret = pmem2_config_set_length(cfg, unaligned_len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	map_invalid(cfg, PMEM2_E_LENGTH_UNALIGNED);
+
+	pmem2_config_delete(&cfg);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_len_aligned -- try to use aligned length
+ */
+static int
+test_len_aligned(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_len_aligned <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	prepare_config(&cfg, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len, alignment;
+	int ret = pmem2_config_get_file_size(cfg, &len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_config_get_alignment(cfg, &alignment);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	UT_ASSERT(len > alignment);
+	size_t aligned_len = ALIGN_DOWN(len, alignment);
+
+	ret = pmem2_config_set_length(cfg, aligned_len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_map *map = map_valid(cfg, aligned_len);
+
+	pmem2_unmap(&map);
+	pmem2_config_delete(&cfg);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_offset_not_aligned -- try to map with unaligned offset
+ */
+static int
+test_offset_not_aligned(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_offset_not_aligned <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	prepare_config(&cfg, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len, alignment;
+	int ret = pmem2_config_get_file_size(cfg, &len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_config_get_alignment(cfg, &alignment);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	/* break the offset */
+	size_t offset = alignment - 1;
+	ret = pmem2_config_set_offset(cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	UT_ASSERT(len > alignment);
+	/* in this case len has to be aligned, only offset will be unaligned */
+	size_t aligned_len = ALIGN_DOWN(len, alignment);
+
+	ret = pmem2_config_set_length(cfg, aligned_len - alignment);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	map_invalid(cfg, PMEM2_E_OFFSET_UNALIGNED);
+
+	pmem2_config_delete(&cfg);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_offset_aligned -- try to map with aligned offset
+ */
+static int
+test_offset_aligned(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_offset_aligned <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	prepare_config(&cfg, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len, alignment;
+	int ret = pmem2_config_get_file_size(cfg, &len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_config_get_alignment(cfg, &alignment);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	/* set the aligned offset */
+	size_t offset = alignment;
+	ret = pmem2_config_set_offset(cfg, offset);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	UT_ASSERT(len > alignment * 2);
+	/* set the aligned len */
+	size_t map_len = ALIGN_DOWN(len, alignment) / 2;
+	ret = pmem2_config_set_length(cfg, map_len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_map *map = map_valid(cfg, map_len);
+
+	pmem2_unmap(&map);
+	pmem2_config_delete(&cfg);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -417,6 +575,10 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_register_pmem),
 	TEST_CASE(test_use_misc_lens_and_offsets),
 	TEST_CASE(test_granularity),
+	TEST_CASE(test_len_not_aligned),
+	TEST_CASE(test_len_aligned),
+	TEST_CASE(test_offset_not_aligned),
+	TEST_CASE(test_offset_aligned),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
