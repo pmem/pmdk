@@ -1,5 +1,5 @@
 blk_rw$(nW)TEST4: START: blk_rw
- $(nW)blk_rw$(nW) 512 $(nW)$(nW)testfile1 o w:0 r:4 r:3 r:2 r:1 r:0 w:0 r:0
+ $(nW)blk_rw$(nW) 512 $(nW)testfile1 o w:0 r:4 r:3 r:2 r:1 r:0 w:0 r:0
 512 block size 512 usable blocks 2080567
 write     lba 0: {1}
 read      lba 4: {5}

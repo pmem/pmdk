@@ -1,5 +1,5 @@
 blk_rw$(nW)TEST5: START: blk_rw
- $(nW)blk_rw$(nW) 512 $(nW)$(nW)testfile1 c w:100 w:200 w:300 w:400 r:100 r:200 r:300 r:400 w:100 z:200 w:300 z:400 r:100 r:200 r:300 r:400 e:100 w:200 e:300 w:400 r:100 r:200 r:300 r:400
+ $(nW)blk_rw$(nW) 512 $(nW)testfile1 c w:100 w:200 w:300 w:400 r:100 r:200 r:300 r:400 w:100 z:200 w:300 z:400 r:100 r:200 r:300 r:400 e:100 w:200 e:300 w:400 r:100 r:200 r:300 r:400
 512 block size 512 usable blocks 2080567
 write     lba 100: {1}
 write     lba 200: {2}
