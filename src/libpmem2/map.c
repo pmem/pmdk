@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -59,6 +59,7 @@ pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
 	if (ret)
 		return ret;
 
+	ASSERTne(alignment, 0);
 	if (cfg->length % alignment) {
 		ERR("length is not a multiple of %lu", alignment);
 		return PMEM2_E_LENGTH_UNALIGNED;
