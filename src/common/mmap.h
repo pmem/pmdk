@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -133,6 +133,7 @@ int util_range_none(void *addr, size_t len);
 char *util_map_hint_unused(void *minaddr, size_t len, size_t align);
 char *util_map_hint(size_t len, size_t req_align);
 
+#define KILOBYTE ((uintptr_t)1 << 10)
 #define MEGABYTE ((uintptr_t)1 << 20)
 #define GIGABYTE ((uintptr_t)1 << 30)
 
