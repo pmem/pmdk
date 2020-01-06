@@ -27,7 +27,8 @@ if [[ "$PACKAGE_MANAGER" == "dpkg" ]]; then
 	cd $PACKAGE_MANAGER
 	echo $USERPASS | sudo -S dpkg --install *.deb
 else
-	cd $PACKAGE_MANAGER/x86_64
+	RPM_ARCH=$(uname -m)
+	cd $PACKAGE_MANAGER/$RPM_ARCH
 	echo $USERPASS | sudo -S rpm --install *.rpm
 fi
 

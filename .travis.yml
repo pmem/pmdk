@@ -2,6 +2,7 @@ os: linux
 dist: bionic
 arch:
   - amd64
+  - ppc64le
 
 sudo: required
 

@@ -10,9 +10,6 @@
 
 set -e
 
-# Mount filesystem for tests
-echo $USERPASS | sudo -S mount -t tmpfs none /tmp -osize=6G
-
 # This should be run only on CIs
 if [ "$CI_RUN" == "YES" ]; then
 	# Make sure $WORKDIR has correct access rights
