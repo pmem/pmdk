@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -192,8 +192,13 @@ pmem2_device_dax_alignment_from_stat(const os_stat_t *st, size_t *alignment)
 	int olderrno;
 	int ret = 0;
 
-	snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u",
+	int ret_snprintf = util_snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u",
 		os_major(st->st_rdev), os_minor(st->st_rdev));
+	if (ret_snprintf < 0) {
+		ERR("!snprintf");
+		ASSERTinfo(0, "snprintf failed");
+		return PMEM2_E_ERRNO;
+	}
 
 	daxpath = realpath(spath, NULL);
 	if (!daxpath) {
@@ -226,7 +231,14 @@ pmem2_device_dax_alignment_from_stat(const os_stat_t *st, size_t *alignment)
 		*pos = '\0';
 		len = strlen(spath);
 
-		snprintf(&spath[len], sizeof(spath) - len, "/dax_region/align");
+		ret_snprintf = util_snprintf(&spath[len], sizeof(spath) - len,
+			"/dax_region/align");
+		if (ret_snprintf < 0) {
+			ERR("!snprintf");
+			ASSERTinfo(0, "snprintf failed");
+			return PMEM2_E_ERRNO;
+		}
+
 		fd = os_open(spath, O_RDONLY);
 		*pos = '\0';
 
