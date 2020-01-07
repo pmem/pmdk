@@ -1,6 +1,7 @@
 - tag: master
   libs:
     libpmem
+    libpmem2
     libpmemblk
     libpmemlog
     libpmemobj
@@ -44,6 +45,22 @@
         pmem_memcpy.3
         pmem_memmove.3
         pmem_memset.3
+
+    libpmem2:
+        pmem2_config_delete.3
+        pmem2_config_get_alignment.3
+        pmem2_config_get_file_size:.3
+        pmem2_config_new.3
+        pmem2_config_set_handle.3
+        pmem2_config_set_length.3
+        pmem2_config_set_offset.3
+        pmem2_config_set_required_store_granularity.3
+        pmem2_errormsg.3
+        pmem2_map.3
+        pmem2_map_get_address.3
+        pmem2_map_get_size.3
+        pmem2_map_get_store_granularity.3
+        pmem2_unmap.3
 
     libpmemblk:
         pmemblk_bsize.3
