@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
 . ../unittest/unittest.sh
 
 require_test_type medium
+configure_valgrind pmemcheck force-disable
 
 setup
 
