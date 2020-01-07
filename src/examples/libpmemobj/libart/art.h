@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/* Copyright 2019, Intel Corporation */
 /*
  * Copyright 2016, FUJITSU TECHNOLOGY SOLUTIONS GMBH
  * Copyright 2012, Armon Dadgar. All rights reserved.
- * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
