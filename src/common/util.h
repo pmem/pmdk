@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,6 +98,8 @@ struct tm *util_localtime(const time_t *timep);
 int util_safe_strcpy(char *dst, const char *src, size_t max_length);
 void util_emit_log(const char *lib, const char *func, int order);
 char *util_readline(FILE *fh);
+int util_snprintf(char *str, size_t size,
+	const char *format, ...) FORMAT_PRINTF(3, 4);
 
 #ifdef _WIN32
 char *util_toUTF8(const wchar_t *wstr);
