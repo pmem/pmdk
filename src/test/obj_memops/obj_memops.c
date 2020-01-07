@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -648,6 +648,8 @@ main(int argc, char *argv[])
 
 	UT_ASSERTne(object, NULL);
 	ulog_construct(OBJ_PTR_TO_OFF(pop, &object->undo),
+			TEST_ENTRIES, 0, 0, 0, &pop->p_ops);
+	ulog_construct(OBJ_PTR_TO_OFF(pop, &object->redo),
 			TEST_ENTRIES, 0, 0, 0, &pop->p_ops);
 
 	test_redo(pop, object);
