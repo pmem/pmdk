@@ -72,6 +72,9 @@ On all systems:
 * **PMEM2\_E\_FILE\_HANDLE\_NOT\_SET** - config doesn't contain the file handle
 (see **pmem2_config_set_fd**(3), **pmem2_config_set_handle**(3)).
 
+* **PMEM2\_E\_INVALID\_ALIGNMENT\_VALUE** - alignment value is zero,
+system cannot detect proper alignment value.
+
 on Linux and FreeBSD:
 
 * **PMEM2\_E\_INVALID\_FILE\_HANDLE** - config contains an invalid file handle.

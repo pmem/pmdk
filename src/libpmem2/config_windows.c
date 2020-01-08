@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -159,6 +159,11 @@ pmem2_config_get_alignment(const struct pmem2_config *cfg, size_t *alignment)
 	GetSystemInfo(&info);
 
 	*alignment = (size_t)info.dwAllocationGranularity;
+
+	if (*alignment == 0) {
+		ERR("alignment cannot be zero");
+		return PMEM2_E_INVALID_ALIGNMENT_VALUE;
+	}
 
 	LOG(4, "alignment %zu", *alignment);
 
