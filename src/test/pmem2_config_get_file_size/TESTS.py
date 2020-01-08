@@ -1,6 +1,6 @@
 #!../env.py
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -104,13 +104,14 @@ class TEST7(t.Test):
                  ctx.testdir, str(16 * t.MiB))
 
 
-@t.windows_only
-class TEST8(t.Test):
-    test_type = t.Short
-
-    def run(self, ctx):
-        ctx.exec('pmem2_config_get_file_size', 'tmp_file_handle',
-                 ctx.testdir, str(16 * t.MiB))
+# XXX doesn't work
+# @t.windows_only
+# class TEST8(t.Test):
+#    test_type = t.Short
+#
+#    def run(self, ctx):
+#        ctx.exec('pmem2_config_get_file_size', 'tmp_file_handle',
+#                 ctx.testdir, str(16 * t.MiB))
 
 
 @t.windows_exclude

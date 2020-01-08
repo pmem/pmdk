@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -120,7 +120,7 @@ ut_fh_open_fd(const char *file, int line, const char *func,
 		sflags |= O_TMPFILE;
 #else
 		ut_fatal(file, line, func,
-				"FH_TMPFILE is not supported on Windows");
+				"FH_TMPFILE is not supported on this system for file descriptors");
 #endif
 	}
 
@@ -145,6 +145,8 @@ ut_fh_open_handle(const char *file, int line, const char *func,
 	DWORD dwFlagsAndAttributes = FILE_ATTRIBUTE_NORMAL;
 	HANDLE hTemplateFile = NULL;
 
+	/* XXX sometimes doesn't work, ERROR_ACCESS_DENIED on AppVeyor */
+#if 0
 	/*
 	 * FILE_FLAG_DELETE_ON_CLOSE needs a real file (FH_CREAT)
 	 * If it already exists refuse to use it (FH_EXCL), because this means
@@ -154,6 +156,11 @@ ut_fh_open_handle(const char *file, int line, const char *func,
 	 */
 	if (flags & FH_TMPFILE)
 		flags |= FH_CREAT | FH_EXCL;
+#else
+	if (flags & FH_TMPFILE)
+		ut_fatal(file, line, func,
+			"FH_TMPFILE is not supported for file handles");
+#endif
 
 	check_invalid_flags(file, line, func, flags);
 
