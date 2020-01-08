@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,10 +43,26 @@
 #include "unittest.h"
 #include "ut_pmem2_config.h"
 #include "ut_pmem2_utils.h"
+#include "out.h"
 
 size_t Is_nfit = 1;
 size_t Pc_type = 7;
 size_t Pc_capabilities;
+
+/*
+ * parse_args -- parse args from the input
+ */
+static int
+parse_args(const struct test_case *tc, int argc, char *argv[],
+		char **file)
+{
+	if (argc < 1)
+		UT_FATAL("usage: %s <file>", tc->name);
+
+	*file = argv[0];
+
+	return 1;
+}
 
 /*
  * set_eadr -- set variable required for mocked functions
@@ -74,15 +90,11 @@ struct test_ctx {
  * init_test -- initialize basic parameters for test
  */
 static void
-init_test(int argc, char *argv[], struct test_ctx *ctx,
+init_test(char *file, struct test_ctx *ctx,
 		enum pmem2_granularity granularity)
 {
-	if (argc != 1)
-		UT_FATAL("usage: test_granularity_inval <file>");
-
 	set_eadr();
 
-	char *file = argv[0];
 	ctx->fd = OPEN(file, O_RDWR);
 
 	ctx->requested_granularity = granularity;
@@ -133,7 +145,8 @@ cleanup(struct pmem2_config *cfg, struct test_ctx *ctx)
  * includes cleanup
  */
 static void
-map_with_available_granularity(struct pmem2_config *cfg, struct test_ctx *ctx)
+map_with_available_granularity(struct pmem2_config *cfg,
+		struct test_ctx *ctx)
 {
 	cfg->requested_max_granularity = ctx->requested_granularity;
 
@@ -170,12 +183,15 @@ typedef void(*map_func)(struct pmem2_config *cfg, struct test_ctx *ctx);
 /*
  * granularity_template -- template for testing granularity in pmem2
  */
-static void
-granularity_template(int argc, char *argv[], map_func map_do,
-	enum pmem2_granularity granularity)
+static int
+granularity_template(const struct test_case *tc, int argc, char *argv[],
+		map_func map_do, enum pmem2_granularity granularity)
 {
+	char *file = NULL;
+	int ret = parse_args(tc, argc, argv, &file);
+
 	struct test_ctx ctx = { 0 };
-	init_test(argc, argv, &ctx, granularity);
+	init_test(file, &ctx, granularity);
 
 	struct pmem2_config cfg;
 	init_cfg(&cfg, &ctx);
@@ -183,6 +199,8 @@ granularity_template(int argc, char *argv[], map_func map_do,
 	map_do(&cfg, &ctx);
 
 	cleanup(&cfg, &ctx);
+
+	return ret;
 }
 
 /*
@@ -193,9 +211,8 @@ static int
 test_granularity_req_byte_avail_byte(const struct test_case *tc, int argc,
 					char *argv[])
 {
-	granularity_template(argc, argv, map_with_available_granularity,
-					PMEM2_GRANULARITY_BYTE);
-	return 2;
+	return granularity_template(tc, argc, argv,
+		map_with_available_granularity, PMEM2_GRANULARITY_BYTE);
 }
 
 /*
@@ -206,9 +223,8 @@ static int
 test_granularity_req_byte_avail_cl(const struct test_case *tc, int argc,
 					char *argv[])
 {
-	granularity_template(argc, argv, map_with_unavailable_granularity,
-					PMEM2_GRANULARITY_BYTE);
-	return 2;
+	return granularity_template(tc, argc, argv,
+		map_with_unavailable_granularity, PMEM2_GRANULARITY_BYTE);
 }
 
 /*
@@ -219,9 +235,8 @@ static int
 test_granularity_req_byte_avail_page(const struct test_case *tc, int argc,
 					char *argv[])
 {
-	granularity_template(argc, argv, map_with_unavailable_granularity,
-					PMEM2_GRANULARITY_BYTE);
-	return 2;
+	return granularity_template(tc, argc, argv,
+		map_with_unavailable_granularity, PMEM2_GRANULARITY_BYTE);
 }
 
 /*
@@ -232,9 +247,8 @@ static int
 test_granularity_req_cl_avail_byte(const struct test_case *tc, int argc,
 					char *argv[])
 {
-	granularity_template(argc, argv, map_with_available_granularity,
-					PMEM2_GRANULARITY_CACHE_LINE);
-	return 2;
+	return granularity_template(tc, argc, argv,
+		map_with_available_granularity, PMEM2_GRANULARITY_CACHE_LINE);
 }
 
 /*
@@ -245,9 +259,8 @@ static int
 test_granularity_req_cl_avail_cl(const struct test_case *tc, int argc,
 					char *argv[])
 {
-	granularity_template(argc, argv, map_with_available_granularity,
-					PMEM2_GRANULARITY_CACHE_LINE);
-	return 2;
+	return granularity_template(tc, argc, argv,
+		map_with_available_granularity, PMEM2_GRANULARITY_CACHE_LINE);
 }
 
 /*
@@ -258,9 +271,8 @@ static int
 test_granularity_req_cl_avail_page(const struct test_case *tc, int argc,
 					char *argv[])
 {
-	granularity_template(argc, argv, map_with_unavailable_granularity,
-					PMEM2_GRANULARITY_CACHE_LINE);
-	return 2;
+	return granularity_template(tc, argc, argv,
+		map_with_unavailable_granularity, PMEM2_GRANULARITY_CACHE_LINE);
 }
 
 /*
@@ -271,9 +283,8 @@ static int
 test_granularity_req_page_avail_byte(const struct test_case *tc, int argc,
 					char *argv[])
 {
-	granularity_template(argc, argv, map_with_available_granularity,
-					PMEM2_GRANULARITY_PAGE);
-	return 2;
+	return granularity_template(tc, argc, argv,
+		map_with_available_granularity, PMEM2_GRANULARITY_PAGE);
 }
 
 /*
@@ -284,9 +295,8 @@ static int
 test_granularity_req_page_avail_cl(const struct test_case *tc, int argc,
 					char *argv[])
 {
-	granularity_template(argc, argv, map_with_available_granularity,
-					PMEM2_GRANULARITY_PAGE);
-	return 2;
+	return granularity_template(tc, argc, argv,
+		map_with_available_granularity, PMEM2_GRANULARITY_PAGE);
 }
 
 /*
@@ -297,9 +307,8 @@ static int
 test_granularity_req_page_avail_page(const struct test_case *tc, int argc,
 					char *argv[])
 {
-	granularity_template(argc, argv, map_with_available_granularity,
-					PMEM2_GRANULARITY_PAGE);
-	return 2;
+	return granularity_template(tc, argc, argv,
+		map_with_available_granularity, PMEM2_GRANULARITY_PAGE);
 }
 
 /*
@@ -323,6 +332,8 @@ int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "pmem2_granularity");
+	out_init("pmem2_granularity", "TEST_LOG_LEVEL", "TEST_LOG_FILE", 0, 0);
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
+	out_fini();
 	DONE(NULL);
 }

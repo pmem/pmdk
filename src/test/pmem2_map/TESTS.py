@@ -1,6 +1,6 @@
 #!../env.py
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -48,6 +48,13 @@ class PMEM2_MAP(t.Test):
             ctx.exec('pmem2_map', self.test_case, filepath, filesize)
         else:
             ctx.exec('pmem2_map', self.test_case, filepath)
+
+
+class PMEM2_MAP_NO_FILE(t.Test):
+    test_type = t.Short
+
+    def run(self, ctx):
+        ctx.exec('pmem2_map', self.test_case)
 
 
 @t.windows_exclude
@@ -182,22 +189,19 @@ class TEST20(PMEM2_MAP):
     test_case = "test_unmap_unmapped"
 
 
-class TEST21(PMEM2_MAP):
+class TEST21(PMEM2_MAP_NO_FILE):
     """test for pmem2_map_get_address"""
     test_case = "test_map_get_address"
-    with_size = False
 
 
-class TEST22(PMEM2_MAP):
+class TEST22(PMEM2_MAP_NO_FILE):
     """test for pmem2_map_get_size"""
     test_case = "test_map_get_size"
-    with_size = False
 
 
-class TEST23(PMEM2_MAP):
+class TEST23(PMEM2_MAP_NO_FILE):
     """simply get the previously stored value of granularity"""
     test_case = "test_get_granularity_simple"
-    with_size = False
 
 
 class TEST24(PMEM2_MAP):
