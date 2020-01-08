@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -75,9 +75,10 @@ extern "C" {
 #define PMEM2_E_GRANULARITY_NOT_SUPPORTED	(-100009)
 #define PMEM2_E_OFFSET_OUT_OF_RANGE		(-100010)
 #define PMEM2_E_OFFSET_UNALIGNED		(-100011)
-#define PMEM2_E_INVALID_ALIGNMENT_FORMAT		(-100012)
-#define PMEM2_E_INVALID_SIZE_FORMAT		(-100013)
-#define PMEM2_E_LENGTH_UNALIGNED		(-100014)
+#define PMEM2_E_INVALID_ALIGNMENT_FORMAT	(-100012)
+#define PMEM2_E_INVALID_ALIGNMENT_VALUE		(-100013)
+#define PMEM2_E_INVALID_SIZE_FORMAT		(-100014)
+#define PMEM2_E_LENGTH_UNALIGNED		(-100015)
 
 /* config setup */
 
