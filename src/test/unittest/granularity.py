@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,6 +46,7 @@ class Granularity(metaclass=ctx.CtxType):
     config_dir_field = None
     config_force_field = None
     force_env = None
+    pmem_force_env = None
 
     def __init__(self, **kwargs):
         futils.set_kwargs_attrs(self, kwargs)
@@ -54,7 +55,14 @@ class Granularity(metaclass=ctx.CtxType):
         self.testdir = os.path.join(dir_, self.tc_dirname)
         force = getattr(self.config, self.config_force_field)
         if force:
-            self.env = {'PMEM2_FORCE_GRANULARITY': self.force_env}
+            self.env = {
+                        'PMEM2_FORCE_GRANULARITY': self.force_env,
+
+                        # PMEM2_FORCE_GRANULARITY is implemented only by
+                        # libpmem2. Corresponding PMEM_IS_PMEM_FORCE variable
+                        # is set to support tests for older PMDK libraries.
+                        'PMEM_IS_PMEM_FORCE': self.pmem_force_env
+                        }
 
     def setup(self, tools=None):
         if not os.path.exists(self.testdir):
@@ -142,6 +150,7 @@ class Page(Granularity):
     config_dir_field = 'page_fs_dir'
     config_force_field = 'force_page'
     force_env = 'PAGE'
+    pmem_force_env = '0'
     gran_detecto_arg = '-p'
 
 
@@ -149,6 +158,7 @@ class CacheLine(Granularity):
     config_dir_field = 'cacheline_fs_dir'
     config_force_field = 'force_cacheline'
     force_env = 'CACHE_LINE'
+    pmem_force_env = '1'
     gran_detecto_arg = '-c'
 
 
@@ -156,6 +166,7 @@ class Byte(Granularity):
     config_dir_field = 'byte_fs_dir'
     config_force_field = 'force_byte'
     force_env = 'BYTE'
+    pmem_force_env = '1'
     gran_detecto_arg = '-b'
 
 
