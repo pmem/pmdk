@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -91,7 +91,7 @@ map_valid(struct pmem2_config *cfg, size_t size)
 static int
 test_reuse_cfg(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: test_reuse_cfg <file>");
 
 	char *file = argv[0];
@@ -122,7 +122,7 @@ test_reuse_cfg(const struct test_case *tc, int argc, char *argv[])
 static int
 test_reuse_cfg_with_diff_fd(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc < 2)
 		UT_FATAL("usage: test_reuse_cfg_with_diff_fd <file> <file2>");
 
 	char *file1 = argv[0];
@@ -165,9 +165,6 @@ test_reuse_cfg_with_diff_fd(const struct test_case *tc, int argc, char *argv[])
 static int
 test_default_fd(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 0)
-		UT_FATAL("usage: test_reuse_cfg_with_diff_fd");
-
 	struct pmem2_config *cfg;
 	/* set invalid file descriptor in config */
 	prepare_config(&cfg, -1, PMEM2_GRANULARITY_PAGE);
@@ -187,7 +184,7 @@ test_default_fd(const struct test_case *tc, int argc, char *argv[])
 static int
 test_invalid_fd(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
+	if (argc < 2)
 		UT_FATAL("usage: test_invalid_fd <file> <file2>");
 
 	char *file1 = argv[0];
@@ -225,7 +222,7 @@ test_invalid_fd(const struct test_case *tc, int argc, char *argv[])
 static int
 test_register_pmem(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: test_register_pmem <file>");
 
 	char *file = argv[0];
@@ -260,7 +257,7 @@ static int
 test_use_misc_lens_and_offsets(const struct test_case *tc,
 	int argc, char *argv[])
 {
-	if (argc != 1)
+	if (argc < 1)
 		UT_FATAL("usage: test_use_misc_lens_and_offsets <file>");
 
 	char *file = argv[0];
@@ -379,7 +376,7 @@ str2gran_id(const char *in)
 static int
 test_granularity(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 3)
+	if (argc < 3)
 		UT_FATAL(
 		"usage: test_granularity <file>"
 				" <available_granularity> <requested_granularity>");
