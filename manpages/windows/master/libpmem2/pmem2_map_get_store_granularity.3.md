@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEM2_ERRORMSG
+title: PMEM2_MAP_GET_STORE_GRANULARITY
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,8 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_errormsg.3 -- man page for error handling in libpmem2)
+[comment]: <> (pmem2_map_get_store_granularity.3 -- man page for libpmem2 mapping)
+[comment]: <> (operations)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,41 +45,33 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_errormsgU**()/**pmem2_errormsgW**() - returns last error message
+**pmem2_map_get_store_granularity**() - reads effective mapping granularity
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-const char *pmem2_errormsgU(void);
-const wchar_t *pmem2_errormsgW(void);
+enum pmem2_granularity {
+	PMEM2_GRANULARITY_BYTE,
+	PMEM2_GRANULARITY_CACHE_LINE,
+	PMEM2_GRANULARITY_PAGE,
+};
+enum pmem2_granularity pmem2_map_get_store_granularity(struct pmem2_map *map);
 ```
-
-
->NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
-defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
-Otherwise they are expanded to the UNICODE API with postfix *W*.
 
 # DESCRIPTION #
 
-If an error is detected during the call to a **libpmem2**(7) function, the
-application may retrieve an error message describing the reason of the failure
-from **pmem2_errormsgU**()/**pmem2_errormsgW**(). The error message buffer is thread-local;
-errors encountered in one thread do not affect its value in
-other threads. The buffer is never cleared by any library function; its
-content is significant only when the return value of the immediately preceding
-call to a **libpmem2**(7) function indicated an error.
-The application must not modify or free the error message string.
-Subsequent calls to other library functions may modify the previous message.
+The **pmem2_map_get_store_granularity**() function reads granularity of the created
+mapping. The *map* parameter points to the structure describing mapping created
+using the **pmem2_map**(3) function. Concept of the granularity is described in
+**libpmem2**(7).
 
 # RETURN VALUE #
 
-The **pmem2_errormsgU**()/**pmem2_errormsgW**() function returns a pointer to a static buffer
-containing the last error message logged for the current thread. If *errno*
-was set, the error message may include a description of the corresponding
-error code as returned by **strerror**(3).
+The **pmem2_map_get_store_granularity**() function returns a granularity of the mapped
+area.
 
 # SEE ALSO #
 
-**strerror**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_map**(3), **libpmem2**(7) and **<http://pmem.io>**
