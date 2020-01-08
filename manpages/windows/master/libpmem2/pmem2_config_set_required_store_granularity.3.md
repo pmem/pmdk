@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEM2_ERRORMSG
+title: PMEM2_CONFIG_SET_REQUIRED_STORE_GRANULARITY
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_errormsg.3 -- man page for error handling in libpmem2)
+[comment]: <> (pmem2_config_set_required_store_granularity.3 -- man page for pmem2_config_set_required_store_granularity
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,41 +44,45 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_errormsgU**()/**pmem2_errormsgW**() - returns last error message
+**pmem2_config_set_required_store_granularity**() - set a granularity
+in pmem2_config structure.
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-const char *pmem2_errormsgU(void);
-const wchar_t *pmem2_errormsgW(void);
+enum pmem2_granularity {
+	PMEM2_GRANULARITY_BYTE,
+	PMEM2_GRANULARITY_CACHE_LINE,
+	PMEM2_GRANULARITY_PAGE,
+};
+int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
+		enum pmem2_granularity g);
 ```
-
-
->NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
-defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
-Otherwise they are expanded to the UNICODE API with postfix *W*.
 
 # DESCRIPTION #
 
-If an error is detected during the call to a **libpmem2**(7) function, the
-application may retrieve an error message describing the reason of the failure
-from **pmem2_errormsgU**()/**pmem2_errormsgW**(). The error message buffer is thread-local;
-errors encountered in one thread do not affect its value in
-other threads. The buffer is never cleared by any library function; its
-content is significant only when the return value of the immediately preceding
-call to a **libpmem2**(7) function indicated an error.
-The application must not modify or free the error message string.
-Subsequent calls to other library functions may modify the previous message.
+The **pmem2_config_set_required_store_granularity**() sets a maximum permitted
+granularity *g* requested by user in the *pmem2_config* structure.
+
+Granularity must be one of the following values:
+
+ * **PMEM2_GRANULARITY_BYTE**
+
+ * **PMEM2_GRANULARITY_CACHE_LINE**
+
+ * **PMEM2_GRANULARITY_PAGE**
+
+A description of the granularity concept can be found in **libpmem2**(7) manpage.
 
 # RETURN VALUE #
 
-The **pmem2_errormsgU**()/**pmem2_errormsgW**() function returns a pointer to a static buffer
-containing the last error message logged for the current thread. If *errno*
-was set, the error message may include a description of the corresponding
-error code as returned by **strerror**(3).
+**pmem2_config_set_required_store_granularity**() function returns 0 on success.
+Otherwise, it returns one of the following error values:
+
+ * **PMEM2_E_INVALID_ARG** - granularity *g* is not a valid value.
 
 # SEE ALSO #
-
-**strerror**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_config_new**(3), **libpmem2**(7)
+and **<http://pmem.io>**

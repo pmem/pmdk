@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEM2_ERRORMSG
+title: PMEM2\_CONFIG\_GET\_ALIGNMENT
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_errormsg.3 -- man page for error handling in libpmem2)
+[comment]: <> (pmem2_config_get_alignment.3 -- man page for pmem2_config_get_alignment)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,41 +44,71 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_errormsgU**()/**pmem2_errormsgW**() - returns last error message
+**pmem2_config_get_alignment**() - query an alignment
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-const char *pmem2_errormsgU(void);
-const wchar_t *pmem2_errormsgW(void);
+struct pmem2_config;
+int pmem2_config_get_alignment(const struct pmem2_config *config, size_t *alignment);
 ```
-
-
->NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
-defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
-Otherwise they are expanded to the UNICODE API with postfix *W*.
 
 # DESCRIPTION #
 
-If an error is detected during the call to a **libpmem2**(7) function, the
-application may retrieve an error message describing the reason of the failure
-from **pmem2_errormsgU**()/**pmem2_errormsgW**(). The error message buffer is thread-local;
-errors encountered in one thread do not affect its value in
-other threads. The buffer is never cleared by any library function; its
-content is significant only when the return value of the immediately preceding
-call to a **libpmem2**(7) function indicated an error.
-The application must not modify or free the error message string.
-Subsequent calls to other library functions may modify the previous message.
+The **pmem2_config_get_alignment**() function retrieves the alignment of offset and
+length needed for **pmem2_map**(3) to succeed. The alignment is stored in
+*\*alignment*.
 
 # RETURN VALUE #
 
-The **pmem2_errormsgU**()/**pmem2_errormsgW**() function returns a pointer to a static buffer
-containing the last error message logged for the current thread. If *errno*
-was set, the error message may include a description of the corresponding
-error code as returned by **strerror**(3).
+The **pmem2_config_get_alignment**() function returns 0 on success.
+If the function fails, the *\*alignment* variable is left unmodified, and one of
+the following errors is returned:
+
+On all systems:
+
+* **PMEM2\_E\_FILE\_HANDLE\_NOT\_SET** - config doesn't contain the file handle
+(see **pmem2_config_set_fd**(3), **pmem2_config_set_handle**(3)).
+
+on Linux and FreeBSD:
+
+* **PMEM2\_E\_INVALID\_FILE\_HANDLE** - config contains an invalid file handle.
+
+on Linux:
+
+* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a directory,
+block device, pipe, or socket.
+
+* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a character
+device other than Device DAX.
+
+* **PMEM2\_E\_INVALID\_ALIGNMENT\_FORMAT** - kernel query for Device DAX alignment
+returned data in invalid format.
+
+* -**errno** set by failing **fstat**(2), while trying to validate the file
+descriptor.
+
+* -**errno** set by failing **realpath**(3), while trying to determine whether
+fd points to a Device DAX.
+
+* -**errno** set by failing **read**(2), while trying to determine Device DAX's
+alignment.
+
+* -**errno** set by failing **strtoull**(3), while trying to determine
+Device DAX's alignment.
+
+On FreeBSD:
+
+* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a directory,
+block device, pipe, socket, or character device.
+
+* -**errno** set by failing **fstat**(2), while trying to validate the file
+descriptor.
 
 # SEE ALSO #
 
-**strerror**(3), **libpmem2**(7) and **<http://pmem.io>**
+**errno**(3),  **fstat**(2), **realpath**(3), **read**(2), **strtoull**(3),
+**pmem2_config_new**(3), **pmem2_config_set_handle**(3),
+**pmem2_config_set_fd**(3), **libpmem2**(7) and **<http://pmem.io>**

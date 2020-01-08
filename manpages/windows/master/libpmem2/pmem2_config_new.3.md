@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEM2_ERRORMSG
+title: PMEM2_CONFIG_NEW
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_errormsg.3 -- man page for error handling in libpmem2)
+[comment]: <> (pmem2_config_new.3 -- man page for pmem2_config_new and pmem2_config_delete)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,41 +44,42 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_errormsgU**()/**pmem2_errormsgW**() - returns last error message
+**pmem2_config_new**(), **pmem2_config_delete**() - allocate and free a
+configuration for a libpmem2 mapping
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-const char *pmem2_errormsgU(void);
-const wchar_t *pmem2_errormsgW(void);
+struct pmem2_config;
+int pmem2_config_new(struct pmem2_config **cfg);
+int pmem2_config_delete(struct pmem2_config **cfg);
 ```
-
-
->NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
-defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
-Otherwise they are expanded to the UNICODE API with postfix *W*.
 
 # DESCRIPTION #
 
-If an error is detected during the call to a **libpmem2**(7) function, the
-application may retrieve an error message describing the reason of the failure
-from **pmem2_errormsgU**()/**pmem2_errormsgW**(). The error message buffer is thread-local;
-errors encountered in one thread do not affect its value in
-other threads. The buffer is never cleared by any library function; its
-content is significant only when the return value of the immediately preceding
-call to a **libpmem2**(7) function indicated an error.
-The application must not modify or free the error message string.
-Subsequent calls to other library functions may modify the previous message.
+The **pmem2_config_new**() function instantiates a new (opaque) configuration structure, *pmem2_config*, which is used to define mapping parameters for a **pmem2_map**() function, and returns it through the pointer in *\*cfg*.
+
+New configuration is always initialized with default values for all possible parameters, which are specified alongside the corresponding setter function.
+
+The **pmem2_config_delete**() function frees *\*cfg* returned by **pmem2_config_new**() and sets *\*cfg* to NULL.
 
 # RETURN VALUE #
 
-The **pmem2_errormsgU**()/**pmem2_errormsgW**() function returns a pointer to a static buffer
-containing the last error message logged for the current thread. If *errno*
-was set, the error message may include a description of the corresponding
-error code as returned by **strerror**(3).
+The **pmem2_config_new**() function returns 0 on success or a negative error code on failure.
+**pmem2_config_new**() does set *\*cfg* to NULL on failure.
+
+The **pmem2_config_delete**() function returns 0.
+
+Please see **libpmem2**(7) for detailed description of libpmem2 error codes.
+
+# ERRORS #
+**pmem2_config_new**() can fail with the following error:
+- **-ENOMEM** - out of memory
 
 # SEE ALSO #
 
-**strerror**(3), **libpmem2**(7) and **<http://pmem.io>**
+**errno**(3), **pmem2_map**(3), **pmem2_config_set_handle**(3),
+**pmem2_config_set_fd**(3), **pmem2_config_get_file_size**(3),
+**libpmem2**(7) and **<http://pmem.io>**

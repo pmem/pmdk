@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEM2_ERRORMSG
+title: PMEM2_UNMAP
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_errormsg.3 -- man page for error handling in libpmem2)
+[comment]: <> (pmem2_unmap.3 -- man page for libpmem2 pmem2_unmap operation)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,41 +44,34 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_errormsgU**()/**pmem2_errormsgW**() - returns last error message
+**pmem2_unmap**() - deletes a mapping
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-const char *pmem2_errormsgU(void);
-const wchar_t *pmem2_errormsgW(void);
+int pmem2_unmap(struct pmem2_map **map_ptr);
 ```
-
-
->NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
-defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
-Otherwise they are expanded to the UNICODE API with postfix *W*.
 
 # DESCRIPTION #
 
-If an error is detected during the call to a **libpmem2**(7) function, the
-application may retrieve an error message describing the reason of the failure
-from **pmem2_errormsgU**()/**pmem2_errormsgW**(). The error message buffer is thread-local;
-errors encountered in one thread do not affect its value in
-other threads. The buffer is never cleared by any library function; its
-content is significant only when the return value of the immediately preceding
-call to a **libpmem2**(7) function indicated an error.
-The application must not modify or free the error message string.
-Subsequent calls to other library functions may modify the previous message.
+The **pmem2_unmap**() function deletes the mapping described by the
+*struct pmem2_map* object.
+
+If **pmem2_unmap**() succeeds, deleting the mapping, it releases the
+*struct pmem2_map* object describing it and writes a NULL value to *map_ptr*.
+If the function fails, the *map_ptr* variable and the map object itself are left
+unmodified and appropriate error value will be returned. For a list of possible
+return values please see [RETURN VALUE](#return-value).
 
 # RETURN VALUE #
 
-The **pmem2_errormsgU**()/**pmem2_errormsgW**() function returns a pointer to a static buffer
-containing the last error message logged for the current thread. If *errno*
-was set, the error message may include a description of the corresponding
-error code as returned by **strerror**(3).
+When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
+one of the following error values:
+
+* **-EINVAL** - if the mapping object was already unmapped (Windows only)
 
 # SEE ALSO #
 
-**strerror**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_map(3)**, **libpmem2**(7) and **<http://pmem.io>**

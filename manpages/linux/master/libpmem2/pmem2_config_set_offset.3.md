@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEM2_ERRORMSG
+title: PMEM2\_CONFIG\_SET\_OFFSET
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_errormsg.3 -- man page for error handling in libpmem2)
+[comment]: <> (pmem2_config_set_offset.3 -- man page for libpmem2 config API)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,41 +44,33 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_errormsgU**()/**pmem2_errormsgW**() - returns last error message
+**pmem2_config_set_offset**() - set offset in the pmem2_config structure
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-const char *pmem2_errormsgU(void);
-const wchar_t *pmem2_errormsgW(void);
+struct pmem2_config;
+int pmem2_config_set_offset(struct pmem2_config *config, size_t offset);
 ```
-
-
->NOTE: The PMDK API supports UNICODE. If the **PMDK_UTF8_API** macro is
-defined, basic API functions are expanded to the UTF-8 API with postfix *U*.
-Otherwise they are expanded to the UNICODE API with postfix *W*.
 
 # DESCRIPTION #
 
-If an error is detected during the call to a **libpmem2**(7) function, the
-application may retrieve an error message describing the reason of the failure
-from **pmem2_errormsgU**()/**pmem2_errormsgW**(). The error message buffer is thread-local;
-errors encountered in one thread do not affect its value in
-other threads. The buffer is never cleared by any library function; its
-content is significant only when the return value of the immediately preceding
-call to a **libpmem2**(7) function indicated an error.
-The application must not modify or free the error message string.
-Subsequent calls to other library functions may modify the previous message.
+The **pmem2_config_set_offset**() function configures the offset which will be used
+to map the contents from the specified location of the source. *\*config* should be
+already initialized, please see **pmem2_config_new**(3) for details. The *\offset*
+must be a multiple of the alignment required for the config. To retrieve the alignment
+required for specific *\*config* please use **pmem2_config_get_alignment**(3).
 
 # RETURN VALUE #
 
-The **pmem2_errormsgU**()/**pmem2_errormsgW**() function returns a pointer to a static buffer
-containing the last error message logged for the current thread. If *errno*
-was set, the error message may include a description of the corresponding
-error code as returned by **strerror**(3).
+The **pmem2_config_set_offset**() function returns 0 on success. Otherwise, it returns:
+
+* **PMEM2\_E\_OFFSET\_OUT\_OF\_RANGE** - argument out of range, offset is greater than
+**INT64\_MAX**
 
 # SEE ALSO #
 
-**strerror**(3), **libpmem2**(7) and **<http://pmem.io>**
+**libpmem2**(7), **pmem2_config_get_alignment**(3), **pmem2_config_new**(3),
+**pmem2_map**(3), **sysconf**(3) and **<http://pmem.io>**
