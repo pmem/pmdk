@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -51,9 +51,6 @@ struct pmem2_map {
 	/* effective persistence granularity */
 	enum pmem2_granularity effective_granularity;
 };
-
-int pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
-		size_t *length);
 
 enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem);
 

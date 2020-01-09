@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -135,6 +135,46 @@ int
 pmem2_config_set_length(struct pmem2_config *cfg, size_t length)
 {
 	cfg->length = length;
+
+	return 0;
+}
+
+/*
+ * pmem2_config_validate_length -- validate that length in the pmem2_config
+ * structure is consistent with the file length
+ */
+int
+pmem2_config_validate_length(const struct pmem2_config *cfg,
+		size_t file_len)
+{
+	size_t alignment;
+	int ret = pmem2_config_get_alignment(cfg, &alignment);
+	if (ret)
+		return ret;
+
+	ASSERTne(alignment, 0);
+	if (cfg->length % alignment) {
+		ERR("length is not a multiple of %lu", alignment);
+		return PMEM2_E_LENGTH_UNALIGNED;
+	}
+
+	/* overflow check */
+	const size_t end = cfg->offset + cfg->length;
+	if (end < cfg->offset) {
+		ERR("overflow of offset and length");
+		return PMEM2_E_MAP_RANGE;
+	}
+
+	/* let's align the file size */
+	size_t aligned_file_len = file_len;
+	if (file_len % alignment)
+		aligned_file_len = ALIGN_UP(file_len, alignment);
+
+	/* validate mapping fit into the file */
+	if (end > aligned_file_len) {
+		ERR("mapping larger than file size");
+		return PMEM2_E_MAP_RANGE;
+	}
 
 	return 0;
 }
