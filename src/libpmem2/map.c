@@ -44,12 +44,12 @@
 #include <libpmem2.h>
 
 /*
- * pmem2_get_length -- verify a range against the file length
+ * pmem2_validate_length -- verify a range against the file length
  * If length is not set in pmem2_config its value is set to cover everything
  * up to the end of the file.
  */
 int
-pmem2_get_length(const struct pmem2_config *cfg, size_t file_len,
+pmem2_validate_length(const struct pmem2_config *cfg, size_t file_len,
 		size_t *length)
 {
 	ASSERTne(length, NULL);
