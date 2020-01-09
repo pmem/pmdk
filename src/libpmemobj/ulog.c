@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -314,8 +314,8 @@ ulog_checksum(struct ulog *ulog, size_t ulog_base_bytes, int insert)
  */
 void
 ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
-	size_t ulog_base_nbytes, struct ulog_next *next,
-	const struct pmem_ops *p_ops)
+	size_t ulog_base_nbytes, size_t ulog_total_capacity,
+	struct ulog_next *next, const struct pmem_ops *p_ops)
 {
 	/*
 	 * First, store all entries over the base capacity of the ulog in
@@ -334,9 +334,16 @@ ulog_store(struct ulog *dest, struct ulog *src, size_t nbytes,
 	 * If the nbytes is aligned, an entire cacheline needs to be
 	 * additionally zeroed.
 	 * But the checksum must be calculated based solely on actual data.
+	 * If the ulog total capacity is equal to the size of the
+	 * ulog being stored (nbytes == ulog_total_capacity), then there's
+	 * nothing to invalidate because the entire log data will
+	 * be overwritten.
 	 */
 	size_t checksum_nbytes = MIN(ulog_base_nbytes, nbytes);
-	nbytes = CACHELINE_ALIGN(nbytes + sizeof(struct ulog_entry_base));
+	if (nbytes != ulog_total_capacity)
+		nbytes = CACHELINE_ALIGN(nbytes +
+			sizeof(struct ulog_entry_base));
+	ASSERT(nbytes <= ulog_total_capacity);
 
 	size_t base_nbytes = MIN(ulog_base_nbytes, nbytes);
 	size_t next_nbytes = nbytes - base_nbytes;

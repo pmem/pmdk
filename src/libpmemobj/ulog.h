@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -145,6 +145,7 @@ int ulog_reserve(struct ulog *ulog,
 
 void ulog_store(struct ulog *dest,
 	struct ulog *src, size_t nbytes, size_t ulog_base_nbytes,
+	size_t ulog_total_capacity,
 	struct ulog_next *next, const struct pmem_ops *p_ops);
 
 int ulog_free_next(struct ulog *u, const struct pmem_ops *p_ops,
