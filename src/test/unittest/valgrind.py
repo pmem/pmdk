@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -104,7 +104,7 @@ def disabled_tools(test):
 class Valgrind:
     """Valgrind management"""
 
-    def __init__(self, tool, cwd, testnum):
+    def __init__(self, tool, cwd, testnum, check_log=True):
         if sys.platform == 'win32':
             raise NotImplementedError(
                 'Valgrind class should not be used on Windows')
@@ -112,6 +112,7 @@ class Valgrind:
         self.tool = NONE if tool is None else tool
         self.tool_name = self.tool.name.lower()
         self.cwd = cwd
+        self.check_log = check_log
 
         log_file_name = '{}{}.log'.format(self.tool.name.lower(), testnum)
         self.log_file = path.join(cwd, log_file_name)
@@ -202,7 +203,8 @@ class Valgrind:
             self.add_opt('--leak-check=full')
 
     def check(self, **kwargs):
-        self.validate_log()
+        if self.check_log:
+            self.validate_log()
 
     def _get_valgrind_exe(self):
         """
@@ -286,7 +288,7 @@ class Valgrind:
                               .format(self.tool_name))
 
 
-def require_valgrind_enabled(valgrind):
+def require_valgrind_enabled(valgrind, check_log=True):
     def wrapped(tc):
         if sys.platform == 'win32':
             # do not run valgrind tests on windows
@@ -294,7 +296,7 @@ def require_valgrind_enabled(valgrind):
             return tc
 
         tool = _require_valgrind_common(valgrind)
-        ctx.add_requirement(tc, 'enabled_valgrind', tool)
+        ctx.add_requirement(tc, 'enabled_valgrind', tool, check_log=check_log)
 
         return tc
 
