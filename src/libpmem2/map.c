@@ -191,6 +191,7 @@ pmem2_validate_offset(const struct pmem2_config *cfg, size_t *offset)
 	if (ret)
 		return ret;
 
+	ASSERTne(alignment, 0);
 	if (cfg->offset % alignment) {
 		ERR("offset is not a multiple of %lu", alignment);
 		return PMEM2_E_OFFSET_UNALIGNED;
