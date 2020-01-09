@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -339,7 +339,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	ASSERT(file_type == PMEM2_FTYPE_REG || file_type == PMEM2_FTYPE_DEVDAX);
 
 	size_t content_length, reserved_length = 0;
-	ret = pmem2_get_length(cfg, file_len, &content_length);
+	ret = pmem2_validate_and_get_length(cfg, file_len, &content_length);
 	if (ret)
 		return ret;
 
