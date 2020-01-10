@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2\_CONFIG\_SET\_OFFSET, 3)
+title: _MP(PMEM2_CONFIG_SET_OFFSET, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -67,8 +67,8 @@ required for specific *\*config* please use **pmem2_config_get_alignment**(3).
 
 The **pmem2_config_set_offset**() function returns 0 on success. Otherwise, it returns:
 
-* **PMEM2\_E\_OFFSET\_OUT\_OF\_RANGE** - argument out of range, offset is greater than
-**INT64\_MAX**
+* **PMEM2_E_OFFSET_OUT_OF_RANGE** - argument out of range, offset is greater than
+**INT64_MAX**
 
 # SEE ALSO #
 

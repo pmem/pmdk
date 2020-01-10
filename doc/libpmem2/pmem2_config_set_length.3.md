@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2\_CONFIG\_SET\_LENGTH, 3)
+title: _MP(PMEM2_CONFIG_SET_LENGTH, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
