@@ -54,6 +54,7 @@
 #include "tx.h"
 #include "heap.h"
 #include "btt_layout.h"
+#include "page_size.h"
 
 /* XXX - modify Linux makefiles to generate srcversion.h and remove #ifdef */
 #ifdef _WIN32
@@ -98,8 +99,8 @@
 #define OBJH_FROM_PTR(ptr)\
 ((void *)((uintptr_t)(ptr) - sizeof(struct legacy_object_header)))
 
-#define DEFAULT_HDR_SIZE	4096UL /* 4 KB */
-#define DEFAULT_DESC_SIZE	4096UL /* 4 KB */
+#define DEFAULT_HDR_SIZE	PMEM_PAGESIZE
+#define DEFAULT_DESC_SIZE	PMEM_PAGESIZE
 #define POOL_HDR_DESC_SIZE	(DEFAULT_HDR_SIZE + DEFAULT_DESC_SIZE)
 
 #define PTR_TO_ALLOC_HDR(ptr)\
