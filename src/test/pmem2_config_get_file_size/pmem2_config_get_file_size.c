@@ -34,18 +34,13 @@
  * pmem2_config_get_file_size.c -- pmem2_config_get_file_size unittests
  */
 
-/* for O_TMPFILE */
-#define _GNU_SOURCE
-
-#include <fcntl.h>
 #include <stdint.h>
-#include <sys/stat.h>
-#include <sys/types.h>
 
 #include "fault_injection.h"
 #include "unittest.h"
 #include "ut_pmem2_utils.h"
 #include "ut_pmem2_config.h"
+#include "ut_fh.h"
 #include "config.h"
 
 typedef void (*test_fun)(const char *path, os_off_t size);
@@ -65,26 +60,23 @@ test_notset_fd(const char *ignored_path, os_off_t ignored_size)
 }
 
 static void
-init_cfg(struct pmem2_config *cfg, int fd)
+init_cfg(struct pmem2_config *cfg, struct FHandle *f)
 {
 	pmem2_config_init(cfg);
-#ifdef _WIN32
-	cfg->handle = (HANDLE)_get_osfhandle(fd);
-#else
-	cfg->fd = fd;
-#endif
+	PMEM2_CONFIG_SET_FHANDLE(cfg, f);
 }
 
 /*
- * test_normal_file - tests normal file
+ * test_normal_file - tests normal file (common)
  */
 static void
-test_normal_file(const char *path, os_off_t expected_size)
+test_normal_file(const char *path, os_off_t expected_size,
+		enum file_handle_type type)
 {
-	int fd = OPEN(path, O_RDWR);
+	struct FHandle *fh = UT_FH_OPEN(type, path, FH_RDWR);
 
 	struct pmem2_config cfg;
-	init_cfg(&cfg, fd);
+	init_cfg(&cfg, fh);
 
 	size_t size = SIZE_MAX;
 	int ret = pmem2_config_get_file_size(&cfg, &size);
@@ -92,21 +84,41 @@ test_normal_file(const char *path, os_off_t expected_size)
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(size, expected_size);
 
-	CLOSE(fd);
+	UT_FH_CLOSE(fh);
 }
 
-#ifdef O_TMPFILE
+/*
+ * test_normal_file_fd - tests normal file using a file descriptor
+ */
+static void
+test_normal_file_fd(const char *path, os_off_t expected_size)
+{
+	test_normal_file(path, expected_size, FH_FD);
+}
+
+/*
+ * test_normal_file_handle - tests normal file using a HANDLE
+ */
+static void
+test_normal_file_handle(const char *path, os_off_t expected_size)
+{
+	test_normal_file(path, expected_size, FH_HANDLE);
+}
+
 /*
  * test_tmpfile - tests temporary file
  */
 static void
-test_tmpfile(const char *dir, os_off_t requested_size)
+test_tmpfile(const char *dir, os_off_t requested_size,
+		enum file_handle_type type)
 {
-	int fd = OPEN(dir, O_RDWR | O_TMPFILE);
-	FTRUNCATE(fd, requested_size);
+	struct FHandle *fh = UT_FH_OPEN(type, dir, FH_RDWR | FH_TMPFILE);
+	UT_FH_TRUNCATE(fh, requested_size);
 
 	struct pmem2_config cfg;
-	init_cfg(&cfg, fd);
+
+	pmem2_config_init(&cfg);
+	init_cfg(&cfg, fh);
 
 	size_t size = SIZE_MAX;
 	int ret = pmem2_config_get_file_size(&cfg, &size);
@@ -114,27 +126,62 @@ test_tmpfile(const char *dir, os_off_t requested_size)
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(size, requested_size);
 
-	CLOSE(fd);
+	UT_FH_CLOSE(fh);
 }
-#endif
 
 /*
- * test_directory - tests directory path
+ * test_tmpfile_fd - tests temporary file using file descriptor interface
  */
 static void
-test_directory(const char *dir, os_off_t ignored)
+test_tmpfile_fd(const char *dir, os_off_t requested_size)
 {
-	int fd = OPEN(dir, O_RDONLY);
+	test_tmpfile(dir, requested_size, FH_FD);
+}
+
+/*
+ * test_tmpfile_handle - tests temporary file using file handle interface
+ */
+static void
+test_tmpfile_handle(const char *dir, os_off_t requested_size)
+{
+	test_tmpfile(dir, requested_size, FH_HANDLE);
+}
+
+/*
+ * test_directory - tests directory path (common)
+ */
+static void
+test_directory(const char *dir, enum file_handle_type type)
+{
+	struct FHandle *fh = UT_FH_OPEN(type, dir, FH_RDONLY | FH_DIRECTORY);
 
 	struct pmem2_config cfg;
-	init_cfg(&cfg, fd);
+	init_cfg(&cfg, fh);
 
 	size_t size;
 	int ret = pmem2_config_get_file_size(&cfg, &size);
 
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_TYPE);
 
-	CLOSE(fd);
+	UT_FH_CLOSE(fh);
+}
+
+/*
+ * test_directory_fd - tests directory path using file descriptor interface
+ */
+static void
+test_directory_fd(const char *dir, os_off_t ignored)
+{
+	test_directory(dir, FH_FD);
+}
+
+/*
+ * test_directory_handle - tests directory path using file handle interface
+ */
+static void
+test_directory_handle(const char *dir, os_off_t ignored)
+{
+	test_directory(dir, FH_HANDLE);
 }
 
 static struct test_list {
@@ -142,11 +189,12 @@ static struct test_list {
 	test_fun test;
 } list[] = {
 	{"notset_fd", test_notset_fd},
-	{"normal_file", test_normal_file},
-#ifdef O_TMPFILE
-	{"tmp_file", test_tmpfile},
-#endif
-	{"directory", test_directory},
+	{"normal_file_fd", test_normal_file_fd},
+	{"normal_file_handle", test_normal_file_handle},
+	{"tmp_file_fd", test_tmpfile_fd},
+	{"tmp_file_handle", test_tmpfile_handle},
+	{"directory_fd", test_directory_fd},
+	{"directory_handle", test_directory_handle},
 };
 
 int

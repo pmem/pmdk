@@ -11,13 +11,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\unittest\ut.c">
+    <ClCompile Include="ut.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\unittest\ut_file.c">
+    <ClCompile Include="ut_file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\unittest\ut_alloc.c">
+    <ClCompile Include="ut_alloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ut_backtrace.c">
@@ -35,9 +35,12 @@
     <ClCompile Include="..\..\common\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ut_fh.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\unittest\unittest.h">
+    <ClInclude Include="unittest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

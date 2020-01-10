@@ -42,13 +42,14 @@ vpath %.h $(TOP)/src/common
 
 TARGET_UT = libut.a
 OBJS_UT = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
-	os_posix.o os_thread_posix.o rand.o
+	os_posix.o os_thread_posix.o rand.o ut_fh.o
 
 TARGET_UT_PMEM2 = ut_pmem2.a
 OBJS_UT_PMEM2 = ut_pmem2_config.o ut_pmem2_utils.o
 
 CFLAGS = -I$(TOP)/src/include
 CFLAGS += -I$(TOP)/src/common
+CFLAGS += -I$(TOP)/src/libpmem2
 CFLAGS += $(OS_INCS)
 CFLAGS += -std=gnu99
 CFLAGS += -ggdb
