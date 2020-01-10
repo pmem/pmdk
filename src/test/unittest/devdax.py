@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,6 +32,8 @@
 
 """Device dax context classes and utilities"""
 
+import copy
+import itertools
 import os
 import sys
 
@@ -44,12 +46,41 @@ class DevDax():
     """
     Class representing dax device and its parameters
     """
-    def __init__(self, name):
+    def __init__(self, name, alignment=None, min_size=None, max_size=None):
         self.name = name
         self.path = None
+        self._req_alignment = alignment
+        self._req_min_size = min_size
+        self._req_max_size = max_size
+        self.assigned = False
 
     def __str__(self):
         return self.name
+
+    def try_assign(self, path):
+        """
+        Try assigning to real dax device, identified by its path,
+        provided it meets defined requirements. In case of success, set DevDax
+        object attributes (like size and/or alignment) to the real dax device
+        values and return True. Return False otherwise.
+        """
+        ndctl = tools.Ndctl()
+
+        p_size = ndctl.get_dev_size(path)
+        p_align = ndctl.get_dev_alignment(path)
+
+        if self._req_min_size and p_size < self._req_min_size:
+            return False
+        if self._req_max_size and p_size > self._req_max_size:
+            return False
+        if self._req_alignment and p_align != self._req_alignment:
+            return False
+
+        self.path = path
+        self.size = p_size
+        self.alignment = p_align
+        self.assigned = True
+        return True
 
 
 class DevDaxes():
@@ -92,14 +123,47 @@ class DevDaxes():
                               '({} needed)'.format(len(dax_devices)))
 
         ndctl = tools.Ndctl()
-        for dd, cddp in zip(dax_devices, config.device_dax_path):
-            dd.path = cddp
-            if not ndctl.is_devdax(cddp):
-                raise futils.Fail('{} is not a dax device'.format(cddp))
-            dd.size = ndctl.get_dev_size(cddp)
-            dd.alignment = ndctl.get_dev_alignment(cddp)
+        for c in config.device_dax_path:
+            if not ndctl.is_devdax(c):
+                raise futils.Fail('{} is not a dax device'.format(c))
 
-        return [DevDaxes(*dax_devices), ]
+        assigned = _try_assign_by_requirements(config.device_dax_path,
+                                               dax_devices)
+        if not assigned:
+            raise futils.Skip('Dax devices in test configuration do not '
+                              'meet test requirements')
+
+        return [DevDaxes(*assigned), ]
+
+
+def _try_assign_by_requirements(configured, required):
+    """
+    Try assigning dax devices defined as paths in test configuration to
+    dax device objects taking their requirements into account.
+    Return a sequence of all requirement objects if they were
+    successfully assigned to existing dax, otherwise return None.
+    Since the order in which requirement objects are tried to be
+    assigned may affect the final outcome, all permutations are checked.
+    """
+    permutations = itertools.permutations(required)
+    for p in permutations:
+        conf_copy = configured[:]
+        req_copy = copy.deepcopy(p)
+        for dd in req_copy:
+            for i, c in enumerate(conf_copy):
+                if dd.try_assign(c):
+                    conf_copy.pop(i)
+                    break
+
+            if not dd.assigned:
+                # at least one device dax requirement cannot be assigned
+                # to any of devices defined in the configuration,
+                # try another permutation
+                break
+
+        if all(dd.assigned for dd in req_copy):
+            return req_copy
+    return None
 
 
 def require_devdax(*dax_devices, **kwargs):
