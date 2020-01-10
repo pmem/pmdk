@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -90,6 +90,20 @@ def get_examples_dir(ctx):
             return abspath(join(WIN_RELEASE_BUILDDIR, 'examples'))
     else:
         return abspath(join(ROOTDIR, '..', 'examples'))
+
+
+def tail(file, n):
+    """
+    Replace the file content with the n last lines from the existing file.
+    The original file is saved under the name with ".old" suffix.
+    """
+    with open(file, 'r') as f:
+        lines = f.readlines()
+        last_lines = lines[-n:]
+    os.rename(file, file + ".old")
+    with open(file, 'w') as f:
+        for line in last_lines:
+            f.write(line)
 
 
 class Color:
