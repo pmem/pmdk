@@ -576,7 +576,7 @@ palloc_exec_actions(struct palloc_heap *heap,
 	/* perform all persistent memory operations */
 	operation_process(ctx);
 
-	for (size_t i = 0; i < actvcnt; ++i) {
+	for (ssize_t i = (ssize_t)actvcnt - 1; i >= 0; --i) {
 		act = &actv[i];
 
 		action_funcs[act->type].on_process(heap, act);
@@ -587,7 +587,7 @@ palloc_exec_actions(struct palloc_heap *heap,
 		}
 	}
 
-	for (size_t i = 0; i < actvcnt; ++i) {
+	for (ssize_t i = (ssize_t)actvcnt - 1; i >= 0; --i) {
 		act = &actv[i];
 
 		action_funcs[act->type].on_unlock(heap, act);
