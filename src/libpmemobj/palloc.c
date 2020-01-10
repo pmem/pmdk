@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -454,7 +454,7 @@ palloc_exec_actions(struct palloc_heap *heap,
 
 	operation_process(ctx);
 
-	for (int i = 0; i < actvcnt; ++i) {
+	for (ssize_t i = (ssize_t)actvcnt - 1; i >= 0; --i) {
 		act = &actv[i];
 
 		action_funcs[act->type].on_process(heap, act);
@@ -465,7 +465,7 @@ palloc_exec_actions(struct palloc_heap *heap,
 		}
 	}
 
-	for (int i = 0; i < actvcnt; ++i) {
+	for (ssize_t i = (ssize_t)actvcnt - 1; i >= 0; --i) {
 		act = &actv[i];
 
 		action_funcs[act->type].on_unlock(heap, act);
