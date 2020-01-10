@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -214,7 +214,7 @@ main(int argc, char **argv)
 			goto end;
 		}
 	}
-	UT_FATAL("test: %s doesn't exist", test_case);
+	UT_FATAL("test: test case %s doesn't exist", test_case);
 end:
 	DONE(NULL);
 }

@@ -122,4 +122,4 @@ class TEST9(t.Test):
     def run(self, ctx):
         dd = ctx.devdaxes.devdax1
         ctx.exec('pmem2_config_get_file_size',
-                 'normal_file', dd.path, str(dd.size))
+                 'normal_file_fd', dd.path, str(dd.size))
