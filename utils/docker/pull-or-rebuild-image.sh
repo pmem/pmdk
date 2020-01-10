@@ -51,6 +51,28 @@ set -e
 
 source $(dirname $0)/set-vars.sh
 
+function get_commit_range_from_last_merge {
+	# get commit id of the last merge
+	LAST_MERGE=$(git log --merges --pretty=%H -1)
+	LAST_COMMIT=$(git log --pretty=%H -1)
+	if [ "$LAST_MERGE" == "$LAST_COMMIT" ]; then
+		# GitHub Actions commits its own merge in case of pull requests
+		# so the first merge commit has to be skipped.
+		LAST_MERGE=$(git log --merges --pretty=%H -2 | tail -n1)
+	fi
+	if [ "$LAST_MERGE" == "" ]; then
+		# possible in case of shallow clones
+		COMMIT_RANGE=""
+	else
+		COMMIT_RANGE="$LAST_MERGE..HEAD"
+		# make sure it works now
+		if ! git rev-list $COMMIT_RANGE >/dev/null; then
+			COMMIT_RANGE=""
+		fi
+	fi
+	echo $COMMIT_RANGE
+}
+
 if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$TRAVIS_BRANCH" != "coverity_scan" \
 	&& "$COVERITY" -eq 1 ]]; then
 	echo "INFO: Skip Coverity scan job if build is triggered neither by " \
@@ -81,31 +103,33 @@ fi
 # with non-upstream repository
 if [ -n "$TRAVIS_COMMIT_RANGE" -a "$TRAVIS_REPO_SLUG" != "$GITHUB_REPO" ]; then
 	if ! git rev-list $TRAVIS_COMMIT_RANGE; then
-		# get commit id of the last merge
-		LAST_MERGE=$(git log --merges --pretty=%H -1)
-		if [ "$LAST_MERGE" == "" ]; then
-			# possible in case of shallow clones
-			TRAVIS_COMMIT_RANGE=""
-		else
-			TRAVIS_COMMIT_RANGE="$LAST_MERGE..HEAD"
-			# make sure it works now
-			if ! git rev-list $TRAVIS_COMMIT_RANGE; then
-				TRAVIS_COMMIT_RANGE=""
-			fi
-		fi
+		TRAVIS_COMMIT_RANGE=$(get_commit_range_from_last_merge)
 	fi
 fi
 
-# Find all the commits for the current build
-if [[ -n "$TRAVIS_COMMIT_RANGE" ]]; then
+# Fix Travis commit range
+if [ -n "$TRAVIS_COMMIT_RANGE" ]; then
 	# $TRAVIS_COMMIT_RANGE contains "..." instead of ".."
 	# https://github.com/travis-ci/travis-ci/issues/4596
 	PR_COMMIT_RANGE="${TRAVIS_COMMIT_RANGE/.../..}"
-
-	commits=$(git rev-list $PR_COMMIT_RANGE)
-else
-	commits=$TRAVIS_COMMIT
 fi
+
+# Set the commit range in case of GitHub Actions
+if [ -n "$GITHUB_ACTIONS" ]; then
+	PR_COMMIT_RANGE=$(get_commit_range_from_last_merge)
+fi
+
+# Find all the commits for the current build
+if [ -n "$PR_COMMIT_RANGE" ]; then
+	commits=$(git rev-list $PR_COMMIT_RANGE)
+elif [ -n "$TRAVIS" ]; then
+	commits=$TRAVIS_COMMIT
+elif [ -n "$GITHUB_ACTIONS" ]; then
+	commits=$GITHUB_SHA
+else
+	commits=$(git log --pretty=%H -1)
+fi
+
 echo "Commits in the commit range:"
 for commit in $commits; do echo $commit; done
 
