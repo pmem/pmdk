@@ -97,10 +97,7 @@ format:
 
 check-license:
 	$(MAKE) -C utils $@
-	@utils/check_license/check-headers.sh \
-		$(TOP) \
-		utils/check_license/check-license \
-		LICENSE
+	@utils/check_license/check-headers.sh $(TOP) BSD-3-Clause
 	@echo Done.
 
 sparse:
