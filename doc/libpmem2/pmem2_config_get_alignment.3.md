@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2\_CONFIG\_GET\_ALIGNMENT, 3)
+title: _MP(PMEM2_CONFIG_GET_ALIGNMENT, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -69,25 +69,25 @@ the following errors is returned:
 
 On all systems:
 
-* **PMEM2\_E\_FILE\_HANDLE\_NOT\_SET** - config doesn't contain the file handle
+* **PMEM2_E_FILE_HANDLE_NOT_SET** - config doesn't contain the file handle
 (see **pmem2_config_set_fd**(3), **pmem2_config_set_handle**(3)).
 
-* **PMEM2\_E\_INVALID\_ALIGNMENT\_VALUE** - operating system returned unexpected
+* **PMEM2_E_INVALID_ALIGNMENT_VALUE** - operating system returned unexpected
 alignment value (eg. it is not a power of two).
 
 on Linux and FreeBSD:
 
-* **PMEM2\_E\_INVALID\_FILE\_HANDLE** - config contains an invalid file handle.
+* **PMEM2_E_INVALID_FILE_HANDLE** - config contains an invalid file handle.
 
 on Linux:
 
-* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a directory,
+* **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a directory,
 block device, pipe, or socket.
 
-* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a character
+* **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a character
 device other than Device DAX.
 
-* **PMEM2\_E\_INVALID\_ALIGNMENT\_FORMAT** - kernel query for Device DAX alignment
+* **PMEM2_E_INVALID_ALIGNMENT_FORMAT** - kernel query for Device DAX alignment
 returned data in invalid format.
 
 * -**errno** set by failing **fstat**(2), while trying to validate the file
@@ -104,7 +104,7 @@ Device DAX's alignment.
 
 On FreeBSD:
 
-* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a directory,
+* **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a directory,
 block device, pipe, socket, or character device.
 
 * -**errno** set by failing **fstat**(2), while trying to validate the file
