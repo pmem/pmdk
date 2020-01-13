@@ -43,14 +43,13 @@
 #include "ut_pmem2_utils.h"
 #include "ut_pmem2_config.h"
 #include "config.h"
-
-typedef void (*test_fun)(const char *path, size_t ref_alignment);
+#include "out.h"
 
 /*
  * test_notset_fd - tests what happens when file descriptor was not set
  */
-static void
-test_notset_fd(const char *ignored_path, size_t unused)
+static int
+test_notset_fd(const struct test_case *tc, int argc, char *argv[])
 {
 	struct pmem2_config cfg;
 	pmem2_config_init(&cfg);
@@ -58,6 +57,8 @@ test_notset_fd(const char *ignored_path, size_t unused)
 	int ret = pmem2_config_get_alignment(&cfg, &alignment);
 
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_FILE_HANDLE_NOT_SET);
+
+	return 0;
 }
 
 static void
@@ -74,29 +75,51 @@ init_cfg(struct pmem2_config *cfg, int fd)
 /*
  * test_get_alignment_success - simply checks returned value
  */
-static void
-test_get_alignment_success(const char *path, size_t ref_alignment)
+static int
+test_get_alignment_success(const struct test_case *tc, int argc,
+		char *argv[])
 {
-	int fd = OPEN(path, O_RDWR);
+	if (argc < 1)
+		UT_FATAL("usage: test_get_alignment_success"
+				" <file> [alignment]");
+
+	int ret = 1;
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
 
 	struct pmem2_config cfg;
 	init_cfg(&cfg, fd);
 
 	size_t alignment;
-	int ret = pmem2_config_get_alignment(&cfg, &alignment);
+	int ret2 = pmem2_config_get_alignment(&cfg, &alignment);
+	UT_PMEM2_EXPECT_RETURN(ret2, 0);
 
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	size_t ref_alignment = Ut_mmap_align;
+
+	/* let's check if it is DEVDAX test */
+	if (argc >= 2) {
+		ref_alignment = ATOUL(argv[1]);
+		ret = 2;
+	}
+
 	UT_ASSERTeq(ref_alignment, alignment);
 
 	CLOSE(fd);
+
+	return ret;
 }
 
 /*
  * test_directory - tests directory path
  */
-static void
-test_directory(const char *dir, size_t unused)
+static int
+test_directory(const struct test_case *tc, int argc, char *argv[])
 {
+	if (argc < 1)
+		UT_FATAL("usage: test_directory <file>");
+
+	char *dir = argv[0];
 	int fd = OPEN(dir, O_RDONLY);
 
 	struct pmem2_config cfg;
@@ -108,40 +131,31 @@ test_directory(const char *dir, size_t unused)
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_TYPE);
 
 	CLOSE(fd);
+
+	return 1;
 }
 
-static struct test_list {
-	const char *name;
-	test_fun test;
-} list[] = {
-	{"notset_fd", test_notset_fd},
-	{"get_alignment_success", test_get_alignment_success},
-	{"directory", test_directory},
+/*
+ * test_cases -- available test cases
+ */
+static struct test_case test_cases[] = {
+	TEST_CASE(test_notset_fd),
+	TEST_CASE(test_get_alignment_success),
+	TEST_CASE(test_directory),
 };
+
+#define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
 
 int
 main(int argc, char **argv)
 {
 	START(argc, argv, "pmem2_config_get_alignment");
-	if (argc < 3 && argc > 4)
-		UT_FATAL("usage: %s test_case path [alignment]", argv[0]);
 
 	util_init();
+	out_init("pmem2_config_get_alignment", "TEST_LOG_LEVEL",
+			"TEST_LOG_FILE", 0, 0);
+	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
+	out_fini();
 
-	char *test_case = argv[1];
-	char *path = argv[2];
-	size_t ref_alignment = Ut_mmap_align;
-
-	if (argc == 4)
-		ref_alignment = ATOUL(argv[3]);
-
-	for (int i = 0; i < ARRAY_SIZE(list); i++) {
-		if (strcmp(list[i].name, test_case) == 0) {
-			list[i].test(path, ref_alignment);
-			goto end;
-		}
-	}
-	UT_FATAL("test: %s doesn't exist", test_case);
-end:
 	DONE(NULL);
 }

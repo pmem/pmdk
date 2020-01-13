@@ -34,37 +34,22 @@
 
 import testframework as t
 
-# definitions of DevDaxes
-devdax1 = t.DevDax('devdax', alignment=2 * t.MiB)
-devdax2 = t.DevDax('devdax', alignment=4 * t.KiB)
-
-
-class PMEM2_CONFIG_DEV_DAXES(t.Test):
-    test_type = t.Short
-    test_case = "get_alignment_success"
-
-    def run(self, ctx):
-        dd = ctx.devdaxes.devdax
-        ctx.exec('pmem2_config_get_alignment',
-                 self.test_case, dd.path, str(dd.alignment))
-
 
 @t.no_testdir()
 class TEST0(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_alignment', 'notset_fd', 'x')
+        ctx.exec('pmem2_config_get_alignment', 'test_notset_fd')
 
 
 class TEST1(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        size = 16 * t.MiB
-        filepath = ctx.create_holey_file(size, 'testfile')
-        ctx.exec('pmem2_config_get_alignment', 'get_alignment_success',
-                 filepath)
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
+        ctx.exec('pmem2_config_get_alignment',
+                 'test_get_alignment_success', filepath)
 
 
 @t.windows_exclude
@@ -73,17 +58,27 @@ class TEST2(t.BaseTest):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config_get_alignment', 'directory',
+        ctx.exec('pmem2_config_get_alignment', 'test_directory',
                  ctx.testdir)
 
 
+class PMEM2_CONFIG_GET_ALIGNMENT_DEV_DAX(t.Test):
+    test_type = t.Short
+    test_case = "test_get_alignment_success"
+
+    def run(self, ctx):
+        dd = ctx.devdaxes.devdax
+        ctx.exec('pmem2_config_get_alignment',
+                 self.test_case, dd.path, str(dd.alignment))
+
+
 @t.windows_exclude
-@t.require_devdax(devdax1)
-class TEST3(PMEM2_CONFIG_DEV_DAXES):
+@t.require_devdax(t.DevDax('devdax', alignment=2 * t.MiB))
+class TEST3(PMEM2_CONFIG_GET_ALIGNMENT_DEV_DAX):
     pass
 
 
 @t.windows_exclude
-@t.require_devdax(devdax2)
-class TEST4(PMEM2_CONFIG_DEV_DAXES):
+@t.require_devdax(t.DevDax('devdax', alignment=4 * t.KiB))
+class TEST4(PMEM2_CONFIG_GET_ALIGNMENT_DEV_DAX):
     pass
