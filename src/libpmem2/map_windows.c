@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -73,7 +73,7 @@ static const char *granularity_err_msg[3][3] = {
 /*
  * create_mapping -- creates file mapping object for a file
  */
-HANDLE
+static HANDLE
 create_mapping(HANDLE hfile, size_t offset, size_t length, DWORD protect,
 		unsigned long *err)
 {
