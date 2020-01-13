@@ -43,7 +43,7 @@ require_test_type medium
 setup
 umask 0
 
-create_nonzeroed_file 2M 8K $DIR/testfile
+create_nonzeroed_file 2M $(log_pool_desc_size) $DIR/testfile
 chmod 0600 $DIR/testfile
 
 #
