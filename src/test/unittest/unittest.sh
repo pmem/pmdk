@@ -2567,7 +2567,7 @@ function kill_on_node() {
 
 #
 # obj_pool_desc_size -- returns the obj_pool_desc_size macro value
-# in bytes wich is two times the actual pagesize.
+# in bytes which is two times the actual pagesize.
 #
 # This should be use to calculate the minimum zero size for pool
 # creation on some tests.
