@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include "libpmem.h"
 #include "util.h"
+#include "valgrind_internal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,7 +82,8 @@ void *pmem_map_register(int fd, size_t len, const char *path, int is_dev_dax);
 static force_inline void
 flush_empty_nolog(const void *addr, size_t len)
 {
-	/* NOP */
+	/* NOP, but tell pmemcheck about it */
+	VALGRIND_DO_FLUSH(addr, len);
 }
 
 /*
@@ -90,6 +92,8 @@ flush_empty_nolog(const void *addr, size_t len)
 static force_inline void
 flush64b_empty(const char *addr)
 {
+	/* NOP, but tell pmemcheck about it */
+	VALGRIND_DO_FLUSH(addr, 64);
 }
 
 /*
