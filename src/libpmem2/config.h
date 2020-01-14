@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,5 +57,8 @@ struct pmem2_config {
 };
 
 void pmem2_config_init(struct pmem2_config *cfg);
+
+int pmem2_config_validate_length(const struct pmem2_config *cfg,
+		size_t file_len);
 
 #endif /* PMEM2_CONFIG_H */

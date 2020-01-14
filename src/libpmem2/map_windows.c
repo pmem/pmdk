@@ -155,9 +155,15 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 		return ret;
 
 	size_t length;
-	ret = pmem2_get_length(cfg, file_size, &length);
+	ret = pmem2_config_validate_length(cfg, file_size);
 	if (ret)
 		return ret;
+
+	/* without user-provided length, map to the end of the file */
+	if (cfg->length)
+		length = cfg->length;
+	else
+		length = file_size - cfg->offset;
 
 	size_t offset;
 	ret = pmem2_validate_offset(cfg, &offset);
