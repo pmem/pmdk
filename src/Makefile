@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,8 +35,11 @@
 TOP := $(dir $(lastword $(MAKEFILE_LIST)))..
 include $(TOP)/src/common.inc
 
+# core targets
 TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools
+# make all targets
 ALL_TARGETS = $(TARGETS) common librpmem libpmem2
+# all available targets
 POSSIBLE_TARGETS = $(TARGETS) common librpmem rpmem_common test\
 	examples benchmarks libpmem2
 
@@ -61,6 +64,7 @@ CLOBBER_TARGETS = $(POSSIBLE_TARGETS)
 CSTYLE_TARGETS = $(POSSIBLE_TARGETS)
 INSTALL_TARGETS = $(TARGETS)
 SPARSE_TARGETS = $(POSSIBLE_TARGETS)
+EXAMPLES_TARGETS = $(TARGETS) librpmem
 
 HEADERS_DESTDIR = $(DESTDIR)$(includedir)
 HEADERS_INSTALL = include/libpmem.h\
@@ -131,7 +135,7 @@ clean: $(CLEAN_TARGETS:=-clean)
 clobber: $(CLOBBER_TARGETS:=-clobber)
 cstyle: $(CSTYLE_TARGETS:=-cstyle)
 format: $(CSTYLE_TARGETS:=-format)
-examples benchmarks: $(ALL_TARGETS)
+examples benchmarks: $(EXAMPLES_TARGETS)
 benchmarks: examples
 sparse: $(SPARSE_TARGETS:=-sparse)
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -667,6 +667,7 @@ operation_process_persistent_redo(struct operation_context *ctx)
 
 	ulog_store(ctx->ulog, ctx->pshadow_ops.ulog,
 		ctx->pshadow_ops.offset, ctx->ulog_base_nbytes,
+		ctx->ulog_capacity,
 		&ctx->next, ctx->p_ops);
 
 	ulog_process(ctx->pshadow_ops.ulog, OBJ_OFF_IS_VALID_FROM_CTX,

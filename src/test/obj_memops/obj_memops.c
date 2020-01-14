@@ -191,6 +191,15 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 		pmalloc_redo_extend, (ulog_free_fn)pfree,
 		&pop->p_ops, LOG_TYPE_REDO);
 
+	/*
+	 * Keep this test first.
+	 * It tests a situation where the number of objects being added
+	 * is equal to the capacity of the log.
+	 */
+	test_set_entries(pop, ctx, object, TEST_ENTRIES - 1,
+		FAIL_NONE, LOG_PERSISTENT);
+	clear_test_values(object);
+
 	test_set_entries(pop, ctx, object, 100, FAIL_NONE, LOG_TRANSIENT);
 	clear_test_values(object);
 	test_set_entries(pop, ctx, object, 10, FAIL_NONE, LOG_PERSISTENT);

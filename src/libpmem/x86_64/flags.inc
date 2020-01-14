@@ -1,4 +1,4 @@
-# Copyright 2018, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,35 +41,43 @@ $(objdir)/memcpy_nt_avx512f_clflush.o: CFLAGS += -mavx512f
 $(objdir)/memcpy_nt_avx512f_clflushopt.o: CFLAGS += -mavx512f
 $(objdir)/memcpy_nt_avx512f_clwb.o: CFLAGS += -mavx512f
 $(objdir)/memcpy_nt_avx512f_empty.o: CFLAGS += -mavx512f
+$(objdir)/memcpy_nt_avx512f_noflush.o: CFLAGS += -mavx512f
 $(objdir)/memset_nt_avx512f_clflush.o: CFLAGS += -mavx512f
 $(objdir)/memset_nt_avx512f_clflushopt.o: CFLAGS += -mavx512f
 $(objdir)/memset_nt_avx512f_clwb.o: CFLAGS += -mavx512f
 $(objdir)/memset_nt_avx512f_empty.o: CFLAGS += -mavx512f
+$(objdir)/memset_nt_avx512f_noflush.o: CFLAGS += -mavx512f
 $(objdir)/memcpy_nt_avx_clflush.o: CFLAGS += -mavx
 $(objdir)/memcpy_nt_avx_clflushopt.o: CFLAGS += -mavx
 $(objdir)/memcpy_nt_avx_clwb.o: CFLAGS += -mavx
 $(objdir)/memcpy_nt_avx_empty.o: CFLAGS += -mavx
+$(objdir)/memcpy_nt_avx_noflush.o: CFLAGS += -mavx
 $(objdir)/memset_nt_avx_clflush.o: CFLAGS += -mavx
 $(objdir)/memset_nt_avx_clflushopt.o: CFLAGS += -mavx
 $(objdir)/memset_nt_avx_clwb.o: CFLAGS += -mavx
 $(objdir)/memset_nt_avx_empty.o: CFLAGS += -mavx
+$(objdir)/memset_nt_avx_noflush.o: CFLAGS += -mavx
 
 $(objdir)/memcpy_t_avx512f_clflush.o: CFLAGS += -mavx512f
 $(objdir)/memcpy_t_avx512f_clflushopt.o: CFLAGS += -mavx512f
 $(objdir)/memcpy_t_avx512f_clwb.o: CFLAGS += -mavx512f
 $(objdir)/memcpy_t_avx512f_empty.o: CFLAGS += -mavx512f
+$(objdir)/memcpy_t_avx512f_noflush.o: CFLAGS += -mavx512f
 $(objdir)/memset_t_avx512f_clflush.o: CFLAGS += -mavx512f
 $(objdir)/memset_t_avx512f_clflushopt.o: CFLAGS += -mavx512f
 $(objdir)/memset_t_avx512f_clwb.o: CFLAGS += -mavx512f
 $(objdir)/memset_t_avx512f_empty.o: CFLAGS += -mavx512f
+$(objdir)/memset_t_avx512f_noflush.o: CFLAGS += -mavx512f
 $(objdir)/memcpy_t_avx_clflush.o: CFLAGS += -mavx
 $(objdir)/memcpy_t_avx_clflushopt.o: CFLAGS += -mavx
 $(objdir)/memcpy_t_avx_clwb.o: CFLAGS += -mavx
 $(objdir)/memcpy_t_avx_empty.o: CFLAGS += -mavx
+$(objdir)/memcpy_t_avx_noflush.o: CFLAGS += -mavx
 $(objdir)/memset_t_avx_clflush.o: CFLAGS += -mavx
 $(objdir)/memset_t_avx_clflushopt.o: CFLAGS += -mavx
 $(objdir)/memset_t_avx_clwb.o: CFLAGS += -mavx
 $(objdir)/memset_t_avx_empty.o: CFLAGS += -mavx
+$(objdir)/memset_t_avx_noflush.o: CFLAGS += -mavx
 
 CFLAGS += -Ix86_64
 
