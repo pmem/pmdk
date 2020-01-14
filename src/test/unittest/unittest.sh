@@ -1031,7 +1031,7 @@ function require_sudo_allowed() {
 		exit 0
 	fi
 
-	if ! timeout --signal=SIGKILL --kill-after=3s 3s sudo date >/dev/null 2>&1
+	if ! "timeout --signal=SIGKILL --kill-after=3s 3s sudo date" >/dev/null 2>&1
 	then
 		msg "$UNITTEST_NAME: SKIP required: sudo allowed"
 		exit 0
