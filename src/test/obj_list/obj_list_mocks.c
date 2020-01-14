@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -353,12 +353,14 @@ FUNC_MOCK_END
 FUNC_MOCK(ulog_store, void,
 	struct ulog *dest,
 	struct ulog *src, size_t nbytes, size_t redo_base_nbytes,
+	size_t ulog_base_capacity,
 	struct ulog_next *next, const struct pmem_ops *p_ops)
 	FUNC_MOCK_RUN_DEFAULT {
 		switch (Ulog_fail) {
 		case FAIL_AFTER_FINISH:
 			_FUNC_REAL(ulog_store)(dest, src,
 					nbytes, redo_base_nbytes,
+					ulog_base_capacity,
 					next, p_ops);
 			DONEW(NULL);
 			break;
@@ -368,6 +370,7 @@ FUNC_MOCK(ulog_store, void,
 		default:
 			_FUNC_REAL(ulog_store)(dest, src,
 					nbytes, redo_base_nbytes,
+					ulog_base_capacity,
 					next, p_ops);
 			break;
 		}
