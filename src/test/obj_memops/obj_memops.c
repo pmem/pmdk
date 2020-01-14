@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -190,6 +190,15 @@ test_redo(PMEMobjpool *pop, struct test_object *object)
 		(struct ulog *)&object->redo, TEST_ENTRIES,
 		pmalloc_redo_extend, (ulog_free_fn)pfree,
 		&pop->p_ops, LOG_TYPE_REDO);
+
+	/*
+	 * Keep this test first.
+	 * It tests a situation where the number of objects being added
+	 * is equal to the capacity of the log.
+	 */
+	test_set_entries(pop, ctx, object, TEST_ENTRIES - 1,
+		FAIL_NONE, LOG_PERSISTENT);
+	clear_test_values(object);
 
 	test_set_entries(pop, ctx, object, 100, FAIL_NONE, LOG_TRANSIENT);
 	clear_test_values(object);
@@ -648,6 +657,8 @@ main(int argc, char *argv[])
 
 	UT_ASSERTne(object, NULL);
 	ulog_construct(OBJ_PTR_TO_OFF(pop, &object->undo),
+			TEST_ENTRIES, 0, 0, 0, &pop->p_ops);
+	ulog_construct(OBJ_PTR_TO_OFF(pop, &object->redo),
 			TEST_ENTRIES, 0, 0, 0, &pop->p_ops);
 
 	test_redo(pop, object);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -81,6 +81,9 @@ test_layout()
 	ASSERT_FIELD_SIZE(unused2, POOL_HDR_UNUSED2_LEN_V1);
 	ASSERT_ALIGNED_FIELD(struct pool_hdr, sds);
 	ASSERT_ALIGNED_FIELD(struct pool_hdr, checksum);
+#if PMEM_PAGESIZE > 4096
+	ASSERT_ALIGNED_FIELD(struct pool_hdr, align_pad);
+#endif
 	ASSERT_ALIGNED_CHECK(struct pool_hdr);
 
 	ASSERT_ALIGNED_BEGIN(features_t);

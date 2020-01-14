@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1410,35 +1410,6 @@ rpmem_fip_persist_gpspm(struct rpmem_fip *fip, size_t offset,
 }
 
 /*
- * rpmem_fip_flush_gpspm -- (internal) perform flush operation for GPSPM
- */
-static ssize_t
-rpmem_fip_flush_gpspm(struct rpmem_fip *fip, size_t offset,
-	size_t len, unsigned lane, unsigned flags)
-{
-	/* Limit len to the max value of the return type. */
-	len = min(len, SSIZE_MAX);
-
-	int ret = rpmem_fip_wq_flush_check(fip, &fip->lanes[lane], &flags);
-	if (unlikely(ret))
-		return -abs(ret);
-
-	/*
-	 * Probably splitting Send-after-Write into two stages (flush + drain)
-	 * will give some performance gains also for GPSPM mode.
-	 * Since for now GPSPM mode is considered auxiliary and its performance
-	 * is not critical, the flush is emulated with a persist.
-	 */
-	ret = rpmem_fip_persist_saw(fip, offset, len, lane, flags);
-	if (ret)
-		return -abs(ret);
-
-	rpmem_fip_wq_set_empty(&fip->lanes[lane]);
-
-	return (ssize_t)len;
-}
-
-/*
  * rpmem_fip_drain_nop -- (internal) perform drain operation as NOP
  */
 static int
@@ -1560,12 +1531,17 @@ rpmem_fip_post_lanes_common(struct rpmem_fip *fip)
 
 /*
  * rpmem_fip_ops -- some operations specific for persistency method used
+ *
+ * Note: GPSPM flush is emulated by persist whereas drain is a nop.
+ *
+ * Probably splitting Send-after-Write into two stages (flush + drain)
+ * will give some performance gains for GPSPM mode.
  */
 static const struct rpmem_fip_ops
 rpmem_fip_ops[MAX_RPMEM_PROV][MAX_RPMEM_PM] = {
 	[RPMEM_PROV_LIBFABRIC_VERBS] = {
 		[RPMEM_PM_GPSPM] = {
-			.flush = rpmem_fip_flush_gpspm,
+			.flush = rpmem_fip_persist_gpspm,
 			.drain = rpmem_fip_drain_nop,
 			.persist = rpmem_fip_persist_gpspm,
 			.lanes_init = rpmem_fip_init_lanes_common,
@@ -1585,7 +1561,7 @@ rpmem_fip_ops[MAX_RPMEM_PROV][MAX_RPMEM_PM] = {
 	},
 	[RPMEM_PROV_LIBFABRIC_SOCKETS] = {
 		[RPMEM_PM_GPSPM] = {
-			.flush = rpmem_fip_flush_gpspm,
+			.flush = rpmem_fip_persist_gpspm_sockets,
 			.drain = rpmem_fip_drain_nop,
 			.persist = rpmem_fip_persist_gpspm_sockets,
 			.lanes_init = rpmem_fip_init_lanes_common,

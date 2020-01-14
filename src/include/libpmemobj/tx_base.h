@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -441,6 +441,17 @@ size_t pmemobj_tx_log_snapshots_max_size(size_t *sizes, size_t nsizes);
  * Calculates and returns size for user buffers for intents.
  */
 size_t pmemobj_tx_log_intents_max_size(size_t nintents);
+
+/*
+ * Sets volatile pointer to the user data for the current transaction.
+ */
+void pmemobj_tx_set_user_data(void *data);
+
+/*
+ * Gets volatile pointer to the user data associated with the current
+ * transaction.
+ */
+void *pmemobj_tx_get_user_data(void);
 
 #ifdef __cplusplus
 }

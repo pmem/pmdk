@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -578,7 +578,7 @@ palloc_exec_actions(struct palloc_heap *heap,
 
 		action_funcs[act->type].on_process(heap, act);
 
-		if (i == 0 || act->lock != actv[i - 1].lock) {
+		if (i == actvcnt - 1 || act->lock != actv[i + 1].lock) {
 			if (act->lock)
 				util_mutex_unlock(act->lock);
 		}

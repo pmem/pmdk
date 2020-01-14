@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,6 +45,7 @@
 #include "util.h"
 #include "os_thread.h"
 #include "pool_hdr.h"
+#include "page_size.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -90,7 +91,7 @@ struct pmemlog {
 };
 
 /* data area starts at this alignment after the struct pmemlog above */
-#define LOG_FORMAT_DATA_ALIGN ((uintptr_t)4096)
+#define LOG_FORMAT_DATA_ALIGN ((uintptr_t)PMEM_PAGESIZE)
 
 /*
  * log_convert2h -- convert pmemlog structure to host byte order

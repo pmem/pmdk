@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1219,6 +1219,8 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 	if (pop->stats == NULL)
 		goto err_stat;
 
+	pop->user_data = NULL;
+
 	VALGRIND_REMOVE_PMEM_MAPPING(&pop->mutex_head,
 		sizeof(pop->mutex_head));
 	VALGRIND_REMOVE_PMEM_MAPPING(&pop->rwlock_head,
@@ -2132,6 +2134,30 @@ pmemobj_pool_by_ptr(const void *addr)
 		return NULL;
 
 	return pop;
+}
+
+/*
+ * pmemobj_set_user_data -- sets volatile pointer to the user data for specified
+ * pool
+ */
+void
+pmemobj_set_user_data(PMEMobjpool *pop, void *data)
+{
+	LOG(3, "pop %p data %p", pop, data);
+
+	pop->user_data = data;
+}
+
+/*
+ * pmemobj_get_user_data -- gets volatile pointer to the user data associated
+ * with the specified pool
+ */
+void *
+pmemobj_get_user_data(PMEMobjpool *pop)
+{
+	LOG(3, "pop %p", pop);
+
+	return pop->user_data;
 }
 
 /* arguments for constructor_alloc */

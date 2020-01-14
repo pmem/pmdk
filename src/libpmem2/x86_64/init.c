@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -102,7 +102,7 @@ memmove_nodrain_##isa##_##flush(void *dest, const void *src, size_t len, \
 		return dest;\
 \
 	if (flags & PMEM2_F_MEM_NOFLUSH) \
-		memmove_mov_##isa##_empty(dest, src, len); \
+		memmove_mov_##isa##_noflush(dest, src, len); \
 	else if (flags & PMEM2_F_MEM_MOVNT)\
 		memmove_movnt_##isa ##_##flush(dest, src, len);\
 	else if (flags & PMEM2_F_MEM_MOV)\
@@ -124,7 +124,7 @@ memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags,\
 		return dest;\
 \
 	if (flags & PMEM2_F_MEM_NOFLUSH) \
-		memset_mov_##isa##_empty(dest, c, len); \
+		memset_mov_##isa##_noflush(dest, c, len); \
 	else if (flags & PMEM2_F_MEM_MOVNT)\
 		memset_movnt_##isa##_##flush(dest, c, len);\
 	else if (flags & PMEM2_F_MEM_MOV)\

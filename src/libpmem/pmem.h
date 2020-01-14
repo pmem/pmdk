@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -40,6 +40,7 @@
 #include "alloc.h"
 #include "fault_injection.h"
 #include "util.h"
+#include "valgrind_internal.h"
 
 #ifdef __cplusplus
 extern "C" {

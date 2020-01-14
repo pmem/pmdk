@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 #include <stddef.h>
 #include "libpmem2.h"
 #include "util.h"
+#include "valgrind_internal.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,7 +70,8 @@ void pmem2_arch_init(struct pmem2_arch_info *info);
 static force_inline void
 flush_empty_nolog(const void *addr, size_t len)
 {
-	/* NOP */
+	/* NOP, but tell pmemcheck about it */
+	VALGRIND_DO_FLUSH(addr, len);
 }
 
 void *memmove_nodrain_generic(void *pmemdest, const void *src, size_t len,

@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 # Copyright (c) 2016, Microsoft Corporation. All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -1023,7 +1023,7 @@ function require_sudo_allowed() {
 		exit 0
 	fi
 
-	if ! timeout --signal=SIGKILL --kill-after=3s 3s sudo date >/dev/null 2>&1
+	if ! sh -c "timeout --signal=SIGKILL --kill-after=3s 3s sudo date" >/dev/null 2>&1
 	then
 		msg "$UNITTEST_NAME: SKIP required: sudo allowed"
 		exit 0
@@ -2567,12 +2567,23 @@ function kill_on_node() {
 
 #
 # obj_pool_desc_size -- returns the obj_pool_desc_size macro value
-# in bytes wich is two times the actual pagesize.
+# in bytes which is two times the actual pagesize.
 #
 # This should be use to calculate the minimum zero size for pool
 # creation on some tests.
 #
 function obj_pool_desc_size() {
+	echo "$(expr $(getconf PAGESIZE) \* 2)"
+}
+
+#
+# log_pool_desc_size -- returns the minimum size of pool header
+# in bytes which is two times the actual pagesize.
+#
+# This should be use to calculate the minimum zero size for pool
+# creation on some tests.
+#
+function log_pool_desc_size() {
 	echo "$(expr $(getconf PAGESIZE) \* 2)"
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,6 +37,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "util.h"
+#include "valgrind_internal.h"
 
 #define FLUSH_ALIGN ((uintptr_t)64)
 
@@ -116,6 +117,8 @@ flush_clwb_nolog(const void *addr, size_t len)
 static force_inline void
 flush64b_empty(const char *addr)
 {
+	/* NOP, but tell pmemcheck about it */
+	VALGRIND_DO_FLUSH(addr, 64);
 }
 
 #endif

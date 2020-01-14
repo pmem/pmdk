@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -56,6 +56,18 @@ no_barrier_after_ntstores(void)
 	 */
 }
 
+static inline void
+noflush(const void *addr, size_t len)
+{
+	/* NOP, not even pmemcheck annotation */
+}
+
+static inline void
+noflush64b(const char *addr)
+{
+	/* NOP, not even pmemcheck annotation */
+}
+
 #ifndef AVX512F_AVAILABLE
 /* XXX not supported in MSVC version we currently use */
 #ifdef _MSC_VER
@@ -78,18 +90,22 @@ void memmove_mov_sse2_clflush(char *dest, const char *src, size_t len);
 void memmove_mov_sse2_clflushopt(char *dest, const char *src, size_t len);
 void memmove_mov_sse2_clwb(char *dest, const char *src, size_t len);
 void memmove_mov_sse2_empty(char *dest, const char *src, size_t len);
+void memmove_mov_sse2_noflush(char *dest, const char *src, size_t len);
 void memmove_movnt_sse2_clflush(char *dest, const char *src, size_t len);
 void memmove_movnt_sse2_clflushopt(char *dest, const char *src, size_t len);
 void memmove_movnt_sse2_clwb(char *dest, const char *src, size_t len);
 void memmove_movnt_sse2_empty(char *dest, const char *src, size_t len);
+void memmove_movnt_sse2_noflush(char *dest, const char *src, size_t len);
 void memset_mov_sse2_clflush(char *dest, int c, size_t len);
 void memset_mov_sse2_clflushopt(char *dest, int c, size_t len);
 void memset_mov_sse2_clwb(char *dest, int c, size_t len);
 void memset_mov_sse2_empty(char *dest, int c, size_t len);
+void memset_mov_sse2_noflush(char *dest, int c, size_t len);
 void memset_movnt_sse2_clflush(char *dest, int c, size_t len);
 void memset_movnt_sse2_clflushopt(char *dest, int c, size_t len);
 void memset_movnt_sse2_clwb(char *dest, int c, size_t len);
 void memset_movnt_sse2_empty(char *dest, int c, size_t len);
+void memset_movnt_sse2_noflush(char *dest, int c, size_t len);
 #endif
 
 #if AVX_AVAILABLE
@@ -97,18 +113,22 @@ void memmove_mov_avx_clflush(char *dest, const char *src, size_t len);
 void memmove_mov_avx_clflushopt(char *dest, const char *src, size_t len);
 void memmove_mov_avx_clwb(char *dest, const char *src, size_t len);
 void memmove_mov_avx_empty(char *dest, const char *src, size_t len);
+void memmove_mov_avx_noflush(char *dest, const char *src, size_t len);
 void memmove_movnt_avx_clflush(char *dest, const char *src, size_t len);
 void memmove_movnt_avx_clflushopt(char *dest, const char *src, size_t len);
 void memmove_movnt_avx_clwb(char *dest, const char *src, size_t len);
 void memmove_movnt_avx_empty(char *dest, const char *src, size_t len);
+void memmove_movnt_avx_noflush(char *dest, const char *src, size_t len);
 void memset_mov_avx_clflush(char *dest, int c, size_t len);
 void memset_mov_avx_clflushopt(char *dest, int c, size_t len);
 void memset_mov_avx_clwb(char *dest, int c, size_t len);
 void memset_mov_avx_empty(char *dest, int c, size_t len);
+void memset_mov_avx_noflush(char *dest, int c, size_t len);
 void memset_movnt_avx_clflush(char *dest, int c, size_t len);
 void memset_movnt_avx_clflushopt(char *dest, int c, size_t len);
 void memset_movnt_avx_clwb(char *dest, int c, size_t len);
 void memset_movnt_avx_empty(char *dest, int c, size_t len);
+void memset_movnt_avx_noflush(char *dest, int c, size_t len);
 #endif
 
 #if AVX512F_AVAILABLE
@@ -116,18 +136,22 @@ void memmove_mov_avx512f_clflush(char *dest, const char *src, size_t len);
 void memmove_mov_avx512f_clflushopt(char *dest, const char *src, size_t len);
 void memmove_mov_avx512f_clwb(char *dest, const char *src, size_t len);
 void memmove_mov_avx512f_empty(char *dest, const char *src, size_t len);
+void memmove_mov_avx512f_noflush(char *dest, const char *src, size_t len);
 void memmove_movnt_avx512f_clflush(char *dest, const char *src, size_t len);
 void memmove_movnt_avx512f_clflushopt(char *dest, const char *src, size_t len);
 void memmove_movnt_avx512f_clwb(char *dest, const char *src, size_t len);
 void memmove_movnt_avx512f_empty(char *dest, const char *src, size_t len);
+void memmove_movnt_avx512f_noflush(char *dest, const char *src, size_t len);
 void memset_mov_avx512f_clflush(char *dest, int c, size_t len);
 void memset_mov_avx512f_clflushopt(char *dest, int c, size_t len);
 void memset_mov_avx512f_clwb(char *dest, int c, size_t len);
 void memset_mov_avx512f_empty(char *dest, int c, size_t len);
+void memset_mov_avx512f_noflush(char *dest, int c, size_t len);
 void memset_movnt_avx512f_clflush(char *dest, int c, size_t len);
 void memset_movnt_avx512f_clflushopt(char *dest, int c, size_t len);
 void memset_movnt_avx512f_clwb(char *dest, int c, size_t len);
 void memset_movnt_avx512f_empty(char *dest, int c, size_t len);
+void memset_movnt_avx512f_noflush(char *dest, int c, size_t len);
 #endif
 
 extern size_t Movnt_threshold;

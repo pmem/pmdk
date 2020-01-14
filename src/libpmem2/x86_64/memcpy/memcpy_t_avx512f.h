@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Intel Corporation
+ * Copyright 2017-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,8 +37,8 @@
 #include "pmem2_arch.h"
 #include "avx.h"
 #include "flush.h"
-#include "memcpy_avx512f.h"
 #include "memcpy_memset.h"
+#include "memcpy_avx512f.h"
 
 static force_inline void
 memmove_mov32x64b(char *dest, const char *src)

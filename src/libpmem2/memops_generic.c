@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -312,6 +312,28 @@ memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags,
 	uint64_t u = (unsigned char)c;
 	uint64_t tmp = (u << 56) | (u << 48) | (u << 40) | (u << 32) |
 			(u << 24) | (u << 16) | (u << 8) | u;
+
+	while (len >= 128 && CACHELINE_SIZE == 128) {
+		store8(&dst8[0], tmp);
+		store8(&dst8[1], tmp);
+		store8(&dst8[2], tmp);
+		store8(&dst8[3], tmp);
+		store8(&dst8[4], tmp);
+		store8(&dst8[5], tmp);
+		store8(&dst8[6], tmp);
+		store8(&dst8[7], tmp);
+		store8(&dst8[8], tmp);
+		store8(&dst8[9], tmp);
+		store8(&dst8[10], tmp);
+		store8(&dst8[11], tmp);
+		store8(&dst8[12], tmp);
+		store8(&dst8[13], tmp);
+		store8(&dst8[14], tmp);
+		store8(&dst8[15], tmp);
+		pmem2_flush_flags(dst8, 128, flags, flush);
+		len -= 128;
+		dst8 += 16;
+	}
 
 	while (len >= 64) {
 		store8(&dst8[0], tmp);
