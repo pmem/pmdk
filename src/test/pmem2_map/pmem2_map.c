@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -159,8 +159,8 @@ unmap_map(struct pmem2_map *map)
 static int
 test_map_rdrw_file(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
-		UT_FATAL("usage: %s test_map_rdrw_file <file>", argv[0]);
+	if (argc < 1)
+		UT_FATAL("usage: test_map_rdrw_file <file>");
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
@@ -184,8 +184,8 @@ test_map_rdrw_file(const struct test_case *tc, int argc, char *argv[])
 static int
 test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
-		UT_FATAL("usage: %s test_map_rdonly_file <file>", argv[0]);
+	if (argc < 1)
+		UT_FATAL("usage: test_map_rdonly_file <file>");
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
@@ -209,8 +209,8 @@ test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
 static int
 test_map_wronly_file(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
-		UT_FATAL("usage: %s test_map_wronly_file <file>", argv[0]);
+	if (argc < 1)
+		UT_FATAL("usage: test_map_wronly_file <file>");
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
@@ -255,9 +255,8 @@ map_valid_ranges_common(const char *file, size_t offset, size_t length,
 static int
 test_map_valid_ranges(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_map_valid_ranges <file> <size>",
-			argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: test_map_valid_ranges <file> <size>");
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
@@ -284,9 +283,8 @@ test_map_valid_ranges(const struct test_case *tc, int argc, char *argv[])
 static int
 test_map_invalid_ranges(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_map_invalid_ranges <file> <size>",
-			argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: test_map_invalid_ranges <file> <size>");
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
@@ -319,9 +317,8 @@ test_map_invalid_ranges(const struct test_case *tc, int argc, char *argv[])
 static int
 test_map_invalid_alignment(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_map_invalid_args <file> <size>",
-			argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: test_map_invalid_args <file> <size>");
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
@@ -344,9 +341,8 @@ test_map_invalid_alignment(const struct test_case *tc, int argc, char *argv[])
 static int
 test_map_invalid_fd(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_map_invalid_args <file> <size>",
-			argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: test_map_invalid_args <file> <size>");
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
@@ -370,8 +366,8 @@ test_map_invalid_fd(const struct test_case *tc, int argc, char *argv[])
 static int
 test_map_empty_config(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 1)
-		UT_FATAL("usage: %s test_map_invalid_args <file>", argv[0]);
+	if (argc < 1)
+		UT_FATAL("usage: test_map_invalid_args <file>");
 
 	struct pmem2_config cfg;
 	struct pmem2_map *map;
@@ -389,9 +385,8 @@ test_map_empty_config(const struct test_case *tc, int argc, char *argv[])
 static int
 test_map_unaligned_length(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_map_unaligned_length <file> <size>",
-			argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: test_map_unaligned_length <file> <size>");
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
@@ -413,9 +408,8 @@ test_map_unaligned_length(const struct test_case *tc, int argc, char *argv[])
 static int
 test_unmap_valid(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_unmap_valid <file> <size>",
-			argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: test_unmap_valid <file> <size>");
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
@@ -498,9 +492,8 @@ map_spoil_by_unmap(struct pmem2_map *map, bool *unmap_required)
 static int
 test_unmap_zero_length(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_unmap_zero_length <file> <size>",
-			argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: test_unmap_zero_length <file> <size>");
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
@@ -515,9 +508,8 @@ test_unmap_zero_length(const struct test_case *tc, int argc, char *argv[])
 static int
 test_unmap_unaligned_addr(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_unmap_unaligned_addr <file> <size>",
-			argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: test_unmap_unaligned_addr <file> <size>");
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
@@ -532,9 +524,8 @@ test_unmap_unaligned_addr(const struct test_case *tc, int argc, char *argv[])
 static int
 test_unmap_unmapped(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_unmap_unmapped <file> <size>",
-			argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: test_unmap_unmapped <file> <size>");
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
@@ -558,7 +549,7 @@ test_map_get_address(const struct test_case *tc, int argc, char *argv[])
 	ret_addr = pmem2_map_get_address(&map);
 	UT_ASSERTeq(ret_addr, ref_addr);
 
-	return 1;
+	return 0;
 }
 
 /*
@@ -576,7 +567,7 @@ test_map_get_size(const struct test_case *tc, int argc, char *argv[])
 	ret_size = pmem2_map_get_size(&map);
 	UT_ASSERTeq(ret_size, ref_size);
 
-	return 1;
+	return 0;
 }
 
 /*
@@ -591,7 +582,7 @@ test_get_granularity_simple(const struct test_case *tc, int argc, char *argv[])
 	enum pmem2_granularity ret = pmem2_map_get_store_granularity(&map);
 	UT_ASSERTeq(ret, PMEM2_GRANULARITY_BYTE);
 
-	return 1;
+	return 0;
 }
 
 /*
@@ -602,9 +593,9 @@ static int
 test_map_larger_than_unaligned_file_size(const struct test_case *tc, int argc,
 		char *argv[])
 {
-	if (argc != 2)
-		UT_FATAL("usage: %s test_map_larger_than_unaligned_file_size"
-			" <file> <size>", argv[0]);
+	if (argc < 2)
+		UT_FATAL("usage: test_map_larger_than_unaligned_file_size"
+			" <file> <size>");
 
 	char *file = argv[0];
 	struct pmem2_config cfg;
