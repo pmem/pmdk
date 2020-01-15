@@ -181,8 +181,10 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	}
 
 	if (!mh) {
-		if (err == ERROR_ALREADY_EXISTS)
+		if (err == ERROR_ALREADY_EXISTS) {
+			ERR("mapping already exists");
 			return PMEM2_E_MAPPING_EXISTS;
+		}
 
 		return pmem2_lasterror_to_err();
 	}
