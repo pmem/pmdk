@@ -60,7 +60,7 @@ date: pmemobj API version 2.3
 **pmemobj_tx_log_auto_alloc**(), **pmemobj_tx_log_snapshots_max_size**(),
 **pmemobj_tx_log_intents_max_size**()
 
-**pmemobj_tx_set_user_data**()
+**pmemobj_tx_set_user_data**(),
 **pmemobj_tx_get_user_data**()
 - transactional object manipulation
 
