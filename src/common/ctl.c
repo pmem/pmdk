@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -58,7 +58,7 @@ static struct ctl_node CTL_NODE(global)[CTL_MAX_ENTRIES];
  * the ones providing the read/write functionality by the means of callbacks.
  *
  * Each tree node must be NULL-terminated, CTL_NODE_END macro is provided for
- * convience.
+ * convenience.
  */
 struct ctl {
 	struct ctl_node root[CTL_MAX_ENTRIES];
@@ -135,7 +135,7 @@ error:
 
 /*
  * ctl_delete_indexes --
- *	(internal) removes and frees all entires on the index list
+ *	(internal) removes and frees all entries on the index list
  */
 static void
 ctl_delete_indexes(struct ctl_indexes *indexes)

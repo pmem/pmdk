@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -125,7 +125,7 @@ struct rpmemd_fip {
 	unsigned nlanes;	/* number of lanes */
 	size_t nthreads;	/* number of threads for processing */
 	size_t cq_size;	/* size of completion queue */
-	size_t lanes_per_thread; /* numer of lanes per thread */
+	size_t lanes_per_thread; /* number of lanes per thread */
 	size_t buff_size;	/* size of buffer for inlined data */
 
 	struct rpmemd_fip_lane *lanes;

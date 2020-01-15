@@ -427,7 +427,7 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 			 * missing flushes/stores outside of transaction. But,
 			 * after we freed an object, we need to reestablish
 			 * the pmem mapping, otherwise pmemchek might miss bugs
-			 * that occurr in newly allocated memory locations, that
+			 * that occur in newly allocated memory locations, that
 			 * once were occupied by a lock/volatile variable.
 			 */
 			VALGRIND_REGISTER_PMEM_MAPPING(ptr, size);

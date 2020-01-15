@@ -146,7 +146,7 @@ shopt -s failglob
 # number of remote nodes required in the current unit test
 NODES_MAX=-1
 
-# sizes of aligments
+# sizes of alignments
 SIZE_4KB=4096
 SIZE_2MB=2097152
 
