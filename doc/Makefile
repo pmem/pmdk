@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -126,7 +126,8 @@ MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.m
 		libpmem2/pmem2_config_set_fd.3.md libpmem2/pmem2_config_set_required_store_granularity.3.md \
 		libpmem2/pmem2_config_get_file_size.3.md libpmem2/pmem2_config_get_alignment.3.md \
 		libpmem2/pmem2_config_set_length.3.md libpmem2/pmem2_config_set_offset.3.md \
-		libpmem2/pmem2_map_get_store_granularity.3.md
+		libpmem2/pmem2_map_get_store_granularity.3.md libpmem2/pmem2_get_flush_fn.3.md \
+		libpmem2/pmem2_get_drain_fn.3.md libpmem2/pmem2_get_persist_fn.3.md
 MANPAGES_1_MD_PMEM2 =
 ifeq ($(PMEM2_INSTALL),y)
 MANPAGES_3_DUMMY += pmem2_config_delete.3 pmem2_config_set_handle.3
