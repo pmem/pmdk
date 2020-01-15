@@ -40,6 +40,7 @@
 
 #include "unittest.h"
 
+#include "util.h"
 /*
  * tx.h -- needed for TX_SNAPSHOT_LOG_ENTRY_ALIGNMENT,
  * TX_SNAPSHOT_LOG_BUFFER_OVERHEAD, TX_SNAPSHOT_LOG_ENTRY_OVERHEAD,
@@ -71,6 +72,8 @@
  */
 #define REDO_OVERFLOW ((size_t)((LANE_REDO_EXTERNAL_SIZE\
 		/ TX_INTENT_LOG_ENTRY_OVERHEAD) + 1))
+
+#define APPEND_SIZE SIZEOF_ALIGNED_ULOG(CACHELINE_SIZE)
 
 /*
  * free_pool -- frees the pool from all allocated objects
@@ -617,9 +620,9 @@ do_tx_buffer_overlapping(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
-			ptr + 256, 256);
+			ptr + APPEND_SIZE, APPEND_SIZE);
 		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
-			ptr, 256);
+			ptr, APPEND_SIZE);
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_ONCOMMIT {
@@ -628,9 +631,9 @@ do_tx_buffer_overlapping(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
-			ptr, 256);
+			ptr, APPEND_SIZE);
 		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
-			ptr + 256, 256);
+			ptr + APPEND_SIZE, APPEND_SIZE);
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_ONCOMMIT {
@@ -639,9 +642,9 @@ do_tx_buffer_overlapping(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
-			ptr, 256);
+			ptr, APPEND_SIZE);
 		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
-			ptr, 256);
+			ptr, APPEND_SIZE);
 	} TX_ONABORT {
 		UT_OUT("Overlap detected");
 	} TX_ONCOMMIT {
@@ -650,9 +653,9 @@ do_tx_buffer_overlapping(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
-			ptr, 256);
+			ptr, APPEND_SIZE);
 		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
-			ptr + 128, 256);
+			ptr + 128, APPEND_SIZE);
 	} TX_ONABORT {
 		UT_OUT("Overlap detected");
 	} TX_ONCOMMIT {
@@ -661,9 +664,9 @@ do_tx_buffer_overlapping(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
-			ptr + 128, 256);
+			ptr + 128, APPEND_SIZE);
 		pmemobj_tx_log_append_buffer(TX_LOG_TYPE_INTENT,
-			ptr, 256);
+			ptr, APPEND_SIZE);
 	} TX_ONABORT {
 		UT_OUT("Overlap detected");
 	} TX_ONCOMMIT {

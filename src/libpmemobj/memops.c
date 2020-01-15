@@ -578,7 +578,7 @@ operation_user_buffer_verify_align(struct operation_context *ctx,
 		ctx->p_ops) - (intptr_t)userbuf->addr;
 	ssize_t capacity_unaligned = (ssize_t)userbuf->size - size_diff
 		- (ssize_t)sizeof(struct ulog);
-	if (capacity_unaligned <= (ssize_t)CACHELINE_SIZE) {
+	if (capacity_unaligned < (ssize_t)CACHELINE_SIZE) {
 		ERR("Capacity insufficient");
 		return -1;
 	}
