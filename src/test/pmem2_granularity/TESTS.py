@@ -1,6 +1,6 @@
 #!../env.py
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,6 +34,7 @@
 
 from enum import Enum
 import testframework as t
+from testframework import granularity as g
 import os
 
 
@@ -43,7 +44,7 @@ class Granularity(Enum):
     PAGE = 3
 
 
-@t.require_granularity(t.ANY)
+@g.require_granularity(g.ANY)
 class PMEM2_GRANULARITY(t.BaseTest):
     test_type = t.Short
     available_granularity = None

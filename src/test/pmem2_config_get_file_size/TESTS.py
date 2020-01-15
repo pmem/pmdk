@@ -33,9 +33,10 @@
 
 
 import testframework as t
+from testframework import granularity as g
 
 
-@t.no_testdir()
+@g.no_testdir()
 class TEST0(t.Test):
     test_type = t.Short
 
@@ -74,7 +75,7 @@ class TEST4(NormalFile):
     size = 16 * t.MiB
 
 
-@t.require_granularity(t.ANY)
+@g.require_granularity(g.ANY)
 @t.windows_exclude
 class TEST5(t.Test):
     test_type = t.Short
