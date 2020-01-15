@@ -1,6 +1,6 @@
 #!../env.py
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -47,6 +47,15 @@ class PMEM2_INTEGRATION(t.Test):
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
         ctx.exec('pmem2_integration', self.test_case, filepath)
+
+
+@t.require_devdax(t.DevDax('devdax'))
+class PMEM2_INTEGRATION_DEV_DAXES(t.Test):
+    test_type = t.Medium
+
+    def run(self, ctx):
+        dd = ctx.devdaxes.devdax
+        ctx.exec('pmem2_integration', self.test_case, dd.path)
 
 
 class PMEM2_GRANULARITY(t.Test):
@@ -105,15 +114,10 @@ class TEST4(PMEM2_INTEGRATION):
 
 
 @t.require_valgrind_enabled('pmemcheck')
-@t.require_devdax(t.DevDax('devdax1'))
 @t.windows_exclude
-class TEST5(PMEM2_INTEGRATION):
+class TEST5(PMEM2_INTEGRATION_DEV_DAXES):
     """check if Valgrind registers data writing on DevDax"""
     test_case = "test_register_pmem"
-
-    def run(self, ctx):
-        dd = ctx.devdaxes.devdax1
-        ctx.exec('pmem2_integration', self.test_case, dd.path)
 
 
 class TEST6(PMEM2_INTEGRATION):
@@ -195,3 +199,47 @@ class TEST15(PMEM2_GRANULARITY):
     granularity"""
     available_granularity = Granularity.BYTE
     requested_granularity = Granularity.BYTE
+
+
+class TEST16(PMEM2_INTEGRATION):
+    """test not aligned length"""
+    test_case = "test_len_not_aligned"
+
+
+@t.windows_exclude
+class TEST17(PMEM2_INTEGRATION_DEV_DAXES):
+    """test not aligned length on DevDax"""
+    test_case = "test_len_not_aligned"
+
+
+class TEST18(PMEM2_INTEGRATION):
+    """test aligned length"""
+    test_case = "test_len_aligned"
+
+
+@t.windows_exclude
+class TEST19(PMEM2_INTEGRATION_DEV_DAXES):
+    """test aligned length on DevDax"""
+    test_case = "test_len_aligned"
+
+
+class TEST20(PMEM2_INTEGRATION):
+    """test unaligned offset"""
+    test_case = "test_offset_not_aligned"
+
+
+@t.windows_exclude
+class TEST21(PMEM2_INTEGRATION_DEV_DAXES):
+    """test unaligned offset"""
+    test_case = "test_offset_not_aligned"
+
+
+class TEST22(PMEM2_INTEGRATION):
+    """test unaligned offset"""
+    test_case = "test_offset_aligned"
+
+
+@t.windows_exclude
+class TEST23(PMEM2_INTEGRATION_DEV_DAXES):
+    """test unaligned offset"""
+    test_case = "test_offset_aligned"
