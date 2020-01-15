@@ -47,6 +47,7 @@ date: pmemobj API version 2.3
 
 **pmemobj_open**(), **pmemobj_create**(),
 **pmemobj_close**(), **pmemobj_check**()
+**pmemobj_set_user_data**(), **pmemobj_get_user_data**()
 - create, open, close and validate persistent memory transactional object store
 
 # SYNOPSIS #
@@ -59,6 +60,9 @@ PMEMobjpool *pmemobj_create(const char *path, const char *layout,
 	size_t poolsize, mode_t mode);
 void pmemobj_close(PMEMobjpool *pop);
 int pmemobj_check(const char *path, const char *layout);
+
+void pmemobj_set_user_data(PMEMobjpool *pop, void *data);
+void *pmemobj_get_user_data(PMEMobjpool *pop);
 ```
 
 
@@ -152,6 +156,12 @@ The **pmemobj_check**() function performs a consistency check of the file
 indicated by *path*. **pmemobj_check**() opens the given *path* read-only so
 it never makes any changes to the file. This function is not supported on
 Device DAX.
+
+The **pmemobj_set_user_data**() function associates custom volatile state,
+represented by pointer *data*, with the given pool *pop*. This state can later
+be retrieved using **pmemobj_get_user_data**() function. This state does not
+survive pool close. If **pmemobj_set_user_data**() was not called for a given
+pool, **pmemobj_get_user_data**() will return NULL.
 
 # RETURN VALUE #
 

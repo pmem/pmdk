@@ -60,8 +60,8 @@ int pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle); /* Windows
 
 On Linux the **pmem2_config_set_fd**() function validates and stores a file descriptor in pmem2_config.
 
-On Windows the **pmem2_config_set_fd**() function converts a file descriptor to a file handle (using **\_get_osfhandle**()), and passes it to **pmem2_config_set_handle**().
-By default **\_get_osfhandle**() calls abort() in case of invalid file descriptor, but this behavior can be suppressed by **\_set_abort_behavior**() and **SetErrorMode**() functions.
+On Windows the **pmem2_config_set_fd**() function converts a file descriptor to a file handle (using **_get_osfhandle**()), and passes it to **pmem2_config_set_handle**().
+By default **_get_osfhandle**() calls abort() in case of invalid file descriptor, but this behavior can be suppressed by **_set_abort_behavior**() and **SetErrorMode**() functions.
 Please check MSDN documentation for more information about Windows CRT error handling.
 
 *fd* must be opened with *O_RDONLY* or *O_RDWR* mode, but on Windows it is not validated.
@@ -84,21 +84,21 @@ The **pmem2_config_set_fd**() function can return the following errors:
 
 On Linux:
 
- * **PMEM2\_E\_INVALID\_FILE\_TYPE** - *fd* points to a directory, block device, pipe, or socket.
+ * **PMEM2_E_INVALID_FILE_TYPE** - *fd* points to a directory, block device, pipe, or socket.
 
- * **PMEM2\_E\_INVALID\_FILE\_TYPE** - *fd* points to a character device other than Device DAX.
+ * **PMEM2_E_INVALID_FILE_TYPE** - *fd* points to a character device other than Device DAX.
 
 On Windows:
 
- * **PMEM2\_E\_INVALID\_FILE\_TYPE** - *handle* points to a resource that is not a regular file.
+ * **PMEM2_E_INVALID_FILE_TYPE** - *handle* points to a resource that is not a regular file.
 
 On Windows **pmem2_config_set_fd**() can return all errors from the underlying **pmem2_config_set_handle**() function.
 
 The **pmem2_config_set_handle**() can return the following errors:
 
- * **PMEM2\_E\_INVALID\_FILE\_HANDLE** - *handle* points to a resource that is not a file.
+ * **PMEM2_E_INVALID_FILE_HANDLE** - *handle* points to a resource that is not a file.
 
- * **PMEM2\_E\_INVALID\_FILE\_TYPE** - *handle* points to a directory.
+ * **PMEM2_E_INVALID_FILE_TYPE** - *handle* points to a directory.
 
 # SEE ALSO #
 **errno**(3), **pmem2_map**(3), **libpmem2**(7)
