@@ -1,6 +1,6 @@
 #!../env.py
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,9 +33,10 @@
 
 
 import testframework as t
+from testframework import granularity as g
 
 
-@t.no_testdir()
+@g.no_testdir()
 class TEST0(t.Test):
     test_type = t.Short
 
@@ -53,7 +54,7 @@ class TEST1(t.Test):
 
 
 @t.windows_exclude
-@t.require_granularity(t.ANY)
+@g.require_granularity(g.ANY)
 class TEST2(t.BaseTest):
     test_type = t.Short
 

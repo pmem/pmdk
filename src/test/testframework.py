@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -49,6 +49,6 @@ from valgrind import *  # noqa: E402, F401, F403
 from utils import *  # noqa: E402, F401, F403
 from poolset import *  # noqa: E402, F401, F403
 from builds import *  # noqa: E402, F401, F403
-from granularity import *  # noqa: E402, F401, F403
 from devdax import *  # noqa: E402, F401, F403
 from test_types import *  # noqa: E402, F401, F403
+import granularity  # noqa: E402, F401
