@@ -34,7 +34,7 @@
 # examples/libpmem2/Makefile -- build the libpmem2 examples
 #
 
-PROGS = basic advanced
+PROGS = basic advanced persistdata
 
 LIBS = -lpmem2
 
@@ -43,3 +43,5 @@ include ../Makefile.inc
 basic: basic.o
 
 advanced: advanced.o
+
+persistdata: persistdata.o
