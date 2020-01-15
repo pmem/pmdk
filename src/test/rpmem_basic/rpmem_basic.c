@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
 
 #include "librpmem.h"
 #include "pool_hdr.h"
+#include "file.h"
 #include "set.h"
 #include "util.h"
 #include "out.h"
@@ -194,7 +195,9 @@ init_pool(struct pool_entry *pool, const char *target, const char *pool_path,
 		UT_ASSERTeq(ret, 0);
 
 		pool->is_mem = 0;
-		os_unlink(pool_path);
+
+		if (util_file_get_type(pool_path) != TYPE_DEVDAX)
+			os_unlink(pool_path);
 	}
 
 	init_buff(pool);

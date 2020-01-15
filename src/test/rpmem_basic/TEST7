@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -65,7 +65,7 @@ expect_normal_exit run_on_node 0 mkdir -p $PART_DIR
 copy_files_to_node 0 ${RPMEM_POOLSET_DIR[0]} $DIR/{pool0.set,pool1.set,pool2.set}
 
 expect_normal_exit run_on_node 0 ../pmempool rm -sf ${RPMEM_POOLSET_DIR[0]}/{pool0.set,pool1.set,pool2.set}
-expect_normal_exit run_on_node 1 ../pmempool rm -sf $(get_node_devdax_path 0 0)
+expect_normal_exit run_on_node 1 ../pmempool rm -sf $(get_node_devdax_path 1 0)
 
 # pool0:
 
