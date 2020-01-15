@@ -24,6 +24,8 @@ Last shutdown            : clean
 Checksum                 : $(*) [OK]
 
 PMEM LOG Header:
-Start offset             : 0x2000
-Write offset             : 0x2000 [OK]
+$(OPT)Start offset             : 0x2000
+$(OPX)Start offset             : 0x20000
+$(OPT)Write offset             : 0x2000 [OK]
+$(OPX)Write offset             : 0x20000 [OK]
 End offset               : $(*)
