@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,9 +62,11 @@ extern "C" {
 
 #endif
 
-#ifdef _MSC_VER
+#if (defined _MSC_VER && _MSC_VER < 1912)
 /*
- * XXX - workaround for offsetof issue in VS 15.3
+ * XXX - workaround for offsetof issue in VS 15.3,
+ *       it has been fixed since Visual Studio 2017 Version 15.5
+ *       (_MSC_VER == 1912)
  */
 #ifdef PMEMOBJ_OFFSETOF_WA
 #ifdef _CRT_USE_BUILTIN_OFFSETOF
