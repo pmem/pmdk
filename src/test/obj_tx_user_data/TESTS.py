@@ -34,6 +34,7 @@
 
 import testframework as t
 
+
 class TEST0(t.BaseTest):
     test_type = t.Short
 

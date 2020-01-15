@@ -92,6 +92,7 @@ class TEST6(t.Test):
         ctx.exec('pmem2_config_get_file_size', 'test_directory_handle',
                  ctx.testdir)
 
+
 # On Windows fd interface doesn't support temporary files
 # FreeBSD doesn't support O_TMPFILE
 @t.linux_only
