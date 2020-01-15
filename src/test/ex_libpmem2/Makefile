@@ -11,4 +11,5 @@ all: $(EXAMPLES)
 include ../Makefile.inc
 
 EXAMPLES=$(EX_LIBPMEM2)/basic\
-	$(EX_LIBPMEM2)/advanced
+	$(EX_LIBPMEM2)/advanced\
+	$(EX_LIBPMEM2)/aof
