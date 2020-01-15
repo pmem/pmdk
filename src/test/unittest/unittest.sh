@@ -2588,6 +2588,17 @@ function log_pool_desc_size() {
 }
 
 #
+# blk_pool_desc_size -- returns the minimum size of pool header
+# in bytes which is two times the actual pagesize.
+#
+# This should be use to calculate the minimum zero size for pool
+# creation on some tests.
+#
+function blk_pool_desc_size() {
+	echo "$(expr $(getconf PAGESIZE) \* 2)"
+}
+
+#
 # create_holey_file_on_node -- create holey files of a given length
 #   usage: create_holey_file_on_node <node> <size>
 #

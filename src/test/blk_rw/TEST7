@@ -38,6 +38,7 @@
 . ../unittest/unittest.sh
 
 # long test, run only on pmem
+exclude_ppc64
 require_fs_type pmem
 require_test_type long
 configure_valgrind pmemcheck force-enable
