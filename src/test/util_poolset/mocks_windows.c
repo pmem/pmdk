@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,7 +45,7 @@ extern size_t Is_pmem_len;
 /*
  * os_open -- open mock
  *
- * due to diffrences in function mocking on linux we are wraping os_open
+ * due to differences in function mocking on linux we are wrapping os_open
  * but on linux we just wrap open syscall
  */
 FUNC_MOCK(os_open, int, const char *path, int flags, ...)

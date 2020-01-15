@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -77,7 +77,7 @@ pmem2_config_new(struct pmem2_config **cfg)
 }
 
 /*
- * pmem2_config_delete -- dealocate cfg structure.
+ * pmem2_config_delete -- deallocate cfg structure.
  */
 int
 pmem2_config_delete(struct pmem2_config **cfg)

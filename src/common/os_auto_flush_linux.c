@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -196,7 +196,7 @@ os_auto_flush(void)
 		/*
 		 * Skip if not a symlink, because we expect that
 		 * region on sysfs path is a symlink.
-		 * Skip if depth is different than 1, bacause region
+		 * Skip if depth is different than 1, because region
 		 * we are interested in should be the first level
 		 * child for device.
 		 */

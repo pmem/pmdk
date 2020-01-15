@@ -1,5 +1,6 @@
 /*
  * Copyright 2019, IBM Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -49,7 +50,7 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 	LOG(3, "PMDK PPC64 support currently is for testing only");
 	LOG(3, "Please dont use this library in production environment");
 
-	/* Init platform and to initilize the pmem funcs */
+	/* Init platform and to initialize the pmem funcs */
 	if (platform_init(funcs))
 		FATAL("Unable to init platform");
 }

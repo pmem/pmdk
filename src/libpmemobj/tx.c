@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -1350,7 +1350,7 @@ pmemobj_tx_add_common(struct tx *tx, struct tx_range_def *args)
 			 * or	--+++++ (desired snapshot is inside)
 			 *
 			 * Notice that we cannot create a snapshot based solely
-			 * on this information without risking overwritting an
+			 * on this information without risking overwriting an
 			 * existing one. We have to continue iterating, but we
 			 * keep the information about adjacent snapshots in the
 			 * nprev variable.

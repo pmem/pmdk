@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * os.h -- os abstaction layer
+ * os.h -- os abstraction layer
  */
 
 #ifndef PMDK_OS_H
