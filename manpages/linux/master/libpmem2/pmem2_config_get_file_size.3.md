@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEM2\_CONFIG\_GET\_FILE\_SIZE
+title: PMEM2_CONFIG_GET_FILE_SIZE
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -72,25 +72,25 @@ the following errors is returned:
 
 On all systems:
 
-* **PMEM2\_E\_FILE\_HANDLE\_NOT\_SET** - config doesn't contain the file handle
+* **PMEM2_E_FILE_HANDLE_NOT_SET** - config doesn't contain the file handle
 (see **pmem2_config_set_fd**(3), **pmem2_config_set_handle**(3)).
 
-* **PMEM2\_E\_INVALID\_FILE\_HANDLE** - config contains an invalid file handle.
+* **PMEM2_E_INVALID_FILE_HANDLE** - config contains an invalid file handle.
 
 On Windows:
 
-* **PMEM2\_E\_INVALID\_FILE\_TYPE** - handle points to a resource that is not
+* **PMEM2_E_INVALID_FILE_TYPE** - handle points to a resource that is not
 a regular file.
 
 On Linux:
 
-* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a directory,
+* **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a directory,
 block device, pipe, or socket.
 
-* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a character
+* **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a character
 device other than Device DAX.
 
-* **PMEM2\_E\_INVALID\_SIZE\_FORMAT** - kernel query for Device DAX size
+* **PMEM2_E_INVALID_SIZE_FORMAT** - kernel query for Device DAX size
 returned data in invalid format.
 
 * -**errno** set by failing **fstat**(2), while trying to validate the file
@@ -110,7 +110,7 @@ Device DAX's size.
 
 On FreeBSD:
 
-* **PMEM2\_E\_INVALID\_FILE\_TYPE** - file descriptor points to a directory,
+* **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a directory,
 block device, pipe, socket, or character device.
 
 * -**errno** set by failing **fstat**(2), while trying to validate the file

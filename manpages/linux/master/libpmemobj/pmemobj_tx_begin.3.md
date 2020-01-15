@@ -59,6 +59,9 @@ date: pmemobj API version 2.3
 **pmemobj_tx_log_append_buffer**(), **pmemobj_tx_xlog_append_buffer**(),
 **pmemobj_tx_log_auto_alloc**(), **pmemobj_tx_log_snapshots_max_size**(),
 **pmemobj_tx_log_intents_max_size**()
+
+**pmemobj_tx_set_user_data**()
+**pmemobj_tx_get_user_data**()
 - transactional object manipulation
 
 # SYNOPSIS #
@@ -90,6 +93,9 @@ int pmemobj_tx_xlog_append_buffer(enum pobj_log_type type, void *addr, size_t si
 int pmemobj_tx_log_auto_alloc(enum pobj_log_type type, int on_off);
 size_t pmemobj_tx_log_snapshots_max_size(size_t *sizes, size_t nsizes);
 size_t pmemobj_tx_log_intents_max_size(size_t nintents);
+
+void pmemobj_tx_set_user_data(void *data);
+void *pmemobj_tx_get_user_data(void);
 ```
 
 # DESCRIPTION #
@@ -421,6 +427,14 @@ both inside and outside of transaction.
 It can be used to verify that the buffer set with
 **pmemobj_tx_log_append_buffer**() is big enough to hold the log, without
 reaching out-of-space scenario.
+
+The **pmemobj_tx_set_user_data**() function associates custom volatile state,
+represented by pointer *data*, with the current transaction. This state can
+later be retrieved using **pmemobj_tx_get_user_data**() function.
+If **pmemobj_tx_set_user_data**() was not called for a current transaction,
+**pmemobj_tx_get_user_data**() will return NULL. These functions must be called
+during **TX_STAGE_WORK** or **TX_STAGE_ONABORT** or **TX_STAGE_ONCOMMIT** or
+**TX_STAGE_FINALLY**.
 
 # RETURN VALUE #
 

@@ -7,7 +7,7 @@ header: PMDK
 date: pmem2 API version 1.0
 ...
 
-[comment]: <> (Copyright 2019, Intel Corporation)
+[comment]: <> (Copyright 2019-2020, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -67,6 +67,33 @@ XXX: explain the concept of the granularity
 # CAVEATS #
 
 # ENVIRONMENT #
+
+**libpmem2** can change its default behavior based on the following
+environment variables. These are largely intended for testing and are
+not normally required.
+
++ **PMEM2_FORCE_GRANULARITY**=*val*
+
+Setting this environment variable to *val* forces **libpmem2** to
+use persist method specific for forced granularity and skip
+granularity autodetecting mechanism. The concept of the granularity is
+described in *GRANULARITY* section above.
+This variable is intended for use during library testing.
+
+The *val* argument accepts following text values:
+
++ **BYTE** - force byte granularity.
++ **CACHE_LINE** - force cache line granularity.
++ **PAGE** - force page granularity.
+
+Granularity values listed above are case-insensitive.
+
+>NOTE:
+The value of **PMEM2_FORCE_GRANULARITY** is not queried (and cached)
+at library initialization time, but read during each **pmem2_map**(3) call.
+
+This means that **PMEM2_FORCE_GRANULARITY** may still be set or modified
+by the program until the first attempt to map a file.
 
 # DEBUGGING #
 

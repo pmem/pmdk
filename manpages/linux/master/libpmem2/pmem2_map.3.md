@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: PMEM2\_MAP
+title: PMEM2_MAP
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -67,9 +67,9 @@ an opened handle to a file.
 
     * The file descriptor has to be opened using *O_RDONLY* or *O_RDWR* file
 access mode and passed via **pmem2_config_set_fd**(3). Note on Windows the
-provided file descriptor is converted to a handle using **\_get_osfhandle**().
+provided file descriptor is converted to a handle using **_get_osfhandle**().
 For details please see the **open**(3), **pmem2_config_set_fd**(3) and
-**\_get_osfhandle**() manual pages.
+**_get_osfhandle**() manual pages.
 
     * Similarly, the handle has to be created with an access mode of
 *GENERIC_READ* or *(GENERIC_READ | GENERIC_WRITE)* and passed via
@@ -96,31 +96,31 @@ be destroyed using the **pmem2_unmap**() function. For details please see
 When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
 one of the following error values:
 
-* **PMEM2\_E\_FILE\_HANDLE\_NOT\_SET** - config doesn't contain a file descriptor or
+* **PMEM2_E_FILE_HANDLE_NOT_SET** - config doesn't contain a file descriptor or
 file handle (Windows)
 
-* **PMEM2\_E\_INVALID\_FILE\_HANDLE** - invalid *file descriptor* value in *config*
+* **PMEM2_E_INVALID_FILE_HANDLE** - invalid *file descriptor* value in *config*
 
-* **PMEM2\_E\_MAP\_RANGE** - *offset* + *length* is too big to represent it using
+* **PMEM2_E_MAP_RANGE** - *offset* + *length* is too big to represent it using
 *size_t* data type
 
-* **PMEM2\_E\_MAP\_RANGE** - end of the mapping (*offset* + *length*) is outside
+* **PMEM2_E_MAP_RANGE** - end of the mapping (*offset* + *length*) is outside
 of the file. The file is too small.
 
-* **PMEM2\_E\_MAPPING\_EXISTS** - if the object exists before the function call.
+* **PMEM2_E_MAPPING_EXISTS** - if the object exists before the function call.
 For details please see **CreateFileMapping**() manual pages. (Windows only)
 
-* **PMEM2\_E\_OFFSET\_UNALIGNED** - argument unaligned, offset is not a multiple of
+* **PMEM2_E_OFFSET_UNALIGNED** - argument unaligned, offset is not a multiple of
 the alignment required for specific *\*config*. Please see
 **pmem2_config_get_alignement**(3).
 
-* **PMEM2\_E\_LENGTH\_UNALIGNED** - argument unaligned, length is not a multiple of
+* **PMEM2_E_LENGTH_UNALIGNED** - argument unaligned, length is not a multiple of
 the alignment required for specific *\*config*. Please see
 **pmem2_config_get_alignement**(3).
 
 It can also return **-EACCES**, **-EAGAIN**, **-EBADF**, **-ENFILE**,
 **-ENODEV**, **-ENOMEM**, **-EPERM**, **-ETXTBSY** from the underlying
-**mmap**(2) function. It is used with and without **MAP\_ANONYMOUS**.
+**mmap**(2) function. It is used with and without **MAP_ANONYMOUS**.
 
 **-EACCES** may be returned only if the file descriptor points to an
 append-only file.
