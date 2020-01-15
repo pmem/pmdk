@@ -96,7 +96,6 @@ do_tx_set_get_user_data_abort(PMEMobjpool *pop)
 	} TX_END
 }
 
-
 int
 main(int argc, char *argv[])
 {
