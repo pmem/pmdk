@@ -199,6 +199,15 @@ static float workloads_defrag_target[] = {
 	0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.056f, 0.1f, 0.13f, 0.01f
 };
 
+/* last workload operates only on huge chunks, so run stats are useless */
+static float workloads_stat_target[] = {
+	0.01f, 1.1f, 1.1f, 0.86f, 0.76f, 1.01f, 0.23f, 1.24f, 2100.f
+};
+
+static float workloads_defrag_stat_target[] = {
+	0.01f, 0.01f, 0.01f, 0.02f, 0.02f, 0.04f, 0.08f, 0.12f, 2100.f
+};
+
 int
 main(int argc, char *argv[])
 {
@@ -229,6 +238,16 @@ main(int argc, char *argv[])
 
 	workloads[w](pop);
 
+	/* this is to trigger global recycling */
+	pmemobj_defrag(pop, NULL, 0, NULL);
+
+	size_t active = 0;
+	size_t allocated = 0;
+	pmemobj_ctl_get(pop, "stats.heap.run_active", &active);
+	pmemobj_ctl_get(pop, "stats.heap.run_allocated", &allocated);
+	float stat_frag = ((float)active / allocated) - 1.f;
+	UT_ASSERT(stat_frag <= workloads_stat_target[w]);
+
 	if (defrag) {
 		PMEMoid **objectsf = ZALLOC(sizeof(PMEMoid) * nobjects);
 		for (size_t i = 0; i < nobjects; ++i)
@@ -237,6 +256,17 @@ main(int argc, char *argv[])
 		pmemobj_defrag(pop, objectsf, nobjects, NULL);
 
 		FREE(objectsf);
+
+		active = 0;
+		allocated = 0;
+
+		/* this is to trigger global recycling */
+		pmemobj_defrag(pop, NULL, 0, NULL);
+
+		pmemobj_ctl_get(pop, "stats.heap.run_active", &active);
+		pmemobj_ctl_get(pop, "stats.heap.run_allocated", &allocated);
+		stat_frag = ((float)active / allocated) - 1.f;
+		UT_ASSERT(stat_frag <= workloads_defrag_stat_target[w]);
 	}
 
 	PMEMoid oid;
