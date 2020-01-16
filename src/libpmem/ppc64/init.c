@@ -47,7 +47,7 @@ pmem_init_funcs(struct pmem_funcs *funcs)
 {
 
 	LOG(3, "libpmem: PPC64 support");
-	LOG(3, "PMDK PPC64 support currently is for testing only");
+	LOG(3, "PMDK PPC64 support is currently experimental");
 	LOG(3, "Please dont use this library in production environment");
 
 	/* Init platform and to initialize the pmem funcs */
