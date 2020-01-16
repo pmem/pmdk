@@ -1067,7 +1067,8 @@ pmemspoil_process_bttdevice(struct pmemspoil *psp,
 	PROCESS_BEGIN(psp, pfp) {
 		PROCESS(arena,
 			pmemspoil_get_arena_offset(psp, PROCESS_INDEX,
-					BTT_ALIGNMENT),
+					ALIGN_UP(sizeof(struct pool_hdr),
+					BTT_ALIGNMENT)),
 			UINT32_MAX, uint64_t);
 	} PROCESS_END
 	return PROCESS_RET;
