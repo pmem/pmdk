@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_ravl.c -- unit test for ravl tree
+ * util_ravl.c -- unit test for ravl tree
  */
 #include <stdint.h>
 #include <stdlib.h>
@@ -261,7 +261,7 @@ test_fault_injection_ravl_node()
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_ravl");
+	START(argc, argv, "util_ravl");
 
 	test_predicate();
 	test_misc();

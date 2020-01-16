@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{72C9DB46-C665-48AD-B805-BA885B40CA3E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>obj_ravl</RootNamespace>
+    <RootNamespace>util_ravl</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -62,7 +62,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\ravl.c" />
-    <ClCompile Include="obj_ravl.c" />
+    <ClCompile Include="util_ravl.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1" />

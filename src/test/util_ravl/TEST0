@@ -1,5 +1,6 @@
+#!/usr/bin/env bash
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,11 +32,16 @@
 #
 
 #
-# src/test/obj_ravl/Makefile -- build ravl tree unit test
+# src/test/util_ravl/TEST0 -- unit test for util_ravl interface
 #
-TARGET = obj_ravl
-OBJS = obj_ravl.o
 
-LIBPMEMOBJ=internal-debug
+. ../unittest/unittest.sh
 
-include ../Makefile.inc
+require_fs_type none
+require_test_type medium
+
+setup
+
+expect_normal_exit ./util_ravl$EXESUFFIX
+
+pass
