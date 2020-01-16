@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # Copyright 2014-2019, Intel Corporation
+# Copyright 2019, IBM Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +33,9 @@
 #
 
 #
-# src/test/blk_nblock/TEST1 -- unit test for pmemblk_nblock
+# src/test/blk_nblock/TEST4 -- unit test for pmemblk_nblock
+#
+# This test is equivalent of TEST1 for ppc64le platform.
 #
 
 . ../unittest/unittest.sh
@@ -40,7 +43,7 @@
 require_test_type medium
 
 require_fs_type any
-exclude_ppc64
+require_ppc64
 
 setup
 
@@ -51,8 +54,8 @@ setup
 # These are holey files, so they actually don't take up
 # any significant space.
 #
-truncate -s 1G $DIR/testfile1.2096896
-truncate -s 1G $DIR/testfile1.2096897
+truncate -s 1G $DIR/testfile1.2096640
+truncate -s 1G $DIR/testfile1.2096641
 truncate -s 2G $DIR/testfile2.0
 truncate -s 2G $DIR/testfile2.1
 truncate -s 2G $DIR/testfile2.17
@@ -72,8 +75,8 @@ truncate -s 2G $DIR/testfile2.2147483648
 truncate -s 2G $DIR/testfile2.-1
 
 expect_normal_exit ./blk_nblock$EXESUFFIX\
-	2096896:$DIR/testfile1.2096896\
-	2096897:$DIR/testfile1.2096897\
+	2096640:$DIR/testfile1.2096640\
+	2096641:$DIR/testfile1.2096641\
 	0:$DIR/testfile2.0\
 	1:$DIR/testfile2.1\
 	17:$DIR/testfile2.17\
@@ -92,8 +95,8 @@ expect_normal_exit ./blk_nblock$EXESUFFIX\
 	2147483648:$DIR/testfile2.2147483648\
 	-1:$DIR/testfile2.-1
 
-check_pools $DIR/testfile1.2096896\
-	$DIR/testfile1.2096897\
+check_pools $DIR/testfile1.2096640\
+	$DIR/testfile1.2096641\
 	$DIR/testfile2.1\
 	$DIR/testfile2.17\
 	$DIR/testfile2.511\
