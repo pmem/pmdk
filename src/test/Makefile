@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -88,6 +88,7 @@ OBJ_TESTS = \
 	obj_ctl_stats\
 	obj_debug\
 	obj_defrag\
+	obj_defrag_advanced\
 	obj_direct\
 	obj_direct_volatile\
 	obj_extend\
