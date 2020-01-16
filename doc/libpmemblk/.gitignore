@@ -1,0 +1,6 @@
+libpmemblk.7
+pmemblk_bsize.3
+pmemblk_create.3
+pmemblk_ctl_get.3
+pmemblk_read.3
+pmemblk_set_zero.3
