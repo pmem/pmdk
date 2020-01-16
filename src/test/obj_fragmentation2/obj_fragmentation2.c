@@ -52,7 +52,7 @@
 #define RRAND(max, min)\
 ((min) == (max) ? (min) : (rnd64() % ((max) - (min)) + (min)))
 
-static uint64_t *objects;
+static PMEMoid *objects;
 static size_t nobjects;
 static size_t allocated_current;
 #define MAX_OBJECTS (200ULL * 1000000)
@@ -66,7 +66,7 @@ static size_t allocated_current;
 static void
 shuffle_objects(size_t start, size_t end)
 {
-	uint64_t tmp;
+	PMEMoid tmp;
 	size_t dest;
 	for (size_t n = start; n < end; ++n) {
 		dest = RRAND(nobjects - 1, 0);
@@ -76,12 +76,12 @@ shuffle_objects(size_t start, size_t end)
 	}
 }
 
-static uint64_t
+static PMEMoid
 remove_last()
 {
 	UT_ASSERT(nobjects > 0);
 
-	uint64_t obj = objects[--nobjects];
+	PMEMoid obj = objects[--nobjects];
 
 	return obj;
 }
@@ -94,15 +94,15 @@ allocate_objects(PMEMobjpool *pop, size_t size_min, size_t size_max)
 	size_t sstart = 0;
 
 	PMEMoid oid = pmemobj_root(pop, 1);
-	uint64_t uuid_lo = oid.pool_uuid_lo;
 
 	while (allocated_total < ALLOC_TOTAL) {
 		size_t s = RRAND(size_max, size_min);
 		pmemobj_alloc(pop, &oid, s, 0, NULL, NULL);
-		s = pmemobj_alloc_usable_size(oid);
 
 		UT_ASSERTeq(OID_IS_NULL(oid), 0);
-		objects[nobjects++] = oid.off;
+		s = pmemobj_alloc_usable_size(oid);
+
+		objects[nobjects++] = oid;
 		UT_ASSERT(nobjects < MAX_OBJECTS);
 		allocated_total += s;
 		allocated_current += s;
@@ -110,8 +110,7 @@ allocate_objects(PMEMobjpool *pop, size_t size_min, size_t size_max)
 		if (allocated_current > ALLOC_CURR) {
 			shuffle_objects(sstart, nobjects);
 			for (int i = 0; i < FREES_P; ++i) {
-				oid.pool_uuid_lo = uuid_lo;
-				oid.off = remove_last();
+				oid = remove_last();
 				allocated_current -=
 					pmemobj_alloc_usable_size(oid);
 				pmemobj_free(&oid);
@@ -127,12 +126,10 @@ delete_objects(PMEMobjpool *pop, float pct)
 	size_t nfree = (size_t)(nobjects * pct);
 
 	PMEMoid oid = pmemobj_root(pop, 1);
-	uint64_t uuid_lo = oid.pool_uuid_lo;
 
 	shuffle_objects(0, nobjects);
 	while (nfree--) {
-		oid.off = remove_last();
-		oid.pool_uuid_lo = uuid_lo;
+		oid = remove_last();
 
 		allocated_current -= pmemobj_alloc_usable_size(oid);
 
@@ -198,13 +195,18 @@ static float workloads_target[] = {
 	0.01f, 0.01f, 0.01f, 0.9f, 0.8f, 0.7f, 0.3f, 0.8f, 0.73f
 };
 
+static float workloads_defrag_target[] = {
+	0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.056f, 0.1f, 0.13f, 0.01f
+};
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_fragmentation2");
 
 	if (argc < 3)
-		UT_FATAL("usage: %s filename workload [seed]", argv[0]);
+		UT_FATAL("usage: %s filename workload [seed] [defrag]",
+			argv[0]);
 
 	const char *path = argv[1];
 
@@ -220,29 +222,43 @@ main(int argc, char *argv[])
 	else
 		randomize(0);
 
-	objects = ZALLOC(sizeof(uint64_t) * MAX_OBJECTS);
+	int defrag = argc > 4 ? atoi(argv[4]) != 0 : 0;
+
+	objects = ZALLOC(sizeof(PMEMoid) * MAX_OBJECTS);
 	UT_ASSERTne(objects, NULL);
 
 	workloads[w](pop);
 
+	if (defrag) {
+		PMEMoid **objectsf = ZALLOC(sizeof(PMEMoid) * nobjects);
+		for (size_t i = 0; i < nobjects; ++i)
+			objectsf[i] = &objects[i];
+
+		pmemobj_defrag(pop, objectsf, nobjects, NULL);
+
+		FREE(objectsf);
+	}
+
 	PMEMoid oid;
 	size_t remaining = 0;
-	size_t chunk = 100; /* calc at chunk level */
+	size_t chunk = (100); /* calc at chunk level */
 	while (pmemobj_alloc(pop, &oid, chunk, 0, NULL, NULL) == 0)
 		remaining += pmemobj_alloc_usable_size(oid) + 16;
 
 	size_t allocated_sum = 0;
 	oid = pmemobj_root(pop, 1);
 	for (size_t n = 0; n < nobjects; ++n) {
-		if (objects[n] == 0)
+		if (OID_IS_NULL(objects[n]))
 			continue;
-		oid.off = objects[n];
+		oid = objects[n];
 		allocated_sum += pmemobj_alloc_usable_size(oid) + 16;
 	}
 	size_t used = DEFAULT_FILE_SIZE - remaining;
 	float frag = ((float)used / allocated_sum) - 1.f;
 
-	UT_ASSERT(frag <= workloads_target[w]);
+	UT_OUT("FRAG: %f\n", frag);
+	UT_ASSERT(frag <= (defrag ?
+		workloads_defrag_target[w] : workloads_target[w]));
 
 	pmemobj_close(pop);
 

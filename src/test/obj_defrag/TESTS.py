@@ -1,6 +1,6 @@
-#!/usr/bin/env bash
+#!../env.py
 #
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2019, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,16 +31,15 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-. ../unittest/unittest.sh
+from os import path
+import testframework as t
 
-require_test_type long
+class BASE(t.BaseTest):
+    test_type = t.Medium
 
-require_fs_type pmem
-require_build_type static-nondebug
+    def run(self, ctx):
+        testfile = path.join(ctx.testdir, 'testfile0')
+        ctx.exec('obj_defrag', testfile)
 
-setup
-
-PMEM_IS_PMEM_FORCE=1 PMEM_NO_FLUSH=1 expect_normal_exit\
-	./obj_fragmentation2$EXESUFFIX $DIR/testfile1 2 12345
-
-pass
+class TEST0(BASE):
+    "defrag test"
