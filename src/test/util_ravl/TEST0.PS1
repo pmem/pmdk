@@ -1,5 +1,5 @@
 #
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
 #
 
 #
-# src/test/obj_ravl/TEST0 -- unit test for obj_ravl interface
+# src/test/util_ravl/TEST0 -- unit test for util_ravl interface
 #
 
 . ..\unittest\unittest.ps1
@@ -41,6 +41,6 @@ require_test_type medium
 
 setup
 
-expect_normal_exit $Env:EXE_DIR\obj_ravl$Env:EXESUFFIX
+expect_normal_exit $Env:EXE_DIR\util_ravl$Env:EXESUFFIX
 
 pass
