@@ -32,17 +32,18 @@
 #
 
 #
-# src/test/obj_tx_strdup/TEST0 -- unit test for pmemobj_tx_strdup
+# src/test/obj_tx_strdup/TEST2 -- unit test for pmemobj_tx_strdup
 #
 
 . ../unittest/unittest.sh
 
 require_test_type medium
-configure_valgrind pmemcheck force-disable
-
+require_build_type debug
+require_fs_type pmem
+configure_valgrind pmemcheck force-enable
 setup
 
-expect_normal_exit ./obj_tx_strdup$EXESUFFIX $DIR/testfile1 t
+expect_normal_exit ./obj_tx_strdup$EXESUFFIX $DIR/testfile1 f
 
 check
 

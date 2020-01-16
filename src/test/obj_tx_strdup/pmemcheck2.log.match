@@ -1,0 +1,31 @@
+==$(*)== pmemcheck$(*)
+==$(*)== Copyright$(*)
+==$(*)== Using Valgrind-$(*)
+==$(*)== Command: ./obj_tx_strdup$(*)
+==$(*)== Parent PID: $(*)
+==$(*)== 
+==$(*)== 
+==$(*)== Number of stores not made persistent: 2
+==$(*)== Stores not made persistent properly:
+==$(*)== [0]    at 0x$(*): __memcpy$(*)
+==$(*)==    by 0x$(*): constructor_tx_alloc (tx.c:$(*))
+==$(*)==    by 0x$(*): alloc_prep_block (palloc.c:$(*))
+==$(*)==    by 0x$(*): palloc_reservation_create (palloc.c:$(*))
+==$(*)==    by 0x$(*): palloc_reserve (palloc.c:$(*))
+==$(*)==    by 0x$(*): tx_alloc_common (tx.c:$(*))
+==$(*)==    by 0x$(*): pmemobj_tx_xstrdup (tx.c:$(*))
+==$(*)==    by 0x$(*): do_tx_strdup_noflush (obj_tx_strdup.c:$(*))
+==$(*)==    by 0x$(*): main (obj_tx_strdup.c:$(*))
+==$(*)== 	Address: 0x$(*)	size: 14	state: DIRTY
+==$(*)== [1]    at 0x$(*): __memcpy$(*)
+==$(*)==    by 0x$(*): constructor_tx_alloc (tx.c:$(*))
+==$(*)==    by 0x$(*): alloc_prep_block (palloc.c:$(*))
+==$(*)==    by 0x$(*): palloc_reservation_create (palloc.c:$(*))
+==$(*)==    by 0x$(*): palloc_reserve (palloc.c:$(*))
+==$(*)==    by 0x$(*): tx_alloc_common (tx.c:$(*))
+==$(*)==    by 0x$(*): pmemobj_tx_xwcsdup (tx.c:$(*))
+==$(*)==    by 0x$(*): do_tx_strdup_noflush (obj_tx_strdup.c:$(*))
+==$(*)==    by 0x$(*): main (obj_tx_strdup.c:$(*))
+==$(*)== 	Address: 0x$(*)	size: 56	state: DIRTY
+==$(*)== Total memory not made persistent: 70
+==$(*)== ERROR SUMMARY: 2 errors

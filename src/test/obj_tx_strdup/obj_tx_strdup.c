@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,6 +32,11 @@
 
 /*
  * obj_tx_strdup.c -- unit test for pmemobj_tx_strdup
+ *
+ * usage: obj_tx_strdup file operation:...
+ *
+ * operations are 't' or 'f'
+ *
  */
 #include <sys/param.h>
 #include <string.h>
@@ -421,26 +426,27 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_tx_strdup");
 
-	if (argc != 2)
-		UT_FATAL("usage: %s [file]", argv[0]);
+	if (argc != 3)
+		UT_FATAL("usage: %s [file] op:t|f", argv[0]);
 
 	PMEMobjpool *pop;
 	if ((pop = pmemobj_create(argv[1], LAYOUT_NAME, PMEMOBJ_MIN_POOL,
 	    S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create");
 
-	for (counter = 0; counter < MAX_FUNC; counter++) {
-		do_tx_strdup_commit(pop);
-		do_tx_strdup_abort(pop);
-		do_tx_strdup_null(pop);
-		do_tx_strdup_free_commit(pop);
-		do_tx_strdup_free_abort(pop);
-		do_tx_strdup_commit_nested(pop);
-		do_tx_strdup_abort_nested(pop);
-		do_tx_strdup_abort_after_nested(pop);
-	}
-
-	do_tx_strdup_noflush(pop);
+	if (strcmp(argv[2], "t") == 0) {
+		for (counter = 0; counter < MAX_FUNC; counter++) {
+			do_tx_strdup_commit(pop);
+			do_tx_strdup_abort(pop);
+			do_tx_strdup_null(pop);
+			do_tx_strdup_free_commit(pop);
+			do_tx_strdup_free_abort(pop);
+			do_tx_strdup_commit_nested(pop);
+			do_tx_strdup_abort_nested(pop);
+			do_tx_strdup_abort_after_nested(pop);
+		}
+	} else if (strcmp(argv[2], "f") == 0)
+		do_tx_strdup_noflush(pop);
 
 	pmemobj_close(pop);
 
