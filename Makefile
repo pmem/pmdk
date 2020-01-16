@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -78,7 +78,7 @@ rpm : override DESTDIR="$(CURDIR)/$(RPM_BUILDDIR)"
 dpkg: override DESTDIR="$(CURDIR)/$(DPKG_BUILDDIR)"
 rpm dpkg: override prefix=/usr
 
-all:
+all: doc
 	$(MAKE) -C src $@
 
 doc:
