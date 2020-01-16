@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -59,19 +59,6 @@ git config --local user.email "pmem-bot@intel.com"
 
 git remote update
 git checkout -B ${TARGET_BRANCH} upstream/${TARGET_BRANCH}
-
-make doc
-
-# Build & PR groff
-git add -A ./doc
-git commit -m "doc: automatic $TARGET_BRANCH docs update" && true
-git push -f ${ORIGIN} ${TARGET_BRANCH}
-
-# Makes pull request.
-# When there is already an open PR or there are no changes an error is thrown, which we ignore.
-hub pull-request -f -b ${USER_NAME}:${TARGET_BRANCH} -h ${BOT_NAME}:${TARGET_BRANCH} -m "doc: automatic $TARGET_BRANCH docs update" && true
-
-git clean -dfx
 
 # Copy man & PR web md
 cd  ./doc
