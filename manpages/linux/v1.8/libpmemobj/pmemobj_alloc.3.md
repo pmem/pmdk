@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.3
 ...
 
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2020, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -74,6 +74,8 @@ int pmemobj_strdup(PMEMobjpool *pop, PMEMoid *oidp, const char *s,
 int pmemobj_wcsdup(PMEMobjpool *pop, PMEMoid *oidp, const wchar_t *s,
 	uint64_t type_num);
 size_t pmemobj_alloc_usable_size(PMEMoid oid);
+int pmemobj_defrag(PMEMobjpool *pop, PMEMoid **oidv, size_t oidcnt,
+	struct pobj_defrag_result *result);
 
 POBJ_NEW(PMEMobjpool *pop, TOID *oidp, TYPE, pmemobj_constr constructor,
 	void *arg)
@@ -232,6 +234,31 @@ typed *OID* of type name *TYPE*, and passes the type number from the typed
 The **POBJ_FREE**() macro is a wrapper around the **pmemobj_free**() function
 which takes a pointer to the typed *OID* instead of to *PMEMoid*.
 
+The **pmemobj_defrag**() function performs defragmentation
+on the objects provided through the array of pointers to PMEMoids *oidv*
+with size *oidcnt*. If an object from the provided array is selected to be moved
+to a new location in the heap, it is reallocated and all provided pointers
+to that object are atomically updated.
+To maintain data structure consistency, applications should always provide
+all pointers for an object to **pmemobj_defrag** method. This ensures that,
+even in the presence of failures, all pointers to the object will either point
+to the old or a new location.
+All objects and pointers to objects should belong to the pool *pop* or,
+in case of pointers, can also reside in volatile memory.
+Defragmentation across pools is not supported.
+Objects in the array that are *OID_NULL* are skipped over and no operation
+is performed on them. All other objects must have been allocated
+by an earlier call to **pmemobj_alloc**(), **pmemobj_xalloc**(),
+**pmemobj_zalloc**(), **pmemobj_realloc**(), **pmemobj_zrealloc**(),
+**pmemobj_strdup**() or **pmemobj_wcsdup**().
+The *result* variable is an instance of *struct pobj_defrag_result* and,
+if not NULL, can be used to read *total*, the number of objects found that
+were processed, and *relocated*, the number of objects that were
+relocated during defragmentation. These variables are always initialized and
+can be non-zero, even if the return value of **pmemobj_defrag**() indicated a
+failure. This is because the failure might have occurred after some objects were
+already processed.
+
 # RETURN VALUE #
 
 On success, **pmemobj_alloc**() and **pmemobj_xalloc** return 0. If *oidp*
@@ -261,6 +288,10 @@ appropriately.
 
 The **pmemobj_alloc_usable_size**() function returns the number of usable bytes
 in the object represented by *oid*. If *oid* is **OID_NULL**, it returns 0.
+
+On success, **pmemobj_defrag**() returns 0. If defragmentation was
+unsuccessful or only partially successful (i.e. if it was aborted halfway
+through due to lack of resources), -1 is returned.
 
 # SEE ALSO #
 
