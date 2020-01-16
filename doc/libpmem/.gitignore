@@ -1,0 +1,4 @@
+libpmem.7
+pmem_flush.3
+pmem_is_pmem.3
+pmem_memmove_persist.3
