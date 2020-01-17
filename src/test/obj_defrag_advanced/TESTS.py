@@ -72,9 +72,9 @@ class TEST1(ObjDefragAdvanced):
     graph_copies = 5
 
 
+@t.require_granularity(t.CACHELINE)
 class TEST2(ObjDefragAdvanced):
     test_type = t.Medium
-    fs = t.Pmem
 
     max_nodes = 512
     max_edges = 64
@@ -82,9 +82,9 @@ class TEST2(ObjDefragAdvanced):
     min_root_size = 4096
 
 
+@t.require_granularity(t.CACHELINE)
 class ObjDefragAdvancedMt(ObjDefragAdvanced):
     test_type = t.Medium
-    fs = t.Pmem
 
     nthreads = 2
     ncycles = 2
