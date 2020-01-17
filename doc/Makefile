@@ -245,7 +245,7 @@ install: compress
 uninstall:
 	$(foreach f, $(notdir $(GZFILES_7)), $(RM) $(MANPAGES_DESTDIR_7)/$(f))
 	$(foreach f, $(notdir $(GZFILES_5)), $(RM) $(MANPAGES_DESTDIR_5)/$(f))
-	$(foreach f, $(notdir $(GZFILES_3)), $(RM) $(MANPAGES_DESTDIR_3)/$(f))
+	$(foreach f, $(notdir $(GZFILES_3) $(GZFILES_3_DUMMY)), $(RM) $(MANPAGES_DESTDIR_3)/$(f))
 	$(foreach f, $(notdir $(GZFILES_1)), $(RM) $(MANPAGES_DESTDIR_1)/$(f))
 
 FORCE:
