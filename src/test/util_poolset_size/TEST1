@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Copyright 2019, Intel Corporation
-# Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+# Copyright 2016-2019, Intel Corporation
+# Copyright 2019, IBM Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,27 +33,35 @@
 #
 
 #
-# src/test/blk_non_zero/TEST10 -- unit test for error injection
+# src/test/util_poolset_size/TEST1 -- unit test for util_poolset_size
+#
+# This test is equivalent of TEST0 for ppc64le platform.
 #
 
 . ../unittest/unittest.sh
 
 require_test_type medium
+
 require_fs_type any
+require_ppc64
 
 setup
 
-# single arena and minimum pmemblk pool file case
-create_nonzeroed_file 17M $(blk_pool_desc_size) $DIR/testfile1
+create_poolset $DIR/pool.set1 152K:$DIR/testfile:x
+create_poolset $DIR/pool.set2 152K:$DIR/testfile1:x 32M:$DIR/testfile2:x
+create_poolset $DIR/pool.set3\
+	32M:$DIR/testfile11:x 32M:$DIR/testfile12:x\
+	R 64M:$DIR/testfile21:x 32M:$DIR/testfile22:x
+create_poolset $DIR/pool.set4\
+	32M:$DIR/testfile11:x 32M:$DIR/testfile12:x\
+	R 64M:$DIR/testfile21:x 32M:$DIR/testfile22:x\
+	R 64M:$DIR/testfile31:x 64M:$DIR/testfile32:x
 
-expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c 0\
-	t:3
-
-rm $DIR/testfile1
-create_nonzeroed_file 17M $(blk_pool_desc_size) $DIR/testfile1
-
-expect_normal_exit ./blk_non_zero$EXESUFFIX 512 $DIR/testfile1 c 0\
-	m:3
+expect_normal_exit ./util_poolset_size$EXESUFFIX\
+	$DIR/pool.set1\
+	$DIR/pool.set2\
+	$DIR/pool.set3\
+	$DIR/pool.set4
 
 check
 

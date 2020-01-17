@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # Copyright 2014-2019, Intel Corporation
+# Copyright 2019, IBM Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +33,9 @@
 #
 
 #
-# src/test/blk_nblock/TEST0 -- unit test for pmemblk_nblock
+# src/test/blk_nblock/TEST3 -- unit test for pmemblk_nblock
+#
+# This test is equivalent of TEST0 for ppc64le platform.
 #
 
 . ../unittest/unittest.sh
@@ -41,7 +44,7 @@ require_test_type medium
 
 require_fs_type any
 require_unlimited_vm
-exclude_ppc64
+require_ppc64
 
 # this test creates huge files
 configure_valgrind force-disable
@@ -88,7 +91,7 @@ truncate -s 514G $DIR/testfile6.4096
 truncate -s 514G $DIR/testfile6.4160
 truncate -s 514G $DIR/testfile6.4224
 # MINIMUM POOL SIZE = 16MB + 8KB
-MIN_POOL_SIZE=$((16*1024*1024 + 8*1024))
+MIN_POOL_SIZE=$((16*1024*1024 + 128*1024))
 truncate -s $MIN_POOL_SIZE $DIR/testfile7.512
 truncate -s $MIN_POOL_SIZE $DIR/testfile7.520
 truncate -s $MIN_POOL_SIZE $DIR/testfile7.528
