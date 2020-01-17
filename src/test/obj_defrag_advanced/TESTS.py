@@ -50,14 +50,14 @@ class ObjDefragAdvanced(t.BaseTest):
         dump2 = 'dump2.log'
 
         ctx.exec('obj_defrag_advanced',
-            'op_pool_create', path,
-            'op_graph_create', str(self.max_nodes), str(self.max_edges),
-            str(self.graph_copies), str(self.min_root_size),
-            'op_graph_dump', dump1,
-            'op_graph_defrag', str(self.max_rounds),
-            'op_graph_dump', dump2,
-            'op_pool_close',
-            'op_dump_compare', dump1, dump2)
+                 'op_pool_create', path,
+                 'op_graph_create', str(self.max_nodes), str(self.max_edges),
+                 str(self.graph_copies), str(self.min_root_size),
+                 'op_graph_dump', dump1,
+                 'op_graph_defrag', str(self.max_rounds),
+                 'op_graph_dump', dump2,
+                 'op_pool_close',
+                 'op_dump_compare', dump1, dump2)
 
 
 class TEST0(ObjDefragAdvanced):
@@ -93,11 +93,12 @@ class ObjDefragAdvancedMt(ObjDefragAdvanced):
         path = ctx.create_holey_file(self.pool_size, 'testfile')
 
         ctx.exec('obj_defrag_advanced',
-            'op_pool_create', path,
-            'op_graph_create_n_defrag_mt', str(self.max_nodes), str(self.max_edges),
-            str(self.graph_copies), str(self.min_root_size), str(self.max_rounds),
-            str(self.nthreads), str(self.ncycles),
-            'op_pool_close');
+                 'op_pool_create', path,
+                 'op_graph_create_n_defrag_mt', str(self.max_nodes),
+                 str(self.max_edges), str(self.graph_copies),
+                 str(self.min_root_size), str(self.max_rounds),
+                 str(self.nthreads), str(self.ncycles),
+                 'op_pool_close')
 
 
 class TEST3(ObjDefragAdvancedMt):

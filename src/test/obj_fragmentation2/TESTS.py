@@ -44,7 +44,8 @@ class BASE(t.BaseTest):
 
     def run(self, ctx):
         testfile = path.join(ctx.testdir, 'testfile')
-        ctx.env = {'PMEM_NO_FLUSH': '1'} # this test is extremely long otherwise
+        # this test is extremely long otherwise
+        ctx.env = {'PMEM_NO_FLUSH': '1'}
         ctx.exec('obj_fragmentation2',
                  testfile, self.workload, self.seed, self.defrag)
 
