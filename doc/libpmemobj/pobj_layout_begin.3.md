@@ -125,4 +125,4 @@ int num_of_types = POBJ_LAYOUT_TYPES_NUM(mylayout);
 
 # SEE ALSO #
 
-**TOID_DECLARE**(3), **libpmemobj**(7) and **<http://pmem.io>**
+**TOID_DECLARE**(3), **libpmemobj**(7) and **<https://pmem.io>**

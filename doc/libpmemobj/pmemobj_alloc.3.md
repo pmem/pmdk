@@ -297,4 +297,4 @@ through due to lack of resources), -1 is returned.
 
 **free**(3), **POBJ_FOREACH**(3), **realloc**(3),
 **strdup**(3), **wcsdup**(3), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

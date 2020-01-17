@@ -246,7 +246,7 @@ Fri Oct 26 2018 Marcin Ślusarz <marcin.slusarz@intel.com>
 	changed, which means that old pools have to be converted using pmdk-convert.
 	libpmemcto experiment has been finished and removed from the tree.
 
-	For more details, please see http://pmem.io/2018/10/22/release-1-5.html.
+	For more details, please see https://pmem.io/2018/10/22/release-1-5.html.
 
 	New features:
 	- common: unsafe shutdown detection (SDS)
@@ -343,7 +343,7 @@ Thu Mar 29 2018 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	and it does not affect the names of the PMDK packages.
 	See this blog article for more details on the reasons and
 	impact of the name change:
-	http://pmem.io/2017/12/11/NVML-is-now-PMDK.html
+	https://pmem.io/2017/12/11/NVML-is-now-PMDK.html
 
 	New features:
 	- common: support for concatenated Device-DAX devices
@@ -592,7 +592,7 @@ Thu Dec 15 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 	  or if the user does not want to use the file system for some reason.
 	- Add a package for libpmemobj C++ bindings.
 	  C++ API is no longer considered experimental.
-	  Web-based documentation for C++ API is available on http://pmem.io.
+	  Web-based documentation for C++ API is available on https://pmem.io.
 	- Add "sync" and "transform" commands to pmempool utility.
 	  The "sync" command allows one to recover missing or corrupted part(s)
 	  of a pool set from a healthy replica, while the "transform" command
@@ -665,7 +665,7 @@ Thu Jun 23 2016 Krzysztof Czurylo <krzysztof.czurylo@intel.com>
 
 	Experimental features:
 	- Implementation of C++ bindings for libpmempobj is complete.
-	  Web-based documentation for C++ API is available on http://pmem.io.
+	  Web-based documentation for C++ API is available on https://pmem.io.
 	  Note that C++ API is still considered experimental.  Do not use it
 	  in production environments.
 	- Porting NVML to Windows is in progress.  There are MS Visual Studio

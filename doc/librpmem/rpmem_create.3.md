@@ -194,4 +194,4 @@ If the system runs out of free file descriptors during **rpmem_create**() or
 # SEE ALSO #
 
 **rpmem_persist**(3), **sysconf**(3), **limits.conf**(5),
-**libpmemobj**(7), **librpmem**(7) and **<http://pmem.io>**
+**libpmemobj**(7), **librpmem**(7) and **<https://pmem.io>**

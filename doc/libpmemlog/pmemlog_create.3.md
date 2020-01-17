@@ -162,4 +162,4 @@ fail if the underlying file system does not support **posix_fallocate**(3).
 
 **pmempool**(1), **creat**(2), **posix_fallocate**(3),
 **pmemlog_nbyte**(3), **poolset**(5), **libpmemlog**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**
