@@ -1,6 +1,6 @@
 /*
  * Copyright 2019, IBM Corporation
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -45,10 +45,10 @@ void
 pmem2_arch_init(struct pmem2_arch_info *info)
 {
 	LOG(3, "libpmem*: PPC64 support");
-	LOG(3, "PMDK PPC64 support currently is for testing only");
+	LOG(3, "PMDK PPC64 support is currently experimental");
 	LOG(3, "Please don't use this library in production environment");
 
-	/* Init platform and to initilize the pmem funcs */
+	/* Init platform and to initialize the pmem funcs */
 	if (platform_init(info))
 		FATAL("Unable to init platform");
 }

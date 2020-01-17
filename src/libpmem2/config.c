@@ -78,7 +78,7 @@ pmem2_config_new(struct pmem2_config **cfg)
 }
 
 /*
- * pmem2_config_delete -- dealocate cfg structure.
+ * pmem2_config_delete -- deallocate cfg structure.
  */
 int
 pmem2_config_delete(struct pmem2_config **cfg)

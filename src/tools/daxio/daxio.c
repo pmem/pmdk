@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -480,7 +480,7 @@ adjust_io_len(struct daxio_context *ctx)
 	if (ctx->dst.is_devdax)
 		max_len = max_len < dst_len ? max_len : dst_len;
 
-	/* if length is specified and is not bigger than mmaped region */
+	/* if length is specified and is not bigger than mmapped region */
 	if (ctx->len != SIZE_MAX && ctx->len <= max_len)
 		return;
 

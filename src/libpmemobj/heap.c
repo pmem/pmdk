@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -64,6 +64,11 @@
 struct arenas {
 	VEC(, struct arena *) vec;
 	size_t nactive;
+
+	/*
+	 * When nesting with other locks, this one must be acquired first,
+	 * prior to locking any buckets or memory blocks.
+	 */
 	os_mutex_t lock;
 
 	/* stores a pointer to one of the arenas */
@@ -355,12 +360,6 @@ heap_bucket_acquire(struct palloc_heap *heap, uint8_t class_id,
 	struct heap_rt *rt = heap->rt;
 	struct bucket *b;
 
-#ifdef DEBUG
-	util_mutex_lock(&rt->arenas.lock);
-	ASSERT(arena_id <= VEC_SIZE(&rt->arenas.vec));
-	util_mutex_unlock(&rt->arenas.lock);
-#endif
-
 	if (class_id == DEFAULT_ALLOC_CLASS_ID) {
 		b = rt->default_bucket;
 		goto out;
@@ -490,6 +489,9 @@ heap_run_create(struct palloc_heap *heap, struct bucket *b,
 		return -1;
 	}
 
+	STATS_INC(heap->stats, transient, heap_run_active,
+		m->size_idx * CHUNKSIZE);
+
 	return 0;
 }
 
@@ -559,6 +561,9 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
 	m->block_off = 0;
 	m->size_idx = hdr->size_idx;
 
+	STATS_SUB(heap->stats, transient, heap_run_active,
+		m->size_idx * CHUNKSIZE);
+
 	/*
 	 * The only thing this could race with is heap_memblock_on_free()
 	 * because that function is called after processing the operation,
@@ -583,7 +588,7 @@ heap_run_into_free_chunk(struct palloc_heap *heap,
  * Returns 1 if reclaimed chunk, 0 otherwise.
  */
 static int
-heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
+heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 {
 	struct chunk_run *run = heap_get_chunk_run(heap, m);
 	struct chunk_header *hdr = heap_get_chunk_hdr(heap, m);
@@ -605,6 +610,13 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m)
 
 	if (e.free_space == c->run.nallocs)
 		return 1;
+
+	if (startup) {
+		STATS_INC(heap->stats, transient, heap_run_active,
+			m->size_idx * CHUNKSIZE);
+		STATS_INC(heap->stats, transient, heap_run_allocated,
+			c->run.nallocs - e.free_space);
+	}
 
 	if (recycler_put(heap->rt->recyclers[c->id], m, e) < 0)
 		ERR("lost runtime tracking info of %u run due to OOM", c->id);
@@ -635,10 +647,9 @@ heap_reclaim_zone_garbage(struct palloc_heap *heap, struct bucket *bucket,
 
 		switch (hdr->type) {
 			case CHUNK_TYPE_RUN:
-				if (heap_reclaim_run(heap, &m) != 0) {
+				if (heap_reclaim_run(heap, &m, 1) != 0)
 					heap_run_into_free_chunk(heap, bucket,
 						&m);
-				}
 				break;
 			case CHUNK_TYPE_FREE:
 				heap_free_chunk_reuse(heap, bucket, &m);
@@ -769,6 +780,63 @@ heap_ensure_huge_bucket_filled(struct palloc_heap *heap, struct bucket *bucket)
 }
 
 /*
+ * heap_bucket_deref_active -- detaches active blocks from the bucket
+ */
+static int
+heap_bucket_deref_active(struct palloc_heap *heap, struct bucket *b)
+{
+	/* get rid of the active block in the bucket */
+	struct memory_block_reserved **active = &b->active_memory_block;
+
+	if (b->is_active) {
+		b->c_ops->rm_all(b->container);
+		if (util_fetch_and_sub64(&(*active)->nresv, 1) == 1) {
+			VALGRIND_ANNOTATE_HAPPENS_AFTER(&(*active)->nresv);
+			heap_discard_run(heap, &(*active)->m);
+		} else {
+			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&(*active)->nresv);
+			*active = NULL;
+		}
+		b->is_active = 0;
+	}
+
+	if (*active == NULL) {
+		*active = Zalloc(sizeof(struct memory_block_reserved));
+		if (*active == NULL)
+			return -1;
+	}
+
+	return 0;
+}
+
+/*
+ * heap_force_recycle -- detaches all memory from arenas, and forces global
+ *	recycling of all memory blocks
+ */
+void
+heap_force_recycle(struct palloc_heap *heap)
+{
+	util_mutex_lock(&heap->rt->arenas.lock);
+	struct arena *arenap;
+	VEC_FOREACH(arenap, &heap->rt->arenas.vec) {
+		for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
+			struct bucket *b = arenap->buckets[i];
+			if (b == NULL)
+				continue;
+			util_mutex_lock(&b->lock);
+			/*
+			 * There's no need to check if this fails, as that
+			 * will not prevent progress in this function.
+			 */
+			heap_bucket_deref_active(heap, b);
+			util_mutex_unlock(&b->lock);
+		}
+	}
+	util_mutex_unlock(&heap->rt->arenas.lock);
+	heap_reclaim_garbage(heap, NULL);
+}
+
+/*
  * heap_reuse_from_recycler -- (internal) try reusing runs that are currently
  *	in the recycler
  */
@@ -797,7 +865,7 @@ heap_reuse_from_recycler(struct palloc_heap *heap,
 void
 heap_discard_run(struct palloc_heap *heap, struct memory_block *m)
 {
-	if (heap_reclaim_run(heap, m)) {
+	if (heap_reclaim_run(heap, m, 0)) {
 		struct bucket *defb =
 			heap_bucket_acquire(heap,
 			DEFAULT_ALLOC_CLASS_ID, 0);
@@ -818,19 +886,8 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 	ASSERTeq(b->aclass->type, CLASS_RUN);
 	int ret = 0;
 
-	/* get rid of the active block in the bucket */
-	if (b->is_active) {
-		b->c_ops->rm_all(b->container);
-		struct memory_block_reserved **active = &b->active_memory_block;
-		if (util_fetch_and_sub64(&(*active)->nresv, 1) == 1) {
-			VALGRIND_ANNOTATE_HAPPENS_AFTER(&(*active)->nresv);
-			heap_discard_run(heap, &(*active)->m);
-		} else {
-			VALGRIND_ANNOTATE_HAPPENS_BEFORE(&(*active)->nresv);
-			*active = Zalloc(sizeof(struct memory_block_reserved));
-		}
-		b->is_active = 0;
-	}
+	if (heap_bucket_deref_active(heap, b) != 0)
+		return ENOMEM;
 
 	if (heap_reuse_from_recycler(heap, b, units, 0) == 0)
 		goto out;

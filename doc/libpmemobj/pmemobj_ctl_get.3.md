@@ -7,7 +7,7 @@ header: PMDK
 date: pmemobj API version 2.3
 ...
 
-[comment]: <> (Copyright 2017-2019, Intel Corporation)
+[comment]: <> (Copyright 2017-2020, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -328,20 +328,57 @@ naming in the application (e.g. when writing a library that uses libpmemobj).
 The required class identifier will be stored in the `class_id` field of the
 `struct pobj_alloc_class_desc`.
 
-stats.enabled | rw | - | int | int | - | boolean
+stats.enabled | rw | - | enum pobj_stats_enabled | enum pobj_stats_enabled | - |
+string
 
-Enables or disables runtime collection of statistics. Statistics are not
-recalculated after enabling; any operations that occur between disabling and
-re-enabling will not be reflected in subsequent values.
+Enables or disables runtime collection of statistics. There are two types of
+statistics: persistent and transient ones. Persistent statistics survive pool
+restarts, whereas transient ones don't. Statistics are not recalculated after
+enabling; any operations that occur between disabling and re-enabling will not
+be reflected in subsequent values.
 
-Statistics are disabled by default. Enabling them may have non-trivial
-performance impact.
+Only transient statistics are enabled by default. Enabling persistent statistics
+may have non-trivial performance impact.
 
-stats.heap.curr_allocated | r- | - | int | - | - | -
+stats.heap.curr_allocated | r- | - | uint64_t | - | - | -
 
 Reads the number of bytes currently allocated in the heap. If statistics were
 disabled at any time in the lifetime of the heap, this value may be
 inaccurate.
+
+This is a persistent statistic.
+
+stats.heap.run_allocated | r- | - | uint64_t | - | - | -
+
+Reads the number of bytes currently allocated using run-based allocation
+classes, i.e., huge allocations are not accounted for in this statistic.
+This is useful for comparison against stats.heap.run_active to estimate the
+ratio between active and allocated memory.
+
+This is a transient statistic and is rebuilt every time the pool is opened.
+
+stats.heap.run_active | r- | - | uint64_t | - | - | -
+
+Reads the number of bytes currently occupied by all run memory blocks, including
+both allocated and free space, i.e., this is all the all space that's not
+occupied by huge allocations.
+
+This value is a sum of all allocated and free run memory. In systems where
+memory is efficiently used, `run_active` should closely track
+`run_allocated`, and the amount of active, but free, memory should be minimal.
+
+A large relative difference between active memory and allocated memory is
+indicative of heap fragmentation. This information can be used to make
+a decision to call **pmemobj_defrag()**(3) if the fragmentation looks to be high.
+
+However, for small heaps `run_active` might be disproportionately higher than
+`run_allocated` because the allocator typically activates a significantly larger
+amount of memory than is required to satisfy a single request in the
+anticipation of future needs. For example, the first allocation of 100 bytes
+in a heap will trigger activation of 256 kilobytes of space.
+
+This is a transient statistic and is rebuilt lazily every time the pool
+is opened.
 
 heap.size.granularity | rw- | - | uint64_t | uint64_t | - | long long
 

@@ -1,0 +1,5 @@
+libpmempool.7
+pmempool_check_init.3
+pmempool_feature_query.3
+pmempool_rm.3
+pmempool_sync.3

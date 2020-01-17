@@ -55,6 +55,11 @@
  *	rule because all functions in the backend can safely use the persistent
  *	state locks - the runtime lock, if it is needed, will be already taken
  *	by the upper layer.
+ *
+ * General lock ordering:
+ *	1. arenas.lock
+ *	2. buckets (sorted by ID)
+ *	3. memory blocks (sorted by lock address)
  */
 
 #include "valgrind_internal.h"
@@ -64,6 +69,8 @@
 #include "out.h"
 #include "sys_util.h"
 #include "palloc.h"
+#include "ravl.h"
+#include "vec.h"
 
 struct pobj_action_internal {
 	/* type of operation (alloc/free vs set) */
@@ -411,6 +418,10 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 	if (act->new_state == MEMBLOCK_ALLOCATED) {
 		STATS_INC(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));
+		if (act->m.type == MEMORY_BLOCK_RUN) {
+			STATS_INC(heap->stats, transient, heap_run_allocated,
+				act->m.m_ops->get_real_size(&act->m));
+		}
 	} else if (act->new_state == MEMBLOCK_FREE) {
 		if (On_valgrind) {
 			void *ptr = act->m.m_ops->get_user_data(&act->m);
@@ -427,7 +438,7 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 			 * missing flushes/stores outside of transaction. But,
 			 * after we freed an object, we need to reestablish
 			 * the pmem mapping, otherwise pmemchek might miss bugs
-			 * that occurr in newly allocated memory locations, that
+			 * that occur in newly allocated memory locations, that
 			 * once were occupied by a lock/volatile variable.
 			 */
 			VALGRIND_REGISTER_PMEM_MAPPING(ptr, size);
@@ -435,6 +446,10 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 
 		STATS_SUB(heap->stats, persistent, heap_curr_allocated,
 			act->m.m_ops->get_real_size(&act->m));
+		if (act->m.type == MEMORY_BLOCK_RUN) {
+			STATS_SUB(heap->stats, transient, heap_run_allocated,
+				act->m.m_ops->get_real_size(&act->m));
+		}
 		heap_memblock_on_free(heap, &act->m);
 	}
 }
@@ -781,6 +796,370 @@ palloc_operation(struct palloc_heap *heap,
 	palloc_exec_actions(heap, ctx, ops, nops);
 
 	return 0;
+}
+
+/*
+ * palloc_offset_compare -- (internal) comparator for sorting by the offset of
+ *	an object.
+ */
+static int
+palloc_offset_compare(const void *lhs, const void *rhs)
+{
+	const uint64_t * const * mlhs = lhs;
+	const uint64_t * const * mrhs = rhs;
+	uintptr_t vlhs = **mlhs;
+	uintptr_t vrhs = **mrhs;
+
+	if (vlhs < vrhs)
+		return 1;
+	if (vlhs > vrhs)
+		return -1;
+
+	return 0;
+}
+
+struct palloc_defrag_entry {
+	uint64_t **offsetp;
+};
+
+/*
+ * palloc_pointer_compare -- (internal) comparator for sorting by the
+ *	pointer of an offset in the tree.
+ */
+static int
+palloc_pointer_compare(const void *lhs, const void *rhs)
+{
+	const struct palloc_defrag_entry *mlhs = lhs;
+	const struct palloc_defrag_entry *mrhs = rhs;
+	uintptr_t vlhs = (uintptr_t)*mlhs->offsetp;
+	uintptr_t vrhs = (uintptr_t)*mrhs->offsetp;
+
+	if (vlhs > vrhs)
+		return 1;
+	if (vlhs < vrhs)
+		return -1;
+
+	return 0;
+}
+
+/*
+ * palloc_defrag -- forces recycling of all available memory, and reallocates
+ *	provided objects so that they have the lowest possible address.
+ */
+int
+palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
+	struct operation_context *ctx, struct pobj_defrag_result *result)
+{
+	int ret = -1;
+	/*
+	 * Offsets pointers need to be sorted by the offset of the object in
+	 * descending order. This gives us two things, a) the defragmentation
+	 * process is more likely to move objects to a lower offset, improving
+	 * locality and tentatively enabling the heap to shrink, and b) pointers
+	 * to the same object are next to each other in the array, so it's easy
+	 * to reallocate the object once and simply update all remaining
+	 * pointers.
+	 */
+	qsort(objv, objcnt, sizeof(uint64_t *), palloc_offset_compare);
+
+	/*
+	 * We also need to store pointers to objects in a tree, so that it's
+	 * possible to update pointers to other objects on the provided list
+	 * that reside in the objects that were already reallocated or
+	 * will be reallocated later on in the process.
+	 */
+	struct ravl *objvp = ravl_new_sized(palloc_pointer_compare,
+		sizeof(struct palloc_defrag_entry));
+	if (objvp == NULL)
+		goto err_ravl;
+
+	/*
+	 * We need to calculate how many pointers to the same object we will
+	 * need to update during defrag. This will be used to calculate capacity
+	 * for the action vector and the redo log.
+	 */
+	size_t longest_object_sequence = 1;
+	size_t current_object_sequence = 1;
+	for (size_t i = 0; i < objcnt; ++i) {
+		if (i != 0 && *objv[i - 1] == *objv[i]) {
+			current_object_sequence += 1;
+		} else {
+			if (current_object_sequence > longest_object_sequence)
+				longest_object_sequence =
+					current_object_sequence;
+			current_object_sequence = 1;
+		}
+
+		struct palloc_defrag_entry e = {&objv[i]};
+		if (ravl_emplace_copy(objvp, &e) != 0)
+			goto err_objvp;
+	}
+
+	heap_force_recycle(heap);
+
+	/*
+	 * The number of actions at which the action vector will be processed.
+	 */
+	const size_t actions_per_realloc = 3; /* alloc + free + set */
+	const size_t max_actions =
+		LANE_REDO_EXTERNAL_SIZE / sizeof(struct ulog_entry_val)
+		- actions_per_realloc;
+
+	VEC(, struct pobj_action) actv;
+	VEC_INIT(&actv);
+
+	/*
+	 * Vector needs enough capacity to handle the largest
+	 * possible sequence of actions. Given that the actions are published
+	 * once the max_actions threshold is crossed AND the sequence for the
+	 * current object is finished, worst-case capacity is a sum of
+	 * max_actions and the largest object sequence - because that sequence
+	 * might happen to begin when current object number i == max_action.
+	 */
+	size_t actv_required_capacity =
+		max_actions + longest_object_sequence + actions_per_realloc;
+
+	if (VEC_RESERVE(&actv, actv_required_capacity) != 0)
+		goto err;
+
+	struct pobj_action *prev_reserve = NULL;
+	uint64_t prev_offset = 0;
+	for (size_t i = 0; i < objcnt; ++i) {
+		uint64_t *offsetp = objv[i];
+		uint64_t offset = *offsetp;
+
+		/*
+		 * We want to keep our redo logs relatively small, and so
+		 * actions vector is processed on a regular basis.
+		 */
+		if (prev_offset != offset && VEC_SIZE(&actv) >= max_actions) {
+			/*
+			 * If there are any pointers on the tree to the
+			 * memory actions that are being applied, they need to
+			 * be removed. Future reallocations will already have
+			 * these modifications applied.
+			 */
+			struct pobj_action *iter;
+			VEC_FOREACH_BY_PTR(iter, &actv) {
+				if (iter->type != POBJ_ACTION_TYPE_MEM)
+					continue;
+				struct pobj_action_internal *iteri =
+					(struct pobj_action_internal *)iter;
+				struct palloc_defrag_entry e = {&iteri->ptr};
+				struct ravl_node *n = ravl_find(objvp, &e,
+					RAVL_PREDICATE_EQUAL);
+				if (n != NULL)
+					ravl_remove(objvp, n);
+			}
+
+			size_t entries_size =
+				VEC_SIZE(&actv) * sizeof(struct ulog_entry_val);
+			if (operation_reserve(ctx, entries_size) != 0)
+				goto err;
+
+			palloc_publish(heap, VEC_ARR(&actv), VEC_SIZE(&actv),
+				ctx);
+
+			operation_start(ctx);
+			VEC_CLEAR(&actv);
+		}
+
+		/*
+		 * If the previous pointer of this offset was skipped,
+		 * skip all pointers for that object.
+		 */
+		if (prev_reserve == NULL && prev_offset == offset)
+			continue;
+
+		/*
+		 * If this is an offset to an object that was already
+		 * reallocated in the previous iteration, we need to only update
+		 * the pointer to the new offset.
+		 */
+		if (prev_reserve && prev_offset == offset) {
+			VEC_INC_BACK(&actv);
+			struct pobj_action *set = &VEC_BACK(&actv);
+
+			palloc_set_value(heap, set,
+				offsetp, prev_reserve->heap.offset);
+			struct pobj_action_internal *seti =
+				(struct pobj_action_internal *)set;
+
+			/*
+			 * Since this pointer can reside in an object that will
+			 * be reallocated later on we need to be able to
+			 * find and update it when that happens.
+			 */
+			struct palloc_defrag_entry e = {&seti->ptr};
+			struct ravl_node *n = ravl_find(objvp, &e,
+				RAVL_PREDICATE_EQUAL);
+			if (n != NULL)
+				ravl_remove(objvp, n);
+			/*
+			 * Notice that the tree is ordered by the content of the
+			 * pointer, not the pointer itself. This might look odd,
+			 * but we are inserting a *different* pointer to the
+			 * same pointer to an offset.
+			 */
+			if (ravl_emplace_copy(objvp, &e) != 0)
+				goto err;
+
+			continue;
+		}
+
+		if (result)
+			result->total++;
+
+		prev_reserve = NULL;
+		prev_offset = offset;
+
+		struct memory_block m = memblock_from_offset(heap, offset);
+
+		if (m.type == MEMORY_BLOCK_HUGE)
+			continue;
+
+		os_mutex_t *mlock = m.m_ops->get_lock(&m);
+		os_mutex_lock(mlock);
+		unsigned original_fillpct = m.m_ops->fill_pct(&m);
+		os_mutex_unlock(mlock);
+
+		/*
+		 * Empirically, 50% fill rate is the sweetspot for moving
+		 * objects between runs. Other values tend to produce worse
+		 * results.
+		 */
+		if (original_fillpct > 50)
+			continue;
+
+		size_t user_size = m.m_ops->get_user_size(&m);
+
+		VEC_INC_BACK(&actv);
+		struct pobj_action *reserve = &VEC_BACK(&actv);
+
+		if (palloc_reservation_create(heap, user_size,
+		    NULL, NULL,
+		    m.m_ops->get_extra(&m), m.m_ops->get_flags(&m),
+		    0, HEAP_ARENA_PER_THREAD,
+		    (struct pobj_action_internal *)reserve) != 0) {
+			VEC_POP_BACK(&actv);
+			continue;
+		}
+
+		uint64_t new_offset = reserve->heap.offset;
+
+		struct memory_block nm = memblock_from_offset(heap, new_offset);
+
+		mlock = nm.m_ops->get_lock(&nm);
+		os_mutex_lock(mlock);
+		unsigned new_fillpct = nm.m_ops->fill_pct(&nm);
+		os_mutex_unlock(mlock);
+
+		if (original_fillpct > new_fillpct) {
+			palloc_cancel(heap, reserve, 1);
+			VEC_POP_BACK(&actv);
+			continue;
+		}
+
+		VALGRIND_ADD_TO_TX(
+			HEAP_OFF_TO_PTR(heap, new_offset),
+			user_size);
+		pmemops_memcpy(&heap->p_ops,
+			HEAP_OFF_TO_PTR(heap, new_offset),
+			HEAP_OFF_TO_PTR(heap, *offsetp),
+			user_size,
+			0);
+		VALGRIND_REMOVE_FROM_TX(
+			HEAP_OFF_TO_PTR(heap, new_offset),
+			user_size);
+
+		/*
+		 * If there is a pointer provided by the user inside of the
+		 * object we are in the process of reallocating, we need to
+		 * find that pointer and update it to reflect the new location
+		 * of PMEMoid.
+		 */
+		ptrdiff_t diff = (ptrdiff_t)(new_offset - offset);
+		uint64_t *objptr = (uint64_t *)((uint64_t)heap->base + offset);
+		uint64_t objend = ((uint64_t)objptr + user_size);
+		struct ravl_node *nptr = NULL;
+		enum ravl_predicate p = RAVL_PREDICATE_GREATER_EQUAL;
+		struct palloc_defrag_entry search_entry = {&objptr};
+
+		while ((nptr = ravl_find(objvp, &search_entry, p)) != NULL) {
+			p = RAVL_PREDICATE_GREATER;
+			struct palloc_defrag_entry *e = ravl_data(nptr);
+			uint64_t poffset = (uint64_t)(*e->offsetp);
+
+			if (poffset >= objend)
+				break;
+
+			struct palloc_defrag_entry ne = *e;
+			ravl_remove(objvp, nptr);
+
+			objptr = (uint64_t *)poffset;
+
+			poffset = (uint64_t)((ptrdiff_t)poffset + diff);
+
+			*ne.offsetp = (uint64_t *)poffset;
+		}
+		offsetp = objv[i];
+
+		VEC_INC_BACK(&actv);
+		struct pobj_action *set = &VEC_BACK(&actv);
+
+		/*
+		 * We need to change the pointer in the tree to the pointer
+		 * of this new unpublished action, so that it can be updated
+		 * later on if needed.
+		 */
+		palloc_set_value(heap, set, offsetp, new_offset);
+		struct pobj_action_internal *seti =
+			(struct pobj_action_internal *)set;
+		struct palloc_defrag_entry e = {&seti->ptr};
+		struct ravl_node *n = ravl_find(objvp, &e,
+			RAVL_PREDICATE_EQUAL);
+		if (n != NULL)
+			ravl_remove(objvp, n);
+
+		/* same as above, this is a different pointer to same content */
+		if (ravl_emplace_copy(objvp, &e) != 0)
+			goto err;
+
+		VEC_INC_BACK(&actv);
+		struct pobj_action *dfree = &VEC_BACK(&actv);
+
+		palloc_defer_free(heap, offset, dfree);
+
+		if (result)
+			result->relocated++;
+
+		prev_reserve = reserve;
+		prev_offset = offset;
+	}
+
+	if (VEC_SIZE(&actv) != 0) {
+		size_t entries_size =
+			VEC_SIZE(&actv) * sizeof(struct ulog_entry_val);
+		if (operation_reserve(ctx, entries_size) != 0)
+			goto err;
+		palloc_publish(heap, VEC_ARR(&actv), VEC_SIZE(&actv), ctx);
+	} else {
+		operation_cancel(ctx);
+	}
+
+	ret = 0;
+
+err:
+	if (ret != 0)
+		palloc_cancel(heap, VEC_ARR(&actv), VEC_SIZE(&actv));
+	VEC_DELETE(&actv);
+err_objvp:
+	ravl_delete(objvp);
+err_ravl:
+	if (ret != 0)
+		operation_cancel(ctx);
+
+	return ret;
 }
 
 /*

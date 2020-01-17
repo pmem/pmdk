@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2017, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -46,9 +46,4 @@ echo $USERPASS | sudo -S mount -t tmpfs none /tmp -osize=6G
 KEEP_TEST_CONFIG=${KEEP_TEST_CONFIG:-0}
 if [[ "$KEEP_TEST_CONFIG" == 0 ]]; then
 	./configure-tests.sh
-fi
-
-# Check for changes in automatically generated docs (only when on Travis)
-if [[ -n "$TRAVIS" ]]; then
-	../check-doc.sh
 fi

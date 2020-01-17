@@ -523,11 +523,13 @@ rpmem_fip_lanes_init_common(struct rpmem_fip *fip)
 {
 	int ret;
 
-	fip->lanes = calloc(fip->nlanes, sizeof(*fip->lanes));
-	if (!fip->lanes) {
+	ret = posix_memalign((void **)&fip->lanes, LANE_ALIGN_SIZE,
+		fip->nlanes * sizeof(*fip->lanes));
+	if (ret) {
 		RPMEM_LOG(ERR, "!allocating lanes");
 		goto err_alloc_lanes;
 	}
+	memset(fip->lanes, 0, fip->nlanes * sizeof(*fip->lanes));
 
 	unsigned i;
 	for (i = 0; i < fip->nlanes; i++) {

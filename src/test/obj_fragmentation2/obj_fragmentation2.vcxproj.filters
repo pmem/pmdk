@@ -7,7 +7,7 @@
     </Filter>
     <Filter Include="Test Files">
       <UniqueIdentifier>{43b16ba6-eb2f-4083-9f90-76ecc299c720}</UniqueIdentifier>
-      <Extensions>ps1</Extensions>
+      <Extensions>py</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -16,31 +16,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST0.PS1">
-      <Filter>Test Files</Filter>
-    </None>
-    <None Include="TEST1.PS1">
-      <Filter>Test Files</Filter>
-    </None>
-    <None Include="TEST2.PS1">
-      <Filter>Test Files</Filter>
-    </None>
-    <None Include="TEST3.PS1">
-      <Filter>Test Files</Filter>
-    </None>
-    <None Include="TEST4.PS1">
-      <Filter>Test Files</Filter>
-    </None>
-    <None Include="TEST5.PS1">
-      <Filter>Test Files</Filter>
-    </None>
-    <None Include="TEST6.PS1">
-      <Filter>Test Files</Filter>
-    </None>
-    <None Include="TEST7.PS1">
-      <Filter>Test Files</Filter>
-    </None>
-    <None Include="TEST8.PS1">
+    <None Include="TESTS.py">
       <Filter>Test Files</Filter>
     </None>
   </ItemGroup>

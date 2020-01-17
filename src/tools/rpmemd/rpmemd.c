@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -730,7 +730,7 @@ main(int argc, char *argv[])
 
 	rpmemd->obc = rpmemd_obc_init(STDIN_FILENO, STDOUT_FILENO);
 	if (!rpmemd->obc) {
-		RPMEMD_LOG(ERR, "out-of-band connection intitialization");
+		RPMEMD_LOG(ERR, "out-of-band connection initialization");
 		goto err_obc;
 	}
 
