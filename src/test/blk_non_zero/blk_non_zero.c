@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
  * usage: blk_non_zero bsize file func operation:lba...
  *
  * func is 'c' or 'o' (create or open)
- * operations are 'r' or 'w' or 'z' or 'e' or 't' ot 'm'
+ * operations are 'r' or 'w' or 'z' or 'e' or 't' or 'm'
  *
  */
 #define _GNU_SOURCE

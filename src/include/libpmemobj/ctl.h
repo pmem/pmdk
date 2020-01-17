@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018, Intel Corporation
+ * Copyright 2017-2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -164,6 +164,13 @@ struct pobj_alloc_class_desc {
 	 * The identifier of this allocation class.
 	 */
 	unsigned class_id;
+};
+
+enum pobj_stats_enabled {
+	POBJ_STATS_ENABLED_TRANSIENT,
+	POBJ_STATS_ENABLED_BOTH,
+	POBJ_STATS_ENABLED_PERSISTENT,
+	POBJ_STATS_DISABLED,
 };
 
 #ifndef _WIN32

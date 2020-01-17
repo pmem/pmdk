@@ -62,15 +62,7 @@
     <ClCompile Include="obj_fragmentation2.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST0.PS1" />
-    <None Include="TEST1.PS1" />
-    <None Include="TEST2.PS1" />
-    <None Include="TEST3.PS1" />
-    <None Include="TEST4.PS1" />
-    <None Include="TEST5.PS1" />
-    <None Include="TEST6.PS1" />
-    <None Include="TEST7.PS1" />
-    <None Include="TEST8.PS1" />
+    <None Include="TESTS.py" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libpmemobj\libpmemobj.vcxproj">

@@ -42,6 +42,7 @@
 #include "ctl.h"
 #include "os_thread.h"
 #include "pool_hdr.h"
+#include "page_size.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -99,7 +100,7 @@ struct pmemblk {
 };
 
 /* data area starts at this alignment after the struct pmemblk above */
-#define BLK_FORMAT_DATA_ALIGN ((uintptr_t)4096)
+#define BLK_FORMAT_DATA_ALIGN ((uintptr_t)PMEM_PAGESIZE)
 
 #if FAULT_INJECTION
 void

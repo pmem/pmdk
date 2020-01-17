@@ -1,4 +1,4 @@
-# Copyright 2014-2018, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -75,7 +75,7 @@ MANPAGES = $(TOP)/doc/pmempool.1\
 	   $(TOP)/doc/pmempool-rm.1\
 	   $(TOP)/doc/pmempool-convert.1\
 	   $(TOP)/doc/pmempool-sync.1\
-	   $(TOP)/doc/pmempool-tranform.1
+	   $(TOP)/doc/pmempool-transform.1
 
 BASH_COMP_FILES = bash_completion/pmempool
 

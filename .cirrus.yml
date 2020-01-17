@@ -4,6 +4,6 @@ freebsd_instance:
 task:
   install_script: pkg install -y
     autoconf bash binutils coreutils e2fsprogs-libuuid
-    git gmake libunwind ncurses pkgconf
+    git gmake libunwind ncurses pkgconf hs-pandoc
 
   script: CFLAGS="-Wno-unused-value" gmake

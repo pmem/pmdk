@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -51,12 +51,13 @@ man_child=("$@")
 
 function search_aliases {
 children=$1
+parent=$2
 for i in ${children[@]}
 do
-	if [ -e $i ]
+	if [ -e ../$parent/$i ]
 	then
 		echo "Man: $i"
-		content=$(head -c 150 $i)
+		content=$(head -c 150 ../$parent/$i)
 		if [[ "$content" == ".so "* ]] ;
 		then
 			content=$(basename ${content#".so"})
@@ -76,7 +77,7 @@ function list_pages {
 	man_child=("$@")
 
 	if [ "$parent" == "libpmem" ]; then
-		man_child=($(ls pmem_*.3))
+		man_child=($(ls -1 ../libpmem | grep -e ".*\.3$"))
 		echo -n "- $parent: " >> $map_file
 		echo "${man_child[@]}" >> $map_file
 	fi
@@ -88,37 +89,31 @@ function list_pages {
 	fi
 
 	if [ "$parent" == "libpmemblk" ]; then
-		man_child=($(ls pmemblk_*.3))
+		man_child=($(ls -1 ../libpmemblk | grep -e ".*\.3$"))
 		echo -n "- $parent: " >> $map_file
 		echo "${man_child[@]}" >> $map_file
 	fi
 
 	if [ "$parent" == "libpmemlog" ]; then
-		man_child=($(ls pmemlog_*.3))
+		man_child=($(ls -1 ../libpmemlog | grep -e ".*\.3$"))
 		echo -n "- $parent: " >> $map_file
 		echo "${man_child[@]}" >> $map_file
 	fi
 
 	if [ "$parent" == "libpmemobj" ]; then
-		man_child=($(ls pmemobj_*.3))
-		man_child+=($(ls pobj_*.3))
-		man_child+=($(ls oid_*.3))
-		man_child+=($(ls toid_*.3))
-		man_child+=($(ls direct_*.3))
-		man_child+=($(ls d_r*.3))
-		man_child+=($(ls tx_*.3))
+		man_child=($(ls -1 ../libpmemobj | grep -e ".*\.3$"))
 		echo -n "- $parent: " >> $map_file
 		echo "${man_child[@]}" >> $map_file
 	fi
 
 	if [ "$parent" == "libpmempool" ]; then
-		man_child=($(ls pmempool_*.3))
+		man_child=($(ls -1 ../libpmempool | grep -e ".*\.3$"))
 		echo -n "- $parent: " >> $map_file
 		echo "${man_child[@]}" >> $map_file
 	fi
 
 	if [ "$parent" == "librpmem" ]; then
-		man_child=($(ls rpmem_*.3))
+		man_child=($(ls -1 ../librpmem | grep -e ".*\.3$"))
 		echo -n "- $parent: " >> $map_file
 		echo "${man_child[@]}" >> $map_file
 	fi
@@ -126,11 +121,11 @@ function list_pages {
 	if [ ${#man_child[@]} -ne 0 ]
 	then
 		list=${man_child[@]}
-		search_aliases "${list[@]}"
+		search_aliases "${list[@]}" "$parent"
 	fi
 }
 
-man7=($(ls *.7))
+man7=($(ls -1 ../*/ | grep -e ".*\.7$"))
 
 map_file=libs_map.yml
 [ -e $map_file ] && rm $map_file

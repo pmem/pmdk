@@ -1,0 +1,17 @@
+libpmemobj.7
+oid_is_null.3
+pmemobj_action.3
+pmemobj_alloc.3
+pmemobj_ctl_get.3
+pmemobj_first.3
+pmemobj_list_insert.3
+pmemobj_memcpy_persist.3
+pmemobj_mutex_zero.3
+pmemobj_open.3
+pmemobj_root.3
+pmemobj_tx_add_range.3
+pmemobj_tx_alloc.3
+pmemobj_tx_begin.3
+pobj_layout_begin.3
+pobj_list_head.3
+toid_declare.3

@@ -41,6 +41,7 @@ require_test_type medium
 
 require_fs_type any
 require_unlimited_vm
+exclude_ppc64
 
 # this test creates huge files
 configure_valgrind force-disable

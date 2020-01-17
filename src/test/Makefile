@@ -87,6 +87,8 @@ OBJ_TESTS = \
 	obj_ctl_heap_size\
 	obj_ctl_stats\
 	obj_debug\
+	obj_defrag\
+	obj_defrag_advanced\
 	obj_direct\
 	obj_direct_volatile\
 	obj_extend\
@@ -339,6 +341,17 @@ TESTS_BUILD = \
 	$(LIBPMEMPOOL_MOD_DEPS)\
 	$(TESTS)
 
+ifneq ($(BLACKLIST_FILE),)
+ifeq ("$(wildcard $(BLACKLIST_FILE))","")
+$(error Missing blacklist file: $(BLACKLIST_FILE))
+endif
+	BLACKLIST_TESTS := $(shell cat $(BLACKLIST_FILE))
+	TESTS := $(filter-out $(BLACKLIST_TESTS),$(TESTS))
+	LOCAL_TESTS := $(filter-out $(BLACKLIST_TESTS),$(LOCAL_TESTS))
+	REMOTE_TESTS := $(filter-out $(BLACKLIST_TESTS),$(REMOTE_TESTS))
+	TESTS_BUILD := $(filter-out $(BLACKLIST_TESTS),$(TESTS_BUILD))
+endif
+
 all     : TARGET = all
 clean   : TARGET = clean
 clobber : TARGET = clobber
@@ -397,12 +410,14 @@ memcheck-summary-leaks:
 	grep "in use at exit" */memcheck*.log | grep -v " 0 bytes in 0 blocks" || true
 
 check:
+	@[ -z "$(BLACKLIST_TESTS)" ] || echo "Blacklisted tests: $(BLACKLIST_TESTS)"
 	@./RUNTESTS $(RUNTEST_OPTIONS) $(LOCAL_TESTS)
 	$(MAKE) check-remote-quiet-conditional
 	@echo "No failures."
 
 pycheck:
-	@./RUNTESTS.py $(subst nondebug,release,$(RUNTEST_OPTIONS))
+	@[ -z "$(BLACKLIST_TESTS)" ] || echo "Blacklisted tests: $(BLACKLIST_TESTS)"
+	@./RUNTESTS.py $(subst nondebug,release,$(RUNTEST_OPTIONS)) -- $(TESTS)
 	@echo "No failures."
 
 check-remote-quiet-conditional:

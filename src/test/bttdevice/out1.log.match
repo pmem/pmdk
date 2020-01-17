@@ -17,14 +17,19 @@ Flags                    : 0x0
 Major                    : 0
 Minor                    : 1
 External LBA size        : 10
-External LBA count       : 40322
+$(OPT)External LBA count       : 40322
+$(OPX)External LBA count       : 40203
 Internal LBA size        : 512
-Internal LBA count       : 40578
+$(OPT)Internal LBA count       : 40578
+$(OPX)Internal LBA count       : 40459
 Free blocks              : 256
 Info block size          : 4096
 Next arena offset        : 0x0
 Arena data offset        : 0x1000
-Area map offset          : 0x13d2000
-Area flog offset         : 0x13fa000
-Info block backup offset : 0x13fe000
+$(OPT)Area map offset          : 0x13d2000
+$(OPX)Area map offset          : 0x13c3000
+$(OPT)Area flog offset         : 0x13fa000
+$(OPX)Area flog offset         : 0x13eb000
+$(OPT)Info block backup offset : 0x13fe000
+$(OPX)Info block backup offset : 0x13ef000
 Checksum                 : $(XX) [wrong! should be: $(XX)]

@@ -64,6 +64,7 @@ struct ravl *ravl_new(ravl_compare *compare);
 struct ravl *ravl_new_sized(ravl_compare *compare, size_t data_size);
 void ravl_delete(struct ravl *ravl);
 void ravl_delete_cb(struct ravl *ravl, ravl_cb cb, void *arg);
+void ravl_foreach(struct ravl *ravl, ravl_cb cb, void *arg);
 int ravl_empty(struct ravl *ravl);
 void ravl_clear(struct ravl *ravl);
 int ravl_insert(struct ravl *ravl, const void *data);

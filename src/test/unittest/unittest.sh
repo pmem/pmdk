@@ -146,7 +146,7 @@ shopt -s failglob
 # number of remote nodes required in the current unit test
 NODES_MAX=-1
 
-# sizes of aligments
+# sizes of alignments
 SIZE_4KB=4096
 SIZE_2MB=2097152
 
@@ -2588,6 +2588,17 @@ function log_pool_desc_size() {
 }
 
 #
+# blk_pool_desc_size -- returns the minimum size of pool header
+# in bytes which is two times the actual pagesize.
+#
+# This should be use to calculate the minimum zero size for pool
+# creation on some tests.
+#
+function blk_pool_desc_size() {
+	echo "$(expr $(getconf PAGESIZE) \* 2)"
+}
+
+#
 # create_holey_file_on_node -- create holey files of a given length
 #   usage: create_holey_file_on_node <node> <size>
 #
@@ -2817,7 +2828,7 @@ function pass() {
 SIG_LEN=8
 
 # Offset and length of pmemobj layout
-LAYOUT_OFFSET=4096
+LAYOUT_OFFSET=$(getconf PAGE_SIZE)
 LAYOUT_LEN=1024
 
 # Length of arena's signature
@@ -2827,7 +2838,7 @@ ARENA_SIG_LEN=16
 ARENA_SIG="BTT_ARENA_INFO"
 
 # Offset to first arena
-ARENA_OFF=8192
+ARENA_OFF=$(($(getconf PAGE_SIZE) * 2))
 
 #
 # check_file -- check if file exists and print error message if not

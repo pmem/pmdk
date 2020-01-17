@@ -1,0 +1,6 @@
+libpmemlog.7
+pmemlog_append.3
+pmemlog_create.3
+pmemlog_ctl_get.3
+pmemlog_nbyte.3
+pmemlog_tell.3

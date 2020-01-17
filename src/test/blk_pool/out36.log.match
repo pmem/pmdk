@@ -1,0 +1,4 @@
+blk_pool$(nW)TEST36: START: blk_pool
+ $(nW)blk_pool$(nW) c $(nW)testfile 4096 0 0600
+$(nW)testfile: pmemblk_create: File exists
+blk_pool$(nW)TEST36: DONE
