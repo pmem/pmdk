@@ -1,41 +1,41 @@
 Fri Jan 17 2020 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-    * Version 1.8-rc1
+	* Version 1.8-rc1
 
-    This release:
-    - Introduces new API in libpmemobj for user-assisted defragmentation
-      (see pmemobj_defrag man page for details).
-    - Introduces experimental support for PPC64LE architecture.
-    - Introduces new flag in libpmemobj for opting-out of transaction aborts
-      on failure (POBJ_TX_NO_ABORT), along with new variants of existing APIs
-      that didn't accept flags (pmemobj_tx_xfree, pmemobj_tx_xpublish,
-      pmemobj_tx_xlock, pmemobj_tx_xlog_append_buffer, pmemobj_tx_xstrdup,
-      pmemobj_tx_xwcsdup).
-    - Moves out libvmem and libvmmalloc to the new repository
-      (https://github.com/pmem/vmem).
+	This release:
+	- Introduces new API in libpmemobj for user-assisted defragmentation
+	  (see pmemobj_defrag man page for details).
+	- Introduces experimental support for PPC64LE architecture.
+	- Introduces new flag in libpmemobj for opting-out of transaction aborts
+	  on failure (POBJ_TX_NO_ABORT), along with new variants of existing APIs
+	  that didn't accept flags (pmemobj_tx_xfree, pmemobj_tx_xpublish,
+	  pmemobj_tx_xlock, pmemobj_tx_xlog_append_buffer, pmemobj_tx_xstrdup,
+	  pmemobj_tx_xwcsdup).
+	- Moves out libvmem and libvmmalloc to the new repository
+	  (https://github.com/pmem/vmem).
 
-    Other changes:
-    - obj: introduce new statistics useful for defrag
-    - obj: introduce transient/persistent statistics enabling
-    - obj: introduce pmemobj_tx_(set/get)_user_data funcs
-    - obj: introduce pmemobj_(set/get)_user_data funcs
-    - obj: disable workaround for offsetof() since VS 15.5 in public header
-    - common: drop support for libndctl < 63 on Linux
-    - pool: rename -N --no-exec to -d --dry-run
+	Other changes:
+	- obj: introduce new statistics useful for defrag
+	- obj: introduce transient/persistent statistics enabling
+	- obj: introduce pmemobj_tx_(set/get)_user_data funcs
+	- obj: introduce pmemobj_(set/get)_user_data funcs
+	- obj: disable workaround for offsetof() since VS 15.5 in public header
+	- common: drop support for libndctl < 63 on Linux
+	- pool: rename -N --no-exec to -d --dry-run
 
-    Notable bug fixes:
-    - obj: fix potential NULL-dereference in ulog_store
-    - obj: fix unintended recursive locking during palloc
-    - obj: fix lock release order in palloc publish
-    - obj: fix transient redo log of more than 64 entries
-    - obj: fix capacity ulog calculation
-    - obj: fix check of unaligned capacity size
-    - rpmem: add a missing case for GPSPM + FLUSH_STRICT
-    - pmem: fix pmemcheck support on platforms with eADR
-    - pool: fix possible memory leak
-    - rpmem: fix possible memory leak in rpmemd_config_read
-    - rpmem: fix possible memory leak in rpmemd_log_init
-    - rpmem: fix possible use-after-free
+	Notable bug fixes:
+	- obj: fix potential NULL-dereference in ulog_store
+	- obj: fix unintended recursive locking during palloc
+	- obj: fix lock release order in palloc publish
+	- obj: fix transient redo log of more than 64 entries
+	- obj: fix capacity ulog calculation
+	- obj: fix check of unaligned capacity size
+	- rpmem: add a missing case for GPSPM + FLUSH_STRICT
+	- pmem: fix pmemcheck support on platforms with eADR
+	- pool: fix possible memory leak
+	- rpmem: fix possible memory leak in rpmemd_config_read
+	- rpmem: fix possible memory leak in rpmemd_log_init
+	- rpmem: fix possible use-after-free
 
 Mon Sep 30 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
