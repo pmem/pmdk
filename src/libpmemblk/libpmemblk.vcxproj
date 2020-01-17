@@ -40,6 +40,7 @@
     <ClCompile Include="..\common\uuid.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
     <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
+    <ClCompile Include="..\libpmem2\usc_windows.c" />
     <ClCompile Include="libpmemblk_main.c" />
     <ClCompile Include="..\libpmem2\config.c" />
     <ClCompile Include="..\libpmem2\source.c" />

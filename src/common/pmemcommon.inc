@@ -21,19 +21,21 @@ SOURCE +=\
 	$(COMMON)/os_deep_linux.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/rand.c\
+	$(COMMON)/ravl.c\
 	$(COMMON)/set.c\
 	$(COMMON)/shutdown_state.c\
 	$(COMMON)/uuid.c\
 	$(call osdep, $(COMMON)/uuid,.c)\
 	$(PMEM2)/pmem2_utils.c\
 	$(PMEM2)/config.c\
+	$(PMEM2)/usc_$(OS_DIMM).c\
 	$(PMEM2)/source.c\
 	$(PMEM2)/source_posix.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
-	$(PMEM2)/pmem2_utils_linux.c\
-	$(PMEM2)/auto_flush_linux.c
+	$(PMEM2)/auto_flush_linux.c\
+	$(PMEM2)/pmem2_utils_linux.c
 else
 SOURCE +=\
 	$(PMEM2)/auto_flush_none.c\

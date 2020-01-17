@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2020, Intel Corporation */
 
 /*
  * util_sds.c -- unit test for shutdown state functions
@@ -7,8 +7,8 @@
 
 #include <stdlib.h>
 #include "unittest.h"
+#include "ut_pmem2_config.h"
 #include "shutdown_state.h"
-#include "pmemcommon.h"
 #include "set.h"
 
 #define PMEM_LEN 4096
@@ -19,29 +19,17 @@ static size_t uid_it;
 static uint64_t *uscs;
 static size_t uscs_size;
 static size_t usc_it;
+static pmem2_persist_fn persist;
 
-#define FAIL(X, Y) \
-	if ((X) == (Y)) {\
-		common_fini();\
-		DONE(NULL);\
-		exit(0);\
+#define FAIL(X, Y)				\
+	if ((X) == (Y)) {			\
+		goto out;			\
 	}
-
-#define LOG_PREFIX "ut"
-#define LOG_LEVEL_VAR "TEST_LOG_LEVEL"
-#define LOG_FILE_VAR "TEST_LOG_FILE"
-#define MAJOR_VERSION 1
-#define MINOR_VERSION 0
 
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "util_sds");
-
-	common_init(LOG_PREFIX, LOG_LEVEL_VAR, LOG_FILE_VAR,
-		MAJOR_VERSION, MINOR_VERSION);
-	size_t mapped_len = PMEM_LEN;
-	int is_pmem;
 
 	if (argc < 2)
 		UT_FATAL("usage: %s init fail (file uuid usc)...", argv[0]);
@@ -49,6 +37,9 @@ main(int argc, char *argv[])
 	unsigned files = (unsigned)(argc - 2) / 3;
 
 	char **pmemaddr = MALLOC(files * sizeof(char *));
+	int *fds = MALLOC(files * sizeof(fds[0]));
+	struct pmem2_map **maps = MALLOC(files * sizeof(maps[0]));
+
 	uids = MALLOC(files * sizeof(uids[0]));
 	uscs = MALLOC(files * sizeof(uscs[0]));
 	uids_size = files;
@@ -57,16 +48,28 @@ main(int argc, char *argv[])
 	int init = atoi(argv[1]);
 	int fail_on = atoi(argv[2]);
 	char **args = argv + 3;
+	struct pmem2_config *cfg;
+	PMEM2_CONFIG_NEW(&cfg);
+	pmem2_config_set_required_store_granularity(cfg,
+		PMEM2_GRANULARITY_PAGE);
 	for (unsigned i = 0; i < files; i++) {
-		if ((pmemaddr[i] = pmem_map_file(args[i * 3], PMEM_LEN,
-				PMEM_FILE_CREATE, 0666, &mapped_len,
-					&is_pmem)) == NULL) {
-			UT_FATAL("pmem_map_file");
+		fds[i] = OPEN(args[i * 3], O_CREAT | O_RDWR, 0666);
+		POSIX_FALLOCATE(fds[i], 0, PMEM_LEN);
+		struct pmem2_source *src;
+		PMEM2_SOURCE_FROM_FD(&src, fds[i]);
+
+		if (pmem2_map(cfg, src, &maps[i])) {
+			UT_FATAL("pmem2_map: %s", pmem2_errormsg());
 		}
+
+		pmemaddr[0] = pmem2_map_get_address(maps[i]);
 
 		uids[i] = args[i * 3 + 1];
 		uscs[i] = strtoull(args[i * 3 + 2], NULL, 0);
+		PMEM2_SOURCE_DELETE(&src);
 	}
+
+	persist = pmem2_get_persist_fn(maps[0]);
 	FAIL(fail_on, 1);
 	struct pool_replica *rep = MALLOC(
 		sizeof(*rep) + sizeof(struct pool_set_part));
@@ -79,7 +82,7 @@ main(int argc, char *argv[])
 		shutdown_state_init(pool_sds, rep);
 		FAIL(fail_on, 2);
 		for (unsigned i = 0; i < files; i++) {
-			if (shutdown_state_add_part(pool_sds, args[2 + i], rep))
+			if (shutdown_state_add_part(pool_sds, fds[i], rep))
 				UT_FATAL("shutdown_state_add_part");
 			FAIL(fail_on, 3);
 		}
@@ -90,7 +93,7 @@ main(int argc, char *argv[])
 		FAIL(fail_on, 2);
 		for (unsigned i = 0; i < files; i++) {
 			if (shutdown_state_add_part(&current_sds,
-					args[2 + i], NULL))
+					fds[i], NULL))
 				UT_FATAL("shutdown_state_add_part");
 			FAIL(fail_on, 3);
 		}
@@ -110,18 +113,23 @@ main(int argc, char *argv[])
 	shutdown_state_clear_dirty(pool_sds, rep);
 	FAIL(fail_on, 6);
 
-	for (unsigned i = 0; i < files; i++)
-		pmem_unmap(pmemaddr[i], mapped_len);
+out:	for (unsigned i = 0; i < files; i++) {
+		pmem2_unmap(&maps[i]);
+		CLOSE(fds[i]);
+	}
 
+	PMEM2_CONFIG_DELETE(&cfg);
 	FREE(pmemaddr);
 	FREE(uids);
 	FREE(uscs);
+	FREE(fds);
+	FREE(maps);
 
-	common_fini();
 	DONE(NULL);
 }
 
-FUNC_MOCK(os_dimm_uid, int, const char *path, char *uid, size_t *len, ...)
+FUNC_MOCK(pmem2_source_device_id, int, const struct pmem2_source *src,
+	char *uid, size_t *len)
 FUNC_MOCK_RUN_DEFAULT {
 	if (uid_it < uids_size) {
 		if (uid != NULL) {
@@ -137,7 +145,9 @@ FUNC_MOCK_RUN_DEFAULT {
 	return 0;
 }
 FUNC_MOCK_END
-FUNC_MOCK(os_dimm_usc, int, const char *path, uint64_t *usc, ...)
+
+FUNC_MOCK(pmem2_source_device_usc, int, const struct pmem2_source *src,
+	uint64_t *usc)
 	FUNC_MOCK_RUN_DEFAULT {
 	if (usc_it < uscs_size) {
 		*usc = uscs[usc_it];
@@ -149,3 +159,26 @@ FUNC_MOCK(os_dimm_usc, int, const char *path, uint64_t *usc, ...)
 	return 0;
 }
 FUNC_MOCK_END
+
+int os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
+	size_t len, int flush);
+/*
+ * os_part_deep_common -- XXX temporally workaround until we will have pmem2
+ *		integrated with common
+ */
+int
+os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
+	size_t len, int flush)
+{
+	/*
+	 * this is test - we don't need to deep persist anything -
+	 * just call regular persist to make valgrind happy
+	 */
+	persist(addr, len);
+	return 0;
+}
+
+#ifdef _MSC_VER
+MSVC_CONSTR(libpmem2_init)
+MSVC_DESTR(libpmem2_fini)
+#endif

@@ -16,19 +16,20 @@ SOURCE =\
 	config.c\
 	errormsg.c\
 	memops_generic.c\
-	pmem2.c\
 	map.c\
 	map_posix.c\
 	persist.c\
 	persist_posix.c\
+	pmem2.c\
 	pmem2_utils.c\
+	usc_$(OS_DIMM).c\
 	source.c\
 	source_posix.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
-	pmem2_utils_linux.c\
-	auto_flush_linux.c
+	auto_flush_linux.c\
+	pmem2_utils_linux.c
 else
 SOURCE +=\
 	pmem2_utils_other.c\
@@ -45,5 +46,5 @@ include ../Makefile.inc
 
 include $(PMEM2)/$(ARCH)/flags.inc
 
-CFLAGS += -I.
-LIBS += -pthread
+CFLAGS += -I. $(LIBNDCTL_CFLAGS)
+LIBS += -pthread $(LIBNDCTL_LIBS)

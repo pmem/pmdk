@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2020, Intel Corporation */
 
 /*
  * util_sds.c -- unit test for shutdown status functions
@@ -72,7 +72,8 @@ main(int argc, char *argv[])
 	DONE(NULL);
 }
 
-FUNC_MOCK(os_dimm_uid, int, const char *path, char *uid, size_t *len, ...)
+FUNC_MOCK(pmem2_source_device_id, int, const struct pmem2_source *src,
+		char *uid, size_t *len)
 	FUNC_MOCK_RUN_DEFAULT {
 	if (uid_it < uids_size) {
 		if (uid != NULL) {
@@ -88,7 +89,8 @@ FUNC_MOCK(os_dimm_uid, int, const char *path, char *uid, size_t *len, ...)
 	return 0;
 }
 FUNC_MOCK_END
-FUNC_MOCK(os_dimm_usc, int, const char *path, uint64_t *usc, ...)
+FUNC_MOCK(pmem2_source_device_usc, int, const struct pmem2_source *src,
+		uint64_t *usc)
 	FUNC_MOCK_RUN_DEFAULT {
 	if (usc_it < uscs_size) {
 		*usc = uscs[usc_it];
