@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 
 #
 # src/test/util_sds/TEST3 -- unittest for shutdown state
@@ -15,8 +15,8 @@ require_build_type debug
 
 setup
 
-$Env:TEST_LOG_LEVEL=2
-$Env:TEST_LOG_FILE=".\test$Env:UNITTEST_NUM.log"
+$Env:PMEM2_LOG_LEVEL=2
+$Env:PMEM2_LOG_FILE=".\test$Env:UNITTEST_NUM.log"
 
 # fail after sds initialization
 expect_normal_exit $Env:EXE_DIR\util_sds 1 3 `

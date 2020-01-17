@@ -71,7 +71,8 @@ endif
 ifeq ($(LIBPMEMOBJ), internal-debug)
 LIBPMEM=y
 LIBPMEMCOMMON=internal-debug
-OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
+OBJS += $(TOP)/src/debug/common/ravl.o\
+	$(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/bucket.o\
 	$(TOP)/src/debug/libpmemobj/container_ravl.o\
 	$(TOP)/src/debug/libpmemobj/container_seglists.o\
@@ -86,7 +87,6 @@ OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/obj.o\
 	$(TOP)/src/debug/libpmemobj/palloc.o\
 	$(TOP)/src/debug/libpmemobj/pmalloc.o\
-	$(TOP)/src/debug/libpmemobj/ravl.o\
 	$(TOP)/src/debug/libpmemobj/recycler.o\
 	$(TOP)/src/debug/libpmemobj/ulog.o\
 	$(TOP)/src/debug/libpmemobj/sync.o\
@@ -99,7 +99,8 @@ endif
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
 LIBPMEM=y
 LIBPMEMCOMMON=internal-nondebug
-OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
+OBJS +=	$(TOP)/src/nondebug/common/ravl.o\
+	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/bucket.o\
 	$(TOP)/src/nondebug/libpmemobj/container_ravl.o\
 	$(TOP)/src/nondebug/libpmemobj/container_seglists.o\
@@ -114,7 +115,6 @@ OBJS += $(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/obj.o\
 	$(TOP)/src/nondebug/libpmemobj/palloc.o\
 	$(TOP)/src/nondebug/libpmemobj/pmalloc.o\
-	$(TOP)/src/nondebug/libpmemobj/ravl.o\
 	$(TOP)/src/nondebug/libpmemobj/recycler.o\
 	$(TOP)/src/nondebug/libpmemobj/ulog.o\
 	$(TOP)/src/nondebug/libpmemobj/sync.o\
@@ -171,7 +171,8 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/persist_posix.o\
 	$(TOP)/src/debug/libpmem2/pmem2.o\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
-	$(TOP)/src/debug/libpmem2/ravl.o
+	$(TOP)/src/debug/libpmem2/ravl.o\
+	$(TOP)/src/debug/libpmem2/usc_$(OS_DIMM).o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
@@ -208,13 +209,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/pmem2.o\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/nondebug/libpmem2/ravl.o\
-	$(TOP)/src/nondebug/core/alloc.o\
-	$(TOP)/src/nondebug/core/fs_posix.o\
-	$(TOP)/src/nondebug/core/os_posix.o\
-	$(TOP)/src/nondebug/core/os_thread_posix.o\
-	$(TOP)/src/nondebug/core/out.o\
-	$(TOP)/src/nondebug/core/util.o\
-	$(TOP)/src/nondebug/core/util_posix.o
+	$(TOP)/src/nondebug/libpmem2/usc_$(OS_DIMM).o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
@@ -271,10 +266,11 @@ OBJS +=\
 	$(TOP)/src/nondebug/common/util.o\
 	$(TOP)/src/nondebug/common/util_posix.o\
 	$(TOP)/src/nondebug/common/uuid.o\
-	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)
+	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/nondebug/libpmem2/config.o\
-	$(TOP)/src/nondebug/libpmem2/source.o
+	$(TOP)/src/nondebug/libpmem2/usc_$(OS_DIMM).o\
+	$(TOP)/src/nondebug/libpmem2/source.o\
 	$(TOP)/src/nondebug/libpmem2/source_posix.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
@@ -312,8 +308,9 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/debug/common/uuid,.o)\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/debug/libpmem2/config.o\
-	$(TOP)/src/nondebug/libpmem2/source.o\
-	$(TOP)/src/nondebug/libpmem2/source_posix.o
+	$(TOP)/src/debug/libpmem2/source.o\
+	$(TOP)/src/debug/libpmem2/source_posix.o\
+	$(TOP)/src/debug/libpmem2/usc_$(OS_DIMM).o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS += $(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\
@@ -380,7 +377,7 @@ ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMOBJ),)
 LIBS += $(LIBDL)
 endif
 
-ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ),)
+ifneq ($(LIBPMEM2)$(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ),)
 CFLAGS += $(LIBNDCTL_CFLAGS)
 LIBS += $(LIBNDCTL_LIBS)
 endif

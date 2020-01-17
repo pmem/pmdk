@@ -28,7 +28,6 @@ SOURCE +=\
 	obj.c\
 	palloc.c\
 	pmalloc.c\
-	$(COMMON)/ravl.c\
 	recycler.c\
 	sync.c\
 	tx.c\

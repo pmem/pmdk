@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 
 #
 # src/test/util_sds/TEST6 -- unittest for shutdown state
@@ -16,8 +16,8 @@ require_build_type debug
 
 setup
 
-export TEST_LOG_LEVEL=2
-export TEST_LOG_FILE=./test$UNITTEST_NUM.log
+export PMEM2_LOG_LEVEL=2
+export PMEM2_LOG_FILE=./test$UNITTEST_NUM.log
 
 # fail after an open flag is set
 expect_normal_exit ./util_sds 1 5 \

@@ -37,6 +37,7 @@ class TEST3(NormalFile):
     test_case = 'test_normal_file_handle'
     size = 16 * t.MiB
 
+
 # On Windows fd interface doesn't support temporary files
 # FreeBSD doesn't support O_TMPFILE
 @t.linux_only

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * replica.c -- groups all commands for replica manipulation
@@ -1455,19 +1455,11 @@ check_shutdown_state(struct pool_set *set,
 		struct shutdown_state curr_sds;
 		shutdown_state_init(&curr_sds, NULL);
 		for (unsigned p = 0; p < rep->nparts; ++p) {
-			const char *path = PART(rep, p)->path;
-			const int exists = util_file_exists(path);
-			if (exists < 0)
-				return -1;
-
-			/*
-			 * skip missing parts to avoid false positive shutdown
-			 * state failure detection
-			 */
-			if (!exists)
+			if (PART(rep, p)->fd < 0)
 				continue;
 
-			if (shutdown_state_add_part(&curr_sds, path, NULL)) {
+			if (shutdown_state_add_part(&curr_sds,
+					PART(rep, p)->fd, NULL)) {
 				rep_hs->flags |= IS_BROKEN;
 				break;
 			}
