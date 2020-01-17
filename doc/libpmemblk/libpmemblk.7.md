@@ -316,7 +316,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/pmdk/libpmemblk> for more examples using the **libpmemblk** API.
+See <https://pmem.io/pmdk/libpmemblk> for more examples using the **libpmemblk** API.
 
 # BUGS #
 
@@ -327,7 +327,7 @@ Thus, specifying replica sections in pool set files is not allowed.
 
 **libpmemblk** builds on the persistent memory programming model recommended
 by the SNIA NVM Programming Technical Work Group:
-<http://snia.org/nvmp>
+<https://snia.org/nvmp>
 
 # SEE ALSO #
 
@@ -335,4 +335,4 @@ by the SNIA NVM Programming Technical Work Group:
 **pmemblk_ctl_exec**(3), **pmemblk_ctl_get**(3), **pmemblk_ctl_set**(3),
 **pmemblk_read**(3), **pmemblk_set_zero**(3), **pmem_is_pmem**(3),
 **pmem_persist**(3), **strerror**(3), **libpmem**(7),
-**libpmemlog**(7), **libpmemobj**(7) and **<http://pmem.io>**
+**libpmemlog**(7), **libpmemobj**(7) and **<https://pmem.io>**

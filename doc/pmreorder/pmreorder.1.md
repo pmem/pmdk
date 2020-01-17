@@ -426,4 +426,4 @@ to `pmreorder_out.log`.
 
 # SEE ALSO #
 
-**<http://pmem.io>**
+**<https://pmem.io>**

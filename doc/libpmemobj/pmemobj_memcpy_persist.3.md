@@ -206,4 +206,4 @@ pmemobj_persist(PMEMobjpool *pop, const void *addr, size_t len)
 
 **memcpy**(3), **memset**(3), **pmem_msync**(3),
 **pmem_persist**(3), **libpmem**(7) **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

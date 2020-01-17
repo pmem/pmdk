@@ -170,4 +170,4 @@ Volume 1, "Caching of Temporal vs. Non-Temporal Data" section for details.
 # SEE ALSO #
 
 **memcpy**(3), **memmove**(3), **memset**(3),
-**libpmem**(7) and **<http://pmem.io>**
+**libpmem**(7) and **<https://pmem.io>**

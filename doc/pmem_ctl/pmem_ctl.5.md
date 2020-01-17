@@ -148,4 +148,4 @@ prefault.
 # SEE ALSO #
 
 **libpmemblk_ctl_get**(3), **libpmemlog_ctl_get**(3), **libpmemobj_ctl_get**(3)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

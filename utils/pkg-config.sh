@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,4 +42,4 @@ PACKAGE_SUMMARY="Persistent Memory Development Kit"
 PACKAGE_DESCRIPTION="The collection of libraries and utilities for Persistent Memory Programming"
 
 # Website
-PACKAGE_URL="http://pmem.io/pmdk"
+PACKAGE_URL="https://pmem.io/pmdk"

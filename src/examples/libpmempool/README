@@ -5,7 +5,7 @@ This is examples/libpmempool/README.
 This directory contains examples for libpmempool, the library providing
 support for off-line pool management, diagnostics and repair.
 Some of these examples are explained in more detail
-here: http://pmem.io/pmdk/libpmempool
+here: https://pmem.io/pmdk/libpmempool
 
 manpage.c is the example used in the libpmempool man page.
 
@@ -16,5 +16,5 @@ These examples can be built against an installed system using:
 	make LIBDIR=/usr/lib INCDIR=/usr/include
 
 If you're looking for documentation to get you started using PMDK,
-start here: http://pmem.io/pmdk and follow the links to examples and
+start here: https://pmem.io/pmdk and follow the links to examples and
 man pages.  Developers new to PMDK are probably looking for libpmemobj.

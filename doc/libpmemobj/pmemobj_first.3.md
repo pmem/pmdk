@@ -124,4 +124,4 @@ is *OID_NULL*, **pmemobj_next**() returns **OID_NULL**.
 
 # SEE ALSO #
 
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

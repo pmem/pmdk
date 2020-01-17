@@ -467,7 +467,7 @@ typedef
    project.  This implementation aims to be a (source-level)
    compatible implementation of the macros defined in:
 
-   http://code.google.com/p/data-race-test/source
+   https://code.google.com/p/data-race-test/source
           /browse/trunk/dynamic_annotations/dynamic_annotations.h
 
    (some of the comments below are taken from the above file)

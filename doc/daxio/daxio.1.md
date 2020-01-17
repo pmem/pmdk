@@ -129,4 +129,4 @@ Prints synopsis and list of options.
 # SEE ALSO #
 
 **daxctl**(1), **ndctl**(1)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

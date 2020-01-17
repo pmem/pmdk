@@ -214,4 +214,4 @@ when flags do not contain **POBJ_XADD_NO_ABORT**, the transaction is aborted.
 # SEE ALSO #
 
 **pmemobj_tx_alloc**(3), **pmemobj_tx_begin**(3),
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

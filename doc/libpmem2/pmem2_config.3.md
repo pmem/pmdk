@@ -64,4 +64,4 @@ int pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle); (XXX: WIND
 
 # SEE ALSO #
 
-**libpmem2**(7) and **<http://pmem.io>**
+**libpmem2**(7) and **<https://pmem.io>**

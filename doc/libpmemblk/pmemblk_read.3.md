@@ -75,4 +75,4 @@ On error, they return -1 and set *errno* appropriately.
 
 # SEE ALSO #
 
-**libpmemblk**(7) and **<http://pmem.io>**
+**libpmemblk**(7) and **<https://pmem.io>**

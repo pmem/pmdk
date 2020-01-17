@@ -144,4 +144,4 @@ Prints POOL_FEAT_CKSUM_2K incompat feature flag value.
 
 # SEE ALSO #
 
-**poolset**(5) and **<http://pmem.io>**
+**poolset**(5) and **<https://pmem.io>**

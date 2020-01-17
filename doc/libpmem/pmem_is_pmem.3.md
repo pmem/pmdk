@@ -183,4 +183,4 @@ the underlying file system does not support **posix_fallocate**(3).
 
 **creat**(2), **ftruncate**(2), **mmap**(2),  **msync**(2), **munmap**(2),
 **open**(2), **pmem_persist**(3),
-**posix_fallocate**(3), **libpmem**(7) and **<http://pmem.io>**
+**posix_fallocate**(3), **libpmem**(7) and **<https://pmem.io>**

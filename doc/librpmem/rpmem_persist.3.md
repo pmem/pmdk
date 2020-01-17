@@ -151,4 +151,4 @@ different *lane* values is not guaranteed.
 
 **rpmem_create**(3), **rpmem_open**(3), **rpmem_persist**(3),
 **sysconf**(3), **limits.conf**(5), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

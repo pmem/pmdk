@@ -221,4 +221,4 @@ number will be returned to indicate the error.
 
 **pmemobj_tx_zalloc**(3), **pmemobj_zalloc**(3), **pthread_cond_init**(3),
 **pthread_mutex_init**(3), **pthread_rwlock_init**(3), **libpmem**(7),
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

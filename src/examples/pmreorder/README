@@ -4,7 +4,7 @@ This is examples/pmreorder/README.
 
 This directory contains example for pmreorder tool.
 A detailed explanation of this tool can be found here:
-http://pmem.io/pmdk/manpages/linux/master/pmreorder/pmreorder.1.html
+https://pmem.io/pmdk/manpages/linux/master/pmreorder/pmreorder.1.html
 
 pmreorder_list: simple list to check pmem consistency using pmreorder tool
 
@@ -40,5 +40,5 @@ pmreorder.py \
 -p "./pmreorder_list c"
 
 If you're looking for documentation to get you started using PMDK,
-start here: http://pmem.io/pmdk and follow the links to examples and
+start here: https://pmem.io/pmdk and follow the links to examples and
 blog posts.

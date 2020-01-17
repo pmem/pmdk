@@ -467,7 +467,7 @@ compatibility will be preserved.
 
 **librpmem** builds on the persistent memory programming model
 recommended by the SNIA NVM Programming Technical Work Group:
-<http://snia.org/nvmp>
+<https://snia.org/nvmp>
 
 # SEE ALSO #
 
@@ -476,4 +476,4 @@ recommended by the SNIA NVM Programming Technical Work Group:
 **rpmem_open**(3), **rpmem_persist**(3), **strerror**(3), **limits.conf**(5),
 **fabric**(7), **fi_sockets**(7), **fi_verbs**(7), **libpmem**(7), **libpmemblk**(7),
 **libpmemlog**(7), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

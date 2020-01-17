@@ -382,4 +382,4 @@ skip blocks marked with error flag and not marked with any flag.
 # SEE ALSO #
 
 **pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

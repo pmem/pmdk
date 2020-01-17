@@ -66,4 +66,4 @@ The **pmemlog_nbyte**() function returns the amount of usable space in the log *
 
 # SEE ALSO #
 
-**libpmemlog**(7) and **<http://pmem.io>**
+**libpmemlog**(7) and **<https://pmem.io>**

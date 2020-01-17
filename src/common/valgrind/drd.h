@@ -102,7 +102,7 @@
 /**
  * @defgroup RaceDetectionAnnotations Data race detection annotations.
  *
- * @see See also the source file <a href="http://code.google.com/p/data-race-test/source/browse/trunk/dynamic_annotations/dynamic_annotations.h</a>
+ * @see See also the source file <a href="https://code.google.com/p/data-race-test/source/browse/trunk/dynamic_annotations/dynamic_annotations.h</a>
 
  * in the ThreadSanitizer project.
  */

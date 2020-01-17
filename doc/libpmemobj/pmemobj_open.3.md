@@ -194,4 +194,4 @@ fail if the underlying file system does not support **posix_fallocate**(3).
 
 **creat**(2), **msync**(2), **pmem_is_pmem**(3), **pmem_persist**(3),
 **posix_fallocate**(3), **libpmem**(7), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

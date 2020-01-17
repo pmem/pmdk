@@ -168,4 +168,4 @@ Create a pool file based on pool.log file
 # SEE ALSO #
 
 **pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

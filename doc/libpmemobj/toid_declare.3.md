@@ -130,4 +130,4 @@ read-only (const) pointer (*TYPE\**) to an object represented by *oid*. If
 # SEE ALSO #
 
 **OID_IS_NULL**(3), **POBJ_LAYOUT_ROOT**(3), **POBJ_LAYOUT_TOID**(3),
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

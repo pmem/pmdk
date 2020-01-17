@@ -373,14 +373,14 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/pmdk/libpmem>
+See <https://pmem.io/pmdk/libpmem>
 for more examples using the **libpmem** API.
 
 # ACKNOWLEDGEMENTS #
 
 **libpmem** builds on the persistent memory programming model
 recommended by the SNIA NVM Programming Technical Work Group:
-<http://snia.org/nvmp>
+<https://snia.org/nvmp>
 
 # SEE ALSO #
 
@@ -388,4 +388,4 @@ recommended by the SNIA NVM Programming Technical Work Group:
 **pmem_flush**(3), **pmem_is_pmem**(3), **pmem_memmove_persist**(3),
 **pmem_msync**(3), **pmem_persist**(3), **strerror**(3),
 **libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**
