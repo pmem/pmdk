@@ -1,1 +1,1 @@
-<ut>: <2> [shutdown_state.c:$(N) shutdown_state_check] an ADR failure was detected but the pool was closed - SDS will be reinitialized
+<libpmem2>: <2> [shutdown_state.c:$(N) shutdown_state_check] an ADR failure was detected but the pool was closed - SDS will be reinitialized
