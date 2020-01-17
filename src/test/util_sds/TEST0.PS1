@@ -15,8 +15,8 @@ require_build_type debug
 
 setup
 
-$Env:TEST_LOG_LEVEL=2
-$Env:TEST_LOG_FILE=".\test$Env:UNITTEST_NUM.log"
+$Env:PMEM2_LOG_LEVEL=2
+$Env:PMEM2_LOG_FILE=".\test$Env:UNITTEST_NUM.log"
 
 # no error
 expect_normal_exit $Env:EXE_DIR\util_sds 1 0 `

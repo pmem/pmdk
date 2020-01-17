@@ -6,6 +6,6 @@
  */
 
 #ifndef WRAP_REAL
-#define os_dimm_usc __wrap_os_dimm_usc
-#define os_dimm_uid __wrap_os_dimm_uid
+#define pmem2_get_device_uscU __wrap_pmem2_get_device_usc
+#define pmem2_get_device_idU __wrap_pmem2_get_device_id
 #endif

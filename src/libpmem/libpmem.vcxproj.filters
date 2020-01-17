@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Header Files">
@@ -53,9 +53,6 @@
     <ClCompile Include="..\common\pool_hdr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\set.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\core\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -71,19 +68,10 @@
     <ClCompile Include="..\core\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\shutdown_state.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\common\os_dimm_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\os_deep_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\badblock.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\common\badblock_none.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2_clflush.c">
@@ -244,9 +232,6 @@
     <ClInclude Include="..\..\src\include\libpmem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\libpmem2\x86_64\cpu.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\common\file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -365,6 +350,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\libpmem2\pmem2_arch.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\libpmem2\x86_64\cpu.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

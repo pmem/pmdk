@@ -16,8 +16,8 @@ require_build_type debug
 
 setup
 
-export TEST_LOG_LEVEL=2
-export TEST_LOG_FILE=./test$UNITTEST_NUM.log
+export PMEM2_LOG_LEVEL=2
+export PMEM2_LOG_FILE=./test$UNITTEST_NUM.log
 
 # fail during sds creation
 expect_normal_exit ./util_sds 1 3 \

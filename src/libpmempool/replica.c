@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * replica.c -- groups all commands for replica manipulation
@@ -1467,7 +1467,8 @@ check_shutdown_state(struct pool_set *set,
 			if (!exists)
 				continue;
 
-			if (shutdown_state_add_part(&curr_sds, path, NULL)) {
+			if (shutdown_state_add_part(&curr_sds,
+					PART(rep, p)->fd, NULL)) {
 				rep_hs->flags |= IS_BROKEN;
 				break;
 			}

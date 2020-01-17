@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * ut_pmem2_config.h -- utility helper functions for libpmem2 config tests
@@ -9,7 +9,6 @@
 #include "unittest.h"
 #include "ut_pmem2_config.h"
 #include "ut_pmem2_utils.h"
-#include "config.h"
 
 /*
  * ut_pmem2_config_new -- allocates cfg (cannot fail)
@@ -59,14 +58,13 @@ ut_pmem2_config_set_fhandle(const char *file, int line, const char *func,
 	if (type == FH_FD) {
 		int fd = ut_fh_get_fd(file, line, func, f);
 
-#ifdef _WIN32
-		cfg->handle = (HANDLE)_get_osfhandle(fd);
-#else
-		cfg->fd = fd;
-#endif
+		ut_pmem2_config_set_fd(file, line, func, cfg, fd);
 	} else if (type == FH_HANDLE) {
 #ifdef _WIN32
-		cfg->handle = ut_fh_get_handle(file, line, func, f);
+		int ret = pmem2_config_set_handle(cfg,
+			ut_fh_get_handle(file, line, func, f));
+
+		ut_pmem2_expect_return(file, line, func, ret, 0);
 #else
 		ut_fatal(file, line, func,
 				"FH_HANDLE not supported on !Windows");

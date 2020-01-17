@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Header Files">
@@ -39,10 +39,14 @@
     <ClCompile Include="..\core\os_thread_windows.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="..\common\ravl.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
     <ClCompile Include="libpmem2.c">
+=======
+    <ClCompile Include="map.c">
+>>>>>>> 96c75c600... pmem2: usc
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="libpmem2_main.c">
@@ -79,6 +83,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pmem2_utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ras_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="x86_64\cpu.c">

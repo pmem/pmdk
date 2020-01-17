@@ -17,12 +17,13 @@ SOURCE =\
 	config_posix.c\
 	errormsg.c\
 	memops_generic.c\
-	pmem2.c\
 	map.c\
 	map_posix.c\
 	persist.c\
 	persist_posix.c\
-	pmem2_utils.c
+	pmem2.c\
+	pmem2_utils.c\
+	ras_ndctl.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
@@ -44,5 +45,5 @@ include ../Makefile.inc
 
 include $(PMEM2)/$(ARCH)/flags.inc
 
-CFLAGS += -I.
-LIBS += -pthread
+CFLAGS += -I. $(LIBNDCTL_CFLAGS)
+LIBS += -pthread $(LIBDL) $(LIBNDCTL_LIBS)

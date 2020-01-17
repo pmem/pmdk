@@ -16,6 +16,21 @@
     <ClCompile Include="..\..\common\shutdown_state.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmem2\errormsg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmem2\map.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmem2\map_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mocks_windows.h">

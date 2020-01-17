@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -63,15 +63,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\common\shutdown_state.c" />
+    <ClCompile Include="..\..\libpmem2\errormsg.c" />
+    <ClCompile Include="..\..\libpmem2\map.c" />
+    <ClCompile Include="..\..\libpmem2\map_windows.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_config.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
     <ClCompile Include="util_sds.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">WRAP_REAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">WRAP_REAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
-      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
