@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 #
 # Copyright 2016-2019, Intel Corporation
+# Copyright 2019, IBM Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -32,7 +33,9 @@
 #
 
 #
-# src/test/util_poolset_size/TEST0 -- unit test for util_poolset_size
+# src/test/util_poolset_size/TEST1 -- unit test for util_poolset_size
+#
+# This test is equivalent of TEST0 for ppc64le platform.
 #
 
 . ../unittest/unittest.sh
@@ -40,12 +43,12 @@
 require_test_type medium
 
 require_fs_type any
-exclude_ppc64
+require_ppc64
 
 setup
 
-create_poolset $DIR/pool.set1 32K:$DIR/testfile:x
-create_poolset $DIR/pool.set2 32K:$DIR/testfile1:x 32M:$DIR/testfile2:x
+create_poolset $DIR/pool.set1 152K:$DIR/testfile:x
+create_poolset $DIR/pool.set2 152K:$DIR/testfile1:x 32M:$DIR/testfile2:x
 create_poolset $DIR/pool.set3\
 	32M:$DIR/testfile11:x 32M:$DIR/testfile12:x\
 	R 64M:$DIR/testfile21:x 32M:$DIR/testfile22:x
