@@ -52,6 +52,7 @@
     <ClCompile Include="..\common\uuid.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
     <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
+    <ClCompile Include="..\libpmem2\usc_windows.c" />
     <ClCompile Include="alloc_class.c" />
     <ClCompile Include="container_ravl.c" />
     <ClCompile Include="container_seglists.c" />

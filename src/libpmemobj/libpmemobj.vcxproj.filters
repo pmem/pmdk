@@ -34,9 +34,6 @@
     <ClCompile Include="..\..\src\libpmemobj\pmalloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\common\ravl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\libpmemobj\ulog.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -160,6 +157,12 @@
     <ClCompile Include="..\libpmem2\auto_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\ravl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmem2\usc_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\core\out.h">
@@ -208,9 +211,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\libpmemobj\pmemops.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\common\ravl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\libpmemobj\redo.h">
@@ -349,6 +349,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\libpmem2\auto_flush_windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\common\ravl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

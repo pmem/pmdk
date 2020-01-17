@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2020, Intel Corporation */
 
 /*
  * shutdown_state.c -- unsafe shudown detection
@@ -14,6 +14,8 @@
 #include "util.h"
 #include "os_deep.h"
 #include "set.h"
+#include "libpmem2.h"
+#include "../libpmem2/pmem2_utils.h"
 
 #define FLUSH_SDS(sds, rep) \
 	if ((rep) != NULL) os_part_deep_common(rep, 0, sds, sizeof(*(sds)), 1)
@@ -53,23 +55,37 @@ shutdown_state_init(struct shutdown_state *sds, struct pool_replica *rep)
  * if path does not exist it will fail which does NOT mean shutdown failure
  */
 int
-shutdown_state_add_part(struct shutdown_state *sds, const char *path,
+shutdown_state_add_part(struct shutdown_state *sds, int fd,
 	struct pool_replica *rep)
 {
-	LOG(3, "sds %p, path %s", sds, path);
+	LOG(3, "sds %p, fd %d", sds, fd);
 
 	size_t len = 0;
 	char *uid;
 	uint64_t usc;
 
-	if (os_dimm_usc(path, &usc)) {
-		LOG(2, "cannot read unsafe shutdown count for %s", path);
+	struct pmem2_source *src;
+
+	if (pmem2_source_from_fd(&src, fd))
 		return 1;
+
+	int ret = pmem2_source_device_usc(src, &usc);
+
+	if (ret == PMEM2_E_NOSUPP) {
+		usc = 0;
+	} else if (ret != 0) {
+		if (ret == -EPERM) {
+			/* overwrite error message */
+			ERR(
+				"Cannot read unsafe shutdown count. For more information please check https://github.com/pmem/pmdk/issues/4207");
+		}
+		LOG(2, "cannot read unsafe shutdown count for %d", fd);
+		goto err;
 	}
 
-	if (os_dimm_uid(path, NULL, &len)) {
-		ERR("cannot read uuid of %s", path);
-		return 1;
+	if (pmem2_source_device_id(src, NULL, &len)) {
+		ERR("cannot read uuid of %d", fd);
+		goto err;
 	}
 
 	len += 4 - len % 4;
@@ -77,13 +93,14 @@ shutdown_state_add_part(struct shutdown_state *sds, const char *path,
 
 	if (uid == NULL) {
 		ERR("!Zalloc");
-		return 1;
+		goto err;
 	}
 
-	if (os_dimm_uid(path, uid, &len)) {
-		ERR("cannot read uuid of %s", path);
+	ret = pmem2_source_device_id(src, uid, &len);
+	if (ret != PMEM2_E_NOSUPP && ret != 0) {
+		ERR("cannot read uuid of %d", fd);
 		Free(uid);
-		return 1;
+		goto err;
 	}
 
 	sds->usc = htole64(le64toh(sds->usc) + usc);
@@ -94,8 +111,12 @@ shutdown_state_add_part(struct shutdown_state *sds, const char *path,
 
 	FLUSH_SDS(sds, rep);
 	Free(uid);
+	pmem2_source_delete(&src);
 	shutdown_state_checksum(sds, rep);
 	return 0;
+err:
+	pmem2_source_delete(&src);
+	return 1;
 }
 
 /*

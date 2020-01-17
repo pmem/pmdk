@@ -61,6 +61,7 @@
     <ClCompile Include="..\common\uuid.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
     <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
+    <ClCompile Include="..\libpmem2\usc_windows.c" />
     <ClCompile Include="..\libpmemblk\btt.c" />
     <ClCompile Include="check.c" />
     <ClCompile Include="check_bad_blocks.c" />
