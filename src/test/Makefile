@@ -124,7 +124,6 @@ OBJ_TESTS = \
 	obj_pool\
 	obj_pool_lock\
 	obj_pool_lookup\
-	obj_ravl\
 	obj_recovery\
 	obj_recreate\
 	obj_root\
@@ -197,6 +196,7 @@ OTHER_TESTS = \
 	util_poolset_foreach\
 	util_poolset_parse\
 	util_poolset_size\
+	util_ravl\
 	util_sds\
 	util_uuid_generate\
 	util_vec\

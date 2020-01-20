@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,7 +31,7 @@
  */
 
 /*
- * obj_ravl.c -- unit test for ravl tree
+ * util_ravl.c -- unit test for ravl tree
  */
 #include <stdint.h>
 #include <stdlib.h>
@@ -39,7 +39,7 @@
 #include "ravl.h"
 #include "util.h"
 #include "unittest.h"
-#include "obj.h"
+#include "fault_injection.h"
 
 static int
 cmpkey(const void *lhs, const void *rhs)
@@ -233,10 +233,10 @@ test_emplace(void)
 static void
 test_fault_injection_ravl_sized()
 {
-	if (!pmemobj_fault_injection_enabled())
+	if (!common_fault_injection_enabled())
 		return;
 
-	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "ravl_new_sized");
+	common_inject_fault_at(PMEM_MALLOC, 1, "ravl_new_sized");
 	struct ravl *r = ravl_new_sized(NULL, 0);
 	UT_ASSERTeq(r, NULL);
 	UT_ASSERTeq(errno, ENOMEM);
@@ -245,14 +245,14 @@ test_fault_injection_ravl_sized()
 static void
 test_fault_injection_ravl_node()
 {
-	if (!pmemobj_fault_injection_enabled())
+	if (!common_fault_injection_enabled())
 		return;
 
 	struct foo a = {1, 2, 3};
 	struct ravl *r = ravl_new_sized(cmpfoo, sizeof(struct foo));
 	UT_ASSERTne(r, NULL);
 
-	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "ravl_new_node");
+	common_inject_fault_at(PMEM_MALLOC, 1, "ravl_new_node");
 	int ret = ravl_emplace_copy(r, &a);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTeq(errno, ENOMEM);
@@ -261,7 +261,7 @@ test_fault_injection_ravl_node()
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "obj_ravl");
+	START(argc, argv, "util_ravl");
 
 	test_predicate();
 	test_misc();
