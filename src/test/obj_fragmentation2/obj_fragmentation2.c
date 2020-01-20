@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Intel Corporation
+ * Copyright 2017-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -196,7 +196,7 @@ static float workloads_target[] = {
 };
 
 static float workloads_defrag_target[] = {
-	0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.056f, 0.1f, 0.13f, 0.01f
+	0.01f, 0.01f, 0.01f, 0.01f, 0.01f, 0.29f, 0.1f, 0.13f, 0.01f
 };
 
 /* last workload operates only on huge chunks, so run stats are useless */
@@ -205,7 +205,7 @@ static float workloads_stat_target[] = {
 };
 
 static float workloads_defrag_stat_target[] = {
-	0.01f, 0.01f, 0.01f, 0.02f, 0.02f, 0.04f, 0.08f, 0.12f, 2100.f
+	0.01f, 0.01f, 0.01f, 0.02f, 0.02f, 0.29f, 0.09f, 0.12f, 2100.f
 };
 
 int
