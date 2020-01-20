@@ -243,4 +243,4 @@ Currently, checking the consistency of a *pmemobj* pool is
 
 # SEE ALSO #
 
-**libpmemlog**(7), **libpmemobj**(7) and **<http://pmem.io>**
+**libpmemlog**(7), **libpmemobj**(7) and **<https://pmem.io>**

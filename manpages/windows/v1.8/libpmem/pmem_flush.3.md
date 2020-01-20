@@ -213,4 +213,4 @@ function always returns false. Despite that, programs using
 # SEE ALSO #
 
 **msync**(2), **pmem_is_pmem**(3), **libpmem**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

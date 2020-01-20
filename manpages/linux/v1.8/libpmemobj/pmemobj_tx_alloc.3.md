@@ -280,4 +280,4 @@ the transaction is aborted.
 # SEE ALSO #
 
 **pmemobj_tx_add_range**(3), **pmemobj_tx_begin**(3),
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

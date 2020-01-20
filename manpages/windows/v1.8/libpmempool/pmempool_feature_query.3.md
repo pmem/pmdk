@@ -131,4 +131,4 @@ returns -1.
 
 # SEE ALSO #
 
-**poolset**(5) and **<http://pmem.io>**
+**poolset**(5) and **<https://pmem.io>**

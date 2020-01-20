@@ -85,4 +85,4 @@ On success, **pmempool_rmU**()/**pmempool_rmW**() returns 0. On error, it return
 # SEE ALSO #
 
 **rpmem_remove**(3), **unlink**(3), **libpmemlog**(7),
-**libpmemobj**(7), **librpmem**(7) and **<http://pmem.io>**
+**libpmemobj**(7), **librpmem**(7) and **<https://pmem.io>**

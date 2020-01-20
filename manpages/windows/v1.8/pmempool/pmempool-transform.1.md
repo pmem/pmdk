@@ -170,4 +170,4 @@ unchanged and the size of the pool is still 60M.
 # SEE ALSO #
 
 **pmempool(1)**, **libpmemblk(7)**, **libpmemlog(7)**,
-**libpmempool(7)** and **<http://pmem.io>**
+**libpmempool(7)** and **<https://pmem.io>**

@@ -118,4 +118,4 @@ root object has not been allocated yet, **pmemobj_root_size**() returns 0.
 
 # SEE ALSO #
 
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

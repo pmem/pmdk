@@ -50,4 +50,4 @@ can be found in **pmdk-convert**(1) man page.
 # SEE ALSO #
 
 **pmdk-convert**(1), **pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7), **libpmempool**(7) and **<http://pmem.io>**
+**libpmemobj**(7), **libpmempool**(7) and **<https://pmem.io>**

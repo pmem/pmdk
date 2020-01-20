@@ -82,4 +82,4 @@ On success, **pmempool_rm**() returns 0. On error, it returns -1 and sets
 # SEE ALSO #
 
 **rpmem_remove**(3), **unlink**(3), **libpmemlog**(7),
-**libpmemobj**(7), **librpmem**(7) and **<http://pmem.io>**
+**libpmemobj**(7), **librpmem**(7) and **<https://pmem.io>**

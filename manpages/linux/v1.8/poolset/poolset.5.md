@@ -310,4 +310,4 @@ that was used for pool set creation.
 
 **ndctl-create-namespace**(1), **pmemblk_create**(3), **pmemlog_create**(3),
 **pmemobj_create**(3), **sysconf**(3), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**
