@@ -53,9 +53,9 @@ static void rotate(char **argv, int argc) {
    optopt is handled FreeBSD-style, per [3].
    Other GNU and FreeBSD extensions are purely accidental.
 
-[1] http://pubs.opengroup.org/onlinepubs/000095399/functions/getopt.html
-[2] http://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html
-[3] http://www.freebsd.org/cgi/man.cgi?query=getopt&sektion=3&manpath=FreeBSD+9.0-RELEASE
+[1] https://pubs.opengroup.org/onlinepubs/000095399/functions/getopt.html
+[2] https://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html
+[3] https://www.freebsd.org/cgi/man.cgi?query=getopt&sektion=3&manpath=FreeBSD+9.0-RELEASE
 */
 int getopt(int argc, char* const argv[], const char* optstring) {
   int optchar = -1;
@@ -180,7 +180,7 @@ no_more_optchars:
 
 /* Implementation based on [1].
 
-[1] http://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html
+[1] https://www.kernel.org/doc/man-pages/online/pages/man3/getopt.3.html
 */
 int getopt_long(int argc, char* const argv[], const char* optstring,
   const struct option* longopts, int* longindex) {

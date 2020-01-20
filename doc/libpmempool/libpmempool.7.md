@@ -278,18 +278,18 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/pmdk/libpmempool> for more examples using the
+See <https://pmem.io/pmdk/libpmempool> for more examples using the
 **libpmempool** API.
 
 # ACKNOWLEDGEMENTS #
 
 **libpmempool** builds on the persistent memory programming model
 recommended by the SNIA NVM Programming Technical Work Group:
-<http://snia.org/nvmp>
+<https://snia.org/nvmp>
 
 # SEE ALSO #
 
 **dlclose**(3), **pmempool_check_init**(3), **pmempool_feature_query**(3),
 **pmempool_rm**(3), **pmempool_sync**(3), **strerror**(3), **libpmem**(7),
 **libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)**
-and **<http://pmem.io>**
+and **<https://pmem.io>**

@@ -4,7 +4,7 @@ This is examples/libpmem/README.
 
 This directory contains examples for libpmem, the library containing
 low-level persistent memory support.  A detailed explanation of these
-examples can be found here: http://pmem.io/pmdk/libpmem
+examples can be found here: https://pmem.io/pmdk/libpmem
 
 manpage.c is the example used in the libpmem man page.
 
@@ -19,5 +19,5 @@ These examples can be built against an installed system using:
 	make LIBDIR=/usr/lib INCDIR=/usr/include
 
 If you're looking for documentation to get you started using PMDK,
-start here: http://pmem.io/pmdk and follow the links to examples and
+start here: https://pmem.io/pmdk and follow the links to examples and
 man pages.  Developers new to PMDK are probably looking for libpmemobj.

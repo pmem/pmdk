@@ -60,4 +60,4 @@ int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr);
 
 # SEE ALSO #
 
-**libpmem2**(7) and **<http://pmem.io>**
+**libpmem2**(7) and **<https://pmem.io>**

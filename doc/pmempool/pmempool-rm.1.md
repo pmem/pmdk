@@ -131,4 +131,4 @@ remote pool set files.
 # SEE ALSO #
 
 **pmempool**(1), **libpmemblk**(7), **libpmemlog**(7),
-**libpmemobj**(7), **librpmem**(7) and **<http://pmem.io>**
+**libpmemobj**(7), **librpmem**(7) and **<https://pmem.io>**

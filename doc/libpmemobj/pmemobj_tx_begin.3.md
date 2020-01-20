@@ -551,4 +551,4 @@ resources associated with that thread might not be cleaned up properly.
 **dlclose**(3), **longjmp**(3), **pmemobj_tx_add_range**(3),
 **pmemobj_tx_alloc**(3), **pthread_setcancelstate**(3),
 **pthread_setcanceltype**(3), **setjmp**(3),
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

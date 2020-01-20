@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -257,7 +257,7 @@ void ut_err(const char *file, int line, const char *func,
 #define UT_ASSERT_COMPILE_ERROR_ON(cond) UT_COMPILE_ERROR_ON(cond)
 #else /* __cplusplus */
 /*
- * XXX - workaround for http://github.com/pmem/issues/issues/189
+ * XXX - workaround for https://github.com/pmem/issues/issues/189
  */
 #define UT_ASSERT_COMPILE_ERROR_ON(cond) UT_ASSERT_rt(!(cond))
 #endif /* __cplusplus */

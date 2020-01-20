@@ -78,4 +78,4 @@ pool, expressed as the number of blocks available.
 # SEE ALSO #
 
 **pmemblk_create**(3), **pmemblk_open**(3),
-**libpmemblk**(7) and **<http://pmem.io>**
+**libpmemblk**(7) and **<https://pmem.io>**
