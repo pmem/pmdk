@@ -236,7 +236,7 @@ $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 
 html: $(HTMLFILES)
 
-web: | $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS)
+web: $(MANPAGES) | $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS)
 	$(MAKE) -C generated all
 	$(foreach f, $(MANPAGES_7_MD), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
 	$(foreach f, $(MANPAGES_5_MD), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
