@@ -140,4 +140,4 @@ See more in **pmem_ctl**(5) man page.
 
 # SEE ALSO #
 
-**libpmemlog**(7), **pmem_ctl**(5) and **<http://pmem.io>**
+**libpmemlog**(7), **pmem_ctl**(5) and **<https://pmem.io>**

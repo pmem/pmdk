@@ -416,4 +416,4 @@ See more in **pmem_ctl**(5) man page.
 
 # SEE ALSO #
 
-**libpmemobj**(7), **pmem_ctl**(5) and **<http://pmem.io>**
+**libpmemobj**(7), **pmem_ctl**(5) and **<https://pmem.io>**

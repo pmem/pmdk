@@ -204,4 +204,4 @@ assert(*foo == 0);
 
 # SEE ALSO #
 
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

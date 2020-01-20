@@ -92,4 +92,4 @@ The **pmemlog_rewind**() and **pmemlog_walk**() functions return no value.
 
 # SEE ALSO #
 
-**libpmemlog**(7) and **<http://pmem.io>**
+**libpmemlog**(7) and **<https://pmem.io>**

@@ -114,4 +114,4 @@ In order to get more information about specific *command* you can use **pmempool
 # SEE ALSO #
 
 **libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**
