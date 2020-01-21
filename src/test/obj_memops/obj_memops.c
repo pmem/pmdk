@@ -43,7 +43,7 @@
 
 #define TEST_ENTRIES 256
 
-#define TEST_VALUES 128
+#define TEST_VALUES TEST_ENTRIES
 
 enum fail_types {
 	FAIL_NONE,
@@ -100,6 +100,8 @@ test_set_entries(PMEMobjpool *pop,
 	size_t nentries, enum fail_types fail, enum operation_log_type type)
 {
 	operation_start(ctx);
+
+	UT_ASSERT(nentries <= ARRAY_SIZE(object->values));
 
 	for (size_t i = 0; i < nentries; ++i) {
 		operation_add_typed_entry(ctx,
