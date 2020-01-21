@@ -22,15 +22,21 @@ arena 0: checking BTT Map and Flog
 arena 0: invalid BTT Flog entry at 3
 arena 0: invalid BTT Flog entry at 4
 arena 0: invalid BTT Flog entry at 5
-arena 0: unmapped block 40325
-arena 0: unmapped block 40326
-arena 0: unmapped block 40327
+$(OPT)arena 0: unmapped block 40325
+$(OPX)arena 0: unmapped block 40206
+$(OPT)arena 0: unmapped block 40326
+$(OPX)arena 0: unmapped block 40207
+$(OPT)arena 0: unmapped block 40327
+$(OPX)arena 0: unmapped block 40208
 arena 0: number of unmapped blocks: 3
 arena 0: number of invalid BTT Flog entries: 3
 Do you want to repair invalid BTT Flog entries?
-arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
-arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
-arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
+$(OPT)arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
+$(OPX)arena 0: repairing BTT Flog at 5 with free block entry 0x40009d10
+$(OPT)arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
+$(OPX)arena 0: repairing BTT Flog at 4 with free block entry 0x40009d0f
+$(OPT)arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
+$(OPX)arena 0: repairing BTT Flog at 3 with free block entry 0x40009d0e
 status = repaired
 libpmempool_map_flog$(nW)TEST2: DONE
 Error: bttdevice.arena.btt_map(0)=0x40000000
@@ -57,15 +63,21 @@ arena 0: checking BTT Map and Flog
 arena 0: invalid BTT Flog entry at 3
 arena 0: invalid BTT Flog entry at 4
 arena 0: invalid BTT Flog entry at 5
-arena 0: unmapped block 40325
-arena 0: unmapped block 40326
-arena 0: unmapped block 40327
+$(OPT)arena 0: unmapped block 40325
+$(OPX)arena 0: unmapped block 40206
+$(OPT)arena 0: unmapped block 40326
+$(OPX)arena 0: unmapped block 40207
+$(OPT)arena 0: unmapped block 40327
+$(OPX)arena 0: unmapped block 40208
 arena 0: number of unmapped blocks: 3
 arena 0: number of invalid BTT Flog entries: 3
 Do you want to repair invalid BTT Flog entries?
-arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
-arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
-arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
+$(OPT)arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
+$(OPX)arena 0: repairing BTT Flog at 5 with free block entry 0x40009d10
+$(OPT)arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
+$(OPX)arena 0: repairing BTT Flog at 4 with free block entry 0x40009d0f
+$(OPT)arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
+$(OPX)arena 0: repairing BTT Flog at 3 with free block entry 0x40009d0e
 status = repaired
 libpmempool_map_flog$(nW)TEST2: DONE
 Initial: bttdevice.arena.btt_map(0)=0x00000000
@@ -92,15 +104,21 @@ arena 0: checking BTT Map and Flog
 arena 0: invalid BTT Flog entry at 3
 arena 0: invalid BTT Flog entry at 4
 arena 0: invalid BTT Flog entry at 5
-arena 0: unmapped block 40325
-arena 0: unmapped block 40326
-arena 0: unmapped block 40327
+$(OPT)arena 0: unmapped block 40325
+$(OPX)arena 0: unmapped block 40206
+$(OPT)arena 0: unmapped block 40326
+$(OPX)arena 0: unmapped block 40207
+$(OPT)arena 0: unmapped block 40327
+$(OPX)arena 0: unmapped block 40208
 arena 0: number of unmapped blocks: 3
 arena 0: number of invalid BTT Flog entries: 3
 Do you want to repair invalid BTT Flog entries?
-arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
-arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
-arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
+$(OPT)arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
+$(OPX)arena 0: repairing BTT Flog at 5 with free block entry 0x40009d10
+$(OPT)arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
+$(OPX)arena 0: repairing BTT Flog at 4 with free block entry 0x40009d0f
+$(OPT)arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
+$(OPX)arena 0: repairing BTT Flog at 3 with free block entry 0x40009d0e
 status = repaired
 libpmempool_map_flog$(nW)TEST2: DONE
 Normal: bttdevice.arena.btt_map(0)=0xC0000000
@@ -127,14 +145,20 @@ arena 0: checking BTT Map and Flog
 arena 0: invalid BTT Flog entry at 3
 arena 0: invalid BTT Flog entry at 4
 arena 0: invalid BTT Flog entry at 5
-arena 0: unmapped block 40325
-arena 0: unmapped block 40326
-arena 0: unmapped block 40327
+$(OPT)arena 0: unmapped block 40325
+$(OPX)arena 0: unmapped block 40206
+$(OPT)arena 0: unmapped block 40326
+$(OPX)arena 0: unmapped block 40207
+$(OPT)arena 0: unmapped block 40327
+$(OPX)arena 0: unmapped block 40208
 arena 0: number of unmapped blocks: 3
 arena 0: number of invalid BTT Flog entries: 3
 Do you want to repair invalid BTT Flog entries?
-arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
-arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
-arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
+$(OPT)arena 0: repairing BTT Flog at 5 with free block entry 0x40009d87
+$(OPX)arena 0: repairing BTT Flog at 5 with free block entry 0x40009d10
+$(OPT)arena 0: repairing BTT Flog at 4 with free block entry 0x40009d86
+$(OPX)arena 0: repairing BTT Flog at 4 with free block entry 0x40009d0f
+$(OPT)arena 0: repairing BTT Flog at 3 with free block entry 0x40009d85
+$(OPX)arena 0: repairing BTT Flog at 3 with free block entry 0x40009d0e
 status = repaired
 libpmempool_map_flog$(nW)TEST2: DONE
