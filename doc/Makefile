@@ -232,7 +232,7 @@ $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 %.txt: %
 	man ./$< > $@
 
-%.gz:
+%.gz: %
 	gzip -c ./$* > $@
 
 %.html: %
