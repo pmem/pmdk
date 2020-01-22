@@ -62,7 +62,42 @@ cc ... -lpmem2
 
 # GRANULARITY #
 
-XXX: explain the concept of the granularity
+The **libpmem2** library introduces the concept of granularity
+through which we easily distinguish types of reaching
+*power-fail protected domain* by data. Data can be persisted in different
+ways depending on the platform capabilities.
+
+In the case of standard storage devices, data can be written using
+system API calls such as `msync()`, `fsync()` on Linux
+or `FlushFileBuffers()` on Windows. When the function is evoked, the data
+is flushed on medium with *PAGE_SIZE* accuracy. In the **libpmem2** library,
+it is called **PMEM2_GRANULARITY_PAGE**.
+
+The second type of granularity is a **PMEM2_GRANULARITY_CACHE_LINE**.
+For systems with persistent memory support, data must be manually flushed
+from CPU caches to the ADR persistence domain. This action will prevent data
+loss in case of a power failure.
+ADR (Asynchronous DRAM Refresh) platform feature provides persistence of
+data on memory controller, however, in the case of
+CPU caches, the library is responsible for flushing data in a proper manner.
+There are several machine instructions for flushing *cache lines*, e.g.
+*CLWB*, *CLFLUSHOPT*, *CLFLUSH*. Besides, each of these instructions
+must be followed by an *SFENCE* operation to ensure the latest cache flushing
+was completed and the order of stores was preserved.
+
+The third type of granularity **PMEM2_GRANULARITY_BYTE** applies to platforms
+supporting eADR (Enhanced Asynchronous DRAM Refresh). The eADR extends
+*ADR power-fail protected domain* to CPU caches. This means cache flush
+instructions are no longer needed and the data persistence is guaranteed by
+the battery installed on the platform. Only *SFENCE* instruction is still
+needed to keep write sequence correct.
+
+The **libpmem2** exposes a *pmem2_granularity* enum which can be used for
+specifying granularity requested by user or reading effective granularity.
+
+For more details about *pmem2_granularity* definition and usage, see
+**pmem2_config_set_required_store_granularity**(3) and
+**pmem2_map_get_store_granularity**(3) manpages.
 
 # CAVEATS #
 
@@ -150,5 +185,8 @@ by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
+**FlushFileBuffers**(), fsync**(2), **msync**(2),
+**pmem2_config_set_required_store_granularity**(3),
+**pmem2_map_get_store_granularity**(3),
 **libpmem**(7), **libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
 and **<http://pmem.io>**
