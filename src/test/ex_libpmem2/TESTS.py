@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 from os import path
 from pathlib import Path
@@ -55,3 +55,39 @@ class TEST3(EX_LIBPMEM2):
         test_path, file_path = self.get_path(ctx, 'testfile3')
         ctx.exec(path.join(test_path, 'ex_pmem2_advanced'),
                  file_path, self.offset, self.length)
+
+
+@t.windows_exclude
+class TEST4(EX_LIBPMEM2):
+
+    def run(self, ctx):
+        test_path, file_path = self.get_path(ctx, 'testfile4')
+        ctx.exec(path.join(test_path, 'libpmem2',
+                 'unsafe_shutdowns'), 'create', file_path)
+
+
+@t.windows_only
+class TEST5(EX_LIBPMEM2):
+
+    def run(self, ctx):
+        test_path, file_path = self.get_path(ctx, 'testfile5')
+        ctx.exec(path.join(test_path,
+                 'ex_pmem2_unsafe_shutdowns'), 'create', file_path)
+
+
+@t.windows_exclude
+class TEST6(EX_LIBPMEM2):
+
+    def run(self, ctx):
+        test_path, file_path = self.get_path(ctx, 'testfile6')
+        ctx.exec(path.join(test_path, 'libpmem2',
+                 'unsafe_shutdowns'), 'read', file_path)
+
+
+@t.windows_only
+class TEST7(EX_LIBPMEM2):
+
+    def run(self, ctx):
+        test_path, file_path = self.get_path(ctx, 'testfile7')
+        ctx.exec(path.join(test_path,
+                 'ex_pmem2_unsafe_shutdowns'), 'read', file_path)
