@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -34,7 +34,7 @@
 # examples/libpmem2/Makefile -- build the libpmem2 examples
 #
 
-PROGS = basic advanced
+PROGS = basic advanced unsafe_shutdowns
 
 LIBS = -lpmem2
 
@@ -43,3 +43,5 @@ include ../Makefile.inc
 basic: basic.o
 
 advanced: advanced.o
+
+unsafe_shutdowns: unsafe_shutdowns.o

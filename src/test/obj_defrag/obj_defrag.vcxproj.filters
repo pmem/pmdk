@@ -21,7 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TESTS.py">
-      <Filter>Test Files</Filter>
+      <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>
 </Project>
