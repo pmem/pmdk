@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -254,7 +254,7 @@ Architecture: any
 Priority: optional
 Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: rpmem daemon
- Daemon for Remote Persistent Memory support
+ Daemon for Remote Persistent Memory support.
 EOF
 }
 
@@ -342,9 +342,9 @@ Section: misc
 Architecture: any
 Priority: optional
 Depends: libpmem (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
-Description: daxio utility
- The daxio utility performs I/O on Device DAX devices or zero
- a Device DAX device.  Since the standard I/O APIs (read/write) cannot be used
+Description: dd-like tool to read/write to a devdax device
+ The daxio utility performs I/O on Device DAX devices or zeroes a Device
+ DAX device.  Since the standard I/O APIs (read/write) cannot be used
  with Device DAX, data transfer is performed on a memory-mapped device.
  The daxio may be used to dump Device DAX data to a file, restore data from
  a backup copy, move/copy data to another device or to erase data from
@@ -522,18 +522,21 @@ Section: misc
 Architecture: any
 Priority: optional
 Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: Standalone utility for management and off-line analysis
- of Persistent Memory pools created by PMDK libraries. It provides a set
- of utilities for administration and diagnostics of Persistent Memory pools.
- Pmempool may be useful for troubleshooting by system administrators
- and users of the applications based on PMDK libraries.
+Description: utility for management and off-line analysis of PMDK memory pools
+ This utility is a standalone tool that manages Persistent Memory pools
+ created by PMDK libraries. It provides a set of utilities for
+ administration and diagnostics of Persistent Memory pools. Pmempool may be
+ useful for troubleshooting by system administrators and users of the
+ applications based on PMDK libraries.
 
 Package: pmreorder
 Section: misc
 Architecture: any
 Priority: optional
 Depends: \${shlibs:Depends}, \${misc:Depends}
-Description: Standalone tool which is a collection of python scripts designed
+Description: tool to parse and replay pmemcheck logs
+ Pmreorder is tool that parses and replays log of operations collected by
+ pmemcheck -- a  atandalone tool which is a collection of python scripts designed
  to parse and replay operations logged by pmemcheck - a persistent memory
  checking tool. Pmreorder performs the store reordering between persistent
  memory barriers - a sequence of flush-fence operations. It uses a
