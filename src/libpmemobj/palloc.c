@@ -1043,19 +1043,6 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 
 		uint64_t new_offset = reserve->heap.offset;
 
-		struct memory_block nm = memblock_from_offset(heap, new_offset);
-
-		mlock = nm.m_ops->get_lock(&nm);
-		os_mutex_lock(mlock);
-		unsigned new_fillpct = nm.m_ops->fill_pct(&nm);
-		os_mutex_unlock(mlock);
-
-		if (original_fillpct > new_fillpct) {
-			palloc_cancel(heap, reserve, 1);
-			VEC_POP_BACK(&actv);
-			continue;
-		}
-
 		VALGRIND_ADD_TO_TX(
 			HEAP_OFF_TO_PTR(heap, new_offset),
 			user_size);
