@@ -12,4 +12,5 @@ include ../Makefile.inc
 
 EXAMPLES=$(EX_LIBPMEM2)/basic\
 	$(EX_LIBPMEM2)/advanced\
-	$(EX_LIBPMEM2)/log
+	$(EX_LIBPMEM2)/log\
+	$(EX_LIBPMEM2)/unsafe_shutdowns

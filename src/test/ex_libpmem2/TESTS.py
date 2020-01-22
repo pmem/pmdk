@@ -45,3 +45,14 @@ class TEST2(EX_LIBPMEM2):
                 'appendv', '2', 'End of ', 'file.', 'dump']
 
         ctx.exec(example_path, file_path, *args, stdout_file='out2.log')
+
+
+class TEST3(EX_LIBPMEM2):
+
+    def run(self, ctx):
+        example_path = futils.get_example_path(ctx, 'pmem2',
+                                               'unsafe_shutdowns')
+        file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
+
+        ctx.exec(example_path, 'create', file_path)
+        ctx.exec(example_path, 'read', file_path)
