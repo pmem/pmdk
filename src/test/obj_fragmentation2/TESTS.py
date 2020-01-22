@@ -34,9 +34,10 @@
 from os import path
 
 import testframework as t
+from testframework import granularity as g
 
 
-@t.require_granularity(t.CACHELINE)
+@g.require_granularity(g.CACHELINE)
 @t.require_build('release')
 class BASE(t.BaseTest):
     test_type = t.Long

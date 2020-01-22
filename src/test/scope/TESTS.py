@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -41,6 +41,7 @@ import subprocess as sp
 
 import futils as ft
 import testframework as t
+from testframework import granularity as g
 
 
 def parse_lib(ctx, lib, static=False):
@@ -93,7 +94,7 @@ def parse_lib_win(ctx, lib, static):
     return '\n'.join(out) + '\n'
 
 
-@t.no_testdir()
+@g.no_testdir()
 class Common(t.Test):
     test_type = t.Medium
 

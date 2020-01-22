@@ -32,6 +32,7 @@
 #
 
 import testframework as t
+from testframework import granularity as g
 
 
 class ObjDefragAdvanced(t.BaseTest):
@@ -72,7 +73,7 @@ class TEST1(ObjDefragAdvanced):
     graph_copies = 5
 
 
-@t.require_granularity(t.CACHELINE)
+@g.require_granularity(g.CACHELINE)
 class TEST2(ObjDefragAdvanced):
     test_type = t.Medium
 
@@ -82,7 +83,7 @@ class TEST2(ObjDefragAdvanced):
     min_root_size = 4096
 
 
-@t.require_granularity(t.CACHELINE)
+@g.require_granularity(g.CACHELINE)
 class ObjDefragAdvancedMt(ObjDefragAdvanced):
     test_type = t.Medium
 

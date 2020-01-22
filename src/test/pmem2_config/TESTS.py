@@ -1,6 +1,6 @@
 #!../env.py
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,9 +33,10 @@
 
 
 import testframework as t
+from testframework import granularity as g
 
 
-@t.require_granularity(t.ANY)
+@g.require_granularity(g.ANY)
 class PMEM2_CONFIG(t.Test):
     test_type = t.Short
 
@@ -44,7 +45,7 @@ class PMEM2_CONFIG(t.Test):
         ctx.exec('pmem2_config', self.test_case, filepath)
 
 
-@t.no_testdir()
+@g.no_testdir()
 class PMEM2_CONFIG_NO_DIR(t.Test):
     test_type = t.Short
 
