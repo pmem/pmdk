@@ -233,7 +233,7 @@ $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 	man ./$< > $@
 
 %.gz: %
-	gzip -c ./$* > $@
+	gzip -nc ./$* > $@
 
 %.html: %
 	groff -mandoc -Thtml ./$< > $@
