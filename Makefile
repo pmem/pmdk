@@ -83,18 +83,18 @@ all: doc
 	$(MAKE) -C src $@
 
 doc:
-	$(MAKE) -C doc all
+	test -f .skip-doc || $(MAKE) -C doc all
 
 clean:
 	$(MAKE) -C src $@
-	$(MAKE) -C doc $@
+	test -f .skip-doc || $(MAKE) -C doc $@
 	$(MAKE) -C utils $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR)
 	$(RM) -f $(GIT_VERSION)
 
 clobber:
 	$(MAKE) -C src $@
-	$(MAKE) -C doc $@
+	test -f .skip-doc || $(MAKE) -C doc $@
 	$(MAKE) -C utils $@
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 	$(RM) -f $(GIT_VERSION)
