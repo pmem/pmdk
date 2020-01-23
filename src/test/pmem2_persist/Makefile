@@ -16,6 +16,7 @@ TARGET = pmem2_persist
 OBJS += alloc.o\
 	pmem2_persist.o\
 	persist.o\
-	util.o
+	util.o\
+	memops_generic.o
 
 include ../Makefile.inc
