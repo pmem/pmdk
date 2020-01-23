@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -267,6 +267,28 @@ heap_max_zone(size_t size)
 }
 
 /*
+ * zone_calc_size_idx_old -- (internal) calculates zone size index
+ *
+ * This is an old version that doesn't take heap header into account.
+ * It's used to check if an existing might zone have used too many chunks.
+ */
+static uint32_t
+zone_calc_size_idx_old(uint32_t zone_id, unsigned max_zone, size_t heap_size)
+{
+	if (zone_id < max_zone - 1)
+		return MAX_CHUNK;
+
+	size_t zone_raw_size = heap_size - zone_id * ZONE_MAX_SIZE;
+
+	zone_raw_size -= sizeof(struct zone_header) +
+		sizeof(struct chunk_header) * MAX_CHUNK;
+
+	size_t zone_size_idx = zone_raw_size / CHUNKSIZE;
+
+	return (uint32_t)zone_size_idx;
+}
+
+/*
  * zone_calc_size_idx -- (internal) calculates zone size index
  */
 static uint32_t
@@ -280,9 +302,11 @@ zone_calc_size_idx(uint32_t zone_id, unsigned max_zone, size_t heap_size)
 	size_t zone_raw_size = heap_size - zone_id * ZONE_MAX_SIZE;
 
 	ASSERT(zone_raw_size >= (sizeof(struct zone_header) +
-			sizeof(struct chunk_header) * MAX_CHUNK));
+			sizeof(struct chunk_header) * MAX_CHUNK) +
+			sizeof(struct heap_header));
 	zone_raw_size -= sizeof(struct zone_header) +
-		sizeof(struct chunk_header) * MAX_CHUNK;
+		sizeof(struct chunk_header) * MAX_CHUNK +
+		sizeof(struct heap_header);
 
 	size_t zone_size_idx = zone_raw_size / CHUNKSIZE;
 	ASSERT(zone_size_idx <= UINT32_MAX);
@@ -301,10 +325,10 @@ heap_zone_init(struct palloc_heap *heap, uint32_t zone_id,
 	uint32_t size_idx = zone_calc_size_idx(zone_id, heap->rt->nzones,
 			*heap->sizep);
 
-	ASSERT(size_idx - first_chunk_id > 0);
-
-	memblock_huge_init(heap, first_chunk_id, zone_id,
-		size_idx - first_chunk_id);
+	if (size_idx > first_chunk_id) {
+		memblock_huge_init(heap, first_chunk_id, zone_id,
+			size_idx - first_chunk_id);
+	}
 
 	struct zone_header nhdr = {
 		.size_idx = size_idx,
@@ -1047,6 +1071,66 @@ heap_extend(struct palloc_heap *heap, struct bucket *b, size_t size)
 }
 
 /*
+ * heap_zone_fixup_size -- mask off potentially unreachable memory from
+ *	pools affected by a size alignment bug.
+ *
+ * This will run only for pools that have a mismatch between the on-media
+ * size index and the correct runtime-calculated size index.
+ */
+static void
+heap_zone_fixup_size(struct palloc_heap *heap, uint32_t zone_id)
+{
+	struct zone *z = ZID_TO_ZONE(heap->layout, zone_id);
+	uint32_t size_idx_old = z->header.size_idx;
+	size_t size_idx = zone_calc_size_idx(zone_id, heap->rt->nzones,
+		*heap->sizep);
+
+	for (uint32_t i = 0; i < size_idx_old; ) {
+		struct chunk_header *hdr = &z->chunk_headers[i];
+		ASSERT(hdr->size_idx != 0);
+
+		uint32_t next_s = i + hdr->size_idx;
+		if (next_s > size_idx) {
+			if (hdr->type == CHUNK_TYPE_FREE) {
+				/* just re-init the zone */
+				heap_zone_init(heap, zone_id, i);
+			} else if (hdr->type == CHUNK_TYPE_RUN) {
+				/* mark the remaining bits as allocated */
+				struct memory_block m = MEMORY_BLOCK_NONE;
+				m.chunk_id = i;
+				m.zone_id = zone_id;
+				memblock_rebuild_state(heap, &m);
+				struct run_bitmap b;
+				m.m_ops->get_bitmap(&m, &b);
+				/*
+				 * We need to prevent allocation of the last
+				 * ~4 kilobytes of the last run. To do that,
+				 * we will set all bits to 1 in the last two
+				 * values (so total of 128 bits).
+				 * This is to make sure that, no matter how
+				 * the bitmap is organized, the 4 kilobytes
+				 * is always masked off. This will probably
+				 * mask more than needed - but that's fine.
+				 * This doesn't really have to be atomic
+				 * because for affected pools the code will
+				 * always have to go through this path.
+				 */
+				unsigned values = MIN(b.nvalues, 2);
+				for (unsigned i = b.nvalues - values;
+					i < b.nvalues; ++i) {
+					pmemops_memset(&heap->p_ops,
+						b.values + i,
+						0xFF, sizeof(*b.values), 0);
+				}
+			}
+			break;
+		}
+
+		i = next_s;
+	}
+}
+
+/*
  * heap_zone_update_if_needed -- updates the zone metadata if the pool has been
  *	extended.
  */
@@ -1062,6 +1146,13 @@ heap_zone_update_if_needed(struct palloc_heap *heap)
 
 		size_t size_idx = zone_calc_size_idx(i, heap->rt->nzones,
 			*heap->sizep);
+		size_t size_idx_old = zone_calc_size_idx_old(i,
+			heap->rt->nzones, *heap->sizep);
+
+		if (size_idx_old > size_idx &&
+		    size_idx_old == z->header.size_idx)
+			heap_zone_fixup_size(heap, i);
+
 		if (size_idx == z->header.size_idx)
 			continue;
 
