@@ -252,6 +252,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	map->effective_granularity = available_min_granularity;
 	map->handle = cfg->handle;
 	pmem2_set_flush_fns(map);
+	pmem2_set_mem_fns(map);
 
 	ret = pmem2_register_mapping(map);
 	if (ret)
