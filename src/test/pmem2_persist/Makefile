@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,6 +45,7 @@ TARGET = pmem2_persist
 OBJS += alloc.o\
 	pmem2_persist.o\
 	persist.o\
-	util.o
+	util.o\
+	memops_generic.o
 
 include ../Makefile.inc

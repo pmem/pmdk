@@ -59,6 +59,9 @@
     <ClCompile Include="..\..\libpmem2\x86_64\cpu.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem2\memops_generic.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\unittest\ut_pmem2_utils.h">
