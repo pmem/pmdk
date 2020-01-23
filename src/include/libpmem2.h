@@ -189,13 +189,13 @@ pmem2_drain_fn pmem2_get_drain_fn(struct pmem2_map *map);
 		PMEM2_F_MEM_WB | \
 		PMEM2_F_MEM_NOFLUSH)
 
-typedef void (*pmem2_memmove_fn)(void *pmemdest, const void *src, size_t len,
+typedef void *(*pmem2_memmove_fn)(void *pmemdest, const void *src, size_t len,
 		unsigned flags);
 
-typedef void (*pmem2_memcpy_fn)(void *pmemdest, const void *src, size_t len,
+typedef void *(*pmem2_memcpy_fn)(void *pmemdest, const void *src, size_t len,
 		unsigned flags);
 
-typedef void (*pmem2_memset_fn)(void *pmemdest, int c, size_t len,
+typedef void *(*pmem2_memset_fn)(void *pmemdest, int c, size_t len,
 		unsigned flags);
 
 pmem2_memmove_fn pmem2_get_memmove_fn(struct pmem2_map *map);
