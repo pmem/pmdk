@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -42,5 +42,7 @@ require_test_type medium
 setup
 
 expect_normal_exit ./obj_heap$EXESUFFIX t
+expect_normal_exit ./obj_heap$EXESUFFIX d
+expect_normal_exit ./obj_heap$EXESUFFIX e
 
 pass

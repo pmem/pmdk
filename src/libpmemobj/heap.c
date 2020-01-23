@@ -429,9 +429,11 @@ zone_calc_size_idx(uint32_t zone_id, unsigned max_zone, size_t heap_size)
 	size_t zone_raw_size = heap_size - zone_id * ZONE_MAX_SIZE;
 
 	ASSERT(zone_raw_size >= (sizeof(struct zone_header) +
-			sizeof(struct chunk_header) * MAX_CHUNK));
+			sizeof(struct chunk_header) * MAX_CHUNK) +
+			sizeof(struct heap_header));
 	zone_raw_size -= sizeof(struct zone_header) +
-		sizeof(struct chunk_header) * MAX_CHUNK;
+		sizeof(struct chunk_header) * MAX_CHUNK +
+		sizeof(struct heap_header);
 
 	size_t zone_size_idx = zone_raw_size / CHUNKSIZE;
 	ASSERT(zone_size_idx <= UINT32_MAX);
@@ -450,10 +452,28 @@ heap_zone_init(struct palloc_heap *heap, uint32_t zone_id,
 	uint32_t size_idx = zone_calc_size_idx(zone_id, heap->rt->nzones,
 			*heap->sizep);
 
-	ASSERT(size_idx - first_chunk_id > 0);
+	if (first_chunk_id > size_idx) {
+		/* if the pool has shrunk */
+		for (uint32_t i = 0; i < size_idx; ) {
+			struct chunk_header *hdr = &z->chunk_headers[i];
+			ASSERT(hdr->size_idx != 0);
 
-	memblock_huge_init(heap, first_chunk_id, zone_id,
-		size_idx - first_chunk_id);
+			/* shrink the last chunk if needed */
+			uint32_t next_s = i + hdr->size_idx;
+			if (next_s > size_idx) {
+				uint32_t diff = next_s - size_idx;
+				memblock_huge_init(heap, i, zone_id,
+					hdr->size_idx - diff);
+				break;
+			}
+
+			i = next_s;
+		}
+	} else {
+		/* if the pool has grown */
+		memblock_huge_init(heap, first_chunk_id, zone_id,
+			size_idx - first_chunk_id);
+	}
 
 	struct zone_header nhdr = {
 		.size_idx = size_idx,
@@ -1489,8 +1509,9 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	}
 
 	if (heap_size < *sizep) {
-		ERR("mapped region smaller than the heap size");
-		return EINVAL;
+		LOG(1, "mapped region smaller than the heap size");
+		*sizep = heap_size;
+		pmemops_persist(p_ops, sizep, sizeof(*sizep));
 	}
 
 	struct heap_rt *h = Malloc(sizeof(*h));

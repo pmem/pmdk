@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -408,6 +408,136 @@ test_heap(void)
 }
 
 static void
+test_heap_with_size()
+{
+	size_t size = PMEMOBJ_MIN_POOL + sizeof(struct zone_header) +
+		sizeof(struct chunk_header) * MAX_CHUNK +
+		sizeof(PMEMobjpool);
+
+	struct mock_pop *mpop = MMAP_ANON_ALIGNED(size,
+		Ut_mmap_align);
+	PMEMobjpool *pop = &mpop->p;
+	memset(pop, 0, size);
+	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
+	pop->p_ops.persist = obj_heap_persist;
+	pop->p_ops.flush = obj_heap_flush;
+	pop->p_ops.drain = obj_heap_drain;
+	pop->p_ops.memset = obj_heap_memset;
+	pop->p_ops.base = pop;
+	pop->set = MALLOC(sizeof(*(pop->set)));
+	pop->set->options = 0;
+	pop->set->directory_based = 0;
+
+	void *heap_start = (char *)pop + pop->heap_offset;
+	uint64_t heap_size = size - sizeof(PMEMobjpool);
+	struct palloc_heap *heap = &pop->heap;
+	struct pmem_ops *p_ops = &pop->p_ops;
+
+	UT_ASSERT(heap_check(heap_start, heap_size) != 0);
+	UT_ASSERT(heap_init(heap_start, heap_size,
+		&pop->heap_size, p_ops) == 0);
+	UT_ASSERT(heap_boot(heap, heap_start, heap_size,
+		&pop->heap_size,
+		pop, p_ops, NULL, pop->set) == 0);
+	UT_ASSERT(heap_buckets_init(heap) == 0);
+	UT_ASSERT(pop->heap.rt != NULL);
+
+	struct bucket *b_def = heap_bucket_acquire(heap,
+		DEFAULT_ALLOC_CLASS_ID, HEAP_ARENA_PER_THREAD);
+
+	struct memory_block mb;
+	mb.size_idx = 1;
+	while (heap_get_bestfit_block(heap, b_def, &mb) == 0);
+
+	/* mb should now be the last chunk in the heap */
+	char *ptr = mb.m_ops->get_real_data(&mb);
+	size_t s = mb.m_ops->get_real_size(&mb);
+
+	/* last chunk should be within the heap and accessible */
+	UT_ASSERT((size_t)ptr + s <= (size_t)mpop + size);
+	memset(ptr, 0xc, s);
+
+	heap_bucket_release(heap, b_def);
+
+	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
+	heap_cleanup(heap);
+	UT_ASSERT(heap->rt == NULL);
+
+	FREE(pop->set);
+	MUNMAP_ANON_ALIGNED(mpop, size);
+}
+
+static void
+test_heap_shrink()
+{
+	size_t size = PMEMOBJ_MIN_POOL + sizeof(struct zone_header) +
+		sizeof(struct chunk_header) * MAX_CHUNK +
+		sizeof(PMEMobjpool);
+
+	struct mock_pop *mpop = MMAP_ANON_ALIGNED(size,
+		Ut_mmap_align);
+	PMEMobjpool *pop = &mpop->p;
+	memset(pop, 0, size);
+	pop->heap_offset = (uint64_t)((uint64_t)&mpop->heap - (uint64_t)mpop);
+	pop->p_ops.persist = obj_heap_persist;
+	pop->p_ops.flush = obj_heap_flush;
+	pop->p_ops.drain = obj_heap_drain;
+	pop->p_ops.memset = obj_heap_memset;
+	pop->p_ops.base = pop;
+	pop->set = MALLOC(sizeof(*(pop->set)));
+	pop->set->options = 0;
+	pop->set->directory_based = 0;
+
+	void *heap_start = (char *)pop + pop->heap_offset;
+	uint64_t heap_size = size - sizeof(PMEMobjpool);
+	struct palloc_heap *heap = &pop->heap;
+	struct pmem_ops *p_ops = &pop->p_ops;
+
+	UT_ASSERT(heap_check(heap_start, heap_size) != 0);
+	UT_ASSERT(heap_init(heap_start, heap_size,
+		&pop->heap_size, p_ops) == 0);
+	UT_ASSERT(heap_boot(heap, heap_start, heap_size,
+		&pop->heap_size,
+		pop, p_ops, NULL, pop->set) == 0);
+	UT_ASSERT(heap_buckets_init(heap) == 0);
+	UT_ASSERT(pop->heap.rt != NULL);
+
+	struct bucket *b_def = heap_bucket_acquire(heap,
+		DEFAULT_ALLOC_CLASS_ID, HEAP_ARENA_PER_THREAD);
+
+	struct memory_block mb;
+	mb.size_idx = 1;
+	/* allocate one block to initialize the zone */
+	heap_get_bestfit_block(heap, b_def, &mb);
+
+	heap_bucket_release(heap, b_def);
+
+	struct chunk_header *hdr = GET_CHUNK_HDR(heap->layout,
+		mb.zone_id, mb.chunk_id + 1);
+	size_t last_size_idx = hdr->size_idx;
+
+	UT_ASSERT(heap_check(heap_start, heap_size) == 0);
+	heap_cleanup(heap);
+	UT_ASSERT(heap->rt == NULL);
+
+	UT_ASSERT(heap_boot(heap, heap_start,
+		heap_size - CHUNKSIZE,
+		&pop->heap_size,
+		pop, p_ops, NULL, pop->set) == 0);
+	UT_ASSERT(heap_buckets_init(heap) == 0);
+
+	size_t new_last_size_idx = hdr->size_idx;
+	UT_ASSERTeq(last_size_idx - 1, new_last_size_idx);
+
+	UT_ASSERT(heap_check(heap_start,
+		heap_size - CHUNKSIZE) == 0);
+	heap_cleanup(heap);
+
+	FREE(pop->set);
+	MUNMAP_ANON_ALIGNED(mpop, size);
+}
+
+static void
 test_recycler(void)
 {
 	struct mock_pop *mpop = MMAP_ANON_ALIGNED(MOCK_POOL_SIZE,
@@ -597,6 +727,12 @@ main(int argc, char *argv[])
 		break;
 	case 's':
 		do_fault_injection_stats();
+		break;
+	case 'd':
+		test_heap_with_size();
+		break;
+	case 'e':
+		test_heap_shrink();
 		break;
 	default:
 		UT_FATAL("unknown operation");
