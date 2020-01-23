@@ -135,7 +135,7 @@ sparse:
 	$(MAKE) -C src sparse
 
 source:
-	$(if "$(DESTDIR)", , $(error Please provide DESTDIR variable))
+	$(if "$(DESTDIR)", $(error Please provide DESTDIR variable))
 	+utils/copy-source.sh "$(DESTDIR)" $(SRCVERSION)
 
 pkg-clean:
