@@ -134,7 +134,7 @@ check-license:
 sparse:
 	$(MAKE) -C src sparse
 
-source:
+source: clobber
 	$(if "$(DESTDIR)", , $(error Please provide DESTDIR variable))
 	+utils/copy-source.sh "$(DESTDIR)" $(SRCVERSION)
 
