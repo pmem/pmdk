@@ -36,6 +36,7 @@ import testframework as t
 
 class ObjDefragAdvanced(t.BaseTest):
     test_type = t.Short
+    drd = t.DISABLE
 
     max_nodes = 50
     max_edges = 10
@@ -75,6 +76,7 @@ class TEST1(ObjDefragAdvanced):
 class TEST2(ObjDefragAdvanced):
     test_type = t.Medium
     fs = t.Pmem
+    helgrind = t.DISABLE
 
     max_nodes = 512
     max_edges = 64
@@ -101,6 +103,8 @@ class ObjDefragAdvancedMt(ObjDefragAdvanced):
 
 
 class TEST3(ObjDefragAdvancedMt):
+    drd = t.DISABLE
+
     max_nodes = 256
     max_edges = 64
     graph_copies = 10
@@ -109,6 +113,8 @@ class TEST3(ObjDefragAdvancedMt):
 
 
 class TEST4(ObjDefragAdvancedMt):
+    drd = t.DISABLE
+
     max_nodes = 128
     max_edges = 32
     graph_copies = 10
@@ -117,6 +123,11 @@ class TEST4(ObjDefragAdvancedMt):
 
 
 class TEST5(ObjDefragAdvancedMt):
+    drd = t.DISABLE
+    helgrind = t.DISABLE
+    memcheck = t.DISABLE
+    pmemcheck = t.DISABLE
+
     max_nodes = 256
     max_edges = 32
     graph_copies = 5
