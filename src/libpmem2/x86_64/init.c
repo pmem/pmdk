@@ -115,6 +115,24 @@ memmove_nodrain_##isa##_##flush(void *dest, const void *src, size_t len, \
 	return dest;\
 }
 
+#define MEMCPY_TEMPLATE_EADR(isa) \
+static void *\
+memmove_nodrain_##isa##_eadr(void *dest, const void *src, size_t len, \
+		unsigned flags, flush_func flushf)\
+{\
+	if (len == 0 || src == dest)\
+		return dest;\
+\
+	if (flags & PMEM2_F_MEM_NOFLUSH)\
+		memmove_mov_##isa##_noflush(dest, src, len);\
+	else if (flags & PMEM2_F_MEM_NONTEMPORAL)\
+		memmove_movnt_##isa##_empty(dest, src, len);\
+	else\
+		memmove_mov_##isa##_empty(dest, src, len);\
+\
+	return dest;\
+}
+
 #define MEMSET_TEMPLATE(isa, flush)\
 static void *\
 memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags,\
@@ -136,36 +154,60 @@ memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags,\
 \
 	return dest;\
 }
+
+#define MEMSET_TEMPLATE_EADR(isa) \
+static void *\
+memset_nodrain_##isa##_eadr(void *dest, int c, size_t len, unsigned flags,\
+		flush_func flushf)\
+{\
+	if (len == 0)\
+		return dest;\
+\
+	if (flags & PMEM2_F_MEM_NOFLUSH)\
+		memset_mov_##isa##_noflush(dest, c, len);\
+	else if (flags & PMEM2_F_MEM_NONTEMPORAL)\
+		memset_movnt_##isa##_empty(dest, c, len);\
+	else\
+		memset_mov_##isa##_empty(dest, c, len);\
+\
+	return dest;\
+}
 #endif
 
 #if SSE2_AVAILABLE
 MEMCPY_TEMPLATE(sse2, clflush)
 MEMCPY_TEMPLATE(sse2, clflushopt)
 MEMCPY_TEMPLATE(sse2, clwb)
+MEMCPY_TEMPLATE_EADR(sse2)
 
 MEMSET_TEMPLATE(sse2, clflush)
 MEMSET_TEMPLATE(sse2, clflushopt)
 MEMSET_TEMPLATE(sse2, clwb)
+MEMSET_TEMPLATE_EADR(sse2)
 #endif
 
 #if AVX_AVAILABLE
 MEMCPY_TEMPLATE(avx, clflush)
 MEMCPY_TEMPLATE(avx, clflushopt)
 MEMCPY_TEMPLATE(avx, clwb)
+MEMCPY_TEMPLATE_EADR(avx)
 
 MEMSET_TEMPLATE(avx, clflush)
 MEMSET_TEMPLATE(avx, clflushopt)
 MEMSET_TEMPLATE(avx, clwb)
+MEMSET_TEMPLATE_EADR(avx)
 #endif
 
 #if AVX512F_AVAILABLE
 MEMCPY_TEMPLATE(avx512f, clflush)
 MEMCPY_TEMPLATE(avx512f, clflushopt)
 MEMCPY_TEMPLATE(avx512f, clwb)
+MEMCPY_TEMPLATE_EADR(avx512f)
 
 MEMSET_TEMPLATE(avx512f, clflush)
 MEMSET_TEMPLATE(avx512f, clflushopt)
 MEMSET_TEMPLATE(avx512f, clwb)
+MEMSET_TEMPLATE_EADR(avx512f)
 #endif
 
 enum memcpy_impl {
@@ -183,6 +225,7 @@ use_sse2_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 {
 #if SSE2_AVAILABLE
 	*impl = MEMCPY_SSE2;
+	info->memmove_nodrain_eadr = memmove_nodrain_sse2_eadr;
 	if (info->flush == flush_clflush)
 		info->memmove_nodrain = memmove_nodrain_sse2_clflush;
 	else if (info->flush == flush_clflushopt)
@@ -192,6 +235,7 @@ use_sse2_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 	else
 		ASSERT(0);
 
+	info->memset_nodrain_eadr = memset_nodrain_sse2_eadr;
 	if (info->flush == flush_clflush)
 		info->memset_nodrain = memset_nodrain_sse2_clflush;
 	else if (info->flush == flush_clflushopt)
@@ -224,6 +268,7 @@ use_avx_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 	LOG(3, "PMEM_AVX enabled");
 	*impl = MEMCPY_AVX;
 
+	info->memmove_nodrain_eadr = memmove_nodrain_avx_eadr;
 	if (info->flush == flush_clflush)
 		info->memmove_nodrain = memmove_nodrain_avx_clflush;
 	else if (info->flush == flush_clflushopt)
@@ -233,6 +278,7 @@ use_avx_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 	else
 		ASSERT(0);
 
+	info->memset_nodrain_eadr = memset_nodrain_avx_eadr;
 	if (info->flush == flush_clflush)
 		info->memset_nodrain = memset_nodrain_avx_clflush;
 	else if (info->flush == flush_clflushopt)
@@ -265,6 +311,7 @@ use_avx512f_memcpy_memset(struct pmem2_arch_info *info,
 	LOG(3, "PMEM_AVX512F enabled");
 	*impl = MEMCPY_AVX512F;
 
+	info->memmove_nodrain_eadr = memmove_nodrain_avx512f_eadr;
 	if (info->flush == flush_clflush)
 		info->memmove_nodrain = memmove_nodrain_avx512f_clflush;
 	else if (info->flush == flush_clflushopt)
@@ -274,6 +321,7 @@ use_avx512f_memcpy_memset(struct pmem2_arch_info *info,
 	else
 		ASSERT(0);
 
+	info->memset_nodrain_eadr = memset_nodrain_avx512f_eadr;
 	if (info->flush == flush_clflush)
 		info->memset_nodrain = memset_nodrain_avx512f_clflush;
 	else if (info->flush == flush_clflushopt)
