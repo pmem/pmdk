@@ -32,10 +32,12 @@
 #
 
 import testframework as t
+import valgrind as vg
 
 
 class ObjDefragAdvanced(t.BaseTest):
     test_type = t.Short
+    drd = t.DISABLE
 
     max_nodes = 50
     max_edges = 10
@@ -75,6 +77,8 @@ class TEST1(ObjDefragAdvanced):
 class TEST2(ObjDefragAdvanced):
     test_type = t.Medium
     fs = t.Pmem
+    helgrind = t.DISABLE
+    drd = vg.AUTO
 
     max_nodes = 512
     max_edges = 64
@@ -117,6 +121,10 @@ class TEST4(ObjDefragAdvancedMt):
 
 
 class TEST5(ObjDefragAdvancedMt):
+    helgrind = t.DISABLE
+    memcheck = t.DISABLE
+    pmemcheck = t.DISABLE
+
     max_nodes = 256
     max_edges = 32
     graph_copies = 5
