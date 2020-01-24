@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -864,6 +864,38 @@ pmem_init(void)
 
 	pmem2_arch_init(&info);
 
+	int flush;
+	char *e = os_getenv("PMEM_NO_FLUSH");
+	if (e && (strcmp(e, "1") == 0)) {
+		flush = 0;
+		LOG(3, "Forced not flushing CPU_cache");
+	} else if (e && (strcmp(e, "0") == 0)) {
+		flush = 1;
+		LOG(3, "Forced flushing CPU_cache");
+	} else if (pmem2_auto_flush() == 1) {
+		flush = 0;
+		LOG(3, "Not flushing CPU_cache, eADR detected");
+	} else {
+		flush = 1;
+		LOG(3, "Flushing CPU cache");
+	}
+
+	Funcs.deep_flush = info.flush;
+	if (flush) {
+		Funcs.flush = info.flush;
+		Funcs.memmove_nodrain = info.memmove_nodrain;
+		Funcs.memset_nodrain = info.memset_nodrain;
+		if (info.flush_has_builtin_fence)
+			Funcs.fence = fence_empty;
+		else
+			Funcs.fence = info.fence;
+	} else {
+		Funcs.memmove_nodrain = info.memmove_nodrain_eadr;
+		Funcs.memset_nodrain = info.memset_nodrain_eadr;
+		Funcs.flush = flush_empty;
+		Funcs.fence = info.fence;
+	}
+
 	char *ptr = os_getenv("PMEM_NO_GENERIC_MEMCPY");
 	long long no_generic = 0;
 	if (ptr)
@@ -891,34 +923,6 @@ pmem_init(void)
 		}
 	} else {
 		Funcs.memset_nodrain = info.memset_nodrain;
-	}
-
-	int flush;
-	char *e = os_getenv("PMEM_NO_FLUSH");
-	if (e && (strcmp(e, "1") == 0)) {
-		flush = 0;
-		LOG(3, "Forced not flushing CPU_cache");
-	} else if (e && (strcmp(e, "0") == 0)) {
-		flush = 1;
-		LOG(3, "Forced flushing CPU_cache");
-	} else if (pmem2_auto_flush() == 1) {
-		flush = 0;
-		LOG(3, "Not flushing CPU_cache, eADR detected");
-	} else {
-		flush = 1;
-		LOG(3, "Flushing CPU cache");
-	}
-
-	Funcs.deep_flush = info.flush;
-	if (flush) {
-		Funcs.flush = info.flush;
-		if (info.flush_has_builtin_fence)
-			Funcs.fence = fence_empty;
-		else
-			Funcs.fence = info.fence;
-	} else {
-		Funcs.flush = flush_empty;
-		Funcs.fence = info.fence;
 	}
 
 	if (Funcs.flush == flush_empty)
