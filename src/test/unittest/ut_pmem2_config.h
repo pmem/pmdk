@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,6 +47,11 @@
 #define PMEM2_CONFIG_SET_FD(cfg, fd)					\
 	ut_pmem2_config_set_fd(__FILE__, __LINE__, __func__, cfg, fd)
 
+/* a pmem2_config_set_required_store_granularity() that can't return NULL */
+#define PMEM2_CONFIG_SET_GRANULARITY(cfg, g)				\
+	ut_pmem2_config_set_required_store_granularity			\
+	(__FILE__, __LINE__, __func__, cfg, g)
+
 /* a pmem2_config_delete() that can't return NULL */
 #define PMEM2_CONFIG_DELETE(cfg)					\
 	ut_pmem2_config_delete(__FILE__, __LINE__, __func__, cfg)
@@ -60,6 +65,10 @@ void ut_pmem2_config_new(const char *file, int line, const char *func,
 
 void ut_pmem2_config_set_fd(const char *file, int line, const char *func,
 	struct pmem2_config *cfg, int fd);
+
+void ut_pmem2_config_set_required_store_granularity(const char *file,
+	int line, const char *func, struct pmem2_config *cfg,
+	enum pmem2_granularity g);
 
 void ut_pmem2_config_delete(const char *file, int line, const char *func,
 	struct pmem2_config **cfg);

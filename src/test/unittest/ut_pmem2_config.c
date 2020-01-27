@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -61,6 +61,17 @@ ut_pmem2_config_set_fd(const char *file, int line, const char *func,
 	struct pmem2_config *cfg, int fd)
 {
 	int ret = pmem2_config_set_fd(cfg, fd);
+	ut_pmem2_expect_return(file, line, func, ret, 0);
+}
+
+/*
+ * pmem2_config_set_required_store_granularity -- sets granularity
+ */
+void
+ut_pmem2_config_set_required_store_granularity(const char *file, int line,
+	const char *func, struct pmem2_config *cfg, enum pmem2_granularity g)
+{
+	int ret = pmem2_config_set_required_store_granularity(cfg, g);
 	ut_pmem2_expect_return(file, line, func, ret, 0);
 }
 

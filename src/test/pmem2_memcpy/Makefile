@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2020, Intel Corporation
+# Copyright 2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,18 +31,18 @@
 #
 
 #
-# src/test/pmem_memcpy/Makefile -- build pmem_memcpy unit test
+# src/test/pmem2_memcpy/Makefile -- build pmem2_memcpy test
 #
 TOP = ../../..
-vpath %.c $(TOP)/src/test/pmem2_memcpy
+vpath %.c $(TOP)/src/test/unittest
+INCS += -I$(TOP)/src/libpmem2
 
-TARGET = pmem_memcpy
-OBJS = pmem_memcpy.o\
-	$(TOP)/src/test/pmem2_memcpy/memcpy_common.o
+TARGET = pmem2_memcpy
+OBJS += pmem2_memcpy.o\
+	memcpy_common.o\
+	ut_pmem2_utils.o\
+	ut_pmem2_config.o
 
-LIBPMEM=y
-LIBPMEMCOMMON=y
+LIBPMEM2=y
 
 include ../Makefile.inc
-
-CFLAGS += -I$(TOP)/src/test/pmem2_memcpy
