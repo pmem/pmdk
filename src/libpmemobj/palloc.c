@@ -891,6 +891,9 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 			goto err_objvp;
 	}
 
+	if (current_object_sequence > longest_object_sequence)
+		longest_object_sequence = current_object_sequence;
+
 	heap_force_recycle(heap);
 
 	/*
