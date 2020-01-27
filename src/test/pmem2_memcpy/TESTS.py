@@ -1,5 +1,6 @@
+#!../env.py
 #
-# Copyright 2015-2020, Intel Corporation
+# Copyright 2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,19 +31,47 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/pmem_memcpy/Makefile -- build pmem_memcpy unit test
-#
-TOP = ../../..
-vpath %.c $(TOP)/src/test/pmem2_memcpy
+import testframework as t
 
-TARGET = pmem_memcpy
-OBJS = pmem_memcpy.o\
-	$(TOP)/src/test/pmem2_memcpy/memcpy_common.o
 
-LIBPMEM=y
-LIBPMEMCOMMON=y
+class PMEM2_MEMCPY(t.Test):
+    test_type = t.Short
+    filesize = 4 * t.MiB
+    instruction = None
+    test_cases = [
+        # aligned everything
+        [0, 0, 4096],
+        # unaligned dest
+        [7, 0, 4096],
+        # unaligned dest, unaligned src
+        [7, 9, 4096],
+        # aligned dest, unaligned src
+        [0, 9, 4096]]
 
-include ../Makefile.inc
+    def run(self, ctx):
+        if self.instruction:
+            ctx.env[self.instruction] = '1'
+        for tc in self.test_cases:
+            filepath = ctx.create_holey_file(self.filesize, 'testfile',)
+            ctx.exec('pmem2_memcpy', filepath,
+                     str(tc[0]), str(tc[1]), str(tc[2]))
 
-CFLAGS += -I$(TOP)/src/test/pmem2_memcpy
+
+class TEST0(PMEM2_MEMCPY):
+    pass
+
+
+class TEST1(PMEM2_MEMCPY):
+    instruction = "PMEM_AVX512F"
+
+
+class TEST2(PMEM2_MEMCPY):
+    instruction = "PMEM_AVX"
+
+
+class TEST3(PMEM2_MEMCPY):
+    instruction = "PMEM_NO_MOVNT"
+
+
+class TEST4(PMEM2_MEMCPY):
+    instruction = "PMEM_NO_GENERIC_MEMCPY"

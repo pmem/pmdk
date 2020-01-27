@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020, Intel Corporation
+ * Copyright 2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,32 +31,18 @@
  */
 
 /*
- * pmem_memcpy.c -- unit test for doing a memcpy
+ * pmem2_memcpy.c -- test for doing a memcpy from libpmem2
  *
- * usage: pmem_memcpy file destoff srcoff length
+ * usage: pmem2_memcpy file destoff srcoff length
  *
  */
 
 #include "unittest.h"
-#include "util_pmem.h"
 #include "file.h"
+#include "ut_pmem2_utils.h"
+#include "ut_pmem2_config.h"
 #include "memcpy_common.h"
 
-static void *
-pmem_memcpy_persist_wrapper(void *pmemdest, const void *src, size_t len,
-		unsigned flags)
-{
-	(void) flags;
-	return pmem_memcpy_persist(pmemdest, src, len);
-}
-
-static void *
-pmem_memcpy_nodrain_wrapper(void *pmemdest, const void *src, size_t len,
-		unsigned flags)
-{
-	(void) flags;
-	return pmem_memcpy_nodrain(pmemdest, src, len);
-}
 
 /*
  * do_memcpy_variants -- do_memcpy wrapper that tests multiple variants
@@ -64,27 +50,22 @@ pmem_memcpy_nodrain_wrapper(void *pmemdest, const void *src, size_t len,
  */
 static void
 do_memcpy_variants(int fd, char *dest, int dest_off, char *src, int src_off,
-		    size_t bytes, const char *file_name, union persist p)
+		    size_t bytes, const char *file_name, union persist p,
+		    memcpy_fn fn)
 {
-	do_memcpy(fd, dest, dest_off, src, src_off, bytes, file_name,
-			pmem_memcpy_persist_wrapper, 0, p);
-
-	do_memcpy(fd, dest, dest_off, src, src_off, bytes, file_name,
-			pmem_memcpy_nodrain_wrapper, 0, p);
-
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
 		do_memcpy(fd, dest, dest_off, src, src_off, bytes, file_name,
-				pmem_memcpy, Flags[i], p);
+				fn, Flags[i], p);
 	}
 }
 
 /*
- * do_persist -- util_persist_auto wrapper for pmem_persist/msync
+ * do_persist -- wrapper for pmem_2 persist_fn
  */
 void
 do_persist(union persist p, const void *addr, size_t len)
 {
-	util_persist_auto(p.is_pmem, addr, 2 * len);
+	p.persist_fn(addr, len);
 }
 
 int
@@ -93,9 +74,10 @@ main(int argc, char *argv[])
 	int fd;
 	char *dest;
 	char *src;
-	char *dest_orig;
 	char *src_orig;
 	size_t mapped_len;
+	struct pmem2_config *cfg;
+	struct pmem2_map *map;
 
 	if (argc != 5)
 		UT_FATAL("usage: %s file srcoff destoff length", argv[0]);
@@ -110,12 +92,23 @@ main(int argc, char *argv[])
 			avx512f ? "" : "!");
 
 	fd = OPEN(argv[1], O_RDWR);
+	UT_ASSERT(fd != -1);
 	int dest_off = atoi(argv[2]);
 	int src_off = atoi(argv[3]);
 	size_t bytes = strtoul(argv[4], NULL, 0);
 
+	PMEM2_CONFIG_NEW(&cfg);
+	PMEM2_CONFIG_SET_FD(cfg, fd);
+	PMEM2_CONFIG_SET_GRANULARITY(cfg, PMEM2_GRANULARITY_PAGE);
+
+	int ret = pmem2_map(cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	PMEM2_CONFIG_DELETE(&cfg);
+
 	/* src > dst */
-	dest_orig = dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL);
+	mapped_len = pmem2_map_get_size(map);
+	dest = pmem2_map_get_address(map);
 	if (dest == NULL)
 		UT_FATAL("!could not map file: %s", argv[1]);
 
@@ -133,19 +126,16 @@ main(int argc, char *argv[])
 		if (src <= dest)
 			UT_FATAL("cannot map files in memory order");
 	}
-
-	enum file_type type = util_fd_get_type(fd);
-	if (type < 0)
-		UT_FATAL("cannot check type of file with fd %d", fd);
-
 	union persist p;
-	p.is_pmem = type == TYPE_DEVDAX;
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
+	p.persist_fn = persist_fn;
 	memset(dest, 0, (2 * bytes));
 	do_persist(p, dest, 2 * bytes);
 	memset(src, 0, (2 * bytes));
 
-	do_memcpy_variants(fd, dest, dest_off, src, src_off,
-		bytes, argv[1], p);
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
+	do_memcpy_variants(fd, dest, dest_off, src, src_off, bytes,
+		argv[1], p, memcpy_fn);
 
 	/* dest > src */
 	swap_mappings(&dest, &src, mapped_len, fd);
@@ -153,10 +143,10 @@ main(int argc, char *argv[])
 	if (dest <= src)
 		UT_FATAL("cannot map files in memory order");
 
-	do_memcpy_variants(fd, dest, dest_off, src, src_off,
-		bytes, argv[1], p);
+	do_memcpy_variants(fd, dest, dest_off, src, src_off, bytes,
+		argv[1], p, memcpy_fn);
 
-	int ret = pmem_unmap(dest_orig, mapped_len);
+	ret = pmem2_unmap(&map);
 	UT_ASSERTeq(ret, 0);
 
 	MUNMAP(src_orig, mapped_len);
