@@ -24,6 +24,17 @@ ut_pmem2_config_new(const char *file, int line, const char *func,
 }
 
 /*
+ * pmem2_config_set_required_store_granularity -- sets granularity
+ */
+void
+ut_pmem2_config_set_required_store_granularity(const char *file, int line,
+	const char *func, struct pmem2_config *cfg, enum pmem2_granularity g)
+{
+	int ret = pmem2_config_set_required_store_granularity(cfg, g);
+	ut_pmem2_expect_return(file, line, func, ret, 0);
+}
+
+/*
  * ut_pmem2_config_delete -- deallocates cfg (cannot fail)
  */
 void
