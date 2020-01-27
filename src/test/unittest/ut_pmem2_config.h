@@ -14,6 +14,11 @@
 #define PMEM2_CONFIG_NEW(cfg)						\
 	ut_pmem2_config_new(__FILE__, __LINE__, __func__, cfg)
 
+/* a pmem2_config_set_required_store_granularity() doesn't return an error */
+#define PMEM2_CONFIG_SET_GRANULARITY(cfg, g)				\
+	ut_pmem2_config_set_required_store_granularity			\
+	(__FILE__, __LINE__, __func__, cfg, g)
+
 /* a pmem2_config_delete() that can't return NULL */
 #define PMEM2_CONFIG_DELETE(cfg)					\
 	ut_pmem2_config_delete(__FILE__, __LINE__, __func__, cfg)
@@ -32,6 +37,10 @@
 
 void ut_pmem2_config_new(const char *file, int line, const char *func,
 	struct pmem2_config **cfg);
+
+void ut_pmem2_config_set_required_store_granularity(const char *file,
+	int line, const char *func, struct pmem2_config *cfg,
+	enum pmem2_granularity g);
 
 void ut_pmem2_config_delete(const char *file, int line, const char *func,
 	struct pmem2_config **cfg);
