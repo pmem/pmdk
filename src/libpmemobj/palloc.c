@@ -879,10 +879,10 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 	for (size_t i = 0; i < objcnt; ++i) {
 		if (i != 0 && *objv[i - 1] == *objv[i]) {
 			current_object_sequence += 1;
-		} else {
 			if (current_object_sequence > longest_object_sequence)
 				longest_object_sequence =
 					current_object_sequence;
+		} else {
 			current_object_sequence = 1;
 		}
 
