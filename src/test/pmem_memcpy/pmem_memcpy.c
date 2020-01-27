@@ -11,9 +11,7 @@
 #include "unittest.h"
 #include "util_pmem.h"
 #include "file.h"
-
-typedef void *pmem_memcpy_fn(void *pmemdest, const void *src, size_t len,
-		unsigned flags);
+#include "memcpy_common.h"
 
 static void *
 pmem_memcpy_persist_wrapper(void *pmemdest, const void *src, size_t len,
@@ -32,128 +30,32 @@ pmem_memcpy_nodrain_wrapper(void *pmemdest, const void *src, size_t len,
 }
 
 /*
- * swap_mappings - given to mmapped regions swap them.
- *
- * Try swapping src and dest by unmapping src, mapping a new dest with
- * the original src address as a hint. If successful, unmap original dest.
- * Map a new src with the original dest as a hint.
- */
-static void
-swap_mappings(char **dest, char **src, size_t size, int fd)
-{
-	char *d = *dest;
-	char *s = *src;
-	char *td, *ts;
-
-	MUNMAP(*src, size);
-
-	/* mmap destination using src addr as hint */
-	td = MMAP(s, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-
-	MUNMAP(*dest, size);
-	*dest = td;
-
-	/* mmap src using original destination addr as a hint */
-	ts = MMAP(d, size, PROT_READ|PROT_WRITE, MAP_SHARED|MAP_ANONYMOUS,
-		-1, 0);
-	*src = ts;
-}
-
-/*
- * do_memcpy: Worker function for memcpy
- *
- * Always work within the boundary of bytes. Fill in 1/2 of the src
- * memory with the pattern we want to write. This allows us to check
- * that we did not overwrite anything we were not supposed to in the
- * dest.  Use the non pmem version of the memset/memcpy commands
- * so as not to introduce any possible side affects.
- */
-
-static void
-do_memcpy(int fd, char *dest, int dest_off, char *src, int src_off,
-    size_t bytes, const char *file_name, pmem_memcpy_fn fn, unsigned flags)
-{
-	void *ret;
-	char *buf = MALLOC(bytes);
-
-	enum file_type type = util_fd_get_type(fd);
-	if (type < 0)
-		UT_FATAL("cannot check type of file with fd %d", fd);
-
-	memset(buf, 0, bytes);
-	memset(dest, 0, bytes);
-	memset(src, 0, bytes);
-	util_persist_auto(type == TYPE_DEVDAX, src, bytes);
-
-	memset(src, 0x5A, bytes / 4);
-	util_persist_auto(type == TYPE_DEVDAX, src, bytes / 4);
-	memset(src + bytes / 4, 0x46, bytes / 4);
-	util_persist_auto(type == TYPE_DEVDAX, src + bytes / 4,
-			bytes / 4);
-
-	/* dest == src */
-	ret = fn(dest + dest_off, dest + dest_off, bytes / 2, flags);
-	UT_ASSERTeq(ret, dest + dest_off);
-	UT_ASSERTeq(*(char *)(dest + dest_off), 0);
-
-	/* len == 0 */
-	ret = fn(dest + dest_off, src, 0, flags);
-	UT_ASSERTeq(ret, dest + dest_off);
-	UT_ASSERTeq(*(char *)(dest + dest_off), 0);
-
-	ret = fn(dest + dest_off, src + src_off, bytes / 2, flags);
-	UT_ASSERTeq(ret, dest + dest_off);
-
-	/* memcmp will validate that what I expect in memory. */
-	if (memcmp(src + src_off, dest + dest_off, bytes / 2))
-		UT_FATAL("%s: first %zu bytes do not match",
-			file_name, bytes / 2);
-
-	/* Now validate the contents of the file */
-	LSEEK(fd, (os_off_t)dest_off, SEEK_SET);
-	if (READ(fd, buf, bytes / 2) == bytes / 2) {
-		if (memcmp(src + src_off, buf, bytes / 2))
-			UT_FATAL("%s: first %zu bytes do not match",
-				file_name, bytes / 2);
-	}
-
-	FREE(buf);
-}
-
-static unsigned Flags[] = {
-		0,
-		PMEM_F_MEM_NODRAIN,
-		PMEM_F_MEM_NONTEMPORAL,
-		PMEM_F_MEM_TEMPORAL,
-		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL,
-		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_NODRAIN,
-		PMEM_F_MEM_WC,
-		PMEM_F_MEM_WB,
-		PMEM_F_MEM_NOFLUSH,
-		/* all possible flags */
-		PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH |
-			PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL |
-			PMEM_F_MEM_WC | PMEM_F_MEM_WB,
-};
-
-/*
  * do_memcpy_variants -- do_memcpy wrapper that tests multiple variants
  * of memcpy functions
  */
 static void
 do_memcpy_variants(int fd, char *dest, int dest_off, char *src, int src_off,
-		    size_t bytes, const char *file_name)
+		    size_t bytes, const char *file_name, union persist p)
 {
 	do_memcpy(fd, dest, dest_off, src, src_off, bytes, file_name,
-			pmem_memcpy_persist_wrapper, 0);
+			pmem_memcpy_persist_wrapper, 0, p);
 
 	do_memcpy(fd, dest, dest_off, src, src_off, bytes, file_name,
-			pmem_memcpy_nodrain_wrapper, 0);
+			pmem_memcpy_nodrain_wrapper, 0, p);
 
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
 		do_memcpy(fd, dest, dest_off, src, src_off, bytes, file_name,
-				pmem_memcpy, Flags[i]);
+				pmem_memcpy, Flags[i], p);
 	}
+}
+
+/*
+ * do_persist -- util_persist_auto wrapper for pmem_persist/msync
+ */
+void
+do_persist(union persist p, const void *addr, size_t len)
+{
+	util_persist_auto(p.is_pmem, addr, 2 * len);
 }
 
 int
@@ -207,11 +109,14 @@ main(int argc, char *argv[])
 	if (type < 0)
 		UT_FATAL("cannot check type of file with fd %d", fd);
 
+	union persist p;
+	p.is_pmem = type == TYPE_DEVDAX;
 	memset(dest, 0, (2 * bytes));
-	util_persist_auto(type == TYPE_DEVDAX, dest, 2 * bytes);
+	do_persist(p, dest, 2 * bytes);
 	memset(src, 0, (2 * bytes));
 
-	do_memcpy_variants(fd, dest, dest_off, src, src_off, bytes, argv[1]);
+	do_memcpy_variants(fd, dest, dest_off, src, src_off,
+		bytes, argv[1], p);
 
 	/* dest > src */
 	swap_mappings(&dest, &src, mapped_len, fd);
@@ -219,7 +124,8 @@ main(int argc, char *argv[])
 	if (dest <= src)
 		UT_FATAL("cannot map files in memory order");
 
-	do_memcpy_variants(fd, dest, dest_off, src, src_off, bytes, argv[1]);
+	do_memcpy_variants(fd, dest, dest_off, src, src_off,
+		bytes, argv[1], p);
 
 	int ret = pmem_unmap(dest_orig, mapped_len);
 	UT_ASSERTeq(ret, 0);
