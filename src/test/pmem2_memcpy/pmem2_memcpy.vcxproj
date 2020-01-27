@@ -11,30 +11,29 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\test\pmem_memcpy\pmem_memcpy.c" />
-    <ClCompile Include="..\pmem2_memcpy\memcpy_common.c" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="TEST0.PS1" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
-      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
-      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
+    <ProjectReference Include="..\..\libpmem2\libpmem2.vcxproj">
+      <Project>{f596c36c-5c96-4f08-b420-8908af500954}</Project>
     </ProjectReference>
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\pmem2_memcpy\memcpy_common.h" />
+    <None Include="TESTS.py" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\unittest\ut_pmem2_config.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
+    <ClCompile Include="memcpy_common.c" />
+    <ClCompile Include="pmem2_memcpy.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="memcpy_common.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{673277EC-D26B-414D-92E3-84EE873316A8}</ProjectGuid>
+    <ProjectGuid>{D43FCFB6-97D2-44B2-8577-94B43B97D7CA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>pmem_memcpy</RootNamespace>
+    <RootNamespace>pmem2_memcpy</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -68,14 +67,14 @@
     <ClCompile />
     <Link />
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\test\pmem2_memcpy;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile />
     <Link />
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\test\pmem2_memcpy;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmem2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
