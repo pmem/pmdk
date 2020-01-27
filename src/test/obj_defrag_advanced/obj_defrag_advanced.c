@@ -141,8 +141,6 @@ graph_defrag_ntimes(PMEMobjpool *pop, PMEMoid oid, unsigned max_rounds)
 		relocated = graph_defrag(pop, oid);
 		++rounds;
 	} while (relocated > 0 && rounds < max_rounds);
-
-	UT_OUT("# of defragmentation rounds: %u", rounds);
 }
 
 #define HAS_TO_EXIST (1)
