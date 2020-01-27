@@ -9,13 +9,15 @@
       <UniqueIdentifier>{be9f59bd-3dd9-4c45-8726-809fcdf7520f}</UniqueIdentifier>
       <Extensions>ps1</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{69718992-5651-4f8d-bcc3-19741fba29ca}</UniqueIdentifier>
-      <Extensions>match</Extensions>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{e2d1d2f8-73d7-4f5e-8004-16934d80c022}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\pmem_memcpy\pmem_memcpy.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pmem2_memcpy\memcpy_common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -23,5 +25,10 @@
     <None Include="TEST0.PS1">
       <Filter>Test Scripts</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\pmem2_memcpy\memcpy_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
