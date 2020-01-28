@@ -15,3 +15,4 @@ pmem2_source_alignment.3
 pmem2_source_from_fd.3
 pmem2_source_size.3
 pmem2_unmap.3
+pmem2_perror.3
