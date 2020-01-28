@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ; SPDX-License-Identifier: BSD-3-Clause
-; Copyright 2019, Intel Corporation
+; Copyright 2019-2020, Intel Corporation
 ;;;;  End Copyright Notice
 
 LIBRARY libpmem2
@@ -42,5 +42,7 @@ EXPORTS
 	pmem2_source_device_usc
 	pmem2_errormsgU
 	pmem2_errormsgW
+	pmem2_perrorU
+	pmem2_perrorW
 
 	DllMain
