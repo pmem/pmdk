@@ -1,5 +1,6 @@
+#!../env.py
 #
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,42 +30,33 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-#
-# src/libpmem2.link -- linker link file for libpmem2
-#
-LIBPMEM2_1.0 {
-	global:
-		pmem2_config_new;
-		pmem2_config_set_fd;
-		pmem2_config_delete;
-		pmem2_config_get_alignment;
-		pmem2_config_get_file_size;
-		pmem2_config_set_offset;
-		pmem2_config_set_length;
-		pmem2_config_set_sharing;
-		pmem2_config_set_protection;
-		pmem2_config_use_anonymous_mapping;
-		pmem2_config_set_address;
-		pmem2_config_set_required_store_granularity;
-		pmem2_map;
-		pmem2_unmap;
-		pmem2_map_get_address;
-		pmem2_map_get_size;
-		pmem2_map_get_store_granularity;
-		pmem2_get_persist_fn;
-		pmem2_get_flush_fn;
-		pmem2_get_drain_fn;
-		pmem2_get_memmove_fn;
-		pmem2_get_memcpy_fn;
-		pmem2_get_memset_fn;
-		pmem2_get_device_id;
-		pmem2_get_device_usc;
-		pmem2_badblock_iterator_new;
-		pmem2_badblock_next;
-		pmem2_badblock_iterator_delete;
-		pmem2_badblock_clear;
-		pmem2_errormsg;
-		pmem2_perror;
-	local:
-		*;
-};
+
+
+import testframework as t
+
+
+class TEST0(t.Test):
+    test_type = t.Short
+
+    def run(self, ctx):
+        filepath1 = ctx.create_holey_file(1 * t.KiB, 'testfile1',)
+        filepath2 = ctx.create_holey_file(1 * t.KiB, 'testfile2',)
+        '''
+        UNITTEST_DO_NOT_CHECK_OPEN_FILES is needed because in test freopen func
+        is used
+        '''
+        ctx.env['UNITTEST_DO_NOT_CHECK_OPEN_FILES'] = '1'
+        ctx.exec('pmem2_perror', 'test_simple_check', filepath1, filepath2)
+
+
+class TEST1(t.Test):
+    test_type = t.Short
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(1 * t.KiB, 'testfile',)
+        '''
+        UNITTEST_DO_NOT_CHECK_OPEN_FILES is needed because in test freopen func
+        is used
+        '''
+        ctx.env['UNITTEST_DO_NOT_CHECK_OPEN_FILES'] = '1'
+        ctx.exec('pmem2_perror', 'test_format_check', filepath)
