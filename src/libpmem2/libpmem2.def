@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ;
-; Copyright 2019, Intel Corporation
+; Copyright 2019-2020, Intel Corporation
 ;
 ; Redistribution and use in source and binary forms, with or without
 ; modification, are permitted provided that the following conditions
@@ -70,5 +70,7 @@ EXPORTS
 	pmem2_badblock_clear
 	pmem2_errormsgU
 	pmem2_errormsgW
+	pmem2_perrorU
+	pmem2_perrorW
 
 	DllMain

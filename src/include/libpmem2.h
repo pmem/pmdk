@@ -52,9 +52,11 @@
 #ifndef PMDK_UTF8_API
 #define pmem2_get_device_id pmem2_get_device_idW
 #define pmem2_errormsg pmem2_errormsgW
+#define pmem2_perror pmem2_perrorW
 #else
 #define pmem2_get_device_id pmem2_get_device_idU
 #define pmem2_errormsg pmem2_errormsgU
+#define pmem2_perror pmem2_perrorU
 #endif
 
 #endif
@@ -237,6 +239,15 @@ const wchar_t *pmem2_errormsgW(void);
 #endif
 
 int pmem2_err_to_errno(int);
+
+#ifndef _WIN32
+void pmem2_perror(const char *s,
+		...) __attribute__((__format__(__printf__, 1, 2)));
+#else
+void pmem2_perrorU(const char *s, ...);
+
+void pmem2_perrorW(const wchar_t *s, ...);
+#endif
 
 #ifdef __cplusplus
 }
