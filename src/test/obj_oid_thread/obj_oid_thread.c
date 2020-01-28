@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
 		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
 
 	util_mutex_init(&lock);
-	os_cond_init(&cond);
+	util_cond_init(&cond);
 
 	unsigned npools = ATOU(argv[2]);
 	const char *dir = argv[1];
@@ -163,7 +163,7 @@ main(int argc, char *argv[])
 	FREE(allocated_memory);
 
 	util_mutex_destroy(&lock);
-	os_cond_destroy(&cond);
+	util_cond_destroy(&cond);
 
 	DONE(NULL);
 }

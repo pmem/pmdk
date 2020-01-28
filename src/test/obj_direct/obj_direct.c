@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -91,8 +91,8 @@ main(int argc, char *argv[])
 
 	util_mutex_init(&lock1);
 	util_mutex_init(&lock2);
-	os_cond_init(&sync_cond1);
-	os_cond_init(&sync_cond2);
+	util_cond_init(&sync_cond1);
+	util_cond_init(&sync_cond2);
 	cond1 = cond2 = 0;
 
 	PMEMobjpool **pops = MALLOC(npools * sizeof(PMEMobjpool *));
@@ -163,8 +163,8 @@ main(int argc, char *argv[])
 	util_mutex_unlock(&lock2);
 
 	PTHREAD_JOIN(&t, NULL);
-	os_cond_destroy(&sync_cond1);
-	os_cond_destroy(&sync_cond2);
+	util_cond_destroy(&sync_cond1);
+	util_cond_destroy(&sync_cond2);
 	util_mutex_destroy(&lock1);
 	util_mutex_destroy(&lock2);
 	FREE(pops);
