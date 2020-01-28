@@ -838,6 +838,28 @@ palloc_pointer_compare(const void *lhs, const void *rhs)
 	return 0;
 }
 
+VEC(pobj_actions, struct pobj_action);
+
+/*
+ * pobj_actions_add -- add a new action to the end of the vector and return
+ *      its slot. Vector must be able to hold the new value. Reallocation is
+ *      forbidden.
+ */
+static struct pobj_action *
+pobj_actions_add(struct pobj_actions *actv)
+{
+	/*
+	 * This shouldn't happen unless there's a bug in the calculation
+	 * of the maximum number of actions.
+	 */
+	if (VEC_SIZE(actv) == VEC_CAPACITY(actv))
+		abort();
+
+	actv->size++;
+
+	return &VEC_BACK(actv);
+}
+
 /*
  * palloc_defrag -- forces recycling of all available memory, and reallocates
  *	provided objects so that they have the lowest possible address.
@@ -891,6 +913,9 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 			goto err_objvp;
 	}
 
+	if (current_object_sequence > longest_object_sequence)
+		longest_object_sequence = current_object_sequence;
+
 	heap_force_recycle(heap);
 
 	/*
@@ -901,7 +926,7 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 		LANE_REDO_EXTERNAL_SIZE / sizeof(struct ulog_entry_val)
 		- actions_per_realloc;
 
-	VEC(, struct pobj_action) actv;
+	struct pobj_actions actv;
 	VEC_INIT(&actv);
 
 	/*
@@ -917,6 +942,11 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 
 	if (VEC_RESERVE(&actv, actv_required_capacity) != 0)
 		goto err;
+
+	/*
+	 * Do NOT reallocate action vector after this line, because
+	 * prev_reserve can point to the slot in the original vector.
+	 */
 
 	struct pobj_action *prev_reserve = NULL;
 	uint64_t prev_offset = 0;
@@ -973,8 +1003,7 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 		 * the pointer to the new offset.
 		 */
 		if (prev_reserve && prev_offset == offset) {
-			VEC_INC_BACK(&actv);
-			struct pobj_action *set = &VEC_BACK(&actv);
+			struct pobj_action *set = pobj_actions_add(&actv);
 
 			palloc_set_value(heap, set,
 				offsetp, prev_reserve->heap.offset);
@@ -1029,8 +1058,7 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 
 		size_t user_size = m.m_ops->get_user_size(&m);
 
-		VEC_INC_BACK(&actv);
-		struct pobj_action *reserve = &VEC_BACK(&actv);
+		struct pobj_action *reserve = pobj_actions_add(&actv);
 
 		if (palloc_reservation_create(heap, user_size,
 		    NULL, NULL,
@@ -1087,8 +1115,7 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 		}
 		offsetp = objv[i];
 
-		VEC_INC_BACK(&actv);
-		struct pobj_action *set = &VEC_BACK(&actv);
+		struct pobj_action *set = pobj_actions_add(&actv);
 
 		/*
 		 * We need to change the pointer in the tree to the pointer
@@ -1108,8 +1135,7 @@ palloc_defrag(struct palloc_heap *heap, uint64_t **objv, size_t objcnt,
 		if (ravl_emplace_copy(objvp, &e) != 0)
 			goto err;
 
-		VEC_INC_BACK(&actv);
-		struct pobj_action *dfree = &VEC_BACK(&actv);
+		struct pobj_action *dfree = pobj_actions_add(&actv);
 
 		palloc_defer_free(heap, offset, dfree);
 
