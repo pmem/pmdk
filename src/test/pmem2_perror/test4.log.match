@@ -1,0 +1,1 @@
+test: ${fstat: Bad file descriptor|GetFileInformationByHandle: The handle is invalid.}
