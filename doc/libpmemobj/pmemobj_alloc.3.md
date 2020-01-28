@@ -98,10 +98,12 @@ failure or system crash, on recovery they are guaranteed to be entirely complete
 or discarded, leaving the persistent memory heap and internal object containers
 in a consistent state.
 
-All these functions can be used outside transactions. Note that operations
-performed using the non-transactional API are considered durable after
-completion, even if executed within an open transaction. Such non-transactional
-changes will not be rolled back if the transaction is aborted or interrupted.
+All these functions should be used outside transactions. If executed within
+an open transaction they are considered durable immediately after completion.
+Changes made with these functions will not be rolled back if the transaction
+is aborted or interrupted. And they have no information about other changes made
+by transactional API. Hence, if transactional and non-transactional calls are
+performed within a single transaction, corruption of the data may occur.
 
 The allocations are always aligned to a cache-line boundary.
 
