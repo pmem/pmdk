@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -294,22 +294,22 @@ main(int argc, char *argv[])
 	} else if (t == 's') {
 		os_thread_t threads[NTHREAD];
 		util_mutex_init(&lock);
-		os_cond_init(&cond);
+		util_cond_init(&cond);
 
 		create_alloc_class();
 		for (int i = 0; i < NTHREAD; i++)
-			PTHREAD_CREATE(&threads[i], NULL, worker_arenas_size,
+			THREAD_CREATE(&threads[i], NULL, worker_arenas_size,
 					(void *)(intptr_t)i);
 
 		for (int i = 0; i < NTHREAD; i++)
-			PTHREAD_JOIN(&threads[i], NULL);
+			THREAD_JOIN(&threads[i], NULL);
 
 		PMEMoid oid, oid2;
 		POBJ_FOREACH_SAFE(pop, oid, oid2)
 			pmemobj_free(&oid);
 
 		util_mutex_destroy(&lock);
-		os_cond_destroy(&cond);
+		util_cond_destroy(&cond);
 	} else if (t == 'c') {
 		char arena_idx_auto[CTL_QUERY_LEN];
 		unsigned narenas_b = 0;
@@ -434,23 +434,23 @@ main(int argc, char *argv[])
 		os_thread_t threads[NTHREAD_ARENA];
 
 		for (int i = 0; i < NTHREAD_ARENA; i++) {
-			PTHREAD_CREATE(&threads[i], NULL, worker_arena_threads,
+			THREAD_CREATE(&threads[i], NULL, worker_arena_threads,
 					&ref);
 		}
 
 		for (int i = 0; i < NTHREAD_ARENA; i++)
-			PTHREAD_JOIN(&threads[i], NULL);
+			THREAD_JOIN(&threads[i], NULL);
 	} else if (t == 'f') {
 		os_thread_t threads[NTHREADX];
 
 		create_alloc_class();
 
 		for (int i = 0; i < NTHREADX; i++)
-			PTHREAD_CREATE(&threads[i], NULL,
+			THREAD_CREATE(&threads[i], NULL,
 					worker_arenas_flag, NULL);
 
 		for (int i = 0; i < NTHREADX; i++)
-			PTHREAD_JOIN(&threads[i], NULL);
+			THREAD_JOIN(&threads[i], NULL);
 
 		PMEMoid oid, oid2;
 		POBJ_FOREACH_SAFE(pop, oid, oid2)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -122,12 +122,12 @@ main(int argc, char *argv[])
 	os_thread_t *threads = MALLOC(THREADS * sizeof(threads[0]));
 
 	for (int j = 0; j < THREADS / 2; ++j) {
-		PTHREAD_CREATE(&threads[i++], NULL, tx_alloc_free, NULL);
-		PTHREAD_CREATE(&threads[i++], NULL, tx_snap, NULL);
+		THREAD_CREATE(&threads[i++], NULL, tx_alloc_free, NULL);
+		THREAD_CREATE(&threads[i++], NULL, tx_snap, NULL);
 	}
 
 	while (i > 0)
-		PTHREAD_JOIN(&threads[--i], NULL);
+		THREAD_JOIN(&threads[--i], NULL);
 
 	pmemobj_close(pop);
 

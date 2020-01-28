@@ -569,12 +569,12 @@ int ut_thread_join(const char *file, int line, const char *func,
     os_thread_t *thread, void **value_ptr);
 
 /* a os_thread_create() that can't return an error */
-#define PTHREAD_CREATE(thread, attr, start_routine, arg)\
+#define THREAD_CREATE(thread, attr, start_routine, arg)\
     ut_thread_create(__FILE__, __LINE__, __func__,\
     thread, attr, start_routine, arg)
 
 /* a os_thread_join() that can't return an error */
-#define PTHREAD_JOIN(thread, value_ptr)\
+#define THREAD_JOIN(thread, value_ptr)\
     ut_thread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
 
 /*

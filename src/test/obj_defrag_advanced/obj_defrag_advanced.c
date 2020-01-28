@@ -504,13 +504,13 @@ op_graph_create_n_defrag_mt(const struct test_case *tc, int argc, char *argv[])
 	os_thread_t *threads = (os_thread_t *)MALLOC(
 			sizeof(*threads) * nthreads);
 	for (unsigned i = 0; i < nthreads; ++i)
-		os_thread_create(&threads[i], NULL, create_n_defrag_thread,
+		THREAD_CREATE(&threads[i], NULL, create_n_defrag_thread,
 				&paramss[i]);
 
 	/* join all threads */
 	void *ret = NULL;
 	for (unsigned i = 0; i < nthreads; ++i) {
-		os_thread_join(&threads[i], &ret);
+		THREAD_JOIN(&threads[i], &ret);
 		UT_ASSERTeq(ret, NULL);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -186,11 +186,11 @@ do_lock_mt(TOID(struct locks) lock, unsigned f_num)
 	for (int i = 0; i < NUM_THREADS; ++i) {
 		threads[i].lock = lock;
 		threads[i].t_id = i;
-		PTHREAD_CREATE(&threads[i].t, NULL, do_lock[f_num],
+		THREAD_CREATE(&threads[i].t, NULL, do_lock[f_num],
 								&threads[i]);
 	}
 	for (int i = 0; i < NUM_THREADS; ++i)
-		PTHREAD_JOIN(&threads[i].t, NULL);
+		THREAD_JOIN(&threads[i].t, NULL);
 
 	/*
 	 * If all threads passed function properly and used every lock, there
