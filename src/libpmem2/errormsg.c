@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -66,5 +66,54 @@ const wchar_t *
 pmem2_errormsgW(void)
 {
 	return out_get_errormsgW();
+}
+#endif
+
+/*
+ * pmem2_perrorU -- prints a descriptive error message to the stderr
+ */
+#ifndef _WIN32
+static inline
+#endif
+void
+pmem2_perrorU(const char *s, ...)
+{
+	va_list args;
+	va_start(args, s);
+
+	vfprintf(stderr, s, args);
+	fprintf(stderr, "%s\n", pmem2_errormsg());
+
+	va_end(args);
+}
+
+#ifndef _WIN32
+/*
+ * pmem2_perror -- prints a descriptive error message to the stderr
+ */
+void
+pmem2_perror(const char *s, ...)
+{
+	va_list args;
+	va_start(args, s);
+
+	pmem2_perrorU(s, args);
+
+	va_end(args);
+}
+#else
+/*
+ * pmem2_perrorW -- prints a descriptive error message to the stderr
+ */
+void
+pmem2_perrorW(const wchar_t *s, ...)
+{
+	va_list args;
+	va_start(args, s);
+
+	vfwprintf(stderr, s, args);
+	fwprintf(stderr, L"%s\n", pmem2_errormsgW());
+
+	va_end(args);
 }
 #endif
