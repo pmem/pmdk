@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -247,8 +247,8 @@ test_lane_info_destroy_in_separate_thread(void)
 	data.work = LANE_INFO_DESTROY;
 	os_thread_t thread;
 
-	os_thread_create(&thread, NULL, test_separate_thread, &data);
-	os_thread_join(&thread, NULL);
+	PTHREAD_CREATE(&thread, NULL, test_separate_thread, &data);
+	PTHREAD_JOIN(&thread, NULL);
 
 	lane_info_destroy();
 }
@@ -286,8 +286,8 @@ test_lane_cleanup_in_separate_thread(void)
 	data.work = LANE_CLEANUP;
 	os_thread_t thread;
 
-	os_thread_create(&thread, NULL, test_separate_thread, &data);
-	os_thread_join(&thread, NULL);
+	PTHREAD_CREATE(&thread, NULL, test_separate_thread, &data);
+	PTHREAD_JOIN(&thread, NULL);
 
 	UT_ASSERTeq(pop->p.lanes_desc.lane, NULL);
 	UT_ASSERTeq(pop->p.lanes_desc.lane_locks, NULL);

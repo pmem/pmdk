@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -336,10 +336,10 @@ run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 	os_thread_t t[MAX_THREADS];
 
 	for (unsigned i = 0; i < Threads; ++i)
-		os_thread_create(&t[i], NULL, worker_func, &args[i]);
+		PTHREAD_CREATE(&t[i], NULL, worker_func, &args[i]);
 
 	for (unsigned i = 0; i < Threads; ++i)
-		os_thread_join(&t[i], NULL);
+		PTHREAD_JOIN(&t[i], NULL);
 }
 
 int
