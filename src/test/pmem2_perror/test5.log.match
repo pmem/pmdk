@@ -1,0 +1,5 @@
+test 123: ${fstat: Bad file descriptor|GetFileInformationByHandle: The handle is invalid.}
+$(OPT)
+$(OPT)
+$(OPT)
+$(OPT)
