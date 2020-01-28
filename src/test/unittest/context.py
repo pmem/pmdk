@@ -236,7 +236,7 @@ class Context(ContextBase):
     def new_poolset(self, path):
         return _Poolset(path, self)
 
-    def exec(self, cmd, *args, expected_exitcode=0):
+    def exec(self, cmd, *args, expected_exitcode=0, stderr_file=None):
         """Execute binary in current test context"""
 
         tmp = self._env.copy()
@@ -265,9 +265,19 @@ class Context(ContextBase):
             # tracer command in an interactive session
             proc = sp.run(cmd, env=tmp, cwd=self.cwd)
         else:
-            proc = sp.run(cmd, env=tmp, cwd=self.cwd,
-                          timeout=self.conf.timeout, stdout=sp.PIPE,
-                          stderr=sp.STDOUT, universal_newlines=True)
+            # let's create dictionary to avoid argument repetition
+            run_kwargs = {
+                          'env': tmp,
+                          'cwd': self.cwd,
+                          'timeout': self.conf.timeout,
+                          'stdout': sp.PIPE,
+                          'universal_newlines': True}
+            # redirect stderr to the newly created file
+            if stderr_file:
+                with open(os.path.join(self.cwd, stderr_file), 'w') as f:
+                    proc = sp.run(cmd, **run_kwargs, stderr=f)
+            else:
+                proc = sp.run(cmd, **run_kwargs, stderr=sp.STDOUT)
 
         if expected_exitcode is not None and \
            proc.returncode != expected_exitcode:
