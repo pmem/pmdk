@@ -42,5 +42,7 @@ EXPORTS
 	pmem2_source_size
 	pmem2_errormsgU
 	pmem2_errormsgW
+	pmem2_perrorU
+	pmem2_perrorW
 
 	DllMain
