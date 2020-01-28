@@ -74,6 +74,15 @@ util_strwinerror(unsigned long err, char *buff, size_t bufflen)
 		return;
 	}
 
+	/* let's do the error message without '\r' and '\n' at the end */
+	size_t len = strlen(buff);
+	for (size_t i = len - 1; i > 0; i--) {
+		if (buff[i] != '\r' && buff[i] != '\n') {
+			buff[i + 1] = '\0';
+			break;
+		}
+	}
+
 	LocalFree(error_str);
 }
 
