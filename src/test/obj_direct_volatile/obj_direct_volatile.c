@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -91,11 +91,11 @@ main(int argc, char *argv[])
 	os_thread_t t[TEST_WORKERS];
 
 	for (int i = 0; i < TEST_WORKERS; ++i) {
-		PTHREAD_CREATE(&t[i], NULL, test_worker, NULL);
+		THREAD_CREATE(&t[i], NULL, test_worker, NULL);
 	}
 
 	for (int i = 0; i < TEST_WORKERS; ++i) {
-		PTHREAD_JOIN(&t[i], NULL);
+		THREAD_JOIN(&t[i], NULL);
 	}
 
 	for (int i = 0; i < TEST_OBJECTS; ++i) {

@@ -138,7 +138,7 @@ main(int argc, char *argv[])
 	UT_ASSERTne(obj_direct(thread_oid), NULL);
 
 	os_thread_t t;
-	PTHREAD_CREATE(&t, NULL, test_worker, NULL);
+	THREAD_CREATE(&t, NULL, test_worker, NULL);
 
 	/* wait for the worker thread to perform the first check */
 	util_mutex_lock(&lock1);
@@ -162,7 +162,7 @@ main(int argc, char *argv[])
 	os_cond_signal(&sync_cond2);
 	util_mutex_unlock(&lock2);
 
-	PTHREAD_JOIN(&t, NULL);
+	THREAD_JOIN(&t, NULL);
 	util_cond_destroy(&sync_cond1);
 	util_cond_destroy(&sync_cond2);
 	util_mutex_destroy(&lock1);

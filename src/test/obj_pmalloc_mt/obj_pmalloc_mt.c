@@ -337,10 +337,10 @@ run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 	os_thread_t t[MAX_THREADS];
 
 	for (unsigned i = 0; i < Threads; ++i)
-		PTHREAD_CREATE(&t[i], NULL, worker_func, &args[i]);
+		THREAD_CREATE(&t[i], NULL, worker_func, &args[i]);
 
 	for (unsigned i = 0; i < Threads; ++i)
-		PTHREAD_JOIN(&t[i], NULL);
+		THREAD_JOIN(&t[i], NULL);
 }
 
 int

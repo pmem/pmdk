@@ -133,7 +133,7 @@ main(int argc, char *argv[])
 	util_mutex_lock(&lock);
 
 	os_thread_t t;
-	PTHREAD_CREATE(&t, NULL, test_worker, NULL);
+	THREAD_CREATE(&t, NULL, test_worker, NULL);
 
 	/* wait for the thread to perform the first direct */
 	while (flag != 0)
@@ -154,7 +154,7 @@ main(int argc, char *argv[])
 	os_cond_signal(&cond);
 	util_mutex_unlock(&lock);
 
-	PTHREAD_JOIN(&t, NULL);
+	THREAD_JOIN(&t, NULL);
 
 	FREE(path);
 	FREE(tmpoids);

@@ -227,21 +227,21 @@ test(int fixed_preload, int random_preload, thread_func_t rthread,
 	int ntw = wthread ? nwthreads : 0;
 
 	for (int i = 0; i < ntr; i++)
-		PTHREAD_CREATE(&th[i], 0, rthread, (void *)(uint64_t)i);
+		THREAD_CREATE(&th[i], 0, rthread, (void *)(uint64_t)i);
 
 	for (int i = 0; i < ntw; i++)
-		PTHREAD_CREATE(&wr[i], 0, wthread, (void *)(uint64_t)i);
+		THREAD_CREATE(&wr[i], 0, wthread, (void *)(uint64_t)i);
 
 	/* The threads work here... */
 
 	for (int i = 0; i < ntr; i++) {
 		void *retval;
-		PTHREAD_JOIN(&th[i], &retval);
+		THREAD_JOIN(&th[i], &retval);
 	}
 
 	for (int i = 0; i < ntw; i++) {
 		void *retval;
-		PTHREAD_JOIN(&wr[i], &retval);
+		THREAD_JOIN(&wr[i], &retval);
 	}
 
 	critnib_delete(c);

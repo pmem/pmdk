@@ -74,13 +74,13 @@ main(int argc, char *argv[])
 		UT_FATAL("!pmemobj_create: %s", path);
 
 	os_thread_t t;
-	PTHREAD_CREATE(&t, NULL, oom_worker, NULL);
-	PTHREAD_JOIN(&t, NULL);
+	THREAD_CREATE(&t, NULL, oom_worker, NULL);
+	THREAD_JOIN(&t, NULL);
 
 	int first_thread_allocated = allocated;
 
-	PTHREAD_CREATE(&t, NULL, oom_worker, NULL);
-	PTHREAD_JOIN(&t, NULL);
+	THREAD_CREATE(&t, NULL, oom_worker, NULL);
+	THREAD_JOIN(&t, NULL);
 
 	UT_ASSERTeq(first_thread_allocated, allocated);
 

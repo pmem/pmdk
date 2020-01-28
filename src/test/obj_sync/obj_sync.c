@@ -384,14 +384,14 @@ main(int argc, char *argv[])
 		}
 
 		for (unsigned i = 0; i < num_threads; i++) {
-			PTHREAD_CREATE(&write_threads[i], NULL, writer,
+			THREAD_CREATE(&write_threads[i], NULL, writer,
 				(void *)(uintptr_t)i);
-			PTHREAD_CREATE(&check_threads[i], NULL, checker,
+			THREAD_CREATE(&check_threads[i], NULL, checker,
 				(void *)(uintptr_t)i);
 		}
 		for (unsigned i = 0; i < num_threads; i++) {
-			PTHREAD_JOIN(&write_threads[i], NULL);
-			PTHREAD_JOIN(&check_threads[i], NULL);
+			THREAD_JOIN(&write_threads[i], NULL);
+			THREAD_JOIN(&check_threads[i], NULL);
 		}
 
 		if (test_type == 't') {

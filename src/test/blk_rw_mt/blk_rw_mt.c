@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,11 +140,11 @@ main(int argc, char *argv[])
 
 	/* kick off nthread threads */
 	for (unsigned i = 0; i < Nthread; i++)
-		PTHREAD_CREATE(&threads[i], NULL, worker, (void *)(intptr_t)i);
+		THREAD_CREATE(&threads[i], NULL, worker, (void *)(intptr_t)i);
 
 	/* wait for all the threads to complete */
 	for (unsigned i = 0; i < Nthread; i++)
-		PTHREAD_JOIN(&threads[i], NULL);
+		THREAD_JOIN(&threads[i], NULL);
 
 	FREE(threads);
 	pmemblk_close(Handle);
