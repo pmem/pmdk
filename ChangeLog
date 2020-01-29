@@ -1,6 +1,6 @@
-Fri Jan 17 2020 Marcin Ślusarz <marcin.slusarz@intel.com>
+Wed Jan 29 2020 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.8-rc1
+	* Version 1.8-rc2
 
 	This release:
 	- Introduces new API in libpmemobj for user-assisted defragmentation
@@ -24,6 +24,7 @@ Fri Jan 17 2020 Marcin Ślusarz <marcin.slusarz@intel.com>
 	- pool: rename -N --no-exec to -d --dry-run
 
 	Notable bug fixes:
+	- obj: fix zone size calculations
 	- obj: fix potential NULL-dereference in ulog_store
 	- obj: fix unintended recursive locking during palloc
 	- obj: fix lock release order in palloc publish
