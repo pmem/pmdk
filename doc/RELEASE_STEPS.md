@@ -13,6 +13,12 @@ Make a release locally:
 
 Make a package:
 - git archive --prefix="pmdk-$VERSION/" -o pmdk-$VERSION.tar.gz $VERSION
+- uncompress the created archive in a new directory and create the final package:
+  $ cd pmdk-$VERSION
+  $ make doc
+  $ touch .skip-doc
+  $ cd ..
+  $ tar czf pmdk-$VERSION.tar.gz pmdk-$VERSION/ --owner=root --group=root
 - verify the created archive (uncompress & build one last time)
 - gpg --armor --detach-sign pmdk-$VERSION.tar.gz
 
