@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,6 +41,7 @@
 #include <endian.h>
 #include <errno.h>
 #include <time.h>
+#include <stdarg.h>
 
 #include "util.h"
 #include "os.h"
@@ -391,6 +392,32 @@ util_safe_strcpy(char *dst, const char *src, size_t max_length)
 #endif
 
 #define PARSER_MAX_LINE (PATH_MAX + 1024)
+
+/*
+ * util_snprintf -- run snprintf; in case of truncation or a failure
+ * return a negative value, or the number of characters printed otherwise.
+ */
+int
+util_snprintf(char *str, size_t size, const char *format, ...)
+{
+	va_list ap;
+	va_start(ap, format);
+	int ret = vsnprintf(str, size, format, ap);
+	va_end(ap);
+
+	if (ret < 0) {
+		if (!errno)
+			errno = EIO;
+		goto err;
+	} else if ((size_t)ret >= size) {
+		errno = ENOBUFS;
+		goto err;
+	}
+
+	return ret;
+err:
+	return -1;
+}
 
 /*
  * util_readline -- read line from stream
