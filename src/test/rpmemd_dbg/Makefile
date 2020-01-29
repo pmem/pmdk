@@ -17,5 +17,8 @@ LIBPMEMCOMMON=y
 
 include ../Makefile.inc
 
-CFLAGS += -I../../tools/rpmemd -DDEBUG
+# The _FORTIFY_SOURCE flag invalidates the mock functions
+# as it will change the syslog call to __syslog_chk. So
+# we need to disable it.
+CFLAGS += -I../../tools/rpmemd -DDEBUG -U_FORTIFY_SOURCE
 LDFLAGS += $(call extract_funcs, ../rpmemd_log/rpmemd_log_test.c)

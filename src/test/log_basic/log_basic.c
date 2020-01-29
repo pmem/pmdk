@@ -229,7 +229,7 @@ do_check(const char *path)
 int
 main(int argc, char *argv[])
 {
-	PMEMlogpool *plp;
+	PMEMlogpool *plp = NULL;
 
 	START(argc, argv, "log_basic");
 
@@ -277,6 +277,7 @@ main(int argc, char *argv[])
 			do_fault_injection(plp, path);
 			break;
 		case 'l':
+			UT_ASSERTne(plp, NULL);
 			do_close(plp);
 			break;
 		case 'h':

@@ -63,7 +63,7 @@ main(int argc, char *argv[])
 
 	const char *path = argv[2];
 
-	PMEMblkpool *handle;
+	PMEMblkpool *handle = NULL;
 	switch (*argv[3]) {
 		case 'c':
 			handle = pmemblk_create(path, Bsize, 0,
@@ -126,6 +126,7 @@ main(int argc, char *argv[])
 	}
 
 	FREE(buf);
+	UT_ASSERTne(handle, NULL);
 	pmemblk_close(handle);
 
 	int result = pmemblk_check(path, Bsize);

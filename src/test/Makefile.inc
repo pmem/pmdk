@@ -397,7 +397,7 @@ extract_funcs = $(shell \
 
 INCS += -I../unittest -I$(TOP)/src/include -I$(TOP)/src/common -I$(TOP)/src/core
 
-COMMON_FLAGS  = -ggdb
+COMMON_FLAGS  = -ggdb -Og -fno-omit-frame-pointer
 COMMON_FLAGS += -Wall
 COMMON_FLAGS += -Werror
 COMMON_FLAGS += -Wpointer-arith
@@ -409,7 +409,7 @@ COMMON_FLAGS += -fno-common
 
 CXXFLAGS  = -std=c++11
 CXXFLAGS += $(GLIBC_CXXFLAGS)
-CXXFLAGS += -ggdb
+CXXFLAGS += -ggdb -Og -fno-omit-frame-pointer
 CXXFLAGS += $(COMMON_FLAGS)
 CXXFLAGS += $(EXTRA_CXXFLAGS)
 

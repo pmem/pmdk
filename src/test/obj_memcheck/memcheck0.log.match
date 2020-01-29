@@ -117,7 +117,7 @@ $(OPT)==$(N)==    by 0x$(X): main $(*)
 $(OPT)==$(N)==  Block was alloc'd at
 $(OPT)==$(N)==    at 0x$(X): test_memcheck_bug2 $(*)
 $(OPT)==$(N)==    by 0x$(X): main $(*)
-==$(N)== 
+$(OPT)==$(N)== 
 ==$(N)== 
 ==$(N)== HEAP SUMMARY:
 ==$(N)==     in use at exit: $(NC) bytes in $(N) blocks
@@ -132,4 +132,4 @@ $(OPT)==$(N)==    still reachable: 0 bytes in 0 blocks
 $(OPT)==$(N)==         suppressed: $(NC) bytes in $(N) blocks
 ==$(N)== 
 ==$(N)== Use --track-origins=yes to see where uninitialised values come from
-==$(N)== ERROR SUMMARY: 10 errors from 8 contexts (suppressed: $(N) from $(N))
+==$(N)== ERROR SUMMARY: $(N) errors from $(N) contexts (suppressed: $(N) from $(N))

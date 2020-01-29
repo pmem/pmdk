@@ -150,8 +150,8 @@ test_realloc(PMEMobjpool *pop, size_t size_from, size_t size_to,
 
 	UT_ASSERT(usable_size_from >= size_from);
 
-	size_t check_size;
-	uint16_t checksum;
+	size_t check_size = 0;
+	uint16_t checksum = 0;
 
 	if (zrealloc) {
 		UT_ASSERT(util_is_zeroed(D_RO(D_RO(root)->obj),
