@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -102,7 +102,6 @@ heap_alloc_classes(struct palloc_heap *heap)
 {
 	return heap->rt->alloc_classes;
 }
-
 
 /*
  * heap_arena_init -- (internal) initializes arena instance
@@ -280,9 +279,11 @@ zone_calc_size_idx(uint32_t zone_id, unsigned max_zone, size_t heap_size)
 	size_t zone_raw_size = heap_size - zone_id * ZONE_MAX_SIZE;
 
 	ASSERT(zone_raw_size >= (sizeof(struct zone_header) +
-			sizeof(struct chunk_header) * MAX_CHUNK));
+			sizeof(struct chunk_header) * MAX_CHUNK) +
+			sizeof(struct heap_header));
 	zone_raw_size -= sizeof(struct zone_header) +
-		sizeof(struct chunk_header) * MAX_CHUNK;
+		sizeof(struct chunk_header) * MAX_CHUNK +
+		sizeof(struct heap_header);
 
 	size_t zone_size_idx = zone_raw_size / CHUNKSIZE;
 	ASSERT(zone_size_idx <= UINT32_MAX);
@@ -301,8 +302,7 @@ heap_zone_init(struct palloc_heap *heap, uint32_t zone_id,
 	uint32_t size_idx = zone_calc_size_idx(zone_id, heap->rt->nzones,
 			*heap->sizep);
 
-	ASSERT(size_idx - first_chunk_id > 0);
-
+	ASSERT(size_idx > first_chunk_id);
 	memblock_huge_init(heap, first_chunk_id, zone_id,
 		size_idx - first_chunk_id);
 
@@ -1062,6 +1062,7 @@ heap_zone_update_if_needed(struct palloc_heap *heap)
 
 		size_t size_idx = zone_calc_size_idx(i, heap->rt->nzones,
 			*heap->sizep);
+
 		if (size_idx == z->header.size_idx)
 			continue;
 
