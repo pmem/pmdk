@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -667,12 +667,12 @@ flush_common_mt(char *target, char *prov_name, char *persist_method,
 	for (unsigned i = 0; i < fip_client.nlanes; i++) {
 		args[i].fip = fip;
 		args[i].lane = i;
-		PTHREAD_CREATE(&flush_thread[i], NULL,
+		THREAD_CREATE(&flush_thread[i], NULL,
 				flush_thread_func, &args[i]);
 	}
 
 	for (unsigned i = 0; i < fip_client.nlanes; i++)
-		PTHREAD_JOIN(&flush_thread[i], NULL);
+		THREAD_JOIN(&flush_thread[i], NULL);
 
 	ret = rpmem_fip_read(fip, rpool, POOL_SIZE, 0, 0);
 	UT_ASSERTeq(ret, 0);

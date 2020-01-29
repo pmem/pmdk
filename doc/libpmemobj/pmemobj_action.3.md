@@ -211,4 +211,4 @@ is set appropriately.
 # SEE ALSO #
 
 **pmemobj_alloc**(3), **pmemobj_tx_alloc**(3), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

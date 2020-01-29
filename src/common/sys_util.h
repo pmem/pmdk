@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -321,6 +321,20 @@ util_semaphore_post(os_semaphore_t *sem)
 {
 	if (os_semaphore_post(sem) != 0)
 		FATAL("!os_semaphore_post");
+}
+
+static inline void
+util_cond_init(os_cond_t *__restrict cond)
+{
+	if (os_cond_init(cond))
+		FATAL("!os_cond_init");
+}
+
+static inline void
+util_cond_destroy(os_cond_t *__restrict cond)
+{
+	if (os_cond_destroy(cond))
+		FATAL("!os_cond_destroy");
 }
 
 #ifdef __cplusplus

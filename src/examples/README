@@ -8,7 +8,7 @@ are here just to check that the example compiles, loads against the
 appropriate library, and passes cstyle.
 
 If you're looking for documentation to get you started using PMDK,
-start here: http://pmem.io/pmdk and follow the links to examples and
+start here: https://pmem.io/pmdk and follow the links to examples and
 man pages.  Developers new to PMDK are probably looking for libpmemobj.
 
 Many of the examples in this directory are described in more detail
@@ -16,28 +16,28 @@ on the above web site.
 
 libpmem(7) -- low-level persistent memory support
     Example programs are in the libpmem directory.
-    More documentation: http://pmem.io/pmdk/libpmem
+    More documentation: https://pmem.io/pmdk/libpmem
 
 libpmemblk(7) -- pmem-resident arrays of blocks
     Example programs are in the libpmemblk directory.
-    More documentation: http://pmem.io/pmdk/libpmemblk
+    More documentation: https://pmem.io/pmdk/libpmemblk
 
 libpmemlog(7) -- pmem-resident log files
     Example programs are in the libpmemlog directory.
-    More documentation: http://pmem.io/pmdk/libpmemlog
+    More documentation: https://pmem.io/pmdk/libpmemlog
 
 libpmemobj(7) -- transactional object store
     Example programs are in the libpmemobj directory.
-    More documentation: http://pmem.io/pmdk/libpmemobj
+    More documentation: https://pmem.io/pmdk/libpmemobj
 
 libpmempool(7) -- pool management, diagnostics and repair
     Example programs are in the libpmempool directory.
-    More documentation: http://pmem.io/pmdk/libpmempool
+    More documentation: https://pmem.io/pmdk/libpmempool
 
 librpmem(7) -- remote access to persistent memory
     Example programs are in the librpmem directory.
-    More documentation: http://pmem.io/pmdk/librpmem
+    More documentation: https://pmem.io/pmdk/librpmem
 
 libpmem2(7) -- low-level persistent memory support
     Example programs are in the libpmem2 directory.
-    More documentation: http://pmem.io/pmdk/libpmem2
+    More documentation: https://pmem.io/pmdk/libpmem2

@@ -5,7 +5,7 @@ This is doc/README.
 Subdirectories of this directory contain source for the man pages for the
 Persistent Memory Development Kit in markdown format (.md files).
 If you're looking for documentation to
-get you started using PMDK, start here: http://pmem.io/pmdk and follow the
+get you started using PMDK, start here: https://pmem.io/pmdk and follow the
 links to examples and man pages. Developers new to PMDK are probably looking
 for libpmemobj.
 

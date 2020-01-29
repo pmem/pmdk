@@ -83,7 +83,7 @@ function list_pages {
 	fi
 
 	if [ "$parent" == "libpmem2" ]; then
-		man_child=($(ls pmem2_*.3))
+		man_child=($(ls -1 ../libpmem2 | grep -e ".*\.3$"))
 		echo -n "- $parent: " >> $map_file
 		echo "${man_child[@]}" >> $map_file
 	fi

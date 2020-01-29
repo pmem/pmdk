@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2017, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -74,13 +74,13 @@ main(int argc, char *argv[])
 		UT_FATAL("!pmemobj_create: %s", path);
 
 	os_thread_t t;
-	os_thread_create(&t, NULL, oom_worker, NULL);
-	os_thread_join(&t, NULL);
+	THREAD_CREATE(&t, NULL, oom_worker, NULL);
+	THREAD_JOIN(&t, NULL);
 
 	int first_thread_allocated = allocated;
 
-	os_thread_create(&t, NULL, oom_worker, NULL);
-	os_thread_join(&t, NULL);
+	THREAD_CREATE(&t, NULL, oom_worker, NULL);
+	THREAD_JOIN(&t, NULL);
 
 	UT_ASSERTeq(first_thread_allocated, allocated);
 

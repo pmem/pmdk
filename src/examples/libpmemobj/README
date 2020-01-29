@@ -4,7 +4,7 @@ This is examples/libpmemobj/README.
 
 This directory contains examples for libpmemobj, the library providing
 a transactional object store for pmem.  Some of these examples are explained
-in more detail here: http://pmem.io/pmdk/libpmemobj
+in more detail here: https://pmem.io/pmdk/libpmemobj
 
 manpage.c and setjmp.c are the examples used in the libpmemobj man page.
 
@@ -15,5 +15,5 @@ These examples can be built against an installed system using:
 	make LIBDIR=/usr/lib INCDIR=/usr/include
 
 If you're looking for documentation to get you started using PMDK,
-start here: http://pmem.io/pmdk and follow the links to examples and
+start here: https://pmem.io/pmdk and follow the links to examples and
 man pages.

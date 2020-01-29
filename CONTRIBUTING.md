@@ -10,8 +10,8 @@ There are several good ways to suggest new features, offer to add a feature,
 or just begin a dialog about the Persistent Memory Development Kit:
 
 * Open an issue in our [GitHub Issues Database](https://github.com/pmem/pmdk/issues)
-* Suggest a feature, ask a question, start a discussion, etc. in our [pmem Google group](http://groups.google.com/group/pmem)
-* Chat with members of the PMDK team real-time on the **#pmem** IRC channel on [OFTC](http://www.oftc.net)
+* Suggest a feature, ask a question, start a discussion, etc. in our [pmem Google group](https://groups.google.com/group/pmem)
+* Chat with members of the PMDK team real-time on the **#pmem** IRC channel on [OFTC](https://www.oftc.net)
 
 **NOTE: If you do decide to implement code changes and contribute them,
 please make sure you agree your contribution can be made available
@@ -64,7 +64,7 @@ Please feel free to use the forums mentioned above to ask
 for comments & questions on your code before submitting
 a pull request.  The Persistent Memory Development Kit project uses the common
 *fork and merge* workflow used by most GitHub-hosted projects.
-The [Git Workflow blog article](http://pmem.io/2014/09/09/git-workflow.html)
+The [Git Workflow blog article](https://pmem.io/2014/09/09/git-workflow.html)
 describes our workflow in more detail.
 
 #### Linux/FreeBSD
@@ -99,7 +99,7 @@ On Windows to check the code for style issues, please run:
 
 To check or format C++ files, you may use a standalone Visual Studio plugin
 for clang-format.  The plugin installer can be downloaded from
-[LLVM Builds](http://llvm.org/builds) page.
+[LLVM Builds](https://llvm.org/builds) page.
 
 If you are actively working on an PMDK feature, please let other
 developers know by [creating an issue](https://github.com/pmem/pmdk/issues).

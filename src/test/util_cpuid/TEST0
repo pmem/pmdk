@@ -41,6 +41,8 @@ require_test_type medium
 
 require_fs_type none
 
+require_x86_64
+
 setup
 
 expect_normal_exit ./util_cpuid$EXESUFFIX
