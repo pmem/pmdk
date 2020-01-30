@@ -146,9 +146,9 @@ written to *stderr*.
 
 **libpmem2** builds on the persistent memory programming model recommended
 by the SNIA NVM Programming Technical Work Group:
-<http://snia.org/nvmp>
+<https://snia.org/nvmp>
 
 # SEE ALSO #
 
 **libpmem**(7), **libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

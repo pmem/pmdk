@@ -181,4 +181,4 @@ fail if the underlying file system does not support **posix_fallocate**(3).
 # SEE ALSO #
 **pmempool**(1), **creat**(2), **pmemblk_nblock**(3),
 **posix_fallocate**(3), **poolset**(5),
-**libpmemblk**(7) and **<http://pmem.io>**
+**libpmemblk**(7) and **<https://pmem.io>**

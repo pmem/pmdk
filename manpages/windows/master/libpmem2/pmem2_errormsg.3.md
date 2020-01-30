@@ -81,4 +81,4 @@ error code as returned by **strerror**(3).
 
 # SEE ALSO #
 
-**strerror**(3), **libpmem2**(7) and **<http://pmem.io>**
+**strerror**(3), **libpmem2**(7) and **<https://pmem.io>**

@@ -92,4 +92,4 @@ No attempt is made to detect NULL or incorrect pointers, for example.
 
 # SEE ALSO #
 
-**writev**(2), **libpmemlog**(7) and **<http://pmem.io>**
+**writev**(2), **libpmemlog**(7) and **<https://pmem.io>**
