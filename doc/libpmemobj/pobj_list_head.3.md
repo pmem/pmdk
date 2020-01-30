@@ -272,4 +272,4 @@ structure that are used to connect the elements in both lists.
 
 # SEE ALSO #
 
-**queue**(3), **libpmemobj**(7) and **<http://pmem.io>**
+**queue**(3), **libpmemobj**(7) and **<https://pmem.io>**

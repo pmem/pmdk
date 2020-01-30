@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,6 +36,7 @@
 #include "obj.h"
 #include "sync.h"
 #include "unittest.h"
+#include "sys_util.h"
 #include "util.h"
 #include "os.h"
 
@@ -283,23 +284,23 @@ cleanup(char test_type)
 {
 	switch (test_type) {
 		case 'm':
-			os_mutex_destroy(&((PMEMmutex_internal *)
+			util_mutex_destroy(&((PMEMmutex_internal *)
 				&(Test_obj->mutex))->PMEMmutex_lock);
 			break;
 		case 'r':
-			os_rwlock_destroy(&((PMEMrwlock_internal *)
+			util_rwlock_destroy(&((PMEMrwlock_internal *)
 				&(Test_obj->rwlock))->PMEMrwlock_lock);
 			break;
 		case 'c':
-			os_mutex_destroy(&((PMEMmutex_internal *)
+			util_mutex_destroy(&((PMEMmutex_internal *)
 				&(Test_obj->mutex))->PMEMmutex_lock);
-			os_cond_destroy(&((PMEMcond_internal *)
+			util_cond_destroy(&((PMEMcond_internal *)
 				&(Test_obj->cond))->PMEMcond_cond);
 			break;
 		case 't':
-			os_mutex_destroy(&((PMEMmutex_internal *)
+			util_mutex_destroy(&((PMEMmutex_internal *)
 				&(Test_obj->mutex))->PMEMmutex_lock);
-			os_mutex_destroy(&((PMEMmutex_internal *)
+			util_mutex_destroy(&((PMEMmutex_internal *)
 				&(Test_obj->mutex_locked))->PMEMmutex_lock);
 			break;
 		default:
@@ -383,14 +384,14 @@ main(int argc, char *argv[])
 		}
 
 		for (unsigned i = 0; i < num_threads; i++) {
-			PTHREAD_CREATE(&write_threads[i], NULL, writer,
+			THREAD_CREATE(&write_threads[i], NULL, writer,
 				(void *)(uintptr_t)i);
-			PTHREAD_CREATE(&check_threads[i], NULL, checker,
+			THREAD_CREATE(&check_threads[i], NULL, checker,
 				(void *)(uintptr_t)i);
 		}
 		for (unsigned i = 0; i < num_threads; i++) {
-			PTHREAD_JOIN(&write_threads[i], NULL);
-			PTHREAD_JOIN(&check_threads[i], NULL);
+			THREAD_JOIN(&write_threads[i], NULL);
+			THREAD_JOIN(&check_threads[i], NULL);
 		}
 
 		if (test_type == 't') {

@@ -46,7 +46,7 @@ date: pmemobj API version 2.3
 
 **pmemobj_alloc**(), **pmemobj_xalloc**(), **pmemobj_zalloc**(),
 **pmemobj_realloc**(), **pmemobj_zrealloc**(), **pmemobj_strdup**(),
-**pmemobj_wcsdup**(), **pmemobj_alloc_usable_size**(),
+**pmemobj_wcsdup**(), **pmemobj_alloc_usable_size**(), **pmemobj_defrag**(),
 **POBJ_NEW**(), **POBJ_ALLOC**(), **POBJ_ZNEW**(), **POBJ_ZALLOC**(),
 **POBJ_REALLOC**(), **POBJ_ZREALLOC**(), **POBJ_FREE**()
 - non-transactional atomic allocations
@@ -98,10 +98,13 @@ failure or system crash, on recovery they are guaranteed to be entirely complete
 or discarded, leaving the persistent memory heap and internal object containers
 in a consistent state.
 
-All these functions can be used outside transactions. Note that operations
-performed using the non-transactional API are considered durable after
-completion, even if executed within an open transaction. Such non-transactional
-changes will not be rolled back if the transaction is aborted or interrupted.
+All these functions should be used outside transactions. If executed within
+an open transaction they are considered durable immediately after completion.
+Changes made with these functions will not be rolled back if the transaction
+is aborted or interrupted. They have no information about other changes made
+by transactional API, so if the same data is modified in a single transaction
+using transactional and then non-transactional API, transaction abort
+will likely corrupt the data.
 
 The allocations are always aligned to a cache-line boundary.
 
@@ -297,4 +300,4 @@ through due to lack of resources), -1 is returned.
 
 **free**(3), **POBJ_FOREACH**(3), **realloc**(3),
 **strdup**(3), **wcsdup**(3), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

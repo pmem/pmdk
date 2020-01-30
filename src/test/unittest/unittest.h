@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -257,7 +257,7 @@ void ut_err(const char *file, int line, const char *func,
 #define UT_ASSERT_COMPILE_ERROR_ON(cond) UT_COMPILE_ERROR_ON(cond)
 #else /* __cplusplus */
 /*
- * XXX - workaround for http://github.com/pmem/issues/issues/189
+ * XXX - workaround for https://github.com/pmem/issues/issues/189
  */
 #define UT_ASSERT_COMPILE_ERROR_ON(cond) UT_ASSERT_rt(!(cond))
 #endif /* __cplusplus */
@@ -568,12 +568,12 @@ int ut_thread_join(const char *file, int line, const char *func,
     os_thread_t *thread, void **value_ptr);
 
 /* a os_thread_create() that can't return an error */
-#define PTHREAD_CREATE(thread, attr, start_routine, arg)\
+#define THREAD_CREATE(thread, attr, start_routine, arg)\
     ut_thread_create(__FILE__, __LINE__, __func__,\
     thread, attr, start_routine, arg)
 
 /* a os_thread_join() that can't return an error */
-#define PTHREAD_JOIN(thread, value_ptr)\
+#define THREAD_JOIN(thread, value_ptr)\
     ut_thread_join(__FILE__, __LINE__, __func__, thread, value_ptr)
 
 /*

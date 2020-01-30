@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,6 +38,7 @@
 #include "file.h"
 #include "obj.h"
 #include "pmalloc.h"
+#include "sys_util.h"
 #include "unittest.h"
 
 #define MAX_THREADS 32
@@ -320,10 +321,10 @@ actions_clear(PMEMobjpool *pop, struct root *r)
 	for (unsigned i = 0; i < Threads; ++i) {
 		for (unsigned j = 0; j < Ops_per_thread; ++j) {
 			struct action *a = &r->actions[i][j];
-			os_mutex_destroy(&a->lock);
-			os_mutex_init(&a->lock);
-			os_cond_destroy(&a->cond);
-			os_cond_init(&a->cond);
+			util_mutex_destroy(&a->lock);
+			util_mutex_init(&a->lock);
+			util_cond_destroy(&a->cond);
+			util_cond_init(&a->cond);
 			memset(&a->pact, 0, sizeof(a->pact));
 			pmemobj_persist(pop, a, sizeof(*a));
 		}
@@ -336,10 +337,10 @@ run_worker(void *(worker_func)(void *arg), struct worker_args args[])
 	os_thread_t t[MAX_THREADS];
 
 	for (unsigned i = 0; i < Threads; ++i)
-		os_thread_create(&t[i], NULL, worker_func, &args[i]);
+		THREAD_CREATE(&t[i], NULL, worker_func, &args[i]);
 
 	for (unsigned i = 0; i < Threads; ++i)
-		os_thread_join(&t[i], NULL);
+		THREAD_JOIN(&t[i], NULL);
 }
 
 int
@@ -390,8 +391,8 @@ main(int argc, char *argv[])
 		args[i].idx = i;
 		for (unsigned j = 0; j < Ops_per_thread; ++j) {
 			struct action *a = &r->actions[i][j];
-			os_mutex_init(&a->lock);
-			os_cond_init(&a->cond);
+			util_mutex_init(&a->lock);
+			util_cond_init(&a->cond);
 		}
 	}
 

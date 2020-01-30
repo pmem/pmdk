@@ -33,8 +33,12 @@
 
 import testframework as t
 from testframework import granularity as g
+import valgrind as vg
 
 
+# These tests last too long under drd
+# Exceptions: test no. 2
+@t.require_valgrind_disabled('drd')
 class ObjDefragAdvanced(t.BaseTest):
     test_type = t.Short
 
@@ -73,9 +77,13 @@ class TEST1(ObjDefragAdvanced):
     graph_copies = 5
 
 
+@t.require_valgrind_disabled('helgrind')
 @g.require_granularity(g.CACHELINE)
 class TEST2(ObjDefragAdvanced):
     test_type = t.Medium
+    # XXX port this to the new framework
+    # Restore defaults
+    drd = vg.AUTO
 
     max_nodes = 512
     max_edges = 64
@@ -117,8 +125,10 @@ class TEST4(ObjDefragAdvancedMt):
     nthreads = 10
     ncycles = 25
 
-
+# This test last too long under helgrind/memcheck/pmemcheck
+@t.require_valgrind_disabled(['helgrind', 'memcheck', 'pmemcheck'])
 class TEST5(ObjDefragAdvancedMt):
+
     max_nodes = 256
     max_edges = 32
     graph_copies = 5

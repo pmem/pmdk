@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -120,10 +120,10 @@ run_mt_test(void *(*worker)(void *))
 
 	for (unsigned i = 0; i < NUM_THREADS; ++i) {
 		ver[i] = 10000 + i;
-		PTHREAD_CREATE(&thread[i], NULL, worker, &ver[i]);
+		THREAD_CREATE(&thread[i], NULL, worker, &ver[i]);
 	}
 	for (unsigned i = 0; i < NUM_THREADS; ++i) {
-		PTHREAD_JOIN(&thread[i], NULL);
+		THREAD_JOIN(&thread[i], NULL);
 	}
 }
 

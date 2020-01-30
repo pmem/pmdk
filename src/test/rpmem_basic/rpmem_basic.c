@@ -519,11 +519,11 @@ test_flush_imp(unsigned id, unsigned seed, unsigned nthreads, unsigned nops,
 		args[i].exp_errno = pool->exp_errno;
 		args[i].error_must_occur = pool->error_must_occur;
 
-		PTHREAD_CREATE(&threads[i], NULL, flush_thread_func, &args[i]);
+		THREAD_CREATE(&threads[i], NULL, flush_thread_func, &args[i]);
 	}
 
 	for (int i = 0; i < nthreads; i++)
-		PTHREAD_JOIN(&threads[i], NULL);
+		THREAD_JOIN(&threads[i], NULL);
 
 	FREE(args);
 	FREE(threads);
@@ -645,11 +645,11 @@ test_drain_imp(unsigned id, unsigned nthreads)
 		args[i].exp_errno = pool->exp_errno;
 		args[i].error_must_occur = pool->error_must_occur;
 
-		PTHREAD_CREATE(&threads[i], NULL, drain_thread_func, &args[i]);
+		THREAD_CREATE(&threads[i], NULL, drain_thread_func, &args[i]);
 	}
 
 	for (int i = 0; i < nthreads; i++)
-		PTHREAD_JOIN(&threads[i], NULL);
+		THREAD_JOIN(&threads[i], NULL);
 
 	FREE(args);
 	FREE(threads);

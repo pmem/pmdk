@@ -196,7 +196,7 @@ cat << EOF > debian/librpmem-dev.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 # The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
+# https://bugs.debian.org/204975
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
@@ -288,7 +288,7 @@ cat << EOF > debian/libpmem2-dev.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 # The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
+# https://bugs.debian.org/204975
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
@@ -418,7 +418,7 @@ Section: libs
 Priority: optional
 Standards-version: 4.1.4
 Build-Depends: debhelper (>= 9)
-Homepage: http://pmem.io/pmdk/
+Homepage: https://pmem.io/pmdk/
 
 Package: libpmem
 Architecture: any
@@ -622,7 +622,7 @@ cat << EOF > debian/libpmem-dev.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 # The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
+# https://bugs.debian.org/204975
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
@@ -659,7 +659,7 @@ cat << EOF > debian/libpmemblk-dev.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 # The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
+# https://bugs.debian.org/204975
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
@@ -695,7 +695,7 @@ cat << EOF > debian/libpmemlog-dev.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 # The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
+# https://bugs.debian.org/204975
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
@@ -738,7 +738,7 @@ cat << EOF > debian/libpmemobj-dev.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 # The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
+# https://bugs.debian.org/204975
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version
@@ -774,7 +774,7 @@ cat << EOF > debian/libpmempool-dev.lintian-overrides
 $ITP_BUG_EXCUSE
 new-package-should-close-itp-bug
 # The following warnings are triggered by a bug in debhelper:
-# http://bugs.debian.org/204975
+# https://bugs.debian.org/204975
 postinst-has-useless-call-to-ldconfig
 postrm-has-useless-call-to-ldconfig
 # We do not want to compile with -O2 for debug version

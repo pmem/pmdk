@@ -1455,6 +1455,19 @@ require_dax_device_alignments() {
 }
 
 #
+# disable_eatmydata -- ensure invalid msyncs fail
+#
+# Distros (and people) like to use eatmydata to kill fsync-likes during builds
+# and testing. This is nice for speed, but we actually rely on msync failing
+# in some tests.
+#
+disable_eatmydata() {
+	export LD_PRELOAD="${LD_PRELOAD/#libeatmydata.so/}"
+	export LD_PRELOAD="${LD_PRELOAD/ libeatmydata.so/}"
+	export LD_PRELOAD="${LD_PRELOAD/:libeatmydata.so/}"
+}
+
+#
 # require_fs_type -- only allow script to continue for a certain fs type
 #
 function require_fs_type() {

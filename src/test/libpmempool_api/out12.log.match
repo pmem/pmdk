@@ -11,7 +11,8 @@ arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 arena 0: invalid BTT Flog entry at 0
-arena 0: unmapped block 40322
+$(OPT)arena 0: unmapped block 40322
+$(OPX)arena 0: unmapped block 40203
 arena 0: number of unmapped blocks: 1
 arena 0: number of invalid BTT Flog entries: 1
 the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
@@ -25,10 +26,12 @@ arena 0: BTT Info header checksum correct
 checking BTT Map and Flog
 arena 0: checking BTT Map and Flog
 arena 0: invalid BTT Flog entry at 0
-arena 0: unmapped block 40322
+$(OPT)arena 0: unmapped block 40322
+$(OPX)arena 0: unmapped block 40203
 arena 0: number of unmapped blocks: 1
 arena 0: number of invalid BTT Flog entries: 1
 Do you want to repair invalid BTT Flog entries?
-arena 0: repairing BTT Flog at 0 with free block entry 0x40009d82
+$(OPT)arena 0: repairing BTT Flog at 0 with free block entry 0x40009d82
+$(OPX)arena 0: repairing BTT Flog at 0 with free block entry 0x40009d0b
 status = repaired
 libpmempool_api/TEST12: DONE

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -82,7 +82,7 @@ main(int argc, char *argv[])
 		UT_FATAL("usage: %s [directory] [# of pools]", argv[0]);
 
 	util_mutex_init(&lock);
-	os_cond_init(&cond);
+	util_cond_init(&cond);
 
 	unsigned npools = ATOU(argv[2]);
 	const char *dir = argv[1];
@@ -133,7 +133,7 @@ main(int argc, char *argv[])
 	util_mutex_lock(&lock);
 
 	os_thread_t t;
-	PTHREAD_CREATE(&t, NULL, test_worker, NULL);
+	THREAD_CREATE(&t, NULL, test_worker, NULL);
 
 	/* wait for the thread to perform the first direct */
 	while (flag != 0)
@@ -154,7 +154,7 @@ main(int argc, char *argv[])
 	os_cond_signal(&cond);
 	util_mutex_unlock(&lock);
 
-	PTHREAD_JOIN(&t, NULL);
+	THREAD_JOIN(&t, NULL);
 
 	FREE(path);
 	FREE(tmpoids);
@@ -163,7 +163,7 @@ main(int argc, char *argv[])
 	FREE(allocated_memory);
 
 	util_mutex_destroy(&lock);
-	os_cond_destroy(&cond);
+	util_cond_destroy(&cond);
 
 	DONE(NULL);
 }

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,6 +39,7 @@
 
 require_test_type medium
 require_fs_type any
+disable_eatmydata
 
 setup
 

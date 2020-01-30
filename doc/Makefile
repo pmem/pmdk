@@ -103,7 +103,9 @@ MANPAGES_3_DUMMY = libpmem/pmem_drain.3 libpmem/pmem_has_hw_drain.3 libpmem/pmem
 		   libpmemobj/pmemobj_next.3 libpmemobj/pobj_first_type_num.3 libpmemobj/pobj_first.3 libpmemobj/pobj_next_type_num.3 libpmemobj/pobj_next.3 libpmemobj/pobj_foreach.3 libpmemobj/pobj_foreach_safe.3 libpmemobj/pobj_foreach_type.3 libpmemobj/pobj_foreach_safe_type.3 \
 		   libpmemobj/pmemobj_root_construct.3 libpmemobj/pobj_root.3 libpmemobj/pmemobj_root_size.3 \
 		   libpmemobj/pmemobj_check_version.3 libpmemobj/pmemobj_check.3 libpmemobj/pmemobj_errormsg.3 libpmemobj/pmemobj_set_funcs.3 \
-		   libpmemobj/pmemobj_reserve.3 libpmemobj/pmemobj_xreserve.3 libpmemobj/pmemobj_defer_free.3 libpmemobj/pmemobj_set_value.3 libpmemobj/pmemobj_publish.3 libpmemobj/pmemobj_tx_publish.3 libpmemobj/pmemobj_tx_xpublish.3 libpmemobj/pmemobj_cancel.3 libpmemobj/pobj_reserve_new.3 libpmemobj/pobj_reserve_alloc.3 libpmemobj/pobj_xreserve_new.3 libpmemobj/pobj_xreserve_alloc.3
+		   libpmemobj/pmemobj_reserve.3 libpmemobj/pmemobj_xreserve.3 libpmemobj/pmemobj_defer_free.3 libpmemobj/pmemobj_set_value.3 libpmemobj/pmemobj_publish.3 libpmemobj/pmemobj_tx_publish.3 libpmemobj/pmemobj_tx_xpublish.3 libpmemobj/pmemobj_cancel.3 libpmemobj/pobj_reserve_new.3 libpmemobj/pobj_reserve_alloc.3 libpmemobj/pobj_xreserve_new.3 libpmemobj/pobj_xreserve_alloc.3 \
+		   libpmemobj/tx_xstrdup.3 libpmemobj/tx_xwcsdup.3 libpmemobj/tx_xfree.3 \
+		   libpmemobj/pmemobj_defrag.3 libpmemobj/pmemobj_get_user_data.3 libpmemobj/pmemobj_set_user_data.3 libpmemobj/pmemobj_tx_get_user_data.3 libpmemobj/pmemobj_tx_set_user_data.3
 
 MANPAGES_WEBDIR_LINUX = web_linux
 MANPAGES_WEBDIR_WINDOWS = web_windows
@@ -217,7 +219,9 @@ MANPAGES_DESTDIR_1 = $(DESTDIR)$(man1dir)
 
 DOCS_DESTDIR = $(DESTDIR)$(docdir)
 
-all: $(TXTFILES) | $(MANPAGES)
+txt: $(TXTFILES)
+
+all: | $(MANPAGES)
 
 $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 	$(MKDIR) -p $@
@@ -237,15 +241,15 @@ $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS):
 %.txt: %
 	man ./$< > $@
 
-%.gz:
-	gzip -c ./$* > $@
+%.gz: %
+	gzip -nc ./$* > $@
 
 %.html: %
 	groff -mandoc -Thtml ./$< > $@
 
 html: $(HTMLFILES)
 
-web: | $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS)
+web: $(MANPAGES) | $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS)
 	$(MAKE) -C generated all
 	$(foreach f, $(MANPAGES_7_MD), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
 	$(foreach f, $(MANPAGES_5_MD), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)

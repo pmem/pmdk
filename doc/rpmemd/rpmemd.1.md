@@ -227,4 +227,4 @@ See **pmem_persist**(3) and **pmem_msync**(3) for more details.
 
 **ssh**(1), **pmem_msync**(3), **pmem_persist**(3),
 **syslog**(3), **libpmem**(7), **libpmemobj**(7),
-**librpmem**(7) and **<http://pmem.io>**
+**librpmem**(7) and **<https://pmem.io>**
