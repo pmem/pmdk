@@ -184,4 +184,4 @@ On other errors, **OID_NULL** is returned and *errno* is set appropriately.
 # SEE ALSO #
 
 **pmemobj_first**(3), **POBJ_FOREACH**(3), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

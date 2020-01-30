@@ -189,4 +189,4 @@ versions of the library.
 
 # SEE ALSO #
 
-**libpmemlog**(7), **libpmemobj**(7) and **<http://pmem.io>**
+**libpmemlog**(7), **libpmemobj**(7) and **<https://pmem.io>**

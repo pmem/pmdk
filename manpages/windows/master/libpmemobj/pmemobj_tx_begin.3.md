@@ -58,9 +58,9 @@ date: pmemobj API version 2.3
 
 **pmemobj_tx_log_append_buffer**(), **pmemobj_tx_xlog_append_buffer**(),
 **pmemobj_tx_log_auto_alloc**(), **pmemobj_tx_log_snapshots_max_size**(),
-**pmemobj_tx_log_intents_max_size**()
+**pmemobj_tx_log_intents_max_size**(),
 
-**pmemobj_tx_set_user_data**()
+**pmemobj_tx_set_user_data**(),
 **pmemobj_tx_get_user_data**()
 - transactional object manipulation
 
@@ -551,4 +551,4 @@ resources associated with that thread might not be cleaned up properly.
 **dlclose**(3), **longjmp**(3), **pmemobj_tx_add_range**(3),
 **pmemobj_tx_alloc**(3), **pthread_setcancelstate**(3),
 **pthread_setcanceltype**(3), **setjmp**(3),
-**libpmemobj**(7) and **<http://pmem.io>**
+**libpmemobj**(7) and **<https://pmem.io>**

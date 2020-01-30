@@ -117,4 +117,4 @@ viability of synchronization.
 # SEE ALSO #
 
 **pmempool(1)**, **libpmemblk(7)**, **libpmemlog(7)**,
-**libpmempool(7)** and **<http://pmem.io>**
+**libpmempool(7)** and **<https://pmem.io>**

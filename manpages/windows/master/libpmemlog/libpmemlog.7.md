@@ -325,7 +325,7 @@ main(int argc, char *argv[])
 }
 ```
 
-See <http://pmem.io/pmdk/libpmemlog>
+See <https://pmem.io/pmdk/libpmemlog>
 for more examples using the **libpmemlog** API.
 
 # BUGS #
@@ -337,7 +337,7 @@ Thus, specifying replica sections in pool set files is not allowed.
 
 **libpmemlog** builds on the persistent memory programming model recommended
 by the SNIA NVM Programming Technical Work Group:
-<http://snia.org/nvmp>
+<https://snia.org/nvmp>
 
 # SEE ALSO #
 
@@ -345,4 +345,4 @@ by the SNIA NVM Programming Technical Work Group:
 **pmemlog_ctl_exec**(3), **pmemlog_ctl_get**(3), **pmemlog_ctl_set**(3),
 **pmemlog_nbyte**(3), **pmemlog_tell**(3), **strerror**(3),
 **libpmem**(7), **libpmemblk**(7), **libpmemobj**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**
