@@ -3465,12 +3465,12 @@ void
 pmemobj_inject_fault_at(enum pmem_allocation_type type, int nth,
 							const char *at)
 {
-	common_inject_fault_at(type, nth, at);
+	core_inject_fault_at(type, nth, at);
 }
 
 int
 pmemobj_fault_injection_enabled(void)
 {
-	return common_fault_injection_enabled();
+	return core_fault_injection_enabled();
 }
 #endif

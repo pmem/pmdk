@@ -1,4 +1,4 @@
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -38,18 +38,18 @@ LIBRARY_NAME = pmem
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
-	$(COMMON)/alloc.c\
+	$(CORE)/alloc.c\
+	$(CORE)/fs_posix.c\
+	$(CORE)/os_posix.c\
+	$(CORE)/os_thread_posix.c\
+	$(CORE)/out.c\
+	$(CORE)/util.c\
+	$(CORE)/util_posix.c\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
-	$(COMMON)/fs_posix.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_posix.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
 	$(COMMON)/os_deep_linux.c\
-	$(COMMON)/out.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
 	libpmem.c\
 	memops_generic.c\
 	pmem.c\

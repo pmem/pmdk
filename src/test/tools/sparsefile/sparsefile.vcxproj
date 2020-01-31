@@ -60,11 +60,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\windows\getopt;$(SolutionDir)\libpmemlog;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemobj;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\core;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\windows\getopt;$(SolutionDir)\libpmemlog;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemobj;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\windows\getopt;$(SolutionDir)\libpmemlog;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemobj;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\core;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\windows\getopt;$(SolutionDir)\libpmemlog;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemobj;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

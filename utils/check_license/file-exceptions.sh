@@ -1,6 +1,6 @@
 #!/bin/sh -e
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,4 +33,4 @@
 
 # file-exceptions.sh - filter out files not checked for copyright and license
 
-grep -v -E -e '/queue.h$' -e '/getopt.h$' -e '/getopt.c$' -e 'src/common/valgrind/' -e '/testconfig\...$'
+grep -v -E -e '/queue.h$' -e '/getopt.h$' -e '/getopt.c$' -e 'src/core/valgrind/' -e '/testconfig\...$'

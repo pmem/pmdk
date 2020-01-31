@@ -61,7 +61,7 @@
     <ClCompile Include="..\common\file_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\fs_windows.c">
+    <ClCompile Include="..\core\fs_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\mmap.c">
@@ -76,13 +76,13 @@
     <ClCompile Include="..\common\os_dimm_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_thread_windows.c">
+    <ClCompile Include="..\core\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_windows.c">
+    <ClCompile Include="..\core\os_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\out.c">
+    <ClCompile Include="..\core\out.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\pool_hdr.c">
@@ -94,10 +94,10 @@
     <ClCompile Include="..\common\shutdown_state.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\util.c">
+    <ClCompile Include="..\core\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\util_windows.c">
+    <ClCompile Include="..\core\util_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\uuid.c">
@@ -133,7 +133,7 @@
     <ClCompile Include="..\common\ctl_sds.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\alloc.c">
+    <ClCompile Include="..\core\alloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\ctl_fallocate.c">
@@ -159,10 +159,10 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\common\out.h">
+    <ClInclude Include="..\..\src\core\out.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\common\util.h">
+    <ClInclude Include="..\..\src\core\util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\common\valgrind_internal.h">
@@ -225,19 +225,19 @@
     <ClInclude Include="..\common\file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\fs.h">
+    <ClInclude Include="..\core\fs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\mmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\os.h">
+    <ClInclude Include="..\core\os.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\os_deep.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\os_thread.h">
+    <ClInclude Include="..\core\os_thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\pmemcommon.h">
@@ -330,10 +330,10 @@
     <ClInclude Include="tx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\alloc.h">
+    <ClInclude Include="..\core\alloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\fault_injection.h">
+    <ClInclude Include="..\core\fault_injection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\libpmem2\config.h">

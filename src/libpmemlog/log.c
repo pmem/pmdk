@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -913,12 +913,12 @@ void
 pmemlog_inject_fault_at(enum pmem_allocation_type type, int nth,
 							const char *at)
 {
-	common_inject_fault_at(type, nth, at);
+	core_inject_fault_at(type, nth, at);
 }
 
 int
 pmemlog_fault_injection_enabled(void)
 {
-	return common_fault_injection_enabled();
+	return core_fault_injection_enabled();
 }
 #endif

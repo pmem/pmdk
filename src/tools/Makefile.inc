@@ -153,6 +153,14 @@ DYNAMIC_LIBS += -lpmemcommon
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemcommon.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemcommon.a
 CFLAGS += -I$(TOP)/src/common
+LIBPMEMCORE=y
+endif
+
+ifeq ($(LIBPMEMCORE), y)
+DYNAMIC_LIBS += -lpmemcore
+STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmemcore.a
+STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmemcore.a
+CFLAGS += -I$(TOP)/src/core
 CFLAGS += $(LIBNDCTL_CFLAGS)
 LIBS += $(LIBNDCTL_LIBS)
 endif
@@ -212,6 +220,7 @@ vpath %.c $(TOP)/src/tools/pmempool
 
 OBJS += common.o output.o
 
+CFLAGS += -I$(TOP)/src/core
 CFLAGS += -I$(TOP)/src/common
 CFLAGS += -I$(TOP)/src/libpmemlog
 CFLAGS += -I$(TOP)/src/libpmemblk

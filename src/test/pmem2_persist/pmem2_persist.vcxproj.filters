@@ -28,10 +28,10 @@
     <ClCompile Include="pmem2_persist.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\alloc.c">
+    <ClCompile Include="..\..\libpmem2\persist.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem2\persist.c">
+    <ClCompile Include="..\..\core\alloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

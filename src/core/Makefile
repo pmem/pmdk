@@ -1,5 +1,4 @@
-#
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,23 +27,13 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#
 
 #
-# src/test/pmem2_persist/Makefile -- build pmem2_persist unit test
+# src/core/Makefile -- Makefile for core
 #
-TOP = ../../..
 
-vpath %.c $(TOP)/src/libpmem2
-vpath %.c $(TOP)/src/core
+LIBRARY_NAME = pmemcore
 
-INCS += -I$(TOP)/src/libpmem2
-
-TARGET = pmem2_persist
-
-OBJS += alloc.o\
-	pmem2_persist.o\
-	persist.o\
-	util.o
+include pmemcore.inc
 
 include ../Makefile.inc

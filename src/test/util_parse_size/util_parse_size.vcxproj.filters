@@ -4,7 +4,7 @@
     <ClCompile Include="util_parse_size.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\util.c">
+    <ClCompile Include="..\..\core\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="util_parse_size.c">

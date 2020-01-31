@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,36 +30,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef COMMON_FAULT_INJECTION
-#define COMMON_FAULT_INJECTION
+/*
+ * pmemcore.h -- definitions for "core" module
+ */
 
-#include <stdlib.h>
+#ifndef PMEMCORE_H
+#define PMEMCORE_H 1
+
+#include "util.h"
+#include "out.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-enum pmem_allocation_type { PMEM_MALLOC, PMEM_REALLOC };
-
-#if FAULT_INJECTION
-void common_inject_fault_at(enum pmem_allocation_type type,
-	int nth, const char *at);
-
-int common_fault_injection_enabled(void);
-
-#else
+/*
+ * core_init -- core module initialization
+ */
 static inline void
-common_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
+core_init(const char *log_prefix, const char *log_level_var,
+		const char *log_file_var, int major_version,
+		int minor_version)
 {
-	abort();
+	util_init();
+	out_init(log_prefix, log_level_var, log_file_var, major_version,
+		minor_version);
 }
 
-static inline int
-common_fault_injection_enabled(void)
+/*
+ * core_fini -- core module cleanup
+ */
+static inline void
+core_fini(void)
 {
-	return 0;
+	out_fini();
 }
-#endif
 
 #ifdef __cplusplus
 }

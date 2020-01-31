@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -76,13 +76,13 @@ main(int argc, char *argv[])
 		}
 		break;
 	case 'f':
-		if (!common_fault_injection_enabled())
+		if (!core_fault_injection_enabled())
 			break;
 
 		const char *path = argv[2];
 		fd = OPEN(path, O_RDWR);
 
-		common_inject_fault_at(PMEM_MALLOC, 1,
+		core_inject_fault_at(PMEM_MALLOC, 1,
 				"util_poolset_directories_load");
 		int ret = util_poolset_parse(&set, path, fd);
 		UT_ASSERTne(ret, 0);

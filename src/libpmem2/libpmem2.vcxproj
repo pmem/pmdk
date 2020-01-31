@@ -11,13 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\alloc.c" />
-    <ClCompile Include="..\common\os_thread_windows.c" />
-    <ClCompile Include="..\common\os_windows.c" />
-    <ClCompile Include="..\common\out.c" />
+    <ClCompile Include="..\core\alloc.c" />
+    <ClCompile Include="..\core\os_thread_windows.c" />
+    <ClCompile Include="..\core\os_windows.c" />
+    <ClCompile Include="..\core\out.c" />
     <ClCompile Include="..\common\ravl.c" />
-    <ClCompile Include="..\common\util.c" />
-    <ClCompile Include="..\common\util_windows.c" />
+    <ClCompile Include="..\core\util.c" />
+    <ClCompile Include="..\core\util_windows.c" />
     <ClCompile Include="libpmem2_main.c" />
     <ClCompile Include="libpmem2.c" />
     <ClCompile Include="auto_flush_windows.c" />
@@ -136,7 +136,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\libpmem2.h" />
-    <ClInclude Include="..\common\os_thread.h" />
+    <ClInclude Include="..\core\os_thread.h" />
     <ClInclude Include="auto_flush.h" />
     <ClInclude Include="auto_flush_windows.h" />
     <ClInclude Include="map.h" />

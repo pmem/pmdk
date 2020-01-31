@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020, Intel Corporation
+ * Copyright 2019, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,36 +30,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * pmemcommon.h -- definitions for "common" module
- */
+#ifndef CORE_FAULT_INJECTION
+#define CORE_FAULT_INJECTION
 
-#ifndef PMEMCOMMON_H
-#define PMEMCOMMON_H 1
-
-#include "mmap.h"
-#include "pmemcore.h"
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+enum pmem_allocation_type { PMEM_MALLOC, PMEM_REALLOC };
+
+#if FAULT_INJECTION
+void core_inject_fault_at(enum pmem_allocation_type type,
+	int nth, const char *at);
+
+int core_fault_injection_enabled(void);
+
+#else
 static inline void
-common_init(const char *log_prefix, const char *log_level_var,
-		const char *log_file_var, int major_version,
-		int minor_version)
+core_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
 {
-	core_init(log_prefix, log_level_var, log_file_var, major_version,
-		minor_version);
-	util_mmap_init();
+	abort();
 }
 
-static inline void
-common_fini(void)
+static inline int
+core_fault_injection_enabled(void)
 {
-	util_mmap_fini();
-	core_fini();
+	return 0;
 }
+#endif
 
 #ifdef __cplusplus
 }

@@ -30,7 +30,7 @@
     <ClCompile Include="..\..\common\rand.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\os_thread_windows.c">
+    <ClCompile Include="..\..\core\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -41,7 +41,7 @@
     <ClInclude Include="vgraph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\common\os_thread.h">
+    <ClInclude Include="..\..\core\os_thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\common\rand.h">

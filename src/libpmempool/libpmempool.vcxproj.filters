@@ -49,16 +49,16 @@
     <ClCompile Include="..\common\mmap_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\fs_windows.c">
+    <ClCompile Include="..\core\fs_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\out.c">
+    <ClCompile Include="..\core\out.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pool.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_windows.c">
+    <ClCompile Include="..\core\os_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\pool_hdr.c">
@@ -79,10 +79,10 @@
     <ClCompile Include="..\common\uuid.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\util_windows.c">
+    <ClCompile Include="..\core\util_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\util.c">
+    <ClCompile Include="..\core\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="transform.c">
@@ -91,7 +91,7 @@
     <ClCompile Include="..\common\uuid_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_thread_windows.c">
+    <ClCompile Include="..\core\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="check_blk.c">
@@ -118,7 +118,7 @@
     <ClCompile Include="..\common\badblock_none.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\alloc.c">
+    <ClCompile Include="..\core\alloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\libpmem2\auto_flush_windows.c">
@@ -141,7 +141,7 @@
     <ClInclude Include="..\common\mmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\out.h">
+    <ClInclude Include="..\core\out.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\pmemcommon.h">
@@ -177,7 +177,7 @@
     <ClInclude Include="..\common\sys_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\util.h">
+    <ClInclude Include="..\core\util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\uuid.h">
@@ -192,19 +192,19 @@
     <ClInclude Include="..\libpmemblk\btt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\fs.h">
+    <ClInclude Include="..\core\fs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\os.h">
+    <ClInclude Include="..\core\os.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\common\os_deep.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\alloc.h">
+    <ClInclude Include="..\core\alloc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\common\fault_injection.h">
+    <ClInclude Include="..\core\fault_injection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\libpmem2\auto_flush.h">

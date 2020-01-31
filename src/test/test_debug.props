@@ -17,7 +17,7 @@
     <ClCompile>
       <TreatWarningAsError>true</TreatWarningAsError>
       <PreprocessorDefinitions>PMDK_UTF8_API;SDS_ENABLED;NTDDI_VERSION=NTDDI_WIN10_RS1;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\common;$(SolutionDir)\test\unittest</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)\windows\include;$(SolutionDir)\include;$(SolutionDir)\common;$(SolutionDir)\core;$(SolutionDir)\test\unittest</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
     </ClCompile>

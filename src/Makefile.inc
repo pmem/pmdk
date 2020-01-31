@@ -1,4 +1,4 @@
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -43,10 +43,13 @@ vpath %.c $(RPMEM_COMMON)
 COMMON = $(TOP)/src/common
 vpath %.c $(COMMON)
 
+CORE = $(TOP)/src/core
+vpath %.c $(CORE)
+
 PMEM2 = $(TOP)/src/libpmem2
 vpath %.c $(PMEM2)
 
-INCS += -I../include -I../common/ $(OS_INCS)
+INCS += -I../include -I../common/ -I../core/ $(OS_INCS)
 
 # default CFLAGS
 DEFAULT_CFLAGS += -std=gnu99
@@ -198,7 +201,8 @@ endif
 ifneq ($(SOURCE),)
 _OBJS = $(SOURCE:.c=.o)
 _OBJS_COMMON = $(patsubst $(COMMON)/%, %, $(_OBJS))
-_OBJS_PMEM2 = $(patsubst $(PMEM2)/%, %, $(_OBJS_COMMON))
+_OBJS_CORE = $(patsubst $(CORE)/%, %, $(_OBJS_COMMON))
+_OBJS_PMEM2 = $(patsubst $(PMEM2)/%, %, $(_OBJS_CORE))
 _OBJS_RPMEM_COMMON = $(patsubst $(RPMEM_COMMON)/%, %, $(_OBJS_PMEM2))
 OBJS += $(addprefix $(objdir)/, $(_OBJS_RPMEM_COMMON))
 endif
