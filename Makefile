@@ -147,6 +147,8 @@ rpm dpkg: pkg-clean
 			-e $(EXPERIMENTAL) -c $(BUILD_PACKAGE_CHECK) -r $(BUILD_RPMEM)\
 			-f $(TEST_CONFIG_FILE) -n $(NDCTL_ENABLE) -p $(PMEM2_INSTALL)
 
+install: all
+
 install uninstall:
 	$(MAKE) -C src $@
 	$(MAKE) -C doc $@
