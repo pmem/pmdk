@@ -35,6 +35,7 @@ $(OPT)==$(*)==      possibly lost: 0 bytes in 0 blocks
 $(OPT)==$(*)==    still reachable: 0 bytes in 0 blocks
 $(OPT)==$(*)==         suppressed: $(*) bytes in $(*) blocks
 ==$(*)== 
+$(OPT)==$(*)== For counts of detected and suppressed errors, rerun with: -v
 ==$(*)== Use --track-origins=yes to see where uninitialised values come from
 $(OPT)==$(*)== For lists of detected and suppressed errors, rerun with: -s
 ==$(*)== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: $(*) from $(*))

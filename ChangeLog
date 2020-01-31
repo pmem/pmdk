@@ -1,6 +1,6 @@
-Wed Jan 29 2020 Marcin Ślusarz <marcin.slusarz@intel.com>
+Fri Jan 31 2020 Marcin Ślusarz <marcin.slusarz@intel.com>
 
-	* Version 1.8-rc2
+	* Version 1.8
 
 	This release:
 	- Introduces new API in libpmemobj for user-assisted defragmentation

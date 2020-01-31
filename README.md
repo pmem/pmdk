@@ -165,7 +165,7 @@ To build from source, clone this tree:
 
 For a stable version, checkout a [release tag](https://github.com/pmem/pmdk/releases) as follows. Otherwise skip this step to build the latest development release.
 ```
-	$ git checkout tags/1.7
+	$ git checkout tags/1.8
 ```
 
 Once the build system is setup, the Persistent Memory Development Kit is built using the `make` command at the top level:
