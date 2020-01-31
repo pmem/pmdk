@@ -11,31 +11,36 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\core\os_thread_windows.c" />
-    <ClCompile Include="..\..\core\os_windows.c" />
-    <ClCompile Include="ut.c" />
-    <ClCompile Include="ut_alloc.c" />
-    <ClCompile Include="ut_file.c" />
-    <ClCompile Include="ut_backtrace.c" />
-    <ClCompile Include="ut_signal.c" />
-    <ClCompile Include="ut_pthread.c" />
-    <ClCompile Include="ut_fh.c" />
+    <ClCompile Include="alloc.c" />
+    <ClCompile Include="fs_windows.c" />
+    <ClCompile Include="os_thread_windows.c" />
+    <ClCompile Include="os_windows.c" />
+    <ClCompile Include="out.c" />
+    <ClCompile Include="util.c" />
+    <ClCompile Include="util_windows.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="unittest.h" />
+    <ClInclude Include="alloc.h" />
+    <ClInclude Include="errno_freebsd.h" />
+    <ClInclude Include="fault_injection.h" />
+    <ClInclude Include="fs.h" />
+    <ClInclude Include="os.h" />
+    <ClInclude Include="os_thread.h" />
+    <ClInclude Include="out.h" />
+    <ClInclude Include="pmemcore.h" />
+    <ClInclude Include="util.h" />
+    <ClInclude Include="util_pmem.h" />
+    <ClInclude Include="valgrind_internal.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
-      <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\libpmem\libpmem.vcxproj">
-      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
+    <ProjectReference Include="..\windows\srcversion\srcversion.vcxproj">
+      <Project>{901f04db-e1a5-4a41-8b81-9d31c19acd59}</Project>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{CE3F2DFB-8470-4802-AD37-21CAF6CB2681}</ProjectGuid>
+    <ProjectGuid>{2FA3155B-6F26-4D15-AC03-9D82D48DBC42}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>libut</RootNamespace>
+    <RootNamespace>libpmemcore</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -66,21 +71,22 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(SolutionDir)\core;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);.;</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.lib</TargetExt>
-    <IncludePath>$(SolutionDir)\core;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\include;$(SolutionDir)\windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);.;</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>PMDK_UTF8_API; NTDDI_VERSION=NTDDI_WIN10_RS1;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PMDK_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <CompileAs>CompileAsC</CompileAs>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <ExceptionHandling>false</ExceptionHandling>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
@@ -88,22 +94,25 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>ole32.lib;ntdll.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <TreatLibWarningAsErrors>false</TreatLibWarningAsErrors>
+      <AdditionalDependencies>ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>PMDK_UTF8_API; NTDDI_VERSION=NTDDI_WIN10_RS1;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PMDK_UTF8_API;NTDDI_VERSION=NTDDI_WIN10_RS1;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>platform.h</ForcedIncludeFiles>
       <CompileAs>CompileAsC</CompileAs>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <Optimization>MaxSpeed</Optimization>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <ExceptionHandling>false</ExceptionHandling>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
@@ -112,11 +121,13 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>ole32.lib;ntdll.lib</AdditionalDependencies>
-      <AdditionalLibraryDirectories>
-      </AdditionalLibraryDirectories>
-      <TreatLibWarningAsErrors>false</TreatLibWarningAsErrors>
+      <AdditionalDependencies>ntdll.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
     </Lib>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

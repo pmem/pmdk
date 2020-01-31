@@ -205,10 +205,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\examples\libpmemobj\hashmap;$(SolutionDir)\examples\libpmemobj\map;$(SolutionDir)\examples\libpmemobj\tree_map;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\libpmemobj\;$(SolutionDir)\include;$(SolutionDir)\libpmemblk;$(SolutionDir)\windows\getopt;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\core;$(SolutionDir)\examples\libpmemobj\hashmap;$(SolutionDir)\examples\libpmemobj\map;$(SolutionDir)\examples\libpmemobj\tree_map;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\libpmemobj\;$(SolutionDir)\include;$(SolutionDir)\libpmemblk;$(SolutionDir)\windows\getopt;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\examples\libpmemobj\hashmap;$(SolutionDir)\examples\libpmemobj\map;$(SolutionDir)\examples\libpmemobj\tree_map;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\libpmemobj\;$(SolutionDir)\include;$(SolutionDir)\libpmemblk;$(SolutionDir)\windows\getopt;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\core;$(SolutionDir)\examples\libpmemobj\hashmap;$(SolutionDir)\examples\libpmemobj\map;$(SolutionDir)\examples\libpmemobj\tree_map;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\libpmemobj\;$(SolutionDir)\include;$(SolutionDir)\libpmemblk;$(SolutionDir)\windows\getopt;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

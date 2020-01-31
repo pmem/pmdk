@@ -184,15 +184,99 @@ INCS += -I$(TOP)/src/libpmem2
 INCS += -I$(TOP)/src/libpmem2/$(ARCH)
 endif
 
+ifeq ($(LIBPMEM2), internal-debug)
+LIBPMEMCORE=internal-debug
+OBJS +=\
+	$(TOP)/src/debug/libpmem2/libpmem2.o\
+	$(TOP)/src/debug/libpmem2/config.o\
+	$(TOP)/src/debug/libpmem2/config_posix.o\
+	$(TOP)/src/debug/libpmem2/errormsg.o\
+	$(TOP)/src/debug/libpmem2/map.o\
+	$(TOP)/src/debug/libpmem2/map_posix.o\
+	$(TOP)/src/debug/libpmem2/memops_generic.o\
+	$(TOP)/src/debug/libpmem2/persist.o\
+	$(TOP)/src/debug/libpmem2/persist_posix.o\
+	$(TOP)/src/debug/libpmem2/pmem2.o\
+	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/debug/libpmem2/ravl.o
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+OBJS +=\
+	$(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\
+	$(TOP)/src/debug/libpmem2/auto_flush_linux.o
+else
+OBJS +=\
+	$(TOP)/src/debug/libpmem2/pmem2_utils_other.o\
+	$(TOP)/src/debug/libpmem2/auto_flush_none.o
+endif
+
+include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
+OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
+OBJS += $(addprefix $(TOP)/src/nondebug/libpmem2/, ${OBJS_MEM})
+
+INCS += -I$(TOP)/src/common
+INCS += -I$(TOP)/src/libpmem2
+INCS += -I$(TOP)/src/libpmem2/$(ARCH)
+endif
+
+ifeq ($(LIBPMEM2), internal-nondebug)
+LIBPMEMCORE=internal-nondebug
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem2/libpmem2.o\
+	$(TOP)/src/nondebug/libpmem2/config.o\
+	$(TOP)/src/nondebug/libpmem2/config_posix.o\
+	$(TOP)/src/nondebug/libpmem2/errormsg.o\
+	$(TOP)/src/nondebug/libpmem2/map.o\
+	$(TOP)/src/nondebug/libpmem2/map_posix.o\
+	$(TOP)/src/nondebug/libpmem2/memops_generic.o\
+	$(TOP)/src/nondebug/libpmem2/persist.o\
+	$(TOP)/src/nondebug/libpmem2/persist_posix.o\
+	$(TOP)/src/nondebug/libpmem2/pmem2.o\
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/nondebug/libpmem2/ravl.o\
+	$(TOP)/src/nondebug/core/alloc.o\
+	$(TOP)/src/nondebug/core/fs_posix.o\
+	$(TOP)/src/nondebug/core/os_posix.o\
+	$(TOP)/src/nondebug/core/os_thread_posix.o\
+	$(TOP)/src/nondebug/core/out.o\
+	$(TOP)/src/nondebug/core/util.o\
+	$(TOP)/src/nondebug/core/util_posix.o
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o\
+	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o
+else
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils_other.o\
+	$(TOP)/src/nondebug/libpmem2/auto_flush_none.o
+endif
+
+include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
+OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
+OBJS += $(addprefix $(TOP)/src/debug/libpmem2/, ${OBJS_MEM})
+
+INCS += -I$(TOP)/src/common
+INCS += -I$(TOP)/src/libpmem2
+INCS += -I$(TOP)/src/libpmem2/$(ARCH)
+endif
+
+ifeq ($(LIBPMEM2),y)
+DYNAMIC_LIBS += -lpmem2
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem2.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem2.a
+endif
+
 ifeq ($(LIBPMEMCOMMON), y)
 LIBPMEM=y
+LIBPMEMCORE=y
 OBJS += $(LIBS_DIR)/debug/libpmemcommon.a
 INCS += -I$(TOP)/src/common
 endif
 
 ifeq ($(LIBPMEMCOMMON), internal-nondebug)
+LIBPMEMCORE=internal-nondebug
 OBJS +=\
-	$(TOP)/src/nondebug/common/alloc.o\
 	$(TOP)/src/nondebug/common/badblock_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/common/badblock.o\
 	$(TOP)/src/nondebug/common/ctl.o\
@@ -203,14 +287,10 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/nondebug/common/extent,.o)\
 	$(TOP)/src/nondebug/common/file.o\
 	$(TOP)/src/nondebug/common/file_posix.o\
-	$(TOP)/src/nondebug/common/fs_posix.o\
 	$(TOP)/src/nondebug/common/mmap.o\
 	$(TOP)/src/nondebug/common/mmap_posix.o\
-	$(TOP)/src/nondebug/common/os_posix.o\
-	$(TOP)/src/nondebug/common/os_thread_posix.o\
 	$(TOP)/src/nondebug/common/os_deep_linux.o\
 	$(TOP)/src/nondebug/common/os_dimm_$(OS_DIMM).o\
-	$(TOP)/src/nondebug/common/out.o\
 	$(TOP)/src/nondebug/common/pool_hdr.o\
 	$(TOP)/src/nondebug/common/set.o\
 	$(TOP)/src/nondebug/common/shutdown_state.o\
@@ -234,8 +314,8 @@ INCS += -I$(TOP)/src/common
 endif
 
 ifeq ($(LIBPMEMCOMMON), internal-debug)
+LIBPMEMCORE=internal-debug
 OBJS +=\
-	$(TOP)/src/debug/common/alloc.o\
 	$(TOP)/src/debug/common/badblock_$(OS_DIMM).o\
 	$(TOP)/src/debug/common/badblock.o\
 	$(TOP)/src/debug/common/ctl.o\
@@ -246,19 +326,13 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/debug/common/extent,.o)\
 	$(TOP)/src/debug/common/file.o\
 	$(TOP)/src/debug/common/file_posix.o\
-	$(TOP)/src/debug/common/fs_posix.o\
 	$(TOP)/src/debug/common/mmap.o\
 	$(TOP)/src/debug/common/mmap_posix.o\
-	$(TOP)/src/debug/common/os_posix.o\
-	$(TOP)/src/debug/common/os_thread_posix.o\
 	$(TOP)/src/debug/common/os_deep_linux.o\
 	$(TOP)/src/debug/common/os_dimm_$(OS_DIMM).o\
-	$(TOP)/src/debug/common/out.o\
 	$(TOP)/src/debug/common/pool_hdr.o\
 	$(TOP)/src/debug/common/set.o\
 	$(TOP)/src/debug/common/shutdown_state.o\
-	$(TOP)/src/debug/common/util.o\
-	$(TOP)/src/debug/common/util_posix.o\
 	$(TOP)/src/debug/common/uuid.o\
 	$(call osdep, $(TOP)/src/debug/common/uuid,.o)\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
@@ -276,98 +350,44 @@ endif
 INCS += -I$(TOP)/src/common
 endif
 
-ifeq ($(LIBPMEM2), internal-debug)
-OBJS +=\
-	$(TOP)/src/debug/libpmem2/libpmem2.o\
-	$(TOP)/src/debug/libpmem2/config.o\
-	$(TOP)/src/debug/libpmem2/config_posix.o\
-	$(TOP)/src/debug/libpmem2/errormsg.o\
-	$(TOP)/src/debug/libpmem2/map.o\
-	$(TOP)/src/debug/libpmem2/map_posix.o\
-	$(TOP)/src/debug/libpmem2/memops_generic.o\
-	$(TOP)/src/debug/libpmem2/persist.o\
-	$(TOP)/src/debug/libpmem2/persist_posix.o\
-	$(TOP)/src/debug/libpmem2/pmem2.o\
-	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
-	$(TOP)/src/debug/libpmem2/ravl.o\
-	$(TOP)/src/debug/common/alloc.o\
-	$(TOP)/src/debug/common/fs_posix.o\
-	$(TOP)/src/debug/common/os_posix.o\
-	$(TOP)/src/debug/common/os_thread_posix.o\
-	$(TOP)/src/debug/common/out.o\
-	$(TOP)/src/debug/common/util.o\
-	$(TOP)/src/debug/common/util_posix.o
-
-ifeq ($(OS_KERNEL_NAME),Linux)
-OBJS +=\
-	$(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\
-	$(TOP)/src/debug/libpmem2/auto_flush_linux.o
-else
-OBJS +=\
-	$(TOP)/src/debug/libpmem2/pmem2_utils_other.o\
-	$(TOP)/src/debug/libpmem2/auto_flush_none.o
+ifeq ($(LIBPMEMCORE), y)
+LIBPMEM=y
+OBJS += $(LIBS_DIR)/debug/libpmemcore.a
+INCS += -I$(TOP)/src/core
 endif
 
-include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
-OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
-OBJS += $(addprefix $(TOP)/src/nondebug/libpmem2/, ${OBJS_MEM})
+ifeq ($(LIBPMEMCORE), internal-nondebug)
+OBJS +=\
+	$(TOP)/src/nondebug/core/alloc.o\
+	$(TOP)/src/nondebug/core/fs_posix.o\
+	$(TOP)/src/nondebug/core/os_posix.o\
+	$(TOP)/src/nondebug/core/os_thread_posix.o\
+	$(TOP)/src/nondebug/core/out.o\
+	$(TOP)/src/nondebug/core/util.o\
+	$(TOP)/src/nondebug/core/util_posix.o
 
-INCS += -I$(TOP)/src/common
-INCS += -I$(TOP)/src/libpmem2
-INCS += -I$(TOP)/src/libpmem2/$(ARCH)
+OBJS += $(LIBS_DIR)/debug/libpmemcore.a
+INCS += -I$(TOP)/src/core
 endif
 
-ifeq ($(LIBPMEM2), internal-nondebug)
+ifeq ($(LIBPMEMCORE), internal-debug)
 OBJS +=\
-	$(TOP)/src/nondebug/libpmem2/libpmem2.o\
-	$(TOP)/src/nondebug/libpmem2/config.o\
-	$(TOP)/src/nondebug/libpmem2/config_posix.o\
-	$(TOP)/src/nondebug/libpmem2/errormsg.o\
-	$(TOP)/src/nondebug/libpmem2/map.o\
-	$(TOP)/src/nondebug/libpmem2/map_posix.o\
-	$(TOP)/src/nondebug/libpmem2/memops_generic.o\
-	$(TOP)/src/nondebug/libpmem2/persist.o\
-	$(TOP)/src/nondebug/libpmem2/persist_posix.o\
-	$(TOP)/src/nondebug/libpmem2/pmem2.o\
-	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
-	$(TOP)/src/nondebug/libpmem2/ravl.o\
-	$(TOP)/src/nondebug/common/alloc.o\
-	$(TOP)/src/nondebug/common/fs_posix.o\
-	$(TOP)/src/nondebug/common/os_posix.o\
-	$(TOP)/src/nondebug/common/os_thread_posix.o\
-	$(TOP)/src/nondebug/common/out.o\
-	$(TOP)/src/nondebug/common/util.o\
-	$(TOP)/src/nondebug/common/util_posix.o
+	$(TOP)/src/debug/core/alloc.o\
+	$(TOP)/src/debug/core/fs_posix.o\
+	$(TOP)/src/debug/core/os_posix.o\
+	$(TOP)/src/debug/core/os_thread_posix.o\
+	$(TOP)/src/debug/core/out.o\
+	$(TOP)/src/debug/core/util.o\
+	$(TOP)/src/debug/core/util_posix.o
 
-ifeq ($(OS_KERNEL_NAME),Linux)
-OBJS +=\
-	$(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o\
-	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o
-else
-OBJS +=\
-	$(TOP)/src/nondebug/libpmem2/pmem2_utils_other.o\
-	$(TOP)/src/nondebug/libpmem2/auto_flush_none.o
-endif
-
-include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
-OBJS_MEM = $(LIBPMEM2_ARCH_SOURCE:.c=.o)
-OBJS += $(addprefix $(TOP)/src/debug/libpmem2/, ${OBJS_MEM})
-
-INCS += -I$(TOP)/src/common
-INCS += -I$(TOP)/src/libpmem2
-INCS += -I$(TOP)/src/libpmem2/$(ARCH)
+OBJS += $(LIBS_DIR)/debug/libpmemcore.a
+INCS += -I$(TOP)/src/core
 endif
 
 ifeq ($(LIBPMEM),y)
 DYNAMIC_LIBS += -lpmem
 STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem.a
 STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem.a
-endif
-
-ifeq ($(LIBPMEM2),y)
-DYNAMIC_LIBS += -lpmem2
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmem2.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmem2.a
 endif
 
 ifeq ($(LIBRPMEM),y)
@@ -402,7 +422,7 @@ extract_funcs = $(shell \
         print "-Wl,--wrap=" $$2 \
     }' $(1) )
 
-INCS += -I../unittest -I$(TOP)/src/include -I$(TOP)/src/common
+INCS += -I../unittest -I$(TOP)/src/include -I$(TOP)/src/common -I$(TOP)/src/core
 
 COMMON_FLAGS  = -ggdb
 COMMON_FLAGS += -Wall

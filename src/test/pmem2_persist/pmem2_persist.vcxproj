@@ -79,7 +79,7 @@
     <ClInclude Include="..\unittest\unittest.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\alloc.c" />
+    <ClCompile Include="..\..\core\alloc.c" />
     <ClCompile Include="..\..\libpmem2\persist.c" />
     <ClCompile Include="pmem2_persist.c" />
   </ItemGroup>

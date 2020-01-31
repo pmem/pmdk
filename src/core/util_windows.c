@@ -42,7 +42,7 @@
 #include "alloc.h"
 #include "util.h"
 #include "out.h"
-#include "file.h"
+#include "os.h"
 
 /* Windows CRT doesn't support all errors, add unmapped here */
 #define ENOTSUP_STR "Operation not supported"

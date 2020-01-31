@@ -38,14 +38,7 @@ LIBRARY_NAME = pmem2
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
-	$(COMMON)/alloc.c\
-	$(COMMON)/fs_posix.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
-	$(COMMON)/out.c\
 	$(COMMON)/ravl.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
 	libpmem2.c\
 	config.c\
 	config_posix.c\
@@ -69,6 +62,8 @@ SOURCE +=\
 endif
 
 include $(ARCH)/sources.inc
+
+include ../core/pmemcore.inc
 
 SOURCE += $(LIBPMEM2_ARCH_SOURCE)
 

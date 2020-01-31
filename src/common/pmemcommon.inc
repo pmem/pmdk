@@ -31,8 +31,7 @@
 # src/pmemcommon.inc -- common SOURCE definitions for PMDK libraries
 #
 
-SOURCE =\
-	$(COMMON)/alloc.c\
+SOURCE +=\
 	$(COMMON)/badblock_$(OS_DIMM).c\
 	$(COMMON)/badblock.c\
 	$(COMMON)/ctl.c\
@@ -43,20 +42,14 @@ SOURCE =\
 	$(call osdep, $(COMMON)/extent,.c)\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
-	$(COMMON)/fs_posix.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_posix.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
 	$(COMMON)/os_dimm_$(OS_DIMM).c\
 	$(COMMON)/os_deep_linux.c\
-	$(COMMON)/out.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/rand.c\
 	$(COMMON)/set.c\
 	$(COMMON)/shutdown_state.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
 	$(COMMON)/uuid.c\
 	$(call osdep, $(COMMON)/uuid,.c)\
 	$(PMEM2)/pmem2_utils.c\
