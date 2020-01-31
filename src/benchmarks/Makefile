@@ -1,5 +1,5 @@
 #
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -106,8 +106,10 @@ LDFLAGS = -L$(LIBS_PATH) $(OS_LIBS)
 LDFLAGS += -L../examples/libpmemobj/map
 LDFLAGS += $(EXTRA_LDFLAGS)
 ifeq ($(DEBUG),)
+LIBS += ../nondebug/libpmemcore.a
 LIBS += ../nondebug/libpmemcommon.a
 else
+LIBS += ../debug/libpmemcore.a
 LIBS += ../debug/libpmemcommon.a
 endif
 CFLAGS += $(LIBNDCTL_CFLAGS)
@@ -127,6 +129,7 @@ CXXFLAGS += -pthread
 CXXFLAGS += -I../include
 CXXFLAGS += -I../libpmemobj
 CXXFLAGS += -I../common
+CXXFLAGS += -I../core
 CXXFLAGS += -I../examples/libpmemobj/map
 CXXFLAGS += -I../rpmem_common
 CXXFLAGS += -I../librpmem

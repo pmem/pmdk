@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020, Intel Corporation
+ * Copyright 2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,34 +31,33 @@
  */
 
 /*
- * pmemcommon.h -- definitions for "common" module
+ * pmemcore.h -- definitions for "core" module
  */
 
-#ifndef PMEMCOMMON_H
-#define PMEMCOMMON_H 1
+#ifndef PMEMCORE_H
+#define PMEMCORE_H 1
 
-#include "mmap.h"
-#include "pmemcore.h"
+#include "util.h"
+#include "out.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 static inline void
-common_init(const char *log_prefix, const char *log_level_var,
+core_init(const char *log_prefix, const char *log_level_var,
 		const char *log_file_var, int major_version,
 		int minor_version)
 {
-	core_init(log_prefix, log_level_var, log_file_var, major_version,
+	util_init();
+	out_init(log_prefix, log_level_var, log_file_var, major_version,
 		minor_version);
-	util_mmap_init();
 }
 
 static inline void
-common_fini(void)
+core_fini(void)
 {
-	util_mmap_fini();
-	core_fini();
+	out_fini();
 }
 
 #ifdef __cplusplus

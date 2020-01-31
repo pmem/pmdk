@@ -21,22 +21,22 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\alloc.c">
+    <ClCompile Include="..\core\alloc.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\util.c">
+    <ClCompile Include="..\core\util.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\util_windows.c">
+    <ClCompile Include="..\core\util_windows.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\out.c">
+    <ClCompile Include="..\core\out.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_windows.c">
+    <ClCompile Include="..\core\os_windows.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\os_thread_windows.c">
+    <ClCompile Include="..\core\os_thread_windows.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
     <ClCompile Include="..\common\ravl.c">
@@ -209,7 +209,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\os_thread.h">
+    <ClInclude Include="..\core\os_thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\libpmem2.h">

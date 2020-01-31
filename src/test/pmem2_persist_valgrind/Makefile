@@ -35,7 +35,7 @@
 #
 TOP = ../../..
 
-vpath %.c $(TOP)/src/common
+vpath %.c $(TOP)/src/core
 vpath %.c $(TOP)/src/test/unittest
 
 TARGET = pmem2_persist_valgrind

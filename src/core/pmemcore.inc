@@ -1,5 +1,4 @@
-#
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -29,22 +28,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
+# src/pmemcore.inc -- core SOURCE definitions for PMDK libraries
 #
-# src/test/pmem2_persist/Makefile -- build pmem2_persist unit test
-#
-TOP = ../../..
 
-vpath %.c $(TOP)/src/libpmem2
-vpath %.c $(TOP)/src/core
-
-INCS += -I$(TOP)/src/libpmem2
-
-TARGET = pmem2_persist
-
-OBJS += alloc.o\
-	pmem2_persist.o\
-	persist.o\
-	util.o
-
-include ../Makefile.inc
+SOURCE +=\
+	$(CORE)/alloc.c\
+	$(CORE)/fs_posix.c\
+	$(CORE)/os_posix.c\
+	$(CORE)/os_thread_posix.c\
+	$(CORE)/out.c\
+	$(CORE)/util.c\
+	$(CORE)/util_posix.c
