@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -205,10 +205,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)\examples\libpmemobj\hashmap;$(SolutionDir)\examples\libpmemobj\map;$(SolutionDir)\examples\libpmemobj\tree_map;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\libpmemobj\;$(SolutionDir)\include;$(SolutionDir)\libpmemblk;$(SolutionDir)\windows\getopt;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\core;$(SolutionDir)\examples\libpmemobj\hashmap;$(SolutionDir)\examples\libpmemobj\map;$(SolutionDir)\examples\libpmemobj\tree_map;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\libpmemobj\;$(SolutionDir)\include;$(SolutionDir)\libpmemblk;$(SolutionDir)\windows\getopt;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)\examples\libpmemobj\hashmap;$(SolutionDir)\examples\libpmemobj\map;$(SolutionDir)\examples\libpmemobj\tree_map;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\libpmemobj\;$(SolutionDir)\include;$(SolutionDir)\libpmemblk;$(SolutionDir)\windows\getopt;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)\core;$(SolutionDir)\examples\libpmemobj\hashmap;$(SolutionDir)\examples\libpmemobj\map;$(SolutionDir)\examples\libpmemobj\tree_map;$(SolutionDir)\common;$(SolutionDir)\test\unittest;$(SolutionDir)\windows\include;$(SolutionDir)\libpmemobj\;$(SolutionDir)\include;$(SolutionDir)\libpmemblk;$(SolutionDir)\windows\getopt;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

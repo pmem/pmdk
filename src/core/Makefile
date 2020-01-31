@@ -1,4 +1,4 @@
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -27,30 +27,16 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
 #
-# Makefile -- Makefile for fip tool
+# src/core/Makefile -- Makefile for core
 #
 
-TOP = ../../../..
+LIBRARY_NAME = pmemcore
 
-vpath %.c $(TOP)/src/rpmem_common/
-vpath %.c $(TOP)/src/core/
+include pmemcore.inc
 
-ifeq ($(BUILD_RPMEM),y)
-SCP_TO_REMOTE_NODES = y
-TARGET = fip
+include ../Makefile.inc
 
-OBJS = fip.o rpmem_fip_common.o rpmem_common.o util.o os_posix.o alloc.o
-
-else
-$(info NOTE: Skipping fip because $(BUILD_RPMEM_INFO))
-endif
-
-include $(TOP)/src/tools/Makefile.inc
-
-ifeq ($(BUILD_RPMEM),y)
-CFLAGS += -I$(TOP)/src/rpmem_common
-CFLAGS += -I$(TOP)/src/core
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
-LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
-endif
+CFLAGS += $(LIBNDCTL_CFLAGS)
+CFLAGS += -DUSE_LIBDL
