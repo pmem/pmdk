@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
-    <ClCompile Include="alloc.c" />
     <ClCompile Include="badblock_none.c" />
     <ClCompile Include="badblock.c" />
     <ClCompile Include="ctl.c" />
@@ -24,17 +23,11 @@
     <ClCompile Include="file_windows.c" />
     <ClCompile Include="mmap.c" />
     <ClCompile Include="mmap_windows.c" />
-    <ClCompile Include="fs_windows.c" />
     <ClCompile Include="os_deep_windows.c" />
     <ClCompile Include="os_dimm_windows.c" />
-    <ClCompile Include="os_thread_windows.c" />
-    <ClCompile Include="os_windows.c" />
-    <ClCompile Include="out.c" />
     <ClCompile Include="pool_hdr.c" />
     <ClCompile Include="set.c" />
     <ClCompile Include="shutdown_state.c" />
-    <ClCompile Include="util.c" />
-    <ClCompile Include="util_windows.c" />
     <ClCompile Include="uuid.c" />
     <ClCompile Include="uuid_windows.c" />
     <ClCompile Include="..\libpmem2\config.c" />
@@ -45,29 +38,26 @@
   <ItemGroup>
     <ClInclude Include="..\libpmem2\auto_flush.h" />
     <ClInclude Include="..\libpmem2\auto_flush_windows.h" />
-    <ClInclude Include="alloc.h" />
     <ClInclude Include="ctl.h" />
     <ClInclude Include="ctl_global.h" />
-    <ClInclude Include="fault_injection.h" />
     <ClInclude Include="os_badblock.h" />
     <ClInclude Include="badblock.h" />
     <ClInclude Include="dlsym.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="mmap.h" />
-    <ClInclude Include="fs.h" />
-    <ClInclude Include="os.h" />
     <ClInclude Include="os_deep.h" />
-    <ClInclude Include="os_thread.h" />
-    <ClInclude Include="out.h" />
     <ClInclude Include="pmemcommon.h" />
     <ClInclude Include="pool_hdr.h" />
     <ClInclude Include="set.h" />
     <ClInclude Include="sys_util.h" />
-    <ClInclude Include="util.h" />
     <ClInclude Include="uuid.h" />
-    <ClInclude Include="valgrind_internal.h" />
     <ClInclude Include="..\libpmem2\config.h" />
     <ClInclude Include="..\libpmem2\pmem2_utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\core\libpmemcore.vcxproj">
+      <Project>{2fa3155b-6f26-4d15-ac03-9d82d48dbc42}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{492BAA3D-0D5D-478E-9765-500463AE69AA}</ProjectGuid>
@@ -120,6 +110,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <ExceptionHandling>false</ExceptionHandling>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(VcpkgRoot)include;$(SolutionDir)\core</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -147,6 +138,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(VcpkgRoot)include;$(SolutionDir)\core</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

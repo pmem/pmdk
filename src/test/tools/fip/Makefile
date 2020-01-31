@@ -1,4 +1,4 @@
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,7 +35,7 @@ TOP = ../../../..
 include $(TOP)/src/common.inc
 
 vpath %.c $(TOP)/src/rpmem_common/
-vpath %.c $(TOP)/src/common/
+vpath %.c $(TOP)/src/core/
 
 ifeq ($(BUILD_RPMEM),y)
 SCP_TO_REMOTE_NODES = y
@@ -51,7 +51,7 @@ include $(TOP)/src/tools/Makefile.inc
 
 ifeq ($(BUILD_RPMEM),y)
 CFLAGS += -I$(TOP)/src/rpmem_common
-CFLAGS += -I$(TOP)/src/common
+CFLAGS += -I$(TOP)/src/core
 CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
 LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
 endif

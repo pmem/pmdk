@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,7 +47,6 @@
 #include <unistd.h>
 
 #include "libpmem2.h"
-#include "file.h"
 #include "os.h"
 #include "util.h"
 
@@ -215,6 +214,8 @@ cleanup_file:
 	cleanup_file(ctx);
 }
 #else
+#include "file.h"
+
 static void
 prepare_file(struct tool_ctx *ctx)
 {

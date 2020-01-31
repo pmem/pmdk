@@ -29,10 +29,10 @@
     <ClCompile Include="ut_pthread.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\os_windows.c">
+    <ClCompile Include="..\..\core\os_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\os_thread_windows.c">
+    <ClCompile Include="..\..\core\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ut_fh.c">

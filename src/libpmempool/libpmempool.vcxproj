@@ -11,20 +11,20 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\common\alloc.h" />
+    <ClInclude Include="..\core\alloc.h" />
     <ClInclude Include="..\common\dlsym.h" />
-    <ClInclude Include="..\common\fault_injection.h" />
+    <ClInclude Include="..\core\fault_injection.h" />
     <ClInclude Include="..\common\file.h" />
-    <ClInclude Include="..\common\fs.h" />
+    <ClInclude Include="..\core\fs.h" />
     <ClInclude Include="..\common\mmap.h" />
-    <ClInclude Include="..\common\os.h" />
+    <ClInclude Include="..\core\os.h" />
     <ClInclude Include="..\common\os_deep.h" />
-    <ClInclude Include="..\common\out.h" />
+    <ClInclude Include="..\core\out.h" />
     <ClInclude Include="..\common\pmemcommon.h" />
     <ClInclude Include="..\common\pool_hdr.h" />
     <ClInclude Include="..\common\set.h" />
     <ClInclude Include="..\common\sys_util.h" />
-    <ClInclude Include="..\common\util.h" />
+    <ClInclude Include="..\core\util.h" />
     <ClInclude Include="..\common\uuid.h" />
     <ClInclude Include="..\common\valgrind_internal.h" />
     <ClInclude Include="..\include\libpmempool.h" />
@@ -40,24 +40,24 @@
     <ClInclude Include="..\libpmem2\pmem2_utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\common\alloc.c" />
+    <ClCompile Include="..\core\alloc.c" />
     <ClCompile Include="..\common\badblock.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\mmap.c" />
     <ClCompile Include="..\common\mmap_windows.c" />
-    <ClCompile Include="..\common\fs_windows.c" />
+    <ClCompile Include="..\core\fs_windows.c" />
     <ClCompile Include="..\common\badblock_none.c" />
     <ClCompile Include="..\common\os_deep_windows.c" />
     <ClCompile Include="..\common\os_dimm_windows.c" />
-    <ClCompile Include="..\common\os_thread_windows.c" />
-    <ClCompile Include="..\common\os_windows.c" />
-    <ClCompile Include="..\common\out.c" />
+    <ClCompile Include="..\core\os_thread_windows.c" />
+    <ClCompile Include="..\core\os_windows.c" />
+    <ClCompile Include="..\core\out.c" />
     <ClCompile Include="..\common\pool_hdr.c" />
     <ClCompile Include="..\common\set.c" />
     <ClCompile Include="..\common\shutdown_state.c" />
-    <ClCompile Include="..\common\util.c" />
-    <ClCompile Include="..\common\util_windows.c" />
+    <ClCompile Include="..\core\util.c" />
+    <ClCompile Include="..\core\util_windows.c" />
     <ClCompile Include="..\common\uuid.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
     <ClCompile Include="..\libpmem2\auto_flush_windows.c" />

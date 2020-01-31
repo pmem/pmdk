@@ -38,14 +38,14 @@ include $(TOP)/src/common.inc
 # core targets
 TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools
 # make all targets
-ALL_TARGETS = $(TARGETS) common librpmem libpmem2
+ALL_TARGETS = $(TARGETS) common core librpmem libpmem2
 # all available targets
-POSSIBLE_TARGETS = $(TARGETS) common librpmem rpmem_common test\
+POSSIBLE_TARGETS = $(TARGETS) common core librpmem rpmem_common test\
 	examples benchmarks libpmem2
 
-SCOPE_DIRS = $(TARGETS) common librpmem rpmem_common
+SCOPE_DIRS = $(TARGETS) common core librpmem rpmem_common
 
-DEBUG_RELEASE_TARGETS = common libpmem libpmemblk libpmemlog libpmemobj\
+DEBUG_RELEASE_TARGETS = common core libpmem libpmemblk libpmemlog libpmemobj\
 	libpmempool librpmem libpmem2
 RELEASE_TARGETS = tools
 
