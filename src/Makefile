@@ -38,14 +38,14 @@ include $(TOP)/src/common.inc
 # core targets
 TARGETS = libpmem libpmemblk libpmemlog libpmemobj libpmempool tools
 # make all targets
-ALL_TARGETS = $(TARGETS) common librpmem libpmem2
+ALL_TARGETS = $(TARGETS) common core librpmem libpmem2
 # all available targets
-POSSIBLE_TARGETS = $(TARGETS) common librpmem rpmem_common test\
+POSSIBLE_TARGETS = $(TARGETS) common core librpmem rpmem_common test\
 	examples benchmarks libpmem2
 
-SCOPE_DIRS = $(TARGETS) common librpmem rpmem_common
+SCOPE_DIRS = $(TARGETS) common core librpmem rpmem_common
 
-DEBUG_RELEASE_TARGETS = common libpmem libpmemblk libpmemlog libpmemobj\
+DEBUG_RELEASE_TARGETS = common core libpmem libpmemblk libpmemlog libpmemobj\
 	libpmempool librpmem libpmem2
 RELEASE_TARGETS = tools
 
@@ -144,7 +144,7 @@ custom_build = $(DEBUG)$(OBJDIR)
 tools: libpmem libpmemblk libpmemlog libpmemobj libpmempool
 libpmemblk libpmemlog libpmemobj: libpmem
 libpmempool: libpmemblk
-benchmarks test tools: common
+benchmarks test tools: common core
 
 pkg-cfg-common:
 	@printf "version=%s\nlibdir=%s\nprefix=%s\nrasdeps=%s\n" "$(SRCVERSION)" "$(libdir)" "$(prefix)" "$(LIBNDCTL_PKG_CONFIG_DEPS_VAR)" > $(PKG_CONFIG_COMMON)

@@ -1,4 +1,4 @@
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -35,8 +35,9 @@ SCP_TO_REMOTE_NODES = y
 
 TOP = ../../../..
 
-vpath %.c $(TOP)/src/common
-vpath %.h $(TOP)/src/common
+vpath %.c $(TOP)/src/core
+
+CFLAGS += -I$(TOP)/src/core
 CFLAGS += -I$(TOP)/src/common
 
 TARGET = ctrld

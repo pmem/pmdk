@@ -29,34 +29,16 @@
     <ClCompile Include="mmap_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="fs_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="out.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pool_hdr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="set.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="util.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="uuid.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="uuid_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="util_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="os_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="shutdown_state.c">
@@ -81,9 +63,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ctl_sds.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="alloc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\libpmem2\config.c">
@@ -118,25 +97,13 @@
     <ClInclude Include="file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="fs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="mmap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="os.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os_badblock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os_deep.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="os_thread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="out.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pmemcommon.h">
@@ -151,19 +118,7 @@
     <ClInclude Include="sys_util.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="util.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="uuid.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="valgrind_internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="alloc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="fault_injection.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\libpmem2\config.h">

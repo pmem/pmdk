@@ -1,4 +1,4 @@
-# Copyright 2016-2020, Intel Corporation
+# Copyright 2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,29 +28,14 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-# Makefile -- Makefile for fip tool
+# src/pmemcore.inc -- core SOURCE definitions for PMDK libraries
 #
 
-TOP = ../../../..
-
-vpath %.c $(TOP)/src/rpmem_common/
-vpath %.c $(TOP)/src/core/
-
-ifeq ($(BUILD_RPMEM),y)
-SCP_TO_REMOTE_NODES = y
-TARGET = fip
-
-OBJS = fip.o rpmem_fip_common.o rpmem_common.o util.o os_posix.o alloc.o
-
-else
-$(info NOTE: Skipping fip because $(BUILD_RPMEM_INFO))
-endif
-
-include $(TOP)/src/tools/Makefile.inc
-
-ifeq ($(BUILD_RPMEM),y)
-CFLAGS += -I$(TOP)/src/rpmem_common
-CFLAGS += -I$(TOP)/src/core
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
-LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
-endif
+SOURCE +=\
+	$(CORE)/alloc.c\
+	$(CORE)/fs_posix.c\
+	$(CORE)/os_posix.c\
+	$(CORE)/os_thread_posix.c\
+	$(CORE)/out.c\
+	$(CORE)/util.c\
+	$(CORE)/util_posix.c

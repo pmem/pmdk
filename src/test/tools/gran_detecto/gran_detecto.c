@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -215,6 +215,7 @@ cleanup_file:
 	cleanup_file(ctx);
 }
 #else
+
 static void
 prepare_file(struct tool_ctx *ctx)
 {

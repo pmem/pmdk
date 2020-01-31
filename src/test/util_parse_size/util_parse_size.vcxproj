@@ -54,7 +54,7 @@
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\util.c" />
+    <ClCompile Include="..\..\core\util.c" />
     <ClCompile Include="util_parse_size.c" />
   </ItemGroup>
   <ItemGroup>
