@@ -1561,7 +1561,7 @@ function require_build_type() {
 # require_command -- only allow script to continue if specified command exists
 #
 function require_command() {
-	if ! which $1 &>/dev/null; then
+	if ! which $1 >/dev/null 2>&1; then
 		msg "$UNITTEST_NAME: SKIP: '$1' command required"
 		exit 0
 	fi
@@ -1573,7 +1573,7 @@ function require_command() {
 # usage: require_command_node <node-number>
 #
 function require_command_node() {
-	if ! run_on_node $1 "which $2 &>/dev/null"; then
+	if ! run_on_node $1 "which $2 >/dev/null 2>&1"; then
 		msg "$UNITTEST_NAME: SKIP: node $1: '$2' command required"
 		exit 0
 	fi
