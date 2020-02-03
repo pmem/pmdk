@@ -7,7 +7,7 @@ header: PMDK
 date: pmem API version 1.1
 ...
 
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2020, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -130,7 +130,6 @@ The remaining flags say *how* the operation should be done, and are merely hints
 
 + **PMEM_F_MEM_WC** - Use write combining mode.
   This flag is mutually exclusive with **PMEM_F_MEM_WB**.
-  On x86\_64 this is an alias for **PMEM_F_MEM_NONTEMPORAL**.
   On x86\_64 this flag is mutually exclusive with **PMEM_F_MEM_NOFLUSH**.
 
 + **PMEM_F_MEM_WB** - Use write back mode.
