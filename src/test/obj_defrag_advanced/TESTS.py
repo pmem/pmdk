@@ -125,6 +125,7 @@ class TEST4(ObjDefragAdvancedMt):
     nthreads = 10
     ncycles = 25
 
+
 # This test last too long under helgrind/memcheck/pmemcheck
 @t.require_valgrind_disabled(['helgrind', 'memcheck', 'pmemcheck'])
 class TEST5(ObjDefragAdvancedMt):
