@@ -7,7 +7,7 @@ header: PMDK
 date: pmreorder version 1.5
 ...
 
-[comment]: <> (Copyright 2018-2019, Intel Corporation)
+[comment]: <> (Copyright 2018-2020, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -282,14 +282,14 @@ There are two ways to set macro options:
 
 + Using command line interface in format:
 ```
-PMREORDER_MARKER_NAME1=ReorderName1,PMREORDER_MARKER_NAME2=ReorderName2
+PMREORDER_MARKER_NAME1=Marker1,PMREORDER_MARKER_NAME2=Marker2
 ```
 
 + Using configuration file in .json format:
 ```
 {
-    "PMREORDER_MARKER_NAME1":"ReorderName1",
-    "PMREORDER_MARKER_NAME2":"ReorderName2"
+    "PMREORDER_MARKER_NAME1":"Marker1",
+    "PMREORDER_MARKER_NAME2":"Marker2"
 }
 ```
 
