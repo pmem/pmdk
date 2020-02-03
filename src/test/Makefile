@@ -232,7 +232,8 @@ PMEM2_TESTS = \
 	pmem2_include\
 	pmem2_integration\
 	pmem2_granularity_detection\
-	pmem2_map
+	pmem2_map\
+	pmem2_persist
 
 PMEMPOOL_TESTS = \
 	pmempool_check\
