@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 """External tools integration"""
 
@@ -54,8 +54,29 @@ class Tools:
 class Ndctl:
     """ndctl CLI handle"""
     def __init__(self):
+        if sys.platform == 'win32':
+            futils.fail('ndctl is not available on Windows')
+
         self.version = self._get_ndctl_version()
-        self.ndctl_list_output = self._get_ndctl_list_output()
+        self.ndctl_list_output = self._cmd_out_to_json('list', '-RND')
+        self.regions = self.ndctl_list_output['regions']
+
+    def _cmd_out_to_json(self, *args):
+        cmd = ['ndctl', *args]
+        cmd_as_str = ' '.join(cmd)
+        proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT,
+                      universal_newlines=True)
+        if proc.returncode != 0:
+            raise futils.Fail('"{}" failed:{}{}'.format(cmd_as_str, os.linesep,
+                                                        proc.stdout))
+        try:
+            out = json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            raise futils.Fail('Invalid "{}" output (could '
+                              'not read as JSON): {}'.format(cmd_as_str,
+                                                             proc.stdout))
+        else:
+            return out
 
     def _get_ndctl_version(self):
         proc = sp.run(['ndctl', '--version'], stdout=sp.PIPE, stderr=sp.STDOUT)
@@ -66,34 +87,20 @@ class Ndctl:
         version = proc.stdout.strip()
         return version
 
-    def _get_ndctl_list_output(self):
-        proc = sp.run(['ndctl', 'list'], stdout=sp.PIPE, stderr=sp.STDOUT)
-        if proc.returncode != 0:
-            raise futils.Fail('ndctl list failed:{}{}'.format(os.linesep,
-                                                              proc.stdout))
-        try:
-            ndctl_list_out = json.loads(proc.stdout)
-        except json.JSONDecodeError:
-            raise futils.Fail('Invalid "ndctl list" output (could '
-                              'not read as JSON): {}'.format(proc.stdout))
-        return ndctl_list_out
-
-    def _get_dev_info(self, dev_path):
-        dev = None
+    def _get_dev_info(self, dev):
         devtypes = ('blockdev', 'chardev')
 
-        for d in self.ndctl_list_output:
-            for dt in devtypes:
-                if dt in d and os.path.join('/dev', d[dt]) == dev_path:
-                    dev = d
+        for r in self.regions:
+            for d in r['namespaces']:
+                for dt in devtypes:
+                    if dt in d and os.path.join('/dev', d[dt]) == dev:
+                        return d, r
 
-        if not dev:
-            raise futils.Fail('ndctl does not recognize the device: "{}"'
-                              .format(dev_path))
-        return dev
+        raise futils.Fail('ndctl does not recognize the device: "{}"'
+                          .format(dev))
 
-    def _get_dev_param(self, dev_path, param):
-        dev = self._get_dev_info(dev_path)
+    def _get_dev_param(self, dev, param):
+        dev, _ = self._get_dev_info(dev)
         return dev[param]
 
     def get_dev_size(self, dev_path):
