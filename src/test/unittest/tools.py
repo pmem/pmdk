@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 """External tools integration"""
 
@@ -56,6 +56,24 @@ class Ndctl:
     def __init__(self):
         self.version = self._get_ndctl_version()
         self.ndctl_list_output = self._get_ndctl_list_output()
+        self.regions = self.ndctl_list_output['regions']
+
+    def _cmd_out_to_json(self, *args):
+        cmd = ['ndctl', *args]
+        cmd_as_str = ' '.join(cmd)
+        proc = sp.run(cmd, stdout=sp.PIPE, stderr=sp.STDOUT,
+                      universal_newlines=True)
+        if proc.returncode != 0:
+            raise futils.Fail('"{}" failed:{}{}'.format(cmd_as_str, os.linesep,
+                                                        proc.stdout))
+        try:
+            out = json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            raise futils.Fail('Invalid "{}" output (could '
+                              'not read as JSON): {}'.format(cmd_as_str,
+                                                             proc.stdout))
+        else:
+            return out
 
     def _get_ndctl_version(self):
         proc = sp.run(['ndctl', '--version'], stdout=sp.PIPE, stderr=sp.STDOUT)
@@ -66,35 +84,50 @@ class Ndctl:
         version = proc.stdout.strip()
         return version
 
-    def _get_ndctl_list_output(self):
-        proc = sp.run(['ndctl', 'list'], stdout=sp.PIPE, stderr=sp.STDOUT)
-        if proc.returncode != 0:
-            raise futils.Fail('ndctl list failed:{}{}'.format(os.linesep,
-                                                              proc.stdout))
-        try:
-            ndctl_list_out = json.loads(proc.stdout)
-        except json.JSONDecodeError:
-            raise futils.Fail('Invalid "ndctl list" output (could '
-                              'not read as JSON): {}'.format(proc.stdout))
-        return ndctl_list_out
+    def _get_ndctl_list_output(self, *args):
+        return self._cmd_out_to_json('list', '-RND')
 
-    def _get_dev_info(self, dev_path):
-        dev = None
+    def _get_dev_info(self, dev):
         devtypes = ('blockdev', 'chardev')
 
-        for d in self.ndctl_list_output:
-            for dt in devtypes:
-                if dt in d and os.path.join('/dev', d[dt]) == dev_path:
-                    dev = d
+        for r in self.regions:
+            for d in r['namespaces']:
+                for dt in devtypes:
+                    if dt in d and os.path.join('/dev', d[dt]) == dev:
+                        return d, r
 
-        if not dev:
-            raise futils.Fail('ndctl does not recognize the device: "{}"'
-                              .format(dev_path))
-        return dev
+        raise futils.Fail('ndctl does not recognize the device: "{}"'
+                          .format(dev))
 
-    def _get_dev_param(self, dev_path, param):
-        dev = self._get_dev_info(dev_path)
+    def _get_dev_param(self, dev, param):
+        dev, _ = self._get_dev_info(dev)
         return dev[param]
+
+    def get_dev_dimms(self, dev):
+        _, region = self._get_dev_info(dev)
+
+        return region['mappings']
+
+    def inject_usc(self, dimm):
+        try:
+            cmd = ['ndctl', 'inject-smart', '-U', dimm['dimm']]
+            sp.check_output(cmd, stderr=sp.STDOUT,
+                            universal_newlines=True)
+        except KeyError as e:
+            raise futils.Fail(e)
+        except sp.CalledProcessError as e:
+            raise futils.Fail(e.stdout)
+
+    def read_usc(self, dimm):
+        try:
+            name = dimm['dimm']
+        except KeyError as e:
+            raise futils.Fail(e)
+
+        out = self._cmd_out_to_json('list', '-HD', '-d', name)
+        usc = int(out[0]['health']['shutdown_count'])
+
+        return usc
 
     def get_dev_size(self, dev_path):
         return int(self._get_dev_param(dev_path, 'size'))
