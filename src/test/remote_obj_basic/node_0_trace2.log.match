@@ -1,4 +1,4 @@
-{$(nW)remote_obj_basic.c:48 main} remote_obj_basic/TEST2: START: remote_obj_basic
+{$(nW)remote_obj_basic.c:$(N) main} remote_obj_basic/TEST2: START: remote_obj_basic
  ./remote_obj_basic$(nW) create $(nW)pool2.set
-{$(nW)remote_obj_basic.c:61 main} The pool set $(nW)pool2.set has been created
-{$(nW)remote_obj_basic.c:75 main} remote_obj_basic/TEST2: DONE
+{$(nW)remote_obj_basic.c:$(N) main} The pool set $(nW)pool2.set has been created
+{$(nW)remote_obj_basic.c:$(N) main} remote_obj_basic/TEST2: DONE
