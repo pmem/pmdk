@@ -209,7 +209,8 @@ PMEM2_TESTS = \
 	pmem2_persist\
 	pmem2_persist_valgrind\
 	pmem2_perror\
-	pmem2_memcpy
+	pmem2_memcpy\
+	pmem2_memset
 
 PMEMPOOL_TESTS = \
 	pmempool_check\
