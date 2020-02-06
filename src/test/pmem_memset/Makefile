@@ -4,10 +4,16 @@
 #
 # src/test/pmem_memset/Makefile -- build pmem_memset unit test
 #
+TOP = ../../..
+vpath %.c $(TOP)/src/test/pmem2_memset
+
 TARGET = pmem_memset
-OBJS = pmem_memset.o
+OBJS = pmem_memset.o\
+	$(TOP)/src/test/pmem2_memset/memset_common.o
 
 LIBPMEM=y
 LIBPMEMCOMMON=y
 
 include ../Makefile.inc
+
+CFLAGS += -I$(TOP)/src/test/pmem2_memset
