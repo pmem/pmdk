@@ -99,7 +99,7 @@ RUN dnf update -y && dnf install -y \
 	$COVERITY_DEPS \
 	$MISC_DEPS \
 	$TESTS_DEPS \
-	&& ./install-valgrind.sh \
+	&& ./install-valgrind.sh fedora \
 	&& ./install-libfabric.sh fedora \
 	&& dnf clean all
 

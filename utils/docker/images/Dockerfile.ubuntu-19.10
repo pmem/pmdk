@@ -91,7 +91,7 @@ RUN apt-get update && apt-get dist-upgrade -y \
 	$CODECOV_DEPS \
 	$COVERITY_DEPS \
 	$MISC_DEPS \
-	&& ./install-valgrind.sh \
+	&& ./install-valgrind.sh ubuntu \
 	&& ./install-libfabric.sh \
 	&& rm -rf /var/lib/apt/lists/*
 
