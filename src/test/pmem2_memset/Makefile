@@ -1,5 +1,5 @@
 #
-# Copyright 2015-2020, Intel Corporation
+# Copyright 2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -31,18 +31,18 @@
 #
 
 #
-# src/test/pmem_memset/Makefile -- build pmem_memset unit test
+# src/test/pmem2_memset/Makefile -- build pmem2_memset test
 #
 TOP = ../../..
-vpath %.c $(TOP)/src/test/pmem2_memset
+vpath %.c $(TOP)/src/test/unittest
+INCS += -I$(TOP)/src/libpmem2
 
-TARGET = pmem_memset
-OBJS = pmem_memset.o\
-	$(TOP)/src/test/pmem2_memset/memset_common.o
+TARGET = pmem2_memset
+OBJS += pmem2_memset.o\
+	memset_common.o\
+	ut_pmem2_utils.o\
+	ut_pmem2_config.o
 
-LIBPMEM=y
-LIBPMEMCOMMON=y
+LIBPMEM2=y
 
 include ../Makefile.inc
-
-CFLAGS += -I$(TOP)/src/test/pmem2_memset

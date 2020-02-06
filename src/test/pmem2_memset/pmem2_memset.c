@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2020, Intel Corporation
+ * Copyright 2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,59 +37,39 @@
  */
 
 #include "unittest.h"
-#include "util_pmem.h"
 #include "file.h"
+#include "ut_pmem2_utils.h"
+#include "ut_pmem2_config.h"
 #include "memset_common.h"
 
-typedef void *pmem_memset_fn(void *pmemdest, int c, size_t len, unsigned flags);
-
-static void *
-pmem_memset_persist_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
-{
-	(void) flags;
-	return pmem_memset_persist(pmemdest, c, len);
-}
-
-static void *
-pmem_memset_nodrain_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
-{
-	(void) flags;
-	return pmem_memset_nodrain(pmemdest, c, len);
-}
-
-static void
-do_memset_variants(int fd, char *dest, const char *file_name, size_t dest_off,
-		size_t bytes, union persist p)
-{
-	do_memset(fd, dest, file_name, dest_off, bytes,
-			pmem_memset_persist_wrapper, 0, p);
-
-	do_memset(fd, dest, file_name, dest_off, bytes,
-			pmem_memset_nodrain_wrapper, 0, p);
-
-	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
-		do_memset(fd, dest, file_name, dest_off, bytes,
-				pmem_memset, Flags[i], p);
-		if (Flags[i] & PMEMOBJ_F_MEM_NOFLUSH)
-			pmem_persist(dest, bytes);
-	}
-}
-
 /*
- * do_persist -- util_persist_auto wrapper for pmem_persist/msync
+ * do_persist -- wrapper for pmem_2 persist_fn
  */
 void
 do_persist(union persist p, const void *addr, size_t len)
 {
-	util_persist_auto(p.is_pmem, addr, 2 * len);
+	p.persist_fn(addr, len);
+}
+
+static void
+do_memset_variants(int fd, char *dest, const char *file_name, size_t dest_off,
+		size_t bytes, union persist p, memset_fn fn)
+{
+	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
+		do_memset(fd, dest, file_name, dest_off, bytes,
+				fn, Flags[i], p);
+		if (Flags[i] & PMEMOBJ_F_MEM_NOFLUSH)
+			do_persist(p, dest, bytes);
+	}
 }
 
 int
 main(int argc, char *argv[])
 {
 	int fd;
-	size_t mapped_len;
 	char *dest;
+	struct pmem2_config *cfg;
+	struct pmem2_map *map;
 
 	if (argc != 4)
 		UT_FATAL("usage: %s file offset length", argv[0]);
@@ -98,7 +78,7 @@ main(int argc, char *argv[])
 	const char *avx = os_getenv("PMEM_AVX");
 	const char *avx512f = os_getenv("PMEM_AVX512F");
 
-	START(argc, argv, "pmem_memset %s %s %s %savx %savx512f",
+	START(argc, argv, "pmem2_memset %s %s %s %savx %savx512f",
 			argv[2], argv[3],
 			thr ? thr : "default",
 			avx ? "" : "!",
@@ -106,22 +86,31 @@ main(int argc, char *argv[])
 
 	fd = OPEN(argv[1], O_RDWR);
 
-	/* open a pmem file and memory map it */
-	if ((dest = pmem_map_file(argv[1], 0, 0, 0, &mapped_len, NULL)) == NULL)
-		UT_FATAL("!Could not mmap %s\n", argv[1]);
+	PMEM2_CONFIG_NEW(&cfg);
+	PMEM2_CONFIG_SET_FD(cfg, fd);
+	PMEM2_CONFIG_SET_GRANULARITY(cfg, PMEM2_GRANULARITY_PAGE);
+
+	int ret = pmem2_map(cfg, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	PMEM2_CONFIG_DELETE(&cfg);
+
+	dest = pmem2_map_get_address(map);
+	if (dest == NULL)
+		UT_FATAL("!could not map file: %s", argv[1]);
 
 	size_t dest_off = strtoul(argv[2], NULL, 0);
 	size_t bytes = strtoul(argv[3], NULL, 0);
 
-	enum file_type type = util_fd_get_type(fd);
-	if (type < 0)
-		UT_FATAL("cannot check type of file with fd %d", fd);
-
 	union persist p;
-	p.is_pmem = type == TYPE_DEVDAX;
-	do_memset_variants(fd, dest, argv[1], dest_off, bytes, p);
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
+	p.persist_fn = persist_fn;
 
-	UT_ASSERTeq(pmem_unmap(dest, mapped_len), 0);
+	pmem2_memset_fn memset_fn = pmem2_get_memset_fn(map);
+	do_memset_variants(fd, dest, argv[1], dest_off, bytes, p, memset_fn);
+
+	ret = pmem2_unmap(&map);
+	UT_ASSERTeq(ret, 0);
 
 	CLOSE(fd);
 
