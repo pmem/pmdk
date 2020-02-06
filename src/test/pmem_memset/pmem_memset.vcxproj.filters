@@ -8,12 +8,15 @@
     <Filter Include="Test scripts">
       <UniqueIdentifier>{c1e5339d-4634-448b-aefc-9b1f077f111e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{e1feeba7-d6d1-4554-a1ae-4a2c0ee451a7}</UniqueIdentifier>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{7a11237b-94e7-4ee9-beba-b5b9ab50f43e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pmem_memset.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pmem2_memset\memset_common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -21,5 +24,10 @@
     <None Include="TEST0.PS1">
       <Filter>Test scripts</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\pmem2_memset\memset_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

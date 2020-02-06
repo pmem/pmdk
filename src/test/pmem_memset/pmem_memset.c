@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * pmem_memset.c -- unit test for doing a memset
@@ -10,6 +10,7 @@
 #include "unittest.h"
 #include "util_pmem.h"
 #include "file.h"
+#include "memset_common.h"
 
 typedef void *pmem_memset_fn(void *pmemdest, int c, size_t len, unsigned flags);
 
@@ -28,91 +29,33 @@ pmem_memset_nodrain_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
 }
 
 static void
-do_memset(int fd, char *dest, const char *file_name, size_t dest_off,
-		size_t bytes, pmem_memset_fn fn, unsigned flags)
-{
-	char *buf = MALLOC(bytes);
-	char *dest1;
-	char *ret;
-
-	enum file_type type = util_fd_get_type(fd);
-	if (type < 0)
-		UT_FATAL("cannot check type of file with fd %d", fd);
-
-	memset(dest, 0, bytes);
-	util_persist_auto(type == TYPE_DEVDAX, dest, bytes);
-	dest1 = MALLOC(bytes);
-	memset(dest1, 0, bytes);
-
-	/*
-	 * This is used to verify that the value of what a non persistent
-	 * memset matches the outcome of the persistent memset. The
-	 * persistent memset will match the file but may not be the
-	 * correct or expected value.
-	 */
-	memset(dest1 + dest_off, 0x5A, bytes / 4);
-	memset(dest1 + dest_off  + (bytes / 4), 0x46, bytes / 4);
-
-	/* Test the corner cases */
-	ret = fn(dest + dest_off, 0x5A, 0, flags);
-	UT_ASSERTeq(ret, dest + dest_off);
-	UT_ASSERTeq(*(char *)(dest + dest_off), 0);
-
-	/*
-	 * Do the actual memset with persistence.
-	 */
-	ret = fn(dest + dest_off, 0x5A, bytes / 4, flags);
-	UT_ASSERTeq(ret, dest + dest_off);
-	ret = fn(dest + dest_off  + (bytes / 4), 0x46, bytes / 4, flags);
-	UT_ASSERTeq(ret, dest + dest_off + (bytes / 4));
-
-	if (memcmp(dest, dest1, bytes / 2))
-		UT_FATAL("%s: first %zu bytes do not match",
-				file_name, bytes / 2);
-
-	LSEEK(fd, 0, SEEK_SET);
-	if (READ(fd, buf, bytes / 2) == bytes / 2) {
-		if (memcmp(buf, dest, bytes / 2))
-			UT_FATAL("%s: first %zu bytes do not match",
-					file_name, bytes / 2);
-	}
-
-	FREE(dest1);
-	FREE(buf);
-}
-
-static unsigned Flags[] = {
-		0,
-		PMEM_F_MEM_NODRAIN,
-		PMEM_F_MEM_NONTEMPORAL,
-		PMEM_F_MEM_TEMPORAL,
-		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL,
-		PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_NODRAIN,
-		PMEM_F_MEM_WC,
-		PMEM_F_MEM_WB,
-		PMEM_F_MEM_NOFLUSH,
-		/* all possible flags */
-		PMEM_F_MEM_NODRAIN | PMEM_F_MEM_NOFLUSH |
-			PMEM_F_MEM_NONTEMPORAL | PMEM_F_MEM_TEMPORAL |
-			PMEM_F_MEM_WC | PMEM_F_MEM_WB,
-};
-
-static void
 do_memset_variants(int fd, char *dest, const char *file_name, size_t dest_off,
-		size_t bytes)
+		size_t bytes, persist_fn p)
 {
 	do_memset(fd, dest, file_name, dest_off, bytes,
-			pmem_memset_persist_wrapper, 0);
+			pmem_memset_persist_wrapper, 0, p);
 
 	do_memset(fd, dest, file_name, dest_off, bytes,
-			pmem_memset_nodrain_wrapper, 0);
+			pmem_memset_nodrain_wrapper, 0, p);
 
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
 		do_memset(fd, dest, file_name, dest_off, bytes,
-				pmem_memset, Flags[i]);
+				pmem_memset, Flags[i], p);
 		if (Flags[i] & PMEMOBJ_F_MEM_NOFLUSH)
 			pmem_persist(dest, bytes);
 	}
+}
+
+static void
+do_persist_ddax(const void *ptr, size_t size)
+{
+	util_persist_auto(1, ptr, size);
+}
+
+static void
+do_persist(const void *ptr, size_t size)
+{
+	util_persist_auto(0, ptr, size);
 }
 
 int
@@ -144,7 +87,13 @@ main(int argc, char *argv[])
 	size_t dest_off = strtoul(argv[2], NULL, 0);
 	size_t bytes = strtoul(argv[3], NULL, 0);
 
-	do_memset_variants(fd, dest, argv[1], dest_off, bytes);
+	enum file_type type = util_fd_get_type(fd);
+	if (type < 0)
+		UT_FATAL("cannot check type of file with fd %d", fd);
+
+	persist_fn p;
+	p = type == TYPE_DEVDAX ? do_persist_ddax : do_persist;
+	do_memset_variants(fd, dest, argv[1], dest_off, bytes, p);
 
 	UT_ASSERTeq(pmem_unmap(dest, mapped_len), 0);
 
