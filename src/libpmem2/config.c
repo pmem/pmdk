@@ -21,6 +21,8 @@ pmem2_config_init(struct pmem2_config *cfg)
 {
 	cfg->offset = 0;
 	cfg->length = 0;
+	cfg->addr = NULL;
+	cfg->addr_request = PMEM2_ADDRESS_HINT;
 	cfg->requested_max_granularity = PMEM2_GRANULARITY_INVALID;
 }
 
@@ -141,6 +143,60 @@ pmem2_config_validate_length(const struct pmem2_config *cfg,
 		ERR("mapping larger than file size");
 		return PMEM2_E_MAP_RANGE;
 	}
+
+	return 0;
+}
+
+/*
+ * pmem2_config_validate_addr_alignment -- validate that addr in the
+ * pmem2_config structure is a multiple of the alignment required for
+ * specific cfg
+ */
+int
+pmem2_config_validate_addr_alignment(const struct pmem2_config *cfg,
+		const struct pmem2_source *src)
+{
+	/* cannot NULL % alignment, NULL is valid */
+	if (!cfg->addr)
+		return 0;
+
+	size_t alignment;
+	int ret = pmem2_source_alignment(src, &alignment);
+	if (ret)
+		return ret;
+
+	ASSERTne(alignment, 0);
+	if ((size_t)cfg->addr % alignment) {
+		ERR("address %p is not a multiple of %lu", cfg->addr,
+				alignment);
+		return PMEM2_E_ADDRESS_UNALIGNED;
+	}
+
+	return 0;
+}
+
+/*
+ * pmem2_config_set_address -- set addr and addr_request in the config
+ * struct
+ */
+int
+pmem2_config_set_address(struct pmem2_config *cfg, void *addr,
+		enum pmem2_address_request_type request_type)
+{
+	if (request_type != PMEM2_ADDRESS_HINT &&
+			request_type != PMEM2_ADDRESS_FIXED_NOREPLACE) {
+		ERR("invalid address request_type 0x%x", request_type);
+		return PMEM2_E_INVALID_ADDRESS_REQUEST_TYPE;
+	}
+
+	if (request_type == PMEM2_ADDRESS_FIXED_NOREPLACE && !addr) {
+		ERR(
+			"cannot use address request type PMEM2_ADDRESS_FIXED_NOREPLACE with addr being NULL");
+		return PMEM2_E_ADDRESS_NULL;
+	}
+
+	cfg->addr = addr;
+	cfg->addr_request = request_type;
 
 	return 0;
 }
