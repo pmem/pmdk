@@ -107,11 +107,34 @@ get_map_alignment(size_t len, size_t req_align)
  * 1GB alignment, it results in 1024 possible locations.
  */
 static int
-map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen)
+map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen,
+		const struct pmem2_config *cfg)
 {
 	ASSERTne(reserv, NULL);
 
-	size_t dlength = len + alignment; /* dummy length */
+	/* let's get addr from the cfg */
+	void *mmap_addr = cfg->addr;
+	int mmap_addr_flag = 0;
+	size_t dlength; /* dummy length */
+
+	/* if addr is initialized, dlength == len */
+	if (mmap_addr)
+		dlength = len;
+	else
+		dlength = len + alignment; /* dummy length */
+
+	/* "translate" pmem2 addr request type into linux flag */
+	if (cfg->addr_request == PMEM2_ADDRESS_FIXED_NOREPLACE) {
+	/*
+	 * glibc started exposing this flag in version 4.17 but we can still
+	 * imitate it even if it is not supported by libc or kernel
+	 */
+#ifdef MAP_FIXED_NOREPLACE
+		mmap_addr_flag = MAP_FIXED_NOREPLACE;
+#else
+		mmap_addr_flag = 0;
+#endif
+	}
 
 	/*
 	 * Create dummy mapping to find an unused region of given size.
@@ -120,11 +143,30 @@ map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen)
 	 * zero cost for overcommit accounting.  Note: MAP_NORESERVE
 	 * flag is ignored if overcommit is disabled (mode 2).
 	 */
-	char *daddr = mmap(NULL, dlength, PROT_READ,
-			MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+	char *daddr = mmap(mmap_addr, dlength, PROT_READ,
+			MAP_PRIVATE | MAP_ANONYMOUS | mmap_addr_flag, -1, 0);
 	if (daddr == MAP_FAILED) {
+		if (errno == EEXIST) {
+			ERR("!mmap MAP_FIXED_NOREPLACE");
+			return PMEM2_E_MAPPING_EXISTS;
+		}
 		ERR("!mmap MAP_ANONYMOUS");
 		return PMEM2_E_ERRNO;
+	}
+
+	/*
+	 * When kernel does not support MAP_FIXED_NOREPLACE flag we imitate it.
+	 * If kernel does not support flag and given addr is occupied, kernel
+	 * chooses new addr randomly and returns it. We do not want that
+	 * behavior, so we validate it and fail when addresses do not match.
+	 */
+	if (mmap_addr && cfg->addr_request == PMEM2_ADDRESS_FIXED_NOREPLACE) {
+		/* mapping passed and gave different addr, while it shouldn't */
+		if (daddr != mmap_addr) {
+			munmap(daddr, dlength);
+			ERR("mapping exists in the given address");
+			return PMEM2_E_MAPPING_EXISTS;
+		}
 	}
 
 	LOG(4, "system choice %p", daddr);
@@ -339,11 +381,19 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	const size_t alignment = get_map_alignment(content_length,
 			src_alignment);
 
+	ret = pmem2_config_validate_addr_alignment(cfg, src);
+	if (ret)
+		return ret;
+
 	/* find a hint for the mapping */
 	void *reserv = NULL;
-	ret = map_reserve(content_length, alignment, &reserv, &reserved_length);
+	ret = map_reserve(content_length, alignment, &reserv, &reserved_length,
+			cfg);
 	if (ret != 0) {
-		LOG(1, "cannot find a contiguous region of given size");
+		if (ret == PMEM2_E_MAPPING_EXISTS)
+			LOG(1, "given mapping region is already occupied");
+		else
+			LOG(1, "cannot find a contiguous region of given size");
 		return ret;
 	}
 	ASSERTne(reserv, NULL);

@@ -230,3 +230,43 @@ class TEST30(PMEM2_MAP_DEVDAX):
     """DevDax file with PMEM2_PRIVATE sharing"""
     test_case = "test_map_sharing_private_devdax"
     with_size = False
+
+
+# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
+@t.windows_exclude
+class TEST31(PMEM2_MAP):
+    """
+    map a file to the desired addr with request type
+    PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_valid"
+
+
+# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
+@t.windows_exclude
+class TEST32(PMEM2_MAP):
+    """
+    map a file and overlap whole other existing mapping with the request type
+    PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_full_overlap"
+
+
+# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
+@t.windows_exclude
+class TEST33(PMEM2_MAP):
+    """
+    map a file in a middle of other existing mapping with the request type
+    PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_partial_overlap"
+
+
+# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
+@t.windows_exclude
+class TEST34(PMEM2_MAP):
+    """
+    map a file which starts in a middle and ends above of other
+    existing mapping with request type PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_partial_above_overlap"
