@@ -10,21 +10,18 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pmem_movnt.c">
+    <ClCompile Include="pmem2_movnt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST0.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST1.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST2.PS1">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="TEST3.PS1">
+    <None Include="TESTS.py">
       <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>
