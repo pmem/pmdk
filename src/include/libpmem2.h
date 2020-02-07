@@ -56,6 +56,10 @@ extern "C" {
 #define PMEM2_E_SOURCE_EMPTY			(-100018)
 #define PMEM2_E_INVALID_SHARING_VALUE		(-100019)
 #define PMEM2_E_SRC_DEVDAX_PRIVATE		(-100020)
+#define PMEM2_E_INVALID_ADDRESS_REQUEST_TYPE	(-100021)
+#define PMEM2_E_ADDRESS_UNALIGNED		(-100022)
+#define PMEM2_E_ADDRESS_NULL			(-100023)
+#define PMEM2_E_ADDRESS_NOT_NULL		(-100024)
 
 /* source setup */
 
@@ -135,12 +139,14 @@ int pmem2_config_set_sharing(struct pmem2_config *cfg,
 
 int pmem2_config_set_protection(struct pmem2_config *cfg, unsigned flag);
 
-#define PMEM2_ADDRESS_ANY		0 /* default */
-#define PMEM2_ADDRESS_FIXED_REPLACE	1
-#define PMEM2_ADDRESS_FIXED_NOREPLACE	2
+enum pmem2_address_request_type {
+	PMEM2_ADDRESS_ANY, /* default */
+	PMEM2_ADDRESS_FIXED_REPLACE,
+	PMEM2_ADDRESS_FIXED_NOREPLACE,
+};
 
-int pmem2_config_set_address(struct pmem2_config *cfg, unsigned type,
-	void *addr);
+int pmem2_config_set_address(struct pmem2_config *cfg, void *addr,
+		enum pmem2_address_request_type request_type);
 
 enum pmem2_granularity {
 	PMEM2_GRANULARITY_BYTE,

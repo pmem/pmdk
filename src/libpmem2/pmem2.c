@@ -12,9 +12,3 @@ pmem2_config_set_protection(struct pmem2_config *cfg, unsigned flag)
 {
 	return PMEM2_E_NOSUPP;
 }
-
-int
-pmem2_config_set_address(struct pmem2_config *cfg, unsigned type, void *addr)
-{
-	return PMEM2_E_NOSUPP;
-}
