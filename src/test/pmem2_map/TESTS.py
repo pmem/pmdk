@@ -189,3 +189,43 @@ class TEST25(PMEM2_MAP):
     """
     test_case = "test_map_zero_file_size"
     filesize = 0
+
+
+# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
+@t.windows_exclude
+class TEST26(PMEM2_MAP):
+    """
+    map a file to the desired addr with request type
+    PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_valid"
+
+
+# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
+@t.windows_exclude
+class TEST27(PMEM2_MAP):
+    """
+    map a file and overlap whole other existing mapping with the request type
+    PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_full_overlap"
+
+
+# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
+@t.windows_exclude
+class TEST28(PMEM2_MAP):
+    """
+    map a file in a middle of other existing mapping with the request type
+    PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_partial_overlap"
+
+
+# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
+@t.windows_exclude
+class TEST29(PMEM2_MAP):
+    """
+    map a file which starts in a middle and ends above of other
+    existing mapping with request type PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_partial_above_overlap"
