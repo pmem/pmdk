@@ -16,6 +16,8 @@ struct pmem2_config {
 	size_t offset;
 	size_t length; /* length of the mapping */
 	/* persistence granularity requested by user */
+	void *addr; /* address of the mapping */
+	enum pmem2_address_request_type addr_request;
 	enum pmem2_granularity requested_max_granularity;
 };
 
@@ -23,5 +25,8 @@ void pmem2_config_init(struct pmem2_config *cfg);
 
 int pmem2_config_validate_length(const struct pmem2_config *cfg,
 		size_t file_len, size_t alignment);
+
+int pmem2_config_validate_addr_alignment(const struct pmem2_config *cfg,
+		const struct pmem2_source *src);
 
 #endif /* PMEM2_CONFIG_H */
