@@ -68,3 +68,33 @@ class TEST7(PMEM2_CONFIG_NO_DIR):
 class TEST8(PMEM2_CONFIG_NO_DIR):
     """setting maximum possible offset"""
     test_case = "test_set_offset_max"
+
+
+'''
+decorator should be deleted after provided
+PMEM2_ADDRESS_FIXED_NOREPLACE windows support
+'''
+@t.windows_exclude
+class TEST9(PMEM2_CONFIG):
+    """setting unaligned addr and validating it"""
+    test_case = "test_validate_unaligned_addr"
+
+
+'''
+decorator should be deleted after provided
+PMEM2_ADDRESS_FIXED_NOREPLACE windows support
+'''
+@t.windows_exclude
+class TEST10(PMEM2_CONFIG_NO_DIR):
+    """setting wrong addr flag"""
+    test_case = "test_set_wrong_addr_flag"
+
+
+'''
+decorator should be deleted after provided
+PMEM2_ADDRESS_FIXED_NOREPLACE windows support
+'''
+@t.windows_exclude
+class TEST11(PMEM2_CONFIG_NO_DIR):
+    """setting wrong addr and addr flag combination"""
+    test_case = "test_wrong_addr_and_addr_flag"
