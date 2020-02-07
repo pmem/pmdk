@@ -10,6 +10,7 @@
 #include "ut_pmem2_config.h"
 #include "config.h"
 #include "out.h"
+#include "source.h"
 
 /*
  * test_cfg_create_and_delete_valid - test pmem2_config allocation
@@ -184,6 +185,69 @@ test_set_offset_max(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_validate_unaligned_addr - setting unaligned addr and validating it
+ */
+static int
+test_validate_unaligned_addr(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_validate_unaligned_addr <file>");
+
+	/* needed for source alignment */
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_source *src;
+	PMEM2_SOURCE_FROM_FD(&src, fd);
+	struct pmem2_config cfg;
+
+	/* let's set addr which is unaligned */
+	cfg.addr = (char *)1;
+
+	int ret = pmem2_config_validate_addr_alignment(&cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_ADDRESS_UNALIGNED);
+
+	PMEM2_SOURCE_DELETE(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_set_wrong_addr_flag - setting wrong addr flag
+ */
+static int
+test_set_wrong_addr_flag(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	struct pmem2_config cfg;
+
+	/* "randomly" chosen invalid addr flag */
+	int request_type = 999;
+	int ret = pmem2_config_set_address(&cfg, NULL, request_type);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ADDRESS_TYPE);
+
+	return 0;
+}
+
+/*
+ * test_uninit_addr - setting uninitialized addr when flag is used
+ */
+static int
+test_uninit_addr(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	struct pmem2_config cfg;
+
+	int ret = pmem2_config_set_address(
+			&cfg, NULL, PMEM2_ADDRESS_FIXED_NOREPLACE);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_ADDRESS_UNINITIALIZED);
+
+	return 0;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -196,6 +260,9 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_set_offset_success),
 	TEST_CASE(test_set_length_success),
 	TEST_CASE(test_set_offset_max),
+	TEST_CASE(test_validate_unaligned_addr),
+	TEST_CASE(test_set_wrong_addr_flag),
+	TEST_CASE(test_uninit_addr),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

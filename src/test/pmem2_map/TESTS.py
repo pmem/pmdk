@@ -189,3 +189,55 @@ class TEST25(PMEM2_MAP):
     """
     test_case = "test_map_zero_file_size"
     filesize = 0
+
+
+'''
+XXX: decorator should be deleted after provided
+PMEM2_ADDRESS_FIXED_NOREPLACE windows support
+'''
+@t.windows_exclude
+class TEST26(PMEM2_MAP):
+    """
+    map a file to the desired addr with flag
+    PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_valid"
+
+
+'''
+XXX: decorator should be deleted after provided
+PMEM2_ADDRESS_FIXED_NOREPLACE windows support
+'''
+@t.windows_exclude
+class TEST27(PMEM2_MAP):
+    """
+    map a file and overlap whole other existing mapping with the flag
+    PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_full_overlap"
+
+
+'''
+XXX: decorator should be deleted after provided
+PMEM2_ADDRESS_FIXED_NOREPLACE windows support
+'''
+@t.windows_exclude
+class TEST28(PMEM2_MAP):
+    """
+    map a file in a middle of other existing mapping with the flag
+    PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_partial_overlap"
+
+
+'''
+XXX: decorator should be deleted after provided
+PMEM2_ADDRESS_FIXED_NOREPLACE windows support
+'''
+@t.windows_exclude
+class TEST29(PMEM2_MAP):
+    """
+    map a file which starts in a middle and ends above of other
+    existing mapping with flag PMEM2_ADDRESS_FIXED_NOREPLACE
+    """
+    test_case = "test_map_fixed_noreplace_partial_above_overlap"
