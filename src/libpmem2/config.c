@@ -21,6 +21,8 @@ pmem2_config_init(struct pmem2_config *cfg)
 {
 	cfg->offset = 0;
 	cfg->length = 0;
+	cfg->addr = NULL;
+	cfg->addr_flag = PMEM2_ADDRESS_ANY;
 	cfg->requested_max_granularity = PMEM2_GRANULARITY_INVALID;
 }
 
@@ -141,6 +143,62 @@ pmem2_config_validate_length(const struct pmem2_config *cfg,
 		ERR("mapping larger than file size");
 		return PMEM2_E_MAP_RANGE;
 	}
+
+	return 0;
+}
+
+/*
+ * pmem2_config_validate_addr_alignment -- validate that addr in the
+ * pmem2_config structure is a multiple of the alignment required for
+ * specific cfg
+ */
+int
+pmem2_config_validate_addr_alignment(const struct pmem2_source *src,
+		const struct pmem2_config *cfg)
+{
+	/* cannot NULL % alignment, NULL is valid */
+	if (!cfg->addr)
+		return 0;
+
+	size_t alignment;
+	int ret = pmem2_source_alignment(src, &alignment);
+	if (ret)
+		return ret;
+
+	ASSERTne(alignment, 0);
+	if ((size_t)cfg->addr % alignment) {
+		ERR("address is not a multiple of %lu", alignment);
+		return PMEM2_E_ADDRESS_UNALIGNED;
+	}
+
+	return 0;
+}
+
+/*
+ * pmem2_config_set_address -- sets addr and addr_flag in the config
+ * struct
+ */
+int
+pmem2_config_set_address(struct pmem2_config *cfg, void *addr, int type)
+{
+	if (type & ~PMEM2_E_ADDRESS_VALID_FLAGS) {
+		ERR("invalid flags 0x%x", type);
+		return PMEM2_E_INVALID_ADDRESS_FLAG;
+	}
+
+	/*
+	 * after support to PMEM2_ADDRESS_FIXED_REPLACE, it should be also
+	 * considered and validated
+	 */
+	if (type == PMEM2_ADDRESS_FIXED_NOREPLACE && !addr) {
+		ERR("cannot use flag PMEM2_ADDRESS_FIXED_NOREPLACE with"
+				" addr being not a multiple of the alignment"
+				" required for the specific config");
+		return PMEM2_E_ADDRESS_UNALIGNED;
+	}
+
+	cfg->addr = addr;
+	cfg->addr_flag = type;
 
 	return 0;
 }
