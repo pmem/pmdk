@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2020, Intel Corporation */
 
 /*
- * config_windows.c -- windows specific pmem2_config implementation
+ * source_windows.c -- windows specific pmem2_config implementation
  */
 
 #include <Windows.h>
@@ -11,17 +11,19 @@
 #include "config.h"
 #include "out.h"
 #include "pmem2_utils.h"
+#include "source.h"
 #include "util.h"
 
 /*
- * pmem2_config_set_fd -- sets fd in config struct
+ * pmem2_source_from_fd -- create a new data source instance
  */
 int
-pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
+pmem2_source_from_fd(struct pmem2_source **src, int fd)
 {
+	*src = NULL;
+
 	if (fd < 0) {
-		cfg->handle = INVALID_HANDLE_VALUE;
-		return 0;
+		return PMEM2_E_INVALID_FILE_HANDLE;
 	}
 
 	HANDLE handle = (HANDLE)_get_osfhandle(fd);
@@ -40,7 +42,7 @@ pmem2_config_set_fd(struct pmem2_config *cfg, int fd)
 		return PMEM2_E_ERRNO;
 	}
 
-	return pmem2_config_set_handle(cfg, handle);
+	return pmem2_source_from_handle(src, handle);
 }
 
 /*
@@ -67,42 +69,50 @@ pmem2_win_stat(HANDLE handle, BY_HANDLE_FILE_INFORMATION *info)
 }
 
 /*
- * pmem2_config_set_handle -- convert fd to handle
+ * pmem2_source_from_fd -- create a new data source instance
  */
 int
-pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle)
+pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle)
 {
+	*src = NULL;
+	int ret;
+
 	if (handle == INVALID_HANDLE_VALUE) {
-		cfg->handle = INVALID_HANDLE_VALUE;
-		return 0;
+		return PMEM2_E_INVALID_FILE_HANDLE;
 	}
 
 	BY_HANDLE_FILE_INFORMATION file_info;
-	int ret = pmem2_win_stat(handle, &file_info);
+	ret = pmem2_win_stat(handle, &file_info);
+	if (ret) {
+		return ret;
+	}
+
+	/* XXX: winapi doesn't provide option to get open flags from HANDLE */
+
+	struct pmem2_source *srcp = pmem2_malloc(sizeof(**src), &ret);
+
 	if (ret)
 		return ret;
 
-	/* XXX: winapi doesn't provide option to get open flags from HANDLE */
-	cfg->handle = handle;
+	ASSERTne(srcp, NULL);
+
+	srcp->handle = handle;
+	*src = srcp;
+
 	return 0;
 }
 
 /*
- * pmem2_config_get_file_size -- get a file size of the file handle stored in
- * the provided config
+ * pmem2_source_file_size -- get a file size of the file handle stored in
+ * the provided source
  */
 int
-pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size)
+pmem2_source_file_size(const struct pmem2_source *src, size_t *size)
 {
-	LOG(3, "handle %p", cfg->handle);
-
-	if (cfg->handle == INVALID_HANDLE_VALUE) {
-		ERR("cannot check size for invalid file handle");
-		return PMEM2_E_FILE_HANDLE_NOT_SET;
-	}
+	LOG(3, "handle %p", src->handle);
 
 	BY_HANDLE_FILE_INFORMATION info;
-	int ret = pmem2_win_stat(cfg->handle, &info);
+	int ret = pmem2_win_stat(src->handle, &info);
 	if (ret)
 		return ret;
 
@@ -114,17 +124,12 @@ pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size)
 }
 
 /*
- * pmem2_config_get_alignment -- get alignment from the system info
+ * pmem2_source_alignment -- get alignment from the system info
  */
 int
-pmem2_config_get_alignment(const struct pmem2_config *cfg, size_t *alignment)
+pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 {
-	LOG(3, "handle %p", cfg->handle);
-
-	if (cfg->handle == INVALID_HANDLE_VALUE) {
-		ERR("cannot check alignment for invalid file handle");
-		return PMEM2_E_FILE_HANDLE_NOT_SET;
-	}
+	LOG(3, "handle %p", src->handle);
 
 	SYSTEM_INFO info;
 	GetSystemInfo(&info);

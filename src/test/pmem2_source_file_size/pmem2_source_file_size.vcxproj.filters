@@ -11,7 +11,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pmem2_config_get_file_size.c">
+    <ClCompile Include="pmem2_source_file_size.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem2\errormsg.c">
@@ -29,7 +29,8 @@
     <ClCompile Include="..\..\libpmem2\pmem2_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem2\config_windows.c">
+    <ClCompile Include="..\..\libpmem2\    <ClCompile Include="..\libpmem2\source.c" />
+    <ClCompile Include="..\libpmem2\source_windows.c" />">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

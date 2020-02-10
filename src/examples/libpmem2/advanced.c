@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * advanced.c -- example for the libpmem2
@@ -27,6 +27,7 @@ main(int argc, char *argv[])
 	int fd;
 	struct pmem2_config *cfg;
 	struct pmem2_map *map;
+	struct pmem2_source *src;
 
 	if (argc != 4) {
 		fprintf(stderr, "usage: %s src-file offset length\n", argv[0]);
@@ -47,8 +48,8 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (pmem2_config_set_fd(cfg, fd)) {
-		fprintf(stderr, "pmem2_config_set_fd: %s\n", pmem2_errormsg());
+	if (pmem2_source_from_fd(&src, fd)) {
+		fprintf(stderr, "pmem2_source_from_fd: %s\n", pmem2_errormsg());
 		exit(1);
 	}
 
@@ -61,8 +62,8 @@ main(int argc, char *argv[])
 
 	size_t alignment;
 
-	if (pmem2_config_get_alignment(cfg, &alignment)) {
-		fprintf(stderr, "pmem2_config_get_alignment: %s\n",
+	if (pmem2_source_alignment(src, &alignment)) {
+		fprintf(stderr, "pmem2_source_alignment: %s\n",
 				pmem2_errormsg());
 		exit(1);
 	}
@@ -91,7 +92,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (pmem2_map(cfg, &map)) {
+	if (pmem2_map(cfg, src, &map)) {
 		fprintf(stderr, "pmem2_map: %s\n", pmem2_errormsg());
 		exit(1);
 	}
@@ -106,6 +107,7 @@ main(int argc, char *argv[])
 	}
 
 	pmem2_unmap(&map);
+	pmem2_source_delete(&src);
 	pmem2_config_delete(&cfg);
 	close(fd);
 

@@ -12,7 +12,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3B44D717-EEDE-470A-B631-C9D6BFE4ADF2}</ProjectGuid>
-    <RootNamespace>pmem2_config_get_alignment</RootNamespace>
+    <RootNamespace>pmem2_source_alignment</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -76,16 +76,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpmem2\config.c" />
-    <ClCompile Include="..\..\libpmem2\config_windows.c" />
+    <ClCompile Include="..\..\libpmem2\source.c" />
+    <ClCompile Include="..\..\libpmem2\source_windows.c" />
     <ClCompile Include="..\..\libpmem2\errormsg.c" />
     <ClCompile Include="..\..\libpmem2\pmem2_utils.c" />
     <ClCompile Include="..\unittest\ut_pmem2_config.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
-    <ClCompile Include="pmem2_config_get_alignment.c" />
+    <ClCompile Include="pmem2_source_alignment.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\libpmem2\config.h" />
+    <ClInclude Include="..\..\libpmem2\source.h" />
     <ClInclude Include="..\..\libpmem2\pmem2.h" />
     <ClInclude Include="..\..\libpmem2\pmem2_utils.h" />
     <ClInclude Include="..\unittest\ut_pmem2_config.h" />

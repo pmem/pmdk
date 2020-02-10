@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\libpmem2\config.c" />
+    <ClCompile Include="..\..\libpmem2\source.c" />
+    <ClCompile Include="..\..\libpmem2\source_windows.c" />
+    <ClCompile Include="..\..\libpmem2\errormsg.c" />
+    <ClCompile Include="..\..\libpmem2\pmem2_utils.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_config.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
+    <ClCompile Include="pmem2_source.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\libpmem2\config.h" />
+    <ClInclude Include="..\..\libpmem2\pmem2.h" />
+    <ClInclude Include="..\..\libpmem2\pmem2_utils.h" />
+    <ClInclude Include="..\unittest\ut_pmem2_config.h" />
+    <ClInclude Include="..\unittest\ut_pmem2_utils.h" />
+  </ItemGroup>
+</Project>
