@@ -1,6 +1,6 @@
 #!../env.py
 #
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,62 +37,89 @@ from testframework import granularity as g
 
 
 @g.require_granularity(g.ANY)
-class PMEM2_CONFIG(t.Test):
+class PMEM2_SOURCE(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
         filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
-        ctx.exec('pmem2_config', self.test_case, filepath)
+        ctx.exec('pmem2_source', self.test_case, filepath)
 
 
 @g.no_testdir()
-class PMEM2_CONFIG_NO_DIR(t.Test):
+class PMEM2_SOURCE_NO_DIR(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_config', self.test_case)
+        ctx.exec('pmem2_source', self.test_case)
 
 
-class TEST0(PMEM2_CONFIG_NO_DIR):
-    """allocation and dealocation of pmem2_config"""
-    test_case = "test_cfg_create_and_delete_valid"
+class TEST0(PMEM2_SOURCE):
+    """setting a read + write file descriptor in pmem2_source"""
+    test_case = "test_set_rw_fd"
 
 
-class TEST1(PMEM2_CONFIG_NO_DIR):
-    """allocation of pmem2_config in case of missing memory in system"""
-    test_case = "test_alloc_cfg_enomem"
+class TEST1(PMEM2_SOURCE):
+    """setting a read only file descriptor in pmem2_source"""
+    test_case = "test_set_ro_fd"
 
 
-class TEST2(PMEM2_CONFIG_NO_DIR):
-    """deleting null pmem2_config"""
+class TEST2(PMEM2_SOURCE):
+    """setting invalid (closed) file descriptor in pmem2_source"""
+    test_case = "test_set_invalid_fd"
+
+
+class TEST3(PMEM2_SOURCE):
+    """setting a write only file descriptor in pmem2_source"""
+    test_case = "test_set_wronly_fd"
+
+
+class TEST4(PMEM2_SOURCE):
+    """allocation of pmem2_source in case of missing memory in system"""
+    test_case = "test_alloc_src_enomem"
+
+
+class TEST5(PMEM2_SOURCE_NO_DIR):
+    """deleting null pmem2_source"""
     test_case = "test_delete_null_config"
 
 
-class TEST3(PMEM2_CONFIG_NO_DIR):
-    """set valid granularity in the config"""
-    test_case = "test_config_set_granularity_valid"
+@t.windows_only
+class TEST6(PMEM2_SOURCE):
+    """set handle in the source"""
+    test_case = "test_set_handle"
 
 
-class TEST4(PMEM2_CONFIG_NO_DIR):
-    """set invalid granularity in the config"""
-    test_case = "test_config_set_granularity_invalid"
+@t.windows_only
+class TEST7(PMEM2_SOURCE_NO_DIR):
+    """set INVALID_HANLE_VALUE in the source"""
+    test_case = "test_set_null_handle"
 
 
-class TEST5(PMEM2_CONFIG_NO_DIR):
-    """setting offset which is too large"""
-    test_case = "test_set_offset_too_large"
+@t.windows_only
+class TEST8(PMEM2_SOURCE):
+    """set invalid handle in the source"""
+    test_case = "test_set_invalid_handle"
 
 
-class TEST6(PMEM2_CONFIG_NO_DIR):
-    """setting a valid offset"""
-    test_case = "test_set_offset_success"
+@t.windows_only
+class TEST9(PMEM2_SOURCE):
+    """set handle to a directory in the source"""
+    test_case = "test_set_directory_handle"
+
+    def run(self, ctx):
+        ctx.exec('pmem2_source', self.test_case, ctx.testdir)
 
 
-class TEST7(PMEM2_CONFIG_NO_DIR):
-    """setting a valid length"""
-    test_case = "test_set_length_success"
+@t.windows_only
+class TEST10(PMEM2_SOURCE_NO_DIR):
+    """set handle to a mutex in the source"""
+    test_case = "test_set_mutex_handle"
 
 
-class TEST8(PMEM2_CONFIG_NO_DIR):
-    """setting maximum possible offset"""
-    test_case = "test_set_offset_max"
+@t.windows_exclude
+class TEST11(PMEM2_SOURCE):
+    """set directory's fd in the source"""
+    test_case = "test_set_directory_fd"
+
+    def run(self, ctx):
+        ctx.exec('pmem2_source', self.test_case, ctx.testdir)

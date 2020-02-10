@@ -1,5 +1,6 @@
+#!../env.py
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -30,21 +31,36 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-#
-# src/test/pmem2_config_get_alignment/Makefile -- build
-# pmem2_config_get_alignment unit test
-#
-TOP = ../../..
 
-vpath %.c $(TOP)/src/test/unittest
-vpath %.c $(TOP)/src/libpmem2
+import testframework as t
 
-INCS += -I$(TOP)/src/libpmem2
-TARGET = pmem2_config_get_alignment
-OBJS += errormsg.o\
-	pmem2_config_get_alignment.o\
-	ut_pmem2_config.o\
-	ut_pmem2_utils.o
 
-LIBPMEMCOMMON=y
-include ../Makefile.inc
+class TEST0(t.Test):
+    test_type = t.Short
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
+        ctx.exec('pmem2_source_alignment',
+                 'test_get_alignment_success', filepath)
+
+
+class PMEM2_SOURCE_ALIGNMENT_DEV_DAX(t.Test):
+    test_type = t.Short
+    test_case = "test_get_alignment_success"
+
+    def run(self, ctx):
+        dd = ctx.devdaxes.devdax
+        ctx.exec('pmem2_source_alignment',
+                 self.test_case, dd.path, str(dd.alignment))
+
+
+@t.windows_exclude
+@t.require_devdax(t.DevDax('devdax', alignment=2 * t.MiB))
+class TEST1(PMEM2_SOURCE_ALIGNMENT_DEV_DAX):
+    pass
+
+
+@t.windows_exclude
+@t.require_devdax(t.DevDax('devdax', alignment=4 * t.KiB))
+class TEST2(PMEM2_SOURCE_ALIGNMENT_DEV_DAX):
+    pass

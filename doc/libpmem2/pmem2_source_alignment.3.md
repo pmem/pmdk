@@ -1,13 +1,13 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_CONFIG_GET_FILE_SIZE, 3)
+title: _MP(PMEM2_SOURCE_ALIGNMENT, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
 ...
 
-[comment]: <> (Copyright 2019, Intel Corporation)
+[comment]: <> (Copyright 2019-2020, Intel Corporation)
 
 [comment]: <> (Redistribution and use in source and binary forms, with or without)
 [comment]: <> (modification, are permitted provided that the following conditions)
@@ -34,7 +34,7 @@ date: pmem2 API version 1.0
 [comment]: <> ((INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE)
 [comment]: <> (OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.)
 
-[comment]: <> (pmem2_config_get_file_size.3 -- man page for pmem2_config_get_file_size)
+[comment]: <> (pmem2_source_alignment.3 -- man page for pmem2_source_alignment)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -44,53 +44,40 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_config_get_file_size**() - query a file size
+**pmem2_source_alignment**() - returns data source alignment
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-struct pmem2_config;
-int pmem2_config_get_file_size(const struct pmem2_config *config, size_t *size);
+struct pmem2_source;
+int pmem2_source_alignment(const struct pmem2_source *source, size_t *alignment);
 ```
 
 # DESCRIPTION #
 
-The **pmem2_config_get_file_size**() function retrieves the size of the file
-in bytes pointed by file descriptor or handle stored in the *config* and puts
-it in *\*size*.
-
-This function is a portable replacement for OS-specific APIs.
-On Linux, it hides the quirkiness of Device DAX size detection.
+The **pmem2_source_alignment**() function retrieves the alignment of offset and
+length needed for **pmem2_map**(3) to succeed. The alignment is stored in
+*\*alignment*.
 
 # RETURN VALUE #
 
-The **pmem2_config_get_file_size**() function returns 0 on success.
-If the function fails, the *\*size* variable is left unmodified, and one of
+The **pmem2_source_alignment**() function returns 0 on success.
+If the function fails, the *\*alignment* variable is left unmodified, and one of
 the following errors is returned:
 
 On all systems:
 
-* **PMEM2_E_FILE_HANDLE_NOT_SET** - config doesn't contain the file handle
-(see **pmem2_config_set_fd**(3), **pmem2_config_set_handle**(3)).
+* **PMEM2_E_INVALID_ALIGNMENT_VALUE** - operating system returned unexpected
+alignment value (eg. it is not a power of two).
 
-* **PMEM2_E_INVALID_FILE_HANDLE** - config contains an invalid file handle.
-
-On Windows:
-
-* **PMEM2_E_INVALID_FILE_TYPE** - handle points to a resource that is not
-a regular file.
-
-On Linux:
-
-* **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a directory,
-block device, pipe, or socket.
+on Linux:
 
 * **PMEM2_E_INVALID_FILE_TYPE** - file descriptor points to a character
 device other than Device DAX.
 
-* **PMEM2_E_INVALID_SIZE_FORMAT** - kernel query for Device DAX size
+* **PMEM2_E_INVALID_ALIGNMENT_FORMAT** - kernel query for Device DAX alignment
 returned data in invalid format.
 
 * -**errno** set by failing **fstat**(2), while trying to validate the file
@@ -99,14 +86,11 @@ descriptor.
 * -**errno** set by failing **realpath**(3), while trying to determine whether
 fd points to a Device DAX.
 
-* -**errno** set by failing **open**(2), while trying to determine Device DAX's
-size.
-
 * -**errno** set by failing **read**(2), while trying to determine Device DAX's
-size.
+alignment.
 
 * -**errno** set by failing **strtoull**(3), while trying to determine
-Device DAX's size.
+Device DAX's alignment.
 
 On FreeBSD:
 
@@ -118,6 +102,6 @@ descriptor.
 
 # SEE ALSO #
 
-**errno**(3),  **fstat**(2), **realpath**(3), **open**(2), **read**(2),
-**strtoull**(3), **pmem2_config_new**(3), **pmem2_config_set_handle**(3),
-**pmem2_config_set_fd**(3), **libpmem2**(7) and **<http://pmem.io>**
+**errno**(3),  **fstat**(2), **realpath**(3), **read**(2), **strtoull**(3),
+**pmem2_config_new**(3), **pmem2_source_from_handle**(3),
+**pmem2_source_from_fd**(3), **libpmem2**(7) and **<http://pmem.io>**

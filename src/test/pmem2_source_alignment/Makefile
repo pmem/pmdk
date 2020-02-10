@@ -1,3 +1,4 @@
+#
 # Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
@@ -27,55 +28,23 @@
 # THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-#
-# src/libpmem2/Makefile -- Makefile for libpmem2
 #
 
-include ../common.inc
+#
+# src/test/pmem2_source_alignment/Makefile -- build
+# pmem2_source_alignment unit test
+#
+TOP = ../../..
 
-LIBRARY_NAME = pmem2
-LIBRARY_SO_VERSION = 1
-LIBRARY_VERSION = 0.0
-SOURCE =\
-	$(COMMON)/alloc.c\
-	$(COMMON)/fs_posix.c\
-	$(COMMON)/os_posix.c\
-	$(COMMON)/os_thread_posix.c\
-	$(COMMON)/out.c\
-	$(COMMON)/ravl.c\
-	$(COMMON)/util.c\
-	$(COMMON)/util_posix.c\
-	libpmem2.c\
-	config.c\
-	errormsg.c\
-	memops_generic.c\
-	pmem2.c\
-	map.c\
-	map_posix.c\
-	persist.c\
-	persist_posix.c\
-	pmem2_utils.c\
-	source.c\
-	source_posix.c
+vpath %.c $(TOP)/src/test/unittest
+vpath %.c $(TOP)/src/libpmem2
 
-ifeq ($(OS_KERNEL_NAME),Linux)
-SOURCE +=\
-	pmem2_utils_linux.c\
-	auto_flush_linux.c
-else
-SOURCE +=\
-	pmem2_utils_other.c\
-	auto_flush_none.c
-endif
+INCS += -I$(TOP)/src/libpmem2
+TARGET = pmem2_source_alignment
+OBJS += errormsg.o\
+	pmem2_source_alignment.o\
+	ut_pmem2_config.o\
+	ut_pmem2_utils.o
 
-include $(ARCH)/sources.inc
-
-SOURCE += $(LIBPMEM2_ARCH_SOURCE)
-
+LIBPMEMCOMMON=y
 include ../Makefile.inc
-
-include $(PMEM2)/$(ARCH)/flags.inc
-
-CFLAGS += -I.
-LIBS += -pthread

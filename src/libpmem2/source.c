@@ -1,5 +1,5 @@
 /*
- * Copyright 2019-2020, Intel Corporation
+ * Copyright 2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,77 +30,78 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * basic.c -- simple example for the libpmem2
- */
-
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#include <io.h>
-#endif
-#include <libpmem2.h>
+#include "source.h"
+#include "alloc.h"
+#include "libpmem2.h"
+#include "out.h"
+#include "pmem2.h"
+#include "pmem2_utils.h"
 
 int
-main(int argc, char *argv[])
+pmem2_source_from_anon(struct pmem2_source **src)
 {
-	int fd;
-	struct pmem2_config *cfg;
-	struct pmem2_map *map;
-	struct pmem2_source *src;
-	pmem2_persist_fn persist;
+	return PMEM2_E_NOSUPP;
+}
 
-	if (argc != 2) {
-		fprintf(stderr, "usage: %s file\n", argv[0]);
-		exit(1);
-	}
-
-	if ((fd = open(argv[1], O_RDWR)) < 0) {
-		perror("open");
-		exit(1);
-	}
-
-	if (pmem2_config_new(&cfg)) {
-		fprintf(stderr, "%s\n", pmem2_errormsg());
-		exit(1);
-	}
-
-	if (pmem2_source_from_fd(&src, fd)) {
-		fprintf(stderr, "%s\n", pmem2_errormsg());
-		exit(1);
-	}
-
-	if (pmem2_config_set_required_store_granularity(cfg,
-			PMEM2_GRANULARITY_PAGE)) {
-		fprintf(stderr, "%s\n", pmem2_errormsg());
-		exit(1);
-	}
-
-	if (pmem2_map(cfg, src, &map)) {
-		fprintf(stderr, "%s\n", pmem2_errormsg());
-		exit(1);
-	}
-
-	char *addr = pmem2_map_get_address(map);
-	size_t size = pmem2_map_get_size(map);
-
-	strcpy(addr, "hello, persistent memory");
-
-	persist = pmem2_get_persist_fn(map);
-
-	/* remove the condition after adding a function implementation */
-	if (0)
-		persist(addr, size);
-
-	pmem2_unmap(&map);
-	pmem2_source_delete(&src);
-	pmem2_config_delete(&cfg);
-	close(fd);
-
+int
+pmem2_source_delete(struct pmem2_source **src)
+{
+	Free(*src);
+	*src = NULL;
 	return 0;
+}
+
+#ifndef _WIN32
+int
+pmem2_source_device_id(const struct pmem2_source *cfg,
+	char *id, size_t *len)
+{
+	return PMEM2_E_NOSUPP;
+}
+#else
+int
+pmem2_source_device_idW(const struct pmem2_source *cfg,
+	wchar_t *id, size_t *len)
+{
+	return PMEM2_E_NOSUPP;
+}
+
+int
+pmem2_source_device_idU(const struct pmem2_source *cfg,
+	char *id, size_t *len)
+{
+	return PMEM2_E_NOSUPP;
+}
+#endif
+
+int
+pmem2_source_device_usc(const struct pmem2_source *cfg, uint64_t *usc)
+{
+	return PMEM2_E_NOSUPP;
+}
+
+int
+pmem2_badblock_iterator_new(const struct pmem2_source *cfg,
+		struct pmem2_badblock_iterator **pbb)
+{
+	return PMEM2_E_NOSUPP;
+}
+
+int
+pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
+		struct pmem2_badblock *bb)
+{
+	return PMEM2_E_NOSUPP;
+}
+
+void pmem2_badblock_iterator_delete(
+		struct pmem2_badblock_iterator **pbb)
+{
+}
+
+int
+pmem2_badblock_clear(const struct pmem2_source *cfg,
+		const struct pmem2_badblock *bb)
+{
+	return PMEM2_E_NOSUPP;
 }

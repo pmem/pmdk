@@ -31,8 +31,8 @@
 #
 
 #
-# src/test/pmem2_config_get_file_size/Makefile -- build
-# pmem2_config_get_file_size unit test
+# src/test/pmem2_source_file_size/Makefile -- build
+# pmem2_source_file_size unit test
 #
 TOP = ../../..
 
@@ -40,9 +40,9 @@ vpath %.c $(TOP)/src/test/unittest
 vpath %.c $(TOP)/src/libpmem2
 
 INCS += -I$(TOP)/src/libpmem2
-TARGET = pmem2_config_get_file_size
+TARGET = pmem2_source_file_size
 OBJS += errormsg.o\
-	pmem2_config_get_file_size.o\
+	pmem2_source_file_size.o\
 	ut_pmem2_config.o\
 	ut_pmem2_utils.o
 

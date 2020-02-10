@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,12 +39,12 @@ vpath %.c $(TOP)/src/test/unittest
 
 TARGET = pmem2_granularity
 
+LIBPMEM2=internal-debug
+
 OBJS += pmem2_granularity.o\
 	ut_pmem2_config.o\
 	ut_pmem2_utils.o\
 	mocks_posix.o
-
-LIBPMEM2=internal-debug
 
 include ../Makefile.inc
 LDFLAGS += $(call extract_funcs, mocks_posix.c)

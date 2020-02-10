@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -39,7 +39,8 @@ vpath %.c $(TOP)/src/test/unittest
 
 TARGET = pmem2_integration
 OBJS = pmem2_integration.o\
-	ut_pmem2_utils.o
+	ut_pmem2_utils.o\
+	ut_pmem2_config.o
 
 LIBPMEM2=y
 

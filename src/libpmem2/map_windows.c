@@ -131,19 +131,17 @@ is_direct_access(HANDLE fh)
  * pmem2_map -- map memory according to provided config
  */
 int
-pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
+pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
+	struct pmem2_map **map_ptr)
 {
-	LOG(3, "cfg %p map_ptr %p", cfg, map_ptr);
+	LOG(3, "cfg %p src %p map_ptr %p", cfg, src, map_ptr);
 
 	int ret = 0;
 	unsigned long err = 0;
 	size_t file_size;
 	*map_ptr = NULL;
 
-	if (cfg->handle == INVALID_HANDLE_VALUE) {
-		ERR("file handle was not set");
-		return PMEM2_E_FILE_HANDLE_NOT_SET;
-	}
+	ASSERTne(src->handle, INVALID_HANDLE_VALUE);
 
 	if ((int)cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
 		ERR(
@@ -156,8 +154,13 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	if (ret)
 		return ret;
 
+	size_t src_alignment;
+	ret = pmem2_source_alignment(src, &src_alignment);
+	if (ret)
+		return ret;
+
 	size_t length;
-	ret = pmem2_config_validate_length(cfg, file_size);
+	ret = pmem2_config_validate_length(cfg, file_size, src_alignment);
 	if (ret)
 		return ret;
 
@@ -211,7 +214,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 		goto err_unmap_base;
 	}
 
-	int direct_access = is_direct_access(cfg->handle);
+	int direct_access = is_direct_access(src->handle);
 	if (direct_access < 0) {
 		ret = direct_access;
 		goto err_unmap_base;
@@ -250,7 +253,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	map->reserved_length = length;
 	map->content_length = length;
 	map->effective_granularity = available_min_granularity;
-	map->handle = cfg->handle;
+	map->handle = src->handle;
 	pmem2_set_flush_fns(map);
 
 	ret = pmem2_register_mapping(map);

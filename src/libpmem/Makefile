@@ -1,4 +1,4 @@
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -56,7 +56,8 @@ SOURCE =\
 	pmem_posix.c\
 	$(PMEM2)/pmem2_utils.c\
 	$(PMEM2)/config.c\
-	$(PMEM2)/config_posix.c
+	$(PMEM2)/source.c\
+	$(PMEM2)/source_posix.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
