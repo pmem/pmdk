@@ -14,7 +14,6 @@ SOURCE =\
 	$(COMMON)/ravl.c\
 	libpmem2.c\
 	config.c\
-	config_posix.c\
 	errormsg.c\
 	memops_generic.c\
 	pmem2.c\
@@ -22,7 +21,9 @@ SOURCE =\
 	map_posix.c\
 	persist.c\
 	persist_posix.c\
-	pmem2_utils.c
+	pmem2_utils.c\
+	source.c\
+	source_posix.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\

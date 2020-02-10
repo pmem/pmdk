@@ -19,14 +19,8 @@
 void
 pmem2_config_init(struct pmem2_config *cfg)
 {
-#ifdef _WIN32
-	cfg->handle = INVALID_HANDLE_VALUE;
-#else
-	cfg->fd = INVALID_FD;
-#endif
 	cfg->offset = 0;
 	cfg->length = 0;
-	cfg->alignment = 0;
 	cfg->requested_max_granularity = PMEM2_GRANULARITY_INVALID;
 }
 
@@ -116,13 +110,8 @@ pmem2_config_set_length(struct pmem2_config *cfg, size_t length)
  */
 int
 pmem2_config_validate_length(const struct pmem2_config *cfg,
-		size_t file_len)
+		size_t file_len, size_t alignment)
 {
-	size_t alignment;
-	int ret = pmem2_config_get_alignment(cfg, &alignment);
-	if (ret)
-		return ret;
-
 	ASSERTne(alignment, 0);
 	if (cfg->length % alignment) {
 		ERR("length is not a multiple of %lu", alignment);

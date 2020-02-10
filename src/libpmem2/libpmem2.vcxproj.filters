@@ -54,9 +54,6 @@
     <ClCompile Include="config.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="config_windows.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="errormsg.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -207,6 +204,12 @@
     <ClCompile Include="x86_64\memset\memset_t_avx_noflush.c">
       <Filter>Source Files\x86_64</Filter>
     </ClCompile>
+    <ClCompile Include="source.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\core\os_thread.h">
@@ -295,6 +298,12 @@
     </ClInclude>
     <ClInclude Include="x86_64\memcpy_memset.h">
       <Filter>Header Files\x86_64</Filter>
+    </ClInclude>
+    <ClInclude Include="pmem2_arch.h">
+      <Filter>Header Files\x86_64</Filter>
+    </ClInclude>
+    <ClInclude Include="source.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

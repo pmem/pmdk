@@ -115,74 +115,68 @@ class TEST12(PMEM2_MAP):
 
 
 class TEST13(PMEM2_MAP):
-    """map using an empty config"""
-    test_case = "test_map_empty_config"
-    with_size = False
-
-
-class TEST14(PMEM2_MAP):
     """unmap valid pmem2 mapping"""
     test_case = "test_unmap_valid"
 
 
-class TEST15(PMEM2_MAP_DEVDAX):
+class TEST14(PMEM2_MAP_DEVDAX):
     """DevDax unmap valid pmem2 mapping"""
     test_case = "test_unmap_valid"
 
 
 # UnmapViewOfFile does not use length
 @t.windows_exclude
-class TEST16(PMEM2_MAP):
+class TEST15(PMEM2_MAP):
     """unmap a pmem2 mapping with an invalid length"""
     test_case = "test_unmap_zero_length"
 
 
-class TEST17(PMEM2_MAP_DEVDAX):
+class TEST16(PMEM2_MAP_DEVDAX):
     """DevDax unmap a pmem2 mapping with an invalid length"""
     test_case = "test_unmap_zero_length"
 
 
 # UnmapViewOfFile does not care about the address alignment
 @t.windows_exclude
-class TEST18(PMEM2_MAP):
+class TEST17(PMEM2_MAP):
     """unmap a pmem2 mapping with an unaligned address"""
     test_case = "test_unmap_unaligned_addr"
 
 
-class TEST19(PMEM2_MAP_DEVDAX):
+class TEST18(PMEM2_MAP_DEVDAX):
     """DevDax unmap a pmem2 mapping with an unaligned address"""
     test_case = "test_unmap_unaligned_addr"
 
 
 # munmap does not fail if the mapping does not exist
 @t.windows_only
-class TEST20(PMEM2_MAP):
+class TEST19(PMEM2_MAP):
     """double unmap a pmem2 mapping"""
     test_case = "test_unmap_unmapped"
 
 
-class TEST21(PMEM2_MAP_NO_FILE):
+class TEST20(PMEM2_MAP_NO_FILE):
     """test for pmem2_map_get_address"""
     test_case = "test_map_get_address"
 
 
-class TEST22(PMEM2_MAP_NO_FILE):
+class TEST21(PMEM2_MAP_NO_FILE):
     """test for pmem2_map_get_size"""
     test_case = "test_map_get_size"
 
 
-class TEST23(PMEM2_MAP_NO_FILE):
+class TEST22(PMEM2_MAP_NO_FILE):
     """simply get the previously stored value of granularity"""
     test_case = "test_get_granularity_simple"
 
 
-class TEST24(PMEM2_MAP):
+class TEST23(PMEM2_MAP):
     """map a file of length which is not page-aligned"""
     test_case = "test_map_unaligned_length"
     filesize = 3 * t.KiB
 
 
-class TEST25(PMEM2_MAP):
+class TEST24(PMEM2_MAP):
     """map a file which size is not aligned"""
     test_case = "test_map_larger_than_unaligned_file_size"
     filesize = 16 * t.MiB - 1

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * gran_detecto.c -- detect available store/flush granularity
@@ -248,8 +248,9 @@ gran_detecto(struct tool_ctx *ctx)
 		goto cleanup_file;
 	}
 
-	if (pmem2_config_set_fd(cfg, ctx->fd)) {
-		fprintf(stderr, "pmem2_config_set_fd failed: %s\n",
+	struct pmem2_source *src;
+	if (pmem2_source_from_fd(&src, ctx->fd)) {
+		fprintf(stderr, "pmem2_source_from_fd failed: %s\n",
 				pmem2_errormsg());
 		ret = 1;
 		goto free_config;
@@ -261,14 +262,14 @@ gran_detecto(struct tool_ctx *ctx)
 			"pmem2_config_set_required_store_granularity failed: %s\n",
 			pmem2_errormsg());
 		ret = 1;
-		goto free_config;
+		goto free_both;
 	}
 
 	struct pmem2_map *map;
-	if (pmem2_map(cfg, &map)) {
+	if (pmem2_map(cfg, src, &map)) {
 		fprintf(stderr, "pmem2_map failed: %s\n", pmem2_errormsg());
 		ret = 1;
-		goto free_config;
+		goto free_both;
 	}
 
 	ctx->actual_granularity = pmem2_map_get_store_granularity(map);
@@ -278,6 +279,8 @@ gran_detecto(struct tool_ctx *ctx)
 		ret = 1;
 	}
 
+free_both:
+	pmem2_source_delete(&src);
 free_config:
 	pmem2_config_delete(&cfg);
 cleanup_file:

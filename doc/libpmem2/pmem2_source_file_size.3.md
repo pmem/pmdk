@@ -8,9 +8,9 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019, Intel Corporation)
+[comment]: <> (Copyright 2019-2020, Intel Corporation)
 
-[comment]: <> (pmem2_config_get_file_size.3 -- man page for pmem2_config_get_file_size)
+[comment]: <> (pmem2_source_file_size.3 -- man page for pmem2_source_file_size)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -20,21 +20,21 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_config_get_file_size**() - query a file size
+**pmem2_source_file_size**() - returns the size of the data source
 
 # SYNOPSIS #
 
 ```c
 #include <libpmem2.h>
 
-struct pmem2_config;
-int pmem2_config_get_file_size(const struct pmem2_config *config, size_t *size);
+struct pmem2_source;
+int pmem2_source_file_size(const struct pmem2_source *source, size_t *size);
 ```
 
 # DESCRIPTION #
 
-The **pmem2_config_get_file_size**() function retrieves the size of the file
-in bytes pointed by file descriptor or handle stored in the *config* and puts
+The **pmem2_source_file_size**() function retrieves the size of the file
+in bytes pointed by file descriptor or handle stored in the *source* and puts
 it in *\*size*.
 
 This function is a portable replacement for OS-specific APIs.
@@ -42,14 +42,11 @@ On Linux, it hides the quirkiness of Device DAX size detection.
 
 # RETURN VALUE #
 
-The **pmem2_config_get_file_size**() function returns 0 on success.
+The **pmem2_source_file_size**() function returns 0 on success.
 If the function fails, the *\*size* variable is left unmodified, and one of
 the following errors is returned:
 
 On all systems:
-
-* **PMEM2_E_FILE_HANDLE_NOT_SET** - config doesn't contain the file handle
-(see **pmem2_config_set_fd**(3), **pmem2_config_set_handle**(3)).
 
 * **PMEM2_E_INVALID_FILE_HANDLE** - config contains an invalid file handle.
 
@@ -95,5 +92,5 @@ descriptor.
 # SEE ALSO #
 
 **errno**(3),  **fstat**(2), **realpath**(3), **open**(2), **read**(2),
-**strtoull**(3), **pmem2_config_new**(3), **pmem2_config_set_handle**(3),
-**pmem2_config_set_fd**(3), **libpmem2**(7) and **<http://pmem.io>**
+**strtoull**(3), **pmem2_config_new**(3), **libpmem2**(7)
+and **<http://pmem.io>**
