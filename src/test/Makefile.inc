@@ -161,7 +161,8 @@ LIBPMEMCORE=internal-debug
 OBJS +=\
 	$(TOP)/src/debug/libpmem2/libpmem2.o\
 	$(TOP)/src/debug/libpmem2/config.o\
-	$(TOP)/src/debug/libpmem2/config_posix.o\
+	$(TOP)/src/debug/libpmem2/source.o\
+	$(TOP)/src/debug/libpmem2/source_posix.o\
 	$(TOP)/src/debug/libpmem2/errormsg.o\
 	$(TOP)/src/debug/libpmem2/map.o\
 	$(TOP)/src/debug/libpmem2/map_posix.o\
@@ -196,7 +197,8 @@ LIBPMEMCORE=internal-nondebug
 OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/libpmem2.o\
 	$(TOP)/src/nondebug/libpmem2/config.o\
-	$(TOP)/src/nondebug/libpmem2/config_posix.o\
+	$(TOP)/src/nondebug/libpmem2/source.o\
+	$(TOP)/src/nondebug/libpmem2/source_posix.o\
 	$(TOP)/src/nondebug/libpmem2/errormsg.o\
 	$(TOP)/src/nondebug/libpmem2/map.o\
 	$(TOP)/src/nondebug/libpmem2/map_posix.o\
@@ -272,7 +274,8 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/nondebug/libpmem2/config.o\
-	$(TOP)/src/nondebug/libpmem2/config_posix.o
+	$(TOP)/src/nondebug/libpmem2/source.o
+	$(TOP)/src/nondebug/libpmem2/source_posix.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS += $(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o\
@@ -309,7 +312,8 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/debug/common/uuid,.o)\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/debug/libpmem2/config.o\
-	$(TOP)/src/debug/libpmem2/config_posix.o
+	$(TOP)/src/nondebug/libpmem2/source.o\
+	$(TOP)/src/nondebug/libpmem2/source_posix.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS += $(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\

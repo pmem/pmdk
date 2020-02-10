@@ -21,10 +21,10 @@
 #include <pmemcompat.h>
 
 #ifndef PMDK_UTF8_API
-#define pmem2_get_device_id pmem2_get_device_idW
+#define pmem2_source_device_id pmem2_source_device_idW
 #define pmem2_errormsg pmem2_errormsgW
 #else
-#define pmem2_get_device_id pmem2_get_device_idU
+#define pmem2_source_device_id pmem2_source_device_idU
 #define pmem2_errormsg pmem2_errormsgU
 #endif
 
@@ -52,17 +52,62 @@ extern "C" {
 #define PMEM2_E_LENGTH_UNALIGNED		(-100015)
 #define PMEM2_E_MAPPING_NOT_FOUND		(-100016)
 
+/* source setup */
+
+struct pmem2_source;
+
+int pmem2_source_from_fd(struct pmem2_source **src, int fd);
+int pmem2_source_from_anon(struct pmem2_source **src);
+#ifdef _WIN32
+int pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle);
+#endif
+
+int pmem2_source_file_size(const struct pmem2_source *src, size_t *size);
+
+int pmem2_source_alignment(const struct pmem2_source *src,
+		size_t *alignment);
+
+int pmem2_source_delete(struct pmem2_source **src);
+
+/* RAS */
+
+#ifndef _WIN32
+int pmem2_source_device_id(const struct pmem2_source *src,
+	char *id, size_t *len);
+#else
+int pmem2_source_device_idW(const struct pmem2_source *src,
+	wchar_t *id, size_t *len);
+
+int pmem2_source_device_idU(const struct pmem2_source *src,
+	char *id, size_t *len);
+#endif
+
+int pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc);
+
+struct pmem2_badblock_iterator;
+
+struct pmem2_badblock {
+	size_t offset;
+	size_t length;
+};
+
+int pmem2_badblock_iterator_new(const struct pmem2_source *cfg,
+		struct pmem2_badblock_iterator **pbb);
+
+int pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
+		struct pmem2_badblock *bb);
+
+void pmem2_badblock_iterator_delete(
+		struct pmem2_badblock_iterator **pbb);
+
+int pmem2_badblock_clear(const struct pmem2_source *cfg,
+		const struct pmem2_badblock *bb);
+
 /* config setup */
 
 struct pmem2_config;
 
 int pmem2_config_new(struct pmem2_config **cfg);
-
-int pmem2_config_set_fd(struct pmem2_config *cfg, int fd);
-
-#ifdef _WIN32
-int pmem2_config_set_handle(struct pmem2_config *cfg, HANDLE handle);
-#endif
 
 int pmem2_config_delete(struct pmem2_config **cfg);
 
@@ -82,8 +127,6 @@ int pmem2_config_set_sharing(struct pmem2_config *cfg, unsigned type);
 
 int pmem2_config_set_protection(struct pmem2_config *cfg, unsigned flag);
 
-int pmem2_config_use_anonymous_mapping(struct pmem2_config *cfg, unsigned on);
-
 #define PMEM2_ADDRESS_ANY		0 /* default */
 #define PMEM2_ADDRESS_FIXED_REPLACE	1
 #define PMEM2_ADDRESS_FIXED_NOREPLACE	2
@@ -100,16 +143,12 @@ enum pmem2_granularity {
 int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 	enum pmem2_granularity g);
 
-int pmem2_config_get_file_size(const struct pmem2_config *cfg, size_t *size);
-
-int pmem2_config_get_alignment(const struct pmem2_config *cfg,
-		size_t *alignment);
-
 /* mapping */
 
 struct pmem2_map;
 
-int pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr);
+int pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
+	struct pmem2_map **map_ptr);
 
 int pmem2_unmap(struct pmem2_map **map_ptr);
 
@@ -164,38 +203,6 @@ pmem2_memmove_fn pmem2_get_memmove_fn(struct pmem2_map *map);
 pmem2_memcpy_fn pmem2_get_memcpy_fn(struct pmem2_map *map);
 
 pmem2_memset_fn pmem2_get_memset_fn(struct pmem2_map *map);
-
-/* RAS */
-
-#ifndef _WIN32
-int pmem2_get_device_id(const struct pmem2_config *cfg, char *id, size_t *len);
-#else
-int pmem2_get_device_idW(const struct pmem2_config *cfg, wchar_t *id,
-	size_t *len);
-
-int pmem2_get_device_idU(const struct pmem2_config *cfg, char *id, size_t *len);
-#endif
-
-int pmem2_get_device_usc(const struct pmem2_config *cfg, uint64_t *usc);
-
-struct pmem2_badblock_iterator;
-
-struct pmem2_badblock {
-	size_t offset;
-	size_t length;
-};
-
-int pmem2_badblock_iterator_new(const struct pmem2_config *cfg,
-		struct pmem2_badblock_iterator **pbb);
-
-int pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
-		struct pmem2_badblock *bb);
-
-void pmem2_badblock_iterator_delete(
-		struct pmem2_badblock_iterator **pbb);
-
-int pmem2_badblock_clear(const struct pmem2_config *cfg,
-		const struct pmem2_badblock *bb);
 
 /* error handling */
 

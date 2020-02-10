@@ -60,7 +60,8 @@
     <ClCompile Include="recycler.c" />
     <ClCompile Include="stats.c" />
     <ClCompile Include="..\libpmem2\config.c" />
-    <ClCompile Include="..\libpmem2\config_windows.c" />
+    <ClCompile Include="..\libpmem2\source.c" />
+    <ClCompile Include="..\libpmem2\source_windows.c" />
     <ClCompile Include="..\libpmem2\pmem2_utils.c" />
     <ClCompile Include="..\libpmem2\pmem2_utils_other.c" />
   </ItemGroup>

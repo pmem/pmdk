@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "config.h"
+#include "source.h"
 #include "pmem2_granularity.h"
 #include "unittest.h"
 #include "ut_pmem2_config.h"
@@ -88,24 +89,22 @@ init_test(char *file, struct test_ctx *ctx,
  * init_cfg -- initialize basic pmem2 config
  */
 static void
-init_cfg(struct pmem2_config *cfg, struct test_ctx *ctx)
+init_cfg(struct pmem2_config *cfg,
+	struct pmem2_source **src, struct test_ctx *ctx)
 {
 	pmem2_config_init(cfg);
-#ifdef _WIN32
-	cfg->handle = (HANDLE)_get_osfhandle(ctx->fd);
-#else
-	cfg->fd = ctx->fd;
-#endif
+	int ret = pmem2_source_from_fd(src, ctx->fd);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 }
 
 /*
  * cleanup -- cleanup the environment after test
  */
 static void
-cleanup(struct pmem2_config *cfg, struct test_ctx *ctx)
+cleanup(struct pmem2_source *src, struct test_ctx *ctx)
 {
 #ifdef _WIN32
-	CloseHandle(cfg->handle);
+	CloseHandle(src->handle);
 #else
 	CLOSE(ctx->fd);
 #endif
@@ -117,12 +116,12 @@ cleanup(struct pmem2_config *cfg, struct test_ctx *ctx)
  */
 static void
 map_with_available_granularity(struct pmem2_config *cfg,
-		struct test_ctx *ctx)
+	struct pmem2_source *src, struct test_ctx *ctx)
 {
 	cfg->requested_max_granularity = ctx->requested_granularity;
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(cfg, &map);
+	int ret = pmem2_map(cfg, src, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map, NULL);
 	UT_ASSERTeq(ctx->expected_granularity,
@@ -138,18 +137,19 @@ map_with_available_granularity(struct pmem2_config *cfg,
  */
 static void
 map_with_unavailable_granularity(struct pmem2_config *cfg,
-	struct test_ctx *ctx)
+	struct pmem2_source *src, struct test_ctx *ctx)
 {
 	cfg->requested_max_granularity = ctx->requested_granularity;
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(cfg, &map);
+	int ret = pmem2_map(cfg, src, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_GRANULARITY_NOT_SUPPORTED);
 	UT_ERR("%s", pmem2_errormsg());
 	UT_ASSERTeq(map, NULL);
 }
 
-typedef void(*map_func)(struct pmem2_config *cfg, struct test_ctx *ctx);
+typedef void(*map_func)(struct pmem2_config *cfg,
+	struct pmem2_source *src, struct test_ctx *ctx);
 
 /*
  * granularity_template -- template for testing granularity in pmem2
@@ -165,11 +165,13 @@ granularity_template(const struct test_case *tc, int argc, char *argv[],
 	init_test(file, &ctx, granularity);
 
 	struct pmem2_config cfg;
-	init_cfg(&cfg, &ctx);
+	struct pmem2_source *src;
+	init_cfg(&cfg, &src, &ctx);
 
-	map_do(&cfg, &ctx);
+	map_do(&cfg, src, &ctx);
 
-	cleanup(&cfg, &ctx);
+	cleanup(src, &ctx);
+	pmem2_source_delete(&src);
 
 	return ret;
 }

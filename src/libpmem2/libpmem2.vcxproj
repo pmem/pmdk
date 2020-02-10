@@ -22,7 +22,6 @@
     <ClCompile Include="libpmem2.c" />
     <ClCompile Include="auto_flush_windows.c" />
     <ClCompile Include="config.c" />
-    <ClCompile Include="config_windows.c" />
     <ClCompile Include="errormsg.c" />
     <ClCompile Include="map.c" />
     <ClCompile Include="map_windows.c" />
@@ -31,6 +30,8 @@
     <ClCompile Include="persist_windows.c" />
     <ClCompile Include="pmem2.c" />
     <ClCompile Include="pmem2_utils.c" />
+    <ClCompile Include="source.c" />
+    <ClCompile Include="source_windows.c" />
     <ClCompile Include="x86_64\cpu.c" />
     <ClCompile Include="x86_64\init.c" />
     <ClCompile Include="x86_64\memcpy\memcpy_nt_sse2_clflush.c" />
@@ -143,6 +144,7 @@
     <ClInclude Include="pmem2.h" />
     <ClInclude Include="pmem2_arch.h" />
     <ClInclude Include="pmem2_utils.h" />
+    <ClInclude Include="source.h" />
     <ClInclude Include="x86_64\cpu.h" />
     <ClInclude Include="x86_64\avx.h" />
     <ClInclude Include="x86_64\flush.h" />

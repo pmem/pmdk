@@ -12,20 +12,6 @@
 #include "out.h"
 
 /*
- * verify_fd -- verify value fd or handle in config
- */
-static void
-verify_fd(struct pmem2_config *cfg, int fd)
-{
-#ifdef WIN32
-	UT_ASSERTeq(cfg->handle, fd != INVALID_FD ?
-		(HANDLE)_get_osfhandle(fd) : INVALID_HANDLE_VALUE);
-#else
-	UT_ASSERTeq(cfg->fd, fd);
-#endif
-}
-
-/*
  * test_cfg_create_and_delete_valid - test pmem2_config allocation
  */
 static int
@@ -37,127 +23,12 @@ test_cfg_create_and_delete_valid(const struct test_case *tc, int argc,
 	int ret = pmem2_config_new(&cfg);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(cfg, NULL);
-	verify_fd(cfg, INVALID_FD);
 
 	ret = pmem2_config_delete(&cfg);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(cfg, NULL);
 
 	return 0;
-}
-
-/*
- * test_set_rw_fd - test setting O_RDWR fd
- */
-static int
-test_set_rw_fd(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_rw_fd <file>");
-
-	char *file = argv[0];
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-	int fd = OPEN(file, O_RDWR);
-
-	int ret = pmem2_config_set_fd(&cfg, fd);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	verify_fd(&cfg, fd);
-
-	CLOSE(fd);
-
-	return 1;
-}
-
-/*
- * test_set_ro_fd - test setting O_RDONLY fd
- */
-static int
-test_set_ro_fd(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_ro_fd <file>");
-
-	char *file = argv[0];
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-	int fd = OPEN(file, O_RDONLY);
-
-	int ret = pmem2_config_set_fd(&cfg, fd);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	verify_fd(&cfg, fd);
-
-	CLOSE(fd);
-
-	return 1;
-}
-
-/*
- * test_set_negative - test setting negative fd
- */
-static int
-test_set_negative_fd(const struct test_case *tc, int argc, char *argv[])
-{
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-	/* randomly picked negative number */
-	int ret = pmem2_config_set_fd(&cfg, -42);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	verify_fd(&cfg, INVALID_FD);
-
-	return 0;
-}
-
-/*
- * test_set_invalid_fd - test setting invalid fd
- */
-static int
-test_set_invalid_fd(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_invalid_fd <file>");
-
-	char *file = argv[0];
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-	/* open and close the file to get invalid fd */
-	int fd = OPEN(file, O_WRONLY);
-	CLOSE(fd);
-	ut_suppress_crt_assert();
-	int ret = pmem2_config_set_fd(&cfg, fd);
-	ut_unsuppress_crt_assert();
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
-	verify_fd(&cfg, INVALID_FD);
-
-	return 1;
-}
-
-/*
- * test_set_wronly_fd - test setting wronly fd
- */
-static int
-test_set_wronly_fd(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_wronly_fd <file>");
-
-	char *file = argv[0];
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-	int fd = OPEN(file, O_WRONLY);
-
-	int ret = pmem2_config_set_fd(&cfg, fd);
-#ifdef _WIN32
-	/* windows doesn't validate open flags */
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	verify_fd(&cfg, fd);
-#else
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
-	verify_fd(&cfg, INVALID_FD);
-#endif
-	CLOSE(fd);
-
-	return 1;
 }
 
 /*
@@ -246,146 +117,6 @@ test_config_set_granularity_invalid(const struct test_case *tc, int argc,
 	return 0;
 }
 
-#ifdef WIN32
-/*
- * test_set_handle - test setting valid handle
- */
-static int
-test_set_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_handle <file>");
-
-	char *file = argv[0];
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
-		0, NULL, OPEN_ALWAYS, 0, NULL);
-	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
-
-	int ret = pmem2_config_set_handle(&cfg, h);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	UT_ASSERTeq(cfg.handle, h);
-
-	CloseHandle(h);
-
-	return 1;
-}
-
-/*
- * test_set_null_handle - test resetting handle
- */
-static int
-test_set_null_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-
-	/* set the handle to something different than INVALID_HANDLE_VALUE */
-	cfg.handle = NULL;
-
-	int ret = pmem2_config_set_handle(&cfg, INVALID_HANDLE_VALUE);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	UT_ASSERTeq(cfg.handle, INVALID_HANDLE_VALUE);
-
-	return 0;
-}
-
-/*
- * test_set_invalid_handle - test setting invalid handle
- */
-static int
-test_set_invalid_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_invalid_handle <file>");
-
-	char *file = argv[0];
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
-		0, NULL, OPEN_ALWAYS, 0, NULL);
-	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
-
-	CloseHandle(h);
-
-	int ret = pmem2_config_set_handle(&cfg, h);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
-	UT_ASSERTeq(cfg.handle, INVALID_HANDLE_VALUE);
-
-	return 1;
-}
-
-/*
- * test_set_directory_handle - test setting a directory handle
- */
-static int
-test_set_directory_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_directory_handle <file>");
-
-	char *file = argv[0];
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-
-	HANDLE h = CreateFile(file, GENERIC_READ | GENERIC_WRITE,
-		0, NULL, OPEN_ALWAYS, FILE_FLAG_BACKUP_SEMANTICS, NULL);
-
-	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
-
-	int ret = pmem2_config_set_handle(&cfg, h);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_TYPE);
-	UT_ASSERTeq(cfg.handle, INVALID_HANDLE_VALUE);
-	CloseHandle(h);
-
-	return 1;
-}
-
-/*
- * test_set_directory_handle - test setting a mutex handle
- */
-static int
-test_set_mutex_handle(const struct test_case *tc, int argc, char *argv[])
-{
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-
-	HANDLE h = CreateMutex(NULL, FALSE, NULL);
-	UT_ASSERTne(h, INVALID_HANDLE_VALUE);
-
-	int ret = pmem2_config_set_handle(&cfg, h);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
-	UT_ASSERTeq(cfg.handle, INVALID_HANDLE_VALUE);
-	CloseHandle(h);
-
-	return 0;
-}
-#else
-/*
- * test_set_directory_handle - test setting directory's fd
- */
-static int
-test_set_directory_fd(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_set_directory_fd <file>");
-
-	char *file = argv[0];
-	struct pmem2_config cfg;
-	pmem2_config_init(&cfg);
-
-	int fd = OPEN(file, O_RDONLY);
-
-	int ret = pmem2_config_set_fd(&cfg, fd);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_TYPE);
-
-	CLOSE(fd);
-
-	return 1;
-}
-#endif
-
 /*
  * test_set_offset_too_large - setting offset which is too large
  */
@@ -457,24 +188,10 @@ test_set_offset_max(const struct test_case *tc, int argc, char *argv[])
  */
 static struct test_case test_cases[] = {
 	TEST_CASE(test_cfg_create_and_delete_valid),
-	TEST_CASE(test_set_rw_fd),
-	TEST_CASE(test_set_ro_fd),
-	TEST_CASE(test_set_negative_fd),
-	TEST_CASE(test_set_invalid_fd),
-	TEST_CASE(test_set_wronly_fd),
 	TEST_CASE(test_alloc_cfg_enomem),
 	TEST_CASE(test_delete_null_config),
 	TEST_CASE(test_config_set_granularity_valid),
 	TEST_CASE(test_config_set_granularity_invalid),
-#ifdef _WIN32
-	TEST_CASE(test_set_handle),
-	TEST_CASE(test_set_null_handle),
-	TEST_CASE(test_set_invalid_handle),
-	TEST_CASE(test_set_directory_handle),
-	TEST_CASE(test_set_mutex_handle),
-#else
-	TEST_CASE(test_set_directory_fd),
-#endif
 	TEST_CASE(test_set_offset_too_large),
 	TEST_CASE(test_set_offset_success),
 	TEST_CASE(test_set_length_success),
