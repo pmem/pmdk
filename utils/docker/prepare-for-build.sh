@@ -41,6 +41,10 @@ set -e
 # Mount filesystem for tests
 echo $USERPASS | sudo -S mount -t tmpfs none /tmp -osize=6G
 
+# Make sure $WORKDIR has correct access rights
+# - set them to the current UID and GID
+echo $USERPASS | sudo -S chown -R $(id -u).$(id -g) $WORKDIR
+
 # Configure tests (e.g. ssh for remote tests) unless the current configuration
 # should be preserved
 KEEP_TEST_CONFIG=${KEEP_TEST_CONFIG:-0}

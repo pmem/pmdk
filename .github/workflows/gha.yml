@@ -43,9 +43,6 @@ jobs:
        - name: Clone the git repo
          uses: actions/checkout@v1
 
-       - name: Change ownership of the repo
-         run: sudo chown -R 1000.1000 $HOST_WORKDIR
-
        - name: Pull or rebuild the image
          run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
 
