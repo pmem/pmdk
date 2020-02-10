@@ -140,7 +140,8 @@
       <EnableEnhancedInstructionSet Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <ClCompile Include="..\libpmem2\config.c" />
-    <ClCompile Include="..\libpmem2\config_windows.c" />
+    <ClCompile Include="..\libpmem2\source.c" />
+    <ClCompile Include="..\libpmem2\source_windows.c" />
     <ClCompile Include="..\libpmem2\pmem2_utils.c" />
     <ClCompile Include="..\libpmem2\pmem2_utils_other.c" />
   </ItemGroup>
@@ -190,6 +191,7 @@
     <ClInclude Include="..\libpmem2\x86_64\memset\memset_t_avx512f.h" />
     <ClInclude Include="..\libpmem2\x86_64\memset\memset_t_sse2.h" />
     <ClInclude Include="..\libpmem2\config.h" />
+    <ClInclude Include="..\libpmem2\source.h" />
     <ClInclude Include="..\libpmem2\pmem2_utils.h" />
   </ItemGroup>
   <ItemGroup>

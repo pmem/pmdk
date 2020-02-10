@@ -33,12 +33,13 @@ test_init(const struct test_case *tc, int argc, char *argv[],
 	char *file = argv[0];
 	ctx->fd = OPEN(file, O_RDWR);
 
-	struct pmem2_config *cfg;
-	/* fill pmem2_config in minimal scope */
-	int ret = pmem2_config_new(&cfg);
+	struct pmem2_source *src;
+	int ret = pmem2_source_from_fd(&src, ctx->fd);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
-	ret = pmem2_config_set_fd(cfg, ctx->fd);
+	struct pmem2_config *cfg;
+	/* fill pmem2_config in minimal scope */
+	ret = pmem2_config_new(&cfg);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	ret = pmem2_config_set_required_store_granularity(
@@ -46,12 +47,12 @@ test_init(const struct test_case *tc, int argc, char *argv[],
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	/* execute pmem2_map and validate the result */
-	ret = pmem2_map(cfg, &ctx->map);
+	ret = pmem2_map(cfg, src, &ctx->map);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(ctx->map, NULL);
 
 	size_t size;
-	UT_ASSERTeq(pmem2_config_get_file_size(cfg, &size), 0);
+	UT_ASSERTeq(pmem2_source_file_size(src, &size), 0);
 	UT_ASSERTeq(pmem2_map_get_size(ctx->map), size);
 
 	pmem2_config_delete(&cfg);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * file.c -- file utilities
@@ -169,22 +169,25 @@ util_fd_get_size(int fd)
 {
 	LOG(3, "fd %d", fd);
 
-	struct pmem2_config cfg;
+	struct pmem2_source *src;
 	size_t size;
 	int ret;
 
-	pmem2_config_init(&cfg);
-	ret = pmem2_config_set_fd(&cfg, fd);
+	if ((ret = pmem2_source_from_fd(&src, fd)) != 0) {
+		errno = pmem2_err_to_errno(ret);
+		return -1;
+	}
+
+	ret = pmem2_source_file_size(src, &size);
+
+	pmem2_source_delete(&src);
+
 	if (ret) {
 		errno = pmem2_err_to_errno(ret);
 		return -1;
 	}
 
-	ret = pmem2_config_get_file_size(&cfg, &size);
-	if (ret) {
-		errno = pmem2_err_to_errno(ret);
-		return -1;
-	}
+	pmem2_source_delete(&src);
 
 	/* size is unsigned, this function returns signed */
 	if (size >= INT64_MAX) {

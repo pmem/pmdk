@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DE068BE1-A8E9-48A2-B216-92A7CE5EA4CE}</ProjectGuid>
+    <ProjectGuid>{34F31D9D-3D33-4C09-85A3-4749A8AB8EBB}</ProjectGuid>
     <RootNamespace>pmem2_config</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -83,7 +83,7 @@
     <ClCompile Include="..\..\libpmem2\pmem2_utils.c" />
     <ClCompile Include="..\unittest\ut_pmem2_config.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
-    <ClCompile Include="pmem2_config.c" />
+    <ClCompile Include="pmem2_source.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libpmem2\config.h" />
