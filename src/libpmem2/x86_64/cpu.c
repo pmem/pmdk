@@ -122,32 +122,6 @@ is_cpu_feature_present(unsigned func, unsigned reg, unsigned bit)
 }
 
 /*
- * is_cpu_genuine_intel -- checks for genuine Intel CPU
- */
-int
-is_cpu_genuine_intel(void)
-{
-	unsigned cpuinfo[4] = { 0 };
-
-	union {
-		char name[0x20];
-		unsigned cpuinfo[3];
-	} vendor;
-
-	memset(&vendor, 0, sizeof(vendor));
-
-	cpuid(0x0, 0x0, cpuinfo);
-
-	vendor.cpuinfo[0] = cpuinfo[EBX_IDX];
-	vendor.cpuinfo[1] = cpuinfo[EDX_IDX];
-	vendor.cpuinfo[2] = cpuinfo[ECX_IDX];
-
-	LOG(4, "CPU vendor: %s", vendor.name);
-	return (strncmp(vendor.name, "GenuineIntel",
-				sizeof(vendor.name))) == 0;
-}
-
-/*
  * is_cpu_clflush_present -- checks if CLFLUSH instruction is supported
  */
 int
