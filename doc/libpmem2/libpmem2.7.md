@@ -85,7 +85,7 @@ required to flush CPU caches, so the granularity type, in this case, is called
 **PMEM2_GRANULARITY_CACHE_LINE**. Depending on the architecture, there are
 different types of machine instructions for flushing *cache lines* (e.g. *CLWB*,
 *CLFLUSHOPT*, *CLFLUSH* for Intel x86_64 architecture). Besides, each of these
-instructions must be followed by a serializing operationm (e.g. *SFENCE*) to ensure
+instructions must be followed by a serializing operation (e.g. *SFENCE*) to ensure
 the latest cache flushing was completed and the order of stores was preserved.
 
 The third type of granularity **PMEM2_GRANULARITY_BYTE** applies to platforms
