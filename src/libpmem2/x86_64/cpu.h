@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2018, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -37,7 +37,6 @@
  * cpu.h -- definitions for "cpu" module
  */
 
-int is_cpu_genuine_intel(void);
 int is_cpu_clflush_present(void);
 int is_cpu_clflushopt_present(void);
 int is_cpu_clwb_present(void);
