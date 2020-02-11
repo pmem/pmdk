@@ -166,6 +166,8 @@ s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 done
 rm -f $TMP $TMP2 $TEMPFILE
 
+$(dirname "$0")/check-ms-license.pl $FILES
+
 # check if error found
 if [ $RV -eq 0 ]; then
 	echo "Copyright headers are OK."
