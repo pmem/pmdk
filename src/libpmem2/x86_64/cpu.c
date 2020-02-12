@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -122,32 +122,6 @@ is_cpu_feature_present(unsigned func, unsigned reg, unsigned bit)
 }
 
 /*
- * is_cpu_genuine_intel -- checks for genuine Intel CPU
- */
-int
-is_cpu_genuine_intel(void)
-{
-	unsigned cpuinfo[4] = { 0 };
-
-	union {
-		char name[0x20];
-		unsigned cpuinfo[3];
-	} vendor;
-
-	memset(&vendor, 0, sizeof(vendor));
-
-	cpuid(0x0, 0x0, cpuinfo);
-
-	vendor.cpuinfo[0] = cpuinfo[EBX_IDX];
-	vendor.cpuinfo[1] = cpuinfo[EDX_IDX];
-	vendor.cpuinfo[2] = cpuinfo[ECX_IDX];
-
-	LOG(4, "CPU vendor: %s", vendor.name);
-	return (strncmp(vendor.name, "GenuineIntel",
-				sizeof(vendor.name))) == 0;
-}
-
-/*
  * is_cpu_clflush_present -- checks if CLFLUSH instruction is supported
  */
 int
@@ -177,9 +151,6 @@ is_cpu_clflushopt_present(void)
 int
 is_cpu_clwb_present(void)
 {
-	if (!is_cpu_genuine_intel())
-		return 0;
-
 	int ret = is_cpu_feature_present(0x7, EBX_IDX, bit_CLWB);
 	LOG(4, "CLWB %ssupported", ret == 0 ? "not " : "");
 
