@@ -1,5 +1,6 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/* Copyright 2016-2017, Intel Corporation */
 /*
- * Copyright 2016-2017, Intel Corporation
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
