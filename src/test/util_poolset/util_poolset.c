@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -221,7 +221,7 @@ main(int argc, char *argv[])
 			util_poolset_close(set, DO_NOT_DELETE_PARTS);
 			break;
 		case 'f':
-			if (!common_fault_injection_enabled())
+			if (!core_fault_injection_enabled())
 				break;
 
 			attr.features.incompat = TEST_FORMAT_INCOMPAT_CHECK;
@@ -229,7 +229,7 @@ main(int argc, char *argv[])
 					NULL, NULL, 0 /* flags */);
 			UT_ASSERTeq(ret, 0);
 			size_t fsize = Extend_size;
-			common_inject_fault_at(PMEM_MALLOC, 2,
+			core_inject_fault_at(PMEM_MALLOC, 2,
 					"util_poolset_append_new_part");
 			void *fnptr = util_pool_extend(set, &fsize, MIN_PART);
 			UT_ASSERTeq(fnptr, NULL);

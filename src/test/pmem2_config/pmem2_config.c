@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, Intel Corporation
+ * Copyright 2019-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -196,10 +196,10 @@ static int
 test_alloc_cfg_enomem(const struct test_case *tc, int argc, char *argv[])
 {
 	struct pmem2_config *cfg;
-	if (!common_fault_injection_enabled()) {
+	if (!core_fault_injection_enabled()) {
 		return 0;
 	}
-	common_inject_fault_at(PMEM_MALLOC, 1, "pmem2_malloc");
+	core_inject_fault_at(PMEM_MALLOC, 1, "pmem2_malloc");
 
 	int ret = pmem2_config_new(&cfg);
 	UT_PMEM2_EXPECT_RETURN(ret, -ENOMEM);

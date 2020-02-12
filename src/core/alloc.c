@@ -73,7 +73,7 @@ _flt_Realloc(void *ptr, size_t size, const char *func)
 }
 
 void
-common_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
+core_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
 {
 	switch (type) {
 		case PMEM_MALLOC:
@@ -92,7 +92,7 @@ common_inject_fault_at(enum pmem_allocation_type type, int nth, const char *at)
 }
 
 int
-common_fault_injection_enabled(void)
+core_fault_injection_enabled(void)
 {
 	return 1;
 }

@@ -91,12 +91,12 @@
     <ClCompile Include="pgraph.c" />
     <ClCompile Include="vgraph.c" />
     <ClCompile Include="..\..\common\rand.c" />
-    <ClCompile Include="..\..\common\os_thread_windows.c" />
+    <ClCompile Include="..\..\core\os_thread_windows.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pgraph.h" />
     <ClInclude Include="vgraph.h" />
-    <ClInclude Include="..\..\common\os_thread.h" />
+    <ClInclude Include="..\..\core\os_thread.h" />
     <ClInclude Include="..\..\common\rand.h" />
     <ClInclude Include="..\unittest\unittest.h" />
   </ItemGroup>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2019, Intel Corporation
+ * Copyright 2016-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -713,11 +713,11 @@ test_ctl_arg_parsers()
 static void
 test_fault_injection(struct pool *pop)
 {
-	if (!common_fault_injection_enabled())
+	if (!core_fault_injection_enabled())
 		return;
 
 	UT_ASSERTne(pop, NULL);
-	common_inject_fault_at(PMEM_MALLOC, 1, "ctl_parse_args");
+	core_inject_fault_at(PMEM_MALLOC, 1, "ctl_parse_args");
 
 	test_config_written = 0;
 	int ret = ctl_load_config_from_string(pop->ctl, pop,

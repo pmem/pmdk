@@ -35,10 +35,10 @@
  */
 
 #include <windows.h>
-#include "util.h"
-#include "out.h"
-#include "vec.h"
+#include "alloc.h"
 #include "fs.h"
+#include "out.h"
+#include "util.h"
 
 struct fs {
 	size_t dirlen;

@@ -24,7 +24,7 @@
     <ClCompile Include="..\..\common\file_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\fs_windows.c">
+    <ClCompile Include="..\..\core\fs_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\mmap.c">
@@ -34,13 +34,13 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\os_deep_windows.c" />
-    <ClCompile Include="..\..\common\os_thread_windows.c">
+    <ClCompile Include="..\..\core\os_thread_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\os_windows.c">
+    <ClCompile Include="..\..\core\os_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\out.c">
+    <ClCompile Include="..\..\core\out.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\pool_hdr.c">
@@ -52,10 +52,10 @@
     <ClCompile Include="..\..\common\shutdown_state.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\util.c">
+    <ClCompile Include="..\..\core\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\util_windows.c">
+    <ClCompile Include="..\..\core\util_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\uuid.c">

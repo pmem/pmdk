@@ -1,4 +1,4 @@
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,8 +36,8 @@ LIBRARY_NAME = pmemblk
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 
+include ../core/pmemcore.inc
 include ../common/pmemcommon.inc
-
 SOURCE +=\
 	blk.c\
 	btt.c\

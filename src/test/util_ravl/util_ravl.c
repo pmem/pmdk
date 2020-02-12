@@ -233,10 +233,10 @@ test_emplace(void)
 static void
 test_fault_injection_ravl_sized()
 {
-	if (!common_fault_injection_enabled())
+	if (!core_fault_injection_enabled())
 		return;
 
-	common_inject_fault_at(PMEM_MALLOC, 1, "ravl_new_sized");
+	core_inject_fault_at(PMEM_MALLOC, 1, "ravl_new_sized");
 	struct ravl *r = ravl_new_sized(NULL, 0);
 	UT_ASSERTeq(r, NULL);
 	UT_ASSERTeq(errno, ENOMEM);
@@ -245,14 +245,14 @@ test_fault_injection_ravl_sized()
 static void
 test_fault_injection_ravl_node()
 {
-	if (!common_fault_injection_enabled())
+	if (!core_fault_injection_enabled())
 		return;
 
 	struct foo a = {1, 2, 3};
 	struct ravl *r = ravl_new_sized(cmpfoo, sizeof(struct foo));
 	UT_ASSERTne(r, NULL);
 
-	common_inject_fault_at(PMEM_MALLOC, 1, "ravl_new_node");
+	core_inject_fault_at(PMEM_MALLOC, 1, "ravl_new_node");
 	int ret = ravl_emplace_copy(r, &a);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTeq(errno, ENOMEM);

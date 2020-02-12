@@ -1,5 +1,5 @@
 /*
- * Copyright 2018-2019, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -148,10 +148,10 @@ do_open(const char *path)
 static void
 do_fault_injection(const char *path)
 {
-	if (!common_fault_injection_enabled())
+	if (!core_fault_injection_enabled())
 		return;
 
-	common_inject_fault_at(PMEM_MALLOC, 1, "badblocks_recovery_file_alloc");
+	core_inject_fault_at(PMEM_MALLOC, 1, "badblocks_recovery_file_alloc");
 	char *ret = badblocks_recovery_file_alloc(path, 0, 0);
 	UT_ASSERTeq(ret, NULL);
 	UT_ASSERTeq(errno, ENOMEM);
