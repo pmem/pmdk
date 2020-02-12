@@ -4,9 +4,15 @@
 #
 # src/test/pmem_movnt_align/Makefile -- build pmem_movnt_align unittest
 #
+TOP = ../../..
+vpath %.c $(TOP)/src/test/pmem2_movnt_align
+
 TARGET = pmem_movnt_align
-OBJS = pmem_movnt_align.o
+OBJS = pmem_movnt_align.o\
+	$(TOP)/src/test/pmem2_movnt_align/movnt_align_common.o
 
 LIBPMEM=y
 
 include ../Makefile.inc
+
+CFLAGS += -I$(TOP)/src/test/pmem2_movnt_align
