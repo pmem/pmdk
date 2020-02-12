@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -94,6 +94,9 @@ if [ -z "$NDCTL_ENABLE" ]; then ndctl_enable=; else ndctl_enable="--env NDCTL_EN
 WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
+# Check if we are running on a CI (Travis or GitHub Actions)
+[ -n "$GITHUB_ACTIONS" -o -n "$TRAVIS" ] && CI_RUN="YES" || CI_RUN="NO"
+
 echo Building ${OS}-${OS_VER}
 
 # Run a container with
@@ -117,6 +120,7 @@ docker run --privileged=true --name=$containerName -ti \
 	--env EXPERIMENTAL=$EXPERIMENTAL \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
 	--env KEEP_TEST_CONFIG=$KEEP_TEST_CONFIG \
+	--env CI_RUN=$CI_RUN \
 	$ndctl_enable \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \

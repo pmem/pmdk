@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -92,6 +92,9 @@ if [[ ! "${VALID_BRANCHES[@]}" =~ "${TRAVIS_BRANCH}" || "$TRAVIS_PULL_REQUEST" !
 	AUTO_DOC_UPDATE=0
 fi
 
+# Check if we are running on a CI (Travis or GitHub Actions)
+[ -n "$GITHUB_ACTIONS" -o -n "$TRAVIS" ] && CI_RUN="YES" || CI_RUN="NO"
+
 WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
@@ -126,6 +129,7 @@ docker run --rm --privileged=true --name=$containerName -ti \
 	--env COVERITY_SCAN_TOKEN=$COVERITY_SCAN_TOKEN \
 	--env COVERITY_SCAN_NOTIFICATION_EMAIL=$COVERITY_SCAN_NOTIFICATION_EMAIL \
 	--env GITHUB_REPO=$GITHUB_REPO \
+	--env CI_RUN=$CI_RUN \
 	$ndctl_enable \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
