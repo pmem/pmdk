@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -116,12 +116,14 @@ if [ $CHECK_ALL -eq 1 ]; then
 	echo "Checking copyright headers of all files..."
 	GIT_COMMAND="ls-tree -r --name-only HEAD"
 else
-	echo
-	echo "Warning: will check copyright headers of modified files only,"
-	echo "         in order to check all files issue the following command:"
-	echo "         $ $SELF <source_root_path> <check_license_bin_path> <license_path> -a"
-	echo "         (e.g.: $ $SELF $SOURCE_ROOT $CHECK_LICENSE $LICENSE -a)"
-	echo
+	if [ $VERBOSE -eq 1 ]; then
+		echo
+		echo "Warning: will check copyright headers of modified files only,"
+		echo "         in order to check all files issue the following command:"
+		echo "         $ $SELF <source_root_path> <check_license_bin_path> <license_path> -a"
+		echo "         (e.g.: $ $SELF $SOURCE_ROOT $CHECK_LICENSE $LICENSE -a)"
+		echo
+	fi
 	echo "Checking copyright headers of modified files only..."
 	GIT_COMMAND="diff --name-only $MERGE_BASE $CURRENT_COMMIT"
 fi
