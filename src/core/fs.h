@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2018, Intel Corporation */
+/* Copyright 2017-2020, Intel Corporation */
 
 /*
  * fs.h -- file system traversal abstraction layer

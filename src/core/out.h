@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * out.h -- definitions for "out" module
