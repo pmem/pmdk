@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -33,6 +33,7 @@
 """Utilities for tests"""
 
 import sys
+import platform
 
 HEADER_SIZE = 4096
 
@@ -44,6 +45,13 @@ MiB = 2 ** 20
 GiB = 2 ** 30
 TiB = 2 ** 40
 PiB = 2 ** 50
+
+
+def require_architectures(tc, *archs):
+    """Enable test only for specified architectures"""
+    if platform.machine() not in archs:
+        tc.enabled = False
+    return tc
 
 
 def _os_only(tc, os_name):
