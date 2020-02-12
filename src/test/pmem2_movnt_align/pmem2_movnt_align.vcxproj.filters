@@ -10,24 +10,30 @@
       <Extensions>PS1</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{c938d730-8c66-4d94-ae37-6a5ce463e749}</UniqueIdentifier>
+      <UniqueIdentifier>{b9326830-dcd8-4ffd-9ea1-e509e63067e8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pmem_movnt_align.c">
+    <ClCompile Include="pmem2_movnt_align.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\pmem2_movnt_align\movnt_align_common.c">
+    <ClCompile Include="..\unittest\ut_pmem2_config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="movnt_align_common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST0.PS1">
+    <None Include="TESTS.py">
       <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\pmem2_movnt_align\movnt_align_common.h">
+    <ClInclude Include="movnt_align_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
