@@ -104,7 +104,7 @@ for file in $FILES ; do
 	iconv -f $ENCODING -t "UTF-8" $src_path > $TEMPFILE
 
 	if ! grep -q "SPDX-License-Identifier: $LICENSE" $src_path; then
-		echo >&2 "error: no $LICENSE SPDX tag in file: $src_path"
+		echo >&2 "$src_path:1: no $LICENSE SPDX tag found "
 		RV=1
 	fi
 
@@ -135,7 +135,7 @@ for file in $FILES ; do
 s/.*Copyright \([0-9]\+\)-\([0-9]\+\),.*/\1-\2/
 s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 	if [ -z "$YEARS" ]; then
-		echo >&2 "No copyright years in $src_path"
+		echo >&2 "$src_path:1: No copyright years found"
 		RV=1
 		continue
 	fi
@@ -160,7 +160,7 @@ s/.*Copyright \([0-9]\+\),.*/\1-\1/' $src_path`
 			RV=1
 		fi
 	else
-		echo "error: unknown commit dates in file: $file" >&2
+		echo "$file:1: unknown commit dates" >&2
 		RV=1
 	fi
 done
