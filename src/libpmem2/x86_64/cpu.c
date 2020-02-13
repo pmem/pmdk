@@ -3,10 +3,6 @@
 
 /*
  * cpu.c -- CPU features detection
- *
- * These routines do not work AARCH64 platforms, and need new detection
- * routiones to be added. Currently to ensure msync is not used and ARM
- * FLUSH instructions are used PMEM_IS_PMEM_FORCE=1 needs to be used.
  */
 
 /*
@@ -48,10 +44,9 @@ cpuid(unsigned func, unsigned subfunc, unsigned cpuinfo[4])
 	__cpuidex(cpuinfo, func, subfunc);
 }
 
-#else /* not x86_64 */
+#else
 
-#define cpuid(func, subfunc, cpuinfo)\
-	do { (void)(func); (void)(subfunc); (void)(cpuinfo); } while (0)
+#error unsupported compiler
 
 #endif
 
