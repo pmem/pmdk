@@ -32,8 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 Everything in this source tree is covered by the previous license
 with the following exceptions:
 
-* src/common/valgrind/valgrind.h, src/common/valgrind/memcheck.h,
-  src/common/valgrind/helgrind.h, src/common/valgrind/drd.h are covered by
+* src/core/valgrind/valgrind.h, src/core/valgrind/memcheck.h,
+  src/core/valgrind/helgrind.h, src/core/valgrind/drd.h are covered by
   another similar BSD license variant, contained in those files.
 
 * utils/cstyle (used only during development) licensed under CDDL.
