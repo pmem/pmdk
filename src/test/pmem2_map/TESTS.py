@@ -180,3 +180,12 @@ class TEST24(PMEM2_MAP):
     """map a file which size is not aligned"""
     test_case = "test_map_larger_than_unaligned_file_size"
     filesize = 16 * t.MiB - 1
+
+
+class TEST25(PMEM2_MAP):
+    """
+    map a file with zero size, do not provide length
+    to pmem2_map config
+    """
+    test_case = "test_map_zero_file_size"
+    filesize = 0
