@@ -30,6 +30,10 @@ struct pmem2_map {
 	pmem2_flush_fn flush_fn;
 	pmem2_drain_fn drain_fn;
 
+	pmem2_memmove_fn memmove_fn;
+	pmem2_memcpy_fn memcpy_fn;
+	pmem2_memset_fn memset_fn;
+
 #ifdef _WIN32
 	HANDLE handle;
 #endif
