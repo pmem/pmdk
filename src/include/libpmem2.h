@@ -51,6 +51,7 @@ extern "C" {
 #define PMEM2_E_LENGTH_UNALIGNED		(-100015)
 #define PMEM2_E_MAPPING_NOT_FOUND		(-100016)
 #define PMEM2_E_BUFFER_TOO_SMALL		(-100017)
+#define PMEM2_E_SOURCE_EMPTY			(-100018)
 
 /* source setup */
 
