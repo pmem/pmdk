@@ -65,6 +65,9 @@ if [[ -z "${TRAVIS_BRANCH}" || -z "${TARGET_BRANCHES[${TRAVIS_BRANCH}]}" || "$TR
 	AUTO_DOC_UPDATE=0
 fi
 
+# Check if we are running on a CI (Travis or GitHub Actions)
+[ -n "$GITHUB_ACTIONS" -o -n "$TRAVIS" ] && CI_RUN="YES" || CI_RUN="NO"
+
 WORKDIR=/pmdk
 SCRIPTSDIR=$WORKDIR/utils/docker
 
@@ -102,6 +105,7 @@ docker run --rm --privileged=true --name=$containerName -i $TTY \
 	--env COVERITY_SCAN_NOTIFICATION_EMAIL=$COVERITY_SCAN_NOTIFICATION_EMAIL \
 	--env FAULT_INJECTION=$FAULT_INJECTION \
 	--env GITHUB_REPO=$GITHUB_REPO \
+	--env CI_RUN=$CI_RUN \
 	$ndctl_enable \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
