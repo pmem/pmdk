@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * obj_tx_alloc.c -- unit test for pmemobj_tx_alloc and pmemobj_tx_zalloc
@@ -67,7 +67,7 @@ do_tx_alloc_oom(PMEMobjpool *pop)
 
 	size_t bitmap_size = howmany(alloc_cnt, 8);
 	char *bitmap = (char *)MALLOC(bitmap_size);
-	pmemobj_memset_persist(pop, bitmap, 0, bitmap_size);
+	memset(bitmap, 0, bitmap_size);
 
 	size_t obj_cnt = 0;
 	TOID(struct object) i;
