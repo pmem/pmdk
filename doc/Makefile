@@ -96,14 +96,14 @@ MANPAGES_7_MD_PMEM2 = libpmem2/libpmem2.7.md
 MANPAGES_5_MD_PMEM2 =
 MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.md libpmem2/pmem2_map.3.md \
 		libpmem2/pmem2_unmap.3.md libpmem2/pmem2_map_get_address.3.md libpmem2/pmem2_map_get_size.3.md \
-		libpmem2/pmem2_config_set_fd.3.md libpmem2/pmem2_config_set_required_store_granularity.3.md \
-		libpmem2/pmem2_config_get_file_size.3.md libpmem2/pmem2_config_get_alignment.3.md \
+		libpmem2/pmem2_source_from_fd.3.md libpmem2/pmem2_config_set_required_store_granularity.3.md \
+		libpmem2/pmem2_source_file_size.3.md libpmem2/pmem2_source_alignment.3.md \
 		libpmem2/pmem2_config_set_length.3.md libpmem2/pmem2_config_set_offset.3.md \
 		libpmem2/pmem2_map_get_store_granularity.3.md libpmem2/pmem2_get_flush_fn.3.md \
 		libpmem2/pmem2_get_drain_fn.3.md libpmem2/pmem2_get_persist_fn.3.md
 MANPAGES_1_MD_PMEM2 =
 ifeq ($(PMEM2_INSTALL),y)
-MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_config_set_handle.3
+MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_source_from_handle.3 libpmem2/pmem2_source_delete.3
 endif
 
 ifeq ($(BUILD_RPMEM),y)

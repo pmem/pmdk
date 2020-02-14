@@ -9,16 +9,11 @@ VERSION 1.0
 
 EXPORTS
 	pmem2_config_new
-	pmem2_config_get_alignment
-	pmem2_config_get_file_size
-	pmem2_config_set_fd
-	pmem2_config_set_handle
 	pmem2_config_delete
 	pmem2_config_set_offset
 	pmem2_config_set_length
 	pmem2_config_set_sharing
 	pmem2_config_set_protection
-	pmem2_config_use_anonymous_mapping
 	pmem2_config_set_address
 	pmem2_config_set_required_store_granularity
 	pmem2_map
@@ -32,13 +27,19 @@ EXPORTS
 	pmem2_get_memmove_fn
 	pmem2_get_memcpy_fn
 	pmem2_get_memset_fn
-	pmem2_get_device_idW
-	pmem2_get_device_idU
-	pmem2_get_device_usc
 	pmem2_badblock_iterator_new
 	pmem2_badblock_next
 	pmem2_badblock_iterator_delete
 	pmem2_badblock_clear
+	pmem2_source_from_fd
+	pmem2_source_from_anon
+	pmem2_source_from_handle
+	pmem2_source_file_size
+	pmem2_source_alignment
+	pmem2_source_delete
+	pmem2_source_device_idW
+	pmem2_source_device_idU
+	pmem2_source_device_usc
 	pmem2_errormsgU
 	pmem2_errormsgW
 

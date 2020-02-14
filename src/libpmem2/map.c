@@ -110,14 +110,9 @@ get_min_granularity(bool eADR, bool is_pmem)
  * the alignment required for the config
  */
 int
-pmem2_validate_offset(const struct pmem2_config *cfg, size_t *offset)
+pmem2_validate_offset(const struct pmem2_config *cfg, size_t *offset,
+	size_t alignment)
 {
-	size_t alignment;
-	int ret = pmem2_config_get_alignment(cfg, &alignment);
-
-	if (ret)
-		return ret;
-
 	ASSERTne(alignment, 0);
 	if (cfg->offset % alignment) {
 		ERR("offset is not a multiple of %lu", alignment);

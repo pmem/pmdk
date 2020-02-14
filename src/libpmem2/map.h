@@ -42,7 +42,8 @@ int pmem2_unregister_mapping(struct pmem2_map *map);
 void pmem2_map_init(void);
 void pmem2_map_fini(void);
 
-int pmem2_validate_offset(const struct pmem2_config *cfg, size_t *offset);
+int pmem2_validate_offset(const struct pmem2_config *cfg,
+	size_t *offset, size_t alignment);
 
 #ifdef __cplusplus
 }

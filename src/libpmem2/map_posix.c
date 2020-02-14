@@ -20,6 +20,7 @@
 #include "out.h"
 #include "persist.h"
 #include "pmem2_utils.h"
+#include "source.h"
 #include "valgrind_internal.h"
 
 #ifndef MAP_SYNC
@@ -247,19 +248,17 @@ unmap(void *addr, size_t len)
  * pmem2_map -- map memory according to provided config
  */
 int
-pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
+pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
+	struct pmem2_map **map_ptr)
 {
-	LOG(3, "cfg %p map_ptr %p", cfg, map_ptr);
+	LOG(3, "cfg %p src %p map_ptr %p", cfg, src, map_ptr);
 
 	int ret = 0;
 	struct pmem2_map *map;
 	size_t file_len;
 	*map_ptr = NULL;
 
-	if (cfg->fd == INVALID_FD) {
-		ERR("the provided file descriptor is invalid");
-		return PMEM2_E_FILE_HANDLE_NOT_SET;
-	}
+	ASSERTne(src->fd, INVALID_FD);
 
 	if (cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
 		ERR(
@@ -268,15 +267,20 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 		return PMEM2_E_GRANULARITY_NOT_SET;
 	}
 
+	size_t src_alignment;
+	ret = pmem2_source_alignment(src, &src_alignment);
+	if (ret)
+		return ret;
+
 	/* get file size */
-	ret = pmem2_config_get_file_size(cfg, &file_len);
+	ret = pmem2_source_file_size(src, &file_len);
 	if (ret)
 		return ret;
 
 	/* get file type */
 	enum pmem2_file_type file_type;
 	os_stat_t st;
-	if (os_fstat(cfg->fd, &st)) {
+	if (os_fstat(src->fd, &st)) {
 		ERR("!fstat");
 		return PMEM2_E_ERRNO;
 	}
@@ -286,7 +290,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 
 	/* get offset */
 	size_t offset;
-	ret = pmem2_validate_offset(cfg, &offset);
+	ret = pmem2_validate_offset(cfg, &offset, src_alignment);
 	if (ret)
 		return ret;
 	os_off_t off = (os_off_t)offset;
@@ -311,7 +315,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	ASSERT(file_type == PMEM2_FTYPE_REG || file_type == PMEM2_FTYPE_DEVDAX);
 
 	size_t content_length, reserved_length = 0;
-	ret = pmem2_config_validate_length(cfg, file_len);
+	ret = pmem2_config_validate_length(cfg, file_len, src_alignment);
 	if (ret)
 		return ret;
 
@@ -322,7 +326,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 		content_length = file_len - cfg->offset;
 
 	const size_t alignment = get_map_alignment(content_length,
-			cfg->alignment);
+			src_alignment);
 
 	/* find a hint for the mapping */
 	void *reserv = NULL;
@@ -333,11 +337,11 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	}
 	ASSERTne(reserv, NULL);
 
-	ret = file_map(reserv, content_length, proto, flags, cfg->fd, off,
+	ret = file_map(reserv, content_length, proto, flags, src->fd, off,
 			&map_sync, &addr);
 	if (ret == -EACCES) {
 		proto = PROT_READ;
-		ret = file_map(reserv, content_length, proto, flags, cfg->fd,
+		ret = file_map(reserv, content_length, proto, flags, src->fd,
 				off, &map_sync, &addr);
 	}
 
@@ -386,7 +390,7 @@ pmem2_map(const struct pmem2_config *cfg, struct pmem2_map **map_ptr)
 	*map_ptr = map;
 
 	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->content_length);
-	VALGRIND_REGISTER_PMEM_FILE(cfg->fd, map->addr, map->content_length, 0);
+	VALGRIND_REGISTER_PMEM_FILE(src->fd, map->addr, map->content_length, 0);
 
 	return 0;
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * basic.c -- simple example for the libpmem2
@@ -23,6 +23,7 @@ main(int argc, char *argv[])
 	int fd;
 	struct pmem2_config *cfg;
 	struct pmem2_map *map;
+	struct pmem2_source *src;
 	pmem2_persist_fn persist;
 
 	if (argc != 2) {
@@ -40,7 +41,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (pmem2_config_set_fd(cfg, fd)) {
+	if (pmem2_source_from_fd(&src, fd)) {
 		fprintf(stderr, "%s\n", pmem2_errormsg());
 		exit(1);
 	}
@@ -51,7 +52,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (pmem2_map(cfg, &map)) {
+	if (pmem2_map(cfg, src, &map)) {
 		fprintf(stderr, "%s\n", pmem2_errormsg());
 		exit(1);
 	}
@@ -68,6 +69,7 @@ main(int argc, char *argv[])
 		persist(addr, size);
 
 	pmem2_unmap(&map);
+	pmem2_source_delete(&src);
 	pmem2_config_delete(&cfg);
 	close(fd);
 
