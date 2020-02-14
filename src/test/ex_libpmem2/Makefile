@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 
 #
 # src/test/ex_libpmem2/Makefile -- build ex_libpmem2 unittest
