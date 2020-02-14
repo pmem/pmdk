@@ -1,0 +1,61 @@
+#!/bin/bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2019, Intel Corporation
+
+# check-manpage -- a tool to check a single man page against errors
+#
+# While it can handle multiple files, it's recommended to use
+# check-manpages instead.
+set -e
+
+check_link()
+{
+	[ $(wc -l <"$file") = 1 ] ||
+		{ echo ".so link isn't the only line" && return; }
+	link=$(cat "$file")
+	link=${link#.so }
+	[ "${link##*/}" = "$link" ] ||
+		grep -q '^\.so man\([0-9]\)/[a-z0-9+_-]\+\.\1$' "$file" ||
+		{ echo ".so link directory is not matching manX" && return; }
+	[ -e "${link##*/}" ] ||
+		{ echo ".so link target doesn't exist: ${link##*/}" && return; }
+}
+
+for m in "$@"; do
+	dir="$(dirname $m)"
+	file="$(basename $m)"
+	[ -n "$dir" ] && pushd "$dir" >/dev/null
+
+	if grep -q '^\.so' "$file"; then
+		err=$(check_link)
+		[ -z "$err" ] || {
+			echo >&2 "$file: $err"
+			FAILED=1
+		}
+		popd >/dev/null 2>/dev/null
+		continue
+	fi
+
+	# man can emit warnings and errors.  Even non-fatal errors are normally
+	# suppressed if a pager is in use (ie, all interactive usage).  Common
+	# messages include an unknown macro, an unbreakable line, etc.
+	err=$(MANWIDTH=80 man --warnings -E UTF-8 -l -Tutf8 -Z "$file" 2>&1 >/dev/null)
+	[ -z "$err" ] || {
+		echo >&2 "$file: $err"
+		FAILED=1
+	}
+
+	# If a "NAME" section exists, call lexgrog to see if it's properly
+	# formatted.
+	if grep -q '^\.SH NAME' "$file"; then
+		if ! lexgrog "$file" >/dev/null; then
+			# lexgrog doesn't give any interesting messages.
+			echo 2>&1 "lexgrog failed on $file"
+			FAILED=1
+		fi
+	fi
+
+	popd >/dev/null 2>/dev/null
+done
+
+exit $FAILED
