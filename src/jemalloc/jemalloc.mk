@@ -1,4 +1,4 @@
-# Copyright 2014-2017, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -83,12 +83,12 @@ CFLAGS_FILTER += -Wlanguage-extension-token
 CFLAGS_FILTER += -Wfloat-equal
 CFLAGS_FILTER += -Wswitch-default
 CFLAGS_FILTER += -Wcast-function-type
-JEMALLOC_CFLAGS=$(filter-out $(CFLAGS_FILTER), $(CFLAGS))
+JEMALLOC_CFLAGS=$(filter-out $(CFLAGS_FILTER), $(CFLAGS)) -fcommon
 ifeq ($(shell uname -s),FreeBSD)
 JEMALLOC_CFLAGS += -I/usr/local/include
 endif
 JEMALLOC_REMOVE_LDFLAGS_TMP = -Wl,--warn-common
-JEMALLOC_LDFLAGS=$(filter-out $(JEMALLOC_REMOVE_LDFLAGS_TMP), $(LDFLAGS))
+JEMALLOC_LDFLAGS=$(filter-out $(JEMALLOC_REMOVE_LDFLAGS_TMP), $(LDFLAGS)) -fcommon
 JEMALLOC_CFG_OUT_FILES_FIRST=$(firstword $(JEMALLOC_CFG_OUT_FILES))
 JEMALLOC_CFG_OUT_FILES_REST=$(filter-out $(JEMALLOC_CFG_OUT_FILES_FIRST), $(JEMALLOC_CFG_OUT_FILES))
 
