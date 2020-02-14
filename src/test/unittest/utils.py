@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 
 """Utilities for tests"""
 
 import sys
+import platform
 
 HEADER_SIZE = 4096
 
@@ -15,6 +16,16 @@ MiB = 2 ** 20
 GiB = 2 ** 30
 TiB = 2 ** 40
 PiB = 2 ** 50
+
+
+def require_architectures(*archs):
+    """Enable test only for specified architectures"""
+    def wrapped(tc):
+        if platform.machine() not in archs:
+            tc.enabled = False
+        return tc
+
+    return wrapped
 
 
 def _os_only(tc, os_name):
