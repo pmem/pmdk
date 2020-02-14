@@ -38,6 +38,7 @@ def expand(*classes):
 
 class ContextBase:
     """Context basic interface and low-level utilities"""
+
     def __init__(self, build, *args, **kwargs):
         self._elems = []
         self._env = {}
@@ -236,7 +237,7 @@ class Context(ContextBase):
     def new_poolset(self, path):
         return _Poolset(path, self)
 
-    def exec(self, cmd, *args, expected_exitcode=0):
+    def exec(self, cmd, *args, expected_exitcode=0, log_file=None):
         """Execute binary in current test context"""
 
         tmp = self._env.copy()
@@ -270,6 +271,10 @@ class Context(ContextBase):
         if expected_exitcode is not None and \
            proc.returncode != expected_exitcode:
             futils.fail(proc.stdout, exit_code=proc.returncode)
+
+        if log_file is not None:
+            with open(os.path.join(self.cwd, log_file), 'w') as f:
+                f.write(proc.stdout)
 
         self.msg.print_verbose(proc.stdout)
 
@@ -448,6 +453,7 @@ class _NoContext(collections.UserList):
     its items are not required during test execution
     (e. g. no dax devices required by test)
     """
+
     def __init__(self):
         self.data = []
         self.data.append(False)
