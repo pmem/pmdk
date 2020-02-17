@@ -13,7 +13,7 @@ class NormalFile(t.Test):
     def run(self, ctx):
         filepath = ctx.create_holey_file(self.size, 'testfile')
         ctx.exec('pmem2_source_file_size', self.test_case,
-                 filepath, str(self.size))
+                 filepath, self.size)
 
 
 class TEST0(NormalFile):
@@ -37,6 +37,7 @@ class TEST3(NormalFile):
     test_case = 'test_normal_file_handle'
     size = 16 * t.MiB
 
+
 # On Windows fd interface doesn't support temporary files
 # FreeBSD doesn't support O_TMPFILE
 @t.linux_only
@@ -45,7 +46,7 @@ class TEST4(t.Test):
 
     def run(self, ctx):
         ctx.exec('pmem2_source_file_size', 'test_tmpfile_fd',
-                 ctx.testdir, str(16 * t.MiB))
+                 ctx.testdir, 16 * t.MiB)
 
 
 # XXX doesn't work
@@ -66,4 +67,4 @@ class TEST6(t.Test):
     def run(self, ctx):
         dd = ctx.devdaxes.devdax1
         ctx.exec('pmem2_source_file_size',
-                 'test_normal_file_fd', dd.path, str(dd.size))
+                 'test_normal_file_fd', dd.path, dd.size)

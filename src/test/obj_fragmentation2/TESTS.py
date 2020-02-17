@@ -25,7 +25,7 @@ class BASE(t.BaseTest):
         # this test is extremely long otherwise
         ctx.env = {'PMEM_NO_FLUSH': '1'}
         ctx.exec('obj_fragmentation2',
-                 testfile, str(self.testnum), self.seed, self.defrag)
+                 testfile, self.testnum, self.seed, self.defrag)
 
 
 class TEST0(BASE):

@@ -16,7 +16,7 @@ class PMEM2_MAP(t.Test):
     def run(self, ctx):
         filepath = ctx.create_holey_file(self.filesize, 'testfile',)
         if self.with_size:
-            filesize = str(os.stat(filepath).st_size)
+            filesize = os.stat(filepath).st_size
             ctx.exec('pmem2_map', self.test_case, filepath, filesize)
         else:
             ctx.exec('pmem2_map', self.test_case, filepath)
@@ -38,7 +38,7 @@ class PMEM2_MAP_DEVDAX(t.Test):
     def run(self, ctx):
         dd = ctx.devdaxes.devdax1
         if self.with_size:
-            ctx.exec('pmem2_map', self.test_case, dd.path, str(dd.size))
+            ctx.exec('pmem2_map', self.test_case, dd.path, dd.size)
         else:
             ctx.exec('pmem2_map', self.test_case, dd.path)
 

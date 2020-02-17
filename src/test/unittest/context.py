@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 """Set of classes that represent the context of single test execution"""
 
@@ -254,7 +254,9 @@ class Context(ContextBase):
             if self.valgrind:
                 cmd = self.valgrind.cmd + cmd
 
-        cmd = cmd + list(args)
+        # cast all provided args to strings (required by subprocess run())
+        # so that exec() can accept args of any printable type
+        cmd.extend([str(a) for a in args])
 
         if self.conf.tracer:
             cmd = shlex.split(self.conf.tracer) + cmd
