@@ -23,7 +23,7 @@ class PMEM2_SOURCE_ALIGNMENT_DEV_DAX(t.Test):
     def run(self, ctx):
         dd = ctx.devdaxes.devdax
         ctx.exec('pmem2_source_alignment',
-                 self.test_case, dd.path, str(dd.alignment))
+                 self.test_case, dd.path, dd.alignment)
 
 
 @t.windows_exclude

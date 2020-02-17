@@ -75,10 +75,9 @@ class ObjDefragAdvancedMt(ObjDefragAdvanced):
 
         ctx.exec('obj_defrag_advanced',
                  'op_pool_create', path,
-                 'op_graph_create_n_defrag_mt', str(self.max_nodes),
-                 str(self.max_edges), str(self.graph_copies),
-                 str(self.min_root_size), str(self.max_rounds),
-                 str(self.nthreads), str(self.ncycles),
+                 'op_graph_create_n_defrag_mt', self.max_nodes,
+                 self.max_edges, self.graph_copies, self.min_root_size,
+                 self.max_rounds, self.nthreads, self.ncycles,
                  'op_pool_close')
 
 

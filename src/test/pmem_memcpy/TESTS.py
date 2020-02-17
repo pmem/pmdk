@@ -32,8 +32,7 @@ class PmemMemcpy(t.Test):
             ctx.env[env] = '1'
         for tc in self.test_cases:
             filepath = ctx.create_holey_file(self.filesize, 'testfile',)
-            ctx.exec('pmem_memcpy', filepath,
-                     str(tc.dest), str(tc.src), str(tc.length))
+            ctx.exec('pmem_memcpy', filepath, tc.dest, tc.src, tc.length)
 
 
 class TEST0(PmemMemcpy):
