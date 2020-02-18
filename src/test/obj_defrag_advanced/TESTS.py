@@ -49,6 +49,8 @@ class ObjDefragAdvanced(t.BaseTest):
     min_root_size = 0
 
     def run(self, ctx):
+        ctx.require_free_space(self.pool_size)
+
         path = ctx.create_holey_file(self.pool_size, 'testfile')
         dump1 = 'dump1.log'
         dump2 = 'dump2.log'
@@ -98,6 +100,8 @@ class ObjDefragAdvancedMt(ObjDefragAdvanced):
     ncycles = 2
 
     def run(self, ctx):
+        ctx.require_free_space(self.pool_size)
+
         path = ctx.create_holey_file(self.pool_size, 'testfile')
 
         ctx.exec('obj_defrag_advanced',
