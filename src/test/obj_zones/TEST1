@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -36,7 +36,15 @@
 # too large
 configure_valgrind force-disable
 
-require_test_type medium
+arch=$(arch)
+if [ "${arch#ppc64}" = "$arch" ]; then
+	require_test_type medium
+else
+	# This test dirties one page per 128KB -- ie, 2GB total on x86 and arm,
+	# 32GB on ppc.  This is more than alotted RAM on distro buildds,
+	# causing swapping and thus timeout.
+	require_test_type long
+fi
 
 # runs too long on debug builds
 require_build_type nondebug
