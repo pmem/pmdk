@@ -75,14 +75,10 @@ $git_version_hash = ""
 
 if (Test-Path $git_version_file) {
     $git_version = Get-Content $git_version_file
-    if ($git_version -eq "`$Format:%h %d`$") {
+    if ($git_version -eq "`$Format:%h`$") {
         $git_version = ""
-    } elseif ($git_version -match "tag: ") {
-       if ($git_version -match "tag: (?<tag>[0-9a-z.+-]*)") {
-           $git_version_tag = $matches["tag"];
-       }
     } else {
-        $git_version_hash = ($git_version -split " ")[0]
+        $git_version_hash = $git_version
     }
 }
 
