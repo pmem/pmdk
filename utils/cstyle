@@ -332,12 +332,12 @@ line: while (<$filehandle>) {
 		    s/\t+/' ' x (length($&) * 8 - length($`) % 8)/e;
 		if (length($eline) > 80) {
 			# allow long line if it is user visible string
-			# find if line start from " and ends
+			# find if line start from " or L" and ends
 			# with " + 2 optional characters
 			# (these characters can be i.e. '");' '" \' or '",' etc...)
-			if($eline =~ /^ *".*"[^"]{0,2}$/) {
+			if($eline =~ /^ *L?".*"[^"]{0,2}$/) {
 				# check if entire line is one string literal
-				$eline =~ s/^ *"//;
+				$eline =~ s/^ *L?"//;
 				$eline =~ s/"[^"]{0,2}$//;
 
 				if($eline =~ /[^\\]"|[^\\](\\\\)+"/) {
