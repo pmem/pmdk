@@ -14,14 +14,14 @@ set -e
 source $(dirname $0)/set-vars.sh
 source $(dirname $0)/valid-branches.sh
 
-if [[ "$TRAVIS_EVENT_TYPE" != "cron" && "$TRAVIS_BRANCH" != "coverity_scan" \
+if [[ "$CI_EVENT_TYPE" != "cron" && "$CI_BRANCH" != "coverity_scan" \
 	&& "$COVERITY" -eq 1 ]]; then
 	echo "INFO: Skip Coverity scan job if build is triggered neither by " \
 		"'cron' nor by a push to 'coverity_scan' branch"
 	exit 0
 fi
 
-if [[ ( "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" )\
+if [[ ( "$CI_EVENT_TYPE" == "cron" || "$CI_BRANCH" == "coverity_scan" )\
 	&& "$COVERITY" -ne 1 ]]; then
 	echo "INFO: Skip regular jobs if build is triggered either by 'cron'" \
 		" or by a push to 'coverity_scan' branch"
@@ -51,7 +51,7 @@ if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
 if [[ $MAKE_PKG -eq 1 ]] ; then command="./run-build-package.sh"; fi
 if [[ $COVERAGE -eq 1 ]] ; then command="./run-coverage.sh"; ci_env=`bash <(curl -s https://codecov.io/env)`; fi
 
-if [[ ( "$TRAVIS_EVENT_TYPE" == "cron" || "$TRAVIS_BRANCH" == "coverity_scan" )\
+if [[ ( "$CI_EVENT_TYPE" == "cron" || "$CI_BRANCH" == "coverity_scan" )\
 	&& "$COVERITY" -eq 1 ]]; then
 	command="./run-coverity.sh"
 fi
@@ -61,7 +61,7 @@ if [[ -f $CI_FILE_SKIP_BUILD_PKG_CHECK ]]; then BUILD_PACKAGE_CHECK=n; else BUIL
 if [ -z "$NDCTL_ENABLE" ]; then ndctl_enable=; else ndctl_enable="--env NDCTL_ENABLE=$NDCTL_ENABLE"; fi
 
 # Only run doc update on $GITHUB_REPO master or stable branch
-if [[ -z "${TRAVIS_BRANCH}" || -z "${TARGET_BRANCHES[${TRAVIS_BRANCH}]}" || "$TRAVIS_PULL_REQUEST" != "false" || "$TRAVIS_REPO_SLUG" != "${GITHUB_REPO}" ]]; then
+if [[ -z "${CI_BRANCH}" || -z "${TARGET_BRANCHES[${CI_BRANCH}]}" || "$CI_EVENT_TYPE" == "pull_request" || "$CI_REPO_SLUG" != "${GITHUB_REPO}" ]]; then
 	AUTO_DOC_UPDATE=0
 fi
 
@@ -95,11 +95,11 @@ docker run --rm --privileged=true --name=$containerName -i $TTY \
 	--env BUILD_PACKAGE_CHECK=$BUILD_PACKAGE_CHECK \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
 	--env TRAVIS=$TRAVIS \
-	--env TRAVIS_COMMIT_RANGE=$TRAVIS_COMMIT_RANGE \
-	--env TRAVIS_COMMIT=$TRAVIS_COMMIT \
-	--env TRAVIS_REPO_SLUG=$TRAVIS_REPO_SLUG \
-	--env TRAVIS_BRANCH=$TRAVIS_BRANCH \
-	--env TRAVIS_EVENT_TYPE=$TRAVIS_EVENT_TYPE \
+	--env CI_COMMIT_RANGE=$CI_COMMIT_RANGE \
+	--env CI_COMMIT=$CI_COMMIT \
+	--env CI_REPO_SLUG=$CI_REPO_SLUG \
+	--env CI_BRANCH=$CI_BRANCH \
+	--env CI_EVENT_TYPE=$CI_EVENT_TYPE \
 	--env GITHUB_TOKEN=$GITHUB_TOKEN \
 	--env COVERITY_SCAN_TOKEN=$COVERITY_SCAN_TOKEN \
 	--env COVERITY_SCAN_NOTIFICATION_EMAIL=$COVERITY_SCAN_NOTIFICATION_EMAIL \
