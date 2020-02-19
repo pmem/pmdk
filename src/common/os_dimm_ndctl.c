@@ -338,6 +338,20 @@ os_dimm_usc_dimm(struct ndctl_dimm *dimm)
 	return ret;
 }
 
+static int
+is_qemu()
+{
+	int fd = os_open("/sys/class/dmi/id/sys_vendor", O_RDONLY);
+	if (fd < 0)
+		return 0;
+
+	char buf[8];
+	if (read(fd, buf, sizeof(buf)) != 5)
+		*buf = 0;
+	close(fd);
+	return !memcmp(buf, "QEMU\n", 5);
+}
+
 /*
  * os_dimm_usc -- returns unsafe shutdown count
  */
@@ -371,8 +385,18 @@ os_dimm_usc(const char *path, uint64_t *usc)
 
 	ndctl_dimm_foreach_in_interleave_set(iset, dimm) {
 		long long dimm_usc = os_dimm_usc_dimm(dimm);
-		if (dimm_usc < 0)
+		if (dimm_usc < 0) {
+			/*
+			 * No USC but there _is_ an interleave set.
+			 * This can be either an old kernel, incomplete
+			 * NFIT, or QEMU.
+			 */
+			if (is_qemu()) {
+				*usc = 0;
+				goto out;
+			}
 			goto err;
+		}
 		*usc += (unsigned long long)dimm_usc;
 	}
 out:
