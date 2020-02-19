@@ -57,9 +57,23 @@ os_deep_flush_write(int region_id)
 
 	char deep_flush_path[PATH_MAX];
 	int deep_flush_fd;
+	char rbuf[2];
 
 	snprintf(deep_flush_path, PATH_MAX,
 		"/sys/bus/nd/devices/region%d/deep_flush", region_id);
+
+	if ((deep_flush_fd = os_open(deep_flush_path, O_RDONLY)) < 0) {
+		LOG(1, "!os_open(\"%s\", O_RDONLY)", deep_flush_path);
+		return -1;
+	}
+
+	if (read(deep_flush_fd, rbuf, sizeof(rbuf)) != 2) {
+		LOG(1, "!read(%d)", deep_flush_fd);
+		goto fail_close;
+	}
+
+	if (rbuf[0] == '0' && rbuf[1] == '\n') /* deep_flushing not needed */
+		goto ok;
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
 		LOG(1, "!os_open(\"%s\", O_WRONLY)", deep_flush_path);
@@ -68,14 +82,19 @@ os_deep_flush_write(int region_id)
 
 	if (write(deep_flush_fd, "1", 1) != 1) {
 		LOG(1, "!write(%d, \"1\")", deep_flush_fd);
-		int oerrno = errno;
-		os_close(deep_flush_fd);
-		errno = oerrno;
-		return -1;
+		goto fail_close;
 	}
 
+ok:
 	os_close(deep_flush_fd);
 	return 0;
+
+fail_close:
+	;
+	int oerrno = errno;
+	os_close(deep_flush_fd);
+	errno = oerrno;
+	return -1;
 }
 
 /*
