@@ -12,9 +12,6 @@ MAINTAINER marcin.slusarz@intel.com
 
 ENV DEBIAN_FRONTEND noninteractive
 
-# Update the Apt cache and install basic tools
-RUN apt-get update && apt-get dist-upgrade -y
-
 # libfabric (optional if libfabric-dev >= 1.4.2 is installed)
 ENV FABRIC_DEPS "autoconf \
 	automake \
@@ -74,7 +71,15 @@ ENV MISC_DEPS "clang \
 	sudo \
 	whois"
 
-RUN apt-get install -y --no-install-recommends \
+# Copy install valgrind script
+COPY install-valgrind.sh install-valgrind.sh
+
+# Copy install libfabric script
+COPY install-libfabric.sh install-libfabric.sh
+
+# Update the Apt cache and install basic tools
+RUN apt-get update && apt-get dist-upgrade -y \
+	&& apt-get install -y --no-install-recommends \
 	$FABRIC_DEPS \
 	$VALGRIND_DEPS \
 	$BASE_DEPS \
@@ -85,31 +90,15 @@ RUN apt-get install -y --no-install-recommends \
 	$PACKAGING_DEPS \
 	$CODECOV_DEPS \
 	$COVERITY_DEPS \
-	$MISC_DEPS
-
-# Install valgrind
-COPY install-valgrind.sh install-valgrind.sh
-RUN ./install-valgrind.sh
-
-# Install libfabric
-COPY install-libfabric.sh install-libfabric.sh
-RUN ./install-libfabric.sh
+	$MISC_DEPS \
+	&& ./install-valgrind.sh \
+	&& ./install-libfabric.sh \
+	&& rm -rf /var/lib/apt/lists/*
 
 # Add user
 ENV USER pmdkuser
 ENV USERPASS pmdkpass
 RUN useradd -m $USER -g sudo -p `mkpasswd $USERPASS`
-
-# remove stuff no longer needed
-RUN apt remove -y \
-	unzip \
-	whois
-
-RUN apt autoremove -y
-
-RUN apt-get clean
-
-RUN rm -rf /var/lib/apt/lists/*
 
 # switch user
 USER $USER
