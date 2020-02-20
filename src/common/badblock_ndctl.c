@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * badblock_ndctl.c - implementation of the bad block API using ndctl library
@@ -120,14 +120,14 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 				"bad block found: physical offset: %llu, length: %llu",
 				bb_beg, bb_len);
 
-			/* check if offset is block-aligned */
+			/* make sure offset is block-aligned */
 			not_block_aligned = bb_off & (exts->blksize - 1);
 			if (not_block_aligned) {
 				bb_off -= not_block_aligned;
 				bb_len += not_block_aligned;
 			}
 
-			/* check if length is block-aligned */
+			/* make sure length is block-aligned */
 			bb_len = ALIGN_UP(bb_len, exts->blksize);
 
 			LOG(4,
