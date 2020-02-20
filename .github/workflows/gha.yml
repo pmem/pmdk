@@ -1,11 +1,3 @@
-#
-# The 'XXX_DISABLE_' suffix is used twice in this file to disable two actions:
-# 1) XXX_DISABLE_${CI_FILE_PUSH_IMAGE_TO_REPO} - disables pushing the rebuilt Docker image and
-# 2) XXX_DISABLE_AUTO_DOC_UPDATE - disables making pull requests with the update of documentation.
-# Those two actions are disabled, because they conflict with the same ones run on Travis.
-# Only one CI (Travis or GitHub Actions) can run them at the time, so they can be enabled here,
-# when we decide to switch from Travis to GitHub Actions. The 'XXX_DISABLE_' suffix should be removed then.
-#
 
 name: PMDK
 on: [push, pull_request]
@@ -33,7 +25,7 @@ jobs:
                  "N=3 OS=ubuntu OS_VER=19.10 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug",
                  "N=4 OS=ubuntu OS_VER=19.10 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug",
                  "N=5 OS=fedora OS_VER=31    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug",
-                 "N=6 OS=fedora OS_VER=31    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug XXX_DISABLE_AUTO_DOC_UPDATE=1",
+                 "N=6 OS=fedora OS_VER=31    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1",
                  "N=7 OS=fedora OS_VER=31    MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 PUSH_IMAGE=1",
                  "N=8 OS=ubuntu OS_VER=19.10 MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PUSH_IMAGE=1",
                  "N=9 OS=ubuntu OS_VER=19.10 MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PMDK_CC=clang PMDK_CXX=clang++",
@@ -50,7 +42,7 @@ jobs:
          run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-travis.sh
 
        - name: Push the image
-         run: cd $WORKDIR && source ./set-vars.sh && ${{ matrix.CONFIG }} /bin/bash -c "if [[ -f XXX_DISABLE_${CI_FILE_PUSH_IMAGE_TO_REPO} ]]; then images/push-image.sh; fi"
+         run: cd $WORKDIR && source ./set-vars.sh && ${{ matrix.CONFIG }} /bin/bash -c "if [[ -f ${CI_FILE_PUSH_IMAGE_TO_REPO} ]]; then images/push-image.sh; fi"
 
   windows:
     name: Windows
