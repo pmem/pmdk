@@ -374,7 +374,8 @@ valgrind \
 	test_binary writer_parameter
 ```
 
-For further details of pmemcheck parameters see [pmemcheck documentation](https://github.com/pmem/valgrind/blob/pmem-3.13/pmemcheck/docs/pmc-manual.xml)
+For further details of pmemcheck parameters see
+[pmemcheck documentation](https://pmem.io/valgrind/generated/pmc-manual.html)
 
 # ENVIRONMENT #
 
