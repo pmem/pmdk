@@ -122,7 +122,7 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 		return PMEM2_E_GRANULARITY_NOT_SET;
 	}
 
-	ret = pmem2_source_file_size(src, &file_size);
+	ret = pmem2_source_size(src, &file_size);
 	if (ret)
 		return ret;
 

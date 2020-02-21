@@ -74,7 +74,7 @@ test_reuse_cfg(const struct test_case *tc, int argc, char *argv[])
 	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t size;
-	UT_ASSERTeq(pmem2_source_file_size(src, &size), 0);
+	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
 
 	struct pmem2_map *map1 = map_valid(cfg, src, size);
 	struct pmem2_map *map2 = map_valid(cfg, src, size);
@@ -107,7 +107,7 @@ test_reuse_cfg_with_diff_fd(const struct test_case *tc, int argc, char *argv[])
 	prepare_config(&cfg, &src, fd1, PMEM2_GRANULARITY_PAGE);
 
 	size_t size1;
-	UT_ASSERTeq(pmem2_source_file_size(src, &size1), 0);
+	UT_ASSERTeq(pmem2_source_size(src, &size1), 0);
 
 	struct pmem2_map *map1 = map_valid(cfg, src, size1);
 
@@ -119,7 +119,7 @@ test_reuse_cfg_with_diff_fd(const struct test_case *tc, int argc, char *argv[])
 	UT_ASSERTeq(pmem2_source_from_fd(&src2, fd2), 0);
 
 	size_t size2;
-	UT_ASSERTeq(pmem2_source_file_size(src2, &size2), 0);
+	UT_ASSERTeq(pmem2_source_size(src2, &size2), 0);
 
 	struct pmem2_map *map2 = map_valid(cfg, src2, size2);
 
@@ -153,7 +153,7 @@ test_register_pmem(const struct test_case *tc, int argc, char *argv[])
 	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t size;
-	UT_ASSERTeq(pmem2_source_file_size(src, &size), 0);
+	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
 
 	struct pmem2_map *map = map_valid(cfg, src, size);
 
@@ -189,7 +189,7 @@ test_use_misc_lens_and_offsets(const struct test_case *tc,
 	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len;
-	UT_ASSERTeq(pmem2_source_file_size(src, &len), 0);
+	UT_ASSERTeq(pmem2_source_size(src, &len), 0);
 
 	struct pmem2_map *map = map_valid(cfg, src, len);
 	char *base = pmem2_map_get_address(map);
@@ -348,7 +348,7 @@ test_len_not_aligned(const struct test_case *tc, int argc, char *argv[])
 	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len, alignment;
-	int ret = pmem2_source_file_size(src, &len);
+	int ret = pmem2_source_size(src, &len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	ret = pmem2_source_alignment(src, &alignment);
@@ -388,7 +388,7 @@ test_len_aligned(const struct test_case *tc, int argc, char *argv[])
 	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len, alignment;
-	int ret = pmem2_source_file_size(src, &len);
+	int ret = pmem2_source_size(src, &len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	ret = pmem2_source_alignment(src, &alignment);
@@ -428,7 +428,7 @@ test_offset_not_aligned(const struct test_case *tc, int argc, char *argv[])
 	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len, alignment;
-	int ret = pmem2_source_file_size(src, &len);
+	int ret = pmem2_source_size(src, &len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	ret = pmem2_source_alignment(src, &alignment);
@@ -473,7 +473,7 @@ test_offset_aligned(const struct test_case *tc, int argc, char *argv[])
 	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len, alignment;
-	int ret = pmem2_source_file_size(src, &len);
+	int ret = pmem2_source_size(src, &len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	ret = pmem2_source_alignment(src, &alignment);

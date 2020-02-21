@@ -2,7 +2,7 @@
 /* Copyright 2019-2020, Intel Corporation */
 
 /*
- * pmem2_source_file_size.c -- pmem2_source_file_size unittests
+ * pmem2_source_size.c -- pmem2_source_size unittests
  */
 
 #include <stdint.h>
@@ -30,7 +30,7 @@ test_normal_file(const char *path, os_off_t expected_size,
 	PMEM2_SOURCE_FROM_FH(&src, fh);
 
 	size_t size;
-	int ret = pmem2_source_file_size(src, &size);
+	int ret = pmem2_source_size(src, &size);
 
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(size, expected_size);
@@ -88,7 +88,7 @@ test_tmpfile(const char *dir, os_off_t requested_size,
 	PMEM2_SOURCE_FROM_FH(&src, fh);
 
 	size_t size = SIZE_MAX;
-	int ret = pmem2_source_file_size(src, &size);
+	int ret = pmem2_source_size(src, &size);
 
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(size, requested_size);
@@ -145,11 +145,10 @@ static struct test_case test_cases[] = {
 int
 main(int argc, char **argv)
 {
-	START(argc, argv, "pmem2_source_file_size");
+	START(argc, argv, "pmem2_source_size");
 
 	util_init();
-	out_init("pmem2_source_file_size", "TEST_LOG_LEVEL",
-			"TEST_LOG_FILE", 0, 0);
+	out_init("pmem2_source_size", "TEST_LOG_LEVEL", "TEST_LOG_FILE", 0, 0);
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);
 	out_fini();
 

@@ -25,7 +25,7 @@ pmem2_source_alignment
 pmem2_source_delete
 pmem2_source_device_id
 pmem2_source_device_usc
-pmem2_source_file_size
 pmem2_source_from_anon
 pmem2_source_from_fd
+pmem2_source_size
 pmem2_unmap

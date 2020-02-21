@@ -709,7 +709,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_recovery", "test\blk_re
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem2_config", "test\pmem2_config\pmem2_config.vcxproj", "{DE068BE1-A8E9-48A2-B216-92A7CE5EA4CE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem2_source_file_size", "test\pmem2_source_file_size\pmem2_source_file_size.vcxproj", "{DE068BE1-A8E9-48A2-B216-92A7CE5EA4CF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem2_source_size", "test\pmem2_source_size\pmem2_source_size.vcxproj", "{DE068BE1-A8E9-48A2-B216-92A7CE5EA4CF}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_has_auto_flush_win", "test\pmem_has_auto_flush_win\pmem_has_auto_flush_win.vcxproj", "{DEA3CD0A-8781-4ABE-9A7D-00B91132FED0}"
 EndProject

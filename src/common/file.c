@@ -178,7 +178,7 @@ util_fd_get_size(int fd)
 		return -1;
 	}
 
-	ret = pmem2_source_file_size(src, &size);
+	ret = pmem2_source_size(src, &size);
 
 	pmem2_source_delete(&src);
 

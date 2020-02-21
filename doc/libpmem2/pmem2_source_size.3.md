@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_CONFIG_GET_FILE_SIZE, 3)
+title: _MP(PMEM2_SOURCE_SIZE, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -10,7 +10,7 @@ date: pmem2 API version 1.0
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2019-2020, Intel Corporation)
 
-[comment]: <> (pmem2_source_file_size.3 -- man page for pmem2_source_file_size)
+[comment]: <> (pmem2_source_size.3 -- man page for pmem2_source_size)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -20,7 +20,7 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_source_file_size**() - returns the size of the data source
+**pmem2_source_size**() - returns the size of the data source
 
 # SYNOPSIS #
 
@@ -28,12 +28,12 @@ date: pmem2 API version 1.0
 #include <libpmem2.h>
 
 struct pmem2_source;
-int pmem2_source_file_size(const struct pmem2_source *source, size_t *size);
+int pmem2_source_size(const struct pmem2_source *source, size_t *size);
 ```
 
 # DESCRIPTION #
 
-The **pmem2_source_file_size**() function retrieves the size of the file
+The **pmem2_source_size**() function retrieves the size of the file
 in bytes pointed by file descriptor or handle stored in the *source* and puts
 it in *\*size*.
 
@@ -42,13 +42,13 @@ On Linux, it hides the quirkiness of Device DAX size detection.
 
 # RETURN VALUE #
 
-The **pmem2_source_file_size**() function returns 0 on success.
+The **pmem2_source_size**() function returns 0 on success.
 If the function fails, the *\*size* variable is left unmodified, and one of
 the following errors is returned:
 
 On all systems:
 
-* **PMEM2_E_INVALID_FILE_HANDLE** - config contains an invalid file handle.
+* **PMEM2_E_INVALID_FILE_HANDLE** - source contains an invalid file handle.
 
 On Windows:
 

@@ -52,7 +52,7 @@ test_init(const struct test_case *tc, int argc, char *argv[],
 	UT_ASSERTne(ctx->map, NULL);
 
 	size_t size;
-	UT_ASSERTeq(pmem2_source_file_size(src, &size), 0);
+	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
 	UT_ASSERTeq(pmem2_map_get_size(ctx->map), size);
 
 	pmem2_config_delete(&cfg);
