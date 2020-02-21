@@ -94,6 +94,11 @@ The **pmem2_source_from_fd**() and **pmem2_source_from_handle**() functions can
 also return **-ENOMEM** in case of insufficient memory to
 allocate an instance of *struct pmem2_source*.
 
+# CAVEATS #
+
+On non-DAX Windows volumes, *fd*/*handle* must remain open while the mapping
+is in use.
+
 # SEE ALSO #
 **errno**(3), **pmem2_map**(3), **libpmem2**(7)
 and **<http://pmem.io>**
