@@ -317,6 +317,17 @@ obj_drain_empty(void)
 }
 
 /*
+ * obj_msync_nofail -- (internal) pmem_msync wrapper that never fails from
+ * caller's perspective
+ */
+static void
+obj_msync_nofail(const void *addr, size_t size)
+{
+	if (pmem_msync(addr, size))
+		FATAL("!pmem_msync");
+}
+
+/*
  * obj_nopmem_memcpy -- (internal) memcpy followed by an msync
  */
 static void *
@@ -331,7 +342,7 @@ obj_nopmem_memcpy(void *dest, const void *src, size_t len, unsigned flags)
 	 * libc memcpy does not.
 	 */
 	pmem_memcpy(dest, src, len, PMEM_F_MEM_NOFLUSH);
-	pmem_msync(dest, len);
+	obj_msync_nofail(dest, len);
 	return dest;
 }
 
@@ -345,7 +356,7 @@ obj_nopmem_memmove(void *dest, const void *src, size_t len, unsigned flags)
 
 	/* see comment in obj_nopmem_memcpy */
 	pmem_memmove(dest, src, len, PMEM_F_MEM_NOFLUSH);
-	pmem_msync(dest, len);
+	obj_msync_nofail(dest, len);
 	return dest;
 }
 
@@ -359,7 +370,7 @@ obj_nopmem_memset(void *dest, int c, size_t len, unsigned flags)
 
 	/* see comment in obj_nopmem_memcpy */
 	pmem_memset(dest, c, len, PMEM_F_MEM_NOFLUSH);
-	pmem_msync(dest, len);
+	obj_msync_nofail(dest, len);
 	return dest;
 }
 
@@ -963,17 +974,6 @@ obj_descr_check(PMEMobjpool *pop, const char *layout, size_t poolsize)
 	}
 
 	return 0;
-}
-
-/*
- * obj_msync_nofail -- (internal) pmem_msync wrapper that never fails from
- * caller's perspective
- */
-static void
-obj_msync_nofail(const void *addr, size_t size)
-{
-	if (pmem_msync(addr, size))
-		FATAL("!pmem_msync");
 }
 
 /*
