@@ -43,9 +43,10 @@ of the calling process. This function requires a configuration
 If the **pmem2_map**() function succeeds in creating a new mapping it
 instantiates a new *struct pmem2_map** object describing the mapping. The
 pointer to this newly created object is stored in the user-provided variable
-passed via the *map_ptr* pointer. If the mapping fails the variable pointed by
-*map_ptr* will contain a NULL value and appropriate error value will be
-returned. For a list of possible return values please see
+passed via the *map_ptr* pointer. On Windows the *map_ptr* pointer requires
+an open fd to flush buffers on non-pmem. If the mapping fails the variable
+pointed by *map_ptr* will contain a NULL value and appropriate error value
+will be returned. For a list of possible return values please see
 [RETURN VALUE](#return-value).
 
 All *struct pmem2_map* objects created via the **pmem2_map**() function have to
