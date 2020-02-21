@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 
 #
 # Finds applicable area name for specified commit id.
@@ -11,7 +11,7 @@ if [ -z "$1" ]; then
 	exit 1
 fi
 
-files=`git show $1 | grep -e "^--- a/" -e "^+++ b/" | grep -v /dev/null | sed "s/^--- a\///" | sed "s/^+++ b\///" | uniq`
+files=$(git show $1 --format=oneline --name-only | grep -v -e "$1")
 
 git show -q $1 | cat
 
