@@ -64,7 +64,7 @@ date: pmemobj API version 2.3
 ```c
 #include <libpmemobj.h>
 
-enum tx_stage pmemobj_tx_stage(void);
+enum pobj_tx_stage pmemobj_tx_stage(void);
 
 int pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf *env, enum pobj_tx_param, ...);
 int pmemobj_tx_lock(enum tx_lock lock_type, void *lockp);
