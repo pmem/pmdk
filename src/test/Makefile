@@ -209,6 +209,7 @@ PMEM2_TESTS = \
 	pmem2_persist\
 	pmem2_persist_valgrind\
 	pmem2_memcpy\
+	pmem2_memmove\
 	pmem2_memset\
 	pmem2_movnt\
 	pmem2_movnt_align

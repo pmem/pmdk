@@ -9,24 +9,30 @@
       <UniqueIdentifier>{2d237952-c50b-4d8c-a83f-e28a96d88887}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{2057683c-c33b-4646-acd8-996cbc0b26bb}</UniqueIdentifier>
+      <UniqueIdentifier>{dd5ab98c-405a-4d74-8bd8-70d914146b8d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pmem_memmove.c">
+    <ClCompile Include="pmem2_memmove.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\pmem2_memmove\memmove_common.c">
+    <ClCompile Include="memmove_common.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST0.PS1">
+    <None Include="TESTS.py">
       <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\pmem2_memmove\memmove_common.h">
+    <ClInclude Include="memmove_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
