@@ -80,6 +80,8 @@ check-remote: require-rpmem all
 test check pcheck pycheck: all
 	$(MAKE) -C src $@
 
+check pcheck pycheck: check-doc
+
 cstyle:
 	test -d .git && utils/check-commits.sh
 	$(MAKE) -C src $@
@@ -95,6 +97,9 @@ format:
 check-license:
 	@utils/check_license/check-headers.sh $(TOP) BSD-3-Clause
 	@echo Done.
+
+check-doc: doc
+	BUILD_RPMEM="$(BUILD_RPMEM)" utils/check-manpages
 
 sparse:
 	$(MAKE) -C src sparse
