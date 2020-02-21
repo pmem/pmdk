@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 /*
  * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
  *
@@ -2313,7 +2313,7 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 		shutdown_state_init(&hdrp->sds, rep);
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			if (shutdown_state_add_part(&hdrp->sds,
-					PART(rep, p)->path, rep))
+					PART(rep, p)->fd, rep))
 				return -1;
 		}
 		shutdown_state_set_dirty(&hdrp->sds, rep);
@@ -2577,7 +2577,7 @@ util_header_check_remote(struct pool_set *set, unsigned partidx)
 		shutdown_state_init(&sds, NULL);
 		for (unsigned p = 0; p < rep->nparts; p++) {
 			if (shutdown_state_add_part(&sds,
-					PART(rep, p)->path, NULL))
+					PART(rep, p)->fd, NULL))
 				return -1;
 		}
 
@@ -3711,7 +3711,7 @@ util_replica_check(struct pool_set *set, const struct pool_attr *attr)
 			shutdown_state_init(&sds, NULL);
 			for (unsigned p = 0; p < rep->nparts; p++) {
 				if (shutdown_state_add_part(&sds,
-						PART(rep, p)->path, NULL))
+						PART(rep, p)->fd, NULL))
 					return -1;
 			}
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * check_shutdown_state.c -- shutdown state check
@@ -71,7 +71,7 @@ sds_check_replica(location *loc)
 	/* get current shutdown state */
 	for (unsigned p = 0; p < rep->nparts; ++p) {
 		if (shutdown_state_add_part(&curr_sds,
-				PART(rep, p)->path, NULL))
+				PART(rep, p)->fd, NULL))
 			return -1;
 	}
 

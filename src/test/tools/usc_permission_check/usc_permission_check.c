@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2019, Intel Corporation */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * usc_permission_check.c -- checks whether it's possible to read usc
@@ -7,8 +7,12 @@
  */
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
-#include "os_dimm.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <libpmem2.h>
+#include "os.h"
 
 /*
  * This program returns:
@@ -25,11 +29,24 @@ main(int argc, char *argv[])
 	}
 
 	uint64_t usc;
-	int ret = os_dimm_usc(argv[1], &usc);
+	int fd = os_open(argv[0], O_RDONLY);
+
+	if (fd < 0) {
+		perror("open");
+		return 2;
+	}
+
+	struct pmem2_source *src;
+	if (pmem2_source_from_fd(&src, fd)) {
+		fprintf(stderr, "pmem2_config_set_fd: %s\n", pmem2_errormsg());
+		return 2;
+	}
+
+	int ret = pmem2_source_device_usc(src, &usc);
 
 	if (ret == 0)
 		return 0;
-	else if (errno == EACCES)
+	else if (ret == -EACCES)
 		return 1;
 	else
 		return 2;

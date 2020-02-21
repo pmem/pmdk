@@ -176,6 +176,8 @@ ifeq ($(LIBPMEM2),y)
 DYNAMIC_LIBS += -lpmem2
 STATIC_DEBUG_LIBS += $(LIBSDIR_DEBUG)/libpmem2.a
 STATIC_NONDEBUG_LIBS += $(LIBSDIR_NONDEBUG)/libpmem2.a
+CFLAGS += $(LIBNDCTL_CFLAGS)
+LIBS += $(LIBNDCTL_LIBS)
 endif
 
 # If any of these libraries is required, we need to link libpthread
