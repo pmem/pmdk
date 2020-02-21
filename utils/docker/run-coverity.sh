@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 
 #
 # run-coverity.sh - runs the Coverity scan build
@@ -16,8 +16,8 @@ echo -n | openssl s_client -connect scan.coverity.com:443 | \
 	sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | \
 	sudo tee -a /etc/ssl/certs/ca-;
 
-export COVERITY_SCAN_PROJECT_NAME="$TRAVIS_REPO_SLUG"
-[[ "$TRAVIS_EVENT_TYPE" == "cron" ]] \
+export COVERITY_SCAN_PROJECT_NAME="$CI_REPO_SLUG"
+[[ "$CI_EVENT_TYPE" == "cron" ]] \
 	&& export COVERITY_SCAN_BRANCH_PATTERN="master" \
 	|| export COVERITY_SCAN_BRANCH_PATTERN="coverity_scan"
 export COVERITY_SCAN_BUILD_COMMAND="make -j$(nproc) all"

@@ -43,6 +43,9 @@ jobs:
        - name: Clone the git repo
          uses: actions/checkout@v1
 
+       - name: Set CI vars
+         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./set-ci-vars.sh
+
        - name: Pull or rebuild the image
          run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
 
