@@ -59,6 +59,8 @@ The handle has to be created with an access mode of *GENERIC_READ* or
 *(GENERIC_READ | GENERIC_WRITE)*. For details please see the **CreateFile**()
 documentation.
 
+On Windows for non-pmem, *fd*/*handle* must remain open while using the mapping.
+
 The **pmem2_source_delete**() function frees *\*src* returned by **pmem2_source_from_fd**() or **pmem2_source_from_handle**() and sets *\*src* to NULL.
 
 # RETURN VALUE #
