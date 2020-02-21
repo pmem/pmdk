@@ -57,7 +57,7 @@ A description of the granularity concept can be found in **libpmem2**(7) manpage
 **pmem2_config_set_required_store_granularity**() function returns 0 on success.
 Otherwise, it returns one of the following error values:
 
- * **PMEM2_E_INVALID_ARG** - granularity *g* is not a valid value.
+ * **PMEM2_E_GRANULARITY_NOT_SUPPORTED** - granularity *g* is not a valid value.
 
 # SEE ALSO #
 **pmem2_config_new**(3), **libpmem2**(7)

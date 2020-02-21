@@ -68,7 +68,7 @@ pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 			break;
 		default:
 			ERR("unknown granularity value %d", g);
-			return PMEM2_E_INVALID_ARG;
+			return PMEM2_E_GRANULARITY_NOT_SUPPORTED;
 	}
 
 	cfg->requested_max_granularity = g;
