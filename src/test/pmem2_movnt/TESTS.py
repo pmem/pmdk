@@ -5,7 +5,6 @@
 
 
 import testframework as t
-import os
 
 
 class Pmem2MovntCommon(t.Test):
@@ -26,9 +25,6 @@ class Pmem2Movnt(Pmem2MovntCommon):
         super().create_file(ctx)
         if self.env_var:
             ctx.env[self.env_var] = '1'
-
-        if "PMEM_MOVNT_THRESHOLD" in os.environ:
-            os.environ.pop('PMEM_MOVNT_THRESHOLD')
 
         ctx.exec('pmem2_movnt', self.filepath)
         for tv in self.threshold_values:
