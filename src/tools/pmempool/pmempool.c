@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * pmempool.c -- pmempool main source file
@@ -24,6 +24,7 @@
 #include "transform.h"
 #include "feature.h"
 #include "set.h"
+#include "pmemcommon.h"
 
 #ifndef _WIN32
 #include "rpmem_common.h"
@@ -31,6 +32,10 @@
 #endif
 
 #define APPNAME	"pmempool"
+
+#define PMEMPOOL_TOOL_LOG_PREFIX "pmempool"
+#define PMEMPOOL_TOOL_LOG_LEVEL_VAR "PMEMPOOL_TOOL_LOG_LEVEL"
+#define PMEMPOOL_TOOL_LOG_FILE_VAR "PMEMPOOL_TOOL_LOG_FILE"
 
 /*
  * command -- struct for pmempool commands definition
@@ -233,7 +238,12 @@ main(int argc, char *argv[])
 		}
 	}
 #endif
-	util_init();
+
+	common_init(PMEMPOOL_TOOL_LOG_PREFIX,
+			PMEMPOOL_TOOL_LOG_LEVEL_VAR,
+			PMEMPOOL_TOOL_LOG_FILE_VAR,
+			0 /* major version */,
+			0 /* minor version */);
 
 #ifndef _WIN32
 	util_remote_init();
@@ -275,6 +285,8 @@ main(int argc, char *argv[])
 	util_remote_fini();
 	rpmem_util_cmds_fini();
 #endif
+
+	common_fini();
 
 end:
 #ifdef _WIN32
