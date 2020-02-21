@@ -1,5 +1,5 @@
 #
-# Copyright 2016, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -70,19 +70,14 @@ if (Test-Path $file_path) {
 }
 
 $git_version = ""
-$git_version_tag = ""
 $git_version_hash = ""
 
 if (Test-Path $git_version_file) {
     $git_version = Get-Content $git_version_file
-    if ($git_version -eq "`$Format:%h %d`$") {
+    if ($git_version -eq "`$Format:%h`$") {
         $git_version = ""
-    } elseif ($git_version -match "tag: ") {
-       if ($git_version -match "tag: (?<tag>[0-9a-z.+-]*)") {
-           $git_version_tag = $matches["tag"];
-       }
     } else {
-        $git_version_hash = ($git_version -split " ")[0]
+        $git_version_hash = $git_version
     }
 }
 
@@ -97,12 +92,6 @@ if ($null -ne $args[0]) {
 } elseif (Test-Path $version_file) {
     $version = Get-Content $version_file
     $ver_array = $version.split("-+")
-} elseif ($null -ne $git) {
-    $version = $(git describe)
-    $ver_array = $(git describe --long).split("-+")
-} elseif ($git_version_tag -ne "") {
-    $version = $git_version_tag
-    $ver_array = $git_version_tag.split("-+")
 } elseif ($git_version_hash -ne "") {
     $MAJOR = 0
     $MINOR = 0
@@ -112,6 +101,9 @@ if ($null -ne $args[0]) {
     $version = $git_version_hash
     $CUSTOM = $true
     $version_custom_msg = "#define VERSION_CUSTOM_MSG `"$git_version_hash`""
+} elseif ($null -ne $git) {
+    $version = $(git describe)
+    $ver_array = $(git describe --long).split("-+")
 } else {
     $MAJOR = 0
     $MINOR = 0
