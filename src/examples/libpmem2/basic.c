@@ -63,10 +63,7 @@ main(int argc, char *argv[])
 	strcpy(addr, "hello, persistent memory");
 
 	persist = pmem2_get_persist_fn(map);
-
-	/* remove the condition after adding a function implementation */
-	if (0)
-		persist(addr, size);
+	persist(addr, size);
 
 	pmem2_unmap(&map);
 	pmem2_source_delete(&src);
