@@ -10,9 +10,6 @@
 FROM fedora:31
 MAINTAINER marcin.slusarz@intel.com
 
-# Install basic tools
-RUN dnf update -y
-
 # libfabric (optional if libfabric-dev >= 1.4.2 is installed)
 ENV FABRIC_DEPS "\
 	autoconf \
@@ -84,7 +81,13 @@ ENV MISC_DEPS "\
 	which \
 	xmlto"
 
-RUN dnf install -y \
+# Copy install valgrind script
+COPY install-valgrind.sh install-valgrind.sh
+
+# Copy install libfabric script
+COPY install-libfabric.sh install-libfabric.sh
+
+RUN dnf update -y && dnf install -y \
 	$FABRIC_DEPS \
 	$VALGRIND_DEPS \
 	$BASE_DEPS \
@@ -95,17 +98,10 @@ RUN dnf install -y \
 	$PACKAGING_DEPS \
 	$COVERITY_DEPS \
 	$MISC_DEPS \
-	$TESTS_DEPS
-
-RUN dnf clean all
-
-# Install valgrind
-COPY install-valgrind.sh install-valgrind.sh
-RUN ./install-valgrind.sh
-
-# Install libfabric
-COPY install-libfabric.sh install-libfabric.sh
-RUN ./install-libfabric.sh fedora
+	$TESTS_DEPS \
+	&& ./install-valgrind.sh \
+	&& ./install-libfabric.sh fedora \
+	&& dnf clean all
 
 # Add user
 ENV USER pmdkuser
