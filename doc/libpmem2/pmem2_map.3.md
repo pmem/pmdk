@@ -8,7 +8,7 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019, Intel Corporation)
+[comment]: <> (Copyright 2019-2020, Intel Corporation)
 
 [comment]: <> (pmem2_map.3 -- man page for libpmem2 pmem2_map operation)
 
@@ -82,11 +82,11 @@ It can also return **-EACCES**, **-EAGAIN**, **-EBADF**, **-ENFILE**,
 append-only file.
 
 It can also return all errors from the underlying
-**pmem2_source_file_size**() and **pmem2_source_alignment**() functions.
+**pmem2_source_size**() and **pmem2_source_alignment**() functions.
 
 # SEE ALSO #
 
 **pmem2_unmap**(3), **pmem2_source_from_fd**(3),
-**pmem2_source_file_size**(3), **pmem2_source_alignment**(3),
+**pmem2_source_size**(3), **pmem2_source_alignment**(3),
 **libpmem2**(7), **mmap**(2), **open**(3) and
 **<http://pmem.io>**

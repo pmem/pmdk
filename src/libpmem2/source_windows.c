@@ -100,11 +100,11 @@ pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle)
 }
 
 /*
- * pmem2_source_file_size -- get a file size of the file handle stored in
- * the provided source
+ * pmem2_source_size -- get a size of the file handle stored in the provided
+ * source
  */
 int
-pmem2_source_file_size(const struct pmem2_source *src, size_t *size)
+pmem2_source_size(const struct pmem2_source *src, size_t *size)
 {
 	LOG(3, "handle %p", src->handle);
 

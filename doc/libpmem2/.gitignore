@@ -12,6 +12,6 @@ pmem2_map_get_address.3
 pmem2_map_get_size.3
 pmem2_map_get_store_granularity.3
 pmem2_source_alignment.3
-pmem2_source_file_size.3
 pmem2_source_from_fd.3
+pmem2_source_size.3
 pmem2_unmap.3

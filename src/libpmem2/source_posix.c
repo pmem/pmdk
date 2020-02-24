@@ -75,11 +75,11 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 }
 
 /*
- * pmem2_source_file_size -- get a file size of the file descriptor stored in
- * the provided config
+ * pmem2_source_size -- get a size of the file descriptor stored in the provided
+ * source
  */
 int
-pmem2_source_file_size(const struct pmem2_source *src, size_t *size)
+pmem2_source_size(const struct pmem2_source *src, size_t *size)
 {
 	LOG(3, "fd %d", src->fd);
 
@@ -115,7 +115,7 @@ pmem2_source_file_size(const struct pmem2_source *src, size_t *size)
 		break;
 	default:
 		FATAL(
-			"BUG: unhandled file type in pmem2_source_file_size");
+			"BUG: unhandled file type in pmem2_source_size");
 	}
 
 	LOG(4, "file length %zu", *size);

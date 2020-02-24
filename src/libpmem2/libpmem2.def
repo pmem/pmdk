@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ; SPDX-License-Identifier: BSD-3-Clause
-; Copyright 2019, Intel Corporation
+; Copyright 2019-2020, Intel Corporation
 ;;;;  End Copyright Notice
 
 LIBRARY libpmem2
@@ -34,12 +34,12 @@ EXPORTS
 	pmem2_source_from_fd
 	pmem2_source_from_anon
 	pmem2_source_from_handle
-	pmem2_source_file_size
 	pmem2_source_alignment
 	pmem2_source_delete
 	pmem2_source_device_idW
 	pmem2_source_device_idU
 	pmem2_source_device_usc
+	pmem2_source_size
 	pmem2_errormsgU
 	pmem2_errormsgW
 

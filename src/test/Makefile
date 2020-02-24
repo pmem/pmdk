@@ -200,7 +200,7 @@ PMEM2_TESTS = \
 	pmem2_config\
 	pmem2_source\
 	pmem2_source_alignment\
-	pmem2_source_file_size\
+	pmem2_source_size\
 	pmem2_granularity\
 	pmem2_include\
 	pmem2_integration\

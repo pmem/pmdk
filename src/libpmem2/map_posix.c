@@ -273,7 +273,7 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 		return ret;
 
 	/* get file size */
-	ret = pmem2_source_file_size(src, &file_len);
+	ret = pmem2_source_size(src, &file_len);
 	if (ret)
 		return ret;
 

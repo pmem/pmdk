@@ -12,7 +12,7 @@ class NormalFile(t.Test):
 
     def run(self, ctx):
         filepath = ctx.create_holey_file(self.size, 'testfile')
-        ctx.exec('pmem2_source_file_size', self.test_case,
+        ctx.exec('pmem2_source_size', self.test_case,
                  filepath, self.size)
 
 
@@ -45,7 +45,7 @@ class TEST4(t.Test):
     test_type = t.Short
 
     def run(self, ctx):
-        ctx.exec('pmem2_source_file_size', 'test_tmpfile_fd',
+        ctx.exec('pmem2_source_size', 'test_tmpfile_fd',
                  ctx.testdir, 16 * t.MiB)
 
 
@@ -55,7 +55,7 @@ class TEST4(t.Test):
 #    test_type = t.Short
 #
 #    def run(self, ctx):
-#        ctx.exec('pmem2_source_file_size', 'tmp_file_handle',
+#        ctx.exec('pmem2_source_size', 'tmp_file_handle',
 #                 ctx.testdir, str(16 * t.MiB))
 
 
@@ -66,5 +66,5 @@ class TEST6(t.Test):
 
     def run(self, ctx):
         dd = ctx.devdaxes.devdax1
-        ctx.exec('pmem2_source_file_size',
+        ctx.exec('pmem2_source_size',
                  'test_normal_file_fd', dd.path, dd.size)
