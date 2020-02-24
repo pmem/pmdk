@@ -226,15 +226,6 @@ file_map(void *reserv, size_t len, int proto, int flags,
 static int
 unmap(void *addr, size_t len)
 {
-/*
- * XXX Workaround for https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=169608
- */
-#ifdef __FreeBSD__
-	if (!IS_PAGE_ALIGNED((uintptr_t)addr)) {
-		ERR("!munmap");
-		return PMEM2_E_INVALID_ARG;
-	}
-#endif
 	int retval = munmap(addr, len);
 	if (retval < 0) {
 		ERR("!munmap");

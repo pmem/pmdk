@@ -112,7 +112,7 @@ test_config_set_granularity_invalid(const struct test_case *tc, int argc,
 	struct pmem2_config cfg;
 	pmem2_config_init(&cfg);
 	ret = pmem2_config_set_required_store_granularity(&cfg, g_inval);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_ARG);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_GRANULARITY_NOT_SUPPORTED);
 
 	return 0;
 }
