@@ -21,6 +21,7 @@
 
 set -e
 
+source $(dirname $0)/set-ci-vars.sh
 source $(dirname $0)/set-vars.sh
 
 if [[ "$CI_EVENT_TYPE" != "cron" && "$CI_BRANCH" != "coverity_scan" \
