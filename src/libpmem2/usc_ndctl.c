@@ -324,7 +324,7 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 		const char *dimm_uid = ndctl_dimm_get_unique_id(dimm);
 		count += strlen(dimm_uid);
 		if (count > *len) {
-			ret = PMEM2_E_INVALID_ARG;
+			ret = PMEM2_E_BUFFER_TOO_SMALL;
 			goto end;
 		}
 		strncat(id, dimm_uid, *len);
