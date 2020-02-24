@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 
 #
 # push-image.sh <OS-VER> - pushes the Docker image tagged with OS-VER
@@ -12,6 +12,8 @@
 #
 
 set -e
+
+source $(dirname $0)/../set-ci-vars.sh
 
 function usage {
 	echo "Usage:"

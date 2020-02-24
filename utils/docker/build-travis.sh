@@ -11,6 +11,7 @@
 
 set -e
 
+source $(dirname $0)/set-ci-vars.sh
 source $(dirname $0)/set-vars.sh
 source $(dirname $0)/valid-branches.sh
 

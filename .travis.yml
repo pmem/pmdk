@@ -38,7 +38,6 @@ before_install:
   - echo $TRAVIS_COMMIT_RANGE
   - export HOST_WORKDIR=`pwd`
   - cd utils/docker
-  - ./set-ci-vars.sh
   - ./pull-or-rebuild-image.sh
 
 script:
