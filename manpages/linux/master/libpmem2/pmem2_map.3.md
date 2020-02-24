@@ -8,7 +8,7 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019, Intel Corporation)
+[comment]: <> (Copyright 2019-2020, Intel Corporation)
 
 [comment]: <> (pmem2_map.3 -- man page for libpmem2 pmem2_map operation)
 
@@ -28,32 +28,17 @@ date: pmem2 API version 1.0
 #include <libpmem2.h>
 
 struct pmem2_config;
+struct pmem2_source;
 struct pmem2_map;
-int pmem2_map(const struct pmem2_config *config, struct pmem2_map **map_ptr);
+int pmem2_map(const struct pmem2_config *config, const struct pmem2_source *source,
+    struct pmem2_map **map_ptr);
 ```
 
 # DESCRIPTION #
 
 The **pmem2_map**() function creates a new mapping in the virtual address space
-of the calling process. This function requires that following arguments are set
-in the *config* object:
-
-* The source of the mapping, which may be either an opened file descriptor or
-an opened handle to a file.
-
-    * The file descriptor has to be opened using *O_RDONLY* or *O_RDWR* file
-access mode and passed via **pmem2_config_set_fd**(3). Note on Windows the
-provided file descriptor is converted to a handle using **_get_osfhandle**().
-For details please see the **open**(3), **pmem2_config_set_fd**(3) and
-**_get_osfhandle**() manual pages.
-
-    * Similarly, the handle has to be created with an access mode of
-*GENERIC_READ* or *(GENERIC_READ | GENERIC_WRITE)* and passed via
-**pmem2_config_set_handle**(3). For details please see the **CreateFile**() and
-**pmem2_config_set_handle**(3) manual pages. (Windows only)
-
-    The above functions are mutually exclusive, and only the last source set
-prior to **pmem2_map**() is used.
+of the calling process. This function requires a configuration
+*config* of the mapping and the data source *source*.
 
 If the **pmem2_map**() function succeeds in creating a new mapping it
 instantiates a new *struct pmem2_map** object describing the mapping. The
@@ -72,11 +57,6 @@ be destroyed using the **pmem2_unmap**() function. For details please see
 When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
 one of the following error values:
 
-* **PMEM2_E_FILE_HANDLE_NOT_SET** - config doesn't contain a file descriptor or
-file handle (Windows)
-
-* **PMEM2_E_INVALID_FILE_HANDLE** - invalid *file descriptor* value in *config*
-
 * **PMEM2_E_MAP_RANGE** - *offset* + *length* is too big to represent it using
 *size_t* data type
 
@@ -87,12 +67,12 @@ of the file. The file is too small.
 For details please see **CreateFileMapping**() manual pages. (Windows only)
 
 * **PMEM2_E_OFFSET_UNALIGNED** - argument unaligned, offset is not a multiple of
-the alignment required for specific *\*config*. Please see
-**pmem2_config_get_alignement**(3).
+the alignment required for specific *\*source*. Please see
+**pmem2_source_alignement**(3).
 
 * **PMEM2_E_LENGTH_UNALIGNED** - argument unaligned, length is not a multiple of
-the alignment required for specific *\*config*. Please see
-**pmem2_config_get_alignement**(3).
+the alignment required for specific *\*source*. Please see
+**pmem2_source_alignement**(3).
 
 It can also return **-EACCES**, **-EAGAIN**, **-EBADF**, **-ENFILE**,
 **-ENODEV**, **-ENOMEM**, **-EPERM**, **-ETXTBSY** from the underlying
@@ -102,10 +82,11 @@ It can also return **-EACCES**, **-EAGAIN**, **-EBADF**, **-ENFILE**,
 append-only file.
 
 It can also return all errors from the underlying
-**pmem2_config_get_file_size**() function.
+**pmem2_source_size**() and **pmem2_source_alignment**() functions.
 
 # SEE ALSO #
 
-**pmem2_unmap**(3), **pmem2_config_set_fd**(3),
-**pmem2_config_get_file_size**(3), **libpmem2**(7), **mmap**(2), **open**(3) and
+**pmem2_unmap**(3), **pmem2_source_from_fd**(3),
+**pmem2_source_size**(3), **pmem2_source_alignment**(3),
+**libpmem2**(7), **mmap**(2), **open**(3) and
 **<http://pmem.io>**
