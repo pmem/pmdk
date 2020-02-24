@@ -107,7 +107,7 @@ pmem2_source_device_idW(const struct pmem2_source *src, wchar_t *id,
 
 	if (*len < GUID_SIZE * sizeof(*id)) {
 		ERR("id buffer is to small");
-		return PMEM2_E_INVALID_ARG;
+		return PMEM2_E_BUFFER_TOO_SMALL;
 	}
 
 	GUID guid;
@@ -133,7 +133,7 @@ pmem2_source_device_idU(const struct pmem2_source *src, char *id, size_t *len)
 	}
 	if (*len < GUID_SIZE * sizeof(*id)) {
 		ERR("id buffer is to small");
-		return PMEM2_E_INVALID_ARG;
+		return PMEM2_E_BUFFER_TOO_SMALL;
 	}
 
 	GUID guid;
