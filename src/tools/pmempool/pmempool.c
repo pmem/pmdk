@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * pmempool.c -- pmempool main source file
@@ -271,12 +271,14 @@ main(int argc, char *argv[])
 		outv_err("'%s' -- unknown command\n", cmd_str);
 		ret = 1;
 	}
+
+end:
+
 #ifndef _WIN32
 	util_remote_fini();
 	rpmem_util_cmds_fini();
 #endif
 
-end:
 #ifdef _WIN32
 	for (int i = argc; i > 0; i--)
 		free(argv[i - 1]);
