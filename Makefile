@@ -46,12 +46,13 @@ BUILD_PACKAGE_CHECK ?= y
 BUILD_RPMEM ?= y
 TEST_CONFIG_FILE ?= "$(CURDIR)"/src/test/testconfig.sh
 PMEM2_INSTALL ?= n
+DOC ?= y
 
 rpm : override DESTDIR="$(CURDIR)/$(RPM_BUILDDIR)"
 dpkg: override DESTDIR="$(CURDIR)/$(DPKG_BUILDDIR)"
 rpm dpkg: override prefix=/usr
 
-all: doc
+all: $(if $(findstring $(DOC), y),doc,)
 	$(MAKE) -C src $@
 
 doc:
@@ -59,13 +60,17 @@ doc:
 
 clean:
 	$(MAKE) -C src $@
+ifeq ($(DOC),y)
 	test -f .skip-doc || $(MAKE) -C doc $@
+endif
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR)
 	$(RM) -f $(GIT_VERSION)
 
 clobber:
 	$(MAKE) -C src $@
+ifeq ($(DOC),y)
 	test -f .skip-doc || $(MAKE) -C doc $@
+endif
 	$(RM) -r $(RPM_BUILDDIR) $(DPKG_BUILDDIR) rpm dpkg
 	$(RM) -f $(GIT_VERSION)
 
@@ -116,7 +121,9 @@ install: all
 
 install uninstall:
 	$(MAKE) -C src $@
+ifeq ($(DOC),y)
 	$(MAKE) -C doc $@
+endif
 
 .PHONY: all clean clobber test check cstyle check-license install uninstall\
 	source rpm dpkg pkg-clean pcheck check-remote format doc require-rpmem\
