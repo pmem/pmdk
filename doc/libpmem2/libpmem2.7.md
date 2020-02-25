@@ -164,7 +164,7 @@ by the SNIA NVM Programming Technical Work Group:
 
 # SEE ALSO #
 
-**FlushFileBuffers**(), fsync**(2), **msync**(2),
+**FlushFileBuffers**(), **fsync**(2), **msync**(2),
 **pmem2_config_set_required_store_granularity**(3),
 **pmem2_map_get_store_granularity**(3),
 **libpmem**(7), **libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
