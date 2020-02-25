@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 
 # check-manpages -- a tool to test against some manpage errors
 
@@ -8,4 +8,9 @@ MANS="$*"
 [ -n "$MANS" ] || MANS="$(find doc -name '*.1' -o -name '*.3' -o -name '*.5' -o -name '*.7')"
 [ -n "$MANS" ] || { echo >&2 "No man pages given, and none found in doc/"; exit 1;}
 
-echo "$MANS"|xargs -P `nproc` -n1 -- utils/check-manpage
+for page in $MANS;do
+	if [ "${page/rpmem/}" != "$page" ] && [ "$BUILD_RPMEM" != "y" ]; then
+		continue
+	fi
+	echo $page
+done | xargs -P `nproc` -n1 -- utils/check-manpage
