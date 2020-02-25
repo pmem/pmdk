@@ -19,6 +19,7 @@ jobs:
     name: Linux
     runs-on: ubuntu-latest
     env:
+      CODECOV_TOKEN:  ${{ secrets.CODECOV_TOKEN }}
       HOST_WORKDIR:   /home/runner/work/pmdk/pmdk
       WORKDIR:        utils/docker
       PMDK_CC:        gcc
