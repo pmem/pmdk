@@ -8,7 +8,7 @@ date: pmem Tools version 1.4
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2016-2019, Intel Corporation)
+[comment]: <> (Copyright 2016-2020, Intel Corporation)
 
 [comment]: <> (pmempool.1 -- man page for pmempool)
 
@@ -17,6 +17,7 @@ date: pmem Tools version 1.4
 [DESCRIPTION](#description)<br />
 [OPTIONS](#options)<br />
 [COMMANDS](#commands)<br />
+[DEBUGGING](#debugging)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -86,6 +87,40 @@ Modifies internal structure of a poolset.
 Toggle or query a poolset features.
 
 In order to get more information about specific *command* you can use **pmempool help <command>.**
+
+# DEBUGGING #
+
+The debug logs are available only in the debug version of the tool,
+which is not provided by binary packages, but can be built from sources.
+The **pmempool.static-debug** binary blob can be found
+in the 'src/tools/pmempool/' subdirectory.
+
++ **PMEMPOOL_TOOL_LOG_LEVEL**
+
+The value of **PMEMPOOL_TOOL_LOG_LEVEL** enables trace points in the debug version
+of the tool, as follows:
+
++ **0** - This is the default level when **PMEMPOOL_TOOL_LOG_LEVEL** is not set.
+No log messages are emitted at this level.
+
++ **1** - Additional details on any errors detected are logged (in addition
+to returning the *errno*-based errors as usual).
+
++ **2** - A trace of basic operations is logged.
+
++ **3** - Enables a very verbose amount of function call tracing in the tool.
+
++ **4** - Enables voluminous and fairly obscure tracing
+information that is likely only useful to the **pmempool** developers.
+
+Unless **PMEMPOOL_TOOL_LOG_FILE** is set, debugging output is written to *stderr*.
+
++ **PMEMPOOL_TOOL_LOG_FILE**
+
+Specifies the name of a file where all logging information should be written.
+If the last character in the name is "-", the *PID* of the current process
+will be appended to the file name when the log file is created.
+If **PMEMPOOL_TOOL_LOG_FILE** is not set, output is written to *stderr*.
 
 # SEE ALSO #
 
