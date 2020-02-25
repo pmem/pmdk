@@ -11,10 +11,16 @@ set -e
 # Prepare build environment
 ./prepare-for-build.sh
 
+CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+TEMP_CF=$(mktemp)
+cp $CERT_FILE $TEMP_CF
+
 # Download Coverity certificate
 echo -n | openssl s_client -connect scan.coverity.com:443 | \
 	sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | \
-	sudo tee -a /etc/ssl/certs/ca-;
+	tee -a $TEMP_CF
+
+echo $USERPASS | sudo -S mv $TEMP_CF $CERT_FILE
 
 export COVERITY_SCAN_PROJECT_NAME="$CI_REPO_SLUG"
 [[ "$CI_EVENT_TYPE" == "cron" ]] \
