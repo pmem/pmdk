@@ -659,7 +659,7 @@ pmemobjfs_truncate(struct pmemobjfs *objfs,
 	int ret = 0;
 
 	TX_BEGIN(objfs->pop) {
-		uint64_t old_off = D_RO(inode)->size;
+		off_t old_off = D_RO(inode)->size;
 		if (old_off > off) {
 			/* release blocks */
 			uint64_t old_boff = (old_off - 1) / objfs->block_size;

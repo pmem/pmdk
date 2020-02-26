@@ -489,7 +489,7 @@ main(int argc, char *argv[])
 	argv += 3;
 	argc -= 3;
 	const char *names[] = {"alloc", "realloc", "free", "print"};
-	int i = 0;
+	unsigned i = 0;
 	for (; i < COUNT_OF(names) && strcmp(option, names[i]) != 0; i++);
 
 	if (i != COUNT_OF(names))
