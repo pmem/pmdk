@@ -96,7 +96,7 @@ main(int argc, char *argv[])
 	char *addr = pmem2_map_get_address(map);
 	addr += offset_align;
 
-	for (int i = 0; i < user_length; i++) {
+	for (size_t i = 0; i < user_length; i++) {
 		printf("%02hhX ", addr[i]);
 		if (((i + 1) % 16) == 0)
 			printf("\n");
