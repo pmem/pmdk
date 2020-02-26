@@ -22,7 +22,6 @@ int
 main(int argc, char *argv[])
 {
 	PMEMblkpool *pbp;
-	int assetid;
 	size_t nelements;
 	struct asset asset;
 
@@ -43,7 +42,7 @@ main(int argc, char *argv[])
 	nelements = pmemblk_nblock(pbp);
 
 	/* print out all the elements that contain assets data */
-	for (assetid = 0; assetid < nelements; ++assetid) {
+	for (size_t assetid = 0; assetid < nelements; ++assetid) {
 		if (pmemblk_read(pbp, &asset, assetid) < 0) {
 			perror("pmemblk_read");
 			exit(1);
@@ -54,7 +53,7 @@ main(int argc, char *argv[])
 			break;
 		}
 
-		printf("Asset ID: %d\n", assetid);
+		printf("Asset ID: %zu\n", assetid);
 		if (asset.state == ASSET_FREE)
 			printf("   State: Free\n");
 		else {
