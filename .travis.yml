@@ -28,9 +28,9 @@ env:
 #    - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
 #    - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug
 #    - OS=fedora OS_VER=31 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
-    - OS=fedora OS_VER=31 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1
-    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PUSH_IMAGE=1
-    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 PUSH_IMAGE=1 OS=fedora OS_VER=31
+#    - OS=fedora OS_VER=31 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1
+#    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PUSH_IMAGE=1
+#    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 PUSH_IMAGE=1 OS=fedora OS_VER=31
 #    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PMDK_CC=clang PMDK_CXX=clang++
     - COVERITY=1
 
@@ -45,4 +45,4 @@ script:
 
 after_success:
   - source ./set-vars.sh
-  - if [[ -f $CI_FILE_PUSH_IMAGE_TO_REPO ]]; then ./images/push-image.sh $OS-$OS_VER; fi
+  - if [[ -f $CI_FILE_PUSH_IMAGE_TO_REPO ]]; then ./images/push-image.sh; fi
