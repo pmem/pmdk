@@ -11,6 +11,8 @@ jobs:
     name: Linux
     runs-on: ubuntu-latest
     env:
+      DOCKERHUB_USER:      ${{ secrets.DOCKERHUB_USER }}
+      DOCKERHUB_PASSWORD:  ${{ secrets.DOCKERHUB_PASSWORD }}
       HOST_WORKDIR:   /home/runner/work/pmdk/pmdk
       WORKDIR:        utils/docker
       PMDK_CC:        gcc
