@@ -174,7 +174,7 @@ int main(int argc, const char *argv[]) {
 	map_foreach(mapc, D_RW(root)->map, get_keys, NULL);
 
 	/* remove the items without outer transaction */
-	for (int i = 0; i < nkeys; ++i) {
+	for (uint64_t i = 0; i < nkeys; ++i) {
 		PMEMoid item = map_remove(mapc, D_RW(root)->map, keys[i]);
 
 		assert(!OID_IS_NULL(item));

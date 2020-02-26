@@ -191,8 +191,8 @@ initialize_context(struct ds_context *ctx, int ac, char *av[])
 				break;
 			}
 			case 's': {
-				long poolsize;
-				poolsize = strtol(optarg, NULL, 0);
+				unsigned long poolsize;
+				poolsize = strtoul(optarg, NULL, 0);
 				if (poolsize >= PMEMOBJ_MIN_POOL) {
 					ctx->psize = poolsize;
 				}

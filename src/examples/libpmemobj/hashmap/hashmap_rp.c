@@ -107,14 +107,14 @@ increment_pos(const struct hashmap_rp *hashmap, uint64_t pos)
  * probe_distance -- returns probe number, an indicator how far from
  * desired position given hash is stored in hashmap
  */
-static int
+static unsigned int
 probe_distance(const struct hashmap_rp *hashmap, uint64_t hash_key,
 	uint64_t slot_index)
 {
 	uint64_t capacity = hashmap->capacity;
 
 	HM_ASSERT(is_power_of_2(hashmap->capacity));
-	return (int)(slot_index + capacity - hash_key) & (capacity - 1);
+	return (slot_index + capacity - hash_key) & (capacity - 1);
 }
 
 /*
