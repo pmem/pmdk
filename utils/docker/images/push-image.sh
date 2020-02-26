@@ -5,7 +5,7 @@
 #
 # push-image.sh - pushes the Docker image to the Docker Hub.
 #
-# The script utilizes $DOCKER_USER and $DOCKER_PASSWORD variables to log in to
+# The script utilizes $DOCKERHUB_USER and $DOCKERHUB_PASSWORD variables to log in to
 # Docker Hub. The variables can be set in the Travis project's configuration
 # for automated builds.
 #
@@ -40,7 +40,7 @@ then
 fi
 
 # Log in to the Docker Hub
-docker login -u="$DOCKER_USER" -p="$DOCKER_PASSWORD"
+docker login -u="$DOCKERHUB_USER" -p="$DOCKERHUB_PASSWORD"
 
 # Push the image to the repository
 docker push ${DOCKERHUB_REPO}:${TAG}
