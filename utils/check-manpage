@@ -39,7 +39,8 @@ for m in "$@"; do
 	# man can emit warnings and errors.  Even non-fatal errors are normally
 	# suppressed if a pager is in use (ie, all interactive usage).  Common
 	# messages include an unknown macro, an unbreakable line, etc.
-	err=$(MANWIDTH=80 man --warnings -E UTF-8 -l -Tutf8 -Z "$file" 2>&1 >/dev/null)
+	err=$(MANWIDTH=80 man --warnings -E UTF-8 -l -Tutf8 -Z "$file" 2>&1 >/dev/null|
+		grep -v 'cannot adjust line' || true)
 	[ -z "$err" ] || {
 		echo >&2 "$file: $err"
 		FAILED=1
