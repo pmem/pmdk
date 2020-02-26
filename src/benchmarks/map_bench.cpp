@@ -205,7 +205,7 @@ map_remove_op(struct benchmark *bench, struct operation_info *info)
 static int
 map_insert_alloc_op(struct map_bench *map_bench, uint64_t key)
 {
-	int ret = 0;
+	volatile int ret = 0;
 
 	TX_BEGIN(map_bench->pop)
 	{

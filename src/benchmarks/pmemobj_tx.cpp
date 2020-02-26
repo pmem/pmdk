@@ -381,7 +381,7 @@ static int
 add_range_nested_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 		    size_t idx)
 {
-	int ret = 0;
+	volatile int ret = 0;
 	auto *obj_worker = (struct obj_tx_worker *)worker->priv;
 	TX_BEGIN(obj_bench->pop)
 	{
@@ -411,7 +411,7 @@ static int
 add_range_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	     size_t idx)
 {
-	int ret = 0;
+	volatile int ret = 0;
 	size_t i = 0;
 	auto *obj_worker = (struct obj_tx_worker *)worker->priv;
 	TX_BEGIN(obj_bench->pop)
