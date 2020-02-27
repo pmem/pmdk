@@ -170,13 +170,13 @@ prepare_file(struct tool_ctx *ctx)
 {
 	ctx->fd = os_open(ctx->path, O_TMPFILE | O_RDWR, 0640);
 	if (ctx->fd < 0) {
-		perror("os_open failed");
+		perror("os_open");
 		return;
 	}
 
 	int ret = os_ftruncate(ctx->fd, 16 * KILOBYTE);
 	if (ret) {
-		perror("os_ftruncate failed");
+		perror("os_ftruncate");
 		goto cleanup_file;
 	}
 
@@ -191,24 +191,24 @@ prepare_file(struct tool_ctx *ctx)
 {
 	ctx->probe_file_path = malloc(PATH_MAX * sizeof(char));
 	if (!ctx->probe_file_path) {
-		perror("malloc failed");
+		perror("malloc");
 		return;
 	}
 
 	int ret = snprintf(ctx->probe_file_path, PATH_MAX,
 			"%s" OS_DIR_SEP_STR "temp_grandetecto", ctx->path);
 	if (ret < 0) {
-		perror("snprintf failed");
+		perror("snprintf");
 		goto cleanup_file;
 	} else if (ret >= PATH_MAX) {
 		fprintf(stderr,
-			"snprintf failed: number of characters exceeds PATH_MAX.\n");
+			"snprintf: number of characters exceeds PATH_MAX.\n");
 		goto cleanup_file;
 	}
 
 	ctx->fd = os_open(ctx->probe_file_path, O_CREAT | O_RDWR, 0640);
 	if (ctx->fd < 0) {
-		perror("os_open failed");
+		perror("os_open");
 		ctx->fd = NOT_SET_FD;
 		goto cleanup_file;
 	}
@@ -217,7 +217,7 @@ prepare_file(struct tool_ctx *ctx)
 			"This file was created by gran_detecto. It can be safely removed.";
 	ssize_t sret = util_write(ctx->fd, message, strlen(message));
 	if (sret == -1) {
-		perror("util_write failed");
+		perror("util_write");
 		goto cleanup_file;
 	}
 
@@ -242,32 +242,28 @@ gran_detecto(struct tool_ctx *ctx)
 	/* fill config in minimal scope */
 	struct pmem2_config *cfg;
 	if (pmem2_config_new(&cfg)) {
-		fprintf(stderr, "pmem2_config_new failed: %s\n",
-				pmem2_errormsg());
+		pmem2_perror("pmem2_config_new");
 		ret = 1;
 		goto cleanup_file;
 	}
 
 	struct pmem2_source *src;
 	if (pmem2_source_from_fd(&src, ctx->fd)) {
-		fprintf(stderr, "pmem2_source_from_fd failed: %s\n",
-				pmem2_errormsg());
+		pmem2_perror("pmem2_source_from_fd");
 		ret = 1;
 		goto free_config;
 	}
 
 	if (pmem2_config_set_required_store_granularity(cfg,
 			PMEM2_GRANULARITY_PAGE)) {
-		fprintf(stderr,
-			"pmem2_config_set_required_store_granularity failed: %s\n",
-			pmem2_errormsg());
+		pmem2_perror("pmem2_config_set_required_store_granularity");
 		ret = 1;
 		goto free_both;
 	}
 
 	struct pmem2_map *map;
 	if (pmem2_map(cfg, src, &map)) {
-		fprintf(stderr, "pmem2_map failed: %s\n", pmem2_errormsg());
+		pmem2_perror("pmem2_map");
 		ret = 1;
 		goto free_both;
 	}
@@ -275,7 +271,7 @@ gran_detecto(struct tool_ctx *ctx)
 	ctx->actual_granularity = pmem2_map_get_store_granularity(map);
 
 	if (pmem2_unmap(&map)) {
-		fprintf(stderr, "pmem2_unmap failed: %s\n", pmem2_errormsg());
+		pmem2_perror("pmem2_unmap");
 		ret = 1;
 	}
 
