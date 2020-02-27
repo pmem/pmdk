@@ -44,27 +44,25 @@ main(int argc, char *argv[])
 	}
 
 	if (pmem2_config_new(&cfg)) {
-		fprintf(stderr, "pmem2_config_new: %s\n", pmem2_errormsg());
+		pmem2_perror("pmem2_config_new");
 		exit(1);
 	}
 
 	if (pmem2_source_from_fd(&src, fd)) {
-		fprintf(stderr, "pmem2_source_from_fd: %s\n", pmem2_errormsg());
+		pmem2_perror("pmem2_source_from_fd");
 		exit(1);
 	}
 
 	if (pmem2_config_set_required_store_granularity(cfg,
 			PMEM2_GRANULARITY_PAGE)) {
-		fprintf(stderr, "pmem2_config_set_required_store_granularity: "
-				"%s\n", pmem2_errormsg());
+		pmem2_perror("pmem2_config_set_required_store_granularity");
 		exit(1);
 	}
 
 	size_t alignment;
 
 	if (pmem2_source_alignment(src, &alignment)) {
-		fprintf(stderr, "pmem2_source_alignment: %s\n",
-				pmem2_errormsg());
+		pmem2_perror("pmem2_source_alignment");
 		exit(1);
 	}
 
@@ -81,19 +79,17 @@ main(int argc, char *argv[])
 		length += (alignment - len_align);
 
 	if (pmem2_config_set_offset(cfg, offset)) {
-		fprintf(stderr, "pmem2_config_set_offset: %s\n",
-				pmem2_errormsg());
+		pmem2_perror("pmem2_config_set_offset");
 		exit(1);
 	}
 
 	if (pmem2_config_set_length(cfg, length)) {
-		fprintf(stderr, "pmem2_config_set_length: %s\n",
-				pmem2_errormsg());
+		pmem2_perror("pmem2_config_set_length");
 		exit(1);
 	}
 
 	if (pmem2_map(cfg, src, &map)) {
-		fprintf(stderr, "pmem2_map: %s\n", pmem2_errormsg());
+		pmem2_perror("pmem2_map");
 		exit(1);
 	}
 
