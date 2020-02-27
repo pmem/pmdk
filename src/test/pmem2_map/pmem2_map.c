@@ -19,6 +19,19 @@
 #define MEGABYTE (1 << 20)
 
 /*
+ * prepare_source -- fill pmem2_source
+ */
+static void
+prepare_source(struct pmem2_source *src, int fd)
+{
+#ifdef _WIN32
+	src->handle = (HANDLE)_get_osfhandle(fd);
+#else
+	src->fd = fd;
+#endif
+}
+
+/*
  * prepare_config -- fill pmem2_config
  */
 static void
@@ -31,11 +44,8 @@ prepare_config(struct pmem2_config *cfg, struct pmem2_source *src,
 	cfg->offset = offset;
 	cfg->length = length;
 	cfg->requested_max_granularity = PMEM2_GRANULARITY_PAGE;
-#ifdef _WIN32
-	src->handle = (HANDLE)_get_osfhandle(*fd);
-#else
-	src->fd = *fd;
-#endif
+
+	prepare_source(src, *fd);
 }
 
 #ifdef _WIN32
@@ -590,6 +600,40 @@ test_map_larger_than_unaligned_file_size(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_map_zero_file_size - map using zero file size, do not set length
+ * in config, expect failure
+ */
+static int
+test_map_zero_file_size(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_map_zero_file_size <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+	if (fd < 0)
+		UT_FATAL("open: %s", file);
+
+	struct pmem2_config cfg;
+	pmem2_config_init(&cfg);
+
+	/* mapping length is left unset */
+	cfg.offset = 0;
+	cfg.requested_max_granularity = PMEM2_GRANULARITY_PAGE;
+
+	struct pmem2_source src;
+	prepare_source(&src, fd);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_SOURCE_EMPTY);
+
+	CLOSE(fd);
+
+	return 2;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -609,6 +653,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_map_get_size),
 	TEST_CASE(test_get_granularity_simple),
 	TEST_CASE(test_map_larger_than_unaligned_file_size),
+	TEST_CASE(test_map_zero_file_size)
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

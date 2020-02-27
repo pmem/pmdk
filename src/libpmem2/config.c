@@ -113,6 +113,12 @@ pmem2_config_validate_length(const struct pmem2_config *cfg,
 		size_t file_len, size_t alignment)
 {
 	ASSERTne(alignment, 0);
+
+	if (file_len == 0) {
+		ERR("file length is equal 0");
+		return PMEM2_E_SOURCE_EMPTY;
+	}
+
 	if (cfg->length % alignment) {
 		ERR("length is not a multiple of %lu", alignment);
 		return PMEM2_E_LENGTH_UNALIGNED;
