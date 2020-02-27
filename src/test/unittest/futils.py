@@ -53,14 +53,20 @@ def get_lib_dir(ctx):
         return RELEASE_LIBDIR
 
 
-def get_examples_dir(ctx):
+def get_examples_path(ctx, lib_name, name):
+    """
+    Get the path to the example binary.
+    Paths to the examples differ on Windows and Unix systems. On Windows,
+    the example binaries have a specific name: ex_libraryname_examplename.
+    """
     if sys.platform == 'win32':
+        binary_name = '_'.join(['ex', lib_name, name])
         if str(ctx.build) == 'debug':
-            return abspath(join(WIN_DEBUG_BUILDDIR, 'examples'))
+            return abspath(join(WIN_DEBUG_BUILDDIR, 'examples', binary_name))
         else:
-            return abspath(join(WIN_RELEASE_BUILDDIR, 'examples'))
+            return abspath(join(WIN_RELEASE_BUILDDIR, 'examples', binary_name))
     else:
-        return abspath(join(ROOTDIR, '..', 'examples'))
+        return abspath(join(ROOTDIR, '..', 'examples', 'lib' + lib_name, name))
 
 
 def tail(file, n):
