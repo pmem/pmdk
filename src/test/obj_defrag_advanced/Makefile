@@ -40,4 +40,8 @@ LIBPMEMOBJ=y
 
 include ../Makefile.inc
 
-CFLAGS += -DDEBUG -Og
+CFLAGS += -DDEBUG
+
+ifeq ($(OG_AVAILABLE), y)
+CFLAGS += -Og
+endif
