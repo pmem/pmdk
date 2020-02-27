@@ -17,63 +17,45 @@ class EX_LIBPMEM2(t.Test):
     offset = str(97 * t.KiB)
     length = str(65 * t.KiB)
 
+    def set_binary_path(self, test_path, library_name, example_name):
+        if platform == 'win32':
+            binary_name_args = ['ex', library_name, example_name]
+            binary_name = '_'.join(binary_name_args)
+            binary_path = path.join(test_path, binary_name)
+        else:
+            binary_path = path.join(
+                test_path, 'lib' + library_name, example_name)
 
-@t.windows_exclude
+        return binary_path
+
+
 class TEST0(EX_LIBPMEM2):
 
     def run(self, ctx):
-        test_path = futils.get_examples_dir(ctx)
+        example_path = futils.get_examples_path(ctx, 'pmem2', 'basic')
         file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
 
-        ctx.exec(path.join(test_path, 'libpmem2', 'basic'), file_path)
+        ctx.exec(example_path, file_path)
 
 
-@t.windows_only
 class TEST1(EX_LIBPMEM2):
 
     def run(self, ctx):
-        test_path = futils.get_examples_dir(ctx)
+        example_path = futils.get_examples_path(ctx, 'pmem2', 'advanced')
         file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
 
-        ctx.exec(path.join(test_path, 'ex_pmem2_basic'), file_path)
+        ctx.exec(example_path, file_path, self.offset, self.length)
 
 
-@t.windows_exclude
 class TEST2(EX_LIBPMEM2):
-
-    def run(self, ctx):
-        test_path = futils.get_examples_dir(ctx)
-        file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
-
-        ctx.exec(path.join(test_path, 'libpmem2', 'advanced'),
-                 file_path, self.offset, self.length)
-
-
-@t.windows_only
-class TEST3(EX_LIBPMEM2):
-
-    def run(self, ctx):
-        test_path = futils.get_examples_dir(ctx)
-        file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
-
-        ctx.exec(path.join(test_path, 'ex_pmem2_advanced'),
-                 file_path, self.offset, self.length)
-
-
-class TEST4(EX_LIBPMEM2):
     file_size = 16 * t.MiB
 
     def run(self, ctx):
-        test_path = futils.get_examples_dir(ctx)
+        example_path = futils.get_examples_path(ctx, 'pmem2', 'aof')
         file_path = ctx.create_holey_file(self.file_size, 'testfile0')
-
-        if platform == 'win32':
-            binary_path = path.join(test_path, 'ex_pmem2_aof')
-        else:
-            binary_path = path.join(test_path, 'libpmem2', 'aof')
 
         args = ['appendv', '4', 'PMDK ', 'is ', 'the best ', 'open source ',
                 'append', 'project in the world.', 'dump', 'rewind', 'dump',
                 'appendv', '2', 'End of ', 'file.', 'dump']
 
-        ctx.exec(binary_path, file_path, *args, stdout_file='out4.log')
+        ctx.exec(example_path, file_path, *args, stdout_file='out2.log')
