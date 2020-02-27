@@ -242,32 +242,29 @@ gran_detecto(struct tool_ctx *ctx)
 	/* fill config in minimal scope */
 	struct pmem2_config *cfg;
 	if (pmem2_config_new(&cfg)) {
-		fprintf(stderr, "pmem2_config_new failed: %s\n",
-				pmem2_errormsg());
+		pmem2_perror("pmem2_config_new failed");
 		ret = 1;
 		goto cleanup_file;
 	}
 
 	struct pmem2_source *src;
 	if (pmem2_source_from_fd(&src, ctx->fd)) {
-		fprintf(stderr, "pmem2_source_from_fd failed: %s\n",
-				pmem2_errormsg());
+		pmem2_perror("pmem2_source_from_fd failed");
 		ret = 1;
 		goto free_config;
 	}
 
 	if (pmem2_config_set_required_store_granularity(cfg,
 			PMEM2_GRANULARITY_PAGE)) {
-		fprintf(stderr,
-			"pmem2_config_set_required_store_granularity failed: %s\n",
-			pmem2_errormsg());
+		pmem2_perror(
+				"pmem2_config_set_required_store_granularity failed");
 		ret = 1;
 		goto free_both;
 	}
 
 	struct pmem2_map *map;
 	if (pmem2_map(cfg, src, &map)) {
-		fprintf(stderr, "pmem2_map failed: %s\n", pmem2_errormsg());
+		pmem2_perror("pmem2_map failed");
 		ret = 1;
 		goto free_both;
 	}
@@ -275,7 +272,7 @@ gran_detecto(struct tool_ctx *ctx)
 	ctx->actual_granularity = pmem2_map_get_store_granularity(map);
 
 	if (pmem2_unmap(&map)) {
-		fprintf(stderr, "pmem2_unmap failed: %s\n", pmem2_errormsg());
+		pmem2_perror("pmem2_unmap failed");
 		ret = 1;
 	}
 

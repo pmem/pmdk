@@ -38,7 +38,7 @@ main(int argc, char *argv[])
 
 	struct pmem2_source *src;
 	if (pmem2_source_from_fd(&src, fd)) {
-		fprintf(stderr, "pmem2_config_set_fd: %s\n", pmem2_errormsg());
+		pmem2_perror("pmem2_source_from_fd");
 		return 2;
 	}
 
