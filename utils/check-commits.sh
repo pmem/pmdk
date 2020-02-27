@@ -19,9 +19,17 @@ if [ -z "$1" ]; then
 			exit 0
 		fi
 	fi
-
-	last_merge=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
-	range=${last_merge}..HEAD
+	# TRAVIS_COMMIT_RANGE can be invalid for force pushes - use another
+	# method to determine the list of commits
+	if [[ $(git rev-list $TRAVIS_COMMIT_RANGE) || -n "$TRAVIS_COMMIT_RANGE" ]]; then
+		MERGE_BASE=$(echo $TRAVIS_COMMIT_RANGE | cut -d. -f1)
+		[ -z $MERGE_BASE ] && \
+			MERGE_BASE=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
+		range=$MERGE_BASE..$TRAVIS_COMMIT
+	else
+		merge_base=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
+		range=$merge_base..HEAD
+	fi
 else
 	range="$1"
 fi

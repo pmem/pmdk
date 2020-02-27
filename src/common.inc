@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 #
 # src/common.inc -- common Makefile rules for PMDK
 #
@@ -171,6 +171,12 @@ ifeq ($(WSTRINGOP_TRUNCATION_AVAILABLE),)
 export WSTRINGOP_TRUNCATION_AVAILABLE := $(call check_flag, -Wstringop-truncation)
 else
 export WSTRINGOP_TRUNCATION_AVAILABLE
+endif
+
+ifeq ($(OG_AVAILABLE),)
+export OG_AVAILABLE := $(call check_flag, -Og)
+else
+export OG_AVAILABLE
 endif
 
 install_recursive = $(shell cd $(1) && find . -type f -exec install -m $(2) -D {} $(3)/{} \;)

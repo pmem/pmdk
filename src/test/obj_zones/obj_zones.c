@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * obj_zones.c -- allocates from a very large pool (exceeding 1 zone)
@@ -7,6 +7,7 @@
  */
 
 #include <stddef.h>
+#include <page_size.h>
 
 #include "unittest.h"
 
@@ -75,7 +76,7 @@ test_malloc_free(const char *path)
 			0, S_IWUSR | S_IRUSR)) == NULL)
 		UT_FATAL("!pmemobj_create: %s", path);
 
-	size_t alloc_size = 128 * 1024;
+	size_t alloc_size = PMEM_PAGESIZE * 32;
 	size_t max_allocs = 1000000;
 	PMEMoid *oid = MALLOC(sizeof(PMEMoid) * max_allocs);
 	size_t n = 0;

@@ -13,3 +13,7 @@ LIBPMEMOBJ=y
 include ../Makefile.inc
 
 CFLAGS += -DDEBUG
+
+ifeq ($(OG_AVAILABLE), y)
+CFLAGS += -Og
+endif

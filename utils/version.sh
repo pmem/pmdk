@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 #
 # utils/version.sh -- determine project's version
 #
@@ -12,7 +12,7 @@ if [ -f "$1/VERSION" ]; then
 fi
 
 if [ -f $1/GIT_VERSION ]; then
-	echo -n "\$Format:%h %d\$" | cmp -s $1/GIT_VERSION - && true
+	echo -n "\$Format:%h\$" | cmp -s $1/GIT_VERSION - && true
 	if [ $? -eq 0 ]; then
 		PARSE_GIT_VERSION=0
 	else
@@ -22,17 +22,13 @@ else
 	PARSE_GIT_VERSION=0
 fi
 
-if [ $PARSE_GIT_VERSION -eq 1 ]; then
-	GIT_VERSION_TAG=$(cat $1/GIT_VERSION | grep tag: | sed 's/.*tag: \([0-9a-z.+-]*\).*/\1/')
-	GIT_VERSION_HASH=$(cat $1/GIT_VERSION | sed -e 's/ .*//')
+LATEST_RELEASE=$(cat $1/ChangeLog | grep "* Version" | cut -d " " -f 3 | sort -rd | head -n1)
 
-	if [ -n "$GIT_VERSION_TAG" ]; then
-		echo "$GIT_VERSION_TAG"
-		exit 0
-	fi
+if [ $PARSE_GIT_VERSION -eq 1 ]; then
+	GIT_VERSION_HASH=$(cat $1/GIT_VERSION)
 
 	if [ -n "$GIT_VERSION_HASH" ]; then
-		echo "$GIT_VERSION_HASH"
+		echo "$LATEST_RELEASE+git.$GIT_VERSION_HASH"
 		exit 0
 	fi
 fi
@@ -50,7 +46,7 @@ fi
 # try commit it, git describe can fail when there are no tags (e.g. with shallow clone, like on Travis)
 GIT_COMMIT=$(git log -1 --format=%h) && true
 if [ -n "$GIT_COMMIT" ]; then
-	echo "$GIT_COMMIT"
+	echo "$LATEST_RELEASE+git.$GIT_COMMIT"
 	exit 0
 fi
 

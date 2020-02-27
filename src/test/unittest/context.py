@@ -219,9 +219,9 @@ class ContextBase:
         futils.fail('Could not get size of the file, '
                     'it is inaccessible or does not exist')
 
-    def get_free_space(self):
+    def get_free_space(self, dir="."):
         """Returns free space for current file system"""
-        _, _, free = shutil.disk_usage(".")
+        _, _, free = shutil.disk_usage(dir)
         return free
 
 
@@ -320,6 +320,11 @@ class Context(ContextBase):
         if mode is not None:
             os.chmod(filepath, mode)
         return filepath
+
+    def require_free_space(self, space):
+        if self.get_free_space(self.testdir) < space:
+            futils.skip('Not enough free space ({} MiB required)'
+                        .format(space / MiB))
 
     def mkdirs(self, path, mode=None):
         """
