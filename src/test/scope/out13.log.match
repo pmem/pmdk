@@ -21,6 +21,7 @@ pmem2_map
 pmem2_map_get_address
 pmem2_map_get_size
 pmem2_map_get_store_granularity
+pmem2_perror
 pmem2_source_alignment
 pmem2_source_delete
 pmem2_source_device_id

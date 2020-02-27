@@ -38,6 +38,7 @@ LIBPMEM2_1.0 {
 		pmem2_source_device_usc;
 		pmem2_source_size;
 		pmem2_errormsg;
+		pmem2_perror;
 	local:
 		*;
 };
