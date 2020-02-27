@@ -63,6 +63,8 @@ one of the following error values:
 * **PMEM2_E_MAP_RANGE** - end of the mapping (*offset* + *length*) is outside
 of the file. The file is too small.
 
+* **PMEM2_E_SOURCE_EMPTY** - mapped file has size equal to 0.
+
 * **PMEM2_E_MAPPING_EXISTS** - if the object exists before the function call.
 For details please see **CreateFileMapping**() manual pages. (Windows only)
 
