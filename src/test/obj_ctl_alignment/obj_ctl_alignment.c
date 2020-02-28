@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * obj_ctl_alignment.c -- tests for the alloc class alignment
@@ -50,7 +50,7 @@ test_aligned_allocs(size_t size, size_t alignment, enum pobj_header_type htype)
 	UT_ASSERTeq((uintptr_t)pmemobj_direct(oid) % alignment, 0);
 
 	char query[1024];
-	snprintf(query, 1024, "heap.alloc_class.%u.desc", ac.class_id);
+	SNPRINTF(query, 1024, "heap.alloc_class.%u.desc", ac.class_id);
 
 	struct pobj_alloc_class_desc read_ac;
 	ret = pmemobj_ctl_get(pop, query, &read_ac);

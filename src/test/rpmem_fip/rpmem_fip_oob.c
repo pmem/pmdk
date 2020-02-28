@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2017, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmem_fip_oob.c -- simple oob connection implementation for exchanging
@@ -40,8 +40,7 @@ set_rpmem_cmd(const char *fmt, ...)
 
 	va_list ap;
 	va_start(ap, fmt);
-	ret = snprintf(&cmd_buff[cnt], CMD_BUFF_SIZE - cnt,
-			"%s ", rpmem_cmd);
+	ret = SNPRINTF(&cmd_buff[cnt], CMD_BUFF_SIZE - cnt, "%s ", rpmem_cmd);
 	UT_ASSERT(ret > 0);
 	cnt += (size_t)ret;
 

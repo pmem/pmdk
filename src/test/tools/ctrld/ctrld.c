@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * ctrld.c -- simple application which helps running tests on remote node.
@@ -25,6 +25,7 @@
 #include <stdarg.h>
 
 #include "os.h"
+#include "util.h"
 
 #ifdef __FreeBSD__
 #include "signals_freebsd.h"
@@ -421,8 +422,8 @@ get_inodes(pid_t pid, struct inodes *inodes)
 	int ret;
 
 	/* set a path to opened files of specified process */
-	if ((ret = snprintf(path, PATH_MAX, "/proc/%d/fd", pid)) < 0) {
-		CTRLD_LOG("snprintf: %d", ret);
+	if (util_snprintf(path, PATH_MAX, "/proc/%d/fd", pid) < 0) {
+		CTRLD_LOG("snprintf: %d", errno);
 		return -1;
 	}
 
@@ -438,9 +439,9 @@ get_inodes(pid_t pid, struct inodes *inodes)
 	struct dirent *dent;
 	while ((dent = readdir(d)) != NULL) {
 		/* create a full path to file */
-		if ((ret = snprintf(path, PATH_MAX,
-			"/proc/%d/fd/%s", pid, dent->d_name)) < 0) {
-			CTRLD_LOG("snprintf: %d", ret);
+		if (util_snprintf(path, PATH_MAX,
+			"/proc/%d/fd/%s", pid, dent->d_name) < 0) {
+			CTRLD_LOG("snprintf: %d", errno);
 			ret = -1;
 			goto out_dir;
 		}
@@ -583,10 +584,10 @@ log_run(const char *pid_file, char *cmd, char *argv[])
 	size_t i = 0;
 	char *arg = argv[0];
 	while (arg) {
-		int ret = snprintf(&buff[cnt], BUFF_SIZE - cnt,
+		int ret = util_snprintf(&buff[cnt], BUFF_SIZE - cnt,
 				" %s", arg);
 		if (ret < 0) {
-			CTRLD_LOG("snprintf: %d", ret);
+			CTRLD_LOG("snprintf: %d", errno);
 			exit(EXIT_FAILURE);
 		}
 
@@ -636,7 +637,7 @@ main(int argc, char *argv[])
 	char *cmd = argv[2];
 
 	char buff[BUFF_SIZE];
-	if (snprintf(buff, BUFF_SIZE, "%s.%s.%s.log",
+	if (util_snprintf(buff, BUFF_SIZE, "%s.%s.%s.log",
 			pid_file, cmd, APP_NAME) < 0) {
 		perror("snprintf");
 		return -1;

@@ -403,8 +403,8 @@ create_n_defrag_thread(void *arg)
 	char dump1[PATH_MAX];
 	char dump2[PATH_MAX];
 
-	snprintf(dump1, PATH_MAX, "dump_t%u_1.log", params->thread_id);
-	snprintf(dump2, PATH_MAX, "dump_t%u_2.log", params->thread_id);
+	SNPRINTF(dump1, PATH_MAX, "dump_t%u_1.log", params->thread_id);
+	SNPRINTF(dump2, PATH_MAX, "dump_t%u_2.log", params->thread_id);
 
 	struct create_params_t *cparams = &params->cparams;
 
@@ -527,7 +527,7 @@ op_graph_dump_all(const struct test_case *tc, int argc, char *argv[])
 
 	char dump[PATH_MAX];
 	for (unsigned i = 0; i < root->graphs_num; ++i) {
-		snprintf(dump, PATH_MAX, "%s_%u.log", dump_prefix, i);
+		SNPRINTF(dump, PATH_MAX, "%s_%u.log", dump_prefix, i);
 		graph_dump(root->graphs[i], dump, HAS_TO_EXIST);
 	}
 

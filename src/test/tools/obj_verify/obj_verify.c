@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2019, Intel Corporation */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * obj_verify.c -- tool for creating and verifying a pmemobj pool
@@ -41,7 +41,8 @@ static void
 fill_data_s(struct data_s *rec, uint64_t number)
 {
 	memcpy(rec->signature, Signature, sizeof(rec->signature));
-	snprintf(rec->number_str, NUMBER_LEN, "%09lu", number);
+	if (util_snprintf(rec->number_str, NUMBER_LEN, "%09lu", number) < 0)
+		abort();
 	rec->number = number;
 
 	for (int i = 0; i < FILL_SIZE; i++)

@@ -927,7 +927,7 @@ static int
 rpmemd_kill(const char *target, int pid)
 {
 	char cmd[100];
-	snprintf(cmd, sizeof(cmd), RPMEMD_TERMINATE_CMD, target, pid);
+	SNPRINTF(cmd, sizeof(cmd), RPMEMD_TERMINATE_CMD, target, pid);
 	return system(cmd);
 }
 
@@ -956,7 +956,7 @@ static int
 rpmemd_get_pid(const char *target, const char *pid_file)
 {
 	char cmd[PATH_MAX];
-	snprintf(cmd, sizeof(cmd), GET_RPMEMD_PID_CMD, target, pid_file);
+	SNPRINTF(cmd, sizeof(cmd), GET_RPMEMD_PID_CMD, target, pid_file);
 	return popen_readi(cmd);
 }
 
@@ -967,7 +967,7 @@ static int
 rpmemd_is_running(const char *target, int pid)
 {
 	char cmd[100];
-	snprintf(cmd, sizeof(cmd), COUNT_RPMEMD_CMD, target, pid);
+	SNPRINTF(cmd, sizeof(cmd), COUNT_RPMEMD_CMD, target, pid);
 	return popen_readi(cmd) > 0;
 }
 
