@@ -42,7 +42,7 @@ jobs:
          run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
 
        - name: Run the build
-         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-travis.sh
+         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh
 
        - name: Push the image
          run: cd $WORKDIR && source ./set-vars.sh && ${{ matrix.CONFIG }} /bin/bash -c "if [[ -f ${CI_FILE_PUSH_IMAGE_TO_REPO} ]]; then images/push-image.sh; fi"

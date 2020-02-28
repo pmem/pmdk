@@ -3,10 +3,10 @@
 # Copyright 2016-2020, Intel Corporation
 
 #
-# build-travis.sh - runs a Docker container from a Docker image with environment
+# build-CI.sh - runs a Docker container from a Docker image with environment
 #                   prepared for building PMDK project and starts building PMDK
 #
-# this script is for building PMDK on Travis only
+# this script is used for building PMDK on Travis and GitHub Actions CIs
 #
 
 set -e
