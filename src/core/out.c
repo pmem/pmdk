@@ -169,10 +169,9 @@ out_init(const char *log_prefix, const char *log_level_var,
 		char log_file_pid[PATH_MAX];
 		size_t len = strlen(log_file);
 		if (len > 0 && log_file[len - 1] == '-') {
-			int ret = snprintf(log_file_pid, PATH_MAX, "%s%d",
-				log_file, getpid());
-			if (ret < 0 || ret >= PATH_MAX) {
-				ERR("snprintf: %d", ret);
+			if (util_snprintf(log_file_pid, PATH_MAX, "%s%d",
+					log_file, getpid()) < 0) {
+				ERR("snprintf: %d", errno);
 				abort();
 			}
 			log_file = log_file_pid;
