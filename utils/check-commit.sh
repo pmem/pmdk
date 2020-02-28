@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 
 #
 # Used to check whether all the commit messages in a pull request
@@ -29,7 +29,7 @@ if [[ $subject =~ ^Revert.* ]]; then
 fi
 
 # valid area names
-AREAS="pmem\|pmem2\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|doc\|common\|daxio\|pmreorder"
+AREAS="pmem\|pmem2\|rpmem\|log\|blk\|obj\|pool\|test\|benchmark\|examples\|doc\|core\|common\|daxio\|pmreorder"
 
 prefix=$(echo $subject | sed -n "s/^\($AREAS\)\:.*/\1/p")
 
