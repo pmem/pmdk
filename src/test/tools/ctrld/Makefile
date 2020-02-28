@@ -15,6 +15,7 @@ CFLAGS += -I$(TOP)/src/common
 
 TARGET = ctrld
 
-OBJS = ctrld.o os_posix.o
+OBJS = ctrld.o
+LIBPMEMCORE=y
 
 include $(TOP)/src/tools/Makefile.inc

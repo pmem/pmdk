@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmemd_obc_test_common.c -- common definitions for rpmemd_obc tests
@@ -34,7 +34,7 @@ set_rpmem_cmd(const char *fmt, ...)
 
 	va_list ap;
 	va_start(ap, fmt);
-	ret = snprintf(&cmd_buff[cnt], CMD_BUFF_SIZE - cnt,
+	ret = SNPRINTF(&cmd_buff[cnt], CMD_BUFF_SIZE - cnt,
 			"%s ", rpmem_cmd);
 	UT_ASSERT(ret > 0);
 	cnt += (size_t)ret;

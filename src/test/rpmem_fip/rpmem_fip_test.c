@@ -240,7 +240,7 @@ client_init(const struct test_case *tc, int argc, char *argv[])
 		.rkey = resp.rkey,
 	};
 
-	ssize_t sret = snprintf(fip_service, NI_MAXSERV, "%u", resp.port);
+	ssize_t sret = SNPRINTF(fip_service, NI_MAXSERV, "%u", resp.port);
 	UT_ASSERT(sret > 0);
 
 	/*
@@ -354,7 +354,7 @@ client_connect(const struct test_case *tc, int argc, char *argv[])
 		.rkey = resp.rkey,
 	};
 
-	ssize_t sret = snprintf(fip_service, NI_MAXSERV, "%u", resp.port);
+	ssize_t sret = SNPRINTF(fip_service, NI_MAXSERV, "%u", resp.port);
 	UT_ASSERT(sret > 0);
 
 	struct rpmem_fip *fip;
@@ -546,7 +546,7 @@ flush_common(char *target, char *prov_name, char *persist_method,
 		.rkey = resp.rkey,
 	};
 
-	ssize_t sret = snprintf(fip_service, NI_MAXSERV, "%u", resp.port);
+	ssize_t sret = SNPRINTF(fip_service, NI_MAXSERV, "%u", resp.port);
 	UT_ASSERT(sret > 0);
 
 	struct rpmem_fip *fip;
@@ -621,7 +621,7 @@ flush_common_mt(char *target, char *prov_name, char *persist_method,
 		.rkey = resp.rkey,
 	};
 
-	ssize_t sret = snprintf(fip_service, NI_MAXSERV, "%u", resp.port);
+	ssize_t sret = SNPRINTF(fip_service, NI_MAXSERV, "%u", resp.port);
 	UT_ASSERT(sret > 0);
 
 	struct rpmem_fip *fip;
@@ -790,7 +790,7 @@ client_read(const struct test_case *tc, int argc, char *argv[])
 		.rkey = resp.rkey,
 	};
 
-	ssize_t sret = snprintf(fip_service, NI_MAXSERV, "%u", resp.port);
+	ssize_t sret = SNPRINTF(fip_service, NI_MAXSERV, "%u", resp.port);
 	UT_ASSERT(sret > 0);
 
 	struct rpmem_fip *fip;
@@ -873,7 +873,7 @@ client_wq_size(const struct test_case *tc, int argc, char *argv[])
 		.rkey = resp.rkey,
 	};
 
-	ssize_t sret = snprintf(fip_service, NI_MAXSERV, "%u", resp.port);
+	ssize_t sret = SNPRINTF(fip_service, NI_MAXSERV, "%u", resp.port);
 	UT_ASSERT(sret > 0);
 
 	/* check RPMEM_WORK_QUEUE_SIZE env processing */
