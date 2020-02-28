@@ -183,11 +183,11 @@ static void
 init_prefix(location *loc)
 {
 	if (loc->set->nreplicas > 1) {
-		int ret = snprintf(loc->prefix, PREFIX_MAX_SIZE,
+		int ret = util_snprintf(loc->prefix, PREFIX_MAX_SIZE,
 			"replica %u: ",
 			loc->replica);
-		if (ret < 0 || ret >= PREFIX_MAX_SIZE)
-			FATAL("snprintf: %d", ret);
+		if (ret < 0)
+			FATAL("!snprintf");
 	} else
 		loc->prefix[0] = '\0';
 	loc->step = 0;
