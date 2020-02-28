@@ -38,4 +38,4 @@ jobs:
          run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
 
        - name: Run the build
-         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-travis.sh
+         run: cd $WORKDIR && ${{ matrix.CONFIG }} ./build-CI.sh

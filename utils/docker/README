@@ -7,13 +7,13 @@ or fedora-based environment and build PMDK project inside it.
 
 'build-local.sh' can be used to build PMDK locally.
 
-'build-travis.sh' is used for building PMDK on Travis.
+'build-CI.sh' is used for building PMDK on Travis and GitHub Actions CIs
 
 NOTE:
-(for those, who have Travis builds enabled for their fork of the PMDK project)
 If you commit changes to any Dockerfile or shell script in the 'images'
 subdirectory and then do git-rebase before pushing your commits to the
 repository, make sure that you do not squash the commit which is the head in
-your repository. This will let Travis recreate Docker images used during the
-build before the build. Otherwise the not-updated Docker image will be pulled
-from the Docker Hub and used during the build on Travis.
+your repository. This will let Travis and GitHub Actions CIs recreate
+Docker images used during the build before the build. Otherwise the not-updated
+Docker image will be pulled from the Docker Hub and used during the build on
+Travis and GitHub Actions CIs.

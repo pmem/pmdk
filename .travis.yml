@@ -55,7 +55,7 @@ before_install:
   - ./pull-or-rebuild-image.sh
 
 script:
-  - ./build-travis.sh
+  - ./build-CI.sh
 
 after_success:
   - source ./set-vars.sh
