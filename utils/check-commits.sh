@@ -25,19 +25,19 @@ if [ -z "$1" ]; then
 		MERGE_BASE=$(echo $CI_COMMIT_RANGE | cut -d. -f1)
 		[ -z $MERGE_BASE ] && \
 			MERGE_BASE=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
-		range=$MERGE_BASE..$CI_COMMIT
+		RANGE=$MERGE_BASE..$CI_COMMIT
 	else
-		merge_base=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
-		range=$merge_base..HEAD
+		MERGE_BASE=$(git log --pretty="%cN:%H" | grep GitHub | head -n1 | cut -d: -f2)
+		RANGE=$MERGE_BASE..HEAD
 	fi
 else
-	range="$1"
+	RANGE="$1"
 fi
 
-commits=$(git log --pretty=%H $range)
+COMMITS=$(git log --pretty=%H $RANGE)
 
 set -e
 
-for commit in $commits; do
+for commit in $COMMITS; do
 	`dirname $0`/check-commit.sh $commit
 done
