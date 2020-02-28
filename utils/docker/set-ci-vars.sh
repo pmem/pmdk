@@ -41,6 +41,7 @@ if [ -n "$TRAVIS" ]; then
 	CI_BRANCH=$TRAVIS_BRANCH
 	CI_EVENT_TYPE=$TRAVIS_EVENT_TYPE
 	CI_REPO_SLUG=$TRAVIS_REPO_SLUG
+	CI_CPU_ARCH=$TRAVIS_CPU_ARCH
 
 	# CI_COMMIT_RANGE is usually invalid for force pushes - fix it when used
 	# with non-upstream repository
@@ -56,6 +57,7 @@ elif [ -n "$GITHUB_ACTIONS" ]; then
 	CI_BRANCH=$(echo $GITHUB_REF | cut -d'/' -f3)
 	CI_EVENT_TYPE=$GITHUB_EVENT_NAME
 	CI_REPO_SLUG=$GITHUB_REPOSITORY
+	CI_CPU_ARCH="x86_64" # GitHub Actions supports only x86_64
 
 else
 	CI_COMMIT=$(git log --pretty=%H -1)
@@ -67,9 +69,11 @@ export CI_COMMIT_RANGE=$CI_COMMIT_RANGE
 export CI_BRANCH=$CI_BRANCH
 export CI_EVENT_TYPE=$CI_EVENT_TYPE
 export CI_REPO_SLUG=$CI_REPO_SLUG
+export CI_CPU_ARCH=$CI_CPU_ARCH
 
 echo CI_COMMIT=$CI_COMMIT
 echo CI_COMMIT_RANGE=$CI_COMMIT_RANGE
 echo CI_BRANCH=$CI_BRANCH
 echo CI_EVENT_TYPE=$CI_EVENT_TYPE
 echo CI_REPO_SLUG=$CI_REPO_SLUG
+echo CI_CPU_ARCH=$CI_CPU_ARCH
