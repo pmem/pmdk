@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2018, Intel Corporation */
+/* Copyright 2017-2020, Intel Corporation */
 
 /*
  * os_deep_linux.c -- Linux abstraction layer
@@ -29,8 +29,11 @@ os_deep_flush_write(int region_id)
 	char deep_flush_path[PATH_MAX];
 	int deep_flush_fd;
 
-	snprintf(deep_flush_path, PATH_MAX,
-		"/sys/bus/nd/devices/region%d/deep_flush", region_id);
+	if (util_snprintf(deep_flush_path, PATH_MAX,
+		"/sys/bus/nd/devices/region%d/deep_flush", region_id) < 0) {
+		ERR("!snprintf");
+		return -1;
+	}
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
 		LOG(1, "!os_open(\"%s\", O_WRONLY)", deep_flush_path);
