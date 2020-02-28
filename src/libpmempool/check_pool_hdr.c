@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * check_pool_hdr.c -- pool header check
@@ -883,11 +883,11 @@ init_location_data(PMEMpoolcheck *ppc, location *loc)
 	unsigned nfiles = pool_set_files_count(ppc->pool->set_file);
 	if (ppc->result != CHECK_RESULT_PROCESS_ANSWERS) {
 		if (nfiles > 1) {
-			int ret = snprintf(loc->prefix, PREFIX_MAX_SIZE,
+			int ret = util_snprintf(loc->prefix, PREFIX_MAX_SIZE,
 				"replica %u part %u: ",
 				loc->replica, loc->part);
-			if (ret < 0 || ret >= PREFIX_MAX_SIZE)
-				FATAL("snprintf: %d", ret);
+			if (ret < 0)
+				FATAL("!snprintf");
 		} else
 			loc->prefix[0] = '\0';
 		loc->step = 0;
