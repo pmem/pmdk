@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2018, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * pmemobj_gen.cpp -- benchmark for pmemobj_direct()
@@ -371,10 +371,10 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 				perror("malloc");
 				goto free_sets;
 			}
-			int ret =
-				snprintf((char *)bench_priv->sets[i], path_len,
-					 "%s%s%02x", args->fname, PART_NAME, i);
-			if (ret < 0 || ret >= (int)path_len) {
+			int ret = util_snprintf((char *)bench_priv->sets[i],
+					path_len, "%s%s%02x", args->fname,
+					PART_NAME, i);
+			if (ret < 0) {
 				perror("snprintf");
 				goto free_sets;
 			}
