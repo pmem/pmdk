@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmem_common.c -- common definitions for librpmem and rpmemd
@@ -18,6 +18,7 @@
 #include <sys/socket.h>
 #include <netinet/tcp.h>
 
+#include "util.h"
 #include "rpmem_common.h"
 #include "rpmem_proto.h"
 #include "rpmem_common_log.h"
@@ -164,7 +165,7 @@ rpmem_get_ip_str(const struct sockaddr *addr)
 		in4 = (struct sockaddr_in *)addr;
 		if (!inet_ntop(AF_INET, &in4->sin_addr, ip, sizeof(ip)))
 			return NULL;
-		if (snprintf(str, sizeof(str), "%s:%u",
+		if (util_snprintf(str, sizeof(str), "%s:%u",
 				ip, ntohs(in4->sin_port)) < 0)
 			return NULL;
 		break;
@@ -172,7 +173,7 @@ rpmem_get_ip_str(const struct sockaddr *addr)
 		in6 = (struct sockaddr_in6 *)addr;
 		if (!inet_ntop(AF_INET6, &in6->sin6_addr, ip, sizeof(ip)))
 			return NULL;
-		if (snprintf(str, sizeof(str), "%s:%u",
+		if (util_snprintf(str, sizeof(str), "%s:%u",
 				ip, ntohs(in6->sin6_port)) < 0)
 			return NULL;
 		break;

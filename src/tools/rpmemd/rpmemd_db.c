@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmemd_db.c -- rpmemd database of pool set files
@@ -110,9 +110,9 @@ rpmemd_db_concat(const char *path1, const char *path2)
 		return NULL;
 	}
 
-	int ret = snprintf(new_str, new_len, "%s/%s", path1, path2);
-	if (ret < 0 || (size_t)ret != new_len - 1) {
-		RPMEMD_LOG(ERR, "snprintf error: %d", ret);
+	int ret = util_snprintf(new_str, new_len, "%s/%s", path1, path2);
+	if (ret < 0) {
+		RPMEMD_LOG(ERR, "!snprintf");
 		free(new_str);
 		errno = EINVAL;
 		return NULL;

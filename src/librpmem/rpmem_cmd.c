@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmem_cmd.c -- simple interface for running an executable in child process
@@ -105,11 +105,11 @@ rpmem_cmd_log(struct rpmem_cmd *cmd)
 	size_t pos = 0;
 
 	for (int i = 0; pos < size && i < cmd->args.argc; i++) {
-		int ret = snprintf(&buff[pos], size - pos, "%s%s",
+		int ret = util_snprintf(&buff[pos], size - pos, "%s%s",
 				cmd->args.argv[i], i == cmd->args.argc - 1 ?
 				"" : " ");
 		if (ret < 0) {
-			RPMEM_LOG(ERR, "printing command's argument failed");
+			RPMEM_LOG(ERR, "!snprintf");
 			goto out;
 		}
 
