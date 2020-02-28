@@ -276,10 +276,10 @@ rpmem_common_fip_init(RPMEMpool *rpp, struct rpmem_req_attr *req,
 		.rkey		= resp->rkey,
 	};
 
-	ret = snprintf(rpp->fip_service, sizeof(rpp->fip_service),
+	ret = util_snprintf(rpp->fip_service, sizeof(rpp->fip_service),
 			"%u", resp->port);
-	if (ret <= 0) {
-		ERR("snprintf: %d", ret);
+	if (ret < 0) {
+		ERR("!snprintf");
 		goto err_port;
 	}
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmemd_log.c -- rpmemd logging functions definitions
@@ -181,24 +181,18 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 	size_t cnt = 0;
 	int ret;
 	if (fname) {
-		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
+		ret = util_snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
 				"[%s:%d] ", rpmemd_log_basename(fname), lineno);
 		if (ret < 0)
-			RPMEMD_FATAL("snprintf failed: %d", ret);
-		if ((unsigned)ret >= RPMEMD_MAX_MSG - cnt)
-			RPMEMD_FATAL("overflow(1): %d >= %lu", ret,
-					RPMEMD_MAX_MSG - cnt);
+			RPMEMD_FATAL("snprintf failed: %d", errno);
 
 		cnt += (size_t)ret;
 	}
 	if (rpmemd_prefix_buff[0]) {
-		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
+		ret = util_snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
 				"%s ", rpmemd_prefix_buff);
 		if (ret < 0)
-			RPMEMD_FATAL("snprintf failed: %d", ret);
-		if ((unsigned)ret >= RPMEMD_MAX_MSG - cnt)
-			RPMEMD_FATAL("overflow(2): %d >= %lu", ret,
-					RPMEMD_MAX_MSG - cnt);
+			RPMEMD_FATAL("snprintf failed: %d", errno);
 
 		cnt += (size_t)ret;
 	}
@@ -226,13 +220,10 @@ rpmemd_log(enum rpmemd_log_level level, const char *fname, int lineno,
 
 		cnt += (size_t)ret;
 
-		ret = snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
+		ret = util_snprintf(&buff[cnt], RPMEMD_MAX_MSG - cnt,
 				"%s%s%s", prefix, errorstr, suffix);
 		if (ret < 0)
-			RPMEMD_FATAL("snprintf failed: %d", ret);
-		if ((unsigned)ret >= RPMEMD_MAX_MSG - cnt)
-			RPMEMD_FATAL("overflow(4): %d >= %lu", ret,
-					RPMEMD_MAX_MSG - cnt);
+			RPMEMD_FATAL("snprintf failed: %d", errno);
 
 		cnt += (size_t)ret;
 	}

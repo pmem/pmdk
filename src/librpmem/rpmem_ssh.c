@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmem_ssh.c -- rpmem ssh transport layer source file
@@ -59,9 +59,9 @@ get_user_at_node(const struct rpmem_target_info *info)
 		user_at_node = malloc(len);
 		if (!user_at_node)
 			goto err_malloc;
-		int ret = snprintf(user_at_node, len, "%s@%s",
+		int ret = util_snprintf(user_at_node, len, "%s@%s",
 				info->user, info->node);
-		if (ret < 0 || (size_t)ret + 1 != len)
+		if (ret < 0)
 			goto err_printf;
 	} else {
 		user_at_node = strdup(info->node);
@@ -415,15 +415,18 @@ rpmem_ssh_strerror(struct rpmem_ssh *rps, int oerrno)
 	error_str[len] = '\0';
 
 	if (len == 0) {
+		int ret;
 		if (oerrno) {
 			char buff[UTIL_MAX_ERR_MSG];
 			util_strerror(oerrno, buff, UTIL_MAX_ERR_MSG);
-			snprintf(error_str, ERR_BUFF_LEN,
+			ret = util_snprintf(error_str, ERR_BUFF_LEN,
 				"%s", buff);
 		} else {
-			snprintf(error_str, ERR_BUFF_LEN,
+			ret = util_snprintf(error_str, ERR_BUFF_LEN,
 				"unknown error");
 		}
+		if (ret < 0)
+			FATAL("!snprintf");
 	} else {
 		/* get rid of new line and carriage return chars */
 		char *cr = strchr(error_str, '\r');

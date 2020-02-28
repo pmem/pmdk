@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmemd_config.c -- rpmemd config source file
@@ -493,18 +493,18 @@ get_home_dir(char *str, size_t size)
 {
 	char *home = os_getenv(HOME_ENV);
 	if (home) {
-		int r = snprintf(str, size, "%s", home);
+		int r = util_snprintf(str, size, "%s", home);
 		if (r < 0)
-			RPMEMD_FATAL("snprintf: %d", r);
+			RPMEMD_FATAL("!snprintf");
 	} else {
 		uid_t uid = getuid();
 		struct passwd *pw = getpwuid(uid);
 		if (pw == NULL)
 			RPMEMD_FATAL("!getpwuid");
 
-		int r = snprintf(str, size, "%s", pw->pw_dir);
+		int r = util_snprintf(str, size, "%s", pw->pw_dir);
 		if (r < 0)
-			RPMEMD_FATAL("snprintf: %d", r);
+			RPMEMD_FATAL("!snprintf");
 	}
 }
 
@@ -516,9 +516,9 @@ static void
 concat_dir_and_file_name(char *path, size_t size, const char *dir,
 	const char *file)
 {
-	int r = snprintf(path, size, "%s/%s", dir, file);
+	int r = util_snprintf(path, size, "%s/%s", dir, file);
 	if (r < 0)
-		RPMEMD_FATAL("snprintf: %d", r);
+		RPMEMD_FATAL("!snprintf");
 }
 
 /*
@@ -549,10 +549,10 @@ str_replace_home(char *haystack, const char *home_dir)
 		RPMEMD_FATAL("!malloc");
 
 	*pos = '\0';
-	int r = snprintf(buf, haystack_len, "%s%s%s", haystack, home_dir,
+	int r = util_snprintf(buf, haystack_len, "%s%s%s", haystack, home_dir,
 		after);
 	if (r < 0)
-		RPMEMD_FATAL("snprintf: %d", r);
+		RPMEMD_FATAL("!snprintf");
 
 	free(haystack);
 	return buf;
