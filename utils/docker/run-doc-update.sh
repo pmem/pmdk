@@ -62,12 +62,15 @@ fi
 
 # Add and push changes.
 # git commit command may fail if there is nothing to commit.
-# In that case we want to force push anyway (there might be open pull request with
-# changes which were reverted).
+# In that case we want to force push anyway (there might be open pull request
+# with changes which were reverted).
 git add -A
 git commit -m "doc: automatic gh-pages docs update" && true
 git push -f ${ORIGIN} $GH_PAGES_NAME
 
-hub pull-request -f -b ${USER_NAME}:gh-pages -h ${BOT_NAME}:${GH_PAGES_NAME} -m "doc: automatic gh-pages docs update" && true
+GITHUB_TOKEN=${DOC_UPDATE_GITHUB_TOKEN} hub pull-request -f \
+	-b ${USER_NAME}:gh-pages \
+	-h ${BOT_NAME}:${GH_PAGES_NAME} \
+	-m "doc: automatic gh-pages docs update" && true
 
 exit 0
