@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2020, Intel Corporation */
 
 #include <immintrin.h>
 #include <stddef.h>
@@ -9,6 +9,7 @@
 #include "flush.h"
 #include "memcpy_memset.h"
 #include "memcpy_sse2.h"
+#include "out.h"
 
 static force_inline void
 memmove_mov4x64b(char *dest, const char *src)
@@ -182,6 +183,8 @@ memmove_mov_sse_bw(char *dest, const char *src, size_t len)
 void
 EXPORTED_SYMBOL(char *dest, const char *src, size_t len)
 {
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
 	if ((uintptr_t)dest - (uintptr_t)src >= len)
 		memmove_mov_sse_fw(dest, src, len);
 	else

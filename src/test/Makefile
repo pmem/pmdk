@@ -213,7 +213,8 @@ PMEM2_TESTS = \
 	pmem2_memmove\
 	pmem2_memset\
 	pmem2_movnt\
-	pmem2_movnt_align
+	pmem2_movnt_align\
+	pmem2_mem_ext
 
 PMEMPOOL_TESTS = \
 	pmempool_check\
