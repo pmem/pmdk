@@ -38,22 +38,15 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 	}
 
 	char spath[PATH_MAX];
-	int ret = snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/subsystem",
-		os_major(st->st_rdev), os_minor(st->st_rdev));
+	int ret = util_snprintf(spath, PATH_MAX,
+			"/sys/dev/char/%u:%u/subsystem",
+			os_major(st->st_rdev), os_minor(st->st_rdev));
 
 	if (ret < 0) {
 		/* impossible */
 		ERR("!snprintf");
 		ASSERTinfo(0, "snprintf failed");
 		return PMEM2_E_ERRNO;
-	}
-
-	if (ret >= PATH_MAX) {
-		/* impossible */
-		const char *msg = "BUG: too short buffer for sysfs path";
-		ERR("%s", msg);
-		ASSERTinfo(0, msg);
-		return PMEM2_E_UNKNOWN;
 	}
 
 	LOG(4, "device subsystem path \"%s\"", spath);
@@ -84,7 +77,7 @@ int
 pmem2_device_dax_size_from_stat(const os_stat_t *st, size_t *size)
 {
 	char spath[PATH_MAX];
-	int ret = snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/size",
+	int ret = util_snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/size",
 		os_major(st->st_rdev), os_minor(st->st_rdev));
 
 	if (ret < 0) {
@@ -92,14 +85,6 @@ pmem2_device_dax_size_from_stat(const os_stat_t *st, size_t *size)
 		ERR("!snprintf");
 		ASSERTinfo(0, "snprintf failed");
 		return PMEM2_E_ERRNO;
-	}
-
-	if (ret >= PATH_MAX) {
-		/* impossible */
-		const char *msg = "BUG: too short buffer for sysfs path";
-		ERR("%s", msg);
-		ASSERTinfo(0, msg);
-		return PMEM2_E_UNKNOWN;
 	}
 
 	LOG(4, "device size path \"%s\"", spath);

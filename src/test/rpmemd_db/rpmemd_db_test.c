@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmemd_db_test.c -- unit test for pool set database
@@ -570,7 +570,7 @@ test_remove(const char *root_dir, const char *pool_desc)
 	struct rpmemd_db *db;
 	int ret;
 	char path[PATH_MAX];
-	snprintf(path, PATH_MAX, "%s/%s", root_dir, pool_desc);
+	SNPRINTF(path, PATH_MAX, "%s/%s", root_dir, pool_desc);
 
 	fill_rand(&attr, sizeof(attr));
 	strncpy((char *)attr.poolset_uuid, "TEST", sizeof(attr.poolset_uuid));

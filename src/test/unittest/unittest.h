@@ -417,6 +417,9 @@ unsigned long ut_strtoul(const char *file, int line, const char *func,
 unsigned ut_strtou(const char *file, int line, const char *func,
     const char *nptr, char **endptr, int base);
 
+int ut_snprintf(const char *file, int line, const char *func,
+		char *str, size_t size, const char *format, ...);
+
 /* an open() that can't return < 0 */
 #define OPEN(path, ...)\
     ut_open(__FILE__, __LINE__, __func__, path, __VA_ARGS__)
@@ -504,6 +507,10 @@ unsigned ut_strtou(const char *file, int line, const char *func,
 
 #define STRTOI(nptr, endptr, base)\
     ut_strtoi(__FILE__, __LINE__, __func__, nptr, endptr, base)
+
+#define SNPRINTF(str, size, format, ...) \
+	ut_snprintf(__FILE__, __LINE__, __func__, \
+			str, size, format, __VA_ARGS__)
 
 #ifndef _WIN32
 #define ut_jmp_buf_t sigjmp_buf

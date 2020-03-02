@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * output.c -- definitions of output printing related functions
@@ -257,7 +257,7 @@ out_get_percentage(double perc)
 	int ret = 0;
 
 	if (perc > 0.0 && perc < 0.0001) {
-		ret = snprintf(str_buff, STR_MAX, "%e %%", perc);
+		ret = util_snprintf(str_buff, STR_MAX, "%e %%", perc);
 		if (ret < 0)
 			return "";
 	} else {
@@ -267,8 +267,9 @@ out_get_percentage(double perc)
 		else
 			decimal = 6;
 
-		ret = snprintf(str_buff, STR_MAX, "%.*f %%", decimal, perc);
-		if (ret < 0 || ret >= STR_MAX)
+		ret = util_snprintf(str_buff, STR_MAX, "%.*f %%", decimal,
+				perc);
+		if (ret < 0)
 			return "";
 	}
 
@@ -293,7 +294,7 @@ out_get_size_str(uint64_t size, int human)
 	int ret = 0;
 
 	if (!human) {
-		ret = snprintf(str_buff, STR_MAX, "%"PRIu64, size);
+		ret = util_snprintf(str_buff, STR_MAX, "%"PRIu64, size);
 	} else {
 		int i = -1;
 		double dsize = (double)size;
@@ -307,17 +308,18 @@ out_get_size_str(uint64_t size, int human)
 
 		if (i >= 0 && i < nunits)
 			if (human == 1)
-				ret = snprintf(str_buff, STR_MAX, "%.1f%c",
-					dsize, units[i]);
+				ret = util_snprintf(str_buff, STR_MAX,
+						"%.1f%c", dsize, units[i]);
 			else
-				ret = snprintf(str_buff, STR_MAX, "%.1f%c [%"
-					PRIu64"]", dsize, units[i], size);
+				ret = util_snprintf(str_buff, STR_MAX,
+						"%.1f%c [%" PRIu64"]", dsize,
+						units[i], size);
 		else
-			ret = snprintf(str_buff, STR_MAX, "%"PRIu64,
+			ret = util_snprintf(str_buff, STR_MAX, "%"PRIu64,
 					size);
 	}
 
-	if (ret < 0 || ret >= STR_MAX)
+	if (ret < 0)
 		return "";
 
 	return str_buff;
@@ -351,8 +353,8 @@ out_get_time_str(time_t time)
 	if (tm) {
 		strftime(str_buff, STR_MAX, TIME_STR_FMT, tm);
 	} else {
-		int ret = snprintf(str_buff, STR_MAX, "unknown");
-		if (ret < 0 || ret >= STR_MAX)
+		int ret = util_snprintf(str_buff, STR_MAX, "unknown");
+		if (ret < 0)
 			return "";
 	}
 
@@ -377,7 +379,7 @@ out_get_ascii_str(char *str, size_t str_len, const uint8_t *datap, size_t len)
 
 	for (i = 0; i < len; i++) {
 		pch = util_get_printable_ascii((char)datap[i]);
-		int t = snprintf(str + c, str_len - (size_t)c, "%c", pch);
+		int t = util_snprintf(str + c, str_len - (size_t)c, "%c", pch);
 		if (t < 0)
 			return -1;
 		c += t;
@@ -405,12 +407,13 @@ out_get_hex_str(char *str, size_t str_len, const uint8_t *datap, size_t len)
 	for (i = 0; i < len; i++) {
 		/* add space after n*8 byte */
 		if (i && (i % 8) == 0) {
-			t = snprintf(str + c, str_len - (size_t)c, " ");
+			t = util_snprintf(str + c, str_len - (size_t)c, " ");
 			if (t < 0)
 				return -1;
 			c += t;
 		}
-		t = snprintf(str + c, str_len - (size_t)c, "%02x ", datap[i]);
+		t = util_snprintf(str + c, str_len - (size_t)c, "%02x ",
+				datap[i]);
 		if (t < 0)
 			return -1;
 		c += t;
@@ -496,14 +499,14 @@ out_get_checksum(void *addr, size_t len, uint64_t *csump, size_t skip_off)
 	uint64_t csum = util_checksum_compute(addr, len, csump, skip_off);
 
 	if (*csump == htole64(csum))
-		ret = snprintf(str_buff, STR_MAX, "0x%" PRIx64" [OK]",
+		ret = util_snprintf(str_buff, STR_MAX, "0x%" PRIx64" [OK]",
 			le64toh(csum));
 	else
-		ret = snprintf(str_buff, STR_MAX,
+		ret = util_snprintf(str_buff, STR_MAX,
 			"0x%" PRIx64 " [wrong! should be: 0x%" PRIx64 "]",
 			le64toh(*csump), le64toh(csum));
 
-	if (ret < 0 || ret >= STR_MAX)
+	if (ret < 0)
 		return "";
 
 	return str_buff;
@@ -527,13 +530,13 @@ out_get_btt_map_entry(uint32_t map)
 
 	uint32_t lba = map & BTT_MAP_ENTRY_LBA_MASK;
 
-	int ret = snprintf(str_buff, STR_MAX, "0x%08x state: %s", lba,
+	int ret = util_snprintf(str_buff, STR_MAX, "0x%08x state: %s", lba,
 			is_init ? "init" :
 			is_zero ? "zero" :
 			is_error ? "error" :
 			is_normal ? "normal" : "unknown");
 
-	if (ret < 0 || ret >= STR_MAX)
+	if (ret < 0)
 		return "";
 
 	return str_buff;
@@ -634,9 +637,10 @@ out_get_zone_magic_str(uint32_t magic)
 		break;
 	}
 
-	int ret = snprintf(str_buff, STR_MAX, "0x%08x [%s]", magic, correct);
+	int ret = util_snprintf(str_buff, STR_MAX, "0x%08x [%s]", magic,
+			correct);
 
-	if (ret < 0 || ret >= STR_MAX)
+	if (ret < 0)
 		return "";
 
 	return str_buff;
@@ -653,9 +657,9 @@ out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo)
 	int ret = 0;
 	char *correct = "OK";
 	if (oid.pool_uuid_lo && oid.pool_uuid_lo != uuid_lo) {
-		ret = snprintf(str_buff, STR_MAX,
+		ret = util_snprintf(str_buff, STR_MAX,
 			"wrong! should be 0x%016"PRIx64, uuid_lo);
-		if (ret < 0 || ret >= STR_MAX)
+		if (ret < 0)
 			err(1, "snprintf: %d", ret);
 		correct = strdup(str_buff);
 		if (!correct)
@@ -663,14 +667,14 @@ out_get_pmemoid_str(PMEMoid oid, uint64_t uuid_lo)
 		free_cor = 1;
 	}
 
-	ret = snprintf(str_buff, STR_MAX,
+	ret = util_snprintf(str_buff, STR_MAX,
 			"off: 0x%016"PRIx64" pool_uuid_lo: 0x%016"
 			PRIx64" [%s]", oid.off, oid.pool_uuid_lo, correct);
 
 	if (free_cor)
 		free(correct);
 
-	if (ret < 0 || ret >= STR_MAX)
+	if (ret < 0)
 		err(1, "snprintf: %d", ret);
 
 	return str_buff;
@@ -726,8 +730,8 @@ out_get_arch_machine_str(uint16_t machine)
 		break;
 	}
 
-	int ret = snprintf(str_buff, STR_MAX, "unknown %u", machine);
-	if (ret < 0 || ret >= STR_MAX)
+	int ret = util_snprintf(str_buff, STR_MAX, "unknown %u", machine);
+	if (ret < 0)
 		return "unknown";
 	return str_buff;
 }
@@ -754,12 +758,13 @@ out_get_alignment_desc_str(uint64_t ad, uint64_t valid_ad)
 	int ret = 0;
 
 	if (ad == valid_ad)
-		ret = snprintf(str_buff, STR_MAX, "0x%016"PRIx64"[OK]", ad);
+		ret = util_snprintf(str_buff, STR_MAX, "0x%016"PRIx64"[OK]",
+				ad);
 	else
-		ret = snprintf(str_buff, STR_MAX, "0x%016"PRIx64" "
+		ret = util_snprintf(str_buff, STR_MAX, "0x%016"PRIx64" "
 			"[wrong! should be 0x%016"PRIx64"]", ad, valid_ad);
 
-	if (ret < 0 || ret >= STR_MAX)
+	if (ret < 0)
 		return "";
 
 	return str_buff;
@@ -779,9 +784,9 @@ out_concat(char *str_buff, int *curr, int *count, const char *str)
 	ASSERTne(str, NULL);
 
 	const char *separator = (count != NULL && *count > 0) ? ", " : "";
-	int ret = snprintf(str_buff + *curr,
+	int ret = util_snprintf(str_buff + *curr,
 		(size_t)(STR_MAX - *curr), "%s%s", separator, str);
-	if (ret < 0 || *curr + ret >= STR_MAX)
+	if (ret < 0)
 		return -1;
 	*curr += ret;
 	if (count)
@@ -805,8 +810,8 @@ out_get_incompat_features_str(uint32_t incompat)
 		return "0x0";
 	} else {
 		/* print the value and the left square bracket */
-		ret = snprintf(str_buff, STR_MAX, "0x%x [", incompat);
-		if (ret < 0 || ret >= STR_MAX) {
+		ret = util_snprintf(str_buff, STR_MAX, "0x%x [", incompat);
+		if (ret < 0) {
 			ERR("snprintf for incompat features: %d", ret);
 			return "<error>";
 		}

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * file_posix.c -- Posix versions of file APIs
@@ -232,14 +232,11 @@ util_ddax_region_find(const char *path)
 
 	unsigned major = os_major(dev_id);
 	unsigned minor = os_minor(dev_id);
-	int ret = snprintf(dax_region_path, PATH_MAX,
+	int ret = util_snprintf(dax_region_path, PATH_MAX,
 		"/sys/dev/char/%u:%u/device/dax_region/id",
 		major, minor);
 	if (ret < 0) {
-		ERR("snprintf(%p, %d, /sys/dev/char/%u:%u/device/"
-			"dax_region/id, %u, %u): %d",
-			dax_region_path, PATH_MAX, major, minor, major, minor,
-			ret);
+		ERR("!snprintf");
 		return -1;
 	}
 

@@ -141,12 +141,16 @@ pmem2_source_device_idU(const struct pmem2_source *src, char *id, size_t *len)
 	if (ret)
 		return ret;
 
-	snprintf(id, GUID_SIZE,
+	if (util_snprintf(id, GUID_SIZE,
 		"%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX",
 		guid.Data1, guid.Data2, guid.Data3, guid.Data4[0],
 		guid.Data4[1], guid.Data4[2], guid.Data4[3],
 		guid.Data4[4], guid.Data4[5], guid.Data4[6],
-		guid.Data4[7]);
+		guid.Data4[7]) < 0) {
+		ERR("!snprintf");
+		return PMEM2_E_ERRNO;
+	}
+
 	return 0;
 }
 

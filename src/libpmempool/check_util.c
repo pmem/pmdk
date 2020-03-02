@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * check_util.c -- check utility functions
@@ -331,10 +331,10 @@ check_status_create(PMEMpoolcheck *ppc, enum pmempool_check_msg_type type,
 	if (type != PMEMPOOL_CHECK_MSG_TYPE_QUESTION && arg && p > 0) {
 		char buff[UTIL_MAX_ERR_MSG];
 		util_strerror((int)arg, buff, UTIL_MAX_ERR_MSG);
-		int ret = snprintf(st->msg + p, MAX_MSG_STR_SIZE - (size_t)p,
-			": %s", buff);
-		if (ret < 0 || ret >= (int)(MAX_MSG_STR_SIZE - (size_t)p)) {
-			ERR("snprintf: %d", ret);
+		int ret = util_snprintf(st->msg + p,
+				MAX_MSG_STR_SIZE - (size_t)p, ": %s", buff);
+		if (ret < 0) {
+			ERR("!snprintf");
 			status_release(st);
 			return -1;
 		}
@@ -633,9 +633,9 @@ check_get_time_str(time_t time)
 	if (tm)
 		strftime(str_buff, STR_MAX, TIME_STR_FMT, tm);
 	else {
-		int ret = snprintf(str_buff, STR_MAX, "unknown");
+		int ret = util_snprintf(str_buff, STR_MAX, "unknown");
 		if (ret < 0) {
-			ERR("failed to get time str");
+			ERR("!snprintf");
 			return "";
 		}
 	}

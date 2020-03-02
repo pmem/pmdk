@@ -33,9 +33,9 @@ usc_match_devdax(const os_stat_t *st, const char *devname)
 
 	char path[PATH_MAX];
 	os_stat_t stat;
-	int ret;
-	if ((ret = snprintf(path, PATH_MAX, "/dev/%s", devname)) < 0) {
-		ERR("snprintf: %d", ret);
+
+	if (util_snprintf(path, PATH_MAX, "/dev/%s", devname) < 0) {
+		ERR("!snprintf");
 		return -1;
 	}
 
@@ -70,18 +70,15 @@ usc_match_fsdax(const os_stat_t *st, const char *devname)
 
 	char path[PATH_MAX];
 	char dev_id[BUFF_LENGTH];
-	int ret;
 
-	ret = snprintf(path, PATH_MAX, "/sys/block/%s/dev", devname);
-	if (ret < 0) {
-		ERR("snprintf: %d", ret);
+	if (util_snprintf(path, PATH_MAX, "/sys/block/%s/dev", devname) < 0) {
+		ERR("!snprintf");
 		return -1;
 	}
 
-	ret = snprintf(dev_id, BUFF_LENGTH, "%d:%d",
-			major(st->st_dev), minor(st->st_dev));
-	if (ret < 0) {
-		ERR("snprintf: %d", ret);
+	if (util_snprintf(dev_id, BUFF_LENGTH, "%d:%d",
+			major(st->st_dev), minor(st->st_dev)) < 0) {
+		ERR("!snprintf");
 		return -1;
 	}
 

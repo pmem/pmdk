@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * common.c -- definitions of common functions
@@ -972,7 +972,7 @@ util_opt_print_requirements(const struct options *opts,
 		&opts->opts[util_opt_get_index(opts, req->opt)];
 	int sn;
 
-	sn = snprintf(&buff[n], REQ_BUFF_SIZE - n,
+	sn = util_snprintf(&buff[n], REQ_BUFF_SIZE - n,
 			"option [-%c|--%s] requires: ", opt->val, opt->name);
 	assert(sn >= 0);
 	if (sn >= 0)
@@ -981,7 +981,8 @@ util_opt_print_requirements(const struct options *opts,
 	size_t rc = 0;
 	while ((tmp = req->req) != 0) {
 		if (rc != 0) {
-			sn = snprintf(&buff[n], REQ_BUFF_SIZE - n, " and ");
+			sn = util_snprintf(&buff[n], REQ_BUFF_SIZE - n,
+					" and ");
 			assert(sn >= 0);
 			if (sn >= 0)
 				n += (unsigned)sn;
@@ -989,10 +990,8 @@ util_opt_print_requirements(const struct options *opts,
 
 		size_t c = 0;
 		while (tmp) {
-			if (c == 0)
-				sn = snprintf(&buff[n], REQ_BUFF_SIZE - n, "[");
-			else
-				sn = snprintf(&buff[n], REQ_BUFF_SIZE - n, "|");
+			sn = util_snprintf(&buff[n], REQ_BUFF_SIZE - n,
+					c == 0 ? "[" : "|");
 			assert(sn >= 0);
 			if (sn >= 0)
 				n += (unsigned)sn;
@@ -1002,7 +1001,7 @@ util_opt_print_requirements(const struct options *opts,
 			const struct option *req_option =
 				&opts->opts[req_opt_ind];
 
-			sn = snprintf(&buff[n], REQ_BUFF_SIZE - n,
+			sn = util_snprintf(&buff[n], REQ_BUFF_SIZE - n,
 				"-%c|--%s", req_option->val, req_option->name);
 			assert(sn >= 0);
 			if (sn >= 0)
@@ -1011,7 +1010,7 @@ util_opt_print_requirements(const struct options *opts,
 			tmp >>= OPT_REQ_SHIFT;
 			c++;
 		}
-		sn = snprintf(&buff[n], REQ_BUFF_SIZE - n, "]");
+		sn = util_snprintf(&buff[n], REQ_BUFF_SIZE - n, "]");
 		assert(sn >= 0);
 		if (sn >= 0)
 			n += (unsigned)sn;

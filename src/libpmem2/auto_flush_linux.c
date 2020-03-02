@@ -109,14 +109,10 @@ check_domain_in_region(const char *region_path)
 				reg_entry->level != 1)
 			continue;
 
-		int ret = snprintf(domain_path, PATH_MAX,
-			"%s/"PERSISTENCE_DOMAIN,
-			region_path);
+		int ret = util_snprintf(domain_path, PATH_MAX,
+			"%s/"PERSISTENCE_DOMAIN, region_path);
 		if (ret < 0) {
-			ERR("snprintf(%p, %d,"
-				"%s/"PERSISTENCE_DOMAIN", %s): %d",
-				domain_path, PATH_MAX,
-				region_path, region_path, ret);
+			ERR("!snprintf");
 			cpu_cache = -1;
 			goto end;
 		}
