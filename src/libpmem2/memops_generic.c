@@ -132,8 +132,10 @@ void *
 memmove_nodrain_generic(void *dst, const void *src, size_t len,
 		unsigned flags, flush_func flush)
 {
+	LOG(37, "Generic function: memmove_nodrain_generic");
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", dst, src, len,
 			flags);
+
 	char *cdst = dst;
 	const char *csrc = src;
 	size_t remaining;
@@ -258,6 +260,7 @@ void *
 memset_nodrain_generic(void *dst, int c, size_t len, unsigned flags,
 		flush_func flush)
 {
+	LOG(37, "Generic function: memset_nodrain_generic");
 	LOG(15, "pmemdest %p c 0x%x len %zu flags 0x%x", dst, c, len,
 			flags);
 	(void) flags;

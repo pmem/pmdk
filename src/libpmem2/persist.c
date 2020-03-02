@@ -25,6 +25,7 @@ static void *
 memmove_nodrain_libc(void *pmemdest, const void *src, size_t len,
 		unsigned flags, flush_func flush)
 {
+	LOG(37, "Libc function: memmove_nodrain_libc");
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
 		ERR("invalid flags 0x%x", flags);
@@ -47,6 +48,7 @@ static void *
 memset_nodrain_libc(void *pmemdest, int c, size_t len, unsigned flags,
 		flush_func flush)
 {
+	LOG(37, "Libc function: memset_nodrain_libc");
 #ifdef DEBUG
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
 		ERR("invalid flags 0x%x", flags);
