@@ -39,6 +39,7 @@
 #
 
 . ../unittest/unittest.sh
+. util.sh
 
 require_test_type medium
 require_fs_type non-pmem
@@ -65,11 +66,14 @@ expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
 turn_on_checking_bad_blocks $POOLSET
 
+# The test skips the headers on the fist two pages.
+seek_size=$(($(get_zero_size)*2))
+
 # zero blocks: offset: 16 length: 2000
-zero_blocks $DIR/testfile0 16 2000
+zero_blocks $DIR/testfile0 $seek_size 2000
 
 # create recovery files
-create_recovery_file $DIR/testset1_r0_p0_badblocks.txt 16 2000
+create_recovery_file $DIR/testset1_r0_p0_badblocks.txt $seek_size 2000
 create_recovery_file $DIR/testset1_r0_p1_badblocks.txt
 create_recovery_file $DIR/testset1_r0_p2_badblocks.txt
 create_recovery_file $DIR/testset1_r1_p0_badblocks.txt

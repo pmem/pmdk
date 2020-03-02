@@ -37,11 +37,12 @@
 # replica #0 part #0 & replica #1 part #1: blocks: offset: 8000 length: 1000
 # replica #0 part #1 & replica #1 part #0: blocks: offset: 7992 length: 16
 # replica #0 part #1 & replica #1 part #0: blocks: offset: 8016 8032 8048 8064 8080 length: 8
-# replica #0 part #1 & replica #1 part #0: blocks: offset: 8992 length: 16
+# replica #0 part #1 & replica #1 part #0: blocks: offset: 8112 length: 16
 # replica #2 part #0 & replica #2 part #1: blocks: offset: 7000 9000 length: 32
 #
 
 . ../unittest/unittest.sh
+. util.sh
 
 require_test_type medium
 require_fs_type non-pmem
@@ -74,25 +75,40 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOL
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
+zero_size1=$(get_zero_size)
+zero_size2=$(($zero_size1*2))
+zero_size4=$(($zero_size1*4))
+offset1=$(get_seek_size 8000)
+offset1_1=$(($offset1 + $zero_size1*2))
+offset1_2=$(($offset1_1 + $zero_size1*2))
+offset1_3=$(($offset1_2 + $zero_size1*2))
+offset1_4=$(($offset1_3 + $zero_size1*2))
+offset1_5=$(($offset1_4 + $zero_size1*2))
+offset1_6=$(($offset1 - $zero_size1*2))
+offset1_7=$(($offset1_4 + $zero_size1*4))
+offset2=$(get_seek_size 7000)
+offset3=$(get_seek_size 9000)
+long_zero_size=$(get_seek_size 1000)
+
 # inject errors - zero blocks:
-zero_blocks $DIR/testfile_r0_p0 8000 1000
-zero_blocks $DIR/testfile_r1_p1 8000 1000
+zero_blocks $DIR/testfile_r0_p0 $offset1 $long_zero_size
+zero_blocks $DIR/testfile_r1_p1 $offset1 $long_zero_size
 
-zero_blocks $DIR/testfile_r0_p1 7992 16 8016 8 8032 8 8048 8 8064 8 8080 8 8992 16
-zero_blocks $DIR/testfile_r1_p0 7992 16 8016 8 8032 8 8048 8 8064 8 8080 8 8992 16
+zero_blocks $DIR/testfile_r0_p1 $offset1_6 $zero_size2 $offset1_1 $zero_size1 $offset1_2 $zero_size1 $offset1_3 $zero_size1 $offset1_4 $zero_size1 $offset1_5 $zero_size1 $offset1_7 $zero_size2
+zero_blocks $DIR/testfile_r1_p0 $offset1_6 $zero_size2 $offset1_1 $zero_size1 $offset1_2 $zero_size1 $offset1_3 $zero_size1 $offset1_4 $zero_size1 $offset1_5 $zero_size1 $offset1_7 $zero_size2
 
-zero_blocks $DIR/testfile_r2_p0 7000 32 9000 32
-zero_blocks $DIR/testfile_r2_p1 7000 32 9000 32
+zero_blocks $DIR/testfile_r2_p0 $offset2 $zero_size4 $offset3 $zero_size4
+zero_blocks $DIR/testfile_r2_p1 $offset2 $zero_size4 $offset3 $zero_size4
 
 # create recovery files with bad blocks
-create_recovery_file $DIR/testset1_r0_p0_badblocks.txt 8000 1000
-create_recovery_file $DIR/testset1_r1_p1_badblocks.txt 8000 1000
+create_recovery_file $DIR/testset1_r0_p0_badblocks.txt $offset1 $long_zero_size
+create_recovery_file $DIR/testset1_r1_p1_badblocks.txt $offset1 $long_zero_size
 
-create_recovery_file $DIR/testset1_r0_p1_badblocks.txt 7992 16 8016 8 8032 8 8048 8 8064 8 8080 8 8992 16
-create_recovery_file $DIR/testset1_r1_p0_badblocks.txt 7992 16 8016 8 8032 8 8048 8 8064 8 8080 8 8992 16
+create_recovery_file $DIR/testset1_r0_p1_badblocks.txt $offset1_6 $zero_size2 $offset1_1 $zero_size1 $offset1_2 $zero_size1 $offset1_3 $zero_size1 $offset1_4 $zero_size1 $offset1_5 $zero_size1 $offset1_7 $zero_size2
+create_recovery_file $DIR/testset1_r1_p0_badblocks.txt $offset1_6 $zero_size2 $offset1_1 $zero_size1 $offset1_2 $zero_size1 $offset1_3 $zero_size1 $offset1_4 $zero_size1 $offset1_5 $zero_size1 $offset1_7 $zero_size2
 
-create_recovery_file $DIR/testset1_r2_p0_badblocks.txt 7000 32 9000 32
-create_recovery_file $DIR/testset1_r2_p1_badblocks.txt 7000 32 9000 32
+create_recovery_file $DIR/testset1_r2_p0_badblocks.txt $offset2 $zero_size4 $offset3 $zero_size4
+create_recovery_file $DIR/testset1_r2_p1_badblocks.txt $offset2 $zero_size4 $offset3 $zero_size4
 
 # create recovery files - no bad blocks
 create_recovery_file $DIR/testset1_r0_p2_badblocks.txt

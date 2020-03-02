@@ -41,6 +41,7 @@
 #
 
 . ../unittest/unittest.sh
+. util.sh
 
 require_test_type medium
 require_fs_type non-pmem
@@ -73,28 +74,34 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOL
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
+zero_size1=$(get_zero_size)
+zero_size2=$(($zero_size1*2))
+offset1=$(get_seek_size 1000)
+offset2=$(($offset1 + $zero_size1))
+offset3=$(($offset2 + $zero_size1))
+
 # zero blocks: offset: 1000 length: 16 in the replica #0
-zero_blocks $DIR/testfile2 1000 16
+zero_blocks $DIR/testfile2 $offset1 $zero_size2
 
 # zero blocks: offset: 1008 length: 16 in the replica #1
-zero_blocks $DIR/testfile5 1008 16
+zero_blocks $DIR/testfile5 $offset2 $zero_size2
 
 # zero blocks: offset: 1000 length: 8 in the replica #2
-zero_blocks $DIR/testfile8 1000 8
+zero_blocks $DIR/testfile8 $offset1 $zero_size1
 
 # zero blocks: offset: 1016 length: 8 in the replica #2
-zero_blocks $DIR/testfile8 1016 8
+zero_blocks $DIR/testfile8 $offset3 $zero_size1
 
 # create recovery files - no bad blocks
 create_recovery_file $DIR/testset1_r0_p0_badblocks.txt
 create_recovery_file $DIR/testset1_r0_p1_badblocks.txt
-create_recovery_file $DIR/testset1_r0_p2_badblocks.txt 1000 16
+create_recovery_file $DIR/testset1_r0_p2_badblocks.txt $offset1 $zero_size2
 create_recovery_file $DIR/testset1_r1_p0_badblocks.txt
 create_recovery_file $DIR/testset1_r1_p1_badblocks.txt
-create_recovery_file $DIR/testset1_r1_p2_badblocks.txt 1008 16
+create_recovery_file $DIR/testset1_r1_p2_badblocks.txt $offset2 $zero_size2
 create_recovery_file $DIR/testset1_r2_p0_badblocks.txt
 create_recovery_file $DIR/testset1_r2_p1_badblocks.txt
-create_recovery_file $DIR/testset1_r2_p2_badblocks.txt 1000 8 1016 8
+create_recovery_file $DIR/testset1_r2_p2_badblocks.txt $offset1 $zero_size1 $offset3 $zero_size1
 
 turn_on_checking_bad_blocks $POOLSET
 
