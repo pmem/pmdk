@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 """External tools integration"""
 
@@ -49,6 +49,9 @@ class Tools:
 
     def gran_detecto(self, *args):
         return self._run_test_tool('gran_detecto', *args)
+
+    def cpufd(self):
+        return self._run_test_tool('cpufd')
 
 
 class Ndctl:

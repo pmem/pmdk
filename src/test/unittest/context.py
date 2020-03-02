@@ -113,7 +113,7 @@ class ContextBase:
         """Add environment variables to those stored by context"""
         futils.add_env_common(self._env, env)
 
-    def setup(self, *args, **kwargs):
+    def setup(self, ctx, *args, **kwargs):
         """
         run setup() method for each context element.
         Ignore error if not implemented

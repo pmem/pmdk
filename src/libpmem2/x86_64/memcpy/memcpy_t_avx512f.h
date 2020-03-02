@@ -373,6 +373,8 @@ memmove_mov_avx512f_bw(char *dest, const char *src, size_t len)
 void
 EXPORTED_SYMBOL(char *dest, const char *src, size_t len)
 {
+	LOG(37, "Intrinsic function: memcpy_t_avx512f");
+
 	if ((uintptr_t)dest - (uintptr_t)src >= len)
 		memmove_mov_avx512f_fw(dest, src, len);
 	else

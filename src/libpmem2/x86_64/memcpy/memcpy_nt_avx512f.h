@@ -408,6 +408,8 @@ end:
 void
 EXPORTED_SYMBOL(char *dest, const char *src, size_t len)
 {
+	LOG(37, "Intrinsic function: memcpy_nt_avx512f");
+
 	if ((uintptr_t)dest - (uintptr_t)src >= len)
 		memmove_movnt_avx512f_fw(dest, src, len);
 	else
