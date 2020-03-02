@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 
 """Base tests class and its functionalities"""
 
@@ -93,7 +93,7 @@ class BaseTest(metaclass=_TestCase):
             self.clean()
 
             self.ctx.setup()
-            self.setup()
+            self.setup(c)
 
             start_time = datetime.now()
             self.run(c)
@@ -121,7 +121,7 @@ class BaseTest(metaclass=_TestCase):
             self.ctx.clean()
             self.clean()
 
-    def setup(self):
+    def setup(self, ctx):
         """Test setup - not implemented by BaseTest"""
         pass
 
@@ -199,7 +199,7 @@ class Test(BaseTest):
         for file in log_files:
             os.remove(file)
 
-    def setup(self):
+    def setup(self, ctx):
         """Test setup"""
         self.env = {}
         self.env.update(self._get_utenv())

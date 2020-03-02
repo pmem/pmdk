@@ -83,6 +83,8 @@ memset_mov1x64b(char *dest, __m256i ymm)
 void
 EXPORTED_SYMBOL(char *dest, int c, size_t len)
 {
+	LOG(37, "Intrinsic function: memset_t_avx");
+
 	__m256i ymm = _mm256_set1_epi8((char)c);
 
 	size_t cnt = (uint64_t)dest & 63;
