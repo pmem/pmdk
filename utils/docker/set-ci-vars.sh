@@ -55,9 +55,17 @@ elif [ -n "$GITHUB_ACTIONS" ]; then
 	CI_COMMIT=$GITHUB_SHA
 	CI_COMMIT_RANGE=$COMMIT_RANGE_FROM_LAST_MERGE
 	CI_BRANCH=$(echo $GITHUB_REF | cut -d'/' -f3)
-	CI_EVENT_TYPE=$GITHUB_EVENT_NAME
 	CI_REPO_SLUG=$GITHUB_REPOSITORY
 	CI_CPU_ARCH="x86_64" # GitHub Actions supports only x86_64
+
+	case "$GITHUB_EVENT_NAME" in
+	"schedule")
+		CI_EVENT_TYPE="cron"
+		;;
+	*)
+		CI_EVENT_TYPE=$GITHUB_EVENT_NAME
+		;;
+	esac
 
 else
 	CI_COMMIT=$(git log --pretty=%H -1)
