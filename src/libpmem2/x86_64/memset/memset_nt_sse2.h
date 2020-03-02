@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2020, Intel Corporation */
 
 #include <immintrin.h>
 #include <stddef.h>
@@ -101,6 +101,8 @@ memset_movnt1x4b(char *dest, __m128i xmm)
 void
 EXPORTED_SYMBOL(char *dest, int c, size_t len)
 {
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
 	__m128i xmm = _mm_set1_epi8((char)c);
 
 	size_t cnt = (uint64_t)dest & 63;
