@@ -6,6 +6,7 @@
  */
 
 #include "unittest.h"
+#include "rand.h"
 #include "ut_pmem2_utils.h"
 #include "ut_pmem2_config.h"
 
@@ -194,9 +195,10 @@ test_use_misc_lens_and_offsets(const struct test_case *tc,
 	struct pmem2_map *map = map_valid(cfg, src, len);
 	char *base = pmem2_map_get_address(map);
 
-	unsigned seed = 13; /* arbitrarily chosen value */
+	rng_t rng;
+	randomize_r(&rng, 13); /* arbitrarily chosen value */
 	for (size_t i = 0; i < len; i++)
-		base[i] = os_rand_r(&seed);
+		base[i] = (char)rnd64_r(&rng);
 
 	UT_ASSERTeq(len % Ut_mmap_align, 0);
 	for (size_t l = len; l > 0; l -= Ut_mmap_align) {
