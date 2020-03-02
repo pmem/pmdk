@@ -85,6 +85,7 @@ docker run --privileged=true --name=$containerName -ti \
 	--env VALGRIND=$VALGRIND \
 	--env EXTRA_CFLAGS=$EXTRA_CFLAGS \
 	--env EXTRA_CXXFLAGS=$EXTRA_CXXFLAGS \
+	--env EXTRA_LDFLAGS=$EXTRA_LDFLAGS \
 	--env REMOTE_TESTS=$REMOTE_TESTS \
 	--env CONFIGURE_TESTS=$CONFIGURE_TESTS \
 	--env TEST_BUILD=$TEST_BUILD \
