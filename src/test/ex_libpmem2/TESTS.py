@@ -45,3 +45,14 @@ class TEST2(EX_LIBPMEM2):
                 'appendv', '2', 'End of ', 'file.', 'dump']
 
         ctx.exec(example_path, file_path, *args, stdout_file='out2.log')
+
+
+class TEST3(EX_LIBPMEM2):
+
+    def run(self, ctx):
+        example_path = futils.get_example_path(ctx, 'pmem2', 'redo')
+        file_path = ctx.create_holey_file(self.file_size, 'testfile0')
+        for x in range(1, 100):
+            ctx.exec(example_path, "add", file_path, x, x)
+        ctx.exec(example_path, "check", file_path)
+        ctx.exec(example_path, "print", file_path, stdout_file='out3.log')
