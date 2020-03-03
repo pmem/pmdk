@@ -189,3 +189,44 @@ class TEST25(PMEM2_MAP):
     """
     test_case = "test_map_zero_file_size"
     filesize = 0
+
+
+class TEST26(PMEM2_MAP):
+    """
+    map a file with PMEM2_SHARED sharing, changes in the mapping are visible
+    in another mapping
+    """
+    test_case = "test_map_sharing_shared"
+    with_size = False
+
+
+class TEST27(PMEM2_MAP):
+    """
+    map a file with PMEM2_PRIVATE sharing, changes in the mapping are not
+    visible in another mapping
+    """
+    test_case = "test_map_sharing_private"
+    with_size = False
+
+
+class TEST28(PMEM2_MAP):
+    """
+    map a file with PMEM2_PRIVATE sharing, changes in the mapping are not
+    visible in another mapping, fd is reopened before each mapping
+    """
+    test_case = "test_map_sharing_private_with_reopened_fd"
+    with_size = False
+
+
+class TEST29(PMEM2_MAP):
+    """
+    map O_RDONLY file with PMEM2_PRIVATE sharing
+    """
+    test_case = "test_map_sharing_private_rdonly_file"
+    with_size = False
+
+
+class TEST30(PMEM2_MAP_DEVDAX):
+    """DevDax file with PMEM2_PRIVATE sharing"""
+    test_case = "test_map_sharing_private_devdax"
+    with_size = False

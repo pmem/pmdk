@@ -184,6 +184,40 @@ test_set_offset_max(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_set_sharing_valid - setting valid sharing
+ */
+static int
+test_set_sharing_valid(const struct test_case *tc, int argc, char *argv[])
+{
+	struct pmem2_config cfg;
+	pmem2_config_init(&cfg);
+
+	/* check sharing default value */
+	UT_ASSERTeq(cfg.sharing, PMEM2_SHARED);
+
+	int ret = pmem2_config_set_sharing(&cfg, PMEM2_PRIVATE);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(cfg.sharing, PMEM2_PRIVATE);
+
+	return 0;
+}
+
+/*
+ * test_set_sharing_invalid - setting invalid sharing
+ */
+static int
+test_set_sharing_invalid(const struct test_case *tc, int argc, char *argv[])
+{
+	struct pmem2_config cfg;
+
+	unsigned invalid_sharing = 777;
+	int ret = pmem2_config_set_sharing(&cfg, invalid_sharing);
+	UT_ASSERTeq(ret, PMEM2_E_INVALID_SHARING_VALUE);
+
+	return 0;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -196,6 +230,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_set_offset_success),
 	TEST_CASE(test_set_length_success),
 	TEST_CASE(test_set_offset_max),
+	TEST_CASE(test_set_sharing_valid),
+	TEST_CASE(test_set_sharing_invalid),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
