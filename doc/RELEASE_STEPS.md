@@ -4,6 +4,7 @@ This document contains all the steps required to make a new release of PMDK.
 
 Make a release locally:
 - add an entry to ChangeLog, remember to change the day of the week in the release date
+  - for major releases mention compatibility with the previous release
 - update reference to stable release in README.md (update `git checkout tags/$VERSION-1`)
 - git rm GIT_VERSION
 - echo $VERSION > VERSION
@@ -14,11 +15,13 @@ Make a release locally:
 Make a package:
 - git archive --prefix="pmdk-$VERSION/" -o pmdk-$VERSION.tar.gz $VERSION
 - uncompress the created archive in a new directory and create the final package:
+```
   $ cd pmdk-$VERSION
   $ make doc
   $ touch .skip-doc
   $ cd ..
   $ tar czf pmdk-$VERSION.tar.gz pmdk-$VERSION/ --owner=root --group=root
+```
 - verify the created archive (uncompress & build one last time)
 - gpg --armor --detach-sign pmdk-$VERSION.tar.gz
 
