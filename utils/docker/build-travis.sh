@@ -109,6 +109,7 @@ docker run --rm --privileged=true --name=$containerName -i $TTY \
 	--env FAULT_INJECTION=$FAULT_INJECTION \
 	--env GITHUB_REPO=$GITHUB_REPO \
 	--env CI_RUN=$CI_RUN \
+	--env SRC_CHECKERS=$SRC_CHECKERS \
 	$ndctl_enable \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
