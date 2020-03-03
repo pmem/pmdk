@@ -651,6 +651,203 @@ test_map_zero_file_size(const struct test_case *tc, int argc, char *argv[])
 	return 2;
 }
 
+static void
+do_map_and_copy_data(struct pmem2_config *cfg, struct pmem2_source *src,
+			struct pmem2_map **map, const char *data)
+{
+	int ret = pmem2_map(cfg, src, map);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(*map);
+	void *addr = pmem2_map_get_address(*map);
+	memcpy_fn(addr, data, strlen(data), 0);
+	UT_ASSERTeq(memcmp(addr, data, strlen(data)), 0);
+}
+
+static const char *word1 = "Persistent or nonpersistent: that is the question.";
+static const char *word2 = "Nonpersistent: that is the answer.";
+
+/*
+ * test_map_sharing_shared - map file with the PMEM2_SHARED option and check if
+ * data was written; the file is not reopened
+ */
+static int
+test_map_sharing_shared(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_map_sharing_shared <file>");
+
+	char *file = argv[0];
+
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd;
+
+	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDWR);
+
+	struct pmem2_map *map1 = NULL;
+	do_map_and_copy_data(&cfg, &src, &map1, word1);
+
+	struct pmem2_map *map2 = NULL;
+	do_map_and_copy_data(&cfg, &src, &map2, word2);
+
+	void *addr1 = pmem2_map_get_address(map1);
+	/* check if changes in shared mapping affect other mapping */
+	UT_ASSERTeq(memcmp(addr1, word2, strlen(word2)), 0);
+	UT_ASSERTne(memcmp(addr1, word1, strlen(word1)), 0);
+
+	unmap_map(map2);
+	unmap_map(map1);
+	FREE(map2);
+	FREE(map1);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_map_sharing_private - map file with the PMEM2_PRIVATE option and
+ * check if data wasn't written; the file is not reopen
+ */
+static int
+test_map_sharing_private(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_map_sharing_private <file>");
+
+	char *file = argv[0];
+
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd;
+
+	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDWR);
+
+	struct pmem2_map *map1 = NULL;
+	do_map_and_copy_data(&cfg, &src, &map1, word1);
+
+	struct pmem2_map *map2 = NULL;
+	pmem2_config_set_sharing(&cfg, PMEM2_PRIVATE);
+	do_map_and_copy_data(&cfg, &src, &map2, word2);
+
+	void *addr1 = pmem2_map_get_address(map1);
+	/* check if changes in private mapping do not affect other mapping */
+	UT_ASSERTne(memcmp(addr1, word2, strlen(word2)), 0);
+	UT_ASSERTeq(memcmp(addr1, word1, strlen(word1)), 0);
+
+	unmap_map(map2);
+	unmap_map(map1);
+	FREE(map2);
+	FREE(map1);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_map_sharing_private_with_reopened_fd - map file, with the PMEM2_PRIVATE
+ * option and check if data wasn't written; the file is reopened before every
+ * mapping
+ */
+static int
+test_map_sharing_private_with_reopened_fd(const struct test_case *tc, int argc,
+					char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL(
+		"usage: test_map_sharing_private_with_reopened_fd <file>");
+
+	char *file = argv[0];
+
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd1;
+
+	prepare_config(&cfg, &src, &fd1, file, 0, 0, O_RDWR);
+
+	struct pmem2_map *map1;
+	do_map_and_copy_data(&cfg, &src, &map1, word1);
+	CLOSE(fd1);
+
+	int fd2 = OPEN(file, O_RDWR);
+	prepare_source(&src, fd2);
+	struct pmem2_map *map2;
+	pmem2_config_set_sharing(&cfg, PMEM2_PRIVATE);
+	do_map_and_copy_data(&cfg, &src, &map2, word2);
+	CLOSE(fd2);
+
+	void *addr1 = pmem2_map_get_address(map1);
+	/* check if changes in private mapping do not affect other mapping */
+	UT_ASSERTne(memcmp(addr1, word2, strlen(word2)), 0);
+	UT_ASSERTeq(memcmp(addr1, word1, strlen(word1)), 0);
+
+	unmap_map(map2);
+	unmap_map(map1);
+	FREE(map2);
+	FREE(map1);
+
+	return 1;
+}
+
+/*
+ * test_map_sharing_private_rdonly_file - map O_RDONLY file with
+ * PMEM2_PRIVATE sharing
+ */
+static int
+test_map_sharing_private_rdonly_file(const struct test_case *tc, int argc,
+					char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_map_sharing_private_rdonly_file <file>");
+
+	char *file = argv[0];
+
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd;
+
+	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDONLY);
+	pmem2_config_set_sharing(&cfg, PMEM2_PRIVATE);
+
+	struct pmem2_map *map = NULL;
+	do_map_and_copy_data(&cfg, &src, &map, word2);
+
+	unmap_map(map);
+	FREE(map);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_map_sharing_private_devdax - map DAX device with PMEM2_PRIVATE sharing
+ */
+static int
+test_map_sharing_private_devdax(const struct test_case *tc, int argc,
+					char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_map_sharing_private_devdax <file>");
+
+	char *file = argv[0];
+
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd;
+
+	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDWR);
+	pmem2_config_set_sharing(&cfg, PMEM2_PRIVATE);
+
+	struct pmem2_map *map = NULL;
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_SRC_DEVDAX_PRIVATE);
+	UT_ASSERTeq(map, NULL);
+
+	CLOSE(fd);
+
+	return 1;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -671,7 +868,12 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_map_get_size),
 	TEST_CASE(test_get_granularity_simple),
 	TEST_CASE(test_map_larger_than_unaligned_file_size),
-	TEST_CASE(test_map_zero_file_size)
+	TEST_CASE(test_map_zero_file_size),
+	TEST_CASE(test_map_sharing_shared),
+	TEST_CASE(test_map_sharing_private),
+	TEST_CASE(test_map_sharing_private_with_reopened_fd),
+	TEST_CASE(test_map_sharing_private_rdonly_file),
+	TEST_CASE(test_map_sharing_private_devdax)
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

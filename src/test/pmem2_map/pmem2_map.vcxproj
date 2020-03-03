@@ -100,6 +100,9 @@
     <ClInclude Include="..\..\libpmem2\pmem2_utils.h" />
     <ClInclude Include="..\unittest\ut_pmem2_utils.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="TESTS.py" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

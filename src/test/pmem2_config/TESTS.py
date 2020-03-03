@@ -68,3 +68,13 @@ class TEST7(PMEM2_CONFIG_NO_DIR):
 class TEST8(PMEM2_CONFIG_NO_DIR):
     """setting maximum possible offset"""
     test_case = "test_set_offset_max"
+
+
+class TEST9(PMEM2_CONFIG_NO_DIR):
+    """setting a valid sharing"""
+    test_case = "test_set_sharing_valid"
+
+
+class TEST10(PMEM2_CONFIG_NO_DIR):
+    """setting a invalid sharing"""
+    test_case = "test_set_sharing_invalid"

@@ -499,6 +499,68 @@ test_offset_aligned(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_mem_move_cpy_set_with_map_private -- map O_RDONLY file and do
+ * pmem2_[cpy|set|move]_fns with PMEM2_PRIVATE sharing
+ */
+static int
+test_mem_move_cpy_set_with_map_private(const struct test_case *tc, int argc,
+					char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL(
+			"usage: test_mem_move_cpy_set_with_map_private <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDONLY);
+	const char *word1 = "Persistent memory...";
+	const char *word2 = "Nonpersistent memory";
+	const char *word3 = "XXXXXXXXXXXXXXXXXXXX";
+
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	pmem2_config_set_sharing(cfg, PMEM2_PRIVATE);
+
+	size_t size = 0;
+	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
+	struct pmem2_map *map = map_valid(cfg, src, size);
+
+	char *addr = pmem2_map_get_address(map);
+
+	/* copy inital state */
+	char *initial_state = MALLOC(size);
+	memcpy(initial_state, addr, size);
+
+	pmem2_memmove_fn memmove_fn = pmem2_get_memmove_fn(map);
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
+	pmem2_memset_fn memset_fn = pmem2_get_memset_fn(map);
+
+	memcpy_fn(addr, word1, strlen(word1), 0);
+	UT_ASSERTeq(strcmp(addr, word1), 0);
+
+	memmove_fn(addr, word2, strlen(word2), 0);
+	UT_ASSERTeq(strcmp(addr, word2), 0);
+
+	memset_fn(addr, 'X', strlen(word3), 0);
+	UT_ASSERTeq(strcmp(addr, word3), 0);
+
+	/* remap memory, and check that the data has not been saved */
+	pmem2_unmap(&map);
+	map = map_valid(cfg, src, size);
+	addr = pmem2_map_get_address(map);
+	UT_ASSERTeq(strcmp(addr, initial_state), 0);
+
+	/* cleanup after the test */
+	pmem2_unmap(&map);
+	FREE(initial_state);
+	pmem2_config_delete(&cfg);
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -511,6 +573,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_len_aligned),
 	TEST_CASE(test_offset_not_aligned),
 	TEST_CASE(test_offset_aligned),
+	TEST_CASE(test_mem_move_cpy_set_with_map_private),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

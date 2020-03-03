@@ -9,6 +9,9 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
+    <Filter Include="Test Scripts">
+      <UniqueIdentifier>{4557bbd3-f8c2-4d53-821f-ec79100e2b50}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pmem2_map.c">
@@ -73,5 +76,10 @@
     <ClInclude Include="..\..\libpmem2\pmem2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TESTS.py">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
