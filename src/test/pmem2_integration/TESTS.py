@@ -194,3 +194,11 @@ class TEST20(PMEM2_INTEGRATION):
 class TEST21(PMEM2_INTEGRATION_DEV_DAXES):
     """test unaligned offset"""
     test_case = "test_offset_aligned"
+
+
+class TEST22(PMEM2_INTEGRATION):
+    """
+    map O_RDONLY file and test pmem2_[cpy|set|move]_fns with
+    PMEM2_PRIVATE sharing
+    """
+    test_case = "test_mem_move_cpy_set_with_map_private"
