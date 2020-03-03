@@ -109,6 +109,44 @@ at library initialization time, but read during each **pmem2_map**(3) call.
 This means that **PMEM2_FORCE_GRANULARITY** may still be set or modified
 by the program until the first attempt to map a file.
 
++ **PMEM_NO_CLWB**=1
+
+Setting this environment variable to 1 forces **libpmem2** to never issue
+the **CLWB** instruction on Intel hardware, falling back to other cache
+flush instructions on that hardware instead (**CLFLUSHOPT** or **CLFLUSH**).
+Without this setting, **libpmem2** will always use the **CLWB** instruction
+for flushing processor caches on platforms that support this instruction.
+This variable is intended for use during library testing, but may be required
+for some rare cases when using **CLWB** has a negative impact on performance.
+
++ **PMEM_NO_CLFLUSHOPT**=1
+
+Setting this environment variable to 1 forces **libpmem2** to never issue
+the **CLFLUSHOPT** instruction on Intel hardware, falling back to the
+**CLFLUSH** instructions instead. Without this environment variable,
+**libpmem2** will always use the **CLFLUSHOPT** instruction for flushing
+processor caches on platforms that support the instruction, but where
+**CLWB** is not available. This variable is intended for use during
+library testing.
+
++ **PMEM_NO_MOVNT**=1
+
+Setting this environment variable to 1 forces **libpmem2** to never use
+the *non-temporal* move instructions on Intel hardware. Without this
+environment variable, **libpmem2** will use the non-temporal instructions
+for copying larger ranges to persistent memory on platforms that support
+these instructions. This variable is intended for use during library
+testing.
+
++ **PMEM_MOVNT_THRESHOLD**=*val*
+
+This environment variable allows overriding the minimum length of
+the *pmem2_memmove_fn* operations, for which **libpmem2** uses
+*non-temporal* move instructions. Setting this environment variable to 0
+forces **libpmem2** to always use the *non-temporal* move instructions if
+available. It has no effect if **PMEM_NO_MOVNT** is set to 1.
+This variable is intended for use during library testing.
+
 # DEBUGGING #
 
 Two versions of **libpmem2** are typically available on a development
@@ -166,6 +204,6 @@ by the SNIA NVM Programming Technical Work Group:
 
 **FlushFileBuffers**(), **fsync**(2), **msync**(2),
 **pmem2_config_set_required_store_granularity**(3),
-**pmem2_map_get_store_granularity**(3),
-**libpmem**(7), **libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
+**pmem2_get_memset_fn**(3), **pmem2_map_get_store_granularity**(3),
+**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
 and **<https://pmem.io>**

@@ -17,6 +17,7 @@ date: pmem2 API version 1.0
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
 [ERRORS](#errors)<br />
+[CAVEATS](#caveats)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -59,7 +60,7 @@ The handle has to be created with an access mode of *GENERIC_READ* or
 *(GENERIC_READ | GENERIC_WRITE)*. For details please see the **CreateFile**()
 documentation.
 
-The **pmem2_source_delete**() function frees *\*src* returned by **pmem2_source_from_fd**() or **pmem2_source_from_handle**() and sets *\*src* to NULL.
+The **pmem2_source_delete**() function frees *\*src* returned by **pmem2_source_from_fd**() or **pmem2_source_from_handle**() and sets *\*src* to NULL. If *\*src* is NULL, no operation is performed.
 
 # RETURN VALUE #
 
@@ -93,6 +94,11 @@ The **pmem2_source_from_handle**() can return the following errors:
 The **pmem2_source_from_fd**() and **pmem2_source_from_handle**() functions can
 also return **-ENOMEM** in case of insufficient memory to
 allocate an instance of *struct pmem2_source*.
+
+# CAVEATS #
+
+On non-DAX Windows volumes, *fd*/*handle* must remain open while the mapping
+is in use.
 
 # SEE ALSO #
 **errno**(3), **pmem2_map**(3), **libpmem2**(7)
