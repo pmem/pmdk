@@ -25,6 +25,7 @@ struct pmem2_map {
 	size_t content_length; /* length of the mapped content */
 	/* effective persistence granularity */
 	enum pmem2_granularity effective_granularity;
+	enum pmem2_sharing_type pmem2_sharing; /* kind of mapping visibility */
 
 	pmem2_persist_fn persist_fn;
 	pmem2_flush_fn flush_fn;

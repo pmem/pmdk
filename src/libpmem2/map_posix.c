@@ -196,6 +196,17 @@ file_map(void *reserv, size_t len, int proto, int flags,
 	ASSERTne(map_sync, NULL);
 	ASSERTne(base, NULL);
 
+	if (flags & MAP_PRIVATE) {
+		*base = mmap(reserv, len, proto, flags, fd, offset);
+		if (*base == MAP_FAILED) {
+			ERR("!mmap");
+			return PMEM2_E_ERRNO;
+		}
+		LOG(4, "mmap with MAP_PRIVATE succeeded");
+		*map_sync = false;
+		return 0;
+	}
+
 	/* try to mmap with MAP_SYNC flag */
 	const int sync_flags = MAP_SHARED_VALIDATE | MAP_SYNC;
 	*base = mmap(reserv, len, proto, flags | sync_flags, fd, offset);
@@ -328,6 +339,15 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	}
 	ASSERTne(reserv, NULL);
 
+	if (cfg->sharing == PMEM2_PRIVATE) {
+		if (file_type == PMEM2_FTYPE_DEVDAX) {
+			ERR(
+				"Device DAX does not support mapping with MAP_PRIVATE");
+			return PMEM2_E_SHARING_PRIVATE_NOT_SUPPORTED;
+		}
+		flags |= MAP_PRIVATE;
+	}
+
 	ret = file_map(reserv, content_length, proto, flags, src->fd, off,
 			&map_sync, &addr);
 	if (ret == -EACCES) {
@@ -372,6 +392,7 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	map->reserved_length = reserved_length;
 	map->content_length = content_length;
 	map->effective_granularity = available_min_granularity;
+	map->pmem2_sharing = cfg->sharing;
 	pmem2_set_flush_fns(map);
 	pmem2_set_mem_fns(map);
 
