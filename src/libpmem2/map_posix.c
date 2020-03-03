@@ -196,23 +196,36 @@ file_map(void *reserv, size_t len, int proto, int flags,
 	ASSERTne(map_sync, NULL);
 	ASSERTne(base, NULL);
 
-	/* try to mmap with MAP_SYNC flag */
-	const int sync_flags = MAP_SHARED_VALIDATE | MAP_SYNC;
-	*base = mmap(reserv, len, proto, flags | sync_flags, fd, offset);
-	if (*base != MAP_FAILED) {
-		LOG(4, "mmap with MAP_SYNC succeeded");
-		*map_sync = true;
-		return 0;
-	}
-
-	/* try to mmap with MAP_SHARED flag (without MAP_SYNC) */
-	if (errno == EINVAL || errno == ENOTSUP) {
-		LOG(4, "mmap with MAP_SYNC not supported");
-		*base = mmap(reserv, len, proto, flags | MAP_SHARED, fd,
-				offset);
+	if ((MAP_PRIVATE & flags) != 0) {
+		*base = mmap(reserv, len, proto, flags, fd, offset);
 		if (*base != MAP_FAILED) {
+			LOG(4, "mmap with MAP_PRIVATE succeeded");
 			*map_sync = false;
 			return 0;
+		} else {
+			ERR("!mmap");
+			return PMEM2_E_SHARING_PRIVATE_NOT_SUPPORTED;
+		}
+	} else {
+		/* try to mmap with MAP_SYNC flag */
+		const int sync_flags = MAP_SHARED_VALIDATE | MAP_SYNC;
+		*base = mmap(reserv, len, proto, flags |
+				sync_flags, fd, offset);
+		if (*base != MAP_FAILED) {
+			LOG(4, "mmap with MAP_SYNC succeeded");
+			*map_sync = true;
+			return 0;
+		}
+
+		/* try to mmap with MAP_SHARED flag (without MAP_SYNC) */
+		if (errno == EINVAL || errno == ENOTSUP) {
+			LOG(4, "mmap with MAP_SYNC not supported");
+			*base = mmap(reserv, len, proto, flags | MAP_SHARED, fd,
+					offset);
+			if (*base != MAP_FAILED) {
+				*map_sync = false;
+				return 0;
+			}
 		}
 	}
 
@@ -328,6 +341,9 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	}
 	ASSERTne(reserv, NULL);
 
+	if (cfg->sharing == PMEM2_PRIVATE)
+		flags |= MAP_PRIVATE;
+
 	ret = file_map(reserv, content_length, proto, flags, src->fd, off,
 			&map_sync, &addr);
 	if (ret == -EACCES) {
@@ -372,6 +388,8 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	map->reserved_length = reserved_length;
 	map->content_length = content_length;
 	map->effective_granularity = available_min_granularity;
+	map->pmem2_sharing =
+		(cfg->sharing == PMEM2_PRIVATE) ? PMEM2_PRIVATE : PMEM2_SHARED;
 	pmem2_set_flush_fns(map);
 	pmem2_set_mem_fns(map);
 

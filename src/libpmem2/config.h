@@ -17,11 +17,14 @@ struct pmem2_config {
 	size_t length; /* length of the mapping */
 	/* persistence granularity requested by user */
 	enum pmem2_granularity requested_max_granularity;
+	unsigned sharing; /* the way the file will be mapped */
 };
 
 void pmem2_config_init(struct pmem2_config *cfg);
 
 int pmem2_config_validate_length(const struct pmem2_config *cfg,
 		size_t file_len, size_t alignment);
+
+int pmem2_config_set_sharing(struct pmem2_config *cfg, unsigned type);
 
 #endif /* PMEM2_CONFIG_H */
