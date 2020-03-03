@@ -21,11 +21,12 @@ env:
     - PMDK_CXX=g++
     - REMOTE_TESTS=1
     - VALGRIND=1
+    - SRC_CHECKERS=0
   matrix:
     - COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug
 #    - FAULT_INJECTION=1 TEST_BUILD=debug
 #    - FAULT_INJECTION=1 TEST_BUILD=nondebug
-#    - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
+#    - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug SRC_CHECKERS=1
 #    - PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug
 #    - OS=fedora OS_VER=31 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug
 #    - OS=fedora OS_VER=31 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1
