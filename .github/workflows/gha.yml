@@ -71,7 +71,7 @@ jobs:
 
        - name: Various debug checks (cstyle, whitespace etc.)
          run: |
-           if ("${{ matrix.CONFIG }}" -eq "Debug")
+           if ("${{ matrix.CONFIG }}" -eq "Release")
            {
               Install-Module PsScriptAnalyzer -Force
               utils/CSTYLE.ps1
