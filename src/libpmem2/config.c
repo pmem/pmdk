@@ -22,6 +22,7 @@ pmem2_config_init(struct pmem2_config *cfg)
 	cfg->offset = 0;
 	cfg->length = 0;
 	cfg->requested_max_granularity = PMEM2_GRANULARITY_INVALID;
+	cfg->sharing = PMEM2_SHARED;
 }
 
 /*
@@ -141,6 +142,22 @@ pmem2_config_validate_length(const struct pmem2_config *cfg,
 		ERR("mapping larger than file size");
 		return PMEM2_E_MAP_RANGE;
 	}
+
+	return 0;
+}
+
+/*
+ * pmem2_config_set_sharing -- set the way pmem2_map will map the file
+ */
+int
+pmem2_config_set_sharing(struct pmem2_config *cfg, unsigned type)
+{
+	if (type != PMEM2_SHARED && type != PMEM2_PRIVATE) {
+		ERR("unknown sharing value %d", type);
+		return PMEM2_E_INVALID_SHARING_VALUE;
+	}
+
+	cfg->sharing = (type == PMEM2_SHARED) ? PMEM2_SHARED : PMEM2_PRIVATE;
 
 	return 0;
 }

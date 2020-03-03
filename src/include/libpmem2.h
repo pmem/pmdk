@@ -54,6 +54,9 @@ extern "C" {
 #define PMEM2_E_MAPPING_NOT_FOUND		(-100016)
 #define PMEM2_E_BUFFER_TOO_SMALL		(-100017)
 #define PMEM2_E_SOURCE_EMPTY			(-100018)
+#define PMEM2_E_INVALID_SHARING_VALUE		(-100019)
+#define PMEM2_E_SHARING_PRIVATE_NOT_SUPPORTED	(-100020)
+#define PMEM2_E_ACCESS				(-100021)
 
 /* source setup */
 
@@ -118,10 +121,13 @@ int pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset);
 
 int pmem2_config_set_length(struct pmem2_config *cfg, size_t length);
 
-#define PMEM2_SHARED	0 /* default */
-#define PMEM2_PRIVATE	1
+enum pmem2_sharing_type {
+	PMEM2_SHARED,
+	PMEM2_PRIVATE,
+};
 
-int pmem2_config_set_sharing(struct pmem2_config *cfg, unsigned type);
+int pmem2_config_set_sharing(struct pmem2_config *cfg,
+				enum pmem2_sharing_type type);
 
 #define PMEM2_PROT_FROM_FD	0 /* default */
 #define PMEM2_PROT_EXEC		(1U << 29)

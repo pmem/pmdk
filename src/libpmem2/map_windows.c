@@ -165,6 +165,16 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 		return pmem2_lasterror_to_err();
 	}
+	if (cfg->sharing == PMEM2_PRIVATE) {
+		if ((access & (PAGE_READONLY | PAGE_EXECUTE_READ |
+				PAGE_WRITECOPY | PAGE_EXECUTE_WRITECOPY |
+				PAGE_READWRITE | PAGE_EXECUTE_READWRITE))
+				== 0) {
+			ERR("no access to the file");
+			return PMEM2_E_ACCESS;
+		}
+		access = FILE_MAP_COPY;
+	}
 
 	/* obtain a pointer to the mapping view */
 	void *base = MapViewOfFileEx(mh,
@@ -226,6 +236,8 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	map->content_length = length;
 	map->effective_granularity = available_min_granularity;
 	map->handle = src->handle;
+	map->pmem2_sharing =
+		(cfg->sharing == PMEM2_PRIVATE) ? PMEM2_PRIVATE : PMEM2_SHARED;
 	pmem2_set_flush_fns(map);
 	pmem2_set_mem_fns(map);
 
