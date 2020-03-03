@@ -40,6 +40,7 @@ The **pmem2_config_new**() function instantiates a new (opaque) configuration st
 New configuration is always initialized with default values for all possible parameters, which are specified alongside the corresponding setter function.
 
 The **pmem2_config_delete**() function frees *\*cfg* returned by **pmem2_config_new**() and sets *\*cfg* to NULL.
+If *\*cfg* is NULL, no operation is performed.
 
 # RETURN VALUE #
 
