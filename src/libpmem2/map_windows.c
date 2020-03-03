@@ -166,6 +166,9 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 		return pmem2_lasterror_to_err();
 	}
 
+	if (cfg->sharing == PMEM2_PRIVATE)
+		access = FILE_MAP_COPY;
+
 	/* obtain a pointer to the mapping view */
 	void *base = MapViewOfFileEx(mh,
 		access,

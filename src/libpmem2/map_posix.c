@@ -196,6 +196,21 @@ file_map(void *reserv, size_t len, int proto, int flags,
 	ASSERTne(map_sync, NULL);
 	ASSERTne(base, NULL);
 
+	/*
+	 * MAP_PRIVATE and MAP_SHARED are mutually exclusive, therefore mmap
+	 * with MAP_PRIVATE is executed separately.
+	 */
+	if (flags & MAP_PRIVATE) {
+		*base = mmap(reserv, len, proto, flags, fd, offset);
+		if (*base == MAP_FAILED) {
+			ERR("!mmap");
+			return PMEM2_E_ERRNO;
+		}
+		LOG(4, "mmap with MAP_PRIVATE succeeded");
+		*map_sync = false;
+		return 0;
+	}
+
 	/* try to mmap with MAP_SYNC flag */
 	const int sync_flags = MAP_SHARED_VALIDATE | MAP_SYNC;
 	*base = mmap(reserv, len, proto, flags | sync_flags, fd, offset);
@@ -305,6 +320,11 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 	ASSERT(file_type == PMEM2_FTYPE_REG || file_type == PMEM2_FTYPE_DEVDAX);
 
+	if (cfg->sharing == PMEM2_PRIVATE && file_type == PMEM2_FTYPE_DEVDAX) {
+		ERR("device DAX does not support mapping with MAP_PRIVATE");
+		return PMEM2_E_SRC_DEVDAX_PRIVATE;
+	}
+
 	size_t content_length, reserved_length = 0;
 	ret = pmem2_config_validate_length(cfg, file_len, src_alignment);
 	if (ret)
@@ -327,6 +347,10 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 		return ret;
 	}
 	ASSERTne(reserv, NULL);
+
+	if (cfg->sharing == PMEM2_PRIVATE) {
+		flags |= MAP_PRIVATE;
+	}
 
 	ret = file_map(reserv, content_length, proto, flags, src->fd, off,
 			&map_sync, &addr);

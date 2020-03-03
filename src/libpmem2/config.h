@@ -17,6 +17,7 @@ struct pmem2_config {
 	size_t length; /* length of the mapping */
 	/* persistence granularity requested by user */
 	enum pmem2_granularity requested_max_granularity;
+	enum pmem2_sharing_type sharing; /* the way the file will be mapped */
 };
 
 void pmem2_config_init(struct pmem2_config *cfg);
