@@ -290,6 +290,10 @@ pmem2_drain_nop(void)
 void
 pmem2_set_flush_fns(struct pmem2_map *map)
 {
+	/* PMEM2_PRIVATE sharing does not require flush data */
+	if (map->pmem2_sharing == PMEM2_PRIVATE)
+		map->effective_granularity = PMEM2_GRANULARITY_BYTE;
+
 	switch (map->effective_granularity) {
 		case PMEM2_GRANULARITY_PAGE:
 			map->persist_fn = pmem2_persist_pages;
@@ -461,6 +465,10 @@ pmem2_memset_eadr(void *pmemdest, int c, size_t len, unsigned flags)
 void
 pmem2_set_mem_fns(struct pmem2_map *map)
 {
+	/* PMEM2_PRIVATE sharing does not require flush data */
+	if (map->pmem2_sharing == PMEM2_PRIVATE)
+		map->effective_granularity = PMEM2_GRANULARITY_BYTE;
+
 	switch (map->effective_granularity) {
 		case PMEM2_GRANULARITY_PAGE:
 			map->memmove_fn = pmem2_memmove_nonpmem;
