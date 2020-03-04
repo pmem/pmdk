@@ -19,7 +19,7 @@ matrix:
 
 before_build:
 - ps: >-
-    if ($Env:CONFIGURATION -eq "Debug") {
+    if ($Env:CONFIGURATION -eq "Release") {
         utils/CSTYLE.ps1
         if ($LASTEXITCODE -ne 0) {
                 exit 1

@@ -21,11 +21,12 @@ jobs:
       MAKE_PKG:       0
       REMOTE_TESTS:   1
       VALGRIND:       1
+      SRC_CHECKERS:   0
     strategy:
       matrix:
         CONFIG: ["N=1 OS=ubuntu OS_VER=19.10 FAULT_INJECTION=1 TEST_BUILD=debug",
                  "N=2 OS=ubuntu OS_VER=19.10 FAULT_INJECTION=1 TEST_BUILD=nondebug UBSAN=1",
-                 "N=3 OS=ubuntu OS_VER=19.10 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug",
+                 "N=3 OS=ubuntu OS_VER=19.10 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug SRC_CHECKERS=1",
                  "N=4 OS=ubuntu OS_VER=19.10 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug",
                  "N=5 OS=fedora OS_VER=31    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=debug",
                  "N=6 OS=fedora OS_VER=31    PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug AUTO_DOC_UPDATE=1",
@@ -71,7 +72,7 @@ jobs:
 
        - name: Various debug checks (cstyle, whitespace etc.)
          run: |
-           if ("${{ matrix.CONFIG }}" -eq "Debug")
+           if ("${{ matrix.CONFIG }}" -eq "Release")
            {
               Install-Module PsScriptAnalyzer -Force
               utils/CSTYLE.ps1
