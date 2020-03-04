@@ -92,9 +92,12 @@ parse_force_granularity()
  * get_min_granularity -- checks min available granularity
  */
 enum pmem2_granularity
-get_min_granularity(bool eADR, bool is_pmem)
+get_min_granularity(bool eADR, bool is_pmem, enum pmem2_sharing_type sharing)
 {
 	enum pmem2_granularity force = parse_force_granularity();
+	/* PMEM2_PRIVATE sharing does not require data flushing */
+	if (sharing == PMEM2_PRIVATE)
+		return PMEM2_GRANULARITY_BYTE;
 	if (force != PMEM2_GRANULARITY_INVALID)
 		return force;
 	if (!is_pmem)
