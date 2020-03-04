@@ -8,6 +8,17 @@
 
 set -e
 
+if [[ "$CI_REPO_SLUG" != "$GITHUB_REPO" \
+   && ( "$COVERITY_SCAN_NOTIFICATION_EMAIL" == "" \
+     || "$COVERITY_SCAN_TOKEN" == "" ) ]]; then
+	echo
+	echo "Skipping Coverity build:"\
+		"COVERITY_SCAN_TOKEN=\"$COVERITY_SCAN_TOKEN\" or"\
+		"COVERITY_SCAN_NOTIFICATION_EMAIL="\
+		"\"$COVERITY_SCAN_NOTIFICATION_EMAIL\" is not set"
+	exit 0
+fi
+
 # Prepare build environment
 ./prepare-for-build.sh
 
