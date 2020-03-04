@@ -48,16 +48,19 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)\test\pmem2_movnt_align;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>$(SolutionDir)\test\pmem2_movnt_align;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\pmem2_movnt_align\movnt_align_common.c" />
     <ClCompile Include="pmem_movnt_align.c" />
   </ItemGroup>
   <ItemGroup>
@@ -70,6 +73,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\pmem2_movnt_align\movnt_align_common.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\test\pmem_memcpy\pmem_memcpy.c" />
+    <ClCompile Include="..\pmem2_memcpy\memcpy_common.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1" />
@@ -26,6 +27,9 @@
     <ProjectReference Include="..\unittest\libut.vcxproj">
       <Project>{ce3f2dfb-8470-4802-ad37-21caf6cb2681}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\pmem2_memcpy\memcpy_common.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{673277EC-D26B-414D-92E3-84EE873316A8}</ProjectGuid>
@@ -63,10 +67,16 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile />
     <Link />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\test\pmem2_memcpy;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile />
     <Link />
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\test\pmem2_memcpy;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

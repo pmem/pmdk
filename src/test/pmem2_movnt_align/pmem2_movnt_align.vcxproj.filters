@@ -6,27 +6,34 @@
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Test Scripts">
-      <UniqueIdentifier>{2d237952-c50b-4d8c-a83f-e28a96d88887}</UniqueIdentifier>
+      <UniqueIdentifier>{84215fd4-bb77-4e9b-b9b6-38ad838e1cfe}</UniqueIdentifier>
+      <Extensions>PS1</Extensions>
     </Filter>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{2057683c-c33b-4646-acd8-996cbc0b26bb}</UniqueIdentifier>
+      <UniqueIdentifier>{b9326830-dcd8-4ffd-9ea1-e509e63067e8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pmem_memmove.c">
+    <ClCompile Include="pmem2_movnt_align.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\pmem2_memmove\memmove_common.c">
+    <ClCompile Include="..\unittest\ut_pmem2_config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="movnt_align_common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TEST0.PS1">
+    <None Include="TESTS.py">
       <Filter>Test Scripts</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\pmem2_memmove\memmove_common.h">
+    <ClInclude Include="movnt_align_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,130 +1,92 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2020, Intel Corporation */
 
 /*
- * pmem_movnt_align.c -- unit test for functions with non-temporal stores
+ * pmem2_movnt_align.c -- test for functions with non-temporal stores
  *
- * usage: pmem_movnt_align [C|F|B|S]
+ * usage: pmem2_movnt_align file [C|F|B|S]
  *
- * C - pmem_memcpy_persist()
- * B - pmem_memmove_persist() in backward direction
- * F - pmem_memmove_persist() in forward direction
- * S - pmem_memset_persist()
+ * C - pmem2_memcpy()
+ * B - pmem2_memmove() in backward direction
+ * F - pmem2_memmove() in forward direction
+ * S - pmem2_memset()
  */
 
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
-#include "libpmem.h"
+#include "libpmem2.h"
 #include "unittest.h"
 #include "movnt_align_common.h"
+#include "ut_pmem2_utils.h"
+#include "ut_pmem2_config.h"
 
-#define N_BYTES (Ut_pagesize * 2)
-
-static int Heavy;
-
-static void *
-pmem_memcpy_persist_wrapper(void *pmemdest, const void *src, size_t len,
-		unsigned flags)
-{
-	(void) flags;
-	return pmem_memcpy_persist(pmemdest, src, len);
-}
-
-static void *
-pmem_memcpy_nodrain_wrapper(void *pmemdest, const void *src, size_t len,
-		unsigned flags)
-{
-	(void) flags;
-	return pmem_memcpy_nodrain(pmemdest, src, len);
-}
-
-static void *
-pmem_memmove_persist_wrapper(void *pmemdest, const void *src, size_t len,
-		unsigned flags)
-{
-	(void) flags;
-	return pmem_memmove_persist(pmemdest, src, len);
-}
-
-static void *
-pmem_memmove_nodrain_wrapper(void *pmemdest, const void *src, size_t len,
-		unsigned flags)
-{
-	(void) flags;
-	return pmem_memmove_nodrain(pmemdest, src, len);
-}
-
-static void *
-pmem_memset_persist_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
-{
-	(void) flags;
-	return pmem_memset_persist(pmemdest, c, len);
-}
-
-static void *
-pmem_memset_nodrain_wrapper(void *pmemdest, int c, size_t len, unsigned flags)
-{
-	(void) flags;
-	return pmem_memset_nodrain(pmemdest, c, len);
-}
+static pmem2_memset_fn memset_fn;
+static pmem2_memcpy_fn memcpy_fn;
+static pmem2_memmove_fn memmove_fn;
 
 static void
 check_memmove_variants(size_t doff, size_t soff, size_t len)
 {
-	check_memmove(doff, soff, len, pmem_memmove_persist_wrapper, 0);
-	if (!Heavy)
-		return;
-
-	check_memmove(doff, soff, len, pmem_memmove_nodrain_wrapper, 0);
-
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i)
-		check_memmove(doff, soff, len, pmem_memmove, Flags[i]);
+		check_memmove(doff, soff, len, memmove_fn, Flags[i]);
 }
 
 static void
 check_memcpy_variants(size_t doff, size_t soff, size_t len)
 {
-	check_memcpy(doff, soff, len, pmem_memcpy_persist_wrapper, 0);
-	if (!Heavy)
-		return;
-
-	check_memcpy(doff, soff, len, pmem_memcpy_nodrain_wrapper, 0);
-
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i)
-		check_memcpy(doff, soff, len, pmem_memcpy, Flags[i]);
+		check_memcpy(doff, soff, len, memcpy_fn, Flags[i]);
 }
 
 static void
 check_memset_variants(size_t off, size_t len)
 {
-	check_memset(off, len, pmem_memset_persist_wrapper, 0);
-	if (!Heavy)
-		return;
-
-	check_memset(off, len, pmem_memset_nodrain_wrapper, 0);
-
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i)
-		check_memset(off, len, pmem_memset, Flags[i]);
+		check_memset(off, len, memset_fn, Flags[i]);
 }
 
 int
 main(int argc, char *argv[])
 {
 	if (argc != 3)
-		UT_FATAL("usage: %s type heavy=[0|1]", argv[0]);
+		UT_FATAL("usage: %s file type", argv[0]);
 
-	char type = argv[1][0];
-	Heavy = argv[2][0] == '1';
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	struct pmem2_map *map;
+	int fd;
+
+	char type = argv[2][0];
 	const char *thr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	const char *avx = os_getenv("PMEM_AVX");
 	const char *avx512f = os_getenv("PMEM_AVX512F");
 
-	START(argc, argv, "pmem_movnt_align %c %s %savx %savx512f", type,
+	START(argc, argv, "pmem2_movnt_align %c %s %savx %savx512f", type,
 			thr ? thr : "default",
 			avx ? "" : "!",
 			avx512f ? "" : "!");
+
+	fd = OPEN(argv[1], O_RDWR);
+
+	PMEM2_CONFIG_NEW(&cfg);
+	PMEM2_SOURCE_FROM_FD(&src, fd);
+	PMEM2_CONFIG_SET_GRANULARITY(cfg, PMEM2_GRANULARITY_PAGE);
+
+	int ret = pmem2_map(cfg, src, &map);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	PMEM2_CONFIG_DELETE(&cfg);
+
+	memset_fn = pmem2_get_memset_fn(map);
+	memcpy_fn = pmem2_get_memcpy_fn(map);
+	memmove_fn = pmem2_get_memmove_fn(map);
+
+	ret = pmem2_unmap(&map);
+	UT_ASSERTeq(ret, 0);
+
+	CLOSE(fd);
 
 	size_t page_size = Ut_pagesize;
 	size_t s;

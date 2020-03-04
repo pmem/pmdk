@@ -5,17 +5,19 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Match Files">
-      <UniqueIdentifier>{7a6b85bc-f5c3-446a-92b8-0ec5a354d90a}</UniqueIdentifier>
-      <Extensions>match</Extensions>
-    </Filter>
     <Filter Include="Test Scripts">
       <UniqueIdentifier>{84215fd4-bb77-4e9b-b9b6-38ad838e1cfe}</UniqueIdentifier>
       <Extensions>PS1</Extensions>
     </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{c938d730-8c66-4d94-ae37-6a5ce463e749}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pmem_movnt_align.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\pmem2_movnt_align\movnt_align_common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -23,5 +25,10 @@
     <None Include="TEST0.PS1">
       <Filter>Test Scripts</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\pmem2_movnt_align\movnt_align_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
