@@ -175,6 +175,14 @@ pmem2_persist_cpu_cache(const void *addr, size_t len)
 }
 
 /*
+ * pmem2_persist_noop -- do not persist any changes, it is using only when
+ * a file is mapped with PMEM2_PRIVATE option
+ */
+static void
+pmem2_persist_noop(const void *addr, size_t len)
+{};
+
+/*
  * pmem2_flush_file_buffers -- flush CPU and OS caches for the given range
  */
 static int
@@ -319,7 +327,8 @@ pmem2_set_flush_fns(struct pmem2_map *map)
 pmem2_persist_fn
 pmem2_get_persist_fn(struct pmem2_map *map)
 {
-	return map->persist_fn;
+	return (map->pmem2_sharing == PMEM2_PRIVATE)
+		? pmem2_persist_noop : map->persist_fn;
 }
 
 /*
