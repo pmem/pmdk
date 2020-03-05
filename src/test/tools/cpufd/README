@@ -1,0 +1,16 @@
+Persistent Memory Development Kit
+
+This is src/test/tools/cpufd/README.
+
+This directory contains a simple application for cpu feature detection.
+The application checks if platform support SSE2, AVX or AVX512.
+
+It's used as a helper program by some tests.
+
+Usage:
+	$ cpufd
+
+Return values:
+	1 - SSE2 available
+	2 - AVX available
+	3 - AVX512 available
