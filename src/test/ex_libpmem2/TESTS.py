@@ -1,33 +1,30 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 from os import path
-from pathlib import Path
-import futils
+from sys import platform
 
+import futils
 import testframework as t
 
 
 @t.require_build(['debug', 'release'])
 class EX_LIBPMEM2(t.Test):
     test_type = t.Medium
+    file_size = 1 * t.MiB
 
     offset = str(97 * t.KiB)
     length = str(65 * t.KiB)
-
-    def get_path(self, ctx, file_name):
-        path = futils.get_examples_dir(ctx)
-        filepath = ctx.create_non_zero_file(1 * t.MiB,
-                                            Path(ctx.testdir, file_name))
-        return path, filepath
 
 
 @t.windows_exclude
 class TEST0(EX_LIBPMEM2):
 
     def run(self, ctx):
-        test_path, file_path = self.get_path(ctx, 'testfile0')
+        test_path = futils.get_examples_dir(ctx)
+        file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
+
         ctx.exec(path.join(test_path, 'libpmem2', 'basic'), file_path)
 
 
@@ -35,7 +32,9 @@ class TEST0(EX_LIBPMEM2):
 class TEST1(EX_LIBPMEM2):
 
     def run(self, ctx):
-        test_path, file_path = self.get_path(ctx, 'testfile1')
+        test_path = futils.get_examples_dir(ctx)
+        file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
+
         ctx.exec(path.join(test_path, 'ex_pmem2_basic'), file_path)
 
 
@@ -43,7 +42,9 @@ class TEST1(EX_LIBPMEM2):
 class TEST2(EX_LIBPMEM2):
 
     def run(self, ctx):
-        test_path, file_path = self.get_path(ctx, 'testfile2')
+        test_path = futils.get_examples_dir(ctx)
+        file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
+
         ctx.exec(path.join(test_path, 'libpmem2', 'advanced'),
                  file_path, self.offset, self.length)
 
@@ -52,6 +53,27 @@ class TEST2(EX_LIBPMEM2):
 class TEST3(EX_LIBPMEM2):
 
     def run(self, ctx):
-        test_path, file_path = self.get_path(ctx, 'testfile3')
+        test_path = futils.get_examples_dir(ctx)
+        file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
+
         ctx.exec(path.join(test_path, 'ex_pmem2_advanced'),
                  file_path, self.offset, self.length)
+
+
+class TEST4(EX_LIBPMEM2):
+    file_size = 16 * t.MiB
+
+    def run(self, ctx):
+        test_path = futils.get_examples_dir(ctx)
+        file_path = ctx.create_holey_file(self.file_size, 'testfile0')
+
+        if platform == 'win32':
+            binary_path = path.join(test_path, 'ex_pmem2_log')
+        else:
+            binary_path = path.join(test_path, 'libpmem2', 'log')
+
+        args = ['appendv', '4', 'PMDK ', 'is ', 'the best ', 'open source ',
+                'append', 'project in the world.', 'dump', 'rewind', 'dump',
+                'appendv', '2', 'End of ', 'file.', 'dump']
+
+        ctx.exec(binary_path, file_path, *args, stdout_file='out4.log')

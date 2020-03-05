@@ -39,6 +39,7 @@ def expand(*classes):
 
 class ContextBase:
     """Context basic interface and low-level utilities"""
+
     def __init__(self, build, *args, **kwargs):
         self._elems = []
         self._env = {}
@@ -231,7 +232,8 @@ class Context(ContextBase):
     def new_poolset(self, path):
         return _Poolset(path, self)
 
-    def exec(self, cmd, *args, expected_exitcode=0, stderr_file=None):
+    def exec(self, cmd, *args, expected_exitcode=0, stderr_file=None,
+             stdout_file=None):
         """Execute binary in current test context"""
 
         tmp = self._env.copy()
@@ -265,12 +267,12 @@ class Context(ContextBase):
 
             # let's create a dictionary of arguments to the run func
             run_kwargs = {
-              'env': tmp,
-              'cwd': self.cwd,
-              'timeout': self.conf.timeout,
-              'stdout': sp.PIPE,
-              'universal_newlines': True,
-              'stderr': sp.STDOUT if stderr_file is None else f}
+                'env': tmp,
+                'cwd': self.cwd,
+                'timeout': self.conf.timeout,
+                'stdout': sp.PIPE,
+                'universal_newlines': True,
+                'stderr': sp.STDOUT if stderr_file is None else f}
 
             proc = sp.run(cmd, **run_kwargs)
 
@@ -280,6 +282,10 @@ class Context(ContextBase):
         if expected_exitcode is not None and \
            proc.returncode != expected_exitcode:
             futils.fail(proc.stdout, exit_code=proc.returncode)
+
+        if stdout_file is not None:
+            with open(os.path.join(self.cwd, stdout_file), 'w') as f:
+                f.write(proc.stdout)
 
         self.msg.print_verbose(proc.stdout)
 
@@ -463,6 +469,7 @@ class _NoContext(collections.UserList):
     its items are not required during test execution
     (e. g. no dax devices required by test)
     """
+
     def __init__(self):
         self.data = []
         self.data.append(False)
