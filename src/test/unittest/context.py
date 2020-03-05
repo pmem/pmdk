@@ -10,6 +10,7 @@ import itertools
 import shutil
 import subprocess as sp
 import collections
+import contextlib
 
 import configurator
 import futils
@@ -118,10 +119,8 @@ class ContextBase:
         """
         kwargs['tools'] = self.tools
         for e in self._elems:
-            try:
+            with contextlib.suppress(AttributeError):
                 e.setup(*args, **kwargs)
-            except AttributeError:
-                pass
 
     def check(self, *args, **kwargs):
         """
@@ -130,10 +129,8 @@ class ContextBase:
         """
         kwargs['tools'] = self.tools
         for e in self._elems:
-            try:
+            with contextlib.suppress(AttributeError):
                 e.check(*args, **kwargs)
-            except AttributeError:
-                pass
 
     def clean(self, *args, **kwargs):
         """
@@ -142,10 +139,8 @@ class ContextBase:
         """
         kwargs['tools'] = self.tools
         for e in self._elems:
-            try:
+            with contextlib.suppress(AttributeError):
                 e.clean(*args, **kwargs)
-            except AttributeError:
-                pass
 
     @property
     def env(self):
