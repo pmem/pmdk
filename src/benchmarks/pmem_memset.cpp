@@ -95,7 +95,8 @@ init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 		return -1;
 	}
 
-	unsigned seed = mb->pargs->seed;
+	rng_t rng;
+	randomize_r(&rng, mb->pargs->seed);
 
 	for (unsigned i = 0; i < n_threads; i++) {
 		for (size_t j = 0; j < n_ops; j++) {
@@ -108,8 +109,7 @@ init_offsets(struct benchmark_args *args, struct memset_bench *mb,
 					o = i * n_ops + j;
 					break;
 				case OP_MODE_RAND:
-					o = i * n_ops +
-						os_rand_r(&seed) % n_ops;
+					o = i * n_ops + rnd64_r(&rng) % n_ops;
 					break;
 				default:
 					assert(0);

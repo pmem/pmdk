@@ -17,6 +17,7 @@
 #include "libpmemlog.h"
 #include "os.h"
 #include "poolset_util.hpp"
+#include "rand.h"
 
 /*
  * Size of pool header, pool descriptor
@@ -42,7 +43,7 @@ struct prog_args {
  * thread_info - thread specific data
  */
 struct log_worker_info {
-	unsigned seed;
+	rng_t rng;
 	struct iovec *iov; /* io vector */
 	char *buf;	 /* buffer for write/read operations */
 	size_t buf_size;   /* buffer size */
@@ -336,7 +337,7 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 	if (lb->args->rand) {
 		/* each thread has random seed */
-		worker_info->seed = (unsigned)os_rand_r(&lb->seed);
+		randomize_r(&worker_info->rng, (unsigned)os_rand_r(&lb->seed));
 
 		/* each vector element has its own random size */
 		size_t n_sizes = args->n_ops_per_thread * lb->args->vec_size;
@@ -350,12 +351,9 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 
 		/* generate append sizes */
 		for (size_t i = 0; i < n_sizes; i++) {
-			auto hr = (uint32_t)os_rand_r(&worker_info->seed);
-			auto lr = (uint32_t)os_rand_r(&worker_info->seed);
-			uint64_t r64 = (uint64_t)hr << 32 | lr;
 			size_t width = lb->args->el_size - lb->args->min_size;
-			worker_info->rand_sizes[i] =
-				r64 % width + lb->args->min_size;
+			worker_info->rand_sizes[i] = rnd64_r(&worker_info->rng)
+				% width + lb->args->min_size;
 		}
 	} else {
 		worker_info->rand_sizes = nullptr;
