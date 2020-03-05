@@ -73,13 +73,13 @@ base_dir=utils/docker/$images_dir_name
 # Check if committed file modifications require the Docker image to be rebuilt
 for file in $files; do
 	# Check if modified files are relevant to the current build
-	if [[ $file =~ ^($base_dir)\/Dockerfile\.($OS)-($OS_VER)$ ]] \
+	if [[ $file =~ ^($base_dir)\/Dockerfile\.($OS)-($OS_VER)-($CI_CPU_ARCH)$ ]] \
 		|| [[ $file =~ ^($base_dir)\/.*\.sh$ ]]
 	then
 		# Rebuild Docker image for the current OS version
-		echo "Rebuilding the Docker image for the Dockerfile.$OS-$OS_VER"
+		echo "Rebuilding the Docker image for the Dockerfile.$OS-$OS_VER-${CI_CPU_ARCH}"
 		pushd $images_dir_name
-		./build-image.sh ${OS}-${OS_VER}
+		./build-image.sh ${OS}-${OS_VER}-${CI_CPU_ARCH}
 		popd
 
 		# Check if the image has to be pushed to Docker Hub
@@ -109,4 +109,4 @@ done
 
 # Getting here means rebuilding the Docker image is not required.
 # Pull the image from Docker Hub.
-docker pull ${DOCKERHUB_REPO}:1.9-${OS}-${OS_VER}
+docker pull ${DOCKERHUB_REPO}:1.9-${OS}-${OS_VER}-${CI_CPU_ARCH}
