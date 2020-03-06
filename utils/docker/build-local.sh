@@ -51,7 +51,7 @@ if [[ "$KEEP_CONTAINER" != "1" ]]; then
 	RM_SETTING=" --rm"
 fi
 
-imageName=${DOCKERHUB_REPO}:1.9-${OS}-${OS_VER}
+imageName=${DOCKERHUB_REPO}:1.9-${OS}-${OS_VER}-${CI_CPU_ARCH}
 containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 1 ]] ; then
