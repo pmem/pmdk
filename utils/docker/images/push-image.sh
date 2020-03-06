@@ -24,12 +24,17 @@ if [[ -z "$OS_VER" ]]; then
 	exit 1
 fi
 
+if [[ -z "$CI_CPU_ARCH" ]]; then
+	echo "CI_CPU_ARCH environment variable is not set"
+	exit 1
+fi
+
 if [[ -z "${DOCKERHUB_REPO}" ]]; then
 	echo "DOCKERHUB_REPO environment variable is not set"
 	exit 1
 fi
 
-TAG="1.9-${OS}-${OS_VER}"
+TAG="1.9-${OS}-${OS_VER}-${CI_CPU_ARCH}"
 
 # Check if the image tagged with pmdk/OS-VER exists locally
 if [[ ! $(docker images -a | awk -v pattern="^${DOCKERHUB_REPO}:${TAG}\$" \
