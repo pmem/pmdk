@@ -244,6 +244,7 @@ class Test(BaseTest):
         super().__init__()
         self.config = Configurator().config
         self.msg = futils.Message(self.config.unittest_log_level)
+        self.log_files = {}
 
     def _get_utenv(self):
         """Get environment variables values used by C test framework"""
@@ -252,6 +253,22 @@ class Test(BaseTest):
             'UNITTEST_LOG_LEVEL': str(self.config.unittest_log_level),
             'UNITTEST_NUM': str(self.testnum)
         }
+
+    def _debug_log_env(self):
+        """
+        Return environment variables that enable logging PMDK debug output
+        into log files
+        """
+        libs = ('pmem', 'pmem2', 'pmemobj', 'pmemblk', 'pmemlog', 'pmempool')
+
+        envs = {}
+        for l in libs:
+            envs['{}_LOG_LEVEL'.format(l.upper())] = '3'
+            log_file = os.path.join(self.cwd,
+                                    '{}_{}.log'.format(l, self.testnum))
+            envs['{}_LOG_FILE'.format(l.upper())] = log_file
+            self.log_files[l] = log_file
+        return envs
 
     def get_log_files(self):
         """
@@ -288,6 +305,7 @@ class Test(BaseTest):
         """Test setup"""
         self.env = {}
         self.env.update(self._get_utenv())
+        self.env.update(self._debug_log_env())
         self.ctx.add_env(self.env)
 
         self.remove_log_files()
