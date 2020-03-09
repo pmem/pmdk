@@ -168,6 +168,22 @@ class Test(BaseTest):
             'UNITTEST_NUM': str(self.testnum)
         }
 
+    def _debug_log_env(self):
+        """
+        Return environment variables that enable logging PMDK debug output
+        into log files
+        """
+        libs = ('pmem', 'pmem2', 'pmemobj', 'pmemblk', 'pmemlog', 'pmempool')
+
+        envs = {}
+        for l in libs:
+            envs['{}_LOG_LEVEL'.format(l.upper())] = '3'
+            log_file = os.path.join(self.cwd,
+                                    '{}{}.log'.format(l, self.testnum))
+            envs['{}_LOG_FILE'.format(l.upper())] = log_file
+
+        return envs
+
     def get_log_files(self):
         """
         Returns names of all log files for given test
@@ -203,6 +219,7 @@ class Test(BaseTest):
         """Test setup"""
         self.env = {}
         self.env.update(self._get_utenv())
+        self.env.update(self._debug_log_env())
         self.ctx.add_env(self.env)
 
         self.remove_log_files()
