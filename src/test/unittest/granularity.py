@@ -176,9 +176,9 @@ _PAGE_OR_LESS = 'page_or_less'
 
 @unique
 class _Granularity(Enum):
-    PAGE = [Page, ]
-    CACHELINE = [CacheLine, ]
-    BYTE = [Byte, ]
+    PAGE = Page
+    CACHELINE = CacheLine
+    BYTE = Byte
     CL_OR_LESS = _CACHELINE_OR_LESS
     PAGE_OR_LESS = _PAGE_OR_LESS
     ANY = ctx.Any
@@ -192,13 +192,16 @@ PAGE_OR_LESS = _Granularity.PAGE_OR_LESS
 ANY = _Granularity.ANY
 
 
-def require_granularity(granularity, **kwargs):
-    if not isinstance(granularity, _Granularity):
-        raise ValueError('selected granularity {} is invalid'
-                         .format(granularity))
+def require_granularity(*granularity, **kwargs):
+    for g in granularity:
+        if not isinstance(g, _Granularity):
+            raise ValueError('selected granularity {} is invalid'
+                             .format(g))
+
+    enum_values = [g.value for g in granularity]
 
     def wrapped(tc):
-        ctx.add_requirement(tc, 'granularity', granularity.value, **kwargs)
+        ctx.add_requirement(tc, 'granularity', enum_values, **kwargs)
         return tc
     return wrapped
 
