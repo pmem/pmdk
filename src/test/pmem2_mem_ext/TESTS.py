@@ -8,7 +8,6 @@ from testframework import granularity as g
 from testframework import tools
 from testframework import futils
 
-import os
 import sys
 
 
@@ -107,10 +106,10 @@ class Pmem2MemExt(t.Test):
     # to value bigger than 256.
     data_size = 128
 
-    pmem2_log = ""
     oper = ("C", "M", "S")
 
     def setup(self, ctx):
+        super().setup(ctx)
         ret = tools.Tools(ctx.env, ctx.build).cpufd()
         self.check_arch(ctx.variant(), ret.returncode)
 
@@ -131,7 +130,7 @@ class Pmem2MemExt(t.Test):
             raise futils.Skip("SKIP: AVX unavailable")
 
     def check_log(self, ctx, match, type, flag):
-        with open(os.path.join(self.cwd, self.pmem2_log), 'r') as f:
+        with open(self.log_files['pmem2'], 'r') as f:
             str_val = f.read()
 
             # count function match, only one log should occurr at the time
@@ -179,11 +178,6 @@ class Pmem2MemExt(t.Test):
         return match
 
     def run(self, ctx):
-        self.pmem2_log = 'pmem2_' + str(self.testnum) + '.log'
-
-        # XXX: add support in the python framework
-        # enable pmem2 low level logging
-        ctx.env['PMEM2_LOG_FILE'] = self.pmem2_log
         ctx.env['PMEM2_LOG_LEVEL'] = '15'
 
         if ctx.wc_workaround() == 'on':
