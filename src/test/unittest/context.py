@@ -11,6 +11,7 @@ import shutil
 import subprocess as sp
 import collections
 import contextlib
+from inspect import ismethod
 
 import configurator
 import futils
@@ -55,7 +56,7 @@ class ContextBase:
         # context attribute with its key assigned as an attribute name.
         for k, v in kwargs.items():
             self.add_ctx_elem(v)
-            setattr(self, '{}'.format(k), v)
+            setattr(self, str(k), v)
 
     def __getattr__(self, name):
         """
@@ -98,7 +99,10 @@ class ContextBase:
         with element's environment variables (if present)
         """
         self._elems.append(elem)
-        setattr(self, str(elem), elem)
+        if hasattr(elem, 'name'):
+            setattr(self, elem.name, elem)
+        else:
+            setattr(self, str(elem), elem)
 
         if hasattr(elem, 'env'):
             self.add_env(elem.env)
@@ -437,6 +441,72 @@ def get_requirement(tc, attr, default):
         pass
 
     return ret_val, ret_kwargs
+
+
+class TestParam:
+    """
+    TestParam manages single test parameter provided to test with add_params()
+    decorator.
+    Test parameters are added to context class as its elements - therefore the
+    'value' object may implement setup(), check() and clean() which will be
+    delegated to by TestParam class if context setup(), check() and
+    clean() methods are called.
+    """
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def __str__(self):
+        return '{}: {}'.format(self.name, self.value)
+
+    def __call__(self):
+        return self.value
+
+    def setup(self, **kwargs):
+        if hasattr(self.value, 'setup') and ismethod(self.value.setup):
+            self.value.setup(**kwargs)
+
+    def check(self, **kwargs):
+        if hasattr(self.value, 'check') and ismethod(self.value.check):
+            self.value.check(**kwargs)
+
+    def clean(self, **kwargs):
+        if hasattr(self.value, 'clean') and ismethod(self.value.clean):
+            self.value.clean(**kwargs)
+
+
+PARAMS_ATTR = '_params_'
+
+
+def add_params(name, values):
+    """
+    Add parameters to test case.
+
+    Parameters will be accessible from test through context 'name' attribute.
+    The value of single parameter can be accessed by calling this attribute,
+    e.g. for:
+    add_params('param', params_list)
+    single parameter provided within 'params_list' is accessible through:
+    ctx.param()
+    """
+    params = [TestParam(name, v) for v in values]
+
+    def wrapped(tc):
+        if hasattr(tc, PARAMS_ATTR):
+            getattr(tc, PARAMS_ATTR).update({name: params})
+        else:
+            setattr(tc, PARAMS_ATTR, {name: params})
+        return tc
+
+    return wrapped
+
+
+def get_params(tc):
+    """Get parameters added to test case"""
+    try:
+        return getattr(tc, PARAMS_ATTR)
+    except AttributeError:
+        return {}
 
 
 class Any:
