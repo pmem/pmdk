@@ -6,7 +6,7 @@
 # pmempool_sync/TEST32 -- test for sync command
 #                         with bad blocks recovery files
 #                         and one bad block:
-#                         - offset: 16 length: 2000
+#                         - offset: 2 length: 250
 #                         in the 1st part
 #
 
@@ -37,11 +37,11 @@ expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
 turn_on_checking_bad_blocks $POOLSET
 
-# zero blocks: offset: 16 length: 2000
-zero_blocks $DIR/testfile0 16 2000
+# zero blocks: offset: 2 length: 250
+zero_blocks $DIR/testfile0 2 250
 
 # create recovery files
-create_recovery_file $DIR/testset1_r0_p0_badblocks.txt 16 2000
+create_recovery_file $DIR/testset1_r0_p0_badblocks.txt 2 250
 create_recovery_file $DIR/testset1_r0_p1_badblocks.txt
 create_recovery_file $DIR/testset1_r0_p2_badblocks.txt
 create_recovery_file $DIR/testset1_r1_p0_badblocks.txt

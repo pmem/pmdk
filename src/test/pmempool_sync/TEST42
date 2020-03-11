@@ -5,8 +5,8 @@
 #
 # pmempool_sync/TEST42 -- test for sync command with badblocks
 #                         - non-overlapping bad blocks in two replicas
-#                           replica #0: blocks: offset: 1000 length: 8
-#                           replica #1: blocks: offset: 1008 length: 8
+#                           replica #0: blocks: offset: 125 length: 1
+#                           replica #1: blocks: offset: 126 length: 1
 #
 
 . ../unittest/unittest.sh
@@ -38,21 +38,21 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOL
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
-# zero blocks: offset: 1000 length: 8 in the replica #0
-zero_blocks $DIR/testfile1 1000 8
+# zero blocks: offset: 125 length: 1 in the replica #0
+zero_blocks $DIR/testfile1 125 1
 
-# zero blocks: offset: 1008 length: 8 in the replica #1
-zero_blocks $DIR/testfile4 1008 8
+# zero blocks: offset: 126 length: 1 in the replica #1
+zero_blocks $DIR/testfile4 126 1
 
 # fail because of bad blocks
 expect_abnormal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX v &>> $LOG"
 
 # create recovery files
 create_recovery_file $DIR/testset1_r0_p0_badblocks.txt
-create_recovery_file $DIR/testset1_r0_p1_badblocks.txt 1000 8
+create_recovery_file $DIR/testset1_r0_p1_badblocks.txt 125 1
 create_recovery_file $DIR/testset1_r0_p2_badblocks.txt
 create_recovery_file $DIR/testset1_r1_p0_badblocks.txt
-create_recovery_file $DIR/testset1_r1_p1_badblocks.txt 1008 8
+create_recovery_file $DIR/testset1_r1_p1_badblocks.txt 126 1
 create_recovery_file $DIR/testset1_r1_p2_badblocks.txt
 
 # fix bad blocks
