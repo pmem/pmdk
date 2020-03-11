@@ -180,7 +180,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log_pool", "test\log_pool\l
 		{CE3F2DFB-8470-4802-AD37-21CAF6CB2681} = {CE3F2DFB-8470-4802-AD37-21CAF6CB2681}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log", "examples\libpmem2\log.vcxproj", "{3EC20BDD-2E48-4291-A9EE-D0675AF77C7F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log", "examples\libpmem2\log\log.vcxproj", "{3EC20BDD-2E48-4291-A9EE-D0675AF77C7F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sparsefile", "test\tools\sparsefile\sparsefile.vcxproj", "{3EC30D6A-BDA4-4971-879A-8814204EAE31}"
 EndProject
@@ -556,7 +556,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_ctl_alloc_class_config"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "addlog", "examples\libpmemlog\logfile\addlog.vcxproj", "{A7CA7975-CEDB-48E6-9AEB-1209DCBD07F2}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic", "examples\libpmem2\basic.vcxproj", "{A9ADD224-1755-407F-906D-C13EC37FF7B0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic", "examples\libpmem2\basic\basic.vcxproj", "{A9ADD224-1755-407F-906D-C13EC37FF7B0}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_include", "test\obj_include\obj_include.vcxproj", "{AB15A115-E429-4123-BEBF-206FBA4CF615}"
 EndProject
@@ -699,7 +699,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmalloc_rand_mt", "test
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tools_pmemobjcli", "test\pmemobjcli\pmemobjcli.vcxproj", "{D28F5FF6-8401-4E0D-94F9-3A1FD7ED64E3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "advanced", "examples\libpmem2\advanced.vcxproj", "{D2964B88-EB05-4EBF-ACDA-44596FBFECB6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "advanced", "examples\libpmem2\advanced\advanced.vcxproj", "{D2964B88-EB05-4EBF-ACDA-44596FBFECB6}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmemobjcli", "test\tools\pmemobjcli\pmemobjcli.vcxproj", "{D2C30C7E-A7D3-487A-956E-418CECAFFE8E}"
 EndProject

@@ -59,7 +59,7 @@ def get_example_path(ctx, libname, name):
     Paths to examples differ on Windows and Unix systems. On Windows,
     the example binaries have a specific name: ex_libname_name.
     On Unix systems, the example binaries are located in the catalog
-    "lib + libname" and have the same name as .c file.
+    "lib + libname/name" and have the same name as .c file.
     """
     if sys.platform == 'win32':
         binname = '_'.join(['ex', libname, name])
@@ -68,7 +68,8 @@ def get_example_path(ctx, libname, name):
         else:
             return abspath(join(WIN_RELEASE_BUILDDIR, 'examples', binname))
     else:
-        return abspath(join(ROOTDIR, '..', 'examples', 'lib' + libname, name))
+        return abspath(join(ROOTDIR, '..', 'examples', 'lib' + libname,
+                            name, name))
 
 
 def tail(file, n):
@@ -134,6 +135,7 @@ def fail(msg, exit_code=None):
 
 class Skip(Exception):
     """Thrown when test should be skipped"""
+
     def __init__(self, msg):
         super().__init__(msg)
         config = configurator.Configurator().config
