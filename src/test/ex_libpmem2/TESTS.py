@@ -25,7 +25,7 @@ class TEST0(EX_LIBPMEM2):
         test_path = futils.get_examples_dir(ctx)
         file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
 
-        ctx.exec(path.join(test_path, 'libpmem2', 'basic'), file_path)
+        ctx.exec(path.join(test_path, 'libpmem2', 'basic', 'basic'), file_path)
 
 
 @t.windows_only
@@ -45,7 +45,7 @@ class TEST2(EX_LIBPMEM2):
         test_path = futils.get_examples_dir(ctx)
         file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
 
-        ctx.exec(path.join(test_path, 'libpmem2', 'advanced'),
+        ctx.exec(path.join(test_path, 'libpmem2', 'advanced', 'advanced'),
                  file_path, self.offset, self.length)
 
 
@@ -70,7 +70,7 @@ class TEST4(EX_LIBPMEM2):
         if platform == 'win32':
             binary_path = path.join(test_path, 'ex_pmem2_log')
         else:
-            binary_path = path.join(test_path, 'libpmem2', 'log')
+            binary_path = path.join(test_path, 'libpmem2', 'log', 'log')
 
         args = ['appendv', '4', 'PMDK ', 'is ', 'the best ', 'open source ',
                 'append', 'project in the world.', 'dump', 'rewind', 'dump',
