@@ -67,9 +67,6 @@ int pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle);
 
 int pmem2_source_size(const struct pmem2_source *src, size_t *size);
 
-/* XXX compatibility, remove later */
-#define pmem2_source_file_size pmem2_source_size
-
 int pmem2_source_alignment(const struct pmem2_source *src,
 		size_t *alignment);
 
