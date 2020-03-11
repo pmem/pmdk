@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2020, Intel Corporation
 
 #
 # src/test/tools/Makefile -- build unit test helpers
@@ -26,6 +26,11 @@ DIRS = \
        obj_verify\
        usc_permission_check\
        anonymous_mmap
+
+ifeq ($(ARCH), x86_64)
+DIRS += \
+	cpufd
+endif
 
 REMOTE_TOOLS = \
 	ctrld\
