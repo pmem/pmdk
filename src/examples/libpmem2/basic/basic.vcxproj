@@ -13,6 +13,11 @@
   <ItemGroup>
     <ClCompile Include="basic.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\libpmem2\libpmem2.vcxproj">
+      <Project>{f596c36c-5c96-4f08-b420-8908af500954}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A9ADD224-1755-407F-906D-C13EC37FF7B0}</ProjectGuid>
     <RootNamespace>pmem2</RootNamespace>
@@ -31,23 +36,18 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="..\Examples_$(Configuration).props" />
+    <Import Project="..\..\Examples_$(Configuration).props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="..\Examples_$(Configuration).props" />
+    <Import Project="..\..\Examples_$(Configuration).props" />
   </ImportGroup>
   <ItemDefinitionGroup>
     <Manifest>
-      <AdditionalManifestFiles>..\..\LongPath.manifest</AdditionalManifestFiles>
+      <AdditionalManifestFiles>..\..\..\LongPath.manifest</AdditionalManifestFiles>
     </Manifest>
     <Link>
       <AdditionalDependencies>libpmem2.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\libpmem2\libpmem2.vcxproj" Condition="'$(SolutionName)'=='PMDK'">
-      <Project>{9e9e3d25-2139-4a5d-9200-18148ddead45}</Project>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

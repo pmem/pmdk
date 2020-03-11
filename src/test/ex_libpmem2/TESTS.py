@@ -18,7 +18,7 @@ class EX_LIBPMEM2(t.Test):
 class TEST0(EX_LIBPMEM2):
 
     def run(self, ctx):
-        example_path = futils.get_example_path(ctx, 'pmem2', 'basic')
+        example_path = futils.get_example_path(ctx, 'pmem2', 'basic', 'basic')
         file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
 
         ctx.exec(example_path, file_path)
@@ -27,7 +27,8 @@ class TEST0(EX_LIBPMEM2):
 class TEST1(EX_LIBPMEM2):
 
     def run(self, ctx):
-        example_path = futils.get_example_path(ctx, 'pmem2', 'advanced')
+        example_path = futils.get_example_path(
+            ctx, 'pmem2', 'advanced', 'advanced')
         file_path = ctx.create_non_zero_file(self.file_size, 'testfile0')
 
         ctx.exec(example_path, file_path, self.offset, self.length)
@@ -37,7 +38,7 @@ class TEST2(EX_LIBPMEM2):
     file_size = 16 * t.MiB
 
     def run(self, ctx):
-        example_path = futils.get_example_path(ctx, 'pmem2', 'log')
+        example_path = futils.get_example_path(ctx, 'pmem2', 'log', 'log')
         file_path = ctx.create_holey_file(self.file_size, 'testfile0')
 
         args = ['appendv', '4', 'PMDK ', 'is ', 'the best ', 'open source ',
