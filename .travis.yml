@@ -1,7 +1,8 @@
-dist: trusty
-# use temporarily the previous version of Trusty image
-# until Travis fixes issue with mounting permissions
-group: deprecated-2017Q2
+os: linux
+dist: bionic
+arch:
+  - ppc64le
+  - amd64
 
 sudo: required
 
@@ -22,6 +23,7 @@ env:
     - REMOTE_TESTS=1
     - VALGRIND=1
     - SRC_CHECKERS=0
+    - EXPERIMENTAL=n
   matrix:
     - COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug
 #    - FAULT_INJECTION=1 TEST_BUILD=debug
@@ -34,6 +36,17 @@ env:
 #    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 PUSH_IMAGE=1 OS=fedora OS_VER=31
 #    - MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PMDK_CC=clang PMDK_CXX=clang++
 #    - COVERITY=1
+
+# Jobs which are explicitly included inherit the first value of the expansion
+# keys defined. In this case the only expansion key with more than one entry is
+# the `arch:` key, and that is why ppc64le is first, to save some space here
+# and not have to define `arch:` for each entry.
+matrix:
+  include:
+    - env: FAULT_INJECTION=1 TEST_BUILD=debug PUSH_IMAGE=1
+    - env: OS=fedora OS_VER=31 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug PUSH_IMAGE=1
+    - env: MAKE_PKG=1 REMOTE_TESTS=0 VALGRIND=0
+    - env: MAKE_PKG=1 REMOTE_TESTS=0 VALGRIND=0 OS=fedora OS_VER=31
 
 before_install:
   - echo $TRAVIS_COMMIT_RANGE

@@ -36,7 +36,8 @@ echo "==== build ndctl packages ===="
 rpmbuild -ba $SPEC
 
 echo "==== install ndctl packages ===="
-rpm -i $RPMDIR/RPMS/x86_64/*.rpm
+RPM_ARCH=$(uname -m)
+rpm -i $RPMDIR/RPMS/$RPM_ARCH/*.rpm
 
 echo "==== cleanup ===="
 rm -rf $RPMDIR

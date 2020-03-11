@@ -74,8 +74,15 @@ echo Building ${OS}-${OS_VER}
 # Run a container with
 #  - environment variables set (--env)
 #  - host directory containing PMDK source mounted (-v)
+#  - a tmpfs /tmp with the necessary size and permissions (--tmpfs)*
 #  - working directory set (-w)
-docker run --privileged=true --name=$containerName -ti \
+#
+# * We need a tmpfs /tmp inside docker but we cannot run it with --privileged
+#   and do it from inside, so we do using this docker-run option.
+#   By default --tmpfs add nosuid,nodev,noexec to the mount flags, we don't
+#   want that and just to make sure we add the usually default rw,relatime just
+#   in case docker change the defaults.
+docker run --name=$containerName -ti \
 	$RM_SETTING \
 	$DNS_SETTING \
 	--env http_proxy=$http_proxy \
@@ -94,7 +101,9 @@ docker run --privileged=true --name=$containerName -ti \
 	--env SCRIPTSDIR=$SCRIPTSDIR \
 	--env KEEP_TEST_CONFIG=$KEEP_TEST_CONFIG \
 	--env CI_RUN=$CI_RUN \
+	--env BLACKLIST_FILE=$BLACKLIST_FILE \
 	$ndctl_enable \
+	--tmpfs /tmp:rw,relatime,suid,dev,exec,size=6G \
 	-v $HOST_WORKDIR:$WORKDIR \
 	-v /etc/localtime:/etc/localtime \
 	$DAX_SETTING \

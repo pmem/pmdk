@@ -19,7 +19,7 @@ git tag -a 1.4.99 -m "1.4" HEAD~1 || true
 
 # Build all and run tests
 cd $WORKDIR
-export PCHECK_OPTS=-j2
+export PCHECK_OPTS="-j2 BLACKLIST_FILE=${BLACKLIST_FILE}"
 make -j$(nproc) $PACKAGE_MANAGER
 
 # Install packages
@@ -27,7 +27,8 @@ if [[ "$PACKAGE_MANAGER" == "dpkg" ]]; then
 	cd $PACKAGE_MANAGER
 	echo $USERPASS | sudo -S dpkg --install *.deb
 else
-	cd $PACKAGE_MANAGER/x86_64
+	RPM_ARCH=$(uname -m)
+	cd $PACKAGE_MANAGER/$RPM_ARCH
 	echo $USERPASS | sudo -S rpm --install *.rpm
 fi
 
