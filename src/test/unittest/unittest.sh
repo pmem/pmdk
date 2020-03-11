@@ -3714,6 +3714,8 @@ function require_badblock_tests_enabled_node() {
 #
 # Usage: create_recovery_file <file> [<offset_1> <length_1> ...]
 #
+# Offsets and length should be in page sizes.
+#
 function create_recovery_file() {
 	[ $# -lt 1 ] && fatal "create_recovery_file(): not enough parameters: $*"
 
@@ -3721,9 +3723,11 @@ function create_recovery_file() {
 	shift
 	rm -f $FILE
 
+	local page_size=$(getconf PAGESIZE)
 	while [ $# -ge 2 ]; do
-		OFFSET=$1
-		LENGTH=$2
+		# Convert the offset and length in blocks of 512
+		OFFSET=$(($1*$page_size/512))
+		LENGTH=$(($2*$page_size/512))
 		shift 2
 		echo "$(($OFFSET * 512)) $(($LENGTH * 512))" >> $FILE
 	done
@@ -3737,15 +3741,19 @@ function create_recovery_file() {
 #
 # Usage: zero_blocks <file> <offset> <length>
 #
+# Offsets and length should be in page sizes.
+#
 function zero_blocks() {
 	[ $# -lt 3 ] && fatal "zero_blocks(): not enough parameters: $*"
 
 	FILE=$1
 	shift
 
+	local page_size=$(getconf PAGESIZE)
 	while [ $# -ge 2 ]; do
-		OFFSET=$1
-		LENGTH=$2
+		# Convert the offset and length in blocks of 512
+		OFFSET=$(($1*$page_size/512))
+		LENGTH=$(($2*$page_size/512))
 		shift 2
 		dd if=/dev/zero of=$FILE bs=512 seek=$OFFSET count=$LENGTH conv=notrunc status=none
 	done
