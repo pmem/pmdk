@@ -6,13 +6,15 @@
 # pmempool_sync/TEST44 -- test for sync command with badblocks
 #                         - overlapping but fixable bad blocks
 #                           in the 1st part of three replicas:
-#                           replica #0: blocks: offset: 8000 length: 16
-#                           replica #1: blocks: offset: 8008 length: 16
-#                           replica #2: blocks: offset: 8000 length: 8
-#                                               offset: 8016 length: 8
+#                           replica #0: blocks: offset: 1000 length: 2
+#                           replica #1: blocks: offset: 1001 length: 2
+#                           replica #2: blocks: offset: 1000 length: 1
+#                                               offset: 1016 length: 1
 #
 
 . ../unittest/unittest.sh
+
+. setup.sh
 
 require_test_type medium
 require_fs_type non-pmem
@@ -28,43 +30,43 @@ rm -rf $LOG && touch $LOG
 
 POOLSET=$DIR/testset1
 create_poolset $POOLSET \
-	8M:$DIR/testfile0:z \
-	8M:$DIR/testfile1:z \
-	8M:$DIR/testfile2:z \
+	${PARTSIZE}M:$DIR/testfile0:z \
+	${PARTSIZE}M:$DIR/testfile1:z \
+	${PARTSIZE}M:$DIR/testfile2:z \
 	R \
-	8M:$DIR/testfile3:z \
-	8M:$DIR/testfile4:z \
-	8M:$DIR/testfile5:z \
+	${PARTSIZE}M:$DIR/testfile3:z \
+	${PARTSIZE}M:$DIR/testfile4:z \
+	${PARTSIZE}M:$DIR/testfile5:z \
 	R \
-	8M:$DIR/testfile6:z \
-	8M:$DIR/testfile7:z \
-	8M:$DIR/testfile8:z
+	${PARTSIZE}M:$DIR/testfile6:z \
+	${PARTSIZE}M:$DIR/testfile7:z \
+	${PARTSIZE}M:$DIR/testfile8:z
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
 
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
-# zero blocks: offset: 8000 length: 16 in the replica #0
-zero_blocks $DIR/testfile0 8000 16
+# zero blocks: offset: 1000 length: 2 in the replica #0
+zero_blocks $DIR/testfile0 1000 2
 
-# zero blocks: offset: 8008 length: 16 in the replica #1
-zero_blocks $DIR/testfile3 8008 16
+# zero blocks: offset: 1001 length: 2 in the replica #1
+zero_blocks $DIR/testfile3 1001 2
 
-# zero blocks: offset: 8000 length: 8 in the replica #2
-zero_blocks $DIR/testfile6 8000 8
+# zero blocks: offset: 1000 length: 1 in the replica #2
+zero_blocks $DIR/testfile6 1000 1
 
-# zero blocks: offset: 8016 length: 8 in the replica #2
-zero_blocks $DIR/testfile6 8016 8
+# zero blocks: offset: 1002 length: 1 in the replica #2
+zero_blocks $DIR/testfile6 1002 1
 
 # create recovery files
-create_recovery_file $DIR/testset1_r0_p0_badblocks.txt 8000 16
+create_recovery_file $DIR/testset1_r0_p0_badblocks.txt 1000 2
 create_recovery_file $DIR/testset1_r0_p1_badblocks.txt
 create_recovery_file $DIR/testset1_r0_p2_badblocks.txt
-create_recovery_file $DIR/testset1_r1_p0_badblocks.txt 8008 16
+create_recovery_file $DIR/testset1_r1_p0_badblocks.txt 1001 2
 create_recovery_file $DIR/testset1_r1_p1_badblocks.txt
 create_recovery_file $DIR/testset1_r1_p2_badblocks.txt
-create_recovery_file $DIR/testset1_r2_p0_badblocks.txt 8000 8 8016 8
+create_recovery_file $DIR/testset1_r2_p0_badblocks.txt 1000 1 1002 1
 create_recovery_file $DIR/testset1_r2_p1_badblocks.txt
 create_recovery_file $DIR/testset1_r2_p2_badblocks.txt
 
