@@ -36,7 +36,7 @@ jobs:
                 "N=10 OS=ubuntu OS_VER=19.10 COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug"]
     steps:
        - name: Clone the git repo
-         uses: actions/checkout@v1
+         uses: actions/checkout@v2
 
        - name: Pull or rebuild the image
          run: cd $WORKDIR && ${{ matrix.CONFIG }} ./pull-or-rebuild-image.sh
