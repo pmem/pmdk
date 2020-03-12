@@ -1,4 +1,5 @@
 libpmem2.7
+libpmem2_unsafe_shutdown.7
 pmem2_badblock_context_new.3
 pmem2_badblock_next.3
 pmem2_badblock_clear.3
@@ -25,6 +26,8 @@ pmem2_source_alignment.3
 pmem2_source_from_fd.3
 pmem2_source_from_anon.3
 pmem2_source_size.3
+pmem2_source_device_id.3
+pmem2_source_device_usc.3
 pmem2_unmap.3
 pmem2_perror.3
 pmem2_vm_reservation_new.3
