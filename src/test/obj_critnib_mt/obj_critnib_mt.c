@@ -84,12 +84,12 @@ thread_read1024(void *arg)
 static void *
 thread_write1024(void *arg)
 {
-	rng_t seed;
-	randomize_r(&seed, (uintptr_t)arg);
+	rng_t rng;
+	randomize_r(&rng, (uintptr_t)arg);
 	uint64_t w1024[1024];
 
 	for (int i = 0; i < ARRAY_SIZE(w1024); i++)
-		w1024[i] = rnd_thid_r64(&seed, (uint16_t)(uintptr_t)arg);
+		w1024[i] = rnd_thid_r64(&rng, (uint16_t)(uintptr_t)arg);
 
 	uint64_t niter = helgrind_count(NITER_SLOW);
 
@@ -106,12 +106,12 @@ thread_write1024(void *arg)
 static void *
 thread_read_write_remove(void *arg)
 {
-	rng_t seed;
-	randomize_r(&seed, (uintptr_t)arg);
+	rng_t rng;
+	randomize_r(&rng, (uintptr_t)arg);
 	uint64_t niter = helgrind_count(NITER_SLOW);
 
 	for (uint64_t count = 0; count < niter; count++) {
-		uint64_t r, v = rnd_thid_r64(&seed, (uint16_t)(uintptr_t)arg);
+		uint64_t r, v = rnd_thid_r64(&rng, (uint16_t)(uintptr_t)arg);
 		critnib_insert(c, v, (void *)v);
 		r = (uint64_t)critnib_get(c, v);
 		UT_ASSERTeq(r, v);
