@@ -92,7 +92,7 @@ MANPAGES_3_DUMMY_EXP =
 MANPAGES_1_DUMMY_EXP =
 
 # libpmem2
-MANPAGES_7_MD_PMEM2 = libpmem2/libpmem2.7.md
+MANPAGES_7_MD_PMEM2 = libpmem2/libpmem2.7.md libpmem2/libpmem2_unsafe_shutdown.7.md
 MANPAGES_5_MD_PMEM2 =
 MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.md libpmem2/pmem2_map.3.md \
 		libpmem2/pmem2_unmap.3.md libpmem2/pmem2_map_get_address.3.md libpmem2/pmem2_map_get_size.3.md \
@@ -102,7 +102,8 @@ MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.m
 		libpmem2/pmem2_map_get_store_granularity.3.md libpmem2/pmem2_get_flush_fn.3.md \
 		libpmem2/pmem2_get_drain_fn.3.md libpmem2/pmem2_get_persist_fn.3.md \
 		libpmem2/pmem2_perror.3.md libpmem2/pmem2_get_memmove_fn.3.md libpmem2/pmem2_config_set_sharing.3.md \
-		libpmem2/pmem2_config_set_address.3.md libpmem2/pmem2_config_clear_address.3.md
+		libpmem2/pmem2_config_set_address.3.md libpmem2/pmem2_config_clear_address.3.md\
+		libpmem2/pmem2_source_device_id.3.md libpmem2/pmem2_source_device_usc.3.md
 MANPAGES_1_MD_PMEM2 =
 ifeq ($(PMEM2_INSTALL),y)
 MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_source_from_handle.3 libpmem2/pmem2_source_delete.3 \

@@ -1,4 +1,5 @@
 libpmem2.7
+libpmem2_unsafe_shutdown.7
 pmem2_config_clear_address.3
 pmem2_config_new.3
 pmem2_config_set_address.3
@@ -18,5 +19,7 @@ pmem2_map_get_store_granularity.3
 pmem2_source_alignment.3
 pmem2_source_from_fd.3
 pmem2_source_size.3
+pmem2_source_device_id.3
+pmem2_source_device_usc.3
 pmem2_unmap.3
 pmem2_perror.3
