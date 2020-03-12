@@ -88,8 +88,8 @@ class Granularity(metaclass=ctx.CtxType):
             tmp_req_gran = [Byte, CacheLine]
         elif req_gran == _PAGE_OR_LESS:
             tmp_req_gran = [Byte, CacheLine, Page]
-        elif req_gran == ctx.Any:
-            tmp_req_gran = [ctx.Any.get(conf_defined), ]
+        elif req_gran == [ctx.Any, ]:
+            tmp_req_gran = ctx.Any.get(conf_defined)
         else:
             tmp_req_gran = req_gran
 
