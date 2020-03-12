@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2011-2019, Intel Corporation
 #
 #
 # pmempool_sync/TEST49 -- test for sync command with badblocks
 #                         - overlapping but fixable bad blocks:
 #
-#                           replica #0 part #0: blocks: offset: 8008 length: 8
-#                           replica #0 part #1: blocks: offset: 8008 length: 8
-#                           replica #1 part #2: blocks: offset: 8008 length: 8
+#                           replica #0 part #0: blocks: offset: 1001 length: 1
+#                           replica #0 part #1: blocks: offset: 1001 length: 1
+#                           replica #1 part #2: blocks: offset: 1001 length: 1
 #
-#                           replica #2 part #0: blocks: offset: 8000 length: 24
-#                           replica #1 part #1: blocks: offset: 8000 length: 24
-#                           replica #2 part #2: blocks: offset: 8000 length: 24
+#                           replica #2 part #0: blocks: offset: 1000 length: 3
+#                           replica #1 part #1: blocks: offset: 1000 length: 3
+#                           replica #2 part #2: blocks: offset: 1000 length: 3
 #
 
 . ../unittest/unittest.sh
+
+. setup.sh
 
 require_test_type medium
 require_fs_type non-pmem
@@ -31,17 +33,17 @@ rm -rf $LOG && touch $LOG
 
 POOLSET=$DIR/testset1
 create_poolset $POOLSET \
-	8M:$DIR/testfile_r0_p0:z \
-	8M:$DIR/testfile_r0_p1:z \
-	8M:$DIR/testfile_r0_p2:z \
+	${PARTSIZE}M:$DIR/testfile_r0_p0:z \
+	${PARTSIZE}M:$DIR/testfile_r0_p1:z \
+	${PARTSIZE}M:$DIR/testfile_r0_p2:z \
 	R \
-	8M:$DIR/testfile_r1_p0:z \
-	8M:$DIR/testfile_r1_p1:z \
-	8M:$DIR/testfile_r1_p2:z \
+	${PARTSIZE}M:$DIR/testfile_r1_p0:z \
+	${PARTSIZE}M:$DIR/testfile_r1_p1:z \
+	${PARTSIZE}M:$DIR/testfile_r1_p2:z \
 	R \
-	8M:$DIR/testfile_r2_p0:z \
-	8M:$DIR/testfile_r2_p1:z \
-	8M:$DIR/testfile_r2_p2:z
+	${PARTSIZE}M:$DIR/testfile_r2_p0:z \
+	${PARTSIZE}M:$DIR/testfile_r2_p1:z \
+	${PARTSIZE}M:$DIR/testfile_r2_p2:z
 
 expect_normal_exit $PMEMPOOL$EXESUFFIX rm $POOLSET
 expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOLSET
@@ -49,13 +51,13 @@ expect_normal_exit $PMEMPOOL$EXESUFFIX create obj --layout pmempool$SUFFIX $POOL
 expect_normal_exit "$OBJ_VERIFY$EXESUFFIX $POOLSET pmempool$SUFFIX c v &>> $LOG"
 
 # zero blocks:
-zero_blocks $DIR/testfile_r0_p0 8008 8
-zero_blocks $DIR/testfile_r0_p1 8008 8
-zero_blocks $DIR/testfile_r1_p2 8008 8
+zero_blocks $DIR/testfile_r0_p0 1001 1
+zero_blocks $DIR/testfile_r0_p1 1001 1
+zero_blocks $DIR/testfile_r1_p2 1001 1
 
-zero_blocks $DIR/testfile_r1_p1 8000 24
-zero_blocks $DIR/testfile_r2_p2 8000 24
-zero_blocks $DIR/testfile_r2_p0 8000 24
+zero_blocks $DIR/testfile_r1_p1 1000 3
+zero_blocks $DIR/testfile_r2_p2 1000 3
+zero_blocks $DIR/testfile_r2_p0 1000 3
 
 # create recovery files - no bad blocks
 create_recovery_file $DIR/testset1_r1_p0_badblocks.txt
@@ -63,13 +65,13 @@ create_recovery_file $DIR/testset1_r2_p1_badblocks.txt
 create_recovery_file $DIR/testset1_r0_p2_badblocks.txt
 
 # create recovery files - with bad blocks
-create_recovery_file $DIR/testset1_r0_p0_badblocks.txt 8008 8
-create_recovery_file $DIR/testset1_r0_p1_badblocks.txt 8008 8
-create_recovery_file $DIR/testset1_r1_p1_badblocks.txt 8008 8
+create_recovery_file $DIR/testset1_r0_p0_badblocks.txt 1001 1
+create_recovery_file $DIR/testset1_r0_p1_badblocks.txt 1001 1
+create_recovery_file $DIR/testset1_r1_p1_badblocks.txt 1001 1
 
-create_recovery_file $DIR/testset1_r1_p2_badblocks.txt 8000 24
-create_recovery_file $DIR/testset1_r2_p2_badblocks.txt 8000 24
-create_recovery_file $DIR/testset1_r2_p0_badblocks.txt 8000 24
+create_recovery_file $DIR/testset1_r1_p2_badblocks.txt 1000 3
+create_recovery_file $DIR/testset1_r2_p2_badblocks.txt 1000 3
+create_recovery_file $DIR/testset1_r2_p0_badblocks.txt 1000 3
 
 turn_on_checking_bad_blocks $POOLSET
 

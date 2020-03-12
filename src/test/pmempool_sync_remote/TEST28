@@ -51,7 +51,7 @@ create_poolset $DIR/$POOLSET_REMOTE \
 
 # create the recovery files
 create_recovery_file $RECOVERY_FILE_P0
-create_recovery_file $RECOVERY_FILE_P1 0 8
+create_recovery_file $RECOVERY_FILE_P1 0 1
 create_recovery_file $RECOVERY_FILE_P2
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$POOLSET_LOCAL
