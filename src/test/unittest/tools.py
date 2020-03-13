@@ -29,12 +29,12 @@ class Tools:
         global_lib_path = envconfig['GLOBAL_LIB_PATH']
 
         if sys.platform == 'win32':
-            futils.add_env_common(self.env, {'PATH': build.libdir})
             futils.add_env_common(self.env, {'PATH': global_lib_path})
+            futils.add_env_common(self.env, {'PATH': build.libdir})
         else:
-            futils.add_env_common(self.env, {'LD_LIBRARY_PATH': build.libdir})
             futils.add_env_common(self.env,
                                   {'LD_LIBRARY_PATH': global_lib_path})
+            futils.add_env_common(self.env, {'LD_LIBRARY_PATH': build.libdir})
 
     def _run_test_tool(self, name, *args):
         exe = futils.get_test_tool_path(self.build, name)
