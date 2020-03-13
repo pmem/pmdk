@@ -169,17 +169,32 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	if (cfg->sharing == PMEM2_PRIVATE)
 		access = FILE_MAP_COPY;
 
+	ret = pmem2_config_validate_addr_alignment(cfg, src);
+	if (ret)
+		return ret;
+
+	/* let's get addr from cfg struct */
+	LPVOID addr_hint = cfg->addr;
+
 	/* obtain a pointer to the mapping view */
 	void *base = MapViewOfFileEx(mh,
 		access,
 		HIDWORD(offset),
 		LODWORD(offset),
 		length,
-		NULL); /* hint address */
+		addr_hint); /* hint address */
 
 	if (base == NULL) {
 		ERR("!!MapViewOfFileEx");
-		ret = pmem2_lasterror_to_err();
+		if (cfg->addr_request == PMEM2_ADDRESS_FIXED_NOREPLACE) {
+			DWORD ret_windows = GetLastError();
+			if (ret_windows == ERROR_INVALID_ADDRESS)
+				ret = PMEM2_E_MAPPING_EXISTS;
+			else
+				ret = pmem2_lasterror_to_err();
+		}
+		else
+			ret = pmem2_lasterror_to_err();
 		goto err_close_mapping_handle;
 	}
 
