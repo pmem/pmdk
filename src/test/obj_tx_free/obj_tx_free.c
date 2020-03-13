@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * obj_tx_free.c -- unit test for pmemobj_tx_free
@@ -76,6 +76,121 @@ do_tx_free_wrong_uuid(PMEMobjpool *pop)
 	/* POBJ_XFREE_NO_ABORT flag is set */
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_xfree(oid, POBJ_XFREE_NO_ABORT);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(ret, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_END
+
+	TOID(struct object) obj;
+	TOID_ASSIGN(obj, POBJ_FIRST_TYPE_NUM(pop, TYPE_FREE_WRONG_UUID));
+	UT_ASSERT(!TOID_IS_NULL(obj));
+}
+
+/*
+ * do_tx_free_wrong_uuid_abort_on_failure -- try to free object with
+ * invalid uuid in a transaction where pmemobj_tx_set_failure_behavior
+ * was called.
+ */
+static void
+do_tx_free_wrong_uuid_abort_on_failure(PMEMobjpool *pop)
+{
+	volatile int ret = 0;
+	PMEMoid oid = do_tx_alloc(pop, TYPE_FREE_WRONG_UUID);
+	oid.pool_uuid_lo = ~oid.pool_uuid_lo;
+
+	/* pmemobj_tx_set_failure_behavior is called */
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+
+		UT_ASSERTeq(pmemobj_tx_get_failure_behavior(),
+			POBJ_TX_FAILURE_RETURN);
+		ret = pmemobj_tx_free(oid);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(ret, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_END
+
+	/* pmemobj_tx_set_failure_behavior is called */
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+
+		UT_ASSERTeq(pmemobj_tx_get_failure_behavior(),
+			POBJ_TX_FAILURE_RETURN);
+		ret = pmemobj_tx_xfree(oid, 0);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(ret, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_END
+
+	/* pmemobj_tx_set_failure_behavior is called in outer tx */
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		TX_BEGIN(pop) {
+			UT_ASSERTeq(pmemobj_tx_get_failure_behavior(),
+				POBJ_TX_FAILURE_RETURN);
+			ret = pmemobj_tx_free(oid);
+		} TX_ONCOMMIT {
+			UT_ASSERTeq(ret, EINVAL);
+		} TX_ONABORT {
+			UT_ASSERT(0); /* should not get to this point */
+		} TX_END
+		ret = pmemobj_tx_free(oid);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(ret, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_END
+
+	/* pmemobj_tx_set_failure_behavior is called in neighbour tx */
+	TX_BEGIN(pop) {
+		TX_BEGIN(pop) {
+			pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+			ret = pmemobj_tx_free(oid);
+		} TX_ONCOMMIT {
+			UT_ASSERTeq(ret, EINVAL);
+		} TX_ONABORT {
+			UT_ASSERT(0); /* should not get to this point */
+		} TX_END
+
+		TX_BEGIN(pop) {
+			UT_ASSERTeq(pmemobj_tx_get_failure_behavior(),
+				POBJ_TX_FAILURE_ABORT);
+		} TX_ONCOMMIT {
+			UT_ASSERTeq(ret, EINVAL);
+		} TX_ONABORT {
+			UT_ASSERT(0); /* should not get to this point */
+		} TX_END
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(ret, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0); /* should not get to this point */
+	} TX_END
+
+	/* pmemobj_tx_set_failure_behavior is called in neighbour tx */
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		TX_BEGIN(pop) {
+			pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_ABORT);
+			UT_ASSERTeq(pmemobj_tx_get_failure_behavior(),
+				POBJ_TX_FAILURE_ABORT);
+		} TX_ONCOMMIT {
+			UT_ASSERTeq(ret, EINVAL);
+		} TX_ONABORT {
+			UT_ASSERT(0); /* should not get to this point */
+		} TX_END
+
+		TX_BEGIN(pop) {
+			UT_ASSERTeq(pmemobj_tx_get_failure_behavior(),
+				POBJ_TX_FAILURE_RETURN);
+			ret = pmemobj_tx_free(oid);
+		} TX_ONCOMMIT {
+			UT_ASSERTeq(ret, EINVAL);
+		} TX_ONABORT {
+			UT_ASSERT(0); /* should not get to this point */
+		} TX_END
 	} TX_ONCOMMIT {
 		UT_ASSERTeq(ret, EINVAL);
 	} TX_ONABORT {
@@ -365,6 +480,8 @@ main(int argc, char *argv[])
 		UT_FATAL("!pmemobj_create");
 
 	do_tx_free_wrong_uuid(pop);
+	VALGRIND_WRITE_STATS;
+	do_tx_free_wrong_uuid_abort_on_failure(pop);
 	VALGRIND_WRITE_STATS;
 	do_tx_free_null_oid(pop);
 	VALGRIND_WRITE_STATS;

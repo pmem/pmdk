@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * obj_tx_strdup.c -- unit test for pmemobj_tx_strdup
@@ -165,6 +165,24 @@ do_tx_strdup_null(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		pmemobj_tx_xstrdup(NULL, TYPE_ABORT, POBJ_XALLOC_NO_ABORT);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(errno, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		pmemobj_tx_strdup(NULL, TYPE_ABORT);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(errno, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		pmemobj_tx_xstrdup(NULL, TYPE_ABORT, 0);
 	} TX_ONCOMMIT {
 		UT_ASSERTeq(errno, EINVAL);
 	} TX_ONABORT {

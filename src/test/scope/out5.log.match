@@ -74,6 +74,7 @@ pmemobj_tx_commit
 pmemobj_tx_end
 pmemobj_tx_errno
 pmemobj_tx_free
+pmemobj_tx_get_failure_behavior
 pmemobj_tx_get_user_data
 pmemobj_tx_lock
 pmemobj_tx_log_append_buffer
@@ -83,6 +84,7 @@ pmemobj_tx_log_snapshots_max_size
 pmemobj_tx_process
 pmemobj_tx_publish
 pmemobj_tx_realloc
+pmemobj_tx_set_failure_behavior
 pmemobj_tx_set_user_data
 pmemobj_tx_stage
 pmemobj_tx_strdup

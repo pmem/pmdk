@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * obj_tx_lock.c -- unit test for pmemobj_tx_lock()
@@ -166,6 +166,29 @@ do_tx_lock_fail(struct transaction_data *data)
 				POBJ_XLOCK_NO_ABORT);
 	} TX_ONCOMMIT {
 		UT_ASSERTne(ret, 0);
+		UT_ASSERTeq(pmemobj_rwlock_unlock(Pop, &data->rwlocks[0]), 0);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+	/* return ret without abort transaction */
+	UT_ASSERTeq(pmemobj_rwlock_wrlock(Pop, &data->rwlocks[0]), 0);
+	TX_BEGIN(Pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		ret = pmemobj_tx_lock(TX_PARAM_RWLOCK, &data->rwlocks[0]);
+	} TX_ONCOMMIT {
+		UT_ASSERTne(ret, 0);
+		UT_ASSERTeq(pmemobj_rwlock_unlock(Pop, &data->rwlocks[0]), 0);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+	/* return ret without abort transaction */
+	UT_ASSERTeq(pmemobj_rwlock_wrlock(Pop, &data->rwlocks[0]), 0);
+	TX_BEGIN(Pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		ret = pmemobj_tx_xlock(TX_PARAM_RWLOCK, &data->rwlocks[0], 0);
+	} TX_ONCOMMIT {
+		UT_ASSERTne(ret, 0);
+		UT_ASSERTeq(pmemobj_rwlock_unlock(Pop, &data->rwlocks[0]), 0);
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END

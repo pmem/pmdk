@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ; SPDX-License-Identifier: BSD-3-Clause
-; Copyright 2015-2018, Intel Corporation
+; Copyright 2015-2020, Intel Corporation
 ;;;;  End Copyright Notice
 
 LIBRARY libpmemobj
@@ -96,6 +96,8 @@ EXPORTS
 	pmemobj_tx_log_intents_max_size
 	pmemobj_tx_set_user_data
 	pmemobj_tx_get_user_data
+	pmemobj_tx_set_failure_behavior
+	pmemobj_tx_get_failure_behavior
 	pmemobj_memcpy
 	pmemobj_memcpy_persist
 	pmemobj_memmove
