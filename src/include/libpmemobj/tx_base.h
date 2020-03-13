@@ -424,6 +424,25 @@ void pmemobj_tx_set_user_data(void *data);
  */
 void *pmemobj_tx_get_user_data(void);
 
+/*
+ * Enables or disables automatic transaction abort in case of an error.
+ * If called with enable == 0 _NO_ABORT flag will be implicitly passed to
+ * functions which accept such flag.
+ *
+ * This setting is inherited by inner transactions. Aborting on failure is
+ * the default behaviour.
+ *
+ * This function must be called during TX_STAGE_WORK.
+ */
+void pmemobj_tx_set_abort_on_failure(int enable);
+
+/*
+ * Returns 1 if transaction automatically aborts on failure, 0 otherwise.
+ *
+ * This function must be called during TX_STAGE_WORK.
+ */
+int pmemobj_tx_get_abort_on_failure(void);
+
 #ifdef __cplusplus
 }
 #endif
