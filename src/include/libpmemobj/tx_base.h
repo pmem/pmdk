@@ -50,6 +50,11 @@ enum pobj_log_type {
 	TX_LOG_TYPE_INTENT,
 };
 
+enum pobj_tx_failure_event {
+	POBJ_TX_FAILURE_ABORT,
+	POBJ_TX_FAILURE_RETURN,
+};
+
 #if !defined(pmdk_use_attr_deprec_with_msg) && defined(__COVERITY__)
 #define pmdk_use_attr_deprec_with_msg 0
 #endif
@@ -423,6 +428,30 @@ void pmemobj_tx_set_user_data(void *data);
  * transaction.
  */
 void *pmemobj_tx_get_user_data(void);
+
+/*
+ * Specifies what should happen in case of an error within the
+ * transaction. It only affects functions which take a NO_ABORT flag.
+ *
+ * If pmemobj_tx_set_failure_event is called with POBJ_TX_FAILURE_RETURN
+ * a NO_ABORT flag is implicitly passed to all functions which accept a
+ * NO_ABORT flag.
+ *
+ * If called with POBJ_TX_FAILURE_ABORT then all functions behave normally.
+ *
+ * This setting is inherited by inner transactions. Aborting on failure is
+ * the default behaviour.
+ *
+ * This function must be called during TX_STAGE_WORK.
+ */
+void pmemobj_tx_set_failure_event(enum pobj_tx_failure_event event);
+
+/*
+ * Returns failure event for the current transaction.
+ *
+ * This function must be called during TX_STAGE_WORK.
+ */
+enum pobj_tx_failure_event pmemobj_tx_get_failure_event(void);
 
 #ifdef __cplusplus
 }

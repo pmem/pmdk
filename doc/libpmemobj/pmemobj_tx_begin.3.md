@@ -8,7 +8,7 @@ date: pmemobj API version 2.3
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2019, Intel Corporation)
+[comment]: <> (Copyright 2017-2020, Intel Corporation)
 
 [comment]: <> (pmemobj_tx_begin.3 -- man page for transactional object manipulation)
 
@@ -37,7 +37,10 @@ date: pmemobj API version 2.3
 **pmemobj_tx_log_intents_max_size**(),
 
 **pmemobj_tx_set_user_data**(),
-**pmemobj_tx_get_user_data**()
+**pmemobj_tx_get_user_data**(),
+
+**pmemobj_tx_set_failure_event**(),
+**pmemobj_tx_get_failure_event**()
 - transactional object manipulation
 
 # SYNOPSIS #
@@ -72,6 +75,9 @@ size_t pmemobj_tx_log_intents_max_size(size_t nintents);
 
 void pmemobj_tx_set_user_data(void *data);
 void *pmemobj_tx_get_user_data(void);
+
+void pmemobj_tx_set_failure_event(enum pobj_tx_failure_event action);
+enum pobj_tx_failure_event pmemobj_tx_get_failure_event(void);
 ```
 
 # DESCRIPTION #
@@ -411,6 +417,17 @@ If **pmemobj_tx_set_user_data**() was not called for a current transaction,
 **pmemobj_tx_get_user_data**() will return NULL. These functions must be called
 during **TX_STAGE_WORK** or **TX_STAGE_ONABORT** or **TX_STAGE_ONCOMMIT** or
 **TX_STAGE_FINALLY**.
+
+**pmemobj_tx_set_failure_event**() specifies what should happen in case of an error
+within the transaction. It only affects functions which take a NO_ABORT flag.
+If **pmemobj_tx_set_failure_event**() is called with POBJ_TX_FAILURE_RETURN a NO_ABORT
+flag is implicitly passed to all functions which accept a NO_ABORT flag. If called
+with POBJ_TX_FAILURE_ABORT then all functions behave normally. Event on failure setting is
+inherited by inner transactions. It does not affect any of outer transactions.
+Aborting on failure is the default behaviour. **pmemobj_tx_get_failure_event**()
+returns failure event for the current transaction.
+Both **pmemobj_tx_set_failure_event**() and **pmemobj_tx_get_failure_event**()
+must be called during **TX_STAGE_WORK**.
 
 # RETURN VALUE #
 
