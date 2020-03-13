@@ -143,6 +143,22 @@ unmap_map(struct pmem2_map *map)
 }
 
 /*
+ * get_align_by_name -- fetch map alignment for an unopened file
+ */
+static size_t
+get_align_by_name(const char *filename)
+{
+	struct pmem2_source src;
+	size_t align;
+	int fd = OPEN(filename, O_RDONLY);
+	prepare_source(&src, fd);
+	pmem2_source_alignment(&src, &align);
+	CLOSE(fd);
+
+	return align;
+}
+
+/*
  * test_map_rdrw_file - map a O_RDWR file
  */
 static int
@@ -252,8 +268,9 @@ test_map_valid_ranges(const struct test_case *tc, int argc, char *argv[])
 		UT_FATAL("usage: test_map_valid_ranges <file> <size>");
 
 	char *file = argv[0];
+	size_t align = get_align_by_name(file);
 	size_t size = ATOUL(argv[1]);
-	size_t size2 = size / 2;
+	size_t size2 = ALIGN_DOWN(size / 2, align);
 
 	/* the config WITHOUT provided length allows mapping the whole file */
 	map_valid_ranges_common(file, 0, 0, size);
@@ -265,7 +282,7 @@ test_map_valid_ranges(const struct test_case *tc, int argc, char *argv[])
 	map_valid_ranges_common(file, 0, size2, size2);
 
 	/* verify the config with provided length and a valid offset */
-	map_valid_ranges_common(file, 2 * MEGABYTE, size2, size2);
+	map_valid_ranges_common(file, align, size2, size2);
 
 	return 2;
 }
@@ -289,8 +306,9 @@ test_map_invalid_ranges(const struct test_case *tc, int argc, char *argv[])
 	int fd;
 
 	/* the mapping + the offset > the file size */
-	offset = (size / 2) + (4 * MEGABYTE);
-	prepare_config(&cfg, &src, &fd, file, size / 2, offset, O_RDWR);
+	size_t size2 = ALIGN_DOWN(size / 2, get_align_by_name(file));
+	offset = size2 + (4 * MEGABYTE);
+	prepare_config(&cfg, &src, &fd, file, size2, offset, O_RDWR);
 	ret = pmem2_map(&cfg, &src, &map);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
 	CLOSE(fd);

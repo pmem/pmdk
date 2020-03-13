@@ -488,7 +488,7 @@ test_offset_aligned(const struct test_case *tc, int argc, char *argv[])
 
 	UT_ASSERT(len > alignment * 2);
 	/* set the aligned len */
-	size_t map_len = ALIGN_DOWN(len, alignment) / 2;
+	size_t map_len = ALIGN_DOWN(len / 2, alignment);
 	ret = pmem2_config_set_length(cfg, map_len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
