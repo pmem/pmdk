@@ -70,22 +70,16 @@ class TEST8(Pmem2ConfigNoDir):
     test_case = "test_set_offset_max"
 
 
-# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
-@t.windows_exclude
 class TEST9(Pmem2Config):
     """setting unaligned addr and validating it"""
     test_case = "test_validate_unaligned_addr"
 
 
-# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
-@t.windows_exclude
 class TEST10(Pmem2ConfigNoDir):
     """setting wrong addr request type"""
     test_case = "test_set_wrong_addr_req_type"
 
 
-# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
-@t.windows_exclude
 class TEST11(Pmem2ConfigNoDir):
     """
     setting null addr when request type PMEM2_ADDRESS_FIXED_NOREPLACE
@@ -94,8 +88,6 @@ class TEST11(Pmem2ConfigNoDir):
     test_case = "test_null_addr_noreplace"
 
 
-# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
-@t.windows_exclude
 class TEST12(Pmem2ConfigNoDir):
     """
     setting null addr when request type PMEM2_ADDRESS_ANY is used
@@ -103,8 +95,6 @@ class TEST12(Pmem2ConfigNoDir):
     test_case = "test_null_addr_any"
 
 
-# XXX: remove when PMEM2_ADDRESS_FIXED_NOREPLACE will be supported on Windows
-@t.windows_exclude
 class TEST13(Pmem2ConfigNoDir):
     """
     setting not null addr when request type PMEM2_ADDRESS_ANY is used
