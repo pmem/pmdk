@@ -87,6 +87,8 @@ LIBPMEMOBJ_1.0 {
 		pmemobj_tx_log_intents_max_size;
 		pmemobj_tx_set_user_data;
 		pmemobj_tx_get_user_data;
+		pmemobj_tx_set_abort_on_failure;
+		pmemobj_tx_get_abort_on_failure;
 		pmemobj_memcpy;
 		pmemobj_memcpy_persist;
 		pmemobj_memmove;

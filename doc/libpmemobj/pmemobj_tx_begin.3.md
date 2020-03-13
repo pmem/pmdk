@@ -37,7 +37,10 @@ date: pmemobj API version 2.3
 **pmemobj_tx_log_intents_max_size**(),
 
 **pmemobj_tx_set_user_data**(),
-**pmemobj_tx_get_user_data**()
+**pmemobj_tx_get_user_data**(),
+
+**pmemobj_tx_set_abort_on_failure**(),
+**pmemobj_tx_get_abort_on_failure**()
 - transactional object manipulation
 
 # SYNOPSIS #
@@ -72,6 +75,9 @@ size_t pmemobj_tx_log_intents_max_size(size_t nintents);
 
 void pmemobj_tx_set_user_data(void *data);
 void *pmemobj_tx_get_user_data(void);
+
+void pmemobj_tx_set_abort_on_failure(int enable);
+int pmemobj_tx_get_abort_on_failure(void);
 ```
 
 # DESCRIPTION #
@@ -411,6 +417,17 @@ If **pmemobj_tx_set_user_data**() was not called for a current transaction,
 **pmemobj_tx_get_user_data**() will return NULL. These functions must be called
 during **TX_STAGE_WORK** or **TX_STAGE_ONABORT** or **TX_STAGE_ONCOMMIT** or
 **TX_STAGE_FINALLY**.
+
+**pmemobj_tx_set_abort_on_failure**() enables or disables automatic transaction
+abort in case any transactional function accepting NO_ABORT flag fails. If called with
+**enable** == 0 *_NO_ABORT flag will be implicitly passed to all of those functions. If
+**pmemobj_tx_set_abort_on_failure** is not called (or called with **enable** == 1),
+the transaction will abort if any of the above mentioned functions fails (unless
+*_NO_ABORT flag was passed expliciltly). This functions affects the current transaction
+and all inner transactions. It does not affect any outer transactions.
+**pmemobj_tx_get_abort_on_failure**() function returns 1 if transaction automatically
+aborts on failure, 0 otherwise. Both **pmemobj_tx_set_abort_on_failure**() and
+**pmemobj_tx_get_abort_on_failure**() must be called during **TX_STAGE_WORK**.
 
 # RETURN VALUE #
 
