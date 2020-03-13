@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2018, Intel Corporation */
+/* Copyright 2015-2019, Intel Corporation */
 
 /*
  * obj_pmalloc.cpp -- pmalloc benchmarks definition
@@ -246,7 +246,7 @@ pmalloc_op(struct benchmark *bench, struct operation_info *info)
 struct pmix_worker {
 	size_t nobjects;
 	size_t shuffle_start;
-	unsigned seed;
+	rng_t rng;
 };
 
 /*
@@ -261,7 +261,7 @@ pmix_worker_init(struct benchmark *bench, struct benchmark_args *args,
 	if (w == nullptr)
 		return -1;
 
-	w->seed = ob->pa->seed;
+	randomize_r(&w->rng, ob->pa->seed);
 
 	worker->priv = w;
 
@@ -288,12 +288,12 @@ pmix_worker_fini(struct benchmark *bench, struct benchmark_args *args,
  */
 static void
 shuffle_objects(uint64_t *objects, size_t start, size_t nobjects,
-		unsigned *seed)
+		rng_t *rng)
 {
 	uint64_t tmp;
 	size_t dest;
 	for (size_t n = start; n < nobjects; ++n) {
-		dest = RRAND_R(seed, nobjects - 1, 0);
+		dest = RRAND_R(rng, nobjects - 1, 0);
 		tmp = objects[n];
 		objects[n] = objects[dest];
 		objects[dest] = tmp;
@@ -316,9 +316,9 @@ pmix_op(struct benchmark *bench, struct operation_info *info)
 
 	uint64_t *objects = &ob->offs[idx];
 
-	if (w->nobjects > FREE_OPS && FREE_PCT > RRAND_R(&w->seed, 100, 0)) {
+	if (w->nobjects > FREE_OPS && FREE_PCT > RRAND_R(&w->rng, 100, 0)) {
 		shuffle_objects(objects, w->shuffle_start, w->nobjects,
-				&w->seed);
+				&w->rng);
 
 		for (int i = 0; i < FREE_OPS; ++i) {
 			uint64_t off = objects[--w->nobjects];

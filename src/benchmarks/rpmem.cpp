@@ -177,7 +177,8 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 		return -1;
 	}
 
-	unsigned seed = args->seed;
+	rng_t rng;
+	randomize_r(&rng, args->seed);
 
 	for (size_t i = 0; i < args->n_threads; i++) {
 		for (size_t j = 0; j < mb->n_flushing_ops_per_thread; j++) {
@@ -195,7 +196,7 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 				case OP_MODE_RAND:
 					chunk_idx =
 						i * mb->n_flushing_ops_per_thread +
-						os_rand_r(&seed) %
+						rnd64_r(&rng) %
 							mb->n_flushing_ops_per_thread;
 					break;
 				case OP_MODE_SEQ_WRAP:
@@ -204,8 +205,7 @@ init_offsets(struct benchmark_args *args, struct rpmem_bench *mb,
 					break;
 				case OP_MODE_RAND_WRAP:
 					chunk_idx = i * n_ops_by_size +
-						os_rand_r(&seed) %
-							n_ops_by_size;
+						rnd64_r(&rng) % n_ops_by_size;
 					break;
 				default:
 					assert(0);

@@ -35,13 +35,14 @@
 
 #include "benchmark_time.hpp"
 #include "os.h"
+#include "rand.h"
 #include "util.h"
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #endif
 #define RRAND(max, min) (rand() % ((max) - (min)) + (min))
-#define RRAND_R(seed, max, min) (os_rand_r(seed) % ((max) - (min)) + (min))
+#define RRAND_R(rng, max, min) (rnd64_r(rng) % ((max) - (min)) + (min))
 
 struct benchmark;
 
