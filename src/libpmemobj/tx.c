@@ -20,6 +20,7 @@
 struct tx_data {
 	PMDK_SLIST_ENTRY(tx_data) tx_entry;
 	jmp_buf env;
+	int abort_on_failure;
 };
 
 struct tx {
@@ -719,12 +720,18 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 	int err = 0;
 	struct tx *tx = get_tx();
 
+	int abort_on_failure = 1;
+
 	if (tx->stage == TX_STAGE_WORK) {
 		ASSERTne(tx->lane, NULL);
 		if (tx->pop != pop) {
 			ERR("nested transaction for different pool");
 			return obj_tx_fail_err(EINVAL, 0);
 		}
+
+		/* inherits this value from parent transaction */
+		struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+		abort_on_failure = txd->abort_on_failure;
 
 		VALGRIND_START_TX;
 	} else if (tx->stage == TX_STAGE_NONE) {
@@ -763,6 +770,8 @@ pmemobj_tx_begin(PMEMobjpool *pop, jmp_buf env, ...)
 		memcpy(txd->env, env, sizeof(jmp_buf));
 	else
 		memset(txd->env, 0, sizeof(jmp_buf));
+
+	txd->abort_on_failure = abort_on_failure;
 
 	PMDK_SLIST_INSERT_HEAD(&tx->tx_entries, txd, tx_entry);
 
@@ -820,15 +829,20 @@ err_abort:
 int
 pmemobj_tx_xlock(enum pobj_tx_param type, void *lockp, uint64_t flags)
 {
+	struct tx *tx = get_tx();
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	if (!txd->abort_on_failure)
+		flags |= POBJ_XLOCK_NO_ABORT;
+
 	if (flags & ~POBJ_XLOCK_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_XLOCK_VALID_FLAGS);
 		return obj_tx_fail_err(EINVAL, flags);
 	}
-
-	struct tx *tx = get_tx();
-	ASSERT_IN_TX(tx);
-	ASSERT_TX_STAGE_WORK(tx);
 
 	int ret = add_to_tx_and_lock(tx, type, lockp);
 	if (ret)
@@ -1359,22 +1373,29 @@ pmemobj_tx_add_range_direct(const void *ptr, size_t size)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	PMEMobjpool *pop = tx->pop;
+	int ret;
 
-	if (!OBJ_PTR_FROM_POOL(pop, ptr)) {
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	uint64_t flags = 0;
+	if (!txd->abort_on_failure) {
+		flags |= POBJ_XADD_NO_ABORT;
+	}
+
+	if (!OBJ_PTR_FROM_POOL(tx->pop, ptr)) {
 		ERR("object outside of pool");
-		int ret = obj_tx_fail_err(EINVAL, 0);
+		ret = obj_tx_fail_err(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return ret;
 	}
 
 	struct tx_range_def args = {
-		.offset = (uint64_t)((char *)ptr - (char *)pop),
+		.offset = (uint64_t)((char *)ptr - (char *)tx->pop),
 		.size = size,
-		.flags = 0,
+		.flags = flags,
 	};
 
-	int ret = pmemobj_tx_add_common(tx, &args);
+	ret = pmemobj_tx_add_common(tx, &args);
 
 	PMEMOBJ_API_END();
 	return ret;
@@ -1388,13 +1409,20 @@ int
 pmemobj_tx_xadd_range_direct(const void *ptr, size_t size, uint64_t flags)
 {
 	LOG(3, NULL);
+
+	PMEMOBJ_API_START();
 	struct tx *tx = get_tx();
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
-	PMEMOBJ_API_START();
 	int ret;
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	if (!txd->abort_on_failure) {
+		flags |= POBJ_XADD_NO_ABORT;
+	}
 
 	if (flags & ~POBJ_XADD_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64, flags
@@ -1437,9 +1465,18 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
+	int ret;
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	uint64_t flags = 0;
+	if (!txd->abort_on_failure) {
+		flags |= POBJ_XADD_NO_ABORT;
+	}
+
 	if (oid.pool_uuid_lo != tx->pop->uuid_lo) {
 		ERR("invalid pool uuid");
-		int ret = obj_tx_fail_err(EINVAL, 0);
+		ret = obj_tx_fail_err(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return ret;
 	}
@@ -1448,10 +1485,10 @@ pmemobj_tx_add_range(PMEMoid oid, uint64_t hoff, size_t size)
 	struct tx_range_def args = {
 		.offset = oid.off + hoff,
 		.size = size,
-		.flags = 0,
+		.flags = flags,
 	};
 
-	int ret = pmemobj_tx_add_common(tx, &args);
+	ret = pmemobj_tx_add_common(tx, &args);
 
 	PMEMOBJ_API_END();
 	return ret;
@@ -1472,6 +1509,12 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 	ASSERT_TX_STAGE_WORK(tx);
 
 	int ret;
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	if (!txd->abort_on_failure) {
+		flags |= POBJ_XADD_NO_ABORT;
+	}
 
 	if (flags & ~POBJ_XADD_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64, flags
@@ -1496,6 +1539,7 @@ pmemobj_tx_xadd_range(PMEMoid oid, uint64_t hoff, size_t size, uint64_t flags)
 	};
 
 	ret = pmemobj_tx_add_common(tx, &args);
+
 	PMEMOBJ_API_END();
 	return ret;
 }
@@ -1514,16 +1558,22 @@ pmemobj_tx_alloc(size_t size, uint64_t type_num)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	uint64_t flags = 0;
+	if (!txd->abort_on_failure)
+		flags |= POBJ_XALLOC_NO_ABORT;
+
 	PMEMoid oid;
 	if (size == 0) {
 		ERR("allocation with size 0");
-		oid = obj_tx_fail_null(EINVAL, 0);
+		oid = obj_tx_fail_null(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return oid;
 	}
 
 	oid = tx_alloc_common(tx, size, (type_num_t)type_num,
-			constructor_tx_alloc, ALLOC_ARGS(0));
+			constructor_tx_alloc, ALLOC_ARGS(flags));
 
 	PMEMOBJ_API_END();
 	return oid;
@@ -1541,17 +1591,23 @@ pmemobj_tx_zalloc(size_t size, uint64_t type_num)
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
 
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	uint64_t flags = POBJ_FLAG_ZERO;
+	if (!txd->abort_on_failure)
+		flags |= POBJ_XALLOC_NO_ABORT;
+
 	PMEMOBJ_API_START();
 	PMEMoid oid;
 	if (size == 0) {
 		ERR("allocation with size 0");
-		oid = obj_tx_fail_null(EINVAL, 0);
+		oid = obj_tx_fail_null(EINVAL, flags);
 		PMEMOBJ_API_END();
 		return oid;
 	}
 
 	oid = tx_alloc_common(tx, size, (type_num_t)type_num,
-			constructor_tx_alloc, ALLOC_ARGS(POBJ_FLAG_ZERO));
+			constructor_tx_alloc, ALLOC_ARGS(flags));
 
 	PMEMOBJ_API_END();
 	return oid;
@@ -1568,6 +1624,12 @@ pmemobj_tx_xalloc(size_t size, uint64_t type_num, uint64_t flags)
 
 	ASSERT_IN_TX(tx);
 	ASSERT_TX_STAGE_WORK(tx);
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	if (!txd->abort_on_failure)
+		flags |= POBJ_XALLOC_NO_ABORT;
+
 	PMEMOBJ_API_START();
 
 	PMEMoid oid;
@@ -1640,16 +1702,21 @@ pmemobj_tx_xstrdup(const char *s, uint64_t type_num, uint64_t flags)
 {
 	LOG(3, NULL);
 
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	if (!txd->abort_on_failure)
+		flags |= POBJ_XALLOC_NO_ABORT;
+
 	if (flags & ~POBJ_TX_XALLOC_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_TX_XALLOC_VALID_FLAGS);
 		return obj_tx_fail_null(EINVAL, flags);
 	}
-
-	struct tx *tx = get_tx();
-
-	ASSERT_IN_TX(tx);
-	ASSERT_TX_STAGE_WORK(tx);
 
 	PMEMOBJ_API_START();
 	PMEMoid oid;
@@ -1696,16 +1763,21 @@ pmemobj_tx_xwcsdup(const wchar_t *s, uint64_t type_num, uint64_t flags)
 {
 	LOG(3, NULL);
 
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	if (!txd->abort_on_failure)
+		flags |= POBJ_XALLOC_NO_ABORT;
+
 	if (flags & ~POBJ_TX_XALLOC_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_TX_XALLOC_VALID_FLAGS);
 		return obj_tx_fail_null(EINVAL, flags);
 	}
-
-	struct tx *tx = get_tx();
-
-	ASSERT_IN_TX(tx);
-	ASSERT_TX_STAGE_WORK(tx);
 
 	PMEMOBJ_API_START();
 	PMEMoid oid;
@@ -1753,16 +1825,21 @@ pmemobj_tx_xfree(PMEMoid oid, uint64_t flags)
 {
 	LOG(3, NULL);
 
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	if (!txd->abort_on_failure)
+		flags |= POBJ_XFREE_NO_ABORT;
+
 	if (flags & ~POBJ_XFREE_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_XFREE_VALID_FLAGS);
 		return obj_tx_fail_err(EINVAL, flags);
 	}
-
-	struct tx *tx = get_tx();
-
-	ASSERT_IN_TX(tx);
-	ASSERT_TX_STAGE_WORK(tx);
 
 	if (OBJ_OID_IS_NULL(oid))
 		return 0;
@@ -1834,14 +1911,22 @@ pmemobj_tx_free(PMEMoid oid)
 int
 pmemobj_tx_xpublish(struct pobj_action *actv, size_t actvcnt, uint64_t flags)
 {
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	if (!txd->abort_on_failure)
+		flags |= POBJ_XPUBLISH_NO_ABORT;
+
 	if (flags & ~POBJ_XPUBLISH_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_XPUBLISH_VALID_FLAGS);
 		return obj_tx_fail_err(EINVAL, flags);
 	}
 
-	struct tx *tx = get_tx();
-	ASSERT_TX_STAGE_WORK(tx);
 	PMEMOBJ_API_START();
 
 	if (tx_action_reserve(tx, actvcnt) != 0) {
@@ -1874,14 +1959,22 @@ int
 pmemobj_tx_xlog_append_buffer(enum pobj_log_type type, void *addr, size_t size,
 		uint64_t flags)
 {
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	if (!txd->abort_on_failure)
+		flags |= POBJ_XLOG_APPEND_BUFFER_NO_ABORT;
+
 	if (flags & ~POBJ_XLOG_APPEND_BUFFER_VALID_FLAGS) {
 		ERR("unknown flags 0x%" PRIx64,
 				flags & ~POBJ_XLOG_APPEND_BUFFER_VALID_FLAGS);
 		return obj_tx_fail_err(EINVAL, flags);
 	}
 
-	struct tx *tx = get_tx();
-	ASSERT_TX_STAGE_WORK(tx);
 	PMEMOBJ_API_START();
 	int err;
 
@@ -2051,6 +2144,44 @@ pmemobj_tx_get_user_data(void)
 	ASSERT_IN_TX(tx);
 
 	return tx->user_data;
+}
+
+/*
+ * pmemobj_tx_set_abort_on_failure -- enables or disables automatic transaction
+ * abort in case of an error
+ */
+void
+pmemobj_tx_set_abort_on_failure(int enable)
+{
+	LOG(3, "enable %d", enable);
+
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	txd->abort_on_failure = enable;
+}
+
+/*
+ * pmemobj_tx_get_abort_on_failure -- returns 1 if transaction automatically
+ * aborts on failure, 0 otherwise
+ */
+int
+pmemobj_tx_get_abort_on_failure(void)
+{
+	LOG(3, NULL);
+
+	struct tx *tx = get_tx();
+
+	ASSERT_IN_TX(tx);
+	ASSERT_TX_STAGE_WORK(tx);
+
+	struct tx_data *txd = PMDK_SLIST_FIRST(&tx->tx_entries);
+
+	return txd->abort_on_failure;
 }
 
 /*

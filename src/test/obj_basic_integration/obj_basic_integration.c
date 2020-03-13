@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * obj_basic_integration.c -- Basic integration tests
@@ -518,6 +518,18 @@ test_tx_api(PMEMobjpool *pop)
 		} TX_END
 		UT_ASSERT(errno == EINVAL);
 	} TX_END
+
+	errno = 0;
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_abort_on_failure(0);
+		TX_BEGIN((PMEMobjpool *)(uintptr_t)7) {
+		} TX_ONCOMMIT {
+			UT_ASSERT(0);
+		} TX_END
+		UT_ASSERT(errno == EINVAL);
+	} TX_END
+
+	UT_OUT("%s", pmemobj_errormsg());
 
 	UT_OUT("%s", pmemobj_errormsg());
 	TX_BEGIN(pop) {
