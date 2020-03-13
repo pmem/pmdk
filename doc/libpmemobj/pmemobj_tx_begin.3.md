@@ -8,7 +8,7 @@ date: pmemobj API version 2.3
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2019, Intel Corporation)
+[comment]: <> (Copyright 2017-2020, Intel Corporation)
 
 [comment]: <> (pmemobj_tx_begin.3 -- man page for transactional object manipulation)
 
@@ -37,7 +37,10 @@ date: pmemobj API version 2.3
 **pmemobj_tx_log_intents_max_size**(),
 
 **pmemobj_tx_set_user_data**(),
-**pmemobj_tx_get_user_data**()
+**pmemobj_tx_get_user_data**(),
+
+**pmemobj_tx_set_action_on_failure**(),
+**pmemobj_tx_get_action_on_failure**()
 - transactional object manipulation
 
 # SYNOPSIS #
@@ -72,6 +75,9 @@ size_t pmemobj_tx_log_intents_max_size(size_t nintents);
 
 void pmemobj_tx_set_user_data(void *data);
 void *pmemobj_tx_get_user_data(void);
+
+void pmemobj_tx_set_action_on_failure(enum pobj_tx_action_on_failure action);
+enum pobj_tx_action_on_failure pmemobj_tx_get_action_on_failure(void);
 ```
 
 # DESCRIPTION #
@@ -411,6 +417,17 @@ If **pmemobj_tx_set_user_data**() was not called for a current transaction,
 **pmemobj_tx_get_user_data**() will return NULL. These functions must be called
 during **TX_STAGE_WORK** or **TX_STAGE_ONABORT** or **TX_STAGE_ONCOMMIT** or
 **TX_STAGE_FINALLY**.
+
+**pmemobj_tx_set_action_on_failure**() sets actions to be taken by transactional
+functions in case of an error. It only affects functions which take a NO_ABORT flag.
+If **pmemobj_tx_set_action_on_failure**() is called with POBJ_RETURN_ERROR a NO_ABORT
+flag is implicitly passed to all functions which accept a NO_ABORT flag. If called
+with POBJ_TX_ABORT then all functions behave normally. Action on failure setting is
+inherited by inner transactions. It does not affect any of outer transactions.
+Aborting on failure is the default behaviour. **pmemobj_tx_get_action_on_failure**()
+returns action on failure for the current transaction.
+Both **pmemobj_tx_set_action_on_failure**() and **pmemobj_tx_get_action_on_failure**()
+must be called during **TX_STAGE_WORK**.
 
 # RETURN VALUE #
 
