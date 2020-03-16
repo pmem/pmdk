@@ -12,6 +12,10 @@
 require_test_type medium
 require_build_type debug
 require_fs_type pmem
+
+# This test relies on libc debug symbols being installed for reliable
+# error reporting.
+# XXX Figure out how to detect it.
 configure_valgrind pmemcheck force-enable
 setup
 
