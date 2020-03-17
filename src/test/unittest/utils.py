@@ -18,10 +18,27 @@ TiB = 2 ** 40
 PiB = 2 ** 50
 
 
+# platform.machine() used for detecting architectures
+# gives different values for different systems.
+# Key is a normalized value of possible returned architecture values.
+NORMALIZED_ARCHS = {
+    'x86_64': ('AMD64', 'x86_64'),
+    'arm64': ('arm64', 'aarch64'),
+    'ppc64el': ('ppc64el', 'ppc64le')
+}
+
+
 def require_architectures(*archs):
     """Enable test only for specified architectures"""
     def wrapped(tc):
-        if platform.machine() not in archs:
+        this_arch = platform.machine()
+
+        # normalize this_arch value
+        for normalized, possible in NORMALIZED_ARCHS.items():
+            if this_arch in possible:
+                this_arch = normalized
+
+        if this_arch not in archs:
             tc.enabled = False
         return tc
 
