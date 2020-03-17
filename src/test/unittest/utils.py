@@ -20,6 +20,10 @@ PiB = 2 ** 50
 
 def require_architectures(*archs):
     """Enable test only for specified architectures"""
+    if sys.platform == 'win32':
+        # 'x86_64' is visible as 'AMD64' on Windows
+        archs = ['AMD64' if a == 'x86_64' else a for a in archs]
+
     def wrapped(tc):
         if platform.machine() not in archs:
             tc.enabled = False
