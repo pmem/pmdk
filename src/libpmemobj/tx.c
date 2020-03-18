@@ -592,7 +592,7 @@ tx_alloc_common(struct tx *tx, size_t size, type_num_t type_num,
 	PMEMoid retoid = OID_NULL;
 	retoid.off = action->heap.offset;
 	retoid.pool_uuid_lo = pop->uuid_lo;
-	size = palloc_usable_size(&pop->heap, retoid.off);
+	size = action->heap.usable_size;
 
 	const struct tx_range_def r = {retoid.off, size, args.flags};
 	if (tx_lane_ranges_insert_def(pop, tx, &r) != 0)
