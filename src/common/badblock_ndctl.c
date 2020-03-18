@@ -13,10 +13,10 @@
 #include "os.h"
 #include "out.h"
 #include "extent.h"
-#include "os_dimm.h"
 #include "os_badblock.h"
 #include "badblock.h"
 #include "vec.h"
+#include "../libpmem2/os_dimm.h"
 
 /*
  * os_badblocks_get -- returns 0 and bad blocks in the 'bbs' array
