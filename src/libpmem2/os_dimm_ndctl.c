@@ -25,6 +25,9 @@
 #include "badblock.h"
 #include "vec.h"
 
+#include "libpmem2.h"
+#include "pmem2_utils.h"
+
 #define FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns)	\
 	ndctl_bus_foreach(ctx, bus)				\
 		ndctl_region_foreach(bus, region)		\
@@ -131,6 +134,31 @@ os_dimm_match_fsdax(const os_stat_t *st, const char *devname)
 }
 
 /*
+ * os_dimm_stat_get_type -- checks whether stat structure describes
+ *                          device dax or a normal file
+ */
+static enum file_type
+os_dimm_stat_get_type(const os_stat_t *st)
+{
+	enum pmem2_file_type type;
+
+	int ret = pmem2_get_type_from_stat(st, &type);
+	if (ret) {
+		errno = pmem2_err_to_errno(ret);
+		return OTHER_ERROR;
+	}
+
+	if (type == PMEM2_FTYPE_REG || type == PMEM2_FTYPE_DIR)
+		return TYPE_NORMAL;
+
+	if (type == PMEM2_FTYPE_DEVDAX)
+		return TYPE_DEVDAX;
+
+	ASSERTinfo(0, "unhandled file type in util_stat_get_type");
+	return OTHER_ERROR;
+}
+
+/*
  * os_dimm_region_namespace -- (internal) returns the region
  *                             (and optionally the namespace)
  *                             where the given file is located
@@ -153,7 +181,7 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 	if (pndns)
 		*pndns = NULL;
 
-	enum file_type type = util_stat_get_type(st);
+	enum file_type type = os_dimm_stat_get_type(st);
 	if (type == OTHER_ERROR)
 		return -1;
 
@@ -606,6 +634,37 @@ out_ars_cap:
 }
 
 /*
+ * os_dimm_badblocks_new -- zalloc bad blocks structure
+ */
+static struct badblocks *
+os_dimm_badblocks_new(void)
+{
+	LOG(3, " ");
+
+	struct badblocks *bbs = Zalloc(sizeof(struct badblocks));
+	if (bbs == NULL) {
+		ERR("!Zalloc");
+	}
+
+	return bbs;
+}
+
+/*
+ * os_dimm_badblocks_delete -- free bad blocks structure
+ */
+static void
+os_dimm_badblocks_delete(struct badblocks *bbs)
+{
+	LOG(3, "badblocks %p", bbs);
+
+	if (bbs == NULL)
+		return;
+
+	Free(bbs->bbv);
+	Free(bbs);
+}
+
+/*
  * os_dimm_devdax_clear_badblocks -- clear the given bad blocks in the dax
  *                                  device (or all of them if 'pbbs' is not set)
  */
@@ -623,7 +682,7 @@ os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 		return -1;
 	}
 
-	struct badblocks *bbs = badblocks_new();
+	struct badblocks *bbs = os_dimm_badblocks_new();
 	if (bbs == NULL)
 		goto exit_free_all;
 
@@ -633,7 +692,7 @@ os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 			LOG(1, "getting bad blocks' bus failed -- %s", path);
 			goto exit_free_all;
 		}
-		badblocks_delete(bbs);
+		os_dimm_badblocks_delete(bbs);
 		bbs = pbbs;
 	} else {
 		ret = os_dimm_files_namespace_badblocks_bus(ctx, path, &bus,
@@ -670,7 +729,7 @@ os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 
 exit_free_all:
 	if (!pbbs)
-		badblocks_delete(bbs);
+		os_dimm_badblocks_delete(bbs);
 
 	ndctl_unref(ctx);
 
