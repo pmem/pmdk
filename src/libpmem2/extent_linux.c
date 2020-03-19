@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2019, Intel Corporation */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * extent_linux.c - implementation of the linux fs extent query API
@@ -10,6 +10,9 @@
 #include <sys/ioctl.h>
 #include <linux/fs.h>
 #include <linux/fiemap.h>
+
+#include "libpmem2.h"
+#include "pmem2_utils.h"
 
 #include "file.h"
 #include "out.h"
@@ -35,15 +38,30 @@ os_extents_common(const char *path, struct extents *exts,
 		return -1;
 	}
 
-	enum file_type type = util_fd_get_type(fd);
-	if (type < 0)
-		goto error_close;
-
-	struct stat st;
-	if (fstat(fd, &st) < 0) {
+	os_stat_t st;
+	if (os_fstat(fd, &st) < 0) {
 		ERR("!fstat %d", fd);
 		goto error_close;
 	}
+
+	enum pmem2_file_type pmem2_type;
+
+	int ret = pmem2_get_type_from_stat(&st, &pmem2_type);
+	if (ret) {
+		errno = pmem2_err_to_errno(ret);
+		goto error_close;
+	}
+
+	switch (pmem2_type) {
+		case PMEM2_FTYPE_REG:
+		case PMEM2_FTYPE_DIR:
+		case PMEM2_FTYPE_DEVDAX:
+			break;
+		default:
+			ASSERTinfo(0,
+				"unhandled file type in pmem2_get_type_from_stat");
+			return -1;
+	};
 
 	if (exts->extents_count == 0) {
 		LOG(10, "%s: block size: %li", path, (long int)st.st_blksize);
@@ -51,7 +69,7 @@ os_extents_common(const char *path, struct extents *exts,
 	}
 
 	/* devdax does not have any extents */
-	if (type == TYPE_DEVDAX) {
+	if (pmem2_type == PMEM2_FTYPE_DEVDAX) {
 		close(fd);
 		return 0;
 	}

@@ -35,9 +35,9 @@ do_list(const char *path)
 	if (bbs == NULL)
 		UT_FATAL("!badblocks_new");
 
-	ret = os_badblocks_get(path, bbs);
+	ret = badblocks_get(path, bbs);
 	if (ret)
-		UT_FATAL("!os_badblocks_get");
+		UT_FATAL("!badblocks_get");
 
 	if (bbs->bb_cnt == 0 || bbs->bbv == NULL) {
 		UT_OUT("No bad blocks found.");

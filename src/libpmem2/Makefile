@@ -13,13 +13,14 @@ LIBRARY_VERSION = 0.0
 SOURCE =\
 	$(COMMON)/ravl.c\
 	libpmem2.c\
+	badblocks.c\
+	badblocks_$(OS_DIMM).c\
 	config.c\
 	errormsg.c\
 	memops_generic.c\
 	map.c\
 	map_posix.c\
-	badblocks.c\
-	badblocks_$(OS_DIMM).c\
+	$(call osdep, extent,.c)\
 	persist.c\
 	persist_posix.c\
 	pmem2.c\

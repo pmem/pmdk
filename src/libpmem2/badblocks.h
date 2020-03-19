@@ -25,6 +25,9 @@ int badblocks_files_namespace_badblocks(const char *path,
 int badblocks_devdax_clear_badblocks_all(const char *path);
 int badblocks_devdax_clear_badblocks(const char *path, struct badblocks *bbs);
 
+long badblocks_count(const char *path);
+int badblocks_get(const char *file, struct badblocks *bbs);
+
 #ifdef __cplusplus
 }
 #endif
