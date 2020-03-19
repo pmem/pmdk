@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 """Valgrind handling tools"""
 
@@ -140,7 +140,7 @@ class Valgrind:
         and test requirements
         """
         vg_tool, kwargs = ctx.get_requirement(tc, 'enabled_valgrind', NONE)
-        disabled = ctx.get_requirement(tc, 'disabled_valgrind', NONE)
+        disabled, _ = ctx.get_requirement(tc, 'disabled_valgrind', ())
 
         if config.force_enable:
             if vg_tool and vg_tool != config.force_enable:
@@ -273,15 +273,9 @@ def require_valgrind_enabled(valgrind):
     return wrapped
 
 
-def require_valgrind_disabled(valgrind):
+def require_valgrind_disabled(*valgrind):
     def wrapped(tc):
-        disabled_tools = []
-        if isinstance(valgrind, list):
-            for v in valgrind:
-                disabled_tools.append(_require_valgrind_common(v))
-        else:
-            disabled_tools.append(_require_valgrind_common(valgrind))
-
+        disabled_tools = [_require_valgrind_common(v) for v in valgrind]
         ctx.add_requirement(tc, 'disabled_valgrind', disabled_tools)
 
         return tc

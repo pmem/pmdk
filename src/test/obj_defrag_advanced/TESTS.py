@@ -102,7 +102,7 @@ class TEST4(ObjDefragAdvancedMt):
 
 
 # This test last too long under helgrind/memcheck/pmemcheck
-@t.require_valgrind_disabled(['helgrind', 'memcheck', 'pmemcheck'])
+@t.require_valgrind_disabled('helgrind', 'memcheck', 'pmemcheck')
 class TEST5(ObjDefragAdvancedMt):
 
     max_nodes = 256

@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 
 
 import testframework as t
@@ -16,7 +16,7 @@ class BASE(t.Test):
         ctx.exec('obj_ulog_size', filepath, filepath1)
 
 
-@t.require_valgrind_disabled(['memcheck', 'pmemcheck'])
+@t.require_valgrind_disabled('memcheck', 'pmemcheck')
 class TEST0(BASE):
     pass
 
