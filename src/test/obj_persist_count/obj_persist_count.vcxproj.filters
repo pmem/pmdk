@@ -130,7 +130,7 @@
     <ClCompile Include="obj_persist_count.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\os_dimm_none.c" />
+    <ClCompile Include="..\..\libpmem2\badblocks_none.c" />
     <ClCompile Include="..\..\common\ctl_prefault.c">
       <Filter>Source Files</Filter>
     </ClCompile>
