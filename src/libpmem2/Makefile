@@ -18,6 +18,8 @@ SOURCE =\
 	memops_generic.c\
 	map.c\
 	map_posix.c\
+	badblocks.c\
+	badblocks_$(OS_DIMM).c\
 	persist.c\
 	persist_posix.c\
 	pmem2.c\

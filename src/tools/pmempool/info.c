@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * info.c -- pmempool info command main source file
@@ -25,6 +25,7 @@
 #include "info.h"
 #include "set.h"
 #include "file.h"
+#include "badblocks.h"
 #include "os_badblock.h"
 #include "badblock.h"
 

@@ -259,7 +259,6 @@ OBJS +=\
 	$(TOP)/src/nondebug/common/mmap.o\
 	$(TOP)/src/nondebug/common/mmap_posix.o\
 	$(TOP)/src/nondebug/common/os_deep_linux.o\
-	$(TOP)/src/nondebug/common/os_dimm_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/common/pool_hdr.o\
 	$(TOP)/src/nondebug/common/set.o\
 	$(TOP)/src/nondebug/common/shutdown_state.o\
@@ -269,6 +268,8 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/nondebug/libpmem2/config.o\
+	$(TOP)/src/nondebug/libpmem2/badblocks.o\
+	$(TOP)/src/nondebug/libpmem2/badblocks_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/libpmem2/usc_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/libpmem2/source.o\
 	$(TOP)/src/nondebug/libpmem2/source_posix.o
@@ -300,7 +301,6 @@ OBJS +=\
 	$(TOP)/src/debug/common/mmap.o\
 	$(TOP)/src/debug/common/mmap_posix.o\
 	$(TOP)/src/debug/common/os_deep_linux.o\
-	$(TOP)/src/debug/common/os_dimm_$(OS_DIMM).o\
 	$(TOP)/src/debug/common/pool_hdr.o\
 	$(TOP)/src/debug/common/set.o\
 	$(TOP)/src/debug/common/shutdown_state.o\
@@ -308,6 +308,8 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/debug/common/uuid,.o)\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/debug/libpmem2/config.o\
+	$(TOP)/src/debug/libpmem2/badblocks.o\
+	$(TOP)/src/debug/libpmem2/badblocks_$(OS_DIMM).o\
 	$(TOP)/src/debug/libpmem2/source.o\
 	$(TOP)/src/debug/libpmem2/source_posix.o\
 	$(TOP)/src/debug/libpmem2/usc_$(OS_DIMM).o
