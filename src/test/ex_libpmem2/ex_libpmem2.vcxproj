@@ -11,15 +11,18 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\examples\libpmem2\advanced.vcxproj">
-      <Project>{d2964b88-eb05-4ebf-acda-44596fbfecb6}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\examples\libpmem2\basic.vcxproj">
-      <Project>{0287c3dc-ae03-4714-aaff-c52f062eca6f}</Project>
-    </ProjectReference>
+    <None Include="TESTS.py" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="TESTS.py" />
+    <ProjectReference Include="..\..\examples\libpmem2\advanced\advanced.vcxproj">
+      <Project>{d2964b88-eb05-4ebf-acda-44596fbfecb6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\examples\libpmem2\basic\basic.vcxproj">
+      <Project>{a9add224-1755-407f-906d-c13ec37ff7b0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\examples\libpmem2\log\log.vcxproj">
+      <Project>{3ec20bdd-2e48-4291-a9ee-d0675af77c7f}</Project>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C2D5E690-748B-4138-B572-1774B99A8572}</ProjectGuid>
