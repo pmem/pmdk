@@ -25,7 +25,6 @@
     <ClCompile Include="mmap.c" />
     <ClCompile Include="mmap_windows.c" />
     <ClCompile Include="os_deep_windows.c" />
-    <ClCompile Include="os_dimm_windows.c" />
     <ClCompile Include="pool_hdr.c" />
     <ClCompile Include="rand.c" />
     <ClCompile Include="set.c" />
@@ -33,6 +32,7 @@
     <ClCompile Include="uuid.c" />
     <ClCompile Include="uuid_windows.c" />
     <ClCompile Include="..\libpmem2\config.c" />
+    <ClCompile Include="..\libpmem2\badblocks_none.c" />
     <ClCompile Include="..\libpmem2\source.c" />
     <ClCompile Include="..\libpmem2\source_windows.c" />
     <ClCompile Include="..\libpmem2\pmem2_utils.c" />

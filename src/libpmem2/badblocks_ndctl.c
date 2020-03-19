@@ -2,7 +2,7 @@
 /* Copyright 2017-2020, Intel Corporation */
 
 /*
- * os_dimm_ndctl.c -- implementation of DIMMs API based on the ndctl library
+ * badblocks_ndctl.c -- implementation of DIMMs API based on the ndctl library
  */
 #define _GNU_SOURCE
 
@@ -20,10 +20,13 @@
 #include "file.h"
 #include "out.h"
 #include "os.h"
-#include "os_dimm.h"
+#include "badblocks.h"
 #include "os_badblock.h"
 #include "badblock.h"
 #include "vec.h"
+
+#include "libpmem2.h"
+#include "pmem2_utils.h"
 
 #define FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns)	\
 	ndctl_bus_foreach(ctx, bus)				\
@@ -31,12 +34,12 @@
 			ndctl_namespace_foreach(region, ndns)	\
 
 /*
- * os_dimm_match_devdax -- (internal) returns 1 if the devdax matches
+ * badblocks_match_devdax -- (internal) returns 1 if the devdax matches
  *                         with the given file, 0 if it doesn't match,
  *                         and -1 in case of error.
  */
 static int
-os_dimm_match_devdax(const os_stat_t *st, const char *devname)
+badblocks_match_devdax(const os_stat_t *st, const char *devname)
 {
 	LOG(3, "st %p devname %s", st, devname);
 
@@ -67,12 +70,12 @@ os_dimm_match_devdax(const os_stat_t *st, const char *devname)
 #define BUFF_LENGTH 64
 
 /*
- * os_dimm_match_fsdax -- (internal) returns 1 if the device matches
+ * badblocks_match_fsdax -- (internal) returns 1 if the device matches
  *                         with the given file, 0 if it doesn't match,
  *                         and -1 in case of error.
  */
 static int
-os_dimm_match_fsdax(const os_stat_t *st, const char *devname)
+badblocks_match_fsdax(const os_stat_t *st, const char *devname)
 {
 	LOG(3, "st %p devname %s", st, devname);
 
@@ -131,12 +134,12 @@ os_dimm_match_fsdax(const os_stat_t *st, const char *devname)
 }
 
 /*
- * os_dimm_region_namespace -- (internal) returns the region
+ * badblocks_region_namespace -- (internal) returns the region
  *                             (and optionally the namespace)
  *                             where the given file is located
  */
 static int
-os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
+badblocks_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 				struct ndctl_region **pregion,
 				struct ndctl_namespace **pndns)
 {
@@ -153,9 +156,24 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 	if (pndns)
 		*pndns = NULL;
 
-	enum file_type type = util_stat_get_type(st);
-	if (type == OTHER_ERROR)
+	enum pmem2_file_type pmem2_type;
+
+	int ret = pmem2_get_type_from_stat(st, &pmem2_type);
+	if (ret) {
+		errno = pmem2_err_to_errno(ret);
 		return -1;
+	}
+
+	switch (pmem2_type) {
+		case PMEM2_FTYPE_REG:
+		case PMEM2_FTYPE_DIR:
+		case PMEM2_FTYPE_DEVDAX:
+			break;
+		default:
+			ASSERTinfo(0,
+				"unhandled file type in pmem2_get_type_from_stat");
+			return -1;
+	};
 
 	FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns) {
 		struct ndctl_btt *btt;
@@ -164,9 +182,11 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 		const char *devname;
 
 		if ((dax = ndctl_namespace_get_dax(ndns))) {
-			if (type == TYPE_NORMAL)
+			if (pmem2_type == PMEM2_FTYPE_REG ||
+			    pmem2_type == PMEM2_FTYPE_DIR)
 				continue;
-			ASSERTeq(type, TYPE_DEVDAX);
+
+			ASSERTeq(pmem2_type, PMEM2_FTYPE_DEVDAX);
 
 			struct daxctl_region *dax_region;
 			dax_region = ndctl_dax_get_daxctl_region(dax);
@@ -177,7 +197,7 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			struct daxctl_dev *dev;
 			daxctl_dev_foreach(dax_region, dev) {
 				devname = daxctl_dev_get_devname(dev);
-				int ret = os_dimm_match_devdax(st, devname);
+				int ret = badblocks_match_devdax(st, devname);
 				if (ret < 0)
 					return ret;
 
@@ -191,9 +211,11 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			}
 
 		} else {
-			if (type == TYPE_DEVDAX)
+			if (pmem2_type == PMEM2_FTYPE_DEVDAX)
 				continue;
-			ASSERTeq(type, TYPE_NORMAL);
+
+			ASSERT(pmem2_type == PMEM2_FTYPE_REG ||
+				pmem2_type == PMEM2_FTYPE_DIR);
 
 			if ((btt = ndctl_namespace_get_btt(ndns))) {
 				devname = ndctl_btt_get_block_device(btt);
@@ -204,7 +226,7 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 					ndctl_namespace_get_block_device(ndns);
 			}
 
-			int ret = os_dimm_match_fsdax(st, devname);
+			int ret = badblocks_match_fsdax(st, devname);
 			if (ret < 0)
 				return ret;
 
@@ -224,12 +246,12 @@ os_dimm_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 }
 
 /*
- * os_dimm_get_namespace_bounds -- (internal) returns the bounds
+ * badblocks_get_namespace_bounds -- (internal) returns the bounds
  *                                 (offset and size) of the given namespace
  *                                 relative to the beginning of its region
  */
 static int
-os_dimm_get_namespace_bounds(struct ndctl_region *region,
+badblocks_get_namespace_bounds(struct ndctl_region *region,
 				struct ndctl_namespace *ndns,
 				unsigned long long *ns_offset,
 				unsigned long long *ns_size)
@@ -303,7 +325,7 @@ os_dimm_get_namespace_bounds(struct ndctl_region *region,
 }
 
 /*
- * os_dimm_namespace_get_badblocks_by_region -- (internal) returns bad blocks
+ * badblocks_get_badblocks_by_region -- (internal) returns bad blocks
  *                                    in the given namespace using the
  *                                    universal region interface.
  *
@@ -311,7 +333,7 @@ os_dimm_get_namespace_bounds(struct ndctl_region *region,
  * privileged device information.
  */
 static int
-os_dimm_namespace_get_badblocks_by_region(struct ndctl_region *region,
+badblocks_get_badblocks_by_region(struct ndctl_region *region,
 				struct ndctl_namespace *ndns,
 				struct badblocks *bbs)
 {
@@ -329,7 +351,7 @@ os_dimm_namespace_get_badblocks_by_region(struct ndctl_region *region,
 	bbs->bb_cnt = 0;
 	bbs->bbv = NULL;
 
-	if (os_dimm_get_namespace_bounds(region, ndns, &ns_beg, &ns_size)) {
+	if (badblocks_get_namespace_bounds(region, ndns, &ns_beg, &ns_size)) {
 		LOG(1, "cannot read namespace's bounds");
 		return -1;
 	}
@@ -391,7 +413,7 @@ os_dimm_namespace_get_badblocks_by_region(struct ndctl_region *region,
 }
 
 /*
- * os_dimm_namespace_get_badblocks_by_namespace -- (internal) returns bad blocks
+ * badblocks_get_badblocks_by_namespace -- (internal) returns bad blocks
  *                                    in the given namespace using the
  *                                    block device badblocks interface.
  *
@@ -399,7 +421,7 @@ os_dimm_namespace_get_badblocks_by_region(struct ndctl_region *region,
  * permissions.
  */
 static int
-os_dimm_namespace_get_badblocks_by_namespace(struct ndctl_namespace *ndns,
+badblocks_get_badblocks_by_namespace(struct ndctl_namespace *ndns,
 					struct badblocks *bbs)
 {
 	ASSERTeq(ndctl_namespace_get_mode(ndns), NDCTL_NS_MODE_FSDAX);
@@ -425,14 +447,13 @@ os_dimm_namespace_get_badblocks_by_namespace(struct ndctl_namespace *ndns,
 }
 
 /*
- * os_dimm_namespace_get_badblocks -- (internal) returns bad blocks in the given
- *                                    namespace, using the least privileged
- *                                    path.
+ * badblocks_get_badblocks -- (internal) returns bad blocks in the given
+ *                            namespace, using the least privileged path.
  */
 static int
-os_dimm_namespace_get_badblocks(struct ndctl_region *region,
-				struct ndctl_namespace *ndns,
-				struct badblocks *bbs)
+badblocks_get_badblocks(struct ndctl_region *region,
+			struct ndctl_namespace *ndns,
+			struct badblocks *bbs)
 {
 	/*
 	 * Only the new NDCTL versions have the namespace badblock iterator,
@@ -440,17 +461,17 @@ os_dimm_namespace_get_badblocks(struct ndctl_region *region,
 	 * old region interface.
 	 */
 	if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_FSDAX)
-		return os_dimm_namespace_get_badblocks_by_namespace(ndns, bbs);
+		return badblocks_get_badblocks_by_namespace(ndns, bbs);
 
-	return os_dimm_namespace_get_badblocks_by_region(region, ndns, bbs);
+	return badblocks_get_badblocks_by_region(region, ndns, bbs);
 }
 
 /*
- * os_dimm_files_namespace_bus -- (internal) returns bus where the given
+ * badblocks_files_namespace_bus -- (internal) returns bus where the given
  *                                file is located
  */
 static int
-os_dimm_files_namespace_bus(struct ndctl_ctx *ctx,
+badblocks_files_namespace_bus(struct ndctl_ctx *ctx,
 				const char *path,
 				struct ndctl_bus **pbus)
 {
@@ -468,7 +489,7 @@ os_dimm_files_namespace_bus(struct ndctl_ctx *ctx,
 		return -1;
 	}
 
-	int rv = os_dimm_region_namespace(ctx, &st, &region, &ndns);
+	int rv = badblocks_region_namespace(ctx, &st, &region, &ndns);
 	if (rv) {
 		LOG(1, "getting region and namespace failed");
 		return -1;
@@ -485,13 +506,13 @@ os_dimm_files_namespace_bus(struct ndctl_ctx *ctx,
 }
 
 /*
- * os_dimm_files_namespace_badblocks_bus -- (internal) returns badblocks
+ * badblocks_files_namespace_badblocks_bus -- (internal) returns badblocks
  *                                          in the namespace where the given
  *                                          file is located
  *                                          (optionally returns also the bus)
  */
 static int
-os_dimm_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
+badblocks_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
 					const char *path,
 					struct ndctl_bus **pbus,
 					struct badblocks *bbs)
@@ -508,7 +529,7 @@ os_dimm_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
 		return -1;
 	}
 
-	int rv = os_dimm_region_namespace(ctx, &st, &region, &ndns);
+	int rv = badblocks_region_namespace(ctx, &st, &region, &ndns);
 	if (rv) {
 		LOG(1, "getting region and namespace failed");
 		return -1;
@@ -522,15 +543,15 @@ os_dimm_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
 	if (pbus)
 		*pbus = ndctl_region_get_bus(region);
 
-	return os_dimm_namespace_get_badblocks(region, ndns, bbs);
+	return badblocks_get_badblocks(region, ndns, bbs);
 }
 
 /*
- * os_dimm_files_namespace_badblocks -- returns badblocks in the namespace
+ * badblocks_files_namespace_badblocks -- returns badblocks in the namespace
  *                                      where the given file is located
  */
 int
-os_dimm_files_namespace_badblocks(const char *path, struct badblocks *bbs)
+badblocks_files_namespace_badblocks(const char *path, struct badblocks *bbs)
 {
 	LOG(3, "path %s", path);
 
@@ -541,7 +562,7 @@ os_dimm_files_namespace_badblocks(const char *path, struct badblocks *bbs)
 		return -1;
 	}
 
-	int ret = os_dimm_files_namespace_badblocks_bus(ctx, path, NULL, bbs);
+	int ret = badblocks_files_namespace_badblocks_bus(ctx, path, NULL, bbs);
 
 	ndctl_unref(ctx);
 
@@ -549,11 +570,11 @@ os_dimm_files_namespace_badblocks(const char *path, struct badblocks *bbs)
 }
 
 /*
- * os_dimm_devdax_clear_one_badblock -- (internal) clear one bad block
+ * badblocks_devdax_clear_one_badblock -- (internal) clear one bad block
  *                                      in the dax device
  */
 static int
-os_dimm_devdax_clear_one_badblock(struct ndctl_bus *bus,
+badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
 				unsigned long long address,
 				unsigned long long length)
 {
@@ -606,11 +627,11 @@ out_ars_cap:
 }
 
 /*
- * os_dimm_devdax_clear_badblocks -- clear the given bad blocks in the dax
+ * badblocks_devdax_clear_badblocks -- clear the given bad blocks in the dax
  *                                  device (or all of them if 'pbbs' is not set)
  */
 int
-os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
+badblocks_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 {
 	LOG(3, "path %s badblocks %p", path, pbbs);
 
@@ -628,7 +649,7 @@ os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 		goto exit_free_all;
 
 	if (pbbs) {
-		ret = os_dimm_files_namespace_bus(ctx, path, &bus);
+		ret = badblocks_files_namespace_bus(ctx, path, &bus);
 		if (ret) {
 			LOG(1, "getting bad blocks' bus failed -- %s", path);
 			goto exit_free_all;
@@ -636,7 +657,7 @@ os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 		badblocks_delete(bbs);
 		bbs = pbbs;
 	} else {
-		ret = os_dimm_files_namespace_badblocks_bus(ctx, path, &bus,
+		ret = badblocks_files_namespace_badblocks_bus(ctx, path, &bus,
 									bbs);
 		if (ret) {
 			LOG(1, "getting bad blocks for the file failed -- %s",
@@ -656,7 +677,7 @@ os_dimm_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 			"clearing bad block: offset %llu length %u (in 512B sectors)",
 			B2SEC(bbs->bbv[b].offset), B2SEC(bbs->bbv[b].length));
 
-		ret = os_dimm_devdax_clear_one_badblock(bus,
+		ret = badblocks_devdax_clear_one_badblock(bus,
 					bbs->bbv[b].offset + bbs->ns_resource,
 					bbs->bbv[b].length);
 		if (ret) {
@@ -678,12 +699,13 @@ exit_free_all:
 }
 
 /*
- * os_dimm_devdax_clear_badblocks_all -- clear all bad blocks in the dax device
+ * badblocks_devdax_clear_badblocks_all -- clear all bad blocks
+ *                                         in the dax device
  */
 int
-os_dimm_devdax_clear_badblocks_all(const char *path)
+badblocks_devdax_clear_badblocks_all(const char *path)
 {
 	LOG(3, "path %s", path);
 
-	return os_dimm_devdax_clear_badblocks(path, NULL);
+	return badblocks_devdax_clear_badblocks(path, NULL);
 }

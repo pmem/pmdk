@@ -27,7 +27,7 @@
 #include "util.h"
 #include "uuid.h"
 #include "shutdown_state.h"
-#include "os_dimm.h"
+#include "badblocks.h"
 #include "badblock.h"
 
 /*
@@ -131,7 +131,7 @@ replica_remove_part(struct pool_set *set, unsigned repn, unsigned partn,
 
 	/* if the part is a device dax, clear its bad blocks */
 	if (type == TYPE_DEVDAX && fix_bad_blocks &&
-	    os_dimm_devdax_clear_badblocks_all(part->path)) {
+	    badblocks_devdax_clear_badblocks_all(part->path)) {
 		ERR("clearing bad blocks in device dax failed -- '%s'",
 			part->path);
 		errno = EIO;

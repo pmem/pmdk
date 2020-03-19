@@ -9,12 +9,12 @@
 #include <stdbool.h>
 #include <endian.h>
 #include "shutdown_state.h"
-#include "os_dimm.h"
 #include "out.h"
 #include "util.h"
 #include "os_deep.h"
 #include "set.h"
 #include "libpmem2.h"
+#include "../libpmem2/badblocks.h"
 #include "../libpmem2/pmem2_utils.h"
 
 #define FLUSH_SDS(sds, rep) \

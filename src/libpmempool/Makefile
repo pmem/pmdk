@@ -14,6 +14,7 @@ INCS += -I$(TOP)/src/libpmemblk
 INCS += -I$(TOP)/src/libpmemobj
 INCS += -I$(TOP)/src/rpmem_common
 INCS += -I$(TOP)/src/librpmem
+INCS += -I$(TOP)/src/libpmem2
 
 vpath %.c ../librpmem
 
