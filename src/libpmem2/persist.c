@@ -353,12 +353,13 @@ pmem2_memmove_nonpmem(void *pmemdest, const void *src, size_t len,
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
 		ERR("invalid flags 0x%x", flags);
 #endif
-
+	PMEM2_API_START("pmem2_memmove");
 	Info.memmove_nodrain(pmemdest, src, len, flags & ~PMEM2_F_MEM_NODRAIN,
 			Info.flush);
 
 	pmem2_persist_pages(pmemdest, len);
 
+	PMEM2_API_END("pmem2_memmove");
 	return pmemdest;
 }
 
@@ -372,12 +373,13 @@ pmem2_memset_nonpmem(void *pmemdest, int c, size_t len, unsigned flags)
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
 		ERR("invalid flags 0x%x", flags);
 #endif
-
+	PMEM2_API_START("pmem2_memset");
 	Info.memset_nodrain(pmemdest, c, len, flags & ~PMEM2_F_MEM_NODRAIN,
 			Info.flush);
 
 	pmem2_persist_pages(pmemdest, len);
 
+	PMEM2_API_END("pmem2_memset");
 	return pmemdest;
 }
 
@@ -392,11 +394,12 @@ pmem2_memmove(void *pmemdest, const void *src, size_t len,
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
 		ERR("invalid flags 0x%x", flags);
 #endif
-
+	PMEM2_API_START("pmem2_memmove");
 	Info.memmove_nodrain(pmemdest, src, len, flags, Info.flush);
 	if ((flags & (PMEM2_F_MEM_NODRAIN | PMEM2_F_MEM_NOFLUSH)) == 0)
 		pmem2_drain();
 
+	PMEM2_API_END("pmem2_memmove");
 	return pmemdest;
 }
 
@@ -410,11 +413,12 @@ pmem2_memset(void *pmemdest, int c, size_t len, unsigned flags)
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
 		ERR("invalid flags 0x%x", flags);
 #endif
-
+	PMEM2_API_START("pmem2_memset");
 	Info.memset_nodrain(pmemdest, c, len, flags, Info.flush);
 	if ((flags & (PMEM2_F_MEM_NODRAIN | PMEM2_F_MEM_NOFLUSH)) == 0)
 		pmem2_drain();
 
+	PMEM2_API_END("pmem2_memset");
 	return pmemdest;
 }
 
@@ -429,11 +433,12 @@ pmem2_memmove_eadr(void *pmemdest, const void *src, size_t len,
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
 		ERR("invalid flags 0x%x", flags);
 #endif
-
+	PMEM2_API_START("pmem2_memmove");
 	Info.memmove_nodrain_eadr(pmemdest, src, len, flags, Info.flush);
 	if ((flags & (PMEM2_F_MEM_NODRAIN | PMEM2_F_MEM_NOFLUSH)) == 0)
 		pmem2_drain();
 
+	PMEM2_API_END("pmem2_memmove");
 	return pmemdest;
 }
 
@@ -447,11 +452,12 @@ pmem2_memset_eadr(void *pmemdest, int c, size_t len, unsigned flags)
 	if (flags & ~PMEM2_F_MEM_VALID_FLAGS)
 		ERR("invalid flags 0x%x", flags);
 #endif
-
+	PMEM2_API_START("pmem2_memset");
 	Info.memset_nodrain_eadr(pmemdest, c, len, flags, Info.flush);
 	if ((flags & (PMEM2_F_MEM_NODRAIN | PMEM2_F_MEM_NOFLUSH)) == 0)
 		pmem2_drain();
 
+	PMEM2_API_END("pmem2_memset");
 	return pmemdest;
 }
 
@@ -509,3 +515,14 @@ pmem2_get_memset_fn(struct pmem2_map *map)
 {
 	return map->memset_fn;
 }
+
+#if VG_PMEMCHECK_ENABLED
+/*
+ * pmem2_emit_log -- logs library and function names to pmemcheck store log
+ */
+void
+pmem2_emit_log(const char *func, int order)
+{
+	util_emit_log("libpmem2", func, order);
+}
+#endif
