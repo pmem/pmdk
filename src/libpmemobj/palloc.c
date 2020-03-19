@@ -61,6 +61,7 @@ struct pobj_action_internal {
 		/* valid only when type == POBJ_ACTION_TYPE_HEAP */
 		struct {
 			uint64_t offset;
+			uint64_t usable_size;
 			enum memblock_state new_state;
 			struct memory_block m;
 			struct memory_block_reserved *mresv;
@@ -107,7 +108,7 @@ static int
 alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 	palloc_constr constructor, void *arg,
 	uint64_t extra_field, uint16_t object_flags,
-	uint64_t *offset_value)
+	struct pobj_action_internal *out)
 {
 	void *uptr = m->m_ops->get_user_data(m);
 	size_t usize = m->m_ops->get_user_size(m);
@@ -147,7 +148,8 @@ alloc_prep_block(struct palloc_heap *heap, const struct memory_block *m,
 	 * will be used to set the offset destination pointer provided by the
 	 * caller.
 	 */
-	*offset_value = HEAP_PTR_TO_OFF(heap, uptr);
+	out->offset = HEAP_PTR_TO_OFF(heap, uptr);
+	out->usable_size = usize;
 
 	return 0;
 }
@@ -218,7 +220,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 		goto out;
 
 	if (alloc_prep_block(heap, new_block, constructor, arg,
-		extra_field, object_flags, &out->offset) != 0) {
+		extra_field, object_flags, out) != 0) {
 		/*
 		 * Constructor returned non-zero value which means
 		 * the memory block reservation has to be rolled back.

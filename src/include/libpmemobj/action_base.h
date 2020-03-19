@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2020, Intel Corporation */
 
 /*
  * libpmemobj/action_base.h -- definitions of libpmemobj action interface
@@ -26,6 +26,8 @@ enum pobj_action_type {
 struct pobj_action_heap {
 	/* offset to the element being freed/allocated */
 	uint64_t offset;
+	/* usable size of the element being allocated */
+	uint64_t usable_size;
 };
 
 struct pobj_action {
