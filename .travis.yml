@@ -2,7 +2,7 @@ os: linux
 dist: bionic
 arch:
   - ppc64le
-  - amd64
+#  - amd64
 
 sudo: required
 
@@ -43,6 +43,7 @@ env:
 # and not have to define `arch:` for each entry.
 matrix:
   include:
+    - env: COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug
     - env: FAULT_INJECTION=1 TEST_BUILD=debug PUSH_IMAGE=1
     - env: OS=fedora OS_VER=31 PMDK_CC=clang PMDK_CXX=clang++ TEST_BUILD=nondebug PUSH_IMAGE=1
     - env: MAKE_PKG=1 REMOTE_TESTS=0 VALGRIND=0
