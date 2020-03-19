@@ -27,7 +27,6 @@
     <ClCompile Include="..\core\fs_windows.c" />
     <ClCompile Include="..\common\badblock_none.c" />
     <ClCompile Include="..\common\os_deep_windows.c" />
-    <ClCompile Include="..\common\os_dimm_windows.c" />
     <ClCompile Include="..\core\os_thread_windows.c" />
     <ClCompile Include="..\core\os_windows.c" />
     <ClCompile Include="..\core\out.c" />
@@ -39,6 +38,7 @@
     <ClCompile Include="..\common\uuid.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
     <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
+    <ClCompile Include="..\libpmem2\badblocks_none.c" />
     <ClCompile Include="..\libpmem2\usc_windows.c" />
     <ClCompile Include="libpmemlog_main.c" />
     <ClCompile Include="..\libpmem2\config.c" />

@@ -17,7 +17,6 @@ SOURCE +=\
 	$(COMMON)/file_posix.c\
 	$(COMMON)/mmap.c\
 	$(COMMON)/mmap_posix.c\
-	$(COMMON)/os_dimm_$(OS_DIMM).c\
 	$(COMMON)/os_deep_linux.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/rand.c\
@@ -28,6 +27,8 @@ SOURCE +=\
 	$(call osdep, $(COMMON)/uuid,.c)\
 	$(PMEM2)/pmem2_utils.c\
 	$(PMEM2)/config.c\
+	$(PMEM2)/badblocks.c\
+	$(PMEM2)/badblocks_$(OS_DIMM).c\
 	$(PMEM2)/usc_$(OS_DIMM).c\
 	$(PMEM2)/source.c\
 	$(PMEM2)/source_posix.c

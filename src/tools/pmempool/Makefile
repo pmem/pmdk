@@ -33,6 +33,7 @@ LIBPMEMBLK_PRIV=btt_init btt_write btt_fini btt_info_convert2h\
 
 INCS += -I$(TOP)/src/common
 INCS += -I$(TOP)/src/rpmem_common
+INCS += -I$(TOP)/src/libpmem2
 INCS += -I$(TOP)/src/librpmem
 INCS += -I$(TOP)/src/libpmemlog
 INCS += -I$(TOP)/src/libpmemblk

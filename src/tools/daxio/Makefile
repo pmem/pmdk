@@ -1,11 +1,13 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 #
 # Makefile -- top Makefile for daxio
 #
 
 TOP = ../../..
 include $(TOP)/src/common.inc
+
+INCS += -I$(TOP)/src/libpmem2
 
 ifeq ($(NDCTL_ENABLE),y)
 

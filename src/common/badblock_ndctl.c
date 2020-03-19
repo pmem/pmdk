@@ -13,10 +13,10 @@
 #include "os.h"
 #include "out.h"
 #include "extent.h"
-#include "os_dimm.h"
 #include "os_badblock.h"
 #include "badblock.h"
 #include "vec.h"
+#include "../libpmem2/badblocks.h"
 
 /*
  * os_badblocks_get -- returns 0 and bad blocks in the 'bbs' array
@@ -46,7 +46,7 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 
 	memset(bbs, 0, sizeof(*bbs));
 
-	if (os_dimm_files_namespace_badblocks(file, bbs)) {
+	if (badblocks_files_namespace_badblocks(file, bbs)) {
 		LOG(1, "checking the file for bad blocks failed -- '%s'", file);
 		goto error_free_all;
 	}
@@ -291,7 +291,7 @@ os_badblocks_clear(const char *file, struct badblocks *bbs)
 		return -1;
 
 	if (type == TYPE_DEVDAX)
-		return os_dimm_devdax_clear_badblocks(file, bbs);
+		return badblocks_devdax_clear_badblocks(file, bbs);
 
 	return os_badblocks_clear_file(file, bbs);
 }
@@ -310,7 +310,7 @@ os_badblocks_clear_all(const char *file)
 		return -1;
 
 	if (type == TYPE_DEVDAX)
-		return os_dimm_devdax_clear_badblocks_all(file);
+		return badblocks_devdax_clear_badblocks_all(file);
 
 	struct badblocks *bbs = badblocks_new();
 	if (bbs == NULL)

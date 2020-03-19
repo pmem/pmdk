@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * badblock.h - common part of bad blocks API
@@ -13,9 +13,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-struct badblocks *badblocks_new(void);
-void badblocks_delete(struct badblocks *bbs);
 
 int badblocks_check_poolset(struct pool_set *set, int create);
 int badblocks_clear_poolset(struct pool_set *set, int create);

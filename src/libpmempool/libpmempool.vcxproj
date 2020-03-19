@@ -30,6 +30,7 @@
     <ClInclude Include="..\include\libpmempool.h" />
     <ClInclude Include="..\libpmem2\auto_flush.h" />
     <ClInclude Include="..\libpmem2\auto_flush_windows.h" />
+    <ClInclude Include="..\libpmem2\badblocks.h" />
     <ClInclude Include="..\libpmemblk\btt.h" />
     <ClInclude Include="check.h" />
     <ClInclude Include="check_util.h" />
@@ -49,7 +50,6 @@
     <ClCompile Include="..\core\fs_windows.c" />
     <ClCompile Include="..\common\badblock_none.c" />
     <ClCompile Include="..\common\os_deep_windows.c" />
-    <ClCompile Include="..\common\os_dimm_windows.c" />
     <ClCompile Include="..\core\os_thread_windows.c" />
     <ClCompile Include="..\core\os_windows.c" />
     <ClCompile Include="..\core\out.c" />
@@ -61,6 +61,7 @@
     <ClCompile Include="..\common\uuid.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
     <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
+    <ClCompile Include="..\libpmem2\badblocks_none.c" />
     <ClCompile Include="..\libpmem2\usc_windows.c" />
     <ClCompile Include="..\libpmemblk\btt.c" />
     <ClCompile Include="check.c" />
@@ -146,12 +147,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemlog;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemlog;$(SolutionDir)\libpmem2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemlog;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\libpmemobj;$(SolutionDir)\libpmemblk;$(SolutionDir)\libpmemlog;$(SolutionDir)\libpmem2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

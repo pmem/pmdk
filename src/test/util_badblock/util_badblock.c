@@ -10,7 +10,7 @@
 #include "util.h"
 #include "out.h"
 #include "set.h"
-#include "os_dimm.h"
+#include "badblocks.h"
 #include "os_badblock.h"
 #include "badblock.h"
 #include "fault_injection.h"
