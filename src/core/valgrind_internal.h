@@ -119,6 +119,7 @@ extern unsigned _On_valgrind;
 
 void pobj_emit_log(const char *func, int order);
 void pmem_emit_log(const char *func, int order);
+void pmem2_emit_log(const char *func, int order);
 extern int _Pmreorder_emit;
 
 #define Pmreorder_emit __builtin_expect(_Pmreorder_emit, 0)
@@ -244,6 +245,13 @@ extern int _Pmreorder_emit;
 	if (Pmreorder_emit)\
 		pmem_emit_log(__func__, 1);
 
+#define PMEM2_API_START()\
+	if (Pmreorder_emit)\
+		pmem2_emit_log(__func__, 0);
+#define PMEM2_API_END()\
+	if (Pmreorder_emit)\
+		pmem2_emit_log(__func__, 1);
+
 #else
 
 #define Pmreorder_emit (0)
@@ -339,6 +347,10 @@ extern int _Pmreorder_emit;
 #define PMEM_API_START() do {} while (0)
 
 #define PMEM_API_END() do {} while (0)
+
+#define PMEM2_API_START() do {} while (0)
+
+#define PMEM2_API_END() do {} while (0)
 
 #endif
 
