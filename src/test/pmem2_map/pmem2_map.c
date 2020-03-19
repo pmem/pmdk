@@ -13,7 +13,7 @@
 #include "out.h"
 #include "pmem2.h"
 #include "unittest.h"
-#include "ut_pmem2_utils.h"
+#include "ut_pmem2.h"
 
 #define KILOBYTE (1 << 10)
 #define MEGABYTE (1 << 20)
@@ -152,7 +152,7 @@ get_align_by_name(const char *filename)
 	size_t align;
 	int fd = OPEN(filename, O_RDONLY);
 	prepare_source(&src, fd);
-	pmem2_source_alignment(&src, &align);
+	PMEM2_SOURCE_ALIGNMENT(&src, &align);
 	CLOSE(fd);
 
 	return align;
@@ -599,7 +599,7 @@ test_map_larger_than_unaligned_file_size(const struct test_case *tc, int argc,
 	size_t alignment;
 	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDWR);
 
-	pmem2_source_alignment(&src, &alignment);
+	PMEM2_SOURCE_ALIGNMENT(&src, &alignment);
 
 	/* validate file length is unaligned */
 	UT_ASSERTne(length % alignment, 0);

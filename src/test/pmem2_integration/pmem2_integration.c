@@ -353,8 +353,7 @@ test_len_not_aligned(const struct test_case *tc, int argc, char *argv[])
 	int ret = pmem2_source_size(src, &len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
-	ret = pmem2_source_alignment(src, &alignment);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	PMEM2_SOURCE_ALIGNMENT(src, &alignment);
 
 	UT_ASSERT(len > alignment);
 	size_t aligned_len = ALIGN_DOWN(len, alignment);
@@ -393,8 +392,7 @@ test_len_aligned(const struct test_case *tc, int argc, char *argv[])
 	int ret = pmem2_source_size(src, &len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
-	ret = pmem2_source_alignment(src, &alignment);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	PMEM2_SOURCE_ALIGNMENT(src, &alignment);
 
 	UT_ASSERT(len > alignment);
 	size_t aligned_len = ALIGN_DOWN(len, alignment);
@@ -433,8 +431,7 @@ test_offset_not_aligned(const struct test_case *tc, int argc, char *argv[])
 	int ret = pmem2_source_size(src, &len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
-	ret = pmem2_source_alignment(src, &alignment);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	PMEM2_SOURCE_ALIGNMENT(src, &alignment);
 
 	/* break the offset */
 	size_t offset = alignment - 1;
@@ -478,8 +475,7 @@ test_offset_aligned(const struct test_case *tc, int argc, char *argv[])
 	int ret = pmem2_source_size(src, &len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
-	ret = pmem2_source_alignment(src, &alignment);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	PMEM2_SOURCE_ALIGNMENT(src, &alignment);
 
 	/* set the aligned offset */
 	size_t offset = alignment;

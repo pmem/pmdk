@@ -12,8 +12,7 @@
 
 #include "libpmem2.h"
 #include "unittest.h"
-#include "ut_pmem2_utils.h"
-#include "ut_pmem2_config.h"
+#include "ut_pmem2.h"
 #include "config.h"
 #include "out.h"
 
@@ -37,8 +36,7 @@ test_get_alignment_success(const struct test_case *tc, int argc,
 	PMEM2_SOURCE_FROM_FD(&src, fd);
 
 	size_t alignment;
-	int ret2 = pmem2_source_alignment(src, &alignment);
-	UT_PMEM2_EXPECT_RETURN(ret2, 0);
+	PMEM2_SOURCE_ALIGNMENT(src, &alignment);
 
 	size_t ref_alignment = Ut_mmap_align;
 
