@@ -87,6 +87,14 @@ ut_pmem2_source_from_fh(const char *file, int line, const char *func,
 }
 
 void
+ut_pmem2_source_alignment(const char *file, int line, const char *func,
+	struct pmem2_source *src, size_t *al)
+{
+	int ret = pmem2_source_alignment(src, al);
+	ut_pmem2_expect_return(file, line, func, ret, 0);
+}
+
+void
 ut_pmem2_source_delete(const char *file, int line, const char *func,
 	struct pmem2_source **src)
 {
