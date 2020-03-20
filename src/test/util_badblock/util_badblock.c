@@ -75,8 +75,8 @@ exit_free:
 static void
 do_clear(const char *path)
 {
-	if (os_badblocks_clear_all(path))
-		UT_FATAL("!os_badblocks_clear_all: %s", path);
+	if (badblocks_clear_all(path))
+		UT_FATAL("!badblocks_clear_all: %s", path);
 }
 
 /*

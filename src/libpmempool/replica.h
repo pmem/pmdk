@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * replica.h -- module for synchronizing and transforming poolset
@@ -9,7 +9,7 @@
 
 #include "libpmempool.h"
 #include "pool.h"
-#include "os_badblock.h"
+#include "badblocks.h"
 
 #ifdef __cplusplus
 extern "C" {

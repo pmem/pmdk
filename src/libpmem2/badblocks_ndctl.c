@@ -892,3 +892,133 @@ badblocks_count(const char *file)
 
 	return count;
 }
+
+/*
+ * badblocks_clear_file -- clear the given bad blocks in the regular file
+ *                            (not in a dax device)
+ */
+static int
+badblocks_clear_file(const char *file, struct badblocks *bbs)
+{
+	LOG(3, "file %s badblocks %p", file, bbs);
+
+	ASSERTne(bbs, NULL);
+
+	int ret = 0;
+	int fd;
+
+	if ((fd = os_open(file, O_RDWR)) < 0) {
+		ERR("!open: %s", file);
+		return -1;
+	}
+
+	for (unsigned b = 0; b < bbs->bb_cnt; b++) {
+		off_t offset = (off_t)bbs->bbv[b].offset;
+		off_t length = (off_t)bbs->bbv[b].length;
+
+		LOG(10,
+			"clearing bad block: logical offset %li length %li (in 512B sectors) -- '%s'",
+			B2SEC(offset), B2SEC(length), file);
+
+		/* deallocate bad blocks */
+		if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+				offset, length)) {
+			ERR("!fallocate");
+			ret = -1;
+			break;
+		}
+
+		/* allocate new blocks */
+		if (fallocate(fd, FALLOC_FL_KEEP_SIZE, offset, length)) {
+			ERR("!fallocate");
+			ret = -1;
+			break;
+		}
+	}
+
+	os_close(fd);
+
+	return ret;
+}
+
+/*
+ * badblocks_clear -- clears the given bad blocks in a file
+ *                       (regular file or dax device)
+ */
+int
+badblocks_clear(const char *file, struct badblocks *bbs)
+{
+	LOG(3, "file %s badblocks %p", file, bbs);
+
+	ASSERTne(bbs, NULL);
+
+	os_stat_t st;
+	if (os_stat(file, &st) < 0) {
+		ERR("!stat %s", file);
+		return -1;
+	}
+
+	enum pmem2_file_type pmem2_type;
+
+	int ret = pmem2_get_type_from_stat(&st, &pmem2_type);
+	if (ret) {
+		errno = pmem2_err_to_errno(ret);
+		return -1;
+	}
+
+	if (pmem2_type == PMEM2_FTYPE_DEVDAX)
+		return badblocks_devdax_clear_badblocks(file, bbs);
+
+	return badblocks_clear_file(file, bbs);
+}
+
+/*
+ * badblocks_clear_all -- clears all bad blocks in a file
+ *                           (regular file or dax device)
+ */
+int
+badblocks_clear_all(const char *file)
+{
+	LOG(3, "file %s", file);
+
+	os_stat_t st;
+	if (os_stat(file, &st) < 0) {
+		ERR("!stat %s", file);
+		return -1;
+	}
+
+	enum pmem2_file_type pmem2_type;
+
+	int ret = pmem2_get_type_from_stat(&st, &pmem2_type);
+	if (ret) {
+		errno = pmem2_err_to_errno(ret);
+		return -1;
+	}
+
+	if (pmem2_type == PMEM2_FTYPE_DEVDAX)
+		return badblocks_devdax_clear_badblocks_all(file);
+
+	struct badblocks *bbs = badblocks_new();
+	if (bbs == NULL)
+		return -1;
+
+	ret = badblocks_get(file, bbs);
+	if (ret) {
+		LOG(1, "checking bad blocks in the file failed -- '%s'", file);
+		goto error_free_all;
+	}
+
+	if (bbs->bb_cnt > 0) {
+		ret = badblocks_clear_file(file, bbs);
+		if (ret < 0) {
+			LOG(1, "clearing bad blocks in the file failed -- '%s'",
+				file);
+			goto error_free_all;
+		}
+	}
+
+error_free_all:
+	badblocks_delete(bbs);
+
+	return ret;
+}

@@ -78,3 +78,31 @@ badblocks_get(const char *file, struct badblocks *bbs)
 	errno = ENOTSUP;
 	return -1;
 }
+
+/*
+ * badblocks_clear -- clears the given bad blocks in a file
+ *                       (regular file or dax device)
+ */
+int
+badblocks_clear(const char *file, struct badblocks *bbs)
+{
+	LOG(3, "file %s badblocks %p", file, bbs);
+
+	/* not supported */
+	errno = ENOTSUP;
+	return -1;
+}
+
+/*
+ * badblocks_clear_all -- clears all bad blocks in a file
+ *                           (regular file or dax device)
+ */
+int
+badblocks_clear_all(const char *file)
+{
+	LOG(3, "file %s", file);
+
+	/* not supported */
+	errno = ENOTSUP;
+	return -1;
+}
