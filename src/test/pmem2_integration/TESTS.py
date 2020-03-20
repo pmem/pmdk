@@ -6,6 +6,8 @@
 
 import testframework as t
 from testframework import granularity as g
+import futils
+import os
 
 
 class Granularity(str):
@@ -202,3 +204,74 @@ class TEST22(PMEM2_INTEGRATION):
     PMEM2_PRIVATE sharing
     """
     test_case = "test_mem_move_cpy_set_with_map_private"
+
+
+@t.require_valgrind_enabled('pmemcheck')
+class PMEM2_API_LOGS(t.Test):
+    test_type = t.Medium
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile')
+        ctx.env['PMREORDER_EMIT_LOG'] = '1'
+        ctx.valgrind.add_opt('--log-stores=yes')
+        ctx.exec('pmem2_integration', self.test_case, filepath)
+
+        log_name_elems = ['pmemcheck', self.test_number, '.log']
+        pmemecheck_log = os.path.join(
+            os.getcwd(), 'pmem2_integration', ('').join(log_name_elems))
+        memmove_fn_begin_nums = futils.count(
+            pmemecheck_log, self.memmove_fn + '.BEGIN')
+        memmove_fn_end_nums = futils.count(
+            pmemecheck_log, self.memmove_fn + '.END')
+        memset_fn_begin_nums = futils.count(
+            pmemecheck_log, self.memset_fn + '.BEGIN')
+        memset_fn_end_nums = futils.count(
+            pmemecheck_log, self.memset_fn + '.END')
+
+        if (memmove_fn_begin_nums != 2 or memset_fn_begin_nums != 1 or memmove_fn_end_nums != 2 or memset_fn_end_nums != 1):
+            raise futils.Fail(
+                'Pattern: {}.BEGIN occurrs {} times. Expected 1.\n'
+                'Pattern: {}.END occurrs {} times. Expected 1.\n'
+                'Pattern: {}.BEGIN occurrs {} times. Expected 2.\n'
+                'Pattern: {}.END occurrs {} times. Expected 2.'
+                .format(self.memset_fn, memset_fn_begin_nums,
+                        self.memset_fn, memset_fn_end_nums,
+                        self.memmove_fn, memmove_fn_begin_nums,
+                        self.memmove_fn, memmove_fn_end_nums)
+            )
+
+
+@g.require_granularity(g.PAGE)
+class TEST23(PMEM2_API_LOGS):
+    """
+    test the emission of library and function names to pmemcheck store log
+    for page granularity
+    """
+    test_case = "test_pmem2_api_logs"
+    test_number = '23'
+    memmove_fn = 'pmem2_memmove_nonpmem'
+    memset_fn = 'pmem2_memset_nonpmem'
+
+
+@g.require_granularity(g.CACHELINE)
+class TEST24(PMEM2_API_LOGS):
+    """
+    test the emission of library and function names to pmemcheck store log
+    for cacheline granularity
+    """
+    test_case = "test_pmem2_api_logs"
+    test_number = '24'
+    memmove_fn = 'pmem2_memmove'
+    memset_fn = 'pmem2_memset'
+
+
+@g.require_granularity(g.BYTE)
+class TEST25(PMEM2_API_LOGS):
+    """
+    test the emission of library and function names to pmemcheck store log
+    for byte granularity
+    """
+    test_case = "test_pmem2_api_logs"
+    test_number = '25'
+    memmove_fn = 'pmem2_memmove_eadr'
+    memset_fn = 'pmem2_memset_eadr'
