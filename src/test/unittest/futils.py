@@ -86,6 +86,16 @@ def tail(file, n):
             f.write(line)
 
 
+def count(file, substring):
+    """
+    Count the number of occurrences of a string in the given file.
+    """
+    with open(file, 'r') as f:
+        content = f.read()
+
+    return content.count(substring)
+
+
 class Color:
     """
     Set the font color. This functionality relies on ANSI espace sequences
