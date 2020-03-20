@@ -101,7 +101,7 @@ util_is_zeroed(const void *addr, size_t len)
 }
 
 /*
- * util_checksum_compute -- compute Fletcher64 checksum
+ * util_checksum_compute -- compute Fletcher64-like checksum
  *
  * csump points to where the checksum lives, so that location
  * is treated as zeros while calculating the checksum. The
@@ -142,7 +142,7 @@ util_checksum_compute(void *addr, size_t len, uint64_t *csump, size_t skip_off)
 }
 
 /*
- * util_checksum -- compute Fletcher64 checksum
+ * util_checksum -- compute Fletcher64-like checksum
  *
  * csump points to where the checksum lives, so that location
  * is treated as zeros while calculating the checksum.
@@ -166,7 +166,7 @@ util_checksum(void *addr, size_t len, uint64_t *csump,
 }
 
 /*
- * util_checksum_seq -- compute sequential Fletcher64 checksum
+ * util_checksum_seq -- compute sequential Fletcher64-like checksum
  *
  * Merges checksum from the old buffer with checksum for current buffer.
  */
