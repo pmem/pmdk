@@ -13,7 +13,7 @@
 #include "os.h"
 #include "out.h"
 #include "os_badblock.h"
-#include "badblock.h"
+#include "set_badblocks.h"
 #include "vec.h"
 #include "../libpmem2/badblocks.h"
 

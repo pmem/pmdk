@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * check_bad_blocks.c -- pre-check bad_blocks
@@ -15,7 +15,7 @@
 #include "pool.h"
 #include "check_util.h"
 #include "os_badblock.h"
-#include "badblock.h"
+#include "set_badblocks.h"
 
 /*
  * check_bad_blocks -- check poolset for bad_blocks

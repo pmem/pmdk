@@ -25,7 +25,7 @@
 #include "os.h"
 #include "badblocks.h"
 #include "os_badblock.h"
-#include "badblock.h"
+#include "set_badblocks.h"
 #include "vec.h"
 #include "extent.h"
 
