@@ -134,6 +134,7 @@ memmove_nodrain_generic(void *dst, const void *src, size_t len,
 {
 	LOG(15, "pmemdest %p src %p len %zu flags 0x%x", dst, src, len,
 			flags);
+
 	char *cdst = dst;
 	const char *csrc = src;
 	size_t remaining;

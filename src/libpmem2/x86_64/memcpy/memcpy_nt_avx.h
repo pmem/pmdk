@@ -296,6 +296,8 @@ end:
 void
 EXPORTED_SYMBOL(char *dest, const char *src, size_t len)
 {
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
 	if ((uintptr_t)dest - (uintptr_t)src >= len)
 		memmove_movnt_avx_fw(dest, src, len);
 	else
