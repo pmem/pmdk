@@ -4,8 +4,6 @@ arch:
   - ppc64le
 #  - amd64
 
-sudo: required
-
 language: c
 
 services:
@@ -24,7 +22,7 @@ env:
     - VALGRIND=1
     - SRC_CHECKERS=0
     - EXPERIMENTAL=n
-  matrix:
+  jobs:
     - COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug
 #    - FAULT_INJECTION=1 TEST_BUILD=debug
 #    - FAULT_INJECTION=1 TEST_BUILD=nondebug
@@ -41,7 +39,7 @@ env:
 # keys defined. In this case the only expansion key with more than one entry is
 # the `arch:` key, and that is why ppc64le is first, to save some space here
 # and not have to define `arch:` for each entry.
-matrix:
+jobs:
   include:
     - env: COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug
     - env: FAULT_INJECTION=1 TEST_BUILD=debug PUSH_IMAGE=1
@@ -57,6 +55,7 @@ before_install:
 
 script:
   - ./build-CI.sh
+  - sudo dmesg
 
 after_success:
   - source ./set-vars.sh
