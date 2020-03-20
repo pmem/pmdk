@@ -166,6 +166,9 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 		return pmem2_lasterror_to_err();
 	}
 
+	if (cfg->sharing == PMEM2_PRIVATE)
+		access = FILE_MAP_COPY;
+
 	/* obtain a pointer to the mapping view */
 	void *base = MapViewOfFileEx(mh,
 		access,
@@ -194,7 +197,7 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 	bool eADR = (pmem2_auto_flush() == 1);
 	enum pmem2_granularity available_min_granularity =
-		get_min_granularity(eADR, direct_access);
+		get_min_granularity(eADR, direct_access, cfg->sharing);
 
 	if (available_min_granularity > cfg->requested_max_granularity) {
 		const char *err = granularity_err_msg

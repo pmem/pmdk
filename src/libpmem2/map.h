@@ -39,7 +39,8 @@ struct pmem2_map {
 #endif
 };
 
-enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem);
+enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem,
+					enum pmem2_sharing_type sharing);
 struct pmem2_map *pmem2_map_find(const void *addr, size_t len);
 int pmem2_register_mapping(struct pmem2_map *map);
 int pmem2_unregister_mapping(struct pmem2_map *map);
