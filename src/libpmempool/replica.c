@@ -1219,7 +1219,7 @@ replica_badblocks_clear(struct pool_set *set,
 					rep_hs->flags |= HAS_CORRUPTED_HEADER;
 			}
 
-			ret = os_badblocks_clear(path, &part_hs->bbs);
+			ret = badblocks_clear(path, &part_hs->bbs);
 			if (ret < 0) {
 				LOG(1,
 					"clearing bad blocks in replica failed -- '%s'",
