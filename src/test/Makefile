@@ -196,6 +196,7 @@ PMEM_TESTS = \
 	pmem_unmap
 
 PMEM2_TESTS = \
+	pmem2_api\
 	pmem2_compat\
 	pmem2_config\
 	pmem2_source\
