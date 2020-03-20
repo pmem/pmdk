@@ -70,7 +70,7 @@
 #include "util_pmem.h"
 #include "fs.h"
 #include "os_deep.h"
-#include "badblock.h"
+#include "set_badblocks.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"

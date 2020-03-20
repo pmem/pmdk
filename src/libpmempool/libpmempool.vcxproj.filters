@@ -109,7 +109,7 @@
     <ClCompile Include="..\common\os_deep_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\badblock.c">
+    <ClCompile Include="..\common\set_badblocks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\common\badblock_none.c">

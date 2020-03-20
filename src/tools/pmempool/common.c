@@ -36,7 +36,7 @@
 #include "out.h"
 #include "mmap.h"
 #include "util_pmem.h"
-#include "badblock.h"
+#include "set_badblocks.h"
 #include "util.h"
 
 #define REQ_BUFF_SIZE	2048U

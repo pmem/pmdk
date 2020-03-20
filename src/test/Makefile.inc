@@ -247,7 +247,7 @@ ifeq ($(LIBPMEMCOMMON), internal-nondebug)
 LIBPMEMCORE=internal-nondebug
 OBJS +=\
 	$(TOP)/src/nondebug/common/badblock_$(OS_DIMM).o\
-	$(TOP)/src/nondebug/common/badblock.o\
+	$(TOP)/src/nondebug/common/set_badblocks.o\
 	$(TOP)/src/nondebug/common/ctl.o\
 	$(TOP)/src/nondebug/common/ctl_prefault.o\
 	$(TOP)/src/nondebug/common/ctl_sds.o\
@@ -289,7 +289,7 @@ ifeq ($(LIBPMEMCOMMON), internal-debug)
 LIBPMEMCORE=internal-debug
 OBJS +=\
 	$(TOP)/src/debug/common/badblock_$(OS_DIMM).o\
-	$(TOP)/src/debug/common/badblock.o\
+	$(TOP)/src/debug/common/set_badblocks.o\
 	$(TOP)/src/debug/common/ctl.o\
 	$(TOP)/src/debug/common/ctl_prefault.o\
 	$(TOP)/src/debug/common/ctl_sds.o\

@@ -63,7 +63,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\badblock.c" />
+    <ClCompile Include="..\..\common\set_badblocks.c" />
     <ClCompile Include="..\..\common\badblock_none.c" />
     <ClCompile Include="..\..\common\ctl.c" />
     <ClCompile Include="..\..\common\ctl_prefault.c" />

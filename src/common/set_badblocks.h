@@ -2,11 +2,11 @@
 /* Copyright 2018-2020, Intel Corporation */
 
 /*
- * badblock.h - common part of bad blocks API
+ * set_badblocks.h - poolset part of bad blocks API
  */
 
-#ifndef PMDK_BADBLOCK_POOLSET_H
-#define PMDK_BADBLOCK_POOLSET_H 1
+#ifndef PMDK_SET_BADBLOCKS_H
+#define PMDK_SET_BADBLOCKS_H 1
 
 #include "set.h"
 
@@ -25,4 +25,4 @@ int badblocks_recovery_file_exists(struct pool_set *set);
 }
 #endif
 
-#endif /* PMDK_BADBLOCK_POOLSET_H */
+#endif /* PMDK_SET_BADBLOCKS_H */

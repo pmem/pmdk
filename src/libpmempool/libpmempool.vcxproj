@@ -42,7 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\core\alloc.c" />
-    <ClCompile Include="..\common\badblock.c" />
+    <ClCompile Include="..\common\set_badblocks.c" />
     <ClCompile Include="..\common\file.c" />
     <ClCompile Include="..\common\file_windows.c" />
     <ClCompile Include="..\common\mmap.c" />

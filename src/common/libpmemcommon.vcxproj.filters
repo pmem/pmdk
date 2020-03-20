@@ -14,7 +14,7 @@
     <ClCompile Include="badblock_none.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="badblock.c">
+    <ClCompile Include="set_badblocks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="file.c">
@@ -97,7 +97,7 @@
     <ClInclude Include="ctl_global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="badblock.h">
+    <ClInclude Include="set_badblocks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dlsym.h">

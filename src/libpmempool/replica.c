@@ -28,7 +28,7 @@
 #include "uuid.h"
 #include "shutdown_state.h"
 #include "badblocks.h"
-#include "badblock.h"
+#include "set_badblocks.h"
 
 /*
  * check_flags_sync -- (internal) check if flags are supported for sync

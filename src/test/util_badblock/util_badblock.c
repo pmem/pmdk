@@ -12,7 +12,7 @@
 #include "set.h"
 #include "badblocks.h"
 #include "os_badblock.h"
-#include "badblock.h"
+#include "set_badblocks.h"
 #include "fault_injection.h"
 #include "file.h"
 
