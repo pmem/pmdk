@@ -15,6 +15,7 @@
 #include "out.h"
 #include "os_badblock.h"
 #include "set_badblocks.h"
+#include "../libpmem2/badblocks.h"
 
 /* helper structure for badblocks_check_file_cb() */
 struct check_file_cb {
@@ -49,7 +50,7 @@ badblocks_check_file_cb(struct part_file *pf, void *arg)
 		/* the part does not exist, so it has no bad blocks */
 		return 0;
 
-	int ret = os_badblocks_check_file(pf->part->path);
+	int ret = badblocks_check_file(pf->part->path);
 	if (ret < 0) {
 		ERR("checking the pool file for bad blocks failed -- '%s'",
 			pf->part->path);
@@ -127,7 +128,7 @@ badblocks_clear_poolset_cb(struct part_file *pf, void *arg)
 			return 0;
 	}
 
-	int ret = os_badblocks_clear_all(pf->part->path);
+	int ret = badblocks_clear_all(pf->part->path);
 	if (ret < 0) {
 		ERR("clearing bad blocks in the pool file failed -- '%s'",
 			pf->part->path);
