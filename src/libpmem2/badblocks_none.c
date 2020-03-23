@@ -5,6 +5,8 @@
  * badblocks_none.c -- fake bad blocks functions
  */
 
+#include <errno.h>
+
 #include "out.h"
 #include "os.h"
 #include "badblocks.h"
@@ -48,4 +50,31 @@ badblocks_devdax_clear_badblocks_all(const char *path)
 	LOG(3, "path %s", path);
 
 	return 0;
+}
+
+/*
+ * badblocks_count -- returns number of bad blocks in the file
+ *                       or -1 in case of an error
+ */
+long
+badblocks_count(const char *file)
+{
+	LOG(3, "file %s", file);
+
+	/* not supported */
+	errno = ENOTSUP;
+	return -1;
+}
+
+/*
+ * badblocks_get -- returns list of bad blocks in the file
+ */
+int
+badblocks_get(const char *file, struct badblocks *bbs)
+{
+	LOG(3, "file %s", file);
+
+	/* not supported */
+	errno = ENOTSUP;
+	return -1;
 }
