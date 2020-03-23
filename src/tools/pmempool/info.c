@@ -27,7 +27,7 @@
 #include "file.h"
 #include "badblocks.h"
 #include "os_badblock.h"
-#include "badblock.h"
+#include "set_badblocks.h"
 
 #define DEFAULT_CHUNK_TYPES\
 	((1<<CHUNK_TYPE_FREE)|\

@@ -2,7 +2,7 @@
 /* Copyright 2018-2020, Intel Corporation */
 
 /*
- * badblock.c - common part of implementation of bad blocks API
+ * set_badblocks.c - common part of implementation of bad blocks API
  */
 #define _GNU_SOURCE
 
@@ -14,7 +14,7 @@
 #include "os.h"
 #include "out.h"
 #include "os_badblock.h"
-#include "badblock.h"
+#include "set_badblocks.h"
 
 /* helper structure for badblocks_check_file_cb() */
 struct check_file_cb {

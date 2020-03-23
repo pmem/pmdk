@@ -14,7 +14,7 @@
     <ClCompile Include="..\..\src\libpmemlog\log.c" />
     <ClCompile Include="..\..\src\libpmemlog\libpmemlog.c" />
     <ClCompile Include="..\core\alloc.c" />
-    <ClCompile Include="..\common\badblock.c" />
+    <ClCompile Include="..\common\set_badblocks.c" />
     <ClCompile Include="..\common\ctl.c" />
     <ClCompile Include="..\common\ctl_cow.c" />
     <ClCompile Include="..\common\ctl_prefault.c" />
