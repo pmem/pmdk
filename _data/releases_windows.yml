@@ -47,6 +47,7 @@
         pmem_unmap.3
 
     libpmem2:
+        libpmem2_unsafe_shutdown.7
         pmem2_config_delete.3
         pmem2_config_get_alignment.3
         pmem2_config_get_file_size.3
@@ -70,6 +71,8 @@
         pmem2_perror.3
         pmem2_source_alignment.3
         pmem2_source_delete.3
+        pmem2_source_device_id.3
+        pmem2_source_device_usc.3
         pmem2_source_from_fd.3
         pmem2_source_from_handle.3
         pmem2_source_size.3
