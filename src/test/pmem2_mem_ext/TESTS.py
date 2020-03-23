@@ -110,6 +110,10 @@ class Pmem2MemExt(t.Test):
         if "PMEM_AVX512F" in self.envs and available_arch < 3:
             raise futils.Skip("SKIP: AVX512F unavailable")
 
+        is_avx512f_enabled = tools.envconfig['PMEM2_AVX512F_ENABLED']
+        if is_avx512f_enabled == "0":
+            raise futils.Skip("SKIP: AVX512F disabled at build time")
+
     def check_log(self, ctx, match, type, flag):
         with open(os.path.join(self.cwd, self.pmem2_log), 'r') as f:
             str_val = f.read()
@@ -234,24 +238,32 @@ class TEST9(Pmem2MemExt):
     envs = ("PMEM_AVX",)
 
 
+# Enable Windows tests pmem2_mem_ext when MSVC we use will support AVX512F.
+@t.windows_exclude
 @g.require_granularity(g.PAGE, g.CACHELINE)
 class TEST10(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_SMALL
     envs = ("PMEM_AVX512F",)
 
 
+# Enable Windows tests pmem2_mem_ext when MSVC we use will support AVX512F.
+@t.windows_exclude
 @g.require_granularity(g.BYTE)
 class TEST11(Pmem2MemExt):
     test_case = MATCH_BYTE_SMALL
     envs = ("PMEM_AVX512F",)
 
 
+# Enable Windows tests pmem2_mem_ext when MSVC we use will support AVX512F.
+@t.windows_exclude
 @g.require_granularity(g.PAGE, g.CACHELINE)
 class TEST12(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_BIG
     envs = ("PMEM_AVX512F",)
 
 
+# Enable Windows tests pmem2_mem_ext when MSVC we use will support AVX512F.
+@t.windows_exclude
 @g.require_granularity(g.BYTE)
 class TEST13(Pmem2MemExt):
     test_case = MATCH_BYTE_BIG
