@@ -7,6 +7,8 @@
 
 #include <errno.h>
 
+#include "libpmem2.h"
+
 #include "out.h"
 #include "os.h"
 #include "badblocks.h"
@@ -105,4 +107,24 @@ badblocks_clear_all(const char *file)
 	/* not supported */
 	errno = ENOTSUP;
 	return -1;
+}
+
+int
+pmem2_badblock_iterator_new(const struct pmem2_source *src,
+	struct pmem2_badblock_iterator **pbb)
+{
+	return PMEM2_E_NOSUPP;
+}
+
+int
+pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
+	struct pmem2_badblock *bb)
+{
+	return PMEM2_E_NOSUPP;
+}
+
+void
+pmem2_badblock_iterator_delete(
+	struct pmem2_badblock_iterator **pbb)
+{
 }

@@ -76,6 +76,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\libpmem2\badblocks_none.c" />
     <ClCompile Include="..\..\libpmem2\config.c" />
     <ClCompile Include="..\..\libpmem2\source.c" />
     <ClCompile Include="..\..\libpmem2\source_windows.c" />

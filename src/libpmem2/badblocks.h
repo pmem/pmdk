@@ -26,6 +26,19 @@ extern "C" {
 #define BB_NOT_SUPP \
 	"checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'"
 
+struct pmem2_badblock_iterator {
+	int ndctl_has_namespace_badblock_iterator;
+	int n_iter; /* number of iterations */
+
+	/* needed only by the ndctl namespace badblock iterator */
+	struct ndctl_namespace *ndns;
+
+	/* needed only by the ndctl region badblock iterator */
+	struct ndctl_region *region;
+	unsigned long long ns_beg;
+	unsigned long long ns_end;
+};
+
 /*
  * 'struct badblock' is already defined in ndctl/libndctl.h,
  * so we cannot use this name.

@@ -58,6 +58,9 @@
     <ClCompile Include="..\..\libpmem2\usc_windows.c">
       <Filter>Source Files\pmem2</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem2\badblocks_none.c">
+      <Filter>Source Files\pmem2</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmem2\source.c">
       <Filter>Source Files\pmem2</Filter>
     </ClCompile>

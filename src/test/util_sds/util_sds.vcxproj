@@ -65,6 +65,7 @@
     <ClCompile Include="..\..\common\ravl.c" />
     <ClCompile Include="..\..\common\shutdown_state.c" />
     <ClCompile Include="..\..\libpmem2\auto_flush_windows.c" />
+    <ClCompile Include="..\..\libpmem2\badblocks_none.c" />
     <ClCompile Include="..\..\libpmem2\config.c" />
     <ClCompile Include="..\..\libpmem2\errormsg.c" />
     <ClCompile Include="..\..\libpmem2\libpmem2.c" />

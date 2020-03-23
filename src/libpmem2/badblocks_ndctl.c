@@ -19,6 +19,7 @@
 
 #include "libpmem2.h"
 #include "pmem2_utils.h"
+#include "source.h"
 #include "ndctl_common.h"
 
 #include "file.h"
@@ -805,4 +806,221 @@ error_free_all:
 	badblocks_delete(bbs);
 
 	return ret;
+}
+
+int
+pmem2_badblock_iterator_new(const struct pmem2_source *src,
+		struct pmem2_badblock_iterator **pbb)
+{
+	ASSERTne(pbb, NULL);
+
+	struct ndctl_ctx *ctx;
+	struct ndctl_region *region;
+	struct ndctl_namespace *ndns;
+	os_stat_t st;
+	int ret = -1;
+
+	if (ndctl_new(&ctx)) {
+		ERR("!ndctl_new");
+		return PMEM2_E_ERRNO;
+	}
+
+	if (os_fstat(src->fd, &st)) {
+		ERR("!fstat %i", src->fd);
+		ret = PMEM2_E_ERRNO;
+		goto error_ndctl_unref;
+	}
+
+	int rv = ndctl_region_namespace(ctx, &st, &region, &ndns);
+	if (rv) {
+		LOG(1, "getting region and namespace failed");
+		ret = rv;
+		goto error_ndctl_unref;
+	}
+
+	if (ndns == NULL) {
+		ERR("cannot get namespace");
+		goto error_ndctl_unref;
+	}
+
+	/*
+	 * Only the new NDCTL versions have the namespace badblock iterator.
+	 * When compiled with older versions, the library needs to rely
+	 * on the old region interface.
+	 */
+	if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_FSDAX) {
+		struct pmem2_badblock_iterator *bb =
+			Zalloc(sizeof(struct pmem2_badblock_iterator));
+		if (bb == NULL) {
+			ERR("!Zalloc");
+			ret = PMEM2_E_ERRNO;
+			goto error_ndctl_unref;
+		}
+
+		bb->ndctl_has_namespace_badblock_iterator = 1;
+		bb->ndns = ndns;
+		*pbb = bb;
+
+	} else {
+		if (region == NULL) {
+			ERR("cannot get region");
+			goto error_ndctl_unref;
+		}
+
+		unsigned long long ns_beg, ns_size, ns_end;
+
+		if (badblocks_get_namespace_bounds(region, ndns,
+		    &ns_beg, &ns_size)) {
+			LOG(1, "cannot read namespace's bounds");
+			goto error_ndctl_unref;
+		}
+
+		ns_end = ns_beg + ns_size - 1;
+
+		LOG(10,
+			"namespace: begin %llu, end %llu size %llu (in 512B sectors)",
+			B2SEC(ns_beg), B2SEC(ns_end + 1) - 1, B2SEC(ns_size));
+
+		struct pmem2_badblock_iterator *bb =
+			Zalloc(sizeof(struct pmem2_badblock_iterator));
+		if (bb == NULL) {
+			ERR("!Zalloc");
+			ret = PMEM2_E_ERRNO;
+			goto error_ndctl_unref;
+		}
+
+		bb->ndctl_has_namespace_badblock_iterator = 0;
+		bb->region = region;
+		bb->ns_beg = ns_beg;
+		bb->ns_end = ns_end;
+		*pbb = bb;
+	}
+
+	ret = 0;
+
+error_ndctl_unref:
+	ndctl_unref(ctx);
+
+	return ret;
+}
+
+void
+pmem2_badblock_iterator_delete(struct pmem2_badblock_iterator **pbb)
+{
+	ASSERTne(pbb, NULL);
+	Free(*pbb);
+	*pbb = NULL;
+}
+
+/*
+ * pmem2_badblock_next_namespace -- (internal) version of pmem2_badblock_next()
+ *                                  called for ndctl with namespace badblock
+ *                                  iterator
+ */
+static int
+pmem2_badblock_next_namespace(struct pmem2_badblock_iterator *pbb,
+				struct pmem2_badblock *bb)
+{
+	LOG(3, "pbb %p bb %p", pbb, bb);
+
+	ASSERTne(pbb, NULL);
+	ASSERTne(bb, NULL);
+
+	struct badblock *bbn;
+
+	if (pbb->n_iter++ == 0) {
+		bbn = ndctl_namespace_get_first_badblock(pbb->ndns);
+	} else {
+		bbn = ndctl_namespace_get_next_badblock(pbb->ndns);
+	}
+
+	if (bbn == NULL)
+		return -1;
+
+	/*
+	 * libndctl returns offset and length of a bad block
+	 * both expressed in 512B sectors. Offset is relative
+	 * to the beginning of the namespace.
+	 */
+	bb->offset = SEC2B(bbn->offset);
+	bb->length = SEC2B(bbn->len);
+
+	return 0;
+}
+
+/*
+ * pmem2_badblock_next_region -- (internal) version of pmem2_badblock_next()
+ *                               called for ndctl with region badblock iterator
+ */
+static int
+pmem2_badblock_next_region(struct pmem2_badblock_iterator *pbb,
+				struct pmem2_badblock *bb)
+{
+	LOG(3, "pbb %p bb %p", pbb, bb);
+
+	ASSERTne(pbb, NULL);
+	ASSERTne(bb, NULL);
+
+	unsigned long long bb_beg, bb_end;
+	unsigned long long beg, end;
+	struct badblock *bbn;
+
+	unsigned long long ns_beg = pbb->ns_beg;
+	unsigned long long ns_end = pbb->ns_end;
+
+	do {
+		if (pbb->n_iter++ == 0) {
+			bbn = ndctl_region_get_first_badblock(pbb->region);
+		} else {
+			bbn = ndctl_region_get_next_badblock(pbb->region);
+		}
+
+		if (bbn == NULL)
+			return -1;
+
+		LOG(10,
+			"region bad block: begin %llu end %llu length %u (in 512B sectors)",
+			bbn->offset, bbn->offset + bbn->len - 1, bbn->len);
+
+		/*
+		 * libndctl returns offset and length of a bad block
+		 * both expressed in 512B sectors. Offset is relative
+		 * to the beginning of the region.
+		 */
+		bb_beg = SEC2B(bbn->offset);
+		bb_end = bb_beg + SEC2B(bbn->len) - 1;
+
+	} while (bb_beg > ns_end || ns_beg > bb_end);
+
+	beg = (bb_beg > ns_beg) ? bb_beg : ns_beg;
+	end = (bb_end < ns_end) ? bb_end : ns_end;
+
+	/*
+	 * Form a new bad block structure with offset and length
+	 * expressed in bytes and offset relative to the beginning
+	 * of the namespace.
+	 */
+	bb->offset = beg - ns_beg;
+	bb->length = end - beg + 1;
+
+	LOG(4,
+		"namespace bad block: begin %llu end %llu length %llu (in 512B sectors)",
+		B2SEC(beg - ns_beg), B2SEC(end - ns_beg), B2SEC(end - beg) + 1);
+
+	return 0;
+}
+
+int
+pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
+			struct pmem2_badblock *bb)
+{
+	LOG(3, "pbb %p bb %p", pbb, bb);
+
+	ASSERTne(pbb, NULL);
+	ASSERTne(bb, NULL);
+
+	if (pbb->ndctl_has_namespace_badblock_iterator)
+		return pmem2_badblock_next_namespace(pbb, bb);
+
+	return pmem2_badblock_next_region(pbb, bb);
 }
