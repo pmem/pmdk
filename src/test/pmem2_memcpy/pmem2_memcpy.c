@@ -52,6 +52,7 @@ main(int argc, char *argv[])
 			argv[2], argv[3], argv[4], thr ? thr : "default",
 			avx ? "" : "!",
 			avx512f ? "" : "!");
+	util_init();
 
 	fd = OPEN(argv[1], O_RDWR);
 	UT_ASSERT(fd != -1);
