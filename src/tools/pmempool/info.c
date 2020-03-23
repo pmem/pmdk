@@ -537,7 +537,7 @@ pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
 	if (bbs == NULL)
 		return -1;
 
-	ret = os_badblocks_get(file_name, bbs);
+	ret = badblocks_get(file_name, bbs);
 	if (ret) {
 		if (errno == ENOTSUP) {
 			outv(v, BB_NOT_SUPP "\n");

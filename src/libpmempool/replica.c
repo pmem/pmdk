@@ -1138,7 +1138,7 @@ replica_badblocks_get(struct pool_set *set,
 			if (!exists)
 				continue;
 
-			int ret = os_badblocks_get(path, &part_hs->bbs);
+			int ret = badblocks_get(path, &part_hs->bbs);
 			if (ret < 0) {
 				ERR(
 					"!checking the pool part for bad blocks failed -- '%s'",

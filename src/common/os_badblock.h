@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * os_badblock.h -- linux bad block API
@@ -29,7 +29,7 @@ extern "C" {
  *
  * libndctl returns offset relative to the beginning of the region,
  * but in this structure we save offset relative to the beginning of:
- * - namespace (before os_badblocks_get())
+ * - namespace (before badblocks_get())
  * and
  * - file (before sync_recalc_badblocks())
  * and
@@ -38,7 +38,7 @@ extern "C" {
 struct bad_block {
 	/*
 	 * offset in bytes relative to the beginning of
-	 *  - namespace (before os_badblocks_get())
+	 *  - namespace (before badblocks_get())
 	 * and
 	 *  - file (before sync_recalc_badblocks())
 	 * and
@@ -59,8 +59,6 @@ struct badblocks {
 	struct bad_block *bbv;		/* array of bad blocks */
 };
 
-long os_badblocks_count(const char *path);
-int os_badblocks_get(const char *file, struct badblocks *bbs);
 int os_badblocks_clear(const char *path, struct badblocks *bbs);
 int os_badblocks_clear_all(const char *file);
 int os_badblocks_check_file(const char *path);

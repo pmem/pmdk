@@ -13,7 +13,6 @@
 #include "file.h"
 #include "os.h"
 #include "out.h"
-#include "extent.h"
 #include "os_badblock.h"
 #include "badblock.h"
 
