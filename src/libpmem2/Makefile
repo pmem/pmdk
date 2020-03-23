@@ -39,6 +39,10 @@ SOURCE +=\
 	auto_flush_none.c
 endif
 
+ifeq ($(OS_DIMM),ndctl)
+SOURCE += ndctl_region_namespace.c
+endif
+
 include $(ARCH)/sources.inc
 
 include ../core/pmemcore.inc

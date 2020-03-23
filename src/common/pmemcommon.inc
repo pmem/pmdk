@@ -42,3 +42,7 @@ SOURCE +=\
 	$(PMEM2)/auto_flush_none.c\
 	$(PMEM2)/pmem2_utils_other.c
 endif
+
+ifeq ($(OS_DIMM),ndctl)
+SOURCE += $(PMEM2)/ndctl_region_namespace.c
+endif
