@@ -194,11 +194,13 @@ test_use_misc_lens_and_offsets(const struct test_case *tc,
 
 	struct pmem2_map *map = map_valid(cfg, src, len);
 	char *base = pmem2_map_get_address(map);
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
 
 	rng_t rng;
 	randomize_r(&rng, 13); /* arbitrarily chosen value */
 	for (size_t i = 0; i < len; i++)
 		base[i] = (char)rnd64_r(&rng);
+	persist_fn(base, len);
 
 	UT_ASSERTeq(len % Ut_mmap_align, 0);
 	for (size_t l = len; l > 0; l -= Ut_mmap_align) {
