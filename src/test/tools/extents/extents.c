@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * extents -- extents listing
@@ -8,8 +8,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include <errno.h>
 
+#include "os.h"
 #include "extent.h"
 
 #define B2SEC(n) ((n) >> 9)	/* convert bytes to sectors */
@@ -82,7 +84,13 @@ main(int argc, char *argv[])
 	if (exts == NULL)
 		return -1;
 
-	long count = os_extents_count(file, exts);
+	int fd = os_open(file, O_RDONLY);
+	if (fd == -1) {
+		perror(file);
+		goto exit_free;
+	}
+
+	long count = os_extents_count(fd, exts);
 	if (count < 0)
 		goto exit_free;
 
@@ -95,7 +103,7 @@ main(int argc, char *argv[])
 	if (exts->extents == NULL)
 		goto exit_free;
 
-	ret = os_extents_get(file, exts);
+	ret = os_extents_get(fd, exts);
 	if (ret)
 		goto exit_free;
 
@@ -147,6 +155,9 @@ exit_free:
 	if (exts->extents)
 		free(exts->extents);
 	free(exts);
+
+	if (fd != -1)
+		close(fd);
 
 	return ret;
 }

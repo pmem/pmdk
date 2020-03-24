@@ -24,24 +24,17 @@
  *                      of the given file
  *
  * Returns: number of extents the file consists of or -1 in case of an error.
- * Sets: file descriptor, struct fiemap and struct extents.
+ * Sets: struct fiemap and struct extents.
  */
 static long
-os_extents_common(const char *path, struct extents *exts,
-			int *pfd, struct fiemap **pfmap)
+os_extents_common(int fd, struct extents *exts, struct fiemap **pfmap)
 {
-	LOG(3, "path %s exts %p pfd %p pfmap %p", path, exts, pfd, pfmap);
-
-	int fd = os_open(path, O_RDONLY);
-	if (fd == -1) {
-		ERR("!open %s", path);
-		return -1;
-	}
+	LOG(3, "fd %i exts %p pfmap %p", fd, exts, pfmap);
 
 	os_stat_t st;
 	if (os_fstat(fd, &st) < 0) {
 		ERR("!fstat %d", fd);
-		goto error_close;
+		return -1;
 	}
 
 	enum pmem2_file_type pmem2_type;
@@ -49,18 +42,18 @@ os_extents_common(const char *path, struct extents *exts,
 	int ret = pmem2_get_type_from_stat(&st, &pmem2_type);
 	if (ret) {
 		errno = pmem2_err_to_errno(ret);
-		goto error_close;
+		return -1;
 	}
 
 	/* directories do not have any extents */
 	if (pmem2_type == PMEM2_FTYPE_DIR) {
 		ERR(
 			"checking extents does not make sense in case of directories");
-		goto error_close;
+		return -1;
 	}
 
 	if (exts->extents_count == 0) {
-		LOG(10, "%s: block size: %li", path, (long int)st.st_blksize);
+		LOG(10, "fd %i: block size: %li", fd, (long int)st.st_blksize);
 		exts->blksize = (uint64_t)st.st_blksize;
 	}
 
@@ -75,7 +68,7 @@ os_extents_common(const char *path, struct extents *exts,
 	struct fiemap *fmap = Zalloc(sizeof(struct fiemap));
 	if (fmap == NULL) {
 		ERR("!malloc");
-		goto error_close;
+		return -1;
 	}
 
 	fmap->fm_start = 0;
@@ -90,7 +83,8 @@ os_extents_common(const char *path, struct extents *exts,
 
 	if (exts->extents_count == 0) {
 		exts->extents_count = fmap->fm_mapped_extents;
-		LOG(4, "%s: number of extents: %u", path, exts->extents_count);
+		LOG(4, "fd: %i: number of extents: %u",
+			fd, exts->extents_count);
 
 	} else if (exts->extents_count != fmap->fm_mapped_extents) {
 		ERR("number of extents differs (was: %u, is: %u)",
@@ -98,16 +92,12 @@ os_extents_common(const char *path, struct extents *exts,
 		goto error_free;
 	}
 
-	*pfd = fd;
 	*pfmap = fmap;
 
 	return exts->extents_count;
 
 error_free:
 	Free(fmap);
-
-error_close:
-	close(fd);
 
 	return -1;
 }
@@ -117,22 +107,18 @@ error_close:
  *                     (and optionally read its block size)
  */
 long
-os_extents_count(const char *path, struct extents *exts)
+os_extents_count(int fd, struct extents *exts)
 {
-	LOG(3, "path %s extents %p", path, exts);
+	LOG(3, "fd %i extents %p", fd, exts);
 
 	struct fiemap *fmap = NULL;
-	int fd = -1;
 
 	ASSERTne(exts, NULL);
 	memset(exts, 0, sizeof(*exts));
 
-	long ret = os_extents_common(path, exts, &fd, &fmap);
+	long ret = os_extents_common(fd, exts, &fmap);
 
 	Free(fmap);
-
-	if (fd != -1)
-		close(fd);
 
 	return ret;
 }
@@ -142,12 +128,11 @@ os_extents_count(const char *path, struct extents *exts)
  *                   (and optionally read its block size)
  */
 int
-os_extents_get(const char *path, struct extents *exts)
+os_extents_get(int fd, struct extents *exts)
 {
-	LOG(3, "path %s extents %p", path, exts);
+	LOG(3, "fd %i extents %p", fd, exts);
 
 	struct fiemap *fmap = NULL;
-	int fd = -1;
 	int ret = -1;
 
 	ASSERTne(exts, NULL);
@@ -157,7 +142,7 @@ os_extents_get(const char *path, struct extents *exts)
 
 	ASSERTne(exts->extents, NULL);
 
-	if (os_extents_common(path, exts, &fd, &fmap) <= 0)
+	if (os_extents_common(fd, exts, &fmap) <= 0)
 		goto error_free;
 
 	struct fiemap *newfmap = Realloc(fmap, sizeof(struct fiemap) +
@@ -180,7 +165,8 @@ os_extents_get(const char *path, struct extents *exts)
 	}
 
 	if (fmap->fm_extent_count > 0) {
-		LOG(10, "file %s has %u extents:", path, fmap->fm_extent_count);
+		LOG(10, "file with fd %i has %u extents:",
+			fd, fmap->fm_extent_count);
 	}
 
 	unsigned e;

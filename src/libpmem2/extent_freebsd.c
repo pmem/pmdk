@@ -19,9 +19,9 @@
  *                     (and optionally read its block size)
  */
 long
-os_extents_count(const char *path, struct extents *exts)
+os_extents_count(int fd, struct extents *exts)
 {
-	LOG(3, "path %s extents %p", path, exts);
+	LOG(3, "fd %i extents %p", fd, exts);
 
 	return -1;
 }
@@ -31,9 +31,9 @@ os_extents_count(const char *path, struct extents *exts)
  *                   (and optionally read its block size)
  */
 int
-os_extents_get(const char *path, struct extents *exts)
+os_extents_get(int fd, struct extents *exts)
 {
-	LOG(3, "path %s extents %p", path, exts);
+	LOG(3, "fd %i extents %p", fd, exts);
 
 	return -1;
 }
