@@ -272,7 +272,7 @@ PMREORDER_MARKER_NAME1=Marker1,PMREORDER_MARKER_NAME2=Marker2
 For more details about available
 engines types, see ENGINES section above.
 
-**libpmemobj**(7) and **libpmem**(7) also provide set of macros
+**libpmemobj**(7), **libpmem**(7) and **libpmem2**(7) also provide set of macros
 that allow to change reordering engine on library or function level:
 
 `<library_name|api_function_name>`
@@ -354,6 +354,15 @@ pmem_memset_nodrain
 pmem_memmove_persist
 pmem_memcpy_persist
 pmem_memset_persist
+```
+
+List of marked **libpmem2**(7) API functions:
+
+```
+pmem2_get_memcpy_fn
+pmem2_get_memmove_fn
+pmem2_get_memset_fn
+
 ```
 
 # PMEMCHECK STORE LOG #
