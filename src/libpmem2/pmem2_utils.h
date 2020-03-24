@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * pmem2_utils.h -- libpmem2 utilities functions
@@ -15,6 +15,7 @@
 #define PMEM2_E_ERRNO (-errno)
 
 void *pmem2_malloc(size_t size, int *err);
+void *pmem2_zalloc(size_t size, int *err);
 
 #ifdef _WIN32
 int pmem2_lasterror_to_err();

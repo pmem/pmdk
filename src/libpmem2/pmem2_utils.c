@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * pmem2_utils.c -- libpmem2 utilities functions
@@ -19,6 +19,23 @@ void *
 pmem2_malloc(size_t size, int *err)
 {
 	void *ptr = Malloc(size);
+	*err = 0;
+
+	if (ptr == NULL) {
+		ERR("!malloc(%zu)", size);
+		*err = PMEM2_E_ERRNO;
+	}
+
+	return ptr;
+}
+
+/*
+ * pmem2_zalloc -- allocate buffer, zero it and handle error
+ */
+void *
+pmem2_zalloc(size_t size, int *err)
+{
+	void *ptr = Zalloc(size);
 	*err = 0;
 
 	if (ptr == NULL) {
