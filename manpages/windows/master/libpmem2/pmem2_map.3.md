@@ -76,6 +76,8 @@ the alignment required for specific *\*source*. Please see
 the alignment required for specific *\*source*. Please see
 **pmem2_source_alignement**(3).
 
+* **PMEM2_E_SRC_DEVDAX_PRIVATE** - device DAX mapped with MAP_PRIVATE. (Linux only)
+
 It can also return **-EACCES**, **-EAGAIN**, **-EBADF**, **-ENFILE**,
 **-ENODEV**, **-ENOMEM**, **-EPERM**, **-ETXTBSY** from the underlying
 **mmap**(2) function. It is used with and without **MAP_ANONYMOUS**.

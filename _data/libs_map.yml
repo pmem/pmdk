@@ -22,12 +22,15 @@
   pmem_msync: pmem_flush.3
   pmem_persist: pmem_flush.3
   pmem_unmap: pmem_is_pmem.3
-- libpmem2: pmem2_config_delete.3 pmem2_config_new.3 pmem2_config_set_length.3 pmem2_config_set_offset.3 pmem2_config_set_required_store_granularity.3 pmem2_errormsg.3 pmem2_get_drain_fn.3 pmem2_get_flush_fn.3 pmem2_get_memcpy_fn.3 pmem2_get_memmove_fn.3 pmem2_get_memset_fn.3 pmem2_get_persist_fn.3 pmem2_map.3 pmem2_map_get_address.3 pmem2_map_get_size.3 pmem2_map_get_store_granularity.3 pmem2_perror.3 pmem2_source_alignment.3 pmem2_source_delete.3 pmem2_source_from_fd.3 pmem2_source_from_handle.3 pmem2_source_size.3 pmem2_unmap.3
+- libpmem2: pmem2_config_clear_address.3 pmem2_config_delete.3 pmem2_config_new.3 pmem2_config_set_address.3 pmem2_config_set_length.3 pmem2_config_set_offset.3 pmem2_config_set_required_store_granularity.3 pmem2_config_set_sharing.3 pmem2_errormsg.3 pmem2_get_drain_fn.3 pmem2_get_flush_fn.3 pmem2_get_memcpy_fn.3 pmem2_get_memmove_fn.3 pmem2_get_memset_fn.3 pmem2_get_persist_fn.3 pmem2_map.3 pmem2_map_get_address.3 pmem2_map_get_size.3 pmem2_map_get_store_granularity.3 pmem2_perror.3 pmem2_source_alignment.3 pmem2_source_delete.3 pmem2_source_from_fd.3 pmem2_source_from_handle.3 pmem2_source_size.3 pmem2_unmap.3
+  pmem2_config_clear_address: pmem2_config_clear_address.3
   pmem2_config_delete: pmem2_config_new.3
   pmem2_config_new: pmem2_config_new.3
+  pmem2_config_set_address: pmem2_config_set_address.3
   pmem2_config_set_length: pmem2_config_set_length.3
   pmem2_config_set_offset: pmem2_config_set_offset.3
   pmem2_config_set_required_store_granularity: pmem2_config_set_required_store_granularity.3
+  pmem2_config_set_sharing: pmem2_config_set_sharing.3
   pmem2_errormsg: pmem2_errormsg.3
   pmem2_get_drain_fn: pmem2_get_drain_fn.3
   pmem2_get_flush_fn: pmem2_get_flush_fn.3
