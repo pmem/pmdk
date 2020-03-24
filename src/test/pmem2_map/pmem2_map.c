@@ -48,6 +48,20 @@ prepare_config(struct pmem2_config *cfg, struct pmem2_source *src,
 	prepare_source(src, *fd);
 }
 
+/*
+ * prepare_config_extended -- extended version of prepare_config - fill
+ * pmem2_config also with addr and addr_request
+ */
+static void
+prepare_config_extended(struct pmem2_config *cfg, struct pmem2_source *src,
+	int *fd, const char *file, size_t length, size_t offset, int access,
+	void *addr, enum pmem2_address_request_type addr_request)
+{
+	prepare_config(cfg, src, fd, file, length, offset, access);
+	cfg->addr = addr;
+	cfg->addr_request = (int)addr_request;
+}
+
 #ifdef _WIN32
 
 #define HIDWORD(x) ((DWORD)((x) >> 32))
@@ -849,6 +863,232 @@ test_map_sharing_private_devdax(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_map_fixed_noreplace_valid - map a file to the desired addr with
+ * address type request PMEM2_ADDRESS_FIXED_NOREPLACE
+ */
+static int
+test_map_fixed_noreplace_valid(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_fixed_noreplace_valid <file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	struct pmem2_map *map = NULL;
+	int fd;
+	void *addr;
+
+	prepare_config(&cfg, &src, &fd, file, size, 0, O_RDWR);
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTeq(ret, 0);
+
+	addr = pmem2_map_get_address(map);
+
+	/* unmap current mapping */
+	ret = pmem2_unmap(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+	CLOSE(fd);
+
+	/*
+	 * let's do the same mapping, to the same addr but with
+	 * address type request PMEM2_ADDRESS_FIXED_NOREPLACE
+	 */
+	prepare_config_extended(&cfg, &src, &fd, file, size, 0, O_RDWR,
+			addr, PMEM2_ADDRESS_FIXED_NOREPLACE);
+
+	ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTeq(ret, 0);
+
+	/* check if mapping is in the same addr, which is desired */
+	UT_ASSERTeq(addr, map->addr);
+
+	/* unmap mapping */
+	ret = pmem2_unmap(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+
+	CLOSE(fd);
+
+	return 2;
+}
+
+/*
+ * test_map_fixed_noreplace_full_overlap - map a file and overlap whole
+ * other existing mapping with address type request
+ * PMEM2_ADDRESS_FIXED_NOREPLACE
+ */
+static int
+test_map_fixed_noreplace_full_overlap(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_fixed_noreplace_full_overlap"
+				" <file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	struct pmem2_source src;
+	struct pmem2_config cfg;
+	struct pmem2_map *map = NULL;
+	struct pmem2_map *map_overlap = NULL;
+	int fd;
+	int fd_overlap;
+	void *addr;
+
+	prepare_config(&cfg, &src, &fd, file, size, 0, O_RDWR);
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTeq(ret, 0);
+
+	addr = pmem2_map_get_address(map);
+
+	/*
+	 * let's do the same mapping, to the same addr but with
+	 * the address type request PMEM2_ADDRESS_FIXED_NOREPLACE
+	 */
+	prepare_config_extended(&cfg, &src, &fd_overlap, file, size, 0,
+			O_RDWR, addr, PMEM2_ADDRESS_FIXED_NOREPLACE);
+	ret = pmem2_map(&cfg, &src, &map_overlap);
+
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAPPING_EXISTS);
+
+	/* unmap first mapping and close fds */
+	ret = pmem2_unmap(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+	CLOSE(fd);
+	CLOSE(fd_overlap);
+
+	return 2;
+}
+
+/*
+ * test_map_fixed_noreplace_partial_overlap - map a file in a middle of
+ * other existing mapping with address type request
+ * PMEM2_ADDRESS_FIXED_NOREPLACE
+ */
+static int
+test_map_fixed_noreplace_partial_overlap(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_fixed_noreplace_partial_overlap"
+				" <file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	struct pmem2_source src;
+	struct pmem2_config cfg;
+	struct pmem2_map *map = NULL;
+	struct pmem2_map *map_overlap = NULL;
+	int fd;
+	int fd_overlap;
+	void *addr;
+
+	prepare_config(&cfg, &src, &fd, file, size, 0, O_RDWR);
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTeq(ret, 0);
+
+	/*
+	 * Let's get address of the current mapping and move it to the
+	 * middle of the mapping. "Randomly" define size of the new
+	 * mapping as MEGABYTE.
+	 */
+	addr = (char *)pmem2_map_get_address(map) + MEGABYTE;
+	size_t overlap_size = MEGABYTE;
+
+	/* check if new mapping is in the middle of the existing one */
+	UT_ASSERT(size > MEGABYTE + overlap_size);
+
+	/*
+	 * let's do the mapping in the middle of existing one, but
+	 * with the address type request PMEM2_ADDRESS_FIXED_NOREPLACE
+	 */
+	prepare_config_extended(&cfg, &src, &fd_overlap, file,
+			overlap_size, 0, O_RDWR, addr,
+			PMEM2_ADDRESS_FIXED_NOREPLACE);
+	ret = pmem2_map(&cfg, &src, &map_overlap);
+
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAPPING_EXISTS);
+
+	/* unmap first mapping and close fds */
+	ret = pmem2_unmap(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+	CLOSE(fd);
+	CLOSE(fd_overlap);
+
+	return 2;
+}
+
+/*
+ * test_map_fixed_noreplace_partial_above_overlap - map a file which
+ * starts in a middle and ends above of other existing mapping with
+ * address type request PMEM2_ADDRESS_FIXED_NOREPLACE
+ */
+static int
+test_map_fixed_noreplace_partial_above_overlap(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_fixed_noreplace_partial_overlap"
+				" <file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	struct pmem2_source src;
+	struct pmem2_config cfg;
+	struct pmem2_map *map = NULL;
+	struct pmem2_map *map_overlap = NULL;
+	int fd;
+	int fd_overlap;
+	void *addr;
+
+	/* let's do the mapping which size is half of the file size */
+	size /= 2;
+	prepare_config(&cfg, &src, &fd, file, size, 0, O_RDWR);
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTeq(ret, 0);
+
+	/*
+	 * Let's get address of the current mapping and move it to the
+	 * middle of the mapping. "Randomly" define size of the new
+	 * mapping as a size.
+	 */
+	addr = (char *)pmem2_map_get_address(map) + MEGABYTE;
+	size_t overlap_size = size;
+
+	/*
+	 * check if new mapping starts in the middle and ends above of
+	 * the existing one
+	 */
+	UT_ASSERT(size < MEGABYTE + overlap_size);
+
+	/*
+	 * let's do the mapping in the middle of existing one, but
+	 * with the address type request PMEM2_ADDRESS_FIXED_NOREPLACE
+	 */
+	prepare_config_extended(&cfg, &src, &fd_overlap, file,
+			overlap_size, 0, O_RDWR, addr,
+			PMEM2_ADDRESS_FIXED_NOREPLACE);
+	ret = pmem2_map(&cfg, &src, &map_overlap);
+
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAPPING_EXISTS);
+
+	/* unmap first mapping and close fds */
+	ret = pmem2_unmap(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+	CLOSE(fd);
+	CLOSE(fd_overlap);
+
+	return 2;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -873,7 +1113,11 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_map_sharing_private),
 	TEST_CASE(test_map_sharing_private_with_reopened_fd),
 	TEST_CASE(test_map_sharing_private_rdonly_file),
-	TEST_CASE(test_map_sharing_private_devdax)
+	TEST_CASE(test_map_sharing_private_devdax),
+	TEST_CASE(test_map_fixed_noreplace_valid),
+	TEST_CASE(test_map_fixed_noreplace_full_overlap),
+	TEST_CASE(test_map_fixed_noreplace_partial_overlap),
+	TEST_CASE(test_map_fixed_noreplace_partial_above_overlap),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
