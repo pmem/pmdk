@@ -19,6 +19,7 @@
 
 #include "libpmem2.h"
 #include "pmem2_utils.h"
+#include "source.h"
 #include "ndctl_region_namespace.h"
 
 #include "file.h"
@@ -240,11 +241,6 @@ badblocks_get_badblocks(struct ndctl_region *region,
 			struct ndctl_namespace *ndns,
 			struct badblocks *bbs)
 {
-	/*
-	 * Only the new NDCTL versions have the namespace badblock iterator,
-	 * when compiled with older versions, the library needs to rely on the
-	 * old region interface.
-	 */
 	if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_FSDAX)
 		return badblocks_get_badblocks_by_namespace(ndns, bbs);
 
@@ -526,7 +522,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 
 	if (badblocks_files_namespace_badblocks(file, bbs)) {
 		LOG(1, "checking the file for bad blocks failed -- '%s'", file);
-		goto error_free_all;
+		goto error_free_extents;
 	}
 
 	if (bbs->bb_cnt == 0) {
@@ -537,19 +533,19 @@ badblocks_get(const char *file, struct badblocks *bbs)
 	exts = Zalloc(sizeof(struct extents));
 	if (exts == NULL) {
 		ERR("!Zalloc");
-		goto error_free_all;
+		goto error_free_extents;
 	}
 
 	fd = os_open(file, O_RDONLY);
 	if (fd == -1) {
 		ERR("!open %s", file);
-		goto error_free_all;
+		goto error_free_extents;
 	}
 
 	extents = os_extents_count(fd, exts);
 	if (extents < 0) {
 		LOG(1, "counting extents failed (fd %i)", fd);
-		goto error_free_all;
+		goto error_free_extents;
 	}
 
 	if (extents == 0) {
@@ -568,12 +564,12 @@ badblocks_get(const char *file, struct badblocks *bbs)
 	exts->extents = Zalloc(exts->extents_count * sizeof(struct extent));
 	if (exts->extents == NULL) {
 		ERR("!Zalloc");
-		goto error_free_all;
+		goto error_free_extents;
 	}
 
 	if (os_extents_get(fd, exts)) {
 		LOG(1, "getting extents failed (fd %i)", fd);
-		goto error_free_all;
+		goto error_free_extents;
 	}
 
 	bb_found = 0;
@@ -633,12 +629,12 @@ badblocks_get(const char *file, struct badblocks *bbs)
 			if (VEC_PUSH_BACK(&bbv, bb)) {
 				VEC_DELETE(&bbv);
 				bb_found = -1;
-				goto error_free_all;
+				goto error_free_extents;
 			}
 		}
 	}
 
-error_free_all:
+error_free_extents:
 	Free(bbs->bbv);
 	bbs->bbv = NULL;
 	bbs->bb_cnt = 0;
@@ -799,7 +795,7 @@ badblocks_clear_all(const char *file)
 	ret = badblocks_get(file, bbs);
 	if (ret) {
 		LOG(1, "checking bad blocks in the file failed -- '%s'", file);
-		goto error_free_all;
+		goto error_free_extents;
 	}
 
 	if (bbs->bb_cnt > 0) {
@@ -807,12 +803,348 @@ badblocks_clear_all(const char *file)
 		if (ret < 0) {
 			LOG(1, "clearing bad blocks in the file failed -- '%s'",
 				file);
-			goto error_free_all;
+			goto error_free_extents;
 		}
 	}
 
-error_free_all:
+error_free_extents:
 	badblocks_delete(bbs);
 
 	return ret;
+}
+
+int
+pmem2_badblock_iterator_new(const struct pmem2_source *src,
+		struct pmem2_badblock_iterator **pbb)
+{
+	ASSERTne(pbb, NULL);
+
+	struct ndctl_ctx *ctx;
+	struct ndctl_region *region;
+	struct ndctl_namespace *ndns;
+	struct pmem2_badblock_iterator *bb;
+	os_stat_t st;
+	int ret = -1;
+
+	if (ndctl_new(&ctx)) {
+		ERR("!ndctl_new");
+		return PMEM2_E_ERRNO;
+	}
+
+	if (os_fstat(src->fd, &st)) {
+		ERR("!fstat %i", src->fd);
+		ret = PMEM2_E_ERRNO;
+		goto error_ndctl_unref;
+	}
+
+	int rv = ndctl_region_namespace(ctx, &st, &region, &ndns);
+	if (rv) {
+		LOG(1, "getting region and namespace failed");
+		ret = rv;
+		goto error_ndctl_unref;
+	}
+
+	if (ndns == NULL) {
+		ERR("cannot get namespace");
+		goto error_ndctl_unref;
+	}
+
+	if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_FSDAX) {
+		bb = pmem2_zalloc(sizeof(struct pmem2_badblock_iterator),
+				&ret);
+		if (ret)
+			goto error_ndctl_unref;
+
+		bb->ndns = ndns;
+		*pbb = bb;
+	} else {
+		if (region == NULL) {
+			ERR("cannot get region");
+			goto error_ndctl_unref;
+		}
+
+		unsigned long long ns_beg, ns_size, ns_end;
+
+		if (badblocks_get_namespace_bounds(region, ndns,
+		    &ns_beg, &ns_size)) {
+			LOG(1, "cannot read namespace's bounds");
+			goto error_ndctl_unref;
+		}
+
+		ns_end = ns_beg + ns_size - 1;
+
+		LOG(10,
+			"namespace: begin %llu, end %llu size %llu (in 512B sectors)",
+			B2SEC(ns_beg), B2SEC(ns_end + 1) - 1, B2SEC(ns_size));
+
+		bb = pmem2_zalloc(sizeof(struct pmem2_badblock_iterator),
+					&ret);
+		if (ret)
+			goto error_ndctl_unref;
+
+		bb->rgn.region = region;
+		bb->rgn.ns_beg = ns_beg;
+		bb->rgn.ns_end = ns_end;
+		*pbb = bb;
+	}
+
+	ndctl_unref(ctx);
+
+	bb->exts.extents = pmem2_zalloc(sizeof(struct extents), &ret);
+	if (ret)
+		return ret;
+
+	struct extents *exts = bb->exts.extents;
+
+	long n_exts = os_extents_count(src->fd, exts);
+	if (n_exts < 0) {
+		LOG(1, "counting extents of fd %i failed", src->fd);
+		ret = PMEM2_E_ERRNO;
+		goto error_free_extents;
+	}
+
+	/* DAX device has no extents */
+	if (n_exts == 0)
+		return 0;
+
+	exts->extents = pmem2_zalloc(
+				exts->extents_count * sizeof(struct extent),
+				&ret);
+	if (ret) {
+		ret = PMEM2_E_ERRNO;
+		goto error_free_extents;
+	}
+
+	if (os_extents_get(src->fd, exts)) {
+		LOG(1, "getting extents of fd %i failed", src->fd);
+		goto error_free_extents;
+	}
+
+	return 0;
+
+error_free_extents:
+	if (exts) {
+		Free(exts->extents);
+		Free(exts);
+		bb->exts.extents = NULL;
+	}
+
+	return ret;
+
+error_ndctl_unref:
+	ndctl_unref(ctx);
+
+	return ret;
+}
+
+void
+pmem2_badblock_iterator_delete(struct pmem2_badblock_iterator **pbb)
+{
+	ASSERTne(pbb, NULL);
+	Free(*pbb);
+	*pbb = NULL;
+}
+
+/*
+ * pmem2_badblock_next_namespace -- (internal) version of pmem2_badblock_next()
+ *                                  called for ndctl with namespace badblock
+ *                                  iterator
+ */
+static int
+pmem2_badblock_next_namespace(struct pmem2_badblock_iterator *pbb,
+				struct pmem2_badblock *bb)
+{
+	LOG(3, "pbb %p bb %p", pbb, bb);
+
+	ASSERTne(pbb, NULL);
+	ASSERTne(bb, NULL);
+
+	struct badblock *bbn;
+
+	if (pbb->n_iter++ == 0) {
+		bbn = ndctl_namespace_get_first_badblock(pbb->ndns);
+	} else {
+		bbn = ndctl_namespace_get_next_badblock(pbb->ndns);
+	}
+
+	if (bbn == NULL)
+		return -1;
+
+	/*
+	 * libndctl returns offset and length of a bad block
+	 * both expressed in 512B sectors. Offset is relative
+	 * to the beginning of the namespace.
+	 */
+	bb->offset = SEC2B(bbn->offset);
+	bb->length = SEC2B(bbn->len);
+
+	return 0;
+}
+
+/*
+ * pmem2_badblock_next_region -- (internal) version of pmem2_badblock_next()
+ *                               called for ndctl with region badblock iterator
+ */
+static int
+pmem2_badblock_next_region(struct pmem2_badblock_iterator *pbb,
+				struct pmem2_badblock *bb)
+{
+	LOG(3, "pbb %p bb %p", pbb, bb);
+
+	ASSERTne(pbb, NULL);
+	ASSERTne(bb, NULL);
+
+	unsigned long long bb_beg, bb_end;
+	unsigned long long beg, end;
+	struct badblock *bbn;
+
+	unsigned long long ns_beg = pbb->rgn.ns_beg;
+	unsigned long long ns_end = pbb->rgn.ns_end;
+
+	do {
+		if (pbb->n_iter++ == 0) {
+			bbn = ndctl_region_get_first_badblock(pbb->rgn.region);
+		} else {
+			bbn = ndctl_region_get_next_badblock(pbb->rgn.region);
+		}
+
+		if (bbn == NULL)
+			return -1;
+
+		LOG(10,
+			"region bad block: begin %llu end %llu length %u (in 512B sectors)",
+			bbn->offset, bbn->offset + bbn->len - 1, bbn->len);
+
+		/*
+		 * libndctl returns offset and length of a bad block
+		 * both expressed in 512B sectors. Offset is relative
+		 * to the beginning of the region.
+		 */
+		bb_beg = SEC2B(bbn->offset);
+		bb_end = bb_beg + SEC2B(bbn->len) - 1;
+
+	} while (bb_beg > ns_end || ns_beg > bb_end);
+
+	beg = (bb_beg > ns_beg) ? bb_beg : ns_beg;
+	end = (bb_end < ns_end) ? bb_end : ns_end;
+
+	/*
+	 * Form a new bad block structure with offset and length
+	 * expressed in bytes and offset relative to the beginning
+	 * of the namespace.
+	 */
+	bb->offset = beg - ns_beg;
+	bb->length = end - beg + 1;
+
+	LOG(4,
+		"namespace bad block: begin %llu end %llu length %llu (in 512B sectors)",
+		B2SEC(beg - ns_beg), B2SEC(end - ns_beg), B2SEC(end - beg) + 1);
+
+	return 0;
+}
+
+int
+pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
+			struct pmem2_badblock *bb)
+{
+	LOG(3, "pbb %p bb %p", pbb, bb);
+
+	ASSERTne(pbb, NULL);
+	ASSERTne(bb, NULL);
+
+	unsigned long long bb_beg;
+	unsigned long long bb_end;
+	unsigned long long bb_len;
+	unsigned long long bb_off;
+	unsigned long long ext_beg;
+	unsigned long long ext_end;
+	unsigned long long not_block_aligned;
+
+	int bb_overlaps_with_extent = 0;
+	int ret = -1;
+
+	struct extents *exts = pbb->exts.extents;
+
+	/* DAX devices have no extents */
+	if (exts->extents_count == 0) {
+		if (pbb->ndns)
+			return pmem2_badblock_next_namespace(pbb, bb);
+
+		return pmem2_badblock_next_region(pbb, bb);
+	}
+
+	/* there are extents */
+	do { /* while bad block does not overlap with an extent */
+		if (pbb->exts.last_bb) {
+			bb = pbb->exts.last_bb;
+			pbb->exts.last_bb = NULL;
+		} else {
+			if (pbb->ndns)
+				ret = pmem2_badblock_next_namespace(pbb, bb);
+			else
+				ret = pmem2_badblock_next_region(pbb, bb);
+
+			if (ret)
+				return ret;
+		}
+
+		bb_beg = bb->offset;
+		bb_end = bb_beg + bb->length - 1;
+
+		unsigned e;
+		for (e = pbb->exts.first_extent; e < exts->extents_count; e++) {
+
+			ext_beg = exts->extents[e].offset_physical;
+			ext_end = ext_beg + exts->extents[e].length - 1;
+
+			/* check if the bad block overlaps with file's extent */
+			if (bb_beg <= ext_end && ext_beg <= bb_end) {
+				bb_overlaps_with_extent = 1;
+				if (++e < exts->extents_count) {
+					pbb->exts.first_extent = e;
+					pbb->exts.last_bb = bb;
+				} else {
+					pbb->exts.first_extent = 0;
+					pbb->exts.last_bb = NULL;
+				}
+				break;
+			}
+		}
+
+		if (bb_overlaps_with_extent) {
+			bb_beg = (bb_beg > ext_beg) ? bb_beg : ext_beg;
+			bb_end = (bb_end < ext_end) ? bb_end : ext_end;
+			bb_len = bb_end - bb_beg + 1;
+			bb_off = bb_beg + exts->extents[e].offset_logical
+					- exts->extents[e].offset_physical;
+
+			LOG(10,
+				"bad block found: physical offset: %llu, length: %llu",
+				bb_beg, bb_len);
+
+			/* make sure offset is block-aligned */
+			not_block_aligned = bb_off & (exts->blksize - 1);
+			if (not_block_aligned) {
+				bb_off -= not_block_aligned;
+				bb_len += not_block_aligned;
+			}
+
+			/* make sure length is block-aligned */
+			bb_len = ALIGN_UP(bb_len, exts->blksize);
+
+			LOG(4,
+				"bad block found: logical offset: %llu, length: %llu",
+				bb_off, bb_len);
+
+			/*
+			 * Form a new bad block structure with offset and length
+			 * expressed in bytes and offset relative
+			 * to the beginning of the file.
+			 */
+			bb->offset = bb_off;
+			bb->length = bb_len;
+		}
+	} while (bb_overlaps_with_extent == 0);
+
+	return 0;
 }

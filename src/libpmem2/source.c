@@ -23,25 +23,6 @@ pmem2_source_delete(struct pmem2_source **src)
 }
 
 int
-pmem2_badblock_iterator_new(const struct pmem2_source *src,
-	struct pmem2_badblock_iterator **pbb)
-{
-	return PMEM2_E_NOSUPP;
-}
-
-int
-pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
-	struct pmem2_badblock *bb)
-{
-	return PMEM2_E_NOSUPP;
-}
-
-void pmem2_badblock_iterator_delete(
-	struct pmem2_badblock_iterator **pbb)
-{
-}
-
-int
 pmem2_badblock_clear(const struct pmem2_source *src,
 	const struct pmem2_badblock *bb)
 {
