@@ -30,7 +30,7 @@ try:
     envconfig = envconfig.config
 except ImportError:
     # if file doesn't exist create dummy object
-    envconfig = {'GLOBAL_LIB_PATH': ''}
+    envconfig = {'GLOBAL_LIB_PATH': '', 'PMEM2_AVX512F_ENABLED': ''}
 
 
 def expand(*classes):
