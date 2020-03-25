@@ -65,6 +65,7 @@ extern "C" {
 #define PMEM2_E_INVALID_DEV_FORMAT		(-100027)
 #define PMEM2_E_CANNOT_READ_BOUNDS		(-100028)
 #define PMEM2_E_NO_BAD_BLOCK_FOUND		(-100029)
+#define PMEM2_E_INVALID_PROT_FLAG		(-100030)
 
 /* source setup */
 
@@ -137,12 +138,14 @@ enum pmem2_sharing_type {
 int pmem2_config_set_sharing(struct pmem2_config *cfg,
 				enum pmem2_sharing_type type);
 
-#define PMEM2_PROT_FROM_FD	0 /* default */
-#define PMEM2_PROT_EXEC		(1U << 29)
-#define PMEM2_PROT_READ		(1U << 30)
+#define PMEM2_PROT_MAX	(1U << 28) /* sets the maximum possible access */
+#define PMEM2_PROT_EXEC	(1U << 29)
+#define PMEM2_PROT_READ	(1U << 30)
 #define PMEM2_PROT_WRITE	(1U << 31)
+#define PMEM2_PROT_NONE	0
 
-int pmem2_config_set_protection(struct pmem2_config *cfg, unsigned flag);
+int pmem2_config_set_protection(struct pmem2_config *cfg,
+				unsigned prot);
 
 enum pmem2_address_request_type {
 	PMEM2_ADDRESS_FIXED_REPLACE = 1,
