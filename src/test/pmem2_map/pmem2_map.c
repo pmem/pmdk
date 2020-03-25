@@ -215,10 +215,12 @@ test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_map *map;
 	int ret = pmem2_map(&cfg, &src, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+#ifdef _WIN32
+	UT_PMEM2_EXPECT_RETURN(ret, ERROR_ACCESS_DENIED);
+#else
+	UT_PMEM2_EXPECT_RETURN(ret, -EACCES);
+#endif
 
-	unmap_map(map);
-	FREE(map);
 	CLOSE(fd);
 
 	return 1;
@@ -241,7 +243,11 @@ test_map_wronly_file(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_map *map;
 	int ret = pmem2_map(&cfg, &src, &map);
+#ifdef _WIN32
+	UT_PMEM2_EXPECT_RETURN(ret, ERROR_ACCESS_DENIED);
+#else
 	UT_PMEM2_EXPECT_RETURN(ret, -EACCES);
+#endif
 
 	CLOSE(fd);
 
