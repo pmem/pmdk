@@ -9,6 +9,7 @@
 #define UT_PMEM2_H 1
 
 #include "ut_pmem2_config.h"
+#include "ut_pmem2_map.h"
 #include "ut_pmem2_source.h"
 #include "ut_pmem2_utils.h"
 
