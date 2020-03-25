@@ -18,6 +18,7 @@
     <ClCompile Include="..\common\ravl.c" />
     <ClCompile Include="..\core\util.c" />
     <ClCompile Include="..\core\util_windows.c" />
+    <ClCompile Include="deep_sync_none.c" />
     <ClCompile Include="libpmem2_main.c" />
     <ClCompile Include="libpmem2.c" />
     <ClCompile Include="auto_flush_windows.c" />
@@ -141,6 +142,7 @@
     <ClInclude Include="..\core\os_thread.h" />
     <ClInclude Include="auto_flush.h" />
     <ClInclude Include="auto_flush_windows.h" />
+    <ClInclude Include="deep_sync.h" />
     <ClInclude Include="map.h" />
     <ClInclude Include="pmem2.h" />
     <ClInclude Include="pmem2_arch.h" />

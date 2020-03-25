@@ -177,11 +177,13 @@ OBJS +=\
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
 	$(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\
-	$(TOP)/src/debug/libpmem2/auto_flush_linux.o
+	$(TOP)/src/debug/libpmem2/auto_flush_linux.o\
+	$(TOP)/src/debug/libpmem2/deep_sync_linux.o
 else
 OBJS +=\
 	$(TOP)/src/debug/libpmem2/pmem2_utils_other.o\
-	$(TOP)/src/debug/libpmem2/auto_flush_none.o
+	$(TOP)/src/debug/libpmem2/auto_flush_none.o\
+	$(TOP)/src/debug/libpmem2/deep_sync_none.o
 endif
 
 ifeq ($(OS_DIMM),ndctl)
@@ -218,11 +220,13 @@ OBJS +=\
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o\
-	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o
+	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o\
+	$(TOP)/src/nondebug/libpmem2/deep_sync_linuc.o
 else
 OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils_other.o\
-	$(TOP)/src/nondebug/libpmem2/auto_flush_none.o
+	$(TOP)/src/nondebug/libpmem2/auto_flush_none.o\
+	$(TOP)/src/nondebug/libpmem2/deep_sync_none.o
 endif
 
 ifeq ($(OS_DIMM),ndctl)
@@ -284,10 +288,12 @@ OBJS +=\
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS += $(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o\
-	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o
+	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o\
+	$(TOP)/src/nondebug/libpmem2/deep_sync_linux.o
 else
 OBJS += $(TOP)/src/nondebug/libpmem2/pmem2_utils_other.o\
-	$(TOP)/src/nondebug/libpmem2/auto_flush_none.o
+	$(TOP)/src/nondebug/libpmem2/auto_flush_none.o\
+	$(TOP)/src/nondebug/libpmem2/deep_sync_none.o
 endif
 
 ifeq ($(OS_DIMM),ndctl)
@@ -328,10 +334,12 @@ OBJS +=\
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS += $(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\
-	$(TOP)/src/debug/libpmem2/auto_flush_linux.o
+	$(TOP)/src/debug/libpmem2/auto_flush_linux.o\
+	$(TOP)/src/debug/libpmem2/deep_sync_linux.o
 else
 OBJS += $(TOP)/src/debug/libpmem2/pmem2_utils_other.o\
-	$(TOP)/src/debug/libpmem2/auto_flush_none.o
+	$(TOP)/src/debug/libpmem2/auto_flush_none.o\
+	$(TOP)/src/debug/libpmem2/deep_sync_none.o
 endif
 
 ifeq ($(OS_DIMM),ndctl)

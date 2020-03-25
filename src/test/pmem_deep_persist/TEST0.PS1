@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 
 #
 # src/test/pmem_deep_persist/TEST0 -- unit test for pmem_deep_persist
@@ -26,7 +26,7 @@ $FileContent = Get-Content "pmemobj$Env:UNITTEST_NUM.log"
 $Matches = $FileContent | Select-String -Pattern "<libpmemobj>: <15>.*pmem\.c.*pmem_msync.*"
 $Matches.Matches.Count > grep$Env:UNITTEST_NUM.log
 
-# Instead of count deep_flush_write
+# Instead of count deep_sync_write
 echo 0 >> grep$Env:UNITTEST_NUM.log
 
 check

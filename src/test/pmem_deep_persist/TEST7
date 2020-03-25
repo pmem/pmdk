@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 
 #
 # src/test/pmem_deep_persist/TEST7 -- unit test for pmem_deep_persist
@@ -22,7 +22,7 @@ OFFSET=$(convert_to_bytes 2M)
 expect_normal_exit ./pmem_deep_persist$EXESUFFIX $DIR/testset1 o $DEEP_PERSIST_SIZE $OFFSET
 
 count_lines "<libpmemobj>: <3>.*part_deep_common.*" pmemobj$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
-count_lines "<libpmemobj>: <3>.*deep_flush_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <3>.*deep_sync_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
 
 check
 

@@ -213,6 +213,9 @@
     <ClCompile Include="source_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="deep_sync_none.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\core\os_thread.h">
@@ -306,6 +309,9 @@
       <Filter>Header Files\x86_64</Filter>
     </ClInclude>
     <ClInclude Include="source.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="deep_sync.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
