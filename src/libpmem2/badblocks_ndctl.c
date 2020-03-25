@@ -510,6 +510,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 	VEC(bbsvec, struct bad_block) bbv = VEC_INITIALIZER;
 	struct extents *exts = NULL;
 	long extents = 0;
+	int fd = -1;
 
 	unsigned long long bb_beg;
 	unsigned long long bb_end;
@@ -539,7 +540,13 @@ badblocks_get(const char *file, struct badblocks *bbs)
 		goto error_free_all;
 	}
 
-	extents = os_extents_count(file, exts);
+	fd = os_open(file, O_RDONLY);
+	if (fd == -1) {
+		ERR("!open %s", file);
+		goto error_free_all;
+	}
+
+	extents = os_extents_count(fd, exts);
 	if (extents < 0) {
 		LOG(1, "counting file's extents failed -- '%s'", file);
 		goto error_free_all;
@@ -564,7 +571,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 		goto error_free_all;
 	}
 
-	if (os_extents_get(file, exts)) {
+	if (os_extents_get(fd, exts)) {
 		LOG(1, "getting file's extents failed -- '%s'", file);
 		goto error_free_all;
 	}
@@ -651,6 +658,9 @@ exit_free_all:
 		/* sanity check */
 		ASSERTeq((unsigned)bb_found, bbs->bb_cnt);
 	}
+
+	if (fd != -1)
+		close(fd);
 
 	return (bb_found >= 0) ? 0 : -1;
 }
