@@ -6,6 +6,9 @@
 import sys
 import platform
 
+import configurator as conf
+
+
 HEADER_SIZE = 4096
 
 #
@@ -26,6 +29,15 @@ def require_architectures(*archs):
         return tc
 
     return wrapped
+
+
+def require_sudo(tc):
+    """
+    Disable test if "allow_using_sudo" configuration is not set
+    """
+    if not conf.Configurator().config.allow_using_sudo:
+        tc.enabled = False
+    return tc
 
 
 def _os_only(tc, os_name):
