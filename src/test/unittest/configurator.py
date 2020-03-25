@@ -257,6 +257,9 @@ class Configurator():
                             'e.g.: 0-2,5 will execute TEST0, '
                             'TEST1, TEST2 and TEST5',
                             default='')
+        parser.add_argument('--list-testcases', dest='list_testcases',
+                            action='store_const', const=True,
+                            help='List testcases only')
         parser.add_argument('--fail-on-skip', dest='fail_on_skip',
                             action='store_const', const=True,
                             help='Skipping tests also fail')

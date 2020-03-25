@@ -592,6 +592,10 @@ sync-test: all $(SYNC_FILE) $(TESTCONFIG)
 
 TST=$(shell basename `pwd`)
 TSTCHECKS=$(shell ls -1 TEST* 2> /dev/null | grep '^TEST[0-9]\+$$' | sort -V)
+TSTCHECKSPY=$(shell test -f TESTS.py && cd .. && ./RUNTESTS.py --list-testcases $(TST) | while read name; do echo py/$$name; done)
+
+$(TSTCHECKSPY):
+	@cd .. && ./RUNTESTS.py $(subst nondebug,release,$(RUNTEST_OPTIONS)) -u $(shell echo $@ | sed 's/^py\/[^0-9]*\([0-9]*\)$$/\1/') -- ${TST}
 
 $(TSTCHECKS): sync-test
 	@cd .. && ./RUNTESTS ${TST} $(RUNTEST_OPTIONS) -s $@
@@ -603,8 +607,7 @@ pcheck: export NOTTY=1
 
 pcheck: $(TSTCHECKS)
 
-pycheck:
-	@./TESTS.py
+pycheck: $(TSTCHECKSPY)
 
 test: all
 
