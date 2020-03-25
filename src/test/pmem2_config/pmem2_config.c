@@ -310,6 +310,64 @@ test_clear_address(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_set_valid_prot_flag -- set valid protection flag
+ */
+static int
+test_set_valid_prot_flag(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	struct pmem2_config cfg;
+	pmem2_config_init(&cfg);
+
+	int ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_READ);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_WRITE);
+#ifdef _WIN32
+	UT_ASSERTeq(ret, PMEM2_E_NOSUPP);
+#else
+	UT_ASSERTeq(ret, 0);
+#endif
+
+	ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_EXEC);
+#ifdef _WIN32
+	UT_ASSERTeq(ret, PMEM2_E_NOSUPP);
+#else
+	UT_ASSERTeq(ret, 0);
+#endif
+
+	ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_NONE);
+#ifdef _WIN32
+	UT_ASSERTeq(ret, PMEM2_E_NOSUPP);
+#else
+	UT_ASSERTeq(ret, 0);
+#endif
+
+	ret = pmem2_config_set_protection(&cfg,
+			PMEM2_PROT_WRITE | PMEM2_PROT_READ | PMEM2_PROT_EXEC);
+	UT_ASSERTeq(ret, 0);
+
+	return 0;
+}
+
+/*
+ * test_set_invalid_prot_flag -- set invalid protection flag
+ */
+static int
+test_set_invalid_prot_flag(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	struct pmem2_config cfg;
+	pmem2_config_init(&cfg);
+
+	int ret = pmem2_config_set_protection(&cfg, PROT_WRITE);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_PROT_FLAG);
+	UT_ASSERTeq(cfg.protection_flag, PMEM2_PROT_READ | PMEM2_PROT_WRITE);
+
+	return 0;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -328,6 +386,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_set_wrong_addr_req_type),
 	TEST_CASE(test_null_addr_noreplace),
 	TEST_CASE(test_clear_address),
+	TEST_CASE(test_set_valid_prot_flag),
+	TEST_CASE(test_set_invalid_prot_flag),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
