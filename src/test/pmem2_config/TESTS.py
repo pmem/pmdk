@@ -103,3 +103,17 @@ class TEST14(Pmem2ConfigNoDir):
     using pmem2_config_clear_address func
     """
     test_case = "test_clear_address"
+
+
+class TEST15(Pmem2ConfigNoDir):
+    """
+    setting a valid protection flags
+    """
+    test_case = "test_set_valid_prot_flag"
+
+
+class TEST16(Pmem2ConfigNoDir):
+    """
+    setting a invalid protection flags
+    """
+    test_case = "test_set_invalid_prot_flag"
