@@ -262,3 +262,45 @@ class TEST34(PMEM2_MAP):
     existing mapping with request type PMEM2_ADDRESS_FIXED_NOREPLACE
     """
     test_case = "test_map_fixed_noreplace_partial_above_overlap"
+
+
+class TEST35(PMEM2_MAP):
+    """
+    READ/WRITE protection on file opened in read-write mode - should succeed
+    """
+    test_case = "test_map_prot_rw_mode_rw_prot"
+
+
+class TEST36(PMEM2_MAP):
+    """
+    READ/WRITE protection on file opened in read-only mode - should fail
+    """
+    test_case = "test_map_prot_r_mode_rw_prot"
+
+
+class TEST37(PMEM2_MAP):
+    """
+    READ protection on file opened in read-write mode - should succeed
+    """
+    test_case = "test_map_prot_rw_mode_r_prot"
+
+
+class TEST38(PMEM2_MAP):
+    """
+    READ protection on file opened in read-only mode - should succeed
+    """
+    test_case = "test_map_prot_r_mode_r_prot"
+
+
+class TEST39(PMEM2_MAP):
+    """
+    FD_PROTECTION on file opened in read-write mode - should succeed
+    """
+    test_case = "test_map_prot_rw_mode_fd_prot"
+
+
+class TEST40(PMEM2_MAP):
+    """
+    FD_PROTECTION on file opened in read-only mode - should fail
+    """
+    test_case = "test_map_prot_r_mode_fd_prot"
