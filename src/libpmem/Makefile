@@ -29,6 +29,7 @@ SOURCE =\
 	pmem_posix.c\
 	$(PMEM2)/pmem2_utils.c\
 	$(PMEM2)/config.c\
+	$(PMEM2)/deep_sync.c\
 	$(PMEM2)/source.c\
 	$(PMEM2)/source_posix.c
 
