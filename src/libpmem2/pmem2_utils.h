@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * pmem2_utils.h -- libpmem2 utilities functions
@@ -30,5 +30,6 @@ int pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type);
 int pmem2_device_dax_size_from_stat(const os_stat_t *st, size_t *size);
 int pmem2_device_dax_alignment_from_stat(const os_stat_t *st,
 		size_t *alignment);
+int pmem2_device_dax_region_find(const os_stat_t *st);
 
 #endif /* PMEM2_UTILS_H */
