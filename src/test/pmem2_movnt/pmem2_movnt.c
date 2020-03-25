@@ -8,8 +8,7 @@
  */
 
 #include "unittest.h"
-#include "ut_pmem2_utils.h"
-#include "ut_pmem2_config.h"
+#include "ut_pmem2.h"
 
 int
 main(int argc, char *argv[])

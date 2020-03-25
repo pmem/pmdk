@@ -25,6 +25,9 @@
     <ClCompile Include="..\unittest\ut_pmem2_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_source.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TESTS.py">
@@ -33,6 +36,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="memmove_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\unittest\ut_pmem2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

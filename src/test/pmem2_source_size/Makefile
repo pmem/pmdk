@@ -14,6 +14,7 @@ TARGET = pmem2_source_size
 OBJS += errormsg.o\
 	pmem2_source_size.o\
 	ut_pmem2_config.o\
+	ut_pmem2_source.o\
 	ut_pmem2_utils.o
 
 LIBPMEMCOMMON=y

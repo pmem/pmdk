@@ -82,6 +82,7 @@
     <ClCompile Include="..\..\libpmem2\errormsg.c" />
     <ClCompile Include="..\..\libpmem2\pmem2_utils.c" />
     <ClCompile Include="..\unittest\ut_pmem2_config.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_source.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
     <ClCompile Include="pmem2_config.c" />
   </ItemGroup>
@@ -89,8 +90,7 @@
     <ClInclude Include="..\..\libpmem2\config.h" />
     <ClInclude Include="..\..\libpmem2\pmem2.h" />
     <ClInclude Include="..\..\libpmem2\pmem2_utils.h" />
-    <ClInclude Include="..\unittest\ut_pmem2_config.h" />
-    <ClInclude Include="..\unittest\ut_pmem2_utils.h" />
+    <ClInclude Include="..\unittest\ut_pmem2.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

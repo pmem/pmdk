@@ -7,7 +7,7 @@
 
 #include <stdlib.h>
 #include "unittest.h"
-#include "ut_pmem2_config.h"
+#include "ut_pmem2.h"
 #include "shutdown_state.h"
 #include "set.h"
 

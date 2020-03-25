@@ -59,6 +59,9 @@
     <ClCompile Include="..\unittest\ut_pmem2_config.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_source.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libpmem2\config.h">
@@ -67,13 +70,13 @@
     <ClInclude Include="..\..\libpmem2\pmem2_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\unittest\ut_pmem2_utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\libpmem2\map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\libpmem2\pmem2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\unittest\ut_pmem2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

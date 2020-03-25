@@ -90,6 +90,7 @@
     <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
     <ClCompile Include="..\..\libpmem2\x86_64\init.c" />
     <ClCompile Include="..\unittest\ut_pmem2_config.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_source.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
     <ClCompile Include="pmem2_map.c" />
   </ItemGroup>
@@ -98,7 +99,7 @@
     <ClInclude Include="..\..\libpmem2\map.h" />
     <ClInclude Include="..\..\libpmem2\pmem2.h" />
     <ClInclude Include="..\..\libpmem2\pmem2_utils.h" />
-    <ClInclude Include="..\unittest\ut_pmem2_utils.h" />
+    <ClInclude Include="..\unittest\ut_pmem2.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TESTS.py" />

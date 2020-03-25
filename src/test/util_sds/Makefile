@@ -12,6 +12,7 @@ TARGET = util_sds
 OBJS = util_sds.o\
 	shutdown_state.o\
 	ut_pmem2_config.o\
+	ut_pmem2_source.o\
 	ut_pmem2_utils.o
 
 LIBPMEM2=internal-debug
