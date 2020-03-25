@@ -25,6 +25,7 @@ pmem2_config_init(struct pmem2_config *cfg)
 	cfg->addr_request = PMEM2_ADDRESS_ANY;
 	cfg->requested_max_granularity = PMEM2_GRANULARITY_INVALID;
 	cfg->sharing = PMEM2_SHARED;
+	cfg->protection_flag = PMEM2_PROT_READ | PMEM2_PROT_WRITE;
 }
 
 /*
@@ -229,4 +230,31 @@ pmem2_config_clear_address(struct pmem2_config *cfg)
 {
 	cfg->addr = NULL;
 	cfg->addr_request = PMEM2_ADDRESS_ANY;
+}
+
+/*
+ * pmem2_config_set_protection -- set protection flags
+ * in the config struct
+ */
+int
+pmem2_config_set_protection(struct pmem2_config *cfg,
+		unsigned prot)
+{
+	unsigned unknown_prot = prot & ~(PMEM2_PROT_READ | PMEM2_PROT_WRITE |
+	PMEM2_PROT_EXEC | PMEM2_PROT_NONE);
+	if (unknown_prot) {
+		ERR("invalid flag %d", prot);
+		return PMEM2_E_INVALID_PROT_FLAG;
+	}
+
+#ifdef _WIN32
+	/* PAGE_NOACCESS is not supported by CreateFileMapping */
+	if (prot == PMEM2_PROT_NONE) {
+		ERR("PMEM2_PROT_NONE flag is not supported on Windows");
+		return PMEM2_E_NOSUPP;
+	}
+#endif
+
+	cfg->protection_flag = prot;
+	return 0;
 }
