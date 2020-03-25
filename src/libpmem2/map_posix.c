@@ -168,7 +168,7 @@ map_reserve(size_t len, size_t alignment, void **reserv, size_t *reslen,
 			return PMEM2_E_MAPPING_EXISTS;
 		}
 	}
-
+\
 	LOG(4, "system choice %p", daddr);
 	*reserv = (void *)roundup((uintptr_t)daddr, alignment);
 	/*
@@ -352,8 +352,18 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	 * MAP_FIXED - is required to mmap at exact address pointed by hint
 	 */
 	int flags = MAP_FIXED;
-	int proto = PROT_READ | PROT_WRITE;
 	void *addr;
+
+	/* "translate" pmem2 protection flags into linux flags */
+	int proto = 0;
+	if (PMEM2_PROT_EXEC & cfg->protection_flag)
+		proto = PROT_EXEC;
+	if (PMEM2_PROT_READ & cfg->protection_flag)
+		proto += PROT_READ;
+	if (PMEM2_PROT_WRITE & cfg->protection_flag)
+		proto += PROT_WRITE;
+	if (PMEM2_PROT_FROM_FD & cfg->protection_flag)
+		proto = 0;
 
 	if (file_type == PMEM2_FTYPE_DIR) {
 		ERR("the directory is not a supported file type");

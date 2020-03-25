@@ -25,6 +25,7 @@ pmem2_config_init(struct pmem2_config *cfg)
 	cfg->addr_request = PMEM2_ADDRESS_ANY;
 	cfg->requested_max_granularity = PMEM2_GRANULARITY_INVALID;
 	cfg->sharing = PMEM2_SHARED;
+	cfg->protection_flag = PMEM2_PROT_FROM_FD;
 }
 
 /*
@@ -229,4 +230,33 @@ pmem2_config_clear_address(struct pmem2_config *cfg)
 {
 	cfg->addr = NULL;
 	cfg->addr_request = PMEM2_ADDRESS_ANY;
+}
+
+#define PMEM2_PROT_READ_WRITE (PMEM2_PROT_READ |\
+		PMEM2_PROT_WRITE)
+#define PMEM2_PROT_READ_EXEC (PMEM2_PROT_READ |\
+		PMEM2_PROT_EXEC)
+#define PMEM2_PROT_ALL (PMEM2_PROT_READ |\
+		PMEM2_PROT_WRITE|\
+		PMEM2_PROT_EXEC)
+
+/*
+ * pmem2_config_set_protection -- set protection flags
+ * in the config struct
+ */
+int
+pmem2_config_set_protection(struct pmem2_config *cfg,
+		enum pmem2_protection_flag prot)
+{
+	if ((prot == PMEM2_PROT_READ) ||
+		(prot == PMEM2_PROT_EXEC) ||
+		(prot == PMEM2_PROT_READ_WRITE) ||
+		(prot == PMEM2_PROT_READ_EXEC) ||
+		(prot == PMEM2_PROT_ALL)) {
+		cfg->protection_flag = prot;
+		return 0;
+	} else {
+		ERR("unknown flag %d", prot);
+		return PMEM2_E_INVALID_PROT_FLAG;
+	}
 }
