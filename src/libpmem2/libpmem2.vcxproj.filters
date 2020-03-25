@@ -75,9 +75,6 @@
     <ClCompile Include="persist_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pmem2.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="pmem2_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -195,6 +192,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="persist.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

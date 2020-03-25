@@ -169,7 +169,6 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/memops_generic.o\
 	$(TOP)/src/debug/libpmem2/persist.o\
 	$(TOP)/src/debug/libpmem2/persist_posix.o\
-	$(TOP)/src/debug/libpmem2/pmem2.o\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/debug/libpmem2/ravl.o\
 	$(TOP)/src/debug/libpmem2/source.o\
@@ -221,7 +220,6 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/memops_generic.o\
 	$(TOP)/src/nondebug/libpmem2/persist.o\
 	$(TOP)/src/nondebug/libpmem2/persist_posix.o\
-	$(TOP)/src/nondebug/libpmem2/pmem2.o\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/nondebug/libpmem2/ravl.o\
 	$(TOP)/src/nondebug/libpmem2/usc_$(OS_DIMM).o\

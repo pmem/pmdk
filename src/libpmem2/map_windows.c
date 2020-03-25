@@ -107,7 +107,6 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	struct pmem2_map **map_ptr)
 {
 	LOG(3, "cfg %p src %p map_ptr %p", cfg, src, map_ptr);
-
 	int ret = 0;
 	unsigned long err = 0;
 	size_t file_size;
@@ -147,27 +146,72 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	if (ret)
 		return ret;
 
-	/* create a file mapping handle */
+	DWORD proto = PAGE_READWRITE;
 	DWORD access = FILE_MAP_ALL_ACCESS;
-	HANDLE mh = create_mapping(src->handle, offset, length,
-			PAGE_READWRITE, &err);
-	if (err == ERROR_ACCESS_DENIED) {
-		mh = create_mapping(src->handle, offset, length,
-				PAGE_READONLY, &err);
-		access = FILE_MAP_READ;
+
+	/* Unsupported flag combinations */
+	if ((cfg->protection_flag == PMEM2_PROT_NONE) ||
+			(cfg->protection_flag == PMEM2_PROT_WRITE) ||
+			(cfg->protection_flag == PMEM2_PROT_EXEC) ||
+			(cfg->protection_flag == (PMEM2_PROT_WRITE |
+					PMEM2_PROT_EXEC))) {
+		ERR("Windows does not support "
+				"this protection flag combination.");
+		return PMEM2_E_NOSUPP;
 	}
+
+	/* Translate protection flags into Windows flags */
+	if (cfg->protection_flag & PMEM2_PROT_WRITE) {
+		if (cfg->protection_flag & PMEM2_PROT_EXEC) {
+			proto = PAGE_EXECUTE_READWRITE;
+			access = FILE_MAP_READ | FILE_MAP_WRITE |
+			FILE_MAP_EXECUTE;
+		} else {
+			/*
+			 * Due to the already done exclusion
+			 * of incorrect combinations, PROT_WRITE
+			 * implies PROT_READ
+			 */
+			proto = PAGE_READWRITE;
+			access = FILE_MAP_READ | FILE_MAP_WRITE;
+		}
+	} else if (cfg->protection_flag & PMEM2_PROT_READ) {
+		if (cfg->protection_flag & PMEM2_PROT_EXEC) {
+			proto = PAGE_EXECUTE_READ;
+			access = FILE_MAP_READ | FILE_MAP_EXECUTE;
+		} else {
+			proto = PAGE_READONLY;
+			access = FILE_MAP_READ;
+		}
+	}
+
+	if (cfg->sharing == PMEM2_PRIVATE) {
+		if (cfg->protection_flag & PMEM2_PROT_EXEC) {
+			proto = PAGE_EXECUTE_WRITECOPY;
+			access = FILE_MAP_EXECUTE | FILE_MAP_COPY;
+		} else {
+			/*
+			 * If FILE_MAP_COPY is set,
+			 * protection is changed to read/write
+			 */
+			proto = PAGE_READONLY;
+			access = FILE_MAP_COPY;
+		}
+	}
+
+	/* create a file mapping handle */
+	HANDLE mh = create_mapping(src->handle, offset, length,
+		proto, &err);
 
 	if (!mh) {
 		if (err == ERROR_ALREADY_EXISTS) {
 			ERR("mapping already exists");
 			return PMEM2_E_MAPPING_EXISTS;
+		} else if (err == ERROR_ACCESS_DENIED) {
+			return PMEM2_E_NO_ACCESS;
 		}
-
 		return pmem2_lasterror_to_err();
 	}
-
-	if (cfg->sharing == PMEM2_PRIVATE)
-		access = FILE_MAP_COPY;
 
 	ret = pmem2_config_validate_addr_alignment(cfg, src);
 	if (ret)

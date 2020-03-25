@@ -346,14 +346,24 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	ASSERTeq((size_t)off, cfg->offset);
 
 	/* map input and output variables */
-	bool map_sync;
+	bool map_sync = false;
 	/*
 	 * MAP_SHARED - is required to mmap directly the underlying hardware
 	 * MAP_FIXED - is required to mmap at exact address pointed by hint
 	 */
 	int flags = MAP_FIXED;
-	int proto = PROT_READ | PROT_WRITE;
 	void *addr;
+
+	/* "translate" pmem2 protection flags into linux flags */
+	int proto = 0;
+	if (cfg->protection_flag == PMEM2_PROT_NONE)
+		proto = PROT_NONE;
+	if (cfg->protection_flag & PMEM2_PROT_EXEC)
+		proto |= PROT_EXEC;
+	if (cfg->protection_flag & PMEM2_PROT_READ)
+		proto |= PROT_READ;
+	if (cfg->protection_flag & PMEM2_PROT_WRITE)
+		proto |= PROT_WRITE;
 
 	if (file_type == PMEM2_FTYPE_DIR) {
 		ERR("the directory is not a supported file type");
@@ -404,16 +414,16 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 	ret = file_map(reserv, content_length, proto, flags, src->fd, off,
 			&map_sync, &addr);
-	if (ret == -EACCES) {
-		proto = PROT_READ;
-		ret = file_map(reserv, content_length, proto, flags, src->fd,
-				off, &map_sync, &addr);
-	}
 
 	if (ret) {
 		/* unmap the reservation mapping */
 		munmap(reserv, reserved_length);
-		return ret;
+		if (ret == -EACCES)
+			return PMEM2_E_NO_ACCESS;
+		else if (ret == -ENOTSUP)
+			return PMEM2_E_NOSUPP;
+		else
+			return ret;
 	}
 
 	LOG(3, "mapped at %p", addr);

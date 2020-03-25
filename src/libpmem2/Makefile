@@ -23,7 +23,6 @@ SOURCE =\
 	map_posix.c\
 	persist.c\
 	persist_posix.c\
-	pmem2.c\
 	pmem2_utils.c\
 	usc_$(OS_DIMM).c\
 	source.c\
