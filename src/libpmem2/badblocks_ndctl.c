@@ -240,11 +240,6 @@ badblocks_get_badblocks(struct ndctl_region *region,
 			struct ndctl_namespace *ndns,
 			struct badblocks *bbs)
 {
-	/*
-	 * Only the new NDCTL versions have the namespace badblock iterator,
-	 * when compiled with older versions, the library needs to rely on the
-	 * old region interface.
-	 */
 	if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_FSDAX)
 		return badblocks_get_badblocks_by_namespace(ndns, bbs);
 

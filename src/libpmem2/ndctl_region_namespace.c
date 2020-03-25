@@ -18,8 +18,8 @@
 
 /*
  * ndctl_match_devdax -- (internal) returns 1 if the devdax matches
- *                         with the given file, 0 if it doesn't match,
- *                         and -1 in case of error.
+ *                       with the given file, 0 if it doesn't match,
+ *                       and -1 in case of error.
  */
 static int
 ndctl_match_devdax(const os_stat_t *st, const char *devname)
@@ -55,8 +55,8 @@ ndctl_match_devdax(const os_stat_t *st, const char *devname)
 
 /*
  * ndctl_match_fsdax -- (internal) returns 1 if the device matches
- *                         with the given file, 0 if it doesn't match,
- *                         and -1 in case of error.
+ *                      with the given file, 0 if it doesn't match,
+ *                      and -1 in case of error.
  */
 static int
 ndctl_match_fsdax(const os_stat_t *st, const char *devname)
@@ -118,14 +118,14 @@ ndctl_match_fsdax(const os_stat_t *st, const char *devname)
 }
 
 /*
- * ndctl_region_namespace -- (internal) returns the region
- *                             (and optionally the namespace)
- *                             where the given file is located
+ * ndctl_region_namespace -- returns the region
+ *                           (and optionally the namespace)
+ *                           where the given file is located
  */
 int
 ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
-				struct ndctl_region **pregion,
-				struct ndctl_namespace **pndns)
+			struct ndctl_region **pregion,
+			struct ndctl_namespace **pndns)
 {
 	LOG(3, "ctx %p stat %p pregion %p pnamespace %p",
 		ctx, st, pregion, pndns);

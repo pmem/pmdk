@@ -21,7 +21,7 @@
 
 /*
  * usc_interleave_set -- (internal) returns set of dimms
- *                           where the pool file is located
+ *                       where the pool file is located
  */
 static struct ndctl_interleave_set *
 usc_interleave_set(struct ndctl_ctx *ctx, const os_stat_t *st)
