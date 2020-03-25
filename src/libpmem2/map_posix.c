@@ -346,14 +346,22 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	ASSERTeq((size_t)off, cfg->offset);
 
 	/* map input and output variables */
-	bool map_sync;
+	bool map_sync = NULL;
 	/*
 	 * MAP_SHARED - is required to mmap directly the underlying hardware
 	 * MAP_FIXED - is required to mmap at exact address pointed by hint
 	 */
 	int flags = MAP_FIXED;
-	int proto = PROT_READ | PROT_WRITE;
 	void *addr;
+
+	/* "translate" pmem2 protection flags into linux flags */
+	int proto = 0;
+	if (PMEM2_PROT_EXEC & cfg->protection_flag)
+		proto = PROT_EXEC;
+	if (PMEM2_PROT_READ & cfg->protection_flag)
+		proto |= PROT_READ;
+	if (PMEM2_PROT_WRITE & cfg->protection_flag)
+		proto |= PROT_WRITE;
 
 	if (file_type == PMEM2_FTYPE_DIR) {
 		ERR("the directory is not a supported file type");
@@ -402,12 +410,19 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 		flags |= MAP_PRIVATE;
 	}
 
+	if (!(cfg->protection_flag))
+		proto = PROT_READ | PROT_WRITE;
+
 	ret = file_map(reserv, content_length, proto, flags, src->fd, off,
 			&map_sync, &addr);
 	if (ret == -EACCES) {
-		proto = PROT_READ;
-		ret = file_map(reserv, content_length, proto, flags, src->fd,
-				off, &map_sync, &addr);
+		if (!(cfg->protection_flag)) {
+			proto = PROT_READ;
+			ret = file_map(reserv, content_length, proto, flags,
+			src->fd, off, &map_sync, &addr);
+		} else {
+		return ret;
+		}
 	}
 
 	if (ret) {

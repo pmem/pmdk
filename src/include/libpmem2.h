@@ -63,6 +63,7 @@ extern "C" {
 #define PMEM2_E_INVALID_REGION_FORMAT		(-100025)
 #define PMEM2_E_DAX_REGION_NOT_FOUND		(-100026)
 #define PMEM2_E_INVALID_DEV_FORMAT		(-100027)
+#define PMEM2_E_INVALID_PROT_FLAG		(-100028)
 
 /* source setup */
 
@@ -135,12 +136,16 @@ enum pmem2_sharing_type {
 int pmem2_config_set_sharing(struct pmem2_config *cfg,
 				enum pmem2_sharing_type type);
 
-#define PMEM2_PROT_FROM_FD	0 /* default */
-#define PMEM2_PROT_EXEC		(1U << 29)
-#define PMEM2_PROT_READ		(1U << 30)
-#define PMEM2_PROT_WRITE	(1U << 31)
+#define PMEM2_PROT_MAX	0 /* sets the maximum possible access */
 
-int pmem2_config_set_protection(struct pmem2_config *cfg, unsigned flag);
+enum pmem2_protection_flag {
+	PMEM2_PROT_EXEC = (1U << 29),
+	PMEM2_PROT_READ = (1U << 30),
+	PMEM2_PROT_WRITE = (1U << 31),
+};
+
+int pmem2_config_set_protection(struct pmem2_config *cfg,
+				enum pmem2_protection_flag prot);
 
 enum pmem2_address_request_type {
 	PMEM2_ADDRESS_FIXED_REPLACE = 1,

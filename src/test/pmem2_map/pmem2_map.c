@@ -6,6 +6,8 @@
  */
 
 #include <stdbool.h>
+#include <signal.h>
+#include <setjmp.h>
 
 #include "config.h"
 #include "source.h"
@@ -1088,6 +1090,243 @@ test_map_fixed_noreplace_partial_above_overlap(const struct test_case *tc,
 	return 2;
 }
 
+static ut_jmp_buf_t Jmp;
+
+/*
+ * signal_handler -- called on SIGSEGV
+ */
+static void
+signal_handler(int sig)
+{
+	ut_siglongjmp(Jmp);
+}
+
+/*
+ * test_map_prot_rw_mode_rw_prot -- test R/W protection
+ */
+static int
+test_map_prot_rw_mode_rw_prot(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_prot <file> <size>");
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd;
+
+	/* read/write */
+	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDWR);
+	pmem2_config_set_protection(&cfg, PMEM2_PROT_READ|PMEM2_PROT_WRITE);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTeq(ret, 0);
+
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
+	void *addr_map = pmem2_map_get_address(map);
+	memcpy_fn(addr_map, word1, strlen(word1), 0);
+	UT_ASSERTeq(memcmp(addr_map, word1, strlen(word1)), 0);
+
+	unmap_map(map);
+	FREE(map);
+	CLOSE(fd);
+	return 2;
+}
+
+/*
+ * test_map_prot_r_mode_rw_prot -- test R/W protection
+ */
+static int
+test_map_prot_r_mode_rw_prot(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_prot <file> <size>");
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd;
+
+	/* read/write on file opened in read-only mode - should fail */
+	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDONLY);
+	pmem2_config_set_protection(&cfg, PMEM2_PROT_READ|PMEM2_PROT_WRITE);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTne(ret, 0);
+
+	CLOSE(fd);
+	return 2;
+}
+
+/*
+ * test_map_prot_rw_mode_r_prot -- test R/W protection
+ */
+static int
+test_map_prot_rw_mode_r_prot(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_prot <file> <size>");
+
+	/* arrange to catch SEGV */
+	struct sigaction v;
+	sigemptyset(&v.sa_mask);
+	v.sa_flags = 0;
+	v.sa_handler = signal_handler;
+	SIGACTION(SIGSEGV, &v, NULL);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd;
+
+	/* read-only */
+	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDWR);
+	pmem2_config_set_protection(&cfg, PMEM2_PROT_READ);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTeq(ret, 0);
+
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
+	void *addr_map = pmem2_map_get_address(map);
+	if (!ut_sigsetjmp(Jmp)) {
+		/* same memset from above should now fail */
+		memcpy_fn(addr_map, word1, strlen(word1), 0);
+	} else {
+		UT_OUT("memcpy successful");
+	}
+
+	unmap_map(map);
+	FREE(map);
+	CLOSE(fd);
+	return 2;
+}
+
+/*
+ * test_map_prot_r_mode_r_prot -- test R/W protection
+ */
+static int
+test_map_prot_r_mode_r_prot(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_prot <file> <size>");
+
+	struct sigaction v;
+	sigemptyset(&v.sa_mask);
+	v.sa_flags = 0;
+	v.sa_handler = signal_handler;
+	SIGACTION(SIGSEGV, &v, NULL);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd;
+
+	/* read-only on file opened in read-only mode - should succeed */
+	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDONLY);
+	pmem2_config_set_protection(&cfg, PMEM2_PROT_READ);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTeq(ret, 0);
+
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
+	void *addr_map = pmem2_map_get_address(map);
+	if (!ut_sigsetjmp(Jmp)) {
+		/* same memset from above should now fail */
+		memcpy_fn(addr_map, word1, strlen(word1), 0);
+	} else {
+		UT_OUT("memcpy successful");
+	}
+
+	unmap_map(map);
+	FREE(map);
+	CLOSE(fd);
+	return 2;
+}
+
+/*
+ * test_map_prot_rw_mode_fd_prot -- test R/W protection
+ */
+static int
+test_map_prot_rw_mode_fd_prot(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_prot <file> <size>");
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd;
+
+	/* file opened in read-write mode - should succeed */
+	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDWR);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTeq(ret, 0);
+
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
+	void *addr_map = pmem2_map_get_address(map);
+	memcpy_fn(addr_map, word1, strlen(word1), 0);
+	UT_ASSERTeq(memcmp(addr_map, word1, strlen(word1)), 0);
+
+	unmap_map(map);
+	FREE(map);
+	CLOSE(fd);
+	return 2;
+}
+
+/*
+ * test_map_prot_r_mode_fd_prot -- test R/W protection
+ */
+static int
+test_map_prot_r_mode_fd_prot(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_prot <file> <size>");
+
+	struct sigaction v;
+	sigemptyset(&v.sa_mask);
+	v.sa_flags = 0;
+	v.sa_handler = signal_handler;
+	SIGACTION(SIGSEGV, &v, NULL);
+
+	char *file = argv[0];
+	struct pmem2_config cfg;
+	struct pmem2_source src;
+	int fd;
+
+	/* file opened in read-only mode - should succeed */
+	prepare_config(&cfg, &src, &fd, file, 0, 0, O_RDONLY);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map(&cfg, &src, &map);
+	UT_ASSERTeq(ret, 0);
+
+	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
+	void *addr_map = pmem2_map_get_address(map);
+	if (!ut_sigsetjmp(Jmp)) {
+		/* same memset from above should now fail */
+		memcpy_fn(addr_map, word1, strlen(word1), 0);
+	} else {
+		UT_OUT("memcpy successful");
+	}
+
+	unmap_map(map);
+	FREE(map);
+	CLOSE(fd);
+	return 2;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -1118,6 +1357,12 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_map_fixed_noreplace_full_overlap),
 	TEST_CASE(test_map_fixed_noreplace_partial_overlap),
 	TEST_CASE(test_map_fixed_noreplace_partial_above_overlap),
+	TEST_CASE(test_map_prot_rw_mode_rw_prot),
+	TEST_CASE(test_map_prot_r_mode_rw_prot),
+	TEST_CASE(test_map_prot_rw_mode_r_prot),
+	TEST_CASE(test_map_prot_r_mode_r_prot),
+	TEST_CASE(test_map_prot_rw_mode_fd_prot),
+	TEST_CASE(test_map_prot_r_mode_fd_prot),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
