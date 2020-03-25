@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 
 #
 # configure-tests.sh - is called inside a Docker container; configures tests
@@ -98,7 +98,8 @@ config = {
 	'build': ['debug', 'release'],
 	'force_enable': None,
 	'device_dax_path': [],
-	'fail_on_skip': False
+	'fail_on_skip': False,
+	'allow_using_sudo': False
    }
 EOF
 

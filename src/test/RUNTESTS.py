@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 
 """Main script for unit tests execution"""
 
@@ -14,6 +14,7 @@ sys.path.insert(1, path.abspath(path.join(path.dirname(__file__), 'unittest')))
 # directory to path
 
 import importlib.util as importutil  # noqa E402
+import subprocess as sp  # noqa E402
 
 import futils  # noqa E402
 from basetest import get_testcases  # noqa E402
@@ -25,6 +26,9 @@ class TestRunner:
     def __init__(self, config, testcases):
         self.testcases = testcases
         self.config = config
+        self._check_sudo()
+        self.msg = futils.Message(config.unittest_log_level)
+
         if self.config.test_sequence:
             # filter test cases from sequence
             self.testcases = [t for t in self.testcases
@@ -37,7 +41,13 @@ class TestRunner:
         if not self.testcases:
             sys.exit('No testcases to run found for selected configuration.')
 
-        self.msg = futils.Message(config.unittest_log_level)
+    def _check_sudo(self):
+        if self.config.allow_using_sudo:
+            try:
+                sp.check_output(['sudo', '-n', '-name'], stderr=sp.STDOUT)
+            except sp.CalledProcessError:
+                sys.exit('The user enabling "allow_using_sudo" configuration '
+                         'needs to have sudo permission with no password')
 
     def run_tests(self):
         """Run selected testcases"""
@@ -132,5 +142,5 @@ def main():
     sys.exit(runner.run_tests())
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

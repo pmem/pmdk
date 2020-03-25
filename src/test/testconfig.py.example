@@ -151,4 +151,10 @@ config = {
     # Eg. ['/dev/dax0.0', '/dev/dax1.0']
     #
     'device_dax_path' : [],
+
+    #
+    # This options need to be enabled if tests require sudo.
+    # Sudo commands need to be available to run without password.
+    #
+    'allow_using_sudo': False
 }
