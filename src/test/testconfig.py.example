@@ -138,4 +138,11 @@ config = {
     # Eg. ['/dev/dax0.0', '/dev/dax1.0']
     #
     'device_dax_path' : [],
+
+    #
+    # This option needs to be enabled if tests require sudo.
+    # The sudo command needs to be available in non-interactive mode
+    # (no password required to perform a sudo command).
+    #
+    'allow_using_sudo': False
 }
