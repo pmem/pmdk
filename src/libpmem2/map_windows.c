@@ -107,7 +107,6 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	struct pmem2_map **map_ptr)
 {
 	LOG(3, "cfg %p src %p map_ptr %p", cfg, src, map_ptr);
-
 	int ret = 0;
 	unsigned long err = 0;
 	size_t file_size;
@@ -147,15 +146,40 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	if (ret)
 		return ret;
 
-	/* create a file mapping handle */
+	/* translate protection flags into Windows flags */
 	DWORD access = FILE_MAP_ALL_ACCESS;
-	HANDLE mh = create_mapping(src->handle, offset, length,
-			PAGE_READWRITE, &err);
-	if (err == ERROR_ACCESS_DENIED) {
-		mh = create_mapping(src->handle, offset, length,
-				PAGE_READONLY, &err);
+	DWORD proto = PAGE_READWRITE;
+
+	if (PMEM2_PROT_EXEC & cfg->protection_flag)
+		proto = PAGE_EXECUTE;
+	if (PMEM2_PROT_READ & cfg->protection_flag) {
+		proto = PAGE_READONLY;
 		access = FILE_MAP_READ;
 	}
+	if ((PMEM2_PROT_READ & cfg->protection_flag) &&
+		(PMEM2_PROT_WRITE & cfg->protection_flag)) {
+		proto = PAGE_READWRITE;
+		access = FILE_MAP_ALL_ACCESS;
+	}
+	if ((PMEM2_PROT_READ & cfg->protection_flag) &&
+		(PMEM2_PROT_EXEC & cfg->protection_flag)) {
+		proto = PAGE_READONLY;
+		access = FILE_MAP_READ;
+	}
+	if ((PMEM2_PROT_READ & cfg->protection_flag) &&
+		(PMEM2_PROT_EXEC & cfg->protection_flag) &&
+		(PMEM2_PROT_WRITE & cfg->protection_flag)) {
+		proto = PAGE_EXECUTE_READWRITE;
+		access = FILE_MAP_ALL_ACCESS;
+	}
+	if (PMEM2_PROT_FROM_FD & cfg->protection_flag) {
+		proto = PAGE_READWRITE;
+		access = FILE_MAP_ALL_ACCESS;
+	}
+
+	/* create a file mapping handle */
+	HANDLE mh = create_mapping(src->handle, offset, length,
+		proto, &err);
 
 	if (!mh) {
 		if (err == ERROR_ALREADY_EXISTS) {

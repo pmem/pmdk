@@ -49,9 +49,6 @@
     <ClCompile Include="..\..\libpmem2\persist_windows.c">
       <Filter>Source Files\pmem2</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem2\pmem2.c">
-      <Filter>Source Files\pmem2</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmem2\pmem2_utils.c">
       <Filter>Source Files\pmem2</Filter>
     </ClCompile>

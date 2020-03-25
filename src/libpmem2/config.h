@@ -11,6 +11,7 @@
 
 #define PMEM2_GRANULARITY_INVALID ((enum pmem2_granularity) (-1))
 #define PMEM2_ADDRESS_ANY 0 /* default value of the address request type */
+#define PMEM2_PROT_FROM_FD 0 /* default value of protection flag */
 
 struct pmem2_config {
 	/* offset from the beginning of the file */
@@ -21,6 +22,7 @@ struct pmem2_config {
 	int addr_request; /* address request type */
 	enum pmem2_granularity requested_max_granularity;
 	enum pmem2_sharing_type sharing; /* the way the file will be mapped */
+	unsigned protection_flag;
 };
 
 void pmem2_config_init(struct pmem2_config *cfg);
