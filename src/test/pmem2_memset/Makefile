@@ -12,7 +12,8 @@ TARGET = pmem2_memset
 OBJS += pmem2_memset.o\
 	memset_common.o\
 	ut_pmem2_utils.o\
-	ut_pmem2_config.o
+	ut_pmem2_config.o\
+	ut_pmem2_source.o
 
 LIBPMEM2=y
 

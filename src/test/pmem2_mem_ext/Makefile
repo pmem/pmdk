@@ -11,7 +11,8 @@ INCS += -I$(TOP)/src/libpmem2
 TARGET = pmem2_mem_ext
 OBJS += pmem2_mem_ext.o\
 	ut_pmem2_utils.o\
-	ut_pmem2_config.o
+	ut_pmem2_config.o\
+	ut_pmem2_source.o
 
 LIBPMEM2=y
 

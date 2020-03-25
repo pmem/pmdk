@@ -10,8 +10,7 @@
  */
 
 #include "unittest.h"
-#include "ut_pmem2_utils.h"
-#include "ut_pmem2_config.h"
+#include "ut_pmem2.h"
 #include "file.h"
 #include "memmove_common.h"
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 
 #
 # src/test/pmem2_config/Makefile -- build pmem2_config unit test
@@ -14,6 +14,7 @@ TARGET = pmem2_config
 OBJS += errormsg.o\
 	pmem2_config.o\
 	ut_pmem2_config.o\
+	ut_pmem2_source.o\
 	ut_pmem2_utils.o
 
 LIBPMEMCOMMON=y

@@ -6,8 +6,7 @@
  */
 #include "fault_injection.h"
 #include "unittest.h"
-#include "ut_pmem2_utils.h"
-#include "ut_pmem2_config.h"
+#include "ut_pmem2.h"
 #include "config.h"
 #include "out.h"
 #include "source.h"

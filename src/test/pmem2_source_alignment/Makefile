@@ -15,6 +15,7 @@ TARGET = pmem2_source_alignment
 OBJS += errormsg.o\
 	pmem2_source_alignment.o\
 	ut_pmem2_config.o\
+	ut_pmem2_source.o\
 	ut_pmem2_utils.o
 
 LIBPMEMCOMMON=y

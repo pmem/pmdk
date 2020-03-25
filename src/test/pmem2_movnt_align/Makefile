@@ -12,7 +12,8 @@ TARGET = pmem2_movnt_align
 OBJS = pmem2_movnt_align.o\
 	movnt_align_common.o\
 	ut_pmem2_utils.o\
-	ut_pmem2_config.o
+	ut_pmem2_config.o\
+	ut_pmem2_source.o
 
 LIBPMEM2=y
 

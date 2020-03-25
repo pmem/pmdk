@@ -7,8 +7,7 @@
 
 #include "unittest.h"
 #include "file.h"
-#include "ut_pmem2_utils.h"
-#include "ut_pmem2_config.h"
+#include "ut_pmem2.h"
 
 typedef void *(*memmove_fn)(void *pmemdest, const void *src, size_t len,
 		unsigned flags);
