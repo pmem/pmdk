@@ -23,11 +23,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\unittest\ut_pmem2_config.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_source.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
     <ClCompile Include="memcpy_common.c" />
     <ClCompile Include="pmem2_memcpy.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\unittest\ut_pmem2.h" />
     <ClInclude Include="memcpy_common.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

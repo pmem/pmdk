@@ -185,6 +185,7 @@
     <ClCompile Include="..\..\libpmem2\x86_64\memset\memset_t_sse2_empty.c" />
     <ClCompile Include="..\..\libpmem2\x86_64\memset\memset_t_sse2_noflush.c" />
     <ClCompile Include="..\unittest\ut_pmem2_config.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_source.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
     <ClCompile Include="util_sds.c">
       <PreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">WRAP_REAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -200,6 +201,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\unittest\ut_pmem2.h" />
     <ClInclude Include="mocks_windows.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

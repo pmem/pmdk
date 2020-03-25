@@ -7,8 +7,7 @@
 
 #include "unittest.h"
 #include "rand.h"
-#include "ut_pmem2_utils.h"
-#include "ut_pmem2_config.h"
+#include "ut_pmem2.h"
 
 #define N_GRANULARITIES 3 /* BYTE, CACHE_LINE, PAGE */
 

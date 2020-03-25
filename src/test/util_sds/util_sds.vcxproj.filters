@@ -202,9 +202,15 @@
     <ClCompile Include="..\..\common\ravl.c">
       <Filter>Source Files\pmem2</Filter>
     </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_source.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mocks_windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\unittest\ut_pmem2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

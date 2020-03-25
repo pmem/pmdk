@@ -26,12 +26,15 @@
     <ClCompile Include="..\unittest\ut_pmem2_config.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_source.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\unittest\ut_pmem2_utils.h">
+    <ClInclude Include="..\unittest\unittest.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\unittest\unittest.h">
+    <ClInclude Include="..\unittest\ut_pmem2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

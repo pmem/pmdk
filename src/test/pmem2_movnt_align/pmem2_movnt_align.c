@@ -19,8 +19,7 @@
 #include "libpmem2.h"
 #include "unittest.h"
 #include "movnt_align_common.h"
-#include "ut_pmem2_utils.h"
-#include "ut_pmem2_config.h"
+#include "ut_pmem2.h"
 
 static pmem2_memset_fn memset_fn;
 static pmem2_memcpy_fn memcpy_fn;
