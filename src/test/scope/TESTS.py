@@ -65,7 +65,7 @@ def parse_lib_win(ctx, lib, static):
     out = sorted(proc.stdout.splitlines())
     return '\n'.join(out) + '\n'
 
-
+@t.require_valgrind_disabled('drd', 'helgrind' ,'memcheck', 'pmemcheck')
 @g.no_testdir()
 class Common(t.Test):
     test_type = t.Medium
