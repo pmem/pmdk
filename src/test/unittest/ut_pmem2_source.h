@@ -26,6 +26,10 @@
 #define PMEM2_SOURCE_DELETE(src)					\
 	ut_pmem2_source_delete(__FILE__, __LINE__, __func__, src)
 
+/* a pmem2_source_source() that can't return NULL */
+#define PMEM2_SOURCE_SIZE(src, size)					\
+	ut_pmem2_source_size(__FILE__, __LINE__, __func__, src, size)
+
 void ut_pmem2_source_from_fd(const char *file, int line, const char *func,
 	struct pmem2_source **src, int fd);
 
@@ -37,5 +41,8 @@ void ut_pmem2_source_alignment(const char *file, int line, const char *func,
 
 void ut_pmem2_source_delete(const char *file, int line, const char *func,
 	struct pmem2_source **src);
+
+void ut_pmem2_source_size(const char *file, int line, const char *func,
+	struct pmem2_source *src, size_t *size);
 
 #endif /* UT_PMEM2_SOURCE_H */

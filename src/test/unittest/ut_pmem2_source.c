@@ -66,3 +66,11 @@ ut_pmem2_source_delete(const char *file, int line, const char *func,
 
 	UT_ASSERTeq(*src, NULL);
 }
+
+void
+ut_pmem2_source_size(const char *file, int line, const char *func,
+	struct pmem2_source *src, size_t *size)
+{
+	int ret = pmem2_source_size(src, size);
+	ut_pmem2_expect_return(file, line, func, ret, 0);
+}
