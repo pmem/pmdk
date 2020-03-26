@@ -32,11 +32,13 @@ SOURCE =\
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
 	auto_flush_linux.c\
+	deep_sync_linux.c\
 	pmem2_utils_linux.c
 else
 SOURCE +=\
 	pmem2_utils_other.c\
-	auto_flush_none.c
+	auto_flush_none.c\
+	deep_sync_none.c
 endif
 
 ifeq ($(OS_DIMM),ndctl)

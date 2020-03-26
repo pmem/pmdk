@@ -35,11 +35,13 @@ SOURCE =\
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
 	$(PMEM2)/pmem2_utils_linux.c\
-	$(PMEM2)/auto_flush_linux.c
+	$(PMEM2)/auto_flush_linux.c\
+	$(PMEM2)/deep_sync_linux.c
 else
 SOURCE +=\
 	$(PMEM2)/pmem2_utils_other.c\
-	$(PMEM2)/auto_flush_none.c
+	$(PMEM2)/auto_flush_none.c\
+	$(PMEM2)/deep_sync_none.c
 endif
 
 INCS += -I$(TOP)/src/libpmem2
