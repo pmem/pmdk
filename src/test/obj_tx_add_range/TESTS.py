@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 
 """unit tests for pmemobj_tx_add_range and pmemobj_tx_xadd_range"""
 
@@ -9,7 +9,7 @@ from os import path
 import testframework as t
 
 
-@t.require_valgrind_disabled(['memcheck', 'pmemcheck'])
+@t.require_valgrind_disabled('memcheck', 'pmemcheck')
 class TEST0(t.Test):
     test_type = t.Medium
 
