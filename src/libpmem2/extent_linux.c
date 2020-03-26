@@ -59,7 +59,6 @@ os_extents_common(int fd, struct extents *exts, struct fiemap **pfmap)
 
 	/* devdax does not have any extents */
 	if (pmem2_type == PMEM2_FTYPE_DEVDAX) {
-		close(fd);
 		return 0;
 	}
 
@@ -188,9 +187,6 @@ os_extents_get(int fd, struct extents *exts)
 
 error_free:
 	Free(fmap);
-
-	if (fd != -1)
-		close(fd);
 
 	return ret;
 }
