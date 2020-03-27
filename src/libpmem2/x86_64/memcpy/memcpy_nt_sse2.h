@@ -47,8 +47,6 @@ memmove_movnt4x64b(char *dest, const char *src)
 	_mm_stream_si128((__m128i *)dest + 13, xmm13);
 	_mm_stream_si128((__m128i *)dest + 14, xmm14);
 	_mm_stream_si128((__m128i *)dest + 15, xmm15);
-
-	VALGRIND_DO_FLUSH(dest, 4 * 64);
 }
 
 static force_inline void
@@ -71,8 +69,6 @@ memmove_movnt2x64b(char *dest, const char *src)
 	_mm_stream_si128((__m128i *)dest + 5, xmm5);
 	_mm_stream_si128((__m128i *)dest + 6, xmm6);
 	_mm_stream_si128((__m128i *)dest + 7, xmm7);
-
-	VALGRIND_DO_FLUSH(dest, 2 * 64);
 }
 
 static force_inline void
@@ -87,8 +83,6 @@ memmove_movnt1x64b(char *dest, const char *src)
 	_mm_stream_si128((__m128i *)dest + 1, xmm1);
 	_mm_stream_si128((__m128i *)dest + 2, xmm2);
 	_mm_stream_si128((__m128i *)dest + 3, xmm3);
-
-	VALGRIND_DO_FLUSH(dest, 64);
 }
 
 static force_inline void
@@ -99,8 +93,6 @@ memmove_movnt1x32b(char *dest, const char *src)
 
 	_mm_stream_si128((__m128i *)dest + 0, xmm0);
 	_mm_stream_si128((__m128i *)dest + 1, xmm1);
-
-	VALGRIND_DO_FLUSH(dest, 32);
 }
 
 static force_inline void
@@ -109,24 +101,18 @@ memmove_movnt1x16b(char *dest, const char *src)
 	__m128i xmm0 = _mm_loadu_si128((__m128i *)src);
 
 	_mm_stream_si128((__m128i *)dest, xmm0);
-
-	VALGRIND_DO_FLUSH(dest, 16);
 }
 
 static force_inline void
 memmove_movnt1x8b(char *dest, const char *src)
 {
 	_mm_stream_si64((long long *)dest, *(long long *)src);
-
-	VALGRIND_DO_FLUSH(dest, 8);
 }
 
 static force_inline void
 memmove_movnt1x4b(char *dest, const char *src)
 {
 	_mm_stream_si32((int *)dest, *(int *)src);
-
-	VALGRIND_DO_FLUSH(dest, 4);
 }
 
 static force_inline void
@@ -275,4 +261,6 @@ EXPORTED_SYMBOL(char *dest, const char *src, size_t len)
 		memmove_movnt_sse_bw(dest, src, len);
 
 	maybe_barrier();
+
+	VALGRIND_DO_FLUSH(dest, len);
 }

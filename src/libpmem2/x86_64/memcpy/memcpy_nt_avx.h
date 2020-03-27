@@ -48,8 +48,6 @@ memmove_movnt8x64b(char *dest, const char *src)
 	_mm256_stream_si256((__m256i *)dest + 13, ymm13);
 	_mm256_stream_si256((__m256i *)dest + 14, ymm14);
 	_mm256_stream_si256((__m256i *)dest + 15, ymm15);
-
-	VALGRIND_DO_FLUSH(dest, 8 * 64);
 }
 
 static force_inline void
@@ -72,8 +70,6 @@ memmove_movnt4x64b(char *dest, const char *src)
 	_mm256_stream_si256((__m256i *)dest + 5, ymm5);
 	_mm256_stream_si256((__m256i *)dest + 6, ymm6);
 	_mm256_stream_si256((__m256i *)dest + 7, ymm7);
-
-	VALGRIND_DO_FLUSH(dest, 4 * 64);
 }
 
 static force_inline void
@@ -88,8 +84,6 @@ memmove_movnt2x64b(char *dest, const char *src)
 	_mm256_stream_si256((__m256i *)dest + 1, ymm1);
 	_mm256_stream_si256((__m256i *)dest + 2, ymm2);
 	_mm256_stream_si256((__m256i *)dest + 3, ymm3);
-
-	VALGRIND_DO_FLUSH(dest, 2 * 64);
 }
 
 static force_inline void
@@ -100,8 +94,6 @@ memmove_movnt1x64b(char *dest, const char *src)
 
 	_mm256_stream_si256((__m256i *)dest + 0, ymm0);
 	_mm256_stream_si256((__m256i *)dest + 1, ymm1);
-
-	VALGRIND_DO_FLUSH(dest, 64);
 }
 
 static force_inline void
@@ -110,8 +102,6 @@ memmove_movnt1x32b(char *dest, const char *src)
 	__m256i ymm0 = _mm256_loadu_si256((__m256i *)src);
 
 	_mm256_stream_si256((__m256i *)dest, ymm0);
-
-	VALGRIND_DO_FLUSH(dest, 32);
 }
 
 static force_inline void
@@ -120,24 +110,18 @@ memmove_movnt1x16b(char *dest, const char *src)
 	__m128i xmm0 = _mm_loadu_si128((__m128i *)src);
 
 	_mm_stream_si128((__m128i *)dest, xmm0);
-
-	VALGRIND_DO_FLUSH(dest, 16);
 }
 
 static force_inline void
 memmove_movnt1x8b(char *dest, const char *src)
 {
 	_mm_stream_si64((long long *)dest, *(long long *)src);
-
-	VALGRIND_DO_FLUSH(dest, 8);
 }
 
 static force_inline void
 memmove_movnt1x4b(char *dest, const char *src)
 {
 	_mm_stream_si32((int *)dest, *(int *)src);
-
-	VALGRIND_DO_FLUSH(dest, 4);
 }
 
 static force_inline void
@@ -304,4 +288,6 @@ EXPORTED_SYMBOL(char *dest, const char *src, size_t len)
 		memmove_movnt_avx_bw(dest, src, len);
 
 	maybe_barrier();
+
+	VALGRIND_DO_FLUSH(dest, len);
 }

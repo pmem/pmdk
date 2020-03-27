@@ -31,8 +31,6 @@ memset_movnt4x64b(char *dest, __m128i xmm)
 	_mm_stream_si128((__m128i *)dest + 13, xmm);
 	_mm_stream_si128((__m128i *)dest + 14, xmm);
 	_mm_stream_si128((__m128i *)dest + 15, xmm);
-
-	VALGRIND_DO_FLUSH(dest, 4 * 64);
 }
 
 static force_inline void
@@ -46,8 +44,6 @@ memset_movnt2x64b(char *dest, __m128i xmm)
 	_mm_stream_si128((__m128i *)dest + 5, xmm);
 	_mm_stream_si128((__m128i *)dest + 6, xmm);
 	_mm_stream_si128((__m128i *)dest + 7, xmm);
-
-	VALGRIND_DO_FLUSH(dest, 2 * 64);
 }
 
 static force_inline void
@@ -57,8 +53,6 @@ memset_movnt1x64b(char *dest, __m128i xmm)
 	_mm_stream_si128((__m128i *)dest + 1, xmm);
 	_mm_stream_si128((__m128i *)dest + 2, xmm);
 	_mm_stream_si128((__m128i *)dest + 3, xmm);
-
-	VALGRIND_DO_FLUSH(dest, 64);
 }
 
 static force_inline void
@@ -66,16 +60,12 @@ memset_movnt1x32b(char *dest, __m128i xmm)
 {
 	_mm_stream_si128((__m128i *)dest + 0, xmm);
 	_mm_stream_si128((__m128i *)dest + 1, xmm);
-
-	VALGRIND_DO_FLUSH(dest, 32);
 }
 
 static force_inline void
 memset_movnt1x16b(char *dest, __m128i xmm)
 {
 	_mm_stream_si128((__m128i *)dest, xmm);
-
-	VALGRIND_DO_FLUSH(dest, 16);
 }
 
 static force_inline void
@@ -84,8 +74,6 @@ memset_movnt1x8b(char *dest, __m128i xmm)
 	uint64_t x = (uint64_t)_mm_cvtsi128_si64(xmm);
 
 	_mm_stream_si64((long long *)dest, (long long)x);
-
-	VALGRIND_DO_FLUSH(dest, 8);
 }
 
 static force_inline void
@@ -94,14 +82,14 @@ memset_movnt1x4b(char *dest, __m128i xmm)
 	uint32_t x = (uint32_t)_mm_cvtsi128_si32(xmm);
 
 	_mm_stream_si32((int *)dest, (int)x);
-
-	VALGRIND_DO_FLUSH(dest, 4);
 }
 
 void
 EXPORTED_SYMBOL(char *dest, int c, size_t len)
 {
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
+	char *orig_dest = dest;
+	size_t orig_len = len;
 
 	__m128i xmm = _mm_set1_epi8((char)c);
 
@@ -160,4 +148,6 @@ nonnt:
 	memset_small_sse2(dest, xmm, len);
 end:
 	maybe_barrier();
+
+	VALGRIND_DO_FLUSH(orig_dest, orig_len);
 }

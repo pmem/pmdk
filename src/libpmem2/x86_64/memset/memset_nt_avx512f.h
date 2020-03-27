@@ -49,8 +49,6 @@ memset_movnt32x64b(char *dest, __m512i zmm)
 	_mm512_stream_si512((__m512i *)dest + 29, zmm);
 	_mm512_stream_si512((__m512i *)dest + 30, zmm);
 	_mm512_stream_si512((__m512i *)dest + 31, zmm);
-
-	VALGRIND_DO_FLUSH(dest, 32 * 64);
 }
 
 static force_inline void
@@ -72,8 +70,6 @@ memset_movnt16x64b(char *dest, __m512i zmm)
 	_mm512_stream_si512((__m512i *)dest + 13, zmm);
 	_mm512_stream_si512((__m512i *)dest + 14, zmm);
 	_mm512_stream_si512((__m512i *)dest + 15, zmm);
-
-	VALGRIND_DO_FLUSH(dest, 16 * 64);
 }
 
 static force_inline void
@@ -87,8 +83,6 @@ memset_movnt8x64b(char *dest, __m512i zmm)
 	_mm512_stream_si512((__m512i *)dest + 5, zmm);
 	_mm512_stream_si512((__m512i *)dest + 6, zmm);
 	_mm512_stream_si512((__m512i *)dest + 7, zmm);
-
-	VALGRIND_DO_FLUSH(dest, 8 * 64);
 }
 
 static force_inline void
@@ -98,8 +92,6 @@ memset_movnt4x64b(char *dest, __m512i zmm)
 	_mm512_stream_si512((__m512i *)dest + 1, zmm);
 	_mm512_stream_si512((__m512i *)dest + 2, zmm);
 	_mm512_stream_si512((__m512i *)dest + 3, zmm);
-
-	VALGRIND_DO_FLUSH(dest, 4 * 64);
 }
 
 static force_inline void
@@ -107,24 +99,18 @@ memset_movnt2x64b(char *dest, __m512i zmm)
 {
 	_mm512_stream_si512((__m512i *)dest + 0, zmm);
 	_mm512_stream_si512((__m512i *)dest + 1, zmm);
-
-	VALGRIND_DO_FLUSH(dest, 2 * 64);
 }
 
 static force_inline void
 memset_movnt1x64b(char *dest, __m512i zmm)
 {
 	_mm512_stream_si512((__m512i *)dest + 0, zmm);
-
-	VALGRIND_DO_FLUSH(dest, 64);
 }
 
 static force_inline void
 memset_movnt1x32b(char *dest, __m256i ymm)
 {
 	_mm256_stream_si256((__m256i *)dest, ymm);
-
-	VALGRIND_DO_FLUSH(dest, 32);
 }
 
 static force_inline void
@@ -133,8 +119,6 @@ memset_movnt1x16b(char *dest, __m256i ymm)
 	__m128i xmm = _mm256_extracti128_si256(ymm, 0);
 
 	_mm_stream_si128((__m128i *)dest, xmm);
-
-	VALGRIND_DO_FLUSH(dest, 16);
 }
 
 static force_inline void
@@ -143,8 +127,6 @@ memset_movnt1x8b(char *dest, __m256i ymm)
 	uint64_t x = m256_get8b(ymm);
 
 	_mm_stream_si64((long long *)dest, (long long)x);
-
-	VALGRIND_DO_FLUSH(dest, 8);
 }
 
 static force_inline void
@@ -153,14 +135,14 @@ memset_movnt1x4b(char *dest, __m256i ymm)
 	uint32_t x = m256_get4b(ymm);
 
 	_mm_stream_si32((int *)dest, (int)x);
-
-	VALGRIND_DO_FLUSH(dest, 4);
 }
 
 void
 EXPORTED_SYMBOL(char *dest, int c, size_t len)
 {
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
+	char *orig_dest = dest;
+	size_t orig_len = len;
 
 	__m512i zmm = _mm512_set1_epi8((char)c);
 	/*
@@ -244,4 +226,6 @@ end:
 	avx_zeroupper();
 
 	maybe_barrier();
+
+	VALGRIND_DO_FLUSH(orig_dest, orig_len);
 }
