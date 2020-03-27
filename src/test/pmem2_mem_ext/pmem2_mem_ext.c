@@ -8,6 +8,7 @@
 #include "unittest.h"
 #include "file.h"
 #include "ut_pmem2.h"
+#include "valgrind_internal.h"
 
 typedef void *(*memmove_fn)(void *pmemdest, const void *src, size_t len,
 		unsigned flags);
@@ -56,6 +57,8 @@ static void
 do_memset_with_flag(char *addr, size_t data_size, memset_fn set_fn, int flag)
 {
 	set_fn(addr, 1, data_size, Flags[flag]);
+	if (Flags[flag] & PMEM2_F_MEM_NOFLUSH)
+		VALGRIND_DO_PERSIST(addr, data_size);
 }
 
 int
@@ -79,6 +82,7 @@ main(int argc, char *argv[])
 			thr ? thr : "default",
 			avx ? "" : "!",
 			avx512f ? "" : "!");
+	util_init();
 
 	char type = argv[2][0];
 	size_t data_size = strtoul(argv[3], NULL, 0);
