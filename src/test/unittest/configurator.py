@@ -244,14 +244,14 @@ class Configurator():
                             nargs='*', help='run tests on a filesystem'
                             ' with specified granularity types.')
         parser.add_argument('-t', dest='test_type',
-                            help='run only specified test type where'
+                            help='run only specified test type where '
                             'check = short + medium',
                             choices=ctx_choices(test_types._TestType),
                             nargs='*')
         parser.add_argument('-o', dest='timeout',
-                            help="set timeout for test execution timeout:"
+                            help="set timeout for test execution timeout: "
                             "integer with an optional suffix:''s' for seconds,"
-                            "'m' for minutes, 'h' for hours or 'd' for days.")
+                            " 'm' for minutes, 'h' for hours or 'd' for days.")
         parser.add_argument('-u', dest='test_sequence',
                             help='run only tests from specified test sequence '
                             'e.g.: 0-2,5 will execute TEST0, '
