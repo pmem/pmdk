@@ -186,6 +186,8 @@ pmem2_flush_fn pmem2_get_flush_fn(struct pmem2_map *map);
 
 pmem2_drain_fn pmem2_get_drain_fn(struct pmem2_map *map);
 
+int pmem2_deep_sync(struct pmem2_map *map, void *ptr, size_t size);
+
 #define PMEM2_F_MEM_NODRAIN	(1U << 0)
 
 #define PMEM2_F_MEM_NONTEMPORAL	(1U << 1)
