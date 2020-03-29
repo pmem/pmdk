@@ -11,6 +11,7 @@ pmem2_config_set_offset
 pmem2_config_set_protection
 pmem2_config_set_required_store_granularity
 pmem2_config_set_sharing
+pmem2_deep_sync
 pmem2_errormsg
 pmem2_get_drain_fn
 pmem2_get_flush_fn

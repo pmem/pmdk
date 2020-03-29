@@ -16,6 +16,7 @@ SOURCE =\
 	badblocks.c\
 	badblocks_$(OS_DIMM).c\
 	config.c\
+	deep_sync.c\
 	errormsg.c\
 	memops_generic.c\
 	map.c\
