@@ -29,6 +29,7 @@ SOURCE =\
 	pmem_posix.c\
 	$(PMEM2)/pmem2_utils.c\
 	$(PMEM2)/config.c\
+	$(PMEM2)/persist_posix.c\
 	$(PMEM2)/source.c\
 	$(PMEM2)/source_posix.c
 
@@ -41,7 +42,7 @@ else
 SOURCE +=\
 	$(PMEM2)/pmem2_utils_other.c\
 	$(PMEM2)/auto_flush_none.c\
-	$(PMEM2)/deep_sync_none.c
+	$(PMEM2)/deep_sync_other.c
 endif
 
 INCS += -I$(TOP)/src/libpmem2
