@@ -22,13 +22,13 @@ class MovntAlignCommon(t.Test):
 
 
 class Pmem2MovntAlign(MovntAlignCommon):
-    env_var = None
     threshold = None
     threshold_values = ['0', '99999']
+    envs0 = ()
 
     def run(self, ctx):
-        if self.env_var:
-            ctx.env[self.env_var] = '1'
+        for env in self.envs0:
+            ctx.env[env] = '0'
 
         super().run(ctx)
         for tv in self.threshold_values:
@@ -51,12 +51,12 @@ class TEST0(Pmem2MovntAlign):
 
 @t.require_architectures('x86_64')
 class TEST1(Pmem2MovntAlign):
-    env_var = "PMEM_AVX512F"
+    envs0 = ("PMEM_AVX512F",)
 
 
 @t.require_architectures('x86_64')
 class TEST2(Pmem2MovntAlign):
-    env_var = "PMEM_AVX"
+    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
 
 
 class TEST3(MovntAlignCommon):
@@ -78,12 +78,12 @@ class TEST5(MovntAlignCommonValgrind):
 
 @t.require_architectures('x86_64')
 class TEST6(MovntAlignCommonValgrind):
-    env_var = "PMEM_AVX512F"
+    envs0 = ("PMEM_AVX512F",)
 
 
 @t.require_architectures('x86_64')
 class TEST7(MovntAlignCommonValgrind):
-    env_var = "PMEM_AVX"
+    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
 
 
 class TEST8(MovntAlignCommonValgrind):

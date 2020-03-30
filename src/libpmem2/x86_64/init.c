@@ -231,8 +231,8 @@ use_avx_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 	LOG(3, "avx supported");
 
 	char *e = os_getenv("PMEM_AVX");
-	if (e == NULL || strcmp(e, "1") != 0) {
-		LOG(3, "PMEM_AVX not set or not == 1");
+	if (e != NULL && strcmp(e, "0") == 0) {
+		LOG(3, "PMEM_AVX set to 0");
 		return;
 	}
 
@@ -274,8 +274,8 @@ use_avx512f_memcpy_memset(struct pmem2_arch_info *info,
 	LOG(3, "avx512f supported");
 
 	char *e = os_getenv("PMEM_AVX512F");
-	if (e == NULL || strcmp(e, "1") != 0) {
-		LOG(3, "PMEM_AVX512F not set or not == 1");
+	if (e != NULL && strcmp(e, "0") == 0) {
+		LOG(3, "PMEM_AVX512F set to 0");
 		return;
 	}
 

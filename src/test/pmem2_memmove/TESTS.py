@@ -9,7 +9,8 @@ import testframework as t
 class Pmem2Memmove(t.Test):
     test_type = t.Short
     filesize = 4 * t.MiB
-    envs = ()
+    envs0 = ()
+    envs1 = ()
     test_cases = [
         # No offset, no overlap
         ['b:4096'],
@@ -53,7 +54,9 @@ class Pmem2Memmove(t.Test):
     ]
 
     def run(self, ctx):
-        for env in self.envs:
+        for env in self.envs0:
+            ctx.env[env] = '0'
+        for env in self.envs1:
             ctx.env[env] = '1'
         for tc in self.test_cases:
             filepath = ctx.create_holey_file(self.filesize, 'testfile',)
@@ -66,17 +69,17 @@ class TEST0(Pmem2Memmove):
 
 @t.require_architectures('x86_64')
 class TEST1(Pmem2Memmove):
-    envs = ("PMEM_AVX512F",)
+    envs0 = ("PMEM_AVX512F",)
 
 
 @t.require_architectures('x86_64')
 class TEST2(Pmem2Memmove):
-    envs = ("PMEM_AVX",)
+    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
 
 
 class TEST3(Pmem2Memmove):
-    envs = ("PMEM_NO_MOVNT",)
+    envs1 = ("PMEM_NO_MOVNT",)
 
 
 class TEST4(Pmem2Memmove):
-    envs = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")
+    envs1 = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")

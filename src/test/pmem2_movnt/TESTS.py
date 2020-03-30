@@ -17,14 +17,14 @@ class Pmem2MovntCommon(t.Test):
 
 
 class Pmem2Movnt(Pmem2MovntCommon):
-    env_var = None
     threshold = None
     threshold_values = ['1024', '5', '-15']
+    envs0 = ()
 
     def run(self, ctx):
         super().create_file(ctx)
-        if self.env_var:
-            ctx.env[self.env_var] = '1'
+        for env in self.envs0:
+            ctx.env[env] = '0'
 
         ctx.exec('pmem2_movnt', self.filepath)
         for tv in self.threshold_values:
@@ -38,12 +38,12 @@ class TEST0(Pmem2Movnt):
 
 @t.require_architectures('x86_64')
 class TEST1(Pmem2Movnt):
-    env_var = "PMEM_AVX512F"
+    envs0 = ("PMEM_AVX512F",)
 
 
 @t.require_architectures('x86_64')
 class TEST2(Pmem2Movnt):
-    env_var = "PMEM_AVX"
+    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
 
 
 class TEST3(Pmem2MovntCommon):
