@@ -38,7 +38,7 @@ SOURCE +=\
 else
 SOURCE +=\
 	auto_flush_none.c\
-	deep_sync_none.c\
+	deep_sync_other.c\
 	extent_none.c\
 	pmem2_utils_other.c
 endif

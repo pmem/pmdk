@@ -21,6 +21,7 @@
 #include "os.h"
 #include "file.h"
 #include "out.h"
+#include "libpmem2.h"
 #include "../libpmem2/pmem2_utils.h"
 
 /*
@@ -221,5 +222,11 @@ util_ddax_region_find(const char *path)
 		return -1;
 	}
 
-	return  pmem2_device_dax_region_find(&st);
+	int ret = pmem2_device_dax_region_find(&st);
+	if (ret < 0) {
+		errno = pmem2_err_to_errno(ret);
+		return -1;
+	}
+
+	return ret;
 }
