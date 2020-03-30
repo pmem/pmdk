@@ -92,6 +92,7 @@ test_tmpfile(const char *dir, os_off_t requested_size,
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(size, requested_size);
 
+	PMEM2_SOURCE_DELETE(&src);
 	UT_FH_CLOSE(fh);
 }
 
