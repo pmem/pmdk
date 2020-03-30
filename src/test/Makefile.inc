@@ -280,6 +280,7 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/nondebug/libpmem2/config.o\
+	$(TOP)/src/nondebug/libpmem2/persist_posix.o\
 	$(TOP)/src/nondebug/libpmem2/badblocks.o\
 	$(TOP)/src/nondebug/libpmem2/badblocks_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/libpmem2/usc_$(OS_DIMM).o\
@@ -326,6 +327,7 @@ OBJS +=\
 	$(call osdep, $(TOP)/src/debug/common/uuid,.o)\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/debug/libpmem2/config.o\
+	$(TOP)/src/debug/libpmem2/persist_posix.o\
 	$(TOP)/src/debug/libpmem2/badblocks.o\
 	$(TOP)/src/debug/libpmem2/badblocks_$(OS_DIMM).o\
 	$(TOP)/src/debug/libpmem2/source.o\

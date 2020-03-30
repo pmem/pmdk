@@ -27,6 +27,7 @@ SOURCE +=\
 	$(call osdep, $(COMMON)/uuid,.c)\
 	$(PMEM2)/pmem2_utils.c\
 	$(PMEM2)/config.c\
+	$(PMEM2)/persist_posix.c\
 	$(PMEM2)/badblocks.c\
 	$(PMEM2)/badblocks_$(OS_DIMM).c\
 	$(PMEM2)/usc_$(OS_DIMM).c\

@@ -80,6 +80,9 @@ prepare_map(struct pmem2_map **map_ptr,
 	struct pmem2_map *map = malloc(sizeof(*map));
 	UT_ASSERTne(map, NULL);
 
+	os_stat_t *st = malloc(sizeof(*st));
+	UT_ASSERTne(st, NULL);
+
 	size_t max_size = cfg->length + cfg->offset;
 	HANDLE mh = CreateFileMapping(src->handle,
 		NULL,
@@ -130,11 +133,15 @@ prepare_map(struct pmem2_map **map_ptr,
 	struct pmem2_map *map = malloc(sizeof(*map));
 	UT_ASSERTne(map, NULL);
 
+	os_stat_t *st = malloc(sizeof(*st));
+	UT_ASSERTne(st, NULL);
+
 	map->addr = mmap(NULL, cfg->length, proto, flags, src->fd, offset);
 	UT_ASSERTne(map->addr, MAP_FAILED);
 
 	map->reserved_length = map->content_length = cfg->length;
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
+	map->map_st = st;
 
 	*map_ptr = map;
 

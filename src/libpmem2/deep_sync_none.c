@@ -12,6 +12,25 @@
 #include "deep_sync.h"
 #include "libpmem2.h"
 #include "out.h"
+#include "pmem2_utils.h"
+#include "persist.h"
+
+/*
+ * pmem2_sync_cacheline -- performs flush buffer operation
+ */
+int
+pmem2_sync_cacheline(struct pmem2_map *map, void *ptr, size_t size)
+{
+	size_t len = MIN(Pagesize, size);
+	int ret = pmem2_flush_file_buffers_os(map, ptr, len, 1);
+	if (ret) {
+		LOG(1, "cannot flush buffers addr %p len %zu",
+			ptr, len);
+		return PMEM2_E_ERRNO;
+	}
+
+	return 0;
+}
 
 /*
  * pmem2_deep_sync_write --  perform write to deep_flush file
