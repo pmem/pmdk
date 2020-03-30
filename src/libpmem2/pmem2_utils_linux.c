@@ -290,12 +290,12 @@ pmem2_device_dax_region_find(const os_stat_t *st)
 		major, minor);
 	if (ret < 0) {
 		ERR("!snprintf");
-		return -1;
+		return PMEM2_E_ERRNO;
 	}
 
 	if ((dax_reg_id_fd = os_open(dax_region_path, O_RDONLY)) < 0) {
-		LOG(1, "!open(\"%s\", O_RDONLY)", dax_region_path);
-		return -1;
+		ERR("!open(\"%s\", O_RDONLY)", dax_region_path);
+		return PMEM2_E_ERRNO;
 	}
 
 	ssize_t len = read(dax_reg_id_fd, reg_id, DAX_REGION_ID_LEN);
@@ -322,20 +322,24 @@ pmem2_device_dax_region_find(const os_stat_t *st)
 	errno = olderrno;
 
 	if (end_addr == reg_id) {
-		ERR("!strtol(%p, %p, 10) no digits were found",
+		ERR("strtol(%p, %p, 10) no digits were found",
 			reg_id, end_addr);
-		goto err;
+		goto err_reg;
 	}
 	if (*end_addr != '\n') {
-		ERR("!strtol(%s, %s, 10) invalid format",
+		ERR("strtol(%s, %s, 10) invalid format",
 			reg_id, end_addr);
-		goto err;
+		goto err_reg;
 	}
 
 	os_close(dax_reg_id_fd);
 	return (int)reg_num;
 
+err_reg:
+	os_close(dax_reg_id_fd);
+	return PMEM2_E_INVALID_REGION_FORMAT;
+
 err:
 	os_close(dax_reg_id_fd);
-	return -1;
+	return PMEM2_E_ERRNO;
 }

@@ -13,10 +13,11 @@ INCS += -I$(TOP)/src/libpmem2
 
 TARGET = pmem2_persist
 
-OBJS += alloc.o\
-	pmem2_persist.o\
+LIBPMEMCORE=internal-debug
+OBJS += pmem2_persist.o\
 	persist.o\
-	util.o\
-	memops_generic.o
+	memops_generic.o\
+	deep_sync_linux.o\
+	pmem2_utils_linux.o
 
 include ../Makefile.inc
