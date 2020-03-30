@@ -562,6 +562,43 @@ test_mem_move_cpy_set_with_map_private(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_offset_aligned -- try to map with aligned offset
+ */
+static int
+test_map_deep_sync_valid(const struct test_case *tc, int argc, char *argv[])
+{
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len;
+	int ret = pmem2_source_size(src, &len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_config_set_length(cfg, len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_map *map = map_valid(cfg, src, len);
+
+	char *addr = pmem2_map_get_address(map);
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
+	persist_fn(addr, len);
+
+	ret = pmem2_deep_sync(map, addr, len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_unmap(&map);
+	pmem2_config_delete(&cfg);
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -575,6 +612,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_offset_not_aligned),
 	TEST_CASE(test_offset_aligned),
 	TEST_CASE(test_mem_move_cpy_set_with_map_private),
+	TEST_CASE(test_mem_move_cpy_set_with_map_private),
+	TEST_CASE(test_map_deep_sync_valid),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

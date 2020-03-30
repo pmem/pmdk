@@ -18,6 +18,7 @@
     <ClCompile Include="..\common\ravl.c" />
     <ClCompile Include="..\core\util.c" />
     <ClCompile Include="..\core\util_windows.c" />
+    <ClCompile Include="deep_sync.c" />
     <ClCompile Include="deep_sync_none.c" />
     <ClCompile Include="libpmem2_main.c" />
     <ClCompile Include="libpmem2.c" />
@@ -31,6 +32,7 @@
     <ClCompile Include="persist_windows.c" />
     <ClCompile Include="pmem2.c" />
     <ClCompile Include="pmem2_utils.c" />
+    <ClCompile Include="pmem2_utils_other.c" />
     <ClCompile Include="source.c" />
     <ClCompile Include="source_windows.c" />
     <ClCompile Include="usc_windows.c" />

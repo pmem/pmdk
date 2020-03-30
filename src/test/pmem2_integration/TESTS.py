@@ -202,3 +202,8 @@ class TEST22(PMEM2_INTEGRATION):
     PMEM2_PRIVATE sharing
     """
     test_case = "test_mem_move_cpy_set_with_map_private"
+
+
+class TEST23(PMEM2_INTEGRATION):
+    """test valid case of pmem2_deep_sync"""
+    test_case = "test_map_deep_sync_valid"
