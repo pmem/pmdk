@@ -202,3 +202,24 @@ class TEST22(PMEM2_INTEGRATION):
     PMEM2_PRIVATE sharing
     """
     test_case = "test_mem_move_cpy_set_with_map_private"
+
+
+class TEST23(PMEM2_INTEGRATION):
+    """test valid case of pmem2_deep_sync"""
+    test_case = "test_deep_sync_valid"
+
+
+class TEST24(PMEM2_INTEGRATION):
+    """test deep sync with range out of map"""
+    test_case = "test_deep_sync_e_range"
+
+
+class TEST25(PMEM2_INTEGRATION):
+    """test deep sync with part of map"""
+    test_case = "test_deep_sync_slice"
+
+# XXX: add test cases with:
+# @t.require_devdax(t.DevDax('devdax', deep_flush=1))
+# @t.require_devdax(t.DevDax('devdax', deep_flush=0))
+# if deep_flush == 1 then expected return code 0
+# if deep_flush == 0 then expected return code PMEM2_E_NOSUPP

@@ -39,7 +39,7 @@ else
 SOURCE +=\
 	pmem2_utils_other.c\
 	auto_flush_none.c\
-	deep_sync_none.c
+	deep_sync_other.c
 endif
 
 ifeq ($(OS_DIMM),ndctl)

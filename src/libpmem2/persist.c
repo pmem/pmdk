@@ -13,6 +13,7 @@
 #include "out.h"
 #include "os.h"
 #include "persist.h"
+#include "deep_sync.h"
 #include "pmem2_arch.h"
 #include "valgrind_internal.h"
 
@@ -285,6 +286,55 @@ pmem2_drain_nop(void)
 }
 
 /*
+ * pmem2_deep_sync_page -- do nothing - pmem2_persist_fn already did msync
+ */
+int
+pmem2_deep_sync_page(struct pmem2_map *map, void *ptr, size_t size)
+{
+	LOG(3, "map %p ptr %p size %zu", map, ptr, size);
+	return 0;
+}
+
+/*
+ * pmem2_deep_sync_cache -- flush buffers for fsdax or write
+ * to deep_flush for DevDax
+ */
+int
+pmem2_deep_sync_cache(struct pmem2_map *map, void *ptr, size_t size)
+{
+	LOG(3, "map %p ptr %p size %zu", map, ptr, size);
+
+	int ret = pmem2_deep_sync_dax(map);
+	if (ret < 0) {
+		LOG(1, "cannot perform deep sync cache for map %p", map);
+		return ret;
+	}
+
+	return 0;
+}
+
+/*
+ * pmem2_deep_sync_byte -- flush cpu cache and perform deep sync for dax
+ */
+int
+pmem2_deep_sync_byte(struct pmem2_map *map, void *ptr, size_t size)
+{
+	LOG(3, "map %p ptr %p size %zu", map, ptr, size);
+
+	uintptr_t map_end = (uintptr_t)map->addr + map->content_length;
+	size_t ptr_to_end = map_end - (uintptr_t)ptr;
+	size_t common_part = MIN(size, ptr_to_end);
+	pmem2_persist_cpu_cache(ptr, common_part);
+	int ret = pmem2_deep_sync_dax(map);
+	if (ret < 0) {
+		LOG(1, "cannot perform deep sync byte for map %p", map);
+		return ret;
+	}
+
+	return 0;
+}
+
+/*
  * pmem2_set_flush_fns -- set function pointers related to flushing
  */
 void
@@ -295,16 +345,19 @@ pmem2_set_flush_fns(struct pmem2_map *map)
 			map->persist_fn = pmem2_persist_pages;
 			map->flush_fn = pmem2_persist_pages;
 			map->drain_fn = pmem2_drain_nop;
+			map->deep_sync_fn = pmem2_deep_sync_page;
 			break;
 		case PMEM2_GRANULARITY_CACHE_LINE:
 			map->persist_fn = pmem2_persist_cpu_cache;
 			map->flush_fn = pmem2_flush_cpu_cache;
 			map->drain_fn = pmem2_drain;
+			map->deep_sync_fn = pmem2_deep_sync_cache;
 			break;
 		case PMEM2_GRANULARITY_BYTE:
 			map->persist_fn = pmem2_persist_noflush;
 			map->flush_fn = pmem2_flush_nop;
 			map->drain_fn = pmem2_drain;
+			map->deep_sync_fn = pmem2_deep_sync_byte;
 			break;
 		default:
 			abort();
