@@ -221,5 +221,9 @@ util_ddax_region_find(const char *path)
 		return -1;
 	}
 
-	return  pmem2_device_dax_region_find(&st);
+	int ret = pmem2_device_dax_region_find(&st);
+	if (ret < 0)
+		return -1;
+
+	return ret;
 }
