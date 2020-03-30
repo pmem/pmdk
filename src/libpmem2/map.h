@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include "libpmem2.h"
+#include "os.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -36,6 +37,8 @@ struct pmem2_map {
 
 #ifdef _WIN32
 	HANDLE handle;
+#else
+	os_stat_t *map_st;
 #endif
 };
 
