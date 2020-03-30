@@ -327,20 +327,25 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 	/* get file type */
 	enum pmem2_file_type file_type;
-	os_stat_t st;
-	if (os_fstat(src->fd, &st)) {
+	os_stat_t *st;
+	st = (os_stat_t *)pmem2_malloc(sizeof(*st), &ret);
+	if (!st)
+		goto err;
+
+	if (os_fstat(src->fd, st)) {
 		ERR("!fstat");
-		return PMEM2_E_ERRNO;
+		ret = PMEM2_E_ERRNO;
+		goto err;
 	}
-	ret = pmem2_get_type_from_stat(&st, &file_type);
+	ret = pmem2_get_type_from_stat(st, &file_type);
 	if (ret)
-		return ret;
+		goto err;
 
 	/* get offset */
 	size_t offset;
 	ret = pmem2_validate_offset(cfg, &offset, src_alignment);
 	if (ret)
-		return ret;
+		goto err;
 	os_off_t off = (os_off_t)offset;
 
 	ASSERTeq((size_t)off, cfg->offset);
@@ -357,20 +362,22 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 	if (file_type == PMEM2_FTYPE_DIR) {
 		ERR("the directory is not a supported file type");
-		return PMEM2_E_INVALID_FILE_TYPE;
+		ret = PMEM2_E_INVALID_FILE_TYPE;
+		goto err;
 	}
 
 	ASSERT(file_type == PMEM2_FTYPE_REG || file_type == PMEM2_FTYPE_DEVDAX);
 
 	if (cfg->sharing == PMEM2_PRIVATE && file_type == PMEM2_FTYPE_DEVDAX) {
 		ERR("device DAX does not support mapping with MAP_PRIVATE");
-		return PMEM2_E_SRC_DEVDAX_PRIVATE;
+		ret = PMEM2_E_SRC_DEVDAX_PRIVATE;
+		goto err;
 	}
 
 	size_t content_length, reserved_length = 0;
 	ret = pmem2_config_validate_length(cfg, file_len, src_alignment);
 	if (ret)
-		return ret;
+		goto err;
 
 	/* without user-provided length, map to the end of the file */
 	if (cfg->length)
@@ -383,7 +390,7 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 	ret = pmem2_config_validate_addr_alignment(cfg, src);
 	if (ret)
-		return ret;
+		goto err;
 
 	/* find a hint for the mapping */
 	void *reserv = NULL;
@@ -394,7 +401,7 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 			LOG(1, "given mapping region is already occupied");
 		else
 			LOG(1, "cannot find a contiguous region of given size");
-		return ret;
+		goto err;
 	}
 	ASSERTne(reserv, NULL);
 
@@ -413,7 +420,7 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	if (ret) {
 		/* unmap the reservation mapping */
 		munmap(reserv, reserved_length);
-		return ret;
+		goto err;
 	}
 
 	LOG(3, "mapped at %p", addr);
@@ -434,13 +441,13 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 				cfg->requested_max_granularity);
 		ERR("%s", err);
 		ret = PMEM2_E_GRANULARITY_NOT_SUPPORTED;
-		goto err;
+		goto err_map;
 	}
 
 	/* prepare pmem2_map structure */
 	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
 	if (!map)
-		goto err;
+		goto err_map;
 
 	map->addr = addr;
 	map->reserved_length = reserved_length;
@@ -448,6 +455,7 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	map->effective_granularity = available_min_granularity;
 	pmem2_set_flush_fns(map);
 	pmem2_set_mem_fns(map);
+	map->src_fd_st = st;
 
 	ret = pmem2_register_mapping(map);
 	if (ret)
@@ -462,8 +470,10 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 err_register:
 	free(map);
-err:
+err_map:
 	unmap(addr, reserved_length);
+err:
+	free(st);
 	return ret;
 
 }
@@ -489,6 +499,7 @@ pmem2_unmap(struct pmem2_map **map_ptr)
 
 	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->content_length);
 
+	Free(map->src_fd_st);
 	Free(map);
 	*map_ptr = NULL;
 

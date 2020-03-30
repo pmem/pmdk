@@ -2,7 +2,7 @@
 /* Copyright 2020, Intel Corporation */
 
 /*
- * deep_sync_none.c -- deeep_sync functionality
+ * deep_sync_windows.c -- deeep_sync functionality
  */
 
 #include <errno.h>
@@ -12,6 +12,25 @@
 #include "deep_sync.h"
 #include "libpmem2.h"
 #include "out.h"
+#include "pmem2_utils.h"
+#include "persist.h"
+
+/*
+ * pmem2_deep_sync_dax -- performs flush buffer operation
+ */
+int
+pmem2_deep_sync_dax(struct pmem2_map *map)
+{
+	size_t len = Pagesize;
+	int ret = pmem2_flush_file_buffers_os(map, map->addr, len, 0);
+	if (ret) {
+		LOG(1, "cannot flush buffers addr %p len %zu",
+			map->addr, len);
+		return ret;
+	}
+
+	return 0;
+}
 
 /*
  * pmem2_deep_sync_write --  perform write to deep_flush file

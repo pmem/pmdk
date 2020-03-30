@@ -10,6 +10,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include "libpmem2.h"
+#include "os.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -18,6 +19,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef int (*pmem2_deep_sync_fn)(struct pmem2_map *map,
+		void *ptr, size_t size);
 
 struct pmem2_map {
 	void *addr; /* base address */
@@ -29,6 +33,7 @@ struct pmem2_map {
 	pmem2_persist_fn persist_fn;
 	pmem2_flush_fn flush_fn;
 	pmem2_drain_fn drain_fn;
+	pmem2_deep_sync_fn deep_sync_fn;
 
 	pmem2_memmove_fn memmove_fn;
 	pmem2_memcpy_fn memcpy_fn;
@@ -36,6 +41,8 @@ struct pmem2_map {
 
 #ifdef _WIN32
 	HANDLE handle;
+#else
+	os_stat_t *src_fd_st;
 #endif
 };
 

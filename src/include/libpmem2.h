@@ -59,6 +59,7 @@ extern "C" {
 #define PMEM2_E_INVALID_ADDRESS_REQUEST_TYPE	(-100021)
 #define PMEM2_E_ADDRESS_UNALIGNED		(-100022)
 #define PMEM2_E_ADDRESS_NULL			(-100023)
+#define PMEM2_E_SYNC_RANGE			(-100024)
 
 /* source setup */
 

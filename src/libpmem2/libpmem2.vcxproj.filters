@@ -213,7 +213,13 @@
     <ClCompile Include="source_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="deep_sync_none.c">
+    <ClCompile Include="deep_sync_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="deep_sync.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pmem2_utils_other.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -312,6 +318,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="deep_sync.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="persist.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
