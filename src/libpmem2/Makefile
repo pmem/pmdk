@@ -38,9 +38,9 @@ SOURCE +=\
 else
 SOURCE +=\
 	auto_flush_none.c\
-	deep_sync_none.c\
 	extent_none.c\
-	pmem2_utils_other.c
+	pmem2_utils_other.c\
+	deep_sync_other.c
 endif
 
 ifeq ($(OS_DIMM),ndctl)

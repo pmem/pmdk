@@ -562,6 +562,146 @@ test_mem_move_cpy_set_with_map_private(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_deep_sync_valid -- perform valid deep_sync for whole map
+ */
+static int
+test_deep_sync_valid(const struct test_case *tc, int argc, char *argv[])
+{
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len;
+	int ret = pmem2_source_size(src, &len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_map *map = map_valid(cfg, src, len);
+
+	char *addr = pmem2_map_get_address(map);
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
+	persist_fn(addr, len);
+
+	ret = pmem2_deep_sync(map, addr, len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_unmap(&map);
+	pmem2_config_delete(&cfg);
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_deep_sync_e_range -- try deep_sync for range outside a map
+ */
+static int
+test_deep_sync_e_range(const struct test_case *tc, int argc, char *argv[])
+{
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len;
+	int ret = pmem2_source_size(src, &len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_map *map = map_valid(cfg, src, len);
+
+	size_t map_size = pmem2_map_get_size(map);
+	char *addr = pmem2_map_get_address(map);
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
+	persist_fn(addr, len);
+
+	ret = pmem2_deep_sync(map, addr + map_size + 1, 64);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_SYNC_RANGE);
+
+	pmem2_unmap(&map);
+	pmem2_config_delete(&cfg);
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_deep_sync_slice -- try deep_sync for slice of a map
+ */
+static int
+test_deep_sync_slice(const struct test_case *tc, int argc, char *argv[])
+{
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len;
+	int ret = pmem2_source_size(src, &len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_map *map = map_valid(cfg, src, len);
+
+	size_t map_size = pmem2_map_get_size(map);
+	size_t map_part = map_size / 4;
+	char *addr = pmem2_map_get_address(map);
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
+	persist_fn(addr, len);
+
+	ret = pmem2_deep_sync(map, addr + map_part, map_part);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_unmap(&map);
+	pmem2_config_delete(&cfg);
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_deep_sync_overlap -- try deep_sync for range overlaping map
+ */
+static int
+test_deep_sync_overlap(const struct test_case *tc, int argc, char *argv[])
+{
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len;
+	int ret = pmem2_source_size(src, &len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_map *map = map_valid(cfg, src, len);
+
+	size_t map_size = pmem2_map_get_size(map);
+	char *addr = pmem2_map_get_address(map);
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
+	persist_fn(addr, len);
+
+	ret = pmem2_deep_sync(map, addr + 1024, map_size);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_SYNC_RANGE);
+
+	pmem2_unmap(&map);
+	pmem2_config_delete(&cfg);
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -575,6 +715,11 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_offset_not_aligned),
 	TEST_CASE(test_offset_aligned),
 	TEST_CASE(test_mem_move_cpy_set_with_map_private),
+	TEST_CASE(test_mem_move_cpy_set_with_map_private),
+	TEST_CASE(test_deep_sync_valid),
+	TEST_CASE(test_deep_sync_e_range),
+	TEST_CASE(test_deep_sync_slice),
+	TEST_CASE(test_deep_sync_overlap),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
