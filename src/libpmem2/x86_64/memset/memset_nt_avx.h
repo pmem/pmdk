@@ -32,8 +32,6 @@ memset_movnt8x64b(char *dest, __m256i ymm)
 	_mm256_stream_si256((__m256i *)dest + 13, ymm);
 	_mm256_stream_si256((__m256i *)dest + 14, ymm);
 	_mm256_stream_si256((__m256i *)dest + 15, ymm);
-
-	VALGRIND_DO_FLUSH(dest, 8 * 64);
 }
 
 static force_inline void
@@ -47,8 +45,6 @@ memset_movnt4x64b(char *dest, __m256i ymm)
 	_mm256_stream_si256((__m256i *)dest + 5, ymm);
 	_mm256_stream_si256((__m256i *)dest + 6, ymm);
 	_mm256_stream_si256((__m256i *)dest + 7, ymm);
-
-	VALGRIND_DO_FLUSH(dest, 4 * 64);
 }
 
 static force_inline void
@@ -58,8 +54,6 @@ memset_movnt2x64b(char *dest, __m256i ymm)
 	_mm256_stream_si256((__m256i *)dest + 1, ymm);
 	_mm256_stream_si256((__m256i *)dest + 2, ymm);
 	_mm256_stream_si256((__m256i *)dest + 3, ymm);
-
-	VALGRIND_DO_FLUSH(dest, 2 * 64);
 }
 
 static force_inline void
@@ -67,16 +61,12 @@ memset_movnt1x64b(char *dest, __m256i ymm)
 {
 	_mm256_stream_si256((__m256i *)dest + 0, ymm);
 	_mm256_stream_si256((__m256i *)dest + 1, ymm);
-
-	VALGRIND_DO_FLUSH(dest, 64);
 }
 
 static force_inline void
 memset_movnt1x32b(char *dest, __m256i ymm)
 {
 	_mm256_stream_si256((__m256i *)dest, ymm);
-
-	VALGRIND_DO_FLUSH(dest, 32);
 }
 
 static force_inline void
@@ -85,8 +75,6 @@ memset_movnt1x16b(char *dest, __m256i ymm)
 	__m128i xmm0 = m256_get16b(ymm);
 
 	_mm_stream_si128((__m128i *)dest, xmm0);
-
-	VALGRIND_DO_FLUSH(dest - 16, 16);
 }
 
 static force_inline void
@@ -95,8 +83,6 @@ memset_movnt1x8b(char *dest, __m256i ymm)
 	uint64_t x = m256_get8b(ymm);
 
 	_mm_stream_si64((long long *)dest, (long long)x);
-
-	VALGRIND_DO_FLUSH(dest, 8);
 }
 
 static force_inline void
@@ -105,14 +91,14 @@ memset_movnt1x4b(char *dest, __m256i ymm)
 	uint32_t x = m256_get4b(ymm);
 
 	_mm_stream_si32((int *)dest, (int)x);
-
-	VALGRIND_DO_FLUSH(dest, 4);
 }
 
 void
 EXPORTED_SYMBOL(char *dest, int c, size_t len)
 {
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
+	char *orig_dest = dest;
+	size_t orig_len = len;
 
 	__m256i ymm = _mm256_set1_epi8((char)c);
 
@@ -179,4 +165,6 @@ end:
 	avx_zeroupper();
 
 	maybe_barrier();
+
+	VALGRIND_DO_FLUSH(orig_dest, orig_len);
 }
