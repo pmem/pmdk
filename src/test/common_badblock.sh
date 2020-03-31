@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 
 #
 # src/test/common_badblock.sh -- commons for the following tests:
@@ -598,9 +598,10 @@ function ndctl_uninject_error() {
 		local count=$4
 		expect_normal_exit "sudo ndctl inject-error --uninject --block=$block --count=$count $namespace &>/dev/null"
 		if [ "$DEVTYPE" == "block_device" ]; then
-			expect_normal_exit "sudo dd if=/dev/zero of="$fulldev" bs=512 seek="$block" count="$count" oflag=direct &>/dev/null"
+			expect_normal_exit "sudo dd if=/dev/zero of="$fulldev" bs=512 seek="$block" count="$count" \
+				oflag=direct >> $PREP_LOG_FILE 2>&1"
 		elif [ "$DEVTYPE" == "dax_device" ]; then
-			expect_normal_exit "$DAXIO$EXESUFFIX -i /dev/zero -o "$fulldev" -s "$block" -l "$count" &>/dev/null"
+			expect_normal_exit "$DAXIO$EXESUFFIX -i /dev/zero -o "$fulldev" -s "$block" -l "$count" >> $PREP_LOG_FILE 2>&1"
 		fi
 	fi
 }
@@ -628,9 +629,11 @@ function ndctl_uninject_error_node() {
 		local count=$5
 		expect_normal_exit run_on_node $node "sudo ndctl inject-error --uninject --block=$block --count=$count $namespace &>/dev/null"
 		if [ "$DEVTYPE" == "block_device" ]; then
-			expect_normal_exit run_on_node $node "sudo dd if=/dev/zero of="$fulldev" bs=512 seek="$block" count="$count" oflag=direct &>/dev/null"
+			expect_normal_exit run_on_node $node "sudo dd if=/dev/zero of="$fulldev" bs=512 seek="$block" count="$count" \
+				oflag=direct >> $PREP_LOG_FILE 2>&1"
 		elif [ "$DEVTYPE" == "dax_device" ]; then
-			expect_normal_exit run_on_node $node "$DAXIO$EXESUFFIX -i /dev/zero -o "$fulldev" -s "$block" -l "$count" &>/dev/null"
+			expect_normal_exit run_on_node $node "$DAXIO$EXESUFFIX -i /dev/zero -o "$fulldev" -s "$block" -l "$count" \
+				>> $PREP_LOG_FILE 2>&1"
 		fi
 	fi
 }
