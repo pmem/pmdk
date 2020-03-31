@@ -105,7 +105,8 @@ MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.m
 		libpmem2/pmem2_config_set_address.3.md libpmem2/pmem2_config_clear_address.3.md \
 		libpmem2/pmem2_config_set_vm_reservation.3.md libpmem2/pmem2_vm_reservation_new.3.md \
 		libpmem2/pmem2_badblock_context_new.3.md libpmem2/pmem2_badblock_next.3.md \
-		libpmem2/pmem2_badblock_clear.3.md libpmem2/pmem2_config_set_protection.3.md
+		libpmem2/pmem2_badblock_clear.3.md libpmem2/pmem2_config_set_protection.3.md \
+		libpmem2/pmem2_deep_flush.3.md
 MANPAGES_1_MD_PMEM2 =
 ifeq ($(PMEM2_INSTALL),y)
 MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_source_from_handle.3 libpmem2/pmem2_source_delete.3 \
