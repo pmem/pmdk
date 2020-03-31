@@ -43,6 +43,7 @@ void pmem2_badblock_iterator_delete(
 
 int
 pmem2_badblock_clear(const struct pmem2_source *src,
+	struct pmem2_badblock_iterator *pbb,
 	const struct pmem2_badblock *bb)
 {
 	return PMEM2_E_NOSUPP;

@@ -109,6 +109,7 @@ void pmem2_badblock_iterator_delete(
 		struct pmem2_badblock_iterator **pbb);
 
 int pmem2_badblock_clear(const struct pmem2_source *cfg,
+		struct pmem2_badblock_iterator *pbb,
 		const struct pmem2_badblock *bb);
 
 /* config setup */
