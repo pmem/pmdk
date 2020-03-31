@@ -115,6 +115,9 @@ extern unsigned _On_valgrind;
 
 #if VG_PMEMCHECK_ENABLED
 
+extern unsigned _On_pmemcheck;
+#define On_pmemcheck __builtin_expect(_On_pmemcheck, 0)
+
 #include "valgrind/pmemcheck.h"
 
 void pobj_emit_log(const char *func, int order);
@@ -125,105 +128,105 @@ extern int _Pmreorder_emit;
 #define Pmreorder_emit __builtin_expect(_Pmreorder_emit, 0)
 
 #define VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_REGISTER_PMEM_MAPPING((addr), (len));\
 } while (0)
 
 #define VALGRIND_REGISTER_PMEM_FILE(desc, base_addr, size, offset) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_REGISTER_PMEM_FILE((desc), (base_addr), (size), \
 		(offset));\
 } while (0)
 
 #define VALGRIND_REMOVE_PMEM_MAPPING(addr, len) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_REMOVE_PMEM_MAPPING((addr), (len));\
 } while (0)
 
 #define VALGRIND_CHECK_IS_PMEM_MAPPING(addr, len) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_CHECK_IS_PMEM_MAPPING((addr), (len));\
 } while (0)
 
 #define VALGRIND_PRINT_PMEM_MAPPINGS do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_PRINT_PMEM_MAPPINGS;\
 } while (0)
 
 #define VALGRIND_DO_FLUSH(addr, len) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_DO_FLUSH((addr), (len));\
 } while (0)
 
 #define VALGRIND_DO_FENCE do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_DO_FENCE;\
 } while (0)
 
 #define VALGRIND_DO_PERSIST(addr, len) do {\
-	if (On_valgrind) {\
+	if (On_pmemcheck) {\
 		VALGRIND_PMC_DO_FLUSH((addr), (len));\
 		VALGRIND_PMC_DO_FENCE;\
 	}\
 } while (0)
 
 #define VALGRIND_SET_CLEAN(addr, len) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_SET_CLEAN(addr, len);\
 } while (0)
 
 #define VALGRIND_WRITE_STATS do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_WRITE_STATS;\
 } while (0)
 
 #define VALGRIND_EMIT_LOG(emit_log) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_EMIT_LOG((emit_log));\
 } while (0)
 
 #define VALGRIND_START_TX do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_START_TX;\
 } while (0)
 
 #define VALGRIND_START_TX_N(txn) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_START_TX_N(txn);\
 } while (0)
 
 #define VALGRIND_END_TX do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_END_TX;\
 } while (0)
 
 #define VALGRIND_END_TX_N(txn) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_END_TX_N(txn);\
 } while (0)
 
 #define VALGRIND_ADD_TO_TX(addr, len) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_ADD_TO_TX(addr, len);\
 } while (0)
 
 #define VALGRIND_ADD_TO_TX_N(txn, addr, len) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_ADD_TO_TX_N(txn, addr, len);\
 } while (0)
 
 #define VALGRIND_REMOVE_FROM_TX(addr, len) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_REMOVE_FROM_TX(addr, len);\
 } while (0)
 
 #define VALGRIND_REMOVE_FROM_TX_N(txn, addr, len) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_REMOVE_FROM_TX_N(txn, addr, len);\
 } while (0)
 
 #define VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(addr, len) do {\
-	if (On_valgrind)\
+	if (On_pmemcheck)\
 		VALGRIND_PMC_ADD_TO_GLOBAL_TX_IGNORE(addr, len);\
 } while (0)
 
@@ -254,6 +257,7 @@ extern int _Pmreorder_emit;
 
 #else
 
+#define On_pmemcheck (0)
 #define Pmreorder_emit (0)
 
 #define VALGRIND_REGISTER_PMEM_MAPPING(addr, len) do {\

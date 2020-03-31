@@ -26,16 +26,22 @@ unsigned long long Pagesize;
 unsigned long long Mmap_align;
 
 #if ANY_VG_TOOL_ENABLED
-/* initialized to true if the process is running inside Valgrind */
+/*
+ * Initialized to true if the process is running inside Valgrind, EXCLUDING
+ * pmemcheck.
+ */
 unsigned _On_valgrind;
 #endif
 
 #if VG_PMEMCHECK_ENABLED
+/* initialized to true if the process is running inside Valgrind pmemcheck */
+unsigned _On_pmemcheck;
+
 #define LIB_LOG_LEN 20
 #define FUNC_LOG_LEN 50
 #define SUFFIX_LEN 7
 
-/* true if pmreorder instrumentization has to be enabled */
+/* true if pmreorder instrumentation has to be enabled */
 int _Pmreorder_emit;
 
 /*
@@ -294,6 +300,16 @@ util_init(void)
 		char *pmreorder_env = os_getenv("PMREORDER_EMIT_LOG");
 		if (pmreorder_env)
 			_Pmreorder_emit = atoi(pmreorder_env);
+
+		VALGRIND_PMC_REGISTER_PMEM_MAPPING(&_On_pmemcheck,
+				sizeof(_On_pmemcheck));
+		unsigned pmc = (unsigned)VALGRIND_PMC_CHECK_IS_PMEM_MAPPING(
+				&_On_pmemcheck, sizeof(_On_pmemcheck));
+		VALGRIND_PMC_REMOVE_PMEM_MAPPING(&_On_pmemcheck,
+				sizeof(_On_pmemcheck));
+		_On_pmemcheck = pmc;
+		if (_On_pmemcheck)
+			_On_valgrind = 0;
 	} else {
 			_Pmreorder_emit = 0;
 	}
