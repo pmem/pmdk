@@ -66,6 +66,8 @@
 #
 # /sys/bus/nd/devices/ndbus*/region*/resource
 # /sys/bus/nd/devices/ndbus*/region*/dax*/resource
+# /sys/bus/nd/devices/ndbus*/region*/pfn*/resource
+# /sys/bus/nd/devices/ndbus*/region*/namespace*/resource
 #
 # Note: some tests require write access to '/sys/bus/nd/devices/region*/deep_flush'.
 #
