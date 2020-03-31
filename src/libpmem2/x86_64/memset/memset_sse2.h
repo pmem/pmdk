@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2020, Intel Corporation */
 
 #ifndef PMEM2_MEMSET_SSE2_H
 #define PMEM2_MEMSET_SSE2_H
@@ -85,7 +85,19 @@ le2:
 static force_inline void
 memset_small_sse2(char *dest, __m128i xmm, size_t len)
 {
-	memset_small_sse2_noflush(dest, xmm, len);
+	/*
+	 * pmemcheck complains about "overwritten stores before they were made
+	 * persistent" for overlapping stores (last instruction in each code
+	 * path) in the optimized version.
+	 * libc's memset also does that, so we can't use it here.
+	 */
+	if (On_pmemcheck) {
+		memset_nodrain_generic(dest, (uint8_t)_mm_cvtsi128_si32(xmm),
+				len, PMEM2_F_MEM_NOFLUSH, NULL);
+	} else {
+		memset_small_sse2_noflush(dest, xmm, len);
+	}
+
 	flush(dest, len);
 }
 
