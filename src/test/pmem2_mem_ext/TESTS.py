@@ -9,6 +9,7 @@ from testframework import tools
 from testframework import futils
 
 import os
+import sys
 
 
 NO_FLAGS = 0
@@ -81,14 +82,25 @@ MATCH_PAGE_CACHELINE_BIG = \
         (ALL_FLAGS,                                     1024, "t")
     )
 
+SSE2 = 1
+AVX = 2
+AVX512 = 3
+
+VARIANT_LIBC = 'libc'
+VARIANT_GENERIC = 'generic'
+VARIANT_SSE2 = 'sse2'
+VARIANT_AVX = 'avx'
+VARIANT_AVX512F = 'avx512f'
+
 
 @t.require_build('debug')
 @t.require_architectures('x86_64')
 class Pmem2MemExt(t.Test):
     test_type = t.Short
     filesize = 4 * t.MiB
-    # SSE2
-    available_arch = 1
+
+    available_arch = SSE2
+    variant = VARIANT_SSE2
 
     # By default data size is 128 - this is smaller than threshold value (256)
     # to predict usage of temporal stores. This value is overriden is some tets
@@ -96,23 +108,27 @@ class Pmem2MemExt(t.Test):
     data_size = 128
 
     pmem2_log = ""
-    envs = ()
-    arch = "sse2"
     oper = ("C", "M", "S")
 
     def setup(self, ctx):
         ret = tools.Tools(ctx.env, ctx.build).cpufd()
-        self.check_arch(ret.returncode)
+        self.check_arch(ctx.variant(), ret.returncode)
 
-    def check_arch(self, available_arch):
-        if "PMEM_AVX" in self.envs and available_arch < 2:
+    def check_arch(self, variant, available_arch):
+        if variant == VARIANT_AVX512F:
+            if available_arch < AVX512:
+                raise futils.Skip("SKIP: AVX512F unavailable")
+
+            # remove this when MSVC we use will support AVX512F
+            if sys.platform.startswith('win32'):
+                raise futils.Skip("SKIP: AVX512F not supported by MSVC")
+
+            is_avx512f_enabled = tools.envconfig['PMEM2_AVX512F_ENABLED']
+            if is_avx512f_enabled == "0":
+                raise futils.Skip("SKIP: AVX512F disabled at build time")
+
+        if variant == VARIANT_AVX and available_arch < AVX:
             raise futils.Skip("SKIP: AVX unavailable")
-        if "PMEM_AVX512F" in self.envs and available_arch < 3:
-            raise futils.Skip("SKIP: AVX512F unavailable")
-
-        is_avx512f_enabled = tools.envconfig['PMEM2_AVX512F_ENABLED']
-        if is_avx512f_enabled == "0":
-            raise futils.Skip("SKIP: AVX512F disabled at build time")
 
     def check_log(self, ctx, match, type, flag):
         with open(os.path.join(self.cwd, self.pmem2_log), 'r') as f:
@@ -126,19 +142,20 @@ class Pmem2MemExt(t.Test):
                     "Type: {} Flag id: {}"
                     .format(match, count, type, flag))
 
-    def create_match(self, oper, store_type):
+    def create_match(self, variant, oper, store_type):
         match = ""
-        if "PMEM_NO_MOVNT" in self.envs:
-            if "PMEM_NO_GENERIC_MEMCPY" in self.envs:
-                if oper == "C" or oper == "M":
-                    match = "memmove_nodrain_libc"
-                elif oper == "S":
-                    match = "memset_nodrain_libc"
-            else:
-                if oper == "C" or oper == "M":
-                    match = "memmove_nodrain_generic"
-                elif oper == "S":
-                    match = "memset_nodrain_generic"
+        if variant == VARIANT_LIBC:
+            if oper == "C" or oper == "M":
+                match = "memmove_nodrain_libc"
+            elif oper == "S":
+                match = "memset_nodrain_libc"
+            return match
+
+        if variant == VARIANT_GENERIC:
+            if oper == "C" or oper == "M":
+                match = "memmove_nodrain_generic"
+            elif oper == "S":
+                match = "memset_nodrain_generic"
             return match
 
         if oper in ("C", "M"):
@@ -152,12 +169,12 @@ class Pmem2MemExt(t.Test):
         if store_type == "nt":
             match += store_type
 
-        if "PMEM_AVX" in self.envs:
-            match += "_avx"
-        elif "PMEM_AVX512F" in self.envs:
-            match += "_avx512f"
-        else:
+        if variant == VARIANT_SSE2:
             match += "_sse2"
+        elif variant == VARIANT_AVX:
+            match += "_avx"
+        else:
+            match += "_avx512f"
 
         return match
 
@@ -169,8 +186,20 @@ class Pmem2MemExt(t.Test):
         ctx.env['PMEM2_LOG_FILE'] = self.pmem2_log
         ctx.env['PMEM2_LOG_LEVEL'] = '15'
 
-        for env in self.envs:
-            ctx.env[env] = '1'
+        if ctx.variant() == VARIANT_LIBC:
+            ctx.env['PMEM_NO_MOVNT'] = '1'
+            ctx.env['PMEM_NO_GENERIC_MEMCPY'] = '1'
+        elif ctx.variant() == VARIANT_GENERIC:
+            ctx.env['PMEM_NO_MOVNT'] = '1'
+        elif ctx.variant() == VARIANT_SSE2:
+            ctx.env['PMEM_AVX'] = '0'
+            ctx.env['PMEM_AVX512F'] = '0'
+        elif ctx.variant() == VARIANT_AVX:
+            ctx.env['PMEM_AVX'] = '1'
+            ctx.env['PMEM_AVX512F'] = '0'
+        elif ctx.variant() == VARIANT_AVX512F:
+            ctx.env['PMEM_AVX'] = '0'
+            ctx.env['PMEM_AVX512F'] = '1'
 
         filepath = ctx.create_holey_file(self.filesize, 'testfile',)
 
@@ -179,92 +208,35 @@ class Pmem2MemExt(t.Test):
                 flag_id = tc[0]
                 size = tc[1]
                 store_type = tc[2]
-                match = self.create_match(o, store_type)
+                match = self.create_match(ctx.variant(), o, store_type)
                 ctx.exec('pmem2_mem_ext', filepath, o, size, flag_id)
                 self.check_log(ctx, match, o, flag_id)
 
 
+@t.add_params('variant', [VARIANT_LIBC, VARIANT_GENERIC])
 class TEST0(Pmem2MemExt):
     test_case = [(NO_FLAGS, 1024, "")]
-    envs = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")
 
 
+@g.require_granularity(g.PAGE, g.CACHELINE)
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 class TEST1(Pmem2MemExt):
-    test_case = [(NO_FLAGS, 1024, "")]
-    envs = ("PMEM_NO_MOVNT",)
+    test_case = MATCH_PAGE_CACHELINE_SMALL
 
 
-@g.require_granularity(g.PAGE, g.CACHELINE)
+@g.require_granularity(g.BYTE)
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 class TEST2(Pmem2MemExt):
-    test_case = MATCH_PAGE_CACHELINE_SMALL
+    test_case = MATCH_BYTE_SMALL
 
 
-@g.require_granularity(g.BYTE)
+@g.require_granularity(g.PAGE, g.CACHELINE)
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 class TEST3(Pmem2MemExt):
-    test_case = MATCH_BYTE_SMALL
+    test_case = MATCH_PAGE_CACHELINE_BIG
 
 
-@g.require_granularity(g.PAGE, g.CACHELINE)
+@g.require_granularity(g.BYTE)
+@t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 class TEST4(Pmem2MemExt):
-    test_case = MATCH_PAGE_CACHELINE_BIG
-
-
-@g.require_granularity(g.BYTE)
-class TEST5(Pmem2MemExt):
     test_case = MATCH_BYTE_BIG
-
-
-@g.require_granularity(g.PAGE, g.CACHELINE)
-class TEST6(Pmem2MemExt):
-    test_case = MATCH_PAGE_CACHELINE_SMALL
-    envs = ("PMEM_AVX",)
-
-
-@g.require_granularity(g.BYTE)
-class TEST7(Pmem2MemExt):
-    test_case = MATCH_BYTE_SMALL
-    envs = ("PMEM_AVX",)
-
-
-@g.require_granularity(g.PAGE, g.CACHELINE)
-class TEST8(Pmem2MemExt):
-    test_case = MATCH_PAGE_CACHELINE_BIG
-    envs = ("PMEM_AVX",)
-
-
-@g.require_granularity(g.BYTE)
-class TEST9(Pmem2MemExt):
-    test_case = MATCH_BYTE_BIG
-    envs = ("PMEM_AVX",)
-
-
-# Enable Windows tests pmem2_mem_ext when MSVC we use will support AVX512F.
-@t.windows_exclude
-@g.require_granularity(g.PAGE, g.CACHELINE)
-class TEST10(Pmem2MemExt):
-    test_case = MATCH_PAGE_CACHELINE_SMALL
-    envs = ("PMEM_AVX512F",)
-
-
-# Enable Windows tests pmem2_mem_ext when MSVC we use will support AVX512F.
-@t.windows_exclude
-@g.require_granularity(g.BYTE)
-class TEST11(Pmem2MemExt):
-    test_case = MATCH_BYTE_SMALL
-    envs = ("PMEM_AVX512F",)
-
-
-# Enable Windows tests pmem2_mem_ext when MSVC we use will support AVX512F.
-@t.windows_exclude
-@g.require_granularity(g.PAGE, g.CACHELINE)
-class TEST12(Pmem2MemExt):
-    test_case = MATCH_PAGE_CACHELINE_BIG
-    envs = ("PMEM_AVX512F",)
-
-
-# Enable Windows tests pmem2_mem_ext when MSVC we use will support AVX512F.
-@t.windows_exclude
-@g.require_granularity(g.BYTE)
-class TEST13(Pmem2MemExt):
-    test_case = MATCH_BYTE_BIG
-    envs = ("PMEM_AVX512F",)
