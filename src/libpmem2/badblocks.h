@@ -65,8 +65,6 @@ struct badblocks {
 struct badblocks *badblocks_new(void);
 void badblocks_delete(struct badblocks *bbs);
 
-int badblocks_files_namespace_badblocks(const char *path,
-	struct badblocks *bbs);
 int badblocks_devdax_clear_badblocks_all(const char *path);
 int badblocks_devdax_clear_badblocks(const char *path, struct badblocks *bbs);
 

@@ -8,27 +8,7 @@
 #include <errno.h>
 
 #include "out.h"
-#include "os.h"
 #include "badblocks.h"
-
-/*
- * badblocks_files_namespace_badblocks --
- *                      fake badblocks_files_namespace_badblocks()
- */
-int
-badblocks_files_namespace_badblocks(const char *path, struct badblocks *bbs)
-{
-	LOG(3, "path %s", path);
-
-	os_stat_t st;
-
-	if (os_stat(path, &st)) {
-		ERR("!stat %s", path);
-		return -1;
-	}
-
-	return 0;
-}
 
 /*
  * badblocks_devdax_clear_badblocks -- fake bad block clearing routine

@@ -327,10 +327,11 @@ badblocks_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
 }
 
 /*
- * badblocks_files_namespace_badblocks -- returns badblocks in the namespace
- *                                      where the given file is located
+ * badblocks_files_namespace_badblocks -- (internal) returns badblocks
+ *                                        in the namespace
+ *                                        where the given file is located
  */
-int
+static int
 badblocks_files_namespace_badblocks(const char *path, struct badblocks *bbs)
 {
 	LOG(3, "path %s", path);
