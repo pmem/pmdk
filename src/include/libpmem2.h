@@ -92,21 +92,21 @@ int pmem2_source_device_idU(const struct pmem2_source *src,
 
 int pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc);
 
-struct pmem2_badblock_iterator;
+struct pmem2_badblock_context;
 
 struct pmem2_badblock {
 	size_t offset;
 	size_t length;
 };
 
-int pmem2_badblock_iterator_new(const struct pmem2_source *src,
-		struct pmem2_badblock_iterator **pbb);
+int pmem2_badblock_context_new(const struct pmem2_source *src,
+		struct pmem2_badblock_context **bbctx);
 
-int pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
+int pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 		struct pmem2_badblock *bb);
 
-void pmem2_badblock_iterator_delete(
-		struct pmem2_badblock_iterator **pbb);
+void pmem2_badblock_context_delete(
+		struct pmem2_badblock_context **bbctx);
 
 int pmem2_badblock_clear(const struct pmem2_source *src,
 		const struct pmem2_badblock *bb);

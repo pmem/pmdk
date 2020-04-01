@@ -1,6 +1,6 @@
 pmem2_badblock_clear
-pmem2_badblock_iterator_delete
-pmem2_badblock_iterator_new
+pmem2_badblock_context_delete
+pmem2_badblock_context_new
 pmem2_badblock_next
 pmem2_config_clear_address
 pmem2_config_delete
