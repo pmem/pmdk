@@ -99,7 +99,7 @@ struct pmem2_badblock {
 	size_t length;
 };
 
-int pmem2_badblock_iterator_new(const struct pmem2_source *cfg,
+int pmem2_badblock_iterator_new(const struct pmem2_source *src,
 		struct pmem2_badblock_iterator **pbb);
 
 int pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
@@ -108,7 +108,7 @@ int pmem2_badblock_next(struct pmem2_badblock_iterator *pbb,
 void pmem2_badblock_iterator_delete(
 		struct pmem2_badblock_iterator **pbb);
 
-int pmem2_badblock_clear(const struct pmem2_source *cfg,
+int pmem2_badblock_clear(const struct pmem2_source *src,
 		const struct pmem2_badblock *bb);
 
 /* config setup */
