@@ -408,10 +408,11 @@ out_ars_cap:
 }
 
 /*
- * badblocks_devdax_clear_badblocks -- clear the given bad blocks in the dax
- *                                  device (or all of them if 'pbbs' is not set)
+ * badblocks_devdax_clear_badblocks -- (internal) clear the given bad blocks
+ *                                     in the dax device (or all of them
+ *                                     if 'pbbs' is not set)
  */
-int
+static int
 badblocks_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 {
 	LOG(3, "path %s badblocks %p", path, pbbs);

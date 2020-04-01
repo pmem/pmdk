@@ -11,17 +11,6 @@
 #include "badblocks.h"
 
 /*
- * badblocks_devdax_clear_badblocks -- fake bad block clearing routine
- */
-int
-badblocks_devdax_clear_badblocks(const char *path, struct badblocks *bbs)
-{
-	LOG(3, "path %s badblocks %p", path, bbs);
-
-	return 0;
-}
-
-/*
  * badblocks_devdax_clear_badblocks_all -- fake bad block clearing routine
  */
 int
