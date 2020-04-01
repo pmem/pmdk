@@ -108,7 +108,7 @@ int pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 void pmem2_badblock_context_delete(
 		struct pmem2_badblock_context **bbctx);
 
-int pmem2_badblock_clear(const struct pmem2_source *src,
+int pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 		const struct pmem2_badblock *bb);
 
 /* config setup */

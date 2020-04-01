@@ -42,7 +42,7 @@ void pmem2_badblock_context_delete(
 }
 
 int
-pmem2_badblock_clear(const struct pmem2_source *src,
+pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 	const struct pmem2_badblock *bb)
 {
 	return PMEM2_E_NOSUPP;
