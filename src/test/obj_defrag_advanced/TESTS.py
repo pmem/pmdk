@@ -25,8 +25,8 @@ class ObjDefragAdvanced(t.BaseTest):
         ctx.require_free_space(self.pool_size)
 
         path = ctx.create_holey_file(self.pool_size, 'testfile')
-        dump1 = 'dump1.log'
-        dump2 = 'dump2.log'
+        dump1 = 'dump_1_{}.log'.format(self.testnum)
+        dump2 = 'dump_2_{}.log'.format(self.testnum)
 
         ctx.exec('obj_defrag_advanced',
                  'op_pool_create', path,
@@ -81,7 +81,7 @@ class ObjDefragAdvancedMt(ObjDefragAdvanced):
                  'op_pool_create', path,
                  'op_graph_create_n_defrag_mt', self.max_nodes,
                  self.max_edges, self.graph_copies, self.min_root_size,
-                 self.max_rounds, self.nthreads, self.ncycles,
+                 self.max_rounds, self.nthreads, self.ncycles, self.testnum,
                  'op_pool_close')
 
 
