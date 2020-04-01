@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * pmalloc.c -- implementation of pmalloc POSIX-like API
@@ -184,7 +184,7 @@ pmalloc_boot(PMEMobjpool *pop)
 		return ret;
 
 #if VG_MEMCHECK_ENABLED
-	if (On_valgrind)
+	if (On_memcheck)
 		palloc_heap_vg_open(&pop->heap, pop->vg_boot);
 #endif
 

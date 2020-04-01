@@ -507,7 +507,7 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
 	 * error by memcheck.
 	 */
 #if VG_MEMCHECK_ENABLED
-	if (On_valgrind) {
+	if (On_memcheck) {
 		VALGRIND_MAKE_MEM_DEFINED(e->data, ncopy + rcopy + lcopy);
 		VALGRIND_MAKE_MEM_DEFINED(&e->checksum, sizeof(e->checksum));
 	}

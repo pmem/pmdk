@@ -218,7 +218,7 @@ typedef
       _arg1 = (long int)(_arg1F);                        \
       _arg2 = (long int)(_arg2F);                        \
       _arg3 = (long int)(_arg3F);                        \
-      _qzz_res = VALGRIND_DO_CLIENT_REQUEST_EXPR(        \
+      _qzz_res = (long)VALGRIND_DO_CLIENT_REQUEST_EXPR(  \
                                  (_dfltF),               \
                                  (_creqF),               \
                                  _arg1,_arg2,_arg3,0,0); \
@@ -418,7 +418,7 @@ typedef
 #define VALGRIND_HG_GET_ABITS(zza,zzabits,zznbytes)          \
    (__extension__                                            \
    ({long int _res;                                          \
-      DO_CREQ_W_WWW(_res, (-2)/*default*/,                   \
+      DO_CREQ_W_WWW(_res, (-2LL)/*default*/,                 \
                     _VG_USERREQ__HG_GET_ABITS,               \
                     void*,(zza), void*,(zzabits),            \
                     unsigned long,(zznbytes));               \
