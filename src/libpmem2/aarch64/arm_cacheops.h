@@ -3,8 +3,9 @@
 /*
  * ARM inline assembly to flush and invalidate caches
  * clwb => dc cvac
- * clflush | clflushopt => dc civac
+ * clflushopt => dc civac
  * fence => dmb ish
+ * sfence => dmb ishst
  */
 
 /*
