@@ -26,9 +26,9 @@ LIBPMEM2_1.0 {
 		pmem2_get_memmove_fn;
 		pmem2_get_memcpy_fn;
 		pmem2_get_memset_fn;
-		pmem2_badblock_iterator_new;
+		pmem2_badblock_context_new;
 		pmem2_badblock_next;
-		pmem2_badblock_iterator_delete;
+		pmem2_badblock_context_delete;
 		pmem2_badblock_clear;
 		pmem2_source_from_fd;
 		pmem2_source_from_anon;
