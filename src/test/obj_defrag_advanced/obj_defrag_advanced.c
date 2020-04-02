@@ -380,7 +380,8 @@ op_dump_compare(const struct test_case *tc, int argc, char *argv[])
 }
 
 struct create_n_defrag_params_t {
-	unsigned thread_id;
+	char dump1[PATH_MAX];
+	char dump2[PATH_MAX];
 
 	struct create_params_t cparams;
 
@@ -400,23 +401,17 @@ create_n_defrag_thread(void *arg)
 	struct create_n_defrag_params_t *params =
 			(struct create_n_defrag_params_t *)arg;
 
-	char dump1[PATH_MAX];
-	char dump2[PATH_MAX];
-
-	SNPRINTF(dump1, PATH_MAX, "dump_t%u_1.log", params->thread_id);
-	SNPRINTF(dump2, PATH_MAX, "dump_t%u_2.log", params->thread_id);
-
 	struct create_params_t *cparams = &params->cparams;
 
 	for (unsigned i = 0; i < params->ncycles; ++i) {
 		graph_create(cparams, global.pop, params->oidp, &cparams->rng);
-		graph_dump(*params->oidp, dump1, HAS_TO_EXIST);
+		graph_dump(*params->oidp, params->dump1, HAS_TO_EXIST);
 
 		graph_defrag_ntimes(params->pop, *params->oidp,
 				params->max_rounds);
-		graph_dump(*params->oidp, dump2, HAS_TO_EXIST);
+		graph_dump(*params->oidp, params->dump2, HAS_TO_EXIST);
 
-		dump_compare(dump1, dump2);
+		dump_compare(params->dump1, params->dump2);
 
 		pgraph_delete(params->oidp);
 	}
@@ -430,10 +425,11 @@ create_n_defrag_thread(void *arg)
 static int
 op_graph_create_n_defrag_mt(const struct test_case *tc, int argc, char *argv[])
 {
-	if (argc < 7)
+	if (argc < 8)
 		UT_FATAL("usage: %s <max-nodes> <max-edges> <graph-copies>"
 				" <min-root-size> <max-defrag-rounds> <n-threads>"
-				"<n-create-defrag-cycles>", tc->name);
+				"<n-create-defrag-cycles> <dump-suffix>",
+				tc->name);
 
 	/* parse arguments */
 	struct create_params_t cparams;
@@ -448,6 +444,7 @@ op_graph_create_n_defrag_mt(const struct test_case *tc, int argc, char *argv[])
 	parse_nonzero(&nthreads, argv[5]);
 	unsigned ncycles;
 	parse_nonzero(&ncycles, argv[6]);
+	char *dump_suffix = argv[7];
 
 	struct root_t *root = get_root(nthreads, min_root_size);
 	root->graphs_num = nthreads;
@@ -461,7 +458,11 @@ op_graph_create_n_defrag_mt(const struct test_case *tc, int argc, char *argv[])
 	for (unsigned i = 0; i < nthreads; ++i) {
 		struct create_n_defrag_params_t *params = &paramss[i];
 
-		params->thread_id = i;
+		SNPRINTF(params->dump1, PATH_MAX, "dump_1_th%u_%s.log",
+				i, dump_suffix);
+		SNPRINTF(params->dump2, PATH_MAX, "dump_2_th%u_%s.log",
+				i, dump_suffix);
+
 		memcpy(&params->cparams, &cparams, sizeof(cparams));
 		params->cparams.seed += i;
 		randomize_r(&params->cparams.rng, params->cparams.seed);
@@ -488,7 +489,7 @@ op_graph_create_n_defrag_mt(const struct test_case *tc, int argc, char *argv[])
 	FREE(threads);
 	FREE(paramss);
 
-	return 7;
+	return 8;
 }
 
 /*
