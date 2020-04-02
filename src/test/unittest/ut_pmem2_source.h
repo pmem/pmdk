@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, n */
+/* Copyright 2020, Intel Corporation */
 
 /*
  * ut_pmem2_source.h -- utility helper functions for libpmem2 source tests
