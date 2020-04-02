@@ -39,10 +39,10 @@
  * prog_args -- benchmark specific command line options
  */
 struct prog_args {
-	size_t minsize;       /* minimum size for random allocation size */
+	size_t minsize;	      /* minimum size for random allocation size */
 	bool use_random_size; /* if set, use random size allocations */
-	bool no_warmup;       /* do not do warmup */
-	unsigned seed;	/* seed for random numbers */
+	bool no_warmup;	      /* do not do warmup */
+	unsigned seed;	      /* seed for random numbers */
 };
 
 /*
@@ -51,11 +51,11 @@ struct prog_args {
 struct obj_bench {
 	PMEMobjpool *pop;     /* persistent pool handle */
 	struct prog_args *pa; /* prog_args structure */
-	PMEMoid *oids;	/* vector of allocated objects */
-	void **ptrs;	  /* pointers to allocated objects */
-	uint64_t nobjs;       /* number of allocated objects */
+	PMEMoid *oids;	      /* vector of allocated objects */
+	void **ptrs;	      /* pointers to allocated objects */
+	uint64_t nobjs;	      /* number of allocated objects */
 	size_t obj_size;      /* size of each allocated objects */
-	int const_b;	  /* memset() value */
+	int const_b;	      /* memset() value */
 };
 
 /*

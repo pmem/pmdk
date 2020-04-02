@@ -30,13 +30,13 @@
  * prog_args - benchmark's specific command line arguments
  */
 struct prog_args {
-	unsigned seed;   /* seed for pseudo-random generator */
-	bool rand;       /* use random numbers */
-	int vec_size;    /* vector size */
-	size_t el_size;  /* size of single append */
+	unsigned seed;	 /* seed for pseudo-random generator */
+	bool rand;	 /* use random numbers */
+	int vec_size;	 /* vector size */
+	size_t el_size;	 /* size of single append */
 	size_t min_size; /* minimum size for random mode */
-	bool no_warmup;  /* don't do warmup */
-	bool fileio;     /* use file io instead of pmemlog */
+	bool no_warmup;	 /* don't do warmup */
+	bool fileio;	 /* use file io instead of pmemlog */
 };
 
 /*
@@ -45,9 +45,9 @@ struct prog_args {
 struct log_worker_info {
 	rng_t rng;
 	struct iovec *iov; /* io vector */
-	char *buf;	 /* buffer for write/read operations */
+	char *buf;	   /* buffer for write/read operations */
 	size_t buf_size;   /* buffer size */
-	size_t buf_ptr;    /* pointer for read operations */
+	size_t buf_ptr;	   /* pointer for read operations */
 	size_t *rand_sizes;
 	size_t *vec_sizes; /* sum of sizes in vector */
 };
@@ -57,7 +57,7 @@ struct log_worker_info {
  */
 struct log_bench {
 	size_t psize;		/* size of pool */
-	PMEMlogpool *plp;       /* pmemlog handle */
+	PMEMlogpool *plp;	/* pmemlog handle */
 	struct prog_args *args; /* benchmark specific arguments */
 	int fd;			/* file descriptor for file io mode */
 	rng_t rng;
@@ -352,8 +352,9 @@ log_init_worker(struct benchmark *bench, struct benchmark_args *args,
 		/* generate append sizes */
 		for (size_t i = 0; i < n_sizes; i++) {
 			size_t width = lb->args->el_size - lb->args->min_size;
-			worker_info->rand_sizes[i] = rnd64_r(&worker_info->rng)
-				% width + lb->args->min_size;
+			worker_info->rand_sizes[i] =
+				rnd64_r(&worker_info->rng) % width +
+				lb->args->min_size;
 		}
 	} else {
 		worker_info->rand_sizes = nullptr;

@@ -55,9 +55,9 @@ typedef int (*worker_fn)(struct blk_bench *, struct benchmark_args *,
  * blk_args -- benchmark specific arguments
  */
 struct blk_args {
-	size_t fsize;   /* requested file size */
+	size_t fsize;	/* requested file size */
 	bool no_warmup; /* don't do warmup */
-	unsigned seed;  /* seed for randomization */
+	unsigned seed;	/* seed for randomization */
 	char *type_str; /* type: blk, file, memcpy */
 	char *mode_str; /* mode: stat, seq, rand */
 };
@@ -66,12 +66,12 @@ struct blk_args {
  * blk_bench -- pmemblk benchmark context
  */
 struct blk_bench {
-	PMEMblkpool *pbp;	 /* pmemblk handle */
+	PMEMblkpool *pbp;	  /* pmemblk handle */
 	char *addr;		  /* address of user data (memcpy) */
 	int fd;			  /* file descr. for file io */
 	size_t nblocks;		  /* actual number of blocks */
 	size_t blocks_per_thread; /* number of blocks per thread */
-	worker_fn worker;	 /* worker function */
+	worker_fn worker;	  /* worker function */
 	enum op_type type;
 	enum op_mode mode;
 };
@@ -81,8 +81,8 @@ struct blk_bench {
  */
 struct blk_worker {
 	os_off_t *blocks; /* array with block numbers */
-	char *buff;       /* buffer for read/write */
-	rng_t rng;        /* worker RNG state */
+	char *buff;	  /* buffer for read/write */
+	rng_t rng;	  /* worker RNG state */
 };
 
 /*

@@ -54,8 +54,8 @@ roundup_len(size_t len, void *addr, uintptr_t align)
  */
 struct pmem_args {
 	char *operation; /* msync, dummy_msync, persist, ... */
-	char *mode;      /* stat, seq, rand */
-	bool no_warmup;  /* don't do warmup */
+	char *mode;	 /* stat, seq, rand */
+	bool no_warmup;	 /* don't do warmup */
 };
 
 /*
@@ -64,7 +64,7 @@ struct pmem_args {
 struct pmem_bench {
 	uint64_t *offsets; /* write offsets */
 	size_t n_offsets;  /* number of elements in offsets array */
-	size_t fsize;      /* The size of the allocated PMEM */
+	size_t fsize;	   /* The size of the allocated PMEM */
 
 	struct pmem_args *pargs; /* prog_args structure */
 

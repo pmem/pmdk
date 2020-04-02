@@ -12,8 +12,8 @@ CLANG_ARGS=()
 FLAKE8_ARGS=()
 CHECK_TYPE=$1
 
-[ -z "$clang_format_bin" ] && which clang-format-6.0 >/dev/null &&
-	clang_format_bin=clang-format-6.0
+[ -z "$clang_format_bin" ] && which clang-format-9 >/dev/null &&
+	clang_format_bin=clang-format-9
 [ -z "$clang_format_bin" ] && which clang-format >/dev/null &&
 	clang_format_bin=clang-format
 [ -z "$clang_format_bin" ] && clang_format_bin=clang-format
@@ -26,15 +26,15 @@ function usage() {
 }
 
 #
-# require clang-format version 6.0
+# require clang-format version 9.0
 #
 function check_clang_version() {
 	set +e
 	which ${clang_format_bin} &> /dev/null && ${clang_format_bin} --version |\
-	grep "version 6\.0"\
+	grep "version 9\.0"\
 	&> /dev/null
 	if [ $? -ne 0 ]; then
-		echo "SKIP: requires clang-format version 6.0"
+		echo "SKIP: requires clang-format version 9.0"
 		exit 0
 	fi
 	set -e

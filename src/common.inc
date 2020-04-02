@@ -39,8 +39,8 @@ $(error Cannot evaluate version)
 endif
 
 ifeq ($(CLANG_FORMAT),)
-ifeq ($(shell command -v clang-format-6.0 > /dev/null && echo y || echo n), y)
-export CLANG_FORMAT ?= clang-format-6.0
+ifeq ($(shell command -v clang-format-9 > /dev/null && echo y || echo n), y)
+export CLANG_FORMAT ?= clang-format-9
 else
 export CLANG_FORMAT ?= clang-format
 endif
