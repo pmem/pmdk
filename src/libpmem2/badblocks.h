@@ -70,7 +70,6 @@ int badblocks_get(const char *file, struct badblocks *bbs);
 
 int badblocks_clear(const char *path, struct badblocks *bbs);
 int badblocks_clear_all(const char *file);
-int badblocks_devdax_clear_badblocks_all(const char *path);
 
 #ifdef __cplusplus
 }
