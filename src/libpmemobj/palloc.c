@@ -396,12 +396,10 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 				act->m.m_ops->get_real_size(&act->m));
 		}
 	} else if (act->new_state == MEMBLOCK_FREE) {
-		if (On_valgrind) {
+		if (On_memcheck) {
 			void *ptr = act->m.m_ops->get_user_data(&act->m);
-			size_t size = act->m.m_ops->get_real_size(&act->m);
-
 			VALGRIND_DO_MEMPOOL_FREE(heap->layout, ptr);
-
+		} else if (On_pmemcheck) {
 			/*
 			 * The sync module, responsible for implementations of
 			 * persistent memory resident volatile variables,
@@ -414,6 +412,8 @@ palloc_heap_action_on_process(struct palloc_heap *heap,
 			 * that occur in newly allocated memory locations, that
 			 * once were occupied by a lock/volatile variable.
 			 */
+			void *ptr = act->m.m_ops->get_user_data(&act->m);
+			size_t size = act->m.m_ops->get_real_size(&act->m);
 			VALGRIND_REGISTER_PMEM_MAPPING(ptr, size);
 		}
 

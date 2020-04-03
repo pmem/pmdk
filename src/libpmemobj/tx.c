@@ -1098,7 +1098,7 @@ static void
 vg_verify_initialized(PMEMobjpool *pop, const struct tx_range_def *def)
 {
 #if VG_MEMCHECK_ENABLED
-	if (!On_valgrind)
+	if (!On_memcheck)
 		return;
 
 	VALGRIND_DO_DISABLE_ERROR_REPORTING;

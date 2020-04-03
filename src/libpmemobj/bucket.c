@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2018, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * bucket.c -- bucket implementation
@@ -65,7 +65,7 @@ int
 bucket_insert_block(struct bucket *b, const struct memory_block *m)
 {
 #if VG_MEMCHECK_ENABLED || VG_HELGRIND_ENABLED || VG_DRD_ENABLED
-	if (On_valgrind) {
+	if (On_memcheck || On_drd_or_hg) {
 		size_t size = m->m_ops->get_real_size(m);
 		void *data = m->m_ops->get_real_data(m);
 		VALGRIND_DO_MAKE_MEM_NOACCESS(data, size);

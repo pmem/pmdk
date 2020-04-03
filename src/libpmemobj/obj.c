@@ -811,7 +811,7 @@ obj_vg_check_no_undef(struct pmemobjpool *pop)
 static void
 obj_vg_boot(struct pmemobjpool *pop)
 {
-	if (!On_valgrind)
+	if (!On_memcheck)
 		return;
 
 	LOG(4, "pop %p", pop);
@@ -1207,7 +1207,7 @@ obj_runtime_init(PMEMobjpool *pop, int rdonly, int boot, unsigned nlanes)
 			goto err_boot;
 
 #if VG_MEMCHECK_ENABLED
-		if (On_valgrind) {
+		if (On_memcheck) {
 			/* mark unused part of the pool as not accessible */
 			void *end = palloc_heap_end(&pop->heap);
 			VALGRIND_DO_MAKE_MEM_NOACCESS(end,
