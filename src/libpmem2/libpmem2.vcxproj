@@ -23,6 +23,7 @@
     <ClCompile Include="libpmem2_main.c" />
     <ClCompile Include="libpmem2.c" />
     <ClCompile Include="auto_flush_windows.c" />
+    <ClCompile Include="badblocks_none.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="errormsg.c" />
     <ClCompile Include="map.c" />
