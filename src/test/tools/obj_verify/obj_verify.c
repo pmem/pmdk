@@ -40,13 +40,16 @@ struct root_s {
 static void
 fill_data_s(struct data_s *rec, uint64_t number)
 {
+	int value = rand();
+
 	memcpy(rec->signature, Signature, sizeof(rec->signature));
+
 	if (util_snprintf(rec->number_str, NUMBER_LEN, "%09lu", number) < 0)
 		abort();
+
 	rec->number = number;
 
-	for (int i = 0; i < FILL_SIZE; i++)
-		rec->fill[i] = (uint32_t)rand();
+	memset(rec->fill, value, FILL_SIZE * sizeof(int));
 
 	util_checksum(rec, sizeof(*rec), &rec->checksum,
 			1 /* insert */, SKIP_OFFSET);
