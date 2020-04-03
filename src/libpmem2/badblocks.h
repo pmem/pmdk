@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include "libpmem2.h"
+#include "pmem2_utils.h"
 #include "os_badblock.h"
 
 #ifdef __cplusplus
@@ -25,6 +27,39 @@ extern "C" {
 
 #define BB_NOT_SUPP \
 	"checking bad blocks is not supported on this OS, please switch off the CHECK_BAD_BLOCKS compat feature using 'pmempool-feature'"
+
+struct pmem2_badblock_context {
+	/* file descriptor */
+	int fd;
+
+	/* pmem2 file type */
+	enum pmem2_file_type file_type;
+
+	/* ndctl context */
+	struct ndctl_ctx *ctx;
+
+	/* needed only by the ndctl namespace badblock iterator */
+	struct ndctl_namespace *ndns;
+
+	/* needed only by the ndctl region badblock iterator */
+	struct {
+		struct ndctl_bus *bus;
+		struct ndctl_region *region;
+		unsigned long long ns_res; /* address of the namespace */
+		unsigned long long ns_beg; /* the begining of the namespace */
+		unsigned long long ns_end; /* the end of the namespace */
+	} rgn;
+
+	/* file's extents */
+	struct {
+		struct extents *extents;
+		unsigned first_extent;
+		struct pmem2_badblock *last_bb;
+	} exts;
+
+	/* pmem2_badblock_next was already called */
+	int next_was_called;
+};
 
 /*
  * 'struct badblock' is already defined in ndctl/libndctl.h,
