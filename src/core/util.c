@@ -26,16 +26,39 @@ unsigned long long Pagesize;
 unsigned long long Mmap_align;
 
 #if ANY_VG_TOOL_ENABLED
-/* initialized to true if the process is running inside Valgrind */
+/* Initialized to true if the process is running inside Valgrind. */
 unsigned _On_valgrind;
 #endif
 
+#if VG_HELGRIND_ENABLED
+/* Initialized to true if the process is running inside Valgrind helgrind. */
+unsigned _On_helgrind;
+#endif
+
+#if VG_DRD_ENABLED
+/* Initialized to true if the process is running inside Valgrind drd. */
+unsigned _On_drd;
+#endif
+
+#if VG_HELGRIND_ENABLED || VG_DRD_ENABLED
+/* Initialized to true if the process is running inside Valgrind drd or hg. */
+unsigned _On_drd_or_hg;
+#endif
+
+#if VG_MEMCHECK_ENABLED
+/* Initialized to true if the process is running inside Valgrind memcheck. */
+unsigned _On_memcheck;
+#endif
+
 #if VG_PMEMCHECK_ENABLED
+/* Initialized to true if the process is running inside Valgrind pmemcheck. */
+unsigned _On_pmemcheck;
+
 #define LIB_LOG_LEN 20
 #define FUNC_LOG_LEN 50
 #define SUFFIX_LEN 7
 
-/* true if pmreorder instrumentization has to be enabled */
+/* true if pmreorder instrumentation has to be enabled */
 int _Pmreorder_emit;
 
 /*
@@ -289,13 +312,61 @@ util_init(void)
 	_On_valgrind = RUNNING_ON_VALGRIND;
 #endif
 
+#if VG_MEMCHECK_ENABLED
+	if (_On_valgrind) {
+		unsigned tmp;
+		unsigned result;
+		unsigned res = VALGRIND_GET_VBITS(&tmp, &result, sizeof(tmp));
+		_On_memcheck = res ? 1 : 0;
+	} else {
+		_On_memcheck = 0;
+	}
+#endif
+
+#if VG_DRD_ENABLED
+	if (_On_valgrind)
+		_On_drd = DRD_GET_DRD_THREADID ? 1 : 0;
+	else
+		_On_drd = 0;
+#endif
+
+#if VG_HELGRIND_ENABLED
+	if (_On_valgrind) {
+		unsigned tmp;
+		unsigned result;
+		/*
+		 * As of now (pmem-3.15) VALGRIND_HG_GET_ABITS is broken on
+		 * the upstream version of Helgrind headers. It generates
+		 * a sign-conversion error and actually returns UINT32_MAX-1
+		 * when not running under Helgrind.
+		 */
+		long res = VALGRIND_HG_GET_ABITS(&tmp, &result, sizeof(tmp));
+		_On_helgrind = res != -2 ? 1 : 0;
+	} else {
+		_On_helgrind = 0;
+	}
+#endif
+
+#if VG_DRD_ENABLED || VG_HELGRIND_ENABLED
+	_On_drd_or_hg = _On_helgrind + _On_drd;
+#endif
+
 #if VG_PMEMCHECK_ENABLED
 	if (On_valgrind) {
 		char *pmreorder_env = os_getenv("PMREORDER_EMIT_LOG");
 		if (pmreorder_env)
 			_Pmreorder_emit = atoi(pmreorder_env);
+
+		VALGRIND_PMC_REGISTER_PMEM_MAPPING(&_On_pmemcheck,
+				sizeof(_On_pmemcheck));
+		unsigned pmc = (unsigned)VALGRIND_PMC_CHECK_IS_PMEM_MAPPING(
+				&_On_pmemcheck, sizeof(_On_pmemcheck));
+		VALGRIND_PMC_REMOVE_PMEM_MAPPING(&_On_pmemcheck,
+				sizeof(_On_pmemcheck));
+		_On_pmemcheck = pmc ? 1 : 0;
 	} else {
-			_Pmreorder_emit = 0;
+		_On_pmemcheck = 0;
+		_Pmreorder_emit = 0;
 	}
 #endif
 }
