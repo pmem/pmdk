@@ -38,13 +38,13 @@ typedef int (*fn_init_t)(struct worker_info *worker, size_t n_elm,
  * args -- stores command line parsed arguments.
  */
 struct obj_list_args {
-	char *type_num;    /* type_number mode - one, per-thread, rand */
-	char *position;    /* position - head, tail, middle, rand */
+	char *type_num;	   /* type_number mode - one, per-thread, rand */
+	char *position;	   /* position - head, tail, middle, rand */
 	unsigned list_len; /* initial list length */
-	bool queue;	/* use circle queue from <sys/queue.h> */
-	bool range;	/* use random allocation size */
+	bool queue;	   /* use circle queue from <sys/queue.h> */
+	bool range;	   /* use random allocation size */
 	unsigned min_size; /* minimum random allocation size */
-	unsigned seed;     /* seed value */
+	unsigned seed;	   /* seed value */
 };
 
 /*
@@ -70,9 +70,9 @@ static struct obj_bench {
 	 *	- position_middle.
 	 */
 	size_t *alloc_sizes; /* array to store random sizes of each object */
-	size_t max_len;      /* maximum list length */
-	size_t min_len;      /* initial list length */
-	int type_mode;       /* type_number mode */
+	size_t max_len;	     /* maximum list length */
+	size_t min_len;	     /* initial list length */
+	int type_mode;	     /* type_number mode */
 	int position_mode;   /* list destination mode */
 
 	/*
@@ -134,10 +134,10 @@ struct obj_worker {
 	/* head of the circular queue */
 	PMDK_CIRCLEQ_HEAD(qlist, item) headq;
 	TOID(struct item) * oids;    /* persistent pmemobj list elements */
-	struct item **items;	 /* volatile elements */
+	struct item **items;	     /* volatile elements */
 	size_t n_elm;		     /* number of elements in array */
 	fn_position_t *fn_positions; /* element access functions */
-	struct element elm;	  /* pointer to current element */
+	struct element elm;	     /* pointer to current element */
 	/*
 	 * list_move is a pointer to structure storing variables used by
 	 * second list (used only for obj_move benchmark).

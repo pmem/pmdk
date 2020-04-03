@@ -372,8 +372,8 @@ pobj_init(struct benchmark *bench, struct benchmark_args *args)
 				goto free_sets;
 			}
 			int ret = util_snprintf((char *)bench_priv->sets[i],
-					path_len, "%s%s%02x", args->fname,
-					PART_NAME, i);
+						path_len, "%s%s%02x",
+						args->fname, PART_NAME, i);
 			if (ret < 0) {
 				perror("snprintf");
 				goto free_sets;

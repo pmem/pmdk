@@ -39,9 +39,9 @@
  * prog_args - command line parsed arguments
  */
 struct prog_args {
-	size_t minsize;       /* minimum size for random allocation size */
+	size_t minsize;	      /* minimum size for random allocation size */
 	bool use_random_size; /* if set, use random size allocations */
-	unsigned seed;	/* PRNG seed */
+	unsigned seed;	      /* PRNG seed */
 };
 
 POBJ_LAYOUT_BEGIN(pmalloc_layout);
@@ -60,8 +60,8 @@ struct my_root {
  * obj_bench - variables used in benchmark, passed within functions
  */
 struct obj_bench {
-	PMEMobjpool *pop;	  /* persistent pool handle */
-	struct prog_args *pa;      /* prog_args structure */
+	PMEMobjpool *pop;	   /* persistent pool handle */
+	struct prog_args *pa;	   /* prog_args structure */
 	size_t *sizes;		   /* sizes for allocations */
 	TOID(struct my_root) root; /* root object's OID */
 	uint64_t *offs;		   /* pointer to the vector of offsets */
@@ -287,8 +287,7 @@ pmix_worker_fini(struct benchmark *bench, struct benchmark_args *args,
  * Just make sure the amount of objects to shuffle is not large.
  */
 static void
-shuffle_objects(uint64_t *objects, size_t start, size_t nobjects,
-		rng_t *rng)
+shuffle_objects(uint64_t *objects, size_t start, size_t nobjects, rng_t *rng)
 {
 	uint64_t tmp;
 	size_t dest;

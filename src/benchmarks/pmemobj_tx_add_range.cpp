@@ -53,13 +53,13 @@ struct obj_bench_args {
  * obj_bench -- benchmark context
  */
 struct obj_bench {
-	PMEMobjpool *pop;	  /* persistent pool handle */
+	PMEMobjpool *pop;	   /* persistent pool handle */
 	struct ranged_obj *ranges; /* array of ranges */
 	size_t obj_size;	   /* size of a single range */
-	uint64_t nranges;	  /* number of ranges */
-	uint64_t nallocs;	  /* number of allocations */
-	bool shuffle_objs;	 /* shuffles array of ranges */
-	rng_t rng;		/* PRNG */
+	uint64_t nranges;	   /* number of ranges */
+	uint64_t nallocs;	   /* number of allocations */
+	bool shuffle_objs;	   /* shuffles array of ranges */
+	rng_t rng;		   /* PRNG */
 };
 
 /*
