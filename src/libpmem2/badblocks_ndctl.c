@@ -482,7 +482,7 @@ badblocks_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 	LOG(3, "path %s badblocks %p", path, pbbs);
 
 	struct ndctl_ctx *ctx;
-	struct ndctl_bus *bus;
+	struct ndctl_bus *bus = NULL;
 	int ret = -1;
 
 	if (ndctl_new(&ctx)) {
@@ -514,6 +514,8 @@ badblocks_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 
 	if (bbs->bb_cnt == 0 || bbs->bbv == NULL) /* OK - no bad blocks found */
 		goto exit_free_all;
+
+	ASSERTne(bus, NULL);
 
 	LOG(4, "clearing %u bad block(s)...", bbs->bb_cnt);
 
