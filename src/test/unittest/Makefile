@@ -109,7 +109,7 @@ clobber: clean
 	$(RM) $(TARGET_UT) $(TARGET_UT_PMEM2)
 	$(RM) -r .deps
 
-test check pcheck: all
+test check pcheck pycheck: all
 
 sparse:
 	$(sparse-c)

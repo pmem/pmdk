@@ -58,6 +58,6 @@ sync-remotes: $(REMOTE_TOOLS) $(TESTCONFIG)
 $(DIRS):
 	$(MAKE) -C $@ $(TARGET)
 
-check pcheck: all
+check pcheck pycheck: all
 
 .PHONY: all clean clobber cstyle format check pcheck $(DIRS)

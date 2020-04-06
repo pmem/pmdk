@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 
 """Main script for unit tests execution"""
 
@@ -127,6 +127,11 @@ def main():
         # filter selected groups
         testcases = [t for t in testcases
                      if path.basename(t.__module__) in config.group]
+
+    if hasattr(config, 'list_testcases'):
+        for t in testcases:
+            print(t.name)
+        sys.exit(0)
 
     runner = TestRunner(config, testcases)
     sys.exit(runner.run_tests())

@@ -402,9 +402,8 @@ check:
 	$(MAKE) check-remote-quiet-conditional
 	@echo "No failures."
 
-pycheck:
-	@[ -z "$(BLACKLIST_TESTS)" ] || echo "Blacklisted tests: $(BLACKLIST_TESTS)"
-	@./RUNTESTS.py $(subst nondebug,release,$(RUNTEST_OPTIONS)) -- $(TESTS)
+pycheck: TARGET = pycheck
+pycheck: $(TESTS)
 	@echo "No failures."
 
 check-remote-quiet-conditional:
