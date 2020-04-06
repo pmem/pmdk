@@ -13,6 +13,10 @@
 #include "set.h"
 #include "os.h"
 
+#ifdef USE_LIBUNWIND
+#include "../../unittest/unittest.h"
+#endif
+
 #define SIGNATURE_LEN 10
 #define NUMBER_LEN 10
 #define FILL_SIZE 245 /* so that size of one record is 1024 bytes */
@@ -195,6 +199,10 @@ main(int argc, char *argv[])
 {
 	util_init();
 	out_init("OBJ_VERIFY", "OBJ_VERIFY", "", 1, 0);
+
+#ifdef USE_LIBUNWIND
+	ut_register_sighandlers();
+#endif
 
 	if (argc < 4) {
 		out("Usage: %s <obj_pool> <layout> <op:c|v>\n"
