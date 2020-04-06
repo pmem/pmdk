@@ -116,7 +116,7 @@ memmove_movnt1x4b(char *dest, const char *src)
 }
 
 static force_inline void
-memmove_movnt_sse_fw(char *dest, const char *src, size_t len)
+memmove_movnt_sse_fw(char *dest, const char *src, size_t len, flush_fn flush)
 {
 	size_t cnt = (uint64_t)dest & 63;
 	if (cnt > 0) {
@@ -125,7 +125,7 @@ memmove_movnt_sse_fw(char *dest, const char *src, size_t len)
 		if (cnt > len)
 			cnt = len;
 
-		memmove_small_sse2(dest, src, cnt);
+		memmove_small_sse2(dest, src, cnt, flush);
 
 		dest += cnt;
 		src += cnt;
@@ -174,11 +174,11 @@ memmove_movnt_sse_fw(char *dest, const char *src, size_t len)
 	}
 
 nonnt:
-	memmove_small_sse2(dest, src, len);
+	memmove_small_sse2(dest, src, len, flush);
 }
 
 static force_inline void
-memmove_movnt_sse_bw(char *dest, const char *src, size_t len)
+memmove_movnt_sse_bw(char *dest, const char *src, size_t len, flush_fn flush)
 {
 	dest += len;
 	src += len;
@@ -192,7 +192,7 @@ memmove_movnt_sse_bw(char *dest, const char *src, size_t len)
 		src -= cnt;
 		len -= cnt;
 
-		memmove_small_sse2(dest, src, cnt);
+		memmove_small_sse2(dest, src, cnt, flush);
 	}
 
 	while (len >= 4 * 64) {
@@ -247,20 +247,63 @@ memmove_movnt_sse_bw(char *dest, const char *src, size_t len)
 nonnt:
 	dest -= len;
 	src -= len;
-	memmove_small_sse2(dest, src, len);
+	memmove_small_sse2(dest, src, len, flush);
+}
+
+static force_inline void
+memmove_movnt_sse2(char *dest, const char *src, size_t len, flush_fn flush,
+		barrier_fn barrier)
+{
+	if ((uintptr_t)dest - (uintptr_t)src >= len)
+		memmove_movnt_sse_fw(dest, src, len, flush);
+	else
+		memmove_movnt_sse_bw(dest, src, len, flush);
+
+	barrier();
+
+	VALGRIND_DO_FLUSH(dest, len);
 }
 
 void
-EXPORTED_SYMBOL(char *dest, const char *src, size_t len)
+memmove_movnt_sse2_noflush(char *dest, const char *src, size_t len)
 {
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
-	if ((uintptr_t)dest - (uintptr_t)src >= len)
-		memmove_movnt_sse_fw(dest, src, len);
-	else
-		memmove_movnt_sse_bw(dest, src, len);
+	memmove_movnt_sse2(dest, src, len, noflush, barrier_after_ntstores);
+}
 
-	maybe_barrier();
+void
+memmove_movnt_sse2_empty(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
-	VALGRIND_DO_FLUSH(dest, len);
+	memmove_movnt_sse2(dest, src, len, flush_empty_nolog,
+			barrier_after_ntstores);
+}
+
+void
+memmove_movnt_sse2_clflush(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_movnt_sse2(dest, src, len, flush_clflush_nolog,
+			barrier_after_ntstores);
+}
+
+void
+memmove_movnt_sse2_clflushopt(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_movnt_sse2(dest, src, len, flush_clflushopt_nolog,
+			no_barrier_after_ntstores);
+}
+
+void
+memmove_movnt_sse2_clwb(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_movnt_sse2(dest, src, len, flush_clwb_nolog,
+			no_barrier_after_ntstores);
 }

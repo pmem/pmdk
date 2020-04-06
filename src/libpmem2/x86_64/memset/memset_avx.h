@@ -76,7 +76,7 @@ le2:
 }
 
 static force_inline void
-memset_small_avx(char *dest, __m256i ymm, size_t len)
+memset_small_avx(char *dest, __m256i ymm, size_t len, flush_fn flush)
 {
 	/*
 	 * pmemcheck complains about "overwritten stores before they were made

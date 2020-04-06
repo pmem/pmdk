@@ -93,10 +93,10 @@ memset_movnt1x4b(char *dest, __m256i ymm)
 	_mm_stream_si32((int *)dest, (int)x);
 }
 
-void
-EXPORTED_SYMBOL(char *dest, int c, size_t len)
+static force_inline void
+memset_movnt_avx(char *dest, int c, size_t len, flush_fn flush,
+		barrier_fn barrier)
 {
-	LOG(15, "dest %p c %d len %zu", dest, c, len);
 	char *orig_dest = dest;
 	size_t orig_len = len;
 
@@ -109,7 +109,7 @@ EXPORTED_SYMBOL(char *dest, int c, size_t len)
 		if (cnt > len)
 			cnt = len;
 
-		memset_small_avx(dest, ymm, cnt);
+		memset_small_avx(dest, ymm, cnt, flush);
 
 		dest += cnt;
 		len -= cnt;
@@ -160,11 +160,55 @@ EXPORTED_SYMBOL(char *dest, int c, size_t len)
 	}
 
 nonnt:
-	memset_small_avx(dest, ymm, len);
+	memset_small_avx(dest, ymm, len, flush);
 end:
 	avx_zeroupper();
 
-	maybe_barrier();
+	barrier();
 
 	VALGRIND_DO_FLUSH(orig_dest, orig_len);
+}
+
+void
+memset_movnt_avx_noflush(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_movnt_avx(dest, c, len, noflush, barrier_after_ntstores);
+}
+
+void
+memset_movnt_avx_empty(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_movnt_avx(dest, c, len, flush_empty_nolog,
+			barrier_after_ntstores);
+}
+
+void
+memset_movnt_avx_clflush(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_movnt_avx(dest, c, len, flush_clflush_nolog,
+			barrier_after_ntstores);
+}
+
+void
+memset_movnt_avx_clflushopt(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_movnt_avx(dest, c, len, flush_clflushopt_nolog,
+			no_barrier_after_ntstores);
+}
+
+void
+memset_movnt_avx_clwb(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_movnt_avx(dest, c, len, flush_clwb_nolog,
+			no_barrier_after_ntstores);
 }

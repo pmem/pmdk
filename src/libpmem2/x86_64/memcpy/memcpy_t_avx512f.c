@@ -12,7 +12,7 @@
 #include "memcpy_avx512f.h"
 
 static force_inline void
-memmove_mov32x64b(char *dest, const char *src)
+memmove_mov32x64b(char *dest, const char *src, flush64b_fn flush64b)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
 	__m512i zmm1 = _mm512_loadu_si512((__m512i *)src + 1);
@@ -115,7 +115,7 @@ memmove_mov32x64b(char *dest, const char *src)
 }
 
 static force_inline void
-memmove_mov16x64b(char *dest, const char *src)
+memmove_mov16x64b(char *dest, const char *src, flush64b_fn flush64b)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
 	__m512i zmm1 = _mm512_loadu_si512((__m512i *)src + 1);
@@ -170,7 +170,7 @@ memmove_mov16x64b(char *dest, const char *src)
 }
 
 static force_inline void
-memmove_mov8x64b(char *dest, const char *src)
+memmove_mov8x64b(char *dest, const char *src, flush64b_fn flush64b)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
 	__m512i zmm1 = _mm512_loadu_si512((__m512i *)src + 1);
@@ -201,7 +201,7 @@ memmove_mov8x64b(char *dest, const char *src)
 }
 
 static force_inline void
-memmove_mov4x64b(char *dest, const char *src)
+memmove_mov4x64b(char *dest, const char *src, flush64b_fn flush64b)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
 	__m512i zmm1 = _mm512_loadu_si512((__m512i *)src + 1);
@@ -220,7 +220,7 @@ memmove_mov4x64b(char *dest, const char *src)
 }
 
 static force_inline void
-memmove_mov2x64b(char *dest, const char *src)
+memmove_mov2x64b(char *dest, const char *src, flush64b_fn flush64b)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
 	__m512i zmm1 = _mm512_loadu_si512((__m512i *)src + 1);
@@ -233,7 +233,7 @@ memmove_mov2x64b(char *dest, const char *src)
 }
 
 static force_inline void
-memmove_mov1x64b(char *dest, const char *src)
+memmove_mov1x64b(char *dest, const char *src, flush64b_fn flush64b)
 {
 	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
 
@@ -243,7 +243,8 @@ memmove_mov1x64b(char *dest, const char *src)
 }
 
 static force_inline void
-memmove_mov_avx512f_fw(char *dest, const char *src, size_t len)
+memmove_mov_avx512f_fw(char *dest, const char *src, size_t len,
+		flush_fn flush, flush64b_fn flush64b)
 {
 	size_t cnt = (uint64_t)dest & 63;
 	if (cnt > 0) {
@@ -252,7 +253,7 @@ memmove_mov_avx512f_fw(char *dest, const char *src, size_t len)
 		if (cnt > len)
 			cnt = len;
 
-		memmove_small_avx512f(dest, src, cnt);
+		memmove_small_avx512f(dest, src, cnt, flush);
 
 		dest += cnt;
 		src += cnt;
@@ -260,42 +261,42 @@ memmove_mov_avx512f_fw(char *dest, const char *src, size_t len)
 	}
 
 	while (len >= 32 * 64) {
-		memmove_mov32x64b(dest, src);
+		memmove_mov32x64b(dest, src, flush64b);
 		dest += 32 * 64;
 		src += 32 * 64;
 		len -= 32 * 64;
 	}
 
 	if (len >= 16 * 64) {
-		memmove_mov16x64b(dest, src);
+		memmove_mov16x64b(dest, src, flush64b);
 		dest += 16 * 64;
 		src += 16 * 64;
 		len -= 16 * 64;
 	}
 
 	if (len >= 8 * 64) {
-		memmove_mov8x64b(dest, src);
+		memmove_mov8x64b(dest, src, flush64b);
 		dest += 8 * 64;
 		src += 8 * 64;
 		len -= 8 * 64;
 	}
 
 	if (len >= 4 * 64) {
-		memmove_mov4x64b(dest, src);
+		memmove_mov4x64b(dest, src, flush64b);
 		dest += 4 * 64;
 		src += 4 * 64;
 		len -= 4 * 64;
 	}
 
 	if (len >= 2 * 64) {
-		memmove_mov2x64b(dest, src);
+		memmove_mov2x64b(dest, src, flush64b);
 		dest += 2 * 64;
 		src += 2 * 64;
 		len -= 2 * 64;
 	}
 
 	if (len >= 1 * 64) {
-		memmove_mov1x64b(dest, src);
+		memmove_mov1x64b(dest, src, flush64b);
 
 		dest += 1 * 64;
 		src += 1 * 64;
@@ -303,11 +304,12 @@ memmove_mov_avx512f_fw(char *dest, const char *src, size_t len)
 	}
 
 	if (len)
-		memmove_small_avx512f(dest, src, len);
+		memmove_small_avx512f(dest, src, len, flush);
 }
 
 static force_inline void
-memmove_mov_avx512f_bw(char *dest, const char *src, size_t len)
+memmove_mov_avx512f_bw(char *dest, const char *src, size_t len,
+		flush_fn flush, flush64b_fn flush64b)
 {
 	dest += len;
 	src += len;
@@ -321,64 +323,104 @@ memmove_mov_avx512f_bw(char *dest, const char *src, size_t len)
 		src -= cnt;
 		len -= cnt;
 
-		memmove_small_avx512f(dest, src, cnt);
+		memmove_small_avx512f(dest, src, cnt, flush);
 	}
 
 	while (len >= 32 * 64) {
 		dest -= 32 * 64;
 		src -= 32 * 64;
 		len -= 32 * 64;
-		memmove_mov32x64b(dest, src);
+		memmove_mov32x64b(dest, src, flush64b);
 	}
 
 	if (len >= 16 * 64) {
 		dest -= 16 * 64;
 		src -= 16 * 64;
 		len -= 16 * 64;
-		memmove_mov16x64b(dest, src);
+		memmove_mov16x64b(dest, src, flush64b);
 	}
 
 	if (len >= 8 * 64) {
 		dest -= 8 * 64;
 		src -= 8 * 64;
 		len -= 8 * 64;
-		memmove_mov8x64b(dest, src);
+		memmove_mov8x64b(dest, src, flush64b);
 	}
 
 	if (len >= 4 * 64) {
 		dest -= 4 * 64;
 		src -= 4 * 64;
 		len -= 4 * 64;
-		memmove_mov4x64b(dest, src);
+		memmove_mov4x64b(dest, src, flush64b);
 	}
 
 	if (len >= 2 * 64) {
 		dest -= 2 * 64;
 		src -= 2 * 64;
 		len -= 2 * 64;
-		memmove_mov2x64b(dest, src);
+		memmove_mov2x64b(dest, src, flush64b);
 	}
 
 	if (len >= 1 * 64) {
 		dest -= 1 * 64;
 		src -= 1 * 64;
 		len -= 1 * 64;
-		memmove_mov1x64b(dest, src);
+		memmove_mov1x64b(dest, src, flush64b);
 	}
 
 	if (len)
-		memmove_small_avx512f(dest - len, src - len, len);
+		memmove_small_avx512f(dest - len, src - len, len, flush);
+}
+
+static force_inline void
+memmove_mov_avx512f(char *dest, const char *src, size_t len,
+		flush_fn flush, flush64b_fn flush64b)
+{
+	if ((uintptr_t)dest - (uintptr_t)src >= len)
+		memmove_mov_avx512f_fw(dest, src, len, flush, flush64b);
+	else
+		memmove_mov_avx512f_bw(dest, src, len, flush, flush64b);
+
+	avx_zeroupper();
 }
 
 void
-EXPORTED_SYMBOL(char *dest, const char *src, size_t len)
+memmove_mov_avx512f_noflush(char *dest, const char *src, size_t len)
 {
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
-	if ((uintptr_t)dest - (uintptr_t)src >= len)
-		memmove_mov_avx512f_fw(dest, src, len);
-	else
-		memmove_mov_avx512f_bw(dest, src, len);
+	memmove_mov_avx512f(dest, src, len, noflush, noflush64b);
+}
 
-	avx_zeroupper();
+void
+memmove_mov_avx512f_empty(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_mov_avx512f(dest, src, len, flush_empty_nolog, flush64b_empty);
+}
+
+void
+memmove_mov_avx512f_clflush(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_mov_avx512f(dest, src, len, flush_clflush_nolog, pmem_clflush);
+}
+
+void
+memmove_mov_avx512f_clflushopt(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_mov_avx512f(dest, src, len, flush_clflushopt_nolog,
+			pmem_clflushopt);
+}
+
+void
+memmove_mov_avx512f_clwb(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_mov_avx512f(dest, src, len, flush_clwb_nolog, pmem_clwb);
 }

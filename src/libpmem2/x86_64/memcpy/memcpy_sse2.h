@@ -95,7 +95,7 @@ le2:
 }
 
 static force_inline void
-memmove_small_sse2(char *dest, const char *src, size_t len)
+memmove_small_sse2(char *dest, const char *src, size_t len, flush_fn flush)
 {
 	/*
 	 * pmemcheck complains about "overwritten stores before they were made

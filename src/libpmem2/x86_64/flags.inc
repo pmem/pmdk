@@ -10,47 +10,17 @@ vpath %.h $(TOP)/src/libpmem2/x86_64
 vpath %.c $(TOP)/src/libpmem2/x86_64/memcpy
 vpath %.c $(TOP)/src/libpmem2/x86_64/memset
 
-$(objdir)/memcpy_nt_avx512f_clflush.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_nt_avx512f_clflushopt.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_nt_avx512f_clwb.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_nt_avx512f_empty.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_nt_avx512f_noflush.o: CFLAGS += -mavx512f
-$(objdir)/memset_nt_avx512f_clflush.o: CFLAGS += -mavx512f
-$(objdir)/memset_nt_avx512f_clflushopt.o: CFLAGS += -mavx512f
-$(objdir)/memset_nt_avx512f_clwb.o: CFLAGS += -mavx512f
-$(objdir)/memset_nt_avx512f_empty.o: CFLAGS += -mavx512f
-$(objdir)/memset_nt_avx512f_noflush.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_nt_avx_clflush.o: CFLAGS += -mavx
-$(objdir)/memcpy_nt_avx_clflushopt.o: CFLAGS += -mavx
-$(objdir)/memcpy_nt_avx_clwb.o: CFLAGS += -mavx
-$(objdir)/memcpy_nt_avx_empty.o: CFLAGS += -mavx
-$(objdir)/memcpy_nt_avx_noflush.o: CFLAGS += -mavx
-$(objdir)/memset_nt_avx_clflush.o: CFLAGS += -mavx
-$(objdir)/memset_nt_avx_clflushopt.o: CFLAGS += -mavx
-$(objdir)/memset_nt_avx_clwb.o: CFLAGS += -mavx
-$(objdir)/memset_nt_avx_empty.o: CFLAGS += -mavx
-$(objdir)/memset_nt_avx_noflush.o: CFLAGS += -mavx
+$(objdir)/memcpy_nt_avx512f.o: CFLAGS += -mavx512f
+$(objdir)/memset_nt_avx512f.o: CFLAGS += -mavx512f
 
-$(objdir)/memcpy_t_avx512f_clflush.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_t_avx512f_clflushopt.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_t_avx512f_clwb.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_t_avx512f_empty.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_t_avx512f_noflush.o: CFLAGS += -mavx512f
-$(objdir)/memset_t_avx512f_clflush.o: CFLAGS += -mavx512f
-$(objdir)/memset_t_avx512f_clflushopt.o: CFLAGS += -mavx512f
-$(objdir)/memset_t_avx512f_clwb.o: CFLAGS += -mavx512f
-$(objdir)/memset_t_avx512f_empty.o: CFLAGS += -mavx512f
-$(objdir)/memset_t_avx512f_noflush.o: CFLAGS += -mavx512f
-$(objdir)/memcpy_t_avx_clflush.o: CFLAGS += -mavx
-$(objdir)/memcpy_t_avx_clflushopt.o: CFLAGS += -mavx
-$(objdir)/memcpy_t_avx_clwb.o: CFLAGS += -mavx
-$(objdir)/memcpy_t_avx_empty.o: CFLAGS += -mavx
-$(objdir)/memcpy_t_avx_noflush.o: CFLAGS += -mavx
-$(objdir)/memset_t_avx_clflush.o: CFLAGS += -mavx
-$(objdir)/memset_t_avx_clflushopt.o: CFLAGS += -mavx
-$(objdir)/memset_t_avx_clwb.o: CFLAGS += -mavx
-$(objdir)/memset_t_avx_empty.o: CFLAGS += -mavx
-$(objdir)/memset_t_avx_noflush.o: CFLAGS += -mavx
+$(objdir)/memcpy_nt_avx.o: CFLAGS += -mavx
+$(objdir)/memset_nt_avx.o: CFLAGS += -mavx
+
+$(objdir)/memcpy_t_avx512f.o: CFLAGS += -mavx512f
+$(objdir)/memset_t_avx512f.o: CFLAGS += -mavx512f
+
+$(objdir)/memcpy_t_avx.o: CFLAGS += -mavx
+$(objdir)/memset_t_avx.o: CFLAGS += -mavx
 
 CFLAGS += -I$(TOP)/src/libpmem2/x86_64
 

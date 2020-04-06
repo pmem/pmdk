@@ -8,6 +8,9 @@
 #include <xmmintrin.h>
 #include "pmem2_arch.h"
 
+typedef void barrier_fn(void);
+typedef void flush64b_fn(const void *);
+
 static inline void
 barrier_after_ntstores(void)
 {
@@ -34,7 +37,7 @@ noflush(const void *addr, size_t len)
 }
 
 static inline void
-noflush64b(const char *addr)
+noflush64b(const void *addr)
 {
 	/* NOP, not even pmemcheck annotation */
 }
