@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* Copyright 2017-2020, Intel Corporation */
 
 #ifndef PMEM2_MEMCPY_SSE2_H
 #define PMEM2_MEMCPY_SSE2_H
@@ -97,7 +97,19 @@ le2:
 static force_inline void
 memmove_small_sse2(char *dest, const char *src, size_t len)
 {
-	memmove_small_sse2_noflush(dest, src, len);
+	/*
+	 * pmemcheck complains about "overwritten stores before they were made
+	 * persistent" for overlapping stores (last instruction in each code
+	 * path) in the optimized version.
+	 * libc's memcpy also does that, so we can't use it here.
+	 */
+	if (On_pmemcheck) {
+		memmove_nodrain_generic(dest, src, len, PMEM2_F_MEM_NOFLUSH,
+				NULL);
+	} else {
+		memmove_small_sse2_noflush(dest, src, len);
+	}
+
 	flush(dest, len);
 }
 
