@@ -4,7 +4,8 @@
 #
 # examples/libpmem2/Makefile -- build the libpmem2 examples
 #
-DIRS = advanced basic log
+
+DIRS = advanced basic log redo
 
 include ../Makefile.inc
 
