@@ -330,32 +330,36 @@ pool_map(int fd, int map_private)
 
 	if (pmem2_config_new(&cfg)) {
 		pmem2_perror("pmem2_config_new");
-		goto out;
-	}
-
-	if (pmem2_source_from_fd(&src, fd)) {
-		pmem2_perror("pmem2_source_from_fd");
-		goto out;
+		goto err_cfg_new;
 	}
 
 	if (map_private && pmem2_config_set_sharing(cfg, PMEM2_PRIVATE)) {
 		pmem2_perror("pmem2_config_set_sharing");
-		goto out;
+		goto err_cfg_set;
 	}
 
 	if (pmem2_config_set_required_store_granularity(cfg,
 			PMEM2_GRANULARITY_PAGE)) {
 		pmem2_perror("pmem2_config_set_required_store_granularity");
-		goto out;
+		goto err_cfg_set;
+	}
+
+	if (pmem2_source_from_fd(&src, fd)) {
+		pmem2_perror("pmem2_source_from_fd");
+		goto err_src_new;
 	}
 
 	if (pmem2_map(cfg, src, &map)) {
 		pmem2_perror("pmem2_map");
-		goto out;
+		goto err_map;
 	}
-out:
-	pmem2_config_delete(&cfg);
+
+err_map:
 	pmem2_source_delete(&src);
+err_src_new:
+err_cfg_set:
+	pmem2_config_delete(&cfg);
+err_cfg_new:
 	return map;
 }
 
