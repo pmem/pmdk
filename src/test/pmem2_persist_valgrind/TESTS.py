@@ -17,7 +17,7 @@ import os
 # from compiler to compiler. There should be only one number when pmemcheck
 # will be fixed. Please also remove the below requirement after pmemcheck fix.
 # https://github.com/pmem/valgrind/pull/76
-@g.require_granularity(g.CL_OR_LESS)
+@t.require_fs(granularity=g.CL_OR_LESS)
 class PMEM2_PERSIST(t.Test):
     test_type = t.Medium
     available_granularity = None

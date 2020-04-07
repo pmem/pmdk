@@ -17,7 +17,7 @@ class Granularity(Enum):
     PAGE = 3
 
 
-@g.require_granularity(g.ANY)
+@t.require_fs(granularity=g.ANY)
 class PMEM2_GRANULARITY(t.BaseTest):
     test_type = t.Short
     available_granularity = None

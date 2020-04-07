@@ -52,7 +52,7 @@ class TEST1(ObjDefragAdvanced):
 
 
 @t.require_valgrind_disabled('helgrind')
-@g.require_granularity(g.CACHELINE)
+@t.require_fs(granularity=g.CACHELINE)
 class TEST2(ObjDefragAdvanced):
     test_type = t.Medium
     # XXX port this to the new framework
@@ -65,7 +65,7 @@ class TEST2(ObjDefragAdvanced):
     min_root_size = 4096
 
 
-@g.require_granularity(g.CACHELINE)
+@t.require_fs(granularity=g.CACHELINE)
 class ObjDefragAdvancedMt(ObjDefragAdvanced):
     test_type = t.Medium
 

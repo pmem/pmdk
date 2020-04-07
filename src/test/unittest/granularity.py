@@ -192,7 +192,7 @@ PAGE_OR_LESS = _Granularity.PAGE_OR_LESS
 ANY = _Granularity.ANY
 
 
-def require_granularity(*granularity, **kwargs):
+def require_granularity(tc, *granularity, **kwargs):
     for g in granularity:
         if not isinstance(g, _Granularity):
             raise ValueError('selected granularity {} is invalid'
@@ -200,10 +200,7 @@ def require_granularity(*granularity, **kwargs):
 
     enum_values = [g.value for g in granularity]
 
-    def wrapped(tc):
-        ctx.add_requirement(tc, 'granularity', enum_values, **kwargs)
-        return tc
-    return wrapped
+    ctx.add_requirement(tc, 'granularity', enum_values, **kwargs)
 
 
 def no_testdir(**kwargs):

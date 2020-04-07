@@ -80,7 +80,7 @@ class TEST4(PMEM2_INTEGRATION):
         ctx.exec('pmem2_integration', self.test_case, filepath)
 
 
-@g.require_granularity(g.PAGE)
+@t.require_fs(granularity=g.PAGE)
 class TEST5(PMEM2_GRANULARITY):
     """test granularity with available page granularity and expected page
     granularity"""
@@ -88,7 +88,7 @@ class TEST5(PMEM2_GRANULARITY):
     requested_granularity = Granularity.PAGE
 
 
-@g.require_granularity(g.PAGE)
+@t.require_fs(granularity=g.PAGE)
 class TEST6(PMEM2_GRANULARITY):
     """test granularity with available page granularity and expected cache
     line granularity"""
@@ -96,7 +96,7 @@ class TEST6(PMEM2_GRANULARITY):
     requested_granularity = Granularity.CACHE_LINE
 
 
-@g.require_granularity(g.PAGE)
+@t.require_fs(granularity=g.PAGE)
 class TEST7(PMEM2_GRANULARITY):
     """test granularity with available page granularity and expected byte
     granularity"""
@@ -104,7 +104,7 @@ class TEST7(PMEM2_GRANULARITY):
     requested_granularity = Granularity.BYTE
 
 
-@g.require_granularity(g.CACHELINE)
+@t.require_fs(granularity=g.CACHELINE)
 class TEST8(PMEM2_GRANULARITY):
     """test granularity with available cache line granularity and expected
     page granularity"""
@@ -112,7 +112,7 @@ class TEST8(PMEM2_GRANULARITY):
     requested_granularity = Granularity.PAGE
 
 
-@g.require_granularity(g.CACHELINE)
+@t.require_fs(granularity=g.CACHELINE)
 class TEST9(PMEM2_GRANULARITY):
     """test granularity with available cache line granularity and expected
     cache line granularity"""
@@ -120,7 +120,7 @@ class TEST9(PMEM2_GRANULARITY):
     requested_granularity = Granularity.CACHE_LINE
 
 
-@g.require_granularity(g.CACHELINE)
+@t.require_fs(granularity=g.CACHELINE)
 class TEST10(PMEM2_GRANULARITY):
     """test granularity with available cache line granularity and expected
     byte granularity"""
@@ -128,7 +128,7 @@ class TEST10(PMEM2_GRANULARITY):
     requested_granularity = Granularity.BYTE
 
 
-@g.require_granularity(g.BYTE)
+@t.require_fs(granularity=g.BYTE)
 class TEST11(PMEM2_GRANULARITY):
     """test granularity with available byte granularity and expected page
     granularity"""
@@ -136,7 +136,7 @@ class TEST11(PMEM2_GRANULARITY):
     requested_granularity = Granularity.PAGE
 
 
-@g.require_granularity(g.BYTE)
+@t.require_fs(granularity=g.BYTE)
 class TEST12(PMEM2_GRANULARITY):
     """test granularity with available byte granularity and expected cache
     line granularity"""
@@ -144,7 +144,7 @@ class TEST12(PMEM2_GRANULARITY):
     requested_granularity = Granularity.CACHE_LINE
 
 
-@g.require_granularity(g.BYTE)
+@t.require_fs(granularity=g.BYTE)
 class TEST13(PMEM2_GRANULARITY):
     """test granularity with available byte granularity and expected byte
     granularity"""

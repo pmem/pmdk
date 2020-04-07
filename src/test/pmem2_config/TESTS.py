@@ -8,7 +8,7 @@ import testframework as t
 from testframework import granularity as g
 
 
-@g.require_granularity(g.ANY)
+@t.require_fs(granularity=g.ANY)
 class Pmem2Config(t.Test):
     test_type = t.Short
 

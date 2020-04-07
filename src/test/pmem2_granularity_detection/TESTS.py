@@ -9,7 +9,7 @@ from testframework import granularity as g
 import futils as f
 
 
-@g.require_granularity(g.ANY)
+@t.require_fs(granularity=g.ANY)
 class PMEM2_CONFIG(t.BaseTest):
     test_type = t.Short
 

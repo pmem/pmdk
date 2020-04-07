@@ -218,25 +218,25 @@ class TEST0(Pmem2MemExt):
     test_case = [(NO_FLAGS, 1024, "")]
 
 
-@g.require_granularity(g.PAGE, g.CACHELINE)
+@t.require_fs(granularity=(g.PAGE, g.CACHELINE))
 @t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 class TEST1(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_SMALL
 
 
-@g.require_granularity(g.BYTE)
+@t.require_fs(granularity=g.BYTE)
 @t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 class TEST2(Pmem2MemExt):
     test_case = MATCH_BYTE_SMALL
 
 
-@g.require_granularity(g.PAGE, g.CACHELINE)
+@t.require_fs(granularity=(g.PAGE, g.CACHELINE))
 @t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 class TEST3(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_BIG
 
 
-@g.require_granularity(g.BYTE)
+@t.require_fs(granularity=g.BYTE)
 @t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
 class TEST4(Pmem2MemExt):
     test_case = MATCH_BYTE_BIG

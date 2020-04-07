@@ -23,4 +23,5 @@ from poolset import *  # noqa: E402, F401, F403
 from builds import *  # noqa: E402, F401, F403
 from devdax import *  # noqa: E402, F401, F403
 from test_types import *  # noqa: E402, F401, F403
+from fs import *  # noqa: E402, F401, F403
 import granularity  # noqa: E402, F401
