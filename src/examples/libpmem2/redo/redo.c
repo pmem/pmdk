@@ -324,7 +324,7 @@ failed:
 static struct pmem2_map *
 pool_map(int fd, int map_private)
 {
-	struct pmem2_config *cfg;
+	struct pmem2_config *cfg = NULL;
 	struct pmem2_map *map = NULL;
 	struct pmem2_source *src;
 
