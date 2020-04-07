@@ -12,7 +12,7 @@
 #include "memset_avx512f.h"
 
 static force_inline void
-memset_mov32x64b(char *dest, __m512i zmm)
+memset_mov32x64b(char *dest, __m512i zmm, flush64b_fn flush64b)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
 	_mm512_store_si512((__m512i *)dest + 1, zmm);
@@ -82,7 +82,7 @@ memset_mov32x64b(char *dest, __m512i zmm)
 }
 
 static force_inline void
-memset_mov16x64b(char *dest, __m512i zmm)
+memset_mov16x64b(char *dest, __m512i zmm, flush64b_fn flush64b)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
 	_mm512_store_si512((__m512i *)dest + 1, zmm);
@@ -120,7 +120,7 @@ memset_mov16x64b(char *dest, __m512i zmm)
 }
 
 static force_inline void
-memset_mov8x64b(char *dest, __m512i zmm)
+memset_mov8x64b(char *dest, __m512i zmm, flush64b_fn flush64b)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
 	_mm512_store_si512((__m512i *)dest + 1, zmm);
@@ -142,7 +142,7 @@ memset_mov8x64b(char *dest, __m512i zmm)
 }
 
 static force_inline void
-memset_mov4x64b(char *dest, __m512i zmm)
+memset_mov4x64b(char *dest, __m512i zmm, flush64b_fn flush64b)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
 	_mm512_store_si512((__m512i *)dest + 1, zmm);
@@ -156,7 +156,7 @@ memset_mov4x64b(char *dest, __m512i zmm)
 }
 
 static force_inline void
-memset_mov2x64b(char *dest, __m512i zmm)
+memset_mov2x64b(char *dest, __m512i zmm, flush64b_fn flush64b)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
 	_mm512_store_si512((__m512i *)dest + 1, zmm);
@@ -166,18 +166,17 @@ memset_mov2x64b(char *dest, __m512i zmm)
 }
 
 static force_inline void
-memset_mov1x64b(char *dest, __m512i zmm)
+memset_mov1x64b(char *dest, __m512i zmm, flush64b_fn flush64b)
 {
 	_mm512_store_si512((__m512i *)dest + 0, zmm);
 
 	flush64b(dest + 0 * 64);
 }
 
-void
-EXPORTED_SYMBOL(char *dest, int c, size_t len)
+static force_inline void
+memset_mov_avx512f(char *dest, int c, size_t len,
+		flush_fn flush, flush64b_fn flush64b)
 {
-	LOG(15, "dest %p c %d len %zu", dest, c, len);
-
 	__m512i zmm = _mm512_set1_epi8((char)c);
 	/* See comment in memset_movnt_avx512f */
 	__m256i ymm = _mm256_set1_epi8((char)c);
@@ -189,51 +188,92 @@ EXPORTED_SYMBOL(char *dest, int c, size_t len)
 		if (cnt > len)
 			cnt = len;
 
-		memset_small_avx512f(dest, ymm, cnt);
+		memset_small_avx512f(dest, ymm, cnt, flush);
 
 		dest += cnt;
 		len -= cnt;
 	}
 
 	while (len >= 32 * 64) {
-		memset_mov32x64b(dest, zmm);
+		memset_mov32x64b(dest, zmm, flush64b);
 		dest += 32 * 64;
 		len -= 32 * 64;
 	}
 
 	if (len >= 16 * 64) {
-		memset_mov16x64b(dest, zmm);
+		memset_mov16x64b(dest, zmm, flush64b);
 		dest += 16 * 64;
 		len -= 16 * 64;
 	}
 
 	if (len >= 8 * 64) {
-		memset_mov8x64b(dest, zmm);
+		memset_mov8x64b(dest, zmm, flush64b);
 		dest += 8 * 64;
 		len -= 8 * 64;
 	}
 
 	if (len >= 4 * 64) {
-		memset_mov4x64b(dest, zmm);
+		memset_mov4x64b(dest, zmm, flush64b);
 		dest += 4 * 64;
 		len -= 4 * 64;
 	}
 
 	if (len >= 2 * 64) {
-		memset_mov2x64b(dest, zmm);
+		memset_mov2x64b(dest, zmm, flush64b);
 		dest += 2 * 64;
 		len -= 2 * 64;
 	}
 
 	if (len >= 1 * 64) {
-		memset_mov1x64b(dest, zmm);
+		memset_mov1x64b(dest, zmm, flush64b);
 
 		dest += 1 * 64;
 		len -= 1 * 64;
 	}
 
 	if (len)
-		memset_small_avx512f(dest, ymm, len);
+		memset_small_avx512f(dest, ymm, len, flush);
 
 	avx_zeroupper();
+}
+
+void
+memset_mov_avx512f_noflush(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_mov_avx512f(dest, c, len, noflush, noflush64b);
+}
+
+void
+memset_mov_avx512f_empty(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_mov_avx512f(dest, c, len, flush_empty_nolog, flush64b_empty);
+}
+
+void
+memset_mov_avx512f_clflush(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_mov_avx512f(dest, c, len, flush_clflush_nolog, pmem_clflush);
+}
+
+void
+memset_mov_avx512f_clflushopt(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_mov_avx512f(dest, c, len, flush_clflushopt_nolog,
+			pmem_clflushopt);
+}
+
+void
+memset_mov_avx512f_clwb(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_mov_avx512f(dest, c, len, flush_clwb_nolog, pmem_clwb);
 }

@@ -83,7 +83,7 @@ le2:
 }
 
 static force_inline void
-memset_small_sse2(char *dest, __m128i xmm, size_t len)
+memset_small_sse2(char *dest, __m128i xmm, size_t len, flush_fn flush)
 {
 	/*
 	 * pmemcheck complains about "overwritten stores before they were made

@@ -71,124 +71,28 @@
     <ClCompile Include="..\common\os_deep_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2_clflush.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2_clflushopt.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_avx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2_clwb.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_sse2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2_empty.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_avx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_sse2_noflush.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_sse2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_avx_clflush.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_avx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_avx_clflushopt.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_sse2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_avx_clwb.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_avx_empty.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_nt_avx_noflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_sse2_clflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_sse2_clflushopt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_sse2_clwb.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_sse2_empty.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_sse2_noflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_avx_clflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_avx_clflushopt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_avx_clwb.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_avx_empty.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memcpy\memcpy_t_avx_noflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_sse2_clflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_sse2_clflushopt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_sse2_clwb.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_sse2_empty.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_sse2_noflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_avx_clflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_avx_clflushopt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_avx_clwb.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_avx_empty.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_nt_avx_noflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_sse2_clflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_sse2_clflushopt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_sse2_clwb.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_sse2_empty.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_sse2_noflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_avx_clflush.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_avx_clflushopt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_avx_clwb.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_avx_empty.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_avx_noflush.c">
+    <ClCompile Include="..\..\src\libpmem2\x86_64\memset\memset_t_avx.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\libpmem2\memops_generic.c">
@@ -274,43 +178,7 @@
     <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_avx512f.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_nt_avx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_nt_avx512f.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_nt_sse2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_t_avx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_t_avx512f.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memcpy\memcpy_t_sse2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\libpmem2\x86_64\memset\memset_avx512f.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memset\memset_nt_avx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memset\memset_nt_avx512f.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memset\memset_nt_sse2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memset\memset_t_avx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memset\memset_t_avx512f.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\libpmem2\x86_64\memset\memset_t_sse2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\libpmem2\x86_64\memset\memset_avx.h">
