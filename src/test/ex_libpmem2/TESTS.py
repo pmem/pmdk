@@ -45,3 +45,7 @@ class TEST2(EX_LIBPMEM2):
                 'appendv', '2', 'End of ', 'file.', 'dump']
 
         ctx.exec(example_path, file_path, *args, stdout_file='out2.log')
+
+
+# XXX libpmem2/unsafe_shutdowns example needs a requirement for
+# File System DAX / Device DAX with available USC
