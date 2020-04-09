@@ -14,6 +14,9 @@
     <ClCompile Include="obj_pmalloc_rand_mt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\common\rand.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST1.PS1">

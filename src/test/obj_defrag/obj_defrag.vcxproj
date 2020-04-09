@@ -31,7 +31,7 @@
     <ProjectGuid>{FF6E5B0C-DC00-4C93-B9C2-63D1E858BA80}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>obj_defrag</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

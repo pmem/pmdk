@@ -56,7 +56,7 @@
     <ProjectGuid>{65D92D98-97E1-48F7-AEF6-75221CF48EA4}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>obj_pmalloc_basic</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

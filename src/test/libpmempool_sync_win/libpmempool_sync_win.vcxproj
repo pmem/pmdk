@@ -14,7 +14,7 @@
     <ProjectGuid>{B6DA6617-D98F-4A4D-A7C4-A317212924BF}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>libpmempool_sync_win</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

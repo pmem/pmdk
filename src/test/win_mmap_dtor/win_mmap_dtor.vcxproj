@@ -26,7 +26,7 @@
     <ProjectGuid>{F03DABEE-A03E-4437-BFD3-D012836F2D94}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>win_mmap_dtor</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

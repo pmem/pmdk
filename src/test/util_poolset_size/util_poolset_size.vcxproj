@@ -14,7 +14,7 @@
     <ProjectGuid>{6B492754-9F80-44B3-A2A7-1D98AF06F3B2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>util_poolset_size</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

@@ -30,14 +30,12 @@
     <None Include="TEST2.PS1">
       <Filter>Test Scripts</Filter>
     </None>
-    <None Include="grep0.log .match">
-      <Filter>Match Files</Filter>
-    </None>
     <None Include="grep1.log.match">
       <Filter>Match Files</Filter>
     </None>
     <None Include="grep2.log.match">
       <Filter>Match Files</Filter>
     </None>
+    <None Include="grep0.log.match" />
   </ItemGroup>
 </Project>
