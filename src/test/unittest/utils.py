@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2019-2020, Intel Corporation
 
-"""Utilities for tests"""
+"""Utilities for tests. Meant to be used by test user."""
 
 import sys
 import platform

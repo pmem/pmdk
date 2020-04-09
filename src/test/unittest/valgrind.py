@@ -33,6 +33,12 @@ _IGNORED = (
 
 @unique
 class _Tool(Enum):
+    """
+    Enumeration of valid Valgrind tool options.
+
+    NONE is a virtual tool option denoting that valgrind
+    is not used for test execution.
+    """
     MEMCHECK = 1
     PMEMCHECK = 2
     HELGRIND = 3
@@ -55,26 +61,19 @@ DRD = _Tool.DRD
 NONE = _Tool.NONE
 
 
-def enabled_tool(test):
-    """Get Valgrind tool enabled by test"""
-    enabled = [t for t in TOOLS if getattr(test, t.name.lower()) == ENABLE]
-    if len(enabled) > 1:
-        raise ValueError('test "{}" enables more than one Valgrind tool'
-                         .format(test))
-    elif len(enabled) == 1:
-        return enabled[0]
-    else:
-        return None
-
-
-def disabled_tools(test):
-    """Get Valgrind tools disabled by test"""
-    disabled = [t for t in TOOLS if getattr(test, t.name.lower()) == DISABLE]
-    return disabled
-
-
 class Valgrind:
-    """Valgrind management"""
+    """Valgrind management context element class
+
+    Attributes:
+        tool (_Tool): selected valgrind tool
+        tool_name (str): tool name as string
+        cwd (str): path to the test cwd
+            (i. e. the directory in which test .py file resides)
+        log_file (str): path to valgrind output log file
+        valgrind_exe (str): path to valgrind command
+        opts (list): list of valgrind command line options
+
+    """
 
     def __init__(self, tool, cwd, testnum):
         if sys.platform == 'win32':
@@ -136,8 +135,20 @@ class Valgrind:
     @classmethod
     def filter(cls, config, msg, tc):
         """
-        Acquire valgrind tool for the test to be run based on configuration
-        and test requirements
+        Acquire Valgrind tool for the test to be run with.
+        Takes into account configuration 'force-enable' options,
+        and Valgrind tools enabled or disabled by test requirements.
+
+        Args:
+            config: configuration as returned by Configurator class
+            msg (Message): level based logger class instance
+            tc (BaseTest): test case, from which the Valgrind
+                requirements are obtained
+
+        Returns:
+            list of initialized Valgrind tool classes with which the test
+            should be run
+
         """
         vg_tool, kwargs = ctx.get_requirement(tc, 'enabled_valgrind', NONE)
         disabled, _ = ctx.get_requirement(tc, 'disabled_valgrind', ())
@@ -161,7 +172,10 @@ class Valgrind:
 
     @property
     def cmd(self):
-        """Get Valgrind command with specified arguments"""
+        """
+        Return Valgrind command with specified arguments
+        as subprocess compliant list.
+        """
         if self.tool == NONE:
             return []
 
@@ -181,7 +195,7 @@ class Valgrind:
         On some systems "valgrind" is a shell script that calls the actual
         executable "valgrind.bin".
         The wrapper script does not work well with LD_PRELOAD so we want
-        to call Valgrind directly
+        to call Valgrind directly.
         """
         try:
             out = sp.check_output('which valgrind', shell=True,
@@ -244,7 +258,7 @@ class Valgrind:
 
     def verify(self):
         """
-        Checks that Valgrind can be used.
+        Check that Valgrind is viable to be used.
         """
         if self.valgrind_exe is None:
             raise futils.Skip('Valgrind not found')
@@ -259,6 +273,16 @@ class Valgrind:
 
 
 def require_valgrind_enabled(valgrind):
+    """
+    Enable valgrind tool for given test.
+
+    Used as a test class (tc) decorator.
+
+    Args:
+        valgrind (str): valgrind tool
+
+    """
+
     def wrapped(tc):
         if sys.platform == 'win32':
             # do not run valgrind tests on windows
@@ -274,6 +298,17 @@ def require_valgrind_enabled(valgrind):
 
 
 def require_valgrind_disabled(*valgrind):
+    """
+    Require that the test is not executed with selected valgrind tools.
+
+    Used as a test class (tc) decorator.
+
+    Args:
+        *valgrind (*str): variable length arguments list of valgrind
+            tools meant to be disabled
+
+    """
+
     def wrapped(tc):
         disabled_tools = [_require_valgrind_common(v) for v in valgrind]
         ctx.add_requirement(tc, 'disabled_valgrind', disabled_tools)
@@ -284,6 +319,17 @@ def require_valgrind_disabled(*valgrind):
 
 
 def _require_valgrind_common(v):
+    """
+    Validate provided valgrind tool as string
+    and translate it to _Tool enum type.
+
+    Args:
+        v (str): valgrind tool as string
+
+    Returns:
+        valgrind tool as _Tool enum type
+
+    """
     valid_tool_names = [str(t) for t in TOOLS]
     if v not in valid_tool_names:
         sys.exit('used name {} not in valid valgrind tool names which are: {}'

@@ -55,12 +55,28 @@ class Tools:
 
 
 class Ndctl:
-    """ndctl CLI handle"""
+    """ndctl CLI handle
+
+    Attributes:
+        version (str): ndctl version
+        ndctl_list_output (dict): output of 'ndctl list' command
+            decoded from JSON into dictionary
+    """
     def __init__(self):
         self.version = self._get_ndctl_version()
         self.ndctl_list_output = self._get_ndctl_list_output()
 
     def _get_ndctl_version(self):
+        """
+        Get ndctl version.
+
+        Acquiring the version is simultaneously used as a check whether
+        the ndctl is installed on the system.
+
+        Returns:
+            ndctl version (str)
+
+        """
         proc = sp.run(['ndctl', '--version'], stdout=sp.PIPE, stderr=sp.STDOUT)
         if proc.returncode != 0:
             raise futils.Fail('checking if ndctl exists failed:{}{}'
@@ -70,6 +86,10 @@ class Ndctl:
         return version
 
     def _get_ndctl_list_output(self):
+        """
+        Parse 'ndctl list' command output as JSON
+        into dictionary and return it.
+        """
         proc = sp.run(['ndctl', 'list'], stdout=sp.PIPE, stderr=sp.STDOUT)
         if proc.returncode != 0:
             raise futils.Fail('ndctl list failed:{}{}'.format(os.linesep,
@@ -82,7 +102,14 @@ class Ndctl:
         return ndctl_list_out
 
     def _get_dev_info(self, dev_path):
+        """
+        Get ndctl information about given device.
+        Returns dictionary associated with device.
+        """
         dev = None
+
+        # Possible viable device types as shown with
+        # 'ndctl list' output
         devtypes = ('blockdev', 'chardev')
 
         for d in self.ndctl_list_output:
@@ -96,6 +123,14 @@ class Ndctl:
         return dev
 
     def _get_dev_param(self, dev_path, param):
+        """
+        Acquire device parameter from 'ndctl list' output.
+
+        Args:
+            dev_path (str): path of device
+            param (str): parameter
+
+        """
         dev = self._get_dev_info(dev_path)
         return dev[param]
 
