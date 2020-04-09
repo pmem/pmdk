@@ -58,7 +58,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{42CCEF95-5ADD-460C-967E-DD5B2C744943}</ProjectGuid>
     <RootNamespace>pmempool_info</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
