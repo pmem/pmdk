@@ -1,7 +1,60 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2019-2020, Intel Corporation
 
-"""Base tests class and its functionalities"""
+"""Base tests class and its functionalities.
+
+_TestCase metaclass implemented in this module is
+used for registering test case classes.
+
+Classes are registered and used as actual test cases only if they fulfill
+the following requirements:
+    - inherit (directly or indirectly) from BaseTest class
+    - reside in TESTS.py file under pmdk/src/test/ directory
+    - are named by TEST[int] (e.g. TEST0), where integer suffix is a
+      test number (used for selecting test sequences).
+
+BaseTest._execute() method requires special attention as a
+general single test execution workflow.
+
+While BaseTest class is the required test case base class, it consist only of
+the minimal implementation to serve as the test framework handle.
+In practice, it is the Test class (inheriting from BaseTest) that is
+most commonly used as a test case direct base class. The Test class
+implements operations typically used by most of the tests.
+
+Test class needs to implement an abstract run(ctx) method, which stands
+for a test body. setup(ctx) and clean(ctx) methods, which are a part
+of test execution workflow are optional. Mind that the Test class already
+provides some implementation of the setup() and clean() - it is
+crucial to call them while implementing own setup() and clean() methods.
+
+Tests for PMDK C code frequently call the Context exec() method
+(passed as 'ctx' argument to run()), which is a utility for
+setting up, running and handling the output of C test binaries.
+
+Example TESTS.py file with a single test case may look like this:
+
+$ cat pmdk/src/test/test_group/TESTS.py
+
+!#../env.py
+
+import testframework as t
+
+
+class TEST0(t.Test):
+    def run(self, ctx):
+        ctx.exec('test_binary')
+
+    def setup(self, ctx):
+        # call Test setup
+        super().setup(ctx)
+        # TEST0 setup implementation goes here
+
+    def clean(self, ctx):
+        super().clean(ctx)
+        # TEST0 clean implementation goes here
+
+"""
 
 import builtins
 import subprocess as sp
@@ -16,6 +69,11 @@ import futils
 import test_types
 
 
+#
+# imported test cases are globally available as a 'builtins'
+# module 'testcases' variable, which is initialized at first basetest
+# module import as an empty list
+#
 if not hasattr(builtins, 'testcases'):
     builtins.testcases = []
 
@@ -35,7 +93,15 @@ def _test_string_repr(cls):
 
 
 class _TestCase(type):
-    """Metaclass for BaseTest that is used for registering imported tests"""
+    """Metaclass for BaseTest that is used for registering imported tests.
+
+    Attributes:
+        cwd (str): path to the directory of the TESTS.py file containing the
+            class
+        group (str): name of the directory of the TESTS.py file
+        testnum (int): test number
+        tc_dirname (str): name of the directory created for test in testdir
+    """
 
     def __init__(cls, name, bases, dct):
         type.__init__(cls, name, bases, dct)
@@ -68,9 +134,14 @@ class _TestCase(type):
 class BaseTest(metaclass=_TestCase):
     """
     Framework base test class. Every test case needs to (directly or
-    indirectly) inherit from this class. Since this class implements only
-    very abstract test behaviour, it is advised for particular test cases
+    indirectly) inherit from it. Since this class implements only
+    very abstract test behaviour, it is advised for most test cases
     to use Test class inheriting from it.
+
+    Attributes:
+        enabled (bool): True if test is meant to be executed, False otherwise.
+            Defaults to True.
+        ctx (Context): context affiliated with the test
     """
     enabled = True
 
@@ -84,6 +155,9 @@ class BaseTest(metaclass=_TestCase):
         """
         Implementation of basic single contextualized test execution workflow.
         Called by the test runner.
+
+        Args:
+            c (Context): test context
         """
         self.ctx = c
 
@@ -149,10 +223,21 @@ class BaseTest(metaclass=_TestCase):
 class Test(BaseTest):
     """
     Generic implementation of BaseTest scaffolding used by particular test
-    case classes as a base.
+    case classes as a base. In practice, most tests need to inherit from
+    this class rather than from Basetest since it implements most commonly
+    used test utilities and actions.
+
+    Args:
+        test_type (_TestType): test type affiliated with test execution
+            length. Defaults to Medium.
+        match (bool): True if match files will be checked for test,
+            False otherwise. Defaults to True.
+        config (Configurator): test execution configuration
+        msg (Message): message class instance with logging level
+        env (dict): enviroment variables needed for test execution
+
     """
     test_type = test_types.Medium
-    memcheck_check_leaks = True
     match = True
 
     def __init__(self):

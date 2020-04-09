@@ -2,8 +2,16 @@
 # Copyright 2019-2020, Intel Corporation
 #
 
-"""Test framework public interface"""
+"""Test framework public interface.
 
+All test framework modules that are meant to be used by the test developer
+are collected here. It then can be convienently imported by the TESTS.py file:
+
+import testframework as t
+"""
+
+
+# add unittest modules to the visible modules path
 import sys
 from os import path
 
