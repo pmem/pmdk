@@ -119,19 +119,6 @@ config = {
     'timeout': '3m',
 
     #
-    # If you don't have real PMEM or PMEM emulation set up and/or the
-    # filesystem does not support MAP_SYNC flag, but still want to test PMEM
-    # codepaths set fs_dir_force_pmem to 1 or 2. It will set PMEM_IS_PMEM_FORCE
-    # to 1 for tests that require pmem.
-    #
-    # Setting this flag to 1, if the PMEM_FS_DIR filesystem supports MAP_SYNC
-    # will cause an error. This flag cannot be used with filesystems which
-    # support MAP_SYNC because it would prevent from testing the target
-    # PMEM codepaths. If you want to ignore this error set the value to 2.
-    #
-    'fs_dir_force_pmem': 0,
-
-    #
     # In case of test fail all log files will be written. You can specify how
     # many lines should be written by setting this variable. If 'dump_lines' is
     # not set default value is 30.
