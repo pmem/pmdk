@@ -50,7 +50,7 @@
     <ProjectGuid>{740ED97D-005F-4F58-98B2-4EF5EF5776E8}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>obj_memops</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

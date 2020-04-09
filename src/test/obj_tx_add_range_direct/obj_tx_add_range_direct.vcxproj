@@ -14,7 +14,7 @@
     <ProjectGuid>{89F947CA-DDEF-4131-8AFB-584ABA4A1302}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>obj_tx_add_range_direct</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

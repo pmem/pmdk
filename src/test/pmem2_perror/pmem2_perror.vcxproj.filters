@@ -15,26 +15,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TESTS.py">
-      <Filter>Test Scripts</Filter>
-    </None>
-    <None Include="test0.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="test1.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="test2.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="test3.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="test4.log.match">
-      <Filter>Match Files</Filter>
-    </None>
-    <None Include="test5.log.match">
-      <Filter>Match Files</Filter>
-    </None>
+    <None Include="test0.log.match" />
+    <None Include="test1.log.match" />
+    <None Include="test2.log.match" />
+    <None Include="test3.log.match" />
+    <None Include="test4.log.match" />
+    <None Include="test5.log.match" />
+    <None Include="TESTS.py" />
   </ItemGroup>
 </Project>

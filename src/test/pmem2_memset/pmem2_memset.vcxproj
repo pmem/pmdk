@@ -36,7 +36,7 @@
     <ProjectGuid>{6770917C-5B8E-49F1-9297-163FAB76DAFB}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>pmem2_memset</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

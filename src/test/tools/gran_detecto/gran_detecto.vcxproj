@@ -14,7 +14,7 @@
     <ProjectGuid>{A18B076A-CE8C-49A6-8B80-F02843E4BF0A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>gran_detecto</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

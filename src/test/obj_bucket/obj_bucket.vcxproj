@@ -61,7 +61,7 @@
     <ProjectGuid>{8A4872D7-A234-4B9B-8215-82C6BB15F3A2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>obj_bucket</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
