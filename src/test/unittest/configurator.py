@@ -25,7 +25,7 @@ except ImportError:
 class _ConfigFromDict:
     """
     Class fields are created from provided dictionary. Used for creating
-    a final config object
+    a final config object.
     """
     def __init__(self, dict_):
         for k, v in dict_.items():
@@ -143,7 +143,23 @@ def _str2ctx(config):
 
 
 class Configurator():
-    """Parser for user test configuration"""
+    """Parser for user test configuration.
+
+    Configuration is generated upon two sources: testconfig.py
+    file and main script (RUNTESTS.py or TESTS.py files)
+    command line arguments.
+    Since these sources cannot change during script execution,
+    Configurator class can be initialized mulitple times
+    throughout the implementation and always returns the same
+    configuration result.
+
+    Values from testconfig.py are overriden by respective
+    values from command line arguments - provided the latter occur.
+
+    Attributes:
+        config: final test configuration meant to be used by
+            the user
+    """
 
     def __init__(self):
         self.config = self.parse_config()

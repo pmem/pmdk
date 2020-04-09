@@ -1,7 +1,17 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2019-2020, Intel Corporation
 #
-"""Set of classes that represent the context of single test execution"""
+
+"""
+Set of classes that represent the context of single test execution
+as well as functions used for setting test requirements and adding
+test parameters.
+
+The test context is visible to the RUNTESTS main script
+as well as the test user as a Context class.
+Context class is constructed with use of 'elements' classes, that are
+affiliated with test requirements and test parameters.
+"""
 
 import os
 import shlex
@@ -39,22 +49,47 @@ def expand(*classes):
 
 
 class ContextBase:
-    """Context basic interface and low-level utilities"""
+    """Context basic interface and low-level utilities
 
-    def __init__(self, build, *args, **kwargs):
+    Main context class responsibility is to manage context elements
+    appended to it (such as Valgrind, filesystem type, etc.),
+    which provice concrete contextualized behaviour implementation.
+
+    Attributes:
+        _elems (list): list of context elements, such as Valgrind tool,
+            filesystem type, etc.
+        cmd_prefix (str): test execution command prefix - utilized by
+            additional test execution tools, such as Valgrind.
+            Defaults to empty string.
+        build (Build): test build
+
+    """
+
+    def __init__(self, build, **elements):
+        """
+        Args:
+            build (Build): test execution build type
+            **elements: context elements stored as ContextBase attributes
+                named by keyword argument key.
+                The element is therefore accessible from ContextBase class.
+                Apart from that, below element class methods and attributes
+                are handled (if present) by ContextBase class:
+
+                env (dict): environment variables set by element
+                cmd (string): set to cmd_prefix
+                setup, check, clean methods: called by corresponding
+                    ContextBase methods which are in turn called in
+                    Basetest._execute()
+
+        """
         self._elems = []
         self._env = {}
         self.cmd_prefix = ''
         self.build = build
 
-        # for positional arguments, each arg is added to the anonymous
-        # context elements list
-        for arg in args:
-            self.add_ctx_elem(arg)
-
-        # for keyword arguments, each kwarg value is additionally set as a
-        # context attribute with its key assigned as an attribute name.
-        for k, v in kwargs.items():
+        # for keyword arguments, each kwarg value is set as a
+        # context attribute with its key used as an attribute name.
+        for k, v in elements.items():
             self.add_ctx_elem(v)
             setattr(self, str(k), v)
 
@@ -99,6 +134,10 @@ class ContextBase:
         with element's environment variables (if present)
         """
         self._elems.append(elem)
+
+        # if element has a name attribute, it is accesible from Context
+        # through it, otherwise its attribute name is generated
+        # from its string representation
         if hasattr(elem, 'name'):
             setattr(self, elem.name, elem)
         else:
@@ -149,10 +188,12 @@ class ContextBase:
 
     @property
     def env(self):
+        """Get context environment variables"""
         return self._env
 
     @property
     def tools(self):
+        """Get test tools"""
         return Tools(self.env, self.build)
 
     def dump_n_lines(self, file, n=-1):
@@ -238,7 +279,27 @@ class Context(ContextBase):
 
     def exec(self, cmd, *args, expected_exitcode=0, stderr_file=None,
              stdout_file=None):
-        """Execute binary in current test context"""
+        """Execute binary in current test context as a separate process.
+
+            Execution takes place in test cwd and uses environment variables
+            stored in Context 'env' attribute. Timeout for the execution
+            is set based on the execution configuration.
+
+           Args:
+               cmd (str): command to be executed
+               *args: Variable length command arguments list
+               expected_exitcode (int): if process exit code differs from
+                   expected, Fail is thrown. Defaults to 0. Ignored
+                   if set to None.
+               stderr_file (str): path to file in which stderr output is
+                   stored. Stored in a string if None. Defaults to None.
+               stdout_file (str): path to file in which stdout output is
+                   stored. Stored in a string if None. Defaults to None.
+
+                If neither stderr_file nor stdout_file are set, both outputs
+                are merged into single stdout output and stored in a string.
+
+        """
 
         tmp = self._env.copy()
         futils.add_env_common(tmp, os.environ.copy())
@@ -294,7 +355,10 @@ class Context(ContextBase):
         self.msg.print_verbose(proc.stdout)
 
     def create_holey_file(self, size, path, mode=None):
-        """Create a new file with the selected size and name"""
+        """
+        Create a new file in test testdir
+        with the selected size and name.
+        """
         filepath = os.path.join(self.testdir, path)
         with open(filepath, 'w') as f:
             if size > 0:
@@ -305,7 +369,10 @@ class Context(ContextBase):
         return filepath
 
     def create_non_zero_file(self, size, path, mode=None):
-        """Create a new non-zeroed file with the selected size and name"""
+        """
+        Create a new non-zeroed file in test testdir
+        with the selected size and name
+        """
         filepath = os.path.join(self.testdir, path)
         with open(filepath, 'w') as f:
             f.write('\132' * size)
@@ -327,14 +394,18 @@ class Context(ContextBase):
         return filepath
 
     def require_free_space(self, space):
+        """
+        Skip test if not enough free space is available in test testdir
+        """
         if self.get_free_space(self.testdir) < space:
             futils.skip('Not enough free space ({} MiB required)'
                         .format(space / MiB))
 
     def mkdirs(self, path, mode=None):
         """
-        Creates directory along with all parent directories required. In the
-        case given path already exists do nothing.
+        Creates directory in test testdir along with all parent
+        directories required. In the case given path already exists
+        do nothing.
         """
         dirpath = os.path.join(self.testdir, path)
         if mode is None:
@@ -344,7 +415,21 @@ class Context(ContextBase):
 
 
 class CtxType(type):
-    """Metaclass for context classes that can stand for multiple classes"""
+    """
+    Metaclass for context classes that can stand for multiple classes
+
+    Attributes:
+        is_preferred (bool): if True, context class is preferred
+            to be chosen in case of Any execution setting.
+        explicit (bool): if True, the context class is executed
+            only if explicitly requested by test implementation,
+            i. e. it is ignored if specified only in external
+            configuration.
+        includes: list of context classes included by this class,
+            e. g. Short and Medium test types are included by
+            Check test type
+
+    """
     def __init__(cls, name, bases, dct):
         type.__init__(cls, name, bases, dct)
 
@@ -422,15 +507,45 @@ def _req_prefix(attr):
 
 
 def add_requirement(tc, attr, value, **kwargs):
-    """Add requirement to the test"""
+    """Add requirement to the test
+
+    Requirements are added to the test as attributes dynamically
+    appended to the test class. Their names are
+    additionaly mangled with _req_prefix() function
+    to avoid accidental overwriting of any existing
+    test class attributes as well as unnecessary access by the
+    test user - these attributes are meant to be used directly
+    only by requirements handling functions.
+
+    Args:
+        tc (BaseTest): test case to which the requirement
+            is added
+        attr (str): attribute name of the requirement.
+            Additionaly mangled with _req_prefix() function.
+        value: value of the requirement
+        **kwargs: additional keyword arguments that may be used
+            by requirement implementation
+    """
     setattr(tc, _req_prefix(attr), value)
     setattr(tc, _req_prefix('{}_kwargs'.format(attr)), kwargs)
 
 
 def get_requirement(tc, attr, default):
     """
-    Get test requirement set to attribute 'attr', return default
-    if not found
+    Get test requirement added with add_requirement() function
+    with specific attribute name.
+
+    Args:
+        tc (BaseTest): test case class into which requirements were
+            added
+        attr (str): requirement attribute name - as previously added by
+            add_requirement() function
+        default: default requirement value if not found
+
+    Returns:
+        requirement value, requirement keyword arguments
+            (as provided by 'kwargs' argument to add_requirement() function)
+
     """
     ret_val = default
     ret_kwargs = {}
@@ -448,9 +563,8 @@ class TestParam:
     TestParam manages single test parameter provided to test with add_params()
     decorator.
     Test parameters are added to context class as its elements - therefore the
-    'value' object may implement setup(), check() and clean() which will be
-    delegated to by TestParam class if context setup(), check() and
-    clean() methods are called.
+    'value' object may implement interface handled by ContextBase class, such
+    as setup() and clean()
     """
     def __init__(self, name, value):
         self.name = name
@@ -480,14 +594,14 @@ PARAMS_ATTR = '_params_'
 
 def add_params(name, values):
     """
-    Add parameters to test case.
+    Add parameters to the test case.
 
     Parameters will be accessible from test through context 'name' attribute.
     The value of single parameter can be accessed by calling this attribute,
     e.g. for:
     add_params('param', params_list)
-    single parameter provided within 'params_list' is accessible through:
-    ctx.param()
+    single parameter provided within 'params_list' is accessible
+    by calling ctx.param().
     """
     params = [TestParam(name, v) for v in values]
 
