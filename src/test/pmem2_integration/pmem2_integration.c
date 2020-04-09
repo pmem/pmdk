@@ -739,6 +739,78 @@ test_deep_sync_overlap(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_deep_sync_valid_deep_false -- perform valid deep_sync for whole map
+ * when deep_flush is not available
+ */
+static int
+test_deep_sync_valid_deep_false(const struct test_case *tc,
+	int argc, char *argv[])
+{
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len;
+	PMEM2_SOURCE_SIZE(src, &len);
+
+	struct pmem2_map *map = map_valid(cfg, src, len);
+
+	char *addr = pmem2_map_get_address(map);
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
+	memset(addr, 0, len);
+	persist_fn(addr, len);
+
+	int ret = pmem2_deep_sync(map, addr, len);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_NOSUPP);
+
+	pmem2_unmap(&map);
+	PMEM2_CONFIG_DELETE(&cfg);
+	PMEM2_SOURCE_DELETE(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_deep_sync_valid_deep_true -- perform valid deep_sync for whole map
+ * when deep_flush is available
+ */
+static int
+test_deep_sync_valid_deep_true(const struct test_case *tc,
+	int argc, char *argv[])
+{
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+
+	size_t len;
+	PMEM2_SOURCE_SIZE(src, &len);
+
+	struct pmem2_map *map = map_valid(cfg, src, len);
+
+	char *addr = pmem2_map_get_address(map);
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
+	memset(addr, 0, len);
+	persist_fn(addr, len);
+
+	int ret = pmem2_deep_sync(map, addr, len);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_unmap(&map);
+	PMEM2_CONFIG_DELETE(&cfg);
+	PMEM2_SOURCE_DELETE(&src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -757,6 +829,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_deep_sync_e_range_before),
 	TEST_CASE(test_deep_sync_slice),
 	TEST_CASE(test_deep_sync_overlap),
+	TEST_CASE(test_deep_sync_valid_deep_false),
+	TEST_CASE(test_deep_sync_valid_deep_true),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

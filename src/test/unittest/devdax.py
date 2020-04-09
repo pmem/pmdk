@@ -18,16 +18,29 @@ class DevDax():
     """
     Class representing dax device and its parameters
     """
-    def __init__(self, name, alignment=None, min_size=None, max_size=None):
+    def __init__(self, name, alignment=None, min_size=None,
+                 max_size=None, deep_flush=None):
         self.name = name
         self.path = None
         self._req_alignment = alignment
         self._req_min_size = min_size
         self._req_max_size = max_size
+        self._req_deep_flush = deep_flush
         self.assigned = False
 
     def __str__(self):
         return self.name
+
+    def check_deep_flush_file(self, path):
+        """
+        Check if deep_flush file exists.
+        """
+
+        region_id = path.partition("/dev/dax")[2].partition(".")[0]
+        path_deep_flush = os.path.join("/sys/bus/nd/devices",
+                                       region_id, "deep_flush")
+
+        return os.path.isfile(path_deep_flush)
 
     def try_assign(self, path):
         """
@@ -46,6 +59,12 @@ class DevDax():
         if self._req_max_size and p_size > self._req_max_size:
             return False
         if self._req_alignment and p_align != self._req_alignment:
+            return False
+
+        is_deep_flush = self.check_deep_flush_file(path)
+
+        if (self._req_deep_flush is True and is_deep_flush is False) or \
+           (self._req_deep_flush is False and is_deep_flush is True):
             return False
 
         self.path = path

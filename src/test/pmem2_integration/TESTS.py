@@ -31,6 +31,24 @@ class PMEM2_INTEGRATION_DEV_DAXES(t.Test):
         ctx.exec('pmem2_integration', self.test_case, dd.path)
 
 
+@t.require_devdax(t.DevDax('devdax', deep_flush=False))
+class PMEM2_INTEGRATION_DEV_DAXES_DEEP_FALSE(t.Test):
+    test_type = t.Medium
+
+    def run(self, ctx):
+        dd = ctx.devdaxes.devdax
+        ctx.exec('pmem2_integration', self.test_case, dd.path)
+
+
+@t.require_devdax(t.DevDax('devdax', deep_flush=True))
+class PMEM2_INTEGRATION_DEV_DAXES_DEEP_TRUE(t.Test):
+    test_type = t.Medium
+
+    def run(self, ctx):
+        dd = ctx.devdaxes.devdax
+        ctx.exec('pmem2_integration', self.test_case, dd.path)
+
+
 class PMEM2_GRANULARITY(t.Test):
     test_type = t.Medium
     test_case = 'test_granularity'
@@ -229,8 +247,13 @@ class TEST27(PMEM2_INTEGRATION):
     test_case = "test_deep_sync_overlap"
 
 
-# XXX: add test cases with:
-# @t.require_devdax(t.DevDax('devdax', deep_flush=True))
-# @t.require_devdax(t.DevDax('devdax', deep_flush=False))
-# if deep_flush == 1 then expected return code 0
-# if deep_flush == 0 then expected return code PMEM2_E_NOSUPP
+@t.windows_exclude
+class TEST28(PMEM2_INTEGRATION_DEV_DAXES_DEEP_FALSE):
+    """test deep sync when deep_flush is not available"""
+    test_case = "test_deep_sync_valid_deep_false"
+
+
+@t.windows_exclude
+class TEST29(PMEM2_INTEGRATION_DEV_DAXES_DEEP_TRUE):
+    """test deep sync when deep_flush is available"""
+    test_case = "test_deep_sync_valid_deep_true"
