@@ -56,3 +56,7 @@ class TEST3(EX_LIBPMEM2):
             ctx.exec(example_path, "add", file_path, x, x)
         ctx.exec(example_path, "check", file_path)
         ctx.exec(example_path, "print", file_path, stdout_file='out3.log')
+
+
+# XXX libpmem2/unsafe_shutdowns example needs a requirement for
+# File System DAX / Device DAX with available USC
