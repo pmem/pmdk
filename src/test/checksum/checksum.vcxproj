@@ -14,7 +14,7 @@
     <ProjectGuid>{AF0B7480-EBE3-486B-B0C8-134910BC9324}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>checksum</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

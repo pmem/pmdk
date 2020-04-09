@@ -41,7 +41,7 @@
     <ProjectGuid>{2FA3155B-6F26-4D15-AC03-9D82D48DBC42}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>libpmemcore</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

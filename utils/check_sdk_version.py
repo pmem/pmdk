@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 
 import argparse
 import os
@@ -10,7 +10,7 @@ import shlex
 from xml.dom import minidom
 from xml.parsers.expat import ExpatError
 
-VALID_SDK_VERSION = '10.0.16299.0'
+VALID_SDK_VERSION = '10.0.17134.0'
 
 
 def get_vcxproj_files(root_dir, ignored):

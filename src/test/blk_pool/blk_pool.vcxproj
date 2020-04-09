@@ -89,7 +89,7 @@
     <ProjectGuid>{95B683BD-B9DC-400F-9BC0-8F1505F08BF5}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>blk_pool</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
