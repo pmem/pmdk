@@ -93,12 +93,10 @@
     <ClCompile Include="..\..\libpmemobj\ulog.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem\x86_64\cpu.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\windows\win_mmap.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="TEST0.PS1">
