@@ -27,7 +27,7 @@ class Base(t.Test):
 # These tests last too long under drd/helgrind/memcheck/pmemcheck
 # Exceptions: workloads no. 6 and 8 under memcheck/pmemcheck (run with TEST1)
 @t.require_valgrind_disabled('drd', 'helgrind', 'memcheck', 'pmemcheck')
-@t.add_params('workload', [0, 1, 2, 3, 4, 5, 7])
+@t.add_params('workload', [0, 1, 2, 3, 4, 5, 7, 9])
 class TEST0(Base):
     pass
 
