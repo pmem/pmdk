@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 
 #
 # src/test/obj_fragmentation2/Makefile -- build obj_fragmentation2 test
@@ -10,3 +10,5 @@ OBJS = obj_fragmentation2.o
 LIBPMEMOBJ=y
 
 include ../Makefile.inc
+
+LIBS += -lm
