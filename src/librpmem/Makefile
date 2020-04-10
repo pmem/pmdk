@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 
 #
 # src/librpmem/Makefile -- Makefile for librpmem
@@ -36,8 +36,8 @@ include ../Makefile.inc
 
 ifeq ($(BUILD_RPMEM),y)
 LIBS += -pthread
-LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+LIBS += $(LIBFABRIC_LIBS)
+CFLAGS += $(LIBFABRIC_CFLAGS)
 CFLAGS += -I. -I../rpmem_common
 CFLAGS += -DRPMEMC_LOG_RPMEM
 endif

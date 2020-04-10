@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2020, Intel Corporation
 
 #
 # examples/Makefile.inc -- build the Persistent Memory Development Kit examples
@@ -102,7 +102,7 @@ all: $(TMP_HEADERS)
 	$(call check-cstyle, $<, $@)
 
 $(PROGS): | $(TMP_HEADERS)
-	LD_LIBRARY_PATH=$(LIBNDCTL_LD_LIBRARY_PATHS):$(LD_LIBRARY_PATH) $(LINKER) -o $@ $^ $(LDFLAGS) $(LIBS)
+	LD_LIBRARY_PATH=$(LIBFABRIC_LD_LIBRARY_PATHS):$(LIBNDCTL_LD_LIBRARY_PATHS):$(LD_LIBRARY_PATH) $(LINKER) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 lib%.o:
 	$(LD) -o $@ -r $^

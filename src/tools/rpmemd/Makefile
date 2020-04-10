@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 #
 # Makefile -- top Makefile for rpmemd
 #
@@ -31,10 +31,10 @@ CFLAGS += -DRPMEMC_LOG_RPMEMD
 ifneq ($(DEBUG),)
 CFLAGS += -DDEBUG
 endif
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+CFLAGS += $(LIBFABRIC_CFLAGS)
 
 LIBS += -pthread
-LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
+LIBS += $(LIBFABRIC_LIBS)
 
 INSTALL_TARGET=y
 
