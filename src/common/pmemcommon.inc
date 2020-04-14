@@ -12,7 +12,6 @@ SOURCE +=\
 	$(COMMON)/ctl_sds.c\
 	$(COMMON)/ctl_fallocate.c\
 	$(COMMON)/ctl_cow.c\
-	$(call osdep, $(COMMON)/extent,.c)\
 	$(COMMON)/file.c\
 	$(COMMON)/file_posix.c\
 	$(COMMON)/mmap.c\
@@ -37,11 +36,13 @@ ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
 	$(PMEM2)/auto_flush_linux.c\
 	$(PMEM2)/deep_sync_linux.c\
+	$(PMEM2)/extent_linux.c\
 	$(PMEM2)/pmem2_utils_linux.c
 else
 SOURCE +=\
 	$(PMEM2)/auto_flush_none.c\
 	$(PMEM2)/deep_sync_none.c\
+	$(PMEM2)/extent_none.c\
 	$(PMEM2)/pmem2_utils_other.c
 endif
 

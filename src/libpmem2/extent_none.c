@@ -2,15 +2,9 @@
 /* Copyright 2018-2020, Intel Corporation */
 
 /*
- * extent_freebsd.c - implementation of the FreeBSD fs extent query API
- * XXX THIS IS CURRENTLY A DUMMY MODULE.
+ * extent_none.c - fake implementation of the FS extent query API
  */
 
-#include <string.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-
-#include "file.h"
 #include "out.h"
 #include "extent.h"
 

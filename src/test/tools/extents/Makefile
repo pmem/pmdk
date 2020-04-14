@@ -16,9 +16,14 @@ vpath %.c $(TOP)/src/libpmem2
 
 TARGET = extents
 OBJS = extents.o\
-	$(call osdep, extent,.o)\
 	pmem2_utils_linux.o\
 	pmem2_utils.o
+
+ifeq ($(OS_KERNEL_NAME),Linux)
+OBJS += extent_linux.o
+else
+OBJS += extent_none.o
+endif
 
 LIBPMEMCORE=y
 
