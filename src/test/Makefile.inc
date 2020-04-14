@@ -159,11 +159,11 @@ endif
 ifeq ($(LIBPMEM2), internal-debug)
 LIBPMEMCORE=internal-debug
 OBJS +=\
-	$(TOP)/src/debug/libpmem2/libpmem2.o\
+	$(TOP)/src/debug/libpmem2/badblocks.o\
+	$(TOP)/src/debug/libpmem2/badblocks_$(OS_DIMM).o\
 	$(TOP)/src/debug/libpmem2/config.o\
-	$(TOP)/src/debug/libpmem2/source.o\
-	$(TOP)/src/debug/libpmem2/source_posix.o\
 	$(TOP)/src/debug/libpmem2/errormsg.o\
+	$(TOP)/src/debug/libpmem2/libpmem2.o\
 	$(TOP)/src/debug/libpmem2/map.o\
 	$(TOP)/src/debug/libpmem2/map_posix.o\
 	$(TOP)/src/debug/libpmem2/memops_generic.o\
@@ -172,18 +172,22 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/pmem2.o\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/debug/libpmem2/ravl.o\
+	$(TOP)/src/debug/libpmem2/source.o\
+	$(TOP)/src/debug/libpmem2/source_posix.o\
 	$(TOP)/src/debug/libpmem2/usc_$(OS_DIMM).o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
-	$(TOP)/src/debug/libpmem2/pmem2_utils_linux.o\
 	$(TOP)/src/debug/libpmem2/auto_flush_linux.o\
-	$(TOP)/src/debug/libpmem2/deep_sync_linux.o
+	$(TOP)/src/debug/libpmem2/deep_sync_linux.o\
+	$(TOP)/src/debug/libpmem2/extent_linux.o\
+	$(TOP)/src/debug/libpmem2/pmem2_utils_linux.o
 else
 OBJS +=\
-	$(TOP)/src/debug/libpmem2/pmem2_utils_other.o\
 	$(TOP)/src/debug/libpmem2/auto_flush_none.o\
-	$(TOP)/src/debug/libpmem2/deep_sync_none.o
+	$(TOP)/src/debug/libpmem2/deep_sync_none.o\
+	$(TOP)/src/debug/libpmem2/extent_none.o\
+	$(TOP)/src/debug/libpmem2/pmem2_utils_other.o
 endif
 
 ifeq ($(OS_DIMM),ndctl)
@@ -203,6 +207,8 @@ ifeq ($(LIBPMEM2), internal-nondebug)
 LIBPMEMCORE=internal-nondebug
 OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/libpmem2.o\
+	$(TOP)/src/nondebug/libpmem2/badblocks.o\
+	$(TOP)/src/nondebug/libpmem2/badblocks_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/libpmem2/config.o\
 	$(TOP)/src/nondebug/libpmem2/source.o\
 	$(TOP)/src/nondebug/libpmem2/source_posix.o\
@@ -219,14 +225,16 @@ OBJS +=\
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
-	$(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o\
 	$(TOP)/src/nondebug/libpmem2/auto_flush_linux.o\
-	$(TOP)/src/nondebug/libpmem2/deep_sync_linuc.o
+	$(TOP)/src/nondebug/libpmem2/deep_sync_linuc.o\
+	$(TOP)/src/nondebug/libpmem2/extent_linux.o\
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils_linux.o
 else
 OBJS +=\
-	$(TOP)/src/nondebug/libpmem2/pmem2_utils_other.o\
 	$(TOP)/src/nondebug/libpmem2/auto_flush_none.o\
-	$(TOP)/src/nondebug/libpmem2/deep_sync_none.o
+	$(TOP)/src/nondebug/libpmem2/deep_sync_none.o\
+	$(TOP)/src/nondebug/libpmem2/extent_none.o\
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils_other.o
 endif
 
 ifeq ($(OS_DIMM),ndctl)
