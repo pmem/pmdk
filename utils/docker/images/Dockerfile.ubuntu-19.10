@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 
 #
 # Dockerfile - a 'recipe' for Docker to build an image of ubuntu-based
@@ -11,14 +11,6 @@ FROM ubuntu:19.10
 MAINTAINER marcin.slusarz@intel.com
 
 ENV DEBIAN_FRONTEND noninteractive
-
-# libfabric (optional if libfabric-dev >= 1.4.2 is installed)
-ENV FABRIC_DEPS "autoconf \
-	automake \
-	build-essential \
-	libtool \
-	unzip \
-	wget"
 
 ENV VALGRIND_DEPS "autoconf \
 	automake \
@@ -74,13 +66,10 @@ ENV MISC_DEPS "clang \
 # Copy install valgrind script
 COPY install-valgrind.sh install-valgrind.sh
 
-# Copy install libfabric script
-COPY install-libfabric.sh install-libfabric.sh
-
-# Update the Apt cache and install basic tools
+# Update the Apt cache and install everything
+# Note: libfabric-dev is unavailable in 19.10 for PPC64
 RUN apt-get update && apt-get dist-upgrade -y \
 	&& apt-get install -y --no-install-recommends \
-	$FABRIC_DEPS \
 	$VALGRIND_DEPS \
 	$BASE_DEPS \
 	$BENCH_DEPS \
@@ -91,8 +80,8 @@ RUN apt-get update && apt-get dist-upgrade -y \
 	$CODECOV_DEPS \
 	$COVERITY_DEPS \
 	$MISC_DEPS \
+	&& (apt-cache show libfabric-dev >/dev/null 2>&1 && apt-get install -y --no-install-recommends libfabric-dev libfabric-bin || true) \
 	&& ./install-valgrind.sh ubuntu \
-	&& ./install-libfabric.sh \
 	&& rm -rf /var/lib/apt/lists/*
 
 # Add user
