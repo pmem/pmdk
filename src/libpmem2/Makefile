@@ -20,7 +20,6 @@ SOURCE =\
 	memops_generic.c\
 	map.c\
 	map_posix.c\
-	$(call osdep, extent,.c)\
 	persist.c\
 	persist_posix.c\
 	pmem2.c\
@@ -33,12 +32,14 @@ ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
 	auto_flush_linux.c\
 	deep_sync_linux.c\
+	extent_linux.c\
 	pmem2_utils_linux.c
 else
 SOURCE +=\
-	pmem2_utils_other.c\
 	auto_flush_none.c\
-	deep_sync_none.c
+	deep_sync_none.c\
+	extent_none.c\
+	pmem2_utils_other.c
 endif
 
 ifeq ($(OS_DIMM),ndctl)
