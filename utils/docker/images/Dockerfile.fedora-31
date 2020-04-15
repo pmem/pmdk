@@ -8,7 +8,7 @@
 
 # Pull base image
 FROM fedora:31
-MAINTAINER marcin.slusarz@intel.com
+MAINTAINER piotr.balcer@intel.com
 
 # libfabric (optional if libfabric-dev >= 1.4.2 is installed)
 ENV FABRIC_DEPS "\
