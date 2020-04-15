@@ -82,7 +82,7 @@ struct map_tracker {
 	PMDK_SORTEDQ_ENTRY(map_tracker) entry;
 	uintptr_t base_addr;
 	uintptr_t end_addr;
-	int region_id;
+	unsigned region_id;
 	enum pmem_map_type type;
 #ifdef _WIN32
 	/* Windows-specific data */
