@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * file.h -- internal definitions for file module
@@ -53,7 +53,7 @@ int util_file_exists(const char *path);
 enum file_type util_stat_get_type(const os_stat_t *st);
 enum file_type util_fd_get_type(int fd);
 enum file_type util_file_get_type(const char *path);
-int util_ddax_region_find(const char *path);
+int util_ddax_region_find(const char *path, unsigned *region_id);
 ssize_t util_file_get_size(const char *path);
 ssize_t util_fd_get_size(int fd);
 size_t util_file_device_dax_alignment(const char *path);

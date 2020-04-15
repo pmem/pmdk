@@ -19,6 +19,12 @@ OBJS = extents.o\
 	pmem2_utils_linux.o\
 	pmem2_utils.o
 
+ifeq ($(OS_DIMM),ndctl)
+OBJS += region_namespace_ndctl.o
+else
+OBJS += region_namespace_none.o
+endif
+
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS += extent_linux.o
 else
