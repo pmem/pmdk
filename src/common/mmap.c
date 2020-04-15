@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * mmap.c -- mmap utilities
@@ -310,8 +310,15 @@ util_range_register(const void *addr, size_t len, const char *path,
 	mt->base_addr = (uintptr_t)addr;
 	mt->end_addr = mt->base_addr + len;
 	mt->type = type;
-	if (type == PMEM_DEV_DAX)
-		mt->region_id = util_ddax_region_find(path);
+	if (type == PMEM_DEV_DAX) {
+		unsigned region_id;
+		int ret = util_ddax_region_find(path, &region_id);
+		if (ret < 0) {
+			ERR("cannot detect region_id");
+			return -1;
+		}
+		mt->region_id = region_id;
+	}
 
 	util_rwlock_wrlock(&Mmap_list_lock);
 

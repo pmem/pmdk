@@ -211,7 +211,7 @@ util_file_device_dax_alignment(const char *path)
  * util_ddax_region_find -- returns Device DAX region id
  */
 int
-util_ddax_region_find(const char *path)
+util_ddax_region_find(const char *path, unsigned *region_id)
 {
 	LOG(3, "path \"%s\"", path);
 
@@ -222,7 +222,7 @@ util_ddax_region_find(const char *path)
 		return -1;
 	}
 
-	int ret = pmem2_device_dax_region_find(&st);
+	int ret = pmem2_device_dax_region_find(&st, region_id);
 	if (ret < 0) {
 		errno = pmem2_err_to_errno(ret);
 		return -1;

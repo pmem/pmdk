@@ -24,6 +24,8 @@ int ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			struct ndctl_region **pregion,
 			struct ndctl_namespace **pndns);
 
+int ndctl_get_region_id(const os_stat_t *st, unsigned *region_id);
+
 #ifdef __cplusplus
 }
 #endif

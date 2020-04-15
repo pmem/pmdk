@@ -18,6 +18,9 @@ OBJS += pmem2_persist.o\
 	persist.o\
 	memops_generic.o\
 	deep_sync_linux.o\
-	pmem2_utils_linux.o
+	pmem2_utils_linux.o\
+	ndctl_region_namespace.o
+
+LINK_NDCTL=y
 
 include ../Makefile.inc

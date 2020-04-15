@@ -23,7 +23,7 @@
  * on given region_id
  */
 int
-pmem2_deep_sync_write(int region_id)
+pmem2_deep_sync_write(unsigned region_id)
 {
 	LOG(3, "region_id %d", region_id);
 
@@ -31,7 +31,7 @@ pmem2_deep_sync_write(int region_id)
 	int deep_flush_fd;
 
 	if (util_snprintf(deep_flush_path, PATH_MAX,
-		"/sys/bus/nd/devices/region%d/deep_flush", region_id) < 0) {
+		"/sys/bus/nd/devices/region%u/deep_flush", region_id) < 0) {
 		ERR("!snprintf");
 		return PMEM2_E_ERRNO;
 	}
@@ -75,8 +75,9 @@ pmem2_deep_sync_dax(struct pmem2_map *map)
 			return ret;
 		}
 	} else if (type == PMEM2_FTYPE_DEVDAX) {
-		int region_id = ret = pmem2_device_dax_region_find(
-				&map->src_fd_st);
+		unsigned region_id;
+		int ret = pmem2_device_dax_region_find(&map->src_fd_st,
+				&region_id);
 		if (ret < 0) {
 			LOG(1, "cannot find region id for stat %p",
 				&map->src_fd_st);
