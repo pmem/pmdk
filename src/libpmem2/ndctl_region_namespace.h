@@ -10,6 +10,7 @@
 #define PMDK_NDCTL_REGION_NAMESPACE_H 1
 
 #include "os.h"
+#include <ndctl/libndctl.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +24,8 @@ extern "C" {
 int ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			struct ndctl_region **pregion,
 			struct ndctl_namespace **pndns);
+
+int devdax_get_region_id(const os_stat_t *st, unsigned *region_id);
 
 #ifdef __cplusplus
 }

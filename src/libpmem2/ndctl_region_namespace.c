@@ -220,3 +220,39 @@ ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 
 	return 0;
 }
+
+/*
+ * devdax_region_get_id -- returns the region id
+ */
+int
+devdax_get_region_id(const os_stat_t *st, unsigned *region_id)
+{
+	LOG(3, "st %p region_id %u", st, *region_id);
+
+	struct ndctl_region *region;
+	struct ndctl_namespace *ndns;
+	struct ndctl_ctx *ctx;
+
+	if (ndctl_new(&ctx)) {
+		ERR("!ndctl_new");
+		return PMEM2_E_ERRNO;
+	}
+
+	int rv = ndctl_region_namespace(ctx, st, &region, &ndns);
+	if (rv) {
+		LOG(1, "getting region and namespace failed");
+		goto end;
+	}
+
+	if (!region) {
+		ERR("region unknown");
+		goto end;
+	}
+
+	*region_id = ndctl_region_get_id(region);
+	return 0;
+
+end:
+	ndctl_unref(ctx);
+	return PMEM2_E_ERRNO;
+}

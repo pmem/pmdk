@@ -49,4 +49,6 @@ endif
 
 ifeq ($(OS_DIMM),ndctl)
 SOURCE += $(PMEM2)/ndctl_region_namespace.c
+else
+SOURCE += $(PMEM2)/region_namespace_none.c
 endif
