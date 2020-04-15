@@ -57,16 +57,3 @@ pmem2_device_dax_alignment_from_stat(const os_stat_t *st, size_t *alignment)
 	ASSERTinfo(0, err);
 	return PMEM2_E_NOSUPP;
 }
-
-/*
- * pmem2_device_davx_region_find -- returns Device DAX region id
- */
-int
-pmem2_device_dax_region_find(const os_stat_t *st)
-{
-	const char *err =
-		"BUG: pmem2_device_dax_region_find should never be called on this OS";
-	ERR("%s", err);
-	ASSERTinfo(0, err);
-	return PMEM2_E_NOSUPP;
-}

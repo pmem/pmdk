@@ -37,7 +37,7 @@ pmem2_deep_sync_dax(struct pmem2_map *map)
  * on given region_id (Device Dax only)
  */
 int
-pmem2_deep_sync_write(int region_id)
+pmem2_deep_sync_write(unsigned region_id)
 {
 	const char *err =
 		"BUG: pmem2_deep_sync_write should never be called on this OS";
