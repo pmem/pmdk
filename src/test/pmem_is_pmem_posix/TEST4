@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 
 #
 # src/test/pmem_is_pmem_posix/TEST4 -- unit test for pmem_is_pmem
@@ -10,13 +10,14 @@
 
 require_test_type medium
 require_fs_type none
+require_dax_devices 1
 
 setup
 
 # test adding/removing ranges to/from map tracking list
 
 expect_normal_exit ./pmem_is_pmem_posix$EXESUFFIX\
-	a 0x000000010000 0x10000 DEV_DAX\
+	a 0x000000010000 0x10000 DEV_DAX ${DEVICE_DAX_PATH[0]}\
 	t 0x000000010000 0x10000\
 	t 0x000000020000 0x10000\
 	t 0x000000030000 0x10000\
@@ -28,7 +29,7 @@ expect_normal_exit ./pmem_is_pmem_posix$EXESUFFIX\
 	t 0x000000030000 0x10000\
 	t 0x000000040000 0x10000\
 	t 0x000000010000 0x40000\
-	a 0x000000030000 0x20000 DEV_DAX\
+	a 0x000000030000 0x20000 DEV_DAX ${DEVICE_DAX_PATH[0]}\
 	t 0x000000010000 0x10000\
 	t 0x000000020000 0x10000\
 	t 0x000000030000 0x10000\
@@ -47,8 +48,8 @@ expect_normal_exit ./pmem_is_pmem_posix$EXESUFFIX\
 	t 0x000000030000 0x10000\
 	t 0x000000040000 0x10000\
 	t 0x000000010000 0x40000\
-	a 0x000000030000 0x20000 DEV_DAX\
-	a 0x000000020000 0x20000 DEV_DAX\
+	a 0x000000030000 0x20000 DEV_DAX ${DEVICE_DAX_PATH[0]}\
+	a 0x000000020000 0x20000 DEV_DAX ${DEVICE_DAX_PATH[0]}\
 	t 0x000000030000 0x20000\
 	t 0x000000020000 0x20000
 

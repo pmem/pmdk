@@ -17,7 +17,7 @@
 #include "out.h"
 #include "pmem2_utils.h"
 #include "source.h"
-#include "ndctl_region_namespace.h"
+#include "region_namespace_ndctl.h"
 
 /*
  * usc_interleave_set -- (internal) returns set of dimms
@@ -30,7 +30,7 @@ usc_interleave_set(struct ndctl_ctx *ctx, const os_stat_t *st)
 
 	struct ndctl_region *region = NULL;
 
-	if (ndctl_region_namespace(ctx, st, &region, NULL))
+	if (pmem2_region_namespace(ctx, st, &region, NULL))
 		return NULL;
 
 	return region ? ndctl_region_get_interleave_set(region) : NULL;

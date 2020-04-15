@@ -2,7 +2,7 @@
 /* Copyright 2020, Intel Corporation */
 
 /*
- * ndctl_region_namespace.c -- common ndctl functions
+ * region_namespace_ndctl.c -- common ndctl functions
  */
 
 #include <ndctl/libndctl.h>
@@ -13,7 +13,8 @@
 #include "libpmem2.h"
 #include "pmem2_utils.h"
 
-#include "ndctl_region_namespace.h"
+#include "region_namespace_ndctl.h"
+#include "region_namespace.h"
 #include "out.h"
 
 /*
@@ -122,12 +123,12 @@ ndctl_match_fsdax(const os_stat_t *st, const char *devname)
 }
 
 /*
- * ndctl_region_namespace -- returns the region
+ * pmem2_region_namespace -- returns the region
  *                           (and optionally the namespace)
  *                           where the given file is located
  */
 int
-ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
+pmem2_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			struct ndctl_region **pregion,
 			struct ndctl_namespace **pndns)
 {
@@ -219,4 +220,41 @@ ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 	LOG(10, "did not found any matching device");
 
 	return 0;
+}
+
+/*
+ * pmem2_region_get_id -- returns the region id
+ */
+int
+pmem2_get_region_id(const os_stat_t *st, unsigned *region_id)
+{
+	LOG(3, "st %p region_id %p", st, region_id);
+
+	struct ndctl_region *region;
+	struct ndctl_namespace *ndns;
+	struct ndctl_ctx *ctx;
+
+	if (ndctl_new(&ctx)) {
+		ERR("!ndctl_new");
+		return PMEM2_E_ERRNO;
+	}
+
+	int rv = pmem2_region_namespace(ctx, st, &region, &ndns);
+	if (rv) {
+		LOG(1, "getting region and namespace failed");
+		goto end;
+	}
+
+	if (!region) {
+		ERR("unknown region");
+		rv = PMEM2_E_DAX_REGION_NOT_FOUND;
+		goto end;
+	}
+
+	*region_id = ndctl_region_get_id(region);
+	return 0;
+
+end:
+	ndctl_unref(ctx);
+	return rv;
 }

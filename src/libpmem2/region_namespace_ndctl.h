@@ -2,12 +2,12 @@
 /* Copyright 2017-2020, Intel Corporation */
 
 /*
- * ndctl_region_namespace.h -- internal definitions for libpmem2
+ * region_namespace_ndctl.h -- internal definitions for libpmem2
  *                             common ndctl functions
  */
 
-#ifndef PMDK_NDCTL_REGION_NAMESPACE_H
-#define PMDK_NDCTL_REGION_NAMESPACE_H 1
+#ifndef PMDK_REGION_NAMESPACE_NDCTL_H
+#define PMDK_REGION_NAMESPACE_NDCTL_H 1
 
 #include "os.h"
 
@@ -20,7 +20,7 @@ extern "C" {
 	ndctl_region_foreach(bus, region)			\
 	ndctl_namespace_foreach(region, ndns)
 
-int ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
+int pmem2_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			struct ndctl_region **pregion,
 			struct ndctl_namespace **pndns);
 
@@ -28,4 +28,4 @@ int ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 }
 #endif
 
-#endif /* PMDK_NDCTL_REGION_NAMESPACE_H */
+#endif /* PMDK_REGION_NAMESPACE_NDCTL_H */

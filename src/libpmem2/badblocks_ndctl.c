@@ -20,7 +20,7 @@
 #include "libpmem2.h"
 #include "pmem2_utils.h"
 #include "source.h"
-#include "ndctl_region_namespace.h"
+#include "region_namespace_ndctl.h"
 
 #include "file.h"
 #include "out.h"
@@ -503,7 +503,7 @@ pmem2_badblock_context_new(const struct pmem2_source *src,
 	if (ret)
 		goto exit_ndctl_unref;
 
-	ret = ndctl_region_namespace(ctx, &st, &region, &ndns);
+	ret = pmem2_region_namespace(ctx, &st, &region, &ndns);
 	if (ret) {
 		LOG(1, "getting region and namespace failed");
 		goto exit_ndctl_unref;

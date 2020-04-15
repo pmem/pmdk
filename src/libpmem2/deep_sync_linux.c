@@ -17,13 +17,14 @@
 #include "out.h"
 #include "persist.h"
 #include "pmem2_utils.h"
+#include "region_namespace.h"
 
 /*
  * pmem2_deep_sync_write -- perform write to deep_flush file
  * on given region_id
  */
 int
-pmem2_deep_sync_write(int region_id)
+pmem2_deep_sync_write(unsigned region_id)
 {
 	LOG(3, "region_id %d", region_id);
 
@@ -31,23 +32,18 @@ pmem2_deep_sync_write(int region_id)
 	int deep_flush_fd;
 
 	if (util_snprintf(deep_flush_path, PATH_MAX,
-		"/sys/bus/nd/devices/region%d/deep_flush", region_id) < 0) {
+		"/sys/bus/nd/devices/region%u/deep_flush", region_id) < 0) {
 		ERR("!snprintf");
 		return PMEM2_E_ERRNO;
 	}
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
-		ERR("!os_open(\"%s\", O_WRONLY)", deep_flush_path);
-		return PMEM2_E_NOSUPP;
+		LOG(1, "Cannot open deep_flush file %s", deep_flush_path);
+		return 0;
 	}
 
-	if (write(deep_flush_fd, "1", 1) != 1) {
-		ERR("!write(%d, \"1\")", deep_flush_fd);
-		int oerrno = errno;
-		os_close(deep_flush_fd);
-		errno = oerrno;
-		return PMEM2_E_ERRNO;
-	}
+	if (write(deep_flush_fd, "1", 1) != 1)
+		LOG(1, "Cannot write to deep_flush file %d", deep_flush_fd);
 
 	os_close(deep_flush_fd);
 	return 0;
@@ -75,8 +71,9 @@ pmem2_deep_sync_dax(struct pmem2_map *map)
 			return ret;
 		}
 	} else if (type == PMEM2_FTYPE_DEVDAX) {
-		int region_id = ret = pmem2_device_dax_region_find(
-				&map->src_fd_st);
+		unsigned region_id;
+		int ret = pmem2_get_region_id(&map->src_fd_st,
+				&region_id);
 		if (ret < 0) {
 			LOG(1, "cannot find region id for stat %p",
 				&map->src_fd_st);
