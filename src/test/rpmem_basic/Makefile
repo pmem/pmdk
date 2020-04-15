@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 
 #
 # src/test/rpmem_basic/Makefile -- build rpmem_basic test
@@ -23,7 +23,7 @@ endif
 include ../Makefile.inc
 
 ifeq ($(BUILD_RPMEM), y)
-LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+LIBS += $(LIBFABRIC_LIBS)
+CFLAGS += $(LIBFABRIC_CFLAGS)
 INCS += -I../../rpmem_common
 endif

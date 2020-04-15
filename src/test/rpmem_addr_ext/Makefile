@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 
 #
 # src/test/rpmem_addr_ext/Makefile -- build rpmem_addr_ext test
@@ -20,7 +20,7 @@ endif
 include ../Makefile.inc
 
 ifeq ($(BUILD_RPMEM), y)
-LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
+LIBS += $(LIBFABRIC_LIBS)
+CFLAGS += $(LIBFABRIC_CFLAGS)
 INCS += -I../../rpmem_common
 endif

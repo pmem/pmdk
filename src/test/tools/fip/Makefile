@@ -25,6 +25,6 @@ include $(TOP)/src/tools/Makefile.inc
 ifeq ($(BUILD_RPMEM),y)
 CFLAGS += -I$(TOP)/src/rpmem_common
 CFLAGS += -I$(TOP)/src/core
-CFLAGS += $(shell $(PKG_CONFIG) --cflags libfabric)
-LIBS += $(shell $(PKG_CONFIG) --libs libfabric)
+CFLAGS += $(LIBFABRIC_CFLAGS)
+LIBS += $(LIBFABRIC_LIBS)
 endif

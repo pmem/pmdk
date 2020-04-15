@@ -124,7 +124,7 @@ endif
 
 ifeq ($(BUILD_RPMEM),y)
 SRC += rpmem.cpp
-LIBS += -lrpmem $(shell pkg-config --libs libfabric)
+LIBS += -lrpmem $(LIBFABRIC_LIBS)
 CONFIGS += pmembench_rpmem
 CXXFLAGS += -DRPMEM_AVAILABLE
 else
