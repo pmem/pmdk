@@ -36,6 +36,7 @@ SOURCE =\
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
 	$(PMEM2)/pmem2_utils_linux.c\
+	$(PMEM2)/ndctl_region_namespace.c\
 	$(PMEM2)/auto_flush_linux.c\
 	$(PMEM2)/deep_sync_linux.c
 else
@@ -55,5 +56,5 @@ include ../Makefile.inc
 
 include $(PMEM2)/$(ARCH)/flags.inc
 
-CFLAGS += -I.
-LIBS += -pthread
+CFLAGS += -I. $(LIBNDCTL_CFLAGS)
+LIBS += -pthread $(LIBNDCTL_LIBS)

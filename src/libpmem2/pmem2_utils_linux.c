@@ -8,13 +8,15 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <sys/sysmacros.h>
+#include <ndctl/libndctl.h>
+#include <ndctl/libdaxctl.h>
 
 #include "libpmem2.h"
 #include "out.h"
 #include "pmem2_utils.h"
+#include "ndctl_region_namespace.h"
 
 #define MAX_SIZE_LENGTH 64
-#define DAX_REGION_ID_LEN 6 /* 5 digits + \0 */
 
 /*
  * pmem2_get_type_from_stat -- determine type of file based on output of stat
@@ -276,70 +278,5 @@ pmem2_device_dax_region_find(const os_stat_t *st)
 {
 	LOG(3, "st %p", st);
 
-	int dax_reg_id_fd;
-	char dax_region_path[PATH_MAX];
-	char reg_id[DAX_REGION_ID_LEN];
-	char *end_addr;
-
-	dev_t dev_id = st->st_rdev;
-
-	unsigned major = os_major(dev_id);
-	unsigned minor = os_minor(dev_id);
-	int ret = util_snprintf(dax_region_path, PATH_MAX,
-		"/sys/dev/char/%u:%u/device/dax_region/id",
-		major, minor);
-	if (ret < 0) {
-		ERR("!snprintf");
-		return PMEM2_E_ERRNO;
-	}
-
-	if ((dax_reg_id_fd = os_open(dax_region_path, O_RDONLY)) < 0) {
-		ERR("!open(\"%s\", O_RDONLY)", dax_region_path);
-		return PMEM2_E_ERRNO;
-	}
-
-	ssize_t len = read(dax_reg_id_fd, reg_id, DAX_REGION_ID_LEN);
-
-	if (len == -1) {
-		ERR("!read(%d, %p, %d)", dax_reg_id_fd,
-			reg_id, DAX_REGION_ID_LEN);
-		goto err;
-	} else if (len < 2 || reg_id[len - 1] != '\n') {
-		errno = EINVAL;
-		ERR("!read(%d, %p, %d) invalid format", dax_reg_id_fd,
-			reg_id, DAX_REGION_ID_LEN);
-		goto err;
-	}
-
-	int olderrno = errno;
-	errno = 0;
-	long reg_num = strtol(reg_id, &end_addr, 10);
-	if ((errno == ERANGE && (reg_num == LONG_MAX || reg_num == LONG_MIN)) ||
-			(errno != 0 && reg_num == 0)) {
-		ERR("!strtol(%p, %p, 10)", reg_id, end_addr);
-		goto err;
-	}
-	errno = olderrno;
-
-	if (end_addr == reg_id) {
-		ERR("strtol(%p, %p, 10) no digits were found",
-			reg_id, end_addr);
-		goto err_reg;
-	}
-	if (*end_addr != '\n') {
-		ERR("strtol(%s, %s, 10) invalid format",
-			reg_id, end_addr);
-		goto err_reg;
-	}
-
-	os_close(dax_reg_id_fd);
-	return (int)reg_num;
-
-err_reg:
-	os_close(dax_reg_id_fd);
-	return PMEM2_E_INVALID_REGION_FORMAT;
-
-err:
-	os_close(dax_reg_id_fd);
-	return PMEM2_E_ERRNO;
+	return ndctl_get_region_id(st);
 }
