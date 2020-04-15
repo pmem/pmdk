@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * pmemdetect.c -- detect PMEM/Device DAX device or Device DAX alignment
@@ -302,7 +302,8 @@ main(int argc, char *argv[])
 	if (Opts & DEVDAX_DETECT)
 		ret = is_dev_dax(Path);
 	else if (Opts & DAX_REGION_DETECT) {
-		ret = util_ddax_region_find(Path);
+		unsigned region_id;
+		ret = util_ddax_region_find(Path, &region_id);
 		if (ret < 0) {
 			printf("Sysfs id file for dax_region is not supported:"
 				" %s\n", Path);
