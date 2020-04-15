@@ -14,7 +14,7 @@
     <ProjectGuid>{E4E2EC33-7902-45D0-9C3C-ADBAFA46874A}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>pmem_is_pmem</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">

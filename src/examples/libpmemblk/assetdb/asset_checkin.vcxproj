@@ -13,7 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{581B3A58-F3F0-4765-91E5-D0C82816A528}</ProjectGuid>
     <RootNamespace>pmemblk</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <ItemGroup Condition="'$(SolutionName)'=='PMDK'">
     <ProjectReference Include="..\..\..\libpmemblk\libpmemblk.vcxproj">

@@ -138,7 +138,7 @@ see https://github.com/pmem/pmdk/issues/4207.
 ### Windows
 
 * **MS Visual Studio 2015**
-* [Windows SDK 10.0.16299.15](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
+* [Windows SDK 10.0.17134.12](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 * **perl** (i.e. [StrawberryPerl](http://strawberryperl.com/))
 * **PowerShell 5**
 
