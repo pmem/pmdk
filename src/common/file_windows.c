@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * file_windows.c -- Windows emulation of Linux-specific system calls
@@ -188,7 +188,7 @@ util_file_device_dax_alignment(const char *path)
  * util_ddax_region_find -- returns DEV dax region id that contains file
  */
 int
-util_ddax_region_find(const char *path)
+util_ddax_region_find(const char *path, unsigned *region_id)
 {
 	LOG(3, "path \"%s\"", path);
 

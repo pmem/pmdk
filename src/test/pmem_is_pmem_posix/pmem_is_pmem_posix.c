@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * pmem_is_pmem_posix.c -- Posix specific unit test for pmem_is_pmem()
@@ -27,30 +27,72 @@ str2type(char *str)
 	FATAL("unknown type '%s'", str);
 }
 
-static void
+static int
 do_fault_injection_register(void *addr, size_t len, enum pmem_map_type type)
 {
 	if (!pmem_fault_injection_enabled())
-		return;
+		goto end;
 
 	pmem_inject_fault_at(PMEM_MALLOC, 1, "util_range_register");
 
 	int ret = util_range_register(addr, len, "", type);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTeq(errno, ENOMEM);
+
+end:
+	return 4;
 }
 
-static void
+static int
 do_fault_injection_split(void *addr, size_t len)
 {
 	if (!pmem_fault_injection_enabled())
-		return;
+		goto end;
 
 	pmem_inject_fault_at(PMEM_MALLOC, 1, "util_range_split");
 
 	int ret = util_range_unregister(addr, len);
 	UT_ASSERTne(ret, 0);
 	UT_ASSERTeq(errno, ENOMEM);
+
+end:
+	return 3;
+}
+
+static int
+range_add(void *addr, size_t len, const char *path, enum pmem_map_type t)
+{
+	int ret = util_range_register(addr, len, path, t);
+	if (ret != 0)
+		UT_OUT("%s", pmem_errormsg());
+
+	return 4;
+}
+
+static int
+range_add_ddax(void *addr, size_t len, const char *path, enum pmem_map_type t)
+{
+	range_add(addr, len, path, t);
+
+	return 5;
+}
+
+static int
+range_rm(void *addr, size_t len)
+{
+	int ret = util_range_unregister(addr, len);
+	UT_ASSERTeq(ret, 0);
+
+	return 3;
+}
+
+static int
+range_test(void *addr, size_t len)
+{
+	UT_OUT("addr %p len %zu is_pmem %d", addr, len,
+			pmem_is_pmem(addr, len));
+
+	return 3;
 }
 
 int
@@ -59,8 +101,8 @@ main(int argc, char *argv[])
 	START(argc, argv, "pmem_is_pmem_posix");
 
 	if (argc < 4)
-		UT_FATAL("usage: %s op addr len type [op addr len type ...]",
-				argv[0]);
+		UT_FATAL("usage: %s op addr len type [op addr len type file]",
+			argv[0]);
 
 	/* insert memory regions to the list */
 	int i;
@@ -74,34 +116,33 @@ main(int argc, char *argv[])
 		size_t len = strtoull(argv[i + 2], NULL, 0);
 		UT_ASSERTeq(errno, 0);
 
-		int ret;
-
 		switch (argv[i][0]) {
 		case 'a':
-			ret = util_range_register(addr, len, "",
-					str2type(argv[i + 3]));
-			if (ret != 0)
-				UT_OUT("%s", pmem_errormsg());
-			i += 4;
+		{
+			enum pmem_map_type t = str2type(argv[i + 3]);
+			/*
+			 * If type is DEV_DAX we expect path to ddax
+			 * as a third arg. Functions return number of
+			 * consumed arguments.
+			 */
+			if (t == PMEM_DEV_DAX)
+				i += range_add_ddax(addr, len, argv[i + 4], t);
+			else
+				i += range_add(addr, len, "", t);
 			break;
+		}
 		case 'r':
-			ret = util_range_unregister(addr, len);
-			UT_ASSERTeq(ret, 0);
-			i += 3;
+			i += range_rm(addr, len);
 			break;
 		case 't':
-			UT_OUT("addr %p len %zu is_pmem %d",
-					addr, len, pmem_is_pmem(addr, len));
-			i += 3;
+			i += range_test(addr, len);
 			break;
 		case 'f':
-			do_fault_injection_register(addr, len,
+			i += do_fault_injection_register(addr, len,
 					str2type(argv[i + 3]));
-			i += 4;
 			break;
 		case 's':
-			do_fault_injection_split(addr, len);
-			i += 3;
+			i += do_fault_injection_split(addr, len);
 			break;
 		default:
 			FATAL("invalid op '%c'", argv[i][0]);
