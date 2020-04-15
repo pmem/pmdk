@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 /* Copyright 2014-2020, Intel Corporation */
 /*
- * Copyright (c) 2016, Microsoft Corporation. All rights reserved.
+ * Copyright (c) 2016-2020, Microsoft Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -133,9 +133,11 @@ void util_set_alloc_funcs(
 #ifdef _MSC_VER
 #define force_inline inline __forceinline
 #define NORETURN __declspec(noreturn)
+#define barrier() _ReadWriteBarrier()
 #else
 #define force_inline __attribute__((always_inline)) inline
 #define NORETURN __attribute__((noreturn))
+#define barrier() asm volatile("" ::: "memory")
 #endif
 
 #ifdef _MSC_VER

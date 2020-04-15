@@ -22,6 +22,7 @@ static force_inline void
 mm256_stream_si256(char *dest, unsigned idx, __m256i src)
 {
 	_mm256_stream_si256((__m256i *)dest + idx, src);
+	barrier();
 }
 
 static force_inline void

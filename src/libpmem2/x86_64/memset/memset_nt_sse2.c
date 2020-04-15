@@ -16,6 +16,7 @@ static force_inline void
 mm_stream_si128(char *dest, unsigned idx, __m128i src)
 {
 	_mm_stream_si128((__m128i *)dest + idx, src);
+	barrier();
 }
 
 static force_inline void

@@ -18,6 +18,7 @@ static force_inline void
 mm512_stream_si512(char *dest, unsigned idx, __m512i src)
 {
 	_mm512_stream_si512((__m512i *)dest + idx, src);
+	barrier();
 }
 
 static force_inline void
