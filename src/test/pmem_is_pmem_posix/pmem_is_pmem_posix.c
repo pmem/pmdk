@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * pmem_is_pmem_posix.c -- Posix specific unit test for pmem_is_pmem()
@@ -59,8 +59,8 @@ main(int argc, char *argv[])
 	START(argc, argv, "pmem_is_pmem_posix");
 
 	if (argc < 4)
-		UT_FATAL("usage: %s op addr len type [op addr len type ...]",
-				argv[0]);
+		UT_FATAL("usage: %s op addr len type [op addr len type file]",
+			argv[0]);
 
 	/* insert memory regions to the list */
 	int i;
@@ -78,12 +78,20 @@ main(int argc, char *argv[])
 
 		switch (argv[i][0]) {
 		case 'a':
-			ret = util_range_register(addr, len, "",
-					str2type(argv[i + 3]));
+		{
+			enum pmem_map_type t = str2type(argv[i + 3]);
+			char *path = "";
+			if (t == PMEM_DEV_DAX) {
+				path = argv[i + 4];
+				i += 5;
+			} else {
+				i += 4;
+			}
+			ret = util_range_register(addr, len, path, t);
 			if (ret != 0)
 				UT_OUT("%s", pmem_errormsg());
-			i += 4;
 			break;
+		}
 		case 'r':
 			ret = util_range_unregister(addr, len);
 			UT_ASSERTeq(ret, 0);
