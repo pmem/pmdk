@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2018, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 
 #
 # src/test/rpmem_addr_ext/TEST0 -- advanced unittest for invalid target formats
@@ -9,6 +9,9 @@
 . ../unittest/unittest.sh
 
 require_test_type short
+
+# matching logs works only with the debug version
+require_build_type debug
 
 require_nodes 2
 
