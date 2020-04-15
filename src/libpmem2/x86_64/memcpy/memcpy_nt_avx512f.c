@@ -12,166 +12,178 @@
 #include "memcpy_avx512f.h"
 #include "valgrind_internal.h"
 
+static force_inline __m512i
+mm512_loadu_si512(const char *src, unsigned idx)
+{
+	return _mm512_loadu_si512((const __m512i *)src + idx);
+}
+
+static force_inline void
+mm512_stream_si512(char *dest, unsigned idx, __m512i src)
+{
+	_mm512_stream_si512((__m512i *)dest + idx, src);
+}
+
 static force_inline void
 memmove_movnt32x64b(char *dest, const char *src)
 {
-	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
-	__m512i zmm1 = _mm512_loadu_si512((__m512i *)src + 1);
-	__m512i zmm2 = _mm512_loadu_si512((__m512i *)src + 2);
-	__m512i zmm3 = _mm512_loadu_si512((__m512i *)src + 3);
-	__m512i zmm4 = _mm512_loadu_si512((__m512i *)src + 4);
-	__m512i zmm5 = _mm512_loadu_si512((__m512i *)src + 5);
-	__m512i zmm6 = _mm512_loadu_si512((__m512i *)src + 6);
-	__m512i zmm7 = _mm512_loadu_si512((__m512i *)src + 7);
-	__m512i zmm8 = _mm512_loadu_si512((__m512i *)src + 8);
-	__m512i zmm9 = _mm512_loadu_si512((__m512i *)src + 9);
-	__m512i zmm10 = _mm512_loadu_si512((__m512i *)src + 10);
-	__m512i zmm11 = _mm512_loadu_si512((__m512i *)src + 11);
-	__m512i zmm12 = _mm512_loadu_si512((__m512i *)src + 12);
-	__m512i zmm13 = _mm512_loadu_si512((__m512i *)src + 13);
-	__m512i zmm14 = _mm512_loadu_si512((__m512i *)src + 14);
-	__m512i zmm15 = _mm512_loadu_si512((__m512i *)src + 15);
-	__m512i zmm16 = _mm512_loadu_si512((__m512i *)src + 16);
-	__m512i zmm17 = _mm512_loadu_si512((__m512i *)src + 17);
-	__m512i zmm18 = _mm512_loadu_si512((__m512i *)src + 18);
-	__m512i zmm19 = _mm512_loadu_si512((__m512i *)src + 19);
-	__m512i zmm20 = _mm512_loadu_si512((__m512i *)src + 20);
-	__m512i zmm21 = _mm512_loadu_si512((__m512i *)src + 21);
-	__m512i zmm22 = _mm512_loadu_si512((__m512i *)src + 22);
-	__m512i zmm23 = _mm512_loadu_si512((__m512i *)src + 23);
-	__m512i zmm24 = _mm512_loadu_si512((__m512i *)src + 24);
-	__m512i zmm25 = _mm512_loadu_si512((__m512i *)src + 25);
-	__m512i zmm26 = _mm512_loadu_si512((__m512i *)src + 26);
-	__m512i zmm27 = _mm512_loadu_si512((__m512i *)src + 27);
-	__m512i zmm28 = _mm512_loadu_si512((__m512i *)src + 28);
-	__m512i zmm29 = _mm512_loadu_si512((__m512i *)src + 29);
-	__m512i zmm30 = _mm512_loadu_si512((__m512i *)src + 30);
-	__m512i zmm31 = _mm512_loadu_si512((__m512i *)src + 31);
+	__m512i zmm0 = mm512_loadu_si512(src, 0);
+	__m512i zmm1 = mm512_loadu_si512(src, 1);
+	__m512i zmm2 = mm512_loadu_si512(src, 2);
+	__m512i zmm3 = mm512_loadu_si512(src, 3);
+	__m512i zmm4 = mm512_loadu_si512(src, 4);
+	__m512i zmm5 = mm512_loadu_si512(src, 5);
+	__m512i zmm6 = mm512_loadu_si512(src, 6);
+	__m512i zmm7 = mm512_loadu_si512(src, 7);
+	__m512i zmm8 = mm512_loadu_si512(src, 8);
+	__m512i zmm9 = mm512_loadu_si512(src, 9);
+	__m512i zmm10 = mm512_loadu_si512(src, 10);
+	__m512i zmm11 = mm512_loadu_si512(src, 11);
+	__m512i zmm12 = mm512_loadu_si512(src, 12);
+	__m512i zmm13 = mm512_loadu_si512(src, 13);
+	__m512i zmm14 = mm512_loadu_si512(src, 14);
+	__m512i zmm15 = mm512_loadu_si512(src, 15);
+	__m512i zmm16 = mm512_loadu_si512(src, 16);
+	__m512i zmm17 = mm512_loadu_si512(src, 17);
+	__m512i zmm18 = mm512_loadu_si512(src, 18);
+	__m512i zmm19 = mm512_loadu_si512(src, 19);
+	__m512i zmm20 = mm512_loadu_si512(src, 20);
+	__m512i zmm21 = mm512_loadu_si512(src, 21);
+	__m512i zmm22 = mm512_loadu_si512(src, 22);
+	__m512i zmm23 = mm512_loadu_si512(src, 23);
+	__m512i zmm24 = mm512_loadu_si512(src, 24);
+	__m512i zmm25 = mm512_loadu_si512(src, 25);
+	__m512i zmm26 = mm512_loadu_si512(src, 26);
+	__m512i zmm27 = mm512_loadu_si512(src, 27);
+	__m512i zmm28 = mm512_loadu_si512(src, 28);
+	__m512i zmm29 = mm512_loadu_si512(src, 29);
+	__m512i zmm30 = mm512_loadu_si512(src, 30);
+	__m512i zmm31 = mm512_loadu_si512(src, 31);
 
-	_mm512_stream_si512((__m512i *)dest + 0, zmm0);
-	_mm512_stream_si512((__m512i *)dest + 1, zmm1);
-	_mm512_stream_si512((__m512i *)dest + 2, zmm2);
-	_mm512_stream_si512((__m512i *)dest + 3, zmm3);
-	_mm512_stream_si512((__m512i *)dest + 4, zmm4);
-	_mm512_stream_si512((__m512i *)dest + 5, zmm5);
-	_mm512_stream_si512((__m512i *)dest + 6, zmm6);
-	_mm512_stream_si512((__m512i *)dest + 7, zmm7);
-	_mm512_stream_si512((__m512i *)dest + 8, zmm8);
-	_mm512_stream_si512((__m512i *)dest + 9, zmm9);
-	_mm512_stream_si512((__m512i *)dest + 10, zmm10);
-	_mm512_stream_si512((__m512i *)dest + 11, zmm11);
-	_mm512_stream_si512((__m512i *)dest + 12, zmm12);
-	_mm512_stream_si512((__m512i *)dest + 13, zmm13);
-	_mm512_stream_si512((__m512i *)dest + 14, zmm14);
-	_mm512_stream_si512((__m512i *)dest + 15, zmm15);
-	_mm512_stream_si512((__m512i *)dest + 16, zmm16);
-	_mm512_stream_si512((__m512i *)dest + 17, zmm17);
-	_mm512_stream_si512((__m512i *)dest + 18, zmm18);
-	_mm512_stream_si512((__m512i *)dest + 19, zmm19);
-	_mm512_stream_si512((__m512i *)dest + 20, zmm20);
-	_mm512_stream_si512((__m512i *)dest + 21, zmm21);
-	_mm512_stream_si512((__m512i *)dest + 22, zmm22);
-	_mm512_stream_si512((__m512i *)dest + 23, zmm23);
-	_mm512_stream_si512((__m512i *)dest + 24, zmm24);
-	_mm512_stream_si512((__m512i *)dest + 25, zmm25);
-	_mm512_stream_si512((__m512i *)dest + 26, zmm26);
-	_mm512_stream_si512((__m512i *)dest + 27, zmm27);
-	_mm512_stream_si512((__m512i *)dest + 28, zmm28);
-	_mm512_stream_si512((__m512i *)dest + 29, zmm29);
-	_mm512_stream_si512((__m512i *)dest + 30, zmm30);
-	_mm512_stream_si512((__m512i *)dest + 31, zmm31);
+	mm512_stream_si512(dest, 0, zmm0);
+	mm512_stream_si512(dest, 1, zmm1);
+	mm512_stream_si512(dest, 2, zmm2);
+	mm512_stream_si512(dest, 3, zmm3);
+	mm512_stream_si512(dest, 4, zmm4);
+	mm512_stream_si512(dest, 5, zmm5);
+	mm512_stream_si512(dest, 6, zmm6);
+	mm512_stream_si512(dest, 7, zmm7);
+	mm512_stream_si512(dest, 8, zmm8);
+	mm512_stream_si512(dest, 9, zmm9);
+	mm512_stream_si512(dest, 10, zmm10);
+	mm512_stream_si512(dest, 11, zmm11);
+	mm512_stream_si512(dest, 12, zmm12);
+	mm512_stream_si512(dest, 13, zmm13);
+	mm512_stream_si512(dest, 14, zmm14);
+	mm512_stream_si512(dest, 15, zmm15);
+	mm512_stream_si512(dest, 16, zmm16);
+	mm512_stream_si512(dest, 17, zmm17);
+	mm512_stream_si512(dest, 18, zmm18);
+	mm512_stream_si512(dest, 19, zmm19);
+	mm512_stream_si512(dest, 20, zmm20);
+	mm512_stream_si512(dest, 21, zmm21);
+	mm512_stream_si512(dest, 22, zmm22);
+	mm512_stream_si512(dest, 23, zmm23);
+	mm512_stream_si512(dest, 24, zmm24);
+	mm512_stream_si512(dest, 25, zmm25);
+	mm512_stream_si512(dest, 26, zmm26);
+	mm512_stream_si512(dest, 27, zmm27);
+	mm512_stream_si512(dest, 28, zmm28);
+	mm512_stream_si512(dest, 29, zmm29);
+	mm512_stream_si512(dest, 30, zmm30);
+	mm512_stream_si512(dest, 31, zmm31);
 }
 
 static force_inline void
 memmove_movnt16x64b(char *dest, const char *src)
 {
-	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
-	__m512i zmm1 = _mm512_loadu_si512((__m512i *)src + 1);
-	__m512i zmm2 = _mm512_loadu_si512((__m512i *)src + 2);
-	__m512i zmm3 = _mm512_loadu_si512((__m512i *)src + 3);
-	__m512i zmm4 = _mm512_loadu_si512((__m512i *)src + 4);
-	__m512i zmm5 = _mm512_loadu_si512((__m512i *)src + 5);
-	__m512i zmm6 = _mm512_loadu_si512((__m512i *)src + 6);
-	__m512i zmm7 = _mm512_loadu_si512((__m512i *)src + 7);
-	__m512i zmm8 = _mm512_loadu_si512((__m512i *)src + 8);
-	__m512i zmm9 = _mm512_loadu_si512((__m512i *)src + 9);
-	__m512i zmm10 = _mm512_loadu_si512((__m512i *)src + 10);
-	__m512i zmm11 = _mm512_loadu_si512((__m512i *)src + 11);
-	__m512i zmm12 = _mm512_loadu_si512((__m512i *)src + 12);
-	__m512i zmm13 = _mm512_loadu_si512((__m512i *)src + 13);
-	__m512i zmm14 = _mm512_loadu_si512((__m512i *)src + 14);
-	__m512i zmm15 = _mm512_loadu_si512((__m512i *)src + 15);
+	__m512i zmm0 = mm512_loadu_si512(src, 0);
+	__m512i zmm1 = mm512_loadu_si512(src, 1);
+	__m512i zmm2 = mm512_loadu_si512(src, 2);
+	__m512i zmm3 = mm512_loadu_si512(src, 3);
+	__m512i zmm4 = mm512_loadu_si512(src, 4);
+	__m512i zmm5 = mm512_loadu_si512(src, 5);
+	__m512i zmm6 = mm512_loadu_si512(src, 6);
+	__m512i zmm7 = mm512_loadu_si512(src, 7);
+	__m512i zmm8 = mm512_loadu_si512(src, 8);
+	__m512i zmm9 = mm512_loadu_si512(src, 9);
+	__m512i zmm10 = mm512_loadu_si512(src, 10);
+	__m512i zmm11 = mm512_loadu_si512(src, 11);
+	__m512i zmm12 = mm512_loadu_si512(src, 12);
+	__m512i zmm13 = mm512_loadu_si512(src, 13);
+	__m512i zmm14 = mm512_loadu_si512(src, 14);
+	__m512i zmm15 = mm512_loadu_si512(src, 15);
 
-	_mm512_stream_si512((__m512i *)dest + 0, zmm0);
-	_mm512_stream_si512((__m512i *)dest + 1, zmm1);
-	_mm512_stream_si512((__m512i *)dest + 2, zmm2);
-	_mm512_stream_si512((__m512i *)dest + 3, zmm3);
-	_mm512_stream_si512((__m512i *)dest + 4, zmm4);
-	_mm512_stream_si512((__m512i *)dest + 5, zmm5);
-	_mm512_stream_si512((__m512i *)dest + 6, zmm6);
-	_mm512_stream_si512((__m512i *)dest + 7, zmm7);
-	_mm512_stream_si512((__m512i *)dest + 8, zmm8);
-	_mm512_stream_si512((__m512i *)dest + 9, zmm9);
-	_mm512_stream_si512((__m512i *)dest + 10, zmm10);
-	_mm512_stream_si512((__m512i *)dest + 11, zmm11);
-	_mm512_stream_si512((__m512i *)dest + 12, zmm12);
-	_mm512_stream_si512((__m512i *)dest + 13, zmm13);
-	_mm512_stream_si512((__m512i *)dest + 14, zmm14);
-	_mm512_stream_si512((__m512i *)dest + 15, zmm15);
+	mm512_stream_si512(dest, 0, zmm0);
+	mm512_stream_si512(dest, 1, zmm1);
+	mm512_stream_si512(dest, 2, zmm2);
+	mm512_stream_si512(dest, 3, zmm3);
+	mm512_stream_si512(dest, 4, zmm4);
+	mm512_stream_si512(dest, 5, zmm5);
+	mm512_stream_si512(dest, 6, zmm6);
+	mm512_stream_si512(dest, 7, zmm7);
+	mm512_stream_si512(dest, 8, zmm8);
+	mm512_stream_si512(dest, 9, zmm9);
+	mm512_stream_si512(dest, 10, zmm10);
+	mm512_stream_si512(dest, 11, zmm11);
+	mm512_stream_si512(dest, 12, zmm12);
+	mm512_stream_si512(dest, 13, zmm13);
+	mm512_stream_si512(dest, 14, zmm14);
+	mm512_stream_si512(dest, 15, zmm15);
 }
 
 static force_inline void
 memmove_movnt8x64b(char *dest, const char *src)
 {
-	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
-	__m512i zmm1 = _mm512_loadu_si512((__m512i *)src + 1);
-	__m512i zmm2 = _mm512_loadu_si512((__m512i *)src + 2);
-	__m512i zmm3 = _mm512_loadu_si512((__m512i *)src + 3);
-	__m512i zmm4 = _mm512_loadu_si512((__m512i *)src + 4);
-	__m512i zmm5 = _mm512_loadu_si512((__m512i *)src + 5);
-	__m512i zmm6 = _mm512_loadu_si512((__m512i *)src + 6);
-	__m512i zmm7 = _mm512_loadu_si512((__m512i *)src + 7);
+	__m512i zmm0 = mm512_loadu_si512(src, 0);
+	__m512i zmm1 = mm512_loadu_si512(src, 1);
+	__m512i zmm2 = mm512_loadu_si512(src, 2);
+	__m512i zmm3 = mm512_loadu_si512(src, 3);
+	__m512i zmm4 = mm512_loadu_si512(src, 4);
+	__m512i zmm5 = mm512_loadu_si512(src, 5);
+	__m512i zmm6 = mm512_loadu_si512(src, 6);
+	__m512i zmm7 = mm512_loadu_si512(src, 7);
 
-	_mm512_stream_si512((__m512i *)dest + 0, zmm0);
-	_mm512_stream_si512((__m512i *)dest + 1, zmm1);
-	_mm512_stream_si512((__m512i *)dest + 2, zmm2);
-	_mm512_stream_si512((__m512i *)dest + 3, zmm3);
-	_mm512_stream_si512((__m512i *)dest + 4, zmm4);
-	_mm512_stream_si512((__m512i *)dest + 5, zmm5);
-	_mm512_stream_si512((__m512i *)dest + 6, zmm6);
-	_mm512_stream_si512((__m512i *)dest + 7, zmm7);
+	mm512_stream_si512(dest, 0, zmm0);
+	mm512_stream_si512(dest, 1, zmm1);
+	mm512_stream_si512(dest, 2, zmm2);
+	mm512_stream_si512(dest, 3, zmm3);
+	mm512_stream_si512(dest, 4, zmm4);
+	mm512_stream_si512(dest, 5, zmm5);
+	mm512_stream_si512(dest, 6, zmm6);
+	mm512_stream_si512(dest, 7, zmm7);
 }
 
 static force_inline void
 memmove_movnt4x64b(char *dest, const char *src)
 {
-	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
-	__m512i zmm1 = _mm512_loadu_si512((__m512i *)src + 1);
-	__m512i zmm2 = _mm512_loadu_si512((__m512i *)src + 2);
-	__m512i zmm3 = _mm512_loadu_si512((__m512i *)src + 3);
+	__m512i zmm0 = mm512_loadu_si512(src, 0);
+	__m512i zmm1 = mm512_loadu_si512(src, 1);
+	__m512i zmm2 = mm512_loadu_si512(src, 2);
+	__m512i zmm3 = mm512_loadu_si512(src, 3);
 
-	_mm512_stream_si512((__m512i *)dest + 0, zmm0);
-	_mm512_stream_si512((__m512i *)dest + 1, zmm1);
-	_mm512_stream_si512((__m512i *)dest + 2, zmm2);
-	_mm512_stream_si512((__m512i *)dest + 3, zmm3);
+	mm512_stream_si512(dest, 0, zmm0);
+	mm512_stream_si512(dest, 1, zmm1);
+	mm512_stream_si512(dest, 2, zmm2);
+	mm512_stream_si512(dest, 3, zmm3);
 }
 
 static force_inline void
 memmove_movnt2x64b(char *dest, const char *src)
 {
-	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
-	__m512i zmm1 = _mm512_loadu_si512((__m512i *)src + 1);
+	__m512i zmm0 = mm512_loadu_si512(src, 0);
+	__m512i zmm1 = mm512_loadu_si512(src, 1);
 
-	_mm512_stream_si512((__m512i *)dest + 0, zmm0);
-	_mm512_stream_si512((__m512i *)dest + 1, zmm1);
+	mm512_stream_si512(dest, 0, zmm0);
+	mm512_stream_si512(dest, 1, zmm1);
 }
 
 static force_inline void
 memmove_movnt1x64b(char *dest, const char *src)
 {
-	__m512i zmm0 = _mm512_loadu_si512((__m512i *)src + 0);
+	__m512i zmm0 = mm512_loadu_si512(src, 0);
 
-	_mm512_stream_si512((__m512i *)dest + 0, zmm0);
+	mm512_stream_si512(dest, 0, zmm0);
 }
 
 static force_inline void

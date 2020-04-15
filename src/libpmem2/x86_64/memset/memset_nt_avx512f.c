@@ -15,96 +15,102 @@
 #include "valgrind_internal.h"
 
 static force_inline void
+mm512_stream_si512(char *dest, unsigned idx, __m512i src)
+{
+	_mm512_stream_si512((__m512i *)dest + idx, src);
+}
+
+static force_inline void
 memset_movnt32x64b(char *dest, __m512i zmm)
 {
-	_mm512_stream_si512((__m512i *)dest + 0, zmm);
-	_mm512_stream_si512((__m512i *)dest + 1, zmm);
-	_mm512_stream_si512((__m512i *)dest + 2, zmm);
-	_mm512_stream_si512((__m512i *)dest + 3, zmm);
-	_mm512_stream_si512((__m512i *)dest + 4, zmm);
-	_mm512_stream_si512((__m512i *)dest + 5, zmm);
-	_mm512_stream_si512((__m512i *)dest + 6, zmm);
-	_mm512_stream_si512((__m512i *)dest + 7, zmm);
-	_mm512_stream_si512((__m512i *)dest + 8, zmm);
-	_mm512_stream_si512((__m512i *)dest + 9, zmm);
-	_mm512_stream_si512((__m512i *)dest + 10, zmm);
-	_mm512_stream_si512((__m512i *)dest + 11, zmm);
-	_mm512_stream_si512((__m512i *)dest + 12, zmm);
-	_mm512_stream_si512((__m512i *)dest + 13, zmm);
-	_mm512_stream_si512((__m512i *)dest + 14, zmm);
-	_mm512_stream_si512((__m512i *)dest + 15, zmm);
-	_mm512_stream_si512((__m512i *)dest + 16, zmm);
-	_mm512_stream_si512((__m512i *)dest + 17, zmm);
-	_mm512_stream_si512((__m512i *)dest + 18, zmm);
-	_mm512_stream_si512((__m512i *)dest + 19, zmm);
-	_mm512_stream_si512((__m512i *)dest + 20, zmm);
-	_mm512_stream_si512((__m512i *)dest + 21, zmm);
-	_mm512_stream_si512((__m512i *)dest + 22, zmm);
-	_mm512_stream_si512((__m512i *)dest + 23, zmm);
-	_mm512_stream_si512((__m512i *)dest + 24, zmm);
-	_mm512_stream_si512((__m512i *)dest + 25, zmm);
-	_mm512_stream_si512((__m512i *)dest + 26, zmm);
-	_mm512_stream_si512((__m512i *)dest + 27, zmm);
-	_mm512_stream_si512((__m512i *)dest + 28, zmm);
-	_mm512_stream_si512((__m512i *)dest + 29, zmm);
-	_mm512_stream_si512((__m512i *)dest + 30, zmm);
-	_mm512_stream_si512((__m512i *)dest + 31, zmm);
+	mm512_stream_si512(dest, 0, zmm);
+	mm512_stream_si512(dest, 1, zmm);
+	mm512_stream_si512(dest, 2, zmm);
+	mm512_stream_si512(dest, 3, zmm);
+	mm512_stream_si512(dest, 4, zmm);
+	mm512_stream_si512(dest, 5, zmm);
+	mm512_stream_si512(dest, 6, zmm);
+	mm512_stream_si512(dest, 7, zmm);
+	mm512_stream_si512(dest, 8, zmm);
+	mm512_stream_si512(dest, 9, zmm);
+	mm512_stream_si512(dest, 10, zmm);
+	mm512_stream_si512(dest, 11, zmm);
+	mm512_stream_si512(dest, 12, zmm);
+	mm512_stream_si512(dest, 13, zmm);
+	mm512_stream_si512(dest, 14, zmm);
+	mm512_stream_si512(dest, 15, zmm);
+	mm512_stream_si512(dest, 16, zmm);
+	mm512_stream_si512(dest, 17, zmm);
+	mm512_stream_si512(dest, 18, zmm);
+	mm512_stream_si512(dest, 19, zmm);
+	mm512_stream_si512(dest, 20, zmm);
+	mm512_stream_si512(dest, 21, zmm);
+	mm512_stream_si512(dest, 22, zmm);
+	mm512_stream_si512(dest, 23, zmm);
+	mm512_stream_si512(dest, 24, zmm);
+	mm512_stream_si512(dest, 25, zmm);
+	mm512_stream_si512(dest, 26, zmm);
+	mm512_stream_si512(dest, 27, zmm);
+	mm512_stream_si512(dest, 28, zmm);
+	mm512_stream_si512(dest, 29, zmm);
+	mm512_stream_si512(dest, 30, zmm);
+	mm512_stream_si512(dest, 31, zmm);
 }
 
 static force_inline void
 memset_movnt16x64b(char *dest, __m512i zmm)
 {
-	_mm512_stream_si512((__m512i *)dest + 0, zmm);
-	_mm512_stream_si512((__m512i *)dest + 1, zmm);
-	_mm512_stream_si512((__m512i *)dest + 2, zmm);
-	_mm512_stream_si512((__m512i *)dest + 3, zmm);
-	_mm512_stream_si512((__m512i *)dest + 4, zmm);
-	_mm512_stream_si512((__m512i *)dest + 5, zmm);
-	_mm512_stream_si512((__m512i *)dest + 6, zmm);
-	_mm512_stream_si512((__m512i *)dest + 7, zmm);
-	_mm512_stream_si512((__m512i *)dest + 8, zmm);
-	_mm512_stream_si512((__m512i *)dest + 9, zmm);
-	_mm512_stream_si512((__m512i *)dest + 10, zmm);
-	_mm512_stream_si512((__m512i *)dest + 11, zmm);
-	_mm512_stream_si512((__m512i *)dest + 12, zmm);
-	_mm512_stream_si512((__m512i *)dest + 13, zmm);
-	_mm512_stream_si512((__m512i *)dest + 14, zmm);
-	_mm512_stream_si512((__m512i *)dest + 15, zmm);
+	mm512_stream_si512(dest, 0, zmm);
+	mm512_stream_si512(dest, 1, zmm);
+	mm512_stream_si512(dest, 2, zmm);
+	mm512_stream_si512(dest, 3, zmm);
+	mm512_stream_si512(dest, 4, zmm);
+	mm512_stream_si512(dest, 5, zmm);
+	mm512_stream_si512(dest, 6, zmm);
+	mm512_stream_si512(dest, 7, zmm);
+	mm512_stream_si512(dest, 8, zmm);
+	mm512_stream_si512(dest, 9, zmm);
+	mm512_stream_si512(dest, 10, zmm);
+	mm512_stream_si512(dest, 11, zmm);
+	mm512_stream_si512(dest, 12, zmm);
+	mm512_stream_si512(dest, 13, zmm);
+	mm512_stream_si512(dest, 14, zmm);
+	mm512_stream_si512(dest, 15, zmm);
 }
 
 static force_inline void
 memset_movnt8x64b(char *dest, __m512i zmm)
 {
-	_mm512_stream_si512((__m512i *)dest + 0, zmm);
-	_mm512_stream_si512((__m512i *)dest + 1, zmm);
-	_mm512_stream_si512((__m512i *)dest + 2, zmm);
-	_mm512_stream_si512((__m512i *)dest + 3, zmm);
-	_mm512_stream_si512((__m512i *)dest + 4, zmm);
-	_mm512_stream_si512((__m512i *)dest + 5, zmm);
-	_mm512_stream_si512((__m512i *)dest + 6, zmm);
-	_mm512_stream_si512((__m512i *)dest + 7, zmm);
+	mm512_stream_si512(dest, 0, zmm);
+	mm512_stream_si512(dest, 1, zmm);
+	mm512_stream_si512(dest, 2, zmm);
+	mm512_stream_si512(dest, 3, zmm);
+	mm512_stream_si512(dest, 4, zmm);
+	mm512_stream_si512(dest, 5, zmm);
+	mm512_stream_si512(dest, 6, zmm);
+	mm512_stream_si512(dest, 7, zmm);
 }
 
 static force_inline void
 memset_movnt4x64b(char *dest, __m512i zmm)
 {
-	_mm512_stream_si512((__m512i *)dest + 0, zmm);
-	_mm512_stream_si512((__m512i *)dest + 1, zmm);
-	_mm512_stream_si512((__m512i *)dest + 2, zmm);
-	_mm512_stream_si512((__m512i *)dest + 3, zmm);
+	mm512_stream_si512(dest, 0, zmm);
+	mm512_stream_si512(dest, 1, zmm);
+	mm512_stream_si512(dest, 2, zmm);
+	mm512_stream_si512(dest, 3, zmm);
 }
 
 static force_inline void
 memset_movnt2x64b(char *dest, __m512i zmm)
 {
-	_mm512_stream_si512((__m512i *)dest + 0, zmm);
-	_mm512_stream_si512((__m512i *)dest + 1, zmm);
+	mm512_stream_si512(dest, 0, zmm);
+	mm512_stream_si512(dest, 1, zmm);
 }
 
 static force_inline void
 memset_movnt1x64b(char *dest, __m512i zmm)
 {
-	_mm512_stream_si512((__m512i *)dest + 0, zmm);
+	mm512_stream_si512(dest, 0, zmm);
 }
 
 static force_inline void
