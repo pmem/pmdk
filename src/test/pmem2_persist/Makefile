@@ -20,4 +20,11 @@ OBJS += pmem2_persist.o\
 	deep_sync_linux.o\
 	pmem2_utils_linux.o
 
+ifeq ($(OS_DIMM),ndctl)
+LINK_NDCTL=y
+OBJS += region_namespace_ndctl.o
+else
+OBJS += region_namespace_none.o
+endif
+
 include ../Makefile.inc

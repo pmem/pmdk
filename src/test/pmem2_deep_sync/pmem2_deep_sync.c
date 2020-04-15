@@ -16,7 +16,7 @@
  * - pmem2_get_type_from_stat is used to determine a file type
  * - for regular files performs pmem2_flush_file_buffers_os OR
  * - for Device DAX:
- *     - is looking for Device DAX region (pmem2_device_dax_region_find)
+ *     - is looking for Device DAX region (pmem2_get_region_id)
  *     - is constructing the region deep flush file paths
  *     - opens deep_flush file (os_open)
  *     - performs a write to it (write)
@@ -29,7 +29,7 @@
  * replaced:
  * - pmem2_get_type_from_stat (to control perceived file type)
  * - pmem2_flush_file_buffers_os (for counting calls)
- * - pmem2_device_dax_region_find (to prevent reading sysfs in search for non
+ * - pmem2_get_region_id (to prevent reading sysfs in search for non
  * existing Device DAXes)
  * or mocked:
  * - os_open (to prevent opening non existing
@@ -50,6 +50,7 @@
 #include "persist.h"
 #include "pmem2_arch.h"
 #include "pmem2_utils.h"
+#include "region_namespace.h"
 #include "unittest.h"
 
 static int n_file_buffs_flushes = 0;
@@ -65,14 +66,16 @@ static enum pmem2_file_type ftype_value;
 #define MOCK_DEV_ID 777UL
 
 /*
- * pmem2_device_dax_region_find -- redefine libpmem2 function
+ * pmem2_get_region_id -- redefine libpmem2 function
  */
 int
-pmem2_device_dax_region_find(const os_stat_t *st)
+pmem2_get_region_id(const os_stat_t *st, unsigned *region_id)
 {
 	UT_ASSERTeq(st->st_rdev, MOCK_DEV_ID);
 
-	return MOCK_REG_ID;
+	*region_id = MOCK_REG_ID;
+
+	return 0;
 }
 
 /*

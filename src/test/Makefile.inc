@@ -191,7 +191,9 @@ OBJS +=\
 endif
 
 ifeq ($(OS_DIMM),ndctl)
-OBJS += $(TOP)/src/debug/libpmem2/ndctl_region_namespace.o
+OBJS += $(TOP)/src/debug/libpmem2/region_namespace_ndctl.o
+else
+OBJS += $(TOP)/src/debug/libpmem2/region_namespace_none.o
 endif
 
 include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
@@ -238,7 +240,9 @@ OBJS +=\
 endif
 
 ifeq ($(OS_DIMM),ndctl)
-OBJS += $(TOP)/src/nondebug/libpmem2/ndctl_region_namespace.o
+OBJS += $(TOP)/src/nondebug/libpmem2/region_namespace_ndctl.o
+else
+OBJS += $(TOP)/src/nondebug/libpmem2/region_namespace_none.o
 endif
 
 include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
@@ -309,7 +313,9 @@ OBJS +=\
 endif
 
 ifeq ($(OS_DIMM),ndctl)
-OBJS += $(TOP)/src/nondebug/libpmem2/ndctl_region_namespace.o
+OBJS += $(TOP)/src/nondebug/libpmem2/region_namespace_ndctl.o
+else
+OBJS += $(TOP)/src/nondebug/libpmem2/region_namespace_none.o
 endif
 
 INCS += -I$(TOP)/src/common
@@ -359,7 +365,9 @@ OBJS +=\
 	endif
 
 ifeq ($(OS_DIMM),ndctl)
-OBJS += $(TOP)/src/debug/libpmem2/ndctl_region_namespace.o
+OBJS += $(TOP)/src/debug/libpmem2/region_namespace_ndctl.o
+else
+OBJS += $(TOP)/src/debug/libpmem2/region_namespace_none.o
 endif
 
 INCS += -I$(TOP)/src/common
@@ -419,7 +427,7 @@ ifneq ($(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMOBJ),)
 LIBS += $(LIBDL)
 endif
 
-ifneq ($(LIBPMEM2)$(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ),)
+ifneq ($(LIBPMEM)$(LIBPMEM2)$(LIBPMEMCOMMON)$(LIBPMEMPOOL)$(LIBPMEMBLK)$(LIBPMEMLOG)$(LIBPMEMOBJ),)
 CFLAGS += $(LIBNDCTL_CFLAGS)
 LIBS += $(LIBNDCTL_LIBS)
 endif
@@ -475,6 +483,11 @@ endif
 
 ifeq ($(WCAST_FUNCTION_TYPE_AVAILABLE), y)
 CFLAGS += -Wcast-function-type
+endif
+
+ifeq ($(LINK_NDCTL),y)
+CFLAGS += $(LIBNDCTL_CFLAGS)
+LIBS += $(LIBNDCTL_LIBS)
 endif
 
 CFLAGS += $(EXTRA_CFLAGS)

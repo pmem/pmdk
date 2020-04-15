@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * mmap.c -- mmap utilities
@@ -19,6 +19,7 @@
 #include "sys_util.h"
 #include "os.h"
 #include "alloc.h"
+#include "libpmem2.h"
 
 int Mmap_no_random;
 void *Mmap_hint;
@@ -310,8 +311,16 @@ util_range_register(const void *addr, size_t len, const char *path,
 	mt->base_addr = (uintptr_t)addr;
 	mt->end_addr = mt->base_addr + len;
 	mt->type = type;
-	if (type == PMEM_DEV_DAX)
-		mt->region_id = util_ddax_region_find(path);
+	if (type == PMEM_DEV_DAX) {
+		unsigned region_id;
+		int ret = util_ddax_region_find(path, &region_id);
+		if (ret < 0) {
+			errno = pmem2_err_to_errno(ret);
+			ERR("Cannot find DAX device region id");
+			return -1;
+		}
+		mt->region_id = region_id;
+	}
 
 	util_rwlock_wrlock(&Mmap_list_lock);
 

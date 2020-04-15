@@ -45,6 +45,14 @@ SOURCE +=\
 	$(PMEM2)/deep_sync_other.c
 endif
 
+ifeq ($(OS_DIMM),ndctl)
+SOURCE += region_namespace_ndctl.c
+CFLAGS += $(LIBNDCTL_CFLAGS)
+LIBS += $(LIBNDCTL_LIBS)
+else
+SOURCE += region_namespace_none.c
+endif
+
 INCS += -I$(TOP)/src/libpmem2
 
 include ../libpmem2/$(ARCH)/sources.inc
