@@ -23,33 +23,34 @@
  * pmem2_extents_common -- (internal) common part of getting extents
  *                          of the given file
  *
- * Returns: number of extents the file consists of or -1 in case of an error.
- * Sets: struct fiemap and struct extents.
+ * Sets: struct fiemap, struct extents
  */
-static long
+static int
 pmem2_extents_common(int fd, struct extents *exts, struct fiemap **pfmap)
 {
 	LOG(3, "fd %i exts %p pfmap %p", fd, exts, pfmap);
 
-	os_stat_t st;
-	if (os_fstat(fd, &st) < 0) {
-		ERR("!fstat %d", fd);
-		return -1;
-	}
+	ASSERTne(pfmap, NULL);
+	ASSERTne(exts, NULL);
 
 	enum pmem2_file_type pmem2_type;
+	os_stat_t st;
+
+	if (os_fstat(fd, &st) < 0) {
+		ERR("!fstat %d", fd);
+		return PMEM2_E_ERRNO;
+	}
 
 	int ret = pmem2_get_type_from_stat(&st, &pmem2_type);
-	if (ret) {
-		errno = pmem2_err_to_errno(ret);
-		return -1;
-	}
+	if (ret)
+		return ret;
 
 	/* directories do not have any extents */
 	if (pmem2_type == PMEM2_FTYPE_DIR) {
 		ERR(
 			"checking extents does not make sense in case of directories");
-		return -1;
+		errno = EINVAL;
+		return PMEM2_E_ERRNO;
 	}
 
 	if (exts->extents_count == 0) {
@@ -59,16 +60,15 @@ pmem2_extents_common(int fd, struct extents *exts, struct fiemap **pfmap)
 
 	/* devdax does not have any extents */
 	if (pmem2_type == PMEM2_FTYPE_DEVDAX) {
+		exts->extents_count = 0;
 		return 0;
 	}
 
 	ASSERTeq(pmem2_type, PMEM2_FTYPE_REG);
 
-	struct fiemap *fmap = Zalloc(sizeof(struct fiemap));
-	if (fmap == NULL) {
-		ERR("!malloc");
-		return -1;
-	}
+	struct fiemap *fmap = pmem2_zalloc(sizeof(struct fiemap), &ret);
+	if (ret)
+		return ret;
 
 	fmap->fm_start = 0;
 	fmap->fm_length = (size_t)st.st_size;
@@ -77,6 +77,7 @@ pmem2_extents_common(int fd, struct extents *exts, struct fiemap **pfmap)
 
 	if (ioctl(fd, FS_IOC_FIEMAP, fmap) != 0) {
 		ERR("!ioctl %d", fd);
+		ret = PMEM2_E_ERRNO;
 		goto error_free;
 	}
 
@@ -88,34 +89,38 @@ pmem2_extents_common(int fd, struct extents *exts, struct fiemap **pfmap)
 	} else if (exts->extents_count != fmap->fm_mapped_extents) {
 		ERR("number of extents differs (was: %u, is: %u)",
 			exts->extents_count, fmap->fm_mapped_extents);
+		errno = EINVAL;
+		ret = PMEM2_E_ERRNO;
 		goto error_free;
 	}
 
 	*pfmap = fmap;
 
-	return exts->extents_count;
+	return 0;
 
 error_free:
 	Free(fmap);
 
-	return -1;
+	return ret;
 }
 
 /*
  * pmem2_extents_count -- get number of extents of the given file
- *                        (and optionally read its block size)
+ *                        (and optionally read its block size).
+ *
+ * Number of extents is returned in exts->extents_count
  */
-long
+int
 pmem2_extents_count(int fd, struct extents *exts)
 {
 	LOG(3, "fd %i extents %p", fd, exts);
 
-	struct fiemap *fmap = NULL;
-
 	ASSERTne(exts, NULL);
 	memset(exts, 0, sizeof(*exts));
 
-	long ret = pmem2_extents_common(fd, exts, &fmap);
+	struct fiemap *fmap = NULL;
+
+	int ret = pmem2_extents_common(fd, exts, &fmap);
 
 	Free(fmap);
 
@@ -131,17 +136,18 @@ pmem2_extents_get(int fd, struct extents *exts)
 {
 	LOG(3, "fd %i extents %p", fd, exts);
 
-	struct fiemap *fmap = NULL;
-	int ret = -1;
-
 	ASSERTne(exts, NULL);
+
+	struct fiemap *fmap = NULL;
+	int ret;
 
 	if (exts->extents_count == 0)
 		return 0;
 
 	ASSERTne(exts->extents, NULL);
 
-	if (pmem2_extents_common(fd, exts, &fmap) <= 0)
+	ret = pmem2_extents_common(fd, exts, &fmap);
+	if (ret)
 		goto error_free;
 
 	struct fiemap *newfmap = Realloc(fmap, sizeof(struct fiemap) +
@@ -149,6 +155,7 @@ pmem2_extents_get(int fd, struct extents *exts)
 						sizeof(struct fiemap_extent));
 	if (newfmap == NULL) {
 		ERR("!Realloc");
+		ret = PMEM2_E_ERRNO;
 		goto error_free;
 	}
 
@@ -160,6 +167,7 @@ pmem2_extents_get(int fd, struct extents *exts)
 
 	if (ioctl(fd, FS_IOC_FIEMAP, fmap) != 0) {
 		ERR("!ioctl %d", fd);
+		ret = PMEM2_E_ERRNO;
 		goto error_free;
 	}
 
@@ -171,10 +179,11 @@ pmem2_extents_get(int fd, struct extents *exts)
 	unsigned e;
 	for (e = 0; e < fmap->fm_extent_count; e++) {
 		exts->extents[e].offset_physical =
-						fmap->fm_extents[e].fe_physical;
+			fmap->fm_extents[e].fe_physical;
 		exts->extents[e].offset_logical =
-						fmap->fm_extents[e].fe_logical;
-		exts->extents[e].length = fmap->fm_extents[e].fe_length;
+			fmap->fm_extents[e].fe_logical;
+		exts->extents[e].length =
+			fmap->fm_extents[e].fe_length;
 
 		LOG(10, "   #%u: off_phy: %lu off_log: %lu len: %lu",
 			e,

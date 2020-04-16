@@ -27,7 +27,7 @@ struct extents {
 	struct extent *extents;
 };
 
-long pmem2_extents_count(int fd, struct extents *exts);
+int pmem2_extents_count(int fd, struct extents *exts);
 int pmem2_extents_get(int fd, struct extents *exts);
 
 #ifdef __cplusplus
