@@ -19,7 +19,7 @@ test_size(int fd, size_t size)
 
 	struct extents *exts = MALLOC(sizeof(struct extents));
 
-	UT_ASSERT(os_extents_count(fd, exts) >= 0);
+	UT_ASSERT(pmem2_extents_count(fd, exts) >= 0);
 
 	UT_OUT("exts->extents_count: %u", exts->extents_count);
 
@@ -27,7 +27,7 @@ test_size(int fd, size_t size)
 		exts->extents = MALLOC(exts->extents_count *
 							sizeof(struct extent));
 
-		UT_ASSERTeq(os_extents_get(fd, exts), 0);
+		UT_ASSERTeq(pmem2_extents_get(fd, exts), 0);
 
 		unsigned e;
 		for (e = 0; e < exts->extents_count; e++)
