@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 		goto exit_free;
 	}
 
-	long count = os_extents_count(fd, exts);
+	long count = pmem2_extents_count(fd, exts);
 	if (count < 0)
 		goto exit_free;
 
@@ -103,7 +103,7 @@ main(int argc, char *argv[])
 	if (exts->extents == NULL)
 		goto exit_free;
 
-	ret = os_extents_get(fd, exts);
+	ret = pmem2_extents_get(fd, exts);
 	if (ret)
 		goto exit_free;
 
