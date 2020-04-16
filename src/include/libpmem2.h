@@ -61,6 +61,7 @@ extern "C" {
 #define PMEM2_E_ADDRESS_NULL			(-100023)
 #define PMEM2_E_SYNC_RANGE			(-100024)
 #define PMEM2_E_INVALID_REGION_FORMAT		(-100025)
+#define PMEM2_E_NUMBER_OF_EXTENTS_INCREASED	(-100026)
 
 /* source setup */
 

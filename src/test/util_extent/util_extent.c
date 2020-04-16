@@ -8,6 +8,7 @@
 
 #include "unittest.h"
 #include "extent.h"
+#include "libpmem2.h"
 
 /*
  * test_size -- test if sum of all file's extents sums up to the file's size
@@ -17,25 +18,31 @@ test_size(int fd, size_t size)
 {
 	size_t total_length = 0;
 
-	struct extents *exts = MALLOC(sizeof(struct extents));
+	struct extents *exts = ZALLOC(sizeof(struct extents));
 
-	UT_ASSERT(pmem2_extents_count(fd, exts) >= 0);
+	UT_ASSERTeq(pmem2_extents_count(fd, exts), 0);
+	UT_ASSERT(exts->extents_count > 0);
 
 	UT_OUT("exts->extents_count: %u", exts->extents_count);
 
-	if (exts->extents_count > 0) {
-		exts->extents = MALLOC(exts->extents_count *
-							sizeof(struct extent));
+	exts->extents = MALLOC(exts->extents_count *
+				sizeof(struct extent));
 
-		UT_ASSERTeq(pmem2_extents_get(fd, exts), 0);
-
-		unsigned e;
-		for (e = 0; e < exts->extents_count; e++)
-			total_length += exts->extents[e].length;
-
-		FREE(exts->extents);
+	int ret = pmem2_extents_get(fd, exts);
+	while (ret == PMEM2_E_NUMBER_OF_EXTENTS_INCREASED) {
+		struct extent *newexts = REALLOC(exts->extents,
+			exts->extents_count * sizeof(struct extent));
+		UT_ASSERTne(newexts, NULL);
+		exts->extents = newexts;
+		ret = pmem2_extents_get(fd, exts);
 	}
+	UT_ASSERTeq(ret, 0);
 
+	unsigned e;
+	for (e = 0; e < exts->extents_count; e++)
+		total_length += exts->extents[e].length;
+
+	FREE(exts->extents);
 	FREE(exts);
 
 	UT_ASSERTeq(total_length, size);

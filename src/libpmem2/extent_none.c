@@ -5,29 +5,30 @@
  * extent_none.c - fake implementation of the FS extent query API
  */
 
+#include "libpmem2.h"
 #include "out.h"
 #include "extent.h"
 
 /*
- * pmem2_extents_count -- get number of extents of the given file
- *                        (and optionally read its block size)
+ * pmem2_extents_count -- save number of extents of the file
+ *                        in exts->extents_count and
+ *                        block size in exts->blksize
  */
-long
+int
 pmem2_extents_count(int fd, struct extents *exts)
 {
 	LOG(3, "fd %i extents %p", fd, exts);
 
-	return -1;
+	return PMEM2_E_NOSUPP;
 }
 
 /*
  * pmem2_extents_get -- get extents of the given file
- *                      (and optionally read its block size)
  */
 int
 pmem2_extents_get(int fd, struct extents *exts)
 {
 	LOG(3, "fd %i extents %p", fd, exts);
 
-	return -1;
+	return PMEM2_E_NOSUPP;
 }

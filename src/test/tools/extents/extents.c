@@ -11,6 +11,7 @@
 #include <fcntl.h>
 #include <errno.h>
 
+#include "libpmem2.h"
 #include "os.h"
 #include "extent.h"
 
@@ -90,20 +91,26 @@ main(int argc, char *argv[])
 		goto exit_free;
 	}
 
-	long count = pmem2_extents_count(fd, exts);
-	if (count < 0)
+	ret = pmem2_extents_count(fd, exts);
+	if (ret)
 		goto exit_free;
 
-	if (count == 0) {
-		ret = 0;
+	if (exts->extents_count == 0)
 		goto exit_free;
-	}
 
 	exts->extents = malloc(exts->extents_count * sizeof(struct extent));
 	if (exts->extents == NULL)
 		goto exit_free;
 
 	ret = pmem2_extents_get(fd, exts);
+	while (ret == PMEM2_E_NUMBER_OF_EXTENTS_INCREASED) {
+		struct extent *newexts = realloc(exts->extents,
+			exts->extents_count * sizeof(struct extent));
+		if (newexts == NULL)
+			goto exit_free;
+		exts->extents = newexts;
+		ret = pmem2_extents_get(fd, exts);
+	}
 	if (ret)
 		goto exit_free;
 
