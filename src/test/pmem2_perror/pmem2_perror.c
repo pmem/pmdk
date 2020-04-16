@@ -135,6 +135,26 @@ test_fail_pmem2_syscall_format(const struct test_case *tc,
 }
 
 /*
+ * test_simple_err_to_errno_check - check if conversion
+ * from pmem2 err value to errno works fine
+ */
+static int
+test_simple_err_to_errno_check(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	int ret_errno = pmem2_err_to_errno(PMEM2_E_NOSUPP);
+	UT_ASSERTeq(ret_errno, EINVAL);
+
+	ret_errno = pmem2_err_to_errno(PMEM2_E_UNKNOWN);
+	UT_ASSERTeq(ret_errno, EINVAL);
+
+	ret_errno = pmem2_err_to_errno(-ENOTSUP);
+	UT_ASSERTeq(ret_errno, ENOTSUP);
+
+	return 0;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -144,6 +164,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_fail_system_func_format),
 	TEST_CASE(test_fail_pmem2_syscall_simple),
 	TEST_CASE(test_fail_pmem2_syscall_format),
+	TEST_CASE(test_simple_err_to_errno_check),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
