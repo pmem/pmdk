@@ -1,5 +1,5 @@
 version: 1.4.{build}
-os: Visual Studio 2017
+os: Visual Studio 2019
 platform: x64
 
 install:
@@ -29,10 +29,6 @@ before_build:
                 exit 1
         }
         utils/ps_analyze.ps1
-        if ($LASTEXITCODE -ne 0) {
-                exit 1
-        }
-        perl utils/sort_solution check
         if ($LASTEXITCODE -ne 0) {
                 exit 1
         }
