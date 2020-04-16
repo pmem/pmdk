@@ -52,11 +52,11 @@ pmem2_err_to_errno(int err)
 	if (err > 0)
 		FATAL("positive error code is a bug in libpmem2");
 
-	err = -err;
 	if (err < PMEM2_E_UNKNOWN)
-		return err;
+		return EINVAL;
 
-	return EINVAL;
+	err = -err;
+	return err;
 }
 
 #ifdef _WIN32

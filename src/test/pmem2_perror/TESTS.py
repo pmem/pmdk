@@ -43,3 +43,8 @@ class TEST4(Pmem2Perror):
 class TEST5(Pmem2Perror):
     test_case = 'test_fail_pmem2_syscall_format'
     stderr_file = 'test5.log'
+
+
+class TEST6(Pmem2Perror):
+    test_case = 'test_simple_err_to_errno_check'
+    stderr_file = None
