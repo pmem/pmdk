@@ -20,14 +20,14 @@
 #include "alloc.h"
 
 /*
- * os_extents_common -- (internal) common part of getting extents
- *                      of the given file
+ * pmem2_extents_common -- (internal) common part of getting extents
+ *                          of the given file
  *
  * Returns: number of extents the file consists of or -1 in case of an error.
  * Sets: struct fiemap and struct extents.
  */
 static long
-os_extents_common(int fd, struct extents *exts, struct fiemap **pfmap)
+pmem2_extents_common(int fd, struct extents *exts, struct fiemap **pfmap)
 {
 	LOG(3, "fd %i exts %p pfmap %p", fd, exts, pfmap);
 
@@ -102,11 +102,11 @@ error_free:
 }
 
 /*
- * os_extents_count -- get number of extents of the given file
- *                     (and optionally read its block size)
+ * pmem2_extents_count -- get number of extents of the given file
+ *                        (and optionally read its block size)
  */
 long
-os_extents_count(int fd, struct extents *exts)
+pmem2_extents_count(int fd, struct extents *exts)
 {
 	LOG(3, "fd %i extents %p", fd, exts);
 
@@ -115,7 +115,7 @@ os_extents_count(int fd, struct extents *exts)
 	ASSERTne(exts, NULL);
 	memset(exts, 0, sizeof(*exts));
 
-	long ret = os_extents_common(fd, exts, &fmap);
+	long ret = pmem2_extents_common(fd, exts, &fmap);
 
 	Free(fmap);
 
@@ -123,11 +123,11 @@ os_extents_count(int fd, struct extents *exts)
 }
 
 /*
- * os_extents_get -- get extents of the given file
- *                   (and optionally read its block size)
+ * pmem2_extents_get -- get extents of the given file
+ *                      (and optionally read its block size)
  */
 int
-os_extents_get(int fd, struct extents *exts)
+pmem2_extents_get(int fd, struct extents *exts)
 {
 	LOG(3, "fd %i extents %p", fd, exts);
 
@@ -141,7 +141,7 @@ os_extents_get(int fd, struct extents *exts)
 
 	ASSERTne(exts->extents, NULL);
 
-	if (os_extents_common(fd, exts, &fmap) <= 0)
+	if (pmem2_extents_common(fd, exts, &fmap) <= 0)
 		goto error_free;
 
 	struct fiemap *newfmap = Realloc(fmap, sizeof(struct fiemap) +

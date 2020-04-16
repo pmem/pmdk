@@ -9,11 +9,11 @@
 #include "extent.h"
 
 /*
- * os_extents_count -- get number of extents of the given file
- *                     (and optionally read its block size)
+ * pmem2_extents_count -- get number of extents of the given file
+ *                        (and optionally read its block size)
  */
 long
-os_extents_count(int fd, struct extents *exts)
+pmem2_extents_count(int fd, struct extents *exts)
 {
 	LOG(3, "fd %i extents %p", fd, exts);
 
@@ -21,11 +21,11 @@ os_extents_count(int fd, struct extents *exts)
 }
 
 /*
- * os_extents_get -- get extents of the given file
- *                   (and optionally read its block size)
+ * pmem2_extents_get -- get extents of the given file
+ *                      (and optionally read its block size)
  */
 int
-os_extents_get(int fd, struct extents *exts)
+pmem2_extents_get(int fd, struct extents *exts)
 {
 	LOG(3, "fd %i extents %p", fd, exts);
 

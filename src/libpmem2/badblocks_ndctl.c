@@ -543,7 +543,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 		goto error_free_all;
 	}
 
-	extents = os_extents_count(fd, exts);
+	extents = pmem2_extents_count(fd, exts);
 	if (extents < 0) {
 		LOG(1, "counting file's extents failed -- '%s'", file);
 		goto error_free_all;
@@ -568,7 +568,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 		goto error_free_all;
 	}
 
-	if (os_extents_get(fd, exts)) {
+	if (pmem2_extents_get(fd, exts)) {
 		LOG(1, "getting file's extents failed -- '%s'", file);
 		goto error_free_all;
 	}
