@@ -237,7 +237,7 @@ class Context(ContextBase):
         return _Poolset(path, self)
 
     def exec(self, cmd, *args, expected_exitcode=0, stderr_file=None,
-             stdout_file=None):
+             stdout_file=None, absolute_path=False):
         """Execute binary in current test context"""
 
         tmp = self._env.copy()
@@ -246,14 +246,16 @@ class Context(ContextBase):
         # change cmd into list for supbrocess type compliance
         cmd = [cmd, ]
 
-        if sys.platform == 'win32':
-            cmd[0] = os.path.join(self.build.exedir, cmd[0]) + '.exe'
-        else:
-            cmd[0] = os.path.join(self.cwd, cmd[0]) + \
-                self.build.exesuffix
+        if not absolute_path:
+            if sys.platform == 'win32':
+                cmd[0] = os.path.join(self.build.exedir, cmd[0]) + \
+                    '.exe'
+            else:
+                cmd[0] = os.path.join(self.cwd, cmd[0]) + \
+                    self.build.exesuffix
 
-            if self.valgrind:
-                cmd = self.valgrind.cmd + cmd
+                if self.valgrind:
+                    cmd = self.valgrind.cmd + cmd
 
         # cast all provided args to strings (required by subprocess run())
         # so that exec() can accept args of any printable type
