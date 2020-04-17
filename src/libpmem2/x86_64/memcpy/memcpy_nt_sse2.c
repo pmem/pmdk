@@ -129,7 +129,8 @@ memmove_movnt1x4b(char *dest, const char *src)
 }
 
 static force_inline void
-memmove_movnt_sse_fw(char *dest, const char *src, size_t len, flush_fn flush)
+memmove_movnt_sse_fw(char *dest, const char *src, size_t len, flush_fn flush,
+		perf_barrier_fn perf_barrier)
 {
 	size_t cnt = (uint64_t)dest & 63;
 	if (cnt > 0) {
@@ -143,6 +144,26 @@ memmove_movnt_sse_fw(char *dest, const char *src, size_t len, flush_fn flush)
 		dest += cnt;
 		src += cnt;
 		len -= cnt;
+	}
+
+	while (len >= 12 * 64) {
+		memmove_movnt4x64b(dest, src);
+		dest += 4 * 64;
+		src += 4 * 64;
+		len -= 4 * 64;
+
+		memmove_movnt4x64b(dest, src);
+		dest += 4 * 64;
+		src += 4 * 64;
+		len -= 4 * 64;
+
+		memmove_movnt4x64b(dest, src);
+		dest += 4 * 64;
+		src += 4 * 64;
+		len -= 4 * 64;
+
+		if (len)
+			perf_barrier();
 	}
 
 	while (len >= 4 * 64) {
@@ -191,7 +212,8 @@ nonnt:
 }
 
 static force_inline void
-memmove_movnt_sse_bw(char *dest, const char *src, size_t len, flush_fn flush)
+memmove_movnt_sse_bw(char *dest, const char *src, size_t len, flush_fn flush,
+		perf_barrier_fn perf_barrier)
 {
 	dest += len;
 	src += len;
@@ -206,6 +228,26 @@ memmove_movnt_sse_bw(char *dest, const char *src, size_t len, flush_fn flush)
 		len -= cnt;
 
 		memmove_small_sse2(dest, src, cnt, flush);
+	}
+
+	while (len >= 12 * 64) {
+		dest -= 4 * 64;
+		src -= 4 * 64;
+		len -= 4 * 64;
+		memmove_movnt4x64b(dest, src);
+
+		dest -= 4 * 64;
+		src -= 4 * 64;
+		len -= 4 * 64;
+		memmove_movnt4x64b(dest, src);
+
+		dest -= 4 * 64;
+		src -= 4 * 64;
+		len -= 4 * 64;
+		memmove_movnt4x64b(dest, src);
+
+		if (len)
+			perf_barrier();
 	}
 
 	while (len >= 4 * 64) {
@@ -265,12 +307,12 @@ nonnt:
 
 static force_inline void
 memmove_movnt_sse2(char *dest, const char *src, size_t len, flush_fn flush,
-		barrier_fn barrier)
+		barrier_fn barrier, perf_barrier_fn perf_barrier)
 {
 	if ((uintptr_t)dest - (uintptr_t)src >= len)
-		memmove_movnt_sse_fw(dest, src, len, flush);
+		memmove_movnt_sse_fw(dest, src, len, flush, perf_barrier);
 	else
-		memmove_movnt_sse_bw(dest, src, len, flush);
+		memmove_movnt_sse_bw(dest, src, len, flush, perf_barrier);
 
 	barrier();
 
@@ -282,7 +324,8 @@ memmove_movnt_sse2_noflush(char *dest, const char *src, size_t len)
 {
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
-	memmove_movnt_sse2(dest, src, len, noflush, barrier_after_ntstores);
+	memmove_movnt_sse2(dest, src, len, noflush, barrier_after_ntstores,
+			wc_barrier);
 }
 
 void
@@ -291,7 +334,7 @@ memmove_movnt_sse2_empty(char *dest, const char *src, size_t len)
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
 	memmove_movnt_sse2(dest, src, len, flush_empty_nolog,
-			barrier_after_ntstores);
+			barrier_after_ntstores, wc_barrier);
 }
 
 void
@@ -300,7 +343,7 @@ memmove_movnt_sse2_clflush(char *dest, const char *src, size_t len)
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
 	memmove_movnt_sse2(dest, src, len, flush_clflush_nolog,
-			barrier_after_ntstores);
+			barrier_after_ntstores, wc_barrier);
 }
 
 void
@@ -309,7 +352,7 @@ memmove_movnt_sse2_clflushopt(char *dest, const char *src, size_t len)
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
 	memmove_movnt_sse2(dest, src, len, flush_clflushopt_nolog,
-			no_barrier_after_ntstores);
+			no_barrier_after_ntstores, wc_barrier);
 }
 
 void
@@ -318,5 +361,5 @@ memmove_movnt_sse2_clwb(char *dest, const char *src, size_t len)
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
 	memmove_movnt_sse2(dest, src, len, flush_clwb_nolog,
-			no_barrier_after_ntstores);
+			no_barrier_after_ntstores, wc_barrier);
 }
