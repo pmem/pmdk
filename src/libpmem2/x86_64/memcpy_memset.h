@@ -42,6 +42,24 @@ noflush64b(const void *addr)
 	/* NOP, not even pmemcheck annotation */
 }
 
+typedef void perf_barrier_fn(void);
+
+static force_inline void
+wc_barrier(void)
+{
+	/*
+	 * Currently, for SSE2 and AVX code paths, use of non-temporal stores
+	 * on all generations of CPUs must be limited to the number of
+	 * write-combining buffers (12) because otherwise, suboptimal eviction
+	 * policy might impact performance when writing more data than WC
+	 * buffers can simultaneously hold.
+	 *
+	 * The AVX512 code path is not affected, probably because we are
+	 * overwriting whole cache lines.
+	 */
+	_mm_sfence();
+}
+
 #ifndef AVX512F_AVAILABLE
 /*
  * XXX not supported in MSVC version we currently use.
