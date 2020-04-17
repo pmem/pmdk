@@ -59,6 +59,8 @@ extern "C" {
 #define PMEM2_E_INVALID_ADDRESS_REQUEST_TYPE	(-100021)
 #define PMEM2_E_ADDRESS_UNALIGNED		(-100022)
 #define PMEM2_E_ADDRESS_NULL			(-100023)
+#define PMEM2_E_SYNC_RANGE			(-100024)
+#define PMEM2_E_INVALID_REGION_FORMAT		(-100025)
 
 /* source setup */
 
@@ -185,6 +187,8 @@ pmem2_persist_fn pmem2_get_persist_fn(struct pmem2_map *map);
 pmem2_flush_fn pmem2_get_flush_fn(struct pmem2_map *map);
 
 pmem2_drain_fn pmem2_get_drain_fn(struct pmem2_map *map);
+
+int pmem2_deep_sync(struct pmem2_map *map, void *ptr, size_t size);
 
 #define PMEM2_F_MEM_NODRAIN	(1U << 0)
 

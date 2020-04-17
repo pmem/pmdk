@@ -31,11 +31,13 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 	case PMEM_DEV_DAX:
 		pmem_drain();
 
-		if (pmem2_deep_sync_write(mt->region_id) < 0) {
-			if (errno == ENOENT) {
+		int ret = pmem2_deep_sync_write(mt->region_id);
+		if (ret < 0) {
+			if (ret == PMEM2_E_NOSUPP) {
 				errno = ENOTSUP;
 				LOG(1, "!deep_flush not supported");
 			} else {
+				errno = pmem2_err_to_errno(ret);
 				LOG(2, "cannot write to deep_flush"
 					"in region %d", mt->region_id);
 			}
