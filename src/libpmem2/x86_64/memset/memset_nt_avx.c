@@ -14,59 +14,66 @@
 #include "valgrind_internal.h"
 
 static force_inline void
+mm256_stream_si256(char *dest, unsigned idx, __m256i src)
+{
+	_mm256_stream_si256((__m256i *)dest + idx, src);
+	barrier();
+}
+
+static force_inline void
 memset_movnt8x64b(char *dest, __m256i ymm)
 {
-	_mm256_stream_si256((__m256i *)dest + 0, ymm);
-	_mm256_stream_si256((__m256i *)dest + 1, ymm);
-	_mm256_stream_si256((__m256i *)dest + 2, ymm);
-	_mm256_stream_si256((__m256i *)dest + 3, ymm);
-	_mm256_stream_si256((__m256i *)dest + 4, ymm);
-	_mm256_stream_si256((__m256i *)dest + 5, ymm);
-	_mm256_stream_si256((__m256i *)dest + 6, ymm);
-	_mm256_stream_si256((__m256i *)dest + 7, ymm);
-	_mm256_stream_si256((__m256i *)dest + 8, ymm);
-	_mm256_stream_si256((__m256i *)dest + 9, ymm);
-	_mm256_stream_si256((__m256i *)dest + 10, ymm);
-	_mm256_stream_si256((__m256i *)dest + 11, ymm);
-	_mm256_stream_si256((__m256i *)dest + 12, ymm);
-	_mm256_stream_si256((__m256i *)dest + 13, ymm);
-	_mm256_stream_si256((__m256i *)dest + 14, ymm);
-	_mm256_stream_si256((__m256i *)dest + 15, ymm);
+	mm256_stream_si256(dest, 0, ymm);
+	mm256_stream_si256(dest, 1, ymm);
+	mm256_stream_si256(dest, 2, ymm);
+	mm256_stream_si256(dest, 3, ymm);
+	mm256_stream_si256(dest, 4, ymm);
+	mm256_stream_si256(dest, 5, ymm);
+	mm256_stream_si256(dest, 6, ymm);
+	mm256_stream_si256(dest, 7, ymm);
+	mm256_stream_si256(dest, 8, ymm);
+	mm256_stream_si256(dest, 9, ymm);
+	mm256_stream_si256(dest, 10, ymm);
+	mm256_stream_si256(dest, 11, ymm);
+	mm256_stream_si256(dest, 12, ymm);
+	mm256_stream_si256(dest, 13, ymm);
+	mm256_stream_si256(dest, 14, ymm);
+	mm256_stream_si256(dest, 15, ymm);
 }
 
 static force_inline void
 memset_movnt4x64b(char *dest, __m256i ymm)
 {
-	_mm256_stream_si256((__m256i *)dest + 0, ymm);
-	_mm256_stream_si256((__m256i *)dest + 1, ymm);
-	_mm256_stream_si256((__m256i *)dest + 2, ymm);
-	_mm256_stream_si256((__m256i *)dest + 3, ymm);
-	_mm256_stream_si256((__m256i *)dest + 4, ymm);
-	_mm256_stream_si256((__m256i *)dest + 5, ymm);
-	_mm256_stream_si256((__m256i *)dest + 6, ymm);
-	_mm256_stream_si256((__m256i *)dest + 7, ymm);
+	mm256_stream_si256(dest, 0, ymm);
+	mm256_stream_si256(dest, 1, ymm);
+	mm256_stream_si256(dest, 2, ymm);
+	mm256_stream_si256(dest, 3, ymm);
+	mm256_stream_si256(dest, 4, ymm);
+	mm256_stream_si256(dest, 5, ymm);
+	mm256_stream_si256(dest, 6, ymm);
+	mm256_stream_si256(dest, 7, ymm);
 }
 
 static force_inline void
 memset_movnt2x64b(char *dest, __m256i ymm)
 {
-	_mm256_stream_si256((__m256i *)dest + 0, ymm);
-	_mm256_stream_si256((__m256i *)dest + 1, ymm);
-	_mm256_stream_si256((__m256i *)dest + 2, ymm);
-	_mm256_stream_si256((__m256i *)dest + 3, ymm);
+	mm256_stream_si256(dest, 0, ymm);
+	mm256_stream_si256(dest, 1, ymm);
+	mm256_stream_si256(dest, 2, ymm);
+	mm256_stream_si256(dest, 3, ymm);
 }
 
 static force_inline void
 memset_movnt1x64b(char *dest, __m256i ymm)
 {
-	_mm256_stream_si256((__m256i *)dest + 0, ymm);
-	_mm256_stream_si256((__m256i *)dest + 1, ymm);
+	mm256_stream_si256(dest, 0, ymm);
+	mm256_stream_si256(dest, 1, ymm);
 }
 
 static force_inline void
 memset_movnt1x32b(char *dest, __m256i ymm)
 {
-	_mm256_stream_si256((__m256i *)dest, ymm);
+	mm256_stream_si256(dest, 0, ymm);
 }
 
 static force_inline void

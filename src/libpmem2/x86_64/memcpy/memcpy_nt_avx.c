@@ -12,88 +12,101 @@
 #include "memcpy_avx.h"
 #include "valgrind_internal.h"
 
+static force_inline __m256i
+mm256_loadu_si256(const char *src, unsigned idx)
+{
+	return _mm256_loadu_si256((const __m256i *)src + idx);
+}
+
+static force_inline void
+mm256_stream_si256(char *dest, unsigned idx, __m256i src)
+{
+	_mm256_stream_si256((__m256i *)dest + idx, src);
+	barrier();
+}
+
 static force_inline void
 memmove_movnt8x64b(char *dest, const char *src)
 {
-	__m256i ymm0 = _mm256_loadu_si256((__m256i *)src + 0);
-	__m256i ymm1 = _mm256_loadu_si256((__m256i *)src + 1);
-	__m256i ymm2 = _mm256_loadu_si256((__m256i *)src + 2);
-	__m256i ymm3 = _mm256_loadu_si256((__m256i *)src + 3);
-	__m256i ymm4 = _mm256_loadu_si256((__m256i *)src + 4);
-	__m256i ymm5 = _mm256_loadu_si256((__m256i *)src + 5);
-	__m256i ymm6 = _mm256_loadu_si256((__m256i *)src + 6);
-	__m256i ymm7 = _mm256_loadu_si256((__m256i *)src + 7);
-	__m256i ymm8 = _mm256_loadu_si256((__m256i *)src + 8);
-	__m256i ymm9 = _mm256_loadu_si256((__m256i *)src + 9);
-	__m256i ymm10 = _mm256_loadu_si256((__m256i *)src + 10);
-	__m256i ymm11 = _mm256_loadu_si256((__m256i *)src + 11);
-	__m256i ymm12 = _mm256_loadu_si256((__m256i *)src + 12);
-	__m256i ymm13 = _mm256_loadu_si256((__m256i *)src + 13);
-	__m256i ymm14 = _mm256_loadu_si256((__m256i *)src + 14);
-	__m256i ymm15 = _mm256_loadu_si256((__m256i *)src + 15);
+	__m256i ymm0 = mm256_loadu_si256(src, 0);
+	__m256i ymm1 = mm256_loadu_si256(src, 1);
+	__m256i ymm2 = mm256_loadu_si256(src, 2);
+	__m256i ymm3 = mm256_loadu_si256(src, 3);
+	__m256i ymm4 = mm256_loadu_si256(src, 4);
+	__m256i ymm5 = mm256_loadu_si256(src, 5);
+	__m256i ymm6 = mm256_loadu_si256(src, 6);
+	__m256i ymm7 = mm256_loadu_si256(src, 7);
+	__m256i ymm8 = mm256_loadu_si256(src, 8);
+	__m256i ymm9 = mm256_loadu_si256(src, 9);
+	__m256i ymm10 = mm256_loadu_si256(src, 10);
+	__m256i ymm11 = mm256_loadu_si256(src, 11);
+	__m256i ymm12 = mm256_loadu_si256(src, 12);
+	__m256i ymm13 = mm256_loadu_si256(src, 13);
+	__m256i ymm14 = mm256_loadu_si256(src, 14);
+	__m256i ymm15 = mm256_loadu_si256(src, 15);
 
-	_mm256_stream_si256((__m256i *)dest + 0, ymm0);
-	_mm256_stream_si256((__m256i *)dest + 1, ymm1);
-	_mm256_stream_si256((__m256i *)dest + 2, ymm2);
-	_mm256_stream_si256((__m256i *)dest + 3, ymm3);
-	_mm256_stream_si256((__m256i *)dest + 4, ymm4);
-	_mm256_stream_si256((__m256i *)dest + 5, ymm5);
-	_mm256_stream_si256((__m256i *)dest + 6, ymm6);
-	_mm256_stream_si256((__m256i *)dest + 7, ymm7);
-	_mm256_stream_si256((__m256i *)dest + 8, ymm8);
-	_mm256_stream_si256((__m256i *)dest + 9, ymm9);
-	_mm256_stream_si256((__m256i *)dest + 10, ymm10);
-	_mm256_stream_si256((__m256i *)dest + 11, ymm11);
-	_mm256_stream_si256((__m256i *)dest + 12, ymm12);
-	_mm256_stream_si256((__m256i *)dest + 13, ymm13);
-	_mm256_stream_si256((__m256i *)dest + 14, ymm14);
-	_mm256_stream_si256((__m256i *)dest + 15, ymm15);
+	mm256_stream_si256(dest, 0, ymm0);
+	mm256_stream_si256(dest, 1, ymm1);
+	mm256_stream_si256(dest, 2, ymm2);
+	mm256_stream_si256(dest, 3, ymm3);
+	mm256_stream_si256(dest, 4, ymm4);
+	mm256_stream_si256(dest, 5, ymm5);
+	mm256_stream_si256(dest, 6, ymm6);
+	mm256_stream_si256(dest, 7, ymm7);
+	mm256_stream_si256(dest, 8, ymm8);
+	mm256_stream_si256(dest, 9, ymm9);
+	mm256_stream_si256(dest, 10, ymm10);
+	mm256_stream_si256(dest, 11, ymm11);
+	mm256_stream_si256(dest, 12, ymm12);
+	mm256_stream_si256(dest, 13, ymm13);
+	mm256_stream_si256(dest, 14, ymm14);
+	mm256_stream_si256(dest, 15, ymm15);
 }
 
 static force_inline void
 memmove_movnt4x64b(char *dest, const char *src)
 {
-	__m256i ymm0 = _mm256_loadu_si256((__m256i *)src + 0);
-	__m256i ymm1 = _mm256_loadu_si256((__m256i *)src + 1);
-	__m256i ymm2 = _mm256_loadu_si256((__m256i *)src + 2);
-	__m256i ymm3 = _mm256_loadu_si256((__m256i *)src + 3);
-	__m256i ymm4 = _mm256_loadu_si256((__m256i *)src + 4);
-	__m256i ymm5 = _mm256_loadu_si256((__m256i *)src + 5);
-	__m256i ymm6 = _mm256_loadu_si256((__m256i *)src + 6);
-	__m256i ymm7 = _mm256_loadu_si256((__m256i *)src + 7);
+	__m256i ymm0 = mm256_loadu_si256(src, 0);
+	__m256i ymm1 = mm256_loadu_si256(src, 1);
+	__m256i ymm2 = mm256_loadu_si256(src, 2);
+	__m256i ymm3 = mm256_loadu_si256(src, 3);
+	__m256i ymm4 = mm256_loadu_si256(src, 4);
+	__m256i ymm5 = mm256_loadu_si256(src, 5);
+	__m256i ymm6 = mm256_loadu_si256(src, 6);
+	__m256i ymm7 = mm256_loadu_si256(src, 7);
 
-	_mm256_stream_si256((__m256i *)dest + 0, ymm0);
-	_mm256_stream_si256((__m256i *)dest + 1, ymm1);
-	_mm256_stream_si256((__m256i *)dest + 2, ymm2);
-	_mm256_stream_si256((__m256i *)dest + 3, ymm3);
-	_mm256_stream_si256((__m256i *)dest + 4, ymm4);
-	_mm256_stream_si256((__m256i *)dest + 5, ymm5);
-	_mm256_stream_si256((__m256i *)dest + 6, ymm6);
-	_mm256_stream_si256((__m256i *)dest + 7, ymm7);
+	mm256_stream_si256(dest, 0, ymm0);
+	mm256_stream_si256(dest, 1, ymm1);
+	mm256_stream_si256(dest, 2, ymm2);
+	mm256_stream_si256(dest, 3, ymm3);
+	mm256_stream_si256(dest, 4, ymm4);
+	mm256_stream_si256(dest, 5, ymm5);
+	mm256_stream_si256(dest, 6, ymm6);
+	mm256_stream_si256(dest, 7, ymm7);
 }
 
 static force_inline void
 memmove_movnt2x64b(char *dest, const char *src)
 {
-	__m256i ymm0 = _mm256_loadu_si256((__m256i *)src + 0);
-	__m256i ymm1 = _mm256_loadu_si256((__m256i *)src + 1);
-	__m256i ymm2 = _mm256_loadu_si256((__m256i *)src + 2);
-	__m256i ymm3 = _mm256_loadu_si256((__m256i *)src + 3);
+	__m256i ymm0 = mm256_loadu_si256(src, 0);
+	__m256i ymm1 = mm256_loadu_si256(src, 1);
+	__m256i ymm2 = mm256_loadu_si256(src, 2);
+	__m256i ymm3 = mm256_loadu_si256(src, 3);
 
-	_mm256_stream_si256((__m256i *)dest + 0, ymm0);
-	_mm256_stream_si256((__m256i *)dest + 1, ymm1);
-	_mm256_stream_si256((__m256i *)dest + 2, ymm2);
-	_mm256_stream_si256((__m256i *)dest + 3, ymm3);
+	mm256_stream_si256(dest, 0, ymm0);
+	mm256_stream_si256(dest, 1, ymm1);
+	mm256_stream_si256(dest, 2, ymm2);
+	mm256_stream_si256(dest, 3, ymm3);
 }
 
 static force_inline void
 memmove_movnt1x64b(char *dest, const char *src)
 {
-	__m256i ymm0 = _mm256_loadu_si256((__m256i *)src + 0);
-	__m256i ymm1 = _mm256_loadu_si256((__m256i *)src + 1);
+	__m256i ymm0 = mm256_loadu_si256(src, 0);
+	__m256i ymm1 = mm256_loadu_si256(src, 1);
 
-	_mm256_stream_si256((__m256i *)dest + 0, ymm0);
-	_mm256_stream_si256((__m256i *)dest + 1, ymm1);
+	mm256_stream_si256(dest, 0, ymm0);
+	mm256_stream_si256(dest, 1, ymm1);
 }
 
 static force_inline void
@@ -101,7 +114,7 @@ memmove_movnt1x32b(char *dest, const char *src)
 {
 	__m256i ymm0 = _mm256_loadu_si256((__m256i *)src);
 
-	_mm256_stream_si256((__m256i *)dest, ymm0);
+	mm256_stream_si256(dest, 0, ymm0);
 }
 
 static force_inline void

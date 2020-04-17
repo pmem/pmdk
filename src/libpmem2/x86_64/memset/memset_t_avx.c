@@ -12,24 +12,30 @@
 #include "memset_avx.h"
 
 static force_inline void
+mm256_store_si256(char *dest, unsigned idx, __m256i src)
+{
+	_mm256_store_si256((__m256i *)dest + idx, src);
+}
+
+static force_inline void
 memset_mov8x64b(char *dest, __m256i ymm, flush64b_fn flush64b)
 {
-	_mm256_store_si256((__m256i *)dest + 0, ymm);
-	_mm256_store_si256((__m256i *)dest + 1, ymm);
-	_mm256_store_si256((__m256i *)dest + 2, ymm);
-	_mm256_store_si256((__m256i *)dest + 3, ymm);
-	_mm256_store_si256((__m256i *)dest + 4, ymm);
-	_mm256_store_si256((__m256i *)dest + 5, ymm);
-	_mm256_store_si256((__m256i *)dest + 6, ymm);
-	_mm256_store_si256((__m256i *)dest + 7, ymm);
-	_mm256_store_si256((__m256i *)dest + 8, ymm);
-	_mm256_store_si256((__m256i *)dest + 9, ymm);
-	_mm256_store_si256((__m256i *)dest + 10, ymm);
-	_mm256_store_si256((__m256i *)dest + 11, ymm);
-	_mm256_store_si256((__m256i *)dest + 12, ymm);
-	_mm256_store_si256((__m256i *)dest + 13, ymm);
-	_mm256_store_si256((__m256i *)dest + 14, ymm);
-	_mm256_store_si256((__m256i *)dest + 15, ymm);
+	mm256_store_si256(dest, 0, ymm);
+	mm256_store_si256(dest, 1, ymm);
+	mm256_store_si256(dest, 2, ymm);
+	mm256_store_si256(dest, 3, ymm);
+	mm256_store_si256(dest, 4, ymm);
+	mm256_store_si256(dest, 5, ymm);
+	mm256_store_si256(dest, 6, ymm);
+	mm256_store_si256(dest, 7, ymm);
+	mm256_store_si256(dest, 8, ymm);
+	mm256_store_si256(dest, 9, ymm);
+	mm256_store_si256(dest, 10, ymm);
+	mm256_store_si256(dest, 11, ymm);
+	mm256_store_si256(dest, 12, ymm);
+	mm256_store_si256(dest, 13, ymm);
+	mm256_store_si256(dest, 14, ymm);
+	mm256_store_si256(dest, 15, ymm);
 
 	flush64b(dest + 0 * 64);
 	flush64b(dest + 1 * 64);
@@ -44,14 +50,14 @@ memset_mov8x64b(char *dest, __m256i ymm, flush64b_fn flush64b)
 static force_inline void
 memset_mov4x64b(char *dest, __m256i ymm, flush64b_fn flush64b)
 {
-	_mm256_store_si256((__m256i *)dest + 0, ymm);
-	_mm256_store_si256((__m256i *)dest + 1, ymm);
-	_mm256_store_si256((__m256i *)dest + 2, ymm);
-	_mm256_store_si256((__m256i *)dest + 3, ymm);
-	_mm256_store_si256((__m256i *)dest + 4, ymm);
-	_mm256_store_si256((__m256i *)dest + 5, ymm);
-	_mm256_store_si256((__m256i *)dest + 6, ymm);
-	_mm256_store_si256((__m256i *)dest + 7, ymm);
+	mm256_store_si256(dest, 0, ymm);
+	mm256_store_si256(dest, 1, ymm);
+	mm256_store_si256(dest, 2, ymm);
+	mm256_store_si256(dest, 3, ymm);
+	mm256_store_si256(dest, 4, ymm);
+	mm256_store_si256(dest, 5, ymm);
+	mm256_store_si256(dest, 6, ymm);
+	mm256_store_si256(dest, 7, ymm);
 
 	flush64b(dest + 0 * 64);
 	flush64b(dest + 1 * 64);
@@ -62,10 +68,10 @@ memset_mov4x64b(char *dest, __m256i ymm, flush64b_fn flush64b)
 static force_inline void
 memset_mov2x64b(char *dest, __m256i ymm, flush64b_fn flush64b)
 {
-	_mm256_store_si256((__m256i *)dest + 0, ymm);
-	_mm256_store_si256((__m256i *)dest + 1, ymm);
-	_mm256_store_si256((__m256i *)dest + 2, ymm);
-	_mm256_store_si256((__m256i *)dest + 3, ymm);
+	mm256_store_si256(dest, 0, ymm);
+	mm256_store_si256(dest, 1, ymm);
+	mm256_store_si256(dest, 2, ymm);
+	mm256_store_si256(dest, 3, ymm);
 
 	flush64b(dest + 0 * 64);
 	flush64b(dest + 1 * 64);
@@ -74,8 +80,8 @@ memset_mov2x64b(char *dest, __m256i ymm, flush64b_fn flush64b)
 static force_inline void
 memset_mov1x64b(char *dest, __m256i ymm, flush64b_fn flush64b)
 {
-	_mm256_store_si256((__m256i *)dest + 0, ymm);
-	_mm256_store_si256((__m256i *)dest + 1, ymm);
+	mm256_store_si256(dest, 0, ymm);
+	mm256_store_si256(dest, 1, ymm);
 
 	flush64b(dest + 0 * 64);
 }

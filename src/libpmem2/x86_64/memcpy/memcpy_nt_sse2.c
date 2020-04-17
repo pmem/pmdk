@@ -11,96 +11,109 @@
 #include "memcpy_sse2.h"
 #include "valgrind_internal.h"
 
+static force_inline __m128i
+mm_loadu_si128(const char *src, unsigned idx)
+{
+	return _mm_loadu_si128((const __m128i *)src + idx);
+}
+
+static force_inline void
+mm_stream_si128(char *dest, unsigned idx, __m128i src)
+{
+	_mm_stream_si128((__m128i *)dest + idx, src);
+	barrier();
+}
+
 static force_inline void
 memmove_movnt4x64b(char *dest, const char *src)
 {
-	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
-	__m128i xmm1 = _mm_loadu_si128((__m128i *)src + 1);
-	__m128i xmm2 = _mm_loadu_si128((__m128i *)src + 2);
-	__m128i xmm3 = _mm_loadu_si128((__m128i *)src + 3);
-	__m128i xmm4 = _mm_loadu_si128((__m128i *)src + 4);
-	__m128i xmm5 = _mm_loadu_si128((__m128i *)src + 5);
-	__m128i xmm6 = _mm_loadu_si128((__m128i *)src + 6);
-	__m128i xmm7 = _mm_loadu_si128((__m128i *)src + 7);
-	__m128i xmm8 = _mm_loadu_si128((__m128i *)src + 8);
-	__m128i xmm9 = _mm_loadu_si128((__m128i *)src + 9);
-	__m128i xmm10 = _mm_loadu_si128((__m128i *)src + 10);
-	__m128i xmm11 = _mm_loadu_si128((__m128i *)src + 11);
-	__m128i xmm12 = _mm_loadu_si128((__m128i *)src + 12);
-	__m128i xmm13 = _mm_loadu_si128((__m128i *)src + 13);
-	__m128i xmm14 = _mm_loadu_si128((__m128i *)src + 14);
-	__m128i xmm15 = _mm_loadu_si128((__m128i *)src + 15);
+	__m128i xmm0 = mm_loadu_si128(src, 0);
+	__m128i xmm1 = mm_loadu_si128(src, 1);
+	__m128i xmm2 = mm_loadu_si128(src, 2);
+	__m128i xmm3 = mm_loadu_si128(src, 3);
+	__m128i xmm4 = mm_loadu_si128(src, 4);
+	__m128i xmm5 = mm_loadu_si128(src, 5);
+	__m128i xmm6 = mm_loadu_si128(src, 6);
+	__m128i xmm7 = mm_loadu_si128(src, 7);
+	__m128i xmm8 = mm_loadu_si128(src, 8);
+	__m128i xmm9 = mm_loadu_si128(src, 9);
+	__m128i xmm10 = mm_loadu_si128(src, 10);
+	__m128i xmm11 = mm_loadu_si128(src, 11);
+	__m128i xmm12 = mm_loadu_si128(src, 12);
+	__m128i xmm13 = mm_loadu_si128(src, 13);
+	__m128i xmm14 = mm_loadu_si128(src, 14);
+	__m128i xmm15 = mm_loadu_si128(src, 15);
 
-	_mm_stream_si128((__m128i *)dest + 0, xmm0);
-	_mm_stream_si128((__m128i *)dest + 1, xmm1);
-	_mm_stream_si128((__m128i *)dest + 2, xmm2);
-	_mm_stream_si128((__m128i *)dest + 3, xmm3);
-	_mm_stream_si128((__m128i *)dest + 4, xmm4);
-	_mm_stream_si128((__m128i *)dest + 5, xmm5);
-	_mm_stream_si128((__m128i *)dest + 6, xmm6);
-	_mm_stream_si128((__m128i *)dest + 7, xmm7);
-	_mm_stream_si128((__m128i *)dest + 8, xmm8);
-	_mm_stream_si128((__m128i *)dest + 9, xmm9);
-	_mm_stream_si128((__m128i *)dest + 10, xmm10);
-	_mm_stream_si128((__m128i *)dest + 11, xmm11);
-	_mm_stream_si128((__m128i *)dest + 12, xmm12);
-	_mm_stream_si128((__m128i *)dest + 13, xmm13);
-	_mm_stream_si128((__m128i *)dest + 14, xmm14);
-	_mm_stream_si128((__m128i *)dest + 15, xmm15);
+	mm_stream_si128(dest, 0, xmm0);
+	mm_stream_si128(dest, 1, xmm1);
+	mm_stream_si128(dest, 2, xmm2);
+	mm_stream_si128(dest, 3, xmm3);
+	mm_stream_si128(dest, 4, xmm4);
+	mm_stream_si128(dest, 5, xmm5);
+	mm_stream_si128(dest, 6, xmm6);
+	mm_stream_si128(dest, 7, xmm7);
+	mm_stream_si128(dest, 8, xmm8);
+	mm_stream_si128(dest, 9, xmm9);
+	mm_stream_si128(dest, 10, xmm10);
+	mm_stream_si128(dest, 11, xmm11);
+	mm_stream_si128(dest, 12, xmm12);
+	mm_stream_si128(dest, 13, xmm13);
+	mm_stream_si128(dest, 14, xmm14);
+	mm_stream_si128(dest, 15, xmm15);
 }
 
 static force_inline void
 memmove_movnt2x64b(char *dest, const char *src)
 {
-	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
-	__m128i xmm1 = _mm_loadu_si128((__m128i *)src + 1);
-	__m128i xmm2 = _mm_loadu_si128((__m128i *)src + 2);
-	__m128i xmm3 = _mm_loadu_si128((__m128i *)src + 3);
-	__m128i xmm4 = _mm_loadu_si128((__m128i *)src + 4);
-	__m128i xmm5 = _mm_loadu_si128((__m128i *)src + 5);
-	__m128i xmm6 = _mm_loadu_si128((__m128i *)src + 6);
-	__m128i xmm7 = _mm_loadu_si128((__m128i *)src + 7);
+	__m128i xmm0 = mm_loadu_si128(src, 0);
+	__m128i xmm1 = mm_loadu_si128(src, 1);
+	__m128i xmm2 = mm_loadu_si128(src, 2);
+	__m128i xmm3 = mm_loadu_si128(src, 3);
+	__m128i xmm4 = mm_loadu_si128(src, 4);
+	__m128i xmm5 = mm_loadu_si128(src, 5);
+	__m128i xmm6 = mm_loadu_si128(src, 6);
+	__m128i xmm7 = mm_loadu_si128(src, 7);
 
-	_mm_stream_si128((__m128i *)dest + 0, xmm0);
-	_mm_stream_si128((__m128i *)dest + 1, xmm1);
-	_mm_stream_si128((__m128i *)dest + 2, xmm2);
-	_mm_stream_si128((__m128i *)dest + 3, xmm3);
-	_mm_stream_si128((__m128i *)dest + 4, xmm4);
-	_mm_stream_si128((__m128i *)dest + 5, xmm5);
-	_mm_stream_si128((__m128i *)dest + 6, xmm6);
-	_mm_stream_si128((__m128i *)dest + 7, xmm7);
+	mm_stream_si128(dest, 0, xmm0);
+	mm_stream_si128(dest, 1, xmm1);
+	mm_stream_si128(dest, 2, xmm2);
+	mm_stream_si128(dest, 3, xmm3);
+	mm_stream_si128(dest, 4, xmm4);
+	mm_stream_si128(dest, 5, xmm5);
+	mm_stream_si128(dest, 6, xmm6);
+	mm_stream_si128(dest, 7, xmm7);
 }
 
 static force_inline void
 memmove_movnt1x64b(char *dest, const char *src)
 {
-	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
-	__m128i xmm1 = _mm_loadu_si128((__m128i *)src + 1);
-	__m128i xmm2 = _mm_loadu_si128((__m128i *)src + 2);
-	__m128i xmm3 = _mm_loadu_si128((__m128i *)src + 3);
+	__m128i xmm0 = mm_loadu_si128(src, 0);
+	__m128i xmm1 = mm_loadu_si128(src, 1);
+	__m128i xmm2 = mm_loadu_si128(src, 2);
+	__m128i xmm3 = mm_loadu_si128(src, 3);
 
-	_mm_stream_si128((__m128i *)dest + 0, xmm0);
-	_mm_stream_si128((__m128i *)dest + 1, xmm1);
-	_mm_stream_si128((__m128i *)dest + 2, xmm2);
-	_mm_stream_si128((__m128i *)dest + 3, xmm3);
+	mm_stream_si128(dest, 0, xmm0);
+	mm_stream_si128(dest, 1, xmm1);
+	mm_stream_si128(dest, 2, xmm2);
+	mm_stream_si128(dest, 3, xmm3);
 }
 
 static force_inline void
 memmove_movnt1x32b(char *dest, const char *src)
 {
-	__m128i xmm0 = _mm_loadu_si128((__m128i *)src + 0);
-	__m128i xmm1 = _mm_loadu_si128((__m128i *)src + 1);
+	__m128i xmm0 = mm_loadu_si128(src, 0);
+	__m128i xmm1 = mm_loadu_si128(src, 1);
 
-	_mm_stream_si128((__m128i *)dest + 0, xmm0);
-	_mm_stream_si128((__m128i *)dest + 1, xmm1);
+	mm_stream_si128(dest, 0, xmm0);
+	mm_stream_si128(dest, 1, xmm1);
 }
 
 static force_inline void
 memmove_movnt1x16b(char *dest, const char *src)
 {
-	__m128i xmm0 = _mm_loadu_si128((__m128i *)src);
+	__m128i xmm0 = mm_loadu_si128(src, 0);
 
-	_mm_stream_si128((__m128i *)dest, xmm0);
+	mm_stream_si128(dest, 0, xmm0);
 }
 
 static force_inline void

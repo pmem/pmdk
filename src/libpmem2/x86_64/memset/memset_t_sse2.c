@@ -11,24 +11,30 @@
 #include "memset_sse2.h"
 
 static force_inline void
+mm_store_si128(char *dest, unsigned idx, __m128i src)
+{
+	_mm_store_si128((__m128i *)dest + idx, src);
+}
+
+static force_inline void
 memset_mov4x64b(char *dest, __m128i xmm, flush64b_fn flush64b)
 {
-	_mm_store_si128((__m128i *)dest + 0, xmm);
-	_mm_store_si128((__m128i *)dest + 1, xmm);
-	_mm_store_si128((__m128i *)dest + 2, xmm);
-	_mm_store_si128((__m128i *)dest + 3, xmm);
-	_mm_store_si128((__m128i *)dest + 4, xmm);
-	_mm_store_si128((__m128i *)dest + 5, xmm);
-	_mm_store_si128((__m128i *)dest + 6, xmm);
-	_mm_store_si128((__m128i *)dest + 7, xmm);
-	_mm_store_si128((__m128i *)dest + 8, xmm);
-	_mm_store_si128((__m128i *)dest + 9, xmm);
-	_mm_store_si128((__m128i *)dest + 10, xmm);
-	_mm_store_si128((__m128i *)dest + 11, xmm);
-	_mm_store_si128((__m128i *)dest + 12, xmm);
-	_mm_store_si128((__m128i *)dest + 13, xmm);
-	_mm_store_si128((__m128i *)dest + 14, xmm);
-	_mm_store_si128((__m128i *)dest + 15, xmm);
+	mm_store_si128(dest, 0, xmm);
+	mm_store_si128(dest, 1, xmm);
+	mm_store_si128(dest, 2, xmm);
+	mm_store_si128(dest, 3, xmm);
+	mm_store_si128(dest, 4, xmm);
+	mm_store_si128(dest, 5, xmm);
+	mm_store_si128(dest, 6, xmm);
+	mm_store_si128(dest, 7, xmm);
+	mm_store_si128(dest, 8, xmm);
+	mm_store_si128(dest, 9, xmm);
+	mm_store_si128(dest, 10, xmm);
+	mm_store_si128(dest, 11, xmm);
+	mm_store_si128(dest, 12, xmm);
+	mm_store_si128(dest, 13, xmm);
+	mm_store_si128(dest, 14, xmm);
+	mm_store_si128(dest, 15, xmm);
 
 	flush64b(dest + 0 * 64);
 	flush64b(dest + 1 * 64);
@@ -39,14 +45,14 @@ memset_mov4x64b(char *dest, __m128i xmm, flush64b_fn flush64b)
 static force_inline void
 memset_mov2x64b(char *dest, __m128i xmm, flush64b_fn flush64b)
 {
-	_mm_store_si128((__m128i *)dest + 0, xmm);
-	_mm_store_si128((__m128i *)dest + 1, xmm);
-	_mm_store_si128((__m128i *)dest + 2, xmm);
-	_mm_store_si128((__m128i *)dest + 3, xmm);
-	_mm_store_si128((__m128i *)dest + 4, xmm);
-	_mm_store_si128((__m128i *)dest + 5, xmm);
-	_mm_store_si128((__m128i *)dest + 6, xmm);
-	_mm_store_si128((__m128i *)dest + 7, xmm);
+	mm_store_si128(dest, 0, xmm);
+	mm_store_si128(dest, 1, xmm);
+	mm_store_si128(dest, 2, xmm);
+	mm_store_si128(dest, 3, xmm);
+	mm_store_si128(dest, 4, xmm);
+	mm_store_si128(dest, 5, xmm);
+	mm_store_si128(dest, 6, xmm);
+	mm_store_si128(dest, 7, xmm);
 
 	flush64b(dest + 0 * 64);
 	flush64b(dest + 1 * 64);
@@ -55,10 +61,10 @@ memset_mov2x64b(char *dest, __m128i xmm, flush64b_fn flush64b)
 static force_inline void
 memset_mov1x64b(char *dest, __m128i xmm, flush64b_fn flush64b)
 {
-	_mm_store_si128((__m128i *)dest + 0, xmm);
-	_mm_store_si128((__m128i *)dest + 1, xmm);
-	_mm_store_si128((__m128i *)dest + 2, xmm);
-	_mm_store_si128((__m128i *)dest + 3, xmm);
+	mm_store_si128(dest, 0, xmm);
+	mm_store_si128(dest, 1, xmm);
+	mm_store_si128(dest, 2, xmm);
+	mm_store_si128(dest, 3, xmm);
 
 	flush64b(dest + 0 * 64);
 }
