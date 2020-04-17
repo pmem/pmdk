@@ -60,6 +60,11 @@ wc_barrier(void)
 	_mm_sfence();
 }
 
+static force_inline void
+no_barrier(void)
+{
+}
+
 #ifndef AVX512F_AVAILABLE
 /*
  * XXX not supported in MSVC version we currently use.
@@ -87,21 +92,46 @@ void memmove_mov_sse2_clflushopt(char *dest, const char *src, size_t len);
 void memmove_mov_sse2_clwb(char *dest, const char *src, size_t len);
 void memmove_mov_sse2_empty(char *dest, const char *src, size_t len);
 void memmove_mov_sse2_noflush(char *dest, const char *src, size_t len);
-void memmove_movnt_sse2_clflush(char *dest, const char *src, size_t len);
-void memmove_movnt_sse2_clflushopt(char *dest, const char *src, size_t len);
-void memmove_movnt_sse2_clwb(char *dest, const char *src, size_t len);
-void memmove_movnt_sse2_empty(char *dest, const char *src, size_t len);
-void memmove_movnt_sse2_noflush(char *dest, const char *src, size_t len);
+
+void memmove_movnt_sse2_clflush_nobarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_sse2_clflushopt_nobarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_sse2_clwb_nobarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_sse2_empty_nobarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_sse2_noflush_nobarrier(char *dest, const char *src,
+		size_t len);
+
+void memmove_movnt_sse2_clflush_wcbarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_sse2_clflushopt_wcbarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_sse2_clwb_wcbarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_sse2_empty_wcbarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_sse2_noflush_wcbarrier(char *dest, const char *src,
+		size_t len);
+
 void memset_mov_sse2_clflush(char *dest, int c, size_t len);
 void memset_mov_sse2_clflushopt(char *dest, int c, size_t len);
 void memset_mov_sse2_clwb(char *dest, int c, size_t len);
 void memset_mov_sse2_empty(char *dest, int c, size_t len);
 void memset_mov_sse2_noflush(char *dest, int c, size_t len);
-void memset_movnt_sse2_clflush(char *dest, int c, size_t len);
-void memset_movnt_sse2_clflushopt(char *dest, int c, size_t len);
-void memset_movnt_sse2_clwb(char *dest, int c, size_t len);
-void memset_movnt_sse2_empty(char *dest, int c, size_t len);
-void memset_movnt_sse2_noflush(char *dest, int c, size_t len);
+
+void memset_movnt_sse2_clflush_nobarrier(char *dest, int c, size_t len);
+void memset_movnt_sse2_clflushopt_nobarrier(char *dest, int c, size_t len);
+void memset_movnt_sse2_clwb_nobarrier(char *dest, int c, size_t len);
+void memset_movnt_sse2_empty_nobarrier(char *dest, int c, size_t len);
+void memset_movnt_sse2_noflush_nobarrier(char *dest, int c, size_t len);
+
+void memset_movnt_sse2_clflush_wcbarrier(char *dest, int c, size_t len);
+void memset_movnt_sse2_clflushopt_wcbarrier(char *dest, int c, size_t len);
+void memset_movnt_sse2_clwb_wcbarrier(char *dest, int c, size_t len);
+void memset_movnt_sse2_empty_wcbarrier(char *dest, int c, size_t len);
+void memset_movnt_sse2_noflush_wcbarrier(char *dest, int c, size_t len);
 #endif
 
 #if AVX_AVAILABLE
@@ -110,21 +140,46 @@ void memmove_mov_avx_clflushopt(char *dest, const char *src, size_t len);
 void memmove_mov_avx_clwb(char *dest, const char *src, size_t len);
 void memmove_mov_avx_empty(char *dest, const char *src, size_t len);
 void memmove_mov_avx_noflush(char *dest, const char *src, size_t len);
-void memmove_movnt_avx_clflush(char *dest, const char *src, size_t len);
-void memmove_movnt_avx_clflushopt(char *dest, const char *src, size_t len);
-void memmove_movnt_avx_clwb(char *dest, const char *src, size_t len);
-void memmove_movnt_avx_empty(char *dest, const char *src, size_t len);
-void memmove_movnt_avx_noflush(char *dest, const char *src, size_t len);
+
+void memmove_movnt_avx_clflush_nobarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_avx_clflushopt_nobarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_avx_clwb_nobarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_avx_empty_nobarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_avx_noflush_nobarrier(char *dest, const char *src,
+		size_t len);
+
+void memmove_movnt_avx_clflush_wcbarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_avx_clflushopt_wcbarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_avx_clwb_wcbarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_avx_empty_wcbarrier(char *dest, const char *src,
+		size_t len);
+void memmove_movnt_avx_noflush_wcbarrier(char *dest, const char *src,
+		size_t len);
+
 void memset_mov_avx_clflush(char *dest, int c, size_t len);
 void memset_mov_avx_clflushopt(char *dest, int c, size_t len);
 void memset_mov_avx_clwb(char *dest, int c, size_t len);
 void memset_mov_avx_empty(char *dest, int c, size_t len);
 void memset_mov_avx_noflush(char *dest, int c, size_t len);
-void memset_movnt_avx_clflush(char *dest, int c, size_t len);
-void memset_movnt_avx_clflushopt(char *dest, int c, size_t len);
-void memset_movnt_avx_clwb(char *dest, int c, size_t len);
-void memset_movnt_avx_empty(char *dest, int c, size_t len);
-void memset_movnt_avx_noflush(char *dest, int c, size_t len);
+
+void memset_movnt_avx_clflush_nobarrier(char *dest, int c, size_t len);
+void memset_movnt_avx_clflushopt_nobarrier(char *dest, int c, size_t len);
+void memset_movnt_avx_clwb_nobarrier(char *dest, int c, size_t len);
+void memset_movnt_avx_empty_nobarrier(char *dest, int c, size_t len);
+void memset_movnt_avx_noflush_nobarrier(char *dest, int c, size_t len);
+
+void memset_movnt_avx_clflush_wcbarrier(char *dest, int c, size_t len);
+void memset_movnt_avx_clflushopt_wcbarrier(char *dest, int c, size_t len);
+void memset_movnt_avx_clwb_wcbarrier(char *dest, int c, size_t len);
+void memset_movnt_avx_empty_wcbarrier(char *dest, int c, size_t len);
+void memset_movnt_avx_noflush_wcbarrier(char *dest, int c, size_t len);
 #endif
 
 #if AVX512F_AVAILABLE

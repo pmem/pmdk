@@ -186,6 +186,11 @@ class Pmem2MemExt(t.Test):
         ctx.env['PMEM2_LOG_FILE'] = self.pmem2_log
         ctx.env['PMEM2_LOG_LEVEL'] = '15'
 
+        if ctx.wc_workaround() == 'on':
+            ctx.env['PMEM_WC_WORKAROUND'] = '1'
+        elif ctx.wc_workaround() == 'off':
+            ctx.env['PMEM_WC_WORKAROUND'] = '0'
+
         if ctx.variant() == VARIANT_LIBC:
             ctx.env['PMEM_NO_MOVNT'] = '1'
             ctx.env['PMEM_NO_GENERIC_MEMCPY'] = '1'
@@ -214,29 +219,34 @@ class Pmem2MemExt(t.Test):
 
 
 @t.add_params('variant', [VARIANT_LIBC, VARIANT_GENERIC])
+@t.add_params('wc_workaround', ['default'])
 class TEST0(Pmem2MemExt):
     test_case = [(NO_FLAGS, 1024, "")]
 
 
 @g.require_granularity(g.PAGE, g.CACHELINE)
 @t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST1(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_SMALL
 
 
 @g.require_granularity(g.BYTE)
 @t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST2(Pmem2MemExt):
     test_case = MATCH_BYTE_SMALL
 
 
 @g.require_granularity(g.PAGE, g.CACHELINE)
 @t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST3(Pmem2MemExt):
     test_case = MATCH_PAGE_CACHELINE_BIG
 
 
 @g.require_granularity(g.BYTE)
 @t.add_params('variant', [VARIANT_SSE2, VARIANT_AVX, VARIANT_AVX512F])
+@t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST4(Pmem2MemExt):
     test_case = MATCH_BYTE_BIG
