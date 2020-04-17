@@ -189,8 +189,57 @@ end:
 	VALGRIND_DO_FLUSH(orig_dest, orig_len);
 }
 
+/* variants without perf_barrier */
+
 void
-memset_movnt_avx_noflush(char *dest, int c, size_t len)
+memset_movnt_avx_noflush_nobarrier(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_movnt_avx(dest, c, len, noflush, barrier_after_ntstores,
+			no_barrier);
+}
+
+void
+memset_movnt_avx_empty_nobarrier(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_movnt_avx(dest, c, len, flush_empty_nolog,
+			barrier_after_ntstores, no_barrier);
+}
+
+void
+memset_movnt_avx_clflush_nobarrier(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_movnt_avx(dest, c, len, flush_clflush_nolog,
+			barrier_after_ntstores, no_barrier);
+}
+
+void
+memset_movnt_avx_clflushopt_nobarrier(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_movnt_avx(dest, c, len, flush_clflushopt_nolog,
+			no_barrier_after_ntstores, no_barrier);
+}
+
+void
+memset_movnt_avx_clwb_nobarrier(char *dest, int c, size_t len)
+{
+	LOG(15, "dest %p c %d len %zu", dest, c, len);
+
+	memset_movnt_avx(dest, c, len, flush_clwb_nolog,
+			no_barrier_after_ntstores, no_barrier);
+}
+
+/* variants with perf_barrier */
+
+void
+memset_movnt_avx_noflush_wcbarrier(char *dest, int c, size_t len)
 {
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
 
@@ -199,7 +248,7 @@ memset_movnt_avx_noflush(char *dest, int c, size_t len)
 }
 
 void
-memset_movnt_avx_empty(char *dest, int c, size_t len)
+memset_movnt_avx_empty_wcbarrier(char *dest, int c, size_t len)
 {
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
 
@@ -208,7 +257,7 @@ memset_movnt_avx_empty(char *dest, int c, size_t len)
 }
 
 void
-memset_movnt_avx_clflush(char *dest, int c, size_t len)
+memset_movnt_avx_clflush_wcbarrier(char *dest, int c, size_t len)
 {
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
 
@@ -217,7 +266,7 @@ memset_movnt_avx_clflush(char *dest, int c, size_t len)
 }
 
 void
-memset_movnt_avx_clflushopt(char *dest, int c, size_t len)
+memset_movnt_avx_clflushopt_wcbarrier(char *dest, int c, size_t len)
 {
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
 
@@ -226,7 +275,7 @@ memset_movnt_avx_clflushopt(char *dest, int c, size_t len)
 }
 
 void
-memset_movnt_avx_clwb(char *dest, int c, size_t len)
+memset_movnt_avx_clwb_wcbarrier(char *dest, int c, size_t len)
 {
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
 

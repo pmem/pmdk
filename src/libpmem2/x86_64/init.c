@@ -64,10 +64,10 @@ flush_clwb(const void *addr, size_t len)
 #define PMEM2_F_MEM_MOVNT (PMEM2_F_MEM_WC | PMEM2_F_MEM_NONTEMPORAL)
 #define PMEM2_F_MEM_MOV   (PMEM2_F_MEM_WB | PMEM2_F_MEM_TEMPORAL)
 
-#define MEMCPY_TEMPLATE(isa, flush) \
+#define MEMCPY_TEMPLATE(isa, flush, perfbarrier) \
 static void *\
-memmove_nodrain_##isa##_##flush(void *dest, const void *src, size_t len, \
-		unsigned flags, flush_func flushf)\
+memmove_nodrain_##isa##_##flush##perfbarrier(void *dest, const void *src, \
+		size_t len, unsigned flags, flush_func flushf)\
 {\
 	if (len == 0 || src == dest)\
 		return dest;\
@@ -75,21 +75,21 @@ memmove_nodrain_##isa##_##flush(void *dest, const void *src, size_t len, \
 	if (flags & PMEM2_F_MEM_NOFLUSH) \
 		memmove_mov_##isa##_noflush(dest, src, len); \
 	else if (flags & PMEM2_F_MEM_MOVNT)\
-		memmove_movnt_##isa ##_##flush(dest, src, len);\
+		memmove_movnt_##isa ##_##flush##perfbarrier(dest, src, len);\
 	else if (flags & PMEM2_F_MEM_MOV)\
 		memmove_mov_##isa##_##flush(dest, src, len);\
 	else if (len < Movnt_threshold)\
 		memmove_mov_##isa##_##flush(dest, src, len);\
 	else\
-		memmove_movnt_##isa##_##flush(dest, src, len);\
+		memmove_movnt_##isa##_##flush##perfbarrier(dest, src, len);\
 \
 	return dest;\
 }
 
-#define MEMCPY_TEMPLATE_EADR(isa) \
+#define MEMCPY_TEMPLATE_EADR(isa, perfbarrier) \
 static void *\
-memmove_nodrain_##isa##_eadr(void *dest, const void *src, size_t len, \
-		unsigned flags, flush_func flushf)\
+memmove_nodrain_##isa##_eadr##perfbarrier(void *dest, const void *src, \
+		size_t len, unsigned flags, flush_func flushf)\
 {\
 	if (len == 0 || src == dest)\
 		return dest;\
@@ -97,17 +97,17 @@ memmove_nodrain_##isa##_eadr(void *dest, const void *src, size_t len, \
 	if (flags & PMEM2_F_MEM_NOFLUSH)\
 		memmove_mov_##isa##_noflush(dest, src, len);\
 	else if (flags & PMEM2_F_MEM_NONTEMPORAL)\
-		memmove_movnt_##isa##_empty(dest, src, len);\
+		memmove_movnt_##isa##_empty##perfbarrier(dest, src, len);\
 	else\
 		memmove_mov_##isa##_empty(dest, src, len);\
 \
 	return dest;\
 }
 
-#define MEMSET_TEMPLATE(isa, flush)\
+#define MEMSET_TEMPLATE(isa, flush, perfbarrier)\
 static void *\
-memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags,\
-		flush_func flushf)\
+memset_nodrain_##isa##_##flush##perfbarrier(void *dest, int c, size_t len, \
+		unsigned flags, flush_func flushf)\
 {\
 	if (len == 0)\
 		return dest;\
@@ -115,21 +115,21 @@ memset_nodrain_##isa##_##flush(void *dest, int c, size_t len, unsigned flags,\
 	if (flags & PMEM2_F_MEM_NOFLUSH) \
 		memset_mov_##isa##_noflush(dest, c, len); \
 	else if (flags & PMEM2_F_MEM_MOVNT)\
-		memset_movnt_##isa##_##flush(dest, c, len);\
+		memset_movnt_##isa##_##flush##perfbarrier(dest, c, len);\
 	else if (flags & PMEM2_F_MEM_MOV)\
 		memset_mov_##isa##_##flush(dest, c, len);\
 	else if (len < Movnt_threshold)\
 		memset_mov_##isa##_##flush(dest, c, len);\
 	else\
-		memset_movnt_##isa##_##flush(dest, c, len);\
+		memset_movnt_##isa##_##flush##perfbarrier(dest, c, len);\
 \
 	return dest;\
 }
 
-#define MEMSET_TEMPLATE_EADR(isa) \
+#define MEMSET_TEMPLATE_EADR(isa, perfbarrier) \
 static void *\
-memset_nodrain_##isa##_eadr(void *dest, int c, size_t len, unsigned flags,\
-		flush_func flushf)\
+memset_nodrain_##isa##_eadr##perfbarrier(void *dest, int c, size_t len, \
+		unsigned flags, flush_func flushf)\
 {\
 	if (len == 0)\
 		return dest;\
@@ -137,7 +137,7 @@ memset_nodrain_##isa##_eadr(void *dest, int c, size_t len, unsigned flags,\
 	if (flags & PMEM2_F_MEM_NOFLUSH)\
 		memset_mov_##isa##_noflush(dest, c, len);\
 	else if (flags & PMEM2_F_MEM_NONTEMPORAL)\
-		memset_movnt_##isa##_empty(dest, c, len);\
+		memset_movnt_##isa##_empty##perfbarrier(dest, c, len);\
 	else\
 		memset_mov_##isa##_empty(dest, c, len);\
 \
@@ -146,39 +146,59 @@ memset_nodrain_##isa##_eadr(void *dest, int c, size_t len, unsigned flags,\
 #endif
 
 #if SSE2_AVAILABLE
-MEMCPY_TEMPLATE(sse2, clflush)
-MEMCPY_TEMPLATE(sse2, clflushopt)
-MEMCPY_TEMPLATE(sse2, clwb)
-MEMCPY_TEMPLATE_EADR(sse2)
+MEMCPY_TEMPLATE(sse2, clflush, _nobarrier)
+MEMCPY_TEMPLATE(sse2, clflushopt, _nobarrier)
+MEMCPY_TEMPLATE(sse2, clwb, _nobarrier)
+MEMCPY_TEMPLATE_EADR(sse2, _nobarrier)
 
-MEMSET_TEMPLATE(sse2, clflush)
-MEMSET_TEMPLATE(sse2, clflushopt)
-MEMSET_TEMPLATE(sse2, clwb)
-MEMSET_TEMPLATE_EADR(sse2)
+MEMSET_TEMPLATE(sse2, clflush, _nobarrier)
+MEMSET_TEMPLATE(sse2, clflushopt, _nobarrier)
+MEMSET_TEMPLATE(sse2, clwb, _nobarrier)
+MEMSET_TEMPLATE_EADR(sse2, _nobarrier)
+
+MEMCPY_TEMPLATE(sse2, clflush, _wcbarrier)
+MEMCPY_TEMPLATE(sse2, clflushopt, _wcbarrier)
+MEMCPY_TEMPLATE(sse2, clwb, _wcbarrier)
+MEMCPY_TEMPLATE_EADR(sse2, _wcbarrier)
+
+MEMSET_TEMPLATE(sse2, clflush, _wcbarrier)
+MEMSET_TEMPLATE(sse2, clflushopt, _wcbarrier)
+MEMSET_TEMPLATE(sse2, clwb, _wcbarrier)
+MEMSET_TEMPLATE_EADR(sse2, _wcbarrier)
 #endif
 
 #if AVX_AVAILABLE
-MEMCPY_TEMPLATE(avx, clflush)
-MEMCPY_TEMPLATE(avx, clflushopt)
-MEMCPY_TEMPLATE(avx, clwb)
-MEMCPY_TEMPLATE_EADR(avx)
+MEMCPY_TEMPLATE(avx, clflush, _nobarrier)
+MEMCPY_TEMPLATE(avx, clflushopt, _nobarrier)
+MEMCPY_TEMPLATE(avx, clwb, _nobarrier)
+MEMCPY_TEMPLATE_EADR(avx, _nobarrier)
 
-MEMSET_TEMPLATE(avx, clflush)
-MEMSET_TEMPLATE(avx, clflushopt)
-MEMSET_TEMPLATE(avx, clwb)
-MEMSET_TEMPLATE_EADR(avx)
+MEMSET_TEMPLATE(avx, clflush, _nobarrier)
+MEMSET_TEMPLATE(avx, clflushopt, _nobarrier)
+MEMSET_TEMPLATE(avx, clwb, _nobarrier)
+MEMSET_TEMPLATE_EADR(avx, _nobarrier)
+
+MEMCPY_TEMPLATE(avx, clflush, _wcbarrier)
+MEMCPY_TEMPLATE(avx, clflushopt, _wcbarrier)
+MEMCPY_TEMPLATE(avx, clwb, _wcbarrier)
+MEMCPY_TEMPLATE_EADR(avx, _wcbarrier)
+
+MEMSET_TEMPLATE(avx, clflush, _wcbarrier)
+MEMSET_TEMPLATE(avx, clflushopt, _wcbarrier)
+MEMSET_TEMPLATE(avx, clwb, _wcbarrier)
+MEMSET_TEMPLATE_EADR(avx, _wcbarrier)
 #endif
 
 #if AVX512F_AVAILABLE
-MEMCPY_TEMPLATE(avx512f, clflush)
-MEMCPY_TEMPLATE(avx512f, clflushopt)
-MEMCPY_TEMPLATE(avx512f, clwb)
-MEMCPY_TEMPLATE_EADR(avx512f)
+MEMCPY_TEMPLATE(avx512f, clflush, /* cstyle wa */)
+MEMCPY_TEMPLATE(avx512f, clflushopt, /* */)
+MEMCPY_TEMPLATE(avx512f, clwb, /* */)
+MEMCPY_TEMPLATE_EADR(avx512f, /* */)
 
-MEMSET_TEMPLATE(avx512f, clflush)
-MEMSET_TEMPLATE(avx512f, clflushopt)
-MEMSET_TEMPLATE(avx512f, clwb)
-MEMSET_TEMPLATE_EADR(avx512f)
+MEMSET_TEMPLATE(avx512f, clflush, /* */)
+MEMSET_TEMPLATE(avx512f, clflushopt, /* */)
+MEMSET_TEMPLATE(avx512f, clwb, /* */)
+MEMSET_TEMPLATE_EADR(avx512f, /* */)
 #endif
 
 enum memcpy_impl {
@@ -192,29 +212,68 @@ enum memcpy_impl {
  * use_sse2_memcpy_memset -- (internal) SSE2 detected, use it if possible
  */
 static void
-use_sse2_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
+use_sse2_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl,
+		int wc_workaround)
 {
 #if SSE2_AVAILABLE
 	*impl = MEMCPY_SSE2;
-	info->memmove_nodrain_eadr = memmove_nodrain_sse2_eadr;
-	if (info->flush == flush_clflush)
-		info->memmove_nodrain = memmove_nodrain_sse2_clflush;
-	else if (info->flush == flush_clflushopt)
-		info->memmove_nodrain = memmove_nodrain_sse2_clflushopt;
-	else if (info->flush == flush_clwb)
-		info->memmove_nodrain = memmove_nodrain_sse2_clwb;
-	else
-		ASSERT(0);
+	if (wc_workaround) {
+		info->memmove_nodrain_eadr =
+				memmove_nodrain_sse2_eadr_wcbarrier;
+		if (info->flush == flush_clflush)
+			info->memmove_nodrain =
+				memmove_nodrain_sse2_clflush_wcbarrier;
+		else if (info->flush == flush_clflushopt)
+			info->memmove_nodrain =
+				memmove_nodrain_sse2_clflushopt_wcbarrier;
+		else if (info->flush == flush_clwb)
+			info->memmove_nodrain =
+				memmove_nodrain_sse2_clwb_wcbarrier;
+		else
+			ASSERT(0);
 
-	info->memset_nodrain_eadr = memset_nodrain_sse2_eadr;
-	if (info->flush == flush_clflush)
-		info->memset_nodrain = memset_nodrain_sse2_clflush;
-	else if (info->flush == flush_clflushopt)
-		info->memset_nodrain = memset_nodrain_sse2_clflushopt;
-	else if (info->flush == flush_clwb)
-		info->memset_nodrain = memset_nodrain_sse2_clwb;
-	else
-		ASSERT(0);
+		info->memset_nodrain_eadr = memset_nodrain_sse2_eadr_wcbarrier;
+		if (info->flush == flush_clflush)
+			info->memset_nodrain =
+				memset_nodrain_sse2_clflush_wcbarrier;
+		else if (info->flush == flush_clflushopt)
+			info->memset_nodrain =
+				memset_nodrain_sse2_clflushopt_wcbarrier;
+		else if (info->flush == flush_clwb)
+			info->memset_nodrain =
+				memset_nodrain_sse2_clwb_wcbarrier;
+		else
+			ASSERT(0);
+	} else {
+		info->memmove_nodrain_eadr =
+				memmove_nodrain_sse2_eadr_nobarrier;
+		if (info->flush == flush_clflush)
+			info->memmove_nodrain =
+				memmove_nodrain_sse2_clflush_nobarrier;
+		else if (info->flush == flush_clflushopt)
+			info->memmove_nodrain =
+				memmove_nodrain_sse2_clflushopt_nobarrier;
+		else if (info->flush == flush_clwb)
+			info->memmove_nodrain =
+				memmove_nodrain_sse2_clwb_nobarrier;
+		else
+			ASSERT(0);
+
+		info->memset_nodrain_eadr =
+				memset_nodrain_sse2_eadr_nobarrier;
+		if (info->flush == flush_clflush)
+			info->memset_nodrain =
+				memset_nodrain_sse2_clflush_nobarrier;
+		else if (info->flush == flush_clflushopt)
+			info->memset_nodrain =
+				memset_nodrain_sse2_clflushopt_nobarrier;
+		else if (info->flush == flush_clwb)
+			info->memset_nodrain =
+				memset_nodrain_sse2_clwb_nobarrier;
+		else
+			ASSERT(0);
+	}
+
 #else
 	LOG(3, "sse2 disabled at build time");
 #endif
@@ -225,7 +284,8 @@ use_sse2_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
  * use_avx_memcpy_memset -- (internal) AVX detected, use it if possible
  */
 static void
-use_avx_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
+use_avx_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl,
+		int wc_workaround)
 {
 #if AVX_AVAILABLE
 	LOG(3, "avx supported");
@@ -239,25 +299,63 @@ use_avx_memcpy_memset(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 	LOG(3, "PMEM_AVX enabled");
 	*impl = MEMCPY_AVX;
 
-	info->memmove_nodrain_eadr = memmove_nodrain_avx_eadr;
-	if (info->flush == flush_clflush)
-		info->memmove_nodrain = memmove_nodrain_avx_clflush;
-	else if (info->flush == flush_clflushopt)
-		info->memmove_nodrain = memmove_nodrain_avx_clflushopt;
-	else if (info->flush == flush_clwb)
-		info->memmove_nodrain = memmove_nodrain_avx_clwb;
-	else
-		ASSERT(0);
+	if (wc_workaround) {
+		info->memmove_nodrain_eadr =
+				memmove_nodrain_avx_eadr_wcbarrier;
+		if (info->flush == flush_clflush)
+			info->memmove_nodrain =
+				memmove_nodrain_avx_clflush_wcbarrier;
+		else if (info->flush == flush_clflushopt)
+			info->memmove_nodrain =
+				memmove_nodrain_avx_clflushopt_wcbarrier;
+		else if (info->flush == flush_clwb)
+			info->memmove_nodrain =
+				memmove_nodrain_avx_clwb_wcbarrier;
+		else
+			ASSERT(0);
 
-	info->memset_nodrain_eadr = memset_nodrain_avx_eadr;
-	if (info->flush == flush_clflush)
-		info->memset_nodrain = memset_nodrain_avx_clflush;
-	else if (info->flush == flush_clflushopt)
-		info->memset_nodrain = memset_nodrain_avx_clflushopt;
-	else if (info->flush == flush_clwb)
-		info->memset_nodrain = memset_nodrain_avx_clwb;
-	else
-		ASSERT(0);
+		info->memset_nodrain_eadr =
+				memset_nodrain_avx_eadr_wcbarrier;
+		if (info->flush == flush_clflush)
+			info->memset_nodrain =
+				memset_nodrain_avx_clflush_wcbarrier;
+		else if (info->flush == flush_clflushopt)
+			info->memset_nodrain =
+				memset_nodrain_avx_clflushopt_wcbarrier;
+		else if (info->flush == flush_clwb)
+			info->memset_nodrain =
+				memset_nodrain_avx_clwb_wcbarrier;
+		else
+			ASSERT(0);
+	} else {
+		info->memmove_nodrain_eadr =
+				memmove_nodrain_avx_eadr_nobarrier;
+		if (info->flush == flush_clflush)
+			info->memmove_nodrain =
+				memmove_nodrain_avx_clflush_nobarrier;
+		else if (info->flush == flush_clflushopt)
+			info->memmove_nodrain =
+				memmove_nodrain_avx_clflushopt_nobarrier;
+		else if (info->flush == flush_clwb)
+			info->memmove_nodrain =
+				memmove_nodrain_avx_clwb_nobarrier;
+		else
+			ASSERT(0);
+
+		info->memset_nodrain_eadr =
+				memset_nodrain_avx_eadr_nobarrier;
+		if (info->flush == flush_clflush)
+			info->memset_nodrain =
+				memset_nodrain_avx_clflush_nobarrier;
+		else if (info->flush == flush_clflushopt)
+			info->memset_nodrain =
+				memset_nodrain_avx_clflushopt_nobarrier;
+		else if (info->flush == flush_clwb)
+			info->memset_nodrain =
+				memset_nodrain_avx_clwb_nobarrier;
+		else
+			ASSERT(0);
+	}
 #else
 	LOG(3, "avx supported, but disabled at build time");
 #endif
@@ -348,14 +446,35 @@ pmem_cpuinfo_to_funcs(struct pmem2_arch_info *info, enum memcpy_impl *impl)
 		}
 	}
 
-	char *ptr = os_getenv("PMEM_NO_MOVNT");
+	/*
+	 * XXX Disable this work around for Intel CPUs with optimized
+	 * WC eviction.
+	 */
+	int wc_workaround = is_cpu_genuine_intel();
+
+	char *ptr = os_getenv("PMEM_WC_WORKAROUND");
+	if (ptr) {
+		if (strcmp(ptr, "1") == 0) {
+			LOG(3, "WC workaround forced to 1");
+			wc_workaround = 1;
+		} else if (strcmp(ptr, "0") == 0) {
+			LOG(3, "WC workaround forced to 0");
+			wc_workaround = 0;
+		} else {
+			LOG(3, "incorrect value of PMEM_WC_WORKAROUND (%s)",
+				ptr);
+		}
+	}
+	LOG(3, "WC workaround = %d", wc_workaround);
+
+	ptr = os_getenv("PMEM_NO_MOVNT");
 	if (ptr && strcmp(ptr, "1") == 0) {
 		LOG(3, "PMEM_NO_MOVNT forced no movnt");
 	} else {
-		use_sse2_memcpy_memset(info, impl);
+		use_sse2_memcpy_memset(info, impl, wc_workaround);
 
 		if (is_cpu_avx_present())
-			use_avx_memcpy_memset(info, impl);
+			use_avx_memcpy_memset(info, impl, wc_workaround);
 
 		if (is_cpu_avx512f_present())
 			use_avx512f_memcpy_memset(info, impl);

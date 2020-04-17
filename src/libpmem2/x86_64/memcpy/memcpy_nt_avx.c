@@ -336,8 +336,56 @@ memmove_movnt_avx(char *dest, const char *src, size_t len, flush_fn flush,
 	VALGRIND_DO_FLUSH(dest, len);
 }
 
+/* variants without perf_barrier */
+
 void
-memmove_movnt_avx_noflush(char *dest, const char *src, size_t len)
+memmove_movnt_avx_noflush_nobarrier(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_movnt_avx(dest, src, len, noflush, barrier_after_ntstores,
+			no_barrier);
+}
+
+void
+memmove_movnt_avx_empty_nobarrier(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_movnt_avx(dest, src, len, flush_empty_nolog,
+			barrier_after_ntstores, no_barrier);
+}
+void
+memmove_movnt_avx_clflush_nobarrier(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_movnt_avx(dest, src, len, flush_clflush_nolog,
+			barrier_after_ntstores, no_barrier);
+}
+
+void
+memmove_movnt_avx_clflushopt_nobarrier(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_movnt_avx(dest, src, len, flush_clflushopt_nolog,
+			no_barrier_after_ntstores, no_barrier);
+}
+
+void
+memmove_movnt_avx_clwb_nobarrier(char *dest, const char *src, size_t len)
+{
+	LOG(15, "dest %p src %p len %zu", dest, src, len);
+
+	memmove_movnt_avx(dest, src, len, flush_clwb_nolog,
+			no_barrier_after_ntstores, no_barrier);
+}
+
+/* variants with perf_barrier */
+
+void
+memmove_movnt_avx_noflush_wcbarrier(char *dest, const char *src, size_t len)
 {
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
@@ -346,7 +394,7 @@ memmove_movnt_avx_noflush(char *dest, const char *src, size_t len)
 }
 
 void
-memmove_movnt_avx_empty(char *dest, const char *src, size_t len)
+memmove_movnt_avx_empty_wcbarrier(char *dest, const char *src, size_t len)
 {
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
@@ -354,7 +402,7 @@ memmove_movnt_avx_empty(char *dest, const char *src, size_t len)
 			barrier_after_ntstores, wc_barrier);
 }
 void
-memmove_movnt_avx_clflush(char *dest, const char *src, size_t len)
+memmove_movnt_avx_clflush_wcbarrier(char *dest, const char *src, size_t len)
 {
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
@@ -363,7 +411,7 @@ memmove_movnt_avx_clflush(char *dest, const char *src, size_t len)
 }
 
 void
-memmove_movnt_avx_clflushopt(char *dest, const char *src, size_t len)
+memmove_movnt_avx_clflushopt_wcbarrier(char *dest, const char *src, size_t len)
 {
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
@@ -372,7 +420,7 @@ memmove_movnt_avx_clflushopt(char *dest, const char *src, size_t len)
 }
 
 void
-memmove_movnt_avx_clwb(char *dest, const char *src, size_t len)
+memmove_movnt_avx_clwb_wcbarrier(char *dest, const char *src, size_t len)
 {
 	LOG(15, "dest %p src %p len %zu", dest, src, len);
 
