@@ -109,6 +109,7 @@ ENV USERPASS pmdkpass
 RUN useradd -m $USER
 RUN echo "$USER:$USERPASS" | chpasswd
 RUN gpasswd wheel -a $USER
+RUN echo "%wheel ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 USER $USER
 
 # Set required environment variables
