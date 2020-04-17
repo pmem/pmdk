@@ -90,7 +90,9 @@ ndctl_match_fsdax(const os_stat_t *st, const char *devname)
 	ssize_t nread = read(fd, buff, BUFF_LENGTH);
 	if (nread < 0) {
 		ERR("!read");
+		int oerrno = errno; /* save the errno */
 		os_close(fd);
+		errno = oerrno;
 		return -1;
 	}
 
@@ -98,11 +100,13 @@ ndctl_match_fsdax(const os_stat_t *st, const char *devname)
 
 	if (nread == 0) {
 		ERR("%s is empty", path);
+		errno = EINVAL;
 		return -1;
 	}
 
 	if (buff[nread - 1] != '\n') {
 		ERR("%s doesn't end with new line", path);
+		errno = EINVAL;
 		return -1;
 	}
 
@@ -147,8 +151,8 @@ ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 		return ret;
 
 	if (type == PMEM2_FTYPE_DIR) {
-		ERR("cannot check region or namespace for a directory");
-		return -1;
+		ERR("cannot check region or namespace of a directory");
+		return PMEM2_E_INVALID_FILE_TYPE;
 	}
 
 	FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns) {
@@ -166,14 +170,14 @@ ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			dax_region = ndctl_dax_get_daxctl_region(dax);
 			if (!dax_region) {
 				ERR("!cannot find dax region");
-				return -1;
+				return PMEM2_E_DAX_REGION_NOT_FOUND;
 			}
 			struct daxctl_dev *dev;
 			daxctl_dev_foreach(dax_region, dev) {
 				devname = daxctl_dev_get_devname(dev);
 				int ret = ndctl_match_devdax(st, devname);
 				if (ret < 0)
-					return ret;
+					return PMEM2_E_ERRNO;
 
 				if (ret) {
 					*pregion = region;
@@ -200,7 +204,7 @@ ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 
 			int ret = ndctl_match_fsdax(st, devname);
 			if (ret < 0)
-				return ret;
+				return PMEM2_E_ERRNO;
 
 			if (ret) {
 				*pregion = region;
