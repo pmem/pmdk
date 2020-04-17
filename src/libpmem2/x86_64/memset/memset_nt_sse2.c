@@ -93,7 +93,7 @@ memset_movnt1x4b(char *dest, __m128i xmm)
 
 static force_inline void
 memset_movnt_sse2(char *dest, int c, size_t len, flush_fn flush,
-		barrier_fn barrier)
+		barrier_fn barrier, perf_barrier_fn perf_barrier)
 {
 	char *orig_dest = dest;
 	size_t orig_len = len;
@@ -111,6 +111,23 @@ memset_movnt_sse2(char *dest, int c, size_t len, flush_fn flush,
 
 		dest += cnt;
 		len -= cnt;
+	}
+
+	while (len >= 12 * 64) {
+		memset_movnt4x64b(dest, xmm);
+		dest += 4 * 64;
+		len -= 4 * 64;
+
+		memset_movnt4x64b(dest, xmm);
+		dest += 4 * 64;
+		len -= 4 * 64;
+
+		memset_movnt4x64b(dest, xmm);
+		dest += 4 * 64;
+		len -= 4 * 64;
+
+		if (len)
+			perf_barrier();
 	}
 
 	while (len >= 4 * 64) {
@@ -164,7 +181,8 @@ memset_movnt_sse2_noflush(char *dest, int c, size_t len)
 {
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
 
-	memset_movnt_sse2(dest, c, len, noflush, barrier_after_ntstores);
+	memset_movnt_sse2(dest, c, len, noflush, barrier_after_ntstores,
+			wc_barrier);
 }
 
 void
@@ -173,7 +191,7 @@ memset_movnt_sse2_empty(char *dest, int c, size_t len)
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
 
 	memset_movnt_sse2(dest, c, len, flush_empty_nolog,
-			barrier_after_ntstores);
+			barrier_after_ntstores, wc_barrier);
 }
 
 void
@@ -182,7 +200,7 @@ memset_movnt_sse2_clflush(char *dest, int c, size_t len)
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
 
 	memset_movnt_sse2(dest, c, len, flush_clflush_nolog,
-			barrier_after_ntstores);
+			barrier_after_ntstores, wc_barrier);
 }
 
 void
@@ -191,7 +209,7 @@ memset_movnt_sse2_clflushopt(char *dest, int c, size_t len)
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
 
 	memset_movnt_sse2(dest, c, len, flush_clflushopt_nolog,
-			no_barrier_after_ntstores);
+			no_barrier_after_ntstores, wc_barrier);
 }
 
 void
@@ -200,5 +218,5 @@ memset_movnt_sse2_clwb(char *dest, int c, size_t len)
 	LOG(15, "dest %p c %d len %zu", dest, c, len);
 
 	memset_movnt_sse2(dest, c, len, flush_clwb_nolog,
-			no_barrier_after_ntstores);
+			no_barrier_after_ntstores, wc_barrier);
 }
