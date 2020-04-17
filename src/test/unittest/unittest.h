@@ -201,7 +201,7 @@ void ut_err(const char *file, int line, const char *func,
 /* assertion with extra info printed if assertion fails at runtime */
 #define UT_ASSERTinfo_rt(cnd, info) \
 	((void)((cnd) || (ut_fatal(__FILE__, __LINE__, __func__,\
-	"assertion failure: %s (%s = %s)", #cnd, #info, info), 0)))
+	"assertion failure: %s (%s)", #cnd, info), 0)))
 
 /* assert two integer values are equal at runtime */
 #define UT_ASSERTeq_rt(lhs, rhs)\
