@@ -14,6 +14,7 @@ TARGET = pmem2_map_prot
 OBJS += pmem2_map_prot.o\
 	ut_pmem2_config.o\
 	ut_pmem2_utils.o\
+	ut_pmem2_setup.o\
 	ut_pmem2_source.o
 
 LIBPMEM2=internal-debug

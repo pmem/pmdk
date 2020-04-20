@@ -91,6 +91,7 @@
     <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
     <ClCompile Include="..\..\libpmem2\x86_64\init.c" />
     <ClCompile Include="..\unittest\ut_pmem2_config.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_setup.c" />
     <ClCompile Include="..\unittest\ut_pmem2_source.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
     <ClCompile Include="pmem2_map_prot.c" />

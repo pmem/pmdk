@@ -65,6 +65,9 @@
     <ClCompile Include="..\..\libpmem2\deep_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_setup.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libpmem2\config.h">
