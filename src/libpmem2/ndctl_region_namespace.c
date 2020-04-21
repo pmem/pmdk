@@ -17,9 +17,9 @@
 #include "out.h"
 
 /*
- * ndctl_match_devdax -- (internal) returns 1 if the devdax matches
- *                       with the given file, 0 if it doesn't match,
- *                       and -1 in case of error.
+ * ndctl_match_devdax -- (internal) returns 0 if the devdax matches
+ *                       with the given file, 1 if it doesn't match,
+ *                       and a negative value in case of an error.
  */
 static int
 ndctl_match_devdax(const os_stat_t *st, const char *devname)
@@ -27,36 +27,37 @@ ndctl_match_devdax(const os_stat_t *st, const char *devname)
 	LOG(3, "st %p devname %s", st, devname);
 
 	if (*devname == '\0')
-		return 0;
+		return 1;
 
 	char path[PATH_MAX];
 	os_stat_t stat;
 
 	if (util_snprintf(path, PATH_MAX, "/dev/%s", devname) < 0) {
 		ERR("!snprintf");
-		return -1;
+		return PMEM2_E_ERRNO;
 	}
 
 	if (os_stat(path, &stat)) {
 		ERR("!stat %s", path);
-		return -1;
+		return PMEM2_E_ERRNO;
 	}
 
-	if (st->st_rdev == stat.st_rdev) {
-		LOG(4, "found matching device: %s", path);
+	if (st->st_rdev != stat.st_rdev) {
+		LOG(10, "skipping not matching device: %s", path);
 		return 1;
 	}
 
-	LOG(10, "skipping not matching device: %s", path);
+	LOG(4, "found matching device: %s", path);
+
 	return 0;
 }
 
 #define BUFF_LENGTH 64
 
 /*
- * ndctl_match_fsdax -- (internal) returns 1 if the device matches
- *                      with the given file, 0 if it doesn't match,
- *                      and -1 in case of error.
+ * ndctl_match_fsdax -- (internal) returns 0 if the device matches
+ *                      with the given file, 1 if it doesn't match,
+ *                      and a negative value in case of an error.
  */
 static int
 ndctl_match_fsdax(const os_stat_t *st, const char *devname)
@@ -64,56 +65,59 @@ ndctl_match_fsdax(const os_stat_t *st, const char *devname)
 	LOG(3, "st %p devname %s", st, devname);
 
 	if (*devname == '\0')
-		return 0;
+		return 1;
 
 	char path[PATH_MAX];
 	char dev_id[BUFF_LENGTH];
 
 	if (util_snprintf(path, PATH_MAX, "/sys/block/%s/dev", devname) < 0) {
 		ERR("!snprintf");
-		return -1;
+		return PMEM2_E_ERRNO;
 	}
 
 	if (util_snprintf(dev_id, BUFF_LENGTH, "%d:%d",
 			major(st->st_dev), minor(st->st_dev)) < 0) {
 		ERR("!snprintf");
-		return -1;
+		return PMEM2_E_ERRNO;
 	}
 
 	int fd = os_open(path, O_RDONLY);
 	if (fd < 0) {
 		ERR("!open \"%s\"", path);
-		return -1;
+		return PMEM2_E_ERRNO;
 	}
 
 	char buff[BUFF_LENGTH];
 	ssize_t nread = read(fd, buff, BUFF_LENGTH);
 	if (nread < 0) {
 		ERR("!read");
+		int oerrno = errno; /* save the errno */
 		os_close(fd);
-		return -1;
+		errno = oerrno;
+		return PMEM2_E_ERRNO;
 	}
 
 	os_close(fd);
 
 	if (nread == 0) {
 		ERR("%s is empty", path);
-		return -1;
+		return PMEM2_E_INVALID_DEV_FORMAT;
 	}
 
 	if (buff[nread - 1] != '\n') {
 		ERR("%s doesn't end with new line", path);
-		return -1;
+		return PMEM2_E_INVALID_DEV_FORMAT;
 	}
 
 	buff[nread - 1] = '\0';
 
-	if (strcmp(buff, dev_id) == 0) {
-		LOG(4, "found matching device: %s", path);
+	if (strcmp(buff, dev_id) != 0) {
+		LOG(10, "skipping not matching device: %s", path);
 		return 1;
 	}
 
-	LOG(10, "skipping not matching device: %s", path);
+	LOG(4, "found matching device: %s", path);
+
 	return 0;
 }
 
@@ -147,8 +151,8 @@ ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 		return ret;
 
 	if (type == PMEM2_FTYPE_DIR) {
-		ERR("cannot check region or namespace for a directory");
-		return -1;
+		ERR("cannot check region or namespace of a directory");
+		return PMEM2_E_INVALID_FILE_TYPE;
 	}
 
 	FOREACH_BUS_REGION_NAMESPACE(ctx, bus, region, ndns) {
@@ -166,7 +170,7 @@ ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			dax_region = ndctl_dax_get_daxctl_region(dax);
 			if (!dax_region) {
 				ERR("!cannot find dax region");
-				return -1;
+				return PMEM2_E_DAX_REGION_NOT_FOUND;
 			}
 			struct daxctl_dev *dev;
 			daxctl_dev_foreach(dax_region, dev) {
@@ -175,7 +179,7 @@ ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 				if (ret < 0)
 					return ret;
 
-				if (ret) {
+				if (ret == 0) {
 					*pregion = region;
 					if (pndns)
 						*pndns = ndns;
@@ -202,7 +206,7 @@ ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			if (ret < 0)
 				return ret;
 
-			if (ret) {
+			if (ret == 0) {
 				*pregion = region;
 				if (pndns)
 					*pndns = ndns;
