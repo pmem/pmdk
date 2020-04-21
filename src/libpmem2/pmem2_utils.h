@@ -16,6 +16,7 @@
 
 void *pmem2_malloc(size_t size, int *err);
 void *pmem2_zalloc(size_t size, int *err);
+void *pmem2_realloc(void *ptr, size_t size, int *err);
 
 #ifdef _WIN32
 int pmem2_lasterror_to_err();

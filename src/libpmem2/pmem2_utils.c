@@ -46,6 +46,23 @@ pmem2_zalloc(size_t size, int *err)
 	return ptr;
 }
 
+/*
+ * pmem2_realloc -- reallocate a buffer and handle an error
+ */
+void *
+pmem2_realloc(void *ptr, size_t size, int *err)
+{
+	void *newptr = Realloc(ptr, size);
+	*err = 0;
+
+	if (newptr == NULL) {
+		ERR("!realloc(%zu)", size);
+		*err = PMEM2_E_ERRNO;
+	}
+
+	return newptr;
+}
+
 int
 pmem2_err_to_errno(int err)
 {
