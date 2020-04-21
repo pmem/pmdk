@@ -243,6 +243,11 @@ extern int _Pmreorder_emit;
 		VALGRIND_PMC_ADD_TO_GLOBAL_TX_IGNORE(addr, len);\
 } while (0)
 
+#define VALGRIND_DEEP_SYNC(addr, len) do {\
+	if (On_pmemcheck)\
+		VALGRIND_PMC_DEEP_SYNC((addr), (len));\
+} while (0)
+
 /*
  * Logs library and function name with proper suffix
  * to pmemcheck store log file.
@@ -353,6 +358,11 @@ extern int _Pmreorder_emit;
 } while (0)
 
 #define VALGRIND_ADD_TO_GLOBAL_TX_IGNORE(addr, len) do {\
+	(void) (addr);\
+	(void) (len);\
+} while (0)
+
+#define VALGRIND_DEEP_SYNC(addr, len) do {\
 	(void) (addr);\
 	(void) (len);\
 } while (0)

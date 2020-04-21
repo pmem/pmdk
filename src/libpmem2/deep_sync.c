@@ -10,6 +10,7 @@
 #include "libpmem2.h"
 #include "deep_sync.h"
 #include "out.h"
+#include "valgrind_internal.h"
 
 /*
  * pmem2_deep_sync -- performs deep sync operation
@@ -35,6 +36,8 @@ pmem2_deep_sync(struct pmem2_map *map, void *ptr, size_t size)
 		LOG(1, "cannot perform deep sync operation for map %p", map);
 		return ret;
 	}
+
+	VALGRIND_DEEP_SYNC(ptr, size);
 
 	return 0;
 }
