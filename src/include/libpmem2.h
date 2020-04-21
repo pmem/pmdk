@@ -61,6 +61,8 @@ extern "C" {
 #define PMEM2_E_ADDRESS_NULL			(-100023)
 #define PMEM2_E_SYNC_RANGE			(-100024)
 #define PMEM2_E_INVALID_REGION_FORMAT		(-100025)
+#define PMEM2_E_DAX_REGION_NOT_FOUND		(-100026)
+#define PMEM2_E_INVALID_DEV_FORMAT		(-100027)
 
 /* source setup */
 
