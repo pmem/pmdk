@@ -96,8 +96,8 @@ static void *pmem2_region_get_first_badblock(
 
 /*
  * badblocks_get_namespace_bounds -- (internal) returns the bounds
- *                                 (offset and size) of the given namespace
- *                                 relative to the beginning of its region
+ *                                   (offset and size) of the given namespace
+ *                                   relative to the beginning of its region
  */
 static int
 badblocks_get_namespace_bounds(struct ndctl_region *region,
@@ -175,7 +175,7 @@ badblocks_get_namespace_bounds(struct ndctl_region *region,
 
 /*
  * badblocks_devdax_clear_one_badblock -- (internal) clear one bad block
- *                                      in the dax device
+ *                                        in the dax device
  */
 static int
 badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
@@ -338,7 +338,7 @@ badblocks_count(const char *file)
 
 /*
  * badblocks_clear -- clears the given bad blocks in a file
- *                       (regular file or dax device)
+ *                    (regular file or dax device)
  */
 int
 badblocks_clear(const char *file, struct badblocks *bbs)
