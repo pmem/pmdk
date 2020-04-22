@@ -391,30 +391,6 @@ badblocks_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
 }
 
 /*
- * badblocks_files_namespace_badblocks -- (internal) returns badblocks
- *                                        in the namespace
- *                                        where the given file is located
- */
-static int
-badblocks_files_namespace_badblocks(const char *path, struct badblocks *bbs)
-{
-	LOG(3, "path %s", path);
-
-	struct ndctl_ctx *ctx;
-
-	if (ndctl_new(&ctx)) {
-		ERR("!ndctl_new");
-		return -1;
-	}
-
-	int ret = badblocks_files_namespace_badblocks_bus(ctx, path, NULL, bbs);
-
-	ndctl_unref(ctx);
-
-	return ret;
-}
-
-/*
  * badblocks_devdax_clear_one_badblock -- (internal) clear one bad block
  *                                      in the dax device
  */
@@ -560,8 +536,8 @@ badblocks_devdax_clear_badblocks_all(const char *path)
 
 /*
  * badblocks_get -- returns 0 and bad blocks in the 'bbs' array
- *                     (that has to be pre-allocated)
- *                     or -1 in case of an error
+ *                  (that has to be pre-allocated)
+ *                  or -1 in case of an error
  */
 int
 badblocks_get(const char *file, struct badblocks *bbs)
@@ -570,130 +546,63 @@ badblocks_get(const char *file, struct badblocks *bbs)
 
 	ASSERTne(bbs, NULL);
 
+	struct pmem2_source *src;
+	struct pmem2_badblock_context *bbctx;
+	struct pmem2_badblock bb;
+	int bb_found = 0;
+	int ret = -1;
+
 	VEC(bbsvec, struct bad_block) bbv = VEC_INITIALIZER;
-	struct extents *exts = NULL;
-	int fd = -1;
-
-	unsigned long long bb_beg;
-	unsigned long long bb_end;
-	unsigned long long bb_len;
-	unsigned long long bb_off;
-	unsigned long long ext_beg;
-	unsigned long long ext_end;
-	unsigned long long not_block_aligned;
-
-	int bb_found = -1; /* -1 means an error */
-
 	memset(bbs, 0, sizeof(*bbs));
 
-	if (badblocks_files_namespace_badblocks(file, bbs)) {
-		LOG(1, "checking the file for bad blocks failed -- '%s'", file);
-		goto error_free_all;
-	}
-
-	if (bbs->bb_cnt == 0) {
-		bb_found = 0;
-		goto exit_free_all;
-	}
-
-	fd = os_open(file, O_RDONLY);
+	int fd = os_open(file, O_RDONLY);
 	if (fd == -1) {
 		ERR("!open %s", file);
-		goto error_free_all;
+		return -1;
 	}
 
-	int ret = pmem2_extents_create_get(fd, &exts);
-	if (ret) {
-		LOG(1, "getting file's extents failed -- '%s'", file);
-		goto error_free_all;
-	}
+	ret = pmem2_source_from_fd(&src, fd);
+	if (ret)
+		goto exit_close;
 
-	if (exts->extents_count == 0) {
-		/* dax device has no extents */
-		bb_found = (int)bbs->bb_cnt;
+	ret = pmem2_badblock_context_new(src, &bbctx);
+	if (ret)
+		goto exit_delete_source;
 
-		for (unsigned b = 0; b < bbs->bb_cnt; b++) {
-			LOG(4, "bad block found: offset: %llu, length: %u",
-				bbs->bbv[b].offset,
-				bbs->bbv[b].length);
+	while ((pmem2_badblock_next(bbctx, &bb)) == 0) {
+		bb_found++;
+		/*
+		 * Form a new bad block structure with offset and length
+		 * expressed in bytes and offset relative
+		 * to the beginning of the file.
+		 */
+		struct bad_block bbn;
+		bbn.offset = bb.offset;
+		bbn.length = (unsigned)bb.length;
+		/* unknown healthy replica */
+		bbn.nhealthy = NO_HEALTHY_REPLICA;
+
+		/* add the new bad block to the vector */
+		if (VEC_PUSH_BACK(&bbv, bbn)) {
+			VEC_DELETE(&bbv);
+			bb_found = -1;
+			Free(bbs->bbv);
+			bbs->bbv = NULL;
+			bbs->bb_cnt = 0;
 		}
-
-		goto exit_free_all;
-	}
-
-	bb_found = 0;
-
-	for (unsigned b = 0; b < bbs->bb_cnt; b++) {
-
-		bb_beg = bbs->bbv[b].offset;
-		bb_end = bb_beg + bbs->bbv[b].length - 1;
-
-		for (unsigned e = 0; e < exts->extents_count; e++) {
-
-			ext_beg = exts->extents[e].offset_physical;
-			ext_end = ext_beg + exts->extents[e].length - 1;
-
-			/* check if the bad block overlaps with file's extent */
-			if (bb_beg > ext_end || ext_beg > bb_end)
-				continue;
-
-			bb_found++;
-
-			bb_beg = (bb_beg > ext_beg) ? bb_beg : ext_beg;
-			bb_end = (bb_end < ext_end) ? bb_end : ext_end;
-			bb_len = bb_end - bb_beg + 1;
-			bb_off = bb_beg + exts->extents[e].offset_logical
-					- exts->extents[e].offset_physical;
-
-			LOG(10,
-				"bad block found: physical offset: %llu, length: %llu",
-				bb_beg, bb_len);
-
-			/* make sure offset is block-aligned */
-			not_block_aligned = bb_off & (exts->blksize - 1);
-			if (not_block_aligned) {
-				bb_off -= not_block_aligned;
-				bb_len += not_block_aligned;
-			}
-
-			/* make sure length is block-aligned */
-			bb_len = ALIGN_UP(bb_len, exts->blksize);
-
-			LOG(4,
-				"bad block found: logical offset: %llu, length: %llu",
-				bb_off, bb_len);
-
-			/*
-			 * Form a new bad block structure with offset and length
-			 * expressed in bytes and offset relative
-			 * to the beginning of the file.
-			 */
-			struct bad_block bb;
-			bb.offset = bb_off;
-			bb.length = (unsigned)(bb_len);
-			/* unknown healthy replica */
-			bb.nhealthy = NO_HEALTHY_REPLICA;
-
-			/* add the new bad block to the vector */
-			if (VEC_PUSH_BACK(&bbv, bb)) {
-				VEC_DELETE(&bbv);
-				bb_found = -1;
-				goto error_free_all;
-			}
-		}
-	}
-
-error_free_all:
-	Free(bbs->bbv);
-	bbs->bbv = NULL;
-	bbs->bb_cnt = 0;
-
-exit_free_all:
-	pmem2_extents_destroy(&exts);
+	};
 
 	if (bb_found > 0) {
 		bbs->bbv = VEC_ARR(&bbv);
 		bbs->bb_cnt = (unsigned)VEC_SIZE(&bbv);
+
+		/*
+		 * XXX - this is a temporary solution.
+		 * The 'ns_resource' field and whole this assignment
+		 * will be removed, when pmem2_badblock_clear()
+		 * is added.
+		 */
+		bbs->ns_resource = bbctx->rgn.ns_res;
 
 		LOG(10, "number of bad blocks detected: %u", bbs->bb_cnt);
 
@@ -701,15 +610,21 @@ exit_free_all:
 		ASSERTeq((unsigned)bb_found, bbs->bb_cnt);
 	}
 
+	pmem2_badblock_context_delete(&bbctx);
+
+exit_delete_source:
+	pmem2_source_delete(&src);
+
+exit_close:
 	if (fd != -1)
-		close(fd);
+		os_close(fd);
 
 	return (bb_found >= 0) ? 0 : -1;
 }
 
 /*
  * badblocks_count -- returns number of bad blocks in the file
- *                       or -1 in case of an error
+ *                    or -1 in case of an error
  */
 long
 badblocks_count(const char *file)
