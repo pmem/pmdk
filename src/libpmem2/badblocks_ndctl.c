@@ -506,7 +506,6 @@ badblocks_get(const char *file, struct badblocks *bbs)
 
 	VEC(bbsvec, struct bad_block) bbv = VEC_INITIALIZER;
 	struct extents *exts = NULL;
-	long extents = 0;
 	int fd = -1;
 
 	unsigned long long bb_beg;
@@ -531,25 +530,19 @@ badblocks_get(const char *file, struct badblocks *bbs)
 		goto exit_free_all;
 	}
 
-	exts = Zalloc(sizeof(struct extents));
-	if (exts == NULL) {
-		ERR("!Zalloc");
-		goto error_free_all;
-	}
-
 	fd = os_open(file, O_RDONLY);
 	if (fd == -1) {
 		ERR("!open %s", file);
 		goto error_free_all;
 	}
 
-	extents = os_extents_count(fd, exts);
-	if (extents < 0) {
-		LOG(1, "counting file's extents failed -- '%s'", file);
+	int ret = pmem2_extents_create_get(fd, &exts);
+	if (ret) {
+		LOG(1, "getting file's extents failed -- '%s'", file);
 		goto error_free_all;
 	}
 
-	if (extents == 0) {
+	if (exts->extents_count == 0) {
 		/* dax device has no extents */
 		bb_found = (int)bbs->bb_cnt;
 
@@ -560,17 +553,6 @@ badblocks_get(const char *file, struct badblocks *bbs)
 		}
 
 		goto exit_free_all;
-	}
-
-	exts->extents = Zalloc(exts->extents_count * sizeof(struct extent));
-	if (exts->extents == NULL) {
-		ERR("!Zalloc");
-		goto error_free_all;
-	}
-
-	if (os_extents_get(fd, exts)) {
-		LOG(1, "getting file's extents failed -- '%s'", file);
-		goto error_free_all;
 	}
 
 	bb_found = 0;
@@ -641,12 +623,9 @@ error_free_all:
 	bbs->bb_cnt = 0;
 
 exit_free_all:
-	if (exts) {
-		Free(exts->extents);
-		Free(exts);
-	}
+	pmem2_extents_destroy(&exts);
 
-	if (extents > 0 && bb_found > 0) {
+	if (bb_found > 0) {
 		bbs->bbv = VEC_ARR(&bbv);
 		bbs->bb_cnt = (unsigned)VEC_SIZE(&bbv);
 

@@ -8,6 +8,7 @@
 
 #include "unittest.h"
 #include "extent.h"
+#include "libpmem2.h"
 
 /*
  * test_size -- test if sum of all file's extents sums up to the file's size
@@ -17,26 +18,17 @@ test_size(int fd, size_t size)
 {
 	size_t total_length = 0;
 
-	struct extents *exts = MALLOC(sizeof(struct extents));
+	struct extents *exts = NULL;
 
-	UT_ASSERT(os_extents_count(fd, exts) >= 0);
-
+	UT_ASSERTeq(pmem2_extents_create_get(fd, &exts), 0);
+	UT_ASSERT(exts->extents_count > 0);
 	UT_OUT("exts->extents_count: %u", exts->extents_count);
 
-	if (exts->extents_count > 0) {
-		exts->extents = MALLOC(exts->extents_count *
-							sizeof(struct extent));
+	unsigned e;
+	for (e = 0; e < exts->extents_count; e++)
+		total_length += exts->extents[e].length;
 
-		UT_ASSERTeq(os_extents_get(fd, exts), 0);
-
-		unsigned e;
-		for (e = 0; e < exts->extents_count; e++)
-			total_length += exts->extents[e].length;
-
-		FREE(exts->extents);
-	}
-
-	FREE(exts);
+	pmem2_extents_destroy(&exts);
 
 	UT_ASSERTeq(total_length, size);
 }
