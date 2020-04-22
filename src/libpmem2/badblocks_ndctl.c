@@ -707,24 +707,58 @@ badblocks_clear(const char *file, struct badblocks *bbs)
 
 	ASSERTne(bbs, NULL);
 
-	os_stat_t st;
-	if (os_stat(file, &st) < 0) {
-		ERR("!stat %s", file);
+	struct pmem2_source *src;
+	struct pmem2_badblock_context *bbctx;
+	struct pmem2_badblock bb;
+	int ret = -1;
+
+	int fd = os_open(file, O_RDWR);
+	if (fd == -1) {
+		ERR("!open %s", file);
 		return -1;
 	}
 
-	enum pmem2_file_type pmem2_type;
+	ret = pmem2_source_from_fd(&src, fd);
+	if (ret)
+		goto exit_close;
 
-	int ret = pmem2_get_type_from_stat(&st, &pmem2_type);
+	ret = pmem2_badblock_context_new(src, &bbctx);
+	if (ret) {
+		LOG(1, "pmem2_badblock_context_new failed -- %s", file);
+		goto exit_delete_source;
+	}
+
+	if (bbctx->rgn.ns_res != bbs->ns_resource) {
+		ERR("address of the namespace does not match -- %s", file);
+		goto exit_delete_ctx;
+	}
+
+	for (unsigned b = 0; b < bbs->bb_cnt; b++) {
+		bb.offset = bbs->bbv[b].offset;
+		bb.length = bbs->bbv[b].length;
+		ret = pmem2_badblock_clear(bbctx, &bb);
+		if (ret) {
+			LOG(1, "pmem2_badblock_clear -- %s", file);
+			goto exit_delete_ctx;
+		}
+	}
+
+exit_delete_ctx:
+	pmem2_badblock_context_delete(&bbctx);
+
+exit_delete_source:
+	pmem2_source_delete(&src);
+
+exit_close:
+	if (fd != -1)
+		os_close(fd);
+
 	if (ret) {
 		errno = pmem2_err_to_errno(ret);
-		return -1;
+		ret = -1;
 	}
 
-	if (pmem2_type == PMEM2_FTYPE_DEVDAX)
-		return badblocks_devdax_clear_badblocks(file, bbs);
-
-	return badblocks_clear_file(file, bbs);
+	return ret;
 }
 
 /*
