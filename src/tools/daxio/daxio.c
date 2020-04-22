@@ -376,7 +376,7 @@ setup_device(struct ndctl_ctx *ndctl_ctx, struct daxio_device *dev, int is_dst,
 
 	if (is_dst && clear_bad_blocks) {
 		/* XXX - clear only badblocks in range bound by offset/len */
-		if (badblocks_devdax_clear_badblocks_all(dev->path)) {
+		if (badblocks_clear_all(dev->path)) {
 			ERR("failed to clear bad blocks on \"%s\"\n"
 			    "       Probably you have not enough permissions to do that.\n"
 			    "       You can choose one of three options now:\n"
