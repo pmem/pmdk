@@ -13,17 +13,6 @@
 #include "badblocks.h"
 
 /*
- * badblocks_devdax_clear_badblocks_all -- fake bad block clearing routine
- */
-int
-badblocks_devdax_clear_badblocks_all(const char *path)
-{
-	LOG(3, "path %s", path);
-
-	return 0;
-}
-
-/*
  * badblocks_count -- returns number of bad blocks in the file
  *                       or -1 in case of an error
  */
