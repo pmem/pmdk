@@ -64,9 +64,13 @@ ut_fh_open_fd(const char *file, int line, const char *func,
 
 	int acc = flags & FH_ACCMODE;
 
-	if (acc == FH_RDONLY)
+	/*
+	 * Linux version doesn't support FH_EXEC, it is assumed FH_RDONLY
+	 * as equivalent
+	 */
+	if (acc == FH_RDONLY || acc == FH_EXEC || acc == FH_EXEC_READ)
 		sflags |= O_RDONLY;
-	else if (acc == FH_WRONLY)
+	else if (acc == FH_WRONLY || acc == FH_EXEC_WRITE)
 		sflags |= O_WRONLY;
 	else if (acc == FH_RDWR)
 		sflags |= O_RDWR;
@@ -158,8 +162,16 @@ ut_fh_open_handle(const char *file, int line, const char *func,
 		dwDesiredAccess = GENERIC_READ;
 	else if (acc == FH_WRONLY)
 		dwDesiredAccess = GENERIC_WRITE;
+	else if (acc == FH_EXEC)
+		dwDesiredAccess = GENERIC_EXECUTE;
 	else if (acc == FH_RDWR)
 		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
+	else if (acc == FH_EXEC_READ)
+		dwDesiredAccess = GENERIC_EXECUTE | GENERIC_READ;
+	else if (acc == FH_EXEC_WRITE)
+		dwDesiredAccess = GENERIC_EXECUTE | GENERIC_WRITE;
+	else if (acc == FH_ACCMODE)
+		dwDesiredAccess = GENERIC_ALL;
 	else
 		ut_fatal(file, line, func, "unknown access mode %d", acc);
 
