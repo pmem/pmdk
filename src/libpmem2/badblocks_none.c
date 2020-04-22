@@ -106,3 +106,13 @@ pmem2_badblock_context_delete(
 	struct pmem2_badblock_context **bbctx)
 {
 }
+
+/*
+ * pmem2_badblock_clear -- clear one bad block
+ */
+int
+pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
+			const struct pmem2_badblock *bb)
+{
+	return PMEM2_E_NOSUPP;
+}

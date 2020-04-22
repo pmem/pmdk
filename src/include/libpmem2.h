@@ -65,6 +65,7 @@ extern "C" {
 #define PMEM2_E_INVALID_DEV_FORMAT		(-100027)
 #define PMEM2_E_CANNOT_READ_BOUNDS		(-100028)
 #define PMEM2_E_NO_BAD_BLOCK_FOUND		(-100029)
+#define PMEM2_E_LENGTH_OUT_OF_RANGE		(-100030)
 
 /* source setup */
 
