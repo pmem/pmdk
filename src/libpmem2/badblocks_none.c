@@ -14,7 +14,7 @@
 
 /*
  * badblocks_count -- returns number of bad blocks in the file
- *                       or -1 in case of an error
+ *                    or -1 in case of an error
  */
 long
 badblocks_count(const char *file)
@@ -41,7 +41,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 
 /*
  * badblocks_clear -- clears the given bad blocks in a file
- *                       (regular file or dax device)
+ *                    (regular file or dax device)
  */
 int
 badblocks_clear(const char *file, struct badblocks *bbs)
@@ -55,7 +55,7 @@ badblocks_clear(const char *file, struct badblocks *bbs)
 
 /*
  * badblocks_clear_all -- clears all bad blocks in a file
- *                           (regular file or dax device)
+ *                        (regular file or dax device)
  */
 int
 badblocks_clear_all(const char *file)
