@@ -22,8 +22,8 @@ install_custom-pmem_from_source() {
   git clone https://github.com/pmem/valgrind.git
   cd valgrind
   # valgrind v3.15 with pmemcheck
-  # 2020.04.01 Merge pull request #78 from marcinslusarz/opt3
-  git checkout 759686fd66cc0105df8311cfe676b0b2f9e89196
+  # 2020.04.22 Merge pull request #81 from marcinslusarz/pmem-3.15
+  git checkout 09f75f69683d862f8456f75484fcdc0dc5508900
   ./autogen.sh
   ./configure
   make -j$(nproc)
