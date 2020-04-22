@@ -1208,3 +1208,91 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 
 	return 0;
 }
+
+/*
+ * pmem2_badblock_clear_fsdax -- (internal) clear one bad block
+ *                               in a FSDAX device
+ */
+static int
+pmem2_badblock_clear_fsdax(int fd, const struct pmem2_badblock *bb)
+{
+	LOG(3, "fd %i badblock %p", fd, bb);
+
+	ASSERTne(bb, NULL);
+
+	LOG(10,
+		"clearing a bad block: fd %i logical offset %zu length %zu (in 512B sectors)",
+		fd, B2SEC(bb->offset), B2SEC(bb->length));
+
+	off_t offset = (off_t)bb->offset;
+	off_t length = (off_t)bb->length;
+
+	/* deallocate bad blocks */
+	if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+			offset, length)) {
+		ERR("!fallocate");
+		return PMEM2_E_ERRNO;
+	}
+
+	/* allocate new blocks */
+	if (fallocate(fd, FALLOC_FL_KEEP_SIZE, offset, length)) {
+		ERR("!fallocate");
+		return PMEM2_E_ERRNO;
+	}
+
+	return 0;
+}
+
+/*
+ * pmem2_badblock_clear_devdax -- (internal) clear one bad block
+ *                                in a DAX device
+ */
+static int
+pmem2_badblock_clear_devdax(const struct pmem2_badblock_context *bbctx,
+				const struct pmem2_badblock *bb)
+{
+	LOG(3, "bbctx %p bb %p", bbctx, bb);
+
+	ASSERTne(bb, NULL);
+	ASSERTne(bbctx, NULL);
+	ASSERTne(bbctx->rgn.bus, NULL);
+	ASSERTne(bbctx->rgn.ns_res, 0);
+
+	LOG(4,
+		"clearing a bad block: offset %zu length %zu (in 512B sectors)",
+		B2SEC(bb->offset), B2SEC(bb->length));
+
+	int ret = badblocks_devdax_clear_one_badblock(bbctx->rgn.bus,
+				bb->offset + bbctx->rgn.ns_res,
+				bb->length);
+	if (ret) {
+		LOG(1,
+			"failed to clear a bad block: offset %zu length %zu (in 512B sectors)",
+			B2SEC(bb->offset),
+			B2SEC(bb->length));
+		return ret;
+	}
+
+	return 0;
+}
+
+/*
+ * pmem2_badblock_clear -- clear one bad block
+ */
+int
+pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
+			const struct pmem2_badblock *bb)
+{
+	LOG(3, "bbctx %p badblock %p", bbctx, bb);
+
+	ASSERTne(bbctx, NULL);
+	ASSERTne(bb, NULL);
+
+	if (bbctx->file_type == PMEM2_FTYPE_DEVDAX)
+		return pmem2_badblock_clear_devdax(bbctx, bb);
+
+	if (bbctx->file_type == PMEM2_FTYPE_REG)
+		return pmem2_badblock_clear_fsdax(bbctx->fd, bb);
+
+	return PMEM2_E_INVALID_FILE_TYPE;
+}
