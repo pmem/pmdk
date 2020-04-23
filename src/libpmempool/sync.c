@@ -25,7 +25,7 @@
 #include "rpmem_ssh.h"
 #endif
 
-#define BB_DATA_STR "offset 0x%llx, length 0x%x, nhealthy %i"
+#define BB_DATA_STR "offset 0x%lx, length 0x%lx, nhealthy %i"
 
 /* defines 'struct bb_vec' - the vector of the 'struct bad_block' structures */
 VEC(bb_vec, struct bad_block);
@@ -219,7 +219,7 @@ sync_recalc_badblocks(struct pool_set *set,
 
 			for (unsigned i = 0; i < phs->bbs.bb_cnt; i++) {
 				LOG(10,
-					"relative bad block #%i: offset %llu, length %u",
+					"relative bad block #%i: offset %lu, length %lu",
 					i,
 					phs->bbs.bbv[i].offset,
 					phs->bbs.bbv[i].length);
@@ -258,7 +258,7 @@ sync_recalc_badblocks(struct pool_set *set,
 				phs->bbs.bbv[i].length = (unsigned)len;
 
 				LOG(10,
-					"absolute bad block #%i: offset 0x%llx, length 0x%x",
+					"absolute bad block #%i: offset 0x%lx, length 0x%lx",
 					i,
 					phs->bbs.bbv[i].offset,
 					phs->bbs.bbv[i].length);
@@ -324,8 +324,8 @@ sync_badblocks_find_healthy_replica(struct part_health_status *phs,
 	unsigned long long end_prev;
 	unsigned long long beg_new;
 	unsigned long long end_new;
-	unsigned len_prev;
-	unsigned len_new;
+	unsigned long len_prev;
+	unsigned long len_new;
 
 	size_t size_all = VEC_SIZE(pbbv_all);
 
@@ -567,7 +567,7 @@ sync_badblocks_assign_healthy_replica(struct part_health_status *phs,
 	struct bad_block bb_old;	/* an old element */
 	struct bad_block *pbb_all;	/* current element of bbv_all[] */
 
-	unsigned length_left;
+	unsigned long length_left;
 
 	struct bb_vec bbv_new = VEC_INITIALIZER;
 
@@ -751,7 +751,7 @@ sync_check_bad_blocks_overlap(struct pool_set *set,
 			ret = 1; /* this bad block cannot be fixed */
 
 			LOG(1,
-				"uncorrectable bad block found: offset 0x%llx, length 0x%x",
+				"uncorrectable bad block found: offset 0x%lx, length 0x%lx",
 				pbb_all->offset, pbb_all->length);
 
 			goto exit;
