@@ -552,7 +552,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 				bbs->bbv[b].length);
 		}
 
-		goto exit_free_all;
+		goto exit_free_exts;
 	}
 
 	bb_found = 0;
@@ -623,8 +623,6 @@ error_free_all:
 	bbs->bb_cnt = 0;
 
 exit_free_all:
-	pmem2_extents_destroy(&exts);
-
 	if (bb_found > 0) {
 		bbs->bbv = VEC_ARR(&bbv);
 		bbs->bb_cnt = (unsigned)VEC_SIZE(&bbv);
@@ -634,6 +632,9 @@ exit_free_all:
 		/* sanity check */
 		ASSERTeq((unsigned)bb_found, bbs->bb_cnt);
 	}
+
+exit_free_exts:
+	pmem2_extents_destroy(&exts);
 
 	if (fd != -1)
 		close(fd);
