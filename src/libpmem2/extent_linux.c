@@ -139,10 +139,8 @@ pmem2_extents_create_get(int fd, struct extents **exts)
 	return 0;
 
 error_free:
-	if (pexts) {
-		Free(pexts->extents);
-		Free(pexts);
-	}
+	Free(pexts->extents);
+	Free(pexts);
 	Free(fmap);
 
 	return ret;
