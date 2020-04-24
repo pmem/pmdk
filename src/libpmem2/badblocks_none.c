@@ -7,6 +7,8 @@
 
 #include <errno.h>
 
+#include "libpmem2.h"
+
 #include "out.h"
 #include "badblocks.h"
 
@@ -74,4 +76,33 @@ badblocks_clear_all(const char *file)
 	/* not supported */
 	errno = ENOTSUP;
 	return -1;
+}
+
+/*
+ * pmem2_badblock_context_new -- allocate and create a new bad block context
+ */
+int
+pmem2_badblock_context_new(const struct pmem2_source *src,
+	struct pmem2_badblock_context **bbctx)
+{
+	return PMEM2_E_NOSUPP;
+}
+
+/*
+ * pmem2_badblock_next -- get the next bad block
+ */
+int
+pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
+	struct pmem2_badblock *bb)
+{
+	return PMEM2_E_NOSUPP;
+}
+
+/*
+ * pmem2_badblock_context_delete -- delete and free the bad block context
+ */
+void
+pmem2_badblock_context_delete(
+	struct pmem2_badblock_context **bbctx)
+{
 }
