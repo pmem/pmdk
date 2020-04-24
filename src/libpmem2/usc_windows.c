@@ -69,9 +69,9 @@ static int
 get_device_guid(HANDLE handle, GUID *guid)
 {
 	HANDLE vHandle;
-	int ret = get_volume_handle(handle, &vHandle);
-	if (vHandle == INVALID_HANDLE_VALUE)
-		return ret;
+	int err = get_volume_handle(handle, &vHandle);
+	if (err)
+		return err;
 
 	STORAGE_DEVICE_NUMBER_EX sdn;
 	sdn.DeviceNumber = -1;
@@ -111,9 +111,9 @@ pmem2_source_device_idW(const struct pmem2_source *src, wchar_t *id,
 	}
 
 	GUID guid;
-	int ret = get_device_guid(src->handle, &guid);
-	if (ret)
-		return ret;
+	int err = get_device_guid(src->handle, &guid);
+	if (err)
+		return err;
 
 	_snwprintf(id, GUID_SIZE,
 		L"%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX",
@@ -162,9 +162,9 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 
 	HANDLE vHandle;
 	int err = get_volume_handle(src->handle, &vHandle);
-	if (vHandle == INVALID_HANDLE_VALUE)
+	if (err)
 		return err;
-
+	ASSERTne(vHandle, INVALID_HANDLE_VALUE);
 	STORAGE_PROPERTY_QUERY prop;
 	DWORD dwSize;
 	prop.PropertyId = StorageDeviceUnsafeShutdownCount;
