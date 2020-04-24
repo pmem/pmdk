@@ -64,12 +64,13 @@ ut_fh_open_fd(const char *file, int line, const char *func,
 
 	int acc = flags & FH_ACCMODE;
 
-	if (acc == FH_RDONLY)
-		sflags |= O_RDONLY;
-	else if (acc == FH_WRONLY)
-		sflags |= O_WRONLY;
-	else if (acc == FH_RDWR)
+	/* Linux version does not have FH_EXEC equivalent */
+	if ((acc & FH_WRITE) && (acc & FH_READ))
 		sflags |= O_RDWR;
+	else if (acc & FH_WRITE)
+		sflags |= O_WRONLY;
+	else if (acc & FH_READ)
+		sflags |= O_RDONLY;
 	else
 		ut_fatal(file, line, func, "unknown access mode %d", acc);
 
@@ -154,13 +155,21 @@ ut_fh_open_handle(const char *file, int line, const char *func,
 
 	int acc = flags & FH_ACCMODE;
 
-	if (acc == FH_RDONLY)
-		dwDesiredAccess = GENERIC_READ;
-	else if (acc == FH_WRONLY)
-		dwDesiredAccess = GENERIC_WRITE;
-	else if (acc == FH_RDWR)
-		dwDesiredAccess = GENERIC_READ | GENERIC_WRITE;
-	else
+	dwDesiredAccess = 0;
+	if (acc & FH_READ) {
+		dwDesiredAccess |= GENERIC_READ;
+		acc &= ~FH_READ;
+	}
+	if (acc & FH_WRITE) {
+		dwDesiredAccess |= GENERIC_WRITE;
+		acc &= ~FH_WRITE;
+}
+	if (acc & FH_EXEC) {
+		dwDesiredAccess |= GENERIC_EXECUTE;
+		acc &= ~FH_EXEC;
+	}
+
+	if (acc)
 		ut_fatal(file, line, func, "unknown access mode %d", acc);
 
 	flags &= ~FH_ACCMODE;

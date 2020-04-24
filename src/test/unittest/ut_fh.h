@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * ut_fh.h -- OS-independent file handle / file descriptor interface
@@ -14,19 +14,20 @@ struct FHandle;
 
 enum file_handle_type { FH_FD, FH_HANDLE };
 
-#define FH_ACCMODE	(3)
-#define FH_RDONLY	(0)
-#define FH_WRONLY	(1)
-#define FH_RDWR		(2)
+#define FH_ACCMODE	(7)
+#define FH_READ		(1 << 0)
+#define FH_WRITE	(1 << 1)
+#define FH_RDWR		(FH_READ | FH_WRITE)
+#define FH_EXEC		(1 << 2)
 
-#define FH_CREAT	(1 << 2)
-#define FH_EXCL		(1 << 3)
-#define FH_TRUNC	(1 << 4)
+#define FH_CREAT	(1 << 3)
+#define FH_EXCL		(1 << 4)
+#define FH_TRUNC	(1 << 5)
 
 /* needs directory, on Windows it creates publicly visible file */
-#define FH_TMPFILE	(1 << 5)
+#define FH_TMPFILE	(1 << 6)
 
-#define FH_DIRECTORY	(1 << 6)
+#define FH_DIRECTORY	(1 << 7)
 
 #define UT_FH_OPEN(type, path, flags, ...)				\
 	ut_fh_open(__FILE__, __LINE__, __func__, type, path,		\
