@@ -52,7 +52,7 @@ do_list(const char *path)
 
 	unsigned b;
 	for (b = 0; b < bbs->bb_cnt; b++) {
-		UT_OUT("%llu %u",
+		UT_OUT("%zu %zu",
 			/* offset is printed in 512b sectors  */
 			bbs->bbv[b].offset >> 9,
 			/*

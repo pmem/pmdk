@@ -557,7 +557,7 @@ pmempool_info_badblocks(struct pmem_info *pip, const char *file_name, int v)
 
 	unsigned b;
 	for (b = 0; b < bbs->bb_cnt; b++) {
-		outv(v, "\t%llu\t\t%u\n",
+		outv(v, "\t%zu\t\t%zu\n",
 			B2SEC(bbs->bbv[b].offset),
 			B2SEC(bbs->bbv[b].length));
 	}

@@ -47,10 +47,10 @@ struct bad_block {
 	 * and
 	 *  - pool (after sync_recalc_badblocks())
 	 */
-	unsigned long long offset;
+	size_t offset;
 
 	/* length in bytes */
-	unsigned length;
+	size_t length;
 
 	/* number of healthy replica to fix this bad block */
 	int nhealthy;

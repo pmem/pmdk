@@ -498,7 +498,7 @@ badblocks_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 	unsigned b;
 	for (b = 0; b < bbs->bb_cnt; b++) {
 		LOG(4,
-			"clearing bad block: offset %llu length %u (in 512B sectors)",
+			"clearing bad block: offset %zu length %zu (in 512B sectors)",
 			B2SEC(bbs->bbv[b].offset), B2SEC(bbs->bbv[b].length));
 
 		ret = badblocks_devdax_clear_one_badblock(bus,
@@ -506,7 +506,7 @@ badblocks_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
 					bbs->bbv[b].length);
 		if (ret) {
 			LOG(1,
-				"failed to clear bad block: offset %llu length %u (in 512B sectors)",
+				"failed to clear bad block: offset %zu length %zu (in 512B sectors)",
 				B2SEC(bbs->bbv[b].offset),
 				B2SEC(bbs->bbv[b].length));
 			goto exit_free_all;
@@ -579,7 +579,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 		 */
 		struct bad_block bbn;
 		bbn.offset = bb.offset;
-		bbn.length = (unsigned)bb.length;
+		bbn.length = bb.length;
 		/* unknown healthy replica */
 		bbn.nhealthy = NO_HEALTHY_REPLICA;
 
