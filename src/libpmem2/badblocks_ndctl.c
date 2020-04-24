@@ -724,7 +724,11 @@ badblocks_clear(const char *file, struct badblocks *bbs)
 	if (pmem2_type == PMEM2_FTYPE_DEVDAX)
 		return badblocks_devdax_clear_badblocks(file, bbs);
 
-	return badblocks_clear_file(file, bbs);
+	if (pmem2_type == PMEM2_FTYPE_REG)
+		return badblocks_clear_file(file, bbs);
+
+	/* unsupported file type */
+	return -1;
 }
 
 /*
@@ -752,6 +756,10 @@ badblocks_clear_all(const char *file)
 
 	if (pmem2_type == PMEM2_FTYPE_DEVDAX)
 		return badblocks_devdax_clear_badblocks_all(file);
+
+	if (pmem2_type != PMEM2_FTYPE_REG)
+		/* unsupported file type */
+		return -1;
 
 	struct badblocks *bbs = badblocks_new();
 	if (bbs == NULL)
