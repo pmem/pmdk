@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, Intel Corporation
+ * Copyright 2018-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -65,11 +65,6 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 
 	unsigned long long bb_beg;
 	unsigned long long bb_end;
-	unsigned long long bb_len;
-	unsigned long long bb_off;
-	unsigned long long ext_beg;
-	unsigned long long ext_end;
-	unsigned long long not_block_aligned;
 
 	int bb_found = -1; /* -1 means an error */
 
@@ -129,6 +124,13 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 		bb_end = bb_beg + bbs->bbv[b].length - 1;
 
 		for (unsigned e = 0; e < exts->extents_count; e++) {
+			unsigned long long nbb_beg;
+			unsigned long long nbb_end;
+			unsigned long long nbb_len;
+			unsigned long long nbb_off;
+			unsigned long long ext_beg;
+			unsigned long long ext_end;
+			unsigned long long not_block_aligned;
 
 			ext_beg = exts->extents[e].offset_physical;
 			ext_end = ext_beg + exts->extents[e].length - 1;
@@ -139,29 +141,29 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 
 			bb_found++;
 
-			bb_beg = (bb_beg > ext_beg) ? bb_beg : ext_beg;
-			bb_end = (bb_end < ext_end) ? bb_end : ext_end;
-			bb_len = bb_end - bb_beg + 1;
-			bb_off = bb_beg + exts->extents[e].offset_logical
+			nbb_beg = (bb_beg > ext_beg) ? bb_beg : ext_beg;
+			nbb_end = (bb_end < ext_end) ? bb_end : ext_end;
+			nbb_len = nbb_end - nbb_beg + 1;
+			nbb_off = nbb_beg + exts->extents[e].offset_logical
 					- exts->extents[e].offset_physical;
 
 			LOG(10,
 				"bad block found: physical offset: %llu, length: %llu",
-				bb_beg, bb_len);
+				nbb_beg, nbb_len);
 
-			/* check if offset is block-aligned */
-			not_block_aligned = bb_off & (exts->blksize - 1);
+			/* make sure offset is block-aligned */
+			not_block_aligned = nbb_off & (exts->blksize - 1);
 			if (not_block_aligned) {
-				bb_off -= not_block_aligned;
-				bb_len += not_block_aligned;
+				nbb_off -= not_block_aligned;
+				nbb_len += not_block_aligned;
 			}
 
-			/* check if length is block-aligned */
-			bb_len = ALIGN_UP(bb_len, exts->blksize);
+			/* make sure length is block-aligned */
+			nbb_len = ALIGN_UP(nbb_len, exts->blksize);
 
 			LOG(4,
 				"bad block found: logical offset: %llu, length: %llu",
-				bb_off, bb_len);
+				nbb_off, nbb_len);
 
 			/*
 			 * Form a new bad block structure with offset and length
@@ -169,8 +171,8 @@ os_badblocks_get(const char *file, struct badblocks *bbs)
 			 * to the beginning of the file.
 			 */
 			struct bad_block bb;
-			bb.offset = bb_off;
-			bb.length = (unsigned)(bb_len);
+			bb.offset = nbb_off;
+			bb.length = (unsigned)(nbb_len);
 			/* unknown healthy replica */
 			bb.nhealthy = NO_HEALTHY_REPLICA;
 
