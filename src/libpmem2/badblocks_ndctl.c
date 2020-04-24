@@ -19,6 +19,7 @@
 
 #include "libpmem2.h"
 #include "pmem2_utils.h"
+#include "source.h"
 #include "ndctl_region_namespace.h"
 
 #include "file.h"
@@ -29,6 +30,69 @@
 #include "set_badblocks.h"
 #include "vec.h"
 #include "extent.h"
+
+typedef int pmem2_badblock_next_type(
+		struct pmem2_badblock_context *bbctx,
+		struct pmem2_badblock *bb);
+
+typedef void *pmem2_badblock_get_next_type(
+		struct pmem2_badblock_context *bbctx);
+
+struct pmem2_badblock_context {
+	/* file descriptor */
+	int fd;
+
+	/* pmem2 file type */
+	enum pmem2_file_type file_type;
+
+	/* ndctl context */
+	struct ndctl_ctx *ctx;
+
+	/*
+	 * Function pointer to:
+	 * - pmem2_badblock_next_namespace() or
+	 * - pmem2_badblock_next_region()
+	 */
+	pmem2_badblock_next_type *pmem2_badblock_next_func;
+
+	/*
+	 * Function pointer to:
+	 * - pmem2_namespace_get_first_badblock() or
+	 * - pmem2_namespace_get_next_badblock() or
+	 * - pmem2_region_get_first_badblock() or
+	 * - pmem2_region_get_next_badblock()
+	 */
+	pmem2_badblock_get_next_type *pmem2_badblock_get_next_func;
+
+	/* needed only by the ndctl namespace badblock iterator */
+	struct ndctl_namespace *ndns;
+
+	/* needed only by the ndctl region badblock iterator */
+	struct {
+		struct ndctl_bus *bus;
+		struct ndctl_region *region;
+		unsigned long long ns_res; /* address of the namespace */
+		unsigned long long ns_beg; /* the begining of the namespace */
+		unsigned long long ns_end; /* the end of the namespace */
+	} rgn;
+
+	/* file's extents */
+	struct extents *exts;
+	unsigned first_extent;
+	struct pmem2_badblock last_bb;
+};
+
+/* forward declarations */
+static int pmem2_badblock_next_namespace(
+		struct pmem2_badblock_context *bbctx,
+		struct pmem2_badblock *bb);
+static int pmem2_badblock_next_region(
+		struct pmem2_badblock_context *bbctx,
+		struct pmem2_badblock *bb);
+static void *pmem2_namespace_get_first_badblock(
+		struct pmem2_badblock_context *bbctx);
+static void *pmem2_region_get_first_badblock(
+		struct pmem2_badblock_context *bbctx);
 
 /*
  * badblocks_get_namespace_bounds -- (internal) returns the bounds
@@ -53,14 +117,14 @@ badblocks_get_namespace_bounds(struct ndctl_region *region,
 	if (pfn) {
 		*ns_offset = ndctl_pfn_get_resource(pfn);
 		if (*ns_offset == ULLONG_MAX) {
-			ERR("!(pfn) cannot read offset of the namespace");
-			return -1;
+			ERR("(pfn) cannot read offset of the namespace");
+			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
 		*ns_size = ndctl_pfn_get_size(pfn);
 		if (*ns_size == ULLONG_MAX) {
-			ERR("!(pfn) cannot read size of the namespace");
-			return -1;
+			ERR("(pfn) cannot read size of the namespace");
+			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
 		LOG(10, "(pfn) ns_offset 0x%llx ns_size %llu",
@@ -68,14 +132,14 @@ badblocks_get_namespace_bounds(struct ndctl_region *region,
 	} else if (dax) {
 		*ns_offset = ndctl_dax_get_resource(dax);
 		if (*ns_offset == ULLONG_MAX) {
-			ERR("!(dax) cannot read offset of the namespace");
-			return -1;
+			ERR("(dax) cannot read offset of the namespace");
+			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
 		*ns_size = ndctl_dax_get_size(dax);
 		if (*ns_size == ULLONG_MAX) {
-			ERR("!(dax) cannot read size of the namespace");
-			return -1;
+			ERR("(dax) cannot read size of the namespace");
+			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
 		LOG(10, "(dax) ns_offset 0x%llx ns_size %llu",
@@ -83,14 +147,14 @@ badblocks_get_namespace_bounds(struct ndctl_region *region,
 	} else { /* raw or btt */
 		*ns_offset = ndctl_namespace_get_resource(ndns);
 		if (*ns_offset == ULLONG_MAX) {
-			ERR("!(raw/btt) cannot read offset of the namespace");
-			return -1;
+			ERR("(raw/btt) cannot read offset of the namespace");
+			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
 		*ns_size = ndctl_namespace_get_size(ndns);
 		if (*ns_size == ULLONG_MAX) {
-			ERR("!(raw/btt) cannot read size of the namespace");
-			return -1;
+			ERR("(raw/btt) cannot read size of the namespace");
+			return PMEM2_E_CANNOT_READ_BOUNDS;
 		}
 
 		LOG(10, "(raw/btt) ns_offset 0x%llx ns_size %llu",
@@ -100,7 +164,7 @@ badblocks_get_namespace_bounds(struct ndctl_region *region,
 	unsigned long long region_offset = ndctl_region_get_resource(region);
 	if (region_offset == ULLONG_MAX) {
 		ERR("!cannot read offset of the region");
-		return -1;
+		return PMEM2_E_ERRNO;
 	}
 
 	LOG(10, "region_offset 0x%llx", region_offset);
@@ -794,4 +858,427 @@ error_free_all:
 	badblocks_delete(bbs);
 
 	return ret;
+}
+
+/*
+ * pmem2_badblock_context_new -- allocate and create a new bad block context
+ */
+int
+pmem2_badblock_context_new(const struct pmem2_source *src,
+	struct pmem2_badblock_context **bbctx)
+{
+	LOG(3, "src %p bbctx %p", src, bbctx);
+
+	ASSERTne(bbctx, NULL);
+
+	struct ndctl_ctx *ctx;
+	struct ndctl_region *region;
+	struct ndctl_namespace *ndns;
+	struct pmem2_badblock_context *tbbctx = NULL;
+	enum pmem2_file_type pmem2_type;
+	int ret = PMEM2_E_UNKNOWN;
+	os_stat_t st;
+
+	*bbctx = NULL;
+
+	if (ndctl_new(&ctx)) {
+		ERR("!ndctl_new");
+		return PMEM2_E_ERRNO;
+	}
+
+	if (os_fstat(src->fd, &st)) {
+		ERR("!fstat %i", src->fd);
+		ret = PMEM2_E_ERRNO;
+		goto exit_ndctl_unref;
+	}
+
+	ret = pmem2_get_type_from_stat(&st, &pmem2_type);
+	if (ret)
+		goto exit_ndctl_unref;
+
+	ret = ndctl_region_namespace(ctx, &st, &region, &ndns);
+	if (ret) {
+		LOG(1, "getting region and namespace failed");
+		goto exit_ndctl_unref;
+	}
+
+	tbbctx = pmem2_zalloc(sizeof(struct pmem2_badblock_context), &ret);
+	if (ret)
+		goto exit_ndctl_unref;
+
+	tbbctx->fd = src->fd;
+	tbbctx->file_type = pmem2_type;
+	tbbctx->ctx = ctx;
+
+	if (region == NULL || ndns == NULL) {
+		/* did not found any matching device */
+		*bbctx = tbbctx;
+		return 0;
+	}
+
+	if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_FSDAX) {
+		tbbctx->ndns = ndns;
+		tbbctx->pmem2_badblock_next_func =
+			pmem2_badblock_next_namespace;
+		tbbctx->pmem2_badblock_get_next_func =
+			pmem2_namespace_get_first_badblock;
+	} else {
+		unsigned long long ns_beg, ns_size, ns_end;
+		ret = badblocks_get_namespace_bounds(
+				region, ndns,
+				&ns_beg, &ns_size);
+		if (ret) {
+			LOG(1, "cannot read namespace's bounds");
+			goto error_free_all;
+		}
+
+		ns_end = ns_beg + ns_size - 1;
+
+		LOG(10,
+			"namespace: begin %llu, end %llu size %llu (in 512B sectors)",
+			B2SEC(ns_beg), B2SEC(ns_end + 1) - 1, B2SEC(ns_size));
+
+		tbbctx->rgn.bus = ndctl_region_get_bus(region);
+		tbbctx->rgn.region = region;
+		tbbctx->rgn.ns_beg = ns_beg;
+		tbbctx->rgn.ns_end = ns_end;
+		tbbctx->rgn.ns_res = ns_beg + ndctl_region_get_resource(region);
+		tbbctx->pmem2_badblock_next_func =
+			pmem2_badblock_next_region;
+		tbbctx->pmem2_badblock_get_next_func =
+			pmem2_region_get_first_badblock;
+	}
+
+	if (pmem2_type == PMEM2_FTYPE_REG) {
+		/* only regular files have extents */
+		ret = pmem2_extents_create_get(src->fd, &tbbctx->exts);
+		if (ret) {
+			LOG(1, "getting extents of fd %i failed", src->fd);
+			goto error_free_all;
+		}
+	}
+
+	/* set the context */
+	*bbctx = tbbctx;
+
+	return 0;
+
+error_free_all:
+	pmem2_extents_destroy(&tbbctx->exts);
+	Free(tbbctx);
+
+exit_ndctl_unref:
+	ndctl_unref(ctx);
+
+	return ret;
+}
+
+/*
+ * pmem2_badblock_context_delete -- delete and free the bad block context
+ */
+void
+pmem2_badblock_context_delete(struct pmem2_badblock_context **bbctx)
+{
+	LOG(3, "bbctx %p", bbctx);
+
+	ASSERTne(bbctx, NULL);
+
+	struct pmem2_badblock_context *tbbctx = *bbctx;
+
+	pmem2_extents_destroy(&tbbctx->exts);
+	ndctl_unref(tbbctx->ctx);
+	Free(tbbctx);
+
+	*bbctx = NULL;
+}
+
+/*
+ * pmem2_namespace_get_next_badblock -- (internal) wrapper for
+ *                                      ndctl_namespace_get_next_badblock
+ */
+static void *
+pmem2_namespace_get_next_badblock(struct pmem2_badblock_context *bbctx)
+{
+	LOG(3, "bbctx %p", bbctx);
+
+	return ndctl_namespace_get_next_badblock(bbctx->ndns);
+}
+
+/*
+ * pmem2_namespace_get_first_badblock -- (internal) wrapper for
+ *                                       ndctl_namespace_get_first_badblock
+ */
+static void *
+pmem2_namespace_get_first_badblock(struct pmem2_badblock_context *bbctx)
+{
+	LOG(3, "bbctx %p", bbctx);
+
+	bbctx->pmem2_badblock_get_next_func = pmem2_namespace_get_next_badblock;
+	return ndctl_namespace_get_first_badblock(bbctx->ndns);
+}
+
+/*
+ * pmem2_region_get_next_badblock -- (internal) wrapper for
+ *                                   ndctl_region_get_next_badblock
+ */
+static void *
+pmem2_region_get_next_badblock(struct pmem2_badblock_context *bbctx)
+{
+	LOG(3, "bbctx %p", bbctx);
+
+	return ndctl_region_get_next_badblock(bbctx->rgn.region);
+}
+
+/*
+ * pmem2_region_get_first_badblock -- (internal) wrapper for
+ *                                    ndctl_region_get_first_badblock
+ */
+static void *
+pmem2_region_get_first_badblock(struct pmem2_badblock_context *bbctx)
+{
+	LOG(3, "bbctx %p", bbctx);
+
+	bbctx->pmem2_badblock_get_next_func = pmem2_region_get_next_badblock;
+	return ndctl_region_get_first_badblock(bbctx->rgn.region);
+}
+
+/*
+ * pmem2_badblock_next_namespace -- (internal) version of pmem2_badblock_next()
+ *                                  called for ndctl with namespace badblock
+ *                                  iterator
+ *
+ * This function works only for fsdax, but does not require any special
+ * permissions.
+ */
+static int
+pmem2_badblock_next_namespace(struct pmem2_badblock_context *bbctx,
+				struct pmem2_badblock *bb)
+{
+	LOG(3, "bbctx %p bb %p", bbctx, bb);
+
+	ASSERTne(bbctx, NULL);
+	ASSERTne(bb, NULL);
+
+	struct badblock *bbn;
+
+	bbn = bbctx->pmem2_badblock_get_next_func(bbctx);
+	if (bbn == NULL)
+		return PMEM2_E_NO_BAD_BLOCK_FOUND;
+
+	/*
+	 * libndctl returns offset and length of a bad block
+	 * both expressed in 512B sectors. Offset is relative
+	 * to the beginning of the namespace.
+	 */
+	bb->offset = SEC2B(bbn->offset);
+	bb->length = SEC2B(bbn->len);
+
+	return 0;
+}
+
+/*
+ * pmem2_badblock_next_region -- (internal) version of pmem2_badblock_next()
+ *                               called for ndctl with region badblock iterator
+ *
+ * This function works for all types of namespaces, but requires read access to
+ * privileged device information.
+ */
+static int
+pmem2_badblock_next_region(struct pmem2_badblock_context *bbctx,
+				struct pmem2_badblock *bb)
+{
+	LOG(3, "bbctx %p bb %p", bbctx, bb);
+
+	ASSERTne(bbctx, NULL);
+	ASSERTne(bb, NULL);
+
+	unsigned long long bb_beg, bb_end;
+	unsigned long long beg, end;
+	struct badblock *bbn;
+
+	unsigned long long ns_beg = bbctx->rgn.ns_beg;
+	unsigned long long ns_end = bbctx->rgn.ns_end;
+
+	do {
+		bbn = bbctx->pmem2_badblock_get_next_func(bbctx);
+		if (bbn == NULL)
+			return PMEM2_E_NO_BAD_BLOCK_FOUND;
+
+		LOG(10,
+			"region bad block: begin %llu end %llu length %u (in 512B sectors)",
+			bbn->offset, bbn->offset + bbn->len - 1, bbn->len);
+
+		/*
+		 * libndctl returns offset and length of a bad block
+		 * both expressed in 512B sectors. Offset is relative
+		 * to the beginning of the region.
+		 */
+		bb_beg = SEC2B(bbn->offset);
+		bb_end = bb_beg + SEC2B(bbn->len) - 1;
+
+	} while (bb_beg > ns_end || ns_beg > bb_end);
+
+	beg = (bb_beg > ns_beg) ? bb_beg : ns_beg;
+	end = (bb_end < ns_end) ? bb_end : ns_end;
+
+	/*
+	 * Form a new bad block structure with offset and length
+	 * expressed in bytes and offset relative to the beginning
+	 * of the namespace.
+	 */
+	bb->offset = beg - ns_beg;
+	bb->length = end - beg + 1;
+
+	LOG(4,
+		"namespace bad block: begin %llu end %llu length %llu (in 512B sectors)",
+		B2SEC(beg - ns_beg), B2SEC(end - ns_beg), B2SEC(end - beg) + 1);
+
+	return 0;
+}
+
+/*
+ * pmem2_badblock_next -- get the next bad block
+ */
+int
+pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
+			struct pmem2_badblock *bb)
+{
+	LOG(3, "bbctx %p bb %p", bbctx, bb);
+
+	ASSERTne(bbctx, NULL);
+	ASSERTne(bb, NULL);
+
+	const struct pmem2_badblock BB_ZERO = {0, 0};
+	struct pmem2_badblock bbn = BB_ZERO;
+	unsigned long long bb_beg;
+	unsigned long long bb_end;
+	unsigned long long bb_len;
+	unsigned long long bb_off;
+	unsigned long long ext_beg;
+	unsigned long long ext_end;
+	unsigned e;
+	int ret;
+
+	if (bbctx->rgn.region == NULL && bbctx->ndns == NULL) {
+		/* did not found any matching device */
+		*bb = BB_ZERO;
+		return PMEM2_E_NO_BAD_BLOCK_FOUND;
+	}
+
+	struct extents *exts = bbctx->exts;
+
+	/* DAX devices have no extents */
+	if (!exts) {
+		ret = bbctx->pmem2_badblock_next_func(bbctx, &bbn);
+		*bb = bbn;
+		return ret;
+	}
+
+	/*
+	 * There is at least one extent.
+	 * Loop until:
+	 * 1) a bad block overlaps with an extent or
+	 * 2) there are no more bad blocks.
+	 */
+	int bb_overlaps_with_extent = 0;
+	do {
+		if (bbctx->last_bb.length) {
+			/*
+			 * We have saved the last bad block to check it
+			 * with the next extent saved
+			 * in bbctx->first_extent.
+			 */
+			ASSERTne(bbctx->first_extent, 0);
+			bbn = bbctx->last_bb;
+			bbctx->last_bb.offset = 0;
+			bbctx->last_bb.length = 0;
+		} else {
+			ASSERTeq(bbctx->first_extent, 0);
+			/* look for the next bad block */
+			ret = bbctx->pmem2_badblock_next_func(bbctx, &bbn);
+			if (ret)
+				return ret;
+		}
+
+		bb_beg = bbn.offset;
+		bb_end = bb_beg + bbn.length - 1;
+
+		for (e = bbctx->first_extent;
+				e < exts->extents_count;
+				e++) {
+
+			ext_beg = exts->extents[e].offset_physical;
+			ext_end = ext_beg + exts->extents[e].length - 1;
+
+			/* check if the bad block overlaps with the extent */
+			if (bb_beg <= ext_end && ext_beg <= bb_end) {
+				/* bad block overlaps with the extent */
+				bb_overlaps_with_extent = 1;
+
+				if (bb_end > ext_end &&
+				    e + 1 < exts->extents_count) {
+					/*
+					 * The bad block is longer than
+					 * the extent and there are
+					 * more extents.
+					 * Save the current bad block
+					 * to check it with the next extent.
+					 */
+					bbctx->first_extent = e + 1;
+					bbctx->last_bb = bbn;
+				} else {
+					/*
+					 * All extents were checked
+					 * with the current bad block.
+					 */
+					bbctx->first_extent = 0;
+					bbctx->last_bb.length = 0;
+					bbctx->last_bb.offset = 0;
+				}
+				break;
+			}
+		}
+
+		/* check all extents with the next bad block */
+		if (bb_overlaps_with_extent == 0) {
+			bbctx->first_extent = 0;
+			bbctx->last_bb.length = 0;
+			bbctx->last_bb.offset = 0;
+		}
+
+	} while (bb_overlaps_with_extent == 0);
+
+	/* bad block overlaps with an extent */
+
+	bb_beg = (bb_beg > ext_beg) ? bb_beg : ext_beg;
+	bb_end = (bb_end < ext_end) ? bb_end : ext_end;
+	bb_len = bb_end - bb_beg + 1;
+	bb_off = bb_beg + exts->extents[e].offset_logical
+			- exts->extents[e].offset_physical;
+
+	LOG(10, "bad block found: physical offset: %llu, length: %llu",
+		bb_beg, bb_len);
+
+	/* make sure the offset is block-aligned */
+	unsigned long long not_block_aligned = bb_off & (exts->blksize - 1);
+	if (not_block_aligned) {
+		bb_off -= not_block_aligned;
+		bb_len += not_block_aligned;
+	}
+
+	/* make sure the length is block-aligned */
+	bb_len = ALIGN_UP(bb_len, exts->blksize);
+
+	LOG(4, "bad block found: logical offset: %llu, length: %llu",
+		bb_off, bb_len);
+
+	/*
+	 * Return the bad block with offset and length
+	 * expressed in bytes and offset relative
+	 * to the beginning of the file.
+	 */
+	bb->offset = bb_off;
+	bb->length = bb_len;
+
+	return 0;
 }

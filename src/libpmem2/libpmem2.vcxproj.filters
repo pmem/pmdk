@@ -51,6 +51,9 @@
     <ClCompile Include="auto_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="badblocks_none.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="config.c">
       <Filter>Source Files</Filter>
     </ClCompile>
