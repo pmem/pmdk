@@ -734,7 +734,7 @@ replica_badblocks_recovery_file_save(struct part_health_status *part_hs)
 	/* save bad blocks */
 	for (unsigned i = 0; i < bbs->bb_cnt; i++) {
 		ASSERT(bbs->bbv[i].length != 0);
-		fprintf(recovery_file_name, "%llu %u\n",
+		fprintf(recovery_file_name, "%zu %zu\n",
 			bbs->bbv[i].offset, bbs->bbv[i].length);
 	}
 
@@ -798,7 +798,7 @@ replica_part_badblocks_recovery_file_read(struct part_health_status *part_hs)
 	unsigned long long min_offset = 0; /* minimum possible offset */
 
 	do {
-		if (fscanf(recovery_file, "%llu %u\n",
+		if (fscanf(recovery_file, "%zu %zu\n",
 				&bb.offset, &bb.length) < 2) {
 			LOG(1, "incomplete bad block recovery file -- '%s'",
 				path);
