@@ -207,4 +207,67 @@ void memset_movnt_avx512f_noflush(char *dest, int c, size_t len);
 
 extern size_t Movnt_threshold;
 
+/*
+ * SSE2/AVX1 only:
+ *
+ * How much data WC buffers can hold at the same time, after which sfence
+ * is needed to flush them.
+ *
+ * For some reason sfence affects performance of reading from DRAM, so we have
+ * to prefetch the source data earlier.
+ */
+#define PERF_BARRIER_SIZE (12 * CACHELINE_SIZE /*  768 */)
+
+/*
+ * How much to prefetch initially.
+ * Cannot be bigger than the size of L1 (32kB) - PERF_BARRIER_SIZE.
+ */
+#define INI_PREFETCH_SIZE (64 * CACHELINE_SIZE /* 4096 */)
+
+static force_inline void
+prefetch(const char *addr)
+{
+	_mm_prefetch(addr, _MM_HINT_T0);
+}
+
+static force_inline void
+prefetch_ini_fw(const char *src, size_t len)
+{
+	size_t pref = MIN(len, INI_PREFETCH_SIZE);
+	for (size_t i = 0; i < pref; i += CACHELINE_SIZE)
+		prefetch(src + i);
+}
+
+static force_inline void
+prefetch_ini_bw(const char *src, size_t len)
+{
+	size_t pref = MIN(len, INI_PREFETCH_SIZE);
+	for (size_t i = 0; i < pref; i += CACHELINE_SIZE)
+		prefetch(src - i);
+}
+
+static force_inline void
+prefetch_next_fw(const char *src, const char *srcend)
+{
+	const char *begin = src + INI_PREFETCH_SIZE;
+	const char *end = begin + PERF_BARRIER_SIZE;
+	if (end > srcend)
+		end = srcend;
+
+	for (const char *addr = begin; addr < end; addr += CACHELINE_SIZE)
+		prefetch(addr);
+}
+
+static force_inline void
+prefetch_next_bw(const char *src, const char *srcbegin)
+{
+	const char *begin = src - INI_PREFETCH_SIZE;
+	const char *end = begin - PERF_BARRIER_SIZE;
+	if (end < srcbegin)
+		end = srcbegin;
+
+	for (const char *addr = begin; addr >= end; addr -= CACHELINE_SIZE)
+		prefetch(addr);
+}
+
 #endif
