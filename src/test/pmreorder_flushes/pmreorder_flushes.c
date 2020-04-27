@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * pmreorder_flushes.c -- test for store reordering with flushes
@@ -60,17 +60,24 @@ write_consistent(struct stores_fields *sf)
 	pmem_drain();
 
 	/*
-	 * STORE (D)
+	 * There are two transitive stores now: A (which does not change
+	 * it's value) and C (which is modified).
 	 *
-	 * FLUSH (C, D) (still no flush A)
+	 * STORE (D)
+	 * STORE (C)
+	 *
+	 * FLUSH (D) (still no flush A and C)
 	 * FENCE
 	 */
 	pmem_memset(sf->D, 5, sizeof(sf->D), PMEM_F_MEM_NODRAIN);
-	pmem_flush(sf->C, sizeof(sf->C));
+	pmem_memset(sf->C, 8, sizeof(sf->C), PMEM_F_MEM_NOFLUSH);
 	pmem_drain();
 
 	/*
-	 * STORE (E) to verify if A will be finally persisted
+	 * E is modified just to add additional step to the log.
+	 * Values of A and C should still be -1, 2.
+	 *
+	 * STORE (E)
 	 * FLUSH (E)
 	 * FENCE
 	 */
@@ -78,10 +85,11 @@ write_consistent(struct stores_fields *sf)
 	pmem_drain();
 
 	/*
-	 * FLUSH (A)
+	 * FLUSH (A, C)
 	 * FENCE
 	 */
 	pmem_flush(sf->A, sizeof(sf->A));
+	pmem_flush(sf->C, sizeof(sf->C));
 	pmem_drain();
 }
 
