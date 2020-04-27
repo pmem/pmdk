@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * alloc_class.h -- internal definitions for allocation classes
@@ -12,6 +12,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include "heap_layout.h"
+#include "memblock.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,11 +42,7 @@ struct alloc_class {
 	enum alloc_class_type type;
 
 	/* run-specific data */
-	struct {
-		uint32_t size_idx; /* size index of a single run instance */
-		size_t alignment; /* required alignment of objects */
-		unsigned nallocs; /* number of allocs per run */
-	} run;
+	struct run_descriptor rdsc;
 };
 
 struct alloc_class_collection *alloc_class_collection_new(void);
