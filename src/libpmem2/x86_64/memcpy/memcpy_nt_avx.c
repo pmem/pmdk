@@ -155,7 +155,12 @@ memmove_movnt_avx_fw(char *dest, const char *src, size_t len, flush_fn flush,
 		len -= cnt;
 	}
 
-	while (len >= 12 * 64) {
+	const char *srcend = src + len;
+	prefetch_ini_fw(src, len);
+
+	while (len >= PERF_BARRIER_SIZE) {
+		prefetch_next_fw(src, srcend);
+
 		memmove_movnt8x64b(dest, src);
 		dest += 8 * 64;
 		src += 8 * 64;
@@ -165,6 +170,8 @@ memmove_movnt_avx_fw(char *dest, const char *src, size_t len, flush_fn flush,
 		dest += 4 * 64;
 		src += 4 * 64;
 		len -= 4 * 64;
+
+		COMPILE_ERROR_ON(PERF_BARRIER_SIZE != (8 + 4) * 64);
 
 		if (len)
 			perf_barrier();
@@ -243,7 +250,12 @@ memmove_movnt_avx_bw(char *dest, const char *src, size_t len, flush_fn flush,
 		memmove_small_avx(dest, src, cnt, flush);
 	}
 
-	while (len >= 12 * 64) {
+	const char *srcbegin = src - len;
+	prefetch_ini_bw(src, len);
+
+	while (len >= PERF_BARRIER_SIZE) {
+		prefetch_next_bw(src, srcbegin);
+
 		dest -= 8 * 64;
 		src -= 8 * 64;
 		len -= 8 * 64;
@@ -253,6 +265,8 @@ memmove_movnt_avx_bw(char *dest, const char *src, size_t len, flush_fn flush,
 		src -= 4 * 64;
 		len -= 4 * 64;
 		memmove_movnt4x64b(dest, src);
+
+		COMPILE_ERROR_ON(PERF_BARRIER_SIZE != (8 + 4) * 64);
 
 		if (len)
 			perf_barrier();
