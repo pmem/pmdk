@@ -113,7 +113,7 @@ memset_movnt_sse2(char *dest, int c, size_t len, flush_fn flush,
 		len -= cnt;
 	}
 
-	while (len >= 12 * 64) {
+	while (len >= PERF_BARRIER_SIZE) {
 		memset_movnt4x64b(dest, xmm);
 		dest += 4 * 64;
 		len -= 4 * 64;
@@ -125,6 +125,8 @@ memset_movnt_sse2(char *dest, int c, size_t len, flush_fn flush,
 		memset_movnt4x64b(dest, xmm);
 		dest += 4 * 64;
 		len -= 4 * 64;
+
+		COMPILE_ERROR_ON(PERF_BARRIER_SIZE != (4 + 4 + 4) * 64);
 
 		if (len)
 			perf_barrier();
