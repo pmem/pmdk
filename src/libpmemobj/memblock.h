@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * memblock.h -- internal definitions for memory block
@@ -22,7 +22,7 @@ extern "C" {
 
 #define MEMORY_BLOCK_NONE \
 (struct memory_block)\
-{0, 0, 0, 0, NULL, NULL, MAX_HEADER_TYPES, MAX_MEMORY_BLOCK}
+{0, 0, 0, 0, NULL, NULL, MAX_HEADER_TYPES, MAX_MEMORY_BLOCK, NULL}
 
 #define MEMORY_BLOCK_IS_NONE(_m)\
 ((_m).heap == NULL)
@@ -140,6 +140,16 @@ struct run_bitmap {
 	uint64_t *values; /* pointer to the bitmap's values array */
 };
 
+/* runtime information necessary to create a run */
+struct run_descriptor {
+	uint16_t flags; /* chunk flags for the run */
+	size_t unit_size; /* the size of a single unit in a run */
+	uint32_t size_idx; /* size index of a single run instance */
+	size_t alignment; /* required alignment of objects */
+	unsigned nallocs; /* number of allocs per run */
+	struct run_bitmap bitmap;
+};
+
 struct memory_block_ops {
 	/* returns memory block size */
 	size_t (*block_size)(const struct memory_block *m);
@@ -251,6 +261,7 @@ struct memory_block {
 	struct palloc_heap *heap;
 	enum header_type header_type;
 	enum memory_block_type type;
+	struct run_bitmap *cached_bitmap;
 };
 
 /*
@@ -282,8 +293,7 @@ struct memory_block memblock_huge_init(struct palloc_heap *heap,
 	uint32_t chunk_id, uint32_t zone_id, uint32_t size_idx);
 
 struct memory_block memblock_run_init(struct palloc_heap *heap,
-	uint32_t chunk_id, uint32_t zone_id, uint32_t size_idx, uint16_t flags,
-	uint64_t unit_size, uint64_t alignment);
+	uint32_t chunk_id, uint32_t zone_id, struct run_descriptor *rdsc);
 
 void memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
 	uint64_t unit_size, uint64_t alignment, void *content,

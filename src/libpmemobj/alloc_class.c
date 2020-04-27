@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * alloc_class.c -- implementation of allocation classes
@@ -200,12 +200,15 @@ alloc_class_new(int id, struct alloc_class_collection *ac,
 			id = DEFAULT_ALLOC_CLASS_ID;
 			break;
 		case CLASS_RUN:
-			c->run.alignment = alignment;
-			struct run_bitmap b;
+			c->rdsc.alignment = alignment;
 			memblock_run_bitmap(&size_idx, c->flags, unit_size,
-				alignment, NULL, &b);
-			c->run.nallocs = b.nbits;
-			c->run.size_idx = size_idx;
+				alignment, NULL, &c->rdsc.bitmap);
+			c->rdsc.nallocs = c->rdsc.bitmap.nbits;
+			c->rdsc.size_idx = size_idx;
+
+			/* these two fields are duplicated from class */
+			c->rdsc.unit_size = c->unit_size;
+			c->rdsc.flags = c->flags;
 
 			uint8_t slot = (uint8_t)id;
 			if (id < 0 && alloc_class_find_first_free_slot(ac,
@@ -282,7 +285,7 @@ alloc_class_find_or_create(struct alloc_class_collection *ac, size_t n)
 		struct alloc_class *c = ac->aclasses[i];
 
 		if (c == NULL || c->type == CLASS_HUGE ||
-				c->run.size_idx < required_size_idx)
+				c->rdsc.size_idx < required_size_idx)
 			continue;
 
 		if (n % c->unit_size == 0 &&
@@ -374,10 +377,10 @@ alloc_class_find_min_frag(struct alloc_class_collection *ac, size_t n)
 		 * memory at the end of the run.
 		 */
 		if (c->type == CLASS_RUN) {
-			size_t wasted_units = c->run.nallocs % units;
+			size_t wasted_units = c->rdsc.nallocs % units;
 			size_t wasted_bytes = wasted_units * c->unit_size;
 			size_t waste_avg_per_unit = wasted_bytes /
-				c->run.nallocs;
+				c->rdsc.nallocs;
 
 			waste += waste_avg_per_unit;
 		}
@@ -472,8 +475,8 @@ alloc_class_collection_new()
 	 * The actual run might contain less unit blocks than the theoretical
 	 * unit max variable. This may be the case for very large unit sizes.
 	 */
-	size_t real_unit_max = c->run.nallocs < RUN_UNIT_MAX_ALLOC ?
-		c->run.nallocs : RUN_UNIT_MAX_ALLOC;
+	size_t real_unit_max = c->rdsc.nallocs < RUN_UNIT_MAX_ALLOC ?
+		c->rdsc.nallocs : RUN_UNIT_MAX_ALLOC;
 
 	size_t theoretical_run_max_size = c->unit_size * real_unit_max;
 
@@ -492,7 +495,7 @@ alloc_class_collection_new()
 		if (c != NULL && c->type == CLASS_RUN) {
 			ASSERTeq(i, c->id);
 			ASSERTeq(alloc_class_by_run(ac, c->unit_size,
-				c->flags, c->run.size_idx), c);
+				c->flags, c->rdsc.size_idx), c);
 		}
 	}
 #endif
@@ -625,7 +628,7 @@ alloc_class_calc_size_idx(struct alloc_class *c, size_t size)
 			return -1;
 		else if (size_idx > RUN_UNIT_MAX)
 			return -1;
-		else if (size_idx > c->run.nallocs)
+		else if (size_idx > c->rdsc.nallocs)
 			return -1;
 	}
 

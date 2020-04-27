@@ -112,7 +112,7 @@ heap_arenas_fini(struct arenas *arenas)
 struct alloc_class_collection *
 heap_alloc_classes(struct palloc_heap *heap)
 {
-	return heap->rt->alloc_classes;
+	return heap->rt ? heap->rt->alloc_classes : NULL;
 }
 
 /*
@@ -451,10 +451,7 @@ static int
 heap_run_create(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m)
 {
-	*m = memblock_run_init(heap,
-		m->chunk_id, m->zone_id, m->size_idx,
-		b->aclass->flags, b->aclass->unit_size,
-		b->aclass->run.alignment);
+	*m = memblock_run_init(heap, m->chunk_id, m->zone_id, &b->aclass->rdsc);
 
 	if (m->m_ops->iterate_free(m, heap_memblock_insert_block, b) != 0) {
 		b->c_ops->rm_all(b->container);
@@ -580,14 +577,14 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 		return e.free_space == b.nbits;
 	}
 
-	if (e.free_space == c->run.nallocs)
+	if (e.free_space == c->rdsc.nallocs)
 		return 1;
 
 	if (startup) {
 		STATS_INC(heap->stats, transient, heap_run_active,
 			m->size_idx * CHUNKSIZE);
 		STATS_INC(heap->stats, transient, heap_run_allocated,
-			c->run.nallocs - e.free_space);
+			c->rdsc.nallocs - e.free_space);
 	}
 
 	if (recycler_put(heap->rt->recyclers[c->id], m, e) < 0)
@@ -875,7 +872,7 @@ heap_ensure_run_bucket_filled(struct palloc_heap *heap, struct bucket *b,
 		goto out;
 
 	struct memory_block m = MEMORY_BLOCK_NONE;
-	m.size_idx = b->aclass->run.size_idx;
+	m.size_idx = b->aclass->rdsc.size_idx;
 
 	defb = heap_bucket_acquire(heap,
 		DEFAULT_ALLOC_CLASS_ID,
@@ -947,7 +944,7 @@ heap_split_block(struct palloc_heap *heap, struct bucket *b,
 		ASSERT((uint64_t)m->block_off + (uint64_t)units <= UINT32_MAX);
 		struct memory_block r = {m->chunk_id, m->zone_id,
 			m->size_idx - units, (uint32_t)(m->block_off + units),
-			NULL, NULL, 0, 0};
+			NULL, NULL, 0, 0, NULL};
 		memblock_rebuild_state(heap, &r);
 		if (bucket_insert_block(b, &r) != 0)
 			LOG(2,
@@ -1308,7 +1305,7 @@ heap_create_alloc_class_buckets(struct palloc_heap *heap, struct alloc_class *c)
 	struct heap_rt *h = heap->rt;
 
 	if (c->type == CLASS_RUN) {
-		h->recyclers[c->id] = recycler_new(heap, c->run.nallocs,
+		h->recyclers[c->id] = recycler_new(heap, c->rdsc.nallocs,
 			&heap->rt->arenas.nactive);
 		if (h->recyclers[c->id] == NULL)
 			goto error_recycler_new;
