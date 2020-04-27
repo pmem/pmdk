@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 
 import memoryoperations as memops
 import reorderengines
@@ -297,14 +297,9 @@ class ReplayingState(State):
         # consider only flushed stores
         flushed_stores = list(filter(lambda x: x.flushed, self._ops_list))
 
-        # already flushed stores should be removed from the transitive list
-        common_part = list(set(flushed_stores) & set(State.trans_stores))
-        State.trans_stores = list(set(State.trans_stores) - set(common_part))
-
-        # do not add redundant stores
-        State.trans_stores = list(set(State.trans_stores) |
-                                  set(list(filter(lambda x: x.flushed is False,
-                                      self._ops_list))))
+        # not-flushed stores should be passed to next state
+        State.trans_stores = list(filter(lambda x: x.flushed is False,
+                                         self._ops_list))
 
         if self._context.test_on_barrier:
             for seq in self._context.reorder_engine.generate_sequence(

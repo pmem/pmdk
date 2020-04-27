@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2019-2020, Intel Corporation */
 
 /*
  * pmreorder_flushes.c -- test for store reordering with flushes
@@ -61,20 +61,36 @@ write_consistent(struct stores_fields *sf)
 
 	/*
 	 * STORE (D)
+	 * STORE (C)
 	 *
-	 * FLUSH (C, D) (still no flush A)
+	 * FLUSH (D) (still no flush A and C)
 	 * FENCE
 	 */
 	pmem_memset(sf->D, 5, sizeof(sf->D), PMEM_F_MEM_NODRAIN);
-	pmem_flush(sf->C, sizeof(sf->C));
+	pmem_memset(sf->C, 8, sizeof(sf->C), PMEM_F_MEM_NOFLUSH);
 	pmem_drain();
 
 	/*
-	 * STORE (E) to verify if A will be finally persisted
+	 * STORE (E)
 	 * FLUSH (E)
 	 * FENCE
 	 */
 	pmem_memset(sf->E, 6, sizeof(sf->E), PMEM_F_MEM_NODRAIN);
+	pmem_drain();
+
+	/*
+	 * FLUSH (A, C)
+	 * FENCE
+	 */
+	pmem_flush(sf->A, sizeof(sf->A));
+	pmem_flush(sf->C, sizeof(sf->C));
+	pmem_drain();
+
+	/*
+	 * STORE (A)
+	 * FENCE
+	 */
+	pmem_memset(sf->A, 2, sizeof(sf->A), PMEM_F_MEM_NOFLUSH);
 	pmem_drain();
 
 	/*
