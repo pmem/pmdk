@@ -185,34 +185,37 @@ badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
 	LOG(3, "bus %p address 0x%llx length %llu (bytes)",
 		bus, address, length);
 
-	int ret = 0;
+	int ret;
 
 	struct ndctl_cmd *cmd_ars_cap = ndctl_bus_cmd_new_ars_cap(bus,
 							address, length);
 	if (cmd_ars_cap == NULL) {
-		ERR("failed to create cmd (bus '%s')",
+		ERR("ndctl_bus_cmd_new_ars_cap() failed (bus '%s')",
 			ndctl_bus_get_provider(bus));
-		return -1;
+		return PMEM2_E_NDCTL_NEW_CMD_FAILED;
 	}
 
-	if ((ret = ndctl_cmd_submit(cmd_ars_cap)) < 0) {
-		ERR("failed to submit cmd (bus '%s')",
+	if (ndctl_cmd_submit(cmd_ars_cap) < 0) {
+		ERR("ndctl_cmd_submit() failed (bus '%s')",
 			ndctl_bus_get_provider(bus));
+		ret = PMEM2_E_NDCTL_CMD_SUBMIT_FAILED;
 		goto out_ars_cap;
 	}
 
 	struct ndctl_range range;
 	if (ndctl_cmd_ars_cap_get_range(cmd_ars_cap, &range)) {
-		ERR("failed to get ars_cap range\n");
+		ERR("ndctl_cmd_ars_cap_get_range() failed");
+		ret = PMEM2_E_NDCTL_CMD_GET_RANGE_FAILED;
 		goto out_ars_cap;
 	}
 
 	struct ndctl_cmd *cmd_clear_error = ndctl_bus_cmd_new_clear_error(
 		range.address, range.length, cmd_ars_cap);
 
-	if ((ret = ndctl_cmd_submit(cmd_clear_error)) < 0) {
-		ERR("failed to submit cmd (bus '%s')",
+	if (ndctl_cmd_submit(cmd_clear_error) < 0) {
+		ERR("ndctl_cmd_submit() failed (bus '%s')",
 			ndctl_bus_get_provider(bus));
+		ret = PMEM2_E_NDCTL_CMD_SUBMIT_FAILED;
 		goto out_clear_error;
 	}
 
@@ -220,7 +223,13 @@ badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
 
 	LOG(4, "cleared %zu out of %llu bad blocks", cleared, length);
 
-	ret = cleared == length ? 0 : -1;
+	if (cleared < length) {
+		ERR("failed to clear %llu out of %llu bad blocks",
+			length - cleared, length);
+		ret = PMEM2_E_BAD_BLOCKS_NOT_CLEARED;
+	} else {
+		ret = 0;
+	}
 
 out_clear_error:
 	ndctl_cmd_unref(cmd_clear_error);
