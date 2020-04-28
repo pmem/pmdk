@@ -207,12 +207,12 @@ exit_free:
 }
 
 /*
- * test_read_bb -- test reading bad blocks
+ * test_read_clear_bb -- test reading and clearing bad blocks
  */
 static int
-test_read_bb(struct pmem2_source *src)
+test_read_clear_bb(struct pmem2_source *src)
 {
-	UT_OUT("TEST: test_read_bb: %i", src->fd);
+	UT_OUT("TEST: test_read_clear_bb: %i", src->fd);
 
 	struct pmem2_badblock_context *bbctx;
 	struct pmem2_badblock bb;
@@ -230,11 +230,15 @@ test_read_bb(struct pmem2_source *src)
 		UT_ASSERTne(bb2, NULL);
 		UT_ASSERTeq(bb.offset, SEC2B(bb2->offset));
 		UT_ASSERTeq(bb.length, SEC2B(bb2->len));
+		ret = pmem2_badblock_clear(bbctx, &bb);
+		if (ret)
+			goto exit_free;
 	}
 
 	bb2 = get_next_badblock(src->fd, &i_bb);
 	UT_ASSERTeq(bb2, NULL);
 
+exit_free:
 	pmem2_badblock_context_delete(&bbctx);
 
 	return ret;
@@ -290,51 +294,51 @@ main(int argc, char *argv[])
 
 	/* test #1: regular file, namespace mode */
 	src.fd = TEST_BB_REG_NAMESPACE_1;
-	UT_ASSERTinfo(test_read_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
+	UT_ASSERTinfo(test_read_clear_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
 			"FAILED: character device, namespace mode");
 
 	/* test #1: regular file, region mode */
 	src.fd = TEST_BB_REG_REGION_1;
-	UT_ASSERTinfo(test_read_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
+	UT_ASSERTinfo(test_read_clear_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
 			"FAILED: character device, region mode");
 
 	/* test #1: character device, region mode */
 	src.fd = TEST_BB_CHR_REGION_1;
-	UT_ASSERTinfo(test_read_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
+	UT_ASSERTinfo(test_read_clear_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
 			"FAILED: character device, region mode");
 
 	/* test #2 */
 
 	/* test #2: regular file, namespace mode */
 	src.fd = TEST_BB_REG_NAMESPACE_2;
-	UT_ASSERTinfo(test_read_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
+	UT_ASSERTinfo(test_read_clear_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
 			"FAILED: character device, namespace mode");
 
 	/* test #2: regular file, region mode */
 	src.fd = TEST_BB_REG_REGION_2;
-	UT_ASSERTinfo(test_read_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
+	UT_ASSERTinfo(test_read_clear_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
 			"FAILED: character device, region mode");
 
 	/* test #2: character device, region mode */
 	src.fd = TEST_BB_CHR_REGION_2;
-	UT_ASSERTinfo(test_read_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
+	UT_ASSERTinfo(test_read_clear_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
 			"FAILED: character device, region mode");
 
 	/* test #3 */
 
 	/* test #3: regular file, namespace mode */
 	src.fd = TEST_BB_REG_NAMESPACE_3;
-	UT_ASSERTinfo(test_read_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
+	UT_ASSERTinfo(test_read_clear_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
 			"FAILED: character device, namespace mode");
 
 	/* test #3: regular file, region mode */
 	src.fd = TEST_BB_REG_REGION_3;
-	UT_ASSERTinfo(test_read_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
+	UT_ASSERTinfo(test_read_clear_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
 			"FAILED: character device, region mode");
 
 	/* test #3: character device, region mode */
 	src.fd = TEST_BB_CHR_REGION_3;
-	UT_ASSERTinfo(test_read_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
+	UT_ASSERTinfo(test_read_clear_bb(&src) == PMEM2_E_NO_BAD_BLOCK_FOUND,
 			"FAILED: character device, region mode");
 
 	DONE(NULL);
