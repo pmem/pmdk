@@ -323,25 +323,13 @@ test_set_valid_prot_flag(const struct test_case *tc, int argc,
 	UT_ASSERTeq(ret, 0);
 
 	ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_WRITE);
-#ifdef _WIN32
-	UT_ASSERTeq(ret, PMEM2_E_NOSUPP);
-#else
 	UT_ASSERTeq(ret, 0);
-#endif
 
 	ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_EXEC);
-#ifdef _WIN32
-	UT_ASSERTeq(ret, PMEM2_E_NOSUPP);
-#else
 	UT_ASSERTeq(ret, 0);
-#endif
 
 	ret = pmem2_config_set_protection(&cfg, PMEM2_PROT_NONE);
-#ifdef _WIN32
-	UT_ASSERTeq(ret, PMEM2_E_NOSUPP);
-#else
 	UT_ASSERTeq(ret, 0);
-#endif
 
 	ret = pmem2_config_set_protection(&cfg,
 			PMEM2_PROT_WRITE | PMEM2_PROT_READ | PMEM2_PROT_EXEC);
