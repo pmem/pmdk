@@ -96,8 +96,8 @@ static void *pmem2_region_get_first_badblock(
 
 /*
  * badblocks_get_namespace_bounds -- (internal) returns the bounds
- *                                 (offset and size) of the given namespace
- *                                 relative to the beginning of its region
+ *                                   (offset and size) of the given namespace
+ *                                   relative to the beginning of its region
  */
 static int
 badblocks_get_namespace_bounds(struct ndctl_region *region,
@@ -174,225 +174,8 @@ badblocks_get_namespace_bounds(struct ndctl_region *region,
 }
 
 /*
- * badblocks_get_badblocks_by_region -- (internal) returns bad blocks
- *                                    in the given namespace using the
- *                                    universal region interface.
- *
- * This function works for all types of namespaces, but requires read access to
- * privileged device information.
- */
-static int
-badblocks_get_badblocks_by_region(struct ndctl_region *region,
-				struct ndctl_namespace *ndns,
-				struct badblocks *bbs)
-{
-	LOG(3, "region %p, namespace %p", region, ndns);
-
-	ASSERTne(bbs, NULL);
-
-	unsigned long long ns_beg, ns_size, ns_end;
-	unsigned long long bb_beg, bb_end;
-	unsigned long long beg, end;
-
-	VEC(bbsvec, struct bad_block) bbv = VEC_INITIALIZER;
-
-	bbs->ns_resource = 0;
-	bbs->bb_cnt = 0;
-	bbs->bbv = NULL;
-
-	if (badblocks_get_namespace_bounds(region, ndns, &ns_beg, &ns_size)) {
-		LOG(1, "cannot read namespace's bounds");
-		return -1;
-	}
-
-	ns_end = ns_beg + ns_size - 1;
-
-	LOG(10, "namespace: begin %llu, end %llu size %llu (in 512B sectors)",
-		B2SEC(ns_beg), B2SEC(ns_end + 1) - 1, B2SEC(ns_size));
-
-	struct badblock *bb;
-	ndctl_region_badblock_foreach(region, bb) {
-		/*
-		 * libndctl returns offset and length of a bad block
-		 * both expressed in 512B sectors and offset is relative
-		 * to the beginning of the region.
-		 */
-		bb_beg = SEC2B(bb->offset);
-		bb_end = bb_beg + SEC2B(bb->len) - 1;
-
-		LOG(10,
-			"region bad block: begin %llu end %llu length %u (in 512B sectors)",
-			bb->offset, bb->offset + bb->len - 1, bb->len);
-
-		if (bb_beg > ns_end || ns_beg > bb_end)
-			continue;
-
-		beg = (bb_beg > ns_beg) ? bb_beg : ns_beg;
-		end = (bb_end < ns_end) ? bb_end : ns_end;
-
-		/*
-		 * Form a new bad block structure with offset and length
-		 * expressed in bytes and offset relative to the beginning
-		 * of the namespace.
-		 */
-		struct bad_block bbn;
-		bbn.offset = beg - ns_beg;
-		bbn.length = (unsigned)(end - beg + 1);
-		bbn.nhealthy = NO_HEALTHY_REPLICA; /* unknown healthy replica */
-
-		/* add the new bad block to the vector */
-		if (VEC_PUSH_BACK(&bbv, bbn)) {
-			VEC_DELETE(&bbv);
-			return -1;
-		}
-
-		LOG(4,
-			"namespace bad block: begin %llu end %llu length %llu (in 512B sectors)",
-			B2SEC(beg - ns_beg), B2SEC(end - ns_beg),
-			B2SEC(end - beg) + 1);
-	}
-
-	bbs->bb_cnt = (unsigned)VEC_SIZE(&bbv);
-	bbs->bbv = VEC_ARR(&bbv);
-	bbs->ns_resource = ns_beg + ndctl_region_get_resource(region);
-
-	LOG(4, "number of bad blocks detected: %u", bbs->bb_cnt);
-
-	return 0;
-}
-
-/*
- * badblocks_get_badblocks_by_namespace -- (internal) returns bad blocks
- *                                    in the given namespace using the
- *                                    block device badblocks interface.
- *
- * This function works only for fsdax, but does not require any special
- * permissions.
- */
-static int
-badblocks_get_badblocks_by_namespace(struct ndctl_namespace *ndns,
-					struct badblocks *bbs)
-{
-	ASSERTeq(ndctl_namespace_get_mode(ndns), NDCTL_NS_MODE_FSDAX);
-
-	VEC(bbsvec, struct bad_block) bbv = VEC_INITIALIZER;
-	struct badblock *bb;
-	ndctl_namespace_badblock_foreach(ndns, bb) {
-		struct bad_block bbn;
-		bbn.offset = SEC2B(bb->offset);
-		bbn.length = (unsigned)SEC2B(bb->len);
-		bbn.nhealthy = NO_HEALTHY_REPLICA; /* unknown healthy replica */
-		if (VEC_PUSH_BACK(&bbv, bbn)) {
-			VEC_DELETE(&bbv);
-			return -1;
-		}
-	}
-
-	bbs->bb_cnt = (unsigned)VEC_SIZE(&bbv);
-	bbs->bbv = VEC_ARR(&bbv);
-	bbs->ns_resource = 0;
-
-	return 0;
-}
-
-/*
- * badblocks_get_badblocks -- (internal) returns bad blocks in the given
- *                            namespace, using the least privileged path.
- */
-static int
-badblocks_get_badblocks(struct ndctl_region *region,
-			struct ndctl_namespace *ndns,
-			struct badblocks *bbs)
-{
-	if (ndctl_namespace_get_mode(ndns) == NDCTL_NS_MODE_FSDAX)
-		return badblocks_get_badblocks_by_namespace(ndns, bbs);
-
-	return badblocks_get_badblocks_by_region(region, ndns, bbs);
-}
-
-/*
- * badblocks_files_namespace_bus -- (internal) returns bus where the given
- *                                file is located
- */
-static int
-badblocks_files_namespace_bus(struct ndctl_ctx *ctx,
-				const char *path,
-				struct ndctl_bus **pbus)
-{
-	LOG(3, "ctx %p path %s pbus %p", ctx, path, pbus);
-
-	ASSERTne(pbus, NULL);
-
-	struct ndctl_region *region;
-	struct ndctl_namespace *ndns;
-
-	os_stat_t st;
-
-	if (os_stat(path, &st)) {
-		ERR("!stat %s", path);
-		return -1;
-	}
-
-	int rv = ndctl_region_namespace(ctx, &st, &region, &ndns);
-	if (rv) {
-		LOG(1, "getting region and namespace failed");
-		return -1;
-	}
-
-	if (!region) {
-		ERR("region unknown");
-		return -1;
-	}
-
-	*pbus = ndctl_region_get_bus(region);
-
-	return 0;
-}
-
-/*
- * badblocks_files_namespace_badblocks_bus -- (internal) returns badblocks
- *                                          in the namespace where the given
- *                                          file is located
- *                                          (optionally returns also the bus)
- */
-static int
-badblocks_files_namespace_badblocks_bus(struct ndctl_ctx *ctx,
-					const char *path,
-					struct ndctl_bus **pbus,
-					struct badblocks *bbs)
-{
-	LOG(3, "ctx %p path %s pbus %p badblocks %p", ctx, path, pbus, bbs);
-
-	struct ndctl_region *region;
-	struct ndctl_namespace *ndns;
-
-	os_stat_t st;
-
-	if (os_stat(path, &st)) {
-		ERR("!stat %s", path);
-		return -1;
-	}
-
-	int rv = ndctl_region_namespace(ctx, &st, &region, &ndns);
-	if (rv) {
-		LOG(1, "getting region and namespace failed");
-		return -1;
-	}
-
-	memset(bbs, 0, sizeof(*bbs));
-
-	if (region == NULL || ndns == NULL)
-		return 0;
-
-	if (pbus)
-		*pbus = ndctl_region_get_bus(region);
-
-	return badblocks_get_badblocks(region, ndns, bbs);
-}
-
-/*
  * badblocks_devdax_clear_one_badblock -- (internal) clear one bad block
- *                                      in the dax device
+ *                                        in the dax device
  */
 static int
 badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
@@ -402,34 +185,40 @@ badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
 	LOG(3, "bus %p address 0x%llx length %llu (bytes)",
 		bus, address, length);
 
-	int ret = 0;
+	int ret;
 
 	struct ndctl_cmd *cmd_ars_cap = ndctl_bus_cmd_new_ars_cap(bus,
 							address, length);
 	if (cmd_ars_cap == NULL) {
-		ERR("failed to create cmd (bus '%s')",
+		ERR("ndctl_bus_cmd_new_ars_cap() failed (bus '%s')",
 			ndctl_bus_get_provider(bus));
-		return -1;
+		return PMEM2_E_ERRNO;
 	}
 
-	if ((ret = ndctl_cmd_submit(cmd_ars_cap)) < 0) {
-		ERR("failed to submit cmd (bus '%s')",
+	ret = ndctl_cmd_submit(cmd_ars_cap);
+	if (ret) {
+		ERR("ndctl_cmd_submit() failed (bus '%s')",
 			ndctl_bus_get_provider(bus));
+		/* ndctl_cmd_submit() returns -errno */
 		goto out_ars_cap;
 	}
 
 	struct ndctl_range range;
-	if (ndctl_cmd_ars_cap_get_range(cmd_ars_cap, &range)) {
-		ERR("failed to get ars_cap range\n");
+	ret = ndctl_cmd_ars_cap_get_range(cmd_ars_cap, &range);
+	if (ret) {
+		ERR("ndctl_cmd_ars_cap_get_range() failed");
+		/* ndctl_cmd_ars_cap_get_range() returns -errno */
 		goto out_ars_cap;
 	}
 
 	struct ndctl_cmd *cmd_clear_error = ndctl_bus_cmd_new_clear_error(
 		range.address, range.length, cmd_ars_cap);
 
-	if ((ret = ndctl_cmd_submit(cmd_clear_error)) < 0) {
-		ERR("failed to submit cmd (bus '%s')",
+	ret = ndctl_cmd_submit(cmd_clear_error);
+	if (ret) {
+		ERR("ndctl_cmd_submit() failed (bus '%s')",
 			ndctl_bus_get_provider(bus));
+		/* ndctl_cmd_submit() returns -errno */
 		goto out_clear_error;
 	}
 
@@ -437,7 +226,16 @@ badblocks_devdax_clear_one_badblock(struct ndctl_bus *bus,
 
 	LOG(4, "cleared %zu out of %llu bad blocks", cleared, length);
 
-	ret = cleared == length ? 0 : -1;
+	ASSERT(cleared <= length);
+
+	if (cleared < length) {
+		ERR("failed to clear %llu out of %llu bad blocks",
+			length - cleared, length);
+		errno = ENXIO; /* ndctl handles such error in this way */
+		ret = PMEM2_E_ERRNO;
+	} else {
+		ret = 0;
+	}
 
 out_clear_error:
 	ndctl_cmd_unref(cmd_clear_error);
@@ -445,93 +243,6 @@ out_ars_cap:
 	ndctl_cmd_unref(cmd_ars_cap);
 
 	return ret;
-}
-
-/*
- * badblocks_devdax_clear_badblocks -- (internal) clear the given bad blocks
- *                                     in the dax device (or all of them
- *                                     if 'pbbs' is not set)
- */
-static int
-badblocks_devdax_clear_badblocks(const char *path, struct badblocks *pbbs)
-{
-	LOG(3, "path %s badblocks %p", path, pbbs);
-
-	struct ndctl_ctx *ctx;
-	struct ndctl_bus *bus = NULL;
-	int ret = -1;
-
-	if (ndctl_new(&ctx)) {
-		ERR("!ndctl_new");
-		return -1;
-	}
-
-	struct badblocks *bbs = badblocks_new();
-	if (bbs == NULL)
-		goto exit_free_all;
-
-	if (pbbs) {
-		ret = badblocks_files_namespace_bus(ctx, path, &bus);
-		if (ret) {
-			LOG(1, "getting bad blocks' bus failed -- %s", path);
-			goto exit_free_all;
-		}
-		badblocks_delete(bbs);
-		bbs = pbbs;
-	} else {
-		ret = badblocks_files_namespace_badblocks_bus(ctx, path, &bus,
-									bbs);
-		if (ret) {
-			LOG(1, "getting bad blocks for the file failed -- %s",
-				path);
-			goto exit_free_all;
-		}
-	}
-
-	if (bbs->bb_cnt == 0 || bbs->bbv == NULL) /* OK - no bad blocks found */
-		goto exit_free_all;
-
-	ASSERTne(bus, NULL);
-
-	LOG(4, "clearing %u bad block(s)...", bbs->bb_cnt);
-
-	unsigned b;
-	for (b = 0; b < bbs->bb_cnt; b++) {
-		LOG(4,
-			"clearing bad block: offset %zu length %zu (in 512B sectors)",
-			B2SEC(bbs->bbv[b].offset), B2SEC(bbs->bbv[b].length));
-
-		ret = badblocks_devdax_clear_one_badblock(bus,
-					bbs->bbv[b].offset + bbs->ns_resource,
-					bbs->bbv[b].length);
-		if (ret) {
-			LOG(1,
-				"failed to clear bad block: offset %zu length %zu (in 512B sectors)",
-				B2SEC(bbs->bbv[b].offset),
-				B2SEC(bbs->bbv[b].length));
-			goto exit_free_all;
-		}
-	}
-
-exit_free_all:
-	if (!pbbs)
-		badblocks_delete(bbs);
-
-	ndctl_unref(ctx);
-
-	return ret;
-}
-
-/*
- * badblocks_devdax_clear_badblocks_all -- clear all bad blocks
- *                                         in the dax device
- */
-int
-badblocks_devdax_clear_badblocks_all(const char *path)
-{
-	LOG(3, "path %s", path);
-
-	return badblocks_devdax_clear_badblocks(path, NULL);
 }
 
 /*
@@ -597,14 +308,6 @@ badblocks_get(const char *file, struct badblocks *bbs)
 		bbs->bbv = VEC_ARR(&bbv);
 		bbs->bb_cnt = (unsigned)VEC_SIZE(&bbv);
 
-		/*
-		 * XXX - this is a temporary solution.
-		 * The 'ns_resource' field and whole this assignment
-		 * will be removed, when pmem2_badblock_clear()
-		 * is added.
-		 */
-		bbs->ns_resource = bbctx->rgn.ns_res;
-
 		LOG(10, "number of bad blocks detected: %u", bbs->bb_cnt);
 
 		/* sanity check */
@@ -649,56 +352,8 @@ badblocks_count(const char *file)
 }
 
 /*
- * badblocks_clear_file -- clear the given bad blocks in the regular file
- *                            (not in a dax device)
- */
-static int
-badblocks_clear_file(const char *file, struct badblocks *bbs)
-{
-	LOG(3, "file %s badblocks %p", file, bbs);
-
-	ASSERTne(bbs, NULL);
-
-	int ret = 0;
-	int fd;
-
-	if ((fd = os_open(file, O_RDWR)) < 0) {
-		ERR("!open: %s", file);
-		return -1;
-	}
-
-	for (unsigned b = 0; b < bbs->bb_cnt; b++) {
-		off_t offset = (off_t)bbs->bbv[b].offset;
-		off_t length = (off_t)bbs->bbv[b].length;
-
-		LOG(10,
-			"clearing bad block: logical offset %li length %li (in 512B sectors) -- '%s'",
-			B2SEC(offset), B2SEC(length), file);
-
-		/* deallocate bad blocks */
-		if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
-				offset, length)) {
-			ERR("!fallocate");
-			ret = -1;
-			break;
-		}
-
-		/* allocate new blocks */
-		if (fallocate(fd, FALLOC_FL_KEEP_SIZE, offset, length)) {
-			ERR("!fallocate");
-			ret = -1;
-			break;
-		}
-	}
-
-	os_close(fd);
-
-	return ret;
-}
-
-/*
  * badblocks_clear -- clears the given bad blocks in a file
- *                       (regular file or dax device)
+ *                    (regular file or dax device)
  */
 int
 badblocks_clear(const char *file, struct badblocks *bbs)
@@ -707,73 +362,107 @@ badblocks_clear(const char *file, struct badblocks *bbs)
 
 	ASSERTne(bbs, NULL);
 
-	os_stat_t st;
-	if (os_stat(file, &st) < 0) {
-		ERR("!stat %s", file);
+	struct pmem2_source *src;
+	struct pmem2_badblock_context *bbctx;
+	struct pmem2_badblock bb;
+	int ret = -1;
+
+	int fd = os_open(file, O_RDWR);
+	if (fd == -1) {
+		ERR("!open %s", file);
 		return -1;
 	}
 
-	enum pmem2_file_type pmem2_type;
+	ret = pmem2_source_from_fd(&src, fd);
+	if (ret)
+		goto exit_close;
 
-	int ret = pmem2_get_type_from_stat(&st, &pmem2_type);
+	ret = pmem2_badblock_context_new(src, &bbctx);
+	if (ret) {
+		LOG(1, "pmem2_badblock_context_new failed -- %s", file);
+		goto exit_delete_source;
+	}
+
+	for (unsigned b = 0; b < bbs->bb_cnt; b++) {
+		bb.offset = bbs->bbv[b].offset;
+		bb.length = bbs->bbv[b].length;
+		ret = pmem2_badblock_clear(bbctx, &bb);
+		if (ret) {
+			LOG(1, "pmem2_badblock_clear -- %s", file);
+			goto exit_delete_ctx;
+		}
+	}
+
+exit_delete_ctx:
+	pmem2_badblock_context_delete(&bbctx);
+
+exit_delete_source:
+	pmem2_source_delete(&src);
+
+exit_close:
+	if (fd != -1)
+		os_close(fd);
+
 	if (ret) {
 		errno = pmem2_err_to_errno(ret);
-		return -1;
+		ret = -1;
 	}
 
-	if (pmem2_type == PMEM2_FTYPE_DEVDAX)
-		return badblocks_devdax_clear_badblocks(file, bbs);
-
-	return badblocks_clear_file(file, bbs);
+	return ret;
 }
 
 /*
  * badblocks_clear_all -- clears all bad blocks in a file
- *                           (regular file or dax device)
+ *                        (regular file or dax device)
  */
 int
 badblocks_clear_all(const char *file)
 {
 	LOG(3, "file %s", file);
 
-	os_stat_t st;
-	if (os_stat(file, &st) < 0) {
-		ERR("!stat %s", file);
+	struct pmem2_source *src;
+	struct pmem2_badblock_context *bbctx;
+	struct pmem2_badblock bb;
+	int ret = -1;
+
+	int fd = os_open(file, O_RDWR);
+	if (fd == -1) {
+		ERR("!open %s", file);
 		return -1;
 	}
 
-	enum pmem2_file_type pmem2_type;
+	ret = pmem2_source_from_fd(&src, fd);
+	if (ret)
+		goto exit_close;
 
-	int ret = pmem2_get_type_from_stat(&st, &pmem2_type);
+	ret = pmem2_badblock_context_new(src, &bbctx);
+	if (ret) {
+		LOG(1, "pmem2_badblock_context_new failed -- %s", file);
+		goto exit_delete_source;
+	}
+
+	while ((pmem2_badblock_next(bbctx, &bb)) == 0) {
+		ret = pmem2_badblock_clear(bbctx, &bb);
+		if (ret) {
+			LOG(1, "pmem2_badblock_clear -- %s", file);
+			goto exit_delete_ctx;
+		}
+	};
+
+exit_delete_ctx:
+	pmem2_badblock_context_delete(&bbctx);
+
+exit_delete_source:
+	pmem2_source_delete(&src);
+
+exit_close:
+	if (fd != -1)
+		os_close(fd);
+
 	if (ret) {
 		errno = pmem2_err_to_errno(ret);
-		return -1;
+		ret = -1;
 	}
-
-	if (pmem2_type == PMEM2_FTYPE_DEVDAX)
-		return badblocks_devdax_clear_badblocks_all(file);
-
-	struct badblocks *bbs = badblocks_new();
-	if (bbs == NULL)
-		return -1;
-
-	ret = badblocks_get(file, bbs);
-	if (ret) {
-		LOG(1, "checking bad blocks in the file failed -- '%s'", file);
-		goto error_free_all;
-	}
-
-	if (bbs->bb_cnt > 0) {
-		ret = badblocks_clear_file(file, bbs);
-		if (ret < 0) {
-			LOG(1, "clearing bad blocks in the file failed -- '%s'",
-				file);
-			goto error_free_all;
-		}
-	}
-
-error_free_all:
-	badblocks_delete(bbs);
 
 	return ret;
 }
@@ -1199,4 +888,104 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	bb->length = bb_len;
 
 	return 0;
+}
+
+/*
+ * pmem2_badblock_clear_fsdax -- (internal) clear one bad block
+ *                               in a FSDAX device
+ */
+static int
+pmem2_badblock_clear_fsdax(int fd, const struct pmem2_badblock *bb)
+{
+	LOG(3, "fd %i badblock %p", fd, bb);
+
+	ASSERTne(bb, NULL);
+
+	LOG(10,
+		"clearing a bad block: fd %i logical offset %zu length %zu (in 512B sectors)",
+		fd, B2SEC(bb->offset), B2SEC(bb->length));
+
+	/* fallocate() takes offset as the off_t type */
+	if (bb->offset > (size_t)INT64_MAX) {
+		ERR("bad block's offset is greater than INT64_MAX");
+		return PMEM2_E_OFFSET_OUT_OF_RANGE;
+	}
+
+	/* fallocate() takes length as the off_t type */
+	if (bb->length > (size_t)INT64_MAX) {
+		ERR("bad block's length is greater than INT64_MAX");
+		return PMEM2_E_LENGTH_OUT_OF_RANGE;
+	}
+
+	off_t offset = (off_t)bb->offset;
+	off_t length = (off_t)bb->length;
+
+	/* deallocate bad blocks */
+	if (fallocate(fd, FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE,
+			offset, length)) {
+		ERR("!fallocate");
+		return PMEM2_E_ERRNO;
+	}
+
+	/* allocate new blocks */
+	if (fallocate(fd, FALLOC_FL_KEEP_SIZE, offset, length)) {
+		ERR("!fallocate");
+		return PMEM2_E_ERRNO;
+	}
+
+	return 0;
+}
+
+/*
+ * pmem2_badblock_clear_devdax -- (internal) clear one bad block
+ *                                in a DAX device
+ */
+static int
+pmem2_badblock_clear_devdax(const struct pmem2_badblock_context *bbctx,
+				const struct pmem2_badblock *bb)
+{
+	LOG(3, "bbctx %p bb %p", bbctx, bb);
+
+	ASSERTne(bb, NULL);
+	ASSERTne(bbctx, NULL);
+	ASSERTne(bbctx->rgn.bus, NULL);
+	ASSERTne(bbctx->rgn.ns_res, 0);
+
+	LOG(4,
+		"clearing a bad block: offset %zu length %zu (in 512B sectors)",
+		B2SEC(bb->offset), B2SEC(bb->length));
+
+	int ret = badblocks_devdax_clear_one_badblock(bbctx->rgn.bus,
+				bb->offset + bbctx->rgn.ns_res,
+				bb->length);
+	if (ret) {
+		LOG(1,
+			"failed to clear a bad block: offset %zu length %zu (in 512B sectors)",
+			B2SEC(bb->offset),
+			B2SEC(bb->length));
+		return ret;
+	}
+
+	return 0;
+}
+
+/*
+ * pmem2_badblock_clear -- clear one bad block
+ */
+int
+pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
+			const struct pmem2_badblock *bb)
+{
+	LOG(3, "bbctx %p badblock %p", bbctx, bb);
+
+	ASSERTne(bbctx, NULL);
+	ASSERTne(bb, NULL);
+
+	if (bbctx->file_type == PMEM2_FTYPE_DEVDAX)
+		return pmem2_badblock_clear_devdax(bbctx, bb);
+
+	if (bbctx->file_type == PMEM2_FTYPE_REG)
+		return pmem2_badblock_clear_fsdax(bbctx->fd, bb);
+
+	return PMEM2_E_INVALID_FILE_TYPE;
 }
