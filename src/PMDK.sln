@@ -254,6 +254,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pmempool", "pmempool", "{59
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reader", "examples\libpmemobj\string_store_tx\reader.vcxproj", "{59D7A9CD-9912-40E4-96E1-8A873F777F62}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem2_map_prot", "test\pmem2_map_prot\pmem2_map_prot.vcxproj", "{59D9E21C-57D7-4D18-B792-24738BD26DE4}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_memmove", "test\pmem_memmove\pmem_memmove.vcxproj", "{5A391A14-8E29-4788-93FC-EDADED31D32F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem_map_file_win", "test\pmem_map_file_win\pmem_map_file_win.vcxproj", "{5AD07646-5E16-4CEF-B80A-BE5EE4D54FEF}"
@@ -536,6 +538,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmalloc_mt", "test\obj_pmalloc_mt\obj_pmalloc_mt.vcxproj", "{9FF62356-30B4-42A1-8DC7-45262A18DD44}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmem2", "libpmem2", "{A14A4556-9092-430D-B9CA-B2B1223D56CB}"
+	ProjectSection(SolutionItems) = preProject
+		test\pmem2_map_prot\pmem2_map_prot.vcxproj = test\pmem2_map_prot\pmem2_map_prot.vcxproj
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gran_detecto", "test\tools\gran_detecto\gran_detecto.vcxproj", "{A18B076A-CE8C-49A6-8B80-F02843E4BF0A}"
 EndProject
@@ -1169,6 +1174,10 @@ Global
 		{59D7A9CD-9912-40E4-96E1-8A873F777F62}.Debug|x64.Build.0 = Debug|x64
 		{59D7A9CD-9912-40E4-96E1-8A873F777F62}.Release|x64.ActiveCfg = Release|x64
 		{59D7A9CD-9912-40E4-96E1-8A873F777F62}.Release|x64.Build.0 = Release|x64
+		{59D9E21C-57D7-4D18-B792-24738BD26DE4}.Debug|x64.ActiveCfg = Debug|x64
+		{59D9E21C-57D7-4D18-B792-24738BD26DE4}.Debug|x64.Build.0 = Debug|x64
+		{59D9E21C-57D7-4D18-B792-24738BD26DE4}.Release|x64.ActiveCfg = Release|x64
+		{59D9E21C-57D7-4D18-B792-24738BD26DE4}.Release|x64.Build.0 = Release|x64
 		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Debug|x64.ActiveCfg = Debug|x64
 		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Debug|x64.Build.0 = Debug|x64
 		{5A391A14-8E29-4788-93FC-EDADED31D32F}.Release|x64.ActiveCfg = Release|x64
@@ -1991,6 +2000,7 @@ Global
 		{58386481-30B7-40FC-96AF-0723A4A7B228} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{59AB6976-D16B-48D0-8D16-94360D3FE51D} = {746BA101-5C93-42A5-AC7A-64DCEB186572}
 		{59D7A9CD-9912-40E4-96E1-8A873F777F62} = {6D63CDF1-F62C-4614-AD8A-95B0A63AA070}
+		{59D9E21C-57D7-4D18-B792-24738BD26DE4} = {A14A4556-9092-430D-B9CA-B2B1223D56CB}
 		{5A391A14-8E29-4788-93FC-EDADED31D32F} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
 		{5AD07646-5E16-4CEF-B80A-BE5EE4D54FEF} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
 		{5B2B9C0D-1B6D-4357-8307-6DE1EE0A41A3} = {BD6CC700-B36B-435B-BAF9-FC5AFCD766C9}

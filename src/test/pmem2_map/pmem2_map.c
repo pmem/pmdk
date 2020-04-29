@@ -188,12 +188,9 @@ test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_READ);
 
 	struct pmem2_map *map;
-<<<<<<< HEAD
 	int ret = pmem2_map(&cfg, src, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_NO_ACCESS);
 
-	unmap_map(map);
-	FREE(map);
 	PMEM2_SOURCE_DELETE(&src);
 	UT_FH_CLOSE(fh);
 
