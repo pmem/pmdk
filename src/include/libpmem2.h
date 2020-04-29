@@ -83,40 +83,6 @@ int pmem2_source_alignment(const struct pmem2_source *src,
 
 int pmem2_source_delete(struct pmem2_source **src);
 
-/* RAS */
-
-#ifndef _WIN32
-int pmem2_source_device_id(const struct pmem2_source *src,
-	char *id, size_t *len);
-#else
-int pmem2_source_device_idW(const struct pmem2_source *src,
-	wchar_t *id, size_t *len);
-
-int pmem2_source_device_idU(const struct pmem2_source *src,
-	char *id, size_t *len);
-#endif
-
-int pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc);
-
-struct pmem2_badblock_context;
-
-struct pmem2_badblock {
-	size_t offset;
-	size_t length;
-};
-
-int pmem2_badblock_context_new(const struct pmem2_source *src,
-		struct pmem2_badblock_context **bbctx);
-
-int pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
-		struct pmem2_badblock *bb);
-
-void pmem2_badblock_context_delete(
-		struct pmem2_badblock_context **bbctx);
-
-int pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
-		const struct pmem2_badblock *bb);
-
 /* config setup */
 
 struct pmem2_config;
@@ -124,6 +90,15 @@ struct pmem2_config;
 int pmem2_config_new(struct pmem2_config **cfg);
 
 int pmem2_config_delete(struct pmem2_config **cfg);
+
+enum pmem2_granularity {
+	PMEM2_GRANULARITY_BYTE,
+	PMEM2_GRANULARITY_CACHE_LINE,
+	PMEM2_GRANULARITY_PAGE,
+};
+
+int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
+	enum pmem2_granularity g);
 
 int pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset);
 
@@ -154,15 +129,6 @@ int pmem2_config_set_address(struct pmem2_config *cfg, void *addr,
 
 void pmem2_config_clear_address(struct pmem2_config *cfg);
 
-enum pmem2_granularity {
-	PMEM2_GRANULARITY_BYTE,
-	PMEM2_GRANULARITY_CACHE_LINE,
-	PMEM2_GRANULARITY_PAGE,
-};
-
-int pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
-	enum pmem2_granularity g);
-
 /* mapping */
 
 struct pmem2_map;
@@ -191,8 +157,6 @@ pmem2_persist_fn pmem2_get_persist_fn(struct pmem2_map *map);
 pmem2_flush_fn pmem2_get_flush_fn(struct pmem2_map *map);
 
 pmem2_drain_fn pmem2_get_drain_fn(struct pmem2_map *map);
-
-int pmem2_deep_sync(struct pmem2_map *map, void *ptr, size_t size);
 
 #define PMEM2_F_MEM_NODRAIN	(1U << 0)
 
@@ -225,6 +189,42 @@ pmem2_memmove_fn pmem2_get_memmove_fn(struct pmem2_map *map);
 pmem2_memcpy_fn pmem2_get_memcpy_fn(struct pmem2_map *map);
 
 pmem2_memset_fn pmem2_get_memset_fn(struct pmem2_map *map);
+
+/* RAS */
+
+int pmem2_deep_sync(struct pmem2_map *map, void *ptr, size_t size);
+
+#ifndef _WIN32
+int pmem2_source_device_id(const struct pmem2_source *src,
+	char *id, size_t *len);
+#else
+int pmem2_source_device_idW(const struct pmem2_source *src,
+	wchar_t *id, size_t *len);
+
+int pmem2_source_device_idU(const struct pmem2_source *src,
+	char *id, size_t *len);
+#endif
+
+int pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc);
+
+struct pmem2_badblock_context;
+
+struct pmem2_badblock {
+	size_t offset;
+	size_t length;
+};
+
+int pmem2_badblock_context_new(const struct pmem2_source *src,
+		struct pmem2_badblock_context **bbctx);
+
+int pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
+		struct pmem2_badblock *bb);
+
+void pmem2_badblock_context_delete(
+		struct pmem2_badblock_context **bbctx);
+
+int pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
+		const struct pmem2_badblock *bb);
 
 /* error handling */
 
