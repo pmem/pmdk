@@ -37,6 +37,7 @@
     <ClCompile Include="source.c" />
     <ClCompile Include="source_windows.c" />
     <ClCompile Include="usc_windows.c" />
+    <ClCompile Include="vm_reservation.c" />
     <ClCompile Include="x86_64\cpu.c" />
     <ClCompile Include="x86_64\init.c" />
     <ClCompile Include="x86_64\memcpy\memcpy_nt_sse2.c" />
