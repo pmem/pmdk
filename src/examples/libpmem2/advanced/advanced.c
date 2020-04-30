@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 
 	for (size_t i = 0; i < user_length; i++) {
 		printf("%02hhX ", addr[i]);
-		if (((i + 1) % 16) == 0)
+		if ((i & 0x0F) == 0x0F)
 			printf("\n");
 	}
 
