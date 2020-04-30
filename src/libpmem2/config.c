@@ -221,6 +221,17 @@ pmem2_config_set_address(struct pmem2_config *cfg, void *addr,
 }
 
 /*
+ * pmem2_config_set_vm_reservation -- set vm_reservation in the
+ *                                    pmem2_config structure
+ */
+int
+pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
+		struct pmem2_vm_reservation *rsv, size_t offset)
+{
+	return PMEM2_E_NOSUPP;
+}
+
+/*
  * pmem2_config_clear_address -- reset addr and addr_request in the config
  * to the default values
  */
