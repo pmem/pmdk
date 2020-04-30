@@ -16,6 +16,7 @@ EXPORTS
 	pmem2_config_set_protection
 	pmem2_config_set_address
 	pmem2_config_set_required_store_granularity
+	pmem2_config_set_vm_reservation
 	pmem2_deep_sync
 	pmem2_map
 	pmem2_unmap
@@ -32,6 +33,8 @@ EXPORTS
 	pmem2_badblock_next
 	pmem2_badblock_context_delete
 	pmem2_badblock_clear
+	pmem2_vm_reservation_new
+	pmem2_vm_reservation_delete
 	pmem2_source_from_fd
 	pmem2_source_from_anon
 	pmem2_source_from_handle
