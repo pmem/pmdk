@@ -129,6 +129,9 @@
     <ClCompile Include="pmem2_utils_other.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="vm_reservation.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\core\os_thread.h">

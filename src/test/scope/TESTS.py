@@ -155,3 +155,9 @@ class TEST12(Common):
 class TEST13(Common):
     """Check scope of libpmem2 library (*nix)"""
     checked_lib = 'libpmem2'
+
+
+@t.windows_only
+class TEST14(Common):
+    """Check scope of libpmem2 library (windows)"""
+    checked_lib = 'libpmem2'
