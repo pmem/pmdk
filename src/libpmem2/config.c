@@ -80,6 +80,18 @@ pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 }
 
 /*
+ * pmem2_config_set_vm_reservation -- set vm_reservation in the
+ * pmem2_config structure
+ */
+
+int
+pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
+		struct pmem2_vm_reservation *rsv, size_t offset)
+{
+	return PMEM2_E_NOSUPP;
+}
+
+/*
  * pmem2_config_set_offset -- set offset in the pmem2_config structure
  */
 int

@@ -227,6 +227,15 @@ void pmem2_badblock_context_delete(
 int pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 		const struct pmem2_badblock *bb);
 
+/* vmem reservation setup */
+
+struct pmem2_vm_reservation;
+
+int pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv,
+		size_t size, void *address);
+
+int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv);
+
 /* error handling */
 
 #ifndef _WIN32
