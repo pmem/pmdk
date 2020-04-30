@@ -11,8 +11,19 @@
 #include <errno.h>
 
 #include "os.h"
+#include "out.h"
 
-#define PMEM2_E_ERRNO (-errno)
+static inline int pmem2_assert_errno()
+{
+	if (!errno) {
+		ERR("errno unset");
+		return -EINVAL;
+	}
+
+	return -errno;
+}
+
+#define PMEM2_E_ERRNO (pmem2_assert_errno())
 
 void *pmem2_malloc(size_t size, int *err);
 void *pmem2_zalloc(size_t size, int *err);
