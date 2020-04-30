@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 
 #
 # src/test/pmem_memset/TEST0 -- unit test for pmem_memset
@@ -26,11 +26,11 @@ function test_all {
 
 test_all
 
-$Env:PMEM_AVX512F = 1
+$Env:PMEM_AVX512F = 0
 
 test_all
 
-$Env:PMEM_AVX = 1
+$Env:PMEM_AVX = 0
 
 test_all
 

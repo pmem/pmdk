@@ -14,7 +14,8 @@ TC = namedtuple('TC', ['dest', 'src', 'length'])
 class Pmem2Memcpy(t.Test):
     test_type = t.Short
     filesize = 4 * t.MiB
-    envs = ()
+    envs0 = ()
+    envs1 = ()
     test_cases = (
         # aligned everything
         TC(dest=0, src=0, length=4096),
@@ -30,7 +31,9 @@ class Pmem2Memcpy(t.Test):
     )
 
     def run(self, ctx):
-        for env in self.envs:
+        for env in self.envs0:
+            ctx.env[env] = '0'
+        for env in self.envs1:
             ctx.env[env] = '1'
 
         if ctx.wc_workaround() == 'on':
@@ -52,20 +55,20 @@ class TEST0(Pmem2Memcpy):
 @t.require_architectures('x86_64')
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST1(Pmem2Memcpy):
-    envs = ("PMEM_AVX512F",)
+    envs0 = ("PMEM_AVX512F",)
 
 
 @t.require_architectures('x86_64')
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST2(Pmem2Memcpy):
-    envs = ("PMEM_AVX",)
+    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
 
 
 @t.add_params('wc_workaround', ['default'])
 class TEST3(Pmem2Memcpy):
-    envs = ("PMEM_NO_MOVNT",)
+    envs1 = ("PMEM_NO_MOVNT",)
 
 
 @t.add_params('wc_workaround', ['default'])
 class TEST4(Pmem2Memcpy):
-    envs = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")
+    envs1 = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")

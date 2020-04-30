@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2015-2019, Intel Corporation
+# Copyright 2015-2020, Intel Corporation
 
 #
 # src/test/pmem_movnt_align/TEST0 -- unit test for pmem_memcpy_persist
@@ -38,11 +38,11 @@ function test_all() {
 
 test_all
 
-export PMEM_AVX512F=1
+export PMEM_AVX512F=0
 
 test_all
 
-export PMEM_AVX=1
+export PMEM_AVX=0
 
 test_all
 

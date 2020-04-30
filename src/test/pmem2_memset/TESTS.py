@@ -14,14 +14,17 @@ TC = namedtuple('TC', ['offset', 'length'])
 class Pmem2Memset(t.Test):
     test_type = t.Short
     filesize = 4 * t.MiB
-    envs = ()
+    envs0 = ()
+    envs1 = ()
     test_cases = (
         TC(offset=0, length=8),
         TC(offset=13, length=4096)
     )
 
     def run(self, ctx):
-        for env in self.envs:
+        for env in self.envs0:
+            ctx.env[env] = '0'
+        for env in self.envs1:
             ctx.env[env] = '1'
 
         if ctx.wc_workaround() == 'on':
@@ -42,20 +45,20 @@ class TEST0(Pmem2Memset):
 @t.require_architectures('x86_64')
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST1(Pmem2Memset):
-    envs = ("PMEM_AVX512F",)
+    envs0 = ("PMEM_AVX512F",)
 
 
 @t.require_architectures('x86_64')
 @t.add_params('wc_workaround', ['on', 'off', 'default'])
 class TEST2(Pmem2Memset):
-    envs = ("PMEM_AVX",)
+    envs0 = ("PMEM_AVX512F", "PMEM_AVX",)
 
 
 @t.add_params('wc_workaround', ['default'])
 class TEST3(Pmem2Memset):
-    envs = ("PMEM_NO_MOVNT",)
+    envs1 = ("PMEM_NO_MOVNT",)
 
 
 @t.add_params('wc_workaround', ['default'])
 class TEST4(Pmem2Memset):
-    envs = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")
+    envs1 = ("PMEM_NO_MOVNT", "PMEM_NO_GENERIC_MEMCPY")
