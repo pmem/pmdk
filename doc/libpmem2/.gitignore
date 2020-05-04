@@ -1,4 +1,7 @@
 libpmem2.7
+pmem2_badblock_context_new.3
+pmem2_badblock_next.3
+pmem2_badblock_clear.3
 pmem2_config_clear_address.3
 pmem2_config_new.3
 pmem2_config_set_address.3
