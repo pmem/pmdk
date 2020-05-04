@@ -8,7 +8,7 @@ date: pmemobj API version 2.3
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2019, Intel Corporation)
+[comment]: <> (Copyright 2017-2020, Intel Corporation)
 
 [comment]: <> (pmemobj_tx_begin.3 -- man page for transactional object manipulation)
 
@@ -37,7 +37,10 @@ date: pmemobj API version 2.3
 **pmemobj_tx_log_intents_max_size**(),
 
 **pmemobj_tx_set_user_data**(),
-**pmemobj_tx_get_user_data**()
+**pmemobj_tx_get_user_data**(),
+
+**pmemobj_tx_set_failure_behavior**(),
+**pmemobj_tx_get_failure_behavior**()
 - transactional object manipulation
 
 # SYNOPSIS #
@@ -72,6 +75,9 @@ size_t pmemobj_tx_log_intents_max_size(size_t nintents);
 
 void pmemobj_tx_set_user_data(void *data);
 void *pmemobj_tx_get_user_data(void);
+
+void pmemobj_tx_set_failure_behavior(enum pobj_tx_failure_behavior behavior);
+enum pobj_tx_failure_behavior pmemobj_tx_get_failure_behavior(void);
 ```
 
 # DESCRIPTION #
@@ -411,6 +417,17 @@ If **pmemobj_tx_set_user_data**() was not called for a current transaction,
 **pmemobj_tx_get_user_data**() will return NULL. These functions must be called
 during **TX_STAGE_WORK** or **TX_STAGE_ONABORT** or **TX_STAGE_ONCOMMIT** or
 **TX_STAGE_FINALLY**.
+
+**pmemobj_tx_set_failure_behavior**() specifies what should happen in case of an error
+within the transaction. It only affects functions which take a NO_ABORT flag.
+If **pmemobj_tx_set_failure_behavior**() is called with POBJ_TX_FAILURE_RETURN a NO_ABORT
+flag is implicitly passed to all functions which accept this flag. If called
+with POBJ_TX_FAILURE_ABORT then all functions abort the transaction (unless NO_ABORT
+flag is passed explicitly). This setting is inherited by inner transactions. It does
+not affect any of the outer transactions. Aborting on failure is the default behavior.
+**pmemobj_tx_get_failure_behavior**() returns failure behavior for the current transaction.
+Both **pmemobj_tx_set_failure_behavior**() and **pmemobj_tx_get_failure_behavior**()
+must be called during **TX_STAGE_WORK**.
 
 # RETURN VALUE #
 

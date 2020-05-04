@@ -14,7 +14,11 @@ Disabled auto alloc prevented the undo log grow: ${Cannot allocate memory|Not en
 do_tx_max_alloc_wrong_pop_addr
 Cannot append an undo log buffer from a different memory pool: Invalid argument
 Cannot append an undo log buffer from a different memory pool: Invalid argument
+Cannot append an undo log buffer from a different memory pool: Invalid argument
+Cannot append an undo log buffer from a different memory pool: Invalid argument
 do_tx_max_alloc_tx_publish_abort
+Cannot extend redo log - the pool is full: ${Cannot allocate memory|Not enough space}
+Cannot extend redo log - the pool is full: ${Cannot allocate memory|Not enough space}
 Cannot extend redo log - the pool is full: ${Cannot allocate memory|Not enough space}
 Cannot extend redo log - the pool is full: ${Cannot allocate memory|Not enough space}
 do_tx_buffer_currently_used

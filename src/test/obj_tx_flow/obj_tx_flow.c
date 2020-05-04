@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * obj_tx_flow.c -- unit test for transaction flow
@@ -12,7 +12,7 @@
 #define TEST_VALUE_A 5
 #define TEST_VALUE_B 10
 #define TEST_VALUE_C 15
-#define OPS_NUM 8
+#define OPS_NUM 9
 TOID_DECLARE(struct test_obj, 1);
 
 struct test_obj {
@@ -118,6 +118,27 @@ do_tx_macro_abort_nested(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 }
 
 static void
+do_tx_macro_abort_nested_begin(PMEMobjpool *pop, TOID(struct test_obj) *obj)
+{
+	errno = 0;
+	TX_BEGIN(pop) {
+		D_RW(*obj)->a = TEST_VALUE_A;
+		D_RW(*obj)->b = TEST_VALUE_B;
+
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		TX_BEGIN((PMEMobjpool *)(uintptr_t)7) {
+		} TX_ONABORT {
+			UT_ASSERT(0);
+		} TX_END
+		UT_ASSERT(errno == EINVAL);
+	} TX_ONABORT {
+		D_RW(*obj)->c = TEST_VALUE_C;
+	} TX_ONCOMMIT { /* not called */
+		D_RW(*obj)->a = TEST_VALUE_B;
+	} TX_END
+}
+
+static void
 do_tx_commit(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 {
 
@@ -187,8 +208,8 @@ do_tx_abort_nested(PMEMobjpool *pop, TOID(struct test_obj) *obj)
 typedef void (*fn_op)(PMEMobjpool *pop, TOID(struct test_obj) *obj);
 static fn_op tx_op[OPS_NUM] = {do_tx_macro_commit, do_tx_macro_abort,
 			do_tx_macro_commit_nested, do_tx_macro_abort_nested,
-			do_tx_commit, do_tx_commit_nested, do_tx_abort,
-			do_tx_abort_nested};
+			do_tx_macro_abort_nested_begin, do_tx_commit,
+			do_tx_commit_nested, do_tx_abort, do_tx_abort_nested};
 
 static void
 do_tx_process(PMEMobjpool *pop)

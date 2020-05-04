@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * obj_tx_add_range.c -- unit test for pmemobj_tx_add_range
@@ -1048,6 +1048,24 @@ do_tx_add_range_wrong_uuid(PMEMobjpool *pop)
 
 	TX_BEGIN(pop) {
 		pmemobj_tx_xadd_range(oid, 0, 0, POBJ_XADD_NO_ABORT);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(errno, EINVAL);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		pmemobj_tx_add_range(oid, 0, 0);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	UT_ASSERTeq(errno, EINVAL);
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		pmemobj_tx_xadd_range(oid, 0, 0, 0);
 	} TX_ONABORT {
 		UT_ASSERT(0);
 	} TX_END

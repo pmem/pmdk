@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * obj_tx_add_range_direct.c -- unit test for pmemobj_tx_add_range_direct
@@ -747,6 +747,34 @@ do_tx_add_range_too_large(PMEMobjpool *pop)
 	TX_BEGIN(pop) {
 		ret = pmemobj_tx_xadd_range_direct(pmemobj_direct(obj.oid),
 				PMEMOBJ_MAX_ALLOC_SIZE + 1, POBJ_XADD_NO_ABORT);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(errno, EINVAL);
+		UT_ASSERTeq(ret, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	errno = 0;
+	ret = 0;
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		ret = pmemobj_tx_add_range_direct(pmemobj_direct(obj.oid),
+				PMEMOBJ_MAX_ALLOC_SIZE + 1);
+	} TX_ONCOMMIT {
+		UT_ASSERTeq(errno, EINVAL);
+		UT_ASSERTeq(ret, EINVAL);
+	} TX_ONABORT {
+		UT_ASSERT(0);
+	} TX_END
+
+	errno = 0;
+	ret = 0;
+
+	TX_BEGIN(pop) {
+		pmemobj_tx_set_failure_behavior(POBJ_TX_FAILURE_RETURN);
+		ret = pmemobj_tx_xadd_range_direct(pmemobj_direct(obj.oid),
+				PMEMOBJ_MAX_ALLOC_SIZE + 1, 0);
 	} TX_ONCOMMIT {
 		UT_ASSERTeq(errno, EINVAL);
 		UT_ASSERTeq(ret, EINVAL);
