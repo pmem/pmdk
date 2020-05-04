@@ -278,6 +278,12 @@ pmem2_badblock_context_new(const struct pmem2_source *src,
 	if (ret)
 		goto exit_ndctl_unref;
 
+	if (pmem2_type != PMEM2_FTYPE_REG && pmem2_type != PMEM2_FTYPE_DEVDAX) {
+		ERR("file type 0%o is not supported", st.st_mode & S_IFMT);
+		ret = PMEM2_E_INVALID_FILE_TYPE;
+		goto exit_ndctl_unref;
+	}
+
 	ret = ndctl_region_namespace(ctx, &st, &region, &ndns);
 	if (ret) {
 		LOG(1, "getting region and namespace failed");
