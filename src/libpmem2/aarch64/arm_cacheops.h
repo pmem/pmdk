@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 /*
  * ARM inline assembly to flush and invalidate caches
  * clwb => dc cvac
- * clflush | clflushopt => dc civac
+ * clflushopt => dc civac
  * fence => dmb ish
+ * sfence => dmb ishst
  */
 
 /*
@@ -25,14 +26,15 @@
  * * DMB [ISH]    MFENCE
  * * DMB [ISH]ST  SFENCE
  * * DMB [ISH]LD  LFENCE
- * We care about persistence not synchronization thus ISH should be enough?
  *
- * Memory domains:
+ * Memory domains (cache coherency):
  * * non-shareable - local to a single core
- * * inner shareable (ISH) - usu. one or multiple processor sockets
- * * outer shareable (OSH) - usu. including GPU
+ * * inner shareable (ISH) - a group of CPU clusters/sockets/other hardware
+ *      Linux requires that anything within one operating system/hypervisor
+ *      is within the same Inner Shareable domain.
+ * * outer shareable (OSH) - one or more separate ISH domains
  * * full system (SY) - anything that can possibly access memory
- * ??? What about RDMA?  No libfabric on ARM thus not a concern for now.
+ * Docs: ARM DDI 0487E.a page B2-144.
  *
  * Exception (privilege) levels:
  * * EL0 - userspace (ring 3)
