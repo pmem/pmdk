@@ -3,7 +3,9 @@
 # Copyright 2015-2019, Intel Corporation
 
 #
-# src/test/util_poolset/TEST0 -- unit test for util_pool_create()
+# src/test/util_poolset/TEST9 -- unit test for util_pool_create()
+#
+# Copy of TEST0 for ppc64le
 #
 
 . ../unittest/unittest.sh
@@ -12,7 +14,7 @@ require_test_type medium
 
 require_fs_type non-pmem
 
-exclude_ppc64
+require_ppc64
 
 setup
 
@@ -47,8 +49,8 @@ create_poolset $DIR/testset10 $MIN_POOL:$DIR/testfile101:z \
 create_poolset $DIR/testset11 $MIN_POOL:$DIR/testfile111:z:$MIN_POOL \
 	$MIN_POOL:$DIR/testfile112:z 1M:$DIR/testfile113:z:$MIN_POOL # fail - part3 too small
 create_poolset $DIR/testset12 $MIN_POOL:$DIR/testfile121:z:$MIN_POOL \
-	12K:$DIR/testfile122:z:12K # fail - part2 too small
-create_poolset $DIR/testset13 12K:$DIR/testfile131:z:12K \
+	195K:$DIR/testfile122:z:195K # fail - part2 too small
+create_poolset $DIR/testset13 195K:$DIR/testfile131:z:195K \
 	$MIN_POOL:$DIR/testfile132:z:$MIN_POOL # fail - part2 too small
 create_poolset $DIR/testset14 $MIN_POOL:$DIR/testfile141:z:$MIN_POOL \
 	8M:$DIR/testfile142:z:$MIN_POOL # fail - part2 size doesn't match

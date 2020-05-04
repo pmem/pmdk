@@ -151,6 +151,7 @@ NODES_MAX=-1
 # sizes of alignments
 SIZE_4KB=4096
 SIZE_2MB=2097152
+readonly PAGE_SIZE=$(getconf PAGESIZE)
 
 # PMEMOBJ limitations
 PMEMOBJ_MAX_ALLOC_SIZE=17177771968
@@ -555,7 +556,7 @@ function create_holey_file() {
 #            x - do nothing (may be skipped if there's no 'fsize', 'mode')
 #            z - create zeroed (holey) file
 #            n - create non-zeroed file
-#            h - create non-zeroed file, but with zeroed header (first 4KB)
+#            h - create non-zeroed file, but with zeroed header (first page)
 #            d - create directory
 #   fsize - (optional) the actual size of the part file (if 'cmd' is not 'x')
 #   mode  - (optional) same format as for 'chmod' command
@@ -651,8 +652,8 @@ function create_poolset() {
 			$DD if=/dev/zero bs=$asize count=1 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $fpath
 			;;
 		h)
-			# non-zeroed file, except 4K header
-			truncate -s 4K $fpath >> prep$UNITTEST_NUM.log
+			# non-zeroed file, except page size header
+			truncate -s $PAGE_SIZE $fpath >> prep$UNITTEST_NUM.log
 			$DD if=/dev/zero bs=$asize count=1 2>>$PREP_LOG_FILE | tr '\0' '\132' >> $fpath
 			truncate -s $asize $fpath >> $PREP_LOG_FILE
 			;;
@@ -3733,12 +3734,11 @@ function create_recovery_file() {
 	shift
 	rm -f $FILE
 
-	local page_size=$(getconf PAGESIZE)
 	while [ $# -ge 2 ]; do
 		OFFSET=$1
 		LENGTH=$2
 		shift 2
-		echo "$(($OFFSET * $page_size)) $(($LENGTH * $page_size))" >> $FILE
+		echo "$(($OFFSET * $PAGE_SIZE)) $(($LENGTH * $PAGE_SIZE))" >> $FILE
 	done
 
 	# write the finish flag
@@ -3758,12 +3758,11 @@ function zero_blocks() {
 	FILE=$1
 	shift
 
-	local page_size=$(getconf PAGESIZE)
 	while [ $# -ge 2 ]; do
 		OFFSET=$1
 		LENGTH=$2
 		shift 2
-		dd if=/dev/zero of=$FILE bs=$page_size seek=$OFFSET count=$LENGTH conv=notrunc status=none
+		dd if=/dev/zero of=$FILE bs=$PAGE_SIZE seek=$OFFSET count=$LENGTH conv=notrunc status=none
 	done
 }
 

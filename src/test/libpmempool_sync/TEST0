@@ -24,7 +24,7 @@ POOLSET=$DIR/pool0.set
 M=$(( 1024 * 1024 ))
 M20=$(( 20 * $M ))
 M40=$(( 40 * $M ))
-POOL_HEADER_OFFSET=$(getconf PAGE_SIZE)
+POOL_HEADER_OFFSET=$PAGE_SIZE
 ADDR_MASK=0xFFFFF000
 
 # Create poolset file

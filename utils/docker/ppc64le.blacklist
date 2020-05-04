@@ -17,4 +17,3 @@ pmempool_sync_remote
 pmempool_transform_remote
 rpmem_basic
 rpmem_fip
-util_poolset

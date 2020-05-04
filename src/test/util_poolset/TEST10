@@ -3,7 +3,9 @@
 # Copyright 2015-2019, Intel Corporation
 
 #
-# src/test/util_poolset/TEST2 -- unit test for util_pool_open()
+# src/test/util_poolset/TEST10 -- unit test for util_pool_open()
+#
+# Copy of TEST2 for ppc64le
 #
 
 . ../unittest/unittest.sh
@@ -12,7 +14,7 @@ require_test_type medium
 
 require_fs_type non-pmem
 
-exclude_ppc64
+require_ppc64
 
 setup
 
