@@ -163,10 +163,10 @@ MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_PMEM2)
 MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_PMEM2)
 endif
 
-MANPAGES_7_MD += $(MANPAGES_7_MD_PMEM2)
-MANPAGES_5_MD += $(MANPAGES_5_MD_PMEM2)
-MANPAGES_3_MD += $(MANPAGES_3_MD_PMEM2)
-MANPAGES_1_MD += $(MANPAGES_1_MD_PMEM2)
+MANPAGES_7_MD_WEB = $(MANPAGES_7_MD_PMEM2) + $(MANPAGES_7_MD)
+MANPAGES_5_MD_WEB = $(MANPAGES_5_MD_PMEM2) + $(MANPAGES_5_MD)
+MANPAGES_3_MD_WEB = $(MANPAGES_3_MD_PMEM2) + $(MANPAGES_3_MD)
+MANPAGES_1_MD_WEB = $(MANPAGES_1_MD_PMEM2) + $(MANPAGES_1_MD)
 
 MANPAGES = $(MANPAGES_7_GROFF) $(MANPAGES_5_GROFF) $(MANPAGES_3_GROFF) $(MANPAGES_1_GROFF) \
 	   $(MANPAGES_7_NOINSTALL) $(MANPAGES_5_NOINSTALL) $(MANPAGES_3_NOINSTALL) $(MANPAGES_1_NOINSTALL)
@@ -227,14 +227,14 @@ html: $(HTMLFILES)
 
 web: $(MANPAGES) | $(MANPAGES_WEBDIR_LINUX) $(MANPAGES_WEBDIR_WINDOWS)
 	$(MAKE) -C generated all
-	$(foreach f, $(MANPAGES_7_MD), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
-	$(foreach f, $(MANPAGES_5_MD), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
-	$(foreach f, $(MANPAGES_3_MD), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
-	$(foreach f, $(MANPAGES_1_MD), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
-	$(foreach f, $(MANPAGES_7_MD), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
-	$(foreach f, $(MANPAGES_5_MD), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
-	$(foreach f, $(MANPAGES_3_MD), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
-	$(foreach f, $(MANPAGES_1_MD), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
+	$(foreach f, $(MANPAGES_7_MD_WEB), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
+	$(foreach f, $(MANPAGES_5_MD_WEB), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
+	$(foreach f, $(MANPAGES_3_MD_WEB), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
+	$(foreach f, $(MANPAGES_1_MD_WEB), WEB=1 WIN32="" ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_LINUX)/$(f);)
+	$(foreach f, $(MANPAGES_7_MD_WEB), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
+	$(foreach f, $(MANPAGES_5_MD_WEB), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
+	$(foreach f, $(MANPAGES_3_MD_WEB), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
+	$(foreach f, $(MANPAGES_1_MD_WEB), WEB=1 WIN32=1 ../utils/md2man.sh $(f) default.man $(MANPAGES_WEBDIR_WINDOWS)/$(f);)
 
 compress: $(GZFILES)
 
