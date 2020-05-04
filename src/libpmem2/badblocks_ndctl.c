@@ -590,6 +590,9 @@ pmem2_badblock_context_delete(struct pmem2_badblock_context **bbctx)
 
 	ASSERTne(bbctx, NULL);
 
+	if (*bbctx == NULL)
+		return;
+
 	struct pmem2_badblock_context *tbbctx = *bbctx;
 
 	pmem2_extents_destroy(&tbbctx->exts);
