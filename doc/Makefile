@@ -8,12 +8,12 @@
 
 include ../src/common.inc
 
-MANPAGES_7_MD = libpmem/libpmem.7.md libpmemblk/libpmemblk.7.md libpmemlog/libpmemlog.7.md \
+MANPAGES_7_MD_RELEASE = libpmem/libpmem.7.md libpmemblk/libpmemblk.7.md libpmemlog/libpmemlog.7.md \
 		libpmemobj/libpmemobj.7.md libpmempool/libpmempool.7.md
 
-MANPAGES_5_MD = poolset/poolset.5.md pmem_ctl/pmem_ctl.5.md
+MANPAGES_5_MD_RELEASE = poolset/poolset.5.md pmem_ctl/pmem_ctl.5.md
 
-MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_memmove_persist.3.md \
+MANPAGES_3_MD_RELEASE = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_memmove_persist.3.md \
 		libpmemblk/pmemblk_bsize.3.md libpmemblk/pmemblk_create.3.md libpmemblk/pmemblk_ctl_get.3.md libpmemblk/pmemblk_read.3.md libpmemblk/pmemblk_set_zero.3.md \
 		libpmemlog/pmemlog_append.3.md libpmemlog/pmemlog_create.3.md libpmemlog/pmemlog_ctl_get.3.md libpmemlog/pmemlog_nbyte.3.md libpmemlog/pmemlog_tell.3.md \
 		libpmemobj/oid_is_null.3.md libpmemobj/pmemobj_action.3.md libpmemobj/pmemobj_alloc.3.md libpmemobj/pmemobj_ctl_get.3.md libpmemobj/pmemobj_first.3.md \
@@ -22,7 +22,7 @@ MANPAGES_3_MD = libpmem/pmem_flush.3.md libpmem/pmem_is_pmem.3.md libpmem/pmem_m
 		libpmemobj/pmemobj_tx_alloc.3.md libpmemobj/pobj_layout_begin.3.md libpmemobj/pobj_list_head.3.md libpmemobj/toid_declare.3.md \
 		libpmempool/pmempool_check_init.3.md libpmempool/pmempool_feature_query.3.md libpmempool/pmempool_rm.3.md libpmempool/pmempool_sync.3.md
 
-MANPAGES_1_MD = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmempool-create.1.md \
+MANPAGES_1_MD_RELEASE = pmempool/pmempool.1.md pmempool/pmempool-info.1.md pmempool/pmempool-create.1.md \
 		pmempool/pmempool-check.1.md pmempool/pmempool-dump.1.md pmempool/pmempool-rm.1.md \
 		pmempool/pmempool-convert.1.md pmempool/pmempool-sync.1.md pmempool/pmempool-transform.1.md \
 		pmempool/pmempool-feature.1.md pmreorder/pmreorder.1.md
@@ -110,10 +110,10 @@ MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_source_from_ha
 endif
 
 ifeq ($(BUILD_RPMEM),y)
-MANPAGES_7_MD += librpmem/librpmem.7.md
-MANPAGES_3_MD += librpmem/rpmem_create.3.md
-MANPAGES_3_MD += librpmem/rpmem_persist.3.md
-MANPAGES_1_MD += rpmemd/rpmemd.1.md
+MANPAGES_7_MD_RELEASE += librpmem/librpmem.7.md
+MANPAGES_3_MD_RELEASE += librpmem/rpmem_create.3.md
+MANPAGES_3_MD_RELEASE += librpmem/rpmem_persist.3.md
+MANPAGES_1_MD_RELEASE += rpmemd/rpmemd.1.md
 MANPAGES_3_DUMMY += librpmem/rpmem_open.3 librpmem/rpmem_set_attr.3 librpmem/rpmem_close.3 \
 		    librpmem/rpmem_read.3 librpmem/rpmem_remove.3 librpmem/rpmem_check_version.3 \
 		    librpmem/rpmem_errormsg.3 librpmem/rpmem_deep_persist.3 librpmem/rpmem_flush.3 \
@@ -124,10 +124,10 @@ ifeq ($(NDCTL_ENABLE),y)
 MANPAGES_1_MD += daxio/daxio.1.md
 endif
 
-MANPAGES_7_GROFF = $(MANPAGES_7_MD:.7.md=.7)
-MANPAGES_5_GROFF = $(MANPAGES_5_MD:.5.md=.5)
-MANPAGES_3_GROFF = $(MANPAGES_3_MD:.3.md=.3)
-MANPAGES_1_GROFF = $(MANPAGES_1_MD:.1.md=.1)
+MANPAGES_7_GROFF = $(MANPAGES_7_MD_RELEASE:.7.md=.7)
+MANPAGES_5_GROFF = $(MANPAGES_5_MD_RELEASE:.5.md=.5)
+MANPAGES_3_GROFF = $(MANPAGES_3_MD_RELEASE:.3.md=.3)
+MANPAGES_1_GROFF = $(MANPAGES_1_MD_RELEASE:.1.md=.1)
 
 MANPAGES_7_GROFF_EXP = $(MANPAGES_7_MD_EXP:.7.md=.7)
 MANPAGES_5_GROFF_EXP = $(MANPAGES_5_MD_EXP:.5.md=.5)
@@ -163,10 +163,10 @@ MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_PMEM2)
 MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_PMEM2)
 endif
 
-MANPAGES_7_MD += $(MANPAGES_7_MD_PMEM2)
-MANPAGES_5_MD += $(MANPAGES_5_MD_PMEM2)
-MANPAGES_3_MD += $(MANPAGES_3_MD_PMEM2)
-MANPAGES_1_MD += $(MANPAGES_1_MD_PMEM2)
+MANPAGES_7_MD += $(MANPAGES_7_MD_PMEM2) + $(MANPAGES_7_MD_RELEASE)
+MANPAGES_5_MD += $(MANPAGES_5_MD_PMEM2) + $(MANPAGES_5_MD_RELEASE)
+MANPAGES_3_MD += $(MANPAGES_3_MD_PMEM2) + $(MANPAGES_3_MD_RELEASE)
+MANPAGES_1_MD += $(MANPAGES_1_MD_PMEM2) + $(MANPAGES_1_MD_RELEASE)
 
 MANPAGES = $(MANPAGES_7_GROFF) $(MANPAGES_5_GROFF) $(MANPAGES_3_GROFF) $(MANPAGES_1_GROFF) \
 	   $(MANPAGES_7_NOINSTALL) $(MANPAGES_5_NOINSTALL) $(MANPAGES_3_NOINSTALL) $(MANPAGES_1_NOINSTALL)
