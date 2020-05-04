@@ -77,7 +77,7 @@ enum colors {
 struct state {
 	unsigned timer;
 	int score;
-	unsigned high_score;
+	int high_score;
 	int level;
 	int new_level;
 	int dx;

@@ -28,7 +28,7 @@ main(int argc, char *argv[])
 	FILE *fp;
 	int len = ASSET_NAME_MAX;
 	PMEMblkpool *pbp;
-	int assetid = 0;
+	size_t assetid = 0;
 	size_t nelements;
 	char *line;
 
@@ -71,7 +71,7 @@ main(int argc, char *argv[])
 
 		if (assetid >= nelements) {
 			fprintf(stderr, "%s: too many assets to fit in %s "
-					"(only %d assets loaded)\n",
+					"(only %zu assets loaded)\n",
 					path_list, path_pool, assetid);
 			exit(1);
 		}

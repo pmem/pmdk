@@ -89,7 +89,7 @@ static void dump_PMEMoid(char *prefix, PMEMoid *oid);
 
 static char *search_key(char *appname, struct search_ctx *ctx);
 static int leaf_matches(struct search_ctx *ctx, art_leaf *n,
-		unsigned char *key, int key_len, int depth);
+		unsigned char *key, size_t key_len, int depth);
 static int check_prefix(art_node *an,
 		unsigned char *key, int key_len, int depth);
 static uint64_t find_child(art_node *n, int node_type, unsigned char key);
@@ -236,13 +236,11 @@ print_usage(char *appname)
 static struct search *
 get_search(char *type_name)
 {
-	int i;
-
 	if (type_name == NULL) {
 		return NULL;
 	}
 
-	for (i = 0; i < COMMANDS_NUMBER; i++) {
+	for (size_t i = 0; i < COMMANDS_NUMBER; i++) {
 		if (strcmp(type_name, s_funcs[i].name) == 0)
 			return &s_funcs[i];
 	}
@@ -263,7 +261,7 @@ get_node(struct search_ctx *ctx, int node_type, uint64_t off)
 
 static int
 leaf_matches(struct search_ctx *ctx, art_leaf *n,
-	unsigned char *key, int key_len, int depth)
+	unsigned char *key, size_t key_len, int depth)
 {
 	var_string *n_key;
 	(void) depth;

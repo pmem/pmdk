@@ -396,7 +396,7 @@ rpmem_mixed_op(struct benchmark *bench, struct operation_info *info)
 			case 'g':
 				mb->flags[info->worker->index] =
 					RPMEM_FLUSH_RELAXED;
-				/* no break here */
+				/* FALLTHROUGH */
 			case 'f':
 				ret |= rpmem_mixed_op_flush(mb, info);
 				break;
@@ -406,7 +406,7 @@ rpmem_mixed_op(struct benchmark *bench, struct operation_info *info)
 			case 'r':
 				mb->flags[info->worker->index] =
 					RPMEM_PERSIST_RELAXED;
-				/* no break here */
+				/* FALLTHROUGH */
 			case 'p':
 				ret |= rpmem_persist_op(bench, info);
 				break;

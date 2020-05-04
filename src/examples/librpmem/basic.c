@@ -136,7 +136,7 @@ parse_args(int argc, char *argv[], enum op_t *op, const char **target,
 	/* convert string to op */
 	*op = op_max;
 	const size_t str2op_size = sizeof(str2op) / sizeof(str2op[0]);
-	for (int i = 0; i < str2op_size; ++i) {
+	for (size_t i = 0; i < str2op_size; ++i) {
 		if (strcmp(str2op[i], argv[1]) == 0) {
 			*op = (enum op_t)i;
 			break;
