@@ -365,12 +365,24 @@ realloc_tx(struct obj_tx_bench *obj_bench, struct worker_info *worker,
 	size_t type_num = obj_bench->fn_type_num(obj_bench, worker->index, idx);
 	if (obj_bench->obj_args->change_type)
 		type_num++;
-	obj_worker->oids[idx].oid = pmemobj_tx_realloc(
-		obj_worker->oids[idx].oid, obj_bench->sizes[idx], type_num);
-	if (OID_IS_NULL(obj_worker->oids[idx].oid)) {
+	PMEMoid oid = pmemobj_tx_realloc(obj_worker->oids[idx].oid,
+					 obj_bench->sizes[idx], type_num);
+	if (OID_IS_NULL(oid)) {
 		perror("pmemobj_tx_realloc");
 		return -1;
 	}
+
+	/*
+	 * If OP_MODE_ABORT is set, this TX will get aborted, meaning that the
+	 * object allocated as part of the outer transaction will be freed once
+	 * this operation finishes.
+	 * To avoid a potential use-after-free, we either have to snapshot the
+	 * oid pointer or skip this assignment when we know it will abort.
+	 * For performance reason, this code does the latter.
+	 */
+	if (obj_bench->op_mode != OP_MODE_ABORT)
+		obj_worker->oids[idx].oid = oid;
+
 	return 0;
 }
 
