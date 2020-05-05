@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include "libpmem2.h"
 #include "os.h"
+#include "source.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -39,11 +40,7 @@ struct pmem2_map {
 	pmem2_memcpy_fn memcpy_fn;
 	pmem2_memset_fn memset_fn;
 
-#ifdef _WIN32
-	HANDLE handle;
-#else
-	os_stat_t src_fd_st;
-#endif
+	struct pmem2_source source;
 };
 
 enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem,

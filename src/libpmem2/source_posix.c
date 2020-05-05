@@ -10,6 +10,7 @@
 #include "out.h"
 #include "pmem2.h"
 #include "pmem2_utils.h"
+#include "util.h"
 
 /*
  * pmem2_source_from_fd -- create a new data source instance
@@ -68,7 +69,10 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 
 	ASSERTne(srcp, NULL);
 
-	srcp->fd = fd;
+	srcp->type = PMEM2_SOURCE_FD;
+	srcp->value.file = type;
+	srcp->value.fd = fd;
+	srcp->value.st = st;
 	*src = srcp;
 
 	return 0;
@@ -81,11 +85,19 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 int
 pmem2_source_size(const struct pmem2_source *src, size_t *size)
 {
-	LOG(3, "fd %d", src->fd);
+	LOG(3, "type %d", src->type);
+
+	if (src->type == PMEM2_SOURCE_ANON) {
+		/* source length should be in the number of pages */
+		*size = ALIGN_DOWN(SIZE_MAX, Pagesize);
+		return 0;
+	}
+
+	ASSERT(src->type == PMEM2_SOURCE_FD);
 
 	os_stat_t st;
 
-	if (os_fstat(src->fd, &st) < 0) {
+	if (os_fstat(src->value.fd, &st) < 0) {
 		ERR("!fstat");
 		if (errno == EBADF)
 			return PMEM2_E_INVALID_FILE_HANDLE;
@@ -129,11 +141,18 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 int
 pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 {
-	LOG(3, "fd %d", src->fd);
+	LOG(3, "type %d", src->type);
+
+	if (src->type == PMEM2_SOURCE_ANON) {
+		*alignment = Pagesize;
+		return 0;
+	}
+
+	ASSERT(src->type == PMEM2_SOURCE_FD);
 
 	os_stat_t st;
 
-	if (os_fstat(src->fd, &st) < 0) {
+	if (os_fstat(src->value.fd, &st) < 0) {
 		ERR("!fstat");
 		if (errno == EBADF)
 			return PMEM2_E_INVALID_FILE_HANDLE;

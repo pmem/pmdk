@@ -100,6 +100,11 @@ int
 pmem2_source_device_idW(const struct pmem2_source *src, wchar_t *id,
 	size_t *len)
 {
+	if (src->type == PMEM2_SOURCE_ANON)
+		return PMEM2_E_NOSUPP;
+
+	ASSERTeq(src->type, PMEM2_SOURCE_HANDLE);
+
 	if (id == NULL) {
 		*len = GUID_SIZE * sizeof(*id);
 		return 0;
@@ -111,7 +116,7 @@ pmem2_source_device_idW(const struct pmem2_source *src, wchar_t *id,
 	}
 
 	GUID guid;
-	int ret = get_device_guid(src->handle, &guid);
+	int ret = get_device_guid(src->value.handle, &guid);
 	if (ret)
 		return ret;
 
@@ -127,6 +132,11 @@ pmem2_source_device_idW(const struct pmem2_source *src, wchar_t *id,
 int
 pmem2_source_device_idU(const struct pmem2_source *src, char *id, size_t *len)
 {
+	if (src->type == PMEM2_SOURCE_ANON)
+		return PMEM2_E_NOSUPP;
+
+	ASSERTeq(src->type, PMEM2_SOURCE_HANDLE);
+
 	if (id == NULL) {
 		*len = GUID_SIZE * sizeof(*id);
 		return 0;
@@ -137,7 +147,7 @@ pmem2_source_device_idU(const struct pmem2_source *src, char *id, size_t *len)
 	}
 
 	GUID guid;
-	int ret = get_device_guid(src->handle, &guid);
+	int ret = get_device_guid(src->value.handle, &guid);
 	if (ret)
 		return ret;
 
@@ -158,10 +168,16 @@ int
 pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 {
 	LOG(3, "cfg %p, usc %p", src, usc);
+
+	if (src->type == PMEM2_SOURCE_ANON)
+		return PMEM2_E_NOSUPP;
+
+	ASSERTeq(src->type, PMEM2_SOURCE_HANDLE);
+
 	*usc = 0;
 
 	HANDLE vHandle;
-	int err = get_volume_handle(src->handle, &vHandle);
+	int err = get_volume_handle(src->value.handle, &vHandle);
 	if (vHandle == INVALID_HANDLE_VALUE)
 		return err;
 
