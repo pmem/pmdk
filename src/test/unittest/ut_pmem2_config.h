@@ -23,6 +23,10 @@
 #define PMEM2_CONFIG_DELETE(cfg)					\
 	ut_pmem2_config_delete(__FILE__, __LINE__, __func__, cfg)
 
+/* a prepare_config() that can't set wrong value */
+#define PREPARE_CONFIG(cfg, src, fd, g)					\
+	ut_prepare_config(__FILE__, __LINE__, __func__, cfg, src, fd, g)
+
 void ut_pmem2_config_new(const char *file, int line, const char *func,
 	struct pmem2_config **cfg);
 
@@ -32,5 +36,9 @@ void ut_pmem2_config_set_required_store_granularity(const char *file,
 
 void ut_pmem2_config_delete(const char *file, int line, const char *func,
 	struct pmem2_config **cfg);
+
+void ut_prepare_config(const char *file, int line, const char *func,
+	struct pmem2_config **cfg, struct pmem2_source **src, int fd,
+	enum pmem2_granularity granularity);
 
 #endif /* UT_PMEM2_CONFIG_H */

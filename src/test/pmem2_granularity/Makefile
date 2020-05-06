@@ -12,6 +12,7 @@ TARGET = pmem2_granularity
 
 OBJS += pmem2_granularity.o\
 	ut_pmem2_config.o\
+	ut_pmem2_source.o\
 	ut_pmem2_utils.o\
 	mocks_posix.o
 

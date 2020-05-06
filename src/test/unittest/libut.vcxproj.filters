@@ -38,6 +38,9 @@
     <ClCompile Include="ut_fh.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ut_setup.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="unittest.h">
