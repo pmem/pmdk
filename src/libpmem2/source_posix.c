@@ -10,6 +10,7 @@
 #include "out.h"
 #include "pmem2.h"
 #include "pmem2_utils.h"
+#include "util.h"
 
 /*
  * pmem2_source_from_fd -- create a new data source instance
@@ -52,12 +53,12 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 		return PMEM2_E_ERRNO;
 	}
 
-	enum pmem2_file_type type;
-	int ret = pmem2_get_type_from_stat(&st, &type);
+	enum pmem2_file_type ftype;
+	int ret = pmem2_get_type_from_stat(&st, &ftype);
 	if (ret != 0)
 		return ret;
 
-	if (type == PMEM2_FTYPE_DIR) {
+	if (ftype == PMEM2_FTYPE_DIR) {
 		ERR("cannot set fd to directory in pmem2_source_from_fd");
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}
@@ -68,7 +69,10 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 
 	ASSERTne(srcp, NULL);
 
-	srcp->fd = fd;
+	srcp->type = PMEM2_SOURCE_FD;
+	srcp->value.ftype = ftype;
+	srcp->value.fd = fd;
+	srcp->value.st_rdev = st.st_rdev;
 	*src = srcp;
 
 	return 0;
@@ -81,25 +85,27 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 int
 pmem2_source_size(const struct pmem2_source *src, size_t *size)
 {
-	LOG(3, "fd %d", src->fd);
+	LOG(3, "type %d", src->type);
+
+	if (src->type == PMEM2_SOURCE_ANON) {
+		*size = src->value.size;
+		return 0;
+	}
+
+	ASSERT(src->type == PMEM2_SOURCE_FD);
 
 	os_stat_t st;
 
-	if (os_fstat(src->fd, &st) < 0) {
+	if (os_fstat(src->value.fd, &st) < 0) {
 		ERR("!fstat");
 		if (errno == EBADF)
 			return PMEM2_E_INVALID_FILE_HANDLE;
 		return PMEM2_E_ERRNO;
 	}
 
-	enum pmem2_file_type type;
-	int ret = pmem2_get_type_from_stat(&st, &type);
-	if (ret)
-		return ret;
-
-	switch (type) {
+	switch (src->value.ftype) {
 	case PMEM2_FTYPE_DEVDAX: {
-		int ret = pmem2_device_dax_size_from_stat(&st, size);
+		int ret = pmem2_device_dax_size_from_dev(st.st_rdev, size);
 		if (ret)
 			return ret;
 		break;
@@ -129,25 +135,19 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 int
 pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 {
-	LOG(3, "fd %d", src->fd);
+	LOG(3, "type %d", src->type);
 
-	os_stat_t st;
-
-	if (os_fstat(src->fd, &st) < 0) {
-		ERR("!fstat");
-		if (errno == EBADF)
-			return PMEM2_E_INVALID_FILE_HANDLE;
-		return PMEM2_E_ERRNO;
+	if (src->type == PMEM2_SOURCE_ANON) {
+		*alignment = Pagesize;
+		return 0;
 	}
 
-	enum pmem2_file_type type;
-	int ret = pmem2_get_type_from_stat(&st, &type);
-	if (ret)
-		return ret;
+	ASSERT(src->type == PMEM2_SOURCE_FD);
 
-	switch (type) {
+	switch (src->value.ftype) {
 	case PMEM2_FTYPE_DEVDAX: {
-		int ret = pmem2_device_dax_alignment_from_stat(&st, alignment);
+		int ret = pmem2_device_dax_alignment_from_dev(
+			src->value.st_rdev, alignment);
 		if (ret)
 			return ret;
 		break;

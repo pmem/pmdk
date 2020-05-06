@@ -42,6 +42,7 @@
  * so the persist function is omitted.
  */
 
+#include "source.h"
 #ifndef _WIN32
 #include <sys/sysmacros.h>
 #endif
@@ -56,7 +57,7 @@ static int n_file_buffs_flushes = 0;
 static int n_fences = 0;
 static int n_flushes = 0;
 static int n_writes = 0;
-static enum pmem2_file_type ftype_value;
+static enum pmem2_file_type *ftype_value;
 
 #ifndef _WIN32
 #define MOCK_FD 999
@@ -68,9 +69,9 @@ static enum pmem2_file_type ftype_value;
  * pmem2_device_dax_region_find -- redefine libpmem2 function
  */
 int
-pmem2_device_dax_region_find(const os_stat_t *st)
+pmem2_device_dax_region_find(dev_t st_rdev)
 {
-	UT_ASSERTeq(st->st_rdev, MOCK_DEV_ID);
+	UT_ASSERTeq(st_rdev, MOCK_DEV_ID);
 
 	return MOCK_REG_ID;
 }
@@ -136,16 +137,6 @@ pmem2_arch_init(struct pmem2_arch_info *info)
 }
 
 /*
- * pmem2_get_type_from_stat -- redefine libpmem2 function
- */
-int
-pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
-{
-	*type = ftype_value;
-	return 0;
-}
-
-/*
  * pmem2_map_find -- redefine libpmem2 function, redefinition is needed
  * for a proper compilation of the test. NOTE: this function is not used
  * in the test.
@@ -182,9 +173,13 @@ map_init(struct pmem2_map *map)
 	 */
 	map->addr = MALLOC(2 * length);
 #ifndef _WIN32
+	map->source.type = PMEM2_SOURCE_FD;
 	/* mocked device ID for device DAX */
-	map->src_fd_st.st_rdev = MOCK_DEV_ID;
+	map->source.value.st_rdev = MOCK_DEV_ID;
+#else
+	map->source.type = PMEM2_SOURCE_HANDLE;
 #endif
+	ftype_value = &map->source.value.ftype;
 }
 
 /*
@@ -213,7 +208,7 @@ test_deep_sync_func(const struct test_case *tc, int argc, char *argv[])
 {
 	struct pmem2_map map;
 	map_init(&map);
-	ftype_value = PMEM2_FTYPE_REG;
+	*ftype_value = PMEM2_FTYPE_REG;
 
 	void *addr = map.addr;
 	size_t len = map.content_length;
@@ -252,7 +247,7 @@ test_deep_sync_func_devdax(const struct test_case *tc, int argc, char *argv[])
 
 	void *addr = map.addr;
 	size_t len = map.content_length;
-	ftype_value = PMEM2_FTYPE_DEVDAX;
+	*ftype_value = PMEM2_FTYPE_DEVDAX;
 
 	map.effective_granularity = PMEM2_GRANULARITY_CACHE_LINE;
 	pmem2_set_flush_fns(&map);

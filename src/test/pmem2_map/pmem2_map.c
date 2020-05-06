@@ -8,6 +8,7 @@
 #include <stdbool.h>
 
 #include "config.h"
+#include "pmem2_utils.h"
 #include "source.h"
 #include "map.h"
 #include "out.h"
@@ -24,10 +25,13 @@
 static void
 prepare_source(struct pmem2_source *src, int fd)
 {
+	src->value.ftype = PMEM2_FTYPE_REG;
 #ifdef _WIN32
-	src->handle = (HANDLE)_get_osfhandle(fd);
+	src->type = PMEM2_SOURCE_HANDLE;
+	src->value.handle = (HANDLE)_get_osfhandle(fd);
 #else
-	src->fd = fd;
+	src->type = PMEM2_SOURCE_FD;
+	src->value.fd = fd;
 #endif
 }
 
@@ -80,8 +84,10 @@ prepare_map(struct pmem2_map **map_ptr,
 	struct pmem2_map *map = malloc(sizeof(*map));
 	UT_ASSERTne(map, NULL);
 
+	UT_ASSERTeq(src->type, PMEM2_SOURCE_HANDLE);
+
 	size_t max_size = cfg->length + cfg->offset;
-	HANDLE mh = CreateFileMapping(src->handle,
+	HANDLE mh = CreateFileMapping(src->value.handle,
 		NULL,
 		PAGE_READWRITE,
 		HIDWORD(max_size),
@@ -130,9 +136,12 @@ prepare_map(struct pmem2_map **map_ptr,
 	struct pmem2_map *map = malloc(sizeof(*map));
 	UT_ASSERTne(map, NULL);
 
-	map->addr = mmap(NULL, cfg->length, proto, flags, src->fd, offset);
+	UT_ASSERTeq(src->type, PMEM2_SOURCE_FD);
+	map->addr = mmap(NULL, cfg->length, proto, flags,
+		src->value.fd, offset);
 	UT_ASSERTne(map->addr, MAP_FAILED);
 
+	map->source.value.ftype = PMEM2_FTYPE_REG;
 	map->reserved_length = map->content_length = cfg->length;
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
 

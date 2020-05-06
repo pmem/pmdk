@@ -189,7 +189,7 @@ device_dax_alignment(const char *path)
 		return 0;
 	}
 
-	int ret = pmem2_device_dax_alignment_from_stat(&st, &size);
+	int ret = pmem2_device_dax_alignment_from_dev(st.st_rdev, &size);
 	if (ret)
 		return 0;
 
@@ -222,7 +222,7 @@ util_ddax_region_find(const char *path)
 		return -1;
 	}
 
-	int ret = pmem2_device_dax_region_find(&st);
+	int ret = pmem2_device_dax_region_find(st.st_rdev);
 	if (ret < 0) {
 		errno = pmem2_err_to_errno(ret);
 		return -1;
