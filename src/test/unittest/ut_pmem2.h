@@ -10,6 +10,8 @@
 
 #include "ut_pmem2_config.h"
 #include "ut_pmem2_map.h"
+#include "ut_pmem2_setup.h"
+#include "ut_pmem2_setup_integration.h"
 #include "ut_pmem2_source.h"
 #include "ut_pmem2_utils.h"
 
