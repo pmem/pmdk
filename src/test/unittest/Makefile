@@ -14,12 +14,18 @@ vpath %.h $(TOP)/src/common
 vpath %.c $(TOP)/src/core
 vpath %.h $(TOP)/src/core
 
+vpath %.c $(TOP)/src/libpmem2
+vpath %.h $(TOP)/src/libpmem2
+
 TARGET_UT = libut.a
 OBJS_UT = ut.o ut_alloc.o ut_file.o ut_pthread.o ut_signal.o ut_backtrace.o\
 	os_posix.o os_thread_posix.o util.o alloc.o rand.o ut_fh.o
 
 TARGET_UT_PMEM2 = ut_pmem2.a
-OBJS_UT_PMEM2 = ut_pmem2_config.o ut_pmem2_utils.o
+OBJS_UT_PMEM2 = ut_pmem2_config.o ut_pmem2_utils.o ut_pmem2_source.o\
+	ut_pmem2_setup.o ut_pmem2_setup_integration.o config.o pmem2_utils.o\
+	pmem2_utils_linux.o source.o source_posix.o errormsg.o out.o\
+	util_posix.o
 
 CFLAGS = -I$(TOP)/src/include
 CFLAGS += -I$(TOP)/src/common
@@ -76,6 +82,7 @@ LIBS += $(GCOV_LIBS)
 endif
 
 CFLAGS += $(EXTRA_CFLAGS)
+CFLAGS += -DSRCVERSION='"$(SRCVERSION)"'
 
 LIBS += $(LIBUTIL)
 
