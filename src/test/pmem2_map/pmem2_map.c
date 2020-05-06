@@ -225,30 +225,6 @@ test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * test_map_wronly_file - map a O_WRONLY file
- */
-static int
-test_map_wronly_file(const struct test_case *tc, int argc, char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_map_wronly_file <file>");
-
-	char *file = argv[0];
-	struct pmem2_config cfg;
-	struct pmem2_source src;
-	int fd;
-	prepare_config(&cfg, &src, &fd, file, 0, 0, O_WRONLY);
-
-	struct pmem2_map *map;
-	int ret = pmem2_map(&cfg, &src, &map);
-	UT_PMEM2_EXPECT_RETURN(ret, -EACCES);
-
-	CLOSE(fd);
-
-	return 1;
-}
-
-/*
  * map_valid_ranges_common -- map valid range and validate its length
  * Includes cleanup.
  */
@@ -1094,7 +1070,6 @@ test_map_fixed_noreplace_partial_above_overlap(const struct test_case *tc,
 static struct test_case test_cases[] = {
 	TEST_CASE(test_map_rdrw_file),
 	TEST_CASE(test_map_rdonly_file),
-	TEST_CASE(test_map_wronly_file),
 	TEST_CASE(test_map_valid_ranges),
 	TEST_CASE(test_map_invalid_ranges),
 	TEST_CASE(test_map_invalid_alignment),
