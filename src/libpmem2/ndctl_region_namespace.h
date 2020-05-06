@@ -20,7 +20,8 @@ extern "C" {
 	ndctl_region_foreach(bus, region)			\
 	ndctl_namespace_foreach(region, ndns)
 
-int ndctl_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
+int ndctl_region_namespace(struct ndctl_ctx *ctx,
+			enum pmem2_file_type ftype, dev_t st_rdev,
 			struct ndctl_region **pregion,
 			struct ndctl_namespace **pndns);
 
