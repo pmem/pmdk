@@ -29,6 +29,9 @@
     <ClCompile Include="..\unittest\ut_pmem2_source.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\unittest\ut_pmem2_setup_integration.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\unittest\unittest.h">

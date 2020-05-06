@@ -12,25 +12,6 @@
 #define N_GRANULARITIES 3 /* BYTE, CACHE_LINE, PAGE */
 
 /*
- * prepare_config -- fill pmem2_config in minimal scope
- */
-static void
-prepare_config(struct pmem2_config **cfg, struct pmem2_source **src, int fd,
-		enum pmem2_granularity granularity)
-{
-	int ret = pmem2_config_new(cfg);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-
-	if (fd != -1) {
-		ret = pmem2_source_from_fd(src, fd);
-		UT_PMEM2_EXPECT_RETURN(ret, 0);
-	}
-
-	ret = pmem2_config_set_required_store_granularity(*cfg, granularity);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
-}
-
-/*
  * map_invalid -- try to mapping memory with invalid config
  */
 static void
@@ -71,7 +52,7 @@ test_reuse_cfg(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t size;
 	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
@@ -104,7 +85,7 @@ test_reuse_cfg_with_diff_fd(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd1, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd1, PMEM2_GRANULARITY_PAGE);
 
 	size_t size1;
 	UT_ASSERTeq(pmem2_source_size(src, &size1), 0);
@@ -150,7 +131,7 @@ test_register_pmem(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t size;
 	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
@@ -186,7 +167,7 @@ test_use_misc_lens_and_offsets(const struct test_case *tc,
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len;
 	UT_ASSERTeq(pmem2_source_size(src, &len), 0);
@@ -308,7 +289,7 @@ test_granularity(const struct test_case *tc, int argc, char *argv[])
 	if (argc < 3)
 		UT_FATAL(
 		"usage: test_granularity <file>"
-				" <available_granularity> <requested_granularity>");
+			" <available_granularity> <requested_granularity>");
 
 	struct gran_test_ctx ctx;
 
@@ -323,7 +304,8 @@ test_granularity(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, gran_id2granularity[req_gran_id]);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd,
+					gran_id2granularity[req_gran_id]);
 
 	ctx.map_with_expected_gran(cfg, src, &ctx);
 
@@ -348,7 +330,7 @@ test_len_not_aligned(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len, alignment;
 	int ret = pmem2_source_size(src, &len);
@@ -387,7 +369,7 @@ test_len_aligned(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len, alignment;
 	int ret = pmem2_source_size(src, &len);
@@ -426,7 +408,7 @@ test_offset_not_aligned(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len, alignment;
 	int ret = pmem2_source_size(src, &len);
@@ -470,7 +452,7 @@ test_offset_aligned(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len, alignment;
 	int ret = pmem2_source_size(src, &len);
@@ -519,7 +501,7 @@ test_mem_move_cpy_set_with_map_private(const struct test_case *tc, int argc,
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 	pmem2_config_set_sharing(cfg, PMEM2_PRIVATE);
 
 	size_t size = 0;
@@ -572,7 +554,7 @@ test_deep_sync_valid(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len;
 	PMEM2_SOURCE_SIZE(src, &len);
@@ -607,7 +589,7 @@ test_deep_sync_e_range_behind(const struct test_case *tc,
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len;
 	PMEM2_SOURCE_SIZE(src, &len);
@@ -643,7 +625,7 @@ test_deep_sync_e_range_before(const struct test_case *tc,
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len;
 	PMEM2_SOURCE_SIZE(src, &len);
@@ -678,7 +660,7 @@ test_deep_sync_slice(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len;
 	PMEM2_SOURCE_SIZE(src, &len);
@@ -714,7 +696,7 @@ test_deep_sync_overlap(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
 
 	size_t len;
 	PMEM2_SOURCE_SIZE(src, &len);
