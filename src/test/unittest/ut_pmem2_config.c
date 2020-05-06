@@ -51,7 +51,7 @@ ut_pmem2_config_delete(const char *file, int line, const char *func,
  * prepare_config -- fill pmem2_config in minimal scope
  */
 void
-ut_prepare_config(const char *file, int line, const char *func, 
+ut_prepare_config(const char *file, int line, const char *func,
 	struct pmem2_config **cfg, struct pmem2_source **src, int fd,
 	enum pmem2_granularity granularity)
 {
