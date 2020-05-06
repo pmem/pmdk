@@ -39,17 +39,18 @@ usc_interleave_set(struct ndctl_ctx *ctx, const os_stat_t *st)
 int
 pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 {
-	LOG(3, "fd %d, uid %p", src->fd, usc);
+	LOG(3, "type %d, uid %p", src->type, usc);
 
-	os_stat_t st;
+	if (src->type == PMEM2_SOURCE_ANON) {
+		ERR("Anonymous source does not support unsafe shutdown count");
+		return PMEM2_E_NOSUPP;
+	}
+
+	ASSERTeq(src->type, PMEM2_SOURCE_FD);
+
 	struct ndctl_ctx *ctx;
 	int ret = -1;
 	*usc = 0;
-
-	if (os_fstat(src->fd, &st)) {
-		ERR("!stat %d", src->fd);
-		return PMEM2_E_ERRNO;
-	}
 
 	if (ndctl_new(&ctx)) {
 		ERR("!ndctl_new");
@@ -57,7 +58,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 	}
 
 	struct ndctl_interleave_set *iset =
-		usc_interleave_set(ctx, &st);
+		usc_interleave_set(ctx, &src->value.st);
 
 	if (iset == NULL)
 		goto out;
@@ -83,17 +84,17 @@ err:
 int
 pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 {
-	os_stat_t st;
-
 	struct ndctl_ctx *ctx;
 	struct ndctl_interleave_set *set;
 	struct ndctl_dimm *dimm;
 	int ret = 0;
 
-	if (os_fstat(src->fd, &st)) {
-		ERR("!stat %d", src->fd);
-		return PMEM2_E_ERRNO;
+	if (src->type == PMEM2_SOURCE_ANON) {
+		ERR("Anonymous source does not have device id");
+		return PMEM2_E_NOSUPP;
 	}
+
+	ASSERTeq(src->type, PMEM2_SOURCE_FD);
 
 	if (ndctl_new(&ctx)) {
 		ERR("!ndctl_new");
@@ -104,7 +105,7 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 		*len = 1; /* '\0' */
 	}
 
-	set = usc_interleave_set(ctx, &st);
+	set = usc_interleave_set(ctx, &src->value.st);
 	if (set == NULL)
 		goto end;
 

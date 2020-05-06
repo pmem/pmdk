@@ -113,8 +113,6 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	size_t file_size;
 	*map_ptr = NULL;
 
-	ASSERTne(src->handle, INVALID_HANDLE_VALUE);
-
 	if ((int)cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
 		ERR(
 			"please define the max granularity requested for the mapping");
@@ -147,12 +145,21 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	if (ret)
 		return ret;
 
+	HANDLE map_handle = INVALID_HANDLE_VALUE;
+	if (src->type == PMEM2_SOURCE_HANDLE) {
+		map_handle = src->value.handle;
+	} else if (src->type == PMEM2_SOURCE_ANON) {
+		/* no extra settings */
+	} else {
+		ASSERT(0);
+	}
+
 	/* create a file mapping handle */
 	DWORD access = FILE_MAP_ALL_ACCESS;
-	HANDLE mh = create_mapping(src->handle, offset, length,
+	HANDLE mh = create_mapping(map_handle, offset, length,
 			PAGE_READWRITE, &err);
 	if (err == ERROR_ACCESS_DENIED) {
-		mh = create_mapping(src->handle, offset, length,
+		mh = create_mapping(map_handle, offset, length,
 				PAGE_READONLY, &err);
 		access = FILE_MAP_READ;
 	}
@@ -204,15 +211,23 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 		goto err_unmap_base;
 	}
 
-	int direct_access = is_direct_access(src->handle);
-	if (direct_access < 0) {
-		ret = direct_access;
-		goto err_unmap_base;
-	}
-
-	bool eADR = (pmem2_auto_flush() == 1);
 	enum pmem2_granularity available_min_granularity =
-		get_min_granularity(eADR, direct_access, cfg->sharing);
+		PMEM2_GRANULARITY_PAGE;
+	if (src->type == PMEM2_SOURCE_HANDLE) {
+		int direct_access = is_direct_access(src->value.handle);
+		if (direct_access < 0) {
+			ret = direct_access;
+			goto err_unmap_base;
+		}
+
+		bool eADR = (pmem2_auto_flush() == 1);
+		available_min_granularity =
+			get_min_granularity(eADR, direct_access, cfg->sharing);
+	} else if (src->type == PMEM2_SOURCE_ANON) {
+		available_min_granularity = PMEM2_GRANULARITY_BYTE;
+	} else {
+		ASSERT(0);
+	}
 
 	if (available_min_granularity > cfg->requested_max_granularity) {
 		const char *err = granularity_err_msg
@@ -243,7 +258,7 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	map->reserved_length = length;
 	map->content_length = length;
 	map->effective_granularity = available_min_granularity;
-	map->handle = src->handle;
+	map->source = *src;
 	pmem2_set_flush_fns(map);
 	pmem2_set_mem_fns(map);
 
