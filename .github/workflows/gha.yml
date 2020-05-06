@@ -114,18 +114,35 @@ jobs:
                echo "`$Env:PMEM_FS_DIR_FORCE_PMEM = `"1`"" >> testconfig.ps1
                echo "`$Env:PMDK_NO_ABORT_MSG = `"1`"" >> testconfig.ps1
                echo "`$Env:TM = `"1`"" >> testconfig.ps1
-               write-output "config = {'unittest_log_level': 1, 'pmem_fs_dir': 'C:\\temp', 'non_pmem_fs_dir': 'C:\\temp', 'tm': True, 'test_type': 'check', 'fs': 'all', 'fs_dir_force_pmem': 1, 'keep_going': False, 'timeout': '4m', 'build': 'debug', 'force_enable': None}" | out-file "testconfig.py" -encoding utf8
+               write-output "config = {
+                                       'unittest_log_level': 1,
+                                       'cacheline_fs_dir': 'C:\\temp',
+                                       'force_cacheline': True,
+                                       'page_fs_dir': 'C:\\temp',
+                                       'force_page': False,
+                                       'byte_fs_dir': 'C:\\temp',
+                                       'force_byte': True,
+                                       'tm': True,
+                                       'test_type': 'check',
+                                       'granularity': 'all',
+                                       'fs_dir_force_pmem': 1,
+                                       'keep_going': False,
+                                       'timeout': '4m',
+                                       'build': 'debug',
+                                       'force_enable': None,
+                                       'fail_on_skip': False,
+                                        }" | out-file "testconfig.py" -encoding utf8
 
                if ("${{ matrix.CONFIG }}" -eq "Debug") {
                    ./RUNTESTS.ps1 -b debug -o 4m
                    if ($?) {
-                       ./RUNTESTS.py -b debug
+                       python ./RUNTESTS.py -b debug
                    }
                }
                if ("${{ matrix.CONFIG }}" -eq "Release") {
                    ./RUNTESTS.ps1 -b nondebug -o 4m
                    if ($?) {
-                       ./RUNTESTS.py -b release
+                       python ./RUNTESTS.py -b release
                    }
                }
            }
