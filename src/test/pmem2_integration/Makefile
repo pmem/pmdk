@@ -12,7 +12,8 @@ TARGET = pmem2_integration
 OBJS = pmem2_integration.o\
 	ut_pmem2_utils.o\
 	ut_pmem2_config.o\
-	ut_pmem2_source.o
+	ut_pmem2_source.o\
+	ut_pmem2_setup_integration.o
 
 LIBPMEM2=y
 
