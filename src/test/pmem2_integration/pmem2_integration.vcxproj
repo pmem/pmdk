@@ -71,6 +71,7 @@
     <ClCompile Include="..\unittest\ut_pmem2_config.c" />
     <ClCompile Include="..\unittest\ut_pmem2_source.c" />
     <ClCompile Include="..\unittest\ut_pmem2_utils.c" />
+    <ClCompile Include="..\unittest\ut_pmem2_setup_integration.c" />
     <ClCompile Include="pmem2_integration.c" />
   </ItemGroup>
   <ItemGroup>
