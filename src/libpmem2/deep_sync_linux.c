@@ -61,10 +61,8 @@ pmem2_deep_sync_write(int region_id)
 int
 pmem2_deep_sync_dax(struct pmem2_map *map)
 {
-	enum pmem2_file_type type;
-	int ret = pmem2_get_type_from_stat(&map->src_fd_st, &type);
-	if (ret)
-		return ret;
+	int ret;
+	enum pmem2_file_type type = map->source.value.file;
 
 	if (type == PMEM2_FTYPE_REG) {
 		size_t len = Pagesize;
@@ -76,10 +74,10 @@ pmem2_deep_sync_dax(struct pmem2_map *map)
 		}
 	} else if (type == PMEM2_FTYPE_DEVDAX) {
 		int region_id = ret = pmem2_device_dax_region_find(
-				&map->src_fd_st);
+				&map->source.value.st);
 		if (ret < 0) {
 			LOG(1, "cannot find region id for stat %p",
-				&map->src_fd_st);
+				&map->source.value.st);
 			return ret;
 		}
 		ret = pmem2_deep_sync_write(region_id);
