@@ -119,13 +119,13 @@ jobs:
                if ("${{ matrix.CONFIG }}" -eq "Debug") {
                    ./RUNTESTS.ps1 -b debug -o 4m
                    if ($?) {
-                       ./RUNTESTS.py -b debug
+                       python ./RUNTESTS.py -b debug
                    }
                }
                if ("${{ matrix.CONFIG }}" -eq "Release") {
                    ./RUNTESTS.ps1 -b nondebug -o 4m
                    if ($?) {
-                       ./RUNTESTS.py -b release
+                       python ./RUNTESTS.py -b release
                    }
                }
            }
