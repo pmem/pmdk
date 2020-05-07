@@ -109,7 +109,7 @@
     <ClInclude Include="mmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="os_badblock.h">
+    <ClInclude Include="badblocks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="os_deep.h">

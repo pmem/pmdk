@@ -14,7 +14,7 @@
 #include "os_deep.h"
 #include "set.h"
 #include "libpmem2.h"
-#include "../libpmem2/badblocks.h"
+#include "badblocks.h"
 #include "../libpmem2/pmem2_utils.h"
 
 #define FLUSH_SDS(sds, rep) \

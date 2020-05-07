@@ -13,9 +13,8 @@
 #include "file.h"
 #include "os.h"
 #include "out.h"
-#include "os_badblock.h"
 #include "set_badblocks.h"
-#include "../libpmem2/badblocks.h"
+#include "badblocks.h"
 
 /* helper structure for badblocks_check_file_cb() */
 struct check_file_cb {
