@@ -13,7 +13,7 @@
 #include "out.h"
 #include "os.h"
 #include "persist.h"
-#include "deep_sync.h"
+#include "deep_flush.h"
 #include "pmem2_arch.h"
 #include "valgrind_internal.h"
 
@@ -286,27 +286,27 @@ pmem2_drain_nop(void)
 }
 
 /*
- * pmem2_deep_sync_page -- do nothing - pmem2_persist_fn already did msync
+ * pmem2_deep_flush_page -- do nothing - pmem2_persist_fn already did msync
  */
 int
-pmem2_deep_sync_page(struct pmem2_map *map, void *ptr, size_t size)
+pmem2_deep_flush_page(struct pmem2_map *map, void *ptr, size_t size)
 {
 	LOG(3, "map %p ptr %p size %zu", map, ptr, size);
 	return 0;
 }
 
 /*
- * pmem2_deep_sync_cache -- flush buffers for fsdax or write
+ * pmem2_deep_flush_cache -- flush buffers for fsdax or write
  * to deep_flush for DevDax
  */
 int
-pmem2_deep_sync_cache(struct pmem2_map *map, void *ptr, size_t size)
+pmem2_deep_flush_cache(struct pmem2_map *map, void *ptr, size_t size)
 {
 	LOG(3, "map %p ptr %p size %zu", map, ptr, size);
 
-	int ret = pmem2_deep_sync_dax(map);
+	int ret = pmem2_deep_flush_dax(map);
 	if (ret < 0) {
-		LOG(1, "cannot perform deep sync cache for map %p", map);
+		LOG(1, "cannot perform deep flush cache for map %p", map);
 		return ret;
 	}
 
@@ -314,17 +314,17 @@ pmem2_deep_sync_cache(struct pmem2_map *map, void *ptr, size_t size)
 }
 
 /*
- * pmem2_deep_sync_byte -- flush cpu cache and perform deep sync for dax
+ * pmem2_deep_flush_byte -- flush cpu cache and perform deep flush for dax
  */
 int
-pmem2_deep_sync_byte(struct pmem2_map *map, void *ptr, size_t size)
+pmem2_deep_flush_byte(struct pmem2_map *map, void *ptr, size_t size)
 {
 	LOG(3, "map %p ptr %p size %zu", map, ptr, size);
 
 	pmem2_persist_cpu_cache(ptr, size);
-	int ret = pmem2_deep_sync_dax(map);
+	int ret = pmem2_deep_flush_dax(map);
 	if (ret < 0) {
-		LOG(1, "cannot perform deep sync byte for map %p", map);
+		LOG(1, "cannot perform deep flush byte for map %p", map);
 		return ret;
 	}
 
@@ -342,19 +342,19 @@ pmem2_set_flush_fns(struct pmem2_map *map)
 			map->persist_fn = pmem2_persist_pages;
 			map->flush_fn = pmem2_persist_pages;
 			map->drain_fn = pmem2_drain_nop;
-			map->deep_sync_fn = pmem2_deep_sync_page;
+			map->deep_flush_fn = pmem2_deep_flush_page;
 			break;
 		case PMEM2_GRANULARITY_CACHE_LINE:
 			map->persist_fn = pmem2_persist_cpu_cache;
 			map->flush_fn = pmem2_flush_cpu_cache;
 			map->drain_fn = pmem2_drain;
-			map->deep_sync_fn = pmem2_deep_sync_cache;
+			map->deep_flush_fn = pmem2_deep_flush_cache;
 			break;
 		case PMEM2_GRANULARITY_BYTE:
 			map->persist_fn = pmem2_persist_noflush;
 			map->flush_fn = pmem2_flush_nop;
 			map->drain_fn = pmem2_drain;
-			map->deep_sync_fn = pmem2_deep_sync_byte;
+			map->deep_flush_fn = pmem2_deep_flush_byte;
 			break;
 		default:
 			abort();

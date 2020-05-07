@@ -562,10 +562,10 @@ test_mem_move_cpy_set_with_map_private(const struct test_case *tc, int argc,
 }
 
 /*
- * test_deep_sync_valid -- perform valid deep_sync for whole map
+ * test_deep_flush_valid -- perform valid deep_flush for whole map
  */
 static int
-test_deep_sync_valid(const struct test_case *tc, int argc, char *argv[])
+test_deep_flush_valid(const struct test_case *tc, int argc, char *argv[])
 {
 	char *file = argv[0];
 	int fd = OPEN(file, O_RDWR);
@@ -584,7 +584,7 @@ test_deep_sync_valid(const struct test_case *tc, int argc, char *argv[])
 	memset(addr, 0, len);
 	persist_fn(addr, len);
 
-	int ret = pmem2_deep_sync(map, addr, len);
+	int ret = pmem2_deep_flush(map, addr, len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	pmem2_unmap(&map);
@@ -596,10 +596,10 @@ test_deep_sync_valid(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * test_deep_sync_e_range_behind -- try deep_sync for range behind a map
+ * test_deep_flush_e_range_behind -- try deep_flush for range behind a map
  */
 static int
-test_deep_sync_e_range_behind(const struct test_case *tc,
+test_deep_flush_e_range_behind(const struct test_case *tc,
 	int argc, char *argv[])
 {
 	char *file = argv[0];
@@ -620,8 +620,8 @@ test_deep_sync_e_range_behind(const struct test_case *tc,
 	memset(addr, 0, len);
 	persist_fn(addr, len);
 
-	int ret = pmem2_deep_sync(map, addr + map_size + 1, 64);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_SYNC_RANGE);
+	int ret = pmem2_deep_flush(map, addr + map_size + 1, 64);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_DEEP_FLUSH_RANGE);
 
 	pmem2_unmap(&map);
 	PMEM2_CONFIG_DELETE(&cfg);
@@ -632,10 +632,10 @@ test_deep_sync_e_range_behind(const struct test_case *tc,
 }
 
 /*
- * test_deep_sync_e_range_before -- try deep_sync for range before a map
+ * test_deep_flush_e_range_before -- try deep_flush for range before a map
  */
 static int
-test_deep_sync_e_range_before(const struct test_case *tc,
+test_deep_flush_e_range_before(const struct test_case *tc,
 	int argc, char *argv[])
 {
 	char *file = argv[0];
@@ -656,8 +656,8 @@ test_deep_sync_e_range_before(const struct test_case *tc,
 	memset(addr, 0, len);
 	persist_fn(addr, len);
 
-	int ret = pmem2_deep_sync(map, addr - map_size, 64);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_SYNC_RANGE);
+	int ret = pmem2_deep_flush(map, addr - map_size, 64);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_DEEP_FLUSH_RANGE);
 
 	pmem2_unmap(&map);
 	PMEM2_CONFIG_DELETE(&cfg);
@@ -668,10 +668,10 @@ test_deep_sync_e_range_before(const struct test_case *tc,
 }
 
 /*
- * test_deep_sync_slice -- try deep_sync for slice of a map
+ * test_deep_flush_slice -- try deep_flush for slice of a map
  */
 static int
-test_deep_sync_slice(const struct test_case *tc, int argc, char *argv[])
+test_deep_flush_slice(const struct test_case *tc, int argc, char *argv[])
 {
 	char *file = argv[0];
 	int fd = OPEN(file, O_RDWR);
@@ -692,7 +692,7 @@ test_deep_sync_slice(const struct test_case *tc, int argc, char *argv[])
 	memset(addr, 0, map_part);
 	persist_fn(addr, map_part);
 
-	int ret = pmem2_deep_sync(map, addr + map_part, map_part);
+	int ret = pmem2_deep_flush(map, addr + map_part, map_part);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	pmem2_unmap(&map);
@@ -704,10 +704,10 @@ test_deep_sync_slice(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * test_deep_sync_overlap -- try deep_sync for range overlaping map
+ * test_deep_flush_overlap -- try deep_flush for range overlaping map
  */
 static int
-test_deep_sync_overlap(const struct test_case *tc, int argc, char *argv[])
+test_deep_flush_overlap(const struct test_case *tc, int argc, char *argv[])
 {
 	char *file = argv[0];
 	int fd = OPEN(file, O_RDWR);
@@ -727,8 +727,8 @@ test_deep_sync_overlap(const struct test_case *tc, int argc, char *argv[])
 	memset(addr, 0, len);
 	persist_fn(addr, len);
 
-	int ret = pmem2_deep_sync(map, addr + 1024, map_size);
-	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_SYNC_RANGE);
+	int ret = pmem2_deep_flush(map, addr + 1024, map_size);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_DEEP_FLUSH_RANGE);
 
 	pmem2_unmap(&map);
 	PMEM2_CONFIG_DELETE(&cfg);
@@ -752,11 +752,11 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_offset_not_aligned),
 	TEST_CASE(test_offset_aligned),
 	TEST_CASE(test_mem_move_cpy_set_with_map_private),
-	TEST_CASE(test_deep_sync_valid),
-	TEST_CASE(test_deep_sync_e_range_behind),
-	TEST_CASE(test_deep_sync_e_range_before),
-	TEST_CASE(test_deep_sync_slice),
-	TEST_CASE(test_deep_sync_overlap),
+	TEST_CASE(test_deep_flush_valid),
+	TEST_CASE(test_deep_flush_e_range_behind),
+	TEST_CASE(test_deep_flush_e_range_before),
+	TEST_CASE(test_deep_flush_slice),
+	TEST_CASE(test_deep_flush_overlap),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

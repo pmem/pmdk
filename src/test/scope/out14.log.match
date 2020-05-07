@@ -12,7 +12,7 @@ pmem2_config_set_protection
 pmem2_config_set_required_store_granularity
 pmem2_config_set_sharing
 pmem2_config_set_vm_reservation
-pmem2_deep_sync
+pmem2_deep_flush
 pmem2_errormsgU
 pmem2_errormsgW
 pmem2_get_drain_fn

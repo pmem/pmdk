@@ -20,7 +20,7 @@ truncate -s 2M $DIR/testfile1
 expect_normal_exit ./pmem_deep_persist$EXESUFFIX $DIR/testfile1 p 0 0
 
 count_lines "<libpmemobj>: <15>.*pmem\.c.*pmem_msync.*" pmemobj$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
-count_lines "<libpmemobj>: <3>.*deep_sync_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <3>.*deep_flush_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
 
 check
 

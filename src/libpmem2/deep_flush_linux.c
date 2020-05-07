@@ -2,7 +2,7 @@
 /* Copyright 2020, Intel Corporation */
 
 /*
- * deep_sync_linux.c -- deeep_sync functionality
+ * deep_flush_linux.c -- deep_flush functionality
  */
 
 #include <errno.h>
@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "deep_sync.h"
+#include "deep_flush.h"
 #include "libpmem2.h"
 #include "map.h"
 #include "os.h"
@@ -20,11 +20,11 @@
 #include "region_namespace.h"
 
 /*
- * pmem2_deep_sync_write -- perform write to deep_flush file
+ * pmem2_deep_flush_write -- perform write to deep_flush file
  * on given region_id
  */
 int
-pmem2_deep_sync_write(unsigned region_id)
+pmem2_deep_flush_write(unsigned region_id)
 {
 	LOG(3, "region_id %d", region_id);
 
@@ -50,12 +50,12 @@ pmem2_deep_sync_write(unsigned region_id)
 }
 
 /*
- * pmem2_deep_sync_dax -- reads file type for map and check
+ * pmem2_deep_flush_dax -- reads file type for map and check
  * if it is device dax or reg file, depend on file type
- * performs proper sync operation
+ * performs proper flush operation
  */
 int
-pmem2_deep_sync_dax(struct pmem2_map *map)
+pmem2_deep_flush_dax(struct pmem2_map *map)
 {
 	enum pmem2_file_type type;
 	int ret = pmem2_get_type_from_stat(&map->src_fd_st, &type);
@@ -79,7 +79,7 @@ pmem2_deep_sync_dax(struct pmem2_map *map)
 				&map->src_fd_st);
 			return ret;
 		}
-		ret = pmem2_deep_sync_write(region_id);
+		ret = pmem2_deep_flush_write(region_id);
 		if (ret) {
 			LOG(1, "cannot write to deep_flush file for region %d",
 				region_id);

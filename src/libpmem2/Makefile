@@ -16,7 +16,7 @@ SOURCE =\
 	badblocks.c\
 	badblocks_$(OS_DIMM).c\
 	config.c\
-	deep_sync.c\
+	deep_flush.c\
 	errormsg.c\
 	memops_generic.c\
 	map.c\
@@ -33,13 +33,13 @@ SOURCE =\
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
 	auto_flush_linux.c\
-	deep_sync_linux.c\
+	deep_flush_linux.c\
 	extent_linux.c\
 	pmem2_utils_linux.c
 else
 SOURCE +=\
 	auto_flush_none.c\
-	deep_sync_other.c\
+	deep_flush_other.c\
 	extent_none.c\
 	pmem2_utils_other.c
 endif

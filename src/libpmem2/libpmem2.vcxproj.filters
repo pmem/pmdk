@@ -120,10 +120,10 @@
     <ClCompile Include="source_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="deep_sync_windows.c">
+    <ClCompile Include="deep_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="deep_sync.c">
+    <ClCompile Include="deep_flush.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pmem2_utils_other.c">
@@ -191,7 +191,7 @@
     <ClInclude Include="source.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="deep_sync.h">
+    <ClInclude Include="deep_flush.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="persist.h">

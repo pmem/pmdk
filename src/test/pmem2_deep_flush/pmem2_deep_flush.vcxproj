@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DAB9D54F-3195-463F-8FB2-DF32E5954A18}</ProjectGuid>
-    <RootNamespace>pmem2_deep_sync</RootNamespace>
+    <ProjectGuid>{F7508935-C65A-4521-88E3-76AB24F2978D}</ProjectGuid>
+    <RootNamespace>pmem2_deep_flush</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -75,11 +75,11 @@
     <None Include="TESTS.py" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpmem2\deep_sync.c" />
-    <ClCompile Include="..\..\libpmem2\deep_sync_windows.c" />
+    <ClCompile Include="..\..\libpmem2\deep_flush.c" />
+    <ClCompile Include="..\..\libpmem2\deep_flush_windows.c" />
     <ClCompile Include="..\..\libpmem2\memops_generic.c" />
     <ClCompile Include="..\..\libpmem2\persist.c" />
-    <ClCompile Include="pmem2_deep_sync.c" />
+    <ClCompile Include="pmem2_deep_flush.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
