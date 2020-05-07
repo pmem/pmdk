@@ -723,7 +723,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hashmap_tx", "examples\libp
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem2_map", "test\pmem2_map\pmem2_map.vcxproj", "{D9A70E35-0C85-4A09-ACA8-B15B21B66F50}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem2_deep_sync", "test\pmem2_deep_sync\pmem2_deep_sync.vcxproj", "{DAB9D54F-3195-463F-8FB2-DF32E5954A18}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem2_deep_flush", "test\pmem2_deep_flush\pmem2_deep_flush.vcxproj", "{DAB9D54F-3195-463F-8FB2-DF32E5954A18}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "blk_recovery", "test\blk_recovery\blk_recovery.vcxproj", "{DB68AB21-510B-4BA1-9E6F-E5731D8647BC}"
 EndProject

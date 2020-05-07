@@ -26,7 +26,7 @@ $FileContent = Get-Content "pmemobj$Env:UNITTEST_NUM.log"
 $Matches = $FileContent | Select-String -Pattern "<libpmemobj>: <15>.*pmem\.c.*pmem_msync.*"
 $Matches.Matches.Count > grep$Env:UNITTEST_NUM.log
 
-# Instead of count deep_sync_write
+# Instead of count deep_flush_write
 echo 0 >> grep$Env:UNITTEST_NUM.log
 
 check
