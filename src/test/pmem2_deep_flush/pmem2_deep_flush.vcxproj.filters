@@ -22,13 +22,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="pmem2_deep_sync.c">
+    <ClCompile Include="pmem2_deep_flush.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem2\deep_sync.c">
+    <ClCompile Include="..\..\libpmem2\deep_flush.c">
       <Filter>Libpmem2</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem2\deep_sync_windows.c">
+    <ClCompile Include="..\..\libpmem2\deep_flush_windows.c">
       <Filter>Libpmem2</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmem2\persist.c">

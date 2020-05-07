@@ -109,7 +109,7 @@
     <ClCompile Include="..\unittest\ut_pmem2_source.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmem2\deep_sync_windows.c">
+    <ClCompile Include="..\..\libpmem2\deep_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -80,7 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\core\alloc.c" />
-    <ClCompile Include="..\..\libpmem2\deep_sync_windows.c" />
+    <ClCompile Include="..\..\libpmem2\deep_flush_windows.c" />
     <ClCompile Include="..\..\libpmem2\memops_generic.c" />
     <ClCompile Include="..\..\libpmem2\persist.c" />
     <ClCompile Include="pmem2_persist.c" />

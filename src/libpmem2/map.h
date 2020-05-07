@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-typedef int (*pmem2_deep_sync_fn)(struct pmem2_map *map,
+typedef int (*pmem2_deep_flush_fn)(struct pmem2_map *map,
 		void *ptr, size_t size);
 
 struct pmem2_map {
@@ -33,7 +33,7 @@ struct pmem2_map {
 	pmem2_persist_fn persist_fn;
 	pmem2_flush_fn flush_fn;
 	pmem2_drain_fn drain_fn;
-	pmem2_deep_sync_fn deep_sync_fn;
+	pmem2_deep_flush_fn deep_flush_fn;
 
 	pmem2_memmove_fn memmove_fn;
 	pmem2_memcpy_fn memcpy_fn;

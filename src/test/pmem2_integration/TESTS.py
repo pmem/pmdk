@@ -205,28 +205,28 @@ class TEST22(PMEM2_INTEGRATION):
 
 
 class TEST23(PMEM2_INTEGRATION):
-    """test valid case of pmem2_deep_sync"""
-    test_case = "test_deep_sync_valid"
+    """test valid case of pmem2_deep_sflush"""
+    test_case = "test_deep_flush_valid"
 
 
 class TEST24(PMEM2_INTEGRATION):
-    """test deep sync with range out of map"""
-    test_case = "test_deep_sync_e_range_behind"
+    """test deep flush with range out of map"""
+    test_case = "test_deep_flush_e_range_behind"
 
 
 class TEST25(PMEM2_INTEGRATION):
-    """test deep sync with range out of map"""
-    test_case = "test_deep_sync_e_range_before"
+    """test deep flush with range out of map"""
+    test_case = "test_deep_flush_e_range_before"
 
 
 class TEST26(PMEM2_INTEGRATION):
-    """test deep sync with part of map"""
-    test_case = "test_deep_sync_slice"
+    """test deep flush with part of map"""
+    test_case = "test_deep_flush_slice"
 
 
 class TEST27(PMEM2_INTEGRATION):
-    """test deep sync with overlaping part"""
-    test_case = "test_deep_sync_overlap"
+    """test deep flush with overlaping part"""
+    test_case = "test_deep_flush_overlap"
 
 
 # XXX: add test cases with:

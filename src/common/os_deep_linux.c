@@ -16,7 +16,7 @@
 #include "file.h"
 #include "libpmem.h"
 #include "os_deep.h"
-#include "../libpmem2/deep_sync.h"
+#include "../libpmem2/deep_flush.h"
 
 /*
  * os_deep_type -- (internal) perform deep operation based on a pmem
@@ -31,7 +31,7 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 	case PMEM_DEV_DAX:
 		pmem_drain();
 
-		int ret = pmem2_deep_sync_write(mt->region_id);
+		int ret = pmem2_deep_flush_write(mt->region_id);
 		if (ret < 0) {
 			if (ret == PMEM2_E_NOSUPP) {
 				errno = ENOTSUP;
@@ -158,8 +158,8 @@ os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
 			return -1;
 		}
 
-		if (pmem2_deep_sync_write(region_id)) {
-			LOG(1, "pmem2_deep_sync_write(%u)",
+		if (pmem2_deep_flush_write(region_id)) {
+			LOG(1, "pmem2_deep_flush_write(%u)",
 				region_id);
 			return -1;
 		}

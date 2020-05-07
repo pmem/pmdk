@@ -17,7 +17,7 @@ LIBPMEMCORE=internal-debug
 OBJS += pmem2_persist.o\
 	persist.o\
 	memops_generic.o\
-	deep_sync_linux.o\
+	deep_flush_linux.o\
 	pmem2_utils_linux.o
 
 ifeq ($(OS_DIMM),ndctl)

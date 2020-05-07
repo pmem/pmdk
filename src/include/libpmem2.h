@@ -59,7 +59,7 @@ extern "C" {
 #define PMEM2_E_INVALID_ADDRESS_REQUEST_TYPE	(-100021)
 #define PMEM2_E_ADDRESS_UNALIGNED		(-100022)
 #define PMEM2_E_ADDRESS_NULL			(-100023)
-#define PMEM2_E_SYNC_RANGE			(-100024)
+#define PMEM2_E_DEEP_FLUSH_RANGE		(-100024)
 #define PMEM2_E_INVALID_REGION_FORMAT		(-100025)
 #define PMEM2_E_DAX_REGION_NOT_FOUND		(-100026)
 #define PMEM2_E_INVALID_DEV_FORMAT		(-100027)
@@ -193,7 +193,7 @@ pmem2_memset_fn pmem2_get_memset_fn(struct pmem2_map *map);
 
 /* RAS */
 
-int pmem2_deep_sync(struct pmem2_map *map, void *ptr, size_t size);
+int pmem2_deep_flush(struct pmem2_map *map, void *ptr, size_t size);
 
 #ifndef _WIN32
 int pmem2_source_device_id(const struct pmem2_source *src,
