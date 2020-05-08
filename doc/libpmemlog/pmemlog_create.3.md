@@ -134,6 +134,10 @@ cannot perform the consistency check due to other errors.
 Not all file systems support **posix_fallocate**(3). _UW(pmemlog_create) will
 fail if the underlying file system does not support **posix_fallocate**(3).
 
+_WINUX(==q== On Windows if _UW(pmemlog_create) is called on an existing file
+with FILE_ATTRIBUTE_SPARSE_FILE and FILE_ATTRIBUTE_COMPRESSED set,
+they will be removed, to physically allocate space for the pool.
+This is a workaround for _chsize() performance issues ==e==)
 # SEE ALSO #
 
 **pmempool**(1), **creat**(2), **posix_fallocate**(3),

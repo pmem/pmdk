@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 #
 # libpmempool_bttdev/TEST3 -- test for checking btt
@@ -8,7 +8,7 @@
 . ..\unittest\unittest.ps1
 
 require_test_type medium
-require_fs_type any
+require_fs_type non-pmem # dax on windows doesn't support sparse files
 #
 # For a large pool, util_map consumes so much memory.
 #

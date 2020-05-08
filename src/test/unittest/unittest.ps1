@@ -158,8 +158,10 @@ function truncate {
     [int64]$size_in_bytes = (convert_to_bytes $size)
 
     if (-Not (Test-Path $fname)) {
-        & $SPARSEFILE $fname $size_in_bytes 2>&1 1>> $Env:PREP_LOG_FILE
-
+        & $SPARSEFILE -vsl $size_in_bytes $fname 2>&1 1>> $Env:PREP_LOG_FILE
+        if ($Global:LASTEXITCODE -ne 0) {
+            fatal "Error $Global:LASTEXITCODE with sparsefile create"
+        }
     } else {
         $file = new-object System.IO.FileStream $fname, Open, ReadWrite
         $file.SetLength($size_in_bytes)
@@ -201,13 +203,12 @@ function create_file {
 #
 function create_holey_file {
     [int64]$size = (convert_to_bytes $args[0])
-    # it causes CreateFile with CREATE_ALWAYS flag
-    $mode = "-f"
+
     for ($i=1;$i -lt $args.count;$i++) {
         # need to call out to sparsefile.exe to create a sparse file, note
         # that initial version of DAX doesn't support sparse
         $fname = $args[$i]
-        & $SPARSEFILE $mode $fname $size
+        & $SPARSEFILE -nsl $size $fname
         if ($Global:LASTEXITCODE -ne 0) {
             fatal "Error $Global:LASTEXITCODE with sparsefile create"
         }
