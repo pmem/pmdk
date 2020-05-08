@@ -38,7 +38,7 @@
 #include <sys/locking.h>
 #include <errno.h>
 #include <pmemcompat.h>
-
+#include <windows.h>
 #include "alloc.h"
 #include "util.h"
 #include "os.h"
@@ -324,6 +324,39 @@ os_posix_fallocate(int fd, os_off_t offset, os_off_t len)
 	if (offset + len < offset)
 		return EFBIG;
 
+	HANDLE handle = (HANDLE)_get_osfhandle(fd);
+	if (handle == INVALID_HANDLE_VALUE) {
+		return -1;
+	}
+
+	FILE_ATTRIBUTE_TAG_INFO attributes;
+	if (!GetFileInformationByHandleEx(handle, FileAttributeTagInfo,
+			&attributes, sizeof(attributes))) {
+		return 1;
+	}
+
+	if (attributes.FileAttributes & FILE_ATTRIBUTE_SPARSE_FILE) {
+		DWORD unused;
+		FILE_SET_SPARSE_BUFFER buffer;
+		buffer.SetSparse = FALSE;
+
+		if (!DeviceIoControl(handle, FSCTL_SET_SPARSE, &buffer,
+				sizeof(buffer), NULL, 0, &unused,
+				NULL)) {
+			return 1;
+		}
+	}
+	if (attributes.FileAttributes & FILE_ATTRIBUTE_COMPRESSED) {
+		DWORD unused;
+		USHORT buffer = 0; /* magic undocumented value */
+
+		if (!DeviceIoControl(handle, FSCTL_SET_COMPRESSION,
+				&buffer, sizeof(buffer), NULL, 0,
+				&unused, NULL)) {
+			return 1;
+		}
+	}
+
 	/*
 	 * posix_fallocate should not clobber errno, but
 	 * _filelengthi64 might set errno.
@@ -343,7 +376,7 @@ os_posix_fallocate(int fd, os_off_t offset, os_off_t len)
 	if (requested_size <= current_size)
 		return 0;
 
-	return _chsize_s(fd, requested_size);
+	return os_ftruncate(fd, requested_size);
 }
 
 /*
@@ -352,7 +385,23 @@ os_posix_fallocate(int fd, os_off_t offset, os_off_t len)
 int
 os_ftruncate(int fd, os_off_t length)
 {
-	return _chsize_s(fd, length);
+	LARGE_INTEGER distanceToMove = {0};
+	distanceToMove.QuadPart = length;
+	HANDLE handle = (HANDLE)_get_osfhandle(fd);
+	if (handle == INVALID_HANDLE_VALUE) {
+		return -1;
+	}
+	if (!SetFilePointerEx(handle, distanceToMove, NULL, FILE_BEGIN)) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (!SetEndOfFile(handle)) {
+		int ret = GetLastError();
+		errno = EINVAL;
+		return ret;
+	}
+	return 0;
 }
 
 /*
