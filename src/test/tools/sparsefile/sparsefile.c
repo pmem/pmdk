@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * sparsefile.c -- a simple utility to create sparse files on Windows
@@ -13,13 +13,12 @@
 
 #include <windows.h>
 #include <stdio.h>
+#include <getopt.h>
 #include "util.h"
 
 #define MAXPRINT 8192
 
-static int Opt_verbose;
-static int Opt_sparse;
-static int Opt_force;
+static int Verbose;
 
 /*
  * out_err_vargs -- print error message
@@ -60,30 +59,22 @@ out_err(const wchar_t *fmt, ...)
  * print_file_size -- prints file size and its size on disk
  */
 static void
-print_file_size(const wchar_t *filename)
+print_file_size(HANDLE fh)
 {
 	LARGE_INTEGER filesize;
 	FILE_COMPRESSION_INFO fci;
 
-	HANDLE fh = CreateFileW(filename, GENERIC_READ,
-			FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-			OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (fh == INVALID_HANDLE_VALUE) {
-		out_err(L"CreateFile");
-		return;
-	}
-
 	BOOL ret = GetFileSizeEx(fh, &filesize);
 	if (ret == FALSE) {
 		out_err(L"GetFileSizeEx");
-		goto err;
+		return;
 	}
 
 	ret = GetFileInformationByHandleEx(fh, FileCompressionInfo,
 			&fci, sizeof(fci));
 	if (ret == FALSE) {
 		out_err(L"GetFileInformationByHandleEx");
-		goto err;
+		return;
 	}
 
 	if (filesize.QuadPart < 65536)
@@ -99,123 +90,187 @@ print_file_size(const wchar_t *filename)
 	else
 		fwprintf(stderr, L", actual size on disk: %lluKB\n",
 				fci.CompressedFileSize.QuadPart / 1024);
-
-err:
-	CloseHandle(fh);
 }
 
 /*
- * create_sparse_file -- creates sparse file of given size
+ * set_file_size - set file length
  */
 static int
-create_sparse_file(const wchar_t *filename, size_t len)
+set_file_size(HANDLE fh, size_t len)
 {
-	/* create zero-length file */
-	DWORD create = Opt_force ? CREATE_ALWAYS : CREATE_NEW;
-	HANDLE fh = CreateFileW(filename, GENERIC_READ | GENERIC_WRITE,
-			FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
-			create, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (fh == INVALID_HANDLE_VALUE) {
-		out_err(L"CreateFile");
-		return -1;
-	}
-	SetLastError(0);
-
-	/* check if sparse files are supported */
-	DWORD flags = 0;
-	BOOL ret = GetVolumeInformationByHandleW(fh, NULL, 0, NULL, NULL,
-			&flags, NULL, 0);
-	if (ret == FALSE) {
-		if (Opt_verbose || Opt_sparse)
-			out_err(L"GetVolumeInformationByHandle");
-	} else if ((flags & FILE_SUPPORTS_SPARSE_FILES) == 0) {
-		if (Opt_verbose || Opt_sparse)
-			out_err(L"Volume does not support sparse files.");
-		if (Opt_sparse)
-			goto err;
-	}
-
-	/* mark file as sparse */
-	if (flags & FILE_SUPPORTS_SPARSE_FILES) {
-		DWORD nbytes;
-		ret = DeviceIoControl(fh, FSCTL_SET_SPARSE, NULL, 0, NULL,
-				0, &nbytes, NULL);
-		if (ret == FALSE) {
-			if (Opt_verbose || Opt_sparse)
-				out_err(L"DeviceIoControl");
-			if (Opt_sparse)
-				goto err;
-		}
-	}
-
-	/* set file length */
 	LARGE_INTEGER llen;
 	llen.QuadPart = len;
 
-	ret = SetFilePointerEx(fh, llen, NULL, FILE_BEGIN);
+	int ret = SetFilePointerEx(fh, llen, NULL, FILE_BEGIN);
 	if (ret == FALSE) {
 		out_err(L"SetFilePointerEx");
-		goto err;
+		return 1;
 	}
 
 	ret = SetEndOfFile(fh);
 	if (ret == FALSE) {
 		out_err(L"SetEndOfFile");
-		goto err;
+		return 1;
 	}
 
-	CloseHandle(fh);
 	return 0;
+}
 
-err:
-	CloseHandle(fh);
-	DeleteFileW(filename);
-	return -1;
+/*
+ * set_sparse_file -- creates sparse file of given size
+ */
+static int
+set_sparse_file(HANDLE fh, int force)
+{
+	/* check if sparse files are supported */
+	DWORD flags = 0;
+	BOOL ret = GetVolumeInformationByHandleW(fh, NULL, 0, NULL, NULL,
+			&flags, NULL, 0);
+	if (ret == FALSE) {
+		out_err(L"GetVolumeInformationByHandle");
+		return 1;
+	}
+
+	if ((flags & FILE_SUPPORTS_SPARSE_FILES) == 0) {
+		return force ? 1 : 0;
+	}
+
+	DWORD nbytes;
+	ret = DeviceIoControl(fh, FSCTL_SET_SPARSE, NULL, 0, NULL,
+			0, &nbytes, NULL);
+	if (ret == FALSE) {
+		out_err(L"DeviceIoControl(FSCTL_SET_SPARSE)");
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * set_compressed_file -- creates sparse file of given size
+ */
+static int
+set_compressed_file(HANDLE fh, int force)
+{
+	/* check if sparse files are supported */
+	DWORD flags = 0;
+	BOOL ret = GetVolumeInformationByHandleW(fh, NULL, 0, NULL, NULL,
+		&flags, NULL, 0);
+	if (ret == FALSE) {
+		out_err(L"GetVolumeInformationByHandle");
+		return 1;
+	}
+
+	if ((flags & FILE_FILE_COMPRESSION) == 0) {
+		return force ? 1 : 0;
+	}
+
+	DWORD nbytes;
+	USHORT n = 1; /* magic undocumented value */
+	ret = DeviceIoControl(fh, FSCTL_SET_COMPRESSION, &n, sizeof(n), NULL, 0,
+		&nbytes, NULL);
+	if (ret == FALSE) {
+		out_err(L"DeviceIoControl(FSCTL_SET_COMPRESSION)");
+		return 1;
+	}
+	return 0;
 }
 
 int
-wmain(int argc, const wchar_t *argv[])
+main(int argc, char *argv[])
 {
 	util_suppress_errmsg();
+	wchar_t **wargv = CommandLineToArgvW(GetCommandLineW(), &argc);
+	for (int i = 0; i < argc; i++) {
+		argv[i] = util_toUTF8(wargv[i]);
+		if (argv[i] == NULL) {
+			for (i--; i >= 0; i--)
+				free(argv[i]);
+			out_err(L"Error during arguments conversion\n");
+			return 1;
+		}
+	}
+
 	if (argc < 2) {
-		fwprintf(stderr, L"Usage: %s filename len\n", argv[0]);
+		fprintf(stderr, "Usage: %s filename len\n", argv[0]);
 		exit(1);
 	}
 
 	int i = 1;
-	while (i < argc && argv[i][0] == '-') {
-		switch (argv[i][1]) {
+	int opt;
+	DWORD create_mode = OPEN_ALWAYS;
+	int compress = 0;
+	int sparse = 0;
+	int check = 0;
+	int force = 0;
+	long long len = 0;
+	while ((opt = getopt(argc, argv, "vnscfl:")) != -1) {
+		switch (opt) {
+			case 'p':
+				check = 1;
 			case 'v':
-				Opt_verbose = 1;
+				Verbose = 1;
 				break;
 			case 's':
-				Opt_sparse = 1;
+				sparse = 1;
 				break;
 			case 'f':
-				Opt_force = 1;
+				force = 1;
+				break;
+			case 'n':
+				create_mode = CREATE_ALWAYS;
+				break;
+			case 'c':
+				compress = 1;
+				break;
+			case 'l':
+				len = atoll(optarg);
+				if (len < 0) {
+					out_err(L"Invalid file length: %lld.\n",
+						len);
+					exit(3);
+				}
 				break;
 			default:
 				out_err(L"Unknown option: \'%c\'.", argv[i][1]);
 				exit(2);
 		}
-		++i;
 	}
 
-	const wchar_t *filename = argv[i];
-	long long len = _wtoll(argv[i + 1]);
-
-	if (len < 0) {
-		out_err(L"Invalid file length: %lld.\n", len);
-		exit(3);
+	wchar_t *filename = util_toUTF16(argv[optind]);
+	if (filename == NULL) {
+		out_err(L"util_toUTF16");
+		return 1;
 	}
 
-	if (create_sparse_file(filename, len) < 0) {
-		out_err(L"File creation failed.");
-		exit(4);
+	/* create zero-length file */
+	HANDLE fh = CreateFileW(filename, GENERIC_READ | GENERIC_WRITE,
+				FILE_SHARE_READ | FILE_SHARE_WRITE, NULL,
+				create_mode, FILE_ATTRIBUTE_NORMAL, NULL);
+	util_free_UTF16(filename);
+	if (fh == INVALID_HANDLE_VALUE) {
+		out_err(L"CreateFile");
+		return -1;
+	}
+	if (sparse && set_sparse_file(fh, force)) {
+		return -1;
 	}
 
-	if (Opt_verbose)
-		print_file_size(filename);
+	if (compress && set_compressed_file(fh, force)) {
+		return -1;
+	}
+
+	if (len && set_file_size(fh, len)) {
+		return -1;
+	}
+
+	if (Verbose)
+		print_file_size(fh);
+
+	CloseHandle(fh);
+
+	for (int i = argc; i > 0; i--)
+		free(argv[i - 1]);
 
 	return 0;
 }
