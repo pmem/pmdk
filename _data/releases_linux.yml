@@ -51,6 +51,10 @@
         pmem_unmap.3
 
     libpmem2:
+        pmem2_badblock_clear.3
+        pmem2_badblock_context_delete.3
+        pmem2_badblock_context_new.3
+        pmem2_badblock_next.3
         pmem2_config_delete.3
         pmem2_config_get_alignment.3
         pmem2_config_get_file_size.3
