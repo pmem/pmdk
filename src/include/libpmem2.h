@@ -84,6 +84,15 @@ int pmem2_source_alignment(const struct pmem2_source *src,
 
 int pmem2_source_delete(struct pmem2_source **src);
 
+/* vmem reservation setup */
+
+struct pmem2_vm_reservation;
+
+int pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv,
+		size_t size, void *address);
+
+int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv);
+
 /* config setup */
 
 struct pmem2_config;
@@ -127,6 +136,9 @@ enum pmem2_address_request_type {
 
 int pmem2_config_set_address(struct pmem2_config *cfg, void *addr,
 		enum pmem2_address_request_type request_type);
+
+int pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
+		struct pmem2_vm_reservation *rsv, size_t offset);
 
 void pmem2_config_clear_address(struct pmem2_config *cfg);
 
@@ -226,15 +238,6 @@ void pmem2_badblock_context_delete(
 
 int pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 		const struct pmem2_badblock *bb);
-
-/* vmem reservation setup */
-
-struct pmem2_vm_reservation;
-
-int pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv,
-		size_t size, void *address);
-
-int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv);
 
 /* error handling */
 

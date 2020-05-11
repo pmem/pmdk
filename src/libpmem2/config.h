@@ -31,7 +31,4 @@ int pmem2_config_validate_length(const struct pmem2_config *cfg,
 int pmem2_config_validate_addr_alignment(const struct pmem2_config *cfg,
 		const struct pmem2_source *src);
 
-int pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
-		struct pmem2_vm_reservation *rsv, size_t offset);
-
 #endif /* PMEM2_CONFIG_H */
