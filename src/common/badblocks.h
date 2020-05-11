@@ -12,8 +12,6 @@
 #include <stdint.h>
 #include <sys/types.h>
 
-#include "os_badblock.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -69,6 +67,8 @@ int badblocks_get(const char *file, struct badblocks *bbs);
 
 int badblocks_clear(const char *path, struct badblocks *bbs);
 int badblocks_clear_all(const char *file);
+
+int badblocks_check_file(const char *path);
 
 #ifdef __cplusplus
 }

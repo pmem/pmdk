@@ -43,7 +43,7 @@
     <ClInclude Include="..\libpmem2\auto_flush_windows.h" />
     <ClInclude Include="ctl.h" />
     <ClInclude Include="ctl_global.h" />
-    <ClInclude Include="os_badblock.h" />
+    <ClInclude Include="badblocks.h" />
     <ClInclude Include="set_badblocks.h" />
     <ClInclude Include="dlsym.h" />
     <ClInclude Include="file.h" />
