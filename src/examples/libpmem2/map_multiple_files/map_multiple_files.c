@@ -1,0 +1,212 @@
+// SPDX-License-Identifier: BSD-3-Clause
+/* Copyright 2020, Intel Corporation */
+
+/*
+ * map_multiple_files.c -- implementation of virtual address allocation example
+ */
+
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#ifndef _WIN32
+#include <unistd.h>
+#else
+#include <io.h>
+#endif
+#include <libpmem2.h>
+
+/*
+ * file_dsc - a structure that keeps information about file mapping
+ */
+struct file_dsc {
+	int fd;
+	size_t size;
+	struct pmem2_source *src;
+	struct pmem2_map *map;
+};
+
+/*
+ * file_dsc_init - initialize file_dsc structure values
+ */
+static int
+file_dsc_init(struct file_dsc *fdsc, char *path)
+{
+	if ((fdsc->fd = open(path, O_RDWR)) < 0) {
+		perror("open");
+		goto fail;
+	}
+
+	if (pmem2_source_from_fd(&fdsc->src, fdsc->fd)) {
+		pmem2_perror("pmem2_source_from_fd");
+		goto file_close;
+	}
+
+	if (pmem2_source_size(fdsc->src, &fdsc->size)) {
+		pmem2_perror("pmem2_source_size");
+		goto source_delete;
+	}
+
+	return 0;
+
+source_delete:
+	pmem2_source_delete(&fdsc->src);
+file_close:
+	close(fdsc->fd);
+fail:
+	return 1;
+}
+
+/*
+ * file_dsc_fini - deinitialize file_dsc structure values
+ */
+static void
+file_dsc_fini(struct file_dsc *fdsc)
+{
+	close(fdsc->fd);
+	pmem2_source_delete(&fdsc->src);
+}
+
+/*
+ * file_check_align - check if file is aligned
+ */
+static int
+file_check_align(struct file_dsc *fdsc)
+{
+	size_t alignment;
+	pmem2_source_alignment(fdsc->src, &alignment);
+
+	if (fdsc->size % alignment != 0) {
+		fprintf(stderr,
+			"usage: files must be aligned\n");
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * files_check_memset - check if mappings retrieve the same memset function
+ */
+static int
+files_check_memset(struct file_dsc *fdsc, size_t nfiles,
+		pmem2_memset_fn memset_fn)
+{
+	for (int nmemset = 0; nmemset < nfiles; nmemset++) {
+		if (memset_fn != pmem2_get_memset_fn(fdsc[nmemset].map)) {
+			fprintf(stderr,
+				"usage: files have different file systems\n");
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * files_unmap - unmap mapped files
+ */
+static void
+files_unmap(struct file_dsc *fdsc, size_t nfiles)
+{
+	for (int nmap = 0; nmap < nfiles; nmap++) {
+		pmem2_unmap(&fdsc[nmap].map);
+	}
+}
+
+int
+main(int argc, char *argv[])
+{
+	int ret = 1;
+
+	if (argc < 2) {
+		fprintf(stderr,
+			"usage: ./map_multiple_files <file1> <file2> ...\n");
+		return ret;
+	}
+
+	size_t nfiles = argc - 1;
+
+	struct file_dsc *fdsc = malloc(sizeof(struct file_dsc) * nfiles);
+
+	int ninit;
+	for (ninit = 0; ninit < nfiles; ninit++) {
+		if (file_dsc_init(&fdsc[ninit], argv[ninit + 1])) {
+			goto fdsc_fini;
+		}
+	}
+
+	size_t reservation_size = 0;
+	for (int nsize = 0; nsize < nfiles; nsize++) {
+		reservation_size += fdsc[nsize].size;
+	}
+
+	for (int nalign = 0; nalign < nfiles; nalign++) {
+		if (file_check_align(&fdsc[nalign]))
+			goto fdsc_fini;
+	}
+
+	struct pmem2_vm_reservation *rsv;
+	if (pmem2_vm_reservation_new(&rsv, reservation_size, NULL)) {
+		pmem2_perror("pmem2_vm_reservation_new");
+		goto fdsc_fini;
+	}
+
+	struct pmem2_config *cfg;
+	if (pmem2_config_new(&cfg)) {
+		pmem2_perror("pmem2_config_new");
+		goto delete_vm_reservation;
+	}
+
+	if (pmem2_config_set_required_store_granularity(
+			cfg, PMEM2_GRANULARITY_PAGE)) {
+		pmem2_perror("pmem2_config_set_required_store_granularity");
+		goto delete_config;
+	}
+
+	size_t offset = 0;
+
+	int nmap;
+	for (nmap = 0; nmap < nfiles; nmap++) {
+		if (pmem2_config_set_vm_reservation(
+				cfg, rsv, offset) != PMEM2_E_NOSUPP) {
+			pmem2_perror("pmem2_config_set_vm_reservation");
+			goto unmap;
+		}
+
+		offset += fdsc[nmap].size;
+
+		if (pmem2_map(cfg, fdsc[nmap].src, &fdsc[nmap].map)) {
+			pmem2_perror("pmem2_map");
+			goto unmap;
+		}
+	}
+
+	char *addr = pmem2_map_get_address(fdsc[0].map);
+	if (addr == NULL) {
+		pmem2_perror("pmem2_map_get_address");
+		goto unmap;
+	}
+
+	pmem2_memset_fn memset_fn = pmem2_get_memset_fn(fdsc[0].map);
+
+	if (files_check_memset(fdsc, nfiles, memset_fn))
+		goto unmap;
+
+	memset_fn(addr, '-', reservation_size, PMEM2_F_MEM_NONTEMPORAL);
+
+	ret = 0;
+
+unmap:
+	files_unmap(fdsc, nmap);
+delete_config:
+	pmem2_config_delete(&cfg);
+delete_vm_reservation:
+	pmem2_vm_reservation_delete(&rsv);
+fdsc_fini:
+	for (ninit -= 1; ninit >= 0; ninit--)
+		file_dsc_fini(&fdsc[ninit]);
+	free(fdsc);
+	return ret;
+}
