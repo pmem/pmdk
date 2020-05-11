@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 #
 #
 # pmempool_sync_remote/TEST33 -- pmempool sync with remote replication
@@ -101,8 +101,8 @@ expect_bad_blocks_node 0 $NAMESPACE
 expect_normal_exit run_on_node 0 "../pmempool sync -b -v ${NODE_DIR[0]}$POOLSET_LOCAL &>> $LOG"
 expect_normal_exit run_on_node 0 "../obj_verify ${NODE_DIR[0]}$POOLSET_LOCAL $LAYOUT v &>> $LOG"
 
-ndctl_uninject_error_node 0 $NAMESPACE $FIRST_SECTOR_0 1
-ndctl_uninject_error_node 0 $NAMESPACE $FIRST_SECTOR_1 1
+ndctl_uninject_error_node 0 $FULLDEV $NAMESPACE $FIRST_SECTOR_0 1
+ndctl_uninject_error_node 0 $FULLDEV $NAMESPACE $FIRST_SECTOR_1 1
 badblock_test_fini_node 0 $MOUNT_DIR
 
 pass
