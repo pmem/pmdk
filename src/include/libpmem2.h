@@ -84,7 +84,7 @@ int pmem2_source_alignment(const struct pmem2_source *src,
 
 int pmem2_source_delete(struct pmem2_source **src);
 
-/* vmem reservation setup */
+/* vm reservation setup */
 
 struct pmem2_vm_reservation;
 
