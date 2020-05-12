@@ -138,4 +138,11 @@ config = {
     # Eg. ['/dev/dax0.0', '/dev/dax1.0']
     #
     'device_dax_path' : [],
+
+    #
+    # Enable tests that require administrative privileges.
+    # They can be potentially very harmful,
+    # so they have to be enabled deliberately.
+    #
+    'enable_admin_tests': False,
 }

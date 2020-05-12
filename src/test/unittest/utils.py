@@ -5,6 +5,11 @@
 
 import sys
 import platform
+import os
+import ctypes
+
+import configurator
+import futils
 
 HEADER_SIZE = 4096
 
@@ -43,6 +48,33 @@ def require_architectures(*archs):
         return tc
 
     return wrapped
+
+
+def require_admin(tc):
+    """
+    Enable test only if:
+    - 'enable_admin_tests' is set to 'True' in config and
+    - user has administrative privileges.
+    """
+    def util_is_admin():
+        if sys.platform == 'win32':
+            return ctypes.windll.shell32.IsUserAnAdmin() != 0
+        else:
+            return os.getuid() == 0
+
+    tc.enabled = False
+    config = configurator.Configurator().config
+    if config.enable_admin_tests:
+        if util_is_admin():
+            tc.enabled = True
+        else:
+            futils.fail('{}: FAILED: admin tests are enabled but the user'
+                        ' does not have administrative privileges'.format(tc))
+    else:
+        print('{}: SKIP: admin tests are disabled in config'
+              ' (enable_admin_tests)'.format(tc))
+
+    return tc
 
 
 def _os_only(tc, os_name):
