@@ -8,6 +8,7 @@
 #include <ex_common.h>
 #include <assert.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -320,12 +321,13 @@ has_only_one_child(TOID(struct tree_map_node) node, unsigned *child_idx)
 static void
 remove_extra_node(TOID(struct tree_map_node) *node)
 {
-	unsigned child_idx;
+	unsigned child_idx = UINT_MAX;
 	TOID(struct tree_map_node) tmp, tmp_child;
 
 	/* Our node has child with only one child. */
 	tmp = *node;
 	has_only_one_child(tmp, &child_idx);
+	assert(child_idx != UINT_MAX);
 	tmp_child = D_RO(tmp)->slots[child_idx];
 
 	/*
