@@ -320,7 +320,7 @@ has_only_one_child(TOID(struct tree_map_node) node, unsigned *child_idx)
 static void
 remove_extra_node(TOID(struct tree_map_node) *node)
 {
-	unsigned child_idx;
+	unsigned child_idx = 0;
 	TOID(struct tree_map_node) tmp, tmp_child;
 
 	/* Our node has child with only one child. */
