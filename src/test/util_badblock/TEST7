@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 
 #
 # src/test/util_badblock/TEST7 -- unit test for util_badblock
@@ -43,6 +43,8 @@ expect_normal_exit ./util_badblock$EXESUFFIX $FILE l c
 dd if=/dev/zero of=$FILE count=1 status=none
 
 expect_normal_exit ./util_badblock$EXESUFFIX $FILE l
+
+ndctl_uninject_error $FULLDEV $NAMESPACE $FIRST_SECTOR 1
 
 badblock_test_fini $MOUNT_DIR
 
