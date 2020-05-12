@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2019, Intel Corporation */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * memblock.c -- implementation of memory block
@@ -23,6 +23,7 @@
 #include "memblock.h"
 #include "out.h"
 #include "valgrind_internal.h"
+#include "alloc_class.h"
 
 /* calculates the size of the entire run, including any additional chunks */
 #define SIZEOF_RUN(runp, size_idx)\
@@ -468,13 +469,19 @@ memblock_run_bitmap(uint32_t *size_idx, uint16_t flags,
 static void
 run_get_bitmap(const struct memory_block *m, struct run_bitmap *b)
 {
-	struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
 	struct chunk_run *run = heap_get_chunk_run(m->heap, m);
 
-	uint32_t size_idx = hdr->size_idx;
-	memblock_run_bitmap(&size_idx, hdr->flags, run->hdr.block_size,
-		run->hdr.alignment, run->content, b);
-	ASSERTeq(size_idx, hdr->size_idx);
+	if (m->cached_bitmap != NULL) {
+		*b = *m->cached_bitmap;
+		b->values = (uint64_t *)run->content;
+	} else {
+		struct chunk_header *hdr = heap_get_chunk_hdr(m->heap, m);
+
+		uint32_t size_idx = hdr->size_idx;
+		memblock_run_bitmap(&size_idx, hdr->flags, run->hdr.block_size,
+			run->hdr.alignment, run->content, b);
+		ASSERTeq(size_idx, hdr->size_idx);
+	}
 }
 
 /*
@@ -1319,9 +1326,9 @@ memblock_huge_init(struct palloc_heap *heap,
  */
 struct memory_block
 memblock_run_init(struct palloc_heap *heap,
-	uint32_t chunk_id, uint32_t zone_id, uint32_t size_idx, uint16_t flags,
-	uint64_t unit_size, uint64_t alignment)
+	uint32_t chunk_id, uint32_t zone_id, struct run_descriptor *rdsc)
 {
+	uint32_t size_idx = rdsc->size_idx;
 	ASSERTne(size_idx, 0);
 
 	struct memory_block m = MEMORY_BLOCK_NONE;
@@ -1339,12 +1346,11 @@ memblock_run_init(struct palloc_heap *heap,
 
 	/* add/remove chunk_run and chunk_header to valgrind transaction */
 	VALGRIND_ADD_TO_TX(run, runsize);
-	run->hdr.block_size = unit_size;
-	run->hdr.alignment = alignment;
+	run->hdr.block_size = rdsc->unit_size;
+	run->hdr.alignment = rdsc->alignment;
 
-	struct run_bitmap b;
-	memblock_run_bitmap(&size_idx, flags, unit_size, alignment,
-		run->content, &b);
+	struct run_bitmap b = rdsc->bitmap;
+	b.values = (uint64_t *)run->content;
 
 	size_t bitmap_size = b.size;
 
@@ -1391,7 +1397,7 @@ memblock_run_init(struct palloc_heap *heap,
 	struct chunk_header run_hdr;
 	run_hdr.size_idx = hdr->size_idx;
 	run_hdr.type = CHUNK_TYPE_RUN;
-	run_hdr.flags = flags;
+	run_hdr.flags = rdsc->flags;
 	*hdr = run_hdr;
 	pmemops_persist(&heap->p_ops, hdr, sizeof(*hdr));
 
@@ -1399,6 +1405,7 @@ memblock_run_init(struct palloc_heap *heap,
 		sizeof(struct chunk_header) * size_idx);
 
 	memblock_rebuild_state(heap, &m);
+	m.cached_bitmap = &rdsc->bitmap;
 
 	return m;
 }
@@ -1470,6 +1477,14 @@ memblock_from_offset_opt(struct palloc_heap *heap, uint64_t off, int size)
 		off -= m.block_off * unit_size;
 	}
 
+	struct alloc_class_collection *acc = heap_alloc_classes(heap);
+	if (acc != NULL) {
+		struct alloc_class *ac = alloc_class_by_run(acc,
+			unit_size, hdr->flags, hdr->size_idx);
+		if (ac != NULL)
+			m.cached_bitmap = &ac->rdsc.bitmap;
+	}
+
 	m.size_idx = !size ? 0 : CALC_SIZE_IDX(unit_size,
 		memblock_header_ops[m.header_type].get_size(&m));
 
@@ -1501,4 +1516,5 @@ memblock_rebuild_state(struct palloc_heap *heap, struct memory_block *m)
 	m->header_type = memblock_header_type(m);
 	m->type = memblock_detect_type(heap, m);
 	m->m_ops = &mb_ops[m->type];
+	m->cached_bitmap = NULL;
 }
