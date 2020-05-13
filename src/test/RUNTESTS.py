@@ -42,13 +42,16 @@ class TestRunner:
             sys.exit('No testcases to run found for selected configuration.')
 
     def _check_admin(self):
+        """This check is valid only for linux OSes"""
+        if sys.platform == 'win32':
+            return
         if self.config.enable_admin_tests:
             try:
                 sp.check_output(['sudo', '-n', 'true'], stderr=sp.STDOUT)
             except sp.CalledProcessError:
-                sys.exit('Enabled "enable_admin_tests" requires a '
-                         'non-interactive sudo (no password required to '
-                         'perform a sudo command).')
+                sys.exit('Enabled "enable_admin_tests" requires '
+                         'the non-interactive sudo (no password required to '
+                         'perform the sudo command).')
 
     def run_tests(self):
         """Run selected testcases"""
