@@ -48,11 +48,11 @@ def require_architectures(*archs):
     return wrapped
 
 
-def require_sudo(tc):
+def require_admin(tc):
     """
-    Disable test if "allow_using_sudo" configuration is not set
+    Disable test if "enable_admin_tests" configuration is not set
     """
-    if not conf.Configurator().config.allow_using_sudo:
+    if not conf.Configurator().config.enable_admin_tests:
         tc.enabled = False
     return tc
 

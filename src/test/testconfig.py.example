@@ -139,10 +139,11 @@ config = {
     #
     'device_dax_path' : [],
 
+    # Enable tests that require administrative privileges.
+    # They can be potentially very harmful,
+    # so they have to be enabled deliberately.
+    # In case of linux OSes the 'sudo' command needs to be available
+    # in the non-interactive mode (no password required to perform the command).
     #
-    # This option needs to be enabled if tests require sudo.
-    # The sudo command needs to be available in non-interactive mode
-    # (no password required to perform a sudo command).
-    #
-    'allow_using_sudo': False
+    'enable_admin_tests': False
 }
