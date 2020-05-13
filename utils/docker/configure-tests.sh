@@ -99,7 +99,7 @@ config = {
 	'force_enable': None,
 	'device_dax_path': [],
 	'fail_on_skip': False,
-	'allow_using_sudo': True
+	'enable_admin_tests': True
    }
 EOF
 

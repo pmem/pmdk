@@ -8,7 +8,7 @@ from testframework import granularity as g
 
 @t.linux_only
 @g.no_testdir()
-@t.require_sudo
+@t.require_admin
 class TEST0(t.Test):
     test_type = t.Short
 
