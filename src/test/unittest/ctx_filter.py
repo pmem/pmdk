@@ -13,6 +13,7 @@ import builds
 import futils
 import granularity
 import devdax
+import requirements as req
 
 import context as ctx
 import valgrind as vg
@@ -42,6 +43,8 @@ class CtxFilter:
         Generate a list of context based on configuration and
         test requirements
         """
+        if not req.require_admin_is_met(self.tc):
+            return []
         conf_params = self._get_configured_params()
         common_params = self._get_common_params()
         ctx_arg_keys = list(conf_params.keys()) + list(common_params.keys())
