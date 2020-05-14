@@ -48,13 +48,16 @@ def require_architectures(*archs):
     return wrapped
 
 
-def require_admin(tc):
+def require_admin(**kwargs):
     """
     Disable test if "enable_admin_tests" configuration is not set
     """
-    if not conf.Configurator().config.enable_admin_tests:
-        tc.enabled = False
-    return tc
+    def wrapped(tc):
+        if not conf.Configurator().config.enable_admin_tests:
+            tc.enabled = False
+        return tc
+
+    return wrapped
 
 
 def _os_only(tc, os_name):
