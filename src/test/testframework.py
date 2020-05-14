@@ -17,6 +17,7 @@ sys.path.insert(1, path.abspath(path.join(path.dirname(__file__), 'unittest')))
 from basetest import BaseTest, Test, get_testcases  # noqa: E402, F401
 from context import *  # noqa: E402, F401, F403
 from configurator import *  # noqa: E402, F401, F403
+from requirements import *  # noqa: E402, F401, F403
 from valgrind import *  # noqa: E402, F401, F403
 from utils import *  # noqa: E402, F401, F403
 from poolset import *  # noqa: E402, F401, F403
