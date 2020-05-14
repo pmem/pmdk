@@ -137,6 +137,7 @@ jobs:
                                        'build': 'debug',
                                        'force_enable': None,
                                        'fail_on_skip': False,
+                                       'enable_admin_tests': False,
                                         }" | out-file "testconfig.py" -encoding utf8
 
                if ("${{ matrix.CONFIG }}" -eq "Debug") {
