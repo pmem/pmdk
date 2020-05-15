@@ -8,6 +8,10 @@
 
 TOP = ../../..
 
+include ../Makefile.inc
+
+ifeq ($(NDCTL_ENABLE),y)
+
 TARGET = pmem2_badblock_mocks
 
 OBJS += pmem2_badblock_mocks.o\
@@ -17,7 +21,12 @@ OBJS += pmem2_badblock_mocks.o\
 
 LIBPMEM2=internal-debug
 
-include ../Makefile.inc
 LDFLAGS += $(call extract_funcs, mocks_ndctl.c)
 LDFLAGS += $(call extract_funcs, mocks_pmem2.c)
 LDFLAGS += $(call extract_funcs, mocks_other.c)
+
+else
+
+$(info NOTE: Skipping pmem2_badblock_mocks test because ndctl is not available)
+
+endif
