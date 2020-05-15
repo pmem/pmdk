@@ -40,6 +40,10 @@ The **pmem2_map**() function creates a new mapping in the virtual address space
 of the calling process. This function requires a configuration
 *config* of the mapping and the data source *source*.
 
+For a mapping to succeed, the *config* structure must have the granularity
+parameter set to the appropriate level. See **pmem2_config_set_required_store_granularity**(3)
+and **libpmem2**(7) for more details.
+
 If the **pmem2_map**() function succeeds in creating a new mapping it
 instantiates a new *struct pmem2_map** object describing the mapping. The
 pointer to this newly created object is stored in the user-provided variable
@@ -56,6 +60,10 @@ be destroyed using the **pmem2_unmap**() function. For details please see
 
 When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
 one of the following error values:
+
+* **PMEM2_E_GRANULARITY_NOT_SET** - the store granularity for the mapping was
+not set in the provided *config* structure. Please see**pmem2_config_set_required_store_granularity**(3)
+and **libpmem2**(7).
 
 * **PMEM2_E_MAP_RANGE** - *offset* + *length* is too big to represent it using
 *size_t* data type
@@ -90,7 +98,8 @@ It can also return all errors from the underlying
 
 # SEE ALSO #
 
-**pmem2_unmap**(3), **pmem2_source_from_fd**(3),
-**pmem2_source_size**(3), **pmem2_source_alignment**(3),
-**libpmem2**(7), **mmap**(2), **open**(3) and
-**<http://pmem.io>**
+**mmap**(2), **open**(3),
+**pmem2_config_set_required_store_granularity**(3),
+**pmem2_source_alignment**(3), **pmem2_source_from_fd**(3),
+**pmem2_source_size**(3), **pmem2_unmap**(3),
+**libpmem2**(7) and **<http://pmem.io>**
