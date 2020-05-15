@@ -549,9 +549,10 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	unsigned e;
 	int ret;
 
+	*bb = BB_ZERO;
+
 	if (bbctx->rgn.region == NULL && bbctx->ndns == NULL) {
 		/* did not found any matching device */
-		*bb = BB_ZERO;
 		return PMEM2_E_NO_BAD_BLOCK_FOUND;
 	}
 
