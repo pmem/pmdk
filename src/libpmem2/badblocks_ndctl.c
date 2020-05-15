@@ -768,8 +768,7 @@ pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 	if (bbctx->file_type == PMEM2_FTYPE_DEVDAX)
 		return pmem2_badblock_clear_devdax(bbctx, bb);
 
-	if (bbctx->file_type == PMEM2_FTYPE_REG)
-		return pmem2_badblock_clear_fsdax(bbctx->fd, bb);
+	ASSERTeq(bbctx->file_type, PMEM2_FTYPE_REG);
 
-	return PMEM2_E_INVALID_FILE_TYPE;
+	return pmem2_badblock_clear_fsdax(bbctx->fd, bb);
 }
