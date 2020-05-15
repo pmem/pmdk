@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 
 #
 # src/test/pmem_is_pmem_posix/TEST1 -- unit test for pmem_is_pmem
@@ -10,6 +10,7 @@
 
 require_test_type medium
 require_fs_type none
+require_dax_devices 1
 
 setup
 
@@ -43,7 +44,7 @@ setup
 #	start at first mm entry, extends into second: should produce: 0
 
 expect_normal_exit ./pmem_is_pmem_posix$EXESUFFIX\
-	a 0x7fff77423000 4096 DEV_DAX\
+	a 0x7fff77423000 4096 DEV_DAX ${DEVICE_DAX_PATH[0]}\
 	\
 	t 0x7fff77423000 2147479552\
 	t 0x7fff77423000 2147483648\

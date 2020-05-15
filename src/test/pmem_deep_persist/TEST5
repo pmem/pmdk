@@ -22,7 +22,7 @@ DEEP_PERSIST_SIZE=$(convert_to_bytes 2M)
 expect_normal_exit ./pmem_deep_persist$EXESUFFIX $DIR/testset1 o $DEEP_PERSIST_SIZE $PAGE_SIZE
 
 count_lines "<libpmemobj>: <3>.*part_deep_common.*" pmemobj$UNITTEST_NUM.log > ./grep$UNITTEST_NUM.log
-count_lines "<libpmemobj>: <3>.*deep_sync_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
+count_lines "<libpmemobj>: <3>.*deep_flush_write.*" pmemobj$UNITTEST_NUM.log >> ./grep$UNITTEST_NUM.log
 
 check
 

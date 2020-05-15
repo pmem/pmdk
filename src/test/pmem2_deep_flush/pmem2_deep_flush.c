@@ -2,21 +2,21 @@
 /* Copyright 2020, Intel Corporation */
 
 /*
- * pmem2_deep_sync.c -- unit test for pmem_deep_sync()
+ * pmem2_deep_flush.c -- unit test for pmem_deep_flush()
  *
- * usage: pmem2_deep_sync file deep_persist_size offset
+ * usage: pmem2_deep_flush file deep_persist_size offset
  *
- * pmem2_deep_sync depending on the mapping granularity is performed using one
+ * pmem2_deep_flush depending on the mapping granularity is performed using one
  * of the following paths:
  * - page: NOP
- * - cache: pmem2_deep_sync_dax
- * - byte: pmem2_persist_cpu_cache + pmem2_deep_sync_dax
+ * - cache: pmem2_deep_flush_dax
+ * - byte: pmem2_persist_cpu_cache + pmem2_deep_flush_dax
  *
- * Where pmem2_deep_sync_dax:
+ * Where pmem2_deep_flush_dax:
  * - pmem2_get_type_from_stat is used to determine a file type
  * - for regular files performs pmem2_flush_file_buffers_os OR
  * - for Device DAX:
- *     - is looking for Device DAX region (pmem2_device_dax_region_find)
+ *     - is looking for Device DAX region (pmem2_get_region_id)
  *     - is constructing the region deep flush file paths
  *     - opens deep_flush file (os_open)
  *     - performs a write to it (write)
@@ -29,7 +29,7 @@
  * replaced:
  * - pmem2_get_type_from_stat (to control perceived file type)
  * - pmem2_flush_file_buffers_os (for counting calls)
- * - pmem2_device_dax_region_find (to prevent reading sysfs in search for non
+ * - pmem2_get_region_id (to prevent reading sysfs in search for non
  * existing Device DAXes)
  * or mocked:
  * - os_open (to prevent opening non existing
@@ -38,8 +38,8 @@
  * /sys/bus/nd/devices/region[0-9]+/deep_flush files)
  *
  * NOTE: In normal usage the persist function precedes any call to
- * pmem2_deep_sync. This test aims to validate the pmem2_deep_sync function and
- * so the persist function is omitted.
+ * pmem2_deep_flush. This test aims to validate the pmem2_deep_flush
+ * function and so the persist function is omitted.
  */
 
 #ifndef _WIN32
@@ -50,6 +50,7 @@
 #include "persist.h"
 #include "pmem2_arch.h"
 #include "pmem2_utils.h"
+#include "region_namespace.h"
 #include "unittest.h"
 
 static int n_file_buffs_flushes = 0;
@@ -65,14 +66,16 @@ static enum pmem2_file_type ftype_value;
 #define MOCK_DEV_ID 777UL
 
 /*
- * pmem2_device_dax_region_find -- redefine libpmem2 function
+ * pmem2_get_region_id -- redefine libpmem2 function
  */
 int
-pmem2_device_dax_region_find(const os_stat_t *st)
+pmem2_get_region_id(const os_stat_t *st, unsigned *region_id)
 {
 	UT_ASSERTeq(st->st_rdev, MOCK_DEV_ID);
 
-	return MOCK_REG_ID;
+	*region_id = MOCK_REG_ID;
+
+	return 0;
 }
 
 /*
@@ -188,7 +191,7 @@ map_init(struct pmem2_map *map)
 }
 
 /*
- * counters_check_n_reset -- check numbers of uses of deep-syncing elements
+ * counters_check_n_reset -- check numbers of uses of deep-flushing elements
  * and reset them
  */
 static void
@@ -206,10 +209,10 @@ counters_check_n_reset(int msynces, int flushes, int fences, int writes)
 }
 
 /*
- * test_deep_sync_func -- test pmem2_deep_sync for all granularity options
+ * test_deep_flush_func -- test pmem2_deep_flush for all granularity options
  */
 static int
-test_deep_sync_func(const struct test_case *tc, int argc, char *argv[])
+test_deep_flush_func(const struct test_case *tc, int argc, char *argv[])
 {
 	struct pmem2_map map;
 	map_init(&map);
@@ -220,19 +223,19 @@ test_deep_sync_func(const struct test_case *tc, int argc, char *argv[])
 
 	map.effective_granularity = PMEM2_GRANULARITY_PAGE;
 	pmem2_set_flush_fns(&map);
-	int ret = pmem2_deep_sync(&map, addr, len);
+	int ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
 	counters_check_n_reset(0, 0, 0, 0);
 
 	map.effective_granularity = PMEM2_GRANULARITY_CACHE_LINE;
 	pmem2_set_flush_fns(&map);
-	ret = pmem2_deep_sync(&map, addr, len);
+	ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
 	counters_check_n_reset(1, 0, 0, 0);
 
 	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
 	pmem2_set_flush_fns(&map);
-	ret = pmem2_deep_sync(&map, addr, len);
+	ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
 	counters_check_n_reset(1, 1, 1, 0);
 
@@ -242,10 +245,10 @@ test_deep_sync_func(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * test_deep_sync_func_devdax -- test pmem2_deep_sync with mocked DAX devices
+ * test_deep_flush_func_devdax -- test pmem2_deep_flush with mocked DAX devices
  */
 static int
-test_deep_sync_func_devdax(const struct test_case *tc, int argc, char *argv[])
+test_deep_flush_func_devdax(const struct test_case *tc, int argc, char *argv[])
 {
 	struct pmem2_map map;
 	map_init(&map);
@@ -256,13 +259,13 @@ test_deep_sync_func_devdax(const struct test_case *tc, int argc, char *argv[])
 
 	map.effective_granularity = PMEM2_GRANULARITY_CACHE_LINE;
 	pmem2_set_flush_fns(&map);
-	int ret = pmem2_deep_sync(&map, addr, len);
+	int ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
 	counters_check_n_reset(0, 0, 0, 1);
 
 	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
 	pmem2_set_flush_fns(&map);
-	ret = pmem2_deep_sync(&map, addr, len);
+	ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
 	counters_check_n_reset(0, 1, 1, 1);
 
@@ -272,11 +275,11 @@ test_deep_sync_func_devdax(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * test_deep_sync_range_beyond_mapping -- test pmem2_deep_sync with the address
- * that goes beyond mapping
+ * test_deep_flush_range_beyond_mapping -- test pmem2_deep_flush with
+ * the address that goes beyond mapping
  */
 static int
-test_deep_sync_range_beyond_mapping(const struct test_case *tc, int argc,
+test_deep_flush_range_beyond_mapping(const struct test_case *tc, int argc,
 					char *argv[])
 {
 	struct pmem2_map map;
@@ -286,8 +289,8 @@ test_deep_sync_range_beyond_mapping(const struct test_case *tc, int argc,
 	void *addr = (void *)((uintptr_t)map.addr + map.content_length);
 	size_t len = map.content_length;
 
-	int ret = pmem2_deep_sync(&map, addr, len);
-	UT_ASSERTeq(ret, PMEM2_E_SYNC_RANGE);
+	int ret = pmem2_deep_flush(&map, addr, len);
+	UT_ASSERTeq(ret, PMEM2_E_DEEP_FLUSH_RANGE);
 
 	/*
 	 * set address in the middle of mapping, which makes range partially
@@ -295,8 +298,8 @@ test_deep_sync_range_beyond_mapping(const struct test_case *tc, int argc,
 	 */
 	addr = (void *)((uintptr_t)map.addr + map.content_length / 2);
 
-	ret = pmem2_deep_sync(&map, addr, len);
-	UT_ASSERTeq(ret, PMEM2_E_SYNC_RANGE);
+	ret = pmem2_deep_flush(&map, addr, len);
+	UT_ASSERTeq(ret, PMEM2_E_DEEP_FLUSH_RANGE);
 
 	FREE(map.addr);
 
@@ -307,9 +310,9 @@ test_deep_sync_range_beyond_mapping(const struct test_case *tc, int argc,
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
-	TEST_CASE(test_deep_sync_func),
-	TEST_CASE(test_deep_sync_func_devdax),
-	TEST_CASE(test_deep_sync_range_beyond_mapping),
+	TEST_CASE(test_deep_flush_func),
+	TEST_CASE(test_deep_flush_func_devdax),
+	TEST_CASE(test_deep_flush_range_beyond_mapping),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
@@ -317,7 +320,7 @@ static struct test_case test_cases[] = {
 int
 main(int argc, char *argv[])
 {
-	START(argc, argv, "pmem2_deep_sync");
+	START(argc, argv, "pmem2_deep_flush");
 	pmem2_persist_init();
 	util_init();
 	TEST_CASE_PROCESS(argc, argv, test_cases, NTESTS);

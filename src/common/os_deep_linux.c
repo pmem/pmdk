@@ -16,7 +16,7 @@
 #include "file.h"
 #include "libpmem.h"
 #include "os_deep.h"
-#include "../libpmem2/deep_sync.h"
+#include "../libpmem2/deep_flush.h"
 
 /*
  * os_deep_type -- (internal) perform deep operation based on a pmem
@@ -31,7 +31,7 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 	case PMEM_DEV_DAX:
 		pmem_drain();
 
-		int ret = pmem2_deep_sync_write(mt->region_id);
+		int ret = pmem2_deep_flush_write(mt->region_id);
 		if (ret < 0) {
 			if (ret == PMEM2_E_NOSUPP) {
 				errno = ENOTSUP;
@@ -39,7 +39,7 @@ os_deep_type(const struct map_tracker *mt, void *addr, size_t len)
 			} else {
 				errno = pmem2_err_to_errno(ret);
 				LOG(2, "cannot write to deep_flush"
-					"in region %d", mt->region_id);
+					"in region %u", mt->region_id);
 			}
 			return -1;
 		}
@@ -145,20 +145,21 @@ os_part_deep_common(struct pool_replica *rep, unsigned partidx, void *addr,
 		 * device region id, and perform WPQ flush on found
 		 * device DAX region.
 		 */
-		int region_id = util_ddax_region_find(part.path);
+		unsigned region_id;
+		int ret = util_ddax_region_find(part.path, &region_id);
 
-		if (region_id < 0) {
+		if (ret < 0) {
 			if (errno == ENOENT) {
 				errno = ENOTSUP;
 				LOG(1, "!deep_flush not supported");
 			} else {
-				LOG(1, "invalid dax_region id %d", region_id);
+				LOG(1, "invalid dax_region id %u", region_id);
 			}
 			return -1;
 		}
 
-		if (pmem2_deep_sync_write(region_id)) {
-			LOG(1, "pmem2_deep_sync_write(%d)",
+		if (pmem2_deep_flush_write(region_id)) {
+			LOG(1, "pmem2_deep_flush_write(%u)",
 				region_id);
 			return -1;
 		}

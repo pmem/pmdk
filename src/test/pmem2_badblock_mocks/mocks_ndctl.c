@@ -20,34 +20,6 @@
 static unsigned i_bb;
 
 /*
- * ndctl_region_namespace - mock ndctl_region_namespace
- */
-FUNC_MOCK(ndctl_region_namespace, int,
-		struct ndctl_ctx *ctx,
-		const os_stat_t *st,
-		struct ndctl_region **pregion,
-		struct ndctl_namespace **pndns)
-FUNC_MOCK_RUN_DEFAULT {
-	UT_ASSERTne(pregion, NULL);
-	*pregion = (void *)st->st_ino;
-	if (pndns == NULL)
-		return 0;
-
-	if (IS_MODE_NO_DEVICE(st->st_ino) || /* no matching device */
-	    st->st_mode == __S_IFDIR || /* directory */
-	    st->st_mode == __S_IFBLK) { /* block device */
-		/* did not found any matching device */
-		*pndns = NULL;
-		return 0;
-	}
-
-	*pndns = (void *)st->st_ino;
-
-	return 0;
-}
-FUNC_MOCK_END
-
-/*
  * ndctl_namespace_get_mode - mock ndctl_namespace_get_mode
  */
 FUNC_MOCK(ndctl_namespace_get_mode, enum ndctl_namespace_mode,

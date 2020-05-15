@@ -6,6 +6,7 @@
  *                  indirectly in pmem2_badblock_mocks.c
  */
 
+#include <ndctl/libndctl.h>
 #include "unittest.h"
 #include "out.h"
 #include "extent.h"
@@ -36,6 +37,34 @@ FUNC_MOCK_RUN_DEFAULT {
 
 	ERR("file type 0%o not supported", st->st_mode & S_IFMT);
 	return PMEM2_E_INVALID_FILE_TYPE;
+}
+FUNC_MOCK_END
+
+/*
+ * pmem2_region_namespace - mock pmem2_region_namespace
+ */
+FUNC_MOCK(pmem2_region_namespace, int,
+		struct ndctl_ctx *ctx,
+		const os_stat_t *st,
+		struct ndctl_region **pregion,
+		struct ndctl_namespace **pndns)
+FUNC_MOCK_RUN_DEFAULT {
+	UT_ASSERTne(pregion, NULL);
+	*pregion = (void *)st->st_ino;
+	if (pndns == NULL)
+		return 0;
+
+	if (IS_MODE_NO_DEVICE(st->st_ino) || /* no matching device */
+	    st->st_mode == __S_IFDIR || /* directory */
+	    st->st_mode == __S_IFBLK) { /* block device */
+		/* did not found any matching device */
+		*pndns = NULL;
+		return 0;
+	}
+
+	*pndns = (void *)st->st_ino;
+
+	return 0;
 }
 FUNC_MOCK_END
 
