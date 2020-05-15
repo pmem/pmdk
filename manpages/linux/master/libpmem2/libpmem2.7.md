@@ -38,53 +38,52 @@ cc ... -lpmem2
 
 # GRANULARITY #
 
-The **libpmem2** library introduces the concept of granularity
-through which you may easily distinguish between different types
-of reaching *power-fail protected domain* by data. Data can reach
-this domain in different ways depending on the platform capabilities.
+The **libpmem2** library introduces the concept of granularity through which you
+may easily distinguish between different types of
+reaching *power-fail protected domain* by data. Data can reach this domain in
+different ways depending on the platform capabilities.
 
-In the case of block storage devices (SSD, HDD), data must be written
-using system API calls such as `msync()`, `fsync()` on Linux
-or `FlushFileBuffers()` on Windows. When these functions are invoked,
-the data is flushed to the medium with page size accuracy.
-In the **libpmem2** library, this type of precision is called
-**PMEM2_GRANULARITY_PAGE**.
+Traditional block storage devices (SSD, HDD) must use system API calls such
+as `msync()`, `fsync()` on Linux, or `FlushFileBuffers()`,`FlushViewOfFile()`
+on Windows to write data reliably. Invoking these functions flushes the data
+to the medium with page granularity. In the **libpmem2** library, this type
+of flushing behavior is called **PMEM2_GRANULARITY_PAGE**.
 
-In systems with persistent memory support a *power-fail protected domain* may
+In systems with persistent memory support, a *power-fail protected domain* may
 cover different sets of resources: either the memory controller or the memory
-controller and CPU caches. In this regard **libpmem2** distinguish two types of
-granularity for persistent memory: **PMEM2_GRANULARITY_CACHE_LINE** and
-**PMEM2_GRANULARITY_BYTE**.
+controller and CPU caches. In this regard, **libpmem2** distinguishes two types
+of granularity for persistent memory:
+**PMEM2_GRANULARITY_CACHE_LINE** and **PMEM2_GRANULARITY_BYTE**.
 
-If the *power-fail protected domain* covers only the memory controller it is
+If the *power-fail protected domain* covers only the memory controller, it is
 required to flush CPU caches, so the granularity type, in this case, is called
 **PMEM2_GRANULARITY_CACHE_LINE**. Depending on the architecture, there are
-different types of machine instructions for flushing *cache lines* (e.g. *CLWB*,
-*CLFLUSHOPT*, *CLFLUSH* for Intel x86_64 architecture). Besides, each of these
-instructions must be followed by a serializing operation (e.g. *SFENCE*) to ensure
-the latest cache flushing was completed and the order of stores was preserved.
+different types of machine instructions for flushing *cache lines*
+(e.g., *CLWB*, *CLFLUSHOPT*, *CLFLUSH* for Intel x86_64 architecture). Usually,
+to ensure the ordering of stores, such instructions must be followed
+by a barrier (e.g., *SFENCE*).
 
 The third type of granularity **PMEM2_GRANULARITY_BYTE** applies to platforms
-where *power-fail protected domain* covers both the memory controller and CPU caches.
-This means cache flush instructions are no longer needed and the data persistence is
-guaranteed by the battery installed on the platform.
-Only serializing instruction is still needed to keep write sequence correct.
+where *power-fail protected domain* covers both the memory controller and
+CPU caches. In such cases, cache flush instructions are no longer needed, and
+the platform itself guarantees the persistence of data. But barriers might
+still be required for ordering.
 
-The **libpmem2** exposes a *pmem2_granularity* enum which can be used for
-specifying granularity requested by a user and for reading what the effective
-granularity for the mapping is.
-
-For more details about *pmem2_granularity* definition and usage, see
-**pmem2_config_set_required_store_granularity**(3) and
-**pmem2_map_get_store_granularity**(3) manpages.
+The library declares these granularity level in *pmem2_granularity* enum, which
+the application must set in *pmem2_config* to the appropriate level for
+a mapping a succeed. The software should set this config parameter to a value
+that most accurately represents the target hardware characteristics and
+the storage patterns of the application. For example, a database storage engine
+that operates on large logical pages that reside either on SSDs or PMEM should
+set this value to **PMEM2_GRANULARITY_PAGE**.
 
 # CAVEATS #
 
 # ENVIRONMENT #
 
 **libpmem2** can change its default behavior based on the following
-environment variables. These are largely intended for testing and are
-not normally required.
+environment variables. These are primarily intended for testing and are
+generally not required.
 
 + **PMEM2_FORCE_GRANULARITY**=*val*
 
