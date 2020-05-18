@@ -539,8 +539,7 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	ASSERTne(bbctx, NULL);
 	ASSERTne(bb, NULL);
 
-	const struct pmem2_badblock BB_ZERO = {0, 0};
-	struct pmem2_badblock bbn = BB_ZERO;
+	struct pmem2_badblock bbn;
 	unsigned long long bb_beg;
 	unsigned long long bb_end;
 	unsigned long long bb_len;
@@ -552,7 +551,6 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 
 	if (bbctx->rgn.region == NULL && bbctx->ndns == NULL) {
 		/* did not found any matching device */
-		*bb = BB_ZERO;
 		return PMEM2_E_NO_BAD_BLOCK_FOUND;
 	}
 
