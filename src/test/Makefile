@@ -197,7 +197,6 @@ PMEM_TESTS = \
 
 PMEM2_TESTS = \
 	pmem2_api\
-	pmem2_badblock_mocks\
 	pmem2_compat\
 	pmem2_config\
 	pmem2_source\
@@ -218,6 +217,13 @@ PMEM2_TESTS = \
 	pmem2_movnt_align\
 	pmem2_mem_ext\
 	pmem2_deep_flush
+
+ifeq ($(OS_DIMM),ndctl)
+PMEM2_TESTS += \
+	pmem2_badblock_mocks
+else
+$(info NOTE: Skipping pmem2_badblock_mocks test because libndctl is disabled (see NDCTL_ENABLE))
+endif
 
 PMEMPOOL_TESTS = \
 	pmempool_check\
