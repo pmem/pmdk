@@ -5,8 +5,10 @@
 
 import sys
 import platform
+import subprocess as sp
 
 HEADER_SIZE = 4096
+NDCTL_MIN_VERSION = '63'
 
 #
 # KiB, MiB, GiB ... -- byte unit prefixes
@@ -43,6 +45,15 @@ def require_architectures(*archs):
         return tc
 
     return wrapped
+
+
+def require_ndctl(tc):
+    """Enable test only if ndctl is installed"""
+    proc = sp.run(['pkg-config', 'libndctl', '--atleast-version',
+                   NDCTL_MIN_VERSION], stdout=sp.PIPE, stderr=sp.STDOUT)
+    if proc.returncode != 0:
+        tc.enabled = False
+    return tc
 
 
 def _os_only(tc, os_name):
