@@ -49,8 +49,6 @@ The **pmem2_config_new**() function returns 0 on success or a negative error cod
 
 The **pmem2_config_delete**() function returns 0.
 
-Please see **libpmem2**(7) for detailed description of libpmem2 error codes.
-
 # ERRORS #
 **pmem2_config_new**() can fail with the following error:
 - **-ENOMEM** - out of memory
