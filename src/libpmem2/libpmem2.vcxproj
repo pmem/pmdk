@@ -27,6 +27,7 @@
     <ClCompile Include="config.c" />
     <ClCompile Include="errormsg.c" />
     <ClCompile Include="map.c" />
+    <ClCompile Include="map_ravl.c" />
     <ClCompile Include="map_windows.c" />
     <ClCompile Include="memops_generic.c" />
     <ClCompile Include="persist.c" />
@@ -68,6 +69,7 @@
     <ClInclude Include="auto_flush_windows.h" />
     <ClInclude Include="deep_flush.h" />
     <ClInclude Include="map.h" />
+    <ClInclude Include="map_ravl.h" />
     <ClInclude Include="persist.h" />
     <ClInclude Include="pmem2.h" />
     <ClInclude Include="pmem2_arch.h" />
