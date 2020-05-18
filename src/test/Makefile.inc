@@ -600,8 +600,9 @@ clean:
 	$(RM) *.o */*.o core *.core a.out *.log testfile* $(SYNC_FILE) $(TMP_HEADERS)
 
 clobber: clean
-	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
+	$(RM) $(TARGET) $(TARGET).static-debug $(TARGET).static-nondebug
 	$(RM) -r .deps
+	$(RM) -r __pycache__
 
 $(TESTCONFIG):
 
