@@ -234,7 +234,8 @@ pmem2_get_region_id(const os_stat_t *st, unsigned *region_id)
 	struct ndctl_namespace *ndns;
 	struct ndctl_ctx *ctx;
 
-	if (ndctl_new(&ctx)) {
+	errno = ndctl_new(&ctx) * (-1);
+	if (errno) {
 		ERR("!ndctl_new");
 		return PMEM2_E_ERRNO;
 	}

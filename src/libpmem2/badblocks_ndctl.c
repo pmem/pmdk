@@ -263,7 +263,8 @@ pmem2_badblock_context_new(const struct pmem2_source *src,
 
 	*bbctx = NULL;
 
-	if (ndctl_new(&ctx)) {
+	errno = ndctl_new(&ctx) * (-1);
+	if (errno) {
 		ERR("!ndctl_new");
 		return PMEM2_E_ERRNO;
 	}
