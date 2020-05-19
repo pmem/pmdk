@@ -15,11 +15,11 @@ class BB_MOCKS_BASIC(t.Test):
         ctx.exec('pmem2_badblock_mocks', test, ctx.file_type(), ctx.mode())
 
 
-@t.add_params('file_type', ['reg_file', 'chr_dev', 'directory', 'blk_dev'])
+@t.add_params('file_type', ['reg_file', 'chr_dev'])
 @t.add_params('mode', ['no_device'])
 class TEST0(BB_MOCKS_BASIC):
     """did not found any matching device"""
-    """regular file / character device / directory / block device"""
+    """regular file / character device"""
     pass
 
 

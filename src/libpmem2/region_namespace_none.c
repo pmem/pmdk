@@ -8,7 +8,8 @@
  * pmem2_get_region_id -- define behavior without ndctl
  */
 int
-pmem2_get_region_id(const os_stat_t *st, unsigned *region_id)
+pmem2_get_region_id(dev_t st_rdev, enum pmem2_file_type ftype,
+	unsigned *region_id)
 {
 	LOG(3, "Cannot read region id - ndctl is not available");
 

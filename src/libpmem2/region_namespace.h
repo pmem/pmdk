@@ -10,12 +10,14 @@
 #define PMDK_REGION_NAMESPACE_H 1
 
 #include "os.h"
+#include "pmem2_utils.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int pmem2_get_region_id(const os_stat_t *st, unsigned *region_id);
+int pmem2_get_region_id(dev_t st_rdev, enum pmem2_file_type ftype,
+	unsigned *region_id);
 
 #ifdef __cplusplus
 }

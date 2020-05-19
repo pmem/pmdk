@@ -5,6 +5,7 @@
  * pmem2_perror.c -- pmem2_perror unittests
  */
 
+#include "libpmem2.h"
 #include "unittest.h"
 #include "out.h"
 #include "config.h"
@@ -94,9 +95,11 @@ test_fail_pmem2_syscall_simple(const struct test_case *tc,
 	size_t size;
 
 #ifdef _WIN32
-	src.handle = INVALID_HANDLE_VALUE;
+	src.type = PMEM2_SOURCE_HANDLE;
+	src.value.handle = INVALID_HANDLE_VALUE;
 #else
-	src.fd = -1;
+	src.type = PMEM2_SOURCE_FD;
+	src.value.fd = -1;
 #endif
 
 	/* "randomly" chosen function to be failed */
@@ -120,9 +123,11 @@ test_fail_pmem2_syscall_format(const struct test_case *tc,
 	size_t size;
 
 #ifdef _WIN32
-	src.handle = INVALID_HANDLE_VALUE;
+	src.type = PMEM2_SOURCE_HANDLE;
+	src.value.handle = INVALID_HANDLE_VALUE;
 #else
-	src.fd = -1;
+	src.type = PMEM2_SOURCE_FD;
+	src.value.fd = -1;
 #endif
 
 	/* "randomly" chosen function to be failed */
