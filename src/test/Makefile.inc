@@ -529,6 +529,9 @@ ifeq ($(COMPILE_LANG), cpp)
 LINKER=$(CXX)
 endif
 
+SUFFIX_STATIC_DEBUG=static-debug
+SUFFIX_STATIC_NONDEBUG=static-nondebug
+
 ifneq ($(TARGET),)
 SCP_TARGET=$(TARGET)
 SCP_SRC_DIR=.
@@ -539,13 +542,13 @@ SCP_SRC_DIR=.
 #
 ifneq ($(BUILD_STATIC),n)
 ifneq ($(BUILD_STATIC_DEBUG),n)
-TARGET_STATIC_DEBUG=$(TARGET).static-debug
-SCP_TARGET_STATIC_DEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-debug
+TARGET_STATIC_DEBUG=$(TARGET).$(SUFFIX_STATIC_DEBUG)
+SCP_TARGET_STATIC_DEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).$(SUFFIX_STATIC_DEBUG)
 endif
 ifneq ($(BUILD_STATIC_NONDEBUG),n)
 ifneq ($(DEBUG),1)
-TARGET_STATIC_NONDEBUG=$(TARGET).static-nondebug
-SCP_TARGET_STATIC_NONDEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).static-nondebug
+TARGET_STATIC_NONDEBUG=$(TARGET).$(SUFFIX_STATIC_NONDEBUG)
+SCP_TARGET_STATIC_NONDEBUG=$(SCP_SRC_DIR)/$(SCP_TARGET).$(SUFFIX_STATIC_NONDEBUG)
 endif
 endif
 endif
@@ -600,8 +603,9 @@ clean:
 	$(RM) *.o */*.o core *.core a.out *.log testfile* $(SYNC_FILE) $(TMP_HEADERS)
 
 clobber: clean
-	$(RM) $(TARGET) $(TARGET_STATIC_DEBUG) $(TARGET_STATIC_NONDEBUG)
+	$(RM) $(TARGET) $(TARGET).$(SUFFIX_STATIC_DEBUG) $(TARGET).$(SUFFIX_STATIC_NONDEBUG)
 	$(RM) -r .deps
+	$(RM) -r __pycache__
 
 $(TESTCONFIG):
 
@@ -700,10 +704,10 @@ ifeq ($(USE_OBJ_VERIFY), y)
 all: $(TOOLS)/obj_verify/obj_verify
 endif
 
-$(TOOLS)/pmemdetect/pmemdetect.static-nondebug:
+$(TOOLS)/pmemdetect/pmemdetect.$(SUFFIX_STATIC_NONDEBUG):
 	$(MAKE) -C $(TOOLS)/pmemdetect all
 
-all: $(TOOLS)/pmemdetect/pmemdetect.static-nondebug
+all: $(TOOLS)/pmemdetect/pmemdetect.$(SUFFIX_STATIC_NONDEBUG)
 
 sparse:
 	$(if $(TARGET), $(sparse-c))
