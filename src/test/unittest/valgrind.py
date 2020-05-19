@@ -227,7 +227,7 @@ class Valgrind:
         no_ignored = []
         # remove ignored warnings from log file
         with open(self.log_file, 'r+') as f:
-            no_ignored = [l for l in f if not any(w in l for w in _IGNORED)]
+            no_ignored = [ln for ln in f if not any(w in ln for w in _IGNORED)]
             f.seek(0)
             f.writelines(no_ignored)
             f.truncate()
@@ -238,8 +238,8 @@ class Valgrind:
             return
 
         non_zero_errors = 'ERROR SUMMARY: [^0]'
-        errors_found = any(re.search(non_zero_errors, l) for l in no_ignored)
-        if any('Bad pmempool' in l for l in no_ignored) or errors_found:
+        errors_found = any(re.search(non_zero_errors, ln) for ln in no_ignored)
+        if any('Bad pmempool' in ln for ln in no_ignored) or errors_found:
             raise futils.Fail('Valgrind log validation failed')
 
     def verify(self):
