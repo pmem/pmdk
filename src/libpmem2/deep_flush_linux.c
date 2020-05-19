@@ -57,10 +57,8 @@ pmem2_deep_flush_write(unsigned region_id)
 int
 pmem2_deep_flush_dax(struct pmem2_map *map)
 {
-	enum pmem2_file_type type;
-	int ret = pmem2_get_type_from_stat(&map->src_fd_st, &type);
-	if (ret)
-		return ret;
+	int ret;
+	enum pmem2_file_type type = map->source.value.ftype;
 
 	if (type == PMEM2_FTYPE_REG) {
 		size_t len = Pagesize;
@@ -72,11 +70,11 @@ pmem2_deep_flush_dax(struct pmem2_map *map)
 		}
 	} else if (type == PMEM2_FTYPE_DEVDAX) {
 		unsigned region_id;
-		int ret = pmem2_get_region_id(&map->src_fd_st,
+		int ret = pmem2_get_region_id(map->source.value.st_rdev, type,
 				&region_id);
 		if (ret < 0) {
-			LOG(1, "cannot find region id for stat %p",
-				&map->src_fd_st);
+			LOG(1, "cannot find region id for dev %lu",
+				map->source.value.st_rdev);
 			return ret;
 		}
 		ret = pmem2_deep_flush_write(region_id);
