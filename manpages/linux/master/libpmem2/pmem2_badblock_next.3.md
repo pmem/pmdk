@@ -54,7 +54,7 @@ bad blocks for the given bad block context *\*bbctx*.
 **pmem2_badblock_next**() can fail with the following error:
 
 * **PMEM2_E_NO_BAD_BLOCK_FOUND** - there are no more bad blocks for the given
-bad block context *\*bbctx*, *\*bb* is zeroed in this case.
+bad block context *\*bbctx*, *\*bb* is undefined in this case.
 
 * **PMEM2_E_NOSUPP** - on Windows or when the OS does not support this functionality
 
