@@ -93,7 +93,8 @@ pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle)
 
 	ASSERTne(srcp, NULL);
 
-	srcp->handle = handle;
+	srcp->type = PMEM2_SOURCE_HANDLE;
+	srcp->value.handle = handle;
 	*src = srcp;
 
 	return 0;
@@ -106,10 +107,17 @@ pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle)
 int
 pmem2_source_size(const struct pmem2_source *src, size_t *size)
 {
-	LOG(3, "handle %p", src->handle);
+	LOG(3, "type %d", src->type);
+	int ret;
+
+	if (src->type == PMEM2_SOURCE_ANON) {
+		*size = src->value.size;
+		return 0;
+	}
+	ASSERTeq(src->type, PMEM2_SOURCE_HANDLE);
 
 	BY_HANDLE_FILE_INFORMATION info;
-	int ret = pmem2_win_stat(src->handle, &info);
+	ret = pmem2_win_stat(src->value.handle, &info);
 	if (ret)
 		return ret;
 
@@ -126,7 +134,7 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 int
 pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 {
-	LOG(3, "handle %p", src->handle);
+	LOG(3, "type %d", src->type);
 
 	SYSTEM_INFO info;
 	GetSystemInfo(&info);

@@ -23,9 +23,9 @@
  *                       and a negative value in case of an error.
  */
 static int
-ndctl_match_devdax(const os_stat_t *st, const char *devname)
+ndctl_match_devdax(dev_t st_rdev, const char *devname)
 {
-	LOG(3, "st %p devname %s", st, devname);
+	LOG(3, "st_rdev %lu devname %s", st_rdev, devname);
 
 	if (*devname == '\0')
 		return 1;
@@ -43,7 +43,7 @@ ndctl_match_devdax(const os_stat_t *st, const char *devname)
 		return PMEM2_E_ERRNO;
 	}
 
-	if (st->st_rdev != stat.st_rdev) {
+	if (st_rdev != stat.st_rdev) {
 		LOG(10, "skipping not matching device: %s", path);
 		return 1;
 	}
@@ -61,9 +61,9 @@ ndctl_match_devdax(const os_stat_t *st, const char *devname)
  *                      and a negative value in case of an error.
  */
 static int
-ndctl_match_fsdax(const os_stat_t *st, const char *devname)
+ndctl_match_fsdax(dev_t st_rdev, const char *devname)
 {
-	LOG(3, "st %p devname %s", st, devname);
+	LOG(3, "st_rdev %lu devname %s", st_rdev, devname);
 
 	if (*devname == '\0')
 		return 1;
@@ -77,7 +77,7 @@ ndctl_match_fsdax(const os_stat_t *st, const char *devname)
 	}
 
 	if (util_snprintf(dev_id, BUFF_LENGTH, "%d:%d",
-			major(st->st_dev), minor(st->st_dev)) < 0) {
+			major(st_rdev), minor(st_rdev)) < 0) {
 		ERR("!snprintf");
 		return PMEM2_E_ERRNO;
 	}
@@ -128,12 +128,13 @@ ndctl_match_fsdax(const os_stat_t *st, const char *devname)
  *                           where the given file is located
  */
 int
-pmem2_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
+pmem2_region_namespace(struct ndctl_ctx *ctx, enum pmem2_file_type ftype,
+			dev_t st_rdev,
 			struct ndctl_region **pregion,
 			struct ndctl_namespace **pndns)
 {
-	LOG(3, "ctx %p stat %p pregion %p pnamespace %p",
-		ctx, st, pregion, pndns);
+	LOG(3, "ctx %p ftype %d st_rdev %lu pregion %p pnamespace %p",
+		ctx, ftype, st_rdev, pregion, pndns);
 
 	struct ndctl_bus *bus;
 	struct ndctl_region *region;
@@ -145,13 +146,7 @@ pmem2_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 	if (pndns)
 		*pndns = NULL;
 
-	enum pmem2_file_type type;
-
-	int ret = pmem2_get_type_from_stat(st, &type);
-	if (ret)
-		return ret;
-
-	if (type == PMEM2_FTYPE_DIR) {
+	if (ftype == PMEM2_FTYPE_DIR) {
 		ERR("cannot check region or namespace of a directory");
 		return PMEM2_E_INVALID_FILE_TYPE;
 	}
@@ -163,9 +158,9 @@ pmem2_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 		const char *devname;
 
 		if ((dax = ndctl_namespace_get_dax(ndns))) {
-			if (type == PMEM2_FTYPE_REG)
+			if (ftype == PMEM2_FTYPE_REG)
 				continue;
-			ASSERTeq(type, PMEM2_FTYPE_DEVDAX);
+			ASSERTeq(ftype, PMEM2_FTYPE_DEVDAX);
 
 			struct daxctl_region *dax_region;
 			dax_region = ndctl_dax_get_daxctl_region(dax);
@@ -176,7 +171,7 @@ pmem2_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			struct daxctl_dev *dev;
 			daxctl_dev_foreach(dax_region, dev) {
 				devname = daxctl_dev_get_devname(dev);
-				int ret = ndctl_match_devdax(st, devname);
+				int ret = ndctl_match_devdax(st_rdev, devname);
 				if (ret < 0)
 					return ret;
 
@@ -190,9 +185,9 @@ pmem2_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 			}
 
 		} else {
-			if (type == PMEM2_FTYPE_DEVDAX)
+			if (ftype == PMEM2_FTYPE_DEVDAX)
 				continue;
-			ASSERTeq(type, PMEM2_FTYPE_REG);
+			ASSERTeq(ftype, PMEM2_FTYPE_REG);
 
 			if ((btt = ndctl_namespace_get_btt(ndns))) {
 				devname = ndctl_btt_get_block_device(btt);
@@ -203,7 +198,7 @@ pmem2_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
 					ndctl_namespace_get_block_device(ndns);
 			}
 
-			int ret = ndctl_match_fsdax(st, devname);
+			int ret = ndctl_match_fsdax(st_rdev, devname);
 			if (ret < 0)
 				return ret;
 
@@ -226,9 +221,10 @@ pmem2_region_namespace(struct ndctl_ctx *ctx, const os_stat_t *st,
  * pmem2_region_get_id -- returns the region id
  */
 int
-pmem2_get_region_id(const os_stat_t *st, unsigned *region_id)
+pmem2_get_region_id(dev_t st_rdev, enum pmem2_file_type ftype,
+unsigned *region_id)
 {
-	LOG(3, "st %p region_id %p", st, region_id);
+	LOG(3, "st_rdev %lu ftype %d region_id %p", st_rdev, ftype, region_id);
 
 	struct ndctl_region *region;
 	struct ndctl_namespace *ndns;
@@ -240,7 +236,7 @@ pmem2_get_region_id(const os_stat_t *st, unsigned *region_id)
 		return PMEM2_E_ERRNO;
 	}
 
-	int rv = pmem2_region_namespace(ctx, st, &region, &ndns);
+	int rv = pmem2_region_namespace(ctx, ftype, st_rdev, &region, &ndns);
 	if (rv) {
 		LOG(1, "getting region and namespace failed");
 		goto end;

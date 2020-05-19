@@ -208,7 +208,7 @@ get_extents(int fd, struct extents **exts)
 static int
 test_basic(struct pmem2_source *src)
 {
-	UT_OUT("TEST: test_basic: 0x%x", src->fd);
+	UT_OUT("TEST: test_basic: 0x%x", src->value.fd);
 
 	struct pmem2_badblock_context *bbctx;
 	struct pmem2_badblock bb;
@@ -230,7 +230,7 @@ test_basic(struct pmem2_source *src)
 static int
 test_read_clear_bb(struct pmem2_source *src)
 {
-	UT_OUT("TEST: test_read_clear_bb: 0x%x", src->fd);
+	UT_OUT("TEST: test_read_clear_bb: 0x%x", src->value.fd);
 
 	struct pmem2_badblock_context *bbctx;
 	struct pmem2_badblock bb;
@@ -244,7 +244,7 @@ test_read_clear_bb(struct pmem2_source *src)
 
 	i_bb = 0;
 	while ((ret = pmem2_badblock_next(bbctx, &bb)) == 0) {
-		bb2 = get_nth_badblock(src->fd, &i_bb);
+		bb2 = get_nth_badblock(src->value.fd, &i_bb);
 		UT_ASSERTne(bb2, NULL);
 		UT_ASSERTeq(bb.offset, SEC2B(bb2->offset));
 		UT_ASSERTeq(bb.length, SEC2B(bb2->len));
@@ -253,7 +253,7 @@ test_read_clear_bb(struct pmem2_source *src)
 			goto exit_free;
 	}
 
-	bb2 = get_nth_badblock(src->fd, &i_bb);
+	bb2 = get_nth_badblock(src->value.fd, &i_bb);
 	UT_ASSERTeq(bb2, NULL);
 
 exit_free:
@@ -334,10 +334,10 @@ main(int argc, char *argv[])
 	struct pmem2_source src;
 	test_fn *test_func;
 
-	parse_arguments(argc, argv, &src.fd, &test_func);
+	parse_arguments(argc, argv, &src.value.fd, &test_func);
 
 	int expected_result;
-	if (src.fd < FD_DIRECTORY)
+	if (src.value.fd < FD_DIRECTORY)
 		expected_result = PMEM2_E_NO_BAD_BLOCK_FOUND;
 	else
 		expected_result = PMEM2_E_INVALID_FILE_TYPE;

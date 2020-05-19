@@ -229,6 +229,10 @@ class TEST27(PMEM2_INTEGRATION):
     test_case = "test_deep_flush_overlap"
 
 
+class TEST28(PMEM2_INTEGRATION):
+    """test for anonymous mappings"""
+    test_case = "test_source_anon"
+
 # XXX: add test cases with:
 # @t.require_devdax(t.DevDax('devdax', deep_flush=True))
 # @t.require_devdax(t.DevDax('devdax', deep_flush=False))
