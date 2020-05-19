@@ -16,6 +16,7 @@ import devdax
 
 import context as ctx
 import valgrind as vg
+import requirements as req
 
 if sys.platform != 'win32':
     CTX_TYPES = (vg.Valgrind, granularity.Granularity, devdax.DevDaxes)
@@ -42,6 +43,9 @@ class CtxFilter:
         Generate a list of context based on configuration and
         test requirements
         """
+        reqs = req.Requirements()
+        if not reqs.check_if_all_requirements_are_met(self.tc):
+            return []
         conf_params = self._get_configured_params()
         common_params = self._get_common_params()
         ctx_arg_keys = list(conf_params.keys()) + list(common_params.keys())
