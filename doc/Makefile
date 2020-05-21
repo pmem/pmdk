@@ -77,7 +77,7 @@ MANPAGES_3_DUMMY = libpmem/pmem_drain.3 libpmem/pmem_has_hw_drain.3 libpmem/pmem
 		   libpmemobj/pmemobj_check_version.3 libpmemobj/pmemobj_check.3 libpmemobj/pmemobj_errormsg.3 libpmemobj/pmemobj_set_funcs.3 \
 		   libpmemobj/pmemobj_reserve.3 libpmemobj/pmemobj_xreserve.3 libpmemobj/pmemobj_defer_free.3 libpmemobj/pmemobj_set_value.3 libpmemobj/pmemobj_publish.3 libpmemobj/pmemobj_tx_publish.3 libpmemobj/pmemobj_tx_xpublish.3 libpmemobj/pmemobj_cancel.3 libpmemobj/pobj_reserve_new.3 libpmemobj/pobj_reserve_alloc.3 libpmemobj/pobj_xreserve_new.3 libpmemobj/pobj_xreserve_alloc.3 \
 		   libpmemobj/tx_xstrdup.3 libpmemobj/tx_xwcsdup.3 libpmemobj/tx_xfree.3 \
-		   libpmemobj/pmemobj_defrag.3 libpmemobj/pmemobj_get_user_data.3 libpmemobj/pmemobj_set_user_data.3 libpmemobj/pmemobj_tx_get_user_data.3 libpmemobj/pmemobj_tx_set_user_data.3
+		   libpmemobj/pmemobj_defrag.3 libpmemobj/pmemobj_get_user_data.3 libpmemobj/pmemobj_set_user_data.3 libpmemobj/pmemobj_tx_get_user_data.3 libpmemobj/pmemobj_tx_set_user_data.3 libpmemobj/pmemobj_tx_get_failure_behavior.3 libpmemobj/pmemobj_tx_set_failure_behavior.3
 
 MANPAGES_WEBDIR_LINUX = web_linux
 MANPAGES_WEBDIR_WINDOWS = web_windows
