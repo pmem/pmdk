@@ -237,7 +237,7 @@ test_deep_flush_func(const struct test_case *tc, int argc, char *argv[])
 	pmem2_set_flush_fns(&map);
 	ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
-	counters_check_n_reset(1, 1, 1, 0);
+	counters_check_n_reset(1, 0, 0, 0);
 
 	FREE(map.addr);
 
