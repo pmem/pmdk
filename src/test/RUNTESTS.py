@@ -68,6 +68,12 @@ class TestRunner:
 
             cf = CtxFilter(self.config, tc)
 
+            # The 'c' context has to be initilized before the 'for' loop,
+            # because cf.get_contexts() can return no value ([])
+            # and in case of the 'futils.Fail' exception
+            # self._test_failed(tc, c, f) will be called
+            # with uninitilized value of the 'c' context.
+            c = None
             try:
                 for c in cf.get_contexts():
                     try:
