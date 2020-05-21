@@ -15,6 +15,7 @@
 #include "persist.h"
 #include "deep_flush.h"
 #include "pmem2_arch.h"
+#include "pmem2_utils.h"
 #include "valgrind_internal.h"
 
 static struct pmem2_arch_info Info;
@@ -304,7 +305,16 @@ pmem2_deep_flush_cache(struct pmem2_map *map, void *ptr, size_t size)
 {
 	LOG(3, "map %p ptr %p size %zu", map, ptr, size);
 
-	int ret = pmem2_deep_flush_dax(map);
+	enum pmem2_file_type type = map->source.value.ftype;
+
+	/*
+	 * XXX: this should be moved to pmem2_deep_flush_dax
+	 * while refactoring abstraction
+	 */
+	if (type == PMEM2_FTYPE_DEVDAX)
+		pmem2_persist_cpu_cache(ptr, size);
+
+	int ret = pmem2_deep_flush_dax(map, ptr, size);
 	if (ret < 0) {
 		LOG(1, "cannot perform deep flush cache for map %p", map);
 		return ret;
@@ -329,8 +339,16 @@ pmem2_deep_flush_byte(struct pmem2_map *map, void *ptr, size_t size)
 	ASSERT(map->source.type == PMEM2_SOURCE_FD ||
 		map->source.type == PMEM2_SOURCE_HANDLE);
 
-	pmem2_persist_cpu_cache(ptr, size);
-	int ret = pmem2_deep_flush_dax(map);
+	enum pmem2_file_type type = map->source.value.ftype;
+
+	/*
+	 * XXX: this should be moved to pmem2_deep_flush_dax
+	 * while refactoring abstraction
+	 */
+	if (type == PMEM2_FTYPE_DEVDAX)
+		pmem2_persist_cpu_cache(ptr, size);
+
+	int ret = pmem2_deep_flush_dax(map, ptr, size);
 	if (ret < 0) {
 		LOG(1, "cannot perform deep flush byte for map %p", map);
 		return ret;
