@@ -270,8 +270,11 @@ main(int argc, char *argv[])
 	size_t allocated = 0;
 	pmemobj_ctl_get(pop, "stats.heap.run_active", &active);
 	pmemobj_ctl_get(pop, "stats.heap.run_allocated", &allocated);
-	float stat_frag = ((float)active / allocated) - 1.f;
-	UT_ASSERT(stat_frag <= workloads_stat_target[w]);
+	float stat_frag = 0;
+	if (active != 0 && allocated != 0) {
+		stat_frag = ((float)active / allocated) - 1.f;
+		UT_ASSERT(stat_frag <= workloads_stat_target[w]);
+	}
 
 	if (defrag) {
 		PMEMoid **objectsf = ZALLOC(sizeof(PMEMoid) * nobjects);
@@ -290,8 +293,10 @@ main(int argc, char *argv[])
 
 		pmemobj_ctl_get(pop, "stats.heap.run_active", &active);
 		pmemobj_ctl_get(pop, "stats.heap.run_allocated", &allocated);
-		stat_frag = ((float)active / allocated) - 1.f;
-		UT_ASSERT(stat_frag <= workloads_defrag_stat_target[w]);
+		if (active != 0 && allocated != 0) {
+			stat_frag = ((float)active / allocated) - 1.f;
+			UT_ASSERT(stat_frag <= workloads_defrag_stat_target[w]);
+		}
 	}
 
 	PMEMoid oid;
