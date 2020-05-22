@@ -7,21 +7,7 @@
 
 #include "unittest.h"
 #include "ut_pmem2.h"
-
-/*
- * prepare_config -- fill pmem2_config in minimal scope
- */
-static void
-prepare_config(struct pmem2_config **cfg, struct pmem2_source **src, int fd,
-		enum pmem2_granularity granularity)
-{
-	PMEM2_CONFIG_NEW(cfg);
-
-	if (fd != -1)
-		PMEM2_SOURCE_FROM_FD(src, fd);
-
-	PMEM2_CONFIG_SET_GRANULARITY(*cfg, granularity);
-}
+#include "ut_pmem2_setup_integration.h"
 
 /*
  * map_valid -- return valid mapped pmem2_map and validate mapped memory length
@@ -55,7 +41,8 @@ test_pmem2_api_logs(const struct test_case *tc, int argc,
 
 	struct pmem2_config *cfg;
 	struct pmem2_source *src;
-	prepare_config(&cfg, &src, fd, PMEM2_GRANULARITY_PAGE);
+	PMEM2_PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd,
+						PMEM2_GRANULARITY_PAGE);
 
 	size_t size = 0;
 	PMEM2_SOURCE_SIZE(src, &size);

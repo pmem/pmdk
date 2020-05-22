@@ -12,9 +12,9 @@ vpath %.c $(TOP)/src/test/unittest
 INCS += -I$(TOP)/src/libpmem2
 TARGET = pmem2_map
 OBJS += pmem2_map.o\
-	ut_pmem2_config.o\
 	ut_pmem2_utils.o\
-	ut_pmem2_source.o
+	ut_pmem2_source.o\
+	ut_pmem2_setup.o
 
 LIBPMEM2=internal-debug
 
