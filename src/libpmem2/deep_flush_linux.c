@@ -40,35 +40,33 @@ pmem2_deep_flush_write(unsigned region_id)
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_RDONLY)) < 0) {
 		LOG(1, "!os_open(\"%s\", O_RDONLY)", deep_flush_path);
-		return -1;
+		return 0;
 	}
 
 	if (read(deep_flush_fd, rbuf, sizeof(rbuf)) != 2) {
 		LOG(1, "!read(%d)", deep_flush_fd);
-		goto fail_close;
+		goto end;
 	}
 
-	if (rbuf[0] == '0' && rbuf[1] == '\n') /* deep_flushing not needed */
-		goto ok;
+	if (rbuf[0] == '0' && rbuf[1] == '\n') {
+		LOG(3, "Deep flushing not needed");
+		goto end;
+	}
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
-		LOG(1, "Cannot open deep_flush file %s", deep_flush_path);
-		return 0;
+		LOG(1, "Cannot open deep_flush file %s to write",
+			deep_flush_path);
+		goto end;
 	}
 
-	if (write(deep_flush_fd, "1", 1) != 1)
+	if (write(deep_flush_fd, "1", 1) != 1) {
 		LOG(1, "Cannot write to deep_flush file %d", deep_flush_fd);
+		goto end;
+	}
 
-ok:
+end:
 	os_close(deep_flush_fd);
 	return 0;
-
-fail_close:
-	;
-	int oerrno = errno;
-	os_close(deep_flush_fd);
-	errno = oerrno;
-	return -1;
 }
 
 /*
