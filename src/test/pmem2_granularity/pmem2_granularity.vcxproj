@@ -86,6 +86,7 @@
     <ClCompile Include="..\..\libpmem2\memops_generic.c" />
     <ClCompile Include="..\..\libpmem2\persist.c" />
     <ClCompile Include="..\..\libpmem2\persist_windows.c" />
+    <ClCompile Include="..\..\libpmem2\ravl_interval.c" />
     <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
     <ClCompile Include="..\..\libpmem2\x86_64\init.c" />
     <ClCompile Include="..\pmem_has_auto_flush_win\mocks_windows.c">
@@ -102,6 +103,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\libpmem2\config.h" />
     <ClInclude Include="..\..\libpmem2\map.h" />
+    <ClInclude Include="..\..\libpmem2\ravl_interval.h" />
     <ClInclude Include="..\pmem_has_auto_flush_win\mocks_windows.h" />
     <ClInclude Include="..\unittest\unittest.h" />
     <ClInclude Include="..\unittest\ut_pmem2_utils.h" />

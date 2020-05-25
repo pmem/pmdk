@@ -175,7 +175,8 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/source.o\
 	$(TOP)/src/debug/libpmem2/source_posix.o\
 	$(TOP)/src/debug/libpmem2/usc_$(OS_DIMM).o\
-	$(TOP)/src/debug/libpmem2/vm_reservation.o
+	$(TOP)/src/debug/libpmem2/vm_reservation.o\
+	$(TOP)/src/debug/libpmem2/ravl_interval.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
@@ -226,6 +227,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/ravl.o\
 	$(TOP)/src/nondebug/libpmem2/usc_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/libpmem2/vm_reservation.o
+	$(TOP)/src/nondebug/libpmem2/ravl_interval.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
