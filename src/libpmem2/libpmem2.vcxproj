@@ -31,7 +31,6 @@
     <ClCompile Include="memops_generic.c" />
     <ClCompile Include="persist.c" />
     <ClCompile Include="persist_windows.c" />
-    <ClCompile Include="pmem2.c" />
     <ClCompile Include="pmem2_utils.c" />
     <ClCompile Include="pmem2_utils_other.c" />
     <ClCompile Include="source.c" />
@@ -67,6 +66,7 @@
     <ClInclude Include="auto_flush.h" />
     <ClInclude Include="auto_flush_windows.h" />
     <ClInclude Include="deep_flush.h" />
+    <ClInclude Include="config.h" />
     <ClInclude Include="map.h" />
     <ClInclude Include="persist.h" />
     <ClInclude Include="pmem2.h" />

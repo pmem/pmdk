@@ -21,6 +21,7 @@ struct pmem2_config {
 	int addr_request; /* address request type */
 	enum pmem2_granularity requested_max_granularity;
 	enum pmem2_sharing_type sharing; /* the way the file will be mapped */
+	unsigned protection_flag;
 };
 
 void pmem2_config_init(struct pmem2_config *cfg);
