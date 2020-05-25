@@ -253,7 +253,6 @@ pmem2_get_region_id(const os_stat_t *st, unsigned *region_id)
 	}
 
 	*region_id = ndctl_region_get_id(region);
-	return 0;
 
 end:
 	ndctl_unref(ctx);
