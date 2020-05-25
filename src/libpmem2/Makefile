@@ -28,7 +28,8 @@ SOURCE =\
 	usc_$(OS_DIMM).c\
 	source.c\
 	source_posix.c\
-	vm_reservation.c
+	vm_reservation.c\
+	ravl_interval.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\
