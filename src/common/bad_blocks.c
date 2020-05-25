@@ -114,8 +114,12 @@ exit_close:
 	if (fd != -1)
 		os_close(fd);
 
-	if (ret && bb_found == -1)
-		errno = pmem2_err_to_errno(ret);
+	if (ret && bb_found == -1) {
+		if (ret == PMEM2_E_NOSUPP)
+			errno = ENOTSUP;
+		else
+			errno = pmem2_err_to_errno(ret);
+	}
 
 	return (bb_found >= 0) ? 0 : -1;
 }
@@ -173,7 +177,10 @@ exit_close:
 		os_close(fd);
 
 	if (ret) {
-		errno = pmem2_err_to_errno(ret);
+		if (ret == PMEM2_E_NOSUPP)
+			errno = ENOTSUP;
+		else
+			errno = pmem2_err_to_errno(ret);
 		ret = -1;
 	}
 
@@ -229,7 +236,10 @@ exit_close:
 		os_close(fd);
 
 	if (ret) {
-		errno = pmem2_err_to_errno(ret);
+		if (ret == PMEM2_E_NOSUPP)
+			errno = ENOTSUP;
+		else
+			errno = pmem2_err_to_errno(ret);
 		ret = -1;
 	}
 
