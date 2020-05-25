@@ -13,7 +13,7 @@
     <ClCompile Include="..\..\common\set_badblocks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\badblock_none.c">
+    <ClCompile Include="..\..\common\bad_blocks.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\common\ctl.c">

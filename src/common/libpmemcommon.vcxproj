@@ -13,7 +13,7 @@
   <ItemGroup>
     <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="..\libpmem2\usc_windows.c" />
-    <ClCompile Include="badblock_none.c" />
+    <ClCompile Include="bad_blocks.c" />
     <ClCompile Include="set_badblocks.c" />
     <ClCompile Include="ctl.c" />
     <ClCompile Include="ctl_cow.c" />
@@ -32,6 +32,7 @@
     <ClCompile Include="uuid.c" />
     <ClCompile Include="uuid_windows.c" />
     <ClCompile Include="..\libpmem2\config.c" />
+    <ClCompile Include="..\libpmem2\badblocks.c" />
     <ClCompile Include="..\libpmem2\badblocks_none.c" />
     <ClCompile Include="..\libpmem2\source.c" />
     <ClCompile Include="..\libpmem2\source_windows.c" />
