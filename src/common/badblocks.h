@@ -2,7 +2,7 @@
 /* Copyright 2017-2020, Intel Corporation */
 
 /*
- * badblocks.h -- bad blocks API based on the ndctl library
+ * badblocks.h -- bad blocks API based on the libpmem2 library
  */
 
 #ifndef PMDK_BADBLOCKS_H

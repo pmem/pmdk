@@ -5,7 +5,7 @@
 #
 
 SOURCE +=\
-	$(COMMON)/badblock_$(OS_DIMM).c\
+	$(COMMON)/bad_blocks.c\
 	$(COMMON)/set_badblocks.c\
 	$(COMMON)/ctl.c\
 	$(COMMON)/ctl_prefault.c\

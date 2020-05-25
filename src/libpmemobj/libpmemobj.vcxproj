@@ -28,7 +28,7 @@
     <ClCompile Include="..\..\src\libpmemobj\tx.c" />
     <ClCompile Include="..\core\alloc.c" />
     <ClCompile Include="..\common\set_badblocks.c" />
-    <ClCompile Include="..\common\badblock_none.c" />
+    <ClCompile Include="..\common\bad_blocks.c" />
     <ClCompile Include="..\common\ctl.c" />
     <ClCompile Include="..\common\ctl_cow.c" />
     <ClCompile Include="..\common\ctl_prefault.c" />
@@ -51,6 +51,7 @@
     <ClCompile Include="..\common\uuid.c" />
     <ClCompile Include="..\common\uuid_windows.c" />
     <ClCompile Include="..\libpmem2\auto_flush_windows.c" />
+    <ClCompile Include="..\libpmem2\badblocks.c" />
     <ClCompile Include="..\libpmem2\badblocks_none.c" />
     <ClCompile Include="..\libpmem2\usc_windows.c" />
     <ClCompile Include="alloc_class.c" />
