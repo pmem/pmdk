@@ -108,6 +108,18 @@ FUNC_MOCK_RUN_DEFAULT {
 	return 1;
 }
 FUNC_MOCK_END
+
+/*
+ * read -- read mock
+ */
+FUNC_MOCK(read, int, int fd, void *buffer, size_t nbytes)
+FUNC_MOCK_RUN_DEFAULT {
+	UT_ASSERTeq(nbytes, 2);
+	UT_ASSERTeq(fd, MOCK_FD);
+
+	return 2;
+}
+FUNC_MOCK_END
 #endif /* not _WIN32 */
 
 /*
