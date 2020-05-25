@@ -1,6 +1,8 @@
 pmem_deep_persist$(nW)TEST2: START: pmem_deep_persist$(nW)
  $(nW)pmem_deep_persist$(nW) $(*)
 $(OPT)mocked open$(*)
+$(OPT)mocked read$(*)
+$(OPT)mocked open$(*)
 $(OPT)mocked write$(*)
 deep_persist 0
 pmem_deep_persist$(nW)TEST2: DONE
