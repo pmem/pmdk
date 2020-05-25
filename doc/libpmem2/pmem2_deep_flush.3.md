@@ -56,6 +56,8 @@ subset of the map's address space.
 * **PMEM2_E_DAX_REGION_NOT_FOUND** - the underlying device region id cannot be
 detected.
 
+* **PMEM2_E_NOSUPP** - the platform has no facilities for deep flush.
+
 * -**errno** set by failing **write**(2), while trying to use the Device Dax
 *deep_flush* interface.
 

@@ -31,6 +31,7 @@ pmem2_deep_flush_write(unsigned region_id)
 	char deep_flush_path[PATH_MAX];
 	int deep_flush_fd;
 	char rbuf[2];
+	int rv = 0;
 
 	if (util_snprintf(deep_flush_path, PATH_MAX,
 		"/sys/bus/nd/devices/region%u/deep_flush", region_id) < 0) {
@@ -40,35 +41,38 @@ pmem2_deep_flush_write(unsigned region_id)
 
 	if ((deep_flush_fd = os_open(deep_flush_path, O_RDONLY)) < 0) {
 		LOG(1, "!os_open(\"%s\", O_RDONLY)", deep_flush_path);
-		return -1;
+		return PMEM2_E_NOSUPP;
 	}
 
 	if (read(deep_flush_fd, rbuf, sizeof(rbuf)) != 2) {
 		LOG(1, "!read(%d)", deep_flush_fd);
-		goto fail_close;
+		rv = PMEM2_E_NOSUPP;
+		goto end;
 	}
 
 	if (rbuf[0] == '0' && rbuf[1] == '\n') /* deep_flushing not needed */
-		goto ok;
+		goto end;
 
-	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
-		LOG(1, "Cannot open deep_flush file %s", deep_flush_path);
-		return 0;
+	if (rbuf[0] != '1') {
+		rv = PMEM2_E_NOSUPP;
+		goto end;
 	}
 
-	if (write(deep_flush_fd, "1", 1) != 1)
+	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
+		LOG(1, "Cannot open deep_flush file %s to write",
+			deep_flush_path);
+		rv = PMEM2_E_NOSUPP;
+		goto end;
+	}
+
+	if (write(deep_flush_fd, "1", 1) != 1) {
 		LOG(1, "Cannot write to deep_flush file %d", deep_flush_fd);
+		rv = PMEM2_E_ERRNO;
+	}
 
-ok:
+end:
 	os_close(deep_flush_fd);
-	return 0;
-
-fail_close:
-	;
-	int oerrno = errno;
-	os_close(deep_flush_fd);
-	errno = oerrno;
-	return -1;
+	return rv;
 }
 
 /*
