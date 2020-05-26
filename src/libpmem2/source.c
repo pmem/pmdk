@@ -9,9 +9,19 @@
 #include "pmem2_utils.h"
 
 int
-pmem2_source_from_anon(struct pmem2_source **src)
+pmem2_source_from_anon(struct pmem2_source **src, size_t size)
 {
-	return PMEM2_E_NOSUPP;
+	int ret;
+	struct pmem2_source *srcp = pmem2_malloc(sizeof(**src), &ret);
+	if (ret)
+		return ret;
+
+	srcp->type = PMEM2_SOURCE_ANON;
+	srcp->value.size = size;
+
+	*src = srcp;
+
+	return 0;
 }
 
 int

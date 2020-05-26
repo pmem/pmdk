@@ -253,14 +253,19 @@ pmem2_badblock_context_new(const struct pmem2_source *src,
 
 	ASSERTne(bbctx, NULL);
 
+	if (src->type == PMEM2_SOURCE_ANON) {
+		ERR("Anonymous source does not support bad blocks");
+		return PMEM2_E_NOSUPP;
+	}
+
+	ASSERTeq(src->type, PMEM2_SOURCE_FD);
+
 	struct ndctl_ctx *ctx;
 	struct ndctl_region *region;
 	struct ndctl_namespace *ndns;
 	struct pmem2_badblock_context *tbbctx = NULL;
 	enum pmem2_file_type pmem2_type;
 	int ret = PMEM2_E_UNKNOWN;
-	os_stat_t st;
-
 	*bbctx = NULL;
 
 	errno = ndctl_new(&ctx) * (-1);
@@ -269,22 +274,10 @@ pmem2_badblock_context_new(const struct pmem2_source *src,
 		return PMEM2_E_ERRNO;
 	}
 
-	if (os_fstat(src->fd, &st)) {
-		ERR("!fstat %i", src->fd);
-		ret = PMEM2_E_ERRNO;
-		goto exit_ndctl_unref;
-	}
+	pmem2_type = src->value.ftype;
 
-	ret = pmem2_get_type_from_stat(&st, &pmem2_type);
-	if (ret)
-		goto exit_ndctl_unref;
-
-	if (pmem2_type != PMEM2_FTYPE_REG && pmem2_type != PMEM2_FTYPE_DEVDAX) {
-		ERR("file type 0%o is not supported", st.st_mode & S_IFMT);
-		ret = PMEM2_E_INVALID_FILE_TYPE;
-		goto exit_ndctl_unref;
-	}
-	ret = pmem2_region_namespace(ctx, &st, &region, &ndns);
+	ret = pmem2_region_namespace(ctx, pmem2_type, src->value.st_rdev,
+		&region, &ndns);
 	if (ret) {
 		LOG(1, "getting region and namespace failed");
 		goto exit_ndctl_unref;
@@ -294,7 +287,7 @@ pmem2_badblock_context_new(const struct pmem2_source *src,
 	if (ret)
 		goto exit_ndctl_unref;
 
-	tbbctx->fd = src->fd;
+	tbbctx->fd = src->value.fd;
 	tbbctx->file_type = pmem2_type;
 	tbbctx->ctx = ctx;
 
@@ -339,9 +332,10 @@ pmem2_badblock_context_new(const struct pmem2_source *src,
 
 	if (pmem2_type == PMEM2_FTYPE_REG) {
 		/* only regular files have extents */
-		ret = pmem2_extents_create_get(src->fd, &tbbctx->exts);
+		ret = pmem2_extents_create_get(src->value.fd, &tbbctx->exts);
 		if (ret) {
-			LOG(1, "getting extents of fd %i failed", src->fd);
+			LOG(1, "getting extents of fd %i failed",
+				src->value.fd);
 			goto error_free_all;
 		}
 	}

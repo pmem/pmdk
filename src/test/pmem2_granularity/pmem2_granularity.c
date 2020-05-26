@@ -104,7 +104,7 @@ static void
 cleanup(struct pmem2_source *src, struct test_ctx *ctx)
 {
 #ifdef _WIN32
-	CloseHandle(src->handle);
+	CloseHandle(src->value.handle);
 #else
 	CLOSE(ctx->fd);
 #endif

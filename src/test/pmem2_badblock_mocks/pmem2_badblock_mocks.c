@@ -23,7 +23,7 @@
 "Usage: pmem2_badblock_mocks <test_case> <file_type> <mode> [bad_blocks_set]\n"\
 "Possible values of arguments:\n"\
 "   test_case      :     test_basic, test_read_clear_bb \n"\
-"   file_type      :     reg_file, chr_dev, directory, blk_dev\n"\
+"   file_type      :     reg_file, chr_dev\n"\
 "   mode           :     no_device, namespace, region\n"\
 "   bad_blocks_set :     1-"MAX_BB_SET_STR"\n\n"
 
@@ -208,7 +208,7 @@ get_extents(int fd, struct extents **exts)
 static int
 test_basic(struct pmem2_source *src)
 {
-	UT_OUT("TEST: test_basic: 0x%x", src->fd);
+	UT_OUT("TEST: test_basic: 0x%x", src->value.fd);
 
 	struct pmem2_badblock_context *bbctx;
 	struct pmem2_badblock bb;
@@ -230,7 +230,7 @@ test_basic(struct pmem2_source *src)
 static int
 test_read_clear_bb(struct pmem2_source *src)
 {
-	UT_OUT("TEST: test_read_clear_bb: 0x%x", src->fd);
+	UT_OUT("TEST: test_read_clear_bb: 0x%x", src->value.fd);
 
 	struct pmem2_badblock_context *bbctx;
 	struct pmem2_badblock bb;
@@ -244,7 +244,7 @@ test_read_clear_bb(struct pmem2_source *src)
 
 	i_bb = 0;
 	while ((ret = pmem2_badblock_next(bbctx, &bb)) == 0) {
-		bb2 = get_nth_badblock(src->fd, &i_bb);
+		bb2 = get_nth_badblock(src->value.fd, &i_bb);
 		UT_ASSERTne(bb2, NULL);
 		UT_ASSERTeq(bb.offset, SEC2B(bb2->offset));
 		UT_ASSERTeq(bb.length, SEC2B(bb2->len));
@@ -253,7 +253,7 @@ test_read_clear_bb(struct pmem2_source *src)
 			goto exit_free;
 	}
 
-	bb2 = get_nth_badblock(src->fd, &i_bb);
+	bb2 = get_nth_badblock(src->value.fd, &i_bb);
 	UT_ASSERTeq(bb2, NULL);
 
 exit_free:
@@ -263,7 +263,8 @@ exit_free:
 }
 
 static void
-parse_arguments(int argc, char *argv[], int *test, test_fn **test_func)
+parse_arguments(int argc, char *argv[], int *test, enum pmem2_file_type *ftype,
+	test_fn **test_func)
 {
 	if (argc < (ARG_NUMBER - 1) || argc > ARG_NUMBER) {
 		UT_OUT(USAGE_MSG);
@@ -291,12 +292,10 @@ parse_arguments(int argc, char *argv[], int *test, test_fn **test_func)
 
 	if (strcmp(file_type, "reg_file") == 0) {
 		*test |= FD_REG_FILE;
+		*ftype = PMEM2_FTYPE_REG;
 	} else if (strcmp(file_type, "chr_dev") == 0) {
 		*test |= FD_CHR_DEV;
-	} else if (strcmp(file_type, "directory") == 0) {
-		*test |= FD_DIRECTORY;
-	} else if (strcmp(file_type, "blk_dev") == 0) {
-		*test |= FD_BLK_DEV;
+		*ftype = PMEM2_FTYPE_DEVDAX;
 	} else {
 		UT_OUT(USAGE_MSG);
 		UT_FATAL("wrong file type: %s", file_type);
@@ -334,17 +333,13 @@ main(int argc, char *argv[])
 	struct pmem2_source src;
 	test_fn *test_func;
 
-	parse_arguments(argc, argv, &src.fd, &test_func);
-
-	int expected_result;
-	if (src.fd < FD_DIRECTORY)
-		expected_result = PMEM2_E_NO_BAD_BLOCK_FOUND;
-	else
-		expected_result = PMEM2_E_INVALID_FILE_TYPE;
+	src.type = PMEM2_SOURCE_FD;
+	parse_arguments(argc, argv, &src.value.fd, &src.value.ftype,
+		&test_func);
+	src.value.st_rdev = (dev_t)src.value.fd;
 
 	int result = test_func(&src);
-
-	UT_ASSERTeq(result, expected_result);
+	UT_ASSERTeq(result, PMEM2_E_NO_BAD_BLOCK_FOUND);
 
 	DONE(NULL);
 }

@@ -306,8 +306,6 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	size_t file_len;
 	*map_ptr = NULL;
 
-	ASSERTne(src->fd, INVALID_FD);
-
 	if (cfg->requested_max_granularity == PMEM2_GRANULARITY_INVALID) {
 		ERR(
 			"please define the max granularity requested for the mapping");
@@ -325,25 +323,17 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	if (ret)
 		return ret;
 
-	/* get file type */
-	enum pmem2_file_type file_type;
-	os_stat_t st;
-	if (os_fstat(src->fd, &st)) {
-		ERR("!fstat");
-		return PMEM2_E_ERRNO;
-	}
-	ret = pmem2_get_type_from_stat(&st, &file_type);
-	if (ret)
-		return ret;
-
 	/* get offset */
-	size_t offset;
-	ret = pmem2_validate_offset(cfg, &offset, src_alignment);
+	size_t effective_offset;
+	ret = pmem2_validate_offset(cfg, &effective_offset, src_alignment);
 	if (ret)
 		return ret;
-	os_off_t off = (os_off_t)offset;
+	ASSERTeq(effective_offset, cfg->offset);
 
-	ASSERTeq((size_t)off, cfg->offset);
+	if (src->type == PMEM2_SOURCE_ANON)
+		effective_offset = 0;
+
+	os_off_t off = (os_off_t)effective_offset;
 
 	/* map input and output variables */
 	bool map_sync = false;
@@ -365,16 +355,21 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	if (cfg->protection_flag & PMEM2_PROT_WRITE)
 		proto |= PROT_WRITE;
 
-	if (file_type == PMEM2_FTYPE_DIR) {
-		ERR("the directory is not a supported file type");
-		return PMEM2_E_INVALID_FILE_TYPE;
-	}
+	if (src->type == PMEM2_SOURCE_FD) {
+		if (src->value.ftype == PMEM2_FTYPE_DIR) {
+			ERR("the directory is not a supported file type");
+			return PMEM2_E_INVALID_FILE_TYPE;
+		}
 
-	ASSERT(file_type == PMEM2_FTYPE_REG || file_type == PMEM2_FTYPE_DEVDAX);
+		ASSERT(src->value.ftype == PMEM2_FTYPE_REG ||
+			src->value.ftype == PMEM2_FTYPE_DEVDAX);
 
-	if (cfg->sharing == PMEM2_PRIVATE && file_type == PMEM2_FTYPE_DEVDAX) {
-		ERR("device DAX does not support mapping with MAP_PRIVATE");
-		return PMEM2_E_SRC_DEVDAX_PRIVATE;
+		if (cfg->sharing == PMEM2_PRIVATE &&
+			src->value.ftype == PMEM2_FTYPE_DEVDAX) {
+			ERR(
+			"device DAX does not support mapping with MAP_PRIVATE");
+			return PMEM2_E_SRC_DEVDAX_PRIVATE;
+		}
 	}
 
 	size_t content_length, reserved_length = 0;
@@ -386,9 +381,9 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	if (cfg->length)
 		content_length = cfg->length;
 	else
-		content_length = file_len - cfg->offset;
+		content_length = file_len - effective_offset;
 
-	const size_t alignment = get_map_alignment(content_length,
+	size_t alignment = get_map_alignment(content_length,
 			src_alignment);
 
 	ret = pmem2_config_validate_addr_alignment(cfg, src);
@@ -412,9 +407,17 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 		flags |= MAP_PRIVATE;
 	}
 
-	ret = file_map(reserv, content_length, proto, flags, src->fd, off,
-			&map_sync, &addr);
+	int map_fd = INVALID_FD;
+	if (src->type == PMEM2_SOURCE_FD) {
+		map_fd = src->value.fd;
+	} else if (src->type == PMEM2_SOURCE_ANON) {
+		flags |= MAP_ANONYMOUS;
+	} else {
+		ASSERT(0);
+	}
 
+	ret = file_map(reserv, content_length, proto, flags, map_fd, off,
+		&map_sync, &addr);
 	if (ret) {
 		/* unmap the reservation mapping */
 		munmap(reserv, reserved_length);
@@ -430,6 +433,7 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 	bool eADR = (pmem2_auto_flush() == 1);
 	enum pmem2_granularity available_min_granularity =
+		src->type == PMEM2_SOURCE_ANON ? PMEM2_GRANULARITY_BYTE :
 		get_min_granularity(eADR, map_sync, cfg->sharing);
 
 	if (available_min_granularity > cfg->requested_max_granularity) {
@@ -458,7 +462,8 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	map->effective_granularity = available_min_granularity;
 	pmem2_set_flush_fns(map);
 	pmem2_set_mem_fns(map);
-	map->src_fd_st = st;
+	map->source = *src;
+	map->source.value.fd = INVALID_FD; /* fd should not be used after map */
 
 	ret = pmem2_register_mapping(map);
 	if (ret)
@@ -466,8 +471,11 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 	*map_ptr = map;
 
-	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->content_length);
-	VALGRIND_REGISTER_PMEM_FILE(src->fd, map->addr, map->content_length, 0);
+	if (src->type == PMEM2_SOURCE_FD) {
+		VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->content_length);
+		VALGRIND_REGISTER_PMEM_FILE(src->value.fd,
+			map->addr, map->content_length, 0);
+	}
 
 	return 0;
 

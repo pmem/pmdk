@@ -19,10 +19,12 @@ static void
 verify_fd(struct pmem2_source *src, int fd)
 {
 #ifdef WIN32
-	UT_ASSERTeq(src->handle, fd != INVALID_FD ?
+	UT_ASSERTeq(src->type, PMEM2_SOURCE_HANDLE);
+	UT_ASSERTeq(src->value.handle, fd != INVALID_FD ?
 		(HANDLE)_get_osfhandle(fd) : INVALID_HANDLE_VALUE);
 #else
-	UT_ASSERTeq(src->fd, fd);
+	UT_ASSERTeq(src->type, PMEM2_SOURCE_FD);
+	UT_ASSERTeq(src->value.fd, fd);
 #endif
 }
 
@@ -200,7 +202,7 @@ test_set_handle(const struct test_case *tc, int argc, char *argv[])
 
 	int ret = pmem2_source_from_handle(&src, h);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
-	UT_ASSERTeq(src->handle, h);
+	UT_ASSERTeq(src->value.handle, h);
 
 	CloseHandle(h);
 	pmem2_source_delete(&src);

@@ -5,6 +5,7 @@
  * pmem2_integration.c -- pmem2 integration tests
  */
 
+#include "libpmem2.h"
 #include "unittest.h"
 #include "rand.h"
 #include "ut_pmem2.h"
@@ -736,6 +737,126 @@ test_deep_flush_overlap(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_source_anon -- tests map/config/source functions in combination
+ *	with anonymous source.
+ */
+static int
+test_source_anon(enum pmem2_sharing_type sharing,
+	enum pmem2_granularity granularity,
+	size_t source_len, size_t map_len)
+{
+	int ret = 0;
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	struct pmem2_map *map;
+	struct pmem2_badblock_context *bbctx;
+
+	UT_ASSERTeq(pmem2_source_from_anon(&src, source_len), 0);
+
+	UT_ASSERTeq(pmem2_source_device_id(src, NULL, NULL), PMEM2_E_NOSUPP);
+	UT_ASSERTeq(pmem2_source_device_usc(src, NULL), PMEM2_E_NOSUPP);
+	UT_ASSERTeq(pmem2_badblock_context_new(src, &bbctx), PMEM2_E_NOSUPP);
+	size_t alignment;
+	UT_ASSERTeq(pmem2_source_alignment(src, &alignment), 0);
+	UT_ASSERT(alignment >= Ut_pagesize);
+	size_t size;
+	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
+	UT_ASSERTeq(size, source_len);
+
+	PMEM2_CONFIG_NEW(&cfg);
+
+	UT_ASSERTeq(pmem2_config_set_length(cfg, map_len), 0);
+	UT_ASSERTeq(pmem2_config_set_offset(cfg, alignment), 0); /* ignored */
+	UT_ASSERTeq(pmem2_config_set_required_store_granularity(cfg,
+		granularity), 0);
+	UT_ASSERTeq(pmem2_config_set_sharing(cfg, sharing), 0);
+
+	if ((ret = pmem2_map(cfg, src, &map)) != 0)
+		goto map_fail;
+
+	void *addr = pmem2_map_get_address(map);
+	UT_ASSERTne(addr, NULL);
+	UT_ASSERTeq(pmem2_map_get_size(map), map_len ? map_len : source_len);
+	UT_ASSERTeq(pmem2_map_get_store_granularity(map),
+		PMEM2_GRANULARITY_BYTE);
+
+	UT_ASSERTeq(pmem2_deep_flush(map, addr, alignment), PMEM2_E_NOSUPP);
+
+	UT_ASSERTeq(pmem2_unmap(&map), 0);
+
+map_fail:
+	PMEM2_CONFIG_DELETE(&cfg);
+	pmem2_source_delete(&src);
+
+	return ret;
+}
+
+/*
+ * test_source_anon_ok_private -- valid config /w private flag
+ */
+static int
+test_source_anon_private(const struct test_case *tc, int argc, char *argv[])
+{
+	int ret = test_source_anon(PMEM2_PRIVATE, PMEM2_GRANULARITY_BYTE,
+		1 << 30ULL, 1 << 20ULL);
+	UT_ASSERTeq(ret, 0);
+
+	return 1;
+}
+
+/*
+ * test_source_anon_shared -- valid config /w shared flag
+ */
+static int
+test_source_anon_shared(const struct test_case *tc, int argc, char *argv[])
+{
+	int ret = test_source_anon(PMEM2_SHARED, PMEM2_GRANULARITY_BYTE,
+		1 << 30ULL, 1 << 20ULL);
+	UT_ASSERTeq(ret, 0);
+
+	return 1;
+}
+
+/*
+ * test_source_anon_page -- valid config /w page granularity
+ */
+static int
+test_source_anon_page(const struct test_case *tc, int argc, char *argv[])
+{
+	int ret = test_source_anon(PMEM2_SHARED, PMEM2_GRANULARITY_PAGE,
+		1 << 30ULL, 1 << 20ULL);
+	UT_ASSERTeq(ret, 0);
+
+	return 1;
+}
+
+/*
+ * test_source_anon_zero_len -- valid config /w zero (src inherited) map length
+ */
+static int
+test_source_anon_zero_len(const struct test_case *tc, int argc, char *argv[])
+{
+	int ret = test_source_anon(PMEM2_SHARED, PMEM2_GRANULARITY_BYTE,
+		1 << 30ULL, 0);
+	UT_ASSERTeq(ret, 0);
+
+	return 1;
+}
+
+/*
+ * test_source_anon_too_small -- valid config /w small mapping length
+ */
+static int
+test_source_anon_too_small(const struct test_case *tc, int argc, char *argv[])
+{
+	int ret = test_source_anon(PMEM2_SHARED, PMEM2_GRANULARITY_BYTE,
+		1 << 30ULL, 1 << 10ULL);
+	UT_ASSERTne(ret, 0);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -754,6 +875,11 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_deep_flush_e_range_before),
 	TEST_CASE(test_deep_flush_slice),
 	TEST_CASE(test_deep_flush_overlap),
+	TEST_CASE(test_source_anon_private),
+	TEST_CASE(test_source_anon_shared),
+	TEST_CASE(test_source_anon_page),
+	TEST_CASE(test_source_anon_too_small),
+	TEST_CASE(test_source_anon_zero_len),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

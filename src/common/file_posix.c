@@ -190,7 +190,7 @@ device_dax_alignment(const char *path)
 		return 0;
 	}
 
-	int ret = pmem2_device_dax_alignment_from_stat(&st, &size);
+	int ret = pmem2_device_dax_alignment_from_dev(st.st_rdev, &size);
 	if (ret)
 		return 0;
 
@@ -217,13 +217,20 @@ util_ddax_region_find(const char *path, unsigned *region_id)
 	LOG(3, "path \"%s\"", path);
 
 	os_stat_t st;
+	int ret;
 
 	if (os_stat(path, &st) < 0) {
 		ERR("!stat \"%s\"", path);
 		return -1;
 	}
 
-	int ret = pmem2_get_region_id(&st, region_id);
+	enum pmem2_file_type ftype;
+	if ((ret = pmem2_get_type_from_stat(&st, &ftype)) < 0) {
+		errno = pmem2_err_to_errno(ret);
+		return -1;
+	}
+
+	ret = pmem2_get_region_id(st.st_rdev, ftype, region_id);
 	if (ret < 0) {
 		errno = pmem2_err_to_errno(ret);
 		return -1;
