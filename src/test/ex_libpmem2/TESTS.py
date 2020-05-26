@@ -56,3 +56,12 @@ class TEST3(EX_LIBPMEM2):
             ctx.exec(example_path, "add", file_path, x, x)
         ctx.exec(example_path, "check", file_path)
         ctx.exec(example_path, "print", file_path, stdout_file='out3.log')
+
+
+class TEST4(EX_LIBPMEM2):
+
+    def run(self, ctx):
+        example_path = futils.get_example_path(ctx, 'pmem2', 'unsafe_shutdown')
+        file_path = ctx.create_holey_file(self.file_size, 'testfile0')
+        ctx.exec(example_path, "write", file_path, "foobar")
+        ctx.exec(example_path, "read", file_path, stdout_file='out4.log')
