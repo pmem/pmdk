@@ -14,55 +14,29 @@
 #include "pmem2_badblock_mocks.h"
 
 /*
- * pmem2_get_type_from_stat - mock pmem2_get_type_from_stat
- */
-FUNC_MOCK(pmem2_get_type_from_stat, int,
-	const os_stat_t *st, enum pmem2_file_type *type)
-FUNC_MOCK_RUN_DEFAULT {
-
-	if (S_ISREG(st->st_mode)) {
-		*type = PMEM2_FTYPE_REG;
-		return 0;
-	}
-
-	if (S_ISDIR(st->st_mode)) {
-		*type = PMEM2_FTYPE_DIR;
-		return 0;
-	}
-
-	if (S_ISCHR(st->st_mode)) {
-		*type = PMEM2_FTYPE_DEVDAX;
-		return 0;
-	}
-
-	ERR("file type 0%o not supported", st->st_mode & S_IFMT);
-	return PMEM2_E_INVALID_FILE_TYPE;
-}
-FUNC_MOCK_END
-
-/*
  * pmem2_region_namespace - mock pmem2_region_namespace
  */
 FUNC_MOCK(pmem2_region_namespace, int,
 		struct ndctl_ctx *ctx,
-		const os_stat_t *st,
+		enum pmem2_file_type ftype,
+		dev_t st_rdev,
 		struct ndctl_region **pregion,
 		struct ndctl_namespace **pndns)
 FUNC_MOCK_RUN_DEFAULT {
 	UT_ASSERTne(pregion, NULL);
-	*pregion = (void *)st->st_ino;
+	*pregion = (void *)st_rdev;
 	if (pndns == NULL)
 		return 0;
 
-	if (IS_MODE_NO_DEVICE(st->st_ino) || /* no matching device */
-	    st->st_mode == __S_IFDIR || /* directory */
-	    st->st_mode == __S_IFBLK) { /* block device */
+	UT_ASSERT(ftype == PMEM2_FTYPE_REG || ftype == PMEM2_FTYPE_DEVDAX);
+
+	if (IS_MODE_NO_DEVICE(st_rdev)) {
 		/* did not found any matching device */
 		*pndns = NULL;
 		return 0;
 	}
 
-	*pndns = (void *)st->st_ino;
+	*pndns = (void *)st_rdev;
 
 	return 0;
 }

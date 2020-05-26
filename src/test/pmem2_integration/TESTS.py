@@ -229,6 +229,30 @@ class TEST27(PMEM2_INTEGRATION):
     test_case = "test_deep_flush_overlap"
 
 
+class TEST28(PMEM2_INTEGRATION):
+    """test for anonymous mappings"""
+    test_case = "test_source_anon_private"
+
+
+class TEST29(PMEM2_INTEGRATION):
+    """test for anonymous mappings"""
+    test_case = "test_source_anon_shared"
+
+
+class TEST30(PMEM2_INTEGRATION):
+    """test for anonymous mappings"""
+    test_case = "test_source_anon_page"
+
+
+class TEST31(PMEM2_INTEGRATION):
+    """test for anonymous mappings"""
+    test_case = "test_source_anon_too_small"
+
+
+class TEST32(PMEM2_INTEGRATION):
+    """test for anonymous mappings"""
+    test_case = "test_source_anon_zero_len"
+
 # XXX: add test cases with:
 # @t.require_devdax(t.DevDax('devdax', deep_flush=True))
 # @t.require_devdax(t.DevDax('devdax', deep_flush=False))
