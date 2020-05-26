@@ -1,0 +1,3 @@
+$(OPT)pmem2_source_device_usc: Unsafe shutdown count is not supported for this source
+$(OPT)pmem2_source_device_usc: Getting unsafe shutdown count is not supported on this system
+foobar
