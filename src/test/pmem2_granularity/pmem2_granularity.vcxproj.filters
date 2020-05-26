@@ -65,6 +65,9 @@
     <ClCompile Include="..\..\libpmem2\deep_flush_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem2\ravl_interval.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\unittest\ut_pmem2_utils.h">
@@ -86,6 +89,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pmem2_granularity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libpmem2\ravl_interval.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
