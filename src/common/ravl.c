@@ -515,7 +515,7 @@ ravl_predicate_holds(struct ravl *ravl, int result, struct ravl_node **ret,
 }
 
 /*
- * ravl_find -- searches for the node in the free
+ * ravl_find -- searches for the node in the tree
  */
 struct ravl_node *
 ravl_find(struct ravl *ravl, const void *data, enum ravl_predicate flags)

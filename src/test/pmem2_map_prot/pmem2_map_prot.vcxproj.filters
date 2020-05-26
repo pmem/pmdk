@@ -68,6 +68,9 @@
     <ClCompile Include="..\unittest\ut_pmem2_setup.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem2\ravl_interval.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libpmem2\config.h">
@@ -83,6 +86,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\unittest\ut_pmem2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libpmem2\ravl_interval.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
