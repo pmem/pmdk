@@ -1,3 +1,2 @@
-PMDK is the best open source project in the world.
-
-End of file.
+$(OPT)pmem2_source_device_usc: Getting unsafe shutdown count is not supported on this system
+foobar
