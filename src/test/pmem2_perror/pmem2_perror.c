@@ -143,7 +143,7 @@ test_simple_err_to_errno_check(const struct test_case *tc,
 		int argc, char *argv[])
 {
 	int ret_errno = pmem2_err_to_errno(PMEM2_E_NOSUPP);
-	UT_ASSERTeq(ret_errno, EINVAL);
+	UT_ASSERTeq(ret_errno, ENOTSUP);
 
 	ret_errno = pmem2_err_to_errno(PMEM2_E_UNKNOWN);
 	UT_ASSERTeq(ret_errno, EINVAL);
