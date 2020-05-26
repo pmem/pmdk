@@ -3,117 +3,10 @@
 
 /*
  * unsafe_shutdown.c -- unsafe shutdown example for the libpmem2
- */
-
-/*
- * The memory pool contains a few things:
- * - a pool state which includes:
- * -- a backing device state (ID and USC value)
- * -- file-in-use indicator
- * - usable data (array of characters)
  *
- * The pool state allows judging whether the usable data is not corrupted.
- * The pool may exists in a few possible states:
- * A. Zero-initialized (at startup only)
- * - assuming zeroed-out device ID is incorrect it invalidates USC value
- * - file-in-use == 0 indicates file is closed
- * B. Zero-initialized but with correct USC value (at startup only)
- * - zeroed-out device ID still invalidates USC value (no matter it is correct)
- * - the file is still marked as closed
- * - it is the required state between A and C
- * - may be reached during fixing (B')
- * -- in this case, the USC value requires update despite being non-zero
- * C. The device ID is matching and (USC-new == USC-old) and file-in-use == 0
- *    (at startup only)
- * - from this state it is possible to detect:
- * -- unsafe shutdowns if USC value will change (device ID validates stored USC)
- * -- moving the file to another backing device (device ID mismatch)
- * - note the file is still marked as closed so even unsafe shutdown cannot
- *   corrupt the usable data
- * D. The device ID is matching and (USC-new == USC-old) but file-in-use == 1
- *    (FILE_ARMED)
- * - at runtime:
- * -- this is the only state in which file contents may be modified
- * -- this is the only state in which unsafe shutdown may corrupt the usable
- *    data
- * -- before closing the file the pool should transition to state C
- * - at startup:
- * -- this state indicates D -> C transition was interrupted;
- * -- depending on the persistent structure resilience it may indicate the
- *    persistent structure requires recovery
- * E. Device ID mismatch (at startup only)
- * - E0. file-in-use == 0 (FILE_UNARMED)
- * -- this indicates the file was moved to another backing device
- * -- since the file was closed cleanly before moving the usable data is not
- *    corrupted
- * - E1. file-in-use == 1 (FILE_ARMED)
- * -- this indicates the file was moved to another backing device
- * -- since the file was NOT closed cleanly before moving the usable data may
- *    be corrupted
- * F. The device ID is matching but (USC-new != USC-old)
- * - this indicates the unsafe shutdown occurred
- * - F0. file-in-use == 0 (FILE_UNARMED)
- * -- since the file was closed cleanly / or not yet armed for writing before
- *    the unsafe shutdown occurred the usable data is not corrupted
- * - F1. file-in-use == 1 (FILE_ARMED)
- * -- since the file was armed for writing when the unsafe shutdown occurred
- *    the usable data MAY be corrupted
- *
- * This application distinguishes between the states of the pool which allows
- * detecting the possibility of usable data corruption. The only false-positive
- * possible is when despite the usable data was in the power-fail-safe domain
- * (not on the persistent medium yet) while an unsafe-shutdown happen it
- * miraculously reach the persistent medium. Such miracles are indetectable.
- *
- * Note: You can further strengthen usable-data-corruption-detection by building
- * and handling persistent structures in such a way so, in the face of data
- * corruption, it will be possible to recover the consistent state of the
- * structure from the point in time before the failed modifications have
- * started. XXX missing reference.
- *
- * Distinguishing between the pool states requires:
- * - deep syncing changes required to transition between states
- * - intermediate states are impossible in case of the unsafe shutdown
- * -- in case of variables <= 8 bytes (usc, file_in_use) it is guaranteed by the
- *    hardware
- * -- in case of device id (which is > 8 bytes) all bytes are required to have
- *    full device ID match
- *
- * States A and B occur during the pool initialization. After A -> B -> C
- * transition the pool is ready for writing the usable data. State C is also
- * a normal state during every startup.
- * Before writing the usable data the pool transitions C -> D. In state D the
- * usable data is written. When the file will be closed the pool transitions
- * back D -> C. Which allows at the next startup detect if the file was closed
- * cleanly.
- * If, at startup, the pool is in state other than C it indicates the abnormal
- * situation happened:
- * - state A or B indicates the interruption happened during the initialization
- *   so usable data is not corrupted (since it was not yet written)
- * - state D means the pool was unexpectedly closed (it was not because of the
- *   unsafe shutdown). Depending on the persistent structure resilience this
- *   error may be recoverable.
- * - state E indicates the file was moved. E0 means the usable data is not
- *   corrupted whereas E1 is similar to D.
- * - state F indicates the unsafe shutdown happened. F0 means the usable data is
- *   not corrupted whereas F1 means the usable data may be corrupted. A
- *   resilient persistent structure is not enough to survive the unsafe shutdown
- *   since it can not rely on normally guaranteed-to-work persistency
- *   primitives.
- *
- * Fixing the pool at startup:
- * 0. fixing the usable data
- * - if the pool state indicates the usable data is corrupted, the usable data
- *   should be removed to prevent using it after fixing the pool state
- * - if the pool state indicates the usable data may require the recovery,
- *   the recovery should be done after fixing the pool state (state D required)
- * 1. disarming the file [D, E1, F1] -> [C, E0, F0], when this operation
- *    succeed:
- * - state C is normal so the pool is ready to use
- * - state E0 and F0 requires updating device ID and/or USC value
- * 2. invalidating the USC value by zeroing device ID [E0, F0] -> [B', B']
- * 3. updating the USC value B' -> B
- * 4. writing the correct device ID B -> C
+ * This examples demonstrates how a normal application should consume the
+ * deep flush and unsafe shutdown count interfaces to provide a reliable
+ * and recoverable access to persistent memory resident data structures.
  */
 
 #include <assert.h>
@@ -123,6 +16,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <libpmem2.h>
 
@@ -132,51 +26,21 @@
 #include <io.h>
 #endif
 
-#define FLAGS_ZERO 0 /* flush + drain */
+#define DEVICE_ID_LEN			((size_t)512ULL)
 
-#define DEVICE_ID_LEN 32ULL
-
-#define FILE_UNARMED 0 /* file is closed or used only for reading */
-#define FILE_ARMED 1 /* file is ready for writing */
-
-struct pool_state {
-	struct device_state {
-		char id[DEVICE_ID_LEN];
-		uint64_t usc; /* unsafe shutdown counter value */
-	} device_state;
-
-	uint8_t file_in_use;
-};
-
-struct pool_content {
-	struct pool_state ps;
-	char usable_data[];
-};
-
-struct pool_data {
-	struct pool_content *content;
-
-	/* source and mapping objects */
-	struct pmem2_source *src;
-	struct pmem2_map *map;
-
-	size_t map_size;
-	size_t usable_space_size;
-
-	/* mapping-specific functions */
-	pmem2_persist_fn persist;
-	pmem2_memset_fn memset;
-	pmem2_memcpy_fn memcpy;
+struct device_info {
+	char id[DEVICE_ID_LEN];
+	uint64_t usc; /* unsafe shutdown count */
 };
 
 /*
- * device_state_read -- read device UUID and USC
+ * device_info_read -- populates device_info with data
  */
 static int
-device_state_read(struct pmem2_source *src, struct device_state *ds)
+device_info_read(struct device_info *di, struct pmem2_source *src)
 {
 	/* obtain device unsafe shutdown counter value (USC) */
-	int ret = pmem2_source_device_usc(src, &ds->usc);
+	int ret = pmem2_source_device_usc(src, &di->usc);
 	if (ret) {
 		pmem2_perror("pmem2_source_device_usc");
 		return ret;
@@ -193,298 +57,160 @@ device_state_read(struct pmem2_source *src, struct device_state *ds)
 
 	if (len > DEVICE_ID_LEN) {
 		fprintf(stderr, "the device ID is too long "
-			"(%" PRIu64 " > %" PRIu64  ")\n",
-			len, (size_t)DEVICE_ID_LEN);
+			"(%zu > %zu)\n",
+			len, DEVICE_ID_LEN);
 		return 1;
 	}
 
-	ret = pmem2_source_device_id(src, (char *)&ds->id, &len);
+	ret = pmem2_source_device_id(src, (char *)&di->id, &len);
 	if (ret) {
 		pmem2_perror("pmem2_source_device_id failed reading device ID");
 		return ret;
 	}
 
-	return 0;
+	return ret;
 }
 
 /*
- * device_state_init -- initialize device state in a unsafe-shutdown-safe way
+ * device_info_write -- safely writes new device info into the old location
  */
 static int
-device_state_init(struct pool_data *pool)
+device_info_write(struct device_info *di_old, const struct device_info *di_new,
+	struct pmem2_map *map)
 {
-	struct pool_state *ps = &pool->content->ps;
-	struct device_state *ds = &ps->device_state;
+	int ret;
 
-	/* read current device state */
-	struct device_state ds_curr = {{0}};
-	int ret = device_state_read(pool->src, &ds_curr);
+	/* First, clear any leftover invalid state from the structure */
+	memset(di_old, 0, sizeof(*di_old));
+	ret = pmem2_deep_flush(map, di_old, sizeof(*di_old));
+	if (ret) {
+		pmem2_perror("pmem2_deep_flush on device_info memset failed");
+		return ret;
+	}
 
 	/*
-	 * write, persist and deep sync the USC value. It has to be stored on
-	 * the persistent medium before it will be validated by writing device
-	 * ID.
+	 * Next, write, persist and deep sync the USC value. It has to be stored
+	 * on the persistent medium before it will be validated by writing
+	 * device ID.
 	 */
-	ds->usc = ds_curr.usc;
-	pool->persist(&ds->usc, sizeof(ds->usc));
-	ret = pmem2_deep_sync(pool->map, &ds->usc, sizeof(ds->usc));
+	di_old->usc = di_new->usc;
+	ret = pmem2_deep_flush(map, &di_old->usc, sizeof(di_old->usc));
 	if (ret) {
-		pmem2_perror("pmem2_deep_sync USC deep sync failed");
+		pmem2_perror("pmem2_deep_flush USC failed");
 		return ret;
 	}
 
 	/* valid device ID validates already stored USC value */
-	pool->memcpy(ds->id, ds_curr.id, DEVICE_ID_LEN, FLAGS_ZERO);
-	ret = pmem2_deep_sync(pool->map, ds->id, DEVICE_ID_LEN);
+	memcpy(di_old->id, di_new->id, DEVICE_ID_LEN);
+	ret = pmem2_deep_flush(map, di_old->id, DEVICE_ID_LEN);
 	if (ret) {
-		pmem2_perror("pmem2_deep_sync device ID failed");
+		pmem2_perror("pmem2_deep_flush device ID failed");
 		return ret;
 	}
 
-	return 0;
+	return ret;
 }
 
 /*
- * device_state_reset -- reinitialize device state
- * This is required in a few cases:
- * - the primary initialization was interrupted leaving the pool half-backed
- * - the pool was moved which invalidates all collected device-specific data
+ * device_info_is_initalized -- checks if the content of device info is
+ * initialized.
+ *
+ * This function returns false if device info was never initialized,
+ * initialization was interrupted or the file was moved to a different device.
+ * Otherwise, the function returns true.
  */
-static int
-device_state_reset(struct pool_data *pool)
+static bool
+device_info_is_initalized(const struct device_info *di_old,
+	const struct device_info *di_new)
 {
-	struct pool_state *ps = &pool->content->ps;
-	struct device_state *ds = &ps->device_state;
-	int ret = 0;
+	return strncmp(di_new->id, di_old->id, DEVICE_ID_LEN) == 0;
+}
+
+/*
+ * device_info_is_consistent -- checks if the device info indicates possible
+ * silent data corruption.
+ *
+ * This function returns false if the unsafe shutdown count of the device
+ * was incremented since the last open.
+ * Otherwise, the function returns true.
+ */
+static bool
+device_info_is_consistent(const struct device_info *di_old,
+	const struct device_info *di_new)
+{
+	return di_old->usc == di_new->usc;
+}
+
+#define POOL_SIGNATURE			("SHUTDOWN") /* 8 bytes */
+#define POOL_SIGNATURE_LEN		(sizeof(POOL_SIGNATURE))
+
+#define POOL_FLAG_IN_USE		((uint64_t)(1 << 0))
+#define POOL_USC_SUPPORTED		((uint64_t)(1 << 1))
+
+#define POOL_VALID_FLAGS (POOL_FLAG_IN_USE | POOL_USC_SUPPORTED)
+
+enum pool_state {
+	/*
+	 * The pool state cannot be determined because of errors during
+	 * retrieval of device information.
+	 */
+	POOL_STATE_INDETERMINATE,
 
 	/*
-	 * file has to be unarmed before reinitializing its device state.
-	 * Otherwise, if the process of reinitializing will be interrupted the
-	 * state of the pool will be indistinguishable from the state of the
-	 * pool after closing not cleanly and moving it to another backing
-	 * device.
+	 * The pool is internally consistent and was closed cleanly.
+	 * Application can assume that no custom recovery is needed.
 	 */
-	assert(ps->file_in_use == FILE_UNARMED);
+	POOL_STATE_OK,
 
-	/* invalidate USC value by overwriting device ID */
-	pool->memset(ds->id, 0, DEVICE_ID_LEN, FLAGS_ZERO);
-	ret = pmem2_deep_sync(pool->map, ds->id, DEVICE_ID_LEN);
-	if (ret) {
-		pmem2_perror("pmem2_deep_sync invalid device ID failed");
-		return ret;
-	}
-
-	/* reset the remaining */
-	pool->memset(&ds->usc, 0, sizeof(ds->usc), FLAGS_ZERO);
 	/*
-	 * no persist nor deep sync required since USC will be the first value
-	 * to be modified and no matter if unsafe shutdown happens the USC
-	 * value is invalidated by invalid device ID which is already deep
-	 * synced.
+	 * The pool is internally consistent, but it was not closed cleanly.
+	 * Application must perform consistency checking and custom recovery
+	 * on user data.
 	 */
+	POOL_STATE_OK_BUT_INTERRUPTED,
 
-	return 0;
-}
+	/*
+	 * The pool can contain invalid data as a result of hardware failure.
+	 * Reading the pool is unsafe.
+	 */
+	POOL_STATE_CORRUPTED,
+};
 
-#define POOL_STATE_OK 0
-#define POOL_STATE_ZERO_INITIALIZED 1
-#define PROBABLE_DATA_CORRUPTION 2
-#define DEVICE_STATE_RESET_REQUIRED 3
+struct pool_header {
+	uint8_t signature[POOL_SIGNATURE_LEN];
+	uint64_t flags;
+	uint64_t size;
+	struct device_info info;
+};
 
-/*
- * pool_state_verify -- consider pool state (including the backing device state
- * and whether the file was closed cleanly) to decide if the usable data is
- * valid
- */
-static int
-pool_state_verify(struct pool_data *pool)
-{
-	struct pool_state *ps = &pool->content->ps;
-	struct device_state *ds_old = &ps->device_state;
+struct pool_data {
+	struct pool_header header;
+	char usable_data[];
+};
 
-	/* check whether pool state is zero-initialized */
-	struct pool_state ps_zeroed;
-	memset(&ps_zeroed, 0, sizeof(ps_zeroed));
-	if (memcmp(&pool->content->ps, &ps_zeroed, sizeof(ps_zeroed)) == 0)
-		return POOL_STATE_ZERO_INITIALIZED;
-
-	/* read a current device state */
-	struct device_state ds_curr = {{0}};
-	int ret = device_state_read(pool->src, &ds_curr);
-	if (ret) {
-		fprintf(stderr, "Cannot read device state.\n");
-		return ret;
-	}
-
-	/* all required checks */
-	int is_id_the_same =
-		(strncmp(ds_curr.id, ds_old->id, DEVICE_ID_LEN) == 0);
-	int is_usc_the_same = (ds_curr.usc == ds_old->usc);
-	int is_file_in_use = (ps->file_in_use == FILE_ARMED);
-
-	if (is_id_the_same) {
-		if (is_usc_the_same) {
-			/* the unsafe shutdown has NOT occurred... */
-
-			if (is_file_in_use) {
-				/*
-				 * ... but the file was NOT closed cleanly.
-				 * Because used data structure (simple character
-				 * sequence) does not have built-in correctness
-				 * check it may be corrupted and there is no way
-				 * to fix it. Zeroing file is required.
-				 */
-				fprintf(stderr,
-					"File not closed cleanly. The string may be broken.\n");
-				return PROBABLE_DATA_CORRUPTION;
-			} else {
-				/*
-				 * ... and the file WAS closed cleanly.
-				 * Data is safe.
-				 */
-				return POOL_STATE_OK;
-			}
-		} else {
-			/* the unsafe shutdown HAS occurred... */
-
-			if (is_file_in_use) {
-				/* ... and the file was in use. */
-				fprintf(stderr,
-					"Unsafe shutdown detected. The usable data might be corrupted.\n");
-				return PROBABLE_DATA_CORRUPTION;
-			} else {
-				/* ... but the file was not in use. */
-				fprintf(stderr,
-					"Unsafe shutdown detected but the usable data is safe.\n");
-
-				/* only the device state reinit is required */
-				return DEVICE_STATE_RESET_REQUIRED;
-			}
-		}
-	} else {
-		/*
-		 * Device ID mismatch indicates two possibilities:
-		 * - either the file was moved (in this case it is still
-		 * important if the file was closed cleanly since the data may
-		 * be corrupted e.g. by application crash) or
-		 * - the shutdown / crash happened in the middle of
-		 * device_state_init
-		 * (in this case file_in_use == FILE_UNARMED and no usable data
-		 * was modified so it is not corrupted)
-		 */
-
-		if (is_file_in_use) {
-			/* The file was moved after a not clean close. */
-			fprintf(stderr,
-				"The file was not closed cleanly and the file was moved. "
-				"The usable data might be corrupted.\n");
-			return PROBABLE_DATA_CORRUPTION;
-		} else {
-			/*
-			 * The file was closed cleanly OR pool_device_state_init
-			 * was interrupted. Only the device state reinit is
-			 * required.
-			 */
-			return DEVICE_STATE_RESET_REQUIRED;
-		}
-	}
-}
+struct pool {
+	struct pool_data *data;
+	struct pmem2_source *src;
+	struct pmem2_map *map;
+};
 
 /*
- * pool_arm -- indicate pool is in use before modifying its content
+ * pool_new -- creates a new runtime pool instance
  */
-static int
-pool_arm(struct pool_data *pool)
+static struct pool *
+pool_new(int fd)
 {
-	uint8_t *file_in_use = &pool->content->ps.file_in_use;
+	struct pool *pool = malloc(sizeof(struct pool));
+	if (pool == NULL)
+		goto err_malloc;
 
-	assert(*file_in_use == FILE_UNARMED);
-
-	*file_in_use = FILE_ARMED;
-	pool->persist(file_in_use, sizeof(*file_in_use));
-	int ret = pmem2_deep_sync(pool->map, file_in_use, sizeof(*file_in_use));
-	if (ret) {
-		pmem2_perror("pmem2_deep_sync file in use failed");
-		return ret;
-	}
-
-	return 0;
-}
-
-/*
- * pool_disarm -- indicate pool modifications are completed
- */
-static int
-pool_disarm(struct pool_data *pool)
-{
-	uint8_t *file_in_use = &pool->content->ps.file_in_use;
-
-	assert(*file_in_use == FILE_ARMED);
-
-	/* deep sync whole mapping to make sure all persists are completed */
-	pmem2_deep_sync(pool->map, pool->content, pool->map_size);
-
-	*file_in_use = FILE_UNARMED;
-	pool->persist(file_in_use, sizeof(*file_in_use));
-	int ret = pmem2_deep_sync(pool->map, file_in_use, sizeof(*file_in_use));
-	if (ret) {
-		pmem2_perror("pmem2_deep_sync file in use failed");
-		return ret;
-	}
-
-	return 0;
-}
-
-#define USAGE_STR "usage: %s <command> <file> [<arg>]\n" \
-	"Where available commands are:\n" \
-	"\tread - print the file contents\n" \
-	"\twrite - store <arg> into the file\n"
-
-int
-main(int argc, char *argv[])
-{
-	struct pmem2_config *cfg = NULL;
-	struct pool_data pool;
-	memset(&pool, 0, sizeof(pool));
-
-	/* parse and validate arguments */
-	if (argc < 3) {
-		fprintf(stderr, USAGE_STR, argv[0]);
-		return 1;
-	}
-
-	int op_read = (strcmp(argv[1], "read") == 0);
-	int op_write = (strcmp(argv[1], "write") == 0);
-	char *file = argv[2];
-	char *str = NULL;
-
-	if (op_read + op_write == 0) {
-		/* either create, read or write mode has to be chosen */
-		fprintf(stderr, USAGE_STR, argv[0]);
-		return 1;
-	}
-
-	if (op_write) {
-		if (argc < 4) {
-			fprintf(stderr, USAGE_STR, argv[0]);
-			return 1;
-		}
-		str = argv[3];
-	}
-
-	/* open file and prepare source */
-	int fd = open(file, O_RDWR);
-	if (fd < 0) {
-		perror(file);
-		return 1;
-	}
-
-	int ret = pmem2_source_from_fd(&pool.src, fd);
+	int ret = pmem2_source_from_fd(&pool->src, fd);
 	if (ret) {
 		pmem2_perror("pmem2_source_from_fd");
 		goto err_source;
 	}
 
+	struct pmem2_config *cfg;
 	/* prepare configuration */
 	ret = pmem2_config_new(&cfg);
 	if (ret) {
@@ -496,81 +222,453 @@ main(int argc, char *argv[])
 			PMEM2_GRANULARITY_PAGE);
 	if (ret) {
 		pmem2_perror("pmem2_config_set_required_store_granularity");
-		goto err_granularity;
+		goto err_config_settings;
 	}
 
 	/* prepare the mapping */
-	ret = pmem2_map(cfg, pool.src, &pool.map);
+	ret = pmem2_map_new(&pool->map, cfg, pool->src);
 	if (ret) {
 		pmem2_perror("pmem2_map");
 		goto err_map;
 	}
 
-	pool.content = pmem2_map_get_address(pool.map);
-	pool.usable_space_size =
-		pmem2_map_get_size(pool.map) - sizeof(struct pool_state);
-	pool.persist = pmem2_get_persist_fn(pool.map);
-	pool.memset = pmem2_get_memset_fn(pool.map);
-	pool.memcpy = pmem2_get_memcpy_fn(pool.map);
+	pool->data = pmem2_map_get_address(pool->map);
 
-	ret = pool_state_verify(&pool);
-	if (ret == POOL_STATE_ZERO_INITIALIZED) {
-		ret = device_state_init(&pool);
-		if (ret)
-			goto reset_and_exit;
-	} else if (ret == DEVICE_STATE_RESET_REQUIRED) {
-		ret = device_state_reset(&pool);
-		if (ret)
-			goto exit;
-		ret = device_state_init(&pool);
-		if (ret)
-			goto reset_and_exit;
-	} else if (ret != POOL_STATE_OK) {
-		goto exit;
-	}
+	pmem2_config_delete(&cfg);
 
-	char *usable_data = pool.content->usable_data;
+	return pool;
 
-	if (op_write) {
-		/* validate if new content size fits into available space */
-		size_t str_size = strlen(str) + 1;
-		if (str_size > pool.usable_space_size) {
-			fprintf(stderr, "New content too long (%zu > %zu)\n",
-				str_size, pool.usable_space_size);
-			ret = 1;
-			goto exit;
-		}
-
-		/* prepare pool for writing */
-		ret = pool_arm(&pool);
-		if (ret)
-			goto exit;
-
-		/* write new contents */
-		pool.memcpy(usable_data, str, str_size, FLAGS_ZERO);
-		pool.persist(usable_data, str_size);
-
-		/* mark end of writing */
-		ret = pool_disarm(&pool);
-		if (ret)
-			goto exit;
-	} else if (op_read) {
-		/* reading pool contents does not require any preparations */
-		printf("%s\n", usable_data);
-	}
-
-	goto exit;
-
-reset_and_exit:
-	(void) device_state_reset(&pool);
-exit:
-	pmem2_unmap(&pool.map);
 err_map:
-err_granularity:
+err_config_settings:
 	pmem2_config_delete(&cfg);
 err_config:
-	pmem2_source_delete(&pool.src);
+	pmem2_source_delete(&pool->src);
 err_source:
+	free(pool);
+err_malloc:
+	return NULL;
+}
+
+/*
+ * pool_delete -- deletes a runtime pool instance
+ */
+static void
+pool_delete(struct pool *pool)
+{
+	pmem2_map_delete(&pool->map);
+	pmem2_source_delete(&pool->src);
+	free(pool);
+}
+
+/*
+ * pool_set_flag -- safely sets the flag in the pool's header
+ */
+static int
+pool_set_flag(struct pool *pool, uint64_t flag)
+{
+	uint64_t *flagsp = &pool->data->header.flags;
+	*flagsp |= flag;
+
+	int ret = pmem2_deep_flush(pool->map, flagsp, sizeof(*flagsp));
+
+	return ret;
+}
+
+/*
+ * pool_clear_flag -- safely clears the flag in the pool's header
+ */
+static int
+pool_clear_flag(struct pool *pool, uint64_t flag)
+{
+	uint64_t *flagsp = &pool->data->header.flags;
+	*flagsp &= ~flag;
+
+	int ret = pmem2_deep_flush(pool->map, flagsp, sizeof(*flagsp));
+
+	return ret;
+}
+
+/*
+ * pool_header_is_initialized -- checks if all the pool header data is correct
+ */
+static bool
+pool_header_is_initialized(struct pool *pool)
+{
+	if (memcmp(POOL_SIGNATURE, pool->data->header.signature,
+			POOL_SIGNATURE_LEN) != 0)
+		return false;
+
+	if (pool->data->header.flags & ~POOL_VALID_FLAGS)
+		return false;
+
+	if (pool->data->header.size != pmem2_map_get_size(pool->map))
+		return false;
+
+	return true;
+}
+
+/*
+ * pool_header_initialize -- safely initializes the pool header data
+ */
+static int
+pool_header_initialize(struct pool *pool)
+{
+	struct pool_header *hdrp = &pool->data->header;
+	memset(hdrp, 0, sizeof(*hdrp));
+	int ret = pmem2_deep_flush(pool->map, hdrp, sizeof(*hdrp));
+	if (ret) {
+		pmem2_perror("pmem2_deep_flush on device_info memset failed");
+		return ret;
+	}
+
+	pool->data->header.size = pmem2_map_get_size(pool->map);
+	pool->data->header.flags = 0;
+	ret = pmem2_deep_flush(pool->map, hdrp, sizeof(*hdrp));
+	if (ret) {
+		pmem2_perror("pmem2_deep_flush on device_info memset failed");
+		return ret;
+	}
+
+	memcpy(hdrp->signature, POOL_SIGNATURE, POOL_SIGNATURE_LEN);
+	ret = pmem2_deep_flush(pool->map, hdrp, sizeof(*hdrp));
+	if (ret) {
+		pmem2_perror("pmem2_deep_flush on device_info memset failed");
+		return ret;
+	}
+
+	return 0;
+}
+
+/*
+ * pool_state_check_and_maybe_init -- verifies various invariants about the pool
+ * and returns its state.
+ * The pool is initialized if needed.
+ */
+static enum pool_state
+pool_state_check_and_maybe_init(struct pool *pool)
+{
+	if (pool_header_is_initialized(pool) != 0) {
+		if (pool_header_initialize(pool) != 0)
+			return POOL_STATE_INDETERMINATE;
+	}
+
+	struct device_info di_new;
+	bool in_use = pool->data->header.flags & POOL_FLAG_IN_USE;
+	enum pool_state state = in_use ?
+		POOL_STATE_OK_BUT_INTERRUPTED : POOL_STATE_OK;
+
+	int ret;
+	if ((ret = device_info_read(&di_new, pool->src)) != 0) {
+		if (ret == PMEM2_E_NOSUPP) {
+			if (pool->data->header.flags & POOL_USC_SUPPORTED)
+				return POOL_STATE_INDETERMINATE;
+			else
+				return state;
+		} else {
+			return POOL_STATE_INDETERMINATE;
+		}
+	}
+
+	struct device_info *di_old = &pool->data->header.info;
+
+	bool initialized = device_info_is_initalized(di_old, &di_new);
+
+	if (initialized) {
+		/*
+		 * Pool is corrupted only if it wasn't closed cleanly and
+		 * the device info indicates that device info is inconsistent.
+		 */
+		if (device_info_is_consistent(di_old, &di_new))
+			return state;
+		else if (in_use)
+			return POOL_STATE_CORRUPTED;
+
+		/*
+		 * If device info indicates inconsistency, but the pool was
+		 * not in use, we just need to reinitialize the device info.
+		 */
+		initialized = false;
+	}
+
+	if (!initialized) {
+		if (device_info_write(di_old, &di_new, pool->map) != 0)
+			return POOL_STATE_INDETERMINATE;
+		if (pool_set_flag(pool, POOL_USC_SUPPORTED) != 0)
+			return POOL_STATE_INDETERMINATE;
+	}
+
+	return state;
+}
+
+/*
+ * pool_arm -- sets the in use flag, arming the pool state detection mechanism
+ */
+static int
+pool_arm(struct pool *pool)
+{
+	return pool_set_flag(pool, POOL_FLAG_IN_USE);
+}
+
+/*
+ * pool_disarm -- tries to deep flush the entire pool and clears the in use flag
+ */
+static int
+pool_disarm(struct pool *pool)
+{
+	int ret = pmem2_deep_flush(pool->map, pool->data,
+		pmem2_map_get_size(pool->map));
+	if (ret != 0)
+		return ret;
+
+	return pool_clear_flag(pool, POOL_FLAG_IN_USE);
+}
+
+/*
+ * pool_access_data -- verifies the pool state and, if possible, accesses
+ * the pool for reading and writing
+ */
+static enum pool_state
+pool_access_data(struct pool *pool, void **data, size_t *size)
+{
+	enum pool_state state = pool_state_check_and_maybe_init(pool);
+
+	if (state == POOL_STATE_OK || state == POOL_STATE_OK_BUT_INTERRUPTED) {
+		*data = &pool->data->usable_data;
+		*size = pmem2_map_get_size(pool->map) -
+			sizeof(struct pool_header);
+
+		if (pool_arm(pool) != 0)
+			return POOL_STATE_INDETERMINATE;
+	}
+
+	return state;
+}
+
+/*
+ * pool_access_drop -- drops the access for the pool and marks it as not in use
+ */
+static void
+pool_access_drop(struct pool *pool)
+{
+	if (pool_disarm(pool) != 0) {
+		fprintf(stderr,
+			"Failed to drop access to pool which might cause inconsistent state during next open.\n");
+	}
+}
+
+/*
+ * pool_get_memcpy -- retrieves the pool's memcpy function
+ */
+static pmem2_memcpy_fn
+pool_get_memcpy(struct pool *pool)
+{
+	assert(pool->data->header.flags & POOL_FLAG_IN_USE);
+	return pmem2_get_memcpy_fn(pool->map);
+}
+
+/*
+ * pool_get_memset -- retrieves the pool's memset function
+ */
+static pmem2_memset_fn
+pool_get_memset(struct pool *pool)
+{
+	assert(pool->data->header.flags & POOL_FLAG_IN_USE);
+	return pmem2_get_memset_fn(pool->map);
+}
+
+/*
+ * pool_get_persist -- retrieves the pool's persist function
+ */
+static pmem2_persist_fn
+pool_get_persist(struct pool *pool)
+{
+	assert(pool->data->header.flags & POOL_FLAG_IN_USE);
+	return pmem2_get_persist_fn(pool->map);
+}
+
+#define USAGE_STR "usage: %s <command> <file> [<arg>]\n" \
+	"Where available commands are:\n" \
+	"\tread - print the file contents\n" \
+	"\twrite - store <arg> into the file\n"
+
+/*
+ * If the state of the pool is ok, the invariant on this data structure is that
+ * the persistent variable is set to 1 only if the string has valid content.
+ * If the persistent variable is set to 0, the string should be empty.
+ *
+ * If the pool state is ok but interrupted, the string variable can contain
+ * garbage if persistent variable is set to 0. To restore the previously
+ * described invariant, the recovery method needs to zero-out the string if
+ * the persistent variable is 0.
+ *
+ * If the pool state is corrupted, the previous invariants don't hold, and
+ * we cannot assume that the string is valid if persistent variable is set to 1.
+ * The only correct course of action is to either reinitialize the data or
+ * restore from backup.
+ */
+struct user_data {
+	int persistent; /* flag indicates whether buf contains a valid string */
+	char buf[]; /* user string */
+};
+
+/*
+ * user_data_recovery -- this function restores the invariant that if
+ * persistent variable is 0, then the string is empty.
+ */
+static void
+user_data_recovery(struct pool *pool,
+	struct user_data *data, size_t usable_size)
+{
+	size_t max_str_size = usable_size - sizeof(data->persistent);
+
+	if (!data->persistent)
+		pool_get_memset(pool)(data->buf, 0, max_str_size, 0);
+}
+
+/*
+ * user_data_read -- this function prints out the string.
+ *
+ * Inside of this method, we can be sure that our invariants hold.
+ */
+static int
+user_data_read(struct pool *pool,
+	struct user_data *data, size_t usable_size, void *arg)
+{
+	if (data->persistent)
+		printf("%s\n", data->buf);
+	else
+		printf("empty string\n");
+
+	return 0;
+}
+
+/*
+ * user_data_write -- persistently writes a string to a variable.
+ *
+ * Inside of this method, we can be sure that our invariants hold.
+ */
+static int
+user_data_write(struct pool *pool,
+	struct user_data *data, size_t usable_size, void *arg)
+{
+	if (arg == NULL) {
+		fprintf(stderr, "expected string input argument\n");
+		return 1;
+	}
+	char *str = arg;
+
+	size_t max_str_size = usable_size - sizeof(data->persistent);
+
+	/*
+	 * To make sure our invariants hold, we first write the string and then
+	 * set the persistent variable to 1.
+	 */
+	size_t str_size = strlen(str) + 1;
+	if (str_size <= max_str_size) {
+		pool_get_memcpy(pool)(data->buf, str, str_size, 0);
+		data->persistent = 1;
+		pool_get_persist(pool)(&data->persistent,
+			sizeof(data->persistent));
+	}
+
+	return 0;
+}
+
+enum user_data_operation_type {
+	USER_OP_READ,
+	USER_OP_WRITE,
+
+	MAX_USER_OP,
+};
+
+typedef int user_data_operation_fn(struct pool *pool,
+	struct user_data *data, size_t usable_size, void *arg);
+
+static struct user_data_operation {
+	const char *name;
+	user_data_operation_fn *fn;
+} user_data_operations[MAX_USER_OP] = {
+	[USER_OP_READ] = { .name = "read", .fn = user_data_read },
+	[USER_OP_WRITE] = { .name = "write", .fn = user_data_write },
+};
+
+/*
+ * user_data_operation_parse -- parses the user data operation
+ */
+static struct user_data_operation *
+user_data_operation_parse(char *op)
+{
+	for (int i = 0; i < MAX_USER_OP; ++i) {
+		if (strcmp(user_data_operations[i].name, op) == 0)
+			return &user_data_operations[i];
+	}
+	return NULL;
+}
+
+int
+main(int argc, char *argv[])
+{
+	/* parse and validate arguments */
+	if (argc < 3) {
+		fprintf(stderr, USAGE_STR, argv[0]);
+		return 1;
+	}
+
+	char *file = argv[2];
+
+	struct user_data_operation *op = user_data_operation_parse(argv[1]);
+	if (op == NULL) {
+		fprintf(stderr, USAGE_STR, argv[0]);
+		return 1;
+	}
+
+	/* open file and prepare source */
+	int fd = open(file, O_RDWR);
+	if (fd < 0) {
+		perror(file);
+		return 1;
+	}
+
+	struct pool *pool = pool_new(fd);
+	if (pool == NULL) {
+		fprintf(stderr, "unable open a pool from %s", file);
+		return 1;
+	}
+
+	struct user_data *data;
+	size_t size;
+	enum pool_state state = pool_access_data(pool, (void **)&data, &size);
+
+	int ret = 1;
+	switch (state) {
+		case POOL_STATE_INDETERMINATE:
+		fprintf(stderr,
+			"Unable to determine the state of the pool %s. Accessing the pool might be unsafe.\n",
+			file);
+		goto exit;
+		case POOL_STATE_CORRUPTED:
+		fprintf(stderr,
+			"The pool %s might be corrupted, silent data corruption is possible. Accessing the pool is unsafe.\n",
+			file);
+		goto exit;
+		case POOL_STATE_OK_BUT_INTERRUPTED:
+		fprintf(stderr,
+			"The pool %s was not closed cleanly. User data recovery is required.\n",
+			file);
+		user_data_recovery(pool, data, size);
+		break;
+		case POOL_STATE_OK:
+		break;
+	}
+
+	ret = op->fn(pool, data, size, argv[3]);
+
+	pool_access_drop(pool);
+
+exit:
+	pool_delete(pool);
+
 	close(fd);
+
 	return ret;
 }
