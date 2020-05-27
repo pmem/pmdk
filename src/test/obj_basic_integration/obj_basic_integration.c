@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -656,7 +656,7 @@ main(int argc, char *argv[])
 	/* root doesn't count */
 	UT_COMPILE_ERROR_ON(POBJ_LAYOUT_TYPES_NUM(basic) != 2);
 
-	if (argc < 2 && argc > 3)
+	if (argc < 2 || argc > 3)
 		UT_FATAL("usage: %s file-name [inject_fault]", argv[0]);
 
 	const char *path = argv[1];
