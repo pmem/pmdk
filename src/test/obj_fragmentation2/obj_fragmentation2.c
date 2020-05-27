@@ -82,8 +82,11 @@ delete_objects(PMEMobjpool *pop, float pct)
 static size_t
 object_next_size(size_t max, size_t min)
 {
-	float n = rnd64() / (UINT64_MAX / 1.0f);
-	return (size_t)(min + (max - min) * exp(n * - 4.0));
+	float fmax = (float)max;
+	float fmin = (float)min;
+
+	float n = (float)rnd64() / ((float)UINT64_MAX / 1.0f);
+	return (size_t)(fmin + (fmax - fmin) * (float)exp(n * - 4.0));
 }
 
 /*
