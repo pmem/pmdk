@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 """Parser for user provided test configuration"""
 
@@ -69,20 +69,15 @@ def _str2list(config):
 
     seq = []
     try:
-        if ',' in arg or '-' in arg:
-            arg = arg.split(',')
-            for number in arg:
-                if '-' in number:
-                    number = number.split('-')
-                    begin = int(number[0])
-                    end = int(number[1])
-                    step = 1 if begin < end else -1
-                    for x in range(begin, end + step, step):
-                        seq.append(x)
-                else:
-                    seq.append(int(number))
-        else:
-            seq.append(int(arg))
+        for number in arg.split(','):
+            if '-' in number:
+                number = number.split('-')
+                begin = int(number[0])
+                end = int(number[1])
+                step = 1 if begin < end else -1
+                seq.extend(range(begin, end + step, step))
+            else:
+                seq.append(int(number))
 
     except (ValueError, IndexError):
         print('Provided test sequence "{}" is invalid'.format(arg))
