@@ -127,7 +127,7 @@ Last_errormsg_fini(void)
 static inline const struct errormsg *
 Last_errormsg_get(void)
 {
-	return &Last_errormsg.msg[0];
+	return &Last_errormsg;
 }
 
 #endif /* NO_LIBPTHREAD */
