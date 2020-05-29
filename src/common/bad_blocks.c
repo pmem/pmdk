@@ -2,7 +2,7 @@
 /* Copyright 2018-2020, Intel Corporation */
 
 /*
- * badblock_ndctl.c - implementation of the bad block API using ndctl library
+ * bad_blocks.c - implementation of the bad block API using libpmem2 library
  */
 
 #include <fcntl.h>
