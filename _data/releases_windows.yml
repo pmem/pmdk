@@ -76,6 +76,7 @@
         pmem2_perror.3
         pmem2_source_alignment.3
         pmem2_source_delete.3
+        pmem2_source_from_anon.3
         pmem2_source_from_fd.3
         pmem2_source_from_handle.3
         pmem2_source_size.3
