@@ -20,12 +20,14 @@ int
 pmem2_flush_file_buffers_os(struct pmem2_map *map, const void *addr, size_t len,
 		int autorestart)
 {
+	ASSERTeq(map->source.type, PMEM2_SOURCE_HANDLE);
+
 	if (FlushViewOfFile(addr, len) == FALSE) {
 		ERR("!!FlushViewOfFile");
 		return pmem2_lasterror_to_err();
 	}
 
-	if (FlushFileBuffers(map->handle) == FALSE) {
+	if (FlushFileBuffers(map->source.value.handle) == FALSE) {
 		ERR("!!FlushFileBuffers");
 		return pmem2_lasterror_to_err();
 	}

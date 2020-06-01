@@ -13,39 +13,6 @@
 #include "pmem2_badblock_mocks.h"
 
 /*
- * fstat - mock fstat
- */
-FUNC_MOCK(fstat, int, int fd, struct stat *buf)
-FUNC_MOCK_RUN_DEFAULT {
-	ASSERTne(buf, NULL);
-
-	memset(buf, 0, sizeof(struct stat));
-
-	/* default block size */
-	buf->st_blksize = BLK_SIZE_1KB;
-
-	buf->st_ino = (__ino_t)fd;
-
-	switch (fd & MASK_DEVICE) {
-	case FD_REG_FILE: /* regular file */
-		buf->st_mode = __S_IFREG;
-		break;
-	case FD_CHR_DEV: /* character device */
-		buf->st_mode = __S_IFCHR;
-		break;
-	case FD_DIRECTORY: /* directory */
-		buf->st_mode = __S_IFDIR;
-		break;
-	case FD_BLK_DEV: /* block device */
-		buf->st_mode = __S_IFBLK;
-		break;
-	}
-
-	return 0;
-}
-FUNC_MOCK_END
-
-/*
  * fallocate -- mock fallocate
  */
 FUNC_MOCK(fallocate, int,

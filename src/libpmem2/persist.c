@@ -321,6 +321,14 @@ pmem2_deep_flush_byte(struct pmem2_map *map, void *ptr, size_t size)
 {
 	LOG(3, "map %p ptr %p size %zu", map, ptr, size);
 
+	if (map->source.type == PMEM2_SOURCE_ANON) {
+		ERR("Anonymous source does not support deep flush");
+		return PMEM2_E_NOSUPP;
+	}
+
+	ASSERT(map->source.type == PMEM2_SOURCE_FD ||
+		map->source.type == PMEM2_SOURCE_HANDLE);
+
 	pmem2_persist_cpu_cache(ptr, size);
 	int ret = pmem2_deep_flush_dax(map);
 	if (ret < 0) {
