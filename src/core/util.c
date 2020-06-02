@@ -348,7 +348,7 @@ util_init(void)
 #endif
 
 #if VG_DRD_ENABLED || VG_HELGRIND_ENABLED
-	_On_drd_or_hg = _On_helgrind + _On_drd;
+	_On_drd_or_hg = (unsigned)(On_helgrind + On_drd);
 #endif
 
 #if VG_PMEMCHECK_ENABLED
