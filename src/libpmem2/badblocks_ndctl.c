@@ -276,8 +276,7 @@ pmem2_badblock_context_new(const struct pmem2_source *src,
 
 	pmem2_type = src->value.ftype;
 
-	ret = pmem2_region_namespace(ctx, pmem2_type, src->value.st_rdev,
-		&region, &ndns);
+	ret = pmem2_region_namespace(ctx, src, &region, &ndns);
 	if (ret) {
 		LOG(1, "getting region and namespace failed");
 		goto exit_ndctl_unref;

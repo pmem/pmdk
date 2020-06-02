@@ -11,13 +11,13 @@
 
 #include "os.h"
 #include "pmem2_utils.h"
+#include "source.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int pmem2_get_region_id(dev_t st_rdev, enum pmem2_file_type ftype,
-	unsigned *region_id);
+int pmem2_get_region_id(const struct pmem2_source *src, unsigned *region_id);
 
 #ifdef __cplusplus
 }

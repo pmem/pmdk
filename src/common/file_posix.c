@@ -230,7 +230,20 @@ util_ddax_region_find(const char *path, unsigned *region_id)
 		return -1;
 	}
 
-	ret = pmem2_get_region_id(st.st_rdev, ftype, region_id);
+	/*
+	 * XXX: this is a hack to workaround the fact that common is using
+	 * non-public APIs of libpmem2, and there's often no way to properly
+	 * create the required structures...
+	 * This needs to go away together with refactoring that untangles
+	 * these internal dependencies.
+	 */
+	struct pmem2_source src;
+	src.type = PMEM2_SOURCE_FD;
+	src.value.ftype = ftype;
+	src.value.st_rdev = st.st_rdev;
+	src.value.st_dev = st.st_dev;
+
+	ret = pmem2_get_region_id(&src, region_id);
 	if (ret < 0) {
 		errno = pmem2_err_to_errno(ret);
 		return -1;

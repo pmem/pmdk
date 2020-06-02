@@ -21,8 +21,7 @@ extern "C" {
 	ndctl_namespace_foreach(region, ndns)
 
 int pmem2_region_namespace(struct ndctl_ctx *ctx,
-			enum pmem2_file_type ftype,
-			dev_t st_rdev,
+			const struct pmem2_source *src,
 			struct ndctl_region **pregion,
 			struct ndctl_namespace **pndns);
 

@@ -24,14 +24,13 @@
  *                       where the pool file is located
  */
 static struct ndctl_interleave_set *
-usc_interleave_set(struct ndctl_ctx *ctx,
-	enum pmem2_file_type ftype, dev_t st_rdev)
+usc_interleave_set(struct ndctl_ctx *ctx, const struct pmem2_source *src)
 {
-	LOG(3, "ctx %p ftype %d st_rdev %lu", ctx, ftype, st_rdev);
+	LOG(3, "ctx %p src %p", ctx, src);
 
 	struct ndctl_region *region = NULL;
 
-	if (pmem2_region_namespace(ctx, ftype, st_rdev, &region, NULL))
+	if (pmem2_region_namespace(ctx, src, &region, NULL))
 		return NULL;
 
 	return region ? ndctl_region_get_interleave_set(region) : NULL;
@@ -60,7 +59,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 	}
 
 	struct ndctl_interleave_set *iset =
-		usc_interleave_set(ctx, src->value.ftype, src->value.st_rdev);
+		usc_interleave_set(ctx, src);
 
 	if (iset == NULL)
 		goto err;
@@ -107,7 +106,7 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 
 	size_t len_base = 1; /* '\0' */
 
-	set = usc_interleave_set(ctx, src->value.ftype, src->value.st_rdev);
+	set = usc_interleave_set(ctx, src);
 	if (set == NULL)
 		goto err;
 
@@ -122,11 +121,11 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 	ndctl_dimm_foreach_in_interleave_set(set, dimm) {
 		const char *dimm_uid = ndctl_dimm_get_unique_id(dimm);
 		count += strlen(dimm_uid);
-		if (count > len_base) {
+		if (count > *len) {
 			ret = PMEM2_E_BUFFER_TOO_SMALL;
 			goto err;
 		}
-		strncat(id, dimm_uid, len_base);
+		strncat(id, dimm_uid, *len);
 	}
 
 end:

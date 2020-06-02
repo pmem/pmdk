@@ -70,11 +70,9 @@ static enum pmem2_file_type *ftype_value;
  * pmem2_get_region_id -- redefine libpmem2 function
  */
 int
-pmem2_get_region_id(dev_t st_rdev, enum pmem2_file_type ftype,
+pmem2_get_region_id(const struct pmem2_source *src,
 	unsigned *region_id)
 {
-	UT_ASSERTeq(st_rdev, MOCK_DEV_ID);
-
 	*region_id = MOCK_REG_ID;
 
 	return 0;

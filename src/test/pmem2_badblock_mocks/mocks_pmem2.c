@@ -10,6 +10,7 @@
 #include "unittest.h"
 #include "out.h"
 #include "extent.h"
+#include "source.h"
 #include "pmem2_utils.h"
 #include "pmem2_badblock_mocks.h"
 
@@ -18,17 +19,20 @@
  */
 FUNC_MOCK(pmem2_region_namespace, int,
 		struct ndctl_ctx *ctx,
-		enum pmem2_file_type ftype,
-		dev_t st_rdev,
+		const struct pmem2_source *src,
 		struct ndctl_region **pregion,
 		struct ndctl_namespace **pndns)
 FUNC_MOCK_RUN_DEFAULT {
 	UT_ASSERTne(pregion, NULL);
+
+	dev_t st_rdev = src->value.st_rdev;
+
 	*pregion = (void *)st_rdev;
 	if (pndns == NULL)
 		return 0;
 
-	UT_ASSERT(ftype == PMEM2_FTYPE_REG || ftype == PMEM2_FTYPE_DEVDAX);
+	UT_ASSERT(src->value.ftype == PMEM2_FTYPE_REG ||
+		src->value.ftype == PMEM2_FTYPE_DEVDAX);
 
 	if (IS_MODE_NO_DEVICE(st_rdev)) {
 		/* did not found any matching device */
