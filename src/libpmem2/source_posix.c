@@ -73,6 +73,7 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 	srcp->value.ftype = ftype;
 	srcp->value.fd = fd;
 	srcp->value.st_rdev = st.st_rdev;
+	srcp->value.st_dev = st.st_dev;
 	*src = srcp;
 
 	return 0;

@@ -70,8 +70,7 @@ pmem2_deep_flush_dax(struct pmem2_map *map)
 		}
 	} else if (type == PMEM2_FTYPE_DEVDAX) {
 		unsigned region_id;
-		int ret = pmem2_get_region_id(map->source.value.st_rdev, type,
-				&region_id);
+		int ret = pmem2_get_region_id(&map->source, &region_id);
 		if (ret < 0) {
 			LOG(1, "cannot find region id for dev %lu",
 				map->source.value.st_rdev);

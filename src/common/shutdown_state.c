@@ -83,7 +83,8 @@ shutdown_state_add_part(struct shutdown_state *sds, int fd,
 		goto err;
 	}
 
-	if (pmem2_source_device_id(src, NULL, &len)) {
+	ret = pmem2_source_device_id(src, NULL, &len);
+	if (ret != PMEM2_E_NOSUPP && ret != 0) {
 		ERR("cannot read uuid of %d", fd);
 		goto err;
 	}

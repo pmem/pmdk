@@ -17,7 +17,7 @@
 /*
  * This program returns:
  * - 0 when usc can be read with current permissions
- * - 1 when permissions are not sufficient
+ * - 1 when permissions are not sufficient or when usc is not supported
  * - 2 when other error occurs
  */
 int
@@ -46,7 +46,7 @@ main(int argc, char *argv[])
 
 	if (ret == 0)
 		return 0;
-	else if (ret == -EACCES)
+	else if (ret == -EACCES || ret == PMEM2_E_NOSUPP)
 		return 1;
 	else
 		return 2;
