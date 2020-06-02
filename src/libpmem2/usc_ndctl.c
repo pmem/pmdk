@@ -50,7 +50,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 	ASSERTeq(src->type, PMEM2_SOURCE_FD);
 
 	struct ndctl_ctx *ctx;
-	int ret = -1;
+	int ret = PMEM2_E_NOSUPP;
 	*usc = 0;
 
 	errno = ndctl_new(&ctx) * (-1);
@@ -63,7 +63,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 		usc_interleave_set(ctx, src->value.ftype, src->value.st_rdev);
 
 	if (iset == NULL)
-		goto out;
+		goto err;
 
 	struct ndctl_dimm *dimm;
 
@@ -76,8 +76,9 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 		}
 		*usc += (unsigned long long)dimm_usc;
 	}
-out:
+
 	ret = 0;
+
 err:
 	ndctl_unref(ctx);
 	return ret;
@@ -89,7 +90,7 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 	struct ndctl_ctx *ctx;
 	struct ndctl_interleave_set *set;
 	struct ndctl_dimm *dimm;
-	int ret = 0;
+	int ret = PMEM2_E_NOSUPP;
 
 	if (src->type == PMEM2_SOURCE_ANON) {
 		ERR("Anonymous source does not have device id");
@@ -104,17 +105,15 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 		return PMEM2_E_ERRNO;
 	}
 
-	if (id == NULL) {
-		*len = 1; /* '\0' */
-	}
+	size_t len_base = 1; /* '\0' */
 
 	set = usc_interleave_set(ctx, src->value.ftype, src->value.st_rdev);
 	if (set == NULL)
-		goto end;
+		goto err;
 
 	if (id == NULL) {
 		ndctl_dimm_foreach_in_interleave_set(set, dimm) {
-			*len += strlen(ndctl_dimm_get_unique_id(dimm));
+			len_base += strlen(ndctl_dimm_get_unique_id(dimm));
 		}
 		goto end;
 	}
@@ -123,13 +122,18 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 	ndctl_dimm_foreach_in_interleave_set(set, dimm) {
 		const char *dimm_uid = ndctl_dimm_get_unique_id(dimm);
 		count += strlen(dimm_uid);
-		if (count > *len) {
+		if (count > len_base) {
 			ret = PMEM2_E_BUFFER_TOO_SMALL;
-			goto end;
+			goto err;
 		}
-		strncat(id, dimm_uid, *len);
+		strncat(id, dimm_uid, len_base);
 	}
+
 end:
+	ret = 0;
+	if (id == NULL)
+		*len = len_base;
+err:
 	ndctl_unref(ctx);
 	return ret;
 }
