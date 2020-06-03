@@ -112,8 +112,6 @@ class TEST12(PMEM2_MAP_DEVDAX):
     test_case = "test_unmap_valid"
 
 
-# UnmapViewOfFile does not use length
-@t.windows_exclude
 class TEST13(PMEM2_MAP):
     """unmap a pmem2 mapping with an invalid length"""
     test_case = "test_unmap_zero_length"
