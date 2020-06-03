@@ -26,6 +26,8 @@ pmem2_config_init(struct pmem2_config *cfg)
 	cfg->requested_max_granularity = PMEM2_GRANULARITY_INVALID;
 	cfg->sharing = PMEM2_SHARED;
 	cfg->protection_flag = PMEM2_PROT_READ | PMEM2_PROT_WRITE;
+	cfg->reserv = NULL;
+	cfg->reserv_offset = 0;
 }
 
 /*
@@ -229,7 +231,10 @@ int
 pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
 		struct pmem2_vm_reservation *rsv, size_t offset)
 {
-	return PMEM2_E_NOSUPP;
+	cfg->reserv = rsv;
+	cfg->reserv_offset = offset;
+
+	return 0;
 }
 
 /*

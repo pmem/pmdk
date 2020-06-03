@@ -221,7 +221,7 @@ pmem2_map_find(const void *addr, size_t len)
 {
 	struct pmem2_map map;
 	map.addr = (void *)addr;
-	map.reserved_length = len;
+	map.content_length = len;
 
 	struct ravl_interval_node *node;
 

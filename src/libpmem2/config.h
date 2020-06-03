@@ -22,6 +22,8 @@ struct pmem2_config {
 	enum pmem2_granularity requested_max_granularity;
 	enum pmem2_sharing_type sharing; /* the way the file will be mapped */
 	unsigned protection_flag;
+	struct pmem2_vm_reservation *reserv;
+	size_t reserv_offset;
 };
 
 void pmem2_config_init(struct pmem2_config *cfg);

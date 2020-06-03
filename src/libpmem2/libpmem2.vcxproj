@@ -38,6 +38,7 @@
     <ClCompile Include="source_windows.c" />
     <ClCompile Include="usc_windows.c" />
     <ClCompile Include="vm_reservation.c" />
+    <ClCompile Include="vm_reservation_windows.c" />
     <ClCompile Include="x86_64\cpu.c" />
     <ClCompile Include="x86_64\init.c" />
     <ClCompile Include="x86_64\memcpy\memcpy_nt_sse2.c" />
@@ -75,6 +76,7 @@
     <ClInclude Include="pmem2_utils.h" />
     <ClInclude Include="ravl_interval.h" />
     <ClInclude Include="source.h" />
+    <ClInclude Include="vm_reservation.h" />
     <ClInclude Include="x86_64\cpu.h" />
     <ClInclude Include="x86_64\avx.h" />
     <ClInclude Include="x86_64\flush.h" />
