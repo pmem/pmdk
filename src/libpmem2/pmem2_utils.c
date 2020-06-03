@@ -93,3 +93,15 @@ pmem2_lasterror_to_err()
 	return -err;
 }
 #endif
+
+unsigned long long
+pmem2_get_alloc_granularity()
+{
+#ifdef _WIN32
+	SYSTEM_INFO sys_info;
+	GetSystemInfo(&sys_info);
+	return sys_info.dwAllocationGranularity;
+#else
+	return Pagesize;
+#endif
+}

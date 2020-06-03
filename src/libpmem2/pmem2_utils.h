@@ -41,4 +41,6 @@ int pmem2_device_dax_size(const struct pmem2_source *src, size_t *size);
 int pmem2_device_dax_alignment(const struct pmem2_source *src,
 		size_t *alignment);
 
+unsigned long long pmem2_get_alloc_granularity(void);
+
 #endif /* PMEM2_UTILS_H */

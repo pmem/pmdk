@@ -177,7 +177,7 @@ main(int argc, char *argv[])
 	}
 
 	struct pmem2_vm_reservation *rsv;
-	if (!pmem2_vm_reservation_new(&rsv, reservation_size, NULL)) {
+	if (pmem2_vm_reservation_new(&rsv, NULL, reservation_size)) {
 		pmem2_perror("pmem2_vm_reservation_new");
 		goto fdsc_fini;
 	}
@@ -199,7 +199,7 @@ main(int argc, char *argv[])
 	int nmap;
 	for (nmap = 0; nmap < nfiles; nmap++) {
 		if (pmem2_config_set_vm_reservation(
-				cfg, rsv, offset) != PMEM2_E_NOSUPP) {
+				cfg, rsv, offset)) {
 			pmem2_perror("pmem2_config_set_vm_reservation");
 			goto unmap;
 		}
