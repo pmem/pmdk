@@ -38,4 +38,6 @@ pmem2_source_from_fd
 pmem2_source_from_handle
 pmem2_source_size
 pmem2_vm_reservation_delete
+pmem2_vm_reservation_get_address
+pmem2_vm_reservation_get_size
 pmem2_vm_reservation_new
