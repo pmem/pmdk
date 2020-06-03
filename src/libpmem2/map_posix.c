@@ -293,6 +293,26 @@ unmap(void *addr, size_t len)
 }
 
 /*
+ * vm_reservation_mend -- replaces the given mapping with anonymous
+ *                        reservation, mending the reservation area
+ */
+static int
+vm_reservation_mend(struct pmem2_vm_reservation *rsv, void *addr, size_t size)
+{
+	ASSERT((char *)addr >= (char *)rsv->addr &&
+			(char *)addr + size <= (char *)rsv->addr + rsv->size);
+
+	char *daddr = mmap(addr, size, PROT_NONE,
+			MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
+	if (daddr == MAP_FAILED) {
+		ERR("!mmap MAP_ANONYMOUS");
+		return PMEM2_E_ERRNO;
+	}
+
+	return 0;
+}
+
+/*
  * pmem2_map -- map memory according to provided config
  */
 int
@@ -390,17 +410,46 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	if (ret)
 		return ret;
 
-	/* find a hint for the mapping */
-	void *reserv = NULL;
-	ret = map_reserve(content_length, alignment, &reserv, &reserved_length,
-			cfg);
-	if (ret != 0) {
-		if (ret == PMEM2_E_MAPPING_EXISTS)
-			LOG(1, "given mapping region is already occupied");
-		else
-			LOG(1, "cannot find a contiguous region of given size");
+	/* prepare pmem2_map structure */
+	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
+	if (!map)
 		return ret;
+
+	void *reserv = NULL;
+	if (cfg->reserv) {
+		/* check if reservation has enough space */
+		if (cfg->reserv_offset + content_length >
+				pmem2_vm_reservation_get_size(cfg->reserv)) {
+			ret =  PMEM2_E_LENGTH_OUT_OF_RANGE;
+			goto err;
+		}
+
+		reserv = (char *)pmem2_vm_reservation_get_address(cfg->reserv) +
+				cfg->reserv_offset;
+		reserved_length = roundup(content_length, Pagesize);
+
+		map->addr = reserv;
+		map->content_length = content_length;
+
+		/* register wanted vm reservation region */
+		ret = vm_reservation_map_register(cfg->reserv, map);
+		if (ret)
+			goto err;
+	} else {
+		/* find a hint for the mapping */
+		ret = map_reserve(content_length, alignment, &reserv,
+				&reserved_length, cfg);
+		if (ret != 0) {
+			if (ret == PMEM2_E_MAPPING_EXISTS)
+				LOG(1,
+					"given mapping region is already occupied");
+			else
+				LOG(1,
+					"cannot find a contiguous region of given size");
+			goto err;
+		}
 	}
+
 	ASSERTne(reserv, NULL);
 
 	if (cfg->sharing == PMEM2_PRIVATE) {
@@ -417,16 +466,17 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	}
 
 	ret = file_map(reserv, content_length, proto, flags, map_fd, off,
-		&map_sync, &addr);
+			&map_sync, &addr);
 	if (ret) {
 		/* unmap the reservation mapping */
 		munmap(reserv, reserved_length);
 		if (ret == -EACCES)
-			return PMEM2_E_NO_ACCESS;
+			ret = PMEM2_E_NO_ACCESS;
 		else if (ret == -ENOTSUP)
-			return PMEM2_E_NOSUPP;
-		else
-			return ret;
+			ret = PMEM2_E_NOSUPP;
+		else if (ret == -EEXIST)
+			ret =  PMEM2_E_MAPPING_EXISTS;
+		goto err_file_map;
 	}
 
 	LOG(3, "mapped at %p", addr);
@@ -448,13 +498,8 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 				cfg->requested_max_granularity);
 		ERR("%s", err);
 		ret = PMEM2_E_GRANULARITY_NOT_SUPPORTED;
-		goto err;
+		goto err_gran_reg;
 	}
-
-	/* prepare pmem2_map structure */
-	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
-	if (!map)
-		goto err;
 
 	map->addr = addr;
 	map->reserved_length = reserved_length;
@@ -462,12 +507,14 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 	map->effective_granularity = available_min_granularity;
 	pmem2_set_flush_fns(map);
 	pmem2_set_mem_fns(map);
+	map->reserv = cfg->reserv;
 	map->source = *src;
 	map->source.value.fd = INVALID_FD; /* fd should not be used after map */
 
 	ret = pmem2_register_mapping(map);
-	if (ret)
-		goto err_register;
+	if (ret) {
+		goto err_gran_reg;
+	}
 
 	*map_ptr = map;
 
@@ -479,10 +526,20 @@ pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
 
 	return 0;
 
-err_register:
-	free(map);
+err_gran_reg:
+	/*
+	 * if the reservation was given by pmem2_config, instead of unmapping,
+	 * we will need to mend the reservation
+	 */
+	if (cfg->reserv)
+		vm_reservation_mend(cfg->reserv, addr, reserved_length);
+	else
+		unmap(addr, reserved_length);
+err_file_map:
+	if (cfg->reserv)
+		vm_reservation_map_unregister(cfg->reserv, map);
 err:
-	unmap(addr, reserved_length);
+	free(map);
 	return ret;
 
 }
@@ -502,9 +559,20 @@ pmem2_unmap(struct pmem2_map **map_ptr)
 	if (ret)
 		return ret;
 
-	ret = unmap(map->addr, map->reserved_length);
-	if (ret)
-		return ret;
+	if (map->reserv) {
+		ret = vm_reservation_map_unregister(map->reserv, map);
+		if (ret)
+			return ret;
+
+		ret = vm_reservation_mend(map->reserv, map->addr,
+				map->reserved_length);
+		if (ret)
+			return ret;
+	} else {
+		ret = unmap(map->addr, map->reserved_length);
+		if (ret)
+			return ret;
+	}
 
 	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->content_length);
 

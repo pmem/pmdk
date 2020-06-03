@@ -68,6 +68,7 @@ extern "C" {
 #define PMEM2_E_LENGTH_OUT_OF_RANGE		(-100030)
 #define PMEM2_E_INVALID_PROT_FLAG		(-100031)
 #define PMEM2_E_NO_ACCESS			(-100032)
+#define PMEM2_E_VM_RESERVATION_NOT_EMPTY	(-100033)
 
 /* source setup */
 
@@ -90,10 +91,14 @@ int pmem2_source_delete(struct pmem2_source **src);
 
 struct pmem2_vm_reservation;
 
-int pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv,
-		size_t size, void *address);
+void *pmem2_vm_reservation_get_address(struct pmem2_vm_reservation *rsv);
 
-int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv);
+size_t pmem2_vm_reservation_get_size(struct pmem2_vm_reservation *rsv);
+
+int pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
+		void *addr, size_t size);
+
+int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr);
 
 /* config setup */
 
