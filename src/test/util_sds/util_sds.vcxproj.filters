@@ -112,6 +112,12 @@
     <ClCompile Include="..\..\libpmem2\ravl_interval.c">
       <Filter>Source Files\pmem2</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmem2\vm_reservation.c">
+      <Filter>Source Files\pmem2</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmem2\vm_reservation_windows.c">
+      <Filter>Source Files\pmem2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="mocks_windows.h">
