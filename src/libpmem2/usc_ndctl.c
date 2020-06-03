@@ -19,23 +19,6 @@
 #include "source.h"
 #include "region_namespace_ndctl.h"
 
-/*
- * usc_interleave_set -- (internal) returns set of dimms
- *                       where the pool file is located
- */
-static struct ndctl_interleave_set *
-usc_interleave_set(struct ndctl_ctx *ctx, const struct pmem2_source *src)
-{
-	LOG(3, "ctx %p src %p", ctx, src);
-
-	struct ndctl_region *region = NULL;
-
-	if (pmem2_region_namespace(ctx, src, &region, NULL))
-		return NULL;
-
-	return region ? ndctl_region_get_interleave_set(region) : NULL;
-}
-
 int
 pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 {
@@ -58,19 +41,28 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 		return PMEM2_E_ERRNO;
 	}
 
-	struct ndctl_interleave_set *iset =
-		usc_interleave_set(ctx, src);
+	struct ndctl_region *region = NULL;
+	ret = pmem2_region_namespace(ctx, src, &region, NULL);
 
-	if (iset == NULL)
+	if (ret < 0)
 		goto err;
+
+	ret = PMEM2_E_NOSUPP;
+
+	if (region == NULL) {
+		ERR(
+			"Unsafe shutdown count is not supported for this source");
+		goto err;
+	}
 
 	struct ndctl_dimm *dimm;
 
-	ndctl_dimm_foreach_in_interleave_set(iset, dimm) {
+	ndctl_dimm_foreach_in_region(region, dimm) {
 		long long dimm_usc = ndctl_dimm_get_dirty_shutdown(dimm);
 		if (dimm_usc < 0) {
-			ERR("!ndctl_dimm_get_dirty_shutdown");
-			ret = PMEM2_E_ERRNO;
+			ret = PMEM2_E_NOSUPP;
+			ERR(
+				"Unsafe shutdown count is not supported for this source");
 			goto err;
 		}
 		*usc += (unsigned long long)dimm_usc;
@@ -87,9 +79,9 @@ int
 pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 {
 	struct ndctl_ctx *ctx;
-	struct ndctl_interleave_set *set;
 	struct ndctl_dimm *dimm;
-	int ret = PMEM2_E_NOSUPP;
+	int ret;
+	struct ndctl_region *region = NULL;
 
 	if (src->type == PMEM2_SOURCE_ANON) {
 		ERR("Anonymous source does not have device id");
@@ -106,19 +98,25 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 
 	size_t len_base = 1; /* '\0' */
 
-	set = usc_interleave_set(ctx, src);
-	if (set == NULL)
+	ret = pmem2_region_namespace(ctx, src, &region, NULL);
+
+	if (ret < 0)
 		goto err;
 
+	if (region == NULL) {
+		ret = PMEM2_E_NOSUPP;
+		goto err;
+	}
+
 	if (id == NULL) {
-		ndctl_dimm_foreach_in_interleave_set(set, dimm) {
+		ndctl_dimm_foreach_in_region(region, dimm) {
 			len_base += strlen(ndctl_dimm_get_unique_id(dimm));
 		}
 		goto end;
 	}
 
 	size_t count = 1;
-	ndctl_dimm_foreach_in_interleave_set(set, dimm) {
+	ndctl_dimm_foreach_in_region(region, dimm) {
 		const char *dimm_uid = ndctl_dimm_get_unique_id(dimm);
 		count += strlen(dimm_uid);
 		if (count > *len) {
