@@ -19,13 +19,11 @@
  * pmem2_deep_flush_dax -- performs flush buffer operation
  */
 int
-pmem2_deep_flush_dax(struct pmem2_map *map)
+pmem2_deep_flush_dax(struct pmem2_map *map, void *ptr, size_t size)
 {
-	size_t len = Pagesize;
-	int ret = pmem2_flush_file_buffers_os(map, map->addr, len, 0);
+	int ret = pmem2_flush_file_buffers_os(map, ptr, size, 0);
 	if (ret) {
-		LOG(1, "cannot flush buffers addr %p len %zu",
-			map->addr, len);
+		LOG(1, "cannot flush buffers addr %p len %zu", ptr, size);
 		return ret;
 	}
 

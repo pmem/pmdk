@@ -55,17 +55,16 @@ pmem2_deep_flush_write(unsigned region_id)
  * performs proper flush operation
  */
 int
-pmem2_deep_flush_dax(struct pmem2_map *map)
+pmem2_deep_flush_dax(struct pmem2_map *map, void *ptr, size_t size)
 {
 	int ret;
 	enum pmem2_file_type type = map->source.value.ftype;
 
 	if (type == PMEM2_FTYPE_REG) {
-		size_t len = Pagesize;
-		ret = pmem2_flush_file_buffers_os(map, map->addr, len, 0);
+		ret = pmem2_flush_file_buffers_os(map, ptr, size, 0);
 		if (ret) {
 			LOG(1, "cannot flush buffers addr %p len %zu",
-				map->addr, len);
+					ptr, size);
 			return ret;
 		}
 	} else if (type == PMEM2_FTYPE_DEVDAX) {

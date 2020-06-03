@@ -233,7 +233,7 @@ test_deep_flush_func(const struct test_case *tc, int argc, char *argv[])
 	pmem2_set_flush_fns(&map);
 	ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
-	counters_check_n_reset(1, 1, 1, 0);
+	counters_check_n_reset(1, 0, 0, 0);
 
 	FREE(map.addr);
 
@@ -257,7 +257,7 @@ test_deep_flush_func_devdax(const struct test_case *tc, int argc, char *argv[])
 	pmem2_set_flush_fns(&map);
 	int ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
-	counters_check_n_reset(0, 0, 0, 1);
+	counters_check_n_reset(0, 1, 1, 1);
 
 	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
 	pmem2_set_flush_fns(&map);
