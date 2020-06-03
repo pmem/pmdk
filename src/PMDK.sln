@@ -208,6 +208,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sys", "sys", "{45027FC5-4A3
 		windows\include\sys\wait.h = windows\include\sys\wait.h
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pmem2_vm_reservation", "test\pmem2_vm_reservation\pmem2_vm_reservation.vcxproj", "{46629F21-089C-4205-B2F8-E01748ECE517}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ctl_cow", "test\ctl_cow\ctl_cow.vcxproj", "{46B82069-10BE-432A-8D93-F4D995148555}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pool_lookup", "test\obj_pool_lookup\obj_pool_lookup.vcxproj", "{4850F425-9128-4E91-973C-5AE7BD97395B}"
@@ -540,9 +542,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "obj_pmalloc_mt", "test\obj_pmalloc_mt\obj_pmalloc_mt.vcxproj", "{9FF62356-30B4-42A1-8DC7-45262A18DD44}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmem2", "libpmem2", "{A14A4556-9092-430D-B9CA-B2B1223D56CB}"
-	ProjectSection(SolutionItems) = preProject
-		test\pmem2_map_prot\pmem2_map_prot.vcxproj = test\pmem2_map_prot\pmem2_map_prot.vcxproj
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gran_detecto", "test\tools\gran_detecto\gran_detecto.vcxproj", "{A18B076A-CE8C-49A6-8B80-F02843E4BF0A}"
 EndProject
@@ -1112,6 +1111,10 @@ Global
 		{433F7840-C597-4950-84C9-E4FF7DF6A298}.Debug|x64.Build.0 = Debug|x64
 		{433F7840-C597-4950-84C9-E4FF7DF6A298}.Release|x64.ActiveCfg = Release|x64
 		{433F7840-C597-4950-84C9-E4FF7DF6A298}.Release|x64.Build.0 = Release|x64
+		{46629F21-089C-4205-B2F8-E01748ECE517}.Debug|x64.ActiveCfg = Debug|x64
+		{46629F21-089C-4205-B2F8-E01748ECE517}.Debug|x64.Build.0 = Debug|x64
+		{46629F21-089C-4205-B2F8-E01748ECE517}.Release|x64.ActiveCfg = Release|x64
+		{46629F21-089C-4205-B2F8-E01748ECE517}.Release|x64.Build.0 = Release|x64
 		{46B82069-10BE-432A-8D93-F4D995148555}.Debug|x64.ActiveCfg = Debug|x64
 		{46B82069-10BE-432A-8D93-F4D995148555}.Debug|x64.Build.0 = Debug|x64
 		{46B82069-10BE-432A-8D93-F4D995148555}.Release|x64.ActiveCfg = Release|x64
@@ -1988,6 +1991,7 @@ Global
 		{42CCEF95-5ADD-460C-967E-DD5B2C744943} = {59AB6976-D16B-48D0-8D16-94360D3FE51D}
 		{433F7840-C597-4950-84C9-E4FF7DF6A298} = {B870D8A6-12CD-4DD0-B843-833695C2310A}
 		{45027FC5-4A32-47BD-AC5B-66CC7616B1D2} = {9A8482A7-BF0C-423D-8266-189456ED41F6}
+		{46629F21-089C-4205-B2F8-E01748ECE517} = {A14A4556-9092-430D-B9CA-B2B1223D56CB}
 		{46B82069-10BE-432A-8D93-F4D995148555} = {4C291EEB-3874-4724-9CC2-1335D13FF0EE}
 		{4850F425-9128-4E91-973C-5AE7BD97395B} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{492BAA3D-0D5D-478E-9765-500463AE69AA} = {853D45D8-980C-4991-B62A-DAC6FD245402}
