@@ -33,6 +33,7 @@ struct pmem2_source {
 			struct {
 				int fd;
 				dev_t st_rdev;
+				dev_t st_dev;
 			};
 #endif
 		};
