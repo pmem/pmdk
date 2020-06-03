@@ -579,7 +579,8 @@ test_deep_flush_valid(const struct test_case *tc, int argc, char *argv[])
 	persist_fn(addr, len);
 
 	int ret = pmem2_deep_flush(map, addr, len);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	if (ret != 0 && ret != PMEM2_E_DAX_REGION_NOT_FOUND)
+		UT_FATAL("pmem2_deep_flush returned unexpected value %d", ret);
 
 	pmem2_unmap(&map);
 	PMEM2_CONFIG_DELETE(&cfg);
@@ -690,7 +691,8 @@ test_deep_flush_slice(const struct test_case *tc, int argc, char *argv[])
 	persist_fn(addr, map_part);
 
 	int ret = pmem2_deep_flush(map, addr + map_part, map_part);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	if (ret != 0 && ret != PMEM2_E_DAX_REGION_NOT_FOUND)
+		UT_FATAL("pmem2_deep_flush returned unexpected value %d", ret);
 
 	pmem2_unmap(&map);
 	PMEM2_CONFIG_DELETE(&cfg);

@@ -263,14 +263,20 @@ test_deep_flush_func(const struct test_case *tc, int argc, char *argv[])
 	pmem2_set_flush_fns(&map);
 	ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
+#ifdef _WIN32
 	counters_check_n_reset(1, 0, 0, 0, 0);
-
+#else
+	counters_check_n_reset(1, 0, 0, 0, 1);
+#endif
 	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
 	pmem2_set_flush_fns(&map);
 	ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
+#ifdef _WIN32
 	counters_check_n_reset(1, 0, 0, 0, 0);
-
+#else
+	counters_check_n_reset(1, 0, 0, 0, 1);
+#endif
 	FREE(map.addr);
 
 	return 0;
