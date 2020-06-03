@@ -34,6 +34,7 @@ void *pmem2_realloc(void *ptr, size_t size, int *err);
 
 #ifdef _WIN32
 int pmem2_lasterror_to_err();
+DWORD pmem2_get_alloc_granularity();
 #endif
 
 int pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type);

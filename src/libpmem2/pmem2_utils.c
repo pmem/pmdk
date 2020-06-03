@@ -92,4 +92,12 @@ pmem2_lasterror_to_err()
 
 	return -err;
 }
+
+DWORD
+pmem2_get_alloc_granularity()
+{
+	SYSTEM_INFO sys_info;
+	GetSystemInfo(&sys_info);
+	return sys_info.dwAllocationGranularity;
+}
 #endif

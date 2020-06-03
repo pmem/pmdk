@@ -77,6 +77,7 @@ prepare_map(struct pmem2_map **map_ptr,
 
 	map->reserved_length = map->content_length = cfg->length;
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
+	map->reserv = NULL;
 
 	*map_ptr = map;
 
@@ -113,6 +114,7 @@ prepare_map(struct pmem2_map **map_ptr,
 	map->source.value.ftype = PMEM2_FTYPE_REG;
 	map->reserved_length = map->content_length = cfg->length;
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
+	map->reserv = NULL;
 
 	*map_ptr = map;
 
@@ -475,7 +477,8 @@ test_unmap_zero_length(const struct test_case *tc, int argc, char *argv[])
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
-	unmap_invalid_common(file, size, map_spoil_set_zero_length, -EINVAL);
+	unmap_invalid_common(file, size, map_spoil_set_zero_length,
+			PMEM2_E_MAPPING_NOT_FOUND);
 
 	return 2;
 }
