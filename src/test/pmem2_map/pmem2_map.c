@@ -77,6 +77,7 @@ prepare_map(struct pmem2_map **map_ptr,
 
 	map->reserved_length = map->content_length = cfg->length;
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
+	map->reserv = NULL;
 
 	*map_ptr = map;
 
@@ -113,6 +114,7 @@ prepare_map(struct pmem2_map **map_ptr,
 	map->source.value.ftype = PMEM2_FTYPE_REG;
 	map->reserved_length = map->content_length = cfg->length;
 	map->effective_granularity = PMEM2_GRANULARITY_PAGE;
+	map->reserv = NULL;
 
 	*map_ptr = map;
 
