@@ -83,6 +83,8 @@
     </ClCompile>
     <ClCompile Include="..\..\libpmem2\source.c" />
     <ClCompile Include="..\..\libpmem2\source_windows.c" />
+    <ClCompile Include="..\..\libpmem2\vm_reservation.c" />
+    <ClCompile Include="..\..\libpmem2\vm_reservation_windows.c" />
     <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
     <ClCompile Include="..\..\libpmem2\x86_64\init.c" />
     <ClCompile Include="..\..\libpmem2\x86_64\memcpy\memcpy_nt_avx.c">
