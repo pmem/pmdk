@@ -16,7 +16,6 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
-[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -31,22 +30,21 @@ values in the pmem2_config structure
 
 struct pmem2_config;
 struct pmem2_vm_reservation;
-int pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
-		struct pmem2_vm_reservation *rsv, size_t offset);
+int pmem2_config_set_vm_reservation(struct pmem2_config *config,
+		struct pmem2_vm_reservation *rsv, size_t rsv_offset);
 ```
 
 # DESCRIPTION #
 
-The **pmem2_config_set_vm_reservation**() function is not supported yet.
+The **pmem2_config_set_vm_reservation**() function sets the virtual memory reservation
+and an offset to be used during a mapping. *rsv* should be already initialized. Please see
+**pmem2_vm_reservation_new**(3) for details. *rsv_offset* marks the offset in the
+reservation for the mapping.
 
 # RETURN VALUE #
 
-**pmem2_config_set_vm_reservation**() returns PMEM2_E_NOSUPP .
-
-# ERRORS #
-
-The **pmem2_config_set_vm_reservation**() function is not supported yet.
+**pmem2_config_set_vm_reservation**() function always returns 0.
 
 # SEE ALSO #
 
-**libpmem2**(7), **pmem2_vm_reservation_new**(3) and **<http://pmem.io>**
+**pmem2_vm_reservation_new**(3), **libpmem2**(7) and **<http://pmem.io>**
