@@ -39,17 +39,29 @@
 #include "pmem.h"
 #include "os.h"
 
+/*
+ * Older assemblers versions do not support the latest versions of L, e.g.
+ * Binutils 2.34.
+ * Workaround this by using longs.
+ */
+#define __SYNC(l) ".long (0x7c0004AC | ((" #l ") << 21))"
+#define __DCBF(ra, rb, l) ".long (0x7c0000AC | ((" #l ") << 21)" \
+	" | ((" #ra ") << 16) | ((" #rb ") << 11))"
+
 static void
 ppc_predrain_fence(void)
 {
 	LOG(15, NULL);
 
 	/*
-	 * Force a memory barrier to flush out all cache lines
+	 * Force a memory barrier to flush out all cache lines.
+	 * Uses a heavyweight sync in order to guarantee the memory ordering
+	 * even with a data cache flush.
+	 * According to the POWER ISA 3.1, phwsync (aka. sync (L=4)) is treated
+	 * as a hwsync by processors compatible with previous versions of the
+	 * POWER ISA.
 	 */
-	asm volatile(
-		"lwsync"
-		: : : "memory");
+	asm volatile(__SYNC(4) : : : "memory");
 }
 
 static void
@@ -63,10 +75,12 @@ ppc_flush(const void *addr, size_t size)
 	/* round down the address */
 	uptr &= ~(CACHELINE_SIZE - 1);
 	while (uptr < end) {
-		/* issue a dcbst instruction for the cache line */
-		asm volatile(
-			"dcbst 0,%0"
-			: :"r"(uptr) : "memory");
+		/*
+		 * Flush the data cache block.
+		 * According to the POWER ISA 3.1, dcbstps (aka. dcbf (L=6))
+		 * behaves as dcbf (L=0) on previous processors.
+		 */
+		asm volatile(__DCBF(0, %0, 6) : :"r"(uptr) : "memory");
 
 		uptr += CACHELINE_SIZE;
 	}
