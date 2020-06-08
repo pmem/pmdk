@@ -19,6 +19,7 @@
  *     - is looking for Device DAX region (pmem2_get_region_id)
  *     - is constructing the region deep flush file paths
  *     - opens deep_flush file (os_open)
+ *     - reads deep_flush file (read)
  *     - performs a write to it (write)
  *
  * Where pmem2_persist_cpu_cache performs:
@@ -58,7 +59,10 @@ static int n_file_buffs_flushes = 0;
 static int n_fences = 0;
 static int n_flushes = 0;
 static int n_writes = 0;
+static int n_reads = 0;
 static enum pmem2_file_type *ftype_value;
+static int read_invalid = 0;
+static int deep_flush_not_needed = 0;
 
 #ifndef _WIN32
 #define MOCK_FD 999
@@ -106,6 +110,34 @@ FUNC_MOCK_RUN_DEFAULT {
 	++n_writes;
 
 	return 1;
+}
+FUNC_MOCK_END
+
+/*
+ * read -- read mock
+ */
+FUNC_MOCK(read, int, int fd, void *buffer, size_t nbytes)
+FUNC_MOCK_RUN_DEFAULT {
+	UT_ASSERTeq(nbytes, 2);
+	UT_ASSERTeq(fd, MOCK_FD);
+
+	UT_OUT("mocked read, fd %d", fd);
+	char pattern[2] = {'1', '\n'};
+	int ret = sizeof(pattern);
+
+	if (deep_flush_not_needed)
+		pattern[0] = '0';
+
+	if (read_invalid) {
+		ret = 0;
+		goto end;
+	}
+
+	memcpy(buffer, pattern, sizeof(pattern));
+
+end:
+	++n_reads;
+	return ret;
 }
 FUNC_MOCK_END
 #endif /* not _WIN32 */
@@ -189,17 +221,23 @@ map_init(struct pmem2_map *map)
  * and reset them
  */
 static void
-counters_check_n_reset(int msynces, int flushes, int fences, int writes)
+counters_check_n_reset(int msynces, int flushes, int fences,
+	int writes, int reads)
 {
 	UT_ASSERTeq(n_file_buffs_flushes, msynces);
 	UT_ASSERTeq(n_flushes, flushes);
 	UT_ASSERTeq(n_fences, fences);
 	UT_ASSERTeq(n_writes, writes);
+	UT_ASSERTeq(n_reads, reads);
 
 	n_file_buffs_flushes = 0;
 	n_flushes = 0;
 	n_fences = 0;
 	n_writes = 0;
+	n_reads = 0;
+
+	read_invalid = 0;
+	deep_flush_not_needed = 0;
 }
 
 /*
@@ -219,19 +257,19 @@ test_deep_flush_func(const struct test_case *tc, int argc, char *argv[])
 	pmem2_set_flush_fns(&map);
 	int ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
-	counters_check_n_reset(0, 0, 0, 0);
+	counters_check_n_reset(0, 0, 0, 0, 0);
 
 	map.effective_granularity = PMEM2_GRANULARITY_CACHE_LINE;
 	pmem2_set_flush_fns(&map);
 	ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
-	counters_check_n_reset(1, 0, 0, 0);
+	counters_check_n_reset(1, 0, 0, 0, 0);
 
 	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
 	pmem2_set_flush_fns(&map);
 	ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
-	counters_check_n_reset(1, 0, 0, 0);
+	counters_check_n_reset(1, 0, 0, 0, 0);
 
 	FREE(map.addr);
 
@@ -255,13 +293,33 @@ test_deep_flush_func_devdax(const struct test_case *tc, int argc, char *argv[])
 	pmem2_set_flush_fns(&map);
 	int ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
-	counters_check_n_reset(0, 1, 1, 1);
+	counters_check_n_reset(0, 1, 1, 1, 1);
+
+	deep_flush_not_needed = 1;
+	ret = pmem2_deep_flush(&map, addr, len);
+	UT_ASSERTeq(ret, 0);
+	counters_check_n_reset(0, 1, 1, 0, 1);
+
+	read_invalid = 1;
+	ret = pmem2_deep_flush(&map, addr, len);
+	UT_ASSERTeq(ret, 0);
+	counters_check_n_reset(0, 1, 1, 0, 1);
 
 	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
 	pmem2_set_flush_fns(&map);
 	ret = pmem2_deep_flush(&map, addr, len);
 	UT_ASSERTeq(ret, 0);
-	counters_check_n_reset(0, 1, 1, 1);
+	counters_check_n_reset(0, 1, 1, 1, 1);
+
+	deep_flush_not_needed = 1;
+	ret = pmem2_deep_flush(&map, addr, len);
+	UT_ASSERTeq(ret, 0);
+	counters_check_n_reset(0, 1, 1, 0, 1);
+
+	read_invalid = 1;
+	ret = pmem2_deep_flush(&map, addr, len);
+	UT_ASSERTeq(ret, 0);
+	counters_check_n_reset(0, 1, 1, 0, 1);
 
 	FREE(map.addr);
 
