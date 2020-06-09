@@ -45,14 +45,14 @@ pmem2_device_dax_size_from_dev(dev_t st_rdev, size_t *size)
 }
 
 /*
- * pmem2_device_dax_alignment_from_dev -- checks the alignment of a given
- * dax device from given stat structure
+ * pmem2_device_dax_alignment -- checks the alignment of a given
+ * dax device from given source
  */
 int
-pmem2_device_dax_alignment_from_dev(dev_t st_rdev, size_t *alignment)
+pmem2_device_dax_alignment(const struct pmem2_source *src, size_t *alignment)
 {
 	const char *err =
-		"BUG: pmem2_device_dax_alignment_from_dev should never be called on this OS";
+		"BUG: pmem2_device_dax_alignment should never be called on this OS";
 	ERR("%s", err);
 	ASSERTinfo(0, err);
 	return PMEM2_E_NOSUPP;
