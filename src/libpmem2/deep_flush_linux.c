@@ -53,10 +53,12 @@ pmem2_deep_flush_write(unsigned region_id)
 		goto end;
 	}
 
+	os_close(deep_flush_fd);
+
 	if ((deep_flush_fd = os_open(deep_flush_path, O_WRONLY)) < 0) {
 		LOG(1, "Cannot open deep_flush file %s to write",
 			deep_flush_path);
-		goto end;
+		return 0;
 	}
 
 	if (write(deep_flush_fd, "1", 1) != 1) {
