@@ -147,8 +147,7 @@ pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 
 	switch (src->value.ftype) {
 	case PMEM2_FTYPE_DEVDAX: {
-		int ret = pmem2_device_dax_alignment_from_dev(
-			src->value.st_rdev, alignment);
+		int ret = pmem2_device_dax_alignment(src, alignment);
 		if (ret)
 			return ret;
 		break;

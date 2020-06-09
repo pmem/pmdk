@@ -181,19 +181,29 @@ static size_t
 device_dax_alignment(const char *path)
 {
 	size_t size = 0;
-	os_stat_t st;
 
 	LOG(3, "path \"%s\"", path);
 
-	if (os_stat(path, &st) < 0) {
-		ERR("!stat \"%s\"", path);
-		return 0;
+	struct pmem2_source *src;
+
+	int fd = os_open(path, O_RDONLY);
+	if (fd == -1) {
+		LOG(1, "Cannot open file %s", path);
+		return size;
 	}
 
-	int ret = pmem2_device_dax_alignment_from_dev(st.st_rdev, &size);
+	int ret = pmem2_source_from_fd(&src, fd);
 	if (ret)
-		return 0;
+		goto end;
 
+	ret = pmem2_device_dax_alignment(src, &size);
+	if (ret) {
+		size = 0;
+		goto end;
+	}
+
+end:
+	os_close(fd);
 	return size;
 }
 

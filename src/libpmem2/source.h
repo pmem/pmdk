@@ -4,9 +4,15 @@
 #ifndef PMEM2_SOURCE_H
 #define PMEM2_SOURCE_H
 
-#include "pmem2_utils.h"
+#include "os.h"
 
 #define INVALID_FD (-1)
+
+enum pmem2_file_type {
+	PMEM2_FTYPE_REG = 1,
+	PMEM2_FTYPE_DEVDAX = 2,
+	PMEM2_FTYPE_DIR = 3,
+};
 
 enum pmem2_source_type {
 	PMEM2_SOURCE_UNSPECIFIED,

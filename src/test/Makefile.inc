@@ -170,6 +170,7 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/persist.o\
 	$(TOP)/src/debug/libpmem2/persist_posix.o\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/debug/libpmem2/pmem2_utils_$(OS_DIMM).o\
 	$(TOP)/src/debug/libpmem2/ravl.o\
 	$(TOP)/src/debug/libpmem2/source.o\
 	$(TOP)/src/debug/libpmem2/source_posix.o\
@@ -221,6 +222,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/persist.o\
 	$(TOP)/src/nondebug/libpmem2/persist_posix.o\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/libpmem2/ravl.o\
 	$(TOP)/src/nondebug/libpmem2/usc_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/libpmem2/vm_reservation.o
@@ -290,6 +292,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/common/uuid.o\
 	$(call osdep, $(TOP)/src/nondebug/common/uuid,.o)\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/nondebug/libpmem2/pmem2_utils_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/libpmem2/config.o\
 	$(TOP)/src/nondebug/libpmem2/persist_posix.o\
 	$(TOP)/src/nondebug/libpmem2/badblocks.o\
@@ -342,6 +345,7 @@ OBJS +=\
 	$(TOP)/src/debug/common/uuid.o\
 	$(call osdep, $(TOP)/src/debug/common/uuid,.o)\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
+	$(TOP)/src/debug/libpmem2/pmem2_utils_$(OS_DIMM).o\
 	$(TOP)/src/debug/libpmem2/config.o\
 	$(TOP)/src/debug/libpmem2/persist_posix.o\
 	$(TOP)/src/debug/libpmem2/badblocks.o\
