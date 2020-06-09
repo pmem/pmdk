@@ -24,6 +24,7 @@ SOURCE =\
 	persist.c\
 	persist_posix.c\
 	pmem2_utils.c\
+	pmem2_utils_$(OS_DIMM).c\
 	usc_$(OS_DIMM).c\
 	source.c\
 	source_posix.c\
