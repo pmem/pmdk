@@ -616,7 +616,7 @@ heap_reclaim_run(struct palloc_heap *heap, struct memory_block *m, int startup)
 		STATS_INC(heap->stats, transient, heap_run_active,
 			m->size_idx * CHUNKSIZE);
 		STATS_INC(heap->stats, transient, heap_run_allocated,
-			c->run.nallocs - e.free_space);
+			(c->run.nallocs - e.free_space) * run->hdr.block_size);
 	}
 
 	if (recycler_put(heap->rt->recyclers[c->id], m, e) < 0)
