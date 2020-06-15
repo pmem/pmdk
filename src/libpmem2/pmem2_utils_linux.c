@@ -15,8 +15,6 @@
 #include "region_namespace.h"
 #include "source.h"
 
-#define MAX_SIZE_LENGTH 64
-
 /*
  * pmem2_get_type_from_stat -- determine type of file based on output of stat
  * syscall
@@ -68,71 +66,5 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 
 	*type = PMEM2_FTYPE_DEVDAX;
 
-	return 0;
-}
-
-/*
- * pmem2_device_dax_size_from_dev -- checks the size of a given
- * dax device from given stat structure
- */
-int
-pmem2_device_dax_size_from_dev(dev_t st_rdev, size_t *size)
-{
-	char spath[PATH_MAX];
-	int ret = util_snprintf(spath, PATH_MAX, "/sys/dev/char/%u:%u/size",
-		os_major(st_rdev), os_minor(st_rdev));
-
-	if (ret < 0) {
-		/* impossible */
-		ERR("!snprintf");
-		ASSERTinfo(0, "snprintf failed");
-		return PMEM2_E_ERRNO;
-	}
-
-	LOG(4, "device size path \"%s\"", spath);
-
-	int fd = os_open(spath, O_RDONLY);
-	if (fd < 0) {
-		ERR("!open \"%s\"", spath);
-		return PMEM2_E_ERRNO;
-	}
-
-	char sizebuf[MAX_SIZE_LENGTH + 1];
-
-	ssize_t nread = read(fd, sizebuf, MAX_SIZE_LENGTH);
-	if (nread < 0) {
-		ERR("!read");
-		int ret = PMEM2_E_ERRNO;
-		(void) os_close(fd);
-		return ret;
-	}
-	int olderrno = errno;
-	(void) os_close(fd);
-
-	sizebuf[nread] = 0; /* null termination */
-
-	char *endptr;
-
-	errno = 0;
-
-	unsigned long long tmpsize;
-	tmpsize = strtoull(sizebuf, &endptr, 0);
-	if (endptr == sizebuf || *endptr != '\n') {
-		ERR("invalid device size format '%s'", sizebuf);
-		errno = olderrno;
-		return PMEM2_E_INVALID_SIZE_FORMAT;
-	}
-
-	if (tmpsize == ULLONG_MAX && errno == ERANGE) {
-		ret = PMEM2_E_ERRNO;
-		ERR("invalid device size '%s'", sizebuf);
-		errno = olderrno;
-		return ret;
-	}
-
-	errno = olderrno;
-
-	*size = tmpsize;
-	LOG(4, "device size %zu", *size);
 	return 0;
 }

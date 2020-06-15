@@ -31,14 +31,14 @@ pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type)
 }
 
 /*
- * pmem2_device_dax_size_from_dev -- (internal) checks the size of a given
- * dax device from given stat structure
+ * pmem2_device_dax_size -- checks the size of a given
+ * dax device from given source structure
  */
 int
-pmem2_device_dax_size_from_dev(dev_t st_rdev, size_t *size)
+pmem2_device_dax_size(const struct pmem2_source *src, size_t *size)
 {
 	const char *err =
-		"BUG: pmem2_device_dax_size_from_dev should never be called on this OS";
+		"BUG: pmem2_device_dax_size should never be called on this OS";
 	ERR("%s", err);
 	ASSERTinfo(0, err);
 	return PMEM2_E_NOSUPP;

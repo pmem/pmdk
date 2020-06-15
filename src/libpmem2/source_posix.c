@@ -106,7 +106,7 @@ pmem2_source_size(const struct pmem2_source *src, size_t *size)
 
 	switch (src->value.ftype) {
 	case PMEM2_FTYPE_DEVDAX: {
-		int ret = pmem2_device_dax_size_from_dev(st.st_rdev, size);
+		int ret = pmem2_device_dax_size(src, size);
 		if (ret)
 			return ret;
 		break;
