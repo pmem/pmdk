@@ -12,6 +12,7 @@
 
 #include "os.h"
 #include "out.h"
+#include "source.h"
 
 static inline int
 pmem2_assert_errno(void)
@@ -35,14 +36,9 @@ void *pmem2_realloc(void *ptr, size_t size, int *err);
 int pmem2_lasterror_to_err();
 #endif
 
-enum pmem2_file_type {
-	PMEM2_FTYPE_REG = 1,
-	PMEM2_FTYPE_DEVDAX = 2,
-	PMEM2_FTYPE_DIR = 3,
-};
-
 int pmem2_get_type_from_stat(const os_stat_t *st, enum pmem2_file_type *type);
 int pmem2_device_dax_size_from_dev(dev_t st_rdev, size_t *size);
-int pmem2_device_dax_alignment_from_dev(dev_t st_rdev, size_t *alignment);
+int pmem2_device_dax_alignment(const struct pmem2_source *src,
+		size_t *alignment);
 
 #endif /* PMEM2_UTILS_H */
