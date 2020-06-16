@@ -420,14 +420,16 @@ main(int argc, char *argv[])
 	}
 	fd = open(path, O_RDWR);
 	if (fd < 0) {
-		perror("open");
-		return 1;
+		ret = 1;
+		goto err_open;
 	}
 
 	struct pmem2_map *map = pool_map(fd, map_private);
 
-	if (map == NULL)
-		return 1;
+	if (map == NULL) {
+		ret = 1;
+		goto err_map;
+	}
 
 	size_t size = pmem2_map_get_size(map);
 	if (size < POOL_SIZE_MIN) {
@@ -474,7 +476,9 @@ main(int argc, char *argv[])
 	}
 out:
 	pmem2_unmap(&map);
+err_map:
 	close(fd);
+err_open:
 
 	return ret;
 }
