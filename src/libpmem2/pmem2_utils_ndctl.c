@@ -20,6 +20,7 @@ pmem2_device_dax_alignment(const struct pmem2_source *src, size_t *alignment)
 	int ret = 0;
 	size_t size = 0;
 	struct ndctl_ctx *ctx;
+	struct ndctl_region *region;
 	struct ndctl_namespace *ndns;
 
 	errno = ndctl_new(&ctx) * (-1);
@@ -28,7 +29,7 @@ pmem2_device_dax_alignment(const struct pmem2_source *src, size_t *alignment)
 		return PMEM2_E_ERRNO;
 	}
 
-	ret = pmem2_region_namespace(ctx, src, NULL, &ndns);
+	ret = pmem2_region_namespace(ctx, src, &region, &ndns);
 	if (ret) {
 		LOG(1, "getting region and namespace failed");
 		goto end;
