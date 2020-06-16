@@ -140,8 +140,8 @@ pmem2_region_namespace(struct ndctl_ctx *ctx,
 	struct ndctl_region *region;
 	struct ndctl_namespace *ndns;
 
-	ASSERTne(pregion, NULL);
-	*pregion = NULL;
+	if (pregion)
+		*pregion = NULL;
 
 	if (pndns)
 		*pndns = NULL;
@@ -177,7 +177,8 @@ pmem2_region_namespace(struct ndctl_ctx *ctx,
 					return ret;
 
 				if (ret == 0) {
-					*pregion = region;
+					if (pregion)
+						*pregion = region;
 					if (pndns)
 						*pndns = ndns;
 
@@ -204,7 +205,8 @@ pmem2_region_namespace(struct ndctl_ctx *ctx,
 				return ret;
 
 			if (ret == 0) {
-				*pregion = region;
+				if (pregion)
+					*pregion = region;
 				if (pndns)
 					*pndns = ndns;
 
