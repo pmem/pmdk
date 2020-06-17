@@ -203,6 +203,7 @@ device_dax_alignment(const char *path)
 	}
 
 end:
+	pmem2_source_delete(&src);
 	os_close(fd);
 	return size;
 }
