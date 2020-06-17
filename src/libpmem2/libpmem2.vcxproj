@@ -33,6 +33,7 @@
     <ClCompile Include="persist_windows.c" />
     <ClCompile Include="pmem2_utils.c" />
     <ClCompile Include="pmem2_utils_other.c" />
+    <ClCompile Include="ravl_interval.c" />
     <ClCompile Include="source.c" />
     <ClCompile Include="source_windows.c" />
     <ClCompile Include="usc_windows.c" />
@@ -72,6 +73,7 @@
     <ClInclude Include="pmem2.h" />
     <ClInclude Include="pmem2_arch.h" />
     <ClInclude Include="pmem2_utils.h" />
+    <ClInclude Include="ravl_interval.h" />
     <ClInclude Include="source.h" />
     <ClInclude Include="x86_64\cpu.h" />
     <ClInclude Include="x86_64\avx.h" />

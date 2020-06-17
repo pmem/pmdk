@@ -9,6 +9,7 @@
 
 #include "config.h"
 #include "map.h"
+#include "ravl_interval.h"
 #include "os.h"
 #include "os_thread.h"
 #include "pmem2.h"
@@ -127,23 +128,26 @@ pmem2_validate_offset(const struct pmem2_config *cfg, size_t *offset,
 	return 0;
 }
 
-static struct ravl *Mappings;
-static os_rwlock_t Mappings_lock;
+static struct ravl_interval *ri;
+static os_rwlock_t lock;
 
 /*
- * mappings_compare -- compare pmem2_maps by starting address
+ * mapping_min - return min boundary for mapping
  */
-static int
-mappings_compare(const void *lhs, const void *rhs)
+static size_t
+mapping_min(void *map)
 {
-	const struct pmem2_map *l = lhs;
-	const struct pmem2_map *r = rhs;
+	return (size_t)pmem2_map_get_address(map);
+}
 
-	if (l->addr < r->addr)
-		return -1;
-	if (l->addr > r->addr)
-		return 1;
-	return 0;
+/*
+ * mapping_max - return max boundary for mapping
+ */
+static size_t
+mapping_max(void *map)
+{
+	return (size_t)pmem2_map_get_address(map) +
+		pmem2_map_get_size(map);
 }
 
 /*
@@ -152,9 +156,13 @@ mappings_compare(const void *lhs, const void *rhs)
 void
 pmem2_map_init(void)
 {
-	os_rwlock_init(&Mappings_lock);
-	Mappings = ravl_new(mappings_compare);
-	if (!Mappings)
+	os_rwlock_init(&lock);
+
+	util_rwlock_wrlock(&lock);
+	ri = ravl_interval_new(mapping_min, mapping_max);
+	util_rwlock_unlock(&lock);
+
+	if (!ri)
 		abort();
 }
 
@@ -164,9 +172,11 @@ pmem2_map_init(void)
 void
 pmem2_map_fini(void)
 {
-	ravl_delete(Mappings);
-	Mappings = NULL;
-	os_rwlock_destroy(&Mappings_lock);
+	util_rwlock_wrlock(&lock);
+	ravl_interval_delete(ri);
+	util_rwlock_unlock(&lock);
+
+	os_rwlock_destroy(&lock);
 }
 
 /*
@@ -175,16 +185,11 @@ pmem2_map_fini(void)
 int
 pmem2_register_mapping(struct pmem2_map *map)
 {
-	int ret;
+	util_rwlock_wrlock(&lock);
+	int ret = ravl_interval_insert(ri, map);
+	util_rwlock_unlock(&lock);
 
-	util_rwlock_wrlock(&Mappings_lock);
-	ret = ravl_insert(Mappings, map);
-	util_rwlock_unlock(&Mappings_lock);
-
-	if (ret)
-		return PMEM2_E_ERRNO;
-
-	return 0;
+	return ret;
 }
 
 /*
@@ -194,89 +199,38 @@ int
 pmem2_unregister_mapping(struct pmem2_map *map)
 {
 	int ret = 0;
-	util_rwlock_wrlock(&Mappings_lock);
-	struct ravl_node *n = ravl_find(Mappings, map, RAVL_PREDICATE_EQUAL);
-	if (n)
-		ravl_remove(Mappings, n);
+	struct ravl_interval_node *node;
+
+	util_rwlock_wrlock(&lock);
+	node = ravl_interval_find_equal(ri, map);
+	if (node)
+		ret = ravl_interval_remove(ri, node);
 	else
 		ret = PMEM2_E_MAPPING_NOT_FOUND;
-	util_rwlock_unlock(&Mappings_lock);
+	util_rwlock_unlock(&lock);
 
 	return ret;
 }
 
 /*
- * pmem2_map_find_prior_or_eq -- find overlapping mapping starting prior to
- * the current one or at the same address
- */
-static struct pmem2_map *
-pmem2_map_find_prior_or_eq(struct pmem2_map *cur)
-{
-	struct ravl_node *n;
-	struct pmem2_map *map;
-
-	n = ravl_find(Mappings, cur, RAVL_PREDICATE_LESS_EQUAL);
-	if (!n)
-		return NULL;
-
-	map = ravl_data(n);
-
-	/*
-	 * If the end of the found mapping is below the searched address, then
-	 * this is not our mapping.
-	 */
-	if ((char *)map->addr + map->reserved_length <= (char *)cur->addr)
-		return NULL;
-
-	return map;
-}
-
-/*
- * pmem2_map_find_later -- find overlapping mapping starting later than
- * the current one
- */
-static struct pmem2_map *
-pmem2_map_find_later(struct pmem2_map *cur)
-{
-	struct ravl_node *n;
-	struct pmem2_map *map;
-
-	n = ravl_find(Mappings, cur, RAVL_PREDICATE_GREATER);
-	if (!n)
-		return NULL;
-
-	map = ravl_data(n);
-
-	/*
-	 * If the beginning of the found mapping is above the end of
-	 * the searched range, then this is not our mapping.
-	 */
-	if ((char *)map->addr >= (char *)cur->addr + cur->reserved_length)
-		return NULL;
-
-	return map;
-}
-
-/*
  * pmem2_map_find -- find the earliest mapping overlapping with
- * [addr, addr+size) range
+ * (addr, addr+size) range
  */
 struct pmem2_map *
 pmem2_map_find(const void *addr, size_t len)
 {
-	struct pmem2_map cur;
-	struct pmem2_map *map;
+	struct pmem2_map map;
+	map.addr = (void *)addr;
+	map.reserved_length = len;
 
-	util_rwlock_rdlock(&Mappings_lock);
+	struct ravl_interval_node *node;
 
-	cur.addr = (void *)addr;
-	cur.reserved_length = len;
+	util_rwlock_rdlock(&lock);
+	node = ravl_interval_find(ri, &map);
+	util_rwlock_unlock(&lock);
 
-	map = pmem2_map_find_prior_or_eq(&cur);
-	if (!map)
-		map = pmem2_map_find_later(&cur);
+	if (!node)
+		return NULL;
 
-	util_rwlock_unlock(&Mappings_lock);
-
-	return map;
+	return (struct pmem2_map *)ravl_interval_data(node);
 }
