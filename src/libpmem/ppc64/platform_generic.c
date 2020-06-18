@@ -1,5 +1,5 @@
 /*
- * Copyright 2019, IBM Corporation
+ * Copyright 2019-2020, IBM Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -65,6 +65,11 @@ ppc_predrain_fence(void)
 }
 
 static void
+ppc_predrain_fence_empty(void) {
+	LOG(15, NULL);
+}
+
+static void
 ppc_flush(const void *addr, size_t size)
 {
 	LOG(15, "addr %p size %zu", addr, size);
@@ -94,6 +99,14 @@ ppc_flush_empty(const void *addr, size_t size)
 	flush_empty_nolog(addr, size);
 }
 
+static void
+ppc_flush_msync(const void *addr, size_t size) {
+	LOG(15, NULL);
+
+	/* ignore return value */
+	pmem_msync(addr, size);
+}
+
 static struct pmem_funcs ppc_pmem_funcs = {
 	.predrain_fence = ppc_predrain_fence,
 	.flush = ppc_flush,
@@ -118,6 +131,13 @@ platform_init(struct pmem_funcs *funcs)
 	if (no_flush && strncmp(no_flush, "1", 1) == 0) {
 		ppc_pmem_funcs.flush = ppc_flush_empty;
 		LOG(3, "Forced not flushing CPU_cache");
+	}
+
+	/* XXX: valgrind does not recognize powerpc fence instruction */
+	if (On_valgrind) {
+		pcc_pmem_funcs.predrain_fence = ppc_predrain_fence_empty;
+		pcc_pmem_funcs.flush = ppc_flush_msync;
+		pcc_pmem_funcs.deep_flush = ppc_flush_msync;
 	}
 
 	*funcs = ppc_pmem_funcs;
