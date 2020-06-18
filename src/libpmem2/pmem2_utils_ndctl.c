@@ -49,3 +49,43 @@ end:
 
 	return ret;
 }
+
+/*
+ * pmem2_device_dax_size -- checks the size of a given
+ * dax device from given source structure
+ */
+int
+pmem2_device_dax_size(const struct pmem2_source *src, size_t *size)
+{
+	int ret = 0;
+	struct ndctl_ctx *ctx;
+	struct ndctl_namespace *ndns;
+
+	errno = ndctl_new(&ctx) * (-1);
+	if (errno) {
+		ERR("!ndctl_new");
+		return PMEM2_E_ERRNO;
+	}
+
+	ret = pmem2_region_namespace(ctx, src, NULL, &ndns);
+	if (ret) {
+		LOG(1, "getting region and namespace failed");
+		goto end;
+	}
+
+	struct ndctl_dax *dax = ndctl_namespace_get_dax(ndns);
+
+	if (dax) {
+		*size = ndctl_dax_get_size(dax);
+	} else {
+		ret = PMEM2_E_DAX_REGION_NOT_FOUND;
+		ERR("Issue while reading Device Dax size - cannot "
+			"find dax region");
+	}
+
+end:
+	ndctl_unref(ctx);
+	LOG(4, "device size %zu", *size);
+
+	return ret;
+}
