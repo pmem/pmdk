@@ -38,7 +38,7 @@
 #include <sys/locking.h>
 #include <errno.h>
 #include <pmemcompat.h>
-
+#include <windows.h>
 #include "alloc.h"
 #include "util.h"
 #include "os.h"
@@ -324,6 +324,45 @@ os_posix_fallocate(int fd, os_off_t offset, os_off_t len)
 	if (offset + len < offset)
 		return EFBIG;
 
+	HANDLE handle = (HANDLE)_get_osfhandle(fd);
+	if (handle == INVALID_HANDLE_VALUE) {
+		return errno;
+	}
+
+	FILE_ATTRIBUTE_TAG_INFO attributes;
+	if (!GetFileInformationByHandleEx(handle, FileAttributeTagInfo,
+			&attributes, sizeof(attributes))) {
+		return EINVAL;
+	}
+	/*
+	 * To physically allocate space on windows we have to remove
+	 * sparsefile and file compressed flags. This method is much faster
+	 * than using _chsize_s which has terrible performance. Dax on
+	 * windows doesn't support sparse files and file compression so
+	 * this workaround is acceptable.
+	 */
+	if (attributes.FileAttributes & FILE_ATTRIBUTE_SPARSE_FILE) {
+		DWORD unused;
+		FILE_SET_SPARSE_BUFFER buffer;
+		buffer.SetSparse = FALSE;
+
+		if (!DeviceIoControl(handle, FSCTL_SET_SPARSE, &buffer,
+				sizeof(buffer), NULL, 0, &unused,
+				NULL)) {
+			return EINVAL;
+		}
+	}
+	if (attributes.FileAttributes & FILE_ATTRIBUTE_COMPRESSED) {
+		DWORD unused;
+		USHORT buffer = 0; /* magic undocumented value */
+
+		if (!DeviceIoControl(handle, FSCTL_SET_COMPRESSION,
+				&buffer, sizeof(buffer), NULL, 0,
+				&unused, NULL)) {
+			return EINVAL;
+		}
+	}
+
 	/*
 	 * posix_fallocate should not clobber errno, but
 	 * _filelengthi64 might set errno.
@@ -343,7 +382,14 @@ os_posix_fallocate(int fd, os_off_t offset, os_off_t len)
 	if (requested_size <= current_size)
 		return 0;
 
-	return _chsize_s(fd, requested_size);
+	int ret = os_ftruncate(fd, requested_size);
+
+	if (ret) {
+		errno = ret;
+		return -1;
+	}
+
+	return 0;
 }
 
 /*
@@ -352,7 +398,22 @@ os_posix_fallocate(int fd, os_off_t offset, os_off_t len)
 int
 os_ftruncate(int fd, os_off_t length)
 {
-	return _chsize_s(fd, length);
+	LARGE_INTEGER distanceToMove = {0};
+	distanceToMove.QuadPart = length;
+	HANDLE handle = (HANDLE)_get_osfhandle(fd);
+	if (handle == INVALID_HANDLE_VALUE)
+		return -1;
+
+	if (!SetFilePointerEx(handle, distanceToMove, NULL, FILE_BEGIN)) {
+		errno = EINVAL;
+		return -1;
+	}
+
+	if (!SetEndOfFile(handle)) {
+		errno = EINVAL;
+		return -1;
+	}
+	return 0;
 }
 
 /*
