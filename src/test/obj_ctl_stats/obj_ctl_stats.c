@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Intel Corporation
+ * Copyright 2017-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -121,6 +121,29 @@ main(int argc, char *argv[])
 	ret = pmemobj_ctl_get(pop, "stats.heap.run_allocated", &tmp);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(tmp, run_allocated); /* shouldn't change */
+
+	/* the deallocated object shouldn't be reflected in rebuilt stats */
+	pmemobj_free(&oid);
+
+	pmemobj_close(pop);
+
+	pop = pmemobj_open(path, "ctl");
+	UT_ASSERTne(pop, NULL);
+
+	/* stats are rebuilt lazily, so initially this should be 0 */
+	tmp = 0;
+	ret = pmemobj_ctl_get(pop, "stats.heap.run_allocated", &tmp);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(tmp, 0);
+
+	ret = pmemobj_alloc(pop, NULL, 1, 0, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+
+	/* after first alloc, the previously allocated object will be found */
+	tmp = 0;
+	ret = pmemobj_ctl_get(pop, "stats.heap.run_allocated", &tmp);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(tmp, run_allocated + oid_size);
 
 	pmemobj_close(pop);
 
