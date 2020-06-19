@@ -63,7 +63,7 @@ ppc_flush(const void *addr, size_t size)
 }
 
 static void
-ppc_flush_msync(const void *addr, size_t size)
+ppc_flush_msync(const void *addr, size_t len)
 {
 	LOG(15, "addr %p len %zu", addr, len);
 	/* this implementation is copy of pmem_msync */
@@ -90,8 +90,7 @@ ppc_flush_msync(const void *addr, size_t size)
 	 */
 	VALGRIND_DO_DISABLE_ERROR_REPORTING;
 
-	int ret;
-	if ((ret = msync((void *)uptr, len, MS_SYNC)) < 0)
+	if (msync((void *)uptr, len, MS_SYNC) < 0)
 		ERR("!msync");
 
 	VALGRIND_DO_ENABLE_ERROR_REPORTING;
