@@ -1,3 +1,31 @@
+Fri Jun 19 2020 Piotr Balcer <piotr.balcer@intel.com>
+
+	* Version 1.9-rc1
+
+	This release:
+	- Switches the default instruction set for memcpy, memmove and memset
+	implementations on x86 to AVX512, and introduces numerous performance
+	improvements for those operations on AVX and SSE2 fallback paths.
+	- Optimizes transactional allocations in libpmemobj by avoiding one
+	extraneous cache miss and reducing the amount of work required to perform
+	a reservation.
+	- Introduces a new API in libpmemobj, pmemobj_tx_set_failure_behavior,
+	that enables the application to control the behavior of aborting
+	transactions.
+	- Improves performance of pool creation on Windows by avoiding expensive
+	physical page allocation during file allocation.
+
+	Other changes:
+	- pmem: mem[cpy|set] optimization when eADR is available
+	- obj: detect msync failures in non-pmem variants of mem[cpy|move|set]
+
+	Notable bug fixes:
+	- core: fix Last_errormsg_get when NO_LIBPTHREAD is defined
+	- pmem: read Unsafe Shutdown Count from region instead of interleave set
+	- common: fix deep_flushes failing on platforms that don't need them
+	- pmem: fix data cache flush on ppc64
+	- obj: fix run allocated recalculation
+
 Fri Jan 31 2020 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.8
