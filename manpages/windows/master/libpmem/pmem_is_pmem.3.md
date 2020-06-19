@@ -160,6 +160,11 @@ Not all file systems support **posix_fallocate**(3). **pmem_map_fileU**()/**pmem
 fail if **PMEM_FILE_CREATE** is specified without **PMEM_FILE_SPARSE** and
 the underlying file system does not support **posix_fallocate**(3).
 
+== On Windows if **PMEM_FILE_CREATE** is specified without
+**PMEM_FILE_SPARSE** and the file exists, FILE_ATTRIBUTE_SPARSE_FILE and
+FILE_ATTRIBUTE_COMPRESSED will be removed if the file has any, to physically
+allocate space for the file. This is a workaround for _chsize() performance
+issues ==
 # SEE ALSO #
 
 **creat**(2), **ftruncate**(2), **mmap**(2),  **msync**(2), **munmap**(2),

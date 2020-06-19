@@ -154,6 +154,10 @@ consistency check cannot be performed, **pmemblk_checkU**()/**pmemblk_checkW**()
 Not all file systems support **posix_fallocate**(3). **pmemblk_createU**()/**pmemblk_createW**() will
 fail if the underlying file system does not support **posix_fallocate**(3).
 
+== On Windows if **pmemblk_createU**()/**pmemblk_createW**() is called on an existing file
+with FILE_ATTRIBUTE_SPARSE_FILE and FILE_ATTRIBUTE_COMPRESSED set,
+they will be removed, to physically allocate space for the pool.
+This is a workaround for _chsize() performance issues ==
 # SEE ALSO #
 **pmempool**(1), **creat**(2), **pmemblk_nblock**(3),
 **posix_fallocate**(3), **poolset**(5),

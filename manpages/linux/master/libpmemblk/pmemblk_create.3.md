@@ -147,6 +147,7 @@ consistency check cannot be performed, **pmemblk_check**() returns -1 and sets
 Not all file systems support **posix_fallocate**(3). **pmemblk_create**() will
 fail if the underlying file system does not support **posix_fallocate**(3).
 
+
 # SEE ALSO #
 **pmempool**(1), **creat**(2), **pmemblk_nblock**(3),
 **posix_fallocate**(3), **poolset**(5),
