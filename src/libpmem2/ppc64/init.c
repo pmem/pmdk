@@ -103,8 +103,7 @@ void
 pmem2_arch_init(struct pmem2_arch_info *info)
 {
 	LOG(3, "libpmem*: PPC64 support");
-	LOG(3, "PMDK PPC64 support is currently experimental");
-	LOG(3, "Please don't use this library in production environment");
+
 	if (On_valgrind) {
 		info->fence = ppc_fence_empty;
 		info->flush = ppc_flush_msync;
