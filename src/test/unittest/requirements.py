@@ -95,3 +95,11 @@ def require_admin(tc):
     """
     ctx.add_requirement(tc, 'require_admin', True)
     return tc
+
+
+def require_fs_exec(tc):
+    """
+    Disable test if exec acess for device is not permitted
+    """
+    ctx.add_requirement(tc, 'require_fs_exec', True)
+    return tc

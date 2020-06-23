@@ -60,6 +60,8 @@ class DevDaxes():
     Dax device context class representing a set of dax devices required
     for test
     """
+    check_fs_exec = False
+
     def __init__(self, *dax_devices):
         self.dax_devices = tuple(dax_devices)
         for dd in dax_devices:
@@ -73,6 +75,12 @@ class DevDaxes():
                 raise futils.Fail('checking {} with pmemdetect failed:{}{}'
                                   .format(dd.path, os.linesep, proc.stdout))
 
+            if self.check_fs_exec:
+                exec_allowed = tools.mapexec(dd.path)
+                if exec_allowed.returncode != 1:
+                    raise futils.Skip('dax device {} has not exec rights for'
+                                      ' mmap'.format(dd.path))
+
     def __str__(self):
         return 'devdax'
 
@@ -80,6 +88,9 @@ class DevDaxes():
     def filter(cls, config, msg, tc):
 
         dax_devices, _ = ctx.get_requirement(tc, 'devdax', ())
+        cls.check_fs_exec, kwargs = ctx.get_requirement(tc, 'require_fs_exec',
+                                                        None)
+
         if not dax_devices:
             return ctx.NO_CONTEXT
         elif sys.platform == 'win32' and tc.enabled:

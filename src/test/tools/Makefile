@@ -25,7 +25,8 @@ DIRS = \
        fallocate_detect\
        obj_verify\
        usc_permission_check\
-       anonymous_mmap
+       anonymous_mmap\
+       mapexec
 
 ifeq ($(ARCH), x86_64)
 DIRS += \
