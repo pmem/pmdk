@@ -174,12 +174,12 @@ class TEST15(PMEM2_MAP_DEVDAX):
     """
     test_case = "test_rw_mode_rw_prot"
 
-# XXX: we need to add support to test framework and create a tool-helper
-# to skip this test when exec access is not allowed for specific device
-# @t.require_architectures('x86_64')
-# class TEST16(PMEM2_MAP_DEVDAX):
-#    """
-#    READ|EXEC protection on device DAX opened in read|write|exec mode; test
-#    runs the program, which is put in mapped memory - should succeed
-#    """
-#    test_case = "test_rx_mode_rx_prot_do_execute"
+
+@t.require_fs_exec
+@t.require_architectures('x86_64')
+class TEST16(PMEM2_MAP_DEVDAX):
+    """
+    READ|EXEC protection on device DAX opened in read|write|exec mode; test
+    runs the program, which is put in mapped memory - should succeed
+    """
+    test_case = "test_rx_mode_rx_prot_do_execute"
