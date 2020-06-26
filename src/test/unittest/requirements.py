@@ -36,6 +36,17 @@ class Requirements:
         else:
             return os.getuid() == 0
 
+    def check_ndctl(self):
+        is_ndctl = self._check_pkgconfig('libndctl', NDCTL_MIN_VERSION)
+        if not is_ndctl:
+            raise futils.Skip('libndctl (>=v{}) is not installed'
+                              .format(NDCTL_MIN_VERSION))
+
+    def check_ndctl_enable(self):
+        ndctl_enable = os.environ.get('NDCTL_ENABLE')
+        if ndctl_enable == 'n':
+            raise futils.Skip('libndctl is disabled (NDCTL_ENABLE == \'n\')')
+
     def _check_ndctl_req_is_met(self, tc):
         """
         Check if all conditions for the ndctl requirement are met
@@ -44,14 +55,9 @@ class Requirements:
         if not require_ndctl:
             return True
 
-        ndctl_enable = os.environ.get('NDCTL_ENABLE')
-        if ndctl_enable == 'n':
-            raise futils.Skip('libndctl is disabled (NDCTL_ENABLE == \'n\')')
+        self.check_ndctl_enable()
+        self.check_ndctl()
 
-        is_ndctl = self._check_pkgconfig('libndctl', NDCTL_MIN_VERSION)
-        if not is_ndctl:
-            raise futils.Skip('libndctl (>=v{}) is not installed'
-                              .format(NDCTL_MIN_VERSION))
         return True
 
     def _check_admin_req_is_met(self, tc):

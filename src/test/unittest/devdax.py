@@ -11,6 +11,7 @@ import sys
 
 import context as ctx
 import futils
+import requirements as req
 import tools
 
 
@@ -66,6 +67,10 @@ class DevDaxes():
             setattr(self, dd.name, dd)
 
     def setup(self, **kwargs):
+        # DevDax tests always require ndctl
+        req.Requirements().check_ndctl_enable()
+        req.Requirements().check_ndctl()
+
         tools = kwargs['tools']
         for dd in self.dax_devices:
             proc = tools.pmemdetect('-d', dd.path)
