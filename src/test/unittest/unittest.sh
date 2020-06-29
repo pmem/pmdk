@@ -160,6 +160,8 @@ PMEMOBJ_MAX_ALLOC_SIZE=17177771968
 SSH_OPTS="-o BatchMode=yes"
 SCP_OPTS="-o BatchMode=yes -r -p"
 
+NDCTL_MIN_VERSION="63"
+
 # list of common files to be copied to all remote nodes
 DIR_SRC="../.."
 FILES_COMMON_DIR="\
@@ -1253,10 +1255,24 @@ function require_dev_dax_node() {
 }
 
 #
+# require_ndctl_enable -- check NDCTL_ENABLE value and skip test if set to 'n'
+#
+function require_ndctl_enable() {
+	if ! is_ndctl_enabled $PMEMPOOL$EXE &> /dev/null ; then
+		msg "$UNITTEST_NAME: SKIP: ndctl is disabled - binary not compiled with libndctl"
+		exit 0
+	fi
+
+	return 0
+}
+
+#
 # require_dax_devices -- only allow script to continue if there is a required
-# number of Device DAX devices
+# number of Device DAX devices and ndctl is available
 #
 function require_dax_devices() {
+	require_ndctl_enable
+	require_pkg libndctl "$NDCTL_MIN_VERSION"
 	REQUIRE_DAX_DEVICES=$1
 	require_dev_dax_node $1
 }
