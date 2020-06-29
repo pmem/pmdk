@@ -103,6 +103,7 @@ void
 pmem2_arch_init(struct pmem2_arch_info *info)
 {
 	LOG(3, "libpmem*: PPC64 support");
+	LOG(3, "PPC64 PMDK does not support SDS");
 
 	if (On_valgrind) {
 		info->fence = ppc_fence_empty;

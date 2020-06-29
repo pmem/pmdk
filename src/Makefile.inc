@@ -88,7 +88,9 @@ CFLAGS += -pthread
 CFLAGS += -DSRCVERSION=\"$(SRCVERSION)\"
 
 ifeq ($(OS_DIMM),ndctl)
+ifneq ($(ARCH), ppc64)
 CFLAGS += -DSDS_ENABLED
+endif
 CFLAGS += $(OS_DIMM_CFLAG)
 endif
 
