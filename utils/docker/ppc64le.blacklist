@@ -4,6 +4,7 @@ ex_librpmem_manpage
 libpmempool_rm_remote
 obj_basic_integration
 obj_check_remote
+obj_ctl_arenas
 obj_ctl_debug
 obj_mem
 obj_memcheck_register
