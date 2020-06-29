@@ -134,6 +134,7 @@ cannot perform the consistency check due to other errors.
 Not all file systems support **posix_fallocate**(3). **pmemlog_create**() will
 fail if the underlying file system does not support **posix_fallocate**(3).
 
+
 # SEE ALSO #
 
 **pmempool**(1), **creat**(2), **posix_fallocate**(3),

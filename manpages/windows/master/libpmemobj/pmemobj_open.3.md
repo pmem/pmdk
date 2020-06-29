@@ -172,6 +172,10 @@ perform the consistency check due to other errors.
 Not all file systems support **posix_fallocate**(3). **pmemobj_createU**()/**pmemobj_createW**() will
 fail if the underlying file system does not support **posix_fallocate**(3).
 
+== On Windows if **pmemobj_createU**()/**pmemobj_createW**() is called on an existing file
+with FILE_ATTRIBUTE_SPARSE_FILE and FILE_ATTRIBUTE_COMPRESSED set,
+they will be removed, to physically allocate space for the pool.
+This is a workaround for _chsize() performance issues ==
 # SEE ALSO #
 
 **creat**(2), **msync**(2), **pmem_is_pmem**(3), **pmem_persist**(3),
