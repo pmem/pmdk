@@ -370,7 +370,6 @@ clean clobber: $(TESTS_BUILD)
 	$(RM) *.$(SYNC_EXT)
 	$(RM) $(FILE_MAX_DAX_DEVICES)
 	$(RM) envconfig.sh envconfig.py
-	$(RM) -r __pycache__ */__pycache__
 
 $(TESTS) $(OBJ_DEPS) $(LIBPMEMPOOL_DEPS) $(LIBPMEMPOOL_MOD_DEPS): $(TEST_DEPS)
 
