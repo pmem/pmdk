@@ -39,9 +39,10 @@ pmem2_source_from_fd(struct pmem2_source **src, int fd)
 
 	/*
 	 * XXX Files with FS_APPEND_FL attribute should also generate an error.
-	 * If it is possible to filter them out pmem2_map would not generate
-	 * -EACCESS trying to map them. Please update pmem2_map.3 when it will
-	 * be fixed. For details please see the ioctl_iflags(2) manual page.
+	 * If it is possible to filter them out pmem2_map_new would not generate
+	 * -EACCESS trying to map them. Please update pmem2_map_new.3 when it
+	 * will be fixed.
+	 * For details please see the ioctl_iflags(2) manual page.
 	 */
 
 	os_stat_t st;

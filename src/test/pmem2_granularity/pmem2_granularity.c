@@ -121,14 +121,14 @@ map_with_available_granularity(struct pmem2_config *cfg,
 	cfg->requested_max_granularity = ctx->requested_granularity;
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, cfg, src);
+	int ret = pmem2_map_new(&map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map, NULL);
 	UT_ASSERTeq(ctx->expected_granularity,
 				pmem2_map_get_store_granularity(map));
 
 	/* cleanup after the test */
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 }
 
 /*
@@ -142,7 +142,7 @@ map_with_unavailable_granularity(struct pmem2_config *cfg,
 	cfg->requested_max_granularity = ctx->requested_granularity;
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, cfg, src);
+	int ret = pmem2_map_new(&map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_GRANULARITY_NOT_SUPPORTED);
 	UT_ERR("%s", pmem2_errormsg());
 	UT_ASSERTeq(map, NULL);

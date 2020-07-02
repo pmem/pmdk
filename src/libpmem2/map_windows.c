@@ -100,10 +100,10 @@ is_direct_access(HANDLE fh)
 }
 
 /*
- * pmem2_map -- map memory according to provided config
+ * pmem2_map_new -- map memory according to provided config
  */
 int
-pmem2_map(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
+pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		const struct pmem2_source *src)
 {
 	LOG(3, "cfg %p src %p map_ptr %p", cfg, src, map_ptr);
@@ -332,10 +332,10 @@ err_close_mapping_handle:
 }
 
 /*
- * pmem2_unmap -- unmap the specified region
+ * pmem2_map_delete -- unmap the specified region
  */
 int
-pmem2_unmap(struct pmem2_map **map_ptr)
+pmem2_map_delete(struct pmem2_map **map_ptr)
 {
 	LOG(3, "mapp %p", map_ptr);
 

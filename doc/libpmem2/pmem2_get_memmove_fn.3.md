@@ -142,5 +142,5 @@ functions for a range spanning those mappings.
 # SEE ALSO #
 
 **memcpy**(3), **memmove**(3), **memset**(3), **pmem2_get_drain_fn**(3),
-**pmem2_get_memcpy_fn**(3), **pmem2_get_memset_fn**(3), **pmem2_map**(3),
+**pmem2_get_memcpy_fn**(3), **pmem2_get_memset_fn**(3), **pmem2_map_new**(3),
 **pmem2_get_persist_fn**(3), **libpmem2**(7) and **<http://pmem.io>**

@@ -68,4 +68,4 @@ flush on a regular DAX volume.
 # SEE ALSO #
 
 **msync**(2), **open**(2), **pmem2_get_drain_fn**(3), **pmem2_get_persist_fn**(3)
-**pmem2_map**(3), **write**(2), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_map_new**(3), **write**(2), **libpmem2**(7) and **<http://pmem.io>**

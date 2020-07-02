@@ -66,7 +66,7 @@ signal_handler(int sig)
 
 /*
  * test_rw_mode_rw_prot -- test R/W protection
- * pmem2_map() - should success
+ * pmem2_map_new() - should success
  * memcpy() - should success
  */
 static int
@@ -83,7 +83,7 @@ test_rw_mode_rw_prot(const struct test_case *tc,
 			PMEM2_PROT_READ | PMEM2_PROT_WRITE);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, &res.cfg, res.src);
+	int ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
@@ -91,7 +91,7 @@ test_rw_mode_rw_prot(const struct test_case *tc,
 	memcpy_fn(addr_map, word1, strlen(word1), 0);
 	UT_ASSERTeq(memcmp(addr_map, word1, strlen(word1)), 0);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	res_cleanup(&res);
 	return 1;
 }
@@ -109,7 +109,7 @@ template_mode_prot_mismatch(char *file, int access, unsigned prot)
 	res_prepare(file, &res, access, prot);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, &res.cfg, res.src);
+	int ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_NO_ACCESS);
 
 	res_cleanup(&res);
@@ -117,7 +117,7 @@ template_mode_prot_mismatch(char *file, int access, unsigned prot)
 
 /*
  * test_r_mode_rw_prot -- test R/W protection
- * pmem2_map() - should fail
+ * pmem2_map_new() - should fail
  */
 static int
 test_r_mode_rw_prot(const struct test_case *tc,
@@ -135,7 +135,7 @@ test_r_mode_rw_prot(const struct test_case *tc,
 
 /*
  * test_rw_mode_rwx_prot - test R/W/X protection on R/W file
- * pmem2_map() - should fail
+ * pmem2_map_new() - should fail
  */
 static int
 test_rw_modex_rwx_prot(const struct test_case *tc, int argc, char *argv[])
@@ -152,7 +152,7 @@ test_rw_modex_rwx_prot(const struct test_case *tc, int argc, char *argv[])
 
 /*
  * test_rw_modex_rx_prot - test R/X protection on R/W file
- * pmem2_map() - should fail
+ * pmem2_map_new() - should fail
  */
 static int
 test_rw_modex_rx_prot(const struct test_case *tc, int argc, char *argv[])
@@ -169,7 +169,7 @@ test_rw_modex_rx_prot(const struct test_case *tc, int argc, char *argv[])
 
 /*
  * test_rw_mode_r_prot -- test R/W protection
- * pmem2_map() - should success
+ * pmem2_map_new() - should success
  * memcpy() - should fail
  */
 static int
@@ -192,7 +192,7 @@ test_rw_mode_r_prot(const struct test_case *tc,
 	res_prepare(argv[0], &res, FH_RDWR, PMEM2_PROT_READ);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, &res.cfg, res.src);
+	int ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
@@ -203,7 +203,7 @@ test_rw_mode_r_prot(const struct test_case *tc,
 		UT_FATAL("memcpy successful");
 	}
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	res_cleanup(&res);
 	signal(SIGSEGV, SIG_DFL);
 	return 1;
@@ -211,7 +211,7 @@ test_rw_mode_r_prot(const struct test_case *tc,
 
 /*
  * test_r_mode_r_prot -- test R/W protection
- * pmem2_map() - should success
+ * pmem2_map_new() - should success
  * memcpy() - should fail
  */
 static int
@@ -234,7 +234,7 @@ test_r_mode_r_prot(const struct test_case *tc,
 	res_prepare(argv[0], &res, FH_READ, PMEM2_PROT_READ);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, &res.cfg, res.src);
+	int ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
@@ -245,7 +245,7 @@ test_r_mode_r_prot(const struct test_case *tc,
 		UT_FATAL("memcpy successful");
 	}
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	res_cleanup(&res);
 	signal(SIGSEGV, SIG_DFL);
 	return 1;
@@ -253,7 +253,7 @@ test_r_mode_r_prot(const struct test_case *tc,
 
 /*
  * test_rw_mode_none_prot -- test R/W protection
- * pmem2_map() - should success
+ * pmem2_map_new() - should success
  * memcpy() - should fail
  */
 static int
@@ -276,7 +276,7 @@ test_rw_mode_none_prot(const struct test_case *tc,
 	res_prepare(argv[0], &res, FH_READ, PMEM2_PROT_NONE);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, &res.cfg, res.src);
+	int ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(map);
@@ -287,7 +287,7 @@ test_rw_mode_none_prot(const struct test_case *tc,
 		UT_FATAL("memcpy successful");
 	}
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	res_cleanup(&res);
 	signal(SIGSEGV, SIG_DFL);
 	return 1;
@@ -330,26 +330,26 @@ test_rx_mode_rx_prot_do_execute(const struct test_case *tc, int argc,
 			PMEM2_PROT_WRITE | PMEM2_PROT_READ);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, &res.cfg, res.src);
+	int ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	char *addr_map = pmem2_map_get_address(map);
 	map->memcpy_fn(addr_map, sum_asm, sizeof(sum_asm), 0);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 
 	/* Windows does not support PMEM2_PROT_EXEC combination */
 	pmem2_config_set_protection(&res.cfg,
 					PMEM2_PROT_READ | PMEM2_PROT_EXEC);
 
-	ret = pmem2_map(&map, &res.cfg, res.src);
+	ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	sum_fn sum = (sum_fn)addr_map;
 	int sum_result = sum();
 	UT_ASSERTeq(sum_result, 4);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	res_cleanup(&res);
 
 	return 1;
@@ -385,7 +385,7 @@ test_rwx_mode_rx_prot_do_write(const struct test_case *tc,
 		pmem2_config_set_sharing(&res.cfg, PMEM2_PRIVATE);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, &res.cfg, res.src);
+	int ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	char *addr_map = pmem2_map_get_address(map);
@@ -394,7 +394,7 @@ test_rwx_mode_rx_prot_do_write(const struct test_case *tc,
 		map->memcpy_fn(addr_map, sum_asm, sizeof(sum_asm), 0);
 	}
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	res_cleanup(&res);
 	signal(SIGSEGV, SIG_DFL);
 
@@ -424,7 +424,7 @@ test_rwx_mode_rwx_prot_do_execute(const struct test_case *tc,
 		pmem2_config_set_sharing(&res.cfg, PMEM2_PRIVATE);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, &res.cfg, res.src);
+	int ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	char *addr_map = pmem2_map_get_address(map);
@@ -434,7 +434,7 @@ test_rwx_mode_rwx_prot_do_execute(const struct test_case *tc,
 	int sum_result = sum();
 	UT_ASSERTeq(sum_result, 4);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	res_cleanup(&res);
 	signal(SIGSEGV, SIG_DFL);
 
@@ -468,7 +468,7 @@ test_rw_mode_rw_prot_do_execute(const struct test_case *tc,
 		pmem2_config_set_sharing(&res.cfg, PMEM2_PRIVATE);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, &res.cfg, res.src);
+	int ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	void *addr_map = pmem2_map_get_address(map);
@@ -479,7 +479,7 @@ test_rw_mode_rw_prot_do_execute(const struct test_case *tc,
 		sum(); /* sum function should now fail */
 	}
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	res_cleanup(&res);
 
 	return 2;
@@ -506,20 +506,20 @@ test_rwx_prot_map_priv_do_execute(const struct test_case *tc,
 	res_prepare(file, &res, FH_RDWR, PMEM2_PROT_WRITE | PMEM2_PROT_READ);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&map, &res.cfg, res.src);
+	int ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	char *addr_map = pmem2_map_get_address(map);
 	map->memcpy_fn(addr_map, initial_state, sizeof(initial_state), 0);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	res_cleanup(&res);
 
 	res_prepare(file, &res, FH_READ | FH_EXEC,
 			PMEM2_PROT_EXEC | PMEM2_PROT_WRITE | PMEM2_PROT_READ);
 	pmem2_config_set_sharing(&res.cfg, PMEM2_PRIVATE);
 
-	ret = pmem2_map(&map, &res.cfg, res.src);
+	ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	addr_map = pmem2_map_get_address(map);
@@ -529,16 +529,16 @@ test_rwx_prot_map_priv_do_execute(const struct test_case *tc,
 	int sum_result = sum();
 	UT_ASSERTeq(sum_result, 4);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 
-	ret = pmem2_map(&map, &res.cfg, res.src);
+	ret = pmem2_map_new(&map, &res.cfg, res.src);
 	UT_ASSERTeq(ret, 0);
 
 	addr_map = pmem2_map_get_address(map);
 	/* check if changes in private mapping affect initial state */
 	UT_ASSERTeq(memcmp(addr_map, initial_state, strlen(initial_state)), 0);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	res_cleanup(&res);
 
 	return 1;

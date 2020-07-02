@@ -37,7 +37,7 @@ void pmem2_config_clear_address(struct pmem2_config *cfg);
 The **pmem2_config_clear_address**() function resets *\*addr* and \**request_type* to the default values.
 The function is used to revert changes set by **pmem2_config_set_address**(3).
 If the *\*addr* is default, the starting mapping address will be chosen by the operating system, for
-more information please see **pmem2_map**(3).
+more information please see **pmem2_map_new**(3).
 
 # RETURN VALUE #
 
@@ -45,4 +45,4 @@ more information please see **pmem2_map**(3).
 
 # SEE ALSO #
 
-**libpmem2**(7), **pmem2_config_set_address**(3), **pmem2_map**(3), and **<http://pmem.io>**
+**libpmem2**(7), **pmem2_config_set_address**(3), **pmem2_map_new**(3), and **<http://pmem.io>**

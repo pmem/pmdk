@@ -262,16 +262,16 @@ gran_detecto(struct tool_ctx *ctx)
 	}
 
 	struct pmem2_map *map;
-	if (pmem2_map(&map, cfg, src)) {
-		pmem2_perror("pmem2_map");
+	if (pmem2_map_new(&map, cfg, src)) {
+		pmem2_perror("pmem2_map_new");
 		ret = 1;
 		goto free_both;
 	}
 
 	ctx->actual_granularity = pmem2_map_get_store_granularity(map);
 
-	if (pmem2_unmap(&map)) {
-		pmem2_perror("pmem2_unmap");
+	if (pmem2_map_delete(&map)) {
+		pmem2_perror("pmem2_map_delete");
 		ret = 1;
 	}
 
