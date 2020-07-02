@@ -30,8 +30,8 @@ date: pmem2 API version 1.0
 struct pmem2_config;
 struct pmem2_source;
 struct pmem2_map;
-int pmem2_map(const struct pmem2_config *config, const struct pmem2_source *source,
-    struct pmem2_map **map_ptr);
+int pmem2_map(struct pmem2_map **map_ptr, const struct pmem2_config *config,
+		const struct pmem2_source *source);
 ```
 
 # DESCRIPTION #

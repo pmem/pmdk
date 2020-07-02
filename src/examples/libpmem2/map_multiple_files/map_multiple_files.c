@@ -206,7 +206,7 @@ main(int argc, char *argv[])
 
 		offset += fdsc[nmap].size;
 
-		if (pmem2_map(cfg, fdsc[nmap].src, &fdsc[nmap].map)) {
+		if (pmem2_map(&fdsc[nmap].map, cfg, fdsc[nmap].src)) {
 			pmem2_perror("pmem2_map");
 			goto unmap;
 		}

@@ -16,7 +16,7 @@ static struct pmem2_map *
 map_valid(struct pmem2_config *cfg, struct pmem2_source *src, size_t size)
 {
 	struct pmem2_map *map = NULL;
-	PMEM2_MAP(cfg, src, &map);
+	pmem2_map(&map, cfg, src);
 	UT_ASSERTeq(pmem2_map_get_size(map), size);
 
 	return map;

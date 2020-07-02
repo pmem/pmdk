@@ -52,7 +52,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (pmem2_map(cfg, src, &map)) {
+	if (pmem2_map(&map, cfg, src)) {
 		pmem2_perror("pmem2_map");
 		exit(1);
 	}

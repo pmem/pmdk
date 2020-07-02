@@ -214,7 +214,7 @@ test_basic(struct pmem2_source *src)
 	struct pmem2_badblock bb;
 	int ret;
 
-	ret = pmem2_badblock_context_new(src, &bbctx);
+	ret = pmem2_badblock_context_new(&bbctx, src);
 	if (ret)
 		return ret;
 
@@ -238,7 +238,7 @@ test_read_clear_bb(struct pmem2_source *src)
 	unsigned i_bb;
 	int ret;
 
-	ret = pmem2_badblock_context_new(src, &bbctx);
+	ret = pmem2_badblock_context_new(&bbctx, src);
 	if (ret)
 		return ret;
 

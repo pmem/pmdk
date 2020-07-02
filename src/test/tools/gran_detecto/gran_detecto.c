@@ -262,7 +262,7 @@ gran_detecto(struct tool_ctx *ctx)
 	}
 
 	struct pmem2_map *map;
-	if (pmem2_map(cfg, src, &map)) {
+	if (pmem2_map(&map, cfg, src)) {
 		pmem2_perror("pmem2_map");
 		ret = 1;
 		goto free_both;

@@ -18,7 +18,7 @@ ut_pmem2_map(const char *file, int line, const char *func,
 	struct pmem2_config *cfg, struct pmem2_source *src,
 	struct pmem2_map **map)
 {
-	int ret = pmem2_map(cfg, src, map);
+	int ret = pmem2_map(map, cfg, src);
 	ut_pmem2_expect_return(file, line, func, ret, 0);
 	UT_ASSERTne(*map, NULL);
 }

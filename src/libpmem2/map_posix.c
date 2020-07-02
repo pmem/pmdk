@@ -296,8 +296,8 @@ unmap(void *addr, size_t len)
  * pmem2_map -- map memory according to provided config
  */
 int
-pmem2_map(const struct pmem2_config *cfg, const struct pmem2_source *src,
-	struct pmem2_map **map_ptr)
+pmem2_map(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
+		const struct pmem2_source *src)
 {
 	LOG(3, "cfg %p src %p map_ptr %p", cfg, src, map_ptr);
 

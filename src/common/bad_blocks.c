@@ -67,7 +67,7 @@ badblocks_get(const char *file, struct badblocks *bbs)
 	if (ret)
 		goto exit_close;
 
-	ret = pmem2_badblock_context_new(src, &bbctx);
+	ret = pmem2_badblock_context_new(&bbctx, src);
 	if (ret)
 		goto exit_delete_source;
 
@@ -146,7 +146,7 @@ badblocks_clear(const char *file, struct badblocks *bbs)
 	if (ret)
 		goto exit_close;
 
-	ret = pmem2_badblock_context_new(src, &bbctx);
+	ret = pmem2_badblock_context_new(&bbctx, src);
 	if (ret) {
 		LOG(1, "pmem2_badblock_context_new failed -- %s", file);
 		goto exit_delete_source;
@@ -204,7 +204,7 @@ badblocks_clear_all(const char *file)
 	if (ret)
 		goto exit_close;
 
-	ret = pmem2_badblock_context_new(src, &bbctx);
+	ret = pmem2_badblock_context_new(&bbctx, src);
 	if (ret) {
 		LOG(1, "pmem2_badblock_context_new failed -- %s", file);
 		goto exit_delete_source;
