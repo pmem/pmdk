@@ -58,7 +58,7 @@ class Ndctl:
     """ndctl CLI handle"""
     def __init__(self):
         self.version = self._get_ndctl_version()
-        self.ndctl_list_output = self._get_ndctl_list_output()
+        self.ndctl_list_output = self._get_ndctl_list_output('list')
 
     def _get_ndctl_version(self):
         proc = sp.run(['ndctl', '--version'], stdout=sp.PIPE, stderr=sp.STDOUT)
@@ -69,8 +69,8 @@ class Ndctl:
         version = proc.stdout.strip()
         return version
 
-    def _get_ndctl_list_output(self):
-        proc = sp.run(['ndctl', 'list'], stdout=sp.PIPE, stderr=sp.STDOUT)
+    def _get_ndctl_list_output(self, *args):
+        proc = sp.run(['ndctl', *args], stdout=sp.PIPE, stderr=sp.STDOUT)
         if proc.returncode != 0:
             raise futils.Fail('ndctl list failed:{}{}'.format(os.linesep,
                                                               proc.stdout))
@@ -85,7 +85,7 @@ class Ndctl:
         dev = None
         devtypes = ('blockdev', 'chardev')
 
-        for d in self.ndctl_list_output:
+        for d in self._get_ndctl_list_output('list'):
             for dt in devtypes:
                 if dt in d and os.path.join('/dev', d[dt]) == dev_path:
                     dev = d
@@ -95,9 +95,39 @@ class Ndctl:
                               .format(dev_path))
         return dev
 
+    # for ndctl v63 we need to parse ndctl list in a different way than for v64
+    def _get_dev_info_63(self, dev_path):
+        dev = None
+        devtype = 'chardev'
+        daxreg = 'daxregion'
+
+        for d in self._get_ndctl_list_output('list', '-v'):
+            if daxreg in d:
+                devices = d[daxreg]['devices']
+                for device in devices:
+                    if devtype in device and \
+                            os.path.join('/dev', device[devtype]) == dev_path:
+                        # only params from daxreg are intrested at this point,
+                        # other values are read by _get_dev_info() earlier
+                        dev = d[daxreg]
+
+        if not dev:
+            raise futils.Fail('ndctl does not recognize the device: "{}"'
+                              .format(dev_path))
+
+        return dev
+
     def _get_dev_param(self, dev_path, param):
+        p = None
         dev = self._get_dev_info(dev_path)
-        return dev[param]
+
+        try:
+            p = dev[param]
+        except KeyError:
+            dev = self._get_dev_info_63(dev_path)
+            p = dev[param]
+
+        return p
 
     def get_dev_size(self, dev_path):
         return int(self._get_dev_param(dev_path, 'size'))
