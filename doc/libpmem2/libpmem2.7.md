@@ -103,7 +103,7 @@ Granularity values listed above are case-insensitive.
 
 >NOTE:
 The value of **PMEM2_FORCE_GRANULARITY** is not queried (and cached)
-at library initialization time, but read during each **pmem2_map**(3) call.
+at library initialization time, but read during each **pmem2_map_new**(3) call.
 
 This means that **PMEM2_FORCE_GRANULARITY** may still be set or modified
 by the program until the first attempt to map a file.

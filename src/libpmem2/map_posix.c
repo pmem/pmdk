@@ -296,7 +296,7 @@ unmap(void *addr, size_t len)
  * pmem2_map -- map memory according to provided config
  */
 int
-pmem2_map(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
+pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		const struct pmem2_source *src)
 {
 	LOG(3, "cfg %p src %p map_ptr %p", cfg, src, map_ptr);
@@ -491,7 +491,7 @@ err:
  * pmem2_unmap -- unmap the specified mapping
  */
 int
-pmem2_unmap(struct pmem2_map **map_ptr)
+pmem2_map_delete(struct pmem2_map **map_ptr)
 {
 	LOG(3, "map_ptr %p", map_ptr);
 

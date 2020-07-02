@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 		struct pmem2_source *src;
 		PMEM2_SOURCE_FROM_FD(&src, fds[i]);
 
-		if (pmem2_map(&maps[i], cfg, src)) {
+		if (pmem2_map_new(&maps[i], cfg, src)) {
 			UT_FATAL("pmem2_map: %s", pmem2_errormsg());
 		}
 
@@ -114,7 +114,7 @@ main(int argc, char *argv[])
 	FAIL(fail_on, 6);
 
 out:	for (unsigned i = 0; i < files; i++) {
-		pmem2_unmap(&maps[i]);
+		pmem2_map_delete(&maps[i]);
 		CLOSE(fds[i]);
 	}
 

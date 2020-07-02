@@ -67,5 +67,5 @@ Otherwise, it returns one of the following error value:
 
 # SEE ALSO #
 
-**libpmem2**(7), **pmem2_config_new**(3), **pmem2_map**(3)
+**libpmem2**(7), **pmem2_config_new**(3), **pmem2_map_new**(3)
 and **<http://pmem.io>**

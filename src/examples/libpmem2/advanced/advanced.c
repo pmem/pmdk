@@ -88,7 +88,7 @@ main(int argc, char *argv[])
 		exit(1);
 	}
 
-	if (pmem2_map(&map, cfg, src)) {
+	if (pmem2_map_new(&map, cfg, src)) {
 		pmem2_perror("pmem2_map");
 		exit(1);
 	}
@@ -102,7 +102,7 @@ main(int argc, char *argv[])
 			printf("\n");
 	}
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	pmem2_source_delete(&src);
 	pmem2_config_delete(&cfg);
 	close(fd);

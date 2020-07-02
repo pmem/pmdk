@@ -21,10 +21,11 @@ pmem2_get_memcpy_fn
 pmem2_get_memmove_fn
 pmem2_get_memset_fn
 pmem2_get_persist_fn
-pmem2_map
+pmem2_map_delete
 pmem2_map_get_address
 pmem2_map_get_size
 pmem2_map_get_store_granularity
+pmem2_map_new
 pmem2_perrorU
 pmem2_perrorW
 pmem2_source_alignment
@@ -36,6 +37,5 @@ pmem2_source_from_anon
 pmem2_source_from_fd
 pmem2_source_from_handle
 pmem2_source_size
-pmem2_unmap
 pmem2_vm_reservation_delete
 pmem2_vm_reservation_new

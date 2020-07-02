@@ -149,10 +149,10 @@ void pmem2_config_clear_address(struct pmem2_config *cfg);
 
 struct pmem2_map;
 
-int pmem2_map(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
+int pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		const struct pmem2_source *src);
 
-int pmem2_unmap(struct pmem2_map **map_ptr);
+int pmem2_map_delete(struct pmem2_map **map_ptr);
 
 void *pmem2_map_get_address(struct pmem2_map *map);
 

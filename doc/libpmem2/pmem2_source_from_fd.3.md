@@ -101,5 +101,5 @@ On non-DAX Windows volumes, *fd*/*handle* must remain open while the mapping
 is in use.
 
 # SEE ALSO #
-**errno**(3), **pmem2_map**(3), **libpmem2**(7)
+**errno**(3), **pmem2_map_new**(3), **libpmem2**(7)
 and **<http://pmem.io>**

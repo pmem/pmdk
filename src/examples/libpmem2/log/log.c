@@ -134,7 +134,7 @@ log_init(struct log_ctx *ctx, const char *path)
 		goto err_source;
 	}
 
-	ret = pmem2_map(&ctx->map, cfg, src);
+	ret = pmem2_map_new(&ctx->map, cfg, src);
 	if (ret) {
 		pmem2_perror("pmem2_map");
 		goto err_map;
@@ -186,7 +186,7 @@ log_init(struct log_ctx *ctx, const char *path)
 err_cfg_delete:
 err_source_delete:
 err_map_size:
-	(void) pmem2_unmap(&ctx->map);
+	(void) pmem2_map_delete(&ctx->map);
 err_map:
 	(void) pmem2_source_delete(&src);
 err_source:
@@ -203,7 +203,7 @@ err_config_new:
 static int
 log_fini(struct log_ctx *ctx)
 {
-	int ret = pmem2_unmap(&ctx->map);
+	int ret = pmem2_map_delete(&ctx->map);
 	if (ret) {
 		pmem2_perror("pmem2_unmap");
 		return ret;

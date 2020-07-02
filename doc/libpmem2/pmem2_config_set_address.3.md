@@ -53,7 +53,7 @@ Possible address request types are:
 
 * **PMEM2_ADDRESS_FIXED_NOREPLACE** - *\*addr* cannot be **NULL**, kernel tries to place the mapping
 at exactly the address which was set by user. When any part of <*\*addr*, *\*addr* + length> address
-space is occupied, **pmem2_map**(3) fails with the **PMEM2_E_MAPPING_EXISTS** return code.
+space is occupied, **pmem2_map_new**(3) fails with the **PMEM2_E_MAPPING_EXISTS** return code.
 
 # RETURN VALUE #
 
@@ -67,5 +67,5 @@ when address is **NULL**.
 
 # SEE ALSO #
 
-**libpmem2**(7), **pmem2_config_clear_address**(3), **pmem2_config_new**(3), **pmem2_map**(3),
+**libpmem2**(7), **pmem2_config_clear_address**(3), **pmem2_config_new**(3), **pmem2_map_new**(3),
 **pmem2_source_alignment**(3), **sysconf**(3) and **<http://pmem.io>**

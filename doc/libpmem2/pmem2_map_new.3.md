@@ -1,7 +1,7 @@
 ---
 layout: manual
 Content-Style: 'text/css'
-title: _MP(PMEM2_MAP, 3)
+title: _MP(PMEM2_MAP_NEW, 3)
 collection: libpmem2
 header: PMDK
 date: pmem2 API version 1.0
@@ -10,7 +10,7 @@ date: pmem2 API version 1.0
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
 [comment]: <> (Copyright 2019-2020, Intel Corporation)
 
-[comment]: <> (pmem2_map.3 -- man page for libpmem2 pmem2_map operation)
+[comment]: <> (pmem2_map_new.3 -- man page for libpmem2 pmem2_map_new operation)
 
 [NAME](#name)<br />
 [SYNOPSIS](#synopsis)<br />
@@ -20,7 +20,7 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**pmem2_map**() - creates a mapping
+**pmem2_map_new**() - creates a mapping
 
 # SYNOPSIS #
 
@@ -30,13 +30,13 @@ date: pmem2 API version 1.0
 struct pmem2_config;
 struct pmem2_source;
 struct pmem2_map;
-int pmem2_map(struct pmem2_map **map_ptr, const struct pmem2_config *config,
+int pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *config,
 		const struct pmem2_source *source);
 ```
 
 # DESCRIPTION #
 
-The **pmem2_map**() function creates a new mapping in the virtual address space
+The **pmem2_map_new**() function creates a new mapping in the virtual address space
 of the calling process. This function requires a configuration
 *config* of the mapping and the data source *source*.
 
@@ -44,7 +44,7 @@ For a mapping to succeed, the *config* structure must have the granularity
 parameter set to the appropriate level. See **pmem2_config_set_required_store_granularity**(3)
 and **libpmem2**(7) for more details.
 
-If the **pmem2_map**() function succeeds in creating a new mapping it
+If the **pmem2_map_new**() function succeeds in creating a new mapping it
 instantiates a new *struct pmem2_map** object describing the mapping. The
 pointer to this newly created object is stored in the user-provided variable
 passed via the *map_ptr* pointer. If the mapping fails the variable pointed by
@@ -52,13 +52,13 @@ passed via the *map_ptr* pointer. If the mapping fails the variable pointed by
 returned. For a list of possible return values please see
 [RETURN VALUE](#return-value).
 
-All *struct pmem2_map* objects created via the **pmem2_map**() function have to
-be destroyed using the **pmem2_unmap**() function. For details please see
-**pmem2_unmap**(3) manual page.
+All *struct pmem2_map* objects created via the **pmem2_map_new**() function have to
+be destroyed using the **pmem2_map_delete**() function. For details please see
+**pmem2_map_delete**(3) manual page.
 
 # RETURN VALUE #
 
-When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
+When **pmem2_map_new**() succeeds it returns 0. Otherwise, it returns
 one of the following error values:
 
 * **PMEM2_E_GRANULARITY_NOT_SET** - the store granularity for the mapping was
@@ -105,5 +105,5 @@ It can also return all errors from the underlying
 **mmap**(2), **open**(3),
 **pmem2_config_set_required_store_granularity**(3),
 **pmem2_source_alignment**(3), **pmem2_source_from_fd**(3),
-**pmem2_source_size**(3), **pmem2_unmap**(3),
+**pmem2_source_size**(3), **pmem2_map_delete**(3),
 **libpmem2**(7) and **<http://pmem.io>**

@@ -40,7 +40,7 @@ enum pmem2_granularity pmem2_map_get_store_granularity(struct pmem2_map *map);
 
 The **pmem2_map_get_store_granularity**() function reads granularity of the created
 mapping. The *map* parameter points to the structure describing mapping created
-using the **pmem2_map**(3) function. Concept of the granularity is described in
+using the **pmem2_map_new**(3) function. Concept of the granularity is described in
 **libpmem2**(7).
 
 # RETURN VALUE #
@@ -50,4 +50,4 @@ area.
 
 # SEE ALSO #
 
-**pmem2_map**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_map_new**(3), **libpmem2**(7) and **<http://pmem.io>**

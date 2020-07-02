@@ -35,7 +35,7 @@ int pmem2_config_delete(struct pmem2_config **cfg);
 
 # DESCRIPTION #
 
-The **pmem2_config_new**() function instantiates a new (opaque) configuration structure, *pmem2_config*, which is used to define mapping parameters for a **pmem2_map**() function, and returns it through the pointer in *\*cfg*.
+The **pmem2_config_new**() function instantiates a new (opaque) configuration structure, *pmem2_config*, which is used to define mapping parameters for a **pmem2_map_new**() function, and returns it through the pointer in *\*cfg*.
 
 New configuration is always initialized with default values for all possible parameters, which are specified alongside the corresponding setter function.
 
@@ -55,6 +55,6 @@ The **pmem2_config_delete**() function returns 0.
 
 # SEE ALSO #
 
-**errno**(3), **pmem2_map**(3), **pmem2_config_set_handle**(3),
+**errno**(3), **pmem2_map_new**(3), **pmem2_config_set_handle**(3),
 **pmem2_config_set_fd**(3), **pmem2_config_get_file_size**(3),
 **libpmem2**(7) and **<http://pmem.io>**

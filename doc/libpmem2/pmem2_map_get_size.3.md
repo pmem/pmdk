@@ -34,7 +34,7 @@ size_t pmem2_map_get_size(struct pmem2_map *map);
 
 The **pmem2_map_get_size**() function reads size of the created mapping.
 The *map* parameter points to the structure describing mapping created using
-the **pmem2_map**(3) function.
+the **pmem2_map_new**(3) function.
 
 # RETURN VALUE #
 
@@ -42,4 +42,4 @@ The **pmem2_map_get_size**() function returns a size of the mapped area.
 
 # SEE ALSO #
 
-**pmem2_map**(3), **libpmem2**(7) and **<https://pmem.io>**
+**pmem2_map_new**(3), **libpmem2**(7) and **<https://pmem.io>**

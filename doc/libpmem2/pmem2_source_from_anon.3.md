@@ -56,6 +56,6 @@ The **pmem2_source_from_anon**() can return **-ENOMEM** in case of insufficient
 memory to allocate an instance of *struct pmem2_source*.
 
 # SEE ALSO #
-**errno**(3), **pmem2_config_set_length**(3), **pmem2_map**(3),
+**errno**(3), **pmem2_config_set_length**(3), **pmem2_map_new**(3),
 **pmem2_source_size**(3), **pmem2_config_set_length**(3), **libpmem2**(7)
 and **<http://pmem.io>**
