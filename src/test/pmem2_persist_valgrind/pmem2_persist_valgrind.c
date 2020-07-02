@@ -47,7 +47,7 @@ test_init(const struct test_case *tc, int argc, char *argv[],
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	/* execute pmem2_map and validate the result */
-	ret = pmem2_map(cfg, src, &ctx->map);
+	ret = pmem2_map(&ctx->map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(ctx->map, NULL);
 

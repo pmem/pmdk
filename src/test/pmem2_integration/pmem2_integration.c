@@ -20,7 +20,7 @@ static void
 map_invalid(struct pmem2_config *cfg, struct pmem2_source *src, int result)
 {
 	struct pmem2_map *map = (struct pmem2_map *)0x7;
-	int ret = pmem2_map(cfg, src, &map);
+	int ret = pmem2_map(&map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, result);
 	UT_ASSERTeq(map, NULL);
 }
@@ -32,7 +32,7 @@ static struct pmem2_map *
 map_valid(struct pmem2_config *cfg, struct pmem2_source *src, size_t size)
 {
 	struct pmem2_map *map = NULL;
-	int ret = pmem2_map(cfg, src, &map);
+	int ret = pmem2_map(&map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map, NULL);
 	UT_ASSERTeq(pmem2_map_get_size(map), size);
@@ -234,7 +234,7 @@ map_with_avail_gran(struct pmem2_config *cfg,
 	struct pmem2_source *src, struct gran_test_ctx *ctx)
 {
 	struct pmem2_map *map;
-	int ret = pmem2_map(cfg, src, &map);
+	int ret = pmem2_map(&map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map, NULL);
 	UT_ASSERTeq(ctx->expected_granularity,
@@ -253,7 +253,7 @@ map_with_unavail_gran(struct pmem2_config *cfg,
 	struct pmem2_source *src, struct gran_test_ctx *unused)
 {
 	struct pmem2_map *map;
-	int ret = pmem2_map(cfg, src, &map);
+	int ret = pmem2_map(&map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_GRANULARITY_NOT_SUPPORTED);
 	UT_ERR("%s", pmem2_errormsg());
 	UT_ASSERTeq(map, NULL);
@@ -755,7 +755,7 @@ test_source_anon(enum pmem2_sharing_type sharing,
 
 	UT_ASSERTeq(pmem2_source_device_id(src, NULL, NULL), PMEM2_E_NOSUPP);
 	UT_ASSERTeq(pmem2_source_device_usc(src, NULL), PMEM2_E_NOSUPP);
-	UT_ASSERTeq(pmem2_badblock_context_new(src, &bbctx), PMEM2_E_NOSUPP);
+	UT_ASSERTeq(pmem2_badblock_context_new(&bbctx, src), PMEM2_E_NOSUPP);
 	size_t alignment;
 	UT_ASSERTeq(pmem2_source_alignment(src, &alignment), 0);
 	UT_ASSERT(alignment >= Ut_pagesize);
@@ -771,7 +771,7 @@ test_source_anon(enum pmem2_sharing_type sharing,
 		granularity), 0);
 	UT_ASSERTeq(pmem2_config_set_sharing(cfg, sharing), 0);
 
-	if ((ret = pmem2_map(cfg, src, &map)) != 0)
+	if ((ret = pmem2_map(&map, cfg, src)) != 0)
 		goto map_fail;
 
 	void *addr = pmem2_map_get_address(map);

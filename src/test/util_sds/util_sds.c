@@ -58,7 +58,7 @@ main(int argc, char *argv[])
 		struct pmem2_source *src;
 		PMEM2_SOURCE_FROM_FD(&src, fds[i]);
 
-		if (pmem2_map(cfg, src, &maps[i])) {
+		if (pmem2_map(&maps[i], cfg, src)) {
 			UT_FATAL("pmem2_map: %s", pmem2_errormsg());
 		}
 

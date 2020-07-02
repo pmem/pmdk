@@ -349,7 +349,7 @@ pool_map(int fd, int map_private)
 		goto err_src_new;
 	}
 
-	if (pmem2_map(cfg, src, &map)) {
+	if (pmem2_map(&map, cfg, src)) {
 		pmem2_perror("pmem2_map");
 		goto err_map;
 	}

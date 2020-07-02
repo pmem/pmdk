@@ -134,7 +134,7 @@ log_init(struct log_ctx *ctx, const char *path)
 		goto err_source;
 	}
 
-	ret = pmem2_map(cfg, src, &ctx->map);
+	ret = pmem2_map(&ctx->map, cfg, src);
 	if (ret) {
 		pmem2_perror("pmem2_map");
 		goto err_map;
