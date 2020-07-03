@@ -30,11 +30,30 @@ class Requirements:
                       stdout=sp.PIPE, stderr=sp.STDOUT)
         return proc.returncode == 0
 
+    def _is_ndctl_enabled(self):
+        path = futils.get_tool_path(ctx, "pmempool")
+        s = sp.check_output(["strings", path])
+        if "compiled with libndctl" in str(s):
+            return True
+
+        return False
+
     def _check_is_admin(self):
         if sys.platform == 'win32':
             return ctypes.windll.shell32.IsUserAnAdmin() != 0
         else:
             return os.getuid() == 0
+
+    def check_ndctl(self):
+        is_ndctl = self._check_pkgconfig('libndctl', NDCTL_MIN_VERSION)
+        if not is_ndctl:
+            raise futils.Skip('libndctl (>=v{}) is not installed'
+                              .format(NDCTL_MIN_VERSION))
+
+    def check_ndctl_enable(self):
+        if self._is_ndctl_enabled() is False:
+            raise futils.Skip('ndctl is disabled - binary not '
+                              'compiled with libndctl')
 
     def _check_ndctl_req_is_met(self, tc):
         """
@@ -44,14 +63,9 @@ class Requirements:
         if not require_ndctl:
             return True
 
-        ndctl_enable = os.environ.get('NDCTL_ENABLE')
-        if ndctl_enable == 'n':
-            raise futils.Skip('libndctl is disabled (NDCTL_ENABLE == \'n\')')
+        self.check_ndctl_enable()
+        self.check_ndctl()
 
-        is_ndctl = self._check_pkgconfig('libndctl', NDCTL_MIN_VERSION)
-        if not is_ndctl:
-            raise futils.Skip('libndctl (>=v{}) is not installed'
-                              .format(NDCTL_MIN_VERSION))
         return True
 
     def _check_admin_req_is_met(self, tc):

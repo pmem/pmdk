@@ -18,6 +18,19 @@ install_upstream_from_distro() {
   esac
 }
 
+install_upstream_3_16_1() {
+  git clone git://sourceware.org/git/valgrind.git
+  cd valgrind
+  # valgrind v3.16.1 upstream
+  git checkout VALGRIND_3_16_BRANCH
+  ./autogen.sh
+  ./configure
+  make -j$(nproc)
+  make -j$(nproc) install
+  cd ..
+  rm -rf valgrind
+}
+
 install_custom-pmem_from_source() {
   git clone https://github.com/pmem/valgrind.git
   cd valgrind
@@ -34,6 +47,6 @@ install_custom-pmem_from_source() {
 
 ARCH=$(uname -m)
 case "$ARCH" in
-  ppc64le) install_upstream_from_distro ;;
+  ppc64le) install_upstream_3_16_1 ;;
   *) install_custom-pmem_from_source ;;
 esac

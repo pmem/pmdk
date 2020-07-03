@@ -8,4 +8,5 @@ declare -A TARGET_BRANCHES=(		\
 		["stable-1.6"]="v1.6"	\
 		["stable-1.7"]="v1.7"	\
 		["stable-1.8"]="v1.8"	\
+		["stable-1.9"]="v1.9"	\
 	)
