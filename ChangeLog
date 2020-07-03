@@ -1,6 +1,6 @@
-Fri Jun 19 2020 Piotr Balcer <piotr.balcer@intel.com>
+Fri Jul 3 2020 Piotr Balcer <piotr.balcer@intel.com>
 
-	* Version 1.9-rc1
+	* Version 1.9
 
 	This release:
 	- Switches the default instruction set for memcpy, memmove and memset
@@ -14,6 +14,7 @@ Fri Jun 19 2020 Piotr Balcer <piotr.balcer@intel.com>
 	transactions.
 	- Improves performance of pool creation on Windows by avoiding expensive
 	physical page allocation during file allocation.
+	- Stabilizes support for ppc64.
 
 	Other changes:
 	- pmem: mem[cpy|set] optimization when eADR is available
