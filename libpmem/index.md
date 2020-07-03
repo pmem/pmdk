@@ -180,7 +180,7 @@ by calling `pmem_flush()` for the first step and `pmem_drain()`
 for the second.  Note that either of these steps may be
 unnecessary on a given platform, and the library knows how
 to check for that and do the right thing.  For example, on
-Intel platforms, `pmem_drain()` is an empty function.
+Intel platforms with eADR, `pmem_flush()` is an empty function.
 
 When does it make sense to break flushing into steps?  This example,
 called *full_copy* illustrates one reason you might do this.  Since
