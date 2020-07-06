@@ -253,8 +253,32 @@ class TEST32(PMEM2_INTEGRATION):
     """test for anonymous mappings"""
     test_case = "test_source_anon_zero_len"
 
-# XXX: add test cases with:
-# @t.require_devdax(t.DevDax('devdax', deep_flush=True))
-# @t.require_devdax(t.DevDax('devdax', deep_flush=False))
-# if deep_flush == 1 then expected return code 0
-# if deep_flush == 0 then expected return code PMEM2_E_NOSUPP
+
+@t.windows_exclude
+class TEST33(PMEM2_INTEGRATION_DEV_DAXES):
+    """test valid case of pmem2_deep_sflush"""
+    test_case = "test_deep_flush_valid"
+
+
+@t.windows_exclude
+class TEST34(PMEM2_INTEGRATION_DEV_DAXES):
+    """test deep flush with range out of map"""
+    test_case = "test_deep_flush_e_range_behind"
+
+
+@t.windows_exclude
+class TEST35(PMEM2_INTEGRATION_DEV_DAXES):
+    """test deep flush with range out of map"""
+    test_case = "test_deep_flush_e_range_before"
+
+
+@t.windows_exclude
+class TEST36(PMEM2_INTEGRATION_DEV_DAXES):
+    """test deep flush with part of map"""
+    test_case = "test_deep_flush_slice"
+
+
+@t.windows_exclude
+class TEST37(PMEM2_INTEGRATION_DEV_DAXES):
+    """test deep flush with overlaping part"""
+    test_case = "test_deep_flush_overlap"
