@@ -21,6 +21,29 @@
 	if ((rep) != NULL) os_part_deep_common(rep, 0, sds, sizeof(*(sds)), 1)
 
 /*
+ * shutdown_state_is_supported -- (internal) check if device supports SDS
+ *
+ * Returns 0 if supports and 1 if not.
+ */
+int
+shutdown_state_is_supported(int fd)
+{
+	uint64_t usc;
+	struct pmem2_source *src;
+
+	if (pmem2_source_from_fd(&src, fd))
+		return 1;
+
+	if (pmem2_source_device_usc(src, &usc) == PMEM2_E_NOSUPP) {
+		pmem2_source_delete(&src);
+		return 1;
+	}
+
+	pmem2_source_delete(&src);
+	return 0;
+}
+
+/*
  * shutdown_state_checksum -- (internal) counts SDS checksum and flush it
  */
 static void
