@@ -50,7 +50,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 	ret = PMEM2_E_NOSUPP;
 
 	if (region == NULL) {
-		ERR(
+		LOG(3,
 			"Unsafe shutdown count is not supported for this source");
 		goto err;
 	}
@@ -61,7 +61,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 		long long dimm_usc = ndctl_dimm_get_dirty_shutdown(dimm);
 		if (dimm_usc < 0) {
 			ret = PMEM2_E_NOSUPP;
-			ERR(
+			LOG(3,
 				"Unsafe shutdown count is not supported for this source");
 			goto err;
 		}
