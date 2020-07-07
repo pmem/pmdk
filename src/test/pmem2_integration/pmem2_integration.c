@@ -737,6 +737,47 @@ test_deep_flush_overlap(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_unaligned_persist -- try flushing on non-page-aligned addresses
+ */
+static int
+test_unaligned_persist(const struct test_case *tc, int argc, char *argv[])
+{
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+#define FLUSH_OFFSET 256
+
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	PMEM2_PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd,
+						PMEM2_GRANULARITY_PAGE);
+
+	size_t len;
+	PMEM2_SOURCE_SIZE(src, &len);
+
+	struct pmem2_map *map = map_valid(cfg, src, len);
+
+	size_t map_size = pmem2_map_get_size(map);
+	char *addr = pmem2_map_get_address(map);
+	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
+	memset(addr, 0, len);
+	persist_fn(addr + FLUSH_OFFSET, len - FLUSH_OFFSET);
+
+	int ret = pmem2_deep_flush(map, addr + FLUSH_OFFSET,
+		map_size - FLUSH_OFFSET);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_unmap(&map);
+	PMEM2_CONFIG_DELETE(&cfg);
+	PMEM2_SOURCE_DELETE(&src);
+	CLOSE(fd);
+
+#undef FLUSH_OFFSET
+
+	return 1;
+}
+
+/*
  * test_source_anon -- tests map/config/source functions in combination
  *	with anonymous source.
  */
@@ -880,6 +921,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_source_anon_page),
 	TEST_CASE(test_source_anon_too_small),
 	TEST_CASE(test_source_anon_zero_len),
+	TEST_CASE(test_unaligned_persist),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

@@ -282,3 +282,8 @@ class TEST36(PMEM2_INTEGRATION_DEV_DAXES):
 class TEST37(PMEM2_INTEGRATION_DEV_DAXES):
     """test deep flush with overlaping part"""
     test_case = "test_deep_flush_overlap"
+
+
+class TEST38(PMEM2_INTEGRATION):
+    """test for unaligned persists"""
+    test_case = "test_unaligned_persist"
