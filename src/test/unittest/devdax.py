@@ -26,7 +26,7 @@ class DevDax():
         _req_alignment (int): required dax device alignment
         _req_min_size (int): required dax device minimal size
         _req_max_size (int): required dax device maximal size
-        assigned (bool): True, if object was succesfully assigned
+        assigned (bool): True, if object was successfully assigned
             to real dax device that fulfills its requirements,
             False otherwise
 
@@ -177,14 +177,14 @@ def _try_assign_by_requirements(configured, required):
 
 
 def require_devdax(*dax_devices, **kwargs):
-    """Add requirement to run test on specified dax devices.
+    """
+    Add requirement to run test on specified dax devices.
 
     Used as a test class decorator.
 
     Args:
         dax_devices: variable length list of initialized DevDax objects
         kwargs: optional keyword arguments
-
     """
     def wrapped(tc):
         ctx.add_requirement(tc, 'devdax', tuple(dax_devices), **kwargs)

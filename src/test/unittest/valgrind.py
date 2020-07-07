@@ -174,7 +174,7 @@ class Valgrind:
     def cmd(self):
         """
         Return Valgrind command with specified arguments
-        as subprocess compliant list.
+        as a subprocess compliant list.
         """
         if self.tool == NONE:
             return []

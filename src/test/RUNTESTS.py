@@ -4,8 +4,8 @@
 
 """Main script for unit tests execution.
 
-Contains implementation of the TestRunner class, which is a main
-test execution manager class and its also used by TESTS.py scripts if run
+Contains the implementation of the TestRunner class, which is a main
+test execution manager class and it's also used by TESTS.py scripts if run
 individually.
 
 TestRunner run_tests() method requires special attention
@@ -13,7 +13,7 @@ as it implements the fundamental test run workflow.
 
 """
 
-# make modules from unittest directory to be visible by this script
+# modules from unittest directory are visible from this script
 import sys
 import os
 from os import path

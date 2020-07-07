@@ -4,7 +4,7 @@
 """Base tests class and its functionalities.
 
 _TestCase metaclass implemented in this module is
-used for registering test case classes.
+used to register test case classes.
 
 Classes are registered and used as actual test cases only if they fulfill
 the following requirements:
@@ -100,7 +100,7 @@ class _TestCase(type):
             class
         group (str): name of the directory of the TESTS.py file
         testnum (int): test number
-        tc_dirname (str): name of the directory created for test in testdir
+        tc_dirname (str): name of the directory created for the test in testdir
     """
 
     def __init__(cls, name, bases, dct):
@@ -234,7 +234,7 @@ class Test(BaseTest):
             False otherwise. Defaults to True.
         config (Configurator): test execution configuration
         msg (Message): message class instance with logging level
-        env (dict): enviroment variables needed for test execution
+        env (dict): environment variables needed for test execution
 
     """
     test_type = test_types.Medium
