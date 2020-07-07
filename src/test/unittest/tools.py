@@ -85,11 +85,10 @@ class Ndctl:
         version = proc.stdout.strip()
         return version
 
-
     def _get_ndctl_list_output(self, *args):
         """
         Parse 'ndctl list' command output as JSON
-        into dictionary and return it.
+        into a dictionary and return it.
         """
         proc = sp.run(['ndctl', *args], stdout=sp.PIPE, stderr=sp.STDOUT)
         if proc.returncode != 0:
@@ -104,7 +103,7 @@ class Ndctl:
 
     def _get_dev_info(self, dev_path):
         """
-        Get ndctl information about given device.
+        Get ndctl information about the given device.
         Returns dictionary associated with device.
         """
         dev = None

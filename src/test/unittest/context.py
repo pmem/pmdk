@@ -9,8 +9,8 @@ test parameters.
 
 The test context is visible to the RUNTESTS main script
 as well as the test user as a Context class.
-Context class is constructed with use of 'elements' classes, that are
-affiliated with test requirements and test parameters.
+The context class is constructed with use of 'elements' classes,
+that are affiliated with test requirements and test parameters.
 """
 
 import os
@@ -53,14 +53,14 @@ class ContextBase:
 
     Main context class responsibility is to manage context elements
     appended to it (such as Valgrind, filesystem type, etc.),
-    which provice concrete contextualized behaviour implementation.
+    which provide concrete contextualized behavior implementation.
 
     Attributes:
         _elems (list): list of context elements, such as Valgrind tool,
             filesystem type, etc.
         cmd_prefix (str): test execution command prefix - utilized by
             additional test execution tools, such as Valgrind.
-            Defaults to empty string.
+            Defaults to an empty string.
         build (Build): test build
 
     """
@@ -75,7 +75,7 @@ class ContextBase:
                 Apart from that, below element class methods and attributes
                 are handled (if present) by ContextBase class:
 
-                env (dict): environment variables set by element
+                env (dict): environment variables set by the element
                 cmd (string): set to cmd_prefix
                 setup, check, clean methods: called by corresponding
                     ContextBase methods which are in turn called in
@@ -135,7 +135,7 @@ class ContextBase:
         """
         self._elems.append(elem)
 
-        # if element has a name attribute, it is accesible from Context
+        # if element has a 'name' attribute, it is accessible from Context
         # through it, otherwise its attribute name is generated
         # from its string representation
         if hasattr(elem, 'name'):
@@ -279,26 +279,26 @@ class Context(ContextBase):
 
     def exec(self, cmd, *args, expected_exitcode=0, stderr_file=None,
              stdout_file=None):
-        """Execute binary in current test context as a separate process.
+        """
+        Execute binary in the current test context as a separate process.
 
-            Execution takes place in test cwd and uses environment variables
-            stored in Context 'env' attribute. Timeout for the execution
-            is set based on the execution configuration.
+        Execution takes place in test cwd and uses environment variables
+        stored in Context 'env' attribute. Timeout for the execution
+        is set based on the execution configuration.
 
-           Args:
-               cmd (str): command to be executed
-               *args: Variable length command arguments list
-               expected_exitcode (int): if process exit code differs from
-                   expected, Fail is thrown. Defaults to 0. Ignored
-                   if set to None.
-               stderr_file (str): path to file in which stderr output is
-                   stored. Stored in a string if None. Defaults to None.
-               stdout_file (str): path to file in which stdout output is
-                   stored. Stored in a string if None. Defaults to None.
+        Args:
+            cmd (str): command to be executed
+            *args: Variable length command arguments list
+            expected_exitcode (int): if process exit code differs from
+                expected, Fail is thrown. Defaults to 0. Ignored
+                if set to None.
+            stderr_file (str): path to file in which stderr output is
+                stored. Stored in a string if None. Defaults to None.
+            stdout_file (str): path to file in which stdout output is
+                stored. Stored in a string if None. Defaults to None.
 
-                If neither stderr_file nor stdout_file are set, both outputs
-                are merged into single stdout output and stored in a string.
-
+            If neither stderr_file nor stdout_file are set, both outputs
+            are merged into single stdout output and stored in a string.
         """
 
         tmp = self._env.copy()
@@ -371,7 +371,7 @@ class Context(ContextBase):
     def create_non_zero_file(self, size, path, mode=None):
         """
         Create a new non-zeroed file in test testdir
-        with the selected size and name
+        with the selected size and name.
         """
         filepath = os.path.join(self.testdir, path)
         with open(filepath, 'w') as f:
@@ -383,7 +383,7 @@ class Context(ContextBase):
     def create_zeroed_hdr_file(self, size, path, mode=None):
         """
         Create a new non-zeroed file with a zeroed header and the selected
-        size and name
+        size and name.
         """
         filepath = os.path.join(self.testdir, path)
         with open(filepath, 'w') as f:
@@ -395,7 +395,7 @@ class Context(ContextBase):
 
     def require_free_space(self, space):
         """
-        Skip test if not enough free space is available in test testdir
+        Skip test if not enough free space is available in test testdir.
         """
         if self.get_free_space(self.testdir) < space:
             futils.skip('Not enough free space ({} MiB required)'
@@ -472,7 +472,7 @@ class CtxType(type):
 def filter_contexts(config_ctx, test_ctx):
     """
     Return contexts that should be used in execution based on
-    contexts provided by config and test case
+    contexts provided by config and test case.
     """
     if not test_ctx:
         return [c for c in config_ctx if not c.explicit]
@@ -507,11 +507,12 @@ def _req_prefix(attr):
 
 
 def add_requirement(tc, attr, value, **kwargs):
-    """Add requirement to the test
+    """
+    Add requirement to the test
 
     Requirements are added to the test as attributes dynamically
     appended to the test class. Their names are
-    additionaly mangled with _req_prefix() function
+    additionally mangled with _req_prefix() function
     to avoid accidental overwriting of any existing
     test class attributes as well as unnecessary access by the
     test user - these attributes are meant to be used directly
@@ -521,8 +522,8 @@ def add_requirement(tc, attr, value, **kwargs):
         tc (BaseTest): test case to which the requirement
             is added
         attr (str): attribute name of the requirement.
-            Additionaly mangled with _req_prefix() function.
-        value: value of the requirement
+            additionally mangled with _req_prefix() function.
+        value: requirement value
         **kwargs: additional keyword arguments that may be used
             by requirement implementation
     """
@@ -545,7 +546,6 @@ def get_requirement(tc, attr, default):
     Returns:
         requirement value, requirement keyword arguments
             (as provided by 'kwargs' argument to add_requirement() function)
-
     """
     ret_val = default
     ret_kwargs = {}

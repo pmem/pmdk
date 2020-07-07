@@ -145,15 +145,15 @@ def _str2ctx(config):
 class Configurator():
     """Parser for user test configuration.
 
-    Configuration is generated upon two sources: testconfig.py
+    Configuration is generated from two sources: testconfig.py
     file and main script (RUNTESTS.py or TESTS.py files)
     command line arguments.
     Since these sources cannot change during script execution,
-    Configurator class can be initialized mulitple times
+    the configurator class can be initialized multiple times
     throughout the implementation and always returns the same
     configuration result.
 
-    Values from testconfig.py are overriden by respective
+    Values from testconfig.py are overridden by respective
     values from command line arguments - provided the latter occur.
 
     Attributes:

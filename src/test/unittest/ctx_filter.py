@@ -58,7 +58,7 @@ class CtxFilter:
         builds = self._get_builds()
 
         # Generate cartesian product of builds and context elements.
-        # Each element of the product serves as a base for separate
+        # Each element of the product serves as a base for the separate
         # context in which the test is run
         ctx_params = itertools.product(builds, *conf_params.values(),
                                        *common_params.values())
@@ -74,13 +74,13 @@ class CtxFilter:
 
     def _get_configured_params(self):
         """
-        Get special test parameters, like file system or valgrind tool
+        Get special test parameters, like file system or Valgrind tool
         which final content depends on test requirements, and user
         configuration. This content is obtained through its
         static filter() method.
         """
 
-        # TODO: instead of using hard-coded CTX_TYPES list,
+        # TODO: instead of using a hard-coded CTX_TYPES list,
         # detect configured parameters based on whether they
         # implement the filter() method.
         # Configured parameter therefore becomes

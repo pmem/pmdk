@@ -5,7 +5,7 @@
 """Test framework public interface.
 
 All test framework modules that are meant to be used by the test developer
-are collected here. It then can be convienently imported by the TESTS.py file:
+are collected here. The TESTS.py file can conveniently import it:
 
 import testframework as t
 """

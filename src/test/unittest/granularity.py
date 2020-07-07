@@ -92,7 +92,7 @@ class Granularity(metaclass=ctx.CtxType):
     @classmethod
     def filter(cls, config, msg, tc):
         """
-        Initialize granularity classes for the test to be run with
+        Initialize granularity classes for the test to be run
         based on configuration and test requirements.
 
         Args:
