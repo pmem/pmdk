@@ -93,6 +93,7 @@ class Requirements:
             return False
         if not self._check_admin_req_is_met(tc):
             return False
+
         """More requirements can be checked here"""
         return True
 
@@ -108,4 +109,9 @@ def require_admin(tc):
     Disable test if "enable_admin_tests" configuration is not set
     """
     ctx.add_requirement(tc, 'require_admin', True)
+    return tc
+
+
+def require_usc(tc):
+    ctx.add_requirement(tc, 'require_usc', True)
     return tc
