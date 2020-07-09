@@ -53,6 +53,9 @@ class Tools:
     def cpufd(self):
         return self._run_test_tool('cpufd')
 
+    def usc_permission_check(self, *args):
+        return self._run_test_tool('usc_permission_check', *args)
+
 
 class Ndctl:
     """ndctl CLI handle
@@ -68,7 +71,6 @@ class Ndctl:
 
         self.version = self._get_ndctl_version()
         self.ndctl_list_output = self._cmd_out_to_json('list', '-RNDv')
-        self.regions = self.ndctl_list_output['regions']
 
     def _cmd_out_to_json(self, *args):
         cmd = ['ndctl', *args]
@@ -106,6 +108,15 @@ class Ndctl:
         version = proc.stdout.strip()
         return version
 
+    def _get_dev_region(self, dev_path):
+        devtypes = ('blockdev', 'chardev')
+
+        for r in self.ndctl_list_output['regions']:
+            for d in r['namespaces']:
+                for dt in devtypes:
+                    if dt in d and os.path.join('/dev', d[dt]) == dev_path:
+                        return r
+
     def _get_dev_info(self, dev_path):
         """
         Get ndctl information about the given device.
@@ -124,7 +135,7 @@ class Ndctl:
 
         if not dev:
             raise futils.Fail('ndctl does not recognize the device: "{}"'
-                            .format(dev))
+                              .format(dev))
         return dev
 
     # for ndctl v63 we need to parse ndctl list in a different way than for v64
