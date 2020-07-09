@@ -88,12 +88,39 @@ class Requirements:
         # user is admin
         return True
 
-    def check_if_all_requirements_are_met(self, tc):
+    def _check_usc_req_is_met(self, tc, c):
+        require_usc, _ = ctx.get_requirement(tc, 'require_usc', False)
+        if not require_usc:
+            return True
+
+        basedir = c.testdir.replace(c.tc_dirname, '')
+        filepath = os.path.join(basedir, "__usc_test_file")
+        f = open(filepath, 'w')
+        f.close()
+
+        usc_available = c.tools.usc_permission_check(filepath).returncode == 0
+
+        os.remove(filepath)
+
+        if not usc_available:
+            raise futils.Skip('unsafe shutdown count is not available')
+
+        return usc_available
+
+    def check_if_global_requirements_are_met(self, tc):
         if not self._check_ndctl_req_is_met(tc):
             return False
         if not self._check_admin_req_is_met(tc):
             return False
+
         """More requirements can be checked here"""
+        return True
+
+    def check_if_context_requirements_are_met(self, tc, c):
+        if not self._check_usc_req_is_met(tc, c):
+            return False
+
+        """More testcase-specific requirements can be checked here"""
         return True
 
 
@@ -108,4 +135,9 @@ def require_admin(tc):
     Disable test if "enable_admin_tests" configuration is not set
     """
     ctx.add_requirement(tc, 'require_admin', True)
+    return tc
+
+
+def require_usc(tc):
+    ctx.add_requirement(tc, 'require_usc', True)
     return tc
