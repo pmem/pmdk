@@ -49,7 +49,7 @@ class CtxFilter:
         test requirements
         """
         reqs = req.Requirements()
-        if not reqs.check_if_all_requirements_are_met(self.tc):
+        if not reqs.check_if_global_requirements_are_met(self.tc):
             return []
         conf_params = self._get_configured_params()
         common_params = self._get_common_params()
@@ -69,7 +69,14 @@ class CtxFilter:
             ctx_elems = dict(zip(ctx_elem_names, cp[1:]))
             c = ctx.Context(build, **ctx_elems)
             c.cwd = self.tc.cwd
-            ctxs.append(c)
+
+            try:
+                reqs.check_if_context_requirements_are_met(self.tc, c)
+            except futils.Skip as s:
+                self.msg.print_verbose('{}: SKIP: {}'.format(self.tc, s))
+            else:
+                ctxs.append(c)
+
         return ctxs
 
     def _get_configured_params(self):
