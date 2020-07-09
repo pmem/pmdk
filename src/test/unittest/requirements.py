@@ -110,3 +110,8 @@ def require_admin(tc):
     """
     ctx.add_requirement(tc, 'require_admin', True)
     return tc
+
+
+def require_usc(tc):
+    ctx.add_requirement(tc, 'require_usc', True)
+    return tc
