@@ -70,6 +70,7 @@ class CtxFilter:
             c = ctx.Context(build, **ctx_elems)
             c.cwd = self.tc.cwd
             ctxs.append(c)
+
         return ctxs
 
     def _get_configured_params(self):
