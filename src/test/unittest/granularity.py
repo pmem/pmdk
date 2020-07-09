@@ -11,6 +11,7 @@ from enum import Enum, unique
 import context as ctx
 import configurator
 import futils
+from tools import Tools
 
 
 class Granularity(metaclass=ctx.CtxType):
@@ -42,6 +43,8 @@ class Granularity(metaclass=ctx.CtxType):
     pmem_force_env = None
 
     def __init__(self, **kwargs):
+        self._env = {}
+        self.tools = Tools(self._env, None)
         futils.set_kwargs_attrs(self, kwargs)
         self.config = configurator.Configurator().config
         dir_ = os.path.abspath(getattr(self.config, self.config_dir_field))
@@ -88,6 +91,26 @@ class Granularity(metaclass=ctx.CtxType):
             return False
         else:
             return True
+
+    def _check_usc_req_is_met(self, tc):
+        require_usc, _ = ctx.get_requirement(tc, 'require_usc', False)
+        if not require_usc:
+            return True
+
+        basedir = self.testdir.replace(self.testdir, '')
+        filepath = os.path.join(basedir, "__usc_test_file")
+        f = open(filepath, 'w')
+        f.close()
+
+        check = self.tools.usc_permission_check(filepath)
+        usc_available = check.returncode == 0
+
+        os.remove(filepath)
+
+        if not usc_available:
+            raise futils.Skip('unsafe shutdown count is not available')
+
+        return usc_available
 
     @classmethod
     def filter(cls, config, msg, tc):
@@ -142,7 +165,9 @@ class Granularity(metaclass=ctx.CtxType):
         gs = []
         for g in filtered:
             try:
-                gs.append(g(**kwargs))
+                gran = g(**kwargs)
+                gran._check_usc_req_is_met(tc)
+                gs.append(gran)
             except futils.Skip as s:
                 msg.print_verbose('{}: SKIP: {}'.format(tc, s))
 
@@ -240,5 +265,12 @@ def require_granularity(*granularity, **kwargs):
 def no_testdir(**kwargs):
     def wrapped(tc):
         ctx.add_requirement(tc, 'granularity', Non, **kwargs)
+        return tc
+    return wrapped
+
+
+def require_usc(**kwargs):
+    def wrapped(tc):
+        ctx.add_requirement(tc, 'require_usc', True)
         return tc
     return wrapped

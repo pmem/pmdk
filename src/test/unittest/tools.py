@@ -30,11 +30,14 @@ class Tools:
 
         if sys.platform == 'win32':
             futils.add_env_common(self.env, {'PATH': global_lib_path})
-            futils.add_env_common(self.env, {'PATH': build.libdir})
+            if build is not None:
+                futils.add_env_common(self.env, {'PATH': build.libdir})
         else:
             futils.add_env_common(self.env,
                                   {'LD_LIBRARY_PATH': global_lib_path})
-            futils.add_env_common(self.env, {'LD_LIBRARY_PATH': build.libdir})
+            if build is not None:
+                futils.add_env_common(self.env,
+                                      {'LD_LIBRARY_PATH': build.libdir})
 
     def _run_test_tool(self, name, *args):
         exe = futils.get_test_tool_path(self.build, name)
@@ -56,6 +59,9 @@ class Tools:
     def mapexec(self, *args):
         return self._run_test_tool('mapexec', *args)
 
+    def usc_permission_check(self, *args):
+        return self._run_test_tool('usc_permission_check', *args)
+
 
 class Ndctl:
     """ndctl CLI handle
@@ -71,7 +77,6 @@ class Ndctl:
 
         self.version = self._get_ndctl_version()
         self.ndctl_list_output = self._cmd_out_to_json('list', '-RNDv')
-        self.regions = self.ndctl_list_output['regions']
 
     def _cmd_out_to_json(self, *args):
         cmd = ['ndctl', *args]
@@ -109,21 +114,14 @@ class Ndctl:
         version = proc.stdout.strip()
         return version
 
-    def _get_ndctl_list_output(self, *args):
-        """
-        Parse 'ndctl list' command output as JSON
-        into a dictionary and return it.
-        """
-        proc = sp.run(['ndctl', *args], stdout=sp.PIPE, stderr=sp.STDOUT)
-        if proc.returncode != 0:
-            raise futils.Fail('ndctl list failed:{}{}'.format(os.linesep,
-                                                              proc.stdout))
-        try:
-            ndctl_list_out = json.loads(proc.stdout)
-        except json.JSONDecodeError:
-            raise futils.Fail('Invalid "ndctl list" output (could '
-                              'not read as JSON): {}'.format(proc.stdout))
-        return ndctl_list_out
+    def _get_dev_region(self, dev_path):
+        devtypes = ('blockdev', 'chardev')
+
+        for r in self.ndctl_list_output['regions']:
+            for d in r['namespaces']:
+                for dt in devtypes:
+                    if dt in d and os.path.join('/dev', d[dt]) == dev_path:
+                        return r
 
     def _get_dev_info(self, dev_path):
         """
@@ -136,14 +134,15 @@ class Ndctl:
         # 'ndctl list' output
         devtypes = ('blockdev', 'chardev')
 
-        for d in self.ndctl_list_output:
+        list = self._cmd_out_to_json('list')
+        for d in list:
             for dt in devtypes:
                 if dt in d and os.path.join('/dev', d[dt]) == dev_path:
                     dev = d
 
         if not dev:
             raise futils.Fail('ndctl does not recognize the device: "{}"'
-                            .format(dev))
+                              .format(dev))
         return dev
 
     # for ndctl v63 we need to parse ndctl list in a different way than for v64
@@ -152,7 +151,8 @@ class Ndctl:
         devtype = 'chardev'
         daxreg = 'daxregion'
 
-        for d in self.ndctl_list_output:
+        list = self._cmd_out_to_json('list')
+        for d in list:
             if daxreg in d:
                 devices = d[daxreg]['devices']
                 for device in devices:

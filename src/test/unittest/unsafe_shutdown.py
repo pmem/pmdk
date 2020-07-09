@@ -102,16 +102,7 @@ class USCTool(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def inject_usc(dimm):
-        """
-        Inject unsafe shutdown into the DIMM.
-        It is assumed that DIMM returned from get_dev_dimms
-        may serve as a valid 'dimm' argument of this method.
-        """
-        pass
-
-    @abc.abstractmethod
-    def read_usc(dimm):
+    def read_usc(self, dimm):
         """
         Read unsafe shutdown count from DIMM.
         It is assumed that DIMM returned from get_dev_dimms
@@ -150,26 +141,11 @@ class UnsafeShutdown:
         dimms = self.get_dev_dimms(dev)
         return sum(self.read_from_dimms(*dimms))
 
-    def inject(self, testdir):
-        """
-        Inject unsafe shutdown into all DIMMs used by provided test directory
-        """
-        dev = _get_dev_from_testdir(testdir)
-        dimms = self.get_dev_dimms(dev)
-        self.inject_to_dimms(*dimms)
-
     def read_from_dimms(self, *dimms):
         """
         Read unsafe shutdown count values as a list
         """
         return [self.tool.read_usc(d) for d in dimms]
-
-    def inject_to_dimms(self, *dimms):
-        """
-        Inject unsafe shutdown into specific DIMMs
-        """
-        for d in dimms:
-            self.tool.inject_usc(d)
 
     def get_dev_dimms(self, dev):
         """
@@ -213,20 +189,9 @@ class Ipmctl(USCTool):
             except (IndexError, ValueError) as e:
                 raise futils.Fail('Could not read dirty shutdown'
                                   'value from DIMM {}. \n{}'
-                                  .format(d, e.output))
+                                  .format(d, e))
 
         return usc
-
-    def inject_usc(self, *dimms):
-        cmd_format = 'ipmctl set -dimm {} DirtyShutdown=1'
-        for d in dimms:
-            try:
-                cmd = cmd_format.format(d).split()
-                sp.check_output(cmd, universal_newlines=True,
-                                stderr=sp.STDOUT)
-            except sp.CalledProcessError as e:
-                raise futils.Fail('Injecting unsafe shutdown into DIMM {}'
-                                  ' failed: {}'.format(d, e.output))
 
 
 class NdctlUSC(tools.Ndctl, USCTool):
@@ -235,18 +200,8 @@ class NdctlUSC(tools.Ndctl, USCTool):
     implementing USCTool abstract class
     """
     def get_dev_dimms(self, dev):
-        _, region = self._get_dev_info(dev)
+        region = self._get_dev_region(dev)
         return region['mappings']
-
-    def inject_usc(self, dimm):
-        try:
-            cmd = ['ndctl', 'inject-smart', '-U', dimm['dimm']]
-            sp.check_output(cmd, stderr=sp.STDOUT,
-                            universal_newlines=True)
-        except KeyError as e:
-            raise futils.Fail(e)
-        except sp.CalledProcessError as e:
-            raise futils.Fail(e.stdout)
 
     def read_usc(self, dimm):
         try:
@@ -255,6 +210,7 @@ class NdctlUSC(tools.Ndctl, USCTool):
             raise futils.Fail(e)
 
         out = self._cmd_out_to_json('list', '-HD', '-d', name)
+        # dimm's health is nested into a single-element array
         usc = int(out[0]['health']['shutdown_count'])
 
         return usc

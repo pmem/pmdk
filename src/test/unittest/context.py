@@ -28,6 +28,7 @@ import futils
 from poolset import _Poolset
 from tools import Tools
 from consts import KiB, MiB, HEADER_SIZE
+from unsafe_shutdown import UnsafeShutdown
 
 try:
     import testconfig
@@ -195,6 +196,10 @@ class ContextBase:
     def tools(self):
         """Get test tools"""
         return Tools(self.env, self.build)
+
+    @property
+    def usc(self):
+        return UnsafeShutdown()
 
     def dump_n_lines(self, file, n=-1):
         """
