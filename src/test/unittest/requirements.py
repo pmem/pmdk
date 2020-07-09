@@ -94,6 +94,7 @@ class Requirements:
             return False
         if not self._check_admin_req_is_met(tc):
             return False
+
         """More requirements can be checked here"""
         return True
 
