@@ -6,6 +6,8 @@
 
 import sys
 import os
+import glob
+import shutil
 from os import path
 sys.path.insert(1, path.abspath(path.join(path.dirname(__file__), 'unittest')))
 
@@ -84,7 +86,6 @@ class TestRunner:
                             t._execute(c)
                         else:
                             continue
-
                     except futils.Skip as s:
                         self.msg.print_verbose('{}: SKIP: {}'.format(t, s))
 
@@ -93,6 +94,18 @@ class TestRunner:
                         ret = 1
                     else:
                         self._test_passed(t)
+
+                    # Move logs to build folder
+                    sub_dir = str(c).replace(':', '')
+                    logs_dir = '{}/logs/{}/{}'.format(t.group,
+                                                      t.test_type,
+                                                      sub_dir)
+                    if os.path.exists(logs_dir):
+                        shutil.rmtree(logs_dir)
+                    os.makedirs(logs_dir, exist_ok=True)
+                    for log_file in glob.iglob(os.path.join(t.group, '*.log')):
+                        if os.path.isfile(log_file):
+                            shutil.move(log_file, logs_dir)
 
             except futils.Skip as s:
                 self.msg.print_verbose('{}: SKIP: {}'.format(tc, s))
