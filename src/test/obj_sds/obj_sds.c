@@ -91,6 +91,9 @@ FUNC_MOCK(pmem2_source_device_id, int, const struct pmem2_source *src,
 FUNC_MOCK_END
 FUNC_MOCK(pmem2_source_device_usc, int, const struct pmem2_source *src,
 		uint64_t *usc)
+	FUNC_MOCK_RUN(1){
+		return 0;
+	}
 	FUNC_MOCK_RUN_DEFAULT {
 	if (usc_it < uscs_size) {
 		*usc = uscs[usc_it];
