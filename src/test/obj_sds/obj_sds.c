@@ -102,6 +102,11 @@ FUNC_MOCK(pmem2_source_device_usc, int, const struct pmem2_source *src,
 	return 0;
 }
 FUNC_MOCK_END
+FUNC_MOCK(shutdown_state_is_supported, int, int fd)
+	FUNC_MOCK_RUN_DEFAULT {
+		return 0;
+	}
+FUNC_MOCK_END
 
 #ifdef _MSC_VER
 /*
