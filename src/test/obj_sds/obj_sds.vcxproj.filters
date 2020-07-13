@@ -52,9 +52,6 @@
     <ClCompile Include="..\..\common\set.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\common\shutdown_state.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\core\util.c">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -8,4 +8,5 @@
 #ifndef WRAP_REAL
 #define pmem2_source_device_usc __wrap_pmem2_source_device_usc
 #define pmem2_source_device_idU __wrap_pmem2_source_device_id
+#define shutdown_state_is_supported __wrap_shutdown_state_is_supported
 #endif
