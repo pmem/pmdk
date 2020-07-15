@@ -21,7 +21,7 @@ date: pmem2 API version 1.0
 # NAME #
 
 **pmem2_config_new**(), **pmem2_config_delete**() - allocate and free a
-configuration for a libpmem2 mapping
+configuration structure for a libpmem2 mapping
 
 # SYNOPSIS #
 

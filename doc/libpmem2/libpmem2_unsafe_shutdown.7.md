@@ -69,11 +69,11 @@ if undesirable, can be prevented by storing a flag indicating whether the file
 is in use, alongside all the rest of the relevant information.
 
 The application should use **pmem2_deep_flush**(3) when storing any data related
-to unsafe shutdown detection for higher reliability. This helps ensure that the
+to unsafe shutdown detection for higher reliability. This helps to ensure that the
 detection mechanism is not reliant on the correct functioning of the same hardware
 features it is designed to safeguard.
 
-General-purpose software should not assume the presence of **USC** in the platform,
+General-purpose software should not assume the presence of **USC** on the platform,
 and should instead appropriately handle any *PMEM2_E_NOSUPP* it encounters.
 Doing otherwise might cause the software to be unnecessarily restrictive about
 the hardware it supports and would prevent, e.g., testing on emulated PMEM.

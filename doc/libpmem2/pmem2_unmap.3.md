@@ -35,10 +35,10 @@ int pmem2_unmap(struct pmem2_map **map_ptr);
 The **pmem2_unmap**() function deletes the mapping described by the
 *struct pmem2_map* object.
 
-If **pmem2_unmap**() succeeds, deleting the mapping, it releases the
+If **pmem2_unmap**() succeeds in deleting the mapping, it releases the
 *struct pmem2_map* object describing it and writes a NULL value to *map_ptr*.
 If the function fails, the *map_ptr* variable and the map object itself are left
-unmodified and appropriate error value will be returned. For a list of possible
+unmodified and appropriate error value is returned. For a list of possible
 return values please see [RETURN VALUE](#return-value).
 
 # RETURN VALUE #

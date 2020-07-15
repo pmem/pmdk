@@ -74,7 +74,7 @@ for storing volume path.
 **CreateFileW**(), while trying to obtain a handle to the volume.
 
 * -**errno** equivalent of return code set by failing
-**DeviceIoControl **(), while trying to obtain volume **USC** value.
+**DeviceIoControl**(), while trying to obtain volume **USC** value.
 
 On Linux:
 

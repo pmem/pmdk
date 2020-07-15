@@ -55,7 +55,7 @@ If *fd* is invalid, then the function fails.
 
 The **pmem2_source_from_handle**() function validates the handle and instantiates
 a new *struct pmem2_source** object describing the data source.
-If *handle* is INVALID_HANDLE_VALUE, then the function fails.
+If *handle* is *INVALID_HANDLE_VALUE*, then the function fails.
 The handle has to be created with an access mode of *GENERIC_READ* or
 *(GENERIC_READ | GENERIC_WRITE)*. For details please see the **CreateFile**()
 documentation.

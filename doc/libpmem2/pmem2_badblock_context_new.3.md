@@ -67,7 +67,7 @@ It is not supported on Windows.
 
 The **pmem2_badblock_context_new**() function returns 0 on success
 or a negative error code on failure.
-**pmem2_badblock_context_new**() does set *\*bbctx* to NULL on failure.
+**pmem2_badblock_context_new**() sets *\*bbctx* to NULL on failure.
 
 **pmem2_badblock_context_delete**() does not return any value.
 
