@@ -62,7 +62,7 @@ When **pmem2_map**() succeeds it returns 0. Otherwise, it returns
 one of the following error values:
 
 * **PMEM2_E_GRANULARITY_NOT_SET** - the store granularity for the mapping was
-not set in the provided *config* structure. Please see**pmem2_config_set_required_store_granularity**(3)
+not set in the provided *config* structure. Please see **pmem2_config_set_required_store_granularity**(3)
 and **libpmem2**(7).
 
 * **PMEM2_E_MAP_RANGE** - *offset* + *length* is too big to represent it using
