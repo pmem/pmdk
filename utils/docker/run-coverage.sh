@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 
 #
-# run-coverage.sh - is called inside a Docker container; runs the coverage
-#                   test
+# run-coverage.sh - is called inside a Docker container; runs tests
+#                   to measure code coverage and sends report to codecov.io
 #
 
 set -e
@@ -34,4 +34,19 @@ make check-remote-quiet TEST_BUILD=debug || true
 # do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
 make -j2 pycheck TEST_BUILD=debug || true
 cd ../..
-bash <(curl -s https://codecov.io/bash)
+
+# prepare flag for codecov report to differentiate builds
+flag=tests
+[ -n "$GITHUB_ACTIONS" ] && flag=GHA
+[ -n "$TRAVIS" ] && flag=Travis
+
+# run gcov exe, using codecov's bash (remove parsed coverage files, set flag and exit 1 if not successful)
+bash <(curl -s https://codecov.io/bash) -c -F ${flag} -Z
+
+printf "check for any leftover gcov files\n"
+leftover_files=$(find . -name "*.gcov" | wc -l)
+if [[ $leftover_files > 0 ]]; then
+	# display found files and exit with error (they all should be parsed)
+	find . -name "*.gcov"
+	return 1
+fi
