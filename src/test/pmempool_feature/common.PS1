@@ -20,6 +20,15 @@ remove_files $LOG
 
 $exit_func="expect_normal_exit"
 
+# pmempool_feature_query_return -- query a feature and return
+# the value.
+#
+# usage: pmempool_feature_query_return <feature>
+function pmempool_feature_query_return($arg1) {
+	$count=$(expect_normal_exit $PMEMPOOL feature -q $arg1 $POOLSET)
+	return $count
+}
+
 # pmempool_feature_query -- query feature
 #
 # usage: pmempool_feature_query <feature>
