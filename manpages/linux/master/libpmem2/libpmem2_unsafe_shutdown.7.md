@@ -73,7 +73,7 @@ to unsafe shutdown detection for higher reliability. This helps ensure that the
 detection mechanism is not reliant on the correct functioning of the same hardware
 features it is designed to safeguard.
 
-General-purpose software should not assume the presence of **USC** in the platform,
+General-purpose software should not assume the presence of **USC** on the platform,
 and should instead appropriately handle any *PMEM2_E_NOSUPP* it encounters.
 Doing otherwise might cause the software to be unnecessarily restrictive about
 the hardware it supports and would prevent, e.g., testing on emulated PMEM.
