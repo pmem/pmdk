@@ -52,6 +52,17 @@ above and let that library call **libpmem** for them.
 
 See the [libpmem page](libpmem) for documentation and examples.
 
+#### libpmem2
+
+The **libpmem2** library provides low level persistent memory support.
+The library is a new version of **libpmem**. **libpmem2** provides a
+more universal and platform-agnostic interface. Developers
+wishing to _roll their own_ persistent memory algorithms will find
+this library useful, but most developers will likely use **libpmemobj**
+above that provides memory allocation and transactions support.
+
+See the [libpmem2 page](libpmem2) for documentation and examples.
+
 #### libvmem
 
 The **libvmem** library turns a pool of persistent memory into a
