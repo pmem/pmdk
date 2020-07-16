@@ -41,7 +41,7 @@ flag=tests
 [ -n "$TRAVIS" ] && flag=Travis
 
 # run gcov exe, using codecov's bash (remove parsed coverage files, set flag and exit 1 if not successful)
-bash <(curl -s https://codecov.io/bash) -c -F ${flag} -Z
+/opt/scripts/codecov -c -F ${flag} -Z
 
 printf "check for any leftover gcov files\n"
 leftover_files=$(find . -name "*.gcov" | wc -l)
