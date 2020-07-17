@@ -34,7 +34,7 @@ void *pmem2_map_get_address(struct pmem2_map *map);
 
 The **pmem2_map_get_address**() function reads address of the created mapping.
 The *map* parameter points to the structure describing mapping created using
-the **pmem2_map**(3) function.
+the **pmem2_map_new**(3) function.
 
 # RETURN VALUE #
 
@@ -42,4 +42,4 @@ The **pmem2_map_get_address**() function returns a pointer to the mapped area.
 
 # SEE ALSO #
 
-**pmem2_map**(3), **libpmem2**(7) and **<https://pmem.io>**
+**pmem2_map_new**(3), **libpmem2**(7) and **<https://pmem.io>**

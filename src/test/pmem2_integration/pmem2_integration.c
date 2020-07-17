@@ -20,7 +20,7 @@ static void
 map_invalid(struct pmem2_config *cfg, struct pmem2_source *src, int result)
 {
 	struct pmem2_map *map = (struct pmem2_map *)0x7;
-	int ret = pmem2_map(cfg, src, &map);
+	int ret = pmem2_map_new(&map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, result);
 	UT_ASSERTeq(map, NULL);
 }
@@ -32,7 +32,7 @@ static struct pmem2_map *
 map_valid(struct pmem2_config *cfg, struct pmem2_source *src, size_t size)
 {
 	struct pmem2_map *map = NULL;
-	int ret = pmem2_map(cfg, src, &map);
+	int ret = pmem2_map_new(&map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map, NULL);
 	UT_ASSERTeq(pmem2_map_get_size(map), size);
@@ -64,8 +64,8 @@ test_reuse_cfg(const struct test_case *tc, int argc, char *argv[])
 	struct pmem2_map *map2 = map_valid(cfg, src, size);
 
 	/* cleanup after the test */
-	pmem2_unmap(&map2);
-	pmem2_unmap(&map1);
+	pmem2_map_delete(&map2);
+	pmem2_map_delete(&map1);
 	pmem2_config_delete(&cfg);
 	pmem2_source_delete(&src);
 	CLOSE(fd);
@@ -109,9 +109,9 @@ test_reuse_cfg_with_diff_fd(const struct test_case *tc, int argc, char *argv[])
 	struct pmem2_map *map2 = map_valid(cfg, src2, size2);
 
 	/* cleanup after the test */
-	pmem2_unmap(&map2);
+	pmem2_map_delete(&map2);
 	CLOSE(fd2);
-	pmem2_unmap(&map1);
+	pmem2_map_delete(&map1);
 	pmem2_config_delete(&cfg);
 	pmem2_source_delete(&src);
 	pmem2_source_delete(&src2);
@@ -149,7 +149,7 @@ test_register_pmem(const struct test_case *tc, int argc, char *argv[])
 	memcpy(addr, word, length);
 
 	/* cleanup after the test */
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	pmem2_config_delete(&cfg);
 	pmem2_source_delete(&src);
 	CLOSE(fd);
@@ -202,10 +202,10 @@ test_use_misc_lens_and_offsets(const struct test_case *tc,
 			char *ptr = pmem2_map_get_address(map2);
 
 			UT_ASSERTeq(ret = memcmp(base + off, ptr, len2), 0);
-			pmem2_unmap(&map2);
+			pmem2_map_delete(&map2);
 		}
 	}
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	pmem2_config_delete(&cfg);
 	pmem2_source_delete(&src);
 	CLOSE(fd);
@@ -234,14 +234,14 @@ map_with_avail_gran(struct pmem2_config *cfg,
 	struct pmem2_source *src, struct gran_test_ctx *ctx)
 {
 	struct pmem2_map *map;
-	int ret = pmem2_map(cfg, src, &map);
+	int ret = pmem2_map_new(&map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(map, NULL);
 	UT_ASSERTeq(ctx->expected_granularity,
 			pmem2_map_get_store_granularity(map));
 
 	/* cleanup after the test */
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 }
 
 /*
@@ -253,7 +253,7 @@ map_with_unavail_gran(struct pmem2_config *cfg,
 	struct pmem2_source *src, struct gran_test_ctx *unused)
 {
 	struct pmem2_map *map;
-	int ret = pmem2_map(cfg, src, &map);
+	int ret = pmem2_map_new(&map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_GRANULARITY_NOT_SUPPORTED);
 	UT_ERR("%s", pmem2_errormsg());
 	UT_ASSERTeq(map, NULL);
@@ -286,7 +286,7 @@ str2gran_id(const char *in)
 }
 
 /*
- * test_granularity -- performs pmem2_map with certain expected granularity
+ * test_granularity -- performs pmem2_map_new with certain expected granularity
  * in context of certain available granularity
  */
 static int
@@ -393,7 +393,7 @@ test_len_aligned(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_map *map = map_valid(cfg, src, aligned_len);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	pmem2_config_delete(&cfg);
 	pmem2_source_delete(&src);
 
@@ -483,7 +483,7 @@ test_offset_aligned(const struct test_case *tc, int argc, char *argv[])
 
 	struct pmem2_map *map = map_valid(cfg, src, map_len);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	pmem2_config_delete(&cfg);
 	pmem2_source_delete(&src);
 	CLOSE(fd);
@@ -539,13 +539,13 @@ test_mem_move_cpy_set_with_map_private(const struct test_case *tc, int argc,
 	UT_ASSERTeq(strcmp(addr, word3), 0);
 
 	/* remap memory, and check that the data has not been saved */
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	map = map_valid(cfg, src, size);
 	addr = pmem2_map_get_address(map);
 	UT_ASSERTeq(strcmp(addr, initial_state), 0);
 
 	/* cleanup after the test */
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	FREE(initial_state);
 	pmem2_config_delete(&cfg);
 	pmem2_source_delete(&src);
@@ -581,7 +581,7 @@ test_deep_flush_valid(const struct test_case *tc, int argc, char *argv[])
 	int ret = pmem2_deep_flush(map, addr, len);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	PMEM2_CONFIG_DELETE(&cfg);
 	PMEM2_SOURCE_DELETE(&src);
 	CLOSE(fd);
@@ -618,7 +618,7 @@ test_deep_flush_e_range_behind(const struct test_case *tc,
 	int ret = pmem2_deep_flush(map, addr + map_size + 1, 64);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_DEEP_FLUSH_RANGE);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	PMEM2_CONFIG_DELETE(&cfg);
 	PMEM2_SOURCE_DELETE(&src);
 	CLOSE(fd);
@@ -655,7 +655,7 @@ test_deep_flush_e_range_before(const struct test_case *tc,
 	int ret = pmem2_deep_flush(map, addr - map_size, 64);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_DEEP_FLUSH_RANGE);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	PMEM2_CONFIG_DELETE(&cfg);
 	PMEM2_SOURCE_DELETE(&src);
 	CLOSE(fd);
@@ -692,7 +692,7 @@ test_deep_flush_slice(const struct test_case *tc, int argc, char *argv[])
 	int ret = pmem2_deep_flush(map, addr + map_part, map_part);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	PMEM2_CONFIG_DELETE(&cfg);
 	PMEM2_SOURCE_DELETE(&src);
 	CLOSE(fd);
@@ -728,7 +728,7 @@ test_deep_flush_overlap(const struct test_case *tc, int argc, char *argv[])
 	int ret = pmem2_deep_flush(map, addr + 1024, map_size);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_DEEP_FLUSH_RANGE);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	PMEM2_CONFIG_DELETE(&cfg);
 	PMEM2_SOURCE_DELETE(&src);
 	CLOSE(fd);
@@ -755,7 +755,7 @@ test_source_anon(enum pmem2_sharing_type sharing,
 
 	UT_ASSERTeq(pmem2_source_device_id(src, NULL, NULL), PMEM2_E_NOSUPP);
 	UT_ASSERTeq(pmem2_source_device_usc(src, NULL), PMEM2_E_NOSUPP);
-	UT_ASSERTeq(pmem2_badblock_context_new(src, &bbctx), PMEM2_E_NOSUPP);
+	UT_ASSERTeq(pmem2_badblock_context_new(&bbctx, src), PMEM2_E_NOSUPP);
 	size_t alignment;
 	UT_ASSERTeq(pmem2_source_alignment(src, &alignment), 0);
 	UT_ASSERT(alignment >= Ut_pagesize);
@@ -771,7 +771,7 @@ test_source_anon(enum pmem2_sharing_type sharing,
 		granularity), 0);
 	UT_ASSERTeq(pmem2_config_set_sharing(cfg, sharing), 0);
 
-	if ((ret = pmem2_map(cfg, src, &map)) != 0)
+	if ((ret = pmem2_map_new(&map, cfg, src)) != 0)
 		goto map_fail;
 
 	void *addr = pmem2_map_get_address(map);
@@ -782,7 +782,7 @@ test_source_anon(enum pmem2_sharing_type sharing,
 
 	UT_ASSERTeq(pmem2_deep_flush(map, addr, alignment), PMEM2_E_NOSUPP);
 
-	UT_ASSERTeq(pmem2_unmap(&map), 0);
+	UT_ASSERTeq(pmem2_map_delete(&map), 0);
 
 map_fail:
 	PMEM2_CONFIG_DELETE(&cfg);

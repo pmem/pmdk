@@ -18,7 +18,8 @@ pmem2_get_drain_fn.3
 pmem2_get_flush_fn.3
 pmem2_get_memmove_fn.3
 pmem2_get_persist_fn.3
-pmem2_map.3
+pmem2_map_delete.3
+pmem2_map_new.3
 pmem2_map_get_address.3
 pmem2_map_get_size.3
 pmem2_map_get_store_granularity.3
@@ -28,6 +29,5 @@ pmem2_source_from_anon.3
 pmem2_source_size.3
 pmem2_source_device_id.3
 pmem2_source_device_usc.3
-pmem2_unmap.3
 pmem2_perror.3
 pmem2_vm_reservation_new.3

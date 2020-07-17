@@ -150,7 +150,7 @@ pmem2_config_validate_length(const struct pmem2_config *cfg,
 }
 
 /*
- * pmem2_config_set_sharing -- set the way pmem2_map will map the file
+ * pmem2_config_set_sharing -- set the way pmem2_map_new will map the file
  */
 int
 pmem2_config_set_sharing(struct pmem2_config *cfg, enum pmem2_sharing_type type)

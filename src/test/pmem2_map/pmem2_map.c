@@ -167,7 +167,7 @@ test_map_rdrw_file(const struct test_case *tc, int argc, char *argv[])
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	unmap_map(map);
@@ -194,7 +194,7 @@ test_map_rdonly_file(const struct test_case *tc, int argc, char *argv[])
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_READ);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_NO_ACCESS);
 
 	PMEM2_SOURCE_DELETE(&src);
@@ -219,7 +219,7 @@ map_valid_ranges_common(const char *file, size_t offset, size_t length,
 
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, length, offset,
 				FH_RDWR);
-	ret = pmem2_map(&cfg, src, &map);
+	ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(map->content_length, val_length);
 
@@ -281,7 +281,7 @@ test_map_invalid_ranges(const struct test_case *tc, int argc, char *argv[])
 	offset = size2 + (4 * MEGABYTE);
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, size2, offset,
 				FH_RDWR);
-	ret = pmem2_map(&cfg, src, &map);
+	ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
 	PMEM2_SOURCE_DELETE(&src);
 	UT_FH_CLOSE(fh);
@@ -290,7 +290,7 @@ test_map_invalid_ranges(const struct test_case *tc, int argc, char *argv[])
 	offset = size * 2;
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, offset,
 				FH_RDWR);
-	ret = pmem2_map(&cfg, src, &map);
+	ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
 	PMEM2_SOURCE_DELETE(&src);
 	UT_FH_CLOSE(fh);
@@ -317,7 +317,7 @@ test_map_invalid_alignment(const struct test_case *tc, int argc, char *argv[])
 
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, length,
 				KILOBYTE, FH_RDWR);
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_OFFSET_UNALIGNED);
 	PMEM2_SOURCE_DELETE(&src);
 	UT_FH_CLOSE(fh);
@@ -346,7 +346,7 @@ test_map_invalid_fd(const struct test_case *tc, int argc, char *argv[])
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, length, 0,
 				FH_RDWR);
 	UT_FH_CLOSE(fh);
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_INVALID_FILE_HANDLE);
 
 	PMEM2_SOURCE_DELETE(&src);
@@ -372,7 +372,7 @@ test_map_unaligned_length(const struct test_case *tc, int argc, char *argv[])
 
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, length, 0,
 				FH_RDWR);
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_LENGTH_UNALIGNED);
 	PMEM2_SOURCE_DELETE(&src);
 	UT_FH_CLOSE(fh);
@@ -401,7 +401,7 @@ test_unmap_valid(const struct test_case *tc, int argc, char *argv[])
 	prepare_map(&map, &cfg, src);
 
 	/* unmap the valid mapping */
-	int ret = pmem2_unmap(&map);
+	int ret = pmem2_map_delete(&map);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(map, NULL);
 	PMEM2_SOURCE_DELETE(&src);
@@ -434,7 +434,7 @@ unmap_invalid_common(const char *file, size_t size,
 	spoil(map);
 
 	/* unmap the invalid mapping */
-	int ret = pmem2_unmap(&map);
+	int ret = pmem2_map_delete(&map);
 	UT_PMEM2_EXPECT_RETURN(ret, exp_ret);
 
 	FREE(map);
@@ -593,7 +593,7 @@ test_map_larger_than_unaligned_file_size(const struct test_case *tc, int argc,
 	/* align up the required mapping length */
 	cfg.length = ALIGN_UP(length, alignment);
 
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	unmap_map(map);
@@ -630,7 +630,7 @@ test_map_zero_file_size(const struct test_case *tc, int argc, char *argv[])
 	PMEM2_SOURCE_FROM_FD(&src, fd);
 
 	struct pmem2_map *map;
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_SOURCE_EMPTY);
 
 	PMEM2_SOURCE_DELETE(&src);
@@ -643,7 +643,7 @@ static void
 do_map_and_copy_data(struct pmem2_config *cfg, struct pmem2_source *src,
 			struct pmem2_map **map, const char *data)
 {
-	int ret = pmem2_map(cfg, src, map);
+	int ret = pmem2_map_new(map, cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	pmem2_memcpy_fn memcpy_fn = pmem2_get_memcpy_fn(*map);
@@ -833,7 +833,7 @@ test_map_sharing_private_devdax(const struct test_case *tc, int argc,
 	pmem2_config_set_sharing(&cfg, PMEM2_PRIVATE);
 
 	struct pmem2_map *map = NULL;
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_SRC_DEVDAX_PRIVATE);
 	UT_ASSERTeq(map, NULL);
 
@@ -864,13 +864,13 @@ test_map_fixed_noreplace_valid(const struct test_case *tc,
 
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, size, 0,
 				FH_RDWR);
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_ASSERTeq(ret, 0);
 
 	addr = pmem2_map_get_address(map);
 
 	/* unmap current mapping */
-	ret = pmem2_unmap(&map);
+	ret = pmem2_map_delete(&map);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(map, NULL);
 	PMEM2_SOURCE_DELETE(&src);
@@ -883,14 +883,14 @@ test_map_fixed_noreplace_valid(const struct test_case *tc,
 	prepare_config_with_addr(&cfg, &src, &fh, file, size, 0, FH_RDWR,
 			addr, PMEM2_ADDRESS_FIXED_NOREPLACE);
 
-	ret = pmem2_map(&cfg, src, &map);
+	ret = pmem2_map_new(&map, &cfg, src);
 	UT_ASSERTeq(ret, 0);
 
 	/* check if mapping is in the same addr, which is desired */
 	UT_ASSERTeq(addr, map->addr);
 
 	/* unmap mapping */
-	ret = pmem2_unmap(&map);
+	ret = pmem2_map_delete(&map);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(map, NULL);
 
@@ -925,7 +925,7 @@ test_map_fixed_noreplace_full_overlap(const struct test_case *tc,
 
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, size, 0,
 				FH_RDWR);
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_ASSERTeq(ret, 0);
 
 	addr = pmem2_map_get_address(map);
@@ -936,12 +936,12 @@ test_map_fixed_noreplace_full_overlap(const struct test_case *tc,
 	 */
 	prepare_config_with_addr(&cfg, &src, &fh_overlap, file, size, 0,
 			FH_RDWR, addr, PMEM2_ADDRESS_FIXED_NOREPLACE);
-	ret = pmem2_map(&cfg, src, &map_overlap);
+	ret = pmem2_map_new(&map_overlap, &cfg, src);
 
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAPPING_EXISTS);
 
 	/* unmap first mapping and close fds */
-	ret = pmem2_unmap(&map);
+	ret = pmem2_map_delete(&map);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(map, NULL);
 	PMEM2_SOURCE_DELETE(&src);
@@ -976,7 +976,7 @@ test_map_fixed_noreplace_partial_overlap(const struct test_case *tc,
 
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, size, 0,
 				FH_RDWR);
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_ASSERTeq(ret, 0);
 
 	/*
@@ -997,12 +997,12 @@ test_map_fixed_noreplace_partial_overlap(const struct test_case *tc,
 	prepare_config_with_addr(&cfg, &src, &fh_overlap, file,
 			overlap_size, 0, FH_RDWR, addr,
 			PMEM2_ADDRESS_FIXED_NOREPLACE);
-	ret = pmem2_map(&cfg, src, &map_overlap);
+	ret = pmem2_map_new(&map_overlap, &cfg, src);
 
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAPPING_EXISTS);
 
 	/* unmap first mapping and close fds */
-	ret = pmem2_unmap(&map);
+	ret = pmem2_map_delete(&map);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(map, NULL);
 	PMEM2_SOURCE_DELETE(&src);
@@ -1039,7 +1039,7 @@ test_map_fixed_noreplace_partial_above_overlap(const struct test_case *tc,
 	size /= 2;
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, size, 0,
 				FH_RDWR);
-	int ret = pmem2_map(&cfg, src, &map);
+	int ret = pmem2_map_new(&map, &cfg, src);
 	UT_ASSERTeq(ret, 0);
 
 	/*
@@ -1063,12 +1063,12 @@ test_map_fixed_noreplace_partial_above_overlap(const struct test_case *tc,
 	prepare_config_with_addr(&cfg, &src, &fh_overlap, file,
 			overlap_size, 0, FH_RDWR, addr,
 			PMEM2_ADDRESS_FIXED_NOREPLACE);
-	ret = pmem2_map(&cfg, src, &map_overlap);
+	ret = pmem2_map_new(&map_overlap, &cfg, src);
 
 	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAPPING_EXISTS);
 
 	/* unmap first mapping and close fds */
-	ret = pmem2_unmap(&map);
+	ret = pmem2_map_delete(&map);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(map, NULL);
 	PMEM2_SOURCE_DELETE(&src);

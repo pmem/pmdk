@@ -349,8 +349,8 @@ pool_map(int fd, int map_private)
 		goto err_src_new;
 	}
 
-	if (pmem2_map(cfg, src, &map)) {
-		pmem2_perror("pmem2_map");
+	if (pmem2_map_new(&map, cfg, src)) {
+		pmem2_perror("pmem2_map_new");
 		goto err_map;
 	}
 
@@ -475,7 +475,7 @@ main(int argc, char *argv[])
 		ret = 1;
 	}
 out:
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 err_map:
 	close(fd);
 
