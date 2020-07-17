@@ -34,7 +34,7 @@ int pmem2_source_alignment(const struct pmem2_source *source, size_t *alignment)
 # DESCRIPTION #
 
 The **pmem2_source_alignment**() function retrieves the alignment of offset and
-length needed for **pmem2_map**(3) to succeed. The alignment is stored in
+length needed for **pmem2_map_new**(3) to succeed. The alignment is stored in
 *\*alignment*.
 
 # RETURN VALUE #
