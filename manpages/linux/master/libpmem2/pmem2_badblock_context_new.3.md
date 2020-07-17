@@ -34,8 +34,8 @@ struct pmem2_source;
 struct pmem2_badblock_context;
 
 int pmem2_badblock_context_new(
-		const struct pmem2_source *src,
-		struct pmem2_badblock_context **bbctx);
+		struct pmem2_badblock_context **bbctx,
+		const struct pmem2_source *src);
 
 void pmem2_badblock_context_delete(
 		struct pmem2_badblock_context **bbctx);

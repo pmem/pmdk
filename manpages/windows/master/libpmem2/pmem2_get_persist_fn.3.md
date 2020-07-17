@@ -95,5 +95,5 @@ necessary.
 
 # SEE ALSO #
 
-**pmem2_get_drain_fn**(3), **pmem2_get_flush_fn**(3), **pmem2_map**(3),
+**pmem2_get_drain_fn**(3), **pmem2_get_flush_fn**(3), **pmem2_map_new**(3),
 **libpmem2**(7) and **<http://pmem.io>**
