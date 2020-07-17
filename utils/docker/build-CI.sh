@@ -4,9 +4,9 @@
 
 #
 # build-CI.sh - runs a Docker container from a Docker image with environment
-#                   prepared for building PMDK project and starts building PMDK
+#                   prepared for building PMDK project and starts building PMDK.
 #
-# this script is used for building PMDK on Travis and GitHub Actions CIs
+# This script is used for building PMDK on Travis and GitHub Actions CIs.
 #
 
 set -e
@@ -45,7 +45,7 @@ if [[ -z "$TEST_BUILD" ]]; then
 	TEST_BUILD=all
 fi
 
-imageName=${DOCKERHUB_REPO}:1.9-${OS}-${OS_VER}-${CI_CPU_ARCH}
+imageName=${DOCKERHUB_REPO}:1.10-${OS}-${OS_VER}-${CI_CPU_ARCH}
 containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
