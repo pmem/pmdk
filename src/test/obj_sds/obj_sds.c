@@ -66,8 +66,10 @@ main(int argc, char *argv[])
 	FREE(uids);
 	FREE(uscs);
 
-	if (fail)
+	if (fail) {
+		UT_OUT("Failed as planned");
 		exit(1);
+	}
 
 	DONE(NULL);
 }
@@ -83,9 +85,10 @@ FUNC_MOCK(pmem2_source_device_id, int, const struct pmem2_source *src,
 			*len = strlen(uids[uid_it]) + 1;
 		}
 	} else {
+		UT_ERR("More calls than it should");
 		return -1;
 	}
-
+	UT_OUT("Mock pmem2_source_device_id success");
 	return 0;
 }
 FUNC_MOCK_END
@@ -95,15 +98,19 @@ FUNC_MOCK(pmem2_source_device_usc, int, const struct pmem2_source *src,
 	if (usc_it < uscs_size) {
 		*usc = uscs[usc_it];
 		usc_it++;
+		UT_OUT("usc: %lu", *usc);
 	} else {
+		UT_ERR("More calls than it should");
 		return -1;
 	}
 
+	UT_OUT("Mock pmem2_source_device_id success");
 	return 0;
 }
 FUNC_MOCK_END
 FUNC_MOCK(shutdown_state_is_supported, int, int fd)
 	FUNC_MOCK_RUN_DEFAULT {
+		UT_OUT("Mock shutdown_state_is_supported called");
 		return 0;
 	}
 FUNC_MOCK_END

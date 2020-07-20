@@ -15,6 +15,8 @@ require_build_type debug
 
 setup
 
+Set-PSDebug -Trace 1
+
 $POOLSET="$DIR\pool.set"
 # Create poolset file
 create_poolset $POOLSET `
@@ -26,10 +28,15 @@ create_poolset $POOLSET `
 			   20M:$DIR\testfile15:x
 
 # the pool not closed and ADR failure
-expect_abnormal_exit $Env:EXE_DIR\obj_sds 1 1 $POOLSET `
+expect_normal_exit $Env:EXE_DIR\obj_sds 1 1 $POOLSET `
 				   5 0 7 0 9 0 11 0 12 0
 
-expect_abnormal_exit $Env:EXE_DIR\obj_sds 0 0 $POOLSET `
+expect_normal_exit $Env:EXE_DIR\obj_sds 0 0 $POOLSET `
 				   5 1 7 1 9 1 11 0 12 0
 
-pass
+type out2.log
+type err2.log
+
+Set-PSDebug -Trace 0
+
+fail ""
