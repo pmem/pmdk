@@ -502,11 +502,11 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 	if (ret)
 		return ret;
 
+	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->content_length);
+
 	ret = unmap(map->addr, map->reserved_length);
 	if (ret)
 		return ret;
-
-	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->content_length);
 
 	Free(map);
 	*map_ptr = NULL;
