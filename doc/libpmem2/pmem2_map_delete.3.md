@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -43,8 +44,12 @@ return values please see [RETURN VALUE](#return-value).
 
 # RETURN VALUE #
 
-When **pmem2_map_delete**() succeeds it returns 0. Otherwise, it returns
-one of the following error values:
+The **pmem2_map_delete**() function returns 0 on success
+or a negative error code on failure.
+
+# ERRORS #
+
+The **pmem2_map_delete**() can fail with the following errors:
 
 * **PMEM2_E_MAPPING_NOT_FOUND** - mapping was not found (it was already
 unmapped or pmem2_map state was corrupted)
