@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -48,7 +49,7 @@ It is not supported on Windows.
 # RETURN VALUE #
 
 The **pmem2_badblock_clear**() function clears the given *\*bb* bad block
-and returns 0 on success or it returns a negative error code on failure.
+and returns 0 on success or a negative error code on failure.
 
 # ERRORS #
 

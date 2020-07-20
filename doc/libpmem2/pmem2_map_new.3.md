@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -58,8 +59,12 @@ be destroyed using the **pmem2_map_delete**() function. For details please see
 
 # RETURN VALUE #
 
-When **pmem2_map_new**() succeeds it returns 0. Otherwise, it returns
-one of the following error values:
+The **pmem2_map_new**() function returns 0 on succeeds
+or a negative error code on failure.
+
+# ERRORS #
+
+The **pmem2_map_new**() can fail with the following errors:
 
 * **PMEM2_E_GRANULARITY_NOT_SET** - the store granularity for the mapping was
 not set in the provided *config* structure. Please see **pmem2_config_set_required_store_granularity**(3)

@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERORRS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -43,8 +44,12 @@ On Linux, it hides the quirkiness of Device DAX size detection.
 # RETURN VALUE #
 
 The **pmem2_source_size**() function returns 0 on success.
-If the function fails, the *\*size* variable is left unmodified, and one of
-the following errors is returned:
+If the function fails, the *\*size* variable is left unmodified
+and a negative error code is returned.
+
+# ERRORS #
+
+The **pmem2_source_size**() can fail with the following errors:
 
 On all systems:
 

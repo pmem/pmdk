@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -42,6 +43,10 @@ void pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv);
 
 **pmem2_vm_reservation_new**() returns PMEM2_E_NOSUPP .
 **pmem2_vm_reservation_delete**() returns PMEM2_E_NOSUPP .
+
+# ERRORS #
+
+The **pmem2_vm_reservation_new**() and **pmem2_vm_reservation_delete**() functions are not supported yet.
 
 # SEE ALSO #
 
