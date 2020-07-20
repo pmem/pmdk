@@ -8,6 +8,7 @@
 
 #include <sys/types.h>
 #include <libgen.h>
+#include <linux/falloc.h>
 #include <limits.h>
 #include <string.h>
 #include <stdio.h>
