@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -47,8 +48,12 @@ in the platform, and not treat **PMEM2_E_NOSUPP** as a fatal error.
 
 # RETURN VALUE #
 
-The **pmem2_deep_flush**() returns 0 on success or one of the following
-error values on failure:
+The **pmem2_deep_flush**() function returns 0 on success
+or an error code on failure.
+
+# ERRORS #
+
+The **pmem2_deep_flush**() can fail with the following errors:
 
 * **PMEM2_E_DEEP_FLUSH_RANGE** - the provided flush range is not a
 subset of the map's address space.
@@ -62,8 +67,8 @@ detected.
 * -**errno** set by failing **open**(2), while trying to open the Device Dax
 *deep_flush* interface.
 
-* -**errno** set by failing **msync**(2), while trying to perform a deep
-flush on a regular DAX volume.
+* -**errno** set by failing **msync**(2), while trying to perform
+a deep flush on a regular DAX volume.
 
 # SEE ALSO #
 

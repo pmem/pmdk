@@ -45,8 +45,8 @@ using the **pmem2_map_new**(3) function. Concept of the granularity is described
 
 # RETURN VALUE #
 
-The **pmem2_map_get_store_granularity**() function returns a granularity of the mapped
-area.
+The **pmem2_map_get_store_granularity**() function returns
+a granularity of the mapped area.
 
 # SEE ALSO #
 
