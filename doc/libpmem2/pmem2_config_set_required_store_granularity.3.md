@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -54,8 +55,13 @@ A description of the granularity concept can be found in **libpmem2**(7) manpage
 
 # RETURN VALUE #
 
-**pmem2_config_set_required_store_granularity**() function returns 0 on success.
-Otherwise, it returns one of the following error values:
+The **pmem2_config_set_required_store_granularity**() function returns 0 on success
+or a negative error code on failure.
+
+# ERRORS #
+
+The **pmem2_config_set_required_store_granularity**() can fail
+with the following errors:
 
  * **PMEM2_E_GRANULARITY_NOT_SUPPORTED** - granularity *g* is not a valid value.
 
