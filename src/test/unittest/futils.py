@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # Copyright 2019-2020, Intel Corporation
 
-"""Test framework utilities"""
+"""Test framework utilities."""
 
 from os.path import join, abspath, dirname
 import os
@@ -99,7 +99,7 @@ def count(file, substring):
 class Color:
     """
     Set the font color. This functionality relies on ANSI espace sequences
-    and is currently disabled for Windows
+    and is currently disabled for Windows.
     """
     if sys.platform != 'win32':
         RED = '\33[91m'
@@ -110,7 +110,7 @@ class Color:
 
 
 class Message:
-    """Simple level based logger"""
+    """Simple level based logger."""
 
     def __init__(self, level):
         self.level = level
@@ -125,7 +125,7 @@ class Message:
 
 
 class Fail(Exception):
-    """Thrown when test fails"""
+    """Thrown when the test fails."""
 
     def __init__(self, msg):
         super().__init__(msg)
@@ -144,7 +144,7 @@ def fail(msg, exit_code=None):
 
 
 class Skip(Exception):
-    """Thrown when test should be skipped"""
+    """Thrown when the test should be skipped."""
 
     def __init__(self, msg):
         super().__init__(msg)
@@ -165,6 +165,10 @@ def skip(msg):
 
 
 def set_kwargs_attrs(cls, kwargs):
+    """
+    Translate provided keyword arguments into
+    class attributes.
+    """
     for k, v in kwargs.items():
         setattr(cls, '{}'.format(k), v)
 
