@@ -36,6 +36,68 @@ cc ... -lpmem2
 
 # DESCRIPTION #
 
+**libpmem2** provides low-level *persistent memory* (pmem) support for
+applications using direct access storage (DAX), which is storage that
+supports load/store access without paging blocks from a block storage
+device. Some types of *non-volatile memory DIMMs* (NVDIMMs) provide this
+type of byte addressable access to storage. A *persistent memory aware
+file system* is typically used to expose the direct access to
+applications. Memory mapping a file from this type of file system
+results in the load/store, non-paged access to pmem.
+
+This library is for applications that use persistent memory directly,
+without the help of any library-supplied transactions or memory
+allocation. Higher-level libraries that *currently* build on **libpmem**
+(previous variation of libpmem2) are available and are recommended for
+most applications, see:
+
++ **libpmemobj**(7), a general use persistent memory API, providing memory
+  allocation and transactional operations on variable-sized objects.
+
++ **libpmemblk**(7), providing pmem-resident arrays of fixed-sized blocks
+  with atomic updates.
+
++ **libpmemlog**(7), providing a pmem-resident log file.
+
+The **libpmem2** library provides a number of functions for the flexible
+use of non-volatile memory, but the basis of using **libpmem2** is to
+understand the three main structures i.e. *struct pmem2_src source*,
+*struct pmem2_config config* and *struct pmem2_map map*:
+
+* *source* - an object describing the data source for mapping.
+The data source can be file descriptor, file handle, or anonymous mapping.
+API dedicated to create a *source* is: **pmem2_source_from_fd**(3),
+ **pmem2_source_from_handle**(3), **pmem2_source_from_anon**(3).
+
+* *config* - define parameters for a new mapping that will be created
+using *source* object mentioned above. The configuration structure must always be
+initialized, but the only required argument to set in the *config* is a *granularity*.
+The granularity should by set using dedicated **libpmem2** function
+**pmem2_config_set_required_store_granularity**(3) which defines a maximum permitted
+granularity requested by the user. For more information about the granularity concept
+read **GRANULARITY** section below.
+
+In addition to the granularity setting, libpmem2 provides multiple optional
+functions to configure target mapping, eg. **pmem2_config_set_length**(3)
+to set length which will be used for mapping, or **pmem2_config_set_offset**(3)
+which will be used to map the contents from the specified location of the source,
+**pmem2_config_set_sharing**(3) which defines the behavior and visibility of writes
+to the mapping's pages.
+
+* *map* - map instance created by **pmem2_map_new**(3) using *source* and
+*config* as an input parameters. For reading information about created mapping
+the **libpmem2** provides functions like **pmem2_map_get_address**(3),
+**pmem2_map_get_size**(3), **pmem2_map_get_store_granularity**(3) - for getting
+address, size and effective mapping granularity.
+
+Data flushing is also realized by functions read from the *map* structure.
+To get proper function use **pmem2_get_flush_fn**(3), **pmem2_get_persist_fn**(3)
+or **pmem2_get_drain_fn**(3).
+
+Another feature of **libpmem2** is a set of routines for optimally copying
+to persistent memory, and it is also provided by *map* getters
+**pmem2_get_memcpy_fn**(3), **pmem2_get_memset_fn**(3), **pmem2_get_memmove_fn**(3).
+
 # GRANULARITY #
 
 The **libpmem2** library introduces the concept of granularity through which you
@@ -78,6 +140,8 @@ that operates on large logical pages that reside either on SSDs or PMEM should
 set this value to **PMEM2_GRANULARITY_PAGE**.
 
 # CAVEATS #
+
+**libpmem2** relies on the library destructor being called from the main thread. For this reason, all functions that might trigger destruction (e.g. dlclose(3)) should be called in the main thread. Otherwise some of the resources associated with that thread might not be cleaned up properly.
 
 # ENVIRONMENT #
 
@@ -193,6 +257,18 @@ written to *stderr*.
 
 # EXAMPLE #
 
+The following example uses **libpmem2** to flush changes made to raw,
+memory-mapped persistent memory.
+
+>WARNING:
+There is nothing transactional about the *persist* from **pmem2_get_persist_fn**(3)
+call in this example. Interrupting the program may result in a partial write to pmem.
+Use a transactional library such as **libpmemobj**(7) to avoid torn updates.
+
+<code data-gist-id='wlemkows/c7dc06875ee4aa9857020eba01114e75' data-gist-file='basic.c' data-gist-line='8-74'  data-gist-hide-footer='true'></code>
+
+The above example is described in detail [here](https://pmem.io/pmdk/libpmem2/).
+
 # ACKNOWLEDGEMENTS #
 
 **libpmem2** builds on the persistent memory programming model recommended
@@ -202,7 +278,13 @@ by the SNIA NVM Programming Technical Work Group:
 # SEE ALSO #
 
 **FlushFileBuffers**(), **fsync**(2), **msync**(2),
+**pmem2_config_set_length**(3), **pmem2_config_set_offset**(3),
 **pmem2_config_set_required_store_granularity**(3),
-**pmem2_get_memset_fn**(3), **pmem2_map_get_store_granularity**(3),
+**pmem2_config_set_sharing**(3),**pmem2_get_drain_fn**(3),
+**pmem2_get_flush_fn**(3), **pmem2_get_memcpy_fn**(3),
+**pmem2_get_memmove_fn**(3), **pmem2_get_memset_fn**(3),
+**pmem2_get_persist_fn**(3),**pmem2_map_get_store_granularity**(3),
+**pmem2_map_new**(3), **pmem2_source_from_anon**(3),
+**pmem2_source_from_fd**(3), **pmem2_source_from_handle**(3),
 **libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
 and **<https://pmem.io>**
