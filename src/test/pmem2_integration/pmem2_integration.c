@@ -767,7 +767,7 @@ test_unaligned_persist(const struct test_case *tc, int argc, char *argv[])
 		map_size - FLUSH_OFFSET);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
-	pmem2_unmap(&map);
+	pmem2_map_delete(&map);
 	PMEM2_CONFIG_DELETE(&cfg);
 	PMEM2_SOURCE_DELETE(&src);
 	CLOSE(fd);
