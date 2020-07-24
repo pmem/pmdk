@@ -68,10 +68,11 @@
         pmem2_get_memmove_fn.3
         pmem2_get_memset_fn.3
         pmem2_get_persist_fn.3
-        pmem2_map.3
+        pmem2_map_delete.3
         pmem2_map_get_address.3
         pmem2_map_get_size.3
         pmem2_map_get_store_granularity.3
+        pmem2_map_new.3
         pmem2_perror.3
         pmem2_source_alignment.3
         pmem2_source_delete.3
@@ -79,8 +80,9 @@
         pmem2_source_from_fd.3
         pmem2_source_from_handle.3
         pmem2_source_size.3
-        pmem2_unmap.3
         pmem2_vm_reservation_delete.3
+        pmem2_vm_reservation_get_address.3
+        pmem2_vm_reservation_get_size.3
         pmem2_vm_reservation_new.3
 
     libpmemblk:
@@ -435,10 +437,11 @@
         pmem2_get_memmove_fn.3
         pmem2_get_memset_fn.3
         pmem2_get_persist_fn.3
-        pmem2_map.3
+        pmem2_map_delete.3
         pmem2_map_get_address.3
         pmem2_map_get_size.3
         pmem2_map_get_store_granularity.3
+        pmem2_map_new.3
         pmem2_perror.3
         pmem2_source_alignment.3
         pmem2_source_delete.3
@@ -448,8 +451,9 @@
         pmem2_source_from_fd.3
         pmem2_source_from_handle.3
         pmem2_source_size.3
-        pmem2_unmap.3
         pmem2_vm_reservation_delete.3
+        pmem2_vm_reservation_get_address.3
+        pmem2_vm_reservation_get_size.3
         pmem2_vm_reservation_new.3
 
     libpmemblk:
