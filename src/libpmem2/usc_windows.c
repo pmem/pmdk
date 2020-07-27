@@ -202,7 +202,7 @@ pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 
 	if (!bResult) {
 		ERR(
-			"Getting unsafe shutdown count is not supported on this system");
+			"Unsafe shutdown count is not supported for this source");
 		CloseHandle(vHandle);
 		return PMEM2_E_NOSUPP;
 	}
