@@ -50,7 +50,7 @@ this function once for all flushes belonging to those mappings.
 
 The **pmem2_get_drain_fn**() function never returns NULL.
 
-**pmem2_get_drain_fn**() for the same *map* always returns the same function.
+The **pmem2_get_drain_fn**() for the same *map* always returns the same function.
 This means that it's safe to cache its return value. However, this function
 is very cheap (because it returns a precomputed value), so caching may not
 be necessary.
