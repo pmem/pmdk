@@ -17,6 +17,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -67,13 +68,14 @@ It is not supported on Windows.
 
 The **pmem2_badblock_context_new**() function returns 0 on success
 or a negative error code on failure.
-**pmem2_badblock_context_new**() sets *\*bbctx* to NULL on failure.
 
-**pmem2_badblock_context_delete**() does not return any value.
+The **pmem2_badblock_context_new**() sets *\*bbctx* to NULL on failure.
+
+The **pmem2_badblock_context_delete**() does not return any value.
 
 # ERRORS #
 
-**pmem2_badblock_context_new**() can fail with the following errors:
+The **pmem2_badblock_context_new**() can fail with the following errors:
 
 * **PMEM2_E_INVALID_FILE_TYPE** - *src* is not a regular file nor
 a character device.

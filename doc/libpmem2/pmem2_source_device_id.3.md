@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -51,8 +52,12 @@ please refer to **libpmem2_unsafe_shutdown**(7) manual page.
 # RETURN VALUE #
 
 The **pmem2_source_device_id**() function returns 0 on success.
-If the function fails, the *\*id* and *\*len* variables contents are left unmodified,
-and one of the following errors is returned:
+If the function fails, the *\*id* and *\*len* variables contents are left unmodified
+and a negative error code is returned.
+
+# ERRORS #
+
+The **pmem2_source_device_id**() can fail with the following errors:
 
 On all systems:
 

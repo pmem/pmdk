@@ -64,10 +64,14 @@ The **pmem2_source_delete**() function frees *\*src* returned by **pmem2_source_
 
 # RETURN VALUE #
 
-**pmem2_source_from_fd**() and **pmem2_source_from_handle**() functions return 0 on success or one of the error values listed in the next section.
+The **pmem2_source_from_fd**() and **pmem2_source_from_handle**() functions return 0 on success
+or a negative error code on failure.
+
+The **pmem2_source_delete**() function always returns 0.
 
 # ERRORS #
-The **pmem2_source_from_fd**() function can return the following errors:
+
+The **pmem2_source_from_[fd|handle]**() function can fail with the following errors:
 
  * **PMEM2_E_INVALID_FILE_HANDLE** - *fd* is not an open and valid file descriptor. On Windows the function can **abort**() on this failure based on CRT's abort() behavior.
 

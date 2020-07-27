@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -41,6 +42,10 @@ The **pmem2_config_set_vm_reservation**() function is not supported yet.
 # RETURN VALUE #
 
 **pmem2_config_set_vm_reservation**() returns PMEM2_E_NOSUPP .
+
+# ERRORS #
+
+The **pmem2_config_set_vm_reservation**() function is not supported yet.
 
 # SEE ALSO #
 
