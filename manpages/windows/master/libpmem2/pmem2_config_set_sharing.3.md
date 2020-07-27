@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -48,8 +49,12 @@ not visible to other mappings of the same memory region.
 
 # RETURN VALUE #
 
-The **pmem2_config_set_sharing**() function returns 0 on success. Otherwise, it
-returns:
+The **pmem2_config_set_sharing**() function returns 0 on success
+or a negative error code on failure.
+
+# ERRORRS #
+
+The **pmem2_config_set_sharing**() can fail with the following errors:
 
 * **PMEM2_E_INVALID_SHARING_VALUE** - *sharing* value is invalid.
 

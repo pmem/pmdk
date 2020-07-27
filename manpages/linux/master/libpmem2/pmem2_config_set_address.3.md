@@ -16,6 +16,7 @@ date: pmem2 API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
@@ -57,8 +58,12 @@ space is occupied, **pmem2_map_new**(3) fails with the **PMEM2_E_MAPPING_EXISTS*
 
 # RETURN VALUE #
 
-When **pmem2_config_set_address**() succeeds it returns 0. Otherwise, it returns one of the following
-error values:
+The **pmem2_config_set_address**() function returns 0 on success
+or a negative error code on failure.
+
+# ERRORS #
+
+The **pmem2_config_set_address**() can fail with the following errors:
 
 * **PMEM2_E_INVALID_ADDRESS_REQUEST_TYPE** - set address request type is invalid.
 

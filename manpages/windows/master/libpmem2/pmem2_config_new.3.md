@@ -8,7 +8,7 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019, Intel Corporation)
+[comment]: <> (Copyright 2020, Intel Corporation)
 
 [comment]: <> (pmem2_config_new.3 -- man page for pmem2_config_new and pmem2_config_delete)
 
@@ -47,9 +47,10 @@ If *\*cfg* is NULL, no operation is performed.
 The **pmem2_config_new**() function returns 0 on success or a negative error code on failure.
 **pmem2_config_new**() does set *\*cfg* to NULL on failure.
 
-The **pmem2_config_delete**() function returns 0.
+The **pmem2_config_delete**() function always returns 0.
 
 # ERRORS #
+
 **pmem2_config_new**() can fail with the following error:
 - **-ENOMEM** - out of memory
 
