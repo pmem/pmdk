@@ -86,6 +86,9 @@
 										<li><a href="/pmdk/manpages/{{ system }}/{{ version_tag }}/pmem_ctl/pmem_ctl.5">pmem_ctl</a></li>
 									{% endif %}
 								{% endif %}
+								{% if dc_title == "libpmem2" %}
+									<li><a href="/pmdk/manpages/{{ system }}/{{ version_tag }}/{{ dc_title }}/libpmem2_unsafe_shutdown.7">libpmem2_unsafe_shutdown</a></li>
+								{% endif  %}
 								<li><a href="/pmdk/manpages/{{ system }}/{{ version_tag }}/{{ dc_title }}/{{ dc_title_ext }}">{{ dc_title }}</a></li>
 								{% assign rev_functions =  release.func.[dc_title] | split: " " %}
 								{% for rev_function in rev_functions %}
