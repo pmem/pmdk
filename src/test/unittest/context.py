@@ -30,6 +30,7 @@ from python_gdb import GdbProcess
 from tools import Tools
 from consts import KiB, MiB, HEADER_SIZE
 from unsafe_shutdown import UnsafeShutdown
+from badblock import BadBlock
 
 try:
     import testconfig
@@ -201,6 +202,10 @@ class ContextBase:
     @property
     def usc(self):
         return UnsafeShutdown()
+
+    @property
+    def badblock(self):
+        return BadBlock(self.tools)
 
     def dump_n_lines(self, file, n=-1):
         """
