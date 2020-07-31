@@ -53,6 +53,9 @@ class Tools:
     def gran_detecto(self, *args):
         return self._run_test_tool('gran_detecto', *args)
 
+    def extents(self, *args):
+        return self._run_test_tool('extents', *args)
+
     def cpufd(self):
         return self._run_test_tool('cpufd')
 
@@ -73,7 +76,7 @@ class Ndctl:
             futils.fail('ndctl is not available on Windows')
 
         self.version = self._get_ndctl_version()
-        self.ndctl_list_output = self._cmd_out_to_json('list', '-RNDv')
+        self.ndctl_list_output = self._cmd_out_to_json('list', '-RNDMv')
 
     def _cmd_out_to_json(self, *args):
         cmd = ['ndctl', *args]
@@ -139,7 +142,7 @@ class Ndctl:
 
         if not dev:
             raise futils.Fail('ndctl does not recognize the device: "{}"'
-                              .format(dev))
+                              .format(dev_path))
         return dev
 
     # for ndctl v63 we need to parse ndctl list in a different way than for v64
@@ -193,6 +196,15 @@ class Ndctl:
 
     def get_dev_mode(self, dev_path):
         return self._get_dev_param(dev_path, 'mode')
+
+    def get_dev_sector_size(self, dev_path):
+        return self._get_dev_param(dev_path, 'sector_size')
+
+    def get_dev_namespace(self, dev_path):
+        return self._get_dev_param(dev_path, 'dev')
+
+    def get_dev_bb_count(self, dev_path):
+        return self._get_dev_param(dev_path, 'badblock_count')
 
     def is_devdax(self, dev_path):
         return self.get_dev_mode(dev_path) == 'devdax'
