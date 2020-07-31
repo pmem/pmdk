@@ -6,6 +6,7 @@
 from os.path import join, abspath
 import os
 import sys
+import subprocess as sp
 
 import consts as c
 import configurator
@@ -79,6 +80,15 @@ def count(file, substring):
         content = f.read()
 
     return content.count(substring)
+
+
+def run_command(cmd, errormsg=""):
+    proc = sp.Popen(cmd, shell=True, stdout=sp.PIPE, stderr=sp.STDOUT)
+    out = proc.communicate()
+
+    if proc.returncode != 0:
+        raise Fail("failed to execute command {}: {}".format(cmd, errormsg))
+    return out[0]
 
 
 class Color:
