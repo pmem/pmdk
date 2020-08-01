@@ -538,8 +538,8 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	unsigned long long bb_end;
 	unsigned long long bb_len;
 	unsigned long long bb_off;
-	unsigned long long ext_beg;
-	unsigned long long ext_end;
+	unsigned long long ext_beg = 0; /* placate compiler warnings */
+	unsigned long long ext_end = -1ULL;
 	unsigned e;
 	int ret;
 
