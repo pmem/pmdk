@@ -209,7 +209,7 @@ pmem2_config_set_address(struct pmem2_config *cfg, void *addr,
 		return PMEM2_E_INVALID_ADDRESS_REQUEST_TYPE;
 	}
 
-	if (request_type == PMEM2_ADDRESS_FIXED_NOREPLACE && !addr) {
+	if (!addr) {
 		ERR(
 			"cannot use address request type PMEM2_ADDRESS_FIXED_NOREPLACE with addr being NULL");
 		return PMEM2_E_ADDRESS_NULL;
