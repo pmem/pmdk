@@ -6,7 +6,8 @@ $(nW)file.pool: cannot repair
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x00
 $(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 checking pool header
 pool header correct
 checking pmemlog header
@@ -20,7 +21,8 @@ $(nW)file.pool: cannot repair
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x00
 $(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 checking pool header
 pool header correct
 checking pmemblk header
@@ -38,7 +40,8 @@ $(nW)file.pool: cannot repair
 $(nW)file.pool: spoil: pool_hdr.features.compat=0x00
 $(nW)file.pool: spoil: pool_hdr.f:checksum_gen
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 checking pool header
 pool header correct
 $(nW)file.pool: consistent
