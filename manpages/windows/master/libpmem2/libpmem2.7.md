@@ -109,7 +109,7 @@ To read or clear badblocks, the following functions are provided:
 To handle unsafe shutdown in the application, the following functions are provided:
 **pmem2_source_device_id**(3), **pmem2_source_device_usc**(3).
 More detailed information about unsafe shutdown detection and unsafe shutdown count
-and can be found in the [libpmem2_unsafe_shutdown](https://pmem.io/pmdk/manpages/linux/master/libpmem2/libpmem2_unsafe_shutdown.7.html) man page.
+and can be found in the **libpmem2_unsafe_shutdown**(7) man page.
 
 # GRANULARITY #
 
@@ -299,5 +299,5 @@ by the SNIA NVM Programming Technical Work Group:
 **pmem2_get_persist_fn**(3),**pmem2_map_get_store_granularity**(3),
 **pmem2_map_new**(3), **pmem2_source_from_anon**(3),
 **pmem2_source_from_fd**(3), **pmem2_source_from_handle**(3),
-**libpmemblk**(7), **libpmemlog**(7), **libpmemobj**(7)
-and **<https://pmem.io>**
+**libpmem2_unsafe_shutdown**(7), **libpmemblk**(7),
+**libpmemlog**(7), **libpmemobj**(7) and **<https://pmem.io>**
