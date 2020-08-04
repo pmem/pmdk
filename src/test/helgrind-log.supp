@@ -1,7 +1,7 @@
 {
     <debug_log_suppress>
     Helgrind:Race
-    fun:*mempcpy
+    fun:*mem*cpy
     ...
     fun:_IO_file_xsputn@@GLIBC*
     fun:fputs
@@ -22,7 +22,7 @@
 {
     <ut_log_suppress>
     Helgrind:Race
-    fun:*mempcpy
+    fun:*mem*cpy
     fun:_IO_file_xsputn@@GLIBC*
     fun:fputs
     ...
