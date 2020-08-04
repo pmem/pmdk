@@ -27,6 +27,7 @@ import importlib.util as importutil  # noqa E402
 import subprocess as sp  # noqa E402
 
 import futils  # noqa E402
+from consts import ROOTDIR # noqa E402
 from basetest import get_testcases  # noqa E402
 from configurator import Configurator  # noqa E402
 from ctx_filter import CtxFilter  # noqa E402
@@ -164,7 +165,7 @@ def _import_testfiles():
           therefore available through basetest.get_testfiles() function
 
     """
-    for root, _, files in os.walk(futils.ROOTDIR):
+    for root, _, files in os.walk(ROOTDIR):
         for name in files:
             if name == 'TESTS.py':
                 testfile = path.join(root, name)

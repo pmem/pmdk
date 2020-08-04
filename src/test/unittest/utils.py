@@ -6,26 +6,7 @@
 import sys
 import platform
 
-HEADER_SIZE = 4096
-
-#
-# KiB, MiB, GiB ... -- byte unit prefixes
-#
-KiB = 2 ** 10
-MiB = 2 ** 20
-GiB = 2 ** 30
-TiB = 2 ** 40
-PiB = 2 ** 50
-
-
-# platform.machine() used for detecting architectures
-# gives different values for different systems.
-# Key is a normalized value of possible returned architecture values.
-NORMALIZED_ARCHS = {
-    'x86_64': ('AMD64', 'x86_64'),
-    'arm64': ('arm64', 'aarch64'),
-    'ppc64el': ('ppc64el', 'ppc64le')
-}
+import consts as c
 
 
 def require_architectures(*archs):
@@ -34,7 +15,7 @@ def require_architectures(*archs):
         this_arch = platform.machine()
 
         # normalize this_arch value
-        for normalized, possible in NORMALIZED_ARCHS.items():
+        for normalized, possible in c.NORMALIZED_ARCHS.items():
             if this_arch in possible:
                 this_arch = normalized
 

@@ -27,7 +27,7 @@ import configurator
 import futils
 from poolset import _Poolset
 from tools import Tools
-from utils import KiB, MiB, HEADER_SIZE
+from consts import KiB, MiB, HEADER_SIZE
 
 try:
     import testconfig

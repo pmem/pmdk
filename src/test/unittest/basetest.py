@@ -65,6 +65,7 @@ from datetime import datetime
 from os import path
 
 from configurator import Configurator
+from consts import LIBS_LIST, ROOTDIR
 import futils
 import test_types
 
@@ -259,10 +260,9 @@ class Test(BaseTest):
         Return environment variables that enable logging PMDK debug output
         into log files
         """
-        libs = ('pmem', 'pmem2', 'pmemobj', 'pmemblk', 'pmemlog', 'pmempool')
 
         envs = {}
-        for l in libs:
+        for l in LIBS_LIST:
             envs['{}_LOG_LEVEL'.format(l.upper())] = '3'
             log_file = os.path.join(self.cwd,
                                     '{}_{}.log'.format(l, self.testnum))
@@ -333,7 +333,7 @@ class Test(BaseTest):
 
         match_files = filter(is_matchfile, cwd_listdir)
         prefix = 'perl ' if sys.platform == 'win32' else ''
-        match_cmd = prefix + path.join(futils.ROOTDIR, 'match')
+        match_cmd = prefix + path.join(ROOTDIR, 'match')
 
         for mf in match_files:
             cmd = '{} {}'.format(match_cmd, mf)
