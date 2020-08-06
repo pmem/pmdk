@@ -11,6 +11,7 @@ from os import path
 
 import context as ctx
 import futils
+from consts import ROOTDIR
 
 
 DISABLE = -1
@@ -228,7 +229,7 @@ class Valgrind:
         relative to tests root directory (pmdk/src/test)
         """
         self.opts.append('--suppressions={}'
-                         .format(path.join(futils.ROOTDIR, f)))
+                         .format(path.join(ROOTDIR, f)))
 
     def validate_log(self):
         """

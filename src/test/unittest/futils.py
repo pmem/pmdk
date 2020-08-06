@@ -3,54 +3,39 @@
 
 """Test framework utilities."""
 
-from os.path import join, abspath, dirname
+from os.path import join, abspath
 import os
 import sys
 
+import consts as c
 import configurator
-
-# Constant paths to repository elements
-ROOTDIR = abspath(join(dirname(__file__), '..'))
-
-WIN_DEBUG_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Debug'))
-WIN_DEBUG_EXEDIR = abspath(join(WIN_DEBUG_BUILDDIR, 'tests'))
-
-WIN_RELEASE_BUILDDIR = abspath(join(ROOTDIR, '..', 'x64', 'Release'))
-WIN_RELEASE_EXEDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'tests'))
-
-if sys.platform == 'win32':
-    DEBUG_LIBDIR = abspath(join(WIN_DEBUG_BUILDDIR, 'libs'))
-    RELEASE_LIBDIR = abspath(join(WIN_RELEASE_BUILDDIR, 'libs'))
-else:
-    DEBUG_LIBDIR = abspath(join(ROOTDIR, '..', 'debug'))
-    RELEASE_LIBDIR = abspath(join(ROOTDIR, '..', 'nondebug'))
 
 
 def get_tool_path(ctx, name):
     if sys.platform == 'win32':
         if str(ctx.build) == 'debug':
-            return abspath(join(WIN_DEBUG_BUILDDIR, 'libs', name))
+            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'libs', name))
         else:
-            return abspath(join(WIN_RELEASE_BUILDDIR, 'libs', name))
+            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'libs', name))
     else:
-        return abspath(join(ROOTDIR, '..', 'tools', name, name))
+        return abspath(join(c.ROOTDIR, '..', 'tools', name, name))
 
 
 def get_test_tool_path(build, name):
     if sys.platform == 'win32':
         if str(build) == 'debug':
-            return abspath(join(WIN_DEBUG_BUILDDIR, 'tests', name))
+            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'tests', name))
         else:
-            return abspath(join(WIN_RELEASE_BUILDDIR, 'tests', name))
+            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'tests', name))
     else:
-        return abspath(join(ROOTDIR, 'tools', name, name))
+        return abspath(join(c.ROOTDIR, 'tools', name, name))
 
 
 def get_lib_dir(ctx):
     if str(ctx.build) == 'debug':
-        return DEBUG_LIBDIR
+        return c.DEBUG_LIBDIR
     else:
-        return RELEASE_LIBDIR
+        return c.RELEASE_LIBDIR
 
 
 def get_example_path(ctx, libname, name):
@@ -64,11 +49,11 @@ def get_example_path(ctx, libname, name):
     if sys.platform == 'win32':
         binname = '_'.join(['ex', libname, name])
         if str(ctx.build) == 'debug':
-            return abspath(join(WIN_DEBUG_BUILDDIR, 'examples', binname))
+            return abspath(join(c.WIN_DEBUG_BUILDDIR, 'examples', binname))
         else:
-            return abspath(join(WIN_RELEASE_BUILDDIR, 'examples', binname))
+            return abspath(join(c.WIN_RELEASE_BUILDDIR, 'examples', binname))
     else:
-        return abspath(join(ROOTDIR, '..', 'examples', 'lib' + libname,
+        return abspath(join(c.ROOTDIR, '..', 'examples', 'lib' + libname,
                             name, name))
 
 
