@@ -32,7 +32,7 @@ test_cfg_create_and_delete_valid(const struct test_case *tc, int argc,
 }
 
 /*
- * test_cfg_alloc_enomem - test pmem2_config allocation with error injection
+ * test_alloc_cfg_enomem - test pmem2_config allocation with error injection
  */
 static int
 test_alloc_cfg_enomem(const struct test_case *tc, int argc, char *argv[])
