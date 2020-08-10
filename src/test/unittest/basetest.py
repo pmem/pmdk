@@ -262,12 +262,12 @@ class Test(BaseTest):
         """
 
         envs = {}
-        for l in LIBS_LIST:
-            envs['{}_LOG_LEVEL'.format(l.upper())] = '3'
+        for libs in LIBS_LIST:
+            envs['{}_LOG_LEVEL'.format(libs.upper())] = '3'
             log_file = os.path.join(self.cwd,
-                                    '{}_{}.log'.format(l, self.testnum))
-            envs['{}_LOG_FILE'.format(l.upper())] = log_file
-            self.log_files[l] = log_file
+                                    '{}_{}.log'.format(libs, self.testnum))
+            envs['{}_LOG_FILE'.format(libs.upper())] = log_file
+            self.log_files[libs] = log_file
         return envs
 
     def get_log_files(self):
