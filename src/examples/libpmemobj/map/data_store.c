@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2018, Intel Corporation */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * data_store.c -- tree_map example usage
@@ -40,13 +40,38 @@ struct store_root {
 };
 
 /*
- * new_store_item -- transactionally creates and initializes new item
+ * new_store_item_transact -- transactionally creates and initializes new item
  */
 static TOID(struct store_item)
-new_store_item(void)
+new_store_item_transact(void)
 {
 	TOID(struct store_item) item = TX_NEW(struct store_item);
 	D_RW(item)->item_data = rand();
+
+	return item;
+}
+
+/*
+ * store_item_construct -- initializes data of the new store item
+ */
+static int
+store_item_construct(PMEMobjpool *pop, void *ptr, void *arg)
+{
+	struct store_item *item = (struct store_item *)ptr;
+	item->item_data = rand();
+	pmemobj_persist(pop, item, sizeof(*item));
+
+	return 0;
+}
+
+/*
+ * new_store_item -- creates and initializes new item
+ */
+static TOID(struct store_item)
+new_store_item(PMEMobjpool *pop)
+{
+	TOID(struct store_item) item;
+	POBJ_NEW(pop, &item, struct store_item, store_item_construct, NULL);
 
 	return item;
 }
@@ -151,24 +176,36 @@ int main(int argc, const char *argv[]) {
 	if (!map_check(mapc, D_RW(root)->map))
 		map_destroy(mapc, &D_RW(root)->map);
 
-	/* insert random items in a transaction */
-	int aborted = 0;
-	TX_BEGIN(pop) {
+	/* untransactional APIs */
+	if (strcmp(type, "hashmap_atomic") == 0 ||
+			strcmp(type, "hashmap_rp") == 0) {
 		map_create(mapc, &D_RW(root)->map, NULL);
 
-		for (int i = 0; i < nops; ++i) {
-			/* new_store_item is transactional! */
+		/* insert random items */
+		for (int i = 0; i < nops; ++i)
 			map_insert(mapc, D_RW(root)->map, rand(),
-					new_store_item().oid);
-		}
-	} TX_ONABORT {
-		perror("transaction aborted\n");
-		map_ctx_free(mapc);
-		aborted = 1;
-	} TX_END
+					new_store_item(pop).oid);
 
-	if (aborted)
-		return -1;
+	} else {
+		/* transactional APIs should be inside transaction block */
+		int aborted = 0;
+		TX_BEGIN(pop) {
+			map_create(mapc, &D_RW(root)->map, NULL);
+
+			/* insert random items in transaction */
+			for (int i = 0; i < nops; ++i)
+				/* new_store_item_transact is transactional! */
+				map_insert(mapc, D_RW(root)->map, rand(),
+					new_store_item_transact().oid);
+		} TX_ONABORT {
+			perror("transaction aborted\n");
+			map_ctx_free(mapc);
+			aborted = 1;
+		} TX_END
+
+		if (aborted)
+			return -1;
+	}
 
 	/* count the items */
 	map_foreach(mapc, D_RW(root)->map, get_keys, NULL);
