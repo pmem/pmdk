@@ -42,11 +42,9 @@ ravl_interval_compare(const void *lhs, const void *rhs)
 	const struct ravl_interval_node *left = lhs;
 	const struct ravl_interval_node *right = rhs;
 
-	if (left->get_min(left->addr) < right->get_min(right->addr) &&
-		left->get_max(left->addr) <= right->get_min(right->addr))
+	if (left->get_max(left->addr) <= right->get_min(right->addr))
 		return -1;
-	if (left->get_min(left->addr) > right->get_min(right->addr) &&
-		left->get_max(left->addr) >= right->get_min(right->addr))
+	if (left->get_min(left->addr) >= right->get_max(right->addr))
 		return 1;
 	return 0;
 }
@@ -213,7 +211,47 @@ ravl_interval_find(struct ravl_interval *ri, void *addr)
 }
 
 /*
- * ravl_interval_data -- returns the data contained within interval node
+ * ravl_interval_find_closest_prior -- find the closest interval
+ *                                     neighbor prior to the current one
+ */
+struct ravl_interval_node *
+ravl_interval_find_closest_prior(struct ravl_interval *ri, void *addr)
+{
+	struct ravl_interval_node range;
+	range.addr = addr;
+	range.get_min = ri->get_min;
+	range.get_max = ri->get_max;
+
+	struct ravl_node *node;
+	node = ravl_find(ri->tree, &range, RAVL_PREDICATE_LESS);
+	if (!node)
+		return NULL;
+
+	return ravl_data(node);
+}
+
+/*
+ * ravl_interval_find_closest_later -- find the closest interval neighbor
+ *                                     that occurs after the current one
+ */
+struct ravl_interval_node *
+ravl_interval_find_closest_later(struct ravl_interval *ri, void *addr)
+{
+	struct ravl_interval_node range;
+	range.addr = addr;
+	range.get_min = ri->get_min;
+	range.get_max = ri->get_max;
+
+	struct ravl_node *node;
+	node = ravl_find(ri->tree, &range, RAVL_PREDICATE_GREATER);
+	if (!node)
+		return NULL;
+
+	return ravl_data(node);
+}
+
+/*
+ * ravl_interval_data -- returns the data contained within an interval node
  */
 void *
 ravl_interval_data(struct ravl_interval_node *rin)

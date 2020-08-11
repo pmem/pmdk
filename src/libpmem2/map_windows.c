@@ -13,10 +13,12 @@
 #include "auto_flush.h"
 #include "config.h"
 #include "map.h"
+#include "os_thread.h"
 #include "out.h"
 #include "persist.h"
 #include "pmem2_utils.h"
 #include "source.h"
+#include "sys_util.h"
 #include "util.h"
 
 #define HIDWORD(x) ((DWORD)((x) >> 32))
@@ -95,6 +97,110 @@ is_direct_access(HANDLE fh)
 
 	if (filesystemFlags & FILE_DAX_VOLUME)
 			return 1;
+
+	return 0;
+}
+
+struct pmem2_map *vm_reservation_map_find_closest_prior(
+		struct pmem2_vm_reservation *rsv,
+		size_t reserv_offset, size_t len);
+struct pmem2_map *vm_reservation_map_find_closest_later(
+		struct pmem2_vm_reservation *rsv,
+		size_t reserv_offset, size_t len);
+
+/*
+ * reservation_mend -- unmaps given mapping and mends reservation area
+ */
+static int
+reservation_mend(struct pmem2_vm_reservation *rsv, void *addr, size_t length)
+{
+	void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
+	size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
+	size_t rsv_offset = (size_t)addr - (size_t)rsv->addr;
+
+	if (addr < rsv_addr ||
+			(char *)addr + length > (char *)rsv_addr + rsv_size)
+		return PMEM2_E_LENGTH_OUT_OF_RANGE;
+
+	int ret = UnmapViewOfFile2(GetCurrentProcess(),
+		addr,
+		MEM_PRESERVE_PLACEHOLDER);
+	if (!ret) {
+		ERR("!!UnmapViewOfFile2");
+		return pmem2_lasterror_to_err();
+	}
+
+	/*
+	 * Before mapping to the reservation, it is neccessary to split
+	 * the unoccupied region into separate placeholders, so that
+	 * the mapping and the cut out placeholder will be of the same
+	 * size.
+	 */
+	void *mend_addr = addr;
+	size_t mend_size = length;
+	struct pmem2_map *map = NULL;
+
+	if (rsv_offset > 0) {
+		map = vm_reservation_map_find_closest_prior(rsv, rsv_offset,
+				length);
+		if (map) {
+			mend_addr = (char *)map->addr + map->reserved_length;
+			mend_size += (char *)addr - (char *)mend_addr;
+		} else {
+			mend_addr = rsv->addr;
+			mend_size += rsv_offset;
+		}
+	}
+
+	if (rsv_offset + length < rsv_size) {
+		map = vm_reservation_map_find_closest_later(rsv, rsv_offset,
+				length);
+		if (map)
+			mend_size += (char *)map->addr - (char *)addr - length;
+		else
+			mend_size += rsv->size - rsv_offset - length;
+	}
+
+	if (addr != mend_addr) {
+		ret = VirtualFree(mend_addr,
+			mend_size,
+			MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS);
+		if (!ret) {
+			ERR("!!VirtualFree");
+			return pmem2_lasterror_to_err();
+
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * reservation_split - splits the virtual memory reservation into
+ *                     separate regions
+ */
+int
+reservation_split(struct pmem2_vm_reservation *rsv, size_t rsv_offset,
+		size_t length)
+{
+	void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
+	size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
+
+	if ((rsv_offset > 0 && !vm_reservation_map_find(rsv,
+			rsv_offset - 1, 1)) ||
+			(rsv_offset + length < rsv_size &&
+			!vm_reservation_map_find(rsv,
+			rsv_offset + length, 1))) {
+		/* split the placeholder */
+		int ret = VirtualFree((char *)rsv_addr + rsv_offset,
+			length,
+			MEM_RELEASE | MEM_PRESERVE_PLACEHOLDER);
+		if (!ret) {
+			ERR("!!VirtualFree");
+			ret = pmem2_lasterror_to_err();
+			return ret;
+		}
+	}
 
 	return 0;
 }
@@ -226,31 +332,101 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 	ret = pmem2_config_validate_addr_alignment(cfg, src);
 	if (ret)
-		return ret;
+		goto err_close_mapping_handle;
 
-	/* let's get addr from cfg struct */
-	LPVOID addr_hint = cfg->addr;
+	/* prepare pmem2_map structure */
+	struct pmem2_map *map;
+	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
+	if (!map)
+		goto err_close_mapping_handle;
 
-	/* obtain a pointer to the mapping view */
-	void *base = MapViewOfFileEx(mh,
-		access,
-		HIDWORD(effective_offset),
-		LODWORD(effective_offset),
-		length,
-		addr_hint); /* hint address */
+	void *base;
+	if (cfg->reserv) {
+		void *rsv = cfg->reserv;
+		void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
+		size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
+		size_t rsv_offset = cfg->reserv_offset;
 
-	if (base == NULL) {
-		ERR("!!MapViewOfFileEx");
-		if (cfg->addr_request == PMEM2_ADDRESS_FIXED_NOREPLACE) {
+		/* check if reservation has enough space */
+		if (rsv_offset + length > rsv_size) {
+			ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
+			goto err_free_map_struct;
+		}
+
+		if (rsv_offset % Mmap_align) {
+			ret = PMEM2_E_OFFSET_UNALIGNED;
+			ERR(
+				"virtual memory reservation offset %zu is not a multiple of %llu",
+					rsv_offset, Mmap_align);
+			goto err_free_map_struct;
+		}
+
+		map->addr = (char *)rsv_addr + rsv_offset;
+		map->content_length = length;
+
+		/* register wanted vm reservation region */
+		ret = vm_reservation_map_register(cfg->reserv, map);
+		if (ret)
+			goto err_free_map_struct;
+
+		/*
+		 * Before mapping to the reservation, it is neccessary to split
+		 * the unoccupied region into separate placeholders, so that
+		 * the mapping and the cut out placeholder will be of the same
+		 * size.
+		 */
+		util_rwlock_wrlock(&split_merge_lock);
+		ret = reservation_split(rsv, rsv_offset, length);
+		util_rwlock_unlock(&split_merge_lock);
+		if (ret)
+			goto err_vm_reserv_unregister;
+
+		/* replace placeholder with a regular mapping */
+		base = MapViewOfFile3(mh,
+			NULL,
+			(char *)rsv_addr + rsv_offset, /* addr in reservation */
+			0,
+			length,
+			MEM_REPLACE_PLACEHOLDER,
+			proto,
+			NULL,
+			0);
+
+		if (base == NULL) {
+			ERR("!!MapViewOfFile3");
 			DWORD ret_windows = GetLastError();
 			if (ret_windows == ERROR_INVALID_ADDRESS)
 				ret = PMEM2_E_MAPPING_EXISTS;
 			else
 				ret = pmem2_lasterror_to_err();
+			goto err_vm_reserv_unregister;
 		}
-		else
-			ret = pmem2_lasterror_to_err();
-		goto err_close_mapping_handle;
+	} else {
+		/* let's get addr from cfg struct */
+		LPVOID addr_hint = cfg->addr;
+
+		/* obtain a pointer to the mapping view */
+		base = MapViewOfFileEx(mh,
+			access,
+			HIDWORD(effective_offset),
+			LODWORD(effective_offset),
+			length,
+			addr_hint); /* hint address */
+
+		if (base == NULL) {
+			ERR("!!MapViewOfFileEx");
+			if (cfg->addr_request ==
+					PMEM2_ADDRESS_FIXED_NOREPLACE) {
+				DWORD ret_windows = GetLastError();
+				if (ret_windows == ERROR_INVALID_ADDRESS)
+					ret = PMEM2_E_MAPPING_EXISTS;
+				else
+					ret = pmem2_lasterror_to_err();
+			}
+			else
+				ret = pmem2_lasterror_to_err();
+			goto err_free_map_struct;
+		}
 	}
 
 	if (!CloseHandle(mh)) {
@@ -292,12 +468,6 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		goto err_unmap_base;
 	}
 
-	/* prepare pmem2_map structure */
-	struct pmem2_map *map;
-	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
-	if (!map)
-		goto err_unmap_base;
-
 	map->addr = base;
 	/*
 	 * XXX probably in some cases the reserved length > the content length.
@@ -306,25 +476,39 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	map->reserved_length = length;
 	map->content_length = length;
 	map->effective_granularity = available_min_granularity;
+	map->reserv = cfg->reserv;
 	map->source = *src;
 	pmem2_set_flush_fns(map);
 	pmem2_set_mem_fns(map);
 
 	ret = pmem2_register_mapping(map);
 	if (ret)
-		goto err_register;
+		goto err_unmap_base;
 
 	/* return a pointer to the pmem2_map structure */
 	*map_ptr = map;
 
 	return ret;
 
-err_register:
+err_unmap_base:
+	/*
+	 * if the reservation was given by pmem2_config, instead of unmapping,
+	 * we will need to map with MAP_FIXED to mend the reservation
+	 */
+	if (cfg->reserv) {
+		reservation_mend(cfg->reserv, base, length);
+		vm_reservation_map_unregister(cfg->reserv, map);
+	} else
+		UnmapViewOfFile(base);
 	free(map);
 
-err_unmap_base:
-	UnmapViewOfFile(base);
 	return ret;
+
+err_vm_reserv_unregister:
+	vm_reservation_map_unregister(cfg->reserv, map);
+
+err_free_map_struct:
+	free(map);
 
 err_close_mapping_handle:
 	CloseHandle(mh);
@@ -345,9 +529,22 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 	if (ret)
 		return ret;
 
-	if (!UnmapViewOfFile(map->addr)) {
-		ERR("!!UnmapViewOfFile");
-		return pmem2_lasterror_to_err();
+	if (map->reserv) {
+		util_rwlock_wrlock(&split_merge_lock);
+		ret = reservation_mend(map->reserv, map->addr,
+				map->reserved_length);
+		util_rwlock_unlock(&split_merge_lock);
+		if (ret)
+			return ret;
+
+		ret = vm_reservation_map_unregister(map->reserv, map);
+		if (ret)
+			return ret;
+	} else {
+		if (!UnmapViewOfFile(map->addr)) {
+			ERR("!!UnmapViewOfFile");
+			return pmem2_lasterror_to_err();
+		}
 	}
 
 	Free(map);

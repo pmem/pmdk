@@ -91,6 +91,10 @@ the alignment required for specific *\*source*. Please see
 
 * **PMEM2_E_SRC_DEVDAX_PRIVATE** - device DAX mapped with MAP_PRIVATE. (Linux only)
 
+* **PMEM2_E_ADDRESS_UNALIGNED** - when mapping device DAX to a virtual memory reservation
+and the base mapping address (reservation address + reservation offset) is not aligned
+to the device DAX granularity. Please see **pmem2_config_set_vm_reservation**(3). (Linux only)
+
 * **PMEM2_E_NOSUPP** - when config-provided protection flags combination is not supported.
 
 * **PMEM2_E_NO_ACCESS** - there is a conflict between mapping protection and file opening mode.
