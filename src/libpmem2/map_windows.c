@@ -517,21 +517,23 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 	if (ret)
 		return ret;
 
-	if (map->reserv) {
-		util_rwlock_wrlock(&split_merge_lock);
-		ret = reservation_mend(map->reserv, map->addr,
+	if (map->reserved_length != 0) {
+		if (map->reserv) {
+			util_rwlock_wrlock(&split_merge_lock);
+			ret = reservation_mend(map->reserv, map->addr,
 				map->reserved_length);
-		util_rwlock_unlock(&split_merge_lock);
-		if (ret)
-			return ret;
+			util_rwlock_unlock(&split_merge_lock);
+			if (ret)
+				return ret;
 
-		ret = vm_reservation_map_unregister(map->reserv, map);
-		if (ret)
-			return ret;
-	} else {
-		if (!UnmapViewOfFile(map->addr)) {
-			ERR("!!UnmapViewOfFile");
-			return pmem2_lasterror_to_err();
+			ret = vm_reservation_map_unregister(map->reserv, map);
+			if (ret)
+				return ret;
+		} else {
+			if (!UnmapViewOfFile(map->addr)) {
+				ERR("!!UnmapViewOfFile");
+				return pmem2_lasterror_to_err();
+			}
 		}
 	}
 
