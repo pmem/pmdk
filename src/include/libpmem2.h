@@ -69,6 +69,7 @@ extern "C" {
 #define PMEM2_E_INVALID_PROT_FLAG		(-100031)
 #define PMEM2_E_NO_ACCESS			(-100032)
 #define PMEM2_E_VM_RESERVATION_NOT_EMPTY	(-100033)
+#define PMEM2_E_MAP_EXISTS			(-100034)
 
 /* source setup */
 
@@ -153,6 +154,9 @@ void pmem2_config_clear_address(struct pmem2_config *cfg);
 /* mapping */
 
 struct pmem2_map;
+int pmem2_map_from_existing(struct pmem2_map **map,
+	const struct pmem2_source *src, void *addr, size_t len,
+	enum pmem2_granularity gran);
 
 int pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		const struct pmem2_source *src);
