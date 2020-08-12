@@ -31,8 +31,13 @@ date: pmem2 API version 1.0
 struct pmem2_config;
 struct pmem2_source;
 struct pmem2_map;
+
 int pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *config,
 		const struct pmem2_source *source);
+
+int pmem2_map_from_existing(struct pmem2_map **map, const struct pmem2_source *src,
+	void *addr, size_t len, enum pmem2_granularity gran);
+
 ```
 
 # DESCRIPTION #
@@ -56,6 +61,9 @@ returned. For a list of possible return values please see
 All *struct pmem2_map* objects created via the **pmem2_map_new**() function have to
 be destroyed using the **pmem2_map_delete**() function. For details please see
 **pmem2_map_delete**(3) manual page.
+
+The **pmem2_map_from_existing**() returns a new *struct pmem2_map** for mapping
+provided by the user. User must provide **src* which describes file was used to create mapping. Also he must provide granularity of the mapping. See **pmem2_config_set_required_store_granularity**(3) and **libpmem2**(7) for more details.
 
 # RETURN VALUE #
 
@@ -108,6 +116,11 @@ append-only file.
 
 It can also return all errors from the underlying
 **pmem2_source_size**() and **pmem2_source_alignment**() functions.
+
+When **pmem2_map_from_existing**() succeeds it returns 0. Otherwise, it returns
+one of the following error values:
+**PMEM2_E_MAPPING_EXISTS** - when contiguous region (*addr*, *addr* + *len*)
+is all ready registered by libpmem2
 
 # SEE ALSO #
 
