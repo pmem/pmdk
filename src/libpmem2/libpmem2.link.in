@@ -33,6 +33,7 @@ LIBPMEM2_1.0 {
 		pmem2_map_get_size;
 		pmem2_map_get_store_granularity;
 		pmem2_map_new;
+		pmem2_map_from_existing;
 		pmem2_perror;
 		pmem2_source_alignment;
 		pmem2_source_delete;

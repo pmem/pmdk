@@ -584,21 +584,28 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 	if (ret)
 		return ret;
 
-	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->content_length);
+	/*
+	 * when reserved_length==0 mapping is created by pmem2_map_from_existing
+	 * such mappings are provided by the users and shouldn't be unmapped
+	 * by pmem2.
+	 */
+	if (map->reserved_length) {
+		VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->content_length);
 
-	if (map->reserv) {
-		ret = vm_reservation_map_unregister(map->reserv, map);
-		if (ret)
-			return ret;
+		if (map->reserv) {
+			ret = vm_reservation_map_unregister(map->reserv, map);
+			if (ret)
+				return ret;
 
-		ret = vm_reservation_mend(map->reserv, map->addr,
-				map->reserved_length);
-		if (ret)
-			return ret;
-	} else {
-		ret = unmap(map->addr, map->reserved_length);
-		if (ret)
-			return ret;
+			ret = vm_reservation_mend(map->reserv, map->addr,
+					map->reserved_length);
+			if (ret)
+				return ret;
+		} else {
+			ret = unmap(map->addr, map->reserved_length);
+			if (ret)
+				return ret;
+		}
 	}
 
 	Free(map);

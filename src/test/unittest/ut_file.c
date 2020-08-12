@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * ut_file.c -- unit test file operations
@@ -327,3 +327,53 @@ ut_ftruncate(const char *file, int line, const char *func, int fd,
 
 	return retval;
 }
+
+#ifdef _WIN32
+/*
+ * file_map -- map file without using pmdk api
+ */
+void *
+ut_file_map(const char *file, int line, const char *func, int fd, size_t size)
+{
+	void *addr = NULL;
+	HANDLE handle = (HANDLE)_get_osfhandle(fd);
+	UT_ASSERTne(handle, INVALID_HANDLE_VALUE);
+
+	HANDLE mh = CreateFileMapping(handle,
+		NULL,
+		PAGE_READWRITE,
+		size >> 32,
+		size & 0xFFFFFFFF,
+		NULL);
+
+	if (mh == INVALID_HANDLE_VALUE)
+		ut_fatal(file, line, func, "!!CreateFileMapping");
+
+	addr = MapViewOfFileEx(mh,
+		FILE_MAP_ALL_ACCESS,
+		0,
+		0,
+		size,
+		NULL);
+
+	if (addr == NULL)
+		ut_fatal(file, line, func, "!!CreateFileMapping");
+
+	if (CloseHandle(mh) == 0)
+		ut_fatal(file, line, func, "!!CloseHandle");
+
+	return addr;
+}
+#else
+/*
+ * file_map -- map file without using pmdk api
+ */
+void *
+ut_file_map(const char *file, int line, const char *func, int fd, size_t size)
+{
+	void *addr = NULL;
+	ut_mmap(file, line, func, addr, size, PROT_READ | PROT_WRITE,
+		MAP_SHARED, fd, 0);
+	return addr;
+}
+#endif
