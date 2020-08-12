@@ -287,3 +287,19 @@ class TEST37(PMEM2_INTEGRATION_DEV_DAXES):
 class TEST38(PMEM2_INTEGRATION):
     """test for unaligned persists"""
     test_case = "test_unaligned_persist"
+
+
+class TEST39(PMEM2_INTEGRATION):
+    """compare normal map vs map_from_existing"""
+    test_case = "test_map_from_existing"
+
+
+class TES40(PMEM2_INTEGRATION):
+    """test map_from_existing from pmem2_mapping"""
+    test_case = "test_map_from_existing_map"
+
+
+@t.windows_exclude
+class TEST41(PMEM2_INTEGRATION_DEV_DAXES):
+    """compare normal map vs map_from_existing on devdax"""
+    test_case = "test_map_from_existing"
