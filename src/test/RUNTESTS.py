@@ -84,7 +84,6 @@ class TestRunner:
                             t._execute(c)
                         else:
                             continue
-
                     except futils.Skip as s:
                         self.msg.print_verbose('{}: SKIP: {}'.format(t, s))
 
@@ -93,7 +92,6 @@ class TestRunner:
                         ret = 1
                     else:
                         self._test_passed(t)
-
             except futils.Skip as s:
                 self.msg.print_verbose('{}: SKIP: {}'.format(tc, s))
             except futils.Fail as f:
