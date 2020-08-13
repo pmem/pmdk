@@ -2775,6 +2775,12 @@ function check() {
 			match $option $FILES
 		fi
 	fi
+	# Move logs to build folder
+	LOG_DIR=logs/$TEST/$REAL_FS/$BUILD$MCSTR$PROV$PM
+	if [ ! -d $LOG_DIR ]; then mkdir --parents $LOG_DIR; fi
+	for f in $(get_files ".*[a-zA-Z_]${UNITTEST_NUM}\.log"); do
+		mv -f $f $LOG_DIR/$f
+	done
 }
 
 #
