@@ -488,8 +488,13 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	ret = file_map(reserv, content_length, proto, flags, map_fd, off,
 			&map_sync, &addr);
 	if (ret) {
-		/* unmap the reservation mapping */
-		munmap(reserv, reserved_length);
+		/*
+		 * unmap the reservation mapping only
+		 * if it wasn't provided by the config
+		 */
+		if (!cfg->reserv)
+			munmap(reserv, reserved_length);
+
 		if (ret == -EACCES)
 			ret = PMEM2_E_NO_ACCESS;
 		else if (ret == -ENOTSUP)
