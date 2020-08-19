@@ -251,6 +251,7 @@ pmem2_badblock_context_new(struct pmem2_badblock_context **bbctx,
 	const struct pmem2_source *src)
 {
 	LOG(3, "src %p bbctx %p", src, bbctx);
+	PMEM2_ERR_CLR();
 
 	ASSERTne(bbctx, NULL);
 
@@ -362,6 +363,7 @@ void
 pmem2_badblock_context_delete(struct pmem2_badblock_context **bbctx)
 {
 	LOG(3, "bbctx %p", bbctx);
+	PMEM2_ERR_CLR();
 
 	ASSERTne(bbctx, NULL);
 
@@ -529,6 +531,7 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 			struct pmem2_badblock *bb)
 {
 	LOG(3, "bbctx %p bb %p", bbctx, bb);
+	PMEM2_ERR_CLR();
 
 	ASSERTne(bbctx, NULL);
 	ASSERTne(bb, NULL);
@@ -544,7 +547,7 @@ pmem2_badblock_next(struct pmem2_badblock_context *bbctx,
 	int ret;
 
 	if (bbctx->rgn.region == NULL && bbctx->ndns == NULL) {
-		/* did not found any matching device */
+		ERR("Cannot find any matching device, no bad blocks found");
 		return PMEM2_E_NO_BAD_BLOCK_FOUND;
 	}
 
@@ -674,6 +677,7 @@ static int
 pmem2_badblock_clear_fsdax(int fd, const struct pmem2_badblock *bb)
 {
 	LOG(3, "fd %i badblock %p", fd, bb);
+	PMEM2_ERR_CLR();
 
 	ASSERTne(bb, NULL);
 
@@ -753,6 +757,7 @@ pmem2_badblock_clear(struct pmem2_badblock_context *bbctx,
 			const struct pmem2_badblock *bb)
 {
 	LOG(3, "bbctx %p badblock %p", bbctx, bb);
+	PMEM2_ERR_CLR();
 
 	ASSERTne(bbctx, NULL);
 	ASSERTne(bb, NULL);

@@ -23,6 +23,7 @@ int
 pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 {
 	LOG(3, "type %d, uid %p", src->type, usc);
+	PMEM2_ERR_CLR();
 
 	if (src->type == PMEM2_SOURCE_ANON) {
 		ERR("Anonymous source does not support unsafe shutdown count");
@@ -78,6 +79,8 @@ err:
 int
 pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 {
+	PMEM2_ERR_CLR();
+
 	struct ndctl_ctx *ctx;
 	struct ndctl_dimm *dimm;
 	int ret;
