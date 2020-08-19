@@ -52,6 +52,7 @@
 #include "persist.h"
 #include "pmem2_arch.h"
 #include "pmem2_utils.h"
+#include "ut_pmem2_utils.h"
 #include "region_namespace.h"
 #include "unittest.h"
 
@@ -256,19 +257,19 @@ test_deep_flush_func(const struct test_case *tc, int argc, char *argv[])
 	map.effective_granularity = PMEM2_GRANULARITY_PAGE;
 	pmem2_set_flush_fns(&map);
 	int ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	counters_check_n_reset(0, 0, 0, 0, 0);
 
 	map.effective_granularity = PMEM2_GRANULARITY_CACHE_LINE;
 	pmem2_set_flush_fns(&map);
 	ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	counters_check_n_reset(1, 0, 0, 0, 0);
 
 	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
 	pmem2_set_flush_fns(&map);
 	ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	counters_check_n_reset(1, 0, 0, 0, 0);
 
 	FREE(map.addr);
@@ -292,33 +293,33 @@ test_deep_flush_func_devdax(const struct test_case *tc, int argc, char *argv[])
 	map.effective_granularity = PMEM2_GRANULARITY_CACHE_LINE;
 	pmem2_set_flush_fns(&map);
 	int ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	counters_check_n_reset(0, 1, 1, 1, 1);
 
 	deep_flush_not_needed = 1;
 	ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	counters_check_n_reset(0, 1, 1, 0, 1);
 
 	read_invalid = 1;
 	ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	counters_check_n_reset(0, 1, 1, 0, 1);
 
 	map.effective_granularity = PMEM2_GRANULARITY_BYTE;
 	pmem2_set_flush_fns(&map);
 	ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	counters_check_n_reset(0, 1, 1, 1, 1);
 
 	deep_flush_not_needed = 1;
 	ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	counters_check_n_reset(0, 1, 1, 0, 1);
 
 	read_invalid = 1;
 	ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 	counters_check_n_reset(0, 1, 1, 0, 1);
 
 	FREE(map.addr);
@@ -342,7 +343,7 @@ test_deep_flush_range_beyond_mapping(const struct test_case *tc, int argc,
 	size_t len = map.content_length;
 
 	int ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, PMEM2_E_DEEP_FLUSH_RANGE);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_DEEP_FLUSH_RANGE);
 
 	/*
 	 * set address in the middle of mapping, which makes range partially
@@ -351,7 +352,7 @@ test_deep_flush_range_beyond_mapping(const struct test_case *tc, int argc,
 	addr = (void *)((uintptr_t)map.addr + map.content_length / 2);
 
 	ret = pmem2_deep_flush(&map, addr, len);
-	UT_ASSERTeq(ret, PMEM2_E_DEEP_FLUSH_RANGE);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_DEEP_FLUSH_RANGE);
 
 	FREE(map.addr);
 

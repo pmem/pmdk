@@ -395,6 +395,7 @@ pmem2_set_flush_fns(struct pmem2_map *map)
 pmem2_persist_fn
 pmem2_get_persist_fn(struct pmem2_map *map)
 {
+	/* we do not need to clear err because this function cannot fail */
 	return map->persist_fn;
 }
 
@@ -405,6 +406,7 @@ pmem2_get_persist_fn(struct pmem2_map *map)
 pmem2_flush_fn
 pmem2_get_flush_fn(struct pmem2_map *map)
 {
+	/* we do not need to clear err because this function cannot fail */
 	return map->flush_fn;
 }
 
@@ -415,6 +417,7 @@ pmem2_get_flush_fn(struct pmem2_map *map)
 pmem2_drain_fn
 pmem2_get_drain_fn(struct pmem2_map *map)
 {
+	/* we do not need to clear err because this function cannot fail */
 	return map->drain_fn;
 }
 
@@ -571,6 +574,7 @@ pmem2_set_mem_fns(struct pmem2_map *map)
 pmem2_memmove_fn
 pmem2_get_memmove_fn(struct pmem2_map *map)
 {
+	/* we do not need to clear err because this function cannot fail */
 	return map->memmove_fn;
 }
 
@@ -580,6 +584,7 @@ pmem2_get_memmove_fn(struct pmem2_map *map)
 pmem2_memcpy_fn
 pmem2_get_memcpy_fn(struct pmem2_map *map)
 {
+	/* we do not need to clear err because this function cannot fail */
 	return map->memcpy_fn;
 }
 
@@ -589,6 +594,7 @@ pmem2_get_memcpy_fn(struct pmem2_map *map)
 pmem2_memset_fn
 pmem2_get_memset_fn(struct pmem2_map *map)
 {
+	/* we do not need to clear err because this function cannot fail */
 	return map->memset_fn;
 }
 

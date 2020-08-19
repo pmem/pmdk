@@ -7,6 +7,7 @@
 
 #include "libpmem2.h"
 #include "out.h"
+#include "pmem2_utils.h"
 
 /*
  * pmem2_errormsgU -- return last error message

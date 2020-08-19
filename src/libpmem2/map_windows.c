@@ -213,6 +213,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		const struct pmem2_source *src)
 {
 	LOG(3, "cfg %p src %p map_ptr %p", cfg, src, map_ptr);
+	PMEM2_ERR_CLR();
 
 	int ret = 0;
 	unsigned long err = 0;
@@ -350,6 +351,9 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		/* check if reservation has enough space */
 		if (rsv_offset + length > rsv_size) {
 			ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
+			ERR(
+				"reservation has not enought space, offset %zu, length %zu, rsv size %zu",
+				rsv_offset, length, rsv_size);
 			goto err_free_map_struct;
 		}
 
@@ -522,6 +526,7 @@ int
 pmem2_map_delete(struct pmem2_map **map_ptr)
 {
 	LOG(3, "mapp %p", map_ptr);
+	PMEM2_ERR_CLR();
 
 	struct pmem2_map *map = *map_ptr;
 

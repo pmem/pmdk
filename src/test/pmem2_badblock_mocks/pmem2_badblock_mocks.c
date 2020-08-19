@@ -9,6 +9,7 @@
 
 #include "unittest.h"
 #include "out.h"
+#include "ut_pmem2_utils.h"
 #include "source.h"
 #include "badblocks.h"
 #include "pmem2_badblock_mocks.h"
@@ -37,7 +38,7 @@ enum args_t {
 	ARG_NUMBER, /* number of arguments */
 };
 
-typedef int test_fn(struct pmem2_source *src);
+typedef void test_fn(struct pmem2_source *src);
 typedef struct badblock bad_blocks_array[BAD_BLOCKS_NUMBER];
 
 /* HW bad blocks expressed in 512b sectors */
@@ -205,7 +206,7 @@ get_extents(int fd, struct extents **exts)
 /*
  * test_basic -- basic test
  */
-static int
+static void
 test_basic(struct pmem2_source *src)
 {
 	UT_OUT("TEST: test_basic: 0x%x", src->value.fd);
@@ -215,19 +216,18 @@ test_basic(struct pmem2_source *src)
 	int ret;
 
 	ret = pmem2_badblock_context_new(&bbctx, src);
-	if (ret)
-		return ret;
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	ret = pmem2_badblock_next(bbctx, &bb);
-	pmem2_badblock_context_delete(&bbctx);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_NO_BAD_BLOCK_FOUND);
 
-	return ret;
+	pmem2_badblock_context_delete(&bbctx);
 }
 
 /*
  * test_read_clear_bb -- test reading and clearing bad blocks
  */
-static int
+static void
 test_read_clear_bb(struct pmem2_source *src)
 {
 	UT_OUT("TEST: test_read_clear_bb: 0x%x", src->value.fd);
@@ -239,8 +239,7 @@ test_read_clear_bb(struct pmem2_source *src)
 	int ret;
 
 	ret = pmem2_badblock_context_new(&bbctx, src);
-	if (ret)
-		return ret;
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
 	i_bb = 0;
 	while ((ret = pmem2_badblock_next(bbctx, &bb)) == 0) {
@@ -249,6 +248,7 @@ test_read_clear_bb(struct pmem2_source *src)
 		UT_ASSERTeq(bb.offset, SEC2B(bb2->offset));
 		UT_ASSERTeq(bb.length, SEC2B(bb2->len));
 		ret = pmem2_badblock_clear(bbctx, &bb);
+		UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_NO_BAD_BLOCK_FOUND);
 		if (ret)
 			goto exit_free;
 	}
@@ -258,8 +258,6 @@ test_read_clear_bb(struct pmem2_source *src)
 
 exit_free:
 	pmem2_badblock_context_delete(&bbctx);
-
-	return ret;
 }
 
 static void
@@ -337,9 +335,6 @@ main(int argc, char *argv[])
 	parse_arguments(argc, argv, &src.value.fd, &src.value.ftype,
 		&test_func);
 	src.value.st_rdev = (dev_t)src.value.fd;
-
-	int result = test_func(&src);
-	UT_ASSERTeq(result, PMEM2_E_NO_BAD_BLOCK_FOUND);
 
 	DONE(NULL);
 }

@@ -36,6 +36,8 @@ pmem2_config_init(struct pmem2_config *cfg)
 int
 pmem2_config_new(struct pmem2_config **cfg)
 {
+	PMEM2_ERR_CLR();
+
 	int ret;
 	*cfg = pmem2_malloc(sizeof(**cfg), &ret);
 
@@ -54,6 +56,8 @@ pmem2_config_new(struct pmem2_config **cfg)
 int
 pmem2_config_delete(struct pmem2_config **cfg)
 {
+	/* we do not need to clear err because this function cannot fail */
+
 	Free(*cfg);
 	*cfg = NULL;
 	return 0;
@@ -67,6 +71,8 @@ int
 pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 		enum pmem2_granularity g)
 {
+	PMEM2_ERR_CLR();
+
 	switch (g) {
 		case PMEM2_GRANULARITY_BYTE:
 		case PMEM2_GRANULARITY_CACHE_LINE:
@@ -88,6 +94,8 @@ pmem2_config_set_required_store_granularity(struct pmem2_config *cfg,
 int
 pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
 {
+	PMEM2_ERR_CLR();
+
 	/* mmap func takes offset as a type of off_t */
 	if (offset > (size_t)INT64_MAX) {
 		ERR("offset is greater than INT64_MAX");
@@ -105,6 +113,8 @@ pmem2_config_set_offset(struct pmem2_config *cfg, size_t offset)
 int
 pmem2_config_set_length(struct pmem2_config *cfg, size_t length)
 {
+	PMEM2_ERR_CLR();
+
 	cfg->length = length;
 
 	return 0;
@@ -157,6 +167,8 @@ pmem2_config_validate_length(const struct pmem2_config *cfg,
 int
 pmem2_config_set_sharing(struct pmem2_config *cfg, enum pmem2_sharing_type type)
 {
+	PMEM2_ERR_CLR();
+
 	switch (type) {
 		case PMEM2_SHARED:
 		case PMEM2_PRIVATE:
@@ -206,6 +218,8 @@ int
 pmem2_config_set_address(struct pmem2_config *cfg, void *addr,
 		enum pmem2_address_request_type request_type)
 {
+	PMEM2_ERR_CLR();
+
 	if (request_type != PMEM2_ADDRESS_FIXED_NOREPLACE) {
 		ERR("invalid address request_type 0x%x", request_type);
 		return PMEM2_E_INVALID_ADDRESS_REQUEST_TYPE;
@@ -231,6 +245,8 @@ int
 pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
 		struct pmem2_vm_reservation *rsv, size_t offset)
 {
+	PMEM2_ERR_CLR();
+
 	cfg->reserv = rsv;
 	cfg->reserv_offset = offset;
 
@@ -244,6 +260,8 @@ pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
 void
 pmem2_config_clear_address(struct pmem2_config *cfg)
 {
+	PMEM2_ERR_CLR();
+
 	cfg->addr = NULL;
 	cfg->addr_request = PMEM2_ADDRESS_ANY;
 }
@@ -256,6 +274,8 @@ int
 pmem2_config_set_protection(struct pmem2_config *cfg,
 		unsigned prot)
 {
+	PMEM2_ERR_CLR();
+
 	unsigned unknown_prot = prot & ~(PMEM2_PROT_READ | PMEM2_PROT_WRITE |
 	PMEM2_PROT_EXEC | PMEM2_PROT_NONE);
 	if (unknown_prot) {
