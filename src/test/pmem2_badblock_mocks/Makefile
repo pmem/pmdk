@@ -7,13 +7,15 @@
 #
 
 TOP = ../../..
+vpath %.c $(TOP)/src/test/unittest
 
 TARGET = pmem2_badblock_mocks
 
 OBJS += pmem2_badblock_mocks.o\
 	mocks_ndctl.o\
 	mocks_pmem2.o\
-	mocks_other.o
+	mocks_other.o\
+	ut_pmem2_utils.o
 
 LIBPMEM2=internal-debug
 
