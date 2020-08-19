@@ -18,6 +18,8 @@
 int
 pmem2_source_from_fd(struct pmem2_source **src, int fd)
 {
+	PMEM2_ERR_CLR();
+
 	*src = NULL;
 
 	if (fd < 0)
@@ -88,6 +90,7 @@ int
 pmem2_source_size(const struct pmem2_source *src, size_t *size)
 {
 	LOG(3, "type %d", src->type);
+	PMEM2_ERR_CLR();
 
 	if (src->type == PMEM2_SOURCE_ANON) {
 		*size = src->value.size;
@@ -138,6 +141,7 @@ int
 pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 {
 	LOG(3, "type %d", src->type);
+	PMEM2_ERR_CLR();
 
 	if (src->type == PMEM2_SOURCE_ANON) {
 		*alignment = Pagesize;

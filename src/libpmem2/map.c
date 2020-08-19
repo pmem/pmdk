@@ -27,6 +27,7 @@ pmem2_map_get_address(struct pmem2_map *map)
 {
 	LOG(3, "map %p", map);
 
+	/* we do not need to clear err because this function cannot fail */
 	return map->addr;
 }
 
@@ -38,6 +39,7 @@ pmem2_map_get_size(struct pmem2_map *map)
 {
 	LOG(3, "map %p", map);
 
+	/* we do not need to clear err because this function cannot fail */
 	return map->content_length;
 }
 
@@ -50,6 +52,7 @@ pmem2_map_get_store_granularity(struct pmem2_map *map)
 {
 	LOG(3, "map %p", map);
 
+	/* we do not need to clear err because this function cannot fail */
 	return map->effective_granularity;
 }
 
@@ -203,10 +206,12 @@ pmem2_unregister_mapping(struct pmem2_map *map)
 
 	util_rwlock_wrlock(&lock);
 	node = ravl_interval_find_equal(ri, map);
-	if (node)
+	if (node) {
 		ret = ravl_interval_remove(ri, node);
-	else
+	} else {
+		ERR("Cannot find mapping %p to delete", map);
 		ret = PMEM2_E_MAPPING_NOT_FOUND;
+	}
 	util_rwlock_unlock(&lock);
 
 	return ret;
