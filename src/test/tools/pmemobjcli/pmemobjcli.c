@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* Copyright 2014-2020, Intel Corporation */
 /*
  * pmemobjcli.c -- CLI interface for pmemobj API
  */
@@ -234,18 +234,17 @@ pocli_args_obj_root(struct pocli_ctx *ctx, char *in, PMEMoid **oidp)
 	if (!input)
 		return POCLI_ERR_MALLOC;
 
+	enum pocli_ret ret = POCLI_ERR_PARS;
+
 	if (!oidp)
-		return POCLI_ERR_PARS;
+		goto out_input;
 
 	struct pocli_args *args = pocli_args_alloc(NULL, input, ".");
 	if (!args)
-		return POCLI_ERR_PARS;
-	enum pocli_ret ret = POCLI_RET_OK;
+		goto out_input;
 
-	if (strcmp(args->argv[0], "r") != 0) {
-		ret = POCLI_ERR_PARS;
+	if (strcmp(args->argv[0], "r") != 0)
 		goto out;
-	}
 
 	PMEMoid *oid = &ctx->root;
 	size_t size = pmemobj_root_size(ctx->pop);
@@ -254,27 +253,26 @@ pocli_args_obj_root(struct pocli_ctx *ctx, char *in, PMEMoid **oidp)
 		unsigned ind;
 		char c;
 		int n = sscanf(args->argv[i], "%u%c", &ind, &c);
-		if (n != 1) {
-			ret = POCLI_ERR_PARS;
+		if (n != 1)
 			goto out;
-		}
 
 		size_t max_ind = size / sizeof(PMEMoid);
-		if (!max_ind || ind >= max_ind) {
-			ret = POCLI_ERR_PARS;
+		if (!max_ind || ind >= max_ind)
 			goto out;
-		}
 
 		PMEMoid *oids = (PMEMoid *)pmemobj_direct(*oid);
 		oid = &oids[ind];
 		size = pmemobj_alloc_usable_size(*oid);
 	}
 
+	ret = POCLI_RET_OK;
+
 	*oidp = oid;
 
 out:
-	free(input);
 	free(args);
+out_input:
+	free(input);
 	return ret;
 }
 
