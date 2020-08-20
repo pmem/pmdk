@@ -485,7 +485,7 @@ test_rw_mode_rw_prot_do_execute(const struct test_case *tc,
 	return 2;
 }
 
-static const char *initial_state = "No code.";
+static const char initial_state[] = "No code.";
 
 /*
  * test_rwx_prot_map_priv_do_execute -- copy string with the program to

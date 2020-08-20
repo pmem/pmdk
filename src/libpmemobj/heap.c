@@ -1051,7 +1051,7 @@ heap_coalesce(struct palloc_heap *heap,
 		if (blocks[i] == NULL)
 			continue;
 		b = b ? b : blocks[i];
-		ret.size_idx += blocks[i] ? blocks[i]->size_idx : 0;
+		ret.size_idx += blocks[i]->size_idx;
 	}
 
 	ASSERTne(b, NULL);

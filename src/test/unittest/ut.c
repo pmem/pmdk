@@ -640,8 +640,8 @@ enum_handles(int op)
 	NTSTATUS status;
 	while ((status = NtQuerySystemInformation(
 			SystemExtendedHandleInformation,
-			hndl_info, hi_size, &req_size)
-				== STATUS_INFO_LENGTH_MISMATCH)) {
+			hndl_info, hi_size, &req_size))
+				== STATUS_INFO_LENGTH_MISMATCH) {
 		hi_size = req_size + 4096;
 		hndl_info = (PSYSTEM_HANDLE_INFORMATION_EX)REALLOC(hndl_info,
 				hi_size);
