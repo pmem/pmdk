@@ -157,7 +157,9 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %{_libdir}/pmdk_debug/libpmem2.so.*
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
-%endif #_pmem2_install
+
+# end of "if _pmem2_install"
+%endif
 
 
 %package -n libpmem__PKG_NAME_SUFFIX__
@@ -567,7 +569,8 @@ and facilitates access to persistent memory over RDMA.
 %{_bindir}/rpmemd
 %{_mandir}/man1/rpmemd.1.gz
 
-%endif # _with_fabric
+# end of "if _with_fabric"
+%endif
 
 %package -n pmempool
 Summary: Utilities for Persistent Memory
@@ -631,7 +634,8 @@ a device.
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
-%endif # _with_ndctl
+# end of "if _with_ndctl"
+%endif
 
 %prep
 %setup -q -n %{name}-%{version}
