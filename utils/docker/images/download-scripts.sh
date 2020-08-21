@@ -10,8 +10,8 @@
 
 set -e
 
-# master: Merge pull request #331 from codecov/update-env, 07.07.2020
-CODECOV_VERSION="353aa93e4036da8b1566c8d4dbfee1e51336dc5d"
+# master: Merge pull request #342 from codecov/revert-proj-name-..., 18.08.2020
+CODECOV_VERSION="e877c1280cc6e902101fb5df2981ed1c962da7f0"
 
 if [ "${SKIP_SCRIPTS_DOWNLOAD}" ]; then
 	echo "Variable 'SKIP_SCRIPTS_DOWNLOAD' is set; skipping scripts' download"
