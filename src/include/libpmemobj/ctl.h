@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2019, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2017-2020, Intel Corporation */
 
 /*
  * libpmemobj/ctl.h -- definitions of pmemobj_ctl related entry points

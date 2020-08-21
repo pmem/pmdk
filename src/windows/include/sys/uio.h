@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2018, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2015-2020, Intel Corporation */
 
 /*
  * sys/uio.h -- definition of iovec structure

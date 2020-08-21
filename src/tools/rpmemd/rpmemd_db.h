@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2018, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmemd_db.h -- internal definitions for rpmemd database of pool set files

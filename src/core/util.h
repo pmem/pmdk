@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2014-2020, Intel Corporation */
 /*
  * Copyright (c) 2016-2020, Microsoft Corporation. All rights reserved.

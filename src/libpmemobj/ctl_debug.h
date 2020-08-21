@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * ctl_debug.h -- definitions for the debug CTL namespace

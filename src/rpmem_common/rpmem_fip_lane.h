@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2017, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmem_fip_lane.h -- rpmem fabric provider lane definition

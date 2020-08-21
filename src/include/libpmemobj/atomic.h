@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2017, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * libpmemobj/atomic.h -- definitions of libpmemobj atomic macros

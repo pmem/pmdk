@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2014-2020, Intel Corporation */
 
 #ifndef ARM64_FLUSH_H
 #define ARM64_FLUSH_H

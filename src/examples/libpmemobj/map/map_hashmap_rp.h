@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * map_hashmap_rp.h -- common interface for maps

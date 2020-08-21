@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * rpmem_fip_sock.h -- simple oob connection implementation for exchanging

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2014-2020, Intel Corporation */
 
 #ifndef MEMCPY_MEMSET_H
