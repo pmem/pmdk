@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2018, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2017-2020, Intel Corporation */
 
 #ifndef PMEM_AVX_H
 #define PMEM_AVX_H

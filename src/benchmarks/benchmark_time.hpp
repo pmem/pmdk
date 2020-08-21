@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2017, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2015-2020, Intel Corporation */
 /*
  * benchmark_time.hpp -- declarations of benchmark_time module
  */

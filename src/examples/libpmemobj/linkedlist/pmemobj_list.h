@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2016-2020, Intel Corporation */
 /*
  * pmemobj_list.h -- macro definitions for persistent
  * singly linked list and tail queue

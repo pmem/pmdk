@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2017, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2016-2020, Intel Corporation */
 
 /*
  * dlsym.h -- dynamic linking utilities with library-specific implementation

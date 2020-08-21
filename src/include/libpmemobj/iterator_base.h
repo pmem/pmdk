@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2019, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * libpmemobj/iterator_base.h -- definitions of libpmemobj iterator entry points

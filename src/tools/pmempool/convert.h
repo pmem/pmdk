@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2014-2020, Intel Corporation */
 
 /*
  * convert.h -- pmempool convert command header file

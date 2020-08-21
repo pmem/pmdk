@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2019, Intel Corporation */
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2018-2020, Intel Corporation */
 
 #ifndef PMEM2_AUTO_FLUSH_WINDOWS_H
 #define PMEM2_AUTO_FLUSH_WINDOWS_H 1

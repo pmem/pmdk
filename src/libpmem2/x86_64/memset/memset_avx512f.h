@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
 /* Copyright 2017-2020, Intel Corporation */
 
 #ifndef PMEM2_MEMSET_AVX512F_H

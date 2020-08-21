@@ -1,4 +1,5 @@
-// SPDX-License-Identifier: BSD-3-Clause
+/* SPDX-License-Identifier: BSD-3-Clause */
+/* Copyright 2019-2020, Intel Corporation */
 /* Copyright 2019, IBM Corporation */
 
 #ifndef PMDK_PAGE_SIZE_H
