@@ -139,7 +139,7 @@ test_register_pmem(const struct test_case *tc, int argc, char *argv[])
 						PMEM2_GRANULARITY_PAGE);
 
 	size_t size;
-	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
+	UT_PMEM2_EXPECT_RETURN(pmem2_source_size(src, &size), 0);
 
 	struct pmem2_map *map = map_valid(cfg, src, size);
 
@@ -176,7 +176,7 @@ test_use_misc_lens_and_offsets(const struct test_case *tc,
 						PMEM2_GRANULARITY_PAGE);
 
 	size_t len;
-	UT_ASSERTeq(pmem2_source_size(src, &len), 0);
+	UT_PMEM2_EXPECT_RETURN(pmem2_source_size(src, &len), 0);
 
 	struct pmem2_map *map = map_valid(cfg, src, len);
 	char *base = pmem2_map_get_address(map);
@@ -516,7 +516,7 @@ test_mem_move_cpy_set_with_map_private(const struct test_case *tc, int argc,
 	pmem2_config_set_sharing(cfg, PMEM2_PRIVATE);
 
 	size_t size = 0;
-	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
+	UT_PMEM2_EXPECT_RETURN(pmem2_source_size(src, &size), 0);
 	struct pmem2_map *map = map_valid(cfg, src, size);
 
 	char *addr = pmem2_map_get_address(map);
@@ -792,25 +792,29 @@ test_source_anon(enum pmem2_sharing_type sharing,
 	struct pmem2_map *map;
 	struct pmem2_badblock_context *bbctx;
 
-	UT_ASSERTeq(pmem2_source_from_anon(&src, source_len), 0);
+	UT_PMEM2_EXPECT_RETURN(pmem2_source_from_anon(&src, source_len), 0);
 
-	UT_ASSERTeq(pmem2_source_device_id(src, NULL, NULL), PMEM2_E_NOSUPP);
-	UT_ASSERTeq(pmem2_source_device_usc(src, NULL), PMEM2_E_NOSUPP);
-	UT_ASSERTeq(pmem2_badblock_context_new(&bbctx, src), PMEM2_E_NOSUPP);
+	UT_PMEM2_EXPECT_RETURN(pmem2_source_device_id(src, NULL, NULL),
+			PMEM2_E_NOSUPP);
+	UT_PMEM2_EXPECT_RETURN(pmem2_source_device_usc(src, NULL),
+			PMEM2_E_NOSUPP);
+	UT_PMEM2_EXPECT_RETURN(pmem2_badblock_context_new(&bbctx, src),
+			PMEM2_E_NOSUPP);
 	size_t alignment;
-	UT_ASSERTeq(pmem2_source_alignment(src, &alignment), 0);
+	UT_PMEM2_EXPECT_RETURN(pmem2_source_alignment(src, &alignment), 0);
 	UT_ASSERT(alignment >= Ut_pagesize);
 	size_t size;
-	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
+	UT_PMEM2_EXPECT_RETURN(pmem2_source_size(src, &size), 0);
 	UT_ASSERTeq(size, source_len);
 
 	PMEM2_CONFIG_NEW(&cfg);
 
-	UT_ASSERTeq(pmem2_config_set_length(cfg, map_len), 0);
-	UT_ASSERTeq(pmem2_config_set_offset(cfg, alignment), 0); /* ignored */
-	UT_ASSERTeq(pmem2_config_set_required_store_granularity(cfg,
+	UT_PMEM2_EXPECT_RETURN(pmem2_config_set_length(cfg, map_len), 0);
+	/* ignored */
+	UT_PMEM2_EXPECT_RETURN(pmem2_config_set_offset(cfg, alignment), 0);
+	UT_PMEM2_EXPECT_RETURN(pmem2_config_set_required_store_granularity(cfg,
 		granularity), 0);
-	UT_ASSERTeq(pmem2_config_set_sharing(cfg, sharing), 0);
+	UT_PMEM2_EXPECT_RETURN(pmem2_config_set_sharing(cfg, sharing), 0);
 
 	if ((ret = pmem2_map_new(&map, cfg, src)) != 0)
 		goto map_fail;
@@ -821,9 +825,10 @@ test_source_anon(enum pmem2_sharing_type sharing,
 	UT_ASSERTeq(pmem2_map_get_store_granularity(map),
 		PMEM2_GRANULARITY_BYTE);
 
-	UT_ASSERTeq(pmem2_deep_flush(map, addr, alignment), PMEM2_E_NOSUPP);
+	UT_PMEM2_EXPECT_RETURN(pmem2_deep_flush(map, addr, alignment),
+			PMEM2_E_NOSUPP);
 
-	UT_ASSERTeq(pmem2_map_delete(&map), 0);
+	UT_PMEM2_EXPECT_RETURN(pmem2_map_delete(&map), 0);
 
 map_fail:
 	PMEM2_CONFIG_DELETE(&cfg);

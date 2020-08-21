@@ -20,10 +20,14 @@
 int
 pmem2_source_from_fd(struct pmem2_source **src, int fd)
 {
+	PMEM2_ERR_CLR();
+
 	*src = NULL;
 
-	if (fd < 0)
+	if (fd < 0) {
+		ERR("Invalid file descriptor value %d", fd);
 		return PMEM2_E_INVALID_FILE_HANDLE;
+	}
 
 	HANDLE handle = (HANDLE)_get_osfhandle(fd);
 
@@ -73,11 +77,15 @@ pmem2_win_stat(HANDLE handle, BY_HANDLE_FILE_INFORMATION *info)
 int
 pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle)
 {
+	PMEM2_ERR_CLR();
+
 	*src = NULL;
 	int ret;
 
-	if (handle == INVALID_HANDLE_VALUE)
+	if (handle == INVALID_HANDLE_VALUE) {
+		ERR("Invalid file handle has been passed");
 		return PMEM2_E_INVALID_FILE_HANDLE;
+	}
 
 	BY_HANDLE_FILE_INFORMATION file_info;
 	ret = pmem2_win_stat(handle, &file_info);
@@ -108,6 +116,8 @@ int
 pmem2_source_size(const struct pmem2_source *src, size_t *size)
 {
 	LOG(3, "type %d", src->type);
+	PMEM2_ERR_CLR();
+
 	int ret;
 
 	if (src->type == PMEM2_SOURCE_ANON) {
@@ -135,6 +145,7 @@ int
 pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 {
 	LOG(3, "type %d", src->type);
+	PMEM2_ERR_CLR();
 
 	SYSTEM_INFO info;
 	GetSystemInfo(&info);

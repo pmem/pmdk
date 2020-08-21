@@ -100,6 +100,8 @@ int
 pmem2_source_device_idW(const struct pmem2_source *src, wchar_t *id,
 	size_t *len)
 {
+	PMEM2_ERR_CLR();
+
 	if (src->type == PMEM2_SOURCE_ANON) {
 		ERR("Anonymous source does not have device id");
 		return PMEM2_E_NOSUPP;
@@ -134,6 +136,8 @@ pmem2_source_device_idW(const struct pmem2_source *src, wchar_t *id,
 int
 pmem2_source_device_idU(const struct pmem2_source *src, char *id, size_t *len)
 {
+	PMEM2_ERR_CLR();
+
 	if (src->type == PMEM2_SOURCE_ANON) {
 		ERR("Anonymous source does not have device id");
 		return PMEM2_E_NOSUPP;
@@ -172,6 +176,7 @@ int
 pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc)
 {
 	LOG(3, "cfg %p, usc %p", src, usc);
+	PMEM2_ERR_CLR();
 
 	if (src->type == PMEM2_SOURCE_ANON) {
 		ERR("Anonymous source does not support unsafe shutdown count");

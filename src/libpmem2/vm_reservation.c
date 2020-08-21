@@ -28,6 +28,7 @@ void *
 pmem2_vm_reservation_get_address(struct pmem2_vm_reservation *rsv)
 {
 	LOG(3, "reservation %p", rsv);
+	/* we do not need to clear err because this function cannot fail */
 
 	return rsv->addr;
 }
@@ -39,6 +40,7 @@ size_t
 pmem2_vm_reservation_get_size(struct pmem2_vm_reservation *rsv)
 {
 	LOG(3, "reservation %p", rsv);
+	/* we do not need to clear err because this function cannot fail */
 
 	return rsv->size;
 }
@@ -94,6 +96,7 @@ int
 pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 	void *addr, size_t size)
 {
+	PMEM2_ERR_CLR();
 	*rsv_ptr = NULL;
 
 	unsigned long long gran = Mmap_align;
@@ -149,11 +152,16 @@ err_rsv_init:
 int
 pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr)
 {
+	PMEM2_ERR_CLR();
+
 	struct pmem2_vm_reservation *rsv = *rsv_ptr;
 
 	/* check if reservation contains any mapping */
-	if (vm_reservation_map_find(rsv, 0, rsv->size))
+	if (vm_reservation_map_find(rsv, 0, rsv->size)) {
+		ERR("vm reservation %p already contains a mapping",
+			rsv);
 		return PMEM2_E_VM_RESERVATION_NOT_EMPTY;
+	}
 
 	int ret = vm_reservation_release_memory(rsv->addr, rsv->size);
 	if (ret)
@@ -177,8 +185,11 @@ vm_reservation_map_register(struct pmem2_vm_reservation *rsv,
 	int ret =  ravl_interval_insert(rsv->itree, map);
 	util_rwlock_unlock(&rsv->lock);
 
-	if (ret == -EEXIST)
+	if (ret == -EEXIST) {
+		ERR("Mapping %p in the reservation %p already exists",
+			map, rsv);
 		return PMEM2_E_MAPPING_EXISTS;
+	}
 
 	return ret;
 }
@@ -196,10 +207,13 @@ vm_reservation_map_unregister(struct pmem2_vm_reservation *rsv,
 
 	util_rwlock_wrlock(&rsv->lock);
 	node = ravl_interval_find_equal(rsv->itree, map);
-	if (node)
+	if (node) {
 		ret = ravl_interval_remove(rsv->itree, node);
-	else
+	} else {
+		ERR("Cannot find mapping %p in the reservation %p",
+				map, rsv);
 		ret = PMEM2_E_MAPPING_NOT_FOUND;
+	}
 	util_rwlock_unlock(&rsv->lock);
 
 	return ret;
