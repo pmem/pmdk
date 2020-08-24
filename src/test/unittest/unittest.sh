@@ -3482,7 +3482,7 @@ function pmreorder_run_tool()
 #
 function pmreorder_expect_success()
 {
-	ret=$(pmreorder_run_tool "$@")
+	ret=$(pmreorder_run_tool "$@" | tail -n1)
 
 	if [ "$ret" -ne "0" ]; then
 		msg=$(interactive_red STDERR "failed with exit code $ret")
