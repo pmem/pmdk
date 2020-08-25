@@ -131,55 +131,56 @@ pmem2_validate_offset(const struct pmem2_config *cfg, size_t *offset,
 	return 0;
 }
 
-static struct ravl_interval *ri;
-static os_rwlock_t lock;
-
 /*
  * mapping_min - return min boundary for mapping
  */
 static size_t
-mapping_min(void *map)
+mapping_min(void *addr)
 {
-	return (size_t)pmem2_map_get_address(map);
+	struct pmem2_map *map = (struct pmem2_map *)addr;
+	return (size_t)map->addr;
 }
 
 /*
  * mapping_max - return max boundary for mapping
  */
 static size_t
-mapping_max(void *map)
+mapping_max(void *addr)
 {
-	return (size_t)pmem2_map_get_address(map) +
-		pmem2_map_get_size(map);
+	struct pmem2_map *map = (struct pmem2_map *)addr;
+	return (size_t)map->addr + map->content_length;
 }
 
+static struct pmem2_state {
+	struct ravl_interval *range_map;
+	os_rwlock_t range_map_lock;
+} State;
+
 /*
- * pmem2_map_init -- initialize the map module
+ * pmem2_state_init -- initialize the state module
  */
 void
-pmem2_map_init(void)
+pmem2_state_init(void)
 {
-	os_rwlock_init(&lock);
+	util_rwlock_init(&State.range_map_lock);
 
-	util_rwlock_wrlock(&lock);
-	ri = ravl_interval_new(mapping_min, mapping_max);
-	util_rwlock_unlock(&lock);
+	util_rwlock_wrlock(&State.range_map_lock);
+	State.range_map = ravl_interval_new(mapping_min, mapping_max);
+	util_rwlock_unlock(&State.range_map_lock);
 
-	if (!ri)
+	if (!State.range_map)
 		abort();
 }
 
 /*
- * pmem2_map_fini -- finalize the map module
+ * pmem2_state_fini -- finalize the state module
  */
 void
-pmem2_map_fini(void)
+pmem2_state_fini(void)
 {
-	util_rwlock_wrlock(&lock);
-	ravl_interval_delete(ri);
-	util_rwlock_unlock(&lock);
-
-	os_rwlock_destroy(&lock);
+	util_rwlock_wrlock(&State.range_map_lock);
+	ravl_interval_delete(State.range_map);
+	util_rwlock_unlock(&State.range_map_lock);
 }
 
 /*
@@ -188,9 +189,9 @@ pmem2_map_fini(void)
 int
 pmem2_register_mapping(struct pmem2_map *map)
 {
-	util_rwlock_wrlock(&lock);
-	int ret = ravl_interval_insert(ri, map);
-	util_rwlock_unlock(&lock);
+	util_rwlock_wrlock(&State.range_map_lock);
+	int ret = ravl_interval_insert(State.range_map, map);
+	util_rwlock_unlock(&State.range_map_lock);
 
 	return ret;
 }
@@ -204,15 +205,15 @@ pmem2_unregister_mapping(struct pmem2_map *map)
 	int ret = 0;
 	struct ravl_interval_node *node;
 
-	util_rwlock_wrlock(&lock);
-	node = ravl_interval_find_equal(ri, map);
+	util_rwlock_wrlock(&State.range_map_lock);
+	node = ravl_interval_find_equal(State.range_map, map);
 	if (node) {
-		ret = ravl_interval_remove(ri, node);
+		ret = ravl_interval_remove(State.range_map, node);
 	} else {
 		ERR("Cannot find mapping %p to delete", map);
 		ret = PMEM2_E_MAPPING_NOT_FOUND;
 	}
-	util_rwlock_unlock(&lock);
+	util_rwlock_unlock(&State.range_map_lock);
 
 	return ret;
 }
@@ -230,9 +231,9 @@ pmem2_map_find(const void *addr, size_t len)
 
 	struct ravl_interval_node *node;
 
-	util_rwlock_rdlock(&lock);
-	node = ravl_interval_find(ri, &map);
-	util_rwlock_unlock(&lock);
+	util_rwlock_rdlock(&State.range_map_lock);
+	node = ravl_interval_find(State.range_map, &map);
+	util_rwlock_unlock(&State.range_map_lock);
 
 	if (!node)
 		return NULL;

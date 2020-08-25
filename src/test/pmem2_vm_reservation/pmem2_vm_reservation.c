@@ -6,6 +6,9 @@
  */
 
 #include <stdbool.h>
+#ifndef _WIN32
+#include <pthread.h>
+#endif
 
 #include "config.h"
 #include "fault_injection.h"
@@ -423,6 +426,7 @@ test_vm_reserv_map_file(const struct test_case *tc,
 	ret = pmem2_map_new(&map, &cfg, src);
 	UT_PMEM2_EXPECT_RETURN(ret, 0);
 
+	UT_ASSERTne(map, NULL);
 	UT_ASSERTeq(pmem2_map_get_address(map), (char *)rsv_addr + rsv_offset);
 
 	ret = pmem2_map_delete(&map);
@@ -1010,42 +1014,53 @@ test_vm_reserv_map_invalid_granularity(const struct test_case *tc,
 #define MAX_THREADS 32
 
 struct worker_args {
-	struct pmem2_config cfg;
-	struct pmem2_source *src;
-	struct pmem2_map **map;
 	size_t n_ops;
-	os_mutex_t lock;
+	struct pmem2_vm_reservation *rsv;
+	size_t rsv_offset;
+	struct FHandle *fh;
 };
 
 static void *
-map_worker(void *arg)
+map_unmap_worker(void *arg)
 {
 	struct worker_args *warg = arg;
 
-	for (size_t n = 0; n < warg->n_ops; n++) {
-		if (!(*warg->map)) {
-			int ret = pmem2_map_new(warg->map, &warg->cfg,
-					warg->src);
-			if (ret != PMEM2_E_MAPPING_EXISTS)
-				UT_ASSERTeq(ret, 0);
+	struct pmem2_vm_reservation *rsv = warg->rsv;
+	struct FHandle *fh = warg->fh;
+
+	void *rsv_addr;
+	size_t rsv_offset;
+	size_t n_ops = warg->n_ops;
+	struct pmem2_config cfg;
+	struct pmem2_source *src;
+	struct pmem2_map *map = NULL;
+
+	rsv_addr  = pmem2_vm_reservation_get_address(rsv);
+	rsv_offset = warg->rsv_offset;
+
+	pmem2_config_init(&cfg);
+	pmem2_config_set_required_store_granularity(&cfg,
+			PMEM2_GRANULARITY_PAGE);
+	pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
+	PMEM2_SOURCE_FROM_FH(&src, fh);
+
+	int ret;
+	for (size_t n = 0; n < n_ops; n++) {
+		if (map == NULL) {
+			ret = pmem2_map_new(&map, &cfg, src);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(pmem2_map_get_address(map),
+					(char *)rsv_addr + rsv_offset);
+		}
+
+		if (map != NULL) {
+			ret = pmem2_map_delete(&map);
+			UT_ASSERTeq(ret, 0);
+			UT_ASSERTeq(map, NULL);
 		}
 	}
 
-	return NULL;
-}
-
-static void *
-unmap_worker(void *arg)
-{
-	struct worker_args *warg = arg;
-
-	for (size_t n = 0; n < warg->n_ops; n++) {
-		if (*(warg->map)) {
-			int ret = pmem2_map_delete(warg->map);
-			if (ret != PMEM2_E_MAPPING_NOT_FOUND)
-				UT_ASSERTeq(ret, 0);
-		}
-	}
+	PMEM2_SOURCE_DELETE(&src);
 
 	return NULL;
 }
@@ -1056,8 +1071,19 @@ run_worker(void *(worker_func)(void *arg), struct worker_args args[],
 {
 	os_thread_t threads[MAX_THREADS];
 
+#ifdef _WIN32
 	for (size_t n = 0; n < n_threads; n++)
 		THREAD_CREATE(&threads[n], NULL, worker_func, &args[n]);
+#else
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	/* thread stack size is set to 16MB */
+	pthread_attr_setstacksize(&attr, (1 << 24));
+
+	for (size_t n = 0; n < n_threads; n++)
+		THREAD_CREATE(&threads[n], (os_thread_attr_t *)&attr,
+				worker_func, &args[n]);
+#endif
 
 	for (size_t n = 0; n < n_threads; n++)
 		THREAD_JOIN(&threads[n], NULL);
@@ -1073,32 +1099,30 @@ test_vm_reserv_async_map_unmap_multiple_files(const struct test_case *tc,
 	int argc, char *argv[])
 {
 	if (argc < 4)
-		UT_FATAL("usage: test_vm_reserv_async_map_unmap_multiple_files"
+		UT_FATAL("usage: test_vm_reserv_async_map_unmap_multiple_files "
 				"<file> <size> <threads> <ops/thread>");
+
+	size_t n_threads = ATOU(argv[2]);
+	if (n_threads > MAX_THREADS)
+		UT_FATAL("threads %zu > MAX_THREADS %u",
+				n_threads, MAX_THREADS);
 
 	char *file = argv[0];
 	size_t size = ATOUL(argv[1]);
-	size_t n_threads = ATOU(argv[2]);
 	size_t ops_per_thread = ATOU(argv[3]);
 	size_t alignment = get_align_by_filename(file);
 	void *rsv_addr;
 	size_t rsv_size;
 	size_t rsv_offset;
-	struct pmem2_config cfg;
-	struct pmem2_map *map[MAX_THREADS];
 	struct pmem2_vm_reservation *rsv;
-	struct pmem2_source *src;
 	struct FHandle *fh;
 	struct worker_args args[MAX_THREADS];
-
-	for (size_t n = 0; n < n_threads; n++)
-		map[n] = NULL;
 
 	/*
 	 * reservation will fit as many files as there are threads + 1,
 	 * it's expanded by the length of alignment, for the device DAX
 	 */
-	rsv_size = (n_threads + 1) * (size / 2) + alignment;
+	rsv_size = n_threads * size + alignment;
 
 	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
 	UT_ASSERTeq(ret, 0);
@@ -1107,32 +1131,28 @@ test_vm_reserv_async_map_unmap_multiple_files(const struct test_case *tc,
 	UT_ASSERTne(rsv_addr, NULL);
 	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
 
+	fh = UT_FH_OPEN(FH_FD, file, FH_RDWR);
+
 	/* in case of DevDax */
 	size_t offset_align = offset_align_to_devdax(rsv_addr, alignment);
 
-	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
-
 	/*
-	 * the offset increases by the half of file size.
+	 * the offset increases by the size of the file.
 	 */
 	for (size_t n = 0; n < n_threads; n++) {
 		/* calculate offset for each thread */
-		rsv_offset = ALIGN_DOWN((n % n_threads) * (size / 2), alignment)
-				+ offset_align;
-		pmem2_config_set_vm_reservation(&cfg, rsv, rsv_offset);
+		rsv_offset = ALIGN_DOWN(n * size, alignment) + offset_align;
 
-		args[n].cfg = cfg;
-		args[n].src = src;
-		args[n].map = &(map[n]);
 		args[n].n_ops = ops_per_thread;
+		args[n].rsv = rsv;
+		args[n].rsv_offset = rsv_offset;
+		args[n].fh = fh;
 	}
 
-	run_worker(map_worker, args, n_threads);
-	run_worker(unmap_worker, args, n_threads);
+	run_worker(map_unmap_worker, args, n_threads);
 
 	ret = pmem2_vm_reservation_delete(&rsv);
 	UT_ASSERTeq(ret, 0);
-	PMEM2_SOURCE_DELETE(&src);
 	UT_FH_CLOSE(fh);
 
 	return 4;

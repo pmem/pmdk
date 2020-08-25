@@ -28,7 +28,7 @@ libpmem2_init(void)
 
 	LOG(3, NULL);
 
-	pmem2_map_init();
+	pmem2_state_init();
 	pmem2_persist_init();
 }
 
@@ -43,6 +43,6 @@ libpmem2_fini(void)
 {
 	LOG(3, NULL);
 
-	pmem2_map_fini();
+	pmem2_state_fini();
 	out_fini();
 }
