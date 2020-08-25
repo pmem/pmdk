@@ -109,14 +109,15 @@ struct pmem2_map *vm_reservation_map_find_closest_later(
 		size_t reserv_offset, size_t len);
 
 /*
- * reservation_mend -- unmaps given mapping and mends reservation area
+ * vm_reservation_unmap -- unmaps given region of the reservation,
+ *                         preserves the placeholder
  */
 static int
-reservation_mend(struct pmem2_vm_reservation *rsv, void *addr, size_t length)
+vm_reservation_unmap(struct pmem2_vm_reservation *rsv, void *addr,
+		size_t length)
 {
 	void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
 	size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
-	size_t rsv_offset = (size_t)addr - (size_t)rsv->addr;
 
 	if (addr < rsv_addr ||
 			(char *)addr + length > (char *)rsv_addr + rsv_size)
@@ -130,25 +131,38 @@ reservation_mend(struct pmem2_vm_reservation *rsv, void *addr, size_t length)
 		return pmem2_lasterror_to_err();
 	}
 
+	return 0;
+}
+
+/*
+ * vm_reservation_merge -- merges given placeholder region with his neighbouring
+ *                         placeholders
+ */
+static int
+vm_reservation_merge(struct pmem2_vm_reservation *rsv, void *addr,
+		size_t length)
+{
+	size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
+	size_t rsv_offset = (size_t)addr - (size_t)rsv->addr;
+
 	/*
-	 * Before mapping to the reservation, it is neccessary to split
-	 * the unoccupied region into separate placeholders, so that
-	 * the mapping and the cut out placeholder will be of the same
-	 * size.
+	 * After unmapping from the reservation, it is neccessary to merge
+	 * the unoccupied neighbours so that the placeholders will be available
+	 * for splitting for the required size of the mapping.
 	 */
-	void *mend_addr = addr;
-	size_t mend_size = length;
+	void *merge_addr = addr;
+	size_t merge_size = length;
 	struct pmem2_map *map = NULL;
 
 	if (rsv_offset > 0) {
 		map = vm_reservation_map_find_closest_prior(rsv, rsv_offset,
 				length);
 		if (map) {
-			mend_addr = (char *)map->addr + map->reserved_length;
-			mend_size += (char *)addr - (char *)mend_addr;
+			merge_addr = (char *)map->addr + map->reserved_length;
+			merge_size += (char *)addr - (char *)merge_addr;
 		} else {
-			mend_addr = rsv->addr;
-			mend_size += rsv_offset;
+			merge_addr = rsv->addr;
+			merge_size += rsv_offset;
 		}
 	}
 
@@ -156,14 +170,14 @@ reservation_mend(struct pmem2_vm_reservation *rsv, void *addr, size_t length)
 		map = vm_reservation_map_find_closest_later(rsv, rsv_offset,
 				length);
 		if (map)
-			mend_size += (char *)map->addr - (char *)addr - length;
+			merge_size += (char *)map->addr - (char *)addr - length;
 		else
-			mend_size += rsv->size - rsv_offset - length;
+			merge_size += rsv->size - rsv_offset - length;
 	}
 
-	if (addr != mend_addr) {
-		ret = VirtualFree(mend_addr,
-			mend_size,
+	if ((addr != merge_addr) || (length != merge_size)) {
+		int ret = VirtualFree(merge_addr,
+			merge_size,
 			MEM_RELEASE | MEM_COALESCE_PLACEHOLDERS);
 		if (!ret) {
 			ERR("!!VirtualFree");
@@ -176,15 +190,19 @@ reservation_mend(struct pmem2_vm_reservation *rsv, void *addr, size_t length)
 }
 
 /*
- * reservation_split - splits the virtual memory reservation into
- *                     separate regions
+ * vm_reservation_split - splits the virtual memory reservation into
+ *                        separate regions
  */
 int
-reservation_split(struct pmem2_vm_reservation *rsv, size_t rsv_offset,
+vm_reservation_split(struct pmem2_vm_reservation *rsv, size_t rsv_offset,
 		size_t length)
 {
+	LOG(3, "rsv %p rsv_offset %zu length %zu", rsv, rsv_offset, length);
+
 	void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
 	size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
+
+	LOG(3, "rsv_addr %p rsv_size %zu", rsv_addr, rsv_size);
 
 	if ((rsv_offset > 0 && !vm_reservation_map_find(rsv,
 			rsv_offset - 1, 1)) ||
@@ -331,61 +349,57 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		return pmem2_lasterror_to_err();
 	}
 
-	/* prepare pmem2_map structure */
-	struct pmem2_map *map;
-	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
-	if (!map)
-		goto err_close_mapping_handle;
-
 	void *base;
-	if (cfg->reserv) {
-		void *rsv = cfg->reserv;
+	void *rsv = cfg->reserv;
+	if (rsv) {
 		void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
 		size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
 		size_t rsv_offset = cfg->reserv_offset;
 
-		/* check if reservation has enough space */
-		if (rsv_offset + length > rsv_size) {
-			ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
-			ERR(
-				"reservation has not enought space, offset %zu, length %zu, rsv size %zu",
-				rsv_offset, length, rsv_size);
-			goto err_free_map_struct;
-		}
-
 		if (rsv_offset % Mmap_align) {
 			ret = PMEM2_E_OFFSET_UNALIGNED;
 			ERR(
-				"virtual memory reservation offset %zu is not a multiple of %llu",
-					rsv_offset, Mmap_align);
-			goto err_free_map_struct;
+				"offset from the beggining of virtual memory "
+				"reservation %zu is not a multiple of %llu",
+				rsv_offset, Mmap_align);
+			goto err_close_mapping_handle;
 		}
 
-		map->addr = (char *)rsv_addr + rsv_offset;
-		map->content_length = length;
+		if (rsv_offset + length > rsv_size) {
+			ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
+			ERR(
+				"length of the mapping %zu combined with the "
+				"offset into the reservation %zu exceeds virtual "
+				"memory reservation size %zu",
+				length, effective_offset, rsv_size);
+			goto err_close_mapping_handle;
+		}
 
-		/* register wanted vm reservation region */
-		ret = vm_reservation_map_register(cfg->reserv, map);
-		if (ret)
-			goto err_free_map_struct;
+		if (vm_reservation_map_find_acquire(rsv, rsv_offset, length)) {
+			ret = PMEM2_E_MAPPING_EXISTS;
+			ERR(
+				"region of the reservation %p at the offset %zu and "
+				"length %zu is at least partly occupied by other mapping",
+				rsv, rsv_offset, length);
+			goto err_reservation_release;
+		}
 
+		void *addr = (char *)rsv_addr + rsv_offset;
 		/*
 		 * Before mapping to the reservation, it is neccessary to split
-		 * the unoccupied region into separate placeholders, so that
-		 * the mapping and the cut out placeholder will be of the same
-		 * size.
+		 * the unoccupied region into separate placeholders,
+		 * so that the size to be mapped and the cut out placeholder
+		 * size will be the same.
 		 */
-		util_rwlock_wrlock(&split_merge_lock);
-		ret = reservation_split(rsv, rsv_offset, length);
-		util_rwlock_unlock(&split_merge_lock);
+		ret = vm_reservation_split(rsv, rsv_offset, length);
 		if (ret)
-			goto err_vm_reserv_unregister;
+			goto err_reservation_release;
 
 		/* replace placeholder with a regular mapping */
 		base = MapViewOfFile3(mh,
 			NULL,
-			(char *)rsv_addr + rsv_offset, /* addr in reservation */
-			0,
+			addr, /* addr in reservation */
+			effective_offset,
 			length,
 			MEM_REPLACE_PLACEHOLDER,
 			proto,
@@ -399,8 +413,10 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 				ret = PMEM2_E_MAPPING_EXISTS;
 			else
 				ret = pmem2_lasterror_to_err();
-			goto err_vm_reserv_unregister;
+			goto err_merge_reservation_regions;
 		}
+
+		ASSERTeq(base, addr);
 	} else {
 		/* obtain a pointer to the mapping view */
 		base = MapViewOfFile(mh,
@@ -412,14 +428,14 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		if (base == NULL) {
 			ERR("!!MapViewOfFile");
 			ret = pmem2_lasterror_to_err();
-			goto err_free_map_struct;
+			goto err_close_mapping_handle;
 		}
 	}
 
 	if (!CloseHandle(mh)) {
 		ERR("!!CloseHandle");
 		ret = pmem2_lasterror_to_err();
-		goto err_unmap_base;
+		goto err_undo_mapping;
 	}
 
 	enum pmem2_granularity available_min_granularity =
@@ -428,7 +444,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		int direct_access = is_direct_access(src->value.handle);
 		if (direct_access < 0) {
 			ret = direct_access;
-			goto err_unmap_base;
+			goto err_undo_mapping;
 		}
 
 		bool eADR = (pmem2_auto_flush() == 1);
@@ -452,8 +468,14 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 				cfg->requested_max_granularity);
 		ERR("%s", err);
 		ret = PMEM2_E_GRANULARITY_NOT_SUPPORTED;
-		goto err_unmap_base;
+		goto err_undo_mapping;
 	}
+
+	/* prepare pmem2_map structure */
+	struct pmem2_map *map;
+	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
+	if (!map)
+		goto err_undo_mapping;
 
 	map->addr = base;
 	/*
@@ -463,40 +485,42 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	map->reserved_length = length;
 	map->content_length = length;
 	map->effective_granularity = available_min_granularity;
-	map->reserv = cfg->reserv;
+	map->reserv = rsv;
 	map->source = *src;
 	pmem2_set_flush_fns(map);
 	pmem2_set_mem_fns(map);
 
 	ret = pmem2_register_mapping(map);
-	if (ret)
-		goto err_unmap_base;
+	if (ret) {
+		goto err_free_map_struct;
+	}
+
+	if (rsv) {
+		ret = vm_reservation_map_register_release(rsv, map);
+		if (ret)
+			goto err_unregister_map;
+	}
 
 	/* return a pointer to the pmem2_map structure */
 	*map_ptr = map;
 
 	return ret;
 
-err_unmap_base:
-	/*
-	 * if the reservation was given by pmem2_config, instead of unmapping,
-	 * we will need to map with MAP_FIXED to mend the reservation
-	 */
-	if (cfg->reserv) {
-		reservation_mend(cfg->reserv, base, length);
-		vm_reservation_map_unregister(cfg->reserv, map);
-	} else
-		UnmapViewOfFile(base);
-	free(map);
-
-	return ret;
-
-err_vm_reserv_unregister:
-	vm_reservation_map_unregister(cfg->reserv, map);
-
+err_unregister_map:
+	pmem2_unregister_mapping(map);
 err_free_map_struct:
 	free(map);
-
+err_undo_mapping:
+	if (rsv)
+		vm_reservation_unmap(rsv, base, length);
+	else
+		UnmapViewOfFile(base);
+err_merge_reservation_regions:
+	if (rsv)
+		vm_reservation_merge(rsv, base, length);
+err_reservation_release:
+	if (rsv)
+		vm_reservation_release(rsv);
 err_close_mapping_handle:
 	CloseHandle(mh);
 	return ret;
@@ -508,31 +532,46 @@ err_close_mapping_handle:
 int
 pmem2_map_delete(struct pmem2_map **map_ptr)
 {
-	LOG(3, "mapp %p", map_ptr);
+	LOG(3, "map_ptr %p", map_ptr);
 	PMEM2_ERR_CLR();
 
 	struct pmem2_map *map = *map_ptr;
+	size_t map_len = map->content_length;
+	void *map_addr = map->addr;
+	struct pmem2_vm_reservation *rsv = map->reserv;
 
 	int ret = pmem2_unregister_mapping(map);
 	if (ret)
 		return ret;
 
 	if (map->reserved_length != 0) {
-		if (map->reserv) {
-			util_rwlock_wrlock(&split_merge_lock);
-			ret = reservation_mend(map->reserv, map->addr,
-				map->reserved_length);
-			util_rwlock_unlock(&split_merge_lock);
-			if (ret)
-				return ret;
+		if (rsv) {
+			size_t rsv_offset = (size_t)map_addr -
+					(size_t)rsv->addr;
+			if (!vm_reservation_map_find_acquire(rsv, rsv_offset,
+					map_len)) {
+				ret = PMEM2_E_MAPPING_NOT_FOUND;
+				goto err_reservation_release;
+			}
 
-			ret = vm_reservation_map_unregister(map->reserv, map);
+			ret = vm_reservation_unmap(rsv, map->addr,
+					map->reserved_length);
 			if (ret)
-				return ret;
+				goto err_reservation_release;
+
+			ret = vm_reservation_merge(rsv, map->addr,
+					map->reserved_length);
+			if (ret)
+				goto err_reservation_release;
+
+			ret = vm_reservation_map_unregister_release(rsv, map);
+			if (ret)
+				goto err_register_map;
 		} else {
 			if (!UnmapViewOfFile(map->addr)) {
 				ERR("!!UnmapViewOfFile");
-				return pmem2_lasterror_to_err();
+				ret = pmem2_lasterror_to_err();
+				goto err_register_map;
 			}
 		}
 	}
@@ -541,4 +580,10 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 	*map_ptr = NULL;
 
 	return 0;
+
+err_reservation_release:
+	vm_reservation_release(rsv);
+err_register_map:
+	pmem2_register_mapping(map);
+	return ret;
 }

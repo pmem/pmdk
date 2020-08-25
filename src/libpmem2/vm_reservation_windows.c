@@ -84,9 +84,7 @@ vm_reservation_map_find_closest_prior(struct pmem2_vm_reservation *rsv,
 
 	struct ravl_interval_node *node;
 
-	util_rwlock_rdlock(&rsv->lock);
 	node = ravl_interval_find_closest_prior(rsv->itree, &map);
-	util_rwlock_unlock(&rsv->lock);
 
 	if (!node)
 		return NULL;
@@ -108,9 +106,7 @@ vm_reservation_map_find_closest_later(struct pmem2_vm_reservation *rsv,
 
 	struct ravl_interval_node *node;
 
-	util_rwlock_rdlock(&rsv->lock);
 	node = ravl_interval_find_closest_later(rsv->itree, &map);
-	util_rwlock_unlock(&rsv->lock);
 
 	if (!node)
 		return NULL;
