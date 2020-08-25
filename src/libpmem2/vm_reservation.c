@@ -49,19 +49,20 @@ pmem2_vm_reservation_get_size(struct pmem2_vm_reservation *rsv)
  * mapping_min - return min boundary for mapping
  */
 static size_t
-mapping_min(void *map)
+mapping_min(void *addr)
 {
-	return (size_t)pmem2_map_get_address(map);
+	struct pmem2_map *map = (struct pmem2_map *)addr;
+	return (size_t)map->addr;
 }
 
 /*
  * mapping_max - return max boundary for mapping
  */
 static size_t
-mapping_max(void *map)
+mapping_max(void *addr)
 {
-	return (size_t)pmem2_map_get_address(map) +
-		pmem2_map_get_size(map);
+	struct pmem2_map *map = (struct pmem2_map *)addr;
+	return (size_t)map->addr + map->content_length;
 }
 
 /*
@@ -73,7 +74,6 @@ vm_reservation_init(struct pmem2_vm_reservation *rsv)
 	os_rwlock_init(&rsv->lock);
 
 	rsv->itree = ravl_interval_new(mapping_min, mapping_max);
-
 	if (!rsv->itree)
 		return -1;
 
@@ -87,6 +87,8 @@ static void
 vm_reservation_fini(struct pmem2_vm_reservation *rsv)
 {
 	ravl_interval_delete(rsv->itree);
+
+	os_rwlock_destroy(&rsv->lock);
 }
 
 /*
@@ -99,24 +101,26 @@ pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 	PMEM2_ERR_CLR();
 	*rsv_ptr = NULL;
 
-	unsigned long long gran = Mmap_align;
-
-	if (addr && (unsigned long long)addr % gran) {
+	/*
+	 * base address has to be aligned to the allocation granularity
+	 * on Windows, and to page size otherwise
+	 */
+	if (addr && (unsigned long long)addr % Mmap_align) {
 		ERR("address %p is not a multiple of 0x%llx", addr,
-			gran);
+			Mmap_align);
 		return PMEM2_E_ADDRESS_UNALIGNED;
 	}
 
-	if (size % gran) {
+	/* the size must always be a multiple of the page size */
+	if (size % Pagesize) {
 		ERR("reservation size %zu is not a multiple of %llu",
-			size, gran);
+			size, Pagesize);
 		return PMEM2_E_LENGTH_UNALIGNED;
 	}
 
 	int ret;
 	struct pmem2_vm_reservation *rsv = pmem2_malloc(
 			sizeof(struct pmem2_vm_reservation), &ret);
-
 	if (ret)
 		return ret;
 
@@ -158,8 +162,7 @@ pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr)
 
 	/* check if reservation contains any mapping */
 	if (vm_reservation_map_find(rsv, 0, rsv->size)) {
-		ERR("vm reservation %p already contains a mapping",
-			rsv);
+		ERR("vm reservation %p isn't empty", rsv);
 		return PMEM2_E_VM_RESERVATION_NOT_EMPTY;
 	}
 

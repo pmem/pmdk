@@ -138,20 +138,23 @@ static os_rwlock_t lock;
  * mapping_min - return min boundary for mapping
  */
 static size_t
-mapping_min(void *map)
+mapping_min(void *addr)
 {
-	return (size_t)pmem2_map_get_address(map);
+	struct pmem2_map *map = (struct pmem2_map *)addr;
+	return (size_t)map->addr;
 }
 
 /*
  * mapping_max - return max boundary for mapping
  */
 static size_t
-mapping_max(void *map)
+mapping_max(void *addr)
 {
-	return (size_t)pmem2_map_get_address(map) +
-		pmem2_map_get_size(map);
+	struct pmem2_map *map = (struct pmem2_map *)addr;
+	return (size_t)map->addr + map->content_length;
 }
+
+os_rwlock_t vm_rsv_lock;
 
 /*
  * pmem2_map_init -- initialize the map module
@@ -159,7 +162,8 @@ mapping_max(void *map)
 void
 pmem2_map_init(void)
 {
-	os_rwlock_init(&lock);
+	util_rwlock_init(&lock);
+	util_rwlock_init(&vm_rsv_lock);
 
 	util_rwlock_wrlock(&lock);
 	ri = ravl_interval_new(mapping_min, mapping_max);

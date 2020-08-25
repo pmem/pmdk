@@ -21,6 +21,7 @@
 #include "persist.h"
 #include "pmem2_utils.h"
 #include "source.h"
+#include "sys_util.h"
 #include "valgrind_internal.h"
 
 #ifndef MAP_SYNC
@@ -411,26 +412,14 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	if (ret)
 		return ret;
 
-	/* prepare pmem2_map structure */
-	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
-	if (!map)
-		return ret;
-
-	void *reserv = NULL;
-	if (cfg->reserv) {
-		void *rsv = cfg->reserv;
+	void *reserv_region = NULL;
+	void *rsv = cfg->reserv;
+	if (rsv) {
 		void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
 		size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
 		size_t rsv_offset = cfg->reserv_offset;
 
-		/* check if reservation has enough space */
-		if (rsv_offset + content_length > rsv_size) {
-			ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
-			ERR(
-				"Reservation %p has not enough space for the intended content",
-					rsv);
-			goto err;
-		}
+		reserved_length = roundup(content_length, Pagesize);
 
 		if (rsv_offset % Mmap_align) {
 			ret = PMEM2_E_OFFSET_UNALIGNED;
@@ -440,28 +429,39 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 			goto err;
 		}
 
-		reserv = (char *)rsv_addr + rsv_offset;
-		if ((size_t)reserv % alignment) {
+		if (rsv_offset + reserved_length > rsv_size) {
+			ret = PMEM2_E_LENGTH_OUT_OF_RANGE;
+			ERR(
+				"Reservation %p has not enough space for the intended content",
+					rsv);
+			goto err;
+		}
+
+		reserv_region = (char *)rsv_addr + rsv_offset;
+		if ((size_t)reserv_region % alignment) {
 			ret = PMEM2_E_ADDRESS_UNALIGNED;
 			ERR(
 				"base mapping address %p (virtual memory reservation address + offset)" \
 				" is not a multiple of %zu required by device DAX",
-					reserv, alignment);
+					reserv_region, alignment);
 			goto err;
 		}
 
-		reserved_length = roundup(content_length, Pagesize);
+		/* lock the mapping, until it's finalized */
+		util_rwlock_wrlock(&vm_rsv_lock);
 
-		map->addr = reserv;
-		map->content_length = content_length;
-
-		/* register wanted vm reservation region */
-		ret = vm_reservation_map_register(cfg->reserv, map);
-		if (ret)
-			goto err;
+		/* check if the region in the reservation is occupied */
+		if (vm_reservation_map_find(rsv, rsv_offset, reserved_length)) {
+			ret = PMEM2_E_MAPPING_EXISTS;
+			ERR(
+				"region of the reservation %p at the offset %zu and "
+				"length %zu is at least partly occupied by other mapping",
+				rsv, rsv_offset, reserved_length);
+			goto err_unlock;
+		}
 	} else {
 		/* find a hint for the mapping */
-		ret = map_reserve(content_length, alignment, &reserv,
+		ret = map_reserve(content_length, alignment, &reserv_region,
 				&reserved_length, cfg);
 		if (ret != 0) {
 			if (ret == PMEM2_E_MAPPING_EXISTS)
@@ -474,7 +474,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		}
 	}
 
-	ASSERTne(reserv, NULL);
+	ASSERTne(reserv_region, NULL);
 
 	if (cfg->sharing == PMEM2_PRIVATE) {
 		flags |= MAP_PRIVATE;
@@ -489,15 +489,15 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		ASSERT(0);
 	}
 
-	ret = file_map(reserv, content_length, proto, flags, map_fd, off,
+	ret = file_map(reserv_region, content_length, proto, flags, map_fd, off,
 			&map_sync, &addr);
 	if (ret) {
 		/*
 		 * unmap the reservation mapping only
 		 * if it wasn't provided by the config
 		 */
-		if (!cfg->reserv)
-			munmap(reserv, reserved_length);
+		if (!rsv)
+			munmap(reserv_region, reserved_length);
 
 		if (ret == -EACCES)
 			ret = PMEM2_E_NO_ACCESS;
@@ -505,7 +505,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 			ret = PMEM2_E_NOSUPP;
 		else if (ret == -EEXIST)
 			ret =  PMEM2_E_MAPPING_EXISTS;
-		goto err_file_map;
+		goto err_unlock;
 	}
 
 	LOG(3, "mapped at %p", addr);
@@ -527,8 +527,13 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 				cfg->requested_max_granularity);
 		ERR("%s", err);
 		ret = PMEM2_E_GRANULARITY_NOT_SUPPORTED;
-		goto err_gran_reg;
+		goto err_undo_mapping;
 	}
+
+	/* prepare pmem2_map structure */
+	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
+	if (!map)
+		goto err_undo_mapping;
 
 	map->addr = addr;
 	map->reserved_length = reserved_length;
@@ -536,13 +541,19 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	map->effective_granularity = available_min_granularity;
 	pmem2_set_flush_fns(map);
 	pmem2_set_mem_fns(map);
-	map->reserv = cfg->reserv;
+	map->reserv = rsv;
 	map->source = *src;
 	map->source.value.fd = INVALID_FD; /* fd should not be used after map */
 
 	ret = pmem2_register_mapping(map);
 	if (ret) {
-		goto err_gran_reg;
+		goto err_free_map_struct;
+	}
+
+	if (rsv) {
+		ret = vm_reservation_map_register(rsv, map);
+		if (ret)
+			goto err_unregister_map;
 	}
 
 	*map_ptr = map;
@@ -553,23 +564,28 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 			map->addr, map->content_length, 0);
 	}
 
+	if (rsv)
+		util_rwlock_unlock(&vm_rsv_lock);
+
 	return 0;
 
-err_gran_reg:
+err_unregister_map:
+	pmem2_unregister_mapping(map);
+err_free_map_struct:
+	Free(map);
+err_undo_mapping:
 	/*
 	 * if the reservation was given by pmem2_config, instead of unmapping,
 	 * we will need to mend the reservation
 	 */
-	if (cfg->reserv)
-		vm_reservation_mend(cfg->reserv, addr, reserved_length);
+	if (rsv)
+		vm_reservation_mend(rsv, addr, reserved_length);
 	else
 		unmap(addr, reserved_length);
-err_file_map:
-	if (cfg->reserv)
-		vm_reservation_map_unregister(cfg->reserv, map);
+err_unlock:
+	if (rsv)
+		util_rwlock_unlock(&vm_rsv_lock);
 err:
-	free(map);
-
 	return ret;
 }
 
@@ -585,29 +601,46 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 	int ret = 0;
 	struct pmem2_map *map = *map_ptr;
 
+	struct pmem2_vm_reservation *rsv = map->reserv;
+	if (rsv)
+		util_rwlock_wrlock(&vm_rsv_lock);
+
 	ret = pmem2_unregister_mapping(map);
 	if (ret)
-		return ret;
+		goto err_unlock;
 
 	VALGRIND_REMOVE_PMEM_MAPPING(map->addr, map->content_length);
 
-	if (map->reserv) {
-		ret = vm_reservation_map_unregister(map->reserv, map);
+	if (rsv) {
+		ret = vm_reservation_map_unregister(rsv, map);
 		if (ret)
-			return ret;
+			goto err_register_map;
 
-		ret = vm_reservation_mend(map->reserv, map->addr,
+		ret = vm_reservation_mend(rsv, map->addr,
 				map->reserved_length);
 		if (ret)
-			return ret;
+			goto err_vm_rsv_register_map;
 	} else {
 		ret = unmap(map->addr, map->reserved_length);
 		if (ret)
-			return ret;
+			goto err_register_map;
 	}
 
 	Free(map);
 	*map_ptr = NULL;
 
+	if (rsv)
+		util_rwlock_unlock(&vm_rsv_lock);
+
+	return ret;
+
+err_vm_rsv_register_map:
+	vm_reservation_map_unregister(rsv, map);
+err_register_map:
+	VALGRIND_REGISTER_PMEM_MAPPING(map->addr, map->content_length);
+	pmem2_register_mapping(map);
+err_unlock:
+	if (rsv)
+		util_rwlock_unlock(&vm_rsv_lock);
 	return ret;
 }

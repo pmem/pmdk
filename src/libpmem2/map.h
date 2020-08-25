@@ -45,9 +45,7 @@ struct pmem2_map {
 	struct pmem2_vm_reservation *reserv;
 };
 
-#ifdef _WIN32
-os_rwlock_t split_merge_lock;
-#endif
+extern os_rwlock_t vm_rsv_lock;
 
 enum pmem2_granularity get_min_granularity(bool eADR, bool is_pmem,
 					enum pmem2_sharing_type sharing);

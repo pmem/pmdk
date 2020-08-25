@@ -260,7 +260,7 @@ class TEST29(PMEM2_VM_RESERVATION_ASYNC):
     """
     test_case = "test_vm_reserv_async_map_unmap_multiple_files"
     threads = 32
-    ops_per_thread = 10000
+    ops_per_thread = 1000
 
 
 class TEST30(PMEM2_VM_RESERVATION_ASYNC_DEVDAX):
