@@ -38,6 +38,7 @@
 #include <string.h>
 
 #include "libpmemobj.h"
+#include "pmemops.h"
 #include "ulog.h"
 #include "out.h"
 #include "util.h"
@@ -815,6 +816,7 @@ ulog_process(struct ulog *ulog, ulog_check_offset_fn check,
 #endif
 
 	ulog_foreach_entry(ulog, ulog_process_entry, NULL, p_ops);
+	pmemops_drain(p_ops);
 }
 
 /*

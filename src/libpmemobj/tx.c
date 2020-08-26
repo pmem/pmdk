@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2019, Intel Corporation
+ * Copyright 2015-2020, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -411,6 +411,7 @@ tx_abort_set(PMEMobjpool *pop, struct lane *lane)
 
 	ulog_foreach_entry((struct ulog *)&lane->layout->undo,
 		tx_undo_entry_apply, NULL, &pop->p_ops);
+	pmemops_drain(&pop->p_ops);
 	operation_finish(lane->undo, ULOG_INC_FIRST_GEN_NUM);
 }
 
