@@ -70,6 +70,7 @@
         pmem2_get_memset_fn.3
         pmem2_get_persist_fn.3
         pmem2_map_delete.3
+        pmem2_map_from_existing.3
         pmem2_map_get_address.3
         pmem2_map_get_size.3
         pmem2_map_get_store_granularity.3
