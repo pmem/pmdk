@@ -78,6 +78,7 @@
         pmem2_map_get_size.3
         pmem2_map_get_store_granularity.3
         pmem2_map_new.3
+        pmem2_map_from_existing.3
         pmem2_perror.3
         pmem2_source_alignment.3
         pmem2_source_delete.3
