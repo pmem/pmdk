@@ -9,9 +9,10 @@ verify($(nW)/testset1): pool file successfully verified ($(N) records of size $(
         "length":16,
 $(nW)/testset1: synchronized
 replica 0: checking shutdown state
-replica 0: shutdown state correct
-replica 1: checking shutdown state
-replica 1: shutdown state correct
+$(OPT)replica 0: shutdown state correct
+$(OPX)replica 0: shutdown state not supported
+$(OPT)replica 1: checking shutdown state
+$(OPT)replica 1: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header

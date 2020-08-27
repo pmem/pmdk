@@ -26,6 +26,7 @@ enum question {
 #define SDS_CHECK_STR	"checking shutdown state"
 #define SDS_OK_STR	"shutdown state correct"
 #define SDS_DIRTY_STR	"shutdown state is dirty"
+#define SDS_NOT_SUPP	"shutdown state not supported"
 
 #define ADR_FAILURE_STR \
 	"an ADR failure was detected - your pool might be corrupted"
@@ -45,6 +46,22 @@ enum question {
 	IGNORE_SDS(hdrp) \
 		? SDS_DIRTY_STR ".|" ZERO_SDS_STR \
 		: ADR_FAILURE_STR ".|" RESET_SDS_STR
+
+/*
+ *
+ */
+static int
+sds_is_supported(location *loc)
+{
+	LOG(3, NULL);
+
+	ASSERTne(loc, NULL);
+	struct pool_replica *rep = REP(loc->set, 0);
+	ASSERTne(rep, NULL);
+	ASSERTne(PART(rep, 0)->fd, 0);
+
+	return shutdown_state_is_supported(PART(rep, 0)->fd);
+}
 
 /*
  * sds_check_replica -- (internal) check if replica is healthy
@@ -88,6 +105,13 @@ sds_check(PMEMpoolcheck *ppc, location *loc)
 	LOG(3, NULL);
 
 	CHECK_INFO(ppc, "%s" SDS_CHECK_STR, loc->prefix);
+
+	/* shutdown state is supported */
+	if (sds_is_supported(loc)) {
+		CHECK_INFO(ppc, "%s" SDS_NOT_SUPP, loc->prefix);
+		loc->step = CHECK_STEP_COMPLETE;
+		return 0;
+	}
 
 	/* shutdown state is valid */
 	if (!sds_check_replica(loc)) {
@@ -244,6 +268,20 @@ check_sds(PMEMpoolcheck *ppc)
 
 	const unsigned nreplicas = ppc->pool->set_file->poolset->nreplicas;
 	location *loc = check_get_step_data(ppc->data);
+
+	/*
+	 * SDS check can be made before header repair so header features can be
+	 * corrupted at this point.
+	 */
+	/* initialize replica 0 for sds check */
+	loc->replica = 0;
+	init_location_data(ppc, loc);
+	if (!sds_is_supported(loc)) {
+		CHECK_INFO(ppc, "%s" SDS_CHECK_STR,
+				loc->prefix);
+		CHECK_INFO(ppc, "%s" SDS_NOT_SUPP, loc->prefix);
+		return;
+	}
 
 	if (!loc->init_done) {
 		sds_get_healthy_replicas_num(ppc, loc);

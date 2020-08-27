@@ -5,7 +5,8 @@ creating backup file: $(nW)pool.part2_backup
 creating backup file: $(nW)pool.part3_backup
 creating backup file: $(nW)pool.part4_backup
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -29,7 +30,8 @@ creating backup file: $(nW)pool.part2_backup
 creating backup file: $(nW)pool.part3_backup
 creating backup file: $(nW)pool.part4_backup
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -49,7 +51,8 @@ creating backup file: $(nW)pool.part2_backup
 creating backup file: $(nW)pool.part3_backup
 creating backup file: $(nW)pool.part4_backup
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header

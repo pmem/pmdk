@@ -6,7 +6,8 @@ $(nW)pool.p1: spoil: pool_hdr.poolset_uuid=ERROR
 replica 0 part 0: incorrect pool header
 $(nW)pool.set: not consistent
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 replica 0 part 1: checking pool header
