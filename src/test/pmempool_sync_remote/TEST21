@@ -17,6 +17,8 @@ require_sds $PMEMPOOL
 
 configure_poolsets 0 1
 
+require_sds_support ${NODE_DIR[1]}pool.part.1
+
 # XXX: we are using pmemspoil to turn on shutdown state
 
 run_on_node 0 ../pmemspoil  ${NODE_DIR[0]}remote.0.part.1 \

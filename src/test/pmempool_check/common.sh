@@ -12,6 +12,16 @@ rm -f $LOG && touch $LOG
 LAYOUT=OBJ_LAYOUT$SUFFIX
 POOLSET=$DIR/poolset
 
+pmempool_exe=$PMEMPOOL$EXESUFFIX
+
+# pmempool_feature_query_return -- query a feature and return
+# the value.
+#
+# usage: pmempool_feature_query_return <feature>
+function pmempool_feature_query_return() {
+	return $($pmempool_exe feature -q $1 $POOLSET 2>> $LOG)
+}
+
 # pmemspoil_corrupt_replica_sds -- corrupt shutdown state
 #
 #	usage: pmemspoil_corrupt_replica_sds <replica>
@@ -39,6 +49,15 @@ function pmempool_check_sds_init() {
 
 	PMEMOBJ_CONF="${PMEMOBJ_CONF}$conf;"
 	expect_normal_exit $PMEMPOOL$EXESUFFIX create --layout=$LAYOUT obj $POOLSET
+
+	# If SDS is not enabled at this point is because SDS is not available for
+	# this device
+	pmempool_feature_query_return "SHUTDOWN_STATE"
+	if [[ $? -eq 0 ]]; then
+		msg "$UNITTEST_NAME: SKIP: SDS is not available"
+		exit 0
+	fi
+
 }
 
 # pmempool_check_sds -- perform shutdown state unittest

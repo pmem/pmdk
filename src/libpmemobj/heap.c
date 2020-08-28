@@ -953,10 +953,10 @@ heap_split_block(struct palloc_heap *heap, struct bucket *b,
 		uint32_t new_chunk_id = m->chunk_id + units;
 		uint32_t new_size_idx = m->size_idx - units;
 
-		*m = memblock_huge_init(heap, m->chunk_id, m->zone_id, units);
-
 		struct memory_block n = memblock_huge_init(heap,
 			new_chunk_id, m->zone_id, new_size_idx);
+
+		*m = memblock_huge_init(heap, m->chunk_id, m->zone_id, units);
 
 		if (bucket_insert_block(b, &n) != 0)
 			LOG(2,

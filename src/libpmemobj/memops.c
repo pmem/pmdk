@@ -138,6 +138,14 @@ operation_transient_clean(void *base, const void *addr, size_t len,
 }
 
 /*
+ * operation_transient_drain -- noop
+ */
+static void
+operation_transient_drain(void *base)
+{
+}
+
+/*
  * operation_transient_memcpy -- transient memcpy wrapper
  */
 static void *
@@ -181,10 +189,12 @@ operation_new(struct ulog *ulog, size_t ulog_base_nbytes,
 	ctx->t_ops.base = NULL;
 	ctx->t_ops.flush = operation_transient_clean;
 	ctx->t_ops.memcpy = operation_transient_memcpy;
+	ctx->t_ops.drain = operation_transient_drain;
 
 	ctx->s_ops.base = p_ops->base;
 	ctx->s_ops.flush = operation_transient_clean;
 	ctx->s_ops.memcpy = operation_transient_memcpy;
+	ctx->s_ops.drain = operation_transient_drain;
 
 	VECQ_INIT(&ctx->merge_entries);
 

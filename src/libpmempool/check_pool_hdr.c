@@ -234,6 +234,11 @@ pool_hdr_default_fix(PMEMpoolcheck *ppc, location *loc, uint32_t question,
 		loc->hdr.features.compat = def_hdr.features.compat;
 		break;
 	case Q_DEFAULT_INCOMPAT_FEATURES:
+		/* Check if SDS is supported */
+		if (!shutdown_state_is_supported(
+			PART(REP(ppc->pool->set_file->poolset, 0), 0)->fd)) {
+			def_hdr.features.incompat &= ~POOL_FEAT_SDS;
+		}
 		CHECK_INFO(ppc, "%ssetting pool_hdr.features.incompat to 0x%x",
 			loc->prefix, def_hdr.features.incompat);
 		loc->hdr.features.incompat = def_hdr.features.incompat;

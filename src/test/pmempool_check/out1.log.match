@@ -8,7 +8,8 @@ $(nW): spoil: pool_hdr.shutdown_state.uuid=0
 $(nW): spoil: pool_hdr.shutdown_state.f:checksum_gen
 $(nW): spoil: pool_hdr.unused=$(*)
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 checking pool header
 incorrect pool header
 pool_hdr.major is not valid
@@ -28,7 +29,8 @@ PMEMLOG: pmemlog
 $(nW): spoil: pmemlog.start_offset=$(*)
 $(nW): spoil: pmemlog.end_offset=$(*)
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 checking pool header
 pool header correct
 checking pmemlog header

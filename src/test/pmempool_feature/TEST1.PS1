@@ -19,6 +19,14 @@ expect_normal_exit $PMEMPOOL create obj $POOLSET
 # PMEMPOOL_FEAT_CHCKSUM_2K is enabled by default
 pmempool_feature_query "CKSUM_2K"
 
+# If SDS is not enabled at this point is because SDS is not available for
+# this device
+$ret = pmempool_feature_query_return "SHUTDOWN_STATE"
+if ( $ret -eq "0" ) {
+	msg "${Env:UNITTEST_NAME}: SKIP: SDS is not available"
+	exit 0
+}
+
 # disable PMEMPOOL_FEAT_SHUTDOWN_STATE prior to success
 $exit_func="expect_abnormal_exit"
 pmempool_feature_disable "CKSUM_2K" # should fail
