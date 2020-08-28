@@ -135,9 +135,9 @@ platform_init(struct pmem_funcs *funcs)
 
 	/* XXX: valgrind does not recognize powerpc fence instruction */
 	if (On_valgrind) {
-		pcc_pmem_funcs.predrain_fence = ppc_predrain_fence_empty;
-		pcc_pmem_funcs.flush = ppc_flush_msync;
-		pcc_pmem_funcs.deep_flush = ppc_flush_msync;
+		ppc_pmem_funcs.predrain_fence = ppc_predrain_fence_empty;
+		ppc_pmem_funcs.flush = ppc_flush_msync;
+		ppc_pmem_funcs.deep_flush = ppc_flush_msync;
 	}
 
 	*funcs = ppc_pmem_funcs;
