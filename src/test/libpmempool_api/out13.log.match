@@ -5,7 +5,8 @@ libpmempool_api$(nW)TEST13: DONE
 libpmempool_api$(nW)TEST13: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -s 999999 $(nW)
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 checking pool header
 pool header correct
 checking pmemlog header

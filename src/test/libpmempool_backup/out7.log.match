@@ -2,7 +2,8 @@ libpmempool_backup/TEST7: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.blk_backup -t blk -r 1 $(nW)pool.blk
 destination of the backup already exists. Do you want to overwrite it?
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 checking pool header
 pool header correct
 checking pmemblk header
@@ -22,7 +23,8 @@ libpmempool_backup/TEST7: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.log_backup -t log -r 1 $(nW)pool.log
 destination of the backup already exists. Do you want to overwrite it?
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 checking pool header
 pool header correct
 checking pmemlog header
@@ -38,7 +40,8 @@ libpmempool_backup/TEST7: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.obj_backup -t obj -r 1 $(nW)pool.obj
 destination of the backup already exists. Do you want to overwrite it?
 checking shutdown state
-shutdown state correct
+$(OPT)shutdown state correct
+$(OPX)shutdown state not supported
 checking pool header
 pool header correct
 status = consistent

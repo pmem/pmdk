@@ -24,6 +24,16 @@ copy_files_to_node 1 ${NODE_TEST_DIR[1]} $PMEMOBJCLI_SCRIPT
 
 POOLSET_LOCAL="local_pool.set"
 
+pmempool_exe=$PMEMPOOL$EXESUFFIX
+
+function require_sds_support() {
+	$pmempool_exe feature -q "SHUTDOWN_STATE" $1 2>> /dev/null
+	if [[ $? -eq 0 ]]; then
+		msg "$UNITTEST_NAME: SKIP: SDS is not available"
+		exit 0
+	fi
+}
+
 #
 # configure_poolsets -- configure pool set files for test
 # usage: configure_poolsets <local replicas> <remote replicas>
