@@ -8,10 +8,15 @@ $(OPT)compiled with support for Valgrind drd
 $(OPT)compiled with support for shutdown state
 $(OPT)compiled with libndctl 63+
 open "$(nW)/testset0": No such file or directory
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
 size 1000000 smaller than 2097152
 size 1000000 smaller than 2097152
@@ -24,21 +29,35 @@ size 12288 smaller than 2097152
 size 12288 smaller than 2097152
 file size does not match config: $(nW)testfile142, 4194304 != 8388608
 file size does not match config: $(nW)testfile152, 3145728 != 4194304
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
 Non-empty file detected
 Non-empty file detected
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
 open "$(nW)/testset23": Permission denied
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
 reservation pool size 1048576 smaller than 4194304
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
+$(OPT)Cannot read device usc - ndctl is not available
 $(OPT)Unsafe shutdown count is not supported for this source
