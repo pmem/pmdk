@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018, Intel Corporation */
+/* Copyright 2018-2020, Intel Corporation */
 
 /*
  * obj_reorder_basic.c -- a simple unit test for store reordering
@@ -70,10 +70,15 @@ main(int argc, char *argv[])
 	if (argc != 3 || strchr("wc", argv[1][0]) == 0 || argv[1][1] != '\0')
 		UT_FATAL("usage: %s w|c file", argv[0]);
 
+	char opt = argv[1][0];
+	if (opt == 'c') {
+		int y = 1;
+		pmemobj_ctl_set(NULL, "copy_on_write.at_open", &y);
+	}
+
 	PMEMobjpool *pop = pmemobj_open(argv[2], LAYOUT_NAME);
 	UT_ASSERT(pop != NULL);
 
-	char opt = argv[1][0];
 	VALGRIND_EMIT_LOG("PMREORDER_MARKER_WRITE.BEGIN");
 	switch (opt) {
 		case 'w':
