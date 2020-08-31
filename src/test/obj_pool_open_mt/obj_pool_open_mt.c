@@ -27,6 +27,14 @@ thread_oc(void *arg)
 
 	PMEMobjpool *p = pmemobj_create(pname, "", POOLSIZE, 0666);
 	UT_ASSERT(p);
+
+	/* use the new pool */
+	PMEMoid o;
+	UT_ASSERT(!pmemobj_zalloc(p, &o, 64, 0));
+	int *ptr = pmemobj_direct(o);
+	UT_ASSERT(ptr);
+	UT_ASSERT(! *ptr);
+
 	pmemobj_close(p);
 
 	for (uint64_t count = 0; count < niter; count++) {
