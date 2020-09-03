@@ -331,10 +331,6 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		return pmem2_lasterror_to_err();
 	}
 
-	ret = pmem2_config_validate_addr_alignment(cfg, src);
-	if (ret)
-		goto err_close_mapping_handle;
-
 	/* prepare pmem2_map structure */
 	struct pmem2_map *map;
 	map = (struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
@@ -406,29 +402,16 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 			goto err_vm_reserv_unregister;
 		}
 	} else {
-		/* let's get addr from cfg struct */
-		LPVOID addr_hint = cfg->addr;
-
 		/* obtain a pointer to the mapping view */
-		base = MapViewOfFileEx(mh,
+		base = MapViewOfFile(mh,
 			access,
 			HIDWORD(effective_offset),
 			LODWORD(effective_offset),
-			length,
-			addr_hint); /* hint address */
+			length);
 
 		if (base == NULL) {
-			ERR("!!MapViewOfFileEx");
-			if (cfg->addr_request ==
-					PMEM2_ADDRESS_FIXED_NOREPLACE) {
-				DWORD ret_windows = GetLastError();
-				if (ret_windows == ERROR_INVALID_ADDRESS)
-					ret = PMEM2_E_MAPPING_EXISTS;
-				else
-					ret = pmem2_lasterror_to_err();
-			}
-			else
-				ret = pmem2_lasterror_to_err();
+			ERR("!!MapViewOfFile");
+			ret = pmem2_lasterror_to_err();
 			goto err_free_map_struct;
 		}
 	}

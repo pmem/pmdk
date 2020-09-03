@@ -57,8 +57,70 @@ offset_align_to_devdax(void *rsv_addr, size_t alignment)
 }
 
 /*
+ * test_vm_reserv_new_valid_addr - map a file to the desired addr with the
+ *                                 help of virtual memory reservation
+ */
+static int
+test_vm_reserv_new_valid_addr(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_new_valid_addr "
+				"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	void *rsv_addr;
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	int ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	rsv_addr = pmem2_map_get_address(map);
+
+	/* unmap the mapping after getting the address */
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+
+	/*
+	 * there's no need for padding in case of DevDax since the address
+	 * we get from the first mapping is already aligned
+	 */
+	rsv_size = size;
+
+	ret = pmem2_vm_reservation_new(&rsv, rsv_addr, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(pmem2_vm_reservation_get_address(rsv), rsv_addr);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(pmem2_map_get_address(map), rsv_addr);
+
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
  * test_vm_reserv_new_region_occupied_map - create a reservation
- * in the region belonging to existing mapping
+ * in the region overlapping whole existing mapping
  */
 static int
 test_vm_reserv_new_region_occupied_map(const struct test_case *tc,
@@ -93,6 +155,118 @@ test_vm_reserv_new_region_occupied_map(const struct test_case *tc,
 	ret = pmem2_map_delete(&map);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTeq(map, NULL);
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_new_region_occupied_map_below - create a reservation
+ * in the region overlapping lower half of the existing mapping
+ */
+static int
+test_vm_reserv_new_region_occupied_map_below(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_new_region_occupied_map_below "
+				"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t alignment = get_align_by_filename(file);
+	void *rsv_addr;
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	int ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	/*
+	 * address of the mapping is already aligned, we need to align
+	 * the half of the size in case of DevDax
+	 */
+	rsv_addr = (char *)pmem2_map_get_address(map) -
+			ALIGN_UP(size / 2, alignment);
+
+	/*
+	 * there's no need for padding in case of DevDax since the address
+	 * we get from the first mapping is already aligned
+	 */
+	rsv_size = size;
+
+	ret = pmem2_vm_reservation_new(&rsv, rsv_addr, rsv_size);
+	UT_ASSERTeq(ret, PMEM2_E_MAPPING_EXISTS);
+	UT_ASSERTeq(rsv, NULL);
+
+	/* unmap the mapping after getting the address */
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_new_region_occupied_map_above - create a reservation
+ * in the region overlapping upper half of the existing mapping
+ */
+static int
+test_vm_reserv_new_region_occupied_map_above(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_new_region_occupied_map_above "
+				"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t alignment = get_align_by_filename(file);
+	void *rsv_addr;
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	int ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	/*
+	 * address of the mapping is already aligned, we need to align
+	 * the half of the size in case of DevDax
+	 */
+	rsv_addr = (char *)pmem2_map_get_address(map) +
+			ALIGN_DOWN(size / 2, alignment);
+
+	/*
+	 * there's no need for padding in case of DevDax since the address
+	 * we get from the first mapping is already aligned
+	 */
+	rsv_size = size;
+
+	ret = pmem2_vm_reservation_new(&rsv, rsv_addr, rsv_size);
+	UT_ASSERTeq(ret, PMEM2_E_MAPPING_EXISTS);
+	UT_ASSERTeq(rsv, NULL);
+
+	/* unmap the mapping after getting the address */
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+
 	PMEM2_SOURCE_DELETE(&src);
 	UT_FH_CLOSE(fh);
 
@@ -968,10 +1142,13 @@ test_vm_reserv_async_map_unmap_multiple_files(const struct test_case *tc,
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
-	TEST_CASE(test_vm_reserv_new_region_occupied_map),
-	TEST_CASE(test_vm_reserv_new_region_occupied_reserv),
 	TEST_CASE(test_vm_reserv_new_unaligned_addr),
 	TEST_CASE(test_vm_reserv_new_unaligned_size),
+	TEST_CASE(test_vm_reserv_new_valid_addr),
+	TEST_CASE(test_vm_reserv_new_region_occupied_map),
+	TEST_CASE(test_vm_reserv_new_region_occupied_map_below),
+	TEST_CASE(test_vm_reserv_new_region_occupied_map_above),
+	TEST_CASE(test_vm_reserv_new_region_occupied_reserv),
 	TEST_CASE(test_vm_reserv_new_alloc_enomem),
 	TEST_CASE(test_vm_reserv_map_file),
 	TEST_CASE(test_vm_reserv_map_part_file),

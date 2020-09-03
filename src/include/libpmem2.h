@@ -137,18 +137,8 @@ int pmem2_config_set_sharing(struct pmem2_config *cfg,
 int pmem2_config_set_protection(struct pmem2_config *cfg,
 				unsigned prot);
 
-enum pmem2_address_request_type {
-	PMEM2_ADDRESS_FIXED_REPLACE = 1,
-	PMEM2_ADDRESS_FIXED_NOREPLACE = 2,
-};
-
-int pmem2_config_set_address(struct pmem2_config *cfg, void *addr,
-		enum pmem2_address_request_type request_type);
-
 int pmem2_config_set_vm_reservation(struct pmem2_config *cfg,
 		struct pmem2_vm_reservation *rsv, size_t offset);
-
-void pmem2_config_clear_address(struct pmem2_config *cfg);
 
 /* mapping */
 
