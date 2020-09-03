@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2018-2019, Intel Corporation
+# Copyright 2018-2020, Intel Corporation
 
 #
 # src/test/pmempool_feature/common.sh -- common part of pmempool_feature tests
@@ -26,7 +26,7 @@ sds_enabled=$(is_ndctl_enabled $pmempool_exe; echo $?)
 #
 # usage: pmempool_feature_query_return <feature>
 function pmempool_feature_query_return() {
-       return $($pmempool_exe feature -q $1 $POOLSET 2>> $LOG)
+       echo $($pmempool_exe feature -q $1 $POOLSET 2>> $LOG)
 }
 
 # pmempool_feature_query -- query feature
@@ -132,8 +132,8 @@ function pmempool_feature_test_CKSUM_2K() {
 
 	# If SDS is not enabled at this point is because SDS is not available for
 	# this device
-	pmempool_feature_query_return "SHUTDOWN_STATE"
-	if [[ $? -eq 0 ]]; then
+	ret=$(pmempool_feature_query_return "SHUTDOWN_STATE")
+	if [[ $ret -eq 0 ]]; then
 		msg "$UNITTEST_NAME: SKIP: SDS is not available"
 		exit 0
 	fi
