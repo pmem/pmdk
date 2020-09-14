@@ -68,6 +68,7 @@ from configurator import Configurator
 from consts import LIBS_LIST, ROOTDIR
 import futils
 import test_types
+import shutil
 
 
 #
@@ -175,7 +176,7 @@ class BaseTest(metaclass=_TestCase):
             self.elapsed = (datetime.now() - start_time).total_seconds()
 
             self.ctx.check()
-            self.check()
+            self.check(c)
 
         except futils.Fail:
             self._on_fail()
@@ -208,7 +209,7 @@ class BaseTest(metaclass=_TestCase):
         raise NotImplementedError('{} does not implement run() method'.format(
             self.__class__))
 
-    def check(self):
+    def check(self, ctx):
         """Run additional test checks - not implemented by BaseTest"""
         pass
 
@@ -293,6 +294,18 @@ class Test(BaseTest):
             with open(file) as f:
                 self.ctx.dump_n_lines(f)
 
+    def _move_log_files(self, ctx):
+        """
+        Move all log files for given tests
+        """
+        path = "logs"
+        sub_dir = str(ctx).replace(':', '')
+        logs_dir = os.path.join(path, sub_dir)
+        os.makedirs(logs_dir, exist_ok=True)
+        log_files = self.get_log_files()
+        for file in log_files:
+            shutil.copy2(file, logs_dir)
+
     def remove_log_files(self):
         """
         Removes log files for given test
@@ -313,10 +326,11 @@ class Test(BaseTest):
     def _on_fail(self):
         self._print_log_files()
 
-    def check(self):
+    def check(self, ctx):
         """Run additional test checks"""
         if self.match:
             self._run_match()
+        self._move_log_files(ctx)
 
     def _run_match(self):
         """Match log files"""
