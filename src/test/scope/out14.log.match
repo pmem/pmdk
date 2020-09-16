@@ -3,10 +3,8 @@ pmem2_badblock_clear
 pmem2_badblock_context_delete
 pmem2_badblock_context_new
 pmem2_badblock_next
-pmem2_config_clear_address
 pmem2_config_delete
 pmem2_config_new
-pmem2_config_set_address
 pmem2_config_set_length
 pmem2_config_set_offset
 pmem2_config_set_protection

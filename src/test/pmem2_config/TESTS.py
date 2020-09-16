@@ -80,39 +80,14 @@ class TEST10(Pmem2ConfigNoDir):
     test_case = "test_set_sharing_invalid"
 
 
-class TEST11(Pmem2Config):
-    """setting unaligned addr and validating it"""
-    test_case = "test_validate_unaligned_addr"
-
-
-class TEST12(Pmem2ConfigNoDir):
-    """setting wrong addr request type"""
-    test_case = "test_set_wrong_addr_req_type"
-
-
-class TEST13(Pmem2ConfigNoDir):
-    """
-    setting null addr when request type PMEM2_ADDRESS_FIXED_NOREPLACE
-    is used
-    """
-    test_case = "test_null_addr_noreplace"
-
-
-class TEST14(Pmem2ConfigNoDir):
-    """
-    using pmem2_config_clear_address func
-    """
-    test_case = "test_clear_address"
-
-
-class TEST15(Pmem2ConfigNoDir):
+class TEST11(Pmem2ConfigNoDir):
     """
     setting a valid protection flags
     """
     test_case = "test_set_valid_prot_flag"
 
 
-class TEST16(Pmem2ConfigNoDir):
+class TEST12(Pmem2ConfigNoDir):
     """
     setting a invalid protection flags
     """
