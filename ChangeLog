@@ -1,3 +1,23 @@
+Mond Sep 28 2020 Piotr Balcer <piotr.balcer@intel.com>
+
+	Detailed list of bug fixes:
+	- os_posix: Use __FreeBSD__ to control secure_getenv definition
+	- obj: fix pmemcheck marker in pmemobj_tx_wcsdup
+	- common: fix manpage section references in comments and text files
+	- doc: fix formatting of pmreorder man page
+	- obj: fix transient redo log of more than 64 entries
+	- obj: fix unintended recursive locking during palloc
+	- pool: fix possible memory leak
+	- obj: fix potential NULL-dereference in ulog_store
+	- pmem: fix pmemcheck support on platforms with eADR
+	- obj: fix lock release order in palloc publish
+	- doc: fix make uninstall for man page links
+	- obj: fix zone size calculations
+	- doc: fix return type of pmemobj_tx_stage()
+	- common: fix calculation of bad blocks in os_badblocks_get()
+	- obj: fix failure atomicity bug in huge allocs
+	- obj: add missing drain after ulog processing
+
 Mon Sep 30 2019 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.7
