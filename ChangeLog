@@ -1,3 +1,16 @@
+Wed Sep 16 2020 Piotr Balcer <piotr.balcer@intel.com>
+
+	* Version 1.8.1
+
+	Detailed list of bug fixes:
+	- test: Fix obj_zones for ppc64le
+	- doc: fix return type of pmemobj_tx_stage()
+	- common: fix calculation of bad blocks in os_badblocks_get()
+	- pmem: Fix data cache flush on ppc64
+	- obj: fix run allocated recalculation
+	- obj: fix failure atomicity bug in huge allocs
+	- obj: add missing drain after ulog processing
+
 Fri Jan 31 2020 Marcin Ślusarz <marcin.slusarz@intel.com>
 
 	* Version 1.8
