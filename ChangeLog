@@ -1,3 +1,14 @@
+Wed Sep 16 2020 Piotr Balcer <piotr.balcer@intel.com>
+
+	* Version 1.9.1
+
+	Detailed list of bug fixes:
+	- common: fix LIBFABRIC flags
+	- common: Add runtime SDS check and disable
+	- pool: disable SDS check if not supported
+	- obj: fix failure atomicity bug in huge allocs
+	- obj: add missing drain after ulog processing
+
 Fri Jul 3 2020 Piotr Balcer <piotr.balcer@intel.com>
 
 	* Version 1.9
