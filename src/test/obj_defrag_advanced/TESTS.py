@@ -86,6 +86,8 @@ class ObjDefragAdvancedMt(ObjDefragAdvanced):
 
 
 class TEST3(ObjDefragAdvancedMt):
+    test_type = t.Long
+
     max_nodes = 256
     max_edges = 64
     graph_copies = 10
