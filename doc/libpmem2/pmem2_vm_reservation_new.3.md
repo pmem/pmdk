@@ -41,29 +41,31 @@ The **pmem2_vm_reservation_new**() function creates a new blank mapping in the
 virtual address space of the calling process. Reservation serves as a placeholder
 of a given size on which sources can be mapped.
 
-For the function to succeed, the *addr* must be either aligned to an appropriate allocation granularity,
-or be a NULL, the size has to be aligned to an appropraite allocation granularity.
+For the function to succeed, the *addr* must be either aligned to an appropriate
+allocation granularity,
+or **NULL**, the size has to be aligned to an appropraite allocation granularity.
 
 If the **pmem2_vm_reservation_new**() succeeds in creating a reservation, it instantiates a new
-*struct pmem2_vm_reservation** object describing the reservation. The pointer to this object
-is stored in the user-provided variable via the *rsv_ptr* pointer. If the function fails, an appropriate
-error value will be returned. For a list of possible return values please see [RETURN VALUE](#return-value)
+**struct pmem2_vm_reservation** object describing the reservation. The pointer to this object
+is stored in the user-provided variable via the *rsv_ptr* pointer. If the function
+fails, an appropriate error value will be returned. For a list of possible return
+values please see [RETURN VALUE](#return-value)
 
-After instantiating an object via the **pmem2_vm_reservation_new**() function, it is necessary to
-finalize it using the **pmem2_vm_reservation_delete**() function.
+After instantiating an object via the **pmem2_vm_reservation_new**() function, it
+may be disposed of using the **pmem2_vm_reservation_delete**() function.
 
-The **pmem2_vm_reservation_delete**() function destroys the object describing the reservation and unmaps
-virtual memory region the *struct pmem2_vm_reservation** had assigned during the initialization.
-
-For the function to succeed, it is required that the reservation passed via the *rsv_ptr* pointer will not
-contain any mappings.
+The **pmem2_vm_reservation_delete**() function destroys the object describing
+the reservation and unmaps virtual memory region
+the *struct pmem2_vm_reservation** had assigned during the initialization.
+For the delete function to succeed, it is required that the reservation passed via
+the *rsv_ptr* pointer does not contain any mappings.
 
 # RETURN VALUE #
 
 The **pmem2_vm_reservation_new**() and **pmem2_vm_reservation_delete**() functions return 0
 on success or a negative error code on failure.
 
-The  function returns 0 on success or a negative error code on failure.
+The function returns 0 on success or a negative error code on failure.
 
 # ERRORS #
 

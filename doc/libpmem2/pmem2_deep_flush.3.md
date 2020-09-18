@@ -43,9 +43,6 @@ should be used sparingly. Typically, the application should only ever use this
 function as a precaution against hardware failures, e.g., in code that detects
 silent data corruption caused by unsafe shutdown (see more in **libpmem2_unsafe_shutdown**(7)).
 
-Applications should generally not assume the support for this functionality
-in the platform, and not treat **PMEM2_E_NOSUPP** as a fatal error.
-
 # RETURN VALUE #
 
 The **pmem2_deep_flush**() function returns 0 on success

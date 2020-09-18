@@ -65,19 +65,19 @@ robust use of Persistent Memory. It relies on three core concepts:
 
 * *source* - an object describing the data source for mapping.
 The data source can be a file descriptor, a file handle, or an anonymous mapping.
-API dedicated to create a *source* is: **pmem2_source_from_fd**(3),
+APIs dedicated for creating *source* are: **pmem2_source_from_fd**(3),
  **pmem2_source_from_handle**(3), **pmem2_source_from_anon**(3).
 
 * *config* - an object containing parameters that are used to create a mapping from a *source*.
 The configuration structure must always be provided to create a mapping,
-but the only required parameter to set in the *config* is a *granularity*.
+but the only required parameter to set in the *config* is *granularity*.
 The granularity should by set using dedicated **libpmem2** function
 **pmem2_config_set_required_store_granularity**(3) which defines a maximum permitted
 granularity requested by the user. For more information about the granularity concept
 read **GRANULARITY** section below.
 
 In addition to the granularity setting, libpmem2 provides multiple optional
-functions to configure target mapping, eg. **pmem2_config_set_length**(3)
+functions to configure target mapping, e.g., **pmem2_config_set_length**(3)
 to set length which will be used for mapping, or **pmem2_config_set_offset**(3)
 which will be used to map the contents from the specified location of the source,
 **pmem2_config_set_sharing**(3) which defines the behavior and visibility of writes
@@ -91,7 +91,7 @@ set of functions: **pmem2_map_get_address**(3), **pmem2_map_get_size**(3),
 size and effective mapping granularity.
 
 In addition to the basic functionality of managing the virtual address mapping,
-**libpmem2** also provides optimized functions for modifying the mapping data.
+**libpmem2** also provides optimized functions for modifying the mapped data.
 This includes data flushing as well as memory copying.
 
 To get proper function for data flushing use: **pmem2_get_flush_fn**(3),
@@ -114,9 +114,10 @@ and can be found in the **libpmem2_unsafe_shutdown**(7) man page.
 # GRANULARITY #
 
 The **libpmem2** library introduces the concept of granularity through which you
-may easily distinguish between different types of
-reaching *power-fail protected domain* by data. Data can reach this domain in
-different ways depending on the platform capabilities.
+may easily distinguish between different levels of storage performance
+capabilities available to the application as related to *power-fail protected domain*.
+The way data reaches this protected domain differs based on the platform
+and storage device capabilities.
 
 Traditional block storage devices (SSD, HDD) must use system API calls such
 as `msync()`, `fsync()` on Linux, or `FlushFileBuffers()`,`FlushViewOfFile()`
@@ -126,13 +127,14 @@ of flushing behavior is called **PMEM2_GRANULARITY_PAGE**.
 
 In systems with persistent memory support, a *power-fail protected domain* may
 cover different sets of resources: either the memory controller or the memory
-controller and CPU caches. In this regard, **libpmem2** distinguishes two types
+controller and CPU caches. For this reason, **libpmem2** distinguishes two types
 of granularity for persistent memory:
 **PMEM2_GRANULARITY_CACHE_LINE** and **PMEM2_GRANULARITY_BYTE**.
 
-If the *power-fail protected domain* covers only the memory controller, it is
-required to flush CPU caches, so the granularity type, in this case, is called
-**PMEM2_GRANULARITY_CACHE_LINE**. Depending on the architecture, there are
+If the *power-fail protected domain* covers only the memory controller, the
+CPU appropriate cache lines must be flushed for the data to be considered
+persistent. This granularity type is called **PMEM2_GRANULARITY_CACHE_LINE**.
+Depending on the architecture, there are
 different types of machine instructions for flushing *cache lines*
 (e.g., *CLWB*, *CLFLUSHOPT*, *CLFLUSH* for Intel x86_64 architecture). Usually,
 to ensure the ordering of stores, such instructions must be followed
@@ -151,6 +153,10 @@ that most accurately represents the target hardware characteristics and
 the storage patterns of the application. For example, a database storage engine
 that operates on large logical pages that reside either on SSDs or PMEM should
 set this value to **PMEM2_GRANULARITY_PAGE**.
+The library will create mappings where the new map granularity is lower or
+equal to the requested one. For example, a mapping with **PMEM2_GRANULARITY_CACHE_LINE**
+can created for the requried granularity **PMEM2_GRANULARITY_PAGE**, but not
+vice versa.
 
 # CAVEATS #
 
