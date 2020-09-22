@@ -17,6 +17,7 @@ pmem2_get_flush_fn.3
 pmem2_get_memmove_fn.3
 pmem2_get_persist_fn.3
 pmem2_map_delete.3
+pmem2_map_from_existing.3
 pmem2_map_new.3
 pmem2_map_get_address.3
 pmem2_map_get_size.3

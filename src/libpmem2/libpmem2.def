@@ -34,6 +34,7 @@ EXPORTS
 	pmem2_map_get_size
 	pmem2_map_get_store_granularity
 	pmem2_map_new
+	pmem2_map_from_existing
 	pmem2_perrorU
 	pmem2_perrorW
 	pmem2_source_alignment

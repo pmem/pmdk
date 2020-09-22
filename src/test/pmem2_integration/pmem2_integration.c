@@ -903,6 +903,94 @@ test_source_anon_too_small(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_map_from_existing_map -- compare normal map with map_from_existing
+ */
+static int
+test_map_from_existing_map(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: map_from_existing_map <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_config *cfg;
+	struct pmem2_source *src;
+	PMEM2_PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd,
+		PMEM2_GRANULARITY_PAGE);
+
+	size_t size;
+	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
+
+	struct pmem2_map *map1 = map_valid(cfg, src, size);
+
+	/* cleanup after the test */
+	struct pmem2_map *map2;
+	UT_PMEM2_EXPECT_RETURN(pmem2_map_from_existing(&map2, src,
+			pmem2_map_get_address(map1), pmem2_map_get_size(map1),
+			pmem2_map_get_store_granularity(map1)),
+			PMEM2_E_MAP_EXISTS);
+
+	pmem2_map_delete(&map1);
+	pmem2_config_delete(&cfg);
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+	return 1;
+}
+
+/*
+ * test_map_from_existing -- compare normal map with map_from_existing
+ */
+static int
+test_map_from_existing(const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_map_from_existing <file>");
+
+	char *file = argv[0];
+	int fd = OPEN(file, O_RDWR);
+
+	struct pmem2_source *src;
+	struct pmem2_config *cfg;
+	PMEM2_PREPARE_CONFIG_INTEGRATION(&cfg, &src, fd,
+		PMEM2_GRANULARITY_PAGE);
+
+	size_t size;
+	UT_ASSERTeq(pmem2_source_size(src, &size), 0);
+
+	struct pmem2_map *map = map_valid(cfg, src, size);
+	enum pmem2_granularity gran = pmem2_map_get_store_granularity(map);
+
+	void *persist = pmem2_get_persist_fn(map);
+	void *flush = pmem2_get_flush_fn(map);
+	void *drain = pmem2_get_drain_fn(map);
+	void *memmove = pmem2_get_memmove_fn(map);
+	void *memcpy = pmem2_get_memcpy_fn(map);
+	void *memset = pmem2_get_memset_fn(map);
+
+	UT_PMEM2_EXPECT_RETURN(pmem2_map_delete(&map), 0);
+	void *addr = FILE_MAP(fd, size);
+	UT_ASSERTeq(pmem2_map_from_existing(&map, src,
+			addr, size, gran), 0);
+	UT_ASSERTeq(pmem2_map_get_address(map), addr);
+	UT_ASSERTeq(pmem2_map_get_size(map), size);
+	UT_ASSERTeq(pmem2_map_get_store_granularity(map), gran);
+	UT_ASSERTeq(pmem2_get_persist_fn(map), persist);
+	UT_ASSERTeq(pmem2_get_flush_fn(map), flush);
+	UT_ASSERTeq(pmem2_get_drain_fn(map), drain);
+	UT_ASSERTeq(pmem2_get_memmove_fn(map), memmove);
+	UT_ASSERTeq(pmem2_get_memcpy_fn(map), memcpy);
+	UT_ASSERTeq(pmem2_get_memset_fn(map), memset);
+
+	pmem2_map_delete(&map);
+	pmem2_config_delete(&cfg);
+	pmem2_source_delete(&src);
+	CLOSE(fd);
+	return 1;
+}
+#undef COMPARE_FUNCS
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -927,6 +1015,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_source_anon_too_small),
 	TEST_CASE(test_source_anon_zero_len),
 	TEST_CASE(test_unaligned_persist),
+	TEST_CASE(test_map_from_existing_map),
+	TEST_CASE(test_map_from_existing)
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

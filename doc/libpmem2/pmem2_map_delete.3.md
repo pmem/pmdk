@@ -42,6 +42,10 @@ If the function fails, the *map_ptr* variable and the map object itself are left
 unmodified and appropriate error value is returned. For a list of possible
 return values please see [RETURN VALUE](#return-value).
 
+The **pmem2_map_delete**() function will not unmap mapping provided by the user
+by **pmem2_map_from_existing**() function. In such case it will only free
+*struct pmem2_map* object.
+
 # RETURN VALUE #
 
 The **pmem2_map_delete**() function returns 0 on success

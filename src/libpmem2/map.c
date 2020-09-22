@@ -7,15 +7,18 @@
 
 #include "out.h"
 
+#include "alloc.h"
 #include "config.h"
 #include "map.h"
 #include "ravl_interval.h"
 #include "os.h"
 #include "os_thread.h"
+#include "persist.h"
 #include "pmem2.h"
 #include "pmem2_utils.h"
 #include "ravl.h"
 #include "sys_util.h"
+#include "valgrind_internal.h"
 
 #include <libpmem2.h>
 
@@ -238,4 +241,53 @@ pmem2_map_find(const void *addr, size_t len)
 		return NULL;
 
 	return (struct pmem2_map *)ravl_interval_data(node);
+}
+
+/*
+ * pmem2_map_from_existing -- create map object for exisiting mapping
+ */
+int
+pmem2_map_from_existing(struct pmem2_map **map_ptr,
+	const struct pmem2_source *src, void *addr, size_t len,
+	enum pmem2_granularity gran)
+{
+	int ret;
+	struct pmem2_map *map =
+		(struct pmem2_map *)pmem2_malloc(sizeof(*map), &ret);
+
+	if (!map)
+		return ret;
+
+	map->reserv = NULL;
+	map->addr = addr;
+	map->reserved_length = 0;
+	map->content_length = len;
+	map->effective_granularity = gran;
+	pmem2_set_flush_fns(map);
+	pmem2_set_mem_fns(map);
+	map->source = *src;
+
+#ifndef _WIN32
+	/* fd should not be used after map */
+	map->source.value.fd = INVALID_FD;
+#endif
+	ret = pmem2_register_mapping(map);
+	if (ret) {
+		Free(map);
+		if (ret == -EEXIST) {
+			ERR(
+				"Provided mappping(addr %p len %zu) is already registered by libpmem2",
+				addr, len);
+			return PMEM2_E_MAP_EXISTS;
+		}
+		return ret;
+	}
+#ifndef _WIN32
+	if (src->type == PMEM2_SOURCE_FD) {
+		VALGRIND_REGISTER_PMEM_MAPPING(map->addr,
+			map->content_length);
+	}
+#endif
+	*map_ptr = map;
+	return 0;
 }
