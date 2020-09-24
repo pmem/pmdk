@@ -46,6 +46,7 @@ BUILD_PACKAGE_CHECK ?= y
 BUILD_RPMEM ?= y
 TEST_CONFIG_FILE ?= "$(CURDIR)"/src/test/testconfig.sh
 PMEM2_INSTALL ?= n
+PMEMSET_INSTALL ?= n
 DOC ?= y
 
 rpm : override DESTDIR="$(CURDIR)/$(RPM_BUILDDIR)"
