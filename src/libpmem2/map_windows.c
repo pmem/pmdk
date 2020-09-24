@@ -142,8 +142,9 @@ static int
 vm_reservation_merge(struct pmem2_vm_reservation *rsv, void *addr,
 		size_t length)
 {
+	void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
 	size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
-	size_t rsv_offset = (size_t)addr - (size_t)rsv->addr;
+	size_t rsv_offset = (size_t)addr - (size_t)rsv_addr;
 
 	/*
 	 * After unmapping from the reservation, it is neccessary to merge
@@ -161,7 +162,7 @@ vm_reservation_merge(struct pmem2_vm_reservation *rsv, void *addr,
 			merge_addr = (char *)map->addr + map->reserved_length;
 			merge_size += (char *)addr - (char *)merge_addr;
 		} else {
-			merge_addr = rsv->addr;
+			merge_addr = rsv_addr;
 			merge_size += rsv_offset;
 		}
 	}
@@ -172,7 +173,7 @@ vm_reservation_merge(struct pmem2_vm_reservation *rsv, void *addr,
 		if (map)
 			merge_size += (char *)map->addr - (char *)addr - length;
 		else
-			merge_size += rsv->size - rsv_offset - length;
+			merge_size += rsv_size - rsv_offset - length;
 	}
 
 	if ((addr != merge_addr) || (length != merge_size)) {
@@ -546,8 +547,8 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 
 	if (map->reserved_length != 0) {
 		if (rsv) {
-			size_t rsv_offset = (size_t)map_addr -
-					(size_t)rsv->addr;
+			void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
+			size_t rsv_offset = (size_t)map_addr - (size_t)rsv_addr;
 			if (!vm_reservation_map_find_acquire(rsv, rsv_offset,
 					map_len)) {
 				ret = PMEM2_E_MAPPING_NOT_FOUND;

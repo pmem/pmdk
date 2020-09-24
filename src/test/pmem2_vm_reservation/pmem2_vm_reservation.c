@@ -21,6 +21,13 @@
 #include "ut_pmem2.h"
 #include "ut_pmem2_setup.h"
 
+struct pmem2_vm_reservation {
+	struct ravl_interval *itree;
+	void *addr;
+	size_t size;
+	os_rwlock_t lock;
+};
+
 /*
  * get_align_by_filename -- fetch map alignment for an unopened file
  */

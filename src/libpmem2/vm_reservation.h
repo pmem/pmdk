@@ -9,12 +9,7 @@
 
 #include "ravl_interval.h"
 
-struct pmem2_vm_reservation {
-	struct ravl_interval *itree;
-	void *addr;
-	size_t size;
-	os_rwlock_t lock;
-};
+struct pmem2_vm_reservation;
 
 int vm_reservation_map_register_release(struct pmem2_vm_reservation *rsv,
 		struct pmem2_map *map);

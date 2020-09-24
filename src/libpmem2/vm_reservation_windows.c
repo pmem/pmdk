@@ -13,6 +13,13 @@
 #include "pmem2_utils.h"
 #include "sys_util.h"
 
+struct pmem2_vm_reservation {
+	struct ravl_interval *itree;
+	void *addr;
+	size_t size;
+	os_rwlock_t lock;
+};
+
 int vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
 		size_t *rsize);
 int vm_reservation_release_memory(void *addr, size_t size);
