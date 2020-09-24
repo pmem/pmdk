@@ -263,8 +263,11 @@ unmap(void *addr, size_t len)
 static int
 vm_reservation_mend(struct pmem2_vm_reservation *rsv, void *addr, size_t size)
 {
-	ASSERT((char *)addr >= (char *)rsv->addr &&
-			(char *)addr + size <= (char *)rsv->addr + rsv->size);
+	void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
+	size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
+
+	ASSERT((char *)addr >= (char *)rsv_addr &&
+			(char *)addr + size <= (char *)rsv_addr + rsv_size);
 
 	char *daddr = mmap(addr, size, PROT_NONE,
 			MAP_PRIVATE | MAP_ANONYMOUS | MAP_FIXED, -1, 0);
@@ -570,8 +573,8 @@ pmem2_map_delete(struct pmem2_map **map_ptr)
 		VALGRIND_REMOVE_PMEM_MAPPING(map_addr, map_len);
 
 		if (rsv) {
-			size_t rsv_offset = (size_t)map_addr -
-					(size_t)rsv->addr;
+			void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
+			size_t rsv_offset = (size_t)map_addr - (size_t)rsv_addr;
 			if (!vm_reservation_map_find_acquire(rsv, rsv_offset,
 					map_len)) {
 				ret = PMEM2_E_MAPPING_NOT_FOUND;

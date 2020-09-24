@@ -205,27 +205,6 @@ class TEST20(PMEM2_VM_RESERVATION):
 
 
 class TEST21(PMEM2_VM_RESERVATION):
-    """delete a vm reservation with spoiled address"""
-    test_case = "test_vm_reserv_delete_spoil_addr"
-
-
-class TEST22(PMEM2_VM_RESERVATION_DEVDAX):
-    """DevDax delete a vm reservation with spoiled address"""
-    test_case = "test_vm_reserv_delete_spoil_addr"
-
-
-@t.windows_exclude
-class TEST23(PMEM2_VM_RESERVATION):
-    """delete a vm reservation with spoiled size"""
-    test_case = "test_vm_reserv_delete_spoil_size"
-
-
-class TEST24(PMEM2_VM_RESERVATION_DEVDAX):
-    """DevDax delete a vm reservation with spoiled size"""
-    test_case = "test_vm_reserv_delete_spoil_size"
-
-
-class TEST25(PMEM2_VM_RESERVATION):
     """
     map multiple files to a vm reservation, then
     unmap every 2nd mapping and map the mappings again
@@ -233,7 +212,7 @@ class TEST25(PMEM2_VM_RESERVATION):
     test_case = "test_vm_reserv_map_unmap_multiple_files"
 
 
-class TEST26(PMEM2_VM_RESERVATION_DEVDAX):
+class TEST22(PMEM2_VM_RESERVATION_DEVDAX):
     """
     DevDax map multiple files to a vm reservation, then
     unmap every 2nd mapping and map the mappings again
@@ -241,12 +220,12 @@ class TEST26(PMEM2_VM_RESERVATION_DEVDAX):
     test_case = "test_vm_reserv_map_unmap_multiple_files"
 
 
-class TEST27(PMEM2_VM_RESERVATION):
+class TEST23(PMEM2_VM_RESERVATION):
     """map a file to a vm reservation with insufficient space"""
     test_case = "test_vm_reserv_map_insufficient_space"
 
 
-class TEST28(PMEM2_VM_RESERVATION):
+class TEST24(PMEM2_VM_RESERVATION):
     """
     map a file to a vm reservation and overlap whole other existing mapping
     belonging to the same reservation
@@ -254,7 +233,7 @@ class TEST28(PMEM2_VM_RESERVATION):
     test_case = "test_vm_reserv_map_full_overlap"
 
 
-class TEST29(PMEM2_VM_RESERVATION_DEVDAX):
+class TEST25(PMEM2_VM_RESERVATION_DEVDAX):
     """
     DevDax map a file to a vm reservation and overlap whole other
     existing mapping belonging to the same reservation
@@ -262,7 +241,7 @@ class TEST29(PMEM2_VM_RESERVATION_DEVDAX):
     test_case = "test_vm_reserv_map_full_overlap"
 
 
-class TEST30(PMEM2_VM_RESERVATION):
+class TEST26(PMEM2_VM_RESERVATION):
     """
     map a file to a vm reservation overlapping with the ealier half
     of the other existing mapping
@@ -270,7 +249,7 @@ class TEST30(PMEM2_VM_RESERVATION):
     test_case = "test_vm_reserv_map_partial_overlap_below"
 
 
-class TEST31(PMEM2_VM_RESERVATION_DEVDAX):
+class TEST27(PMEM2_VM_RESERVATION_DEVDAX):
     """
     DevDax map a file to a vm reservation overlapping with the ealier half
     of the other existing mapping
@@ -278,7 +257,7 @@ class TEST31(PMEM2_VM_RESERVATION_DEVDAX):
     test_case = "test_vm_reserv_map_partial_overlap_below"
 
 
-class TEST32(PMEM2_VM_RESERVATION):
+class TEST28(PMEM2_VM_RESERVATION):
     """
     map a file to a vm reservation overlapping with the latter half
     of the other existing mapping
@@ -286,7 +265,7 @@ class TEST32(PMEM2_VM_RESERVATION):
     test_case = "test_vm_reserv_map_partial_overlap_above"
 
 
-class TEST33(PMEM2_VM_RESERVATION_DEVDAX):
+class TEST29(PMEM2_VM_RESERVATION_DEVDAX):
     """
     DevDax map a file to a vm reservation overlapping with the latter half
     of the other existing mapping
@@ -295,7 +274,7 @@ class TEST33(PMEM2_VM_RESERVATION_DEVDAX):
 
 
 @g.require_granularity(g.PAGE, g.CACHELINE)
-class TEST34(PMEM2_VM_RESERVATION):
+class TEST30(PMEM2_VM_RESERVATION):
     """
     map a file with invalid granularity to a vm reservation in the middle of
     the vm reservation bigger than the file, then map a file that covers whole
@@ -304,7 +283,7 @@ class TEST34(PMEM2_VM_RESERVATION):
     test_case = "test_vm_reserv_map_invalid_granularity"
 
 
-class TEST35(PMEM2_VM_RESERVATION_ASYNC):
+class TEST31(PMEM2_VM_RESERVATION_ASYNC):
     """
     map and unmap asynchronously multiple times to the whole vm reservation
     region
@@ -314,7 +293,7 @@ class TEST35(PMEM2_VM_RESERVATION_ASYNC):
     ops_per_thread = 1000
 
 
-class TEST36(PMEM2_VM_RESERVATION_ASYNC_DEVDAX):
+class TEST32(PMEM2_VM_RESERVATION_ASYNC_DEVDAX):
     """
     DevDax map and unmap asynchronously multiple times to the whole
     whole vm reservation region
