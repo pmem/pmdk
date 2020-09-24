@@ -162,3 +162,10 @@ Rather than being tied to a single language or backing implementation,
 **pmemkv** provides different options for language bindings and storage engines.
 
 See the [pmemkv page](../pmemkv/) for available documentation.
+
+#### libpmemset
+
+**libpmemset** aims to provide core functionality any persistent application
+should reasonably have. Its work is still in progress.
+
+See the [libpmemset page](../libpmemset/) for updates.

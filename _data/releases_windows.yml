@@ -370,6 +370,8 @@
         vmem_strdup.3
         vmem_wcsdup.3
 
+    libpmemset:
+
 - tag: 1.9
   libs:
     libpmem

@@ -388,6 +388,8 @@
         rpmem_remove.3
         rpmem_set_attr.3
 
+    libpmemset:
+
 - tag: 1.9
   libs:
     daxio
