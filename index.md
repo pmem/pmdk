@@ -116,6 +116,14 @@ environments.
 
 See the [librpmem page](librpmem) for documentation and examples.
 
+#### libpmemset
+
+**libpmemset** aims to provide support for persistent file I/O operations,
+runtime mapping concatenation and multi-part support across poolsets.
+It relies on synchronous event streams for pool modifications.
+
+See the [libpmemset page](../libpmemset/) for updates.
+
 #### libvmemcache
 
 **libvmemcache** is an embeddable and lightweight in-memory caching solution.
