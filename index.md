@@ -116,6 +116,13 @@ environments.
 
 See the [librpmem page](librpmem) for documentation and examples.
 
+#### libpmemset
+
+**libpmemset** aims to provide core functionality any persistent application
+should reasonably have. Its work is still in progress.
+
+See the [libpmemset page](../libpmemset/) for updates.
+
 #### libvmemcache
 
 **libvmemcache** is an embeddable and lightweight in-memory caching solution.
