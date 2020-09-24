@@ -16,9 +16,18 @@
 #include <Windows.h>
 #endif
 
+struct pmem2_vm_reservation {
+	struct ravl_interval *itree;
+	void *addr;
+	size_t size;
+	os_rwlock_t lock;
+};
+
 int vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
 		size_t *rsize);
 int vm_reservation_release_memory(void *addr, size_t size);
+struct ravl_interval *vm_reservation_get_interval_tree(
+		struct pmem2_vm_reservation *rsv);
 
 /*
  * pmem2_vm_reservation_get_address -- get reservation address
@@ -273,4 +282,13 @@ void
 vm_reservation_release(struct pmem2_vm_reservation *rsv)
 {
 	util_rwlock_unlock(&rsv->lock);
+}
+
+/*
+ * vm_reservation_get_interval_tree -- get interval tree
+ */
+struct ravl_interval *
+vm_reservation_get_interval_tree(struct pmem2_vm_reservation *rsv)
+{
+	return rsv->itree;
 }

@@ -22,6 +22,8 @@ struct pmem2_map *vm_reservation_map_find_closest_prior(
 struct pmem2_map *vm_reservation_map_find_closest_later(
 		struct pmem2_vm_reservation *rsv,
 		size_t reserv_offset, size_t len);
+struct ravl_interval *vm_reservation_get_interval_tree(
+		struct pmem2_vm_reservation *rsv);
 
 /*
  * vm_reservation_reserve_memory -- create a blank virual memory mapping
@@ -79,12 +81,14 @@ vm_reservation_map_find_closest_prior(struct pmem2_vm_reservation *rsv,
 		size_t reserv_offset, size_t len)
 {
 	struct pmem2_map map;
-	map.addr = (char *)rsv->addr + reserv_offset;
+
+	map.addr = (char *)pmem2_vm_reservation_get_address(rsv) +
+			reserv_offset;
 	map.content_length = len;
 
 	struct ravl_interval_node *node;
-
-	node = ravl_interval_find_closest_prior(rsv->itree, &map);
+	struct ravl_interval *itree = vm_reservation_get_interval_tree(rsv);
+	node = ravl_interval_find_closest_prior(itree, &map);
 
 	if (!node)
 		return NULL;
@@ -101,12 +105,13 @@ vm_reservation_map_find_closest_later(struct pmem2_vm_reservation *rsv,
 		size_t reserv_offset, size_t len)
 {
 	struct pmem2_map map;
-	map.addr = (char *)rsv->addr + reserv_offset;
+	map.addr = (char *)pmem2_vm_reservation_get_address(rsv) +
+			reserv_offset;
 	map.content_length = len;
 
 	struct ravl_interval_node *node;
-
-	node = ravl_interval_find_closest_later(rsv->itree, &map);
+	struct ravl_interval *itree = vm_reservation_get_interval_tree(rsv);
+	node = ravl_interval_find_closest_later(itree, &map);
 
 	if (!node)
 		return NULL;

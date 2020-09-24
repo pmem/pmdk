@@ -559,76 +559,6 @@ test_vm_reserv_delete_contains_mapping(const struct test_case *tc,
 }
 
 /*
- * test_vm_reserv_delete_spoil_addr - delete a vm reservation with
- *                                    spoiled address
- */
-static int
-test_vm_reserv_delete_spoil_addr(const struct test_case *tc,
-		int argc, char *argv[])
-{
-	if (argc < 2)
-		UT_FATAL("usage: test_vm_reserv_delete_spoil_addr "
-				"<file> <size>");
-	size_t size = ATOUL(argv[1]);
-	void *rsv_addr;
-	struct pmem2_vm_reservation *rsv;
-
-	/* create a reservation in the virtual memory */
-	int ret = pmem2_vm_reservation_new(&rsv, NULL, size);
-	UT_ASSERTeq(ret, 0);
-
-	rsv_addr = pmem2_vm_reservation_get_address(rsv);
-	/* spoil vm_reservation struct address */
-	rsv->addr = (void *) - 1;
-
-	ret = pmem2_vm_reservation_delete(&rsv);
-	UT_PMEM2_EXPECT_RETURN(ret, -EINVAL);
-
-	/* restore the appropriate address */
-	rsv->addr = rsv_addr;
-
-	ret = pmem2_vm_reservation_delete(&rsv);
-	UT_ASSERTeq(ret, 0);
-
-	return 2;
-}
-
-/*
- * test_vm_reserv_delete_spoil_size - delete a vm reservation with
- *                                    spoiled size
- */
-static int
-test_vm_reserv_delete_spoil_size(const struct test_case *tc,
-		int argc, char *argv[])
-{
-	if (argc < 2)
-		UT_FATAL("usage: test_vm_reserv_delete_spoil_size "
-				"<file> <size>");
-	size_t size = ATOUL(argv[1]);
-	size_t rsv_size;
-	struct pmem2_vm_reservation *rsv;
-
-	/* create a reservation in the virtual memory */
-	int ret = pmem2_vm_reservation_new(&rsv, NULL, size);
-	UT_ASSERTeq(ret, 0);
-
-	rsv_size = pmem2_vm_reservation_get_size(rsv);
-	/* spoil vm_reservation struct address */
-	rsv->size = 0;
-
-	ret = pmem2_vm_reservation_delete(&rsv);
-	UT_PMEM2_EXPECT_RETURN(ret, -EINVAL);
-
-	/* restore the appropriate size */
-	rsv->size = rsv_size;
-
-	ret = pmem2_vm_reservation_delete(&rsv);
-	UT_ASSERTeq(ret, 0);
-
-	return 2;
-}
-
-/*
  * test_vm_reserv_map_unmap_multiple_files - map multiple files to a
  * vm reservation, then unmap every 2nd mapping and map the mapping again
  */
@@ -1173,8 +1103,6 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_vm_reserv_map_file),
 	TEST_CASE(test_vm_reserv_map_part_file),
 	TEST_CASE(test_vm_reserv_delete_contains_mapping),
-	TEST_CASE(test_vm_reserv_delete_spoil_addr),
-	TEST_CASE(test_vm_reserv_delete_spoil_size),
 	TEST_CASE(test_vm_reserv_map_unmap_multiple_files),
 	TEST_CASE(test_vm_reserv_map_insufficient_space),
 	TEST_CASE(test_vm_reserv_map_full_overlap),
