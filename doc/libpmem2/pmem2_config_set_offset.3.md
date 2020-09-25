@@ -40,6 +40,7 @@ already initialized, please see **pmem2_config_new**(3) for details. The *\offse
 must be a multiple of the alignment required for the config. The alignment
 requirements are specific to a data source. To retrieve the alignment
 required for specific instance of *pmem2_source** use **pmem2_source_alignment**(3).
+By default, the offset is 0.
 
 # RETURN VALUE #
 
