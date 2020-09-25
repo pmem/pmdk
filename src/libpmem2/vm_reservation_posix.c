@@ -32,8 +32,6 @@ vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
  */
 #ifdef MAP_FIXED_NOREPLACE
 		map_flag = MAP_FIXED_NOREPLACE;
-#else
-		map_flag = 0;
 #endif
 	}
 
