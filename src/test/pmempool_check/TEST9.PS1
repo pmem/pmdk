@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2019, Intel Corporation
+# Copyright 2017-2020, Intel Corporation
 #
 # pmempool_check/TEST9 -- test for checking pmemobj pool
 #
@@ -23,7 +23,7 @@ expect_normal_exit $PMEMPOOL check -vyr $POOL >> $LOG
 &$PMEMSPOIL -v $POOL `
 	pool_hdr.major=0x0 `
 	pool_hdr.features.compat=0xfe `
-	pool_hdr.features.incompat=0xfe `
+	pool_hdr.features.incompat=0xfb `
 	pool_hdr.features.ro_compat=0xff `
 	pool_hdr.shutdown_state.usc=0 `
 	pool_hdr.shutdown_state.uuid=0 `

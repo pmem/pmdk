@@ -154,8 +154,8 @@ function pmempool_feature_test_SHUTDOWN_STATE() {
 
 	# If SDS is not enabled at this point is because SDS is not available for
 	# this device
-	pmempool_feature_query_return "SHUTDOWN_STATE"
-	if [[ $? -eq 0 ]]; then
+	ret=$(pmempool_feature_query_return "SHUTDOWN_STATE")
+	if [[ $ret -eq 0 ]]; then
 		msg "$UNITTEST_NAME: SKIP: SDS is not available"
 		exit 0
 	fi
