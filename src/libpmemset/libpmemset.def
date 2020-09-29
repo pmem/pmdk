@@ -1,0 +1,11 @@
+;;;; Begin Copyright Notice
+; SPDX-License-Identifier: BSD-3-Clause
+; Copyright 2020, Intel Corporation
+;;;;  End Copyright Notice
+
+LIBRARY libpmemset
+
+VERSION 1.0
+
+EXPORTS
+	DllMain
