@@ -41,6 +41,9 @@ The **pmem2_map_new**() function creates a new mapping in the virtual address sp
 of the calling process. This function requires a configuration
 *config* of the mapping and the data source *source*.
 
+Optionally, the mapping can be created at the offset of the virtual memory reservation
+set in the configuration *config*. See **pmem2_config_set_vm_reservation**(3) for details.
+
 For a mapping to succeed, the *config* structure must have the granularity
 parameter set to the appropriate level. See **pmem2_config_set_required_store_granularity**(3)
 and **libpmem2**(7) for more details.
@@ -95,6 +98,9 @@ the alignment required for specific *\*source*. Please see
 and the base mapping address (reservation address + reservation offset) is not aligned
 to the device DAX granularity. Please see **pmem2_config_set_vm_reservation**(3). (Linux only)
 
+* **PMEM2_E_ADDRESS_UNALIGNED** - when mapping to a virtual memory reservation and the region
+for the mapping exceeds reservation size. Please see **pmem2_config_set_vm_reservation**(3).
+
 * **PMEM2_E_NOSUPP** - when config-provided protection flags combination is not supported.
 
 * **PMEM2_E_NO_ACCESS** - there is a conflict between mapping protection and file opening mode.
@@ -115,4 +121,5 @@ It can also return all errors from the underlying
 **pmem2_config_set_required_store_granularity**(3),
 **pmem2_source_alignment**(3), **pmem2_source_from_fd**(3),
 **pmem2_source_size**(3), **pmem2_map_delete**(3),
+**pmem2_config_set_vm_reservation**(3),
 **libpmem2**(7) and **<http://pmem.io>**
