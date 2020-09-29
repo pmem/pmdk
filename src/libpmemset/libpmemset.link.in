@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2020, Intel Corporation
+#
+#
+# src/libpmemset.link -- linker link file for libpmemset
+#
+LIBPMEMSET_1.0 {
+	global:
+		*;
+	local:
+		*;
+};
