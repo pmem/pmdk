@@ -111,6 +111,7 @@ custom_build = $(DEBUG)$(OBJDIR)
 tools: libpmem libpmemblk libpmemlog libpmemobj libpmempool
 libpmemblk libpmemlog libpmemobj: libpmem
 libpmempool: libpmemblk
+libpmemset: libpmem2
 benchmarks test tools: common core
 
 pkg-cfg-common:
