@@ -72,6 +72,7 @@
     <None Include="out11.log.match" />
     <None Include="out12.log.match" />
     <None Include="out14.log.match" />
+    <None Include="out16.log.match" />
     <None Include="out7.log.match" />
     <None Include="out8.log.match" />
     <None Include="out9.log.match" />

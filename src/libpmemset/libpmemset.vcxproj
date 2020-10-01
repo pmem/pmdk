@@ -18,8 +18,12 @@
     <ClCompile Include="..\common\ravl.c" />
     <ClCompile Include="..\core\util.c" />
     <ClCompile Include="..\core\util_windows.c" />
+    <ClCompile Include="config.c" />
     <ClCompile Include="libpmemset.c" />
     <ClCompile Include="libpmemset_main.c" />
+    <ClCompile Include="part.c" />
+    <ClCompile Include="pmemset.c" />
+    <ClCompile Include="source.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\windows\srcversion\srcversion.vcxproj">
@@ -31,7 +35,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\libpmemset.h" />
+    <ClInclude Include="config.h" />
+    <ClInclude Include="event.h" />
+    <ClInclude Include="part.h" />
     <ClInclude Include="pmemset.h" />
+    <ClInclude Include="source.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FBAEFC34-D221-4203-8BF6-162DE1A5BE1C}</ProjectGuid>

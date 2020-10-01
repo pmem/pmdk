@@ -33,5 +33,8 @@
     <None Include="out14.log.match">
       <Filter>Match Files</Filter>
     </None>
+    <None Include="out16.log.match">
+      <Filter>Match Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
