@@ -6,7 +6,41 @@
 #
 LIBPMEMSET_1.0 {
 	global:
-		*;
+		pmemset_config_delete;
+		pmemset_config_new;
+		pmemset_config_set_contiguous_part_coalescing;
+		pmemset_config_set_create_if_invalid;
+		pmemset_config_set_create_if_none;
+		pmemset_config_set_event_callback;
+		pmemset_config_set_layout_name;
+		pmemset_config_set_reservation;
+		pmemset_config_set_version;
+		pmemset_deep_flush;
+		pmemset_delete;
+		pmemset_drain;
+		pmemset_flush;
+		pmemset_header_init;
+		pmemset_memcpy;
+		pmemset_memmove;
+		pmemset_memset;
+		pmemset_new;
+		pmemset_part_map;
+		pmemset_part_map_by_address;
+		pmemset_part_map_descriptor;
+		pmemset_part_map_drop;
+		pmemset_part_map_first;
+		pmemset_part_map_next;
+		pmemset_part_new;
+		pmemset_part_pread_mcsafe;
+		pmemset_part_pwrite_mcsafe;
+		pmemset_persist;
+		pmemset_remove_part;
+		pmemset_remove_part_map;
+		pmemset_remove_range;
+		pmemset_source_delete;
+		pmemset_source_from_file;
+		pmemset_source_from_pmem2;
+		pmemset_source_from_temporary;
 	local:
 		*;
 };

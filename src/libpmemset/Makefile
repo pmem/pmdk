@@ -7,15 +7,19 @@
 #
 
 include ../common.inc
-include ../core/pmemcore.inc
 
 LIBRARY_NAME = pmemset
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
-	libpmemset.c
+	config.c\
+	libpmemset.c\
+	part.c\
+	pmemset.c\
+	source.c
 
+include ../core/pmemcore.inc
 include ../Makefile.inc
 
 CFLAGS += -I.
-LIBS += -pthread
+LIBS += -pthread -lpmem2

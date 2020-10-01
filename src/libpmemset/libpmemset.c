@@ -38,4 +38,6 @@ void
 libpmemset_fini(void)
 {
 	LOG(3, NULL);
+
+	out_fini();
 }
