@@ -423,14 +423,22 @@ endif
 
 ifeq ($(LIBPMEMSET), internal-debug)
 OBJS +=\
-	$(TOP)/src/debug/libpmemset/libpmemset.o
+	$(TOP)/src/debug/libpmemset/config.o\
+	$(TOP)/src/debug/libpmemset/libpmemset.o\
+	$(TOP)/src/debug/libpmemset/part.o\
+	$(TOP)/src/debug/libpmemset/pmemset.o\
+	$(TOP)/src/debug/libpmemset/source.o
 
 INCS += -I$(TOP)/src/libpmemset
 endif
 
 ifeq ($(LIBPMEMSET), internal-nondebug)
 OBJS +=\
-	$(TOP)/src/nondebug/libpmemset/libpmemset.o
+	$(TOP)/src/nondebug/libpmemset/config.o\
+	$(TOP)/src/nondebug/libpmemset/libpmemset.o\
+	$(TOP)/src/nondebug/libpmemset/part.o\
+	$(TOP)/src/nondebug/libpmemset/pmemset.o\
+	$(TOP)/src/nondebug/libpmemset/source.o
 
 INCS += -I$(TOP)/src/libpmemset
 endif
