@@ -114,7 +114,16 @@ persistent memory on a remote node over RDMA protocol.
 This is still an **experimental API** and should not be used in production
 environments.
 
+>NOTE:
+The alternative solution for accessing remote persistent memory is implemented by the [librpma](librpma) library.
+
 See the [librpmem page](librpmem) for documentation and examples.
+
+#### librpma
+
+**librpma** is a C library to simplify accessing persistent memory on remote hosts over Remote Direct Memory Access (RDMA).
+
+See the [librpma page](../rpma/) for available documentation.
 
 #### libvmemcache
 
