@@ -162,3 +162,9 @@ Rather than being tied to a single language or backing implementation,
 **pmemkv** provides different options for language bindings and storage engines.
 
 See the [pmemkv page](../pmemkv/) for available documentation.
+
+#### librpma
+
+The **librpma** is a C library to simplify accessing persistent memory devices on remote hosts over Remote Direct Memory Access (RDMA).
+
+See the [librpma page](../rpma/) for available documentation.
