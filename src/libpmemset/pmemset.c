@@ -20,10 +20,10 @@ pmemset_new(struct pmemset **set, struct pmemset_config *cfg)
 /*
  * pmemset_delete -- not supported
  */
-int
+void
 pmemset_delete(struct pmemset **set)
 {
-	return PMEMSET_E_NOSUPP;
+	;
 }
 
 #ifndef _WIN32
@@ -70,10 +70,10 @@ pmemset_remove_part(struct pmemset *set, struct pmemset_part **part)
 /*
  * pmemset_remove_part_map -- not supported
  */
-int
+void
 pmemset_remove_part_map(struct pmemset *set, struct pmemset_part_map **part)
 {
-	return PMEMSET_E_NOSUPP;
+	;
 }
 
 /*
@@ -88,58 +88,58 @@ pmemset_remove_range(struct pmemset *set, void *addr, size_t len)
 /*
  * pmemset_persist -- not supported
  */
-int
+void
 pmemset_persist(struct pmemset *set, const void *ptr, size_t size)
 {
-	return PMEMSET_E_NOSUPP;
+	;
 }
 
 /*
  * pmemset_flush -- not supported
  */
-int
+void
 pmemset_flush(struct pmemset *set, const void *ptr, size_t size)
 {
-	return PMEMSET_E_NOSUPP;
+	;
 }
 
 /*
  * pmemset_drain -- not supported
  */
-int
+void
 pmemset_drain(struct pmemset *set)
 {
-	return PMEMSET_E_NOSUPP;
+	;
 }
 
 /*
  * pmemset_memmove -- not supported
  */
-int
+void *
 pmemset_memmove(struct pmemset *set, void *pmemdest, const void *src,
 		size_t len, unsigned flags)
 {
-	return PMEMSET_E_NOSUPP;
+	return NULL;
 }
 
 /*
  * pmemset_memcpy -- not supported
  */
-int
+void *
 pmemset_memcpy(struct pmemset *set, void *pmemdest, const void *src, size_t len,
 		unsigned flags)
 {
-	return PMEMSET_E_NOSUPP;
+	return NULL;
 }
 
 /*
  * pmemset_memset -- not supported
  */
-int
+void *
 pmemset_memset(struct pmemset *set, void *pmemdest, int c, size_t len,
 		unsigned flags)
 {
-	return PMEMSET_E_NOSUPP;
+	return NULL;
 }
 
 /*

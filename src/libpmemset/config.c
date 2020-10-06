@@ -10,14 +10,15 @@
 
 #include "config.h"
 #include "event.h"
+#include "out.h"
 
 /*
  * pmemset_config_new -- not supported
  */
-int
+void
 pmemset_config_new(struct pmemset_config **cfg)
 {
-	return PMEMSET_E_NOSUPP;
+	;
 }
 
 /*
@@ -35,6 +36,7 @@ pmemset_config_delete(struct pmemset_config **cfg)
 int
 pmemset_config_set_create_if_none(struct pmemset_config *cfg, int value)
 {
+	ERR("function not supported");
 	return PMEMSET_E_NOSUPP;
 }
 
@@ -60,11 +62,11 @@ pmemset_config_set_event_callback(struct pmemset_config *cfg,
 /*
  * pmemset_config_set_reservation -- not supported
  */
-int
+void
 pmemset_config_set_reservation(struct pmemset_config *cfg,
 		struct pmem2_vm_reservation *rsv)
 {
-	return PMEMSET_E_NOSUPP;
+	;
 }
 
 /*

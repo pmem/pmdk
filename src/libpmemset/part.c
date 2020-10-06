@@ -51,10 +51,10 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 /*
  * pmemset_part_map_drop -- not supported
  */
-int
+void
 pmemset_part_map_drop(struct pmemset_part_map **pmap)
 {
-	return PMEMSET_E_NOSUPP;
+	;
 }
 
 /*
@@ -73,19 +73,19 @@ pmemset_part_map_descriptor(struct pmemset_part_map *pmap)
 /*
  * pmemset_part_map_first -- not supported
  */
-int
+void
 pmemset_part_map_first(struct pmemset *set, struct pmemset_part_map **pmap)
 {
-	return PMEMSET_E_NOSUPP;
+	;
 }
 
 /*
  * pmemset_part_map_next -- not supported
  */
-int
+void
 pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map **pmap)
 {
-	return PMEMSET_E_NOSUPP;
+	;
 }
 
 /*

@@ -295,7 +295,8 @@ PMREORDER_TESTS = \
 	pmreorder_stack
 
 PMEMSET_TESTS = \
-	pmemset_include
+	pmemset_include\
+	pmemset_perror
 
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
