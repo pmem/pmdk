@@ -1,1 +1,4 @@
 libpmemset.7
+pmemset_errormsg.3
+pmemset_perror.3
+>>>>>>> b49a29af5c... set: add logging infrastructure

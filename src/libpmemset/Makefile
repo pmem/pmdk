@@ -13,6 +13,7 @@ LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
 	config.c\
+	errormsg.c\
 	libpmemset.c\
 	part.c\
 	pmemset.c\

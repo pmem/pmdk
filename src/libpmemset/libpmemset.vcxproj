@@ -19,6 +19,7 @@
     <ClCompile Include="..\core\util.c" />
     <ClCompile Include="..\core\util_windows.c" />
     <ClCompile Include="config.c" />
+    <ClCompile Include="errormsg.c" />
     <ClCompile Include="libpmemset.c" />
     <ClCompile Include="libpmemset_main.c" />
     <ClCompile Include="part.c" />
