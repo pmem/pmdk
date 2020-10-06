@@ -294,6 +294,9 @@ PMREORDER_TESTS = \
 	pmreorder_simple\
 	pmreorder_stack
 
+PMEMSET_TESTS = \
+	pmemset_include
+
 LOCAL_TESTS = \
 	$(OBJ_TESTS)\
 	$(BLK_TESTS)\
@@ -305,7 +308,8 @@ LOCAL_TESTS = \
 	$(LIBPMEMPOOL_TESTS)\
 	$(LIBPMEMPOOL_MOD_TESTS)\
 	$(DAXIO_TESTS)\
-	$(PMREORDER_TESTS)
+	$(PMREORDER_TESTS)\
+	$(PMEMSET_TESTS)
 
 REMOTE_TESTS = \
 	$(OBJ_REMOTE_TESTS)\
