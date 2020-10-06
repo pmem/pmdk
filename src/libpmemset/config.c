@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "event.h"
+#include "out.h"
 
 /*
  * pmemset_config_new -- not supported
@@ -17,6 +18,7 @@
 int
 pmemset_config_new(struct pmemset_config **cfg)
 {
+	ERR("function not supported");
 	return PMEMSET_E_NOSUPP;
 }
 
