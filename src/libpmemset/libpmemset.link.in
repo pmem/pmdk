@@ -18,6 +18,7 @@ LIBPMEMSET_1.0 {
 		pmemset_deep_flush;
 		pmemset_delete;
 		pmemset_drain;
+		pmemset_errormsg;
 		pmemset_flush;
 		pmemset_header_init;
 		pmemset_memcpy;
@@ -40,6 +41,7 @@ LIBPMEMSET_1.0 {
 		pmemset_part_map_new;
 		pmemset_part_map_next;
 		pmemset_part_next;
+		pmemset_perror;
 		pmemset_persist;
 		pmemset_remove_part;
 		pmemset_remove_part_map;

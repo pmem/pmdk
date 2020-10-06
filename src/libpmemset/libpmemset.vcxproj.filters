@@ -53,6 +53,9 @@
     <ClCompile Include="source.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="errormsg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="libpmemset.def">

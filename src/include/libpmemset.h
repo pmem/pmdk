@@ -21,12 +21,16 @@
 #define pmemset_source_from_file pmemset_source_from_fileW
 #define pmemset_source_from_file_params pmemset_source_from_file_paramsW
 #define pmemset_source_from_temporary pmemset_source_from_temporaryW
+#define pmemset_errormsg pmemset_errormsgW
+#define pmemset_perror pmemset_perrorW
 #else
 #define pmemset_config_set_layout_name pmemset_config_set_layout_nameU
 #define pmemset_header_init pmemset_header_initU
 #define pmemset_source_from_file pmemset_source_from_fileU
 #define pmemset_source_from_file_params pmemset_source_from_file_paramsU
 #define pmemset_source_from_temporary pmemset_source_from_temporaryU
+#define pmemset_errormsg pmemset_errormsgU
+#define pmemset_perror pmemset_perrorU
 #endif
 
 #endif
@@ -263,6 +267,23 @@ int pmemset_memset(struct pmemset *set, void *pmemdest, int c, size_t len,
 		unsigned flags);
 
 int pmemset_deep_flush(struct pmemset *set, void *ptr, size_t size);
+
+/* error handling */
+
+#ifndef _WIN32
+const char *pmemset_errormsg(void);
+
+void pmemset_perror(const char *format,
+		...) __attribute__((__format__(__printf__, 1, 2)));
+#else
+const char *pmemset_errormsgU(void);
+
+const wchar_t *pmemset_errormsgW(void);
+
+void pmemset_perrorU(const char *format, ...);
+
+void pmemset_perrorW(const wchar_t *format, ...);
+#endif
 
 #ifdef __cplusplus
 }
