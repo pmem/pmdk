@@ -263,6 +263,23 @@ void pmemset_perrorU(const char *format, ...);
 void pmemset_perrorW(const wchar_t *format, ...);
 #endif
 
+/* error handling */
+
+#ifndef _WIN32
+const char *pmemset_errormsg(void);
+
+void pmemset_perror(const char *format,
+		...) __attribute__((__format__(__printf__, 1, 2)));
+#else
+const char *pmemset_errormsgU(void);
+
+const wchar_t *pmemset_errormsgW(void);
+
+void pmemset_perrorU(const char *format, ...);
+
+void pmemset_perrorW(const wchar_t *format, ...);
+#endif
+
 #ifdef __cplusplus
 }
 #endif
