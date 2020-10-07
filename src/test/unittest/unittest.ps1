@@ -637,6 +637,16 @@ function check {
     if ($listing) {
 		match $listing
     }
+
+    # Move logs to build folder
+    $LOGS_DIR="logs\$Env:TYPE\$Global:REAL_FS\$Env:BUILD"
+    If(!(test-path $LOGS_DIR))
+    {
+        [void](New-Item -path $LOGS_DIR -ItemType Directory)
+    }
+    foreach ($f in $(get_files "[a-zA-Z_]*${Env:UNITTEST_NUM}\.log$")) {
+        Move-Item $f $LOGS_DIR\$f -force
+    }
 }
 
 #

@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2020, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -45,6 +45,7 @@ from os import path
 import context as ctx
 import futils
 import valgrind as vg
+import shutil
 
 
 if not hasattr(builtins, 'testcases'):
@@ -229,7 +230,7 @@ class BaseTest(metaclass=_TestCase):
                 start_time = datetime.now()
                 self.run(c)
                 self.elapsed = (datetime.now() - start_time).total_seconds()
-                self.check()
+                self.check(c)
 
             except futils.Fail as f:
                 failed = True
@@ -261,6 +262,18 @@ class BaseTest(metaclass=_TestCase):
             return 1
         return 0
 
+    def _move_log_files(self, ctx):
+        """
+        Move all log files for given tests
+        """
+        path = "logs"
+        logs_dir = os.path.join(path, str(ctx.test.test_type),
+                                str(ctx.fs), str(ctx.build))
+        os.makedirs(logs_dir, exist_ok=True)
+        log_files = self.get_log_files()
+        for file in log_files:
+            shutil.copy2(file, logs_dir)
+
     def setup(self, ctx):
         """Test setup"""
         if not path.exists(ctx.testdir):
@@ -274,10 +287,11 @@ class BaseTest(metaclass=_TestCase):
         raise NotImplementedError('{} does not implement run() method'.format(
             self.__class__))
 
-    def check(self):
+    def check(self, ctx):
         """Run additional test checks"""
         if self.match:
             self._run_match()
+        self._move_log_files(ctx)
 
     def _run_match(self):
         """Match log files"""
