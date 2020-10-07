@@ -191,14 +191,15 @@ test run, it can use this line:
 
 Using the unittest library, the C programs run during unit testing get their
 output and tracing information logged to various files.  These are named with
-the test number embedded in them, so a script called TEST0 would commonly
+the test number embedded in them and stored inside folders for each build type,
+so a script called TEST0 run with (check/none/debug) build type would commonly
 produce:
 
-	err0.log	log of stderr
-	out0.log	log of stdout
-	trace0.log	trace points from unittest library
-	pmem0.log	trace from libpmem (PMEM_LOG_FILE points here)
-	vmem0.log	trace from libvmem (VMEM_LOG_FILE points here)
+	logs/check/none/debug/err0.log	log of stderr
+	logs/check/none/debug/out0.log	log of stdout
+	logs/check/none/debug/trace0.log	trace points from unittest library
+	logs/check/none/debug/pmem0.log	trace from libpmem (PMEM_LOG_FILE points here)
+	logs/check/none/debug/vmem0.log	trace from libvmem (VMEM_LOG_FILE points here)
 
 Although the above log files are the common case, the TEST* scripts are free to
 create any files.  It is recommended, however, that the script creates files
