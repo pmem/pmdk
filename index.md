@@ -116,6 +116,10 @@ environments.
 
 See the [librpmem page](librpmem) for documentation and examples.
 
+>NOTE:
+There is an alternative solution for accessing remote persistent memory
+implemented by the [librpma](#librpma) library.
+
 #### libvmemcache
 
 **libvmemcache** is an embeddable and lightweight in-memory caching solution.
@@ -162,3 +166,12 @@ Rather than being tied to a single language or backing implementation,
 **pmemkv** provides different options for language bindings and storage engines.
 
 See the [pmemkv page](../pmemkv/) for available documentation.
+
+#### librpma
+
+**librpma** is a C library for accessing persistent memory on remote
+hosts over Remote Direct Memory Access (RDMA) network.
+It provides flexible and easy to integrate API to develop a wide range of
+remote persistent memory based applications.
+
+See the [librpma page](../rpma/) for available documentation.
