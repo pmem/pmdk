@@ -12,11 +12,11 @@
 #
 # If the Travis build is not of the "pull_request" type (i.e. in case of
 # merge after pull_request) and it succeed, the Docker image should be pushed
-# to the Docker Hub repository. An empty file is created to signal that to
-# further scripts.
+# to GitHub Container Registry repository. An empty file is created to signal
+# that to further scripts.
 #
 # If the Docker image does not have to be rebuilt, it will be pulled from
-# Docker Hub.
+# GitHub Container Registry.
 #
 
 set -e
@@ -82,7 +82,7 @@ for file in $files; do
 		./build-image.sh ${OS}-${OS_VER} ${CI_CPU_ARCH}
 		popd
 
-		# Check if the image has to be pushed to Docker Hub
+		# Check if the image has to be pushed to GitHub Container Registry
 		# (i.e. the build is triggered by commits to the $GITHUB_REPO
 		# repository's stable-* or master branch, and the Travis build is not
 		# of the "pull_request" type). In that case, create the empty
@@ -92,10 +92,10 @@ for file in $files; do
 			&& $CI_EVENT_TYPE != "pull_request" \
 			&& $PUSH_IMAGE == "1" ]]
 		then
-			echo "The image will be pushed to Docker Hub"
+			echo "The image will be pushed to GitHub Container Registry"
 			touch $CI_FILE_PUSH_IMAGE_TO_REPO
 		else
-			echo "Skip pushing the image to Docker Hub"
+			echo "Skip pushing the image to GitHub Container Registry"
 		fi
 
 		if [[ $PUSH_IMAGE == "1" ]]
@@ -108,5 +108,10 @@ for file in $files; do
 done
 
 # Getting here means rebuilding the Docker image is not required.
-# Pull the image from Docker Hub.
+# The image will be pulled from GitHub Container Registry.
+
+# Log in to GitHub Container Registry
+docker login https://ghcr.io -u="$GH_CR_USER" -p="$GH_CR_PAT"
+
+# Pull the image from GitHub Container Registry.
 docker pull ${DOCKER_REPO}:1.10-${OS}-${OS_VER}-${CI_CPU_ARCH}

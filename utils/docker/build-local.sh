@@ -34,7 +34,7 @@ export PMDK_CC=${PMDK_CC:-gcc}
 export PMDK_CXX=${PMDK_CXX:-g++}
 export EXPERIMENTAL=${EXPERIMENTAL:-n}
 export VALGRIND=${VALGRIND:-1}
-export DOCKER_REPO=${DOCKER_REPO:-pmem/pmdk}
+export DOCKER_REPO=${DOCKER_REPO:-ghcr.io/pmem/pmdk}
 export GITHUB_REPO=${GITHUB_REPO:-pmem/pmdk}
 
 if [[ -z "$OS" || -z "$OS_VER" ]]; then

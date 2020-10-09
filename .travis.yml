@@ -11,7 +11,7 @@ services:
 env:
   global:
     - GITHUB_REPO=pmem/pmdk
-    - DOCKER_REPO=pmem/pmdk
+    - DOCKER_REPO=ghcr.io/pmem/pmdk
     - OS=ubuntu
     - OS_VER=19.10
     - MAKE_PKG=0
