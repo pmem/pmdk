@@ -29,18 +29,18 @@ if [[ -z "$CI_CPU_ARCH" ]]; then
 	exit 1
 fi
 
-if [[ -z "${DOCKERHUB_REPO}" ]]; then
-	echo "DOCKERHUB_REPO environment variable is not set"
+if [[ -z "${DOCKER_REPO}" ]]; then
+	echo "DOCKER_REPO environment variable is not set"
 	exit 1
 fi
 
 TAG="1.10-${OS}-${OS_VER}-${CI_CPU_ARCH}"
 
 # Check if the image tagged with pmdk/OS-VER exists locally
-if [[ ! $(docker images -a | awk -v pattern="^${DOCKERHUB_REPO}:${TAG}\$" \
+if [[ ! $(docker images -a | awk -v pattern="^${DOCKER_REPO}:${TAG}\$" \
 	'$1":"$2 ~ pattern') ]]
 then
-	echo "ERROR: Docker image tagged ${DOCKERHUB_REPO}:${TAG} does not exists locally."
+	echo "ERROR: Docker image tagged ${DOCKER_REPO}:${TAG} does not exists locally."
 	exit 1
 fi
 
@@ -48,4 +48,4 @@ fi
 docker login -u="$DOCKERHUB_USER" -p="$DOCKERHUB_PASSWORD"
 
 # Push the image to the repository
-docker push ${DOCKERHUB_REPO}:${TAG}
+docker push ${DOCKER_REPO}:${TAG}

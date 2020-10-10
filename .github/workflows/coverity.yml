@@ -7,8 +7,8 @@ on:
     - cron:  '0 0 * * *'
 
 env:
-  GITHUB_REPO:    pmem/pmdk
-  DOCKERHUB_REPO: pmem/pmdk
+  GITHUB_REPO: pmem/pmdk
+  DOCKER_REPO: pmem/pmdk
 
 jobs:
   linux:

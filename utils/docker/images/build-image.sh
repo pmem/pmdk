@@ -40,13 +40,13 @@ if [[ ! -f "Dockerfile.$OS_VER" ]]; then
 	exit 1
 fi
 
-if [[ -z "${DOCKERHUB_REPO}" ]]; then
-	echo "Error: DOCKERHUB_REPO environment variable is not set"
+if [[ -z "${DOCKER_REPO}" ]]; then
+	echo "Error: DOCKER_REPO environment variable is not set"
 	exit 1
 fi
 
-# Build a Docker image tagged with ${DOCKERHUB_REPO}:OS-VER-ARCH
-tag=${DOCKERHUB_REPO}:1.10-${OS_VER}-${CPU_ARCH}
+# Build a Docker image tagged with ${DOCKER_REPO}:OS-VER-ARCH
+tag=${DOCKER_REPO}:1.10-${OS_VER}-${CPU_ARCH}
 docker build -t $tag \
 	--build-arg http_proxy=$http_proxy \
 	--build-arg https_proxy=$https_proxy \
