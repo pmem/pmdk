@@ -70,6 +70,7 @@ extern "C" {
 #define PMEM2_E_NO_ACCESS			(-100032)
 #define PMEM2_E_VM_RESERVATION_NOT_EMPTY	(-100033)
 #define PMEM2_E_MAP_EXISTS			(-100034)
+#define PMEM2_E_FILE_DESCRIPTOR_NOT_SET		(-100035)
 
 /* source setup */
 
@@ -79,6 +80,9 @@ int pmem2_source_from_fd(struct pmem2_source **src, int fd);
 int pmem2_source_from_anon(struct pmem2_source **src, size_t size);
 #ifdef _WIN32
 int pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle);
+int pmem2_source_get_handle(const struct pmem2_source *src, HANDLE *h);
+#else
+int pmem2_source_get_fd(const struct pmem2_source *src, int *fd);
 #endif
 
 int pmem2_source_size(const struct pmem2_source *src, size_t *size);
