@@ -174,3 +174,14 @@ pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 
 	return 0;
 }
+
+/*
+ * pmem2_source_get_fd -- get file descriptor from provided source
+ */
+int
+pmem2_source_get_fd(const struct pmem2_source *src)
+{
+	LOG(3, "src %p", src);
+
+	return src->value.fd;
+}

@@ -161,3 +161,14 @@ pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 
 	return 0;
 }
+
+/*
+ * pmem2_source_get_handle -- get file handler from provided source
+ */
+HANDLE
+pmem2_source_get_handle(const struct pmem2_source *src)
+{
+	LOG(3, "src %p", src);
+
+	return src->value.handle;
+}

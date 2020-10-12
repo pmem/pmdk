@@ -79,6 +79,9 @@ int pmem2_source_from_fd(struct pmem2_source **src, int fd);
 int pmem2_source_from_anon(struct pmem2_source **src, size_t size);
 #ifdef _WIN32
 int pmem2_source_from_handle(struct pmem2_source **src, HANDLE handle);
+HANDLE pmem2_source_get_handle(const struct pmem2_source *src);
+#else
+int pmem2_source_get_fd(const struct pmem2_source *src);
 #endif
 
 int pmem2_source_size(const struct pmem2_source *src, size_t *size);
