@@ -94,3 +94,15 @@ class TEST11(PMEM2_SOURCE):
 
     def run(self, ctx):
         ctx.exec('pmem2_source', self.test_case, ctx.testdir)
+
+
+@t.windows_only
+class TEST12(PMEM2_SOURCE):
+    """get handle from the source"""
+    test_case = "test_get_handle"
+
+
+@t.windows_exclude
+class TEST13(PMEM2_SOURCE):
+    """get file descriptor from the source"""
+    test_case = "test_get_fd"
