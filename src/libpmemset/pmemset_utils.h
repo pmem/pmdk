@@ -18,8 +18,8 @@ static inline int
 pmemset_assert_errno(void)
 {
 	if (!errno) {
-		ERR("errno is not set");
-		ASSERTinfo(0, "errno is not set");
+		ERR("pmemset errno is not set");
+		ASSERTinfo(0, "pmemset errno is not set");
 		return -EINVAL;
 	}
 

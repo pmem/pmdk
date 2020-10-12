@@ -6,7 +6,6 @@
  */
 
 #include <errno.h>
-
 #include "alloc.h"
 #include "libpmemset.h"
 #include "out.h"
