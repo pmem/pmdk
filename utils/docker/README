@@ -15,5 +15,5 @@ subdirectory and then do git-rebase before pushing your commits to the
 repository, make sure that you do not squash the commit which is the head in
 your repository. This will let Travis and GitHub Actions CIs recreate
 Docker images used during the build before the build. Otherwise the not-updated
-Docker image will be pulled from the Docker Hub and used during the build on
-Travis and GitHub Actions CIs.
+Docker image will be pulled from GitHub Container Registry and used during
+the build on Travis and GitHub Actions CIs.

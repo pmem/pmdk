@@ -3,11 +3,11 @@
 # Copyright 2016-2020, Intel Corporation
 
 #
-# push-image.sh - pushes the Docker image to the Docker Hub.
+# push-image.sh - pushes the Docker image to GitHub Container Registry.
 #
-# The script utilizes $DOCKERHUB_USER and $DOCKERHUB_PASSWORD variables
-# to log in to Docker Hub. The variables can be set in the Travis project's
-# configuration for automated builds.
+# The script utilizes $GH_CR_USER and $GH_CR_PAT variables
+# to log in to GitHub Container Registry. The variables can be set
+# in the Travis project's configuration for automated builds.
 #
 
 set -e
@@ -29,23 +29,23 @@ if [[ -z "$CI_CPU_ARCH" ]]; then
 	exit 1
 fi
 
-if [[ -z "${DOCKERHUB_REPO}" ]]; then
-	echo "DOCKERHUB_REPO environment variable is not set"
+if [[ -z "${DOCKER_REPO}" ]]; then
+	echo "DOCKER_REPO environment variable is not set"
 	exit 1
 fi
 
 TAG="1.10-${OS}-${OS_VER}-${CI_CPU_ARCH}"
 
 # Check if the image tagged with pmdk/OS-VER exists locally
-if [[ ! $(docker images -a | awk -v pattern="^${DOCKERHUB_REPO}:${TAG}\$" \
+if [[ ! $(docker images -a | awk -v pattern="^${DOCKER_REPO}:${TAG}\$" \
 	'$1":"$2 ~ pattern') ]]
 then
-	echo "ERROR: Docker image tagged ${DOCKERHUB_REPO}:${TAG} does not exists locally."
+	echo "ERROR: Docker image tagged ${DOCKER_REPO}:${TAG} does not exists locally."
 	exit 1
 fi
 
-# Log in to the Docker Hub
-docker login -u="$DOCKERHUB_USER" -p="$DOCKERHUB_PASSWORD"
+# Log in to GitHub Container Registry
+docker login https://ghcr.io -u="$GH_CR_USER" -p="$GH_CR_PAT"
 
-# Push the image to the repository
-docker push ${DOCKERHUB_REPO}:${TAG}
+# Push the image to GitHub Container Registry
+docker push ${DOCKER_REPO}:${TAG}
