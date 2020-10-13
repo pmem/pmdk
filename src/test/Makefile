@@ -298,6 +298,7 @@ PMEMSET_TESTS = \
 	pmemset_config\
 	pmemset_include\
 	pmemset_new\
+	pmemset_part\
 	pmemset_perror\
 	pmemset_source
 
