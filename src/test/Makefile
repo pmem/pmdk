@@ -297,6 +297,7 @@ PMREORDER_TESTS = \
 PMEMSET_TESTS = \
 	pmemset_config\
 	pmemset_include\
+	pmemset_part\
 	pmemset_perror\
 	pmemset_source
 
