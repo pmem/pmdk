@@ -50,13 +50,19 @@
     <ClCompile Include="pmemset.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-	<ClCompile Include="pmemset_utils.c">
-	  <Filter>Source Files</Filter>
+    <ClCompile Include="pmemset_utils.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="errormsg.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libpmem2\pmem2_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -39,6 +39,7 @@ extern "C" {
 
 #define PMEMSET_E_UNKNOWN			(-200000)
 #define PMEMSET_E_NOSUPP			(-200001)
+#define PMEMSET_E_INVALID_FILE_PATH		(-200002)
 
 /* pmemset setup */
 

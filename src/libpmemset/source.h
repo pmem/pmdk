@@ -8,7 +8,7 @@
 #define PMEMSET_SOURCE_H
 
 struct pmemset_source {
-	char stub;
+	char *filepath;
 };
 
 #endif /* PMEMSET_SOURCE_H */

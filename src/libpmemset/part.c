@@ -5,16 +5,36 @@
  * part.c -- implementation of common part API
  */
 
-#include "part.h"
+#include <fcntl.h>
+
 #include "libpmemset.h"
 
+#include "os.h"
+#include "part.h"
+#include "pmemset_utils.h"
+#include "source.h"
+
 /*
- * pmemset_part_descriptor_new -- not supported
+ * pmemset_part_new -- not supported
  */
 int
 pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
 		struct pmemset_source *src, size_t offset, size_t length)
 {
+	LOG(3, "part %p set %p src %p offset %zu length %zu",
+			part, set, src, offset, length);
+	PMEMSET_ERR_CLR();
+
+	int flags = O_RDWR | O_SYNC;
+
+	int fd = os_open(src->filepath, flags);
+
+	/* check the file path from data source */
+	if (fd < 0) {
+		ERR("couldn't create part from the provided source");
+		return PMEMSET_E_INVALID_FILE_PATH;
+	}
+
 	return PMEMSET_E_NOSUPP;
 }
 
