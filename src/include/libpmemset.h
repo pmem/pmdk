@@ -238,6 +238,10 @@ int pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map **pmap);
 int pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part **part,
 		void *addr);
 
+/* error handling */
+
+int pmemset_err_to_errno(int);
+
 #ifdef __cplusplus
 }
 #endif
