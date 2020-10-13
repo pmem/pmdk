@@ -23,6 +23,7 @@
     <ClCompile Include="libpmemset_main.c" />
     <ClCompile Include="part.c" />
     <ClCompile Include="pmemset.c" />
+    <ClCompile Include="pmemset_utils.c" />
     <ClCompile Include="source.c" />
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +40,7 @@
     <ClInclude Include="event.h" />
     <ClInclude Include="part.h" />
     <ClInclude Include="pmemset.h" />
+    <ClInclude Include="pmemset_utils.h" />
     <ClInclude Include="source.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
