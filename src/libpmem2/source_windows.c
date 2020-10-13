@@ -161,3 +161,23 @@ pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 
 	return 0;
 }
+
+/*
+ * pmem2_source_get_handle -- get file handler from provided source
+ */
+int
+pmem2_source_get_handle(const struct pmem2_source *src, HANDLE *h)
+{
+	LOG(3, "src type %d", src->type);
+	PMEM2_ERR_CLR();
+
+	if (src->type == PMEM2_SOURCE_HANDLE) {
+		*h = src->value.handle;
+	} else {
+		ERR(
+			"File handle is not set, source type does not support file handles");
+		return PMEM2_E_FILE_HANDLE_NOT_SET;
+	}
+
+	return 0;
+}

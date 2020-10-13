@@ -174,3 +174,23 @@ pmem2_source_alignment(const struct pmem2_source *src, size_t *alignment)
 
 	return 0;
 }
+
+/*
+ * pmem2_source_get_fd -- get file descriptor from provided source
+ */
+int
+pmem2_source_get_fd(const struct pmem2_source *src, int *fd)
+{
+	LOG(3, "src type %d", src->type);
+	PMEM2_ERR_CLR();
+
+	if (src->type == PMEM2_SOURCE_FD) {
+		*fd = src->value.fd;
+	} else {
+		ERR(
+			"File descriptor is not set, source type does not support fd");
+		return PMEM2_E_FILE_DESCRIPTOR_NOT_SET;
+	}
+
+	return 0;
+}
