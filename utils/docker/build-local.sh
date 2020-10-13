@@ -34,7 +34,7 @@ export PMDK_CC=${PMDK_CC:-gcc}
 export PMDK_CXX=${PMDK_CXX:-g++}
 export EXPERIMENTAL=${EXPERIMENTAL:-n}
 export VALGRIND=${VALGRIND:-1}
-export DOCKER_REPO=${DOCKER_REPO:-ghcr.io/pmem/pmdk}
+export DOCKERHUB_REPO=${DOCKERHUB_REPO:-pmem/pmdk}
 export GITHUB_REPO=${GITHUB_REPO:-pmem/pmdk}
 
 if [[ -z "$OS" || -z "$OS_VER" ]]; then
@@ -51,7 +51,7 @@ if [[ "$KEEP_CONTAINER" != "1" ]]; then
 	RM_SETTING=" --rm"
 fi
 
-imageName=${DOCKER_REPO}:1.10-${OS}-${OS_VER}-${CI_CPU_ARCH}
+imageName=${DOCKERHUB_REPO}:1.10-${OS}-${OS_VER}-${CI_CPU_ARCH}
 containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 1 ]] ; then
