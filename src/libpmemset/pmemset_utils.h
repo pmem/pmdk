@@ -12,7 +12,6 @@
 
 #include "os.h"
 #include "out.h"
-#include "source.h"
 
 static inline int
 pmemset_assert_errno(void)
