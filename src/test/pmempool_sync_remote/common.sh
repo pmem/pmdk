@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2018, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 #
 #
 # pmempool_sync_remote/common.sh -- pmempool sync with remote replication
@@ -23,16 +23,6 @@ PMEMOBJCLI_SCRIPT="pmemobjcli.script"
 copy_files_to_node 1 ${NODE_TEST_DIR[1]} $PMEMOBJCLI_SCRIPT
 
 POOLSET_LOCAL="local_pool.set"
-
-pmempool_exe=$PMEMPOOL$EXESUFFIX
-
-function require_sds_support() {
-	$pmempool_exe feature -q "SHUTDOWN_STATE" $1 2>> /dev/null
-	if [[ $? -eq 0 ]]; then
-		msg "$UNITTEST_NAME: SKIP: SDS is not available"
-		exit 0
-	fi
-}
 
 #
 # configure_poolsets -- configure pool set files for test

@@ -2,8 +2,7 @@ Arguments: create log
 Input: two parts per poolset
 Output: four parts in poolset
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -15,8 +14,7 @@ replica 0 part 3: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -28,8 +26,7 @@ replica 0 part 3: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -44,8 +41,7 @@ Arguments: create blk 512
 Input: two parts per poolset
 Output: four parts in poolset
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -57,8 +53,7 @@ replica 0 part 3: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -70,8 +65,7 @@ replica 0 part 3: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -86,8 +80,7 @@ Arguments: create obj
 Input: two parts per poolset
 Output: four parts in poolset
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -99,8 +92,7 @@ replica 0 part 3: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -112,8 +104,7 @@ replica 0 part 3: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -126,10 +117,9 @@ the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 Output: two replicas with two parts each in poolset
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -141,10 +131,9 @@ replica 1 part 1: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -156,10 +145,9 @@ replica 1 part 1: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -172,14 +160,13 @@ the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 Output: four replicas in poolset
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
-$(OPT)replica 2: checking shutdown state
-$(OPT)replica 2: shutdown state correct
-$(OPT)replica 3: checking shutdown state
-$(OPT)replica 3: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
+replica 2: checking shutdown state
+replica 2: shutdown state correct
+replica 3: checking shutdown state
+replica 3: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 1 part 0: checking pool header
@@ -191,14 +178,13 @@ replica 3 part 0: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
-$(OPT)replica 2: checking shutdown state
-$(OPT)replica 2: shutdown state correct
-$(OPT)replica 3: checking shutdown state
-$(OPT)replica 3: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
+replica 2: checking shutdown state
+replica 2: shutdown state correct
+replica 3: checking shutdown state
+replica 3: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 1 part 0: checking pool header
@@ -210,14 +196,13 @@ replica 3 part 0: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
-$(OPT)replica 2: checking shutdown state
-$(OPT)replica 2: shutdown state correct
-$(OPT)replica 3: checking shutdown state
-$(OPT)replica 3: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
+replica 2: checking shutdown state
+replica 2: shutdown state correct
+replica 3: checking shutdown state
+replica 3: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 1 part 0: checking pool header
@@ -231,8 +216,7 @@ $(nW)pool.set: not consistent
 Input: two replicas per poolset
 Output: four parts in poolset
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -244,8 +228,7 @@ replica 0 part 3: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -257,8 +240,7 @@ replica 0 part 3: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -271,10 +253,9 @@ the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 Output: two replicas with two parts each in poolset
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -286,10 +267,9 @@ replica 1 part 1: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -301,10 +281,9 @@ replica 1 part 1: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -317,14 +296,13 @@ the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 Output: four replicas in poolset
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
-$(OPT)replica 2: checking shutdown state
-$(OPT)replica 2: shutdown state correct
-$(OPT)replica 3: checking shutdown state
-$(OPT)replica 3: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
+replica 2: checking shutdown state
+replica 2: shutdown state correct
+replica 3: checking shutdown state
+replica 3: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 1 part 0: checking pool header
@@ -336,14 +314,13 @@ replica 3 part 0: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
-$(OPT)replica 2: checking shutdown state
-$(OPT)replica 2: shutdown state correct
-$(OPT)replica 3: checking shutdown state
-$(OPT)replica 3: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
+replica 2: checking shutdown state
+replica 2: shutdown state correct
+replica 3: checking shutdown state
+replica 3: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 1 part 0: checking pool header
@@ -355,14 +332,13 @@ replica 3 part 0: pool header correct
 the poolset contains part files from various poolsets
 $(nW)pool.set: not consistent
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
-$(OPT)replica 2: checking shutdown state
-$(OPT)replica 2: shutdown state correct
-$(OPT)replica 3: checking shutdown state
-$(OPT)replica 3: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
+replica 2: checking shutdown state
+replica 2: shutdown state correct
+replica 3: checking shutdown state
+replica 3: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 1 part 0: checking pool header

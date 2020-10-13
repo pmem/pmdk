@@ -2,7 +2,7 @@
 /* Copyright 2017-2020, Intel Corporation */
 
 /*
- * obj_sds.c -- unit test for shutdown status functions
+ * util_sds.c -- unit test for shutdown status functions
  */
 
 #include "unittest.h"
@@ -101,11 +101,6 @@ FUNC_MOCK(pmem2_source_device_usc, int, const struct pmem2_source *src,
 
 	return 0;
 }
-FUNC_MOCK_END
-FUNC_MOCK(shutdown_state_is_supported, int, int fd)
-	FUNC_MOCK_RUN_DEFAULT {
-		return 1;
-	}
 FUNC_MOCK_END
 
 #ifdef _MSC_VER

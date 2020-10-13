@@ -1,6 +1,5 @@
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 incorrect pool header
 pool_hdr.major is not valid

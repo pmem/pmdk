@@ -21,14 +21,6 @@ pmempool_exe=$PMEMPOOL$EXESUFFIX
 exit_func=expect_normal_exit
 sds_enabled=$(is_ndctl_enabled $pmempool_exe; echo $?)
 
-# pmempool_feature_query_return -- query a feature and return
-# the value.
-#
-# usage: pmempool_feature_query_return <feature>
-function pmempool_feature_query_return() {
-       echo $($pmempool_exe feature -q $1 $POOLSET 2>> $LOG)
-}
-
 # pmempool_feature_query -- query feature
 #
 # usage: pmempool_feature_query <feature> [<query-exit-type>]
@@ -130,14 +122,6 @@ function pmempool_feature_test_CKSUM_2K() {
 		pmempool_feature_enable SHUTDOWN_STATE "no-query"
 	fi
 
-	# If SDS is not enabled at this point is because SDS is not available for
-	# this device
-	ret=$(pmempool_feature_query_return "SHUTDOWN_STATE")
-	if [[ $ret -eq 0 ]]; then
-		msg "$UNITTEST_NAME: SKIP: SDS is not available"
-		exit 0
-	fi
-
 	# disable PMEMPOOL_FEAT_SHUTDOWN_STATE prior to success
 	exit_func=expect_abnormal_exit
 	pmempool_feature_disable "CKSUM_2K" # should fail
@@ -152,13 +136,6 @@ function pmempool_feature_test_CKSUM_2K() {
 function pmempool_feature_test_SHUTDOWN_STATE() {
 	pmempool_feature_query "SHUTDOWN_STATE"
 
-	# If SDS is not enabled at this point is because SDS is not available for
-	# this device
-	ret=$(pmempool_feature_query_return "SHUTDOWN_STATE")
-	if [[ $ret -eq 0 ]]; then
-		msg "$UNITTEST_NAME: SKIP: SDS is not available"
-		exit 0
-	fi
 	if [ $sds_enabled -eq 0 ]; then
 		pmempool_feature_disable SHUTDOWN_STATE
 	fi
