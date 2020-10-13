@@ -2,8 +2,7 @@ $(nW)pool.p1: spoil: pool_hdr.major=$(nW)
 $(nW)pool.p1: spoil: pool_hdr.poolset_uuid=$(nW)
 $(nW)pool.p1: spoil: pool_hdr.uuid=$(nW)
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 replica 0 part 0: pool_hdr.major is not valid

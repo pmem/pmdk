@@ -20,8 +20,7 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
-$(OPT)Last shutdown            : dirty
-$(OPX)Last shutdown            : clean
+Last shutdown            : dirty
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:
@@ -55,8 +54,7 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
-$(OPT)Last shutdown            : dirty
-$(OPX)Last shutdown            : clean
+Last shutdown            : dirty
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:
@@ -105,8 +103,7 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
-$(OPT)Last shutdown            : dirty
-$(OPX)Last shutdown            : clean
+Last shutdown            : dirty
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:
@@ -155,8 +152,7 @@ Alignment Descriptor     : $(*)
 Class                    : $(*)
 Data                     : $(*)
 Machine                  : $(*)
-$(OPT)Last shutdown            : dirty
-$(OPX)Last shutdown            : clean
+Last shutdown            : dirty
 Checksum                 : $(*) [OK]
 
 PMEM OBJ Header:

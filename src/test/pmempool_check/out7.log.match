@@ -2,8 +2,7 @@ $(nW)file.pool: spoil: pool_hdr.uuid=ERROR
 incorrect pool header
 $(nW)file.pool: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 incorrect pool header
 invalid pool_hdr.uuid
@@ -14,8 +13,7 @@ checking BTT Info headers
 BTT Layout not written
 $(nW)file.pool: repaired
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 pool header correct
 checking pmemblk header
@@ -28,16 +26,14 @@ $(nW)file.pool: spoil: pool_hdr.next_part_uuid=ERROR_NEXT
 incorrect pool header
 $(nW)file.pool: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 incorrect pool header
 the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 invalid pool_hdr.uuid
 $(nW)file.pool: cannot repair
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 incorrect pool header
 invalid pool_hdr.uuid
@@ -58,8 +54,7 @@ checking BTT Info headers
 BTT Layout not written
 $(nW)file.pool: repaired
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 pool header correct
 checking pmemblk header
@@ -74,16 +69,14 @@ $(nW)file.pool: spoil: pool_hdr.next_repl_uuid=ERROR_RNEXT
 incorrect pool header
 $(nW)file.pool: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 incorrect pool header
 the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 invalid pool_hdr.uuid
 $(nW)file.pool: cannot repair
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 incorrect pool header
 invalid pool_hdr.uuid
@@ -104,8 +97,7 @@ checking BTT Info headers
 BTT Layout not written
 $(nW)file.pool: repaired
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 pool header correct
 checking pmemblk header

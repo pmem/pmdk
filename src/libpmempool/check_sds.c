@@ -245,14 +245,6 @@ check_sds(PMEMpoolcheck *ppc)
 	const unsigned nreplicas = ppc->pool->set_file->poolset->nreplicas;
 	location *loc = check_get_step_data(ppc->data);
 
-	/*
-	 * SDS check can be made before header repair so header features can be
-	 * corrupted at this point.
-	 */
-	/* initialize replica 0 for sds check */
-	loc->replica = 0;
-	init_location_data(ppc, loc);
-
 	if (!loc->init_done) {
 		sds_get_healthy_replicas_num(ppc, loc);
 
