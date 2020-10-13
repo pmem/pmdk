@@ -7,12 +7,6 @@
 #ifndef PMEMSET_PART_H
 #define PMEMSET_PART_H
 
-#include <stddef.h>
-
-struct pmemset_part {
-	char stub;
-};
-
 struct pmemset_part_map {
 	void *addr;
 	size_t length;

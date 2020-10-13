@@ -6,10 +6,10 @@
  */
 #include "fault_injection.h"
 #include "libpmemset.h"
-#include "unittest.h"
-#include "ut_pmemset_utils.h"
 #include "out.h"
 #include "source.h"
+#include "unittest.h"
+#include "ut_pmemset_utils.h"
 
 /*
  * test_set_from_pmem2_valid - test valid pmemset_source allocation
@@ -81,6 +81,44 @@ test_alloc_src_enomem(const struct test_case *tc, int argc, char *argv[])
 	UT_PMEMSET_EXPECT_RETURN(ret, -ENOMEM);
 	UT_ASSERTeq(src_set, NULL);
 	CLOSE(fd);
+	return 1;
+}
+
+/*
+ * test_src_from_file_null - test source creation from null file path
+ */
+static int
+test_src_from_file_null(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	struct pmemset_source *src;
+
+	int ret = pmemset_source_from_file(&src, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_FILE_PATH);
+
+	return 0;
+}
+
+/*
+ * test_src_from_file_valid - test source creation with valid file path
+ */
+static int
+test_src_from_file_valid(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_src_from_file_valid <path>");
+
+	const char *file = argv[0];
+
+	struct pmemset_source *src;
+
+	int ret = pmemset_source_from_file(&src, file);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	char *path_from_src;
+	pmemset_source_get_filepath(src, &path_from_src);
+	UT_ASSERT(strcmp(file, path_from_src) == 0);
 
 	return 1;
 }
@@ -92,6 +130,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_set_from_pmem2_null),
 	TEST_CASE(test_alloc_src_enomem),
 	TEST_CASE(test_set_from_pmem2_valid),
+	TEST_CASE(test_src_from_file_null),
+	TEST_CASE(test_src_from_file_valid),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
