@@ -71,7 +71,6 @@
 #include "fs.h"
 #include "os_deep.h"
 #include "set_badblocks.h"
-#include "shutdown_state.h"
 
 #define LIBRARY_REMOTE "librpmem.so.1"
 #define SIZE_AUTODETECT_STR "AUTO"
@@ -2253,13 +2252,6 @@ util_header_create(struct pool_set *set, unsigned repidx, unsigned partidx,
 
 	if (set->options & OPTION_SINGLEHDR)
 		hdrp->features.incompat |= POOL_FEAT_SINGLEHDR;
-
-	/* Update SDS feature if the device don't supports it */
-	if (!shutdown_state_is_supported(rep->part[partidx].fd)) {
-		hdrp->features.incompat &= ~POOL_FEAT_SDS;
-		set->ignore_sds |= IGNORE_SDS(HDR(rep, 0));
-		LOG(3, "SDS disabled at runtime");
-	}
 
 	memcpy(hdrp->poolset_uuid, set->uuid, POOL_HDR_UUID_LEN);
 	memcpy(hdrp->uuid, PART(rep, partidx)->uuid, POOL_HDR_UUID_LEN);

@@ -2,8 +2,7 @@ libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t blk -r 1 $(nW)pool.set
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -30,8 +29,7 @@ libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t blk -r 1 $(nW)pool.set
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -52,8 +50,7 @@ libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t log -r 1 $(nW)pool.set
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -76,8 +73,7 @@ libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t log -r 1 $(nW)pool.set
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -94,8 +90,7 @@ libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t obj -r 1 $(nW)pool.set
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -116,8 +111,7 @@ libpmempool_backup/TEST6: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -b $(nW)pool.set_backup -t obj -r 1 $(nW)pool.set
 part files of the destination poolset of the backup already exist. Do you want to overwrite them?
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
