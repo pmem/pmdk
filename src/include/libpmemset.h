@@ -119,7 +119,7 @@ struct pmemset_config;
 
 int pmemset_config_new(struct pmemset_config **cfg);
 
-void pmemset_config_delete(struct pmemset_config **cfg);
+int pmemset_config_delete(struct pmemset_config **cfg);
 
 int pmemset_config_set_create_if_none(struct pmemset_config *cfg,
 		int value);
