@@ -1,14 +1,12 @@
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
 replica 0 part 1: pool header correct
 $(nW) consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
@@ -17,8 +15,7 @@ checking pmemlog header
 pmemlog header correct
 $(nW) consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header

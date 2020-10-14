@@ -16,16 +16,6 @@ $ERROR_PATTERN="<1> \[feature.c:.*\]"
 
 $exit_func="expect_normal_exit"
 
-# pmempool_feature_query_return -- query a feature and return
-# the value.
-#
-# usage: pmempool_feature_query_return <feature>
-function pmempool_feature_query_return($arg1) {
-	# verify query by pmempool info
-	$count=(expect_normal_exit $PMEMPOOL info $POOL | Select-String "$arg1").length
-	return $count
-}
-
 # libpmempool_feature_query_abnormal -- query feature with expected
 #	abnormal result
 #

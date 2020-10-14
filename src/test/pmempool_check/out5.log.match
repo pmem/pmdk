@@ -1,14 +1,12 @@
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 incorrect pool header
 the following error can be fixed using PMEMPOOL_CHECK_ADVANCED flag
 invalid pool_hdr.checksum
 $(nW)file.pool: cannot repair
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 incorrect pool header
 invalid pool_hdr.checksum

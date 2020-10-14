@@ -1,13 +1,11 @@
 $(nW)pool.p1: spoil: pool_hdr.arch_flags=$(nW)
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 $(nW)pool.set: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 replica 0 part 0: pool_hdr.arch_flags is not valid
@@ -20,14 +18,12 @@ $(nW)pool.set: repaired
 $(nW)pool.p1: spoil: pool_hdr.arch_flags=$(nW)
 $(nW)pool.p2: spoil: pool_hdr.arch_flags=$(nW)
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 $(nW)pool.set: not consistent
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 replica 0 part 1: checking pool header
@@ -36,8 +32,7 @@ replica 0 part 0: the following error can be fixed using PMEMPOOL_CHECK_ADVANCED
 replica 0 part 0: invalid pool_hdr.checksum
 $(nW)pool.set: cannot repair
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: incorrect pool header
 replica 0 part 1: checking pool header

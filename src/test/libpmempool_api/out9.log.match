@@ -2,8 +2,7 @@ Pool type: log Params: log
 libpmempool_api$(nW)TEST9: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -d 1 -r 1 -y 1 -t log $(nW)
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 incorrect pool header
 pool_hdr.major is not valid
@@ -16,8 +15,7 @@ Pool type: blk Params: blk 512
 libpmempool_api$(nW)TEST9: START: libpmempool_test$(nW)
  $(nW)libpmempool_test$(nW) -d 1 -r 1 -y 1 -t blk $(nW)
 checking shutdown state
-$(OPT)shutdown state correct
-$(OPX)shutdown state not supported
+shutdown state correct
 checking pool header
 incorrect pool header
 pool_hdr.major is not valid

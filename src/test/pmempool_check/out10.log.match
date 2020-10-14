@@ -1,9 +1,8 @@
 $(nW)pool.replica2.part1: spoil: pool_hdr.uuid=ERROR
 replica 0: checking shutdown state
-$(OPT)replica 0: shutdown state correct
-$(OPX)replica 0: shutdown state not supported
-$(OPT)replica 1: checking shutdown state
-$(OPT)replica 1: shutdown state correct
+replica 0: shutdown state correct
+replica 1: checking shutdown state
+replica 1: shutdown state correct
 replica 0 part 0: checking pool header
 replica 0 part 0: pool header correct
 replica 0 part 1: checking pool header
