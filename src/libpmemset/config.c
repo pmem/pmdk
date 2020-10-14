@@ -8,6 +8,7 @@
 #include "libpmem2.h"
 #include "libpmemset.h"
 
+#include "alloc.h"
 #include "config.h"
 #include "event.h"
 #include "out.h"
@@ -39,6 +40,7 @@ pmemset_config_new(struct pmemset_config **cfg)
 	ASSERTne(cfg, NULL);
 
 	pmemset_config_init(*cfg);
+
 	return 0;
 }
 
@@ -131,4 +133,15 @@ pmemset_config_set_version(struct pmemset_config *cfg,
 		int major, int minor)
 {
 	return PMEMSET_E_NOSUPP;
+}
+
+/*
+ * pmemset_config_delete -- deallocate cfg structure
+ */
+int
+pmemset_config_delete(struct pmemset_config **cfg)
+{
+	Free(*cfg);
+	*cfg = NULL;
+	return 0;
 }
