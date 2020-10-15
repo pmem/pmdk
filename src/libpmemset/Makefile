@@ -18,7 +18,7 @@ SOURCE =\
 	part.c\
 	pmemset.c\
 	source.c\
-	pmemseT_utils.c
+	pmemset_utils.c
 
 include ../core/pmemcore.inc
 include ../Makefile.inc
