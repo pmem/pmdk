@@ -1,3 +1,4 @@
 libpmemset.7
+pmemset_config_new.3
 pmemset_errormsg.3
 pmemset_perror.3
