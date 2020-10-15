@@ -4,7 +4,6 @@
 #   --with | --without ndctl
 #   --define _testconfig <path to custom testconfig.sh>
 #   --define _skip_check 1
-#   --define _pmem2_install 1
 
 # do not terminate build if files in the $RPM_BUILD_ROOT
 # directory are not found in the %files (without rpmem case)
@@ -92,10 +91,8 @@ The Persistent Memory Development Kit is a collection of libraries for
 using memory-mapped persistence, optimized specifically for persistent memory.
 
 
-%if 0%{?_pmem2_install} == 1
-
 %package -n libpmem2__PKG_NAME_SUFFIX__
-Summary: Low-level persistent memory support library (EXPERIMENTAL)
+Summary: Low-level persistent memory support library
 Group: __GROUP_SYS_LIBS__
 %description -n libpmem2__PKG_NAME_SUFFIX__
 The libpmem2 provides low level persistent memory support. In particular,
@@ -112,7 +109,7 @@ to pmem is provided.
 
 
 %package -n libpmem2-devel
-Summary: Development files for the low-level persistent memory library (EXPERIMENTAL)
+Summary: Development files for the low-level persistent memory library
 Group: __GROUP_DEV_LIBS__
 Requires: libpmem2__PKG_NAME_SUFFIX__ = %{version}-%{release}
 %description -n libpmem2-devel
@@ -137,7 +134,7 @@ convenient.
 
 
 %package -n libpmem2-debug
-Summary: Debug variant of the low-level persistent memory library (EXPERIMENTAL)
+Summary: Debug variant of the low-level persistent memory library
 Group: __GROUP_DEV_LIBS__
 Requires: libpmem2__PKG_NAME_SUFFIX__ = %{version}-%{release}
 %description -n libpmem2-debug
@@ -158,8 +155,6 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %license LICENSE
 %doc ChangeLog CONTRIBUTING.md README.md
 
-# end of "if _pmem2_install"
-%endif
 
 
 %package -n libpmem__PKG_NAME_SUFFIX__

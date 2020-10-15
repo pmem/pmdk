@@ -112,11 +112,9 @@ MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.m
 		libpmem2/pmem2_source_get_handle.3.md
 
 MANPAGES_1_MD_PMEM2 =
-ifeq ($(PMEM2_INSTALL),y)
 MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_source_from_handle.3 libpmem2/pmem2_source_delete.3 \
 	libpmem2/pmem2_get_memset_fn.3 libpmem2/pmem2_get_memcpy_fn.3 libpmem2/pmem2_vm_reservation_delete.3 \
 	libpmem2/pmem2_badblock_context_delete.3
-endif
 
 ifeq ($(BUILD_RPMEM),y)
 MANPAGES_7_MD += librpmem/librpmem.7.md
@@ -160,17 +158,10 @@ MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_EXP)
 MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_EXP)
 endif
 
-ifeq ($(PMEM2_INSTALL),y)
 MANPAGES_7_GROFF += $(MANPAGES_7_GROFF_PMEM2)
 MANPAGES_5_GROFF += $(MANPAGES_5_GROFF_PMEM2)
 MANPAGES_3_GROFF += $(MANPAGES_3_GROFF_PMEM2)
 MANPAGES_1_GROFF += $(MANPAGES_1_GROFF_PMEM2)
-else
-MANPAGES_7_NOINSTALL += $(MANPAGES_7_GROFF_PMEM2)
-MANPAGES_5_NOINSTALL += $(MANPAGES_5_GROFF_PMEM2)
-MANPAGES_3_NOINSTALL += $(MANPAGES_3_GROFF_PMEM2)
-MANPAGES_1_NOINSTALL += $(MANPAGES_1_GROFF_PMEM2)
-endif
 
 MANPAGES_7_MD_WEB = $(MANPAGES_7_MD_PMEM2) + $(MANPAGES_7_MD)
 MANPAGES_5_MD_WEB = $(MANPAGES_5_MD_PMEM2) + $(MANPAGES_5_MD)

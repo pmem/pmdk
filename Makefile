@@ -45,7 +45,6 @@ EXPERIMENTAL ?= n
 BUILD_PACKAGE_CHECK ?= y
 BUILD_RPMEM ?= y
 TEST_CONFIG_FILE ?= "$(CURDIR)"/src/test/testconfig.sh
-PMEM2_INSTALL ?= n
 DOC ?= y
 
 rpm : override DESTDIR="$(CURDIR)/$(RPM_BUILDDIR)"
@@ -122,7 +121,7 @@ rpm dpkg: pkg-clean
 	$(MAKE) source DESTDIR="$(DESTDIR)"
 	+utils/build-$@.sh -t $(SRCVERSION) -s "$(DESTDIR)"/pmdk -w "$(DESTDIR)" -o $(CURDIR)/$@\
 			-e $(EXPERIMENTAL) -c $(BUILD_PACKAGE_CHECK) -r $(BUILD_RPMEM)\
-			-f $(TEST_CONFIG_FILE) -n $(NDCTL_ENABLE) -p $(PMEM2_INSTALL)
+			-f $(TEST_CONFIG_FILE) -n $(NDCTL_ENABLE)
 
 install: all
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2019, Intel Corporation
+# Copyright 2014-2020, Intel Corporation
 
 #
 # build-rpm.sh - Script for building rpm packages
@@ -25,7 +25,6 @@ usage()
 Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 	[ -d distro ] [ -e build-experimental ] [ -c run-check ]
 	[ -r build-rpmem ] [ -n with-ndctl ] [ -f testconfig-file ]
-	[ -p build-libpmem2 ]
 
 -h			print this help message
 -t version-tag		source version tag
@@ -38,7 +37,6 @@ Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 -r build-rpmem		build librpmem and rpmemd packages
 -n with-ndctl		build with libndctl
 -f testconfig-file	custom testconfig.sh
--p build-libpmem2	build libpmem2 packages
 EOF
 	exit 1
 }
@@ -46,7 +44,7 @@ EOF
 #
 # command-line argument processing...
 #
-args=`getopt he:c:r:n:t:d:s:w:o:f:p: $*`
+args=`getopt he:c:r:n:t:d:s:w:o:f: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -94,10 +92,6 @@ do
 		DISTRO="$2"
 		shift 2
 		;;
-	-p)
-		PMEM2_INSTALL="$2"
-		shift 2
-		;;
 	--)
 		shift
 		break
@@ -129,6 +123,8 @@ fi
 if [ "$EXTRA_CFLAGS_RELEASE" = "" ]; then
 	export EXTRA_CFLAGS_RELEASE="-ggdb -fno-omit-frame-pointer"
 fi
+
+PMEM2_INSTALL="y"
 
 LIBFABRIC_MIN_VERSION=1.4.2
 NDCTL_MIN_VERSION=60.1
