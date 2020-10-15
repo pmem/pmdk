@@ -228,6 +228,9 @@ else
 $(info NOTE: Skipping pmem2_badblock_mocks test because libndctl is disabled (see NDCTL_ENABLE))
 endif
 
+PMEMSET_TESTS = \
+	pmemset_config
+
 PMEMPOOL_TESTS = \
 	pmempool_check\
 	pmempool_create\
