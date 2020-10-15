@@ -295,6 +295,7 @@ PMREORDER_TESTS = \
 	pmreorder_stack
 
 PMEMSET_TESTS = \
+	pmemset_config\
 	pmemset_include\
 	pmemset_perror
 
@@ -305,12 +306,12 @@ LOCAL_TESTS = \
 	$(OTHER_TESTS)\
 	$(PMEM_TESTS)\
 	$(PMEM2_TESTS)\
+	$(PMEMSET_TESTS)\
 	$(PMEMPOOL_TESTS)\
 	$(LIBPMEMPOOL_TESTS)\
 	$(LIBPMEMPOOL_MOD_TESTS)\
 	$(DAXIO_TESTS)\
-	$(PMREORDER_TESTS)\
-	$(PMEMSET_TESTS)
+	$(PMREORDER_TESTS)
 
 REMOTE_TESTS = \
 	$(OBJ_REMOTE_TESTS)\
@@ -463,6 +464,10 @@ pcheck-pmem: $(PMEM_TESTS)
 
 pcheck-pmem2: TARGET = pcheck
 pcheck-pmem2: $(PMEM2_TESTS)
+	@echo "No failures."
+
+pcheck-pmemset: TARGET = pcheck
+pcheck-pmemset: $(PMEMSET_TESTS)
 	@echo "No failures."
 
 pcheck-rpmem: TARGET = pcheck
