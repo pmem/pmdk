@@ -2,7 +2,7 @@
 /* Copyright 2019-2020, Intel Corporation */
 
 /*
- * libpmem2.h -- definitions of libpmem2 entry points (EXPERIMENTAL)
+ * libpmem2.h -- definitions of libpmem2 entry points
  *
  * This library provides support for programming with persistent memory (pmem).
  *
