@@ -119,10 +119,10 @@ MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_source_from_ha
 # libpmemset
 MANPAGES_7_MD_PMEMSET = libpmemset/libpmemset.7.md
 MANPAGES_5_MD_PMEMSET =
-MANPAGES_3_MD_PMEMSET = libpmemset/pmemset_errormsg.3.md libpmemset/pmemset_perror.3.md
+MANPAGES_3_MD_PMEMSET = libpmemset/pmemset_errormsg.3.md libpmemset/pmemset_perror.3.md libpmemset/pmemset_config_new.3.md
 MANPAGES_1_MD_PMEMSET =
 ifeq ($(PMEMSET_INSTALL),y)
-MANPAGES_3_DUMMY +=
+MANPAGES_3_DUMMY += libpmemset/pmemset_config_delete.3
 endif
 
 ifeq ($(BUILD_RPMEM),y)
