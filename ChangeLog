@@ -1,5 +1,16 @@
 Wed Sep 16 2020 Piotr Balcer <piotr.balcer@intel.com>
 
+	* Version 1.10
+
+	This release introduces a new stable PMDK library, libpmem2, which
+	is the next major release of libpmem.
+	This library has an entirely new, but familiar, API that addresses many
+	shortcomings of the previous version, while retaining all of its
+	functionality. To learn more, see https://pmem.io/pmdk/libpmem2/ or
+	libpmem2(7).
+
+Wed Sep 16 2020 Piotr Balcer <piotr.balcer@intel.com>
+
 	* Version 1.9.1
 
 	Detailed list of bug fixes:
