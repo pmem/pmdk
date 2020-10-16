@@ -1958,7 +1958,6 @@ pmemobj_close(PMEMobjpool *pop)
 	PMEMOBJ_API_START();
 
 	os_mutex_lock(&pools_mutex);
-	_pobj_cache_invalidate++;
 
 	if (critnib_remove(pools_ht, pop->uuid_lo) != pop) {
 		ERR("critnib_remove for pools_ht");
@@ -1985,6 +1984,10 @@ pmemobj_close(PMEMobjpool *pop)
 	}
 
 #endif /* _WIN32 */
+
+	VALGRIND_HG_DRD_DISABLE_CHECKING(&_pobj_cache_invalidate,
+		sizeof(_pobj_cache_invalidate));
+	_pobj_cache_invalidate++;
 
 	obj_pool_cleanup(pop);
 	os_mutex_unlock(&pools_mutex);
