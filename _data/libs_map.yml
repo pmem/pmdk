@@ -324,6 +324,7 @@
   pmempool_rm: pmempool_rm.3
   pmempool_sync: pmempool_sync.3
   pmempool_transform: pmempool_sync.3
+  libpmemset: libpmemset.7
 - librpmem: rpmem_check_version.3 rpmem_close.3 rpmem_create.3 rpmem_deep_persist.3 rpmem_drain.3 rpmem_errormsg.3 rpmem_flush.3 rpmem_open.3 rpmem_persist.3 rpmem_read.3 rpmem_remove.3 rpmem_set_attr.3
   rpmem_check_version: librpmem.7
   rpmem_close: rpmem_create.3
