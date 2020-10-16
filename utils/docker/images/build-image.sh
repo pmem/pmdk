@@ -45,8 +45,8 @@ if [[ -z "${DOCKERHUB_REPO}" ]]; then
 	exit 1
 fi
 
-# Build a Docker image tagged with ${DOCKERHUB_REPO}:OS-VER-ARCH
-tag=${DOCKERHUB_REPO}:1.10-${OS_VER}-${CPU_ARCH}
+# Build a Docker image tagged as follows:
+tag=${DOCKERHUB_REPO}:${IMG_VER}-${OS_VER}-${CPU_ARCH}
 docker build -t $tag \
 	--build-arg http_proxy=$http_proxy \
 	--build-arg https_proxy=$https_proxy \
