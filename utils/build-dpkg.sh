@@ -21,7 +21,6 @@ usage()
 Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 	[ -e build-experimental ] [ -c run-check ]
 	[ -n with-ndctl ] [ -f testconfig-file ]
-	[ -p build-libpmem2 ]
 
 -h			print this help message
 -t version-tag		source version tag
@@ -32,7 +31,6 @@ Usage: $0 [ -h ] -t version-tag -s source-dir -w working-dir -o output-dir
 -c run-check		run package check
 -n with-ndctl		build with libndctl
 -f testconfig-file	custom testconfig.sh
--p build-libpmem2	build libpmem2 packages
 EOF
 	exit 1
 }
@@ -40,7 +38,7 @@ EOF
 #
 # command-line argument processing...
 #
-args=`getopt he:c:r:n:t:d:s:w:o:f:p: $*`
+args=`getopt he:c:r:n:t:d:s:w:o:f: $*`
 [ $? != 0 ] && usage
 set -- $args
 for arg
@@ -84,10 +82,6 @@ do
 		OUT_DIR="$2"
 		shift 2
 		;;
-	-p)
-		PMEM2_INSTALL="$2"
-		shift 2
-		;;
 	--)
 		shift
 		break
@@ -101,6 +95,8 @@ then
 	error "Mandatory arguments missing"
 	usage
 fi
+
+PMEM2_INSTALL="y"
 
 PREFIX=usr
 LIB_DIR=$PREFIX/lib/$(dpkg-architecture -qDEB_HOST_MULTIARCH)
@@ -277,7 +273,7 @@ Depends: \${shlibs:Depends}, \${misc:Depends}
 Description: Persistent Memory low level support library
  libpmem2 provides low level persistent memory support. In particular, support
  for the persistent memory instructions for flushing changes to pmem is
- provided. (EXPERIMENTAL)
+ provided.
 
 Package: libpmem2-dev
 Section: libdevel
@@ -286,7 +282,7 @@ Depends: libpmem2 (=\${binary:Version}), \${shlibs:Depends}, \${misc:Depends}
 Description: Development files for libpmem2
  libpmem2 provides low level persistent memory support. In particular, support
  for the persistent memory instructions for flushing changes to pmem is
- provided. (EXPERIMENTAL)
+ provided.
 EOF
 }
 

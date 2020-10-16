@@ -7,6 +7,6 @@
 
 #include <windows.h>
 #define FILE_NAME "libpmem2.dll"
-#define DESCRIPTION "libpmem2 - persistent memory support library v2 (EXPERIMENTAL)"
+#define DESCRIPTION "libpmem2 - persistent memory support library v2"
 #define TYPE VFT_DLL
 #include <common.rc>
