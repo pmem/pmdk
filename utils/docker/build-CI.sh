@@ -29,9 +29,9 @@ if [[ ( "$CI_EVENT_TYPE" == "cron" || "$CI_BRANCH" == "coverity_scan" )\
 	exit 0
 fi
 
-if [[ -z "$OS" || -z "$OS_VER" ]]; then
-	echo "ERROR: The variables OS and OS_VER have to be set properly " \
-		"(eg. OS=ubuntu, OS_VER=16.04)."
+if [[ -z "$OS" || -z "$OS_VER" || -z "$IMG_VER" ]]; then
+	echo "ERROR: The variables OS, OS_VER and IMG_VER have to be set properly " \
+		"(eg. OS=ubuntu, OS_VER=16.04, IMG_VER=1.10)."
 	exit 1
 fi
 
@@ -45,7 +45,7 @@ if [[ -z "$TEST_BUILD" ]]; then
 	TEST_BUILD=all
 fi
 
-imageName=${DOCKERHUB_REPO}:1.10-${OS}-${OS_VER}-${CI_CPU_ARCH}
+imageName=${DOCKERHUB_REPO}:${IMG_VER}-${OS}-${OS_VER}-${CI_CPU_ARCH}
 containerName=pmdk-${OS}-${OS_VER}
 
 if [[ $MAKE_PKG -eq 0 ]] ; then command="./run-build.sh"; fi
