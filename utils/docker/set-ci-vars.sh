@@ -11,7 +11,7 @@
 set -e
 
 # set version of Docker images (IMG_VER)
-source $(dirname $0)/images/set-images-version.sh
+source $(dirname ${BASH_SOURCE[0]})/images/set-images-version.sh
 
 function get_commit_range_from_last_merge {
 	# get commit id of the last merge
