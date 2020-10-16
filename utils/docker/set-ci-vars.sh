@@ -10,6 +10,9 @@
 
 set -e
 
+# set version of Docker images (IMG_VER)
+source $(dirname $0)/images/set-images-version.sh
+
 function get_commit_range_from_last_merge {
 	# get commit id of the last merge
 	LAST_MERGE=$(git log --merges --pretty=%H -1)
@@ -87,6 +90,7 @@ export CI_BRANCH=$CI_BRANCH
 export CI_EVENT_TYPE=$CI_EVENT_TYPE
 export CI_REPO_SLUG=$CI_REPO_SLUG
 export CI_CPU_ARCH=$CI_CPU_ARCH
+export IMG_VER=$IMG_VER
 
 echo CI_COMMIT=$CI_COMMIT
 echo CI_COMMIT_RANGE=$CI_COMMIT_RANGE
@@ -94,3 +98,4 @@ echo CI_BRANCH=$CI_BRANCH
 echo CI_EVENT_TYPE=$CI_EVENT_TYPE
 echo CI_REPO_SLUG=$CI_REPO_SLUG
 echo CI_CPU_ARCH=$CI_CPU_ARCH
+echo IMG_VER=$IMG_VER
