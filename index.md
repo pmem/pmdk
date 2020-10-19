@@ -127,6 +127,18 @@ on remote hosts over Remote Direct Memory Access (RDMA).
 
 See the [librpma page](../rpma/) for available documentation.
 
+#### libpmemset
+
+**libpmemset** aims to provide support for persistent file I/O operations,
+runtime mapping concatenation and multi-part support across poolsets.
+It relies on synchronous event streams for pool modifications.
+
+>NOTE:
+This is still an **experimental API** and should not be used in production
+environments.
+
+See the [libpmemset page](../libpmemset/) for updates.
+
 #### libvmemcache
 
 **libvmemcache** is an embeddable and lightweight in-memory caching solution.

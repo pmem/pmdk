@@ -7,6 +7,7 @@
     libpmemlog
     libpmemobj
     libpmempool
+    libpmemset
     librpmem
     libvmem
     pmem_ctl
@@ -389,6 +390,8 @@
         rpmem_read.3
         rpmem_remove.3
         rpmem_set_attr.3
+
+    libpmemset:
 
 - tag: 1.9
   libs:
