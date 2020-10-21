@@ -31,7 +31,7 @@ pmemset_source_from_pmem2(struct pmemset_source **src,
 		return ret;
 
 	srcp->type = PMEMSET_SOURCE_PMEM2;
-	srcp->value.pmem2_src = ext_source;
+	srcp->value.pmem2_src = pmem2_src;
 
 	*src = srcp;
 
