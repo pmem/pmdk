@@ -34,6 +34,12 @@ if [[ -z "${DOCKER_REPO}" ]]; then
 	exit 1
 fi
 
+if [[ -z "${GH_CR_USER}" || -z "${GH_CR_PAT}" ]]; then
+	echo "ERROR: variables GH_CR_USER=\"${GH_CR_USER}\" and GH_CR_PAT=\"${GH_CR_PAT}\"" \
+		"have to be set properly to allow login to the $DOCKER_REPO."
+	exit 1
+fi
+
 TAG="${IMG_VER}-${OS}-${OS_VER}-${CI_CPU_ARCH}"
 
 # Check if the image tagged with $TAG exists locally
