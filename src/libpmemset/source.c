@@ -7,7 +7,6 @@
 
 #include "libpmemset.h"
 #include "pmemset_utils.h"
-
 #include "source.h"
 
 /*
