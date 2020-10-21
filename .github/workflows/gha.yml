@@ -3,16 +3,16 @@ name: PMDK
 on: [push, pull_request]
 
 env:
-    GITHUB_REPO:    pmem/pmdk
-    DOCKERHUB_REPO: pmem/pmdk
+    GITHUB_REPO: pmem/pmdk
+    DOCKER_REPO: ghcr.io/pmem/pmdk
+    GH_CR_USER:  ${{ secrets.GH_CR_USER }}
+    GH_CR_PAT:   ${{ secrets.GH_CR_PAT }}
 
 jobs:
   linux:
     name: Linux
     runs-on: ubuntu-latest
     env:
-      DOCKERHUB_USER:          ${{ secrets.DOCKERHUB_USER }}
-      DOCKERHUB_PASSWORD:      ${{ secrets.DOCKERHUB_PASSWORD }}
       DOC_UPDATE_GITHUB_TOKEN: ${{ secrets.DOC_UPDATE_GITHUB_TOKEN }}
       HOST_WORKDIR:   /home/runner/work/pmdk/pmdk
       WORKDIR:        utils/docker
