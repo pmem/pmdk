@@ -54,7 +54,7 @@ EXPORTS
 	pmemset_remove_range
 	pmemset_source_delete
 	pmemset_source_fallocate
-	pmemset_source_from_external
+	pmemset_source_from_pmem2
 	pmemset_source_from_fileU
 	pmemset_source_from_fileW
 	pmemset_source_from_file_paramsU

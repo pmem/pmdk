@@ -7,15 +7,35 @@
 
 #include "source.h"
 #include "libpmemset.h"
+#include "pmemset_utils.h"
 
 /*
- * pmemset_source_from_external -- not supported
+ * pmemset_source_from_pmem2 -- create pmemset source using source from pmem2
  */
 int
-pmemset_source_from_external(struct pmemset_source **source,
-		struct pmem2_source *ext_source)
+pmemset_source_from_pmem2(struct pmemset_source **src,
+		struct pmem2_source *pmem2_src)
 {
-	return PMEMSET_E_NOSUPP;
+	PMEMSET_ERR_CLR();
+
+	*src = NULL;
+
+	if (!pmem2_src) {
+		ERR("pmem2_source cannot be NULL");
+		return PMEMSET_E_INVALID_PMEM2_SOURCE;
+	}
+
+	int ret;
+	struct pmemset_source *srcp = pmemset_malloc(sizeof(**src), &ret);
+	if (ret)
+		return ret;
+
+	srcp->type = PMEMSET_SOURCE_PMEM2;
+	srcp->value.pmem2_src = ext_source;
+
+	*src = srcp;
+
+	return 0;
 }
 
 #ifndef _WIN32

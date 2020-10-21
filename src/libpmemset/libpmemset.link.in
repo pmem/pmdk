@@ -48,7 +48,7 @@ LIBPMEMSET_1.0 {
 		pmemset_remove_range;
 		pmemset_source_delete;
 		pmemset_source_fallocate;
-		pmemset_source_from_external;
+		pmemset_source_from_pmem2;
 		pmemset_source_from_file;
 		pmemset_source_from_temporary;
 	local:
