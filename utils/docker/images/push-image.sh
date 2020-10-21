@@ -45,7 +45,7 @@ then
 fi
 
 # Log in to GitHub Container Registry
-docker login https://ghcr.io -u="$GH_CR_USER" -p="$GH_CR_PAT"
+echo "${GH_CR_PAT}" | docker login ghcr.io -u="${GH_CR_USER}" --password-stdin
 
 # Push the image to GitHub Container Registry
 docker push ${DOCKER_REPO}:${TAG}

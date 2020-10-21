@@ -5,14 +5,15 @@ on: [push, pull_request]
 env:
     GITHUB_REPO: pmem/pmdk
     DOCKER_REPO: ghcr.io/pmem/pmdk
-    GH_CR_USER:  ${{ secrets.GH_CR_USER }}
-    GH_CR_PAT:   ${{ secrets.GH_CR_PAT }}
 
 jobs:
   linux:
     name: Linux
     runs-on: ubuntu-latest
     env:
+      # use org's Private Access Token to log in to GitHub Container Registry
+      GH_CR_USER:  ${{ secrets.GH_CR_USER }}
+      GH_CR_PAT:   ${{ secrets.GH_CR_PAT }}
       DOC_UPDATE_GITHUB_TOKEN: ${{ secrets.DOC_UPDATE_GITHUB_TOKEN }}
       HOST_WORKDIR:   /home/runner/work/pmdk/pmdk
       WORKDIR:        utils/docker

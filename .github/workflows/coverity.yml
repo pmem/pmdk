@@ -9,8 +9,6 @@ on:
 env:
   GITHUB_REPO: pmem/pmdk
   DOCKER_REPO: ghcr.io/pmem/pmdk
-  GH_CR_USER:  ${{ secrets.GH_CR_USER }}
-  GH_CR_PAT:   ${{ secrets.GH_CR_PAT }}
   COVERITY_SCAN_NOTIFICATION_EMAIL:  ${{ secrets.COVERITY_SCAN_NOTIFICATION_EMAIL }}
   COVERITY_SCAN_TOKEN:               ${{ secrets.COVERITY_SCAN_TOKEN }}
   HOST_WORKDIR:   /home/runner/work/pmdk/pmdk

@@ -108,10 +108,5 @@ for file in $files; do
 done
 
 # Getting here means rebuilding the Docker image is not required.
-# The image will be pulled from GitHub Container Registry.
-
-# Log in to GitHub Container Registry
-docker login https://ghcr.io -u="$GH_CR_USER" -p="$GH_CR_PAT"
-
 # Pull the image from GitHub Container Registry.
 docker pull ${DOCKER_REPO}:${IMG_VER}-${OS}-${OS_VER}-${CI_CPU_ARCH}
