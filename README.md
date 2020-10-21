@@ -123,6 +123,7 @@ You will need to install the following required packages on the build system:
 * **pkg-config**
 * **libndctl-devel** (v63 or later)<sup>1</sup>
 * **libdaxctl-devel** (v63 or later)
+* **pandoc** (for documentation, required during install)
 
 The following packages are required only by selected PMDK components
 or features:
