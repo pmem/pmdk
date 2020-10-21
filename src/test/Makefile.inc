@@ -124,6 +124,35 @@ OBJS +=	$(TOP)/src/nondebug/common/ravl.o\
 INCS += -I$(TOP)/src/libpmemobj
 endif
 
+ifeq ($(LIBPMEMSET), y)
+LIBPMEM2=y
+DYNAMIC_LIBS += -lpmemset
+STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemset.a
+STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemset.a
+endif
+
+ifeq ($(LIBPMEMSET), internal-debug)
+OBJS +=\
+	$(TOP)/src/debug/libpmemset/config.o\
+	$(TOP)/src/debug/libpmemset/libpmemset.o\
+	$(TOP)/src/debug/libpmemset/part.o\
+	$(TOP)/src/debug/libpmemset/pmemset.o\
+	$(TOP)/src/debug/libpmemset/source.o
+
+INCS += -I$(TOP)/src/libpmemset
+endif
+
+ifeq ($(LIBPMEMSET), internal-nondebug)
+OBJS +=\
+	$(TOP)/src/nondebug/libpmemset/config.o\
+	$(TOP)/src/nondebug/libpmemset/libpmemset.o\
+	$(TOP)/src/nondebug/libpmemset/part.o\
+	$(TOP)/src/nondebug/libpmemset/pmemset.o\
+	$(TOP)/src/nondebug/libpmemset/source.o
+
+INCS += -I$(TOP)/src/libpmemset
+endif
+
 ifeq ($(LIBPMEM), internal-nondebug)
 OBJS +=\
 	$(TOP)/src/nondebug/libpmem/libpmem.o\
@@ -413,26 +442,6 @@ OBJS +=\
 
 OBJS += $(LIBS_DIR)/debug/libpmemcore.a
 INCS += -I$(TOP)/src/core
-endif
-
-ifeq ($(LIBPMEMSET), y)
-DYNAMIC_LIBS += -lpmemset
-STATIC_DEBUG_LIBS += $(LIBS_DIR)/debug/libpmemset.a
-STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemset.a
-endif
-
-ifeq ($(LIBPMEMSET), internal-debug)
-OBJS +=\
-	$(TOP)/src/debug/libpmemset/libpmemset.o
-
-INCS += -I$(TOP)/src/libpmemset
-endif
-
-ifeq ($(LIBPMEMSET), internal-nondebug)
-OBJS +=\
-	$(TOP)/src/nondebug/libpmemset/libpmemset.o
-
-INCS += -I$(TOP)/src/libpmemset
 endif
 
 ifeq ($(LIBPMEM),y)
