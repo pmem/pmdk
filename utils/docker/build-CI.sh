@@ -6,7 +6,7 @@
 # build-CI.sh - runs a Docker container from a Docker image with environment
 #                   prepared for building PMDK project and starts building PMDK.
 #
-# This script is used for building PMDK on Travis and GitHub Actions CIs.
+# This script is used for building PMDK on project's CIs.
 #
 
 set -e

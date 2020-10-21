@@ -3,11 +3,11 @@
 # Copyright 2016-2020, Intel Corporation
 
 #
-# push-image.sh - pushes the Docker image to GitHub Container Registry.
+# push-image.sh - pushes the Docker image to $DOCKER_REPO.
 #
 # The script utilizes $GH_CR_USER and $GH_CR_PAT variables
-# to log in to GitHub Container Registry. The variables can be set
-# in the Travis project's configuration for automated builds.
+# to log in to $DOCKER_REPO. These variables can be set
+# in the project's CI configuration for automated builds.
 #
 
 set -e
@@ -36,7 +36,7 @@ fi
 
 TAG="${IMG_VER}-${OS}-${OS_VER}-${CI_CPU_ARCH}"
 
-# Check if the image tagged with pmdk/OS-VER exists locally
+# Check if the image tagged with $TAG exists locally
 if [[ ! $(docker images -a | awk -v pattern="^${DOCKER_REPO}:${TAG}\$" \
 	'$1":"$2 ~ pattern') ]]
 then
@@ -44,8 +44,8 @@ then
 	exit 1
 fi
 
-# Log in to GitHub Container Registry
+# Log in to $DOCKER_REPO
 echo "${GH_CR_PAT}" | docker login ghcr.io -u="${GH_CR_USER}" --password-stdin
 
-# Push the image to GitHub Container Registry
+# Push the image to $DOCKER_REPO
 docker push ${DOCKER_REPO}:${TAG}
