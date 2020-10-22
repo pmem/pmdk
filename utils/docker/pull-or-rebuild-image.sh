@@ -4,19 +4,18 @@
 
 #
 # pull-or-rebuild-image.sh - rebuilds the Docker image used in the
-#                            current Travis build if necessary.
+#                            current CI build if necessary.
 #
 # The script rebuilds the Docker image if the Dockerfile for the current
 # OS version (Dockerfile.${OS}-${OS_VER}) or any .sh script from the directory
 # with Dockerfiles were modified and committed.
 #
-# If the Travis build is not of the "pull_request" type (i.e. in case of
+# If the CI build is not of the "pull_request" type (i.e. in case of
 # merge after pull_request) and it succeed, the Docker image should be pushed
-# to the Docker Hub repository. An empty file is created to signal that to
-# further scripts.
+# to $DOCKER_REPO repository. An empty file is created to signal
+# that to further scripts.
 #
-# If the Docker image does not have to be rebuilt, it will be pulled from
-# Docker Hub.
+# If the Docker image does not have to be rebuilt, it will be pulled from $DOCKER_REPO.
 #
 
 set -e
@@ -82,20 +81,19 @@ for file in $files; do
 		./build-image.sh ${OS}-${OS_VER} ${CI_CPU_ARCH}
 		popd
 
-		# Check if the image has to be pushed to Docker Hub
+		# Check if the image has to be pushed to $DOCKER_REPO
 		# (i.e. the build is triggered by commits to the $GITHUB_REPO
-		# repository's stable-* or master branch, and the Travis build is not
-		# of the "pull_request" type). In that case, create the empty
-		# file.
+		# repository's stable-*, devel-* or master branch, and the CI build is not
+		# of the "pull_request" type). In that case, create the empty file.
 		if [[ "$CI_REPO_SLUG" == "$GITHUB_REPO" \
 			&& ($CI_BRANCH == stable-* || $CI_BRANCH == devel-* || $CI_BRANCH == master) \
 			&& $CI_EVENT_TYPE != "pull_request" \
 			&& $PUSH_IMAGE == "1" ]]
 		then
-			echo "The image will be pushed to Docker Hub"
+			echo "The image will be pushed to ${DOCKER_REPO}"
 			touch $CI_FILE_PUSH_IMAGE_TO_REPO
 		else
-			echo "Skip pushing the image to Docker Hub"
+			echo "Skip pushing the image to ${DOCKER_REPO}"
 		fi
 
 		if [[ $PUSH_IMAGE == "1" ]]
@@ -108,5 +106,5 @@ for file in $files; do
 done
 
 # Getting here means rebuilding the Docker image is not required.
-# Pull the image from Docker Hub.
-docker pull ${DOCKERHUB_REPO}:${IMG_VER}-${OS}-${OS_VER}-${CI_CPU_ARCH}
+# Pull the image from $DOCKER_REPO.
+docker pull ${DOCKER_REPO}:${IMG_VER}-${OS}-${OS_VER}-${CI_CPU_ARCH}
