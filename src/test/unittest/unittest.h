@@ -61,6 +61,7 @@
 #include <libpmemlog.h>
 #include <libpmemobj.h>
 #include <libpmempool.h>
+#include <libpmemset.h>
 
 #ifdef __cplusplus
 extern "C" {
