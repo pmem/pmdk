@@ -19,6 +19,8 @@ EXPORTS
 	pmemset_config_set_reservation
 	pmemset_config_set_version
 	pmemset_deep_flush
+	pmemset_errormsgU
+	pmemset_errormsgW
 	pmemset_delete
 	pmemset_drain
 	pmemset_flush
@@ -37,6 +39,8 @@ EXPORTS
 	pmemset_part_new
 	pmemset_part_pread_mcsafe
 	pmemset_part_pwrite_mcsafe
+	pmemset_perrorU
+	pmemset_perrorW
 	pmemset_persist
 	pmemset_remove_part
 	pmemset_remove_part_map

@@ -10,6 +10,7 @@
 
 #include "config.h"
 #include "event.h"
+#include "out.h"
 
 /*
  * pmemset_config_new -- not supported
@@ -23,10 +24,10 @@ pmemset_config_new(struct pmemset_config **cfg)
 /*
  * pmemset_config_delete -- not supported
  */
-void
+int
 pmemset_config_delete(struct pmemset_config **cfg)
 {
-	;
+	return PMEMSET_E_NOSUPP;
 }
 
 /*
@@ -35,6 +36,7 @@ pmemset_config_delete(struct pmemset_config **cfg)
 int
 pmemset_config_set_create_if_none(struct pmemset_config *cfg, int value)
 {
+	ERR("function not supported");
 	return PMEMSET_E_NOSUPP;
 }
 

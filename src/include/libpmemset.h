@@ -20,11 +20,15 @@
 #define pmemset_header_init pmemset_header_initW
 #define pmemset_source_from_file pmemset_source_from_fileW
 #define pmemset_source_from_temporary pmemset_source_from_temporaryW
+#define pmemset_errormsg pmemset_errormsgW
+#define pmemset_perror pmemset_perrorW
 #else
 #define pmemset_config_set_layout_name pmemset_config_set_layout_nameU
 #define pmemset_header_init pmemset_header_initU
 #define pmemset_source_from_file pmemset_source_from_fileU
 #define pmemset_source_from_temporary pmemset_source_from_temporaryU
+#define pmemset_errormsg pmemset_errormsgU
+#define pmemset_perror pmemset_perrorU
 #endif
 
 #endif
@@ -119,7 +123,7 @@ struct pmemset_config;
 
 int pmemset_config_new(struct pmemset_config **cfg);
 
-void pmemset_config_delete(struct pmemset_config **cfg);
+int pmemset_config_delete(struct pmemset_config **cfg);
 
 int pmemset_config_set_create_if_none(struct pmemset_config *cfg,
 		int value);
@@ -231,12 +235,32 @@ int pmemset_part_map_drop(struct pmemset_part_map **pmap);
 struct pmemset_part_descriptor pmemset_part_map_descriptor(
 		struct pmemset_part_map *pmap);
 
-int pmemset_part_map_first(struct pmemset *set, struct pmemset_part_map **pmap);
+int pmemset_part_map_first(struct pmemset *set,
+		struct pmemset_part_map **pmap);
 
 int pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map **pmap);
 
 int pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part **part,
 		void *addr);
+
+/* error handling */
+
+int pmemset_err_to_errno(int);
+
+#ifndef _WIN32
+const char *pmemset_errormsg(void);
+
+void pmemset_perror(const char *format,
+		...) __attribute__((__format__(__printf__, 1, 2)));
+#else
+const char *pmemset_errormsgU(void);
+
+const wchar_t *pmemset_errormsgW(void);
+
+void pmemset_perrorU(const char *format, ...);
+
+void pmemset_perrorW(const wchar_t *format, ...);
+#endif
 
 #ifdef __cplusplus
 }
