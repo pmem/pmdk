@@ -85,6 +85,7 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 	struct ndctl_dimm *dimm;
 	int ret;
 	struct ndctl_region *region = NULL;
+	const char *dimm_uid;
 
 	if (src->type == PMEM2_SOURCE_ANON) {
 		ERR("Anonymous source does not have device id");
@@ -113,6 +114,11 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 
 	if (id == NULL) {
 		ndctl_dimm_foreach_in_region(region, dimm) {
+			dimm_uid = ndctl_dimm_get_unique_id(dimm);
+			if (dimm_uid == NULL) {
+				ret = PMEM2_E_NOSUPP;
+				goto err;
+			}
 			len_base += strlen(ndctl_dimm_get_unique_id(dimm));
 		}
 		goto end;
@@ -120,7 +126,11 @@ pmem2_source_device_id(const struct pmem2_source *src, char *id, size_t *len)
 
 	size_t count = 1;
 	ndctl_dimm_foreach_in_region(region, dimm) {
-		const char *dimm_uid = ndctl_dimm_get_unique_id(dimm);
+		dimm_uid = ndctl_dimm_get_unique_id(dimm);
+		if (dimm_uid == NULL) {
+			ret = PMEM2_E_NOSUPP;
+			goto err;
+		}
 		count += strlen(dimm_uid);
 		if (count > *len) {
 			ret = PMEM2_E_BUFFER_TOO_SMALL;
