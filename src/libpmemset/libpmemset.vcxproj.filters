@@ -32,9 +32,6 @@
     <ClCompile Include="..\core\os_thread_windows.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\ravl.c">
-      <Filter>Source Files\common</Filter>
-    </ClCompile>
     <ClCompile Include="libpmemset.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,6 +54,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="pmemset_utils.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\ravl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\ravl_interval.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -8,6 +8,7 @@
 #define PMEMSET_H
 
 #include "libpmemset.h"
+#include "config.h"
 
 #include "part.h"
 
@@ -23,12 +24,16 @@ extern "C" {
 #define PMEMSET_LOG_FILE_VAR "PMEMSET_LOG_FILE"
 
 struct pmemset {
-	char stub;
+	struct pmemset_config config;
+	struct ravl_interval *part_map_tree;
 };
 
 struct pmemset_header {
 	char stub;
 };
+
+int
+pmemset_new_init(struct pmemset *set, struct pmemset_config *config);
 
 #ifdef __cplusplus
 }
