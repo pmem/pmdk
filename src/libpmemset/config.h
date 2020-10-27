@@ -11,4 +11,6 @@ struct pmemset_config {
 	char stub;
 };
 
+void pmemset_config_init(struct pmemset_config *cfg);
+
 #endif /* PMEMSET_CONFIG_H */
