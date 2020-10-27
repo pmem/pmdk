@@ -50,9 +50,6 @@
     <ClCompile Include="pmemset.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-	<ClCompile Include="pmemset_utils.c">
-	  <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source.c">
       <Filter>Source Files</Filter>
     </ClCompile>

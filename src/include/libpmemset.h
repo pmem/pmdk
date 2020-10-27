@@ -39,6 +39,7 @@ extern "C" {
 
 #define PMEMSET_E_UNKNOWN			(-200000)
 #define PMEMSET_E_NOSUPP			(-200001)
+#define PMEMSET_E_INVALID_PMEM2_SOURCE		(-200002)
 
 /* pmemset setup */
 
@@ -160,7 +161,7 @@ struct pmem2_source;
 struct pmemset_source;
 
 int pmemset_source_from_pmem2(struct pmemset_source **src,
-		struct pmem2_source *ext_source);
+	struct pmem2_source *pmem2_src);
 
 #ifndef WIN32
 int pmemset_source_from_file(struct pmemset_source **src, const char *file);
