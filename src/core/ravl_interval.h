@@ -8,7 +8,6 @@
 #ifndef RAVL_INTERVAL_H
 #define RAVL_INTERVAL_H
 
-#include "libpmem2.h"
 #include "os_thread.h"
 #include "ravl.h"
 

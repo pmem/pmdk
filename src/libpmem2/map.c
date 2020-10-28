@@ -210,12 +210,11 @@ pmem2_unregister_mapping(struct pmem2_map *map)
 
 	util_rwlock_wrlock(&State.range_map_lock);
 	node = ravl_interval_find_equal(State.range_map, map);
-	if (node) {
-		ret = ravl_interval_remove(State.range_map, node);
-	} else {
+	if (!(node && !ravl_interval_remove(State.range_map, node))) {
 		ERR("Cannot find mapping %p to delete", map);
 		ret = PMEM2_E_MAPPING_NOT_FOUND;
 	}
+
 	util_rwlock_unlock(&State.range_map_lock);
 
 	return ret;

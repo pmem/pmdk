@@ -39,9 +39,6 @@
     <ClCompile Include="..\core\os_thread_windows.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
-    <ClCompile Include="..\common\ravl.c">
-      <Filter>Source Files\common</Filter>
-    </ClCompile>
     <ClCompile Include="libpmem2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -129,10 +126,13 @@
     <ClCompile Include="vm_reservation.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ravl_interval.c">
+    <ClCompile Include="vm_reservation_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vm_reservation_windows.c">
+    <ClCompile Include="..\core\ravl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\core\ravl_interval.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
