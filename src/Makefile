@@ -56,6 +56,12 @@ PMREORDER_FILES = $(PMREORDER_SRC)/*.py
 PMREORDER_DESTDIR = $(DESTDIR)$(datarootdir)/pmreorder
 PMREORDER_ROOTDIR = $(datarootdir)/pmreorder
 
+ifeq ($(PMEMSET_INSTALL),y)
+	PKG_CONFIG_FILES += libpmemset.pc
+	HEADERS_INSTALL += include/libpmemset.h
+	INSTALL_TARGETS += libpmemset
+endif
+
 ifeq ($(BUILD_RPMEM),y)
 	PKG_CONFIG_FILES += librpmem.pc
 	HEADERS_INSTALL += include/librpmem.h

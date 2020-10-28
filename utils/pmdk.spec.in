@@ -4,6 +4,7 @@
 #   --with | --without ndctl
 #   --define _testconfig <path to custom testconfig.sh>
 #   --define _skip_check 1
+#   --define _pmemset_install 1
 
 # do not terminate build if files in the $RPM_BUILD_ROOT
 # directory are not found in the %files (without rpmem case)
@@ -156,6 +157,71 @@ debug version is to set the environment variable LD_LIBRARY_PATH to
 %doc ChangeLog CONTRIBUTING.md README.md
 
 
+
+%if 0%{?_pmemset_install} == 1
+
+%package -n libpmemset__PKG_NAME_SUFFIX__
+Summary: Persistent multi-part support library (EXPERIMENTAL)
+Group: __GROUP_SYS_LIBS__
+%description -n libpmemset__PKG_NAME_SUFFIX__
+The libpmemset library provides  support for persistent file I/O operations,
+runtime mapping concatenation and multi-part support across poolsets.
+It relies on synchronous event streams for pool modifications.
+
+%files -n libpmemset__PKG_NAME_SUFFIX__
+%defattr(-,root,root,-)
+%dir %{_datadir}/pmdk
+%{_libdir}/libpmemset.so.*
+%{_datadir}/pmdk/pmdk.magic
+%license LICENSE
+%doc ChangeLog CONTRIBUTING.md README.md
+
+
+%package -n libpmemset-devel
+Summary: Development files for the persistent multi-part support library (EXPERIMENTAL)
+Group: __GROUP_DEV_LIBS__
+Requires: libpmemset__PKG_NAME_SUFFIX__ = %{version}-%{release}
+%description -n libpmemset-devel
+This library provides support for persistent file I/O operations,
+runtime mapping concatenation and multi-part support across poolsets.
+It relies on synchronous event streams for pool modifications.
+
+
+%files -n libpmemset-devel
+%defattr(-,root,root,-)
+%{_libdir}/libpmemset.so
+%{_libdir}/pkgconfig/libpmemset.pc
+%{_includedir}/libpmemset.h
+%{_mandir}/man7/libpmemset.7.gz
+%{_mandir}/man3/pmemset_*.3.gz
+%license LICENSE
+%doc ChangeLog CONTRIBUTING.md README.md
+
+
+%package -n libpmemset-debug
+Summary: Debug variant of the persistent multi-part support library (EXPERIMENTAL)
+Group: __GROUP_DEV_LIBS__
+Requires: libpmemset__PKG_NAME_SUFFIX__ = %{version}-%{release}
+%description -n libpmemset-debug
+This library provides support for persistent file I/O operations,
+runtime mapping concatenation and multi-part support across poolsets.
+It relies on synchronous event streams for pool modifications.
+
+This sub-package contains debug variant of the library, providing
+run-time assertions and trace points. The typical way to access the
+debug version is to set the environment variable LD_LIBRARY_PATH to
+/usr/lib64/pmdk_debug.
+
+%files -n libpmemset-debug
+%defattr(-,root,root,-)
+%dir %{_libdir}/pmdk_debug
+%{_libdir}/pmdk_debug/libpmemset.so
+%{_libdir}/pmdk_debug/libpmemset.so.*
+%license LICENSE
+%doc ChangeLog CONTRIBUTING.md README.md
+
+# end of "if _pmemset_install"
+%endif
 
 %package -n libpmem__PKG_NAME_SUFFIX__
 Summary: Low-level persistent memory support library
