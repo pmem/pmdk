@@ -71,7 +71,7 @@ endif
 ifeq ($(LIBPMEMOBJ), internal-debug)
 LIBPMEM=y
 LIBPMEMCOMMON=internal-debug
-OBJS += $(TOP)/src/debug/common/ravl.o\
+OBJS += $(TOP)/src/debug/core/ravl.o\
 	$(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/bucket.o\
 	$(TOP)/src/debug/libpmemobj/container_ravl.o\
@@ -99,7 +99,7 @@ endif
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
 LIBPMEM=y
 LIBPMEMCOMMON=internal-nondebug
-OBJS +=	$(TOP)/src/nondebug/common/ravl.o\
+OBJS +=	$(TOP)/src/nondebug/core/ravl.o\
 	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/bucket.o\
 	$(TOP)/src/nondebug/libpmemobj/container_ravl.o\
@@ -192,6 +192,7 @@ endif
 ifeq ($(LIBPMEM2), internal-debug)
 LIBPMEMCORE=internal-debug
 OBJS +=\
+	$(TOP)/src/debug/core/ravl.o\
 	$(TOP)/src/debug/libpmem2/badblocks.o\
 	$(TOP)/src/debug/libpmem2/badblocks_$(OS_DIMM).o\
 	$(TOP)/src/debug/libpmem2/config.o\
@@ -204,7 +205,6 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/persist_posix.o\
 	$(TOP)/src/debug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/debug/libpmem2/pmem2_utils_$(OS_DIMM).o\
-	$(TOP)/src/debug/libpmem2/ravl.o\
 	$(TOP)/src/debug/libpmem2/source.o\
 	$(TOP)/src/debug/libpmem2/source_posix.o\
 	$(TOP)/src/debug/libpmem2/usc_$(OS_DIMM).o\
@@ -244,6 +244,7 @@ endif
 ifeq ($(LIBPMEM2), internal-nondebug)
 LIBPMEMCORE=internal-nondebug
 OBJS +=\
+	$(TOP)/src/nondebug/core/ravl.o\
 	$(TOP)/src/nondebug/libpmem2/libpmem2.o\
 	$(TOP)/src/nondebug/libpmem2/badblocks.o\
 	$(TOP)/src/nondebug/libpmem2/badblocks_$(OS_DIMM).o\
@@ -258,7 +259,6 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/persist_posix.o\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils.o\
 	$(TOP)/src/nondebug/libpmem2/pmem2_utils_$(OS_DIMM).o\
-	$(TOP)/src/nondebug/libpmem2/ravl.o\
 	$(TOP)/src/nondebug/libpmem2/usc_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/libpmem2/vm_reservation.o\
 	$(TOP)/src/nondebug/libpmem2/vm_reservation_posix.o\

@@ -15,7 +15,7 @@
     <ClCompile Include="..\core\os_thread_windows.c" />
     <ClCompile Include="..\core\os_windows.c" />
     <ClCompile Include="..\core\out.c" />
-    <ClCompile Include="..\common\ravl.c" />
+    <ClCompile Include="..\core\ravl.c" />
     <ClCompile Include="..\core\util.c" />
     <ClCompile Include="..\core\util_windows.c" />
     <ClCompile Include="deep_flush.c" />

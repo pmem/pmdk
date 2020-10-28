@@ -62,7 +62,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\ravl.c" />
+    <ClCompile Include="..\..\core\ravl.c" />
     <ClCompile Include="..\..\common\shutdown_state.c" />
     <ClCompile Include="..\..\libpmem2\auto_flush_windows.c" />
     <ClCompile Include="..\..\libpmem2\config.c" />

@@ -100,7 +100,7 @@
     <ClCompile Include="..\..\libpmemobj\obj.c" />
     <ClCompile Include="..\..\libpmemobj\palloc.c" />
     <ClCompile Include="..\..\libpmemobj\pmalloc.c" />
-    <ClCompile Include="..\..\common\ravl.c" />
+    <ClCompile Include="..\..\core\ravl.c" />
     <ClCompile Include="..\..\libpmemobj\recycler.c" />
     <ClCompile Include="..\..\libpmemobj\ulog.c" />
     <ClCompile Include="..\..\libpmemobj\stats.c" />
