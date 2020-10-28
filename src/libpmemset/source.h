@@ -7,8 +7,11 @@
 #ifndef PMEMSET_SOURCE_H
 #define PMEMSET_SOURCE_H
 
-struct pmemset_source {
-	char stub;
+enum pmemset_source_type {
+	PMEMSET_SOURCE_UNSPECIFIED,
+	PMEMSET_SOURCE_PMEM2,
+
+	MAX_PMEMSET_SOURCE_TYPE
 };
 
 #endif /* PMEMSET_SOURCE_H */
