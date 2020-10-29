@@ -2,7 +2,7 @@ Persistent Memory Development Kit
 
 This is utils/docker/README.
 
-Scripts in this directory let Travis or Github Acstions CIs run a Docker container
+Scripts in this directory let Travis or Github Actions CIs run a Docker container
 with ubuntu- or fedora-based environment and build PMDK project inside it.
 
 'build-local.sh' can be used to build PMDK locally.
