@@ -16,6 +16,7 @@ date: pmemset API version 1.0
 [SYNOPSIS](#synopsis)<br />
 [DESCRIPTION](#description)<br />
 [RETURN VALUE](#return-value)<br />
+[ERRORS](#errors)<br />
 [SEE ALSO](#see-also)<br />
 
 # NAME #
