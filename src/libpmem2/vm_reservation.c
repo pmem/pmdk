@@ -192,14 +192,14 @@ int
 vm_reservation_map_register_release(struct pmem2_vm_reservation *rsv,
 		struct pmem2_map *map)
 {
-	int ret =  ravl_interval_insert(rsv->itree, map);
-	util_rwlock_unlock(&rsv->lock);
-
+	int ret = ravl_interval_insert(rsv->itree, map);
 	if (ret == -EEXIST) {
 		ERR(
 			"mapping at the given region of the reservation already exist");
-		return PMEM2_E_MAPPING_EXISTS;
+		ret = PMEM2_E_MAPPING_EXISTS;
 	}
+
+	util_rwlock_unlock(&rsv->lock);
 
 	return ret;
 }
@@ -217,13 +217,12 @@ vm_reservation_map_unregister_release(struct pmem2_vm_reservation *rsv,
 	struct ravl_interval_node *node;
 
 	node = ravl_interval_find_equal(rsv->itree, map);
-	if (node) {
-		ret = ravl_interval_remove(rsv->itree, node);
-	} else {
+	if (!(node && !ravl_interval_remove(rsv->itree, node))) {
 		ERR("Cannot find mapping %p in the reservation %p",
 				map, rsv);
 		ret = PMEM2_E_MAPPING_NOT_FOUND;
 	}
+
 	util_rwlock_unlock(&rsv->lock);
 
 	return ret;

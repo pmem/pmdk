@@ -6,9 +6,7 @@
  */
 
 #include "alloc.h"
-#include "map.h"
 #include "ravl_interval.h"
-#include "pmem2_utils.h"
 #include "sys_util.h"
 #include "os_thread.h"
 #include "ravl.h"
@@ -66,10 +64,9 @@ ravl_interval_delete(struct ravl_interval *ri)
 struct ravl_interval *
 ravl_interval_new(ravl_interval_min *get_min, ravl_interval_max *get_max)
 {
-	int ret;
-	struct ravl_interval *interval = pmem2_malloc(sizeof(*interval), &ret);
-	if (ret)
-		goto ret_null;
+	struct ravl_interval *interval = Malloc(sizeof(*interval));
+	if (!interval)
+		return NULL;
 
 	interval->tree = ravl_new_sized(ravl_interval_compare,
 			sizeof(struct ravl_interval_node));
@@ -83,7 +80,6 @@ ravl_interval_new(ravl_interval_min *get_min, ravl_interval_max *get_max)
 
 free_alloc:
 	Free(interval);
-ret_null:
 	return NULL;
 }
 
@@ -98,10 +94,12 @@ ravl_interval_insert(struct ravl_interval *ri, void *addr)
 	rin.get_min = ri->get_min;
 	rin.get_max = ri->get_max;
 
-	if (ravl_emplace_copy(ri->tree, &rin))
-		return PMEM2_E_ERRNO;
+	int ret = ravl_emplace_copy(ri->tree, &rin);
 
-	return 0;
+	if (ret && errno)
+		return -errno;
+
+	return ret;
 }
 
 /*
@@ -113,7 +111,7 @@ ravl_interval_remove(struct ravl_interval *ri, struct ravl_interval_node *rin)
 	struct ravl_node *node = ravl_find(ri->tree, rin,
 			RAVL_PREDICATE_EQUAL);
 	if (!node)
-		return PMEM2_E_MAPPING_NOT_FOUND;
+		return -ENOENT;
 
 	ravl_remove(ri->tree, node);
 

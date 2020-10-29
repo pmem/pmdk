@@ -37,5 +37,7 @@ SOURCE +=\
 	$(CORE)/os_posix.c\
 	$(CORE)/os_thread_posix.c\
 	$(CORE)/out.c\
+	$(CORE)/ravl.c\
+	$(CORE)/ravl_interval.c\
 	$(CORE)/util.c\
 	$(CORE)/util_posix.c

@@ -61,7 +61,7 @@
     <Link />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\ravl.c" />
+    <ClCompile Include="..\..\core\ravl.c" />
     <ClCompile Include="util_ravl.c" />
   </ItemGroup>
   <ItemGroup>

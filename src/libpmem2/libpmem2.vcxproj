@@ -15,7 +15,8 @@
     <ClCompile Include="..\core\os_thread_windows.c" />
     <ClCompile Include="..\core\os_windows.c" />
     <ClCompile Include="..\core\out.c" />
-    <ClCompile Include="..\common\ravl.c" />
+    <ClCompile Include="..\core\ravl.c" />
+    <ClCompile Include="..\core\ravl_interval.c" />
     <ClCompile Include="..\core\util.c" />
     <ClCompile Include="..\core\util_windows.c" />
     <ClCompile Include="deep_flush.c" />
@@ -33,7 +34,6 @@
     <ClCompile Include="persist_windows.c" />
     <ClCompile Include="pmem2_utils.c" />
     <ClCompile Include="pmem2_utils_other.c" />
-    <ClCompile Include="ravl_interval.c" />
     <ClCompile Include="source.c" />
     <ClCompile Include="source_windows.c" />
     <ClCompile Include="usc_windows.c" />

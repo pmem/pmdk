@@ -11,7 +11,6 @@ LIBRARY_NAME = pmem2
 LIBRARY_SO_VERSION = 1
 LIBRARY_VERSION = 0.0
 SOURCE =\
-	$(COMMON)/ravl.c\
 	libpmem2.c\
 	badblocks.c\
 	badblocks_$(OS_DIMM).c\
@@ -28,8 +27,7 @@ SOURCE =\
 	source.c\
 	source_posix.c\
 	vm_reservation.c\
-	vm_reservation_posix.c\
-	ravl_interval.c
+	vm_reservation_posix.c
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 SOURCE +=\

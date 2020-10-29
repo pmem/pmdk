@@ -20,7 +20,7 @@
     <ClCompile Include="..\..\libpmemobj\heap.c" />
     <ClCompile Include="..\..\libpmemobj\memblock.c" />
     <ClCompile Include="..\..\libpmemobj\memops.c" />
-    <ClCompile Include="..\..\common\ravl.c" />
+    <ClCompile Include="..\..\core\ravl.c" />
     <ClCompile Include="..\..\libpmemobj\recycler.c" />
     <ClCompile Include="..\..\libpmemobj\ulog.c" />
     <ClCompile Include="..\..\libpmemobj\stats.c" />

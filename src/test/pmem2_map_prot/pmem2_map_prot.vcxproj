@@ -77,7 +77,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\common\ravl.c" />
+    <ClCompile Include="..\..\core\ravl.c" />
     <ClCompile Include="..\..\libpmem2\config.c" />
     <ClCompile Include="..\..\libpmem2\deep_flush_windows.c" />
     <ClCompile Include="..\..\libpmem2\errormsg.c" />
@@ -88,7 +88,7 @@
     <ClCompile Include="..\..\libpmem2\persist.c" />
     <ClCompile Include="..\..\libpmem2\persist_windows.c" />
     <ClCompile Include="..\..\libpmem2\pmem2_utils.c" />
-    <ClCompile Include="..\..\libpmem2\ravl_interval.c" />
+    <ClCompile Include="..\..\core\ravl_interval.c" />
     <ClCompile Include="..\..\libpmem2\vm_reservation.c" />
     <ClCompile Include="..\..\libpmem2\vm_reservation_windows.c" />
     <ClCompile Include="..\..\libpmem2\x86_64\cpu.c" />
@@ -104,7 +104,7 @@
     <ClInclude Include="..\..\libpmem2\map.h" />
     <ClInclude Include="..\..\libpmem2\pmem2.h" />
     <ClInclude Include="..\..\libpmem2\pmem2_utils.h" />
-    <ClInclude Include="..\..\libpmem2\ravl_interval.h" />
+    <ClInclude Include="..\..\core\ravl_interval.h" />
     <ClInclude Include="..\unittest\ut_pmem2.h" />
   </ItemGroup>
   <ItemGroup>

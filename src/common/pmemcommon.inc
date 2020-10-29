@@ -19,7 +19,6 @@ SOURCE +=\
 	$(COMMON)/os_deep_linux.c\
 	$(COMMON)/pool_hdr.c\
 	$(COMMON)/rand.c\
-	$(COMMON)/ravl.c\
 	$(COMMON)/set.c\
 	$(COMMON)/shutdown_state.c\
 	$(COMMON)/uuid.c\
