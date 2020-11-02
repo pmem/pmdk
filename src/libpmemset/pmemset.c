@@ -14,20 +14,20 @@
 #include "alloc.h"
 
 /*
- * mapping_min
+ * pmemset_mapping_min
  */
 static size_t
-mapping_min(void *addr)
+pmemset_mapping_min(void *addr)
 {
 	struct pmemset_part_map *pmap = (struct pmemset_part_map *)addr;
 	return (size_t)pmap->addr;
 }
 
 /*
- * mapping_max
+ * pmemset_mapping_max
  */
 static size_t
-mapping_max(void *addr)
+pmemset_mapping_max(void *addr)
 {
 	struct pmemset_part_map *pmap = (struct pmemset_part_map *)addr;
 	return (size_t)pmap->addr + pmap->length;
@@ -36,7 +36,7 @@ mapping_max(void *addr)
 /*
  * pmemset_new_init -- initialize set structure.
  */
-int
+static int
 pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 {
 	ASSERTne(config, NULL);
@@ -45,7 +45,8 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 	memcpy(&set->config, config, sizeof(*config));
 
 	/* intialize RAVL */
-	set->part_map_tree = ravl_interval_new(mapping_min, mapping_max);
+	set->part_map_tree = ravl_interval_new(pmemset_mapping_min,
+						pmemset_mapping_max);
 
 	if (set->part_map_tree == NULL) {
 		ERR("ravl tree initialization failed");

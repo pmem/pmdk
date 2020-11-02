@@ -32,9 +32,6 @@ struct pmemset_header {
 	char stub;
 };
 
-int
-pmemset_new_init(struct pmemset *set, struct pmemset_config *config);
-
 #ifdef __cplusplus
 }
 #endif
