@@ -25,7 +25,7 @@ date: pmem2 API version 1.0
 
 # NAME #
 
-**libpmem2** - persistent memory support library (EXPERIMENTAL)
+**libpmem2** - persistent memory support library
 
 # SYNOPSIS #
 
