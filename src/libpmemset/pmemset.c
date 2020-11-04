@@ -19,7 +19,8 @@
  * pmemset
  */
 struct pmemset {
-	struct pmemset_config *config;
+	struct pmemset_config *set_config;
+	struct pmem2_config *pmem2_config;
 	struct ravl_interval *part_map_tree;
 };
 
@@ -36,8 +37,11 @@ struct pmemset_header {
 static size_t
 pmemset_mapping_min(void *addr)
 {
+	if (addr == NULL)
+		return 0;
+
 	struct pmemset_part_map *pmap = (struct pmemset_part_map *)addr;
-	return (size_t)pmap->addr;
+	return (size_t)pmem2_map_get_address(pmap->pmem2_map);
 }
 
 /*
@@ -46,8 +50,13 @@ pmemset_mapping_min(void *addr)
 static size_t
 pmemset_mapping_max(void *addr)
 {
+	if (addr == NULL)
+		return SIZE_MAX;
+
 	struct pmemset_part_map *pmap = (struct pmemset_part_map *)addr;
-	return (size_t)pmap->addr + pmap->length;
+	void *map_addr = pmem2_map_get_address(pmap->pmem2_map);
+	size_t map_size = pmem2_map_get_size(pmap->pmem2_map);
+	return (size_t)map_addr + map_size;
 }
 
 /*
@@ -61,10 +70,16 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 	int ret;
 
 	/* duplicate config */
-	set->config = NULL;
-	ret = pmemset_config_duplicate(&set->config, config);
+	set->set_config = NULL;
+	ret = pmemset_config_duplicate(&set->set_config, config);
 	if (ret)
 		return ret;
+
+	ret = pmem2_config_new(&set->pmem2_config);
+	if (ret) {
+		ERR("cannot create pmem2_config %d", ret);
+		return PMEMSET_E_CANNOT_ALLOCATE_INTERNAL_STRUCTURE;
+	}
 
 	/* intialize RAVL */
 	set->part_map_tree = ravl_interval_new(pmemset_mapping_min,
@@ -123,17 +138,44 @@ pmemset_delete(struct pmemset **set)
 	if (*set == NULL)
 		return 0;
 
+	struct ravl_interval_node *node;
+
+	node = ravl_interval_find((*set)->part_map_tree, NULL);
+	if (node) {
+		struct pmemset_part_map *map = ravl_interval_data(node);
+		ravl_interval_remove((*set)->part_map_tree, node);
+		pmem2_map_delete(&map->pmem2_map);
+		Free(map);
+	}
+
 	/* delete RAVL tree with part_map nodes */
 	ravl_interval_delete((*set)->part_map_tree);
 
 	/* delete cfg */
-	pmemset_config_delete(&(*set)->config);
+	pmemset_config_delete(&(*set)->set_config);
 
 	Free(*set);
 
 	*set = NULL;
 
 	return 0;
+}
+
+/*
+ * pmemset_insert_part_map -- return part map tree from pmemset
+ */
+int
+pmemset_insert_part_map(struct pmemset *set, struct pmemset_part_map *map)
+{
+	int ret = ravl_interval_insert(set->part_map_tree, map);
+	if (ret == 0) {
+		return 0;
+	} else if (ret == -EEXIST) {
+		ERR("part already exists");
+		return PMEMSET_E_PART_EXISTS;
+	} else {
+		return PMEMSET_E_ERRNO;
+	}
 }
 
 #ifndef _WIN32
@@ -259,4 +301,24 @@ int
 pmemset_deep_flush(struct pmemset *set, void *ptr, size_t size)
 {
 	return PMEMSET_E_NOSUPP;
+}
+
+/*
+ * pmemset_get_pmem2_config -- get pmem2 config
+ */
+struct pmem2_config *
+pmemset_get_pmem2_config(struct pmemset *set)
+{
+	LOG(3, "%p", set);
+	return set->pmem2_config;
+}
+
+/*
+ * pmemset_get_pmemset_config -- get pmemset config
+ */
+struct pmemset_config *
+pmemset_get_pmemset_config(struct pmemset *set)
+{
+	LOG(3, "%p", set);
+	return set->set_config;
 }

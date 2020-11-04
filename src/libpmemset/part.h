@@ -8,9 +8,7 @@
 #define PMEMSET_PART_H
 
 struct pmemset_part_map {
-	void *addr;
-	size_t length;
-	char stub;
+	struct pmem2_map *pmem2_map;
 };
 
 /*

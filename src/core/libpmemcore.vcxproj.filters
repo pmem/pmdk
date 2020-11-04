@@ -32,6 +32,12 @@
     <ClCompile Include="util_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ravl_interval.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ravl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="alloc.h">

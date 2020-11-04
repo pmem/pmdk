@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "libpmemset.h"
+#include "libpmem2.h"
 
 #include "alloc.h"
 #include "file.h"
@@ -347,13 +348,14 @@ static const struct {
 		.create_file = pmemset_source_create_file_from_file,
 		.destroy = pmemset_source_file_destroy,
 		.extract = pmemset_source_file_extract,
-		.validate = pmemset_source_file_validate
+		.validate = pmemset_source_file_validate,
 	},
+
 	[PMEMSET_SOURCE_PMEM2] = {
 		.create_file = pmemset_source_create_file_from_pmem2,
 		.destroy = pmemset_source_empty_destroy,
 		.extract = pmemset_source_pmem2_extract,
-		.validate = pmemset_source_pmem2_validate
+		.validate = pmemset_source_pmem2_validate,
 	}
 };
 
@@ -370,7 +372,6 @@ pmemset_source_delete(struct pmemset_source **src)
 
 	Free(*src);
 	*src = NULL;
-
 	return 0;
 }
 
@@ -409,7 +410,11 @@ int
 pmemset_source_validate(const struct pmemset_source *src)
 {
 	enum pmemset_source_type type = src->type;
-	ASSERTne(type, PMEMSET_SOURCE_UNSPECIFIED);
+	if (type == PMEMSET_SOURCE_UNSPECIFIED ||
+		type >= MAX_PMEMSET_SOURCE_TYPE) {
+		ERR("invalid source type");
+		return PMEMSET_E_INVALID_SOURCE_TYPE;
+	}
 
 	return pmemset_source_ops[type].validate(src);
 }
