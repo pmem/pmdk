@@ -8,5 +8,6 @@ TARGET = pmemset_include
 OBJS = pmemset_include.o
 
 LIBPMEMSET=y
+LIBPMEM2=y
 
 include ../Makefile.inc

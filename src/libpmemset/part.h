@@ -7,10 +7,10 @@
 #ifndef PMEMSET_PART_H
 #define PMEMSET_PART_H
 
+struct pmemset_part;
 struct pmemset_part_map {
-	void *addr;
-	size_t length;
-	char stub;
+	struct pmemset_part_descriptor desc;
+	struct pmem2_map *pmem2_map;
 };
 
 /*
@@ -22,6 +22,11 @@ struct pmemset_part_shutdown_state_data {
 	const char data[1024];
 };
 
-void pmemset_part_file_close(const struct pmemset_part *part);
+struct pmemset *pmemset_part_get_pmemset(struct pmemset_part *part);
+
+int pmemset_part_create_part_mapping(struct pmemset_part_map **part_map,
+		struct pmemset_part *part, enum pmem2_granularity gran);
+
+void pmemset_part_delete_part_mapping(struct pmemset_part_map **part_map);
 
 #endif /* PMEMSET_PART_H */
