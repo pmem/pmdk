@@ -8,10 +8,12 @@
 #include <fcntl.h>
 
 #include "libpmemset.h"
+#include "libpmem2.h"
 #include "os.h"
 #include "part.h"
 #include "pmemset.h"
 #include "pmemset_utils.h"
+#include "ravl_interval.h"
 #include "source.h"
 
 struct pmemset_part {
@@ -113,7 +115,84 @@ int
 pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 		struct pmemset_part_descriptor *desc)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(3, "part %p extra %p desc %p", part, extra, desc);
+	PMEMSET_ERR_CLR();
+
+	struct pmem2_map *map;
+	struct pmem2_config *pmem2_cfg;
+
+	struct pmemset_part *p = *part;
+	struct pmemset_source *s = p->src;
+	struct pmemset *set = (*part)->set;
+	int ret = 0;
+
+	ret = pmem2_config_new(&pmem2_cfg);
+	if (ret) {
+		ERR("cannot create pmem2_config %d", ret);
+		return PMEMSET_E_CANNOT_ALLOCATE_INTERNAL_STRUCTURE;
+	}
+
+	ret = pmem2_config_set_length(pmem2_cfg, p->length);
+	ASSERTeq(ret, 0);
+
+	ret = pmem2_config_set_offset(pmem2_cfg, p->offset);
+	if (ret) {
+		ERR("invalid value of pmem2_config offset %d", ret);
+		ret = PMEMSET_E_INVALID_OFFSET_VALUE;
+		goto err;
+	}
+
+	/* XXX: use pmemset_require_granularity function here */
+	ret = pmem2_config_set_required_store_granularity(pmem2_cfg,
+			PMEM2_GRANULARITY_PAGE);
+	if (ret) {
+		ERR("granularity value is not supported %d", ret);
+		ret = PMEMSET_E_GRANULARITY_NOT_SUPPORTED;
+		goto err;
+	}
+
+	enum pmemset_source_type type = pmemset_source_get_type(s);
+	switch (type) {
+		case PMEMSET_SOURCE_PMEM2:
+			ret = pmemset_source_get_pmem2_map_from_src(
+					s, pmem2_cfg, &map);
+			if (ret)
+				goto err;
+			break;
+		case PMEMSET_SOURCE_PATH:
+			ret = pmemset_source_get_pmem2_map_from_file(
+				s, pmem2_cfg, &map);
+			if (ret)
+				goto err;
+			break;
+		default:
+			ERR("unrecognized pmemset source type");
+			return PMEMSET_E_INVALID_SOURCE_TYPE;
+	}
+
+	struct pmemset_part_map *part_map;
+	part_map = pmemset_malloc(sizeof(*part_map), &ret);
+	if (ret)
+		goto err;
+
+	part_map->pmem2_map = map;
+
+	/*
+	 * XXX: add multiple part support
+	 * Look at pmemset_part TEST8 - double pmemset_part_map,
+	 * at this moment we have always different map from pmem2
+	 */
+	struct ravl_interval *pmt = pmemset_get_part_map_tree(set);
+	ret = ravl_interval_insert(pmt, part_map);
+	if (ret  == -EEXIST) {
+		ERR("part already exists");
+		ret = PMEMSET_E_PART_EXISTS;
+	}
+
+err:
+	pmem2_config_delete(&pmem2_cfg);
+	return ret;
+
 }
 
 /*

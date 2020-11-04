@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "libpmemset.h"
+#include "libpmem2.h"
 
 #include "os.h"
 #include "pmemset_utils.h"
@@ -197,6 +198,91 @@ pmemset_source_get_pmem2_source(const struct pmemset_source *src,
 	*pmem2_src = src->value.pmem2_src;
 
 	return 0;
+}
+
+/*
+ * pmemset_source_get_pmem2_map_from_file -- get pmem2_map from
+ * provided source (file type)
+ */
+int
+pmemset_source_get_pmem2_map_from_file(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map)
+{
+	LOG(3, "src type %d", src->type);
+
+	if (src->type != PMEMSET_SOURCE_PATH) {
+		ERR("invalid pmemset source type");
+		return PMEMSET_E_INVALID_SOURCE_TYPE;
+	}
+
+	char *source_path;
+	int ret = pmemset_source_get_filepath(src, &source_path);
+	if (ret)
+		return ret;
+
+	int fd;
+	if ((fd = os_open(source_path, O_RDWR)) < 0) {
+		ERR("cannot open file from the source %s",
+			source_path);
+		return PMEMSET_E_ERRNO;
+	}
+	struct pmem2_source *pmem2_src;
+	ret = pmem2_source_from_fd(&pmem2_src, fd);
+	if (ret) {
+		ERR("cannot get source from pmem2 using fd %d", fd);
+		ret = PMEMSET_E_INVALID_PMEM2_SOURCE;
+		goto end;
+	}
+
+	struct pmem2_map *pmem2_map;
+	ret = pmem2_map_new(&pmem2_map, cfg, pmem2_src);
+	if (ret) {
+		ERR("cannot create pmem2 mapping %d", ret);
+		ret = PMEMSET_E_INVALID_PMEM2_MAP;
+		goto map_err;
+	}
+
+	*map = pmem2_map;
+
+map_err:
+	pmem2_source_delete(&pmem2_src);
+end:
+	os_close(fd);
+	return ret;
+}
+
+/*
+ * pmemset_source_get_pmem2_map_from_src -- get pmem2_map from
+ * provided source (pmem2)
+ */
+int
+pmemset_source_get_pmem2_map_from_src(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map)
+{
+	LOG(3, "src type %d", src->type);
+
+	if (src->type != PMEMSET_SOURCE_PMEM2) {
+		ERR("invalid pmemset source type");
+		return PMEMSET_E_INVALID_SOURCE_TYPE;
+	}
+
+	struct pmem2_source *pmem2_src;
+	int ret = pmemset_source_get_pmem2_source(src, &pmem2_src);
+	if (ret)
+		return ret;
+
+	struct pmem2_map *pmem2_map;
+	ret = pmem2_map_new(&pmem2_map, cfg, pmem2_src);
+	if (ret) {
+		ERR("cannot create pmem2 mapping %d", ret);
+		ret = PMEMSET_E_INVALID_PMEM2_MAP;
+		goto end;
+	}
+
+	*map = pmem2_map;
+
+end:
+	return ret;
 }
 
 /*

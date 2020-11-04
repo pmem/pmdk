@@ -7,9 +7,9 @@
 #include "fault_injection.h"
 #include "libpmemset.h"
 #include "out.h"
-#include "source.h"
 #include "unittest.h"
 #include "ut_pmemset_utils.h"
+#include "source.h"
 
 /*
  * test_set_from_pmem2_valid - test valid pmemset_source allocation

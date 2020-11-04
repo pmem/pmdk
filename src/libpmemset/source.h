@@ -24,4 +24,10 @@ int pmemset_source_get_pmem2_source(const struct pmemset_source *src,
 enum pmemset_source_type pmemset_source_get_type(
 		const struct pmemset_source *src);
 
+int pmemset_source_get_pmem2_map_from_file(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map);
+
+int pmemset_source_get_pmem2_map_from_src(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map);
+
 #endif /* PMEMSET_SOURCE_H */
