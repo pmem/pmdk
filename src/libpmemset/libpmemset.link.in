@@ -26,6 +26,7 @@ LIBPMEMSET_1.0 {
 		pmemset_memmove;
 		pmemset_memset;
 		pmemset_new;
+		pmemset_part_delete;
 		pmemset_part_map;
 		pmemset_part_map_by_address;
 		pmemset_part_map_descriptor;

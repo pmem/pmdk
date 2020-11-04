@@ -21,7 +21,9 @@ date: pmemset API version 1.0
 
 # NAME #
 
-**pmemset_part_new**() - creates an instance of part structure
+**pmemset_part_new**(), **pmemset_part_delete**() - create and delete structure
+for a part object
+
 # SYNOPSIS #
 
 ```c
@@ -32,6 +34,7 @@ struct pmemset_part;
 struct pmemset_source;
 int pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
 		struct pmemset_source *src, size_t offset, size_t length);
+int pmemset_part_delete(struct pmemset_part **part);
 ```
 
 # DESCRIPTION #
@@ -49,10 +52,15 @@ via the *part* pointer. If the mapping fails the variable pointed by *part*
 will contain a NULL value and appropriate error value will be returned.
 For a list of possible return values please see [RETURN VALUE](#return-value).
 
+The **pmemset_part_delete**() function frees *\*part* returned by **pmemset_part_new**()
+and sets *\*part* to NULL.
+
 # RETURN VALUE #
 
 The **pmemset_part_new**() function returns 0 on success
 or a negative error code on failure.
+
+The **pmemset_part_delete**() function always returns 0.
 
 # ERRORS #
 
