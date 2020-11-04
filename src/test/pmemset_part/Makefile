@@ -16,6 +16,6 @@ OBJS += pmemset_part.o\
 	ut_pmemset_utils.o
 
 LIBPMEMSET=internal-debug
-LIBPMEMCOMMON=y
+LIBPMEM2=internal-debug
 
 include ../Makefile.inc

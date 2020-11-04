@@ -71,6 +71,9 @@
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
       <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\libpmem2\libpmem2.vcxproj">
+      <Project>{f596c36c-5c96-4f08-b420-8908af500954}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\libpmemset\libpmemset.vcxproj">
       <Project>{fbaefc34-d221-4203-8bf6-162de1a5be1c}</Project>
     </ProjectReference>

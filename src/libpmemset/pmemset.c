@@ -7,6 +7,7 @@
 
 #include "pmemset.h"
 #include "libpmemset.h"
+#include "libpmem2.h"
 #include "part.h"
 #include "pmemset_utils.h"
 #include "ravl_interval.h"
@@ -36,7 +37,7 @@ static size_t
 pmemset_mapping_min(void *addr)
 {
 	struct pmemset_part_map *pmap = (struct pmemset_part_map *)addr;
-	return (size_t)pmap->addr;
+	return (size_t)pmem2_map_get_address(pmap->pmem2_map);
 }
 
 /*
@@ -46,7 +47,9 @@ static size_t
 pmemset_mapping_max(void *addr)
 {
 	struct pmemset_part_map *pmap = (struct pmemset_part_map *)addr;
-	return (size_t)pmap->addr + pmap->length;
+	void *map_addr = pmem2_map_get_address(pmap->pmem2_map);
+	size_t map_size = pmem2_map_get_size(pmap->pmem2_map);
+	return (size_t)map_addr + map_size;
 }
 
 /*
@@ -126,6 +129,15 @@ pmemset_delete(struct pmemset **set)
 	*set = NULL;
 
 	return 0;
+}
+
+/*
+ * pmemset_get_part_map_tree -- return part map tree from pmemset
+ */
+struct ravl_interval *
+pmemset_get_part_map_tree(struct pmemset *set)
+{
+	return set->part_map_tree;
 }
 
 #ifndef _WIN32

@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "libpmemset.h"
+#include "libpmem2.h"
 
 #include "alloc.h"
 #include "os.h"
@@ -386,4 +387,105 @@ pmemset_source_validate(const struct pmemset_source *src)
 	ASSERTne(type, PMEMSET_SOURCE_UNSPECIFIED);
 
 	return pmemset_source_ops[type].validate(src);
+}
+
+/*
+ * pmemset_source_get_pmem2_map_from_file -- get pmem2_map from
+ * provided source (file type)
+ */
+static int
+pmemset_source_get_pmem2_map_from_file(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map)
+{
+	LOG(3, "src type %d", src->type);
+
+	if (src->type != PMEMSET_SOURCE_FILE) {
+		ERR("invalid pmemset source type");
+		return PMEMSET_E_INVALID_SOURCE_TYPE;
+	}
+
+	char *source_path = src->file.path;
+
+	int fd;
+	if ((fd = os_open(source_path, O_RDWR)) < 0) {
+		ERR("cannot open file from the source %s",
+			source_path);
+		return PMEMSET_E_ERRNO;
+	}
+	struct pmem2_source *pmem2_src;
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	if (ret) {
+		ERR("cannot get source from pmem2 using fd %d", fd);
+		ret = PMEMSET_E_INVALID_PMEM2_SOURCE;
+		goto end;
+	}
+
+	struct pmem2_map *pmem2_map;
+	ret = pmem2_map_new(&pmem2_map, cfg, pmem2_src);
+	if (ret) {
+		ERR("cannot create pmem2 mapping %d", ret);
+		ret = PMEMSET_E_INVALID_PMEM2_MAP;
+		goto map_err;
+	}
+
+	*map = pmem2_map;
+
+map_err:
+	pmem2_source_delete(&pmem2_src);
+end:
+	os_close(fd);
+	return ret;
+}
+
+/*
+ * pmemset_source_get_pmem2_map_from_src -- get pmem2_map from
+ * provided source (pmem2)
+ */
+static int
+pmemset_source_get_pmem2_map_from_src(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map)
+{
+	LOG(3, "src type %d", src->type);
+
+	if (src->type != PMEMSET_SOURCE_PMEM2) {
+		ERR("invalid pmemset source type");
+		return PMEMSET_E_INVALID_SOURCE_TYPE;
+	}
+
+	struct pmem2_source *pmem2_src = src->pmem2.src;
+
+	struct pmem2_map *pmem2_map;
+	int ret = pmem2_map_new(&pmem2_map, cfg, pmem2_src);
+	if (ret) {
+		ERR("cannot create pmem2 mapping %d", ret);
+		ret = PMEMSET_E_INVALID_PMEM2_MAP;
+		return ret;
+	}
+
+	*map = pmem2_map;
+
+	return 0;
+}
+
+static int (*pmemset_source_get_pmem2_map_func[MAX_PMEMSET_SOURCE_TYPE])
+	(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map) =
+		{ NULL, pmemset_source_get_pmem2_map_from_src,
+		pmemset_source_get_pmem2_map_from_file };
+
+/*
+ * pmemset_source_get_pmem2_map - get pmem2_map from provided source
+ */
+int
+pmemset_source_get_pmem2_map(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map)
+{
+	enum pmemset_source_type type = src->type;
+	if (type == PMEMSET_SOURCE_UNSPECIFIED ||
+	    type >= MAX_PMEMSET_SOURCE_TYPE) {
+		ERR("invalid source type");
+		return PMEMSET_E_INVALID_SOURCE_TYPE;
+	}
+
+	return pmemset_source_get_pmem2_map_func[type](src, cfg, map);
 }

@@ -22,4 +22,7 @@ int pmemset_source_extract(struct pmemset_source *src, int *fd);
 #endif
 int pmemset_source_validate(const struct pmemset_source *src);
 
+int pmemset_source_get_pmem2_map(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map);
+
 #endif /* PMEMSET_SOURCE_H */
