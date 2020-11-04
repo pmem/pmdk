@@ -16,6 +16,8 @@
     <ClCompile Include="os_thread_windows.c" />
     <ClCompile Include="os_windows.c" />
     <ClCompile Include="out.c" />
+    <ClCompile Include="ravl.c" />
+    <ClCompile Include="ravl_interval.c" />
     <ClCompile Include="util.c" />
     <ClCompile Include="util_windows.c" />
   </ItemGroup>

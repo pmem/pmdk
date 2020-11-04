@@ -38,13 +38,17 @@
 extern "C" {
 #endif
 
-#define PMEMSET_E_UNKNOWN			(-200000)
-#define PMEMSET_E_NOSUPP			(-200001)
-#define PMEMSET_E_INVALID_PMEM2_SOURCE		(-200002)
-#define PMEMSET_E_INVALID_FILE_PATH		(-200003)
-#define PMEMSET_E_INVALID_SOURCE_TYPE		(-200004)
-#define PMEMSET_E_GRANULARITY_NOT_SET		(-200005)
-#define PMEMSET_E_GRANULARITY_NOT_SUPPORTED	(-200006)
+#define PMEMSET_E_UNKNOWN				(-200000)
+#define PMEMSET_E_NOSUPP				(-200001)
+#define PMEMSET_E_INVALID_PMEM2_SOURCE			(-200002)
+#define PMEMSET_E_INVALID_FILE_PATH			(-200003)
+#define PMEMSET_E_INVALID_SOURCE_TYPE			(-200004)
+#define PMEMSET_E_CANNOT_ALLOCATE_INTERNAL_STRUCTURE	(-200005)
+#define PMEMSET_E_INVALID_OFFSET_VALUE			(-200006)
+#define PMEMSET_E_GRANULARITY_NOT_SUPPORTED		(-200007)
+#define PMEMSET_E_INVALID_PMEM2_MAP			(-200008)
+#define PMEMSET_E_PART_EXISTS				(-200009)
+#define PMEMSET_E_GRANULARITY_NOT_SET			(-200010)
 
 /* pmemset setup */
 
@@ -226,7 +230,7 @@ enum pmemset_part_state {
 
 int pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
 		struct pmemset_source *src, size_t offset, size_t length);
-
+int pmemset_part_delete(struct pmemset_part **part);
 int pmemset_part_pread_mcsafe(struct pmemset_part_descriptor *part,
 		void *dst, size_t size, size_t offset);
 

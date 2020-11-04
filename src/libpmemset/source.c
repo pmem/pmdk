@@ -11,6 +11,7 @@
 #include <string.h>
 
 #include "libpmemset.h"
+#include "libpmem2.h"
 
 #include "alloc.h"
 #include "file.h"
@@ -347,13 +348,14 @@ static const struct {
 		.create_file = pmemset_source_create_file_from_file,
 		.destroy = pmemset_source_file_destroy,
 		.extract = pmemset_source_file_extract,
-		.validate = pmemset_source_file_validate
+		.validate = pmemset_source_file_validate,
 	},
+
 	[PMEMSET_SOURCE_PMEM2] = {
 		.create_file = pmemset_source_create_file_from_pmem2,
 		.destroy = pmemset_source_empty_destroy,
 		.extract = pmemset_source_pmem2_extract,
-		.validate = pmemset_source_pmem2_validate
+		.validate = pmemset_source_pmem2_validate,
 	}
 };
 
@@ -370,7 +372,6 @@ pmemset_source_delete(struct pmemset_source **src)
 
 	Free(*src);
 	*src = NULL;
-
 	return 0;
 }
 

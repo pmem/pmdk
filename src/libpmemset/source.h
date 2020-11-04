@@ -22,7 +22,20 @@ int pmemset_source_extract(struct pmemset_source *src, HANDLE *handle);
 #else
 int pmemset_source_extract(struct pmemset_source *src, int *fd);
 #endif
+
 int pmemset_source_validate(const struct pmemset_source *src);
+
+int pmemset_source_get_pmem2_source(struct pmemset_source *src,
+	struct pmem2_source **pmem2_src);
+
+int pmemset_source_destroy_pmem2_source(struct pmemset_source *src,
+	struct pmem2_source **pmem2_src);
+
+int pmemset_source_get_pmem2_map_from_file(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map);
+
+int pmemset_source_get_pmem2_map_from_src(const struct pmemset_source *src,
+		struct pmem2_config *cfg, struct pmem2_map **map);
 
 int pmemset_source_create_pmemset_file(struct pmemset_source *src,
 		struct pmemset_file **file, struct pmemset_config *cfg);
