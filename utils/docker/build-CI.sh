@@ -69,8 +69,9 @@ fi
 # Check if we are running on a CI (Travis or GitHub Actions)
 [ -n "$GITHUB_ACTIONS" -o -n "$TRAVIS" ] && CI_RUN="YES" || CI_RUN="NO"
 
-# We have a blacklist only for ppc64le arch
+# We have a blacklist only for ppc64le and aarch64 arch
 if [[ "$CI_CPU_ARCH" == ppc64le ]] ; then BLACKLIST_FILE=../../utils/docker/ppc64le.blacklist; fi
+if [[ "$CI_CPU_ARCH" == arm64 ]] ; then BLACKLIST_FILE=../../utils/docker/arm64.blacklist; fi
 
 # docker on travis + ppc64le runs inside an LXD container and for security
 # limits what can be done inside it, and as such, `docker run` fails with
