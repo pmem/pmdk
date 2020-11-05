@@ -11,6 +11,7 @@
 
 #include "libpmemset.h"
 
+#include "alloc.h"
 #include "os.h"
 #include "pmemset_utils.h"
 #include "source.h"
@@ -78,8 +79,11 @@ pmemset_source_from_file(struct pmemset_source **src, const char *file)
 	srcp->type = PMEMSET_SOURCE_FILE;
 	srcp->value.filepath = strdup(file);
 
-	if (strcmp(srcp->value.filepath, file) != 0)
+	if (srcp->value.filepath == NULL) {
+		ERR("!strdup");
+		Free(srcp);
 		return PMEMSET_E_ERRNO;
+	}
 
 	*src = srcp;
 
@@ -116,11 +120,13 @@ pmemset_source_from_fileU(struct pmemset_source **src, const char *file)
 		return ret;
 
 	srcp->type = PMEMSET_SOURCE_FILE;
-	srcp->value.filepath = strdup(file);
+	srcp->value.filepath = Strdup(file);
 
-	if (strcmp(srcp->value.filepath, file) != 0)
+	if (srcp->value.filepath == NULL) {
+		ERR("!strdup");
+		Free(srcp);
 		return PMEMSET_E_ERRNO;
-
+	}
 	*src = srcp;
 
 	return 0;
@@ -158,12 +164,18 @@ pmemset_source_from_temporaryW(struct pmemset_source **src, const wchar_t *dir)
 #endif
 
 /*
- * pmemset_source_delete -- not supported
+ * pmemset_source_delete -- delete pmemset_source structure
  */
 int
 pmemset_source_delete(struct pmemset_source **src)
 {
-	return PMEMSET_E_NOSUPP;
+	if ((*src)->type == PMEMSET_SOURCE_FILE)
+		Free((*src)->value.filepath);
+
+	Free(*src);
+	*src = NULL;
+
+	return 0;
 }
 
 /*
@@ -173,7 +185,6 @@ int
 pmemset_source_get_filepath(const struct pmemset_source *src, char **filepath)
 {
 	LOG(3, "src type %d", src->type);
-	PMEMSET_ERR_CLR();
 
 	if (src->type != PMEMSET_SOURCE_FILE) {
 		ERR("filepath is not set");
@@ -193,7 +204,6 @@ pmemset_source_get_pmem2_source(const struct pmemset_source *src,
 		struct pmem2_source **pmem2_src)
 {
 	LOG(3, "src type %d", src->type);
-	PMEMSET_ERR_CLR();
 
 	if (src->type != PMEMSET_SOURCE_PMEM2) {
 		ERR("pmem2_source is not set");
