@@ -9,6 +9,7 @@
 #include "unittest.h"
 #include "ut_pmemset_utils.h"
 #include "out.h"
+#include "config.h"
 
 /*
  * test_cfg_create_and_delete_valid - test pmemset_config allocation
@@ -67,12 +68,41 @@ test_delete_null_config(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_duplicate_cfg_enomem - test pmemset_duplicate with error injection
+ */
+static int
+test_duplicate_cfg_enomem(const struct test_case *tc, int argc, char *argv[])
+{
+	struct pmemset_config *src_cfg;
+	struct pmemset_config *dst_cfg = NULL;
+
+	if (!core_fault_injection_enabled())
+		return 0;
+
+	int ret = pmemset_config_new(&src_cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(src_cfg, NULL);
+
+	core_inject_fault_at(PMEM_MALLOC, 1, "pmemset_malloc");
+
+	ret = pmemset_config_duplicate(&dst_cfg, src_cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, -ENOMEM);
+
+	ret = pmemset_config_delete(&src_cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(src_cfg, NULL);
+
+	return 0;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
 	TEST_CASE(test_cfg_create_and_delete_valid),
 	TEST_CASE(test_alloc_cfg_enomem),
 	TEST_CASE(test_delete_null_config),
+	TEST_CASE(test_duplicate_cfg_enomem),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

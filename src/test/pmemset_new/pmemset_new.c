@@ -19,16 +19,19 @@ static int
 test_new_create_and_delete_valid(const struct test_case *tc, int argc,
 		char *argv[])
 {
-	struct pmemset_config cfg;
+	struct pmemset_config *cfg;
 	struct pmemset *set;
+	pmemset_config_new(&cfg);
 
-	int ret = pmemset_new(&set, &cfg);
+	int ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(set, NULL);
 
 	ret = pmemset_delete(&set);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTeq(set, NULL);
+
+	pmemset_config_delete(&cfg);
 
 	return 0;
 }
@@ -40,18 +43,21 @@ test_new_create_and_delete_valid(const struct test_case *tc, int argc,
 static int
 test_alloc_new_enomem(const struct test_case *tc, int argc, char *argv[])
 {
-	struct pmemset_config cfg;
+	struct pmemset_config *cfg;
 	struct pmemset *set;
+
+	pmemset_config_new(&cfg);
 
 	if (!core_fault_injection_enabled())
 		return 0;
 
 	core_inject_fault_at(PMEM_MALLOC, 1, "pmemset_malloc");
 
-	int ret = pmemset_new(&set, &cfg);
+	int ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, -ENOMEM);
-
 	UT_ASSERTeq(set, NULL);
+
+	pmemset_config_delete(&cfg);
 
 	return 0;
 }
@@ -63,18 +69,21 @@ test_alloc_new_enomem(const struct test_case *tc, int argc, char *argv[])
 static int
 test_alloc_new_tree_enomem(const struct test_case *tc, int argc, char *argv[])
 {
-	struct pmemset_config cfg;
+	struct pmemset_config *cfg;
 	struct pmemset *set;
+
+	pmemset_config_new(&cfg);
 
 	if (!core_fault_injection_enabled())
 		return 0;
 
 	core_inject_fault_at(PMEM_MALLOC, 1, "ravl_interval_new");
 
-	int ret = pmemset_new(&set, &cfg);
+	int ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, -ENOMEM);
-
 	UT_ASSERTeq(set, NULL);
+
+	pmemset_config_delete(&cfg);
 
 	return 0;
 }

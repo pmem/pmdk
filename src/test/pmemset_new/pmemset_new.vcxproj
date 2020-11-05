@@ -81,6 +81,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\core\ravl.c" />
     <ClCompile Include="..\..\core\ravl_interval.c" />
+    <ClCompile Include="..\..\libpmemset\config.c" />
     <ClCompile Include="..\..\libpmemset\pmemset.c" />
     <ClCompile Include="..\..\libpmemset\errormsg.c" />
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />

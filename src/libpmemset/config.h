@@ -7,10 +7,8 @@
 #ifndef PMEMSET_CONFIG_H
 #define PMEMSET_CONFIG_H
 
-struct pmemset_config {
-	char stub;
-};
-
 void pmemset_config_init(struct pmemset_config *cfg);
+int pmemset_config_duplicate(struct pmemset_config **cfg_out,
+				struct pmemset_config *cfg_in);
 
 #endif /* PMEMSET_CONFIG_H */

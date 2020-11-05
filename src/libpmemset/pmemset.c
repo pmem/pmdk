@@ -12,6 +12,22 @@
 #include "ravl_interval.h"
 #include "ravl.h"
 #include "alloc.h"
+#include "config.h"
+
+/*
+ * pmemset
+ */
+struct pmemset {
+	struct pmemset_config *config;
+	struct ravl_interval *part_map_tree;
+};
+
+/*
+ * pmemset_header
+ */
+struct pmemset_header {
+	char stub;
+};
 
 /*
  * pmemset_mapping_min
@@ -41,8 +57,13 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 {
 	ASSERTne(config, NULL);
 
-	/* copy config */
-	memcpy(&set->config, config, sizeof(*config));
+	int ret;
+
+	/* duplicate config */
+	set->config = NULL;
+	ret = pmemset_config_duplicate(&set->config, config);
+	if (ret)
+		return ret;
 
 	/* intialize RAVL */
 	set->part_map_tree = ravl_interval_new(pmemset_mapping_min,
@@ -96,6 +117,9 @@ pmemset_delete(struct pmemset **set)
 
 	/* delete RAVL tree with part_map nodes */
 	ravl_interval_delete((*set)->part_map_tree);
+
+	/* delete cfg */
+	pmemset_config_delete(&(*set)->config);
 
 	Free(*set);
 
