@@ -7,10 +7,12 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <libpmem2.h>
 #include <string.h>
 
 #include "libpmemset.h"
 
+#include "alloc.h"
 #include "os.h"
 #include "pmemset_utils.h"
 #include "source.h"
@@ -18,9 +20,13 @@
 struct pmemset_source {
 	enum pmemset_source_type type;
 	union {
-		char *filepath;
-		struct pmem2_source *pmem2_src;
-	} value;
+		struct {
+			char *path;
+		} file;
+		struct {
+			struct pmem2_source *src;
+		} pmem2;
+	};
 };
 
 /*
@@ -47,7 +53,7 @@ pmemset_source_from_pmem2(struct pmemset_source **src,
 	ASSERTne(srcp, NULL);
 
 	srcp->type = PMEMSET_SOURCE_PMEM2;
-	srcp->value.pmem2_src = pmem2_src;
+	srcp->pmem2.src = pmem2_src;
 
 	*src = srcp;
 
@@ -65,6 +71,8 @@ pmemset_source_from_file(struct pmemset_source **src, const char *file)
 	LOG(3, "src %p file %s", src, file);
 	PMEMSET_ERR_CLR();
 
+	*src = NULL;
+
 	if (!file) {
 		ERR("file path cannot be empty");
 		return PMEMSET_E_INVALID_FILE_PATH;
@@ -76,10 +84,13 @@ pmemset_source_from_file(struct pmemset_source **src, const char *file)
 		return ret;
 
 	srcp->type = PMEMSET_SOURCE_FILE;
-	srcp->value.filepath = strdup(file);
+	srcp->file.path = strdup(file);
 
-	if (strcmp(srcp->value.filepath, file) != 0)
+	if (srcp->file.path == NULL) {
+		ERR("!strdup");
+		Free(srcp);
 		return PMEMSET_E_ERRNO;
+	}
 
 	*src = srcp;
 
@@ -105,6 +116,8 @@ pmemset_source_from_fileU(struct pmemset_source **src, const char *file)
 	LOG(3, "src %p file %s", src, file);
 	PMEMSET_ERR_CLR();
 
+	*src = NULL;
+
 	if (!file) {
 		ERR("file path cannot be empty");
 		return PMEMSET_E_INVALID_FILE_PATH;
@@ -116,11 +129,13 @@ pmemset_source_from_fileU(struct pmemset_source **src, const char *file)
 		return ret;
 
 	srcp->type = PMEMSET_SOURCE_FILE;
-	srcp->value.filepath = strdup(file);
+	srcp->file.path = Strdup(file);
 
-	if (strcmp(srcp->value.filepath, file) != 0)
+	if (srcp->file.path == NULL) {
+		ERR("!strdup");
+		Free(srcp);
 		return PMEMSET_E_ERRNO;
-
+	}
 	*src = srcp;
 
 	return 0;
@@ -158,60 +173,94 @@ pmemset_source_from_temporaryW(struct pmemset_source **src, const wchar_t *dir)
 #endif
 
 /*
- * pmemset_source_delete -- not supported
+ * pmemset_source_file_destroy -- delete source's filepath member
+ */
+static void
+pmemset_source_file_destroy(struct pmemset_source **src)
+{
+	Free((*src)->file.path);
+}
+
+/*
+ * pmemset_source_file_validate - check the validity of source created
+ *                                from file
+ */
+static int
+pmemset_source_file_validate(const struct pmemset_source *src)
+{
+	os_stat_t stat;
+	if (os_stat(src->file.path, &stat) < 0) {
+		if (errno == ENOENT) {
+			ERR("invalid path specified in the source");
+			return PMEMSET_E_INVALID_FILE_PATH;
+		}
+		ERR("!stat");
+		return PMEMSET_E_ERRNO;
+	}
+
+	return 0;
+}
+
+/*
+ * pmemset_source_pmem2_validate - check the validity of source created
+ *                                 from pmem2 source
+ */
+static int
+pmemset_source_pmem2_validate(const struct pmemset_source *src)
+{
+	if (!src->pmem2.src) {
+		ERR("invalid pmem2_source specified in the data source");
+		return PMEMSET_E_INVALID_PMEM2_SOURCE;
+	}
+
+	return 0;
+}
+
+static const struct {
+	void (*destroy)(struct pmemset_source **src);
+	int (*validate)(const struct pmemset_source *src);
+} pmemset_source_ops[MAX_PMEMSET_SOURCE_TYPE] = {
+	[PMEMSET_SOURCE_FILE] = {
+		.destroy = pmemset_source_file_destroy,
+		.validate = pmemset_source_file_validate
+	},
+	[PMEMSET_SOURCE_PMEM2] = {
+		.destroy = NULL,
+		.validate = pmemset_source_pmem2_validate
+	}
+};
+
+/*
+ * pmemset_source_delete -- delete pmemset_source structure
  */
 int
 pmemset_source_delete(struct pmemset_source **src)
 {
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
- * pmemset_source_get_filepath -- get file path from provided source
- */
-int
-pmemset_source_get_filepath(const struct pmemset_source *src, char **filepath)
-{
-	LOG(3, "src type %d", src->type);
-	PMEMSET_ERR_CLR();
-
-	if (src->type != PMEMSET_SOURCE_FILE) {
-		ERR("filepath is not set");
-		return PMEMSET_E_INVALID_FILE_PATH;
+	enum pmemset_source_type type = (*src)->type;
+	if (type != PMEMSET_SOURCE_UNSPECIFIED &&
+			type != PMEMSET_SOURCE_PMEM2 &&
+			type < MAX_PMEMSET_SOURCE_TYPE) {
+		pmemset_source_ops[type].destroy(src);
 	}
 
-	*filepath = src->value.filepath;
+	Free(*src);
+	*src = NULL;
 
 	return 0;
 }
 
 /*
- * pmemset_source_get_pmem2_source -- get pmem2_source from provided source
+ * pmemset_source_validate -- check the validity of created source
  */
 int
-pmemset_source_get_pmem2_source(const struct pmemset_source *src,
-		struct pmem2_source **pmem2_src)
+pmemset_source_validate(const struct pmemset_source *src)
 {
-	LOG(3, "src type %d", src->type);
-	PMEMSET_ERR_CLR();
-
-	if (src->type != PMEMSET_SOURCE_PMEM2) {
-		ERR("pmem2_source is not set");
-		return PMEMSET_E_INVALID_PMEM2_SOURCE;
+	enum pmemset_source_type type = src->type;
+	if (type == PMEMSET_SOURCE_UNSPECIFIED ||
+			type >= MAX_PMEMSET_SOURCE_TYPE) {
+		ERR("invalid source type");
+		return PMEMSET_E_INVALID_SOURCE_TYPE;
 	}
 
-	*pmem2_src = src->value.pmem2_src;
-
-	return 0;
-}
-
-/*
- * pmemset_source_get_type -- get the type of provided source
- */
-enum pmemset_source_type
-pmemset_source_get_type(const struct pmemset_source *src)
-{
-	LOG(3, "src %p", src);
-
-	return src->type;
+	return pmemset_source_ops[type].validate(src);
 }
