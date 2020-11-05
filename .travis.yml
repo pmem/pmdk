@@ -2,6 +2,7 @@ os: linux
 dist: bionic
 arch:
   - ppc64le
+  - arm64-graviton2
 
 language: c
 

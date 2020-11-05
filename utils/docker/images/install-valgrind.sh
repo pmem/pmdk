@@ -48,5 +48,6 @@ install_custom-pmem_from_source() {
 ARCH=$(uname -m)
 case "$ARCH" in
   ppc64le) install_upstream_3_16_1 ;;
+  aarch64) install_upstream_3_16_1 ;;
   *) install_custom-pmem_from_source ;;
 esac
