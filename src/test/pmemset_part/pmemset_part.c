@@ -45,22 +45,22 @@ test_part_new_enomem(const struct test_case *tc, int argc,
 }
 
 /*
- * test_part_new_invalid_source_path - create a new part from a source
+ * test_part_new_invalid_source_file - create a new part from a source
  *                                     with invalid path assigned
  */
 static int
-test_part_new_invalid_source_path(const struct test_case *tc, int argc,
+test_part_new_invalid_source_file(const struct test_case *tc, int argc,
 		char *argv[])
 {
 	if (argc < 1)
-		UT_FATAL("usage: test_part_new_invalid_source_path <path>");
+		UT_FATAL("usage: test_part_new_invalid_source_file <path>");
 
 	const char *file = argv[0];
 	struct pmemset_part *part;
 	struct pmemset_source *src;
 
 	int ret = pmemset_source_from_file(&src, file);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_part_new(&part, NULL, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_FILE_PATH);
@@ -70,15 +70,15 @@ test_part_new_invalid_source_path(const struct test_case *tc, int argc,
 }
 
 /*
- * test_part_new_valid_source_path - create a new part from a source
+ * test_part_new_valid_source_file - create a new part from a source
  *                                   with valid path assigned
  */
 static int
-test_part_new_valid_source_path(const struct test_case *tc, int argc,
+test_part_new_valid_source_file(const struct test_case *tc, int argc,
 		char *argv[])
 {
 	if (argc < 1)
-		UT_FATAL("usage: test_part_new_valid_source_path <path>");
+		UT_FATAL("usage: test_part_new_valid_source_file <path>");
 
 	const char *file = argv[0];
 	struct pmemset_part *part;
@@ -90,6 +90,13 @@ test_part_new_valid_source_path(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, NULL, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(part, NULL);
+
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(src, NULL);
+
+	/* XXX: should be changed in the future */
+	pmemset_part_file_close(part);
 
 	return 1;
 }
@@ -122,6 +129,13 @@ test_part_new_valid_source_pmem2(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(part, NULL);
 
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(src, NULL);
+
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
 	CLOSE(fd);
 
 	return 1;
@@ -132,8 +146,8 @@ test_part_new_valid_source_pmem2(const struct test_case *tc, int argc,
  */
 static struct test_case test_cases[] = {
 	TEST_CASE(test_part_new_enomem),
-	TEST_CASE(test_part_new_invalid_source_path),
-	TEST_CASE(test_part_new_valid_source_path),
+	TEST_CASE(test_part_new_invalid_source_file),
+	TEST_CASE(test_part_new_valid_source_file),
 	TEST_CASE(test_part_new_valid_source_pmem2),
 };
 

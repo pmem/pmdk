@@ -22,4 +22,6 @@ struct pmemset_part_shutdown_state_data {
 	const char data[1024];
 };
 
+void pmemset_part_file_close(const struct pmemset_part *part);
+
 #endif /* PMEMSET_PART_H */

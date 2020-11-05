@@ -15,13 +15,11 @@ enum pmemset_source_type {
 	MAX_PMEMSET_SOURCE_TYPE
 };
 
-int pmemset_source_get_filepath(const struct pmemset_source *src,
-		char **filepath);
-
-int pmemset_source_get_pmem2_source(const struct pmemset_source *src,
-		struct pmem2_source **pmem2_src);
-
-enum pmemset_source_type pmemset_source_get_type(
-		const struct pmemset_source *src);
+#ifdef _WIN32
+int pmemset_source_extract(struct pmemset_source *src, HANDLE *handle);
+#else
+int pmemset_source_extract(struct pmemset_source *src, int *fd);
+#endif
+int pmemset_source_validate(const struct pmemset_source *src);
 
 #endif /* PMEMSET_SOURCE_H */

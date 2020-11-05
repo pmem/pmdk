@@ -68,7 +68,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\libpmemset\errormsg.c" />
+    <ClCompile Include="..\..\libpmemset\part.c" />
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
+    <ClCompile Include="..\..\libpmemset\source.c" />
     <ClCompile Include="..\unittest\ut_pmemset_utils.c" />
     <ClCompile Include="pmemset_part.c" />
   </ItemGroup>

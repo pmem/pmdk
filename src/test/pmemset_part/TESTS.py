@@ -27,13 +27,13 @@ class TEST0(PMEMSET_PART):
 
 class TEST1(PMEMSET_PART):
     """create a new part from a source with invalid path assigned"""
-    test_case = "test_part_new_invalid_source_path"
+    test_case = "test_part_new_invalid_source_file"
     create_file = False
 
 
 class TEST2(PMEMSET_PART):
     """create a new part from a source with valid path assigned"""
-    test_case = "test_part_new_valid_source_path"
+    test_case = "test_part_new_valid_source_file"
     create_file = True
 
 
