@@ -30,6 +30,8 @@ _UW(pmemset_source_from_file)
 #include <libpmemset.h>
 
 _UWFUNCR1(int, pmemset_source_from_file, struct pmemset_source **src, const char *file)
+int pmemset_source_delete(struct pmemset_source **src);
+
 ```
 
 # DESCRIPTION #
@@ -40,10 +42,14 @@ describing the data source and sets a path to the file in it.
 Obtained source is ready to be passed on to the **pmemset_part_new**() function.
 See **pmemset_part_new**(3) for details.
 
+The **pmemset_source_delete**() function frees *\*src* and sets *\*src* to NULL. If *\*src* is NULL, no operation is performed.
+
 # RETURN VALUE #
 
 The _UW(pmemset_source_from_file) functions return 0 on success or
 a negative error code on failure.
+
+The **pmemset_source_delete**() function always returns 0.
 
 # ERRORS #
 

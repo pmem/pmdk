@@ -60,7 +60,7 @@ test_part_new_invalid_source_path(const struct test_case *tc, int argc,
 	struct pmemset_source *src;
 
 	int ret = pmemset_source_from_file(&src, file);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_part_new(&part, NULL, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_FILE_PATH);
@@ -90,6 +90,10 @@ test_part_new_valid_source_path(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, NULL, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(part, NULL);
+
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(src, NULL);
 
 	return 1;
 }
@@ -121,6 +125,13 @@ test_part_new_valid_source_pmem2(const struct test_case *tc, int argc,
 	ret = pmemset_part_new(&part, NULL, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(part, NULL);
+
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(src, NULL);
+
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	CLOSE(fd);
 

@@ -22,56 +22,6 @@ struct pmemset_part {
 };
 
 /*
- * pmemset_part_validate_source_file - check the validity of source created
- *                                     from file
- */
-static int
-pmemset_part_validate_source_file(struct pmemset_source *src)
-{
-	char *filepath;
-	int ret = pmemset_source_get_filepath(src, &filepath);
-	if (ret)
-		return ret;
-
-	os_stat_t stat;
-	if (os_stat(filepath, &stat) < 0) {
-		if (errno == ENOENT) {
-			ERR("invalid path specified in the source");
-			return PMEMSET_E_INVALID_FILE_PATH;
-		}
-		ERR("!stat");
-		return PMEMSET_E_ERRNO;
-	}
-
-	return 0;
-}
-
-/*
- * pmemset_part_validate_source_pmem2 - check the validity of source created
- *                                      from pmem2 source
- */
-static int
-pmemset_part_validate_source_pmem2(struct pmemset_source *src)
-{
-	struct pmem2_source *pmem2_src;
-	int ret = pmemset_source_get_pmem2_source(src, &pmem2_src);
-	if (ret)
-		return ret;
-
-	if (!pmem2_src) {
-		ERR("invalid pmem2_source specified in the data source");
-		return PMEMSET_E_INVALID_PMEM2_SOURCE;
-	}
-
-	return 0;
-}
-
-static int (*pmemset_part_validate_source[MAX_PMEMSET_SOURCE_TYPE])
-	(struct pmemset_source *src) =
-		{ NULL, pmemset_part_validate_source_pmem2,
-		pmemset_part_validate_source_file };
-
-/*
  * pmemset_part_new -- creates a new part for the provided set
  */
 int
@@ -82,18 +32,11 @@ pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
 			part, set, src, offset, length);
 	PMEMSET_ERR_CLR();
 
-	int ret = 0;
+	int ret;
 	struct pmemset_part *partp;
 	*part = NULL;
 
-	enum pmemset_source_type type = pmemset_source_get_type(src);
-	if (type == PMEMSET_SOURCE_UNSPECIFIED ||
-			type >= MAX_PMEMSET_SOURCE_TYPE) {
-		ERR("invalid source type");
-		return PMEMSET_E_INVALID_SOURCE_TYPE;
-	}
-
-	ret = pmemset_part_validate_source[type](src);
+	ret = pmemset_source_validate(src);
 	if (ret)
 		return ret;
 
