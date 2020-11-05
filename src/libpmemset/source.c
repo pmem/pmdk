@@ -7,10 +7,12 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <libpmem2.h>
 #include <string.h>
 
 #include "libpmemset.h"
 
+#include "alloc.h"
 #include "os.h"
 #include "pmemset_utils.h"
 #include "source.h"
@@ -18,9 +20,13 @@
 struct pmemset_source {
 	enum pmemset_source_type type;
 	union {
-		char *filepath;
-		struct pmem2_source *pmem2_src;
-	} value;
+		struct {
+			char *path;
+		} file;
+		struct {
+			struct pmem2_source *src;
+		} pmem2;
+	};
 };
 
 /*
@@ -47,7 +53,7 @@ pmemset_source_from_pmem2(struct pmemset_source **src,
 	ASSERTne(srcp, NULL);
 
 	srcp->type = PMEMSET_SOURCE_PMEM2;
-	srcp->value.pmem2_src = pmem2_src;
+	srcp->pmem2.src = pmem2_src;
 
 	*src = srcp;
 
@@ -65,6 +71,8 @@ pmemset_source_from_file(struct pmemset_source **src, const char *file)
 	LOG(3, "src %p file %s", src, file);
 	PMEMSET_ERR_CLR();
 
+	*src = NULL;
+
 	if (!file) {
 		ERR("file path cannot be empty");
 		return PMEMSET_E_INVALID_FILE_PATH;
@@ -76,10 +84,13 @@ pmemset_source_from_file(struct pmemset_source **src, const char *file)
 		return ret;
 
 	srcp->type = PMEMSET_SOURCE_FILE;
-	srcp->value.filepath = strdup(file);
+	srcp->file.path = strdup(file);
 
-	if (strcmp(srcp->value.filepath, file) != 0)
+	if (srcp->file.path == NULL) {
+		ERR("!strdup");
+		Free(srcp);
 		return PMEMSET_E_ERRNO;
+	}
 
 	*src = srcp;
 
@@ -105,6 +116,8 @@ pmemset_source_from_fileU(struct pmemset_source **src, const char *file)
 	LOG(3, "src %p file %s", src, file);
 	PMEMSET_ERR_CLR();
 
+	*src = NULL;
+
 	if (!file) {
 		ERR("file path cannot be empty");
 		return PMEMSET_E_INVALID_FILE_PATH;
@@ -116,11 +129,13 @@ pmemset_source_from_fileU(struct pmemset_source **src, const char *file)
 		return ret;
 
 	srcp->type = PMEMSET_SOURCE_FILE;
-	srcp->value.filepath = strdup(file);
+	srcp->file.path = Strdup(file);
 
-	if (strcmp(srcp->value.filepath, file) != 0)
+	if (srcp->file.path == NULL) {
+		ERR("!strdup");
+		Free(srcp);
 		return PMEMSET_E_ERRNO;
-
+	}
 	*src = srcp;
 
 	return 0;
@@ -158,60 +173,95 @@ pmemset_source_from_temporaryW(struct pmemset_source **src, const wchar_t *dir)
 #endif
 
 /*
- * pmemset_source_delete -- not supported
+ * pmemset_source_delete_filepath -- delete source's filepath member
+ */
+static int
+pmemset_source_delete_filepath(struct pmemset_source **src)
+{
+	enum pmemset_source_type type = (*src)->type;
+	if (type == PMEMSET_SOURCE_FILE)
+		Free((*src)->file.path);
+
+	return 0;
+}
+
+static int (*pmemset_source_delete_content_func[MAX_PMEMSET_SOURCE_TYPE])
+	(struct pmemset_source **src) =
+		{ NULL, NULL, pmemset_source_delete_filepath };
+
+/*
+ * pmemset_source_delete -- delete pmemset_source structure
  */
 int
 pmemset_source_delete(struct pmemset_source **src)
 {
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
- * pmemset_source_get_filepath -- get file path from provided source
- */
-int
-pmemset_source_get_filepath(const struct pmemset_source *src, char **filepath)
-{
-	LOG(3, "src type %d", src->type);
-	PMEMSET_ERR_CLR();
-
-	if (src->type != PMEMSET_SOURCE_FILE) {
-		ERR("filepath is not set");
-		return PMEMSET_E_INVALID_FILE_PATH;
+	enum pmemset_source_type type = (*src)->type;
+	if (type != PMEMSET_SOURCE_UNSPECIFIED &&
+			type != PMEMSET_SOURCE_PMEM2 &&
+			type < MAX_PMEMSET_SOURCE_TYPE) {
+		int ret = pmemset_source_delete_content_func[type](src);
+		if (ret)
+			return ret;
 	}
 
-	*filepath = src->value.filepath;
+	Free(*src);
+	*src = NULL;
 
 	return 0;
 }
 
 /*
- * pmemset_source_get_pmem2_source -- get pmem2_source from provided source
+ * pmemset_source_validate_file - check the validity of source created
+ *                                 from file
  */
-int
-pmemset_source_get_pmem2_source(const struct pmemset_source *src,
-		struct pmem2_source **pmem2_src)
+static int
+pmemset_source_validate_file(const struct pmemset_source *src)
 {
-	LOG(3, "src type %d", src->type);
-	PMEMSET_ERR_CLR();
+	os_stat_t stat;
+	if (os_stat(src->file.path, &stat) < 0) {
+		if (errno == ENOENT) {
+			ERR("invalid path specified in the source");
+			return PMEMSET_E_INVALID_FILE_PATH;
+		}
+		ERR("!stat");
+		return PMEMSET_E_ERRNO;
+	}
 
-	if (src->type != PMEMSET_SOURCE_PMEM2) {
-		ERR("pmem2_source is not set");
+	return 0;
+}
+
+/*
+ * pmemset_source_validate_pmem2 - check the validity of source created
+ *                                 from pmem2 source
+ */
+static int
+pmemset_source_validate_pmem2(const struct pmemset_source *src)
+{
+	if (!src->pmem2.src) {
+		ERR("invalid pmem2_source specified in the data source");
 		return PMEMSET_E_INVALID_PMEM2_SOURCE;
 	}
 
-	*pmem2_src = src->value.pmem2_src;
-
 	return 0;
 }
 
-/*
- * pmemset_source_get_type -- get the type of provided source
- */
-enum pmemset_source_type
-pmemset_source_get_type(const struct pmemset_source *src)
-{
-	LOG(3, "src %p", src);
+static int (*pmemset_source_validate_func[MAX_PMEMSET_SOURCE_TYPE])
+	(const struct pmemset_source *src) =
+		{ NULL, pmemset_source_validate_pmem2,
+		pmemset_source_validate_file };
 
-	return src->type;
+/*
+ * pmemset_source_validate -- check the validity of created source
+ */
+int
+pmemset_source_validate(const struct pmemset_source *src)
+{
+	enum pmemset_source_type type = src->type;
+	if (type == PMEMSET_SOURCE_UNSPECIFIED ||
+			type >= MAX_PMEMSET_SOURCE_TYPE) {
+		ERR("invalid source type");
+		return PMEMSET_E_INVALID_SOURCE_TYPE;
+	}
+
+	return pmemset_source_validate_func[type](src);
 }
