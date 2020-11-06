@@ -30,3 +30,8 @@ class TEST1(PmemSetConfigNoDir):
 class TEST2(PmemSetConfigNoDir):
     """deleting null pmemset_config"""
     test_case = "test_delete_null_config"
+
+
+class TEST3(PmemSetConfigNoDir):
+    """replication of pmemset_config in case of missing memory in system"""
+    test_case = "test_duplicate_cfg_enomem"

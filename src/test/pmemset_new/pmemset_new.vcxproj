@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{A1A9C9B5-A06D-4C04-AED8-7CC85D2FEEB5}</ProjectGuid>
-    <RootNamespace>pmemset_config</RootNamespace>
+    <ProjectGuid>{22C92B10-D40B-4B71-8C22-472DDD5AD4E6}</ProjectGuid>
+    <RootNamespace>pmemset_new</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -79,14 +79,18 @@
     <None Include="TESTS.py" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\core\ravl.c" />
+    <ClCompile Include="..\..\core\ravl_interval.c" />
     <ClCompile Include="..\..\libpmemset\config.c" />
+    <ClCompile Include="..\..\libpmemset\pmemset.c" />
     <ClCompile Include="..\..\libpmemset\errormsg.c" />
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
     <ClCompile Include="..\unittest\ut_pmemset_utils.c" />
-    <ClCompile Include="pmemset_config.c" />
+    <ClCompile Include="pmemset_new.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libpmemset\config.h" />
+    <ClInclude Include="..\..\libpmemset\pmemset.h" />
     <ClInclude Include="..\..\libpmemset\pmemset_utils.h" />
     <ClInclude Include="..\unittest\ut_pmemset_utils.h" />
   </ItemGroup>

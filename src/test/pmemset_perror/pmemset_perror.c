@@ -21,10 +21,10 @@ static int
 test_fail_pmemset_func_simple(const struct test_case *tc, int argc,
 		char *argv[])
 {
-	struct pmemset_config cfg;
+	struct pmemset_config *cfg = NULL;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmemset_config_set_create_if_none(&cfg, 0);
+	int ret = pmemset_config_set_create_if_none(cfg, 0);
 	UT_ASSERTne(ret, 0);
 
 	pmemset_perror("pmemset_config_set_create_if_none");
@@ -40,10 +40,10 @@ static int
 test_fail_pmemset_func_format(const struct test_case *tc, int argc,
 		char *argv[])
 {
-	struct pmemset_config cfg;
+	struct pmemset_config *cfg = NULL;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmemset_config_set_create_if_none(&cfg, 0);
+	int ret = pmemset_config_set_create_if_none(cfg, 0);
 	UT_ASSERTne(ret, 0);
 
 	pmemset_perror("pmemset_config_set_create_if_none %d", 123);

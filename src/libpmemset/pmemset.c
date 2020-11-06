@@ -7,23 +7,125 @@
 
 #include "pmemset.h"
 #include "libpmemset.h"
+#include "part.h"
+#include "pmemset_utils.h"
+#include "ravl_interval.h"
+#include "ravl.h"
+#include "alloc.h"
+#include "config.h"
 
 /*
- * pmemset_new -- not supported
+ * pmemset
+ */
+struct pmemset {
+	struct pmemset_config *config;
+	struct ravl_interval *part_map_tree;
+};
+
+/*
+ * pmemset_header
+ */
+struct pmemset_header {
+	char stub;
+};
+
+/*
+ * pmemset_mapping_min
+ */
+static size_t
+pmemset_mapping_min(void *addr)
+{
+	struct pmemset_part_map *pmap = (struct pmemset_part_map *)addr;
+	return (size_t)pmap->addr;
+}
+
+/*
+ * pmemset_mapping_max
+ */
+static size_t
+pmemset_mapping_max(void *addr)
+{
+	struct pmemset_part_map *pmap = (struct pmemset_part_map *)addr;
+	return (size_t)pmap->addr + pmap->length;
+}
+
+/*
+ * pmemset_new_init -- initialize set structure.
+ */
+static int
+pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
+{
+	ASSERTne(config, NULL);
+
+	int ret;
+
+	/* duplicate config */
+	set->config = NULL;
+	ret = pmemset_config_duplicate(&set->config, config);
+	if (ret)
+		return ret;
+
+	/* intialize RAVL */
+	set->part_map_tree = ravl_interval_new(pmemset_mapping_min,
+						pmemset_mapping_max);
+
+	if (set->part_map_tree == NULL) {
+		ERR("ravl tree initialization failed");
+		return PMEMSET_E_ERRNO;
+	}
+
+	return 0;
+}
+
+/*
+ * pmemset_new -- allocates and initialize pmemset structure.
  */
 int
 pmemset_new(struct pmemset **set, struct pmemset_config *cfg)
 {
-	return PMEMSET_E_NOSUPP;
+	PMEMSET_ERR_CLR();
+
+	int ret = 0;
+
+	/* allocate set structure */
+	*set = pmemset_malloc(sizeof(**set), &ret);
+
+	if (ret)
+		return ret;
+
+	ASSERTne(set, NULL);
+
+	/* initialize set */
+	ret = pmemset_new_init(*set, cfg);
+
+	if (ret) {
+		Free(*set);
+		*set = NULL;
+	}
+
+	return ret;
 }
 
 /*
- * pmemset_delete -- not supported
+ * pmemset_delete -- de-allocate set structure
  */
 int
 pmemset_delete(struct pmemset **set)
 {
-	return PMEMSET_E_NOSUPP;
+	if (*set == NULL)
+		return 0;
+
+	/* delete RAVL tree with part_map nodes */
+	ravl_interval_delete((*set)->part_map_tree);
+
+	/* delete cfg */
+	pmemset_config_delete(&(*set)->config);
+
+	Free(*set);
+
+	*set = NULL;
+
+	return 0;
 }
 
 #ifndef _WIN32

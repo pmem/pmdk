@@ -16,6 +16,7 @@
     <ClCompile Include="..\core\os_windows.c" />
     <ClCompile Include="..\core\out.c" />
     <ClCompile Include="..\core\ravl.c" />
+    <ClCompile Include="..\core\ravl_interval.c" />
     <ClCompile Include="..\core\util.c" />
     <ClCompile Include="..\core\util_windows.c" />
     <ClCompile Include="config.c" />

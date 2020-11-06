@@ -15,6 +15,13 @@
 #include "pmemset_utils.h"
 
 /*
+ * pmemset_config -- pmemset configuration structure.
+ */
+struct pmemset_config {
+	char stub;
+};
+
+/*
  * pmemset_config_init -- initialize cfg structure.
  */
 void
@@ -143,5 +150,28 @@ pmemset_config_delete(struct pmemset_config **cfg)
 {
 	Free(*cfg);
 	*cfg = NULL;
+	return 0;
+}
+
+/*
+ * pmemset_config_duplicate -- copy cfg structure, allocate destination if
+ *                             needed.
+ */
+int
+pmemset_config_duplicate(struct pmemset_config **cfg_dst,
+			struct pmemset_config *cfg_src)
+{
+	int ret;
+
+	/* Allocate dst if needed */
+	if (*cfg_dst == NULL) {
+		*cfg_dst = pmemset_malloc(sizeof(**cfg_dst), &ret);
+		if (ret)
+			return ret;
+	}
+
+	/* Copy cfg */
+	(*cfg_dst)->stub = cfg_src->stub;
+
 	return 0;
 }
