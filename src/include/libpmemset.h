@@ -245,7 +245,7 @@ int pmemset_part_map_drop(struct pmemset_part_map **pmap);
 struct pmemset_part_descriptor pmemset_part_map_descriptor(
 		struct pmemset_part_map *pmap);
 
-int pmemset_part_map_first(struct pmemset *set,
+void pmemset_part_map_first(struct pmemset *set,
 		struct pmemset_part_map **pmap);
 
 int pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map **pmap);

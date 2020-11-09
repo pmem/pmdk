@@ -575,3 +575,15 @@ ravl_data(struct ravl_node *node)
 		return (void *)node->data;
 	}
 }
+
+/*
+ * ravl_first -- returns first (left-most) node in the tree
+ */
+struct ravl_node *
+ravl_first(struct ravl *ravl)
+{
+	if (ravl->root)
+		return ravl_node_type_most(ravl->root, RAVL_LEFT);
+
+	return NULL;
+}
