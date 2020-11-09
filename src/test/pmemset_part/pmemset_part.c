@@ -460,6 +460,55 @@ test_part_map_enomem(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_part_map_first - get the first (earliest in the memory)
+ *                       mapping from the set
+ */
+static int
+test_part_map_first(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_firt <path>");
+
+	const char *file = argv[0];
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part *part;
+	struct pmemset_part_map *first_pmap = NULL;
+	struct pmemset_source *src;
+	size_t part_size = 64 * 1024;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_config_new(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_part_map_first(set, &first_pmap);
+	UT_ASSERTne(first_pmap, NULL);
+
+	pmemset_config_delete(&cfg);
+	pmem2_source_delete(&pmem2_src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -472,6 +521,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_part_map_invalid_offset),
 	TEST_CASE(test_unmap_part),
 	TEST_CASE(test_part_map_enomem),
+	TEST_CASE(test_part_map_first),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

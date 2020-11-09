@@ -127,12 +127,23 @@ pmemset_part_map_descriptor(struct pmemset_part_map *pmap)
 }
 
 /*
- * pmemset_part_map_first -- not supported
+ * pmemset_part_map_first -- retrieves fist part map in the set
  */
-int
+void
 pmemset_part_map_first(struct pmemset *set, struct pmemset_part_map **pmap)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(3, "set %p pmap %p", set, pmap);
+	PMEMSET_ERR_CLR();
+
+	*pmap = NULL;
+
+	struct ravl_interval *pmt = pmemset_get_part_map_tree(set);
+	struct ravl_interval_node *first = ravl_interval_find_first(pmt);
+
+	if (!first)
+		return;
+
+	*pmap = ravl_interval_data(first);
 }
 
 /*

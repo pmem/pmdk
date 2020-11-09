@@ -68,6 +68,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\core\ravl.c" />
+    <ClCompile Include="..\..\core\ravl_interval.c" />
     <ClCompile Include="..\..\libpmemset\config.c" />
     <ClCompile Include="..\..\libpmemset\errormsg.c" />
     <ClCompile Include="..\..\libpmemset\file.c" />
@@ -82,6 +84,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
       <Project>{492baa3d-0d5d-478e-9765-500463ae69aa}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\core\libpmemcore.vcxproj">
+      <Project>{2fa3155b-6f26-4d15-ac03-9d82d48dbc42}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\libpmem2\libpmem2.vcxproj">
       <Project>{f596c36c-5c96-4f08-b420-8908af500954}</Project>

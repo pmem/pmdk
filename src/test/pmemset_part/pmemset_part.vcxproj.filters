@@ -23,7 +23,19 @@
     <ClCompile Include="..\..\libpmemset\part.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\libpmemset\pmemset.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\libpmemset\source.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemset\config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\ravl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\core\ravl_interval.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemset\errormsg.c">
