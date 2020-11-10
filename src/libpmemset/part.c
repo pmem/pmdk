@@ -114,39 +114,6 @@ pmemset_part_map_drop(struct pmemset_part_map **pmap)
 }
 
 /*
- * pmemset_part_map_descriptor -- not supported
- */
-struct pmemset_part_descriptor
-pmemset_part_map_descriptor(struct pmemset_part_map *pmap)
-{
-	struct pmemset_part_descriptor desc;
-	/* compiler is crying when struct is uninitialized */
-	desc.addr = NULL;
-	desc.size = 0;
-	return desc;
-}
-
-/*
- * pmemset_part_map_first -- retrieves fist part map in the set
- */
-void
-pmemset_part_map_first(struct pmemset *set, struct pmemset_part_map **pmap)
-{
-	LOG(3, "set %p pmap %p", set, pmap);
-	PMEMSET_ERR_CLR();
-
-	*pmap = NULL;
-
-	struct ravl_interval *pmt = pmemset_get_part_map_tree(set);
-	struct ravl_interval_node *first = ravl_interval_find_first(pmt);
-
-	if (!first)
-		return;
-
-	*pmap = ravl_interval_data(first);
-}
-
-/*
  * pmemset_part_map_next -- not supported
  */
 int

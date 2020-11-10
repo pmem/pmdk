@@ -86,6 +86,12 @@ int pmemset_remove_part(struct pmemset *set, struct pmemset_part **part);
 int pmemset_remove_part_map(struct pmemset *set,
 		struct pmemset_part_map **part);
 
+struct pmemset_part_descriptor pmemset_descriptor_part_map(
+		struct pmemset_part_map *pmap);
+
+void pmemset_first_part_map(struct pmemset *set,
+		struct pmemset_part_map **pmap);
+
 int pmemset_remove_range(struct pmemset *set, void *addr, size_t len);
 
 int pmemset_persist(struct pmemset *set, const void *ptr, size_t size);
@@ -241,12 +247,6 @@ int pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 		struct pmemset_part_descriptor *desc);
 
 int pmemset_part_map_drop(struct pmemset_part_map **pmap);
-
-struct pmemset_part_descriptor pmemset_part_map_descriptor(
-		struct pmemset_part_map *pmap);
-
-void pmemset_part_map_first(struct pmemset *set,
-		struct pmemset_part_map **pmap);
 
 int pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map **pmap);
 

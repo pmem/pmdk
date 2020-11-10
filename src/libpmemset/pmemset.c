@@ -346,3 +346,34 @@ pmemset_get_pmemset_config(struct pmemset *set)
 	LOG(3, "%p", set);
 	return set->set_config;
 }
+
+/*
+ * pmemset_map_first -- retrieve first part map from the set
+ */
+void
+pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
+{
+	LOG(3, "set %p pmap %p", set, pmap);
+	PMEMSET_ERR_CLR();
+
+	*pmap = NULL;
+
+	struct ravl_interval_node *first = ravl_interval_find_first(
+			set->part_map_tree);
+
+	if (first)
+		*pmap = ravl_interval_data(first);
+}
+
+/*
+ * pmemset_map_descriptor -- create and return a part map descriptor
+ */
+struct pmemset_part_descriptor
+pmemset_descriptor_part_map(struct pmemset_part_map *pmap)
+{
+	struct pmemset_part_descriptor desc;
+	desc.addr = pmem2_map_get_address(pmap->pmem2_map);
+	desc.size = pmem2_map_get_size(pmap->pmem2_map);
+
+	return desc;
+}
