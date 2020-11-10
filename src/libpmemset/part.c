@@ -186,9 +186,9 @@ struct pmemset_part_descriptor
 pmemset_part_map_descriptor(struct pmemset_part_map *pmap)
 {
 	struct pmemset_part_descriptor desc;
-	/* compiler is crying when struct is uninitialized */
-	desc.addr = NULL;
-	desc.size = 0;
+	desc.addr = pmem2_map_get_address(pmap->pmem2_map);
+	desc.size = pmem2_map_get_size(pmap->pmem2_map);
+
 	return desc;
 }
 

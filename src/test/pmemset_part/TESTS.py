@@ -77,3 +77,9 @@ class TEST9(PMEMSET_PART):
     """get the first (earliest in the memory) mapping from the set"""
     test_case = "test_part_map_first"
     create_file = True
+
+
+class TEST10(PMEMSET_PART):
+    """get the descriptor from the part map"""
+    test_case = "test_part_map_descriptor"
+    create_file = True
