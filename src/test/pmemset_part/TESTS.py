@@ -83,3 +83,7 @@ class TEST11(PMEMSET_PART):
     """get the first (earliest in the memory) mapping from the set"""
     test_case = "test_part_map_first"
 
+
+class TEST12(PMEMSET_PART):
+    """get the descriptor from the part map"""
+    test_case = "test_part_map_descriptor"

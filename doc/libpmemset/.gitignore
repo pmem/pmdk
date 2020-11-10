@@ -1,10 +1,11 @@
 libpmemset.7
 pmemset_config_new.3
 pmemset_config_set_required_store_granularity.3
+pmemset_descriptor_part_map.3
 pmemset_errormsg.3
+pmemset_first_part_map.3
 pmemset_new.3
 pmemset_part_map.3
-pmemset_part_map_first.3
 pmemset_part_new.3
 pmemset_perror.3
 pmemset_source_delete.3
