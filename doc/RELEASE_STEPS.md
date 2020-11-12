@@ -48,3 +48,4 @@ Publish package and make it official:
 Later, for major release:
 - bump version of Docker images (utils/docker/images/set-images-version.sh) to $VERSION+1
 - once gh-pages contains new documentation, add $VERSION section in _data/releases_linux.yml and _data/releases_windows.yml on gh-pages branch
+- update library version in [vcpkg](https://github.com/microsoft/vcpkg/blob/master/ports/pmdk) - file an issue for their maintainers
