@@ -4,23 +4,28 @@
 
 set -e
 
-source `dirname $0`/valid-branches.sh
-
 BOT_NAME="pmem-bot"
 USER_NAME="pmem"
 REPO_NAME="pmdk"
 
 ORIGIN="https://${DOC_UPDATE_GITHUB_TOKEN}@github.com/${BOT_NAME}/${REPO_NAME}"
 UPSTREAM="https://github.com/${USER_NAME}/${REPO_NAME}"
-# master or stable-* branch
-TARGET_BRANCH=${CI_BRANCH}
-VERSION=${TARGET_BRANCHES[$TARGET_BRANCH]}
 
-if [ -z $VERSION ]; then
-	echo "Target location for branch $TARGET_BRANCH is not defined."
+# Only 'master' or 'stable-*' branches are valid; determine docs location dir on gh-pages branch
+TARGET_BRANCH=${CI_BRANCH}
+if [[ "${TARGET_BRANCH}" == "master" ]]; then
+	TARGET_DOCS_DIR="master"
+elif [[ ${TARGET_BRANCH} == stable-* ]]; then
+	TARGET_DOCS_DIR=v$(echo ${TARGET_BRANCH} | cut -d"-" -f2 -s)
+else
+	echo "Skipping docs build, this script should be run only on master or stable-* branches."
+	echo "TARGET_BRANCH is set to: \'${TARGET_BRANCH}\'."
+	exit 0
+fi
+if [ -z "${TARGET_DOCS_DIR}" ]; then
+	echo "ERROR: Target docs location for branch: ${TARGET_BRANCH} is not set."
 	exit 1
 fi
-
 # Clone bot repo
 git clone ${ORIGIN}
 cd ${REPO_NAME}
@@ -46,8 +51,8 @@ GH_PAGES_NAME="gh-pages-for-${TARGET_BRANCH}"
 git checkout -B $GH_PAGES_NAME upstream/gh-pages
 git clean -dfx
 
-rsync -a ../web_linux/ ./manpages/linux/${VERSION}/
-rsync -a ../web_windows/ ./manpages/windows/${VERSION}/ \
+rsync -a ../web_linux/ ./manpages/linux/${TARGET_DOCS_DIR}/
+rsync -a ../web_windows/ ./manpages/windows/${TARGET_DOCS_DIR}/ \
 	--exclude='librpmem'	\
 	--exclude='rpmemd' --exclude='pmreorder'	\
 	--exclude='daxio'
