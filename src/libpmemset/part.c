@@ -5,17 +5,75 @@
  * part.c -- implementation of common part API
  */
 
-#include "part.h"
+#include <fcntl.h>
+
+#include "alloc.h"
 #include "libpmemset.h"
+#include "os.h"
+#include "part.h"
+#include "pmemset.h"
+#include "pmemset_utils.h"
+#include "source.h"
+
+struct pmemset_part {
+	struct pmemset *set;
+	struct pmemset_source *src;
+	size_t offset;
+	size_t length;
+	union {
+#ifdef _WIN32
+		HANDLE handle;
+#else
+		int fd;
+#endif
+	};
+};
 
 /*
- * pmemset_part_descriptor_new -- not supported
+ * pmemset_part_new -- creates a new part for the provided set
  */
 int
 pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
 		struct pmemset_source *src, size_t offset, size_t length)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(3, "part %p set %p src %p offset %zu length %zu",
+			part, set, src, offset, length);
+	PMEMSET_ERR_CLR();
+
+	int ret;
+	struct pmemset_part *partp;
+	*part = NULL;
+
+	ret = pmemset_source_validate(src);
+	if (ret)
+		return ret;
+
+	partp = pmemset_malloc(sizeof(*partp), &ret);
+	if (ret)
+		return ret;
+
+	ASSERTne(partp, NULL);
+
+#ifdef _WIN32
+	ret = pmemset_source_extract(src, &partp->handle);
+#else
+	ret = pmemset_source_extract(src, &partp->fd);
+#endif
+	if (ret)
+		goto err_free_part;
+
+	partp->set = set;
+	partp->src = src;
+	partp->offset = offset;
+	partp->length = length;
+
+	*part = partp;
+
+	return 0;
+
+err_free_part:
+	Free(partp);
+	return ret;
 }
 
 /*
@@ -97,3 +155,27 @@ pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part **part,
 {
 	return PMEMSET_E_NOSUPP;
 }
+
+#ifdef _WIN32
+/*
+ * pmemset_part_file_close -- closes a file handle stored in a part (windows).
+ * XXX: created for testing purposes, should be deleted after implementing a
+ * function that closes the file handle stored in part.
+ */
+void
+pmemset_part_file_close(const struct pmemset_part *part)
+{
+	CloseHandle(part->handle);
+}
+#else
+/*
+ * pmemset_part_file_close -- closes a file descriptor stored in a part (posix).
+ * XXX: created for testing purposes, should be deleted after implementing a
+ * function that closes the file handle stored in part.
+ */
+void
+pmemset_part_file_close(const struct pmemset_part *part)
+{
+	os_close(part->fd);
+}
+#endif
