@@ -51,7 +51,7 @@ then
 fi
 
 # Log in to $DOCKER_REPO
-echo "${GH_CR_PAT}" | docker login ghcr.io -u="${GH_CR_USER}" --password-stdin
+echo "${GH_CR_PAT}" | docker login "${DOCKER_REPO}" -u="${GH_CR_USER}" --password-stdin
 
 # Push the image to $DOCKER_REPO
 docker push ${DOCKER_REPO}:${TAG}
