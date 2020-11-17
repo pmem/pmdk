@@ -211,12 +211,12 @@ main(int argc, char *argv[])
 				pi_val += D_RO(iter)->proto.result;
 			}
 
-			printf("pi: %Lf\n", pi_val * 4);
+			printf("pi: %.10Lf\n", pi_val * 4);
 		} break;
 		case 'd': { /* print done list */
 			TOID(struct pi_task) iter;
 			POBJ_LIST_FOREACH(iter, &D_RO(pi)->done, done) {
-				printf("(%" PRIu64 " - %" PRIu64 ") = %Lf\n",
+				printf("(%" PRIu64 " - %" PRIu64 ") = %.10Lf\n",
 					D_RO(iter)->proto.start,
 					D_RO(iter)->proto.stop,
 					D_RO(iter)->proto.result);
@@ -225,7 +225,7 @@ main(int argc, char *argv[])
 		case 't': { /* print to-do list */
 			TOID(struct pi_task) iter;
 			POBJ_LIST_FOREACH(iter, &D_RO(pi)->todo, todo) {
-				printf("(%" PRIu64 " - %" PRIu64 ") = %Lf\n",
+				printf("(%" PRIu64 " - %" PRIu64 ") = %.10Lf\n",
 					D_RO(iter)->proto.start,
 					D_RO(iter)->proto.stop,
 					D_RO(iter)->proto.result);

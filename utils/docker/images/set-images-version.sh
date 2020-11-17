@@ -13,4 +13,4 @@
 # has to trigger the rebuild of all Docker images.
 #
 
-export IMG_VER=1.10
+export IMG_VER=1.11
