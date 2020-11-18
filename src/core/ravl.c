@@ -454,11 +454,11 @@ ravl_node_cessor(struct ravl_node *n, enum ravl_slot_type t)
 }
 
 /*
- * ravl_node_successor -- (internal) returns node's successor
+ * ravl_node_successor -- returns node's successor
  *
  * It's the first node larger than n.
  */
-static struct ravl_node *
+struct ravl_node *
 ravl_node_successor(struct ravl_node *n)
 {
 	return ravl_node_cessor(n, RAVL_RIGHT);

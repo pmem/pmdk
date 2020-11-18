@@ -270,3 +270,30 @@ ravl_interval_find_first(struct ravl_interval *ri)
 
 	return NULL;
 }
+
+/*
+ * ravl_interval_first -- returns first interval in the tree
+ */
+struct ravl_interval_node *
+ravl_interval_find_next(struct ravl_interval *ri, void *addr)
+{
+	struct ravl_interval_node range;
+	range.addr = addr;
+	range.get_min = ri->get_min;
+	range.get_max = ri->get_max;
+
+	struct ravl_node *cur;
+	cur = ravl_find(ri->tree, &range, RAVL_PREDICATE_LESS_EQUAL);
+	if (!cur)
+		cur = ravl_find(ri->tree, &range, RAVL_PREDICATE_GREATER);
+
+	if (!cur)
+		return NULL;
+
+	struct ravl_node *next;
+	next = ravl_node_successor(cur);
+	if (!next)
+		return NULL;
+
+	return ravl_data(next);
+}

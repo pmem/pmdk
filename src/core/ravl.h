@@ -45,6 +45,7 @@ int ravl_emplace_copy(struct ravl *ravl, const void *data);
 struct ravl_node *ravl_find(struct ravl *ravl, const void *data,
 	enum ravl_predicate predicate_flags);
 struct ravl_node *ravl_first(struct ravl *ravl);
+struct ravl_node *ravl_node_successor(struct ravl_node *n);
 void *ravl_data(struct ravl_node *node);
 void ravl_remove(struct ravl *ravl, struct ravl_node *node);
 

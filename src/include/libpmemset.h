@@ -246,7 +246,8 @@ struct pmemset_part_descriptor pmemset_part_map_descriptor(
 void pmemset_part_map_first(struct pmemset *set,
 		struct pmemset_part_map **pmap);
 
-int pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map **pmap);
+void pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map *cur,
+		struct pmemset_part_map **next);
 
 int pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part **part,
 		void *addr);

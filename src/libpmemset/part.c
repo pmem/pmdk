@@ -213,12 +213,24 @@ pmemset_part_map_first(struct pmemset *set, struct pmemset_part_map **pmap)
 }
 
 /*
- * pmemset_part_map_next -- not supported
+ * pmemset_part_map_next --  retrieves successor part map in the set
  */
-int
-pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map **pmap)
+void
+pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map *cur,
+		struct pmemset_part_map **next)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(3, "set %p cur %p next %p", set, cur, next);
+	PMEMSET_ERR_CLR();
+
+	*next = NULL;
+
+	struct ravl_interval *pmt = pmemset_get_part_map_tree(set);
+	struct ravl_interval_node *found = ravl_interval_find_next(pmt, cur);
+
+	if (!found)
+		return;
+
+	*next = ravl_interval_data(found);
 }
 
 /*
