@@ -58,6 +58,11 @@ struct pmemset_header;
 struct pmemset_part;
 struct pmemset_part_map;
 
+struct pmemset_part_descriptor {
+	void *addr;
+	size_t size;
+};
+
 struct pmemset_extras {
 	const struct pmemset_header *header_in;
 	struct pmemset_header *header_out;
@@ -91,6 +96,9 @@ struct pmemset_part_descriptor pmemset_descriptor_part_map(
 
 void pmemset_first_part_map(struct pmemset *set,
 		struct pmemset_part_map **pmap);
+
+void pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
+		struct pmemset_part_map **next);
 
 int pmemset_remove_range(struct pmemset *set, void *addr, size_t len);
 
@@ -202,11 +210,6 @@ struct pmemset_part;
 struct pmemset_part_map;
 struct pmemset_part_shutdown_state_data;
 
-struct pmemset_part_descriptor {
-	void *addr;
-	size_t size;
-};
-
 enum pmemset_part_state {
 	/*
 	 * The pool state cannot be determined because of errors during
@@ -247,8 +250,6 @@ int pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 		struct pmemset_part_descriptor *desc);
 
 int pmemset_part_map_drop(struct pmemset_part_map **pmap);
-
-int pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map **pmap);
 
 int pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part **part,
 		void *addr);

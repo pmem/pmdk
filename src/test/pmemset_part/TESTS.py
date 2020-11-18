@@ -87,3 +87,8 @@ class TEST11(PMEMSET_PART):
 class TEST12(PMEMSET_PART):
     """get the descriptor from the part map"""
     test_case = "test_part_map_descriptor"
+
+
+class TEST13(PMEMSET_PART):
+    """test retrieving next mapping from the set"""
+    test_case = "test_part_map_next"
