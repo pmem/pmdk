@@ -114,15 +114,6 @@ pmemset_part_map_drop(struct pmemset_part_map **pmap)
 }
 
 /*
- * pmemset_part_map_next -- not supported
- */
-int
-pmemset_part_map_next(struct pmemset *set, struct pmemset_part_map **pmap)
-{
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
  * pmemset_part_map_by_address -- not supported
  */
 int

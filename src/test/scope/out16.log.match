@@ -12,9 +12,11 @@ pmemset_config_set_reservation
 pmemset_config_set_version
 pmemset_deep_flush
 pmemset_delete
+pmemset_descriptor_part_map
 pmemset_drain
 pmemset_errormsgU
 pmemset_errormsgW
+pmemset_first_part_map
 pmemset_flush
 pmemset_header_initU
 pmemset_header_initW
@@ -22,13 +24,11 @@ pmemset_memcpy
 pmemset_memmove
 pmemset_memset
 pmemset_new
+pmemset_next_part_map
 pmemset_part_delete
 pmemset_part_map
 pmemset_part_map_by_address
-pmemset_part_map_descriptor
 pmemset_part_map_drop
-pmemset_part_map_first
-pmemset_part_map_next
 pmemset_part_new
 pmemset_part_pread_mcsafe
 pmemset_part_pwrite_mcsafe

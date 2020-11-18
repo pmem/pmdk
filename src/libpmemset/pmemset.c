@@ -366,6 +366,26 @@ pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
 }
 
 /*
+ * pmemset_next_part_map -- retrieve successor part map in the set
+ */
+void
+pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
+		struct pmemset_part_map **next)
+{
+	LOG(3, "set %p cur %p next %p", set, cur, next);
+	PMEMSET_ERR_CLR();
+
+	*next = NULL;
+
+	struct ravl_interval_node *found = ravl_interval_find_next(
+			set->part_map_tree, cur);
+
+	if (found)
+		*next = ravl_interval_data(found);
+
+}
+
+/*
  * pmemset_map_descriptor -- create and return a part map descriptor
  */
 struct pmemset_part_descriptor

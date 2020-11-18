@@ -21,6 +21,7 @@ date: pmemset API version 1.0
 # NAME #
 
 **pmemset_first_part_map**() - reads first mapping from a set
+**pmemset_next_part_map**() - reads next mapping from a set
 
 # SYNOPSIS #
 
@@ -30,18 +31,27 @@ date: pmemset API version 1.0
 struct pmemset;
 struct pmemset_part_map;
 void pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap);
+
+void pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
+		struct pmemset_part_map **next)
 ```
 
 # DESCRIPTION #
 
-The **pmemset_first_part_map**() function reads first mapping from the set.
+The **pmemset_first_part_map**() function reads first mapping from the *set*.
+The **pmemset_next_part_map**() function reads from the *set* a mapping  that succeeds the mapping
+provided in the *cur* variable.
 The *set* parameter points to the structure describing a set created with **pmemset_new**(3) function.
-Pointer to the first mapping object in the set is stored in the user-provided variable via the *pmap* pointer.
+Pointer to the retrieved mapping object in the *set* is stored in the user-provided variable via the *pmap*
+or *next* pointer depending on the used function.
 
 # RETURN VALUE #
 
 The **pmemset_first_part_map**() does not return any value.
-It sets *\*pmap* to NULL on failure.
+*\*pmap* is set to NULL on failure.
+
+The **pmemset_next_part_map**() does not return any value.
+*\*next* is set to NULL on failure.
 
 # SEE ALSO #
 
