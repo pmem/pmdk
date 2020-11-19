@@ -7,6 +7,8 @@
 #ifndef PMEMSET_SOURCE_H
 #define PMEMSET_SOURCE_H
 
+#include "file.h"
+
 enum pmemset_source_type {
 	PMEMSET_SOURCE_UNSPECIFIED,
 	PMEMSET_SOURCE_PMEM2,
@@ -21,5 +23,8 @@ int pmemset_source_extract(struct pmemset_source *src, HANDLE *handle);
 int pmemset_source_extract(struct pmemset_source *src, int *fd);
 #endif
 int pmemset_source_validate(const struct pmemset_source *src);
+
+int pmemset_source_create_pmemset_file(struct pmemset_source *src,
+		struct pmemset_file **file, struct pmemset_config *cfg);
 
 #endif /* PMEMSET_SOURCE_H */

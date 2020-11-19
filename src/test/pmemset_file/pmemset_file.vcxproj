@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{32746E86-E475-4DF7-8F48-B5147B5ACEE1}</ProjectGuid>
-    <RootNamespace>pmemset_source</RootNamespace>
+    <ProjectGuid>{2C71E7D2-A02E-4F98-98B5-DFF9F886D8F2}</ProjectGuid>
+    <RootNamespace>pmemset_file</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -79,21 +79,20 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TESTS.py" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClCompile Include="..\..\libpmemset\config.c" />
     <ClCompile Include="..\..\libpmemset\errormsg.c" />
     <ClCompile Include="..\..\libpmemset\file.c" />
     <ClCompile Include="..\..\libpmemset\file_windows.c" />
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
-    <ClCompile Include="..\..\libpmemset\source.c" />
     <ClCompile Include="..\unittest\ut_pmemset_utils.c" />
-    <ClCompile Include="pmemset_source.c" />
+    <ClCompile Include="pmemset_file.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libpmemset\pmemset_utils.h" />
-    <ClInclude Include="..\..\libpmemset\source.h" />
     <ClInclude Include="..\unittest\ut_pmemset_utils.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TESTS.py" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
