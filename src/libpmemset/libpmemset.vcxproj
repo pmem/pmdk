@@ -21,6 +21,8 @@
     <ClCompile Include="..\core\util_windows.c" />
     <ClCompile Include="config.c" />
     <ClCompile Include="errormsg.c" />
+    <ClCompile Include="file.c" />
+    <ClCompile Include="file_windows.c" />
     <ClCompile Include="libpmemset.c" />
     <ClCompile Include="libpmemset_main.c" />
     <ClCompile Include="part.c" />
@@ -43,6 +45,7 @@
     <ClInclude Include="..\include\libpmemset.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="event.h" />
+    <ClInclude Include="file.h" />
     <ClInclude Include="part.h" />
     <ClInclude Include="pmemset.h" />
     <ClInclude Include="pmemset_utils.h" />
