@@ -8,6 +8,7 @@
 #include <fcntl.h>
 
 #include "alloc.h"
+#include "file.h"
 #include "libpmemset.h"
 #include "os.h"
 #include "part.h"
