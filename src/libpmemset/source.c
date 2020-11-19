@@ -13,6 +13,7 @@
 #include "libpmemset.h"
 
 #include "alloc.h"
+#include "file.h"
 #include "os.h"
 #include "pmemset_utils.h"
 #include "source.h"
@@ -149,7 +150,6 @@ int
 pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file)
 {
 	const char *ufile = util_toUTF8(file);
-
 	return pmemset_source_from_fileU(src, ufile);
 }
 
@@ -171,6 +171,28 @@ pmemset_source_from_temporaryW(struct pmemset_source **src, const wchar_t *dir)
 	return PMEMSET_E_NOSUPP;
 }
 #endif
+
+/*
+ * pmemset_source_create_file_from_file - create pmemset_file based on file
+ *                                        source type
+ */
+static int
+pmemset_source_create_file_from_file(struct pmemset_source *src,
+		struct pmemset_file **file, struct pmemset_config *cfg)
+{
+	return pmemset_file_from_file(file, src->file.path, cfg);
+}
+
+/*
+ * pmemset_source_create_file_from_pmem2 - create pmemset_file based on pmem2
+ *                                         source type
+ */
+static int
+pmemset_source_create_file_from_pmem2(struct pmemset_source *src,
+		struct pmemset_file **file, struct pmemset_config *cfg)
+{
+	return pmemset_file_from_pmem2(file, src->pmem2.src);
+}
 
 /*
  * pmemset_source_empty_destroy - empty destroy function
@@ -311,6 +333,8 @@ pmemset_source_pmem2_validate(const struct pmemset_source *src)
 }
 
 static const struct {
+	int (*create_file)(struct pmemset_source *src,
+			struct pmemset_file **file, struct pmemset_config *cfg);
 	void (*destroy)(struct pmemset_source **src);
 #ifdef _WIN32
 	int (*extract)(const struct pmemset_source *src, HANDLE *handle);
@@ -320,11 +344,13 @@ static const struct {
 	int (*validate)(const struct pmemset_source *src);
 } pmemset_source_ops[MAX_PMEMSET_SOURCE_TYPE] = {
 	[PMEMSET_SOURCE_FILE] = {
+		.create_file = pmemset_source_create_file_from_file,
 		.destroy = pmemset_source_file_destroy,
 		.extract = pmemset_source_file_extract,
 		.validate = pmemset_source_file_validate
 	},
 	[PMEMSET_SOURCE_PMEM2] = {
+		.create_file = pmemset_source_create_file_from_pmem2,
 		.destroy = pmemset_source_empty_destroy,
 		.extract = pmemset_source_pmem2_extract,
 		.validate = pmemset_source_pmem2_validate
@@ -386,4 +412,18 @@ pmemset_source_validate(const struct pmemset_source *src)
 	ASSERTne(type, PMEMSET_SOURCE_UNSPECIFIED);
 
 	return pmemset_source_ops[type].validate(src);
+}
+
+/*
+ * pmemset_source_create_pmemset_file -- create pmemset_file based on the type
+ *                                       of pmemset_source
+ */
+int
+pmemset_source_create_pmemset_file(struct pmemset_source *src,
+		struct pmemset_file **file, struct pmemset_config *cfg)
+{
+	enum pmemset_source_type type = src->type;
+	ASSERTne(type, PMEMSET_SOURCE_UNSPECIFIED);
+
+	return pmemset_source_ops[type].create_file(src, file, cfg);
 }
