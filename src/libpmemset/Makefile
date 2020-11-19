@@ -14,6 +14,8 @@ LIBRARY_VERSION = 0.0
 SOURCE =\
 	config.c\
 	errormsg.c\
+	file.c\
+	file_posix.c\
 	libpmemset.c\
 	part.c\
 	pmemset.c\

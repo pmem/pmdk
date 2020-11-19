@@ -5,6 +5,7 @@
  * pmemset_source.c -- pmemset_source unittests
  */
 #include "fault_injection.h"
+#include "file.h"
 #include "libpmemset.h"
 #include "out.h"
 #include "source.h"
@@ -122,7 +123,6 @@ test_src_from_file_valid(const struct test_case *tc, int argc,
 		UT_FATAL("usage: test_src_from_file_valid <path>");
 
 	const char *file = argv[0];
-
 	struct pmemset_source *src;
 
 	int ret = pmemset_source_from_file(&src, file);
@@ -137,6 +137,87 @@ test_src_from_file_valid(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_create_file_from_type_file - test pmemset_file creation with source
+ *                                   type file
+ */
+static int
+test_create_file_from_type_file(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_create_file_from_type_file <path>");
+
+	const char *file_path = argv[0];
+	struct pmemset_config *cfg;
+	struct pmemset_file *file = NULL;
+	struct pmemset_source *src;
+
+	int ret = pmemset_config_new(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(cfg, NULL);
+
+	ret = pmemset_source_from_file(&src, file_path);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(src, NULL);
+
+	ret = pmemset_source_create_pmemset_file(src, &file, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(file, NULL);
+
+	pmemset_file_delete(&file);
+	UT_ASSERTeq(file, NULL);
+
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(src, NULL);
+
+	return 1;
+}
+
+/*
+ * test_create_file_from_type_pmem2 - test pmemset_file creation with source
+ *                                    type pmem2
+ */
+static int
+test_create_file_from_type_pmem2(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_create_file_from_type_pmem2 <path>");
+
+	const char *file_path = argv[0];
+	struct pmem2_source *pmem2_src;
+	struct pmemset_config *cfg;
+	struct pmemset_file *file = NULL;
+	struct pmemset_source *src;
+
+	int ret = pmemset_config_new(&cfg);
+
+	int fd = OPEN(file_path, O_RDWR);
+	ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_ASSERTne(pmem2_src, NULL);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(src, NULL);
+
+	ret = pmemset_source_create_pmemset_file(src, &file, cfg);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(file, NULL);
+
+	pmemset_file_delete(&file);
+	UT_ASSERTeq(file, NULL);
+
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(src, NULL);
+
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -145,6 +226,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_set_from_pmem2_valid),
 	TEST_CASE(test_src_from_file_null),
 	TEST_CASE(test_src_from_file_valid),
+	TEST_CASE(test_create_file_from_type_file),
+	TEST_CASE(test_create_file_from_type_pmem2),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
