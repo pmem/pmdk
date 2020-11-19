@@ -12,21 +12,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="TESTS.py">
-      <Filter>Test Scripts</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="pmemset_source.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libpmemset\errormsg.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libpmemset\source.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\unittest\ut_pmemset_utils.c">
@@ -38,16 +27,24 @@
     <ClCompile Include="..\..\libpmemset\file_windows.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pmemset_file.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemset\config.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\libpmemset\pmemset_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\libpmemset\source.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\unittest\ut_pmemset_utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TESTS.py">
+      <Filter>Test Scripts</Filter>
+    </None>
   </ItemGroup>
 </Project>
