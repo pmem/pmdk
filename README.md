@@ -30,10 +30,11 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 	* [Memory Management Tools](#memory-management-tools)
 7. [Building PMDK on Windows](#building-pmdk-on-windows)
 	* [Testing Libraries](#testing-libraries-on-windows)
-8. [Experimental Packages](#experimental-packages)
+8. [Debugging](#debugging)
+9. [Experimental Packages](#experimental-packages)
 	* [librpmem and rpmemd packages](#the-librpmem-and-rpmemd-packages)
 	* [Experimental support for 64-bit ARM](#experimental-support-for-64-bit-arm)
-9. [Contact Us](#contact-us)
+10. [Contact Us](#contact-us)
 
 ## Libraries and Utilities
 
@@ -268,6 +269,12 @@ To build dpkg packages without running tests:
 ```
 This requires **devscripts** to be installed.
 
+To build only debug version of library (by default debug and nondebug are built), run:
+```
+	$ make DEBUG=1
+```
+Libraries are delivered in src/debug.
+
 ### Testing Libraries on Linux and FreeBSD
 
 Before running the tests, you may need to prepare a test configuration file (src/test/testconfig.sh). Please see the available configuration settings in the example file [src/test/testconfig.sh.example](src/test/testconfig.sh.example).
@@ -352,6 +359,14 @@ To **display all the possible options**, run:
 ```
 
 Please refer to the **[src/test/README](src/test/README)** for more details on how to run different types of tests.
+
+## Debugging
+
+To enable logging of debug information, use debug version of a library and set
+desired log level using (library-specific) variable, e.g. `PMEM_LOG_LEVEL=<level>`.
+
+For more details see appropriate manpage (debbuging section), e.g.
+[libpmem(7)](https://pmem.io/pmdk/manpages/linux/master/libpmem/libpmem.7.html#debugging-and-error-handling).
 
 ## Experimental Packages
 
