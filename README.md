@@ -36,8 +36,13 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 9. [Contact Us](#contact-us)
 
 ## Libraries and Utilities
-Available Libraries:
-- [libpmem](https://pmem.io/pmdk/libpmem/):  provides low level persistent memory support
+
+All PMDK related libraries are described in detail on [pmem.io/pmdk](https://pmem.io/pmdk/).
+
+Libraries available in this repository:
+- [libpmem](https://pmem.io/pmdk/libpmem/):  provides low level persistent memory support.
+
+- [libpmem2](https://pmem.io/pmdk/libpmem2/):  provides low level persistent memory support, is a new version of libpmem.
 
 - [libpmemobj](https://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
 
@@ -47,7 +52,9 @@ Available Libraries:
 
 - [libpmempool](https://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
 
-- [librpmem](https://pmem.io/pmdk/librpmem/)<sup>1</sup>:  provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs.
+- [libpmemset](https://pmem.io/pmdk/libpmemset/):  (**still in progress**) aims to provide the core functionality any persistent application should have. (EXPERIMENTAL)
+
+- [librpmem](https://pmem.io/pmdk/librpmem/)<sup>1</sup>:  provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs. (EXPERIMENTAL)
 
 If you're looking for *libvmem* and *libvmmalloc*, they have been moved to a
 [separate repository](https://github.com/pmem/vmem).

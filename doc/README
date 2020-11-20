@@ -21,12 +21,13 @@ the documentation must be made by modifying the *.md files in the following
 document subdirectories:
 
 libpmem -- low-level persistent memory support
-libpmem2 -- low-level persistent memory support (EXPERIMENTAL)
+libpmem2 -- low-level persistent memory support
 libpmemblk -- pmem-resident arrays of blocks
 libpmemlog -- pmem-resident log files
 libpmemobj -- transactional object store
 libpmempool -- persistent memory pool management library
-pmempool -- Persistent Memory Pool Management Tool
+pmempool -- persistent memory pool management tool
+libpmemset -- core functionality for any persistent application (EXPERIMENTAL)
 librpmem -- remote access to persistent memory (EXPERIMENTAL)
 rpmemd -- remote persistent memory daemon (EXPERIMENTAL)
 daxio -- perform I/O on Device DAX device
