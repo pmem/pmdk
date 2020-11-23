@@ -12,6 +12,14 @@ Wed Oct 28 2020 Piotr Balcer <piotr.balcer@intel.com>
 	foreseeable future, but we'd like to encourage any new applications to
 	leverage libpmem2.
 
+Wed Oct 28 2020 Piotr Balcer <piotr.balcer@intel.com>
+
+	* Version 1.9.2
+
+	This release reverts an incorrect change in SDS handling
+	"pool: disable SDS check if not supported", and introduces
+	a proper fix for the issues that patch attempted to correct.
+
 Wed Sep 16 2020 Piotr Balcer <piotr.balcer@intel.com>
 
 	* Version 1.9.1
