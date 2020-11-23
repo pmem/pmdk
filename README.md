@@ -30,14 +30,20 @@ Bugs and feature requests for this repo are tracked in our [GitHub Issues Databa
 	* [Memory Management Tools](#memory-management-tools)
 7. [Building PMDK on Windows](#building-pmdk-on-windows)
 	* [Testing Libraries](#testing-libraries-on-windows)
-8. [Experimental Packages](#experimental-packages)
+8. [Debugging](#debugging)
+9. [Experimental Packages](#experimental-packages)
 	* [librpmem and rpmemd packages](#the-librpmem-and-rpmemd-packages)
 	* [Experimental support for 64-bit ARM](#experimental-support-for-64-bit-arm)
-9. [Contact Us](#contact-us)
+10. [Contact Us](#contact-us)
 
 ## Libraries and Utilities
-Available Libraries:
-- [libpmem](https://pmem.io/pmdk/libpmem/):  provides low level persistent memory support
+
+All PMDK related libraries are described in detail on [pmem.io/pmdk](https://pmem.io/pmdk/).
+
+Libraries available in this repository:
+- [libpmem](https://pmem.io/pmdk/libpmem/):  provides low level persistent memory support.
+
+- [libpmem2](https://pmem.io/pmdk/libpmem2/):  provides low level persistent memory support, is a new version of libpmem.
 
 - [libpmemobj](https://pmem.io/pmdk/libpmemobj/):  provides a transactional object store, providing memory allocation, transactions, and general facilities for persistent memory programming.
 
@@ -47,7 +53,9 @@ Available Libraries:
 
 - [libpmempool](https://pmem.io/pmdk/libpmempool/):  provides support for off-line pool management and diagnostics.
 
-- [librpmem](https://pmem.io/pmdk/librpmem/)<sup>1</sup>:  provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs.
+- [libpmemset](https://pmem.io/pmdk/libpmemset/):  (**still in progress**) aims to provide the core functionality any persistent application should have. (EXPERIMENTAL)
+
+- [librpmem](https://pmem.io/pmdk/librpmem/)<sup>1</sup>:  provides low-level support for remote access to persistent memory utilizing RDMA-capable RNICs. (EXPERIMENTAL)
 
 If you're looking for *libvmem* and *libvmmalloc*, they have been moved to a
 [separate repository](https://github.com/pmem/vmem).
@@ -69,7 +77,7 @@ For information on how these libraries are licensed, see our [LICENSE](LICENSE) 
 
 ## Getting Started
 
-Getting Started with Persistent Memory Programming is a tutorial series created by Intel Architect, Andy Rudoff. In this tutorial, you will be introduced to persistent memory programming and learn how to apply it to your applications.
+Getting Started with Persistent Memory Programming is a tutorial series created by Intel architect, Andy Rudoff. In this tutorial, you will be introduced to persistent memory programming and learn how to apply it to your applications.
 - Part 1: [What is Persistent Memory?](https://software.intel.com/en-us/persistent-memory/get-started/series)
 - Part 2: [Describing The SNIA Programming Model](https://software.intel.com/en-us/videos/the-nvm-programming-model-persistent-memory-programming-series)
 - Part 3: [Introduction to PMDK Libraries](https://software.intel.com/en-us/videos/intro-to-the-nvm-libraries-persistent-memory-programming-series)
@@ -81,7 +89,7 @@ Additionally, we recommend reading [Introduction to Programming with Persistent 
 ## Version Conventions
 
 - **Builds** are tagged something like `0.2+b1`, which means _Build 1 on top of version 0.2_
-- **Release Candidates** have a '-rc{version}' tag, e.g. `0.2-rc3, meaning _Release Candidate 3 for version 0.2_
+- **Release Candidates** have a '-rc{version}' tag, e.g. `0.2-rc3`, meaning _Release Candidate 3 for version 0.2_
 - **Stable Releases** use a _major.minor_ tag like `0.2`
 
 ## Pre-Built Packages for Windows
@@ -109,11 +117,12 @@ Just open VS with your already existing project or create a new one
 
 ## Dependencies
 
-Required packages for each supported OS are listed below. It is important to note that some tests and example applications require additional packages, but they do not interrupt building if they are missing. An appropriate message is displayed instead. For details please read the DEPENDENCIES section in the appropriate README file.
+Required packages for each supported OS are listed below. It is important to note that some tests and example applications require additional packages, but they do not interrupt building if they are missing. An appropriate message is displayed instead. For details please read the DEPENDENCIES section in the appropriate README file
+(in tests/ or examples/ sub-directories).
 
-See our **[Dockerfiles](utils/docker/images)**
-to get an idea what packages are required to build the entire PMDK,
-with all the tests and examples on the _Travis-CI_ system.
+See our **[Dockerfiles](utils/docker/images)** (used e.g. on our CI
+systems) to get an idea what packages are required to build
+the entire PMDK, with all the tests and examples.
 
 ### Linux
 
@@ -142,7 +151,7 @@ see https://github.com/pmem/pmdk/issues/4207.
 * **MS Visual Studio 2015**
 * [Windows SDK 10.0.17134.12](https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk)
 * **Windows, version >= 1803**
-* **perl** (i.e. [StrawberryPerl](http://strawberryperl.com/))
+* **perl** (e.g. [StrawberryPerl](http://strawberryperl.com/))
 * **PowerShell 5**
 
 ### FreeBSD
@@ -344,6 +353,14 @@ To **display all the possible options**, run:
 ```
 
 Please refer to the **[src/test/README](src/test/README)** for more details on how to run different types of tests.
+
+## Debugging
+
+To enable logging of debug information, use debug version of a library and set
+desired log level using (library-specific) variable, e.g. `PMEM_LOG_LEVEL=<level>`.
+
+For more details see appropriate manpage (debbuging section), e.g.
+[libpmem(7)](https://pmem.io/pmdk/manpages/linux/master/libpmem/libpmem.7.html#debugging-and-error-handling).
 
 ## Experimental Packages
 

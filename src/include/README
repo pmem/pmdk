@@ -22,6 +22,10 @@ libpmemlog.h -- definitions of libpmemlog entry points (see libpmemlog(7))
 
 libpmemobj.h -- definitions of libpmemobj entry points (see libpmemobj(7))
 
+libpmempool.h -- definitions of libpmempool entry points (see libpmempool(7))
+
 Experimental libraries:
+
+libpmemset.h -- definitions of libpmemset entry points (see libpmemset(7))
 
 librpmem.h -- definitions of librpmem entry points (see librpmem(7))
