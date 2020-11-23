@@ -47,5 +47,4 @@ Publish package and make it official:
 
 Later, for major release:
 - bump version of Docker images (build-CI.sh, build-local.sh, build-image.sh, push-image.sh, pull-or-rebuild-image.sh) to $VERSION+1
-- add new branch to valid-branches.sh
 - once gh-pages contains new documentation, add $VERSION section in _data/releases_linux.yml and _data/releases_windows.yml on gh-pages branch
