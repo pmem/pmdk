@@ -84,6 +84,7 @@ ulog_entry_size(const struct ulog_entry_base *entry)
 		case ULOG_OPERATION_SET:
 			return sizeof(struct ulog_entry_val);
 		case ULOG_OPERATION_BUF_SET:
+			return CACHELINE_SIZE;
 		case ULOG_OPERATION_BUF_CPY:
 			eb = (struct ulog_entry_buf *)entry;
 			return CACHELINE_ALIGN(
@@ -110,7 +111,6 @@ ulog_entry_valid(struct ulog *ulog, const struct ulog_entry_base *entry)
 
 	switch (ulog_entry_type(entry)) {
 		case ULOG_OPERATION_BUF_CPY:
-		case ULOG_OPERATION_BUF_SET:
 			size = ulog_entry_size(entry);
 			b = (struct ulog_entry_buf *)entry;
 
@@ -415,12 +415,34 @@ ulog_clobber_entry(const struct ulog_entry_base *e,
 }
 
 /*
- * ulog_entry_buf_create -- atomically creates a buffer entry in the log
+ * ulog_entry_set_buf_create -- atomically creates a set buffer entry in
+ * the log
  */
-struct ulog_entry_buf *
-ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
-		uint64_t *dest, const void *src, uint64_t size,
-		ulog_operation_type type, const struct pmem_ops *p_ops)
+static struct ulog_entry_buf *
+ulog_entry_set_buf_create(struct ulog *ulog, size_t offset,
+	uint64_t *dest, const int *src, size_t size,
+	const struct pmem_ops *p_ops)
+{
+	struct ulog_entry_buf *e =
+		(struct ulog_entry_buf *)(ulog->data + offset);
+
+	e->data[0] = (uint8_t)*src;
+	e->base.offset = (uint64_t)(dest) - (uint64_t)p_ops->base;
+	e->base.offset |= ULOG_OPERATION_BUF_SET;
+	e->size = size;
+
+	pmemops_persist(p_ops, e, CACHELINE_SIZE);
+	return e;
+}
+
+/*
+ * ulog_entry_cpy_buf_create -- atomically creates a copy buffer entry in
+ * the log
+ */
+static struct ulog_entry_buf *
+ulog_entry_cpy_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
+	uint64_t *dest, const void *src, uint64_t size,
+	const struct pmem_ops *p_ops)
 {
 	struct ulog_entry_buf *e =
 		(struct ulog_entry_buf *)(ulog->data + offset);
@@ -442,7 +464,7 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
 
 	struct ulog_entry_buf *b = alloca(CACHELINE_SIZE);
 	b->base.offset = (uint64_t)(dest) - (uint64_t)p_ops->base;
-	b->base.offset |= ULOG_OPERATION(type);
+	b->base.offset |= ULOG_OPERATION_BUF_CPY;
 	b->size = size;
 	b->checksum = 0;
 
@@ -517,6 +539,28 @@ ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
 	ASSERT(ulog_entry_valid(ulog, &e->base));
 
 	return e;
+}
+
+/*
+ * ulog_entry_buf_create -- atomically creates a buffer entry in the log
+ */
+struct ulog_entry_buf *
+ulog_entry_buf_create(struct ulog *ulog, size_t offset, uint64_t gen_num,
+		uint64_t *dest, const void *src, uint64_t size,
+		ulog_operation_type type, const struct pmem_ops *p_ops)
+{
+	switch (type) {
+		case ULOG_OPERATION_BUF_CPY:
+			return ulog_entry_cpy_buf_create(
+				ulog, offset, gen_num,
+				dest, src, size, p_ops);
+		case ULOG_OPERATION_BUF_SET:
+			return ulog_entry_set_buf_create(
+				ulog, offset,
+				dest, src, size, p_ops);
+		default:
+			return NULL;
+	}
 }
 
 /*

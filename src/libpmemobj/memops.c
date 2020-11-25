@@ -413,13 +413,49 @@ operation_add_entry(struct operation_context *ctx, void *ptr, uint64_t value,
 }
 
 /*
+ * operatoin_buf_real_size -- (internal) get size of data copied
+ * to buf ulog entry
+ */
+static inline size_t
+operation_buf_real_size(size_t size, ulog_operation_type type)
+{
+	switch (type) {
+		case ULOG_OPERATION_BUF_SET:
+			return sizeof(uint8_t) + sizeof(struct ulog_entry_buf);
+		case ULOG_OPERATION_BUF_CPY:
+			return size + sizeof(struct ulog_entry_buf);
+		default:
+			ASSERT(0);
+			return (size_t)-1;
+	}
+}
+
+/*
+ * operation_buf_dest_size -- (internal) get dest data size
+ * of buf ulog entry
+ */
+static inline size_t
+operation_buf_dest_size(size_t data_size, size_t size, ulog_operation_type type)
+{
+	switch (type) {
+		case ULOG_OPERATION_BUF_SET:
+			return size;
+		case ULOG_OPERATION_BUF_CPY:
+			return data_size;
+		default:
+			ASSERT(0);
+			return (size_t)-1;
+	}
+}
+
+/*
  * operation_add_buffer -- adds a buffer operation to the log
  */
 int
 operation_add_buffer(struct operation_context *ctx,
 	void *dest, void *src, size_t size, ulog_operation_type type)
 {
-	size_t real_size = size + sizeof(struct ulog_entry_buf);
+	size_t real_size = operation_buf_real_size(size, type);
 
 	/* if there's no space left in the log, reserve some more */
 	if (ctx->ulog_curr_capacity == 0) {
@@ -436,6 +472,7 @@ operation_add_buffer(struct operation_context *ctx,
 
 	size_t curr_size = MIN(real_size, ctx->ulog_curr_capacity);
 	size_t data_size = curr_size - sizeof(struct ulog_entry_buf);
+	size_t dest_size = operation_buf_dest_size(data_size, size, type);
 	size_t entry_size = ALIGN_UP(curr_size, CACHELINE_SIZE);
 
 	/*
@@ -456,11 +493,15 @@ operation_add_buffer(struct operation_context *ctx,
 	if (next_entry != NULL)
 		ulog_clobber_entry(next_entry, ctx->p_ops);
 
-	/* create a persistent log entry */
+	/*
+	 * create a persistent log entry. Type is checked in
+	 * operation_buf_real_size above, so no need to check
+	 * if created entry is NULL
+	 */
 	struct ulog_entry_buf *e = ulog_entry_buf_create(ctx->ulog_curr,
 		ctx->ulog_curr_offset,
 		ctx->ulog_curr_gen_num,
-		dest, src, data_size,
+		dest, src, dest_size,
 		type, ctx->p_ops);
 	ASSERT(entry_size == ulog_entry_size(&e->base));
 	ASSERT(entry_size <= ctx->ulog_curr_capacity);
@@ -473,7 +514,8 @@ operation_add_buffer(struct operation_context *ctx,
 	 * Recursively add the data to the log until the entire buffer is
 	 * processed.
 	 */
-	return size - data_size == 0 ? 0 : operation_add_buffer(ctx,
+	return real_size - sizeof(struct ulog_entry_buf) - data_size == 0
+		? 0 : operation_add_buffer(ctx,
 			(char *)dest + data_size,
 			(char *)src + data_size,
 			size - data_size, type);
