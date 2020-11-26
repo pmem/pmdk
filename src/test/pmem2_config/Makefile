@@ -11,11 +11,10 @@ vpath %.c $(TOP)/src/libpmem2
 
 INCS += -I$(TOP)/src/libpmem2
 TARGET = pmem2_config
-OBJS += errormsg.o\
-	pmem2_config.o\
+OBJS += pmem2_config.o\
 	ut_pmem2_config.o\
 	ut_pmem2_source.o\
 	ut_pmem2_utils.o
 
-LIBPMEMCOMMON=y
+LIBPMEM2=internal-debug
 include ../Makefile.inc

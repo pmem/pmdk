@@ -17,6 +17,6 @@ OBJS += config.o\
 	pmemset_perror.o\
 	pmemset_utils.o
 
-LIBPMEMCOMMON=y
+LIBPMEMCORE=y
 
 include ../Makefile.inc

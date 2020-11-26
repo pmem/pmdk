@@ -71,8 +71,7 @@ endif
 ifeq ($(LIBPMEMOBJ), internal-debug)
 LIBPMEM=y
 LIBPMEMCOMMON=internal-debug
-OBJS += $(TOP)/src/debug/core/ravl.o\
-	$(TOP)/src/debug/libpmemobj/alloc_class.o\
+OBJS += $(TOP)/src/debug/libpmemobj/alloc_class.o\
 	$(TOP)/src/debug/libpmemobj/bucket.o\
 	$(TOP)/src/debug/libpmemobj/container_ravl.o\
 	$(TOP)/src/debug/libpmemobj/container_seglists.o\
@@ -99,8 +98,7 @@ endif
 ifeq ($(LIBPMEMOBJ), internal-nondebug)
 LIBPMEM=y
 LIBPMEMCOMMON=internal-nondebug
-OBJS +=	$(TOP)/src/nondebug/core/ravl.o\
-	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
+OBJS +=	$(TOP)/src/nondebug/libpmemobj/alloc_class.o\
 	$(TOP)/src/nondebug/libpmemobj/bucket.o\
 	$(TOP)/src/nondebug/libpmemobj/container_ravl.o\
 	$(TOP)/src/nondebug/libpmemobj/container_seglists.o\
@@ -132,6 +130,8 @@ STATIC_NONDEBUG_LIBS += $(LIBS_DIR)/nondebug/libpmemset.a
 endif
 
 ifeq ($(LIBPMEMSET), internal-debug)
+LIBPMEM2=y
+LIBPMEMCORE=internal-debug
 OBJS +=\
 	$(TOP)/src/debug/libpmemset/config.o\
 	$(TOP)/src/debug/libpmemset/errormsg.o\
@@ -145,6 +145,8 @@ INCS += -I$(TOP)/src/libpmemset
 endif
 
 ifeq ($(LIBPMEMSET), internal-nondebug)
+LIBPMEM2=y
+LIBPMEMCORE=internal-nondebug
 OBJS +=\
 	$(TOP)/src/nondebug/libpmemset/config.o\
 	$(TOP)/src/nondebug/libpmemset/errormsg.o\
@@ -192,7 +194,6 @@ endif
 ifeq ($(LIBPMEM2), internal-debug)
 LIBPMEMCORE=internal-debug
 OBJS +=\
-	$(TOP)/src/debug/core/ravl.o\
 	$(TOP)/src/debug/libpmem2/badblocks.o\
 	$(TOP)/src/debug/libpmem2/badblocks_$(OS_DIMM).o\
 	$(TOP)/src/debug/libpmem2/config.o\
@@ -210,7 +211,6 @@ OBJS +=\
 	$(TOP)/src/debug/libpmem2/usc_$(OS_DIMM).o\
 	$(TOP)/src/debug/libpmem2/vm_reservation.o\
 	$(TOP)/src/debug/libpmem2/vm_reservation_posix.o\
-	$(TOP)/src/debug/libpmem2/ravl_interval.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
@@ -244,7 +244,6 @@ endif
 ifeq ($(LIBPMEM2), internal-nondebug)
 LIBPMEMCORE=internal-nondebug
 OBJS +=\
-	$(TOP)/src/nondebug/core/ravl.o\
 	$(TOP)/src/nondebug/libpmem2/libpmem2.o\
 	$(TOP)/src/nondebug/libpmem2/badblocks.o\
 	$(TOP)/src/nondebug/libpmem2/badblocks_$(OS_DIMM).o\
@@ -262,7 +261,6 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmem2/usc_$(OS_DIMM).o\
 	$(TOP)/src/nondebug/libpmem2/vm_reservation.o\
 	$(TOP)/src/nondebug/libpmem2/vm_reservation_posix.o\
-	$(TOP)/src/nondebug/libpmem2/ravl_interval.o
 
 ifeq ($(OS_KERNEL_NAME),Linux)
 OBJS +=\
@@ -427,10 +425,11 @@ OBJS +=\
 	$(TOP)/src/nondebug/core/os_posix.o\
 	$(TOP)/src/nondebug/core/os_thread_posix.o\
 	$(TOP)/src/nondebug/core/out.o\
+	$(TOP)/src/nondebug/core/ravl.o\
+	$(TOP)/src/nondebug/core/ravl_interval.o\
 	$(TOP)/src/nondebug/core/util.o\
 	$(TOP)/src/nondebug/core/util_posix.o
 
-OBJS += $(LIBS_DIR)/debug/libpmemcore.a
 INCS += -I$(TOP)/src/core
 endif
 
@@ -441,10 +440,11 @@ OBJS +=\
 	$(TOP)/src/debug/core/os_posix.o\
 	$(TOP)/src/debug/core/os_thread_posix.o\
 	$(TOP)/src/debug/core/out.o\
+	$(TOP)/src/debug/core/ravl.o\
+	$(TOP)/src/debug/core/ravl_interval.o\
 	$(TOP)/src/debug/core/util.o\
 	$(TOP)/src/debug/core/util_posix.o
 
-OBJS += $(LIBS_DIR)/debug/libpmemcore.a
 INCS += -I$(TOP)/src/core
 endif
 

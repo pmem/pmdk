@@ -16,5 +16,5 @@ OBJS += pmem2_map_from_existing.o\
 	ut_pmem2_source.o
 
 LIBPMEM2=internal-debug
-LIBPMEMCORE=y
+
 include ../Makefile.inc
