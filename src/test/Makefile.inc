@@ -227,9 +227,13 @@ OBJS +=\
 endif
 
 ifeq ($(OS_DIMM),ndctl)
-OBJS += $(TOP)/src/debug/libpmem2/region_namespace_ndctl.o
+OBJS +=\
+	$(TOP)/src/debug/libpmem2/region_namespace_ndctl.o\
+	$(TOP)/src/debug/libpmem2/numa_ndctl.o
 else
-OBJS += $(TOP)/src/debug/libpmem2/region_namespace_none.o
+OBJS +=\
+	$(TOP)/src/debug/libpmem2/region_namespace_none.o\
+	$(TOP)/src/debug/libpmem2/numa_none.o
 endif
 
 include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
@@ -279,9 +283,13 @@ OBJS +=\
 endif
 
 ifeq ($(OS_DIMM),ndctl)
-OBJS += $(TOP)/src/nondebug/libpmem2/region_namespace_ndctl.o
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem2/region_namespace_ndctl.o\
+	$(TOP)/src/nondebug/libpmem2/numa_ndctl.o
 else
-OBJS += $(TOP)/src/nondebug/libpmem2/region_namespace_none.o
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem2/region_namespace_none.o\
+	$(TOP)/src/nondebug/libpmem2/numa_none.o
 endif
 
 include $(TOP)/src/libpmem2/$(ARCH)/sources.inc
@@ -353,9 +361,13 @@ OBJS +=\
 endif
 
 ifeq ($(OS_DIMM),ndctl)
-OBJS += $(TOP)/src/nondebug/libpmem2/region_namespace_ndctl.o
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem2/region_namespace_ndctl.o\
+	$(TOP)/src/nondebug/libpmem2/numa_ndctl.o
 else
-OBJS += $(TOP)/src/nondebug/libpmem2/region_namespace_none.o
+OBJS +=\
+	$(TOP)/src/nondebug/libpmem2/region_namespace_none.o\
+	$(TOP)/src/nondebug/libpmem2/numa_none.o
 endif
 
 INCS += -I$(TOP)/src/common
@@ -406,9 +418,13 @@ OBJS +=\
 	endif
 
 ifeq ($(OS_DIMM),ndctl)
-OBJS += $(TOP)/src/debug/libpmem2/region_namespace_ndctl.o
+OBJS +=\
+	$(TOP)/src/debug/libpmem2/region_namespace_ndctl.o\
+	$(TOP)/src/debug/libpmem2/numa_ndctl.o
 else
-OBJS += $(TOP)/src/debug/libpmem2/region_namespace_none.o
+OBJS +=\
+	$(TOP)/src/debug/libpmem2/region_namespace_none.o\
+	$(TOP)/src/debug/libpmem2/numa_none.o
 endif
 
 INCS += -I$(TOP)/src/common

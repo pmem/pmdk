@@ -798,6 +798,8 @@ test_source_anon(enum pmem2_sharing_type sharing,
 			PMEM2_E_NOSUPP);
 	UT_PMEM2_EXPECT_RETURN(pmem2_source_device_usc(src, NULL),
 			PMEM2_E_NOSUPP);
+	UT_PMEM2_EXPECT_RETURN(pmem2_source_numa_node(src, NULL),
+			PMEM2_E_NOSUPP);
 	UT_PMEM2_EXPECT_RETURN(pmem2_badblock_context_new(&bbctx, src),
 			PMEM2_E_NOSUPP);
 	size_t alignment;
