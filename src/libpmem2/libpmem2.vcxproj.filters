@@ -66,6 +66,9 @@
     <ClCompile Include="memops_generic.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="numa_none.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="persist.c">
       <Filter>Source Files</Filter>
     </ClCompile>

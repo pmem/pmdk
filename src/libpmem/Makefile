@@ -47,11 +47,15 @@ SOURCE +=\
 endif
 
 ifeq ($(OS_DIMM),ndctl)
-SOURCE += region_namespace_ndctl.c
+SOURCE +=\
+	region_namespace_ndctl.c\
+	numa_ndctl.c
 CFLAGS += $(LIBNDCTL_CFLAGS)
 LIBS += $(LIBNDCTL_LIBS)
 else
-SOURCE += region_namespace_none.c
+SOURCE +=\
+	region_namespace_none.c\
+	numa_none.c
 endif
 
 INCS += -I$(TOP)/src/libpmem2
