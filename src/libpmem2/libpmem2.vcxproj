@@ -30,6 +30,7 @@
     <ClCompile Include="map.c" />
     <ClCompile Include="map_windows.c" />
     <ClCompile Include="memops_generic.c" />
+    <ClCompile Include="numa_none.c" />
     <ClCompile Include="persist.c" />
     <ClCompile Include="persist_windows.c" />
     <ClCompile Include="pmem2_utils.c" />

@@ -45,9 +45,13 @@ SOURCE +=\
 endif
 
 ifeq ($(OS_DIMM),ndctl)
-SOURCE += region_namespace_ndctl.c
+SOURCE +=\
+	region_namespace_ndctl.c\
+	numa_ndctl.c
 else
-SOURCE += region_namespace_none.c
+SOURCE +=\
+	region_namespace_none.c\
+	numa_none.c
 endif
 
 include $(ARCH)/sources.inc
