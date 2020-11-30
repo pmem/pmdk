@@ -35,3 +35,8 @@ class TEST2(PmemSetConfigNoDir):
 class TEST3(PmemSetConfigNoDir):
     """replication of pmemset_config in case of missing memory in system"""
     test_case = "test_duplicate_cfg_enomem"
+
+
+class TEST4(PmemSetConfigNoDir):
+    """pmemset_config invalid store granularity"""
+    test_case = "test_set_invalid_granularity"
