@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2020, Intel Corporation
 
 #
 # src/test/unicode_api/TEST0 -- unicode C API check
@@ -34,14 +34,15 @@ function pick_col {
 function check_file {
 	local file=$1
 	local dir=$2
-	local pat=$3
+	local h_dir=$3
+	local pat=$4
 
 	local funcs=$(clang -Xclang -ast-dump -I$HEADERS_DIR $file -fno-color-diagnostics 2> /dev/null |\
 		grep "FunctionDecl.*pmem.*char \*" | cut -d " " -f $DEF_COL)
 	for func in $funcs
 	do
 		local good=1	# Not starting at 0 allows set -e
-		to_check="$dir/*.h $file"
+		to_check="$dir/*.h $h_dir/*.h"
 		if [ -n "${pat:+x}" ] && [[ $func =~ $pat ]]; then
 			continue
 		fi
@@ -63,7 +64,7 @@ pick_col
 
 for f in $HEADERS_DIR/*.h
 do
-	check_file $f $INC_DIR $EXC_PATT
+	check_file $f $INC_DIR $HEADERS_DIR $EXC_PATT
 done
 
 if [ $FAILED -ne 0 ]; then
