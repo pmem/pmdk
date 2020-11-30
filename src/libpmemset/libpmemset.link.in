@@ -14,6 +14,7 @@ LIBPMEMSET_1.0 {
 		pmemset_config_set_event_callback;
 		pmemset_config_set_layout_name;
 		pmemset_config_set_reservation;
+		pmemset_config_set_required_store_granularity;
 		pmemset_config_set_version;
 		pmemset_deep_flush;
 		pmemset_delete;

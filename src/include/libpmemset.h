@@ -11,6 +11,7 @@
 #define LIBPMEMSET_H 1
 
 #include <stddef.h>
+#include <libpmem2.h>
 
 #ifdef _WIN32
 #include <pmemcompat.h>
@@ -42,6 +43,8 @@ extern "C" {
 #define PMEMSET_E_INVALID_PMEM2_SOURCE		(-200002)
 #define PMEMSET_E_INVALID_FILE_PATH		(-200003)
 #define PMEMSET_E_INVALID_SOURCE_TYPE		(-200004)
+#define PMEMSET_E_GRANULARITY_NOT_SET		(-200005)
+#define PMEMSET_E_GRANULARITY_NOT_SUPPORTED	(-200006)
 
 /* pmemset setup */
 
@@ -121,9 +124,6 @@ typedef int pmemset_event_callback(struct pmemset *set,
 
 /* config setup */
 
-struct pmem2_vm_reservation;
-struct pmemset_config;
-
 int pmemset_config_new(struct pmemset_config **cfg);
 
 int pmemset_config_delete(struct pmemset_config **cfg);
@@ -139,6 +139,9 @@ int pmemset_config_set_event_callback(struct pmemset_config *cfg,
 
 int pmemset_config_set_reservation(struct pmemset_config *cfg,
 		struct pmem2_vm_reservation *rsv);
+
+int pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,
+		enum pmem2_granularity g);
 
 int pmemset_config_set_contiguous_part_coalescing(
 		struct pmemset_config *cfg, int value);
