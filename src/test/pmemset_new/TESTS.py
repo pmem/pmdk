@@ -35,3 +35,8 @@ class TEST2(PmemSetNewNoDir):
 class TEST3(PmemSetNewNoDir):
     """deleting null pmemset"""
     test_case = "test_delete_null_set"
+
+
+class TEST4(PmemSetNewNoDir):
+    """pmemset_new with invalid granularity value"""
+    test_case = "test_granularity_not_set"

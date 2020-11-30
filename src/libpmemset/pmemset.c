@@ -7,6 +7,7 @@
 
 #include "pmemset.h"
 #include "libpmemset.h"
+#include "libpmem2.h"
 #include "part.h"
 #include "pmemset_utils.h"
 #include "ravl_interval.h"
@@ -84,6 +85,13 @@ int
 pmemset_new(struct pmemset **set, struct pmemset_config *cfg)
 {
 	PMEMSET_ERR_CLR();
+
+	if (pmemset_get_granularity(cfg) == PMEMSET_GRANULARITY_INVALID) {
+		ERR(
+			"please define the max granularity requested for the mapping");
+
+		return PMEMSET_E_GRANULARITY_NOT_SET;
+	}
 
 	int ret = 0;
 
