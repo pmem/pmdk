@@ -96,6 +96,30 @@ test_duplicate_cfg_enomem(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
+ * test_set_invalid_granularity - test set inval granularity in the config
+ */
+static int
+test_set_invalid_granularity(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	struct pmemset_config *cfg;
+
+	int ret = pmemset_config_new(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(cfg, NULL);
+
+	ret = pmemset_config_set_required_store_granularity(cfg, 999);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_GRANULARITY_NOT_SUPPORTED);
+	UT_ASSERTne(cfg, NULL);
+
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(cfg, NULL);
+
+	return 0;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -103,6 +127,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_alloc_cfg_enomem),
 	TEST_CASE(test_delete_null_config),
 	TEST_CASE(test_duplicate_cfg_enomem),
+	TEST_CASE(test_set_invalid_granularity),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

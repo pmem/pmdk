@@ -18,7 +18,7 @@
  * pmemset_config -- pmemset configuration structure.
  */
 struct pmemset_config {
-	char stub;
+	enum pmem2_granularity set_granularity;
 };
 
 /*
@@ -27,7 +27,16 @@ struct pmemset_config {
 void
 pmemset_config_init(struct pmemset_config *cfg)
 {
-	cfg->stub = '\0';
+	cfg->set_granularity = PMEMSET_GRANULARITY_INVALID;
+}
+
+/*
+ * pmemset_get_granularity -- returns pmemset granularity value
+ */
+enum pmem2_granularity
+pmemset_get_granularity(struct pmemset_config *cfg)
+{
+	return cfg->set_granularity;
 }
 
 /*
@@ -143,6 +152,29 @@ pmemset_config_set_version(struct pmemset_config *cfg,
 }
 
 /*
+ * pmemset_config_set_required_store_granularity -- set granularity for pmemset
+ */
+int
+pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,
+		enum pmem2_granularity g)
+{
+	PMEMSET_ERR_CLR();
+
+	switch (g) {
+		case PMEM2_GRANULARITY_BYTE:
+		case PMEM2_GRANULARITY_CACHE_LINE:
+		case PMEM2_GRANULARITY_PAGE:
+			break;
+		default:
+			ERR("unknown granularity value %d", g);
+			return PMEMSET_E_GRANULARITY_NOT_SUPPORTED;
+	}
+
+	cfg->set_granularity = g;
+
+	return 0;
+}
+/*
  * pmemset_config_delete -- deallocate cfg structure
  */
 int
@@ -171,7 +203,7 @@ pmemset_config_duplicate(struct pmemset_config **cfg_dst,
 	}
 
 	/* Copy cfg */
-	(*cfg_dst)->stub = cfg_src->stub;
+	(*cfg_dst)->set_granularity = cfg_src->set_granularity;
 
 	return 0;
 }
