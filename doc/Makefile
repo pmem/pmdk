@@ -121,12 +121,11 @@ MANPAGES_7_MD_PMEMSET = libpmemset/libpmemset.7.md
 MANPAGES_5_MD_PMEMSET =
 MANPAGES_3_MD_PMEMSET = libpmemset/pmemset_errormsg.3.md libpmemset/pmemset_perror.3.md libpmemset/pmemset_config_new.3.md \
 			libpmemset/pmemset_source_from_pmem2.3.md libpmemset/pmemset_new.3.md \
-			libpmemset/pmemset_source_from_file.3.md libpmemset/pmemset_part_new.3.md
+			libpmemset/pmemset_source_from_file.3.md libpmemset/pmemset_source_delete.3.md libpmemset/pmemset_part_new.3.md
 
 MANPAGES_1_MD_PMEMSET =
 ifeq ($(PMEMSET_INSTALL),y)
-MANPAGES_3_DUMMY += libpmemset/pmemset_config_delete.3 libpmemset/pmemset_delete.3 \
-	libpmemset/pmemset_source_delete.3
+MANPAGES_3_DUMMY += libpmemset/pmemset_config_delete.3 libpmemset/pmemset_delete.3
 endif
 
 ifeq ($(BUILD_RPMEM),y)
