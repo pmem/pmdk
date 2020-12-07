@@ -25,6 +25,7 @@ EXPORTS
 	pmemset_delete
 	pmemset_drain
 	pmemset_flush
+	pmemset_get_store_granularity
 	pmemset_header_initU
 	pmemset_header_initW
 	pmemset_memcpy

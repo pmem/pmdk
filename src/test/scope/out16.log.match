@@ -16,12 +16,14 @@ pmemset_drain
 pmemset_errormsgU
 pmemset_errormsgW
 pmemset_flush
+pmemset_get_store_granularity
 pmemset_header_initU
 pmemset_header_initW
 pmemset_memcpy
 pmemset_memmove
 pmemset_memset
 pmemset_new
+pmemset_part_delete
 pmemset_part_map
 pmemset_part_map_by_address
 pmemset_part_map_descriptor

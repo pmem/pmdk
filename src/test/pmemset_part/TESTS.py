@@ -73,3 +73,9 @@ class TEST8(PMEMSET_PART):
     """test if data is unavailable after pmemset_delete"""
     test_case = "test_unmap_part"
     create_file = True
+
+
+class TEST9(PMEMSET_PART):
+    """test pmemset_get_store_granularity function"""
+    test_case = "test_part_map_gran_read"
+    create_file = True

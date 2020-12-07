@@ -25,6 +25,9 @@ int pmemset_insert_part_map(struct pmemset *set, struct pmemset_part_map *map);
 struct pmem2_config *pmemset_get_pmem2_config(struct pmemset *set);
 struct pmemset_config *pmemset_get_pmemset_config(struct pmemset *set);
 
+void pmemset_set_store_granularity(struct pmemset *set,
+	enum pmem2_granularity g);
+
 int pmemset_source_destroy_pmem2_source(struct pmemset_source *src,
 	struct pmem2_source **pmem2_src);
 

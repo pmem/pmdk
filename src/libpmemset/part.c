@@ -8,6 +8,7 @@
 #include <fcntl.h>
 
 #include "alloc.h"
+#include "config.h"
 #include "file.h"
 #include "libpmemset.h"
 #include "libpmem2.h"
@@ -116,6 +117,7 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 
 	struct pmemset_part *p = *part;
 	struct pmemset *set = (*part)->set;
+	struct pmemset_config *set_config = pmemset_get_pmemset_config(set);
 	int ret = 0;
 	struct pmem2_config *pmem2_cfg = pmemset_get_pmem2_config(set);
 
@@ -131,7 +133,7 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 
 	/* XXX: use pmemset_require_granularity function here */
 	ret = pmem2_config_set_required_store_granularity(pmem2_cfg,
-			PMEM2_GRANULARITY_PAGE);
+			pmemset_get_config_granularity(set_config));
 	if (ret) {
 		ERR("granularity value is not supported %d", ret);
 		ret = PMEMSET_E_GRANULARITY_NOT_SUPPORTED;
@@ -151,6 +153,25 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	if (ret) {
 		ERR("cannot create pmem2 mapping %d", ret);
 		ret = PMEMSET_E_INVALID_PMEM2_MAP;
+		goto map_err;
+	}
+
+	enum pmem2_granularity pmem2_map_gran =
+		pmem2_map_get_store_granularity(pmem2_map);
+	enum pmem2_granularity set_effective_gran =
+		pmemset_get_store_granularity(set);
+	/*
+	 * effective granularity is only set once and
+	 * must have the same value for each mapping
+	 */
+	if (set_effective_gran == PMEMSET_GRANULARITY_INVALID) {
+		pmemset_set_store_granularity(set, pmem2_map_gran);
+	} else if (set_effective_gran != pmem2_map_gran) {
+		ERR("all parts in the set must have the same granularity %d",
+			set_effective_gran);
+		ret = PMEMSET_E_GRANULARITY_MISMATCH;
+		pmem2_map_delete(&pmem2_map);
+		Free(part_map);
 		goto map_err;
 	}
 
