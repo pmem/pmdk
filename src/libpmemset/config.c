@@ -31,10 +31,10 @@ pmemset_config_init(struct pmemset_config *cfg)
 }
 
 /*
- * pmemset_get_granularity -- returns pmemset granularity value
+ * pmemset_get_confg_granularity -- returns pmemset granularity value
  */
 enum pmem2_granularity
-pmemset_get_granularity(struct pmemset_config *cfg)
+pmemset_get_config_granularity(struct pmemset_config *cfg)
 {
 	return cfg->set_granularity;
 }

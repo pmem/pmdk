@@ -49,6 +49,8 @@ extern "C" {
 #define PMEMSET_E_INVALID_PMEM2_MAP			(-200008)
 #define PMEMSET_E_PART_EXISTS				(-200009)
 #define PMEMSET_E_GRANULARITY_NOT_SET			(-200010)
+#define PMEMSET_E_GRANULARITY_MISMATCH			(-200011)
+#define PMEMSET_E_NO_PART_MAPPED			(-200012)
 
 /* pmemset setup */
 
@@ -107,6 +109,9 @@ int pmemset_persist(struct pmemset *set, const void *ptr, size_t size);
 int pmemset_flush(struct pmemset *set, const void *ptr, size_t size);
 
 int pmemset_drain(struct pmemset *set);
+
+int pmemset_get_store_granularity(struct pmemset *set,
+		enum pmem2_granularity *g);
 
 #define PMEMSET_F_MEM_NODRAIN		(1U << 0)
 #define PMEMSET_F_MEM_NONTEMPORAL	(1U << 1)

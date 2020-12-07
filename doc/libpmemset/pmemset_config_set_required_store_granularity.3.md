@@ -34,8 +34,13 @@ int pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,
 
 # DESCRIPTION #
 
-The **pmemset_config_set_required_store_granularity**() sets granularity value *g* required for entire pmemset object.
-It means that each part has to have the same granularity defined in advanced using **pmemset_config_set_required_store_granularity**().
+The **pmemset_config_set_required_store_granularity**() sets maximum permitted granularity value *g*
+requested for entire pmemset object.
+
+Each part has to have the same effective granularity of mapped parts - detected and
+initialized during **pmemset_part_map(3)**.
+It means that the user cannot use *parts* with a different effective granularity within one *pmemset*.
+To read effective granularity of the *pmemset* after mapping the first, use **pmemset_get_store_granularity**(3).
 
 Regardless of the pmemset source type, the **libpmemset(7)** library uses **libpmem2(7)** API to map parts.
 
@@ -63,5 +68,5 @@ The **pmemset_config_set_required_store_granularity**() can fail with the follow
 
 # SEE ALSO #
 
-**pmem2_config_set_required_store_graularity**(3), **libpmem2**(7),
-**libpmemset**(7) and **<http://pmem.io>**
+**pmem2_config_set_required_store_graularity**(3), **pmemset_get_store_granularity**(3),
+**pmemset_part_map(3)**, **libpmem2**(7), **libpmemset**(7) and **<http://pmem.io>**

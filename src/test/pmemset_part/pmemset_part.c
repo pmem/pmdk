@@ -343,6 +343,56 @@ test_part_map_invalid_offset(const struct test_case *tc, int argc,
 	return 1;
 }
 
+/*
+ * test_part_map_gran_read - try to read effective granularity before
+ * part mapping and after part mapping.
+ */
+static int
+test_part_map_gran_read(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_gran_read <path>");
+
+	const char *file = argv[0];
+	struct pmemset_part *part;
+	struct pmemset_source *src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	enum pmem2_granularity effective_gran;
+
+	int ret = pmemset_source_from_file(&src, file);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, 64 * 1024);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_get_store_granularity(set, &effective_gran);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_NO_PART_MAPPED);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_get_store_granularity(set, &effective_gran);
+	ASSERTeq(ret, 0);
+
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	return 1;
+}
+
 static ut_jmp_buf_t Jmp;
 
 /*
@@ -643,6 +693,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_part_map_valid_source_pmem2),
 	TEST_CASE(test_part_map_valid_source_file),
 	TEST_CASE(test_part_map_invalid_offset),
+	TEST_CASE(test_part_map_gran_read),
 	TEST_CASE(test_unmap_part),
 	TEST_CASE(test_part_map_enomem),
 	TEST_CASE(test_part_map_first),

@@ -5,6 +5,7 @@
  * pmemset.c -- implementation of common pmemset API
  */
 
+#include <stdbool.h>
 #include "pmemset.h"
 #include "libpmemset.h"
 #include "libpmem2.h"
@@ -21,6 +22,14 @@
 struct pmemset {
 	struct pmemset_config *set_config;
 	struct ravl_interval *part_map_tree;
+	bool effective_granularity_valid;
+	enum pmem2_granularity effective_granularity;
+};
+
+static char *granularity_name[3] = {
+	"PMEM2_GRANULARITY_BYTE",
+	"PMEM2_GRANULARITY_CACHE_LINE",
+	"PMEM2_GRANULARITY_PAGE"
 };
 
 /*
@@ -83,6 +92,8 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 		return PMEMSET_E_ERRNO;
 	}
 
+	set->effective_granularity_valid = false;
+
 	return 0;
 }
 
@@ -94,7 +105,8 @@ pmemset_new(struct pmemset **set, struct pmemset_config *cfg)
 {
 	PMEMSET_ERR_CLR();
 
-	if (pmemset_get_granularity(cfg) == PMEMSET_GRANULARITY_INVALID) {
+	if (pmemset_get_config_granularity(cfg) ==
+			PMEMSET_GRANULARITY_INVALID) {
 		ERR(
 			"please define the max granularity requested for the mapping");
 
@@ -175,6 +187,37 @@ pmemset_insert_part_map(struct pmemset *set, struct pmemset_part_map *map)
 }
 
 /*
+ * pmemset_set_store_granularity -- set effective_graunlarity
+ * in the pmemset structure
+ */
+static void
+pmemset_set_store_granularity(struct pmemset *set, enum pmem2_granularity g)
+{
+	LOG(3, "set %p g %d", set, g);
+	set->effective_granularity = g;
+}
+
+/*
+ * pmemset_get_store_granularity -- get effective_graunlarity
+ * from pmemset
+ */
+int
+pmemset_get_store_granularity(struct pmemset *set, enum pmem2_granularity *g)
+{
+	LOG(3, "%p", set);
+
+	if (set->effective_granularity_valid == false) {
+		ERR(
+			"effective granularity value for pmemset is not set, no part is mapped");
+		return PMEMSET_E_NO_PART_MAPPED;
+	}
+
+	*g = set->effective_granularity;
+
+	return 0;
+}
+
+/*
  * pmemset_part_map -- create new part mapping and add it to the set
  */
 int
@@ -187,11 +230,40 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	struct pmemset_part *p = *part;
 	struct pmemset_part_map *part_map;
 	struct pmemset *set = pmemset_part_get_pmemset(p);
+	struct pmemset_config *set_config = pmemset_get_pmemset_config(set);
+	enum pmem2_granularity mapping_gran;
+	enum pmem2_granularity config_gran =
+		pmemset_get_config_granularity(set_config);
 
 	int ret = pmemset_part_create_part_mapping(&part_map, p,
-			PMEM2_GRANULARITY_PAGE);
+			config_gran, &mapping_gran);
 	if (ret)
 		return ret;
+
+	/*
+	 * effective granularity is only set once and
+	 * must have the same value for each mapping
+	 */
+
+	bool effective_gran_valid = set->effective_granularity_valid;
+
+	if (effective_gran_valid == false) {
+		pmemset_set_store_granularity(set, mapping_gran);
+		set->effective_granularity_valid = true;
+	} else {
+		enum pmem2_granularity set_effective_gran;
+		ret = pmemset_get_store_granularity(set, &set_effective_gran);
+		ASSERTeq(ret, 0);
+
+		if (set_effective_gran != mapping_gran) {
+			ERR(
+				"the part granularity is %s, all parts in the set must have the same granularity %s",
+				granularity_name[mapping_gran],
+				granularity_name[set_effective_gran]);
+			ret = PMEMSET_E_GRANULARITY_MISMATCH;
+			goto err_delete_pmap;
+		}
+	}
 
 	/*
 	 * XXX: add multiple part support
