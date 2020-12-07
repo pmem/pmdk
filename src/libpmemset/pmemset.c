@@ -21,6 +21,7 @@
 struct pmemset {
 	struct pmemset_config *set_config;
 	struct ravl_interval *part_map_tree;
+	enum pmem2_granularity effective_granularity;
 };
 
 /*
@@ -83,6 +84,8 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 		return PMEMSET_E_ERRNO;
 	}
 
+	set->effective_granularity = PMEMSET_GRANULARITY_INVALID;
+
 	return 0;
 }
 
@@ -94,7 +97,8 @@ pmemset_new(struct pmemset **set, struct pmemset_config *cfg)
 {
 	PMEMSET_ERR_CLR();
 
-	if (pmemset_get_granularity(cfg) == PMEMSET_GRANULARITY_INVALID) {
+	if (pmemset_get_config_granularity(cfg) ==
+			PMEMSET_GRANULARITY_INVALID) {
 		ERR(
 			"please define the max granularity requested for the mapping");
 
@@ -175,6 +179,28 @@ pmemset_insert_part_map(struct pmemset *set, struct pmemset_part_map *map)
 }
 
 /*
+ * pmemset_set_store_granularity -- set effective_graunlarity
+ * in the pmemset structure
+ */
+static void
+pmemset_set_store_granularity(struct pmemset *set, enum pmem2_granularity g)
+{
+	LOG(3, "set %p g %d", set, g);
+	set->effective_granularity = g;
+}
+
+/*
+ * pmemset_get_store_granularity -- get effective_graunlarity
+ * from pmemset
+ */
+enum pmem2_granularity
+pmemset_get_store_granularity(struct pmemset *set)
+{
+	LOG(3, "%p", set);
+	return set->effective_granularity;
+}
+
+/*
  * pmemset_part_map -- create new part mapping and add it to the set
  */
 int
@@ -187,11 +213,30 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	struct pmemset_part *p = *part;
 	struct pmemset_part_map *part_map;
 	struct pmemset *set = pmemset_part_get_pmemset(p);
+	struct pmemset_config *set_config = pmemset_get_pmemset_config(set);
+	enum pmem2_granularity mapping_gran;
+	enum pmem2_granularity config_gran =
+		pmemset_get_config_granularity(set_config);
 
 	int ret = pmemset_part_create_part_mapping(&part_map, p,
-			PMEM2_GRANULARITY_PAGE);
+			config_gran, &mapping_gran);
 	if (ret)
 		return ret;
+
+	/*
+	 * effective granularity is only set once and
+	 * must have the same value for each mapping
+	 */
+	enum pmem2_granularity set_effective_gran =
+		pmemset_get_store_granularity(set);
+	if (set_effective_gran == PMEMSET_GRANULARITY_INVALID) {
+		pmemset_set_store_granularity(set, mapping_gran);
+	} else if (set_effective_gran != mapping_gran) {
+		ERR("all parts in the set must have the same granularity %d",
+			set_effective_gran);
+		ret = PMEMSET_E_GRANULARITY_MISMATCH;
+		goto err_delete_pmap;
+	}
 
 	/*
 	 * XXX: add multiple part support

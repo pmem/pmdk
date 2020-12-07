@@ -8,6 +8,7 @@
 #include <fcntl.h>
 
 #include "alloc.h"
+#include "config.h"
 #include "file.h"
 #include "libpmemset.h"
 #include "libpmem2.h"
@@ -137,7 +138,8 @@ pmemset_part_get_pmemset(struct pmemset_part *part)
  */
 int
 pmemset_part_create_part_mapping(struct pmemset_part_map **part_map,
-		struct pmemset_part *part, enum pmem2_granularity gran)
+		struct pmemset_part *part, enum pmem2_granularity gran,
+		enum pmem2_granularity *mapping_gran)
 {
 	*part_map = NULL;
 
@@ -158,7 +160,6 @@ pmemset_part_create_part_mapping(struct pmemset_part_map **part_map,
 		goto err_cfg_delete;
 	}
 
-	/* XXX: use pmemset_require_granularity function here */
 	ret = pmem2_config_set_required_store_granularity(pmem2_cfg, gran);
 	if (ret) {
 		ERR("granularity value is not supported %d", ret);
@@ -183,6 +184,7 @@ pmemset_part_create_part_mapping(struct pmemset_part_map **part_map,
 		goto err_cfg_delete;
 	}
 
+	*mapping_gran = pmem2_map_get_store_granularity(pmem2_map);
 	pmap->desc.addr = pmem2_map_get_address(pmem2_map);
 	pmap->desc.size = pmem2_map_get_size(pmem2_map);
 	pmap->pmem2_map = pmem2_map;

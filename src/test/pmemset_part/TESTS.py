@@ -92,3 +92,8 @@ class TEST12(PMEMSET_PART):
 class TEST13(PMEMSET_PART):
     """test retrieving next mapping from the set"""
     test_case = "test_part_map_next"
+
+
+class TEST14(PMEMSET_PART):
+    """test pmemset_get_store_granularity function"""
+    test_case = "test_part_map_gran_read"
