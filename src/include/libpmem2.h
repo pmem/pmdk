@@ -226,6 +226,8 @@ int pmem2_source_device_idU(const struct pmem2_source *src,
 
 int pmem2_source_device_usc(const struct pmem2_source *src, uint64_t *usc);
 
+int pmem2_source_numa_node(const struct pmem2_source *src, int *numa_node);
+
 struct pmem2_badblock_context;
 
 struct pmem2_badblock {
