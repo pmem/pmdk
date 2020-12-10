@@ -21,6 +21,7 @@
 struct pmemset {
 	struct pmemset_config *set_config;
 	struct ravl_interval *part_map_tree;
+	struct pmemset_part_descriptor recent_part;
 };
 
 /*
@@ -83,6 +84,9 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 		return PMEMSET_E_ERRNO;
 	}
 
+	set->recent_part.addr = NULL;
+	set->recent_part.size = 0;
+
 	return 0;
 }
 
@@ -141,6 +145,8 @@ pmemset_delete(struct pmemset **set)
 		struct pmemset_part_map *map = ravl_interval_data(node);
 		ravl_interval_remove((*set)->part_map_tree, node);
 		pmem2_map_delete(&map->pmem2_map);
+		if (map->pmem2_reserv)
+			pmem2_vm_reservation_delete(&map->pmem2_reserv);
 		Free(map);
 	}
 
@@ -189,7 +195,7 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	struct pmemset *set = pmemset_part_get_pmemset(p);
 
 	int ret = pmemset_part_create_part_mapping(&part_map, p,
-			PMEM2_GRANULARITY_PAGE);
+			PMEM2_GRANULARITY_PAGE, set->recent_part);
 	if (ret)
 		return ret;
 
@@ -199,6 +205,8 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	ret = pmemset_insert_part_map(set, part_map);
 	if (ret)
 		goto err_delete_pmap;
+
+	set->recent_part = part_map->desc;
 
 	if (desc)
 		*desc = part_map->desc;
@@ -348,7 +356,28 @@ pmemset_get_pmemset_config(struct pmemset *set)
 }
 
 /*
- * pmemset_map_first -- retrieve first part map from the set
+ * pmemset_get_recent_part_descriptor -- get recent part descriptor from pmemset
+ */
+struct pmemset_part_descriptor
+pmemset_get_recent_part_descriptor(struct pmemset *set)
+{
+	LOG(3, "set %p", set);
+	return set->recent_part;
+}
+
+/*
+ * pmemset_set_recent_part_descriptor -- set recent part descriptor in the set
+ */
+void
+pmemset_set_recent_part_descriptor(struct pmemset *set, void *addr, size_t size)
+{
+	LOG(3, "set %p addr %p size %zu", set, addr, size);
+	set->recent_part.addr = addr;
+	set->recent_part.size = size;
+}
+
+/*
+ * pmemset_first_part_map -- retrieve first part map from the set
  */
 void
 pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
@@ -363,6 +392,8 @@ pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
 
 	if (first)
 		*pmap = ravl_interval_data(first);
+
+	(*pmap)->refcount += 1;
 }
 
 /*
@@ -383,6 +414,7 @@ pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
 	if (found)
 		*next = ravl_interval_data(found);
 
+	(*next)->refcount += 1;
 }
 
 /*
