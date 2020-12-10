@@ -59,6 +59,18 @@ ravl_interval_delete(struct ravl_interval *ri)
 }
 
 /*
+ * ravl_interval_delete_cb - finalize the ravl interval module with entries
+ * and execute provided callback function foreach entry.
+ */
+void
+ravl_interval_delete_cb(struct ravl_interval *ri, ravl_cb cb, void *arg)
+{
+	ravl_delete_cb(ri->tree, cb, arg);
+	ri->tree = NULL;
+	Free(ri);
+}
+
+/*
  * ravl_interval_new -- initialize the ravl interval module
  */
 struct ravl_interval *
