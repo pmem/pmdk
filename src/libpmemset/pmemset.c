@@ -24,6 +24,7 @@ struct pmemset {
 	struct ravl_interval *part_map_tree;
 	bool effective_granularity_valid;
 	enum pmem2_granularity effective_granularity;
+	struct pmemset_part_descriptor previous_part;
 };
 
 static char *granularity_name[3] = {
@@ -93,6 +94,8 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 	}
 
 	set->effective_granularity_valid = false;
+	set->previous_part.addr = NULL;
+	set->previous_part.size = 0;
 
 	return 0;
 }
@@ -148,11 +151,15 @@ pmemset_delete(struct pmemset **set)
 	struct ravl_interval_node *node;
 
 	node = ravl_interval_find((*set)->part_map_tree, NULL);
-	if (node) {
+	while (node) {
 		struct pmemset_part_map *map = ravl_interval_data(node);
 		ravl_interval_remove((*set)->part_map_tree, node);
 		pmem2_map_delete(&map->pmem2_map);
+		if (map->pmem2_reserv)
+			pmem2_vm_reservation_delete(&map->pmem2_reserv);
 		Free(map);
+
+		node = ravl_interval_find((*set)->part_map_tree, NULL);
 	}
 
 	/* delete RAVL tree with part_map nodes */
@@ -235,7 +242,7 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 		pmemset_get_config_granularity(set_config);
 
 	int ret = pmemset_part_create_part_mapping(&part_map, p,
-			config_gran, &mapping_gran);
+			config_gran, &mapping_gran, set->previous_part);
 	if (ret)
 		return ret;
 
@@ -270,6 +277,8 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	ret = pmemset_insert_part_map(set, part_map);
 	if (ret)
 		goto err_delete_pmap;
+
+	set->previous_part = part_map->desc;
 
 	if (desc)
 		*desc = part_map->desc;
@@ -419,7 +428,30 @@ pmemset_get_pmemset_config(struct pmemset *set)
 }
 
 /*
- * pmemset_map_first -- retrieve first part map from the set
+ * pmemset_get_previous_part_descriptor -- get recent part descriptor from
+ *                                         pmemset
+ */
+struct pmemset_part_descriptor
+pmemset_get_previous_part_descriptor(struct pmemset *set)
+{
+	LOG(3, "set %p", set);
+	return set->previous_part;
+}
+
+/*
+ * pmemset_set_previous_part_descriptor -- set recent part descriptor in the set
+ */
+void
+pmemset_set_previous_part_descriptor(struct pmemset *set, void *addr,
+		size_t size)
+{
+	LOG(3, "set %p addr %p size %zu", set, addr, size);
+	set->previous_part.addr = addr;
+	set->previous_part.size = size;
+}
+
+/*
+ * pmemset_first_part_map -- retrieve first part map from the set
  */
 void
 pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
@@ -434,6 +466,8 @@ pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
 
 	if (first)
 		*pmap = ravl_interval_data(first);
+
+	pmemset_part_mapping_inc_count(*pmap);
 }
 
 /*
@@ -454,6 +488,7 @@ pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
 	if (found)
 		*next = ravl_interval_data(found);
 
+	pmemset_part_mapping_inc_count(*next);
 }
 
 /*
