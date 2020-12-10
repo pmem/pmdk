@@ -33,4 +33,8 @@ int pmemset_part_map_new(struct pmemset_part_map **part_map,
 
 void pmemset_part_map_delete(struct pmemset_part_map **part_map);
 
+void pmemset_part_mapping_inc_count(struct pmemset_part_map *pmap);
+
+void pmemset_part_mapping_dec_count(struct pmemset_part_map *pmap);
+
 #endif /* PMEMSET_PART_H */
