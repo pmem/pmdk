@@ -11,6 +11,8 @@ struct pmemset_part;
 struct pmemset_part_map {
 	struct pmemset_part_descriptor desc;
 	struct pmem2_map *pmem2_map;
+	struct pmem2_vm_reservation *pmem2_reserv;
+	int refcount;
 };
 
 /*
@@ -24,10 +26,11 @@ struct pmemset_part_shutdown_state_data {
 
 struct pmemset *pmemset_part_get_pmemset(struct pmemset_part *part);
 
-int pmemset_part_create_part_mapping(struct pmemset_part_map **part_map,
+int pmemset_part_map_new(struct pmemset_part_map **part_map,
 		struct pmemset_part *part, enum pmem2_granularity gran,
-		enum pmem2_granularity *mapping_gran);
+		enum pmem2_granularity *mapping_gran,
+		struct pmemset_part_descriptor previous_part);
 
-void pmemset_part_delete_part_mapping(struct pmemset_part_map **part_map);
+void pmemset_part_map_delete(struct pmemset_part_map **part_map);
 
 #endif /* PMEMSET_PART_H */

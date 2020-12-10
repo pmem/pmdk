@@ -24,6 +24,7 @@ struct pmemset {
 	struct ravl_interval *part_map_tree;
 	bool effective_granularity_valid;
 	enum pmem2_granularity effective_granularity;
+	struct pmemset_part_descriptor previous_part;
 };
 
 static char *granularity_name[3] = {
@@ -93,6 +94,8 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 	}
 
 	set->effective_granularity_valid = false;
+	set->previous_part.addr = NULL;
+	set->previous_part.size = 0;
 
 	return 0;
 }
@@ -134,6 +137,17 @@ pmemset_new(struct pmemset **set, struct pmemset_config *cfg)
 }
 
 /*
+ * pmemset_unmap_stored_part_maps_callback -- unmaps and deletes part mappings
+ *                                            stored in the ravl tree
+ */
+static void
+pmemset_unmap_stored_part_maps_callback(void *data, void *arg)
+{
+	struct pmemset_part_map **pmap = (struct pmemset_part_map **)data;
+	pmemset_part_map_delete(pmap);
+}
+
+/*
  * pmemset_delete -- de-allocate set structure
  */
 int
@@ -145,18 +159,9 @@ pmemset_delete(struct pmemset **set)
 	if (*set == NULL)
 		return 0;
 
-	struct ravl_interval_node *node;
-
-	node = ravl_interval_find((*set)->part_map_tree, NULL);
-	if (node) {
-		struct pmemset_part_map *map = ravl_interval_data(node);
-		ravl_interval_remove((*set)->part_map_tree, node);
-		pmem2_map_delete(&map->pmem2_map);
-		Free(map);
-	}
-
 	/* delete RAVL tree with part_map nodes */
-	ravl_interval_delete((*set)->part_map_tree);
+	ravl_interval_delete_cb((*set)->part_map_tree,
+			pmemset_unmap_stored_part_maps_callback, NULL);
 
 	/* delete cfg */
 	pmemset_config_delete(&(*set)->set_config);
@@ -234,8 +239,8 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	enum pmem2_granularity config_gran =
 		pmemset_get_config_granularity(set_config);
 
-	int ret = pmemset_part_create_part_mapping(&part_map, p,
-			config_gran, &mapping_gran);
+	int ret = pmemset_part_map_new(&part_map, p,
+			config_gran, &mapping_gran, set->previous_part);
 	if (ret)
 		return ret;
 
@@ -271,6 +276,8 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	if (ret)
 		goto err_delete_pmap;
 
+	set->previous_part = part_map->desc;
+
 	if (desc)
 		*desc = part_map->desc;
 
@@ -279,7 +286,7 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	return 0;
 
 err_delete_pmap:
-	pmemset_part_delete_part_mapping(&part_map);
+	pmemset_part_map_delete(&part_map);
 	return ret;
 }
 
@@ -419,7 +426,49 @@ pmemset_get_pmemset_config(struct pmemset *set)
 }
 
 /*
- * pmemset_map_first -- retrieve first part map from the set
+ * pmemset_get_previous_part_descriptor -- get recent part descriptor from
+ *                                         pmemset
+ */
+struct pmemset_part_descriptor
+pmemset_get_previous_part_descriptor(struct pmemset *set)
+{
+	LOG(3, "set %p", set);
+	return set->previous_part;
+}
+
+/*
+ * pmemset_set_previous_part_descriptor -- set recent part descriptor in the set
+ */
+void
+pmemset_set_previous_part_descriptor(struct pmemset *set, void *addr,
+		size_t size)
+{
+	LOG(3, "set %p addr %p size %zu", set, addr, size);
+	set->previous_part.addr = addr;
+	set->previous_part.size = size;
+}
+
+/*
+ * pmemset_part_map_access -- gains access to the part mapping
+ */
+static void
+pmemset_part_map_access(struct pmemset_part_map *pmap)
+{
+	pmap->refcount += 1;
+}
+
+/*
+ * pmemset_part_map_access_drop -- drops the access to the part mapping
+ */
+static void
+pmemset_part_map_access_drop(struct pmemset_part_map *pmap)
+{
+	pmap->refcount -= 1;
+	ASSERT(pmap->refcount >= 0);
+}
+
+/*
+ * pmemset_first_part_map -- retrieve first part map from the set
  */
 void
 pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
@@ -434,6 +483,8 @@ pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
 
 	if (first)
 		*pmap = ravl_interval_data(first);
+
+	pmemset_part_map_access(*pmap);
 }
 
 /*
@@ -454,6 +505,7 @@ pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
 	if (found)
 		*next = ravl_interval_data(found);
 
+	pmemset_part_map_access(*next);
 }
 
 /*
@@ -467,4 +519,17 @@ pmemset_descriptor_part_map(struct pmemset_part_map *pmap)
 	desc.size = pmem2_map_get_size(pmap->pmem2_map);
 
 	return desc;
+}
+
+/*
+ * pmemset_part_map_drop -- drops the reference to the part map through provided
+ *                          ponter. Doesn't delete part map.
+ */
+void
+pmemset_part_map_drop(struct pmemset_part_map **pmap)
+{
+	LOG(3, "pmap %p", pmap);
+
+	pmemset_part_map_access_drop(*pmap);
+	*pmap = NULL;
 }
