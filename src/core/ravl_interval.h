@@ -19,7 +19,8 @@ typedef size_t ravl_interval_max(void *addr);
 
 struct ravl_interval *ravl_interval_new(ravl_interval_min *min,
 		ravl_interval_min *max);
-void  ravl_interval_delete(struct ravl_interval *ri);
+void ravl_interval_delete(struct ravl_interval *ri);
+void ravl_interval_delete_cb(struct ravl_interval *ri, ravl_cb cb, void *arg);
 int ravl_interval_insert(struct ravl_interval *ri, void *addr);
 int ravl_interval_remove(struct ravl_interval *ri,
 		struct ravl_interval_node *rin);
