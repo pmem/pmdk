@@ -551,8 +551,14 @@ test_part_map_first(const struct test_case *tc, int argc,
 	pmemset_first_part_map(set, &first_pmap);
 	UT_ASSERTne(first_pmap, NULL);
 
-	pmemset_config_delete(&cfg);
-	pmem2_source_delete(&pmem2_src);
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	CLOSE(fd);
 
 	return 1;
@@ -605,8 +611,14 @@ test_part_map_descriptor(const struct test_case *tc, int argc,
 	UT_ASSERTne(desc.addr, NULL);
 	UT_ASSERTeq(desc.size, part_size);
 
-	pmemset_config_delete(&cfg);
-	pmem2_source_delete(&pmem2_src);
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	CLOSE(fd);
 
 	return 1;
@@ -675,8 +687,14 @@ test_part_map_next(const struct test_case *tc, int argc,
 	UT_ASSERT(first_desc.addr < second_desc.addr);
 	UT_ASSERTne(first_desc.size, second_desc.size);
 
-	pmemset_config_delete(&cfg);
-	pmem2_source_delete(&pmem2_src);
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	CLOSE(fd);
 
 	return 1;
