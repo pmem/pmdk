@@ -298,6 +298,7 @@ PMREORDER_TESTS = \
 
 PMEMSET_TESTS = \
 	pmemset_config\
+	pmemset_file\
 	pmemset_include\
 	pmemset_new\
 	pmemset_part\
