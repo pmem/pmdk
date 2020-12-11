@@ -12,6 +12,7 @@ LIBPMEMSET_1.0 {
 		pmemset_config_set_create_if_invalid;
 		pmemset_config_set_create_if_none;
 		pmemset_config_set_event_callback;
+		pmemset_config_set_file_create_disposition;
 		pmemset_config_set_layout_name;
 		pmemset_config_set_reservation;
 		pmemset_config_set_required_store_granularity;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2021, Intel Corporation */
 
 /*
  * file_windows.c -- implementation of file API (windows)
@@ -12,6 +12,7 @@
 #include "file.h"
 #include "libpmemset.h"
 #include "pmemset_utils.h"
+#include "config.h"
 
 /*
  * pmemset_file_create_pmem2_src -- create pmem2_source structure based on the
@@ -21,9 +22,33 @@ int
 pmemset_file_create_pmem2_src(struct pmem2_source **pmem2_src, char *path,
 		struct pmemset_config *cfg)
 {
-	/* config doesn't have information about open parameters for now */
+	/* Init open parameters for now */
 	DWORD access = GENERIC_READ | GENERIC_WRITE;
-	HANDLE handle = CreateFile(path, access, 0, NULL, OPEN_EXISTING,
+
+	/* Get file create disposition */
+	enum pmemset_config_file_create_disposition file_disposition =
+			pmemset_config_get_file_create_disposition(cfg);
+
+	/* Init file create disposition flags */
+	DWORD disposition = OPEN_EXISTING;
+
+	/* Set file create disposition flags */
+	switch (file_disposition) {
+		case PMEMSET_CONFIG_FILE_CREATE_ALWAYS:
+			disposition = CREATE_ALWAYS;
+			break;
+		case PMEMSET_CONFIG_FILE_CREATE_IF_NEEDED:
+			disposition = OPEN_ALWAYS;
+			break;
+		case PMEMSET_CONFIG_FILE_OPEN:
+			break;
+		default:
+			ERR("unknown file create disposition value %d",
+				file_disposition);
+			return PMEMSET_E_INVALID_CFG_FILE_CREATE_DISP;
+	}
+
+	HANDLE handle = CreateFile(path, access, 0, NULL, disposition,
 			FILE_ATTRIBUTE_NORMAL, NULL);
 	if (handle == INVALID_HANDLE_VALUE) {
 		ERR("!CreateFile %s", path);

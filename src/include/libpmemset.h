@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2021, Intel Corporation */
 
 /*
  * libpmemset.h -- definitions of libpmemset entry points (EXPERIMENTAL)
@@ -51,6 +51,7 @@ extern "C" {
 #define PMEMSET_E_GRANULARITY_NOT_SET			(-200010)
 #define PMEMSET_E_GRANULARITY_MISMATCH			(-200011)
 #define PMEMSET_E_NO_PART_MAPPED			(-200012)
+#define PMEMSET_E_INVALID_CFG_FILE_CREATE_DISP		(-200013)
 
 /* pmemset setup */
 
@@ -147,12 +148,30 @@ typedef int pmemset_event_callback(struct pmemset *set,
 
 /* config setup */
 
+struct pmem2_vm_reservation;
+struct pmemset_config;
+
+enum pmemset_config_file_create_disposition {
+	/*
+	 * Config file create disposition: always create new file.
+	 */
+	PMEMSET_CONFIG_FILE_CREATE_ALWAYS = 0,
+	/*
+	 * Config file create disposition: create file only when does not exist.
+	 */
+	PMEMSET_CONFIG_FILE_CREATE_IF_NEEDED = 1,
+	/*
+	 * Config file create disposition: open existing file only.
+	 */
+	PMEMSET_CONFIG_FILE_OPEN = 2
+};
+
 int pmemset_config_new(struct pmemset_config **cfg);
 
 int pmemset_config_delete(struct pmemset_config **cfg);
 
-int pmemset_config_set_create_if_none(struct pmemset_config *cfg,
-		int value);
+int pmemset_config_set_file_create_disposition(struct pmemset_config *cfg,
+		enum pmemset_config_file_create_disposition value);
 
 int pmemset_config_set_create_if_invalid(struct pmemset_config *cfg,
 		int value);

@@ -18,5 +18,7 @@ enum pmem2_granularity pmemset_get_config_granularity(
 	struct pmemset_config *cfg);
 bool pmemset_get_config_granularity_valid(
 	struct pmemset_config *cfg);
+enum pmemset_config_file_create_disposition
+	pmemset_config_get_file_create_disposition(struct pmemset_config *cfg);
 
 #endif /* PMEMSET_CONFIG_H */

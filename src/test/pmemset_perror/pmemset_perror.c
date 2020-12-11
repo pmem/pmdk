@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2021, Intel Corporation */
 
 /*
  * pmemset_perror.c -- pmemset_perror unittests
@@ -24,10 +24,11 @@ test_fail_pmemset_func_simple(const struct test_case *tc, int argc,
 	struct pmemset_config *cfg = NULL;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmemset_config_set_create_if_none(cfg, 0);
+	int ret = pmemset_config_set_file_create_disposition(cfg,
+		(enum pmemset_config_file_create_disposition)(-1));
 	UT_ASSERTne(ret, 0);
 
-	pmemset_perror("pmemset_config_set_create_if_none");
+	pmemset_perror("pmemset_config_set_file_create_disposition");
 
 	return 0;
 }
@@ -43,10 +44,11 @@ test_fail_pmemset_func_format(const struct test_case *tc, int argc,
 	struct pmemset_config *cfg = NULL;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmemset_config_set_create_if_none(cfg, 0);
+	int ret = pmemset_config_set_file_create_disposition(cfg,
+		(enum pmemset_config_file_create_disposition)(-1));
 	UT_ASSERTne(ret, 0);
 
-	pmemset_perror("pmemset_config_set_create_if_none %d", 123);
+	pmemset_perror("pmemset_config_set_file_create_disposition %d", 123);
 
 	return 0;
 }

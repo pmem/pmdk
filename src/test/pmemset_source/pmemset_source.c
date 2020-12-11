@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2021, Intel Corporation */
 
 /*
  * pmemset_source.c -- pmemset_source unittests
@@ -11,6 +11,7 @@
 #include "source.h"
 #include "unittest.h"
 #include "ut_pmemset_utils.h"
+#include "config.h"
 
 /*
  * test_set_from_pmem2_valid - test valid pmemset_source allocation

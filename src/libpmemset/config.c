@@ -20,6 +20,7 @@
 struct pmemset_config {
 	bool set_granularity_valid;
 	enum pmem2_granularity set_granularity;
+	enum pmemset_config_file_create_disposition file_create_disposition;
 };
 
 /*
@@ -29,6 +30,7 @@ void
 pmemset_config_init(struct pmemset_config *cfg)
 {
 	cfg->set_granularity_valid = false;
+	cfg->file_create_disposition = PMEMSET_CONFIG_FILE_CREATE_ALWAYS;
 }
 
 /*
@@ -73,13 +75,37 @@ pmemset_config_new(struct pmemset_config **cfg)
 }
 
 /*
- * pmemset_config_set_create_if_none -- not supported
+ * pmemset_config_set_file_create_disposition
  */
-int
-pmemset_config_set_create_if_none(struct pmemset_config *cfg, int value)
+int pmemset_config_set_file_create_disposition(struct pmemset_config *cfg,
+		enum pmemset_config_file_create_disposition value)
 {
-	ERR("function not supported");
-	return PMEMSET_E_NOSUPP;
+	PMEMSET_ERR_CLR();
+
+	switch (value) {
+		case PMEMSET_CONFIG_FILE_CREATE_ALWAYS:
+		case PMEMSET_CONFIG_FILE_CREATE_IF_NEEDED:
+		case PMEMSET_CONFIG_FILE_OPEN:
+			break;
+		default:
+			ERR("unknown config creation disposition value %d",
+				value);
+			return PMEMSET_E_INVALID_CFG_FILE_CREATE_DISP;
+	}
+
+	cfg->file_create_disposition = value;
+
+	return 0;
+}
+
+/*
+ * pmemset_config_get_file_create_disposition
+ */
+enum pmemset_config_file_create_disposition
+	pmemset_config_get_file_create_disposition(struct pmemset_config *cfg)
+{
+	return cfg->file_create_disposition;
+
 }
 
 /*
@@ -218,6 +244,7 @@ pmemset_config_duplicate(struct pmemset_config **cfg_dst,
 	/* Copy cfg */
 	(*cfg_dst)->set_granularity = cfg_src->set_granularity;
 	(*cfg_dst)->set_granularity_valid = cfg_src->set_granularity_valid;
+	(*cfg_dst)->file_create_disposition = cfg_src->file_create_disposition;
 
 	return 0;
 }

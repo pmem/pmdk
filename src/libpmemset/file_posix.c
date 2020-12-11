@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2021, Intel Corporation */
 
 /*
  * file_posix.c -- implementation of file API (posix)
@@ -12,6 +12,7 @@
 #include "file.h"
 #include "libpmemset.h"
 #include "pmemset_utils.h"
+#include "config.h"
 
 /*
  * pmemset_file_create_pmem2_src -- create pmem2_source structure based on the
@@ -21,9 +22,29 @@ int
 pmemset_file_create_pmem2_src(struct pmem2_source **pmem2_src, char *path,
 		struct pmemset_config *cfg)
 {
-	/* config doesn't have information about open parameters for now */
+	/* Init open parameters */
 	int access = O_RDWR;
-	int fd = os_open(path, access);
+	mode_t mode = (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+
+	/* Get file create disposition */
+	enum pmemset_config_file_create_disposition file_disposition =
+			pmemset_config_get_file_create_disposition(cfg);
+
+	switch (file_disposition) {
+		case PMEMSET_CONFIG_FILE_CREATE_ALWAYS:
+			access |= O_TRUNC;
+		case PMEMSET_CONFIG_FILE_CREATE_IF_NEEDED:
+			access |= O_CREAT;
+			break;
+		case PMEMSET_CONFIG_FILE_OPEN:
+			break;
+		default:
+			ERR("unknown file create disposition value %d",
+				file_disposition);
+			return PMEMSET_E_INVALID_CFG_FILE_CREATE_DISP;
+	}
+
+	int fd = os_open(path, access, mode);
 	if (fd < 0) {
 		ERR("!open %s", path);
 		return PMEMSET_E_ERRNO;

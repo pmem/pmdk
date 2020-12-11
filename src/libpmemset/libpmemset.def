@@ -1,6 +1,6 @@
 ;;;; Begin Copyright Notice
 ; SPDX-License-Identifier: BSD-3-Clause
-; Copyright 2020, Intel Corporation
+; Copyright 2021, Intel Corporation
 ;;;;  End Copyright Notice
 
 LIBRARY libpmemset
@@ -12,8 +12,8 @@ EXPORTS
 	pmemset_config_new
 	pmemset_config_set_contiguous_part_coalescing
 	pmemset_config_set_create_if_invalid
-	pmemset_config_set_create_if_none
 	pmemset_config_set_event_callback
+	pmemset_config_set_file_create_disposition
 	pmemset_config_set_layout_nameU
 	pmemset_config_set_layout_nameW
 	pmemset_config_set_reservation

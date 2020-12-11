@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 #
 
 #
@@ -298,6 +298,7 @@ PMREORDER_TESTS = \
 
 PMEMSET_TESTS = \
 	pmemset_config\
+	pmemset_create_disp\
 	pmemset_file\
 	pmemset_include\
 	pmemset_new\
