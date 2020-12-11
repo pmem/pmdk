@@ -138,11 +138,10 @@ On success, **pmem_unmap**() returns 0. On error, it returns -1 and sets
 
 # NOTES #
 
-On Linux, **pmem_is_pmem**() returns true only if the entire range
-is mapped directly from Device DAX (/dev/daxX.Y) without an intervening
-file system.  In the future, as file systems become available that support
-flushing with **pmem_persist**(3), **pmem_is_pmem**() will return true
-as appropriate.
+On Linux, **pmem_is_pmem**() returned true if the entire range
+was mapped directly from Device DAX (/dev/daxX.Y) without an intervening
+file system, or **MAP_SYNC** flag of **mmap(3)** is supported by the
+file system on Filesystem DAX.
 
 # CAVEATS #
 
