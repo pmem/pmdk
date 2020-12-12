@@ -104,11 +104,10 @@ static void
 do_open(const char *path)
 {
 	struct pool_set *set;
-	const struct pool_attr attr;
 	unsigned nlanes = 1;
 
 	if (util_pool_open(&set, path, MIN_PART,
-				&attr, &nlanes, NULL, 0) != 0) {
+				NULL, &nlanes, NULL, 0) != 0) {
 		UT_FATAL("!util_pool_open: %s", path);
 	}
 
