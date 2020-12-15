@@ -51,6 +51,7 @@ extern "C" {
 #define PMEMSET_E_GRANULARITY_NOT_SET			(-200010)
 #define PMEMSET_E_GRANULARITY_MISMATCH			(-200011)
 #define PMEMSET_E_NO_PART_MAPPED			(-200012)
+#define PMEMSET_E_CANNOT_FIND_PART_MAP			(-200013)
 
 /* pmemset setup */
 
@@ -256,8 +257,8 @@ int pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 
 void pmemset_part_map_drop(struct pmemset_part_map **pmap);
 
-int pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part **part,
-		void *addr);
+int pmemset_part_map_by_address(struct pmemset *set,
+		struct pmemset_part_map **pmap, void *addr);
 
 /* error handling */
 

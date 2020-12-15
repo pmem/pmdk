@@ -759,6 +759,88 @@ test_part_map_drop(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_part_map_by_addr -- reads part map by passed address
+ */
+static int
+test_part_map_by_addr(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_by_addr <path>");
+
+	const char *file = argv[0];
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part_descriptor first_desc;
+	struct pmemset_part_descriptor second_desc;
+	struct pmemset_part_descriptor first_desc_ba;
+	struct pmemset_part_descriptor second_desc_ba;
+	struct pmemset_part *part;
+	struct pmemset_part_map *first_pmap = NULL;
+	struct pmemset_part_map *second_pmap = NULL;
+	struct pmemset_part_map *first_pmap_ba = NULL;
+	struct pmemset_part_map *second_pmap_ba = NULL;
+	struct pmemset_source *src;
+	size_t part_size_first = 64 * 1024;
+	size_t part_size_second = 128 * 1024;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, part_size_first);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, part_size_second);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTne(first_pmap, NULL);
+
+	pmemset_next_part_map(set, first_pmap, &second_pmap);
+	UT_ASSERTne(second_pmap, NULL);
+
+	first_desc = pmemset_descriptor_part_map(first_pmap);
+	second_desc = pmemset_descriptor_part_map(second_pmap);
+
+	ret = pmemset_part_map_by_address(set, &first_pmap_ba, first_desc.addr);
+	ret = pmemset_part_map_by_address(set, &second_pmap_ba,
+			second_desc.addr);
+
+	first_desc_ba = pmemset_descriptor_part_map(first_pmap_ba);
+	second_desc_ba = pmemset_descriptor_part_map(second_pmap_ba);
+
+	UT_ASSERTne(first_desc_ba.addr, second_desc_ba.addr);
+	UT_ASSERTeq(first_desc_ba.addr, first_desc.addr);
+	UT_ASSERTne(first_desc.size, second_desc.size);
+
+	ret = pmemset_part_map_by_address(set, &first_pmap_ba, (void *)0x999);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_FIND_PART_MAP);
+
+	pmemset_config_delete(&cfg);
+	pmem2_source_delete(&pmem2_src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -776,6 +858,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_part_map_descriptor),
 	TEST_CASE(test_part_map_next),
 	TEST_CASE(test_part_map_drop),
+	TEST_CASE(test_part_map_by_addr),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

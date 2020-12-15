@@ -107,16 +107,6 @@ pmemset_part_pwrite_mcsafe(struct pmemset_part_descriptor *part,
 }
 
 /*
- * pmemset_part_map_by_address -- not supported
- */
-int
-pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part **part,
-		void *addr)
-{
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
  * pmemset_part_get_pmemset -- return set assigned to the part
  */
 struct pmemset *
@@ -217,37 +207,4 @@ pmemset_part_map_delete(struct pmemset_part_map **part_map)
 		pmem2_vm_reservation_delete(&pmap->pmem2_reserv);
 	Free(pmap);
 	*part_map = NULL;
-}
-
-/*
- * pmemset_part_map_drop -- drops the reference to the part map through provided
- *                          ponter. Doesn't delete part map.
- */
-void
-pmemset_part_map_drop(struct pmemset_part_map **pmap)
-{
-	LOG(3, "pmap %p", pmap);
-
-	(*pmap)->refcount -= 1;
-	*pmap = NULL;
-}
-
-/*
- * pmemset_part_mapping_inc_count -- increases the reference count of the
- *                                   provided part map by 1
- */
-void
-pmemset_part_mapping_inc_count(struct pmemset_part_map *pmap)
-{
-	pmap->refcount += 1;
-}
-
-/*
- * pmemset_part_mapping_dec_count -- decreases the reference count of the
- *                                   provided part map by 1
- */
-void
-pmemset_part_mapping_dec_count(struct pmemset_part_map *pmap)
-{
-	pmap->refcount -= 1;
 }

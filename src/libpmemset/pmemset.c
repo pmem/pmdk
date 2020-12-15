@@ -509,6 +509,36 @@ pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
 }
 
 /*
+ * pmemset_part_map_by_address -- returns part map by passed address
+ */
+int
+pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part_map **pmap,
+		void *addr)
+{
+	LOG(3, "set %p pmap %p addr %p", set, pmap, addr);
+	PMEMSET_ERR_CLR();
+
+	*pmap = NULL;
+
+	struct pmemset_part_map ppm;
+	ppm.desc.addr = addr;
+	ppm.desc.size = 1;
+
+	struct ravl_interval_node *node;
+	node = ravl_interval_find(set->part_map_tree, &ppm);
+
+	if (!node) {
+		ERR("cannot find part_map at addr %p in the set %p", addr, set);
+		return PMEMSET_E_CANNOT_FIND_PART_MAP;
+	}
+
+	*pmap = (struct pmemset_part_map *)ravl_interval_data(node);
+	pmemset_part_map_access(*pmap);
+
+	return 0;
+}
+
+/*
  * pmemset_map_descriptor -- create and return a part map descriptor
  */
 struct pmemset_part_descriptor
