@@ -97,3 +97,8 @@ class TEST13(PMEMSET_PART):
 class TEST14(PMEMSET_PART):
     """test pmemset_get_store_granularity function"""
     test_case = "test_part_map_gran_read"
+
+
+class TEST15(PMEMSET_PART):
+    """test reading part mapping by address"""
+    test_case = "test_part_map_by_addr"
