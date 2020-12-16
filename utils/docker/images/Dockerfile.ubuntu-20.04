@@ -7,7 +7,7 @@
 #
 
 # Pull base image
-FROM ubuntu:19.10
+FROM ubuntu:20.04
 MAINTAINER piotr.balcer@intel.com
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -115,7 +115,7 @@ USER $USER
 
 # Set required environment variables
 ENV OS ubuntu
-ENV OS_VER 19.10
+ENV OS_VER 20.04
 ENV START_SSH_COMMAND service ssh start
 ENV PACKAGE_MANAGER dpkg
 ENV NOTTY 1

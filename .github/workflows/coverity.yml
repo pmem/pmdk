@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        CONFIG: ["COVERITY=1 OS=ubuntu OS_VER=19.10"]
+        CONFIG: ["COVERITY=1 OS=ubuntu OS_VER=20.04"]
     steps:
       - name: Print out the current date and time
         run: date
