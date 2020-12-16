@@ -618,7 +618,7 @@ rpmem_flush(RPMEMpool *rpp, size_t offset, size_t length,
 	}
 
 	if (rpp->no_headers == 0 && offset < RPMEM_HDR_SIZE) {
-		ERR("offset (%zu) in pool is less than %d bytes", offset,
+		ERR("offset (%zu) in pool is less than %ld bytes", offset,
 				RPMEM_HDR_SIZE);
 		errno = EINVAL;
 		return -1;
@@ -704,7 +704,7 @@ rpmem_persist(RPMEMpool *rpp, size_t offset, size_t length,
 	}
 
 	if (rpp->no_headers == 0 && offset < RPMEM_HDR_SIZE) {
-		ERR("offset (%zu) in pool is less than %d bytes", offset,
+		ERR("offset (%zu) in pool is less than %ld bytes", offset,
 				RPMEM_HDR_SIZE);
 		errno = EINVAL;
 		return -1;
@@ -750,7 +750,7 @@ rpmem_deep_persist(RPMEMpool *rpp, size_t offset, size_t length, unsigned lane)
 	}
 
 	if (offset < RPMEM_HDR_SIZE) {
-		ERR("offset (%zu) in pool is less than %d bytes", offset,
+		ERR("offset (%zu) in pool is less than %ld bytes", offset,
 				RPMEM_HDR_SIZE);
 		errno = EINVAL;
 		return -1;
@@ -789,7 +789,7 @@ rpmem_read(RPMEMpool *rpp, void *buff, size_t offset,
 	}
 
 	if (rpp->no_headers == 0 && offset < RPMEM_HDR_SIZE)
-		LOG(1, "reading from pool at offset (%zu) less than %d bytes",
+		LOG(1, "reading from pool at offset (%zu) less than %ld bytes",
 				offset, RPMEM_HDR_SIZE);
 
 	int ret = rpmem_fip_read(rpp->fip, buff, length, offset, lane);

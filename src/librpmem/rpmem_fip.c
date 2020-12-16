@@ -25,6 +25,7 @@
 #include "util.h"
 #include "os_thread.h"
 #include "os.h"
+#include "page_size.h"
 #include "rpmem_common.h"
 #include "rpmem_fip_common.h"
 #include "rpmem_proto.h"
@@ -46,10 +47,10 @@
 	ret;\
 })
 
-#define LANE_ALIGN_SIZE 64
+#define LANE_ALIGN_SIZE CACHELINE_SIZE
 #define LANE_ALIGN __attribute__((aligned(LANE_ALIGN_SIZE)))
 
-#define RPMEM_RAW_BUFF_SIZE 4096
+#define RPMEM_RAW_BUFF_SIZE PMEM_PAGESIZE
 #define RPMEM_RAW_SIZE 8
 
 typedef ssize_t (*rpmem_fip_flush_fn)(struct rpmem_fip *fip, size_t offset,
