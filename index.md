@@ -137,7 +137,7 @@ It relies on synchronous event streams for pool modifications.
 This is still an **experimental API** and should not be used in production
 environments.
 
-See the [libpmemset page](../libpmemset/) for updates.
+See the [libpmemset page](libpmemset) for updates.
 
 #### libvmemcache
 
