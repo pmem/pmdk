@@ -63,6 +63,18 @@ above that provides memory allocation and transactions support.
 
 See the [libpmem2 page](libpmem2) for documentation and examples.
 
+#### libpmemset
+
+**libpmemset** aims to provide support for persistent file I/O operations,
+runtime mapping concatenation and multi-part support across poolsets.
+It relies on synchronous event streams for pool modifications.
+
+>NOTE:
+This is still an **experimental API** and should not be used in production
+environments.
+
+See the [libpmemset page](libpmemset) for updates.
+
 #### libvmem
 
 The **libvmem** library turns a pool of persistent memory into a
@@ -126,18 +138,6 @@ by the [librpma](index.md#librpma) library (see below).
 on remote hosts over Remote Direct Memory Access (RDMA).
 
 See the [librpma page](../rpma/) for available documentation.
-
-#### libpmemset
-
-**libpmemset** aims to provide support for persistent file I/O operations,
-runtime mapping concatenation and multi-part support across poolsets.
-It relies on synchronous event streams for pool modifications.
-
->NOTE:
-This is still an **experimental API** and should not be used in production
-environments.
-
-See the [libpmemset page](libpmemset) for updates.
 
 #### libvmemcache
 

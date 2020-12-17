@@ -15,4 +15,4 @@ Man pages that contain a list of the **Linux** interfaces provided:
 
 Man pages that contain a list of the **Windows** interfaces provided:
 
-* Man page for <a href="../manpages/windows/master/libpmemset/{{ page.title }}.7.html">{{ page.title }} current master</a
+* Man page for <a href="../manpages/windows/master/libpmemset/{{ page.title }}.7.html">{{ page.title }} current master</a>
