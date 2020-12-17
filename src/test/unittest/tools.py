@@ -53,6 +53,9 @@ class Tools:
     def cpufd(self):
         return self._run_test_tool('cpufd')
 
+    def mapexec(self, *args):
+        return self._run_test_tool('mapexec', *args)
+
 
 class Ndctl:
     """ndctl CLI handle"""
