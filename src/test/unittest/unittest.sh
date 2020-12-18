@@ -1134,6 +1134,25 @@ function exclude_ppc64() {
 }
 
 #
+# is_ppc64 -- Returns 1 if it's powerpc related platform and 0 if not
+#
+function is_ppc64() {
+	arch="ppc64 ppc64le ppc64el"
+	for i in "$arch"; do
+		[[ "$(uname -m)" == "$i" ]] && return 0
+	done
+	return 1
+}
+
+#
+# is_x86_64 -- Returns 1 if it's powerpc related platform and 0 if not
+#
+function is_x86_64() {
+	[[ "$(uname -m)" == "x86_64" ]] && return 0
+	return 1
+}
+
+#
 # require_test_type -- only allow script to continue for a certain test type
 #
 function require_test_type() {
