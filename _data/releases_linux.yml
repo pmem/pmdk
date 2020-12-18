@@ -396,6 +396,8 @@
         pmemset_config_delete.3
         pmemset_config_new.3
         pmemset_errormsg.3
+        pmemset_part_delete.3
+        pmemset_part_map.3
         pmemset_perror.3
         pmemset_source_from_pmem2.3
 
