@@ -37,9 +37,9 @@ export_vars_node 1 RPMEM_WORK_QUEUE_SIZE
 
 # working buffers
 POOL_SIZE=$(convert_to_bytes 8M)
-FLUSH_OFF=$(convert_to_bytes 4K) # POOL_HDR_SIZE
-PERSIST_SIZE=$(convert_to_bytes 64B)
-FLUSH_OP_SIZE=$(convert_to_bytes 64B)
+FLUSH_OFF=${PAGE_SIZE} # POOL_HDR_SIZE
+PERSIST_SIZE=${CACHELINE_SIZE}
+FLUSH_OP_SIZE=${CACHELINE_SIZE}
 PERSIST_OFF=$((POOL_SIZE - PERSIST_SIZE))
 
 # scenarios
