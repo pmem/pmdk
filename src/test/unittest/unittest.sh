@@ -152,6 +152,7 @@ NODES_MAX=-1
 SIZE_4KB=4096
 SIZE_2MB=2097152
 readonly PAGE_SIZE=$(getconf PAGESIZE)
+readonly CACHELINE_SIZE=$(cat /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size)
 
 # PMEMOBJ limitations
 PMEMOBJ_MAX_ALLOC_SIZE=17177771968
