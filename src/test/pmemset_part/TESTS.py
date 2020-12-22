@@ -77,3 +77,18 @@ class TEST9(PMEMSET_PART):
 class TEST10(PMEMSET_PART):
     """test pmemset_part_map allocation with error injection"""
     test_case = "test_part_map_enomem"
+
+
+class TEST11(PMEMSET_PART):
+    """get the first (earliest in the memory) mapping from the set"""
+    test_case = "test_part_map_first"
+
+
+class TEST12(PMEMSET_PART):
+    """get the descriptor from the part map"""
+    test_case = "test_part_map_descriptor"
+
+
+class TEST13(PMEMSET_PART):
+    """test retrieving next mapping from the set"""
+    test_case = "test_part_map_next"

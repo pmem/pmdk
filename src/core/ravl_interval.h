@@ -31,5 +31,8 @@ struct ravl_interval_node *ravl_interval_find_closest_prior(
 	struct ravl_interval *ri, void *addr);
 struct ravl_interval_node *ravl_interval_find_closest_later(
 		struct ravl_interval *ri, void *addr);
+struct ravl_interval_node *ravl_interval_find_first(struct ravl_interval *ri);
+struct ravl_interval_node *ravl_interval_find_next(struct ravl_interval *ri,
+		void *addr);
 void *ravl_interval_data(struct ravl_interval_node *rin);
 #endif
