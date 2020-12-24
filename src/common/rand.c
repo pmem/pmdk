@@ -84,8 +84,10 @@ randomize_r(rng_t *state, uint64_t seed)
 	if (!seed) {
 #ifdef SYS_getrandom
 		/* We want getentropy() but ancient Red Hat lacks it. */
-		if (!syscall(SYS_getrandom, state, sizeof(rng_t), 0))
+		if (syscall(SYS_getrandom, state, sizeof(rng_t), 0)
+			== sizeof(rng_t)) {
 			return; /* nofail, but ENOSYS on kernel < 3.16 */
+		}
 #elif _WIN32
 #pragma comment(lib, "Bcrypt.lib")
 		if (BCryptGenRandom(NULL, (PUCHAR)state, sizeof(rng_t),
