@@ -18,6 +18,7 @@
  * pmemset_config -- pmemset configuration structure.
  */
 struct pmemset_config {
+	bool set_granularity_valid;
 	enum pmem2_granularity set_granularity;
 };
 
@@ -27,16 +28,27 @@ struct pmemset_config {
 void
 pmemset_config_init(struct pmemset_config *cfg)
 {
-	cfg->set_granularity = PMEMSET_GRANULARITY_INVALID;
+	cfg->set_granularity_valid = false;
 }
 
 /*
- * pmemset_get_confg_granularity -- returns pmemset granularity value
+ * pmemset_get_config_granularity -- returns pmemset granularity value
  */
 enum pmem2_granularity
 pmemset_get_config_granularity(struct pmemset_config *cfg)
 {
+	ASSERTeq(cfg->set_granularity_valid, true);
 	return cfg->set_granularity;
+}
+
+/*
+ * pmemset_get_config_granularity_valid -- returns true if granularity
+ * is set in the config
+ */
+bool
+pmemset_get_config_granularity_valid(struct pmemset_config *cfg)
+{
+	return cfg->set_granularity_valid;
 }
 
 /*
@@ -171,6 +183,7 @@ pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,
 	}
 
 	cfg->set_granularity = g;
+	cfg->set_granularity_valid = true;
 
 	return 0;
 }
@@ -204,6 +217,7 @@ pmemset_config_duplicate(struct pmemset_config **cfg_dst,
 
 	/* Copy cfg */
 	(*cfg_dst)->set_granularity = cfg_src->set_granularity;
+	(*cfg_dst)->set_granularity_valid = cfg_src->set_granularity_valid;
 
 	return 0;
 }

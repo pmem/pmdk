@@ -105,8 +105,7 @@ pmemset_new(struct pmemset **set, struct pmemset_config *cfg)
 {
 	PMEMSET_ERR_CLR();
 
-	if (pmemset_get_config_granularity(cfg) ==
-			PMEMSET_GRANULARITY_INVALID) {
+	if (pmemset_get_config_granularity_valid(cfg) == false) {
 		ERR(
 			"please define the max granularity requested for the mapping");
 
