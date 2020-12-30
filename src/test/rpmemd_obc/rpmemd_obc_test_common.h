@@ -51,6 +51,9 @@
 #define BUFF_SIZE	8192
 
 static const char pool_desc[] = POOL_DESC;
+#ifdef POOL_DESC_SIZE
+#undef POOL_DESC_SIZE
+#endif
 #define POOL_DESC_SIZE	(sizeof(pool_desc) / sizeof(pool_desc[0]))
 
 struct rpmem_ssh *clnt_connect(char *target);
