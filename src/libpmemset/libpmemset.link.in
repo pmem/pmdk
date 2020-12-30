@@ -23,6 +23,7 @@ LIBPMEMSET_1.0 {
 		pmemset_errormsg;
 		pmemset_first_part_map;
 		pmemset_flush;
+		pmemest_get_store_granularity;
 		pmemset_header_init;
 		pmemset_memcpy;
 		pmemset_memmove;
