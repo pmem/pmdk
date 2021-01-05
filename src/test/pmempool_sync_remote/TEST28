@@ -50,9 +50,9 @@ create_poolset $DIR/$POOLSET_REMOTE \
 	24M:${NODE_DIR[1]}/pool.remote:x
 
 # create the recovery files
-create_recovery_file $RECOVERY_FILE_P0
-create_recovery_file $RECOVERY_FILE_P1 0 1
-create_recovery_file $RECOVERY_FILE_P2
+create_recovery_file_absolute $RECOVERY_FILE_P0
+create_recovery_file_absolute $RECOVERY_FILE_P1 0 4096
+create_recovery_file_absolute $RECOVERY_FILE_P2
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$POOLSET_LOCAL
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$POOLSET_REMOTE
