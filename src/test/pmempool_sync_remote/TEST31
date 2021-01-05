@@ -48,10 +48,16 @@ create_poolset $DIR/$POOLSET_LOCAL \
 create_poolset $DIR/$POOLSET_REMOTE \
 	24M:${NODE_DIR[1]}/pool.remote:x
 
-# create the recovery files with bad block
+# create the recovery files with bad bloc
+if is_ppc64; then
+create_recovery_file $RECOVERY_FILE_P0 $((1000/16)) 1
+create_recovery_file $RECOVERY_FILE_P1 $((1000/16)) 1
+create_recovery_file $RECOVERY_FILE_P2 $((1000/16)) 1
+else
 create_recovery_file $RECOVERY_FILE_P0 1000 1
 create_recovery_file $RECOVERY_FILE_P1 1000 1
 create_recovery_file $RECOVERY_FILE_P2 1000 1
+fi
 
 copy_files_to_node 0 ${NODE_DIR[0]} $DIR/$POOLSET_LOCAL
 copy_files_to_node 1 ${NODE_DIR[1]} $DIR/$POOLSET_REMOTE

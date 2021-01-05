@@ -72,7 +72,11 @@ turn_on_checking_bad_blocks_node 1 ${NODE_DIR[1]}/${POOLSET_REMOTE}
 ###############################################################################
 
 # inject bad block:
+if is_ppc64; then
+expect_normal_exit run_on_node 0 "dd if=/dev/zero of=${NODE_DIR[0]}/pool.local bs=512 seek=0 count=128 conv=notrunc status=none"
+else
 expect_normal_exit run_on_node 0 "dd if=/dev/zero of=${NODE_DIR[0]}/pool.local bs=512 seek=0 count=8 conv=notrunc status=none"
+fi
 
 # copy the recovery file
 copy_files_to_node 0 ${NODE_DIR[0]} $RECOVERY_FILE
