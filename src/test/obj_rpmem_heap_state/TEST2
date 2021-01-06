@@ -6,6 +6,8 @@
 
 require_test_type medium
 
+exclude_ppc64
+
 setup
 
 require_nodes 2
