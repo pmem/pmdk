@@ -38,7 +38,7 @@
 
 require_test_type medium
 
-exclude_ppc64
+require_ppc64
 
 setup
 
