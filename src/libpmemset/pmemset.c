@@ -182,7 +182,7 @@ pmemset_delete(struct pmemset **set)
 }
 
 /*
- * pmemset_insert_part_map -- insert part mapping into the set
+ * pmemset_insert_part_map -- insert part mapping into the ravl interval tree
  */
 static int
 pmemset_insert_part_map(struct pmemset *set, struct pmemset_part_map *map)
@@ -196,6 +196,26 @@ pmemset_insert_part_map(struct pmemset *set, struct pmemset_part_map *map)
 	} else {
 		return PMEMSET_E_ERRNO;
 	}
+}
+
+/*
+ * pmemset_unregister_part_map -- unregister part mapping from the ravl
+ *                                interval tree
+ */
+static int
+pmemset_unregister_part_map(struct pmemset *set, struct pmemset_part_map *map)
+{
+	int ret = 0;
+
+	struct ravl_interval *tree = set->part_map_tree;
+	struct ravl_interval_node *node = ravl_interval_find_equal(tree, map);
+
+	if (!(node && !ravl_interval_remove(tree, node))) {
+		ERR("cannot find part mapping %p in the set %p", map, set);
+		ret = PMEMSET_E_PART_NOT_FOUND;
+	}
+
+	return ret;
 }
 
 /*
@@ -369,12 +389,54 @@ pmemset_remove_part(struct pmemset *set, struct pmemset_part **part)
 }
 
 /*
- * pmemset_remove_part_map -- not supported
+ * pmemset_remove_part_map -- unmaps the part and removes it from the set
  */
 int
-pmemset_remove_part_map(struct pmemset *set, struct pmemset_part_map **part)
+pmemset_remove_part_map(struct pmemset *set, struct pmemset_part_map **part_ptr)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(3, "set %p part map %p", set, part_ptr);
+	PMEMSET_ERR_CLR();
+
+	struct pmemset_part_map *pmap = *part_ptr;
+	struct pmem2_vm_reservation *rsv = pmap->pmem2_reserv;
+	size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
+
+	int ret = pmemset_unregister_part_map(set, pmap);
+	if (ret)
+		return ret;
+
+	struct pmem2_map *map;
+	pmem2_vm_reservation_map_find(rsv, 0, rsv_size, &map);
+	while (map) {
+		ret = pmem2_map_delete(&map);
+		if (ret)
+			return ret;
+
+		pmem2_vm_reservation_map_find(rsv, 0, rsv_size, &map);
+	}
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	if (ret)
+		return ret;
+
+	/*
+	 * update previous mapping pointer stored in pmemset
+	 */
+	if (set->previous_pmap == pmap) {
+		struct ravl_interval_node *node;
+		node = ravl_interval_find_closest_prior(set->part_map_tree,
+				pmap);
+		if (!node)
+			node = ravl_interval_find_closest_later(
+				set->part_map_tree, pmap);
+
+		set->previous_pmap = (node) ? ravl_interval_data(node) : NULL;
+	}
+
+	Free(pmap);
+	*part_ptr = NULL;
+
+	return 0;
 }
 
 /*

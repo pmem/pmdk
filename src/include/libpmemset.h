@@ -55,6 +55,7 @@ extern "C" {
 #define PMEMSET_E_CANNOT_FIND_PART_MAP			(-200013)
 #define PMEMSET_E_CANNOT_COALESCE_PARTS			(-200014)
 #define PMEMSET_E_LENGTH_UNALIGNED			(-200015)
+#define PMEMSET_E_PART_NOT_FOUND			(-200016)
 
 /* pmemset setup */
 
@@ -152,6 +153,11 @@ typedef int pmemset_event_callback(struct pmemset *set,
 		struct pmemset_event_context *context, void *arg);
 
 /* config setup */
+
+enum set_coalescing {
+	NONE,
+	COALESCE,
+};
 
 int pmemset_config_new(struct pmemset_config **cfg);
 

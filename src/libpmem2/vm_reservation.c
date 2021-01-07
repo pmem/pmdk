@@ -390,7 +390,6 @@ pmem2_vm_reservation_shrink(struct pmem2_vm_reservation *rsv, size_t offset,
 		return PMEM2_E_VM_RESERVATION_NOT_EMPTY;
 	}
 
-	/* XXX: try unmapping without splitting the placeholder */
 	void *rsv_release_addr = (char *)rsv->addr + offset;
 
 	util_rwlock_wrlock(&rsv->lock);

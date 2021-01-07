@@ -1056,6 +1056,284 @@ err_cleanup:
 }
 
 /*
+ * test_remove_part_map -- map two parts to the pmemset, iterate over
+ *                         the set to find them, then remove them
+ */
+static int
+test_remove_part_map(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_drop <path>");
+
+	const char *file = argv[0];
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part *part;
+	struct pmemset_part_map *first_pmap = NULL;
+	struct pmemset_part_map *second_pmap = NULL;
+	struct pmemset_source *src;
+	size_t first_part_size = 64 * 1024;
+	size_t second_part_size = 128 * 1024;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, first_part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, second_part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTne(first_pmap, NULL);
+
+	pmemset_next_part_map(set, first_pmap, &second_pmap);
+	UT_ASSERTne(second_pmap, NULL);
+
+	/*
+	 * after removing first mapped part,
+	 * pmemset should contain only the part that was mapped second
+	 */
+	pmemset_remove_part_map(set, &first_pmap);
+	UT_ASSERTeq(first_pmap, NULL);
+
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTeq(first_pmap, second_pmap);
+
+	pmemset_remove_part_map(set, &first_pmap);
+	UT_ASSERTeq(first_pmap, NULL);
+
+	/* after removing second mapped part, pmemset should be empty */
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTeq(first_pmap, NULL);
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_coalescing_before_remove_part_map -- enable the part coalescing feature,
+ * map two parts to the pmemset. If no error returned those parts should appear
+ * as single part mapping. Iterate over the set to obtain coalesced part mapping
+ * and delete it.
+ */
+static int
+test_coalescing_before_remove_part_map(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL(
+			"usage: test_coalescing_before_remove_part_map <path>");
+
+	const char *file = argv[0];
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part *part;
+	struct pmemset_part_map *first_pmap = NULL;
+	struct pmemset_part_map *second_pmap = NULL;
+	struct pmemset_source *src;
+	size_t first_part_size = 64 * 1024;
+	size_t second_part_size = 128 * 1024;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_set_contiguous_part_coalescing(set, true);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, first_part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, second_part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	/* the address next to the previous part mapping is already occupied */
+	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS) {
+		pmemset_part_delete(&part);
+		goto err_cleanup;
+	}
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTne(first_pmap, NULL);
+
+	pmemset_next_part_map(set, first_pmap, &second_pmap);
+	UT_ASSERTeq(second_pmap, NULL);
+
+	/*
+	 * after removing first mapped part,
+	 * pmemset should contain only the part that was mapped second
+	 */
+	pmemset_remove_part_map(set, &first_pmap);
+	UT_ASSERTeq(first_pmap, NULL);
+
+	/* after removing coalesced mapped part, pmemset should be empty */
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTeq(first_pmap, NULL);
+
+err_cleanup:
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_coalescing_after_remove_part_map -- map two parts to the pmemset,
+ * iterate over the set to find one of them and delete it. Turn on part
+ * coalescing and map new part. Lastly iterate over the set to find and delete
+ * all of them.
+ */
+static int
+test_coalescing_after_remove_part_map(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL(
+			"usage: test_coalescing_after_remove_part_map <path>");
+
+	const char *file = argv[0];
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part *part;
+	struct pmemset_part_map *first_pmap = NULL;
+	struct pmemset_part_map *second_pmap = NULL;
+	struct pmemset_source *src;
+	size_t part_size = 64 * 1024;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* map first part */
+	ret = pmemset_part_new(&part, set, src, 0, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* map second part */
+	ret = pmemset_part_new(&part, set, src, 0, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* there should be two mapping in the pmemset */
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTne(first_pmap, NULL);
+
+	pmemset_next_part_map(set, first_pmap, &second_pmap);
+	UT_ASSERTne(second_pmap, NULL);
+
+	/* delete one mapping */
+	pmemset_remove_part_map(set, &second_pmap);
+	UT_ASSERTeq(second_pmap, NULL);
+
+	/* turn on coalescing */
+	ret = pmemset_set_contiguous_part_coalescing(set, true);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* new part should be coalesced with the remaining mapping */
+	ret = pmemset_part_new(&part, set, src, 0, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	/* the address next to the previous part mapping is already occupied */
+	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS) {
+		pmemset_part_delete(&part);
+		goto err_cleanup;
+	}
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* coalesced part mapping should be the only mapping in the pmemset */
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTne(first_pmap, NULL);
+
+	pmemset_next_part_map(set, first_pmap, &second_pmap);
+	UT_ASSERTeq(second_pmap, NULL);
+
+	pmemset_remove_part_map(set, &first_pmap);
+	UT_ASSERTeq(first_pmap, NULL);
+
+	/* after removing coalesced mapped part, pmemset should be empty */
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTeq(first_pmap, NULL);
+
+err_cleanup:
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -1077,6 +1355,9 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_part_map_unaligned_size),
 	TEST_CASE(test_part_map_coalesce_before),
 	TEST_CASE(test_part_map_coalesce_after),
+	TEST_CASE(test_remove_part_map),
+	TEST_CASE(test_coalescing_before_remove_part_map),
+	TEST_CASE(test_coalescing_after_remove_part_map),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
