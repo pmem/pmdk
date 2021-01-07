@@ -29,7 +29,7 @@ int pmemset_part_map_new(struct pmemset_part_map **part_map,
 		struct pmemset_part *part, enum pmem2_granularity gran,
 		enum pmem2_granularity *mapping_gran,
 		struct pmemset_part_map *prev_pmap,
-		bool part_coalescing);
+		enum pmemset_coalescing part_coalescing);
 
 void pmemset_part_map_delete(struct pmemset_part_map **part_map);
 
