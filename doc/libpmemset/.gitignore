@@ -15,6 +15,7 @@ pmemset_part_map_drop.3
 pmemset_part_new.3
 pmemset_perror.3
 pmemset_persist.3
+pmemset_remove_part_map.3
 pmemset_set_contiguous_part_coalescing.3
 pmemset_source_delete.3
 pmemset_source_from_file.3
