@@ -47,7 +47,15 @@ simply by retrieving part by its mapping address with **pmemset_part_map_by_addr
 
 # RETURN VALUE
 
-The **pmemset_set_contiguous_part_coalescing**() function always returns 0.
+The **pmemset_set_contiguous_part_coalescing**() function returns 0 on success
+or a negative error code on failure.
+
+# ERRORS #
+
+The **pmemset_set_contiguous_part_coalescing**() can fail with the following errors:
+
+* **PMEMSET_E_INVALID_COALESCING_VALUE** - contiguous part coalescing value not one
+of the possible values.
 
 # SEE ALSO #
 

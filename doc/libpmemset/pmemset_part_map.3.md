@@ -54,7 +54,7 @@ memory region that is situated right after the previous mapped part memory range
 that the desired memory region is unoccupied, so in case it's occupied an error will be returned.
 Mapping parts contiguously allows modifying the virtual address space of multiple parts with one operation
 using for example **memset**(3). When this feature is disabled, each new part is mapped at the
-memory region is arbitrarily chosen by the operating system.
+memory region that is arbitrarily chosen by the operating system.
 
 When the **pmemset_part_map**() function succeeds it consumes the part thereby deleting it and
 the variable pointed by *part* is set to NULL.
@@ -82,7 +82,7 @@ in **libpmem2**(7) manpage.
 cannot be created. The error code of **libpmem2**(7) error is printed in the logs and
 can be checked for further information.
 
-* **PMEMSET_E_LENGTH_UNALIGNED** - the length of the part to be mapped is no aligned
+* **PMEMSET_E_LENGTH_UNALIGNED** - the length of the part to be mapped is not aligned
 to the allocation granularity.
 
 * **PMEMSET_E_CANNOT_COALESCE_PARTS** - new part couldn't be coalesced with previously
