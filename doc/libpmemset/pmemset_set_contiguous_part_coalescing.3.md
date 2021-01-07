@@ -27,27 +27,39 @@ date: pmemset API version 1.0
 ```c
 #include <libpmemset.h>
 
+enum pmemset_coalescing;
 struct pmemset;
 
-int pmemset_set_contiguous_part_coalescing(struct pmemset *set, bool value);
+int pmemset_set_contiguous_part_coalescing(struct pmemset *set,
+		enum pmemset_coalescing value);
 ```
 
 # DESCRIPTION #
 
 The **pmemset_set_contiguous_part_coalescing**() sets part coalescing feature flag in
-pmemset to the provided *value*.
+pmemset to the provided *value*. The possible values are *PMEMSET_COALESCING_NONE*,
+*PMEMSET_COALESCING_OPPORTUNISTIC* and *PMEMSET_COALESCING_FULL*.
 
 When part coalescing is enabled, the **pmemset_part_map**(3) function will try to coalesce each
 new mapped part with the previously mapped part, that means it will try to map the part directly
 after the previous mapping. The success of the part coalescing depends on the operating system
 and is not guaranteed. For more information see **pmemset_part_map**(3).
+
 Coalesced parts appear as single *struct pmemset_part_map* and can be retrieved by iterating over
 the pmemset using **pmemset_first_part_map**(3) and **pmemset_next_part_map**(3) or
 simply by retrieving part by its mapping address with **pmemset_part_map_by_address**(3) function.
 
 # RETURN VALUE
 
-The **pmemset_set_contiguous_part_coalescing**() function always returns 0.
+The **pmemset_set_contiguous_part_coalescing**() function returns 0 on success
+or a negative error code on failure.
+
+# ERRORS #
+
+The **pmemset_set_contiguous_part_coalescing**() can fail with the following errors:
+
+* **PMEMSET_E_INVALID_COALESCING_VALUE** - contiguous part coalescing value not one
+of the possible values.
 
 # SEE ALSO #
 
