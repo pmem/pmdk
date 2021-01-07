@@ -55,8 +55,16 @@ extern "C" {
 #define PMEMSET_E_CANNOT_FIND_PART_MAP			(-200013)
 #define PMEMSET_E_CANNOT_COALESCE_PARTS			(-200014)
 #define PMEMSET_E_LENGTH_UNALIGNED			(-200015)
+#define PMEMSET_E_PART_NOT_FOUND			(-200016)
+#define PMEMSET_E_INVALID_COALESCING_VALUE		(-200017)
 
 /* pmemset setup */
+
+enum pmemset_coalescing {
+	PMEMSET_COALESCING_NONE, /* don't try coalescing, default behavior */
+	PMEMSET_COALESCING_OPPORTUNISTIC, /* try coalescing, dont fail */
+	PMEMSET_COALESCING_FULL, /* coalesce, fail when impossible */
+};
 
 struct pmemset;
 struct pmemset_config;
@@ -106,7 +114,8 @@ void pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
 
 int pmemset_remove_range(struct pmemset *set, void *addr, size_t len);
 
-int pmemset_set_contiguous_part_coalescing(struct pmemset *set, bool value);
+int pmemset_set_contiguous_part_coalescing(struct pmemset *set,
+		enum pmemset_coalescing value);
 
 int pmemset_persist(struct pmemset *set, const void *ptr, size_t size);
 

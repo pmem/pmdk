@@ -117,12 +117,73 @@ class TEST17(PMEMSET_PART):
 
 
 class TEST18(PMEMSET_PART):
-    """turn on coalescing feature then create two mappings"""
-    test_case = "test_part_map_coalesce_before"
+    """turn on full coalescing feature then create two mappings"""
+    test_case = "test_part_map_full_coalesce_before"
     file_size = 64 * t.KiB
 
 
 class TEST19(PMEMSET_PART):
-    """map a part turn on the coalescing feature and map a part second time"""
-    test_case = "test_part_map_coalesce_after"
+    """
+    map a part, turn on the full coalescing feature and map a part second time
+    """
+    test_case = "test_part_map_full_coalesce_after"
     file_size = 64 * t.KiB
+
+
+class TEST20(PMEMSET_PART):
+    """turn on opportunistic coalescing feature then create two mappings"""
+    test_case = "test_part_map_opp_coalesce_before"
+    file_size = 64 * t.KiB
+
+
+class TEST21(PMEMSET_PART):
+    """
+    map a part, turn on the opportunistic coalescing feature and
+    map a part second time
+    """
+    test_case = "test_part_map_full_coalesce_after"
+    file_size = 64 * t.KiB
+
+
+class TEST22(PMEMSET_PART):
+    """
+    map two parts to the pmemset, iterate over
+    the set to find them, then remove them
+    """
+    test_case = "test_remove_part_map"
+
+
+class TEST23(PMEMSET_PART):
+    """
+    Enable the part coalescing feature, map two parts to the pmemset.
+    If no error returned those parts should appear as single part mapping.
+    Iterate over the set to obtain coalesced part mapping and delete it.
+    """
+    test_case = "test_full_coalescing_before_remove_part_map"
+
+
+class TEST24(PMEMSET_PART):
+    """
+    Map two parts to the pmemset, iterate over the set to find first mapping
+    and delete it. Turn on part coalescing and map new part. Lastly iterate
+    over the set to find the coalesced mapping and delete it.
+    """
+    test_case = "test_full_coalescing_after_remove_first_part_map"
+
+
+class TEST25(PMEMSET_PART):
+    """
+    Map two parts to the pmemset, iterate over the set to find second mapping
+    and delete it. Turn on part coalescing and map new part. Lastly iterate
+    over the set to find the coalesced mapping and delete it.
+    """
+    test_case = "test_full_coalescing_after_remove_second_part_map"
+
+
+class TEST26(PMEMSET_PART):
+    """
+    Map hundred parts to the pmemset, iterate over the set to find the middle
+    part mapping and delete it, repeat the process until there is not mappings
+    left.
+    """
+    test_case = "test_remove_multiple_part_maps"

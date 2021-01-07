@@ -113,7 +113,7 @@ pmemset_part_map_new(struct pmemset_part_map **part_map,
 		struct pmemset_part *part, enum pmem2_granularity gran,
 		enum pmem2_granularity *mapping_gran,
 		struct pmemset_part_map *prev_pmap,
-		bool part_coalescing)
+		enum pmemset_coalescing part_coalescing)
 {
 	*part_map = NULL;
 
@@ -149,16 +149,32 @@ pmemset_part_map_new(struct pmemset_part_map **part_map,
 		pmem2_source_size(pmem2_src, &part_size);
 
 	struct pmem2_vm_reservation *pmem2_reserv;
-	size_t offset = 0;
+	size_t offset;
+	bool coalesced = true;
 
-	int coalesce = part_coalescing && prev_pmap;
-	/* coalesce part mappings into single vm reservation */
-	if (coalesce) {
-		pmem2_reserv = prev_pmap->pmem2_reserv;
-		offset = pmem2_vm_reservation_get_size(pmem2_reserv);
-		ret = pmem2_vm_reservation_extend(pmem2_reserv, part_size);
-	} else {
-		ret = pmem2_vm_reservation_new(&pmem2_reserv, 0, part_size);
+	switch (part_coalescing) {
+		case PMEMSET_COALESCING_OPPORTUNISTIC:
+		case PMEMSET_COALESCING_FULL:
+			if (prev_pmap) {
+				pmem2_reserv = prev_pmap->pmem2_reserv;
+				offset = pmem2_vm_reservation_get_size(
+						pmem2_reserv);
+				ret = pmem2_vm_reservation_extend(pmem2_reserv,
+						part_size);
+
+				if (part_coalescing ==
+						PMEMSET_COALESCING_FULL || !ret)
+					break;
+			}
+		case PMEMSET_COALESCING_NONE:
+			offset = 0;
+			ret = pmem2_vm_reservation_new(&pmem2_reserv, NULL,
+					part_size);
+			coalesced = false;
+			break;
+		default:
+			ERR("invalid coalescing value %d", part_coalescing);
+			return PMEMSET_E_INVALID_COALESCING_VALUE;
 	}
 
 	if (ret) {
@@ -183,7 +199,7 @@ pmemset_part_map_new(struct pmemset_part_map **part_map,
 	if (ret) {
 		ERR("cannot create pmem2 mapping %d", ret);
 		ret = PMEMSET_E_INVALID_PMEM2_MAP;
-		if (coalesce) {
+		if (coalesced) {
 			size_t offset = pmem2_vm_reservation_get_size(
 					pmem2_reserv) - part_size;
 			pmem2_vm_reservation_shrink(pmem2_reserv, offset,
@@ -194,7 +210,7 @@ pmemset_part_map_new(struct pmemset_part_map **part_map,
 		goto err_cfg_delete;
 	}
 
-	if (!coalesce) {
+	if (!coalesced) {
 		struct pmemset_part_map *pmap;
 		pmap = pmemset_malloc(sizeof(*pmap), &ret);
 		if (ret)
