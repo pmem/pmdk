@@ -406,6 +406,7 @@
         pmemset_part_delete.3
         pmemset_part_map.3
         pmemset_part_map_drop.3
+        pmemset_part_map_by_address.3
         pmemset_part_new.3
         pmemset_perror.3
         pmemset_source_delete.3
