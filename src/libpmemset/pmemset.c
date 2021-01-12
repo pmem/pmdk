@@ -25,6 +25,9 @@ struct pmemset {
 	bool effective_granularity_valid;
 	enum pmem2_granularity effective_granularity;
 	struct pmemset_part_descriptor previous_part;
+	pmem2_persist_fn persist_fn;
+	pmem2_flush_fn flush_fn;
+	pmem2_drain_fn drain_fn;
 };
 
 static char *granularity_name[3] = {
@@ -96,6 +99,10 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 	set->effective_granularity_valid = false;
 	set->previous_part.addr = NULL;
 	set->previous_part.size = 0;
+
+	set->persist_fn = NULL;
+	set->flush_fn = NULL;
+	set->drain_fn = NULL;
 
 	return 0;
 }
@@ -222,6 +229,25 @@ pmemset_get_store_granularity(struct pmemset *set, enum pmem2_granularity *g)
 }
 
 /*
+ * pmemset_set_persisting_fn -- sets persist, flush and
+ * drain functions for pmemset
+ */
+static void
+pmemset_set_persisting_fn(struct pmemset *set, struct pmemset_part_map *pmap)
+{
+	struct pmem2_map *p2m = pmap->pmem2_map;
+	ASSERTne(p2m, NULL);
+
+	/* should be set only once per pmemset */
+	if (!set->persist_fn)
+		set->persist_fn = pmem2_get_persist_fn(p2m);
+	if (!set->flush_fn)
+		set->flush_fn = pmem2_get_flush_fn(p2m);
+	if (!set->drain_fn)
+		set->drain_fn = pmem2_get_drain_fn(p2m);
+}
+
+/*
  * pmemset_part_map -- create new part mapping and add it to the set
  */
 int
@@ -268,6 +294,8 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 			goto err_delete_pmap;
 		}
 	}
+
+	pmemset_set_persisting_fn(set, part_map);
 
 	/*
 	 * XXX: add multiple part support
@@ -350,30 +378,47 @@ pmemset_remove_range(struct pmemset *set, void *addr, size_t len)
 }
 
 /*
- * pmemset_persist -- not supported
+ * pmemset_persist -- persists stores from provided range
  */
 int
 pmemset_persist(struct pmemset *set, const void *ptr, size_t size)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(15, "ptr %p size %zu", ptr, size);
+
+	/*
+	 * someday, for debug purposes, we can validate
+	 * if ptr and size belongs to the set
+	 */
+	set->persist_fn(ptr, size);
+	return 0;
 }
 
 /*
- * pmemset_flush -- not supported
+ * pmemset_flush -- flushes stores from passed range
  */
 int
 pmemset_flush(struct pmemset *set, const void *ptr, size_t size)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(15, "ptr %p size %zu", ptr, size);
+
+	/*
+	 * someday, for debug purposes, we can validate
+	 * if ptr and size belongs to the set
+	 */
+	set->flush_fn(ptr, size);
+	return 0;
 }
 
 /*
- * pmemset_drain -- not supported
+ * pmemset_drain -- drain stores
  */
 int
 pmemset_drain(struct pmemset *set)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(15, "set %p", set);
+
+	set->drain_fn();
+	return 0;
 }
 
 /*

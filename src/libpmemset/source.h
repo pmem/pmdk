@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * source.h -- internal definitions for pmemset_source
@@ -24,6 +24,8 @@ int pmemset_source_extract(struct pmemset_source *src, int *fd);
 #endif
 
 int pmemset_source_validate(const struct pmemset_source *src);
+
+struct pmemset_file *pmemset_source_get_set_file(struct pmemset_source *src);
 
 int pmemset_source_get_pmem2_source(struct pmemset_source *src,
 	struct pmem2_source **pmem2_src);

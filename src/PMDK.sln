@@ -41,6 +41,29 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpmemlog", "libpmemlog\li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "reader", "examples\libpmemobj\string_store\reader.vcxproj", "{0BFD78AA-FD94-4DB1-8495-8F5CC06D8F03}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libpmemset", "libpmemset", "{0C36681D-26E3-4DEC-89AD-2A82BFD0ADF6}"
+	ProjectSection(SolutionItems) = preProject
+		..\doc\libpmemset\libpmemset.7.md = ..\doc\libpmemset\libpmemset.7.md
+		..\doc\libpmemset\pmemset_config_new.3.md = ..\doc\libpmemset\pmemset_config_new.3.md
+		..\doc\libpmemset\pmemset_config_set_required_store_granularity.3.md = ..\doc\libpmemset\pmemset_config_set_required_store_granularity.3.md
+		..\doc\libpmemset\pmemset_descriptor_part_map.3.md = ..\doc\libpmemset\pmemset_descriptor_part_map.3.md
+		..\doc\libpmemset\pmemset_drain.3.md = ..\doc\libpmemset\pmemset_drain.3.md
+		..\doc\libpmemset\pmemset_errormsg.3.md = ..\doc\libpmemset\pmemset_errormsg.3.md
+		..\doc\libpmemset\pmemset_first_part_map.3.md = ..\doc\libpmemset\pmemset_first_part_map.3.md
+		..\doc\libpmemset\pmemset_flush.3.md = ..\doc\libpmemset\pmemset_flush.3.md
+		..\doc\libpmemset\pmemset_get_store_granularity.3.md = ..\doc\libpmemset\pmemset_get_store_granularity.3.md
+		..\doc\libpmemset\pmemset_new.3.md = ..\doc\libpmemset\pmemset_new.3.md
+		..\doc\libpmemset\pmemset_part_map.3.md = ..\doc\libpmemset\pmemset_part_map.3.md
+		..\doc\libpmemset\pmemset_part_map_by_address.3.md = ..\doc\libpmemset\pmemset_part_map_by_address.3.md
+		..\doc\libpmemset\pmemset_part_map_drop.3.md = ..\doc\libpmemset\pmemset_part_map_drop.3.md
+		..\doc\libpmemset\pmemset_part_new.3.md = ..\doc\libpmemset\pmemset_part_new.3.md
+		..\doc\libpmemset\pmemset_perror.3.md = ..\doc\libpmemset\pmemset_perror.3.md
+		..\doc\libpmemset\pmemset_persist.3.md = ..\doc\libpmemset\pmemset_persist.3.md
+		..\doc\libpmemset\pmemset_source_delete.3.md = ..\doc\libpmemset\pmemset_source_delete.3.md
+		..\doc\libpmemset\pmemset_source_from_file.3.md = ..\doc\libpmemset\pmemset_source_from_file.3.md
+		..\doc\libpmemset\pmemset_source_from_pmem2.3.md = ..\doc\libpmemset\pmemset_source_from_pmem2.3.md
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Examples", "Examples", "{0CC6D525-806E-433F-AB4A-6CFD546418B1}"
 	ProjectSection(SolutionItems) = preProject
 		examples\ex_common.h = examples\ex_common.h
@@ -2003,6 +2026,7 @@ Global
 		{0A049EAD-652F-4E20-8026-90FD99AEE77A} = {1A36B57B-2E88-4D81-89C0-F575C9895E36}
 		{0B1818EB-BDC8-4865-964F-DB8BF05CFD86} = {853D45D8-980C-4991-B62A-DAC6FD245402}
 		{0BFD78AA-FD94-4DB1-8495-8F5CC06D8F03} = {BFEDF709-A700-4769-9056-ACA934D828A8}
+		{0C36681D-26E3-4DEC-89AD-2A82BFD0ADF6} = {F18C84B3-7898-4324-9D75-99A6048F442D}
 		{0CC6D525-806E-433F-AB4A-6CFD546418B1} = {853D45D8-980C-4991-B62A-DAC6FD245402}
 		{0CDCEB97-3270-4939-A290-EA2D3BE34B0C} = {63C9B3F8-437D-4AD9-B32D-D04AE38C35B6}
 		{0D4E38EF-A9D5-4797-8994-5DBB1125C9EA} = {F8373EDD-1B9E-462D-BF23-55638E23E98B}
