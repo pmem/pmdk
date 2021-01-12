@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 #
 
 #
@@ -303,6 +303,7 @@ PMEMSET_TESTS = \
 	pmemset_new\
 	pmemset_part\
 	pmemset_perror\
+	pmemset_persist\
 	pmemset_source
 
 LOCAL_TESTS = \
