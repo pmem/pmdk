@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * libpmem2.h -- definitions of libpmem2 entry points
@@ -104,6 +104,8 @@ int pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 		void *addr, size_t size);
 
 int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr);
+
+int pmem2_vm_reservation_extend(struct pmem2_vm_reservation *rsv, size_t size);
 
 /* config setup */
 

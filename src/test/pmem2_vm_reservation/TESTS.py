@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 #
 
 import os
@@ -301,3 +301,20 @@ class TEST32(PMEM2_VM_RESERVATION_ASYNC_DEVDAX):
     test_case = "test_vm_reserv_async_map_unmap_multiple_files"
     threads = 32
     ops_per_thread = 1000
+
+
+class TEST33(PMEM2_VM_RESERVATION):
+    """extend the empty vm reservation"""
+    test_case = "test_vm_reserv_empty_extend"
+    filesize = 64 * t.KiB
+
+
+class TEST34(PMEM2_VM_RESERVATION):
+    """map a file to a vm reservation, extend the reservation and map again"""
+    test_case = "test_vm_reserv_map_extend"
+    filesize = 64 * t.KiB
+
+
+class TEST35(PMEM2_VM_RESERVATION):
+    """extend the empty vm reservation by unaligned size"""
+    test_case = "test_vm_reserv_unaligned_extend"

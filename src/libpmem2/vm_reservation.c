@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * vm_reservation.c -- implementation of virtual memory allocation API
@@ -290,4 +290,32 @@ struct ravl_interval *
 vm_reservation_get_interval_tree(struct pmem2_vm_reservation *rsv)
 {
 	return rsv->itree;
+}
+
+/*
+ * pmem2_vm_reservation_extend -- extend the reservation from the end by the
+ *                                given size, keeps the entries
+ */
+int
+pmem2_vm_reservation_extend(struct pmem2_vm_reservation *rsv, size_t size)
+{
+	LOG(3, "reservation %p size %zu", rsv, size);
+	PMEM2_ERR_CLR();
+
+	void *rsv_end_addr = (char *)rsv->addr + rsv->size;
+
+	if (size % Pagesize) {
+		ERR("reservation extension size %zu is not a multiple of %llu",
+			size, Pagesize);
+		return PMEM2_E_LENGTH_UNALIGNED;
+	}
+
+	util_rwlock_wrlock(&rsv->lock);
+	rsv->size += size;
+	int ret = vm_reservation_extend_memory(rsv, rsv_end_addr, size);
+	if (ret)
+		rsv->size -= size;
+	util_rwlock_unlock(&rsv->lock);
+
+	return ret;
 }
