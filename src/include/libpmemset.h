@@ -254,7 +254,7 @@ int pmemset_part_pwrite_mcsafe(struct pmemset_part_descriptor *part,
 int pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 		struct pmemset_part_descriptor *desc);
 
-int pmemset_part_map_drop(struct pmemset_part_map **pmap);
+void pmemset_part_map_drop(struct pmemset_part_map **pmap);
 
 int pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part **part,
 		void *addr);
