@@ -40,6 +40,7 @@ pmem2_source_get_handle
 pmem2_source_numa_node
 pmem2_source_size
 pmem2_vm_reservation_delete
+pmem2_vm_reservation_extend
 pmem2_vm_reservation_get_address
 pmem2_vm_reservation_get_size
 pmem2_vm_reservation_new
