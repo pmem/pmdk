@@ -278,7 +278,11 @@ test_map_invalid_ranges(const struct test_case *tc, int argc, char *argv[])
 
 	/* the mapping + the offset > the file size */
 	size_t size2 = ALIGN_DOWN(size / 2, get_align_by_name(file));
+#if defined(__PPC64__)
+	offset = size2 + (64 * MEGABYTE);
+#else
 	offset = size2 + (4 * MEGABYTE);
+#endif
 	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, size2, offset,
 				FH_RDWR);
 	ret = pmem2_map(&cfg, src, &map);
