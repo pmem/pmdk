@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * pmemset.c -- implementation of common pmemset API
@@ -481,10 +481,11 @@ pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
 	struct ravl_interval_node *first = ravl_interval_find_first(
 			set->part_map_tree);
 
-	if (first)
+	if (first) {
 		*pmap = ravl_interval_data(first);
+		pmemset_part_map_access(*pmap);
+	}
 
-	pmemset_part_map_access(*pmap);
 }
 
 /*
@@ -502,10 +503,10 @@ pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
 	struct ravl_interval_node *found = ravl_interval_find_next(
 			set->part_map_tree, cur);
 
-	if (found)
+	if (found) {
 		*next = ravl_interval_data(found);
-
-	pmemset_part_map_access(*next);
+		pmemset_part_map_access(*next);
+	}
 }
 
 /*
