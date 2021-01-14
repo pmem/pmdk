@@ -107,16 +107,6 @@ pmemset_part_pwrite_mcsafe(struct pmemset_part_descriptor *part,
 }
 
 /*
- * pmemset_part_map_by_address -- not supported
- */
-int
-pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part **part,
-		void *addr)
-{
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
  * pmemset_part_get_pmemset -- return set assigned to the part
  */
 struct pmemset *

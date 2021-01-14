@@ -7,6 +7,7 @@ pmemset_first_part_map.3
 pmemset_get_store_granularity.3
 pmemset_new.3
 pmemset_part_map.3
+pmemset_part_map_by_address.3
 pmemset_part_map_drop.3
 pmemset_part_new.3
 pmemset_perror.3

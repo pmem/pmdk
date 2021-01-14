@@ -102,3 +102,8 @@ class TEST14(PMEMSET_PART):
 class TEST15(PMEMSET_PART):
     """test pmemset_part_map_drop function"""
     test_case = "test_part_map_drop"
+
+
+class TEST16(PMEMSET_PART):
+    """test reading part mapping by address"""
+    test_case = "test_part_map_by_addr"
