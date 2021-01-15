@@ -32,6 +32,7 @@ pmem2_source_size.3
 pmem2_source_device_id.3
 pmem2_source_device_usc.3
 pmem2_perror.3
+pmem2_vm_reservation_extend.3
 pmem2_vm_reservation_get_address.3
 pmem2_vm_reservation_get_size.3
 pmem2_vm_reservation_new.3

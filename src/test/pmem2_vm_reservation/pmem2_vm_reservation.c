@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * pmem2_vm_reservation.c -- pmem2_vm_reservation unittests
@@ -1089,6 +1089,143 @@ test_vm_reserv_async_map_unmap_multiple_files(const struct test_case *tc,
 }
 
 /*
+ * test_vm_reserv_empty_extend - extend the empty vm reservation
+ */
+static int
+test_vm_reserv_empty_extend(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_empty_extend "
+				"<file> <size>");
+
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct pmem2_vm_reservation *rsv;
+
+	rsv_size = size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(pmem2_vm_reservation_get_address(rsv), NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	/*
+	 * Extend the reservation by another file size. Since vm reservation
+	 * can't always be extended, proceed with the test only if it is
+	 * extended.
+	 */
+	ret = pmem2_vm_reservation_extend(rsv, size);
+	if (ret == PMEM2_E_MAPPING_EXISTS)
+		goto err_cleanup;
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), 2 * size);
+
+err_cleanup:
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_map_extend - map a file to a vm reservation, extend the
+ *                             reservation and map again
+ */
+static int
+test_vm_reserv_map_extend(const struct test_case *tc,
+	int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_map_extend "
+			"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_map *second_map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	rsv_size = size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(pmem2_vm_reservation_get_address(rsv), NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	/*
+	 * Extend the reservation by another file size. Since vm reservation
+	 * can't always be extended, proceed with the test only if it is
+	 * extended.
+	 */
+	ret = pmem2_vm_reservation_extend(rsv, size);
+	if (ret == PMEM2_E_MAPPING_EXISTS)
+		goto err_cleanup;
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), 2 * size);
+
+	/* try mapping the file after the first file */
+	pmem2_config_set_vm_reservation(&cfg, rsv, size);
+	ret = pmem2_map_new(&second_map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	ret = pmem2_map_delete(&second_map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(second_map, NULL);
+
+err_cleanup:
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_unaligned_extend - extend the empty vm reservation by
+ *                                   unaligned size
+ */
+static int
+test_vm_reserv_unaligned_extend(const struct test_case *tc,
+	int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_unaligned_extend "
+			"<file> <size>");
+
+	size_t size = ATOUL(argv[1]);
+	struct pmem2_vm_reservation *rsv;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(pmem2_vm_reservation_get_address(rsv), NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), size);
+
+	ret = pmem2_vm_reservation_extend(rsv, size - 1);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_LENGTH_UNALIGNED);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+
+	return 2;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -1110,6 +1247,9 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_vm_reserv_map_partial_overlap_below),
 	TEST_CASE(test_vm_reserv_map_invalid_granularity),
 	TEST_CASE(test_vm_reserv_async_map_unmap_multiple_files),
+	TEST_CASE(test_vm_reserv_empty_extend),
+	TEST_CASE(test_vm_reserv_map_extend),
+	TEST_CASE(test_vm_reserv_unaligned_extend),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
