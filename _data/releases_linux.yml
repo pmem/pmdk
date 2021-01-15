@@ -92,6 +92,7 @@
         pmem2_source_numa_node.3
         pmem2_source_size.3
         pmem2_vm_reservation_delete.3
+        pmem2_vm_reservation_extend.3
         pmem2_vm_reservation_get_address.3
         pmem2_vm_reservation_get_size.3
         pmem2_vm_reservation_new.3
