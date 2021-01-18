@@ -53,5 +53,6 @@ EXPORTS
 	pmem2_vm_reservation_get_address
 	pmem2_vm_reservation_get_size
 	pmem2_vm_reservation_new
+	pmem2_vm_reservation_shrink
 
 	DllMain

@@ -48,6 +48,7 @@ LIBPMEM2_1.0 {
 		pmem2_vm_reservation_get_address;
 		pmem2_vm_reservation_get_size;
 		pmem2_vm_reservation_new;
+		pmem2_vm_reservation_shrink;
 	local:
 		*;
 };
