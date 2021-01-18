@@ -85,10 +85,6 @@ The **pmem2_vm_reservation_delete**() function can fail with the following error
 
 It can also return errors from the underlying **munmap**(2) function.
 
-# ERRORS #
-
-The **pmem2_vm_reservation_new**() and **pmem2_vm_reservation_delete**() functions are not supported yet.
-
 # SEE ALSO #
 
 **pmem2_config_set_vm_reservation**(3), **libpmem2**(7) and **<http://pmem.io>**

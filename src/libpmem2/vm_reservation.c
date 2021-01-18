@@ -307,7 +307,7 @@ pmem2_vm_reservation_extend(struct pmem2_vm_reservation *rsv, size_t size)
 
 	void *rsv_end_addr = (char *)rsv->addr + rsv->size;
 
-	if (size % Pagesize) {
+	if (size % Mmap_align) {
 		ERR("reservation extension size %zu is not a multiple of %llu",
 			size, Pagesize);
 		return PMEM2_E_LENGTH_UNALIGNED;
@@ -318,6 +318,78 @@ pmem2_vm_reservation_extend(struct pmem2_vm_reservation *rsv, size_t size)
 	int ret = vm_reservation_extend_memory(rsv, rsv_end_addr, size);
 	if (ret)
 		rsv->size -= size;
+	util_rwlock_unlock(&rsv->lock);
+
+	return ret;
+}
+
+/*
+ * pmem2_vm_reservation_shrink -- reduce the reservation by the
+ *                                interval (offset, size)
+ */
+int
+pmem2_vm_reservation_shrink(struct pmem2_vm_reservation *rsv, size_t offset,
+		size_t size)
+{
+	LOG(3, "reservation %p offset %zu size %zu", rsv, offset, size);
+	PMEM2_ERR_CLR();
+
+	if (offset % Mmap_align) {
+		ERR("reservation shrink offset %zu is not a multiple of %llu",
+			offset, Mmap_align);
+		return PMEM2_E_OFFSET_UNALIGNED;
+	}
+
+	if (size % Mmap_align) {
+		ERR("reservation shrink size %zu is not a multiple of %llu",
+			size, Mmap_align);
+		return PMEM2_E_LENGTH_UNALIGNED;
+	}
+
+	if (offset >= rsv->size) {
+		ERR("reservation shrink offset %zu is out of reservation range",
+			offset);
+		return PMEM2_E_OFFSET_OUT_OF_RANGE;
+	}
+
+	if (size == 0) {
+		ERR("reservation shrink size %zu cannot be zero",
+			size);
+		return PMEM2_E_LENGTH_OUT_OF_RANGE;
+	}
+
+	if ((offset + size) > rsv->size) {
+		ERR(
+			"reservation shrink size %zu stands out of reservation range",
+			size);
+		return PMEM2_E_LENGTH_OUT_OF_RANGE;
+	}
+
+	if (offset != 0 && (offset + size) != rsv->size) {
+		ERR("shrinking reservation from the middle is not supported");
+		return PMEM2_E_NOSUPP;
+	}
+
+	if (offset == 0 && size == rsv->size) {
+		ERR("shrinking whole reservation is not supported");
+		return PMEM2_E_NOSUPP;
+	}
+
+	if (vm_reservation_map_find(rsv, offset, size)) {
+		ERR(
+			"reservation region (offset %zu, size %zu) to be shrunk is occupied by a mapping",
+			offset, size);
+		return PMEM2_E_VM_RESERVATION_NOT_EMPTY;
+	}
+
+	/* XXX: try unmapping without splitting the placeholder */
+	void *rsv_release_addr = (char *)rsv->addr + offset;
+
+	util_rwlock_wrlock(&rsv->lock);
+	int ret = vm_reservation_shrink_memory(rsv, rsv_release_addr, size);
+	if (offset == 0)
+		rsv->addr = (char *)rsv->addr + size;
+	rsv->size -= size;
 	util_rwlock_unlock(&rsv->lock);
 
 	return ret;

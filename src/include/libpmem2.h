@@ -107,6 +107,9 @@ int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr);
 
 int pmem2_vm_reservation_extend(struct pmem2_vm_reservation *rsv, size_t size);
 
+int pmem2_vm_reservation_shrink(struct pmem2_vm_reservation *rsv, size_t offset,
+		size_t size);
+
 /* config setup */
 
 struct pmem2_config;
