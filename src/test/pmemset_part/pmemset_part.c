@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * pmemset_part.c -- pmemset_part unittests
@@ -820,8 +820,10 @@ test_part_map_by_addr(const struct test_case *tc, int argc,
 	second_desc = pmemset_descriptor_part_map(second_pmap);
 
 	ret = pmemset_part_map_by_address(set, &first_pmap_ba, first_desc.addr);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_part_map_by_address(set, &second_pmap_ba,
 			second_desc.addr);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	first_desc_ba = pmemset_descriptor_part_map(first_pmap_ba);
 	second_desc_ba = pmemset_descriptor_part_map(second_pmap_ba);
