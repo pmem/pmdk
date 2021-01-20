@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * ut_pmemset_utils.c -- utility helper functions for libpmemset tests
@@ -17,7 +17,7 @@ void ut_pmemset_expect_return(const char *file, int line, const char *func,
 {
 	if (value != expected) {
 		ut_fatal(file, line, func,
-			"unexpected return code (got %d, expected: %d): %s",
+			"unexpected return code (got: %d, expected: %d): %s",
 			value, expected,
 			(value == 0 ? "success" : pmemset_errormsg()));
 	}

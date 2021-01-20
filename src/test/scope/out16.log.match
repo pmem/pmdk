@@ -1,7 +1,6 @@
 DllMain
 pmemset_config_delete
 pmemset_config_new
-pmemset_config_set_contiguous_part_coalescing
 pmemset_config_set_create_if_invalid
 pmemset_config_set_create_if_none
 pmemset_config_set_event_callback
@@ -39,6 +38,7 @@ pmemset_persist
 pmemset_remove_part
 pmemset_remove_part_map
 pmemset_remove_range
+pmemset_set_contiguous_part_coalescing
 pmemset_source_delete
 pmemset_source_from_fileU
 pmemset_source_from_fileW
