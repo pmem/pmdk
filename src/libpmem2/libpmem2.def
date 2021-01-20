@@ -52,6 +52,7 @@ EXPORTS
 	pmem2_vm_reservation_extend
 	pmem2_vm_reservation_get_address
 	pmem2_vm_reservation_get_size
+	pmem2_vm_reservation_map_find
 	pmem2_vm_reservation_new
 	pmem2_vm_reservation_shrink
 

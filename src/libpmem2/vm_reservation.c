@@ -170,8 +170,9 @@ pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr)
 
 	struct pmem2_vm_reservation *rsv = *rsv_ptr;
 
+	struct pmem2_map *any_map;
 	/* check if reservation contains any mapping */
-	if (vm_reservation_map_find(rsv, 0, rsv->size)) {
+	if (!pmem2_vm_reservation_map_find(rsv, 0, rsv->size, &any_map)) {
 		ERR("vm reservation %p isn't empty", rsv);
 		return PMEM2_E_VM_RESERVATION_NOT_EMPTY;
 	}
@@ -182,6 +183,34 @@ pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr)
 
 	vm_reservation_fini(rsv);
 	Free(rsv);
+
+	return 0;
+}
+
+/*
+ * pmem2_vm_reservation_map_find -- find the earliest mapping overlapping
+ *                                  with (addr, addr+size) range
+ */
+int
+pmem2_vm_reservation_map_find(struct pmem2_vm_reservation *rsv,
+		size_t reserv_offset, size_t len, struct pmem2_map **map)
+{
+	PMEM2_ERR_CLR();
+	LOG(3, "reservation %p reserv_offset %zu length %zu pmem2_map %p",
+			rsv, reserv_offset, len, map);
+
+	*map = NULL;
+
+	struct pmem2_map dummy_map;
+	dummy_map.addr = (char *)rsv->addr + reserv_offset;
+	dummy_map.content_length = len;
+
+	struct ravl_interval_node *node;
+	node = ravl_interval_find(rsv->itree, &dummy_map);
+	if (!node)
+		return PMEM2_E_MAPPING_NOT_FOUND;
+
+	*map = (struct pmem2_map *)ravl_interval_data(node);
 
 	return 0;
 }
@@ -229,28 +258,6 @@ vm_reservation_map_unregister_release(struct pmem2_vm_reservation *rsv,
 	util_rwlock_unlock(&rsv->lock);
 
 	return ret;
-}
-
-/*
- * vm_reservation_map_find -- find the earliest mapping overlapping
- *                                    with (addr, addr+size) range
- */
-struct pmem2_map *
-vm_reservation_map_find(struct pmem2_vm_reservation *rsv,
-		size_t reserv_offset, size_t len)
-{
-	struct pmem2_map map;
-	map.addr = (char *)rsv->addr + reserv_offset;
-	map.content_length = len;
-
-	struct ravl_interval_node *node;
-
-	node = ravl_interval_find(rsv->itree, &map);
-
-	if (!node)
-		return NULL;
-
-	return (struct pmem2_map *)ravl_interval_data(node);
 }
 
 /*
@@ -375,7 +382,8 @@ pmem2_vm_reservation_shrink(struct pmem2_vm_reservation *rsv, size_t offset,
 		return PMEM2_E_NOSUPP;
 	}
 
-	if (vm_reservation_map_find(rsv, offset, size)) {
+	struct pmem2_map *any_map;
+	if (!pmem2_vm_reservation_map_find(rsv, offset, size, &any_map)) {
 		ERR(
 			"reservation region (offset %zu, size %zu) to be shrunk is occupied by a mapping",
 			offset, size);

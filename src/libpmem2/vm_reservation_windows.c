@@ -226,11 +226,12 @@ vm_reservation_split_placeholders(struct pmem2_vm_reservation *rsv, void *addr,
 	 * range (addr, addr + length). If the immediate neighboring ranges
 	 * are empty then split the provided range into separate placeholder.
 	 */
-	if ((rsv_offset > 0 && !vm_reservation_map_find(rsv,
-			rsv_offset - 1, 1)) ||
+	struct pmem2_map *any_map;
+	if ((rsv_offset > 0 && pmem2_vm_reservation_map_find(rsv,
+			rsv_offset - 1, 1, &any_map)) ||
 			(rsv_offset + length < rsv_size &&
-			!vm_reservation_map_find(rsv,
-			rsv_offset + length, 1))) {
+			pmem2_vm_reservation_map_find(rsv,
+			rsv_offset + length, 1, &any_map))) {
 		/* split the placeholder */
 		int ret = VirtualFree((char *)rsv_addr + rsv_offset,
 			length,

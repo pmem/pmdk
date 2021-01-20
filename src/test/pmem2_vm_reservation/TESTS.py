@@ -361,3 +361,24 @@ class TEST40(PMEM2_VM_RESERVATION):
 class TEST41(PMEM2_VM_RESERVATION):
     """shrink the vm reservation by the region that is occupied"""
     test_case = "test_vm_reserv_occupied_region_shrink"
+
+
+class TEST42(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a file and map a file to it,
+    search for the mapping with the following intervals (offset, size):
+    1. (reserv_start, reserv_middle), 2. (reserv_middle, reserv_end),
+    3. (reserv_start, reserv_end)
+    """
+    test_case = "test_vm_reserv_one_map_find"
+
+
+class TEST43(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a 2x file size and map
+    a file to it two times, occupying the whole reservation, search for the
+    mapping with the following intervals (offset, size):
+    1. (reserv_start, reserv_middle), 2. (reserv_middle, reserv_end),
+    3. (reserv_start, reserv_end)
+    """
+    test_case = "test_vm_reserv_two_maps_find"
