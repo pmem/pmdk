@@ -195,10 +195,10 @@ vm_reservation_split_placeholders(struct pmem2_vm_reservation *rsv, void *addr,
 
 	LOG(3, "rsv_addr %p rsv_size %zu", rsv_addr, rsv_size);
 
-	if ((rsv_offset > 0 && !vm_reservation_map_find(rsv,
+	if ((rsv_offset > 0 && !pmem2_vm_reservation_map_find(rsv,
 			rsv_offset - 1, 1)) ||
 			(rsv_offset + length < rsv_size &&
-			!vm_reservation_map_find(rsv,
+			!pmem2_vm_reservation_map_find(rsv,
 			rsv_offset + length, 1))) {
 		/* split the placeholder */
 		int ret = VirtualFree((char *)rsv_addr + rsv_offset,
