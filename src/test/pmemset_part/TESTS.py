@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 #
 
 import testframework as t
@@ -11,11 +11,12 @@ from testframework import granularity as g
 class PMEMSET_PART(t.Test):
     test_type = t.Short
     create_file = True
+    file_size = 16 * t.MiB
 
     def run(self, ctx):
         filepath = "not/existing/file"
         if self.create_file:
-            filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+            filepath = ctx.create_holey_file(self.file_size, 'testfile1')
         ctx.exec('pmemset_part', self.test_case, filepath)
 
 
@@ -107,3 +108,21 @@ class TEST15(PMEMSET_PART):
 class TEST16(PMEMSET_PART):
     """test reading part mapping by address"""
     test_case = "test_part_map_by_addr"
+
+
+class TEST17(PMEMSET_PART):
+    """test creating a new part from file with unaligned size"""
+    test_case = "test_part_map_unaligned_size"
+    file_size = 16 * t.MiB - 1
+
+
+class TEST18(PMEMSET_PART):
+    """turn on coalescing feature then create two mappings"""
+    test_case = "test_part_map_coalesce_before"
+    file_size = 64 * t.KiB
+
+
+class TEST19(PMEMSET_PART):
+    """map a part turn on the coalescing feature and map a part second time"""
+    test_case = "test_part_map_coalesce_after"
+    file_size = 64 * t.KiB

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * pmemset.h -- internal definitions for libpmemset
@@ -21,12 +21,6 @@ extern "C" {
 #define PMEMSET_LOG_FILE_VAR "PMEMSET_LOG_FILE"
 
 struct pmemset_config *pmemset_get_pmemset_config(struct pmemset *set);
-
-struct pmemset_part_descriptor pmemset_get_previous_part_descriptor(
-		struct pmemset *set);
-
-void pmemset_set_previous_part_descriptor(struct pmemset *set, void *addr,
-		size_t size);
 
 #ifdef __cplusplus
 }
