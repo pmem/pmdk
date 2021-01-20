@@ -1526,6 +1526,153 @@ test_vm_reserv_occupied_region_shrink(const struct test_case *tc,
 }
 
 /*
+ * test_vm_reserv_one_map_find - create a reservation with exactly the size of
+ * a file and map a file to it, search for the mapping with the following
+ * intervals (offset, size): 1. (reserv_start, reserv_middle),
+ * 2. (reserv_middle, reserv_end), 3. (reserv_start, reserv_end)
+ */
+static int
+test_vm_reserv_one_map_find(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_one_map_find "
+			"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	rsv_size = size;
+	size_t reserv_half = rsv_size / 2;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(pmem2_vm_reservation_get_address(rsv), NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	void *map_addr = pmem2_map_get_address(map);
+
+	struct pmem2_map *fmap;
+	/* search for the mapping at interval (reserv_start, reserv_middle) */
+	ret = pmem2_vm_reservation_map_find(rsv, 0, reserv_half, &fmap);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map_addr, pmem2_map_get_address(fmap));
+
+	/* search for the mapping at interval (reserv_middle, reserv_end) */
+	ret = pmem2_vm_reservation_map_find(rsv, reserv_half, reserv_half,
+			&fmap);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map_addr, pmem2_map_get_address(fmap));
+
+	/* search for the mapping at interval (reserv_start, reserv_end) */
+	ret = pmem2_vm_reservation_map_find(rsv, 0, rsv_size, &fmap);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map_addr, pmem2_map_get_address(fmap));
+
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_two_maps_find - create a reservation with exactly the size of
+ * a 2x file size and map a file to it two times, occupying the whole
+ * reservation, search for the mapping with the following
+ * intervals (offset, size): 1. (reserv_start, reserv_middle),
+ * 2. (reserv_middle, reserv_end), 3. (reserv_start, reserv_end)
+ */
+static int
+test_vm_reserv_two_maps_find(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_two_maps_find "
+			"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_map *second_map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	rsv_size = 2 * size;
+	size_t reserv_half = rsv_size / 2;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(pmem2_vm_reservation_get_address(rsv), NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, reserv_half);
+	ret = pmem2_map_new(&second_map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	void *map_addr = pmem2_map_get_address(map);
+	void *second_map_addr = pmem2_map_get_address(second_map);
+
+	struct pmem2_map *fmap;
+	/* search for the mapping at interval (reserv_start, reserv_middle) */
+	ret = pmem2_vm_reservation_map_find(rsv, 0, reserv_half, &fmap);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map_addr, pmem2_map_get_address(fmap));
+
+	/* search for the mapping at interval (reserv_middle, reserv_end) */
+	ret = pmem2_vm_reservation_map_find(rsv, reserv_half, reserv_half,
+			&fmap);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(second_map_addr, pmem2_map_get_address(fmap));
+
+	/* search for the mapping at interval (reserv_start, reserv_end) */
+	ret = pmem2_vm_reservation_map_find(rsv, 0, rsv_size, &fmap);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map_addr, pmem2_map_get_address(fmap));
+
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+
+	ret = pmem2_map_delete(&second_map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(second_map, NULL);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -1556,6 +1703,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_vm_reserv_out_of_range_shrink),
 	TEST_CASE(test_vm_reserv_unsupported_shrink),
 	TEST_CASE(test_vm_reserv_occupied_region_shrink),
+	TEST_CASE(test_vm_reserv_one_map_find),
+	TEST_CASE(test_vm_reserv_two_maps_find),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

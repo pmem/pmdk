@@ -94,6 +94,7 @@ int pmem2_source_delete(struct pmem2_source **src);
 
 /* vm reservation setup */
 
+struct pmem2_map;
 struct pmem2_vm_reservation;
 
 void *pmem2_vm_reservation_get_address(struct pmem2_vm_reservation *rsv);
@@ -109,6 +110,9 @@ int pmem2_vm_reservation_extend(struct pmem2_vm_reservation *rsv, size_t size);
 
 int pmem2_vm_reservation_shrink(struct pmem2_vm_reservation *rsv, size_t offset,
 		size_t size);
+
+int pmem2_vm_reservation_map_find(struct pmem2_vm_reservation *rsv,
+		size_t reserv_offset, size_t len, struct pmem2_map **map);
 
 /* config setup */
 
