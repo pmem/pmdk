@@ -1,5 +1,5 @@
 /*
- * Copyright 2020, Intel Corporation
+ * Copyright 2020-2021, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -421,7 +421,7 @@ struct create_n_defrag_params_t {
 };
 
 /*
- * create_n_defrag_thread -- create and defrag graphs mutiple times
+ * create_n_defrag_thread -- create and defrag graphs multiple times
  */
 static void *
 create_n_defrag_thread(void *arg)

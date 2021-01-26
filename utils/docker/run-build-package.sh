@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright 2016-2019, Intel Corporation
+# Copyright 2016-2021, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -37,7 +37,7 @@
 
 set -e
 
-# Prepare build enviromnent
+# Prepare build environment
 ./prepare-for-build.sh
 
 # Create fake tag, so that package has proper 'version' field
