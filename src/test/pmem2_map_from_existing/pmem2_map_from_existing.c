@@ -43,7 +43,7 @@ test_two_same_mappings(const struct test_case *tc, int argc, char *argv[])
 
 /*
  * test_mapping_overlap_bottom - try to map which overlap
- *		bottom part of exisiting mapping
+ *		bottom part of existing mapping
  */
 static int
 test_mapping_overlap_bottom(const struct test_case *tc, int argc, char *argv[])
@@ -75,7 +75,7 @@ test_mapping_overlap_bottom(const struct test_case *tc, int argc, char *argv[])
 
 /*
  * test_mapping_overlap_upper - try to map which overlap
- *		upper part of exisiting mapping
+ *		upper part of existing mapping
  */
 static int
 test_mapping_overlap_upper(const struct test_case *tc, int argc, char *argv[])

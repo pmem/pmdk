@@ -70,7 +70,7 @@ struct pmem2_badblock_context {
 		struct ndctl_bus *bus;
 		struct ndctl_region *region;
 		unsigned long long ns_res; /* address of the namespace */
-		unsigned long long ns_beg; /* the begining of the namespace */
+		unsigned long long ns_beg; /* the beginning of the namespace */
 		unsigned long long ns_end; /* the end of the namespace */
 	} rgn;
 

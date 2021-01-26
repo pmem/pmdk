@@ -26,7 +26,7 @@ struct ravl_interval *vm_reservation_get_interval_tree(
 		struct pmem2_vm_reservation *rsv);
 
 /*
- * vm_reservation_reserve_memory -- create a blank virual memory mapping
+ * vm_reservation_reserve_memory -- create a blank virtual memory mapping
  */
 int
 vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,

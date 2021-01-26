@@ -746,7 +746,7 @@ test_vm_reserv_map_full_overlap(const struct test_case *tc,
 
 /*
  * test_vm_reserv_map_partial_overlap_below - map a file to a vm reservation
- * overlapping with the ealier half of the other existing mapping
+ * overlapping with the earlier half of the other existing mapping
  */
 static int
 test_vm_reserv_map_partial_overlap_below(const struct test_case *tc,

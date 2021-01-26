@@ -44,7 +44,7 @@ require_short_path
 
 setup
 
-# overide PMEMOBJ_CONF
+# override PMEMOBJ_CONF
 $Env:PMEMOBJ_CONF="fallocate.at_create=1;"
 
 create_holey_file 20M $DIR\testfile

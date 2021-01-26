@@ -393,7 +393,7 @@ struct create_n_defrag_params_t {
 };
 
 /*
- * create_n_defrag_thread -- create and defrag graphs mutiple times
+ * create_n_defrag_thread -- create and defrag graphs multiple times
  */
 static void *
 create_n_defrag_thread(void *arg)

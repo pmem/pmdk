@@ -521,7 +521,7 @@ err_alloc_lanes:
 
 /*
  * rpmem_fip_lanes_fini_common -- (internal) deinitialize common lanes
- * resrouces
+ * resources
  */
 static int
 rpmem_fip_lanes_fini_common(struct rpmem_fip *fip)

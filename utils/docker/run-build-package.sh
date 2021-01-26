@@ -9,7 +9,7 @@
 
 set -e
 
-# Prepare build enviromnent
+# Prepare build environment
 ./prepare-for-build.sh
 
 # Create fake tag, so that package has proper 'version' field

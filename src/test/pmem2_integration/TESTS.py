@@ -225,7 +225,7 @@ class TEST26(PMEM2_INTEGRATION):
 
 
 class TEST27(PMEM2_INTEGRATION):
-    """test deep flush with overlaping part"""
+    """test deep flush with overlapping part"""
     test_case = "test_deep_flush_overlap"
 
 
@@ -280,7 +280,7 @@ class TEST36(PMEM2_INTEGRATION_DEV_DAXES):
 
 @t.windows_exclude
 class TEST37(PMEM2_INTEGRATION_DEV_DAXES):
-    """test deep flush with overlaping part"""
+    """test deep flush with overlapping part"""
     test_case = "test_deep_flush_overlap"
 
 

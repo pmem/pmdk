@@ -72,7 +72,7 @@ is invalid.
 * **PMEMSET_E_INVALID_FILE_PATH** - the path to the file set in the provided *src*
 structure points to invalid file.
 
-* **PMEMSET_E_INVALID_SOURCE_TYPE** - the source type in the provided *src* isnt recognized.
+* **PMEMSET_E_INVALID_SOURCE_TYPE** - the source type in the provided *src* isn't recognized.
 
 * **-ENOMEM** in case of insufficient memory to allocate an instance
 of *struct pmemset_part*.

@@ -134,7 +134,7 @@ class Ndctl:
                 for device in devices:
                     if devtype in device and \
                             os.path.join('/dev', device[devtype]) == dev_path:
-                        # only params from daxreg are intrested at this point,
+                        # only params from daxreg are interested at this point,
                         # other values are read by _get_dev_info() earlier
                         dev = d[daxreg]
 

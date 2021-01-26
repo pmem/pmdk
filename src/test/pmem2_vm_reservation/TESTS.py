@@ -243,7 +243,7 @@ class TEST25(PMEM2_VM_RESERVATION_DEVDAX):
 
 class TEST26(PMEM2_VM_RESERVATION):
     """
-    map a file to a vm reservation overlapping with the ealier half
+    map a file to a vm reservation overlapping with the earlier half
     of the other existing mapping
     """
     test_case = "test_vm_reserv_map_partial_overlap_below"
@@ -251,7 +251,7 @@ class TEST26(PMEM2_VM_RESERVATION):
 
 class TEST27(PMEM2_VM_RESERVATION_DEVDAX):
     """
-    DevDax map a file to a vm reservation overlapping with the ealier half
+    DevDax map a file to a vm reservation overlapping with the earlier half
     of the other existing mapping
     """
     test_case = "test_vm_reserv_map_partial_overlap_below"

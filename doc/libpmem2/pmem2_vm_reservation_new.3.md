@@ -43,7 +43,7 @@ of a given size on which sources can be mapped.
 
 For the function to succeed, the *addr* must be either aligned to an appropriate
 allocation granularity,
-or **NULL**, the size has to be aligned to an appropraite allocation granularity.
+or **NULL**, the size has to be aligned to an appropriate allocation granularity.
 
 If the **pmem2_vm_reservation_new**() succeeds in creating a reservation, it instantiates a new
 **struct pmem2_vm_reservation** object describing the reservation. The pointer to this object
