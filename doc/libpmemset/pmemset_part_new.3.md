@@ -8,7 +8,7 @@ date: pmemset API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2021, Intel Corporation)
 
 [comment]: <> (pmemset_part_new.3 -- man page for libpmemset pmemset_part_new operation)
 
@@ -72,7 +72,7 @@ is invalid.
 * **PMEMSET_E_INVALID_FILE_PATH** - the path to the file set in the provided *src*
 structure points to invalid file.
 
-* **PMEMSET_E_INVALID_SOURCE_TYPE** - the source type in the provided *src* isnt recognized.
+* **PMEMSET_E_INVALID_SOURCE_TYPE** - the source type in the provided *src* isn't recognized.
 
 * **-ENOMEM** in case of insufficient memory to allocate an instance
 of *struct pmemset_part*.

@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 #
 
 
@@ -36,10 +36,10 @@ class Pmem2ApiLogs(t.Test):
                 memset_fn_begin_nums != self.expected_memset_fn_nums or
                 memset_fn_end_nums != self.expected_memset_fn_nums):
             raise futils.Fail(
-                'Pattern: pmem2_memmove.BEGIN occurrs {} times. Expected {}.\n'
-                'Pattern: pmem2_memmove.END occurrs {} times. Expected {}.\n'
-                'Pattern: pmem2_memset.BEGIN occurrs {} times. Expected {}.\n'
-                'Pattern: pmem2_memset.END occurrs {} times. Expected {}.'
+                'Pattern: pmem2_memmove.BEGIN occurs {} times. Expected {}.\n'
+                'Pattern: pmem2_memmove.END occurs {} times. Expected {}.\n'
+                'Pattern: pmem2_memset.BEGIN occurs {} times. Expected {}.\n'
+                'Pattern: pmem2_memset.END occurs {} times. Expected {}.'
                 .format(memmove_fn_begin_nums, self.expected_memmove_fn_nums,
                         memmove_fn_end_nums, self.expected_memmove_fn_nums,
                         memset_fn_begin_nums, self.expected_memset_fn_nums,

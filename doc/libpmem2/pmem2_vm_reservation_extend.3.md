@@ -36,7 +36,7 @@ int pmem2_vm_reservation_extend(struct pmem2_vm_reservation *rsv, size_t size);
 
 The **pmem2_vm_reservation_extend**() function extends an existing virtual memory
 reservation by the given *size*. For the function to succeed the size has to be aligned
-to an appropraite allocation granularity.
+to an appropriate allocation granularity.
 
 If the **pmem2_vm_reservation_extend**() succeeds in extending a reservation, it provides
 placeholder virtual memory range that starts from an address at the end of the old reservation.

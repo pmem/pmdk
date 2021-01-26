@@ -84,7 +84,7 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 	if (ret)
 		return ret;
 
-	/* intialize RAVL */
+	/* initialize RAVL */
 	set->part_map_tree = ravl_interval_new(pmemset_mapping_min,
 						pmemset_mapping_max);
 
@@ -554,7 +554,7 @@ pmemset_descriptor_part_map(struct pmemset_part_map *pmap)
 
 /*
  * pmemset_part_map_drop -- drops the reference to the part map through provided
- *                          ponter. Doesn't delete part map.
+ *                          pointer. Doesn't delete part map.
  */
 void
 pmemset_part_map_drop(struct pmemset_part_map **pmap)
