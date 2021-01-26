@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 #
 
 
@@ -23,12 +23,12 @@ class TEST0(Pmem2_from_existing):
 
 
 class TEST1(Pmem2_from_existing):
-    """try to map which overlap bottom part of exisiting mapping"""
+    """try to map which overlap bottom part of existing mapping"""
     test_case = "test_mapping_overlap_bottom"
 
 
 class TEST2(Pmem2_from_existing):
-    """try to map which overlap upper part of exisiting mapping"""
+    """try to map which overlap upper part of existing mapping"""
     test_case = "test_mapping_overlap_upper"
 
 

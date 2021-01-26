@@ -18,7 +18,7 @@ int vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
 int vm_reservation_release_memory(void *addr, size_t size);
 
 /*
- * vm_reservation_reserve_memory -- create a blank virual memory mapping
+ * vm_reservation_reserve_memory -- create a blank virtual memory mapping
  */
 int
 vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,

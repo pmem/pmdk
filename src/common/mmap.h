@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 /*
  * mmap.h -- internal definitions for mmap module
@@ -112,7 +112,7 @@ char *util_map_hint(size_t len, size_t req_align);
  * util_map_hint_align -- choose the desired mapping alignment
  *
  * The smallest supported alignment is 2 megabytes because of the object
- * alignment requirements. Changing this value to 4 kilobytes constitues a
+ * alignment requirements. Changing this value to 4 kilobytes constitutes a
  * layout change.
  *
  * Use 1GB page alignment only if the mapping length is at least

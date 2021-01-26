@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * pmem2_integration.c -- pmem2 integration tests
@@ -521,7 +521,7 @@ test_mem_move_cpy_set_with_map_private(const struct test_case *tc, int argc,
 
 	char *addr = pmem2_map_get_address(map);
 
-	/* copy inital state */
+	/* copy initial state */
 	char *initial_state = MALLOC(size);
 	memcpy(initial_state, addr, size);
 
@@ -701,7 +701,7 @@ test_deep_flush_slice(const struct test_case *tc, int argc, char *argv[])
 }
 
 /*
- * test_deep_flush_overlap -- try deep_flush for range overlaping map
+ * test_deep_flush_overlap -- try deep_flush for range overlapping map
  */
 static int
 test_deep_flush_overlap(const struct test_case *tc, int argc, char *argv[])
