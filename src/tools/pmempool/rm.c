@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2018, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 /*
  * rm.c -- pmempool rm command main source file
@@ -188,7 +188,7 @@ remove_remote(const char *target, const char *pool_set)
 		} else {
 			/*
 			 * Callback cannot return < 0 value because it
-			 * is interpretted as error in parsing poolset file.
+			 * is interpreted as error in parsing poolset file.
 			 */
 			ret = 1;
 			outv_err("!cannot remove '%s' on '%s'",

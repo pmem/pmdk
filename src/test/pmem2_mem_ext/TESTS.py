@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 #
 
 import testframework as t
@@ -103,8 +103,8 @@ class Pmem2MemExt(t.Test):
     variant = VARIANT_SSE2
 
     # By default data size is 128 - this is smaller than threshold value (256)
-    # to predict usage of temporal stores. This value is overriden is some tets
-    # to value bigger than 256.
+    # to predict usage of temporal stores. This value is overridden in some
+    # tests to values bigger than 256.
     data_size = 128
 
     pmem2_log = ""
@@ -134,11 +134,11 @@ class Pmem2MemExt(t.Test):
         with open(os.path.join(self.cwd, self.pmem2_log), 'r') as f:
             str_val = f.read()
 
-            # count function match, only one log should occurr at the time
+            # count function match, only one log should occur at the time
             count = str_val.count(match)
             if count != 1:
                 raise futils.Fail(
-                    "Pattern: {} occurrs {} times. One expected. "
+                    "Pattern: {} occurs {} times. One expected. "
                     "Type: {} Flag id: {}"
                     .format(match, count, type, flag))
 

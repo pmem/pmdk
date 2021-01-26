@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 #
 
 
@@ -225,7 +225,7 @@ class TEST26(PMEM2_INTEGRATION):
 
 
 class TEST27(PMEM2_INTEGRATION):
-    """test deep flush with overlaping part"""
+    """test deep flush with overlapping part"""
     test_case = "test_deep_flush_overlap"
 
 
