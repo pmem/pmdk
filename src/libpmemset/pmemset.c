@@ -270,7 +270,6 @@ pmemset_set_persisting_fn(struct pmemset *set, struct pmemset_part_map *pmap)
 	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
 	size_t pmem2_reserv_size = pmem2_vm_reservation_get_size(pmem2_reserv);
 	pmem2_vm_reservation_map_find(pmem2_reserv, 0, pmem2_reserv_size, &p2m);
-	ASSERTne(p2m, NULL);
 
 	/* should be set only once per pmemset */
 	if (!set->persist_fn)
@@ -572,12 +571,124 @@ pmemset_memset(struct pmemset *set, void *pmemdest, int c,
 }
 
 /*
- * pmemset_deep_flush -- not supported
+ * deep_flush_pmem2_maps_from_rsv -- perform pmem2 deep flush
+ * for each pmem2_map from reservation from range.
+ * This function sets *end* param to true if in the reservation
+ * is last pmem2 map from the provided pmemset_deep_flush range
+ * or the reservation end arrder is gt than range and addr.
+ */
+static int
+deep_flush_pmem2_maps_from_rsv(struct pmem2_vm_reservation *rsv,
+		char *range_ptr, char *range_end, bool *end)
+{
+	int ret = 0;
+	struct pmem2_map *map;
+	size_t rsv_len = pmem2_vm_reservation_get_size(rsv);
+	char *rsv_addr = pmem2_vm_reservation_get_address(rsv);
+	size_t off = 0;
+	char *map_addr;
+	char *map_end;
+	size_t map_size;
+	char *flush_addr;
+	size_t flush_size;
+	size_t len = rsv_len;
+	*end = false;
+
+	while (*end == false && ret == 0) {
+		ret = pmem2_vm_reservation_map_find(rsv, off, len, &map);
+		if (ret == PMEM2_E_MAPPING_NOT_FOUND) {
+			ret = 0;
+			if (range_end <= rsv_addr + rsv_len)
+				*end = true;
+			break;
+		}
+
+		map_size = pmem2_map_get_size(map);
+		map_addr = pmem2_map_get_address(map);
+		map_end = map_addr + map_size;
+
+		flush_addr = map_addr;
+		flush_size = map_size;
+
+		if (range_end <= map_addr) {
+			*end = true;
+			break;
+		}
+		if (range_ptr >= map_end)
+			goto next;
+
+		if (range_ptr >= map_addr && range_ptr < map_end)
+			flush_addr = range_ptr;
+
+		if (range_end <= map_end) {
+			flush_size = (size_t)(range_end - flush_addr);
+			*end = true;
+		} else {
+			flush_size = (size_t)(map_end - flush_addr);
+		}
+
+		ret = pmem2_deep_flush(map, flush_addr, flush_size);
+		if (ret) {
+			ERR("cannot perform deep flush on the reservation");
+			ret = PMEMSET_E_DEEP_FLUSH_FAIL;
+		}
+	next:
+		off = (size_t)(map_end - rsv_addr);
+		len = rsv_len - off;
+	}
+
+	return ret;
+}
+
+/*
+ * pmemset_deep_flush -- perform deep flush operation
  */
 int
 pmemset_deep_flush(struct pmemset *set, void *ptr, size_t size)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(3, "set %p ptr %p size %zu", set, ptr, size);
+	PMEMSET_ERR_CLR();
+
+	struct pmemset_part_map *pmap = NULL;
+	struct pmemset_part_map *next_pmap = NULL;
+
+	int ret = pmemset_part_map_by_address(set, &pmap, ptr);
+	if (ret == PMEMSET_E_CANNOT_FIND_PART_MAP) {
+		struct pmemset_part_map cur;
+		cur.desc.addr = ptr;
+		cur.desc.size = 1;
+
+		pmemset_next_part_map(set, &cur, &next_pmap);
+
+		if (!next_pmap)
+			return 0;
+		pmap = next_pmap;
+	}
+
+	struct pmem2_vm_reservation *rsv = pmap->pmem2_reserv;
+	char *range_end = (char *)ptr + size;
+	void *rsv_addr;
+	bool end;
+	ret = 0;
+
+	while (rsv) {
+		rsv_addr = pmem2_vm_reservation_get_address(rsv);
+		if ((char *)rsv_addr > range_end)
+			break;
+
+		ret = deep_flush_pmem2_maps_from_rsv(rsv, (char *)ptr,
+				range_end, &end);
+		if (ret || end)
+			break;
+
+		pmemset_next_part_map(set, pmap, &next_pmap);
+		if (next_pmap == NULL)
+			break;
+
+		rsv = next_pmap->pmem2_reserv;
+	}
+
+	return ret;
 }
 
 /*

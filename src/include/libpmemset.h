@@ -57,6 +57,7 @@ extern "C" {
 #define PMEMSET_E_LENGTH_UNALIGNED			(-200015)
 #define PMEMSET_E_PART_NOT_FOUND			(-200016)
 #define PMEMSET_E_INVALID_COALESCING_VALUE		(-200017)
+#define PMEMSET_E_DEEP_FLUSH_FAIL			(-200018)
 
 /* pmemset setup */
 
