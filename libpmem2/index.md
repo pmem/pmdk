@@ -29,7 +29,7 @@ Man pages that contain a list of the **Windows** interfaces provided:
 If you've decided to handle persistent memory allocation
 and consistency across program interruption yourself, you will
 find the functions in libpmem2 useful. It is important to
-understand that programing to raw pmem means you must create
+understand that programming to raw pmem means you must create
 your own transactions or convince yourself you don't care if
 a system or program crash leaves your pmem files in an inconsistent
 state. Interfaces in the libpmem2 are **non-transactional**, but
@@ -62,16 +62,16 @@ in the config, other values remain default.
 The granularity is the only required argument in the config.
 In addition to the granularity setting, libpmem2 provides
 multiple optional functions to configure target
-mapping, eg. `pmem2_config_set_length()` to set length which will be used for
+mapping, e.g. `pmem2_config_set_length()` to set length which will be used for
 mapping, or `pmem2_config_set_offset` which will be used to map the contents
 from the specified location of the source.
 
 The second highlighted line contains a call to `pmem2_source_from_fd()`,
-which takes a file descriptor and create a new instance of the source
+which takes a file descriptor and creates a new instance of the source
 structure that describes the data source used for mapping.
 In this particular example, mapping source comes from a file descriptor,
 however, libpmem2 also provides functions to use a source from the file handle
-or create an annonymous map.
+or create an anonymous map.
 
 The next key step in this example is to set the granularity using
 `pmem2_config_set_required_store_granularity`.
@@ -80,8 +80,8 @@ Granularity must be one of the three values: `PMEM2_GRANULARITY_BYTE`,
 In this case, we set a maximum permitted granularity to `PMEM2_GRANULARITY_PAGE`.
 Logically, by setting the granularity to page, the application indicates that it's going to continue functioning even if the underlying device is block-based.
 
-More detailed informations about granularity concept and each option
-can be found  <a href="../manpages/linux/master/libpmem2/{{ page.title }}.7.html">here.</a>
+More detailed information about granularity concept and each option
+can be found [here](../manpages/linux/master/libpmem2/libpmem2.7.html)
 
 The last step is to create a mapping using described above
 config and source. Underlying function of `pmem2_map()` calls `mmap(2)`
@@ -92,8 +92,8 @@ When the mapping is created we are ready to write into it.
 
 <code data-gist-id='wlemkows/c7dc06875ee4aa9857020eba01114e75' data-gist-file='basic.c' data-gist-line='60-63' data-gist-highlight-line='63' data-gist-hide-footer='true'></code>
 
-Using the getters like `pmem2_map_get_size`, `pmem2_map_get_addres`
-we can easy read information about created mapping.
+Using the getters like `pmem2_map_get_size` or `pmem2_map_get_address`
+we can easily read information about created mapping.
 
 The novel thing about pmem is you can copy to it directly, like any
 memory.  The `strcpy()` call shown on line 63 above is just the usual
@@ -184,12 +184,15 @@ as explained in the previous example. The second step is to
 wait for any hardware buffers to drain, to ensure writes have
 reached the media. These steps are performed together when function
 returned by `pmem2_get_persist_fn()` is called:
+
 ```c
 	pmem2_persist_fn persist_fn = pmem2_get_persist_fn(map);
 	persist_fn(addr, len);
 ```
+
 or they can be called individually by calling function from `pmem2_get_flush_fn()` for the
 first step and function from `pmem2_get_drain_fn()` for the second:
+
 ```c
 	pmem2_flush_fn flush_fn = pmem2_get_flush_fn(map);
 	pmem2_drain_fn drain_fn = pmem2_get_drain_fn(map);
