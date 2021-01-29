@@ -111,6 +111,9 @@ check-doc: doc
 sparse:
 	$(MAKE) -C src sparse
 
+gitclean:
+	git clean -dfx -etestconfig.sh -etestconfig.py
+
 source: clobber
 	$(if "$(DESTDIR)", , $(error Please provide DESTDIR variable))
 	+utils/copy-source.sh "$(DESTDIR)" $(SRCVERSION)
