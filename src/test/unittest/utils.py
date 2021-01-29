@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 
 """Utilities for tests. Meant to be used by test user."""
 
@@ -29,7 +29,7 @@ def require_architectures(*archs):
 def _os_only(tc, os_name):
     """
     Disable test case (TEST[number] class) if NOT run on selected OS.
-    Otherwise, the test is not reenabled if it was already disabled
+    Otherwise, the test is not re-enabled if it was already disabled
     elsewhere.
     Internal helper function.
     """

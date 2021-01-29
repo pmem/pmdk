@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * map_windows.c -- pmem2_map (Windows)
@@ -147,7 +147,7 @@ vm_reservation_merge(struct pmem2_vm_reservation *rsv, void *addr,
 	size_t rsv_offset = (size_t)addr - (size_t)rsv_addr;
 
 	/*
-	 * After unmapping from the reservation, it is neccessary to merge
+	 * After unmapping from the reservation, it is necessary to merge
 	 * the unoccupied neighbours so that the placeholders will be available
 	 * for splitting for the required size of the mapping.
 	 */
@@ -360,7 +360,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 		if (rsv_offset % Mmap_align) {
 			ret = PMEM2_E_OFFSET_UNALIGNED;
 			ERR(
-				"offset from the beggining of virtual memory "
+				"offset from the beginning of virtual memory "
 				"reservation %zu is not a multiple of %llu",
 				rsv_offset, Mmap_align);
 			goto err_close_mapping_handle;
@@ -387,7 +387,7 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 
 		void *addr = (char *)rsv_addr + rsv_offset;
 		/*
-		 * Before mapping to the reservation, it is neccessary to split
+		 * Before mapping to the reservation, it is necessary to split
 		 * the unoccupied region into separate placeholders,
 		 * so that the size to be mapped and the cut out placeholder
 		 * size will be the same.

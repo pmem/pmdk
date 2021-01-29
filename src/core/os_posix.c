@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2021, Intel Corporation */
 
 /*
  * os_posix.c -- abstraction layer for basic Posix functions
@@ -153,7 +153,7 @@ os_posix_fallocate(int fd, os_off_t offset, off_t len)
  *
  *	FreeBSD implements posix_fallocate with a simple block allocation/zero
  *	loop. If the requested size is unreasonably large, this can result in
- *	an uninterruptable system call that will suck up all the space in the
+ *	an uninterruptible system call that will suck up all the space in the
  *	file system and could take hours to fail. To avoid this, make a crude
  *	check to see if the requested allocation is larger than the available
  *	space in the file system (minus any blocks already allocated to the

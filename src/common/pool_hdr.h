@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 /*
  * pool_hdr.h -- internal definitions for pool header module
@@ -114,7 +114,7 @@ struct pool_hdr {
 	uint64_t crtime;		/* when created (seconds since epoch) */
 	struct arch_flags arch_flags;	/* architecture identification flags */
 	unsigned char unused[POOL_HDR_UNUSED_SIZE];	/* must be zero */
-	/* not checksumed */
+	/* not checksummed */
 	unsigned char unused2[POOL_HDR_UNUSED2_SIZE];	/* must be zero */
 	struct shutdown_state sds;	/* shutdown status */
 	uint64_t checksum;		/* checksum of above fields */

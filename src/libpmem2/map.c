@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * map.c -- pmem2_map (common)
@@ -244,7 +244,7 @@ pmem2_map_find(const void *addr, size_t len)
 }
 
 /*
- * pmem2_map_from_existing -- create map object for exisiting mapping
+ * pmem2_map_from_existing -- create map object for existing mapping
  */
 int
 pmem2_map_from_existing(struct pmem2_map **map_ptr,
@@ -276,7 +276,7 @@ pmem2_map_from_existing(struct pmem2_map **map_ptr,
 		Free(map);
 		if (ret == -EEXIST) {
 			ERR(
-				"Provided mappping(addr %p len %zu) is already registered by libpmem2",
+				"Provided mapping(addr %p len %zu) is already registered by libpmem2",
 				addr, len);
 			return PMEM2_E_MAP_EXISTS;
 		}

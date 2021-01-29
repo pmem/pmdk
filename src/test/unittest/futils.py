@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 
 """Test framework utilities."""
 
@@ -83,7 +83,7 @@ def count(file, substring):
 
 class Color:
     """
-    Set the font color. This functionality relies on ANSI espace sequences
+    Set the font color. This functionality relies on ANSI escape sequences
     and is currently disabled for Windows.
     """
     if sys.platform != 'win32':
