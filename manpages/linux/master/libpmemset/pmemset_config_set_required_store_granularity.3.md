@@ -8,7 +8,7 @@ date: pmemset API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2020, Intel Corporation)
+[comment]: <> (Copyright 2020-2021, Intel Corporation)
 
 [comment]: <> (pmemset_config_set_required_store_granularity.3 -- man page for pmemset_config_set_required_store_granularity)
 
@@ -44,7 +44,7 @@ To read effective granularity of the *pmemset* after mapping the first, use **pm
 
 Regardless of the pmemset source type, the **libpmemset(7)** library uses **libpmem2(7)** API to map parts.
 
-For this reason, the granularity concept is also valid for **libpmemset(7)** funtions, and
+For this reason, the granularity concept is also valid for **libpmemset(7)** functions, and
 granularity *g* must be one of the following values:
 
  * **PMEM2_GRANULARITY_BYTE**
