@@ -110,7 +110,7 @@ pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 
 	/*
 	 * base address has to be aligned to the allocation granularity
-	 * on Windows, and to page size otherwise
+	 * on Windows, and to the page size otherwise
 	 */
 	if (addr && (unsigned long long)addr % Mmap_align) {
 		ERR("address %p is not a multiple of 0x%llx", addr,
@@ -118,10 +118,13 @@ pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 		return PMEM2_E_ADDRESS_UNALIGNED;
 	}
 
-	/* the size must always be a multiple of the page size */
-	if (size % Pagesize) {
+	/*
+	 * size should be aligned to the allocation granularity on Windows,
+	 * and to the page size otherwise
+	 */
+	if (size % Mmap_align) {
 		ERR("reservation size %zu is not a multiple of %llu",
-			size, Pagesize);
+			size, Mmap_align);
 		return PMEM2_E_LENGTH_UNALIGNED;
 	}
 
