@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 
 #
 # Makefile -- top-level Makefile for PMDK
@@ -18,6 +18,8 @@
 # Use "make clean" to delete all intermediate files (*.o, etc).
 #
 # Use "make clobber" to delete everything re-buildable (binaries, etc.).
+#
+# Use "make gitclean" for a complete tree clean, save for test configs.
 #
 # Use "make cstyle" to run cstyle on all C source files
 #
@@ -110,6 +112,9 @@ check-doc: doc
 
 sparse:
 	$(MAKE) -C src sparse
+
+gitclean:
+	git clean -dfx -etestconfig.sh -etestconfig.py
 
 source: clobber
 	$(if "$(DESTDIR)", , $(error Please provide DESTDIR variable))
