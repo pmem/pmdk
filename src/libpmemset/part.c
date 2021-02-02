@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * part.c -- implementation of common part API
@@ -39,7 +39,6 @@ pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
 
 	int ret;
 	struct pmemset_part *partp;
-	struct pmemset_config *set_config = pmemset_get_pmemset_config(set);
 	*part = NULL;
 
 	ret = pmemset_source_validate(src);
@@ -52,21 +51,12 @@ pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
 
 	ASSERTne(partp, NULL);
 
-	ret = pmemset_source_create_pmemset_file(src, &partp->file, set_config);
-
-	if (ret)
-		goto err_free_part;
-
 	partp->set = set;
 	partp->offset = offset;
 	partp->length = length;
-
+	partp->file = pmemset_source_get_set_file(src);
 	*part = partp;
 
-	return 0;
-
-err_free_part:
-	Free(partp);
 	return ret;
 }
 
@@ -79,7 +69,6 @@ pmemset_part_delete(struct pmemset_part **part)
 	LOG(3, "part %p", part);
 	PMEMSET_ERR_CLR();
 
-	pmemset_file_delete(&(*part)->file);
 	Free(*part);
 	*part = NULL;
 

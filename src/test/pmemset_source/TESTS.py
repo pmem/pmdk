@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 #
 
 import testframework as t
@@ -47,13 +47,3 @@ class TEST3(PMEMSET_SOURCE_NO_DIR):
 class TEST4(PMEMSET_SOURCE):
     """test source creation with valid file path"""
     test_case = "test_src_from_file_valid"
-
-
-class TEST5(PMEMSET_SOURCE):
-    """test pmemset_file creation with source type file"""
-    test_case = "test_create_file_from_type_file"
-
-
-class TEST6(PMEMSET_SOURCE):
-    """test pmemset_file creation with source type pmem2"""
-    test_case = "test_create_file_from_type_pmem2"

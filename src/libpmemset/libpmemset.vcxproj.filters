@@ -32,6 +32,9 @@
     <ClCompile Include="..\core\os_thread_windows.c">
       <Filter>Source Files\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\common\ravl.c">
+      <Filter>Source Files\common</Filter>
+    </ClCompile>
     <ClCompile Include="libpmemset.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -47,25 +50,13 @@
     <ClCompile Include="pmemset.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="pmemset_utils.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="errormsg.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\core\ravl.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\core\ravl_interval.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="file.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="file_windows.c">
+    <ClCompile Include="pmemset_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -94,9 +85,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="pmemset_utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

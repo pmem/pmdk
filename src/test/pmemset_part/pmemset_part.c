@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * pmemset_part.c -- pmemset_part unittests
@@ -85,7 +85,6 @@ test_part_new_invalid_source_file(const struct test_case *tc, int argc,
 
 	const char *file = argv[0];
 	struct pmemset *set;
-	struct pmemset_part *part;
 	struct pmemset_source *src;
 	struct pmemset_config *cfg;
 
@@ -95,11 +94,7 @@ test_part_new_invalid_source_file(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_source_from_file(&src, file);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-
-	ret = pmemset_part_new(&part, set, src, 0, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_FILE_PATH);
-	UT_ASSERTeq(part, NULL);
 
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
