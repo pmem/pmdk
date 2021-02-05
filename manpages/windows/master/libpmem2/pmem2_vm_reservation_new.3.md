@@ -42,8 +42,8 @@ virtual address space of the calling process. Reservation serves as a placeholde
 of a given size on which sources can be mapped.
 
 For the function to succeed, the *addr* must be either aligned to an appropriate
-allocation granularity,
-or **NULL**, the size has to be aligned to an appropriate allocation granularity.
+allocation granularity or **NULL**, the size always has to be aligned to an
+appropriate allocation granularity.
 
 If the **pmem2_vm_reservation_new**() succeeds in creating a reservation, it instantiates a new
 **struct pmem2_vm_reservation** object describing the reservation. The pointer to this object
@@ -84,10 +84,6 @@ The **pmem2_vm_reservation_delete**() function can fail with the following error
 * **PMEM2_E_RESERVATION_NOT_EMPTY** - reservation contains mappings.
 
 It can also return errors from the underlying **munmap**(2) function.
-
-# ERRORS #
-
-The **pmem2_vm_reservation_new**() and **pmem2_vm_reservation_delete**() functions are not supported yet.
 
 # SEE ALSO #
 
