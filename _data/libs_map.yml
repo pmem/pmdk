@@ -22,7 +22,7 @@
   pmem_msync: pmem_flush.3
   pmem_persist: pmem_flush.3
   pmem_unmap: pmem_is_pmem.3
-- libpmem2: pmem2_badblock_clear.3 pmem2_badblock_context_delete.3 pmem2_badblock_context_new.3 pmem2_badblock_next.3 pmem2_config_delete.3 pmem2_config_new.3 pmem2_config_set_length.3 pmem2_config_set_offset.3 pmem2_config_set_protection.3 pmem2_config_set_required_store_granularity.3 pmem2_config_set_sharing.3 pmem2_config_set_vm_reservation.3 pmem2_deep_flush.3 pmem2_errormsg.3 pmem2_get_drain_fn.3 pmem2_get_flush_fn.3 pmem2_get_memcpy_fn.3 pmem2_get_memmove_fn.3 pmem2_get_memset_fn.3 pmem2_get_persist_fn.3 pmem2_map_delete.3 pmem2_map_from_existing.3 pmem2_map_get_address.3 pmem2_map_get_size.3 pmem2_map_get_store_granularity.3 pmem2_map_new.3 pmem2_perror.3 pmem2_source_alignment.3 pmem2_source_delete.3 pmem2_source_device_id.3 pmem2_source_device_usc.3 pmem2_source_from_anon.3 pmem2_source_from_fd.3 pmem2_source_from_handle.3 pmem2_source_get_fd.3 pmem2_source_get_handle.3 pmem2_source_numa_node.3 pmem2_source_size.3 pmem2_vm_reservation_delete.3 pmem2_vm_reservation_extend.3 pmem2_vm_reservation_get_address.3 pmem2_vm_reservation_get_size.3 pmem2_vm_reservation_new.3
+- libpmem2: pmem2_badblock_clear.3 pmem2_badblock_context_delete.3 pmem2_badblock_context_new.3 pmem2_badblock_next.3 pmem2_config_delete.3 pmem2_config_new.3 pmem2_config_set_length.3 pmem2_config_set_offset.3 pmem2_config_set_protection.3 pmem2_config_set_required_store_granularity.3 pmem2_config_set_sharing.3 pmem2_config_set_vm_reservation.3 pmem2_deep_flush.3 pmem2_errormsg.3 pmem2_get_drain_fn.3 pmem2_get_flush_fn.3 pmem2_get_memcpy_fn.3 pmem2_get_memmove_fn.3 pmem2_get_memset_fn.3 pmem2_get_persist_fn.3 pmem2_map_delete.3 pmem2_map_from_existing.3 pmem2_map_get_address.3 pmem2_map_get_size.3 pmem2_map_get_store_granularity.3 pmem2_map_new.3 pmem2_perror.3 pmem2_source_alignment.3 pmem2_source_delete.3 pmem2_source_device_id.3 pmem2_source_device_usc.3 pmem2_source_from_anon.3 pmem2_source_from_fd.3 pmem2_source_from_handle.3 pmem2_source_get_fd.3 pmem2_source_get_handle.3 pmem2_source_numa_node.3 pmem2_source_size.3 pmem2_vm_reservation_delete.3 pmem2_vm_reservation_extend.3 pmem2_vm_reservation_get_address.3 pmem2_vm_reservation_get_size.3 pmem2_vm_reservation_map_find.3 pmem2_vm_reservation_new.3 pmem2_vm_reservation_shrink.3
   pmem2_badblock_clear: pmem2_badblock_clear.3
   pmem2_badblock_context_delete: pmem2_badblock_context_new.3
   pmem2_badblock_context_new: pmem2_badblock_context_new.3
@@ -65,7 +65,9 @@
   pmem2_vm_reservation_extend: pmem2_vm_reservation_extend.3
   pmem2_vm_reservation_get_address: pmem2_vm_reservation_get_address.3
   pmem2_vm_reservation_get_size: pmem2_vm_reservation_get_size.3
+  pmem2_vm_reservation_map_find: pmem2_vm_reservation_map_find.3
   pmem2_vm_reservation_new: pmem2_vm_reservation_new.3
+  pmem2_vm_reservation_shrink: pmem2_vm_reservation_extend.3
 - libpmemblk: pmemblk_bsize.3 pmemblk_check.3 pmemblk_check_version.3 pmemblk_close.3 pmemblk_create.3 pmemblk_ctl_exec.3 pmemblk_ctl_get.3 pmemblk_ctl_set.3 pmemblk_errormsg.3 pmemblk_nblock.3 pmemblk_open.3 pmemblk_read.3 pmemblk_set_error.3 pmemblk_set_funcs.3 pmemblk_set_zero.3 pmemblk_write.3
   pmemblk_bsize: pmemblk_bsize.3
   pmemblk_check: pmemblk_create.3
