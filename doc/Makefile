@@ -110,7 +110,7 @@ MANPAGES_3_MD_PMEM2 = libpmem2/pmem2_errormsg.3.md libpmem2/pmem2_config_new.3.m
 		libpmem2/pmem2_source_device_id.3.md libpmem2/pmem2_source_device_usc.3.md \
 		libpmem2/pmem2_map_from_existing.3.md libpmem2/pmem2_source_get_fd.3.md \
 		libpmem2/pmem2_source_get_handle.3.md libpmem2/pmem2_vm_reservation_extend.3.md \
-		libpmem2/pmem2_vm_reservation_map_find.3.md
+		libpmem2/pmem2_vm_reservation_map_find.3.md libpmem2/pmem2_vm_reservation_remove_range.3.md
 
 MANPAGES_1_MD_PMEM2 =
 MANPAGES_3_DUMMY += libpmem2/pmem2_config_delete.3 libpmem2/pmem2_source_from_handle.3 libpmem2/pmem2_source_delete.3 \
@@ -128,7 +128,9 @@ MANPAGES_3_MD_PMEMSET = libpmemset/pmemset_errormsg.3.md libpmemset/pmemset_perr
 			libpmemset/pmemset_part_map_drop.3.md libpmemset/pmemset_part_map_by_address.3.md \
 			libpmemset/pmemset_persist.3.md libpmemset/pmemset_flush.3.md libpmemset/pmemset_drain.3.md \
 			libpmemset/pmemset_set_contiguous_part_coalescing.3.md libpmemset/pmemset_memmove.3.md \
-			libpmemset/pmemset_remove_part_map.3.md libpmemset/pmemset_deep_flush.3.md
+			libpmemset/pmemset_remove_part_map.3.md libpmemset/pmemset_deep_flush.3.md \
+			libpmemset/pmemset_remove_range.3.md
+
 MANPAGES_1_MD_PMEMSET =
 ifeq ($(PMEMSET_INSTALL),y)
 MANPAGES_3_DUMMY += libpmemset/pmemset_config_delete.3 libpmemset/pmemset_delete.3 libpmemset/pmemset_part_delete.3 \

@@ -37,3 +37,4 @@ pmem2_vm_reservation_get_address.3
 pmem2_vm_reservation_get_size.3
 pmem2_vm_reservation_map_find.3
 pmem2_vm_reservation_new.3
+pmem2_vm_reservation_remove_range.3

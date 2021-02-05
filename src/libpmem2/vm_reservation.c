@@ -183,6 +183,7 @@ pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr)
 
 	vm_reservation_fini(rsv);
 	Free(rsv);
+	*rsv_ptr = NULL;
 
 	return 0;
 }
@@ -227,7 +228,7 @@ vm_reservation_map_register_release(struct pmem2_vm_reservation *rsv,
 	int ret = ravl_interval_insert(rsv->itree, map);
 	if (ret == -EEXIST) {
 		ERR(
-			"mapping at the given region of the reservation already exist");
+			"mapping at the given region of the reservation already exists");
 		ret = PMEM2_E_MAPPING_EXISTS;
 	}
 
@@ -398,6 +399,190 @@ pmem2_vm_reservation_shrink(struct pmem2_vm_reservation *rsv, size_t offset,
 		rsv->addr = (char *)rsv->addr + size;
 	rsv->size -= size;
 	util_rwlock_unlock(&rsv->lock);
+
+	return ret;
+}
+
+typedef int vm_reservation_iter_cb(struct pmem2_vm_reservation *rsv,
+		struct pmem2_map *map, void *arg);
+
+/*
+ * vm_reservation_iterate_cb -- iterates over every mapping stored in the
+ * vm reservation overlapping with the region defined by the offset and
+ * size.
+ */
+static int
+vm_reservation_iterate_cb(struct pmem2_vm_reservation *rsv, size_t offset,
+		size_t size, vm_reservation_iter_cb cb, void *arg)
+{
+	size_t rsv_addr = (size_t)pmem2_vm_reservation_get_address(rsv);
+	size_t end_offset = offset + size;
+
+	struct pmem2_map *map;
+	pmem2_vm_reservation_map_find(rsv, offset, size, &map);
+	while (map) {
+		size_t map_addr = (size_t)pmem2_map_get_address(map);
+		size_t map_size = pmem2_map_get_size(map);
+
+		int ret = cb(rsv, map, arg);
+		if (ret)
+			return ret;
+
+		size_t cur_offset = map_addr + map_size - rsv_addr;
+		if (end_offset > cur_offset) {
+			size_t cur_size = end_offset - cur_offset;
+			pmem2_vm_reservation_map_find(rsv, cur_offset, cur_size,
+					&map);
+		} else {
+			map = NULL;
+		}
+	}
+
+	return 0;
+}
+
+/*
+ * vm_reservation_remove_pemm2_map -- removes pmem2 mappings stored in the
+ *                                    reservation
+ */
+static int
+vm_reservation_remove_pemm2_map(struct pmem2_vm_reservation *rsv,
+		struct pmem2_map *map, void *arg)
+{
+	size_t *last_map_end_addr = (size_t *)arg;
+
+	void *map_addr = pmem2_map_get_address(map);
+	size_t map_size = pmem2_map_get_size(map);
+
+	*last_map_end_addr = (size_t)map_addr + map_size;
+
+	return pmem2_map_delete(&map);
+}
+
+/*
+ * vm_reservation_relocate_map_entry -- move the map entry from one
+ *                                      vm reservation into another
+ */
+static int
+vm_reservation_relocate_map_entry(struct pmem2_vm_reservation *rsv,
+		struct pmem2_map *map, void *arg)
+{
+	struct pmem2_vm_reservation *nrsv =
+			(struct pmem2_vm_reservation *)arg;
+
+	map->reserv = nrsv;
+	int ret = ravl_interval_insert(nrsv->itree, map);
+	ASSERTeq(ret, 0);
+
+	struct ravl_interval_node *node;
+	node = ravl_interval_find_equal(rsv->itree, map);
+	ASSERTne(node, NULL);
+
+	ret = ravl_interval_remove(rsv->itree, node);
+	ASSERTeq(ret, 0);
+
+	return 0;
+}
+
+/*
+ * vm_reservation_split_at_offset -- splits the vm reservation into two
+ *                                   separate reservations
+ */
+static int
+vm_reservation_split_at_offset(struct pmem2_vm_reservation *rsv, size_t offset,
+		struct pmem2_vm_reservation **new_rsv)
+{
+	*new_rsv = NULL;
+
+	int ret;
+	struct pmem2_vm_reservation *nrsv = pmem2_malloc(
+			sizeof(struct pmem2_vm_reservation), &ret);
+	if (ret)
+		return ret;
+
+	ret = vm_reservation_init(nrsv);
+	if (ret)
+		goto err_rsv_free;
+
+	nrsv->addr = (char *)pmem2_vm_reservation_get_address(rsv) + offset;
+	nrsv->size = pmem2_vm_reservation_get_size(rsv) - offset;
+
+	/*
+	 * divide the mappings stored in the ravl tree between two reservations
+	 */
+	ret = vm_reservation_iterate_cb(rsv, offset, nrsv->size,
+			vm_reservation_relocate_map_entry, nrsv);
+	if (ret)
+		goto err_rsv_fini;
+
+	rsv->size -= nrsv->size;
+
+	*new_rsv = nrsv;
+
+	return 0;
+
+err_rsv_fini:
+	vm_reservation_fini(nrsv);
+err_rsv_free:
+	Free(nrsv);
+	return ret;
+}
+
+/*
+ * pmem2_vm_reservation_remove_range -- removes mappings overlapping with the
+ * provided region belonging to the vm reservation.
+ */
+int
+pmem2_vm_reservation_remove_range(struct pmem2_vm_reservation **rsv,
+		size_t offset, size_t size,
+		struct pmem2_vm_reservation **new_rsv)
+{
+	LOG(3, "rsv %p offset %zu size %zu", rsv, offset, size);
+	PMEM2_ERR_CLR();
+
+	*new_rsv = NULL;
+
+	struct pmem2_vm_reservation *reserv = *rsv;
+
+	struct pmem2_map *map;
+	pmem2_vm_reservation_map_find(reserv, offset, size, &map);
+	if (!map) {
+		ERR(
+		"no mapping found at the region restricted by offset %zu and size %zu",
+				offset, size);
+		return PMEM2_E_MAPPING_NOT_FOUND;
+	}
+
+	size_t rsv_addr = (size_t)pmem2_vm_reservation_get_address(reserv);
+	size_t rsv_size = pmem2_vm_reservation_get_size(reserv);
+	size_t first_map_addr = (size_t)pmem2_map_get_address(map);
+	size_t last_map_end_addr;
+
+	int ret = vm_reservation_iterate_cb(reserv, offset, size,
+			vm_reservation_remove_pemm2_map, &last_map_end_addr);
+	if (ret)
+		return ret;
+
+	size_t first_map_offset = first_map_addr - rsv_addr;
+	size_t last_map_end_offset = last_map_end_addr - rsv_addr;
+
+	bool covers_start = (first_map_offset == 0);
+	bool covers_end = (last_map_end_offset == rsv_size);
+	if (covers_start && covers_end) {
+		ret = pmem2_vm_reservation_delete(rsv);
+	} else if (covers_start || covers_end) {
+		ret = pmem2_vm_reservation_shrink(reserv, first_map_offset,
+				last_map_end_offset - first_map_offset);
+	} else {
+		struct pmem2_vm_reservation *nrsv;
+		ret = vm_reservation_split_at_offset(reserv, first_map_offset,
+				&nrsv);
+		if (ret)
+			return ret;
+		ret = pmem2_vm_reservation_shrink(nrsv, 0,
+				last_map_end_offset - first_map_offset);
+		*new_rsv = nrsv;
+	}
 
 	return ret;
 }
