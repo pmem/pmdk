@@ -32,15 +32,16 @@ struct pmemset_extras;
 struct pmemset_part;
 struct pmemset_part_descriptor;
 struct pmemset_source;
-int pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
-		struct pmemset_part_descriptor *desc)
+int pmemset_part_map(struct pmemset_part **part_ptr,
+		struct pmemset_extras *extra,
+		struct pmemset_part_descriptor *desc);
 ```
 
 # DESCRIPTION #
 
 The **pmemset_part_map**() function creates new part mapping in the virtual address space
 of the calling process and adds structure describing this mapping to the pmemset. It requires
-an address of a pointer to initialized part provided in the *part* parameter. A part can be created using
+an address of a pointer to initialized part provided in the *part_ptr* parameter. A part can be created using
 **pmemset_part_new**(3) function. The mapping can later be retrieved using **pmemset_first_part_map**(3),
 **pmemset_next_part_map**(3) and **pmemset_part_map_by_address**(3) functions.
 
@@ -54,7 +55,7 @@ part mapping. With contiguous part coalescing feature enabled, **pmemset_part_ma
 new part at the virtual memory region that is situated right after the previous mapped part memory range.
 
 When the **pmemset_part_map**() function succeeds it consumes the part thereby deleting it and
-the variable pointed by *part* is set to NULL.
+the variable pointed by *part_ptr* is set to NULL.
 
 # RETURN VALUE #
 
@@ -72,7 +73,7 @@ needed by the function cannot be allocated.
 is invalid. Offset value is bigger than INT64_MAX.
 
 * **PMEMSET_E_GRANULARITY_NOT_SUPPORTED** - the granularity stored in the
-provided part *part* is invalid. The concept of granularity is explained
+provided part *part_ptr* is invalid. The concept of granularity is explained
 in **libpmem2**(7) manpage.
 
 * **PMEMSET_E_INVALID_PMEM2_MAP** - the pmem2 mapping that pmemset mapping relies on

@@ -273,14 +273,17 @@ enum pmemset_part_state {
 
 int pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
 		struct pmemset_source *src, size_t offset, size_t length);
+
 int pmemset_part_delete(struct pmemset_part **part);
+
 int pmemset_part_pread_mcsafe(struct pmemset_part_descriptor *part,
 		void *dst, size_t size, size_t offset);
 
 int pmemset_part_pwrite_mcsafe(struct pmemset_part_descriptor *part,
 		void *dst, size_t size, size_t offset);
 
-int pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
+int pmemset_part_map(struct pmemset_part **part_ptr,
+		struct pmemset_extras *extra,
 		struct pmemset_part_descriptor *desc);
 
 void pmemset_part_map_drop(struct pmemset_part_map **pmap);

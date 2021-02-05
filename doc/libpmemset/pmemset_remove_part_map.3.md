@@ -31,7 +31,7 @@ date: pmemset API version 1.0
 struct pmemset;
 struct pmemset_part_map;
 int pmemset_remove_part_map(struct pmemset *set,
-		struct pmemset_part_map **part_ptr);
+		struct pmemset_part_map **pmap_ptr);
 ```
 
 # DESCRIPTION #
@@ -46,7 +46,7 @@ For more information see **pmemset_set_contiguous_part_coalescing**(3) and
 **pmemset_part_map**(3).
 
 When the **pmemset_remove_part_map**() function succeeds it the part mapping
-and sets the pointer passed via *part_ptr* variable to *NULL*.
+and sets the pointer passed via *pmap_ptr* variable to *NULL*.
 
 # RETURN VALUE #
 
