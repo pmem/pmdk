@@ -183,6 +183,7 @@ pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr)
 
 	vm_reservation_fini(rsv);
 	Free(rsv);
+	*rsv_ptr = NULL;
 
 	return 0;
 }
@@ -227,7 +228,7 @@ vm_reservation_map_register_release(struct pmem2_vm_reservation *rsv,
 	int ret = ravl_interval_insert(rsv->itree, map);
 	if (ret == -EEXIST) {
 		ERR(
-			"mapping at the given region of the reservation already exist");
+			"mapping at the given region of the reservation already exists");
 		ret = PMEM2_E_MAPPING_EXISTS;
 	}
 
