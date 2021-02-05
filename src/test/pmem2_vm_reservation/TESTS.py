@@ -306,15 +306,79 @@ class TEST32(PMEM2_VM_RESERVATION_ASYNC_DEVDAX):
 class TEST33(PMEM2_VM_RESERVATION):
     """extend the empty vm reservation"""
     test_case = "test_vm_reserv_empty_extend"
-    filesize = 64 * t.KiB
 
 
 class TEST34(PMEM2_VM_RESERVATION):
     """map a file to a vm reservation, extend the reservation and map again"""
     test_case = "test_vm_reserv_map_extend"
-    filesize = 64 * t.KiB
 
 
 class TEST35(PMEM2_VM_RESERVATION):
     """extend the empty vm reservation by unaligned size"""
     test_case = "test_vm_reserv_unaligned_extend"
+
+
+class TEST36(PMEM2_VM_RESERVATION):
+    """
+    shrink the empty vm reservation from the start, then from the end,
+    lastly map a file to it
+    """
+    test_case = "test_vm_reserv_empty_shrink"
+
+
+class TEST37(PMEM2_VM_RESERVATION):
+    """
+    map a file to the reservation, shrink the reservation from the start,
+    then from the end
+    """
+    test_case = "test_vm_reserv_map_shrink"
+
+
+class TEST38(PMEM2_VM_RESERVATION):
+    """
+    shrink the empty vm reservation with unaligned offset,
+    then with unaligned size
+    """
+    test_case = "test_vm_reserv_unaligned_shrink"
+
+
+class TEST39(PMEM2_VM_RESERVATION):
+    """
+    shrink the empty vm reservation by interval (offset, offset + size) that is
+    out of available range for the reservation to be shrunk
+    """
+    test_case = "test_vm_reserv_out_of_range_shrink"
+
+
+class TEST40(PMEM2_VM_RESERVATION):
+    """
+    shrink the empty vm reservation from the middle, then try shrinking
+    reservation by its whole range
+    """
+    test_case = "test_vm_reserv_unsupported_shrink"
+
+
+class TEST41(PMEM2_VM_RESERVATION):
+    """shrink the vm reservation by the region that is occupied"""
+    test_case = "test_vm_reserv_occupied_region_shrink"
+
+
+class TEST42(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a file and map a file to it,
+    search for the mapping with the following intervals (offset, size):
+    1. (reserv_start, reserv_middle), 2. (reserv_middle, reserv_end),
+    3. (reserv_start, reserv_end)
+    """
+    test_case = "test_vm_reserv_one_map_find"
+
+
+class TEST43(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a 2x file size and map
+    a file to it two times, occupying the whole reservation, search for the
+    mapping with the following intervals (offset, size):
+    1. (reserv_start, reserv_middle), 2. (reserv_middle, reserv_end),
+    3. (reserv_start, reserv_end)
+    """
+    test_case = "test_vm_reserv_two_maps_find"
