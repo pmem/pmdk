@@ -382,3 +382,59 @@ class TEST43(PMEM2_VM_RESERVATION):
     3. (reserv_start, reserv_end)
     """
     test_case = "test_vm_reserv_two_maps_find"
+
+
+class TEST44(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a 2x file size and map
+    a file to it two times, occupying the whole reservation, select a region
+    that encrouches on both of those mapping regions with minimum size and
+    remove them
+    """
+    test_case = "test_vm_reserv_remove_two_ranges"
+
+
+class TEST45(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a 3x file size and map
+    a file to it two times at the reservation boundaries, select a region
+    that encrouches on both of those mapping regions with minimum size and
+    remove them
+    """
+    test_case = "test_vm_reserv_remove_two_ranges_blank_between"
+
+
+class TEST46(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a 2x file size and map
+    a file to it two times, occupying the whole reservation, select a region
+    belonging to the earlier mapping and remove it
+    """
+    test_case = "test_vm_reserv_remove_earlier_range"
+
+
+class TEST47(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a 2x file size and map
+    a file to it two times, occupying the whole reservation, select a region
+    belonging to the later mapping and remove it
+    """
+    test_case = "test_vm_reserv_remove_later_range"
+
+
+class TEST48(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a 3x file size and map
+    a file to it three times, occupying the whole reservation, select a region
+    belonging to the mapping in the middle of the reservation and remove it,
+    therefore splitting the reservation in two
+    """
+    test_case = "test_vm_reserv_remove_middle_range"
+
+
+class TEST49(PMEM2_VM_RESERVATION):
+    """
+    create an empty reservation and remove the whole range belonging to the
+    reservation
+    """
+    test_case = "test_vm_reserv_empty_remove_range"

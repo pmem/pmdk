@@ -1673,6 +1673,349 @@ test_vm_reserv_two_maps_find(const struct test_case *tc,
 }
 
 /*
+ * test_vm_reserv_remove_two_ranges - create a reservation with exactly the
+ * size of a 2x file size and map a file to it two times, occupying the whole
+ * reservation, select a region that encrouches on both of those mapping
+ * regions with minimum size and remove them.
+ */
+static int
+test_vm_reserv_remove_two_ranges(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_remove_two_ranges "
+			"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_map *second_map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	rsv_size = 2 * size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(rsv, NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, size);
+	ret = pmem2_map_new(&second_map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_vm_reservation *new_rsv;
+	size_t first_map_end_offset = pmem2_map_get_size(map);
+	/* remove the range minimally encroaching on both mappings */
+	ret = pmem2_vm_reservation_remove_range(&rsv, first_map_end_offset - 1,
+			2, &new_rsv);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(rsv, NULL);
+	UT_ASSERTeq(new_rsv, NULL);
+
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_remove_two_ranges_blank_between - create a reservation with
+ * exactly the size of a 3x file size and map a file to it two times at the
+ * reservation boundaries, select a region that encrouches on both of those
+ * mapping regions with minimum size and remove them
+ */
+static int
+test_vm_reserv_remove_two_ranges_blank_between(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_remove_two_ranges_blank_between"
+			" <file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_map *second_map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	rsv_size = 3 * size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(rsv, NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, 2 * size);
+	ret = pmem2_map_new(&second_map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_vm_reservation *new_rsv;
+	size_t first_map_end_offset = pmem2_map_get_size(map);
+	/* remove the range minimally encroaching on both mappings */
+	ret = pmem2_vm_reservation_remove_range(&rsv, first_map_end_offset - 1,
+			size + 2, &new_rsv);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(rsv, NULL);
+	UT_ASSERTeq(new_rsv, NULL);
+
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_remove_earlier_range - create a reservation with exactly the
+ * size of a 2x file size and map a file to it two times, occupying the whole
+ * reservation, select a region belonging to the earlier mapping and remove it
+ */
+static int
+test_vm_reserv_remove_earlier_range(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_remove_earlier_range "
+			"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_map *second_map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	rsv_size = 2 * size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(rsv, NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, size);
+	ret = pmem2_map_new(&second_map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_vm_reservation *new_rsv;
+	/* remove the range belonging to the earlier mapping */
+	ret = pmem2_vm_reservation_remove_range(&rsv, 0, size, &new_rsv);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), size);
+	UT_ASSERTeq(new_rsv, NULL);
+
+	ret = pmem2_map_delete(&second_map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(second_map, NULL);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_remove_later_range - create a reservation with exactly the
+ * size of a 2x file size and map a file to it two times, occupying the whole
+ * reservation, select a region belonging to the later mapping and remove it
+ */
+static int
+test_vm_reserv_remove_later_range(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_remove_later_range "
+			"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_map *second_map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	rsv_size = 2 * size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(rsv, NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, size);
+	ret = pmem2_map_new(&second_map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_vm_reservation *new_rsv;
+	/* remove the range belonging to the later mapping */
+	ret = pmem2_vm_reservation_remove_range(&rsv, size, size, &new_rsv);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), size);
+	UT_ASSERTeq(new_rsv, NULL);
+
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_remove_middle_range - create a reservation with exactly the
+ * size of a 3x file size and map a file to it three times, occupying the whole
+ * reservation, select a region belonging to the mapping in the middle of the
+ * reservation and remove it, therefore splitting the reservation in two
+ */
+static int
+test_vm_reserv_remove_middle_range(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_remove_middle_range "
+			"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_map *second_map;
+	struct pmem2_map *third_map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	rsv_size = 3 * size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(rsv, NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, 0);
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, size);
+	ret = pmem2_map_new(&second_map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, 2 * size);
+	ret = pmem2_map_new(&third_map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_vm_reservation *new_rsv;
+	/* remove the range belonging to the middle mapping */
+	ret = pmem2_vm_reservation_remove_range(&rsv, size, size, &new_rsv);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), size);
+
+	/* the reservation was split and a new reservation was created */
+	UT_ASSERTne(new_rsv, NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(new_rsv), size);
+
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+
+	ret = pmem2_map_delete(&third_map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(third_map, NULL);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+
+	ret = pmem2_vm_reservation_delete(&new_rsv);
+	UT_ASSERTeq(ret, 0);
+
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_empty_remove_range - create an empty reservation and remove
+ * the whole range belonging to the reservation
+ */
+static int
+test_vm_reserv_empty_remove_range(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_empty_remove_range "
+			"<file> <size>");
+
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct pmem2_vm_reservation *rsv;
+
+	rsv_size = size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(rsv, NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	struct pmem2_vm_reservation *new_rsv;
+	/* remove the whole range of the reservation */
+	ret = pmem2_vm_reservation_remove_range(&rsv, 0, size, &new_rsv);
+	UT_ASSERTeq(ret, PMEM2_E_MAPPING_NOT_FOUND);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), size);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+
+	return 2;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -1705,6 +2048,12 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_vm_reserv_occupied_region_shrink),
 	TEST_CASE(test_vm_reserv_one_map_find),
 	TEST_CASE(test_vm_reserv_two_maps_find),
+	TEST_CASE(test_vm_reserv_remove_two_ranges),
+	TEST_CASE(test_vm_reserv_remove_two_ranges_blank_between),
+	TEST_CASE(test_vm_reserv_remove_earlier_range),
+	TEST_CASE(test_vm_reserv_remove_later_range),
+	TEST_CASE(test_vm_reserv_remove_middle_range),
+	TEST_CASE(test_vm_reserv_empty_remove_range),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
