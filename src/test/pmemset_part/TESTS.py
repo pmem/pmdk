@@ -215,3 +215,30 @@ class TEST29(PMEMSET_PART):
     test_case = "test_part_map_source_truncate"
     path_only = True
     create_file = False
+
+
+class TEST30(PMEMSET_PART):
+    """
+    Map two parts to the pmemset, iterate over the set to get mappings'
+    regions. Select a region that encrouches on both of those mappings with
+    minimum size and delete them.
+    """
+    test_case = "test_remove_two_ranges"
+
+
+class TEST31(PMEMSET_PART):
+    """
+    Create two coalesced mappings, each composed of two parts, iterate over the
+    set to get mappings' regions. Select a region that encrouches on both of
+    those coalesced mappings containing one part each and delete them.
+    """
+    test_case = "test_remove_coalesced_two_ranges"
+
+
+class TEST32(PMEMSET_PART):
+    """
+    Create coalesced mapping composed of three parts, iterate over the set
+    to get mapping's region. Select a region that encrouches only on the part
+    situated in the middle of the coalesced part mapping and delete it.
+    """
+    test_case = "test_remove_coalesced_middle_range"
