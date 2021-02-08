@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 #
 
 import os
@@ -216,3 +216,19 @@ class TEST28(PMEM2_MAP_DEVDAX):
     """DevDax file with PMEM2_PRIVATE sharing"""
     test_case = "test_map_sharing_private_devdax"
     with_size = False
+
+
+@t.linux_only
+@t.require_architectures('x86_64')
+class TEST29(PMEM2_MAP):
+    """map alignment test for huge pages"""
+    test_case = "test_map_huge_alignment"
+    filesize = 16 * t.MiB
+
+
+@t.linux_only
+@t.require_architectures('x86_64')
+class TEST30(PMEM2_MAP):
+    """map alignment test for small pages"""
+    test_case = "test_map_huge_alignment"
+    filesize = 16 * t.KiB

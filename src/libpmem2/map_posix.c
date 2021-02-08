@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * map_posix.c -- pmem2_map (POSIX)
@@ -80,21 +80,21 @@ static const char *granularity_err_msg[3][3] = {
 /*
  * get_map_alignment -- (internal) choose the desired mapping alignment
  *
- * The smallest supported alignment is 2 megabytes because of the object
- * alignment requirements. Changing this value to 4 kilobytes constitutes a
- * layout change.
+ * This function tries to default to the largest possible alignment (page size),
+ * unless forbidden by the underlying memory source.
  *
  * Use 1GB page alignment only if the mapping length is at least
  * twice as big as the page size.
  */
 static inline size_t
-get_map_alignment(size_t len, size_t req_align)
+get_map_alignment(size_t len, size_t min_align)
 {
 	size_t align = 2 * MEGABYTE;
-	if (req_align)
-		align = req_align;
-	else if (len >= 2 * GIGABYTE)
+	if (len >= 2 * GIGABYTE)
 		align = GIGABYTE;
+
+	if (align < min_align)
+		align = min_align;
 
 	return align;
 }
@@ -371,12 +371,11 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 	else
 		content_length = file_len - effective_offset;
 
-	size_t alignment = get_map_alignment(content_length,
-			src_alignment);
-
 	void *reserv_region = NULL;
 	void *rsv = cfg->reserv;
 	if (rsv) {
+		size_t alignment = src_alignment;
+
 		void *rsv_addr = pmem2_vm_reservation_get_address(rsv);
 		size_t rsv_size = pmem2_vm_reservation_get_size(rsv);
 		size_t rsv_offset = cfg->reserv_offset;
@@ -420,6 +419,9 @@ pmem2_map_new(struct pmem2_map **map_ptr, const struct pmem2_config *cfg,
 			goto err_reservation_release;
 		}
 	} else {
+		size_t alignment = get_map_alignment(content_length,
+				src_alignment);
+
 		/* find a hint for the mapping */
 		ret = map_reserve(content_length, alignment, &reserv_region,
 				&reserved_length, cfg);
