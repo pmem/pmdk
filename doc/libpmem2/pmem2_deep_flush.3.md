@@ -56,16 +56,10 @@ subset of the map's address space.
 * **PMEM2_E_DAX_REGION_NOT_FOUND** - the underlying device region id cannot be
 detected.
 
-* -**errno** set by failing **write**(2), while trying to use the Device Dax
-*deep_flush* interface.
-
-* -**errno** set by failing **open**(2), while trying to open the Device Dax
-*deep_flush* interface.
-
 * -**errno** set by failing **msync**(2), while trying to perform a deep
 flush on a regular DAX volume.
 
 # SEE ALSO #
 
-**msync**(2), **open**(2), **pmem2_get_drain_fn**(3), **pmem2_get_persist_fn**(3)
-**pmem2_map**(3), **write**(2), **libpmem2**(7) and **<http://pmem.io>**
+**msync**(2), **pmem2_get_drain_fn**(3), **pmem2_get_persist_fn**(3)
+**pmem2_map**(3), **libpmem2**(7) and **<http://pmem.io>**
