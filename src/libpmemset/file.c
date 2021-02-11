@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * file.c -- implementation of common file API
@@ -61,7 +61,7 @@ pmemset_file_init(struct pmemset_file *file, struct pmem2_source *pmem2_src)
  */
 int
 pmemset_file_from_file(struct pmemset_file **file, char *path,
-		struct pmemset_config *cfg)
+		unsigned flags)
 {
 	*file = NULL;
 
@@ -71,7 +71,7 @@ pmemset_file_from_file(struct pmemset_file **file, char *path,
 		return PMEMSET_E_ERRNO;
 
 	struct pmem2_source *pmem2_src;
-	ret = pmemset_file_create_pmem2_src(&pmem2_src, path, cfg);
+	ret = pmemset_file_create_pmem2_src(&pmem2_src, path, flags);
 	if (ret)
 		goto err_free_file;
 

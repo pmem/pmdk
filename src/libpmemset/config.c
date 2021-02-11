@@ -75,16 +75,6 @@ pmemset_config_new(struct pmemset_config **cfg)
 }
 
 /*
- * pmemset_config_set_create_if_none -- not supported
- */
-int
-pmemset_config_set_create_if_none(struct pmemset_config *cfg, int value)
-{
-	ERR("function not supported");
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
  * pmemset_config_set_event_callback -- not supported
  */
 int

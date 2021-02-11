@@ -24,7 +24,13 @@
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libpmemset\config.c">
+    <ClCompile Include="..\..\libpmemset\source.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemset\file_windows.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libpmemset\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

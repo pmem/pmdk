@@ -52,7 +52,7 @@ test_part_new_enomem(const struct test_case *tc, int argc,
 	int ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_source_from_file(&src, file);
+	ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 
@@ -93,7 +93,7 @@ test_part_new_invalid_source_file(const struct test_case *tc, int argc,
 	int ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_source_from_file(&src, file);
+	ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_FILE_PATH);
 
 	ret = pmemset_source_delete(&src);
@@ -128,7 +128,7 @@ test_part_new_valid_source_file(const struct test_case *tc, int argc,
 	int ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_source_from_file(&src, file);
+	ret = pmemset_source_from_file(&src, file, 0);
 	UT_ASSERTeq(ret, 0);
 
 	ret = pmemset_part_new(&part, set, src, 0, 0);
@@ -269,7 +269,7 @@ test_part_map_valid_source_file(const struct test_case *tc, int argc,
 	struct pmemset *set;
 	struct pmemset_config *cfg;
 
-	int ret = pmemset_source_from_file(&src, file);
+	int ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	create_config(&cfg);
@@ -311,7 +311,7 @@ test_part_map_invalid_offset(const struct test_case *tc, int argc,
 	struct pmemset *set;
 	struct pmemset_config *cfg;
 
-	int ret = pmemset_source_from_file(&src, file);
+	int ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	create_config(&cfg);
@@ -356,7 +356,7 @@ test_part_map_gran_read(const struct test_case *tc, int argc,
 	struct pmemset_config *cfg;
 	enum pmem2_granularity effective_gran;
 
-	int ret = pmemset_source_from_file(&src, file);
+	int ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	create_config(&cfg);
@@ -415,7 +415,7 @@ test_unmap_part(const struct test_case *tc, int argc,
 	struct pmemset *set;
 	struct pmemset_config *cfg;
 
-	int ret = pmemset_source_from_file(&src, file);
+	int ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	create_config(&cfg);
@@ -481,7 +481,7 @@ test_part_map_enomem(const struct test_case *tc, int argc,
 	int ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	ret = pmemset_source_from_file(&src, file);
+	ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 
