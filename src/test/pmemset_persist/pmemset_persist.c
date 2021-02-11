@@ -36,7 +36,7 @@ test_persist_single_part(const struct test_case *tc, int argc,
 	struct pmemset *set;
 	struct pmemset_config *cfg;
 
-	int ret = pmemset_source_from_file(&src, file);
+	int ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	create_config(&cfg);
@@ -86,7 +86,7 @@ test_persist_multiple_parts(const struct test_case *tc, int argc,
 	struct pmemset_part_descriptor first_desc;
 	struct pmemset_part_descriptor second_desc;
 
-	int ret = pmemset_source_from_file(&src, file1);
+	int ret = pmemset_source_from_file(&src, file1, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	create_config(&cfg);
@@ -140,7 +140,7 @@ test_persist_incomplete(const struct test_case *tc, int argc,
 	size_t part_size = 64 * 1024;
 	struct pmemset_part_descriptor desc;
 
-	int ret = pmemset_source_from_file(&src, file);
+	int ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	create_config(&cfg);
@@ -188,7 +188,7 @@ test_set_flush_drain(const struct test_case *tc, int argc,
 	struct pmemset_part_descriptor first_desc;
 	struct pmemset_part_descriptor second_desc;
 
-	int ret = pmemset_source_from_file(&src, file);
+	int ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	create_config(&cfg);

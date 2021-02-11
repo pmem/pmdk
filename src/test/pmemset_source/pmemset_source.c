@@ -105,7 +105,7 @@ test_src_from_file_null(const struct test_case *tc, int argc,
 {
 	struct pmemset_source *src;
 
-	int ret = pmemset_source_from_file(&src, NULL);
+	int ret = pmemset_source_from_file(&src, NULL, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_FILE_PATH);
 	UT_ASSERTeq(src, NULL);
 
@@ -125,7 +125,7 @@ test_src_from_file_valid(const struct test_case *tc, int argc,
 	const char *file = argv[0];
 	struct pmemset_source *src;
 
-	int ret = pmemset_source_from_file(&src, file);
+	int ret = pmemset_source_from_file(&src, file, 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * file_posix.c -- implementation of file API (posix)
@@ -19,11 +19,19 @@
  */
 int
 pmemset_file_create_pmem2_src(struct pmem2_source **pmem2_src, char *path,
-		struct pmemset_config *cfg)
+		unsigned flags)
 {
-	/* config doesn't have information about open parameters for now */
+	/* Init open arguments */
 	int access = O_RDWR;
-	int fd = os_open(path, access);
+	mode_t mode = (S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+
+	/* Check create disposition flags */
+	if (flags & PMEMSET_SOURCE_FILE_CREATE_ALWAYS)
+		access |= (O_CREAT | O_TRUNC);
+	else if (flags & PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED)
+		access |= (O_CREAT);
+
+	int fd = os_open(path, access, mode);
 	if (fd < 0) {
 		ERR("!open %s", path);
 		return PMEMSET_E_ERRNO;

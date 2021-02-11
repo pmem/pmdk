@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * pmemset_file.c -- pmemset_file unittests
@@ -26,20 +26,15 @@ test_alloc_file_enomem(const struct test_case *tc, int argc, char *argv[])
 		UT_FATAL("usage: test_alloc_file_enomem <file>");
 
 	char *file_path = argv[0];
-	struct pmemset_config *cfg;
 	struct pmemset_file *file;
 
 	if (!core_fault_injection_enabled()) {
 		return 1;
 	}
 
-	int ret = pmemset_config_new(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	UT_ASSERTne(cfg, NULL);
-
 	core_inject_fault_at(PMEM_MALLOC, 1, "pmemset_malloc");
 
-	ret = pmemset_file_from_file(&file, file_path, cfg);
+	int ret = pmemset_file_from_file(&file, file_path, 0);
 	UT_ASSERTeq(ret, -ENOMEM);
 	UT_ASSERTeq(file, NULL);
 
@@ -56,14 +51,9 @@ test_file_from_file_valid(const struct test_case *tc, int argc, char *argv[])
 		UT_FATAL("usage: test_file_from_file_valid <file>");
 
 	char *file_path = argv[0];
-	struct pmemset_config *cfg;
 	struct pmemset_file *file;
 
-	int ret = pmemset_config_new(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	UT_ASSERTne(cfg, NULL);
-
-	ret = pmemset_file_from_file(&file, file_path, cfg);
+	int ret = pmemset_file_from_file(&file, file_path, 0);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTne(file, NULL);
 
@@ -83,14 +73,9 @@ test_file_from_file_invalid(const struct test_case *tc, int argc, char *argv[])
 		UT_FATAL("usage: test_file_from_file_invalid <file>");
 
 	char *file_path = argv[0];
-	struct pmemset_config *cfg;
 	struct pmemset_file *file;
 
-	int ret = pmemset_config_new(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	UT_ASSERTne(cfg, NULL);
-
-	ret = pmemset_file_from_file(&file, file_path, cfg);
+	int ret = pmemset_file_from_file(&file, file_path, 0);
 	UT_ASSERTeq(ret, -ENOENT);
 	UT_ASSERTeq(file, NULL);
 
@@ -109,15 +94,10 @@ test_file_from_pmem2_valid(const struct test_case *tc, int argc, char *argv[])
 
 	char *file_path = argv[0];
 	struct pmem2_source *pmem2_src;
-	struct pmemset_config *cfg;
 	struct pmemset_file *file;
 
-	int ret = pmemset_config_new(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	UT_ASSERTne(cfg, NULL);
-
 	int fd = OPEN(file_path, O_RDWR);
-	ret = pmem2_source_from_fd(&pmem2_src, fd);
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
 	UT_ASSERTeq(ret, 0);
 
 	ret = pmemset_file_from_pmem2(&file, pmem2_src);
@@ -161,14 +141,9 @@ test_file_from_file_get_pmem2_src(const struct test_case *tc, int argc,
 
 	char *file_path = argv[0];
 	struct pmem2_source *retrieved_pmem2_src = NULL;
-	struct pmemset_config *cfg;
 	struct pmemset_file *file;
 
-	int ret = pmemset_config_new(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	UT_ASSERTne(cfg, NULL);
-
-	ret = pmemset_file_from_file(&file, file_path, cfg);
+	int ret = pmemset_file_from_file(&file, file_path, 0);
 	UT_ASSERTeq(ret, 0);
 	UT_ASSERTne(file, NULL);
 
@@ -195,15 +170,10 @@ test_file_from_pmem2_get_pmem2_src(const struct test_case *tc, int argc,
 	char *file_path = argv[0];
 	struct pmem2_source *pmem2_src;
 	struct pmem2_source *retrieved_pmem2_src = NULL;
-	struct pmemset_config *cfg;
 	struct pmemset_file *file;
 
-	int ret = pmemset_config_new(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	UT_ASSERTne(cfg, NULL);
-
 	int fd = OPEN(file_path, O_RDWR);
-	ret = pmem2_source_from_fd(&pmem2_src, fd);
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
 	UT_ASSERTeq(ret, 0);
 
 	ret = pmemset_file_from_pmem2(&file, pmem2_src);

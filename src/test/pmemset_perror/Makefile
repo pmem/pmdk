@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 #
 
 #
@@ -12,11 +12,9 @@ vpath %.c $(TOP)/src/libpmemset
 
 INCS += -I$(TOP)/src/libpmemset
 TARGET = pmemset_perror
-OBJS += config.o\
-	errormsg.o\
-	pmemset_perror.o\
-	pmemset_utils.o
+OBJS += pmemset_perror.o\
+	ut_pmemset_utils.o
 
-LIBPMEMCORE=y
+LIBPMEMSET=internal-debug
 
 include ../Makefile.inc

@@ -59,7 +59,7 @@ main(int argc, char *argv[])
 	struct pmemset_config *cfg;
 	struct pmemset_part_descriptor desc;
 
-	int ret = pmemset_source_from_file(&ssrc, argv[1]);
+	int ret = pmemset_source_from_file(&ssrc, argv[1], 0);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_config_new(&cfg);

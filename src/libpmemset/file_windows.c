@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * file_windows.c -- implementation of file API (windows)
@@ -19,11 +19,21 @@
  */
 int
 pmemset_file_create_pmem2_src(struct pmem2_source **pmem2_src, char *path,
-		struct pmemset_config *cfg)
+		unsigned flags)
 {
 	/* config doesn't have information about open parameters for now */
 	DWORD access = GENERIC_READ | GENERIC_WRITE;
-	HANDLE handle = CreateFile(path, access, 0, NULL, OPEN_EXISTING,
+
+	/* Init file create disposition flags */
+	DWORD disposition = OPEN_EXISTING;
+
+	/* Check create disposition flags */
+	if (flags & PMEMSET_SOURCE_FILE_CREATE_ALWAYS)
+		disposition = CREATE_ALWAYS;
+	else if (flags & PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED)
+		disposition = OPEN_ALWAYS;
+
+	HANDLE handle = CreateFile(path, access, 0, NULL, disposition,
 			FILE_ATTRIBUTE_NORMAL, NULL);
 	if (handle == INVALID_HANDLE_VALUE) {
 		ERR("!CreateFile %s", path);
