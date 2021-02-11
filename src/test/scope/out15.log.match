@@ -1,6 +1,5 @@
 pmemset_config_delete$(nW)
 pmemset_config_new$(nW)
-pmemset_config_set_create_if_none$(nW)
 pmemset_config_set_event_callback$(nW)
 pmemset_config_set_layout_name$(nW)
 pmemset_config_set_required_store_granularity$(nW)
