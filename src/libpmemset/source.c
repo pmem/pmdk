@@ -36,16 +36,21 @@ struct pmemset_source {
  * pmemset_source_open_file -- validate and create source from file
  */
 static int
-pmemset_source_open_file(struct pmemset_source *srcp)
+pmemset_source_open_file(struct pmemset_source *srcp, unsigned flags)
 {
 	int ret;
 
-	ret = pmemset_source_validate(srcp);
-	if (ret)
-		goto end;
+	if (~flags) {
+		ret = pmemset_source_validate(srcp);
+		if (ret)
+			goto end;
+	} else if (flags & ~(PMEMSET_SOURCE_FILE_CREATE_ALL)) {
+		ERR("invalid flag specified %x", flags);
+		errno = EINVAL;
+		return PMEMSET_E_ERRNO;
+	}
 
-	/* last param cfg will be needed in the future */
-	ret = pmemset_source_create_pmemset_file(srcp, &srcp->file_set, NULL);
+	ret = pmemset_source_create_pmemset_file(srcp, &srcp->file_set, flags);
 	if (ret)
 		goto end;
 end:
@@ -78,7 +83,7 @@ pmemset_source_from_pmem2(struct pmemset_source **src,
 	srcp->type = PMEMSET_SOURCE_PMEM2;
 	srcp->pmem2.src = pmem2_src;
 
-	ret = pmemset_source_open_file(srcp);
+	ret = pmemset_source_open_file(srcp, 0);
 	if (ret)
 		goto free_srcp;
 
@@ -99,7 +104,8 @@ free_srcp:
 static inline
 #endif
 int
-pmemset_source_from_fileU(struct pmemset_source **src, const char *file)
+pmemset_source_from_fileU(struct pmemset_source **src, const char *file,
+				unsigned flags)
 {
 	LOG(3, "src %p file %s", src, file);
 	PMEMSET_ERR_CLR();
@@ -125,7 +131,7 @@ pmemset_source_from_fileU(struct pmemset_source **src, const char *file)
 		return PMEMSET_E_ERRNO;
 	}
 
-	ret = pmemset_source_open_file(srcp);
+	ret = pmemset_source_open_file(srcp, flags);
 	if (ret)
 		goto free_srcp;
 
@@ -157,9 +163,10 @@ pmemset_source_from_temporaryU(struct pmemset_source **src, const char *dir,
  *                             to the file
  */
 int
-pmemset_source_from_file(struct pmemset_source **src, const char *file)
+pmemset_source_from_file(struct pmemset_source **src, const char *file,
+			unsigned flags)
 {
-	return pmemset_source_from_fileU(src, file);
+	return pmemset_source_from_fileU(src, file, flags);
 }
 
 /*
@@ -178,10 +185,11 @@ pmemset_source_from_temporary(struct pmemset_source **src, const char *dir,
  *                              to the file
  */
 int
-pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file)
+pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file,
+				unsigned flags)
 {
 	const char *ufile = util_toUTF8(file);
-	return pmemset_source_from_fileU(src, ufile);
+	return pmemset_source_from_fileU(src, ufile, flags);
 }
 
 /*
@@ -202,9 +210,9 @@ pmemset_source_from_temporaryW(struct pmemset_source **src, const wchar_t *dir,
  */
 static int
 pmemset_source_create_file_from_file(struct pmemset_source *src,
-		struct pmemset_file **file, struct pmemset_config *cfg)
+		struct pmemset_file **file, unsigned flags)
 {
-	return pmemset_file_from_file(file, src->file.path, cfg);
+	return pmemset_file_from_file(file, src->file.path, flags);
 }
 
 /*
@@ -213,7 +221,7 @@ pmemset_source_create_file_from_file(struct pmemset_source *src,
  */
 static int
 pmemset_source_create_file_from_pmem2(struct pmemset_source *src,
-		struct pmemset_file **file, struct pmemset_config *cfg)
+		struct pmemset_file **file, unsigned flags)
 {
 	return pmemset_file_from_pmem2(file, src->pmem2.src);
 }
@@ -273,7 +281,7 @@ pmemset_source_pmem2_validate(const struct pmemset_source *src)
 
 static const struct {
 	int (*create_file)(struct pmemset_source *src,
-			struct pmemset_file **file, struct pmemset_config *cfg);
+			struct pmemset_file **file, unsigned flags);
 	void (*destroy)(struct pmemset_source **src);
 	int (*validate)(const struct pmemset_source *src);
 } pmemset_source_ops[MAX_PMEMSET_SOURCE_TYPE] = {
@@ -330,12 +338,12 @@ pmemset_source_validate(const struct pmemset_source *src)
  */
 int
 pmemset_source_create_pmemset_file(struct pmemset_source *src,
-		struct pmemset_file **file, struct pmemset_config *cfg)
+		struct pmemset_file **file, unsigned flags)
 {
 	enum pmemset_source_type type = src->type;
 	ASSERTne(type, PMEMSET_SOURCE_UNSPECIFIED);
 
-	return pmemset_source_ops[type].create_file(src, file, cfg);
+	return pmemset_source_ops[type].create_file(src, file, flags);
 }
 
 /*

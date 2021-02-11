@@ -1,1 +1,1 @@
-pmemset_config_set_create_if_none 123: function not supported
+pmemset_source_from_file 123: file path cannot be empty

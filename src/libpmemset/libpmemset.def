@@ -10,7 +10,6 @@ VERSION 1.0
 EXPORTS
 	pmemset_config_delete
 	pmemset_config_new
-	pmemset_config_set_create_if_none
 	pmemset_config_set_event_callback
 	pmemset_config_set_layout_nameU
 	pmemset_config_set_layout_nameW
