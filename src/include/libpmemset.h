@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * libpmemset.h -- definitions of libpmemset entry points (EXPERIMENTAL)
@@ -152,9 +152,6 @@ int pmemset_config_new(struct pmemset_config **cfg);
 
 int pmemset_config_delete(struct pmemset_config **cfg);
 
-int pmemset_config_set_create_if_none(struct pmemset_config *cfg,
-		int value);
-
 int pmemset_config_set_create_if_invalid(struct pmemset_config *cfg,
 		int value);
 
@@ -192,14 +189,22 @@ struct pmemset_source;
 int pmemset_source_from_pmem2(struct pmemset_source **src,
 	struct pmem2_source *pmem2_src);
 
+#define PMEMSET_SOURCE_FILE_CREATE_ALWAYS		(1U << 0)
+#define PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED		(1U << 1)
+#define PMEMSET_SOURCE_FILE_CREATE_ALL (PMEMSET_SOURCE_FILE_CREATE_ALWAYS | \
+		PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED)
+
 #ifndef WIN32
-int pmemset_source_from_file(struct pmemset_source **src, const char *file);
+int pmemset_source_from_file(struct pmemset_source **src, const char *file,
+				unsigned flags);
 
 int pmemset_source_from_temporary(struct pmemset_source **src, const char *dir);
 #else
-int pmemset_source_from_fileU(struct pmemset_source **src, const char *file);
+int pmemset_source_from_fileU(struct pmemset_source **src, const char *file,
+				unsigned flags);
 
-int pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file);
+int pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file,
+				unsigned flags);
 
 int pmemset_source_from_temporaryU(struct pmemset_source **src,
 		const char *dir);

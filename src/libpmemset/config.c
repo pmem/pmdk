@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * config.c -- implementation of common config API
@@ -70,16 +70,6 @@ pmemset_config_new(struct pmemset_config **cfg)
 	pmemset_config_init(*cfg);
 
 	return 0;
-}
-
-/*
- * pmemset_config_set_create_if_none -- not supported
- */
-int
-pmemset_config_set_create_if_none(struct pmemset_config *cfg, int value)
-{
-	ERR("function not supported");
-	return PMEMSET_E_NOSUPP;
 }
 
 /*
