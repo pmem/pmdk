@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * pmem2_memcpy.c -- test for doing a memcpy from libpmem2
@@ -24,7 +24,7 @@ do_memcpy_variants(int fd, char *dest, int dest_off, char *src, int src_off,
 {
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
 		do_memcpy(fd, dest, dest_off, src, src_off, bytes, mapped_len,
-			file_name, fn, Flags[i], p);
+			file_name, fn, Flags[i], p, NULL, NULL, NULL);
 	}
 }
 

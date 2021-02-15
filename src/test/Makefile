@@ -300,6 +300,9 @@ PMEMSET_TESTS = \
 	pmemset_config\
 	pmemset_file\
 	pmemset_include\
+	pmemset_memcpy\
+	pmemset_memmove\
+	pmemset_memset\
 	pmemset_new\
 	pmemset_part\
 	pmemset_perror\

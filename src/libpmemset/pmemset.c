@@ -24,11 +24,14 @@ struct pmemset {
 	struct ravl_interval *part_map_tree;
 	bool effective_granularity_valid;
 	enum pmem2_granularity effective_granularity;
+	struct pmemset_part_map *previous_pmap;
+	bool part_coalescing;
 	pmem2_persist_fn persist_fn;
 	pmem2_flush_fn flush_fn;
 	pmem2_drain_fn drain_fn;
-	struct pmemset_part_map *previous_pmap;
-	bool part_coalescing;
+	pmem2_memmove_fn memmove_fn;
+	pmem2_memset_fn memset_fn;
+	pmem2_memcpy_fn memcpy_fn;
 };
 
 static char *granularity_name[3] = {
@@ -104,6 +107,10 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 	set->persist_fn = NULL;
 	set->flush_fn = NULL;
 	set->drain_fn = NULL;
+
+	set->memmove_fn = NULL;
+	set->memset_fn = NULL;
+	set->memcpy_fn = NULL;
 
 	return 0;
 }
@@ -255,6 +262,31 @@ pmemset_set_persisting_fn(struct pmemset *set, struct pmemset_part_map *pmap)
 }
 
 /*
+ * pmemset_set_mem_fn -- sets pmem2  memset, memmove, memcpy
+ * functions for pmemset
+ */
+static void
+pmemset_set_mem_fn(struct pmemset *set, struct pmemset_part_map *pmap)
+{
+	if (!pmap)
+		return;
+
+	struct pmem2_map *p2m;
+	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
+	size_t pmem2_reserv_size = pmem2_vm_reservation_get_size(pmem2_reserv);
+	pmem2_vm_reservation_map_find(pmem2_reserv, 0, pmem2_reserv_size, &p2m);
+	ASSERTne(p2m, NULL);
+
+	/* should be set only once per pmemset */
+	if (!set->memmove_fn)
+		set->memmove_fn = pmem2_get_memmove_fn(p2m);
+	if (!set->memset_fn)
+		set->memset_fn = pmem2_get_memset_fn(p2m);
+	if (!set->memcpy_fn)
+		set->memcpy_fn = pmem2_get_memcpy_fn(p2m);
+}
+
+/*
  * pmemset_part_map -- create new part mapping and add it to the set
  */
 int
@@ -303,6 +335,7 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	}
 
 	pmemset_set_persisting_fn(set, part_map);
+	pmemset_set_mem_fn(set, part_map);
 
 	if (part_map) {
 		ret = pmemset_insert_part_map(set, part_map);
@@ -422,33 +455,57 @@ pmemset_drain(struct pmemset *set)
 }
 
 /*
- * pmemset_memmove -- not supported
+ * pmemset_memmove -- memmove to pmemset dest
  */
-int
+void *
 pmemset_memmove(struct pmemset *set, void *pmemdest, const void *src,
 		size_t len, unsigned flags)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(15, "set %p pmemdest %p src %p len %zu flags 0x%x",
+			set, pmemdest, src, len, flags);
+
+#ifdef DEBUG
+	if (flags & ~PMEMSET_F_MEM_VALID_FLAGS)
+		ERR("pmemset_memmove invalid flags 0x%x", flags);
+#endif
+
+	return set->memmove_fn(pmemdest, src, len, flags);
 }
 
 /*
- * pmemset_memcpy -- not supported
+ * pmemset_memcpy -- memcpy to pmemset
  */
-int
-pmemset_memcpy(struct pmemset *set, void *pmemdest, const void *src, size_t len,
-		unsigned flags)
+void *
+pmemset_memcpy(struct pmemset *set, void *pmemdest, const void *src,
+		size_t len, unsigned flags)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(15, "set %p pmemdest %p src %p len %zu flags 0x%x",
+			set, pmemdest, src, len, flags);
+
+#ifdef DEBUG
+	if (flags & ~PMEMSET_F_MEM_VALID_FLAGS)
+		ERR("pmemset_memcpy invalid flags 0x%x", flags);
+#endif
+
+	return set->memcpy_fn(pmemdest, src, len, flags);
 }
 
 /*
- * pmemset_memset -- not supported
+ * pmemset_memset -- memset pmemdest
  */
-int
-pmemset_memset(struct pmemset *set, void *pmemdest, int c, size_t len,
-		unsigned flags)
+void *
+pmemset_memset(struct pmemset *set, void *pmemdest, int c,
+		size_t len, unsigned flags)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(15, "set %p pmemdest %p c %d len %zu flags 0x%x",
+			set, pmemdest, c, len, flags);
+
+#ifdef DEBUG
+	if (flags & ~PMEMSET_F_MEM_VALID_FLAGS)
+		ERR("pmemset_memset invalid flags 0x%x", flags);
+#endif
+
+	return set->memset_fn(pmemdest, c, len, flags);
 }
 
 /*

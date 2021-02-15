@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * pmem_memset.c -- unit test for doing a memset
@@ -33,14 +33,17 @@ do_memset_variants(int fd, char *dest, const char *file_name, size_t dest_off,
 		size_t bytes, persist_fn p)
 {
 	do_memset(fd, dest, file_name, dest_off, bytes,
-			pmem_memset_persist_wrapper, 0, p);
+			pmem_memset_persist_wrapper, 0, p,
+			NULL, NULL, NULL);
 
 	do_memset(fd, dest, file_name, dest_off, bytes,
-			pmem_memset_nodrain_wrapper, 0, p);
+			pmem_memset_nodrain_wrapper, 0, p,
+			NULL, NULL, NULL);
 
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
 		do_memset(fd, dest, file_name, dest_off, bytes,
-				pmem_memset, Flags[i], p);
+				pmem_memset, Flags[i], p,
+				NULL, NULL, NULL);
 		if (Flags[i] & PMEMOBJ_F_MEM_NOFLUSH)
 			pmem_persist(dest, bytes);
 	}
