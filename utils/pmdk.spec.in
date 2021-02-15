@@ -638,6 +638,7 @@ a device.
 
 
 %build
+%define _lto_cflags %{nil}
 # For debug build default flags may be overridden to disable compiler
 # optimizations.
 CFLAGS="%{optflags}" \
