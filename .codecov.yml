@@ -9,6 +9,11 @@ comment:
   behavior: default
   require_changes: yes
 
+coverage:
+  precision: 2
+  round: up
+  range: "65...100"
+
 parsers:
   gcov:
     branch_detection:
