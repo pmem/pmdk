@@ -158,9 +158,6 @@ int pmemset_config_delete(struct pmemset_config **cfg);
 int pmemset_config_set_create_if_none(struct pmemset_config *cfg,
 		int value);
 
-int pmemset_config_set_create_if_invalid(struct pmemset_config *cfg,
-		int value);
-
 int pmemset_config_set_event_callback(struct pmemset_config *cfg,
 		pmemset_event_callback *callback, void *arg);
 
