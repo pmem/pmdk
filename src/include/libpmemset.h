@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * libpmemset.h -- definitions of libpmemset entry points (EXPERIMENTAL)
@@ -151,9 +151,6 @@ int pmemset_config_new(struct pmemset_config **cfg);
 int pmemset_config_delete(struct pmemset_config **cfg);
 
 int pmemset_config_set_create_if_none(struct pmemset_config *cfg,
-		int value);
-
-int pmemset_config_set_create_if_invalid(struct pmemset_config *cfg,
 		int value);
 
 int pmemset_config_set_event_callback(struct pmemset_config *cfg,
