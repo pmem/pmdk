@@ -92,8 +92,6 @@ int pmemset_header_initW(struct pmemset_header *header, const wchar_t *layout,
 		int major, int minor);
 #endif
 
-int pmemset_remove_part(struct pmemset *set, struct pmemset_part **part);
-
 int pmemset_remove_part_map(struct pmemset *set,
 		struct pmemset_part_map **part);
 
