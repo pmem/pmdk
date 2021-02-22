@@ -17,12 +17,6 @@ enum pmemset_source_type {
 	MAX_PMEMSET_SOURCE_TYPE
 };
 
-#ifdef _WIN32
-int pmemset_source_extract(struct pmemset_source *src, HANDLE *handle);
-#else
-int pmemset_source_extract(struct pmemset_source *src, int *fd);
-#endif
-
 int pmemset_source_validate(const struct pmemset_source *src);
 
 struct pmemset_file *pmemset_source_get_set_file(struct pmemset_source *src);

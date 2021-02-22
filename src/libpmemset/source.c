@@ -229,91 +229,6 @@ pmemset_source_file_destroy(struct pmemset_source **src)
 	Free((*src)->file.path);
 }
 
-#ifdef _WIN32
-/*
- * pmemset_source_file_extract - acquires file handle from the path stored in
- *                               the data source (windows)
- */
-static int
-pmemset_source_file_extract(const struct pmemset_source *src, HANDLE *handle)
-{
-	DWORD access = GENERIC_READ | GENERIC_WRITE;
-	char *path = src->file.path;
-
-	HANDLE h = CreateFile(path, access, 0, NULL, OPEN_EXISTING,
-			FILE_ATTRIBUTE_NORMAL, NULL);
-	if (h == INVALID_HANDLE_VALUE) {
-		ERR("!CreateFile %s", path);
-		return PMEMSET_E_INVALID_FILE_PATH;
-	}
-
-	*handle = h;
-
-	return 0;
-}
-#else
-/*
- * pmemset_source_file_extract - acquires file descriptor from the path stored
- *                               int the data source (posix)
- */
-static int
-pmemset_source_file_extract(const struct pmemset_source *src, int *fd)
-{
-	int access = O_RDWR;
-	char *path = src->file.path;
-
-	int f = os_open(path, access);
-	if (f < 0) {
-		ERR("!open %s", path);
-		return PMEMSET_E_INVALID_FILE_PATH;
-	}
-
-	*fd = f;
-
-	return 0;
-}
-#endif
-
-#ifdef _WIN32
-/*
- * pmemset_source_pmem2_extract - acquires file handle from
- *                                pmem2 source (windows)
- */
-static int
-pmemset_source_pmem2_extract(const struct pmemset_source *src, HANDLE *handle)
-{
-	HANDLE h;
-	int ret = pmem2_source_get_handle(src->pmem2.src, &h);
-	if (ret) {
-		ERR("could not extract handle from provided source");
-		return PMEMSET_E_INVALID_PMEM2_SOURCE;
-	}
-
-	*handle = h;
-
-	return 0;
-}
-#else
-/*
- * pmemset_source_pmem2_extract - acquires file descriptor from
- *                                pmem2 source (posix)
- */
-static int
-pmemset_source_pmem2_extract(const struct pmemset_source *src, int *fd)
-{
-	int f;
-	int ret = pmem2_source_get_fd(src->pmem2.src, &f);
-	if (ret) {
-		ERR("could not extract file descriptor from provided source");
-		return PMEMSET_E_INVALID_PMEM2_SOURCE;
-	}
-
-	*fd = f;
-
-	return 0;
-}
-#endif
-
 /*
  * pmemset_source_file_validate - check the validity of source created
  *                                from file
@@ -353,24 +268,17 @@ static const struct {
 	int (*create_file)(struct pmemset_source *src,
 			struct pmemset_file **file, struct pmemset_config *cfg);
 	void (*destroy)(struct pmemset_source **src);
-#ifdef _WIN32
-	int (*extract)(const struct pmemset_source *src, HANDLE *handle);
-#else
-	int (*extract)(const struct pmemset_source *src, int *fd);
-#endif
 	int (*validate)(const struct pmemset_source *src);
 } pmemset_source_ops[MAX_PMEMSET_SOURCE_TYPE] = {
 	[PMEMSET_SOURCE_FILE] = {
 		.create_file = pmemset_source_create_file_from_file,
 		.destroy = pmemset_source_file_destroy,
-		.extract = pmemset_source_file_extract,
 		.validate = pmemset_source_file_validate,
 	},
 
 	[PMEMSET_SOURCE_PMEM2] = {
 		.create_file = pmemset_source_create_file_from_pmem2,
 		.destroy = pmemset_source_empty_destroy,
-		.extract = pmemset_source_pmem2_extract,
 		.validate = pmemset_source_pmem2_validate,
 	}
 };
@@ -396,34 +304,6 @@ pmemset_source_delete(struct pmemset_source **src)
 	*src = NULL;
 	return 0;
 }
-
-#ifdef _WIN32
-/*
- * pmemset_source_extract -- extracts file handle from
- *                           data source (windows)
- */
-int
-pmemset_source_extract(struct pmemset_source *src, HANDLE *handle)
-{
-	enum pmemset_source_type type = src->type;
-	ASSERTne(type, PMEMSET_SOURCE_UNSPECIFIED);
-
-	return pmemset_source_ops[type].extract(src, handle);
-}
-#else
-/*
- * pmemset_source_extract -- extracts file descriptor from
- *                           data source (posix)
- */
-int
-pmemset_source_extract(struct pmemset_source *src, int *fd)
-{
-	enum pmemset_source_type type = src->type;
-	ASSERTne(type, PMEMSET_SOURCE_UNSPECIFIED);
-
-	return pmemset_source_ops[type].extract(src, fd);
-}
-#endif
 
 /*
  * pmemset_source_validate -- check the validity of created source
