@@ -38,12 +38,12 @@ int pmemset_source_delete(struct pmemset_source **src);
 
 _UW(pmemset_source_from_file) function instantiates a new *struct pmemset_source** object
 describing the data source and sets a path to the file in it.
-The argument *flags* specifies the file opening disposition. By default 
+The argument *flags* specifies the file opening disposition. By default
 (*flags* set to 0) function operates on existing file, but in case when
 a new file should be created additional flags needs to be specified:
 
 **PMEMSET_SOURCE_FILE_IF_NEEDED** - a new file will be created only if the specified file does not already exist,
- 
+
  **PMEMSET_SOURCE_FILE_CREATE_ALWAYS** - always a new file will be created. If the specified file exists, the file will be overwritten.
 
 Obtained source is ready to be passed on to the **pmemset_part_new**() function.
