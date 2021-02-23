@@ -24,10 +24,11 @@ struct pmemset {
 	struct ravl_interval *part_map_tree;
 	bool effective_granularity_valid;
 	enum pmem2_granularity effective_granularity;
-	struct pmemset_part_descriptor previous_part;
 	pmem2_persist_fn persist_fn;
 	pmem2_flush_fn flush_fn;
 	pmem2_drain_fn drain_fn;
+	struct pmemset_part_map *previous_pmap;
+	bool part_coalescing;
 };
 
 static char *granularity_name[3] = {
@@ -66,9 +67,9 @@ pmemset_mapping_max(void *addr)
 		return SIZE_MAX;
 
 	struct pmemset_part_map *pmap = (struct pmemset_part_map *)addr;
-	void *map_addr = pmap->desc.addr;
-	size_t map_size = pmap->desc.size;
-	return (size_t)map_addr + map_size;
+	void *pmap_addr = pmap->desc.addr;
+	size_t pmap_size = pmap->desc.size;
+	return (size_t)pmap_addr + pmap_size;
 }
 
 /*
@@ -97,8 +98,8 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 	}
 
 	set->effective_granularity_valid = false;
-	set->previous_part.addr = NULL;
-	set->previous_part.size = 0;
+	set->previous_pmap = NULL;
+	set->part_coalescing = false;
 
 	set->persist_fn = NULL;
 	set->flush_fn = NULL;
@@ -235,7 +236,13 @@ pmemset_get_store_granularity(struct pmemset *set, enum pmem2_granularity *g)
 static void
 pmemset_set_persisting_fn(struct pmemset *set, struct pmemset_part_map *pmap)
 {
-	struct pmem2_map *p2m = pmap->pmem2_map;
+	if (!pmap)
+		return;
+
+	struct pmem2_map *p2m;
+	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
+	size_t pmem2_reserv_size = pmem2_vm_reservation_get_size(pmem2_reserv);
+	pmem2_vm_reservation_map_find(pmem2_reserv, 0, pmem2_reserv_size, &p2m);
 	ASSERTne(p2m, NULL);
 
 	/* should be set only once per pmemset */
@@ -265,8 +272,8 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 	enum pmem2_granularity config_gran =
 		pmemset_get_config_granularity(set_config);
 
-	int ret = pmemset_part_map_new(&part_map, p,
-			config_gran, &mapping_gran, set->previous_part);
+	int ret = pmemset_part_map_new(&part_map, p, config_gran, &mapping_gran,
+			set->previous_pmap, set->part_coalescing);
 	if (ret)
 		return ret;
 
@@ -297,24 +304,26 @@ pmemset_part_map(struct pmemset_part **part, struct pmemset_extras *extra,
 
 	pmemset_set_persisting_fn(set, part_map);
 
-	/*
-	 * XXX: add multiple part support
-	 */
-	ret = pmemset_insert_part_map(set, part_map);
-	if (ret)
-		goto err_delete_pmap;
-
-	set->previous_part = part_map->desc;
+	if (part_map) {
+		ret = pmemset_insert_part_map(set, part_map);
+		if (ret)
+			goto err_delete_pmap;
+		set->previous_pmap = part_map;
+	}
 
 	if (desc)
-		*desc = part_map->desc;
+		*desc = part_map ? part_map->desc :
+				set->previous_pmap->desc;
 
 	pmemset_part_delete(part);
 
 	return 0;
 
 err_delete_pmap:
-	pmemset_part_map_delete(&part_map);
+	if (part_map)
+		pmemset_part_map_delete(&part_map);
+	else
+		pmemset_part_map_delete(&set->previous_pmap);
 	return ret;
 }
 
@@ -471,29 +480,6 @@ pmemset_get_pmemset_config(struct pmemset *set)
 }
 
 /*
- * pmemset_get_previous_part_descriptor -- get recent part descriptor from
- *                                         pmemset
- */
-struct pmemset_part_descriptor
-pmemset_get_previous_part_descriptor(struct pmemset *set)
-{
-	LOG(3, "set %p", set);
-	return set->previous_part;
-}
-
-/*
- * pmemset_set_previous_part_descriptor -- set recent part descriptor in the set
- */
-void
-pmemset_set_previous_part_descriptor(struct pmemset *set, void *addr,
-		size_t size)
-{
-	LOG(3, "set %p addr %p size %zu", set, addr, size);
-	set->previous_part.addr = addr;
-	set->previous_part.size = size;
-}
-
-/*
  * pmemset_part_map_access -- gains access to the part mapping
  */
 static void
@@ -590,11 +576,7 @@ pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part_map **pmap,
 struct pmemset_part_descriptor
 pmemset_descriptor_part_map(struct pmemset_part_map *pmap)
 {
-	struct pmemset_part_descriptor desc;
-	desc.addr = pmem2_map_get_address(pmap->pmem2_map);
-	desc.size = pmem2_map_get_size(pmap->pmem2_map);
-
-	return desc;
+	return pmap->desc;
 }
 
 /*
@@ -608,4 +590,18 @@ pmemset_part_map_drop(struct pmemset_part_map **pmap)
 
 	pmemset_part_map_access_drop(*pmap);
 	*pmap = NULL;
+}
+
+/*
+ * pmemset_set_contiguous_part_coalescing -- sets the part coalescing feature
+ *                                           in the provided set on or off
+ */
+int
+pmemset_set_contiguous_part_coalescing(struct pmemset *set, bool value)
+{
+	LOG(3, "set %p coalescing %d", set, value);
+
+	set->part_coalescing = value;
+
+	return 0;
 }

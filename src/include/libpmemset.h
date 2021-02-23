@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * libpmemset.h -- definitions of libpmemset entry points (EXPERIMENTAL)
@@ -10,6 +10,7 @@
 #ifndef LIBPMEMSET_H
 #define LIBPMEMSET_H 1
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <libpmem2.h>
 
@@ -52,6 +53,8 @@ extern "C" {
 #define PMEMSET_E_GRANULARITY_MISMATCH			(-200011)
 #define PMEMSET_E_NO_PART_MAPPED			(-200012)
 #define PMEMSET_E_CANNOT_FIND_PART_MAP			(-200013)
+#define PMEMSET_E_CANNOT_COALESCE_PARTS			(-200014)
+#define PMEMSET_E_LENGTH_UNALIGNED			(-200015)
 
 /* pmemset setup */
 
@@ -104,6 +107,8 @@ void pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
 		struct pmemset_part_map **next);
 
 int pmemset_remove_range(struct pmemset *set, void *addr, size_t len);
+
+int pmemset_set_contiguous_part_coalescing(struct pmemset *set, bool value);
 
 int pmemset_persist(struct pmemset *set, const void *ptr, size_t size);
 
@@ -166,9 +171,6 @@ int pmemset_config_set_reservation(struct pmemset_config *cfg,
 
 int pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,
 		enum pmem2_granularity g);
-
-int pmemset_config_set_contiguous_part_coalescing(
-		struct pmemset_config *cfg, int value);
 
 #ifndef _WIN32
 int pmemset_config_set_layout_name(struct pmemset_config *cfg,

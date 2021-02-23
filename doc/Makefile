@@ -126,7 +126,8 @@ MANPAGES_3_MD_PMEMSET = libpmemset/pmemset_errormsg.3.md libpmemset/pmemset_perr
 			libpmemset/pmemset_config_set_required_store_granularity.3.md libpmemset/pmemset_part_map.3.md \
 			libpmemset/pmemset_first_part_map.3.md libpmemset/pmemset_descriptor_part_map.3.md libpmemset/pmemset_get_store_granularity.3.md \
 			libpmemset/pmemset_part_map_drop.3.md libpmemset/pmemset_part_map_by_address.3.md \
-			libpmemset/pmemset_persist.3.md libpmemset/pmemset_flush.3.md libpmemset/pmemset_drain.3.md
+			libpmemset/pmemset_persist.3.md libpmemset/pmemset_flush.3.md libpmemset/pmemset_drain.3.md \
+			libpmemset/pmemset_set_contiguous_part_coalescing.3.md
 
 MANPAGES_1_MD_PMEMSET =
 ifeq ($(PMEMSET_INSTALL),y)

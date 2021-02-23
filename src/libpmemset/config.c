@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * config.c -- implementation of common config API
@@ -20,6 +20,7 @@
 struct pmemset_config {
 	bool set_granularity_valid;
 	enum pmem2_granularity set_granularity;
+	bool part_coalescing;
 };
 
 /*
@@ -29,6 +30,7 @@ void
 pmemset_config_init(struct pmemset_config *cfg)
 {
 	cfg->set_granularity_valid = false;
+	cfg->part_coalescing = false;
 }
 
 /*
@@ -112,13 +114,25 @@ pmemset_config_set_reservation(struct pmemset_config *cfg,
 }
 
 /*
- * pmemset_config_set_contiguous_part_coalescing -- not supported
+ * pmemset_config_set_contiguous_part_coalescing -- sets the part coalescing
+ * flag in the config to the provided value.
  */
-int
-pmemset_config_set_contiguous_part_coalescing(struct pmemset_config *cfg,
-		int value)
+void
+pmemset_config_set_contiguous_part_coalescing(
+		struct pmemset_config *cfg, bool value)
 {
-	return PMEMSET_E_NOSUPP;
+	cfg->part_coalescing = value;
+}
+
+/*
+ * pmemset_config_get_contiguous_part_coalescing -- returns the part coalescing
+ *                                                  flag value from the config
+ */
+bool
+pmemset_config_get_contiguous_part_coalescing(
+		struct pmemset_config *cfg)
+{
+	return cfg->part_coalescing;
 }
 
 #ifndef _WIN32

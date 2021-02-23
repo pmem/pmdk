@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * config.h -- internal definitions for pmemset_config
@@ -18,5 +18,8 @@ enum pmem2_granularity pmemset_get_config_granularity(
 	struct pmemset_config *cfg);
 bool pmemset_get_config_granularity_valid(
 	struct pmemset_config *cfg);
-
+void pmemset_config_set_contiguous_part_coalescing(
+		struct pmemset_config *cfg, bool value);
+bool pmemset_config_get_contiguous_part_coalescing(
+		struct pmemset_config *cfg);
 #endif /* PMEMSET_CONFIG_H */

@@ -815,8 +815,10 @@ test_part_map_by_addr(const struct test_case *tc, int argc,
 	second_desc = pmemset_descriptor_part_map(second_pmap);
 
 	ret = pmemset_part_map_by_address(set, &first_pmap_ba, first_desc.addr);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	ret = pmemset_part_map_by_address(set, &second_pmap_ba,
 			second_desc.addr);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	first_desc_ba = pmemset_descriptor_part_map(first_pmap_ba);
 	second_desc_ba = pmemset_descriptor_part_map(second_pmap_ba);
@@ -830,6 +832,224 @@ test_part_map_by_addr(const struct test_case *tc, int argc,
 
 	pmemset_config_delete(&cfg);
 	pmem2_source_delete(&pmem2_src);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_part_map_unaligned_size - create a new part from file with
+ *                                unaligned size
+ */
+static int
+test_part_map_unaligned_size(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_unaligned_size <path>");
+
+	const char *file = argv[0];
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part *part;
+	struct pmemset_source *src;
+	struct pmem2_source *pmem2_src;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_LENGTH_UNALIGNED);
+
+	ret = pmemset_part_delete(&part);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_ASSERTeq(ret, 0);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_part_map_coalesce_before - turn on coalescing feature then create
+ *                                 two mappings
+ */
+static int
+test_part_map_coalesce_before(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_coalesce_before <path>");
+
+	const char *file = argv[0];
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part_descriptor desc_before;
+	struct pmemset_part_descriptor desc_after;
+	struct pmemset_part *part;
+	struct pmemset_part_map *first_pmap = NULL;
+	struct pmemset_part_map *second_pmap = NULL;
+	struct pmemset_source *src;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_set_contiguous_part_coalescing(set, true);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTne(first_pmap, NULL);
+
+	desc_before = pmemset_descriptor_part_map(first_pmap);
+
+	ret = pmemset_part_new(&part, set, src, 0, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
+		goto err_cleanup;
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* when coalescing is on, the parts should become one part mapping */
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTne(first_pmap, NULL);
+
+	pmemset_next_part_map(set, first_pmap, &second_pmap);
+	UT_ASSERTeq(second_pmap, NULL);
+
+	desc_after = pmemset_descriptor_part_map(first_pmap);
+
+	UT_ASSERTeq(desc_before.addr, desc_after.addr);
+	UT_ASSERT(desc_before.size < desc_after.size);
+
+err_cleanup:
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
+ * test_part_map_coalesce_after - map a part turn on the coalescing feature
+ *                                and map a part second time
+ */
+static int
+test_part_map_coalesce_after(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_coalesce_after <path>");
+
+	const char *file = argv[0];
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part_descriptor desc_before;
+	struct pmemset_part_descriptor desc_after;
+	struct pmemset_part *part;
+	struct pmemset_part_map *first_pmap = NULL;
+	struct pmemset_part_map *second_pmap = NULL;
+	struct pmemset_source *src;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTne(first_pmap, NULL);
+
+	desc_before = pmemset_descriptor_part_map(first_pmap);
+
+	ret = pmemset_set_contiguous_part_coalescing(set, true);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS)
+		goto err_cleanup;
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* when coalescing is on, the parts should become one part mapping */
+	pmemset_first_part_map(set, &first_pmap);
+	UT_ASSERTne(first_pmap, NULL);
+
+	pmemset_next_part_map(set, first_pmap, &second_pmap);
+	UT_ASSERTeq(second_pmap, NULL);
+
+	desc_after = pmemset_descriptor_part_map(first_pmap);
+
+	UT_ASSERTeq(desc_before.addr, desc_after.addr);
+	UT_ASSERT(desc_before.size < desc_after.size);
+
+err_cleanup:
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	CLOSE(fd);
 
 	return 1;
@@ -854,6 +1074,9 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_part_map_next),
 	TEST_CASE(test_part_map_drop),
 	TEST_CASE(test_part_map_by_addr),
+	TEST_CASE(test_part_map_unaligned_size),
+	TEST_CASE(test_part_map_coalesce_before),
+	TEST_CASE(test_part_map_coalesce_after),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
