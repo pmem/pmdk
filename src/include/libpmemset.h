@@ -92,8 +92,6 @@ int pmemset_header_initW(struct pmemset_header *header, const wchar_t *layout,
 		int major, int minor);
 #endif
 
-int pmemset_remove_part(struct pmemset *set, struct pmemset_part **part);
-
 int pmemset_remove_part_map(struct pmemset *set,
 		struct pmemset_part_map **part);
 
@@ -158,9 +156,6 @@ int pmemset_config_new(struct pmemset_config **cfg);
 int pmemset_config_delete(struct pmemset_config **cfg);
 
 int pmemset_config_set_create_if_none(struct pmemset_config *cfg,
-		int value);
-
-int pmemset_config_set_create_if_invalid(struct pmemset_config *cfg,
 		int value);
 
 int pmemset_config_set_event_callback(struct pmemset_config *cfg,

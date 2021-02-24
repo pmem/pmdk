@@ -360,15 +360,6 @@ pmemset_header_initW(struct pmemset_header *header, const wchar_t *layout,
 #endif
 
 /*
- * pmemset_remove_part -- not supported
- */
-int
-pmemset_remove_part(struct pmemset *set, struct pmemset_part **part)
-{
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
  * pmemset_remove_part_map -- not supported
  */
 int

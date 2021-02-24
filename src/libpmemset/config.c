@@ -85,15 +85,6 @@ pmemset_config_set_create_if_none(struct pmemset_config *cfg, int value)
 }
 
 /*
- * pmemset_config_set_create_if_invalid -- not supported
- */
-int
-pmemset_config_set_create_if_invalid(struct pmemset_config *cfg, int value)
-{
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
  * pmemset_config_set_event_callback -- not supported
  */
 int
