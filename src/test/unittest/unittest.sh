@@ -3768,6 +3768,31 @@ function create_recovery_file() {
 }
 
 #
+# create_recovery_file_absolute - create bad block recovery file
+#
+# Usage: create_recovery_file_absolute <file> [<offset_1> <length_1> ...]
+#
+# Offsets and length should be in bytes.
+#
+function create_recovery_file_absolute() {
+	[ $# -lt 1 ] && fatal "create_recovery_file(): not enough parameters: $*"
+
+	FILE=$1
+	shift
+	rm -f $FILE
+
+	while [ $# -ge 2 ]; do
+		OFFSET=$1
+		LENGTH=$2
+		shift 2
+		echo "$OFFSET $LENGTH" >> $FILE
+	done
+
+	# write the finish flag
+	echo "0 0" >> $FILE
+}
+
+#
 # zero_blocks - zero blocks in a file
 #
 # Usage: zero_blocks <file> <offset> <length>
