@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * pmem2_map.c -- pmem2_map unittests
@@ -836,6 +836,49 @@ test_map_sharing_private_devdax(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_map_huge_alignment - tests whether pmem2_map correctly utilizes
+ * huge pages where possible.
+ */
+static int
+test_map_huge_alignment(const struct test_case *tc, int argc,
+					char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_map_huge_alignment <file> <filesize>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+
+	struct pmem2_config cfg;
+	struct pmem2_source *src;
+	struct FHandle *fh;
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, size, 0, FH_RDWR);
+
+	struct pmem2_map *map;
+	int ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+#define PAGESIZE_HUGE ((1 << 20) * 2)
+
+	void *addr = pmem2_map_get_address(map);
+	uintptr_t addru = (uintptr_t)addr;
+	if (pmem2_map_get_size(map) >= PAGESIZE_HUGE) {
+		UT_ASSERTeq(addru % PAGESIZE_HUGE, 0);
+	} else {
+		UT_ASSERTeq(addru % Pagesize, 0);
+	}
+
+#undef PAGESIZE_HUGE
+
+	unmap_map(map);
+	FREE(map);
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -860,6 +903,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_map_sharing_private_with_reopened_fd),
 	TEST_CASE(test_map_sharing_private_rdonly_file),
 	TEST_CASE(test_map_sharing_private_devdax),
+	TEST_CASE(test_map_huge_alignment),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

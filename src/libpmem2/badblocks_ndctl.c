@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2021, Intel Corporation */
 
 /*
  * badblocks_ndctl.c -- implementation of DIMMs API based on the ndctl library
@@ -70,7 +70,7 @@ struct pmem2_badblock_context {
 		struct ndctl_bus *bus;
 		struct ndctl_region *region;
 		unsigned long long ns_res; /* address of the namespace */
-		unsigned long long ns_beg; /* the begining of the namespace */
+		unsigned long long ns_beg; /* the beginning of the namespace */
 		unsigned long long ns_end; /* the end of the namespace */
 	} rgn;
 
