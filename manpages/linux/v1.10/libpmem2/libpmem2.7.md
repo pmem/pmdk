@@ -8,7 +8,7 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause
-[comment]: <> (Copyright 2019-2020, Intel Corporation)
+[comment]: <> (Copyright 2019-2021, Intel Corporation)
 
 [comment]: <> (libpmem2.7 -- man page for libpmem2)
 
@@ -155,7 +155,7 @@ that operates on large logical pages that reside either on SSDs or PMEM should
 set this value to **PMEM2_GRANULARITY_PAGE**.
 The library will create mappings where the new map granularity is lower or
 equal to the requested one. For example, a mapping with **PMEM2_GRANULARITY_CACHE_LINE**
-can created for the requried granularity **PMEM2_GRANULARITY_PAGE**, but not
+can created for the required granularity **PMEM2_GRANULARITY_PAGE**, but not
 vice versa.
 
 # CAVEATS #
