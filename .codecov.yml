@@ -9,6 +9,12 @@ comment:
   behavior: default
   require_changes: yes
 
+coverage:
+  status:
+    project:
+      default:
+        threshold: 1%
+
 parsers:
   gcov:
     branch_detection:

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * rpmem_fip.c -- rpmem libfabric provider module source file
@@ -521,7 +521,7 @@ err_alloc_lanes:
 
 /*
  * rpmem_fip_lanes_fini_common -- (internal) deinitialize common lanes
- * resrouces
+ * resources
  */
 static int
 rpmem_fip_lanes_fini_common(struct rpmem_fip *fip)

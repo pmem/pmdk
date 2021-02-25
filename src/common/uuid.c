@@ -53,7 +53,7 @@ util_uuid_to_string(const uuid_t u, char *buf)
  * f81d4fae-7dec-11d0-a765-00a0c91e6bf6
  */
 int
-util_uuid_from_string(const char *uuid, struct uuid *ud)
+util_uuid_from_string(const char uuid[POOL_HDR_UUID_STR_LEN], struct uuid *ud)
 {
 	if (strlen(uuid) != 36) {
 		LOG(2, "invalid uuid string");
