@@ -1,5 +1,5 @@
 /*
- * Copyright 2016-2020, Intel Corporation
+ * Copyright 2016-2021, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -550,7 +550,7 @@ err_alloc_lanes:
 
 /*
  * rpmem_fip_lanes_fini_common -- (internal) deinitialize common lanes
- * resrouces
+ * resources
  */
 static int
 rpmem_fip_lanes_fini_common(struct rpmem_fip *fip)

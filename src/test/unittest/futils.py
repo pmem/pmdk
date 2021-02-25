@@ -1,5 +1,5 @@
 #
-# Copyright 2019, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -82,8 +82,8 @@ def get_lib_dir(ctx):
 
 class Color:
     """
-    Set the font color. This functionality relies on ANSI espace sequences
-    and is currently disabled for Windows
+    Set the font color. This functionality relies on ANSI escape sequences
+    and is currently disabled for Windows.
     """
     if sys.platform != 'win32':
         RED = '\33[91m'

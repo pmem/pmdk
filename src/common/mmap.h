@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019, Intel Corporation
+ * Copyright 2014-2021, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -140,7 +140,7 @@ char *util_map_hint(size_t len, size_t req_align);
  * util_map_hint_align -- choose the desired mapping alignment
  *
  * The smallest supported alignment is 2 megabytes because of the object
- * alignment requirements. Changing this value to 4 kilobytes constitues a
+ * alignment requirements. Changing this value to 4 kilobytes constitutes a
  * layout change.
  *
  * Use 1GB page alignment only if the mapping length is at least

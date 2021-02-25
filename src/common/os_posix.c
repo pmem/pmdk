@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2019, Intel Corporation
+ * Copyright 2017-2021, Intel Corporation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -182,7 +182,7 @@ os_posix_fallocate(int fd, os_off_t offset, off_t len)
  *
  *	FreeBSD implements posix_fallocate with a simple block allocation/zero
  *	loop. If the requested size is unreasonably large, this can result in
- *	an uninterruptable system call that will suck up all the space in the
+ *	an uninterruptible system call that will suck up all the space in the
  *	file system and could take hours to fail. To avoid this, make a crude
  *	check to see if the requested allocation is larger than the available
  *	space in the file system (minus any blocks already allocated to the
