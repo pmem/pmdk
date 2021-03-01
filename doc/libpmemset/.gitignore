@@ -7,6 +7,7 @@ pmemset_errormsg.3
 pmemset_first_part_map.3
 pmemset_flush.3
 pmemset_get_store_granularity.3
+pmemset_memmove.3
 pmemset_new.3
 pmemset_part_map.3
 pmemset_part_map_by_address.3

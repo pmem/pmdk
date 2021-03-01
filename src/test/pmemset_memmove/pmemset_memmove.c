@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2021, Intel Corporation */
+/* Copyright 2021, Intel Corporation */
 
 /*
- * pmem2_memmove.c -- test for doing a memmove
+ * pmemset_memmove.c -- test for doing a memmove on pmemeset
  *
  * usage:
- * pmem2_memmove file b:length [d:{offset}] [s:offset] [o:{1|2} S:{overlap}]
+ * pmemset_memmove file b:length [d:{offset}] [s:offset] [o:{1|2} S:{overlap}]
  *
  */
 
@@ -13,23 +13,22 @@
 #include "ut_pmem2.h"
 #include "file.h"
 #include "memmove_common.h"
+#include "ut_pmemset_utils.h"
 
 static void
 do_memmove_variants(char *dst, char *src, const char *file_name,
-	size_t dest_off, size_t src_off, size_t bytes, persist_fn p,
-	memmove_fn fn)
+	size_t dest_off, size_t src_off, size_t bytes, set_persist_fn sp,
+	set_memmove_fn sm, struct pmemset *set)
 {
 	for (int i = 0; i < ARRAY_SIZE(Flags); ++i) {
 		do_memmove(dst, src, file_name, dest_off, src_off,
-				bytes, fn, Flags[i], p,
-				NULL, NULL, NULL);
+				bytes, NULL, Flags[i], NULL, set, sp, sm);
 	}
 }
 
 int
 main(int argc, char *argv[])
 {
-	int fd;
 	char *dst;
 	char *src;
 	char *src_orig;
@@ -38,15 +37,12 @@ main(int argc, char *argv[])
 	size_t bytes = 0;
 	int who = 0;
 	size_t mapped_len;
-	struct pmem2_config *cfg;
-	struct pmem2_source *psrc;
-	struct pmem2_map *map;
 
 	const char *thr = os_getenv("PMEM_MOVNT_THRESHOLD");
 	const char *avx = os_getenv("PMEM_AVX");
 	const char *avx512f = os_getenv("PMEM_AVX512F");
 
-	START(argc, argv, "pmem2_memmove %s %s %s %s %savx %savx512f",
+	START(argc, argv, "pmemset_memmove %s %s %s %s %savx %savx512f",
 			argc > 2 ? argv[2] : "null",
 			argc > 3 ? argv[3] : "null",
 			argc > 4 ? argv[4] : "null",
@@ -54,28 +50,42 @@ main(int argc, char *argv[])
 			avx ? "" : "!",
 			avx512f ? "" : "!");
 
-	fd = OPEN(argv[1], O_RDWR);
-
 	if (argc < 3)
 		USAGE();
 
-	PMEM2_CONFIG_NEW(&cfg);
-	PMEM2_SOURCE_FROM_FD(&psrc, fd);
-	PMEM2_CONFIG_SET_GRANULARITY(cfg, PMEM2_GRANULARITY_PAGE);
+	struct pmemset_part *part;
+	struct pmemset_source *ssrc;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part_descriptor desc;
 
-	int ret = pmem2_map_new(&map, cfg, psrc);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	int ret = pmemset_source_from_file(&ssrc, argv[1]);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	PMEM2_CONFIG_DELETE(&cfg);
+	ret = pmemset_config_new(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(cfg, NULL);
 
-	pmem2_persist_fn persist = pmem2_get_persist_fn(map);
+	ret = pmemset_config_set_required_store_granularity(cfg,
+		PMEM2_GRANULARITY_PAGE);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(cfg, NULL);
 
-	mapped_len = pmem2_map_get_size(map);
-	dst = pmem2_map_get_address(map);
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, ssrc, 0, 4 * 1024 * 1024);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, &desc);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(part, NULL);
+
+	mapped_len = desc.size;
+	dst = desc.addr;
+
 	if (dst == NULL)
 		UT_FATAL("!could not map file: %s", argv[1]);
-
-	pmem2_memmove_fn memmove_fn = pmem2_get_memmove_fn(map);
 
 	for (int arg = 2; arg < argc; arg++) {
 		if (strchr("dsbo",
@@ -120,7 +130,7 @@ main(int argc, char *argv[])
 		UT_ASSERT(src > dst);
 
 		do_memmove_variants(dst, src, argv[1], dst_off, src_off,
-			bytes, persist, memmove_fn);
+			bytes, pmemset_persist, pmemset_memmove, set);
 
 		/* dest > src */
 		src = dst;
@@ -130,19 +140,21 @@ main(int argc, char *argv[])
 			UT_FATAL("cannot map files in memory order");
 
 		do_memmove_variants(dst, src, argv[1], dst_off, src_off,
-			bytes, persist, memmove_fn);
+			bytes, pmemset_persist, pmemset_memmove, set);
 	} else {
 		/* use the same buffer for source and destination */
 		memset(dst, 0, bytes);
-		persist(dst, bytes);
+		pmemset_persist(set, dst, bytes);
 		do_memmove_variants(dst, dst, argv[1], dst_off, src_off,
-			bytes, persist, memmove_fn);
+			bytes, pmemset_persist, pmemset_memmove, set);
 	}
 
-	ret = pmem2_map_delete(&map);
-	UT_ASSERTeq(ret, 0);
-
-	CLOSE(fd);
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&ssrc);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	DONE(NULL);
 }
