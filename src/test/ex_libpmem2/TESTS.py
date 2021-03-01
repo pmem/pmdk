@@ -1,6 +1,6 @@
 #!../env.py
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019-2020, Intel Corporation
+# Copyright 2019-2021, Intel Corporation
 #
 import futils
 import testframework as t
@@ -80,3 +80,12 @@ class TEST5(EX_LIBPMEM2):
         file_path = ctx.create_holey_file(self.file_size, 'testfile0')
         ctx.exec(example_path, "write", file_path, "foobar")
         ctx.exec(example_path, "read", file_path, stdout_file='out5.log')
+
+
+@t.windows_exclude
+class TEST6(EX_LIBPMEM2):
+
+    def run(self, ctx):
+        example_path = futils.get_example_path(ctx, 'pmem2', 'ringbuf')
+        file_path = ctx.create_holey_file(self.file_size, 'testfile0')
+        ctx.exec(example_path, file_path, 10000, 4096, stdout_file='out6.log')
