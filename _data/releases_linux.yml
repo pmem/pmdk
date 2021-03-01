@@ -406,6 +406,9 @@
         pmemset_first_part_map.3
         pmemset_flush.3
         pmemset_get_store_granularity.3
+        pmemset_memcpy.3
+        pmemset_memmove.3
+        pmemset_memset.3
         pmemset_new.3
         pmemset_next_part_map.3
         pmemset_part_delete.3
