@@ -399,6 +399,7 @@
         pmemset_config_delete.3
         pmemset_config_new.3
         pmemset_config_set_required_store_granularity.3
+        pmemset_deep_flush.3
         pmemset_delete.3
         pmemset_descriptor_part_map.3
         pmemset_drain.3
