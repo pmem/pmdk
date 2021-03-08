@@ -192,17 +192,18 @@ int pmemset_source_from_pmem2(struct pmemset_source **src,
 #ifndef WIN32
 int pmemset_source_from_file(struct pmemset_source **src, const char *file);
 
-int pmemset_source_from_temporary(struct pmemset_source **src, const char *dir);
+int pmemset_source_from_temporary(struct pmemset_source **src, const char *dir,
+		size_t len);
 #else
 int pmemset_source_from_fileU(struct pmemset_source **src, const char *file);
 
 int pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file);
 
 int pmemset_source_from_temporaryU(struct pmemset_source **src,
-		const char *dir);
+		const char *dir, size_t len);
 
 int pmemset_source_from_temporaryW(struct pmemset_source **src,
-		const wchar_t *dir);
+		const wchar_t *dir, size_t len);
 #endif
 
 int pmemset_source_delete(struct pmemset_source **src);
