@@ -48,13 +48,10 @@ Optionally **pmemset_part_map**() function can take a part descriptor object pas
 If an optional descriptor was provided then address and size of the part mapping are stored in the
 descriptor when this function succeeds.
 
-Before mapping any part, pmemset can have its contiguous part coalescing feature enabled or disabled.
-With this feature enabled, **pmemset_part_map**() function tries to map each new part at the virtual
-memory region that is situated right after the previous mapped part memory range. There's no guarantee
-that the desired memory region is unoccupied, so in case it's occupied an error will be returned.
-Mapping parts contiguously allows modifying the virtual address space of multiple parts with one operation
-using for example **memset**(3). When this feature is disabled, each new part is mapped at the
-memory region is arbitrarily chosen by the operating system.
+During the lifespan of initialized pmemset, a contiguous part coalescing feature value can
+be set using **pmemset_set_contiguous_part_coalescing**() function, modifying the default behavior of
+part mapping. With contiguous part coalescing feature enabled, **pmemset_part_map**() function tries to map each
+new part at the virtual memory region that is situated right after the previous mapped part memory range.
 
 When the **pmemset_part_map**() function succeeds it consumes the part thereby deleting it and
 the variable pointed by *part* is set to NULL.
@@ -82,7 +79,7 @@ in **libpmem2**(7) manpage.
 cannot be created. The error code of **libpmem2**(7) error is printed in the logs and
 can be checked for further information.
 
-* **PMEMSET_E_LENGTH_UNALIGNED** - the length of the part to be mapped is no aligned
+* **PMEMSET_E_LENGTH_UNALIGNED** - the length of the part to be mapped is not aligned
 to the allocation granularity.
 
 * **PMEMSET_E_CANNOT_COALESCE_PARTS** - new part couldn't be coalesced with previously
@@ -94,7 +91,8 @@ of *struct pmemset_part_map*.
 
 # SEE ALSO #
 
-**pmemset_part_new**(3), **pmemset_first_part_map**(3),
-**pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
+**pmemset_first_part_map**(3), **pmemset_next_part_map**(3),
+**pmemset_part_map_by_address**(3), **pmemset_part_new**(3),
+**pmemset_set_contiguous_part_coalescing**(3),
 **libpmemset**(7), **libpmem2**(7),
 and **<http://pmem.io>**
