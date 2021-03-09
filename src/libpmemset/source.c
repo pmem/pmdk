@@ -138,6 +138,19 @@ free_srcp:
 	return ret;
 }
 
+/*
+ * pmemset_source_from_temporaryU -- create source using temp file from the dir
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemset_source_from_temporaryU(struct pmemset_source **src, const char *dir,
+		size_t len)
+{
+	return PMEMSET_E_NOSUPP;
+}
+
 #ifndef _WIN32
 /*
  * pmemset_source_from_file -- initializes source structure and stores a path
@@ -150,12 +163,13 @@ pmemset_source_from_file(struct pmemset_source **src, const char *file)
 }
 
 /*
- * pmemset_source_from_temporary -- not supported
+ * pmemset_source_from_temporary -- create source using temp file from the dir
  */
 int
-pmemset_source_from_temporary(struct pmemset_source **src, const char *dir)
+pmemset_source_from_temporary(struct pmemset_source **src, const char *dir,
+		size_t len)
 {
-	return PMEMSET_E_NOSUPP;
+	return pmemset_source_from_temporaryU(src, dir, len);
 }
 #else
 
@@ -171,21 +185,14 @@ pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file)
 }
 
 /*
- * pmemset_source_from_temporaryU -- not supported
+ * pmemset_source_from_temporaryW -- create source using temp file from the dir
  */
 int
-pmemset_source_from_temporaryU(struct pmemset_source **src, const char *dir)
+pmemset_source_from_temporaryW(struct pmemset_source **src, const wchar_t *dir,
+		size_t len)
 {
-	return PMEMSET_E_NOSUPP;
-}
-
-/*
- * pmemset_source_from_temporaryW -- not supported
- */
-int
-pmemset_source_from_temporaryW(struct pmemset_source **src, const wchar_t *dir)
-{
-	return PMEMSET_E_NOSUPP;
+	const char *udir = util_toUTF8(dir);
+	return pmemset_source_from_temporaryU(src, udir, len);
 }
 #endif
 

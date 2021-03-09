@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * util_windows.c -- misc utilities with OS-specific implementation
@@ -106,6 +106,67 @@ int
 util_compare_file_inodes(const char *path1, const char *path2)
 {
 	return strcmp(path1, path2) != 0;
+}
+
+/*
+ * util_tmpfile -- create a temporary file
+ */
+int
+util_tmpfile(const char *dir, const char *templ, int flags)
+{
+	LOG(3, "dir \"%s\" template \"%s\" flags %x", dir, templ, flags);
+
+	/* only O_EXCL is allowed here */
+	ASSERT(flags == 0 || flags == O_EXCL);
+
+	int oerrno;
+	int fd = -1;
+
+	size_t len = strlen(dir) + strlen(templ) + 1;
+	char *fullname = Malloc(sizeof(*fullname) * len);
+	if (fullname == NULL) {
+		ERR("!Malloc");
+		return -1;
+	}
+
+	int ret = _snprintf(fullname, len, "%s%s", dir, templ);
+	if (ret < 0 || ret >= len) {
+		ERR("snprintf: %d", ret);
+		goto err;
+	}
+
+	LOG(4, "fullname \"%s\"", fullname);
+
+	/*
+	 * XXX - block signals and modify file creation mask for the time
+	 * of mkstmep() execution.  Restore previous settings once the file
+	 * is created.
+	 */
+
+	fd = os_mkstemp(fullname);
+	if (fd < 0) {
+		ERR("!os_mkstemp");
+		goto err;
+	}
+
+	/*
+	 * There is no point to use unlink() here.  First, because it does not
+	 * work on open files.  Second, because the file is created with
+	 * O_TEMPORARY flag, and it looks like such temp files cannot be open
+	 * from another process, even though they are visible on
+	 * the filesystem.
+	 */
+
+	Free(fullname);
+	return fd;
+
+err:
+	Free(fullname);
+	oerrno = errno;
+	if (fd != -1)
+		(void) os_close(fd);
+	errno = oerrno;
+	return -1;
 }
 
 /*
