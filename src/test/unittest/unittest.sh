@@ -152,6 +152,7 @@ NODES_MAX=-1
 SIZE_4KB=4096
 SIZE_2MB=2097152
 readonly PAGE_SIZE=$(getconf PAGESIZE)
+readonly CACHELINE_SIZE=$(cat /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size)
 
 # PMEMOBJ limitations
 PMEMOBJ_MAX_ALLOC_SIZE=17177771968
@@ -3761,6 +3762,31 @@ function create_recovery_file() {
 		LENGTH=$2
 		shift 2
 		echo "$(($OFFSET * $PAGE_SIZE)) $(($LENGTH * $PAGE_SIZE))" >> $FILE
+	done
+
+	# write the finish flag
+	echo "0 0" >> $FILE
+}
+
+#
+# create_recovery_file_absolute - create bad block recovery file
+#
+# Usage: create_recovery_file_absolute <file> [<offset_1> <length_1> ...]
+#
+# Offsets and length should be in bytes.
+#
+function create_recovery_file_absolute() {
+	[ $# -lt 1 ] && fatal "create_recovery_file(): not enough parameters: $*"
+
+	FILE=$1
+	shift
+	rm -f $FILE
+
+	while [ $# -ge 2 ]; do
+		OFFSET=$1
+		LENGTH=$2
+		shift 2
+		echo "$OFFSET $LENGTH" >> $FILE
 	done
 
 	# write the finish flag
