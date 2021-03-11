@@ -19,6 +19,10 @@
 #include "pmemset_utils.h"
 #include "source.h"
 
+#define PMEMSET_SOURCE_FILE_CREATE_ALL_FLAGS\
+		(PMEMSET_SOURCE_FILE_CREATE_ALWAYS|\
+		PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED)
+
 struct pmemset_source {
 	enum pmemset_source_type type;
 	union {
@@ -40,14 +44,10 @@ pmemset_source_open_file(struct pmemset_source *srcp, unsigned flags)
 {
 	int ret;
 
-	if (~flags) {
+	if ((flags & PMEMSET_SOURCE_FILE_CREATE_ALL_FLAGS) == 0) {
 		ret = pmemset_source_validate(srcp);
 		if (ret)
 			goto end;
-	} else if (flags & ~(PMEMSET_SOURCE_FILE_CREATE_ALL)) {
-		ERR("invalid flag specified %x", flags);
-		errno = EINVAL;
-		return PMEMSET_E_ERRNO;
 	}
 
 	ret = pmemset_source_create_pmemset_file(srcp, &srcp->file_set, flags);
