@@ -29,7 +29,8 @@ _UW(pmemset_source_from_file)
 ```c
 #include <libpmemset.h>
 
-_UWFUNCR1(int, pmemset_source_from_file, struct pmemset_source **src, const char *file, unsigned flags)
+_UWFUNCR1(int, pmemset_source_from_file, struct pmemset_source **src, const char *file)
+_UWFUNCR1(int, pmemset_xsource_from_file, struct pmemset_source **src, const char *file, unsigned flags)
 int pmemset_source_delete(struct pmemset_source **src);
 
 ```
@@ -38,9 +39,8 @@ int pmemset_source_delete(struct pmemset_source **src);
 
 _UW(pmemset_source_from_file) function instantiates a new *struct pmemset_source** object
 describing the data source and sets a path to the file in it.
-The argument *flags* specifies the file opening disposition. By default
-(*flags* set to 0) function operates on existing file, but in case when
-a new file should be created additional *flags* needs to be specified:
+**pmemset_xsource_from_file**() is equivalent to **pmemset_source_from_file**(), but with
+additional *flags* argument that is a bitmask of the following values:
 
 **PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED** - a new file will be created only if the specified file does not already exist,
 

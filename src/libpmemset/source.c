@@ -104,10 +104,57 @@ free_srcp:
 static inline
 #endif
 int
-pmemset_source_from_fileU(struct pmemset_source **src, const char *file,
-				unsigned flags)
+pmemset_source_from_fileU(struct pmemset_source **src, const char *file)
 {
 	LOG(3, "src %p file %s", src, file);
+	PMEMSET_ERR_CLR();
+
+	*src = NULL;
+
+	if (!file) {
+		ERR("file path cannot be empty");
+		return PMEMSET_E_INVALID_FILE_PATH;
+	}
+
+	int ret;
+	struct pmemset_source *srcp = pmemset_malloc(sizeof(**src), &ret);
+	if (ret)
+		return ret;
+
+	srcp->type = PMEMSET_SOURCE_FILE;
+	srcp->file.path = Strdup(file);
+
+	if (srcp->file.path == NULL) {
+		ERR("!strdup");
+		Free(srcp);
+		return PMEMSET_E_ERRNO;
+	}
+
+	ret = pmemset_source_open_file(srcp, 0);
+	if (ret)
+		goto free_srcp;
+
+	*src = srcp;
+
+	return 0;
+
+free_srcp:
+	Free(srcp);
+	return ret;
+}
+
+/*
+ * pmemset_xsource_from_fileU -- initializes source structure and stores a path
+ *                              to the file
+ */
+#ifndef _WIN32
+static inline
+#endif
+int
+pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
+				unsigned flags)
+{
+	LOG(3, "src %p file %s flags %u", src, file, flags);
 	PMEMSET_ERR_CLR();
 
 	*src = NULL;
@@ -163,10 +210,20 @@ pmemset_source_from_temporaryU(struct pmemset_source **src, const char *dir,
  *                             to the file
  */
 int
-pmemset_source_from_file(struct pmemset_source **src, const char *file,
+pmemset_source_from_file(struct pmemset_source **src, const char *file)
+{
+	return pmemset_source_from_fileU(src, file);
+}
+
+/*
+ * pmemset_xsource_from_file -- initializes source structure and stores a path
+ *                             to the file
+ */
+int
+pmemset_xsource_from_file(struct pmemset_source **src, const char *file,
 			unsigned flags)
 {
-	return pmemset_source_from_fileU(src, file, flags);
+	return pmemset_xsource_from_fileU(src, file, flags);
 }
 
 /*
@@ -185,11 +242,22 @@ pmemset_source_from_temporary(struct pmemset_source **src, const char *dir,
  *                              to the file
  */
 int
-pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file,
+pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file)
+{
+	const char *ufile = util_toUTF8(file);
+	return pmemset_source_from_fileU(src, ufile);
+}
+
+/*
+ * pmemset_xsource_from_fileW -- initializes source structure and stores a path
+ *                              to the file
+ */
+int
+pmemset_xsource_from_fileW(struct pmemset_source **src, const wchar_t *file,
 				unsigned flags)
 {
 	const char *ufile = util_toUTF8(file);
-	return pmemset_source_from_fileU(src, ufile, flags);
+	return pmemset_xsource_from_fileU(src, ufile, flags);
 }
 
 /*

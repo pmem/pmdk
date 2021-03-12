@@ -105,7 +105,7 @@ test_src_from_file_null(const struct test_case *tc, int argc,
 {
 	struct pmemset_source *src;
 
-	int ret = pmemset_source_from_file(&src, NULL, 0);
+	int ret = pmemset_source_from_file(&src, NULL);
 	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_FILE_PATH);
 	UT_ASSERTeq(src, NULL);
 
@@ -125,7 +125,7 @@ test_src_from_file_valid(const struct test_case *tc, int argc,
 	const char *file = argv[0];
 	struct pmemset_source *src;
 
-	int ret = pmemset_source_from_file(&src, file, 0);
+	int ret = pmemset_source_from_file(&src, file);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 
@@ -158,7 +158,7 @@ test_src_from_file_exists_always_disp(const struct test_case *tc, int argc,
 	size_before = st.st_size;
 
 	flags = PMEMSET_SOURCE_FILE_CREATE_ALWAYS;
-	ret = pmemset_source_from_file(&src, file, flags);
+	ret = pmemset_xsource_from_file(&src, file, flags);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 
@@ -197,7 +197,7 @@ test_src_from_file_not_exists_always_disp(const struct test_case *tc, int argc,
 	os_stat_t st;
 
 	flags = PMEMSET_SOURCE_FILE_CREATE_ALWAYS;
-	int ret = pmemset_source_from_file(&src, file, flags);
+	int ret = pmemset_xsource_from_file(&src, file, flags);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 
@@ -238,7 +238,7 @@ test_src_from_file_exists_needed_disp(const struct test_case *tc, int argc,
 	size_before = st.st_size;
 
 	flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED;
-	ret = pmemset_source_from_file(&src, file, flags);
+	ret = pmemset_xsource_from_file(&src, file, flags);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 
@@ -277,7 +277,7 @@ test_src_from_file_not_exists_needed_disp(const struct test_case *tc, int argc,
 	os_stat_t st;
 
 	flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED;
-	int ret = pmemset_source_from_file(&src, file, flags);
+	int ret = pmemset_xsource_from_file(&src, file, flags);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src, NULL);
 
