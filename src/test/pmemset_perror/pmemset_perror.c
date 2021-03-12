@@ -23,7 +23,7 @@ test_fail_pmemset_func_simple(const struct test_case *tc, int argc,
 	struct pmemset_source *src;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmemset_source_from_file(&src, NULL, 0);
+	int ret = pmemset_source_from_file(&src, NULL);
 	UT_ASSERTne(ret, 0);
 
 	pmemset_perror("pmemset_source_from_file");
@@ -42,7 +42,7 @@ test_fail_pmemset_func_format(const struct test_case *tc, int argc,
 	struct pmemset_source *src;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmemset_source_from_file(&src, NULL, 0);
+	int ret = pmemset_source_from_file(&src, NULL);
 	UT_ASSERTne(ret, 0);
 
 	pmemset_perror("pmemset_source_from_file %d", 123);

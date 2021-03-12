@@ -21,6 +21,7 @@
 #define pmemset_config_set_layout_name pmemset_config_set_layout_nameW
 #define pmemset_header_init pmemset_header_initW
 #define pmemset_source_from_file pmemset_source_from_fileW
+#define pmemset_xsource_from_file pmemset_xsource_from_fileW
 #define pmemset_source_from_temporary pmemset_source_from_temporaryW
 #define pmemset_errormsg pmemset_errormsgW
 #define pmemset_perror pmemset_perrorW
@@ -28,6 +29,7 @@
 #define pmemset_config_set_layout_name pmemset_config_set_layout_nameU
 #define pmemset_header_init pmemset_header_initU
 #define pmemset_source_from_file pmemset_source_from_fileU
+#define pmemset_xsource_from_file pmemset_xsource_from_fileU
 #define pmemset_source_from_temporary pmemset_source_from_temporaryU
 #define pmemset_errormsg pmemset_errormsgU
 #define pmemset_perror pmemset_perrorU
@@ -200,16 +202,23 @@ int pmemset_source_from_pmem2(struct pmemset_source **src,
 #define PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED		(1U << 1)
 
 #ifndef WIN32
-int pmemset_source_from_file(struct pmemset_source **src, const char *file,
+int pmemset_source_from_file(struct pmemset_source **src, const char *file);
+
+int pmemset_xsource_from_file(struct pmemset_source **src, const char *file,
 				unsigned flags);
 
 int pmemset_source_from_temporary(struct pmemset_source **src, const char *dir,
 		size_t len);
 #else
-int pmemset_source_from_fileU(struct pmemset_source **src, const char *file,
+int pmemset_source_from_fileU(struct pmemset_source **src, const char *file);
+
+int pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 				unsigned flags);
 
-int pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file,
+int pmemset_source_from_fileW(struct pmemset_source **src,
+				const wchar_t *file);
+
+int pmemset_xsource_from_fileW(struct pmemset_source **src, const wchar_t *file,
 				unsigned flags);
 
 int pmemset_source_from_temporaryU(struct pmemset_source **src,
