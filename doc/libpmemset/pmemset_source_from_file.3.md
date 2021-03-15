@@ -63,7 +63,7 @@ The **pmemset_source_delete**() function always returns 0.
 The _UW(pmemset_source_from_file) and _UW(pmemset_xsource_from_file) can fail
 with the following errors:
 
-* **PMEMSET_E_INVALID_FILE_PATH** - when the provided file path string is NULL.
+* **PMEMSET_E_INVALID_SOURCE_PATH** - when the provided file path string is NULL.
 
 * **-ENOMEM** - in case of insufficient memory to allocate an instance
 of *struct pmemset_source*.

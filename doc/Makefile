@@ -128,7 +128,8 @@ MANPAGES_3_MD_PMEMSET = libpmemset/pmemset_errormsg.3.md libpmemset/pmemset_perr
 			libpmemset/pmemset_part_map_drop.3.md libpmemset/pmemset_part_map_by_address.3.md \
 			libpmemset/pmemset_persist.3.md libpmemset/pmemset_flush.3.md libpmemset/pmemset_drain.3.md \
 			libpmemset/pmemset_set_contiguous_part_coalescing.3.md libpmemset/pmemset_memmove.3.md \
-			libpmemset/pmemset_remove_part_map.3.md libpmemset/pmemset_deep_flush.3.md
+			libpmemset/pmemset_remove_part_map.3.md libpmemset/pmemset_deep_flush.3.md \
+			libpmemset/pmemset_source_from_temporary.3.md
 MANPAGES_1_MD_PMEMSET =
 ifeq ($(PMEMSET_INSTALL),y)
 MANPAGES_3_DUMMY += libpmemset/pmemset_config_delete.3 libpmemset/pmemset_delete.3 libpmemset/pmemset_part_delete.3 \

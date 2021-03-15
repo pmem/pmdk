@@ -13,6 +13,7 @@
 
 struct pmemset_file {
 	bool close;
+	bool truncate;
 	struct pmem2_source *pmem2_src;
 #ifdef _WIN32
 		HANDLE handle;
@@ -29,6 +30,35 @@ pmemset_file_get_pmem2_source(struct pmemset_file *file)
 {
 	return file->pmem2_src;
 }
+
+/*
+ * pmemset_file_get_truncate -- returns information if truncate is required
+ */
+bool
+pmemset_file_get_truncate(struct pmemset_file *file)
+{
+	return file->truncate;
+}
+
+#ifndef _WIN32
+/*
+ * pmemset_file_get_fd -- return file descriptor from pmemset_file
+ */
+int
+pmemset_file_get_fd(struct pmemset_file *file)
+{
+	return file->fd;
+}
+#else
+/*
+ * pmemset_file_get_hand;e -- return file handle from pmemset_file
+ */
+HANDLE
+pmemset_file_get_handle(struct pmemset_file *file)
+{
+	return file->handle;
+}
+#endif
 
 /*
  * pmemset_file_init -- initializes pmemset_file structure based on the values
@@ -51,6 +81,7 @@ pmemset_file_init(struct pmemset_file *file, struct pmem2_source *pmem2_src)
 		return ret;
 
 	file->pmem2_src = pmem2_src;
+	file->truncate = false;
 
 	return 0;
 }
@@ -80,6 +111,43 @@ pmemset_file_from_file(struct pmemset_file **file, char *path,
 		goto err_delete_pmem2_src;
 
 	f->close = true;
+
+	*file = f;
+
+	return 0;
+
+err_delete_pmem2_src:
+	pmemset_file_dispose_pmem2_src(&pmem2_src);
+err_free_file:
+	Free(f);
+	return ret;
+}
+
+/*
+ * pmemset_file_from_dir -- allocates pmemset_file structure and initializes
+ *				it based on the provided dir to the temp file
+ */
+int
+pmemset_file_from_dir(struct pmemset_file **file, char *dir)
+{
+	*file = NULL;
+
+	int ret;
+	struct pmemset_file *f = pmemset_malloc(sizeof(*f), &ret);
+	if (ret)
+		return PMEMSET_E_ERRNO;
+
+	struct pmem2_source *pmem2_src;
+	ret = pmemset_file_create_pmem2_src_from_temp(&pmem2_src, dir);
+	if (ret)
+		goto err_free_file;
+
+	ret = pmemset_file_init(f, pmem2_src);
+	if (ret)
+		goto err_delete_pmem2_src;
+
+	f->close = true;
+	f->truncate = true;
 
 	*file = f;
 

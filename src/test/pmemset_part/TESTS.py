@@ -12,11 +12,14 @@ class PMEMSET_PART(t.Test):
     test_type = t.Short
     create_file = True
     file_size = 16 * t.MiB
+    file_temp = False
 
     def run(self, ctx):
         filepath = "not/existing/file"
         if self.create_file:
             filepath = ctx.create_holey_file(self.file_size, 'testfile1')
+        if self.file_temp:
+            filepath = ctx.testdir
         ctx.exec('pmemset_part', self.test_case, filepath)
 
 
@@ -187,3 +190,17 @@ class TEST26(PMEMSET_PART):
     left.
     """
     test_case = "test_remove_multiple_part_maps"
+
+
+class TEST27(PMEMSET_PART):
+    """create a new part from a temp source and map it"""
+    test_case = "test_part_map_valid_source_temp"
+    file_temp = True
+    create_file = False
+
+
+class TEST28(PMEMSET_PART):
+    """create a new part from a temp source and map it with invalid size"""
+    test_case = "test_part_map_invalid_source_temp"
+    file_temp = True
+    create_file = False
