@@ -50,4 +50,4 @@ a granularity of the mapped area.
 
 # SEE ALSO #
 
-**pmem2_map_new**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_map_new**(3), **libpmem2**(7) and **<https://pmem.io>**

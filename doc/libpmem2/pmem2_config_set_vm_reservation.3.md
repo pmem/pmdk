@@ -47,4 +47,4 @@ reservation for the mapping.
 
 # SEE ALSO #
 
-**pmem2_vm_reservation_new**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_vm_reservation_new**(3), **libpmem2**(7) and **<https://pmem.io>**

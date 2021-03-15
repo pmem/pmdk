@@ -61,4 +61,4 @@ The **pmem2_config_set_sharing**() can fail with the following errors:
 # SEE ALSO #
 
 **libpmem2**(7), **pmem2_config_new**(3), **pmem2_map_new**(3), **sysconf**(3)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

@@ -60,4 +60,4 @@ It can also return **-ENOMEM**  from the underlying **malloc**(2) function.
 # SEE ALSO #
 
 **malloc(2)**, **pmem2_map_delete**(3), **pmem2_map_new**(3),
-**pmem2_source_from_fd**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_source_from_fd**(3), **libpmem2**(7) and **<https://pmem.io>**
