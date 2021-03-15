@@ -60,4 +60,4 @@ The **pmem2_config_delete**() function always returns 0.
 
 **errno**(3), **pmem2_map_new**(3), **pmem2_config_set_handle**(3),
 **pmem2_config_set_fd**(3), **pmem2_config_get_file_size**(3),
-**libpmem2**(7) and **<http://pmem.io>**
+**libpmem2**(7) and **<https://pmem.io>**

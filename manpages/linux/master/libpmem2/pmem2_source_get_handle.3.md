@@ -59,4 +59,4 @@ The **pmem2_source_get_handle**() returns a file handle of data source.
 
 # SEE ALSO #
 
-**pmem2_source_from_fd**(3), **pmem2_source_get_fd**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_source_from_fd**(3), **pmem2_source_get_fd**(3), **libpmem2**(7) and **<https://pmem.io>**
