@@ -35,7 +35,7 @@ test_alloc_file_enomem(const struct test_case *tc, int argc, char *argv[])
 	core_inject_fault_at(PMEM_MALLOC, 1, "pmemset_malloc");
 
 	int ret = pmemset_file_from_file(&file, file_path, 0);
-	UT_ASSERTeq(ret, -ENOMEM);
+	UT_PMEMSET_EXPECT_RETURN(ret, -ENOMEM);
 	UT_ASSERTeq(file, NULL);
 
 	return 1;
@@ -54,7 +54,7 @@ test_file_from_file_valid(const struct test_case *tc, int argc, char *argv[])
 	struct pmemset_file *file;
 
 	int ret = pmemset_file_from_file(&file, file_path, 0);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(file, NULL);
 
 	pmemset_file_delete(&file);
@@ -144,7 +144,7 @@ test_file_from_file_get_pmem2_src(const struct test_case *tc, int argc,
 	struct pmemset_file *file;
 
 	int ret = pmemset_file_from_file(&file, file_path, 0);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(file, NULL);
 
 	retrieved_pmem2_src = pmemset_file_get_pmem2_source(file);
@@ -177,7 +177,7 @@ test_file_from_pmem2_get_pmem2_src(const struct test_case *tc, int argc,
 	UT_ASSERTeq(ret, 0);
 
 	ret = pmemset_file_from_pmem2(&file, pmem2_src);
-	UT_ASSERTeq(ret, 0);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(file, NULL);
 
 	retrieved_pmem2_src = pmemset_file_get_pmem2_source(file);

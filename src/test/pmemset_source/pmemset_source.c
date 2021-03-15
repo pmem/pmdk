@@ -154,7 +154,7 @@ test_src_from_file_exists_always_disp(const struct test_case *tc, int argc,
 	os_stat_t st;
 
 	int ret = os_stat(file, &st);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
 	size_before = st.st_size;
 
 	flags = PMEMSET_SOURCE_FILE_CREATE_ALWAYS;
@@ -163,10 +163,10 @@ test_src_from_file_exists_always_disp(const struct test_case *tc, int argc,
 	UT_ASSERTne(src, NULL);
 
 	ret = os_access(file, F_OK);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
 
 	ret = os_stat(file, &st);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
 	size_after = st.st_size;
 	UT_ASSERT(size_before >= size_after);
 	UT_ASSERT(size_after == 0);
@@ -202,10 +202,10 @@ test_src_from_file_not_exists_always_disp(const struct test_case *tc, int argc,
 	UT_ASSERTne(src, NULL);
 
 	ret = os_access(file, F_OK);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
 
 	ret = os_stat(file, &st);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
 	size = st.st_size;
 	UT_ASSERT(size == 0);
 
@@ -234,7 +234,7 @@ test_src_from_file_exists_needed_disp(const struct test_case *tc, int argc,
 	os_stat_t st;
 
 	int ret = os_stat(file, &st);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
 	size_before = st.st_size;
 
 	flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED;
@@ -243,10 +243,10 @@ test_src_from_file_exists_needed_disp(const struct test_case *tc, int argc,
 	UT_ASSERTne(src, NULL);
 
 	ret = os_access(file, F_OK);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
 
 	ret = os_stat(file, &st);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
 	size_after = st.st_size;
 	UT_ASSERT(size_before == size_after);
 
@@ -282,10 +282,10 @@ test_src_from_file_not_exists_needed_disp(const struct test_case *tc, int argc,
 	UT_ASSERTne(src, NULL);
 
 	ret = os_access(file, F_OK);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
 
 	ret = os_stat(file, &st);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(ret, 0);
 	size = st.st_size;
 	UT_ASSERT(size == 0);
 
