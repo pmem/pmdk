@@ -44,7 +44,7 @@ extern "C" {
 #define PMEMSET_E_UNKNOWN				(-200000)
 #define PMEMSET_E_NOSUPP				(-200001)
 #define PMEMSET_E_INVALID_PMEM2_SOURCE			(-200002)
-#define PMEMSET_E_INVALID_FILE_PATH			(-200003)
+#define PMEMSET_E_INVALID_SOURCE_PATH			(-200003)
 #define PMEMSET_E_INVALID_SOURCE_TYPE			(-200004)
 #define PMEMSET_E_CANNOT_ALLOCATE_INTERNAL_STRUCTURE	(-200005)
 #define PMEMSET_E_INVALID_OFFSET_VALUE			(-200006)
@@ -61,6 +61,8 @@ extern "C" {
 #define PMEMSET_E_INVALID_COALESCING_VALUE		(-200017)
 #define PMEMSET_E_DEEP_FLUSH_FAIL			(-200018)
 #define PMEMSET_E_INVALID_SOURCE_FILE_CREATE_FLAGS	(-200019)
+#define PMEMSET_E_CANNOT_CREATE_TEMP_FILE		(-200020)
+#define PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE		(-200021)
 
 /* pmemset setup */
 
@@ -212,8 +214,7 @@ int pmemset_source_from_file(struct pmemset_source **src, const char *file);
 int pmemset_xsource_from_file(struct pmemset_source **src, const char *file,
 				unsigned flags);
 
-int pmemset_source_from_temporary(struct pmemset_source **src, const char *dir,
-		size_t len);
+int pmemset_source_from_temporary(struct pmemset_source **src, const char *dir);
 #else
 int pmemset_source_from_fileU(struct pmemset_source **src, const char *file);
 
@@ -227,10 +228,10 @@ int pmemset_xsource_from_fileW(struct pmemset_source **src, const wchar_t *file,
 				unsigned flags);
 
 int pmemset_source_from_temporaryU(struct pmemset_source **src,
-		const char *dir, size_t len);
+		const char *dir);
 
 int pmemset_source_from_temporaryW(struct pmemset_source **src,
-		const wchar_t *dir, size_t len);
+		const wchar_t *dir);
 #endif
 
 int pmemset_source_delete(struct pmemset_source **src);

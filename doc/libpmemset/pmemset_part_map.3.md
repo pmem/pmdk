@@ -86,6 +86,9 @@ to the allocation granularity.
 mapped part in the pmemset. The memory range after the ending address of previous
 mapped part is occupied.
 
+* **PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE** - in case of **pmemset_source_from_temporary**(3),
+temporary file created in *dir* cannot be truncated for the defined part size and offset.
+
 * **-ENOMEM** in case of insufficient memory to allocate an instance
 of *struct pmemset_part_map*.
 
