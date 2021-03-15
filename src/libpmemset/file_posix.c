@@ -49,6 +49,32 @@ err_close_file:
 }
 
 /*
+ * pmemset_file_create_pmem2_src_from_temp -- create pmem2_source structure
+ * based on the provided dir to temp file
+ */
+int
+pmemset_file_create_pmem2_src_from_temp(struct pmem2_source **pmem2_src,
+		char *dir)
+{
+	int fd = util_tmpfile(dir, OS_DIR_SEP_STR"pmemset.XXXXXX",
+					O_CREAT & O_EXCL);
+	if (fd < 0) {
+		ERR("failed to create temporary file at \"%s\"", dir);
+		return PMEMSET_E_CANNOT_CREATE_TEMP_FILE;
+	}
+
+	int ret = pmem2_source_from_fd(pmem2_src, fd);
+	if (ret)
+		goto err_close_file;
+
+	return 0;
+
+err_close_file:
+	os_close(fd);
+	return ret;
+}
+
+/*
  * pmemset_file_close -- closes the file described by the file descriptor
  */
 int
@@ -79,4 +105,20 @@ pmemset_file_dispose_pmem2_src(struct pmem2_source **pmem2_src)
 		return ret;
 
 	return pmem2_source_delete(pmem2_src);
+}
+
+/*
+ * pmemset_file_truncate -- truncate file from pmemset_file to a specified len
+ */
+int
+pmemset_file_truncate(struct pmemset_file *file, size_t len)
+{
+	int fd = pmemset_file_get_fd(file);
+	int ret = os_ftruncate(fd, (os_off_t)len);
+	if (ret < 0) {
+		ERR("!ftruncate");
+		return PMEMSET_E_ERRNO;
+	}
+
+	return ret;
 }

@@ -69,7 +69,7 @@ The **pmemset_part_new**() can fail with the following errors:
 * **PMEMSET_E_INVALID_PMEM2_SOURCE** - *pmem2_source* set in the *src* structure
 is invalid.
 
-* **PMEMSET_E_INVALID_FILE_PATH** - the path to the file set in the provided *src*
+* **PMEMSET_E_INVALID_SOURCE_PATH** - the path to the file set in the provided *src*
 structure points to invalid file.
 
 * **PMEMSET_E_INVALID_SOURCE_TYPE** - the source type in the provided *src* isn't recognized.
