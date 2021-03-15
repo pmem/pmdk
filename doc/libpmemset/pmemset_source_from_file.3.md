@@ -39,12 +39,12 @@ int pmemset_source_delete(struct pmemset_source **src);
 
 _UW(pmemset_source_from_file) function instantiates a new *struct pmemset_source** object
 describing the data source and sets a path to the file in it.
-**pmemset_xsource_from_file**() is equivalent to **pmemset_source_from_file**(), but with
+_UW(pmemset_source_from_file) is equivalent to _UW(pmemset_xsource_from_file), but with
 additional *flags* argument that is a bitmask of the following values:
 
-**PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED** - a new file will be created only if the specified file does not already exist,
+* **PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED** - a new file will be created only if the specified file does not already exist,
 
- **PMEMSET_SOURCE_FILE_CREATE_ALWAYS** - always a new file will be created. If the specified file exists, the file will be overwritten.
+* **PMEMSET_SOURCE_FILE_CREATE_ALWAYS** - always a new file will be created. If the specified file exists, the file will be overwritten.
 
 Obtained source is ready to be passed on to the **pmemset_part_new**() function.
 See **pmemset_part_new**(3) for details.
@@ -53,19 +53,25 @@ The **pmemset_source_delete**() function frees *\*src* and sets *\*src* to NULL.
 
 # RETURN VALUE #
 
-The _UW(pmemset_source_from_file) functions return 0 on success or
-a negative error code on failure.
+The _UW(pmemset_source_from_file) and _UW(pmemset_xsource_from_file) functions
+return 0 on success or  negative error code on failure.
 
 The **pmemset_source_delete**() function always returns 0.
 
 # ERRORS #
 
-The _UW(pmemset_source_from_file) can fail with the following errors:
+The _UW(pmemset_source_from_file) and _UW(pmemset_xsource_from_file) can fail
+with the following errors:
 
 * **PMEMSET_E_INVALID_FILE_PATH** - when the provided file path string is NULL.
 
 * **-ENOMEM** - in case of insufficient memory to allocate an instance
 of *struct pmemset_source*.
+
+The _UW(pmemset_xsource_from_file) can also fail with the error:
+
+* **PMEMSET_E_INVALID_SOURCE_FILE_CREATE_FLAGS** - in case of invalid *flags*
+parameter.
 
 # SEE ALSO #
 

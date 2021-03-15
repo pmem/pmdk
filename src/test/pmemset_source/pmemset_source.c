@@ -297,6 +297,31 @@ test_src_from_file_not_exists_needed_disp(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_src_from_file_invalid_flags - test source creation with
+ * invalid flags.
+ */
+static int
+test_src_from_file_invalid_flags(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_src_from_file_invalid_flags "
+			"<path>");
+
+	const char *file = argv[0];
+	struct pmemset_source *src;
+	unsigned flags = 0;
+
+	flags = PMEMSET_SOURCE_FILE_CREATE_VALID_FLAGS + 1;
+	int ret = pmemset_xsource_from_file(&src, file, flags);
+	UT_PMEMSET_EXPECT_RETURN(ret,
+		PMEMSET_E_INVALID_SOURCE_FILE_CREATE_FLAGS);
+	UT_ASSERTeq(src, NULL);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -309,6 +334,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_src_from_file_not_exists_always_disp),
 	TEST_CASE(test_src_from_file_exists_needed_disp),
 	TEST_CASE(test_src_from_file_not_exists_needed_disp),
+	TEST_CASE(test_src_from_file_invalid_flags),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

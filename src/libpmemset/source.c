@@ -19,7 +19,7 @@
 #include "pmemset_utils.h"
 #include "source.h"
 
-#define PMEMSET_SOURCE_FILE_CREATE_ALL_FLAGS\
+#define PMEMSET_SOURCE_FILE_CREATE_DISPOSITION_FLAGS\
 		(PMEMSET_SOURCE_FILE_CREATE_ALWAYS|\
 		PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED)
 
@@ -44,7 +44,7 @@ pmemset_source_open_file(struct pmemset_source *srcp, unsigned flags)
 {
 	int ret;
 
-	if ((flags & PMEMSET_SOURCE_FILE_CREATE_ALL_FLAGS) == 0) {
+	if ((flags & PMEMSET_SOURCE_FILE_CREATE_DISPOSITION_FLAGS) == 0) {
 		ret = pmemset_source_validate(srcp);
 		if (ret)
 			goto end;
@@ -162,6 +162,11 @@ pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 	if (!file) {
 		ERR("file path cannot be empty");
 		return PMEMSET_E_INVALID_FILE_PATH;
+	}
+
+	if (flags & ~PMEMSET_SOURCE_FILE_CREATE_VALID_FLAGS) {
+		ERR("pmemset_xsource_from_fileU invalid flags 0x%x", flags);
+		return PMEMSET_E_INVALID_SOURCE_FILE_CREATE_FLAGS;
 	}
 
 	int ret;

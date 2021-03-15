@@ -60,6 +60,7 @@ extern "C" {
 #define PMEMSET_E_PART_NOT_FOUND			(-200016)
 #define PMEMSET_E_INVALID_COALESCING_VALUE		(-200017)
 #define PMEMSET_E_DEEP_FLUSH_FAIL			(-200018)
+#define PMEMSET_E_INVALID_SOURCE_FILE_CREATE_FLAGS	(-200019)
 
 /* pmemset setup */
 
@@ -200,6 +201,10 @@ int pmemset_source_from_pmem2(struct pmemset_source **src,
 
 #define PMEMSET_SOURCE_FILE_CREATE_ALWAYS		(1U << 0)
 #define PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED		(1U << 1)
+
+#define PMEMSET_SOURCE_FILE_CREATE_VALID_FLAGS \
+		(PMEMSET_SOURCE_FILE_CREATE_ALWAYS | \
+		PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED)
 
 #ifndef WIN32
 int pmemset_source_from_file(struct pmemset_source **src, const char *file);
