@@ -70,4 +70,4 @@ It also does not work under Windows or systems without **libndctl**.
 # SEE ALSO #
 
 **errno**(3), **ndctl_new**(3), **pmem2_source_from_handle**(3),
-**pmem2_source_from_fd**(3), **libpmem2**(7), **libndctl**(7) and **<http://pmem.io>**
+**pmem2_source_from_fd**(3), **libpmem2**(7), **libndctl**(7) and **<https://pmem.io>**

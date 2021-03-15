@@ -122,4 +122,4 @@ It can also return all errors from the underlying
 **pmem2_source_alignment**(3), **pmem2_source_from_fd**(3),
 **pmem2_source_size**(3), **pmem2_map_delete**(3),
 **pmem2_config_set_vm_reservation**(3),
-**libpmem2**(7) and **<http://pmem.io>**
+**libpmem2**(7) and **<https://pmem.io>**

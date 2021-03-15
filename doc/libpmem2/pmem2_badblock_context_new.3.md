@@ -114,4 +114,4 @@ of the given *src*.
 # SEE ALSO #
 
 **pmem2_badblock_next**(3), **pmem2_badblock_clear**(3),
-**libpmem2**(7) and **<http://pmem.io>**
+**libpmem2**(7) and **<https://pmem.io>**

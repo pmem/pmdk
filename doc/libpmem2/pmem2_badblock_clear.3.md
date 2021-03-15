@@ -75,4 +75,4 @@ all bad blocks
 # SEE ALSO #
 
 **pmem2_badblock_context_new**(3), **pmem2_badblock_next**(3),
-**libpmem2**(7) and **<http://pmem.io>**
+**libpmem2**(7) and **<https://pmem.io>**

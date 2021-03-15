@@ -98,4 +98,4 @@ descriptor.
 
 **errno**(3),  **fstat**(2), **realpath**(3), **open**(2), **read**(2),
 **strtoull**(3), **pmem2_config_new**(3), **libpmem2**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

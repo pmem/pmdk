@@ -56,4 +56,4 @@ specified by *reserv_offset* and *len* variables.
 
 # SEE ALSO #
 
-**libpmem2**(7), and **<http://pmem.io>**
+**libpmem2**(7), and **<https://pmem.io>**

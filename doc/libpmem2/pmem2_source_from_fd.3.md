@@ -8,7 +8,7 @@ date: pmem2 API version 1.0
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2019-2020, Intel Corporation)
+[comment]: <> (Copyright 2019-2021, Intel Corporation)
 
 [comment]: <> (pmem2_source_from_fd.3 -- man page for pmem2_source_from_fd
 
@@ -41,8 +41,8 @@ int pmem2_source_delete(struct pmem2_source **src);
 On Linux the **pmem2_source_from_fd**() function validates the file descriptor
 and instantiates a new *struct pmem2_source** object describing the data source.
 
-On Windows the **pmem2_source_from_fd**() function converts a file descriptor to a file handle (using **_get_osfhandle**()), and passes
-it to **pmem2_source_from_handle**().
+On Windows the **pmem2_source_from_fd**() function converts a file descriptor to a file handle
+(using **_get_osfhandle**()), and passes it to **pmem2_source_from_handle**().
 By default **_get_osfhandle**() calls abort() in case of invalid file descriptor,
 but this behavior can be suppressed by **_set_abort_behavior**() and **SetErrorMode**()
 functions.
@@ -60,7 +60,8 @@ The handle has to be created with an access mode of *GENERIC_READ* or
 *(GENERIC_READ | GENERIC_WRITE)*. For details please see the **CreateFile**()
 documentation.
 
-The **pmem2_source_delete**() function frees *\*src* returned by **pmem2_source_from_fd**() or **pmem2_source_from_handle**() and sets *\*src* to NULL. If *\*src* is NULL, no operation is performed.
+The **pmem2_source_delete**() function frees *\*src* returned by **pmem2_source_from_fd**()
+or **pmem2_source_from_handle**() and sets *\*src* to NULL. If *\*src* is NULL, no operation is performed.
 
 # RETURN VALUE #
 
@@ -71,7 +72,7 @@ The **pmem2_source_delete**() function always returns 0.
 
 # ERRORS #
 
-The **pmem2_source_from_[fd|handle]**() function can fail with the following errors:
+The **pmem2_source_from_fd**()/**pmem2_source_from_handle**() functions can fail with the following errors:
 
  * **PMEM2_E_INVALID_FILE_HANDLE** - *fd* is not an open and valid file descriptor. On Windows the function can **abort**() on this failure based on CRT's abort() behavior.
 
@@ -105,5 +106,6 @@ On non-DAX Windows volumes, *fd*/*handle* must remain open while the mapping
 is in use.
 
 # SEE ALSO #
+
 **errno**(3), **pmem2_map_new**(3), **libpmem2**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

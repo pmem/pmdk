@@ -87,4 +87,4 @@ It can also return errors from the underlying **munmap**(2) function.
 
 # SEE ALSO #
 
-**pmem2_config_set_vm_reservation**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_config_set_vm_reservation**(3), **libpmem2**(7) and **<https://pmem.io>**
