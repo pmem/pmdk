@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * pmemset_perror.c -- pmemset_perror unittests
  */
 
 #include "libpmemset.h"
-
-#include "config.h"
+#include "file.h"
+#include "source.h"
 #include "out.h"
 #include "unittest.h"
 #include "ut_pmemset_utils.h"
@@ -15,19 +15,18 @@
 /*
  * test_fail_pmemset_func_simple - simply check print message when func from
  * pmemset API fails.
- * TODO -- change the function that should produce an error to a valid one.
  */
 static int
 test_fail_pmemset_func_simple(const struct test_case *tc, int argc,
 		char *argv[])
 {
-	struct pmemset_config *cfg = NULL;
+	struct pmemset_source *src;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmemset_config_set_create_if_none(cfg, 0);
+	int ret = pmemset_source_from_file(&src, NULL);
 	UT_ASSERTne(ret, 0);
 
-	pmemset_perror("pmemset_config_set_create_if_none");
+	pmemset_perror("pmemset_source_from_file");
 
 	return 0;
 }
@@ -40,13 +39,13 @@ static int
 test_fail_pmemset_func_format(const struct test_case *tc, int argc,
 		char *argv[])
 {
-	struct pmemset_config *cfg = NULL;
+	struct pmemset_source *src;
 
 	/* "randomly" chosen function to be failed */
-	int ret = pmemset_config_set_create_if_none(cfg, 0);
+	int ret = pmemset_source_from_file(&src, NULL);
 	UT_ASSERTne(ret, 0);
 
-	pmemset_perror("pmemset_config_set_create_if_none %d", 123);
+	pmemset_perror("pmemset_source_from_file %d", 123);
 
 	return 0;
 }

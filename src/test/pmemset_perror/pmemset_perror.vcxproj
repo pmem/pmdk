@@ -68,9 +68,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\libpmemset\config.c" />
     <ClCompile Include="..\..\libpmemset\errormsg.c" />
+    <ClCompile Include="..\..\libpmemset\file.c" />
+    <ClCompile Include="..\..\libpmemset\file_windows.c" />
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
+    <ClCompile Include="..\..\libpmemset\source.c" />
     <ClCompile Include="pmemset_perror.c" />
   </ItemGroup>
   <ItemGroup>

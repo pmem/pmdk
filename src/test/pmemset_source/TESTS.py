@@ -5,15 +5,22 @@
 
 import testframework as t
 from testframework import granularity as g
+import os
 
 
 @g.require_granularity(g.ANY)
 class PMEMSET_SOURCE(t.Test):
     test_type = t.Short
+    create_file = True
 
     def run(self, ctx):
-        filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        if self.create_file:
+            filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
+        else:
+            filepath = os.path.join(ctx.testdir, 'testfile1')
         ctx.exec('pmemset_source', self.test_case, filepath)
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
 
 @g.no_testdir()
@@ -47,3 +54,30 @@ class TEST3(PMEMSET_SOURCE_NO_DIR):
 class TEST4(PMEMSET_SOURCE):
     """test source creation with valid file path"""
     test_case = "test_src_from_file_valid"
+
+
+class TEST5(PMEMSET_SOURCE):
+    """test source creation with existing file and create_always flag set"""
+    test_case = "test_src_from_file_exists_always_disp"
+
+
+class TEST6(PMEMSET_SOURCE):
+    """test source creation with no existing file and create_always flag set"""
+    test_case = "test_src_from_file_not_exists_always_disp"
+    create_file = False
+
+
+class TEST7(PMEMSET_SOURCE):
+    """test source creation with existing file and if_needed flag set"""
+    test_case = "test_src_from_file_exists_needed_disp"
+
+
+class TEST8(PMEMSET_SOURCE):
+    """test source creation with no existing file and if_needed flag set"""
+    test_case = "test_src_from_file_not_exists_needed_disp"
+    create_file = False
+
+
+class TEST9(PMEMSET_SOURCE):
+    """test source creation with invalid flags"""
+    test_case = "test_src_from_file_invalid_flags"
