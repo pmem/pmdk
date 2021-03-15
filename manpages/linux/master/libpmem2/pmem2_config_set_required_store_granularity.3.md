@@ -67,4 +67,4 @@ with the following errors:
 
 # SEE ALSO #
 **pmem2_config_new**(3), **libpmem2**(7)
-and **<http://pmem.io>**
+and **<https://pmem.io>**

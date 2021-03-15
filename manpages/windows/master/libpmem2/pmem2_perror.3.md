@@ -47,4 +47,4 @@ how the error message is generated, please see **pmem2_errormsg**(3).
 
 # SEE ALSO #
 
-**libpmem2**(7), **perror**(3), **pmem2_errormsg**(3), **printf**(3) and **<http://pmem.io>**
+**libpmem2**(7), **perror**(3), **pmem2_errormsg**(3), **printf**(3) and **<https://pmem.io>**

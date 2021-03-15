@@ -84,4 +84,4 @@ descriptor.
 
 **errno**(3),  **fstat**(2), **realpath**(3), **read**(2), **strtoull**(3),
 **pmem2_config_new**(3), **pmem2_source_from_handle**(3),
-**pmem2_source_from_fd**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_source_from_fd**(3), **libpmem2**(7) and **<https://pmem.io>**

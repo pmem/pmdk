@@ -61,4 +61,4 @@ bad block context *\*bbctx*, *\*bb* is undefined in this case.
 # SEE ALSO #
 
 **pmem2_badblock_context_new**(3), **pmem2_badblock_clear**(3),
-**libpmem2**(7) and **<http://pmem.io>**
+**libpmem2**(7) and **<https://pmem.io>**

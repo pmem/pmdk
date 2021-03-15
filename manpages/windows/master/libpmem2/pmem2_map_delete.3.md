@@ -63,4 +63,4 @@ On systems other than Windows it can also return **-EINVAL** from the underlying
 
 # SEE ALSO #
 
-**pmem2_map_new(3)**, **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_map_new(3)**, **libpmem2**(7) and **<https://pmem.io>**

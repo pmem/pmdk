@@ -86,4 +86,4 @@ while trying to obtain DIMM **USC** value.
 # SEE ALSO #
 
 **fstat**(2), **errno**(3), **malloc**(3), **libpmem2_unsafe_shutdown**(7),
- and **<http://pmem.io>**
+ and **<https://pmem.io>**

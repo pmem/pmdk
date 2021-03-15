@@ -54,4 +54,4 @@ support file descriptors, eg. anonymous data source.
 
 # SEE ALSO #
 
-**pmem2_source_get_handle**(3), **libpmem2**(7) and **<http://pmem.io>**
+**pmem2_source_get_handle**(3), **libpmem2**(7) and **<https://pmem.io>**

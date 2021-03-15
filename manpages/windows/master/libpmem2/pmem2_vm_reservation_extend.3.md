@@ -94,4 +94,4 @@ It can also return **-EAGAIN** and **-ENOMEM** from the underlying **munmap**(2)
 # SEE ALSO #
 
 **pmem2_vm_reservation_new**(3), **pmem2_config_set_vm_reservation**(3),
-**libpmem2**(7) and **<http://pmem.io>**
+**libpmem2**(7) and **<https://pmem.io>**
