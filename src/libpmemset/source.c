@@ -51,8 +51,7 @@ pmemset_source_open_file(struct pmemset_source *srcp, unsigned flags)
 	}
 
 	ret = pmemset_source_create_pmemset_file(srcp, &srcp->file_set, flags);
-	if (ret)
-		goto end;
+
 end:
 	return ret;
 }
