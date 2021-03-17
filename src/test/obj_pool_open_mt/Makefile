@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2019, Intel Corporation
+# Copyright 2021, Intel Corporation
 
 #
 # src/test/obj_obj_pool_mt/Makefile -- build obj_obj_pool_mt unit test
