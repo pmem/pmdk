@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019, Intel Corporation */
+/* Copyright 2021, Intel Corporation */
 
 /*
  * obj_pool_open_mt.c -- multithreaded unit test for pool_open
