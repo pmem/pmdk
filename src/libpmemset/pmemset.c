@@ -17,16 +17,15 @@
 #include "pmemset_utils.h"
 #include "ravl_interval.h"
 #include "ravl.h"
+#include "sys_util.h"
 
 /*
  * pmemset
  */
 struct pmemset {
 	struct pmemset_config *set_config;
-	struct ravl_interval *part_map_tree;
 	bool effective_granularity_valid;
 	enum pmem2_granularity effective_granularity;
-	struct pmemset_part_map *previous_pmap;
 	enum pmemset_coalescing part_coalescing;
 	pmem2_persist_fn persist_fn;
 	pmem2_flush_fn flush_fn;
@@ -34,6 +33,12 @@ struct pmemset {
 	pmem2_memmove_fn memmove_fn;
 	pmem2_memset_fn memset_fn;
 	pmem2_memcpy_fn memcpy_fn;
+
+	struct pmemset_shared_state {
+		os_rwlock_t lock;
+		struct ravl_interval *part_map_tree;
+		struct pmemset_part_map *previous_pmap;
+	} shared_state;
 };
 
 static char *granularity_name[3] = {
@@ -94,16 +99,16 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 		return ret;
 
 	/* initialize RAVL */
-	set->part_map_tree = ravl_interval_new(pmemset_mapping_min,
+	set->shared_state.part_map_tree = ravl_interval_new(pmemset_mapping_min,
 						pmemset_mapping_max);
 
-	if (set->part_map_tree == NULL) {
+	if (set->shared_state.part_map_tree == NULL) {
 		ERR("ravl tree initialization failed");
 		return PMEMSET_E_ERRNO;
 	}
 
 	set->effective_granularity_valid = false;
-	set->previous_pmap = NULL;
+	set->shared_state.previous_pmap = NULL;
 	set->part_coalescing = PMEMSET_COALESCING_NONE;
 
 	set->persist_fn = NULL;
@@ -113,6 +118,8 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 	set->memmove_fn = NULL;
 	set->memset_fn = NULL;
 	set->memcpy_fn = NULL;
+
+	util_rwlock_init(&set->shared_state.lock);
 
 	return 0;
 }
@@ -144,7 +151,6 @@ pmemset_new(struct pmemset **set, struct pmemset_config *cfg)
 
 	/* initialize set */
 	ret = pmemset_new_init(*set, cfg);
-
 	if (ret) {
 		Free(*set);
 		*set = NULL;
@@ -191,13 +197,15 @@ pmemset_delete(struct pmemset **set)
 
 	int ret = 0;
 	/* delete RAVL tree with part_map nodes */
-	ravl_interval_delete_cb((*set)->part_map_tree,
+	ravl_interval_delete_cb((*set)->shared_state.part_map_tree,
 			pmemset_delete_all_part_maps_ravl_cb, &ret);
 	if (ret)
 		return ret;
 
 	/* delete cfg */
 	pmemset_config_delete(&(*set)->set_config);
+
+	util_rwlock_destroy(&(*set)->shared_state.lock);
 
 	Free(*set);
 
@@ -212,7 +220,7 @@ pmemset_delete(struct pmemset **set)
 static int
 pmemset_insert_part_map(struct pmemset *set, struct pmemset_part_map *map)
 {
-	int ret = ravl_interval_insert(set->part_map_tree, map);
+	int ret = ravl_interval_insert(set->shared_state.part_map_tree, map);
 	if (ret == 0) {
 		return 0;
 	} else if (ret == -EEXIST) {
@@ -232,7 +240,7 @@ pmemset_unregister_part_map(struct pmemset *set, struct pmemset_part_map *map)
 {
 	int ret = 0;
 
-	struct ravl_interval *tree = set->part_map_tree;
+	struct ravl_interval *tree = set->shared_state.part_map_tree;
 	struct ravl_interval_node *node = ravl_interval_find_equal(tree, map);
 
 	if (!(node && !ravl_interval_remove(tree, node))) {
@@ -399,6 +407,9 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 	if (ret)
 		goto err_pmem2_cfg_delete;
 
+	/* lock the pmemset */
+	util_rwlock_wrlock(&set->shared_state.lock);
+
 	bool coalesced = true;
 	struct pmemset_part_map *pmap;
 	enum pmemset_coalescing coalescing = set->part_coalescing;
@@ -406,8 +417,8 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 		case PMEMSET_COALESCING_OPPORTUNISTIC:
 		case PMEMSET_COALESCING_FULL:
 			/* if no prev pmap then skip this, but don't fail */
-			if (set->previous_pmap) {
-				pmap = set->previous_pmap;
+			if (set->shared_state.previous_pmap) {
+				pmap = set->shared_state.previous_pmap;
 				ret = pmemset_part_map_extend_end(pmap,
 						part_size);
 
@@ -423,7 +434,8 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 			break;
 		default:
 			ERR("invalid coalescing value %d", coalescing);
-			return PMEMSET_E_INVALID_COALESCING_VALUE;
+			ret = PMEMSET_E_INVALID_COALESCING_VALUE;
+			goto err_lock_unlock;
 	}
 
 	if (ret) {
@@ -437,9 +449,9 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 			ERR(
 				"part length for the mapping %zu is not a multiple of %llu",
 					part_size, Mmap_align);
-			return PMEMSET_E_LENGTH_UNALIGNED;
+			ret = PMEMSET_E_LENGTH_UNALIGNED;
 		}
-		goto err_pmem2_cfg_delete;
+		goto err_lock_unlock;
 	}
 
 	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
@@ -489,7 +501,7 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 		ret = pmemset_insert_part_map(set, pmap);
 		if (ret)
 			goto err_p2map_delete;
-		set->previous_pmap = pmap;
+		set->shared_state.previous_pmap = pmap;
 	}
 
 	/* pass the descriptor */
@@ -503,6 +515,8 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 	ret = pmem2_config_delete(&pmem2_cfg);
 	ASSERTeq(ret, 0);
 
+	util_rwlock_unlock(&set->shared_state.lock);
+
 	return 0;
 
 err_p2map_delete:
@@ -512,6 +526,8 @@ err_pmap_revert:
 		pmemset_part_map_shrink_end(pmap, part_size);
 	else
 		pmemset_part_map_delete(&pmap);
+err_lock_unlock:
+	util_rwlock_unlock(&set->shared_state.lock);
 err_pmem2_cfg_delete:
 	pmem2_config_delete(&pmem2_cfg);
 	return ret;
@@ -558,12 +574,14 @@ pmemset_update_previous_part_map(struct pmemset *set,
 		struct pmemset_part_map *pmap)
 {
 	struct ravl_interval_node *node;
-	node = ravl_interval_find_closest_prior(set->part_map_tree, pmap);
+	node = ravl_interval_find_closest_prior(set->shared_state.part_map_tree,
+			pmap);
 	if (!node)
-		node = ravl_interval_find_closest_later(set->part_map_tree,
-				pmap);
+		node = ravl_interval_find_closest_later(
+				set->shared_state.part_map_tree, pmap);
 
-	set->previous_pmap = (node) ? ravl_interval_data(node) : NULL;
+	set->shared_state.previous_pmap = (node) ?
+			ravl_interval_data(node) : NULL;
 }
 
 /*
@@ -577,15 +595,25 @@ pmemset_remove_part_map(struct pmemset *set, struct pmemset_part_map **pmap_ptr)
 
 	struct pmemset_part_map *pmap = *pmap_ptr;
 
+	if (pmap->refcount > 1) {
+		ERR(
+			"cannot delete part map with reference count %d, " \
+			"part map must only be referenced once",
+				pmap->refcount);
+		return PMEMSET_E_PART_MAP_POSSIBLE_USE_AFTER_DROP;
+	}
+
+	util_rwlock_wrlock(&set->shared_state.lock);
+
 	int ret = pmemset_unregister_part_map(set, pmap);
 	if (ret)
-		return ret;
+		goto err_lock_unlock;
 
 	/*
 	 * if the part mapping to be removed is the same as the one being stored
 	 * in the pmemset to map parts contiguously, then update it
 	 */
-	if (set->previous_pmap == pmap)
+	if (set->shared_state.previous_pmap == pmap)
 		pmemset_update_previous_part_map(set, pmap);
 
 	size_t pmap_size = pmemset_descriptor_part_map(pmap).size;
@@ -598,10 +626,14 @@ pmemset_remove_part_map(struct pmemset *set, struct pmemset_part_map **pmap_ptr)
 	if (ret)
 		goto err_insert_pmap;
 
+	util_rwlock_unlock(&set->shared_state.lock);
+
 	return 0;
 
 err_insert_pmap:
 	pmemset_insert_part_map(set, pmap);
+err_lock_unlock:
+	util_rwlock_unlock(&set->shared_state.lock);
 	return ret;
 }
 
@@ -625,8 +657,8 @@ pmemset_iterate(struct pmemset *set, void *addr, size_t len, pmemset_iter_cb cb,
 	struct pmemset_part_map dummy_map;
 	dummy_map.desc.addr = addr;
 	dummy_map.desc.size = len;
-	struct ravl_interval_node *node = ravl_interval_find(set->part_map_tree,
-			&dummy_map);
+	struct ravl_interval_node *node = ravl_interval_find(
+			set->shared_state.part_map_tree, &dummy_map);
 	while (node) {
 		struct pmemset_part_map *fmap = ravl_interval_data(node);
 		size_t fmap_addr = (size_t)fmap->desc.addr;
@@ -640,7 +672,8 @@ pmemset_iterate(struct pmemset *set, void *addr, size_t len, pmemset_iter_cb cb,
 		if (end_addr > cur_addr) {
 			dummy_map.desc.addr = (char *)cur_addr;
 			dummy_map.desc.size = end_addr - cur_addr;
-			node = ravl_interval_find(set->part_map_tree,
+			node = ravl_interval_find(
+					set->shared_state.part_map_tree,
 					&dummy_map);
 		} else {
 			node = NULL;
@@ -663,6 +696,14 @@ static int
 pmemset_remove_part_map_range_cb(struct pmemset *set,
 		struct pmemset_part_map *pmap, void *arg)
 {
+	if (pmap->refcount > 0) {
+		ERR(
+			"cannot delete part map with reference count %d, " \
+			"part maps residing at the provided range must not be referenced by any thread",
+				pmap->refcount);
+		return PMEMSET_E_PART_MAP_POSSIBLE_USE_AFTER_DROP;
+	}
+
 	struct pmap_remove_range_arg *rarg =
 			(struct pmap_remove_range_arg *)arg;
 	size_t rm_addr = rarg->addr;
@@ -690,7 +731,7 @@ pmemset_remove_part_map_range_cb(struct pmemset *set,
 
 	/* neither of those functions should fail */
 	if (true_rm_offset == 0 && true_rm_size == pmap_size) {
-		if (set->previous_pmap == pmap)
+		if (set->shared_state.previous_pmap == pmap)
 			pmemset_update_previous_part_map(set, pmap);
 
 		ret = pmemset_unregister_part_map(set, pmap);
@@ -722,8 +763,12 @@ pmemset_remove_range(struct pmemset *set, void *addr, size_t len)
 	arg.addr = (size_t)addr;
 	arg.size = len;
 
-	return pmemset_iterate(set, addr, len, pmemset_remove_part_map_range_cb,
-			&arg);
+	util_rwlock_wrlock(&set->shared_state.lock);
+	int ret = pmemset_iterate(set, addr, len,
+			pmemset_remove_part_map_range_cb, &arg);
+	util_rwlock_unlock(&set->shared_state.lock);
+
+	return ret;
 }
 
 /*
@@ -985,14 +1030,17 @@ pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
 
 	*pmap = NULL;
 
-	struct ravl_interval_node *first = ravl_interval_find_first(
-			set->part_map_tree);
+	util_rwlock_rdlock(&set->shared_state.lock);
 
-	if (first) {
-		*pmap = ravl_interval_data(first);
+	struct ravl_interval_node *node = ravl_interval_find_first(
+			set->shared_state.part_map_tree);
+
+	if (node) {
+		*pmap = ravl_interval_data(node);
 		pmemset_part_map_access(*pmap);
 	}
 
+	util_rwlock_unlock(&set->shared_state.lock);
 }
 
 /*
@@ -1007,13 +1055,17 @@ pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
 
 	*next = NULL;
 
-	struct ravl_interval_node *found = ravl_interval_find_next(
-			set->part_map_tree, cur);
+	util_rwlock_rdlock(&set->shared_state.lock);
 
-	if (found) {
-		*next = ravl_interval_data(found);
+	struct ravl_interval_node *node = ravl_interval_find_next(
+			set->shared_state.part_map_tree, cur);
+
+	if (node) {
+		*next = ravl_interval_data(node);
 		pmemset_part_map_access(*next);
 	}
+
+	util_rwlock_unlock(&set->shared_state.lock);
 }
 
 /*
@@ -1027,23 +1079,30 @@ pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part_map **pmap,
 	PMEMSET_ERR_CLR();
 
 	*pmap = NULL;
+	int ret = 0;
 
 	struct pmemset_part_map ppm;
 	ppm.desc.addr = addr;
 	ppm.desc.size = 1;
 
+	util_rwlock_rdlock(&set->shared_state.lock);
+
 	struct ravl_interval_node *node;
-	node = ravl_interval_find(set->part_map_tree, &ppm);
+	node = ravl_interval_find(set->shared_state.part_map_tree, &ppm);
 
 	if (!node) {
 		ERR("cannot find part_map at addr %p in the set %p", addr, set);
-		return PMEMSET_E_CANNOT_FIND_PART_MAP;
+		ret = PMEMSET_E_CANNOT_FIND_PART_MAP;
+		goto err_lock_unlock;
 	}
 
 	*pmap = (struct pmemset_part_map *)ravl_interval_data(node);
 	pmemset_part_map_access(*pmap);
 
-	return 0;
+err_lock_unlock:
+	util_rwlock_unlock(&set->shared_state.lock);
+
+	return ret;
 }
 
 /*
