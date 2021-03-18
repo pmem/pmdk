@@ -27,6 +27,16 @@ class PMEMSET_PART(t.Test):
         ctx.exec('pmemset_part', self.test_case, filepath)
 
 
+class PMEMSET_PART_ASYNC(t.Test):
+    test_type = t.Short
+    file_size = 16 * t.MiB
+
+    def run(self, ctx):
+        filepath = ctx.create_holey_file(self.file_size, 'testfile2',)
+        ctx.exec('pmemset_part', self.test_case, filepath, self.threads,
+                 self.ops_per_thread)
+
+
 class TEST0(PMEMSET_PART):
     """test pmemset_part allocation with error injection"""
     test_case = "test_part_new_enomem"
@@ -242,3 +252,10 @@ class TEST32(PMEMSET_PART):
     situated in the middle of the coalesced part mapping and delete it.
     """
     test_case = "test_remove_coalesced_middle_range"
+
+
+class TEST33(PMEMSET_PART_ASYNC):
+    """asynchronously map new and remove multiple parts to the pmemset"""
+    test_case = "test_pmemset_async_map_remove_multiple_part_maps"
+    threads = 32
+    ops_per_thread = 1000

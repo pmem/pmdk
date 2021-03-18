@@ -17,6 +17,7 @@
 #include "pmemset_utils.h"
 #include "ravl_interval.h"
 #include "ravl.h"
+#include "sys_util.h"
 
 /*
  * pmemset
@@ -34,6 +35,7 @@ struct pmemset {
 	pmem2_memmove_fn memmove_fn;
 	pmem2_memset_fn memset_fn;
 	pmem2_memcpy_fn memcpy_fn;
+	os_rwlock_t lock;
 };
 
 static char *granularity_name[3] = {
@@ -114,6 +116,8 @@ pmemset_new_init(struct pmemset *set, struct pmemset_config *config)
 	set->memset_fn = NULL;
 	set->memcpy_fn = NULL;
 
+	util_rwlock_init(&set->lock);
+
 	return 0;
 }
 
@@ -144,7 +148,6 @@ pmemset_new(struct pmemset **set, struct pmemset_config *cfg)
 
 	/* initialize set */
 	ret = pmemset_new_init(*set, cfg);
-
 	if (ret) {
 		Free(*set);
 		*set = NULL;
@@ -198,6 +201,8 @@ pmemset_delete(struct pmemset **set)
 
 	/* delete cfg */
 	pmemset_config_delete(&(*set)->set_config);
+
+	util_rwlock_destroy(&(*set)->lock);
 
 	Free(*set);
 
@@ -399,6 +404,9 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 	if (ret)
 		goto err_pmem2_cfg_delete;
 
+	/* lock the pmemset */
+	util_rwlock_wrlock(&set->lock);
+
 	bool coalesced = true;
 	struct pmemset_part_map *pmap;
 	enum pmemset_coalescing coalescing = set->part_coalescing;
@@ -423,7 +431,8 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 			break;
 		default:
 			ERR("invalid coalescing value %d", coalescing);
-			return PMEMSET_E_INVALID_COALESCING_VALUE;
+			ret = PMEMSET_E_INVALID_COALESCING_VALUE;
+			goto err_lock_unlock;
 	}
 
 	if (ret) {
@@ -437,9 +446,9 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 			ERR(
 				"part length for the mapping %zu is not a multiple of %llu",
 					part_size, Mmap_align);
-			return PMEMSET_E_LENGTH_UNALIGNED;
+			ret = PMEMSET_E_LENGTH_UNALIGNED;
 		}
-		goto err_pmem2_cfg_delete;
+		goto err_lock_unlock;
 	}
 
 	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
@@ -503,6 +512,8 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 	ret = pmem2_config_delete(&pmem2_cfg);
 	ASSERTeq(ret, 0);
 
+	util_rwlock_unlock(&set->lock);
+
 	return 0;
 
 err_p2map_delete:
@@ -512,6 +523,8 @@ err_pmap_revert:
 		pmemset_part_map_shrink_end(pmap, part_size);
 	else
 		pmemset_part_map_delete(&pmap);
+err_lock_unlock:
+	util_rwlock_unlock(&set->lock);
 err_pmem2_cfg_delete:
 	pmem2_config_delete(&pmem2_cfg);
 	return ret;
@@ -577,9 +590,19 @@ pmemset_remove_part_map(struct pmemset *set, struct pmemset_part_map **pmap_ptr)
 
 	struct pmemset_part_map *pmap = *pmap_ptr;
 
+	if (pmap->refcount > 1) {
+		ERR(
+			"cannot delete part map with reference count %d, " \
+			"part map should only be referenced once and by the thread deleting it",
+				pmap->refcount);
+		return PMEMSET_E_PART_MAP_REFCOUNT_TOO_BIG;
+	}
+
+	util_rwlock_wrlock(&set->lock);
+
 	int ret = pmemset_unregister_part_map(set, pmap);
 	if (ret)
-		return ret;
+		goto err_lock_unlock;
 
 	/*
 	 * if the part mapping to be removed is the same as the one being stored
@@ -598,10 +621,14 @@ pmemset_remove_part_map(struct pmemset *set, struct pmemset_part_map **pmap_ptr)
 	if (ret)
 		goto err_insert_pmap;
 
+	util_rwlock_unlock(&set->lock);
+
 	return 0;
 
 err_insert_pmap:
 	pmemset_insert_part_map(set, pmap);
+err_lock_unlock:
+	util_rwlock_unlock(&set->lock);
 	return ret;
 }
 
@@ -663,6 +690,14 @@ static int
 pmemset_remove_part_map_range_cb(struct pmemset *set,
 		struct pmemset_part_map *pmap, void *arg)
 {
+	if (pmap->refcount > 1) {
+		ERR(
+			"cannot delete part map with reference count %d, " \
+			"part map should only be referenced once and by the thread deleting it",
+				pmap->refcount);
+		return PMEMSET_E_PART_MAP_REFCOUNT_TOO_BIG;
+	}
+
 	struct pmap_remove_range_arg *rarg =
 			(struct pmap_remove_range_arg *)arg;
 	size_t rm_addr = rarg->addr;
@@ -722,8 +757,12 @@ pmemset_remove_range(struct pmemset *set, void *addr, size_t len)
 	arg.addr = (size_t)addr;
 	arg.size = len;
 
-	return pmemset_iterate(set, addr, len, pmemset_remove_part_map_range_cb,
-			&arg);
+	util_rwlock_wrlock(&set->lock);
+	int ret = pmemset_iterate(set, addr, len,
+			pmemset_remove_part_map_range_cb, &arg);
+	util_rwlock_unlock(&set->lock);
+
+	return ret;
 }
 
 /*
@@ -985,14 +1024,17 @@ pmemset_first_part_map(struct pmemset *set, struct pmemset_part_map **pmap)
 
 	*pmap = NULL;
 
-	struct ravl_interval_node *first = ravl_interval_find_first(
+	util_rwlock_wrlock(&set->lock);
+
+	struct ravl_interval_node *node = ravl_interval_find_first(
 			set->part_map_tree);
 
-	if (first) {
-		*pmap = ravl_interval_data(first);
+	if (node) {
+		*pmap = ravl_interval_data(node);
 		pmemset_part_map_access(*pmap);
 	}
 
+	util_rwlock_unlock(&set->lock);
 }
 
 /*
@@ -1007,13 +1049,17 @@ pmemset_next_part_map(struct pmemset *set, struct pmemset_part_map *cur,
 
 	*next = NULL;
 
-	struct ravl_interval_node *found = ravl_interval_find_next(
+	util_rwlock_wrlock(&set->lock);
+
+	struct ravl_interval_node *node = ravl_interval_find_next(
 			set->part_map_tree, cur);
 
-	if (found) {
-		*next = ravl_interval_data(found);
+	if (node) {
+		*next = ravl_interval_data(node);
 		pmemset_part_map_access(*next);
 	}
+
+	util_rwlock_unlock(&set->lock);
 }
 
 /*
@@ -1027,23 +1073,30 @@ pmemset_part_map_by_address(struct pmemset *set, struct pmemset_part_map **pmap,
 	PMEMSET_ERR_CLR();
 
 	*pmap = NULL;
+	int ret = 0;
 
 	struct pmemset_part_map ppm;
 	ppm.desc.addr = addr;
 	ppm.desc.size = 1;
+
+	util_rwlock_wrlock(&set->lock);
 
 	struct ravl_interval_node *node;
 	node = ravl_interval_find(set->part_map_tree, &ppm);
 
 	if (!node) {
 		ERR("cannot find part_map at addr %p in the set %p", addr, set);
-		return PMEMSET_E_CANNOT_FIND_PART_MAP;
+		ret = PMEMSET_E_CANNOT_FIND_PART_MAP;
+		goto err_lock_unlock;
 	}
 
 	*pmap = (struct pmemset_part_map *)ravl_interval_data(node);
 	pmemset_part_map_access(*pmap);
 
-	return 0;
+err_lock_unlock:
+	util_rwlock_unlock(&set->lock);
+
+	return ret;
 }
 
 /*
