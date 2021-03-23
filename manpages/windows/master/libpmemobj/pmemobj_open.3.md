@@ -8,7 +8,7 @@ date: pmemobj API version 2.3
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause)
-[comment]: <> (Copyright 2017-2018, Intel Corporation)
+[comment]: <> (Copyright 2017-2021, Intel Corporation)
 
 [comment]: <> (pmemobj_open.3 -- man page for most commonly used functions from libpmemobj library)
 
@@ -57,10 +57,8 @@ To use the pmem-resident transactional object store provided by
 with the **pmemobj_createU**()/**pmemobj_createW**() function described below. Existing pools
 may be opened with the **pmemobj_openU**()/**pmemobj_openW**() function.
 
-None of the three functions described below are thread-safe with respect
-to any other **libpmemobj**(7) function. In other words, when creating,
-opening or deleting a pool, nothing else in the library can happen in parallel,
-and therefore these functions should be called from the main thread.
+As of **libpmemobj** **1.11**, these functions are thread-safe; be careful
+if you have to use earlier versions of the library.
 
 Once created, the memory pool is represented by an opaque handle,
 of type *PMEMobjpool\**, which is passed to most of the other **libpmemobj**(7)
