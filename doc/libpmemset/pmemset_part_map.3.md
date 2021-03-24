@@ -86,7 +86,8 @@ to the allocation granularity.
 mapped part in the pmemset. The memory range after the ending address of previous
 mapped part is occupied.
 
-* **PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE** - in case of **pmemset_source_from_temporary**(3),
+* **PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE** - in case of **pmemset_source_from_temporary**(3)
+or **pmemset_xsource_from_file**(3) *PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED* flag,
 temporary file created in *dir* cannot be truncated for the defined part size and offset.
 
 * **-ENOMEM** in case of insufficient memory to allocate an instance
@@ -97,5 +98,6 @@ of *struct pmemset_part_map*.
 **pmemset_first_part_map**(3), **pmemset_next_part_map**(3),
 **pmemset_part_map_by_address**(3), **pmemset_part_new**(3),
 **pmemset_set_contiguous_part_coalescing**(3),
+**pmemset_source_from_temporary**(3), **pmemset_xsource_from_file**(3),
 **libpmemset**(7), **libpmem2**(7),
 and **<http://pmem.io>**

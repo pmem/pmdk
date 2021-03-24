@@ -96,15 +96,21 @@ class TEST9(PMEMSET_SOURCE):
 
 class TEST10(PMEMSET_SOURCE_DIR_ONLY):
     """testing pmemset_from_temporary valid case"""
-    test_case = "test_set_from_temporary_valid"
+    test_case = "test_src_from_temporary_valid"
 
 
 class TEST11(PMEMSET_SOURCE_NO_DIR):
     """testing pmemset_from_temporary invalid dir"""
-    test_case = "test_set_from_temporary_inval_dir"
+    test_case = "test_src_from_temporary_inval_dir"
 
 
 class TEST12(PMEMSET_SOURCE_DIR_ONLY):
     """testing pmemset_from_temporary and skip pmemset source delete"""
-    test_case = "test_set_from_temporary_no_del"
+    test_case = "test_src_from_temporary_no_del"
     do_not_close = True
+
+
+class TEST13(PMEMSET_SOURCE):
+    """test source creation with no existing file and truncate flag set"""
+    test_case = "test_src_from_file_with_truncate"
+    create_file = False
