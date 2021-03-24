@@ -112,6 +112,9 @@ pmemset_file_from_file(struct pmemset_file **file, char *path,
 
 	f->close = true;
 
+	if (flags & PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED)
+		f->truncate = true;
+
 	*file = f;
 
 	return 0;

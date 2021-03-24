@@ -203,10 +203,12 @@ int pmemset_source_from_pmem2(struct pmemset_source **src,
 
 #define PMEMSET_SOURCE_FILE_CREATE_ALWAYS		(1U << 0)
 #define PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED		(1U << 1)
+#define PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED		(1U << 2)
 
 #define PMEMSET_SOURCE_FILE_CREATE_VALID_FLAGS \
 		(PMEMSET_SOURCE_FILE_CREATE_ALWAYS | \
-		PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED)
+		PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED | \
+		PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED)
 
 #ifndef WIN32
 int pmemset_source_from_file(struct pmemset_source **src, const char *file);
