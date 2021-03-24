@@ -322,15 +322,15 @@ test_src_from_file_invalid_flags(const struct test_case *tc, int argc,
 }
 
 /*
- * test_set_from_temporary_valid - test source from temporary created
+ * test_src_from_temporary_valid - test source from temporary created
  * in the provided dir
  */
 static int
-test_set_from_temporary_valid(const struct test_case *tc, int argc,
+test_src_from_temporary_valid(const struct test_case *tc, int argc,
 		char *argv[])
 {
 	if (argc < 1)
-		UT_FATAL("usage: test_set_from_temporary_valid <dir>");
+		UT_FATAL("usage: test_src_from_temporary_valid <dir>");
 
 	char *dir = argv[0];
 
@@ -348,15 +348,15 @@ test_set_from_temporary_valid(const struct test_case *tc, int argc,
 }
 
 /*
- * test_set_from_temporary_inval_dir - test source from temporary created
+ * test_src_from_temporary_inval_dir - test source from temporary created
  * in the provided invalid dir path
  */
 static int
-test_set_from_temporary_inval_dir(const struct test_case *tc, int argc,
+test_src_from_temporary_inval_dir(const struct test_case *tc, int argc,
 		char *argv[])
 {
 	if (argc != 0)
-		UT_FATAL("usage: test_set_from_temporary_inval_dir");
+		UT_FATAL("usage: test_src_from_temporary_inval_dir");
 
 	char *dir = NULL;
 
@@ -376,15 +376,15 @@ test_set_from_temporary_inval_dir(const struct test_case *tc, int argc,
 }
 
 /*
- * test_set_from_temporary_no_del - test source from temporary created
+ * test_src_from_temporary_no_del - test source from temporary created
  * in the provided dir but do not dlete source - tmp file sohuld not be deleted
  */
 static int
-test_set_from_temporary_no_del(const struct test_case *tc, int argc,
+test_src_from_temporary_no_del(const struct test_case *tc, int argc,
 		char *argv[])
 {
 	if (argc < 1)
-		UT_FATAL("usage: test_set_from_temporary_no_del <dir>");
+		UT_FATAL("usage: test_src_from_temporary_no_del <dir>");
 
 	char *dir = argv[0];
 
@@ -393,6 +393,45 @@ test_set_from_temporary_no_del(const struct test_case *tc, int argc,
 	int ret = pmemset_source_from_temporary(&src_set, dir);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 	UT_ASSERTne(src_set, NULL);
+
+	return 1;
+}
+
+/*
+ * test_src_from_file_with_truncate - test source creation with
+ * PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED flag.
+ */
+static int
+test_src_from_file_with_truncate(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_src_from_file_with_truncate "
+			"<path>");
+
+	const char *file = argv[0];
+	struct pmemset_source *src;
+	unsigned flags = 0;
+	os_off_t size;
+	os_stat_t st;
+
+	flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED | \
+		PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED;
+	int ret = pmemset_xsource_from_file(&src, file, flags);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(src, NULL);
+
+	ret = os_access(file, F_OK);
+	UT_ASSERTeq(ret, 0);
+
+	ret = os_stat(file, &st);
+	UT_ASSERTeq(ret, 0);
+	size = st.st_size;
+	UT_ASSERT(size == 0);
+
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTeq(src, NULL);
 
 	return 1;
 }
@@ -411,9 +450,10 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_src_from_file_exists_needed_disp),
 	TEST_CASE(test_src_from_file_not_exists_needed_disp),
 	TEST_CASE(test_src_from_file_invalid_flags),
-	TEST_CASE(test_set_from_temporary_valid),
-	TEST_CASE(test_set_from_temporary_inval_dir),
-	TEST_CASE(test_set_from_temporary_no_del),
+	TEST_CASE(test_src_from_temporary_valid),
+	TEST_CASE(test_src_from_temporary_inval_dir),
+	TEST_CASE(test_src_from_temporary_no_del),
+	TEST_CASE(test_src_from_file_with_truncate),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
