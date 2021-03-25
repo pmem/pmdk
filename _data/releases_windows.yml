@@ -406,6 +406,7 @@
         pmemset_source_delete.3
         pmemset_source_from_file.3
         pmemset_source_from_pmem2.3
+        pmemset_source_from_temporary.3
         pmemset_xsource_from_file.3
 
 - tag: "1.10"
