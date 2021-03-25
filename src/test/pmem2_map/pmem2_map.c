@@ -582,10 +582,8 @@ test_map_larger_than_unaligned_file_size(const struct test_case *tc, int argc,
 	cfg.length = ALIGN_UP(length, alignment);
 
 	int ret = pmem2_map_new(&map, &cfg, src);
-	UT_PMEM2_EXPECT_RETURN(ret, 0);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAP_RANGE);
 
-	unmap_map(map);
-	FREE(map);
 	PMEM2_SOURCE_DELETE(&src);
 	UT_FH_CLOSE(fh);
 
