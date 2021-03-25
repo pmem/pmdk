@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * config.c -- pmem2_config implementation
@@ -145,13 +145,8 @@ pmem2_config_validate_length(const struct pmem2_config *cfg,
 		return PMEM2_E_MAP_RANGE;
 	}
 
-	/* let's align the file size */
-	size_t aligned_file_len = file_len;
-	if (file_len % alignment)
-		aligned_file_len = ALIGN_UP(file_len, alignment);
-
 	/* validate mapping fit into the file */
-	if (end > aligned_file_len) {
+	if (end > file_len) {
 		ERR("mapping larger than file size");
 		return PMEM2_E_MAP_RANGE;
 	}
