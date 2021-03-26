@@ -29,8 +29,8 @@ date: pmemset API version 1.0
 ```c
 #include <libpmemset.h>
 
-int pmemset_source_from_file(const char struct pmemset_source **src, const char *file);
-int pmemset_xsource_from_file(const char struct pmemset_source **src, const char *file);unsigned flags
+int pmemset_source_from_file(struct pmemset_source **src, const char *file);
+int pmemset_xsource_from_file(struct pmemset_source **src, const char *file, unsigned flags);
 int pmemset_source_delete(struct pmemset_source **src);
 
 ```
@@ -39,7 +39,7 @@ int pmemset_source_delete(struct pmemset_source **src);
 
 **pmemset_source_from_file**() function instantiates a new *struct pmemset_source** object
 describing the data source and sets a path to the file in it.
-**pmemset_source_from_file**() is equivalent to **pmemset_xsource_from_file**(), but with
+**pmemset_xsource_from_file**() is equivalent to **pmemset_source_from_file**(), but with
 additional *flags* argument that is a bitmask of the following values:
 
 * **PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED** - a new file will be created only if the specified file does not already exist,
