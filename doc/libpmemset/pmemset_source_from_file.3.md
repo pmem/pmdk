@@ -29,7 +29,7 @@ _UW(pmemset_source_from_file)
 ```c
 #include <libpmemset.h>
 
-_UWFUNCR2(int, pmemset_source_from_file, struct pmemset_source **src, *file)
+_UWFUNCR20(int, pmemset_source_from_file, struct pmemset_source **src, *file)
 _UWFUNCR2(int, pmemset_xsource_from_file, struct pmemset_source **src, *file, unsigned flags)
 int pmemset_source_delete(struct pmemset_source **src);
 
