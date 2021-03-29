@@ -29,10 +29,10 @@ date: pmemset API version 1.0
 ```c
 #include <libpmemset.h>
 
-int pmemset_source_from_fileU(const char struct pmemset_source **src, const char *file);
-int pmemset_source_from_fileW(const wchar_t struct pmemset_source **src, const char *file);
-int pmemset_xsource_from_fileU(const char struct pmemset_source **src, const char *file);unsigned flags
-int pmemset_xsource_from_fileW(const wchar_t struct pmemset_source **src, const char *file);unsigned flags
+int pmemset_source_from_fileU(struct pmemset_source **src, const char *file);
+int pmemset_source_from_fileW(struct pmemset_source **src, const wchar_t *file);
+int pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file, unsigned flags);
+int pmemset_xsource_from_fileW(struct pmemset_source **src, const wchar_t *file, unsigned flags);
 int pmemset_source_delete(struct pmemset_source **src);
 
 ```
@@ -41,7 +41,7 @@ int pmemset_source_delete(struct pmemset_source **src);
 
 **pmemset_source_from_fileU**()/**pmemset_source_from_fileW**() function instantiates a new *struct pmemset_source** object
 describing the data source and sets a path to the file in it.
-**pmemset_source_from_fileU**()/**pmemset_source_from_fileW**() is equivalent to **pmemset_xsource_from_fileU**()/**pmemset_xsource_from_fileW**(), but with
+**pmemset_xsource_from_fileU**()/**pmemset_xsource_from_fileW**() is equivalent to **pmemset_source_from_fileU**()/**pmemset_source_from_fileW**(), but with
 additional *flags* argument that is a bitmask of the following values:
 
 * **PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED** - a new file will be created only if the specified file does not already exist,
