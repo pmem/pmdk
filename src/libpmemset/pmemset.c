@@ -12,6 +12,7 @@
 #include "file.h"
 #include "libpmem2.h"
 #include "libpmemset.h"
+#include "map_config.h"
 #include "part.h"
 #include "pmemset.h"
 #include "pmemset_utils.h"
@@ -255,7 +256,7 @@ pmemset_delete(struct pmemset **set)
 	if (*set == NULL)
 		return 0;
 
-	struct pmemset_config *cfg = pmemset_get_pmemset_config(*set);
+	struct pmemset_config *cfg = (*set)->set_config;
 	struct pmem2_vm_reservation *rsv = pmemset_config_get_reservation(cfg);
 
 	/* reservation that was set in pmemset should not be adjusted */
@@ -515,28 +516,34 @@ pmemset_find_reservation_empty_range(struct pmem2_vm_reservation *p2rsv,
 }
 
 /*
- * pmemset_part_map -- map a part to the set
+ * pmemset_map -- map a part to the set
  */
 int
-pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
+pmemset_map(struct pmemset_source *src,
+		struct pmemset_map_config *map_cfg,
+		struct pmemset_extras *extra,
 		struct pmemset_part_descriptor *desc)
 {
-	LOG(3, "part %p extra %p desc %p", part_ptr, extra, desc);
+	LOG(3, "src %p map_cfg %p extra %p desc %p", src, map_cfg, extra, desc);
 	PMEMSET_ERR_CLR();
 
-	struct pmemset_part *part = *part_ptr;
-	struct pmemset *set = pmemset_part_get_pmemset(part);
-	struct pmemset_config *set_config = pmemset_get_pmemset_config(set);
+	struct pmemset *set = pmemset_map_config_get_set(map_cfg);
+	struct pmemset_config *set_config = set->set_config;
 	enum pmem2_granularity mapping_gran;
 	enum pmem2_granularity config_gran =
 			pmemset_get_config_granularity(set_config);
 
-	size_t part_offset = pmemset_part_get_offset(part);
-	struct pmemset_file *part_file = pmemset_part_get_file(part);
-	struct pmem2_source *pmem2_src =
-			pmemset_file_get_pmem2_source(part_file);
+	if (!src) {
+		ERR("invalid pmemset source %p", src);
+		return PMEMSET_E_INVALID_SOURCE_TYPE;
+	}
 
-	size_t part_size = pmemset_part_get_size(part);
+	size_t part_offset = pmemset_map_config_get_offset(map_cfg);
+	struct pmemset_file *part_file = pmemset_source_get_set_file(src);
+	struct pmem2_source *pmem2_src =
+		pmemset_file_get_pmem2_source(part_file);
+
+	size_t part_size = pmemset_map_config_get_length(map_cfg);
 	size_t source_size;
 	int ret = pmem2_source_size(pmem2_src, &source_size);
 	if (ret)
@@ -545,9 +552,11 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 	if (part_size == 0)
 		part_size = source_size;
 
-	ret = pmemset_part_file_try_ensure_size(part, source_size);
+	ret = pmemset_part_file_try_ensure_size(part_file, part_size,
+			part_offset, source_size);
 	if (ret) {
-		ERR("cannot truncate source file from the part %p", part);
+		ERR("cannot truncate source from the part file %p",
+			part_file);
 		ret = PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE;
 		return ret;
 	}
@@ -703,9 +712,6 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 	if (desc)
 		*desc = pmap->desc;
 
-	/* consume the part */
-	ret = pmemset_part_delete(part_ptr);
-	ASSERTeq(ret, 0);
 	/* delete temporary pmem2 config */
 	ret = pmem2_config_delete(&pmem2_cfg);
 	ASSERTeq(ret, 0);
@@ -979,7 +985,7 @@ pmemset_remove_part_map_range_cb(struct pmemset *set,
 		ASSERTeq(ret, 0);
 	}
 
-	struct pmemset_config *cfg = pmemset_get_pmemset_config(set);
+	struct pmemset_config *cfg = set->set_config;
 	/* reservation provided by the user should not be modified */
 	if (pmemset_config_get_reservation(cfg) == NULL) {
 		ret = pmemset_adjust_reservation_to_contents(&pmem2_reserv);
@@ -1300,16 +1306,6 @@ pmemset_deep_flush(struct pmemset *set, void *ptr, size_t size)
 	}
 
 	return ret;
-}
-
-/*
- * pmemset_get_pmemset_config -- get pmemset config
- */
-struct pmemset_config *
-pmemset_get_pmemset_config(struct pmemset *set)
-{
-	LOG(3, "%p", set);
-	return set->set_config;
 }
 
 /*

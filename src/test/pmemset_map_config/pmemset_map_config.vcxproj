@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{85ABDC85-0BCF-437A-A565-62DE7304DF19}</ProjectGuid>
-    <RootNamespace>pmemset_part</RootNamespace>
+    <ProjectGuid>{58F5870B-7454-4377-B2C2-99602487F9EB}</ProjectGuid>
+    <RootNamespace>pmemset_map_config</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -80,7 +80,7 @@
     <ClCompile Include="..\..\libpmemset\pmemset_utils.c" />
     <ClCompile Include="..\..\libpmemset\source.c" />
     <ClCompile Include="..\unittest\ut_pmemset_utils.c" />
-    <ClCompile Include="pmemset_part.c" />
+    <ClCompile Include="pmemset_map_config.c" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\common\libpmemcommon.vcxproj">
