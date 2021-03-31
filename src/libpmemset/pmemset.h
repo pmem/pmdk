@@ -20,8 +20,6 @@ extern "C" {
 #define PMEMSET_LOG_LEVEL_VAR "PMEMSET_LOG_LEVEL"
 #define PMEMSET_LOG_FILE_VAR "PMEMSET_LOG_FILE"
 
-struct pmemset_config *pmemset_get_pmemset_config(struct pmemset *set);
-
 #ifdef __cplusplus
 }
 #endif

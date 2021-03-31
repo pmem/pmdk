@@ -61,6 +61,7 @@ extern "C" {
 #define PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE		(-200021)
 #define PMEMSET_E_PART_MAP_POSSIBLE_USE_AFTER_DROP	(-200022)
 #define PMEMSET_E_CANNOT_FIT_PART_MAP			(-200023)
+#define PMEMSET_E_OFFSET_OUT_OF_RANGE			(-200024)
 
 /* pmemset setup */
 
@@ -72,8 +73,8 @@ enum pmemset_coalescing {
 
 struct pmemset;
 struct pmemset_config;
-struct pmemset_part;
 struct pmemset_part_map;
+struct pmemset_map_config;
 
 struct pmemset_part_descriptor {
 	void *addr;
@@ -296,7 +297,6 @@ int pmemset_source_delete(struct pmemset_source **src);
 
 /* part setup */
 
-struct pmemset_part;
 struct pmemset_part_map;
 struct pmemset_part_shutdown_state_data;
 
@@ -327,12 +327,16 @@ enum pmemset_part_state {
 	PMEMSET_PART_STATE_CORRUPTED,
 };
 
-int pmemset_part_new(struct pmemset_part **part, struct pmemset *set,
-		struct pmemset_source *src, size_t offset, size_t length);
+int pmemset_map_config_new(struct pmemset_map_config **map_cfg, struct
+		pmemset *set);
+int pmemset_map_config_set_offset(struct pmemset_map_config *map_cfg,
+	size_t offset);
+void pmemset_map_config_set_length(struct pmemset_map_config *map_cfg,
+	size_t length);
+int pmemset_map_config_delete(struct pmemset_map_config **map_cfg);
 
-int pmemset_part_delete(struct pmemset_part **part);
-
-int pmemset_part_map(struct pmemset_part **part_ptr,
+int pmemset_map(struct pmemset_source *src,
+		struct pmemset_map_config *map_cfg,
 		struct pmemset_extras *extra,
 		struct pmemset_part_descriptor *desc);
 
