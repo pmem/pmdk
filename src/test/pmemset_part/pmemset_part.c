@@ -94,7 +94,7 @@ test_part_new_invalid_source_file(const struct test_case *tc, int argc,
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
 	ret = pmemset_source_from_file(&src, file);
-	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_FILE_PATH);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_SOURCE_PATH);
 
 	ret = pmemset_source_delete(&src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -1707,6 +1707,118 @@ test_remove_multiple_part_maps(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_part_map_valid_source_temp - create a new part from a temp source
+ *                                    with valid dir path and map part
+ */
+static int
+test_part_map_valid_source_temp(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_valid_source_temp <dir>");
+
+	const char *dir = argv[0];
+	struct pmemset_part *part;
+	struct pmemset_source *src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	size_t part_size = 128 * 1024;
+	struct pmemset_part_map *pmap = NULL;
+
+	int ret = pmemset_source_from_temporary(&src, dir);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	struct pmemset_part_descriptor desc;
+	ret = pmemset_part_map(&part, NULL, &desc);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ASSERTeq(desc.size, part_size);
+	UT_ASSERTeq(part, NULL);
+
+	static int nmaps = 3;
+	for (int i = 0; i < nmaps; i++) {
+		ret = pmemset_part_new(&part, set, src, 0, part_size / 2);
+		UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+		ret = pmemset_part_map(&part, NULL, &desc);
+		UT_PMEMSET_EXPECT_RETURN(ret, 0);
+		ASSERTeq(desc.size, part_size / 2);
+	}
+
+	while (nmaps) {
+		pmemset_first_part_map(set, &pmap);
+		UT_ASSERTne(pmap, NULL);
+
+		for (int i = 0; i < nmaps / 2; i++) {
+			pmemset_next_part_map(set, pmap, &pmap);
+			UT_ASSERTne(pmap, NULL);
+		}
+
+		pmemset_remove_part_map(set, &pmap);
+		UT_ASSERTeq(pmap, NULL);
+
+		nmaps--;
+	}
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	return 1;
+}
+
+/*
+ * test_part_map_invalid_source_temp - create a new part from a temp source
+ *                                    with invalid part size
+ */
+static int
+test_part_map_invalid_source_temp(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_invalid_source_temp <dir>");
+
+	const char *dir = argv[0];
+	struct pmemset_part *part;
+	struct pmemset_source *src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+
+	int ret = pmemset_source_from_temporary(&src, dir);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, SIZE_MAX);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE);
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -1735,6 +1847,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_full_coalescing_after_remove_first_part_map),
 	TEST_CASE(test_full_coalescing_after_remove_second_part_map),
 	TEST_CASE(test_remove_multiple_part_maps),
+	TEST_CASE(test_part_map_valid_source_temp),
+	TEST_CASE(test_part_map_invalid_source_temp),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

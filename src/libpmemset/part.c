@@ -105,6 +105,23 @@ pmemset_part_get_pmemset(struct pmemset_part *part)
 }
 
 /*
+ * pmemset_part_file_try_ensure_size -- truncate part file if source
+ * is from a temp file and if required
+ */
+static int
+pmemset_part_file_try_ensure_size(struct pmemset_part *part, size_t source_size)
+{
+	struct pmemset_file *f = part->file;
+	bool truncate = pmemset_file_get_truncate(f);
+
+	size_t size = part->offset + part->length;
+	if (truncate && (size > source_size))
+		return pmemset_file_truncate(f, size);
+
+	return 0;
+}
+
+/*
  * pmemset_part_map_new -- map a part and create a structure
  *                         that describes the mapping
  */
@@ -145,8 +162,17 @@ pmemset_part_map_new(struct pmemset_part_map **part_map,
 	pmem2_src = pmemset_file_get_pmem2_source(part->file);
 
 	size_t part_size = part->length;
+	size_t source_size;
+	pmem2_source_size(pmem2_src, &source_size);
 	if (part_size == 0)
-		pmem2_source_size(pmem2_src, &part_size);
+		part_size = source_size;
+
+	ret = pmemset_part_file_try_ensure_size(part, source_size);
+	if (ret) {
+		ERR("cannot truncate source file from the part %p", part);
+		ret = PMEMSET_E_CANNOT_TRUNCATE_SOURCE_FILE;
+		goto err_cfg_delete;
+	}
 
 	struct pmem2_vm_reservation *pmem2_reserv;
 	size_t offset;
@@ -186,7 +212,7 @@ pmemset_part_map_new(struct pmemset_part_map **part_map,
 			ret = PMEMSET_E_CANNOT_COALESCE_PARTS;
 		} else if (ret == PMEM2_E_LENGTH_UNALIGNED) {
 			ERR("part length %zu is not a multiple of %llu",
-					part->length, Mmap_align);
+					part_size, Mmap_align);
 			ret = PMEMSET_E_LENGTH_UNALIGNED;
 		}
 		goto err_cfg_delete;

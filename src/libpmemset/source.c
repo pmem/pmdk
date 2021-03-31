@@ -32,6 +32,9 @@ struct pmemset_source {
 		struct {
 			struct pmem2_source *src;
 		} pmem2;
+		struct {
+			char *dir;
+		} temp;
 	};
 	struct pmemset_file *file_set;
 };
@@ -112,7 +115,7 @@ pmemset_source_from_fileU(struct pmemset_source **src, const char *file)
 
 	if (!file) {
 		ERR("file path cannot be empty");
-		return PMEMSET_E_INVALID_FILE_PATH;
+		return PMEMSET_E_INVALID_SOURCE_PATH;
 	}
 
 	int ret;
@@ -160,7 +163,7 @@ pmemset_xsource_from_fileU(struct pmemset_source **src, const char *file,
 
 	if (!file) {
 		ERR("file path cannot be empty");
-		return PMEMSET_E_INVALID_FILE_PATH;
+		return PMEMSET_E_INVALID_SOURCE_PATH;
 	}
 
 	if (flags & ~PMEMSET_SOURCE_FILE_CREATE_VALID_FLAGS) {
@@ -202,10 +205,43 @@ free_srcp:
 static inline
 #endif
 int
-pmemset_source_from_temporaryU(struct pmemset_source **src, const char *dir,
-		size_t len)
+pmemset_source_from_temporaryU(struct pmemset_source **src, const char *dir)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(3, "src %p dir %s", src, dir);
+	PMEMSET_ERR_CLR();
+
+	*src = NULL;
+
+	if (!dir) {
+		ERR("directory path cannot be empty");
+		return PMEMSET_E_INVALID_SOURCE_PATH;
+	}
+
+	int ret;
+	struct pmemset_source *srcp = pmemset_malloc(sizeof(**src), &ret);
+	if (ret)
+		return ret;
+
+	srcp->type = PMEMSET_SOURCE_TEMP;
+	srcp->temp.dir = Strdup(dir);
+
+	if (srcp->temp.dir == NULL) {
+		ERR("!strdup");
+		Free(srcp);
+		return PMEMSET_E_ERRNO;
+	}
+
+	ret = pmemset_source_open_file(srcp, 0);
+	if (ret)
+		goto free_srcp;
+
+	*src = srcp;
+
+	return 0;
+
+free_srcp:
+	Free(srcp);
+	return ret;
 }
 
 #ifndef _WIN32
@@ -234,10 +270,9 @@ pmemset_xsource_from_file(struct pmemset_source **src, const char *file,
  * pmemset_source_from_temporary -- create source using temp file from the dir
  */
 int
-pmemset_source_from_temporary(struct pmemset_source **src, const char *dir,
-		size_t len)
+pmemset_source_from_temporary(struct pmemset_source **src, const char *dir)
 {
-	return pmemset_source_from_temporaryU(src, dir, len);
+	return pmemset_source_from_temporaryU(src, dir);
 }
 #else
 
@@ -268,11 +303,10 @@ pmemset_xsource_from_fileW(struct pmemset_source **src, const wchar_t *file,
  * pmemset_source_from_temporaryW -- create source using temp file from the dir
  */
 int
-pmemset_source_from_temporaryW(struct pmemset_source **src, const wchar_t *dir,
-		size_t len)
+pmemset_source_from_temporaryW(struct pmemset_source **src, const wchar_t *dir)
 {
 	const char *udir = util_toUTF8(dir);
-	return pmemset_source_from_temporaryU(src, udir, len);
+	return pmemset_source_from_temporaryU(src, udir);
 }
 #endif
 
@@ -296,6 +330,17 @@ pmemset_source_create_file_from_pmem2(struct pmemset_source *src,
 		struct pmemset_file **file, unsigned flags)
 {
 	return pmemset_file_from_pmem2(file, src->pmem2.src);
+}
+
+/*
+ * pmemset_source_create_file_from_temp - create pmemset_file based on temp
+ *                                        source type
+ */
+static int
+pmemset_source_create_file_from_temp(struct pmemset_source *src,
+		struct pmemset_file **file, unsigned flags)
+{
+	return pmemset_file_from_dir(file, src->temp.dir);
 }
 
 /*
@@ -327,7 +372,7 @@ pmemset_source_file_validate(const struct pmemset_source *src)
 	if (os_stat(src->file.path, &stat) < 0) {
 		if (errno == ENOENT) {
 			ERR("invalid path specified in the source");
-			return PMEMSET_E_INVALID_FILE_PATH;
+			return PMEMSET_E_INVALID_SOURCE_PATH;
 		}
 		ERR("!stat");
 		return PMEMSET_E_ERRNO;
@@ -367,6 +412,12 @@ static const struct {
 		.create_file = pmemset_source_create_file_from_pmem2,
 		.destroy = pmemset_source_empty_destroy,
 		.validate = pmemset_source_pmem2_validate,
+	},
+
+	[PMEMSET_SOURCE_TEMP] = {
+		.create_file = pmemset_source_create_file_from_temp,
+		.destroy = pmemset_source_file_destroy,
+		.validate = pmemset_source_file_validate,
 	}
 };
 

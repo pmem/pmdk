@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 /*
  * ut.c -- unit test support routines
@@ -489,8 +489,14 @@ check_open_files(void)
 		}
 	}
 	open_file_walk(Fd_lut);
-	if (Fd_errcount)
-		UT_FATAL("open file list changed between START() and DONE()");
+	if (Fd_errcount) {
+		if (os_getenv("UNITTEST_DO_NOT_FAIL_OPEN_FILES"))
+			UT_OUT(
+				"open file list changed between START() and DONE()");
+		else
+			UT_FATAL(
+				"open file list changed between START() and DONE()");
+	}
 	open_file_free(Fd_lut);
 	free(fip);
 }
@@ -557,8 +563,14 @@ check_open_files(void)
 	}
 	closedir(dirp);
 	open_file_walk(Fd_lut);
-	if (Fd_errcount)
-		UT_FATAL("open file list changed between START() and DONE()");
+	if (Fd_errcount) {
+		if (os_getenv("UNITTEST_DO_NOT_FAIL_OPEN_FILES"))
+			UT_OUT(
+				"open file list changed between START() and DONE()");
+		else
+			UT_FATAL(
+				"open file list changed between START() and DONE()");
+	}
 	open_file_free(Fd_lut);
 }
 #endif /* __FreeBSD__ */
@@ -739,8 +751,14 @@ check_open_files()
 	enum_handles(1);
 
 	open_file_walk(Fd_lut);
-	if (Fd_errcount)
-		UT_FATAL("open file list changed between START() and DONE()");
+	if (Fd_errcount) {
+		if (os_getenv("UNITTEST_DO_NOT_FAIL_OPEN_FILES"))
+			UT_OUT(
+				"open file list changed between START() and DONE()");
+		else
+			UT_FATAL(
+				"open file list changed between START() and DONE()");
+	}
 	open_file_free(Fd_lut);
 }
 

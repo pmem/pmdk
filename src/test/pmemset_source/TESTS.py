@@ -18,6 +18,7 @@ class PMEMSET_SOURCE(t.Test):
             filepath = ctx.create_holey_file(16 * t.MiB, 'testfile1')
         else:
             filepath = os.path.join(ctx.testdir, 'testfile1')
+
         ctx.exec('pmemset_source', self.test_case, filepath)
         if os.path.exists(filepath):
             os.remove(filepath)
@@ -29,6 +30,16 @@ class PMEMSET_SOURCE_NO_DIR(t.Test):
 
     def run(self, ctx):
         ctx.exec('pmemset_source', self.test_case)
+
+
+class PMEMSET_SOURCE_DIR_ONLY(t.Test):
+    test_type = t.Short
+    do_not_close = False
+
+    def run(self, ctx):
+        if self.do_not_close:
+            ctx.env['UNITTEST_DO_NOT_FAIL_OPEN_FILES'] = '1'
+        ctx.exec('pmemset_source', self.test_case, ctx.testdir)
 
 
 class TEST0(PMEMSET_SOURCE):
@@ -81,3 +92,19 @@ class TEST8(PMEMSET_SOURCE):
 class TEST9(PMEMSET_SOURCE):
     """test source creation with invalid flags"""
     test_case = "test_src_from_file_invalid_flags"
+
+
+class TEST10(PMEMSET_SOURCE_DIR_ONLY):
+    """testing pmemset_from_temporary valid case"""
+    test_case = "test_set_from_temporary_valid"
+
+
+class TEST11(PMEMSET_SOURCE_NO_DIR):
+    """testing pmemset_from_temporary invalid dir"""
+    test_case = "test_set_from_temporary_inval_dir"
+
+
+class TEST12(PMEMSET_SOURCE_DIR_ONLY):
+    """testing pmemset_from_temporary and skip pmemset source delete"""
+    test_case = "test_set_from_temporary_no_del"
+    do_not_close = True
