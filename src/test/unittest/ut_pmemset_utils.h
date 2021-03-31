@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * ut_pmemset_utils.h -- utility helper functions for libpmemset tests
@@ -17,3 +17,8 @@ void ut_pmemset_expect_return(const char *file, int line, const char *func,
 		int value, int expected);
 
 #endif /* UT_PMEMSET_UTILS_H */
+
+void ut_create_set_config(struct pmemset_config **cfg);
+
+void ut_create_map_config(struct pmemset_map_config **map_cfg,
+		struct pmemset *set, size_t offset, size_t length);
