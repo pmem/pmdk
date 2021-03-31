@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2014-2020, Intel Corporation
+# Copyright 2014-2021, Intel Corporation
 #
 
 #
@@ -138,6 +138,7 @@ OBJS +=\
 	$(TOP)/src/debug/libpmemset/file.o\
 	$(TOP)/src/debug/libpmemset/file_posix.o\
 	$(TOP)/src/debug/libpmemset/libpmemset.o\
+	$(TOP)/src/debug/libpmemset/map_config.o\
 	$(TOP)/src/debug/libpmemset/part.o\
 	$(TOP)/src/debug/libpmemset/pmemset.o\
 	$(TOP)/src/debug/libpmemset/pmemset_utils.o\
@@ -155,6 +156,7 @@ OBJS +=\
 	$(TOP)/src/nondebug/libpmemset/file.o\
 	$(TOP)/src/nondebug/libpmemset/file_posix.o\
 	$(TOP)/src/nondebug/libpmemset/libpmemset.o\
+	$(TOP)/src/nondebug/libpmemset/map_config.o\
 	$(TOP)/src/nondebug/libpmemset/part.o\
 	$(TOP)/src/nondebug/libpmemset/pmemset.o\
 	$(TOP)/src/nondebug/libpmemset/pmemset_utils.o\

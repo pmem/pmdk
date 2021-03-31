@@ -15,30 +15,16 @@
 #include "ut_pmemset_utils.h"
 
 /*
- * create_config - create and initialize config
- */
-static void create_config(struct pmemset_config **cfg)
-{
-	int ret = pmemset_config_new(cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	UT_ASSERTne(cfg, NULL);
-
-	ret = pmemset_config_set_required_store_granularity(*cfg,
-		PMEM2_GRANULARITY_PAGE);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	UT_ASSERTne(cfg, NULL);
-}
-
-/*
  * map -- map pmemset_source
  */
 static void map(struct pmemset *set, struct pmemset_source *src,
 	struct pmemset_part_descriptor *desc)
 {
-	struct pmemset_part *part;
-	int ret = pmemset_part_new(&part, set, src, 0, 0);
+	struct pmemset_map_config *map_cfg;
+	ut_create_map_config(&map_cfg, set, 0, 0, src);
+	int ret = pmemset_map(map_cfg, NULL, desc);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_part_map(&part, NULL, desc);
+	ret = pmemset_map_config_delete(&map_cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 }
 
@@ -118,7 +104,7 @@ test_pmemset_persist_event(const struct test_case *tc,
 	ret = pmemset_source_from_pmem2(&src, pmem2_src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	create_config(&cfg);
+	ut_create_config(&cfg);
 	pmemset_config_set_event_callback(cfg, &persist_callback, &args);
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
@@ -242,7 +228,7 @@ test_pmemset_copy_event(const struct test_case *tc,
 	ret = pmemset_source_from_pmem2(&src, pmem2_src);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
 
-	create_config(&cfg);
+	ut_create_config(&cfg);
 	pmemset_config_set_event_callback(cfg, &copy_callback, &args);
 	ret = pmemset_new(&set, cfg);
 	UT_PMEMSET_EXPECT_RETURN(ret, 0);
