@@ -224,8 +224,8 @@ PMEM2_TESTS = \
 
 ifeq ($(OS_DIMM),ndctl)
 PMEM2_TESTS += \
-	pmem2_badblock_mocks\
 	pmem2_source_numa
+#	pmem2_badblock_mocks
 else
 $(info NOTE: Skipping tests because libndctl is disabled (see NDCTL_ENABLE)\
 		Skipped tests: pmem2_badblock_mocks pmem2_source_numa)
