@@ -3,6 +3,7 @@
 # Copyright 2020-2021, Intel Corporation
 #
 
+import os
 import testframework as t
 from testframework import granularity as g
 
@@ -13,11 +14,14 @@ class PMEMSET_PART(t.Test):
     create_file = True
     file_size = 16 * t.MiB
     file_temp = False
+    path_only = False
 
     def run(self, ctx):
         filepath = "not/existing/file"
         if self.create_file:
             filepath = ctx.create_holey_file(self.file_size, 'testfile1')
+        if self.path_only:
+            filepath = os.path.join(ctx.testdir, 'testfile1')
         if self.file_temp:
             filepath = ctx.testdir
         ctx.exec('pmemset_part', self.test_case, filepath)
@@ -203,4 +207,11 @@ class TEST28(PMEMSET_PART):
     """create a new part from a temp source and map it with invalid size"""
     test_case = "test_part_map_invalid_source_temp"
     file_temp = True
+    create_file = False
+
+
+class TEST29(PMEMSET_PART):
+    """create a new part from a file source with truncate flag and map it"""
+    test_case = "test_part_map_source_truncate"
+    path_only = True
     create_file = False

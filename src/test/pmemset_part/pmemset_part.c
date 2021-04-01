@@ -1819,6 +1819,99 @@ test_part_map_invalid_source_temp(const struct test_case *tc, int argc,
 }
 
 /*
+ * test_part_map_source_truncate - create a new part from a file source
+ *                                    with truncate flag
+ */
+static int
+test_part_map_source_truncate(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_source_truncate <file>");
+
+	const char *file = argv[0];
+	struct pmemset_part *part;
+	struct pmemset_source *src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	size_t part_size = 64 * 1024;
+
+	create_config(&cfg);
+
+	int ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	unsigned flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED;
+	ret = pmemset_xsource_from_file(&src, file, flags);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(src, NULL);
+
+	ret = os_access(file, F_OK);
+	UT_ASSERTeq(ret, 0);
+
+	os_stat_t st;
+	ret = os_stat(file, &st);
+	UT_ASSERTeq(ret, 0);
+
+	os_off_t size = st.st_size;
+	UT_ASSERT(size == 0);
+
+	ret = pmemset_part_new(&part, set, src, 0, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* is should failed - size of file is too small  */
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_PMEMSET_EXPECT_RETURN(ret, PMEMSET_E_INVALID_PMEM2_MAP);
+
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	/* try the same with truncate option */
+	flags = PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED | \
+		PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED;
+	ret = pmemset_xsource_from_file(&src, file, flags);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(src, NULL);
+
+	ret = pmemset_part_new(&part, set, src, 0, part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	struct pmemset_part_descriptor desc;
+	ret = pmemset_part_map(&part, NULL, &desc);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ASSERTeq(desc.size, part_size);
+	UT_ASSERTeq(part, NULL);
+
+	ret = os_stat(file, &st);
+	UT_ASSERTeq(ret, 0);
+
+	size = st.st_size;
+	UT_ASSERT(size == part_size);
+
+	ret = pmemset_part_new(&part, set, src, 0, part_size * 2);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, &desc);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ASSERTeq(desc.size, part_size * 2);
+
+	ret = os_stat(file, &st);
+	UT_ASSERTeq(ret, 0);
+
+	size = st.st_size;
+	UT_ASSERT(size == part_size * 2);
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -1849,6 +1942,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_remove_multiple_part_maps),
 	TEST_CASE(test_part_map_valid_source_temp),
 	TEST_CASE(test_part_map_invalid_source_temp),
+	TEST_CASE(test_part_map_source_truncate),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

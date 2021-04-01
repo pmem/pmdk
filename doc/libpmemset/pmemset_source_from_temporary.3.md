@@ -29,7 +29,7 @@ _UW(pmemset_source_from_temporary)
 ```c
 #include <libpmemset.h>
 
-_UWFUNCR1(int, pmemset_source_from_temporary, struct pmemset_source **src, const char *dir)
+_UWFUNCR20(int, pmemset_source_from_temporary, struct pmemset_source **src, const char *dir)
 ```
 # DESCRIPTION #
 
