@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2017-2020, Intel Corporation
+# Copyright 2017-2021, Intel Corporation
 
 #
 # run-coverage.sh - is called inside a Docker container; runs tests
@@ -32,7 +32,7 @@ cd src/test
 make -kj2 pcheck-local-quiet TEST_BUILD=debug || true
 make check-remote-quiet TEST_BUILD=debug || true
 # do not change -j2 to -j$(nproc) in case of tests (make check/pycheck)
-make -j2 pycheck TEST_BUILD=debug || true
+make -kj2 pycheck TEST_BUILD=debug || true
 cd ../..
 
 # prepare flag for codecov report to differentiate builds

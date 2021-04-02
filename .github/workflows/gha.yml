@@ -34,7 +34,7 @@ jobs:
                  "N=7 OS=fedora OS_VER=31    MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 PMEMSET_INSTALL=y PUSH_IMAGE=1",
                  "N=8 OS=ubuntu OS_VER=20.04 MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PMEMSET_INSTALL=y PUSH_IMAGE=1",
                  "N=9 OS=ubuntu OS_VER=20.04 MAKE_PKG=1 EXPERIMENTAL=y REMOTE_TESTS=0 VALGRIND=0 NDCTL_ENABLE=n PMDK_CC=clang PMDK_CXX=clang++",
-                "N=10 OS=ubuntu OS_VER=20.04 COVERAGE=1 EXPERIMENTAL=y FAULT_INJECTION=1 TEST_BUILD=debug"]
+                "N=10 OS=ubuntu OS_VER=20.04 COVERAGE=1 FAULT_INJECTION=1 TEST_BUILD=debug"]
     steps:
        - name: Clone the git repo
          uses: actions/checkout@v2
