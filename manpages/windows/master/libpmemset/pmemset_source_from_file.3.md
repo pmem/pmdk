@@ -46,7 +46,10 @@ additional *flags* argument that is a bitmask of the following values:
 
 * **PMEMSET_SOURCE_FILE_CREATE_IF_NEEDED** - a new file will be created only if the specified file does not already exist,
 
-* **PMEMSET_SOURCE_FILE_CREATE_ALWAYS** - always a new file will be created. If the specified file exists, the file will be overwritten.
+* **PMEMSET_SOURCE_FILE_CREATE_ALWAYS** - always a new file will be created. If the specified file exists, the file will be overwritten,
+
+* **PMEMSET_SOURCE_FILE_TRUNCATE_IF_NEEDED** - the specified file will be truncated during **pmemset_part_map**(3) to
+designated part size and offset.
 
 Obtained source is ready to be passed on to the **pmemset_part_new**() function.
 See **pmemset_part_new**(3) for details.
@@ -77,4 +80,5 @@ parameter.
 
 # SEE ALSO #
 
-**pmemset_part_new**(3), **libpmemset**(7) and **<http://pmem.io>**
+**pmemset_part_map**(3), **pmemset_part_new**(3),
+**libpmemset**(7) and **<http://pmem.io>**

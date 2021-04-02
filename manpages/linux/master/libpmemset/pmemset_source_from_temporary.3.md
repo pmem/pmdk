@@ -29,7 +29,7 @@ date: pmemset API version 1.0
 ```c
 #include <libpmemset.h>
 
-int pmemset_source_from_temporary(const char struct pmemset_source **src, const char *dir);
+int pmemset_source_from_temporary(struct pmemset_source **src, const char const char *dir);
 ```
 # DESCRIPTION #
 
