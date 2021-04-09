@@ -64,8 +64,10 @@
 # to all of the following resource files (containing physical addresses)
 # of NVDIMM devices (only root can read them by default):
 #
-# /sys/bus/nd/devices/ndbus*/region*/resource
-# /sys/bus/nd/devices/ndbus*/region*/dax*/resource
+# /sys/bus/nd/devices/ndbus*/region*/<resource>
+# /sys/bus/nd/devices/ndbus*/region*/dax*/<resource>
+# or
+# /sys/devices/platform/e820_pmem/ndbus*/region*/dax*/<resource>
 #
 # Note: some tests require write access to '/sys/bus/nd/devices/region*/deep_flush'.
 #
