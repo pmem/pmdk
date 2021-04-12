@@ -23,6 +23,7 @@ EX_LIBPMEM2=$(EXAMPLES_DIR)/libpmem2
 EX_LIBPMEMBLK=$(EXAMPLES_DIR)/libpmemblk
 EX_LIBPMEMLOG=$(EXAMPLES_DIR)/libpmemlog
 EX_LIBPMEMOBJ=$(EXAMPLES_DIR)/libpmemobj
+EX_LIBPMEMSET=$(EXAMPLES_DIR)/libpmemset
 EX_PMREORDER=$(EXAMPLES_DIR)/pmreorder
 
 UT = ../unittest/libut.a
