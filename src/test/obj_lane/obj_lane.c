@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * obj_lane.c -- unit test for lanes
@@ -292,8 +292,6 @@ main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_lane");
 
-	obj_init();
-
 	if (argc != 2)
 		usage(argv[0]);
 
@@ -317,7 +315,6 @@ main(int argc, char *argv[])
 		usage(argv[0]);
 	}
 
-	obj_fini();
 	DONE(NULL);
 }
 
