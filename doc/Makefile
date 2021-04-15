@@ -130,7 +130,7 @@ MANPAGES_3_MD_PMEMSET = libpmemset/pmemset_errormsg.3.md libpmemset/pmemset_perr
 			libpmemset/pmemset_set_contiguous_part_coalescing.3.md libpmemset/pmemset_memmove.3.md \
 			libpmemset/pmemset_remove_part_map.3.md libpmemset/pmemset_deep_flush.3.md \
 			libpmemset/pmemset_source_from_temporary.3.md libpmemset/pmemset_remove_range.3.md \
-			libpmemset/pmemset_config_set_event_callback.3.md
+			libpmemset/pmemset_config_set_event_callback.3.md libpmemset/pmemset_config_set_reservation.3.md
 
 MANPAGES_1_MD_PMEMSET =
 ifeq ($(PMEMSET_INSTALL),y)
