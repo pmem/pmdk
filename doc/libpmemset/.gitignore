@@ -1,5 +1,6 @@
 libpmemset.7
 pmemset_config_new.3
+pmemset_config_set_reservation.3
 pmemset_config_set_required_store_granularity.3
 pmemset_config_set_event_callback.3
 pmemset_deep_flush.3

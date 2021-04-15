@@ -268,3 +268,20 @@ class TEST34(PMEMSET_PART):
     mappings
     """
     test_case = "test_divide_coalesced_remove_obtained_pmaps"
+
+
+class TEST35(PMEMSET_PART):
+    """
+    create a pmem2 vm reservation with the size of three files and set it in
+    the pmemset config, map three files to the pmemset
+    """
+    test_case = "test_part_map_with_set_reservation"
+
+
+class TEST36(PMEMSET_PART):
+    """
+    create a pmem2 vm reservation with the size of three files and set it in
+    the pmemset config, turn on full coalescing and map three files to the
+    pmemset
+    """
+    test_case = "test_part_map_coalesce_with_set_reservation"
