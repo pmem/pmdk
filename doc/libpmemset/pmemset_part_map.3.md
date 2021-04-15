@@ -49,6 +49,10 @@ Optionally **pmemset_part_map**() function can take a part descriptor object pas
 If an optional descriptor was provided then address and size of the part mapping are stored in the
 descriptor when this function succeeds.
 
+Before the initialization of pmemset, a virtual memory reservation can be set in its configuration.
+This limits the future part mappings of initialized pmemset to the virtual address space spanned by the provided
+reservation. For more information about this configuration please see **pmemset_config_set_reservation**(3).
+
 During the lifespan of initialized pmemset, a contiguous part coalescing feature value can
 be set using **pmemset_set_contiguous_part_coalescing**() function, modifying the default behavior of
 part mapping. With contiguous part coalescing feature enabled, **pmemset_part_map**() function tries to map each
@@ -96,9 +100,8 @@ of *struct pmemset_part_map*.
 
 # SEE ALSO #
 
-**pmemset_first_part_map**(3), **pmemset_next_part_map**(3),
-**pmemset_part_map_by_address**(3), **pmemset_part_new**(3),
-**pmemset_set_contiguous_part_coalescing**(3),
+**pmemset_config_set_reservation**(3), **pmemset_first_part_map**(3),
+**pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
+**pmemset_part_new**(3), **pmemset_set_contiguous_part_coalescing**(3),
 **pmemset_source_from_temporary**(3), **pmemset_xsource_from_file**(3),
-**libpmemset**(7), **libpmem2**(7),
-and **<http://pmem.io>**
+**libpmemset**(7), **libpmem2**(7) and **<http://pmem.io>**

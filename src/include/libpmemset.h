@@ -239,7 +239,7 @@ int pmemset_config_new(struct pmemset_config **cfg);
 
 int pmemset_config_delete(struct pmemset_config **cfg);
 
-int pmemset_config_set_reservation(struct pmemset_config *cfg,
+void pmemset_config_set_reservation(struct pmemset_config *config,
 		struct pmem2_vm_reservation *rsv);
 
 int pmemset_config_set_required_store_granularity(struct pmemset_config *cfg,

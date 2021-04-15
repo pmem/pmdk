@@ -22,8 +22,8 @@ void pmemset_config_set_contiguous_part_coalescing(
 		struct pmemset_config *cfg, bool value);
 bool pmemset_config_get_contiguous_part_coalescing(
 		struct pmemset_config *cfg);
-
-int
-pmemset_config_event_callback(struct pmemset_config *cfg,
+int pmemset_config_event_callback(struct pmemset_config *cfg,
 	struct pmemset *set, struct pmemset_event_context *ctx);
+struct pmem2_vm_reservation *pmemset_config_get_reservation(
+		struct pmemset_config *config);
 #endif /* PMEMSET_CONFIG_H */
