@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2014-2020, Intel Corporation */
+/* Copyright 2014-2021, Intel Corporation */
 
 /*
  * obj.c -- transactional object store implementation
@@ -279,6 +279,7 @@ obj_init(void)
 	 * subsequent call to this function for individual pools.
 	 */
 	ctl_global_register();
+	pmalloc_global_ctl_register();
 
 	if (obj_ctl_init_and_load(NULL))
 		FATAL("error: %s", pmemobj_errormsg());
