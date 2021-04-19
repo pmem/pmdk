@@ -8,7 +8,7 @@ date: pmemobj API version 2.3
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause
-[comment]: <> (Copyright 2017-2020, Intel Corporation)
+[comment]: <> (Copyright 2017-2021, Intel Corporation)
 
 [comment]: <> (pmemobj_ctl_get.3 -- man page for libpmemobj CTL)
 
@@ -378,6 +378,22 @@ debug.heap.alloc_pattern | rw | - | int | int | - | -
 Single byte pattern that is used to fill new uninitialized memory allocation.
 If the value is negative, no pattern is written. This is intended for
 debugging, and is disabled by default.
+
+heap_global.arena_assignment_type | rw | global | `enum pobj_arena_assignment_type` | `enum pobj_arena_assignment_type` | - | string
+
+Reads or modifies the behavior of arena assignment for threads. By default,
+each thread is assigned its own arena from the pool of automatic arenas
+(described earlier). This consumes one TLS key from the OS for every open
+pool. Applications that wish to avoid this behavior can instead rely on one
+global arena assignment per pool. This might limits scalability if not using
+arenas explicitly.
+
+The argument for this CTL is an enum with the following types:
+
+ - **POBJ_ARENA_ASSIGNMENT_THREAD_KEY**, string value: `thread`.
+	Default, threads use individually assigned arenas.
+ - **POBJ_ARENA_ASSIGNMENT_GLOBAL**, string value: `global`.
+	Threads use one global arena.
 
 # CTL EXTERNAL CONFIGURATION #
 
