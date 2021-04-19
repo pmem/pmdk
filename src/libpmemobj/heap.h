@@ -21,6 +21,11 @@
 extern "C" {
 #endif
 
+enum arena_thread_assignment_type {
+	ARENA_ASSIGNMENT_THREAD_KEY,
+	ARENA_ASSIGNMENT_GLOBAL,
+};
+
 #define HEAP_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
 #define HEAP_PTR_TO_OFF(heap, ptr)\
 	((uintptr_t)(ptr) - (uintptr_t)((heap)->base))
