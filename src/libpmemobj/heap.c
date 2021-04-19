@@ -32,6 +32,14 @@
 #define HEAP_DEFAULT_GROW_SIZE (1 << 27) /* 128 megabytes */
 #define MAX_DEFAULT_ARENAS (1 << 10) /* 1024 arenas */
 
+struct arena_thread_assignment {
+	enum arena_thread_assignment_type type;
+	union {
+		os_tls_key_t thread;
+		struct arena *global;
+	};
+};
+
 struct arenas {
 	VEC(, struct arena *) vec;
 	size_t nactive;
@@ -43,7 +51,7 @@ struct arenas {
 	os_mutex_t lock;
 
 	/* stores a pointer to one of the arenas */
-	os_tls_key_t thread;
+	struct arena_thread_assignment assignment;
 };
 
 /*
@@ -202,7 +210,10 @@ heap_arena_thread_attach(struct palloc_heap *heap, struct arena *a)
 {
 	struct heap_rt *h = heap->rt;
 
-	struct arena *thread_arena = os_tls_get(h->arenas.thread);
+	struct arena_thread_assignment *assignment = &h->arenas.assignment;
+	ASSERTeq(assignment->type, ARENA_ASSIGNMENT_THREAD_KEY);
+
+	struct arena *thread_arena = os_tls_get(assignment->thread);
 	if (thread_arena)
 		heap_arena_thread_detach(thread_arena);
 
@@ -216,7 +227,7 @@ heap_arena_thread_attach(struct palloc_heap *heap, struct arena *a)
 	if ((a->nthreads++) == 0)
 		util_fetch_and_add64(&a->arenas->nactive, 1);
 
-	os_tls_set(h->arenas.thread, a);
+	os_tls_set(assignment->thread, a);
 }
 
 /*
@@ -229,6 +240,53 @@ heap_thread_arena_destructor(void *arg)
 	os_mutex_lock(&a->arenas->lock);
 	heap_arena_thread_detach(a);
 	os_mutex_unlock(&a->arenas->lock);
+}
+
+/*
+ * arena_thread_assignment_init -- (internal) initializes thread assigmnet
+ *	type for arenas.
+ */
+static int
+arena_thread_assignment_init(struct arena_thread_assignment *assignment,
+	enum arena_thread_assignment_type type)
+{
+	assignment->type = type;
+
+	int ret = 0;
+
+	switch (type) {
+		case ARENA_ASSIGNMENT_THREAD_KEY:
+			ret = os_tls_key_create(&assignment->thread,
+				heap_thread_arena_destructor);
+			break;
+		case ARENA_ASSIGNMENT_GLOBAL:
+			assignment->global = NULL;
+			break;
+		default: {
+			ASSERT(0); /* unreachable */
+		}
+	};
+
+	return ret;
+}
+
+/*
+ * arena_thread_assignment_fini -- (internal) destroys thread assigmnet
+ *	type for arenas.
+ */
+static void
+arena_thread_assignment_fini(struct arena_thread_assignment *assignment)
+{
+	switch (assignment->type) {
+		case ARENA_ASSIGNMENT_THREAD_KEY:
+			os_tls_key_delete(assignment->thread);
+			break;
+		case ARENA_ASSIGNMENT_GLOBAL:
+			break;
+		default: {
+			ASSERT(0); /* unreachable */
+		}
+	};
 }
 
 /*
@@ -287,11 +345,25 @@ heap_thread_arena_assign(struct palloc_heap *heap)
 static struct arena *
 heap_thread_arena(struct palloc_heap *heap)
 {
-	struct arena *a;
-	if ((a = os_tls_get(heap->rt->arenas.thread)) == NULL)
-		a = heap_thread_arena_assign(heap);
+	struct arena_thread_assignment *assignment = &heap->rt->arenas.assignment;
+	struct arena *arena = NULL;
 
-	return a;
+	switch (assignment->type) {
+		case ARENA_ASSIGNMENT_THREAD_KEY:
+			if ((arena = os_tls_get(assignment->thread)) == NULL)
+				arena = heap_thread_arena_assign(heap);
+			break;
+		case ARENA_ASSIGNMENT_GLOBAL:
+			arena = assignment->global;
+			break;
+		default: {
+			ASSERT(0); /* unreachable */
+		}
+	};
+
+	ASSERTne(arena, NULL);
+
+	return arena;
 }
 
 /*
@@ -1470,6 +1542,11 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 		goto error_heap_malloc;
 	}
 
+	if ((err = arena_thread_assignment_init(&h->arenas.assignment,
+		ARENA_ASSIGNMENT_THREAD_KEY)) != 0) {
+		goto error_assignment_init;
+	}
+
 	h->alloc_classes = alloc_class_collection_new();
 	if (h->alloc_classes == NULL) {
 		err = ENOMEM;
@@ -1490,8 +1567,6 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	h->nlocks = On_valgrind ? MAX_RUN_LOCKS_VG : MAX_RUN_LOCKS;
 	for (unsigned i = 0; i < h->nlocks; ++i)
 		util_mutex_init(&h->run_locks[i]);
-
-	os_tls_key_create(&h->arenas.thread, heap_thread_arena_destructor);
 
 	heap->p_ops = *p_ops;
 	heap->layout = heap_start;
@@ -1523,6 +1598,8 @@ error_vec_reserve:
 error_arenas_malloc:
 	alloc_class_collection_delete(h->alloc_classes);
 error_alloc_classes_new:
+	arena_thread_assignment_fini(&h->arenas.assignment);
+error_assignment_init:
 	Free(h);
 	heap->rt = NULL;
 error_heap_malloc:
@@ -1597,7 +1674,7 @@ heap_cleanup(struct palloc_heap *heap)
 
 	alloc_class_collection_delete(rt->alloc_classes);
 
-	os_tls_key_delete(rt->arenas.thread);
+	arena_thread_assignment_fini(&rt->arenas.assignment);
 	bucket_delete(rt->default_bucket);
 
 	struct arena *arena;
