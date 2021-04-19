@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2017-2020, Intel Corporation */
+/* Copyright 2017-2021, Intel Corporation */
 
 /*
  * libpmemobj/ctl.h -- definitions of pmemobj_ctl related entry points
@@ -142,6 +142,11 @@ enum pobj_stats_enabled {
 	POBJ_STATS_ENABLED_BOTH,
 	POBJ_STATS_ENABLED_PERSISTENT,
 	POBJ_STATS_DISABLED,
+};
+
+enum pobj_arenas_assignment_type {
+	POBJ_ARENAS_ASSIGNMENT_THREAD_KEY,
+	POBJ_ARENAS_ASSIGNMENT_GLOBAL,
 };
 
 #ifndef _WIN32

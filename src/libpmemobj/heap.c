@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * heap.c -- heap implementation
@@ -10,6 +10,7 @@
 #include <string.h>
 #include <float.h>
 
+#include "libpmemobj/ctl.h"
 #include "queue.h"
 #include "heap.h"
 #include "out.h"
@@ -32,8 +33,11 @@
 #define HEAP_DEFAULT_GROW_SIZE (1 << 27) /* 128 megabytes */
 #define MAX_DEFAULT_ARENAS (1 << 10) /* 1024 arenas */
 
-struct arena_thread_assignment {
-	enum arena_thread_assignment_type type;
+enum pobj_arenas_assignment_type Default_arenas_assignment_type =
+	POBJ_ARENAS_ASSIGNMENT_THREAD_KEY;
+
+struct arenas_thread_assignment {
+	enum pobj_arenas_assignment_type type;
 	union {
 		os_tls_key_t thread;
 		struct arena *global;
@@ -51,7 +55,7 @@ struct arenas {
 	os_mutex_t lock;
 
 	/* stores a pointer to one of the arenas */
-	struct arena_thread_assignment assignment;
+	struct arenas_thread_assignment assignment;
 };
 
 /*
@@ -210,8 +214,8 @@ heap_arena_thread_attach(struct palloc_heap *heap, struct arena *a)
 {
 	struct heap_rt *h = heap->rt;
 
-	struct arena_thread_assignment *assignment = &h->arenas.assignment;
-	ASSERTeq(assignment->type, ARENA_ASSIGNMENT_THREAD_KEY);
+	struct arenas_thread_assignment *assignment = &h->arenas.assignment;
+	ASSERTeq(assignment->type, POBJ_ARENAS_ASSIGNMENT_THREAD_KEY);
 
 	struct arena *thread_arena = os_tls_get(assignment->thread);
 	if (thread_arena)
@@ -243,50 +247,50 @@ heap_thread_arena_destructor(void *arg)
 }
 
 /*
- * arena_thread_assignment_init -- (internal) initializes thread assigmnet
+ * arena_thread_assignment_init -- (internal) initializes thread assignment
  *	type for arenas.
  */
 static int
-arena_thread_assignment_init(struct arena_thread_assignment *assignment,
-	enum arena_thread_assignment_type type)
+arena_thread_assignment_init(struct arenas_thread_assignment *assignment,
+	enum pobj_arenas_assignment_type type)
 {
 	assignment->type = type;
 
 	int ret = 0;
 
 	switch (type) {
-		case ARENA_ASSIGNMENT_THREAD_KEY:
+		case POBJ_ARENAS_ASSIGNMENT_THREAD_KEY:
 			ret = os_tls_key_create(&assignment->thread,
 				heap_thread_arena_destructor);
 			break;
-		case ARENA_ASSIGNMENT_GLOBAL:
+		case POBJ_ARENAS_ASSIGNMENT_GLOBAL:
 			assignment->global = NULL;
 			break;
 		default: {
 			ASSERT(0); /* unreachable */
 		}
-	};
+	}
 
 	return ret;
 }
 
 /*
- * arena_thread_assignment_fini -- (internal) destroys thread assigmnet
+ * arena_thread_assignment_fini -- (internal) destroys thread assignment
  *	type for arenas.
  */
 static void
-arena_thread_assignment_fini(struct arena_thread_assignment *assignment)
+arena_thread_assignment_fini(struct arenas_thread_assignment *assignment)
 {
 	switch (assignment->type) {
-		case ARENA_ASSIGNMENT_THREAD_KEY:
+		case POBJ_ARENAS_ASSIGNMENT_THREAD_KEY:
 			os_tls_key_delete(assignment->thread);
 			break;
-		case ARENA_ASSIGNMENT_GLOBAL:
+		case POBJ_ARENAS_ASSIGNMENT_GLOBAL:
 			break;
 		default: {
 			ASSERT(0); /* unreachable */
 		}
-	};
+	}
 }
 
 /*
@@ -298,6 +302,34 @@ static struct arena *
 heap_get_arena_by_id(struct palloc_heap *heap, unsigned arena_id)
 {
 	return VEC_ARR(&heap->rt->arenas.vec)[arena_id - 1];
+}
+
+/*
+ * heap_global_arena_assign -- (internal) assigns the first automatic arena
+ *	as the heaps' global arena assignment.
+ */
+static struct arena *
+heap_global_arena_assign(struct palloc_heap *heap)
+{
+	util_mutex_lock(&heap->rt->arenas.lock);
+
+	ASSERTne(VEC_SIZE(&heap->rt->arenas.vec), 0);
+
+	struct arena *a = NULL;
+	VEC_FOREACH(a, &heap->rt->arenas.vec) {
+		if (a->automatic)
+			break;
+	}
+
+	LOG(4, "assigning %p arena to current thread", a);
+
+	/* at least one automatic arena must exist */
+	ASSERTne(a, NULL);
+	heap->rt->arenas.assignment.global = a;
+
+	util_mutex_unlock(&heap->rt->arenas.lock);
+
+	return a;
 }
 
 /*
@@ -345,21 +377,23 @@ heap_thread_arena_assign(struct palloc_heap *heap)
 static struct arena *
 heap_thread_arena(struct palloc_heap *heap)
 {
-	struct arena_thread_assignment *assignment = &heap->rt->arenas.assignment;
+	struct arenas_thread_assignment *assignment =
+		&heap->rt->arenas.assignment;
 	struct arena *arena = NULL;
 
 	switch (assignment->type) {
-		case ARENA_ASSIGNMENT_THREAD_KEY:
+		case POBJ_ARENAS_ASSIGNMENT_THREAD_KEY:
 			if ((arena = os_tls_get(assignment->thread)) == NULL)
 				arena = heap_thread_arena_assign(heap);
 			break;
-		case ARENA_ASSIGNMENT_GLOBAL:
-			arena = assignment->global;
+		case POBJ_ARENAS_ASSIGNMENT_GLOBAL:
+			if ((arena = assignment->global) == NULL)
+				arena = heap_global_arena_assign(heap);
 			break;
 		default: {
 			ASSERT(0); /* unreachable */
 		}
-	};
+	}
 
 	ASSERTne(arena, NULL);
 
@@ -1543,7 +1577,7 @@ heap_boot(struct palloc_heap *heap, void *heap_start, uint64_t heap_size,
 	}
 
 	if ((err = arena_thread_assignment_init(&h->arenas.assignment,
-		ARENA_ASSIGNMENT_THREAD_KEY)) != 0) {
+		Default_arenas_assignment_type)) != 0) {
 		goto error_assignment_init;
 	}
 
