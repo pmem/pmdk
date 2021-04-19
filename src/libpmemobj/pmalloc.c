@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * pmalloc.c -- implementation of pmalloc POSIX-like API
@@ -10,6 +10,8 @@
  */
 
 #include <inttypes.h>
+#include "ctl.h"
+#include "libpmemobj/ctl.h"
 #include "valgrind_internal.h"
 #include "heap.h"
 #include "lane.h"
@@ -794,4 +796,82 @@ void
 pmalloc_ctl_register(PMEMobjpool *pop)
 {
 	CTL_REGISTER_MODULE(pop->ctl, heap);
+}
+
+/*
+ * CTL_WRITE_HANDLER(arenas_assignment_type) -- sets the current arenas
+ *	assignment type
+ */
+static int
+CTL_WRITE_HANDLER(arenas_assignment_type)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	enum pobj_arenas_assignment_type *src = arg;
+
+	Default_arenas_assignment_type = *src;
+
+	return 0;
+}
+
+/*
+ * CTL_READ_HANDLER(arenas_assignment_type) --
+ *	reads the current arena assignment type
+ */
+static int
+CTL_READ_HANDLER(arenas_assignment_type)(void *ctx,
+	enum ctl_query_source source, void *arg, struct ctl_indexes *indexes)
+{
+	enum pobj_arenas_assignment_type *dest = arg;
+
+	*dest = Default_arenas_assignment_type;
+
+	return 0;
+}
+
+/*
+ * arenas_assignment_type_parser -- parses the arenas assignment enum
+ */
+static int
+arenas_assignment_type_parser(const void *arg, void *dest, size_t dest_size)
+{
+	const char *vstr = arg;
+	enum pobj_arenas_assignment_type *atype = dest;
+	ASSERTeq(dest_size, sizeof(enum pobj_header_type));
+
+	if (strcmp(vstr, "global") == 0) {
+		*atype = POBJ_ARENAS_ASSIGNMENT_GLOBAL;
+	} else if (strcmp(vstr, "thread") == 0) {
+		*atype = POBJ_ARENAS_ASSIGNMENT_THREAD_KEY;
+	} else {
+		ERR("invalid arena assignment type");
+		errno = EINVAL;
+		return -1;
+	}
+
+	return 0;
+}
+
+static const struct ctl_argument CTL_ARG(arenas_assignment_type) = {
+	.dest_size = sizeof(enum pobj_arenas_assignment_type),
+	.parsers = {
+		CTL_ARG_PARSER(enum pobj_arenas_assignment_type,
+			arenas_assignment_type_parser),
+		CTL_ARG_PARSER_END
+	}
+};
+
+static const struct ctl_node CTL_NODE(heap_global)[] = {
+	CTL_LEAF_RW(arenas_assignment_type),
+
+	CTL_NODE_END
+};
+
+/*
+ * pmalloc_global_ctl_register -- register allocator global ctl entries
+ */
+void
+pmalloc_global_ctl_register(void)
+{
+	ctl_register_module_node(NULL, "heap",
+		(struct ctl_node *)CTL_NODE(heap_global));
 }
