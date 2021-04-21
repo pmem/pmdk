@@ -382,3 +382,21 @@ class TEST43(PMEM2_VM_RESERVATION):
     3. (reserv_start, reserv_end)
     """
     test_case = "test_vm_reserv_two_maps_find"
+
+
+class TEST44(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a 10x file size and map a
+    file to it 5 times leaving equal space between each mapping, search the
+    reservation for closest prior mapping for each mapping
+    """
+    test_case = "test_vm_reserv_closest_prior_map_find"
+
+
+class TEST45(PMEM2_VM_RESERVATION):
+    """
+    create a reservation with exactly the size of a 10x file size and map
+    file to it 5 times leaving equal space between each mapping, search the
+    reservation for closest later mapping for each mapping
+    """
+    test_case = "test_vm_reserv_closest_later_map_find"

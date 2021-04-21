@@ -32,15 +32,11 @@ struct pmemset_part_shutdown_state_data {
 
 struct pmemset *pmemset_part_get_pmemset(struct pmemset_part *part);
 
-int pmemset_part_map_new(struct pmemset_part_map **pmap_ptr, size_t size);
+int pmemset_part_map_new(struct pmemset_part_map **pmap_ptr,
+		struct pmem2_vm_reservation *pmem2_reserv, size_t offset,
+		size_t size);
 
 int pmemset_part_map_delete(struct pmemset_part_map **pmap_ptr);
-
-int pmemset_part_map_extend_end(struct pmemset_part_map *pmap, size_t size);
-
-int pmemset_part_map_shrink_end(struct pmemset_part_map *pmap, size_t size);
-
-int pmemset_part_map_shrink_start(struct pmemset_part_map *pmap, size_t size);
 
 int pmemset_part_map_iterate(struct pmemset_part_map *pmap, size_t offset,
 		size_t size, size_t *out_offset, size_t *out_size,

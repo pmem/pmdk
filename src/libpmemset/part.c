@@ -109,41 +109,35 @@ pmemset_part_get_pmemset(struct pmemset_part *part)
  */
 static int
 pmemset_part_map_init(struct pmemset_part_map *pmap,
-		struct pmem2_vm_reservation *pmem2_reserv)
+		struct pmem2_vm_reservation *pmem2_reserv,
+		void *addr, size_t size)
 {
-	pmap->desc.addr = pmem2_vm_reservation_get_address(pmem2_reserv);
-	pmap->desc.size = pmem2_vm_reservation_get_size(pmem2_reserv);
 	pmap->pmem2_reserv = pmem2_reserv;
+	pmap->desc.addr = addr;
+	pmap->desc.size = size;
 	pmap->refcount = 0;
 
 	return 0;
 }
 
 /*
- * pmemset_part_map_new -- creates a new part mapping with a new part or extends
- *                         an existing part mapping by a new part
+ * pmemset_part_map_new -- creates a new part map structure
  */
 int
-pmemset_part_map_new(struct pmemset_part_map **pmap_ptr, size_t size)
+pmemset_part_map_new(struct pmemset_part_map **pmap_ptr,
+		struct pmem2_vm_reservation *pmem2_reserv, size_t offset,
+		size_t size)
 {
-	struct pmem2_vm_reservation *pmem2_reserv;
-	int ret = pmem2_vm_reservation_new(&pmem2_reserv, NULL, size);
-	if (ret) {
-		if (ret == PMEM2_E_LENGTH_UNALIGNED) {
-			ERR(
-				"length %zu for the part mapping is not a multiple of %llu",
-					size, Mmap_align);
-			return PMEMSET_E_LENGTH_UNALIGNED;
-		}
-		return ret;
-	}
-
+	int ret;
 	struct pmemset_part_map *pmap;
 	pmap = pmemset_malloc(sizeof(*pmap), &ret);
 	if (ret)
-		goto err_p2rsv_delete;
+		return ret;
+	ASSERTne(pmap, NULL);
 
-	ret = pmemset_part_map_init(pmap, pmem2_reserv);
+	void *addr = (char *)pmem2_vm_reservation_get_address(pmem2_reserv) +
+			offset;
+	ret = pmemset_part_map_init(pmap, pmem2_reserv, addr, size);
 	if (ret)
 		goto err_pmap_free;
 
@@ -153,8 +147,6 @@ pmemset_part_map_new(struct pmemset_part_map **pmap_ptr, size_t size)
 
 err_pmap_free:
 	Free(pmap);
-err_p2rsv_delete:
-	pmem2_vm_reservation_delete(&pmem2_reserv);
 	return ret;
 }
 
@@ -164,73 +156,8 @@ err_p2rsv_delete:
 int
 pmemset_part_map_delete(struct pmemset_part_map **pmap_ptr)
 {
-	struct pmemset_part_map *pmap = *pmap_ptr;
-
-	int ret = pmem2_vm_reservation_delete(&pmap->pmem2_reserv);
-	if (ret)
-		return ret;
-
-	Free(pmap);
+	Free(*pmap_ptr);
 	*pmap_ptr = NULL;
-
-	return 0;
-}
-
-/*
- * pmemset_part_map_extend_end -- extends a part map from the end by a given
- *                                size
- */
-int
-pmemset_part_map_extend_end(struct pmemset_part_map *pmap, size_t size)
-{
-	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
-
-	int ret = pmem2_vm_reservation_extend(pmem2_reserv, size);
-	if (ret)
-		return ret;
-
-	pmap->desc.size = pmem2_vm_reservation_get_size(pmem2_reserv);
-
-	return 0;
-}
-
-/*
- * pmemset_part_map_shrink_end -- shrinks a part map from the end by a given
- *                                size
- */
-int
-pmemset_part_map_shrink_end(struct pmemset_part_map *pmap, size_t size)
-{
-	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
-	size_t rsv_size = pmem2_vm_reservation_get_size(pmem2_reserv);
-
-	size_t shrink_offset = rsv_size - size;
-	int ret = pmem2_vm_reservation_shrink(pmem2_reserv, shrink_offset,
-			size);
-	if (ret)
-		return ret;
-
-	pmap->desc.size = pmem2_vm_reservation_get_size(pmem2_reserv);
-
-	return 0;
-}
-
-/*
- * pmemset_part_map_shrink_start -- shrinks a part map from the start by a given
- *                                  size
- */
-int
-pmemset_part_map_shrink_start(struct pmemset_part_map *pmap, size_t size)
-{
-	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
-
-	int ret = pmem2_vm_reservation_shrink(pmem2_reserv, 0, size);
-	if (ret)
-		return ret;
-
-	pmap->desc.addr = pmem2_vm_reservation_get_address(pmem2_reserv);
-	pmap->desc.size = pmem2_vm_reservation_get_size(pmem2_reserv);
-
 	return 0;
 }
 
@@ -247,6 +174,9 @@ pmemset_part_map_iterate(struct pmemset_part_map *pmap, size_t offset,
 	struct pmem2_vm_reservation *pmem2_rsv = pmap->pmem2_reserv;
 
 	size_t rsv_addr = (size_t)pmem2_vm_reservation_get_address(pmem2_rsv);
+
+	/* offset needs to be relative to the vm reservation */
+	offset += (size_t)pmap->desc.addr - (size_t)rsv_addr;
 	size_t end_offset = offset + size;
 
 	size_t initial_offset = SIZE_MAX;
