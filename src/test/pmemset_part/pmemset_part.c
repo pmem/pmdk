@@ -2346,6 +2346,96 @@ test_pmemset_async_map_remove_multiple_part_maps(const struct test_case *tc,
 }
 
 /*
+ * test_divide_coalesced_remove_obtained_pmaps -- create coalesced mapping
+ * composed of five parts, remove pmemset range two times to divide initial
+ * mapping into three mappings, remove all three mappings
+ */
+static int
+test_divide_coalesced_remove_obtained_pmaps(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_divide_coalesced_remove_obtained_pmaps " \
+				"<path>");
+
+	const char *file = argv[0];
+	struct pmem2_source *pmem2_src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+	struct pmemset_part *part;
+	struct pmemset_part_descriptor desc;
+	struct pmemset_part_map *pmap = NULL;
+	struct pmemset_source *src;
+	size_t part_size = 64 * 1024;
+
+	int fd = OPEN(file, O_RDWR);
+
+	int ret = pmem2_source_from_fd(&pmem2_src, fd);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_source_from_pmem2(&src, pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	pmemset_set_contiguous_part_coalescing(set, PMEMSET_COALESCING_FULL);
+
+	int n_maps = 5;
+	for (int i = 0; i < n_maps; i++) {
+		ret = pmemset_part_new(&part, set, src, 0, part_size);
+		UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+		ret = pmemset_part_map(&part, NULL, NULL);
+		if (ret == PMEMSET_E_CANNOT_COALESCE_PARTS) {
+			pmemset_part_delete(&part);
+			goto err_cleanup;
+		}
+		UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	}
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTne(pmap, NULL);
+	desc = pmemset_descriptor_part_map(pmap);
+	pmemset_part_map_drop(&pmap);
+
+	ret = pmemset_remove_range(set, (char *)desc.addr + part_size,
+			part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_remove_range(set, (char *)desc.addr + 3 * part_size,
+			part_size);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	for (int i = 0; i < 3; i++) {
+		pmemset_first_part_map(set, &pmap);
+		UT_ASSERTne(pmap, NULL);
+
+		pmemset_remove_part_map(set, &pmap);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(pmap, NULL);
+	}
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTeq(pmap, NULL);
+
+err_cleanup:
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmem2_source_delete(&pmem2_src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	CLOSE(fd);
+
+	return 1;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -2381,6 +2471,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_remove_coalesced_two_ranges),
 	TEST_CASE(test_remove_coalesced_middle_range),
 	TEST_CASE(test_pmemset_async_map_remove_multiple_part_maps),
+	TEST_CASE(test_divide_coalesced_remove_obtained_pmaps),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

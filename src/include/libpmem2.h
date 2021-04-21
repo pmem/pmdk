@@ -114,6 +114,14 @@ int pmem2_vm_reservation_shrink(struct pmem2_vm_reservation *rsv, size_t offset,
 int pmem2_vm_reservation_map_find(struct pmem2_vm_reservation *rsv,
 		size_t reserv_offset, size_t len, struct pmem2_map **map);
 
+int pmem2_vm_reservation_map_find_closest_prior(
+		struct pmem2_vm_reservation *rsv, size_t reserv_offset,
+		size_t len, struct pmem2_map **map);
+
+int pmem2_vm_reservation_map_find_closest_later(
+		struct pmem2_vm_reservation *rsv, size_t reserv_offset,
+		size_t len, struct pmem2_map **map);
+
 /* config setup */
 
 struct pmem2_config;

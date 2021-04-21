@@ -259,3 +259,12 @@ class TEST33(PMEMSET_PART_ASYNC):
     test_case = "test_pmemset_async_map_remove_multiple_part_maps"
     threads = 32
     ops_per_thread = 1000
+
+
+class TEST34(PMEMSET_PART):
+    """
+    create coalesced mapping composed of five parts, remove pmemset range two
+    times to divide initial mapping into three mappings, remove all three
+    mappings
+    """
+    test_case = "test_divide_coalesced_remove_obtained_pmaps"
