@@ -10,6 +10,7 @@
 #include <pthread.h>
 #endif
 
+#include "alloc.h"
 #include "config.h"
 #include "fault_injection.h"
 #include "pmem2_utils.h"
@@ -1673,6 +1674,212 @@ test_vm_reserv_two_maps_find(const struct test_case *tc,
 }
 
 /*
+ * test_vm_reserv_closest_prior_map_find - create a reservation with exactly the
+ * size of a 10x file size and map a file to it 5 times leaving equal space
+ * between each mapping, search the reservation for closest prior mapping for
+ * each mapping
+ */
+static int
+test_vm_reserv_closest_prior_map_find(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_closest_prior_map_find "
+			"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	size_t n_maps;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map **map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	n_maps = 5;
+	rsv_size = 2 * 5 * size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(pmem2_vm_reservation_get_address(rsv), NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	map = pmem2_malloc(sizeof(*map) * n_maps, &ret);
+	UT_ASSERTeq(ret, 0);
+
+	for (size_t i = 0; i < n_maps; i++) {
+		pmem2_config_set_vm_reservation(&cfg, rsv, i * 2 * size);
+		ret = pmem2_map_new(&map[i], &cfg, src);
+		UT_PMEM2_EXPECT_RETURN(ret, 0);
+	}
+
+	size_t reserv_offset = (size_t)pmem2_map_get_address(map[n_maps - 1]) -
+			(size_t)pmem2_vm_reservation_get_address(rsv);
+
+	struct pmem2_map *fmap;
+	for (int i = (int)n_maps - 2; i >= 0; i--) {
+		/* search for the closest mapping prior to the last one */
+		ret = pmem2_vm_reservation_map_find_closest_prior(rsv,
+				reserv_offset, size, &fmap);
+		UT_PMEM2_EXPECT_RETURN(ret, 0);
+		UT_ASSERTeq(pmem2_map_get_address(fmap),
+				pmem2_map_get_address(map[i]));
+
+		reserv_offset -= 2 * size;
+	}
+
+	for (int i = 0; i < n_maps; i++) {
+		ret = pmem2_map_delete(&map[i]);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(map[i], NULL);
+	}
+	Free(map);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_closest_later_map_find - create a reservation with exactly the
+ * size of a 10x file size and map a file to it 5 times leaving equal space
+ * between each mapping, search the reservation for closest later mapping for
+ * each mapping
+ */
+static int
+test_vm_reserv_closest_later_map_find(const struct test_case *tc,
+		int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL("usage: test_vm_reserv_closest_later_map_find "
+			"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	size_t n_maps;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map **map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	n_maps = 5;
+	rsv_size = 2 * 5 * size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(pmem2_vm_reservation_get_address(rsv), NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	map = pmem2_malloc(sizeof(*map) * n_maps, &ret);
+	UT_ASSERTeq(ret, 0);
+
+	for (size_t i = 0; i < n_maps; i++) {
+		pmem2_config_set_vm_reservation(&cfg, rsv, i * 2 * size);
+		ret = pmem2_map_new(&map[i], &cfg, src);
+		UT_PMEM2_EXPECT_RETURN(ret, 0);
+	}
+
+	size_t reserv_offset = 0;
+
+	struct pmem2_map *fmap;
+	for (int i = 1; i < n_maps; i++) {
+		/* search for the closest mapping prior to the last one */
+		ret = pmem2_vm_reservation_map_find_closest_later(rsv,
+				reserv_offset, size, &fmap);
+		UT_PMEM2_EXPECT_RETURN(ret, 0);
+		UT_ASSERTeq(pmem2_map_get_address(fmap),
+				pmem2_map_get_address(map[i]));
+
+		reserv_offset += 2 * size;
+	}
+
+	for (int i = 0; i < n_maps; i++) {
+		ret = pmem2_map_delete(&map[i]);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(map[i], NULL);
+	}
+	Free(map);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
+ * test_vm_reserv_closest_not_existing_prior_later_map_find - create a
+ * reservation with exactly the size of 3 file sizes, map first mapping in the
+ * middle and search for the prior and later possible mappings
+ */
+static int
+test_vm_reserv_closest_not_existing_prior_later_map_find(
+		const struct test_case *tc, int argc, char *argv[])
+{
+	if (argc < 2)
+		UT_FATAL(
+				"usage: test_vm_reserv_closest_not_existing_prior_later_map_find "
+				"<file> <size>");
+
+	char *file = argv[0];
+	size_t size = ATOUL(argv[1]);
+	size_t rsv_size;
+	struct FHandle *fh;
+	struct pmem2_config cfg;
+	struct pmem2_map *map;
+	struct pmem2_vm_reservation *rsv;
+	struct pmem2_source *src;
+
+	rsv_size = 3 * size;
+
+	int ret = pmem2_vm_reservation_new(&rsv, NULL, rsv_size);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTne(pmem2_vm_reservation_get_address(rsv), NULL);
+	UT_ASSERTeq(pmem2_vm_reservation_get_size(rsv), rsv_size);
+
+	ut_pmem2_prepare_config(&cfg, &src, &fh, FH_FD, file, 0, 0, FH_RDWR);
+
+	pmem2_config_set_vm_reservation(&cfg, rsv, size);
+	ret = pmem2_map_new(&map, &cfg, src);
+	UT_PMEM2_EXPECT_RETURN(ret, 0);
+
+	struct pmem2_map *fmap;
+	/* search for the closest mapping prior to the one in the middle */
+	ret = pmem2_vm_reservation_map_find_closest_prior(rsv, size, size,
+			&fmap);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAPPING_NOT_FOUND);
+	UT_ASSERTeq(fmap, NULL);
+
+	/* search for the closest mapping later than the one in the middle */
+	ret = pmem2_vm_reservation_map_find_closest_later(rsv, size, size,
+			&fmap);
+	UT_PMEM2_EXPECT_RETURN(ret, PMEM2_E_MAPPING_NOT_FOUND);
+	UT_ASSERTeq(fmap, NULL);
+
+	ret = pmem2_map_delete(&map);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(map, NULL);
+
+	ret = pmem2_vm_reservation_delete(&rsv);
+	UT_ASSERTeq(ret, 0);
+	PMEM2_SOURCE_DELETE(&src);
+	UT_FH_CLOSE(fh);
+
+	return 2;
+}
+
+/*
  * test_cases -- available test cases
  */
 static struct test_case test_cases[] = {
@@ -1705,6 +1912,9 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_vm_reserv_occupied_region_shrink),
 	TEST_CASE(test_vm_reserv_one_map_find),
 	TEST_CASE(test_vm_reserv_two_maps_find),
+	TEST_CASE(test_vm_reserv_closest_prior_map_find),
+	TEST_CASE(test_vm_reserv_closest_later_map_find),
+	TEST_CASE(test_vm_reserv_closest_not_existing_prior_later_map_find),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))
