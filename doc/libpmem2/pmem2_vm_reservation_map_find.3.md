@@ -32,6 +32,14 @@ memory reservation
 struct pmem2_vm_reservation;
 int pmem2_vm_reservation_map_find(struct pmem2_vm_reservation *rsv,
 		size_t reserv_offset, size_t len, struct pmem2_map **map);
+
+int pmem2_vm_reservation_map_find_closest_prior(
+		struct pmem2_vm_reservation *rsv, size_t reserv_offset,
+		size_t len, struct pmem2_map **map);
+
+int pmem2_vm_reservation_map_find_closest_later(
+		struct pmem2_vm_reservation *rsv, size_t reserv_offset,
+		size_t len, struct pmem2_map **map);
 ```
 
 # DESCRIPTION #
@@ -40,18 +48,26 @@ The **pmem2_vm_reservation_map_find**() function searches for the earliest mappi
 stored in the virtual memory reservation, intersecting with the interval designated
 by *reserv_offset* and *len* variables.
 
+**pmem2_vm_reservation_map_find_closest_prior**() function searches for the closest
+mapping located in the virtual memory reservation prior to the provided interval.
+
+**pmem2_vm_reservation_map_find_closest_later**() function searches for the closest
+mapping located in the virtual memory reservation later than the provided interval.
+
 # RETURN VALUE #
 
-The **pmem2_vm_reservation_map_find**() returns 0 on success or a negative error on failure.
+The **pmem2_vm_reservation_map_find**(), **pmem2_vm_reservation_map_find_closest_prior**()
+and **pmem2_vm_reservation_map_find_closest_later**()  return 0 on success or a negative error on failure.
 
 It passes an address to the found mapping via user provided *map* pointer variable
 on success, otherwise it passes *NULL* value when no mapping was found.
 
 # ERRORS #
 
-**pmem2_vm_reservation_map_find**() can fail with the following errors:
+**pmem2_vm_reservation_map_find**(), **pmem2_vm_reservation_map_find_closest_prior**()
+and **pmem2_vm_reservation_map_find_closest_later**() can fail with the following errors:
 
-- **PMEM2_E_MAPPING_NOT_FOUND** - no mapping found in the region of the vm reservation
+- **PMEM2_E_MAPPING_NOT_FOUND** - no mapping found at the region of the vm reservation
 specified by *reserv_offset* and *len* variables.
 
 # SEE ALSO #

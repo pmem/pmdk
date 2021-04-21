@@ -34,6 +34,10 @@ struct pmemset *pmemset_part_get_pmemset(struct pmemset_part *part);
 
 int pmemset_part_map_new(struct pmemset_part_map **pmap_ptr, size_t size);
 
+int pmemset_part_map_from_existing(struct pmemset_part_map **pmap_ptr,
+		struct pmem2_vm_reservation *pmem2_reserv, size_t offset,
+		size_t size);
+
 int pmemset_part_map_delete(struct pmemset_part_map **pmap_ptr);
 
 int pmemset_part_map_extend_end(struct pmemset_part_map *pmap, size_t size);

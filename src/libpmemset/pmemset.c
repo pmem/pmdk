@@ -744,6 +744,21 @@ pmemset_remove_part_map_range_cb(struct pmemset *set,
 	} else if (true_rm_offset + true_rm_size == pmap_size) {
 		ret = pmemset_part_map_shrink_end(pmap, true_rm_size);
 		ASSERTeq(ret, 0);
+	} else {
+		size_t new_pmap_offset = true_rm_offset + true_rm_size;
+		size_t new_pmap_size = pmap_size - new_pmap_offset;
+
+		struct pmemset_part_map *new_pmap;
+		/* part map was severed into two part maps */
+		ret = pmemset_part_map_from_existing(&new_pmap,
+				pmap->pmem2_reserv, new_pmap_offset,
+				new_pmap_size);
+		if (ret)
+			return ret;
+
+		pmemset_insert_part_map(set, new_pmap);
+
+		pmap->desc.size = pmap_size - new_pmap_size;
 	}
 
 	return 0;
