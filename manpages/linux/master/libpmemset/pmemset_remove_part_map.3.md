@@ -37,8 +37,10 @@ int pmemset_remove_part_map(struct pmemset *set,
 # DESCRIPTION #
 
 The **pmemset_remove_part_map**() function removes provided part mapping from the pmemset.
-The mapping to be removed can be retrieved using **pmemset_first_part_map**(3),
-**pmemset_next_part_map**(3) and **pmemset_part_map_by_address**(3) functions.
+Mapping to be removed can be retrieved using either **pmemset_first_part_map**(3),
+**pmemset_next_part_map**(3) or **pmemset_part_map_by_address**(3) functions. Provided part
+mapping can't be referenced more than once for this function to succeed. Reference to the
+previously retrieved part mapping can be dropped using **pmemset_part_map_drop**(3) function.
 
 Note that a retrieved part mapping could be coalesced from multiple parts
 therefore removing it also removes each part making up this part mapping.
@@ -63,5 +65,5 @@ The **pmemset_remove_part_map**() can fail with the following errors:
 
 **pmemset_first_part_map**(3), **pmemset_next_part_map**(3),
 **pmemset_part_map**(3), **pmemset_part_map_by_address**(3),
-**pmemset_set_contiguous_part_coalescing**(3),
+**pmemset_part_map_drop**(3) **pmemset_set_contiguous_part_coalescing**(3),
 **libpmemset**(7) and **<http://pmem.io>**
