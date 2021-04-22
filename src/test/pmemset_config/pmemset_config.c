@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * pmemset_config.c -- pmemset_config unittests
@@ -119,6 +119,44 @@ test_set_invalid_granularity(const struct test_case *tc, int argc,
 	return 0;
 }
 
+#define SET_PTR ((struct pmemset *)0xFFBADFF)
+#define CTX_PTR ((struct pmemset_event_context *)0xFFBADBAD)
+#define ARG_PTR ((void *)0xBADBADBAD)
+static int
+callback(struct pmemset *set, struct pmemset_event_context *ctx, void *arg)
+{
+
+	static int Counter;
+	UT_ASSERTeq(arg, ARG_PTR);
+	UT_ASSERTeq(set, SET_PTR);
+	UT_ASSERTeq(ctx, CTX_PTR);
+	return ++Counter;
+
+}
+/*
+ * test_config_set_event - test seting events
+ */
+static int
+test_config_set_event(const struct test_case *tc, int argc,
+	char *argv[]) {
+
+	struct pmemset_config *cfg;
+
+	int ret = pmemset_config_new(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	UT_ASSERTne(cfg, NULL);
+
+	ret = pmemset_config_event_callback(cfg, SET_PTR, CTX_PTR);
+	UT_ASSERTeq(ret, 0);
+
+	pmemset_config_set_event_callback(cfg, &callback, ARG_PTR);
+
+	ret = pmemset_config_event_callback(cfg, SET_PTR, CTX_PTR);
+	UT_ASSERTeq(ret, 1);
+	return 0;
+
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -128,6 +166,7 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_delete_null_config),
 	TEST_CASE(test_duplicate_cfg_enomem),
 	TEST_CASE(test_set_invalid_granularity),
+	TEST_CASE(test_config_set_event),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

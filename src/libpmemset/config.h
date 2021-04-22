@@ -8,7 +8,7 @@
 #define PMEMSET_CONFIG_H
 
 #include <stdbool.h>
-
+#include "libpmemset.h"
 struct pmemset_config;
 
 void pmemset_config_init(struct pmemset_config *cfg);
@@ -22,4 +22,8 @@ void pmemset_config_set_contiguous_part_coalescing(
 		struct pmemset_config *cfg, bool value);
 bool pmemset_config_get_contiguous_part_coalescing(
 		struct pmemset_config *cfg);
+
+int
+pmemset_config_event_callback(struct pmemset_config *cfg,
+	struct pmemset *set, struct pmemset_event_context *ctx);
 #endif /* PMEMSET_CONFIG_H */
