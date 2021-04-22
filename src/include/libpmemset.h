@@ -91,6 +91,81 @@ struct pmemset_extras {
 	struct pmemset_part_shutdown_state_data *sds_out;
 	enum pmemset_part_state *state;
 };
+enum pmemset_event {
+	PMEMSET_EVENT_COPY,
+	PMEMSET_EVENT_FLUSH,
+	PMEMSET_EVENT_DRAIN,
+	PMEMSET_EVENT_PERSIST,
+	PMEMSET_EVENT_BAD_BLOCK,
+	PMEMSET_EVENT_PART_ADD,
+	PMEMSET_EVENT_PART_REMOVE,
+};
+
+struct pmemset_event_copy {
+	void *addr;
+	size_t len;
+};
+
+struct pmemset_event_flush {
+	void *addr;
+	size_t len;
+};
+
+struct pmemset_event_drain {
+	char stub;
+};
+
+struct pmemset_event_persist {
+	void *addr;
+	size_t len;
+};
+
+struct pmemset_event_bad_block {
+	void *addr;
+	size_t len;
+};
+
+struct pmemset_event_part_remove {
+	void *addr;
+	size_t len;
+	struct pmemset_source *src;
+};
+
+struct pmemset_event_part_add {
+	void *addr;
+	size_t len;
+	struct pmemset_source *src;
+};
+#define PMEMSET_EVENT_CONTEXT_SIZE (64)
+
+struct pmemset_event_context {
+	enum pmemset_event type;
+	union {
+		char _data[PMEMSET_EVENT_CONTEXT_SIZE];
+		struct pmemset_event_copy copy;
+		struct pmemset_event_flush flush;
+		struct pmemset_event_drain drain;
+		struct pmemset_event_persist persist;
+		struct pmemset_event_bad_block bad_block;
+		struct pmemset_event_part_remove part_remove;
+		struct pmemset_event_part_add part_add;
+	} data;
+};
+
+/*
+ * This callback can be used to create a copy of the data or directly
+ * replicate it somewhere. This is *not* an append-only log, nor is the
+ * data versioned in any way. Once the function exits, the memory range
+ * can no longer be accessed.
+ * There's no guarantee that accessing the data inside of the callback
+ * is thread-safe. The library user must guarantee this by not
+ * having multiple threads mutating the same region on the set.
+ */
+typedef int pmemset_event_callback(struct pmemset *set,
+	struct pmemset_event_context *ctx, void *arg);
+
+void pmemset_config_set_event_callback(struct pmemset_config *config,
+	pmemset_event_callback *callback, void *arg);
 
 int pmemset_new(struct pmemset **set, struct pmemset_config *cfg);
 
@@ -158,21 +233,11 @@ void *pmemset_memset(struct pmemset *set, void *pmemdest, int c, size_t len,
 
 int pmemset_deep_flush(struct pmemset *set, void *ptr, size_t size);
 
-/* event setup */
-
-struct pmemset_event_context;
-
-typedef int pmemset_event_callback(struct pmemset *set,
-		struct pmemset_event_context *context, void *arg);
-
 /* config setup */
 
 int pmemset_config_new(struct pmemset_config **cfg);
 
 int pmemset_config_delete(struct pmemset_config **cfg);
-
-int pmemset_config_set_event_callback(struct pmemset_config *cfg,
-		pmemset_event_callback *callback, void *arg);
 
 int pmemset_config_set_reservation(struct pmemset_config *cfg,
 		struct pmem2_vm_reservation *rsv);
