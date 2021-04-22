@@ -10,7 +10,6 @@
 
 #include "alloc.h"
 #include "config.h"
-#include "event.h"
 #include "out.h"
 #include "pmemset_utils.h"
 
@@ -21,6 +20,8 @@ struct pmemset_config {
 	bool set_granularity_valid;
 	enum pmem2_granularity set_granularity;
 	bool part_coalescing;
+	pmemset_event_callback *callback;
+	void *arg;
 };
 
 /*
@@ -31,6 +32,8 @@ pmemset_config_init(struct pmemset_config *cfg)
 {
 	cfg->set_granularity_valid = false;
 	cfg->part_coalescing = false;
+	cfg->callback = NULL;
+	cfg->arg = NULL;
 }
 
 /*
@@ -75,13 +78,27 @@ pmemset_config_new(struct pmemset_config **cfg)
 }
 
 /*
- * pmemset_config_set_event_callback -- not supported
+ * pmemset_config_set_event_callback -- set an callback in the config
  */
-int
+void
 pmemset_config_set_event_callback(struct pmemset_config *cfg,
 		pmemset_event_callback *callback, void *arg)
 {
-	return PMEMSET_E_NOSUPP;
+	cfg->callback = callback;
+	cfg->arg = arg;
+}
+
+/*
+ * pmemset_config_event_callback -- call user provided callback
+ */
+int
+pmemset_config_event_callback(struct pmemset_config *cfg,
+	struct pmemset *set, struct pmemset_event_context *ctx)
+{
+	if (!cfg->callback)
+		return 0;
+
+	return cfg->callback(set, ctx, cfg->arg);
 }
 
 /*

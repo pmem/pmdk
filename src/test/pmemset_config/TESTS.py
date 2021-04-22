@@ -1,6 +1,6 @@
 #!../envy
 # SPDX-License-Identifier: BSD-3-Clause
-# Copyright 2020, Intel Corporation
+# Copyright 2020-2021, Intel Corporation
 #
 
 
@@ -40,3 +40,8 @@ class TEST3(PmemSetConfigNoDir):
 class TEST4(PmemSetConfigNoDir):
     """pmemset_config invalid store granularity"""
     test_case = "test_set_invalid_granularity"
+
+
+class TEST5(PmemSetConfigNoDir):
+    """pmemset_config tests events"""
+    test_case = "test_config_set_event"
