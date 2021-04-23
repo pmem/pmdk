@@ -5,8 +5,10 @@
  * file_posix.c -- Posix versions of file APIs
  */
 
+#ifndef __FreeBSD__
 /* for O_TMPFILE */
 #define _GNU_SOURCE
+#endif
 
 #include <errno.h>
 #include <signal.h>

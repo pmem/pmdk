@@ -5,7 +5,7 @@
  * lane.c -- lane implementation
  */
 
-#ifndef _GNU_SOURCE
+#if !defined(_GNU_SOURCE) && !defined(__FreeBSD__)
 #define _GNU_SOURCE
 #endif
 

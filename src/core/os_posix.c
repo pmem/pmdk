@@ -5,7 +5,9 @@
  * os_posix.c -- abstraction layer for basic Posix functions
  */
 
+#ifndef __FreeBSD__
 #define _GNU_SOURCE
+#endif
 
 #include <fcntl.h>
 #include <stdarg.h>

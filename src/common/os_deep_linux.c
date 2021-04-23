@@ -5,7 +5,9 @@
  * os_deep_linux.c -- Linux abstraction layer
  */
 
+#ifndef __FreeBSD__
 #define _GNU_SOURCE
+#endif
 
 #include <inttypes.h>
 #include <fcntl.h>
