@@ -36,7 +36,7 @@
  * set.c -- pool set utilities
  */
 
-#ifndef _GNU_SOURCE
+#if !defined(_GNU_SOURCE) && !defined(__FreeBSD__)
 #define _GNU_SOURCE
 #endif
 

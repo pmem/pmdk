@@ -4,7 +4,9 @@
 /*
  * set_badblocks.c - common part of implementation of bad blocks API
  */
+#ifndef __FreeBSD__
 #define _GNU_SOURCE
+#endif
 
 #include <fcntl.h>
 #include <inttypes.h>
