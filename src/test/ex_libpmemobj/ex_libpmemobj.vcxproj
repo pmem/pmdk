@@ -58,9 +58,6 @@
     <None Include="TEST9.PS1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\examples\libpmemobj\array\array.vcxproj">
-      <Project>{7264c8f6-73fb-4830-9306-1558d3eac71b}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\examples\libpmemobj\btree.vcxproj">
       <Project>{0fb8f0fd-276c-413b-97a8-67abe0c9043b}</Project>
     </ProjectReference>
