@@ -861,6 +861,14 @@ ut_start_common(const char *file, int line, const char *func,
 	 */
 	char buff[1000];
 	util_strwinerror(1, buff, 1000);
+
+	/*
+	 * It creates KsecDD file before recording open files.
+	 * This prevents inconsistencies in the list of open
+	 * files after the test.
+	 */
+	unsigned rnd;
+	os_rand_r(&rnd);
 #elif __FreeBSD__
 	/* XXX Record the fd that will be leaked by uuid_generate */
 	uuid_t u;
