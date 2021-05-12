@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -44,7 +44,6 @@
   <ItemGroup>
     <ClInclude Include="..\include\libpmemset.h" />
     <ClInclude Include="config.h" />
-    <ClInclude Include="event.h" />
     <ClInclude Include="file.h" />
     <ClInclude Include="part.h" />
     <ClInclude Include="pmemset.h" />
