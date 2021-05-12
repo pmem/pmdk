@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright 2021, Intel Corporation
+
+#
+# src/test/obj_ctl_arenas/TEST9 -- test for global arena type assignment
+#
+
+. ../unittest/unittest.sh
+
+require_test_type short
+require_fs_type any
+
+setup
+
+PMEMOBJ_CONF="heap.arenas_assignment_type=thread"\
+    expect_normal_exit ./obj_ctl_arenas$EXESUFFIX $DIR/testset1 d
+
+pass

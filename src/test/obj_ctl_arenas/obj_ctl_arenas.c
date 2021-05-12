@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2019-2020, Intel Corporation */
+/* Copyright 2019-2021, Intel Corporation */
 
 /*
  * obj_ctl_arenas.c -- tests for the ctl entry points
@@ -19,10 +19,20 @@
  * obj_ctl_arenas <file> q - test for POBJ_ARENA_ID with
  * non-exists arena id
  *
- * obj_ctl_arenas <file> m - test for heap.narenas.max (RW)
+ * obj_ctl_arenas <file> q - test for programmatic change of
+ *	heap.arenas_assignment_type (RW)
+ *
+ * obj_ctl_arenas <file> p - test for config change of
+ *	heap.arenas_assignment_type for global type (RW)
+ *
+ * obj_ctl_arenas <file> d - test for config change of
+ *	heap.arenas_assignment_type for thread key type (RW)
  */
 
 #include <sched.h>
+#include "libpmemobj/atomic_base.h"
+#include "libpmemobj/ctl.h"
+#include "os_thread.h"
 #include "sys_util.h"
 #include "unittest.h"
 #include "util.h"
@@ -238,22 +248,54 @@ worker_arena_ref_obj(struct arena_alloc *ref)
 	UT_ASSERTeq(ret, 0);
 }
 
+#define MAX_KEYS 1024
+
 int
 main(int argc, char *argv[])
 {
 	START(argc, argv, "obj_ctl_arenas");
 
 	if (argc != 3)
-		UT_FATAL("usage: %s poolset [n|s|c|f|q|m|a]", argv[0]);
+		UT_FATAL("usage: %s poolset [n|s|c|f|q|m|a|g|p|d]", argv[0]);
 
 	const char *path = argv[1];
 	char t = argv[2][0];
 
+	int ret = 0;
+
+	int keys_created = 0;
+	if (t == 'g') {
+		os_tls_key_t *keys = MALLOC(sizeof(os_tls_key_t) * MAX_KEYS);
+		int i;
+		for (i = 0; i < MAX_KEYS; ++i) {
+			if (os_tls_key_create(&keys[i], NULL) != 0)
+				break;
+		}
+		keys_created = i;
+
+		for (i = 0; i < keys_created; ++i) {
+			os_tls_key_delete(keys[i]);
+		}
+
+		FREE(keys);
+
+		enum pobj_arenas_assignment_type atype;
+
+		ret = pmemobj_ctl_get(pop,
+			"heap.arenas_assignment_type", &atype);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(atype, POBJ_ARENAS_ASSIGNMENT_THREAD_KEY);
+
+		atype = POBJ_ARENAS_ASSIGNMENT_GLOBAL;
+
+		ret = pmemobj_ctl_set(NULL,
+			"heap.arenas_assignment_type", &atype);
+		UT_ASSERTeq(ret, 0);
+	}
+
 	if ((pop = pmemobj_create(path, LAYOUT, PMEMOBJ_MIN_POOL * 20,
 		S_IWUSR | S_IRUSR)) == NULL)
-		UT_FATAL("!pmemobj_open: %s", path);
-
-	int ret = 0;
+		UT_FATAL("!pmemobj_create: %s", path);
 
 	if (t == 'n') {
 		unsigned narenas = 0;
@@ -448,6 +490,45 @@ main(int argc, char *argv[])
 		ret = pmemobj_ctl_get(pop, "heap.narenas.max", &max);
 		UT_ASSERTeq(ret, 0);
 		UT_ASSERTeq(DEFAULT_ARENAS_MAX + 1, max);
+	} else if (t == 'g') {
+		enum pobj_arenas_assignment_type atype;
+		ret = pmemobj_ctl_get(pop,
+			"heap.arenas_assignment_type", &atype);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(atype, POBJ_ARENAS_ASSIGNMENT_GLOBAL);
+
+		/* verify that we can actually allocate something */
+		ret = pmemobj_alloc(pop, NULL, 1, 0, NULL, NULL);
+		UT_ASSERTeq(ret, 0);
+
+		/* tests if any tls keys were used up during pool creation */
+		os_tls_key_t *keys = MALLOC(sizeof(os_tls_key_t) * MAX_KEYS);
+		int i;
+		for (i = 0; i < MAX_KEYS; ++i) {
+			if (os_tls_key_create(&keys[i], NULL) != 0)
+				break;
+		}
+		int keys_created_second = i;
+
+		UT_ASSERTeq(keys_created, keys_created_second);
+
+		for (i = 0; i < keys_created_second; ++i) {
+			os_tls_key_delete(keys[i]);
+		}
+
+		FREE(keys);
+	} else if (t == 'p') {
+		enum pobj_arenas_assignment_type atype;
+		ret = pmemobj_ctl_get(pop,
+			"heap.arenas_assignment_type", &atype);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(atype, POBJ_ARENAS_ASSIGNMENT_GLOBAL);
+	} else if (t == 'd') {
+		enum pobj_arenas_assignment_type atype;
+		ret = pmemobj_ctl_get(pop,
+			"heap.arenas_assignment_type", &atype);
+		UT_ASSERTeq(ret, 0);
+		UT_ASSERTeq(atype, POBJ_ARENAS_ASSIGNMENT_THREAD_KEY);
 	} else {
 		UT_ASSERT(0);
 	}

@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * heap.h -- internal definitions for heap
@@ -20,6 +20,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+extern enum pobj_arenas_assignment_type Default_arenas_assignment_type;
 
 #define HEAP_OFF_TO_PTR(heap, off) ((void *)((char *)((heap)->base) + (off)))
 #define HEAP_PTR_TO_OFF(heap, ptr)\

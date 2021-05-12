@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * pmalloc.h -- internal definitions for persistent malloc
@@ -39,6 +39,8 @@ struct operation_context *pmalloc_operation_hold_no_start(PMEMobjpool *pop);
 void pmalloc_operation_release(PMEMobjpool *pop);
 
 void pmalloc_ctl_register(PMEMobjpool *pop);
+
+void pmalloc_global_ctl_register(void);
 
 int pmalloc_cleanup(PMEMobjpool *pop);
 int pmalloc_boot(PMEMobjpool *pop);
