@@ -8,7 +8,7 @@ date: pmemobj API version 2.3
 ...
 
 [comment]: <> (SPDX-License-Identifier: BSD-3-Clause
-[comment]: <> (Copyright 2017-2020, Intel Corporation)
+[comment]: <> (Copyright 2017-2021, Intel Corporation)
 
 [comment]: <> (pmemobj_ctl_get.3 -- man page for libpmemobj CTL)
 
@@ -190,6 +190,25 @@ If set, the arena is used in automatic scheduling of memory operations for threa
 This should be set to false if the application wants to manually manage allocator
 scalability through explicitly assigning arenas to threads by using heap.thread.arena_id.
 The arena id cannot be 0 and at least one automatic arena must exist.
+
+heap.arenas_assignment_type | rw | global | `enum pobj_arenas_assignment_type` | `enum pobj_arenas_assignment_type` | - | string
+
+Reads or modifies the behavior of arenas assignment for threads. By default,
+each thread is assigned its own arena from the pool of automatic arenas
+(described earlier). This consumes one TLS key from the OS for every open
+pool. Applications that wish to avoid this behavior can instead rely on one
+global arena assignment per pool. This might limits scalability if not using
+arenas explicitly.
+
+The argument for this CTL is an enum with the following types:
+
+ - **POBJ_ARENAS_ASSIGNMENT_THREAD_KEY**, string value: `thread`.
+	Default, threads use individually assigned arenas.
+ - **POBJ_ARENAS_ASSIGNMENT_GLOBAL**, string value: `global`.
+	Threads use one global arena.
+
+Changing this value has no impact on already open pools. It should typically be
+set at the beginning of the application, before any pools are opened or created.
 
 heap.alloc_class.[class_id].desc | rw | - | `struct pobj_alloc_class_desc` |
 `struct pobj_alloc_class_desc` | - | integer, integer, integer, string
