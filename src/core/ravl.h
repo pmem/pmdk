@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2021, Intel Corporation */
 
 /*
  * ravl.h -- internal definitions for ravl tree
@@ -45,6 +45,7 @@ int ravl_emplace_copy(struct ravl *ravl, const void *data);
 struct ravl_node *ravl_find(struct ravl *ravl, const void *data,
 	enum ravl_predicate predicate_flags);
 struct ravl_node *ravl_first(struct ravl *ravl);
+struct ravl_node *ravl_last(struct ravl *ravl);
 void *ravl_data(struct ravl_node *node);
 void ravl_remove(struct ravl *ravl, struct ravl_node *node);
 
