@@ -335,13 +335,15 @@ thread_consumer(void *arg)
 	struct thread_args *targs = arg;
 	struct ringbuf *rbuf = targs->rbuf;
 	uint64_t entry_size = ringbuf_entry_size(rbuf);
-	char *dst = alloca(entry_size);
+	char *dst = malloc(entry_size);
 
 	for (int i = 0; i < targs->nops; ++i) {
 		/* busy loop is intentional, avoids coordination overhead */
 		while (ringbuf_dequeue(rbuf, dst) != 0)
 			;
 	}
+
+	free(dst);
 
 	return NULL;
 }
@@ -358,7 +360,7 @@ thread_producer(void *arg)
 	struct thread_args *targs = arg;
 	struct ringbuf *rbuf = targs->rbuf;
 	uint64_t entry_size = ringbuf_entry_size(rbuf);
-	char *src = alloca(entry_size);
+	char *src = malloc(entry_size);
 	memset(src, 0xc, entry_size);
 
 	for (int i = 0; i < targs->nops; ++i) {
@@ -366,6 +368,8 @@ thread_producer(void *arg)
 		while (ringbuf_enqueue(rbuf, src) != 0)
 			;
 	}
+
+	free(src);
 
 	return NULL;
 }
@@ -395,8 +399,9 @@ main(int argc, const char *argv[])
 	}
 
 	size_t entry_size = atoll(argv[2]);
-	if (entry_size == 0) {
-		fprintf(stderr, "invalid entry size\n");
+	if (entry_size == 0 || entry_size > (2 << 20)) {
+		fprintf(stderr,
+			"invalid entry size, must be between 0 and 2MB\n");
 		exit(1);
 	}
 
@@ -413,11 +418,13 @@ main(int argc, const char *argv[])
 
 	if (pmem2_source_from_fd(&src, fd)) {
 		pmem2_perror("pmem2_source_from_fd");
+		close(fd);
 		exit(1);
 	}
 
 	struct ringbuf *rbuf = ringbuf_new(src, entry_size);
 	if (rbuf == NULL) {
+		close(fd);
 		exit(1);
 	}
 
@@ -445,7 +452,7 @@ main(int argc, const char *argv[])
 	float time = helper_time_delta_sec(&start, &end);
 	printf("Time elapsed: %f seconds\n", time);
 	printf("Bandwidth: %f megabytes per second\n",
-		(((args.nops * 2) * entry_size) / time) / 1024 / 1024);
+		(((nops * 2) * entry_size) / time) / 1024 / 1024);
 
 	pmem2_source_delete(&src);
 	close(fd);
