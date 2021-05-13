@@ -296,6 +296,7 @@ pmemset_set_persisting_fn(struct pmemset *set, struct pmemset_part_map *pmap)
 	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
 	size_t pmem2_reserv_size = pmem2_vm_reservation_get_size(pmem2_reserv);
 	pmem2_vm_reservation_map_find(pmem2_reserv, 0, pmem2_reserv_size, &p2m);
+	ASSERTne(p2m, NULL);
 
 	/* should be set only once per pmemset */
 	if (!set->persist_fn)
