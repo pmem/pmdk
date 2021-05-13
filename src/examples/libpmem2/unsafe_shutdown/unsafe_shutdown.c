@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * unsafe_shutdown.c -- unsafe shutdown example for the libpmem2
@@ -631,6 +631,7 @@ main(int argc, char *argv[])
 
 	struct pool *pool = pool_new(fd);
 	if (pool == NULL) {
+		close(fd);
 		fprintf(stderr, "unable open a pool from %s", file);
 		return 1;
 	}
