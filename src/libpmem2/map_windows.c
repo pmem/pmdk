@@ -101,13 +101,6 @@ is_direct_access(HANDLE fh)
 	return 0;
 }
 
-struct pmem2_map *vm_reservation_map_find_closest_prior(
-		struct pmem2_vm_reservation *rsv,
-		size_t reserv_offset, size_t len);
-struct pmem2_map *vm_reservation_map_find_closest_later(
-		struct pmem2_vm_reservation *rsv,
-		size_t reserv_offset, size_t len);
-
 /*
  * vm_reservation_unmap -- unmaps given region of the reservation,
  *                         preserves the placeholder

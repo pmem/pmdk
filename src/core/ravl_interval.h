@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2020, Intel Corporation */
+/* Copyright 2020-2021, Intel Corporation */
 
 /*
  * ravl_interval.h -- internal definitions for ravl_interval
@@ -28,12 +28,11 @@ struct ravl_interval_node *ravl_interval_find_equal(struct ravl_interval *ri,
 		void *addr);
 struct ravl_interval_node *ravl_interval_find(struct ravl_interval *ri,
 		void *addr);
-struct ravl_interval_node *ravl_interval_find_closest_prior(
-	struct ravl_interval *ri, void *addr);
-struct ravl_interval_node *ravl_interval_find_closest_later(
-		struct ravl_interval *ri, void *addr);
 struct ravl_interval_node *ravl_interval_find_first(struct ravl_interval *ri);
+struct ravl_interval_node *ravl_interval_find_last(struct ravl_interval *ri);
 struct ravl_interval_node *ravl_interval_find_next(struct ravl_interval *ri,
+		void *addr);
+struct ravl_interval_node *ravl_interval_find_prev(struct ravl_interval *ri,
 		void *addr);
 void *ravl_interval_data(struct ravl_interval_node *rin);
 #endif
