@@ -16,12 +16,6 @@
 int vm_reservation_reserve_memory(void *addr, size_t size, void **raddr,
 		size_t *rsize);
 int vm_reservation_release_memory(void *addr, size_t size);
-struct pmem2_map *vm_reservation_map_find_closest_prior(
-		struct pmem2_vm_reservation *rsv,
-		size_t reserv_offset, size_t len);
-struct pmem2_map *vm_reservation_map_find_closest_later(
-		struct pmem2_vm_reservation *rsv,
-		size_t reserv_offset, size_t len);
 struct ravl_interval *vm_reservation_get_interval_tree(
 		struct pmem2_vm_reservation *rsv);
 
@@ -73,53 +67,6 @@ vm_reservation_release_memory(void *addr, size_t size)
 }
 
 /*
- * vm_reservation_map_find_closest_prior -- find closest mapping neighbor
- *                                          prior to the provided mapping
- */
-struct pmem2_map *
-vm_reservation_map_find_closest_prior(struct pmem2_vm_reservation *rsv,
-		size_t reserv_offset, size_t len)
-{
-	struct pmem2_map map;
-
-	map.addr = (char *)pmem2_vm_reservation_get_address(rsv) +
-			reserv_offset;
-	map.content_length = len;
-
-	struct ravl_interval_node *node;
-	struct ravl_interval *itree = vm_reservation_get_interval_tree(rsv);
-	node = ravl_interval_find_closest_prior(itree, &map);
-
-	if (!node)
-		return NULL;
-
-	return (struct pmem2_map *)ravl_interval_data(node);
-}
-
-/*
- * vm_reservation_map_find_closest_later -- find closest mapping neighbor later
- *                                          than the mapping provided
- */
-struct pmem2_map *
-vm_reservation_map_find_closest_later(struct pmem2_vm_reservation *rsv,
-		size_t reserv_offset, size_t len)
-{
-	struct pmem2_map map;
-	map.addr = (char *)pmem2_vm_reservation_get_address(rsv) +
-			reserv_offset;
-	map.content_length = len;
-
-	struct ravl_interval_node *node;
-	struct ravl_interval *itree = vm_reservation_get_interval_tree(rsv);
-	node = ravl_interval_find_closest_later(itree, &map);
-
-	if (!node)
-		return NULL;
-
-	return (struct pmem2_map *)ravl_interval_data(node);
-}
-
-/*
  * vm_reservation_merge_placeholders -- merge the placeholder reservations
  *                                      into one bigger placeholder
  */
@@ -144,9 +91,12 @@ vm_reservation_merge_placeholders(struct pmem2_vm_reservation *rsv, void *addr,
 	size_t merge_size = length;
 	struct pmem2_map *map = NULL;
 
+	struct pmem2_map dummy_map;
+	dummy_map.addr = addr;
+	dummy_map.content_length = length;
+
 	if (rsv_offset > 0) {
-		map = vm_reservation_map_find_closest_prior(rsv, rsv_offset,
-				length);
+		pmem2_vm_reservation_map_find_prev(rsv, &dummy_map, &map);
 		if (map) {
 			/*
 			 * Find the closest mapping prior to the provided range
@@ -170,8 +120,7 @@ vm_reservation_merge_placeholders(struct pmem2_vm_reservation *rsv, void *addr,
 	}
 
 	if (rsv_offset + length < rsv_size) {
-		map = vm_reservation_map_find_closest_later(rsv, rsv_offset,
-				length);
+		pmem2_vm_reservation_map_find_next(rsv, &dummy_map, &map);
 		if (map) {
 			/*
 			 * Find the closest mapping after the provided range

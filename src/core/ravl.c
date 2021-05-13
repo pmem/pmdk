@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2018-2020, Intel Corporation */
+/* Copyright 2018-2021, Intel Corporation */
 
 /*
  * ravl.c -- implementation of a RAVL tree
@@ -584,6 +584,18 @@ ravl_first(struct ravl *ravl)
 {
 	if (ravl->root)
 		return ravl_node_type_most(ravl->root, RAVL_LEFT);
+
+	return NULL;
+}
+
+/*
+ * ravl_last -- returns last (right-most) node in the tree
+ */
+struct ravl_node *
+ravl_last(struct ravl *ravl)
+{
+	if (ravl->root)
+		return ravl_node_type_most(ravl->root, RAVL_RIGHT);
 
 	return NULL;
 }
