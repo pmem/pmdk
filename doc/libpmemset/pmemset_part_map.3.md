@@ -99,6 +99,9 @@ temporary file created in *dir* cannot be truncated for the defined part size an
 * **-ENOMEM** in case of insufficient memory to allocate an instance
 of *struct pmemset_part_map*.
 
+* **PMEMSET_E_CANNOT_FIT_PART_MAP** - in case of pmemset created from config with a
+reservation set, provided reservation has no space for a new part mapping
+
 # SEE ALSO #
 
 **pmemset_config_set_reservation**(3), **pmemset_first_part_map**(3),

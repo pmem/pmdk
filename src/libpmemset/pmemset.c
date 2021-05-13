@@ -175,8 +175,8 @@ pmemset_adjust_reservation_to_contents(
 	size_t rsv_size = pmem2_vm_reservation_get_size(p2rsv);
 
 	struct pmem2_map *p2map;
-	/* find earliest pmem2 mapping in the vm reservation */
-	pmem2_vm_reservation_map_find(p2rsv, 0, rsv_size, &p2map);
+	/* find first pmem2 mapping in the vm reservation */
+	pmem2_vm_reservation_map_find_first(p2rsv, &p2map);
 
 	if (!p2map) {
 		/* vm reservation is empty so it needs to be deleted */
@@ -195,8 +195,8 @@ pmemset_adjust_reservation_to_contents(
 		}
 
 		/* find last pmem2 mapping in the vm reservation */
-		pmem2_vm_reservation_map_find_closest_prior(p2rsv, rsv_size, 1,
-				&p2map);
+		ret = pmem2_vm_reservation_map_find_last(p2rsv, &p2map);
+
 		p2map_offset = (size_t)pmem2_map_get_address(p2map) - rsv_addr;
 		p2map_size = pmem2_map_get_size(p2map);
 
@@ -778,11 +778,11 @@ pmemset_update_previous_part_map(struct pmemset *set,
 		struct pmemset_part_map *pmap)
 {
 	struct ravl_interval_node *node;
-	node = ravl_interval_find_closest_prior(set->shared_state.part_map_tree,
+	node = ravl_interval_find_prev(set->shared_state.part_map_tree,
 			pmap);
 	if (!node)
-		node = ravl_interval_find_closest_later(
-				set->shared_state.part_map_tree, pmap);
+		node = ravl_interval_find_next(set->shared_state.part_map_tree,
+				pmap);
 
 	set->shared_state.previous_pmap = (node) ? ravl_interval_data(node) :
 			NULL;
