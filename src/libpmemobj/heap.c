@@ -83,6 +83,10 @@ struct arena {
 struct heap_rt {
 	struct alloc_class_collection *alloc_classes;
 
+<<<<<<< HEAD
+=======
+	/* DON'T use these two variable directly! */
+>>>>>>> 2ec9d8f3c (obj: refactor bucket abstraction)
 	struct bucket_locked *default_bucket;
 
 	struct arenas arenas;
