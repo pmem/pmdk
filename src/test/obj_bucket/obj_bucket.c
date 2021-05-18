@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2019, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * obj_bucket.c -- unit test for bucket
@@ -112,9 +112,9 @@ test_fault_injection()
 	if (!pmemobj_fault_injection_enabled())
 		return;
 
-	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "bucket_new");
+	pmemobj_inject_fault_at(PMEM_MALLOC, 1, "bucket_locked_new");
 
-	struct bucket *b = bucket_new(container_new_test(), NULL);
+	struct bucket_locked *b = bucket_locked_new(container_new_test(), NULL);
 	UT_ASSERTeq(b, NULL);
 	UT_ASSERTeq(errno, ENOMEM);
 }
@@ -122,8 +122,11 @@ test_fault_injection()
 static void
 test_bucket_insert_get(void)
 {
-	struct bucket *b = bucket_new(container_new_test(), NULL);
-	UT_ASSERT(b != NULL);
+	struct bucket_locked *locked =
+		bucket_locked_new(container_new_test(), NULL);
+	UT_ASSERT(locked != NULL);
+
+	struct bucket *b = bucket_acquire(locked);
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
 		TEST_SIZE_IDX, TEST_BLOCK_OFF};
@@ -131,25 +134,29 @@ test_bucket_insert_get(void)
 
 	/* get from empty */
 
-	UT_ASSERT(b->c_ops->get_rm_bestfit(b->container, &m) != 0);
+	UT_ASSERT(bucket_remove_block(b, &m) != 0);
 
 	UT_ASSERT(bucket_insert_block(b, &m) == 0);
 
-	UT_ASSERT(b->c_ops->get_rm_bestfit(b->container, &m) == 0);
+	UT_ASSERT(bucket_remove_block(b, &m) == 0);
 
 	UT_ASSERT(m.chunk_id == TEST_CHUNK_ID);
 	UT_ASSERT(m.zone_id == TEST_ZONE_ID);
 	UT_ASSERT(m.size_idx == TEST_SIZE_IDX);
 	UT_ASSERT(m.block_off == TEST_BLOCK_OFF);
 
-	bucket_delete(b);
+	bucket_release(b);
+	bucket_locked_delete(locked);
 }
 
 static void
 test_bucket_remove(void)
 {
-	struct bucket *b = bucket_new(container_new_test(), NULL);
-	UT_ASSERT(b != NULL);
+	struct bucket_locked *locked =
+		bucket_locked_new(container_new_test(), NULL);
+	UT_ASSERT(locked != NULL);
+
+	struct bucket *b = bucket_acquire(locked);
 
 	struct memory_block m = {TEST_CHUNK_ID, TEST_ZONE_ID,
 		TEST_SIZE_IDX, TEST_BLOCK_OFF};
@@ -157,9 +164,10 @@ test_bucket_remove(void)
 
 	UT_ASSERT(bucket_insert_block(b, &m) == 0);
 
-	UT_ASSERT(b->c_ops->get_rm_exact(b->container, &m) == 0);
+	UT_ASSERT(bucket_remove_block(b, &m) == 0);
 
-	bucket_delete(b);
+	bucket_release(b);
+	bucket_locked_delete(locked);
 }
 
 int

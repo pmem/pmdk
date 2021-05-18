@@ -44,7 +44,8 @@ int heap_buckets_init(struct palloc_heap *heap);
 int heap_create_alloc_class_buckets(struct palloc_heap *heap,
 	struct alloc_class *c);
 
-int heap_extend(struct palloc_heap *heap, struct bucket *defb, size_t size);
+int heap_extend(struct palloc_heap *heap, struct bucket *defb,
+	size_t size);
 
 struct alloc_class *
 heap_get_best_class(struct palloc_heap *heap, size_t size);
@@ -54,13 +55,11 @@ heap_bucket_acquire(struct palloc_heap *heap, uint8_t class_id,
 		uint16_t arena_id);
 
 void
-heap_bucket_release(struct palloc_heap *heap, struct bucket *b);
+heap_bucket_release(struct palloc_heap *heap,
+	struct bucket *b);
 
 int heap_get_bestfit_block(struct palloc_heap *heap, struct bucket *b,
 	struct memory_block *m);
-struct memory_block
-heap_coalesce_huge(struct palloc_heap *heap, struct bucket *b,
-	const struct memory_block *m);
 os_mutex_t *heap_get_run_lock(struct palloc_heap *heap,
 		uint32_t chunk_id);
 
@@ -96,7 +95,7 @@ unsigned heap_get_thread_arena_id(struct palloc_heap *heap);
 
 int heap_arena_create(struct palloc_heap *heap);
 
-struct bucket **
+struct bucket_locked **
 heap_get_arena_buckets(struct palloc_heap *heap, unsigned arena_id);
 
 int heap_get_arena_auto(struct palloc_heap *heap, unsigned arena_id);

@@ -10,6 +10,7 @@
  */
 
 #include <inttypes.h>
+#include "bucket.h"
 #include "ctl.h"
 #include "libpmemobj/ctl.h"
 #include "valgrind_internal.h"
@@ -716,14 +717,17 @@ CTL_READ_HANDLER(size)(void *ctx,
 	}
 
 	/* take buckets for arena */
-	struct bucket **buckets;
+	struct bucket_locked **buckets;
 	buckets = heap_get_arena_buckets(&pop->heap, arena_id);
 
 	/* calculate number of reservation for arena using buckets */
 	unsigned size = 0;
 	for (int i = 0; i < MAX_ALLOCATION_CLASSES; ++i) {
-		if (buckets[i] != NULL && buckets[i]->is_active)
-			size += buckets[i]->active_memory_block->m.size_idx;
+		if (buckets[i] != NULL) {
+			struct bucket *b = bucket_acquire(buckets[i]);
+			size += bucket_active_block(b)->m.size_idx;
+			bucket_release(b);
+		}
 	}
 
 	*arena_size = size * CHUNKSIZE;
