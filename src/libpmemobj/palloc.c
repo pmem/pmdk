@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
-/* Copyright 2015-2020, Intel Corporation */
+/* Copyright 2015-2021, Intel Corporation */
 
 /*
  * palloc.c -- implementation of pmalloc POSIX-like API
@@ -33,6 +33,7 @@
  *	3. memory blocks (sorted by lock address)
  */
 
+#include "bucket.h"
 #include "valgrind_internal.h"
 #include "heap_layout.h"
 #include "heap.h"
@@ -238,7 +239,7 @@ palloc_reservation_create(struct palloc_heap *heap, size_t size,
 	 * The memory block cannot be put back into the global state unless
 	 * there are no active reservations.
 	 */
-	if ((out->mresv = b->active_memory_block) != NULL)
+	if ((out->mresv = bucket_active_block(b)) != NULL)
 		util_fetch_and_add64(&out->mresv->nresv, 1);
 
 	out->lock = new_block->m_ops->get_lock(new_block);
@@ -325,26 +326,18 @@ palloc_reservation_clear(struct palloc_heap *heap,
 		return;
 
 	struct memory_block_reserved *mresv = act->mresv;
-	struct bucket *b = mresv->bucket;
+	struct bucket_locked *locked = mresv->bucket;
 
 	if (!publish) {
-		util_mutex_lock(&b->lock);
-		struct memory_block *am = &b->active_memory_block->m;
-
 		/*
 		 * If a memory block used for the action is the currently active
-		 * memory block of the bucket it can be inserted back to the
+		 * memory block of the bucket it can be returned back to the
 		 * bucket. This way it will be available for future allocation
 		 * requests, improving performance.
 		 */
-		if (b->is_active &&
-		    am->chunk_id == act->m.chunk_id &&
-		    am->zone_id == act->m.zone_id) {
-			ASSERTeq(b->active_memory_block, mresv);
-			bucket_insert_block(b, &act->m);
-		}
-
-		util_mutex_unlock(&b->lock);
+		struct bucket *b = bucket_acquire(locked);
+		bucket_try_insert_attached_block(b, &act->m);
+		bucket_release(b);
 	}
 
 	if (util_fetch_and_sub64(&mresv->nresv, 1) == 1) {

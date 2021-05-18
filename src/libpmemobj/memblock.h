@@ -1,5 +1,5 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
-/* Copyright 2016-2020, Intel Corporation */
+/* Copyright 2016-2021, Intel Corporation */
 
 /*
  * memblock.h -- internal definitions for memory block
@@ -274,7 +274,7 @@ struct memory_block {
 struct memory_block_reserved {
 	struct memory_block m;
 
-	struct bucket *bucket;
+	struct bucket_locked *bucket;
 	/*
 	 * Number of reservations made from this run, the pointer to this value
 	 * is stored in a user facing pobj_action structure. Decremented once
