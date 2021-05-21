@@ -102,9 +102,13 @@ of *struct pmemset_part_map*.
 * **PMEMSET_E_CANNOT_FIT_PART_MAP** - in case of pmemset created from config with a
 reservation set, provided reservation has no space for a new part mapping
 
+It can also return errors from the underlying callback function set using
+**pmemset_config_set_event_callback**(3) function.
+
 # SEE ALSO #
 
-**pmemset_config_set_reservation**(3), **pmemset_first_part_map**(3),
+**pmemset_config_set_event_callback**(3),
+**pmemset_config_set_reservation**(3),**pmemset_first_part_map**(3),
 **pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
 **pmemset_part_new**(3), **pmemset_set_contiguous_part_coalescing**(3),
 **pmemset_source_from_temporary**(3), **pmemset_xsource_from_file**(3),
