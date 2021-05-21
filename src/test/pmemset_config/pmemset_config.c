@@ -122,6 +122,7 @@ test_set_invalid_granularity(const struct test_case *tc, int argc,
 #define SET_PTR ((struct pmemset *)0xFFBADFF)
 #define CTX_PTR ((struct pmemset_event_context *)0xFFBAD)
 #define ARG_PTR ((void *)0xBADBADBAD)
+
 static int
 callback(struct pmemset *set, struct pmemset_event_context *ctx, void *arg)
 {
@@ -133,6 +134,7 @@ callback(struct pmemset *set, struct pmemset_event_context *ctx, void *arg)
 	return ++Counter;
 
 }
+
 /*
  * test_config_set_event - test setting events
  */
