@@ -128,7 +128,7 @@ struct pmemset_event_part_remove {
 struct pmemset_event_part_add {
 	void *addr;
 	size_t len;
-	struct pmemset_source *src;
+	struct pmem2_source *src;
 };
 #define PMEMSET_EVENT_CONTEXT_SIZE (64)
 

@@ -204,6 +204,8 @@ pmemset_config_duplicate(struct pmemset_config **cfg_dst,
 	(*cfg_dst)->set_granularity = cfg_src->set_granularity;
 	(*cfg_dst)->set_granularity_valid = cfg_src->set_granularity_valid;
 	(*cfg_dst)->set_reservation = cfg_src->set_reservation;
+	(*cfg_dst)->callback = cfg_src->callback;
+	(*cfg_dst)->arg = cfg_src->arg;
 
 	return 0;
 }
