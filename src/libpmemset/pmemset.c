@@ -655,6 +655,16 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 
 	util_rwlock_unlock(&set->shared_state.lock);
 
+	struct pmemset_event_part_add event = { .addr = pmap->desc.addr,
+			.len = pmap->desc.size, .src = pmem2_src };
+
+	struct pmemset_event_context ctx = { .type = PMEMSET_EVENT_PART_ADD,
+			.data.part_add = event };
+
+	ret = pmemset_config_event_callback(set_config, set, &ctx);
+	if (ret)
+		return ret;
+
 	return 0;
 
 err_p2map_delete:

@@ -94,11 +94,14 @@ temporary file created in *dir* cannot be truncated for the defined part size an
 * **-ENOMEM** in case of insufficient memory to allocate an instance
 of *struct pmemset_part_map*.
 
+It can also return errors from the event callback functions, for more information
+please see **pmemset_config_set_event_callback**(3).
+
 # SEE ALSO #
 
+**pmemset_config_set_event_callback**(3),
 **pmemset_first_part_map**(3), **pmemset_next_part_map**(3),
 **pmemset_part_map_by_address**(3), **pmemset_part_new**(3),
 **pmemset_set_contiguous_part_coalescing**(3),
 **pmemset_source_from_temporary**(3), **pmemset_xsource_from_file**(3),
-**libpmemset**(7), **libpmem2**(7),
-and **<http://pmem.io>**
+**libpmemset**(7), **libpmem2**(7) and **<http://pmem.io>**

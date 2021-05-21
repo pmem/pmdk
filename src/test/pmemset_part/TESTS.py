@@ -268,3 +268,10 @@ class TEST34(PMEMSET_PART):
     mappings
     """
     test_case = "test_divide_coalesced_remove_obtained_pmaps"
+
+
+class TEST35(PMEMSET_PART):
+    """
+    set a part add event callback in a pmemset and map a part to this set
+    """
+    test_case = "test_part_map_set_event_part_add_cb"
