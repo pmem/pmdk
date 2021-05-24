@@ -35,7 +35,7 @@ Pool set UUID            : $(nW)
 
 PMEM OBJ Header:
 Layout                   : OBJ_LAYOUT$(nW)
-Lanes offset             : 0x2000
+Lanes offset             : 0x$(nW)
 Number of lanes          : 1024
 Heap offset              : $(nW)
 Heap size                : $(nW)
