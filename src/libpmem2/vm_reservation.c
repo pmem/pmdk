@@ -217,6 +217,68 @@ pmem2_vm_reservation_map_find(struct pmem2_vm_reservation *rsv,
 }
 
 /*
+ * pmem2_vm_reservation_map_find_closest_prior -- find the closest mapping prior
+ *                                                to the provided range
+ */
+int
+pmem2_vm_reservation_map_find_closest_prior(struct pmem2_vm_reservation *rsv,
+		size_t reserv_offset, size_t len, struct pmem2_map **map)
+{
+	PMEM2_ERR_CLR();
+	LOG(3, "reservation %p reserv_offset %zu length %zu pmem2_map %p",
+			rsv, reserv_offset, len, map);
+
+	*map = NULL;
+
+	struct pmem2_map dummy_map;
+	dummy_map.addr = (char *)rsv->addr + reserv_offset;
+	dummy_map.content_length = len;
+
+	struct ravl_interval_node *node;
+	node = ravl_interval_find_closest_prior(rsv->itree, &dummy_map);
+	if (!node) {
+		ERR("mapping not found at the region (offset %zu, len %zu)",
+				reserv_offset, len);
+		return PMEM2_E_MAPPING_NOT_FOUND;
+	}
+
+	*map = (struct pmem2_map *)ravl_interval_data(node);
+
+	return 0;
+}
+
+/*
+ * pmem2_vm_reservation_map_find_closest_later -- find the closest mapping later
+ *                                                than the provided range
+ */
+int
+pmem2_vm_reservation_map_find_closest_later(struct pmem2_vm_reservation *rsv,
+		size_t reserv_offset, size_t len, struct pmem2_map **map)
+{
+	PMEM2_ERR_CLR();
+	LOG(3, "reservation %p reserv_offset %zu length %zu pmem2_map %p",
+			rsv, reserv_offset, len, map);
+
+	*map = NULL;
+
+	struct pmem2_map dummy_map;
+	dummy_map.addr = (char *)rsv->addr + reserv_offset;
+	dummy_map.content_length = len;
+
+	struct ravl_interval_node *node;
+	node = ravl_interval_find_closest_later(rsv->itree, &dummy_map);
+	if (!node) {
+		ERR("mapping not found at the region (offset %zu, len %zu)",
+				reserv_offset, len);
+		return PMEM2_E_MAPPING_NOT_FOUND;
+	}
+
+	*map = (struct pmem2_map *)ravl_interval_data(node);
+
+	return 0;
+}
+
+/*
  * vm_reservation_map_register_release -- register mapping in the mappings tree
  * of reservation structure and release previously acquired lock regardless
  * of the success or failure of the function.
