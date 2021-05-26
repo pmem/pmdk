@@ -17,6 +17,8 @@ configure_valgrind memcheck force-disable
 
 setup
 
+require_free_space 1T
+
 POOL=$DIR/file.pool
 LOG=out${UNITTEST_NUM}.log
 rm -f $LOG && touch $LOG
