@@ -207,5 +207,8 @@ pmemset_config_duplicate(struct pmemset_config **cfg_dst,
 	(*cfg_dst)->callback = cfg_src->callback;
 	(*cfg_dst)->arg = cfg_src->arg;
 
+	(*cfg_dst)->callback = cfg_src->callback;
+	(*cfg_dst)->arg = cfg_src->arg;
+
 	return 0;
 }

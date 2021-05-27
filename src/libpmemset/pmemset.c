@@ -987,7 +987,7 @@ pmemset_remove_range(struct pmemset *set, void *addr, size_t len)
  * pmemset_persist -- persists stores from provided range
  */
 int
-pmemset_persist(struct pmemset *set, const void *ptr, size_t size)
+pmemset_persist(struct pmemset *set, void *ptr, size_t size)
 {
 	LOG(15, "ptr %p size %zu", ptr, size);
 
@@ -995,7 +995,15 @@ pmemset_persist(struct pmemset *set, const void *ptr, size_t size)
 	 * someday, for debug purposes, we can validate
 	 * if ptr and size belongs to the set
 	 */
+	struct pmemset_event_context ctx;
+	ctx.type = PMEMSET_EVENT_FLUSH;
+	ctx.data.flush.addr = ptr;
+	ctx.data.flush.len = size;
+	pmemset_config_event_callback(set->set_config, set, &ctx);
 	set->persist_fn(ptr, size);
+	ctx.type = PMEMSET_EVENT_DRAIN;
+	pmemset_config_event_callback(set->set_config, set, &ctx);
+
 	return 0;
 }
 
@@ -1003,7 +1011,7 @@ pmemset_persist(struct pmemset *set, const void *ptr, size_t size)
  * pmemset_flush -- flushes stores from passed range
  */
 int
-pmemset_flush(struct pmemset *set, const void *ptr, size_t size)
+pmemset_flush(struct pmemset *set, void *ptr, size_t size)
 {
 	LOG(15, "ptr %p size %zu", ptr, size);
 
@@ -1011,7 +1019,13 @@ pmemset_flush(struct pmemset *set, const void *ptr, size_t size)
 	 * someday, for debug purposes, we can validate
 	 * if ptr and size belongs to the set
 	 */
+	struct pmemset_event_context ctx;
+	ctx.type = PMEMSET_EVENT_FLUSH;
+	ctx.data.flush.addr = ptr;
+	ctx.data.flush.len = size;
+	pmemset_config_event_callback(set->set_config, set, &ctx);
 	set->flush_fn(ptr, size);
+
 	return 0;
 }
 
@@ -1024,6 +1038,11 @@ pmemset_drain(struct pmemset *set)
 	LOG(15, "set %p", set);
 
 	set->drain_fn();
+
+	struct pmemset_event_context ctx;
+	ctx.type = PMEMSET_EVENT_DRAIN;
+	pmemset_config_event_callback(set->set_config, set, &ctx);
+
 	return 0;
 }
 
@@ -1031,7 +1050,7 @@ pmemset_drain(struct pmemset *set)
  * pmemset_memmove -- memmove to pmemset dest
  */
 void *
-pmemset_memmove(struct pmemset *set, void *pmemdest, const void *src,
+pmemset_memmove(struct pmemset *set, void *pmemdest, void *src,
 		size_t len, unsigned flags)
 {
 	LOG(15, "set %p pmemdest %p src %p len %zu flags 0x%x",
@@ -1042,14 +1061,28 @@ pmemset_memmove(struct pmemset *set, void *pmemdest, const void *src,
 		ERR("pmemset_memmove invalid flags 0x%x", flags);
 #endif
 
-	return set->memmove_fn(pmemdest, src, len, flags);
+	struct pmemset_event_context ctx;
+	ctx.type = PMEMSET_EVENT_MOVE;
+	ctx.data.move.src = src;
+	ctx.data.move.dest = pmemdest;
+	ctx.data.move.len = len;
+	ctx.data.move.flags = flags;
+	pmemset_config_event_callback(set->set_config, set, &ctx);
+
+	void *ret = set->memmove_fn(pmemdest, src, len, flags);
+	if ((flags & PMEMSET_F_MEM_NODRAIN) == 0) {
+		ctx.type = PMEMSET_EVENT_DRAIN;
+		pmemset_config_event_callback(set->set_config, set, &ctx);
+	}
+
+	return ret;
 }
 
 /*
  * pmemset_memcpy -- memcpy to pmemset
  */
 void *
-pmemset_memcpy(struct pmemset *set, void *pmemdest, const void *src,
+pmemset_memcpy(struct pmemset *set, void *pmemdest, void *src,
 		size_t len, unsigned flags)
 {
 	LOG(15, "set %p pmemdest %p src %p len %zu flags 0x%x",
@@ -1060,7 +1093,22 @@ pmemset_memcpy(struct pmemset *set, void *pmemdest, const void *src,
 		ERR("pmemset_memcpy invalid flags 0x%x", flags);
 #endif
 
-	return set->memcpy_fn(pmemdest, src, len, flags);
+	struct pmemset_event_context ctx;
+	ctx.type = PMEMSET_EVENT_COPY;
+	ctx.data.copy.src = src;
+	ctx.data.copy.dest = pmemdest;
+	ctx.data.copy.len = len;
+	ctx.data.copy.flags = flags;
+	pmemset_config_event_callback(set->set_config, set, &ctx);
+
+	void *ret = set->memcpy_fn(pmemdest, src, len, flags);
+
+	if ((flags & PMEMSET_F_MEM_NODRAIN) == 0) {
+		ctx.type = PMEMSET_EVENT_DRAIN;
+		pmemset_config_event_callback(set->set_config, set, &ctx);
+	}
+
+	return ret;
 }
 
 /*
@@ -1078,7 +1126,21 @@ pmemset_memset(struct pmemset *set, void *pmemdest, int c,
 		ERR("pmemset_memset invalid flags 0x%x", flags);
 #endif
 
-	return set->memset_fn(pmemdest, c, len, flags);
+	struct pmemset_event_context ctx;
+	ctx.type = PMEMSET_EVENT_SET;
+	ctx.data.set.value = c;
+	ctx.data.set.dest = pmemdest;
+	ctx.data.set.len = len;
+	ctx.data.set.flags = flags;
+	pmemset_config_event_callback(set->set_config, set, &ctx);
+	void *ret = set->memset_fn(pmemdest, c, len, flags);
+
+	if ((flags & PMEMSET_F_MEM_NODRAIN) == 0) {
+		ctx.type = PMEMSET_EVENT_DRAIN;
+		pmemset_config_event_callback(set->set_config, set, &ctx);
+	}
+
+	return ret;
 }
 
 /*
