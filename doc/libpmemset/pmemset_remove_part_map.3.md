@@ -61,9 +61,13 @@ The **pmemset_remove_part_map**() can fail with the following errors:
 
 * **PMEMSET_E_PART_NOT_FOUND** - provided part wasn't found in the pmemset
 
+It can also return errors from the underlying callback function set using
+**pmemset_config_set_event_callback**(3) function.
+
 # SEE ALSO #
 
-**pmemset_first_part_map**(3), **pmemset_next_part_map**(3),
-**pmemset_part_map**(3), **pmemset_part_map_by_address**(3),
-**pmemset_part_map_drop**(3) **pmemset_set_contiguous_part_coalescing**(3),
+**pmemset_config_set_event_callback**(3), **pmemset_first_part_map**(3),
+**pmemset_next_part_map**(3), **pmemset_part_map**(3),
+**pmemset_part_map_by_address**(3), **pmemset_part_map_drop**(3),
+**pmemset_set_contiguous_part_coalescing**(3),
 **libpmemset**(7) and **<http://pmem.io>**

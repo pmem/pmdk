@@ -59,11 +59,12 @@ in the pmemset
 * **PMEMSET_E_PART_MAP_POSSIBLE_USE_AFTER_DROP** - part mapping residing at the provided range is
 referenced by some thread
 
-It can also return errors from the underlying **pmem2_map_delete**(3) function from the **libpmem2**(7) library.
+It can also return errors from the underlying **pmem2_map_delete**(3) function from the **libpmem2**(7) library
+and errors from the underlying callback function set using **pmemset_config_set_event_callback**(3) function.
 
 # SEE ALSO #
 
-**pmem2_map_delete**(3), **pmemset_first_part_map**(3),
-**pmemset_next_part_map**(3), **pmemset_part_map_by_address**(3),
-**pmemset_part_map_drop**(3), **pmemset_set_contiguous_part_coalescing(3)**,
-**libpmem2**(7), **libpmemset**(7) and **<http://pmem.io>**
+**pmem2_map_delete**(3), **pmemset_config_set_event_callback**(3),
+**pmemset_first_part_map**(3), **pmemset_next_part_map**(3),
+**pmemset_part_map_by_address**(3), **pmemset_part_map_drop**(3), **pmemset_set_contiguous_part_coalescing(3)**, **libpmem2**(7),
+**libpmemset**(7) and **<http://pmem.io>**
