@@ -18,10 +18,10 @@ extern unsigned Flags[10];
 typedef void *(*memmove_fn)(void *pmemdest, const void *src, size_t len,
 		unsigned flags);
 typedef void *(*set_memmove_fn)(struct pmemset *set, void *pmemdest,
-		const void *src, size_t len, unsigned flags);
+		void *src, size_t len, unsigned flags);
 
 typedef void (*persist_fn)(const void *ptr, size_t len);
-typedef int (*set_persist_fn)(struct pmemset *set, const void *ptr, size_t len);
+typedef int (*set_persist_fn)(struct pmemset *set, void *ptr, size_t len);
 
 void do_memmove(char *dst, char *src, const char *file_name,
 		size_t dest_off, size_t src_off, size_t bytes,

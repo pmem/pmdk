@@ -17,7 +17,7 @@ typedef void *(*set_memset_fn)(struct pmemset *set, void *pmemdest,
 		int c, size_t len, unsigned flags);
 
 typedef void (*persist_fn)(const void *ptr, size_t len);
-typedef int (*set_persist_fn)(struct pmemset *set, const void *ptr, size_t len);
+typedef int (*set_persist_fn)(struct pmemset *set, void *ptr, size_t len);
 
 void
 do_memset(int fd, char *dest, const char *file_name, size_t dest_off,

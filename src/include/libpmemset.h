@@ -87,6 +87,8 @@ struct pmemset_extras {
 };
 enum pmemset_event {
 	PMEMSET_EVENT_COPY,
+	PMEMSET_EVENT_MOVE,
+	PMEMSET_EVENT_SET,
 	PMEMSET_EVENT_FLUSH,
 	PMEMSET_EVENT_DRAIN,
 	PMEMSET_EVENT_PERSIST,
@@ -96,17 +98,29 @@ enum pmemset_event {
 };
 
 struct pmemset_event_copy {
-	void *addr;
+	void *src;
+	void *dest;
 	size_t len;
+	unsigned flags;
+};
+
+struct pmemset_event_move {
+	void *src;
+	void *dest;
+	size_t len;
+	unsigned flags;
+};
+
+struct pmemset_event_set {
+	void *dest;
+	int value;
+	size_t len;
+	unsigned flags;
 };
 
 struct pmemset_event_flush {
 	void *addr;
 	size_t len;
-};
-
-struct pmemset_event_drain {
-	char stub;
 };
 
 struct pmemset_event_persist {
@@ -137,8 +151,9 @@ struct pmemset_event_context {
 	union {
 		char _data[PMEMSET_EVENT_CONTEXT_SIZE];
 		struct pmemset_event_copy copy;
+		struct pmemset_event_move move;
+		struct pmemset_event_set set;
 		struct pmemset_event_flush flush;
-		struct pmemset_event_drain drain;
 		struct pmemset_event_persist persist;
 		struct pmemset_event_bad_block bad_block;
 		struct pmemset_event_part_remove part_remove;
@@ -182,9 +197,9 @@ int pmemset_remove_range(struct pmemset *set, void *addr, size_t len);
 int pmemset_set_contiguous_part_coalescing(struct pmemset *set,
 		enum pmemset_coalescing value);
 
-int pmemset_persist(struct pmemset *set, const void *ptr, size_t size);
+int pmemset_persist(struct pmemset *set, void *ptr, size_t size);
 
-int pmemset_flush(struct pmemset *set, const void *ptr, size_t size);
+int pmemset_flush(struct pmemset *set, void *ptr, size_t size);
 
 int pmemset_drain(struct pmemset *set);
 
@@ -205,10 +220,10 @@ int pmemset_get_store_granularity(struct pmemset *set,
 		PMEMSET_F_MEM_WB | \
 		PMEMSET_F_MEM_NOFLUSH)
 
-void *pmemset_memmove(struct pmemset *set, void *pmemdest, const void *src,
+void *pmemset_memmove(struct pmemset *set, void *pmemdest, void *src,
 		size_t len, unsigned flags);
 
-void *pmemset_memcpy(struct pmemset *set, void *pmemdest, const void *src,
+void *pmemset_memcpy(struct pmemset *set, void *pmemdest, void *src,
 		size_t len, unsigned flags);
 
 void *pmemset_memset(struct pmemset *set, void *pmemdest, int c, size_t len,
