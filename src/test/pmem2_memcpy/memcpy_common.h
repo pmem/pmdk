@@ -13,10 +13,10 @@
 typedef void *(*memcpy_fn)(void *pmemdest, const void *src, size_t len,
 		unsigned flags);
 typedef void *(*set_memcpy_fn)(struct pmemset *set, void *pmemdest,
-		const void *src, size_t len, unsigned flags);
+		void *src, size_t len, unsigned flags);
 
 typedef void (*persist_fn)(const void *ptr, size_t len);
-typedef int (*set_persist_fn)(struct pmemset *set, const void *ptr, size_t len);
+typedef int (*set_persist_fn)(struct pmemset *set, void *ptr, size_t len);
 
 extern unsigned Flags[10];
 

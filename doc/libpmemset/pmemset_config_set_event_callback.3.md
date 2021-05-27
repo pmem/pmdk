@@ -33,6 +33,8 @@ struct pmemset_event_context {
 	union {
 		char _data[PMEMSET_EVENT_CONTEXT_SIZE];
 		struct pmemset_event_copy copy;
+		struct pmemset_event_move move;
+		struct pmemset_event_set set;
 		struct pmemset_event_flush flush;
 		struct pmemset_event_drain drain;
 		struct pmemset_event_persist persist;
@@ -73,7 +75,52 @@ Once the function exits *ctx* and its data are invalid.
 The **pmemset_config_set_event_callback**() returns no value.
 
 # EVENTS #
-XXX: For now there are no events implemented
+```c
+struct pmemset_event_flush {
+	void *addr;
+	size_t len;
+};
+```
+**PMEMSET_EVENT_FLUSH** is fired before **pmemset_flush**(3) or **pmemset_persist**(3) completed its work.
+The *flush* field in *data* union contains *addr* and *len* passed to those functions.
+This event doesn't support error handling, which means that the value returned by the *callback* function is ignored.
+```c
+struct pmemset_event_drain {
+	char stub;
+};
+```
+**PMEMSET_EVENT_DRAIN** is fired after **pmemset_drain**(3) or **pmemset_persist**(3) completed its work.
+In case of **pmemset_persist**(3) this event is fired after **PMEMSET_EVENT_FLUSH**.
+This event doesn't support error handling, which means that the value returned by the *callback* function is ignored.
+
+```c
+struct pmemset_event_copy {
+	void *src;
+	void *dest;
+	size_t len;
+	unsigned flags;
+};
+
+struct pmemset_event_move {
+	void *src;
+	void *dest;
+	size_t len;
+	unsigned flags;
+};
+
+struct pmemset_event_set {
+	void *dest;
+	int value;
+	size_t len;
+	unsigned flags;
+};
+```
+**PMEMSET_EVENT_COPY**, **PMEMSET_EVENT_MOVE**, **PMEMSET_EVENT_SET** are fired, respectively,
+before **pmemset_memcpy**(3), **pmemset_memmove**(3), **pmemset_memset**(3) completed its work.
+Also respectively *copy*, *move*, or *set* fields in *data* union contains all arguments passed to those functions.
+During those functions "flush" and "drain" operations are performed, but they will not trigger
+**PMEMSET_EVENT_FLUSH** and **PMEMSET_EVENT_DRAIN**
+This event doesn't support error handling, which means that the value returned by the *callback* function is ignored.
 
 # SEE ALSO #
 
