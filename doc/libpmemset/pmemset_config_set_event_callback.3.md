@@ -79,6 +79,12 @@ The **pmemset_config_set_event_callback**() returns no value.
 * **PMEMSET_EVENT_PART_ADD** - occurs for each new part added to the pmemset
 using **pmemset_part_map**(3) function.
 
+* **PMEMSET_EVENT_PART_REMOVE** - occurs for each part mapping removed from the
+pmemset using **pmemset_remove_part_map**(3) function.
+
+* **PMEMSET_EVENT_REMOVE_RANGE** - occurs for each removed range from the pmemset
+using **pmemset_remove_range**(3) function.
+
 # SEE ALSO #
 
 **pmemset_part_map**, **libpmem2**(7),

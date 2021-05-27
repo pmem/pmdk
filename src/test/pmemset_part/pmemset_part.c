@@ -2351,73 +2351,6 @@ test_pmemset_async_map_remove_multiple_part_maps(const struct test_case *tc,
 	return 3;
 }
 
-static struct pmemset *set_ptr = NULL;
-#define ARG_PTR ((void *)0xBADBADBAD)
-
-static int Part_add_counter;
-
-static int
-part_add_cb(struct pmemset *set, struct pmemset_event_context *ctx, void *arg)
-{
-	UT_ASSERTeq(set, set_ptr);
-	UT_ASSERTeq(ctx->type, PMEMSET_EVENT_PART_ADD);
-	UT_ASSERTeq(arg, ARG_PTR);
-	if (ctx->type == PMEMSET_EVENT_PART_ADD)
-		++Part_add_counter;
-
-	return 0;
-}
-
-/*
- * test_part_map_set_event_part_add_cb - set a part add event callback in a
- *                                       pmemset and map a part to this set
- */
-static int
-test_part_map_set_event_part_add_cb(const struct test_case *tc, int argc,
-		char *argv[])
-{
-	if (argc < 1)
-		UT_FATAL("usage: test_part_map_set_event_part_add_cb <path>");
-
-	const char *file = argv[0];
-	struct pmemset_part *part;
-	struct pmemset_source *src;
-	struct pmemset *set;
-	struct pmemset_config *cfg;
-
-	int ret = pmemset_source_from_file(&src, file);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-
-	create_config(&cfg);
-
-	pmemset_config_set_event_callback(cfg, part_add_cb, ARG_PTR);
-
-	ret = pmemset_new(&set, cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-
-	set_ptr = set;
-
-	ret = pmemset_part_new(&part, set, src, 0, 64 * 1024);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-
-	Part_add_counter = 0;
-	ret = pmemset_part_map(&part, NULL, NULL);
-	UT_ASSERTeq(ret, 0);
-	UT_ASSERTeq(part, NULL);
-
-	/* callback function counter */
-	UT_ASSERTeq(Part_add_counter, 1); /* one part was added */
-
-	ret = pmemset_delete(&set);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_config_delete(&cfg);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-	ret = pmemset_source_delete(&src);
-	UT_PMEMSET_EXPECT_RETURN(ret, 0);
-
-	return 1;
-}
-
 /*
  * test_divide_coalesced_remove_obtained_pmaps -- create coalesced mapping
  * composed of five parts, remove pmemset range two times to divide initial
@@ -2893,6 +2826,260 @@ test_part_map_with_set_reservation_cannot_fit(const struct test_case *tc,
 	return 1;
 }
 
+static struct pmemset *set_ptr = NULL;
+#define ARG_PTR ((void *)0xBADBADBAD)
+
+static int Part_add_counter;
+
+static int
+part_add_cb(struct pmemset *set, struct pmemset_event_context *ctx, void *arg)
+{
+	UT_ASSERTeq(set, set_ptr);
+	UT_ASSERTeq(ctx->type, PMEMSET_EVENT_PART_ADD);
+	UT_ASSERTeq(arg, ARG_PTR);
+	if (ctx->type == PMEMSET_EVENT_PART_ADD)
+		++Part_add_counter;
+
+	return 0;
+}
+
+/*
+ * test_part_map_set_event_part_add_cb - set a part add event callback in a
+ *                                       pmemset and map a part to this set
+ */
+static int
+test_part_map_set_event_part_add_cb(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_set_event_part_add_cb <path>");
+
+	const char *file = argv[0];
+	struct pmemset_part *part;
+	struct pmemset_source *src;
+	struct pmemset *set;
+	struct pmemset_config *cfg;
+
+	int ret = pmemset_source_from_file(&src, file);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	pmemset_config_set_event_callback(cfg, part_add_cb, ARG_PTR);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	set_ptr = set;
+
+	ret = pmemset_part_new(&part, set, src, 0, 64 * 1024);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	Part_add_counter = 0;
+	ret = pmemset_part_map(&part, NULL, NULL);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(part, NULL);
+
+	/* callback function counter */
+	UT_ASSERTeq(Part_add_counter, 1); /* one part was added */
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	return 1;
+}
+
+static int Part_remove_counter;
+
+static int
+part_remove_cb(struct pmemset *set, struct pmemset_event_context *ctx,
+		void *arg)
+{
+	UT_ASSERTeq(set, set_ptr);
+	UT_ASSERTeq(arg, ARG_PTR);
+	if (ctx->type == PMEMSET_EVENT_PART_REMOVE)
+		++Part_remove_counter;
+
+	return 0;
+}
+
+/*
+ * test_part_map_set_event_part_remove_cb - set a part remove event callback in
+ * pmemset config, map 2 parts to it, then remove those parts one by one
+ *
+ */
+static int
+test_part_map_set_event_part_remove_cb(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_set_event_part_remove_cb "
+				"<path>");
+
+	const char *file = argv[0];
+	struct pmemset *set;
+	struct pmemset_part *part;
+	struct pmemset_part_map *pmap;
+	struct pmemset_part_descriptor first_desc;
+	struct pmemset_part_descriptor second_desc;
+	struct pmemset_source *src;
+	struct pmemset_config *cfg;
+
+	int ret = pmemset_source_from_file(&src, file);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	pmemset_config_set_event_callback(cfg, part_remove_cb, ARG_PTR);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	set_ptr = set;
+
+	ret = pmemset_part_new(&part, set, src, 0, 64 * 1024);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, &first_desc);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(part, NULL);
+
+	ret = pmemset_part_new(&part, set, src, 0, 64 * 1024);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, &second_desc);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(part, NULL);
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTne(pmap, NULL);
+
+	Part_remove_counter = 0;
+	pmemset_remove_part_map(set, &pmap);
+	UT_ASSERTeq(ret, 0);
+
+	/* callback function counter */
+	UT_ASSERTeq(Part_remove_counter, 1); /* cb from first part remove */
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTne(pmap, NULL);
+
+	pmemset_remove_part_map(set, &pmap);
+	UT_ASSERTeq(ret, 0);
+
+	UT_ASSERTeq(Part_remove_counter, 2); /* cb from second part remove */
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTeq(pmap, NULL);
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	return 1;
+}
+
+static int Remove_range_counter;
+
+static int
+remove_range_cb(struct pmemset *set, struct pmemset_event_context *ctx,
+		void *arg)
+{
+	UT_ASSERTeq(set, set_ptr);
+	UT_ASSERTeq(arg, ARG_PTR);
+	if (ctx->type == PMEMSET_EVENT_REMOVE_RANGE)
+		++Remove_range_counter;
+	if (ctx->type == PMEMSET_EVENT_PART_REMOVE)
+		++Part_remove_counter;
+
+	return 0;
+}
+
+/*
+ * test_part_map_set_event_remove_range_cb - set a part remove event callback in
+ * pmemset config, map 2 parts to it, then remove the range encompassing both of
+ * them
+ */
+static int
+test_part_map_set_event_remove_range_cb(const struct test_case *tc, int argc,
+		char *argv[])
+{
+	if (argc < 1)
+		UT_FATAL("usage: test_part_map_set_event_remove_range_cb "
+				"<path>");
+
+	const char *file = argv[0];
+	struct pmemset *set;
+	struct pmemset_part *part;
+	struct pmemset_part_map *pmap;
+	struct pmemset_part_descriptor first_desc;
+	struct pmemset_part_descriptor second_desc;
+	struct pmemset_source *src;
+	struct pmemset_config *cfg;
+
+	int ret = pmemset_source_from_file(&src, file);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	create_config(&cfg);
+
+	pmemset_config_set_event_callback(cfg, remove_range_cb, ARG_PTR);
+
+	ret = pmemset_new(&set, cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	set_ptr = set;
+
+	ret = pmemset_part_new(&part, set, src, 0, 64 * 1024);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, &first_desc);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(part, NULL);
+
+	ret = pmemset_part_new(&part, set, src, 0, 64 * 1024);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	ret = pmemset_part_map(&part, NULL, &second_desc);
+	UT_ASSERTeq(ret, 0);
+	UT_ASSERTeq(part, NULL);
+
+	void *encompassing_addr = (first_desc.addr < second_desc.addr) ?
+			first_desc.addr : second_desc.addr;
+	size_t encompassing_end_addr = (first_desc.addr < second_desc.addr) ?
+			(size_t)second_desc.addr + second_desc.size :
+			(size_t)first_desc.addr + first_desc.size;
+	size_t encompassing_size = encompassing_end_addr -
+			(size_t)encompassing_addr;
+
+	Remove_range_counter = 0;
+	Part_remove_counter = 0;
+	ret = pmemset_remove_range(set, encompassing_addr, encompassing_size);
+	UT_ASSERTeq(ret, 0);
+
+	pmemset_first_part_map(set, &pmap);
+	UT_ASSERTeq(pmap, NULL);
+
+	/* callback function counters */
+	UT_ASSERTeq(Remove_range_counter, 1); /* one range removed */
+	UT_ASSERTeq(Part_remove_counter, 2); /* two whole part maps removed */
+
+	ret = pmemset_delete(&set);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_config_delete(&cfg);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+	ret = pmemset_source_delete(&src);
+	UT_PMEMSET_EXPECT_RETURN(ret, 0);
+
+	return 1;
+}
+
 /*
  * test_cases -- available test cases
  */
@@ -2936,6 +3123,8 @@ static struct test_case test_cases[] = {
 	TEST_CASE(test_part_map_with_set_reservation_cannot_fit),
 	TEST_CASE(test_part_map_coalesce_with_set_reservation),
 	TEST_CASE(test_part_map_set_event_part_add_cb),
+	TEST_CASE(test_part_map_set_event_part_remove_cb),
+	TEST_CASE(test_part_map_set_event_remove_range_cb),
 };
 
 #define NTESTS (sizeof(test_cases) / sizeof(test_cases[0]))

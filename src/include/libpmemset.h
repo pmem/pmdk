@@ -91,6 +91,7 @@ enum pmemset_event {
 	PMEMSET_EVENT_DRAIN,
 	PMEMSET_EVENT_PERSIST,
 	PMEMSET_EVENT_BAD_BLOCK,
+	PMEMSET_EVENT_REMOVE_RANGE,
 	PMEMSET_EVENT_PART_ADD,
 	PMEMSET_EVENT_PART_REMOVE,
 };
@@ -119,10 +120,14 @@ struct pmemset_event_bad_block {
 	size_t len;
 };
 
+struct pmemset_event_remove_range {
+	void *addr;
+	size_t len;
+};
+
 struct pmemset_event_part_remove {
 	void *addr;
 	size_t len;
-	struct pmemset_source *src;
 };
 
 struct pmemset_event_part_add {
@@ -141,6 +146,7 @@ struct pmemset_event_context {
 		struct pmemset_event_drain drain;
 		struct pmemset_event_persist persist;
 		struct pmemset_event_bad_block bad_block;
+		struct pmemset_event_remove_range remove_range;
 		struct pmemset_event_part_remove part_remove;
 		struct pmemset_event_part_add part_add;
 	} data;

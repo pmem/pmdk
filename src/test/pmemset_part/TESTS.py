@@ -309,3 +309,19 @@ class TEST39(PMEMSET_PART):
     set a part add event callback in a pmemset and map a part to this set
     """
     test_case = "test_part_map_set_event_part_add_cb"
+
+
+class TEST40(PMEMSET_PART):
+    """
+    set a part remove event callback in pmemset config, map 2 parts to it, then
+    remove those parts one by one
+    """
+    test_case = "test_part_map_set_event_part_remove_cb"
+
+
+class TEST41(PMEMSET_PART):
+    """
+    set a part remove event callback in pmemset config, map 2 parts to it, then
+    remove the range encompassing both of them
+    """
+    test_case = "test_part_map_set_event_remove_range_cb"
