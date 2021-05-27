@@ -263,3 +263,37 @@ pmemset_part_file_try_ensure_size(struct pmemset_part *part, size_t source_size)
 
 	return 0;
 }
+
+/*
+ * pmemset_part_map_find -- find the earliest pmem2 mapping in the provied range
+ */
+int
+pmemset_part_map_find(struct pmemset_part_map *pmap, size_t offset, size_t size,
+	struct pmem2_map **p2map)
+{
+	int ret;
+	*p2map = NULL;
+
+	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
+	size_t rsv_addr = (size_t)pmem2_vm_reservation_get_address(
+			pmem2_reserv);
+	size_t pmap_addr = (size_t)pmap->desc.addr;
+
+	ASSERT(pmap_addr >= rsv_addr);
+	/* part map offset in regards to the vm reservation */
+	size_t pmap_offset = pmap_addr - rsv_addr;
+
+	ret = pmem2_vm_reservation_map_find(pmem2_reserv, pmap_offset + offset,
+			size, p2map);
+	if (ret) {
+		if (ret == PMEM2_E_MAPPING_NOT_FOUND) {
+			ERR(
+				"no part found at the range (offset %zu, size %zu) "
+				"in the part mapping %p", offset, size, pmap);
+			return PMEMSET_E_PART_NOT_FOUND;
+		}
+		return ret;
+	}
+
+	return 0;
+}

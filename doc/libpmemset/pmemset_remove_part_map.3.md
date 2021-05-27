@@ -65,5 +65,5 @@ The **pmemset_remove_part_map**() can fail with the following errors:
 
 **pmemset_first_part_map**(3), **pmemset_next_part_map**(3),
 **pmemset_part_map**(3), **pmemset_part_map_by_address**(3),
-**pmemset_part_map_drop**(3) **pmemset_set_contiguous_part_coalescing**(3),
+**pmemset_part_map_drop**(3), **pmemset_set_contiguous_part_coalescing**(3),
 **libpmemset**(7) and **<http://pmem.io>**
