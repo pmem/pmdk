@@ -812,6 +812,7 @@ pmemset_remove_part_map(struct pmemset *set, struct pmemset_part_map **pmap_ptr)
 
 	util_rwlock_wrlock(&set->shared_state.lock);
 
+	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
 	int ret = pmemset_unregister_part_map(set, pmap);
 	if (ret)
 		goto err_lock_unlock;
@@ -832,6 +833,11 @@ pmemset_remove_part_map(struct pmemset *set, struct pmemset_part_map **pmap_ptr)
 	ret = pmemset_part_map_delete(pmap_ptr);
 	if (ret)
 		goto err_insert_pmap;
+
+	if (!pmemset_config_get_reservation(set->set_config)) {
+		ret = pmemset_adjust_reservation_to_contents(&pmem2_reserv);
+		ASSERTeq(ret, 0);
+	}
 
 	util_rwlock_unlock(&set->shared_state.lock);
 
