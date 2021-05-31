@@ -22,6 +22,7 @@ struct pmemset_config {
 	bool part_coalescing;
 	pmemset_event_callback *callback;
 	void *arg;
+	struct pmem2_vm_reservation *set_reservation;
 };
 
 /*
@@ -34,6 +35,7 @@ pmemset_config_init(struct pmemset_config *cfg)
 	cfg->part_coalescing = false;
 	cfg->callback = NULL;
 	cfg->arg = NULL;
+	cfg->set_reservation = NULL;
 }
 
 /*
@@ -102,13 +104,26 @@ pmemset_config_event_callback(struct pmemset_config *cfg,
 }
 
 /*
- * pmemset_config_set_reservation -- not supported
+ * pmemset_config_set_reservation -- set virtual memory reservation in the
+ *                                   config
  */
-int
-pmemset_config_set_reservation(struct pmemset_config *cfg,
+void
+pmemset_config_set_reservation(struct pmemset_config *config,
 		struct pmem2_vm_reservation *rsv)
 {
-	return PMEMSET_E_NOSUPP;
+	LOG(3, "config %p reservation %p", config, rsv);
+
+	config->set_reservation = rsv;
+}
+
+/*
+ * pmemset_config_get_reservation -- get virtual memory reservation from the
+ *                                   config
+ */
+struct pmem2_vm_reservation *
+pmemset_config_get_reservation(struct pmemset_config *config)
+{
+	return config->set_reservation;
 }
 
 /*
@@ -230,6 +245,7 @@ pmemset_config_duplicate(struct pmemset_config **cfg_dst,
 	/* Copy cfg */
 	(*cfg_dst)->set_granularity = cfg_src->set_granularity;
 	(*cfg_dst)->set_granularity_valid = cfg_src->set_granularity_valid;
+	(*cfg_dst)->set_reservation = cfg_src->set_reservation;
 
 	return 0;
 }

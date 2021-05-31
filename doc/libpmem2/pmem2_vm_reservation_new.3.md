@@ -30,9 +30,9 @@ an instance of virtual memory reservation
 #include <libpmem2.h>
 
 struct pmem2_vm_reservation;
-void pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
+int pmem2_vm_reservation_new(struct pmem2_vm_reservation **rsv_ptr,
 		void *addr, size_t size);
-void pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr);
+int pmem2_vm_reservation_delete(struct pmem2_vm_reservation **rsv_ptr);
 ```
 
 # DESCRIPTION #

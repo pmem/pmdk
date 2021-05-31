@@ -160,12 +160,12 @@ pmemset_new(struct pmemset **set, struct pmemset_config *cfg)
 }
 
 /*
- * pmemset_adjust_vm_reservation_to_contents -- adjust vm reservation boundaries
+ * pmemset_adjust_reservation_to_contents -- adjust vm reservation boundaries
  * to the earliest and latest pmem2 mapping stored, delete whole vm reservation
  * if it's empty
  */
 static int
-pmemset_adjust_vm_reservation_to_contents(
+pmemset_adjust_reservation_to_contents(
 		struct pmem2_vm_reservation **pmem2_reserv)
 {
 	int ret;
@@ -213,32 +213,40 @@ pmemset_adjust_vm_reservation_to_contents(
 }
 
 /*
- * pmemset_delete_all_part_maps_ravl_cb -- unmaps and deletes part mappings
- *                                         stored in the ravl tree
+ * pmemset_delete_pmap_ravl_arg -- arguments for pmap deletion callback
+ */
+struct pmemset_delete_pmap_ravl_arg {
+	int ret;
+	bool adjust_reservation;
+};
+
+/*
+ * pmemset_delete_all_pmaps_ravl_cb -- unmaps and deletes part mappings stored
+ *                                     in the ravl interval tree
  */
 static void
-pmemset_delete_all_part_maps_ravl_cb(void *data, void *arg)
+pmemset_delete_pmap_ravl_cb(void *data, void *arg)
 {
 	struct pmemset_part_map **pmap_ptr = (struct pmemset_part_map **)data;
 	struct pmemset_part_map *pmap = *pmap_ptr;
 
-	int *ret_arg = (int *)arg;
+	struct pmemset_delete_pmap_ravl_arg *cb_args =
+			(struct pmemset_delete_pmap_ravl_arg *)arg;
+
+	int *ret = &cb_args->ret;
 
 	size_t pmap_size = pmemset_descriptor_part_map(pmap).size;
-	int ret = pmemset_part_map_remove_range(pmap, 0, pmap_size, NULL, NULL);
-	if (ret) {
-		*ret_arg = ret;
+	*ret = pmemset_part_map_remove_range(pmap, 0, pmap_size, NULL, NULL);
+	if (*ret)
 		return;
-	}
 
 	struct pmem2_vm_reservation *pmem2_reserv = pmap->pmem2_reserv;
-	ret = pmemset_part_map_delete(pmap_ptr);
-	if (ret)
-		*ret_arg = ret;
+	*ret = pmemset_part_map_delete(pmap_ptr);
+	if (*ret)
+		return;
 
-	ret = pmemset_adjust_vm_reservation_to_contents(&pmem2_reserv);
-	if (ret)
-		*ret_arg = ret;
+	if (cb_args->adjust_reservation)
+		*ret = pmemset_adjust_reservation_to_contents(&pmem2_reserv);
 }
 
 /*
@@ -253,12 +261,19 @@ pmemset_delete(struct pmemset **set)
 	if (*set == NULL)
 		return 0;
 
-	int ret = 0;
+	struct pmemset_config *cfg = pmemset_get_pmemset_config(*set);
+	struct pmem2_vm_reservation *rsv = pmemset_config_get_reservation(cfg);
+
+	/* reservation that was set in pmemset should not be adjusted */
+	struct pmemset_delete_pmap_ravl_arg arg;
+	arg.ret = 0;
+	arg.adjust_reservation = (rsv == NULL);
+
 	/* delete RAVL tree with part_map nodes */
 	ravl_interval_delete_cb((*set)->shared_state.part_map_tree,
-			pmemset_delete_all_part_maps_ravl_cb, &ret);
-	if (ret)
-		return ret;
+			pmemset_delete_pmap_ravl_cb, &arg);
+	if (arg.ret)
+		return arg.ret;
 
 	/* delete cfg */
 	pmemset_config_delete(&(*set)->set_config);
@@ -420,7 +435,7 @@ pmemset_pmem2_config_init(struct pmem2_config *pmem2_cfg,
  *                                  chosen address and a given size
  */
 static int
-pmemset_create_vm_reservation(struct pmem2_vm_reservation **pmem2_reserv,
+pmemset_create_reservation(struct pmem2_vm_reservation **pmem2_reserv,
 		size_t size)
 {
 	struct pmem2_vm_reservation *p2rsv;
@@ -441,11 +456,11 @@ enum reservation_prep_type {
 };
 
 /*
- * pmemset_prepare_vm_reservation_range -- prepare the reservation memory range
- *                                         for mapping
+ * pmemset_prepare_reservation_range -- prepare the reservation memory range for
+ *                                      the mapping
  */
 static int
-pmemset_prepare_vm_reservation_range(struct pmem2_vm_reservation *p2rsv,
+pmemset_prepare_reservation_range(struct pmem2_vm_reservation *p2rsv,
 		size_t offset, size_t size, enum reservation_prep_type type)
 {
 	int ret = 0;
@@ -469,6 +484,37 @@ pmemset_prepare_vm_reservation_range(struct pmem2_vm_reservation *p2rsv,
 	}
 
 	return ret;
+}
+
+/*
+ * pmemset_find_reservation_empty_range -- find empty range in given reservation
+ */
+static int
+pmemset_find_reservation_empty_range(struct pmem2_vm_reservation *p2rsv,
+		size_t size, size_t *out_offset)
+{
+	*out_offset = SIZE_MAX;
+
+	size_t p2rsv_addr = (size_t)pmem2_vm_reservation_get_address(p2rsv);
+	size_t p2rsv_size = pmem2_vm_reservation_get_size(p2rsv);
+
+	struct pmem2_map *any_p2map;
+	size_t search_offset = 0;
+	while (search_offset < p2rsv_size) {
+		pmem2_vm_reservation_map_find(p2rsv, search_offset, size,
+				&any_p2map);
+		if (!any_p2map) {
+			*out_offset = search_offset;
+			return 0;
+		}
+
+		size_t p2map_addr = (size_t)pmem2_map_get_address(any_p2map);
+		size_t p2map_size = (size_t)pmem2_map_get_size(any_p2map);
+
+		search_offset = p2map_addr + p2map_size - p2rsv_addr;
+	}
+
+	return PMEMSET_E_PART_EXISTS;
 }
 
 /*
@@ -544,7 +590,7 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 						pmap->desc.size -
 						(size_t)p2rsv_addr;
 
-				ret = pmemset_prepare_vm_reservation_range(
+				ret = pmemset_prepare_reservation_range(
 					pmem2_reserv, map_reserv_offset,
 					part_size,
 					RESERV_PREP_TYPE_EXTEND_IF_NEEDED);
@@ -560,8 +606,28 @@ pmemset_part_map(struct pmemset_part **part_ptr, struct pmemset_extras *extra,
 			/* if reached this case, then don't coalesce */
 			map_reserv_offset = 0;
 
-			ret = pmemset_create_vm_reservation(&pmem2_reserv,
-					part_size);
+			struct pmem2_vm_reservation *config_rsv =
+					pmemset_config_get_reservation(
+					set_config);
+
+			if (config_rsv) {
+				pmem2_reserv = config_rsv;
+
+				ret = pmemset_find_reservation_empty_range(
+						pmem2_reserv, part_size,
+						&map_reserv_offset);
+				if (ret)
+					break;
+
+				ret = pmemset_prepare_reservation_range(
+					pmem2_reserv, map_reserv_offset,
+					part_size,
+					RESERV_PREP_TYPE_CHECK_IF_OCCUPIED);
+			} else {
+				ret = pmemset_create_reservation(&pmem2_reserv,
+						part_size);
+			}
+
 			if (ret)
 				break;
 
@@ -665,7 +731,8 @@ err_pmap_revert:
 	else
 		pmemset_part_map_delete(&pmap);
 err_adjust_vm_reserv:
-	pmemset_adjust_vm_reservation_to_contents(&pmem2_reserv);
+	if (!pmemset_config_get_reservation(set_config))
+		pmemset_adjust_reservation_to_contents(&pmem2_reserv);
 err_lock_unlock:
 	util_rwlock_unlock(&set->shared_state.lock);
 err_pmem2_cfg_delete:
@@ -720,8 +787,8 @@ pmemset_update_previous_part_map(struct pmemset *set,
 		node = ravl_interval_find_closest_later(
 				set->shared_state.part_map_tree, pmap);
 
-	set->shared_state.previous_pmap = (node) ?
-			ravl_interval_data(node) : NULL;
+	set->shared_state.previous_pmap = (node) ? ravl_interval_data(node) :
+			NULL;
 }
 
 /*
@@ -906,8 +973,11 @@ pmemset_remove_part_map_range_cb(struct pmemset *set,
 		ASSERTeq(ret, 0);
 	}
 
-	ret = pmemset_adjust_vm_reservation_to_contents(&pmem2_reserv);
-	ASSERTeq(ret, 0);
+	struct pmemset_config *cfg = pmemset_get_pmemset_config(set);
+	if (!pmemset_config_get_reservation(cfg)) {
+		ret = pmemset_adjust_reservation_to_contents(&pmem2_reserv);
+		ASSERTeq(ret, 0);
+	}
 
 	return 0;
 }
