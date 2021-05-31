@@ -328,11 +328,12 @@
   pmempool_rm: pmempool_rm.3
   pmempool_sync: pmempool_sync.3
   pmempool_transform: pmempool_sync.3
-- libpmemset: pmemset_config_delete.3 pmemset_config_new.3 pmemset_config_set_event_callback.3 pmemset_config_set_required_store_granularity.3 pmemset_deep_flush.3 pmemset_delete.3 pmemset_descriptor_part_map.3 pmemset_drain.3 pmemset_errormsg.3 pmemset_first_part_map.3 pmemset_flush.3 pmemset_get_store_granularity.3 pmemset_memcpy.3 pmemset_memmove.3 pmemset_memset.3 pmemset_new.3 pmemset_next_part_map.3 pmemset_part_delete.3 pmemset_part_map.3 pmemset_part_map_by_address.3 pmemset_part_map_drop.3 pmemset_part_new.3 pmemset_perror.3 pmemset_persist.3 pmemset_remove_part_map.3 pmemset_remove_range.3 pmemset_set_contiguous_part_coalescing.3 pmemset_source_delete.3 pmemset_source_from_file.3 pmemset_source_from_pmem2.3 pmemset_source_from_temporary.3 pmemset_xsource_from_file.3
+- libpmemset: pmemset_config_delete.3 pmemset_config_new.3 pmemset_config_set_event_callback.3 pmemset_config_set_required_store_granularity.3 pmemset_config_set_reservation.3 pmemset_deep_flush.3 pmemset_delete.3 pmemset_descriptor_part_map.3 pmemset_drain.3 pmemset_errormsg.3 pmemset_first_part_map.3 pmemset_flush.3 pmemset_get_store_granularity.3 pmemset_memcpy.3 pmemset_memmove.3 pmemset_memset.3 pmemset_new.3 pmemset_next_part_map.3 pmemset_part_delete.3 pmemset_part_map.3 pmemset_part_map_by_address.3 pmemset_part_map_drop.3 pmemset_part_new.3 pmemset_perror.3 pmemset_persist.3 pmemset_remove_part_map.3 pmemset_remove_range.3 pmemset_set_contiguous_part_coalescing.3 pmemset_source_delete.3 pmemset_source_from_file.3 pmemset_source_from_pmem2.3 pmemset_source_from_temporary.3 pmemset_xsource_from_file.3
   pmemset_config_delete: pmemset_config_new.3
   pmemset_config_new: pmemset_config_new.3
   pmemset_config_set_event_callback: pmemset_config_set_event_callback.3
   pmemset_config_set_required_store_granularity: pmemset_config_set_required_store_granularity.3
+  pmemset_config_set_reservation: pmemset_config_set_reservation.3
   pmemset_deep_flush: pmemset_deep_flush.3
   pmemset_delete: pmemset_new.3
   pmemset_descriptor_part_map: pmemset_descriptor_part_map.3
